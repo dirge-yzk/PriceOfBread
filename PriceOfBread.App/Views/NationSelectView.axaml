@@ -1,0 +1,111 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PriceOfBread.App.ViewModels"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="980" d:DesignHeight="640"
+             x:Class="PriceOfBread.App.Views.NationSelectView"
+             x:DataType="vm:NationSelectViewModel">
+    <UserControl.Styles>
+        <!-- 国選択ボタン：暗い背景画の上でも読めるよう不透明なパーチメント地＋濃色文字（既定Fluentボタンは半透明で沈む） -->
+        <Style Selector="Button.nation">
+            <Setter Property="Background" Value="{StaticResource ParchmentDimBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource InkBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource SandDarkBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="4"/>
+        </Style>
+        <Style Selector="Button.nation /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource ParchmentDimBrush}"/>
+        </Style>
+        <Style Selector="Button.nation:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#E4DABE"/>
+            <Setter Property="TextBlock.Foreground" Value="#2A2118"/>
+        </Style>
+        <Style Selector="Button.nation:pressed /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#D8CBA6"/>
+            <Setter Property="TextBlock.Foreground" Value="#2A2118"/>
+        </Style>
+        <!-- おすすめカード：見出し（左＝国名（強さ）・右端＝難易度の色文字）＋説明（歴史的背景＋プレイフィール） -->
+        <Style Selector="Button.card">
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="VerticalContentAlignment" Value="Top"/>
+            <Setter Property="Padding" Value="10,6"/>
+        </Style>
+        <Style Selector="Button.card TextBlock.cardTitle">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="{StaticResource InkBrush}"/>
+        </Style>
+        <Style Selector="Button.card TextBlock.cardBody">
+            <Setter Property="FontSize" Value="10.5"/>
+            <Setter Property="Foreground" Value="#4A3F30"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="LineHeight" Value="13.5"/>
+            <Setter Property="Margin" Value="0,3,0,0"/>
+            <!-- 作者指示2026-08-16「テキスト欄が足りていない」：行の途中でぶつ切りにしない＝9行（カード165pxに収まる最大行数）で
+                 行境界＋省略記号の綺麗な終わり。カード高の算術＝165−Padding12−枠2−見出し19−本文Margin3＝129 ≧ 9行×13.5=121.5 -->
+            <Setter Property="MaxLines" Value="9"/>
+            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+        </Style>
+    </UserControl.Styles>
+    <Panel>
+        <Image Source="avares://PriceOfBread.App/Assets/moonlit.jpg" Stretch="UniformToFill"/>
+        <Border Background="#66000000"/>
+        <DockPanel Margin="20,10">
+            <TextBlock DockPanel.Dock="Top" Text="国家選択" FontSize="22" FontWeight="Bold" Foreground="#F4EFE2" Margin="0,0,0,4"/>
+
+            <!-- おすすめ＝均等なカードを並べるだけ（作者指示2026-08-11）。★難易度はカードの見出しに書いてあるので
+                 難易度で列を分けない＝2/4/1の列は高さが揃わず、形が崩れていた。枡を固定（ItemWidth/ItemHeight）＝
+                 文章の長さが違っても段が揃う。並び順は易しい順（難易度の勾配は並びで伝わる）。
+                 ★カードの高さは188/181→152/145（全カ国1画面・2026-08-15）→172/165（作者指示2026-08-16「テキスト欄が
+                 足りていない」＝その他の下の遊休余白から+20pxずつ回収）。寸法の総和＝見出し33＋カード2段344＋余白4＋
+                 その他6列8段200 ≒ 581 ≦ 実効高約609＝スクロールバーは出ない（出現→列減→溢れの自己増殖は起きない）。 -->
+            <ItemsControl DockPanel.Dock="Top" ItemsSource="{Binding Recommended}" Margin="0,0,0,4">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate><WrapPanel Orientation="Horizontal" ItemWidth="235" ItemHeight="172"/></ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:NationChoice">
+                        <Button Classes="nation card" Command="{Binding ChooseCommand}" Width="227" Height="165">
+                            <StackPanel>
+                                <!-- 見出し＝国名（強さ）を左・難易度を右端へ（作者指示2026-08-15）。難易度は3値の色分け（VM側のブラシ） -->
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock Classes="cardTitle" Text="{Binding Title}" TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock Grid.Column="1" Classes="cardTitle" Text="{Binding Difficulty}"
+                                               Foreground="{Binding DifficultyBrush}" Margin="6,0,0,0"/>
+                                </Grid>
+                                <TextBlock Classes="cardBody" Text="{Binding Description}"/>
+                            </StackPanel>
+                        </Button>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <!-- その他の国＝常時表示・画面幅いっぱい（作者指示2026-08-11）。名前が枠に入らない国だけ末尾を省略し、強さは必ず出す。
+                 ★全カ国1画面（作者指示2026-08-15）：旧はスクロールバーが出ると幅923→5列×10段（250px）へ自己増殖する薄氷だった。
+                 おすすめカードを縮めてこの枠に250px超を確保＝6列（8段200px）はもちろん、万一5列へ落ちても収まる
+                 ＝寸法がスクロールバーの出現に依存しない。ScrollViewer は保険として残す。 -->
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <ItemsControl ItemsSource="{Binding Others}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate><WrapPanel Orientation="Horizontal" ItemWidth="156" ItemHeight="25"/></ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:NationChoice">
+                            <Button Classes="nation" Command="{Binding ChooseCommand}"
+                                    Width="150" Height="22" HorizontalContentAlignment="Stretch" Padding="6,0">
+                                <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                                    <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="{StaticResource FontTiny}" Foreground="{StaticResource InkBrush}"
+                                               TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding StrengthLabel}" FontSize="{StaticResource FontTiny}" Foreground="#6A5C46"
+                                               VerticalAlignment="Center" Margin="3,0,0,0"/>
+                                </Grid>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </DockPanel>
+    </Panel>
+</UserControl>

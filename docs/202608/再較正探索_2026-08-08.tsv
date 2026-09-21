@@ -1,0 +1,128 @@
+# 再較正探索 2026-08-08 19:01 開始（基線＝unify_fallback）
+
+## A1_Y15_Frac015: {'HoardCrystallizeRate': '0.003', 'InvestReadsLiquid': '1.0', 'ConsumeReadsLiquid': '1.0', 'InvestIncomeFloor': '0.4', 'WealthAnchorYears': '15.0', 'IndInvestmentFrac': '0.15'}
+# 再較正探索 2026-08-08 19:01 開始（基線＝unify_fallback）
+
+## A1_Y15_Frac015: {'HoardCrystallizeRate': '0.003', 'InvestReadsLiquid': '1.0', 'ConsumeReadsLiquid': '1.0', 'InvestIncomeFloor': '0.4', 'WealthAnchorYears': '15.0', 'IndInvestmentFrac': '0.15'}
+A1_Y15_Frac015: canary赤＝棄却（評価消費ゼロ）
+
+## A2_Y15_Frac025: {'HoardCrystallizeRate': '0.003', 'InvestReadsLiquid': '1.0', 'ConsumeReadsLiquid': '1.0', 'InvestIncomeFloor': '0.4', 'WealthAnchorYears': '15.0', 'IndInvestmentFrac': '0.25'}
+A2_Y15_Frac025: canary赤＝棄却（評価消費ゼロ）
+
+## A3_Y8_Frac025: {'HoardCrystallizeRate': '0.003', 'InvestReadsLiquid': '1.0', 'ConsumeReadsLiquid': '1.0', 'InvestIncomeFloor': '0.4', 'WealthAnchorYears': '8.0', 'IndInvestmentFrac': '0.25'}
+A3_Y8_Frac025: バッチ出力なし＝棄却
+
+## A4_Y8_Frac040: {'HoardCrystallizeRate': '0.003', 'InvestReadsLiquid': '1.0', 'ConsumeReadsLiquid': '1.0', 'InvestIncomeFloor': '0.4', 'WealthAnchorYears': '8.0', 'IndInvestmentFrac': '0.40'}
+A4_Y8_Frac040: バッチ出力なし＝棄却
+
+## B1_elas30: {'DemandElasticityMaxDaily': '3.0', 'DemandElasticityMaxLuxury': '2.4'}
+B1_elas30: canary赤＝棄却（評価消費ゼロ）
+
+## B2_elas35: {'DemandElasticityMaxDaily': '3.5', 'DemandElasticityMaxLuxury': '2.8'}
+B2_elas35: canary赤＝棄却（評価消費ゼロ）
+
+## C1_P007: {'IndPerConstruction': '0.007'}
+C1_P007: canary赤＝棄却（評価消費ゼロ）
+
+## C2_P005: {'IndPerConstruction': '0.005'}
+C2_P005: canary赤＝棄却（評価消費ゼロ）
+
+# 終了：採用セルなし＝Coefficients.cs を原状復元（読者点火は資本コスト側の追加次元が必要という結論を強化）
+# 再較正探索 2026-08-09 12:06 開始（基線＝unify_fallback）
+
+## A1_Y15_Frac015: {'HoardCrystallizeRate': '0.003', 'InvestReadsLiquid': '1.0', 'ConsumeReadsLiquid': '1.0', 'InvestIncomeFloor': '0.4', 'WealthAnchorYears': '15.0', 'IndInvestmentFrac': '0.15'}
+A1_Y15_Frac015: バッチ出力なし＝棄却
+
+## A2_Y15_Frac025: {'HoardCrystallizeRate': '0.003', 'InvestReadsLiquid': '1.0', 'ConsumeReadsLiquid': '1.0', 'InvestIncomeFloor': '0.4', 'WealthAnchorYears': '15.0', 'IndInvestmentFrac': '0.25'}
+A2_Y15_Frac025: バッチ出力なし＝棄却
+
+## A3_Y8_Frac025: {'HoardCrystallizeRate': '0.003', 'InvestReadsLiquid': '1.0', 'ConsumeReadsLiquid': '1.0', 'InvestIncomeFloor': '0.4', 'WealthAnchorYears': '8.0', 'IndInvestmentFrac': '0.25'}
+A3_Y8_Frac025: canary赤＝棄却（評価消費ゼロ）
+
+## A4_Y8_Frac040: {'HoardCrystallizeRate': '0.003', 'InvestReadsLiquid': '1.0', 'ConsumeReadsLiquid': '1.0', 'InvestIncomeFloor': '0.4', 'WealthAnchorYears': '8.0', 'IndInvestmentFrac': '0.40'}
+A4_Y8_Frac040: canary赤＝棄却（評価消費ゼロ）
+
+## B1_elas30: {'DemandElasticityMaxDaily': '3.0', 'DemandElasticityMaxLuxury': '2.4'}
+B1_elas30: canary赤＝棄却（評価消費ゼロ）
+
+## B2_elas35: {'DemandElasticityMaxDaily': '3.5', 'DemandElasticityMaxLuxury': '2.8'}
+B2_elas35: canary赤＝棄却（評価消費ゼロ）
+
+## C1_P007: {'IndPerConstruction': '0.007'}
+C1_P007: canary赤＝棄却（評価消費ゼロ）
+
+## C2_P005: {'IndPerConstruction': '0.005'}
+C2_P005: canary赤＝棄却（評価消費ゼロ）
+
+## D1_dep045_cap045: {'IndDepreciation': '0.0045', 'IndCapitalCost': '0.45'}
+D1_dep045_cap045: canary赤＝棄却（評価消費ゼロ）
+
+## D2_A2xD1: {'HoardCrystallizeRate': '0.003', 'InvestReadsLiquid': '1.0', 'ConsumeReadsLiquid': '1.0', 'InvestIncomeFloor': '0.4', 'WealthAnchorYears': '15.0', 'IndInvestmentFrac': '0.25', 'IndDepreciation': '0.0045', 'IndCapitalCost': '0.45'}
+D2_A2xD1: バッチ出力なし＝棄却
+
+# 終了：採用セルなし＝Coefficients.cs を原状復元（読者点火は資本コスト側の追加次元が必要という結論を強化）
+
+# 第2走の無効判定と是正（2026-08-09）
+- 第1〜2走の canary 赤（B/C/D 全セル）は**無効**。原因＝ドライバの canary が日本語文字列照合（「失敗!」等）で判定しており、分離プロセスのコンソール文字化けで常に偽陰性になっていた。D1（IndDepreciation 0.0045×IndCapitalCost 0.45）を手元で再現したところ **16/16 緑**＝canary は本来通る。
+- 是正＝canary 判定を終了コード（returncode==0）へ、バッチの硬性判定を .tests ファイル読み（UTF-8・コンソール非依存）へ変更済み。
+- 併せてバッチハーネスの陳腐化検査を修正：「植民地の保存」（Validation.cs）が州昇格を知らず、植民地州昇格の採用以降**すべてのバッチが硬性赤**になっていた。Diplomacy.PromotedColonies 台帳を新設し、保有＋独立＋昇格＝初期総数へ拡張（例: seed1 6+0+40=46）。canary 16/16 緑・2シードスポット確認で硬性ゲート緑。
+- geo_stage1（経路グラフ§1-2）：帯は全軸 ±0.0・硬性赤の唯一の原因が上記の陳腐化検査だったため、**修正後の緑をもって採用確定**。
+# 再較正探索 2026-08-09 13:24 開始（基線＝unify_fallback）
+
+## A1_Y15_Frac015: {'HoardCrystallizeRate': '0.003', 'InvestReadsLiquid': '1.0', 'ConsumeReadsLiquid': '1.0', 'InvestIncomeFloor': '0.4', 'WealthAnchorYears': '15.0', 'IndInvestmentFrac': '0.15'}
+A1_Y15_Frac015: バッチ出力なし＝棄却
+
+## A2_Y15_Frac025: {'HoardCrystallizeRate': '0.003', 'InvestReadsLiquid': '1.0', 'ConsumeReadsLiquid': '1.0', 'InvestIncomeFloor': '0.4', 'WealthAnchorYears': '15.0', 'IndInvestmentFrac': '0.25'}
+# 再較正探索 2026-08-09 13:36 開始（基線＝unify_fallback）
+
+## A1_Y15_Frac015: {'HoardCrystallizeRate': '0.003', 'InvestReadsLiquid': '1.0', 'ConsumeReadsLiquid': '1.0', 'InvestIncomeFloor': '0.4', 'WealthAnchorYears': '15.0', 'IndInvestmentFrac': '0.15'}
+A1_Y15_Frac015: {'政体': 27.6, '法': 50.9, '人口': 17.1, '列強': 20.0, '特異度': 89.8, '経済': 36.2, '領土本': 69.2, '領土植': 45.0} Δ経済=+8.7 Δ総合=+8.3 床=False → 硬性赤棄却
+
+## A2_Y15_Frac025: {'HoardCrystallizeRate': '0.003', 'InvestReadsLiquid': '1.0', 'ConsumeReadsLiquid': '1.0', 'InvestIncomeFloor': '0.4', 'WealthAnchorYears': '15.0', 'IndInvestmentFrac': '0.25'}
+（A1所見：硬性赤の中身＝破綻0/テスト緑だが異常1＝損失financing率ピーク2,037%（1/10試合・慢性赤字の負債化）＋平均最大ドローダウン96.6%。読者点火は経済+8.7を出すが資金繰りを負債スパイラルへ追い込む＝床割れは領土本−7.5。資本側補償Frac0.15では不足）
+A2_Y15_Frac025: {'政体': 27.6, '法': 52.6, '人口': 14.3, '列強': 17.5, '特異度': 88.7, '経済': 17.5, '領土本': 70.0, '領土植': 44.2} Δ経済=-10.0 Δ総合=-15.1 床=False → 硬性赤棄却
+
+## A3_Y8_Frac025: {'HoardCrystallizeRate': '0.003', 'InvestReadsLiquid': '1.0', 'ConsumeReadsLiquid': '1.0', 'InvestIncomeFloor': '0.4', 'WealthAnchorYears': '8.0', 'IndInvestmentFrac': '0.25'}
+A3_Y8_Frac025: {'政体': 30.6, '法': 47.2, '人口': 22.9, '列強': 20.0, '特異度': 90.0, '経済': 26.3, '領土本': 74.2, '領土植': 44.2} Δ経済=-1.2 Δ総合=+7.9 床=True → 棄却
+
+## A4_Y8_Frac040: {'HoardCrystallizeRate': '0.003', 'InvestReadsLiquid': '1.0', 'ConsumeReadsLiquid': '1.0', 'InvestIncomeFloor': '0.4', 'WealthAnchorYears': '8.0', 'IndInvestmentFrac': '0.40'}
+A4_Y8_Frac040: {'政体': 30.2, '法': 49.3, '人口': 14.3, '列強': 18.8, '特異度': 88.9, '経済': 25.0, '領土本': 72.5, '領土植': 43.3} Δ経済=-2.5 Δ総合=-5.2 床=True → 棄却
+
+## B1_elas30: {'DemandElasticityMaxDaily': '3.0', 'DemandElasticityMaxLuxury': '2.4'}
+B1_elas30: {'政体': 26.5, '法': 48.6, '人口': 24.3, '列強': 15.0, '特異度': 89.1, '経済': 22.5, '領土本': 79.2, '領土植': 41.7} Δ経済=-5.0 Δ総合=-0.6 床=True → 硬性赤棄却
+
+## B2_elas35: {'DemandElasticityMaxDaily': '3.5', 'DemandElasticityMaxLuxury': '2.8'}
+B2_elas35: {'政体': 27.6, '法': 49.8, '人口': 11.4, '列強': 21.3, '特異度': 89.8, '経済': 26.3, '領土本': 80.8, '領土植': 46.7} Δ経済=-1.2 Δ総合=+6.2 床=True → 硬性赤棄却
+
+## C1_P007: {'IndPerConstruction': '0.007'}
+C1_P007: {'政体': 26.5, '法': 49.7, '人口': 17.1, '列強': 16.3, '特異度': 88.7, '経済': 23.8, '領土本': 71.7, '領土植': 40.0} Δ経済=-3.7 Δ総合=-13.7 床=False → 棄却
+
+## C2_P005: {'IndPerConstruction': '0.005'}
+C2_P005: {'政体': 29.1, '法': 48.1, '人口': 15.7, '列強': 12.5, '特異度': 88.5, '経済': 26.3, '領土本': 74.2, '領土植': 45.0} Δ経済=-1.2 Δ総合=-8.1 床=True → 棄却
+
+## D1_dep045_cap045: {'IndDepreciation': '0.0045', 'IndCapitalCost': '0.45'}
+D1_dep045_cap045: {'政体': 28.0, '法': 53.3, '人口': 20.0, '列強': 22.5, '特異度': 89.1, '経済': 26.3, '領土本': 73.3, '領土植': 45.0} Δ経済=-1.2 Δ総合=+10.0 床=True → 棄却
+
+## D2_A2xD1: {'HoardCrystallizeRate': '0.003', 'InvestReadsLiquid': '1.0', 'ConsumeReadsLiquid': '1.0', 'InvestIncomeFloor': '0.4', 'WealthAnchorYears': '15.0', 'IndInvestmentFrac': '0.25', 'IndDepreciation': '0.0045', 'IndCapitalCost': '0.45'}
+D2_A2xD1: {'政体': 24.1, '法': 51.6, '人口': 17.1, '列強': 18.8, '特異度': 88.5, '経済': 18.8, '領土本': 74.2, '領土植': 44.2} Δ経済=-8.7 Δ総合=-10.2 床=False → 硬性赤棄却
+
+# 終了：採用セルなし＝Coefficients.cs を原状復元（読者点火は資本コスト側の追加次元が必要という結論を強化）
+
+# 第5走 総括（2026-08-09・完走）
+
+10セル全て主軸基準（Δ経済≥+1.5）では不採用＝**読者点火（退蔵結晶化）は資本コスト側の追加次元なしには経済軸を動かせない**の結論を3走分の実測で確定。
+- A1（Frac0.15）＝経済+8.7だが負債スパイラル異常（損失financing 2,037%）＋領土本−7.5＝硬性赤
+- A2/D2（Frac0.25系）＝過剰補償で経済−8.7〜−10
+- **副産物2座標が硬性緑・床維持で全般忠実度を改善**：A3（Y8×Frac0.25）Δ総合+7.9／**D1（dep0.0045×cap0.45）Δ総合+10.0**
+- **D1採用（ユーザー承認「やる」2026-08-09）**＝IndDepreciation 0.0045・IndCapitalCost 0.45。測定原本=rs_D1_dep045_cap045（基線+D1単独の清潔測定）。新基線帯＝政体28.0/法53.3/人口20.0/列強22.5/特異度89.1/経済26.3/領土本73.3/領土植45.0
+- A3は不採用（D1と同時採用は複合未測定・D1が優越）
+
+# D1採用の差し戻し（同日・アブレーション実測）
+
+Wave F還流（州+15/−3等23件）後の合成測定：
+- wavef_full（D1あり）＝政体24.8/法48.0/人口18.6/列強17.5/特異89.1/経済21.3/領土本76.7/領土植42.5（Σ328.5）
+- wavef_noD1（D1なし）＝政体27.0/法51.1/人口11.4/列強13.8/特異88.0/経済30.0/領土本75.0/領土植40.0（Σ336.3）
+→ **D1は新州地図で符号反転（経済−8.7・総合−7.8）＝差し戻し**。rs_D1の+10は旧州地図の軌道に依存していた。
+教訓＝大規模データ変更を跨ぐ係数採用は合成後のアブレーション必須（切り分け基線が古いと結論を誤る、の再演）。
+Wave Fデータ自体は硬性緑（破綻0/異常0）＝採用維持。旧基線比Δ総合−11.2（主因=領土植−6.7・人口−4.3）は記録
+（帯の悪化だけでは差し戻さない方針・軌道全面リロールの範疇）。新基線＝wavef_noD1。

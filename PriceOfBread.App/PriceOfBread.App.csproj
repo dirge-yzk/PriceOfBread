@@ -1,0 +1,61 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <!-- 配布版のバージョン（作者指示2026-08-25＝ver1.4「election」）。exeのプロパティ・タイトル画面・配布ファイル名が**この1本**を読む。
+         ★InformationalVersion がタイトル画面の表示そのもの（TitleViewModel が "ver " を前置し、SourceLink の +commit は切り落とす）。 -->
+    <Version>1.5.0</Version>
+    <AssemblyVersion>1.5.0.0</AssemblyVersion>
+    <FileVersion>1.5.0.0</FileVersion>
+    <InformationalVersion>1.5 (great divergence)</InformationalVersion>
+    <!-- ★配布物は「ゲーム本体＋マニュアル」の2つだけにする（作者指示2026-08-26）。
+         219個のDLLとネイティブ（Skia/HarfBuzz）を exe に同梱し、初回起動時に一時フォルダへ自動展開する。
+         ⚠publish のときだけ効く設定＝開発ビルド（bin/Release）は従来どおり分割のまま（毎回の同梱は遅い）。 -->
+    <PublishSingleFile>true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <DebugType>none</DebugType>   <!-- 自分の .pdb を出さない -->
+    <!-- 参照（SimCore・SkiaSharp・HarfBuzzSharp）が連れてくる .pdb も配布物へ置かない。
+         ⚠libSkiaSharp.pdb は84MB・libHarfBuzzSharp.pdb は20MB＝配布物の半分がデバッグ情報になっていた。 -->
+    <AllowedReferenceRelatedFileExtensions>none</AllowedReferenceRelatedFileExtensions>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\**" />
+    <!-- ★2026-08-26：alerts.csv は**埋め込みリソース**へ（配布物の Data フォルダを無くす）。読み手は AlertCatalog（world.json と同じ作法）。 -->
+    <EmbeddedResource Include="Data\alerts.csv" />
+    <!-- ★配布物には必ずマニュアルを同梱する（作者指示2026-08-26「今後とも」）＝ここに置く限り build も publish も自動で拾う。
+         実体は PriceOfBread.App/マニュアル.html（1ファイル完結・ブラウザで開く）。⚠新しい画面や操作を足したらこの1本を更新すること。
+         ⚠**docs/ に置いてはいけない**（2026-08-26に踏んだ罠）＝隔離測定（measure.sh）はソース複製時に docs を除くので、
+           そこを参照すると測定側のビルドが「ファイルが見つからない」で落ち、測定そのものが走らなくなる。 -->
+    <None Include="マニュアル.html" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="12.0.4" />
+    <PackageReference Include="Avalonia.Desktop" Version="12.0.4" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.0.4" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="12.0.4" />
+    <PackageReference Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.1">
+      <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
+      <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj" />
+  </ItemGroup>
+  <!-- ★配布物から .pdb を全部落とす（作者指示2026-08-26「一番上はゲーム本体とマニュアルだけ」）。
+       ⚠SkiaSharp/HarfBuzzSharp の**ネイティブ** .pdb（合わせて約105MB）はパッケージのランタイム資産として来るので、
+         AllowedReferenceRelatedFileExtensions では落ちない＝発行の直前に一覧から除く。 -->
+  <Target Name="DropPdbFromPublish" AfterTargets="ComputeFilesToPublish">
+    <ItemGroup>
+      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)" Condition="'%(Extension)' == '.pdb'" />
+    </ItemGroup>
+  </Target>
+
+</Project>

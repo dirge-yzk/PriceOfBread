@@ -1,0 +1,11 @@
+﻿id,icon,color,text
+ev_start,📜,#808080,治世が始まる
+ev_depression,📉,#A0432D,恐慌が発生（GDPがピーク比 {0:P0} 収縮）
+ev_recession,🟡,#8A6A20,景気後退が発生（GDPが {0:P0} 収縮）
+ev_famine,🌾,#A0432D,飢饉が発生（不作・収穫 {0:P0}）
+ev_credit_heat,🏦,#8A6A20,金融の過熱（与信使用率 {0:P0}）
+ev_austerity,🩹,#A0432D,緊縮財政に突入
+ev_austerity_end,🌤,#2E7D32,緊縮を脱する
+ev_devaluation,💸,#8A6A20,通貨の切り下げが発生
+ev_revolution,🚩,#A0432D,{0}へ政変が発生
+ev_civilwar,⚔,#A0432D,内戦が勃発

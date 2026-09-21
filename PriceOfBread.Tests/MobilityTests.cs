@@ -1,0 +1,283 @@
+﻿using System.Linq;
+using PriceOfBread.SimCore;
+using Xunit;
+
+namespace PriceOfBread.Tests;
+
+/// <summary>
+/// POPの転職（昇格・転落）：蓄財した中層→資本家／困窮した上層→中層（最も実入りの良い職へ）／
+/// 食えない中層→労働者。転落は闘争度を上げる。聖職者は世俗化で没落するが人口比の下限で消えない。
+/// 閾値は国民平均の1人あたり貯蓄に対する倍率＝経済規模で自動スケール。
+/// </summary>
+public class MobilityTests
+{
+    [Fact]
+    public void 転職があっても人口と貨幣は保存される()
+    {
+        var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+        double p0 = sim.World.TotalPopulation;
+        var ex = Record.Exception(() => sim.Run(200));   // §11.6 が全ティックで保持（規模・貯蓄の比例移動＝保存）
+        Assert.Null(ex);
+        Assert.True(System.Math.Abs(sim.World.TotalPopulation - (p0 + sim.World.PopulationDelta)) < 1e-6 * p0, "転職で人口保存が破れた");
+    }
+
+    [Fact]
+    public void 蓄財した中層が資本家に昇格する()   // ③中流→資本家（設計仕様）。昇格機構を直接・決定論的に検証＝人口動態(衛生/疫病等)のノイズに頑健（旧・240年の人口比テストは均衡近傍で脆弱だった）
+    {
+        var sim = new Simulation(NationConfig.Britain().ToScenario(43), new NullAgent());
+        sim.Run(20);   // 経済を落ち着かせる
+        var r = sim.World.Region;
+        Assert.True(r.InvestorPopIndex >= 0 && r.MeritToIndex >= 0, "英に階級移動の階級が無い");
+        var mid = r.Pops[r.MeritToIndex];          // 中流（専門職・技師）
+        var cap = r.Pops[r.InvestorPopIndex];      // 資本家
+        double totalSav = 0, total = 0;
+        foreach (var p in r.Pops) { totalSav += System.Math.Max(0, p.Savings); total += p.Size; }
+        double avgPerCap = totalSav / total;
+        // 好況で中層が資金を貯めた状態を再現：中層の1人あたり貯蓄を平均の20倍へ（閾値8倍 CapitalRiseThreshold を確実に超える）。
+        // 財源は最富裕の資本家から移す（pop間移転＝貨幣保存＝保存則を破らない）。
+        double want = 20.0 * avgPerCap * mid.Size;
+        double take = System.Math.Min(System.Math.Max(0, want - System.Math.Max(0, mid.Savings)), System.Math.Max(0, cap.Savings));
+        cap.Savings -= take; mid.Savings += take;
+        Assert.True(mid.Savings / mid.Size > sim.World.Coef.CapitalRiseThreshold * avgPerCap, "セットアップ不足：中層が昇格閾値に達していない");
+        double cap0 = cap.Size;
+        for (int i = 0; i < 8; i++) Meritocracy.Step(sim.World, sim.World.Coef);   // 昇格機構のみを回す（人口動態を挟まない＝衛生等の人口ノイズと隔離）
+        double cap1 = r.Pops[r.InvestorPopIndex].Size;
+        Assert.True(cap1 > cap0, $"蓄財した中層が資本家に昇格しない（資本家 {cap0:F1}→{cap1:F1}）");
+    }
+
+    [Fact]
+    public void 食えない中層は労働者に転落し不満を持ち込む()   // 宗教国の失業教師＝収入ゼロの中層は消える（受け皿＝下層）
+    {
+        var sim = new Simulation(NationConfig.Russia().ToScenario(47), new NullAgent());   // 宗教法＝教師に職がない
+        var r = sim.World.Region;
+        double teacher0 = r.Pops[7].Size;
+        sim.Run(120);
+        Assert.True(r.Pops[7].Size < teacher0 * 0.7,
+            $"職のない教師が転落していない（{teacher0:F0}→{r.Pops[7].Size:F0}）");
+    }
+
+    [Fact]
+    public void 教育市場は子供の就学需要で維持され教師が枯渇しない()   // 教師崩壊の回帰（2件の真因を監視）：
+    {
+        // ①人口動態：純増だけを子供に加えると成熟社会で子供が払底（0.3→0.04を観測）→学校需要が消える。
+        // ②昇格：給与差駆動で、教育が売れる限り教師の給与が立ち志望者が補充される（枠の凍結事故は構造ごと廃止）。
+        var sim = new Simulation(NationConfig.Britain().ToScenario(59), new NullAgent());   // イギリス＝最初から公教育
+        var r = sim.World.Region;
+        r.Markets[61].Stock = 1e6;   // ★2026-08-23：閉じた英国は綿花なし→紙（教育の投入）が立たない＝多国世界の交易/植民地財の代替として紙を外生供給（検証対象は就学需要→教師の補充）
+        r.Markets[Catalog.Goods.First(g => g.Name == "書籍").Id].Stock = 1e6;   // 教育の投入は技術で紙→書籍へ切り替わる＝書籍も外生供給
+        sim.Run(240);
+        double childShare = r.Pops[2].ChildShare;   // 工場労働者の子供比率（粗出生で補充され続ける）
+        Assert.True(childShare > 0.2, $"成熟社会で子供が払底した（子供比率 {childShare:P0}）＝粗出生の補充が機能していない");
+        var edu = r.Markets[Catalog.EducationId];
+        Assert.True(edu.LastProduced > 50, $"教育の生産が崩壊した（{edu.LastProduced:F1}）＝就学需要に教師の供給が応えていない");
+        Assert.True(r.Pops[7].Size > 8, $"教師が枯渇した（{r.Pops[7].Size:F0}人）＝給与シグナルが教師に志望者を呼べていない");
+    }
+
+    [Fact]
+    public void 失業プールは失業者を同階級の稼げる職へ流し資格が無ければ降格する()   // ①''（2026-08-15作者指示・休眠JobSearchRate）の点火経路
+    {
+        // 双子シム（同シード＝決定論で同一状態）：ON側だけプールが動く＝差分がプールの効果そのもの。
+        var off = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+        var on = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+        off.Run(20); on.Run(20);
+        on.World.Coef.JobSearchRate = 0.10;
+        foreach (var sim in new[] { off, on })
+        {
+            var r = sim.World.Region;
+            sim.World.Coef.BaseUrbanCap = 0.9;   // 天井に余裕のある状態（英は月20で既にペア天井超過＝素だと§2.4が正しく封鎖する。ここは転職経路自体を見る）
+            var farmer = r.Pops[1]; var worker = r.Pops[r.MeritFromIndex];
+            // 農民の半分が失業・労働者の1人あたり所得が農民を大きく上回る世界（工場が生産性で勝つ）を直接セット＝決定論
+            farmer.UnemploymentRate = 0.5; farmer.UnemploymentEma = 0.5;   // JobSearchUsesEma点火（2026-08-16）＝プールは慢性失業（EMA）を読む
+            farmer.Earned = 0.5 * farmer.Size; worker.Earned = 10.0 * worker.Size;
+            // 職人は識字0（資格なし）＋半分失業：同階級に入れる職が無い→下層の最良職（労働者）へ降格
+            var artisan = r.Pops[r.ArtisanPopIndex];
+            artisan.UnemploymentRate = 0.5; artisan.UnemploymentEma = 0.5; artisan.Literacy = 0.0; artisan.Earned = 0;
+            double pop0 = 0; foreach (var p in r.Pops) pop0 += p.Size;
+            Meritocracy.Step(sim.World, sim.World.Coef);
+            double pop1 = 0; foreach (var p in r.Pops) pop1 += p.Size;
+            Assert.True(System.Math.Abs(pop1 - pop0) < 1e-6 * pop0, "失業プールで人口保存が破れた");
+        }
+        var ro = off.World.Region; var rn = on.World.Region;
+        Assert.True(rn.Pops[1].Size < ro.Pops[1].Size,
+            $"失業した農民が稼げる職へ流れない（OFF {ro.Pops[1].Size:F1} / ON {rn.Pops[1].Size:F1}）");
+        Assert.True(rn.Pops[rn.ArtisanPopIndex].Size < ro.Pops[ro.ArtisanPopIndex].Size,
+            $"資格の無い失業職人が降格しない（OFF {ro.Pops[ro.ArtisanPopIndex].Size:F1} / ON {rn.Pops[rn.ArtisanPopIndex].Size:F1}）");
+        Assert.True(rn.Pops[rn.MeritFromIndex].Size > ro.Pops[ro.MeritFromIndex].Size,
+            "受け皿（下層の最良職＝労働者）が増えていない");
+    }
+
+    [Fact]
+    public void 失業プールは都市化天井の残枠を超えて農村から都市へ流さない()   // §2.4の管轄拡張（敵対レビューHIGH・監査rank2の是正）
+    {
+        var off = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+        var on = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+        off.Run(20); on.Run(20);
+        on.World.Coef.JobSearchRate = 0.10;
+        foreach (var sim in new[] { off, on })
+        {
+            var w = sim.World; var r = w.Region;
+            w.Coef.BaseUrbanCap = 0.0; w.Coef.UrbanPerInd = 0.0;   // 天井0＝都市への新規流入枠なし（双子とも同条件）
+            var farmer = r.Pops[1]; var worker = r.Pops[r.MeritFromIndex];
+            farmer.UnemploymentRate = 0.5; farmer.UnemploymentEma = 0.5;   // EMA点火に追随
+            farmer.Earned = 0.5 * farmer.Size; worker.Earned = 10.0 * worker.Size;
+            Meritocracy.Step(w, w.Coef);
+        }
+        double f0 = off.World.Region.Pops[1].Size, f1 = on.World.Region.Pops[1].Size;
+        Assert.True(System.Math.Abs(f1 - f0) < 1e-9 * f0,
+            $"天井0なのに失業農民が都市職へ流れた（OFF {f0:F2} / ON {f1:F2}）＝§2.4の素通り");
+    }
+
+    [Fact]
+    public void 失業プールの着地はsoftmax按分でも動き総取りを超えない()   // JobPoolTemperature（監査rank2）のON経路
+    {
+        var wta = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());   // 総取り（T=0）
+        var soft = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());  // softmax（T=0.15）
+        wta.Run(20); soft.Run(20);
+        wta.World.Coef.JobSearchRate = 0.10;
+        soft.World.Coef.JobSearchRate = 0.10; soft.World.Coef.JobPoolTemperature = 0.15;
+        double before = 0;
+        foreach (var sim in new[] { wta, soft })
+        {
+            var r = sim.World.Region;
+            sim.World.Coef.BaseUrbanCap = 0.9;   // 天井に余裕のある状態（天井の封鎖は専用テストが見る）
+            var farmer = r.Pops[1]; var worker = r.Pops[r.MeritFromIndex];
+            farmer.UnemploymentRate = 0.5; farmer.UnemploymentEma = 0.5;   // EMA点火に追随
+            farmer.Earned = 0.5 * farmer.Size; worker.Earned = 10.0 * worker.Size;
+            before = farmer.Size;
+            Meritocracy.Step(sim.World, sim.World.Coef);
+        }
+        double movedWta = before - wta.World.Region.Pops[1].Size;
+        double movedSoft = before - soft.World.Region.Pops[1].Size;
+        Assert.True(movedSoft > 0, "softmax按分で失業農民が全く動かない");
+        Assert.True(movedSoft <= movedWta + 1e-9, $"softmax按分が総取りより多く流した（総取り {movedWta:F2} / softmax {movedSoft:F2}）");
+    }
+
+    [Fact]
+    public void 聖職者は世俗化で没落するが消えない()   // 設計仕様：明確に減少するが0にはならない
+    {
+        var cfg = NationConfig.Japan();
+        var sim = new Simulation(cfg.ToScenario(53), new UtilityAgent());   // 統治AI＝いずれ公教育へ世俗化→聖職者は教育収入を失う
+        sim.World.ParliamentEnabled = false;   // 聖職の世俗化没落＋下限（Meritocracy）の機構を検証＝議会の教育加速は別レイヤーなので isolate
+        // ★黒船門番も isolate（2026-08-04）：土地の政治力（LandedPowerCapitalization）で外圧なき幕府は公教育を
+        //   目標に置かなくなった（裁定2026-07-09の門番が**初めて実際に閉まる**ようになった＝設計どおり）。
+        //   このテストの主題は「世俗化が起きたとき聖職者は没落するが絶滅しない」＝世俗化の政治的可否は別レイヤー。
+        sim.World.Coef.TraditionalistLawGate = 0;
+        sim.World.PoliticalLockEnabled = false;   // 法の政治ゲートも isolate（所得税テストと同じ標準手法）＝土地の政治力で旧支配層が世俗化を票で止めるのは正しい挙動だが、このテストの主題ではない
+
+        var r = sim.World.Region;
+        double clergy0 = r.Pops[6].Size;
+        sim.Run(400);
+        Assert.True(sim.World.EducationLaw >= EducationLaw.Public, "AIが公教育へ世俗化していない（前提が崩れた）");
+        Assert.True(r.Pops[6].Size > 0.1, "聖職者が絶滅した（下限が効いていない）");
+        Assert.True(r.Pops[6].Size < clergy0, $"世俗化でも聖職者が減らない（{clergy0:F0}→{r.Pops[6].Size:F0}）");
+    }
+
+    [Fact]
+    public void 転落物差し改革で結晶資産持ち貴族は没落しない()   // rank7（点火0.5・2026-08-16）のON経路＝テストは効果を明示するため1.0で検証：「土地持ち現金なし貴族」の幽霊転落の解消
+    {
+        // 双子シム（同シード＝決定論で同一状態）：ON側だけ物差しが変わる＝差分が改革の効果そのもの。
+        var off = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+        var on = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+        off.Run(20); on.Run(20);
+        off.World.Coef.FallAnchorReform = 0;    // OFF側を明示ピン（2026-08-16に既定0→0.5で点火済み＝対照は明示しないと番人が空洞化する）
+        on.World.Coef.FallAnchorReform = 1.0;   // ON側は効果を可視化する全強度（実運用の既定は0.5）
+        double[] size0 = new double[2], size1 = new double[2];
+        int si = 0;
+        foreach (var sim in new[] { off, on })
+        {
+            var r = sim.World.Region;
+            int nobleIdx = -1;   // 貴族＝聖職者でない閉鎖階級
+            for (int i = 0; i < r.Pops.Count; i++) if (r.Pops[i].Closed && i != r.ClergyPopIndex) { nobleIdx = i; break; }
+            Assert.True(nobleIdx >= 0, "閉鎖階級（貴族）が見つからない");
+            var noble = r.Pops[nobleIdx];
+            // 「資産の大半が結晶（土地）・流動は平均の半分・所得は平均資産並み」の貴族を直接セット（決定論）。
+            // 旧物差し：Savings/Size=0.5×avg < 0.8×avg ＝転落圏。新物差し：資産(0.5+0.5)×avg ≥ 0.8×年所得(=avg) ＝安泰。
+            for (int it = 0; it < 6; it++)   // Savingsを書くと平均自身が動く＝数回の反復で不動点へ
+            {
+                double totalSav = 0, total = 0;
+                foreach (var p in r.Pops) { totalSav += System.Math.Max(0, p.Savings); total += p.Size; }
+                noble.Savings = 0.5 * (totalSav / total) * noble.Size;
+            }
+            double avgF; { double totalSav = 0, total = 0; foreach (var p in r.Pops) { totalSav += System.Math.Max(0, p.Savings); total += p.Size; } avgF = totalSav / total; }
+            noble.IlliquidWealth = noble.Savings;                          // 全額結晶＝土地持ち現金なし
+            noble.Earned = avgF * noble.Size / Calendar.MonthsPerYear;     // 年所得/人 ＝ 平均貯蓄/人（アンカーの言語）
+            noble.LastEarned = noble.Earned;
+            Assert.True(noble.Savings / noble.Size < sim.World.Coef.UpperFallThreshold * avgF, "セットアップ不足：旧物差しの転落圏に居ない");
+            size0[si] = noble.Size;
+            Meritocracy.Step(sim.World, sim.World.Coef);
+            size1[si] = r.Pops[nobleIdx].Size;
+            si++;
+        }
+        Assert.True(size1[0] < size0[0] - 1e-9, $"旧物差しで貧窮貴族が転落しない（{size0[0]:F2}→{size1[0]:F2}）＝前提が崩れた");
+        Assert.True(size1[1] > size0[1] - 1e-9, $"改革ONで結晶資産持ち貴族が幽霊転落した（{size0[1]:F2}→{size1[1]:F2}）");
+    }
+
+    [Fact]
+    public void 世代ゲートは昇格流量を新成人率で頭打ちにする()   // rank8（休眠 CohortGateK・作者裁定2026-08-16）のON経路
+    {
+        var off = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+        var on = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+        off.Run(20); on.Run(20);
+        on.World.Coef.CohortGateK = 1.0;
+        double gateExp = 0, movedOff = 0, movedOn = 0;
+        foreach (var sim in new[] { off, on })
+        {
+            var w = sim.World; var c = w.Coef; var r = w.Region;
+            // ①昇格だけを残して隔離（他の移動機構は率0）＝主題は昇格流量の律速のみ
+            c.JobSearchRate = 0; c.PettyEntryRate = 0; c.ArtisanDeclineRate = 0;
+            c.MiddleFallRate = 0; c.UpperFallRate = 0; c.BankruptcyFallRate = 0; c.CapitalRiseRate = 0;
+            var worker = r.Pops[r.MeritFromIndex];
+            worker.Literacy = 1.0;   // 識字満点＝選抜運搬でも識字が動かない（残留も1のまま＝流量が線形）
+            worker.Earned = 1.0 * worker.Size;
+            foreach (var p in r.Pops) if (p.IsModernElite) { p.EducationFill = 1.0; p.EducationEma = 1.0; }   // 資格ゲートを開ける
+            foreach (var idx in new[] { r.MeritToIndex, r.TeacherPopIndex, r.BureaucratPopIndex, r.DoctorPopIndex })
+                if (idx >= 0 && r.Pops[idx].Size > 1e-9) r.Pops[idx].Earned = 10.0 * r.Pops[idx].Size;   // attract≫1＝流量は率×Sizeで決まる
+            if (ReferenceEquals(sim, on))
+                gateExp = System.Math.Min(1.0, c.CohortGateK * worker.ChildShare * Calendar.MonthsPerQuarter / (c.AgingYears * Calendar.MonthsPerYear));
+            double before = worker.Size;
+            Meritocracy.Step(w, c);
+            double moved = before - r.Pops[r.MeritFromIndex].Size;
+            if (ReferenceEquals(sim, off)) movedOff = moved; else movedOn = moved;
+        }
+        Assert.True(movedOff > 1e-6, $"OFF側で昇格が起きない（{movedOff:F6}）＝前提が崩れた");
+        Assert.True(gateExp > 0 && gateExp < 0.02, $"ゲート期待値が異常（{gateExp:F5}）＝新成人率の物差しが壊れた");
+        Assert.True(movedOn > 1e-12, "ゲートONで昇格が完全に止まった（律速であって遮断ではない）");
+        Assert.True(movedOn < movedOff * gateExp * 1.5,
+            $"昇格流量が新成人率で頭打ちになっていない（OFF {movedOff:F5} / ON {movedOn:F7} / ゲート {gateExp:F5}）");
+        Assert.True(movedOn > movedOff * gateExp * 0.5,
+            $"ゲートが期待の半分未満まで流量を削った（OFF {movedOff:F5} / ON {movedOn:F7} / ゲート {gateExp:F5}）");
+    }
+
+    [Fact]
+    public void 性別運搬は閉じた専門職へ女性を運ばず教師へは運ぶ()   // rank12（点火1.0・2026-08-16）のON経路
+    {
+        var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+        sim.Run(20);
+        var w = sim.World; var c = w.Coef; var r = w.Region;
+        c.ProfessionGenderGate = 1.0;
+        w.WomenRights = WomenRightsLaw.None;   // 権利の梯子なし＝専門職（技師/官僚/医者）の access=0
+        w.WomenWageRetention = 0.0;
+        // ①昇格だけを残して隔離（他の移動機構は率0）
+        c.JobSearchRate = 0; c.PettyEntryRate = 0; c.ArtisanDeclineRate = 0;
+        c.MiddleFallRate = 0; c.UpperFallRate = 0; c.BankruptcyFallRate = 0; c.CapitalRiseRate = 0;
+        var worker = r.Pops[r.MeritFromIndex];
+        var eng = r.Pops[r.MeritToIndex];
+        Assert.True(r.TeacherPopIndex >= 0, "教師popが無い");
+        var teacher = r.Pops[r.TeacherPopIndex];
+        worker.Literacy = 1.0; worker.Earned = 1.0 * worker.Size; worker.FemaleShare = 0.6;
+        eng.FemaleShare = 0.02; teacher.FemaleShare = 0.25;   // 初期符号化と同じ性別分離（技師0.02・教師0.25）
+        foreach (var p in r.Pops) if (p.IsModernElite) { p.EducationFill = 1.0; p.EducationEma = 1.0; }
+        eng.Earned = 10.0 * eng.Size; teacher.Earned = 10.0 * teacher.Size;
+        double engSize0 = eng.Size, teaSize0 = teacher.Size;
+        double femMass0 = 0; foreach (var p in r.Pops) femMass0 += p.FemaleShare * p.Size;
+        Meritocracy.Step(w, c);
+        Assert.True(eng.Size > engSize0 + 1e-9, "技師への昇格が起きない（前提が崩れた）");
+        Assert.True(teacher.Size > teaSize0 + 1e-9, "教師への昇格が起きない（前提が崩れた）");
+        // 技師行きコホートは女性0（access=0）＝技師の女性比は流入で薄まる。教師行き（access=1.0）は従来どおりsrc平均0.6を運ぶ＝教師の女性比は上がる。
+        Assert.True(eng.FemaleShare < 0.02, $"閉じた専門職の女性比が薄まらない（技師 {eng.FemaleShare:F4}）");
+        Assert.True(teacher.FemaleShare > 0.25, $"教師行きコホートの女性比が運ばれていない（教師 {teacher.FemaleShare:F4}）");
+        double femMass1 = 0; foreach (var p in r.Pops) femMass1 += p.FemaleShare * p.Size;
+        Assert.True(System.Math.Abs(femMass1 - femMass0) < 1e-6 * System.Math.Max(1.0, femMass0),
+            $"性別の選抜運搬で女性の総量が保存されない（{femMass0:F2}→{femMass1:F2}）");
+    }
+}

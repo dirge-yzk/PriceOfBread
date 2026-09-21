@@ -1,0 +1,28 @@
+﻿namespace PriceOfBread.SimCore;
+
+/// <summary>
+/// 国家世界（本編）のPOP階級レイアウト規約＝ClassId の名前付き定数（マジックナンバー一掃2026-07-20）。
+/// 各所に散在していた裸の ClassId リテラル（官僚=8 が5箇所・聖職者=6・農民=1・貴族=0 等）を命名するのみ＝
+/// 値は据え置きで比較は整数として厳密恒等（挙動不変）。試験世界は別レイアウトを使うため「本編の慣行」であって
+/// 全世界で不変ではない（該当箇所は本編でのみ一致すればよく、値が同じなので挙動は世界に依らず不変）。
+/// 徴集プールの農民/労働者は <see cref="Coefficients.SoldierRecruitClassA"/>/<c>SoldierRecruitClassB</c> と整合。
+/// </summary>
+public static class PopClass
+{
+    public const int Count = 14;   // ★段6（特権）の発言権集計の配列長（Noble..Researcher）
+
+    public const int Noble = 0;        // 貴族（Closed＝世襲・行政の近世的担い手）
+    public const int Peasant = 1;      // 農民（＝SoldierRecruitClassA・登用訓練の母体）
+    public const int Worker = 2;       // 工場労働者（＝SoldierRecruitClassB）
+    public const int Capitalist = 3;   // 資本家（近代エリート・投資元手）
+    public const int Engineer = 4;     // 技師（近代エリート・工場生産性）
+    public const int Soldier = 5;      // 兵士（IsSoldier フラグ併用。ClassId直書きは排除済み箇所あり）
+    public const int Clergy = 6;       // 聖職者（十分の一税の受け手・世俗化で没落）
+    public const int Teacher = 7;      // 教師（公教育の教育を算出）
+    public const int Bureaucrat = 8;   // 官僚（行政力/俸給/汚職分配/弾圧の受け手）
+    public const int Doctor = 9;       // 医者（医療を算出）
+    public const int Merchant = 10;    // 商人（流通マージン＋貿易の仲立ち）
+    public const int Artisan = 11;     // 職人（手工業の自営＝ギルド）
+    public const int Servant = 12;     // 家事使用人（家事奉仕を算出・#12）
+    public const int Researcher = 13;  // ★研究者（高等教育を算出＝大学。2026-08-17）。⚠ResearcherFrac=0 の世界には**存在しない**（pops に並べない＝Pops.Count が13のまま）
+}

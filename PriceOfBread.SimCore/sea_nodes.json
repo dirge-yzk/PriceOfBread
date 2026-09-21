@@ -1,0 +1,1064 @@
+﻿[
+ {
+  "name": "カテガット",
+  "lat": 57.5,
+  "lon": 11.0,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "バルト南西",
+  "lat": 55.0,
+  "lon": 14.0,
+  "basin": "Baltic"
+ },
+ {
+  "name": "バルト中央",
+  "lat": 57.5,
+  "lon": 19.0,
+  "basin": "Baltic"
+ },
+ {
+  "name": "ボスニア湾口",
+  "lat": 60.0,
+  "lon": 19.5,
+  "basin": "Baltic"
+ },
+ {
+  "name": "フィンランド湾口",
+  "lat": 59.7,
+  "lon": 24.0,
+  "basin": "Baltic"
+ },
+ {
+  "name": "北海南",
+  "lat": 52.5,
+  "lon": 3.0,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "北海中央",
+  "lat": 55.5,
+  "lon": 3.5,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "北海北",
+  "lat": 58.5,
+  "lon": 1.0,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "ノルウェー海",
+  "lat": 63.0,
+  "lon": 2.0,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "ロフォーテン沖",
+  "lat": 68.0,
+  "lon": 10.0,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "ノールカップ沖",
+  "lat": 71.8,
+  "lon": 26.0,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "バレンツ海",
+  "lat": 71.0,
+  "lon": 40.0,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "白海口",
+  "lat": 66.2,
+  "lon": 40.0,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "ドーバー口",
+  "lat": 51.2,
+  "lon": 1.8,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "英仏海峡西",
+  "lat": 49.6,
+  "lon": -9.1,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "アイリッシュ海",
+  "lat": 53.5,
+  "lon": -5.0,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "アイルランド南沖",
+  "lat": 50.8,
+  "lon": -8.5,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "ビスケー湾",
+  "lat": 45.5,
+  "lon": -5.0,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "イベリア北西沖",
+  "lat": 43.8,
+  "lon": -10.0,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "リスボン沖",
+  "lat": 38.5,
+  "lon": -10.5,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "カディス湾",
+  "lat": 36.3,
+  "lon": -7.5,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "アルボラン海",
+  "lat": 36.0,
+  "lon": -3.0,
+  "basin": "Mediterranean"
+ },
+ {
+  "name": "バレアレス沖",
+  "lat": 39.0,
+  "lon": 4.0,
+  "basin": "Mediterranean"
+ },
+ {
+  "name": "リヨン湾",
+  "lat": 42.5,
+  "lon": 4.5,
+  "basin": "Mediterranean"
+ },
+ {
+  "name": "リグリア海",
+  "lat": 43.5,
+  "lon": 8.5,
+  "basin": "Mediterranean"
+ },
+ {
+  "name": "ティレニア海",
+  "lat": 40.0,
+  "lon": 12.0,
+  "basin": "Mediterranean"
+ },
+ {
+  "name": "シチリア海峡",
+  "lat": 37.0,
+  "lon": 11.5,
+  "basin": "Mediterranean"
+ },
+ {
+  "name": "イオニア海",
+  "lat": 37.5,
+  "lon": 17.5,
+  "basin": "Mediterranean"
+ },
+ {
+  "name": "アドリア海南",
+  "lat": 41.5,
+  "lon": 18.0,
+  "basin": "Mediterranean"
+ },
+ {
+  "name": "アドリア海北",
+  "lat": 44.0,
+  "lon": 13.5,
+  "basin": "Mediterranean"
+ },
+ {
+  "name": "エーゲ海",
+  "lat": 38.0,
+  "lon": 25.0,
+  "basin": "Mediterranean"
+ },
+ {
+  "name": "クレタ沖",
+  "lat": 34.5,
+  "lon": 25.0,
+  "basin": "Mediterranean"
+ },
+ {
+  "name": "東地中海",
+  "lat": 33.5,
+  "lon": 30.0,
+  "basin": "Mediterranean"
+ },
+ {
+  "name": "キプロス沖",
+  "lat": 34.5,
+  "lon": 33.0,
+  "basin": "Mediterranean"
+ },
+ {
+  "name": "黒海西",
+  "lat": 43.5,
+  "lon": 30.5,
+  "basin": "BlackSea"
+ },
+ {
+  "name": "黒海東",
+  "lat": 43.0,
+  "lon": 37.0,
+  "basin": "BlackSea"
+ },
+ {
+  "name": "スエズ湾",
+  "lat": 28.5,
+  "lon": 33.0,
+  "basin": "RedSea"
+ },
+ {
+  "name": "紅海北",
+  "lat": 25.5,
+  "lon": 35.5,
+  "basin": "RedSea"
+ },
+ {
+  "name": "紅海中央",
+  "lat": 20.5,
+  "lon": 38.5,
+  "basin": "RedSea"
+ },
+ {
+  "name": "紅海南",
+  "lat": 15.5,
+  "lon": 41.5,
+  "basin": "RedSea"
+ },
+ {
+  "name": "アデン湾",
+  "lat": 12.5,
+  "lon": 47.0,
+  "basin": "IndianOcean"
+ },
+ {
+  "name": "ソコトラ沖",
+  "lat": 12.5,
+  "lon": 54.5,
+  "basin": "IndianOcean"
+ },
+ {
+  "name": "ホルムズ外",
+  "lat": 25.0,
+  "lon": 57.5,
+  "basin": "IndianOcean"
+ },
+ {
+  "name": "ペルシャ湾央",
+  "lat": 27.0,
+  "lon": 51.5,
+  "basin": "IndianOcean"
+ },
+ {
+  "name": "アラビア海中央",
+  "lat": 15.0,
+  "lon": 62.0,
+  "basin": "IndianOcean"
+ },
+ {
+  "name": "ボンベイ沖",
+  "lat": 18.5,
+  "lon": 70.0,
+  "basin": "IndianOcean"
+ },
+ {
+  "name": "ラッカディブ沖",
+  "lat": 10.0,
+  "lon": 73.0,
+  "basin": "IndianOcean"
+ },
+ {
+  "name": "セイロン南",
+  "lat": 5.0,
+  "lon": 80.5,
+  "basin": "IndianOcean"
+ },
+ {
+  "name": "ベンガル湾西",
+  "lat": 13.0,
+  "lon": 83.0,
+  "basin": "IndianOcean"
+ },
+ {
+  "name": "ベンガル湾北",
+  "lat": 18.0,
+  "lon": 89.0,
+  "basin": "IndianOcean"
+ },
+ {
+  "name": "ベンガル湾東",
+  "lat": 10.0,
+  "lon": 93.0,
+  "basin": "IndianOcean"
+ },
+ {
+  "name": "アンダマン海",
+  "lat": 8.5,
+  "lon": 96.5,
+  "basin": "IndianOcean"
+ },
+ {
+  "name": "マラッカ北口",
+  "lat": 5.5,
+  "lon": 98.5,
+  "basin": "IndianOcean"
+ },
+ {
+  "name": "マラッカ南口",
+  "lat": 1.0,
+  "lon": 103.3,
+  "basin": "Pacific"
+ },
+ {
+  "name": "赤道インド洋",
+  "lat": 0.0,
+  "lon": 73.0,
+  "basin": "IndianOcean"
+ },
+ {
+  "name": "中央インド洋",
+  "lat": -10.0,
+  "lon": 80.0,
+  "basin": "IndianOcean"
+ },
+ {
+  "name": "南インド洋西",
+  "lat": -25.0,
+  "lon": 65.0,
+  "basin": "IndianOcean"
+ },
+ {
+  "name": "マスカリン沖",
+  "lat": -21.0,
+  "lon": 58.5,
+  "basin": "IndianOcean"
+ },
+ {
+  "name": "マダガスカル東沖",
+  "lat": -18.0,
+  "lon": 52.0,
+  "basin": "IndianOcean"
+ },
+ {
+  "name": "モザンビーク海峡北",
+  "lat": -14.0,
+  "lon": 42.5,
+  "basin": "IndianOcean"
+ },
+ {
+  "name": "モザンビーク海峡南",
+  "lat": -22.0,
+  "lon": 38.5,
+  "basin": "IndianOcean"
+ },
+ {
+  "name": "ザンジバル沖",
+  "lat": -7.0,
+  "lon": 41.5,
+  "basin": "IndianOcean"
+ },
+ {
+  "name": "ソマリア沖",
+  "lat": 2.0,
+  "lon": 48.0,
+  "basin": "IndianOcean"
+ },
+ {
+  "name": "ケープ東方",
+  "lat": -36.0,
+  "lon": 25.0,
+  "basin": "IndianOcean"
+ },
+ {
+  "name": "南インド洋中央",
+  "lat": -35.0,
+  "lon": 60.0,
+  "basin": "IndianOcean"
+ },
+ {
+  "name": "南インド洋東",
+  "lat": -36.0,
+  "lon": 85.0,
+  "basin": "IndianOcean"
+ },
+ {
+  "name": "豪州南西沖",
+  "lat": -37.0,
+  "lon": 110.0,
+  "basin": "IndianOcean"
+ },
+ {
+  "name": "カナリア沖",
+  "lat": 28.0,
+  "lon": -15.5,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "西サハラ沖",
+  "lat": 23.0,
+  "lon": -18.5,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "ヴェルデ岬沖",
+  "lat": 14.5,
+  "lon": -19.0,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "ギニア湾西",
+  "lat": 2.0,
+  "lon": -8.0,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "ギニア湾央",
+  "lat": 2.5,
+  "lon": 3.0,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "アンゴラ沖",
+  "lat": -10.0,
+  "lon": 10.0,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "ナミビア沖",
+  "lat": -25.0,
+  "lon": 12.0,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "喜望峰沖",
+  "lat": -35.5,
+  "lon": 18.5,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "南大西洋中央",
+  "lat": -25.0,
+  "lon": -10.0,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "セントヘレナ沖",
+  "lat": -16.0,
+  "lon": -6.0,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "アセンション沖",
+  "lat": -8.0,
+  "lon": -14.0,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "アゾレス沖",
+  "lat": 38.0,
+  "lon": -28.0,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "マデイラ沖",
+  "lat": 32.5,
+  "lon": -17.5,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "北大西洋中央",
+  "lat": 45.0,
+  "lon": -30.0,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "北大西洋西",
+  "lat": 42.0,
+  "lon": -50.0,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "ニューファンドランド沖",
+  "lat": 48.0,
+  "lon": -45.0,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "ノヴァスコシア沖",
+  "lat": 43.0,
+  "lon": -63.0,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "ニューヨーク沖",
+  "lat": 39.5,
+  "lon": -71.0,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "ハッテラス沖",
+  "lat": 34.5,
+  "lon": -74.0,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "バミューダ沖",
+  "lat": 32.0,
+  "lon": -64.5,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "サルガッソ海",
+  "lat": 28.0,
+  "lon": -55.0,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "バハマ沖",
+  "lat": 25.5,
+  "lon": -76.0,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "フロリダ海峡",
+  "lat": 24.0,
+  "lon": -80.5,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "メキシコ湾央",
+  "lat": 25.5,
+  "lon": -90.0,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "ベラクルス沖",
+  "lat": 20.0,
+  "lon": -95.0,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "ユカタン海峡",
+  "lat": 21.8,
+  "lon": -85.5,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "カリブ西",
+  "lat": 17.0,
+  "lon": -80.0,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "カリブ中央",
+  "lat": 15.0,
+  "lon": -75.0,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "カリブ東",
+  "lat": 14.0,
+  "lon": -66.0,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "小アンティル外",
+  "lat": 13.0,
+  "lon": -58.0,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "トリニダード沖",
+  "lat": 10.5,
+  "lon": -60.0,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "ギアナ沖",
+  "lat": 7.0,
+  "lon": -52.0,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "アマゾン河口沖",
+  "lat": 1.0,
+  "lon": -46.0,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "北東ブラジル沖",
+  "lat": -6.0,
+  "lon": -33.0,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "バイーア沖",
+  "lat": -14.0,
+  "lon": -37.0,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "リオ沖",
+  "lat": -24.0,
+  "lon": -42.0,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "ラプラタ沖",
+  "lat": -36.0,
+  "lon": -54.0,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "パタゴニア沖",
+  "lat": -44.0,
+  "lon": -62.0,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "フォークランド沖",
+  "lat": -50.5,
+  "lon": -59.5,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "ホーン岬沖",
+  "lat": -57.0,
+  "lon": -67.0,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "チリ南沖",
+  "lat": -45.0,
+  "lon": -76.0,
+  "basin": "Pacific"
+ },
+ {
+  "name": "バルパライソ沖",
+  "lat": -33.0,
+  "lon": -73.5,
+  "basin": "Pacific"
+ },
+ {
+  "name": "アタカマ沖",
+  "lat": -23.0,
+  "lon": -71.5,
+  "basin": "Pacific"
+ },
+ {
+  "name": "リマ沖",
+  "lat": -12.5,
+  "lon": -78.5,
+  "basin": "Pacific"
+ },
+ {
+  "name": "グアヤキル沖",
+  "lat": -3.0,
+  "lon": -82.0,
+  "basin": "Pacific"
+ },
+ {
+  "name": "パナマ湾",
+  "lat": 7.0,
+  "lon": -79.5,
+  "basin": "Pacific"
+ },
+ {
+  "name": "中米沖",
+  "lat": 12.0,
+  "lon": -90.0,
+  "basin": "Pacific"
+ },
+ {
+  "name": "カリフォルニア湾口",
+  "lat": 22.0,
+  "lon": -107.0,
+  "basin": "Pacific"
+ },
+ {
+  "name": "カリフォルニア沖",
+  "lat": 35.0,
+  "lon": -123.0,
+  "basin": "Pacific"
+ },
+ {
+  "name": "北米北西沖",
+  "lat": 47.0,
+  "lon": -126.0,
+  "basin": "Pacific"
+ },
+ {
+  "name": "アラスカ湾",
+  "lat": 56.0,
+  "lon": -142.0,
+  "basin": "Pacific"
+ },
+ {
+  "name": "アリューシャン南",
+  "lat": 50.0,
+  "lon": -170.0,
+  "basin": "Pacific"
+ },
+ {
+  "name": "ハワイ沖",
+  "lat": 21.0,
+  "lon": -157.0,
+  "basin": "Pacific"
+ },
+ {
+  "name": "東太平洋赤道",
+  "lat": 0.0,
+  "lon": -110.0,
+  "basin": "Pacific"
+ },
+ {
+  "name": "中央太平洋",
+  "lat": 5.0,
+  "lon": -155.0,
+  "basin": "Pacific"
+ },
+ {
+  "name": "南太平洋中央",
+  "lat": -15.0,
+  "lon": -140.0,
+  "basin": "Pacific"
+ },
+ {
+  "name": "南太平洋西",
+  "lat": -22.0,
+  "lon": 175.0,
+  "basin": "Pacific"
+ },
+ {
+  "name": "北太平洋中央",
+  "lat": 42.0,
+  "lon": 179.0,
+  "basin": "Pacific"
+ },
+ {
+  "name": "日本東方沖",
+  "lat": 36.0,
+  "lon": 145.0,
+  "basin": "Pacific"
+ },
+ {
+  "name": "日本南方沖",
+  "lat": 30.0,
+  "lon": 135.0,
+  "basin": "Pacific"
+ },
+ {
+  "name": "日本海",
+  "lat": 39.0,
+  "lon": 134.0,
+  "basin": "Pacific"
+ },
+ {
+  "name": "オホーツク海",
+  "lat": 50.0,
+  "lon": 148.0,
+  "basin": "Pacific"
+ },
+ {
+  "name": "対馬海峡",
+  "lat": 34.0,
+  "lon": 129.5,
+  "basin": "Pacific"
+ },
+ {
+  "name": "黄海",
+  "lat": 35.5,
+  "lon": 123.0,
+  "basin": "Pacific"
+ },
+ {
+  "name": "渤海口",
+  "lat": 38.5,
+  "lon": 120.5,
+  "basin": "Pacific"
+ },
+ {
+  "name": "東シナ海",
+  "lat": 29.0,
+  "lon": 124.0,
+  "basin": "Pacific"
+ },
+ {
+  "name": "台湾海峡",
+  "lat": 24.5,
+  "lon": 119.5,
+  "basin": "Pacific"
+ },
+ {
+  "name": "ルソン海峡",
+  "lat": 20.5,
+  "lon": 121.5,
+  "basin": "Pacific"
+ },
+ {
+  "name": "南シナ海北",
+  "lat": 19.0,
+  "lon": 114.0,
+  "basin": "Pacific"
+ },
+ {
+  "name": "南シナ海南",
+  "lat": 10.0,
+  "lon": 111.0,
+  "basin": "Pacific"
+ },
+ {
+  "name": "シャム湾",
+  "lat": 10.0,
+  "lon": 101.5,
+  "basin": "Pacific"
+ },
+ {
+  "name": "ボルネオ西沖",
+  "lat": 4.0,
+  "lon": 108.0,
+  "basin": "Pacific"
+ },
+ {
+  "name": "ジャワ海",
+  "lat": -5.5,
+  "lon": 111.0,
+  "basin": "Pacific"
+ },
+ {
+  "name": "スンダ海峡外",
+  "lat": -7.5,
+  "lon": 104.0,
+  "basin": "Pacific"
+ },
+ {
+  "name": "マカッサル海峡",
+  "lat": -2.0,
+  "lon": 118.0,
+  "basin": "Pacific"
+ },
+ {
+  "name": "セレベス海",
+  "lat": 4.0,
+  "lon": 122.0,
+  "basin": "Pacific"
+ },
+ {
+  "name": "バンダ海",
+  "lat": -5.5,
+  "lon": 128.0,
+  "basin": "Pacific"
+ },
+ {
+  "name": "アラフラ海",
+  "lat": -9.5,
+  "lon": 135.0,
+  "basin": "Pacific"
+ },
+ {
+  "name": "フィリピン海",
+  "lat": 18.0,
+  "lon": 128.0,
+  "basin": "Pacific"
+ },
+ {
+  "name": "ニューギニア北沖",
+  "lat": -1.0,
+  "lon": 140.0,
+  "basin": "Pacific"
+ },
+ {
+  "name": "珊瑚海",
+  "lat": -16.0,
+  "lon": 152.0,
+  "basin": "Pacific"
+ },
+ {
+  "name": "シドニー沖",
+  "lat": -34.5,
+  "lon": 153.5,
+  "basin": "Pacific"
+ },
+ {
+  "name": "バス海峡外",
+  "lat": -40.0,
+  "lon": 148.0,
+  "basin": "Pacific"
+ },
+ {
+  "name": "豪州南沖",
+  "lat": -37.0,
+  "lon": 135.0,
+  "basin": "Pacific"
+ },
+ {
+  "name": "豪州西沖",
+  "lat": -30.0,
+  "lon": 112.0,
+  "basin": "Pacific"
+ },
+ {
+  "name": "豪州北西沖",
+  "lat": -15.0,
+  "lon": 118.0,
+  "basin": "Pacific"
+ },
+ {
+  "name": "ニュージーランド沖",
+  "lat": -38.0,
+  "lon": 172.0,
+  "basin": "Pacific"
+ },
+ {
+  "name": "スカゲラク",
+  "lat": 57.9,
+  "lon": 7.5,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "ヘルゴラント湾",
+  "lat": 54.5,
+  "lon": 7.0,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "黒海中央",
+  "lat": 43.5,
+  "lon": 33.5,
+  "basin": "BlackSea"
+ },
+ {
+  "name": "黄海北",
+  "lat": 37.5,
+  "lon": 122.5,
+  "basin": "Pacific"
+ },
+ {
+  "name": "白海口外",
+  "lat": 67.1,
+  "lon": 41.1,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "スカゲン沖",
+  "lat": 57.9,
+  "lon": 10.9,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "オトラント海峡",
+  "lat": 40.0,
+  "lon": 18.9,
+  "basin": "Mediterranean"
+ },
+ {
+  "name": "ホルムズ海峡",
+  "lat": 26.4,
+  "lon": 56.6,
+  "basin": "IndianOcean"
+ },
+ {
+  "name": "スンダ海峡口",
+  "lat": -5.9,
+  "lon": 105.6,
+  "basin": "Pacific"
+ },
+ {
+  "name": "カリマタ海峡",
+  "lat": -2.0,
+  "lon": 109.0,
+  "basin": "Pacific"
+ },
+ {
+  "name": "イギリス海峡東",
+  "lat": 50.6,
+  "lon": 0.3,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "イギリス海峡中央",
+  "lat": 50.0,
+  "lon": -2.2,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "マルタ沖",
+  "lat": 36.3,
+  "lon": 13.5,
+  "basin": "Mediterranean"
+ },
+ {
+  "name": "セイロン東方",
+  "lat": 7.5,
+  "lon": 82.3,
+  "basin": "IndianOcean"
+ },
+ {
+  "name": "バハマ北西",
+  "lat": 26.5,
+  "lon": -79.0,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "大阪湾口",
+  "lat": 34.3,
+  "lon": 134.9,
+  "basin": "Pacific"
+ },
+ {
+  "name": "熊野灘",
+  "lat": 33.8,
+  "lon": 136.3,
+  "basin": "Pacific"
+ },
+ {
+  "name": "相模湾",
+  "lat": 34.9,
+  "lon": 139.5,
+  "basin": "Pacific"
+ },
+ {
+  "name": "マルマラ海",
+  "lat": 40.8,
+  "lon": 28.3,
+  "basin": "Mediterranean"
+ },
+ {
+  "name": "アレクサンドリア沖",
+  "lat": 32.0,
+  "lon": 29.9,
+  "basin": "Mediterranean"
+ },
+ {
+  "name": "エルベ河口",
+  "lat": 53.9,
+  "lon": 9.0,
+  "basin": "Atlantic"
+ },
+ {
+  "name": "バクー沖",
+  "lat": 40.3,
+  "lon": 50.6,
+  "basin": "Caspian"
+ },
+ {
+  "name": "カスピ北",
+  "lat": 44.5,
+  "lon": 49.5,
+  "basin": "Caspian"
+ }
+]

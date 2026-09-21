@@ -1,0 +1,476 @@
+[
+ {
+  "name": "アルプス西（モンブラン）",
+  "lat": 45.8,
+  "lon": 6.9,
+  "kind": "barrier"
+ },
+ {
+  "name": "アルプス中央（ゴッタルド）",
+  "lat": 46.5,
+  "lon": 8.4,
+  "kind": "barrier"
+ },
+ {
+  "name": "アルプス（ベルニナ）",
+  "lat": 46.4,
+  "lon": 10.0,
+  "kind": "barrier"
+ },
+ {
+  "name": "アルプス（ドロミテ）",
+  "lat": 46.4,
+  "lon": 11.9,
+  "kind": "barrier"
+ },
+ {
+  "name": "アルプス東（タウエルン）",
+  "lat": 47.1,
+  "lon": 13.4,
+  "kind": "barrier"
+ },
+ {
+  "name": "モンスニ峠",
+  "lat": 45.2,
+  "lon": 6.7,
+  "kind": "pass"
+ },
+ {
+  "name": "ブレンナー峠",
+  "lat": 47.0,
+  "lon": 11.5,
+  "kind": "pass"
+ },
+ {
+  "name": "ピレネー西",
+  "lat": 43.0,
+  "lon": -1.3,
+  "kind": "barrier"
+ },
+ {
+  "name": "ピレネー中央",
+  "lat": 42.6,
+  "lon": 0.5,
+  "kind": "barrier"
+ },
+ {
+  "name": "ピレネー東",
+  "lat": 42.4,
+  "lon": 2.0,
+  "kind": "barrier"
+ },
+ {
+  "name": "カルパチア西（タトラ）",
+  "lat": 49.2,
+  "lon": 20.0,
+  "kind": "barrier"
+ },
+ {
+  "name": "カルパチア東",
+  "lat": 47.7,
+  "lon": 25.0,
+  "kind": "barrier"
+ },
+ {
+  "name": "トランシルヴァニア・アルプス",
+  "lat": 45.4,
+  "lon": 24.6,
+  "kind": "barrier"
+ },
+ {
+  "name": "カフカス西",
+  "lat": 43.3,
+  "lon": 41.0,
+  "kind": "barrier"
+ },
+ {
+  "name": "カフカス中央（エルブルス）",
+  "lat": 43.2,
+  "lon": 42.5,
+  "kind": "barrier"
+ },
+ {
+  "name": "カフカス東",
+  "lat": 41.9,
+  "lon": 47.8,
+  "kind": "barrier"
+ },
+ {
+  "name": "カラコルム",
+  "lat": 35.5,
+  "lon": 76.5,
+  "kind": "barrier"
+ },
+ {
+  "name": "ヒマラヤ西（ガルワール）",
+  "lat": 30.4,
+  "lon": 80.0,
+  "kind": "barrier"
+ },
+ {
+  "name": "ヒマラヤ中央（エベレスト）",
+  "lat": 28.3,
+  "lon": 86.5,
+  "kind": "barrier"
+ },
+ {
+  "name": "ヒマラヤ東（ブータン）",
+  "lat": 27.8,
+  "lon": 90.5,
+  "kind": "barrier"
+ },
+ {
+  "name": "ヒマラヤ東端（ナムチャバルワ）",
+  "lat": 29.3,
+  "lon": 95.0,
+  "kind": "barrier"
+ },
+ {
+  "name": "ヒンドゥークシュ東",
+  "lat": 36.4,
+  "lon": 71.0,
+  "kind": "barrier"
+ },
+ {
+  "name": "ヒンドゥークシュ西",
+  "lat": 35.0,
+  "lon": 67.5,
+  "kind": "barrier"
+ },
+ {
+  "name": "カイバル峠",
+  "lat": 34.1,
+  "lon": 71.1,
+  "kind": "pass"
+ },
+ {
+  "name": "サハラ西",
+  "lat": 27.0,
+  "lon": -8.0,
+  "kind": "barrier"
+ },
+ {
+  "name": "サハラ（アハガル西）",
+  "lat": 25.0,
+  "lon": -1.0,
+  "kind": "barrier"
+ },
+ {
+  "name": "サハラ（アハガル）",
+  "lat": 23.0,
+  "lon": 5.5,
+  "kind": "barrier"
+ },
+ {
+  "name": "サハラ（ティベスティ西）",
+  "lat": 21.0,
+  "lon": 12.0,
+  "kind": "barrier"
+ },
+ {
+  "name": "サハラ（ティベスティ）",
+  "lat": 20.5,
+  "lon": 17.5,
+  "kind": "barrier"
+ },
+ {
+  "name": "サハラ東（ヌビア）",
+  "lat": 19.5,
+  "lon": 26.0,
+  "kind": "barrier"
+ },
+ {
+  "name": "コンゴ盆地北",
+  "lat": 0.5,
+  "lon": 18.0,
+  "kind": "barrier"
+ },
+ {
+  "name": "コンゴ盆地中央",
+  "lat": -2.0,
+  "lon": 22.5,
+  "kind": "barrier"
+ },
+ {
+  "name": "コンゴ盆地東",
+  "lat": 1.0,
+  "lon": 26.5,
+  "kind": "barrier"
+ },
+ {
+  "name": "カラハリ西",
+  "lat": -23.0,
+  "lon": 21.0,
+  "kind": "barrier"
+ },
+ {
+  "name": "カラハリ東",
+  "lat": -25.5,
+  "lon": 24.5,
+  "kind": "barrier"
+ },
+ {
+  "name": "ルブアルハリ西",
+  "lat": 20.5,
+  "lon": 46.5,
+  "kind": "barrier"
+ },
+ {
+  "name": "ルブアルハリ東",
+  "lat": 21.5,
+  "lon": 51.0,
+  "kind": "barrier"
+ },
+ {
+  "name": "西シベリア低地",
+  "lat": 61.0,
+  "lon": 70.0,
+  "kind": "barrier"
+ },
+ {
+  "name": "中央シベリア台地西",
+  "lat": 62.0,
+  "lon": 85.0,
+  "kind": "barrier"
+ },
+ {
+  "name": "中央シベリア台地",
+  "lat": 61.0,
+  "lon": 100.0,
+  "kind": "barrier"
+ },
+ {
+  "name": "東シベリア山地",
+  "lat": 60.0,
+  "lon": 115.0,
+  "kind": "barrier"
+ },
+ {
+  "name": "ヴェルホヤンスク",
+  "lat": 61.5,
+  "lon": 130.0,
+  "kind": "barrier"
+ },
+ {
+  "name": "ゴビ西",
+  "lat": 44.0,
+  "lon": 97.0,
+  "kind": "barrier"
+ },
+ {
+  "name": "ゴビ東",
+  "lat": 43.0,
+  "lon": 106.0,
+  "kind": "barrier"
+ },
+ {
+  "name": "キャフタ",
+  "lat": 50.4,
+  "lon": 106.5,
+  "kind": "pass"
+ },
+ {
+  "name": "豪州内陸西",
+  "lat": -27.5,
+  "lon": 125.0,
+  "kind": "barrier"
+ },
+ {
+  "name": "豪州内陸（アリススプリングス）",
+  "lat": -24.5,
+  "lon": 133.5,
+  "kind": "barrier"
+ },
+ {
+  "name": "アンデス北（ワスカラン）",
+  "lat": -10.5,
+  "lon": -75.8,
+  "kind": "barrier"
+ },
+ {
+  "name": "アンデス（アルティプラノ）",
+  "lat": -16.5,
+  "lon": -69.5,
+  "kind": "barrier"
+ },
+ {
+  "name": "アンデス（アタカマ）",
+  "lat": -23.5,
+  "lon": -67.5,
+  "kind": "barrier"
+ },
+ {
+  "name": "アンデス中央（アコンカグア）",
+  "lat": -33.5,
+  "lon": -69.0,
+  "kind": "barrier"
+ },
+ {
+  "name": "アンデス南（パタゴニア）",
+  "lat": -42.5,
+  "lon": -69.5,
+  "kind": "barrier"
+ },
+ {
+  "name": "ロッキー北",
+  "lat": 48.0,
+  "lon": -114.0,
+  "kind": "barrier"
+ },
+ {
+  "name": "ロッキー中央",
+  "lat": 43.5,
+  "lon": -110.0,
+  "kind": "barrier"
+ },
+ {
+  "name": "ロッキー南",
+  "lat": 39.0,
+  "lon": -106.0,
+  "kind": "barrier"
+ },
+ {
+  "name": "マシフサントラル",
+  "lat": 45.1,
+  "lon": 2.7,
+  "kind": "barrier"
+ },
+ {
+  "name": "ユトランド内陸",
+  "lat": 56.0,
+  "lon": 9.2,
+  "kind": "barrier"
+ },
+ {
+  "name": "アナトリア内陸",
+  "lat": 39.0,
+  "lon": 33.0,
+  "kind": "barrier"
+ },
+ {
+  "name": "バルカン内陸",
+  "lat": 43.0,
+  "lon": 25.0,
+  "kind": "barrier"
+ },
+ {
+  "name": "上エジプト",
+  "lat": 26.0,
+  "lon": 29.5,
+  "kind": "barrier"
+ },
+ {
+  "name": "シュレスヴィヒ",
+  "lat": 54.2,
+  "lon": 10.2,
+  "kind": "barrier"
+ },
+ {
+  "name": "ダリエン地峡",
+  "lat": 8.5,
+  "lon": -77.5,
+  "kind": "barrier"
+ },
+ {
+  "name": "パタゴニア南",
+  "lat": -49.0,
+  "lon": -71.0,
+  "kind": "barrier"
+ },
+ {
+  "name": "ヒマラヤ西中間（ナンダデヴィ）",
+  "kind": "barrier",
+  "lat": 30.37,
+  "lon": 79.97
+ },
+ {
+  "name": "ヒマラヤ（アピ・サイパル）",
+  "kind": "barrier",
+  "lat": 30.0,
+  "lon": 80.93
+ },
+ {
+  "name": "ヒマラヤ（ダウラギリ）",
+  "kind": "barrier",
+  "lat": 28.7,
+  "lon": 83.49
+ },
+ {
+  "name": "ヒマラヤ（アンナプルナ）",
+  "kind": "barrier",
+  "lat": 28.6,
+  "lon": 83.82
+ },
+ {
+  "name": "ヒマラヤ（マナスル）",
+  "kind": "barrier",
+  "lat": 28.55,
+  "lon": 84.56
+ },
+ {
+  "name": "ヒマラヤ（シシャパンマ）",
+  "kind": "barrier",
+  "lat": 28.35,
+  "lon": 85.78
+ },
+ {
+  "name": "ヒマラヤ（カンチェンジュンガ）",
+  "kind": "barrier",
+  "lat": 27.7,
+  "lon": 88.15
+ },
+ {
+  "name": "ヒマラヤ（クラカンリ）",
+  "kind": "barrier",
+  "lat": 28.05,
+  "lon": 92.53
+ },
+ {
+  "name": "ニャラム峠",
+  "kind": "pass",
+  "lat": 28.18,
+  "lon": 85.97
+ },
+ {
+  "name": "三峡",
+  "lat": 30.9,
+  "lon": 110.2,
+  "kind": "pass"
+ },
+ {
+  "name": "ゴッタルド峠",
+  "lat": 46.56,
+  "lon": 8.56,
+  "kind": "pass"
+ },
+ {
+  "name": "シンプロン峠",
+  "lat": 46.25,
+  "lon": 8.03,
+  "kind": "pass"
+ },
+ {
+  "name": "ゼンメリング峠",
+  "lat": 47.63,
+  "lon": 15.83,
+  "kind": "pass"
+ },
+ {
+  "name": "デルベント",
+  "lat": 42.06,
+  "lon": 48.29,
+  "kind": "pass"
+ },
+ {
+  "name": "ドゥクラ峠",
+  "lat": 49.42,
+  "lon": 21.7,
+  "kind": "pass"
+ },
+ {
+  "name": "サラン峠",
+  "lat": 35.32,
+  "lon": 69.03,
+  "kind": "pass"
+ }
+]

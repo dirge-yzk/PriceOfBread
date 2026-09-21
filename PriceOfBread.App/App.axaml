@@ -1,0 +1,282 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="PriceOfBread.App.App"
+             xmlns:local="using:PriceOfBread.App"
+             RequestedThemeVariant="Light">
+             <!-- ライトテーマ（2026-07-04指示：文字の可読性）。コントロール（ComboBox/Slider/Menu等）もライト配色になる -->
+
+    <!-- ★2026-08-10のUI分割：GameView.axaml にあった共有スタイル／共有リソースを**そのまま**ここへ移した（値もセレクタも不変）。
+         Views/Tabs/*.axaml へ切り出したタブは別々の UserControl なので、アプリケーション既定に置かないと Classes が効かない。
+         Application.Styles は FluentTheme の**後ろ**に置く＝従来（UserControl.Styles）と同じくテーマ既定に勝つ。 -->
+
+    <Application.DataTemplates>
+        <local:ViewLocator/>
+    </Application.DataTemplates>
+
+    <Application.Resources>
+        <!-- ★B5 UI統一（2026-09-05）：色とフォント寸法のトークン。出現4回以上の色だけを役割名で束ねた（一点物はビューに残す）。値は従来の実色と同一＝描画は不変。 -->
+        <SolidColorBrush x:Key="InkBrush" Color="#2A2118"/>   <!-- 本文の墨（最濃） -->
+        <SolidColorBrush x:Key="InkSoftBrush" Color="#4A3E2C"/>   <!-- 本文の墨（やや薄い＝表の数字・副見出し） -->
+        <SolidColorBrush x:Key="InkMutedBrush" Color="#5A4E3C"/>   <!-- 補助の墨（ラベル・単位） -->
+        <SolidColorBrush x:Key="InkFaintBrush" Color="#8A8070"/>   <!-- 淡い墨（注記・無効） -->
+        <SolidColorBrush x:Key="InkDimBrush" Color="#7A6A55"/>   <!-- 薄墨（区切り文字） -->
+        <SolidColorBrush x:Key="BronzeBrush" Color="#6B5230"/>   <!-- 見出し・強調の褐色 -->
+        <SolidColorBrush x:Key="GoldBrush" Color="#8A6A2A"/>   <!-- 金（王権・称号） -->
+        <SolidColorBrush x:Key="RustBrush" Color="#A0432D"/>   <!-- 赤褐色（負・警告） -->
+        <SolidColorBrush x:Key="AmberBrush" Color="#A05A28"/>   <!-- 琥珀（注意） -->
+        <SolidColorBrush x:Key="GreenBrush" Color="#2E7D32"/>   <!-- 緑（正・良） -->
+        <SolidColorBrush x:Key="BlueBrush" Color="#1F5FA8"/>   <!-- 青（リンク・選択） -->
+        <SolidColorBrush x:Key="SteelBrush" Color="#3A5A8A"/>   <!-- 鋼青（第二の強調） -->
+        <SolidColorBrush x:Key="SandBrush" Color="#C4B48A"/>   <!-- 砂（枠線） -->
+        <SolidColorBrush x:Key="SandDarkBrush" Color="#B9A97F"/>   <!-- 濃い砂（区切り線・ボタン枠） -->
+        <SolidColorBrush x:Key="SandLightBrush" Color="#D8CCAA"/>   <!-- 淡い砂（薄い枠線） -->
+        <SolidColorBrush x:Key="ParchmentBrush" Color="#F5F0E2"/>   <!-- 羊皮紙（面） -->
+        <SolidColorBrush x:Key="ParchmentDimBrush" Color="#F0EAD8"/>   <!-- 羊皮紙（沈んだ面＝交互行） -->
+        <x:Double x:Key="FontTiny">11</x:Double>
+        <x:Double x:Key="FontSmall">12</x:Double>
+        <x:Double x:Key="FontBody">13</x:Double>
+        <x:Double x:Key="FontEmph">14</x:Double>
+        <x:Double x:Key="FontLead">15</x:Double>
+        <x:Double x:Key="FontTitle">17</x:Double>
+        <!-- Fluent の Slider 横テンプレートは 行=[SliderPreContentMargin / サム20 / SliderPostContentMargin] の固定余白行を持ち、
+             上下余白は「中央寄せ」でなく固定ピクセル行。よって Slider に Height を被せても内部Gridは自然高のまま上詰めで並び、
+             溝の中心が箱の中心から下へずれてサムが箱外へ突出する（2026-07-26 の Height=28 が項(1)(2)の真因）。
+             縦を詰めるときは箱でなく余白行そのものを詰める＝4+20+4=28 で従来と同じ行高のまま溝が中心に来る。 -->
+        <GridLength x:Key="SliderPreContentMargin">4</GridLength>
+        <GridLength x:Key="SliderPostContentMargin">4</GridLength>
+        <x:Double x:Key="SliderHorizontalHeight">28</x:Double>
+    </Application.Resources>
+
+    <Application.Styles>
+        <FluentTheme />
+        <Style Selector="Button.speed">
+            <Setter Property="Background" Value="#E2D8BE"/>
+            <Setter Property="Foreground" Value="#2A2118"/>
+            <Setter Property="BorderBrush" Value="#B9A97F"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10,4"/>
+            <Setter Property="CornerRadius" Value="3"/>
+            <Setter Property="Focusable" Value="False"/>
+        </Style>
+        <Style Selector="Button.speed:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#D4C8A4"/>
+        </Style>
+        <Style Selector="Button.speed.active /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#3A5A8A"/>
+        </Style>
+        <Style Selector="Button.speed.active">
+            <Setter Property="Foreground" Value="#FFF6E8"/>
+            <Setter Property="BorderBrush" Value="#2A4A78"/>
+        </Style>
+        <Style Selector="Button.tab">
+            <Setter Property="Background" Value="#EDE5D0"/>
+            <Setter Property="Foreground" Value="#5A4526"/>
+            <Setter Property="BorderBrush" Value="#C4B48A"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="14,5"/>
+            <Setter Property="CornerRadius" Value="3"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Focusable" Value="False"/>
+        </Style>
+        <Style Selector="Button.tab:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#DCD0B0"/>
+        </Style>
+        <Style Selector="Button.tab.alert">
+            <Setter Property="BorderBrush" Value="#C99A2E"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="Foreground" Value="#8A6A14"/>
+            <Setter Property="Background" Value="#F3E6BE"/>
+        </Style>
+        <Style Selector="Button.tab.war">
+            <Setter Property="BorderBrush" Value="#A0432D"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="Foreground" Value="#A0432D"/>
+            <Setter Property="Background" Value="#F3D8CE"/>
+        </Style>
+        <Style Selector="Button.mini.active /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#3A5A8A"/>
+        </Style>
+        <Style Selector="Button.mini.active">
+            <Setter Property="Foreground" Value="#FFF6E8"/>
+            <Setter Property="BorderBrush" Value="#2A4A78"/>
+        </Style>
+        <Style Selector="Button.mini">
+            <Setter Property="Background" Value="#E2D8BE"/>
+            <Setter Property="Foreground" Value="#5A4526"/>
+            <Setter Property="BorderBrush" Value="#B9A97F"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="6,3"/>
+            <Setter Property="MinHeight" Value="22"/>
+            <Setter Property="CornerRadius" Value="2"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Focusable" Value="False"/>
+        </Style>
+        <Style Selector="Button.mini:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#D4C8A4"/>
+        </Style>
+        <!-- 一覧の行に置くボタン（外交タブの植民地化・侵略・統一戦争／2026-08-10）。見た目は mini のまま余白だけ詰める＝
+             650幅の2段組では1段が約298pxしかなく、mini の Padding 6,3（＝「植民地化」で62px）では国名の幅を食う。 -->
+        <Style Selector="Button.mini.dense">
+            <Setter Property="Padding" Value="4,2"/>
+        </Style>
+        <!-- 国営工場カウンターの ＋/−（生産タブの州別テーブル・2026-08-10）。Button.mini より詰めた版＝
+             州の行を1行に保ったまま「−  n  ＋」を 64px の列へ収める（mini の Padding 6,3 では2つ並べると溢れる）。 -->
+        <Style Selector="Button.counter">
+            <Setter Property="Background" Value="#E2D8BE"/>
+            <Setter Property="Foreground" Value="#5A4526"/>
+            <Setter Property="BorderBrush" Value="#B9A97F"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="3,0"/>
+            <Setter Property="MinWidth" Value="0"/>
+            <Setter Property="MinHeight" Value="20"/>
+            <Setter Property="CornerRadius" Value="2"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Focusable" Value="False"/>
+        </Style>
+        <Style Selector="Button.counter:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#D4C8A4"/>
+        </Style>
+        <!-- ★押せない状態でも記号を残す（作者指示2026-09-07・再指摘2026-09-08「押せなくてもよいので、マイナスは出したままに」）。
+             Fluent 既定の :disabled は前景を低コントラストの灰へ落とすので、地の #E2D8BE に対して記号が消える
+             （＋は押せるので見え、−だけ消える＝「マイナスが無い」に見える）。地は同じまま、記号だけ薄い墨にする。 -->
+        <Style Selector="Button.counter:disabled /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#E2D8BE"/>
+            <Setter Property="TextElement.Foreground" Value="#8C7A55"/>
+        </Style>
+        <Style Selector="Button.row">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="Focusable" Value="False"/>
+        </Style>
+        <Style Selector="Button.row:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#E4DABE"/>
+        </Style>
+        <Style Selector="Button.warn">
+            <Setter Property="Background" Value="#A0432D"/>
+            <Setter Property="Foreground" Value="#FFF6E8"/>
+            <Setter Property="BorderBrush" Value="#A0432D"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10,3"/>
+            <Setter Property="CornerRadius" Value="2"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Focusable" Value="False"/>
+        </Style>
+        <Style Selector="Button.warn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#B23A2E"/>
+        </Style>
+        <Style Selector="Button.dialog">
+            <Setter Property="Background" Value="#E2D8BE"/>
+            <Setter Property="Foreground" Value="#2A2118"/>
+            <Setter Property="BorderBrush" Value="#B9A97F"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10,4"/>
+            <Setter Property="CornerRadius" Value="3"/>
+            <Setter Property="Focusable" Value="False"/>
+        </Style>
+        <Style Selector="Button.dialog:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#D4C8A4"/>
+        </Style>
+        <Style Selector="Button.close">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Foreground" Value="#6B5230"/>
+            <Setter Property="Padding" Value="8,2"/>
+            <Setter Property="Focusable" Value="False"/>
+        </Style>
+        <!-- 法律の段階ボタン（1934拡張E8）：横並び・現行は濃い塗り・目標は金枠・改正可否は Detail の発光で伝える -->
+        <Style Selector="Button.lawstage">
+            <Setter Property="Background" Value="#EFE7CE"/>
+            <Setter Property="BorderBrush" Value="#C4B48A"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground" Value="#4A3E2C"/>
+            <Setter Property="Padding" Value="7,2"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="MinWidth" Value="0"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="CornerRadius" Value="3"/>
+        </Style>
+        <Style Selector="Button.lawstage:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#E4D8B4"/>
+        </Style>
+        <Style Selector="Button.lawstage.current">
+            <Setter Property="Background" Value="#6B5230"/>
+            <Setter Property="Foreground" Value="#FFF6E8"/>
+            <Setter Property="BorderBrush" Value="#6B5230"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+        </Style>
+        <Style Selector="Button.lawstage.current /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Foreground" Value="#FFF6E8"/>
+        </Style>
+        <Style Selector="Button.lawstage.target">
+            <Setter Property="BorderBrush" Value="#B8860B"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="Background" Value="#F3E6BE"/>
+        </Style>
+        <Style Selector="Button.lawstage:disabled">
+            <Setter Property="Opacity" Value="0.35"/>
+        </Style>
+        <Style Selector="TextBlock.amend">
+            <Setter Property="Foreground" Value="#B8860B"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+        </Style>
+        <Style Selector="Slider:disabled">
+            <Setter Property="Opacity" Value="0.35"/>
+        </Style>
+        <!-- FluentテーマのSlider既定MinWidth(約200)が財政タブ2列グリッドの最小幅を押し広げ右端見切れの元凶だった（2026-07-25）＝列内で素直に縮ませる。
+             縦圧縮は Height では行わない（2026-07-27）＝上の UserControl.Resources で余白行を詰める（Heightを被せると溝が中心からずれサムが箱外へ出る）。 -->
+        <Style Selector="Slider:horizontal">
+            <Setter Property="MinWidth" Value="60"/>
+        </Style>
+        <Style Selector="CheckBox:disabled">
+            <Setter Property="Opacity" Value="0.4"/>
+        </Style>
+        <!-- 用途行（2026-08-02・作者指摘「用途の灰色が使っているのか使っていないのかよくわからない」）：
+             灰色＝今月の消費が無い。役務でクリックできない行を Fluent の無効表示で灰色にするのを止め、
+             色の意味を「使っている／使っていない」の1本に絞る（クリック可否は押せば分かる） -->
+        <Style Selector="TextBlock.use"><Setter Property="Foreground" Value="#2A2118"/></Style>
+        <Style Selector="TextBlock.useamt"><Setter Property="Foreground" Value="#6B5230"/></Style>
+        <Style Selector="TextBlock.use.unused"><Setter Property="Foreground" Value="#A79C86"/></Style>
+        <Style Selector="TextBlock.useamt.unused"><Setter Property="Foreground" Value="#A79C86"/></Style>
+        <!-- TextBlock.supply / .alert は削除（2026-08-10）＝集計値「材料供給:n%」の行そのものを廃止し、
+             材別の供給率を生産コスト欄の各行（ProdCostRow.Fill / FillBrush＝色はVM側）へ移したため参照0件。 -->
+        <!-- 役務の消費先はクリックできない（グラフに無い）が、Fluent の無効表示（減光＋灰色の帯）が
+             「使っていない」と誤読される。色は使用/未使用だけに使うので、無効時の見た目を通常と同じに戻す -->
+        <Style Selector="Button.row:disabled"><Setter Property="Opacity" Value="1"/></Style>
+        <Style Selector="Button.row:disabled /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+        </Style>
+        <!-- ToggleSwitch.mini は削除（2026-08-09 項目2）＝生産タブの4レバーがスイッチ式ボタン（Button.mini.active）へ移り、参照が0件になった -->
+        <Style Selector="TextBlock.section">
+            <Setter Property="Foreground" Value="#6B5230"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="FontSize" Value="14"/>
+        </Style>
+        <Style Selector="TextBlock.dim">
+            <Setter Property="Foreground" Value="#5A4E3C"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+        <Style Selector="TextBlock.range">
+            <Setter Property="Foreground" Value="#8A8070"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="TextBlock.val">
+            <Setter Property="Foreground" Value="#2A2118"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="TextAlignment" Value="Right"/>
+        </Style>
+        <Style Selector="TextBlock.lever">
+            <Setter Property="Foreground" Value="#5A4526"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+    </Application.Styles>
+</Application>

@@ -1,0 +1,86 @@
+[
+ {
+  "name": "ジブラルタル",
+  "a": "カディス湾",
+  "b": "アルボラン海",
+  "internalKm": 14,
+  "chokeId": "gibraltar"
+ },
+ {
+  "name": "ボスポラス",
+  "a": "エーゲ海",
+  "b": "黒海西",
+  "internalKm": 30,
+  "chokeId": "bosporus"
+ },
+ {
+  "name": "スエズ",
+  "a": "東地中海",
+  "b": "スエズ湾",
+  "internalKm": 163,
+  "chokeId": "suez"
+ },
+ {
+  "name": "バブ・エル・マンデブ",
+  "a": "紅海南",
+  "b": "アデン湾",
+  "internalKm": 30,
+  "chokeId": null
+ },
+ {
+  "name": "喜望峰",
+  "a": "喜望峰沖",
+  "b": "ケープ東方",
+  "internalKm": 0,
+  "chokeId": null
+ },
+ {
+  "name": "ホーン岬",
+  "a": "ホーン岬沖",
+  "b": "チリ南沖",
+  "internalKm": 0,
+  "chokeId": null
+ },
+ {
+  "name": "パナマ",
+  "a": "カリブ西",
+  "b": "パナマ湾",
+  "internalKm": 82,
+  "chokeId": "panama"
+ },
+ {
+  "name": "マラッカ",
+  "a": "マラッカ北口",
+  "b": "マラッカ南口",
+  "internalKm": 900,
+  "chokeId": "malacca"
+ },
+ {
+  "name": "ズンド",
+  "a": "カテガット",
+  "b": "バルト南西",
+  "internalKm": 110,
+  "chokeId": "oresund"
+ },
+ {
+  "name": "イギリス海峡",
+  "a": "イギリス海峡中央",
+  "b": "英仏海峡西",
+  "internalKm": 497,
+  "chokeId": null
+ },
+ {
+  "name": "ダーダネルス海峡",
+  "a": "マルマラ海",
+  "b": "エーゲ海",
+  "internalKm": 421,
+  "chokeId": null
+ },
+ {
+  "name": "エルベ水路",
+  "a": "エルベ河口",
+  "b": "ヘルゴラント湾",
+  "internalKm": 146,
+  "chokeId": null
+ }
+]

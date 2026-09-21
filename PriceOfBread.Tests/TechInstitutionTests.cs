@@ -1,0 +1,85 @@
+﻿using PriceOfBread.SimCore;
+using Xunit;
+
+namespace PriceOfBread.Tests;
+
+/// <summary>
+/// 研究システム＝技術の連続創発（カード廃止・§2.8）＋制度の施行（カードに代わる離散選択）。
+/// 技術は社会（エリート・自由・教育）から連続で伸び、多国では世界世界の技術水準へ収束する（後発の優位）。
+/// 宗教教育の社会はエリートが乏しく追いつけない（永遠の二番手）。制度は社会の閾値で解禁・施行される。
+/// </summary>
+// ⚠2026-08-26：構築時の植民地州昇格（ColoniesAreRegions=1 が既定）を落として検証する。
+//   このクラスの検証対象は**制度の閾値**（自由＋公教育＋エリート→特許）であって植民地の政治ではない。
+//   昇格を入れると英の人口が倍増し（植民地11州）、軌道が変わって政変→ブルジョワ独裁→国営報道→Freedom 0.5 となり、
+//   **閾値の機構としては正しく**特許が入らない（instprobe 実測2026-08-26・SuffrageScopeGate=1 でも不変＝ブロック集計の歪みではなく
+//   植民地経済で強くなった近代ブロックの創発）。制度の式を検証するには政治環境を固定するのが正しい。
+public class TechInstitutionTests
+{
+    private static NationConfig[] Four() =>
+        [NationConfig.France(), NationConfig.Japan(), NationConfig.Britain(), NationConfig.America()];
+
+    [Fact]
+    public void 公教育の自由国は世界の技術水準へ到達する()   // 英・米＝初期から公教育（早い近代化）
+    {
+        // ※統治AI（UtilityAgent）で回す：労働市場の導入後、1789年の政策のまま放置された国は
+        //   労働者の不満が煮えて独裁化し（1810年のロンドン反動を観測＝史実の1848年的な反動）、自由を失い革新が止まる。
+        //   「教育＋自由＋**統治（福祉・組合・参政権の調整）**」が揃って初めて世界の技術水準へ届く＝§0 介入の必要性そのもの。
+        // アンカー再設計（#131・2026-07-25）：絶対閾値1点（1.5→1.45と2度器差調整）はカオス軌道のノイズに脆く、水力レシピ追加（1.507→1.493）・
+        // 綿花気候ゲート（1.493→1.369）と**機構的に正しい変更のたびに割れた**。仕様の実体は「公教育＋自由＋統治の国は、宗教教育に固定された国を
+        // 大きく引き離して伸びる（停滞しない）」＝**宗教固定の対照との相対**で検証し、絶対値は停滞の下限（1.25＝宗教固定対照の水準帯）だけを置く。
+        var sim = new MultiNationSim(Four(), seed: 1789, _ => new UtilityAgent(), coef: new Coefficients { ColoniesAreRegions = 0 });   // ⚠環境固定（クラス冒頭の注記）＝3引数版は正規表現が取り逃していた
+        sim.Run(300);
+        var pinned = RunWithJapanPinnedReligious(300);   // 対照＝宗教教育に固定した日本（同seed・同期間の別世界）
+        double japanReligious = pinned.Nations[1].World.TechLevel;
+        double britain = sim.Nations[2].World.TechLevel, america = sim.Nations[3].World.TechLevel;
+        // 期待値再導出（#17・2026-08-08作者許可）：絶対床1.25は軌道ピン化していた（R3安定形＝潤沢判定の是正で
+        // 米1.224と髪一重で割れる一方、相対条件×1.3は通過＝仕様の実体は相対側）。#131の設計どおり
+        // 「相対＝仕様・絶対＝破綻検出の床」へ純化＝床は停滞帯(≈0.9-1.0)の上・1.10に置く。
+        Assert.True(britain > 1.10, $"イギリス（公教育）が停滞水準にある t={britain:F3}");
+        Assert.True(america > 1.10, $"アメリカ（公教育）が停滞水準にある t={america:F3}");
+        Assert.True(britain > japanReligious * 1.3, $"イギリス（公教育）が宗教固定の対照を引き離せていない 英={britain:F3} 対照={japanReligious:F3}");
+        Assert.True(america > japanReligious * 1.3, $"アメリカ（公教育）が宗教固定の対照を引き離せていない 米={america:F3} 対照={japanReligious:F3}");
+    }
+
+    // 2026-07-10更新：収束是正（CatchupAbsorptionBlend）後の軌道では日本が途中で明治化＝革命→議会与党の綱領が
+    // 公教育へ転換する（新基準＝忠実度7割では**望ましい**挙動・batch30で日本exact73%）。機構の意図＝
+    // 「宗教教育に**留まる**国は追いつけない」を検証するため、日本の議会を無効化（梯子テストと同じ分離手法）＝
+    // NullAgent世界では教育目標が初期値（宗教）のまま動かず、綱領上書きによる転換だけを封じる（政変・経済は生きたまま）。
+    private static MultiNationSim RunWithJapanPinnedReligious(int quarters)
+    {
+        var sim = new MultiNationSim(Four(), seed: 1789, coef: new Coefficients { ColoniesAreRegions = 0 });
+        sim.Nations[1].World.ParliamentEnabled = false;
+        sim.Run(quarters);
+        return sim;
+    }
+
+    [Fact]
+    public void 宗教教育の国は公教育国に追いつけず停滞する()   // §2.8 永遠の二番手・エリート律速
+    {
+        var sim = RunWithJapanPinnedReligious(400);
+        double japan = sim.Nations[1].World.TechLevel;    // 宗教教育（寺子屋）＝エリートが乏しい
+        double britain = sim.Nations[2].World.TechLevel;  // 公教育
+        Assert.True(japan < britain * 0.6,
+            $"宗教教育の日本({japan:F2})が公教育のイギリス({britain:F2})に追いつけてしまう（エリート律速の破れ）");
+    }
+
+    [Fact]
+    public void 制度は社会の発展で施行され宗教国は特許から外れる()
+    {
+        var sim = RunWithJapanPinnedReligious(400);
+        Assert.True(sim.Nations[2].World.PatentLaw, "イギリス（自由＋公教育）は特許を施行するはず");
+        Assert.False(sim.Nations[1].World.PatentLaw, "宗教教育の日本に特許が入ってしまう（世界の技術水準不能のはず）");
+        Assert.True(sim.Nations[1].World.JointStock, "工業化した日本は株式会社が入るはず");
+    }
+
+    [Fact]
+    public void 単独国でも技術はカードなしで決定論的に伸びる()
+    {
+        var a = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
+        var b = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
+        a.Run(200);
+        b.Run(200);
+        Assert.True(a.World.TechLevel > 0, "技術が伸びていない");
+        Assert.Equal(a.World.TechLevel, b.World.TechLevel);   // 乱数を使わない＝決定論
+    }
+}

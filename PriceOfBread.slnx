@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="PriceOfBread.App/PriceOfBread.App.csproj" />
+  <Project Path="PriceOfBread.Runner/PriceOfBread.Runner.csproj" />
+  <Project Path="PriceOfBread.SimCore/PriceOfBread.SimCore.csproj" />
+  <Project Path="PriceOfBread.Tests/PriceOfBread.Tests.csproj" />
+</Solution>

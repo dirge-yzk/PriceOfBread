@@ -1,0 +1,12 @@
+C:\Users\dirge\AppData\Local\Temp\claude\pob-measure-snap\PriceOfBread.Tests\bin\Release\net10.0\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:01.25]     PriceOfBread.Tests.UnderconsumptionTests.無介入の放任経済は労働者を窮乏させ脱工業化し格差を生む [FAIL]
+  失敗 PriceOfBread.Tests.UnderconsumptionTests.無介入の放任経済は労働者を窮乏させ脱工業化し格差を生む [104 ms]
+  エラー メッセージ:
+   労働者の生活水準が高い（過少消費が出ていない）
+  スタック トレース:
+     at PriceOfBread.Tests.UnderconsumptionTests.無介入の放任経済は労働者を窮乏させ脱工業化し格差を生む() in C:\Users\dirge\AppData\Local\Temp\claude\pob-measure-snap\PriceOfBread.Tests\UnderconsumptionTests.cs:line 26
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+失敗!   -失敗:     1、合格:   418、スキップ:     0、合計:   419、期間: 9 m 45 s - PriceOfBread.Tests.dll (net10.0)

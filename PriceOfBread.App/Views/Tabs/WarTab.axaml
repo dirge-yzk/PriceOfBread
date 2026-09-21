@@ -1,0 +1,186 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PriceOfBread.App.ViewModels"
+             x:Class="PriceOfBread.App.Views.Tabs.WarTab"
+             x:DataType="vm:GameViewModel">
+    <!-- Views/Tabs/WarTab.axaml ＝ 戦争タブの本体。 -->
+    <!-- ============ 戦争（2026-07-19）：交戦中の戦況（戦勝点・犠牲者・戦費・厭戦）＋終わった戦争（5年残置） ============ -->
+    <!-- ★2026-09-07 作者指示(12)「左側を軍事力関係、右側を反乱関係に」＝2段組へ再構成（財政/政治/貿易と同じ *,16,*）。
+         左列＝総動員・理想の軍隊・戦争・終わった戦争／右列＝反乱勢力・再征服。
+         下段は全幅＝他国の戦争（調停）＝自国の軍事力でも自国の反乱でもない（列の意味を混ぜない）。 -->
+    <Grid ColumnDefinitions="*,16,*" RowDefinitions="Auto,Auto">
+
+        <!-- ================= 左列＝軍事力 ================= -->
+        <StackPanel Grid.Row="0" Grid.Column="0" Spacing="4" VerticalAlignment="Top">
+            <!-- 総動員規模＝倍率（総動員で軍が何倍になるか）＝総動員の目標兵数 ÷ 現在の兵数（2026-08-16作者裁定）。
+                 目標兵数の式は Military.Step と同一（徴兵対象人口＝農民＋都市労働者＋現役兵 × 深さ × 国民意識ゲート × 徴兵法）。
+                 徴募は max(現状, 総動員目標) なので下限は1.0倍＝総動員で軍が減ることはない。
+                 ★M1（2026-09-19）：強制徴募は徴兵法≥選抜の国だけ＝志願兵制の国は総動員しても目標が立たず1.0倍。
+                 ★政変圧力は政治タブの「王権と議会」へ戻した（2026-08-24作者指示＝ここに残るのは軍の量だけ）。 -->
+            <Grid ColumnDefinitions="*,Auto" Margin="0,2,0,2">
+                <TextBlock Text="総動員規模" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontBody}"/>
+                <TextBlock Grid.Column="1" Text="{Binding PolityMobilizationText}" Classes="val" VerticalAlignment="Center"/>
+            </Grid>
+            <!-- #106 総動員：開戦ポップアップで選び損ねても、戦争中はここで後から追加できる -->
+            <!-- ★スイッチ式。総動員中は「復員」に変わる -->
+            <Button Classes="dialog" Content="{Binding MobilizeButtonText}" Command="{Binding ToggleMobilizeCommand}" IsVisible="{Binding PlayerAtWar}" FontSize="{StaticResource FontBody}" Margin="0,2,0,2"/>
+            <!-- ★旧「海軍偏重」のスライダーは撤去（2026-08-10 作者裁定「陸軍と海軍の注力レバーは廃止し、海軍維持費と陸軍維持費で表現する」）
+                 ＝陸海の重点は財政タブの陸軍維持費・海軍維持費の2本で置く -->
+            <Border Height="1" Background="{StaticResource SandBrush}" Margin="0,4,0,2"/>
+            <!-- ============ 理想の軍隊（2026-08-16 作者指示「理想の軍隊に必要な材（兵士POP含め）を戦争タブに羅列し、
+                 それぞれどの程度充足しているかを表示」）＝材ごとに 必要量／実際／充足率 の1行。
+                 並び＝人員→基本装備→上位装備→最上位装備→空軍装備→運用燃料（＝エンジンの調達段の順）、段の中は必要額の大きい順。
+                 ⚠需要が立っていない材は行そのものが出ない（休眠の係数・港のない国の艦・まだ世界に無い財）＝「充足0%」と書かない。
+                 ★2026-09-07：2段組で列が半分（約298px）になったので、節見出しと列見出しを2行に割り、数値3列を 58/58/48 へ詰める（末列は充足率が3桁%を超えても欠けない幅）。 ============ -->
+            <!-- ★2026-08-24作者指示：節の見出しがヘッダーから移設した「軍事力:〇位(充足n%)」を兼ねる（充足＝この表の行の平均） -->
+            <TextBlock Text="{Binding ArmyIdealHeader}" Classes="section" ToolTip.Tip="{Binding ArmyIdealTip}" ToolTip.ShowDelay="200"/>
+            <Grid ColumnDefinitions="*,58,58,48" Margin="0,0,0,2">
+                <TextBlock Grid.Column="1" Text="必要量" Classes="section" FontSize="{StaticResource FontSmall}" TextAlignment="Right" VerticalAlignment="Bottom"/>
+                <TextBlock Grid.Column="2" Text="実際" Classes="section" FontSize="{StaticResource FontSmall}" TextAlignment="Right" VerticalAlignment="Bottom"/>
+                <TextBlock Grid.Column="3" Text="充足率" Classes="section" FontSize="{StaticResource FontSmall}" TextAlignment="Right" VerticalAlignment="Bottom"/>
+            </Grid>
+            <ItemsControl ItemsSource="{Binding ArmyNeeds}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:ArmyNeedRow">
+                        <!-- 段の小見出しと材の行を同じ一覧に混ぜる（外交タブのランク区切りと同じ作法）＝並びと区切りが1つのコレクションで決まる -->
+                        <Panel>
+                            <TextBlock Text="{Binding Header}" IsVisible="{Binding IsHeader}" Foreground="{StaticResource BronzeBrush}" FontWeight="Bold" FontSize="{StaticResource FontTiny}" Margin="2,6,0,2"/>
+                            <Grid ColumnDefinitions="*,58,58,48" IsVisible="{Binding IsRow}" Margin="0,2" Background="Transparent" ToolTip.ShowDelay="200">
+                                <ToolTip.Tip>
+                                    <TextBlock Text="{Binding Tip}" FontSize="{StaticResource FontSmall}"/>
+                                </ToolTip.Tip>
+                                <TextBlock Grid.Column="0" Text="{Binding Name}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontBody}" Margin="8,0,0,0" TextTrimming="CharacterEllipsis"/>
+                                <TextBlock Grid.Column="1" Text="{Binding Need}" Foreground="{StaticResource BronzeBrush}" FontSize="{StaticResource FontSmall}" TextAlignment="Right" VerticalAlignment="Center"/>
+                                <TextBlock Grid.Column="2" Text="{Binding Have}" Foreground="{StaticResource BronzeBrush}" FontSize="{StaticResource FontSmall}" TextAlignment="Right" VerticalAlignment="Center"/>
+                                <TextBlock Grid.Column="3" Text="{Binding Fill}" Foreground="{Binding FillBrush}" FontSize="{StaticResource FontSmall}" FontWeight="Bold" TextAlignment="Right" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Panel>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <TextBlock Text="軍備なし" Classes="dim" Margin="0,4,0,2" IsVisible="{Binding NoArmyNeeds}"/>
+            <Border Height="1" Background="{StaticResource SandBrush}" Margin="0,6,0,2"/>
+            <TextBlock Text="戦争" Classes="section" Margin="0,0,0,2"/>
+            <ItemsControl ItemsSource="{Binding WarRows}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:WarRow">
+                        <Border BorderBrush="{StaticResource SandLightBrush}" BorderThickness="0,0,0,1" Padding="0,6,0,10">
+                            <StackPanel Spacing="3">
+                                <!-- ★2026-09-07：列が半分になったので国名と戦勝点は Grid（国名は * で詰め、戦勝点は右端に固定） -->
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock Text="{Binding Enemy}" Foreground="{StaticResource InkBrush}" FontSize="16" FontWeight="Bold" TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding Score}" Foreground="{Binding ScoreBrush}" FontSize="{StaticResource FontLead}" FontWeight="Bold" VerticalAlignment="Center"/>
+                                </Grid>
+                                <TextBlock Text="{Binding Info}" Foreground="{StaticResource InkMutedBrush}" FontSize="{StaticResource FontBody}" TextWrapping="Wrap"/>
+                                <TextBlock Text="{Binding Forces}" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontBody}" TextWrapping="Wrap"/>
+                                <TextBlock Text="{Binding Losses}" Foreground="{StaticResource RustBrush}" FontSize="{StaticResource FontBody}" TextWrapping="Wrap"/>
+                                <TextBlock Text="{Binding Cost}" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontBody}" TextWrapping="Wrap"/>
+                                <!-- 厭戦：内訳が空の間（ロード直後・開戦直後）は空の吹き出しを出さない＝2枚組で切替（HeaderStat と同方式） -->
+                                <Panel>
+                                    <TextBlock Text="{Binding Exhaustion}" Foreground="{StaticResource InkMutedBrush}" FontSize="{StaticResource FontBody}" TextWrapping="Wrap" IsVisible="{Binding !HasTerms}"/>
+                                    <TextBlock Text="{Binding Exhaustion}" Foreground="{StaticResource InkMutedBrush}" FontSize="{StaticResource FontBody}" TextWrapping="Wrap" IsVisible="{Binding HasTerms}" ToolTip.ShowDelay="200">
+                                        <ToolTip.Tip>
+                                            <ItemsControl ItemsSource="{Binding Terms}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate x:DataType="vm:StatTerm">
+                                                        <TextBlock Text="{Binding Text}" Foreground="{Binding Brush}" FontSize="{StaticResource FontSmall}"/>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </ToolTip.Tip>
+                                    </TextBlock>
+                                </Panel>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <TextBlock Text="交戦中の戦争なし" Classes="dim" Margin="0,4,0,0" IsVisible="{Binding NoActiveWars}"/>
+            <TextBlock Text="終わった戦争" Classes="section" Margin="0,10,0,2" IsVisible="{Binding HasPastWars}"/>
+            <ItemsControl ItemsSource="{Binding PastWarRows}" IsVisible="{Binding HasPastWars}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:PastWarRow">
+                        <Border BorderBrush="{StaticResource SandLightBrush}" BorderThickness="0,0,0,1" Padding="0,4,0,6">
+                            <StackPanel Spacing="2">
+                                <TextBlock Text="{Binding Title}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontEmph}" FontWeight="Bold" TextWrapping="Wrap"/>
+                                <TextBlock Text="{Binding Detail}" Foreground="{StaticResource InkMutedBrush}" FontSize="{StaticResource FontSmall}" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
+
+        <!-- ================= 右列＝反乱 ================= -->
+        <StackPanel Grid.Row="0" Grid.Column="2" Spacing="4" VerticalAlignment="Top">
+            <!-- ============ 反乱勢力（表示のみ・対処は国内危機イベントのポップアップへ・2026-07-20） ============ -->
+            <!-- ★2026-09-07：2段組で列が半分（約299px）になったので数値3列を 68/44/48 へ詰める（末列は戦力比が3桁%を超えても欠けない幅）。
+                 反乱規模の68は PopFmt の最長形（"412.35M人"＝約59px）が入る幅＝清の大POPでも右端が欠けない。
+                 勢力名は * ＋折返しなので、詰めた分は名前が2行になって吸収する。 -->
+            <!-- ★2026-09-07：勢力が1つも無い平時に、列見出しだけが宙に浮かないよう行と同じ可視性にする -->
+            <Grid ColumnDefinitions="*,68,44,48" Margin="0,2,0,4">
+                <TextBlock Grid.Column="0" Text="反乱勢力" Classes="section"/>
+                <TextBlock Grid.Column="1" Text="反乱規模" Classes="section" FontSize="{StaticResource FontSmall}" TextAlignment="Right" VerticalAlignment="Bottom" IsVisible="{Binding !NoFactions}"/>
+                <TextBlock Grid.Column="2" Text="結束" Classes="section" FontSize="{StaticResource FontSmall}" TextAlignment="Right" VerticalAlignment="Bottom" IsVisible="{Binding !NoFactions}"/>
+                <TextBlock Grid.Column="3" Text="{Binding FactionProximityHeader}" Classes="section" FontSize="{StaticResource FontSmall}" TextAlignment="Right" VerticalAlignment="Bottom" IsVisible="{Binding !NoFactions}"/>
+            </Grid>
+            <ItemsControl ItemsSource="{Binding DomesticFactions}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:FactionRow">
+                        <Border BorderBrush="{StaticResource SandLightBrush}" BorderThickness="0,0,0,1" Padding="0,4,0,5">
+                            <StackPanel Spacing="2">
+                                <Grid ColumnDefinitions="*,68,44,48">
+                                    <TextBlock Grid.Column="0" Text="{Binding Name}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontBody}" FontWeight="Bold" TextWrapping="Wrap"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding Size}" Foreground="{StaticResource BronzeBrush}" FontSize="{StaticResource FontSmall}" TextAlignment="Right" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding Cohesion}" Foreground="{StaticResource BronzeBrush}" FontSize="{StaticResource FontSmall}" FontWeight="Bold" TextAlignment="Right" VerticalAlignment="Center"/>
+                                    <!-- 末列＝F3b点火不等式の近接度（100%超＝蜂起圏＝警告赤）。見出しは点火中の式で切り替わる（戦力比／連言2門の近接度）。
+                                         内訳ホバーの無い行（スナップショット表示の"—"）は空の吹き出しを出さない＝2枚組で切替（左列の厭戦と同方式） -->
+                                    <Panel Grid.Column="3">
+                                        <TextBlock Text="{Binding Strength}" Foreground="{Binding StrengthBrush}" FontSize="{StaticResource FontSmall}" FontWeight="Bold" TextAlignment="Right" VerticalAlignment="Center" IsVisible="{Binding !HasStrengthTip}"/>
+                                        <TextBlock Text="{Binding Strength}" Foreground="{Binding StrengthBrush}" FontSize="{StaticResource FontSmall}" FontWeight="Bold" TextAlignment="Right" VerticalAlignment="Center" Background="Transparent" IsVisible="{Binding HasStrengthTip}" ToolTip.ShowDelay="200">
+                                            <ToolTip.Tip>
+                                                <TextBlock Text="{Binding StrengthTip}" FontSize="{StaticResource FontSmall}"/>
+                                            </ToolTip.Tip>
+                                        </TextBlock>
+                                    </Panel>
+                                </Grid>
+                                <TextBlock Text="{Binding Demands}" Classes="dim" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <TextBlock Text="目立った反乱勢力なし" Classes="dim" Margin="0,6,0,10" IsVisible="{Binding NoFactions}"/>
+            <!-- 区切りは再征服の行と同じ可視性＝対象の州が無い平時に線だけが宙に浮かない -->
+            <Border Height="1" Background="{StaticResource SandBrush}" Margin="0,4" IsVisible="{Binding HasLockedRegions}"/>
+            <!-- ★再征服＝失った州（分離独立で抜けた州）を武力で取り戻す＝反乱の後始末なのでこの列に置く（2026-09-07）。
+                 2026-08-24作者指示：スイッチを撤去して**常時ON**＝残すのは対象の州数（データ）だけ。
+                 ⚠2026-09-08：「未開拓の辺境」は辺境の廃止（2026-08-26）で生成されなくなり、ForceUnlockStateText の該当枝も削除した。 -->
+            <TextBlock Text="{Binding ForceUnlockStateText}" IsVisible="{Binding HasLockedRegions}" Foreground="{StaticResource BronzeBrush}" FontSize="{StaticResource FontSmall}" TextWrapping="Wrap" Margin="0,2,0,2"/>
+        </StackPanel>
+
+        <!-- ================= 下段＝全幅（自国の軍事力でも自国の反乱でもない） ================= -->
+        <!-- 他国の戦争への調停（列強の介入・プレイヤー側 2026-09-06）：AIと同じ述語で可否・理由を出す。
+             行が 題名＋状況＋ボタン の横並び＝半分の幅では潰れるので全幅の下段に置く。 -->
+        <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Spacing="4">
+            <Border Height="1" Background="{StaticResource SandBrush}" Margin="0,8,0,4"/>
+            <TextBlock Text="他国の戦争（調停）" Classes="section" Margin="0,0,0,2"/>
+            <ItemsControl ItemsSource="{Binding MediationRows}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:MediationRow">
+                        <Border BorderBrush="{StaticResource SandLightBrush}" BorderThickness="0,0,0,1" Padding="0,4,0,6">
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                                <StackPanel Grid.Column="0" Spacing="2">
+                                    <TextBlock Text="{Binding Title}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontEmph}" FontWeight="Bold"/>
+                                    <TextBlock Text="{Binding Info}" Foreground="{StaticResource InkMutedBrush}" FontSize="{StaticResource FontSmall}" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <Button Grid.Column="1" Classes="dialog" Content="調停を提案" Command="{Binding $parent[UserControl].((vm:GameViewModel)DataContext).RequestMediateCommand}" CommandParameter="{Binding Key}" IsEnabled="{Binding CanMediate}" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <TextBlock Text="他国の戦争なし" Classes="dim" Margin="0,2,0,0" IsVisible="{Binding NoMediation}"/>
+        </StackPanel>
+    </Grid>
+</UserControl>

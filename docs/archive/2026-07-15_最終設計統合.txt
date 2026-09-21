@@ -1,0 +1,1018 @@
+================================================================================
+Price of Bread（パンの値段）／コードネーム Successor
+最終設計統合ドキュメント
+初版: 2026-07-15（ファイル名の日付）／全面改訂: 2026-07-18
+================================================================================
+
+【本書の位置づけ】
+初版は「UI 実装フェーズに入る前の設計すり合わせ」だった。本改訂版は、その後の
+UI 全面精査（07-16）・確定仕様まとめ P3〜P14 の全点火（07-17/18）・1783 リベース・
+自己完結型 exe 配布までを反映した「出荷後の統合スナップショット」である。
+数値係数は原則としてコードの実リテラル値（file:line 付き）を記載する。本改訂で
+全係数の (Coef:行番号) を 2026-07-18 時点の Coefficients.cs 実 grep で再検証した
+（記載値の不一致はゼロ・行番号は挿入により大半がシフトしたため全面更新）。
+コード内コメントの「既定0＝休眠／較正中立」は陳腐化例が多いため信用せず、実際の
+リテラル値と呼び出し経路で有効／休眠を判定する方針は不変。band 判定基準は
+HistoricalReference.cs（実コード）から取得している。
+
+【初版からの主な差分（2026-07-15 → 07-18）】
+・07-15 後半: R2 賃金天井の工業化連動・#22 革新の自由度緩和を採用（exact41 到達）。
+  残タスク #60/#61/#62/#65/#66 を一掃実測し全機構却下＝exact41 は飽和局所最適と確定。
+  タスクC/#4 独占レント＋resentment は最終差し戻し。Explanation API（#63）完成。
+  SimCore 追加要素の UI 反映（説明 API 内訳ホバー等・2ラウンド）。
+・07-16: UI 全面精査（4レンズ監査 177→69 件を 4 バッチで全適用）。
+・07-17: UI フィードバック第3ラウンド（かっこ書き補足の全廃・財政3列・AIボタン恒久
+  禁止）。宣戦布告の完全廃止（対称化）。SliderLimit ハードストップ。植民地投資レバー
+  削除。確定仕様まとめ（P1〜P14）のユーザー裁定＝「イベントを除き、全て実装」。
+・07-17/18: P5 1783 リベース→点火ラダー（P14/P6/P7/P9/P8/P3/P4 を各 batch30 で
+  検証しつつ順次点火）＝全 8 機構 live。清 43%（目標達成）・アヘン戦争創発・
+  仏革命の完全創発。自己完結型 exe 配布（dist\PriceOfBread\Successor.App.exe）。
+・07-18 午前: P10 信任帝政を「床のみ」で点火（呼吸 0.3 は却下）。本書更新時点で
+  床のみ構成の batch30 を計測中。
+
+
+================================================================================
+1. ゲームの全体像
+================================================================================
+
+1.1 タイトル・プラットフォーム・期間・ターゲット
+--------------------------------------------------------------------------------
+・正式名称: 「Price of Bread」（パンの値段）。コードネーム Successor（＝Victoria 2 の
+  後継を志向）。
+・対象期間: 1783–1914（131年＝524四半期・GameQuarters=524 (Coef:903)）。P5 リベース
+  （2026-07-17）で従来の 1789 開始から変更＝パリ条約直後の旧体制から開始し、米独立
+  戦争債務→利払い→緊縮→三部会→フランス革命を財政機構から完全創発させる
+  （StartYear=1783・Scenario.cs:32）。
+・ジャンル: グランドストラテジー経済シミュレーション。主眼は「POP を誘導して近代化に
+  導く」こと。近代化の帰結は明治型／徳川型／失敗型の複数経路として創発する。
+・プラットフォーム: C# / .NET 10。Windows ネイティブ（WSL では開発しない）。
+・UI: Avalonia（地図中心・Paradox 型）。2026-07-16 に全面精査（4レンズ監査 69 件適用）
+  済み・07-17/18 に新機構の UI 反映まで完了。旧タブ式ダッシュボード・旧 Successor.UI
+  （ImGui 版）は削除済み。
+・プロジェクト構成:
+    Successor.SimCore … エンジン非依存 DLL（シミュレーション本体）
+    Successor.App     … Avalonia UI（現役）
+    Successor.Runner  … headless 診断プローブ群
+    Successor.Tests   … xUnit テスト（169 緑＝2026-07-18 実測・失敗0）
+    dist\PriceOfBread … 配布物（自己完結型 exe）
+・起動: dotnet run --project Successor.App -c Release
+  配布: dotnet publish win-x64 self-contained singlefile → dist\PriceOfBread\
+  Successor.App.exe（ユーザー裁定 2026-07-18「全部点火して世に出す」）。
+・場所: C:\Users\dirge\Documents\Successor
+・クラッシュロガー: 未処理例外を %LOCALAPPDATA%\PriceOfBread\crash.log へ恒久記録
+  （GUI サブシステムで例外が見えない問題の対策・Program.cs）。
+・セーブ: リフレクション自動追従・バージョニングなし＝旧セーブ互換は放棄が現行
+  ポリシー。
+
+1.2 中核設計思想
+--------------------------------------------------------------------------------
+最高方針は 2026-07-09「較正基準の交代」。
+
+(1) 旧基準の破棄
+    徳川33／明治33／失敗33（AgrarianToUrban 72セルの三分割＝24-24-24）は破棄。もはや
+    ゲートではない。ただし calib 24-24-24 は「単一国較正が浮動小数レベルで壊れていない
+    か」を検証する恒等ハーネスとしては現在も維持している（合否ゲートではなく回帰番人。
+    点火ラダーでも毎段確認した）。
+
+(2) 新基準＝史実忠実度 約7割 ＋ 説明可能な逸脱
+    ① 全国家が約7割のシードで史実（または近い）政体・主要法に到達する。100% は史実固着
+       ＝カオス不足であり望まない。7割を大きく割るのも不可。
+    ② 大変動・奇妙な反乱は稀なら歓迎。ただし「イベントログで追跡できる因果連鎖」がある
+       ことが絶対条件（Explanation API #63 はこの条件の実装でもある）。
+    ③ 境界例: 近代化モンゴルの欧州侵攻＝禁止（構造的潜在力を超える飛躍）。
+       パリコミューン存続・共産化したナポレオン帝政＝容認。
+
+(3) モンゴル則
+    能力の物理（距離・投射・経済基盤）を逸脱の下限として維持する。忠実度の物差し
+    （HistoricalReference.cs）は「どれだけ史実に寄るか」だけを測り、反実仮想の下限は
+    Formations.cs の国家形成規則（普遍帝国は文化不問で誰でも簒奪可）で別途担保する。
+
+(4) 創発／脱ハードコード
+    条件付き倍率・外科補正を避け、市場と保存則から創発させる（倍率排除キャンペーン
+    ①〜⑧）。P3〜P14 も全て一般機構として実装した（清専用スクリプトなし・アヘンは
+    任意の輸入国で発火しうる・制度疲労は全国共通のストック）。イベント演出層は
+    ユーザー裁定で不採用（7章）。
+
+(5) 飽和の教訓（2026-07-15 に確定・07-18 に突破）
+    旧基点（1789）の exact41 は忠実度の飽和局所最適だった＝漸進機構の素点火は例外なく
+    exact を削り、多くは清覇権を逆に強める（churn を減らすため）。突破は「基線ごと
+    動かす」大機構でのみ可能＝P5 リベース＋制度疲労／天命の柱がこれを実証した
+    （リベース後基線 exact38 から全点火で exact37/清43% へ＝清是正と忠実度を両立）。
+
+(6) 運用上の鉄則
+    ・コード内コメントの「既定0＝休眠／較正中立」は陳腐化多数。着手前に必ず
+      grep 'public double <名前> = ' Coefficients.cs で現行値を確認する。
+    ・浮動小数は非結合。既存式に項を足すときは掛け算順序を保存し新項は独立加算する
+      （+0 でも最終ビットが変わり 524四半期×53国で軌道が発散する）。
+    ・恒等確認は 169緑／calib だけでなく chronicle 総政変数の変更前後一致で見る。
+      ※ P5 リベースで旧アンカー値（点火122／全休眠148・seed1）は無効化された。以後は
+      「変更直前に採取した基準値とのバイト単位一致」で運用する（休眠実装の恒等証明は
+      chronicle seed3 が P5 時点と一致することで行った）。
+    ・バッチ好結果でもテストゲートが隠れた破壊を捕捉する（タスクC/#4 はバッチ承認後に
+      硬性テスト5失敗で差し戻した）。バッチと 169 緑は独立の関門。
+
+1.3 世界の骨格
+--------------------------------------------------------------------------------
+・国家数＝53カ国（WorldData.Nations()）。うち従属可能国（SubjugatedOk）33カ国。
+  分離独立・formable で試合中に建国／変名が起きる（初期 53 は不変）。
+・州＝156州。ProvinceSpec（City, Share, Resources, Culture, Religion）の軽量レコード。
+  州に座標は持たず、地図は「州○方式」（代表都市座標に○を置き所有国色で塗る）。
+・財＝126財（id 0–125・連続）。アヘンは id 92（既存 Luxury 財・IsColonial）。財は密に
+  織られ死蔵ゼロ。
+・レオンチェフ生産連鎖: 多段の投入産出チェーン。レシピ競争は限界費用 mc 駆動
+  （margin=(price−mc)/mc）で、Productivity は容量として勝敗に無関係。固定レオンチェフの
+  要素代替は AltRecipes / Input.Alternatives ＋ TechOnset 代替レシピ機構で拡張。
+・三層時計（Simulation.cs）:
+    日次 StepDay（MarketFlow.cs）  … 価格形成。加速度的で床5%〜天井2000%対称。
+    月次決算（EconomyStep.cs）     … 市場／消費／所得／多段チェーン／労働配分／資本・建設。
+                                      売上＝実支払いの合計で保存。
+    四半期戦略（Diplomacy.Step 他）… 外交・政治・AI 意思決定。
+・POP: 階級別 pop（貴族／専門職／ブルジョワ／農民／労働者／兵士など）。属性に
+  Savings/Earned/Paid、CoreEthnicShare（民族中核度・移民で core=0）、OldShare（老年
+  オーバーレイ）、Subsistence 等。基礎貨幣保存は p.Savings += p.Earned − p.Paid。
+・初期条件の史実差分（P2(a)/P5/P6）: 仏＝重債務だが未破綻（govDebt=600000・
+  world.json:27）＝仏革命の創発源。清＝乾隆帝の遺産（treasury=40000・
+  initialMassMilitancy=0.25・world.json:1598-1599）＝白蓮教乱前夜の空国庫と不穏。
+  初期国民意識 nationalConsciousness0＝仏0.1／米0.32（world.json・既定は
+  NationBuildInitialDefault=0.075 (Coef:1215)）。
+
+
+================================================================================
+2. 現在完全に実装済みで安定している主要システム（生の係数値つき）
+================================================================================
+以下の係数は特記なき限り Coefficients.cs のリテラル値（2026-07-18 実 grep）。
+【有効】【休眠】は呼び出し経路で実際に効くかを確認した結果。
+
+2.1 経済（価格形成・賃金・雇用・生産・市場清算・貿易）
+--------------------------------------------------------------------------------
+● 価格形成（MarketFlow.cs 日次）
+  ・価格の積分項（在庫ギャップ駆動） PriceAdjustSpeed = 0.13 (Coef:10)
+  ・価格の比例項（需給差駆動）       FlowAdjustSpeed  = 0.48 (Coef:11)
+  ・日次探索の需給価格弾力 ε         PriceElasticity  = 0.5  (Coef:12)
+  ・日次速度配分の除数               PriceFlowDailyDiv= 30.0 (Coef:295)
+  ・価格加速度クランプ amp: PriceAmpLnScale=2.9957(=ln20)(Coef:15)／PriceAmpCenter=0.7
+    (Coef:16)／PriceAmpEdge=8.0(Coef:17)／PriceAmpPower=3.0(Coef:18)
+    ＝床5%〜天井2000% 対称。
+  ・安全網 SoftBand: PriceFloorFactor=0.01(Coef:29)／PriceCeilFactor=100.0(Coef:30)／
+    SoftBandSharpness=8.0(Coef:31)
+● 需要弾力クランプ（EconomyStep.cs:617-628）
+  ・下クランプ PriceFactorMin=0.4(Coef:23)／上クランプ既定 PriceFactorMax=1.4(Coef:24)
+  ・日用品 DemandElasticityMaxDaily=2.5【有効・R1点火】(Coef:985)
+  ・奢侈品 DemandElasticityMaxLuxury=2.0【有効・R1点火】(Coef:986)
+  ・主食間交差弾力 CrossElasticity=0.6(Coef:26)
+● 賃金（MarketFlow.cs 役務経路。留保賃金の非対称追従＝下方硬直の創発源）
+  ・留保賃金の下方追従 ReservationWageFall=0.25(Coef:292)／上方 ReservationWageRise=1.0
+    (Coef:293)／組合増幅 UnionWageRiseBoost=0.5(Coef:294)
+  ・賃金クランプ: 床 WageClampMin=0.3(Coef:1000)／天井 WageClampMax=3.0(Coef:1001)／
+    方式 WageClampSoftBand=1.0【有効＝SoftBand経路】(Coef:1003)
+  ・賃金天井の工業化連動 WageClampIndScale=1.0【有効・R2点火 2026-07-15】(Coef:1002)
+    ＝effWageMax=WageClampMax×(1+これ×Industrialization)。工業国のみ天井が上がり実質
+    賃金が伸びる（平坦拡大 5.0 の「富国青天井で独走固定化」を回避した正着）。
+  ・労働配分の均等床 LaborFloorMix=0.15(Coef:39)／転職に要る給与倍率 PromotionPremium=1.5
+    (Coef:400)
+● 雇用（数量調整＝操業規模 Scale の伸縮＋労働財売れ残り率＝失業）
+  ・規模調整 ScaleAdjustSpeed=0.05(Coef:41)／ScaleFloor=0.1(Coef:42)／ScaleMax=3.0(Coef:43)
+  ・倒産機構 FactoryBankruptcyEnabled=true(Coef:47)／全tier退出 FactoryBankruptcyAllTiers
+    =1.0【有効】(Coef:53)／倒産閾値 FactoryBankruptcyMargin=−0.85(Coef:55)／再参入
+    FactoryReentryMargin=−0.05(Coef:56)
+  ・失業の闘争度寄与 UnemploymentMilitancy=0.4(Coef:296)
+● 生産（能力＝pop.Size×fraction×Productivity×boost×harvestMul×mineralMul）
+  ・工業化生産性: IndProductivityGain=1.2(Coef:571)／IndProductivityScale=2.5(Coef:572)／
+    月次減価 IndDepreciation=0.003(Coef:539)／規模の経済 ScaleEconomyGain=0.3(Coef:575)・
+    ScaleEconomyHalf=1.5(Coef:576)
+  ・電化: ElecPerOutput=0.25／ElecBoost=0.3／ElecLaborSave=0.4(Coef:211-213)。技術的失業
+    LaborSaveRate=0.25【有効】(Coef:214)。電化不可逆 ElecFillIrreversibility=1.0(Coef:221)
+  ・蒸気: EnergyPerOutput=0.05／SteamBoost=0.3／SteamTechOnset=0.25／SteamTechWidth=0.5
+    (Coef:225-228)
+  ・建設束 ConsSteel=1.0／ConsMachine=0.15／ConsCement=0.4／ConsLumber=0.5(Coef:590-593)。
+    工場レシピの投入係数 QtyPerOutput は goods.json 側。
+● 市場清算（月次・比例配給。売上＝実支払いで保存）
+  ・満足度重み: 主食=1.0／日用 DailyNeedWeight=0.5(Coef:289)／奢侈 LuxuryNeedWeight=0.2
+    (Coef:290)。投入充足はリービッヒ最小則 fill=min over inputs(ration)。
+  ・流通マージン MerchantMargin=0.04(Coef:323)
+● 独占（M6/タスクC の EffFirms 再定義＝基盤のみ採用・マークアップは休眠）
+  ・非独占財の既定有効生産者数 CompetitiveFirmsBase=50【基盤・DomesticMarkupMax=0 では
+    未使用】(Coef:531)＝「生産者 pop 数=1 を偽独占と数える」素点火崩壊の解消。
+  ・法的独占の解体工業化度 LegalMonopolyDissolveInd=0.3(Coef:532)＝伝統経済で塩(6)/茶(74)
+    のみ EffFirms=1。
+  ・国内寡占 DomesticMarkupMax=0.0【休眠＝点火は帯劣化で差し戻し】(Coef:530)／独占レント
+    MonopolyRentPremium=0.0・MonopolyResentmentMilitancy=0.0【休眠＝構造的不成立で差し
+    戻し・4.9】(Coef:534,536)
+  ・世界市場独占 MonopolyMarkupMax=0.5【有効】(Coef:528)／MonopolyHhiFloor=0.3(Coef:529)。
+    HHIに残余世界算入 HhiIncludesRestOfWorld=0.0【休眠＝load-bearing】(Coef:1014)
+● 貿易・国際市場（関税は輸入業者＝商人 pop が remit。閾値方式で倍率なし）
+  ・交易速度 TradeSpeed=0.05(Coef:519)／輸送マージン TransportMargin=0.18(Coef:520)
+  ・関税保護 TariffProtect=1.0(Coef:511)／輸出ドラッグ TariffExportDrag=0.3(Coef:512)／
+    関税収入率 TariffRevenueRate=1.0(Coef:513)／下限 TariffFloor=−0.25(Coef:514)
+    ※ UI の関税レバーは軸 −25%〜100%・上限 75% で thumb 停止（SliderLimit）。
+  ・穀物法の主食輸入上乗せ CornLawImportPenalty=1.0(Coef:111)
+  ・国内州間融通 DomesticPoolEnabled=1.0【有効】(Coef:521)＝州間に関税／穀物法／封鎖／
+    為替を課さない。国内輸送マージン DomesticTradeMargin=0.09(Coef:522)
+  ・世界価格追従 WorldPriceSpeed=0.10(Coef:523)
+  ・輸送費従量成分 TransportWeightMarginScale=0.3【有効】(Coef:1009)／港ゲート・鉄道解禁
+    RailTechOnset=0.35(Coef:614)／封鎖の主食狙撃 BlockadeStapleBias=0.5【交戦時のみ有効】
+    (Coef:910)／運河通行料 CanalTollByTraffic=1.0【有効】(Coef:1049)
+  ・アヘンの世界プール例外【有効・P3】: IsColonial 財は国際市場除外だが、アヘン
+    （OpiumGoodId=92 (Coef:962)）のみ主フラグ ON で世界プールに乗る（英印→清の貿易経路・
+    InternationalMarket.cs:191,232）。禁令国はアヘンを輸入しない（:256）。
+● 労働供給（LaborSupply.cs。女性参加・児童労働を家計困窮×賃金保持×就学から連続創発）
+  ・女性参加基礎 FemalePartBase=0.4(Coef:230)／財産権下 FemalePartProperty=0.7(Coef:231)／
+    家計困窮重み FemaleNeedWeight=0.5(Coef:237)／児童半人前 ChildWorkFactor=0.5(Coef:232)
+  ・労働時間 WorkHoursValue∈[8,14] を連続関数化。疲労逓減 LaborFatigueExp=0.37(Coef:388)／
+    過労ペナルティ LaborFatiguePenalty=0.03(Coef:389)／法定上限収束 WorkHoursFollowSpeed
+    =0.15(Coef:391)
+
+2.2 人口動態（出生・死亡・扶養力・移民・都市化）
+--------------------------------------------------------------------------------
+（式は Simulation.cs、係数リテラルは Coefficients.cs）
+● 出生（Simulation.cs:1354 の fertility 式）
+  ・FertilityBase=1.0(Coef:254)／女性識字低下 FertilityLitSlope=0.55(Coef:255)／下限
+    FertilityFloor=0.5(Coef:256)／識字開始点 FertilityLitOnset=0.1(Coef:257)／所得低下
+    FertilityIncomeSlope=0.15(Coef:258)／粗出生率 CrudeBirthRate=0.035(Coef:259)／
+    ロジスティック純増 PopGrowthRate=0.006(Coef:835)（Simulation.cs:1359）
+  ・女性数依存【有効・Phase3先行分】: FertileWomenBirths=true(Coef:253)／カップル律速
+    CoupleLimitedBirths=1.0(Coef:1020)／プール下限 FertileShareFloor=0.05(Coef:979)
+  ・フロンティア出生ブースト LandRoomFertilityWeight=0.3【有効】(Coef:841)。旧 LandRoom は
+    capacity 乗数だったが U3 で出生側へ役割分離済み（土地扶養力の二重リフト解消）。
+● 死亡・飢饉・疫病
+  ・飢饉死の困窮層集中 FamineMortalityConcentration=3.0(Coef:260)。実食料連結 FoodCapacity
+    Weight=0.5(Coef:840) で FoodFill<1 が飢饉死＝マルサスの積極的抑制。
+  ・局地飢饉（RegionalFamineStep・相対的剥奪）: RegionalFamineMortality=0.025(Coef:263)／
+    絶対水準ゲート FamineAbsoluteThreshold=0.0【休眠＝相対のみ】(Coef:1022)
+  ・疫病: 年次発生確率 EpidemicChance=0.18(Coef:275)／喪失率 EpidemicSeverity=0.06(Coef:277)
+    ／衛生ブレンド EpidemicSanitationWeight=0.6【有効】(Coef:279)／州間伝播
+    EpidemicIntraCountrySpread=0.5【有効】(Coef:1025)。致死率式に 0.7×衛生（ハード
+    リテラル・World.cs:257）。作物病害 CropDiseaseChance=0.02(Coef:267)／緯度帯天候
+    WeatherBandVariation=0.12(Coef:272)。
+  ・過労死亡 OverworkMortalityWeight=0.015【有効】(Coef:1024)
+  ・アヘン依存の人口影響は死亡でなく労働供給・満足度経由（2.7）。
+● 扶養力（carrying capacity・ロジスティック。Simulation.cs:1298-1359 ブロック）
+  ・医療 HealthcareCapacityBonus=1.2(Coef:836)／工業化 IndustryCapacityBonus=0.12(Coef:839)
+    ／都市化ペナルティ UrbanCapacityPenalty=0.12(Coef:838)／公害 PollutionCapacityWeight
+    =0.15(Coef:328)。下限クランプ baseline×0.3。
+  ・食料アンカー CapacityFromFoodOutput=0.5【有効・ブレンド】(Coef:1019)／生産ベース化
+    FoodOutputAnchorProduction=1.0【有効】(Coef:1107)／土地アンカー LandAnchorCapacityWeight
+    =1.0【有効】(Coef:842)
+● 年齢コホート（子供・老年は実装済みで挙動に効く。老年の労働供給フィードバックのみ休眠）
+  ・子供→成人 AgingYears=16(Coef:243)／成人→老年 WorkingYears=45(Coef:245)／老衰集中
+    OldMortalityWeight=3.0(Coef:246)／老年上限 OldShareMax=0.15(Coef:247)
+  ・老年の労働参加 OldLaborFactor=1.0【休眠＝老人フル稼働・既知の🔴。0.85 点火も飽和一掃で
+    却下（4.8）＝#17 再較正待ち】(Coef:248)。年金は funded 時のみ作動 PensionCostRate=0.8／
+    PensionSatBonus=0.10(Coef:250-251)
+● 移民・都市化
+  ・移民距離減衰 MigrationDistanceScale=10000【有効・R3採用】(Coef:1038)。移民運賃
+    MigrationFarePerkKm=0.0【休眠＝下流 Size NaN で差し戻し】(Coef:1039)
+  ・地域間移民 RegionMobility=0.03(Coef:449)／機会重み OpportunityWageWeight=0.2【有効】
+    (Coef:626)／閉鎖階級・兵士除外 RegionMigrationExcludesClosed=1.0【有効】(Coef:1029)
+  ・都市化上限 maxUrbanShare=clamp(BaseUrbanCap+indForCap×UrbanPerInd,0,0.85)
+    （BaseUrbanCap=0.20 (Coef:584)／UrbanPerInd=0.08 (Coef:586)）
+  ・移民の農村→都市転換・越境移民のフロー実体は PopDecision.cs / EconomyStep.cs /
+    MultiNationSim.cs / Territory.cs 側にある（Simulation.cs は UrbanShare を読むのみ）。
+  ・気候帯主食（Climate.cs）: 米 |lat|≤32 または経度条件、ジャガイモ lat≥45、トウモロコシ
+    lon≤−30（新大陸）。適地外の米生産者は除去＝欧州の米自給を排除。
+● 人口保存
+  ・2026-07-14 に人口保存バグ3件を修正（ghostDeaths／birthsSuppressed／非負 Size クランプ・
+    seed19 破綻解消）。leakhunt（保存量 D 検査）を恒久化＝524Q 清潔を点火ラダーでも維持。
+
+2.3 政治・統治（意識・闘争・イデオロギー・政体2軸・制度疲労・天命・国民意識・実績・選挙）
+--------------------------------------------------------------------------------
+● POP の意識・闘争（Politics.cs）
+  ・意識緩和 ConsciousnessSpeed=0.015(Coef:98)／都市加速 UrbanConsciousnessBoost=1.5(Coef:99)
+    ／便乗感度 BandwagonSensitivity=0.45(Coef:131)／識字→意識 変換: Public/Compulsory=1.0・
+    Religious=0.15・その他=0.1
+  ・闘争度緩和 MilitancySpeed=0.03(Coef:100)。target 合算＝生活不満 WantWeight=0.8(Coef:112)
+    ＋政治距離 PoliticalDistanceWeight=0.25(Coef:114)＋失業 UnemploymentMilitancy=0.4
+    ＋便乗 BandwagonMilitancy=0.35(Coef:133)＋格差 InequalityMilitancy=0.15【有効】(Coef:197)。
+    GiniNeutral=−1.0（負＝初回実測ジニを自動アンカー・LIVE）(Coef:198)
+  ・実効圧政 Coercion=BaseCoercion×Legitimacy×FiscalFundingRatio×(1−WarCoercionDrain×
+    WarExhaustion)。WarCoercionDrain=0.15(Coef:442)
+● イデオロギー（9イデオロギー・親和は4軸制度座標の距離から創発）
+  ・暦年ゲート: 社会 1830／共産 1848／帝国 1860 起点で各40年ランプ（暦年アンカーは 1783
+    リベースの影響を受けない）。ナショナリズムは暦年ゲートなし（兵士 pop 基礎値 r[4]=4）。
+  ・暦年→発展度ゲート置換 IdeologyGateFromDevelopment=0.5【有効＝暦年と発展度を50/50
+    ブレンド】(Coef:1086)。親和傾き IdeologyAffinitySlope=2.3（主較正ノブ）(Coef:122)
+● 政体2軸化（王権議会。P2完了）
+  ・PolityLabelFromAxes=1.0【有効＝ラベルを軸から導出】(Coef:1223)。登録簿＝
+    Crown{None,Absolutist,Despotic,Shogunate}×Seizure{None,Bourgeois,Proletarian,Military,
+    Anarchy}×ParliamentControl（連続）。立憲化床 ConstitutionalControlFloor=0.45／下抜け
+    ヒステリシス ConstitutionalControlExit=0.35(Coef:1224-1225)。2軸化が構造として幕府を
+    守り、近代化幕府を可能にする（点火ラダー最終で幕府 5/30＝帯内）。
+  ・P3遷移グラフ廃止（連続動学＋振動減衰）: ParliamentPressureRate=0.04(Coef:1159)／
+    CrownPressureRate=0.04(Coef:1160)／廃位 RepublicanDeposition=1.0【有効】(Coef:1161)／
+    グラフ廃止 PolityGraphRetired=1.0【有効】。王権形変異 CrownFormMutation=0.0【休眠・
+    再設計待ち】(Coef:1162)
+  ・上からの改革 ReformFromAboveEnabled=1.0【有効】(Coef:1063)／閾値 Legitimacy<0.4。
+    保持力慣性 PolityInertia=0.4(Coef:153)。恐怖政治 RevolutionTerror=0.25【有効】(Coef:135)
+    ＝急進革命勝利時のみ Size/Savings を粛清・没収。
+● 制度疲労 InstitutionalDecay【有効・P7点火 2026-07-18＝清削減の本命】
+  ・国家ストック decay（成功が長いほど制度が硬直＝乾隆の絶頂が硬直の源）。ショック入力＝
+    決定的敗戦（DefeatShock）・内戦・ソブリンデフォルト。ロックイン読み＝清廉度
+    DecayLockinCleanGov=0.5(Coef:801)・工業化 DecayLockinIndustrialization=1.0(Coef:802)。
+  ・効き3チャネル: ①改革抵抗＝旧支配層の政治力×(1+k×decay)・DecayReformResistWeight=0.5
+    (Coef:795・InterestGroups.cs の Closed 分岐 PoliticalWeight)／②技術採用遅延＝
+    キャッチアップ採用速度×(1−k×decay)・DecayTechAdoptWeight=0.5(Coef:796)／③軍改革の
+    失敗＝軍質×(1−k×decay×正規化技術差)・DecayMilitaryWeight=0.5(Coef:797)＝1840年代に
+    アヘン戦争型敗北が可能に。
+  ・ショック蘇生: DecayShockRelief=0.20(Coef:798)／クールダウン DecayShockCooldownQuarters
+    =20(Coef:799)／反動再成長 DecayReactionRegrowth=0.01(Coef:800)。
+  ・点火実測＝単段 B4 で清 19→14 勝（47%）・破綻0/30。UI＝ヘッダーに「制度疲労」
+    （構造硬直国のみ表示）。
+● 天命 DynasticMandate【有効・P8点火 2026-07-18】
+  ・前近代の正統性＝統治パフォーマンス直結（「パンの値段→天命→正統性→革命」）。
+    Legitimacy（制度のストック・既存不変）と役割分離＝民のパフォーマンス評価 EMA。
+  ・DynasticMandateEnabled=1(Coef:1181)／満足重み DynMandateSatWeight=0.6(Coef:1200)／
+    食料 DynMandateFoodWeight=1.0・アンカー 0.8(Coef:1201-1202)／戦争 DynMandateWarWeight
+    =0.4(Coef:1203)／汚職 DynMandateGraftWeight=0.5(Coef:1204)／EMA速度 DynMandateEmaRate
+    =0.08(Coef:1205)／国民意識で薄れる DynMandateNcFade=1.2(Coef:1206)／増幅
+    DynMandateAmplify=0.8(Coef:1207)。
+  ・点火実測＝B6 で清 14→12 勝（40%＝理想値）・exact39 回復。UI＝ヘッダー「天命」ラベル
+    （全政体で常に「天命」・国別ラベル表は廃止＝ユーザー裁定 07-18）。
+● 信任帝政（P10 天命v1.2）【床のみ有効・2026-07-18 点火＝本書更新時点の最新変更】
+  ・①正統性の床【有効】: 立憲君主×王冠保持×NC≥RedefinedMandateNcMin=0.5(Coef:1185)×
+    天命≥RedefinedMandateMandateMin=0.6(Coef:1186) の時のみ Legitimacy≥
+    RedefinedMandateFloor=0.6(Coef:1184)×Mandate（加算でなく床＝天命との二重計上なし・
+    Politics.cs:313-322）。「民の信任を得た皇帝はパンの値段ではもう滅びない」＝清の
+    もしも・大政奉還後の天皇制ルート。条件は意図的に厳しい（緩いと立憲固着＋仏が共和に
+    届かない）。主フラグ RedefinedMandateEnabled=1(Coef:1183)。
+  ・②権力の呼吸【休眠＝却下】: RedefinedBreathAmplitude=0(Coef:1187・CrownParliament.cs:
+    86-89)。0.3 点火は広域効果で清 30% 下振れ＋仏共和未達＝却下し床のみ採用（4.11）。
+  ・床のみ構成の batch30 は本書更新時点で計測進行中（結果は HANDOFF 側に記録される）。
+● 正統性・国民意識・実績ストック
+  ・正統性ストック LegitimacyIsStock=1.0【有効・完全ストック】(Coef:1061)／再生率
+    LegitimacyRegenRate=0.1(Coef:1062)／制度ギャップ侵食 LegitimacyErosionRate=0.0175
+    (Coef:127)／腐敗侵食 CorruptionLegitimacyErosion=0.015【有効】(Coef:195)
+  ・国民意識v2「購入モデル」【有効・P9点火 2026-07-18＝NCは育つものでなく買うもの】:
+    NationBuildPurchaseMode=1(Coef:1208)＝国民形成費（財政スライダー）×識字×教育法×
+    (1−実効汚職) で蓄積・維持費と機会費用を伴う（v1 の両刃 crisis 加算項は廃止＝1878年
+    全国飽和の根治）。蓄積 NationBuildAccumRate=0.03(Coef:1209)／減衰 NationBuildDecayRate
+    =0.0025(Coef:1210)／人口あたり費用 NationBuildCostPerPop=0.05(Coef:1211)／危機加速＝
+    防衛戦争 0.5・内戦 1.0・独立 2.0(Coef:1212-1214)／初期値既定 NationBuildInitialDefault
+    =0.075(Coef:1215・国別上書きは world.json の nationalConsciousness0)。
+    読み2チャネル＝汚職 NationalConsciousnessCorruptionWeight=0.2【代議制のみ】(Coef:1177)
+    ／総動員 NationBuildMobilizationWeight=0.5(Coef:1216)。宗教分裂 drag
+    NationBuildReligiousDrag=0.0【休眠】(Coef:1175)。v1 の NationalConsciousnessInitial=0.3
+    (Coef:1171)・NationBuildRate=0.03(Coef:1172) は購入モード OFF 時の旧経路。
+  ・実績ストック RegimeTrackRecordWeight=0.3【有効】(Coef:1169)。4系統（君主／議会制／
+    強権／急進）の信認⇔失望。蓄積 0.02／減衰 0.00346（半減期50年）／成功在任ゲート20年。
+    固着⇔カオスの直接ノブ。
+● 選挙・政党・法制定
+  ・選挙間隔 ElectionIntervalQuarters=16（4年）(Coef:101)／得票→議席歪み ElectoralDistortion
+    =0.3【有効】(Coef:1077)／議席凍結 SeatsFrozenBetweenElections=1.0【有効】(Coef:1075)／
+    動的政党 DynamicParties=1.0【有効・上限9党/国】(Coef:1156)／連立弱化
+    CoalitionWeakensPlatform=1.0【有効】(Coef:1076)
+  ・法制定ゲート（政治資本）: MandateWeight=0.3【有効】(Coef:1113)／負側減衰
+    MandateNegativeScale=0.5(Coef:1114)。高正統性は反対を押し切り可（明治維新型）、低正統性
+    は人気法も滞る。参政権ラチェット SuffrageRatchetOnLiberalize=1.0(Coef:1065)／不可逆
+    改革 IrreversibleEmancipation=1.0【有効】(Coef:1074)／女性参政権脱結合
+    DecoupleWomenSuffrage=1.0【有効】(Coef:242)
+● F3 国内勢力（牙と変異）
+  ・FactionRevoltScale=1.0【有効＝牙あり】(Coef:1148)。強度＝Size×AvgMilitancy×Cohesion×org×
+    (1−voice)。発言権のない層（平和的回路なき層）のみ蜂起。変異（旗＝組織技術で org=1.0）で
+    白蓮教／太平天国型の点火構造。結束成長 0.05／変異受理 FactionMutationRate=0.002／発火結束
+    FactionCohesionFightThreshold=0.8。湘軍 LoyalistMilitia=0.5。内乱3分岐＝政治（政体転覆）／
+    経済（法強制）／民族（分離）。
+  ・分離独立 CheckSecession: 閾値 SecessionThreshold=1.43(Coef:143)／文化異質増幅
+    CultureSecessionWeight=1.0(Coef:142)／民族主因加算 SecessionCultureAdditive=3.0
+    【有効・R8点火】(Coef:1067)／建国 SecessionSpawnsNation=1.0【有効】(Coef:1221)
+
+2.4 財政・金融（税制・国債・金本位・銀行信用創造・恐慌・国際資本移動）
+--------------------------------------------------------------------------------
+● 税制
+  ・人頭税 PollTaxRate=0.15(Coef:331)／土地税ゲート LandTaxAdminGate=0.1(Coef:332)／所得税
+    ゲート IncomeTaxAdminGate=0.75(Coef:333)／十分の一税 TitheRate=0.05(Coef:380)／福祉
+    WelfareCostRate=0.6(Coef:382)／年金 PensionCostRate=0.8(Coef:250)
+  ・行政＝歳入シェア AdminBudgetFrac=0.5(Coef:363)／軍需 MilitaryRevenueShare=0.25(Coef:364)
+    ／間接税を予算基数へ算入 IndirectTaxInBudgetBase=1.0【有効】(Coef:373)
+  ・汚職（行政力→徴収漏れ）: CorruptionMax=0.25(Coef:368)／国民意識汚職
+    NationalConsciousnessCorruptionWeight=0.2【代議制のみ】(Coef:1177)／統治スパン
+    AntiCorruptionSpanPopWeight=0.01(Coef:378)・AntiCorruptionSpanRegionWeight=0.02
+    (Coef:379)。所得税/土地税の徴収漏れは倍率を撤去し汚職 leak に一本化。
+● 国債
+  ・基礎金利 BondBaseRate=0.04(Coef:165)／債務線形項 BondRateDebtScale=0.12(Coef:166)／
+    二次項 BondRateDebtQuad=0.0【休眠】(Coef:167)／金利上限 BondRateMax=0.30(Coef:175)／
+    信認喪失上乗せ BondRateDistrustScale=0.06(Coef:177)
+  ・満期構造 BondRolloverFrac=1.0【既定＝永久債とビット一致】(Coef:164)＝R9 インフラは採用
+    済みだが点火は覇権 creep リスクで休眠。デフォルト DefaultTriggerQuarters=8(Coef:183)／
+    新規国債停止 DebtDistressRatio=2.0(Coef:174)
+  ・仏の初期債務 govDebt=600000（world.json・P5）＝純負債として初期化（貨幣非移動）。
+    国内債利払い＝国庫→資本家 Distribute（内部移転）＝保存則クリーン。
+● 金本位・兌換
+  ・加入債務上限 GoldStandardMaxDebt=0.5(Coef:483)／兌換維持カバー率 GoldCoverMin=0.25
+    【有効】(Coef:484)／強制離脱債務 GoldStandardSuspendDebt=0.9(Coef:488)／完全兌換の金利
+    割引 GoldStandardRateDiscount=0.6(Coef:489)。不換シニョリッジ FiatIssueFrac=0.0
+    【休眠＝全額ヘアカット】(Coef:173)。カバー率＝BaseMoney/BroadMoney。強制離脱の funding
+    閾値は直書き 0.7（Fiscal.cs:297）。
+● 銀行・信用創造
+  ・信用乗数 CreditMultiplier=3.0(Coef:403)／発展度スケール CreditMultiplierDevWeight=1.0
+    【有効・R12】(Coef:405)／floor 0.35(Coef:406)／DevScale 0.4(Coef:407)。実効乗数は
+    前工業≒1.7／工業化≒3.0（Credit.cs:74 maxLoans）。
+  ・与信配分は首都州の投資家 pop のみへ注入／回収（地方与信は係数ごと廃止）。
+● 恐慌・LOLR
+  ・信頼崩壊 PanicSpeed=0.20(Coef:416)／過熱脆弱性 OverheatFragility=1.1(Coef:422)／債務デフレ
+    DebtDeflationWeight=4.0(Coef:438)／国債評価損 BondLossConfWeight=0.5(Coef:437)／銀行取付
+    BankRunSensitivity=2.0(Coef:426)。最後の貸し手 LOLR: 発動閾値 Heat>0.9 かつ FundingRatio
+    >0.6、打消し LolrStrength=0.7(Coef:432)。
+● 国際資本移動（CapitalMarket.cs・多国時のみ）
+  ・対外投資割合 CapitalExportFrac=0.10(Coef:505)／配当 CapitalDividendRate=0.02(Coef:506)／
+    資本逃避 CapitalFlightRate=0.15(Coef:507)／伝染 CapitalContagion=0.6(Coef:508)／流出を
+    投資家原資から徴収 CapitalOutflowFromInvestors=1.0【有効】(Coef:975)。金の移動を必ず対で
+    CumulativeTradeFlow に計上（保存）。
+
+2.5 軍事・外交（兵士POP・徴兵・戦力・緊張・統一戦争・植民地・属国・分離独立）
+--------------------------------------------------------------------------------
+● 兵士POP・徴兵（Military.cs）
+  ・平時徴募 SoldierMigrationRate=0.08(Coef:934)／軍事費1.0での兵士化上限 MaxSoldierFraction
+    =0.04(Coef:930)。戦時動員 ConscriptionRate=0.15(Coef:936)／総動員上限 ConscriptionFraction
+    =0.12(Coef:935)／戦争規模スケール ConscriptionScalesWithWar=1.0【有効】(Coef:1053)。限定
+    戦争は母数の2%（ConscriptionFloorFraction=0.02 (Coef:1054)）、多正面・劣勢・長期で12%まで。
+  ・国民意識ゲート（動員の量） NationBuildMobilizationWeight=0.5【有効】(Coef:1216)＝1793年
+    levée en masse 対 1914年の墺洪の限定動員。徴兵は成人男性のみ。
+● 戦力スカラー（Diplomacy.cs:338 techQuality）
+  ・Military=SoldierSize/250×Readiness×(1+0.6×tier2Fill+1.2×tier3Fill)×cohesion×militarism×
+    techQuality。SoldiersPerMilitary=250.0(Coef:929)／質ボーナス MilitaryQualityBonus=0.6
+    (Coef:878)／tier3 MilitaryTier3Bonus=1.2(Coef:882)
+  ・技術優位（前近代の大軍を割引）: techQuality=0.4+0.6×clamp(TechLevel/2.5)。TechMilLowFloor
+    =0.4(Coef:813)／TechMilFullLevel=2.5(Coef:814)。P7 の③軍質チャネルがここへ疲労を乗せ、
+    アヘン戦争型の敗北を可能にする。
+  ・戦争解決: 押し合い WarPushSpeed=0.10(Coef:651)／戦況の運 WarLuck=0.12(Coef:652)／月次戦費
+    WarCostPerMilitary=400.0(Coef:654)
+● 開戦＝緊張の創発のみ（2026-07-17 に一般宣戦布告を完全廃止・ユーザー裁定「完全に対称」）
+  ・実国家間の開戦は全国家（プレイヤー含む）で緊張の自然な積み上がりのみ（緊張が
+    WarDeclareTension=160.0(Coef:653) 以上を規定月数継続→自動開戦）。プレイヤー専用の
+    能動宣戦は UI・World API ごと削除。残る能動動詞＝侵略（抽象標的）・植民地化
+    （列強→弱小）・統一戦争（P4）＝全て AI と共通で完全対称。
+  ・緊張蓄積: 大国脅威 ThreatTensionRate=0.10(Coef:759)／政体反目 0.22／民族反目
+    EthnicTensionRate=0.06(Coef:764)／宗教 0.03。平時自然減 TensionDecay=0.42/月(Coef:634)。
+    アヘン禁令中の輸出国緊張 OpiumBanTensionRate=2.5/月(Coef:1198)＝数年で開戦閾値へ
+    （林則徐→アヘン戦争の経路）。
+  ・通商破壊 CommerceRaidDepth=0.6(Coef:809)／拿捕賞金 PrizeMoneyRate=0.004(Coef:828)。
+  ・国家ランク: 列強定員 GreatPowerCount=7(Coef:804)／中堅 MiddlePowerCount=12(Coef:805)。
+    再分類は年次 RankUpdateIntervalQuarters=4【有効・P14点火】(Coef:803)＝閾値チャタリング
+    （列強動詞の点滅）抑制・威信の残光。
+● 統一戦争の動詞（P4）【有効・2026-07-18点火＝宣戦廃止後の唯一の正当な例外動詞】
+  ・UnificationWarEnabled=1(Coef:1190)。変体適格（Formations の同一性判定）×ナショナリズム
+    国民シェア≥UnificationNatioShare=0.25(Coef:1191) →「変体に足りない必要州」の保有国への
+    開戦を解禁（無償＝緊張の前提なし）。講和・属国化・成立・厭戦・反覇権合従は既存機構。
+  ・AI追求 UnificationAiPursueChance=0.7（70%史実/30%見送りの彩り・専用RNG系列
+    seed^0xF0E1D2C3B4A5）(Coef:1192)／見送りクールダウン 20年(Coef:1193)／連戦間隔 3年
+    (Coef:1194)＝1864→1866→1870 の律動。v1 対象＝北ドイツ連邦／ドイツ／イタリア
+    （日本は対象外＝幕府/明治の創発保護）。墺は神聖ローマ系変体で同じ動詞を得る＝普墺
+    二元主義が機構から創発。点火実測＝プロイセン 73%◎帯・変名99回/30試合。
+● 植民地（Colonial.cs）
+  ・維持費 ColonyUpkeepBase=150.0(Coef:950)／不満スケール 0.2／距離石炭 400／距離糧食 180／
+    海運占有 0.12。開発度減衰 ColonialInfraDepreciation=0.004(Coef:947)／産出半飽和
+    ColonialOutputHalf=1.0(Coef:944)／投資割合 ColonialInvestFrac=0.03(Coef:958)。
+  ・投資は「限界資源価値＞投資コスト」の採算ゲートで投資家が自動実行。強制注入レバーは
+    2026-07-17 に削除（既定0・AI未使用＝自律シムにビット恒等・UI最小主義）。
+  ・植民地進出（意志の会計3レバー）: ExpansionWillBourgeois=0.4（東インド会社実体化）／砲艦
+    外交 ColonizeWillSuperiorityDiscount=1.0【有効】(Coef:739)／遠征技術ゲート
+    ExpeditionTechLevel=0.8【有効・海越え植民地化】(Coef:741)／AI試行率 AiColonizeChance
+    =0.12(Coef:745)。
+  ・州単位開発度（R13・✅完了）: ColonialInfraPerColony=1.0【有効】(Coef:948)／収束率
+    ColonialInfraConverge=0.01(Coef:949)。Colony.Infra が征服/独立でオブジェクトごと移動＝
+    奪った開発済み植民地は産出を引き継ぎ・独立後も凍結せず新所有国水準へ非対称収束
+    （初版の残課題「独立後永久凍結」「被征服州の産出0」は 07-15 実装で解消済み）。
+  ・独立: 最低不満 ColonialIndependenceMilitancy=0.85(Coef:318)／本国の抑え ColonialHoldScale
+    ／距離減衰 ColonialHoldDistanceDecay=0.3【有効】(Coef:1103)
+● 属国（一本化・Diplomacy.cs）
+  ・貢納率 VassalTributeRate=0.015(Coef:772)／離反ゲート VassalDefectionMilitancy=0.6(Coef:775)
+    ＋8年猶予 VassalDefectionGraceYears=8(Coef:776)。1宗主の従属上限 MaxDependents=8
+    (Coef:781)。従属化判定＝GovCost（0.5×民族距離+0.5×宗教距離）≥GovCostVassalThreshold
+    =0.4 で属国化・未満で併合(Coef:782)。宗主権引継ぎ VassalTransferOnCrush=1.0【有効・下関
+    1895型】(Coef:744)。宗主判定は BaseName ベースで変名に不壊。
+● 分離独立・建国（Territory.cs / Formations.cs / Diplomacy.cs）
+  ・州物理移転（CedeTerritory）: 戦勝点 TerritoryCessionScore=1.2(Coef:747)／投射圏
+    CessionMaxDistanceKm=4000(Coef:748)。保存＝移転州の貯蓄・人口を両国で相殺。民族反転
+    ConquestForeignWeight=1.0(Coef:463)（旧少数派が新中核・CoreEthnicShare を size 加重運搬）。
+  ・formable（Formations.cs）: EnableFormations=1.0【有効】(Coef:1218)。42規則・Tier 1〜4
+    （領有＝直接∪従属国・宗教文明ゲート・一方向）。BaseName/Name 分離で変名しても忠実度
+    不壊。P4 は Formations の必要州リストをそのまま宣戦対象リストに使う（新データゼロ）。
+● 「消耗する内政」型（戦術操作を排し資源枯渇戦として設計）
+  ・厭戦 WarExhaustionRate=0.03/月(Coef:655)＋経済悪化 0.10＋封鎖 0.07＋戦死 0.6。WarExhaustion
+    ≥1.0 で無条件敗北、双方>0.9 で早期講和、60ヶ月で膠着白紙。
+  ・戦死 WarCasualtyRate=8.0/月(Coef:785)・月次上限 兵士の 0.04(Coef:786)＝総力戦で年約40%。
+    士官（貴族）戦死 OfficerCasualtyShare=0.06(Coef:787)。敗戦の闘争度スパイク
+    WarDefeatMilitancySpike=0.15(Coef:749)（決定的敗北が革命駆動＝内政へ波及）。
+  ・恒常的資源枯渇: 植民地開発度減衰 0.004/月、維持費の物理消費（石炭400/糧食180/キニーネ6）、
+    搾取死亡率 0.002 が成長 0.0008 を上回ると植民地人口が減衰、戦費 Military×400/月 が国庫を
+    直接ドレイン。プレイヤーは戦闘を操作せず、兵員（人的）・軍費／補給財（物的）・厭戦と
+    正統性（社会的）の枯渇を内政で管理する。
+
+2.6 技術・教育（単一TechLevel・識字・制度）
+--------------------------------------------------------------------------------
+● 技術（TechEducation.cs・単一 w.TechLevel を四半期で伸ばす。世界フロンティア同期）
+  ・後追い: 到達比率 CatchupFraction=0.5（非近代化）／CatchupFractionAdvanced=0.97（近代化）
+    (Coef:70,73)／後追い速さ AdoptionRate=0.06・AdoptionRateAdvanced=0.13(Coef:76,75)／吸収
+    能力連続化 CatchupAbsorptionBlend=1.0(Coef:74)。P7 の②チャネルが採用速度に疲労 drag を
+    乗せる（清の科挙官僚制の遅い近代化）。
+  ・革新（フロンティア押上げ・FrontierCapable のみ）: InnovationRate=0.012(Coef:77)／逓減
+    InnovationScale=3.0(Coef:78)／特許倍率 PatentInnovationBonus=1.5(Coef:84)。
+  ・FrontierCapable＝Freedom≥0.6（FrontierFreedomThreshold・Coef:79）かつ教育法∈{Public,
+    Compulsory}、または【#22点火 2026-07-15】高エリート技術力（w.Elite≥EliteForFullTech=0.5
+    (Coef:67)）＋高行政効率（w.AdminEfficiency≥InnovationAdminThreshold=0.85 (Coef:81)）＝
+    InnovationEliteSubstitute=1.0(Coef:80)。検閲下でも卓越した官僚制（独帝国／明治）が革新可
+    ＝権威主義的近代化の史実。閾値 0.85 が的絞りの正解（0.7 は exact38 で劣る）。
+  ・TechOnset 代替レシピ機構: 同一財の複数レシピを個別に技術ゲート。原油 0.6／戦車 0.8／
+    内燃機関 0.85／無煙火薬 0.85 等。近代製法を晩期に解禁し早期は旧法が供給。
+  ・時代ゲート（技術水準が時計）: 蒸気 0.25／鉄道 0.35／工業化閾値 0.25／都市工業化閾値
+    0.45。暦年アンカー（ゴールドラッシュ1848・鉱物発見1820）は 1783 リベースでも不変。
+  ・WarmupTech(8) で開始盤面の技術差を実体化（識字差＝英84%/普44%/仏23%/墺23%/オスマン11%/
+    露8%/日3%/清1%）。硬性ゲートには無影響を構造保証（selfplay/fidelity/calibration は不使用）。
+● 教育・識字
+  ・識字速度 LiteracyRate: None=0.0001／Religious=0.004／Public=0.005／Compulsory=0.007。児童
+    労働ペナルティ ChildLaborLiteracyPenalty=0.6(Coef:866)。
+  ・識字ラチェット解消 LiteracyGenerationalDecay=0.002【有効・R10・半減期≈29年】(Coef:1030)＝
+    使わなければ失う。永遠ラチェット除去＝キャッチアップ機構。
+  ・エリート創発: Elite=平均識字×世俗水路。EliteMultiplier: None=0.0／Religious=0.1／Public=1.0／
+    Compulsory=1.2。仏の遅れは識字でなく教育が Religious（教会学校）で世俗度が低いため。
+● 制度（Institutions.cs・四半期・不可逆）
+  ・特許法（Freedom≥0.6・教育 Public/Compulsory・Elite≥0.4）／株式会社（工業化≥0.3・投資
+    ブースト JointStockInvestBonus=1.6 (Coef:85)）／鉄道（工業化≥0.8・生産性
+    RailwayProductivityBonus=0.15 (Coef:87)）。所有国フラグから毎期整合して州へ適用。
+
+2.7 アヘン依存機構（P3）【有効・2026-07-18点火＝経済×政治×外交の複合一般機構】
+--------------------------------------------------------------------------------
+・因果連鎖: 低満足 pop がアヘン（財 id92）を消費→州の依存ストック蓄積→労働供給・満足度
+  への連続ペナルティ＋輸入支払いの対外流出→輸入禁止の法（プレイヤー・AI対等）→輸出国
+  （主に英）との緊張→戦争・講和は既存機構＝アヘン戦争が「歴史的な理由で」創発。
+  任意の輸入国で発火しうる一般機構（清が最大消費地になるのは初期条件と貿易構造から創発）。
+・主フラグ OpiumAddictionGrowth=0.1【有効】(Coef:963)。初回 0.2/上限なし/満足1.0 は
+  ハーネス13/30 の発散（依存→満足↓→困窮消費の正帰還）で却下し、物理の蓋＋帰還弱体化で
+  救済（4.10）。
+・中毒度の生理的上限 OpiumAddictionCap=0.2(Coef:964)／自然減 OpiumAddictionDecay=0.02
+  (Coef:965)／困窮ゲート OpiumMiseryScale=2.0(Coef:1195)＝baseNeed×clamp(これ×(1−満足))・
+  満足な民は手を出さない／労働侵食 OpiumLaborPenalty=1.0（床0.5）(Coef:1196)／満足侵食
+  OpiumSatisfactionPenalty=0.5(Coef:1197)。
+・禁令: AI 閾値 OpiumBanThreshold=0.05（全国平均中毒度・解除は×0.3 ヒステリシス）
+  (Coef:1199)／禁令中の輸出国緊張 OpiumBanTensionRate=2.5/月(Coef:1198)。禁令国は輸入
+  しない（InternationalMarket.cs:256）。
+・保存則: 購入は既存の貿易決済のまま（新規貨幣なし）・依存ストックは状態のみ。銀流出→
+  デフレは決済流出→貨幣減→物価水準の既存経路が担う（銀を別通貨として作らない）。
+・点火実測＝清 near 33%→60%（◎帯復帰）＝アヘンが清史を正しく乱す。
+・UI: 財政タブに禁令トグル＋全国中毒度・州ホバーに州別中毒度。
+
+2.8 Explanation API（#63）【完成・2026-07-15＝「なぜこの値か」の因果分解】
+--------------------------------------------------------------------------------
+・ExplainLedger（数値ごとに理由→実寄与量 Term を記録・Explain.cs）＋ World.Explain
+  （nullable・null=説明オフでゼロコスト／ビット恒等＝C# の null 条件 ?. が引数式ごと短絡）。
+・ストックは「起点＋当期デルタ全現場」方式で内訳合計が最終値に厳密一致（Legitimacy は
+  7現場＝Politics 主計算／戦勝／デフォルト／内戦／一揆／建国＋save/load）。乗算連鎖は
+  before/after 差分で加法分解。記帳漏れは CLI の⚠と合計不一致で自己検出。
+・CLI: explain [seed] [四半期] [国名]。テスト2件（ON/OFF ビット一致・53カ国×3四半期で
+  合計=最終値）。
+・UI 全面配線（07-15/16）: ヘッダー全数値（正統性・汚職・国民意識・行政効率・食料・満足度・
+  識字率・技術力・人口・GDP）＋厭戦・国債金利・兌換カバー率・反体制派軍事力・移民の
+  流入出・軍事力・好戦世論などにホバー内訳（緑=加算/赤=減算・年次グラフ併設）。
+  Paradox 最大の弱点（数値のブラックボックス）の解消であり、新基準②「イベントログで
+  追跡できる因果連鎖」の実装。
+
+2.9 UI（Avalonia 地図中心・2026-07-16 全面精査済み）
+--------------------------------------------------------------------------------
+・恒久規律（ユーザーが繰り返し指示・全セッション厳守）:
+  ① ゲーム中にテキストで説明を書かない（置いてよいのはデータのみ・データを並べる
+     ツールチップは可・「〜すると〜になる」等の説明文/注釈は不可）。
+  ② 漢字1字の略称を絶対に使わない（「緊+」→「緊張を増加」・「計」→「合計」）。
+  ③ かっこ書き補足の全廃（07-17 第3ラウンドで「ラベル 値」並記へ一掃）。
+  ④ バーは常に 0〜100% 全幅・上限/下限は thumb がそこで止まる（SliderLimit 添付
+     プロパティ＝ドラッグ中も効く同期ハードストップ・Views/SliderLimit.cs・適用7本・
+     関税上限 0.75／消費税上限 0.6／金利上限 InterestCeil=0.5 等・軸端ラベルは固定値のみ）。
+  ⑤ AI ボタンは恒久禁止（「目標を自動設定」を削除・AiLaws メソッドごと削除）。
+  ⑥ UI 最小主義＝市場/AI の自動判断で置換できる操作レバーは置かない（植民地投資レバー
+     削除が先例）。
+・2026-07-16 全面精査＝4レンズ監査 177→69 件を4バッチで全適用: 規律文言12・一貫性18
+  （色パレット/フォント水準/符号/余白の標準化）・死コード6クラスタ（財政死プロパティ12本・
+  産業/物価タブ残骸の根絶）・挙動19（Esc メニューにセーブ/ロード・同盟/破棄に確認モーダル・
+  金融6行分解・列ヘッダー固定・タイトル画面「終了」等）。
+・07-17 第3ラウンド: 財政タブ3列化（支出｜収入｜収支・金融・国債・タブ表示中はドック幅
+  920）・ヘッダー再編（国庫年次グラフ・「収支」=月次・物価/為替は金融行へ・余剰戦力と
+  好戦世論を1項目統合・生産撤去・技術力グラフ復活）・法状態の文言「賛成/反対」＋
+  「前進/現状維持/後退」。
+・07-18 新機構の UI: ヘッダー「制度疲労」（構造硬直国のみ）・「天命」（全政体で同ラベル）／
+  財政タブ＝国民形成費スライダー・アヘン禁令トグル＋全国中毒度／州ホバー＝州別中毒度／
+  外交タブ＝統一の機運＋統一戦争ボタン＋確認モーダル。全て主フラグ表示ゲート付き。
+・残置: アプリアイコン（素材支給待ち・Avalonia 既定のまま）。
+
+
+================================================================================
+3. 最近の主要な設計判断・追加要素（2026-07-13〜07-18）
+================================================================================
+
+3.1 三者闘争モデル ── 診断として採用・ポップベース政治の延長で吸収（全面導入は不採用）
+--------------------------------------------------------------------------------
+・三者闘争モデル（PoliticalPower ∝ 経済力^α×組織力^β×正当性）の丸ごと導入は不採用。
+  診断（材料的利害→権力→創発）は正しいが、処方（rip-and-replace）は過激と判断。
+・理由: 較正済みの帯を捨てる再較正博打・pop 基層を削ると創発の多様性が死ぬ（派閥変異＝
+  太平天国が出せない）・単一 State Power パイは P2 2軸化で解決済み＝退行・直近設計
+  （国民意識・実績ストック・動的政党）と矛盾。
+・拾った3点: 恐怖政治のイベント化（3.4）・α/β レンズ（実装対象でなく原則）・民族設計の
+  触媒思想（3.2）。
+
+3.2 民族「社会の亀裂」システム ── 採用決定（次期メジャー・段階的実装・未着手）
+--------------------------------------------------------------------------------
+・核心思想: 民族は階級を横断するもう一つのアイデンティティ軸。同階級内の連帯を阻害し・
+  国家忠誠を弱め・既存の経済的不満を政治的に活性化する「触媒」。統一戦争・分離独立は
+  この亀裂が臨界を超えた創発。
+・採用の最重要条件＝三重計上回避: 忠誠度を一次量にし、EthnicUnity・国民意識をその分布から
+  導出（subsume）して置き換える。層を足すのでなく既存を吸収する。
+・段階化: Phase1 POP 民族ID＋忠誠度→分離圧力＋国民化政策／Phase2 旧エリート内の民族分裂／
+  Phase3 外交（イレデンティズム）／Phase4 民族的職業偏在。
+・至上基準: 墺洪／オスマン／露は慢性不安定だが 1914 まで概ね持つ。真のコストは 1789年の
+  多民族構成データ。
+・現況: フル per-pop 忠誠度モデルは未着手（最大リファクタ）。先行部分＝R8 民族分離加算
+  （3.3）＋P4 のナショナリズム民族ルーティング仕様（中核民族=国家主義／少数民族=分離主義
+  として民族IDで逆向きに働く＝タスクA実装時に接続）。P12 NC v3（国民化度レイヤー）も
+  タスクA実装時に着工と裁定済み。
+
+3.3 R8 分離の民族加算 ── 採用（SecessionCultureAdditive=3.0）
+--------------------------------------------------------------------------------
+・掃引で 3.0 がスイートスポット（0.5 は閾値未達で民族分離皆無・5.0 は建国258で過剰）。
+  バルカン型の民族／宗教分離を実数化。採用時 exact38 維持／◎19→22／清16→13／首位交代
+  51.8→58.6／建国 約100→187。
+
+3.4 恐怖政治のイベント化 ── 採用（RevolutionTerror=0.25）
+--------------------------------------------------------------------------------
+・革命の本質は「権力の移行」と「余剰分配ルールの変更」。旧支配層の粛清・亡命は動学モデルに
+  せず、急進革命（共和／プロレタリア独裁／アナーキー）勝利時限定の一過性イベントで処理＝
+  失脚旧支配層の Size 粛清＋Savings 没収→大衆再分配（保存＝pop→pop 純移転）。
+・採用時 exact38→39・清13→11・首位交代58.7→61.7（◎23→19・逸脱6→9 のコスト＝革命の
+  史実的混乱）。0.15 は exact36 で劣り 0.25 採用。
+
+3.5 軍事デザイン ── 「消耗する内政」の確認＋宣戦布告の完全廃止（07-17）
+--------------------------------------------------------------------------------
+・戦術モーダル案は却下（戦争は経済管理が最も要る長期消耗局面）。戦争は戦力スカラーの
+  押し合い（兵科・将軍・地形・要塞なし、常に1対1・対称戦）。
+・2026-07-17 ユーザー裁定「完全に対称にする」＝プレイヤー専用の能動宣戦を全廃。実国家間の
+  開戦は全国家で緊張の創発のみ。残る能動動詞＝侵略・植民地化・統一戦争（P4）＝AI と共通。
+  P4 は変体ゲート付きの正当な例外動詞として新設された（宣戦の一般復活ではない）。
+
+3.6 07-14/15 セッションの採用群（全て硬性ゲート堅持で採用確定）
+--------------------------------------------------------------------------------
+硬性ゲート（破綻0/30・ハーネス不合格0/30・calib24-24-24・緑テスト全通過・leakhunt清潔・
+savetest ビット一致）は全件維持が採用条件。band 推移は当時の基線（1789 基点）に対する値。
+
+  改修            係数・所在                                       band 変動（採用時）
+  ------------    -------------------------------------------      ---------------------------
+  R1 大量消費化   DemandElasticityMaxDaily=2.5/Luxury=2.0          exact36→38・法一致79→80・
+                  EconomyStep.cs:617                               恐慌44→39
+  R10 識字ラチェ  LiteracyGenerationalDecay=0.002(半減期29年)      清21→15・首位交代44.9→51.8・
+      ット解消                                                    exact34→36
+  R12 信用乗数    CreditMultiplierDevWeight=1.0/Floor0.35/Scale0.4 near 歴代最良80・exact34維持
+      発展度化    Credit.cs:74
+  R3 移民距離     MigrationDistanceScale=10000(運賃は休眠差戻)     exact35→34/near77/◎24維持・
+      減衰                                                        建国148→102・清19→17
+  U2/U3 二重      U2=AdminEfficiency unity項を代議制×civicGraft時  ◎20→23・清21→16・首位交代
+      計上解消    のみ／U3=landRoom を出生率へ移管                53.8→56.0（exact36→34 の微減は
+                  (LandRoomFertilityWeight=0.3)                    二重計上の剥落・ユーザー許容）
+  女性参政権      DecoupleWomenSuffrage=1.0                        exact34→35・◎23→24・逸脱6→3
+      脱結合                                                      （1914に女性投票権主要国ゼロ）
+  タスクB         RevolutionTerror=0.25（3.4）                     exact38→39・清13→11
+  R13 州単位化    ColonialInfraPerColony=1.0（2.5）                帯完全中立＝無コスト採用
+  R2 賃金天井の   WageClampIndScale=1.0                            near73→76・◎19→22・逸脱9→3
+      工業化連動  MarketFlow.cs                                    を exact39 維持で達成
+  #22 革新の      InnovationEliteSubstitute=1.0／                  exact39→41(歴代最良)・法80・
+      自由度緩和  InnovationAdminThreshold=0.85                    ◎22→17/固着+3（ユーザーが
+                  TechEducation.cs                                 exact優先で採用裁定）
+
+3.7 機構飽和の確定（07-15 後半・残タスク一掃）
+--------------------------------------------------------------------------------
+・#60/#61/#62/#65/#66 を「順に全て」実測し全機構却下＝exact41 基盤は飽和と確定（詳細 4.8）。
+・恒久教訓: 漸進機構（外交/政治/経済いずれも）の素点火は例外なく exact を削り、多くは清覇権
+  を逆に強める（churn を減らすため）。更なる向上は (a)全係数同時の大規模再較正か (b)独自
+  較正を持つ大機構でしか得られない——(b) が P5〜P8 として 07-18 に実現した。
+・却下でも「実測して決定」＝タスク完了。休眠 scaffold は温存（係数0でビット恒等）。
+
+3.8 確定仕様まとめ P1〜P14 のユーザー裁定（07-17）と最終実装パッケージ（07-18）
+--------------------------------------------------------------------------------
+・一次資料: docs/2026-07-17_確定仕様まとめ_スーパーイベント以降.md（仕様）＋
+  docs/2026-07-17_実装プログラム進行.md（進行トラッカー）。
+・ユーザー裁定（07-17）＝「最終タスク。イベントを除き、全て実装」:
+  - 実装する: P5（1783リベース＋P2(a)仏初期債務）→P14→P13（裁定）→P6→P7→P9→P8→P3→P4
+  - 実装しない（イベント＝不採用）: P1 演出二層・P1 命名層・P2(b) ゴールドラッシュの
+    イベント登録簿移管（日付ハードコードのまま残す）・P3/P4 のスーパーイベント演出部分
+  - 保留: P10（P9計測後の裁定→07-18 に床のみ点火・3.10）／P12 NC v3（タスクA時）／
+    P11 東方問題パック（R8較正後の候補・宗教タクソノミー再設計自体は不採用）
+・P5 1783 リベース: GameQuarters=524・開始 1783・仏 govDebt=600000。仏革命が完全創発＝
+  債務600k で 10/10 シードが 1788年10月に絶対→立憲（三部会 1789 とほぼ一致）→1792-1820 に
+  ブルジョア独裁（ナポレオン期）・1830/1848 型振動も出現。日付式全 1783 化（シードの
+  1789UL 群は不変）。France 使用テストは債務0で中立化（機構テストの趣旨保存）。
+  リベースは休眠化不可＝全面リベースであり、飽和局所最適（exact41）を基線ごと動かした。
+・P13 スコア式: 再評価手順のみ採用・式は据え置きと裁定（NationalScore＝軍(漸近12)+
+  Wealth(gdp逓減12+工業化9+満足12+植民地×1.5)+技術+金融(上限6)・SelfPlay.cs:7-41 は無変更を
+  2026-07-18 に確認）。清の過強是正はスコア式でなく P7/P8 の物理で達成した。
+・点火ラダー（07-18・各 batch30・帯が壊れた機構は弱体化再測定で救済）: 6.3 の表を参照。
+  最終＝全8機構 live（P5/P14/P6/P7/P9/P8/P3/P4）・清13勝（43%＝目標≤50%達成・理想40%に
+  近い）・アヘン戦争創発・幕府帯維持。
+・ユーザー裁定（07-18）＝「全部点火して世に出す」・配布=自己完結型 exe・帯が壊れた機構は
+  休眠へ戻す（実際には全機構が救済込みで帯内に収まった）。
+・天命ラベルは政体に関わらず常に「天命」（国別ラベル表は廃止）・GDP の「後退」付記は削除。
+
+3.9 P10 信任帝政 ── 床のみ点火（07-18 午前・本書更新時点の最新変更）
+--------------------------------------------------------------------------------
+・天命を捨てず再定義して近代化する第二の道（清の「もしも」・大政奉還後の天皇制）。
+  機械的実体2片＝①正統性の床（採用）＋②権力の呼吸（却下・4.11）。係数は 2.3 参照。
+・命名層（「信任帝政の宣言」スーパーイベント）はイベント不採用に伴い除外。
+・床のみ構成の batch30 は本書更新時点で計測進行中＝最終帯の確定記録は HANDOFF 側に残る。
+
+3.10 Explanation API（#63）── 完成（07-15）
+--------------------------------------------------------------------------------
+・2.8 参照。腰を据えた機能としてユーザー要望から実装完了。以後の新機構（P7/P8/P9 等）も
+  同パターンで小作業で計装可能。
+
+3.11 UI 全面精査と規律の拡張（07-16/17）
+--------------------------------------------------------------------------------
+・2.9 参照。規律は「説明文なし・漢字1字略称禁止」から「かっこ書き補足全廃・SliderLimit
+  ハードストップ・AI ボタン恒久禁止・UI 最小主義・軸端ラベル固定」まで拡張された。
+
+
+================================================================================
+4. テストにより見送りが決定した要素（および理由）
+================================================================================
+（判断は「基盤は既に十分較正され、休眠機構の素点火は軒並み帯を劣化させる。忠実度改善は
+稀少＝実測して勝者採用・劣化は保留。vetted 設計でも支持構造なしの点火は崩壊／退行」という
+教訓に基づく。4.1〜4.7 は 07-14/15、4.8〜4.11 は 07-15〜07-18 の実測。）
+
+4.1 市場の独占・カルテル機構の直接オン ── 見送り（EffFirms 基盤のみ採用）
+--------------------------------------------------------------------------------
+・素点火＝ハーネス不合格 23/30・exact 39%→7% に崩壊。真因＝EffFirms（＝生産者 pop 数）が
+  「1生産者財」を偽独占と数える。
+・M6 EffFirms 再定義（CompetitiveFirmsBase=50・法的独占＝塩/茶のみ EffFirms=1）で崩壊は
+  技術的に解消（ハーネス0/30）。ただし DomesticMarkupMax 点火自体が帯劣化（0.5 で清20常勝・
+  0.2 でも固着+3）＝モデルでは独占が消費者→生産者の富移転で伝統帝国を強くする（純コストで
+  ない）＝「独占は悪」の狙いと逆。基盤コードは休眠温存（DomesticMarkupMax=0 で不実行）。
+
+4.2 独占価格の「バグ修正」 ── 見送り（現状維持。この「バグ」は load-bearing）
+--------------------------------------------------------------------------------
+・偽独占修正 HhiIncludesRestOfWorld=1.0＝exact 39→36 退行。「偽独占」（false markup）が
+  一部の国を史実側に寄せる働きをしており現状維持（=0.0）。
+
+4.3 アメリカ人口爆発（2倍化・west45000） ── 見送り
+--------------------------------------------------------------------------------
+・west45000＝batch 破綻 6/30・ハーネス 24/30・exact 11%（巨大 America が世界経済を歪め、
+  米貯蓄暴走の latent bug も露出）。west25000（既定）が最もクリーン。米は対仏 101% まで
+  成長済みで十分。ドレイン機構 HoardDishoardRate は休眠温存（4.8 の #66 でも再確認）。
+
+4.4 宗教による国家統合抵抗 ── 見送り
+--------------------------------------------------------------------------------
+・NationBuildReligiousDrag 点火（0.2／0.5）＝exact 39→35。多宗派帝国が国民統合で弱りすぎ。
+  宗教は既に外交／戦争目標／分離（cultDist）に配線済みで二重の効きを避け =0.0 維持。
+  なお宗教タクソノミー自体の再設計も不採用と裁定（P11・候補は東方問題パックのみ）。
+
+4.5 賃金上限の平坦拡大（R2 帯域 5.0/0.2） ── 見送り→工業化連動で解決済み
+--------------------------------------------------------------------------------
+・平坦拡大は首位交代 58.6→43.3（富国青天井で独走固定化）。「工業化度連動の天井スライド」が
+  正着という判断は R2 WageClampIndScale=1.0 として 07-15 に採用済み（3.6）＝本項は解決。
+
+4.6 年齢構成（高齢化・OldLaborFactor 点火） ── 見送り（#17 全係数再較正が前提の将来課題）
+--------------------------------------------------------------------------------
+・0.5 点火＝batch 破綻 1/30＋exact38→35。0.85 の再実測（4.8 の #61）＝exact41→39 だが唯一
+  清覇権抑制（12→8）の効果があり「清抑制優先なら選択肢」だった——その後 P7/P8 が清抑制を
+  達成したため意義は縮小。Calibration.Search で全係数を再較正しながら下げる専用タスクとして
+  棚上げ（既定 1.0/0.0 維持）。
+
+4.7 三者闘争モデルの全面導入 ── 不採用（3.1 参照）
+--------------------------------------------------------------------------------
+
+4.8 飽和一掃の却下群（07-15 後半・#60/#61/#62/#65/#66）
+--------------------------------------------------------------------------------
+・#65 外交4機構: #5 関税同盟（匿名プールで MFN 表現不能・SKIP）／#21 会議外交の賠償抑制
+  （0.10 で exact41→38・清12→17 と覇権逆悪化）／#17 イデオロギー外交（0.3 で exact39）／
+  #16 連立 partner（0.5 で exact40・清17）＝全却下。#21/#16 は scaffold 温存（係数0で
+  ビット恒等）。
+・#66 退蔵ドレイン（HoardDishoardRate=0.05）＝batch 破綻 10/30＋leakhunt 人口保存違反＝
+  危険却下（点火には先に人口保存バグの特定が要る）。
+・#61 M8 高齢化＝4.6 参照。
+・#60 M群＝M4 労組/M9 疫病は既 live・M6/M11/M12 は既却下・M3 家賃はデータ工事＝実質完了。
+  #62 文化宗教＝民族系（R8/EthnicEnabled）が既カバー・宗教 drag は既却下＝SimCore 動学は
+  却下（残る価値は UI depth・別タスク）。
+
+4.9 タスクC/#4 独占レント＋大衆 resentment ── 最終差し戻し（構造的不成立）
+--------------------------------------------------------------------------------
+・MonopolyRentPremium=0.3＋MonopolyResentmentMilitancy=0.05（レント被害 pop の闘争度上昇＝
+  独占の純コスト化）を実装。バッチは ◎24/清12 の歴代最良に見えユーザーが採用承認したが、
+  硬性テストゲートで5失敗＝resentment 闘争度が政治を自律撹乱（幕府→共和など4政治テスト
+  破壊）。清を直すには 0.05 必要だが同じ強さが政治を壊す＝両立不能。テスト書換えは明治
+  忠実度の劣化ゆえ不適切→resentment 方式は構造的に不成立と確定・差し戻し（機構は休眠温存・
+  Coef:534,536=0.0）。独占追求は政治を経由しない別設計の別タスク。
+・恒久教訓: バッチ好結果でも硬性テストゲートが隠れた破壊を捕捉する（バッチ承認≠テスト通過）。
+
+4.10 P3 アヘンの初回構成（0.2/上限なし/満足1.0） ── 却下→弱体化で救済
+--------------------------------------------------------------------------------
+・初回点火＝ハーネス 13/30・清14 逆行。真因＝依存→満足↓→困窮ゲート消費↑の正帰還が発散。
+・救済＝物理の蓋（OpiumAddictionCap=0.2）＋成長 0.1＋満足ペナルティ 0.5 へ弱体化＝破綻0・
+  ハーネス0・清 near 60%（◎帯復帰）で採用（2.7）。
+
+4.11 P10 権力の呼吸（RedefinedBreathAmplitude=0.3） ── 却下（床のみ採用）
+--------------------------------------------------------------------------------
+・0.3 点火は広域効果で清 30% 下振れ＋仏共和未達＝却下。①正統性の床のみを採用し
+  RedefinedBreathAmplitude=0（休眠）とした（2026-07-18・コード温存＝将来の再較正候補）。
+
+
+================================================================================
+5. 未実装／保留中のタスク（優先度別）
+================================================================================
+
+5.1 完了扱いになったもの（初版で「進行中／残課題」だった項目）
+--------------------------------------------------------------------------------
+・U2／U3／女性参政権分離／R3／R1／R10／R12／恐怖政治(B)＝採用済み（3.6）。
+・R13 植民地開発度の州単位化＝完了（初版の残課題「独立後永久凍結」「被征服州の産出0」は
+  Colony.Infra のオブジェクト移動＋非対称収束で解消済み・2.5）。
+・R2 賃金天井＝工業化連動で採用済み。#22 革新の自由度緩和＝採用済み（初版 5.5 の要検討
+  項目「革新の自由度条件緩和」はこれで決着）。
+・Explanation API（#63）＝完成。
+・確定仕様まとめ P3〜P9・P13・P14＝全て実装／裁定完了（3.8）。P10＝床のみ点火（3.9）。
+・UI 実装フェーズ＝完了（全面精査済み・配布 exe あり）。
+
+5.2 明示的な保留（裁定済み・着工条件つき）
+--------------------------------------------------------------------------------
+・P12 NC v3「国民化度レイヤー」＝設計確定・実装はタスクA（民族）着工時（pop レイヤー1本＋
+  開放度軸。P9 購入モデルからの橋→置換）。
+・P11 東方問題パック＝R8 較正後の候補（動詞1本・新規状態ゼロ。宗教タクソノミー再設計は
+  不採用が確定）。
+・P1 命名層（創発危機の命名・アーク追跡）＝イベント枠組みごと不採用のまま。閾値定義が
+  唯一の残り宿題として仕様のみ残る。
+・アプリアイコン＝素材支給待ち（Avalonia 既定のまま）。
+・P10 床のみ構成の帯確定記録＝batch30 計測中（本書更新時点）。
+
+5.3 次期メジャー（大工事・設計確定または方針確定）
+--------------------------------------------------------------------------------
+・タスクA 民族「社会の亀裂」フル per-pop 忠誠度モデル（3.2）＝固着是正の本命・最大リファクタ。
+  真のコストは 1789年（1783年）の多民族構成データ。P12 と P4 民族ルーティングが接続待ち。
+・タスクC フルカルテル＝EffFirms 再定義基盤は済み。resentment 方式は不成立が確定したため、
+  政治を経由しない別効果経路（例: 政体連動解体×経済効率）での再設計が必要（4.9）。
+・文化・宗教システム（神権制・宗教法・ミレット）＝最大の未実装領域。ただし SimCore 動学と
+  しての宗教 drag は却下済み＝価値の残余は UI depth と制度表現（4.8）。
+・R9 国債の満期構造／クーポンの点火（BondRolloverFrac<1）＝インフラ済み・覇権 creep を
+  抑えつつ点火する較正が課題。英 1815 高債務→1821 金本位復帰の再現に必要。
+・M8 高齢化（OldLaborFactor）＋#17 全係数再較正のセット（4.6）。
+
+5.4 中長期の要検討（意図的抽象化＝投資するか許容するか）
+--------------------------------------------------------------------------------
+band を壊していない限り基本は許容。将来の投資判断対象:
+・単一世界価格・世界市場統合の段階性なし（蒸気船／電信で 1850s 以降統合の史実）。
+・関税同盟／最恵国待遇＝#5 で「匿名プールでは表現不能」と確定済み＝市場構造ごとの大工事。
+・多国間講和会議（Concert of Europe）＝会議外交の賠償抑制は #21 で却下済み（scaffold 温存）。
+・議会の細部＝内閣崩壊・小選挙区死票・三級選挙制。
+・都市の家賃・住宅（M3・データ工事）／海軍建艦競争（M12）／資源賦存の追加（M13）。
+
+================================================================================
+6. 現在の史実一致度（band 状況）
+================================================================================
+
+6.1 band 判定基準の定義（HistoricalReference.cs:33-34・実コード・不変）
+--------------------------------------------------------------------------------
+・VerdictOf(near)（near＝完走シードに占める near 一致率）:
+    near > 0.90            → 「固着」（史実に固着＝カオス不足）
+    near < 0.50            → 「逸脱過多」
+    0.55 ≤ near ≤ 0.85     → 「◎7割帯」（目標帯）
+    それ以外（0.50–0.55, 0.85–0.90）→ 「△境界」
+・exact／near は帯ではなく一致「率」:
+    isExact = (従属 かつ 宗主が SuzerainsOk 集合内) または (政体 ∈ Exact 集合)
+    near    = isExact または 従属している または (政体 ∈ Near 集合)
+  ＝主権軸は2段判定（exact は「誰が奪ったか」の勢力圏まで測る）。
+・「破綻」は較正ハーネス側の別指標（batch でのクラッシュ／完走失敗数）。
+・忠実度計測は終了時点（1914）基準＝1783 リベースの影響を受けない（計測期間は 524Q に延長）。
+
+6.2 現行採用基線（2026-07-18 点火ラダー最終・batch30・seeds1..30・524Q）
+--------------------------------------------------------------------------------
+    指標              値
+    -------------     --------------------------------
+    exact             37%
+    near              75%
+    法一致            79%
+    清の勝利          13/30（43%＝目標≤50%達成・理想40%に近い）
+    幕府              5/30（帯内）
+    首位交代          46.5 回
+    プロイセン        73%（◎帯）
+    変名（建国等）    99 回
+    破綻              0/30
+    ハーネス不合格    0/30
+    較正（calib）     24-24-24
+    leakhunt          524Q 清潔
+    緑テスト          169（2026-07-18 実測・失敗0）
+  構成＝全8機構 live（P5 リベース＋P14／P6／P7／P9／P8／P3／P4）。この後 P10 床のみを
+  点火済み（帯は計測中・3.9）。
+  ※ 仏革命の創発＝リベース検収で 10/10 シードが 1788年10月に絶対→立憲。受け入れ基準
+  「1785–1800 に約7割」を上回る確実発火のため、「稀に回避する彩り」を求め初期債務 500k の
+  比較計測も行った（最終採用は 600k）。
+
+6.3 帯の時系列（各段 batch30・原文値）
+--------------------------------------------------------------------------------
+● 07-14/15 セッション（1789 基点・500Q）
+    段階                          exact  near  ◎   固着  逸脱  清   首位交代
+    --------------------------    -----  ----  --  ----  ----  --   --------
+    U2/U3 二重計上解消            34     75    23  17    6     16   56.0
+    女性参政権脱結合              35     77    24  21    3     19   48
+    R3 移民距離                   34     77    24  —     —     17   44.7
+    R12 信用乗数                  34     80    21  16    4     21   44.9
+    R10 識字減衰                  36     75    21  19    5     15   51.8
+    R1 需要弾力                   38     74    19  17    5     16   51.8
+    R8 民族分離(=3.0)             38     73    22  17    6     13   58.6
+    タスクB 恐怖政治(0.25)        39     73    19  18    9     11   61.7
+    R13 州単位化                  39（帯完全中立）              11   61.7
+    R2 賃金天井の工業化連動       39     76    22  —     3     13   57.8
+    #22 革新の自由度緩和          41     75    17  20    6     12   55.8 ← 飽和局所最適
+    飽和一掃(#60〜#66)            全却下＝41 基線不変
+● 07-18 点火ラダー（1783 基点・524Q＝物差しの期間が変わり上表と直接比較不能）
+    段    内容                          帯
+    ----  --------------------------    ------------------------------------------
+    B1    全休眠（リベース後基線）      exact38/near77/◎21・清18・首位交代39.9・幕府6/30
+    B2    P14 ランク年次化              exact36/near77・清18・首位交代42.1（誤差帯内・UX利得）
+    B3    P6 乾隆帝の遺産               exact38/near78・清19・幕府4/30（単独では清削減なし＝想定どおり）
+    B4    P7 制度疲労(3ch×0.5)          exact38/near75/法80・清14=47%・幕府2/30（清削減の本命）
+    B5    P9 国民意識v2 購入モデル      exact36/near73・清14・幕府3/30
+    B6    P8 天命                       exact39 回復・清12=40%(理想値)・首位交代44.9・幕府3/30
+    B7    P3 アヘン(0.2/蓋なし/満1.0)   ハーネス13/30 ❌→弱体化再計測
+    B7b   P3 アヘン(0.1/蓋0.2/満0.5)    破綻0・ハーネス0・清13・幕府5/30・清near60%◎帯復帰
+    B8    P4 統一戦争                   破綻0・ハーネス0・清13・幕府5/30・プロイセン73%◎・変名99
+    最終  全8機構 live                  exact37/near75/法79・清13=43%・首位交代46.5
+    (次)  P10 床のみ                    計測中（呼吸0.3 は清30%下振れ+仏共和未達で却下済み）
+
+6.4 参考: 過去の別基準ピーク（物差しが異なる）
+--------------------------------------------------------------------------------
+・2026-07-11 全域監査後の exact74%/near84% は旧スコア式での測定（宗主厳格化前）。
+・1789 基点の exact41（#22 採用時）は飽和局所最適として確定した歴代最良。P5 リベースは
+  基線ごと物差しの期間を動かしたため、07-18 の exact37 と 41 の大小比較に意味はない
+  （リベース検収基準「+6年分の忠実度数%劣化は許容」の範囲内で、清是正・仏革命創発・
+  統一創発という質的目標を獲得した）。
+
+6.5 残る band 課題
+--------------------------------------------------------------------------------
+・固着（小国が史実の従属9割超へ決定論着地）＝是正の本命はタスクA（フル per-pop 民族）。
+・清 near 33%→60% は P3 で◎帯へ復帰済みだが残ウォッチ対象。
+・仏革命が 10/10 発火＝「稀に回避する彩り」の較正余地（初期債務ノブ）。
+・P10 床のみ点火の帯確定（計測中）。
+
+
+================================================================================
+7. 設計上の「やらないと決めたこと」一覧
+================================================================================
+・イベントシステム（P1 演出二層・スーパーイベント演出・命名層・P2(b) 日付トリガの登録簿
+  移管）＝ユーザー裁定「イベントを除き、全て実装」で不採用。日付ハードコード（ゴールド
+  ラッシュ1848 等）はそのまま残す。
+・プレイヤーの能動宣戦布告＝完全廃止（開戦は緊張の創発のみ・侵略／植民地化／統一戦争の
+  3動詞だけが能動・全て AI と対称）。
+・UI の説明文・漢字1字略称・かっこ書き補足・AI 代行ボタン・自動化できる操作レバー・動的な
+  軸端ラベル＝全て恒久禁止（2.9）。
+・セーブの後方互換（バージョニング）＝持たない（リフレクション自動追従・旧セーブ放棄）。
+・per-pop 民族モデルの否定＝逆転済み（タスクA として採用予定。方針転換の記録として残す）。
+・プロパガンダ（全廃）＝陰謀・世論操作の直接モデルは作らない。政治闘争は pop の意識・
+  闘争度・支持で表現し、法改正という形で決着する。
+・三者闘争モデルの全面導入（rip-and-replace）＝不採用（3.1）。
+・徳川33/明治33/失敗33 の旧較正基準（24-24-24 ゲート）＝破棄（7割史実基準へ移行。calib は
+  回帰番人としてのみ維持）。
+・多国間戦争の詳細＝戦争は常に1対1・対称戦（戦術操作・兵科・将軍・地形・要塞・戦線幅を
+  持たない）。「消耗する内政」として抽象化。
+・関税同盟の細部・最恵国待遇・多国間講和（Concert）＝実装しない（#5/#21 で実測却下済み）。
+・技術の分野別分割（技術ツリー）＝単一 TechLevel スカラーを維持。
+・レオンチェフ固定投入の要素代替一般化＝並存レシピ＋TechOnset 代替レシピ機構の範囲に留める。
+・カルテルの財別恣意スカラー＝倍率排除の精神に反するため不採用。EffFirms からの創発で表現。
+  resentment 経由の独占ペナルティも構造的不成立が確定（4.9）。
+・宗教タクソノミーの再設計＝不採用（P11 裁定・候補は東方問題パックのみ）。
+・サボタージュ・暗殺・買収・ロビー活動＝設計外（陰謀シミュレータにしない）。
+・条件付き倍率・外科補正の新規追加＝原則禁止（市場／保存則から創発させる）。
+
+
+================================================================================
+8. 現況と運用（旧「UI 実装フェーズに向けて」の後継）
+================================================================================
+
+8.1 現況サマリ
+--------------------------------------------------------------------------------
+・SimCore＝全8機構 live＋P10 床・169 緑・calib 24-24-24・破綻0/30・ハーネス0/30・
+  leakhunt 524Q 清潔。UI＝全面精査済み・新機構反映済み。配布＝dist\PriceOfBread\
+  Successor.App.exe（自己完結型）。「全部点火して世に出す」まで完了した状態。
+・残作業は 5.2（保留群）と 5.3（次期メジャー群）のみ。UI 実装中に SimCore を凍結する
+  必要はない、という初版の設計（休眠係数＋batch 規律）は点火ラダーで実証された。
+
+8.2 計測コマンド（Successor.Runner・確認済み）
+--------------------------------------------------------------------------------
+・calib                         … 較正ハーネス（24-24-24・自由>専制）
+・leakhunt                      … 保存則（貨幣・人口の保存量 D 検査）
+・chronicle [seed]              … seed 固定・総政変回数（恒等証明の基準・変更前後比較）
+・selfplay-batch 30 0 8         … 帯・忠実度・政体分布（金利上書きなし・並列8・524Q）
+・fidelity                      … 史実忠実度ハーネス
+・explain [seed] [四半期] [国名] … 説明 API の因果分解
+・テスト: dotnet test Successor.Tests -c Release（169 緑が基準）
+
+8.3 計測運用の教訓（07-17/18 実測）
+--------------------------------------------------------------------------------
+・長時間計測はバックグラウンド bash でなく PowerShell の分離プロセス（-RedirectStandard
+  Output）で行う（親シェル死でパイプ出力が消える）。プロセス監視は必ず tasklist //FI
+  （MSYS の kill -0 は PowerShell 起動のネイティブプロセスを見えず偽完了を報告する）。
+・ビルド前に dotnet/testhost/Runner の残留 kill・App は起動しっぱなしにしない。
+・マシンは 32GB（16GB 説は誤り）＝batch 並列8可。chronicle 1本≈4-5分（524Q）。
+・セーブはリフレクション自動追従＝旧セーブ互換は放棄が現行ポリシー。
+
+8.4 次の一手（優先順）
+--------------------------------------------------------------------------------
+1. P10 床のみ構成の帯確定（計測完了待ち→HANDOFF 記録。劣化なら休眠差し戻しの裁定）。
+2. 残ウォッチ＝清 near・仏革命発火率の彩り（初期債務ノブ）・固着。
+3. タスクA 民族フル per-pop 忠誠度モデル（Phase1 から・P12/P4 ルーティングを接続）。
+4. タスクC の別設計（政治を経由しない独占の純コスト化）。
+5. R9 満期構造の点火較正／M8＋#17 再較正（重量級・払い戻し不確実＝着手は裁定次第）。
+
+================================================================================
+（本書の数値は 2026-07-18 時点の実コード＝Successor.SimCore/*.cs のリテラル値に基づき、
+全 (Coef:行番号) を同日の実 grep で再検証済み。169 緑・GameQuarters=524・StartYear=1783 は
+同日実測。係数を動かす前には必ず該当ファイルの現行値を grep で再確認すること。）
+================================================================================

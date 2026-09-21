@@ -1,0 +1,19 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PriceOfBread.App.ViewModels"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="980" d:DesignHeight="640"
+             x:Class="PriceOfBread.App.Views.LoadingView"
+             x:DataType="vm:LoadingViewModel">
+    <Panel>
+        <Image Source="avares://PriceOfBread.App/Assets/moonlit.jpg" Stretch="UniformToFill"/>
+        <Border Background="#88000000"/>
+        <!-- 点アニメ（作者指示2026-08-15）：最長フレーム（点3つ）を透明で敷いて枠寸法を固定し、実文は左詰めで重ねる
+             ＝点の増減で本文が左右へ揺れない（中央寄せのTextBlock1本だと毎フレーム全体が動いて見える）。 -->
+        <Panel HorizontalAlignment="Center" VerticalAlignment="Center">
+            <TextBlock Text="{Binding MessageWidest}" FontSize="24" Opacity="0"/>
+            <TextBlock Text="{Binding Message}" FontSize="24" Foreground="#F4EFE2" HorizontalAlignment="Left"/>
+        </Panel>
+    </Panel>
+</UserControl>

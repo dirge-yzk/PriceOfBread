@@ -1,0 +1,210 @@
+﻿using PriceOfBread.SimCore;
+using Xunit;
+
+namespace PriceOfBread.Tests;
+
+public class MilitaryTests
+{
+    private static Scenario Dev(ulong s) => new() { Seed = s, Kind = ScenarioKind.FrontierDevelopment };
+
+    private static Scenario Force(ulong s) => new()
+    {
+        Seed = s,
+        Kind = ScenarioKind.FrontierDevelopment,
+        ForceUnlock = true,
+        InitialTreasury = 100_000,
+        PoliticsEnabled = true,
+        InitialPolity = Polity.Absolutist,
+        EducationLaw = EducationLaw.Public,
+        BaseCoercion = 3000,
+    };
+
+    [Fact]
+    public void 武力解錠は開発より速いが国庫出血と闘争度を伴う()   // §A-8 強硬 path
+    {
+        var dev = new Simulation(Dev(1), new NullAgent());
+        var force = new Simulation(Force(1), new NullAgent());
+        dev.Run(20);
+        force.Run(20);   // 早期：武力は解錠済、開発はまだ locked
+
+        Assert.True(force.World.Regions[1].SumPopulation() > dev.World.Regions[1].SumPopulation() + 200,
+            $"武力が速くない（武力 {force.World.Regions[1].SumPopulation():F0} vs 開発 {dev.World.Regions[1].SumPopulation():F0}）");
+        Assert.True(force.World.Treasury < 100_000, "国庫が出血していない");
+        // ★段2（2026-09-09）で物差しを**制圧の最中**へ移した。旧は Telemetry[^1]（20四半期後＝制圧が終わって4年後）を見ていたが、
+        //   それが通っていたのは σ=0.03（半減期5.8年）で衝撃が事実上永続していたからで、σ=0.30（半減期5.8か月・作者裁定）では
+        //   **解錠が終われば数四半期で鎮まる**＝それが正しい挙動である。機構（制圧は闘争度を伴う）は衝撃が加わっている間に測る。
+        //   Territory.Step が月ごとに +ForceUnlockMilitancy を全popへ書き、ForceUnlockRate=0.10 なので解錠は約10か月＝Telemetry[1] は制圧中。
+        Assert.True(force.Telemetry[1].AvgMilitancy > dev.Telemetry[1].AvgMilitancy,
+            $"制圧の最中でも開発より闘争度が高くない（武力 {force.Telemetry[1].AvgMilitancy:F3} vs 開発 {dev.Telemetry[1].AvgMilitancy:F3}）");
+        Assert.True(force.Telemetry[1].AvgMilitancy > 0.05, $"制圧の闘争度が立っていない（{force.Telemetry[1].AvgMilitancy:F3}）");
+        Assert.True(force.Telemetry[^1].AvgMilitancy < force.Telemetry[1].AvgMilitancy,
+            $"解錠が終わっても闘争度が鎮まらない（制圧中 {force.Telemetry[1].AvgMilitancy:F3} → 20四半期後 {force.Telemetry[^1].AvgMilitancy:F3}）＝σが積分の側で効いていない");
+    }
+
+    [Fact]
+    public void 武力解錠でも人口と基礎貨幣は保存される()
+    {
+        var sim = new Simulation(Force(2), new NullAgent());
+        double p0 = sim.World.TotalPopulation, base0 = sim.World.BaseMoney;
+
+        var ex = Record.Exception(() => sim.Run(400));
+        Assert.Null(ex);
+        Assert.True(Math.Abs(sim.World.TotalPopulation - (p0 + sim.World.PopulationDelta)) < 1e-6 * p0, "人口保存の破れ");
+        Assert.True(Math.Abs(sim.World.BaseMoney - base0) < 1e-3 * base0, "基礎貨幣保存の破れ（交易なしでは一定）");
+    }
+
+    // ★番人の主張の書き直し（作者裁定2026-09-19 M1）：**総動員は徴兵法を迂回しない**。
+    //   旧主張（2026-08-31・AI審査3-10の固定）＝「Military.cs の wartimeConscript ＝ atWar && (法≥選抜 || Mobilized)＝総動員は志願制でも強制徴募扱い＝闘争度が積まれる」。
+    //   新主張＝wartimeConscript ＝ atWar && 法≥選抜（Military.cs:187）＝志願兵制の国は総動員しても強制徴募されない＝兵数も遺恨も総動員なしと1ビットも違わない。
+    //   総動員が効くのは既にある徴兵の深さ（Military.cs:128 → 読み手は :191 の強制徴募だけ）＝下の「選抜以上の徴兵制は総動員で徴兵が深まる」が対の番人。
+    //   史実＝代議制国家の大量徴兵は必ず立法を通った（英1916兵役法・米1863/1917徴兵法・南部連合1862）＝行政の総動員が志願制の法を覆した例は無い。
+    //   この意味論が変わったらここが赤くなる（「無い」は最も誤りやすい主張＝コードでピンする）。
+    [Fact]
+    public void 総動員は志願兵制を迂回せず強制徴募も遺恨も立たない()
+    {
+        (double Soldiers, double Before, double After) Run(bool mobilized)
+        {
+            var sim = new MultiNationSim([NationConfig.France(), NationConfig.Britain()], seed: 1789);
+            var w = sim.Nations[0].World;
+            w.ConscriptionLaw = ConscriptionLaw.Volunteer;
+            w.Mobilized = mobilized;
+            Assert.True(w.Coef.ConscriptGrievanceRate > 0, "前提が崩れた：徴兵遺恨の係数が0＝この番人は無意味");
+            double before = PoolMilitancy(w);
+            Military.Step(w, w.Coef, atWar: true);
+            return (Soldiers(w), before, PoolMilitancy(w));
+        }
+
+        var plain = Run(mobilized: false);   // 対照腕：志願制×戦時×総動員なし＝志願規模のみ＝遺恨は積まれない
+        Assert.Equal(plain.Before, plain.After);
+        var mob = Run(mobilized: true);      // 本腕：志願制×戦時×総動員＝徴兵法が志願のまま＝強制徴募は立たない
+        Assert.Equal(plain.Soldiers, mob.Soldiers);
+        Assert.Equal(plain.After, mob.After);
+        Assert.Equal(mob.Before, mob.After);
+    }
+
+    // ★対の番人（作者裁定2026-09-19 M1）：総動員は**既にある徴兵を深める**＝徴兵法≥選抜の国では Military.cs:128 の深さ（MobilizationConscriptFrac）が
+    //   :191 の強制徴募に届き、兵数も遺恨も総動員なしより大きい。M1 は総動員を消したのではなく「法の上に乗る」ことを示す（この腕が無いと
+    //   「総動員が何もしない」退化でも上の番人が緑になる＝ゲート緑≠機構が働いた）。
+    [Theory]
+    [InlineData(ConscriptionLaw.Selective)]
+    [InlineData(ConscriptionLaw.Universal)]
+    public void 選抜以上の徴兵制は総動員で徴兵が深まる(ConscriptionLaw law)
+    {
+        (double Soldiers, double Militancy) Run(bool mobilized)
+        {
+            var sim = new MultiNationSim([NationConfig.France(), NationConfig.Britain()], seed: 1789);
+            var w = sim.Nations[0].World;
+            w.ConscriptionLaw = law;
+            w.Mobilized = mobilized;
+            Assert.True(w.Coef.ConscriptGrievanceRate > 0, "前提が崩れた：徴兵遺恨の係数が0＝この番人は無意味");
+            Assert.True(w.Coef.MobilizationConscriptFrac > w.Coef.ConscriptionFraction, "前提が崩れた：総動員の深さが通常戦時の深さを超えない＝この番人は無意味");
+            Military.Step(w, w.Coef, atWar: true);
+            return (Soldiers(w), PoolMilitancy(w));
+        }
+
+        var plain = Run(mobilized: false);
+        var mob = Run(mobilized: true);
+        Assert.True(mob.Soldiers > plain.Soldiers + 1e-9,
+            $"{law}：総動員で兵数が増えない（総動員なし {plain.Soldiers:F2} / 総動員 {mob.Soldiers:F2}）＝深さが強制徴募に届いていない");
+        Assert.True(mob.Militancy > plain.Militancy + 1e-9,
+            $"{law}：総動員で徴兵遺恨が深まらない（総動員なし {plain.Militancy:F6} / 総動員 {mob.Militancy:F6}）");
+    }
+
+    private static double PoolMilitancy(World w)
+    {
+        double m = 0; int n = 0;
+        foreach (var p in w.Region.Pops)
+            if (p.ClassId == w.Coef.SoldierRecruitClassA || p.ClassId == w.Coef.SoldierRecruitClassB) { m += p.Militancy; n++; }
+        return n > 0 ? m / n : 0;
+    }
+
+    private static double Soldiers(World w)
+    {
+        double s = 0;
+        foreach (var p in w.AllPops()) if (p.IsSoldier) s += p.Size;
+        return s;
+    }
+
+    [Fact]
+    public void 同一シードで武力解錠は決定論的()
+    {
+        var a = new Simulation(Force(3), new NullAgent());
+        var b = new Simulation(Force(3), new NullAgent());
+        a.Run(100);
+        b.Run(100);
+        Assert.Equal(a.World.Regions[1].SumPopulation(), b.World.Regions[1].SumPopulation());
+        Assert.Equal(a.World.Treasury, b.World.Treasury);
+    }
+
+    /// <summary>★前期の軍需レシピ（2026-09-07）ON経路：MusketRecipeEnabled=1 で小銃(82)・火砲(81)に鋼を要しない並存レシピが足され、
+    /// 密閉英国の1783〜（鋼＝坩堝鋼のみの時代）でも小銃が作られる（既定＝鋼レシピだけ＝ほぼ作れない）。0 の恒等は DormantIdentity と FullChainTests（生産者数）が番人。
+    /// ⚠計器の是正（2026-09-08・統合検証）：**最終四半期の LastProduced（一瞬のフロー）で測っていたのを累積へ替えた**。
+    ///   同日点火の <see cref="Coefficients.PriceLawSupplyIncludesStock"/>（在庫のある市場は供給が満ちているとみなす）が入ると、
+    ///   マスケットで供給が増えた側は12期目に在庫20.8（≈3期分）を積んで価格が 3.46→1.71 へ落ち、その月だけフローが絞られる
+    ///   ＝ON 7.43／OFF 12.06 で逆転した。機構は健全で、24/60/120/240期のどの断面でも ON が 4〜16倍（実測）。
+    ///   在庫の周期に乗る一瞬の値ではなく、**期間中に作れた総量**で測る＝計器が価格の在庫項に依存しない。</summary>
+    [Fact]
+    public void 前期の軍需レシピは鋼の無い時代に小銃を作る()
+    {
+        double Produced(bool on)
+        {
+            var sc = NationConfig.Britain().ToScenario(29);
+            sc.Coef.MusketRecipeEnabled = on ? 1 : 0;
+            var sim = new Simulation(sc, new NullAgent());
+            double cumulative = 0;
+            for (int q = 0; q < 12; q++) { sim.Run(1); cumulative += sim.World.Region.Markets[82].LastProduced; }
+            double musket = 0; foreach (var pr in sim.World.Region.Producers) if (pr.GoodId == 82 && pr.RecipeName == "マスケット") musket += pr.Output;
+            if (on) Assert.True(musket > 0, "マスケットのレシピが産出していない（並存レシピの注入漏れか投入不足）");
+            return cumulative;
+        }
+        double off = Produced(false), onv = Produced(true);
+        Assert.True(onv > off, $"前期レシピで小銃の産出が増えていない（既定 {off:F2} / 前期レシピ {onv:F2}）");
+    }
+
+    /// <summary>M4（2026-09-11）：恒常性の信号の分子は上限（MilitaryBudgetCeiling）1本＝旧 Math.Max(Ceiling, Budget) は Budget ≤ Ceiling の単調性で同値。
+    /// 必要額で切る腕・切らない腕の両方で全 Active 州が Budget ≤ Ceiling を保つ（分子と分母の非対称を作らない番人）。</summary>
+    [Theory]
+    [InlineData(1.0)]
+    [InlineData(0.0)]
+    public void 軍需予算は上限を超えない(double needCapped)
+    {
+        var sim = new MultiNationSim([NationConfig.France(), NationConfig.Britain()], seed: 1789);
+        foreach (var n in sim.Nations) n.World.Coef.MilitaryBudgetNeedCapped = needCapped;
+        sim.StepQuarter();
+        int checkedRegions = 0, capitals = 0;
+        foreach (var n in sim.Nations)
+            foreach (var r in n.World.Regions)
+            {
+                if (r.State != RegionState.Active) continue;
+                checkedRegions++;
+                Assert.True(r.MilitaryBudget <= r.MilitaryBudgetCeiling,
+                    $"{n.World.SelfPower?.Name}／{r.Name}：予算 {r.MilitaryBudget} > 上限 {r.MilitaryBudgetCeiling}（NeedCapped={needCapped}）");
+                Assert.True(r.MilitaryBudgetCeiling >= 0 && double.IsFinite(r.MilitaryAffordRaw) && r.MilitaryAffordRaw >= 0,
+                    $"{n.World.SelfPower?.Name}／{r.Name}：上限 {r.MilitaryBudgetCeiling}／支払能力 {r.MilitaryAffordRaw} が不正");
+                if (ReferenceEquals(r, n.World.Region)) { capitals++; Assert.True(r.MilitaryBudgetCeiling > 0, "首都の軍需予算上限が0＝Simulation の書き手を経ていない"); }
+            }
+        Assert.True(checkedRegions > 0 && capitals == sim.Nations.Count);
+    }
+
+    /// <summary>#7（2026-09-11）：徴兵目標の母数は Politics.RuleDelivery 倍（RuleSharesTaxBase>0・在地区分の村請け）。届き方0.5なら目標兵数も半分＝
+    /// 同じ盤面で兵士の到達量が対照腕（g=0＝×1＝DormantIdentity の恒等）より小さい。App のヘッダー/政治タブの目標兵数はこの1本を読む。</summary>
+    [Fact]
+    public void 徴兵の母数は支配度の届き方で縮む()
+    {
+        static (double before, double after, World w) Arm(double g)
+        {
+            var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
+            var w = sim.World;
+            w.Coef.RuleSharesTaxBase = g;
+            foreach (var r in w.Regions) r.Rule = [0.5, 0.0, 0.5, 0.0];   // 国家区分5割・在地区分0（村請け無し）＝届き方 0.5
+            double before = w.SoldierSize();
+            Military.Step(w, w.Coef, atWar: false);
+            return (before, w.SoldierSize(), w);
+        }
+        var off = Arm(0.0); var on = Arm(1.0);
+        Assert.Equal(1.0, Politics.RuleDelivery(off.w.Region, off.w.Coef, 0.0));
+        Assert.Equal(0.5, Politics.RuleDelivery(on.w.Region, on.w.Coef, 1.0));
+        Assert.Equal(off.before, on.before);
+        Assert.True(on.after < off.after, $"母数が半分なのに兵数が縮まない（対照 {off.before:F1}→{off.after:F1}／本腕 {on.before:F1}→{on.after:F1}）");
+    }
+}

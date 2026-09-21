@@ -1,0 +1,1359 @@
+﻿using PriceOfBread.SimCore;
+using Xunit;
+
+namespace PriceOfBread.Tests;
+
+/// <summary>
+/// 利益集団の選好が政治を動かす（§9-E）。法整備は力の均衡が許す向きにだけ一歩ずつ進み、
+/// スライダーは反対勢力で律速。中心は参政権＝**ブルジョワが制限選挙で梯子を外す**（近代エリートの選好反転）。
+/// </summary>
+public class PolicyPoliticsTests
+{
+    [Fact]
+    public void 参政権はブルジョワが制限選挙で梯子を外す()
+    {
+        var sim = new Simulation(NationConfig.France().ToScenario(1789), new ModernizerAgent());
+        sim.World.ParliamentEnabled = false;   // ブロックの梯子（PolicyPreferences）単体を検証＝議会層（社会党が票で梯子を超える）は別レイヤーなので isolate
+        sim.Run(400);
+        // 近代化派が普通選挙を目指しても、ブルジョワは制限選挙で参入した後は拡大に反対し、
+        // 大衆は普通選挙未満では発言権が無い→参政権は制限選挙で頭打ち（普通選挙＝AdultMale 以上にならない）。
+        Assert.True(sim.World.Suffrage >= Suffrage.Census, $"制限選挙にも届かない（{sim.World.Suffrage}）");
+        Assert.True(sim.World.Suffrage < Suffrage.AdultMale, $"梯子を外せず普通選挙まで通る（{sim.World.Suffrage}）");
+    }
+
+    [Fact]
+    public void 法整備のゲートはNullAgentでは不動で保存も保つ()   // 後方互換
+    {
+        var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
+        sim.World.GovDebt = 0;   // P5：仏は重債務開始＝デフォルト→闘争度→譲歩で法が動く（それ自体が仏革命の創発＝設計どおり）。本テストは不動性の機構検証なので中立財政で隔離
+        var ex = Record.Exception(() => sim.Run(200));
+        Assert.Null(ex);
+        Assert.Equal(Suffrage.None, sim.World.Suffrage);   // 目標＝現状なので動かない
+    }
+
+    [Fact]
+    public void 富裕層が薄い社会では参政権が伸び富裕層が厚い社会では止まる()   // 力＝富×発言権
+    {
+        // 近代エリート（ブルジョワ）が厚いフランスは制限選挙が通る（富裕な改革勢力が押す）
+        var fr = new Simulation(NationConfig.France().ToScenario(1789), new ModernizerAgent());
+        fr.World.ParliamentEnabled = false;   // ブロックの力（富×発言権）単体を検証＝議会層は isolate
+        fr.Run(300);
+        Assert.True(fr.World.Suffrage >= Suffrage.Census, "ブルジョワが厚いフランスで制限選挙が通らない");
+    }
+
+    // ==== 不満度（導出量）＝二量分離 段1 の番人（2026-09-09・設計メモ §6-1／§6-4）====================================
+    //   ⚠ここは**機構と不変条件だけ**を見る（創発の主張は帯が見る）。
+    //   ★段1は読み手ゼロ＝世界は動かない。世界が動かないことの証明は (i) DormantIdentityTests の休眠表（DiscontentLawGap）と
+    //     (ii) factionprobe の before/after 全バイト一致（60四半期・5カ国）が担う＝ここでは**関数の性質**だけを固定する。
+
+    /// <summary>不満度を測れる盤面：思想分布を立て（構築直後は全0＝理想点が縮退する）、popの属性を既知の値へ置く。
+    /// ⚠popを直に置くのは、不満度が**popの純関数**だからで、この関数の性質を測るのに世界の履歴は要らないため。</summary>
+    private static (Simulation Sim, Pop P, double[] Coord) DiscontentBoard()
+    {
+        var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
+        sim.Run(8);
+        var w = sim.World;
+        Pop? pick = null;
+        foreach (var r in w.Regions) foreach (var p in r.Pops) if (!p.Closed && !p.IsSoldier && p.Size > 1) { pick = p; break; }
+        Assert.True(pick is not null, "非閉鎖のpopが1つも無い＝盤面の前提が崩れた");
+        pick!.Consciousness = 0.5; pick.Literacy = 0.8;    // wEdu = min(0.5, 0.8) = 0.5（3層の教育層）
+        pick.Satisfaction = 0.5; pick.LivingRef = 0.6;     // 失望 = 0.6 − 0.5 = 0.1
+        w.Suffrage = Suffrage.Universal;                   // 票の発言権を 1.0 に固定（女性比で欠けない段）＝reality だけが効く盤面
+        return (sim, pick, PoliticalQuantities.DriftedPolityCoord(w.Polity, w.Suffrage, w.Coef));
+    }
+
+    [Fact]
+    public void 不満度は記憶を持たない()   // 設計 §6-4 受け入れ基準2＝導出量である（ストックなら戻らない）
+    {
+        var (sim, p, coord) = DiscontentBoard();
+        var w = sim.World; var c = w.Coef;
+        double before = Politics.Discontent(w, c, p, coord, 0);
+        double refBefore = p.LivingRef;
+
+        p.Satisfaction -= 0.2;                                        // 盤面を悪くする
+        double worse = Politics.Discontent(w, c, p, coord, 0);
+        Assert.True(worse > before, $"生活水準が落ちたのに不満度が増えない（{before} → {worse}）");
+
+        p.Satisfaction += 0.2;                                        // 盤面を元に戻す
+        Assert.Equal(before, Politics.Discontent(w, c, p, coord, 0));  // ★厳密一致＝記憶が無い
+        Assert.Equal(refBefore, p.LivingRef);                          // ★純関数＝盤面を1つも書かない（参照点の初期化はループ側の仕事）
+    }
+
+    [Fact]
+    public void 不満度は成長期の負も飽和も値域に畳む()   // 段1-2＝クランプはこの関数が持つ（闘争度targetのクランプに寄りかからない）
+    {
+        var (sim, p, coord) = DiscontentBoard();
+        var w = sim.World; var c = w.Coef;
+
+        p.Satisfaction = 0.95; p.LivingRef = 0.5;                      // 生活水準が参照点を上回る＝失望が負（体制への支持）
+        Assert.True(Politics.LivingWant(p, c) < 0, "前提が崩れた：失望が負になっていない（LivingRefWeight を確認）");
+        Assert.Equal(0.0, Politics.Discontent(w, c, p, coord, 0));     // 下側＝0（負のまま下流のガードへ流さない）
+
+        p.Satisfaction = 0.0; p.LivingRef = 1.0; c.WantWeight = 2.0;   // 失望が満額で重みが1超＝素の和は1を超える
+        Assert.True(c.WantWeight * Politics.LivingWant(p, c) > 1.0, "前提が崩れた：素の和が1を超えていない");
+        Assert.Equal(1.0, Politics.Discontent(w, c, p, coord, 0));     // 上側＝1
+    }
+
+    [Fact]
+    public void 不満度の物差しは既定で旧経路であり切替で法の隔たりを読む()   // 段1-3＝モードフラグ1本（既定0＝旧の政治的距離）
+    {
+        var (sim, p, coord) = DiscontentBoard();
+        var w = sim.World; var c = w.Coef;
+        Assert.Equal(0.0, new Coefficients().DiscontentLawGap);        // ★既定は旧経路（点火したら本アサートも直す＝表が休眠の一覧）
+
+        // 既定＝法の隔たりの引数を**一切読まない**（0でも1でも同じ値）＝4軸座標の距離のまま
+        Assert.Equal(Politics.Discontent(w, c, p, coord, 0.0), Politics.Discontent(w, c, p, coord, 1.0));
+
+        c.DiscontentLawGap = 1.0;                                      // 切替＝物差しだけが LawGap へ
+        double zero = Politics.Discontent(w, c, p, coord, 0.0);
+        double full = Politics.Discontent(w, c, p, coord, 1.0);
+        Assert.True(full > zero, $"切替後も法の隔たりを読んでいない（{zero} ⇔ {full}）");
+        // 隔たり0＝生活の失望だけが残る（前2因子 wEdu×(1−発言権) は残したまま物差しだけが0になる）
+        Assert.Equal(System.Math.Clamp(c.WantWeight * Politics.LivingWant(p, c), 0, 1), zero);
+    }
+
+    [Fact]
+    public void 紙の参政権は不満度を宥めきれない()   // 1934拡張E5の是正が不満度側でも生きている（専制が選挙なしで参政権を発行しても満額は鎮まらない）
+    {
+        var (sim, p, coord) = DiscontentBoard();
+        var w = sim.World; var c = w.Coef;
+        Assert.True(c.SecretBallotGate > 0, "前提が崩れた：秘密投票の主フラグが休眠している");
+
+        // ⚠政体は座標も動かすので、**同じ coord を渡して**発言権の実在だけを変える（4軸距離の変化と混ぜない）
+        w.Polity = Polity.Republic; w.SecretBallot = SecretBallotLaw.Secret;
+        double secret = Politics.Discontent(w, c, p, coord, 0);
+        w.SecretBallot = SecretBallotLaw.Open;
+        double open = Politics.Discontent(w, c, p, coord, 0);
+        w.Polity = Polity.Absolutist;                                  // 非議会政体＝票はあるが選挙が実在しない
+        double paper = Politics.Discontent(w, c, p, coord, 0);
+
+        Assert.True(open > secret, $"公開投票が秘密投票より宥まっている（公開 {open} ≦ 秘密 {secret}）");
+        Assert.True(paper > open, $"非議会政体の紙の参政権が公開投票より宥まっている（紙 {paper} ≦ 公開 {open}）");
+        // ⚠非議会政体では投票法は**読まれない**（reality は政体で決まる）＝ここを「秘密なら宥まる」と書くと空洞の検査になる
+        w.SecretBallot = SecretBallotLaw.Secret;
+        Assert.Equal(paper, Politics.Discontent(w, c, p, coord, 0));
+    }
+
+    [Fact]
+    public void 法の隔たりは望む向きの余地が消えれば縮み反対側では広がる()   // LawGap＝選好で重みづけた「余地」の平均（向きの決め方は ComputeDemands と同じ）
+    {
+        var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
+        sim.Run(8);
+        var w = sim.World;
+
+        // 報道法の選好は「旧支配層=−1／近代・大衆=+1」の定数（PolicyPreferences.Pref）＝法の現在値にも保有にも依らない
+        // ＝この軸だけを動かすと、変わるのは**その軸の余地**だけ（他の軸の重みも余地も動かない）。
+        w.Censorship = CensorshipLaw.StatePressOnly;   // 位置0＝自由化の余地が満額／統制側の余地は0
+        var closed0 = PolicyPreferences.LawGap(w);
+        w.Censorship = CensorshipLaw.FreePress;        // 位置1＝自由化の余地が0／統制側の余地が満額
+        var free = PolicyPreferences.LawGap(w);
+
+        Assert.True(free[2] < closed0[2], $"報道を自由化しても大衆の法の隔たりが縮まない（{closed0[2]} → {free[2]}）");
+        Assert.True(free[0] > closed0[0], $"報道を自由化しても旧支配層の法の隔たりが広がらない（{closed0[0]} → {free[0]}）");
+
+        w.Censorship = CensorshipLaw.Censorship;       // 位置0.5＝両側に半分ずつ余地
+        var mid = PolicyPreferences.LawGap(w);
+        Assert.True(mid[2] < closed0[2] && mid[2] > free[2], "大衆の隔たりが中間の法で中間にならない");
+
+        foreach (var g in new[] { closed0, free, mid })
+        {
+            Assert.Equal(3, g.Length);                                  // ブロックは3本（添字＝PolicyPreferences.BlocOf）
+            foreach (var v in g) Assert.InRange(v, 0.0, 1.0);           // 値域は構造で保証（重み平均・各項が[0,1]）
+        }
+    }
+
+    // ==== 参加の述語＝二量分離 段3 の番人（2026-09-09・設計メモ §7-1 裁定1／§7-2）==================================
+    //   ⚠ここも**機構と不変条件だけ**。「平時に運動が育つ」は創発の主張なので帯と計器（factionprobe）が見る。
+    //   ★測るのは3つ＝(a) 既定は旧の二値（不満度を1度も読まない）(b) 点火すると参加は**重み**になり閾値が消える
+    //     (c) 闘争度は**上書き**として max に入る（不満度が構造的に立たない層＝特権を剥がされた貴族も運動に加わる）。
+
+    /// <summary>参加を測れる盤面：全popの闘争度・意識・参照点を既知の値へ置く（＝不満度を式で予言できる形にする）。
+    /// ⚠意識0＝法の隔たりの因子 wEdu=min(意識,識字) が0＝不満度は**生活の失望だけ**になる（政体座標も参政権も読まれない）。
+    /// ⚠参照点＝生活水準＋drop＝失望は drop ちょうど（drop=0 で不満度0）。</summary>
+    private static (World W, double Pop) 参加の盤面(double militancy, double drop)
+    {
+        var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
+        sim.Run(8);
+        var w = sim.World;
+        Assert.True(w.Coef.LivingRefWeight >= 1.0, "前提が崩れた：失望（相対）でない＝下の drop の予言が成り立たない");
+        double pop = 0;
+        foreach (var r in w.Regions)
+        {
+            if (r.State != RegionState.Active) continue;
+            foreach (var p in r.Pops)
+            {
+                if (p.Size <= 1e-9) continue;
+                p.Militancy = militancy; p.Consciousness = 0;
+                p.Satisfaction = 0.5; p.LivingRef = 0.5 + drop;   // 失望＝参照点−生活水準＝drop
+                pop += p.Size;
+            }
+        }
+        Assert.True(pop > 0, "盤面にpopがいない");
+        return (w, pop);
+    }
+
+    private static (double Size, double MilSum) 参加の総和(World w)
+    {
+        double size = 0, mil = 0;
+        foreach (var cl in FactionSnapshot.ComputeClusters(w)) { size += cl.Size; mil += cl.MilSum; }
+        return (size, mil);
+    }
+
+    [Fact]
+    public void 段3_参加の述語は既定で闘争度の二値である()   // (a) 既定＝旧＝ビット恒等の側（不満度を1度も読まない）
+    {
+        Assert.Equal(0.0, new Coefficients().ParticipationDiscontent);   // ★既定は休眠（点火したら本アサートも直す＝表が休眠の一覧）
+
+        var (below, popB) = 参加の盤面(militancy: 0.30, drop: 0);   // 閾値0.5の下＝1人も数えられない
+        below.Coef.ParticipationDiscontent = 0;
+        Assert.Equal(0.0, 参加の総和(below).Size);
+        Assert.True(popB > 0, "母数が0＝上の0は『popがいない』の写しにすぎない");
+
+        var (above, popA) = 参加の盤面(militancy: 0.60, drop: 0);   // 閾値の上＝全員が満額（二値）
+        above.Coef.ParticipationDiscontent = 0;
+        var (size, milSum) = 参加の総和(above);
+        Assert.Equal(popA, size, 6);
+        Assert.Equal(0.60, milSum / size, 9);
+    }
+
+    [Fact]
+    public void 段3_点火すると参加は重みになり閾値が消える()   // (b) 蜂起の門と「運動に数えられる下限」の取り違えの解消
+    {
+        var (w, pop) = 参加の盤面(militancy: 0.30, drop: 0);   // 不満度0＝参加は闘争度そのもの
+        w.Coef.ParticipationDiscontent = 1.0;
+        var (size, milSum) = 参加の総和(w);
+        Assert.Equal(0.30 * pop, size, 6);      // 閾値の下でも**0.3人分**が運動に数えられる（旧は0人）
+        Assert.Equal(0.30, milSum / size, 9);   // 参加加重の平均闘争度＝この腕では闘争度そのもの
+    }
+
+    [Fact]
+    public void 段3_参加は不満度で決まり闘争度が上書きする()   // (c) 裁定1＝動力は不満度・闘争度は上書き（max）
+    {
+        // 腕1＝生活が落ちた（失望0.4→不満度 0.8×0.4=0.32）が闘争度は低い（0.20）＝**不満度が参加を決める**
+        var (w1, pop1) = 参加の盤面(militancy: 0.20, drop: 0.4);
+        w1.Coef.ParticipationDiscontent = 1.0;
+        var p1 = w1.Regions[0].Pops[0];
+        double d1 = Politics.Discontent(w1, w1.Coef, p1, PoliticalQuantities.DriftedPolityCoord(w1.Polity, w1.Suffrage, w1.Coef), 0);
+        Assert.True(d1 > 0.20, $"前提が崩れた：不満度が闘争度を上回っていない（{d1:F3}）");
+        Assert.Equal(d1 * pop1, 参加の総和(w1).Size, 6);
+
+        // 腕2＝同じ盤面で闘争度だけを上げる（0.20→0.80）＝**闘争度が上書きする**（生活は1ミリも変えていない）
+        var (w2, pop2) = 参加の盤面(militancy: 0.80, drop: 0.4);
+        w2.Coef.ParticipationDiscontent = 1.0;
+        Assert.Equal(0.80 * pop2, 参加の総和(w2).Size, 6);
+
+        // 記憶を持たない側＝盤面（参照点）を戻せば参加もその場で戻る（ストックなら戻らない）
+        foreach (var r in w1.Regions) foreach (var p in r.Pops) p.LivingRef = p.Satisfaction;
+        Assert.Equal(0.20 * pop1, 参加の総和(w1).Size, 6);
+    }
+
+    [Fact]
+    public void 段3_闘争度が高ければ意識のある層も窮乏チャネルへ乗る()   // 裁定1の但し書き＝3層は「既定の手段」であって固定ではない
+    {
+        // ⚠盤面を凍結する：σ=0（闘争度が同一ティックで動く）・意識速度=0（意識が target へ寄る）＝測るのは**上書きの1因子だけ**。
+        static (double Radical, double Expect) 一回(double over, double militancy)
+        {
+            var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
+            sim.Run(8);
+            var w = sim.World; var c = w.Coef;
+            c.MilitancySpeed = 0; c.ConsciousnessSpeed = 0;
+            c.DesperationMilitancyOverride = over;
+            c.UnionMobilization = 0;   // 改革派側の加算＝radical には入らないが、盤面の他の書き込みを増やさないため閉じる
+            Assert.True(c.DesperationConsciousnessGate >= 1.0, "前提が崩れた：意識ゲートが休眠＝上書きする対象が無い");
+            double sz = 0;
+            foreach (var p in w.AllPops()) { p.Militancy = militancy; p.Consciousness = 1.0; sz += p.Size; }   // 意識満額＝旧ゲートでは窮乏チャネルが完全に閉じる層
+            // ⚠規模は Step の**前**に取る：同じ Step の後段で F1（州一揆）が発火して大衆popが死ぬ（闘争度0.9は熱0.9＝門0.5超）
+            //   ＝後で数えた規模で予言すると 0.4% ずれる（計器の粒度の罠）。radical を集計するループは後段より前にある。
+            Politics.Step(w, c);
+            // 予言：radical = Σ規模×意識×闘争度 ＋ Σ規模×max(0,闘争度−暴動閾値)×重み×(1−ゲート×意識×(1−開度))
+            double relief = over * System.Math.Clamp((militancy - c.RiotMilitancyThreshold) / (1.0 - c.RiotMilitancyThreshold), 0, 1);
+            double expect = sz * militancy
+                          + sz * System.Math.Max(0, militancy - c.RiotMilitancyThreshold) * c.DesperationChallengeWeight
+                                * (1.0 - c.DesperationConsciousnessGate * (1.0 - relief));
+            return (w.RadicalPower, expect);
+        }
+        Assert.Equal(0.0, new Coefficients().DesperationMilitancyOverride);   // ★既定は休眠
+
+        var off = 一回(over: 0.0, militancy: 0.9);
+        var on = 一回(over: 1.0, militancy: 0.9);
+        // 予言と一致＝式に**階級の項がどこにも無い**ことの検査（全popが同じ意識・闘争度なら、階級で分岐していれば必ずずれる）
+        Assert.Equal(off.Expect, off.Radical, 3);
+        Assert.Equal(on.Expect, on.Radical, 3);
+        Assert.True(on.Radical > off.Radical, $"闘争度0.9でも意識のある層が暴力側へ回っていない（ON {on.Radical:F1} ⇔ OFF {off.Radical:F1}）");
+
+        // 暴動水準ちょうどでは上書きは0＝平穏な社会の意識ある層は政治のまま（開度は闘争度から連続に開く）
+        double riot = new Coefficients().RiotMilitancyThreshold;
+        Assert.Equal(一回(over: 0.0, militancy: riot).Radical, 一回(over: 1.0, militancy: riot).Radical, 9);
+    }
+
+
+    [Fact]
+    public void 段5_三層の窮乏チャネルは誰が動くかを層の重みで読む()   // 設計メモ §6-3／§7-2＝政治意識あり→開度のぶんだけ／中間→自ら暴力／文盲→蜂起に合流（2026-09-11・休眠）
+    {
+        // ⚠盤面を凍結：σ=0・意識速度=0＝測るのは「誰が動くか」の1因子だけ。全popを同じ識字・意識・闘争度に置く
+        //   ＝予言（階級を読まない式）と一致すれば、式に階級の項が無い（階級で分岐していれば必ずずれる＝段3テストと同じ論法）。
+        static (double Radical, double Expect, double Old) 一回(double blend, double literacy, double consciousness, double militancy, double over, bool revolt)
+        {
+            var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
+            sim.Run(8);
+            var w = sim.World; var c = w.Coef;
+            c.MilitancySpeed = 0; c.ConsciousnessSpeed = 0; c.UnionMobilization = 0;
+            c.DesperationLayerBlend = blend; c.DesperationMilitancyOverride = over;
+            Assert.True(c.DesperationConsciousnessGate >= 1.0, "前提が崩れた：意識ゲートが休眠＝層で置き換える対象が無い");
+            Assert.False(w.InCivilWar || w.RevoltingFaction is not null || w.PendingRebelRegions is not null, "前提が崩れた：平時でない");
+            if (revolt) w.PendingRebelRegions = [w.Regions[^1]];   // 「蜂起が起きた」状態＝Politics.Step の inRevolt と同じ述語（段6テストと同じ置き方）
+            double sz = 0;
+            foreach (var p in w.AllPops()) { p.Literacy = literacy; p.Consciousness = consciousness; p.Militancy = militancy; sz += p.Size; }   // ⚠規模は Step の前に取る（後段の F1 で大衆が死ぬ）
+            Politics.Step(w, c);
+            double relief = over * System.Math.Clamp((militancy - c.RiotMilitancyThreshold) / (1.0 - c.RiotMilitancyThreshold), 0, 1);
+            double old = 1.0 - c.DesperationConsciousnessGate * consciousness * (1.0 - relief);
+            double wEdu = System.Math.Min(consciousness, literacy), wMid = literacy - wEdu;
+            double layers = wMid + wEdu * relief + (1.0 - literacy) * (revolt ? 1.0 : 0.0);
+            double who = (1.0 - blend) * old + blend * layers;
+            double desp = sz * System.Math.Max(0, militancy - c.RiotMilitancyThreshold) * c.DesperationChallengeWeight;
+            return (w.RadicalPower, sz * consciousness * militancy + desp * who, sz * consciousness * militancy + desp * old);
+        }
+        Assert.Equal(0.0, new Coefficients().DesperationLayerBlend);   // ★既定は休眠
+
+        // (a) 0＝旧ゲートそのもの（層を読まない）
+        var off = 一回(blend: 0, literacy: 0.8, consciousness: 0.3, militancy: 0.9, over: 0, revolt: false);
+        Assert.Equal(off.Old, off.Radical, 3);
+        // (b) 危険な中間（識字0.8・意識0.3＝wMid 0.5）：平時に自ら動くのは中間だけ＝旧(1−意識＝0.7)より小さい・予言と一致（階級の項なし）
+        var mid = 一回(blend: 1, literacy: 0.8, consciousness: 0.3, militancy: 0.9, over: 0, revolt: false);
+        Assert.Equal(mid.Expect, mid.Radical, 3);
+        Assert.True(mid.Radical < off.Radical, $"文盲層が平時に自ら動いている（層 {mid.Radical:F1} ≥ 旧 {off.Radical:F1}）");
+        // (c) 西欧型（意識0.8＞識字0.3＝wMid 0）：平時・開度0では窮乏チャネルが**空**＝計器の知見（英仏で wMid p50=0.000）を機構の側から固定＝設計メモとの乖離の記録
+        var west = 一回(blend: 1, literacy: 0.3, consciousness: 0.8, militancy: 0.9, over: 0, revolt: false);
+        Assert.Equal(west.Expect, west.Radical, 3);
+        Assert.True(west.Radical < west.Old, "意識＞識字の社会で中間層の項が空になっていない");
+        // (c') 同じ社会でも闘争度の上書き（開度）があれば意識ある層が暴力へ回る（§7-1 裁定1＝1789・1917）
+        var westOver = 一回(blend: 1, literacy: 0.3, consciousness: 0.8, militancy: 0.9, over: 1, revolt: false);
+        Assert.Equal(westOver.Expect, westOver.Radical, 3);
+        Assert.True(westOver.Radical > west.Radical, "闘争度の上書きが層の形でも効いていない");
+        // (d) 蜂起中＝文盲（1−識字＝0.7）が合流する（平時は動かなかった層）
+        var join = 一回(blend: 1, literacy: 0.3, consciousness: 0.8, militancy: 0.9, over: 0, revolt: true);
+        Assert.Equal(join.Expect, join.Radical, 3);
+        Assert.True(join.Radical > west.Radical, "蜂起が起きても文盲層が合流していない");
+        // (e) 意識≤識字なら蜂起中の層形は旧ゲートと一致（(1−意識)＝中間＋文盲）＝新しい量を足していないことの検算
+        var same = 一回(blend: 1, literacy: 0.8, consciousness: 0.3, militancy: 0.9, over: 0, revolt: true);
+        Assert.Equal(same.Old, same.Radical, 3);
+    }
+
+    /// <summary>M9（2026-09-11）：[0,1] クランプの唯一定義（旧 Ideologies.Clamp01 を吸収）。NaN は 0 側・−0.0 は +0.0（符号ビット0）・上限1。</summary>
+    [Fact]
+    public void Clamp01はNaNを0へ倒し負のゼロを正のゼロにし上限1で切る()
+    {
+        Assert.Equal(0.0, PoliticalQuantities.Clamp01(double.NaN));
+        Assert.Equal(0.0, PoliticalQuantities.Clamp01(-3.0));
+        Assert.Equal(0.0, PoliticalQuantities.Clamp01(double.NegativeInfinity));
+        Assert.Equal(1.0, PoliticalQuantities.Clamp01(2.0));
+        Assert.Equal(1.0, PoliticalQuantities.Clamp01(double.PositiveInfinity));
+        Assert.Equal(0.25, PoliticalQuantities.Clamp01(0.25));
+        Assert.Equal(0L, System.BitConverter.DoubleToInt64Bits(PoliticalQuantities.Clamp01(-0.0)));   // 符号ビットも0（旧 Ideologies 側の !(x >= 0) 形は −0.0 を素通しした）
+    }
+
+    /// <summary>M8（2026-09-11）：平均識字の唯一定義（旧 TechEducation.AvgLiteracy／CrownParliament のインライン和を吸収）。
+    /// 分離州は除外・coreOnly は植民地格を除外・全 Size=0 で 0。</summary>
+    [Fact]
+    public void 平均識字は分離州を除き本国のみの腕で植民地格を除き人口ゼロで0()
+    {
+        var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+        var w = sim.World;
+        Region? other = null;
+        foreach (var r in w.Regions) if (!ReferenceEquals(r, w.Region) && r.SumPopulation() > 1 && (other is null || r.SumPopulation() > other.SumPopulation())) other = r;
+        Assert.NotNull(other);
+        foreach (var r in w.Regions) foreach (var p in r.Pops) p.Literacy = 0.2;
+        foreach (var p in other!.Pops) p.Literacy = 1.0;
+        double all = PoliticalQuantities.AvgLiteracy(w);
+        Assert.True(all > 0.2 + 1e-9 && all < 1.0 - 1e-9, $"識字1.0の州が平均に入っていない（{all}）");
+        other.Tier = RegionTier.Colonial;
+        Assert.True(System.Math.Abs(PoliticalQuantities.AvgLiteracy(w, coreOnly: true) - 0.2) < 1e-9, "本国のみの腕で植民地格の州が除かれない");
+        Assert.Equal(all, PoliticalQuantities.AvgLiteracy(w));   // 既定腕は格を見ない
+        other.Tier = RegionTier.Core; other.Seceded = true;
+        Assert.True(System.Math.Abs(PoliticalQuantities.AvgLiteracy(w) - 0.2) < 1e-9, "分離州が平均から除かれない");
+        other.Seceded = false;
+        foreach (var r in w.Regions) foreach (var p in r.Pops) p.Size = 0;
+        Assert.Equal(0.0, PoliticalQuantities.AvgLiteracy(w));
+    }
+
+    // ==== 税・支出・軍事費の段（作者裁定2026-09-12 R1/R2）の番人 =========================================
+    //   R1「全ての税に関するスライダーを廃止し『なし/低/中/高』の4段階のボタンにします。これなら法として扱え反乱に乗る他、
+    //       権力を無視して課税できなくなる。税の挙動は今までと同じ。社会保障や軍事費なども同様にする」
+    //   R2「軍事費は『低/中/高/戦時』の4段とする。戦時経済は総動員とセットで、戦後は下の値に戻る」／R3 関税は対象外。
+    //   ⚠ここは**機構と不変条件だけ**を見る（帯の主張は書かない＝テストの層）。
+    // ★2026-09-20 段の点火（主フラグ FiscalLawStages を削除）：旧「ゲートゼロでは段の量子化は5パーセント刻みと厳密同値である」（段の無い世界の恒等）は
+    //   主張の相手（旗0の世界）が消えたので旗とともに退役した。旗を立てて書いていた番人は旗の行を消して同じ主張を既定で保つ。
+
+    // 段になった税・支出の5軸（Government.FiscalStagedAxis から軍事費 Coercion を除いたもの＝TaxStage/TaxValue の定義域）。
+    // ★専売は 2026-09-20 の作者裁定で段の法から外した（商品ごとに掛ける贅沢税）＝この表にも載らない。
+    private static readonly PolicyAxis[] StagedTaxAxes =
+        [PolicyAxis.IncomeTax, PolicyAxis.ProgressiveTax, PolicyAxis.PollTax, PolicyAxis.LandTax, PolicyAxis.EducationSpending];
+
+    [Fact]
+    public void 税と支出の目標は4値しか取らない()   // (b)
+    {
+        // ★錨2026-09-18：4値は軸ごとの錨（Government.TaxLawTop）の 0／1/3／2/3／満額。どの入力を通しても4値のどれかになる。
+        foreach (var a in StagedTaxAxes)
+        {
+            double m = Government.TaxLawTop(a);
+            double[] allowed = [0.0, m / 3.0, 2.0 * m / 3.0, m];
+            for (int i = 0; i <= 200; i++) Assert.Contains(Government.Q4(a, i * 0.005), allowed);
+            Assert.Equal(m, Government.TaxValue(a, Government.TaxLawStages));   // 最上段＝錨そのもの
+            Assert.Equal(0.0, Government.TaxValue(a, 0));
+        }
+        // 所得税の境界＝M/6・M/2・5M/6（M=0.35 → 0.0583／0.175／0.2917）＝0.05格子の上では 0.05|0.10・0.15|0.20・0.25|0.30
+        Assert.Equal(0.0, Government.Q4(PolicyAxis.IncomeTax, 0.05));
+        Assert.Equal(Government.IncomeTaxTop / 3.0, Government.Q4(PolicyAxis.IncomeTax, 0.10));
+        Assert.Equal(Government.IncomeTaxTop / 3.0, Government.Q4(PolicyAxis.IncomeTax, 0.15));
+        Assert.Equal(2.0 * Government.IncomeTaxTop / 3.0, Government.Q4(PolicyAxis.IncomeTax, 0.20));
+        Assert.Equal(2.0 * Government.IncomeTaxTop / 3.0, Government.Q4(PolicyAxis.IncomeTax, 0.25));
+        Assert.Equal(Government.IncomeTaxTop, Government.Q4(PolicyAxis.IncomeTax, 0.30));
+        Assert.Equal(Government.IncomeTaxTop, Government.Q4(PolicyAxis.IncomeTax, 1.0));   // 錨より上は最上段（段は4つの選択肢＝値の切り詰めではない）
+        // 教育費は錨1.0＝**旧の [0,1] 3等分と1ビットも変わらない**（境界 0.175／0.475／0.825）
+        Assert.Equal(0.0, Government.Q4(PolicyAxis.EducationSpending, 0.15));
+        Assert.Equal(1.0 / 3.0, Government.Q4(PolicyAxis.EducationSpending, 0.20));
+        Assert.Equal(1.0 / 3.0, Government.Q4(PolicyAxis.EducationSpending, 0.45));
+        Assert.Equal(2.0 / 3.0, Government.Q4(PolicyAxis.EducationSpending, 0.50));
+        Assert.Equal(2.0 / 3.0, Government.Q4(PolicyAxis.EducationSpending, 0.80));
+        Assert.Equal(1.0, Government.Q4(PolicyAxis.EducationSpending, 0.85));
+
+        // 軍事費は 1..4 段＝0.25/0.5/0.75/1.0 の4値だけ（0 は存在しない）
+        var sim = new Simulation(NationConfig.Britain().ToScenario(1), new NullAgent());
+        var w = sim.World; var p = w.Policy;
+        double[] milAllowed = [0.25, 0.5, 0.75, 1.0];
+        for (int i = 0; i <= 40; i++)
+        {
+            p.ArmyUpkeepTarget = i * 0.05; p.NavyUpkeepTarget = 0;
+            Assert.Contains(Government.MilitaryTotalTarget(w, p), milAllowed);
+        }
+    }
+
+    [Fact]
+    public void 段でも実効値は1四半期で段へ飛ばない()   // (c)「税の挙動は今までと同じ」＝量子化するのは目標だけで Move は不変
+    {
+        var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
+        var w = sim.World;
+        w.GovDebt = 0;                       // 緊縮の逆進フロア（人頭税の下限）を隔離＝Move の漸進だけを見る
+        w.PoliticalLockEnabled = false;      // 政治的可否と直交な機構の単体検証（Move が自身で読む隔離弁）
+        w.PollTax = 0;
+        w.Policy.PollTaxTarget = 1.0;        // 目標＝最上段
+        Government.Step(w, w.Coef);
+        Assert.True(w.PollTax > 0, "段にしたら1四半期で1ミリも動かない（Move が殺されている）");
+        Assert.True(w.PollTax < Government.TaxValue(PolicyAxis.PollTax, 1), $"1四半期で段へ飛んだ（{w.PollTax:F4}）＝実効値へ直書きしている");
+        for (int q = 0; q < 200; q++) Government.Step(w, w.Coef);   // 何期積んでも目標を越えない＝既存のクランプが生きている
+        Assert.True(w.PollTax <= Government.PollTaxTop + 1e-12, $"最上段を越えた（{w.PollTax:F4}）");
+    }
+
+    // ==== 段の錨（2026-09-18）＝最上段をその軸の教義最大値に合わせる ====
+    // 問題：梯子を [0,1] の3等分に打つと、最下段の非ゼロが所得の33%になり、**エンジン自身が置く値（0.10〜0.35）が全て段0＝無税へ丸まる**。
+    // 作者制約「税の挙動は今までと同じ」（R1）が破れ、議会掌握（PowerShares.ParliamentGrip の分子＝所得税＋累進）が構造的に0になる。
+    // ⚠この番人が無かったので 2026-09-12 から気付かれなかった＝軍事費だけが「最頻値0.25が段の1つに乗る」性質を偶然満たしていた。
+
+    /// <summary>エンジンが実際に置く値（SelfPlay の教義・NationConfig の開始値）と段の対応表。
+    /// ★2026-09-19：Parliament の綱領は経済軸（関税・福祉・累進）の目標を置かなくなった（二重計上の撤去）＝旧・綱領の値の行は注記つきで残す（段の写像の点としては今も正しい）。</summary>
+    public static TheoryData<PolicyAxis, double, int> 教義値と段 => new()
+    {
+        // 所得税（M=0.35＝SelfPlay の緊縮教義）：0.10=全61カ国の開始値／0.15=産業／0.20=福祉／0.25=近代化・軍備／0.35=緊縮
+        { PolicyAxis.IncomeTax, 0.10, 1 }, { PolicyAxis.IncomeTax, 0.15, 1 }, { PolicyAxis.IncomeTax, 0.20, 2 },
+        { PolicyAxis.IncomeTax, 0.25, 2 }, { PolicyAxis.IncomeTax, 0.35, 3 },
+        // 累進課税（M=0.80＝ソ連風税制）：0.30=近代化／0.40=緊縮／0.50=旧・社会党綱領の床と連立相手の値（2026-09-19撤去＝エンジンはもう置かない・段2の内側の点）／0.60=福祉／0.80=ソ連風
+        { PolicyAxis.ProgressiveTax, 0.30, 1 }, { PolicyAxis.ProgressiveTax, 0.40, 2 }, { PolicyAxis.ProgressiveTax, 0.50, 2 },
+        { PolicyAxis.ProgressiveTax, 0.60, 2 }, { PolicyAxis.ProgressiveTax, 0.80, 3 },
+        // 人頭税（M=0.50＝全61カ国の開始値）：0.30=緊縮／0.40=軍備・財政逼迫の床／0.50=開始値＝近世の主財源が最上段
+        { PolicyAxis.PollTax, 0.30, 2 }, { PolicyAxis.PollTax, 0.40, 2 }, { PolicyAxis.PollTax, 0.50, 3 },
+        // ⚠専売の行は 2026-09-20 に削除（作者裁定＝段の法にしない）＝段の写像を持たない軸になった。
+        // 土地税（M=0.40＝近代化/福祉/緊縮/軍備が共有）：0.20=建国時の開始値（InitialLandTaxScale）／0.30=産業／0.40=4教義
+        { PolicyAxis.LandTax, 0.20, 2 }, { PolicyAxis.LandTax, 0.30, 2 }, { PolicyAxis.LandTax, 0.40, 3 },
+        // 教育費（M=1.00＝近代化教義＝**旧の錨と同値＝この軸は1ビットも変わらない**）：0.20=緊縮／0.40=軍備／0.50=福祉／0.60=産業／1.00=近代化
+        { PolicyAxis.EducationSpending, 0.20, 1 }, { PolicyAxis.EducationSpending, 0.40, 1 },
+        { PolicyAxis.EducationSpending, 0.50, 2 }, { PolicyAxis.EducationSpending, 0.60, 2 }, { PolicyAxis.EducationSpending, 1.00, 3 },
+    };
+
+    [Theory, MemberData(nameof(教義値と段))]
+    public void 段の錨はエンジンが置く値を段ゼロへ潰さない(PolicyAxis axis, double doctrine, int expected)   // (b)(c)
+    {
+        Assert.Equal(expected, Government.TaxStage(axis, doctrine));
+        Assert.True(Government.TaxStage(axis, doctrine) >= 1,
+                    $"{axis} の教義値 {doctrine:F2} が段0（＝課さない）へ潰れる＝「税の挙動は今までと同じ」が破れている");
+        // 最上段はその軸でエンジンが到達しうる最大＝錨そのもの（段3を選べば教義最大がそのまま施行目標になる）
+        Assert.Equal(Government.TaxLawTop(axis), Government.TaxValue(axis, Government.TaxLawStages));
+        Assert.True(doctrine <= Government.TaxLawTop(axis) + 1e-12,
+                    $"{axis} の教義値 {doctrine:F2} が錨 {Government.TaxLawTop(axis):F2} を超える＝錨がその軸の最大値でない");
+    }
+
+    // ★退役（2026-09-20 作者裁定「専売は段の法にしない」）：旧「専売の最低限という教義だけは段なしへ落ちる」＝専売の段の写像についての主張。
+    //   専売は段を持たなくなった＝主張の相手が消えた。代わりの番人＝下の3本。
+
+    // ★★専売の番人（作者裁定2026-09-20「専売を乗せる材を生産tabで選ぶ×専売の率を法律タブで選ぶ というのは微妙。……
+    //   専売の率を法律から完全に消す。材を選ぶのみにする」）。
+    //   ⚠**主張の書き直し**（削除ではない）：旧「専売は段の法ではなく商品率が段の境の間でも削られない」は
+    //   「国ごとの率（政治の天井）が商品率を削らない」という主張だった。裁定でその天井ごと消えた＝主張の相手が消えたので、
+    //   同じ関心（選んだ税が黙って削られない＝思想⑧）を新しい機構の言葉で書き直す。
+    [Fact]
+    public void 専売は材の選択だけで決まり選んだ材の税は削られない()   // (a)(e)
+    {
+        var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
+        sim.StepQuarter();   // 州が World の率の配列を参照するまで1四半期（楔を実測するため）
+        var w = sim.World;
+        int gi = -1;   // ⚠隔離弁（PoliticalLockEnabled）はもう要らない＝専売は2026-09-20に政治から切り離され、門そのものが無い
+        for (int g = 0; g < Catalog.Goods.Length && g < w.StateMonopolyMargins.Length; g++)
+            if (Catalog.Goods[g].Tier == GoodTier.Luxury) { gi = g; break; }
+        Assert.True(gi >= 0, "前提が崩れた：奢侈財が1つも無い＝材ごとの選択を測れない");
+        double std = w.Coef.StateMonopolyMargin;
+        // (a) 材を選ぶと標準率がその場で乗る（旧＝天井が登るまで実効が下だった登坂は無い）
+        Assert.True(w.SetStateMonopolyOn(gi, true), "材を選んでも課税にならない");
+        Assert.Equal(std, w.StateMonopolyMargins[gi]);
+        // (e) 政治が何四半期回っても選んだ材の税は1ミリも削られない（思想⑧＝天井の廃止）
+        for (int q = 0; q < 200; q++) Government.Step(w, w.Coef);
+        Assert.Equal(std, w.StateMonopolyMargins[gi]);
+        // 実効＝標準率×(0.5+0.5×AdminFill)＝EconomyStep.BuyerWedge の唯一定義（min(商品率, 天井) は消えた）
+        var r = w.Region;
+        double stateMonop = EconomyStep.BuyerWedge(r, w.Coef, gi, isService: false, guildShare: null, guildDeg: 0).stateMonop;
+        Assert.Equal(std * (0.5 + 0.5 * r.AdminFill), stateMonop, 12);
+        // 外すと厳密に0（2値＝率の中間という状態を作れない）
+        Assert.True(w.SetStateMonopolyOn(gi, false), "材を外せない");
+        Assert.Equal(0.0, w.StateMonopolyMargins[gi]);
+        Assert.Equal(0.0, EconomyStep.BuyerWedge(r, w.Coef, gi, isService: false, guildShare: null, guildDeg: 0).stateMonop);
+    }
+
+    // ★★主張の書き直し（2026-09-20 作者裁定R2「これは政治問題ではなく生産マネジメントの範囲」）。
+    //   旧の主張＝「議会の綱領と蜂起への譲歩は**対象の集合**を動かす（率は書かない）」。裁定でその2経路ごと消えた＝
+    //   主張の相手が消えたので、同じ関心（政治が専売を勝手に動かさない）を**切り離しの言葉**で書き直す。
+    //   ⚠除外が1つある＝PowerShares.ParliamentGrip の常設歳入の項。あれは**軸を読んでいない**（実効平均率＝広さ×標準率で、
+    //     1850年プロイセン憲法第109条の「既存の税および賦課」＝製粉屠畜税そのもの）＝裁定が残すと言った「実収入としての会計」側。
+    //     0 を入れると専売を取っている国の議会掌握が一斉に上がる＝史実と逆向きの挙動変更になる。
+    [Fact]
+    public void 専売は政治の軸ではない()   // (a)
+    {
+        // (1) 政策軸の列挙そのものに専売が無い（旧名 ConsumptionTax も含めて1つも残っていない）
+        foreach (var a in System.Enum.GetNames<PolicyAxis>())
+            Assert.True(!a.Contains("Monopoly") && !a.Contains("Consumption"), $"政策軸に専売が残っている（{a}）");
+
+        var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
+        sim.Run(12);
+        var w = sim.World;
+        w.SetStateMonopolyTier(2);   // 動かされたら分かるように梯子の途中に置く
+        double[] Snap() => (double[])w.StateMonopolyMargins.Clone();
+        var before = Snap();
+        Assert.Contains(before, v => v > 1e-9);   // 前提＝専売にしている材がある（空振りの番人にしない）
+
+        // (2) 勢力の要求・綱領・譲歩のどれにも専売が現れない＝全軸×全ブロックを総当たりする
+        for (int b = 0; b <= PolicyPreferences.PettyBloc; b++)
+            foreach (var d in FactionSnapshot.ComputeDemands(w, b))
+                Assert.DoesNotContain("専売", FactionSnapshot.DemandJa(d.Axis, d.Increase));
+        foreach (var a in FactionSnapshot.Axes)
+        {
+            Parliament.TargetDemand(w, a, inc: true);    // 与党の綱領
+            Parliament.TargetDemand(w, a, inc: false);
+            Politics.ApplyDemand(w, w.Coef, a, inc: true, 1);    // 勝った運動の強制施行
+            Politics.ApplyDemand(w, w.Coef, a, inc: false, 1);
+            Assert.Equal(before, Snap());
+        }
+
+        // (3) 予算協賛（議会の拒否）も専売に掛からない＝非協力の議会を立てて政治を何期回しても材は動かない
+        w.CoopParliamentCrown = -1.0; w.ParliamentControl = 1.0;
+        for (int q = 0; q < 40; q++) Government.Step(w, w.Coef);
+        Assert.Equal(before, Snap());
+    }
+
+    [Fact]
+    public void 専売はAIもプレイヤーも同じ口を通り教義が対象の広さを選ぶ()   // (c)(d)
+    {
+        var sim = new MultiNationSim(WorldData.Nations(), 1789, _ => new UtilityAgent());
+        for (int q = 0; q < 12; q++) sim.StepQuarter();
+        bool anyTaxed = false;
+        var tiers = new System.Collections.Generic.HashSet<int>();
+        foreach (var n in sim.Nations)
+        {
+            var w = n.World;
+            double std = w.Coef.StateMonopolyMargin;
+            for (int g = 0; g < w.StateMonopolyMargins.Length; g++)
+            {
+                double v = w.StateMonopolyMargins[g];
+                // (c) AIが配列へ直書きしていれば任意の率（旧＝奢侈財に0.6）が現れる＝プレイヤーと同じ唯一のセッターを通っている証拠
+                Assert.True(v == 0.0 || v == std, $"AIが標準率以外の率を書いた（{w.SelfPower?.Name} {Catalog.Goods[g].Name} = {v:F4}）");
+                anyTaxed |= v > 0;
+            }
+            tiers.Add(w.StateMonopolyTier);
+        }
+        Assert.True(anyTaxed, "12四半期でどのAIも材を1つも選ばない＝この番人は何も測っていない");
+        Assert.True(tiers.Count >= 2, $"全AIの対象の広さが同じ（段 {string.Join("/", tiers)}）＝教義が広さを選んでいない");
+    }
+
+    // ============================================================================================
+    // ★★専売の「負担」ラウンド（2026-09-20・専売ラウンドの独立検証が見つけた分子と分母の非対称）
+    //   F1＝政治が読む位置は「課税している財の**数**」なのに、実負担は売上加重だった。
+    //       仏1789・12四半期後の実測で 奢侈12財＝財数の22.2%／課税ベースの11.1%、主食5財＝財数の9.3%／課税ベースの39.6%。
+    //       ＝奢侈を外して主食へ乗り換えると位置は下がる（政治は**減税**と読む）のに家計の負担は増える
+    //       ＝作者が2026-09-20に潰したはずの「率のチート」が**材の入れ替え**の形で生き残っていた。
+    //   F4＝そこから出る系＝1段の歩幅÷負担が段ごとに揃わない。位置を負担そのもので測れば恒等的に解ける。
+    //   F2＝押し切りが政治資本を1ポンドも払わない唯一の軸だった。
+    //   F3＝潤沢の減税反射が「段を丸ごと1つ落とす」＝率への連続倍率（床0.25）の翻訳になっていない。
+    // ============================================================================================
+
+    [Fact]
+    public void 専売の広さは財の数でなく家計の負担で測る()   // (e)＝F1とF4
+    {
+        var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
+        sim.Run(12);   // 課税ベース（pop の購入＝Market.PopBought）が立つまで回す
+        var w = sim.World;
+        int Taxed() { int n = 0; for (int g = 0; g < w.StateMonopolyMargins.Length; g++) if (w.StateMonopolyMargins[g] > 1e-9) n++; return n; }
+        void Only(GoodTier t) { for (int g = 0; g < Catalog.Goods.Length && g < w.StateMonopolyMargins.Length; g++) w.SetStateMonopolyOn(g, Catalog.Goods[g].Tier == t); }
+
+        Only(GoodTier.Luxury); int luxN = Taxed(); double luxPos = w.StateMonopolyBreadth;
+        Only(GoodTier.Staple); int stN = Taxed(); double stPos = w.StateMonopolyBreadth;
+        // (a) 奢侈を外して主食へ乗り換える＝**課税している財の数は減る**のに位置は上がる（負担と同じ向き）。
+        //     旧定義（財数の割合）ではここが厳密に逆だった＝この番人は現に嘘を捕まえる。
+        Assert.True(stN < luxN, $"前提が崩れた：主食{stN}財 ≥ 奢侈{luxN}財＝数と負担の対比が作れない");
+        Assert.True(stPos > luxPos,
+            $"奢侈{luxN}財（位置{luxPos:F3}）→主食{stN}財（位置{stPos:F3}）で位置が上がらない＝財の数で測る旧定義が残っている");
+
+        // (b) 段を1つ上げたときの広さの増分＝その段が家計の買い物に占める割合。梯子を登りきってちょうど1＝分割そのもの。
+        //   ⚠旧はここを StateMonopolyBaseShare（1財の歩幅＝押し切りの課金に使っていた量）で測っていた。
+        //     政治から切り離して課金が消えた＝その関数ごと物理削除したので、同じ性質を**段の増分**で測り直す。
+        w.SetStateMonopolyTier(0);
+        double prev = w.StateMonopolyBreadth;
+        Assert.Equal(0.0, prev);
+        double[] step = new double[World.StateMonopolyMaxTier];
+        for (int t = 1; t <= World.StateMonopolyMaxTier; t++)
+        {
+            w.SetStateMonopolyTier(t);
+            double pos = w.StateMonopolyBreadth;
+            step[t - 1] = pos - prev;
+            Assert.True(step[t - 1] >= -1e-9, $"段{t}で広さが減った（{step[t - 1]:F3}）＝梯子が単調でない");
+            prev = pos;
+        }
+        Assert.Equal(1.0, prev);   // 梯子を全て専売にすれば厳密に1
+        // F4＝旧の不揃い（主食の段は財数なら 5/54=0.093 なのに負担は最大・奢侈の段は 12/54=0.222 なのに負担は最小）の解消：
+        //     主食の段の増分は奢侈の段より**大きい**（財の数では逆）＝段の粒度と負担の向きが揃った。
+        Assert.True(step[^1] > step[0],
+            $"主食の段の増分 {step[^1]:F3} ≤ 奢侈の段の増分 {step[0]:F3}＝段が負担に比例していない（F4）");
+    }
+
+    // ★★主張の書き直し（2026-09-20 作者裁定R2）。旧の主張＝「押し切りは政治資本を払う（F2の是正）」。
+    //   裁定はその前提（専売は政治の軸である）ごと覆した＝「政治資本も払わず、政策軸としても扱わない」。
+    //   同じ場所を**逆向きの番人**として書き直す＝代価が1ミリも発生しないことと、門で弾かれないことを固定する。
+    [Fact]
+    public void 専売を広げても政治資本を1ミリも消費しない()   // (b)
+    {
+        var sim = new MultiNationSim(WorldData.Nations(), 1789, _ => new UtilityAgent());
+        for (int q = 0; q < 12; q++) sim.StepQuarter();
+        int widened = 0;
+        foreach (var n in sim.Nations)
+        {
+            var w = n.World;
+            int gi = -1;   // まだ専売にしていない梯子の財＝「対象を広げる一歩」
+            for (int g = 0; g < Catalog.Goods.Length && g < w.StateMonopolyMargins.Length; g++)
+                if (System.Array.IndexOf(World.StateMonopolyLadder, Catalog.Goods[g].Tier) >= 0 && !(w.StateMonopolyMargins[g] > 1e-9)) { gi = g; break; }
+            if (gi < 0) continue;   // 梯子を全て専売にしている国＝広げる余地が無い
+            double spent0 = w.MandateSpent, spentNew0 = w.MandateSpentNew;
+            Assert.True(w.SetStateMonopolyOn(gi, true), $"{w.SelfPower?.Name}：材を選んでも専売にならない＝政治の門が残っている");
+            Assert.Equal(spent0, w.MandateSpent, 12);         // 代価ゼロ＝減衰ストックの台帳が1ミリも動かない
+            Assert.Equal(spentNew0, w.MandateSpentNew, 12);   // 今期増分の台帳も動かない
+            Assert.Equal(w.Coef.StateMonopolyMargin, w.StateMonopolyMargins[gi]);
+            widened++;
+        }
+        Assert.True(widened > 0, "61カ国12四半期に『対象を広げられる国』が1つも無い＝この番人は何も測っていない");
+    }
+
+    [Fact]
+    public void 国庫が潤沢でも専売の対象は削られない()   // (d)＝F3
+    {
+        // 潤沢の減税反射（UtilityAgent.RelieveOpulence）の**射程**のアブレーション：係数 OpulenceTaxRelief を切った腕と
+        // 既定の腕を、分岐の直前まで厳密に同じ世界で走らせ、最後の1四半期だけ差を作る。
+        // 旧＝この反射が `SetStateMonopolyTier(Tier-1)` で段を丸ごと落としていた（率への連続倍率・床0.25 の翻訳になっていない）。
+        static (int[] Tiers, double[] Income, int Opulent) Arm(bool relief)
+        {
+            var sim = new MultiNationSim(WorldData.Nations(), 1789, _ => new UtilityAgent());
+            for (int q = 0; q < 12; q++) sim.StepQuarter();
+            int opulent = 0;
+            foreach (var n in sim.Nations)
+            {
+                double line = UtilityAgent.OpulenceLineOf(n.World);
+                if (line > 1e-9 && n.World.Treasury > line) opulent++;
+                if (!relief) n.World.Coef.OpulenceTaxRelief = 0;   // ⚠World.Coef は国ごと別インスタンス＝1国ずつ書く
+            }
+            sim.StepQuarter();
+            var t = new int[sim.Nations.Count]; var inc = new double[sim.Nations.Count];
+            for (int i = 0; i < sim.Nations.Count; i++) { t[i] = sim.Nations[i].World.StateMonopolyTier; inc[i] = sim.Nations[i].World.Policy.IncomeTaxTarget; }
+            return (t, inc, opulent);
+        }
+        var off = Arm(relief: false);
+        var on = Arm(relief: true);
+        Assert.True(on.Opulent > 0, "国庫が潤沢な国が1つも無い＝減税反射の定義域の外で測っている（番人が空回り）");
+        bool relieved = false;
+        for (int i = 0; i < on.Income.Length; i++) if (on.Income[i] < off.Income[i] - 1e-9) relieved = true;
+        Assert.True(relieved, "潤沢なのに所得税の目標が1国も下がらない＝減税反射そのものが走っていない（番人が空回り）");
+        for (int i = 0; i < on.Tiers.Length; i++)
+            Assert.True(on.Tiers[i] == off.Tiers[i],
+                $"減税反射が専売の対象を動かした（国{i}：反射あり 段{on.Tiers[i]} vs 反射なし 段{off.Tiers[i]}）＝率の割引と段の翻訳が等価でない");
+    }
+
+    [Fact]
+    public void 錨は軍事費の段に触れていない()   // (d) R2 の梯子＝[0,1] の4等分のまま（最頻値0.25が段1に乗る性質が正しさの源）
+    {
+        var sim = new Simulation(NationConfig.Britain().ToScenario(1), new NullAgent());
+        var w = sim.World; var p = w.Policy;
+        Assert.Equal(4, Government.MilitaryLawStages);
+        foreach (var (raw, stage) in new[] { (0.0, 1), (0.25, 1), (0.30, 1), (0.70, 3), (1.0, 4) })
+            Assert.Equal(stage, Government.MilitaryStage(raw));
+        // スタンス既定0.25（SelfPlay）＝段1・Policy既定 0.27+0.03=0.30 も段1・軍備教義0.70＝段3（平時は Min(段,3)）
+        p.MilitarySpendingTarget = 0.25; Assert.Equal(0.25, Government.MilitaryTotalTarget(w, p));
+        p.ArmyUpkeepTarget = 0.27; p.NavyUpkeepTarget = 0.03; Assert.Equal(0.25, Government.MilitaryTotalTarget(w, p));
+        p.MilitarySpendingTarget = 0.70; Assert.Equal(0.75, Government.MilitaryTotalTarget(w, p));
+    }
+
+    [Fact]
+    public void 緊縮の逆進フロアは新しい錨でも床を満たす最も低い段を指す()   // (e)
+    {
+        var w = 緊縮満額の世界();
+        Government.Step(w, w.Coef);   // 緊縮強度は Step が債務/GDP から立てる
+        double rate = System.Math.Min(1.0, w.AusterityIntensity * w.Coef.AusterityTaxHike);   // 床＝**率**（テスト側で独立に置く）
+        Assert.Equal(1.0, w.AusterityIntensity);
+        foreach (var a in new[] { PolicyAxis.PollTax })   // ★専売は 2026-09-20 に段の法から外した＝この床を持たない（下で名指しに確かめる）
+        {
+            // 現行段を最上段に置く＝降りる側の照会が段飛ばし禁止（StagePrereq）に当たらない＝測るのは床だけ
+            w.PollTax = Government.TaxValue(a, Government.TaxLawStages);
+            int lowest = 0;
+            while (lowest < Government.TaxLawStages && !Government.LawPrereq(w, a, lowest, w.Coef).Ok) lowest++;
+            Assert.True(Government.TaxValue(a, lowest) >= rate - 1e-12,
+                        $"{a}：選べる最下段の率 {Government.TaxValue(a, lowest):F4} が床 {rate:F4} を割る＝床が床でない（旧錨のバグ）");
+            Assert.True(lowest >= 1, $"{a}：満額緊縮なのに段0（無税）が選べる");
+            Assert.True(Government.TaxValue(a, lowest - 1) < rate,
+                        $"{a}：床を満たす段がもう1つ下にもある＝切り上げが過剰（選択肢を余分に奪っている）");
+            Assert.Equal((false, "緊縮の下限"), Government.LawPrereq(w, a, lowest - 1, w.Coef));
+        }
+        Assert.True(Government.LawPrereq(w, PolicyAxis.PollTax, Government.TaxLawStages, w.Coef).Ok);
+        w.GovDebt = 0; Government.Step(w, w.Coef);                                   // 抜け道は債務を減らすこと1本
+        Assert.Equal(0.0, w.AusterityIntensity);
+        Assert.True(Government.LawPrereq(w, PolicyAxis.PollTax, 0, w.Coef).Ok);
+    }
+
+    [Fact]
+    public void 軍事費は最低段でも0にならない()   // (d) R2「なし」が無い＝「英国に軍が無い」（2026-08-04のバグ）の再生産を封じる
+    {
+        var sim = new Simulation(NationConfig.Britain().ToScenario(1), new NullAgent());
+        var w = sim.World; var p = w.Policy;
+        foreach (var (army, navy) in new[] { (0.0, 0.0), (0.10, 0.0), (0.0, 0.10), (0.05, 0.05) })
+        {
+            p.ArmyUpkeepTarget = army; p.NavyUpkeepTarget = navy;
+            Assert.Equal(1.0 / Government.MilitaryLawStages, Government.MilitaryTotalTarget(w, p));   // 最下段＝0.25
+        }
+        p.MilitarySpendingTarget = 0.25;   // AIの平時既定（SelfPlay の 0.25）は段1と**厳密一致**＝量子化が目標に対して恒等
+        Assert.Equal(0.25, Government.MilitaryTotalTarget(w, p));
+        Assert.False(Government.LawPrereq(w, PolicyAxis.Coercion, 0, w.Coef).Ok);   // 「なし」の段は法としても選べない
+    }
+
+    // ★主張の書き直し（作者裁定2026-09-19 M2）：旧主張＝「戦時段は総動員とセットで立つ」＝交戦＋総動員で選んだ0.70が**黙って1.0へ上がる**（強制）。
+    //   新主張＝総動員は戦時段を**解禁するだけ**＝選んだ値は選んだ段のまま（e）・戦時段は選んだときだけ立つ・講和と復員で段3以下へ戻る（f）。
+    //   史実＝戦費は兵の動員とは別の予算決定（英1914-15は志願制のまま巨額を支出）。選んだ値を黙って上げるのは P8（天井の廃止）の鏡像。
+    [Fact]
+    public void 戦時段は総動員で解禁され選んだときだけ立ち戦争が終わると下がる()   // (e)(f) R2「戦後は下の値に戻る」＋M2
+    {
+        var sim = new MultiNationSim([NationConfig.France(), NationConfig.Japan(), NationConfig.Britain(), NationConfig.America()], seed: 1789);
+        var w = sim.Nations[0].World; var p = w.Policy;
+        var foe = sim.Nations[2].World.SelfPower!;
+        p.MilitarySpendingTarget = 0.70;   // 軍備教義の目標＝段3（高）
+        Assert.Equal(0.75, Government.MilitaryTotalTarget(w, p));
+        w.SetMilitarySpending(0.75, w.NavalSpendShare);   // 実効値も段3＝戦時段は「隣の段」（段の飛び越し禁止 StagePrereq を先に満たす）
+        Assert.False(Government.LawPrereq(w, PolicyAxis.Coercion, Government.MilitaryLawStages, w.Coef).Ok);   // 平時は戦時段を選べない
+
+        var dip = w.Diplomacy!;
+        dip.Wars.Add(new War { A = w.SelfPower!, B = foe });
+        Assert.Equal(0.75, Government.MilitaryTotalTarget(w, p));   // 交戦だけでは上がらない
+        w.Mobilized = true;
+        Assert.Equal(0.75, Government.MilitaryTotalTarget(w, p));   // (e) 総動員しても選んだ0.70は段3のまま＝黙って最上段へ上がらない（解禁であって強制ではない）
+        Assert.True(Government.LawPrereq(w, PolicyAxis.Coercion, Government.MilitaryLawStages, w.Coef).Ok);   // 解禁＝戦時段が押せる
+        p.MilitarySpendingTarget = Government.MilitaryLawStages / (double)Government.MilitaryLawStages;   // 法律タブの段ボタン（v/段数）で戦時を選ぶ
+        Assert.Equal(1.0, Government.MilitaryTotalTarget(w, p));    // 選んだときだけ戦時経済＝最上段
+
+        Government.Step(w, w.Coef);                                  // 解禁中の四半期頭＝選んだ戦時段はそのまま保たれる（失効は解禁が落ちたときだけ）
+        Assert.Equal(Government.MilitaryLawStages, Government.MilitaryStage(p.MilitarySpendingTarget));
+
+        // ★主張の書き直し（戦時段の失効・2026-09-19＝M2「戦後は高へ戻る」）：旧主張＝「選んだ1.0が保存されていても段3で止まる」＝施行だけが戻り、
+        //   保存の1.0は残っていた＝次の総動員で選び直さずに段4へ登る（表示の目標段は3＝隠れた食い違い）。
+        //   新主張＝施行は同じ四半期に段3（上の Min）・保存目標も次の四半期頭（Government.Step＝全国が通る共通経路）で段3へ失効・
+        //   次の交戦と総動員では選び直さない限り段3のまま。IsPlayer は読まない（プレイヤー国として走らせる＝保存目標が残るのはプレイヤー側だったため）。
+        dip.Wars.Clear(); w.Mobilized = false;                      // 講和＋復員
+        Assert.Equal(0.75, Government.MilitaryTotalTarget(w, p));   // (f) 施行は段3で止まる＝戦後は下の値に戻る（新しいタイマーは要らない）
+        w.SelfPower!.IsPlayer = true;
+        Government.Step(w, w.Coef);
+        Assert.Equal(Government.MilitaryLawStages - 1, Government.MilitaryStage(p.MilitarySpendingTarget));   // (f) 保存目標も段3へ失効（段4の前提は保てなさ）
+        dip.Wars.Add(new War { A = w.SelfPower!, B = foe }); w.Mobilized = true;   // 次の戦争で再び総動員
+        Assert.Equal(0.75, Government.MilitaryTotalTarget(w, p));   // (f) 選び直さない限り戦時段へ登らない（旧＝保存の1.0で黙って段4へ）
+        p.MilitarySpendingTarget = Government.MilitaryLawStages / (double)Government.MilitaryLawStages;   // 選び直せば解禁どおり立つ
+        Assert.Equal(1.0, Government.MilitaryTotalTarget(w, p));
+    }
+
+    // ★退役（2026-09-20 段の点火）：旧「段の無い世界では戦時段の失効は1度も走らない」＝FiscalLawStages=0 の休眠の主張。主張の相手（旗0の世界）が消えた。
+    //   その対照の半分（解禁なしの段4の目標は Government.Step が段3へ失効させる）は上の「戦時段は総動員で解禁され…」の (f) が同じ盤面で持つ。
+
+    // ★番人（2026-09-19・突然変異F＝AIの戦時段の選択行（SelfPlay.Apply）から w.Mobilized を外す変異が全緑だった穴）：
+    //   総動員していない交戦国の AI は戦時段を目標に置かない。⚠軍備スタンス（目標0.70＝段3）では変異が見えない
+    //   （正解も変異も段3で止まる＝段4は「総動員が前提」で畳まれる）＝非軍備スタンス・現在段1で測る（変異なら GateLaw が段2を置く）。
+    [Fact]
+    public void 総動員していない交戦国のAIは戦時段を目標に置かない()
+    {
+        var sim = new MultiNationSim([NationConfig.France(), NationConfig.Japan(), NationConfig.Britain(), NationConfig.America()], seed: 1789);
+        var w = sim.Nations[0].World; var p = w.Policy;
+        var foe = sim.Nations[3].World.SelfPower!;
+        w.SetMilitarySpending(0.25, w.NavalSpendShare);   // 段1
+        w.Diplomacy!.Wars.Add(new War { A = w.SelfPower!, B = foe });   // 交戦中・敗色0
+        Assert.NotEqual(UtilityAgent.Stance.Militarize, UtilityAgent.ChooseStance(w, out _));   // 前提：非軍備スタンス（教義の目標は段1）
+        new UtilityAgent().DecideQuarter(w);
+        Assert.True(w.AtWarNow);
+        Assert.False(w.Mobilized, "前提：劣勢でも存亡でもない交戦＝総動員しない");
+        Assert.Equal(1, Government.MilitaryStage(p.MilitarySpendingTarget));   // 戦時段の選択は総動員していない国を1段も押し上げない
+    }
+
+    [Fact]
+    public void 総動員していない国は戦時段を選んでも段3で止まる()   // (c) M2：解禁の述語は「交戦中かつ総動員中」の1本（Military の徴兵深度と同じ）
+    {
+        var sim = new MultiNationSim([NationConfig.France(), NationConfig.Japan(), NationConfig.Britain(), NationConfig.America()], seed: 1789);
+        var w = sim.Nations[0].World; var p = w.Policy;
+        var foe = sim.Nations[2].World.SelfPower!;
+        w.SetMilitarySpending(0.75, w.NavalSpendShare);   // 段3＝段の飛び越し禁止（StagePrereq）が先に拒まない位置＝測るのは総動員の門だけ
+        p.MilitarySpendingTarget = Government.MilitaryLawStages / (double)Government.MilitaryLawStages;   // 戦時段を目標に置いた状態（段ボタンの写像）
+
+        Assert.Equal(0.75, Government.MilitaryTotalTarget(w, p));   // 平時・総動員なし
+        w.Mobilized = true;                                          // 平時に旗だけ（交戦していない）
+        Assert.Equal(0.75, Government.MilitaryTotalTarget(w, p));
+        Assert.Equal((false, "総動員が前提"), Government.LawPrereq(w, PolicyAxis.Coercion, Government.MilitaryLawStages, w.Coef));
+
+        w.Mobilized = false;
+        w.Diplomacy!.Wars.Add(new War { A = w.SelfPower!, B = foe });   // 交戦中・総動員なし
+        Assert.Equal(0.75, Government.MilitaryTotalTarget(w, p));
+        Assert.Equal((false, "総動員が前提"), Government.LawPrereq(w, PolicyAxis.Coercion, Government.MilitaryLawStages, w.Coef));
+
+        w.Mobilized = true;                                          // 交戦中・総動員＝解禁
+        Assert.Equal(1.0, Government.MilitaryTotalTarget(w, p));
+        Assert.True(Government.LawPrereq(w, PolicyAxis.Coercion, Government.MilitaryLawStages, w.Coef).Ok);
+    }
+
+    [Fact]
+    public void 段の写像はプレイヤーとAIで同じ関数を通る()   // (f) AI＝プレイヤー対称（IsPlayer を読まない）
+    {
+        var sim = new MultiNationSim([NationConfig.France(), NationConfig.Britain()], seed: 1789);
+        var w = sim.Nations[0].World; var p = w.Policy;
+
+        // 書き込み口は1本（Policy.MilitarySpendingTarget＝陸海比を保って按分）＝プレイヤーのボタンもAIの教義も同じ口を叩く
+        p.MilitarySpendingTarget = 0.70;
+        double army = p.ArmyUpkeepTarget, navy = p.NavyUpkeepTarget, stage = Government.MilitaryTotalTarget(w, p);
+        Assert.Equal(0.75, stage);
+
+        w.SelfPower!.IsPlayer = true;     // 同じ盤面で「プレイヤーである」ことだけを変える
+        p.MilitarySpendingTarget = 0.70;
+        Assert.Equal(army, p.ArmyUpkeepTarget);
+        Assert.Equal(navy, p.NavyUpkeepTarget);
+        Assert.Equal(stage, Government.MilitaryTotalTarget(w, p));
+
+        w.TaxRate = 0.40;                 // 税も同じ＝段はプレイヤー旗に依存しない
+        double tax = Government.Q4(PolicyAxis.IncomeTax, w.TaxRate);
+        w.SelfPower!.IsPlayer = false;
+        Assert.Equal(tax, Government.Q4(PolicyAxis.IncomeTax, w.TaxRate));
+    }
+
+    // ★主張の書き直し（作者裁定2026-09-19 M2）：旧主張＝「AI が総動員すれば段4へ乗る」（総動員が段を強制していた）。
+    //   新主張＝総動員は解禁だけ＝**AI も段を選ぶ**：総動員した同じ四半期に、プレイヤーの段ボタンと同じ書き込み口（Policy.MilitarySpendingTarget）で
+    //   最上段を置き（SelfPlay.Apply）、講和の四半期には復員して段3以下へ戻る。さもなくば AI は戦時経済に二度と届かない（M2 の退化）。
+    [Fact]
+    public void 戦時段はAIも総動員中に選び講和で下がる()   // (f') AI＝プレイヤー等価：段4の入口（World.Mobilized）の書き手がプレイヤーだけにならない
+    {
+        var sim = new MultiNationSim([NationConfig.France(), NationConfig.Japan(), NationConfig.Britain(), NationConfig.America()], seed: 1789);
+        var w = sim.Nations[0].World;
+        var foe = sim.Nations[2].World.SelfPower!;
+        // ★2026-09-20 段の点火：総動員のAI分岐（旧 AiMobilization／FiscalLawStages の2本のゲート）は係数ごと削除＝常時 live（さもなくば段4がプレイヤー専用）
+        w.SetMilitarySpending(0.75, w.NavalSpendShare);   // 段3＝戦時段は隣の段（StagePrereq＝AIも1段ずつ登る）
+        w.Diplomacy!.Wars.Add(new War { A = w.SelfPower!, B = foe, Score = -0.8 });   // 敗色0.8＞存亡線0.5＝既存の判定材料（新しい閾値を置かない）
+        new UtilityAgent().DecideQuarter(w);
+        Assert.True(w.Mobilized, "段のゲートだけではAIが総動員に到達できない＝戦時段がプレイヤー専用になる");
+        Assert.Equal(Government.MilitaryLawStages, Government.MilitaryStage(w.Policy.MilitarySpendingTarget));   // AIが最上段を**選んだ**（同じ四半期＝1四半期の遅れなし）
+        Assert.Equal(1.0, Government.MilitaryTotalTarget(w, w.Policy));   // 実際に段4へ乗る
+        w.Diplomacy!.Wars.Clear();
+        new UtilityAgent().DecideQuarter(w);
+        Assert.False(w.Mobilized, "講和したのにAIが復員しない");
+        Assert.True(Government.MilitaryTotalTarget(w, w.Policy) <= 0.75,
+            $"講和したのにAIの軍事費の目標が戦時段のまま（{Government.MilitaryTotalTarget(w, w.Policy):F2}）");
+    }
+
+    [Fact]
+    public void 総動員中の戦時段はプレイヤーとAIで同じ門と同じ写像を通る()   // (d) M2＋P5：IsPlayer を読まない
+    {
+        var sim = new MultiNationSim([NationConfig.France(), NationConfig.Japan(), NationConfig.Britain(), NationConfig.America()], seed: 1789);
+        var w = sim.Nations[0].World; var p = w.Policy;
+        var foe = sim.Nations[2].World.SelfPower!;
+        w.SetMilitarySpending(0.75, w.NavalSpendShare);
+        w.Diplomacy!.Wars.Add(new War { A = w.SelfPower!, B = foe, Score = -0.8 });
+
+        new UtilityAgent().DecideQuarter(w);   // AI：総動員（Apply の前）→ 同じ四半期の Apply が最上段を選ぶ
+        Assert.True(w.Mobilized);
+        int aiStage = Government.MilitaryStage(p.MilitarySpendingTarget);
+        double aiTotal = Government.MilitaryTotalTarget(w, p);
+        var aiGate = Government.LawPrereq(w, PolicyAxis.Coercion, Government.MilitaryLawStages, w.Coef);
+
+        w.SelfPower!.IsPlayer = true;          // 同じ盤面で「プレイヤーである」ことだけを変える
+        p.MilitarySpendingTarget = 0.70;       // 段3に戻してから、法律タブの段ボタンと同じ写像（v/段数）で最上段を押す
+        Assert.Equal(0.75, Government.MilitaryTotalTarget(w, p));   // 押す前は総動員中でも段3（解禁だけ＝強制ではない）
+        Assert.Equal(aiGate, Government.LawPrereq(w, PolicyAxis.Coercion, Government.MilitaryLawStages, w.Coef));   // 門は IsPlayer を読まない
+        Assert.True(aiGate.Ok);
+        p.MilitarySpendingTarget = Government.MilitaryLawStages / (double)Government.MilitaryLawStages;
+        Assert.Equal(aiStage, Government.MilitaryStage(p.MilitarySpendingTarget));
+        Assert.Equal(aiTotal, Government.MilitaryTotalTarget(w, p));
+        Assert.Equal(1.0, aiTotal);
+    }
+
+    [Fact]
+    public void 段を与えきると要求が消える()   // (g) AxisPosition が実効値でなく段を返す証拠（Move は目標へ到達しない）
+    {
+        var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
+        var w = sim.World;
+        w.TaxRate = 0.34;   // 最上段（錨 0.35）へ漸近した途中（Move は目標に到達しない）
+
+        // ★主張の書き直し（2026-09-20 段の点火）：旧の対照「ゲート0では実効値そのもの（0.95）＝与えきっても要求が消えない」は旗とともに消えた。
+        //   同じ主張＝「位置は実効値でなく段で測る」を、実効値（0.34）と段の位置（1.0）が食い違う盤面で直接見る。
+        Assert.NotEqual(w.TaxRate, FactionSnapshot.AxisPosition(w, PolicyAxis.IncomeTax));
+        Assert.Equal(1.0, FactionSnapshot.AxisPosition(w, PolicyAxis.IncomeTax));           // 段の序数/3＝最上段
+        Assert.Equal(0.0, FactionSnapshot.Headroom(w, PolicyAxis.IncomeTax, increase: true));   // 要求が消える
+        w.PollTax = 0.02;                                                                   // 下限側も対称（何も課していない＝下げる要求が消える）
+        Assert.Equal(0.0, FactionSnapshot.AxisPosition(w, PolicyAxis.PollTax));
+        Assert.Equal(0.0, FactionSnapshot.Headroom(w, PolicyAxis.PollTax, increase: false));
+    }
+
+    [Fact]
+    public void 段化しても解隊の脅威は丸め誤差を自己供給しない()   // 罠①＝目標の読み手が量子化を知らないと軍国教義が自己維持する
+    {
+        var sim = new Simulation(NationConfig.Britain().ToScenario(1), new NullAgent());
+        var w = sim.World; var p = w.Policy;
+        w.SetMilitarySpending(0.75, w.NavalSpendShare);   // 実効値＝段3（Move が段へ漸近しきった均衡）
+
+        // ★主張の書き直し（2026-09-20 段の点火）：旧の対照「ゲート0＝目標は生の和0.70＝解隊の脅威 (0.75−0.70)/0.75」は旗とともに消えた。
+        //   同じ主張＝「段の上に居る軍に、教義の生の値（0.70）と段の値（0.75）のずれ0.0667（軍国教義の閾値0.25の27%）を脅威として見せない」を、
+        //   段そのもの（0.75）を目標に置いた盤面との一致で見る。
+        p.MilitarySpendingTarget = 0.75;
+        double onStage = PoliticalQuantities.MilitaryPush(w);
+        p.MilitarySpendingTarget = 0.70;                  // 軍備教義の目標（段3の内側の生の値）
+        Assert.Equal(onStage, PoliticalQuantities.MilitaryPush(w));
+        p.MilitarySpendingTarget = 0.25;                  // 対照：本当に段を下げる目標（段1）＝解隊の脅威は見える＝上の一致が空洞でない
+        Assert.True(PoliticalQuantities.MilitaryPush(w) > onStage, "解隊の脅威が目標を読んでいない（段を下げても動かない）");
+    }
+
+    // ============================================================================================
+    // ★裁定B/C2（2026-09-12）＝「今までの『上限/下限を削る』挙動は全て廃止する」「法の変更そのものは闘争度に関与しない。
+    //   実税が生活を苦しくし、結果として不満度を上げて反乱が増える形にする」。
+    //   2026-09-20 の段の点火で旧挙動（Min/Max のクリップ・押し切り/阻止の遺恨）はコードごと削除＝旧挙動の対照「ゲートゼロでは緊縮が選んだ値を削る」は退役。
+    //   ⚠ここも機構と不変条件だけを見る（帯の主張は書かない＝テストの層）。
+    // ============================================================================================
+
+    // 緊縮を満額（債務/GDP = AusterityStartDebt + AusterityRange）まで立てた世界。門が働くかだけを見る。
+    private static World 緊縮満額の世界()
+    {
+        var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
+        var w = sim.World;
+        w.PoliticalLockEnabled = false;   // 政治的可否と直交な機構の単体検証（Move/MandateGate/GateInfo が共有する隔離弁）
+        w.FiscalEnabled = true;
+        Assert.True(w.Gdp > 1e-9, "前提が崩れた：GDPが無い世界では緊縮強度を立てられない");
+        w.GovDebt = w.Gdp * (w.Coef.AusterityStartDebt + w.Coef.AusterityRange);   // 緊縮強度＝満額1.0
+        return w;
+    }
+
+    [Fact]
+    public void 緊縮は選んだ値を書き換えない()   // (b) 裁定B＝削る挙動が1つも走らない
+    {
+        var w = 緊縮満額の世界();
+        w.Policy.PollTaxTarget = 0;
+        w.PollTax = 0; w.SetStateMonopolyTier(0);   // ★2026-09-20：専売は率でなく材の選択＝1つも選ばない
+        w.Policy.SocialSecurityTarget = 1.0; w.SocialSecurityLaw = SocialSecurityLaw.Pension;   // StepEnum は1期1段＝目標だけでは届かない
+        Government.Step(w, w.Coef);
+        Assert.Equal(1.0, w.AusterityIntensity);   // 緊縮の**信号**は残る（三部会の召集はこれを読む＝裁定Bの射程外・CrownParliament）
+        Assert.Equal(0.0, w.PollTax);              // 実効値は1ミリも持ち上がらない
+        Assert.Equal(0.0, w.StateMonopolyBreadth);   // 緊縮は材を勝手に選ばない（専売の広さも1ミリも動かない）
+        Assert.Equal(SocialSecurityLaw.Pension, w.SocialSecurityLaw);
+        Assert.Equal(1.0, w.SocialSecurity);       // 法（年金）がそのまま福祉水準＝実効値だけを削る残骸が消えた
+
+        // 置換＝門。逆進税は「緊縮の下限」より下の段を選べない／社会保障は「緊縮の上限」より上の段へ登れない。
+        Assert.Equal((false, "緊縮の下限"), Government.LawPrereq(w, PolicyAxis.PollTax, 0, w.Coef));
+        Assert.False(Government.GateInfo(w, PolicyAxis.PollTax, increasing: false, 0).Ok);   // 下げる側も同じ1本から出る（段の財政軸）
+        w.SocialSecurityLaw = SocialSecurityLaw.PoorLaw;   // 救貧法の国＝満額緊縮では1段も登れない（旧＝実効値だけを毎期削っていた）
+        Assert.Equal((false, "緊縮の上限"), Government.LawPrereq(w, PolicyAxis.SocialSecurity, (int)SocialSecurityLaw.WorkersComp, w.Coef));
+        // ⚠天井は「登れなさ」であって「降ろす力」ではない＝既に年金の段に居る国は同じ照会で止まらない（2026-09-12 の実バグと同型の封じ）
+        w.SocialSecurityLaw = SocialSecurityLaw.Pension;
+        Assert.True(Government.LawPrereq(w, PolicyAxis.SocialSecurity, (int)SocialSecurityLaw.WorkersComp, w.Coef).Ok);
+        w.GovDebt = 0; Government.Step(w, w.Coef);   // 抜け道は債務を減らすこと1本＝債務が消えれば門も開く
+        Assert.Equal(0.0, w.AusterityIntensity);
+        Assert.True(Government.LawPrereq(w, PolicyAxis.PollTax, 0, w.Coef).Ok);
+    }
+
+    [Fact]
+    public void 戦時の維持費は目標を書き換えず門になる()   // (b) 裁定B＝目標そのものを持ち上げる唯一のクリップ（旧の Max は 2026-09-20 に削除＝旧挙動の対照は退役）
+    {
+        var sim = new MultiNationSim([NationConfig.France(), NationConfig.Britain()], seed: 1789);
+        var w = sim.Nations[0].World; var p = w.Policy;
+        w.PoliticalLockEnabled = false;
+        w.SetMilitarySpending(0.75, 0.2);                    // 実効＝段3
+        p.MilitarySpendingTarget = 0.25;                     // 選んだのは最下段＝戦時に軍を畳もうとしている
+        double army = p.ArmyUpkeepTarget, navy = p.NavyUpkeepTarget;
+        w.Diplomacy!.Wars.Add(new War { A = w.SelfPower!, B = sim.Nations[1].World.SelfPower! });
+        Assert.True(w.AtWarNow);
+        Government.Step(w, w.Coef);
+        Assert.Equal(army, p.ArmyUpkeepTarget);   // 選んだ目標は1ミリも書き換わらない
+        Assert.Equal(navy, p.NavyUpkeepTarget);
+        // 同じ床が同じ係数のまま門になる＝現在値×WartimeUpkeepFloor の段より下は選べない
+        int floorStage = Government.MilitaryStage(w.MilitarySpending * w.Coef.WartimeUpkeepFloor);
+        Assert.True(floorStage > 1, $"前提が崩れた：床の段が最下段（{floorStage}）＝この世界では門を測れない");
+        Assert.Equal((false, "戦争中は軍を解散できない"), Government.LawPrereq(w, PolicyAxis.Coercion, floorStage - 1, w.Coef));
+        Assert.True(Government.LawPrereq(w, PolicyAxis.Coercion, floorStage, w.Coef).Ok);
+        w.Diplomacy!.Wars.Clear();                                                    // 講和すれば門は消える（新しいタイマーは無い）
+        Assert.True(Government.LawPrereq(w, PolicyAxis.Coercion, 1, w.Coef).Ok);
+    }
+
+    [Fact]
+    public void 行政力が低くても所得税の法は制定できる()   // (a) 2026-09-12 FIX1＝天井の廃止（旧・主張「天井が門になる」の書き換え）
+    {
+        // 旧＝行政力が閾値に届かない国は所得税・累進の段を1つも押せず（段の世界）／率を admin/Gate へ削られた（既定の世界）。
+        // 新＝立法は自由。行政の弱さは Fiscal の汚職漏れ（取り立てた金が国庫に届かない）が額で表す＝TaxTests「所得税の取り立ては行政力に応じて漏れる」が番人。
+        var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
+        var w = sim.World; var c = w.Coef;
+        w.AdminPowerSmoothed = 0.0;                                     // 査定機構が未熟な国（旧なら段0＝所得税0だけが合法）
+        for (int stage = 1; stage <= Government.TaxLawStages; stage++)
+        {
+            Assert.True(Government.LawPrereq(w, PolicyAxis.IncomeTax, stage, c).Ok,
+                $"行政力0の国が所得税の段{stage}を押せない＝天井が残っている（{Government.LawPrereq(w, PolicyAxis.IncomeTax, stage, c).Reason}）");
+            w.TaxRate = stage / (double)Government.TaxLawStages;   // 1段ずつ登る（段の飛び越し禁止は別の前提＝限界ではない）
+        }
+        w.TaxRate = 0;
+        // 累進は**法の前提**（官僚制度＝資格任用以上）を持つ＝これは限界でなく法から法への前提なので残る。
+        // 残っている理由が「行政力」でないこと＝廃止した天井の残骸が無いことを名指しで確かめる。
+        w.Bureaucracy = BureaucracyLaw.Spoils;
+        Assert.Equal((false, "官僚制度（資格任用以上）が前提"), Government.LawPrereq(w, PolicyAxis.ProgressiveTax, 1, c));
+        w.Bureaucracy = BureaucracyLaw.MeritExam;   // 法を通せば行政力0のままでも累進の段は押せる
+        Assert.True(Government.LawPrereq(w, PolicyAxis.ProgressiveTax, 1, c).Ok);
+        // (c) AI＝プレイヤー対称：立法の可否を出す関数は GateInfo 1本だけ（AIの整形 SelfPlay.GateAllLawTargets も法律タブも同じここを読む）。
+        //     純支持を外して前提だけを測る＝前提の側に行政力の腕が1つも残っていないことの番人。
+        w.PoliticalLockEnabled = false;
+        for (int stage = 1; stage <= Government.TaxLawStages; stage++)
+            Assert.Equal(Government.LawPrereq(w, PolicyAxis.IncomeTax, stage, c).Ok,
+                         Government.GateInfo(w, PolicyAxis.IncomeTax, increasing: true, stage).Ok);
+        // 施行も目標を削らない＝他の税と同じ Q4 1本（★主張の書き直し 2026-09-20 段の点火：旧は「段のない世界」で目標1.0へ 0.877。
+        //   段の世界では目標は最上段＝錨 IncomeTaxTop へ落ちる＝同じ「天井が無い」を錨に対する到達率で測る）
+        w.Policy.IncomeTaxTarget = 1.0; w.Policy.ProgressiveTaxTarget = 1.0;
+        for (int q = 0; q < 40; q++) Government.Step(w, w.Coef);
+        Assert.True(w.AdminPowerSmoothed < 0.5, $"前提が崩れた：行政力が育ってしまい天井の有無を測れない（{w.AdminPowerSmoothed:F3}）");
+        // 行政力0の国＝旧の天井は厳密に0（率も0）。Move が漸近＝40四半期で最上段には届かないが、錨の8割を超えて登る。
+        Assert.True(w.TaxRate > 0.8 * Government.IncomeTaxTop, $"行政力が低い国の所得税が上がらない＝どこかに天井が残っている（{w.TaxRate:F3}）");
+        Assert.True(w.TaxRate <= Government.IncomeTaxTop, $"最上段を越えた（{w.TaxRate:F3}）");
+    }
+
+    [Fact]
+    public void 法を押し切っても闘争度が動かない()   // (c) 裁定C2
+    {
+        // ★主張の書き直し（2026-09-20 段の点火）：旧の対照「ゲート0では押し切り/阻止の遺恨が闘争度を動かす」は遺恨の係数2本（PushedLawGrievance／BlockedLawGrievance）と
+        //   ラッパごと削除された。代わりの対照＝この盤面で**押し切りか阻止が実際に起きた**こと＝旧なら遺恨が発火した四半期であることを確かめる
+        //   （押し切り＝政治資本が燃えた／阻止＝前提は満たすのに目標≠現行法のまま1段も動かなかった法＝MandateGate の否決枝）。
+        var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
+        var w = sim.World; var p = w.Policy;
+        // 旧支配層が全力で嫌う向きへ法目標を置く＝押し切り（余白）と阻止（否決）の両枝を同じ四半期に踏ませる
+        p.Suffrage = Suffrage.Universal; p.Censorship = CensorshipLaw.FreePress; p.LaborUnion = LaborUnionLaw.Tolerated;
+        p.WorkHours = WorkHours.Eight; p.SocialSecurityTarget = 1.0;
+        p.LandReform = ReformLevel.Full; p.SerfEmancipation = ReformLevel.Full; p.CornLaws = ReformLevel.None;
+        double before = 0; foreach (var pop in w.AllPops()) before += pop.Militancy * pop.Size;
+        double spentBefore = w.MandateSpent;
+        var (suf0, cen0, uni0, serf0) = (w.Suffrage, w.Censorship, w.LaborUnion, w.SerfEmancipation);
+        Government.Step(w, w.Coef);
+        double after = 0; foreach (var pop in w.AllPops()) after += pop.Militancy * pop.Size;
+        bool Blocked(PolicyAxis a, int was, int now, int target)   // 上げる向きの一歩が前提を満たすのに動かなかった＝純支持の門の否決
+            => now == was && now < target && Government.LawPrereq(w, a, now + 1, w.Coef).Ok;
+        bool blocked = Blocked(PolicyAxis.Suffrage, (int)suf0, (int)w.Suffrage, (int)p.Suffrage)
+                    || Blocked(PolicyAxis.Censorship, (int)cen0, (int)w.Censorship, (int)p.Censorship)
+                    || Blocked(PolicyAxis.LaborUnion, (int)uni0, (int)w.LaborUnion, (int)p.LaborUnion)
+                    || Blocked(PolicyAxis.SerfEmancipation, (int)serf0, (int)w.SerfEmancipation, (int)p.SerfEmancipation);
+        Assert.True(blocked || w.MandateSpent > spentBefore, "対照が成立しない：この盤面で押し切りも阻止も1度も起きていない（遺恨が発火しうる四半期でない）");
+        Assert.Equal(0.0, after - before);   // Government.cs の闘争度の書き手は Grievance 1本（呼び手は §13 後退の怒りだけ）＝法の変更では1度も走らない
+    }
+
+    [Fact]
+    public void 実税が重い世界ほど生活が苦しく闘争度が高い()   // (f) 裁定C3 の鎖の番人（実税→可処分所得→充足→生活苦→闘争度）
+    {
+        (double Tax, double Sat, double Mil) Run(double pollTax)
+        {
+            var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
+            var w = sim.World;
+            w.Coef.AusterityStartDebt = 99;   // 緊縮の逆進フロアを隔離＝「選んだ税率」だけを対照にする（旧クリップが低税側を押し上げると対照が壊れる）
+            w.PollTax = pollTax; w.Policy.PollTaxTarget = pollTax;
+            sim.Run(60);
+            double sat = 0, mil = 0, size = 0;
+            foreach (var p in w.AllPops()) { if (p.Closed || p.IsSoldier) continue; sat += p.Satisfaction * p.Size; mil += p.Militancy * p.Size; size += p.Size; }
+            return (w.PollTax, sat / System.Math.Max(1e-9, size), mil / System.Math.Max(1e-9, size));
+        }
+        var light = Run(0.0);
+        var heavy = Run(0.6);
+        Assert.True(heavy.Tax > light.Tax + 0.1, $"前提が崩れた：実税が重くなっていない（{light.Tax:F3}→{heavy.Tax:F3}）");
+        Assert.True(heavy.Sat < light.Sat, $"重税なのに充足が下がらない（{light.Sat:F4}→{heavy.Sat:F4}）＝C3の鎖が切れている");
+        Assert.True(heavy.Mil > light.Mil, $"重税なのに闘争度が上がらない（{light.Mil:F4}→{heavy.Mil:F4}）＝C3の鎖が切れている");
+    }
+
+    [Fact]
+    public void 裁定BとC2はプレイヤーとAIで同じ()   // (g) AI＝プレイヤー対称（IsPlayer を読む場所を1つも増やしていない）
+    {
+        (double Poll, double Welf, string Why, double Mil) Run(bool isPlayer)
+        {
+            var sim = new MultiNationSim([NationConfig.France(), NationConfig.Britain()], seed: 1789);
+            var w = sim.Nations[0].World;
+            w.PoliticalLockEnabled = false;
+            w.FiscalEnabled = true;
+            w.GovDebt = w.Gdp * (w.Coef.AusterityStartDebt + w.Coef.AusterityRange);   // 緊縮＝満額
+            w.SelfPower!.IsPlayer = isPlayer;                                          // 同じ盤面で「プレイヤーである」ことだけを変える
+            w.Policy.PollTaxTarget = 0; w.PollTax = 0;
+            w.Policy.SocialSecurityTarget = 1.0; w.SocialSecurityLaw = SocialSecurityLaw.Pension;
+            w.Policy.Suffrage = Suffrage.Universal; w.Policy.Censorship = CensorshipLaw.FreePress;
+            double before = 0; foreach (var pop in w.AllPops()) before += pop.Militancy * pop.Size;
+            Government.Step(w, w.Coef);
+            double after = 0; foreach (var pop in w.AllPops()) after += pop.Militancy * pop.Size;
+            return (w.PollTax, w.SocialSecurity, Government.LawPrereq(w, PolicyAxis.PollTax, 0, w.Coef).Reason, after - before);
+        }
+        var ai = Run(false);
+        Assert.Equal(ai, Run(true));
+        Assert.Equal(0.0, ai.Poll);            // 緊縮でも逆進税は持ち上がらない（裁定B）
+        Assert.Equal("緊縮の下限", ai.Why);    // 代わりに門が「下げられない」を言う
+        Assert.Equal(0.0, ai.Mil);             // 法の変更では闘争度が動かない（裁定C2）
+    }
+
+    // ==== 政治資本の在庫（作者裁定N2・2026-09-21）の番人 ==========================================================
+    //   ⚠見るのは**機構と不変条件だけ**（帯の主張はここでは書かない）。ON経路は必ず `w.Coef.X=` で書く（World.Coef は国ごと別インスタンス）。
+    //   骨子＝新しい状態を作らず S（MandateSpent）を「b からの目減り」と読み替える：a＝max(0,b−S)／門＝S+代価≤b／回復＝b/40×実行度 の線形。
+
+    /// <summary>政治資本の器を点けた盤面（旗は Run の後に立てる＝助走は旧の軌道そのまま）。</summary>
+    private static Simulation CapitalBoard()
+    {
+        var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
+        sim.Run(8);
+        sim.World.Coef.PoliticalCapitalStock = 1.0;
+        return sim;
+    }
+
+    [Fact]
+    public void 政治資本の回復は線形で実行度が最大なら空から満タンまで40四半期()
+    {
+        var sim = CapitalBoard(); var w = sim.World; var c = w.Coef;
+        w.ParliamentControl = 0;                       // 議会の実効統制0＝拒否権も議席の分裂も消える（非議会政体の像）
+        Assert.False(w.InCivilWar);
+        Assert.Equal(1.0, PoliticalQuantities.PoliticalCapitalRate(w), 12);   // 摩擦ゼロ＝実行度は最大
+
+        double b = PoliticalQuantities.PoliticalCapitalMax(w);
+        Assert.True(b > 0, $"b が正でない（{b}）＝目盛りの前提が崩れている");
+        w.PoliticalCapitalMax = b; w.MandateSpent = b; w.MandateSpentNew = 0;   // 空（a=0）から測る
+        Politics.Step(w, c);
+        double drop = b - w.MandateSpent;
+        Assert.Equal(b / c.MandateRefillQuarters, drop, 12);      // 毎期 b/40×実行度
+        Assert.Equal(b, drop * c.MandateRefillQuarters, 10);      // ⇒ 空から満タンまで厳密に40四半期（線形＝漸近ではない）
+        Assert.Equal(40.0, c.MandateRefillQuarters);              // 作者裁定＝10年
+    }
+
+    [Fact]
+    public void 実行度が半分の世界では満タンまで80四半期になる()
+    {
+        var sim = CapitalBoard(); var w = sim.World; var c = w.Coef;
+        w.ParliamentControl = 0;
+        w.CivilWarYears = 1;                                       // 内戦＝摩擦+1（制度の摩擦だけで作る＝不満・闘争度は1つも読まない）
+        Assert.True(w.InCivilWar);
+        Assert.Equal(0.5, PoliticalQuantities.PoliticalCapitalRate(w), 12);
+
+        double b = PoliticalQuantities.PoliticalCapitalMax(w);
+        w.PoliticalCapitalMax = b; w.MandateSpent = b; w.MandateSpentNew = 0;
+        Politics.Step(w, c);
+        double drop = b - w.MandateSpent;
+        Assert.Equal(b / c.MandateRefillQuarters * 0.5, drop, 12);
+        Assert.Equal(2.0 * c.MandateRefillQuarters, b / drop, 8);   // 80四半期
+    }
+
+    [Fact]
+    public void 実行度は制度の摩擦だけで作られ0にはならない()
+    {
+        var sim = CapitalBoard(); var w = sim.World;
+        // 摩擦は 議会の実効統制×議席の分裂 ＋ 議会の実効統制 ＋ 内戦 の3項だけ＝最悪でも 1+2/3+1
+        w.ParliamentControl = 1.0; w.CivilWarYears = 1;
+        w.PartySeats[0] = w.PartySeats[1] = w.PartySeats[2] = 1.0 / 3.0;   // 完全な三分＝分裂は最大（2/3）
+        double worst = PoliticalQuantities.PoliticalCapitalRate(w);
+        Assert.True(worst > 0, "最悪の摩擦で実行度が0＝0の吸収状態になっている");
+        Assert.True(worst >= 1.0 / (1.0 + 1.0 + 2.0 / 3.0 + 1.0) - 1e-12, $"式が示す下限 0.273 を割った（{worst}）");
+        // 闘争度・不満度は1ビットも読まない（同じ原因を b と速度で2度効かせない＝P9）
+        double before = PoliticalQuantities.PoliticalCapitalRate(w);
+        foreach (var p in w.AllPops()) { p.Militancy = 1.0; p.Satisfaction = 0.0; }
+        Assert.Equal(before, PoliticalQuantities.PoliticalCapitalRate(w), 12);
+    }
+
+    [Fact]
+    public void 政治資本の最大量は正統性と支持で決まり発言権の集中した体制ほど大きい()
+    {
+        var sim = CapitalBoard(); var w = sim.World;
+        // ① 正統性（同じ支持なら高いほど大きい）
+        w.Legitimacy = 0.4; double lo = PoliticalQuantities.PoliticalCapitalMax(w);
+        w.Legitimacy = 0.9; double hi = PoliticalQuantities.PoliticalCapitalMax(w);
+        Assert.True(hi > lo, $"正統性が上がっても b が上がらない（{lo} → {hi}）");
+
+        // ② 現政体への支持（思想を現政体の近く＝伝統へ寄せると上がり、遠く＝共和へ寄せると下がる）
+        void AllTo(int k) { foreach (var p in w.AllPops()) { for (int i = 0; i < Ideologies.Count; i++) p.IdeologyShares[i] = 0; p.IdeologyShares[k] = 1.0; } }
+        AllTo(0); double near = PoliticalQuantities.PoliticalCapitalMax(w);   // 0＝伝統（絶対王政の座標に最も近い）
+        AllTo(3); double far = PoliticalQuantities.PoliticalCapitalMax(w);    // 3＝共和（最も遠い）
+        Assert.True(near > far, $"現政体への支持が高い方が b が小さい（伝統{near} ≦ 共和{far}）");
+
+        // ③ 発言権の重み付け＝**政体で分岐を1行も書かずに**出る（Ideologies.National の重み＝規模×意識×(floor+0.3×実効参政権)）。
+        //    ⚠参政権は政体座標の参加軸も動かす（DriftedPolityCoord）＝そちらを止めて**発言権の重みだけ**を見る。
+        w.Coef.PolityCoordDriftWeight = 0;
+        w.Legitimacy = 0.9;
+        double B(Suffrage s) { w.Suffrage = s; return PoliticalQuantities.PoliticalCapitalMax(w); }
+        void Split(int closedK, int openK)
+        {
+            foreach (var p in w.AllPops())
+            {
+                for (int i = 0; i < Ideologies.Count; i++) p.IdeologyShares[i] = 0;
+                p.IdeologyShares[p.Closed ? closedK : openK] = 1.0;
+            }
+        }
+        // 旧支配層（貴族・聖職＝常に発言権1）が体制を支持し、大衆（票が無ければ発言権は床の0.7）が反対する盤面。
+        Split(0, 3);
+        double backedByClosed_NoVote = B(Suffrage.None), backedByClosed_Universal = B(Suffrage.Universal);
+        Assert.True(backedByClosed_NoVote > backedByClosed_Universal,
+            $"参政権を配ると旧支配層の重みが薄まるはず（専制{backedByClosed_NoVote} ≦ 普通選挙{backedByClosed_Universal}）");
+        // 鏡像＝大衆が支持し旧支配層が反対する盤面では符号が逆になる（定数の下駄ではなく**発言権の配分**が効いている証拠）。
+        Split(3, 0);
+        double backedByMass_NoVote = B(Suffrage.None), backedByMass_Universal = B(Suffrage.Universal);
+        Assert.True(backedByMass_Universal > backedByMass_NoVote,
+            $"大衆が支持する体制では参政権が b を押し上げるはず（専制{backedByMass_NoVote} ≧ 普通選挙{backedByMass_Universal}）");
+    }
+
+    [Fact]
+    public void 代価が残りを超える一歩は通らず残りが足りれば通る()
+    {
+        var sim = CapitalBoard(); var w = sim.World;
+        // 門そのもの（4本の脚＝施行・照会・スライダー・点灯が共有する1本）
+        w.PoliticalCapitalMax = 0.2; w.MandateSpent = 0.15;
+        Assert.True(Government.PoliticalCapitalAffords(w, 0.04));    // 残り 0.05 ≧ 代価
+        Assert.False(Government.PoliticalCapitalAffords(w, 0.06));   // 残り 0.05 ＜ 代価
+        w.MandateSpent = 0.5;                                        // 内戦の講和（門を通さない）で S>b になった国＝残り0
+        Assert.False(Government.PoliticalCapitalAffords(w, 0.001));
+        // ★進行不能にしない（P4）＝門は**押し切りの枝の中だけ**にある：残り0でも「世論が押している法」（代価0）は通る。
+        var (sAxis, sInc, sLevel) = FindSupportedStep(w);
+        Assert.Equal(0.0, Government.GateInfo(w, sAxis, sInc, sLevel).Cost);
+        Assert.True(Government.GateInfo(w, sAxis, sInc, sLevel).Ok, "残り0の国が代価0の法まで通せない＝進行不能");
+        Assert.True(Government.CanStep(w, sAxis, sInc));
+        // 旗0では常に真＝1ビットも挙動を変えない
+        w.Coef.PoliticalCapitalStock = 0;
+        Assert.True(Government.PoliticalCapitalAffords(w, 1e9));
+    }
+
+    [Fact]
+    public void 照会と点灯は施行と同じ在庫の門を見る()
+    {
+        var sim = CapitalBoard(); var w = sim.World;
+        var (axis, inc, level, cost) = FindOpposedStep(w);
+        w.PoliticalCapitalMax = 1e9; w.MandateSpent = 0;            // 在庫が潤沢なら通る（＝余白では通っている一歩）
+        Assert.True(Government.GateInfo(w, axis, inc, level).Ok, $"{axis} の一歩が在庫潤沢でも通らない");
+        Assert.True(Government.CanStep(w, axis, inc));
+
+        w.PoliticalCapitalMax = cost * 0.5; w.MandateSpent = 0;     // 残りが代価の半分＝通らない
+        var g = Government.GateInfo(w, axis, inc, level);
+        Assert.False(g.Ok);
+        Assert.Equal(Government.ReasonNoCapitalStock, g.Reason);    // 「余白で否決」と別の文字列＝計器が数え分けられる
+        Assert.Equal(cost, g.Cost, 12);                             // 必要量は出し続ける（UIが「いくつ足りないか」を出せる）
+        Assert.False(Government.CanStep(w, axis, inc), "第4の脚（政治タブの点灯）だけが門を見ていない");
+        Assert.NotEqual(Government.ReasonNoMandate, Government.ReasonNoCapitalStock);
+    }
+
+    [Fact]
+    public void 押し切ると残りが減り既存の読み手は同じSを見る()
+    {
+        var sim = CapitalBoard(); var w = sim.World;
+        var (axis, _, level, cost) = FindOpposedStep(w);
+        w.PoliticalCapitalMax = 1e9; w.MandateSpent = 0; w.MandateSpentNew = 0;
+        SetLawTarget(w, axis, level);
+        Government.Step(w, w.Coef);   // ⚠Step の頭で b が導出し直される＝以後の b は実測値（1e9 ではない）
+        Assert.True(w.MandateSpentNew >= cost - 1e-9, $"押し切ったのに今期増分が代価に届かない（{w.MandateSpentNew} < {cost}）");
+        Assert.True(w.MandateSpent >= cost - 1e-9, $"目減り S が代価ぶん積まれていない（{w.MandateSpent}）");
+        Assert.True(Math.Max(0, w.PoliticalCapitalMax - w.MandateSpent) < w.PoliticalCapitalMax, "押し切ったのに残り a が減っていない");
+
+        // 既存の読み手は S をそのまま読める＝情報は失われない（粛清の記憶＝軍の政治的優位）
+        w.MandateSpent = 0; double calm = PoliticalQuantities.MilitaryPoliticalRatio(w);
+        w.MandateSpent = 0.2; Assert.True(PoliticalQuantities.MilitaryPoliticalRatio(w) > calm, "粛清の記憶が S を読まなくなっている");
+    }
+
+    [Fact]
+    public void 正統性の減算は今期増分をそのまま読む()
+    {
+        // 同じ盤面を2つ作り、今期増分だけを変えて Politics.Step を1回ずつ回す＝差はちょうど増分ぶん（在庫化しても減算の配線は不変）。
+        Simulation a = CapitalBoard(), b = CapitalBoard();
+        a.World.Legitimacy = b.World.Legitimacy = 0.6;
+        a.World.MandateSpent = b.World.MandateSpent = 0;
+        a.World.PoliticalCapitalMax = b.World.PoliticalCapitalMax = 0.2;
+        a.World.MandateSpentNew = 0; b.World.MandateSpentNew = 0.05;
+        Politics.Step(a.World, a.World.Coef);
+        Politics.Step(b.World, b.World.Coef);
+        Assert.Equal(0.05, a.World.Legitimacy - b.World.Legitimacy, 10);
+        Assert.Equal(0.0, a.World.MandateSpentNew, 12);   // 毎期ゼロ化は不変
+        Assert.Equal(0.0, b.World.MandateSpentNew, 12);
+    }
+
+    [Fact]
+    public void 旗0では回復が旧の指数減衰のままである()
+    {
+        var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
+        sim.Run(8);
+        var w = sim.World; var c = w.Coef;
+        Assert.Equal(0.0, c.PoliticalCapitalStock);       // 既定は休眠（DormantIdentityTests の休眠表にも登録済み）
+        w.MandateSpent = 0.4; w.MandateSpentNew = 0;
+        Politics.Step(w, c);
+        Assert.Equal(0.4 * (1.0 - c.MandateRecoveryRate), w.MandateSpent, 12);
+        Assert.Equal(0.0, w.PoliticalCapitalMax);          // b は導出すらされない
+    }
+
+    /// <summary>目標を置ける法軸（この番人が押し切りを実演する相手）。実測（仏1789・助走8四半期・正統性1.0）で
+    /// 余白では通るが純支持が負＝押し切りが要るのは ShorterHours(−0.075) と ChildLabor(−0.075)。</summary>
+    private static readonly PolicyAxis[] SettableAxes =
+        [PolicyAxis.ShorterHours, PolicyAxis.ChildLabor, PolicyAxis.EducationLaw, PolicyAxis.Censorship,
+         PolicyAxis.Bureaucracy, PolicyAxis.SerfEmancipation, PolicyAxis.Suffrage];
+
+    /// <summary>純支持が負（＝押し切りが要る）で、かつ余白では通る一歩を1本見つける。代価つきで返す。</summary>
+    private static (PolicyAxis Axis, bool Inc, int Level, double Cost) FindOpposedStep(World w)
+    {
+        w.Legitimacy = 1.0;                                   // 余白 θ を最大にして「余白では通る」側を確保
+        w.PoliticalCapitalMax = 1e9; w.MandateSpent = 0;      // 在庫では止めない状態で探す
+        foreach (var axis in SettableAxes)
+            foreach (bool inc in new[] { true, false })
+            {
+                int level = Government.NextStage(w, axis, inc);
+                var (ok, cost, _) = Government.GateInfo(w, axis, inc, level);
+                if (ok && cost > 0.001) return (axis, inc, level, cost);
+            }
+        Assert.Fail("純支持が負で余白では通る一歩が1本も無い＝盤面の前提が崩れた（門の配線を確かめられない）");
+        return default;
+    }
+
+    /// <summary>世論が既に押している一歩（代価0で通る）を1本見つける＝「残り0でも止まらない」ことの相手。</summary>
+    private static (PolicyAxis Axis, bool Inc, int Level) FindSupportedStep(World w)
+    {
+        foreach (PolicyAxis axis in System.Enum.GetValues<PolicyAxis>())
+            foreach (bool inc in new[] { true, false })
+            {
+                int level = Government.NextStage(w, axis, inc);
+                var (ok, cost, _) = Government.GateInfo(w, axis, inc, level);
+                if (ok && cost <= 0) return (axis, inc, level);
+            }
+        Assert.Fail("代価0で通る一歩が1本も無い＝盤面の前提が崩れた");
+        return default;
+    }
+
+    private static void SetLawTarget(World w, PolicyAxis a, int level)
+    {
+        var p = w.Policy;
+        switch (a)
+        {
+            case PolicyAxis.ShorterHours: p.WorkHours = (WorkHours)level; break;
+            case PolicyAxis.ChildLabor: p.ChildLaborAllowed = level > 0; break;
+            case PolicyAxis.EducationLaw: p.EducationLaw = (EducationLaw)level; break;
+            case PolicyAxis.Censorship: p.Censorship = (CensorshipLaw)level; break;
+            case PolicyAxis.Bureaucracy: p.Bureaucracy = (BureaucracyLaw)level; break;
+            case PolicyAxis.SerfEmancipation: p.SerfEmancipation = (ReformLevel)level; break;
+            case PolicyAxis.Suffrage: p.Suffrage = (Suffrage)level; break;
+            default: Assert.Fail($"目標の置き方を知らない軸 {a}"); break;
+        }
+    }
+}

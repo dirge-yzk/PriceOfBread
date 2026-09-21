@@ -1,0 +1,20 @@
+C:\Users\dirge\AppData\Local\Temp\claude\pob-measure-snap\PriceOfBread.Tests\bin\Release\net10.0\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:02.32]     PriceOfBread.Tests.ElectionAiTests.AIの加担はプレイヤー経路と同一の関数で代価を払う [FAIL]
+  失敗 PriceOfBread.Tests.ElectionAiTests.AIの加担はプレイヤー経路と同一の関数で代価を払う [1 s]
+  エラー メッセージ:
+   テスト前提の破れ：前提を置いた後に純支持の符号が反転した
+  スタック トレース:
+     at PriceOfBread.Tests.ElectionAiTests.AIの加担はプレイヤー経路と同一の関数で代価を払う() in C:\Users\dirge\AppData\Local\Temp\claude\pob-measure-snap\PriceOfBread.Tests\ElectionAiTests.cs:line 394
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:40.84]     PriceOfBread.Tests.PettyInterestTests.gate0は従来と一致しgate1でも非対象軸の集計は変わらない [FAIL]
+  失敗 PriceOfBread.Tests.PettyInterestTests.gate0は従来と一致しgate1でも非対象軸の集計は変わらない [447 ms]
+  エラー メッセージ:
+   非対象軸 SocialSecurity の純支持が第4束で動いた（gate0 -1.862565979 / gate1 -1.870347321）＝フォールバックが旧束の値になっていない
+  スタック トレース:
+     at PriceOfBread.Tests.PettyInterestTests.gate0は従来と一致しgate1でも非対象軸の集計は変わらない() in C:\Users\dirge\AppData\Local\Temp\claude\pob-measure-snap\PriceOfBread.Tests\PettyInterestTests.cs:line 67
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+失敗!   -失敗:     2、合格:   414、スキップ:     0、合計:   416、期間: 9 m 55 s - PriceOfBread.Tests.dll (net10.0)

@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="6.0.4" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj" />
+    <!-- ★2026-09-20（M5）：生産タブの消費税チェックボックス（ProdDetail.TaxOn）が**エンジンへ届いている**ことを xUnit の射程に入れる。
+         ⚠「App はテストから触れない」は長く事実だったが、理由は GameViewModel が Dispatcher.UIThread を踏むことで、
+           ProdDetail 単体は ObservableObject＝Avalonia 型は既定値だけ（AppBuilder の初期化は要らない）。
+         ⚠新しいテストプロジェクトは作らない（増えるのは参照1つ）。往復の番人は ProductionDiagTests が持つ。 -->
+    <ProjectReference Include="..\PriceOfBread.App\PriceOfBread.App.csproj" />
+  </ItemGroup>
+
+</Project>

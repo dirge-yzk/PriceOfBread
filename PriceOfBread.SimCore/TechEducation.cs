@@ -1,0 +1,295 @@
+﻿namespace PriceOfBread.SimCore;
+
+/// <summary>
+/// 技術（§2.8）＋教育（§A-1）。月次で識字を伸ばし革新能力を再計算、四半期に技術水準を連続的に積む（<see cref="GrowTech"/>）。
+/// 革新≠採用：自由＋公教育のみ世界の技術水準天井へ、それ以外は採用天井で頭打ち。Freedom＝Politics.FreedomFromLaws（参政権＋報道法）の導出量。
+/// </summary>
+public static class TechEducation
+{
+    // 識字の伸び速度（教育法別）＝買えた教育を天井に漸近する月次レート
+    private const double LiteracyRateNone = 0.0001;        // 学校なし＝ほぼ伸びない（教育財の供給も無い）
+    private const double LiteracyRateReligious = 0.004;    // 宗教学校＝伸びる（ただし天井＝買えた教育）
+    private const double LiteracyRatePublic = 0.005;       // 公教育
+    private const double LiteracyRateCompulsory = 0.007;   // 義務教育＝下層まで拡大
+    private const double CensorshipPressFactor = 0.75;     // 検閲下の技術（吸収/革新）デバフ（自由=1.0・国家統制=0.5に対する中間）
+
+    /// <summary>吸収能力＝識字×世俗水路（Elite）×報道の自由。**技術と資本で同じ写像**（2026-08-02に共有化）。
+    /// コピーにも読める技師と自由な情報流通が要る、という同一の理屈を2箇所に書き分けない。</summary>
+    internal static double AbsorptionOf(World w, Coefficients c)
+    {
+        double pressAbs = PressFactor(w.Censorship);
+        // ★穴③（2026-08-31）：行政の脚＝×(1−AbsorptionAdminWeight×(1−行政効率))。IncomeAbsorption と同形・0＝×1.0＝厳密恒等。
+        //   識字と所得は輸出成功の循環で満たされる（世界工場の椅子取り）＝科挙官僚制/植民地行政の質だけが循環の外の判別子（洋務運動の原器）。
+        double adminAbs = c.AbsorptionAdminWeight > 0
+            ? 1.0 - c.AbsorptionAdminWeight * (1.0 - Math.Clamp(w.AdminEfficiency, 0, 1)) : 1.0;
+        double breadth = Math.Clamp(w.Elite / c.EliteForFullTech, 0, 1);
+        // ★厚み（作者採用2026-09-06 段3）：採用の識字項を 広さ^(1−a)×厚み^a へ。a=0 で広さそのもの（分岐＝ビット恒等）。
+        if (c.AdoptExpertiseWeight > 0) breadth = Math.Pow(breadth, 1.0 - c.AdoptExpertiseWeight) * Math.Pow(ExpertiseRel(w), c.AdoptExpertiseWeight);
+        return breadth * pressAbs * IncomeAbsorption(w, c) * adminAbs;
+    }
+
+    /// <summary>吸収能力の**経済側**（2026-08-12）＝技術を載せる資本を買えるか。1人あたり所得で測る。
+    ///
+    /// 旧＝吸収能力は識字×報道自由だけ＝経済の中身が1つも入っていなかった。そのため自給自足の小王国が
+    /// 学校を建てて報道を自由にすれば吸収1.0となり、先端の97%へ速度0.13で吸い寄せられた
+    /// （実測1923年：ラオス4.18・ダホメ王国4.13＞イギリス3.98）。ベッセマー転炉は読める技師だけでは動かない。
+    /// 既定 <c>AbsorptionIncomeRef=0</c> で 1.0 を返す＝**厳密恒等**（休眠）。</summary>
+    private static double IncomeAbsorption(World w, Coefficients c)
+    {
+        if (!(c.AbsorptionIncomeWeight > 0) || !(c.AbsorptionIncomeRef > 0)) return 1.0;
+        double pop = w.TotalPopulation;
+        double perCap = pop > 1 ? w.Gdp / pop : 0;
+        if (!(perCap > 0)) perCap = 0;   // NaN も落とす（否定形で書く＝有限値では厳密同値）
+        double f = Math.Clamp(perCap / c.AbsorptionIncomeRef, 0, 1);
+        return 1.0 - c.AbsorptionIncomeWeight * (1.0 - f);
+    }
+
+    /// <summary>革新の**規模**（2026-08-12）＝研究は割合でなく人数でする。
+    ///
+    /// 旧＝革新速度 ∝ Elite（＝平均識字×世俗水路＝**割合**）。人口50万のダホメ王国と2000万のイギリスが
+    /// 同じ識字率なら同じ速さで世界の先端を押し上げた。逓減は平方根＝研究基盤10倍で3.2倍（収穫逓減）。
+    /// 既定 <c>ResearchBaseRefPop=0</c> で 1.0 を返す＝**厳密恒等**（休眠）。</summary>
+    private static double ResearchScale(World w, Coefficients c)
+    {
+        if (!(c.ResearchScaleWeight > 0) || !(c.ResearchBaseRefPop > 0)) return 1.0;
+        double s = w.Elite * w.TotalPopulation / c.ResearchBaseRefPop;   // 世俗の教育を受けた層の絶対数／参照
+        if (!(s > 0)) return Math.Max(0, 1.0 - c.ResearchScaleWeight);
+        return Math.Max(0, 1.0 + c.ResearchScaleWeight * (Math.Sqrt(s) - 1.0));   // s=1で厳密に1.0（参照点で恒等）
+    }
+    private const double DecayAdoptPenaltyCap = 0.95;      // 制度疲労による採用速度ペナルティの上限（完全停止は避ける）
+
+    /// <summary>
+    /// 月次：識字の伸び（§A-1）＋ エリート水準の再計算（教育2段階：識字→エリート）。
+    /// 教育＝**財**：教育者POP（宗教＝聖職者／公教育・義務＝教師）が生産し、POPが市場で買う（EconomyStep）。
+    /// 識字は**買えた教育（EducationFill）を天井として**伸びる＝消費が識字を生む。
+    /// 聖職者は少数＝供給が乏しく下層に行き渡らない／貧しいPOPは買えない＝識字の天井が需給から創発する。
+    /// 教育財の無い小シナリオは Fill=1.0（既定）＝従来挙動。
+    /// </summary>
+    public static void GrowLiteracy(World w, Coefficients c)
+    {
+        // 教育のコストは**教育財の市場**が直接表現する（授業料＝pop負担／義務教育＝国庫負担）。
+        // 旧来の「教育費×充足率」の速度乗数は廃止＝教育費スライダーは義務教育の財源にのみ効く。
+        // 倍率排除④：児童労働→識字を**時間配分から創発**。働く子は学校へ行けない＝児童労働率が高いほど識字が遅い。
+        // 旧 法の2値倍率（ChildLaborAllowed?1:1+penalty）を、LaborSupply.ChildLaborRate（家計困窮×合法度×就学）の per-pop 値へ置換。
+        // 較正harness（学校なし・許可）では率=1→litFactor=1.0＝旧「許可」に恒等一致／禁止で率=0→1+penalty＝旧「禁止」。
+        // 開始前の助走（<see cref="World.WarmupFrozen"/>・2026-08-10）は識字を**伸ばさない**＝就学は時間の経過そのもの
+        //（暦を止めたまま10年回すと「10年ぶんの就学が時間経過なしに起きる」）。
+        // ★ただし下の Elite の再計算は助走中も必ず通す＝あれは蓄積ではなく**現在の識字と教育者構成からの導出**であり、
+        //   止めると Elite=0 のまま GrowTech の入口ガードに弾かれ、技術の助走（WarmupTech）が丸ごと不発になる（実測）。
+        double baseSpeed = w.WarmupFrozen ? 0 : LiteracyRate(w.EducationLaw);
+        if (baseSpeed > 0)
+            foreach (var r in w.Regions)
+            {
+                if (r.State != RegionState.Active) continue;
+                foreach (var p in r.Pops)
+                {
+                    if (p.Literacy < p.EducationFill)
+                    {
+                        double litFactor = 1.0 + c.ChildLaborLiteracyPenalty * (1.0 - LaborSupply.ChildLaborRate(p, r, c));   // 児童労働率0＝学校へ（旧 禁止＝1+penalty）／率1＝全員労働（旧 許可＝1.0）
+                        p.Literacy += baseSpeed * litFactor * (p.EducationFill - p.Literacy);   // 買えた教育の水準へ漸近（買えない者は伸びない）
+                    }
+                    // 人11b：識字の世代減衰（ラチェット解消）。live（LiteracyGenerationalDecay=0.002・R10点火2026-07-13）。0で減衰なし＝既得識字は永遠保持（対照用）。
+                    // >0 で EducationFill を上回る分（教育供給の裏付けを失った識字）に微小な世代減衰＝教育投資を止めると識字が緩やかに希釈（世代交代の維持費）。
+                    else if (c.LiteracyGenerationalDecay > 0 && p.Literacy > p.EducationFill)
+                    {
+                        // ★live（2026-08-21点火・既定1）：LiteracyDecayIsGenerational>0 で**世代交代のぶんだけ**に掛ける。
+                        //   ⚠0に戻すと旧式（全人口に掛ける＝「大人が字を忘れる」）＝A/Bの対照用にのみ使う。
+                        //   ★根拠＝「学校が減ると大人が字を忘れる」は誤り。識字は一生ものであり、失われるのは**老年が退出し、
+                        //   就学しない子供が入ってくる**ときだけ。実測で英の識字も0.84→0.60へ落ちていた（全世界の問題）。
+                        double turnover = 1.0;
+                        if (c.LiteracyDecayIsGenerational > 0)
+                        {
+                            double t = p.OldShare + p.ChildShare;   // 退出する老年＋就学が要る子供＝入れ替わる側
+                            turnover = !(t > 0) ? 0 : (t > 1.0 ? 1.0 : t);
+                        }
+                        p.Literacy -= c.LiteracyGenerationalDecay * turnover * (p.Literacy - p.EducationFill);
+                    }
+                }
+            }
+
+        // 人13：高等教育ゲートの多年EMA（EducationGateUsesEma=1 で Meritocracy が資格判定に使う緩和ストック）。
+        // 既定0では誰も EducationEma を読まないため更新しない＝EMAは初期値のまま・従来挙動に一切影響しない（dormant）。
+        if (c.EducationGateUsesEma > 0 && !w.WarmupFrozen)   // 修学年数のEMAも「時間の蓄積」＝助走では進めない（識字本体と同じ理由）
+            foreach (var r in w.Regions)
+            {
+                if (r.State != RegionState.Active) continue;
+                foreach (var p in r.Pops)
+                    p.EducationEma += c.EducationEmaRate * (p.EducationFill - p.EducationEma);   // 修学年数の蓄積（当月Fillへ緩慢に収束＝一時的な途絶を平滑化）
+            }
+
+        // 教育2段階：識字 → エリート＝**平均識字 × 世俗水路**。世俗水路は法のswitchでなく
+        // **誰が実際に教育を生産しているか**（教師＝世俗1.0／聖職者等＝法の乗数）から創発する。
+        // ※旧定義（知識専門職の人口シェア×倍率）は、職業を給与均衡（枠なし）にした際に鶏卵で死んだ：
+        //   技師の雇用は工業需要→工業は技術→技術はエリート→エリートは技師シェア、と一周して起動装置がない。
+        //   識字は教育の購入から独立に立ち上がるため、この定義は起動に他者を必要としない。
+        // 教育市場の無い小世界は従来式（平均識字×法乗数）で挙動を温存。
+        w.Elite = EmergentElite(w) ?? PoliticalQuantities.AvgLiteracy(w) * EliteMultiplier(w.EducationLaw);
+        w.Expertise = ExpertiseOf(w);   // ★厚み＝専門人材率（作者採用2026-09-06 段1・導出量）
+        // ★本国だけの同じ式（2026-08-26）。制度の閾値が読む＝植民地の非識字人口で本国の制度が止まらない。
+        //   植民地格の州が無ければ AllPops と同じ集合＝厳密に同値。
+        w.EliteCore = EmergentElite(w, coreOnly: true) ?? PoliticalQuantities.AvgLiteracy(w, coreOnly: true) * EliteMultiplier(w.EducationLaw);
+    }
+
+    /// <summary>
+    /// 四半期：技術を**連続的に**伸ばす（§2.8・カード廃止＝社会の連続創発）。2つの機構：
+    /// ①**採用（後追い）**＝世界の技術水準へギャップ比例で寄る（**遅れているほど速い＝後発のブースト**）。
+    ///   暗黙の世界水準(AdoptionCeiling)までは厳しくエリート律速（孤立した乏しい社会＝失敗型を温存＝較正）、
+    ///   それを超える後追いは緩いエリート要件（`EliteForCatchup`＝コピーは発明より易しい）。
+    /// ②**革新（世界の技術水準押し上げ）**＝自由＋公教育のみ。逓減（`InnovationScale`＝高いほど伸びにくい＝先端の張り付き防止）。
+    /// → 先端は固定天井に飽和せず伸び続け、後発は世界の技術水準の一定割合まで素早く追い上げる。プレイヤーの離散選択は制度の施行（<see cref="Institutions"/>）。
+    /// </summary>
+    public static void GrowTech(World w, Coefficients c)
+    {
+        if (!(w.Elite > 0)) return;   // 教育が無ければ伸びない（否定形＝NaN も不走行側へ）。旧 TechPower（Elite の写し）は2026-09-11に削除
+
+        // ① 採用。基礎＝暗黙の世界水準(AdoptionCeiling)・厳しくエリート律速。多国では世界先端の一定割合まで後追い目標が伸びる
+        //    （超過分は緩いエリート要件＝コピーは発明より易しい）。単一国は WorldTechLevel=0 なので後追い目標＝基礎（＝旧来）。
+        //    後追いで届くのは先端×CatchupFraction まで＝**永遠の二番手**（§2.8 革新≠採用：コピーで先端には並べない。
+        //    並ぶには自由＋公教育で自ら革新するしかない）。※教育が万国で機能するようになった（教師崩壊の修正）際、
+        //    後追いが先端へ完全収束し国の差別化が消えたため、コピーの天井を明示した。
+        double baseTarget = c.AdoptionCeiling * Math.Clamp(w.Elite / c.EliteForFullTech, 0, 1);
+        // 後発国のキャッチアップ（最終調整2026-06-29）：近代化国（FrontierCapable＝自由＋公教育＝吸収能力あり）は前線の高い比率(CatchupFractionAdvanced)まで・速い速度で追い上げる。
+        // 非近代化（検閲/宗教教育の巨人＝清/印）は従来の CatchupFraction 0.5 で頭打ち＝置いていかれる。両 Advanced 係数を基礎値と同値にすれば旧挙動に恒等。
+        bool absorptive = FrontierCapable(w, c);
+        double catchFrac = absorptive ? c.CatchupFractionAdvanced : c.CatchupFraction;
+        double adoptRate = absorptive ? c.AdoptionRateAdvanced : c.AdoptionRate;
+        if (c.CatchupAbsorptionBlend > 0)
+        {
+            // 収束是正（2026-07-10）：資格国の天井ジャンプ（0.5→0.97）を吸収能力でスケール＝**資格×吸収の積**。
+            // 吸収能力＝識字×世俗水路（Elite）×報道の自由（革新項と同じ写像）＝コピーにも読める技師と自由な情報流通が要る。
+            // 非資格国（宗教教育）は旧0.5天井のまま（初版の「非資格も吸収分持ち上げ」は宗教教育の日本が公教育の英を抜く逆転を実測＝資格側だけ連続化）。
+            // 公教育化しても識字低×検閲の大国（清・印）は天井が中間に留まり1914年に技術2前後（史実の後置）・英独仏は吸収≈1で従来どおり＝全球収束の是正。
+            double absorption = AbsorptionOf(w, c);
+            double a = absorptive ? 1.0 + (absorption - 1.0) * c.CatchupAbsorptionBlend : 0.0;   // blend=0で二値（旧恒等）
+            catchFrac = c.CatchupFraction + (c.CatchupFractionAdvanced - c.CatchupFraction) * a;
+            adoptRate = c.AdoptionRate + (c.AdoptionRateAdvanced - c.AdoptionRate) * a;
+        }
+        if (c.DecayTechAdoptWeight > 0) adoptRate *= 1.0 - Math.Clamp(c.DecayTechAdoptWeight * w.InstitutionalDecay, 0, DecayAdoptPenaltyCap);   // P7②制度疲労＝採用速度の遅延（科挙官僚制が技師を作らない）。live（DecayTechAdoptWeight=0.75）・0で恒等
+        // ★接触（作者採用2026-09-06 段8）：後追いは人と物の往来に乗る＝天井の**床より上**にだけ接触度を掛ける（鎖国でも基礎は失われない）。0 で ×1.0。
+        double contact = c.CatchupContactWeight > 0 ? 1.0 - c.CatchupContactWeight * (1.0 - Math.Clamp(w.TradeContactShare, 0, 1)) : 1.0;
+        double adoptionCeil = Math.Max(c.AdoptionCeiling, w.WorldTechLevel * catchFrac * contact);
+        double catchupTarget = baseTarget + Math.Max(0, adoptionCeil - c.AdoptionCeiling) * Math.Clamp(w.Elite / c.EliteForCatchup, 0, 1);
+        if (catchupTarget > baseTarget + 1e-9)
+        {
+            // 多国：世界の技術水準へギャップ比例で後追い（遅れているほど速い＝後発のブースト）。近代化国はより高い天井・速い速度（Gerschenkron）
+            if (w.TechLevel < catchupTarget)
+                w.TechLevel += adoptRate * (catchupTarget - w.TechLevel);
+        }
+        else if (w.TechLevel < baseTarget)
+        {
+            // 単一国（または先端と同水準）：基礎まで旧来の線形（挙動・較正を温存）
+            w.TechLevel += Math.Min(c.TechGrowthRate * w.Elite, baseTarget - w.TechLevel);
+        }
+
+        // ③ 革新（世界の技術水準押し上げ）：自由＋公教育のみ。逓減で張り付きを防ぐ（上限なし）。特許制度で加速。
+        // 報道の自由が革新の自由な交換を可能にする＝検閲は革新を殺す（§2.8）。国家報道のみ＝ほぼ革新不能。
+        if (absorptive)   // ＝FrontierCapable（その入力は①採用の間に変わらない）
+        {
+            double press = PressFactor(w.Censorship);   // 検閲のデバフ上限−50%（国家統制でも技術速度は半減まで）。初期が国家統制の国を序盤から壊滅させない
+            // ★研究・段2（DiscoveryInstitutions・2026-08-31）：特許の効きを bool の崖から傾斜へ＝**旧閾値と同じ量（EliteCore）のまま**崖だけ連続化
+            //   （旧フリップ点0.4がランプ中点）。⚠時計×適性の積の形は序盤を過小評価し英が停滞（実測）＝分野時計への移行は段4。0＝旧bool＝厳密恒等
+            double patentMul = c.DiscoveryInstitutions > 0
+                ? 1.0 + (c.PatentInnovationBonus - 1.0) * Discovery.Unlock(w.EliteCore, 1.0, c.PatentDiscoveryOnset, c.PatentDiscoverySpan)
+                : (w.PatentLaw ? c.PatentInnovationBonus : 1.0);
+            double innov = c.InnovationRate * w.Elite * press * ResearchScale(w, c) * patentMul
+                         / (1.0 + w.TechLevel / c.InnovationScale);
+            if (c.InnovateExpertiseWeight > 0) innov *= Math.Pow(ExpertiseRel(w), c.InnovateExpertiseWeight);   // ★厚み（段3）：大学が無ければ先端は押せない。0 で不読
+            w.TechLevel += innov;
+            // ★研究の分野時計（段3/段4・2026-08-31）：革新増分を分野へ按分して積む（この加算はTechLevelに触れない）。
+            //   DiscoveryFieldSplit=0＝産業100%（現状の単一時計と同値＝恒等・PatronSharesも呼ばない）。>0で後援者
+            //   （資本家/軍部/知識人）の勢力シェアへ段階的に開く（軍事/思想の時計の読者は段5/段8で配線）。
+            if (c.DiscoveryFieldSplit > 0)
+            {
+                var (pInd, pMil, pTho) = Discovery.PatronShares(w);
+                double g = System.Math.Clamp(c.DiscoveryFieldSplit, 0, 1);
+                w.DiscoveryClocks[Discovery.Industry] += innov * (1.0 - g + g * pInd);
+                w.DiscoveryClocks[Discovery.MilitaryField] += innov * g * pMil;
+                w.DiscoveryClocks[Discovery.Thought] += innov * g * pTho;
+            }
+            else w.DiscoveryClocks[Discovery.Industry] += innov;
+        }
+
+        w.TechLevel = Math.Min(w.TechLevel, c.FrontierCeiling);   // 安全上限（逓減で実際は届かない）
+    }
+
+    private static double LiteracyRate(EducationLaw law) => law switch
+    {
+        EducationLaw.None => LiteracyRateNone,
+        EducationLaw.Religious => LiteracyRateReligious,
+        EducationLaw.Public => LiteracyRatePublic,
+        EducationLaw.Compulsory => LiteracyRateCompulsory,
+        _ => 0.0,
+    };
+
+    // 報道の自由の乗数（吸収と革新で同じ写像＝2箇所に書き分けない）。国家統制=0.5＝技術速度は半減まで
+    private static double PressFactor(CensorshipLaw law) => law switch { CensorshipLaw.FreePress => 1.0, CensorshipLaw.Censorship => CensorshipPressFactor, _ => 0.5 };
+
+    /// <summary>
+    /// エリートの創発（§A-1 創発化）：平均識字 × 世俗水路。世俗水路＝教育の産出のうち教師（Region.TeacherPopIndex＝世俗）が
+    /// 担う割合（聖職者等の授業は識字を出すが世俗の専門知へ通じにくい＝法の乗数で減衰）。
+    /// 法はswitchとしてではなく「誰が教壇に立つか」（教育生産者の切替＋教師階級の盛衰）を通して効く。
+    /// 教育の産出が無い世界（教育財の無い小シナリオ）は null＝従来式（法の乗数）へ。
+    /// </summary>
+    /// <summary>★厚み（専門人材率）＝近代エリート層（IsModernElite）の高等教育充足×人数 ÷ 全人口。新しいストックは持たない（毎四半期の導出）。</summary>
+    internal static double ExpertiseOf(World w)
+    {
+        double num = 0, den = 0;
+        foreach (var p in w.AllPops()) { if (p.IsSoldier) continue; den += p.Size; if (p.IsModernElite) num += Math.Max(0, p.HigherEduFill) * p.Size; }
+        double v = den > 1e-9 ? num / den : 0;
+        return !(v >= 0) ? 0 : v;
+    }
+    /// <summary>厚みの前線比∈[0,1]＝自国の専門人材率÷世界の先端（先端国＝1）。先端が0（誰にも大学が無い）なら1＝恒等側へ倒す。</summary>
+    private static double ExpertiseRel(World w)
+    {
+        double f = w.WorldFrontierExpertise;
+        if (!(f > 1e-12)) return 1.0;
+        double r = w.Expertise / f;
+        return !(r >= 0) ? 0 : r > 1 ? 1 : r;
+    }
+
+    private static double? EmergentElite(World w, bool coreOnly = false)
+    {
+        double secular = 0, total = 0;
+        foreach (var r in w.Regions)
+        {
+            if (r.State != RegionState.Active) continue;
+            if (coreOnly && r.Tier == RegionTier.Colonial) continue;   // ★本国のみ（2026-08-26）
+            foreach (var p in r.Producers)
+                if (p.GoodId == Catalog.EducationId)
+                {
+                    total += p.Output;
+                    if (p.LaborPopIndex >= 0 && p.LaborPopIndex == r.TeacherPopIndex)   // 世俗の教師（公教育）が担い手＝役務インデックスで判定（旧 ClassId==7 直書きは pop構成変更で静かに壊れる）
+                        secular += p.Output;
+                }
+        }
+        if (total <= 1e-9) return null;
+        // ★段6（2026-09-08・doc §6の潜在バグ）：非世俗の担い手（聖職者等）の水路に掛ける乗数は**1.0で頭打ち**にする。
+        //   旧＝義務教育（乗数1.2）で channel = 1.2 − 0.2×世俗シェア＝**教会が教えるほど世俗エリートが増える**倒錯
+        //   （世俗の水路が100%のとき 1.0、0%のとき 1.2）。1.2 は「識字そのものが厚くなる」ボーナスであって、
+        //   非世俗の授業が世俗の専門知へ**通じやすくなる**理由にはならない。⚠現行4法すべてでビット恒等
+        //   （担い手は州ごとに聖職者か教師の二値＝Simulation.cs の月次切替なので、乗数1.2が掛かる項 (total−secular) は
+        //   義務教育では必ず0。0.0/0.1/1.0 の3法は Min が素通り）＝挙動が変わるのは担い手が混在する異常状態のみ。
+        double channel = (secular + (total - secular) * Math.Min(1.0, EliteMultiplier(w.EducationLaw))) / total;
+        // ★引数の渡し忘れ（wave2b G11#4）：coreOnly を AvgLiteracy へ転送していなかった＝EliteCore(coreOnly:true) 経由でも
+        //   植民地格の州の識字が混ざる（本国のみに絞る2026-08-26の意図が半分しか効かない）。植民地格の州を持たない国では厳密同値。
+        return PoliticalQuantities.AvgLiteracy(w, coreOnly) * channel;
+    }
+
+    // 宗教学校はエリート（専門職・技師・教師）が出にくい＝低い革新能力（§A-1）
+    // ※教育財の無い小世界の従来式（平均識字×法乗数）と、EmergentElite の非世俗水路（聖職者等の授業）の乗数に使う
+    private static double EliteMultiplier(EducationLaw law) => law switch
+    {
+        EducationLaw.None => 0.0,
+        EducationLaw.Religious => 0.1,       // 識字はあるが世俗の水路が開かない
+        EducationLaw.Public => 1.0,          // 世俗化＝エリートが出る
+        EducationLaw.Compulsory => 1.2,
+        _ => 0.0,
+    };
+
+    // 世界の技術水準解禁：自由が閾値以上（または#22＝高エリート技術力＋高行政効率で代替＝権威主義的近代化） かつ 世俗の水路（公教育以上）
+    private static bool FrontierCapable(World w, Coefficients c) =>
+        (w.Freedom >= c.FrontierFreedomThreshold
+         || (c.InnovationEliteSubstitute > 0 && w.Elite >= c.EliteForFullTech && w.AdminEfficiency >= c.InnovationAdminThreshold)) &&
+        w.EducationLaw is EducationLaw.Public or EducationLaw.Compulsory;
+
+}

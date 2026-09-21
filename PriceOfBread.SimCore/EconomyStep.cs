@@ -1,0 +1,2752 @@
+﻿namespace PriceOfBread.SimCore;
+
+/// <summary>
+/// 単一地域の月次経済ステップ。§9-A（市場）＋§9-B（消費）＋§9-C（所得）＋多段チェーン（§2.4）
+/// ＋労働配分（§9-D 的）＋資本・建設（CapitalEnabled 時）。
+/// 売上は「実際に支払われた額」から積む（pop消費＋工場の投入支払い＋投資支払い）ので支払い＝受取で厳密保存。
+/// 資本：工場能力＝min(労働能力, 資本×生産性)。利潤の出る工場が所有者貯蓄から機械・セメントを買って資本を積む
+/// （都市化は資本蓄積＝工業化の速度に縛られる）。RGO（原料）は土地労働ベースで資本制約なし。
+/// </summary>
+public static class EconomyStep
+{
+    private const double Eps = 1e-9;
+    internal const double InsuranceCoverageCap = 0.95;        // 健康保険の最大給付率（自己負担の下限＝5%）。internal＝ProductionDiag が買い手価格の分解で同じ上限を読む（値の写しを作らない）
+    private const int ServiceRankCount = 3;                   // 役務の購入優先順位の階層数（下層/中流/上流＝ServiceRank の 0/1/2）
+
+    // batch30高速化 §3-2（2026-07-27）：Run の作業配列を ThreadStatic で再利用＝毎呼び出しの new（約20KB×バッチ約860万回＝アロケの94%）を排除。
+    // Array.Clear のゼロ化は new と同値＝ビット恒等。ThreadStatic＝並列は試合（Simulation）単位でスレッド間共有なし＝決定論不変、
+    // Region に持たせない＝SaveGame（リフレクション全フィールド直列化）にも乗らない。conCarryApplied は null をフラグとして読むため対象外（従来どおり都度確保）。
+    private sealed class Scratch
+    {
+        public double[] Produced = [], InputNeed = [], InputTrickle = [], InvestDemand = [], MilitaryDemand = [], RebelDemand = [],
+                        Ration = [], EffDemand = [], EffRation = [], ClearPrice = [], Revenue = [];
+        public int[] ProducerCount = [];
+        public double[] InputCost = [], ProdW = [], ElecNeed = [], SteamNeed = [], EffNeed = [];
+        public int[] EffChosen = [];
+        public double[] LaborTotalW = [];
+        public int[] LaborCount = [];
+        public bool[] IsStaple = [], IsService = [], AnyProducer = [], AnyUnlocked = [];
+        public Good[] ConsumeOrder = [];
+    }
+    [System.ThreadStatic] private static Scratch? _scratch;
+    private static Scratch RentScratch(int ng, int np, int npops)
+    {
+        var s = _scratch ??= new Scratch();   // ⚠再利用のビット恒等は2026-08-04に実測で確認済み（無効化しても結果が1バイトも変わらなかった）
+        if (s.Produced.Length < ng)
+        {
+            s.Produced = new double[ng]; s.InputNeed = new double[ng]; s.InputTrickle = new double[ng];
+            s.InvestDemand = new double[ng]; s.MilitaryDemand = new double[ng]; s.RebelDemand = new double[ng]; s.Ration = new double[ng];
+            s.EffDemand = new double[ng]; s.EffRation = new double[ng]; s.ClearPrice = new double[ng];
+            s.Revenue = new double[ng]; s.ProducerCount = new int[ng];
+            s.IsStaple = new bool[ng]; s.IsService = new bool[ng]; s.AnyProducer = new bool[ng]; s.AnyUnlocked = new bool[ng];
+        }
+        else
+        {
+            System.Array.Clear(s.Produced); System.Array.Clear(s.InputNeed); System.Array.Clear(s.InputTrickle);
+            System.Array.Clear(s.InvestDemand); System.Array.Clear(s.MilitaryDemand); System.Array.Clear(s.RebelDemand); System.Array.Clear(s.Ration);
+            System.Array.Clear(s.EffDemand); System.Array.Clear(s.EffRation); System.Array.Clear(s.ClearPrice);
+            System.Array.Clear(s.Revenue); System.Array.Clear(s.ProducerCount);
+            System.Array.Clear(s.IsStaple); System.Array.Clear(s.IsService); System.Array.Clear(s.AnyProducer); System.Array.Clear(s.AnyUnlocked);
+        }
+        if (s.InputCost.Length < np)
+        {
+            s.InputCost = new double[np]; s.ProdW = new double[np]; s.ElecNeed = new double[np];
+            s.SteamNeed = new double[np]; s.EffNeed = new double[np]; s.EffChosen = new int[np];
+        }
+        else
+        {
+            System.Array.Clear(s.InputCost); System.Array.Clear(s.ProdW); System.Array.Clear(s.ElecNeed);
+            System.Array.Clear(s.SteamNeed); System.Array.Clear(s.EffNeed); System.Array.Clear(s.EffChosen);
+        }
+        if (s.LaborTotalW.Length < npops) { s.LaborTotalW = new double[npops]; s.LaborCount = new int[npops]; }
+        else { System.Array.Clear(s.LaborTotalW); System.Array.Clear(s.LaborCount); }
+        return s;
+    }
+
+    /// <summary>★艦隊ストック→戦力ゲージの換算分母（ユーザー裁定③の但し書き・2026-08-01）。
+    /// ── なぜ定数をやめたか ──────────────────────────────────────────────────────
+    /// 定数 K を「定常ストック ÷ (Military × NavalShare)」で測ったところ **時代で×7.74 漂った**
+    /// （Q200 中央値228029／Q350 54429／Q524 29452・四分位は18k〜525k）。裁定③の但し書き「2倍を超えて漂うなら
+    /// 定数Kでは正しくならず、Σ(原単位 × RefPrice) から導出する形＝**Kという係数自体が消える形**へ移せ」に該当する。
+    /// ── 漂いの正体 ──────────────────────────────────────────────────────────────
+    /// 旧Kの分母に **NavalShare・技術品質・即応度・戦時倍率** が入っていた。これらは全部**乗員側の量**であって、
+    /// 「艦の建造費をゲージに直す」話とは無関係である。海軍国ほどKが小さく陸軍国ほど巨大になるのはそのせいだった。
+    /// ── 導出（自由な数がゼロ）──────────────────────────────────────────────────
+    ///   兵士1あたりの軍需購入額 ＝ MilitaryUpkeepScale × Σ_all(rate_g × RefPrice_g)
+    ///   ゲージ1あたり           ＝ ×SoldiersPerMilitary
+    ///   定常ストック            ＝ ÷Spoilage(軍艦)
+    /// ⚠Σ は**艦艇だけでなく基本装備の全体**を採る。理由＝艦艇だけで割ると、艦艇の調達比 rate が小さいぶん
+    ///   ゲージが実勢の数倍に膨らみ、min の艦隊側が二度と binding しなくなる（＝人口海軍への逆戻り）。
+    ///   全体で割ると「ゲージ1の軍隊が艦に振り向けている割合」がそのまま艦隊ゲージになり、両側が張り合う。
+    /// ⚠**新しい係数を1本も置かない**（MilitaryUpkeepScale・SoldiersPerMilitary・MilitaryRates・RefPrice・Spoilage は全て既存）。</summary>
+    internal static double FleetGaugeDenominator(Region region, Coefficients coef)
+    {
+        double basket = 0;
+        for (int b = 0; b < coef.MilitaryGoods.Length; b++)
+            basket += coef.MilitaryRates[b] * (region.GoodOf(coef.MilitaryGoods[b])?.RefPrice ?? 0);   // ⚠発見の係数（EquipNeedsDiscovery）は掛けない＝ここは**必要量ではなく単位換算**（ゲージ→建造費）であり、発見のたびに換算尺が動くと艦隊ゲージが不連続に伸縮する
+        double sp = Catalog.SpoilageOf(coef.WarshipGoodId);
+        if (!(basket > 0) || !(sp > 1e-12)) return double.NaN;   // ⚠否定形＝NaN が来ても落ちる側へ倒す
+        return coef.SoldiersPerMilitary * coef.MilitaryUpkeepScale * basket / sp;
+    }
+
+    /// <summary>軍需調達の必要額（★S3a の「実際の必要額」＝予算上限が min を取る相手）。単位は貨幣。
+    /// 下の軍需調達ブロックと**同一の式・同一のゲート順**で、基本段（estCost）・上位段（qCost）・tier3段（t3Cost）・空軍段（aCost）の4段を合計する。
+    /// ⚠基本段だけを必要額とすると `remaining = MilitaryBudget − estCost×afford` が**厳密に0**になり
+    ///（budget=estCost なら afford=1 で差が消える）、機関銃・装甲艦以降の3段が全世界で調達不能になる＝死蔵財を増やす。
+    /// 段のゲートは調達ブロックの入れ子と揃える（上位段の財が無い小シナリオでは、その先の段も数えない）。
+    /// ⚠燃料（空軍/輜重）と艦隊修理は含めない＝比例配分（MilitaryProcureProRata）の分母もこの4段の装備のみ。</summary>
+    internal static double MilitaryProcurementNeed(Region region, Coefficients coef)
+    {
+        int ng = region.Markets.Length;
+        if (region.MilitaryScale <= 0 || !AllPresent(coef.MilitaryGoods, ng)) return 0;
+        double need = TierCost(region, coef, coef.MilitaryGoods, DiscoveredRates(region, coef, coef.MilitaryGoods, coef.MilitaryRates), false);
+        if (AllPresent(coef.MilitaryQualityGoods, ng))
+        {
+            need += TierCost(region, coef, coef.MilitaryQualityGoods, DiscoveredRates(region, coef, coef.MilitaryQualityGoods, coef.MilitaryQualityRates), true);   // 段2a：耐久品
+            if (AllPresent(coef.MilitaryTier3Goods, ng))
+            {
+                need += TierCost(region, coef, coef.MilitaryTier3Goods, DiscoveredRates(region, coef, coef.MilitaryTier3Goods, coef.MilitaryTier3Rates), true);   // 段2a：耐久品
+                if (AllPresent(coef.MilitaryAirGoods, ng))
+                    need += TierCost(region, coef, coef.MilitaryAirGoods, DiscoveredRates(region, coef, coef.MilitaryAirGoods, coef.MilitaryAirRates), false);
+            }
+        }
+        return need;
+    }
+
+    internal static bool AllPresent(int[] goods, int ng)   // internal＝App の政治タブ（軍需の段の解禁表示）が同じ述語を読む（2026-09-11 #19b）
+    {
+        foreach (int g in goods) if (g < 0 || g >= ng) return false;
+        return true;
+    }
+
+    /// <summary>装備の解禁度（0..1）＝「まだ発見していない装備は理想の軍隊に入れない」の**唯一の読み口**
+    /// （作者裁定2026-09-08「機関銃陣地を発見するまで、理想の軍隊に機関銃を入れない」）。
+    /// 判定はこの世界の解禁の1本＝<see cref="ProductionDiag.TechGate"/>（AdvancedTechScale×RecipeTechScale）だけを読む
+    /// ＝新しい解禁の仕組みを作らない。0..1の連続量をそのまま返す＝**崖を作らない**（部分解禁は部分的にしか数えない）。
+    /// onset は「この州に実在する製法のうち最も早く解禁されるもの」＝効率化材の解禁判定（anyProducer/anyUnlocked）と同じ規律
+    /// （汽船85・機関車88 の TechOnset は起動時に既定 Producer へ焼かれる＝既定onsetだけを読むと汽船の未発明を見落とす）。
+    /// 生産者が1つも居ない財（賦存の無いRGO＝馬など）は既定レシピの onset で読む＝「産地が無い」を「作れない」と取り違えない。</summary>
+    internal static double EquipUnlock(Region region, Coefficients coef, int gid)
+    {
+        double best = -1;
+        foreach (var pr in region.Producers)
+            if (pr.GoodId == gid)
+            {
+                double g = ProductionDiag.TechGate(gid, pr.TechOnset, region.TechLevel);
+                if (g > best) best = g;
+            }
+        if (best < 0) best = ProductionDiag.TechGate(gid, Catalog.DefaultRecipeOnset(gid, coef), region.TechLevel);
+        return !(best > 0) ? 0.0 : Math.Min(1.0, best);   // 否定形＝NaN は「まだ発見していない」側へ倒す
+    }
+
+    /// <summary>装備の原単位表に発見の係数を掛けた表を返す（<c>1 − k(1 − 解禁度)</c>＝既存の価格ゲート StateProcurePriceGate と同じ混合の形）。
+    /// ⚠<c>EquipNeedsDiscovery=0</c>（既定）では**引数の配列をそのまま返す**＝1命令も実行しない＝厳密恒等。
+    /// 必要量（分母）・発注（分子）・見積（予算）の全てがこの1本を通る＝分子と分母の非対称を作らない。</summary>
+    internal static double[] DiscoveredRates(Region region, Coefficients coef, int[] goods, double[] rates)
+    {
+        double k = coef.EquipNeedsDiscovery;
+        if (!(k > 0)) return rates;   // 否定形＝NaN も休眠側へ
+        var res = new double[rates.Length];
+        for (int b = 0; b < rates.Length; b++)
+            res[b] = b < goods.Length ? rates[b] * (1.0 - k * (1.0 - EquipUnlock(region, coef, goods[b]))) : rates[b];
+        return res;
+    }
+
+    /// <summary>★①基本段の耐久品ストック（2026-08-26）。在庫の読み＝**未初期化は目標**とみなす。
+    /// ⚠これは初期化の手抜きではなく物理である＝1783年に既に存在する軍は既に装備を持っている。
+    ///   0から始めると開幕1ヶ月目に全世界の軍が丸腰になり、即応度0→Military0→脅威比の発散という
+    ///   いま直そうとしている病そのものを新たに作ってしまう。
+    /// ⚠反乱勢力の武器庫（FactionState.ArmsStock・2026-09-11）は**この規則を当てない**＝呼び手が全財を0で TryAdd してから渡す（新しい運動は丸腰から）。</summary>
+    private static double ArmsHeld(Dictionary<int, double> stock, int gid, double target)
+        => stock.TryGetValue(gid, out double v) ? v : target;
+
+    /// <summary>★①基本段の耐久品の目標在庫（2026-08-26）。定常で **摩耗×目標 ＝ 従来の発注量**になるよう逆算した量
+    /// （<c>warWear × target ＝ 平時規模 × レート × 陸海の再配分</c>）＝新しい数を作らない。
+    /// ⚠陸海の再配分（<paramref name="milMul"/>）を**必ず掛ける**＝分子（発注）と分母（目標）で同じ再配分を通す
+    /// （E1で是正したのと同型の非対称をここで作り直さない）。平時規模＝国軍は Region.MilitaryScalePeace・反乱勢力は参加人数の換算（同じ式）。</summary>
+    private static double BaseArmsTarget(double scalePeace, double rate, double wear, double milMul)
+        => scalePeace * rate * milMul / Math.Max(1e-6, wear);
+
+    /// <summary>一律レートが含意する海のコストシェア（＝いま実際に買っている比・発見の係数を通した後の表で）。
+    /// 国家調達の陸海再配分（NavalProcurementNeedsPort／FromShape）と反乱勢力の武器購入が**同じ1本**を読む（2026-09-11）。</summary>
+    private static double FleetCostShare(Region region, Coefficients coef, double[] rates)
+    {
+        double flatNaval = 0, flatAll = 0;
+        for (int b = 0; b < coef.MilitaryGoods.Length; b++)
+        {
+            double cst = rates[b] * region.Markets[coef.MilitaryGoods[b]].Price;   // ★発見の係数を通した後の比＝「いま実際に買っている比」（未発明の汽船を陸の重みに数えない）
+            flatAll += cst;
+            if (System.Array.IndexOf(coef.FleetGoodIds, coef.MilitaryGoods[b]) >= 0) flatNaval += cst;
+        }
+        return flatAll > Eps ? flatNaval / flatAll : 0;
+    }
+
+    /// <summary>装備の質（充足）の1財ぶんの寄与＝**国軍と反乱勢力が同じ1本を呼ぶ**（2026-09-11・第二の定義を書かない）。
+    /// 消耗品（摩耗率1.0）または武器庫なし＝納入 <paramref name="got"/> そのもの（フロー）。
+    /// 耐久品：納入を武器庫へ積み、摩耗で減らす（★発注量は1ビットも変えていない＝変わるのは**測り方だけ**）。
+    ///   定常で 在庫 = 納入/摩耗、目標 = want/摩耗 なので **充足 = 納入/want ＝ フローの充足と厳密に同じ値**へ収束する。
+    ///   違いは時定数（1/摩耗 ≒ 50ヶ月）だけ＝「1ヶ月の調達失敗で全軍が消える」が「数年かけて劣化する」になる（新しい運動は逆に数年かけて武装する）。
+    /// 戦時は摩耗が (warMult−1)×ArmsWarWearScale だけ増す（その州の戦時倍率＝国軍も運動も同じ州の同じ値）。1期で全損はしない＝上限0.9。</summary>
+    private static double ArmsFillContribution(Region region, Coefficients coef, int b, int gid, double want, double got, double rate, double scalePeace, double milMul, Dictionary<int, double>? stock)
+    {
+        double wear = stock is not null && b < coef.MilitaryWearRates.Length ? coef.MilitaryWearRates[b] : 1.0;
+        if (stock is null || !(wear < 1.0)) return got;
+        double target = BaseArmsTarget(scalePeace, rate, wear, milMul);
+        double a = ArmsHeld(stock, gid, target);
+        double warWear = wear * (1.0 + coef.ArmsWarWearScale * Math.Max(0, region.MilitaryWarMultLast - 1.0));
+        a = Math.Max(0, a * (1.0 - Math.Min(0.9, warWear)));   // 1期で全損はしない＝上限0.9
+        a += got;
+        stock[gid] = a;
+        return want * (target > Eps ? Math.Clamp(a / target, 0, 1) : 1.0);
+    }
+
+    /// <summary>装備充足＝必要量のうち買えた（持っている）割合∈[0,1]。必要量が無ければ1.0。国軍（Region.MilitaryEquipFill）と反乱勢力（FactionState.EquipFill）の**唯一の定義**。</summary>
+    internal static double EquipFill(double equipWant, double equipGot)
+        => equipWant > Eps ? Math.Clamp(equipGot / equipWant, 0, 1) : 1.0;
+
+    /// <param name="durable">★段2a（2026-08-13）：true かつ ArmsStockEnabled>0 のとき、その段を**耐久品**として
+    /// 「不足分の費用」で見積もる。予算の上限式がフロー基準のままだと、発注だけがストック基準になって
+    /// **在庫を積み上げる原資が構造的に足りない**（実測：ストック版の方が装備が少なくなった）。
+    /// 消耗品の段（基本・空軍）は false で呼ぶ＝従来どおりフロー。</param>
+    /// <param name="rates">★発見の係数を掛けた後の原単位表（<see cref="DiscoveredRates"/>）。既定では素の表そのもの。</param>
+    private static double TierCost(Region region, Coefficients coef, int[] goods, double[] rates, bool durable)
+    {
+        double cost = 0;
+        bool stock = durable && coef.ArmsStockEnabled > 0;
+        double wear = stock ? Math.Max(1e-6, coef.ArmsWearRate) : 1.0;
+        for (int b = 0; b < goods.Length; b++)
+        {
+            double qty;
+            if (stock)
+            {
+                double target = region.MilitaryScalePeace * rates[b] / wear;
+                double have = region.ArmsStock?.GetValueOrDefault(goods[b]) ?? 0.0;
+                qty = Math.Max(0, target - have);
+            }
+            else qty = region.MilitaryScale * rates[b];
+            cost += qty * region.Markets[goods[b]].Price;
+        }
+        return cost;
+    }
+
+    /// <summary>★特権 段4（同業組合・2026-09-07）：職人の自営レシピ（OwnerPopIndex==LaborPopIndex==ArtisanPopIndex）の財ごとの供給シェア（産出÷州の総産出）と法の度合。
+    /// GuildLawGate=0 or GuildRentPremium=0 or 職人不在 or world 無し or 廃止済み では null（配列を作らず1命令も走らない＝厳密恒等・<paramref name="guildDeg"/> はそのとき 0 か廃止済みの度合）。
+    /// **唯一定義**（2026-09-11 M5）＝<see cref="Run"/> の消費ループと <see cref="ProductionDiag.ExplainPrice"/> が同じものを呼ぶ。</summary>
+    internal static double[]? GuildShares(Region region, Coefficients coef, World? world, out double guildDeg)
+    {
+        guildDeg = 0;
+        if (!(coef.GuildLawGate > 0 && coef.GuildRentPremium > 0 && region.ArtisanPopIndex >= 0 && world is not null && (guildDeg = Privileges.GuildDegree(world)) > 0)) return null;
+        int ngoods = region.Goods.Count;
+        var tot = new double[ngoods]; var art = new double[ngoods];
+        foreach (var pr in region.Producers)
+        {
+            if (pr.GoodId < 0 || pr.GoodId >= ngoods || !(pr.Output > 0)) continue;
+            tot[pr.GoodId] += pr.Output;
+            if (pr.LaborPopIndex == region.ArtisanPopIndex && pr.OwnerPopIndex == region.ArtisanPopIndex) art[pr.GoodId] += pr.Output;
+        }
+        var share = new double[ngoods];
+        for (int g = 0; g < ngoods; g++) share[g] = tot[g] > Eps ? Math.Clamp(art[g] / tot[g], 0, 1) : 0;
+        return share;
+    }
+
+    /// <summary>独占レント（塩(6)の王室の gabelle・茶(74)の東インド会社）の上乗せ率＝<paramref name="premium"/>×max(0, 1−工業化/MonopolyDissolveInd)×独禁法係数（MonopolyRentFactor）。
+    /// **唯一定義**（2026-09-11 M6・物理側）。エンジン（<see cref="BuyerWedge"/>）は premium=MonopolyRentPremium で実効率（旧 monRent と同じ積の順＝ビット同一）、
+    /// <see cref="Privileges.MonopolyDegree"/>（表示＝Active 州の最大）は premium=1 で度合[0,1]（1×x は厳密に x＝旧 Privileges の式とビット同一）。
+    /// MonopolyRentPremium ≤ Eps では 0（旧 Privileges 側の `!(x > 0)` ガードを正典の `> Eps` に統一＝差は 0&lt;Premium≤1e-9 の帯だけ・既定0.15で同値）。</summary>
+    internal static double MonopolyDegree(Region r, Coefficients c, double premium)
+        => !(c.MonopolyRentPremium > Eps) ? 0
+         : premium * Math.Max(0, 1.0 - r.Industrialization / Math.Max(1e-9, c.MonopolyDissolveInd)) * r.MonopolyRentFactor;   // 独占禁止法（E6）で×倍率（規制なし=1.0＝恒等・談合禁止/解体で縮小）
+
+    /// <summary>買い手が払う価格の楔＝<c>(1+stateMonop+distM+monRent+guildRent)×(1−insure)</c> の5項。**唯一定義**（2026-09-11 M5）＝
+    /// <see cref="Run"/> の消費ループ（需要と決済）・<see cref="ProductionDiag.ExplainPrice"/>（生産タブの価格積み上げ）・
+    /// が同じものを呼ぶ（⚠ PolicyPreferences の実効率の集計は 2026-09-20 に削除＝専売を政治から切り離したので読み手が消えた）。
+    /// 旧＝ProductionDiag が5項を書き写していて同業組合項を欠いていた（点火時に積み上げ表が pop の実支払いと合わない時限バグ）。
+    /// ・stateMonop＝専売（★作者裁定2026-09-20「専売の率を法律から完全に消す。材を選ぶのみにする」）：材ごとの ON/OFF だけ＝実効は **標準率×(0.5+0.5×AdminFill)**。
+    ///   ⚠旧は min(商品率, 国ごとの天井 World.ConsumptionTax) で、天井が0の間は材を選んでも実効0だった（生産タブのチェックが政治の登坂を待つ形）＝天井ごと削除した。行政の弱い地域は密輸で漏れる。
+    /// ・distM＝流通マージン（商人の収入）。役務（教育・医療＝対面）は直接取引＝マージンなし。
+    /// ・monRent＝独占レント（<see cref="MonopolyDegree"/>×MonopolyRentPremium・塩/茶のみ）。
+    /// ・guildRent＝同業組合の上乗せ＝職人の供給シェア×法の度合×GuildRentPremium（<paramref name="guildShare"/>=null で0＝恒等）。
+    /// ・insure＝健康保険(#3)：医薬品は国家が購入費を割合負担（残りは決済で国庫が生産者へ支払う＝保存）。
+    /// <paramref name="gi"/> が guildShare の範囲外（診断が Markets 長で走査する小世界）は同業組合項 0＝エンジンの到達域では常に範囲内。</summary>
+    internal static (double stateMonop, double distM, double monRent, double guildRent, double insure) BuyerWedge(Region region, Coefficients coef, int gi, bool isService, double[]? guildShare, double guildDeg)
+    {
+        double stateMonop = region.StateMonopolyMargins is { } ctr && gi >= 0 && gi < ctr.Length && ctr[gi] > Eps
+            ? ctr[gi] * (0.5 + 0.5 * region.AdminFill)
+            : 0;
+        double distM = region.MerchantPopIndex >= 0 && !isService ? coef.MerchantMargin : 0;
+        double insure = gi == coef.MedicalGoodId ? Math.Clamp(region.InsuranceCoverage, 0, InsuranceCoverageCap) : 0;
+        // タスクC（独占レント）：塩(6)の王室専売・茶(74)の東インド会社独占＝買い手価格に上乗せ（専売の上乗せと同型）。近代化(Industrialization)で解体＝自由化の創発代理。徴収は決済（qty確定時）で保有popへ。MonopolyRentPremium=0.15 点火（resentment側 MonopolyResentmentMilitancy=0 は差し戻し休眠）。0で恒等。
+        double monRent = gi == Catalog.SaltId || gi == Catalog.TeaId ? MonopolyDegree(region, coef, coef.MonopolyRentPremium) : 0;
+        double guildRent = guildShare is not null && gi >= 0 && gi < guildShare.Length ? coef.GuildRentPremium * guildDeg * guildShare[gi] : 0;
+        return (stateMonop, distM, monRent, guildRent, insure);
+    }
+
+    /// <param name="bank">家計向け与信の貸し手（POPの個人債務・2026-08-02）。null＝消費者信用は発動しない
+    /// （単体テスト・較正はこの経路を持たない＝厳密恒等）。</param>
+    public static void Run(Region region, Coefficients coef, double productivityMultiplier = 1.0, Bank? bank = null, World? world = null)
+    {
+        int ng = region.Markets.Length;
+        int np = region.Producers.Count;
+        bool cap = region.CapitalEnabled && coef.MachineGoodId < ng && coef.CementGoodId < ng;
+        // ★開始前の助走の資本形成の凍結（作者裁定2026-08-10 追加分「価格のみ試走することはできない？　問題は開始時の振動なので」）。
+        //   助走の目的は**価格が1783年の生産能力のまま均衡へ寄ること**。よってこの間は「能力が育つ経路」を全部止める。
+        //   ⚠止めるのは**建った結果（工業化度・BuiltScale・送電容量）だけ**で、**建てる需要と支払いは止めない**。
+        //     建設需要を消すと鋼・機械・セメント・製材の4財だけ需要が抜けて均衡が下振れし、助走が「間違った価格」へ収束する。
+        //   ⚠金は従来どおり動く（投資家／国庫→建材の生産者）＝貯蓄も国庫も溜まらず、解凍直後の反動バーストが立たない。
+        //     物量も従来どおり消費される＝MoneyConservation/GoodsBalance は不変（月次 CheckInvariants が番人）。
+        //   world==null（較正セル・単体テスト）は常に false＝厳密恒等。
+        bool warmFrozen = world?.WarmupFrozen == true;
+        var scratch = RentScratch(ng, np, region.Pops.Count);
+        var produced = scratch.Produced;
+        var inputNeed = scratch.InputNeed;
+        var inputTrickle = scratch.InputTrickle;   // 経1：再点火トリクルの超過分（Output超え＝物量を持たない幽霊需要）。ReignitionTrickleConserves=1 のとき価格シグナルにのみ算入（配給・在庫減・LastSold から除外）
+        var investDemand = scratch.InvestDemand;   // 投資による機械・セメントの需要（資本建設）
+        var militaryDemand = scratch.MilitaryDemand;   // 国家の軍需調達（小銃・弾薬等。財源は国庫＝StateSpent で保存）
+        var rebelDemand = scratch.RebelDemand;         // ★反乱勢力の武器購入（2026-09-11・休眠 RebelArmsMarketEnabled=0 では全要素0のまま）。財源＝参加POPの貯蓄（Paid で保存）
+        var ration = scratch.Ration;
+        var effDemand = scratch.EffDemand;         // RGO効率化材の需要（肥料/帆船/飼料/工具）。コア需要と分け、残余だけ配給＝中核生産を飢えさせない（工具は機械が先取り）
+        var effRation = scratch.EffRation;         // 効率化材の配給率（残余ベース＝コアより低い）
+        var clearPrice = scratch.ClearPrice;
+        var revenue = scratch.Revenue;             // 各財に実際に支払われた総額（消費＋投入＋投資）→生産者へ分配
+        var producerCount = scratch.ProducerCount;
+        var inputCost = scratch.InputCost;         // 生産者ごとの投入支払い
+
+        region.LastSubsistenceOutput = 0;   // 人2補完：自給産出の月次アキュムレータ（FoodMet/FoodNeedと同じ月次リセット）
+        region.LastStateMonopolyRevenue = 0;      // 接2：当月の専売益（月次リセット→購入時に累積。Fiscalの予算基数）
+        foreach (var p in region.Pops)
+        {
+            // ★ゼロ化の直前に前期の所得を退避（私的投資の原資が読む・2026-08-04）。⚠この行は複数文が並ぶ＝行途中にコメントを挿すと以降が全部コメントアウトされる（実際に踏んで平均充足0＝31テスト赤）
+            p.LastEarned = p.Earned;
+            p.LastEducationFill = p.EducationFill;   // ★段②：前月の就学を写す（財ループが EducationFill を潰す前＝処理順に依存しない。読み手が居なければ書くだけ＝恒等）
+            p.LastSatisfaction = p.Satisfaction;      // ★前月の満足度を写す（当月の Satisfaction は §消費の後で上書きされる＝同一ティックの閉路を作らない。読み手が居なければ書くだけ＝恒等）
+            p.Paid = 0; p.Earned = 0; p.LandRent = 0; p.IndustrialRent = 0; p.RemainingBudget = p.Savings; p.NeedMet = 0; p.NeedTotal = 0; p.FoodMet = 0; p.FoodNeed = 0;
+        }
+        // 投資家は投資枠（貯蓄の IndInvestmentFrac）を消費予算から控除＝消費と投資が同じ貯蓄を二重に使わない（貯蓄が負にならない）。
+        if (cap && region.InvestorPopIndex >= 0)
+            region.Pops[region.InvestorPopIndex].RemainingBudget *= 1.0 - coef.IndInvestmentFrac;
+        // ★純テレメトリ（2026-08-21）：この州の pop がこの月に**使える**消費予算の総額（投資枠控除後）。
+        double budgetStartDiag = 0;
+        if (BudgetBindDiag.On) foreach (var p in region.Pops) budgetStartDiag += Math.Max(0, p.RemainingBudget);
+        // 所得翻訳ゲート（設計3段2・2026-08-08）：pop別の需要係数 f を月1回計算。r＝月収が基礎バスケット
+        // （Staple∪Daily の BaseNeed×RefPrice）何個分か。ln形＝r=2で+7〜28%・Cap到達で頭打ち＝暴走しない。
+        // ⚠既定 DemandIncomeElasticity=0 ではブロックごとスキップ＝浮動小数点演算を1個も足さない厳密恒等。
+        // ⚠NaNガードは否定形 !(f>1.0)（Math.Clamp はNaNを除去しない既知の罠）。
+        if (coef.DemandIncomeElasticity > 0)
+        {
+            double basketRef = 0;
+            foreach (var g in region.Goods) if (g.Tier == GoodTier.Staple || g.Tier == GoodTier.Daily) basketRef += g.BaseNeed * g.RefPrice;
+            if (basketRef > Eps)
+                foreach (var p in region.Pops)
+                {
+                    double incomeRatio = p.Size > 1e-9 ? (p.LastEarned / p.Size) / basketRef : 0;
+                    double f = 1.0 + coef.DemandIncomeElasticity * Math.Log(Math.Max(1.0, incomeRatio));
+                    if (!(f > 1.0)) f = 1.0;
+                    if (f > coef.DemandIncomeFactorMax) f = coef.DemandIncomeFactorMax;
+                    p.DemandIncomeFactor = f;
+                }
+        }
+        // 在庫の腐敗・劣化（保管期間に応じた減衰）：穀物・生鮮は速く、金属・燃料は遅い。だぶつきの恒久滞留を防ぐ。
+        // PrevStock 確定前に適用＝期内の財収支（在庫＝前在庫＋生産＋輸入−販売−輸出）は保たれる（腐敗は期の起点に織り込み）。
+        // 冷蔵の時代動学（B-2）：工業化が進むと生鮮（肉・魚・乳・果実）の腐敗が下がる＝1870s冷凍肉貿易革命。工業国ほど効く。
+        double refrigeration = coef.RefrigerationEffect > 0
+            ? Math.Clamp((region.TotalIndustrialization - coef.RefrigerationIndOnset) / coef.RefrigerationIndSpan, 0, 1) : 0;   // 冷蔵チェーンは立っている設備の規模＝新旧合計（ヴィンテージ2026-07-10）
+        foreach (var good in region.Goods)
+            if (good.Spoilage > 0)
+            {
+                double spoil = good.Spoilage;
+                if (refrigeration > 0 && Catalog.IsRefrigerable(good.Id)) spoil *= 1.0 - coef.RefrigerationEffect * refrigeration;
+                var spm = region.Markets[good.Id];
+                // 廃棄材の記録（2026-08-08・作者要望）：消える量を12ヶ月リングへ。純テレメトリ＝力学の読み手なし・
+                // Stock の更新式は不変（結合順も同じ＝数値軌道はビット不変）。
+                double lost = Math.Max(0, spm.Stock) * spoil;
+                spm.SpoilLog[spm.SpoilIdx] = lost; spm.SpoilIdx = (spm.SpoilIdx + 1) % 12;
+                double spSum = 0; for (int si = 0; si < 12; si++) spSum += spm.SpoilLog[si];
+                spm.SpoiledLastYear = spSum;
+                spm.Stock *= 1.0 - spoil;
+            }
+        foreach (var m in region.Markets)
+        {
+            m.PrevImport = m.LastImport; m.PrevExport = m.LastExport;   // ★S2台帳衛生：ゼロ化前に前清算値を写す（読み手が居なければ書くだけ＝恒等）
+            m.PrevStock = m.Stock; m.LastImport = 0; m.LastExport = 0;
+            m.LastProduced = 0; m.LastSold = 0; m.LastShortage = 0;
+            m.PopBought = null;   // 純記帳（項目6）＝popの購入は今月の台帳と同じ寿命。書き直されるのは③の取引のとき
+        }
+
+        // 植民地素材の輸入（植民地と制海で供給）。封鎖/植民地喪失で ColonialAccess↓→枯渇（§6.1）。
+        region.ColonialImportCost = 0;
+        if (region.ColonialResources is { } cres)
+        {
+            // 経19（往復を閉じる）：パイプライン状態は係数有効時のみ遅延確保＝月跨ぎで Region に保持され pipe[gid] が先月の書込みを読む（読み出し⇄書き込みが閉じる）。
+            // ColonialImportLagMonths=1.0（点火2026-07-28）。0なら確保せず null のまま＝下段の即時加算のみ＝旧恒等（この地域が首都市場で全植民地財を受けるので首都州の pipe に一元化）。
+            if (coef.ColonialImportLagMonths > 0 && region.ColonialImportPipeline is null)
+                region.ColonialImportPipeline = new double[region.Markets.Length];
+            // 多国：保有植民地の固有資源（任意の財＝原料も完成財も）を産出率（開発度の飽和曲線）で輸入。初期≈0で投資が遅れて実る。
+            foreach (int gid in cres)
+            {
+                if (gid < 0 || gid >= region.Markets.Length) continue;
+                var m = region.Markets[gid];
+                double demandTarget = Math.Max(m.LastDemand, m.TargetStock) * region.ColonialAccess * region.ColonialOutput;
+                double demandGap = Math.Max(0, demandTarget - m.Stock);
+                double prodPush = region.ColonialSupply != null ? region.ColonialSupply[gid] : 0;   // 供給駆動の産出（需要と無関係に毎期流入）
+                double import = Math.Max(demandGap, prodPush);   // 産出が需要を超えれば在庫が膨らみ価格が暴落（フラッディング）
+                // 経19（海上リードタイム・点火1.0）：今月発注分を1段パイプライン（先月発注分を今月着荷）へ回し海上遅延を表現＝綿花飢饉型の価格スパイクが立つ。
+                // lag は 0..1 の連続近似（1で満額を1ヶ月遅延）として blend。0 なら即月＝旧恒等。
+                if (coef.ColonialImportLagMonths > 0 && region.ColonialImportPipeline is { } pipe && gid < pipe.Length)
+                {
+                    double lag = Math.Clamp(coef.ColonialImportLagMonths, 0.0, 1.0);
+                    double arrive = (1.0 - lag) * import + lag * pipe[gid];   // 今月着荷＝即時分＋先月パイプライン分
+                    pipe[gid] = import;                                        // 今月発注分を来月へ繰越
+                    m.Stock += arrive;
+                    m.LastImport += arrive;
+                }
+                else
+                {
+                    m.Stock += import;
+                    m.LastImport += import;
+                }
+            }
+        }
+        else
+        {
+            // 単一国（テスト）：従来どおり全植民地財を入手率で輸入（産出率1.0）。
+            foreach (var good in region.Goods)
+                if (good.IsColonial)
+                {
+                    var m = region.Markets[good.Id];
+                    double target = Math.Max(m.LastDemand, m.TargetStock) * region.ColonialAccess;
+                    double import = Math.Max(0, target - m.Stock);
+                    m.Stock += import;
+                    m.LastImport += import;
+                }
+        }
+
+        // 労働配分の重み＝前期総需要。工業化度の減価償却（維持に投資が要る）。
+        int npops = region.Pops.Count;
+        var laborTotalW = scratch.LaborTotalW;
+        var laborCount = scratch.LaborCount;
+        var prodW = scratch.ProdW;
+        for (int pi = 0; pi < np; pi++)
+        {
+            var s = region.Producers[pi];
+            // A-中1派生（2026-07-23）：**未発明のレシピは労働を雇わない**＝TechOnset 未解禁の生産者は労働配分に参加しない
+            //（旧＝解禁前でも prodW=需要×Scale の死ウェイトを持ち、労働を取るのに産出0＝純損失。onset レシピが増えるたびに
+            // 見えない損失が積もる構造で、水力発電の追加が4カ国テスト世界の米Techアンカーを割って発覚）。onset≤0＝×1.0＝厳密恒等。
+            // ⚠この行にゲートは無い＝上の記述が真になるのは **操業規模の更新の TechGatedScaleZero（2026-08-11 点火）が Scale=0 を置く経路**による。
+            // （2026-08-10の監査で「コメントが実装を先取りしたまま」と指摘された箇所。点火で解消したので、外す時は上の記述も一緒に戻すこと。）
+            // ★★★準レント配分＋配分信念（2026-08-22・作者指示「需要と供給が適切に相互作用するよう組み換え、不要な実装を削除するところまで」＝点火・旧式は削除）。
+            // 【旧の何が誤りか】重みが「需要**量**×Scale」だった＝価格を飛ばして物量が労働を配っていた。物量なので「石炭の重量」と「時計の個数」を
+            //   同じ土俵で比べ、**単価の高い財は構造的に労働を取れない**（実測＝英の小銃は需要38/月に対し産出3〜4/月・その3〜4も均等床由来）。
+            //   さらに積なので需要0で Scale が代数的に消える＝工場を建てても播いても生産が始まらない（軍需ラウンド実測＝Q1小銃生産は全腕で中央値0.0）。
+            // 【新】労働1シェアが生む**付加価値**（価格−投入費）×単位能力で配る＝「労働は価値を生むところへ行く」（下の是正注記）。
+            //   ・×売れる量（前期需要・床 TargetStockFloor）＝売れない量に労働を流さない（下の是正3の注記）。
+            //   ・×Scale＝建設（BuiltScale）・倒産（Scale=0）・技術ゲート（Scale=0）が旧と同じ意味で効く。fraction の零和分割（Σ=1）は不変。
+            // 【配分信念のEMA】生産者はスポット価格でなく**期待稼得**で職を選ぶ＝二時間尺度の主体（速い操業判断＝スポット・遅い配置判断＝EMA）。
+            //   墓標＝v1スポット版（τ=0 の無期待リンク）は恐慌 28→89回/試合・不作先行32→42%（コブウェブ）。EMAの不動点は rent×unit そのもの＝定常配分は同一。
+            //   時定数は SupplyAdjustSpeed（産出追従と同じ＝「コブウェブ振動を減らす」目的で較正された既存量）を再利用＝新定数ゼロ。
+            //   ⚠Scale は EMA の外（離散状態＝倒産工場が信念の残像で労働を人質に取らない）。
+            //   墓標＝混雑予期（期待売値＝価格×min(1,需要予測/供給予測)）は実測で効果−2.4回・赤1件＝削除（2026-08-22）。
+            var mkR = region.Markets[s.GoodId];
+            // ★重み＝**付加価値**（価格−投入費）であってレント（価格−限界費用）ではない（2026-08-22 是正）。MarginalCost は「1単位の付加価値費用＝賃金・生存線分」
+            //   ＝その労働自身の取り分なので、労働の行き先を決める式から引くと「所有者の残余利潤」で労働を配ることになる。実測の破綻＝投入財（紙等）の
+            //   レント≤0→労働ゼロ→下流の役務（教育・行政）が投入切れで崩壊（教育産出1.3・行政力0.028＝テスト5本赤）。旧式は需要が直接労働を呼んで
+            //   いた（松葉杖）ので見えなかった。付加価値なら「価格が投入費を上回る財は価値を生む」＝労働は価値を生むところへ行く。
+            double rentR = mkR.Price - InputCostPerUnit(s, region, region, coef);
+            if (!(rentR > 0)) rentR = 0;                                   // 否定形＝NaN も 0 側へ倒す（投入費も賄えない財は労働を取らない）
+            // ★売れる量を掛ける（2026-08-23 是正3・作者仮説「食品価格＝農家が何に吸われているか」の実測）：付加価値×能力で配ると、需要15/月・在庫18,677の
+            //   石灰石が農民労働の8.7%を取り続け（価格が床で止まり付加価値が消えない）、野菜も需要614に産出1,180＝**売れない量にまで労働が流れて主食が痩せる**
+            //   （食料比0.81・主食シェア28%）。重み＝付加価値×**売れる量**（前期需要）＝「労働は市場価値（売れる量×単価）に比例して行く」。
+            //   物量バイアスは単価（付加価値）が、過剰生産は需要が、それぞれ抑える。需要0の財は TargetStockFloor（既存の「量として意味を持つ最小」）で
+            //   種火を残す＝再点火の入口（床撤去後の bootstrap）。新定数ゼロ。墓標＝×UnitCapacity（能力）＝過剰生産・×LastInputFill＝自己参照デッドロック。
+            double sellR = mkR.LastDemand > coef.TargetStockFloor ? mkR.LastDemand : coef.TargetStockFloor;
+            s.LaborWeight += coef.SupplyAdjustSpeed * (rentR * sellR - s.LaborWeight);
+            prodW[pi] = s.LaborWeight * s.Scale;
+            if (s.GoodId is Catalog.LaborId or Catalog.AdvLaborId or Catalog.FarmLaborId) continue;   // 労働力・高度労働力の生産者は配分競争の外（階級全体が役務を算出し、工場が市場で買う）
+            laborTotalW[s.LaborPopIndex] += prodW[pi];
+            laborCount[s.LaborPopIndex]++;
+        }
+        // ★助走中は減価も止める（2026-08-10 追加裁定）＝蓄積を止めた以上、減価だけ効かせると資本が一方的に痩せる
+        //   （実測：資本形成だけ止めた版で工業化最大が 0.31→0.22 へ 10年ぶん目減りした）。凍結は**両側**でなければ「1783年のまま」にならない。
+        //   ヴィンテージ経年（現世代→旧世代への移行）も同じ理由で止める＝据付年からの経過そのものだから。
+        if (cap && !warmFrozen)
+        {
+            // 開発度の記憶（2026-07-27）：旧＝無記憶の指数減衰のみで床が無く、投資が止まると (1−0.003)^1812 ≈ 0.004 ＝
+            // 約50年で工業化がほぼ0へ落ちる（実測 seed1：1788年に仏へ敗れ属国化した英が1914年に工業化0.00・スコア50・49位）。
+            // 史実の資本は設備が失われても「体化された技術・熟練・制度」が残り、再建と維持が速い（独日の戦後復興）＝
+            // ピークから離れるほど物理減価を緩め、0へ漸近させる（資本を注入しない＝保存則・単調性に非接触）。
+            // DevelopmentMemory=0 で dep は coef.IndDepreciation そのもの＝式も掛順も不変＝厳密恒等。
+            double dep = coef.IndDepreciation;
+            if (coef.DevelopmentMemory > 0)
+            {
+                double totNow = region.Industrialization + region.OldVintageCapital;
+                if (totNow > region.DevelopmentPeak) region.DevelopmentPeak = totNow;
+                if (region.DevelopmentPeak > 1e-9)
+                    dep *= 1.0 - coef.DevelopmentMemory * (1.0 - Math.Clamp(totNow / region.DevelopmentPeak, 0, 1));
+            }
+            region.Industrialization *= 1.0 - dep;
+            region.OldVintageCapital *= 1.0 - dep;   // ヴィンテージ有効化2026-07-10：旧世代も同率の物理減価＝新旧合計(TotalIndustrialization)は旧単層と同一動学（分割は恒等・座礁だけが差分）
+        }
+        // ヴィンテージ資本（no-vintage-capital-depreciation・有効化2026-07-10キュー5）：現世代の一部を旧世代へ経年させ、旧世代は現Techとの差(techGap)に比例して座礁＝生産性に寄与しない。
+        // 技術先行国ほど据付時Techと現Techの乖離が積み上がり旧資本が足枷に・後発は新鋭資本で競り勝つ（実力ベース首位交代の本命機構）。
+        // 両係数0でOldVintageCapital=StrandedVintage=0・effInd=Industrialization＝現行と厳密恒等。座礁は月次再計算の割引（ストック破壊ではない）＝Tech停滞国では旧資本がフル寄与のまま。
+        if (cap && coef.VintageMigrateRate > 0 && !warmFrozen)
+        {
+            double migrate = region.Industrialization * coef.VintageMigrateRate;
+            double newOld = region.OldVintageCapital + migrate;
+            region.VintageTechLevel = newOld > Eps ? (region.VintageTechLevel * region.OldVintageCapital + region.TechLevel * migrate) / newOld : region.TechLevel;
+            region.OldVintageCapital = newOld;
+            region.Industrialization -= migrate;
+            double techGap = System.Math.Max(0.0, region.TechLevel - region.VintageTechLevel);
+            region.StrandedVintage = System.Math.Min(region.OldVintageCapital, coef.VintageObsolescence * region.OldVintageCapital * techGap);
+        }
+        double effInd = region.ProductiveIndustrialization;   // 生産性チャネル＝座礁控除後（休眠時はIndustrializationに恒等）
+        // 機械化度（技術的失業 no-labor-saving-tech-unemployment の駆動）：稼働資本の飽和カーブ∈[0,1)。LaborSaveRate=0で0固定＝EffectiveQtyで未使用＝中立。座礁した旧世代は稼働しない＝控除後を読む。
+        region.Mechanization = coef.LaborSaveRate > 0 ? effInd / (effInd + coef.LaborSaveIndHalf) : 0.0;
+        // 工業化由来の生産性は逓減（飽和カーブ）。固定上限を持たずに頭打ちになるので、上限を外しても発散しない。
+        double indMult = cap
+            ? 1.0 + coef.IndProductivityGain * effInd / (1.0 + effInd / coef.IndProductivityScale)
+            : 1.0;
+
+        // 主食(Staple)の good.Id ルックアップ（豊作/不作は主食RGO産出と自給にのみ効く）。役務(Service)も同様に索引。
+        var isStaple = scratch.IsStaple;
+        var isService = scratch.IsService;
+        foreach (var g in region.Goods)
+        {
+            if (g.Id >= isStaple.Length) continue;
+            if (g.Tier == GoodTier.Staple) isStaple[g.Id] = true;
+            if (g.Tier == GoodTier.Service) isService[g.Id] = true;
+        }
+
+        // 土地（耕地）の収穫逓減：農村人口が耕地賦存量(ArableLand)を超えると土地作物RGOの産出が落ちる（農地＝固定生産要素）。未設定＝1.0（制約なし）。
+        double regionLandFactor;
+        // rank5 囲い込みプッシュ（★live 2026-08-31点火・RentScarcityElasticity=1）：土地の混み具合＝稀少度。
+        // landFactor と**同一入力**（ArableLand÷農村人口）の逆数側 max(0, 農村人口/ArableLand−1)＝耕地を超えた分だけ正。
+        // センチネル（ArableLand≥1e8＝合成較正・最小テスト世界）は LandFactor と同じく除外＝0。ゲート内でのみ計算＝dormant時は1命令も走らない（NaN/∞も入らない）。
+        double landScarcity = 0;
+        // Σ Size は Run 中不変（Size の書き手なし）＝一度だけ集計して各所で共有（各所の再走査と同じ加算順＝ビット恒等）
+        double totalPop = 0, urbanPop = 0, ruralPop = 0;
+        foreach (var p in region.Pops) { totalPop += p.Size; if (p.IsUrban) urbanPop += p.Size; else ruralPop += p.Size; }
+        regionLandFactor = Territory.LandFactor(region, ruralPop, coef);
+        if (coef.RentScarcityElasticity > 0 && region.ArableLand < 1e8)
+            landScarcity = Math.Max(0, ruralPop / Math.Max(1.0, region.ArableLand) - 1.0);
+
+        // === ① 供給：能力＝労働（工業化度で生産性が上がる）。供給曲線。投入充足で律速（§9-A 注2）===
+        for (int pi = 0; pi < np; pi++)
+        {
+            var s = region.Producers[pi];
+            if (s.Bankrupt) { s.Output = 0; continue; }   // 倒産工場は操業停止（産出0。Scale0で労働も配分されない）
+            int lp = s.LaborPopIndex;
+            // 労働力・高度労働力の生産者＝階級全体が算出（fraction=1）。工場の能力は従来通り需要シェアで按分し（規模調整）、
+            // 実際の雇用（賃金支払い）は役務の購入＝投入充足が律速する。
+            double fraction = s.GoodId is Catalog.LaborId or Catalog.AdvLaborId or Catalog.FarmLaborId ? 1.0
+                : laborTotalW[lp] > Eps
+                    ? prodW[pi] / laborTotalW[lp]   // 均等床 LaborFloorMix は撤去（2026-08-22・作者裁定「ラッダイトは必須」）＝準レントでは価格上昇が自動で重みを戻すので恒久ロックアウトが起きない
+                    : laborCount[lp] > 0 ? 1.0 / laborCount[lp] : 1.0;
+            // ★段1 器 EduProducersCoexist（教育の三層化・2026-09-12）：教育法が非活性にした学校（Simulation.StepMonth が Scale=0 を置く）は能力0。
+            //   ⚠Scale は零和分割の重み prodW=LaborWeight×Scale でしか能力に届かず、担い手popに生産者が1件しかない学校（聖職者／教師は他に生産者を持たない）
+            //   では上の fallback が fraction=1/laborCount=1 を返して Scale=0 が素通りする（doc §2-7-Z「fraction≡1」の裏面）。教育財に限り Scale=0 を
+            //   fraction=0 と読む＝TechGatedScaleZero（工場は boost の発明ゲートが同時に0）の役務版。0＝第1項で短絡＝s.Scale を読まない＝厳密恒等。否定形＝NaN も0側。
+            if (coef.EduProducersCoexist > 0 && s.GoodId == Catalog.EducationId && !(s.Scale > 0)) fraction = 0;
+            // 不作は**畑（農作物RGO）**の産出を落とす（麦→小麦粉→パンと波及し食糧高騰）。工場（製パン所）は天候の影響を受けない
+            // ＝供給減は連鎖を通って届く。小世界の主食RGO（食料・IsRgo未設定の旧式）は無投入で判別し従来どおり対象。
+            bool fieldLike = s.IsRgo || s.Inputs.Count == 0;
+            // 不作：天候依存度（各財固有の連続データ）で振れる。主食(tier)は全振れ／露地作物1.0／畜産0.45・漁獲0.35／鉱物・生糸・製造は0。
+            double harvestSev = isStaple[s.GoodId] ? 1.0 : Catalog.WeatherExposure(s.GoodId);
+            double effHarvest = region.HarvestFactor * region.WeatherBandFactor;   // 国の局地天候×緯度帯（気候帯）の天候＝積算（欧州一帯の凶作が国の不作に重なる）。単一国は帯=1.0で中立
+            double harvestMul = fieldLike && harvestSev > 0 ? 1.0 + (effHarvest - 1.0) * harvestSev : 1.0;
+            // 作物固有の病虫害（胴枯れ）：その作物の健全度を産出に乗じる。天候(harvestMul)とは独立にロールされ**積算**＝両者の悪い目が重なれば栽培州の産出はほぼ0（アイルランド大飢饉型）。
+            if (region.CropHealth is { } ch && s.GoodId < ch.Length) harvestMul *= ch[s.GoodId];
+            double mineralMul = Catalog.IsMineral(s.GoodId) ? region.MineralDepletion * region.MineralGradeFactor : 1.0;   // 鉱物の枯渇イベント×★鉱脈の品位（在庫由来・2026-08-14。既定1.0＝恒等＝掘るほど落ちるのはゲート点火時のみ）
+            // 役務（教育・医療・行政・高度労働力）＝労働集約のまま＝倍率に乗らない（ボーモルのコスト病）。
+            // 人力労働＝工業化（indMult＝投資で買い積んだ機械・組織）でのみ伸びる＝裸の技術では人は増えない。
+            // 工場＝フル倍率＋**電化ブースト**（買えた電力に応じて稼働率↑＝夜間操業）。
+            // ※AdvancedTechScale＝**発明の時期の表現**（外科的パッチではない・結論）。撤去実験を二度行い、
+            //   一律参照価格でも費用連鎖の参照価格でも1790年代に電化が始まった（28%）＝価格は「高い」を表現できても
+            //   「まだ発明されていない」を表現できない（カタログは全レシピを1789年から実働で持つ）。
+            //   発電機系の生産性が技術と共に立ち上がる＝発明＝知識の普及の正当なモデルとして確定。
+            bool isLabor = s.GoodId is Catalog.LaborId or Catalog.FarmLaborId;   // 人力（工場労働・農業労働）＝工業化(indMult)でのみ伸びる
+            bool baumol = isService[s.GoodId] && !isLabor;
+            // ★2026-08-10（幻の生産）：技術ゲート2本を**変数に取る**だけ（式・値・掛順は不変＝厳密恒等）。
+            //   下の産出スナップが「未発明か」を**この同じ値**で判定する＝能力の式と判定式が食い違わない。
+            double recipeGate = Catalog.RecipeTechScale(s.TechOnset, region.TechLevel);   // 代替レシピの近代側の製法を晩期にゲート（TechOnset=0＝旧法は無ゲート）＝発明の時期の表現
+            double advGate = Catalog.AdvancedTechScale(s.GoodId, region.TechLevel);       // 財の連鎖の深さから導く発明ゲート
+            double boost = baumol ? 1.0
+                : isLabor ? indMult * recipeGate   // 04材化(c)：労働力の並存レシピ（畜力/蒸気/電動）の発明ゲート。既存人力=TechOnset0で×1.0＝厳密恒等
+                : productivityMultiplier * region.ProductivityBonus * indMult * (1.0 + coef.SteamBoost * s.SteamFill) * (1.0 + coef.ElecBoost * s.ElecFill) * (1.0 + coef.EffBoost * s.EffFill)
+                  * advGate      // 工場は蒸気(SteamFill)→電化(ElecFill)、RGOは効率化材(EffFill)で増産。RGOはSteam/Elec=0、工場はEff=0なので各々の分だけ乗る
+                  * recipeGate;
+            // 05-A（2026-07-29）：戦災＝農業・畜産の産出減（劣勢側の戦場のみ・戦争終結で自然回復）。飢饉・食料充足・扶養力の丁寧な機構に
+            // 戦争が一切影響しなかった欠落を閉じる（戦争→飢饉→闘争度→政変の連鎖）。畜産(19)は重め＝「馬は真っ先に持っていかれる」（徴発は市場価格経由で自動）。
+            if (s.IsRgo && region.LastWarIntensity > 1e-12)
+            {
+                var gdw = Catalog.Goods[s.GoodId];
+                if (gdw.Tier == GoodTier.Staple || s.GoodId == Catalog.LivestockId)
+                    boost *= System.Math.Max(0.0, 1.0 - (s.GoodId == Catalog.LivestockId ? coef.WarLivestockOutputDamage : coef.WarFarmOutputDamage) * region.LastWarIntensity);
+            }
+            // 禁制品の全面禁止（禁制品doc C3・2026-07-30）：国内生産も違法＝取り締まれた分だけ産出が消える。残るのは闇栽培＝
+            // Simulation が四半期ごとに州の行政充足率から設定した ContrabandProductionFactor（禁止していない州は 1.0＝この行は不発＝厳密恒等）。
+            if (s.GoodId == coef.OpiumGoodId && region.ContrabandProductionFactor < 1.0) boost *= region.ContrabandProductionFactor;
+            // 労働財（労働力・農業/高度労働力）の供給＝働ける人口：成人（男性＋女性×参加率）＋児童労働（許可時・半人前）。
+            // 基準（子供3割・女性参加0.4・児童労働許可）で正規化＝既定は等倍。徴兵・戦死で男が減ると締まり（失われた世代）、
+            // 女性財産権法で緩み（+2割）、**児童労働の禁止は実物の供給ショック**（−2割超）→賃金上昇＝成人労働者は禁止に賛成する政治。
+            if (isLabor || s.GoodId == Catalog.AdvLaborId)
+            {
+                var lpop = region.Pops[lp];
+                // ①Phase3（live・OldLaborFactor=0.75）：老年の労働不参加分 (1−OldLaborFactor)×OldShare を成人から差し引く＝老年の25%が労働不参加。1.0なら旧と厳密一致。
+                double adults = 1.0 - lpop.ChildShare - (1.0 - coef.OldLaborFactor) * lpop.OldShare;
+                if (coef.OpiumAddictionGrowth > 0 && region.OpiumAddiction > 0) adults *= Math.Max(0.5, 1.0 - coef.OpiumLaborPenalty * region.OpiumAddiction);   // P3：依存が労働供給を蝕む（床0.5・煙館の昼）
+                // 倍率排除④：女性参加・児童労働を時間配分から創発（家計困窮×賃金保持×就学）。較正harness（学校なし・retention=0）では旧式に恒等一致。
+                lpop.ChildLaborRate = LaborSupply.ChildLaborRate(lpop, region, coef);   // 子供の労働時間割合（識字側＝TechEducationも同式を参照）
+                double work = adults * ((1.0 - lpop.FemaleShare) + lpop.FemaleShare * LaborSupply.FemaleParticipation(lpop, region, coef))
+                            + lpop.ChildShare * coef.ChildWorkFactor * lpop.ChildLaborRate;
+                // 倍率排除②：旧 work/0.64（標準構成を等倍化する正規化定数）を「各popの初期労働供給 work0」基準へ一般化。
+                // 初回（t=0）の work を基準に捕捉＝各popが自分の出発点に対する相対変化（女性財産権法・児童労働禁止・戦死）で効く。標準構成は work0=0.64 で旧挙動と一致＝較正中立。
+                if (lpop.InitialWork < 0) lpop.InitialWork = work;
+                // ★段5＝民兵は畑と工場から抜ける（作者裁定3・2026-09-08）：武器を取った割合だけ労働供給が痩せる。
+                //   ⚠**新しい経路を作らない**＝既存の労働供給（この work）に乗せるだけ＝産出減・賃金上昇・食料不足は既存の市場が創発させる。
+                //   ⚠基準（InitialWork）の捕捉より**後**に掛ける＝平時の労働を基準に測る（動員中の細った労働を新しい基準にしてしまわない）。
+                //   ⚠民兵率0（既定 RevoltMilitiaRaise=0 では恒久0）では分岐に入らない＝厳密恒等。NaN でも条件が偽＝旧側へ倒れる。
+                if (lpop.MilitiaShare > 0) work *= System.Math.Max(0.0, 1.0 - lpop.MilitiaShare);
+                boost *= work / System.Math.Max(1e-9, lpop.InitialWork);
+            }
+            // 土地作物RGO（採取/農業のうち鉱物・労働・役務を除く＝穀物/畜産/木/綿花等）に土地の収穫逓減を適用。鉱物は鉱床(mineralMul)が別に律速。
+            bool landUsing = fieldLike && !Catalog.IsMineral(s.GoodId) && !isLabor && !baumol;
+            if (landUsing) boost *= regionLandFactor;
+            // 産業政策 レバー1（2026-07-24）：軟予算制約（コルナイ）＝補助依存ストックが実効生産性を蝕む。恒久補助＝実質コスト逓増＝
+            // 「時限補助→黒字化 or 払い下げ」だけが割に合う（明治の官営払い下げの創発）。独立乗算・SubsidySoftBudgetDecay=0.4（点火2026-07-24）。0で不読＝旧恒等。
+            if (coef.SubsidySoftBudgetDecay > 0)
+                boost *= 1.0 - coef.SubsidySoftBudgetDecay * s.SubsidyDependence;
+            // #136 内戦の経済麻痺（2026-07-25）：内戦中は流通・徴発・戦場化・労働の逃散で実効生産性が落ちる（太平天国＝江南壊滅・米内戦＝南部の崩落。
+            // 現行の内戦は軍需消費2倍のみ＝むしろ軍需景気の面すらあった）。独立乗算・CivilWarEconomyDisruption=0.2（点火2026-07-25）。0で不読＝旧恒等。
+            if (coef.CivilWarEconomyDisruption > 0 && region.CivilWarActive)
+                boost *= 1.0 - coef.CivilWarEconomyDisruption;
+            // 規模の経済（B-2）：工場財（投入連鎖を持つ非RGO）のみ、操業規模で生産性↑＝大工場ほど単位コスト安。
+            // 規模 u＝前期産出/自国市場需要。u/(u+Half)で飽和（発散しない）。輸出で規模を伸ばす国ほどボーナス＝産業集中。RGO・役務・人力は対象外。
+            if (!fieldLike && !baumol && !isLabor && coef.ScaleEconomyGain > 0)
+            {
+                double demand = System.Math.Max(region.Markets[s.GoodId].LastDemand, 1e-9);
+                double u = s.Output / demand;
+                boost *= 1.0 + coef.ScaleEconomyGain * u / (u + coef.ScaleEconomyHalf);
+            }
+            s.Capacity = region.Pops[lp].Size * fraction * s.Productivity * boost * harvestMul * mineralMul;
+            double mc = MineralSelfCost(s, region, coef) + InputCostPerUnit(s, region, region, coef);   // ★器 MineralCostFollowsGrade（2026-09-07・既定0＝休眠）：ゲート0で MineralSelfCost は s.MarginalCost をそのまま返す＝旧1行と厳密恒等
+            double price = region.Markets[s.GoodId].Price;
+            double profitFactor = price <= mc ? 0.0 : Math.Min(1.0, (price - mc) / (mc * coef.SupplySlope));
+            s.DesiredOutput = s.Capacity * profitFactor;                  // 採算が合えば作りたい量（再点火トリクル用＝充足前）
+            // 経16：当期産出は前期充足率(LastInputFill)で決まる＝投入が突然涸れた月に無から産出が出る。
+            // 当期の投入在庫カバー率（今月使える投入量／満額産出に要る量）で追加的に律速する＝封鎖・恐慌の立ち上がり1期の物量湧きを解消。
+            // CurrentInputFillGates=0（既定）で effFill=LastInputFill＝現行と厳密一致。=1 で min(前期充足, 当期在庫カバー) を使う。
+            double effFill = s.LastInputFill;
+            if (coef.CurrentInputFillGates > 0 && s.Inputs.Count > 0)
+            {
+                double curFill = 1.0;
+                foreach (var inp in s.Inputs)
+                {
+                    double needPerUnit = EffectiveQty(s, region, inp, coef);
+                    double reqFull = needPerUnit * s.Capacity * profitFactor;   // 満額産出に要る当期投入量
+                    double avail = region.Markets[inp.GoodId].Stock;            // 今月の期首在庫（腐敗・輸入適用済み・生産前＝順序非依存の下限）
+                    if (reqFull > Eps) curFill = Math.Min(curFill, avail / reqFull);
+                }
+                curFill = Math.Clamp(curFill, 0.0, 1.0);
+                effFill = Math.Min(effFill, coef.CurrentInputFillGates * curFill + (1.0 - coef.CurrentInputFillGates) * s.LastInputFill);
+            }
+            double target = s.Capacity * effFill * profitFactor;          // 実産出目標＝能力×投入充足×採算（従来と同一）
+            // メッツラー在庫循環（no-inventory-cycle・InventoryAdjustGain=0.1 で点火済み）：望ましい在庫との不足/過剰を自己有界な正規化ギャップで測り産出目標に加減。0で項が消え旧恒等。
+            if (coef.InventoryAdjustGain > 0)
+            {
+                var im = region.Markets[s.GoodId];
+                double desiredInv = System.Math.Max(coef.TargetStockFloor, coef.DesiredInventoryCover * im.LastDemand);
+                double invGap = (desiredInv - im.Stock) / (desiredInv + im.Stock + Eps);   // 不足で+・過剰で−・有界
+                target *= System.Math.Max(0.0, 1.0 + coef.InventoryAdjustGain * invGap);
+            }
+            s.Output += coef.SupplyAdjustSpeed * (target - s.Output);
+            if (s.Output < 0) s.Output = 0;
+            // ★幻の生産の根絶（作者2度指摘・2026-08-10／係数 PhantomOutputSnapFloor に由来の全文）。
+            // 上の追従式は**目標が0でも幾何級数で減るだけ**でゼロに到達しない＝1783年に内燃機関・自動車が
+            // 「生産量0.0kなのに世界シェア3%/5%」を持ち、廃棄率の分母が 1e-8 級になって 12,543,372% と出ていた。
+            // ①未発明＝製法が存在しない。慣性を持つ理由が無いので即0（能力 boost もこのゲートで既に0）。
+            // ②目標が立たない月の残り火＝在庫の実用スケール（TargetStockFloor＝需要0の財に置く在庫目標の下限）未満なら0。
+            //   ⚠ target>0 は対象外＝本当に少量作っている州の産出は殺さない（判定は目標であって産出ではない）。
+            // 産出0は既に正規の状態（倒産工場の Output=0 と同じ）＝再点火は DesiredOutput（=能力×採算）駆動のトリクルが担うので
+            // 「0にすると二度と立ち上がらない」経路は無い。PhantomOutputSnapFloor=0 で①②とも不発＝現行と厳密恒等。
+            if (coef.PhantomOutputSnapFloor > 0)
+            {
+                bool unInvented = !baumol && (isLabor ? !(recipeGate > 0) : !(advGate > 0) || !(recipeGate > 0));   // 否定形＝NaN も未発明側へ倒す
+                if (unInvented) s.Output = 0;
+                else if (!(target > 0) && s.Output < coef.PhantomOutputSnapFloor * coef.TargetStockFloor) s.Output = 0;
+            }
+            produced[s.GoodId] += s.Output;
+        }
+
+        // 地域の工業化投資：投資家（資本家）が貯蓄から「建設の束」を買い工業化度を積む（→生産性↑・都市化上限↑）
+        double construction = 0;
+        double maintenance = 0;
+        double gridBuild = 0;           // 送電網の敷設（電化のインフラ投資）
+        double monumentConstruction = 0, monumentLaborUnits = 0;
+        double stateConstruction = 0;   // プレイヤーの手動建設（国庫負担で同じ束を買う）
+        double factoryBuildUnits = 0;   // プレイヤーの工場建設（特定財）が今月消費する建設の束（材料・国庫負担。工賃はStepConstruction）
+        double factoryTierUnits = 0;    // 素材階層+α（2026-08-09）：工場建設の出力財の深さ加重済み機械追加束＝Σ(FactoryTierMachinePerDepth×max(0,深さ−1)×u)。財ごとに深さが違うため需要側で集計し決済はこの合計を使う（factoryBuildUnits と同型）。FactoryTierMachinePerDepth=0.05 点火済み（0で恒等）
+        double conLaborUnits = 0;        // 経5：資本家建設の工賃を労働力財として立てた需要量（工賃予算/労働価格・配給前）。ConstructionLaborViaMarket=1.0（点火2026-07-28）の決済でこの量×ration を市場支払い。0なら直接加算の旧経路
+        double railCoalGate = 0;         // 運用コスト監査2026-08-16 #2：鉄道の運行石炭の蒸気ゲート（RailCoalRate>0のときのみ>0＝決済側と需要側で同値を共有）。★2026-08-29点火＝既定0.22（0なら1命令も足さない）
+        double airFuelNeed = 0, airFuelWant = 0, motorFuelWant = 0;   // 運用コスト監査2026-08-16 #4：空軍・輜重の燃料（原油）。need=afford前の必要量（充足率の分母）・want=発注量（決済はこの量×ration＝militaryDemandの他の書き手と混ざらない）
+        double stateConLaborUnits = 0;   // 経5：国家建設ぶんの同・労働需要量（国庫負担）
+        // 経17：資本家建設束のうち先月から繰越した資材（律速で使い残した非律速成分）を今月適用した量（good.Id添字）。決済で built の計算に足し戻す。ConstructionMaterialCarryover=1.0（点火2026-08-01）。0なら確保せず null＝繰越適用0で旧恒等
+        double[]? conCarryApplied = null;
+        int conWorker = -1;   // 建設の工賃の受け手（工場労働者）
+        foreach (var pw in region.Producers) if (pw.GoodId == Catalog.LaborId) { conWorker = pw.LaborPopIndex; break; }
+        if (cap && region.InvestorPopIndex >= 0)
+        {
+            double sP = Math.Max(region.Markets[coef.SteelGoodId].Price, Eps);
+            double mP = Math.Max(region.Markets[coef.MachineGoodId].Price, Eps);
+            double cP = Math.Max(region.Markets[coef.CementGoodId].Price, Eps);
+            double lP = Math.Max(region.Markets[coef.LumberGoodId].Price, Eps);
+            double costPerUnit = coef.ConsSteel * sP + coef.ConsMachine * mP + coef.ConsCement * cP + coef.ConsLumber * lP;
+            // 経4：建設1単位に付随する鉄道・機関車（下段の鉄道インフラ需要で construction 比例に消費）も本来は予算の律速に入る。
+            // costPerUnit 自体は「材料束の純価格」（下段の stateConstruction が StateBuildQueue の割り算に使う＝鉄道を含めない）ので別変数 buildCostPerUnit で資本家建設の予算律速だけに算入。
+            // InvestBudgetIncludesAllInputs=1.0（点火2026-07-31）で予算に算入し貯蓄が負に振れるのを防ぐ。0で加算0＝旧恒等。
+            double buildCostPerUnit = costPerUnit;
+            if (coef.RailGoodId < ng && coef.LocoGoodId < ng)
+                buildCostPerUnit += coef.InvestBudgetIncludesAllInputs
+                             * (coef.ConsRail * Math.Max(region.Markets[coef.RailGoodId].Price, Eps)
+                              + coef.ConsLoco * Math.Max(region.Markets[coef.LocoGoodId].Price, Eps));
+            // ★投資に回せるのは**いま稼いでいるフロー**（2026-08-04・作者指摘「根本問題はコストをかければ工業化できることよりも、
+            //   工業化なくしてコストをかけられる方」）。
+            //   ── 実測（powertrace・1800年）───────────────────────────────────────
+            //   投資家の**所得**はGDPの約20%＝妥当（英17,198 / GDP86,742）。異常なのは**貯蓄ストックだけ**で、
+            //   所得の700〜1200倍＝175〜300年分が積み上がっている（英2,127万・清8,724万・ビルマ688万）。
+            //   旧式 `0.05 × 貯蓄` は英で106万/四半期＝**投資家階級の四半期所得の62倍**＝予算が制約として全く効かず、
+            //   律速は材料だけ（それも国際市場から輸入で埋まる）。だから工業化していない国が工業化の金を出せた。
+            //   ── 直し方 ──────────────────────────────────────────────────────────
+            //   投資の原資を**所得（Earned）**にする。所得は実際の経済活動に紐づくので、農業経済の資本家階級は
+            //   少ししか出せない＝「工業化なくして金をかけられない」が成立する。新しい概念は置かない（Earned は既存の量）。
+            //   ⚠IndInvestFromIncome=0 で旧式（貯蓄基準）＝厳密恒等（休眠）。
+            //   ⚠消費予算からの控除（Run 冒頭の IndInvestmentFrac）は貯蓄でなく**予算比**なので、こちらの基準を変えても二重計上にならない。
+            double budget = coef.IndInvestFromIncome > 0
+                ? coef.IndInvestFromIncome * Math.Max(0, region.Pops[region.InvestorPopIndex].LastEarned)   // ⚠**前期**の所得。Earned は Run 冒頭でゼロ化済み＝ここで読むと常に0＝私的投資が全滅する（2026-08-04に実際に踏んだ）
+                : coef.IndInvestmentFrac * Math.Max(0, region.Pops[region.InvestorPopIndex].Savings);
+            // （退蔵結晶化 段4a/段2の予算配線は Stage1 中止で2026-08-29撤去＝休眠削除・厳密恒等）
+            // 接収の代償②＝資本逃避（作者裁定2026-08-10）。無補償で工場を取られた資本家は次の投資を控える。
+            // 書き手は World.StepStateTargets の接収が成立した月だけ（★2026-08-29点火＝既定0.05。=0なら一度も走らない）。
+            if (region.SeizureChill > 0) budget *= Math.Max(0, 1.0 - region.SeizureChill);
+            // 収益駆動の投資：工業化の限界収益（飽和カーブの傾き＝逓減）が資本コストを上回る限り投資する。
+            // 技術が高いほど工業の収益が大きい（教育→技術→工業化の創発的因果）＝固定上限なしで国ごとに均衡水準が分かれる。
+            double techLev = Math.Max(0, productivityMultiplier - 1.0);
+            double sat = 1.0 + region.ProductiveIndustrialization / coef.IndProductivityScale;   // indMultと同じ飽和点（座礁控除後）＝座礁が限界収益の余地を空ける（先行国の再装備投資が立つ・ヴィンテージ2026-07-10）
+            double marginalGain = coef.IndProductivityGain / (sat * sat);
+            // クラウディングアウト（金利チャネル）：政府の借入で上がった国債金利プレミアムが民間投資のハードルを上げる
+            // ＝高債務国ほど民間投資が締め出され工業化が鈍る（資本希少国で強く・金本位の信用国は弱い＝条件付き）。
+            // 株式市場のバブル（改修2026-06-28・金融改革②）：与信過熱→株高→投資ハードル↓→過剰投資→さらに過熱…→ある日Confidence崩壊で投資急停止＝ブーム→恐慌が新規倍率なしで創発。較正(Heat=0)では中立。
+            double hurdle = coef.IndCapitalCost + coef.CrowdingOutWeight * region.CrowdingPremium - coef.EquityHeatEuphoria * region.FinancialHeat;
+            double netReturn = marginalGain * (1.0 + coef.IndTechLeverage * techLev) - hurdle;
+            double desiredGrowth = coef.IndInvestmentSpeed * region.IndustrializationBoost * Math.Max(0, netReturn);
+            // ★私的投資の吸収ゲート（2026-08-04・作者指摘「工業化なくしてコストをかけられる方が根本問題」への機構側の対）。
+            //   金と機械は輸入で手に入るが、据えて動かすには読める技師と自由な情報流通が要る（洋務運動＝輸入した最新機械が
+            //   動かなかった）。**同じ病に対する吸収ゲートが技術（CatchupAbsorptionBlend）と外資（CapitalAbsorptionBlend）には
+            //   既にあり、国内の私的投資にだけ無かった**＝この非対称が「農業国の資本家が工場を無限に建てる」の穴。
+            //   ⚠**同じ写像**（TechEducation.AbsorptionOf）・**同じ床**（CapitalCreditFloor）を使う＝新しい写像を作らない
+            //     （敵対審査2026-08-04の推奨形＝天井でなく速度を絞る＝州上限に触れずデッドロックを作らない）。
+            //   ⚠world=null（単体テスト・較正セル）は素通り＝厳密恒等。PrivateAbsorptionBlend=1.0（live・0で恒等）。
+            if (coef.PrivateAbsorptionBlend > 0 && world is not null)
+            {
+                double pabs = coef.CapitalCreditFloor + (1.0 - coef.CapitalCreditFloor) * TechEducation.AbsorptionOf(world, coef);
+                desiredGrowth *= 1.0 + (pabs - 1.0) * coef.PrivateAbsorptionBlend;
+            }
+            construction = Math.Min(desiredGrowth / Math.Max(Eps, coef.IndPerConstruction), budget / (buildCostPerUnit * (1.0 + coef.ConstructionLaborWageFrac)));   // 予算は材料（経4で鉄道/機関車も可）＋工賃で按分
+            // 戦時の建設縮小は固定倍率でなく価格競合から創発：軍需（warMult で戦時増）が同じ鋼・機械・セメント・製材を食い価格を押し上げ、
+            // costPerUnit↑→budget/costPerUnit↓＆FactoryBuildAfford↓で資本家の建設が自然に縮む（平時=建設優先・戦時=軍優先が市場で決まる）。
+            // 経17（建設Leontief端数の繰越・点火1.0 2026-08-01）：先月の建設で律速成分に律速され「買ったのに使い切れなかった非律速資材」を Region.ConstructionCarryover に累積し（市場在庫と同じ腐敗率で減衰＝決済側の KeepMaterial）、
+            // 今月はその手持ち分だけ investDemand を控除＝新規購入を減らす（既に先月支払い済み＝金銭は先月に計上済み・二重支払いなし）。控除した量は決済で built に足し戻す（手持ち資材が工業化に結実）。
+            // 0 では region.ConstructionCarryover を確保せず・conCarryApplied=null＝控除も足し戻しも0＝旧恒等。
+            if (coef.ConstructionMaterialCarryover > 0)
+            {
+                region.ConstructionCarryover ??= new double[ng];
+                conCarryApplied ??= new double[ng];
+                AddConsWithCarry(investDemand, conCarryApplied, region.ConstructionCarryover, coef.SteelGoodId, coef.ConsSteel * construction);
+                AddConsWithCarry(investDemand, conCarryApplied, region.ConstructionCarryover, coef.MachineGoodId, coef.ConsMachine * construction);
+                AddConsWithCarry(investDemand, conCarryApplied, region.ConstructionCarryover, coef.CementGoodId, coef.ConsCement * construction);
+                AddConsWithCarry(investDemand, conCarryApplied, region.ConstructionCarryover, coef.LumberGoodId, coef.ConsLumber * construction);
+            }
+            else
+            {
+                investDemand[coef.SteelGoodId] += coef.ConsSteel * construction;
+                investDemand[coef.MachineGoodId] += coef.ConsMachine * construction;
+                investDemand[coef.CementGoodId] += coef.ConsCement * construction;
+                investDemand[coef.LumberGoodId] += coef.ConsLumber * construction;
+            }
+            // 経5（労働の二重雇用・ConstructionLaborViaMarket=1.0 点火2026-07-28）：建設工賃を労働力財の investDemand（保守要員と同経路）へ回し、
+            // 建設ブームが労働需給を逼迫させ賃金クランプ・失業に効く。労働量＝工賃予算/労働価格で換算（材料cost比例の工賃を労働財の量へ）。
+            // 決済（下段）では conLaborUnits×ration[Labor]×労働価格を投資家/国庫が支払い revenue[Labor] へ計上＝インフラ保守の決済と同型（支払い＝労働pop受取で保存）。0 なら conLaborUnits=0＝直接 Savings 加算の旧経路。
+            double lWagePrice = Catalog.LaborId < ng ? Math.Max(region.Markets[Catalog.LaborId].Price, Eps) : 1.0;
+            if (coef.ConstructionLaborViaMarket > 0 && Catalog.LaborId < ng && conWorker >= 0)
+            {
+                conLaborUnits = coef.ConstructionLaborViaMarket * coef.ConstructionLaborWageFrac * costPerUnit * construction / lWagePrice;
+                investDemand[Catalog.LaborId] += conLaborUnits;
+            }
+            // 国家の手動建設（プレイヤー）：資本家と同じ建設の束を国庫負担で買い増す（決済は後段）。
+            // ★束の採算（2026-08-03）：私的な工場建設は既に FactoryBuildAfford で絞っているのに、国家建設と巨大建造物は
+            //   素通りで、高騰した束を国庫が買い切っていた。同じ式を通す（StateProcurePriceGate=0 で恒等）。
+            double bundleRef = (coef.ConsSteel * Catalog.RefPrices[coef.SteelGoodId] + coef.ConsMachine * Catalog.RefPrices[coef.MachineGoodId]
+                             + coef.ConsCement * Catalog.RefPrices[coef.CementGoodId] + coef.ConsLumber * Catalog.RefPrices[coef.LumberGoodId])
+                             * Math.Max(region.PriceLevel, Eps);   // ★実質で比べる（名目のままだと一般インフレで恒久的に絞られる・2026-08-04）
+            double bundleAfford = coef.StateProcurePriceGate > 0 && bundleRef > Eps
+                ? 1.0 - coef.StateProcurePriceGate * (1.0 - coef.FactoryBuildAfford(costPerUnit, bundleRef)) : 1.0;
+            stateConstruction = costPerUnit > Eps ? region.StateBuildQueue / costPerUnit * bundleAfford : 0;
+            // ★国家建設の吸収ゲート（2026-09-03・作者指摘「近代化に必要なレバーが最初からオープンで、技術差が早期に埋まる」）。
+            //   ⚠吸収能力のゲートは技術（CatchupAbsorptionBlend）・外資（CapitalAbsorptionBlend）・私的建設（PrivateAbsorptionBlend）の
+            //   3経路に既にあり、**国庫の近代化投資にだけ無かった**。非西欧の近代化はほぼ全て国庫経由（AI の ModernizationFrac→StateBuildQueue）
+            //   なので、この1箇所の欠落が「洋務運動が英と同じ効率で工場を建てる」を許していた（＝アジアの過近代化の直撃点）。
+            //   ★史実＝呼ぶこと自体は可能（幕府も横須賀製鉄所をフランス人技師で建てた）。誤りは、据えた機械がそのまま国全体の
+            //     工業化に化けること＝**受け入れる器がないのに投資が満額で効く**こと。だからゲートは「雇えるか」でなく「効くか」に置く。
+            //   ⚠**同じ写像**（TechEducation.AbsorptionOf）・**同じ床**（CapitalCreditFloor）＝新しい写像も新しい数字も作らない。
+            //   ⚠速度を絞るだけで天井を作らない＝私的側と同形（敵対審査2026-08-04の推奨形）＝デッドロックを作らない。
+            //     絞った分は Queue の請求が蒸発するだけで国庫からは出ていない（下の州上限クランプと同じ規律＝保存は不変）。
+            //   ⚠world=null（単体テスト・較正セル）は素通り＝厳密恒等。0 で乗算恒等（休眠）。
+            if (coef.StateAbsorptionBlend > 0 && world is not null)
+            {
+                double sabs = coef.CapitalCreditFloor + (1.0 - coef.CapitalCreditFloor) * TechEducation.AbsorptionOf(world, coef);
+                stateConstruction *= 1.0 + (sabs - 1.0) * coef.StateAbsorptionBlend;
+            }
+            // Round2 2026-07-08（工業化暴走の根治）：国庫マネー→実物単位の変換を**州上限までのヘッドルームで月次ハードバウンド**。
+            // 旧実装は金額を市場価格で無制限に単位化＝恐慌明けの建設財デフレ（SoftBand床＝RefPriceの5%）で同じ国庫が20倍の単位に化け、
+            // 1ヶ月で工業化+25の急騰（ストックホルム型・selfplay異常2598の主因）。Queueは請求権で金は国庫から未出＝クランプしても保存不変
+            // （実支払いは決済の StateSpent＝実購入分のみ・Queueは試行毎にゼロ化＝上限超過分の請求は蒸発し、適格なら翌四半期に再請求される）。私的経路は netReturn ゲートが既に有界≈7.4。
+            double stateHeadroomUnits = Math.Max(0, (coef.IndustryInvestRegionCap - region.TotalIndustrialization) / Math.Max(Eps, coef.IndPerConstruction));   // 州上限は立っている資本の総量（新旧合計）で判定（ヴィンテージ2026-07-10）
+            stateConstruction = Math.Min(stateConstruction, stateHeadroomUnits);
+            // 建設の工期（バランス調査2026-07-27）：国家建設の月次単位数に物理上限＝「開幕に国庫×初期在庫200で1四半期に工業化+2.0」のバーストを是正。
+            // 工場建設に工期（4〜28四半期）がある世界で州インフラだけ即時完成する不整合の解消＝倍率でなく建設能力の実在制約。AI/プレイヤー対称（同じQueue経路）。0＝無制限（現行恒等・dormant）
+            if (coef.StateBuildUnitsPerMonth > 0) stateConstruction = Math.Min(stateConstruction, coef.StateBuildUnitsPerMonth);
+            investDemand[coef.SteelGoodId] += coef.ConsSteel * stateConstruction;
+            investDemand[coef.MachineGoodId] += coef.ConsMachine * stateConstruction;
+            investDemand[coef.CementGoodId] += coef.ConsCement * stateConstruction;
+            investDemand[coef.LumberGoodId] += coef.ConsLumber * stateConstruction;
+            // 経5：国家建設の工賃も同経路（国庫負担）＝決済は国庫（StateSpent）が支払う。0 なら stateConLaborUnits=0＝直接加算の旧経路。
+            if (coef.ConstructionLaborViaMarket > 0 && Catalog.LaborId < ng && conWorker >= 0)
+            {
+                stateConLaborUnits = coef.ConstructionLaborViaMarket * coef.ConstructionLaborWageFrac * costPerUnit * stateConstruction / lWagePrice;
+                investDemand[Catalog.LaborId] += stateConLaborUnits;
+            }
+            // 巨大建造物（2026-07-28）：国家建設とは**別キュー**。★州上限5.0のヘッドルーム（stateHeadroomUnits）を通さない＝
+            // 建造物は工業化度に溶かさず専用の変換先を持つため（設計書§6 地雷#4）。資材は国家建設と同じ束、労働も同経路で買う。
+            // MegaprojectEnabled=1.0（点火2026-07-28）で稼働。0 では MonumentBuildQueue を誰も積まず monumentConstruction=0＝このブロックは不実行。
+            monumentConstruction = costPerUnit > Eps ? region.MonumentBuildQueue / costPerUnit * bundleAfford : 0;   // ★束の採算（2026-08-03）＝国家建設と同じ式
+            if (monumentConstruction > 0)
+            {
+                investDemand[coef.SteelGoodId] += coef.ConsSteel * monumentConstruction;
+                investDemand[coef.MachineGoodId] += coef.ConsMachine * monumentConstruction;
+                investDemand[coef.CementGoodId] += coef.ConsCement * monumentConstruction;
+                investDemand[coef.LumberGoodId] += coef.ConsLumber * monumentConstruction;
+                if (coef.ConstructionLaborViaMarket > 0 && Catalog.LaborId < ng && conWorker >= 0)
+                {
+                    monumentLaborUnits = coef.ConstructionLaborViaMarket * coef.ConstructionLaborWageFrac * costPerUnit * monumentConstruction / lWagePrice;
+                    investDemand[Catalog.LaborId] += monumentLaborUnits;
+                }
+            }
+            // プレイヤーの工場建設（特定財）＝共通ヘルパーへ抽出（2026-08-09・capゲート穴の閉鎖）。式・順序は抽出前と同一＝
+            // CapitalEnabled=true の州ではビット恒等。材料需要は国庫負担の物理＝資本区画の有無と無関係（非cap州は下のelse分岐が同じ式で積む）。
+            AccumulateFactoryBuild(region, coef, investDemand, ref factoryBuildUnits, ref factoryTierUnits);
+            bool railLoco = coef.RailGoodId < ng && coef.LocoGoodId < ng;
+            // 鉄道インフラ：工業化に伴い敷設（線路・機関車を消費）。死蔵解消＋資本財段へ波及（機関車←蒸気機関←機械部品）
+            if (railLoco)
+            {
+                investDemand[coef.RailGoodId] += coef.ConsRail * construction;
+                investDemand[coef.LocoGoodId] += coef.ConsLoco * construction;
+            }
+            // インフラ保守：敷設済みインフラは工業化水準に比例して毎期保守材を食う（成長が止まっても消費先が持続＝死蔵解消）。
+            // 建設で使った残りの投資予算で賄える分だけに制限＝投資家の資金繰りを超えない（貯蓄が負にならない）。
+            double railP = railLoco ? Math.Max(region.Markets[coef.RailGoodId].Price, Eps) : 0;
+            double locoP = railLoco ? Math.Max(region.Markets[coef.LocoGoodId].Price, Eps) : 0;
+            double maintCostPerUnit = cP + railP + coef.MaintLocoRate * locoP;   // 経18：機関車の更新頻度（耐久財＝低頻度。既定0.5＝旧直書きと同値・中立）
+            // 経4：保守1単位に付随する運行要員費（下段の運行要員需要で maintenance 比例に消費＝高度労働0.4＋労働0.3）も予算の律速に入れる（InvestBudgetIncludesAllInputs=1.0 点火・0で加算0＝旧恒等）。
+            if (Catalog.AdvLaborId < ng)
+                maintCostPerUnit += coef.InvestBudgetIncludesAllInputs
+                                  * (coef.MaintAdvLaborRate * Math.Max(region.Markets[Catalog.AdvLaborId].Price, Eps)
+                                   + coef.MaintLaborRate * Math.Max(region.Markets[Catalog.LaborId].Price, Eps));   // 経18：運行要員の係数化（既定0.4/0.3＝旧直書きと同値・中立）
+            // 運用コスト監査2026-08-16 #2（鉄道の運行石炭）：火夫（MaintLaborRate）は雇うのに石炭を買っていない自己矛盾の是正。
+            // 蒸気ゲート＝下段②の steamGate と同式（鉄道が蒸気化した分だけ焚く＝年号は読まない）。投資予算の律速にも同項＝InvestBudgetIncludesAllInputs と同じ作法。
+            // RailCoalRate=0 なら railCoalGate=0＝需要側・決済側とも1命令も足さない（★2026-08-29点火＝既定0.22）。導出は係数コメント（Coefficients.RailCoalRate）。
+            if (coef.RailCoalRate > 0 && railLoco && Catalog.CoalId < ng)
+            {
+                railCoalGate = Math.Clamp((region.TechLevel - coef.SteamTechOnset) / coef.SteamTechWidth, 0.0, 1.0);
+                if (!(railCoalGate >= 0 && railCoalGate <= 1)) railCoalGate = 0;   // 否定形＝NaNは蒸気以前へ
+                maintCostPerUnit += coef.InvestBudgetIncludesAllInputs * coef.RailCoalRate * railCoalGate * Math.Max(region.Markets[Catalog.CoalId].Price, Eps);
+            }
+            double maintBudget = Math.Max(0, budget - construction * buildCostPerUnit);
+            maintenance = coef.InfraMaintRate * region.TotalIndustrialization;   // 保守は立っている資本の総量に比例（座礁設備も維持費を食う＝先行国の足枷。ヴィンテージ2026-07-10）
+            if (maintCostPerUnit > Eps) maintenance = Math.Min(maintenance, maintBudget / maintCostPerUnit);
+            investDemand[coef.CementGoodId] += maintenance;                          // 構造物（建屋・橋梁）の保守
+            if (railLoco)
+            {
+                investDemand[coef.RailGoodId] += maintenance;                        // 軌道の保守（摩耗が大きい）
+                investDemand[coef.LocoGoodId] += maintenance * coef.MaintLocoRate;   // 車両の更新（耐久財＝低頻度。経18：既定0.5＝旧直書きと同値・中立）
+                if (railCoalGate > 0) investDemand[Catalog.CoalId] += maintenance * coef.RailCoalRate * railCoalGate;   // #2 運行石炭（運用コスト監査2026-08-16）：機関車を走らせる燃料＝保守量比例（火夫と同じ比例軸）。★2026-08-29点火（0なら不加算）
+            }
+            // 鉄道・船舶の運行要員：機関士・保線技師（高度労働力）＋火夫・荷役（労働力）。
+            // インフラが本格稼働するほど技師の需要が立ち、その価値が上がる（教育→技師の供給と噛み合う）。
+            if (Catalog.AdvLaborId < ng)
+            {
+                investDemand[Catalog.AdvLaborId] += maintenance * coef.MaintAdvLaborRate;   // 経18：既定0.4＝旧直書きと同値・中立
+                investDemand[Catalog.LaborId] += maintenance * coef.MaintLaborRate;         // 経18：既定0.3＝旧直書きと同値・中立
+            }
+            // 送電網の敷設：前期の電力需要が送電容量を超えていれば投資家が増設（電化のインフラ投資）。残予算の範囲で。
+            // 既設の送電網は経年で朽ちる＝置換の定常需要を持つ（電化した国では送電網の需要が消えない）。
+            if (Catalog.GridId < ng)
+            {
+                double gridP = Math.Max(region.Markets[Catalog.GridId].Price, Eps);
+                double gridBudget = Math.Max(0, budget - construction * buildCostPerUnit - maintenance * maintCostPerUnit);
+                double gridWant = coef.GridBuildRate * Math.Max(0, region.LastElecWant - region.GridCapacity) + coef.GridReplaceRate * region.GridCapacity;   // 経18：送電網の置換需要（既定0.002＝旧直書きと同値・中立。GridDecayRate=0.998 の劣化と対＝二重表現。notes参照）
+                gridBuild = Math.Min(gridWant, gridBudget / gridP);
+                investDemand[Catalog.GridId] += gridBuild;
+            }
+        }
+        else if (coef.MachineGoodId < ng && coef.CementGoodId < ng)
+        {
+            // capゲート穴の閉鎖（2026-08-09）：資本区画のない州（または投資家pop不在）でも着工中の工場は材料を買う。
+            // 従来は材料費ゼロ・工賃のみで完成する抜け道（素材階層+αの導入で価値が増すため恒久閉鎖）。
+            AccumulateFactoryBuild(region, coef, investDemand, ref factoryBuildUnits, ref factoryTierUnits);
+        }
+
+        // 軍需調達：国家が軍需財を消費（平時の維持＋戦時増）。財源＝国庫（予算内に収める）。消費が入力へ波及（火薬/鉛/帆船…）。
+        region.StateSpent = 0;
+        bool milProc = region.MilitaryScale > 0 && AllPresent(coef.MilitaryGoods, ng);   // 小シナリオ（軍需財を持たない）は対象外
+        // ★E1（作者裁定2026-08-26）：陸海の再配分は**装備充足率の分母でも使う**ので、宣言をこの高さへ出す（値の決まり方は下の調達ブロックのまま）。
+        //   ⚠旧＝分子（実発注）にだけ MilMul が掛かり、分母（equipWant）は一律レート＝比が MilMul 倍に膨らむ（「軍艦1083%」と同型の非対称）。
+        double navalMul = 1.0, landMul = 1.0;
+        // ★装備の発見（作者裁定2026-09-08）＝まだ発見していない装備を、必要量（分母）にも発注（分子）にも見積（予算）にも入れない。
+        //   Run 内で不変なので4つの装備表ぶんだけ先に引く。EquipNeedsDiscovery=0（既定）では**素の配列をそのまま指す**＝厳密恒等。
+        double[] milRates = coef.MilitaryRates, qRates = coef.MilitaryQualityRates,
+                 t3Rates = coef.MilitaryTier3Rates, airRates = coef.MilitaryAirRates;
+        if (milProc && coef.EquipNeedsDiscovery > 0)
+        {
+            milRates = DiscoveredRates(region, coef, coef.MilitaryGoods, coef.MilitaryRates);
+            qRates = DiscoveredRates(region, coef, coef.MilitaryQualityGoods, coef.MilitaryQualityRates);
+            t3Rates = DiscoveredRates(region, coef, coef.MilitaryTier3Goods, coef.MilitaryTier3Rates);
+            airRates = DiscoveredRates(region, coef, coef.MilitaryAirGoods, coef.MilitaryAirRates);
+        }
+        if (milProc)
+        {
+            double estCost = 0;
+            for (int b = 0; b < coef.MilitaryGoods.Length; b++)
+                estCost += region.MilitaryScale * milRates[b] * region.Markets[coef.MilitaryGoods[b]].Price;
+            // ★1で切らない生の比（軍の恒常性の信号）。分子は**上限**（必要額で切る前）＝S3a で実支出を必要額に切っても「まだ払える余裕」が残る。
+            // Budget ≤ Ceiling は Simulation の書き手（Ceiling → Min(必要額) → Budget）で単調に成立＝旧 Math.Max(Ceiling, Budget) と同値（必要額が NaN のときだけ旧は NaN 伝播・現行は Ceiling＝fail-safe 側。2026-09-11）。
+            double signalBudget = region.MilitaryBudgetCeiling;
+            // ★段2（2026-08-01）：軍需の内訳を理想の陸海比へ再配分する係数を作る（総額は保存）。
+            // NavalProcurementFromShape=0 または理想が未算出（ShapeNavalShare<0）なら両方1.0＝**厳密恒等**。
+            double flatShare = FleetCostShare(region, coef, milRates);   // 一律レートが含意する海のコストシェア（＝いま実際に買っている比・発見の係数を通した後）＝反乱勢力の武器購入と同じ1本
+            // ★港のない州は軍艦を買わない（2026-08-01）。
+            // ── なぜ要るか（実測で見つかった構造バグ）──────────────────────────────
+            // 段Aの計器で1914年の艦隊ストックを並べたら **1位 清・2位 広州王国・3位 西山朝**、海軍力の順位は
+            // **1位 西安王国（内陸）・2位 成都共和国（内陸）** だった。内陸の分離国家が世界最強の海軍を持っていた。
+            // ⚠これは倍率で直す話ではない——**軍艦は港でしか造れず係留もできない**という地理が抜けていただけである。
+            // ★総額は保存する＝海に回すはずだった予算は陸へ回る（内陸国は大砲を多く買う）。
+            // ⚠★重大な自己バグの是正（2026-08-01・敵対レビューで確定）：旧は `!region.IsPort` を見ていたが、
+            //   **軍需調達は首都州（Id==0）でしか走らない**（Simulation の MilitaryScale が首都以外0）。
+            //   つまり「内陸に首都がある国」＝仏（パリ）露（モスクワ）普（ベルリン）墺（ウィーン）西（マドリード）
+            //   サルデーニャ（トリノ）等は、**他州に港をいくつ持っていても軍艦を1隻も造れなくなる**。
+            //   仏海軍もバルチック艦隊も独海軍も構造的に消える＝帯の直撃だった。
+            // ★正しい問いは「**この国に港州があるか**」である（造船するのは港、発注するのは国）。
+            if (coef.NavalProcurementNeedsPort > 0 && !region.NationHasPort)
+            {
+                navalMul = 0.0;
+                landMul = flatShare < 1 - Eps ? 1.0 / (1.0 - flatShare) : 1.0;
+            }
+            else if (coef.NavalProcurementFromShape > 0 && region.ShapeNavalShare >= 0)
+            {
+                double want = Math.Clamp(region.ShapeNavalShare, 0, 1);
+                double k = coef.NavalProcurementFromShape;
+                if (flatShare > Eps && flatShare < 1 - Eps)
+                {
+                    navalMul = 1.0 + k * (want / flatShare - 1.0);
+                    landMul = 1.0 + k * ((1 - want) / (1 - flatShare) - 1.0);
+                    navalMul = Math.Max(0, navalMul); landMul = Math.Max(0, landMul);
+                }
+            }
+            double MilMul(int gid) => System.Array.IndexOf(coef.FleetGoodIds, gid) >= 0 ? navalMul : landMul;
+            double affordRaw = estCost > Eps ? signalBudget / estCost : 1.0;
+            region.MilitaryAffordRaw = affordRaw;
+            // ★残余カスケードの廃止（2026-08-13・doc 20260812_理想の軍隊の形 §3-3）。既定0＝旧の入れ子＝厳密恒等。
+            //   旧＝基本段→上位段→tier3→空軍の入れ子で**残余**が流れるので、予算が基本段に届かない国は
+            //   `remaining ≡ 0` になり上位以上が**厳密にゼロ**＝装備が「満額か0か」の二値になる（実測：1923年に
+            //   60カ国中29が0・18が満額）。さらに開戦で消費が9倍になるのに予算は3.8倍しか追随しない
+            //   （WartimeBudgetFollowsNeed=0.35）ので予算充足が0.42倍へ落ち、**戦争中は上位段もtier3も0**になる。
+            //   塹壕も戦車も戦争中にしか読まれないので、平時に満額でも戦場では消える。
+            //   新＝4段を同時に立てて不足は一律比例で削る。分母は S3a の予算上限が使うのと**同一の関数**
+            //   （MilitaryProcurementNeed）＝見積を二重定義しない。予算42%なら全段が42%＝階段が消える。
+            //   ⚠見積が立たない異常時は旧経路へ退避（否定形の fail-safe＝軍が無音で武装解除しない）。
+            double allCost = coef.MilitaryProcureProRata > 0 ? MilitaryProcurementNeed(region, coef) : 0.0;
+            bool proRata = coef.MilitaryProcureProRata > 0 && allCost > Eps;
+            double affordAll = proRata ? Math.Min(1.0, signalBudget / allCost) : 0.0;
+            double afford = proRata ? affordAll : (estCost > Eps ? Math.Min(1.0, affordRaw) : 0.0);
+            for (int b = 0; b < coef.MilitaryGoods.Length; b++)
+                militaryDemand[coef.MilitaryGoods[b]] += region.MilitaryScale * milRates[b] * afford * MilMul(coef.MilitaryGoods[b]) * PriceAfford(coef.MilitaryGoods[b]);
+            // 運用コスト監査2026-08-16 #4b（輜重自動車の燃料・休眠）：自動車（MilitaryGoodsの132）は買うのに走らせる原油を買っていなかった。
+            // 供給実在ガード＝原油の継続生産があるときだけ需要を立てる（掘削解禁1859前の紙需要で価格シグナルを汚さない＝Colonial B6と同じ規律）。
+            // ⚠LastProduced はこの Run の冒頭（市場のゼロ化）でリセット済み＝ここでは読めない。produced[]（今月の実産出・生産者ループで集計済み）を読む。
+            // MotorFuelRate=0なら1命令も足さない（★2026-08-29点火＝既定0.05）。決済は下段の軍需決済ブロック（motorFuelWant×ration＝装備充足の分母には入れない＝純消費）。
+            if (coef.MotorFuelRate > 0 && Catalog.CrudeOilId < ng)
+            {
+                double mfNeed = region.MilitaryScale * coef.MotorFuelRate;
+                if (produced[Catalog.CrudeOilId] > Colonial.OilViableProductionFrac * mfNeed)
+                {
+                    motorFuelWant = mfNeed * afford * PriceAfford(Catalog.CrudeOilId);
+                    militaryDemand[Catalog.CrudeOilId] += motorFuelWant;
+                }
+            }
+            // 艦隊摩耗の修理需要（07_再設計 §6-1・A6案i・2026-07-31）：沈んだ艦の補充を軍艦財の追加需要として立てる＝造船業が戦争で潤う。
+            // ★予算(afford)を通す＝払えない国は艦隊を再建できない（負けた側は沈んだまま）。消化したらゼロへ戻す（フロー量）。
+            if (region.NavalRepairUnits > Eps && coef.WarshipGoodId >= 0 && coef.WarshipGoodId < ng)
+            {
+                militaryDemand[coef.WarshipGoodId] += region.NavalRepairUnits * afford * PriceAfford(coef.WarshipGoodId);
+                region.NavalRepairUnits = 0;
+            }
+
+            // 上位軍需（機関銃・装甲艦）：基本装備を整えた残余予算で調達＝戦力の質的乗数（富裕/軍国国ほど届く）。
+            if (AllPresent(coef.MilitaryQualityGoods, ng))
+            {
+                double remaining = Math.Max(0, region.MilitaryBudget - estCost * afford);
+                double qCost = 0;
+                // ★段2a：見積もりは**実際に発注する量**（不足分）で立てる。フローの費用で見積もると、
+                //   発注は不足分（最大で月次の50倍）なのに予算充足率は月次基準になり、買える量を大きく超えて発注して
+                //   配給率が落ち、かえって納入が減る（実測：ストック版の方が装備が少なくなった）。
+                for (int b = 0; b < coef.MilitaryQualityGoods.Length; b++)
+                    qCost += (coef.ArmsStockEnabled > 0 ? StockOrder(coef.MilitaryQualityGoods[b], qRates[b])
+                                                        : region.MilitaryScale * qRates[b])
+                             * region.Markets[coef.MilitaryQualityGoods[b]].Price;
+                double qAfford = proRata ? (qCost > Eps ? affordAll : 0.0) : (qCost > Eps ? Math.Min(1.0, remaining / qCost) : 0.0);
+                for (int b = 0; b < coef.MilitaryQualityGoods.Length; b++)
+                {
+                    int gq = coef.MilitaryQualityGoods[b];
+                    // ★段2a（2026-08-13）：耐久品は**不足分だけ**発注する（現行は毎期フロー全量）。0で従来式＝厳密恒等。
+                    double baseWant = coef.ArmsStockEnabled > 0 ? StockOrder(gq, qRates[b])
+                                                                : region.MilitaryScale * qRates[b];
+                    militaryDemand[gq] += baseWant * qAfford * MilMul(gq) * PriceAfford(gq);
+                }
+
+                // #16 tier3軍需（戦車・弩級戦艦）：上位装備を整えた更なる残余予算で調達（最高コスト＝富裕/軍国/晩期のみ届く）。
+                if (AllPresent(coef.MilitaryTier3Goods, ng))
+                {
+                    double remaining3 = Math.Max(0, remaining - qCost * qAfford);
+                    double t3Cost = 0;
+                    for (int b = 0; b < coef.MilitaryTier3Goods.Length; b++)
+                        t3Cost += (coef.ArmsStockEnabled > 0 ? StockOrder(coef.MilitaryTier3Goods[b], t3Rates[b])
+                                                             : region.MilitaryScale * t3Rates[b])
+                                  * region.Markets[coef.MilitaryTier3Goods[b]].Price;
+                    double t3Afford = proRata ? (t3Cost > Eps ? affordAll : 0.0) : (t3Cost > Eps ? Math.Min(1.0, remaining3 / t3Cost) : 0.0);
+                    for (int b = 0; b < coef.MilitaryTier3Goods.Length; b++)
+                        {
+                            int g3 = coef.MilitaryTier3Goods[b];
+                            double baseWant3 = coef.ArmsStockEnabled > 0 ? StockOrder(g3, t3Rates[b])
+                                                                        : region.MilitaryScale * t3Rates[b];
+                            militaryDemand[g3] += baseWant3 * t3Afford * MilMul(g3) * PriceAfford(g3);
+                        }
+
+                    // 1934拡張E2（2026-07-19）：空軍装備（飛行機・戦闘機・化学兵器）＝tier3の更なる残余で調達＝空の別枠 Fill。
+                    // 財の解禁（onset1.0=1910s）前は生産ゼロ→Fill 0＝制空も厭戦も不走行＝厳密恒等。
+                    if (AllPresent(coef.MilitaryAirGoods, ng))
+                    {
+                        double remainingA = Math.Max(0, remaining3 - t3Cost * t3Afford);
+                        double aCost = 0;
+                        for (int b = 0; b < coef.MilitaryAirGoods.Length; b++)
+                            aCost += region.MilitaryScale * airRates[b] * region.Markets[coef.MilitaryAirGoods[b]].Price;
+                        // 運用コスト監査2026-08-16 #4（空軍の燃料・休眠）：飛行機は製造時に原油が要るだけで飛ばすときに何も要らなかった欠落の是正。
+                        // 供給実在ガード＝原油の継続生産があるときだけ（#4bと同じ規律・produced[]を読む＝LastProducedはRun冒頭でリセット済み）。
+                        // 見積（aCost）に含める＝空軍予算が燃料も担う。AirFuelRate=0なら airFuelNeed=0＝aCost不変・需要不加算（★2026-08-29点火＝既定0.045。MilitaryAirFill の分母 aWant には一切触れない）。
+                        if (coef.AirFuelRate > 0 && Catalog.CrudeOilId < ng)
+                        {
+                            double afNeed = region.MilitaryScale * coef.AirFuelRate;
+                            if (produced[Catalog.CrudeOilId] > Colonial.OilViableProductionFrac * afNeed)
+                            {
+                                airFuelNeed = afNeed;
+                                aCost += airFuelNeed * region.Markets[Catalog.CrudeOilId].Price;
+                            }
+                        }
+                        double aAfford = proRata ? (aCost > Eps ? affordAll : 0.0) : (aCost > Eps ? Math.Min(1.0, remainingA / aCost) : 0.0);
+                        for (int b = 0; b < coef.MilitaryAirGoods.Length; b++)
+                            militaryDemand[coef.MilitaryAirGoods[b]] += region.MilitaryScale * airRates[b] * aAfford * PriceAfford(coef.MilitaryAirGoods[b]);
+                        if (airFuelNeed > 0)
+                        {
+                            airFuelWant = airFuelNeed * aAfford * PriceAfford(Catalog.CrudeOilId);
+                            militaryDemand[Catalog.CrudeOilId] += airFuelWant;
+                        }
+                    }
+                }
+            }
+        }
+
+        // ★武器の市場購入（設計メモ§7 作者裁定2026-09-09 (a)・実装2026-09-11・休眠 RebelArmsMarketEnabled=0）：この州を本拠とする反乱勢力（FactionState）が
+        //   参加POPの貯蓄を資金に、国軍と**同じ財を同じ市場で**買う（首都州の運動は国庫と同じ配給を奪い合う＝需要は coreDemand に同列で入る）。
+        //   必要量＝MilitaryUpkeepScale×参加人数（Simulation の MilitaryScale と同じ換算）× DiscoveredRates（未発見の装備は要らない）。
+        //   陸海＝国軍の「港を持たない者は艦を買わない・総額は陸へ」（NavalProcurementNeedsPort の分岐）と**同じ式**を運動に当てる＝運動は港を持たない。
+        //   予算＝参加POPの貯蓄（導出量・金庫は作らない）。afford・PriceAfford は国軍の式そのもの。禁止法は Contraband.LeakFraction（第二の漏れ式を書かない）。
+        //   参加の述語・束・主軸＝FactionSnapshot の同じ1本（運動の頭数と財布が同じ物差し＝分子と分母の非対称を作らない）。
+        //   ⚠予定額を参加POPの RemainingBudget から先に控える（投資家の IndInvestmentFrac 控除と同じ作法＝同じ貯蓄を消費と二重に使わない）。実支払いは決済で Paid へ。
+        //   ⚠既定0＝この if に1度も入らない＝rebelDemand は全要素0のまま（coreDemand への +0.0 は IEEE754 で厳密恒等）。
+        List<(FactionState F, double Scale, double[] Rates, double[] Want, double[] Order, double NavalMul, double LandMul, List<(Pop P, double Share)> Payers)>? rebelOrders = null;
+        if (coef.RebelArmsMarketEnabled > 0 && world is not null && world.Factions.Count > 0 && AllPresent(coef.MilitaryGoods, ng))
+        {
+            (HashSet<Pop>? Petty, double[] Coord, double[] LawGap)? ctx = null;   // 国の量＝この州に運動が1つでもあれば1回だけ取る
+            foreach (var f in world.Factions)
+            {
+                if (!ReferenceEquals(f.Region, region)) continue;
+                ctx ??= FactionSnapshot.MembershipContext(world);
+                double size = 0, funds = 0;
+                var payers = new List<(Pop P, double Share)>();
+                foreach (var p in region.Pops)
+                {
+                    if (p.Size <= 1e-9) continue;
+                    double part = FactionSnapshot.Participation(world, p, ctx.Value.Coord, ctx.Value.LawGap);
+                    if (!(part > 0)) continue;
+                    var (bloc, ideo) = FactionSnapshot.BlocIdeo(p, ctx.Value.Petty);
+                    if (bloc != f.Bloc || ideo != f.Ideo) continue;
+                    size += p.Size * part;
+                    double cash = Math.Max(0, p.Savings) * part;
+                    funds += cash;
+                    payers.Add((p, cash));
+                }
+                if (size <= 1e-9) continue;   // 今月は参加者なし＝買わず武器庫も触らない（運動の不在は四半期の Factions.Step が扱う）
+                MechanismProbe.Eval(MechanismProbe.Site.RebelArmsPurchase);
+                double scale = coef.MilitaryUpkeepScale * size;
+                double[] rates = DiscoveredRates(region, coef, coef.MilitaryGoods, coef.MilitaryRates);
+                double navalMulR = 1.0, landMulR = 1.0;
+                if (coef.NavalProcurementNeedsPort > 0)
+                {
+                    double fs = FleetCostShare(region, coef, rates);
+                    navalMulR = 0.0;
+                    landMulR = fs < 1 - Eps ? 1.0 / (1.0 - fs) : 1.0;
+                }
+                double estCost = 0;
+                for (int b = 0; b < coef.MilitaryGoods.Length; b++)
+                    estCost += scale * rates[b] * region.Markets[coef.MilitaryGoods[b]].Price;
+                double afford = estCost > Eps ? Math.Min(1.0, funds / estCost) : 0.0;   // 予算＝参加者の貯蓄（国軍の afford と同じ形）
+                double leak = world.CivilianArmsBan ? Contraband.LeakFraction(region.AdminFill, coef) : 1.0;   // 禁止＝取り締まれた分だけ買えない（前月の行政充足を読む＝Simulation の禁制品と同じ）
+                var want = new double[coef.MilitaryGoods.Length];
+                var order = new double[coef.MilitaryGoods.Length];
+                double planned = 0;
+                for (int b = 0; b < coef.MilitaryGoods.Length; b++)
+                {
+                    int g = coef.MilitaryGoods[b];
+                    double mul = System.Array.IndexOf(coef.FleetGoodIds, g) >= 0 ? navalMulR : landMulR;
+                    want[b] = scale * rates[b] * mul;                                      // 必要量（afford前）＝国軍の equipWant と同じ式
+                    order[b] = scale * rates[b] * afford * mul * PriceAfford(g) * leak;    // 発注＝国軍の militaryDemand と同じ式 × 漏れ
+                    rebelDemand[g] += order[b];
+                    planned += order[b] * region.Markets[g].Price;
+                }
+                if (funds > Eps)
+                    for (int i = 0; i < payers.Count; i++)
+                    {
+                        double share = payers[i].Share / funds;   // 財布の比で払う（貯蓄0の参加者は払わない）
+                        var pp = payers[i].P;
+                        payers[i] = (pp, share);
+                        pp.RemainingBudget = Math.Max(0, pp.RemainingBudget - planned * share);
+                    }
+                rebelOrders ??= new();
+                rebelOrders.Add((f, scale, rates, want, order, navalMulR, landMulR, payers));
+            }
+        }
+
+        // ★国家調達の価格感応（2026-08-03・作者指示「全ての政府支出で、価格を無視しないよう修正。これは全て同じ計算式でよい」）。
+        //   旧＝どの国家調達も `afford = min(1, 予算/見積)` という**予算の制約だけ**で、参照価格との比を一切見ていなかった。
+        //   ＝国庫がある限り**何倍の高値でも買い切る**買い手が市場に居座り、品薄の財の価格を無限に押し上げていた
+        //   （実測＝英の鋼が在庫0・参照の約4倍で常態化。国庫を注いでも単位は増えず物価だけ上がる）。
+        //   式は**私的な工場建設が既に使っているものと同一**（Coefficients.FactoryBuildAfford＝現在価格/参照価格の連続減衰）
+        //   ＝新しい定数も新しい判断も持ち込まない。国家だけが相場を無視する非対称を消す。
+        //   ⚠掛け算は「需要（want）」に対して行う＝**予算は据え置き**なので、買い控えた分の国庫は残る（保存不変）。
+        //   ⚠★**実質で比べる**（2026-08-04の是正）：RefPrices は1783年の**名目**値なので、そのまま比べると131年の
+        //     一般インフレで `現在/参照` が恒常的に1を超え、**平時の政府機能まで永久に絞られる**（実測R14＝全次元悪化・
+        //     政体exact−4.4/人口−7.1）。買い控えるべきは「その財だけが**相対的に**高い」時であって、貨幣が薄まった時ではない。
+        //     参照側に Region.PriceLevel（＝物価水準。MarketFlow の価格アンカーも rp×これでスケールする）を掛けて実質比にする。
+        //   ⚠StateProcurePriceGate=0 で 1.0 固定＝厳密恒等（休眠可）。
+        // ★耐久装備のストック（段2a・2026-08-13）：その月の発注量＝不足分だけ。
+        //   目標 A* ＝ **平時基準**の規模 × 原単位 ÷ 摩耗率（定常で 摩耗×A* ＝ 現行の平時フロー消費に一致するよう逆算
+        //   ＝新しい数を作らない）。戦時倍率は目標に掛けない＝**機関銃は戦争が始まっても9倍要らない**。
+        //   発注 ＝ (A* − 在庫)⁺ ＝ 負の小銃は発注できないという物理。戦時は在庫が摩耗で減るぶんだけ発注が増える。
+        //   ArmsStockEnabled=0 では呼び出し側の分岐に入らない＝厳密恒等。
+        double StockOrder(int gid, double rate)
+        {
+            double wear = Math.Max(1e-6, coef.ArmsWearRate);
+            double target = region.MilitaryScalePeace * rate / wear;
+            double have = region.ArmsStock?.GetValueOrDefault(gid) ?? 0.0;
+            return Math.Max(0, target - have);
+        }
+
+        double PriceAfford(int gid)
+        {
+            if (coef.StateProcurePriceGate <= 0) return 1.0;
+            if (gid < 0 || gid >= region.Markets.Length || gid >= Catalog.RefPrices.Length) return 1.0;
+            double rp = Catalog.RefPrices[gid] * Math.Max(region.PriceLevel, Eps);   // ★物価水準で実質化（下記の⚠）
+            if (!(rp > Eps)) return 1.0;   // ⚠否定形＝参照価格が無い財は絞らない（fail-open）
+            double a = coef.FactoryBuildAfford(Math.Max(region.Markets[gid].Price, Eps), rp);
+            // ★軍需財の価格ゲート倍率（2026-09-07・英の軍が立たない根＝armsdebug 実測：ロンドンの小銃価格は基準の3〜5倍→ゲートで発注が約13%に絞られ→前期需要（労働配分の重み）が
+            //   細り→生産者1・産出0.3〜20/期のまま→価格が下がらない＝**自己ロック**。史実の国家はマスケットを相場で買った（トタ）。MilitaryProcurePriceGateScale=1.0＝現行（厳密恒等）・
+            //   0＝軍需財は価格を見ずに発注（国庫の afford は別に効く）。対象＝MilitaryGoods（小銃/弾薬/火砲/艦/馬/自動車）のみ。
+            double gate = coef.StateProcurePriceGate;
+            if (coef.MilitaryProcurePriceGateScale < 1.0 && System.Array.IndexOf(coef.MilitaryGoods, gid) >= 0) gate *= Math.Max(0, coef.MilitaryProcurePriceGateScale);
+            return a > 0 && a <= 1 ? 1.0 - gate * (1.0 - a) : 1.0;   // ゲート比で連続に混合（0=旧恒等・1=満額適用）
+        }
+
+        // 行政調達（軍事費の行政版）：国家が官僚の算出する「行政」を買う。予算不足や官僚不足＝AdminFill<1＝汚職（税収が漏れる）。
+        double adminNeed = 0, adminWant = 0;
+        bool adminProc = region.BureaucratPopIndex >= 0 && Catalog.AdminId < ng;
+        if (adminProc)
+        {
+            adminNeed = coef.AdminNeedPerPop * totalPop;
+            double est = adminNeed * Math.Max(region.Markets[Catalog.AdminId].Price, Eps);
+            double afford = est > Eps ? Math.Min(1.0, region.AdminBudget / est) : 0.0;
+            // ★2026-08-13（作者裁定「行政費は汚職などで抜け落ちるが、それ以外は価格相応の働きをするように」）：
+            //   買い控えのゲート（PriceAfford）を行政から外す。**予算の制約（afford）は残す**＝それ自体が「価格相応」
+            //   （高くなれば同じ金で買える量は減る）。PriceAfford はその上に重ねた「高いから買わない」という**追加の拒否**で、
+            //   金を持っていても行政が働かなくなる原因だった。漏れは汚職（Fiscal の leak）が既に担っている。
+            //   AdminProcurePriceGate=1 で旧挙動（買い控えあり）＝厳密恒等に戻せる。
+            adminWant = adminNeed * afford * (coef.AdminProcurePriceGate > 0 ? PriceAfford(Catalog.AdminId) : 1.0);
+            militaryDemand[Catalog.AdminId] += adminWant;   // 国家需要として総需要に算入（軍需と同じ経路）
+        }
+
+        // 上下水道調達（#4 施設化・行政の公共事業版）：国家が施設の算出する「上下水道」を行政費で買う。充足率＝衛生（過密の疫病を抑える）。
+        double infraNeed = 0, infraWant = 0;
+        bool infraProc = false;   // 施設(producer)が在る国だけ＝無い世界は InfraFill=1.0 で疫病なし（従来挙動）
+        if (Catalog.InfrastructureId < ng) foreach (var pr in region.Producers) if (pr.GoodId == Catalog.InfrastructureId) { infraProc = true; break; }
+        if (infraProc)
+        {
+            infraNeed = coef.InfraNeedPerUrban * urbanPop;
+            double est = infraNeed * Math.Max(region.Markets[Catalog.InfrastructureId].Price, Eps);
+            double afford = est > Eps ? Math.Min(1.0, region.InfraBudget / est) : 0.0;
+            infraWant = infraNeed * afford * (coef.AdminProcurePriceGate > 0 ? PriceAfford(Catalog.InfrastructureId) : 1.0);   // 上下水道も行政費で買う＝同じ裁定に従う
+            militaryDemand[Catalog.InfrastructureId] += infraWant;   // 国家需要（行政・軍需と同じ経路）
+        }
+
+        // 電化インフラ調達（上位インフラ・上下水道と同型）：国家が「電化インフラ」を行政費で買う。充足＝満足度＋衛生追加＋送電容量↑。
+        double elecInfraNeed = 0, elecInfraWant = 0;
+        bool elecInfraProc = false;
+        if (Catalog.ElecInfraId < ng) foreach (var pr in region.Producers) if (pr.GoodId == Catalog.ElecInfraId) { elecInfraProc = true; break; }
+        if (elecInfraProc)
+        {
+            elecInfraNeed = coef.ElecInfraNeedPerUrban * urbanPop;
+            double est = elecInfraNeed * Math.Max(region.Markets[Catalog.ElecInfraId].Price, Eps);
+            double afford = est > Eps ? Math.Min(1.0, region.ElecInfraBudget / est) : 0.0;
+            elecInfraWant = elecInfraNeed * afford * PriceAfford(Catalog.ElecInfraId);
+            militaryDemand[Catalog.ElecInfraId] += elecInfraWant;
+        }
+
+        // 兵力調達（兵士の給与）：国家が兵士の算出する「兵力」を買う。買えない＝兵士の収入が絶え充足↓＝弱兵。
+        double mpNeed = 0, mpWant = 0;
+        bool mpProc = region.SoldierPopIndex >= 0 && Catalog.MilitaryPowerId < ng;
+        if (mpProc)
+        {
+            mpNeed = region.Pops[region.SoldierPopIndex].Size;   // 兵士1人＝兵力1単位/月
+            double est = mpNeed * Math.Max(region.Markets[Catalog.MilitaryPowerId].Price, Eps);
+            double payRaw = est > Eps ? region.SoldierPayBudget / est : 1.0;   // ★1で切らない生の比（軍の恒常性の信号）
+            region.SoldierPayAffordRaw = payRaw;
+            double afford = est > Eps ? Math.Min(1.0, payRaw) : 0.0;
+            mpWant = mpNeed * afford * PriceAfford(Catalog.MilitaryPowerId);
+            militaryDemand[Catalog.MilitaryPowerId] += mpWant;
+        }
+
+        // === ② 工場の投入需要 ＋ 財ごとの生産者数。電化の意思決定もここ ===
+        bool elecOn = Catalog.ElectricityId < ng && isService.Length > Catalog.ElectricityId;   // 電力を持つ世界か（小シナリオは対象外）
+        bool energyOn = coef.EnergyPerOutput > 0 && Catalog.CoalId < ng;   // #9 石炭動力を持つ世界か（石炭good非搭載の最小テスト経済では inputNeed[CoalId] が範囲外になるので必須ガード＝電化の elecOn と同型）
+        double steamGate = energyOn ? Math.Clamp((region.TechLevel - coef.SteamTechOnset) / coef.SteamTechWidth, 0.0, 1.0) : 0.0;   // 蒸気機関の発明・普及度（電化の AdvancedTechScale(電力) と同役）。0=未発明＝石炭を焚かない（1789年の蒸気の時代錯誤を解消）
+        var elecNeed = scratch.ElecNeed;
+        var steamNeed = scratch.SteamNeed;  // 蒸気動力化した工場の石炭（燃料）購入量。電化分は電力が代替（(1−ElecFill)）。energyOn かつ steamGate>0 でのみ立つ（旧：全機械化工場が無条件で焚いていた＝時代錯誤を是正）
+        var effNeed = scratch.EffNeed;      // RGO効率化材の購入量
+        var effChosen = scratch.EffChosen;  // 今期その産者が選んだ効率化材の good.Id（候補から最安を選択。-1＝買わない）
+        for (int i = 0; i < np; i++) effChosen[i] = -1;
+        // 効率化材の解禁判定（財別・Run内不変）を1回で前計算：全生産者を1周し、財ごとに「生産者が実在するか」「その中に解禁済みが1つでもあるか」を積む。
+        // 下のEffGoods選定は producer×候補材ごとに読むだけ（値・判定は元の入れ子走査と同一＝ビット恒等）。
+        var anyProducerArr = scratch.AnyProducer;
+        var anyUnlockedArr = scratch.AnyUnlocked;
+        foreach (var bprodAll in region.Producers)
+        {
+            int pbg = bprodAll.GoodId;
+            if (pbg < 0 || pbg >= ng) continue;
+            anyProducerArr[pbg] = true;
+            if (Catalog.RecipeTechScale(bprodAll.TechOnset > 0 ? bprodAll.TechOnset : Catalog.DefaultRecipeOnset(pbg, coef), region.TechLevel) > 0) anyUnlockedArr[pbg] = true;
+        }
+        for (int pi = 0; pi < np; pi++)
+        {
+            var s = region.Producers[pi];
+            producerCount[s.GoodId]++;
+            foreach (var inp in s.Inputs)
+            {
+                double eq = EffectiveQty(s, region, inp, coef);
+                // 経1：Output ベースの投入は通常の需要＝配給され、消費され、支払われる。
+                // ⚠**旧コメントは誤り**（2026-08-01訂正）＝「トリクルは物量を持たない幽霊需要」と書かれていたが、
+                //   ReignitionTrickleConserves=0（＝恒久的な既定）では coreDemand に**入っている**＝実際に在庫を食っている。
+                //   幽霊だったのは物量ではなく**代金**の方だった。それを下の決済で正す。
+                inputNeed[inp.GoodId] += s.Output * eq;
+                double trickle = Math.Max(0, coef.ReignitionDemandFrac * s.DesiredOutput - s.Output) * eq;   // 供給ベースを超える再点火分＝止まった工場の再開発注
+                inputTrickle[inp.GoodId] += trickle;
+                // ★再点火発注に代金を付ける（点火2026-08-01・作者指摘「実装の形としては正だが、実装方法としてスマートでない」への差し替え）。
+                // ⚠**挙動は変えない**——発注の量も配給も物量の消費もこれまで通り。**変えるのは金の流れ**だけ。
+                // 旧＝止まった工場が現物を受け取るのに誰も払わず、売った側も1銭も受け取らなかった（＝物が消え、所得が消えた）。
+                // 新＝**止まった工場の持ち主が自分の貯蓄から払い、売った側がその金を受け取る**。
+                // ★これが現実の姿＝止まっている工場も、いつでも再開できるように少量を買い続け、それは持ち主の持ち出しである
+                //   （ボイラーを温め、原料庫を空にしない費用）。だから**持ち主が無一文なら再開の準備もできない**＝新しい制約が1つ増える。
+            }
+            // 電化の意思決定：稼働率↑の価値が電力代を上回るなら買う＝高価格財の工場から電化が始まり、
+            // 電力が安くなるほど裾野（安い財）へ広がる＝**電化の波が価格から創発**（時代クランプなし）。
+            if (elecOn && s.BuysLabor && s.GoodId != Catalog.ElectricityId
+                && Catalog.AdvancedTechScale(Catalog.ElectricityId, region.TechLevel) > 0   // 電力が未発明なら電化しない（序盤の電力需要を断つ）
+                && coef.ElecBoost * region.Markets[s.GoodId].Price > coef.ElecPerOutput * region.Markets[Catalog.ElectricityId].Price)
+                elecNeed[pi] = s.Output * coef.ElecPerOutput;
+            // 蒸気動力の意思決定（電化と完全に同型）：原動機(蒸気機関)が発明され(steamGate>0)、稼働率↑の価値が石炭代を上回るなら焚く＝
+            // 高価格財の工場から蒸気化が始まり、石炭が安いほど裾野へ広がる。電化分(ElecFill)は電力が蒸気を代替＝石炭需要が減る（市場的な燃料転換が創発）。
+            // 1789年は steamGate=0 で石炭を焚かない＝水車/畜力（無ブースト）＝蒸気の普及が技術と価格から創発（暦年クランプなし）。EnergyPerOutput=0で無効。
+            if (energyOn && steamGate > 0 && s.BuysLabor && s.GoodId != Catalog.CoalId && s.GoodId != Catalog.ElectricityId
+                && coef.SteamBoost * region.Markets[s.GoodId].Price > coef.EnergyPerOutput * region.Markets[Catalog.CoalId].Price)
+                steamNeed[pi] = s.Output * coef.EnergyPerOutput * Math.Max(0, 1.0 - s.ElecFill);
+            // RGO効率化の意思決定（電化のRGO版）：候補のうち profit-gate を通る**最安**を選ぶ（市場が安い増強材を採る＝並存レシピと同思想）。
+            // profit-gateで「消費した効率化材＞増えた産出」が構造的に起きない（材が高騰すれば自動で買い控え＝工具が奪い合いなら火薬へ逃げ、両方高ければ買わない）。
+            double outPrice = region.Markets[s.GoodId].Price;
+            int chosen = -1; double bestPrice = double.MaxValue;
+            foreach (int bg in s.EffGoods)
+            {
+                if (bg < 0 || bg >= ng) continue;
+                if (Catalog.AdvancedTechScale(bg, region.TechLevel) <= 0) continue;
+                // 02断線走査（2026-07-28）：既定onsetでなく「この州に解禁済みの生産者が実在するか」で判定＝グアノ肥料（onset0）が届く国は1842年を待たずに肥料を使える（1840s-70sのグアノ時代の先行・ペルーの非対称）。生産者が居ない財は従来どおり既定onsetで判定。値は上の前計算（anyProducerArr/anyUnlockedArr）から読む。
+                bool anyProducer = anyProducerArr[bg], anyUnlocked = anyUnlockedArr[bg];
+                if (anyProducer ? !anyUnlocked : Catalog.RecipeTechScale(Catalog.DefaultRecipeOnset(bg, coef), region.TechLevel) <= 0) continue;   // 解禁前の候補を「供給ゼロの凍結価格」で選ばない（レビュー2026-07-19の規律は維持）
+                double bp = region.Markets[bg].Price;
+                if (coef.EffBoost * outPrice <= coef.EffPerOutput * bp) continue;   // 割に合わない
+                if (bp < bestPrice) { bestPrice = bp; chosen = bg; }
+            }
+            if (chosen >= 0)
+            {
+                effNeed[pi] = s.Output * coef.EffPerOutput;
+                effChosen[pi] = chosen;
+                effDemand[chosen] += effNeed[pi];   // コア需要と別建て＝残余だけ配給（最低優先）
+            }
+        }
+        // 蒸気動力（石炭）需要を加算（電化分は上で電力に置換済み＝石炭需要が自然に減る）。energyOn かつ steamGate>0 でのみ非ゼロ＝従来/最小経済/未発明期は無効。
+        if (energyOn)
+            for (int pi = 0; pi < np; pi++) inputNeed[Catalog.CoalId] += steamNeed[pi];
+        // 送電容量で頭打ち：容量を超える電力は工場に届かない＝電化には送電網への投資が要る（§拡張・地域内インフラ）。
+        if (elecOn)
+        {
+            double elecWant = 0;
+            for (int pi = 0; pi < np; pi++) elecWant += elecNeed[pi];
+            region.LastElecWant = elecWant;
+            // 電化インフラの便益③：実効送電容量を底上げ（電化インフラ＝公共の配電網が工場の電化＝夜間操業を後押し。既存GridCapacityの stock は compound させない）
+            double effGrid = region.GridCapacity * (1.0 + coef.ElecInfraGridBoost * region.ElecInfraFill);
+            if (elecWant > effGrid && elecWant > Eps)
+            {
+                double gs = effGrid / elecWant;
+                for (int pi = 0; pi < np; pi++) elecNeed[pi] *= gs;
+            }
+            for (int pi = 0; pi < np; pi++) inputNeed[Catalog.ElectricityId] += elecNeed[pi];
+        }
+
+        // === ③ 各財の取引（消費＝予算制約・優先度順 §9-B、＋工場投入需要＋投資需要）===
+        // 消費順＝第1キー tier（エンゲル：生存→日用→贅沢は価格に依らず維持）／第2キー 同tier内の**安い順**。
+        // ＝予算が尽きる貧者は最安（野菜→パン…）から埋まり、買い切れず野菜だけになる。富裕は全部買えて多様。価格は毎期変わるので毎期ソート。
+        int ngoods = region.Goods.Count;
+        if (scratch.ConsumeOrder.Length < ngoods) scratch.ConsumeOrder = new Good[ngoods];
+        var consumeOrder = scratch.ConsumeOrder;
+        for (int ci = 0; ci < ngoods; ci++) consumeOrder[ci] = region.Goods[ci];
+        System.Array.Sort(consumeOrder, 0, ngoods, System.Collections.Generic.Comparer<Good>.Create((a, b) =>
+        {
+            int t = ((int)a.Tier).CompareTo((int)b.Tier);
+            if (t != 0) return t;
+            // ★★全順序（2026-08-17）：価格が同値のときは id で決める。List.Sort は introsort＝**不安定**で、
+            //   タイブレークを入れないと同 Tier・同価格の並びが region.Goods の並び順（＝配列長依存）に落ちる。
+            //   消費は予算を先頭から食う＝順序が力学に直結するので、全順序にして財の追加で軌道が動かないようにする。
+            int pcmp = region.Markets[a.Id].Price.CompareTo(region.Markets[b.Id].Price);
+            return pcmp != 0 ? pcmp : a.Id.CompareTo(b.Id);
+        }));
+        // 交差弾力性（B-2）：主食内の相対価格の基準＝(価格/参照価格)の幾何平均。安い主食ほど需要が集まる（パン高騰→芋へ）。
+        double stapleLogSum = 0; int stapleN = 0;
+        foreach (var g in region.Goods)
+            if ((g.Tier == GoodTier.Staple || (coef.FoodIncludesAnimalProtein > 0 && g.Nutrition > 0)) && g.RefPrice > Eps)   // ★塊1段1b：食卓に動物性タンパクも並ぶ（ゲート0＝主食のみ＝恒等）
+            { stapleLogSum += Math.Log(Math.Max(region.Markets[g.Id].Price, Eps) / g.RefPrice); stapleN++; }
+        double stapleMeanRatio = stapleN > 0 ? Math.Exp(stapleLogSum / stapleN) : 1.0;
+        // 階級別の購入記帳（作者フィードバック2026-08-10 項目6）の配列長＝この州に居る最大 ClassId＋1。
+        // ★純記帳の準備だけ＝ここでは何も決めない（力学の読み手はゼロ）。試験世界は本編と別の階級レイアウトを使うので固定長にしない。
+        int popClassLen = 0;
+        foreach (var p in region.Pops) if (p.ClassId >= popClassLen) popClassLen = p.ClassId + 1;
+        // ★特権 段4（同業組合・2026-09-07）：職人の自営レシピの財ごとの供給シェア。唯一定義＝GuildShares（ProductionDiag も同じものを呼ぶ）
+        double[]? guildShare = GuildShares(region, coef, world, out double guildDeg);
+        for (int coi = 0; coi < ngoods; coi++)
+        {
+            var good = consumeOrder[coi];
+            int gi = good.Id;
+            var m = region.Markets[gi];
+            double usePrice = Math.Max(m.Price, Eps);
+            // 買い手価格の楔5項＝唯一定義 BuyerWedge（ProductionDiag.ExplainPrice／PolicyPreferences.EffectiveStateMonopoly も同じものを呼ぶ・2026-09-11 M5）
+            var (stateMonop, distM, monRent, guildRent, insure) = BuyerWedge(region, coef, gi, isService[gi], guildShare, guildDeg);
+            double buyerPrice = usePrice * (1 + stateMonop + distM + monRent + guildRent) * (1 - insure);
+            // 自己価格弾力（基準からの乖離→需要）と交差弾力（主食内の相対価格による再配分）を**指数空間で一度に合成し単一クランプ**する（audit #8）。
+            // 旧・二重クランプ（自己を先にクランプ→交差を掛け再クランプ）は、安い主食で自己弾力が上限に張り付くと交差の代替が頭打ちになり、
+            // 「非栽培国が安い地元主食に十分シフトできず強制輸入」を生んでいた（馬鈴薯/玉蜀黍の主食化でこの欠陥が顕在化）。
+            bool staple = good.Tier == GoodTier.Staple;
+            // 経11（大量消費化）：需要の上クランプは従来 PriceFactorMax=1.4 一律＝価格暴落しても基礎量の1.4倍で頭打ち＝産業革命の綿布型「安価な工業製品の大量消費」が構造的に起きない。
+            // 財tier別に上限を差し替える（DemandElasticityMaxDaily=2.5／Luxury=2.0・R1点火2026-07-13。1.4=PriceFactorMax なら旧恒等）。PriceFactorMin/Max自体は不変。
+            double elasMax = good.Tier switch { GoodTier.Daily => coef.DemandElasticityMaxDaily, GoodTier.Luxury => coef.DemandElasticityMaxLuxury, _ => coef.PriceFactorMax };
+            // ★塊1段0（StapleElasticityZero）：主食の必要量は生理的に決まる＝価格に反応しない（(rp/p)^0=1）。買えるかは予算制約が決める＝買えなければ FoodMet<FoodNeed で飢える。ゲート0＝データの弾力＝厳密恒等
+            double elasEff = staple && coef.StapleElasticityZero > 0 ? 0.0 : good.Elasticity;
+            double selfFactor = Math.Pow(good.RefPrice / buyerPrice, elasEff);
+            bool foodNonStaple = !staple && coef.FoodIncludesAnimalProtein > 0 && good.Nutrition > 0;   // ★塊1段1b：動物性タンパクも食卓の交差弾力に参加（肉高騰→パン/芋へ流れる＝ギッフェンの創発）
+            double priceFactor;
+            if ((staple || foodNonStaple) && coef.CrossElasticity > 0 && stapleN > 1)
+            {
+                double ownRatio = usePrice / Math.Max(good.RefPrice, Eps);
+                double subst = Math.Pow(stapleMeanRatio / Math.Max(ownRatio, Eps), coef.CrossElasticity);   // 基準(幾何平均)より安ければ需要↑・高ければ↓＝平均の財は不変＝総需要は概ね保たれ配分のみ動く
+                priceFactor = Math.Clamp(selfFactor * subst, coef.PriceFactorMin, elasMax);
+            }
+            else
+                priceFactor = Math.Clamp(selfFactor, coef.PriceFactorMin, elasMax);
+            // アヘンは中毒度を1人あたり必要量に上乗せ（供給→消費→中毒→需要 の正のフィードバック・実験）
+            double effBaseNeed = good.BaseNeed + (gi == coef.OpiumGoodId ? region.OpiumAddiction : 0);
+            // 公共医療（社会保障）は医薬品の消費を増やす＝資材を消費（pop が予算内で買う＝保存則安全）。
+            if (gi == coef.MedicalGoodId) effBaseNeed *= 1.0 + region.SocialSecurity * coef.MedicalWelfareBoost;
+            // 過密/スラムの疫病：都市化が**衛生（上下水道の充足率）**を上回ると疫病圧が立ち、医療(医者の役務)の需要が跳ねる。
+            // 満たせねば HealthFill↓→扶養力↓(死亡)＋不満。＝#4施設化で「衛生＝工業化proxy」を**実財(上下水道)の充足率**に置換（市場問題として emergent）。
+            if (gi == Catalog.HealthcareId)
+            {
+                // 衛生＝上下水道(InfraFill)＋石鹸消費(SoapFill)＋電化インフラ(ElecInfraFill)の上乗せ（公衆衛生＝清潔/電動上水。医療品ほどではない＝控えめ）。施設/石鹸の無い世界は従来どおり疫病なし
+                double sanitation = Math.Clamp(region.InfraFill + coef.SoapSanitationWeight * region.SoapFill + coef.ElecInfraSanitationWeight * region.ElecInfraFill, 0.0, 1.0);
+                double diseasePressure = totalPop > Eps ? (urbanPop / totalPop) * (1.0 - sanitation) : 0;
+                effBaseNeed *= 1.0 + coef.HealthCrowdingBoost * diseasePressure;
+            }
+            // ★塊1段1b：バスケットに肉が入った分だけ穀物の取り分が減る（野菜追加時のパン0.80→0.55と同じ処理をデータ比から導出）＝総食料需要は中立。ゲート0＝×1.0＝恒等
+            if (staple && coef.FoodIncludesAnimalProtein > 0) effBaseNeed *= 1.0 - coef.FoodIncludesAnimalProtein * Catalog.AnimalNutritionNeedRatio;
+            // 先進消費財（電化製品）は発明前は需要も立たない＝供給と同じ発明ゲートで解禁（非先進財は常に×1.0）。
+            effBaseNeed *= Catalog.AdvancedTechScale(gi, region.TechLevel);
+            // 浅連鎖の明示需要ゲート（B6レビュー2026-07-19）：自転車＝発明前の幻需要（100年の未充足＝満足度ドラグ）を防ぐ。大半の財は0=×1.0
+            effBaseNeed *= Catalog.RecipeTechScale(Catalog.DemandOnset(gi), region.TechLevel);
+            // 都市住宅（housing-urban-rent-absent）：住居の必要量は**都市popのみ**・都市化度ゲートの先でだけ立てる。HousingNeedPerUrban=0.03（点火2026-07-18）。0で住居項=0＝家賃が家計に乗らない。
+            bool housingGood = Catalog.HousingId < ng && gi == Catalog.HousingId && coef.HousingNeedPerUrban > 0;
+            double housingGate = 0;
+            if (housingGood)
+            {
+                double urbanShare = totalPop > Eps ? urbanPop / totalPop : 0;
+                housingGate = urbanShare > coef.HousingUrbanThreshold ? 1.0 : 0.0;   // 都市化度ゲート（AgrarianToUrban低都市率で0）
+                effBaseNeed = coef.HousingNeedPerUrban * housingGate;
+            }
+            double popDemand = 0, popDesiredSum = 0;
+            foreach (var p in region.Pops)
+            {
+                p.GoodNeed = effBaseNeed * p.Size;
+                if (housingGood && !p.IsUrban) p.GoodNeed = 0;   // 家賃は都市住民のみ（レビュー2026-07-19：全popに掛かり需要を最大2倍過大計上→摩擦点火で過密ペナルティが過大化していた）
+                if (gi == Catalog.EducationId) p.GoodNeed = coef.EduPerChild * p.ChildShare * p.Size;   // 教育の必要量＝**子供の数**（子供3割×0.2＝従来の0.06と一致。少子化＝学校需要減）
+                // ★段②（2026-08-17・作者裁定「教育を買ったpopがさらに買うことでのみ技師・研究者へ昇格（無償化されない）」）：
+                //   高等教育の需要＝**前月に学校を出られた者のうち、字が読める分**。義務教育のような国庫の肩代わりは無い（自費のみ）。
+                //   ⚠BaseNeed=0 なので既定の effBaseNeed*Size は 0。HigherEduNeedPerEducated=0 でこの行も 0 を書く＝**ビット恒等**。
+                //   ★2026-09-07（知識doc 段2の診断）：「教育を受けた層」を前月の購入フロー（LastEducationFill）だけで測ると、既に識字の高い英仏普の近代エリート
+                //     （学校を買わない）の需要が0になり、教育を買い続ける清・日だけに大学が立つ＝史実と逆。**識字（ストック）でも数える**＝max(前月の就学, 識字)。
+                if (gi == Catalog.HigherEducationId) p.GoodNeed = coef.HigherEduNeedPerEducated * Math.Max(p.LastEducationFill, p.Literacy) * p.Literacy * p.Size;
+                if (gi == Catalog.NewspaperId) p.GoodNeed = effBaseNeed * p.Size * p.Literacy;   // 1934拡張E3：新聞は読める者だけの需要（識字比例＝旧・国民運動の識字重みの財化）
+                // P3（2026-07-17）：アヘンの困窮ゲート＝低満足popだけが手を出し（misery gate）、中毒は満足に関わらず必要量になる。主フラグOFFでは従来（effBaseNeed経由）
+                if (gi == coef.OpiumGoodId && coef.OpiumAddictionGrowth > 0)
+                    p.GoodNeed = (good.BaseNeed * Math.Clamp(coef.OpiumMiseryScale * (1.0 - p.Satisfaction), 0, 1) + region.OpiumAddiction) * p.Size;
+                double marketNeed = staple ? p.GoodNeed * (1.0 - p.Subsistence) : p.GoodNeed;   // 自給分は市場に出さない（農民）
+                double demand = 0;
+                if (marketNeed > 0)
+                {
+                    double desired = marketNeed * priceFactor;
+                    // 所得翻訳ゲート（設計3段2）：Daily/Luxury かつ非役務のみ所得係数を乗算（Staple・役務は不変＝
+                    // FoodMet/マルサス項・満足度台帳を式レベルで保護）。既定k=0では乗算ごとスキップ＝bit恒等。
+                    if (coef.DemandIncomeElasticity > 0 && !staple && !isService[gi]) desired *= p.DemandIncomeFactor;
+                    // B3自己成就的パニック買い（2026-08-08）：主食の棚が半分を切ると買い占め（希少が希少を呼ぶ＝
+                    // 自分たちの集合行動についての期待は必ず自己成就する・docs/202607/05§8）。既定0=スキップ=bit恒等。
+                    if (coef.PanicBuyWeight > 0 && staple)
+                    {
+                        var pm = region.Markets[gi];
+                        if (pm.TargetStock > Eps)
+                        {
+                            double scarcity = 1.0 - Math.Min(1.0, Math.Max(0, pm.Stock) / pm.TargetStock);
+                            // 閾値0.75＝在庫が目標の1/4未満の**真の欠乏**でのみ発動（0.5では小世界の常態で常時発動＝輸出余剰を食い尽くしテスト前提が崩れた・2026-08-08実測）
+                            if (scarcity > 0.75) desired *= 1.0 + coef.PanicBuyWeight * (scarcity - 0.75) * 4.0;
+                        }
+                    }
+                    // ★入口B：消費者信用（POPの個人債務・2026-08-02）。**主食が買えないとき借りて買う**（質屋・掛け売り）。
+                    // ⚠ここは4つの出口（飢える／怒る／盗む／逃げる）が全部読む**唯一の根**なので、横並びの二重計上は構造的に起きない。
+                    // ⚠★Savings と RemainingBudget の**両方**を書くこと：Savings を増やさないと貨幣が湧き、
+                    //   RemainingBudget を増やさないとその月に使えない。貨幣は Bank.HouseholdLoans が対で作る＝ΔBaseMoney=0。
+                    // ★主食の tier に限る＝質屋は食い扶持のための信用であって奢侈のためではない（新しい優先順位規則を書かずに史実の形になる）。
+                    // ⚠自給農民には原理的に効かない（marketNeed が自給ぶん減っているため）＝機構の適用範囲であって欠陥ではない。
+                    if (coef.PopDebtDriven > 0 && coef.HouseholdCreditMonths > 0 && bank is not null
+                        && (staple || coef.HouseholdCreditStapleOnly <= 0))
+                    {
+                        double shortfall = (desired - p.RemainingBudget / buyerPrice) * buyerPrice;
+                        if (shortfall > 0)
+                        {
+                            double creditCap = coef.HouseholdCreditMonths * Math.Max(0, p.LastEarned) - p.Debt;   // 枠＝前月所得の倍数（既存債務を差し引く）。★当月 Earned は Run 冒頭でゼロ化済み＝前月の LastEarned を読む
+                            double borrow = Math.Min(shortfall, Math.Max(0, creditCap));
+                            if (borrow > 0)
+                            {
+                                p.Savings += borrow; p.RemainingBudget += borrow; p.Debt += borrow;
+                                bank.HouseholdLoans += borrow;
+                                if (world is not null) world.HouseholdCreditIssued += borrow;
+                            }
+                        }
+                    }
+                    double affordable = p.RemainingBudget / buyerPrice;   // 税込みの実効価格で買える量
+                    // ★反実仮想（2026-08-21・純診断）：予算の蓋を**外して**「金詰まりが交易の栓か」をA/Bで測る。
+                    //   ⚠これは**保存則を破る**（払えない分まで買う）＝測定専用であり採用候補ではない。
+                    //   ⚠倍率で緩めてはいけない（実測で踏んだ罠）：残予算は購入で負に沈むので affordable×K は**負の需要**を作り、
+                    //     需要/希望が −3.0 や −154 という無意味な値になる。外すなら desired をそのまま通す（min を掛けない）。
+                    //   既定0＝三項演算子の false 側＝旧 Math.Min と厳密同一（ctl と selfplay 1 200 で diff 0 行を確認済み）。
+                    demand = coef.PopBudgetRelax > 0 ? desired : Math.Min(desired, affordable);
+                    popDesiredSum += desired;   // ★測定専用：予算で切られる前の希望量（LastDesiredDemand の素）
+                    if (BudgetBindDiag.On) BudgetBindDiag.Row(world, staple ? 0 : good.Tier == GoodTier.Daily ? 1 : 2, !good.NonTradeable && !good.IsColonial, desired, demand, buyerPrice);
+                }
+                p.GoodDemand = demand;
+                popDemand += demand;
+            }
+
+            // コア需要（消費・工場投入・建設投資・軍需）＝通常の比例配給。効率化材の需要(effDemand)はここに含めない。
+            // 経1：再点火トリクルの超過分は既定(=0)ではコア需要に折り込む＝現行と厳密一致。=1 で価格シグナル(totalDemand)のみに算入し配給・在庫減・LastSold から除外＝物量保存。
+            double coreDemand = popDemand + inputNeed[gi] + investDemand[gi] + militaryDemand[gi] + rebelDemand[gi]   // ★反乱勢力の武器購入（2026-09-11）＝国軍と同列で配給を奪い合う（休眠では +0.0＝厳密恒等）
+                              + (1.0 - coef.ReignitionTrickleConserves) * inputTrickle[gi];
+            if (BudgetBindDiag.On) BudgetBindDiag.Compose(world, popDemand * usePrice, inputNeed[gi] * usePrice, investDemand[gi] * usePrice, (militaryDemand[gi] + rebelDemand[gi]) * usePrice);
+            double available = m.Stock + produced[gi];
+            double coreSold = coreDemand > 1e-12 ? Math.Min(available, coreDemand) : 0;
+            ration[gi] = coreDemand > 1e-12 ? coreSold / coreDemand : 0;
+            if (gi == coef.SoapGoodId) region.SoapFill = ration[gi];   // 石鹸の消費充足＝衛生(公衆衛生)へ（疫病ブロックで sanitation に加算）
+            // 1934拡張E3：新聞/ラジオの per-pop 充足（予算×配給で実際に読めた率）。国民意識（CrownParliament）と政治意識（Politics）が読む。
+            if (gi == Catalog.NewspaperId)
+                foreach (var p in region.Pops) p.NewsFill = p.GoodNeed > Eps ? Math.Clamp(p.GoodDemand * ration[gi] / p.GoodNeed, 0, 1) : 0;
+            else if (gi == Catalog.RadioId)
+                foreach (var p in region.Pops) p.RadioFill = p.GoodNeed > Eps ? Math.Clamp(p.GoodDemand * ration[gi] / p.GoodNeed, 0, 1) : 0;
+            if (housingGood) region.HousingFill = housingGate > 0 ? ration[gi] : 1.0;   // 住居充足＝移民摩擦へ。都市化ゲート未満の州＝住居需要なし＝過密なし(1.0)
+            // （レビュー2026-07-19 HIGH：旧は ration=0/0=0 を全農村州に書き、摩擦0.5点火で農村の移民引力だけ×0.5＝「過密都市は流入が鈍る」の意図が逆転しロンドン一強を強化していた）
+            // 効率化材は**最低優先**＝コアを満たした残余だけ買える（工具を機械が先取り→建設は遅延しない）。
+            // 価格はコア＋効率化の総需要で形成＝高需要なら高騰し、profit-gateで効率化用途が自然に買い控える（史実の奪い合い）。
+            double effResid = Math.Max(0, available - coreSold);
+            double effSold = effDemand[gi] > 1e-12 ? Math.Min(effResid, effDemand[gi]) : 0;
+            effRation[gi] = effDemand[gi] > 1e-12 ? effSold / effDemand[gi] : 0;
+            // 経1：保存モード(=1)ではトリクル超過分は coreDemand に入っていないので、価格シグナル(totalDemand→LastDemand/LastShortage)にはここで加算し直す（配給・在庫減・LastSold には効かせない）。既定(=0)は coreDemand に既算入なので重複加算しない。
+            double totalDemand = coreDemand + effDemand[gi] + coef.ReignitionTrickleConserves * inputTrickle[gi];
+            double sold = coreSold + effSold;
+            m.LastDemand = totalDemand;                          // 次期の労働配分の重み（効率化需要も含む＝価格上昇に反映）
+            m.LastDesiredDemand = totalDemand + Math.Max(0, popDesiredSum - popDemand);   // ★測定専用：予算で切られる前の総需要（既定では読み手ゼロ）
+            clearPrice[gi] = m.Price;
+
+            // アヘン中毒度の更新：1人あたり消費が中毒を育てる（成長>減衰で発散＝供給した分だけ需要が膨らむ・実験）
+            if (gi == coef.OpiumGoodId)
+            {
+                double perCapita = totalPop > Eps ? sold / totalPop : 0;
+                region.OpiumAddiction = Math.Clamp(region.OpiumAddiction + coef.OpiumAddictionGrowth * perCapita - coef.OpiumAddictionDecay * region.OpiumAddiction, 0, coef.OpiumAddictionCap);   // P3：生理的上限＝依存→満足↓→困窮消費↑の正帰還に物理の蓋（0.2上限でも労働−最大20%・満足−最大10%）
+            }
+
+            // ★popが自腹で買った量の階級別記帳（作者フィードバック2026-08-10 項目6）＝生産タブの「用途」先頭行が読む唯一の出所。
+            //   popが1単位も欲しがらなかった月は配列ごと落とす（null）＝BaseNeed=0 の財（鉄鉱石・機械…）に配列を作らない。
+            //   ⚠純記帳＝この配列を読む力学は無い（書くだけ）。恒等性は「読み手ゼロ」で構造的に保証される。
+            double[]? popBought = null;
+            if (popDemand > Eps && popClassLen > 0)
+            {
+                popBought = m.PopBought;
+                if (popBought is null || popBought.Length != popClassLen) m.PopBought = popBought = new double[popClassLen];
+                else Array.Clear(popBought);
+            }
+            else m.PopBought = null;
+            // ★段③：高等教育も役務の優先配分へ通す（BaseNeed=0 なので条件に明示的に足す）。⚠理由は2つ——
+            //   (a)**充足度（Satisfaction）に数えない**のが正しい（大学に行けたことを生活水準に足すのは「支出の直接バフ」＝思想に反する）。
+            //   (b)国庫の肩代わり（義務教育）と同じ場所に置ける＝`remaining`（popが買った残り）がそこにしか無い。
+            if (isService[gi] && (good.BaseNeed > 0 || gi == Catalog.HigherEducationId))
+            {
+                // === 役務（教育・医療）の優先配分 ===
+                // 「教育は下層POPが優先的に買い、なお余った分を中流が買う」＝中流に届く余剰が高等教育（専門職への転職資格）。
+                // 比例配給ではなく階層順に在庫を埋める。役務は充足度（Satisfaction）に数えない＝生活水準の較正を変えず、
+                // 効果は Fill（識字の天井・人口扶養力・昇格ゲート）として別経路で効く。
+                foreach (var p in region.Pops)
+                {
+                    if (gi == Catalog.EducationId) p.EducationFill = 0;
+                    else if (gi == Catalog.HealthcareId) p.HealthFill = 0;
+                    else if (gi == Catalog.HigherEducationId) p.HigherEduFill = 0;
+                }
+                sold = 0;
+                double remaining = available;
+                for (int rank = 0; rank < ServiceRankCount && remaining > 1e-12; rank++)
+                {
+                    double groupDemand = 0;
+                    foreach (var p in region.Pops) if (ServiceRank(p) == rank) groupDemand += p.GoodDemand;
+                    if (groupDemand <= 1e-12) continue;
+                    double take = Math.Min(remaining, groupDemand);
+                    double gr = take / groupDemand;
+                    foreach (var p in region.Pops)
+                    {
+                        if (ServiceRank(p) != rank) continue;
+                        double qty = p.GoodDemand * gr;
+                        if (popBought is not null) popBought[p.ClassId] += qty;   // 純記帳（項目6）：役務も「自腹で買った分」だけ数える（義務教育の国庫肩代わりは下の別ブロック＝入れない）
+                        double pay = qty * m.Price;
+                        p.Paid += pay;
+                        p.RemainingBudget -= pay;
+                        revenue[gi] += pay;               // 受講料/診療費 → 教師・聖職者・医者の売上（保存）
+                        double fill = p.GoodNeed > Eps ? Math.Min(1.0, qty / p.GoodNeed) : 1.0;
+                        if (gi == Catalog.EducationId) p.EducationFill = fill;
+                        else if (gi == Catalog.HealthcareId) p.HealthFill = fill;
+                        else if (gi == Catalog.HigherEducationId) p.HigherEduFill = fill;
+                    }
+                    remaining -= take;
+                    sold += take;
+                }
+                // 義務教育：popが買えなかった必要量を**教育費スライダーの割合だけ**国庫が買い与える＝全民就学・ただし多大な財政コスト（教師給与を国家が払う）。
+                if (gi == Catalog.EducationId && region.CompulsoryEduFunding > Eps && remaining > 1e-12)
+                {
+                    double unmet = 0;
+                    foreach (var p in region.Pops) if (!p.IsSoldier && p.GoodNeed > Eps) unmet += p.GoodNeed * Math.Max(0, 1.0 - p.EducationFill);
+                    // 財源率（教育費スライダー：満額1.0＝全民就学・半分＝半数就学）も行政の届きも**天井にだけ**効く。
+                    // 配分率 gr＝take÷未充足 なので Σ配分＝take が式の形から立つ（下の高等教育ブロックと同じ書き方）。
+                    // ★行政を通る給付（作者裁定2026-09-08）：EduReachFromAdmin=0 で ×1.0＝厳密恒等。AdminFill は前月値（書き手は同月の後段）。
+                    // ⚠ take が NaN なら下の判定が false ＝給付をスキップ（否定形の番人。Math.Clamp は NaN を除かない）。
+                    double take = Math.Min(remaining, unmet * region.CompulsoryEduFunding
+                        * (coef.EduReachFromAdmin > 0 ? 1.0 - coef.EduReachFromAdmin * (1.0 - Math.Clamp(region.AdminFill, 0, 1)) : 1.0));
+                    if (take > 1e-12)
+                    {
+                        double gr = take / unmet;   // Σ_p need×(1−fill)×gr ＝ unmet×gr ＝ take（保存）
+                        foreach (var p in region.Pops)
+                        {
+                            if (p.IsSoldier || p.GoodNeed <= Eps) continue;
+                            double qty = p.GoodNeed * Math.Max(0, 1.0 - p.EducationFill) * gr;
+                            if (qty <= 0) continue;
+                            double pay = qty * m.Price;
+                            revenue[gi] += pay;
+                            region.StateSpent += pay;     // 国庫→教師（国家が授業料を肩代わり＝保存）
+                            region.CumEducationCost += pay;   // 診断：義務教育費の累積（UI予算表示）
+                            p.EducationFill = Math.Min(1.0, p.EducationFill + qty / p.GoodNeed);
+                        }
+                        sold += take;
+                        m.LastDemand += take;             // 国家購入も需要として記録（次期の労働配分の重み）
+                        m.LastDesiredDemand += take;      // ★測定専用の写し
+                    }
+                }
+                // ★段③：近代化投資の学費補助。義務教育と**同じ形**だが律速が違う——義務教育は「率」（全民就学が目標）、
+                //   こちらは「額」（予算で買える人数が決まる＝作者裁定「効果を投入額から計算し、投入額上限は収入から計算する」）。
+                //   ⚠買えた分だけ StateSpent へ計上＝**空振りは国庫に残る**（予約 HigherEduFunding は月末に無条件ゼロ化）。
+                if (gi == Catalog.HigherEducationId && region.HigherEduFunding > Eps && remaining > 1e-12 && m.Price > Eps)
+                {
+                    double unmet = 0;
+                    foreach (var p in region.Pops) if (p.GoodNeed > Eps) unmet += p.GoodNeed * Math.Max(0, 1.0 - p.HigherEduFill);
+                    double take = Math.Min(Math.Min(remaining, unmet), region.HigherEduFunding / m.Price);
+                    if (take > 1e-12)
+                    {
+                        double gr = take / unmet;
+                        foreach (var p in region.Pops)
+                        {
+                            if (p.GoodNeed <= Eps) continue;
+                            double qty = p.GoodNeed * Math.Max(0, 1.0 - p.HigherEduFill) * gr;
+                            if (qty <= 0) continue;
+                            double pay = qty * m.Price;
+                            revenue[gi] += pay;               // 学費 → 研究者（大学）の売上（保存）
+                            region.StateSpent += pay;         // 国庫→大学（保存）
+                            p.HigherEduFill = Math.Min(1.0, p.HigherEduFill + qty / p.GoodNeed);
+                        }
+                        sold += take;
+                        m.LastDemand += take;
+                        m.LastDesiredDemand += take;      // ★測定専用の写し
+                    }
+                }
+                ration[gi] = totalDemand > 1e-12 ? Math.Min(1.0, sold / totalDemand) : 0;
+            }
+            else
+            {
+                // 需要の階層（エンゲルの法則）：満足度への重みは 生存（主食）＞日用＞贅沢。
+                // 腹が満ちた農民は楽器が買えなくても暴れない＝「空腹」と「紅茶がない」を同じ重みで数えない。
+                double needW = good.Tier switch { GoodTier.Staple => 1.0, GoodTier.Daily => coef.DailyNeedWeight, GoodTier.Luxury => coef.LuxuryNeedWeight, _ => 1.0 };
+                // ★階層3分割（作者裁定2026-09-20・器 NeedTierSplit）：食料の欠乏は**怒り**（FoodMet/FoodNeed→FamineDrive→闘争度）、
+                //   日用品の欠乏は**不満**（この台帳）、嗜好品は**上振れ**（買えた分だけ台帳へ）。同じ欠乏が3つのうち2つへ入らない（思想⑨）。
+                //   ⚠needW=0 で抜けるのは**満足度の台帳だけ**＝下の FoodMet/FoodNeed の積み上げ（:1707-1708）は旗に依らず同じ量を測り続ける
+                //     ＝飢饉の物理（死亡・疫病・移民・扶養力・天命の dmFood）は1本のままで、移るのは政治的帰結だけ。
+                bool tierSplit = coef.NeedTierSplit > 0;
+                if (tierSplit && (staple || foodNonStaple)) needW = 0;
+                foreach (var p in region.Pops)
+                {
+                    double qty = p.GoodDemand * ration[gi];
+                    if (popBought is not null) popBought[p.ClassId] += qty;   // 純記帳（項目6）：この財を実際に買ったのは誰か＝階級別の量
+                    // 経13：補助のベースを基礎価格(m.Price)から税・流通込み総額へ揃える（buyerPrice の (1-insure) と整合）。
+                    // InsuranceSubsidyConsistent=1.0（2026-07-19有効化）＝総額ベース＝pay が buyerPrice に一致し予算超過（貯蓄負値化）を解消。0で基礎価格ベース（旧）。どちらも保存は成立（pop+国庫＝生産者+商人）。
+                    double insureBase = m.Price * (1.0 + coef.InsuranceSubsidyConsistent * (stateMonop + distM));
+                    double subsidy = qty * insureBase * insure;   // 健康保険(#3)：医薬品の購入費の insure 割合を国家が肩代わり（insure>0 は医薬品のみ）
+                    double pay = qty * m.Price * (1 + stateMonop + distM + monRent + guildRent) - subsidy;  // 専売＋流通マージン＋独占レント＋同業組合の上乗せ込み − 国家負担分＝popの実支払い
+                    p.Paid += pay;
+                    p.RemainingBudget -= pay;
+                    revenue[gi] += qty * m.Price;             // 消費者の支払い（税・マージン抜き）を売上へ（実支払いベース＝保存の要）
+                    region.StateSpent += subsidy;             // 国家の医療費負担（国庫→生産者＝保存。pop が払わない分を国庫が補填）
+                    region.StateSpent -= qty * m.Price * stateMonop;   // 専売は国庫へ（StateSpentの負値＝国庫収入。Treasury-=StateSpent で精算＝保存）
+                    region.CumStateMonopolyRevenue += qty * m.Price * stateMonop;   // 診断：専売益の累積（UI予算表示）
+                    region.LastStateMonopolyRevenue += qty * m.Price * stateMonop;  // 接2：当月の専売益（Fiscalの予算基数へ）
+                    if (distM > 0) region.Pops[region.MerchantPopIndex].Earned += qty * m.Price * distM;   // 流通マージン＝商人の収入（消費者→商人で保存）
+                    if (guildRent > 0)   // ★特権 段4：同業組合の上乗せ＝職人へ（消費者→職人で保存）。台帳＝取り分（PrivilegeLedgerEnabled>0）
+                    {
+                        double guildPay = qty * m.Price * guildRent;
+                        region.Pops[region.ArtisanPopIndex].Earned += guildPay;
+                        if (coef.PrivilegeLedgerEnabled > 0) Privileges.Record(world!, Privileges.Guild, guildPay);
+                    }
+                    if (monRent > 0)   // タスクC：独占レント＝茶(74)は資本家(東インド会社)へ・塩(6)は国庫(王室のgabelle)へ（消費者→保有者で保存）
+                    {
+                        double monPay = qty * m.Price * monRent;
+                        if (gi == Catalog.TeaId && region.InvestorPopIndex >= 0 && region.InvestorPopIndex < region.Pops.Count)
+                        {
+                            region.Pops[region.InvestorPopIndex].Earned += monPay;
+                            // ★特権システム 段5前半（2026-09-07）：特許会社の取り分（資本家が受ける独占レント）を特権台帳へ（観測＝金の流れは上の1行のまま）。
+                            //   PrivilegeMonopolyInLedger=0 で記帳なし＝priv3/priv6 の計測（P1〜P4）を汚さない。
+                            if (world is not null && coef.PrivilegeLedgerEnabled > 0 && coef.PrivilegeMonopolyInLedger > 0) Privileges.Record(world, Privileges.Monopoly, monPay);
+                        }
+                        else region.StateSpent -= monPay;
+                        // タスクC/#4（政治腐敗＝独占の純コスト化）：独占価格を払う大衆の resentment＝闘争度上昇。独占が国を富ませ伝統帝国をentrenchさせるのを、大衆の不満→不安定で相殺し「独占は悪・解体で改善」を創発。MonopolyResentmentMilitancy=0で不発。
+                        if (coef.MonopolyResentmentMilitancy > 0 && !p.Closed && !p.IsModernElite && !p.IsSoldier && p.Size > Eps)
+                            p.Militancy = Math.Min(1, p.Militancy + coef.MonopolyResentmentMilitancy * monRent);
+                    }
+                    if (p.GoodNeed > Eps)
+                    {
+                        // 経2（飢饉の深さ）：自給充足の収穫係数。従来は局地 HarvestFactor のみ＝作物病害(CropHealth)・緯度帯天候(WeatherBandFactor)・土地逓減(landFactor)が
+                        // 高自給の貧農の自家消費に届かず、ジャガイモ胴枯病型の飢饉の核心層が病害を免れていた。SubsistenceHarvestFullExposure=0（既定）で
+                        // subFactor=HarvestFactor＝現行と厳密一致。=1 で市場向けRGO（供給①の harvestMul・landFactor）と同じ三重積算（WeatherBandFactor×CropHealth[主食id]×landFactor）を自給にも乗せる。
+                        double subFactor = region.HarvestFactor;
+                        if (staple && coef.SubsistenceHarvestFullExposure > 0)
+                        {
+                            double crop = region.CropHealth is { } ch && gi < ch.Length ? ch[gi] : 1.0;   // 主食id(=gi)の作物健全度（病虫害）
+                            double fullFactor = region.HarvestFactor * region.WeatherBandFactor * crop * regionLandFactor;   // 市場向けと同じ収穫係数
+                            subFactor = (1.0 - coef.SubsistenceHarvestFullExposure) * region.HarvestFactor + coef.SubsistenceHarvestFullExposure * fullFactor;
+                        }
+                        double sub = staple ? p.GoodNeed * p.Subsistence * subFactor : 0;   // 自給で満たした分（市場外・無償）。不作は自給も減らす＝高自給の貧農も飢饉に晒される
+                        double met = sub + Math.Min(qty, p.GoodNeed - sub);
+                        p.NeedMet += met * needW;
+                        // ★嗜好品は分母にも met を積む＝買えた分は「満たされた成分」として比を1へ引き上げ、買えない分は台帳に1ビットも載らない（＝罰にならない）。
+                        //   met ≤ GoodNeed（上の met の定義）かつ嗜好は分子=分母＝分子 ≤ 分母は保たれる＝下の Clamp は非拘束のまま（思想⑧）。
+                        //   ⚠旗0では三項の条件が false＝`p.GoodNeed * needW` そのもの＝式も演算順序も現行と同一（ビット恒等）。
+                        p.NeedTotal += (tierSplit && good.Tier == GoodTier.Luxury ? met : p.GoodNeed) * needW;
+                        if (staple) { p.FoodMet += met; p.FoodNeed += p.GoodNeed; region.LastSubsistenceOutput += sub; }   // 主食のみ別途集計＝FoodFill（扶養力のマルサス項）。不作/高騰/過密で買えねば met<need→飢饉。自給subは生産アンカーの分子へも累積（人2補完）
+                        else if (foodNonStaple) { p.FoodMet += met * good.Nutrition; p.FoodNeed += p.GoodNeed * good.Nutrition; }   // ★塊1段1b：動物性タンパクも食料（食卓の17%が消えたらFoodFillが動く）。自給subは主食限定のまま（生産アンカーの較正に触らない・doc3-3の裁定）
+                    }
+                }
+            }
+
+            m.Stock = Math.Max(0, available - sold);   // 優先配分の浮動小数点残差で極微の負になりうる（−1e−15）。非負へクランプ
+            m.LastProduced = produced[gi];
+            m.LastSold = sold;
+            m.LastRation = ration[gi];   // 財別の配給率を記帳（生産タブの材別「供給:n%」が読む唯一の出所）。純記帳＝力学の読み手なし
+            m.LastShortage = Math.Max(0, totalDemand - available);
+            // ※価格形成（在庫ギャップ＋需給フロー）は日次へ移譲（MarketFlow.StepDay）。月次決算はここまで＝
+            //   クリアリングと所得決済（金の動き）だけを担い、価格は鼓動（日次）が需給を読んで少しずつ動かす（三層時計）。
+        }
+        // ★純テレメトリ（2026-08-21）：全財を買い終えた時点の**使い残し**。予算が binding なら 0 に張り付く。
+        if (BudgetBindDiag.On)
+        {
+            double bLeft = 0, bPaid = 0;
+            foreach (var p in region.Pops) { bLeft += Math.Max(0, p.RemainingBudget); bPaid += p.Paid; }
+            BudgetBindDiag.Budget(world, budgetStartDiag, bLeft, bPaid);
+        }
+
+        // === 工場の投入支払い：同じ額を「投入費」と「投入財の売上」へ計上（相殺＝厳密保存）===
+        for (int pi = 0; pi < np; pi++)
+        {
+            var s = region.Producers[pi];
+            double ic = 0;
+            double trickleBill = 0;   // ★再点火発注の代金（2026-08-01）。持ち主の持ち出し＝工場の営業費用ではないので ic には入れない
+            foreach (var inp in s.Inputs)
+            {
+                double eq = EffectiveQty(s, region, inp, coef);
+                double pay = clearPrice[inp.GoodId] * s.Output * eq * ration[inp.GoodId];
+                ic += pay;
+                revenue[inp.GoodId] += pay;
+                if (coef.ReignitionOrderSettles > 0)
+                {
+                    // 需要フェーズと**同じ式**（s.Output はこの2フェーズ間で動かない）＝発注量を再現し、配給された分だけ請求する。
+                    double tq = Math.Max(0, coef.ReignitionDemandFrac * s.DesiredOutput - s.Output) * eq;
+                    trickleBill += clearPrice[inp.GoodId] * tq * ration[inp.GoodId];
+                }
+            }
+            // ★止まった工場の持ち主が再開準備の代金を払う（点火2026-08-01）。払えるのは貯蓄の範囲まで＝**無一文なら準備もできない**。
+            // ⚠払い切れなかった分は現物だけが動いた状態が残る（旧＝全額がその状態だった）。
+            if (trickleBill > 0 && s.OwnerPopIndex >= 0 && s.OwnerPopIndex < region.Pops.Count)
+            {
+                var owner = region.Pops[s.OwnerPopIndex];
+                double paid = Math.Min(trickleBill, Math.Max(0, owner.Savings));
+                owner.Savings -= paid;
+                foreach (var inp in s.Inputs)   // 受け取り側へ按分（請求と同じ按分＝合計が一致＝厳密保存）
+                {
+                    double eq2 = EffectiveQty(s, region, inp, coef);
+                    double tq2 = Math.Max(0, coef.ReignitionDemandFrac * s.DesiredOutput - s.Output) * eq2;
+                    double share = clearPrice[inp.GoodId] * tq2 * ration[inp.GoodId];
+                    if (share > 0) revenue[inp.GoodId] += paid * (share / trickleBill);
+                }
+            }
+            // 電力の決済（任意の増強材＝リービッヒの必須投入ではない＝買えなくても操業は止まらない）。買えた率が電化率に積もる。
+            if (elecNeed[pi] > 0)
+            {
+                double pay = clearPrice[Catalog.ElectricityId] * elecNeed[pi] * ration[Catalog.ElectricityId];
+                ic += pay;
+                revenue[Catalog.ElectricityId] += pay;
+            }
+            // 蒸気動力（石炭）の決済：焚いた石炭の代金を input cost に算入（margin→規模→石炭ショックが蒸気産業へ波及）。電化分は上の電力代に置換済み。
+            if (steamNeed[pi] > 0)
+            {
+                double epay = clearPrice[Catalog.CoalId] * steamNeed[pi] * ration[Catalog.CoalId];
+                ic += epay;
+                revenue[Catalog.CoalId] += epay;
+            }
+            double fillTarget = elecNeed[pi] > 0 ? ration[Catalog.ElectricityId] : 0;
+            // 監査2026-07-05（E4）：電化の設備ロックイン＝下落側の速度を(1−ElecFillIrreversibility)倍に減速（投資済み発電設備は石炭安でも剥がさない＝史実の電化一方通行）。ElecFillIrreversibility=1.0 点火＝電化率は下がらない（0で旧恒等）。
+            double elecStep = coef.FillInertia * (fillTarget - s.ElecFill);
+            if (elecStep < 0) elecStep *= 1.0 - coef.ElecFillIrreversibility;
+            s.ElecFill += elecStep;   // 電化はゆっくり進み・剥がれる（設備の慣性）
+            double steamFillTarget = steamNeed[pi] > 0 ? ration[Catalog.CoalId] : 0;
+            s.SteamFill += coef.FillInertia * (steamFillTarget - s.SteamFill);   // 蒸気動力もゆっくり進み・剥がれる（電化と同型の設備慣性）
+            // RGO効率化材の決済（任意＝買えなくても基礎産出は出る）。買えた率が効率(EffFill)に積もる。
+            if (effNeed[pi] > 0)
+            {
+                int bg = effChosen[pi];
+                double pay = clearPrice[bg] * effNeed[pi] * effRation[bg];   // 残余ベースの配給率（コアより低い）
+                ic += pay;
+                revenue[bg] += pay;
+            }
+            double effFillTarget = effNeed[pi] > 0 ? effRation[effChosen[pi]] : 0;
+            s.EffFill += coef.FillInertia * (effFillTarget - s.EffFill);   // 効率化もゆっくり進み・剥がれる（慣性）
+            inputCost[pi] = ic;
+        }
+
+        // === 投資の決済：建設の束を買って工業化度を積む。最も不足する成分が律速（支払い＝各財の売上で保存）===
+        if (cap && construction > 0)
+        {
+            int sg = coef.SteelGoodId, mg = coef.MachineGoodId, cg = coef.CementGoodId, lg = coef.LumberGoodId;
+            // 経17：新規購入量(*Got)は「今月立てた需要＝Cons×construction−充当繰越」×配給＝investDemand と厳密に一致させる（充当分を引かないと支払いが需要を上回り金銭が漏れる）。conCarryApplied=null（係数0）なら控除0＝旧恒等。
+            double sApp = conCarryApplied?[sg] ?? 0, mApp = conCarryApplied?[mg] ?? 0, cApp = conCarryApplied?[cg] ?? 0, lApp = conCarryApplied?[lg] ?? 0;
+            double sGot = Math.Max(0, coef.ConsSteel * construction - sApp) * ration[sg];
+            double mGot = Math.Max(0, coef.ConsMachine * construction - mApp) * ration[mg];
+            double cGot = Math.Max(0, coef.ConsCement * construction - cApp) * ration[cg];
+            double lGot = Math.Max(0, coef.ConsLumber * construction - lApp) * ration[lg];
+            // 経17：手持ち繰越(今月控除して充当した分)を各成分に足し戻して built を測る＝手持ち資材が工業化に結実（過小計上と繰越の暴走を防ぐ）。充当0なら加算0＝旧恒等。
+            double sEff = sGot + sApp;
+            double mEff = mGot + mApp;
+            double cEff = cGot + cApp;
+            double lEff = lGot + lApp;
+            double built = Math.Min(Math.Min(sEff / Math.Max(Eps, coef.ConsSteel), mEff / Math.Max(Eps, coef.ConsMachine)),
+                                    Math.Min(cEff / Math.Max(Eps, coef.ConsCement), lEff / Math.Max(Eps, coef.ConsLumber)));
+            // 巨大建造物§3-2（2026-07-28）：**労働もリービッヒ律速に入れる**。従来は労働を買っても built に一切入らず「買えた分だけ払う」だけで、
+            // 「資本があっても人がいないと工場は建たない」が成立していなかった。各資材項は sEff/ConsSteel = construction×ration[財] に等しいので、
+            // 労働も同型で construction×ration[労働]。★資材は繰り越せるが**労働は繰り越せない**（今月雇えなかった大工は今月働いていない）＝
+            // *App の足し戻しを持たないのが正しい非対称。ConstructionLaborViaMarket=0 では conLaborUnits=0 で分岐に入らない＝厳密恒等。
+            if (conLaborUnits > 0 && Catalog.LaborId < ng)
+                built = Math.Min(built, construction * ration[Catalog.LaborId]);
+            double cost = sGot * clearPrice[sg] + mGot * clearPrice[mg] + cGot * clearPrice[cg] + lGot * clearPrice[lg];   // 支払いは新規購入(*Got)のみ＝充当した繰越は先月支払い済み（保存）
+            region.Pops[region.InvestorPopIndex].Paid += cost;   // 投資家（資本家）が建設を負担
+            // 経5：建設工賃の決済（ConstructionLaborViaMarket=1.0 点火）＝労働力財市場から工賃分の労働（conLaborUnits）を買う一本化＝インフラ保守の決済と同型
+            // （投資家が支払い・revenue[Labor] へ計上→income で労働pop の賃金に変換＝支払い総額＝労働pop受取で保存）。二重雇用（工場へ全量売りつつ建設賃金も別途受領）を解消。
+            if (coef.ConstructionLaborViaMarket > 0)
+            {
+                if (conLaborUnits > 0 && Catalog.LaborId < ng)
+                {
+                    double labQ = conLaborUnits * ration[Catalog.LaborId];
+                    double labPay = labQ * clearPrice[Catalog.LaborId];
+                    region.Pops[region.InvestorPopIndex].Paid += labPay;
+                    revenue[Catalog.LaborId] += labPay;
+                }
+            }
+            else
+            {
+                double invLabor = coef.ConstructionLaborWageFrac * cost;   // 0への退避（二分探索の基線）：工賃を材料費比例で conWorker の Savings へ直接加算
+                if (conWorker >= 0) { region.Pops[region.InvestorPopIndex].Paid += invLabor; region.Pops[conWorker].Savings += invLabor; }
+            }
+            revenue[sg] += sGot * clearPrice[sg];
+            revenue[mg] += mGot * clearPrice[mg];
+            revenue[cg] += cGot * clearPrice[cg];
+            revenue[lg] += lGot * clearPrice[lg];
+            // ★助走：材料は買って払った（上の決済で完了）が、**能力にはしない**＝1783年の生産能力のまま価格だけ均衡へ寄る。
+            //   ⚠`built` そのものを0にしてはいけない＝下の建設端数の繰越（KeepMaterial の eff−built×Cons）が全量繰越に化けて
+            //     翌月の新規購入が消え、結局は建設需要が抜ける（＝止めたかった副作用が裏口から入る）。加算だけを止める。
+            if (!warmFrozen)
+            {
+                region.Industrialization += built * coef.IndPerConstruction;
+                region.CumPrivateIndustrialization += built * coef.IndPerConstruction;   // 弧3-1（2026-07-24）：成長の出所＝資本家投資分の累積（純カウンタ・力学は読まない）
+            }
+            // ★投資家がプランテーション・鉱山にも投資する（2026-08-04・作者指示「投資家もプランテーションや鉱山に投資するように」）。
+            //   旧＝資本家の建設は region.Industrialization（工業化度）にしか変わらず、RGO（農園・鉱山・牧場）は
+            //   採算による Scale の伸縮だけで、**面積を増やす資本**がどこからも来なかった（工場は BuiltScale が下限を押し上げるのに RGO には無い）。
+            //   史実の農園・鉱山は資本を吸って規模を広げる（囲い込み・カリブの砂糖・南アの金）。
+            //   ★同じ建設束・同じ予算から出す＝新しい資源も新しい市場も作らない。配分先は**最も採算の良い RGO 1つ**
+            //     （SmoothedMargin が最大）＝「儲かる畑を広げる」。増えるのは BuiltScale＝Scale の下限＝作付面積の恒久化。
+            //   RgoCapitalShare=0 で1命令も走らない＝厳密恒等（休眠可）。
+            //   ⚠★2026-08-10（国営工場カウンター）：ここが「国営持分が**勝手に**増える」唯一の場所だった。
+            //     BuiltScale は同時に stateFrac（＝利潤の行き先）でもあるので、**資本家の**建設予算から出たこの拡張は
+            //     プランテーション/鉱山の地代を静かに国庫へ移してしまう（所有の二重表現）。作者裁定「増えるのはカウンター経由のみ」。
+            //   ★StateShareCounterOnly=1.0 点火（2026-08-30・帰還構造の全数調査 §1-3）＝この枝は走らない（作者裁定「国営持分の自動的な拡張なし」）。
+            //     残置する理由＝旧挙動との対照実験（rgoprobe 0/1）のため。枝の中の StateTarget 引き上げは「月次駆動がこの棟を売り戻さない」ための整合。
+            if (coef.RgoCapitalShare > 0 && built > Eps && coef.StateShareCounterOnly <= 0 && !warmFrozen)   // 助走中は作付面積（BuiltScale＝恒久の能力）を広げない
+            {
+                Producer? bestRgo = null;
+                foreach (var pr in region.Producers)
+                    if (pr.IsRgo && !pr.Bankrupt && (bestRgo is null || pr.SmoothedMargin > bestRgo.SmoothedMargin)) bestRgo = pr;
+                if (bestRgo is { SmoothedMargin: > 0 })
+                {
+                    // ★カテゴリ別の供給弾力性（2026-08-14）：作付面積/鉱区の資本拡張もカテゴリ上限で抑える（ゲート0＝ScaleMax＝恒等）
+                    double rgoCap = coef.RgoElasticityGate > 0 && bestRgo.GoodId != Catalog.FishId
+                        ? (Catalog.IsMineral(bestRgo.GoodId) ? coef.MineralScaleCap : coef.FarmScaleCap)
+                        : coef.ScaleMax;
+                    // ★E-15 手順3（2026-09-05・休眠）：希少鉱物の産地では天井を賦存に比例させる（総量保存で賦存が302倍なら天井も302倍）。
+                    //   実測＝MineralScaleCap=1.5 が硫黄1州の産出を世界需要の2%で止めていた（価格31倍でも伸びない）。史実＝シチリアは1820→30年代に10倍超。
+                    //   ⚠ScarceCapFollowsEndowment=0 で不読＝恒等。産地でない州（Productivity=0）は着工対象にならないので触らない。
+                    if (coef.ScarceCapFollowsEndowment > 0 && coef.ScarceMineralGate > 0 && Catalog.IsScarceMineral(bestRgo.GoodId, coef))
+                    {
+                        double baseEnd = Simulation.ResourceEndowment(bestRgo.GoodId);
+                        if (baseEnd > 1e-9) rgoCap *= 1.0 + coef.ScarceCapFollowsEndowment * (Simulation.ScarceEndowment(bestRgo.GoodId, coef, world is not null && !world.StepsDiplomacy) / baseEnd - 1.0);
+                    }
+                    double rgoPrevBuilt = bestRgo.BuiltScale;
+                    bestRgo.BuiltScale = Math.Min(rgoCap, bestRgo.BuiltScale + built * coef.IndPerConstruction * coef.RgoCapitalShare);
+                    ApplyEnclosure(region, bestRgo, bestRgo.BuiltScale - rgoPrevBuilt, coef);   // rank5第2段：囲い込みの自給侵食（EnclosureRate=0で即return＝恒等）
+                    bestRgo.StateTarget = Math.Max(bestRgo.StateTarget, World.StateUnits(bestRgo, coef));
+                }
+            }
+            // 経17：律速で使い残した非律速資材（eff − built×Cons ≥0）を来月へ繰り越す。
+            // ★★**累積＋腐敗へ改修（2026-08-01・作者指示）**：「耐久財と食料で分けるべき。セメントは余るならスタックしてよいが食料は良くて3か月。
+            //   何にしろ過剰な生産はロスであるべきで、ロスは金を生まないべきだ」。
+            // ⚠旧＝**1段の上書き**＝充当されなかった手持ちが理由なく消えていた（物量が飛ぶ／耐久財と生鮮の区別も無い）。
+            // ★新＝残った手持ちに今月の余りを足し、**市場の在庫とまったく同じ腐敗率**（Catalog.SpoilageOf＝セメント/鋼 月0.5%・製材 月2%）で減衰させる。
+            //   ・耐久財は実質スタックでき、生鮮なら数か月で消える＝**財の性質が保管期間を決める**（新しい分類も新しい定数も置かない）
+            //   ・手持ちが増えるほど新規購入（investDemand）が減る＝**自己制限的で有界**（新しい上限を置く必要がない）
+            //   ・腐敗は手持ちを減らすだけで支払いを伴わない＝**ロスは金を生まない**（市場側の腐敗と同一の会計。財収支にも触れない＝市場外のバッファ）
+            if (coef.ConstructionMaterialCarryover > 0 && region.ConstructionCarryover is { } carry)
+            {
+                void KeepMaterial(int gid, double eff, double cons)
+                    => carry[gid] = (carry[gid] + coef.ConstructionMaterialCarryover * Math.Max(0, eff - built * cons)) * (1.0 - Catalog.SpoilageOf(gid));
+                KeepMaterial(sg, sEff, coef.ConsSteel);
+                KeepMaterial(mg, mEff, coef.ConsMachine);
+                KeepMaterial(cg, cEff, coef.ConsCement);
+                KeepMaterial(lg, lEff, coef.ConsLumber);
+            }
+            // 鉄道インフラの決済：投資家が線路・機関車を買って敷設（消費＝死蔵解消・投資家→生産者で保存）
+            if (coef.RailGoodId < ng && coef.LocoGoodId < ng)
+            {
+                double railGot = coef.ConsRail * construction * ration[coef.RailGoodId];
+                double locoGot = coef.ConsLoco * construction * ration[coef.LocoGoodId];
+                region.Pops[region.InvestorPopIndex].Paid += railGot * clearPrice[coef.RailGoodId] + locoGot * clearPrice[coef.LocoGoodId];
+                revenue[coef.RailGoodId] += railGot * clearPrice[coef.RailGoodId];
+                revenue[coef.LocoGoodId] += locoGot * clearPrice[coef.LocoGoodId];
+            }
+        }
+
+        // 国家の手動建設の決済：買えた建設の束だけ工業化度に変換。支払いは国庫（StateSpent＝国庫→生産者で保存）＝資本家と同じ経路。
+        if (cap && stateConstruction > 0)
+        {
+            int sg = coef.SteelGoodId, mg = coef.MachineGoodId, cg = coef.CementGoodId, lg = coef.LumberGoodId;
+            double sGot = coef.ConsSteel * stateConstruction * ration[sg];
+            double mGot = coef.ConsMachine * stateConstruction * ration[mg];
+            double cGot = coef.ConsCement * stateConstruction * ration[cg];
+            double lGot = coef.ConsLumber * stateConstruction * ration[lg];
+            double built = Math.Min(Math.Min(sGot / Math.Max(Eps, coef.ConsSteel), mGot / Math.Max(Eps, coef.ConsMachine)),
+                                    Math.Min(cGot / Math.Max(Eps, coef.ConsCement), lGot / Math.Max(Eps, coef.ConsLumber)));
+            // 巨大建造物§3-2（2026-07-28・国家経路にも適用）：資本家経路（投資の決済）にだけ労働律速を入れると、**国庫で建てる限り労働ゼロでも建つ**
+            // という非対称が残る。段7のニューディールは定義上「国家が建てる」経路なので、ここを外すと「好況時に民間から労働を奪って建設が止まる」側だけが
+            // 国家経路で免除され、§3-3 の「建造物と工場が労働を取り合う」が成立しない。ConstructionLaborViaMarket=0 では stateConLaborUnits=0＝厳密恒等。
+            if (stateConLaborUnits > 0 && Catalog.LaborId < ng)
+                built = Math.Min(built, stateConstruction * ration[Catalog.LaborId]);
+            double cost = sGot * clearPrice[sg] + mGot * clearPrice[mg] + cGot * clearPrice[cg] + lGot * clearPrice[lg];
+            region.StateSpent += cost;   // 国庫が負担（Simulation が国庫から引く＝国庫→生産者で保存）
+            // 経5：国家建設の工賃決済（ConstructionLaborViaMarket=1.0 点火）＝労働力財市場から工賃分を買い、支払い主体は国庫（StateSpent）＝行政・軍需と同じ国庫→労働pop経路で保存。
+            if (coef.ConstructionLaborViaMarket > 0)
+            {
+                if (stateConLaborUnits > 0 && Catalog.LaborId < ng)
+                {
+                    double labQ = stateConLaborUnits * ration[Catalog.LaborId];
+                    double labPay = labQ * clearPrice[Catalog.LaborId];
+                    region.StateSpent += labPay;
+                    revenue[Catalog.LaborId] += labPay;
+                }
+            }
+            else
+            {
+                double stLabor = coef.ConstructionLaborWageFrac * cost;   // 0への退避（二分探索の基線）：工賃を材料費比例で直接加算
+                if (conWorker >= 0) { region.StateSpent += stLabor; region.Pops[conWorker].Savings += stLabor; }
+            }
+            revenue[sg] += sGot * clearPrice[sg];
+            revenue[mg] += mGot * clearPrice[mg];
+            revenue[cg] += cGot * clearPrice[cg];
+            revenue[lg] += lGot * clearPrice[lg];
+            if (!warmFrozen)   // ★助走：国家建設も材料は買って払うが能力にはしない（資本家経路と同じ理屈・同じ扱い＝AIとプレイヤーで非対称にしない）
+            {
+                region.Industrialization += built * coef.IndPerConstruction;
+                region.CumStateIndustrialization += built * coef.IndPerConstruction;   // 弧3-1（2026-07-24）：成長の出所＝国家建設分の累積（純カウンタ・力学は読まない）
+            }
+            // ★近代化投資の非物的な成果（2026-08-04・作者指示「制度疲労・技術力などを改善する効果」）。
+            //   ⚠**実際に建った分**に比例させる＝新しい金の流れを作らない（保存不変）。予約でなく実現量を見る。
+            //   鉄道・電信・工場を実際に建てることが、そのまま行政の近代化と技術の吸収になる
+            //   （官僚が時刻表と規格を扱い、職工が機械を覚える）＝抽象的な「改革ポイント」を置かない。
+            //   ⚠ゼロ化の直前＝この行より上で stateConstruction が確定している。係数0で厳密恒等。
+            if (world is not null && stateConstruction > Eps && !warmFrozen)   // 助走：制度疲労の解消も技術の吸収も「建った成果」＝能力と一緒に凍結する
+            {
+                double modBuilt = stateConstruction * coef.IndPerConstruction;   // 実現した工業化度の増分（下で州へ加算される量と同じ尺度）
+                if (coef.ModernizationDecayRelief > 0 && world.InstitutionalDecay > 0)
+                    world.InstitutionalDecay = Math.Max(0, world.InstitutionalDecay - coef.ModernizationDecayRelief * modBuilt);
+                // ⚠技術は**残差比例**（世界の技術水準との差に掛ける）＝絶対加点にすると全国が世界の技術水準に張り付き、
+                //   教育による技術の差（公教育の普 vs 宗教教育の露）が消える（実測でテスト2件が赤：両国とも0.31で同値）。
+                //   近代化投資は**追いつきを速める**ものであって、世界の技術水準を自力で押し上げるものではない
+                //   （世界の技術水準自体は教育と革新が動かす＝TechEducation の担当）。
+                if (coef.ModernizationTechGain > 0 && world.WorldTechLevel > world.TechLevel)
+                    world.TechLevel += coef.ModernizationTechGain * modBuilt * (world.WorldTechLevel - world.TechLevel);
+            }
+        }
+
+        // === 巨大建造物の決済（2026-07-28）：買えた束だけ進捗に積む。支払いは国庫（StateSpent＝国庫→生産者で保存）===
+        // ★労働も律速に入れる（資材4種と同型）＝「資本があっても人がいないと建たない」を建造物にも適用。
+        //   これが無いと段7のニューディールで「国庫で建てる限り労働ゼロでも建つ」非対称が残る。
+        // ★工業化度には積まない（地雷#4）＝MonumentBuiltUnits へ積み、四半期末に MultiNationSim が回収して個体の進捗へ移す（2相方式）。
+        //   Diplomacy（個体）はここから見えないため2相方式。
+        if (cap && monumentConstruction > 0)
+        {
+            int sg = coef.SteelGoodId, mg = coef.MachineGoodId, cg = coef.CementGoodId, lg = coef.LumberGoodId;
+            double sGot = coef.ConsSteel * monumentConstruction * ration[sg];
+            double mGot = coef.ConsMachine * monumentConstruction * ration[mg];
+            double cGot = coef.ConsCement * monumentConstruction * ration[cg];
+            double lGot = coef.ConsLumber * monumentConstruction * ration[lg];
+            double built = Math.Min(Math.Min(sGot / Math.Max(Eps, coef.ConsSteel), mGot / Math.Max(Eps, coef.ConsMachine)),
+                                    Math.Min(cGot / Math.Max(Eps, coef.ConsCement), lGot / Math.Max(Eps, coef.ConsLumber)));
+            if (monumentLaborUnits > 0 && Catalog.LaborId < ng)
+                built = Math.Min(built, monumentConstruction * ration[Catalog.LaborId]);
+            double cost = sGot * clearPrice[sg] + mGot * clearPrice[mg] + cGot * clearPrice[cg] + lGot * clearPrice[lg];
+            region.StateSpent += cost;
+            if (monumentLaborUnits > 0 && Catalog.LaborId < ng)
+            {
+                double labQ = monumentLaborUnits * ration[Catalog.LaborId];
+                double labPay = labQ * clearPrice[Catalog.LaborId];
+                region.StateSpent += labPay;
+                revenue[Catalog.LaborId] += labPay;
+            }
+            revenue[sg] += sGot * clearPrice[sg];
+            revenue[mg] += mGot * clearPrice[mg];
+            revenue[cg] += cGot * clearPrice[cg];
+            revenue[lg] += lGot * clearPrice[lg];
+            region.MonumentBuiltUnits += built;   // 四半期末に MultiNationSim.StepMegaprojects が回収してゼロ化
+        }
+        // ★予約のゼロ化は**無条件**（上のブロックの中に置かない）。StateBuildQueue はかつて `if (cap && stateConstruction > 0)` の内側で
+        // ゼロ化しており、資本区画を持たない州や上限に張り付いた州で Queue が永久滞留する型があった（調査2026-07-28）ため、ここへ移した。
+        // 予約は請求権でカネは国庫から未出なので、捨てても保存は不変（実支払いは StateSpent＝実購入分のみ）。同じ轍を踏まない。
+        region.StateBuildQueue = 0;
+        region.MonumentBuildQueue = 0;
+        region.HigherEduFunding = 0;   // ★段③：同上（無条件・買えた分だけ StateSpent 済み＝残額は国庫に残る＝空振り返金）
+
+        // プレイヤーの手動工場建設の材料決済：着工中の工場へ材料束（鉄・機械・セメント・木材）を流す。
+        // 完成は労働力（StepConstruction の日次工賃で BuiltScale を積む）＝ここでは材料の消費と国庫支払いのみ（工業化度は積まない）。
+        if (factoryBuildUnits > 0)   // capを外す（2026-08-09）＝需要側と対（factoryBuildUnits>0は材料財の存在を含意）
+        {
+            int sg = coef.SteelGoodId, mg = coef.MachineGoodId, cg = coef.CementGoodId, lg = coef.LumberGoodId;
+            double sGot = coef.ConsSteel * factoryBuildUnits * ration[sg];
+            double mGot = coef.ConsMachine * factoryBuildUnits * ration[mg];
+            double cGot = coef.ConsCement * factoryBuildUnits * ration[cg];
+            double lGot = coef.ConsLumber * factoryBuildUnits * ration[lg];
+            double cost = sGot * clearPrice[sg] + mGot * clearPrice[mg] + cGot * clearPrice[cg] + lGot * clearPrice[lg];
+            region.StateSpent += cost;   // 材料費は国庫が負担（国庫→生産者で保存）
+            revenue[sg] += sGot * clearPrice[sg];
+            revenue[mg] += mGot * clearPrice[mg];
+            revenue[cg] += cGot * clearPrice[cg];
+            revenue[lg] += lGot * clearPrice[lg];
+            // 素材階層+α（2026-08-09）の決済：需要側で深さ加重済みの機械追加束（factoryTierUnits）を既存4材と同型で決済＝
+            // got×clearPrice を StateSpent（国庫負担）と revenue[機械]（生産者の売上）へ＝国庫→生産者の移転で保存。★点火済み0.05（0に戻せば factoryTierUnits=0＝不実行（ビット恒等）。
+            if (factoryTierUnits > Eps)
+            {
+                double tGot = factoryTierUnits * ration[mg];
+                double tPay = tGot * clearPrice[mg];
+                region.StateSpent += tPay;
+                revenue[mg] += tPay;
+            }
+        }
+
+        // インフラ保守の決済：投資家が保守材（セメント・線路・機関車）＋運行要員（高度労働力・労働力）を買う
+        // （敷設後の維持費。建設の有無に関わらず＝定常でも消費先が持続）。
+        if (maintenance > 0)
+        {
+            double cemQ = maintenance * ration[coef.CementGoodId];
+            double cost = cemQ * clearPrice[coef.CementGoodId];
+            revenue[coef.CementGoodId] += cemQ * clearPrice[coef.CementGoodId];
+            if (coef.RailGoodId < ng && coef.LocoGoodId < ng)
+            {
+                double railQ = maintenance                    * ration[coef.RailGoodId];
+                double locoQ = maintenance * coef.MaintLocoRate * ration[coef.LocoGoodId];   // 経18：既定0.5＝旧直書きと同値・中立
+                cost += railQ * clearPrice[coef.RailGoodId] + locoQ * clearPrice[coef.LocoGoodId];
+                revenue[coef.RailGoodId] += railQ * clearPrice[coef.RailGoodId];
+                revenue[coef.LocoGoodId] += locoQ * clearPrice[coef.LocoGoodId];
+            }
+            if (Catalog.AdvLaborId < ng)
+            {
+                double advQ = maintenance * coef.MaintAdvLaborRate * ration[Catalog.AdvLaborId];   // 経18：既定0.4＝旧直書きと同値・中立
+                double labQ = maintenance * coef.MaintLaborRate    * ration[Catalog.LaborId];      // 経18：既定0.3＝旧直書きと同値・中立
+                cost += advQ * clearPrice[Catalog.AdvLaborId] + labQ * clearPrice[Catalog.LaborId];
+                revenue[Catalog.AdvLaborId] += advQ * clearPrice[Catalog.AdvLaborId];   // 機関士・保線技師（技師の収入）
+                revenue[Catalog.LaborId] += labQ * clearPrice[Catalog.LaborId];         // 火夫・荷役（労働者の収入）
+            }
+            if (railCoalGate > 0 && Catalog.CoalId < ng)
+            {
+                double coalQ = maintenance * coef.RailCoalRate * railCoalGate * ration[Catalog.CoalId];   // #2 運行石炭の決済（運用コスト監査2026-08-16）＝需要側と同じ量×配給率。投資家が支払い石炭生産者の売上へ（保存）。★2026-08-29点火（0なら不実行）
+                cost += coalQ * clearPrice[Catalog.CoalId];
+                revenue[Catalog.CoalId] += coalQ * clearPrice[Catalog.CoalId];
+            }
+            region.Pops[region.InvestorPopIndex].Paid += cost;
+        }
+
+        // 送電網の敷設の決済：投資家が送電網を買い、買えた分だけ送電容量が積み上がる（朽ちる分は毎月微減＝維持が要る）。
+        if (gridBuild > 0)
+        {
+            double gridQ = gridBuild * ration[Catalog.GridId];
+            double gridCost = gridQ * clearPrice[Catalog.GridId];
+            revenue[Catalog.GridId] += gridCost;
+            region.Pops[region.InvestorPopIndex].Paid += gridCost;
+            if (!warmFrozen) region.GridCapacity += gridQ;   // ★助走：送電網も買って払うが容量にはしない（能力の凍結）
+        }
+        // ⚠助走中は劣化も止める（GridDecayRate と GridReplaceRate は対＝片方だけ効かせると定常が崩れる。係数の注記どおり）。
+        if (!warmFrozen) region.GridCapacity *= coef.GridDecayRate;   // 送電網の経年劣化（維持＝再敷設が要る。経18：既定0.998＝旧直書きと同値・中立。GridReplaceRate=0.002 の置換需要と対＝二重表現。notes参照）
+
+        // 軍需の決済：国家が買った分の支払い（→生産者の売上）。総額は StateSpent＝Simulation が国庫から引く（国庫→生産者で保存）。
+        // 装備充足率＝必要量(MilitaryScale×レート)のうち実際に買えた割合（予算afford×在庫ration）。武器が買えないと兵力が下がる（Militaryで即応度に乗算）。
+        if (milProc)
+        {
+            double equipWant = 0, equipGot = 0;
+            // ★①基本段の耐久品ストック（2026-08-26）。BaseArmsStockEnabled=0 で以下は従来と**厳密恒等**
+            //   （耐久品の枝に入らず、equipGot への加算が got のまま・0加算は浮動小数でも完全に無害）。
+            // ⚠重み付けを変えない＝各財の寄与は従来と同じ want（フロー量）で測り、耐久品はその want に
+            //   「在庫充足率」を掛けて足す。**在庫量と流量を1つの比の中で混ぜない**（分子と分母の非対称を作らない）。
+            bool baseStock = coef.BaseArmsStockEnabled > 0;
+            if (baseStock) region.ArmsStock ??= new Dictionary<int, double>();
+            for (int b = 0; b < coef.MilitaryGoods.Length; b++)
+            {
+                int gi = coef.MilitaryGoods[b];
+                // ★E1（作者裁定2026-08-26）：分子（実発注の militaryDemand）と同じ陸海の再配分を分母にも掛ける＝比が乗数ぶん膨らまない。
+                double mul = System.Array.IndexOf(coef.FleetGoodIds, gi) >= 0 ? navalMul : landMul;
+                double want = region.MilitaryScale * milRates[b] * mul;   // afford前の必要量（★発見の係数を通した後＝未発見の装備は理想の軍隊に入らない）
+                equipWant += want;
+                double got = 0;
+                if (militaryDemand[gi] > 0)
+                {
+                    got = militaryDemand[gi] * ration[gi];
+                    double pay = got * clearPrice[gi];
+                    revenue[gi] += pay;
+                    region.StateSpent += pay;
+                }
+                // 耐久品は在庫へ積み摩耗で減らす（質の関数＝反乱勢力の武器購入と同じ1本 ArmsFillContribution・2026-09-11。baseStock=false では got そのもの＝フロー）
+                equipGot += ArmsFillContribution(region, coef, b, gi, want, got, milRates[b], region.MilitaryScalePeace, mul, baseStock ? region.ArmsStock : null);
+            }
+            region.MilitaryEquipFill = EquipFill(equipWant, equipGot);
+            // 運用コスト監査2026-08-16 #4b：輜重燃料の決済＝自分の発注量×配給率（militaryDemand[原油]の他の書き手＝空軍燃料と混ざらない）。
+            // ⚠equipWant/equipGot（装備充足の分母分子）には入れない＝純消費（既定0＝不実行）。
+            if (motorFuelWant > 0 && Catalog.CrudeOilId < ng)
+            {
+                double mfGot = motorFuelWant * ration[Catalog.CrudeOilId];
+                double mfPay = mfGot * clearPrice[Catalog.CrudeOilId];
+                revenue[Catalog.CrudeOilId] += mfPay;
+                region.StateSpent += mfPay;
+            }
+
+            // 上位軍需の充足率＝戦力の質的乗数（Diplomacy が Power.Military を 1+Bonus×これ で増幅）
+            if (AllPresent(coef.MilitaryQualityGoods, ng))
+            {
+                double qWant = 0, qGot = 0, qWantLand = 0, qGotLand = 0;   // ★陸分は別アキュムレータ（既存2本には1演算も足さない）
+                for (int b = 0; b < coef.MilitaryQualityGoods.Length; b++)
+                {
+                    int gi = coef.MilitaryQualityGoods[b];
+                    qWant += region.MilitaryScale * qRates[b];
+                    bool qSea = System.Array.IndexOf(coef.FleetGoodIds, gi) >= 0;   // 調達側 MilMul と同一の判定＝新しい分類表を作らない
+                    if (!qSea) qWantLand += region.MilitaryScale * qRates[b];
+                    if (militaryDemand[gi] <= 0) continue;
+                    double got = militaryDemand[gi] * ration[gi];
+                    qGot += got;
+                    if (!qSea) qGotLand += got;
+                    double pay = got * clearPrice[gi];
+                    revenue[gi] += pay;
+                    region.StateSpent += pay;
+                }
+                // ★段2a：納入分をストックへ積み、摩耗で減らす。**戦時の9倍はここへ来る**（需要でなく摩耗）。
+                //   Fill は「在庫 ÷ 実軍が要る量」＝装備が行き渡っているかであって、その月に何を買えたかではない。
+                if (coef.ArmsStockEnabled > 0)
+                {
+                    region.ArmsStock ??= new Dictionary<int, double>();
+                    double wear = Math.Max(1e-6, coef.ArmsWearRate);
+                    double warWear = wear * (1.0 + coef.ArmsWarWearScale * Math.Max(0, region.MilitaryWarMultLast - 1.0));
+                    double sWant = 0, sHave = 0;   // 陸分はフロー側の累積を捨て在庫基準で積み直す
+                    qWantLand = 0; qGotLand = 0;   // ★捨てる＝ここで一度だけリセット（下のループは在庫基準で複数の陸財を積み直す＝+=）
+                    for (int b = 0; b < coef.MilitaryQualityGoods.Length; b++)
+                    {
+                        int gq = coef.MilitaryQualityGoods[b];
+                        double a = region.ArmsStock.GetValueOrDefault(gq);
+                        a = Math.Max(0, a * (1.0 - Math.Min(0.9, warWear)));           // 摩耗（1期で全損はしない＝上限0.9）
+                        if (militaryDemand[gq] > 0) a += militaryDemand[gq] * ration[gq];   // 納入
+                        region.ArmsStock[gq] = a;
+                        double need = region.MilitaryScalePeace * qRates[b] / wear;   // 実軍が要る在庫
+                        sWant += need; sHave += Math.Min(a, need);
+                        bool seaG = System.Array.IndexOf(coef.FleetGoodIds, gq) >= 0;
+                        if (!seaG) { qWantLand += need; qGotLand += Math.Min(a, need); }
+                    }
+                    region.MilitaryQualityFill = sWant > Eps ? Math.Clamp(sHave / sWant, 0, 1) : 0.0;
+                }
+                else
+                region.MilitaryQualityFill = qWant > Eps ? Math.Clamp(qGot / qWant, 0, 1) : 0.0;
+                region.MilitaryQualityLandFill = qWantLand > Eps ? Math.Clamp(qGotLand / qWantLand, 0, 1) : 0.0;   // 分子分母とも MilitaryScale 比例＝痩せても比は跳ねない
+            }
+
+            // #16 tier3軍需の充足率（Power.Military を +MilitaryTier3Bonus×これ で増幅＝最上位の質的乗数）
+            if (AllPresent(coef.MilitaryTier3Goods, ng))
+            {
+                double t3Want = 0, t3Got = 0, t3WantLand = 0, t3GotLand = 0;
+                for (int b = 0; b < coef.MilitaryTier3Goods.Length; b++)
+                {
+                    int gi = coef.MilitaryTier3Goods[b];
+                    t3Want += region.MilitaryScale * t3Rates[b];
+                    bool t3Sea = System.Array.IndexOf(coef.FleetGoodIds, gi) >= 0;
+                    if (!t3Sea) t3WantLand += region.MilitaryScale * t3Rates[b];
+                    if (militaryDemand[gi] <= 0) continue;
+                    double got = militaryDemand[gi] * ration[gi];
+                    t3Got += got;
+                    if (!t3Sea) t3GotLand += got;
+                    double pay = got * clearPrice[gi];
+                    revenue[gi] += pay;
+                    region.StateSpent += pay;
+                }
+                if (coef.ArmsStockEnabled > 0)
+                {
+                    region.ArmsStock ??= new Dictionary<int, double>();
+                    double wear = Math.Max(1e-6, coef.ArmsWearRate);
+                    double warWear = wear * (1.0 + coef.ArmsWarWearScale * Math.Max(0, region.MilitaryWarMultLast - 1.0));
+                    double sWant = 0, sHave = 0;   // 陸分はフロー側の累積を捨て在庫基準で積み直す
+                    t3WantLand = 0; t3GotLand = 0;   // ★捨てる＝ここで一度だけリセット（下のループは在庫基準で複数の陸財を積み直す＝+=）
+                    for (int b = 0; b < coef.MilitaryTier3Goods.Length; b++)
+                    {
+                        int g3 = coef.MilitaryTier3Goods[b];
+                        double a = region.ArmsStock.GetValueOrDefault(g3);
+                        a = Math.Max(0, a * (1.0 - Math.Min(0.9, warWear)));
+                        if (militaryDemand[g3] > 0) a += militaryDemand[g3] * ration[g3];
+                        region.ArmsStock[g3] = a;
+                        double need = region.MilitaryScalePeace * t3Rates[b] / wear;
+                        sWant += need; sHave += Math.Min(a, need);
+                        bool seaG = System.Array.IndexOf(coef.FleetGoodIds, g3) >= 0;
+                        if (!seaG) { t3WantLand += need; t3GotLand += Math.Min(a, need); }
+                    }
+                    region.MilitaryTier3Fill = sWant > Eps ? Math.Clamp(sHave / sWant, 0, 1) : 0.0;
+                }
+                else
+                region.MilitaryTier3Fill = t3Want > Eps ? Math.Clamp(t3Got / t3Want, 0, 1) : 0.0;
+                region.MilitaryTier3LandFill = t3WantLand > Eps ? Math.Clamp(t3GotLand / t3WantLand, 0, 1) : 0.0;
+            }
+
+            // 1934拡張E2：空軍装備の充足率（Diplomacy が AirPower=Military×これ に使う＝空の別枠）。財の解禁前は got 0 ＝ Fill 0。
+            if (AllPresent(coef.MilitaryAirGoods, ng))
+            {
+                double aWant = 0, aGot = 0;
+                for (int b = 0; b < coef.MilitaryAirGoods.Length; b++)
+                {
+                    int gi = coef.MilitaryAirGoods[b];
+                    aWant += region.MilitaryScale * airRates[b];
+                    if (militaryDemand[gi] <= 0) continue;
+                    double got = militaryDemand[gi] * ration[gi];
+                    aGot += got;
+                    double pay = got * clearPrice[gi];
+                    revenue[gi] += pay;
+                    region.StateSpent += pay;
+                }
+                region.MilitaryAirFill = aWant > Eps ? Math.Clamp(aGot / aWant, 0, 1) : 0.0;
+                // 運用コスト監査2026-08-16 #4：空軍燃料の決済＋充足の乗算合成（新フィールドを増やさない＝AirPower=Military×MilitaryAirFill の既存経路に燃料が噛む）。
+                // ⚠aWant（分母）には一切触れない＝既定0（airFuelWant=0）で分岐ごと不実行＝厳密恒等。燃料が買えない空軍は飛べない（fill×=燃料充足）。
+                if (airFuelWant > 0 && airFuelNeed > Eps && Catalog.CrudeOilId < ng)
+                {
+                    double afGot = airFuelWant * ration[Catalog.CrudeOilId];
+                    double afPay = afGot * clearPrice[Catalog.CrudeOilId];
+                    revenue[Catalog.CrudeOilId] += afPay;
+                    region.StateSpent += afPay;
+                    double fuelFill = Math.Clamp(afGot / airFuelNeed, 0, 1);
+                    if (!(fuelFill >= 0 && fuelFill <= 1)) fuelFill = 0;   // 否定形＝NaNは飛べない側へ（Clampは NaN を消さない）
+                    region.MilitaryAirFill *= fuelFill;
+                }
+            }
+
+            // ★★艦隊ストック（2026-08-01・作者裁定「陸軍は兵士ありき、**海軍は戦艦ありき**。海軍の強さが海兵の数から決まるのはナンセンス」）。
+            // ⚠実測（1914断面）の海軍力順位＝1位 福州王国／2位 長沙王国／3位 清／…／**イギリスは8位圏外**＝人口の多い国が艦を1隻も持たずに海軍大国になっていた。
+            // ★買えた戦闘艦（軍艦・装甲艦・弩級戦艦）を**建造費（RefPrice）加重**で積み、耐久財の劣化率（月0.5%）で減らす。
+            //   ・重みも劣化率も**既にあるデータ**＝新しい定数を1本も置かない（弩級戦艦とスループの差はカタログが持っている）
+            //   ・買えた量は上の各段が使う got と同一式（militaryDemand×ration）＝**二重計上しない**（ここでは読むだけ・支払いは各段が済ませている）
+            // 読み手＝Diplomacy の艦隊ゲージ（換算分母は FleetGaugeDenominator）。
+            double fleetAdd = 0;
+            foreach (int fg in coef.FleetGoodIds)
+                if (fg >= 0 && fg < ng && militaryDemand[fg] > 0)
+                    fleetAdd += militaryDemand[fg] * ration[fg] * (region.GoodOf(fg)?.RefPrice ?? 0);
+            region.FleetStock = region.FleetStock * (1.0 - Catalog.SpoilageOf(coef.WarshipGoodId)) + fleetAdd;
+        }
+
+        // ★武器の市場購入の決済（2026-09-11）：買えた分（発注×配給率）を参加POPが払い（Paid→月末に貯蓄から減る）売り手の revenue へ＝普通の市場経路（保存）。
+        //   質＝国軍と**同じ関数**（ArmsFillContribution／EquipFill）＝耐久品は運動の武器庫に積み、同じ摩耗（戦時は同じ増し）で減る。
+        //   ⚠新しい運動の武器庫は0から（国軍の ArmsHeld「未初期化は目標＝1783年の軍は既に武装している」は運動には当てない＝TryAdd(0) で明示）。
+        //   ⚠払い手の端数は最後の参加者に寄せる＝Σ Paid ＝ 売り手の受取 と**厳密に**一致（比の和の丸めで1銭も湧かせない）。
+        if (rebelOrders is not null && world is not null)
+        {
+            bool rebelStock = coef.BaseArmsStockEnabled > 0;
+            foreach (var (f, scale, rates, want, order, navalMulR, landMulR, payers) in rebelOrders)
+            {
+                if (rebelStock)
+                {
+                    f.ArmsStock ??= new Dictionary<int, double>();
+                    foreach (int g0 in coef.MilitaryGoods) f.ArmsStock.TryAdd(g0, 0.0);
+                }
+                double equipWant = 0, equipGot = 0, pay = 0;
+                for (int b = 0; b < coef.MilitaryGoods.Length; b++)
+                {
+                    int g = coef.MilitaryGoods[b];
+                    equipWant += want[b];
+                    double got = order[b] > 0 ? order[b] * ration[g] : 0.0;
+                    double payB = got * clearPrice[g];
+                    revenue[g] += payB;
+                    pay += payB;
+                    double mul = System.Array.IndexOf(coef.FleetGoodIds, g) >= 0 ? navalMulR : landMulR;
+                    equipGot += ArmsFillContribution(region, coef, b, g, want[b], got, rates[b], scale, mul, rebelStock ? f.ArmsStock : null);
+                }
+                f.EquipFill = EquipFill(equipWant, equipGot);
+                double charged = 0;
+                for (int i = 0; i < payers.Count; i++)
+                {
+                    double x = i == payers.Count - 1 ? pay - charged : pay * payers[i].Share;
+                    payers[i].P.Paid += x;
+                    charged += x;
+                }
+                world.RebelArmsSpent += pay;
+                if (pay > 0) MechanismProbe.Hit(MechanismProbe.Site.RebelArmsPurchase);
+            }
+        }
+
+        // 行政の決済：国家が買った行政の支払い（→官僚の売上・国庫→官僚で保存）。充足率＝汚職の度合い（Fiscal が税収の漏れに使う）。
+        if (adminProc)
+        {
+            double got = adminWant * ration[Catalog.AdminId];
+            double pay = got * clearPrice[Catalog.AdminId];
+            revenue[Catalog.AdminId] += pay;
+            region.StateSpent += pay;
+            region.AdminFill = adminNeed > Eps ? Math.Clamp(got / adminNeed, 0, 1) : 1.0;
+        }
+
+        // 上下水道の決済：国家が買った上下水道の支払い（→施設＝建設会社の売上・国庫→popで保存）。充足率＝衛生。
+        if (infraProc)
+        {
+            double got = infraWant * ration[Catalog.InfrastructureId];
+            double pay = got * clearPrice[Catalog.InfrastructureId];
+            revenue[Catalog.InfrastructureId] += pay;
+            region.StateSpent += pay;
+            region.InfraFill = infraNeed > Eps ? Math.Clamp(got / infraNeed, 0, 1) : 1.0;
+        }
+
+        // 電化インフラの決済（上下水道と同型）：充足率を保存（満足度＋衛生＋送電容量の便益に使う）。施設の無い世界は ElecInfraFill=0＝便益なし。
+        if (elecInfraProc)
+        {
+            double got = elecInfraWant * ration[Catalog.ElecInfraId];
+            double pay = got * clearPrice[Catalog.ElecInfraId];
+            revenue[Catalog.ElecInfraId] += pay;
+            region.StateSpent += pay;
+            region.ElecInfraFill = elecInfraNeed > Eps ? Math.Clamp(got / elecInfraNeed, 0, 1) : 0.0;
+        }
+
+        // 兵力の決済：国家が買った兵力の支払い（→兵士の売上＝給与・国庫→兵士で保存）。買えない月は兵士の収入が絶える＝充足↓＝弱兵。
+        if (mpProc)
+        {
+            double got = mpWant * ration[Catalog.MilitaryPowerId];
+            double pay = got * clearPrice[Catalog.MilitaryPowerId];
+            revenue[Catalog.MilitaryPowerId] += pay;
+            region.StateSpent += pay;
+        }
+
+        // 投入充足率を更新（次期の産出を制約。最も不足する投入が律速＝リービッヒ・§9-A 注2）。
+        // 産出の床は撤廃（無から有を禁じる＝投入ゼロなら産出ゼロ）。デッドロックは入力需要の「再点火トリクル」で防ぐ
+        // （死んだ工場も採算が合えば小さな入力需要を出す→入力財の価格が上がる→上流が蘇る。封鎖・独立からの回復）。
+        foreach (var s in region.Producers)
+        {
+            if (s.Inputs.Count == 0) { s.LastInputFill = 1.0; s.LastMaterialFill = 1.0; continue; }
+            double fill = 1.0, mfill = 1.0;
+            foreach (var inp in s.Inputs)
+            {
+                fill = Math.Min(fill, ration[inp.GoodId]);
+                // UI診断の純記帳（2026-07-19）：素材（非役務）のみの最小配給率。力学は fill（労働込み）だけを読む＝挙動不変
+                if (Catalog.Goods[inp.GoodId].Tier != GoodTier.Service && ration[inp.GoodId] < mfill) mfill = ration[inp.GoodId];
+            }
+            s.LastInputFill = fill;
+            s.LastMaterialFill = mfill;
+        }
+
+        // #6（B-A2）：輸入の消費分は国内生産者でなく商人（輸入の捌き手）へ＝「輸入穀物の代金が国内農民の懐に入る」歪みの除去。
+        // 対外支払いは輸入時(InternationalMarket)に済んでいるので国外へは引かない（国内移転＝保存）。役務・非交易財・生産者なしの財は対象外。
+        //
+        // **2026-07-22 バグ修正**：旧実装は商人の取り分を `revenue − produced×価格` の**全額**にしていたため、上のコメントが宣言した「輸入」だけでなく
+        // **国内在庫の取崩し代金まで丸ごと商人へ流していた**（過去に自国の生産者が作って積んだ在庫が売れた代金＝本来その生産者の売上）。
+        // 実測（1934年・世界・月次）＝在庫取崩し 293,761 のうち輸入で説明できるのは 104,807 のみで、**残り 284,066 が国内在庫の一方通行流出**。
+        // これは同月の実現生産者損失 385,093 の主要部分であり、ΔLossFinanced 119,547 の2.4倍＝慢性赤字の主因だった。
+        // 傍証＝商人の一人あたり貯蓄 7,251.6（工場労働者 68.7 の100倍超で貴族/資本家に次ぐ3位）＝流通マージンだけでは説明できない富の偏り。
+        // よって商人の取り分を**当期の輸入額まで**に制限する（＝コメントが元々宣言していた設計意図そのもの）。
+        // 併せて `revenue[gi] = domesticValue` を `revenue[gi] -= merchantCut` へ一般化：キャップ後は revenue が domesticValue を上回りうるため、
+        // 旧式のままだと差額が誰にも渡らず**消滅して貨幣保存を破る**。減算形なら移転額と一致し、キャップなしの旧挙動とも厳密に等価。
+        // 全生産者が倒産して produced=0 になった財も、旧式では在庫処分代金が全額商人へ抜けていたが、本修正で輸入分までに塞がれる。
+        if (region.MerchantPopIndex >= 0)
+            foreach (var good in region.Goods)
+            {
+                int gi = good.Id;
+                if (good.Tier == GoodTier.Service || good.NonTradeable || producerCount[gi] == 0 || revenue[gi] <= Eps) continue;
+                double domesticValue = produced[gi] * clearPrice[gi];
+                double importValue = region.Markets[gi].LastImport * clearPrice[gi];   // 当期の輸入額＝商人（輸入の捌き手）が受け取れる上限
+                double merchantCut = Math.Min(revenue[gi] - domesticValue, importValue);
+                if (merchantCut > Eps) { region.Pops[region.MerchantPopIndex].Earned += merchantCut; revenue[gi] -= merchantCut; }
+            }
+
+        // === ④ 所得（§9-C）：付加価値＝（売上の取り分）−投入費 → 地代/賃金 ===
+        for (int pi = 0; pi < np; pi++)
+        {
+            var s = region.Producers[pi];
+            int gi = s.GoodId;
+            double share = produced[gi] > Eps ? s.Output / produced[gi] : 1.0 / producerCount[gi];
+            double producerRevenue = revenue[gi] * share;
+            double valueAdded = producerRevenue - inputCost[pi];
+            // 赤字（負の付加価値）は所有者＝資本が負う。賃金は非負（労働者は働いて金を払わない）。和＝付加価値で保存不変。
+            // 国営持分（BuiltScale＝国家が建てた容量）：利潤は国庫へ・赤字は常に国庫が負担（補助金を外せない＝計画経済の代償）。
+            // ★式の本体は World.StateProfitShare（唯一の定義）＝動詞（SetSubsidyRate/CanSubsidize）とUIが同じ関数を読む。
+            //   国有化法（E6）＝この財の部門が国有化されていれば国営持分の**下限**を引き上げる（NationalizedMask=0 で不発＝恒等）。
+            //   NationalizationSeizureRate>0 では下限をやめ、接収が動かす BuiltScale/Scale の一本道になる（所有の二重表現を潰す・作者裁定2026-08-10）。
+            double stateFrac = World.StateProfitShare(s, region, coef);
+            double rent, wages;
+            // 産業政策 レバー2（2026-07-24）：財政規律＝補助金の国庫肩代わりへ借入スタックの出費上限（SpendingCapFactor・福祉/インフラと同じ扱い）を適用＝
+            // 借金漬けの国は補助を維持できない（1880年代の官営払い下げの財政的動機）。国営持分の赤字（外せない計画経済の代償）は対象外のまま。
+            // SubsidyRespectsSpendingCap=1.0（点火2026-07-24）。0で subRate==s.SubsidyRate＝旧恒等。
+            double subRate = s.SubsidyRate;
+            if (coef.SubsidyRespectsSpendingCap > 0)
+                subRate *= 1.0 - coef.SubsidyRespectsSpendingCap * (1.0 - region.SpendingCapFactor);
+            // ★国営持分は補助金の対象外（作者裁定2026-08-10「国営工場は常に補助金を出しているようなもの」）。
+            //   国営持分は**損失を国庫が全額負う**（下の StateSpent += -valueAdded*stateFrac）ので、そこへ補助金を重ねるのは
+            //   同じ支援の二重計上。会計側は元から民営持分（privLoss）にしか乗っていなかったが、**採算の底上げ**（下の margin 緩和）
+            //   だけが持分を無視して全量に効いていた＝国営持分にも操業維持の効果が二重に乗る穴だった。
+            //   これで「補助金は民営持分にのみ効く」が1文で言い切れる（崖を作らない＝1棟だけ国営でもボタンは死なない）。
+            //   stateFrac=0（民営100%）では subEff==subRate＝ビット恒等／stateFrac=1（国営100%）では効果ゼロ＝ボタンも無効（World.CanSubsidize）。
+            double privFrac = 1.0 - stateFrac;
+            double subEff = subRate * privFrac;
+            if (valueAdded >= 0)
+            {
+                // RGOの地代（封建貢租）は土地改革・農奴解放で上限が下がる＝地主の取り分↓・残りは農民の賃金へ（保存＝rent+wages=valueAdded）。
+                // 上限方式＝元の取り分が低い国（自作農・小作）には効かない＝農奴制国だけ解放が効く（史実）。
+                double rentShare = s.IsRgo ? System.Math.Min(s.RentShare, region.FarmRentCap) : s.RentShare;
+                // rank5 囲い込みプッシュ（★live 2026-08-31点火・RentScarcityElasticity=1）：RGOの地代取り分を土地の混み具合の増加関数へ
+                // ＝土地が稀少なほど地主の取り分↑→農民のEarned↓→既存の都市化softmax・失業プールが自然に排出（プッシュ型離農・囲い込みの収奪）。
+                // clamp上限＝既存の物差し FarmRentCap（土地改革/農奴解放の法上限＝解放国では稀少でも貢租を上げられない・≤1.0で賃金非負＝保存不変）。
+                // ⚠新しい移動経路・移動補助は作らない（作者条件＝「移動費が払えず貧困から抜けられない」型を潰さない。押し出しは所得低下→既存機構経由のみ）。
+                // ゲート0＝分岐ごと不読＝×1.0すら掛けない厳密恒等。
+                if (coef.RentScarcityElasticity > 0 && s.IsRgo)
+                    rentShare = System.Math.Min(s.RentShare * (1.0 + coef.RentScarcityElasticity * landScarcity), region.FarmRentCap);
+                rent = rentShare * valueAdded; wages = valueAdded - rent;
+                if (stateFrac > 0) { region.StateSpent -= rent * stateFrac; rent *= 1.0 - stateFrac; }   // 国営持分の利潤は国庫へ（StateSpentの負値＝国庫収入。Treasury-=StateSpent がそのまま精算＝保存）
+            }
+            else
+            {
+                wages = 0;
+                region.StateSpent += -valueAdded * stateFrac;            // 国営持分の赤字＝永続補助金（外せない）
+                double privLoss = valueAdded * privFrac;                 // 民間持分の赤字＝補助金が効く唯一の持分
+                if (subEff > Eps) { region.StateSpent += -privLoss * subRate; rent = privLoss * (1.0 - subRate); }   // 補助金：民間赤字の率ぶんを国庫が肩代わり（満額=旧ONと同値・国庫→所有者で保存）
+                else rent = privLoss;
+            }
+            // 産業政策 レバー1（2026-07-24）：補助依存ストックの月次更新＝国庫が赤字を埋めて操業した月に漸増・自立（黒字 or 支え手なし）で同率漸減。
+            // 読み手は供給①の SubsidySoftBudgetDecay（0.4 で live＝実効生産性を蝕む）。
+            bool propped = valueAdded < 0 && (stateFrac > Eps || subRate > Eps);
+            s.SubsidyDependence = Math.Clamp(s.SubsidyDependence + (propped ? coef.SubsidyDependenceRate : -coef.SubsidyDependenceRate), 0, 1);
+            region.Pops[s.OwnerPopIndex].Earned += rent;
+            region.Pops[s.LaborPopIndex].Earned += wages;
+            if (s.IsRgo && rent > 0) region.Pops[s.OwnerPopIndex].LandRent += rent;   // RGOの地代（封建貢租）＝土地税の課税ベース（Fiscal）
+            if (s.IsRgo && rent > 0 && coef.PrivilegeLedgerEnabled > 0 && world is not null && region.Pops[s.OwnerPopIndex].ClassId == PopClass.Noble)
+                Privileges.Record(world, Privileges.Seigneurial, rent * Privileges.SeigneurialDegree(world));   // ★特権台帳（段1・観測）：領主権の取り分＝貴族が受ける地代×未解放度
+            else if (!s.IsRgo && rent > 0 && s.OwnerPopIndex == region.InvestorPopIndex
+                     && !(s.GoodId >= 0 && s.GoodId < Catalog.Goods.Length && Catalog.Goods[s.GoodId].GrainChain))
+                region.Pops[s.OwnerPopIndex].IndustrialRent += rent;   // 工業レントの物差し（書き込み専用タグ・挙動の読者なし。powertrace/incomeprobe が読む）
+            // 課題8（RGO第2層・2026-08-08）：穀物加工チェーン（麦・小麦粉＝GrainChain）は除外＝人口×食料需要に比例する
+            // 加工利潤であって「工業」ではない（ビルマ投資家所得>英 の正体）。除外後の IndustrialRent が真の工業利潤の物差し。
+            s.LastRevenue = producerRevenue; s.LastCost = inputCost[pi] + wages;   // 工場別の収入・支出（損益＝収入−支出。UI表示用）
+
+            // 操業規模の更新（参入退出）：採算（価格 vs 限界費用）で伸縮。採算良→拡張（労働を集める）・採算悪→縮小（≒閉鎖・労働を手放す）。
+            double mc = MineralSelfCost(s, region, coef) + InputCostPerUnit(s, region, region, coef);   // ★器 MineralCostFollowsGrade（2026-09-07・既定0＝休眠）：ゲート0で MineralSelfCost は s.MarginalCost をそのまま返す＝旧1行と厳密恒等
+            double margin = mc > Eps ? (clearPrice[gi] - mc) / mc : 0;
+            // 倍率排除（長い裾）：補助金工場の操業床 floor=1.0（外科的）を撤去。補助金は赤字を国庫が肩代わり（上の赤字分岐の StateSpent）＝採算が実質 break-even。
+            // よって「採算を非負に底上げ」＝補助の経済的意味そのものから操業維持が創発（scaleTarget≥1）。旧 floor=1.0 と挙動同値。
+            // ★実効率は**民営持分ぶん**（subEff＝subRate×(1−stateFrac)・作者裁定2026-08-10）＝国庫が肩代わりした額と同じ率で採算が持ち上がる（会計と挙動が同じ1つの率を読む）。
+            if (subEff > Eps && margin < 0) margin *= 1.0 - subEff;   // 率ぶんだけ損失を緩和（満額=採算0の底上げ＝旧ONと同値・部分率は深い赤字なら倒産もありうる）。レバー2の実効率＝国庫負担と操業維持が同じ率で細る（整合）
+            // 経3：BuiltScale が ScaleMax を超えると floor>ScaleMax で Math.Clamp が min>max→ArgumentException（工場を多数建てると BuiltScale が累積して踏む）。floor を ScaleMax でキャップして例外を防ぐ（BuiltScale≤ScaleMax の通常域では不変＝テスト不変）。
+            // ★カテゴリ別の供給弾力性（2026-08-14・作者裁定）：鉱山・畑は工場のようには伸びない。
+            //   上限＝鉱脈/土地の有限性（均衡の制約）・速度＝坑道/開墾の年単位（時定数）。ゲート0で catMax=ScaleMax・catSpeed=ScaleAdjustSpeed＝厳密恒等。
+            double catMax = coef.ScaleMax, catSpeed = coef.ScaleAdjustSpeed;
+            if (coef.RgoElasticityGate > 0 && s.IsRgo && s.GoodId != Catalog.FishId)
+            {
+                catMax = Catalog.IsMineral(s.GoodId) ? coef.MineralScaleCap : coef.FarmScaleCap;
+                catSpeed = coef.ScaleAdjustSpeed * coef.RgoScaleSpeedFactor;
+            }
+            // ★休止（mothball・AI審査2-6・2026-08-31・★live同日点火 Rate=0.05）：建てた工場（BuiltScale>0）は倒産免除＋床の全稼働強制で
+            //   慢性赤字を垂れ流す。深い慢性赤字（SmoothedMargin<−FactoryMothballMarginIn）で床のうち FactoryMothballRate/月 ずつ
+            //   休止し、採算が戻れば（SmoothedMargin>0）同率で再開＝設備（BuiltScale）は不変・操業と維持労働だけ縮む。
+            //   上限＝FactoryMothballCap×民営持分（国営持分は休止しない＝「国庫が支える」既存設計＝倒産免除の維持）。
+            //   margin は補助金で緩和済み（subEff）＝補助されている工場は休止しない（会計と同じ率を読む）。
+            //   ⚠FactoryMothballRate を0へ戻せば frac が0のまま＝×1.0＝床はビット恒等。
+            if (coef.FactoryMothballRate > 0 && s.BuiltScale > Eps && !s.IsRgo && Catalog.Goods[gi].Tier != GoodTier.Service)
+            {
+                double mbDir = s.SmoothedMargin < -coef.FactoryMothballMarginIn ? 1.0 : s.SmoothedMargin > 0 ? -1.0 : 0.0;
+                if (mbDir != 0) s.MothballFrac = Math.Clamp(s.MothballFrac + mbDir * coef.FactoryMothballRate, 0, coef.FactoryMothballCap * privFrac);
+            }
+            double floor = Math.Min(Math.Max(coef.ScaleFloor, s.BuiltScale * (1.0 - s.MothballFrac)), catMax);   // 建設した工場容量＝Scaleの下限（建てた工場は操業を続ける・休止分は除く）。⚠catMaxで抑える＝経3のmin>max例外を防ぐ
+            // 05-B2（2026-07-29）：外挿的期待＝採算の勢い（margin−平滑margin）を投資判断に加算。「上がったから更に上がる」と確信して拡張し、
+            // 外れて過剰能力＝バブルと崩壊がこの1項から出る（予見的期待は入れない＝歴史を平坦にする側・05 §2-2）。Weight=0で厳密恒等。
+            double scaleTarget = Math.Clamp(1.0 + margin + (s.BuysLabor ? coef.InvestExtrapolationWeight * (margin - s.SmoothedMargin) : 0.0), floor, catMax);   // ★カテゴリ上限（ゲート0＝ScaleMax＝恒等）
+            s.Scale += catSpeed * (scaleTarget - s.Scale);   // ★カテゴリ速度（ゲート0＝ScaleAdjustSpeed＝恒等）
+            // ★幻の工場（**live**・2026-08-11点火／係数 TechGatedScaleZero に由来の全文）＝技術ゲートが0の財は操業規模も0。
+            // 上の scaleTarget は 1+利幅 が基底なので、**作れない財でも Scale が1.0付近へ育つ**（1783年に機関銃工場が7つ）。
+            // ゲートは供給側①が能力（boost）に掛けているのと同じ2本（AdvancedTechScale × RecipeTechScale）＝定義を分岐させない。
+            // 役務（ボーモル＝発明ゲートを持たない）は対象外。労働財も Tier=Service なのでここで自然に外れる
+            // （労働の生産者は労働配分の重み付けで競争そのものから外れるため Scale が重みにならない＝除外して安全）。
+            // TechGatedScaleZero=0 で不発＝旧挙動と厳密恒等（二分探索の基線として恒久保持）。
+            if (coef.TechGatedScaleZero > 0 && Catalog.Goods[gi].Tier != GoodTier.Service
+                && !(Catalog.AdvancedTechScale(gi, region.TechLevel) * Catalog.RecipeTechScale(s.TechOnset, region.TechLevel) > 0))   // 否定形＝NaN も「作れない」側へ倒す
+                s.Scale = 0;
+
+            // 数期移動平均の採算で倒産/再参入（有限責任：慢性赤字の工場は退出し損失の垂れ流しを止める＝過剰在庫と床の固定を解消）
+            s.SmoothedMargin += coef.FactoryMarginSmoothing * (margin - s.SmoothedMargin);
+            if (s.Bankrupt)
+            {
+                // 倒産中：採算回復 or 品薄（需要>供給＝数量ベース）なら操業再開。コブウェブで価格が希少性を反映しなくても数量で再開＝死のスパイラル防止・恐慌からの回復。
+                bool shortage = region.Markets[gi].LastDemand > region.Markets[gi].LastProduced + region.Markets[gi].Stock;
+                if (margin > coef.FactoryReentryMargin || shortage) { s.Bankrupt = false; s.SmoothedMargin = 0; s.Scale = coef.FactoryReentryScale; }
+            }
+            // 倒産退出の実効化2026-07-10（キュー2）：旧手法A（Producer/Intermediateは倒産させない＝サプライチェーン保護）を FactoryBankruptcyAllTiers で解除。
+            // 免除は退出できない慢性赤字（肥料/甜菜糖/精密工作機械等＝倒産マージン割れで約200万生産者・月）の損失を資本家の負債（LossFinanced）へ垂れ流していた。
+            // 連鎖断絶（軍需上流＝火薬/鉛/帆布の死蔵・永続的脱工業化）は手法B（下の品薄数量再開）＋再点火トリクル（閉鎖しても下流の投入需要は価格シグナルに残る）が受ける＝
+            // 本当に必要な中間財は在庫が尽きた時点で shortage 再開・要らない工場だけが退出したままになる。負債帳消しなし・貨幣非接触（Scale=0のみ）＝保存則不変。
+            // Service（役務＝学校・病院・役所・労働）は常に免除。国営（BuiltScale>0）も倒産しない＝国庫が支える。AllTiers=0で旧挙動（消費最終財 Staple/Daily/Luxury のみ倒産）。
+            else if (coef.FactoryBankruptcyEnabled && s.SmoothedMargin < coef.FactoryBankruptcyMargin && s.BuiltScale <= Eps
+                     && Catalog.Goods[gi].Tier != GoodTier.Service
+                     && (coef.FactoryBankruptcyAllTiers > 0
+                         || (Catalog.Goods[gi].Tier != GoodTier.Producer && Catalog.Goods[gi].Tier != GoodTier.Intermediate)))
+            {
+                s.Bankrupt = true; s.Scale = 0;   // 慢性赤字→倒産（操業停止・労働を黒字財へ解放）
+            }
+        }
+
+        // 国内寡占（no-market-power-monopoly／M6・タスクC）：財別の有効生産者数をMarketFlowへ橋渡し。DomesticMarkupMax=0（既定）なら配列確保すらせず＝中立。
+        // **EffFirms再定義**：既定は競争的(CompetitiveFirmsBase＝高)＝μ≈1で崩壊しない（生産者popは多数の実企業の集約＝生産者pop数を企業数と数える旧定義が偽独占の真因だった）。
+        // 例外＝法的独占(塩gabelle/茶東インド会社)の財は、近代化前(Industrialization<MonopolyDissolveInd)の伝統経済でEffFirms=1＝独占価格が立つ。近代化で潜在競争者数へ移行しμ→1＝価格下落（営業の自由・独占の廃止の創発代理）。超過利潤は清算価格上昇として生産者余剰に流れる（供給を絞る独占の史実機構）。
+        if (coef.DomesticMarkupMax > 0)
+        {
+            if (region.EffFirms is null || region.EffFirms.Length != ng) region.EffFirms = new double[ng];
+            for (int gi2 = 0; gi2 < ng; gi2++)
+            {
+                bool legalMonopoly = (gi2 == Catalog.SaltId || gi2 == Catalog.TeaId) && region.Industrialization < coef.MonopolyDissolveInd;
+                region.EffFirms[gi2] = legalMonopoly ? 1.0 : Math.Max(coef.CompetitiveFirmsBase, producerCount[gi2]);
+            }
+        }
+        // 植民地素材（生産者なし）の売上：採取費だけ国外へ流出、残りは交易益として本国 pop へ還流＝帝国は富ませる（保存）
+        // 監査2026-07-11（二1）：対象を植民地財（IsColonial）に限定。気候ゲート（2026-07-05）以降は通常交易財（米等）も非適地州で
+        // 生産者ゼロになるが、輸入時に世界価格を対外支払い済み＝一律25%を対外流出させると同一輸入品への対外二重払いだった。
+        // 通常財の生産者不在売上は #6（B-A2）と同型に商人（輸入の捌き手）へ＝国内移転で保存。商人不在（合成テスト世界）は全pop按分＝取りこぼさない。
+        double colonialRevenue = 0;
+        for (int gi = 0; gi < ng; gi++)
+        {
+            if (producerCount[gi] != 0 || revenue[gi] <= 0) continue;
+            var gd0 = region.GoodOf(gi);
+            if (gd0 is null) continue;
+            // ★退行修正（帰還構造の全数調査 §1-1・2026-08-30）：TradeColonialGoods>0 では植民地財は二国間交易で**着値を既に対外へ払っている**＝
+            //   旧・採取決済（25%対外消滅＋75%を地元へ配る）を重ねると、植民地を持たない国の輸入コーヒー代が「植民地交易益」に化けて
+            //   基礎貨幣が恒久消滅していた（実測＝清2.5%GDP/年が採取扱い・消滅0.26〜0.63%GDP/年）。通常財と同じ商人経路へ＝対外二重払いの根絶。
+            //   フラグ0＝旧経路そのまま（厳密恒等）。
+            if (gd0.IsColonial && !(coef.TradeColonialGoods > 0)) colonialRevenue += revenue[gi];
+            else if (region.MerchantPopIndex >= 0) region.Pops[region.MerchantPopIndex].Earned += revenue[gi];
+            else if (totalPop > Eps) foreach (var p in region.Pops) p.Earned += revenue[gi] * (p.Size / totalPop);
+        }
+        region.ColonialImportCost = coef.ColonialExtractionFraction * colonialRevenue;   // 対外流出（金流に計上）
+        double colonialProfit = colonialRevenue - region.ColonialImportCost;             // 本国に残る交易益
+        if (colonialProfit > Eps)
+        {
+            // 経15（帝国の分配政治）：植民地交易益の帰属。従来は全pop Size比例＝「帝国が誰を富ませるか」の階級政治（商人・特許会社・資本家・国庫）が消える。
+            // ColonialProfitMerchantShare/InvestorShare（既定 0.3/0.3）＝商人pop・投資家popへ各3割を傾斜配分し、残余を全pop按分。0なら全額が残余按分＝旧恒等（保存＝pop受取合計＝colonialProfit）。
+            // 受け皿popが不在（index<0）の場合はそのシェアを残余へ戻す（配分先が無いレントを取りこぼさない＝保存維持）。
+            double merchShare = coef.ColonialProfitMerchantShare;
+            double invShare = coef.ColonialProfitInvestorShare;
+            double residual = colonialProfit;
+            if (merchShare > 0 && region.MerchantPopIndex >= 0)
+            { double m = colonialProfit * merchShare; region.Pops[region.MerchantPopIndex].Earned += m; residual -= m; }
+            if (invShare > 0 && region.InvestorPopIndex >= 0)
+            { double v = colonialProfit * invShare; region.Pops[region.InvestorPopIndex].Earned += v; residual -= v; }
+            if (totalPop > Eps && residual > 0) foreach (var p in region.Pops) p.Earned += residual * (p.Size / totalPop);
+        }
+
+        foreach (var p in region.Pops)
+        {
+            p.Savings += p.Earned - p.Paid;
+            // 退蔵結晶化 段3（既定0=ブロックごとスキップ=厳密恒等）：アンカー超過の流動貯蓄を月次で結晶へ・不足なら結晶を売却（双方向・
+            // 自己制動の指数緩和＝没落貴族の土地売り）。タグの付け替えのみ＝貨幣は1円も動かない（Savings不変）。
+            if (coef.HoardCrystallizeRate > 0)
+            {
+                // 前提修正2026-08-08（wf_d460b52d調査1）：アンカーは**平滑所得**＝max(当月, 前月)＝当月参照の順循環スパイラル
+                // （所得低下→アンカー即縮小→結晶化→翌月予算縮小→他者所得低下）を切断。
+                double anchor = coef.WealthAnchorYears * 12.0 * Math.Max(0, Math.Max(p.Earned, p.LastEarned)) + coef.WealthAnchorFloorPerCapita * p.Size;
+                double crystGap = (p.Savings - p.IlliquidWealth) - anchor;
+                double crystMove = coef.HoardCrystallizeRate * crystGap;
+                if (crystMove < -p.IlliquidWealth) crystMove = -p.IlliquidWealth;   // 売却は保有結晶が上限
+                p.IlliquidWealth += crystMove;
+                double savCap = Math.Max(0, p.Savings);   // 税・窃盗・ヘアカットで Savings が削られた月の担保処分整合
+                if (!(p.IlliquidWealth >= 0)) p.IlliquidWealth = 0;                 // 否定形＝NaNも0へ
+                else if (p.IlliquidWealth > savCap) p.IlliquidWealth = savCap;
+            }
+            // ★★★**これは「満足度」ではなく「生活水準」である**（作者裁定 2026-08-19）。
+            //   ⚠**必要なものをどれだけ買えているかだけ**で決まる。直接バフ4件（時短/電化/福祉/年金）は物理削除2026-08-21（思想⑨・各墓標＝Coefficients）。
+            //   ★この行の後の加減算は**3件**（2026-09-20に数え直し：ここは「休眠2件のみ」と書いていたが Crime を数え落としていた）＝
+            //     阿片減算（OpiumSatisfactionPenalty=0・休眠）／組合加算（UnionSatBonus=0・休眠）／**犯罪減算（Crime.cs の CrimeSatPenalty=0.5＝live）**。
+            //   ★NeedTierSplit（作者裁定2026-09-20）を点けると、この比の中身は「日用品の不足＝不満」と「嗜好品が買えた＝上振れ」だけになり、
+            //     食料の欠乏は FoodMet/FoodNeed → FamineDrive → 闘争度 の1本へ移る（旗0では従来どおり3階層とも比に入る）。
+            //   ★その逆（1−これ）が政治へ向かう（Politics.cs の want）。
+            p.Satisfaction = p.NeedTotal > Eps ? Math.Clamp(p.NeedMet / p.NeedTotal, 0, 1) : 1.0;
+            if (coef.OpiumAddictionGrowth > 0 && region.OpiumAddiction > 0)   // P3：依存の蝕み（消費の充足を上回る害。困窮→アヘン→さらに困窮の負ループはOpiumAddictionDecayと家計予算が律速）
+                p.Satisfaction = Math.Clamp(p.Satisfaction - coef.OpiumSatisfactionPenalty * region.OpiumAddiction, 0, 1);
+            // 組合の非物質的厚生（LaborWellbeing＝UnionSatBonus×組織率・休眠0）：大衆POP（非特権・非エリート・非兵士）の満足度↑
+            if (!p.Closed && !p.IsModernElite && !p.IsSoldier && region.LaborWellbeing > 0) p.Satisfaction = Math.Clamp(p.Satisfaction + region.LaborWellbeing, 0, 1);
+        }
+
+        // 退蔵の取り崩し（no-hoard-drain・経20・R4派生）：消費が需要上限で頭打ちのため所得＞必要消費のpop（世界の技術水準商人・地主）が
+        // 貯蓄を消費ドレインなく単調累積し二極化する。富者が所得を消費・雇用・投資へ回す欠落機構の最小実装＝直近支払いの一定倍を超える
+        // 退蔵の一部を地域内全popへSize按分で還流（pop→pop純移転＝MoneyConservation不変・GoodsBalance不変）。HoardDishoardRate=0（既定）でドレイン0＝現行と厳密一致。
+        if (coef.HoardDishoardRate > 0)
+        {
+            double pool = 0;
+            foreach (var p in region.Pops)
+            {
+                double excess = p.Savings - coef.HoardConsumptionMultiple * Math.Max(0, p.Paid);
+                if (excess > 0) { double drain = coef.HoardDishoardRate * excess; p.Savings -= drain; pool += drain; }
+            }
+            if (pool > 0)
+            {
+                if (totalPop > Eps) foreach (var p in region.Pops) p.Savings += pool * (p.Size / totalPop);
+                else { double back = pool / Math.Max(1, region.Pops.Count); foreach (var p in region.Pops) p.Savings += back; }   // 受け手不在の退避（起こらない）
+            }
+        }
+
+        // 失業＝自分の労働（労働力/農業/高度）の売れ残り率。職の喪失は所得の算術を超えて怒りを生む（Politics が参照。
+        // 賃金の下方硬直と対＝不況は価格でなく雇用量で調整される→失業が立つ→社会保障がこれを和らげる＝福祉の意味）。
+        foreach (var s in region.Producers)
+            if (s.GoodId is Catalog.LaborId or Catalog.AdvLaborId or Catalog.FarmLaborId
+                && s.LaborPopIndex >= 0 && s.LaborPopIndex < region.Pops.Count)
+            {
+                var m = region.Markets[s.GoodId];
+                var lpop = region.Pops[s.LaborPopIndex];
+                double unsold = m.LastProduced > Eps ? 1.0 - m.LastSold / m.LastProduced : 0;
+                // 農業労働は自給分（自作＝市場外の雇用）を失業から除く：高自給の貧農の自作を「失業」と数えない
+                // （主食消費は §EconomyStep で自給ぶんを FoodMet（NeedTierSplit=0 なら NeedMet にも）計上済み＝労働側もこれと整合）。工場労働は全量が市場労働＝従来どおり。
+                if (s.GoodId == Catalog.FarmLaborId) unsold -= lpop.Subsistence;
+                lpop.UnemploymentRate = Math.Clamp(unsold, 0, 1);
+            }
+
+        // rank11（ServiceUnemployment=1.0点火2026-08-16・社会移動監査2026-08-15）：役務専任popの失業＝教育→教師/医療→医者/行政→官僚/家事奉仕→使用人。
+        // 式は労働3財と同一（売れ残り率）×強度乗数。使用人の袋小路（U恒0＝失業プールの対象外・出口ゼロの一方通行弁）の解消。
+        // 書き先は各役務の専任pop＝上の労働3財の書き先（労働者/農民/技師）と重複しない＝上書き衝突なし。0＝不走行の厳密恒等。
+        if (coef.ServiceUnemployment > 0)
+            foreach (var s in region.Producers)
+                if (s.GoodId is Catalog.EducationId or Catalog.HealthcareId or Catalog.AdminId or Catalog.DomesticServiceId
+                    && s.LaborPopIndex >= 0 && s.LaborPopIndex < region.Pops.Count)
+                {
+                    var m = region.Markets[s.GoodId];
+                    var sp = region.Pops[s.LaborPopIndex];
+                    if (sp.IsSoldier) continue;
+                    double unsold = m.LastProduced > Eps ? 1.0 - m.LastSold / m.LastProduced : 0;
+                    sp.UnemploymentRate = Math.Clamp(coef.ServiceUnemployment * unsold, 0, 1);
+                }
+
+        // rank10b（JobSearchUsesEma=0.02点火2026-08-16＝月次EMA率・記憶約4年）：慢性失業の記憶＝失業プールの駆動を瞬間UでなくU多年EMAへ。
+        // -1=未捕捉（初回は現在値から開始＝跳躍なし）。0＝読み書きなしの厳密恒等。
+        if (coef.JobSearchUsesEma > 0)
+            foreach (var p in region.Pops)
+            {
+                if (p.UnemploymentEma < 0) p.UnemploymentEma = p.UnemploymentRate;
+                else p.UnemploymentEma += coef.JobSearchUsesEma * (p.UnemploymentRate - p.UnemploymentEma);
+            }
+    }
+
+
+    /// <summary>工場建設（着工中Producer）の材料需要（既存4材束＋素材階層+α）を積む。
+    /// 2026-08-09にcapブロックから抽出＝資本区画のない州で材料費ゼロのまま工場が完成する潜在罠の閉鎖（建設経路調査の発見）。
+    /// 実ゲームの全州生成経路（初期/辺境/植民地昇格）はCapitalEnabled=true＝挙動不変（将来の州生成経路への保険）。
+    /// 価格読みと式は抽出前のcapブロックと同一表現＝cap州でビット恒等。</summary>
+    private static void AccumulateFactoryBuild(Region region, Coefficients coef, double[] investDemand, ref double factoryBuildUnits, ref double factoryTierUnits)
+    {
+        double sP = Math.Max(region.Markets[coef.SteelGoodId].Price, Eps);
+        double mP = Math.Max(region.Markets[coef.MachineGoodId].Price, Eps);
+        double cP = Math.Max(region.Markets[coef.CementGoodId].Price, Eps);
+        double lP = Math.Max(region.Markets[coef.LumberGoodId].Price, Eps);
+        double costPerUnit = coef.ConsSteel * sP + coef.ConsMachine * mP + coef.ConsCement * cP + coef.ConsLumber * lP;
+            // プレイヤーの工場建設（特定財）：建設中の生産者は材料を建設期間で徐々に消費（工賃はStepConstructionで日次・国庫）。
+        // 素材の必要「量」は参照価格で較正した固定量＝実支払い（下段）は現在の市場価格×量なので、鋼などが高い時期は建設費も上がる（真の素材価格依存）。
+        // ⚠素材階層+α（FactoryTierMachinePerDepth）はこの分母に**意図的に入れない**＝入れると u が縮み「+α」でなく既存4材の「置換」になる（基本束は固定・上位材は追加、がユーザー裁定2026-08-09）。
+        double costPerUnitRef = coef.ConsSteel * Catalog.RefPrices[coef.SteelGoodId] + coef.ConsMachine * Catalog.RefPrices[coef.MachineGoodId]
+                              + coef.ConsCement * Catalog.RefPrices[coef.CementGoodId] + coef.ConsLumber * Catalog.RefPrices[coef.LumberGoodId];
+        double buildAfford = coef.FactoryBuildProgress(costPerUnit, costPerUnitRef, region.PriceLevel);              // 採算の連続判断：素材高騰で建設率が崖でなく滑らかに減衰（★裁定②＝FactoryBuildPriceGateScale で混合・1＝恒等）
+        foreach (var cs in region.Producers)
+            if (cs.ConstructionLeft > 0)
+            {
+                var fs = Catalog.FactorySpec(cs.GoodId);
+                double conMonths = Math.Max(1.0, fs.Quarters * (double)Calendar.MonthsPerQuarter);                              // 建設の月数（四半期×3）
+                double u = coef.FactoryMaterialFrac * fs.Cost / conMonths / Math.Max(Eps, costPerUnitRef) * buildAfford;   // 素材の必要量×採算率＝支払いは量×現在価格＝真の価格依存
+                if (u <= Eps) continue;
+                factoryBuildUnits += u;
+                investDemand[coef.SteelGoodId] += coef.ConsSteel * u;
+                investDemand[coef.MachineGoodId] += coef.ConsMachine * u;
+                investDemand[coef.CementGoodId] += coef.ConsCement * u;
+                investDemand[coef.LumberGoodId] += coef.ConsLumber * u;
+                // 素材階層+α（2026-08-09）：出力財が深い（後の時代の）工場ほど機械を余計に食う＝建設費の階層差別化。
+                // 深さは既存の Catalog.Complexity（レシピDAG最長深さ）＝手置きテーブルなし。深さ0（RGO）と深さ1は max で自然に+α=0（特例コードなし）。
+                // ⚠u の分母 costPerUnitRef には加えない（意図的）＝加えると u が縮み既存4材束の「置換」になる。+αは基本束の外の追加支出（詳細は Coefficients.FactoryTierMachinePerDepth）。
+                if (coef.FactoryTierMachinePerDepth > 1e-12 && cs.GoodId >= 0 && cs.GoodId < Catalog.Complexity.Length)
+                {
+                    double tierQty = coef.FactoryTierMachinePerDepth * Math.Max(0.0, Catalog.Complexity[cs.GoodId] - 1.0);   // 建設1単位あたりの機械追加束
+                    if (tierQty > Eps)
+                    {
+                        factoryTierUnits += tierQty * u;
+                        investDemand[coef.MachineGoodId] += tierQty * u;
+                    }
+                }
+            }
+    }
+
+    /// <summary>経17：建設束の1資材について、手持ち繰越(carry)を want まで充当し、新規需要は不足分だけ investDemand へ積む。
+    /// 充当量を applied[gid] に記録（決済で built に足し戻す）し、手持ち carry からは充当分を差し引く（消費）。係数0（呼び出されない）で全経路0＝中立。</summary>
+    private static void AddConsWithCarry(double[] investDemand, double[] applied, double[] carry, int gid, double want)
+    {
+        double use = System.Math.Min(carry[gid], want);   // 手持ちで賄える分（≤want・≤手持ち）
+        applied[gid] += use;                               // 今月充当した繰越量（決済で built に加算）
+        carry[gid] -= use;                                 // 手持ちから消費（残余は決済の KeepMaterial で今月の端数を累積し腐敗率で減衰）
+        investDemand[gid] += want - use;                   // 不足分だけ新規購入（先月支払い済みの充当分は買い直さない）
+    }
+
+    /// <summary>投入1単位あたりの費用（限界費用の投入分）。<paramref name="home"/>＝生産者の所属州（機械化度を読む）・<paramref name="market"/>＝価格を読む州。
+    /// エンジンは両方 region（同一州）。internal＝ProductionDiag が稼働率の採算項・生産コスト分解を**同じ式**で再評価する（UI は首都価格×他州の生産者＝2州が別・2026-09-11 M2）。</summary>
+    internal static double InputCostPerUnit(Producer s, Region home, Region market, Coefficients coef)
+    {
+        double c = 0;
+        foreach (var inp in s.Inputs)
+            c += market.Markets[inp.GoodId].Price * EffectiveQty(s, home, inp, coef);
+        return c;
+    }
+
+    /// <summary>★器 MineralCostFollowsGrade（2026-09-07・既定0＝**休眠**）：鉱物RGOの自己費用（Producer.MarginalCost＝Catalog.RgoVa）を
+    /// 鉱脈の倍率（MineralDepletion×MineralGradeFactor＝①供給の mineralMul と**同じ積**）で割る＝富鉱（GoldRushEndowment 5.0 の州）は
+    /// 安い限界供給者・枯れた鉱脈（DepositGradeFloor）は高い限界供給者。旧＝倍率は Capacity にだけ乗り単位費用は不変＝銀ラッシュの州でも
+    /// 掘る採算（profitFactor／決算の margin）は平年と同じだった。読み手＝①供給の mc と決算の操業規模の mc の**2箇所**（同じ物差し）。
+    /// internal＝ProductionDiag（恒等式3の自己費用列・稼働率の採算項）が**同じ関数**を読む（InputCostPerUnit と同じ理由＝表示が静かに嘘にならない）。
+    /// ゲート0・非RGO・非鉱物・倍率が非正/NaN のときは s.MarginalCost をそのまま返す＝×1.0 すら掛けない＝厳密恒等。</summary>
+    internal static double MineralSelfCost(Producer s, Region region, Coefficients coef)
+    {
+        if (!(coef.MineralCostFollowsGrade > 0) || !s.IsRgo || !Catalog.IsMineral(s.GoodId)) return s.MarginalCost;
+        double gm = region.MineralDepletion * region.MineralGradeFactor;
+        if (!(gm > Eps)) return s.MarginalCost;   // 否定形＝NaN/非正の倍率は従来側へ倒す（Clamp は NaN を消さない）
+        return s.MarginalCost / gm;
+    }
+
+    /// <summary>投入の有効係数：電化した工場は労働力の投入が減る（機械化＝電力が人手を節約する）。他の投入は不変。
+    /// internal＝ProductionDiag が生産コストの内訳を**同じ式**で並べる（InputCostPerUnit と同じ理由）。<paramref name="home"/>＝生産者の所属州。</summary>
+    internal static double EffectiveQty(Producer s, Region home, Input inp, Coefficients c) =>
+        inp.GoodId == Catalog.LaborId && s.BuysLabor
+            ? inp.QtyPerOutput * (1.0 - c.ElecLaborSave * s.ElecFill) * (1.0 - c.LaborSaveRate * home.Mechanization)   // 電化＋工業化由来の機械化で労働投入↓。LaborSaveRate=0で第2因子=1.0＝恒等。機械化度は所属州の量（旧 Producer.Mechanization の写しは2026-09-11に削除＝home は生産者の所属州を渡す）
+            : inp.QtyPerOutput;
+
+    /// <summary>役務（教育・医療）の購入優先順位：0=下層（農民・労働者）→ 1=中流（近代エリート）→ 2=上流・閉鎖階級・兵士。
+    /// 下層が基礎教育を先に買い、余剰が中流へ届く＝高等教育（専門職への転職資格）の表現。</summary>
+    private static int ServiceRank(Pop p) => !p.Closed && !p.IsModernElite && !p.IsSoldier ? 0 : p.IsModernElite ? 1 : 2;
+
+    /// <summary>rank5第2段＝囲い込みの自給侵食（休眠 EnclosureRate=0・作者裁定2026-08-16）。
+    /// RGOの資本拡張（BuiltScale増分）1単位あたり、当該州の農民pop（＝そのRGOの労働pop）の Subsistence を EnclosureRate×増分 だけ微減（下限0）
+    /// ＝プランテーション・囲い込みが自給地を市場向けに転換する物理。自給が減った農民は市場で主食を買う側へ＝所得低下・食料脆弱化が
+    /// 既存の都市化softmax・失業プール・飢饉死配分を通って現れる。
+    /// ⚠作者条件＝「移動費が払えず貧困から抜けられない」型を潰さない：**新しい移動経路・移動補助はここから一切作らない**
+    /// （押し出しは所得低下→既存機構経由のみ。都市天井・海外渡航費の既存の壁はそのまま＝逃げ場が無い州では困窮が滞留して闘争度になるのが正しい帰結）。
+    /// 呼び手＝World.StepConstruction の完成（1棟=FactoryBuildScale）と RgoCapitalShare 枝（StateShareCounterOnly=1.0 で不走行＝対照のみ）。接収（NationalizationSeizure）は
+    /// 所有移転であって資本拡張でないため呼ばない。EnclosureRate=0（既定）＝先頭ガードで即return＝1命令も走らない＝厳密恒等。</summary>
+    internal static void ApplyEnclosure(Region region, Producer s, double deltaBuilt, Coefficients coef)
+    {
+        if (!(coef.EnclosureRate > 0) || !(deltaBuilt > 0) || !s.IsRgo) return;   // 否定形＝NaNも不発側へ倒す（Clampは NaN を消さない）
+        if (s.LaborPopIndex < 0 || s.LaborPopIndex >= region.Pops.Count) return;
+        var farm = region.Pops[s.LaborPopIndex];
+        if (!(farm.Subsistence > 0)) return;
+        farm.Subsistence = Math.Max(0, farm.Subsistence - coef.EnclosureRate * deltaBuilt);
+    }
+}

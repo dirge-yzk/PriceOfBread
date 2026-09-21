@@ -1,0 +1,101 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PriceOfBread.App.ViewModels"
+             x:Class="PriceOfBread.App.Views.Tabs.PopTab"
+             x:DataType="vm:GameViewModel">
+    <!-- Views/Tabs/PopTab.axaml ＝ POPタブの本体（列見出しは GameView.axaml のドック側に残る）。 -->
+    <!-- ★列＝規模／失業者／満足度／闘争度／識字率／なし／保守／自由／社会（作者指示2026-08-16）。
+         ⚠列定義は GameView.axaml の見出し行と**同一の文字列**でなければならない（片方だけ足すと全見出しが1列ずれる・2026-08-04の再発防止）。
+         ⚠列幅は人数の2列=110・割合の7列=46で**揃える**（作者指示2026-08-16(4)・旧はバラバラだった）。
+         ★規模と失業者は「5,430K(12%)」＋増減の矢印（↑→↓）。矢印だけ別TextBlockなのは色を分けるため＝横並びで1つのセルに見える。
+         ★ホバー＝階級名セル(Tip)・満足度セル(SatTip)・闘争度セル(MilTip)・特権の語(Tip)。
+         ★2026-09-07：上流/中流/下流に3つコピペされていた行の型紙を1本（PopRowTemplate）へ畳んだ。 -->
+    <UserControl.Resources>
+        <DataTemplate x:Key="PopRowTemplate" x:DataType="vm:PopRow">
+            <StackPanel Margin="0,3">
+                <Grid ColumnDefinitions="*,110,110,46,46,46,46,46,46,46" Background="Transparent">
+                    <!-- ★ホバーは階級名セルのみ（作者指示2026-08-15）＝行全体のToolTipを撤去。Border=セル全域をヒット判定に -->
+                    <Border Grid.Column="0" Background="Transparent" ToolTip.Tip="{Binding Tip}" ToolTip.ShowDelay="200">
+                        <TextBlock Text="{Binding Class}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontEmph}"/>
+                    </Border>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+                        <TextBlock Text="{Binding Size}" Foreground="{StaticResource BronzeBrush}" FontSize="{StaticResource FontBody}"/>
+                        <TextBlock Text="{Binding SizeArrow}" Foreground="{Binding SizeArrowBrush}" FontSize="{StaticResource FontBody}"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                        <TextBlock Text="{Binding Unemployed}" Foreground="{StaticResource AmberBrush}" FontSize="{StaticResource FontBody}"/>
+                        <TextBlock Text="{Binding UnemployedArrow}" Foreground="{Binding UnemployedArrowBrush}" FontSize="{StaticResource FontBody}"/>
+                    </StackPanel>
+                    <TextBlock Grid.Column="3" Text="{Binding Satisfaction}" Foreground="{StaticResource GreenBrush}" FontSize="{StaticResource FontBody}" TextAlignment="Right" Background="Transparent" ToolTip.Tip="{Binding SatTip}" ToolTip.ShowDelay="200"/>
+                    <TextBlock Grid.Column="4" Text="{Binding Militancy}" Foreground="{StaticResource AmberBrush}" FontSize="{StaticResource FontBody}" TextAlignment="Right" Background="Transparent" ToolTip.Tip="{Binding MilTip}" ToolTip.ShowDelay="200"/>
+                    <TextBlock Grid.Column="5" Text="{Binding Literacy}" Foreground="{StaticResource InkMutedBrush}" FontSize="{StaticResource FontBody}" TextAlignment="Right"/>
+                    <TextBlock Grid.Column="6" Text="{Binding LeanNone}" Foreground="{StaticResource InkFaintBrush}" FontSize="{StaticResource FontBody}" TextAlignment="Right"/>
+                    <TextBlock Grid.Column="7" Text="{Binding LeanConservative}" Foreground="{StaticResource InkMutedBrush}" FontSize="{StaticResource FontBody}" TextAlignment="Right"/>
+                    <TextBlock Grid.Column="8" Text="{Binding LeanLiberal}" Foreground="{StaticResource InkMutedBrush}" FontSize="{StaticResource FontBody}" TextAlignment="Right"/>
+                    <TextBlock Grid.Column="9" Text="{Binding LeanSocialist}" Foreground="{StaticResource InkMutedBrush}" FontSize="{StaticResource FontBody}" TextAlignment="Right"/>
+                </Grid>
+                <!-- ★特権（作者指示2026-09-07(7)(8)）：階級名の下に1行で横並び。先頭は必ず「なし」＝法律の段と同じ2状態
+                     （保有＝墨／非保有＝淡色）。押せない＝ボタンにしない（2026-08-15作者フィードバック(8)）。 -->
+                <ItemsControl ItemsSource="{Binding Privileges}" Margin="12,1,0,0">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate><StackPanel Orientation="Horizontal" Spacing="8"/></ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:PrivilegeChip">
+                            <Panel Background="Transparent" ToolTip.Tip="{Binding Tip}" ToolTip.ShowDelay="200">
+                                <TextBlock Text="{Binding Name}" IsVisible="{Binding Held}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontSmall}"/>
+                                <TextBlock Text="{Binding Name}" IsVisible="{Binding NotHeld}" Foreground="{StaticResource InkFaintBrush}" FontSize="{StaticResource FontSmall}"/>
+                            </Panel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </DataTemplate>
+    </UserControl.Resources>
+    <StackPanel Spacing="0">
+        <TextBlock Text="上流" Classes="section" Margin="0,4,0,2"/>
+        <ItemsControl ItemsSource="{Binding PopsUpper}" ItemTemplate="{StaticResource PopRowTemplate}"/>
+        <Border Height="1" Background="{StaticResource SandBrush}" Margin="0,8,0,4"/>
+        <TextBlock Text="中流" Classes="section" Margin="0,8,0,2"/>
+        <ItemsControl ItemsSource="{Binding PopsMiddle}" ItemTemplate="{StaticResource PopRowTemplate}"/>
+        <Border Height="1" Background="{StaticResource SandBrush}" Margin="0,8,0,4"/>
+        <TextBlock Text="下流" Classes="section" Margin="0,8,0,2"/>
+        <ItemsControl ItemsSource="{Binding PopsLower}" ItemTemplate="{StaticResource PopRowTemplate}"/>
+        <TextBlock Text="{Binding ChildLaborLine}" FontSize="{StaticResource FontBody}" Foreground="{StaticResource InkMutedBrush}" Margin="0,8,0,0"/>
+        <!-- 文化・宗教の構成（州ラベルを州人口で加重したシェア・#62）。上のPOP表とは列の意味が違うのでセクション自身に見出しを持たせる -->
+        <Border Height="1" Background="{StaticResource SandBrush}" Margin="0,8,0,4"/>
+        <Grid ColumnDefinitions="*,86,66" Margin="0,8,0,2">
+            <TextBlock Grid.Column="0" Text="宗教" Classes="section"/>
+            <TextBlock Grid.Column="1" Text="人口" Classes="section" FontSize="{StaticResource FontSmall}" TextAlignment="Right"/>
+            <TextBlock Grid.Column="2" Text="割合" Classes="section" FontSize="{StaticResource FontSmall}" TextAlignment="Right"/>
+        </Grid>
+        <ItemsControl ItemsSource="{Binding ReligionRows}">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:CompositionRow">
+                    <Grid ColumnDefinitions="*,86,66" Margin="0,3">
+                        <TextBlock Grid.Column="0" Text="{Binding Name}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontEmph}"/>
+                        <TextBlock Grid.Column="1" Text="{Binding Size}" Foreground="{StaticResource BronzeBrush}" FontSize="{StaticResource FontBody}" TextAlignment="Right"/>
+                        <TextBlock Grid.Column="2" Text="{Binding Share}" Foreground="{StaticResource InkMutedBrush}" FontSize="{StaticResource FontBody}" TextAlignment="Right"/>
+                    </Grid>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <Border Height="1" Background="{StaticResource SandBrush}" Margin="0,8,0,4"/>
+        <Grid ColumnDefinitions="*,86,66" Margin="0,8,0,2">
+            <TextBlock Grid.Column="0" Text="文化" Classes="section"/>
+            <TextBlock Grid.Column="1" Text="人口" Classes="section" FontSize="{StaticResource FontSmall}" TextAlignment="Right"/>
+            <TextBlock Grid.Column="2" Text="割合" Classes="section" FontSize="{StaticResource FontSmall}" TextAlignment="Right"/>
+        </Grid>
+        <ItemsControl ItemsSource="{Binding CultureRows}">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:CompositionRow">
+                    <Grid ColumnDefinitions="*,86,66" Margin="0,3">
+                        <TextBlock Grid.Column="0" Text="{Binding Name}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontEmph}"/>
+                        <TextBlock Grid.Column="1" Text="{Binding Size}" Foreground="{StaticResource BronzeBrush}" FontSize="{StaticResource FontBody}" TextAlignment="Right"/>
+                        <TextBlock Grid.Column="2" Text="{Binding Share}" Foreground="{StaticResource InkMutedBrush}" FontSize="{StaticResource FontBody}" TextAlignment="Right"/>
+                    </Grid>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+    </StackPanel>
+</UserControl>

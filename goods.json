@@ -1,0 +1,2592 @@
+﻿[
+  {
+    "id": 0,
+    "name": "鉄鉱石",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.5,
+    "productivity": 3,
+    "inputs": [],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 1,
+    "name": "石炭",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.5,
+    "productivity": 3,
+    "inputs": [],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 2,
+    "name": "銅鉱",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.5,
+    "productivity": 3,
+    "inputs": [],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 3,
+    "name": "鉛鉱",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.5,
+    "productivity": 3,
+    "inputs": [],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 4,
+    "name": "金",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.5,
+    "productivity": 2,
+    "inputs": [],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 5,
+    "name": "硫黄",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.5,
+    "productivity": 3,
+    "inputs": [],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 6,
+    "name": "塩",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.5,
+    "productivity": 3,
+    "inputs": [],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 7,
+    "name": "石灰石",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.5,
+    "productivity": 3,
+    "inputs": [],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 8,
+    "name": "珪砂",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.5,
+    "productivity": 3,
+    "inputs": [],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 9,
+    "name": "粘土",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.5,
+    "productivity": 3,
+    "inputs": [],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 10,
+    "name": "原油",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.5,
+    "productivity": 3,
+    "inputs": [],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 11,
+    "name": "木",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.5,
+    "productivity": 3,
+    "inputs": [],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 12,
+    "name": "綿花",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.5,
+    "productivity": 2.6,
+    "inputs": [],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 13,
+    "name": "麻",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.5,
+    "productivity": 2.6,
+    "inputs": [],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 14,
+    "name": "生糸",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.5,
+    "productivity": 2.2,
+    "inputs": [],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 15,
+    "name": "麦",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.4,
+    "productivity": 2.6,
+    "inputs": [],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": true,
+    "nutrition": -1
+  },
+  {
+    "id": 16,
+    "name": "果実",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.6,
+    "productivity": 2.4,
+    "inputs": [],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 17,
+    "name": "染料",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.5,
+    "productivity": 2.5,
+    "inputs": [],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 18,
+    "name": "葉煙草",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.7,
+    "productivity": 2.3,
+    "inputs": [],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 19,
+    "name": "畜産",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.5,
+    "productivity": 2.4,
+    "inputs": [],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 20,
+    "name": "漁獲",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.6,
+    "productivity": 2.4,
+    "inputs": [],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 21,
+    "name": "生ゴム",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.5,
+    "productivity": 2.2,
+    "inputs": [],
+    "isColonial": true,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 22,
+    "name": "金鶏樹皮",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.6,
+    "productivity": 2,
+    "inputs": [],
+    "isColonial": true,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 23,
+    "name": "パーム油",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.5,
+    "productivity": 2.2,
+    "inputs": [],
+    "isColonial": true,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 24,
+    "name": "象牙",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.9,
+    "productivity": 1.8,
+    "inputs": [],
+    "isColonial": true,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 25,
+    "name": "サトウキビ",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.6,
+    "productivity": 2.4,
+    "inputs": [],
+    "isColonial": true,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 26,
+    "name": "カカオ",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.8,
+    "productivity": 2,
+    "inputs": [],
+    "isColonial": true,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 27,
+    "name": "茶葉",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.8,
+    "productivity": 2.2,
+    "inputs": [],
+    "isColonial": true,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 28,
+    "name": "コーヒー豆",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.8,
+    "productivity": 2.2,
+    "inputs": [],
+    "isColonial": true,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 29,
+    "name": "香辛料",
+    "tier": "Luxury",
+    "baseNeed": 0.05,
+    "elasticity": 0.9,
+    "productivity": 2,
+    "inputs": [],
+    "isColonial": true,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 30,
+    "name": "コークス",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.4,
+    "productivity": 2.2,
+    "inputs": [
+      {
+        "goodId": 1,
+        "qtyPerOutput": 1
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 31,
+    "name": "鉄",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.4,
+    "productivity": 2,
+    "inputs": [
+      {
+        "goodId": 0,
+        "qtyPerOutput": 1
+      },
+      {
+        "goodId": 30,
+        "qtyPerOutput": 0.5
+      },
+      {
+        "goodId": 7,
+        "qtyPerOutput": 0.25
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 32,
+    "name": "鋼",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.4,
+    "productivity": 1.9,
+    "inputs": [
+      {
+        "goodId": 31,
+        "qtyPerOutput": 1
+      },
+      {
+        "goodId": 30,
+        "qtyPerOutput": 0.4
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 33,
+    "name": "銅",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.4,
+    "productivity": 2,
+    "inputs": [
+      {
+        "goodId": 2,
+        "qtyPerOutput": 1
+      },
+      {
+        "goodId": 30,
+        "qtyPerOutput": 0.4
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 34,
+    "name": "鉛",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.4,
+    "productivity": 2,
+    "inputs": [
+      {
+        "goodId": 3,
+        "qtyPerOutput": 1
+      },
+      {
+        "goodId": 30,
+        "qtyPerOutput": 0.4
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 35,
+    "name": "セメント",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.4,
+    "productivity": 2.2,
+    "inputs": [
+      {
+        "goodId": 7,
+        "qtyPerOutput": 1
+      },
+      {
+        "goodId": 1,
+        "qtyPerOutput": 0.4
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 36,
+    "name": "ガラス",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.4,
+    "productivity": 2,
+    "inputs": [
+      {
+        "goodId": 8,
+        "qtyPerOutput": 1
+      },
+      {
+        "goodId": 7,
+        "qtyPerOutput": 0.3
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 37,
+    "name": "化学薬品",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.4,
+    "productivity": 1.8,
+    "inputs": [
+      {
+        "goodId": 5,
+        "qtyPerOutput": 0.6
+      },
+      {
+        "goodId": 1,
+        "qtyPerOutput": 0.5
+      },
+      {
+        "goodId": 6,
+        "qtyPerOutput": 0.4
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 38,
+    "name": "火薬",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.4,
+    "productivity": 1.8,
+    "inputs": [
+      {
+        "goodId": 118,
+        "qtyPerOutput": 0.75
+      },
+      {
+        "goodId": 5,
+        "qtyPerOutput": 0.1
+      },
+      {
+        "goodId": 1,
+        "qtyPerOutput": 0.15
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 39,
+    "name": "製材",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.4,
+    "productivity": 2.2,
+    "inputs": [
+      {
+        "goodId": 11,
+        "qtyPerOutput": 1
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 40,
+    "name": "パルプ",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.4,
+    "productivity": 2.2,
+    "inputs": [
+      {
+        "goodId": 11,
+        "qtyPerOutput": 0.8
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 41,
+    "name": "綿布",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.4,
+    "productivity": 1.9,
+    "inputs": [
+      {
+        "goodId": 12,
+        "qtyPerOutput": 1
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 42,
+    "name": "帆布",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.4,
+    "productivity": 1.9,
+    "inputs": [
+      {
+        "goodId": 13,
+        "qtyPerOutput": 1
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 43,
+    "name": "羊毛",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.4,
+    "productivity": 2.2,
+    "inputs": [
+      {
+        "goodId": 19,
+        "qtyPerOutput": 0.5
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 44,
+    "name": "毛織物",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.4,
+    "productivity": 1.9,
+    "inputs": [
+      {
+        "goodId": 43,
+        "qtyPerOutput": 1
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 45,
+    "name": "絹織物",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.4,
+    "productivity": 1.7,
+    "inputs": [
+      {
+        "goodId": 14,
+        "qtyPerOutput": 1
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 46,
+    "name": "革",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.4,
+    "productivity": 2,
+    "inputs": [
+      {
+        "goodId": 19,
+        "qtyPerOutput": 0.5
+      },
+      {
+        "goodId": 11,
+        "qtyPerOutput": 0.15
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 47,
+    "name": "小麦粉",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.4,
+    "productivity": 2.4,
+    "inputs": [
+      {
+        "goodId": 15,
+        "qtyPerOutput": 1
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": true,
+    "nutrition": -1
+  },
+  {
+    "id": 48,
+    "name": "肉",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.4,
+    "productivity": 2.2,
+    "inputs": [
+      {
+        "goodId": 19,
+        "qtyPerOutput": 0.6
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": true,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 49,
+    "name": "砂糖",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.4,
+    "productivity": 2.2,
+    "inputs": [
+      {
+        "goodId": 25,
+        "qtyPerOutput": 1
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 50,
+    "name": "ゴム",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.4,
+    "productivity": 1.8,
+    "inputs": [
+      {
+        "goodId": 21,
+        "qtyPerOutput": 1
+      },
+      {
+        "goodId": 5,
+        "qtyPerOutput": 0.2
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 51,
+    "name": "機械部品",
+    "tier": "Producer",
+    "baseNeed": 0,
+    "elasticity": 0.4,
+    "productivity": 1.6,
+    "inputs": [
+      {
+        "goodId": 32,
+        "qtyPerOutput": 1
+      },
+      {
+        "goodId": 33,
+        "qtyPerOutput": 0.5
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 52,
+    "name": "工具",
+    "tier": "Producer",
+    "baseNeed": 0,
+    "elasticity": 0.4,
+    "productivity": 1.7,
+    "inputs": [
+      {
+        "goodId": 32,
+        "qtyPerOutput": 0.6
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 53,
+    "name": "機械",
+    "tier": "Producer",
+    "baseNeed": 0,
+    "elasticity": 0.4,
+    "productivity": 1.4,
+    "inputs": [
+      {
+        "goodId": 51,
+        "qtyPerOutput": 1
+      },
+      {
+        "goodId": 52,
+        "qtyPerOutput": 0.5
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 54,
+    "name": "蒸気機関",
+    "tier": "Producer",
+    "baseNeed": 0,
+    "elasticity": 0.4,
+    "productivity": 1.4,
+    "inputs": [
+      {
+        "goodId": 51,
+        "qtyPerOutput": 1
+      },
+      {
+        "goodId": 1,
+        "qtyPerOutput": 0.4
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 55,
+    "name": "発電機",
+    "tier": "Producer",
+    "baseNeed": 0,
+    "elasticity": 0.4,
+    "productivity": 1.4,
+    "inputs": [
+      {
+        "goodId": 106,
+        "qtyPerOutput": 0.6
+      },
+      {
+        "goodId": 33,
+        "qtyPerOutput": 0.4
+      },
+      {
+        "goodId": 32,
+        "qtyPerOutput": 0.3
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 56,
+    "name": "線路",
+    "tier": "Producer",
+    "baseNeed": 0,
+    "elasticity": 0.4,
+    "productivity": 1.8,
+    "inputs": [
+      {
+        "goodId": 32,
+        "qtyPerOutput": 1
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 57,
+    "name": "衣料",
+    "tier": "Daily",
+    "baseNeed": 0.3,
+    "elasticity": 0.6,
+    "productivity": 1.8,
+    "inputs": [
+      {
+        "goodId": 41,
+        "qtyPerOutput": 0.6
+      },
+      {
+        "goodId": 17,
+        "qtyPerOutput": 0.2
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 58,
+    "name": "高級衣料",
+    "tier": "Luxury",
+    "baseNeed": 0.1,
+    "elasticity": 0.9,
+    "productivity": 1.5,
+    "inputs": [
+      {
+        "goodId": 45,
+        "qtyPerOutput": 0.4
+      },
+      {
+        "goodId": 44,
+        "qtyPerOutput": 0.3
+      },
+      {
+        "goodId": 119,
+        "qtyPerOutput": 0.3
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 59,
+    "name": "家具",
+    "tier": "Daily",
+    "baseNeed": 0.16,
+    "elasticity": 0.6,
+    "productivity": 1.7,
+    "inputs": [
+      {
+        "goodId": 39,
+        "qtyPerOutput": 0.6
+      },
+      {
+        "goodId": 46,
+        "qtyPerOutput": 0.3
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 60,
+    "name": "高級家具",
+    "tier": "Luxury",
+    "baseNeed": 0.1,
+    "elasticity": 0.9,
+    "productivity": 1.5,
+    "inputs": [
+      {
+        "goodId": 39,
+        "qtyPerOutput": 0.5
+      },
+      {
+        "goodId": 45,
+        "qtyPerOutput": 0.3
+      },
+      {
+        "goodId": 119,
+        "qtyPerOutput": 0.2
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 61,
+    "name": "紙",
+    "tier": "Daily",
+    "baseNeed": 0.1,
+    "elasticity": 0.6,
+    "productivity": 1.8,
+    "inputs": [
+      {
+        "goodId": 40,
+        "qtyPerOutput": 1
+      },
+      {
+        "goodId": 37,
+        "qtyPerOutput": 0.1
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 62,
+    "name": "パン",
+    "tier": "Staple",
+    "baseNeed": 0.55,
+    "elasticity": 0.3,
+    "productivity": 2,
+    "inputs": [
+      {
+        "goodId": 47,
+        "qtyPerOutput": 1
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 63,
+    "name": "加工肉",
+    "tier": "Daily",
+    "baseNeed": 0.12,
+    "elasticity": 0.5,
+    "productivity": 1.8,
+    "inputs": [
+      {
+        "goodId": 48,
+        "qtyPerOutput": 0.6
+      },
+      {
+        "goodId": 47,
+        "qtyPerOutput": 0.3
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": 1
+  },
+  {
+    "id": 64,
+    "name": "干物",
+    "tier": "Daily",
+    "baseNeed": 0.1,
+    "elasticity": 0.5,
+    "productivity": 1.9,
+    "inputs": [
+      {
+        "goodId": 20,
+        "qtyPerOutput": 0.7
+      },
+      {
+        "goodId": 6,
+        "qtyPerOutput": 0.2
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": 1
+  },
+  {
+    "id": 65,
+    "name": "缶詰",
+    "tier": "Daily",
+    "baseNeed": 0.1,
+    "elasticity": 0.6,
+    "productivity": 1.7,
+    "inputs": [
+      {
+        "goodId": 48,
+        "qtyPerOutput": 0.6
+      },
+      {
+        "goodId": 31,
+        "qtyPerOutput": 0.25
+      },
+      {
+        "goodId": 117,
+        "qtyPerOutput": 0.05
+      },
+      {
+        "goodId": 6,
+        "qtyPerOutput": 0.2
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 66,
+    "name": "ビール",
+    "tier": "Daily",
+    "baseNeed": 0.12,
+    "elasticity": 0.7,
+    "productivity": 1.9,
+    "inputs": [
+      {
+        "goodId": 15,
+        "qtyPerOutput": 0.5
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 67,
+    "name": "ワイン",
+    "tier": "Luxury",
+    "baseNeed": 0.12,
+    "elasticity": 0.9,
+    "productivity": 1.6,
+    "inputs": [
+      {
+        "goodId": 16,
+        "qtyPerOutput": 0.5
+      },
+      {
+        "goodId": 36,
+        "qtyPerOutput": 0.2
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 68,
+    "name": "灯油",
+    "tier": "Daily",
+    "baseNeed": 0.1,
+    "elasticity": 0.6,
+    "productivity": 1.9,
+    "inputs": [
+      {
+        "goodId": 20,
+        "qtyPerOutput": 0.8
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 69,
+    "name": "煙草",
+    "tier": "Daily",
+    "baseNeed": 0.08,
+    "elasticity": 0.7,
+    "productivity": 1.9,
+    "inputs": [
+      {
+        "goodId": 18,
+        "qtyPerOutput": 1
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 70,
+    "name": "革製品",
+    "tier": "Daily",
+    "baseNeed": 0.08,
+    "elasticity": 0.6,
+    "productivity": 1.7,
+    "inputs": [
+      {
+        "goodId": 46,
+        "qtyPerOutput": 0.5
+      },
+      {
+        "goodId": 119,
+        "qtyPerOutput": 0.2
+      },
+      {
+        "goodId": 17,
+        "qtyPerOutput": 0.2
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 71,
+    "name": "陶磁器",
+    "tier": "Daily",
+    "baseNeed": 0.07,
+    "elasticity": 0.6,
+    "productivity": 1.7,
+    "inputs": [
+      {
+        "goodId": 9,
+        "qtyPerOutput": 0.6
+      },
+      {
+        "goodId": 8,
+        "qtyPerOutput": 0.3
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 72,
+    "name": "石鹸",
+    "tier": "Daily",
+    "baseNeed": 0.08,
+    "elasticity": 0.6,
+    "productivity": 1.8,
+    "inputs": [
+      {
+        "goodId": 23,
+        "qtyPerOutput": 0.5
+      },
+      {
+        "goodId": 37,
+        "qtyPerOutput": 0.3
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 73,
+    "name": "チョコレート",
+    "tier": "Luxury",
+    "baseNeed": 0.05,
+    "elasticity": 0.9,
+    "productivity": 1.5,
+    "inputs": [
+      {
+        "goodId": 26,
+        "qtyPerOutput": 0.5
+      },
+      {
+        "goodId": 49,
+        "qtyPerOutput": 0.4
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 74,
+    "name": "茶",
+    "tier": "Daily",
+    "baseNeed": 0.07,
+    "elasticity": 0.8,
+    "productivity": 1.9,
+    "inputs": [
+      {
+        "goodId": 27,
+        "qtyPerOutput": 1
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 75,
+    "name": "コーヒー",
+    "tier": "Daily",
+    "baseNeed": 0.07,
+    "elasticity": 0.8,
+    "productivity": 1.9,
+    "inputs": [
+      {
+        "goodId": 28,
+        "qtyPerOutput": 1
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 76,
+    "name": "防水布",
+    "tier": "Daily",
+    "baseNeed": 0.05,
+    "elasticity": 0.7,
+    "productivity": 1.6,
+    "inputs": [
+      {
+        "goodId": 50,
+        "qtyPerOutput": 0.5
+      },
+      {
+        "goodId": 41,
+        "qtyPerOutput": 0.4
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 77,
+    "name": "医薬品",
+    "tier": "Daily",
+    "baseNeed": 0.08,
+    "elasticity": 0.6,
+    "productivity": 1.6,
+    "inputs": [
+      {
+        "goodId": 37,
+        "qtyPerOutput": 0.5
+      },
+      {
+        "goodId": 16,
+        "qtyPerOutput": 0.3
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 78,
+    "name": "キニーネ",
+    "tier": "Daily",
+    "baseNeed": 0.04,
+    "elasticity": 0.7,
+    "productivity": 1.6,
+    "inputs": [
+      {
+        "goodId": 22,
+        "qtyPerOutput": 0.5
+      },
+      {
+        "goodId": 37,
+        "qtyPerOutput": 0.3
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 79,
+    "name": "包帯",
+    "tier": "Daily",
+    "baseNeed": 0.04,
+    "elasticity": 0.5,
+    "productivity": 1.8,
+    "inputs": [
+      {
+        "goodId": 41,
+        "qtyPerOutput": 0.5
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 80,
+    "name": "電化製品",
+    "tier": "Luxury",
+    "baseNeed": 0.1,
+    "elasticity": 0.9,
+    "productivity": 1.3,
+    "inputs": [
+      {
+        "goodId": 87,
+        "qtyPerOutput": 0.5
+      },
+      {
+        "goodId": 51,
+        "qtyPerOutput": 0.5
+      },
+      {
+        "goodId": 33,
+        "qtyPerOutput": 0.3
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 81,
+    "name": "火砲",
+    "tier": "Producer",
+    "baseNeed": 0,
+    "elasticity": 0.4,
+    "productivity": 1.3,
+    "inputs": [
+      {
+        "goodId": 32,
+        "qtyPerOutput": 1
+      },
+      {
+        "goodId": 51,
+        "qtyPerOutput": 0.5
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 82,
+    "name": "小銃",
+    "tier": "Producer",
+    "baseNeed": 0,
+    "elasticity": 0.4,
+    "productivity": 1.4,
+    "inputs": [
+      {
+        "goodId": 32,
+        "qtyPerOutput": 0.6
+      },
+      {
+        "goodId": 39,
+        "qtyPerOutput": 0.4
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 83,
+    "name": "弾薬",
+    "tier": "Producer",
+    "baseNeed": 0,
+    "elasticity": 0.4,
+    "productivity": 1.5,
+    "inputs": [
+      {
+        "goodId": 38,
+        "qtyPerOutput": 0.6
+      },
+      {
+        "goodId": 34,
+        "qtyPerOutput": 0.3
+      },
+      {
+        "goodId": 33,
+        "qtyPerOutput": 0.2
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 84,
+    "name": "帆船",
+    "tier": "Producer",
+    "baseNeed": 0,
+    "elasticity": 0.4,
+    "productivity": 1.4,
+    "inputs": [
+      {
+        "goodId": 39,
+        "qtyPerOutput": 1
+      },
+      {
+        "goodId": 42,
+        "qtyPerOutput": 0.5
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 85,
+    "name": "汽船",
+    "tier": "Producer",
+    "baseNeed": 0,
+    "elasticity": 0.4,
+    "productivity": 1.3,
+    "inputs": [
+      {
+        "goodId": 54,
+        "qtyPerOutput": 0.6
+      },
+      {
+        "goodId": 39,
+        "qtyPerOutput": 0.6
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 86,
+    "name": "軍艦",
+    "tier": "Producer",
+    "baseNeed": 0,
+    "elasticity": 0.4,
+    "productivity": 1.2,
+    "inputs": [
+      {
+        "goodId": 84,
+        "qtyPerOutput": 1
+      },
+      {
+        "goodId": 81,
+        "qtyPerOutput": 0.5
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 87,
+    "name": "電力",
+    "tier": "Producer",
+    "baseNeed": 0,
+    "elasticity": 0.4,
+    "productivity": 1.4,
+    "inputs": [
+      {
+        "goodId": 55,
+        "qtyPerOutput": 0.15
+      },
+      {
+        "goodId": 1,
+        "qtyPerOutput": 0.9
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": true,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 88,
+    "name": "機関車",
+    "tier": "Producer",
+    "baseNeed": 0,
+    "elasticity": 0.4,
+    "productivity": 1.3,
+    "inputs": [
+      {
+        "goodId": 54,
+        "qtyPerOutput": 0.6
+      },
+      {
+        "goodId": 32,
+        "qtyPerOutput": 0.5
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 89,
+    "name": "宝飾",
+    "tier": "Luxury",
+    "baseNeed": 0.09,
+    "elasticity": 1,
+    "productivity": 1.4,
+    "inputs": [
+      {
+        "goodId": 4,
+        "qtyPerOutput": 0.3
+      },
+      {
+        "goodId": 120,
+        "qtyPerOutput": 0.3
+      },
+      {
+        "goodId": 36,
+        "qtyPerOutput": 0.3
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 90,
+    "name": "時計",
+    "tier": "Luxury",
+    "baseNeed": 0.09,
+    "elasticity": 1,
+    "productivity": 1.4,
+    "inputs": [
+      {
+        "goodId": 4,
+        "qtyPerOutput": 0.2
+      },
+      {
+        "goodId": 120,
+        "qtyPerOutput": 0.2
+      },
+      {
+        "goodId": 51,
+        "qtyPerOutput": 0.4
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 91,
+    "name": "楽器",
+    "tier": "Luxury",
+    "baseNeed": 0.04,
+    "elasticity": 1,
+    "productivity": 1.4,
+    "inputs": [
+      {
+        "goodId": 39,
+        "qtyPerOutput": 0.5
+      },
+      {
+        "goodId": 24,
+        "qtyPerOutput": 0.3
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 92,
+    "name": "アヘン",
+    "tier": "Luxury",
+    "baseNeed": 0.02,
+    "elasticity": 0.8,
+    "productivity": 2,
+    "inputs": [],
+    "isColonial": true,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 93,
+    "name": "労働力",
+    "tier": "Service",
+    "baseNeed": 0,
+    "elasticity": 0.5,
+    "productivity": 1,
+    "inputs": [],
+    "isColonial": false,
+    "nonTradeable": true,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 94,
+    "name": "教育",
+    "tier": "Service",
+    "baseNeed": 0.06,
+    "elasticity": 0.8,
+    "productivity": 2,
+    "inputs": [
+      {
+        "goodId": 61,
+        "qtyPerOutput": 0.05
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": true,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 95,
+    "name": "医療",
+    "tier": "Service",
+    "baseNeed": 0.05,
+    "elasticity": 0.8,
+    "productivity": 3,
+    "inputs": [
+      {
+        "goodId": 77,
+        "qtyPerOutput": 0.1
+      },
+      {
+        "goodId": 72,
+        "qtyPerOutput": 0.05
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": true,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 96,
+    "name": "行政",
+    "tier": "Service",
+    "baseNeed": 0,
+    "elasticity": 0.5,
+    "productivity": 3,
+    "inputs": [
+      {
+        "goodId": 61,
+        "qtyPerOutput": 0.1
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": true,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 97,
+    "name": "兵力",
+    "tier": "Service",
+    "baseNeed": 0,
+    "elasticity": 0.5,
+    "productivity": 1,
+    "inputs": [],
+    "isColonial": false,
+    "nonTradeable": true,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 98,
+    "name": "クロム",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.5,
+    "productivity": 2.4,
+    "inputs": [],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 99,
+    "name": "送電網",
+    "tier": "Producer",
+    "baseNeed": 0,
+    "elasticity": 0.4,
+    "productivity": 1.6,
+    "inputs": [
+      {
+        "goodId": 33,
+        "qtyPerOutput": 0.6
+      },
+      {
+        "goodId": 55,
+        "qtyPerOutput": 0.3
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": true,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 100,
+    "name": "高度労働力",
+    "tier": "Service",
+    "baseNeed": 0,
+    "elasticity": 0.5,
+    "productivity": 1,
+    "inputs": [],
+    "isColonial": false,
+    "nonTradeable": true,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 101,
+    "name": "農業労働力",
+    "tier": "Service",
+    "baseNeed": 0,
+    "elasticity": 0.5,
+    "productivity": 1,
+    "inputs": [],
+    "isColonial": false,
+    "nonTradeable": true,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 102,
+    "name": "米",
+    "tier": "Staple",
+    "baseNeed": 0.2,
+    "elasticity": 0.4,
+    "productivity": 2.6,
+    "inputs": [],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 103,
+    "name": "蒸留酒",
+    "tier": "Daily",
+    "baseNeed": 0.05,
+    "elasticity": 0.6,
+    "productivity": 1.8,
+    "inputs": [
+      {
+        "goodId": 15,
+        "qtyPerOutput": 0.6
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 104,
+    "name": "機関銃",
+    "tier": "Producer",
+    "baseNeed": 0,
+    "elasticity": 0.4,
+    "productivity": 1.2,
+    "inputs": [
+      {
+        "goodId": 32,
+        "qtyPerOutput": 0.5
+      },
+      {
+        "goodId": 106,
+        "qtyPerOutput": 0.6
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 105,
+    "name": "装甲艦",
+    "tier": "Producer",
+    "baseNeed": 0,
+    "elasticity": 0.4,
+    "productivity": 1.1,
+    "inputs": [
+      {
+        "goodId": 85,
+        "qtyPerOutput": 1
+      },
+      {
+        "goodId": 32,
+        "qtyPerOutput": 1
+      },
+      {
+        "goodId": 81,
+        "qtyPerOutput": 0.5
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 106,
+    "name": "精密工作機械",
+    "tier": "Producer",
+    "baseNeed": 0,
+    "elasticity": 0.4,
+    "productivity": 1.3,
+    "inputs": [
+      {
+        "goodId": 53,
+        "qtyPerOutput": 0.8
+      },
+      {
+        "goodId": 52,
+        "qtyPerOutput": 0.5
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 107,
+    "name": "チーズ",
+    "tier": "Daily",
+    "baseNeed": 0.06,
+    "elasticity": 0.6,
+    "productivity": 1.8,
+    "inputs": [
+      {
+        "goodId": 19,
+        "qtyPerOutput": 0.6
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 108,
+    "name": "野菜",
+    "tier": "Staple",
+    "baseNeed": 0.25,
+    "elasticity": 0.4,
+    "productivity": 3,
+    "inputs": [],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 109,
+    "name": "肥料",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.4,
+    "productivity": 1.9,
+    "inputs": [
+      {
+        "goodId": 37,
+        "qtyPerOutput": 0.443
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 110,
+    "name": "飼料",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.4,
+    "productivity": 2.2,
+    "inputs": [
+      {
+        "goodId": 15,
+        "qtyPerOutput": 0.6
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 111,
+    "name": "上下水道",
+    "tier": "Service",
+    "baseNeed": 0,
+    "elasticity": 0.4,
+    "productivity": 2.5,
+    "inputs": [
+      {
+        "goodId": 35,
+        "qtyPerOutput": 0.4
+      },
+      {
+        "goodId": 32,
+        "qtyPerOutput": 0.2
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": true,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 112,
+    "name": "書籍",
+    "tier": "Daily",
+    "baseNeed": 0.02,
+    "elasticity": 0.6,
+    "productivity": 2.6,
+    "inputs": [
+      {
+        "goodId": 61,
+        "qtyPerOutput": 0.5
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 113,
+    "name": "ガス",
+    "tier": "Daily",
+    "baseNeed": 0.03,
+    "elasticity": 0.6,
+    "productivity": 2.2,
+    "inputs": [
+      {
+        "goodId": 1,
+        "qtyPerOutput": 0.6
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 114,
+    "name": "電化インフラ",
+    "tier": "Service",
+    "baseNeed": 0,
+    "elasticity": 0.4,
+    "productivity": 1.6,
+    "inputs": [
+      {
+        "goodId": 99,
+        "qtyPerOutput": 0.4
+      },
+      {
+        "goodId": 80,
+        "qtyPerOutput": 0.3
+      },
+      {
+        "goodId": 32,
+        "qtyPerOutput": 0.2
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": true,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 115,
+    "name": "ジャガイモ",
+    "tier": "Staple",
+    "baseNeed": 0.06,
+    "elasticity": 0.4,
+    "productivity": 3.2,
+    "inputs": [],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 116,
+    "name": "トウモロコシ",
+    "tier": "Staple",
+    "baseNeed": 0.04,
+    "elasticity": 0.4,
+    "productivity": 2.8,
+    "inputs": [],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 117,
+    "name": "錫鉱",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.5,
+    "productivity": 2.4,
+    "inputs": [],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 118,
+    "name": "硝石",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.5,
+    "productivity": 2.8,
+    "inputs": [],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 119,
+    "name": "毛皮",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.5,
+    "productivity": 2,
+    "inputs": [],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 120,
+    "name": "銀",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.5,
+    "productivity": 2,
+    "inputs": [],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 121,
+    "name": "グアノ",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.6,
+    "productivity": 2.2,
+    "inputs": [],
+    "isColonial": true,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 122,
+    "name": "戦車",
+    "tier": "Producer",
+    "baseNeed": 0,
+    "elasticity": 0.4,
+    "productivity": 1.1,
+    "inputs": [
+      {
+        "goodId": 32,
+        "qtyPerOutput": 1
+      },
+      {
+        "goodId": 125,
+        "qtyPerOutput": 0.6
+      },
+      {
+        "goodId": 81,
+        "qtyPerOutput": 0.4
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 123,
+    "name": "弩級戦艦",
+    "tier": "Producer",
+    "baseNeed": 0,
+    "elasticity": 0.4,
+    "productivity": 1,
+    "inputs": [
+      {
+        "goodId": 105,
+        "qtyPerOutput": 1
+      },
+      {
+        "goodId": 32,
+        "qtyPerOutput": 1
+      },
+      {
+        "goodId": 106,
+        "qtyPerOutput": 0.5
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 124,
+    "name": "家事奉仕",
+    "tier": "Service",
+    "baseNeed": 0.06,
+    "elasticity": 0.7,
+    "productivity": 1,
+    "inputs": [],
+    "isColonial": false,
+    "nonTradeable": true,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 125,
+    "name": "内燃機関",
+    "tier": "Producer",
+    "baseNeed": 0,
+    "elasticity": 0.4,
+    "productivity": 1.1,
+    "inputs": [
+      {
+        "goodId": 32,
+        "qtyPerOutput": 1
+      },
+      {
+        "goodId": 106,
+        "qtyPerOutput": 0.5
+      },
+      {
+        "goodId": 10,
+        "qtyPerOutput": 0.2
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 126,
+    "name": "住居",
+    "tier": "Daily",
+    "baseNeed": 0,
+    "elasticity": 0.4,
+    "productivity": 1.2,
+    "inputs": [
+      {
+        "goodId": 39,
+        "qtyPerOutput": 0.5
+      },
+      {
+        "goodId": 7,
+        "qtyPerOutput": 0.2
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": true,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 127,
+    "name": "馬",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.5,
+    "productivity": 1.6,
+    "inputs": [
+      {
+        "goodId": 19,
+        "qtyPerOutput": 0.6
+      },
+      {
+        "goodId": 110,
+        "qtyPerOutput": 0.4
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 128,
+    "name": "ダイナマイト",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.5,
+    "productivity": 1.4,
+    "inputs": [
+      {
+        "goodId": 37,
+        "qtyPerOutput": 0.4
+      },
+      {
+        "goodId": 118,
+        "qtyPerOutput": 0.1
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 129,
+    "name": "自転車",
+    "tier": "Daily",
+    "baseNeed": 0.04,
+    "elasticity": 0.5,
+    "productivity": 1.2,
+    "inputs": [
+      {
+        "goodId": 32,
+        "qtyPerOutput": 0.5
+      },
+      {
+        "goodId": 50,
+        "qtyPerOutput": 0.3
+      },
+      {
+        "goodId": 51,
+        "qtyPerOutput": 0.3
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 130,
+    "name": "飛行機",
+    "tier": "Producer",
+    "baseNeed": 0,
+    "elasticity": 0.4,
+    "productivity": 1.2,
+    "inputs": [
+      {
+        "goodId": 125,
+        "qtyPerOutput": 0.6
+      },
+      {
+        "goodId": 39,
+        "qtyPerOutput": 0.3
+      },
+      {
+        "goodId": 76,
+        "qtyPerOutput": 0.2
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 131,
+    "name": "戦闘機",
+    "tier": "Producer",
+    "baseNeed": 0,
+    "elasticity": 0.4,
+    "productivity": 1.1,
+    "inputs": [
+      {
+        "goodId": 130,
+        "qtyPerOutput": 0.8
+      },
+      {
+        "goodId": 104,
+        "qtyPerOutput": 0.3
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 132,
+    "name": "自動車",
+    "tier": "Luxury",
+    "baseNeed": 0.05,
+    "elasticity": 0.9,
+    "productivity": 1.2,
+    "inputs": [
+      {
+        "goodId": 125,
+        "qtyPerOutput": 0.6
+      },
+      {
+        "goodId": 32,
+        "qtyPerOutput": 0.4
+      },
+      {
+        "goodId": 50,
+        "qtyPerOutput": 0.2
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 133,
+    "name": "化学兵器",
+    "tier": "Producer",
+    "baseNeed": 0,
+    "elasticity": 0.4,
+    "productivity": 1.2,
+    "inputs": [
+      {
+        "goodId": 37,
+        "qtyPerOutput": 0.6
+      },
+      {
+        "goodId": 118,
+        "qtyPerOutput": 0.2
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 134,
+    "name": "新聞",
+    "tier": "Daily",
+    "baseNeed": 0.06,
+    "elasticity": 0.6,
+    "productivity": 1.8,
+    "inputs": [
+      {
+        "goodId": 61,
+        "qtyPerOutput": 0.6
+      },
+      {
+        "goodId": 51,
+        "qtyPerOutput": 0.05
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 135,
+    "name": "ラジオ",
+    "tier": "Daily",
+    "baseNeed": 0.03,
+    "elasticity": 0.6,
+    "productivity": 1.4,
+    "inputs": [
+      {
+        "goodId": 80,
+        "qtyPerOutput": 0.6
+      },
+      {
+        "goodId": 51,
+        "qtyPerOutput": 0.2
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 136,
+    "name": "高等教育",
+    "tier": "Service",
+    "baseNeed": 0,
+    "elasticity": 0.8,
+    "productivity": 3,
+    "inputs": [
+      {
+        "goodId": 112,
+        "qtyPerOutput": 0.4
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": true,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 137,
+    "name": "冷蔵庫",
+    "tier": "Luxury",
+    "baseNeed": 0.06,
+    "elasticity": 0.9,
+    "productivity": 1.3,
+    "inputs": [
+      {
+        "goodId": 106,
+        "qtyPerOutput": 0.4
+      },
+      {
+        "goodId": 37,
+        "qtyPerOutput": 0.3
+      }
+    ],
+    "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  }
+]

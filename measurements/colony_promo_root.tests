@@ -1,0 +1,22 @@
+C:\Users\dirge\AppData\Local\Temp\claude\pob-measure-snap\PriceOfBread.Tests\bin\Release\net10.0\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:02:06.42]     PriceOfBread.Tests.MultiNationTests.各国は独立した経済として産出を持つ [FAIL]
+  失敗 PriceOfBread.Tests.MultiNationTests.各国は独立した経済として産出を持つ [13 s]
+  エラー メッセージ:
+   ニューヨーク の産出財が乏しい（17）
+  スタック トレース:
+     at PriceOfBread.Tests.MultiNationTests.各国は独立した経済として産出を持つ() in C:\Users\dirge\AppData\Local\Temp\claude\pob-measure-snap\PriceOfBread.Tests\MultiNationTests.cs:line 110
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:03:03.86]     PriceOfBread.Tests.MultiNationTests.緊張は戦争を生み講和で植民地と賠償が動く [FAIL]
+  失敗 PriceOfBread.Tests.MultiNationTests.緊張は戦争を生み講和で植民地と賠償が動く [26 s]
+  エラー メッセージ:
+   Assert.Equal() Failure: Values differ
+Expected: 28
+Actual:   17
+  スタック トレース:
+     at PriceOfBread.Tests.MultiNationTests.緊張は戦争を生み講和で植民地と賠償が動く() in C:\Users\dirge\AppData\Local\Temp\claude\pob-measure-snap\PriceOfBread.Tests\MultiNationTests.cs:line 141
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+失敗!   -失敗:     2、合格:   184、スキップ:     0、合計:   186、期間: 4 m 24 s - PriceOfBread.Tests.dll (net10.0)

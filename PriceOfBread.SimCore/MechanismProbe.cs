@@ -1,0 +1,79 @@
+namespace PriceOfBread.SimCore;
+
+/// <summary>★機構発火の計器（2026-09-03・キューD-34／出典 トリアージ 2-D 10-1a＋10-1g）。
+///
+/// ⚠**きっかけ**＝当プロジェクトで繰り返し起きる失敗「**ゲート緑≠機構が働いた**」。
+/// 何もしない機構は何も壊さないので、テストも硬性ゲートも**必ず緑になる**。実例（2026-09-03 の AUD-09 だけで2件）：
+///   ・反帝世論＝掛ける帝国規模は昇格した州を数えるのに、不満の加重平均は旧台帳だけ＝**厳密に0**だった。
+///   ・革命勢力＝近さが厳密0を返し、選定が `pull &gt; bestPull`（初期値0）なので**誰とも組めない**＝設計が到達不能だった。
+/// どちらも**人が読んで**見つけた。読む人が居ない日にも見つかるように、機構ごとに「何回試して、何回成立したか」を数える。
+///
+/// ★トリアージが指摘した循環（10-1a と 10-1g が「同一の器」で相互ブロック）はここで断つ＝
+/// **器はこの1本**。発火回数（Eval/Hit）と上限張り付き（(hits,evals)）は同じカウンタ組の別集計にすぎない。
+///
+/// ⚠**規律**
+///   ・<see cref="Enabled"/> は既定 false＝どの経路も bool 1つで抜ける＝**厳密恒等**（力学はこの器を一度も読まない）。
+///   ・カウンタは <see cref="System.Threading.Interlocked"/> で積む＝バッチの並列走行でも数が壊れない
+///     （[ThreadStatic] にすると走らせたスレッドでしか読めず、バッチで常に0に見える罠がある）。
+///   ・**SaveGame に混ぜない**＝ここは静的な計器であって世界の状態ではない（保存に入れるとセーブ差分が毎回動く）。
+///   ・Eval＝「その機構を試した回数」／Hit＝「実際に何かが起きた回数」。⚠Eval=0 は配線漏れ、Hit=0 は死んだ機構。
+///     この2つは**別の病**なので必ず分けて数える（Hit だけ数えると、呼ばれてすらいないのか、呼ばれて不発なのかが分からない）。</summary>
+public static class MechanismProbe
+{
+    /// <summary>数える場所。⚠増やすときは「疑いがある機構」だけにする（全部に置くと Enabled=true の走行が遅くなるだけで読めない）。</summary>
+    public enum Site
+    {
+        /// <summary>反帝世論（Colonial C1）＝植民地の不満が本国大衆の闘争度へ還流したか。</summary>
+        AntiImperialOpinion,
+        /// <summary>植民地の独立（Colonial）＝圧力が本国の抑えを超えて離反したか。</summary>
+        ColonyIndependence,
+        /// <summary>権力連合の計算そのものが走ったか（PowerAffinity.Coalition）。
+        /// ⚠**この行が要る理由**＝下の革命の行だけを見ると「革命が組めない」と「そもそも連合が計算されていない」を取り違える。
+        /// ★実際に 2026-09-03 の初回走行で取り違えかけた（`firecheck` は StepQuarter しか回さず、
+        /// `PolityFromShares` は Standings 生成時にしか呼ばれないので連合の経路が一度も走っていなかった）＝**計器の隔離**。</summary>
+        CoalitionComputed,
+        /// <summary>連合で**革命勢力**が相手に選ばれたか（PowerAffinity）。
+        /// 試行＝革命がシェアを持っていた回数／成立＝実際に組んだ（組まれた）回数。⚠2026-09-03時点では成立0のはず。</summary>
+        CoalitionRevolutionAlly,
+        // ★国内危機の決着の内訳（2026-09-03・作者要望）。⚠3つとも**試行の分母は同じ**＝「危機が立った回数」で、
+        //   成立＝その道が選ばれた回数。⇒ 3行の成立率を足すと1になる（＝内訳として読める）。
+        //   ⚠2026-09-08（段6）：無血鎮圧（FactionSuppress）は枝ごと物理削除＝Hit が構造的に0になるサイトなので**この表から外した**
+        //     （分母だけ増えて成立率0%が並ぶと「死んだ機構がある」という嘘の内訳になる）。鎮圧の実体は蜂起→内戦→親の勝利＝FactionRevolt の側で数える。
+        //   ★これで「19世紀は脅威で改革される世界か、戦って勝つ世界か」が1表で出る。
+        //   史実の目安＝英は脅威で通る（1832・1867）／戦って勝ったのは1848年の仏くらい／
+        //   実際に戦った蜂起（ニューポート1839・六月蜂起1848・パリコミューン1871）は**鎮圧され反動を生んだ**。
+        /// <summary>危機の決着＝要求受諾（改革）。</summary>
+        FactionConcede,
+        /// <summary>危機の決着＝別の軸で埋め合わせ（ビスマルク型）。</summary>
+        FactionCompensate,
+        /// <summary>危機の決着＝蜂起（＝止められずに戦になった）。</summary>
+        FactionRevolt,
+        /// <summary>★武器の市場購入（設計メモ§7 (a)・2026-09-11）：試行＝反乱勢力に参加者が居て買いに出た月／成立＝実際に1単位でも買えて金が動いた月。
+        /// ⚠休眠（RebelArmsMarketEnabled=0）では試行0が**正しい**（枝に入らない）＝配線漏れではない。</summary>
+        RebelArmsPurchase,
+        /// <summary>民間の武器購入の法（同）：試行＝目標≠現在で政治ゲートに掛けた回数／成立＝法が動いた回数（PolicyAxis 追加の7箇所配線の番人＝ゲート緑≠機構が働いた）。</summary>
+        CivilianArmsLaw,
+        Count,
+    }
+
+    /// <summary>⚠既定 false＝厳密恒等。true にするのは診断走行（Runner の firecheck）だけ。</summary>
+    public static bool Enabled;
+
+    private static readonly long[] Evals = new long[(int)Site.Count];
+    private static readonly long[] Hits = new long[(int)Site.Count];
+
+    /// <summary>その機構を「試した」＝条件判定まで到達した。</summary>
+    public static void Eval(Site s) { if (Enabled) System.Threading.Interlocked.Increment(ref Evals[(int)s]); }
+
+    /// <summary>その機構が「成立した」＝実際に世界を動かした。</summary>
+    public static void Hit(Site s) { if (Enabled) System.Threading.Interlocked.Increment(ref Hits[(int)s]); }
+
+    public static (long Eval, long Hit) Read(Site s)
+        => (System.Threading.Interlocked.Read(ref Evals[(int)s]), System.Threading.Interlocked.Read(ref Hits[(int)s]));
+
+    public static void Reset()
+    {
+        for (int i = 0; i < (int)Site.Count; i++)
+        { System.Threading.Interlocked.Exchange(ref Evals[i], 0); System.Threading.Interlocked.Exchange(ref Hits[i], 0); }
+    }
+}

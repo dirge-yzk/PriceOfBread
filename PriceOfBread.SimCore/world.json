@@ -1,0 +1,5930 @@
+{
+ "nations": [
+  {
+   "name": "フランス",
+   "nobility": 467,
+   "peasant": 18666,
+   "worker": 3920,
+   "bourgeois": 2333,
+   "professional": 747,
+   "merchant": 467,
+   "artisan": 1400,
+   "nobLit": 0.95,
+   "peasLit": 0.15,
+   "workLit": 0.4,
+   "bourgLit": 0.8,
+   "profLit": 0.85,
+   "clergyFrac": 0.4,
+   "intelligentsiaFrac": 0.35,
+   "clergyLit": 0.9,
+   "intelLit": 0.92,
+   "peasantSubsistence": 0.7,
+   "polity": "Absolutist",
+   "education": "Religious",
+   "coercion": 400,
+   "treasury": 200000,
+   "nationalConsciousness0": 0.1,
+   "govDebt": 600000,
+   "initialTariff": 0.25,
+   "industrialization": 0.25,
+   "initialColonies": [
+    {
+     "name": "北部サン=ドマング",
+     "resources": [
+      25,
+      28
+     ],
+     "population": 2.5
+    },
+    {
+     "name": "南部サン=ドマング",
+     "resources": [
+      25,
+      28
+     ],
+     "population": 2
+    },
+    {
+     "name": "マルティニーク",
+     "resources": [
+      25,
+      26
+     ],
+     "population": 1.5
+    },
+    {
+     "name": "マスカリン諸島",
+     "resources": [
+      25,
+      28
+     ],
+     "population": 1
+    },
+    {
+     "name": "ポンディシェリ",
+     "resources": [
+      17,
+      29,
+      12
+     ],
+     "population": 2
+    },
+    {
+     "name": "セネガル",
+     "resources": [
+      24,
+      17
+     ],
+     "population": 1
+    }
+   ],
+   "military": 1.8,
+   "ethnicUnity": 0.85,
+   "initialSuffrage": "None",
+   "initialCensorship": "StatePressOnly",
+   "initialCornLaws": "Limited",
+   "initialSerfEmancipation": "Limited",
+   "provinces": [
+    {
+     "city": "パリ",
+     "share": 0.26,
+     "resources": [
+      15,
+      19,
+      108
+     ],
+     "coastal": false,
+     "culture": "フランス",
+     "religion": "カトリック"
+    },
+    {
+     "city": "ルアーヴル",
+     "share": 0.05,
+     "resources": [],
+     "culture": "フランス",
+     "religion": "カトリック",
+     "coastal": true
+    },
+    {
+     "city": "リヨン",
+     "share": 0.19,
+     "resources": [
+      14,
+      45
+     ],
+     "coastal": false,
+     "culture": "フランス",
+     "religion": "カトリック"
+    },
+    {
+     "city": "マルセイユ",
+     "share": 0.17,
+     "resources": [
+      20,
+      16
+     ],
+     "coastal": true,
+     "culture": "フランス",
+     "religion": "カトリック"
+    },
+    {
+     "city": "ボルドー",
+     "share": 0.14,
+     "resources": [
+      16,
+      11
+     ],
+     "coastal": true,
+     "culture": "フランス",
+     "religion": "カトリック"
+    },
+    {
+     "city": "リール",
+     "heldSince": 1668,
+     "share": 0.14,
+     "resources": [
+      1,
+      41
+     ],
+     "coastal": false,
+     "culture": "フランス",
+     "religion": "カトリック"
+    },
+    {
+     "city": "トゥールーズ",
+     "share": 0.05,
+     "resources": [],
+     "culture": "フランス",
+     "religion": "カトリック",
+     "coastal": false
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": 48.9,
+   "longitude": 2.3,
+   "farmLordShare": 0.5,
+   "culturalGoodId": 62
+  },
+  {
+   "name": "日本",
+   "nobility": 1749,
+   "peasant": 22740,
+   "worker": 2187,
+   "bourgeois": 1312,
+   "professional": 262,
+   "merchant": 700,
+   "artisan": 1050,
+   "nobLit": 0.99,
+   "peasLit": 0.3,
+   "workLit": 0.5,
+   "bourgLit": 0.8,
+   "profLit": 0.85,
+   "clergyFrac": 0.4,
+   "intelligentsiaFrac": 0.35,
+   "clergyLit": 0.9,
+   "intelLit": 0.92,
+   "peasantSubsistence": 0.7,
+   "polity": "Shogunate",
+   "education": "Religious",
+   "coercion": 450,
+   "treasury": 150000,
+   "initialTariff": 0.95,
+   "industrialization": 0,
+   "initialColonies": [],
+   "military": 1.2,
+   "ethnicUnity": 0.97,
+   "initialSuffrage": "None",
+   "initialCensorship": "StatePressOnly",
+   "initialCornLaws": "Full",
+   "initialSerfEmancipation": "None",
+   "provinces": [
+    {
+     "city": "江戸",
+     "share": 0.25945212,
+     "resources": [
+      102,
+      14
+     ],
+     "culture": "日本",
+     "religion": "神仏",
+     "coastal": true
+    },
+    {
+     "city": "大阪",
+     "share": 0.21953641,
+     "resources": [
+      102,
+      14,
+      2
+     ],
+     "culture": "日本",
+     "religion": "神仏",
+     "coastal": true
+    },
+    {
+     "city": "横浜",
+     "share": 0.05987357,
+     "resources": [],
+     "culture": "日本",
+     "religion": "神仏",
+     "coastal": true
+    },
+    {
+     "city": "京都",
+     "share": 0.10976821,
+     "resources": [],
+     "culture": "日本",
+     "religion": "神仏",
+     "coastal": false
+    },
+    {
+     "city": "仙台",
+     "share": 0.16964177,
+     "resources": [
+      102,
+      11
+     ],
+     "culture": "日本",
+     "religion": "神仏",
+     "coastal": true
+    },
+    {
+     "city": "長崎",
+     "share": 0.11974713,
+     "resources": [
+      71,
+      20
+     ],
+     "culture": "日本",
+     "religion": "神仏",
+     "coastal": true
+    },
+    {
+     "city": "北九州",
+     "share": 0.05987357,
+     "resources": [
+      1
+     ],
+     "lateResources": [5],
+     "culture": "日本",
+     "religion": "神仏",
+     "coastal": true
+    },
+    {
+     "city": "蝦夷地",
+     "share": 0.00210722,
+     "resources": [],
+     "coastal": false,
+     "culture": "",
+     "religion": "",
+     "arableLand": 8000
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": 35.7,
+   "longitude": 139.7,
+   "farmLordShare": 0.5,
+   "culturalGoodId": 102
+  },
+  {
+   "name": "イギリス",
+   "rule": [0.9, 0.1, 0.0, 0.0],
+   "nobility": 193,
+   "peasant": 3210,
+   "worker": 5780,
+   "bourgeois": 2248,
+   "professional": 963,
+   "merchant": 450,
+   "artisan": 1156,
+   "nobLit": 0.95,
+   "peasLit": 0.15,
+   "workLit": 0.55,
+   "bourgLit": 0.9,
+   "profLit": 0.85,
+   "clergyFrac": 0.4,
+   "intelligentsiaFrac": 0.35,
+   "clergyLit": 0.9,
+   "intelLit": 0.92,
+   "peasantSubsistence": 0.7,
+   "polity": "ConstitutionalMonarchy",
+   "education": "Public",
+   "coercion": 380,
+   "treasury": 550000,
+   "initialTariff": 0.3,
+   "industrialization": 1.4,
+   "initialColonies": [
+    {
+     "name": "ジャマイカ",
+     "resources": [
+      25,
+      28
+     ],
+     "population": 2
+    },
+    {
+     "name": "小アンティル",
+     "resources": [
+      25
+     ],
+     "population": 1.5
+    },
+    {
+     "name": "ウィンドワード諸島",
+     "resources": [
+      25,
+      26
+     ],
+     "population": 1
+    },
+    {
+     "name": "カナダ",
+     "resources": [
+      11,
+      20,
+      119
+     ],
+     "population": 1
+    },
+    {
+     "name": "中核ベンガル",
+     "resources": [
+      92,
+      14,
+      17,
+      118
+     ],
+     "population": 6
+    },
+    {
+     "name": "内陸ベンガル",
+     "resources": [
+      92,
+      13,
+      27,
+      118
+     ],
+     "population": 4
+    },
+    {
+     "name": "マドラス",
+     "resources": [
+      12,
+      17,
+      22
+     ],
+     "population": 5
+    },
+    {
+     "name": "ボンベイ",
+     "resources": [
+      12,
+      92
+     ],
+     "population": 4
+    },
+    {
+     "name": "沿岸西アフリカ",
+     "resources": [
+      4,
+      24,
+      23,
+      21
+     ],
+     "population": 2
+    },
+    {
+     "name": "オーストラリア",
+     "resources": [
+      19
+     ],
+     "population": 0.5
+    },
+    {
+     "name": "ジブラルタル",
+     "resources": [],
+     "population": 0.1
+    },
+    {
+     "name": "セントジョンズ",
+     "resources": [],
+     "population": 0.3
+    },
+    {
+     "name": "ナイン",
+     "resources": [],
+     "population": 0.05
+    },
+    {
+     "name": "チャーチル",
+     "resources": [],
+     "population": 0.05
+    },
+    {
+     "name": "フォートウィリアム",
+     "resources": [],
+     "population": 0.05
+    },
+    {
+     "name": "エドモントン",
+     "resources": [],
+     "population": 0.05
+    },
+    {
+     "name": "バンクーバー",
+     "resources": [],
+     "population": 0.05
+    },
+    {
+     "name": "フォートシンプソン",
+     "resources": [],
+     "population": 0.03
+    },
+    {
+     "name": "イカルイト",
+     "resources": [],
+     "population": 0.02
+    },
+    {
+     "name": "フリータウン",
+     "resources": [],
+     "population": 0.1
+    },
+    {
+     "name": "パース",
+     "resources": [],
+     "population": 0.1
+    },
+    {
+     "name": "アデレード",
+     "resources": [],
+     "population": 0.1
+    },
+    {
+     "name": "ブリスベン",
+     "resources": [],
+     "population": 0.1
+    },
+    {
+     "name": "ダーウィン",
+     "resources": [],
+     "population": 0.03
+    },
+    {
+     "name": "アリススプリングス",
+     "resources": [],
+     "population": 0.02
+    },
+    {
+     "name": "ホバート",
+     "resources": [],
+     "population": 0.05
+    }
+   ],
+   "military": 4.5,
+   "ethnicUnity": 0.85,
+   "initialSuffrage": "Census",
+   "initialCensorship": "Censorship",
+   "initialCornLaws": "Full",
+   "initialSerfEmancipation": "Full",
+   "provinces": [
+    {
+     "city": "ロンドン",
+     "share": 0.2346,
+     "resources": [
+      19,
+      108,
+      7
+     ],
+     "culture": "イングランド",
+     "religion": "プロテスタント",
+     "coastal": true,
+     "indShare": 0.3
+    },
+    {
+     "city": "マンチェスター",
+     "share": 0.1656,
+     "resources": [
+      41,
+      1
+     ],
+     "culture": "イングランド",
+     "religion": "プロテスタント",
+     "coastal": true,
+     "indShare": 0.26
+    },
+    {
+     "city": "バーミンガム",
+     "share": 0.1518,
+     "resources": [
+      0,
+      31,
+      1,
+      117
+     ],
+     "culture": "イングランド",
+     "religion": "プロテスタント",
+     "coastal": false,
+     "indShare": 0.24
+    },
+    {
+     "city": "グラスゴー",
+     "heldSince": 1707,
+     "share": 0.138,
+     "resources": [
+      1,
+      84
+     ],
+     "culture": "スコットランド",
+     "religion": "プロテスタント",
+     "coastal": true,
+     "indShare": 0.14
+    },
+    {
+     "city": "ダブリン",
+     "heldSince": 1691,
+     "share": 0.31,
+     "resources": [
+      115,
+      19,
+      13
+     ],
+     "culture": "アイルランド",
+     "religion": "カトリック",
+     "coastal": true,
+     "indShare": 0.06
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": 51.5,
+   "longitude": -0.1,
+   "farmLordShare": 0.5,
+   "culturalGoodId": 74
+  },
+  {
+   "name": "アメリカ",
+   "nobility": 18,
+   "peasant": 2148,
+   "worker": 894,
+   "bourgeois": 429,
+   "professional": 143,
+   "merchant": 125,
+   "artisan": 143,
+   "nobLit": 0.95,
+   "peasLit": 0.6,
+   "workLit": 0.7,
+   "bourgLit": 0.8,
+   "profLit": 0.85,
+   "clergyFrac": 0.4,
+   "intelligentsiaFrac": 0.35,
+   "clergyLit": 0.9,
+   "intelLit": 0.92,
+   "peasantSubsistence": 0.7,
+   "polity": "Republic",
+   "education": "Public",
+   "coercion": 180,
+   "treasury": 200000,
+   "nationalConsciousness0": 0.32,
+   "initialTariff": 0.1,
+   "industrialization": 0.2,
+   "initialColonies": [],
+   "military": 1,
+   "ethnicUnity": 0.45,
+   "initialSuffrage": "Census",
+   "initialCensorship": "FreePress",
+   "initialCornLaws": "None",
+   "initialSerfEmancipation": "Full",
+   "provinces": [
+    {
+     "city": "ニューヨーク",
+     "share": 0.54968065,
+     "resources": [
+      15,
+      19,
+      20,
+      11
+     ],
+     "coastal": true,
+     "culture": "アメリカ",
+     "religion": "プロテスタント"
+    },
+    {
+     "city": "フィラデルフィア",
+     "share": 0.27484032,
+     "resources": [
+      1,
+      0,
+      32,
+      10
+     ],
+     "coastal": true,
+     "culture": "アメリカ",
+     "religion": "プロテスタント"
+    },
+    {
+     "city": "チャールストン",
+     "share": 0.15705162,
+     "resources": [
+      12,
+      18
+     ],
+     "coastal": true,
+     "culture": "アメリカ",
+     "religion": "プロテスタント"
+    },
+    {
+     "city": "西部",
+     "share": 0.01342741,
+     "resources": [],
+     "lateResources": [
+      5,
+      120
+     ],
+     "coastal": false,
+     "culture": "",
+     "religion": "",
+     "arableLand": 25000
+    },
+    {
+     "city": "セントポール",
+     "share": 0.005,
+     "resources": [],
+     "coastal": false,
+     "culture": "",
+     "religion": ""
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": 40.7,
+   "longitude": -74,
+   "farmLordShare": 0,
+   "culturalGoodId": 103
+  },
+  {
+   "name": "ロシア",
+   "rule": [0.5, 0.45, 0.0, 0.05],
+   "nobility": 566,
+   "peasant": 24922,
+   "worker": 1699,
+   "bourgeois": 850,
+   "professional": 283,
+   "merchant": 227,
+   "artisan": 453,
+   "nobLit": 0.9,
+   "peasLit": 0.05,
+   "workLit": 0.2,
+   "bourgLit": 0.6,
+   "profLit": 0.8,
+   "clergyFrac": 0.4,
+   "intelligentsiaFrac": 0.35,
+   "clergyLit": 0.9,
+   "intelLit": 0.92,
+   "peasantSubsistence": 0.7,
+   "polity": "Despotic",
+   "education": "Religious",
+   "coercion": 700,
+   "treasury": 200000,
+   "institutionalDecay": 0.4,
+   "initialTariff": 0.3,
+   "industrialization": 0,
+   "initialColonies": [
+    {
+     "name": "アラスカ",
+     "resources": [
+      119
+     ],
+     "population": 0.2
+    },
+    {
+     "name": "セントマイケル",
+     "resources": [],
+     "population": 0.03
+    },
+    {
+     "name": "フォートユーコン",
+     "resources": [],
+     "population": 0.03
+    },
+    {
+     "name": "バロー",
+     "resources": [],
+     "population": 0.02
+    }
+   ],
+   "military": 2,
+   "ethnicUnity": 0.55,
+   "initialSuffrage": "None",
+   "initialCensorship": "StatePressOnly",
+   "initialCornLaws": "Full",
+   "initialSerfEmancipation": "None",
+   "provinces": [
+    {
+     "city": "モスクワ",
+     "share": 0.15044732,
+     "resources": [
+      41,
+      11
+     ],
+     "culture": "ロシア",
+     "religion": "正教",
+     "coastal": false
+    },
+    {
+     "city": "サンクトペテルブルク",
+     "share": 0.09439452,
+     "resources": [
+      11,
+      32
+     ],
+     "culture": "ロシア",
+     "religion": "正教",
+     "coastal": true
+    },
+    {
+     "city": "リガ",
+     "heldSince": 1710,
+     "share": 0.06607616,
+     "resources": [
+      11,
+      15,
+      115
+     ],
+     "culture": "バルト",
+     "religion": "プロテスタント",
+     "coastal": true
+    },
+    {
+     "city": "キエフ",
+     "heldSince": 1667,
+     "share": 0.09410257,
+     "resources": [
+      15,
+      19
+     ],
+     "culture": "ウクライナ",
+     "religion": "正教",
+     "coastal": false
+    },
+    {
+     "city": "ハリコフ",
+     "heldSince": 1654,
+     "share": 0.07522367,
+     "resources": [
+      15,
+      19
+     ],
+     "culture": "ウクライナ",
+     "religion": "正教",
+     "coastal": false
+    },
+    {
+     "city": "カザン",
+     "share": 0.09439452,
+     "resources": [
+      15,
+      11
+     ],
+     "culture": "タタール",
+     "religion": "イスラム",
+     "coastal": false
+    },
+    {
+     "city": "ニジニ・ノヴゴロド",
+     "share": 0.08495506,
+     "resources": [
+      13,
+      11,
+      115,
+      119
+     ],
+     "culture": "ロシア",
+     "religion": "正教",
+     "coastal": false
+    },
+    {
+     "city": "アルハンゲリスク",
+     "share": 0.05663671,
+     "resources": [
+      11,
+      20,
+      119
+     ],
+     "culture": "ロシア",
+     "religion": "正教",
+     "coastal": true
+    },
+    {
+     "city": "エカテリンブルク",
+     "heldSince": 1723,
+     "share": 0.07551561,
+     "resources": [
+      0,
+      2,
+      98
+     ],
+     "culture": "ロシア",
+     "religion": "正教",
+     "coastal": false
+    },
+    {
+     "city": "ロストフ",
+     "heldSince": 1739,
+     "share": 0.06607616,
+     "resources": [
+      15,
+      19
+     ],
+     "culture": "ロシア",
+     "religion": "正教",
+     "coastal": true
+    },
+    {
+     "city": "オムスク",
+     "heldSince": 1716,
+     "share": 0.04719726,
+     "resources": [
+      11,
+      4,
+      119,
+      120
+     ],
+     "culture": "ロシア",
+     "religion": "正教",
+     "coastal": false
+    },
+    {
+     "city": "バクー",
+     "heldSince": 1783,
+     "share": 0.02919418,
+     "resources": [
+      10,
+      19
+     ],
+     "culture": "アゼルバイジャン",
+     "religion": "イスラム",
+     "coastal": true
+    },
+    {
+     "city": "トビリシ",
+     "heldSince": 1783,
+     "share": 0.03892558,
+     "resources": [],
+     "culture": "グルジア",
+     "religion": "正教",
+     "coastal": false
+    },
+    {
+     "city": "ウラル",
+     "share": 0.00179025,
+     "resources": [],
+     "coastal": false,
+     "culture": "",
+     "religion": "",
+     "arableLand": 6000
+    },
+    {
+     "city": "シベリア",
+     "share": 0.00145467,
+     "resources": [],
+     "coastal": false,
+     "culture": "",
+     "religion": "",
+     "arableLand": 9000
+    },
+    {
+     "city": "ウラジオストク",
+     "share": 0.00061576,
+     "resources": [],
+     "coastal": true,
+     "culture": "",
+     "religion": "",
+     "arableLand": 3000
+    },
+    {
+     "city": "ヤクーツク",
+     "share": 0.004,
+     "resources": [],
+     "coastal": false,
+     "culture": "",
+     "religion": ""
+    },
+    {
+     "city": "オホーツク",
+     "share": 0.002,
+     "resources": [],
+     "coastal": true,
+     "culture": "",
+     "religion": ""
+    },
+    {
+     "city": "ペトロパヴロフスク",
+     "share": 0.002,
+     "resources": [],
+     "coastal": true,
+     "culture": "",
+     "religion": ""
+    },
+    {
+     "city": "スレドネコリムスク",
+     "share": 0.001,
+     "resources": [],
+     "coastal": false,
+     "culture": "",
+     "religion": ""
+    },
+    {
+     "city": "アナディリ",
+     "share": 0.001,
+     "resources": [],
+     "coastal": true,
+     "culture": "",
+     "religion": ""
+    },
+    {
+     "city": "トゥルハンスク",
+     "share": 0.002,
+     "resources": [],
+     "coastal": false,
+     "culture": "",
+     "religion": ""
+    },
+    {
+     "city": "オブドルスク",
+     "share": 0.002,
+     "resources": [],
+     "coastal": false,
+     "culture": "",
+     "religion": ""
+    },
+    {
+     "city": "バルナウル",
+     "share": 0.006,
+     "resources": [],
+     "coastal": false,
+     "culture": "",
+     "religion": ""
+    },
+    {
+     "city": "グリエフ",
+     "share": 0.003,
+     "resources": [],
+     "coastal": true,
+     "culture": "",
+     "religion": ""
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": 59.9,
+   "longitude": 30.3,
+   "farmLordShare": 1,
+   "culturalGoodId": 103
+  },
+  {
+   "name": "プロイセン",
+   "bureaucracy": "MeritExam",
+   "nobility": 166,
+   "peasant": 2717,
+   "worker": 1276,
+   "bourgeois": 638,
+   "professional": 305,
+   "merchant": 122,
+   "artisan": 377,
+   "nobLit": 0.98,
+   "peasLit": 0.5,
+   "workLit": 0.6,
+   "bourgLit": 0.9,
+   "profLit": 0.9,
+   "clergyFrac": 0.4,
+   "intelligentsiaFrac": 0.35,
+   "clergyLit": 0.9,
+   "intelLit": 0.92,
+   "peasantSubsistence": 0.7,
+   "polity": "Absolutist",
+   "education": "Public",
+   "coercion": 600,
+   "treasury": 190000,
+   "initialTariff": 0.2,
+   "industrialization": 0.3,
+   "initialColonies": [],
+   "military": 3.6,
+   "ethnicUnity": 0.7,
+   "initialSuffrage": "None",
+   "initialCensorship": "StatePressOnly",
+   "initialCornLaws": "Full",
+   "initialSerfEmancipation": "None",
+   "provinces": [
+    {
+     "city": "ベルリン",
+     "share": 0.3,
+     "resources": [
+      32,
+      53
+     ],
+     "culture": "ドイツ",
+     "religion": "プロテスタント",
+     "coastal": false
+    },
+    {
+     "city": "シュテッティン",
+     "heldSince": 1720,
+     "share": 0.25,
+     "resources": [
+      15,
+      19
+     ],
+     "culture": "ドイツ",
+     "religion": "プロテスタント",
+     "coastal": true
+    },
+    {
+     "city": "ケーニヒスベルク",
+     "share": 0.18,
+     "resources": [
+      15,
+      13,
+      115
+     ],
+     "culture": "ドイツ",
+     "religion": "プロテスタント",
+     "coastal": true
+    },
+    {
+     "city": "ブレスラウ",
+     "heldSince": 1742,
+     "share": 0.16,
+     "resources": [
+      1,
+      3,
+      115
+     ],
+     "culture": "ドイツ",
+     "religion": "カトリック",
+     "coastal": false
+    },
+    {
+     "city": "ダンツィヒ",
+     "heldSince": 1793,
+     "share": 0.11,
+     "resources": [
+      15,
+      11
+     ],
+     "culture": "ポーランド",
+     "religion": "カトリック",
+     "coastal": true
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": 52.5,
+   "longitude": 13.4,
+   "farmLordShare": 0.8,
+   "culturalGoodId": 66
+  },
+  {
+   "name": "オスマン",
+   "rule": [0.5, 0.4, 0.0, 0.1],
+   "nobility": 800,
+   "peasant": 21000,
+   "worker": 1500,
+   "bourgeois": 1200,
+   "professional": 300,
+   "merchant": 600,
+   "artisan": 900,
+   "nobLit": 0.8,
+   "peasLit": 0.05,
+   "workLit": 0.15,
+   "bourgLit": 0.5,
+   "profLit": 0.7,
+   "clergyFrac": 0.4,
+   "intelligentsiaFrac": 0.35,
+   "clergyLit": 0.9,
+   "intelLit": 0.92,
+   "peasantSubsistence": 0.7,
+   "polity": "Absolutist",
+   "education": "Religious",
+   "coercion": 500,
+   "treasury": 120000,
+   "institutionalDecay": 0.6,
+   "initialTariff": 0.1,
+   "industrialization": 0,
+   "initialColonies": [],
+   "military": 1.5,
+   "ethnicUnity": 0.4,
+   "initialSuffrage": "None",
+   "initialCensorship": "StatePressOnly",
+   "initialCornLaws": "Limited",
+   "initialSerfEmancipation": "Limited",
+   "provinces": [
+    {
+     "city": "イスタンブール",
+     "share": 0.14,
+     "resources": [
+      20,
+      16
+     ],
+     "culture": "トルコ",
+     "religion": "イスラム",
+     "coastal": true
+    },
+    {
+     "city": "カイロ",
+     "share": 0.13,
+     "resources": [
+      15,
+      12,
+      116
+     ],
+     "culture": "アラブ",
+     "religion": "イスラム",
+     "coastal": true
+    },
+    {
+     "city": "スミルナ",
+     "share": 0.08,
+     "resources": [
+      16,
+      18
+     ],
+     "culture": "ギリシャ",
+     "religion": "正教",
+     "coastal": true
+    },
+    {
+     "city": "アンカラ",
+     "share": 0.09,
+     "resources": [
+      19,
+      15,
+      98
+     ],
+     "culture": "トルコ",
+     "religion": "イスラム",
+     "coastal": false
+    },
+    {
+     "city": "エルズルム",
+     "share": 0.05,
+     "resources": [
+      19,
+      15,
+      98
+     ],
+     "culture": "トルコ",
+     "religion": "イスラム",
+     "coastal": false
+    },
+    {
+     "city": "ダマスカス",
+     "share": 0.08,
+     "resources": [
+      14,
+      45
+     ],
+     "culture": "アラブ",
+     "religion": "イスラム",
+     "coastal": false
+    },
+    {
+     "city": "エルサレム",
+     "share": 0.05,
+     "resources": [
+      16,
+      19
+     ],
+     "culture": "アラブ",
+     "religion": "イスラム",
+     "coastal": false
+    },
+    {
+     "city": "バグダード",
+     "heldSince": 1638,
+     "share": 0.08,
+     "resources": [
+      15,
+      16
+     ],
+     "culture": "アラブ",
+     "religion": "イスラム",
+     "coastal": false
+    },
+    {
+     "city": "バスラ",
+     "heldSince": 1668,
+     "share": 0.05,
+     "resources": [
+      16,
+      20
+     ],
+     "culture": "アラブ",
+     "religion": "イスラム",
+     "coastal": true
+    },
+    {
+     "city": "ベオグラード",
+     "heldSince": 1739,
+     "share": 0.06,
+     "resources": [
+      15,
+      19,
+      116
+     ],
+     "culture": "セルビア",
+     "religion": "正教",
+     "coastal": false
+    },
+    {
+     "city": "ソフィア",
+     "share": 0.06,
+     "resources": [
+      15,
+      16,
+      116
+     ],
+     "culture": "ブルガリア",
+     "religion": "正教",
+     "coastal": false
+    },
+    {
+     "city": "サロニカ",
+     "share": 0.05,
+     "resources": [
+      18,
+      16
+     ],
+     "culture": "ギリシャ",
+     "religion": "正教",
+     "coastal": true
+    },
+    {
+     "city": "アテネ",
+     "share": 0.04,
+     "resources": [
+      16,
+      20
+     ],
+     "culture": "ギリシャ",
+     "religion": "正教",
+     "coastal": true
+    },
+    {
+     "city": "ブカレスト",
+     "share": 0.04,
+     "resources": [
+      15,
+      19,
+      116,
+      10
+     ],
+     "culture": "ルーマニア",
+     "religion": "正教",
+     "coastal": false
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": 41,
+   "longitude": 29,
+   "farmLordShare": 0.8,
+   "culturalGoodId": 75
+  },
+  {
+   "name": "オーストリア",
+   "nobility": 474,
+   "peasant": 17350,
+   "worker": 2761,
+   "bourgeois": 1182,
+   "professional": 474,
+   "merchant": 315,
+   "artisan": 946,
+   "nobLit": 0.95,
+   "peasLit": 0.2,
+   "workLit": 0.45,
+   "bourgLit": 0.8,
+   "profLit": 0.85,
+   "clergyFrac": 0.4,
+   "intelligentsiaFrac": 0.35,
+   "clergyLit": 0.9,
+   "intelLit": 0.92,
+   "peasantSubsistence": 0.7,
+   "polity": "Absolutist",
+   "education": "Religious",
+   "coercion": 500,
+   "treasury": 220000,
+   "initialTariff": 0.3,
+   "industrialization": 0.2,
+   "initialColonies": [],
+   "military": 2.6,
+   "ethnicUnity": 0.35,
+   "initialSuffrage": "None",
+   "initialCensorship": "StatePressOnly",
+   "initialCornLaws": "Full",
+   "initialSerfEmancipation": "None",
+   "provinces": [
+    {
+     "city": "ウィーン",
+     "share": 0.1457,
+     "resources": [
+      0,
+      32,
+      53
+     ],
+     "culture": "ドイツ",
+     "religion": "カトリック",
+     "coastal": false
+    },
+    {
+     "city": "グラーツ",
+     "share": 0.0521,
+     "resources": [
+      0,
+      19
+     ],
+     "culture": "ドイツ",
+     "religion": "カトリック",
+     "coastal": false
+    },
+    {
+     "city": "プラハ",
+     "share": 0.1042,
+     "resources": [
+      1,
+      0,
+      8,
+      120
+     ],
+     "culture": "チェコ",
+     "religion": "カトリック",
+     "coastal": false
+    },
+    {
+     "city": "ブリュン",
+     "share": 0.0521,
+     "resources": [
+      41,
+      1
+     ],
+     "culture": "チェコ",
+     "religion": "カトリック",
+     "coastal": false
+    },
+    {
+     "city": "ブダペスト",
+     "heldSince": 1686,
+     "share": 0.1562,
+     "resources": [
+      15,
+      19,
+      116
+     ],
+     "culture": "ハンガリー",
+     "religion": "カトリック",
+     "coastal": false
+    },
+    {
+     "city": "プレスブルク",
+     "share": 0.0625,
+     "resources": [
+      15,
+      19
+     ],
+     "culture": "スロバキア",
+     "religion": "カトリック",
+     "coastal": false
+    },
+    {
+     "city": "レンベルク",
+     "heldSince": 1772,
+     "share": 0.0729,
+     "resources": [
+      15,
+      19,
+      10
+     ],
+     "culture": "ポーランド",
+     "religion": "カトリック",
+     "coastal": false
+    },
+    {
+     "city": "ザグレブ",
+     "share": 0.0417,
+     "resources": [
+      15,
+      11
+     ],
+     "culture": "クロアチア",
+     "religion": "カトリック",
+     "coastal": false
+    },
+    {
+     "city": "クラウゼンブルク",
+     "heldSince": 1699,
+     "share": 0.0521,
+     "resources": [
+      15,
+      19,
+      116
+     ],
+     "culture": "ルーマニア",
+     "religion": "正教",
+     "coastal": false
+    },
+    {
+     "city": "ミラノ",
+     "heldSince": 1714,
+     "share": 0.0938,
+     "resources": [
+      14,
+      45,
+      116
+     ],
+     "culture": "イタリア",
+     "religion": "カトリック",
+     "coastal": false
+    },
+    {
+     "city": "ブリュッセル",
+     "heldSince": 1714,
+     "share": 0.125,
+     "resources": [
+      41,
+      1
+     ],
+     "culture": "フラマン",
+     "religion": "カトリック",
+     "coastal": true
+    },
+    {
+     "city": "トリエステ",
+     "share": 0.0417,
+     "resources": [
+      7
+     ],
+     "culture": "イタリア",
+     "religion": "カトリック",
+     "coastal": true
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": 48.2,
+   "longitude": 16.4,
+   "farmLordShare": 0.5,
+   "culturalGoodId": 66
+  },
+  {
+   "name": "ネーデルラント",
+   "nobility": 31,
+   "peasant": 461,
+   "worker": 369,
+   "bourgeois": 462,
+   "professional": 154,
+   "merchant": 277,
+   "artisan": 246,
+   "nobLit": 0.95,
+   "peasLit": 0.4,
+   "workLit": 0.55,
+   "bourgLit": 0.92,
+   "profLit": 0.9,
+   "clergyFrac": 0.4,
+   "intelligentsiaFrac": 0.35,
+   "clergyLit": 0.9,
+   "intelLit": 0.92,
+   "peasantSubsistence": 0.7,
+   "polity": "Republic",
+   "education": "Public",
+   "coercion": 250,
+   "treasury": 400000,
+   "initialTariff": 0.05,
+   "industrialization": 0.2,
+   "initialColonies": [
+    {
+     "name": "バタヴィア",
+     "resources": [
+      28,
+      29,
+      25,
+      27,
+      10,
+      117,
+      22
+     ],
+     "population": 5
+    },
+    {
+     "name": "ケープタウン",
+     "resources": [
+      16,
+      19
+     ],
+     "population": 1
+    },
+    {
+     "name": "セイロン",
+     "resources": [
+      29,
+      27,
+      22
+     ],
+     "population": 1.5
+    },
+    {
+     "name": "スリナム",
+     "resources": [
+      25,
+      28
+     ],
+     "population": 1
+    },
+    {
+     "name": "マカッサル",
+     "resources": [],
+     "population": 0.3
+    }
+   ],
+   "military": 1.5,
+   "ethnicUnity": 0.8,
+   "initialSuffrage": "Census",
+   "initialCensorship": "FreePress",
+   "initialCornLaws": "None",
+   "initialSerfEmancipation": "Full",
+   "provinces": [
+    {
+     "city": "アムステルダム",
+     "share": 0.58,
+     "resources": [
+      20,
+      19,
+      108
+     ],
+     "coastal": true,
+     "culture": "オランダ",
+     "religion": "プロテスタント"
+    },
+    {
+     "city": "ロッテルダム",
+     "share": 0.42,
+     "resources": [
+      20,
+      13,
+      19,
+      9
+     ],
+     "coastal": true,
+     "culture": "オランダ",
+     "religion": "プロテスタント"
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": 52.4,
+   "longitude": 4.9,
+   "farmLordShare": 0.5,
+   "culturalGoodId": 107
+  },
+  {
+   "name": "スペイン",
+   "nobility": 327,
+   "peasant": 7428,
+   "worker": 1159,
+   "bourgeois": 559,
+   "professional": 184,
+   "merchant": 232,
+   "artisan": 511,
+   "nobLit": 0.9,
+   "peasLit": 0.15,
+   "workLit": 0.35,
+   "bourgLit": 0.7,
+   "profLit": 0.85,
+   "clergyFrac": 0.4,
+   "intelligentsiaFrac": 0.35,
+   "clergyLit": 0.9,
+   "intelLit": 0.92,
+   "peasantSubsistence": 0.7,
+   "polity": "Absolutist",
+   "education": "Religious",
+   "coercion": 500,
+   "treasury": 205000,
+   "initialTariff": 0.3,
+   "industrialization": 0,
+   "initialColonies": [
+    {
+     "name": "ヌエバ・エスパーニャ銀地帯",
+     "resources": [
+      120
+     ],
+     "population": 3
+    },
+    {
+     "name": "中央メキシコ",
+     "resources": [
+      25,
+      17,
+      18,
+      116
+     ],
+     "population": 5
+    },
+    {
+     "name": "キューバ",
+     "resources": [
+      25,
+      18
+     ],
+     "population": 3
+    },
+    {
+     "name": "ペルー",
+     "resources": [
+      120,
+      2,
+      117,
+      118,
+      121,
+      22
+     ],
+     "population": 4
+    },
+    {
+     "name": "ヌエバ・グラナダ",
+     "resources": [
+      4,
+      28
+     ],
+     "population": 3
+    },
+    {
+     "name": "ラ・プラタ",
+     "resources": [
+      19,
+      120,
+      116,
+      118
+     ],
+     "population": 3
+    },
+    {
+     "name": "フィリピン",
+     "resources": [
+      29,
+      25,
+      11
+     ],
+     "population": 3
+    },
+    {
+     "name": "プエルトリコ",
+     "resources": [
+      25
+     ],
+     "population": 1.5
+    },
+    {
+     "name": "カラカス",
+     "resources": [
+      26,
+      17,
+      19
+     ],
+     "population": 1
+    },
+    {
+     "name": "ルイジアナ・フロリダ",
+     "resources": [
+      18,
+      11
+     ],
+     "population": 1
+    },
+    {
+     "name": "チリ",
+     "resources": [
+      118,
+      2,
+      15
+     ],
+     "population": 1.5
+    },
+    {
+     "name": "サンタフェ",
+     "resources": [],
+     "population": 0.2
+    },
+    {
+     "name": "エルパソ",
+     "resources": [],
+     "population": 0.1
+    },
+    {
+     "name": "ロレート",
+     "resources": [],
+     "population": 0.05
+    },
+    {
+     "name": "レオン",
+     "resources": [],
+     "population": 0.3
+    },
+    {
+     "name": "ボゴタ",
+     "resources": [],
+     "population": 0.8
+    },
+    {
+     "name": "キト",
+     "resources": [],
+     "population": 0.6
+    },
+    {
+     "name": "イキトス",
+     "resources": [],
+     "population": 0.1
+    },
+    {
+     "name": "ラパス",
+     "resources": [],
+     "population": 0.5
+    },
+    {
+     "name": "トゥクマン",
+     "resources": [],
+     "population": 0.3
+    },
+    {
+     "name": "アスンシオン",
+     "resources": [],
+     "population": 0.3
+    },
+    {
+     "name": "カルメン・デ・パタゴネス",
+     "resources": [],
+     "population": 0.05
+    },
+    {
+     "name": "プンタアレナス",
+     "resources": [],
+     "population": 0.03
+    },
+    {
+     "name": "サンボアンガ",
+     "resources": [],
+     "population": 0.1
+    }
+   ],
+   "military": 2,
+   "ethnicUnity": 0.72,
+   "initialSuffrage": "None",
+   "initialCensorship": "StatePressOnly",
+   "initialCornLaws": "Full",
+   "initialSerfEmancipation": "Limited",
+   "provinces": [
+    {
+     "city": "マドリード",
+     "share": 0.26,
+     "resources": [
+      15,
+      19
+     ],
+     "culture": "スペイン",
+     "religion": "カトリック",
+     "coastal": false
+    },
+    {
+     "city": "バルセロナ",
+     "share": 0.26,
+     "resources": [
+      41,
+      16
+     ],
+     "culture": "カタルーニャ",
+     "religion": "カトリック",
+     "coastal": true
+    },
+    {
+     "city": "セビーリャ",
+     "share": 0.14,
+     "resources": [
+      16
+     ],
+     "culture": "スペイン",
+     "religion": "カトリック",
+     "coastal": true
+    },
+    {
+     "city": "バレンシア",
+     "share": 0.2,
+     "resources": [
+      16,
+      15,
+      102
+     ],
+     "culture": "スペイン",
+     "religion": "カトリック",
+     "coastal": true
+    },
+    {
+     "city": "カディス",
+     "share": 0.08,
+     "resources": [],
+     "culture": "スペイン",
+     "religion": "カトリック",
+     "coastal": true
+    },
+    {
+     "city": "ビルバオ",
+     "share": 0.06,
+     "resources": [],
+     "culture": "スペイン",
+     "religion": "カトリック",
+     "coastal": true
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": 40.4,
+   "longitude": -3.7,
+   "farmLordShare": 0.5,
+   "culturalGoodId": 62
+  },
+  {
+   "name": "サルデーニャ＝ピエモンテ",
+   "nobility": 96,
+   "peasant": 2318,
+   "worker": 568,
+   "bourgeois": 306,
+   "professional": 140,
+   "merchant": 66,
+   "artisan": 306,
+   "nobLit": 0.92,
+   "peasLit": 0.25,
+   "workLit": 0.45,
+   "bourgLit": 0.8,
+   "profLit": 0.85,
+   "clergyFrac": 0.4,
+   "intelligentsiaFrac": 0.35,
+   "clergyLit": 0.9,
+   "intelLit": 0.92,
+   "peasantSubsistence": 0.7,
+   "polity": "Absolutist",
+   "education": "Religious",
+   "coercion": 450,
+   "treasury": 150000,
+   "initialTariff": 0.2,
+   "industrialization": 0.1,
+   "initialColonies": [],
+   "military": 1.4,
+   "ethnicUnity": 0.7,
+   "initialSuffrage": "None",
+   "initialCensorship": "StatePressOnly",
+   "initialCornLaws": "Full",
+   "initialSerfEmancipation": "Limited",
+   "provinces": [
+    {
+     "city": "トリノ",
+     "share": 0.5,
+     "resources": [
+      14,
+      15
+     ],
+     "culture": "イタリア",
+     "religion": "カトリック",
+     "coastal": false
+    },
+    {
+     "city": "カリャリ",
+     "share": 0.25,
+     "resources": [
+      3,
+      6
+     ],
+     "culture": "サルデーニャ",
+     "religion": "カトリック",
+     "coastal": true
+    },
+    {
+     "city": "ノヴァーラ",
+     "share": 0.25,
+     "resources": [
+      102,
+      15,
+      116
+     ],
+     "culture": "イタリア",
+     "religion": "カトリック",
+     "coastal": false
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": 45.1,
+   "longitude": 7.7,
+   "farmLordShare": 0.5,
+   "culturalGoodId": 62
+  },
+  {
+   "name": "清",
+   "rule": [0.6, 0.35, 0.0, 0.05],
+   "bureaucracy": "MeritExam",
+   "nobility": 14000,
+   "peasant": 290000,
+   "worker": 4000,
+   "bourgeois": 2000,
+   "professional": 800,
+   "merchant": 6000,
+   "artisan": 16000,
+   "nobLit": 0.95,
+   "peasLit": 0.12,
+   "workLit": 0.3,
+   "bourgLit": 0.65,
+   "profLit": 0.8,
+   "clergyFrac": 0.4,
+   "intelligentsiaFrac": 0.35,
+   "clergyLit": 0.85,
+   "intelLit": 0.9,
+   "peasantSubsistence": 0.7,
+   "polity": "Despotic",
+   "education": "Religious",
+   "coercion": 500,
+   "treasury": 40000,
+   "initialMassMilitancy": 0.25,
+   "institutionalDecay": 0.8,
+   "initialTariff": 0.8,
+   "industrialization": 0,
+   "initialColonies": [],
+   "military": 0.9,
+   "ethnicUnity": 0.75,
+   "initialSuffrage": "None",
+   "initialCensorship": "StatePressOnly",
+   "initialCornLaws": "Full",
+   "initialSerfEmancipation": "None",
+   "provinces": [
+    {
+     "city": "上海",
+     "share": 0.0972,
+     "resources": [
+      14,
+      71,
+      27
+     ],
+     "culture": "漢",
+     "religion": "儒仏",
+     "coastal": true
+    },
+    {
+     "city": "南京",
+     "share": 0.03888,
+     "resources": [],
+     "culture": "漢",
+     "religion": "儒仏",
+     "coastal": false
+    },
+    {
+     "city": "済南",
+     "share": 0.08748,
+     "resources": [
+      15,
+      12
+     ],
+     "culture": "漢",
+     "religion": "儒仏",
+     "coastal": false
+    },
+    {
+     "city": "成都",
+     "share": 0.07776,
+     "resources": [
+      102,
+      6
+     ],
+     "culture": "漢",
+     "religion": "儒仏",
+     "coastal": false
+    },
+    {
+     "city": "開封",
+     "share": 0.07776,
+     "resources": [
+      15,
+      12
+     ],
+     "culture": "漢",
+     "religion": "儒仏",
+     "coastal": false
+    },
+    {
+     "city": "北京",
+     "share": 0.05832,
+     "resources": [
+      15,
+      19
+     ],
+     "culture": "漢",
+     "religion": "儒仏",
+     "coastal": false
+    },
+    {
+     "city": "天津",
+     "share": 0.02916,
+     "resources": [],
+     "culture": "漢",
+     "religion": "儒仏",
+     "coastal": true
+    },
+    {
+     "city": "漢口",
+     "share": 0.05832,
+     "resources": [
+      102,
+      27
+     ],
+     "culture": "漢",
+     "religion": "儒仏",
+     "coastal": false
+    },
+    {
+     "city": "長沙",
+     "share": 0.06804,
+     "resources": [
+      102
+     ],
+     "culture": "漢",
+     "religion": "儒仏",
+     "coastal": false
+    },
+    {
+     "city": "杭州",
+     "share": 0.05832,
+     "resources": [
+      14,
+      27,
+      9
+     ],
+     "culture": "漢",
+     "religion": "儒仏",
+     "coastal": true
+    },
+    {
+     "city": "広州",
+     "share": 0.05832,
+     "resources": [
+      27,
+      14,
+      25
+     ],
+     "culture": "漢",
+     "religion": "儒仏",
+     "coastal": true
+    },
+    {
+     "city": "西安",
+     "share": 0.0486,
+     "resources": [
+      15
+     ],
+     "culture": "漢",
+     "religion": "儒仏",
+     "coastal": false
+    },
+    {
+     "city": "福州",
+     "share": 0.0486,
+     "resources": [
+      27,
+      11
+     ],
+     "culture": "漢",
+     "religion": "儒仏",
+     "coastal": true
+    },
+    {
+     "city": "桂林",
+     "share": 0.02916,
+     "resources": [
+      102,
+      11
+     ],
+     "culture": "漢",
+     "religion": "儒仏",
+     "coastal": false
+    },
+    {
+     "city": "昆明",
+     "heldSince": 1681,
+     "share": 0.02916,
+     "resources": [
+      2,
+      29
+     ],
+     "culture": "漢",
+     "religion": "儒仏",
+     "coastal": false
+    },
+    {
+     "city": "奉天",
+     "share": 0.02916,
+     "resources": [
+      15,
+      11,
+      1
+     ],
+     "culture": "満洲",
+     "religion": "儒仏",
+     "coastal": false
+    },
+    {
+     "city": "台北",
+     "heldSince": 1683,
+     "share": 0.0243,
+     "resources": [
+      25,
+      102,
+      11
+     ],
+     "culture": "漢",
+     "religion": "儒仏",
+     "coastal": true
+    },
+    {
+     "city": "フフホト",
+     "heldSince": 1636,
+     "share": 0.01458,
+     "resources": [
+      19
+     ],
+     "culture": "蒙古",
+     "religion": "チベット仏教",
+     "coastal": false
+    },
+    {
+     "city": "ハルビン",
+     "share": 0.00972,
+     "resources": [
+      15,
+      11
+     ],
+     "culture": "満洲",
+     "religion": "儒仏",
+     "coastal": false
+    },
+    {
+     "city": "ウルガ",
+     "heldSince": 1691,
+     "share": 0.00972,
+     "resources": [
+      19
+     ],
+     "culture": "蒙古",
+     "religion": "チベット仏教",
+     "coastal": false
+    },
+    {
+     "city": "ラサ",
+     "heldSince": 1720,
+     "share": 0.00972,
+     "resources": [
+      19
+     ],
+     "culture": "チベット",
+     "religion": "チベット仏教",
+     "coastal": false
+    },
+    {
+     "city": "カシュガル",
+     "heldSince": 1759,
+     "share": 0.00972,
+     "resources": [
+      12,
+      16
+     ],
+     "culture": "ウイグル",
+     "religion": "イスラム",
+     "coastal": false
+    },
+    {
+     "city": "アイグン",
+     "share": 0.003,
+     "resources": [],
+     "coastal": false,
+     "culture": "",
+     "religion": ""
+    },
+    {
+     "city": "ハミ",
+     "share": 0.002,
+     "resources": [],
+     "coastal": false,
+     "culture": "",
+     "religion": ""
+    },
+    {
+     "city": "ホータン",
+     "share": 0.003,
+     "resources": [],
+     "coastal": false,
+     "culture": "",
+     "religion": ""
+    },
+    {
+     "city": "蘭州",
+     "share": 0.02,
+     "resources": [],
+     "coastal": false,
+     "culture": "",
+     "religion": ""
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": 39.9,
+   "longitude": 116.4,
+   "farmLordShare": 0.5,
+   "culturalGoodId": 102
+  },
+  {
+   "name": "朝鮮",
+   "nobility": 1200,
+   "peasant": 11000,
+   "worker": 200,
+   "bourgeois": 150,
+   "professional": 150,
+   "merchant": 300,
+   "artisan": 600,
+   "nobLit": 0.92,
+   "peasLit": 0.1,
+   "workLit": 0.3,
+   "bourgLit": 0.7,
+   "profLit": 0.85,
+   "clergyFrac": 0.4,
+   "intelligentsiaFrac": 0.35,
+   "clergyLit": 0.85,
+   "intelLit": 0.9,
+   "peasantSubsistence": 0.7,
+   "polity": "Absolutist",
+   "education": "Religious",
+   "coercion": 450,
+   "treasury": 8000,
+   "initialTariff": 0.9,
+   "industrialization": 0,
+   "initialColonies": [],
+   "military": 0.5,
+   "ethnicUnity": 0.98,
+   "initialSuffrage": "None",
+   "initialCensorship": "StatePressOnly",
+   "initialCornLaws": "Full",
+   "initialSerfEmancipation": "None",
+   "provinces": [
+    {
+     "city": "漢城",
+     "share": 0.38,
+     "resources": [
+      14
+     ],
+     "culture": "朝鮮",
+     "religion": "儒",
+     "coastal": true
+    },
+    {
+     "city": "平壌",
+     "share": 0.3,
+     "resources": [
+      15,
+      19
+     ],
+     "culture": "朝鮮",
+     "religion": "儒",
+     "coastal": true
+    },
+    {
+     "city": "開城",
+     "share": 0.1,
+     "resources": [],
+     "culture": "朝鮮",
+     "religion": "儒",
+     "coastal": false
+    },
+    {
+     "city": "釜山",
+     "share": 0.12,
+     "resources": [],
+     "culture": "朝鮮",
+     "religion": "儒",
+     "coastal": true
+    },
+    {
+     "city": "全州",
+     "share": 0.1,
+     "resources": [
+      102
+     ],
+     "culture": "朝鮮",
+     "religion": "儒",
+     "coastal": false
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": 37.5,
+   "longitude": 127.0,
+   "farmLordShare": 0.6,
+   "culturalGoodId": 102
+  },
+  {
+   "name": "マラータ同盟",
+   "nobility": 4500,
+   "peasant": 38000,
+   "worker": 600,
+   "bourgeois": 500,
+   "professional": 300,
+   "merchant": 1200,
+   "artisan": 3000,
+   "nobLit": 0.85,
+   "peasLit": 0.07,
+   "workLit": 0.25,
+   "bourgLit": 0.6,
+   "profLit": 0.8,
+   "clergyFrac": 0.4,
+   "intelligentsiaFrac": 0.35,
+   "clergyLit": 0.8,
+   "intelLit": 0.85,
+   "peasantSubsistence": 0.7,
+   "polity": "Despotic",
+   "education": "Religious",
+   "coercion": 400,
+   "treasury": 30000,
+   "initialTariff": 0.4,
+   "industrialization": 0,
+   "initialColonies": [],
+   "military": 1.5,
+   "ethnicUnity": 0.55,
+   "initialSuffrage": "None",
+   "initialCensorship": "StatePressOnly",
+   "initialCornLaws": "Full",
+   "initialSerfEmancipation": "None",
+   "provinces": [
+    {
+     "city": "プーナ",
+     "share": 0.25,
+     "resources": [
+      15,
+      12
+     ],
+     "culture": "マラーター",
+     "religion": "ヒンドゥー教",
+     "coastal": false
+    },
+    {
+     "city": "ナーグプル",
+     "share": 0.2,
+     "resources": [
+      12,
+      15
+     ],
+     "culture": "マラーター",
+     "religion": "ヒンドゥー教",
+     "coastal": false
+    },
+    {
+     "city": "グワーリヤル",
+     "share": 0.2,
+     "resources": [
+      15,
+      12,
+      118
+     ],
+     "culture": "マラーター",
+     "religion": "ヒンドゥー教",
+     "coastal": false
+    },
+    {
+     "city": "インドール",
+     "share": 0.15,
+     "resources": [
+      12,
+      92
+     ],
+     "culture": "マラーター",
+     "religion": "ヒンドゥー教",
+     "coastal": false
+    },
+    {
+     "city": "バローダ",
+     "share": 0.1,
+     "resources": [
+      12,
+      16
+     ],
+     "culture": "マラーター",
+     "religion": "ヒンドゥー教",
+     "coastal": false
+    },
+    {
+     "city": "バサイン",
+     "share": 0.1,
+     "resources": [
+      20,
+      11
+     ],
+     "culture": "マラーター",
+     "religion": "ヒンドゥー",
+     "coastal": true
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": 18.52,
+   "longitude": 73.86,
+   "farmLordShare": 0.6,
+   "culturalGoodId": 102
+  },
+  {
+   "name": "マイソール",
+   "nobility": 700,
+   "peasant": 5500,
+   "worker": 120,
+   "bourgeois": 120,
+   "professional": 100,
+   "merchant": 300,
+   "artisan": 700,
+   "nobLit": 0.85,
+   "peasLit": 0.08,
+   "workLit": 0.25,
+   "bourgLit": 0.6,
+   "profLit": 0.8,
+   "clergyFrac": 0.4,
+   "intelligentsiaFrac": 0.35,
+   "clergyLit": 0.8,
+   "intelLit": 0.85,
+   "peasantSubsistence": 0.7,
+   "polity": "Despotic",
+   "education": "Religious",
+   "coercion": 400,
+   "treasury": 12000,
+   "initialTariff": 0.5,
+   "industrialization": 0,
+   "initialColonies": [],
+   "military": 1.2,
+   "ethnicUnity": 0.8,
+   "initialSuffrage": "None",
+   "initialCensorship": "StatePressOnly",
+   "initialCornLaws": "Full",
+   "initialSerfEmancipation": "None",
+   "provinces": [
+    {
+     "city": "シュリーランガパトナ",
+     "share": 0.55,
+     "resources": [
+      29,
+      12
+     ],
+     "culture": "カンナダ",
+     "religion": "ヒンドゥー教",
+     "coastal": false
+    },
+    {
+     "city": "バンガロール",
+     "share": 0.3,
+     "resources": [],
+     "culture": "カンナダ",
+     "religion": "ヒンドゥー教",
+     "coastal": false
+    },
+    {
+     "city": "マンガロール",
+     "share": 0.15,
+     "resources": [],
+     "culture": "カンナダ",
+     "religion": "ヒンドゥー教",
+     "coastal": true
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": 12.42,
+   "longitude": 76.69,
+   "farmLordShare": 0.6,
+   "culturalGoodId": 102
+  },
+  {
+   "name": "ハイデラバード",
+   "nobility": 1200,
+   "peasant": 9000,
+   "worker": 200,
+   "bourgeois": 200,
+   "professional": 150,
+   "merchant": 400,
+   "artisan": 1000,
+   "nobLit": 0.85,
+   "peasLit": 0.08,
+   "workLit": 0.25,
+   "bourgLit": 0.6,
+   "profLit": 0.8,
+   "clergyFrac": 0.4,
+   "intelligentsiaFrac": 0.35,
+   "clergyLit": 0.8,
+   "intelLit": 0.85,
+   "peasantSubsistence": 0.7,
+   "polity": "Despotic",
+   "education": "Religious",
+   "coercion": 400,
+   "treasury": 15000,
+   "initialTariff": 0.4,
+   "industrialization": 0,
+   "initialColonies": [],
+   "military": 1.0,
+   "ethnicUnity": 0.65,
+   "initialSuffrage": "None",
+   "initialCensorship": "StatePressOnly",
+   "initialCornLaws": "Full",
+   "initialSerfEmancipation": "None",
+   "provinces": [
+    {
+     "city": "ハイデラバード",
+     "share": 0.55,
+     "resources": [
+      12,
+      17
+     ],
+     "culture": "テルグ",
+     "religion": "ヒンドゥー教",
+     "coastal": false
+    },
+    {
+     "city": "オーランガーバード",
+     "share": 0.25,
+     "resources": [],
+     "culture": "テルグ",
+     "religion": "ヒンドゥー教",
+     "coastal": false
+    },
+    {
+     "city": "ワランガル",
+     "share": 0.2,
+     "resources": [],
+     "culture": "テルグ",
+     "religion": "ヒンドゥー教",
+     "coastal": false
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": 17.4,
+   "longitude": 78.5,
+   "farmLordShare": 0.6,
+   "culturalGoodId": 102
+  },
+  {
+   "name": "シク連邦",
+   "nobility": 600,
+   "peasant": 4500,
+   "worker": 120,
+   "bourgeois": 120,
+   "professional": 100,
+   "merchant": 300,
+   "artisan": 600,
+   "nobLit": 0.85,
+   "peasLit": 0.08,
+   "workLit": 0.25,
+   "bourgLit": 0.6,
+   "profLit": 0.8,
+   "clergyFrac": 0.4,
+   "intelligentsiaFrac": 0.35,
+   "clergyLit": 0.8,
+   "intelLit": 0.85,
+   "peasantSubsistence": 0.7,
+   "polity": "Republic",
+   "education": "Religious",
+   "coercion": 250,
+   "treasury": 9000,
+   "initialTariff": 0.4,
+   "industrialization": 0,
+   "initialColonies": [],
+   "military": 1.1,
+   "ethnicUnity": 0.5,
+   "initialSuffrage": "None",
+   "initialCensorship": "StatePressOnly",
+   "initialCornLaws": "Full",
+   "initialSerfEmancipation": "None",
+   "provinces": [
+    {
+     "city": "ラホール",
+     "share": 1.0,
+     "resources": [
+      15,
+      12
+     ],
+     "culture": "パンジャブ",
+     "religion": "シク教",
+     "coastal": false
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": 31.5,
+   "longitude": 74.3,
+   "farmLordShare": 0.6,
+   "culturalGoodId": 102
+  },
+  {
+   "name": "ビルマ",
+   "nobility": 500,
+   "peasant": 3500,
+   "worker": 100,
+   "bourgeois": 80,
+   "professional": 80,
+   "merchant": 200,
+   "artisan": 500,
+   "nobLit": 0.85,
+   "peasLit": 0.08,
+   "workLit": 0.25,
+   "bourgLit": 0.6,
+   "profLit": 0.8,
+   "clergyFrac": 0.4,
+   "intelligentsiaFrac": 0.35,
+   "clergyLit": 0.8,
+   "intelLit": 0.85,
+   "peasantSubsistence": 0.7,
+   "polity": "Despotic",
+   "education": "Religious",
+   "coercion": 400,
+   "treasury": 7000,
+   "initialTariff": 0.4,
+   "industrialization": 0,
+   "initialColonies": [],
+   "military": 0.8,
+   "ethnicUnity": 0.8,
+   "initialSuffrage": "None",
+   "initialCensorship": "StatePressOnly",
+   "initialCornLaws": "Full",
+   "initialSerfEmancipation": "None",
+   "provinces": [
+    {
+     "city": "ラングーン",
+     "share": 0.45,
+     "resources": [
+      102,
+      11
+     ],
+     "culture": "ビルマ",
+     "religion": "上座部仏教",
+     "coastal": true
+    },
+    {
+     "city": "アマラプラ",
+     "share": 0.55,
+     "resources": [
+      11,
+      102
+     ],
+     "culture": "ビルマ",
+     "religion": "上座部仏教",
+     "coastal": false
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": 21.9,
+   "longitude": 96.0,
+   "farmLordShare": 0.6,
+   "culturalGoodId": 102
+  },
+  {
+   "name": "ネパール",
+   "nobility": 400,
+   "peasant": 2700,
+   "worker": 60,
+   "bourgeois": 50,
+   "professional": 60,
+   "merchant": 120,
+   "artisan": 350,
+   "nobLit": 0.85,
+   "peasLit": 0.08,
+   "workLit": 0.25,
+   "bourgLit": 0.6,
+   "profLit": 0.8,
+   "clergyFrac": 0.4,
+   "intelligentsiaFrac": 0.35,
+   "clergyLit": 0.8,
+   "intelLit": 0.85,
+   "peasantSubsistence": 0.7,
+   "polity": "Absolutist",
+   "education": "Religious",
+   "coercion": 400,
+   "treasury": 4000,
+   "initialTariff": 0.4,
+   "industrialization": 0,
+   "initialColonies": [],
+   "military": 0.8,
+   "ethnicUnity": 0.75,
+   "initialSuffrage": "None",
+   "initialCensorship": "StatePressOnly",
+   "initialCornLaws": "Full",
+   "initialSerfEmancipation": "None",
+   "provinces": [
+    {
+     "city": "カトマンズ",
+     "share": 1.0,
+     "resources": [
+      102,
+      19
+     ],
+     "culture": "ネパール",
+     "religion": "ヒンドゥー教",
+     "coastal": false
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": 27.7,
+   "longitude": 85.3,
+   "farmLordShare": 0.6,
+   "culturalGoodId": 102
+  },
+  {
+   "name": "シャム",
+   "nobility": 395,
+   "peasant": 2636,
+   "worker": 79,
+   "bourgeois": 99,
+   "professional": 66,
+   "merchant": 264,
+   "artisan": 461,
+   "nobLit": 0.85,
+   "peasLit": 0.08,
+   "workLit": 0.25,
+   "bourgLit": 0.6,
+   "profLit": 0.8,
+   "clergyFrac": 0.4,
+   "intelligentsiaFrac": 0.35,
+   "clergyLit": 0.8,
+   "intelLit": 0.85,
+   "peasantSubsistence": 0.7,
+   "polity": "Absolutist",
+   "education": "Religious",
+   "coercion": 400,
+   "treasury": 8000,
+   "initialTariff": 0.4,
+   "industrialization": 0,
+   "initialColonies": [],
+   "military": 0.9,
+   "ethnicUnity": 0.75,
+   "initialSuffrage": "None",
+   "initialCensorship": "StatePressOnly",
+   "initialCornLaws": "Full",
+   "initialSerfEmancipation": "None",
+   "provinces": [
+    {
+     "city": "バンコク",
+     "share": 1.0,
+     "resources": [
+      102,
+      11,
+      25,
+      29,
+      117
+     ],
+     "culture": "タイ",
+     "religion": "上座部仏教",
+     "coastal": true
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": 13.75,
+   "longitude": 100.5,
+   "farmLordShare": 0.6,
+   "culturalGoodId": 102
+  },
+  {
+   "name": "西山朝",
+   "nobility": 650,
+   "peasant": 4550,
+   "worker": 130,
+   "bourgeois": 165,
+   "professional": 130,
+   "merchant": 325,
+   "artisan": 780,
+   "nobLit": 0.85,
+   "peasLit": 0.1,
+   "workLit": 0.25,
+   "bourgLit": 0.6,
+   "profLit": 0.8,
+   "clergyFrac": 0.4,
+   "intelligentsiaFrac": 0.35,
+   "clergyLit": 0.8,
+   "intelLit": 0.85,
+   "peasantSubsistence": 0.7,
+   "polity": "Despotic",
+   "education": "Religious",
+   "coercion": 400,
+   "treasury": 7800,
+   "initialTariff": 0.4,
+   "industrialization": 0,
+   "initialColonies": [],
+   "military": 1.0,
+   "ethnicUnity": 0.78,
+   "initialSuffrage": "None",
+   "initialCensorship": "StatePressOnly",
+   "initialCornLaws": "Full",
+   "initialSerfEmancipation": "None",
+   "provinces": [
+    {
+     "city": "ハノイ",
+     "share": 0.69,
+     "resources": [
+      102,
+      14
+     ],
+     "culture": "ベトナム",
+     "religion": "儒仏",
+     "coastal": true
+    },
+    {
+     "city": "フエ",
+     "share": 0.31,
+     "resources": [
+      102,
+      29
+     ],
+     "culture": "ベトナム",
+     "religion": "儒仏",
+     "coastal": true
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": 16.47,
+   "longitude": 107.58,
+   "farmLordShare": 0.6,
+   "culturalGoodId": 102
+  },
+  {
+   "name": "カンボジア",
+   "nobility": 250,
+   "peasant": 1600,
+   "worker": 40,
+   "bourgeois": 40,
+   "professional": 40,
+   "merchant": 100,
+   "artisan": 250,
+   "nobLit": 0.85,
+   "peasLit": 0.08,
+   "workLit": 0.25,
+   "bourgLit": 0.6,
+   "profLit": 0.8,
+   "clergyFrac": 0.4,
+   "intelligentsiaFrac": 0.35,
+   "clergyLit": 0.8,
+   "intelLit": 0.85,
+   "peasantSubsistence": 0.7,
+   "polity": "Absolutist",
+   "education": "Religious",
+   "coercion": 400,
+   "treasury": 2500,
+   "initialTariff": 0.4,
+   "industrialization": 0,
+   "initialColonies": [],
+   "military": 0.4,
+   "ethnicUnity": 0.85,
+   "initialSuffrage": "None",
+   "initialCensorship": "StatePressOnly",
+   "initialCornLaws": "Full",
+   "initialSerfEmancipation": "None",
+   "provinces": [
+    {
+     "city": "プノンペン",
+     "share": 1.0,
+     "resources": [
+      102,
+      20
+     ],
+     "culture": "クメール",
+     "religion": "上座部仏教",
+     "coastal": true
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": 11.55,
+   "longitude": 104.9,
+   "farmLordShare": 0.6,
+   "culturalGoodId": 102
+  },
+  {
+   "name": "ラオス",
+   "nobility": 150,
+   "peasant": 900,
+   "worker": 20,
+   "bourgeois": 20,
+   "professional": 20,
+   "merchant": 60,
+   "artisan": 150,
+   "nobLit": 0.85,
+   "peasLit": 0.08,
+   "workLit": 0.25,
+   "bourgLit": 0.6,
+   "profLit": 0.8,
+   "clergyFrac": 0.4,
+   "intelligentsiaFrac": 0.35,
+   "clergyLit": 0.8,
+   "intelLit": 0.85,
+   "peasantSubsistence": 0.7,
+   "polity": "Absolutist",
+   "education": "Religious",
+   "coercion": 400,
+   "treasury": 1500,
+   "initialTariff": 0.4,
+   "industrialization": 0,
+   "initialColonies": [],
+   "military": 0.3,
+   "ethnicUnity": 0.8,
+   "initialSuffrage": "None",
+   "initialCensorship": "StatePressOnly",
+   "initialCornLaws": "Full",
+   "initialSerfEmancipation": "None",
+   "provinces": [
+    {
+     "city": "ヴィエンチャン",
+     "share": 1.0,
+     "resources": [
+      11,
+      102
+     ],
+     "culture": "ラオ",
+     "religion": "上座部仏教",
+     "coastal": false
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": 17.97,
+   "longitude": 102.6,
+   "farmLordShare": 0.6,
+   "culturalGoodId": 102
+  },
+  {
+   "name": "ペルシャ",
+   "nobility": 524,
+   "peasant": 3275,
+   "worker": 131,
+   "bourgeois": 197,
+   "professional": 131,
+   "merchant": 459,
+   "artisan": 983,
+   "nobLit": 0.85,
+   "peasLit": 0.08,
+   "workLit": 0.25,
+   "bourgLit": 0.6,
+   "profLit": 0.8,
+   "clergyFrac": 0.4,
+   "intelligentsiaFrac": 0.35,
+   "clergyLit": 0.8,
+   "intelLit": 0.85,
+   "peasantSubsistence": 0.7,
+   "polity": "Despotic",
+   "education": "Religious",
+   "coercion": 400,
+   "treasury": 15000,
+   "initialTariff": 0.05,
+   "industrialization": 0,
+   "initialColonies": [],
+   "military": 0.9,
+   "ethnicUnity": 0.65,
+   "initialSuffrage": "None",
+   "initialCensorship": "StatePressOnly",
+   "initialCornLaws": "Full",
+   "initialSerfEmancipation": "None",
+   "provinces": [
+    {
+     "city": "テヘラン",
+     "share": 0.25,
+     "resources": [
+      12,
+      16,
+      10
+     ],
+     "culture": "ペルシア",
+     "religion": "シーア派",
+     "coastal": false
+    },
+    {
+     "city": "イスファハン",
+     "share": 0.22,
+     "resources": [
+      14,
+      17
+     ],
+     "culture": "ペルシア",
+     "religion": "シーア派",
+     "coastal": false
+    },
+    {
+     "city": "シーラーズ",
+     "share": 0.13,
+     "resources": [
+      16,
+      14
+     ],
+     "culture": "ペルシア",
+     "religion": "シーア派",
+     "coastal": false
+    },
+    {
+     "city": "タブリーズ",
+     "share": 0.2,
+     "resources": [
+      14,
+      15
+     ],
+     "culture": "アゼルバイジャン",
+     "religion": "シーア派",
+     "coastal": false
+    },
+    {
+     "city": "メシェッド",
+     "share": 0.15,
+     "resources": [
+      16,
+      12
+     ],
+     "culture": "ペルシア",
+     "religion": "シーア派",
+     "coastal": false
+    },
+    {
+     "city": "ブーシェフル",
+     "share": 0.05,
+     "resources": [],
+     "culture": "ペルシア",
+     "religion": "シーア派",
+     "coastal": true
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": 35.7,
+   "longitude": 51.4,
+   "farmLordShare": 0.6,
+   "culturalGoodId": 62
+  },
+  {
+   "name": "アラビア",
+   "nobility": 120,
+   "peasant": 600,
+   "worker": 20,
+   "bourgeois": 40,
+   "professional": 20,
+   "merchant": 150,
+   "artisan": 120,
+   "nobLit": 0.85,
+   "peasLit": 0.08,
+   "workLit": 0.25,
+   "bourgLit": 0.6,
+   "profLit": 0.8,
+   "clergyFrac": 0.4,
+   "intelligentsiaFrac": 0.35,
+   "clergyLit": 0.8,
+   "intelLit": 0.85,
+   "peasantSubsistence": 0.7,
+   "polity": "Despotic",
+   "education": "Religious",
+   "coercion": 400,
+   "treasury": 2000,
+   "initialTariff": 0.1,
+   "industrialization": 0,
+   "initialColonies": [],
+   "military": 0.6,
+   "ethnicUnity": 0.8,
+   "initialSuffrage": "None",
+   "initialCensorship": "StatePressOnly",
+   "initialCornLaws": "Full",
+   "initialSerfEmancipation": "None",
+   "provinces": [
+    {
+     "city": "ディルイーヤ",
+     "share": 0.85,
+     "resources": [
+      19,
+      16
+     ],
+     "culture": "アラブ",
+     "religion": "イスラム",
+     "coastal": false
+    },
+    {
+     "city": "カティーフ",
+     "share": 0.15,
+     "resources": [],
+     "culture": "アラブ",
+     "religion": "イスラム",
+     "coastal": true
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": 24.73,
+   "longitude": 46.57,
+   "farmLordShare": 0.6,
+   "culturalGoodId": 62
+  },
+  {
+   "name": "イエメン",
+   "nobility": 210,
+   "peasant": 1400,
+   "worker": 42,
+   "bourgeois": 70,
+   "professional": 42,
+   "merchant": 210,
+   "artisan": 280,
+   "nobLit": 0.85,
+   "peasLit": 0.08,
+   "workLit": 0.25,
+   "bourgLit": 0.6,
+   "profLit": 0.8,
+   "clergyFrac": 0.4,
+   "intelligentsiaFrac": 0.35,
+   "clergyLit": 0.8,
+   "intelLit": 0.85,
+   "peasantSubsistence": 0.7,
+   "polity": "Absolutist",
+   "education": "Religious",
+   "coercion": 400,
+   "treasury": 3500,
+   "initialTariff": 0.1,
+   "industrialization": 0,
+   "initialColonies": [],
+   "military": 0.5,
+   "ethnicUnity": 0.75,
+   "initialSuffrage": "None",
+   "initialCensorship": "StatePressOnly",
+   "initialCornLaws": "Full",
+   "initialSerfEmancipation": "None",
+   "provinces": [
+    {
+     "city": "サヌア",
+     "share": 0.85,
+     "resources": [
+      28,
+      29
+     ],
+     "culture": "アラブ",
+     "religion": "ザイド派",
+     "coastal": false
+    },
+    {
+     "city": "モカ",
+     "share": 0.15,
+     "resources": [],
+     "culture": "アラブ",
+     "religion": "ザイド派",
+     "coastal": true
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": 15.35,
+   "longitude": 44.2,
+   "farmLordShare": 0.6,
+   "culturalGoodId": 62
+  },
+  {
+   "name": "オマーン",
+   "nobility": 150,
+   "peasant": 700,
+   "worker": 40,
+   "bourgeois": 120,
+   "professional": 40,
+   "merchant": 400,
+   "artisan": 200,
+   "nobLit": 0.85,
+   "peasLit": 0.08,
+   "workLit": 0.25,
+   "bourgLit": 0.6,
+   "profLit": 0.8,
+   "clergyFrac": 0.4,
+   "intelligentsiaFrac": 0.35,
+   "clergyLit": 0.8,
+   "intelLit": 0.85,
+   "peasantSubsistence": 0.7,
+   "polity": "Absolutist",
+   "education": "Religious",
+   "coercion": 400,
+   "treasury": 6000,
+   "initialTariff": 0.05,
+   "industrialization": 0,
+   "initialColonies": [
+    {
+     "name": "ザンジバル",
+     "resources": [
+      29,
+      24
+     ],
+     "population": 1
+    },
+    {
+     "name": "モガディシュ",
+     "resources": [],
+     "population": 0.2
+    }
+   ],
+   "military": 0.6,
+   "ethnicUnity": 0.78,
+   "initialSuffrage": "None",
+   "initialCensorship": "StatePressOnly",
+   "initialCornLaws": "Full",
+   "initialSerfEmancipation": "None",
+   "provinces": [
+    {
+     "city": "マスカット",
+     "share": 0.95,
+     "resources": [
+      29,
+      20
+     ],
+     "culture": "アラブ",
+     "religion": "イスラム",
+     "coastal": true
+    },
+    {
+     "city": "サラーラ",
+     "share": 0.05,
+     "resources": [],
+     "coastal": true,
+     "culture": "",
+     "religion": ""
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": 23.6,
+   "longitude": 58.5,
+   "farmLordShare": 0.6,
+   "culturalGoodId": 62
+  },
+  {
+   "name": "アフガニスタン",
+   "nobility": 700,
+   "peasant": 5000,
+   "worker": 120,
+   "bourgeois": 200,
+   "professional": 120,
+   "merchant": 500,
+   "artisan": 1000,
+   "nobLit": 0.85,
+   "peasLit": 0.08,
+   "workLit": 0.25,
+   "bourgLit": 0.6,
+   "profLit": 0.8,
+   "clergyFrac": 0.4,
+   "intelligentsiaFrac": 0.35,
+   "clergyLit": 0.8,
+   "intelLit": 0.85,
+   "peasantSubsistence": 0.7,
+   "polity": "Despotic",
+   "education": "Religious",
+   "coercion": 400,
+   "treasury": 12000,
+   "initialTariff": 0.1,
+   "industrialization": 0,
+   "initialColonies": [],
+   "military": 1.2,
+   "ethnicUnity": 0.55,
+   "initialSuffrage": "None",
+   "initialCensorship": "StatePressOnly",
+   "initialCornLaws": "Full",
+   "initialSerfEmancipation": "None",
+   "provinces": [
+    {
+     "city": "カブール",
+     "share": 0.3,
+     "resources": [
+      16,
+      19
+     ],
+     "culture": "アフガン",
+     "religion": "イスラム",
+     "coastal": false
+    },
+    {
+     "city": "カンダハール",
+     "share": 0.25,
+     "resources": [
+      19,
+      16
+     ],
+     "culture": "パシュトゥーン",
+     "religion": "イスラム",
+     "coastal": false
+    },
+    {
+     "city": "ヘラート",
+     "share": 0.2,
+     "resources": [
+      16,
+      14
+     ],
+     "culture": "タジク",
+     "religion": "イスラム",
+     "coastal": false
+    },
+    {
+     "city": "ペシャーワル",
+     "share": 0.25,
+     "resources": [
+      15,
+      16
+     ],
+     "culture": "パシュトゥーン",
+     "religion": "イスラム",
+     "coastal": false
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": 34.5,
+   "longitude": 69.2,
+   "farmLordShare": 0.6,
+   "culturalGoodId": 62
+  },
+  {
+   "name": "ブハラ",
+   "nobility": 300,
+   "peasant": 1600,
+   "worker": 50,
+   "bourgeois": 120,
+   "professional": 60,
+   "merchant": 400,
+   "artisan": 500,
+   "nobLit": 0.85,
+   "peasLit": 0.08,
+   "workLit": 0.25,
+   "bourgLit": 0.6,
+   "profLit": 0.8,
+   "clergyFrac": 0.4,
+   "intelligentsiaFrac": 0.35,
+   "clergyLit": 0.8,
+   "intelLit": 0.85,
+   "peasantSubsistence": 0.7,
+   "polity": "Absolutist",
+   "education": "Religious",
+   "coercion": 400,
+   "treasury": 5000,
+   "initialTariff": 0.4,
+   "industrialization": 0,
+   "initialColonies": [],
+   "military": 0.6,
+   "ethnicUnity": 0.6,
+   "initialSuffrage": "None",
+   "initialCensorship": "StatePressOnly",
+   "initialCornLaws": "Full",
+   "initialSerfEmancipation": "None",
+   "provinces": [
+    {
+     "city": "ブハラ",
+     "share": 1.0,
+     "resources": [
+      12,
+      14,
+      16
+     ],
+     "culture": "タジク",
+     "religion": "イスラム",
+     "coastal": false
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": 39.77,
+   "longitude": 64.42,
+   "farmLordShare": 0.6,
+   "culturalGoodId": 62
+  },
+  {
+   "name": "ヒヴァ",
+   "nobility": 100,
+   "peasant": 500,
+   "worker": 15,
+   "bourgeois": 40,
+   "professional": 20,
+   "merchant": 120,
+   "artisan": 150,
+   "nobLit": 0.85,
+   "peasLit": 0.08,
+   "workLit": 0.25,
+   "bourgLit": 0.6,
+   "profLit": 0.8,
+   "clergyFrac": 0.4,
+   "intelligentsiaFrac": 0.35,
+   "clergyLit": 0.8,
+   "intelLit": 0.85,
+   "peasantSubsistence": 0.7,
+   "polity": "Absolutist",
+   "education": "Religious",
+   "coercion": 400,
+   "treasury": 2000,
+   "initialTariff": 0.4,
+   "industrialization": 0,
+   "initialColonies": [],
+   "military": 0.4,
+   "ethnicUnity": 0.65,
+   "initialSuffrage": "None",
+   "initialCensorship": "StatePressOnly",
+   "initialCornLaws": "Full",
+   "initialSerfEmancipation": "None",
+   "provinces": [
+    {
+     "city": "ヒヴァ",
+     "share": 1.0,
+     "resources": [
+      12,
+      19
+     ],
+     "culture": "ウズベク",
+     "religion": "イスラム",
+     "coastal": false
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": 41.38,
+   "longitude": 60.36,
+   "farmLordShare": 0.6,
+   "culturalGoodId": 62
+  },
+  {
+   "name": "コーカンド",
+   "nobility": 200,
+   "peasant": 1000,
+   "worker": 30,
+   "bourgeois": 80,
+   "professional": 40,
+   "merchant": 250,
+   "artisan": 300,
+   "nobLit": 0.85,
+   "peasLit": 0.08,
+   "workLit": 0.25,
+   "bourgLit": 0.6,
+   "profLit": 0.8,
+   "clergyFrac": 0.4,
+   "intelligentsiaFrac": 0.35,
+   "clergyLit": 0.8,
+   "intelLit": 0.85,
+   "peasantSubsistence": 0.7,
+   "polity": "Absolutist",
+   "education": "Religious",
+   "coercion": 400,
+   "treasury": 3500,
+   "initialTariff": 0.4,
+   "industrialization": 0,
+   "initialColonies": [],
+   "military": 0.5,
+   "ethnicUnity": 0.6,
+   "initialSuffrage": "None",
+   "initialCensorship": "StatePressOnly",
+   "initialCornLaws": "Full",
+   "initialSerfEmancipation": "None",
+   "provinces": [
+    {
+     "city": "タシュケント",
+     "share": 1.0,
+     "resources": [
+      12,
+      14,
+      16
+     ],
+     "culture": "ウズベク",
+     "religion": "イスラム",
+     "coastal": false
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": 40.52,
+   "longitude": 70.94,
+   "farmLordShare": 0.6,
+   "culturalGoodId": 62
+  },
+  {
+   "name": "モロッコ",
+   "nobility": 500,
+   "peasant": 3500,
+   "worker": 100,
+   "bourgeois": 150,
+   "professional": 100,
+   "merchant": 500,
+   "artisan": 900,
+   "nobLit": 0.85,
+   "peasLit": 0.08,
+   "workLit": 0.25,
+   "bourgLit": 0.6,
+   "profLit": 0.8,
+   "clergyFrac": 0.4,
+   "intelligentsiaFrac": 0.35,
+   "clergyLit": 0.8,
+   "intelLit": 0.85,
+   "peasantSubsistence": 0.7,
+   "polity": "Absolutist",
+   "education": "Religious",
+   "coercion": 400,
+   "treasury": 10000,
+   "initialTariff": 0.1,
+   "industrialization": 0,
+   "initialColonies": [],
+   "military": 0.8,
+   "ethnicUnity": 0.6,
+   "initialSuffrage": "None",
+   "initialCensorship": "StatePressOnly",
+   "initialCornLaws": "Full",
+   "initialSerfEmancipation": "None",
+   "provinces": [
+    {
+     "city": "フェズ",
+     "share": 0.45,
+     "resources": [
+      19,
+      16
+     ],
+     "culture": "アラブ",
+     "religion": "イスラム",
+     "coastal": false
+    },
+    {
+     "city": "マラケシュ",
+     "share": 0.45,
+     "resources": [
+      15,
+      17
+     ],
+     "culture": "アラブ",
+     "religion": "イスラム",
+     "coastal": false
+    },
+    {
+     "city": "タンジェ",
+     "share": 0.1,
+     "resources": [],
+     "culture": "アラブ",
+     "religion": "イスラム",
+     "coastal": true
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": 34.0,
+   "longitude": -6.8,
+   "farmLordShare": 0.6,
+   "culturalGoodId": 62
+  },
+  {
+   "name": "エチオピア",
+   "nobility": 600,
+   "peasant": 3000,
+   "worker": 60,
+   "bourgeois": 80,
+   "professional": 60,
+   "merchant": 200,
+   "artisan": 500,
+   "nobLit": 0.85,
+   "peasLit": 0.08,
+   "workLit": 0.25,
+   "bourgLit": 0.6,
+   "profLit": 0.8,
+   "clergyFrac": 0.4,
+   "intelligentsiaFrac": 0.35,
+   "clergyLit": 0.8,
+   "intelLit": 0.85,
+   "peasantSubsistence": 0.7,
+   "polity": "Despotic",
+   "education": "Religious",
+   "coercion": 150,
+   "treasury": 4000,
+   "initialTariff": 0.4,
+   "industrialization": 0,
+   "initialColonies": [],
+   "military": 0.7,
+   "ethnicUnity": 0.35,
+   "initialSuffrage": "None",
+   "initialCensorship": "StatePressOnly",
+   "initialCornLaws": "Full",
+   "initialSerfEmancipation": "None",
+   "provinces": [
+    {
+     "city": "ゴンダール",
+     "share": 0.85,
+     "resources": [
+      28,
+      19
+     ],
+     "culture": "アムハラ",
+     "religion": "エチオピア正教",
+     "coastal": false
+    },
+    {
+     "city": "マサワ",
+     "share": 0.15,
+     "resources": [],
+     "culture": "アムハラ",
+     "religion": "エチオピア正教",
+     "coastal": true
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": 12.6,
+   "longitude": 37.5,
+   "farmLordShare": 0.6,
+   "culturalGoodId": 75
+  },
+  {
+   "name": "マダガスカル",
+   "nobility": 300,
+   "peasant": 1500,
+   "worker": 40,
+   "bourgeois": 50,
+   "professional": 40,
+   "merchant": 150,
+   "artisan": 300,
+   "nobLit": 0.85,
+   "peasLit": 0.08,
+   "workLit": 0.25,
+   "bourgLit": 0.6,
+   "profLit": 0.8,
+   "clergyFrac": 0.4,
+   "intelligentsiaFrac": 0.35,
+   "clergyLit": 0.8,
+   "intelLit": 0.85,
+   "peasantSubsistence": 0.7,
+   "polity": "Absolutist",
+   "education": "Religious",
+   "coercion": 400,
+   "treasury": 2500,
+   "initialTariff": 0.4,
+   "industrialization": 0,
+   "initialColonies": [],
+   "military": 0.5,
+   "ethnicUnity": 0.7,
+   "initialSuffrage": "None",
+   "initialCensorship": "StatePressOnly",
+   "initialCornLaws": "Full",
+   "initialSerfEmancipation": "None",
+   "provinces": [
+    {
+     "city": "アンタナナリヴ",
+     "share": 0.85,
+     "resources": [
+      102,
+      19
+     ],
+     "culture": "メリナ",
+     "religion": "土着信仰",
+     "coastal": false
+    },
+    {
+     "city": "トアマシナ",
+     "share": 0.15,
+     "resources": [],
+     "culture": "メリナ",
+     "religion": "土着信仰",
+     "coastal": true
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": -18.9,
+   "longitude": 47.5,
+   "farmLordShare": 0.6,
+   "culturalGoodId": 102
+  },
+  {
+   "name": "スウェーデン",
+   "nobility": 282,
+   "peasant": 1549,
+   "worker": 106,
+   "bourgeois": 176,
+   "professional": 141,
+   "merchant": 282,
+   "artisan": 564,
+   "nobLit": 0.95,
+   "peasLit": 0.5,
+   "workLit": 0.5,
+   "bourgLit": 0.85,
+   "profLit": 0.8,
+   "clergyFrac": 0.4,
+   "intelligentsiaFrac": 0.35,
+   "clergyLit": 0.8,
+   "intelLit": 0.85,
+   "peasantSubsistence": 0.7,
+   "polity": "Absolutist",
+   "education": "Religious",
+   "coercion": 400,
+   "treasury": 12000,
+   "initialTariff": 0.4,
+   "industrialization": 0,
+   "initialColonies": [],
+   "military": 1.0,
+   "ethnicUnity": 0.8,
+   "initialSuffrage": "None",
+   "initialCensorship": "StatePressOnly",
+   "initialCornLaws": "Full",
+   "initialSerfEmancipation": "None",
+   "provinces": [
+    {
+     "city": "ストックホルム",
+     "share": 0.38,
+     "resources": [
+      0,
+      11
+     ],
+     "culture": "スウェーデン",
+     "religion": "プロテスタント",
+     "coastal": true
+    },
+    {
+     "city": "ヨーテボリ",
+     "share": 0.12,
+     "resources": [
+      11,
+      20
+     ],
+     "culture": "スウェーデン",
+     "religion": "プロテスタント",
+     "coastal": true
+    },
+    {
+     "city": "ウメオ",
+     "share": 0.2,
+     "resources": [
+      11,
+      20
+     ],
+     "culture": "スウェーデン",
+     "religion": "プロテスタント",
+     "coastal": true
+    },
+    {
+     "city": "ヘルシングフォシュ",
+     "share": 0.3,
+     "resources": [
+      15,
+      11
+     ],
+     "culture": "フィンランド",
+     "religion": "プロテスタント",
+     "coastal": true
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": 59.33,
+   "longitude": 18.07,
+   "farmLordShare": 0.6,
+   "culturalGoodId": 62
+  },
+  {
+   "name": "デンマーク",
+   "nobility": 245,
+   "peasant": 1258,
+   "worker": 91,
+   "bourgeois": 175,
+   "professional": 126,
+   "merchant": 315,
+   "artisan": 490,
+   "nobLit": 0.95,
+   "peasLit": 0.5,
+   "workLit": 0.5,
+   "bourgLit": 0.85,
+   "profLit": 0.8,
+   "clergyFrac": 0.4,
+   "intelligentsiaFrac": 0.35,
+   "clergyLit": 0.8,
+   "intelLit": 0.85,
+   "peasantSubsistence": 0.7,
+   "polity": "Absolutist",
+   "education": "Religious",
+   "coercion": 400,
+   "treasury": 10000,
+   "initialTariff": 0.25,
+   "industrialization": 0,
+   "initialColonies": [
+    {
+     "name": "ヌーク",
+     "resources": [],
+     "population": 0.05
+    }
+   ],
+   "military": 0.8,
+   "ethnicUnity": 0.75,
+   "initialSuffrage": "None",
+   "initialCensorship": "StatePressOnly",
+   "initialCornLaws": "Full",
+   "initialSerfEmancipation": "None",
+   "provinces": [
+    {
+     "city": "コペンハーゲン",
+     "share": 0.49,
+     "resources": [
+      19,
+      15
+     ],
+     "culture": "デンマーク",
+     "religion": "プロテスタント",
+     "coastal": true
+    },
+    {
+     "city": "クリスチャニア",
+     "share": 0.294,
+     "resources": [
+      11,
+      20
+     ],
+     "culture": "ノルウェー",
+     "religion": "プロテスタント",
+     "coastal": true
+    },
+    {
+     "city": "トロムソ",
+     "share": 0.196,
+     "resources": [
+      20,
+      11
+     ],
+     "culture": "ノルウェー",
+     "religion": "プロテスタント",
+     "coastal": true
+    },
+    {
+     "city": "レイキャヴィク",
+     "share": 0.02,
+     "resources": [],
+     "coastal": true,
+     "culture": "",
+     "religion": ""
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": 55.68,
+   "longitude": 12.57,
+   "farmLordShare": 0.6,
+   "culturalGoodId": 62
+  },
+  {
+   "name": "スイス",
+   "nobility": 134,
+   "peasant": 801,
+   "worker": 80,
+   "bourgeois": 134,
+   "professional": 100,
+   "merchant": 200,
+   "artisan": 401,
+   "nobLit": 0.9,
+   "peasLit": 0.45,
+   "workLit": 0.5,
+   "bourgLit": 0.85,
+   "profLit": 0.8,
+   "clergyFrac": 0.4,
+   "intelligentsiaFrac": 0.35,
+   "clergyLit": 0.8,
+   "intelLit": 0.85,
+   "peasantSubsistence": 0.7,
+   "polity": "Republic",
+   "education": "Religious",
+   "coercion": 400,
+   "treasury": 6000,
+   "initialTariff": 0.05,
+   "industrialization": 0,
+   "initialColonies": [],
+   "military": 0.5,
+   "ethnicUnity": 0.65,
+   "initialSuffrage": "None",
+   "initialCensorship": "StatePressOnly",
+   "initialCornLaws": "Full",
+   "initialSerfEmancipation": "None",
+   "provinces": [
+    {
+     "city": "ベルン",
+     "share": 1.0,
+     "resources": [
+      19,
+      16
+     ],
+     "culture": "スイス",
+     "religion": "プロテスタント",
+     "coastal": false
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": 46.95,
+   "longitude": 7.45,
+   "farmLordShare": 0.6,
+   "culturalGoodId": 62
+  },
+  {
+   "name": "ポーランド",
+   "nobility": 900,
+   "peasant": 7000,
+   "worker": 150,
+   "bourgeois": 200,
+   "professional": 150,
+   "merchant": 400,
+   "artisan": 900,
+   "nobLit": 0.85,
+   "peasLit": 0.12,
+   "workLit": 0.25,
+   "bourgLit": 0.6,
+   "profLit": 0.8,
+   "clergyFrac": 0.4,
+   "intelligentsiaFrac": 0.35,
+   "clergyLit": 0.8,
+   "intelLit": 0.85,
+   "peasantSubsistence": 0.7,
+   "polity": "Republic",
+   "education": "Religious",
+   "coercion": 250,
+   "treasury": 8000,
+   "initialTariff": 0.4,
+   "industrialization": 0,
+   "initialColonies": [],
+   "military": 0.7,
+   "ethnicUnity": 0.45,
+   "initialSuffrage": "None",
+   "initialCensorship": "StatePressOnly",
+   "initialCornLaws": "Full",
+   "initialSerfEmancipation": "None",
+   "provinces": [
+    {
+     "city": "ワルシャワ",
+     "share": 0.3432,
+     "resources": [
+      15,
+      19,
+      115
+     ],
+     "culture": "ポーランド",
+     "religion": "カトリック",
+     "coastal": false
+    },
+    {
+     "city": "ヴィルナ",
+     "share": 0.2992,
+     "resources": [
+      15,
+      11,
+      115
+     ],
+     "culture": "リトアニア",
+     "religion": "カトリック",
+     "coastal": false
+    },
+    {
+     "city": "ポズナン",
+     "share": 0.132,
+     "resources": [],
+     "culture": "ポーランド",
+     "religion": "カトリック",
+     "coastal": false
+    },
+    {
+     "city": "ルブリン",
+     "share": 0.1056,
+     "resources": [],
+     "culture": "ポーランド",
+     "religion": "カトリック",
+     "coastal": false
+    },
+    {
+     "city": "クラクフ",
+     "share": 0.12,
+     "resources": [],
+     "culture": "ポーランド",
+     "religion": "カトリック",
+     "coastal": false
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": 52.23,
+   "longitude": 21.0,
+   "farmLordShare": 0.6,
+   "culturalGoodId": 62
+  },
+  {
+   "name": "ポルトガル",
+   "nobility": 89,
+   "peasant": 2066,
+   "worker": 325,
+   "bourgeois": 165,
+   "professional": 59,
+   "merchant": 148,
+   "artisan": 148,
+   "nobLit": 0.85,
+   "peasLit": 0.12,
+   "workLit": 0.25,
+   "bourgLit": 0.6,
+   "profLit": 0.8,
+   "clergyFrac": 0.4,
+   "intelligentsiaFrac": 0.35,
+   "clergyLit": 0.8,
+   "intelLit": 0.85,
+   "peasantSubsistence": 0.7,
+   "polity": "Absolutist",
+   "education": "Religious",
+   "coercion": 400,
+   "treasury": 55000,
+   "initialTariff": 0.4,
+   "industrialization": 0,
+   "initialColonies": [
+    {
+     "name": "ブラジル",
+     "resources": [
+      25,
+      28,
+      4,
+      116
+     ],
+     "population": 5
+    },
+    {
+     "name": "アマゾン",
+     "resources": [
+      21,
+      11,
+      22
+     ],
+     "population": 0.5
+    },
+    {
+     "name": "マナウス",
+     "resources": [],
+     "population": 0.1
+    },
+    {
+     "name": "サルヴァドール",
+     "resources": [],
+     "population": 0.8
+    },
+    {
+     "name": "サンルイス",
+     "resources": [],
+     "population": 0.3
+    },
+    {
+     "name": "ゴイアス",
+     "resources": [],
+     "population": 0.3
+    },
+    {
+     "name": "クイアバ",
+     "resources": [],
+     "population": 0.2
+    },
+    {
+     "name": "ルアンダ",
+     "resources": [],
+     "population": 0.5
+    },
+    {
+     "name": "テテ",
+     "resources": [],
+     "population": 0.1
+    }
+   ],
+   "military": 0.8,
+   "ethnicUnity": 0.85,
+   "initialSuffrage": "None",
+   "initialCensorship": "StatePressOnly",
+   "initialCornLaws": "Full",
+   "initialSerfEmancipation": "Limited",
+   "provinces": [
+    {
+     "city": "リスボン",
+     "share": 0.6,
+     "resources": [
+      16,
+      20
+     ],
+     "culture": "ポルトガル",
+     "religion": "カトリック",
+     "coastal": true
+    },
+    {
+     "city": "ポルト",
+     "share": 0.4,
+     "resources": [
+      16,
+      19
+     ],
+     "culture": "ポルトガル",
+     "religion": "カトリック",
+     "coastal": true
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": 38.7,
+   "longitude": -9.1,
+   "farmLordShare": 0.5,
+   "culturalGoodId": 62
+  },
+  {
+   "name": "ジェノヴァ",
+   "nobility": 9,
+   "peasant": 212,
+   "worker": 60,
+   "bourgeois": 60,
+   "professional": 24,
+   "merchant": 75,
+   "artisan": 60,
+   "nobLit": 0.85,
+   "peasLit": 0.3,
+   "workLit": 0.25,
+   "bourgLit": 0.6,
+   "profLit": 0.8,
+   "clergyFrac": 0.4,
+   "intelligentsiaFrac": 0.35,
+   "clergyLit": 0.8,
+   "intelLit": 0.85,
+   "peasantSubsistence": 0.7,
+   "polity": "Republic",
+   "education": "Religious",
+   "coercion": 300,
+   "treasury": 30000,
+   "initialTariff": 0.2,
+   "industrialization": 0,
+   "initialColonies": [],
+   "military": 0.4,
+   "ethnicUnity": 0.85,
+   "initialSuffrage": "None",
+   "initialCensorship": "StatePressOnly",
+   "initialCornLaws": "Full",
+   "initialSerfEmancipation": "None",
+   "provinces": [
+    {
+     "city": "ジェノヴァ",
+     "share": 1.0,
+     "resources": [
+      16,
+      20
+     ],
+     "culture": "イタリア",
+     "religion": "カトリック",
+     "coastal": true
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": 44.41,
+   "longitude": 8.93,
+   "farmLordShare": 0.5,
+   "culturalGoodId": 62
+  },
+  {
+   "name": "ライン諸邦",
+   "nobility": 100,
+   "peasant": 1600,
+   "worker": 700,
+   "bourgeois": 350,
+   "professional": 150,
+   "merchant": 80,
+   "artisan": 220,
+   "nobLit": 0.85,
+   "peasLit": 0.4,
+   "workLit": 0.25,
+   "bourgLit": 0.6,
+   "profLit": 0.8,
+   "clergyFrac": 0.4,
+   "intelligentsiaFrac": 0.35,
+   "clergyLit": 0.8,
+   "intelLit": 0.85,
+   "peasantSubsistence": 0.7,
+   "polity": "Absolutist",
+   "education": "Religious",
+   "coercion": 350,
+   "treasury": 60000,
+   "initialTariff": 0.2,
+   "industrialization": 0,
+   "initialColonies": [],
+   "military": 0.5,
+   "ethnicUnity": 0.8,
+   "initialSuffrage": "None",
+   "initialCensorship": "StatePressOnly",
+   "initialCornLaws": "Full",
+   "initialSerfEmancipation": "None",
+   "provinces": [
+    {
+     "city": "ケルン",
+     "share": 1.0,
+     "resources": [
+      1,
+      0
+     ],
+     "culture": "ドイツ",
+     "religion": "カトリック",
+     "coastal": true
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": 50.9,
+   "longitude": 6.96,
+   "farmLordShare": 0.6,
+   "culturalGoodId": 66
+  },
+  {
+   "name": "両シチリア",
+   "nobility": 500,
+   "peasant": 5000,
+   "worker": 200,
+   "bourgeois": 300,
+   "professional": 150,
+   "merchant": 400,
+   "artisan": 800,
+   "nobLit": 0.85,
+   "peasLit": 0.12,
+   "workLit": 0.25,
+   "bourgLit": 0.6,
+   "profLit": 0.8,
+   "clergyFrac": 0.4,
+   "intelligentsiaFrac": 0.35,
+   "clergyLit": 0.8,
+   "intelLit": 0.85,
+   "peasantSubsistence": 0.7,
+   "polity": "Absolutist",
+   "education": "Religious",
+   "coercion": 400,
+   "treasury": 20000,
+   "initialTariff": 0.4,
+   "industrialization": 0,
+   "initialColonies": [],
+   "military": 1.0,
+   "ethnicUnity": 0.85,
+   "initialSuffrage": "None",
+   "initialCensorship": "StatePressOnly",
+   "initialCornLaws": "Full",
+   "initialSerfEmancipation": "None",
+   "provinces": [
+    {
+     "city": "ナポリ",
+     "share": 0.5,
+     "resources": [
+      15,
+      16
+     ],
+     "culture": "ナポリ",
+     "religion": "カトリック",
+     "coastal": true
+    },
+    {
+     "city": "パレルモ",
+     "share": 0.32,
+     "resources": [
+      5,
+      16
+     ],
+     "culture": "シチリア",
+     "religion": "カトリック",
+     "coastal": true
+    },
+    {
+     "city": "バーリ",
+     "share": 0.1,
+     "resources": [],
+     "culture": "ナポリ",
+     "religion": "カトリック",
+     "coastal": true
+    },
+    {
+     "city": "メッシーナ",
+     "share": 0.08,
+     "resources": [],
+     "culture": "シチリア",
+     "religion": "カトリック",
+     "coastal": true
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": 40.85,
+   "longitude": 14.27,
+   "farmLordShare": 0.6,
+   "culturalGoodId": 62
+  },
+  {
+   "name": "教皇領",
+   "nobility": 181,
+   "peasant": 1808,
+   "worker": 60,
+   "bourgeois": 120,
+   "professional": 60,
+   "merchant": 120,
+   "artisan": 301,
+   "nobLit": 0.85,
+   "peasLit": 0.2,
+   "workLit": 0.25,
+   "bourgLit": 0.6,
+   "profLit": 0.8,
+   "clergyFrac": 0.4,
+   "intelligentsiaFrac": 0.35,
+   "clergyLit": 0.8,
+   "intelLit": 0.85,
+   "peasantSubsistence": 0.7,
+   "polity": "Absolutist",
+   "education": "Religious",
+   "coercion": 400,
+   "treasury": 15000,
+   "initialTariff": 0.4,
+   "industrialization": 0,
+   "initialColonies": [],
+   "military": 0.5,
+   "ethnicUnity": 0.9,
+   "initialSuffrage": "None",
+   "initialCensorship": "StatePressOnly",
+   "initialCornLaws": "Full",
+   "initialSerfEmancipation": "None",
+   "provinces": [
+    {
+     "city": "ローマ",
+     "share": 0.47,
+     "resources": [
+      15,
+      16
+     ],
+     "culture": "イタリア",
+     "religion": "カトリック",
+     "coastal": false
+    },
+    {
+     "city": "ボローニャ",
+     "share": 0.45,
+     "resources": [
+      15,
+      19
+     ],
+     "culture": "イタリア",
+     "religion": "カトリック",
+     "coastal": false
+    },
+    {
+     "city": "チヴィタヴェッキア",
+     "share": 0.08,
+     "resources": [
+      20,
+      15
+     ],
+     "culture": "イタリア",
+     "religion": "カトリック",
+     "coastal": true
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": 41.9,
+   "longitude": 12.5,
+   "farmLordShare": 0.6,
+   "culturalGoodId": 62
+  },
+  {
+   "name": "トスカーナ",
+   "nobility": 62,
+   "peasant": 620,
+   "worker": 41,
+   "bourgeois": 77,
+   "professional": 41,
+   "merchant": 103,
+   "artisan": 155,
+   "nobLit": 0.85,
+   "peasLit": 0.3,
+   "workLit": 0.25,
+   "bourgLit": 0.6,
+   "profLit": 0.8,
+   "clergyFrac": 0.4,
+   "intelligentsiaFrac": 0.35,
+   "clergyLit": 0.8,
+   "intelLit": 0.85,
+   "peasantSubsistence": 0.7,
+   "polity": "Absolutist",
+   "education": "Religious",
+   "coercion": 400,
+   "treasury": 12000,
+   "initialTariff": 0.05,
+   "industrialization": 0,
+   "initialColonies": [],
+   "military": 0.4,
+   "ethnicUnity": 0.9,
+   "initialSuffrage": "None",
+   "initialCensorship": "StatePressOnly",
+   "initialCornLaws": "Full",
+   "initialSerfEmancipation": "None",
+   "provinces": [
+    {
+     "city": "フィレンツェ",
+     "share": 0.8,
+     "resources": [
+      14,
+      16
+     ],
+     "culture": "イタリア",
+     "religion": "カトリック",
+     "coastal": false
+    },
+    {
+     "city": "リヴォルノ",
+     "share": 0.2,
+     "resources": [],
+     "culture": "イタリア",
+     "religion": "カトリック",
+     "coastal": true
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": 43.77,
+   "longitude": 11.25,
+   "farmLordShare": 0.6,
+   "culturalGoodId": 62
+  },
+  {
+   "name": "ヴェネツィア",
+   "nobility": 133,
+   "peasant": 1669,
+   "worker": 100,
+   "bourgeois": 200,
+   "professional": 80,
+   "merchant": 334,
+   "artisan": 334,
+   "nobLit": 0.85,
+   "peasLit": 0.3,
+   "workLit": 0.25,
+   "bourgLit": 0.6,
+   "profLit": 0.8,
+   "clergyFrac": 0.4,
+   "intelligentsiaFrac": 0.35,
+   "clergyLit": 0.8,
+   "intelLit": 0.85,
+   "peasantSubsistence": 0.7,
+   "polity": "Republic",
+   "education": "Religious",
+   "coercion": 300,
+   "treasury": 30000,
+   "initialTariff": 0.4,
+   "industrialization": 0,
+   "initialColonies": [],
+   "military": 0.6,
+   "ethnicUnity": 0.85,
+   "initialSuffrage": "None",
+   "initialCensorship": "StatePressOnly",
+   "initialCornLaws": "Full",
+   "initialSerfEmancipation": "None",
+   "provinces": [
+    {
+     "city": "ヴェネツィア",
+     "share": 0.45,
+     "resources": [
+      45,
+      20
+     ],
+     "culture": "イタリア",
+     "religion": "カトリック",
+     "coastal": true
+    },
+    {
+     "city": "パドヴァ",
+     "share": 0.4,
+     "resources": [
+      15,
+      14,
+      116
+     ],
+     "culture": "イタリア",
+     "religion": "カトリック",
+     "coastal": false
+    },
+    {
+     "city": "ザラ",
+     "share": 0.15,
+     "resources": [
+      20,
+      6
+     ],
+     "culture": "クロアチア",
+     "religion": "カトリック",
+     "coastal": true
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": 45.44,
+   "longitude": 12.34,
+   "farmLordShare": 0.6,
+   "culturalGoodId": 62
+  },
+  {
+   "name": "バイエルン",
+   "nobility": 91,
+   "peasant": 727,
+   "worker": 36,
+   "bourgeois": 55,
+   "professional": 36,
+   "merchant": 73,
+   "artisan": 182,
+   "nobLit": 0.85,
+   "peasLit": 0.25,
+   "workLit": 0.25,
+   "bourgLit": 0.6,
+   "profLit": 0.8,
+   "clergyFrac": 0.4,
+   "intelligentsiaFrac": 0.35,
+   "clergyLit": 0.8,
+   "intelLit": 0.85,
+   "peasantSubsistence": 0.7,
+   "polity": "Absolutist",
+   "education": "Religious",
+   "coercion": 400,
+   "treasury": 12000,
+   "initialTariff": 0.25,
+   "industrialization": 0,
+   "initialColonies": [],
+   "military": 0.7,
+   "ethnicUnity": 0.9,
+   "initialSuffrage": "None",
+   "initialCensorship": "StatePressOnly",
+   "initialCornLaws": "Full",
+   "initialSerfEmancipation": "None",
+   "provinces": [
+    {
+     "city": "ミュンヘン",
+     "share": 1.0,
+     "resources": [
+      15,
+      19,
+      7
+     ],
+     "culture": "ドイツ",
+     "religion": "カトリック",
+     "coastal": false
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": 48.14,
+   "longitude": 11.58,
+   "farmLordShare": 0.6,
+   "culturalGoodId": 66
+  },
+  {
+   "name": "ザクセン",
+   "nobility": 108,
+   "peasant": 1031,
+   "worker": 135,
+   "bourgeois": 135,
+   "professional": 81,
+   "merchant": 135,
+   "artisan": 325,
+   "nobLit": 0.85,
+   "peasLit": 0.45,
+   "workLit": 0.25,
+   "bourgLit": 0.6,
+   "profLit": 0.8,
+   "clergyFrac": 0.4,
+   "intelligentsiaFrac": 0.35,
+   "clergyLit": 0.8,
+   "intelLit": 0.85,
+   "peasantSubsistence": 0.7,
+   "polity": "Absolutist",
+   "education": "Public",
+   "coercion": 400,
+   "treasury": 14000,
+   "initialTariff": 0.25,
+   "industrialization": 0,
+   "initialColonies": [],
+   "military": 0.7,
+   "ethnicUnity": 0.9,
+   "initialSuffrage": "None",
+   "initialCensorship": "StatePressOnly",
+   "initialCornLaws": "Full",
+   "initialSerfEmancipation": "None",
+   "provinces": [
+    {
+     "city": "ドレスデン",
+     "share": 1.0,
+     "resources": [
+      71,
+      120,
+      115,
+      9
+     ],
+     "culture": "ドイツ",
+     "religion": "プロテスタント",
+     "coastal": false
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": 51.34,
+   "longitude": 12.37,
+   "farmLordShare": 0.6,
+   "culturalGoodId": 66
+  },
+  {
+   "name": "ハノーファー",
+   "nobility": 58,
+   "peasant": 527,
+   "worker": 29,
+   "bourgeois": 47,
+   "professional": 35,
+   "merchant": 58,
+   "artisan": 146,
+   "nobLit": 0.85,
+   "peasLit": 0.45,
+   "workLit": 0.25,
+   "bourgLit": 0.6,
+   "profLit": 0.8,
+   "clergyFrac": 0.4,
+   "intelligentsiaFrac": 0.35,
+   "clergyLit": 0.8,
+   "intelLit": 0.85,
+   "peasantSubsistence": 0.7,
+   "polity": "Absolutist",
+   "education": "Religious",
+   "coercion": 400,
+   "treasury": 8000,
+   "initialTariff": 0.25,
+   "industrialization": 0,
+   "initialColonies": [],
+   "military": 0.5,
+   "ethnicUnity": 0.9,
+   "initialSuffrage": "None",
+   "initialCensorship": "StatePressOnly",
+   "initialCornLaws": "Full",
+   "initialSerfEmancipation": "None",
+   "provinces": [
+    {
+     "city": "ハノーファー",
+     "share": 0.85,
+     "resources": [
+      15,
+      19,
+      115
+     ],
+     "culture": "ドイツ",
+     "religion": "プロテスタント",
+     "coastal": false
+    },
+    {
+     "city": "クックスハーフェン",
+     "share": 0.15,
+     "resources": [],
+     "culture": "ドイツ",
+     "religion": "プロテスタント",
+     "coastal": true
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": 52.37,
+   "longitude": 9.73,
+   "farmLordShare": 0.6,
+   "culturalGoodId": 66
+  },
+  {
+   "name": "ヴュルテンベルク",
+   "nobility": 44,
+   "peasant": 356,
+   "worker": 22,
+   "bourgeois": 38,
+   "professional": 27,
+   "merchant": 44,
+   "artisan": 109,
+   "nobLit": 0.85,
+   "peasLit": 0.45,
+   "workLit": 0.25,
+   "bourgLit": 0.6,
+   "profLit": 0.8,
+   "clergyFrac": 0.4,
+   "intelligentsiaFrac": 0.35,
+   "clergyLit": 0.8,
+   "intelLit": 0.85,
+   "peasantSubsistence": 0.7,
+   "polity": "Absolutist",
+   "education": "Religious",
+   "coercion": 400,
+   "treasury": 6000,
+   "initialTariff": 0.25,
+   "industrialization": 0,
+   "initialColonies": [],
+   "military": 0.4,
+   "ethnicUnity": 0.9,
+   "initialSuffrage": "None",
+   "initialCensorship": "StatePressOnly",
+   "initialCornLaws": "Full",
+   "initialSerfEmancipation": "None",
+   "provinces": [
+    {
+     "city": "シュトゥットガルト",
+     "share": 1.0,
+     "resources": [
+      15,
+      16
+     ],
+     "culture": "ドイツ",
+     "religion": "プロテスタント",
+     "coastal": false
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": 48.78,
+   "longitude": 9.18,
+   "farmLordShare": 0.6,
+   "culturalGoodId": 66
+  },
+  {
+   "name": "阮氏",
+   "nobility": 350,
+   "peasant": 2450,
+   "worker": 70,
+   "bourgeois": 85,
+   "professional": 70,
+   "merchant": 175,
+   "artisan": 420,
+   "nobLit": 0.85,
+   "peasLit": 0.1,
+   "workLit": 0.25,
+   "bourgLit": 0.6,
+   "profLit": 0.8,
+   "clergyFrac": 0.4,
+   "intelligentsiaFrac": 0.35,
+   "clergyLit": 0.8,
+   "intelLit": 0.85,
+   "peasantSubsistence": 0.7,
+   "polity": "Despotic",
+   "education": "Religious",
+   "coercion": 400,
+   "treasury": 4200,
+   "initialTariff": 0.4,
+   "industrialization": 0,
+   "initialColonies": [],
+   "military": 0.7,
+   "ethnicUnity": 0.85,
+   "initialSuffrage": "None",
+   "initialCensorship": "StatePressOnly",
+   "initialCornLaws": "Full",
+   "initialSerfEmancipation": "None",
+   "provinces": [
+    {
+     "city": "サイゴン",
+     "share": 1.0,
+     "resources": [
+      102,
+      25
+     ],
+     "culture": "ベトナム",
+     "religion": "儒仏",
+     "coastal": true
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": 10.78,
+   "longitude": 106.7,
+   "farmLordShare": 0.6,
+   "culturalGoodId": 102
+  },
+  {
+   "name": "ラヘジ",
+   "nobility": 90,
+   "peasant": 600,
+   "worker": 18,
+   "bourgeois": 30,
+   "professional": 18,
+   "merchant": 120,
+   "artisan": 120,
+   "nobLit": 0.85,
+   "peasLit": 0.08,
+   "workLit": 0.25,
+   "bourgLit": 0.6,
+   "profLit": 0.8,
+   "clergyFrac": 0.4,
+   "intelligentsiaFrac": 0.35,
+   "clergyLit": 0.8,
+   "intelLit": 0.85,
+   "peasantSubsistence": 0.7,
+   "polity": "Absolutist",
+   "education": "Religious",
+   "coercion": 400,
+   "treasury": 1500,
+   "initialTariff": 0.4,
+   "industrialization": 0,
+   "initialColonies": [],
+   "military": 0.4,
+   "ethnicUnity": 0.82,
+   "initialSuffrage": "None",
+   "initialCensorship": "StatePressOnly",
+   "initialCornLaws": "Full",
+   "initialSerfEmancipation": "None",
+   "provinces": [
+    {
+     "city": "アデン",
+     "share": 1.0,
+     "resources": [
+      29,
+      20
+     ],
+     "culture": "アラブ",
+     "religion": "イスラム",
+     "coastal": true
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": 12.8,
+   "longitude": 44.9,
+   "farmLordShare": 0.6,
+   "culturalGoodId": 62
+  },
+  {
+   "name": "デリー",
+   "nobility": 400,
+   "peasant": 2500,
+   "worker": 70,
+   "bourgeois": 120,
+   "professional": 70,
+   "merchant": 250,
+   "artisan": 400,
+   "nobLit": 0.85,
+   "peasLit": 0.08,
+   "workLit": 0.25,
+   "bourgLit": 0.6,
+   "profLit": 0.8,
+   "clergyFrac": 0.4,
+   "intelligentsiaFrac": 0.35,
+   "clergyLit": 0.8,
+   "intelLit": 0.85,
+   "peasantSubsistence": 0.7,
+   "polity": "Despotic",
+   "education": "Religious",
+   "coercion": 150,
+   "treasury": 6000,
+   "initialTariff": 0.4,
+   "industrialization": 0,
+   "initialColonies": [],
+   "military": 0.5,
+   "ethnicUnity": 0.4,
+   "initialSuffrage": "None",
+   "initialCensorship": "StatePressOnly",
+   "initialCornLaws": "Full",
+   "initialSerfEmancipation": "None",
+   "provinces": [
+    {
+     "city": "デリー",
+     "share": 1.0,
+     "resources": [
+      15,
+      12
+     ],
+     "culture": "ヒンドゥスタン",
+     "religion": "イスラム",
+     "coastal": false
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": 28.6,
+   "longitude": 77.2,
+   "farmLordShare": 0.6,
+   "culturalGoodId": 102
+  },
+  {
+   "name": "アワド",
+   "nobility": 700,
+   "peasant": 5500,
+   "worker": 130,
+   "bourgeois": 200,
+   "professional": 130,
+   "merchant": 400,
+   "artisan": 700,
+   "nobLit": 0.85,
+   "peasLit": 0.08,
+   "workLit": 0.25,
+   "bourgLit": 0.6,
+   "profLit": 0.8,
+   "clergyFrac": 0.4,
+   "intelligentsiaFrac": 0.35,
+   "clergyLit": 0.8,
+   "intelLit": 0.85,
+   "peasantSubsistence": 0.7,
+   "polity": "Despotic",
+   "education": "Religious",
+   "coercion": 400,
+   "treasury": 14000,
+   "initialTariff": 0.4,
+   "industrialization": 0,
+   "initialColonies": [],
+   "military": 0.8,
+   "ethnicUnity": 0.6,
+   "initialSuffrage": "None",
+   "initialCensorship": "StatePressOnly",
+   "initialCornLaws": "Full",
+   "initialSerfEmancipation": "None",
+   "provinces": [
+    {
+     "city": "ラクナウ",
+     "share": 1.0,
+     "resources": [
+      102,
+      15
+     ],
+     "culture": "ヒンドゥスタン",
+     "religion": "イスラム",
+     "coastal": false
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": 26.85,
+   "longitude": 80.95,
+   "farmLordShare": 0.6,
+   "culturalGoodId": 102
+  },
+  {
+   "name": "ダホメ王国",
+   "nobility": 30,
+   "peasant": 250,
+   "worker": 5,
+   "bourgeois": 8,
+   "professional": 5,
+   "merchant": 40,
+   "artisan": 40,
+   "nobLit": 0.85,
+   "peasLit": 0.08,
+   "workLit": 0.25,
+   "bourgLit": 0.6,
+   "profLit": 0.8,
+   "clergyFrac": 0.4,
+   "intelligentsiaFrac": 0.35,
+   "clergyLit": 0.8,
+   "intelLit": 0.85,
+   "peasantSubsistence": 0.7,
+   "polity": "Absolutist",
+   "education": "Religious",
+   "coercion": 80,
+   "treasury": 1200,
+   "initialTariff": 0.4,
+   "industrialization": 0,
+   "initialColonies": [],
+   "military": 0.6,
+   "ethnicUnity": 0.8,
+   "initialSuffrage": "None",
+   "initialCensorship": "StatePressOnly",
+   "initialCornLaws": "Full",
+   "initialSerfEmancipation": "None",
+   "provinces": [
+    {
+     "city": "アボメイ",
+     "share": 0.65,
+     "resources": [
+      19,
+      16
+     ],
+     "culture": "フォン",
+     "religion": "土着信仰",
+     "coastal": false
+    },
+    {
+     "city": "ウィダー",
+     "share": 0.35,
+     "resources": [
+      20,
+      16
+     ],
+     "culture": "フォン",
+     "religion": "土着信仰",
+     "coastal": true
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": 7.19,
+   "longitude": 1.99,
+   "farmLordShare": 0.6,
+   "culturalGoodId": 116
+  },
+  {
+   "name": "アシャンティ王国",
+   "nobility": 250,
+   "peasant": 2500,
+   "worker": 40,
+   "bourgeois": 60,
+   "professional": 40,
+   "merchant": 350,
+   "artisan": 300,
+   "nobLit": 0.85,
+   "peasLit": 0.05,
+   "workLit": 0.2,
+   "bourgLit": 0.55,
+   "profLit": 0.75,
+   "clergyFrac": 0.4,
+   "intelligentsiaFrac": 0.35,
+   "clergyLit": 0.8,
+   "intelLit": 0.85,
+   "peasantSubsistence": 0.7,
+   "polity": "Absolutist",
+   "education": "Religious",
+   "coercion": 100,
+   "treasury": 5000,
+   "initialTariff": 0.4,
+   "industrialization": 0,
+   "initialColonies": [],
+   "military": 0.8,
+   "ethnicUnity": 0.85,
+   "initialSuffrage": "None",
+   "initialCensorship": "StatePressOnly",
+   "initialCornLaws": "Full",
+   "initialSerfEmancipation": "None",
+   "provinces": [
+    {
+     "city": "クマシ",
+     "share": 0.7,
+     "resources": [
+      4,
+      26
+     ],
+     "culture": "アカン",
+     "religion": "土着信仰",
+     "coastal": false
+    },
+    {
+     "city": "アノマブ",
+     "share": 0.3,
+     "resources": [
+      23,
+      20
+     ],
+     "culture": "アカン",
+     "religion": "土着信仰",
+     "coastal": true
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": 6.69,
+   "longitude": -1.62,
+   "farmLordShare": 0.6,
+   "culturalGoodId": 116
+  },
+  {
+   "name": "ソコト",
+   "nobility": 700,
+   "peasant": 8000,
+   "worker": 120,
+   "bourgeois": 200,
+   "professional": 120,
+   "merchant": 900,
+   "artisan": 800,
+   "nobLit": 0.9,
+   "peasLit": 0.06,
+   "workLit": 0.25,
+   "bourgLit": 0.6,
+   "profLit": 0.85,
+   "clergyFrac": 0.45,
+   "intelligentsiaFrac": 0.35,
+   "clergyLit": 0.9,
+   "intelLit": 0.9,
+   "peasantSubsistence": 0.7,
+   "polity": "Absolutist",
+   "education": "Religious",
+   "coercion": 300,
+   "treasury": 8000,
+   "initialTariff": 0.4,
+   "industrialization": 0,
+   "initialColonies": [],
+   "military": 1.2,
+   "ethnicUnity": 0.45,
+   "initialSuffrage": "None",
+   "initialCensorship": "StatePressOnly",
+   "initialCornLaws": "Full",
+   "initialSerfEmancipation": "None",
+   "provinces": [
+    {
+     "city": "ソコト",
+     "share": 0.35,
+     "resources": [
+      19,
+      24
+     ],
+     "culture": "ハウサ",
+     "religion": "イスラム",
+     "coastal": false
+    },
+    {
+     "city": "カノ",
+     "share": 0.4,
+     "resources": [
+      17,
+      12
+     ],
+     "culture": "ハウサ",
+     "religion": "イスラム",
+     "coastal": false
+    },
+    {
+     "city": "ザリア",
+     "share": 0.25,
+     "resources": [
+      19,
+      116
+     ],
+     "culture": "ハウサ",
+     "religion": "イスラム",
+     "coastal": false
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": 13.06,
+   "longitude": 5.24,
+   "farmLordShare": 0.7,
+   "culturalGoodId": 116
+  },
+  {
+   "name": "コンゴ王国",
+   "nobility": 60,
+   "peasant": 500,
+   "worker": 10,
+   "bourgeois": 15,
+   "professional": 10,
+   "merchant": 70,
+   "artisan": 60,
+   "nobLit": 0.8,
+   "peasLit": 0.04,
+   "workLit": 0.2,
+   "bourgLit": 0.55,
+   "profLit": 0.75,
+   "clergyFrac": 0.4,
+   "intelligentsiaFrac": 0.3,
+   "clergyLit": 0.85,
+   "intelLit": 0.85,
+   "peasantSubsistence": 0.75,
+   "polity": "Absolutist",
+   "education": "Religious",
+   "coercion": 60,
+   "treasury": 1500,
+   "initialTariff": 0.4,
+   "industrialization": 0,
+   "initialColonies": [],
+   "military": 0.4,
+   "ethnicUnity": 0.7,
+   "initialSuffrage": "None",
+   "initialCensorship": "StatePressOnly",
+   "initialCornLaws": "Full",
+   "initialSerfEmancipation": "None",
+   "provinces": [
+    {
+     "city": "ンバンザ=コンゴ",
+     "share": 0.6,
+     "resources": [
+      24,
+      2
+     ],
+     "culture": "コンゴ",
+     "religion": "カトリック",
+     "coastal": false
+    },
+    {
+     "city": "ボマ",
+     "share": 0.4,
+     "resources": [
+      21,
+      23
+     ],
+     "culture": "コンゴ",
+     "religion": "カトリック",
+     "coastal": true
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": -6.27,
+   "longitude": 14.24,
+   "farmLordShare": 0.6,
+   "culturalGoodId": 116
+  },
+  {
+   "name": "アルジェ摂政国",
+   "nobility": 200,
+   "peasant": 2000,
+   "worker": 120,
+   "bourgeois": 250,
+   "professional": 100,
+   "merchant": 600,
+   "artisan": 500,
+   "nobLit": 0.85,
+   "peasLit": 0.07,
+   "workLit": 0.25,
+   "bourgLit": 0.6,
+   "profLit": 0.8,
+   "clergyFrac": 0.4,
+   "intelligentsiaFrac": 0.35,
+   "clergyLit": 0.85,
+   "intelLit": 0.85,
+   "peasantSubsistence": 0.65,
+   "polity": "Absolutist",
+   "education": "Religious",
+   "coercion": 250,
+   "treasury": 12000,
+   "initialTariff": 0.3,
+   "industrialization": 0,
+   "initialColonies": [],
+   "military": 0.9,
+   "ethnicUnity": 0.5,
+   "initialSuffrage": "None",
+   "initialCensorship": "StatePressOnly",
+   "initialCornLaws": "Limited",
+   "initialSerfEmancipation": "None",
+   "provinces": [
+    {
+     "city": "アルジェ",
+     "share": 0.4,
+     "resources": [
+      16,
+      20
+     ],
+     "culture": "アラブ",
+     "religion": "イスラム",
+     "coastal": true
+    },
+    {
+     "city": "コンスタンティーヌ",
+     "share": 0.35,
+     "resources": [
+      15,
+      19
+     ],
+     "culture": "ベルベル",
+     "religion": "イスラム",
+     "coastal": false
+    },
+    {
+     "city": "オラン",
+     "share": 0.25,
+     "resources": [
+      15,
+      16
+     ],
+     "culture": "アラブ",
+     "religion": "イスラム",
+     "coastal": true
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": 36.75,
+   "longitude": 3.06,
+   "farmLordShare": 0.6,
+   "culturalGoodId": 62
+  },
+  {
+   "name": "オヨ帝国",
+   "nobility": 150,
+   "peasant": 1500,
+   "worker": 25,
+   "bourgeois": 40,
+   "professional": 25,
+   "merchant": 250,
+   "artisan": 200,
+   "nobLit": 0.8,
+   "peasLit": 0.04,
+   "workLit": 0.2,
+   "bourgLit": 0.55,
+   "profLit": 0.75,
+   "clergyFrac": 0.4,
+   "intelligentsiaFrac": 0.3,
+   "clergyLit": 0.8,
+   "intelLit": 0.85,
+   "peasantSubsistence": 0.7,
+   "polity": "Absolutist",
+   "education": "Religious",
+   "coercion": 120,
+   "treasury": 4000,
+   "initialTariff": 0.4,
+   "industrialization": 0,
+   "initialColonies": [],
+   "military": 0.7,
+   "ethnicUnity": 0.75,
+   "initialSuffrage": "None",
+   "initialCensorship": "StatePressOnly",
+   "initialCornLaws": "Full",
+   "initialSerfEmancipation": "None",
+   "provinces": [
+    {
+     "city": "オヨ=イレ",
+     "share": 0.7,
+     "resources": [
+      19,
+      116
+     ],
+     "culture": "ヨルバ",
+     "religion": "土着信仰",
+     "coastal": false
+    },
+    {
+     "city": "バダグリ",
+     "share": 0.3,
+     "resources": [
+      23,
+      17
+     ],
+     "culture": "ヨルバ",
+     "religion": "土着信仰",
+     "coastal": true
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": 8.13,
+   "longitude": 4.24,
+   "farmLordShare": 0.6,
+   "culturalGoodId": 116
+  },
+  {
+   "name": "ボルヌ帝国",
+   "nobility": 120,
+   "peasant": 1200,
+   "worker": 20,
+   "bourgeois": 35,
+   "professional": 20,
+   "merchant": 300,
+   "artisan": 150,
+   "nobLit": 0.85,
+   "peasLit": 0.05,
+   "workLit": 0.2,
+   "bourgLit": 0.6,
+   "profLit": 0.8,
+   "clergyFrac": 0.45,
+   "intelligentsiaFrac": 0.3,
+   "clergyLit": 0.9,
+   "intelLit": 0.88,
+   "peasantSubsistence": 0.72,
+   "polity": "Absolutist",
+   "education": "Religious",
+   "coercion": 100,
+   "treasury": 3000,
+   "initialTariff": 0.4,
+   "industrialization": 0,
+   "initialColonies": [],
+   "military": 0.6,
+   "ethnicUnity": 0.6,
+   "initialSuffrage": "None",
+   "initialCensorship": "StatePressOnly",
+   "initialCornLaws": "Full",
+   "initialSerfEmancipation": "None",
+   "provinces": [
+    {
+     "city": "ンガザルガム",
+     "share": 1.0,
+     "resources": [
+      6,
+      19,
+      24
+     ],
+     "culture": "カヌリ",
+     "religion": "イスラム",
+     "coastal": false
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": 12.9,
+   "longitude": 13.4,
+   "farmLordShare": 0.7,
+   "culturalGoodId": 116
+  },
+  {
+   "name": "ハワイ王国",
+   "nobility": 25,
+   "peasant": 200,
+   "worker": 4,
+   "bourgeois": 6,
+   "professional": 4,
+   "merchant": 25,
+   "artisan": 30,
+   "nobLit": 0.3,
+   "peasLit": 0.02,
+   "workLit": 0.1,
+   "bourgLit": 0.35,
+   "profLit": 0.5,
+   "clergyFrac": 0.4,
+   "intelligentsiaFrac": 0.25,
+   "clergyLit": 0.4,
+   "intelLit": 0.5,
+   "peasantSubsistence": 0.8,
+   "polity": "Absolutist",
+   "education": "Religious",
+   "coercion": 40,
+   "treasury": 800,
+   "initialTariff": 0.3,
+   "industrialization": 0,
+   "initialColonies": [],
+   "military": 0.3,
+   "ethnicUnity": 0.95,
+   "initialSuffrage": "None",
+   "initialCensorship": "StatePressOnly",
+   "initialCornLaws": "Full",
+   "initialSerfEmancipation": "None",
+   "provinces": [
+    {
+     "city": "ホノルル",
+     "share": 1.0,
+     "resources": [
+      25,
+      20
+     ],
+     "culture": "ポリネシア",
+     "religion": "土着信仰",
+     "coastal": true
+    }
+   ],
+   "initialInterestRate": 0.25,
+   "latitude": 21.31,
+   "longitude": -157.86,
+   "farmLordShare": 0.5,
+   "culturalGoodId": 102
+  }
+ ],
+ "abstractTargets": [
+  {
+   "name": "琉球",
+   "military": 0.1,
+   "treasury": 500,
+   "quinine": false,
+   "colonies": [
+    {
+     "name": "琉球",
+     "resources": [
+      25,
+      17,
+      20
+     ],
+     "population": 0.5
+    }
+   ]
+  },
+  {
+   "name": "蝦夷地",
+   "military": 0.2,
+   "treasury": 800,
+   "quinine": false,
+   "colonies": [
+    {
+     "name": "蝦夷地",
+     "resources": [
+      20,
+      1,
+      11,
+      5
+     ],
+     "population": 1
+    }
+   ]
+  },
+  {
+   "name": "アルタ=カリフォルニア",
+   "military": 0.4,
+   "treasury": 3000,
+   "quinine": false,
+   "colonies": [
+    {
+     "name": "アルタ=カリフォルニア",
+     "resources": [
+      4,
+      15,
+      19,
+      11
+     ],
+     "population": 1.5
+    }
+   ]
+  },
+  {
+   "name": "ボルネオ",
+   "military": 0.5,
+   "treasury": 3000,
+   "quinine": false,
+   "colonies": [
+    {
+     "name": "ボルネオ",
+     "resources": [
+      21,
+      10,
+      29,
+      11
+     ],
+     "population": 2
+    }
+   ]
+  },
+  {
+   "name": "マレー",
+   "military": 0.4,
+   "treasury": 2500,
+   "quinine": false,
+   "colonies": [
+    {
+     "name": "マレー",
+     "resources": [
+      29,
+      21,
+      117
+     ],
+     "population": 1.5
+    }
+   ]
+  },
+  {
+   "name": "南アフリカ",
+   "military": 0.5,
+   "treasury": 4000,
+   "quinine": false,
+   "colonies": [
+    {
+     "name": "南アフリカ",
+     "resources": [
+      4,
+      2,
+      19
+     ],
+     "population": 2
+    }
+   ]
+  },
+  {
+   "name": "パナマ",
+   "military": 0.4,
+   "treasury": 2000,
+   "quinine": false,
+   "colonies": [
+    {
+     "name": "パナマ",
+     "resources": [
+      11
+     ],
+     "population": 1
+    }
+   ]
+  },
+  {
+   "name": "大盆地",
+   "military": 0.5,
+   "treasury": 4000,
+   "quinine": false,
+   "colonies": [
+    {
+     "name": "ソルトレークシティ",
+     "resources": [],
+     "population": 0.1
+    }
+   ]
+  },
+  {
+   "name": "スーダン",
+   "military": 0.5,
+   "treasury": 4000,
+   "quinine": true,
+   "colonies": [
+    {
+     "name": "ドンゴラ",
+     "resources": [],
+     "population": 0.1
+    },
+    {
+     "name": "センナール",
+     "resources": [],
+     "population": 0.4
+    },
+    {
+     "name": "ファショダ",
+     "resources": [],
+     "population": 0.1
+    }
+   ]
+  },
+  {
+   "name": "サハラ",
+   "military": 0.5,
+   "treasury": 4000,
+   "quinine": false,
+   "colonies": [
+    {
+     "name": "トンブクトゥ",
+     "resources": [],
+     "population": 0.3
+    },
+    {
+     "name": "シンゲッティ",
+     "resources": [],
+     "population": 0.1
+    },
+    {
+     "name": "ムルズク",
+     "resources": [],
+     "population": 0.15
+    },
+    {
+     "name": "タマンラセット",
+     "resources": [],
+     "population": 0.1
+    },
+    {
+     "name": "アベシェ",
+     "resources": [],
+     "population": 0.2
+    }
+   ]
+  },
+  {
+   "name": "ブガンダ",
+   "military": 0.5,
+   "treasury": 4000,
+   "quinine": true,
+   "colonies": [
+    {
+     "name": "カンパラ",
+     "resources": [],
+     "population": 0.5
+    }
+   ]
+  },
+  {
+   "name": "大湖地方",
+   "military": 0.5,
+   "treasury": 4000,
+   "quinine": true,
+   "colonies": [
+    {
+     "name": "ウジジ",
+     "resources": [],
+     "population": 0.2
+    }
+   ]
+  },
+  {
+   "name": "ジンバブエ",
+   "military": 0.5,
+   "treasury": 4000,
+   "quinine": false,
+   "colonies": [
+    {
+     "name": "ブラワヨ",
+     "resources": [],
+     "population": 0.3
+    }
+   ]
+  },
+  {
+   "name": "ナタール",
+   "military": 0.5,
+   "treasury": 4000,
+   "quinine": false,
+   "colonies": [
+    {
+     "name": "ダーバン",
+     "resources": [],
+     "population": 0.3
+    }
+   ]
+  },
+  {
+   "name": "カラハリ",
+   "military": 0.5,
+   "treasury": 4000,
+   "quinine": false,
+   "colonies": [
+    {
+     "name": "クルマン",
+     "resources": [],
+     "population": 0.1
+    }
+   ]
+  },
+  {
+   "name": "南西アフリカ",
+   "military": 0.5,
+   "treasury": 4000,
+   "quinine": false,
+   "colonies": [
+    {
+     "name": "ウォルビスベイ",
+     "resources": [],
+     "population": 0.05
+    }
+   ]
+  },
+  {
+   "name": "コンゴ盆地",
+   "military": 0.5,
+   "treasury": 4000,
+   "quinine": true,
+   "colonies": [
+    {
+     "name": "キサンガニ",
+     "resources": [],
+     "population": 0.2
+    }
+   ]
+  },
+  {
+   "name": "中央アフリカ",
+   "military": 0.5,
+   "treasury": 4000,
+   "quinine": true,
+   "colonies": [
+    {
+     "name": "ヤウンデ",
+     "resources": [],
+     "population": 0.2
+    }
+   ]
+  },
+  {
+   "name": "カザフ草原",
+   "military": 0.5,
+   "treasury": 4000,
+   "quinine": false,
+   "colonies": [
+    {
+     "name": "アクモラ",
+     "resources": [],
+     "population": 0.5
+    }
+   ]
+  },
+  {
+   "name": "アチェ",
+   "military": 0.5,
+   "treasury": 4000,
+   "quinine": true,
+   "colonies": [
+    {
+     "name": "バンダアチェ",
+     "resources": [],
+     "population": 0.5
+    }
+   ]
+  },
+  {
+   "name": "ニューギニア",
+   "military": 0.5,
+   "treasury": 4000,
+   "quinine": true,
+   "colonies": [
+    {
+     "name": "ポートモレスビー",
+     "resources": [],
+     "population": 0.2
+    },
+    {
+     "name": "マノクワリ",
+     "resources": [],
+     "population": 0.1
+    }
+   ]
+  },
+  {
+   "name": "ニュージーランド",
+   "military": 0.5,
+   "treasury": 4000,
+   "quinine": false,
+   "colonies": [
+    {
+     "name": "オークランド",
+     "resources": [],
+     "population": 0.3
+    },
+    {
+     "name": "ダニーデン",
+     "resources": [],
+     "population": 0.2
+    }
+   ]
+  }
+ ],
+ "rivalries": [
+  {
+   "a": "フランス",
+   "b": "イギリス",
+   "tension": 50
+  },
+  {
+   "a": "イギリス",
+   "b": "アメリカ",
+   "tension": 40
+  },
+  {
+   "a": "フランス",
+   "b": "日本",
+   "tension": 5
+  },
+  {
+   "a": "日本",
+   "b": "アメリカ",
+   "tension": 15
+  },
+  {
+   "a": "ロシア",
+   "b": "オスマン",
+   "tension": 60
+  },
+  {
+   "a": "イギリス",
+   "b": "ロシア",
+   "tension": 45
+  },
+  {
+   "a": "プロイセン",
+   "b": "フランス",
+   "tension": 45
+  },
+  {
+   "a": "プロイセン",
+   "b": "ロシア",
+   "tension": 30
+  },
+  {
+   "a": "イギリス",
+   "b": "清",
+   "tension": 55
+  },
+  {
+   "a": "ロシア",
+   "b": "清",
+   "tension": 50
+  },
+  {
+   "a": "フランス",
+   "b": "清",
+   "tension": 40
+  }
+ ],
+ "dependencies": [
+  {
+   "suzerain": "シャム",
+   "dependent": "カンボジア"
+  },
+  {
+   "suzerain": "シャム",
+   "dependent": "ラオス"
+  },
+  {
+   "suzerain": "マラータ同盟",
+   "dependent": "デリー"
+  }
+ ],
+ "chokepoints": [
+  {
+   "id": "gibraltar",
+   "name": "ジブラルタル海峡",
+   "host": "ジブラルタル",
+   "isOpen": true,
+   "isCanal": false,
+   "buildCost": 0,
+   "techGate": 0,
+   "servesBasins": [
+    "Mediterranean",
+    "BlackSea"
+   ],
+   "exitOfBasin": "Mediterranean"
+  },
+  {
+   "id": "bosporus",
+   "name": "ボスポラス海峡",
+   "host": "イスタンブール",
+   "isOpen": true,
+   "isCanal": false,
+   "buildCost": 0,
+   "techGate": 0,
+   "servesBasins": [
+    "BlackSea"
+   ],
+   "exitOfBasin": "BlackSea"
+  },
+  {
+   "id": "malacca",
+   "name": "マラッカ海峡",
+   "host": "マレー",
+   "isOpen": true,
+   "isCanal": false,
+   "buildCost": 0,
+   "techGate": 0,
+   "servesBasins": [
+    "Pacific"
+   ]
+  },
+  {
+   "id": "suez",
+   "name": "スエズ運河",
+   "host": "カイロ",
+   "isOpen": false,
+   "isCanal": true,
+   "buildCost": 150000,
+   "techGate": 2.5,
+   "servesBasins": [
+    "IndianOcean",
+    "Pacific"
+   ]
+  },
+  {
+   "id": "panama",
+   "name": "パナマ運河",
+   "host": "パナマ",
+   "isOpen": false,
+   "isCanal": true,
+   "buildCost": 400000,
+   "techGate": 3,
+   "servesBasins": [
+    "Pacific"
+   ]
+  },
+  {
+   "id": "oresund",
+   "name": "エーレスンド海峡",
+   "host": "コペンハーゲン",
+   "isOpen": true,
+   "isCanal": false,
+   "buildCost": 0,
+   "techGate": 0,
+   "servesBasins": [
+    "Baltic"
+   ],
+   "exitOfBasin": "Baltic"
+  },
+  {
+   "id": "hormuz",
+   "name": "ホルムズ海峡",
+   "host": "マスカット",
+   "isOpen": true,
+   "isCanal": false,
+   "buildCost": 0,
+   "techGate": 0,
+   "servesBasins": [
+    "IndianOcean"
+   ]
+  },
+  {
+   "id": "bab_el_mandeb",
+   "name": "バブ・エル・マンデブ海峡",
+   "host": "アデン",
+   "isOpen": true,
+   "isCanal": false,
+   "buildCost": 0,
+   "techGate": 0,
+   "servesBasins": [
+    "RedSea"
+   ],
+   "exitOfBasin": "RedSea"
+  }
+ ]
+}

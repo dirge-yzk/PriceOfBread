@@ -1,0 +1,45 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PriceOfBread.App.ViewModels"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="980" d:DesignHeight="640"
+             x:Class="PriceOfBread.App.Views.TitleView"
+             x:DataType="vm:TitleViewModel">
+    <UserControl.Styles>
+        <!-- タイトルボタン：暗い背景画の上でも読めるよう不透明なパーチメント地＋濃色文字（NationSelectView の Button.nation と同等・既定Fluentボタンは半透明で沈む） -->
+        <Style Selector="Button.title">
+            <Setter Property="Background" Value="{StaticResource ParchmentDimBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource InkBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource SandDarkBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="4"/>
+        </Style>
+        <Style Selector="Button.title /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource ParchmentDimBrush}"/>
+        </Style>
+        <Style Selector="Button.title:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#E4DABE"/>
+            <Setter Property="TextBlock.Foreground" Value="#2A2118"/>
+        </Style>
+        <Style Selector="Button.title:pressed /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#D8CBA6"/>
+            <Setter Property="TextBlock.Foreground" Value="#2A2118"/>
+        </Style>
+    </UserControl.Styles>
+    <Panel>
+        <Image Source="avares://PriceOfBread.App/Assets/moonlit.jpg" Stretch="UniformToFill"/>
+        <Border Background="#59000000"/>
+        <!-- バージョンは**アセンブリから読む**（csproj の <Version> が唯一の出所）＝画面と exe のプロパティがずれない -->
+        <TextBlock Text="{Binding VersionText}" HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                   Margin="0,0,16,10" FontSize="{StaticResource FontSmall}" Foreground="#C9BFA8"/>
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="24">
+            <TextBlock Text="Price of Bread" FontSize="74" FontWeight="Bold" HorizontalAlignment="Center" Foreground="#F4EFE2"/>
+            <Button Classes="title" Content="始める" Command="{Binding StartCommand}" HorizontalAlignment="Center" Padding="48,12" FontSize="22" Margin="0,18,0,0"/>
+            <Button Classes="title" Content="続きから" Command="{Binding ContinueGameCommand}" IsVisible="{Binding CanContinue}"
+                    HorizontalAlignment="Center" Padding="48,10" FontSize="18"/>
+            <Button Classes="title" Content="終了" Command="{Binding ExitCommand}"
+                    HorizontalAlignment="Center" Padding="48,10" FontSize="18"/>
+        </StackPanel>
+    </Panel>
+</UserControl>

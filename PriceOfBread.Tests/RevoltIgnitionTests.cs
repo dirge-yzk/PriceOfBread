@@ -1,0 +1,1566 @@
+﻿using System;
+using PriceOfBread.SimCore;
+using Xunit;
+
+namespace PriceOfBread.Tests;
+
+/// <summary>
+/// 蜂起R群 2026-08-16（docs/202608/20260816_蜂起不発と極端プレイ診断_部分完了.md）のON経路検証。
+/// R1 CoercionSoftCap＝coerce飽和を壁→漸近逓減（Government.CoercionTargetFromForce）／
+/// R2 FactionRevoltLocalCoerce＝F3b右辺の州pop按分ブレンド（Politics.LocalizedHold）／
+/// R3 は★段2（2026-09-09）で機構ごと消滅＝熱は州平均闘争度1量（同じ主張を新しい形で測る2本に書き直し済み）／
+/// R4 ModernizationBudgetSoftCap＝近代化投資のminクランプ→漸近逓減（World.ModernizationBudget）。
+/// ⚠**R1・R2・R4は2026-08-16の点火梯子で点火済み**（R1=1.0＋水準 CoercionMax 4000→2000／R2=0.5／R4=1.0。R3は段2で削除）
+/// ＝既定はもう休眠ではない。各テストは**旧式（OFF）側を明示的に0へピン**して対照を取る
+/// （pob-ignition-comment-sweep の教訓＝既定に寄りかかった対照は点火で空洞化する）。
+/// 作法＝壁でなく逓減。
+/// </summary>
+public class RevoltIgnitionTests
+{
+    [Fact]
+    public void 既定係数は点火済みの宣言値である()   // 番人＝いま live な値の宣言（うっかり動いたらここが赤になる）
+    {
+        // ⚠POB_COEF で明示的に上書きした測定走行では見ない（点火A/Bを同一バイナリで取るため）。
+        var c = new Coefficients();
+        string ov = Coefficients.OverrideSummary();
+        if (!ov.Contains("CoercionSoftCap", StringComparison.Ordinal)) Assert.Equal(1.0, c.CoercionSoftCap);
+        if (!ov.Contains("CoercionMax", StringComparison.Ordinal)) Assert.Equal(2000.0, c.CoercionMax);   // R1と同時に水準も是正（旧4000）
+        if (!ov.Contains("FactionRevoltLocalCoerce", StringComparison.Ordinal)) Assert.Equal(0.5, c.FactionRevoltLocalCoerce);
+        // ★段2（設計メモ §7-3・作者裁定2026-09-09）で確定した4値＝史実から逆算した数（勘で置いていない）。うっかり動いたらここが赤になる。
+        if (!ov.Contains("MilitancySpeed", StringComparison.Ordinal)) Assert.Equal(0.30, c.MilitancySpeed);
+        if (!ov.Contains("RegionalRevoltThreshold", StringComparison.Ordinal)) Assert.Equal(0.50, c.RegionalRevoltThreshold);
+        if (!ov.Contains("WarWearinessMilitancy", StringComparison.Ordinal)) Assert.Equal(0.35, c.WarWearinessMilitancy);
+        if (!ov.Contains("RegionalRevoltStrength", StringComparison.Ordinal)) Assert.Equal(0.5, c.RegionalRevoltStrength);
+        // ★構造条件（設計メモ §7-3）：σ が門を下回っていないと、平穏な州が1四半期の欠乏で一揆を起こす＝作者裁定「一瞬の飢餓では起きない」が破れる。
+        Assert.True(c.MilitancySpeed < c.RegionalRevoltThreshold, "構造条件 σ < 門 が破れた＝1四半期の欠乏で一揆が発火する");
+        Assert.True(1.0 - Math.Pow(1.0 - c.MilitancySpeed, 2) > c.RegionalRevoltThreshold, "2四半期でも門に届かない＝「半年の飢餓で大量の反乱軍」が表せない");
+        // ★満期の厭戦（0.9）が単独では門に届かない＝ナポレオン戦争級の長期戦でも戦争だけでは全土蜂起しない（飢餓が足されて初めて越える）。
+        Assert.True(0.9 * c.WarWearinessMilitancy < c.RegionalRevoltThreshold, "厭戦だけで門を越える＝1.5年超の全戦争が全土蜂起になる");
+        if (!ov.Contains("ModernizationBudgetSoftCap", StringComparison.Ordinal)) Assert.Equal(1.0, c.ModernizationBudgetSoftCap);
+    }
+
+    [Fact]
+    public void R1_ソフト化で高軍事費でも点火可能な帯が開く()   // 診断A1：旧CoercionMax=4000は等号点≈1250の3.2倍＝軍事費≳0.28で革命が代数的に不能だった
+    {
+        var c = new Coefficients();
+        c.CoercionSoftCap = 0;   // ★OFF側を明示ピン（既定は点火1.0）
+        // フラグ0＝旧 min(x, CoercionMax) とビット恒等（壁のまま）
+        foreach (var x in new[] { 0.0, 800.0, 1600.0, 4000.0, 12000.0 })
+            Assert.Equal(System.Math.Min(x, c.CoercionMax), Government.CoercionTargetFromForce(x, c));
+        // 等号点（診断A1の導出）：challenge理論最大 ≈ Pop×1.25 → 点火 ⇔ BaseCoercion×Leg×funding < PoliticalReferencePop×1.25 ≈ 1250
+        double ignitionBound = c.PoliticalReferencePop * 1.25;
+        c.CoercionSoftCap = 1.0;
+        double soft = Government.CoercionTargetFromForce(1600.0, c);   // 旧なら1600＝点火不能の帯
+        Assert.True(soft < ignitionBound,
+            $"ソフト化しても点火帯が開かない（force1600 → {soft:F1} ≥ 等号点 {ignitionBound:F0}）");
+        Assert.True(System.Math.Min(1600.0, c.CoercionMax) >= ignitionBound, "前提が崩れた：旧式でも同じ軍で点火可能になっている");
+        // 壁でなく逓減：どれだけ大軍でも CoercionMax 未満（漸近）・単調増加は保つ（軍を増やせば保持力は増える＝限界効用だけ逓減）
+        Assert.True(Government.CoercionTargetFromForce(1e12, c) < c.CoercionMax, "漸近が壁を超えた");
+        Assert.True(Government.CoercionTargetFromForce(8000.0, c) < Government.CoercionTargetFromForce(16000.0, c), "単調性が壊れた");
+    }
+
+    [Fact]
+    public void R2_大国の州クラスタが按分後に点火しうる()   // 診断A2：左辺=州クラスタ規模 vs 右辺=全国coerce＝人口の大きい国ほど点火不能の逆理
+    {
+        var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+        sim.Run(20);
+        var w = sim.World; var c = w.Coef;
+        var faction = new FactionState { Region = w.Regions[1], Bloc = 2, Ideo = 5 };   // 非首都州の大衆クラスタ（LocalizedHoldはRegionのみ読む）
+        double share = w.Regions[1].SumPopulation() / w.TotalPopulation;
+        Assert.True(share > 0 && share < 0.9, $"前提が崩れた：州人口シェアが比として立たない（{share:F3}）");
+        const double coerce = 1000.0;
+        c.FactionRevoltLocalCoerce = 0;   // ★OFF側を明示ピン（既定は点火0.5）
+        Assert.Equal(coerce, Politics.LocalizedHold(w, c, faction.Region, coerce));   // 旧＝全国coerceのまま（ビット恒等）
+        c.FactionRevoltLocalCoerce = 1.0;   // 完全按分
+        double local = Politics.LocalizedHold(w, c, faction.Region, coerce);
+        Assert.Equal(coerce * share, local, 9);
+        // 点火帯が開く：全国では鎮圧される規模（strength≤coerce）の運動が、州按分後の保持力は上回れる
+        double strength = (local + coerce) / 2.0;
+        Assert.True(strength > local && strength <= coerce, $"按分で点火帯が開かない（local {local:F1} / 全国 {coerce:F1}）");
+        c.FactionRevoltLocalCoerce = 0.5;   // ブレンド中間＝旧と完全按分の間（点火A/Bで中間値を掃引できる連続化）
+        double blended = Politics.LocalizedHold(w, c, faction.Region, coerce);
+        Assert.True(local < blended && blended < coerce, $"ブレンドが単調でない（f=1: {local:F1} / f=0.5: {blended:F1} / f=0: {coerce:F1}）");
+    }
+
+    // ★段2（設計メモ §7-3・作者裁定2026-09-09）：R3（熱の欠乏因子に州平均満足を併置するスイッチ）は**機構ごと消えた**。
+    //   熱＝州平均闘争度×欠乏因子 という2量の積は、欠乏を「闘争度の中（飢餓の駆動項）」と「熱の外側」の両方で数える二重計上だった。
+    //   ⇒ 熱は1量になり、R3が解いていた「FoodFill=1.0 で熱が恒久0」という遮断スイッチも同じ変更で構造的に消えている。
+    //   下の2本は、旧R3の2本を**同じ主張の新しい形**（積をやめた・飢えは闘争度を通る）へ書き直したもの＝弱めていない。
+    [Fact]
+    public void 段2_州の熱は州平均闘争度そのものである()
+    {
+        var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+        sim.Run(20);
+        var r = sim.World.Region; var c = sim.World.Coef;
+        foreach (var p in r.Pops) { p.Militancy = 0.6; p.Satisfaction = 0.3; }
+        foreach (var fill in new[] { 1.0, 0.7, 0.0 })   // 主食充足をどう振っても熱は動かない＝熱の**外側**に欠乏因子はもう無い
+        {
+            r.FoodFill = fill;
+            Assert.Equal(0.6, Politics.RegionRevoltHeat(r, c), 9);
+        }
+        Assert.Equal(Politics.AvgRegionMilitancy(r), Politics.RegionRevoltHeat(r, c));   // 定義そのもの（1量）
+        // 旧R3の主張「食えていても満たされない州には熱が立つ」は保たれている＝闘争度が立てば熱が立つ（主食は関係ない）。
+        r.FoodFill = 1.0;
+        Assert.True(Politics.RegionRevoltHeat(r, c) > 0, "主食が満杯だと熱が恒久0＝遮断スイッチが戻っている");
+    }
+
+    [Fact]
+    public void 段2_飢えは闘争度のストックを通ってから熱になる()
+    {
+        // ★作者裁定の受け入れ基準そのもの（設計メモ §6-4-1）＝「一瞬の飢餓では起きないが半年（2四半期）続けば越える」。
+        //   これは**機構の主張**である（σと利得の算術＋クランプ）＝創発の主張ではない。
+        var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+        sim.Run(20);
+        var w = sim.World; var c = w.Coef;
+        c.FamineDriveGain = 10;   // ★点火値（既定は0＝休眠）。段0の計器から導出（2026-09-11・Coefficients.FamineDriveGain のコメント）＝§7-3 の仮置き 3.3 は棄却
+        Assert.Equal(0.73, c.FamineDriveOnset);   // 起点の既定＝5大国の pop 分位 p10 の中央値（この番人自身が既定値の宣言）
+        // 盤面を「飢え以外は平穏」に置く：参照点＝現在の生活水準（失望0）・中核民族100%（民族項0）・闘争度0。
+        // 食料は飽和帯（充足 0.40 < 0.73−1/10 = 0.63）＝駆動1.0＝targetは他項に依らずクランプで 1.0。
+        foreach (var p in w.AllPops())
+        {
+            p.Militancy = 0; p.LivingRef = p.Satisfaction; p.CoreEthnicShare = 1.0;
+            p.FoodNeed = 1.0; p.FoodMet = 0.40;
+        }
+        // ⚠物差しに**閉鎖pop（貴族）**を使う：F1の一揆の緩和も戦死も「非閉鎖pop」だけを書き換えるので、
+        //   同一ティックの下流の書き込みから隔離できる＝σと利得の算術だけを測れる（計器の隔離）。
+        Pop? noble = null;
+        foreach (var p in w.AllPops()) if (p.Closed) { noble = p; break; }
+        Assert.NotNull(noble);
+        Politics.Step(w, c);
+        Assert.Equal(c.MilitancySpeed, noble!.Militancy, 9);                       // 1四半期＝σ
+        Assert.True(noble.Militancy < c.RegionalRevoltThreshold, $"1四半期の欠乏で門を越えた（{noble.Militancy:F3}）＝作者裁定が破れる");
+        Politics.Step(w, c);
+        Assert.Equal(1.0 - Math.Pow(1.0 - c.MilitancySpeed, 2), noble.Militancy, 9);   // 2四半期＝1−(1−σ)²
+        Assert.True(noble.Militancy > c.RegionalRevoltThreshold, $"2四半期の欠乏でも門に届かない（{noble.Militancy:F3}）");
+        Assert.Equal(1.0, noble.MilFamine);   // 飽和帯＝駆動1.0（診断の内訳も同じ値）
+        // ★起点の番人（2026-09-11）：起点より上（平時の四分位帯）の pop には飢餓の駆動が**厳密に0**＝慢性の信号を作らない。
+        //   充足 = 起点+0.05（全5カ国の p25 帯 0.78〜0.82 の中）→ 駆動 < 0 → 0。斜路の中（起点−0.5/利得＝門0.50に達する充足）→ 駆動 0.5。
+        double above = c.FamineDriveOnset + 0.05, ramp = c.FamineDriveOnset - 0.5 / c.FamineDriveGain;
+        foreach (var p in w.AllPops()) { p.Militancy = 0; p.FoodMet = above; }
+        Politics.Step(w, c);
+        Assert.Equal(0.0, noble.MilFamine);
+        // 闘争度の移動は**飢餓以外の4項だけ**（内訳の代入5本は target と同じ値）＝σ×(生活+政治+厭戦+民族)。飢餓が1ビットでも入れば等式が破れる。
+        Assert.Equal(c.MilitancySpeed * (noble.MilLiving + noble.MilVoice + noble.MilWar + noble.MilNation), noble.Militancy, 9);
+        foreach (var p in w.AllPops()) { p.Militancy = 0; p.FoodMet = ramp; }
+        Politics.Step(w, c);
+        Assert.Equal(0.5, noble.MilFamine, 9);   // 斜路＝線形（クランプ前）＝門0.50に達する充足で駆動ちょうど0.5
+    }
+
+    [Fact]
+    public void 段2_飢餓の駆動項は休眠では食料を1度も読まない()
+    {
+        // 休眠（既定0）の側の番人＝盤面をどれだけ飢えさせても闘争度に飢餓が入らない（点火A/Bの対照が空洞にならない）。
+        var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+        sim.Run(20);
+        var w = sim.World; var c = w.Coef;
+        Assert.Equal(0.0, c.FamineDriveGain);   // 既定＝休眠（この番人自身が既定値の宣言）
+        foreach (var p in w.AllPops())
+        {
+            p.Militancy = 0; p.LivingRef = p.Satisfaction; p.CoreEthnicShare = 1.0;
+            p.FoodNeed = 1.0; p.FoodMet = 0.0;   // 全滅級の欠乏
+        }
+        Pop? noble = null;
+        foreach (var p in w.AllPops()) if (p.Closed) { noble = p; break; }
+        Assert.NotNull(noble);
+        Politics.Step(w, c);
+        Assert.True(noble!.Militancy < c.MilitancySpeed * 0.5,
+                    $"休眠のはずの飢餓項が闘争度を動かしている（{noble.Militancy:F3}）");
+    }
+
+    [Fact]
+    public void 器_階層3分割と飢餓の駆動は対で点けて初めて裁定になる()
+    {
+        // ★作者裁定2026-09-20「食料不足は闘争度、日用品は不満度、嗜好品は満足度」の**接続**の番人。
+        //   NeedTierSplit は満足度の台帳から食料を抜くだけ＝それ単独では飢えの出口が無い（＝腕Aは意図的に不完全なアブレーション）。
+        //   飢えを怒りへ運ぶのは FamineDriveGain で、これは**食料の台帳（FoodMet/FoodNeed）だけ**を読む
+        //   ＝分割は駆動の算術に1ビットも触らない（2つの台帳が独立であることの宣言）。
+        static (double famine, double militancy) Probe(double split, double gain)
+        {
+            var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+            sim.Run(20);
+            var w = sim.World; var c = w.Coef;
+            c.NeedTierSplit = split; c.FamineDriveGain = gain;
+            foreach (var p in w.AllPops())
+            {
+                p.Militancy = 0; p.LivingRef = p.Satisfaction; p.CoreEthnicShare = 1.0;
+                p.FoodNeed = 1.0; p.FoodMet = 0.40;   // 飽和帯（0.40 < 0.73−1/10）
+            }
+            Pop? noble = null;
+            foreach (var p in w.AllPops()) if (p.Closed) { noble = p; break; }
+            Assert.NotNull(noble);
+            Politics.Step(w, c);
+            return (noble!.MilFamine, noble.Militancy);
+        }
+        // 分割だけ＝飢えの出口が無い（食料は満足度からも抜けている＝この腕では飢えが政治へ1ビットも出ない）。
+        var splitOnly = Probe(1.0, 0.0);
+        Assert.Equal(0.0, splitOnly.famine);
+        Assert.True(splitOnly.militancy < new Coefficients().MilitancySpeed * 0.5,
+                    $"駆動0なのに飢餓が闘争度を動かしている（{splitOnly.militancy:F3}）");
+        // 対で点ける＝裁定そのもの。駆動は飽和（1.0）＝1四半期でσぶんだけ上がる。
+        var both = Probe(1.0, 10.0);
+        Assert.Equal(1.0, both.famine);
+        // 分割は食料の台帳に触らない＝駆動の値は分割の有無で厳密に同じ（分子と分母の非対称を作らない）。
+        var gainOnly = Probe(0.0, 10.0);
+        Assert.Equal(gainOnly.famine, both.famine);
+        Assert.Equal(gainOnly.militancy, both.militancy);
+    }
+
+    [Fact]
+    public void R4_近代化投資のfrac06と10に区別が生まれる()   // 診断B3：minクランプがfrac≳0.5の凸コストを食い、0.6と1.0の区別が消滅していた
+    {
+        var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+        sim.Run(20);
+        var w = sim.World;
+        Assert.True(w.NominalGdp > 5_000, "前提が崩れた：GDPが小さすぎて要求額が国庫半分に届かない");
+        w.SetTreasuryRaw(1_000.0);   // 国庫半分=500 ≪ 要求額＝minクランプが確実に食う帯
+        double Budget(double frac) { w.ModernizationFrac = frac; return w.ModernizationBudget(); }
+        w.Coef.ModernizationBudgetSoftCap = 0;   // ★OFF側を明示ピン（既定は点火1.0）
+        double off06 = Budget(0.6), off10 = Budget(1.0);
+        Assert.Equal(off06, off10);   // 旧＝区別の消滅（「100%は不可能」が実挙動に不存在）の再現
+        Assert.True(off10 > 0);
+        w.Coef.ModernizationBudgetSoftCap = 1.0;
+        double on03 = Budget(0.3), on06 = Budget(0.6), on10 = Budget(1.0);
+        Assert.Equal(off10, on10);    // frac=1.0＝漸近の極限＝旧の壁と同額（上限保存・convex=+∞でもNaNにならない）
+        Assert.True(on06 < on10, $"frac0.6と1.0の区別が生まれない（0.6: {on06:F1} / 1.0: {on10:F1}）");
+        Assert.True(on03 < on06, $"fracの単調性が壊れた（0.3: {on03:F1} / 0.6: {on06:F1}）");
+        Assert.True(on06 > 0);
+    }
+
+    // ============================================================================================
+    // ★段0＝幽霊の封じ（F3b蜂起doc §7-1・2026-09-08・係数なし）。
+    //   反乱国家が建つと本拠州は親の World.Regions を離れるが、FactionState は親の w.Factions に残って
+    //   Region 参照を握ったままになる（建国路は w.Factions を掃除しない）。州の State は Active のままなので
+    //   State ゲートを素通りし、選ばれると民族分岐が**親が所有していない州**を SecedingRegion に代入 →
+    //   StartCivilWar → CivilWarYears が減らないまま政治が永久凍結する＝破綻。
+    //   選ばれた運動には**通知の札**（World.PendingFactionCrisis＝要求は法の経路・2026-09-11点火）が必ず立つので、
+    //   「札がその運動か」＝「選ばれたか」の分岐非依存の物差しになる（決着は翌評価＝Rejections は通知の四半期には動かない）。
+    // ============================================================================================
+    private static FactionState 巨大な運動を差し込む(World w, Region home)
+    {
+        var f = new FactionState
+        {
+            Region = home, Bloc = 2, Ideo = (int)Ideology.Communism,
+            Size = 1e12, AvgMilitancy = 1.0, Cohesion = 1.0,   // 結束1.0＝1四半期の不在減衰(0.10)後も闘争閾値0.8を上回る
+            Mutated = true, MutantName = "幽霊の旗",   // 旗＝忘却と変異ロールの側の量（★段2で強度からは組織核ごと消えた）
+            Rejections = 3.0,   // 通知の四半期には動かない（動けば「決着の枝を踏んだ」＝物差しの汚れ）
+        };
+        w.Factions.Add(f);
+        w.RevoltCooldownQuarters = 0;   // F1/F3b共有のクールダウンを開ける（閉じていると選定ループに入らない）
+        return f;
+    }
+
+    [Fact]
+    public void 段0対照_自国の州を本拠に持つ巨大な運動は選ばれる()   // ⚠先に対照を取る：これが通らないと下の除外テストは空洞（機構に届いていない）
+    {
+        var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+        sim.Run(20);
+        var w = sim.World;
+        Assert.True(w.Regions.Count > 1, "前提が崩れた：非首都州がない");
+        Assert.True(w.FactionRng is not null && w.Coef.FactionRevoltScale > 0, "前提が崩れた：F3bが遮蔽されている");
+        var own = 巨大な運動を差し込む(w, w.Regions[1]);
+        Assert.True(Politics.FactionStrength(w, w.Coef, own) > Politics.LocalizedHold(w, w.Coef, own.Region, PoliticalQuantities.EffectiveCoerce(w, w.Coef)) + Politics.LoyalistMilitia(w, w.Coef, own),
+            "前提が崩れた：差し込んだ運動が保持力を超えていない");
+        Politics.Step(w, w.Coef);
+        Assert.Same(own, w.PendingFactionCrisis);   // 対照＝自国の州の運動は選ばれる（通知の札が立つ）
+    }
+
+    [Fact]
+    public void 段0_他国の州を本拠に持つ勢力は選ばれない()
+    {
+        var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+        var other = new Simulation(NationConfig.France().ToScenario(41), new NullAgent());
+        sim.Run(20); other.Run(20);
+        var w = sim.World;
+        Assert.True(other.World.Regions.Count > 1, "前提が崩れた：他国に非首都州がない");
+        var foreign = other.World.Regions[1];   // ★反乱国家へ移った後の本拠州と同じ状態＝Active だが親の Regions にない
+        Assert.Equal(RegionState.Active, foreign.State);
+        Assert.DoesNotContain(foreign, w.Regions);
+        var ghost = 巨大な運動を差し込む(w, foreign);
+        Politics.Step(w, w.Coef);
+        Assert.NotSame(ghost, w.PendingFactionCrisis);   // 選定ループが幽霊を素通りした（通知の札が立たない）
+        Assert.Equal(3.0, ghost.Rejections);              // どの決着枝にも入っていない
+        Assert.NotSame(ghost, w.RevoltingFaction);
+        Assert.NotSame(foreign, w.SecedingRegion);   // ★破綻の道：親が所有しない州が分離戦の対象になっていない
+        if (w.PendingRebelRegions is { } pend) Assert.DoesNotContain(foreign, pend);
+    }
+
+    [Fact]
+    public void 段0_合流ループも他国の州の運動を吸わない()
+    {
+        var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+        var other = new Simulation(NationConfig.France().ToScenario(41), new NullAgent());
+        sim.Run(20); other.Run(20);
+        var w = sim.World; var c = w.Coef;
+        Assert.True(c.FactionMergeRangeKm > 0, "前提が崩れた：合流が休眠＝この番人は空洞（doc の『0で休眠』は陳腐化）");
+        var mine = new FactionState { Region = w.Regions[1], Bloc = 2, Ideo = (int)Ideology.Communism, Size = 100, AvgMilitancy = 0.5, Cohesion = 0.4 };
+        var ghost = new FactionState { Region = other.World.Regions[1], Bloc = 2, Ideo = (int)Ideology.Communism, Size = 100_000, AvgMilitancy = 0.5, Cohesion = 0.9 };
+        w.Factions.Add(mine); w.Factions.Add(ghost);
+        string ghostRegionName = ghost.Region.Name;
+        Factions.Step(w, c);
+        // 合流は成立時に必ずログを1行書く＝**合流したか**の分岐非依存の物差し（結束の値は不在減衰でも動くので物差しにしない）。
+        Assert.DoesNotContain(w.PendingLog, l => l.Contains("合流") && l.Contains(ghostRegionName));
+        Assert.True(mine.Cohesion > 0, "自国の運動が幽霊に吸収された（吸収側は small.Cohesion=0 を書く）");
+    }
+
+    // ============================================================================================
+    // ★段2＝鎮圧の後始末（F3b蜂起doc §3-4・作者裁定②＝A・2026-09-08）。
+    //   内戦一元化の主経路（War で戦う）の再併合サイト MultiNationSim.ApplyReintegrations には
+    //   正統性の減算も闘争度の緩和も結束の焼失も断裂の窓も**1行も無かった**＝鎮圧されても運動は結束満額のまま残り、
+    //   同じ旗が翌期また立つ（旧経路 Politics.cs:979-985 は4つとも書いている）。RevoltAftermathOnWarPath>0 で埋める。
+    //   ⚠実経路（F3b点火→建国→戦争→講和）は現行の点火不等式ではどの種でも踏まれないので（段1の実測＝604四半期で0件）、
+    //     ここでは**再併合の予約を直接置いて**サイトだけを踏ませる＝機構の検査であって創発の主張ではない。
+    //   ⚠2本の腕は種も注入も同一で、違いは係数1本だけ。OFF側も明示的に0で回す（既定に寄りかかった対照は点火で空洞化する）。
+    // ============================================================================================
+    private static (double Cohesion, double Militancy, double Legitimacy, int Rupture) 段2_再併合を1回踏む(double gate)
+    {
+        var sim = new MultiNationSim([NationConfig.France(), NationConfig.Japan(), NationConfig.Britain(), NationConfig.America()],
+                                     seed: 1789, coef: new Coefficients { RevoltAftermathOnWarPath = gate });
+        sim.Run(8);
+        var pw = sim.Nations[0].World; var rw = sim.Nations[1].World;
+        Assert.True(pw.SelfPower is not null && rw.SelfPower is not null && pw.Regions.Count > 0 && rw.Regions.Count > 0);
+        var spent = new FactionState   // 内乱の主体＝親が武力で決着させた運動（結束は闘争閾値0.8を大きく超えたまま）
+        {
+            Region = pw.Regions[0], Bloc = 2, Ideo = (int)Ideology.Communism,
+            // ⚠規模は1＝**F3bの選定に乗らない**大きさ（段2で組織核が消え強度が数倍になり、旧の 1e6 では同じティックで
+            //   選定に乗って決着の枝の書き込みが入る＝2腕の差が再併合の後始末以外の書き込みで汚れた）。
+            //   後始末のサイト（ApplyReintegrations）は pw.RevoltingFaction を見るだけで規模を読まない＝測るものは変わらない。
+            Size = 1.0, AvgMilitancy = 1.0, Cohesion = 1.0,
+        };
+        pw.Factions.Add(spent);
+        pw.RevoltingFaction = spent;
+        pw.Legitimacy = 0.5; pw.RuptureWindowQuarters = 0;
+        var returning = new System.Collections.Generic.List<Region>(rw.Regions);   // 返還される州（＝闘争度の緩和の対象）
+        foreach (var r in returning) foreach (var p in r.Pops) p.Militancy = 0.5;
+        sim.Diplomacy.PendingReintegrations.Add((pw.SelfPower!, rw.SelfPower!, false, pw.Polity));   // 親の勝利＝鎮定して再併合
+        sim.Run(1);
+        double mil = 0, pop = 0;
+        foreach (var r in returning) foreach (var p in r.Pops) { mil += p.Militancy * p.Size; pop += p.Size; }
+        Assert.True(pop > 0, "返還州にPOPがない（注入の前提が崩れた）");
+        return (spent.Cohesion, mil / pop, pw.Legitimacy, pw.RuptureWindowQuarters);
+    }
+
+    [Fact]
+    public void 段2_戦争経路の再併合で運動が燃え尽き返還州が静まり正統性が傷つく()
+    {
+        var off = 段2_再併合を1回踏む(0.0);
+        var on = 段2_再併合を1回踏む(1.0);
+        double fight = new Coefficients().FactionCohesionFightThreshold;
+        // 対照＝現行（OFF）では運動は1ビットも燃え尽きない＝翌期そのまま再蜂起できる（これが欠陥の実体）
+        Assert.True(off.Cohesion > fight, $"対照が成立しない：OFFでも結束が闘争閾値を割った（{off.Cohesion:F3}）");
+        Assert.True(on.Cohesion < off.Cohesion, $"結束が清算されていない（ON {on.Cohesion:F3} / OFF {off.Cohesion:F3}）");
+        Assert.True(on.Cohesion < fight, $"清算後も闘争閾値を上回る＝翌期また立てる（{on.Cohesion:F3}）");
+        Assert.True(on.Militancy < off.Militancy, $"返還州が静まっていない（ON {on.Militancy:F4} / OFF {off.Militancy:F4}）");
+        Assert.True(on.Legitimacy < off.Legitimacy, $"流血の記憶が正統性に残っていない（ON {on.Legitimacy:F4} / OFF {off.Legitimacy:F4}）");
+        Assert.True(on.Rupture > off.Rupture, $"断裂の窓が開いていない（ON {on.Rupture} / OFF {off.Rupture}）");
+    }
+
+    // ============================================================================================
+    // ★段3＝亡霊の残り(i)（F3b蜂起doc・2026-09-08・係数なし）：好機の「弱み」から**内戦を除く**。
+    //   Government.AtWar は CivilWarParent 付きの戦争も数えるので、内戦一元化の主経路では反乱が1つ立った瞬間に
+    //   親が恒久に弱みになり、好機のブレーキ（FactionOpportunism）も圧倒判定も両方外れた＝1つ目の蜂起が2つ目を呼ぶ。
+    //   ⚠2本の腕の違いは**普通の戦争を1本足したかどうかだけ**＝点火したなら弱みの項が読んだのは外征だと確定する
+    //     （足りない強度で落ちたのではないことは、外征ありの腕が点火することが証明する）。
+    // ============================================================================================
+    private static bool 段3_内戦だけの親で選定を1回回す(bool addExternalWar)
+    {
+        var coef = new Coefficients { FactionOverwhelmFactor = 1e9 };   // 圧倒の迂回路を閉じる＝**弱みの項だけ**が点火を決める帯にする
+        var sim = new MultiNationSim([NationConfig.France(), NationConfig.Japan(), NationConfig.Britain(), NationConfig.America()],
+                                     seed: 1789, coef: coef);
+        sim.Run(8);
+        var pw = sim.Nations[0].World;
+        Assert.True(coef.FactionOpportunism > 0, "前提が崩れた：好機のブレーキが休眠＝この番人は空洞");
+        Assert.True(pw.FactionRng is not null && coef.FactionRevoltScale > 0, "前提が崩れた：F3bが遮蔽されている");
+        sim.Diplomacy.DeclareCivilWar(pw.SelfPower!, sim.Nations[1].World.SelfPower!, pw.Polity, coef);   // 反乱国が地図の上に立った状態
+        if (addExternalWar) sim.Diplomacy.Wars.Add(new War { A = pw.SelfPower!, B = sim.Nations[2].World.SelfPower! });   // 対照＝外征（内戦タグなし）
+        Assert.True(Government.AtWar(pw), "前提が崩れた：内戦が交戦として数えられていない＝旧経路の再現になっていない");
+        pw.Legitimacy = 1.0;   // 弱みの正統性項を閉じる（閾値0.5＝1四半期の変動では割らない）
+        Assert.False(pw.GdpDrawdown > coef.FactionStrikeDrawdown, $"前提が崩れた：恐慌項が開いている（GdpDrawdown {pw.GdpDrawdown:F3}）＝弱みの切り分けができない");
+        pw.RevoltCooldownQuarters = 0;
+        var f = 巨大な運動を差し込む(pw, pw.Regions[0]);   // 段0と同じ注入＝保持力を桁で上回る運動（力の門は確実に越える）
+        Politics.Step(pw, coef);
+        return ReferenceEquals(pw.PendingFactionCrisis, f);   // 札が立った＝選定に入った／立たない＝好機を待った
+    }
+
+    [Fact]
+    public void 段3_内戦は好機の弱みに数えない()
+    {
+        bool onlyCivil = 段3_内戦だけの親で選定を1回回す(addExternalWar: false);
+        bool withExternal = 段3_内戦だけの親で選定を1回回す(addExternalWar: true);
+        Assert.True(withExternal, "対照が成立しない：外征があっても選ばれていない＝強度が足りない帯に落ちている");
+        Assert.False(onlyCivil);   // 内戦しか無い親は弱みでない＝圧倒に届かない運動は待つ（1つ目が2つ目を呼ばない）
+    }
+
+    // ============================================================================================
+    // ★段4＝点火の付け替え（F3b蜂起doc §3-2・作者裁定・2026-09-08）。
+    //   旧＝点火も決着も同じ不等式（FactionStrength > 保持力+郷勇）＝蜂起は**勝てるときにしか始まれない**（成功率100%）。
+    //   さらに左辺は f.Size に比例する州クラスタ規模・右辺の郷勇は全国スケール＝点火が人口に反比例した。
+    //   新＝連言2門：門1 組織された意志（FactionStrength÷f.Size＝示強量）／門2 州の絶望（RegionRevoltHeat＋怨嗟）。
+    //   ⚠ON経路の係数は **w.Coef に世界側で書く**（MultiNationSim(coef:) は sim 側にしか効かない既知の罠。ここは単国 Simulation なので
+    //     w.Coef が Politics.Step へ渡す当のインスタンス）。
+    //   ⚠物差しは段0・段3と同じ通知の札（World.PendingFactionCrisis）＝「選ばれたか」の分岐非依存の量（立たなければ ClearFactionCrisis で null）。
+    // ============================================================================================
+    private static (World W, FactionState F) 段4_絶望した州に小さな運動を置く(double regionMilitancy, double fight, double rejections)
+    {
+        var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+        sim.Run(20);
+        var w = sim.World;
+        Assert.True(w.Regions.Count > 1 && w.FactionRng is not null && w.Coef.FactionRevoltScale > 0, "前提が崩れた：F3bが遮蔽されている");
+        Assert.True(w.Suffrage < Suffrage.AdultMale, $"前提が崩れた：大衆の発言権が開いている（{w.Suffrage}）＝(1−発言権)=0 で強度が消える");
+        var home = w.Regions[1];
+        // ★段2：州の絶望＝RegionRevoltHeat＝**州平均闘争度そのもの**（欠乏因子との積はやめた）。
+        // ⚠σが 0.03→0.30 になったので、注入した闘争度が Politics.Step の**同一ティック内**で大きく動く（旧はσが小さく事実上不動だった）。
+        //   この番人は**点火の門**を測るものであってσを測るものではないので、σを0にピンして盤面を凍結する＝較正値から独立させる。
+        w.Coef.MilitancySpeed = 0;
+        foreach (var p in home.Pops) { p.Militancy = regionMilitancy; p.Satisfaction = 0; p.Consciousness = 0; }
+        var f = new FactionState
+        {
+            Region = home, Bloc = 2, Ideo = (int)Ideology.Communism,
+            Size = 1.0, AvgMilitancy = fight, Cohesion = 1.0,
+            Mutated = true, MutantName = "旗を掲げた運動",
+            Rejections = rejections,
+        };
+        w.Factions.Add(f);
+        w.RevoltCooldownQuarters = 0;   // F1/F3b共有のクールダウンを開ける（閉じていると選定ループに入らない）
+        return (w, f);
+    }
+
+    [Fact]
+    public void 段4_力の門に届かない運動でも両門を越えれば点火する()
+    {
+        // OFF腕＝現行（既定0）。ON腕＝同じ世界・同じ注入で係数1本だけ違う。
+        var (offW, offF) = 段4_絶望した州に小さな運動を置く(regionMilitancy: 0.6, fight: 1.0, rejections: 3.0);
+        offW.Coef.RevoltIgnitionIntensity = 0;   // ★OFF側を明示ピン（既定に寄りかかった対照は点火で空洞化する）
+        double coerce = PoliticalQuantities.EffectiveCoerce(offW, offW.Coef);
+        double strength = Politics.FactionStrength(offW, offW.Coef, offF);
+        double hold = Politics.LocalizedHold(offW, offW.Coef, offF.Region, coerce);
+        double militia = Politics.LoyalistMilitia(offW, offW.Coef, offF);
+        // ★この不等式こそが欠陥の実体＝旧経路では「勝てない運動は始まりもしない」
+        Assert.True(strength <= hold + militia, $"前提が崩れた：小さな運動が力の門を越えている（強度 {strength:F3} vs 保持力+郷勇 {hold + militia:F3}）");
+        Assert.True(Politics.RegionRevoltHeat(offF.Region, offW.Coef) > offW.Coef.RegionalRevoltThreshold, "前提が崩れた：州の絶望が門2に届いていない");
+        Politics.Step(offW, offW.Coef);
+        Assert.Null(offW.PendingFactionCrisis);   // 旧＝力の門で落ちる＝選定に入らない
+
+        var (onW, onF) = 段4_絶望した州に小さな運動を置く(regionMilitancy: 0.6, fight: 1.0, rejections: 3.0);
+        onW.Coef.RevoltIgnitionIntensity = 0.5;   // 門1＝示強量（この注入の意志は結束の1四半期減衰後も0.9）
+        double intensity = Politics.FactionStrength(onW, onW.Coef, onF) / onF.Size;
+        Assert.True(intensity > onW.Coef.RevoltIgnitionIntensity, $"前提が崩れた：注入した運動の意志が門1に届いていない（{intensity:F3}）");
+        Politics.Step(onW, onW.Coef);
+        Assert.Same(onF, onW.PendingFactionCrisis);   // 両門を越えた運動が点火した（通知の札）
+    }
+
+    [Fact]
+    public void 段4_戦う気の乏しい運動は同じ絶望でも点火しない()
+    {
+        // ★段2で書き直し：旧は「旗（変異）＝組織核 org」の有無で2腕を作っていたが、**org は作者裁定で削除**された
+        //   （組織の物差しは結束1本）。門1が実在することの対照は、いま強度に残っている因子＝**運動の闘争度**で取る。
+        //   ⚠結束は落とせない（結束<FactionCohesionFightThreshold=0.8 は候補の走査そのものから外れる＝門1でなく足切りを測る空洞の番人になる）。
+        var (yesW, yesF) = 段4_絶望した州に小さな運動を置く(regionMilitancy: 0.6, fight: 1.0, rejections: 3.0);
+        yesW.Coef.RevoltIgnitionIntensity = 0.5;
+        Politics.Step(yesW, yesW.Coef);
+        Assert.Same(yesF, yesW.PendingFactionCrisis);   // 対照＝戦う気のある運動は点火する
+
+        var (noW, noF) = 段4_絶望した州に小さな運動を置く(regionMilitancy: 0.6, fight: 0.4, rejections: 3.0);
+        noW.Coef.RevoltIgnitionIntensity = 0.5;
+        Assert.True(noF.Cohesion >= noW.Coef.FactionCohesionFightThreshold, "前提が崩れた：足切りで落ちる＝門1を測れていない");
+        Assert.True(Politics.FactionStrength(noW, noW.Coef, noF) / noF.Size <= noW.Coef.RevoltIgnitionIntensity,
+                    "前提が崩れた：闘争度を落とした腕でも門1を越えている");
+        Assert.True(Politics.RegionRevoltHeat(noF.Region, noW.Coef) > noW.Coef.RegionalRevoltThreshold, "前提が崩れた：この腕で州の絶望が落ちている＝2腕の違いが闘争度だけでない");
+        Politics.Step(noW, noW.Coef);
+        Assert.Null(noW.PendingFactionCrisis);   // 絶望だけでは組織運動の内乱にならない（F1の一揆の領分）
+    }
+
+    [Fact]
+    public void 段4_受諾で怨嗟が消えた運動は絶望が門を割る()
+    {
+        // 州の絶望を門2の**すぐ下**（闘争度0.45＝熱0.45 < 0.50）に置き、怨嗟だけが門を越えさせる帯で測る。
+        // 拒否は蜂起・本丸拒否（本丸以外の法だけが動いた）で積み、**本丸の法が通れば0**＝チャーティズムが法で溶けた物理。
+        var (angryW, angryF) = 段4_絶望した州に小さな運動を置く(regionMilitancy: 0.45, fight: 1.0, rejections: 3.0);
+        angryW.Coef.RevoltIgnitionIntensity = 0.5;
+        angryW.Coef.RevoltGrievanceWeight = 0.2;
+        double heat = Politics.RegionRevoltHeat(angryF.Region, angryW.Coef);
+        Assert.True(heat < angryW.Coef.RegionalRevoltThreshold, $"前提が崩れた：怨嗟なしでも門2を越える帯にいる（熱 {heat:F3}）");
+        Assert.True(heat + angryW.Coef.RevoltGrievanceWeight * Math.Min(1.0, angryW.Coef.FactionRejectionMutation * angryF.Rejections) > angryW.Coef.RegionalRevoltThreshold,
+                    "前提が崩れた：怨嗟を足しても門2に届かない＝この帯では対照が取れない");
+        Politics.Step(angryW, angryW.Coef);
+        Assert.Same(angryF, angryW.PendingFactionCrisis);   // 怨嗟の積み上がった運動が点火した
+
+        var (calmW, calmF) = 段4_絶望した州に小さな運動を置く(regionMilitancy: 0.45, fight: 1.0, rejections: 0.0);   // 要求が通った運動
+        calmW.Coef.RevoltIgnitionIntensity = 0.5;
+        calmW.Coef.RevoltGrievanceWeight = 0.2;
+        Politics.Step(calmW, calmW.Coef);
+        Assert.Null(calmW.PendingFactionCrisis);   // 選ばれていない
+        Assert.Equal(0.0, calmF.Rejections);
+    }
+
+    // ============================================================================================
+    // ★裁定1＝発言権の床（F3b蜂起doc §8(A)・作者裁定②・2026-09-08）。
+    //   (1−発言権) は旧支配層(bloc0)で恒久0、大衆(bloc2)も男子普選の到達後は恒久0＝**強度が恒久ゼロ**＝
+    //   点火式をどう直しても武装できない（実測：1888年の英仏の大衆運動は闘争度0.99・結束1.00でも intensity 0.0000）。
+    //   ⚠段4本体とは別の係数＝単独で測れる（参政権の意味は決着・UI・AIの択も読む）。
+    // ============================================================================================
+    [Fact]
+    public void 裁定1_発言権の床が旧支配層と普選後の大衆に強度を残す()
+    {
+        var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+        sim.Run(20);
+        var w = sim.World; var c = w.Coef;
+        Assert.Equal(0.0, c.RevoltVoiceFloor);   // 既定＝休眠（この番人自身が既定値の宣言）
+        FactionState Make(int bloc) => new()
+        {
+            Region = w.Regions[1], Bloc = bloc, Ideo = (int)Ideology.Communism,
+            Size = 1000, AvgMilitancy = 1.0, Cohesion = 1.0,
+            Mutated = true, MutantName = "旗を掲げた運動",
+        };
+        var mass = Make(2); var oldRuling = Make(0);
+        const double floor = 0.2;
+        double full = 1000 * c.FactionRevoltScale;   // 声なき大衆の強度＝Size×闘争1×結束1×(1−0)×scale（★段2で org・年季は削除）
+
+        // (i) 声を持たない側＝床より上＝**1ビットも動かない**（床は上限を作らない）
+        Assert.True(w.Suffrage < Suffrage.AdultMale, "前提が崩れた：この時点で男子普選に達している");
+        Assert.Equal(full, Politics.FactionStrength(w, c, mass));
+        c.RevoltVoiceFloor = floor;
+        Assert.Equal(full, Politics.FactionStrength(w, c, mass));
+
+        // (ii) 旧支配層＝(1−発言権)≡0＝恒久ゼロ（ヴァンデ1793・カルリスタ1833・西南戦争1877・クリステロ1926が構造的に不可能だった）
+        c.RevoltVoiceFloor = 0;
+        Assert.Equal(0.0, Politics.FactionStrength(w, c, oldRuling));
+        c.RevoltVoiceFloor = floor;
+        Assert.Equal(full * floor, Politics.FactionStrength(w, c, oldRuling), 9);
+
+        // (iii) 男子普選の到達後の大衆も同じ穴（スパルタクス団1919・ルール1920・アストゥリアス1934）
+        w.Suffrage = Suffrage.AdultMale;
+        c.RevoltVoiceFloor = 0;
+        Assert.Equal(0.0, Politics.FactionStrength(w, c, mass));
+        c.RevoltVoiceFloor = floor;
+        Assert.Equal(full * floor, Politics.FactionStrength(w, c, mass), 9);
+    }
+
+    // ============================================================================================
+    // ★段5＝民兵と寝返り（F3b蜂起doc・作者裁定3・2026-09-08）。
+    //   ①民兵は**POPの状態**（Pop.MilitiaShare＝そのPOPの何割が武器を取ったか）＝IsSoldier（常備軍）とは別概念。
+    //   ②蜂起した運動の**自分のブロック**から不満度加重で立つ（⚠階級の禁止規則をどこにも書かない）。
+    //   ③兵士POPの寝返りは**割合**（闘争度が決める＝二値にしない）。④戦力への寄与＝兵数×a。
+    //   ⑤剥がれるのは「戦争の終わり」という**状態**（タイマーではない）。⑥死は既存経路の**配分の重み**として入る。
+    //   ⚠ON経路の係数は w.Coef（単国 Simulation ではこれが Politics.Step へ渡る当のインスタンス）／
+    //     建国路（MultiNationSim.SpawnNation）は sim 側の _coef を読むので **コンストラクタの coef:** で渡す。
+    // ============================================================================================
+    private static (World W, FactionState F) 段5_蜂起させる(double militiaRaise, int bloc = 2, double voiceFloor = 0, double theta = 0.5, Action<Region>? tune = null)
+    {
+        var (w, f) = 段4_絶望した州に小さな運動を置く(regionMilitancy: 0.6, fight: 1.0, rejections: 3.0);
+        f.Bloc = bloc;
+        w.Coef.RevoltIgnitionIntensity = theta;
+        w.Coef.RevoltVoiceFloor = voiceFloor;
+        w.Coef.FactionCohesionDecay = 0;        // 不在減衰を凍結（通知→評価の2四半期で結束が門を割らない）
+        w.Coef.RegionalRevoltThreshold = 0;     // F1 遮蔽（同じ州の熱で F1 が先に燃えると共有クールダウンが F3b の評価を止める）
+        w.Coef.RevoltMilitiaRaise = militiaRaise;
+        tune?.Invoke(f.Region);
+        // ★要求は法の経路（2026-09-11点火）：1四半期目＝通知（誰も法の目標を置かない＝NullAgent）→翌評価で要求が通っていない＝蜂起
+        Politics.Step(w, w.Coef);
+        Assert.Same(f, w.PendingFactionCrisis);
+        w.RevoltCooldownQuarters = 0;
+        Politics.Step(w, w.Coef);
+        Assert.True(w.FactionRevolts > 0, $"前提が崩れた：蜂起が点火していない（bloc {bloc}／床 {voiceFloor}／θ {theta}）");
+        return (w, f);
+    }
+
+    [Fact]
+    public void 段5_係数0では民兵の札が1枚も立たない()   // (i) 恒等
+    {
+        // ⚠既定が0であること自体は DormantIdentityTests の DormantZeroFields が唯一の宣言（ここで二重に書かない）。
+        //   ここが見るのは「0のとき機構が本当に何もしないか」＝蜂起は起きたのに札が1枚も立たないこと。
+        var (w, _) = 段5_蜂起させる(militiaRaise: 0);
+        foreach (var p in w.AllPops()) Assert.Equal(0.0, p.MilitiaShare);   // 蜂起は起きたのに札は1枚も立たない＝読み手（労働・戦力・死の配分）は全て素通り
+    }
+
+    [Fact]
+    public void 段5_不満度の高いブロックほど民兵率が高い()   // (ii)
+    {
+        Pop? angry = null, calm = null, soldier = null;
+        var (w, f) = 段5_蜂起させる(militiaRaise: 0.5, tune: home =>
+        {
+            foreach (var p in home.Pops)
+            {
+                if (p.IsSoldier) { soldier = p; p.Militancy = 1.0; continue; }   // 常備軍＝民兵ではない（闘争度は最大にして対照を作る）
+                if (p.ClassId == PopClass.Peasant) { angry = p; p.Militancy = 0.8; }        // 農民＝大衆ブロック
+                else if (p.ClassId == PopClass.Worker) { calm = p; p.Militancy = 0.2; }    // 都市労働者＝同じブロック・**不満だけが違う**
+            }
+        });
+        Assert.True(angry is not null && calm is not null && soldier is not null, "前提が崩れた：農民/都市労働者/兵士のPOPが揃っていない");
+        // 式そのもの＝min(1, 係数×そのPOPの闘争度)。⚠闘争度は Politics.Step の中で target へ寄るので**Step後の値**で照合する
+        //   （民兵を立てた後に闘争度を書き換える経路はこの枝に無い）。
+        Assert.Equal(Math.Min(1.0, 0.5 * angry!.Militancy), angry.MilitiaShare, 9);
+        Assert.Equal(Math.Min(1.0, 0.5 * calm!.Militancy), calm.MilitiaShare, 9);
+        Assert.True(angry.MilitiaShare > calm.MilitiaShare, $"不満の順序が民兵率の順序になっていない（怒 {angry.MilitiaShare:F3} ≤ 静 {calm.MilitiaShare:F3}）");
+        Assert.Equal(0.0, soldier!.MilitiaShare);   // 兵士POPは民兵にならない（寝返りは建国路の別機構）
+        foreach (var p in f.Region.Pops) if (p.IsModernElite && !p.IsSoldier) Assert.Equal(0.0, p.MilitiaShare);   // 別ブロック（近代エリート）は立たない＝旗が違う
+    }
+
+    [Fact]
+    public void 段5_反動の蜂起では有産の側に民兵が立つ()   // (ii) 階級の禁止規則が無いことの対照＝旧支配層の運動（ヴァンデ1793・カルリスタ1833・西南戦争1877）
+    {
+        Pop? noble = null;
+        // 旧支配層は (1−発言権)≡0＝裁定1の床が無いと武装できない＝床を敷いた世界で測る（θ は床0.5×結束0.9＝0.45 の下）。
+        var (w, f) = 段5_蜂起させる(militiaRaise: 0.5, bloc: 0, voiceFloor: 0.5, theta: 0.4, tune: home =>
+        {
+            foreach (var p in home.Pops) if (p.Closed && !p.IsSoldier) { noble = p; break; }
+        });
+        Assert.True(noble is not null, "前提が崩れた：本拠州に閉鎖階級（貴族・聖職）のPOPがいない");
+        Assert.True(noble!.MilitiaShare > 0, "旧支配層の蜂起で有産の民兵が1人も立たない＝階級の禁止規則が入り込んでいる");
+        // 大衆が立たないのは**階級で禁じたから**ではなく、この運動のブロックでないから（旗が違う）
+        foreach (var p in f.Region.Pops) if (!p.Closed && !p.IsModernElite && !p.IsSoldier) Assert.Equal(0.0, p.MilitiaShare);
+    }
+
+    [Fact]
+    public void 段5_戦争の終わりで民兵率が0へ戻る()   // (iii) タイマーではなく状態で剥がす
+    {
+        var (w, f) = 段5_蜂起させる(militiaRaise: 0.5);
+        double raised = 0; foreach (var p in f.Region.Pops) raised = Math.Max(raised, p.MilitiaShare);
+        Assert.True(raised > 0, "前提が崩れた：民兵が1人も立っていない");
+        Assert.True(w.CivilWarYears > 0 || w.RevoltingFaction is not null, "前提が崩れた：内戦の状態になっていない");
+
+        Politics.Step(w, w.Coef);   // 内戦中の四半期＝剥がれない（時間で消していないことの対照）
+        double still = 0; foreach (var p in f.Region.Pops) still = Math.Max(still, p.MilitiaShare);
+        Assert.True(still > 0, "内戦中に民兵の札が剥がれた＝戦争という状態でなく時間で剥がしている");
+
+        // 戦争の終わり（再併合・独立の確定・白紙分断のどれで終わっても同じ状態＝内戦でなくなる）
+        w.CivilWarYears = 0; w.RevoltingFaction = null; w.PendingRebelRegions = null;
+        Politics.Step(w, w.Coef);
+        foreach (var p in w.AllPops()) Assert.Equal(0.0, p.MilitiaShare);   // 武器を置いて畑と工場へ戻る＝労働供給がその瞬間に回復する
+    }
+
+    [Fact]
+    public void 段5_民兵は札であって人も金も動かさない()   // (iv) 保存
+    {
+        var (offW, _) = 段5_蜂起させる(militiaRaise: 0);
+        var (onW, _) = 段5_蜂起させる(militiaRaise: 0.5);
+        double raised = 0; foreach (var p in onW.AllPops()) raised += p.MilitiaShare;
+        Assert.True(raised > 0, "前提が崩れた：ON腕で民兵が立っていない");
+        // 2腕の違いは札だけ＝同じ四半期の人口も貨幣も1ビットも違わない（民兵は人を作らない・移さない）
+        Assert.Equal(offW.TotalPopulation, onW.TotalPopulation, 9);
+        Assert.Equal(offW.BaseMoney, onW.BaseMoney, 9);
+    }
+
+    [Fact]
+    public void 段5_死は増えず配分だけが民兵へ寄る()   // 裁定3＝死は既存の3経路のいずれかを通す（新しい死の経路を作らない）
+    {
+        // 同じ州・同じブロックの2つのPOPを「武器を取った側」と「家にいた側」に分け、内戦の民間人死（既存経路）の配分だけを見る。
+        static (double Pop, double Militia, double Home) 内戦の1四半期(double a)
+        {
+            Pop? armed = null, athome = null;
+            var (w, _) = 段5_蜂起させる(militiaRaise: 1.0, tune: home =>
+            {
+                foreach (var p in home.Pops)
+                {
+                    if (p.IsSoldier) continue;
+                    if (p.ClassId == PopClass.Peasant) { armed = p; p.Militancy = 1.0; }
+                    else if (p.ClassId == PopClass.Worker) { athome = p; p.Militancy = 0.0; }
+                }
+            });
+            w.Coef.MilitiaCombatValue = a;
+            Assert.True(armed is not null && athome is not null && armed.MilitiaShare > athome.MilitiaShare,
+                        "前提が崩れた：2つのPOPが武装/非武装に分かれていない");
+            Assert.True(w.CivilWarYears > 0 && w.Coef.CivilWarCivilianToll > 0, "前提が崩れた：内戦の民間人死が走らない帯にいる");
+            Politics.Step(w, w.Coef);   // ProcessCivilWar＝内戦の民間人死（既存経路）
+            return (w.TotalPopulation, armed!.Size, athome!.Size);
+        }
+        var off = 内戦の1四半期(0);
+        var on = 内戦の1四半期(0.5);
+        Assert.Equal(off.Pop, on.Pop, 6);   // ★総死者は1人も増えない＝新しい死の経路を作っていない（配り直しただけ）
+        Assert.True(on.Militia < off.Militia, $"武器を取った層が多く死んでいない（a=0.5 {on.Militia:F3} ≥ a=0 {off.Militia:F3}）");
+        Assert.True(on.Home > off.Home, $"家にいた層が相対的に生き残っていない（a=0.5 {on.Home:F3} ≤ a=0 {off.Home:F3}）");
+    }
+
+    // 建国路（MultiNationSim.SpawnNation）の寝返りを実経路で測る。⚠人口・貨幣の保存は Simulation の月次 CheckInvariants が
+    //   この StepQuarter の中で見張っている（建国は S/P 確定と PopulationDelta の間に1命令も入れてはいけない帯＝doc §7-3）。
+    private static (double RebelSoldiers, double ParentSoldiers, double RebelMilitary, double HomeLabor) 段5_反乱国家を建てる(
+        Coefficients coef, double militiaShare = 0, int quarters = 1, bool frozen = true)
+    {
+        var sim = new MultiNationSim([WorldData.ByName("イギリス"), WorldData.ByName("フランス")], seed: 1789, coef: coef) { DiplomacyFrozen = frozen };
+        var pw = sim.Nations[0].World;
+        Assert.True(pw.Regions.Count > 1, "前提が崩れた：親に非首都州がない");
+        var home = pw.Regions[1];
+        var garrison = home.Pops.Find(p => p.IsSoldier);
+        Assert.True(garrison is not null && garrison.Size > 1e-9, "前提が崩れた：反乱州に守備兵がいない");
+        garrison!.Militancy = 0.5;   // ⚠この後の四半期で target へ少し動く（両腕とも同じ軌道＝比較は成立する）
+        if (militiaShare > 0) foreach (var p in home.Pops) if (!p.IsSoldier) p.MilitiaShare = militiaShare;
+        pw.PendingRebelRegions = [home];
+        pw.PendingRebelPolity = Polity.Republic;
+        int n0 = sim.Nations.Count;
+        for (int q = 0; q < quarters; q++) sim.StepQuarter();
+        Assert.True(sim.Nations.Count > n0, "前提が崩れた：反乱国家が建っていない");
+        var rw = sim.Nations[^1].World;
+        Assert.Contains(home, rw.Regions);
+        return (rw.SoldierSize(), pw.SoldierSize(), rw.SelfPower?.Military ?? 0, home.Markets[Catalog.LaborId].LastProduced);
+    }
+
+    [Fact]
+    public void 段5_民兵になった分だけ労働が畑と工場から抜ける()   // 裁定3＝生産が痩せる（既存の労働配分に乗せる＝新しい経路を作らない）
+    {
+        // 2腕の違いは**民兵の札だけ**（係数は両腕とも既定＝a=0 で戦力にも死の配分にも触れない＝労働だけが動く）。
+        var none = 段5_反乱国家を建てる(new Coefficients(), militiaShare: 0, quarters: 2, frozen: true);
+        var armed = 段5_反乱国家を建てる(new Coefficients(), militiaShare: 0.5, quarters: 2, frozen: true);
+        Assert.True(none.HomeLabor > 0, "前提が崩れた：反乱州で労働力が産出されていない");
+        Assert.True(armed.HomeLabor < none.HomeLabor,
+            $"民兵が労働から抜けていない（民兵0.5 {armed.HomeLabor:F2} ≥ 民兵0 {none.HomeLabor:F2}）＝札が労働供給へ届いていない");
+    }
+
+    [Fact]
+    public void 段5_寝返りは割合であり守備兵が全員は移らない()   // (iii) 裁定3＝二値にしない
+    {
+        var off = 段5_反乱国家を建てる(new Coefficients());                                     // 旧＝州ごと全員が寝返る（＝常に寝返る絶対規則）
+        var on = 段5_反乱国家を建てる(new Coefficients { SoldierDefectionByMilitancy = 1.0 });   // 寝返り率＝兵士POPの闘争度
+        Assert.True(off.RebelSoldiers > 0, "前提が崩れた：旧経路で反乱国に兵が渡っていない");
+        Assert.True(on.RebelSoldiers < off.RebelSoldiers, $"寝返りが割合になっていない（ON {on.RebelSoldiers:F1} ≥ OFF {off.RebelSoldiers:F1}）");
+        Assert.True(on.RebelSoldiers > 0, $"全員が親に残った＝二値の逆側になっている（ON {on.RebelSoldiers:F1}）");
+        Assert.True(on.ParentSoldiers > off.ParentSoldiers, $"寝返らなかった兵が親に留まっていない（ON {on.ParentSoldiers:F1} ≤ OFF {off.ParentSoldiers:F1}）");
+    }
+
+    [Fact]
+    public void 段5_民兵は兵数かける係数だけ戦力になる()   // (iv) 係数a
+    {
+        var off = 段5_反乱国家を建てる(new Coefficients(), militiaShare: 0.3, quarters: 2, frozen: false);
+        var on = 段5_反乱国家を建てる(new Coefficients { MilitiaCombatValue = 0.5 }, militiaShare: 0.3, quarters: 2, frozen: false);
+        Assert.True(off.RebelMilitary > 0, "前提が崩れた：反乱国の戦力が算出されていない（外交の同期が回っていない）");
+        Assert.True(on.RebelMilitary > off.RebelMilitary,
+            $"民兵が戦力に入っていない（a=0.5 {on.RebelMilitary:F2} ≤ a=0 {off.RebelMilitary:F2}）＝札が戦争システムへ届いていない");
+    }
+
+    // ============================================================================================
+    // ★段6＝クールダウンの畳み込み（F3b蜂起doc §6・2026-09-08）。旧＝RevoltCooldownQuarters（4四半期の固定タイマー）で
+    //   「同一国で年に何度も燃えない」を作っていた＝物理でない待ち行列。代替は (a) 決着で結束0→ロジスティック再成長（4〜16年）
+    //   (b)「その運動はもう野に出ている」という状態の排他。RevoltCooldownRetire=0 で旧・>0 で差し替え。
+    //   物差しは段0と同じ通知の札（World.PendingFactionCrisis）。
+    // ============================================================================================
+    private static (World w, FactionState f) 段6_危機の寸前を作る(double retire, int cooldown)
+    {
+        var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+        sim.Run(20);
+        var w = sim.World;
+        var f = 巨大な運動を差し込む(w, w.Regions[1]);   // ⚠この中で RevoltCooldownQuarters=0 に開けている
+        w.Coef.RevoltCooldownRetire = retire;           // ⚠係数は**世界側**のインスタンスに書く（World.Coef は国ごと別物）
+        w.RevoltCooldownQuarters = cooldown;
+        return (w, f);
+    }
+
+    [Fact]
+    public void 段6対照_既定ではクールダウンが選定を止める()   // ⚠先に対照＝これが通らないと下の退役テストは空洞
+    {
+        var (w, _) = 段6_危機の寸前を作る(retire: 0.0, cooldown: 4);
+        Politics.Step(w, w.Coef);
+        Assert.Null(w.PendingFactionCrisis);   // タイマーが閉じている間は保持力を超えた運動でも選定ループに入らない（旧挙動）
+    }
+
+    [Fact]
+    public void 段6_退役の腕ではタイマーが選定を止めない()
+    {
+        var (w, f) = 段6_危機の寸前を作る(retire: 1.0, cooldown: 4);
+        Politics.Step(w, w.Coef);
+        Assert.Same(f, w.PendingFactionCrisis);   // 選定に入った（タイマーが効いていれば札は立たない＝退役の係数が読まれた）
+    }
+
+    [Fact]
+    public void 段6_退役の腕でも既に蜂起が野に出ていれば次の旗は立たない()
+    {
+        var (w, _) = 段6_危機の寸前を作る(retire: 1.0, cooldown: 0);
+        w.PendingRebelRegions = [w.Regions[1]];   // 既に別の運動が州に拠って立った（建国＝開戦の直前）
+        Politics.Step(w, w.Coef);
+        Assert.Null(w.PendingFactionCrisis);   // 時間ではなく**状態**で排他されている（タイマーは0＝開いている）
+    }
+
+    [Fact]
+    public void 段6_蜂起を予約した州はF1の走査から外れる()
+    {
+        // 対照：飢えた州を1つ作る＝F1（州一揆）が必ずその州で発火する（発火は共有カウンタの再セットで観測＝分岐非依存）。
+        var (w, _) = 段6_危機の寸前を作る(retire: 1.0, cooldown: 0);
+        w.Factions.Clear();   // F3bを外し、F1だけを見る（同じ四半期に両方走るため）
+        var hungry = w.Regions[1];
+        foreach (var r in w.Regions) { r.FoodFill = 1.0; foreach (var p in r.Pops) { p.Militancy = 0; p.Satisfaction = 1.0; } }
+        hungry.FoodFill = 0.0;
+        foreach (var p in hungry.Pops) { p.Militancy = 1.0; p.Satisfaction = 0.0; }
+        Assert.True(Politics.RegionRevoltHeat(hungry, w.Coef) > w.Coef.RegionalRevoltThreshold, "前提が崩れた：飢えた州の熱が閾値を超えていない");
+        Politics.Step(w, w.Coef);
+        Assert.True(w.RevoltCooldownQuarters > 0, "対照が成立しない：飢えた州でF1が発火していない");
+
+        // 本体：同じ州が蜂起を予約している（＝組織運動が既にその州に拠って立っている）なら、F1は同じ州を二重に燃やさない。
+        var (w2, _) = 段6_危機の寸前を作る(retire: 1.0, cooldown: 0);
+        w2.Factions.Clear();
+        var hungry2 = w2.Regions[1];
+        foreach (var r in w2.Regions) { r.FoodFill = 1.0; foreach (var p in r.Pops) { p.Militancy = 0; p.Satisfaction = 1.0; } }
+        hungry2.FoodFill = 0.0;
+        foreach (var p in hungry2.Pops) { p.Militancy = 1.0; p.Satisfaction = 0.0; }
+        w2.PendingRebelRegions = [hungry2];
+        Politics.Step(w2, w2.Coef);
+        Assert.Equal(0, w2.RevoltCooldownQuarters);   // 走査から外れた＝F1は発火していない
+    }
+
+    // ============================================================================================
+    // ★段7＝反乱の膨張の器（F3b蜂起doc 裁定①＝A・2026-09-08。**休眠で入れるだけ＝点火は次ラウンド**）。
+    //   欠陥＝内戦タグの講和は3枝（膠着＝分断固定／分離戦で反乱勝ち＝独立確定／それ以外＝再併合予約）とも
+    //   **割譲の手前で return** する＝反乱国の版図は建国時の州のまま永久に凍る（合流の経路も無い）。
+    //   RevoltExpansionScore>0 で膠着の枝だけが「押していた分だけ親の州を取る」＝**既存の戦勝点を予算**にし
+    //   （州1つの値段＝この係数）、**既存の割譲経路** Diplomacy.CedeTerritory で払う。
+    //   ⚠係数は **sim 側**（MultiNationSim(coef:)）へ書く＝Diplomacy が読むのはこのインスタンス（World.Coef は国ごと別物）。
+    //   ⚠講和は StepWars の中でしか呼ばれず、そこへ届くには押し合いと運が戦勝点を動かす＝**戦勝点を手で置いて
+    //     ResolvePeace を直接踏む**（internal＝ON経路テスト用・TradeTreaties と同じ流儀）。機構の検査であって創発の主張ではない。
+    // ============================================================================================
+    private static (MultiNationSim Sim, World PW, World RW, War War) 段7_内戦を1本立てる(Coefficients coef)
+    {
+        // DiplomacyFrozen＝Diplomacy.Step を1度も呼ばない＝押し合いも運も走らず戦勝点は手で置いた値のまま（決定論）。
+        var sim = new MultiNationSim([WorldData.ByName("イギリス"), WorldData.ByName("フランス")], seed: 1789, coef: coef) { DiplomacyFrozen = true };
+        var pw = sim.Nations[0].World;
+        Assert.True(pw.Regions.Count > 3, "前提が崩れた：親に非首都州が3つ以上ない＝2州ぶんの膨張の余地がない");
+        pw.PendingRebelRegions = [pw.Regions[1]];
+        pw.PendingRebelPolity = Polity.Republic;
+        int n0 = sim.Nations.Count;
+        sim.StepQuarter();   // 建国路（SpawnNation）＋内戦タグ付き開戦
+        Assert.True(sim.Nations.Count > n0, "前提が崩れた：反乱国家が建っていない");
+        var rw = sim.Nations[^1].World;
+        var war = sim.Diplomacy.Wars.Find(x => x.CivilWarParent == pw.SelfPower);
+        Assert.True(war is not null && war.A == pw.SelfPower,
+                    "前提が崩れた：内戦タグの戦争が親を A 側にして立っていない＝戦勝点の符号の向きが変わる");
+        return (sim, pw, rw, war!);
+    }
+
+    // (i) 0で講和の3枝が現行のまま＝割譲を1つも起こさない（新経路の命令が1つも走らない）。
+    //     ⚠**長距離のビット恒等はこの番人では示せない**（8四半期の DormantIdentityTests と同じ限界）＝savetest 相対差0が担当。
+    [Fact]
+    public void 段7対照_既定では内戦の講和の3枝が州を1つも動かさない()
+    {
+        // 3枝＝膠着(分断固定)／分離戦で反乱勝ち(独立確定)／それ以外(再併合予約)。最後は反乱勝ち・親勝ちの両向きを踏む。
+        foreach (var (score, secession, rump, reint) in
+                 new[] { (-0.20, false, true, false), (-0.60, true, false, false), (-0.60, false, false, true), (0.60, false, false, true) })
+        {
+            var (sim, pw, rw, war) = 段7_内戦を1本立てる(new Coefficients());
+            Assert.Equal(0.0, sim.Coef.RevoltExpansionScore);   // ⚠OFF側も明示的に確かめる（点火したらこの対照は空洞になる＝そのとき赤で気付く）
+            int pn = pw.Regions.Count, rn = rw.Regions.Count;
+            double pPop = pw.TotalPopulation, rPop = rw.TotalPopulation, pDelta = pw.PopulationDelta, pFlow = pw.CumulativeTradeFlow;
+            war.Score = score; war.CivilWarSecession = secession;
+            sim.Diplomacy.ResolvePeace(sim.Coef, war);
+            Assert.Equal(pn, pw.Regions.Count);           // 割譲の手前で return＝州は1つも動かない
+            Assert.Equal(rn, rw.Regions.Count);
+            Assert.Equal(pPop, pw.TotalPopulation);       // 人も金も台帳も1ビットも動かない
+            Assert.Equal(rPop, rw.TotalPopulation);
+            Assert.Equal(pDelta, pw.PopulationDelta);
+            Assert.Equal(pFlow, pw.CumulativeTradeFlow);
+            // 枝そのものは現行どおり成立している（＝「何も起きない」ではなく「割譲だけが無い」ことの確認）
+            Assert.Equal(rump, rw.RumpParentName.Length > 0);
+            Assert.Equal(reint, sim.Diplomacy.PendingReintegrations.Count > 0);
+        }
+    }
+
+    [Fact]
+    public void 段7_膨張の腕では押した分だけ州が移り人と金の保存が閉じる()   // (ii) >0 で州が移り保存が閉じる
+    {
+        var coef = new Coefficients { RevoltExpansionScore = 0.10 };   // 州1つの値段＝戦勝点0.10
+        var (sim, pw, rw, war) = 段7_内戦を1本立てる(coef);
+        war.Score = -0.20;   // 反乱側が押している膠着（|戦勝点| < WhitePeaceScore=0.25＝この枝の定義）＝予算0.20で2州
+        int pn = pw.Regions.Count, rn = rw.Regions.Count;
+        double rPop0 = rw.TotalPopulation;
+        var core0 = new System.Collections.Generic.Dictionary<string, double>();
+        foreach (var r in pw.Regions) if (r.Pops.Count > 0) core0[r.Name] = r.Pops[0].CoreEthnicShare;
+        // ★保存はエンジン自身の不変条件で見る（新しい許容誤差を書かない）：基準線を今この瞬間に取り、講和のあとで Check する。
+        var pPop = new PopulationConservation(pw); var pMoney = new MoneyConservation(pw);
+        var rPop = new PopulationConservation(rw); var rMoney = new MoneyConservation(rw);
+        sim.Diplomacy.ResolvePeace(coef, war);
+        Assert.Equal(pn - 2, pw.Regions.Count);   // 予算0.20 ÷ 値段0.10 ＝ 2州（親から抜ける）
+        Assert.Equal(rn + 2, rw.Regions.Count);   // 同じ2州が反乱国へ入る（消えない）
+        Assert.True(rw.TotalPopulation > rPop0, "州だけが動いて人が付いてきていない");
+        pPop.Check(pw); pMoney.Check(pw); rPop.Check(rw); rMoney.Check(rw);   // 破れれば InvariantViolationException が飛ぶ
+        // 中核民族の基準は親から反乱国へ移る＝建国路と同じ反転（これが無いと再併合の一括反転が片道だけ掛かる）
+        int moved = 0;
+        foreach (var r in rw.Regions)
+            if (core0.TryGetValue(r.Name, out double x0) && r.Pops.Count > 0)
+            {
+                Assert.Equal(1.0 - x0, r.Pops[0].CoreEthnicShare, 12);
+                Assert.Equal(0.0, r.AnnexBaggage);   // 内戦で動く州は「外から連れてきた人口」ではない（建国路の AnnexBaggage=0 と同じ）
+                moved++;
+            }
+        Assert.Equal(2, moved);
+    }
+
+    [Fact]
+    public void 段7_再併合は膨張した分も含めて全州を親へ返す()   // (iii) 太平天国型＝支配→鎮圧→全返還
+    {
+        var coef = new Coefficients { RevoltExpansionScore = 0.10 };
+        var (sim, pw, rw, war) = 段7_内戦を1本立てる(coef);
+        int total = pw.Regions.Count + rw.Regions.Count;   // 内戦が始まった時点の親の版図（建国で割れた両側の和）
+        var core0 = new System.Collections.Generic.Dictionary<string, double>();
+        foreach (var r in pw.Regions) if (r.Pops.Count > 0) core0[r.Name] = r.Pops[0].CoreEthnicShare;
+        war.Score = -0.20;
+        sim.Diplomacy.ResolvePeace(coef, war);
+        Assert.True(rw.Regions.Count > 1, "前提が崩れた：膨張していない＝全返還の検査にならない");
+        var expanded = new System.Collections.Generic.List<string>();
+        foreach (var r in rw.Regions) expanded.Add(r.Name);
+        var pPop = new PopulationConservation(pw); var pMoney = new MoneyConservation(pw);
+        sim.Diplomacy.PendingReintegrations.Add((pw.SelfPower!, rw.SelfPower!, false, pw.Polity));   // 親が鎮定＝再併合
+        sim.StepQuarter();   // ⚠この中で Simulation の月次 CheckInvariants も全期間走る（破れれば例外）
+        Assert.Equal(2, sim.Nations.Count);         // 反乱国家は消えた
+        Assert.Equal(total, pw.Regions.Count);      // 膨張した分も含めて全州が親へ戻った
+        foreach (var name in expanded) Assert.Contains(pw.Regions, r => r.Name == name);
+        pPop.Check(pw); pMoney.Check(pw);
+        // 反転は往復で閉じる（行きは膨張の器・帰りは再併合の一括反転）＝返った州の中核比は裏返ったままにならない。
+        foreach (var r in pw.Regions)
+            if (expanded.Contains(r.Name) && core0.TryGetValue(r.Name, out double x0) && r.Pops.Count > 0)
+            {
+                Assert.True(Math.Abs(2 * x0 - 1) > 0.5, $"前提が崩れた：中核比が0.5近傍（{x0:F3}）＝往復の向きを見分けられない");
+                double back = r.Pops[0].CoreEthnicShare;
+                Assert.True(Math.Abs(back - x0) < Math.Abs(back - (1.0 - x0)), $"{r.Name}の中核比が裏返ったまま返った（{back:F3}／出発 {x0:F3}）");
+            }
+    }
+
+    // ============================================================================================
+    // ★武器の市場購入（設計メモ §7 作者裁定2026-09-09 の未実装3件(a)・実装2026-09-11・休眠 RebelArmsMarketEnabled=0）。
+    //   反乱勢力が参加POPの貯蓄で国軍と同じ財を同じ市場で買う／法「民間の武器購入」（禁止＝Contraband.LeakFraction だけ漏れる）／FactionStrength の第5因子＝装備。
+    //   ⚠既定が0であること自体は DormantIdentityTests の DormantZeroFields が唯一の宣言（ここで二重に書かない）。
+    //   ⚠単国世界は MilitaryScale=0（軍需調達は多国世界の首都だけ＝EquipDiscoveryTests の注記）＝軍需財の需要は反乱勢力だけ＝差分が全部この機構のもの。
+    // ============================================================================================
+    /// <summary>単国の英（開幕から20四半期）の首都州に運動を1本立て、最大の大衆POPを唯一の参加者（闘争度0.9・貯蓄大＝予算は縛らない）にする。
+    /// 束と主軸は FactionSnapshot の同じ1本で導く（テストが参加の述語を再実装しない）。他POPの闘争度は0＝参加者は1人＝払い手の帳簿が読める。</summary>
+    private static (Simulation Sim, FactionState F, Pop Payer) 武装する運動(double enabled, Action<Coefficients>? tune = null)
+    {
+        var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+        sim.Run(20);
+        var w = sim.World; var c = w.Coef;
+        c.RebelArmsMarketEnabled = enabled;
+        tune?.Invoke(c);
+        var r = w.Region;
+        Pop? payer = null;
+        foreach (var p in r.Pops)
+        {
+            p.Militancy = 0;
+            if (!p.Closed && !p.IsModernElite && !p.IsSoldier && (payer is null || p.Size > payer.Size)) payer = p;
+        }
+        Assert.True(payer is not null && payer.Size > 1e-9, "前提が崩れた：首都州に大衆POPが無い");
+        payer!.Militancy = 0.9;
+        // 参加者の財布を厚くする＝**州の他POPの貯蓄の半分を移す**（金を湧かせない＝貨幣保存の番人が黙ったまま通しで走れる）
+        double pool = 0;
+        foreach (var p in r.Pops) if (!ReferenceEquals(p, payer) && p.Savings > 0) { pool += p.Savings * 0.5; p.Savings *= 0.5; }
+        payer.Savings += pool;
+        Assert.True(payer.Savings > 1e3, $"前提が崩れた：参加者の財布が薄い（{payer.Savings:F1}）");
+        var (petty, _, _) = FactionSnapshot.MembershipContext(w);
+        var (bloc, ideo) = FactionSnapshot.BlocIdeo(payer, petty);
+        var f = new FactionState { Region = r, Bloc = bloc, Ideo = ideo, Size = payer.Size, AvgMilitancy = 0.9, Cohesion = 1.0 };
+        w.Factions.Add(f);
+        return (sim, f, payer);
+    }
+
+    [Fact]
+    public void 武器購入_係数0では1回も買わず法も第5因子も動かない()   // (a) 恒等
+    {
+        var (sim, f, _) = 武装する運動(enabled: 0);
+        var w = sim.World; var c = w.Coef;
+        EconomyStep.Run(w.Region, c, 1.0, null, w);
+        Assert.Equal(0.0, w.RebelArmsSpent);   // 市場取引が1回も起きない
+        Assert.Null(f.ArmsStock);              // 武器庫は1件も作られない
+        Assert.Equal(1.0, f.EquipFill);        // 書き手が走らない
+        // 第5因子は掛からない＝EquipFill をどう振っても4因子の積そのもの（ビット恒等）。大衆は男子普選前＝発言権0＝(1−0)=1.0
+        f.EquipFill = 0.25;
+        Assert.True(w.Suffrage < Suffrage.AdultMale, "前提が崩れた：この時点で男子普選に達している");
+        Assert.Equal(f.Size * f.AvgMilitancy * f.Cohesion * 1.0 * c.FactionRevoltScale, Politics.FactionStrength(w, c, f));
+        // 法は選好に現れない（＝綱領・要求・戦線のどこにも載らない）し、目標を置いても施行経路が動かない
+        var (trad, modern, mass, net) = PolicyPreferences.Stance(w, PolicyAxis.CivilianArms, increasing: true);
+        Assert.True(trad == 0 && modern == 0 && mass == 0 && net == 0, $"休眠中に民間の武器購入の法が選好に現れた（{trad}/{modern}/{mass}）");
+        w.Policy.CivilianArmsBan = true;
+        Government.Step(w, c);
+        Assert.False(w.CivilianArmsBan);
+    }
+
+    [Fact]
+    public void 武器購入_点火すると資金が参加者の貯蓄から減り売り手に届く()   // (b) 金の保存
+    {
+        const int rifle = 82;
+        var (sim, f, payer) = 武装する運動(enabled: 1);
+        var w = sim.World; var c = w.Coef; var r = w.Region;
+        double s0 = r.SumSavings();
+        EconomyStep.Run(r, c, 1.0, null, w);
+        double s1 = r.SumSavings();
+        Assert.True(w.RebelArmsSpent > 0, "武器が1単位も買えていない");
+        // 州の帳簿：Σ貯蓄の増減 ＝ 国家の支払い（国庫→売り手＝外からの流入）− 専売（月末に国庫へ）− 植民地輸入（対外流出）。
+        // 反乱勢力の支払いは参加者→売り手＝州の**内側**で閉じる＝この恒等式に新しい項を足さない（足したら金が湧いたか消えたかのどちらか）。
+        double external = r.StateSpent - r.LastStateMonopolyRevenue - r.ColonialImportCost;
+        Assert.True(Math.Abs((s1 - s0) - external) <= 1e-6 * Math.Max(1.0, Math.Abs(s0)), $"貨幣が湧いたか消えた：Δ貯蓄 {s1 - s0:F6} ≠ 外部 {external:F6}");
+        Assert.True(payer.Paid >= w.RebelArmsSpent * (1 - 1e-9), $"参加者の支払い {payer.Paid:F3} に武器代 {w.RebelArmsSpent:F3} が載っていない");
+        Assert.True(r.Markets[rifle].LastSold > 0, "小銃が売れていない（売り手に届いていない）");
+        Assert.NotNull(f.ArmsStock);
+        Assert.True(f.ArmsStock![rifle] > 0, "武器庫に小銃が積まれていない");
+        Assert.True(f.EquipFill > 0 && f.EquipFill < 1, $"装備充足 {f.EquipFill:F3} が (0,1) に無い＝新しい運動は丸腰から数年かけて武装するはず");
+        // 第5因子が掛かる（国軍の即応度×装備充足と同じ物差し）
+        Assert.True(w.Suffrage < Suffrage.AdultMale);
+        Assert.Equal(f.Size * f.AvgMilitancy * f.Cohesion * 1.0 * c.FactionRevoltScale * f.EquipFill, Politics.FactionStrength(w, c, f), 12);
+
+        // 通しで1年走らせても貨幣保存の番人（Simulation の月次 CheckInvariants）が黙っている＋買い続けた武器庫が育つ（別の世界＝直接 Run の帳簿と混ぜない）
+        var (sim2, f2, _) = 武装する運動(enabled: 1);
+        sim2.Run(1);
+        Assert.NotNull(f2.ArmsStock);
+        double stock1 = f2.ArmsStock![rifle];
+        Assert.True(stock1 > 0);
+        sim2.Run(4);
+        Assert.True(f2.ArmsStock[rifle] > stock1, $"1年買い続けても武器庫が増えない（{stock1:F3} → {f2.ArmsStock[rifle]:F3}）");
+        Assert.True(sim2.World.RebelArmsSpent > 0);
+    }
+
+    [Fact]
+    public void 武器購入_禁止法は行政充足の分だけ止め_取り締まれなければ漏れる()   // (c) 密輸＝Contraband.LeakFraction そのもの
+    {
+        double Spent(bool ban, double adminFill, double smugglingMax)
+        {
+            var (sim, _, _) = 武装する運動(enabled: 1, tune: c => c.SmugglingMax = smugglingMax);
+            var w = sim.World; var r = w.Region;
+            w.CivilianArmsBan = ban;
+            r.AdminFill = adminFill;   // 漏れは前月の行政充足を読む（Run の末尾で上書きされる前）。⚠専売の徴収漏れも同じ値を読むので比べる腕どうしは揃える
+            EconomyStep.Run(r, w.Coef, 1.0, null, w);
+            return w.RebelArmsSpent;
+        }
+        double allowed = Spent(ban: false, adminFill: 0.0, smugglingMax: 0.5);
+        Assert.True(allowed > 0, "前提が崩れた：許可でも買えていない");
+        Assert.Equal(0.0, Spent(ban: true, adminFill: 1.0, smugglingMax: 0.5));       // 禁止＋行政が完全＝1単位も買えない
+        Assert.Equal(allowed, Spent(ban: true, adminFill: 0.0, smugglingMax: 1.0));   // 禁止＋行政が無力（漏れ上限1.0）＝許可と同量（×1.0＝ビット恒等）
+        double leaked = Spent(ban: true, adminFill: 0.0, smugglingMax: 0.5);           // 既定の漏れ上限0.5＝取り締まれない州でも半分しか通らない（禁令＝完全遮断ではない）
+        Assert.True(leaked > 0 && leaked < allowed, $"禁止＋行政無力の漏れ {leaked:F3} が (0, 許可 {allowed:F3}) に無い");
+    }
+
+    [Fact]
+    public void 武器購入_未発見の武器は買えない()   // (d) 必要量は国軍と同じ DiscoveredRates を通る
+    {
+        // 汽船85＝既定Producerに TechOnset=0.5 が焼かれている（EquipDiscoveryTests と同じ前提）。艦隊財ではない（FleetGoodIds＝戦闘艦）
+        // ＝陸海の規則で消えるのではなく**発見**で消えることを見る。
+        int ship = Catalog.SteamshipId; const int rifle = 82;
+        var (simOn, fOn, _) = 武装する運動(enabled: 1, tune: c => c.EquipNeedsDiscovery = 1.0);
+        var (simOff, fOff, _) = 武装する運動(enabled: 1, tune: c => c.EquipNeedsDiscovery = 0.0);
+        foreach (var s in new[] { simOn, simOff })
+        {
+            Assert.True(s.World.Region.TechLevel < 0.5, $"前提が崩れた：初期技術 {s.World.Region.TechLevel:F3}");
+            Assert.True(Array.IndexOf(s.World.Coef.FleetGoodIds, ship) < 0, "前提が崩れた：汽船が艦隊財に数えられている");
+            EconomyStep.Run(s.World.Region, s.World.Coef, 1.0, null, s.World);
+        }
+        Assert.Equal(0.0, EconomyStep.EquipUnlock(simOn.World.Region, simOn.World.Coef, ship));   // 1783年＝汽船は未発見
+        Assert.NotNull(fOn.ArmsStock);
+        Assert.Equal(0.0, fOn.ArmsStock![ship]);      // 未発見の汽船は1単位も買わない（必要量0＝発注0）
+        Assert.True(fOn.ArmsStock[rifle] > 0);       // 発見済みの小銃は買う
+        Assert.True(simOn.World.Region.Markets[ship].LastDemand < simOff.World.Region.Markets[ship].LastDemand,
+            $"未発見の汽船の需要が消えていない（発見あり {simOn.World.Region.Markets[ship].LastDemand:F3} ≥ 対照 {simOff.World.Region.Markets[ship].LastDemand:F3}）");
+    }
+
+
+    // ============================================================================================
+    // ★項目2(b)＋項目3（2026-09-11・設計メモ §7 作者裁定2026-09-09 の未実装分・計器 fp300／smoke60 の知見・同日点火＝係数は削除）。
+    //   2(b)＝F1鎮圧枝は闘争度を緩和しない（弾圧は鎮めない・譲歩が鎮める＝施行の時点）。
+    //   3＝F1の州選択の鍵は 熱×群衆（旧の「熱が最大の州」は英・露で群衆9.5人／85人の植民地前哨を毎年選んでいた）。
+    //   ここは機構の検査＝盤面を凍結（σ=0）して1四半期だけ踏む。選ばれた州はログの州名で読む（緩和の有無に依らない物差し）。
+    // ============================================================================================
+    private static World 項目3_盤面(double microHeat, double bigHeat, double strengthScale = -1)
+    {
+        var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+        sim.Run(20);
+        var w = sim.World; var c = w.Coef;
+        Assert.True(w.Regions.Count > 2, "前提が崩れた：非首都州が2つ以上ない");
+        if (strengthScale > 0) c.RegionalRevoltStrength = strengthScale;
+        c.MilitancySpeed = 0;   // 盤面を凍結＝闘争度は F1 の枝でしか動かない（測るのは選択と緩和だけ）
+        w.Factions.Clear(); w.RevoltCooldownQuarters = 0; w.PendingRebelRegions = null;
+        foreach (var r in w.Regions) foreach (var p in r.Pops) p.Militancy = 0;
+        var micro = w.Regions[1]; var big = w.Regions[2];
+        // 微小州＝群衆を合計10人に潰す（フォートシンプソン／チャーチルの写し）。大州＝群衆はそのまま（数千）。熱は閉鎖階級・兵士も同じ値に置く＝州平均がその値そのもの
+        double crowdMicro = Politics.RegionCrowd(micro);
+        Assert.True(crowdMicro > 1e-9, "前提が崩れた：微小州にする州に大衆がいない");
+        foreach (var p in micro.Pops) if (!p.Closed && !p.IsSoldier) p.Size *= 10.0 / crowdMicro;
+        foreach (var p in micro.Pops) p.Militancy = microHeat;
+        foreach (var p in big.Pops) p.Militancy = bigHeat;
+        Assert.True(Politics.RegionCrowd(big) > 100 * Politics.RegionCrowd(micro), "前提が崩れた：大州の群衆が微小州の100倍に届かない");
+        return w;
+    }
+
+    [Fact]
+    public void 項目3_人口加重では微小州は選ばれず大州が燃える()
+    {
+        var w = 項目3_盤面(microHeat: 0.99, bigHeat: 0.6);
+        var micro = w.Regions[1]; var big = w.Regions[2];
+        Assert.True(Politics.RegionRevoltHeat(micro, w.Coef) > Politics.RegionRevoltHeat(big, w.Coef), "前提が崩れた：微小州の熱が最大でない（旧の鍵なら微小州が選ばれる帯）");
+        var (sel, heat, crowd) = Politics.SelectRevoltRegion(w, w.Coef);
+        Assert.Same(big, sel);
+        Assert.Equal(0.6, heat, 12);   // 門に掛かるのは選ばれた州の熱（最大の熱0.99ではない）
+        Assert.Equal(Politics.RegionCrowd(big), crowd);
+        var polity0 = w.Polity;
+        Politics.Step(w, w.Coef);
+        Assert.Equal(polity0, w.Polity);
+        Assert.True(w.RevoltCooldownQuarters > 0, "F1が発火していない（大州の熱0.6は門0.5超）");
+        Assert.Contains(w.PendingLog, l => l.Contains("一揆") && l.Contains(big.Name));
+        Assert.DoesNotContain(w.PendingLog, l => l.Contains("一揆") && l.Contains(micro.Name));
+
+        // 既知の帰結（係数コメントに記録）＝門は選ばれた州の熱に掛かる：大州がぬるければ（0.4）微小州が門を越えていても燃えない
+        //（微小州は人の多い州に負ける。リヨン1831がパリの平穏で隠れる形＝点火の計測で見る）。
+        var w2 = 項目3_盤面(microHeat: 0.99, bigHeat: 0.4);
+        var (sel2, heat2, _) = Politics.SelectRevoltRegion(w2, w2.Coef);
+        Assert.Same(w2.Regions[2], sel2);
+        Assert.True(heat2 < w2.Coef.RegionalRevoltThreshold, "前提が崩れた：ぬるい大州が門を越えている");
+        Politics.Step(w2, w2.Coef);
+        Assert.Equal(0, w2.RevoltCooldownQuarters);
+        Assert.DoesNotContain(w2.PendingLog, l => l.Contains("一揆"));
+    }
+
+    [Fact]
+    public void 項目2b_鎮圧も譲歩の約束も闘争度を鎮めない()   // 作者裁定2026-09-09「弾圧は鎮めない・譲歩が鎮める」＝譲歩が鎮めるのは施行の時点（F1法の経路 (b) が検査）
+    {
+        // 鎮圧枝（強度≤保持）：闘争度はそのまま（残るのは死者と正統性の傷）
+        var w = 項目3_盤面(microHeat: 0.0, bigHeat: 0.9);
+        var big = w.Regions[2]; var polity0 = w.Polity; double leg0 = w.Legitimacy, pop0 = Politics.RegionCrowd(big);
+        var mass = big.Pops.FindAll(p => !p.Closed && !p.IsSoldier);
+        Assert.True(mass.Count > 0, "前提が崩れた：大州に大衆がいない");
+        Politics.Step(w, w.Coef);
+        Assert.Equal(polity0, w.Polity);   // 前提＝政体遷移（別サイトの緩和）が混ざっていない
+        Assert.Contains(w.PendingLog, l => l.Contains(big.Name) && l.Contains("一揆を鎮圧"));   // 鎮圧枝に入った（対照が空洞でない）
+        foreach (var p in big.Pops) Assert.Equal(0.9, p.Militancy, 12);   // 大衆も閉鎖階級も兵士も1ビットも鎮まらない
+        Assert.True(w.Legitimacy < leg0, "鎮圧の正統性の傷が消えている（緩和が無くても傷は残る）");
+        Assert.True(Politics.RegionCrowd(big) < pop0, "鎮圧の死者が消えている（緩和が無くても死者は出る）");
+        // 譲歩枝（強度≫保持＝勢い係数を巨大に）：目標を置いただけでは鎮まらない（施行の時点で鎮める＝F1法の経路 (b)）
+        var wc = 項目3_盤面(microHeat: 0.0, bigHeat: 0.9, strengthScale: 1e9);
+        var bigC = wc.Regions[2]; var polityC = wc.Polity;
+        Politics.Step(wc, wc.Coef);
+        Assert.Equal(polityC, wc.Polity);
+        Assert.Contains(wc.PendingLog, l => l.Contains(bigC.Name) && l.Contains("一揆に譲歩"));
+        Assert.NotEqual(0, wc.PendingRevoltDemand);   // 譲歩枝に入った（記録が立つ）
+        foreach (var p in bigC.Pops) Assert.Equal(0.9, p.Militancy, 12);
+    }
+    // ============================================================================================
+    // ★要求は法の経路（作者裁定2026-09-11・同日点火「蜂起前の要求が簡単に通り過ぎる／受け入れる場合も本当の法改正と同じ経路／
+    //   モーダルは通知用・蜂起専用の改正ルートは作らない／即時に上げ下げできるものは要求に加えない／蜂起は要求が通らないこと＝政体の else if は不要」）。
+    //   実測（2026-09-11）：ComputeDemands は TopK=3 で常に要求3件＝旧AI決着の別軸枝 `Count >= 2` が常時真＝蜂起枝は到達不能（既定149/149・点火腕707/707が別軸）。
+    //   旧＝受諾/別軸は ApplyDemand（現行値と目標を同時に直書き＝MandateGate・前提DAG・不可逆を迂回）＝蜂起専用の改正ルート＝物理削除済み。
+    //   新＝通知（PendingFactionCrisis＝AI/プレイヤー共通の札）→ 法の目標（AI＝SelfPlay.Apply／プレイヤー＝法律タブ／初心者＝Parliament.TargetCrisisDemands＝同じ p.X）
+    //   → Government.Step の通常経路 → 要求した法が動かなければ蜂起（政体が同じでも）。
+    //   ⚠F1（州一揆）は RegionalRevoltThreshold=0 で遮蔽する＝同じ州の熱で F1 が先に燃えると共有クールダウンが物差しを汚す。
+    //     段4の門2は `despair > 0` になる＝この番人は門2を測るものではない（門2の番人は段4の各テスト）。
+    // ============================================================================================
+    // ★2026-09-20 段の点火（裁定C1）：税5軸は段の法になった＝即時値の軸は連続のままの3軸だけ（旧9軸）。
+    //   ⚠専売は同日の作者裁定（率の廃止）で**材ごとの ON/OFF の離散の決断**になった＝即時値の軸から外れた。
+    private static readonly PolicyAxis[] InstantAxes =
+    [
+        PolicyAxis.Coercion, PolicyAxis.NavyUpkeep, PolicyAxis.Tariff,
+    ];
+
+    // 全軸の現在位置（法とスライダーの実値）＝「法を直接書いたか」の物差し（AxisPosition＝要求の可動域と同じ1本）
+    private static double[] LawVector(World w)
+    {
+        var v = new double[FactionSnapshot.Axes.Length];
+        for (int i = 0; i < v.Length; i++) v[i] = FactionSnapshot.AxisPosition(w, FactionSnapshot.Axes[i]);
+        return v;
+    }
+    // 段になった税の実効の率（段の位置でなく Move が動かす値）。段を持たない軸は null。
+    private static double? StagedTaxRate(World w, PolicyAxis a) => a switch
+    {
+        PolicyAxis.IncomeTax => w.TaxRate, PolicyAxis.ProgressiveTax => w.ProgressiveTax, PolicyAxis.PollTax => w.PollTax,
+        PolicyAxis.LandTax => w.LandTax, PolicyAxis.EducationSpending => w.EducationSpending, _ => null,
+    };
+    // 全法目標（NationPolicy の全フィールド）＝「どの目標が置かれたか」の物差し（反射＝軸ごとの読み手を新設しない）
+    private static object?[] PolicyVector(World w) => Array.ConvertAll(typeof(NationPolicy).GetFields(), fi => fi.GetValue(w.Policy));
+
+    private static (World W, FactionState F) 法の経路_危機が立つ世界()
+    {
+        var (w, f) = 段4_絶望した州に小さな運動を置く(regionMilitancy: 0.6, fight: 1.0, rejections: 3.0);
+        w.Coef.RevoltIgnitionIntensity = 0.5;   // 点火の門（09-08）＝示強量 1.0×結束1.0 が越える
+        w.Coef.RevoltVoiceFloor = 1.0;          // 発言権を門から外す（要求で参政権が動いても示強量が消えない＝門の評価を法の動きから独立させる）
+        w.Coef.FactionCohesionDecay = 0;        // 不在減衰を凍結（複数四半期の評価で結束が門を割らない）
+        w.Coef.RegionalRevoltThreshold = 0;     // F1 遮蔽（上の注記）
+        return (w, f);
+    }
+
+    [Fact]
+    public void 法の経路_受諾は法を直接変えず目標を置き施行は通常経路()   // (b)
+    {
+        var (w, f) = 法の経路_危機が立つ世界();
+        var before = LawVector(w); double spent = w.MandateSpent;
+        Politics.Step(w, w.Coef);                     // 1四半期目＝通知だけ（AI/プレイヤー共通の札）
+        Assert.Same(f, w.PendingFactionCrisis);
+        Assert.Equal(before, LawVector(w));           // 法は1段も直接動かない（ApplyDemand は呼ばれない）
+        Assert.Equal(spent, w.MandateSpent);          // 蜂起専用の請求も無い（政治資本は Government.Step の Spend だけが取る）
+        Assert.Equal(3.0, f.Rejections);              // 怨嗟は目標を置いた時点では動かない
+        Assert.Equal(0, w.FactionRevolts);
+        Assert.NotNull(f.CrisisDemands);
+        Assert.True(f.CrisisDemands!.Length > 0, "前提が崩れた：要求が無い運動では受諾の経路を測れない");
+        // 受諾＝法の目標を置く（AI＝Apply／プレイヤー＝法律タブ／初心者＝同じ関数）。政治ロックを外す＝門が通る世界で「目標→施行」を1四半期で通す
+        var topAxis = (PolicyAxis)(Math.Abs(f.CrisisDemands[0]) - 1); bool topInc = f.CrisisDemands[0] > 0;
+        double p0 = f.CrisisDemandPos![0];
+        w.PoliticalLockEnabled = false;
+        var (topOk, _, topWhy) = Government.GateInfo(w, topAxis, topInc, Government.NextStage(w, topAxis, topInc));   // 法律タブが押せる段か（同じ関数）
+        Assert.True(topOk, $"前提が崩れた：本丸 {topAxis} は政治ロックを外しても置けない（{topWhy}）＝この世界では受諾の経路を測れない");
+        Parliament.TargetCrisisDemands(w);
+        Assert.Equal(before, LawVector(w));           // 目標を置いただけ＝現行法は不変
+        double? r0 = StagedTaxRate(w, topAxis);
+        Government.Step(w, w.Coef);                   // 通常の施行経路（1期1段・前提DAG・不可逆）
+        double p1 = FactionSnapshot.AxisPosition(w, topAxis);
+        // ★主張の書き直し（2026-09-20 段の点火）：段になった税が本丸のとき、通常経路（Move の指数接近）は1四半期では段の境界を跨がない
+        //   （Government.EnactingStage の注記）＝「動いた」は段の位置でなく**実効の率が要求の向きへ動き、段が施行中である**こと
+        //   （Politics.CrisisDemandsMoved が受諾と読む同じ述語）。enum 法の本丸は従来どおり段の位置で見る。
+        if (r0 is double rate0)
+        {
+            double rate1 = StagedTaxRate(w, topAxis)!.Value;
+            Assert.True(topInc ? rate1 > rate0 : rate1 < rate0, $"本丸 {topAxis} の率が通常経路で動いていない（{rate0:F3}→{rate1:F3}）");
+            Assert.True(Government.EnactingStage(w, topAxis, topInc), $"本丸 {topAxis} の段が施行中でない");
+        }
+        else Assert.True(topInc ? p1 > p0 : p1 < p0, $"本丸 {topAxis} が通常経路で動いていない（{p0:F3}→{p1:F3}）");
+        w.RevoltCooldownQuarters = 0;
+        Politics.Step(w, w.Coef);                     // 評価＝本丸が動いた＝受諾の実体（怨嗟の解消は施行の時点）
+        Assert.Equal(0.0, f.Rejections);
+        Assert.Equal(0, w.FactionRevolts);
+        Assert.Same(f, w.PendingFactionCrisis);       // 運動は解散しない（09-09）＝札は立ったまま・次の要求を取り直している
+        Assert.NotNull(f.CrisisDemands);
+    }
+
+    [Fact]
+    public void 法の経路_要求が通らなければ政体が同じでも蜂起する()   // (c) 点火の else if（NearestPolity）は無い
+    {
+        // 体制内の要求（主軸の最寄り政体＝現政体・旧は受諾の枝＝蜂起しない側）＝通知→誰も目標を置かない（NullAgent・法律タブも触らない）→要求が通らない→蜂起
+        var (w, f) = 法の経路_危機が立つ世界();
+        int sameIdeo = -1;
+        for (int i = 0; i < Ideologies.Count; i++) if (Politics.NearestPolity(i) == w.Polity) { sameIdeo = i; break; }
+        Assert.True(sameIdeo >= 0, "前提が崩れた：現政体を最寄りとする主軸が無い");
+        f.Ideo = sameIdeo;
+        Assert.Equal(w.Polity, Politics.NearestPolity(f.Ideo));
+        Politics.Step(w, w.Coef);
+        Assert.Same(f, w.PendingFactionCrisis);
+        Assert.Equal(0, w.FactionRevolts);            // 通知の四半期＝通常の法改正の遅延（タイマーではない＝四半期順序そのもの）
+        w.RevoltCooldownQuarters = 0;
+        Politics.Step(w, w.Coef);
+        Assert.Equal(1, w.FactionRevolts);            // 要求した法が1段も動かなかった＝蜂起（政体が同じでも）
+        Assert.Null(w.PendingFactionCrisis);
+        Assert.Equal(4.0, f.Rejections);              // TriggerFactionRevolt の +1 だけ（新しい記帳は足していない）
+        Assert.Same(f, w.RevoltingFaction);           // 決着の3分岐（TriggerFactionRevolt）はそのまま＝政体の分類は結果側に残る
+    }
+
+    [Fact]
+    public void 法の経路_要求に即時値の軸は載らない()   // (d)
+    {
+        // 分類の宣言＝連続のままの Government.Move で書く4軸（段になった税5軸は法＝2026-09-20。専売は商品ごとの贅沢税＝法でない）。法（StepEnum/StepBool・段）はこの4軸以外の全軸
+        foreach (var a in FactionSnapshot.Axes) Assert.Equal(Array.IndexOf(InstantAxes, a) >= 0, FactionSnapshot.IsInstantAxis(a));
+        var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+        sim.Run(20);
+        var w = sim.World;
+        var off = new System.Collections.Generic.List<FactionSnapshot.Demand>[PolicyPreferences.PettyBloc + 1];
+        for (int b = 0; b < off.Length; b++) off[b] = FactionSnapshot.ComputeDemands(w, b);   // 綱領・UI の読み手（既定 lawsOnly=false）＝全軸
+        bool anyInstantOff = false;
+        for (int b = 0; b < off.Length; b++)
+        {
+            var on = FactionSnapshot.ComputeDemands(w, b, lawsOnly: true);   // 危機側の読み手の引数（RecordCrisisDemands／TargetCrisisDemands／factionprobe が渡す）
+            Assert.Equal(off[b], FactionSnapshot.ComputeDemands(w, b));       // ★範囲是正（2026-09-11）：綱領・UI の読み手（既定 lawsOnly=false）は全軸のまま＝減税を掲げる政党は残る
+            foreach (var d in on) Assert.False(FactionSnapshot.IsInstantAxis(d.Axis), $"bloc {b} の要求に即時値の軸 {d.Axis} が載っている");
+            foreach (var d in off[b]) anyInstantOff |= FactionSnapshot.IsInstantAxis(d.Axis);
+            // 法の要求の順位は変わらない（除いた分だけ下位の法が繰り上がる）＝旧の要求のうち法だけを抜いた並びは新の先頭部分と一致
+            var offLaws = off[b].FindAll(d => !FactionSnapshot.IsInstantAxis(d.Axis));
+            Assert.True(on.Count >= offLaws.Count);
+            for (int i = 0; i < offLaws.Count; i++) Assert.Equal(offLaws[i], on[i]);
+        }
+        Assert.True(anyInstantOff, "対照が成立しない：旧の要求にも即時値の軸が1つも無い（フィルタが何も除いていない世界）");
+    }
+
+    [Fact]
+    public void 法の経路_通らない段は目標に置かれない()   // 置く/置かないは法律タブと同じ GateInfo（前提DAG＝官僚制度←独占禁止）
+    {
+        var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+        sim.Run(20);
+        var w = sim.World; var p = w.Policy;
+        Assert.True(w.Bureaucracy < BureaucracyLaw.MeritExam && w.Antitrust == AntitrustLaw.None, "前提が崩れた：独占禁止の前提（資格任用）が既に満ちている");
+        var (ok, _, reason) = Government.GateInfo(w, PolicyAxis.Antitrust, true, (int)AntitrustLaw.CartelBan);
+        Assert.False(ok); Assert.Contains("官僚制度", reason);   // 法律タブならこの段は押せない（LawRowVM.CanReachAndAfford＝同じ関数）
+        p.Antitrust = w.Antitrust;
+        Parliament.TargetDemand(w, PolicyAxis.Antitrust, true, gated: true);
+        Assert.Equal(w.Antitrust, p.Antitrust);        // 置かれない＝拒否（幽霊戦線も開かない）
+        Parliament.TargetDemand(w, PolicyAxis.Antitrust, true);   // gated=false（議会の綱領の旧作法）＝門を見ずに置く
+        Assert.Equal(AntitrustLaw.CartelBan, p.Antitrust);
+        // 前提が満ちて門が開けば同じ呼び出しで置かれる
+        w.Bureaucracy = BureaucracyLaw.MeritExam; w.PoliticalLockEnabled = false;
+        p.Antitrust = w.Antitrust;
+        Parliament.TargetDemand(w, PolicyAxis.Antitrust, true, gated: true);
+        Assert.Equal(AntitrustLaw.CartelBan, p.Antitrust);
+        Assert.Equal(AntitrustLaw.None, w.Antitrust);   // 目標だけ＝現行法は Government.Step が動かす
+    }
+
+    [Fact]
+    public void 法の経路_AIとプレイヤーは同じ危機に同じ目標を置く()   // (e) 対称＝AIの判断は IsPlayer を読まない・法は直接書かない
+    {
+        static World Build()
+        {
+            var sim = new MultiNationSim([NationConfig.Britain(), NationConfig.France(), NationConfig.Japan(), NationConfig.America()], seed: 1789, _ => new NullAgent());
+            sim.Run(8);
+            return sim.Nations[0].World;
+        }
+        var wa = Build(); var wb = Build();
+        Assert.True(wa.SelfPower is not null && wa.Regions.Count > 0);
+        wa.SelfPower!.IsPlayer = true;   // 片方だけプレイヤーの印（UI と同じ）
+        foreach (var w in new[] { wa, wb })
+        {
+            var f = new FactionState { Region = w.Regions[0], Bloc = 2, Ideo = (int)Ideology.Communism, Size = 1.0, AvgMilitancy = 1.0, Cohesion = 1.0, Rejections = 3.0 };
+            w.Factions.Add(f); w.PendingFactionCrisis = f;   // 同じ危機の札（通知）
+        }
+        Assert.Equal(PolicyVector(wb), PolicyVector(wa));   // 前提：出発点の法目標が同じ
+        var lawsA = LawVector(wa);
+        new UtilityAgent().DecideQuarter(wa);
+        new UtilityAgent().DecideQuarter(wb);
+        Assert.Equal(PolicyVector(wb), PolicyVector(wa));   // 全法目標が一致＝要求への応答も含めて IsPlayer で分岐しない
+        Assert.Equal(lawsA, LawVector(wa));                  // 目標を置いただけ＝現行法は不変（施行は Government.Step）
+        // AIが置いた目標＝初心者経路/プレイヤーの法律タブと同じ関数（TargetCrisisDemands＝gated）を同じ世界へ重ねても1つも動かない＝同じ段を指している
+        var afterAi = PolicyVector(wb);
+        Parliament.TargetCrisisDemands(wb);
+        Assert.Equal(afterAi, PolicyVector(wb));
+    }
+
+    // ============================================================================================
+    // ★F1 譲歩は法の経路（作者裁定2026-09-11「F1 の譲歩も同じ原則」＝同じ目標機構・同日点火）：
+    //   旧 ConcedeToRevolt は固定梯子（穀物法↓→労働時間↓→社会保障↑→農奴解放↑→参政権↑）を現行法と目標の直書き（w.X=…; p.X=…）で1段のむ
+    //   ＝政治資本・反対・法の天井を迂回する蜂起専用の改正ルート（梯子が尽きるので譲歩回数が天井＝実測どの腕も20回）＝物理削除済み。
+    //   新＝次の段を Parliament.TargetDemand（gated＝F3b の TargetCrisisDemands が使う同じ1本）で法の目標に置き World.PendingRevoltDemand に記録
+    //   → Government.Step の通常経路（滞る・通らない）→ 動けば Politics.Step 先頭が記録を下ろす。AI は Apply の末尾（TargetCrisisDemands）で置き直す＝IsPlayer で分岐しない。
+    //   固定代金は請求しない（施行側の MandateGate だけが取る＝第二の課金を作らない）。
+    //   ⚠盤面＝項目3_盤面（大州の熱0.9・勢い係数1e9＝譲歩枝・σ=0 で凍結・Factions.Clear() で F3b は遮蔽済み）。
+    // ============================================================================================
+    private static readonly (PolicyAxis Axis, bool Inc)[] F1Ladder =
+    [
+        (PolicyAxis.CornLaws, false), (PolicyAxis.ShorterHours, false), (PolicyAxis.SocialSecurity, true), (PolicyAxis.SerfEmancipation, true), (PolicyAxis.Suffrage, true),
+    ];
+    // 旧梯子の「次の段」（現行法で判定する else-if と同じ順・同じ述語）＝番人側の物差し。尽きていれば null
+    private static (PolicyAxis Axis, bool Inc)? F1NextRung(World w) =>
+          w.CornLaws > ReformLevel.None ? F1Ladder[0]
+        : w.WorkHours > WorkHours.Eight ? F1Ladder[1]
+        : w.SocialSecurityLaw < SocialSecurityLaw.Pension ? F1Ladder[2]
+        : w.SerfEmancipation < ReformLevel.Full ? F1Ladder[3]
+        : w.Suffrage < Suffrage.AdultMale ? F1Ladder[4]
+        : null;
+    private static int F1LawLevel(World w, PolicyAxis a) => a switch   // 現行法の段
+    {
+        PolicyAxis.CornLaws => (int)w.CornLaws, PolicyAxis.ShorterHours => (int)w.WorkHours, PolicyAxis.SocialSecurity => (int)w.SocialSecurityLaw,
+        PolicyAxis.SerfEmancipation => (int)w.SerfEmancipation, PolicyAxis.Suffrage => (int)w.Suffrage, _ => throw new ArgumentOutOfRangeException(nameof(a)),
+    };
+    private static int F1TargetLevel(World w, PolicyAxis a) => a switch   // 法律タブが書く p.X の段（社会保障は法の段 v/3＝GameViewModel.Law.cs と同じ単位）
+    {
+        PolicyAxis.CornLaws => (int)w.Policy.CornLaws, PolicyAxis.ShorterHours => (int)w.Policy.WorkHours,
+        PolicyAxis.SocialSecurity => (int)Math.Round(w.Policy.SocialSecurityTarget * Government.SocialSecurityMaxLevel),
+        PolicyAxis.SerfEmancipation => (int)w.Policy.SerfEmancipation, PolicyAxis.Suffrage => (int)w.Policy.Suffrage, _ => throw new ArgumentOutOfRangeException(nameof(a)),
+    };
+    private static World F1_譲歩の盤面() => 項目3_盤面(microHeat: 0.0, bigHeat: 0.9, strengthScale: 1e9);   // 大州が門を越え・勢い≫保持＝譲歩枝
+
+    [Fact]
+    public void F1法の経路_譲歩は法を直接変えず目標を置き施行は通常経路()   // (b)
+    {
+        var w = F1_譲歩の盤面();
+        var rung = F1NextRung(w); Assert.True(rung is not null, "前提が崩れた：梯子が尽きている");
+        var (axis, inc) = rung!.Value;
+        w.PoliticalLockEnabled = false;   // 門が通る世界（置く/置かないは GateInfo＝法律タブと同じ）＝「目標→施行」を1四半期で通す
+        var (ok, _, why) = Government.GateInfo(w, axis, inc, Government.NextStage(w, axis, inc));
+        Assert.True(ok, $"前提が崩れた：段 {axis} は政治ロックを外しても置けない（{why}）");
+        int law0 = F1LawLevel(w, axis); double spent = w.MandateSpent; double pos0 = FactionSnapshot.AxisPosition(w, axis); var polity0 = w.Polity;
+        var before = LawVector(w);
+        w.Coef.MilitancySpeed = 0;   // ストックの追従を止める＝緩和のインパルスだけを見る
+        var mil0 = Array.ConvertAll(w.Regions[2].Pops.ToArray(), q => q.Militancy);
+        Politics.Step(w, w.Coef);
+        Assert.Equal(polity0, w.Polity);
+        Assert.Contains(w.PendingLog, l => l.Contains(w.Regions[2].Name) && l.Contains("一揆に譲歩"));
+        Assert.Equal(before, LawVector(w));                                    // 法は1段も直接動かない（w.X の直書きが無い）
+        Assert.True(w.MandateSpent <= spent, "蜂起専用の固定代金が残っている");   // 政治資本は Government.Step の MandateGate（Spend）だけが取る
+        Assert.Equal(inc ? (int)axis + 1 : -((int)axis + 1), w.PendingRevoltDemand);   // 記録＝梯子の次の段（旧と同じ順）
+        Assert.Equal(pos0, w.PendingRevoltDemandPos);
+        Assert.Equal(w.Regions[2].Id, w.PendingRevoltRegion);                  // 記録＝一揆の州
+        Assert.Equal(mil0, Array.ConvertAll(w.Regions[2].Pops.ToArray(), q => q.Militancy));   // 目標を置いただけでは鎮まらない（緩和は施行の時点）
+        Assert.Equal(law0 + (inc ? 1 : -1), F1TargetLevel(w, axis));          // 目標＝現行法から1段（法律タブが書くのと同じ p.X）
+        var placed = PolicyVector(w);
+        Parliament.TargetDemand(w, axis, inc, gated: true);                    // 同じ関数（初心者経路/AI）を重ねても動かない＝同じ段を指している
+        Assert.Equal(placed, PolicyVector(w));
+        Government.Step(w, w.Coef);                                            // 通常の施行経路（1期1段・前提DAG・不可逆・MandateGate）
+        Assert.Equal(law0 + (inc ? 1 : -1), F1LawLevel(w, axis));
+        Politics.Step(w, w.Coef);                                              // 翌評価＝要求の向きへ動いた＝記録が下りる（クールダウン中でも先頭で見る）
+        Assert.Equal(0, w.PendingRevoltDemand);
+        for (int i = 0; i < mil0.Length; i++)                                  // 法が動いた＝一揆の州の大衆だけ既存の緩和率（譲歩が鎮めるのは施行の時点）
+        {
+            var q = w.Regions[2].Pops[i];
+            Assert.Equal((!q.Closed && !q.IsSoldier) ? mil0[i] * w.Coef.ReformMilitancyRelief : mil0[i], q.Militancy);
+        }
+    }
+
+    [Fact]
+    public void F1法の経路_通らない段は施行されず要求が残る()   // (c) 天井（前提DAG＝法律タブで押せない段）＝置かれない・施行されない・記録は残る・AI の Apply も置かない
+    {
+        var w = F1_譲歩の盤面(); var p = w.Policy;
+        // 梯子を社会保障の段（労災→失業）まで登らせる：失業の段は官僚制度（資格任用以上）が前提（Government.LawPrereq）＝政治ロックを外しても通らない
+        w.CornLaws = ReformLevel.None; p.CornLaws = w.CornLaws;
+        w.WorkHours = WorkHours.Eight; p.WorkHours = w.WorkHours;
+        w.SocialSecurityLaw = SocialSecurityLaw.WorkersComp; w.SocialSecurity = 1 / 3.0; p.SocialSecurityTarget = 1 / 3.0;
+        Assert.True(w.Bureaucracy < BureaucracyLaw.MeritExam, "前提が崩れた：官僚制度が既に資格任用以上");
+        Assert.Equal(F1Ladder[2], F1NextRung(w));
+        w.PoliticalLockEnabled = false;
+        var (ok, _, why) = Government.GateInfo(w, PolicyAxis.SocialSecurity, true, (int)SocialSecurityLaw.Unemployment);
+        Assert.False(ok); Assert.Contains("官僚制度", why);   // 法律タブならこの段は押せない（LawRowVM.CanReachAndAfford＝同じ関数）
+        int code = (int)PolicyAxis.SocialSecurity + 1;
+        var pol0 = PolicyVector(w); var polity0 = w.Polity;
+        Politics.Step(w, w.Coef);
+        Assert.Equal(polity0, w.Polity);
+        Assert.Contains(w.PendingLog, l => l.Contains("一揆に譲歩"));
+        Assert.Equal(code, w.PendingRevoltDemand);                 // 要求は立つ
+        Assert.Equal(pol0, PolicyVector(w));                        // 置かれない＝拒否（幽霊戦線も開かない）
+        Assert.Equal(SocialSecurityLaw.WorkersComp, w.SocialSecurityLaw);
+        for (int q = 0; q < 4; q++)
+        {
+            var polQ = PolicyVector(w);
+            Parliament.TargetCrisisDemands(w);                      // AI の Apply の末尾＝同じ関数（初心者経路も同じ）
+            Assert.Equal(polQ, PolicyVector(w));                    // 通らない段は毎期置かれない
+            Government.Step(w, w.Coef);
+            Assert.Equal(SocialSecurityLaw.WorkersComp, w.SocialSecurityLaw);   // 施行されない
+            Politics.Step(w, w.Coef);
+            Assert.Equal(code, w.PendingRevoltDemand);              // 要求は残る（新しいタイマーは無い＝諦めの恒久化もしない）
+        }
+        // 前提が満ちれば同じ呼び出しで置かれ、通常経路で施行され、記録が下りる
+        w.Bureaucracy = BureaucracyLaw.MeritExam; p.Bureaucracy = w.Bureaucracy;
+        Parliament.TargetCrisisDemands(w);
+        Assert.Equal((int)SocialSecurityLaw.Unemployment, F1TargetLevel(w, PolicyAxis.SocialSecurity));
+        Government.Step(w, w.Coef);
+        Assert.Equal(SocialSecurityLaw.Unemployment, w.SocialSecurityLaw);
+        Politics.Step(w, w.Coef);
+        Assert.Equal(0, w.PendingRevoltDemand);
+    }
+
+    [Fact]
+    public void F1法の経路_梯子が尽きたら何も置かない()   // (d) のむものが無い＝return（緩和も請求も無い）＝記録も目標も書かない
+    {
+        var w = F1_譲歩の盤面(); var p = w.Policy;
+        w.CornLaws = ReformLevel.None; p.CornLaws = w.CornLaws;
+        w.WorkHours = WorkHours.Eight; p.WorkHours = w.WorkHours;
+        w.SocialSecurityLaw = SocialSecurityLaw.Pension; w.SocialSecurity = 1.0; p.SocialSecurityTarget = 1.0;
+        w.SerfEmancipation = ReformLevel.Full; p.SerfEmancipation = w.SerfEmancipation;
+        w.Suffrage = Suffrage.AdultMale; p.Suffrage = w.Suffrage;
+        Assert.Null(F1NextRung(w));
+        var before = LawVector(w); var pol0 = PolicyVector(w); double spent = w.MandateSpent; var polity0 = w.Polity;
+        Politics.Step(w, w.Coef);
+        Assert.Equal(polity0, w.Polity);
+        Assert.Contains(w.PendingLog, l => l.Contains("一揆に譲歩"));   // 譲歩枝には入る
+        Assert.Equal(before, LawVector(w)); Assert.Equal(pol0, PolicyVector(w));
+        Assert.True(w.MandateSpent <= spent, "尽きた梯子が請求している");
+        Assert.Equal(0, w.PendingRevoltDemand);
+    }
+
+    [Fact]
+    public void F1法の経路_AIとプレイヤーは同じ一揆に同じ目標を置く()   // (e) 対称＝ConcedeToRevolt も Apply の置き直しも IsPlayer を読まない・法は直接書かない
+    {
+        static World Build()
+        {
+            var sim = new MultiNationSim([NationConfig.Britain(), NationConfig.France(), NationConfig.Japan(), NationConfig.America()], seed: 1789, _ => new NullAgent());
+            sim.Run(8);
+            return sim.Nations[0].World;
+        }
+        var wa = Build(); var wb = Build();
+        Assert.True(wa.SelfPower is not null && wa.Regions.Count > 1);
+        wa.SelfPower!.IsPlayer = true;   // 片方だけプレイヤーの印（UI と同じ）
+        foreach (var w in new[] { wa, wb })
+        {
+            var c = w.Coef;
+            c.MilitancySpeed = 0; c.RegionalRevoltStrength = 1e9;   // 勢い≫保持＝譲歩枝
+            w.Factions.Clear(); w.RevoltCooldownQuarters = 0; w.PendingRebelRegions = null;
+            foreach (var r in w.Regions) foreach (var p in r.Pops) p.Militancy = 0;
+            foreach (var p in w.Regions[1].Pops) p.Militancy = 0.9;   // 同じ州の同じ一揆
+        }
+        Assert.Equal(PolicyVector(wb), PolicyVector(wa));   // 前提：出発点の法目標が同じ
+        var laws = LawVector(wa);
+        Politics.Step(wa, wa.Coef); Politics.Step(wb, wb.Coef);
+        Assert.NotEqual(0, wa.PendingRevoltDemand);          // 譲歩枝に入った（対照が空洞でない）
+        Assert.Equal(wb.PendingRevoltDemand, wa.PendingRevoltDemand);
+        Assert.Equal(PolicyVector(wb), PolicyVector(wa));   // 譲歩で置いた目標が IsPlayer の有無で一致
+        Assert.Equal(laws, LawVector(wa));                   // 現行法は不変（施行は Government.Step）
+        new UtilityAgent().DecideQuarter(wa);
+        new UtilityAgent().DecideQuarter(wb);
+        Assert.Equal(PolicyVector(wb), PolicyVector(wa));   // AI の置き直し（Apply 末尾の TargetCrisisDemands）も IsPlayer で分岐しない
+        Assert.Equal(laws, LawVector(wa));
+        // AI が置いた目標＝初心者経路/プレイヤーの法律タブと同じ関数を同じ世界へ重ねても1つも動かない＝同じ段を指している
+        var afterAi = PolicyVector(wb);
+        Parliament.TargetCrisisDemands(wb);
+        Assert.Equal(afterAi, PolicyVector(wb));
+    }
+
+    // ============================================================================================
+    // ★裁定C1（2026-09-12「税率は反乱の要求に乗せるが、法の変更そのものは闘争度に関与しない」）：
+    //   段になった税6軸は**もう即座に上げ下げできない**＝危機の要求から除かない（2026-09-20 点火）。
+    //   ⚠治安維持力（軍事費）・海軍維持費・関税は除外のまま（前者は AxisPosition が別量、後2つは連続のスライダー）。
+    //   ⚠旧の対照「ゲート0では9軸とも載らない」は旗とともに退役（段の無い世界が消えた）。
+    // ============================================================================================
+
+    [Fact]
+    public void 法の経路_段になった税は要求に載る()   // (d)
+    {
+        var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+        sim.Run(20);
+        var w = sim.World;
+        // 段2まで課している世界＝減税の可動域がある（段0の国では税の要求はそもそも立たない＝この番人が測れない）
+        w.PollTax = 2.0 / 3.0; w.TaxRate = 2.0 / 3.0;
+        w.Policy.PollTaxTarget = 2.0 / 3.0; w.Policy.IncomeTaxTarget = 2.0 / 3.0;
+        // ★主張の書き直し（2026-09-20）：旧はここで専売の段を置き、その位置が要求に載ることも測っていた。
+        //   作者裁定で専売は政策軸ごと撤去された（政治問題ではなく生産マネジメントの範囲）＝要求に載る余地が無い。
+        //   この番人が測るのは「段になった**税**が要求に載る」ことだけになった（専売は別の番人＝専売は政治の軸ではない）。
+
+        bool anyTax = false;
+        for (int b = 0; b <= PolicyPreferences.PettyBloc; b++)
+        {
+            var off = FactionSnapshot.ComputeDemands(w, b);                        // 綱領・UI の読み手＝全軸（裁定C1でも不変）
+            var on = FactionSnapshot.ComputeDemands(w, b, lawsOnly: true);         // 危機側の読み手
+            foreach (var d in on)
+                Assert.False(FactionSnapshot.IsInstantAxis(d.Axis),
+                             $"連続のままの軸 {d.Axis} が危機の要求に載っている（1期0.018の動きで必ず受諾になる）");
+            // 除外は連続のままの4軸だけ＝全軸の並びからそれを抜いた列が、危機側の先頭部分と一致する（順位は動かない）
+            var expect = off.FindAll(d => !FactionSnapshot.IsInstantAxis(d.Axis));
+            Assert.True(on.Count >= expect.Count);
+            for (int i = 0; i < expect.Count; i++) Assert.Equal(expect[i], on[i]);
+            foreach (var d in on)
+                anyTax |= d.Axis is PolicyAxis.IncomeTax or PolicyAxis.ProgressiveTax or PolicyAxis.PollTax
+                                 or PolicyAxis.LandTax or PolicyAxis.EducationSpending;   // ⚠専売は軸ごと撤去（2026-09-20）＝そもそも d.Axis になり得ない
+        }
+        Assert.True(anyTax, "段にしても税の軸が1つも危機の要求に載らない＝裁定C1が効いていない");
+    }
+
+    [Fact]
+    public void 法の経路_税の要求は段を目標に置けば通り置かなければ蜂起する()   // (e)
+    {
+        // 本丸を人頭税の減税に固定する（ComputeDemands の順位に依存させない＝ここで測るのは「動いたか」の判定だけ）。
+        (int Revolts, double Rejections) Run(bool concede)
+        {
+            var (w, f) = 法の経路_危機が立つ世界();
+            w.PollTax = Government.TaxValue(PolicyAxis.PollTax, 2); w.Policy.PollTaxTarget = w.PollTax;   // 実効も目標も段2＝政府は何も約束していない（★錨2026-09-18＝段の値は軸ごとの錨から引く）
+            Assert.Equal(2, Government.TaxStage(PolicyAxis.PollTax, w.PollTax));
+            Politics.Step(w, w.Coef);                                     // 通知の四半期（要求を掲げる）
+            Assert.Same(f, w.PendingFactionCrisis);
+            f.CrisisDemands = [-((int)PolicyAxis.PollTax + 1)];           // 本丸＝人頭税を下げろ（減税＝inc=false）
+            f.CrisisDemandPos = [FactionSnapshot.AxisPosition(w, PolicyAxis.PollTax)];
+            f.Rejections = 3.0;
+            if (concede) w.Policy.PollTaxTarget = Government.TaxValue(PolicyAxis.PollTax, 1);   // 法の目標を1段下げる＝法律タブ／AIの Apply が置くのと同じ p.X
+            Assert.Equal(concede, Government.EnactingStage(w, PolicyAxis.PollTax, increasing: false));
+            Assert.Equal(2, Government.TaxStage(PolicyAxis.PollTax, w.PollTax));              // ⚠実効段は**まだ1段も動いていない**（Move は指数接近＝境界まで4〜6四半期）
+            w.RevoltCooldownQuarters = 0;
+            Politics.Step(w, w.Coef);                                     // 評価の四半期
+            return (w.FactionRevolts, f.Rejections);
+        }
+        Assert.Equal(1, Run(concede: false).Revolts);   // 誰も段を置かない＝要求は拒まれた＝蜂起
+        var ok = Run(concede: true);
+        Assert.Equal(0, ok.Revolts);                    // 段を目標に置いた＝施行中＝蜂起しない（実効段が動くのを待つ間に蜂起で潰されない）
+        Assert.Equal(0.0, ok.Rejections);               // 受諾の記帳（怨嗟0）
+    }
+
+    [Fact]
+    public void 法の経路_施行中の述語は目標の段が向こう側にありその一歩が今通ることを見る()   // (e') 差分でもタイマーでもない
+    {
+        var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
+        var w = sim.World;
+        w.PollTax = 2.0 / 3.0; w.Policy.PollTaxTarget = 1.0 / 3.0;
+        // ⚠旧の対照「ゲート0＝常に false」は旗とともに退役（2026-09-20 段の点火）。
+        // ★空手形の封じ（2026-09-12 反証）：門が閉じている向きは目標を置いても施行中ではない＝Move が1ミリも動かさないので
+        //   毎月の取り立ては1ミリも変わらない（1789年の仏＝国庫が痩せた国で人頭税を下げる純支持は負）。
+        Assert.False(Government.GateInfo(w, PolicyAxis.PollTax, increasing: false,
+                                         Government.NextStage(w, PolicyAxis.PollTax, increasing: false)).Ok);
+        Assert.False(Government.EnactingStage(w, PolicyAxis.PollTax, increasing: false));
+        w.PoliticalLockEnabled = false;   // 政治的可否と直交な機構の単体検証（Move/MandateGate/GateInfo が共有する隔離弁）
+        Assert.True(Government.EnactingStage(w, PolicyAxis.PollTax, increasing: false));
+        Assert.False(Government.EnactingStage(w, PolicyAxis.PollTax, increasing: true));    // 向きが違えば施行中ではない
+        w.Policy.PollTaxTarget = 2.0 / 3.0;                                                  // 約束を撤回＝目標＝現在段
+        Assert.False(Government.EnactingStage(w, PolicyAxis.PollTax, increasing: false));
+        // 実効値が目標へ永久に漸近しても（Move の指数接近）、段が同じなら「施行中」にはならない＝差分の誤読を封じている
+        w.PollTax = 2.0 / 3.0 - 1e-6;
+        Assert.False(Government.EnactingStage(w, PolicyAxis.PollTax, increasing: false));
+        // 段を持たない軸（enum法・連続スライダー）は述語を持たない＝判定は段の差分のまま
+        foreach (var a in new[] { PolicyAxis.Suffrage, PolicyAxis.Coercion, PolicyAxis.Tariff, PolicyAxis.NavyUpkeep, PolicyAxis.SocialSecurity })
+        {
+            Assert.False(Government.EnactingStage(w, a, increasing: true));
+            Assert.False(Government.EnactingStage(w, a, increasing: false));
+        }
+    }
+}

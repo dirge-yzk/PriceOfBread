@@ -1,0 +1,678 @@
+﻿namespace PriceOfBread.SimCore;
+
+/// <summary>政策の軸（§9-E）。法整備＋スライダー。各軸に「進める方向」を定め、賛否はその向きで測る。</summary>
+public enum PolicyAxis
+{
+    IncomeTax, SocialSecurity, Coercion, Tariff, EducationSpending,  // スライダー
+    PollTax, LandTax, ProgressiveTax,                                             // 税制の拡張（行政力でアンロック）
+    // ★専売（旧 ConsumptionTax）は2026-09-20に撤去（作者裁定「これは政治問題ではなく生産マネジメントの範囲」）。
+    //   材を専売にするのは生産タブの決断＝政治資本を払わず、要求・綱領・譲歩・予算協賛・掌握の軸のどれにも載らない。
+    //   実収入としての会計（TreasuryCat.StateMonopoly・Fiscal の予算基数・PowerShares の常設歳入）は残る＝軸だけが消えた。
+    //   ⚠撤去で以降の軸の序数が1つ繰り上がる＝改名前のセーブの ManifestoAxis／PendingRevoltDemand／CrisisDemands／AgendaAxes は
+    //     別の軸として復元される（Militarism 撤去2026-08-18と同じ前例）。
+    EducationLaw, Suffrage, Censorship, LaborUnion, ShorterHours,                 // 法整備
+    // ★親軍法（Militarism）は2026-08-18に撤去（作者裁定「厳密には法ではなく政治機構だ。既存の数値から算出できる」）。
+    //   軍国主義は**法でなく4つの導出量**（PoliticalQuantities の練度／政治的優位／公共圏／任免権）なので政策軸にも要求軸にも載らない。
+    //   政治的に押せる実体は既存の2軸が持つ：軍事費＝PolicyAxis.Coercion（武力スライダー）／徴兵の深さ＝PolicyAxis.ConscriptionLaw。
+    WomenRights,                                                                   // ★女性の権利（統合法・2026-08-10）。なし→財産権→教育権→選挙権の**1本の梯子**。旧3軸（WomenProperty/WomenSuffrage/WomenEducation）を畳んだ
+                                                                                   // ＝3軸とも選好の式が**完全に同一**（家父長制の旧支配層が抵抗・近代/大衆が賛成）だったので、賛否連合の情報は1つも失われない
+    CornLaws, LandReform, SerfEmancipation,                                        // 議会の法案（段5・第4増分）
+    ConscriptionLaw,                                                                // 徴兵法（1934拡張E5・末尾追加＝列挙順保存）。旧支配層/軍が徴兵制を支持（大軍＝権威）・大衆が反対（取られる）
+    SecretBallot,                                                                   // 秘密投票法（1934拡張E5・末尾追加）。旧支配層が反対（票の買収/脅迫を失う）・近代/大衆が賛成
+    Bureaucracy,                                                                    // 官僚制度（1934拡張E5・末尾追加）。専門化＝旧支配層が反対（縁故任用の特権を失う）・近代/大衆が賛成
+    StateReligion,                                                                // 国教法の寛容化（1934拡張E6・末尾追加）。教会（旧支配層）が抵抗（十分の一税/地位を失う）・近代/大衆が賛成（信仰の自由）
+    Antitrust,                                                                      // 独占禁止法の強化（1934拡張E6・末尾追加）。独占レントを得る旧支配層/資本が抵抗・大衆が賛成（生活水準↑）
+    WartimeRationing,                                                               // 戦時配給法（1934拡張E6・末尾追加）。国家/軍が支持（総力戦の統制）・資本が反対（価格統制で利益減）
+    Nationalization,                                                                // 国有化6部門共通の政治価数（1934拡張E6・末尾追加）。資本（近代エリート）が強く反対（利潤没収）・大衆が賛成（社会主義）。6法が同じ軸を共有
+    NavyUpkeep,                                                                     // ★海軍維持費（2026-08-10 作者裁定「陸軍と海軍の注力レバーは廃止し、海軍維持費と陸軍維持費で表現する」）。
+                                                                                    // 旧 NavalEmphasis（0..1の抽象的な「注力度」）を畳んだ跡＝**軸の実体は金**（NationPolicy.NavyUpkeepTarget）。
+                                                                                    // 陸海の配分は2026-08-04の作者仕様(5)で既に維持費2本＝金で表現済みで、注力度はその上に乗る二重表現だった。
+                                                                                    // 勢力の「海軍の増強」＝海軍維持費を上げろという**金の要求**（ティルピッツ海軍法/八八艦隊）。軍/旧支配層が賛成（艦隊＝権威）・大衆は中立。
+                                                                                    // ⚠列挙の位置は動かさない（要求の同点は軸順で決まる＝決定論。末尾へ動かすと並びが変わる）
+    ChildLabor,                                                                     // 児童労働法（02断線走査2026-07-28・末尾追加）。軸の増＝合法化。旧・唯一の「政治ゲートを通らない無料スイッチ」だった19世紀最大の労働立法（英1833/1847工場法）。価数はShorterHoursと同型＝資本が合法を支持・大衆が反対
+    MilitaryExport,                                                                 // 軍需輸出の法（禁制品doc C5・2026-07-30・**末尾追加**＝列挙順を保存）。軸の増＝**禁止**。武器を作って売る資本（近代エリート）が反対し、その強さは軍需財の生産額シェアから創発（ハードコードの賛否表を書かない）
+    OpiumPossession,                                                                // 阿片の保有法（禁制品doc C3・2026-07-30・末尾追加）。軸の増＝許可→輸入禁止→禁止。中毒が蝕む大衆が賛成・阿片を売る資本が反対（生産額シェアから創発）
+    OpiumExport,                                                                    // 阿片の輸出法（同・末尾追加）。軸の増＝禁止。植民地の阿片で稼ぐ資本が反対（東インド会社）・大衆は無関心
+    ImmigrationRestriction,                                                         // ★移民制限法（法の棚卸しdoc L2・器2026-08-01・末尾追加）。軸の増＝制限を強める。機構はあるのに法が無かった唯一の領域
+    MonetaryStandard,                                                               // ★通貨制度の法（通貨doc・器2026-08-01・末尾追加）。軸の増＝兌換の維持（金本位）／減＝兌換の停止（管理通貨）。債務者と債権者が正面から対立する唯一の軸
+    CapitalMobility,                                                                // ★資本移動の法（トリレンマdoc・器2026-08-13・末尾追加）。軸の増＝**規制**。
+                                                                                    // ⚠これが無かったので資本開放度は**関税の従属変数**だった＝「高関税だが資本は自由」（19世紀後半の独/米）が表現できず、
+                                                                                    // 兌換の維持・資本の自由・金融政策の自律の3つを同時に持ててしまっていた（トリレンマの破れ）。
+    NationalizationAll,                                                             // ★国有化『全て』専用軸（作者裁定2026-08-14 §11-6d・末尾追加）。政治価数は Nationalization と**同一**（Pref はフォールスルー）＝
+                                                                                    //   別軸である理由は前提DAGだけ：『全て』はプロレタリア独裁のみ操作可（LawPrereq）を、UIのグレーアウト・施行・譲歩が同じ1本で読めるようにする。
+                                                                                    //   ⚠勢力の要求軸には**しない**（ComputeDemands が除外）＝要求は Nationalization 梯子（最終段＝『全て』）が一元管理＝二重要求を出さない。
+    ColonialSuffrage,                                                               // ★植民地参政権（参政権の範囲2法・作者裁定2026-08-16・末尾追加＝列挙順保存）。3段：なし/自国民のみ/全面。
+                                                                                    //   SuffrageScopeGate=0 では Pref=0＝要求リストに載らない（CapitalMobility の思想③と同じ防壁）。⚠既定は1.0＝点火2026-09-06
+    MigrantNativeSuffrage,                                                          // ★移民原住民参政権（同・末尾追加）。2段：なし/あり。本国州popの非中核割合を政治的国民に算入する法
+    SpecialistExitBan,                                                              // ★技術者流出禁止法（段⑤・2026-08-17・末尾追加＝列挙順保存）。軸の増＝**禁止**。3段：自由/制限/禁止。
+                                                                                    //   ⚠賛否は**近代エリートの内側**で割れる（資本＝雇う側が賛成／技師・研究者＝売る側が反対）＝符号がブロック内の富の比で決まる。
+                                                                                    //   休眠 SpecialistExitBanPrefScale=0 では Pref=0＝要求リストに載らない（CapitalMobility と同じ思想③の防壁）
+    Guild,                                                                          // ★同業組合法（特権システム 段4・2026-09-07・末尾追加＝列挙順を動かさない）。増＝自由化（剥離）
+    CivilianArms,                                                                   // ★民間の武器購入の法（設計メモ§7 (a)・2026-09-11・末尾追加＝列挙順を動かさない）。軸の増＝**禁止**。
+                                                                                    //   旧支配層＝武力の独占の防衛者として禁止を望み・近代/大衆＝自衛と蜂起の手段として許可を望む（地位/権力軸の型）。
+                                                                                    //   休眠 RebelArmsMarketEnabled=0 では Pref=0＝要求リストにも綱領にも載らない（Guild と同じ防壁）
+}
+
+/// <summary>
+/// 利益集団の政策選好（§9-E）。**ハードコードの賛否表を廃し、各ブロックの物質的立場から選好を創発させる**（唯物論）。
+/// 3ブロック（0=旧支配層〔Closed＝貴族・聖職〕/ 1=近代エリート〔資本・専門職〕/ 2=大衆〔賃金労働〕）。
+/// ・経済軸（税・給付・労働・関税）＝**保有から導出**：税は払う側（その課税ベースのシェア）が反対・給付は受ける側が賛成。
+/// ・地位/権力軸（参政権・教育法・検閲・女性財産・農奴解放）＝**旧支配層＝現秩序の防衛者**として導出（自由化で特権を失う）。
+/// ・**国家を歳入主体に加える**：税には国家の歳入要求が＋に働く＝誰も支持しない税（専売）も財政逼迫時に課税可能になる。
+/// 変更に反対するブロックの力が大きいほど施行が遅く（スライダー）/通らない（法整備）。
+/// </summary>
+public static class PolicyPreferences
+{
+    private const double BurdenScale = 3.0;   // 課税ベースのシェア→反対強度の換算（シェア0.67で約−2＝強反対）
+    private const double StatusScale = 2.0;   // 自由化に対する旧支配層の抵抗強度（特権の大きさ＝富シェアで変調）
+    // マジックナンバー一掃（2026-07-20・値据え置き・命名のみ）
+    // ★案D（2026-08-31）：RentProtectionWeight はハードコード定数からCoefficients.RentProtectionWeightCoef へ係数化（既定1.5＝厳密恒等・#17調整対象）
+    private const double ProgressiveCapitalSurcharge = 1.5;      // 累進課税＝資本（近代エリート）への追加反対強度
+    private const double NationalizationCapitalOpposition = 1.5; // 国有化＝資本（近代エリート）の利潤没収への反対強度
+    private const double LandTaxRentierThreshold = 0.34;         // 土地税＝この地代シェア未満なら転嫁を歓迎（賛成）
+    private const int BlocCount = 3;                             // 3ブロック（0旧支配層/1近代エリート/2大衆）＝党（保守0/自由1/社会2）と1:1対応
+
+    /// <summary>ブロックの経済プロファイル＋力（1パス集計。selfplay並列のため static キャッシュは使わない）。</summary>
+    private readonly struct Profile
+    {
+        public readonly double[] Power;        // 政治力（富×参政権重み）
+        public readonly double[] Wealth;       // 富のシェア（誰が富裕＝資産課税の的）
+        public readonly double[] Rent;         // 地代のシェア（誰が地主＝土地税の的）
+        public readonly double[] Income;       // 所得のシェア
+        public readonly double[] Poll;         // 人頭税の課税対象（非免除）人口シェア（Closedは免除＝0）
+        public readonly double[] Old;          // ブロック内の高齢比率（0..OldShareMax。法多様性L2＝年金の受益者。高齢化した国ほど大きい＝水準であって配分シェアではない）
+        public readonly double StateRevenue;   // 国家の歳入要求（0..1.5。財政逼迫で増す。税を＋方向に押す主体）
+        // プチブル利益束（第4束「小営業」＝職人+商人・作者承認2026-08-15・休眠 PettyInterestGate=0）。gate=0では全て0（分類が束を生まない）。
+        public readonly double PettyPowerModern;   // 小営業の政治力・商人（旧束=近代エリート）成分
+        public readonly double PettyPowerMass;     // 同・職人（旧束=大衆）成分。旧束別に持つ＝非対象軸のフォールバック集計が「旧束の値」へ厳密に戻る（設計書§2）
+        public readonly double PettyIncome;        // 小営業の所得シェア（自営所得シェア＝独禁・累進/所得税の強さの導出元）
+        public readonly double PettyIncomeModern;  // うち商人分（対アッパー相対所得の重複控除用）
+        public Profile(double[] pw, double[] we, double[] re, double[] inc, double[] po, double[] old, double sr,
+                       double petM, double petS, double petInc, double petIncM)
+        { Power = pw; Wealth = we; Rent = re; Income = inc; Poll = po; Old = old; StateRevenue = sr;
+          PettyPowerModern = petM; PettyPowerMass = petS; PettyIncome = petInc; PettyIncomeModern = petIncM; }
+    }
+
+    /// <summary>大衆の平均失業率（人口加重・移民制限法の選好と SelfPlay の移民法の意図が読む＝唯一定義・2026-09-11 #13）。⚠労働市場の無い小シナリオでは0＝無影響。</summary>
+    internal static double AvgUnemployment(World w)
+    {
+        double u = 0, size = 0;
+        foreach (var p in w.AllPops()) if (!p.Closed && !p.IsSoldier) { u += p.UnemploymentRate * p.Size; size += p.Size; }
+        return size > 1e-9 ? u / size : 0;
+    }
+
+    /// <summary>popの3ブロック分類（0旧支配層/1近代エリート/2大衆）。<see cref="LawGap"/> の添字はこれ。
+    /// ⚠第4束「小営業」（<see cref="PettyBloc"/>）は**この分類の上に重なる横断的な束**で、対象3軸以外は旧束の値へ落ちる（PettyNet のフォールバック）
+    /// ＝pop から見た所属は 0/1/2 の1本のまま。⚠クラスタ側の4値分類（Factions/FactionSnapshot/Politics に同型が5箇所）とは別物。</summary>
+    internal static int BlocOf(Pop p) => p.Closed ? 0 : p.IsModernElite ? 1 : 2;
+
+    private static Profile Build(World w)
+    {
+        // プチブル利益束（第4束「小営業」・作者承認2026-08-15・休眠 PettyInterestGate=0）：**束の判定切替が唯一の分岐点**＝
+        // gate=0 では petty=null＝分類・加算の順序と値が従来と同一＝ビット恒等。gate>0 でも wealth/rent/income/poll の
+        // 3束シェアは従来の束のまま保つ（blocs0-2 の立場式を1つも動かさない＝非対象軸は旧束の値＝対象3本から広げない・設計書§2）
+        // ＝小営業は「力の振替（BlocsSplit）」と「自営所得シェア」だけを持つ。
+        var petty = w.Coef.PettyInterestGate > 0 ? InterestGroups.PettyPops(w) : null;
+        var (t, m, s, pettyM, pettyS) = InterestGroups.BlocsSplit(w, petty);
+        double[] power = [t, m, s];
+        double[] wealth = new double[BlocCount], rent = new double[BlocCount], income = new double[BlocCount], poll = new double[BlocCount];
+        double[] old = new double[BlocCount], blocPop = new double[BlocCount];
+        double tw = 0, tr = 0, ti = 0, tp = 0, pettyInc = 0, pettyIncM = 0;
+        foreach (var p in w.AllPops())
+        {
+            int b = BlocOf(p);
+            double sv = System.Math.Max(0, p.Savings);
+            wealth[b] += sv; tw += sv;
+            double rn = System.Math.Max(0, p.LandRent); rent[b] += rn; tr += rn;
+            double inc = System.Math.Max(0, p.Earned); income[b] += inc; ti += inc;
+            if (petty != null && petty.Contains(p)) { pettyInc += inc; if (p.IsModernElite) pettyIncM += inc; }   // 小営業の自営所得（対象3軸の強さの導出元。gate=0＝枝ごと不走行）
+            if (!p.Closed && !p.IsSoldier) { poll[b] += p.Size; tp += p.Size; }   // 人頭税の対象（特権＝Closed は免除）
+            if (!p.IsSoldier) { old[b] += p.Size * p.OldShare; blocPop[b] += p.Size; }   // 法多様性L2：ブロックの高齢人口（年金の受益者）
+        }
+        Normalize(wealth, tw); Normalize(rent, tr); Normalize(income, ti); Normalize(poll, tp);
+        for (int i = 0; i < BlocCount; i++) old[i] = blocPop[i] > 1e-9 ? old[i] / blocPop[i] : 0;   // ブロック内の高齢比率＝水準（高齢化した国だけ大きい）
+        // 国家の歳入要求：常に基礎0.5（国家は財源を欲する）＋財政逼迫（funding不足・債務/GDP）で増す。＝誰も支持しない税も国家が押せる。
+        double stress = w.FiscalEnabled
+            // [単位・B13] 債務/GDP＝**月次実質**（GovDebt÷月次Gdp・Min 1）＝Government の緊縮と同じ単位・Fiscal の年次名目とは別
+            ? System.Math.Clamp((1.0 - w.FiscalFundingRatio) + (w.Gdp > 1e-9 ? System.Math.Min(1.0, w.GovDebt / w.Gdp) : 0), 0, 1.0)
+            : 0;
+        return new Profile(power, wealth, rent, income, poll, old, 0.5 + stress,
+            pettyM, pettyS, ti > 1e-9 ? pettyInc / ti : 0, ti > 1e-9 ? pettyIncM / ti : 0);
+    }
+
+    private static void Normalize(double[] a, double total)
+    { if (total > 1e-9) for (int i = 0; i < BlocCount; i++) a[i] /= total; }
+
+    // 「進める方向」への各ブロックの賛否（+賛成 / −反対）を**経済プロファイルから導出**。連続値（概ね −2..+2）。
+    private static double Pref(PolicyAxis a, int b, in Profile e, World w)
+    {
+        bool trad = b == 0, modern = b == 1, mass = b == 2;
+        switch (a)
+        {
+            // === 経済軸（保有から導出）===
+            case PolicyAxis.IncomeTax:        // 所得税＝富裕が払う・大衆は再分配で得る
+                return (mass ? 1.0 : 0) - BurdenScale * e.Wealth[b];
+            case PolicyAxis.ProgressiveTax:   // 累進＝資本（最大の払い手）ほど強く反対
+                return (mass ? 1.0 : 0) - (BurdenScale + (modern ? ProgressiveCapitalSurcharge : 0)) * e.Wealth[b];
+            case PolicyAxis.LandTax:          // 土地税＝地代の受け手（地主）が反対・他は転嫁を歓迎
+                return (e.Rent[b] < LandTaxRentierThreshold ? 1.0 : 0) - (BurdenScale + 1.0) * e.Rent[b];
+            case PolicyAxis.PollTax:          // 人頭税＝対象（大衆）が反対・免除（特権）は転嫁を歓迎
+                return (e.Poll[b] < 1e-6 ? 1.0 : 0) - BurdenScale * e.Poll[b];
+            case PolicyAxis.SocialSecurity:   // 福祉＝大衆が受益・富裕が財源負担。法多様性L2＝高齢比率の受益者項（年金軸が同じPrefを使う＝高齢化した国だけ年金が通る・ビスマルク1889型）
+                return (mass ? 1.0 : 0) - 2.0 * e.Wealth[b] + w.Coef.PensionOldWeight * e.Old[b];
+            case PolicyAxis.EducationSpending:// 教育費＝大衆/近代は受益（上昇・人材）・旧支配層（教会の教育独占）は失う
+                return trad ? -1.0 : 1.0;
+            case PolicyAxis.Tariff:           // 関税＝保護される生産者（地代＝穀物）が賛成・消費者（大衆）が反対
+            {
+                // 接8（監査2026-07-11・2026-07-25休眠配線）：競争力ベースの州関税利害（毎期算出済み・従来は分離判定専用）を国政の関税選好へ接続＝
+                // 後発工業国の資本家が保護関税を求める回路（米国システム・独1879年型）。近代エリート項に活動州の関税利害平均を加算。
+                // ＋国家の歳入要求（19世紀最大の歳入源だった関税）を専売と同型で加算。両係数とも既定0＝不読＝現行と厳密一致。
+                double tariffExtra = 0;
+                if (modern && w.Coef.TariffInterestPrefWeight > 0)
+                {
+                    double tiSum = 0; int tiN = 0;
+                    // 2026-07-27 是正：首都州(Id==0)は Politics.CheckSecession の分離判定から除外されており TariffInterest が**永久に既定0**。
+                    // その構造的な0を平均に混ぜていたため州数の少ない国ほど強く希釈されていた（2州国なら実効半減）。算出されている州だけで平均する。
+                    foreach (var rg in w.Regions) if (rg.State == RegionState.Active && rg.Id != 0) { tiSum += rg.TariffInterest; tiN++; }
+                    if (tiN > 0) tariffExtra += w.Coef.TariffInterestPrefWeight * (tiSum / tiN);
+                }
+                if (w.Coef.TariffStateRevenueWeight > 0) tariffExtra += w.Coef.TariffStateRevenueWeight * e.StateRevenue;
+                // ★輸出利害の反関税（TariffExportOppositionWeight・2026-08-31）：輸出で食う資本（近代エリート）は自由貿易を推す
+                //   （マンチェスター学派・穀物法撤廃1846の物質的基盤）。強さ＝輸出/GDPシェア（既存の LastExportValue／名目GDP・クランプ0..1）。
+                //   ⚠保護利害（TariffInterestPref＝後発の資本家は保護を求める）と**同じブロック内で正面から割れる**＝独1879 vs 英1846が保有から出る。0＝恒等
+                if (modern && w.Coef.TariffExportOppositionWeight > 0 && w.NominalGdp > 1e-9)
+                {
+                    // ★案C拡張（2026-08-31）：反対の物質基盤＝輸出＋**中間投入の輸入**（資本の投入コスト利害＝原料関税は自分の原価）。
+                    //   輸出だけだと「貿易が死んだ後では反対が立たない」履歴の罠（実測）＝投入輸入が現在の生産から立つ分だけ罠が浅くなる。
+                    double tradeBase = w.LastExportValue;
+                    if (w.ImportsByGood is { } impC)
+                        for (int gC = 0; gC < impC.Length && gC < Catalog.Goods.Length; gC++)
+                            if (Catalog.Goods[gC].Tier is GoodTier.Producer or GoodTier.Intermediate) tradeBase += impC[gC];
+                    tariffExtra -= w.Coef.TariffExportOppositionWeight * System.Math.Clamp(tradeBase / w.NominalGdp, 0, 1);
+                }
+                // ★器 TariffRetaliationViaPolitics（2026-09-04）：報復の圧力を**支持項**として国内生産者（旧支配層＝地代・近代エリート）に載せる。
+                //   偏倚/TariffReactionMax∈[−1,1]（正＝相手が壁を上げた＝報復したい・負＝相互低減の誘い）。0＝この行は不読＝厳密恒等。
+                //   ★実測2026-09-04（batch10）：全生産者（旧支配層＋近代エリート）に一律で乗せる形は**差し戻し**＝偏倚は大半の国で正なので
+                //     全員の「上げ」支持が増え、下げの錠が強くなった（開放度0.211→0.156・清+10pt・計算時間2.7倍）。
+                //   史実の形＝報復（「公正貿易」）を求めたのは**閉め出された輸出者**（英1880年代の公正貿易同盟＝ランカシャー/シェフィールドの輸出産業）。
+                //     ＝近代エリートのみ・重み＝輸出/GDP（既存量・クランプ0..1）。旧支配層には乗せない（地代は輸出市場を持たない）。
+                //     既定0＝この行は不読＝厳密恒等。再測は E-14。
+                double retal = w.Coef.TariffRetaliationViaPolitics > 0 && w.Coef.TariffReactionMax > 1e-9 && modern && w.NominalGdp > 1e-9
+                    ? w.Coef.TariffRetaliationViaPolitics * (w.TariffRetaliationBias / w.Coef.TariffReactionMax)
+                      * System.Math.Clamp(w.LastExportValue / w.NominalGdp, 0, 1) : 0.0;
+                return w.Coef.RentProtectionWeightCoef * e.Rent[b] - (mass ? 1.0 : 0) + tariffExtra + retal;
+            }
+            case PolicyAxis.CornLaws:         // 穀物法＝地主が賛成・産業/大衆は安いパンで撤廃
+                return w.Coef.RentProtectionWeightCoef * e.Rent[b] - (trad ? 0 : 1.0);
+            case PolicyAxis.LaborUnion:       // 労働組合＝労働者（大衆）が賛成・資本（近代）が反対。法多様性L3＝闘争譲歩（参政権と同型・閾値付き＝高闘争国だけ資本が譲歩＝ストの脅威が容認を引き出す）
+                double unionConc = w.Coef.LaborMilitancyConcession * System.Math.Max(0, Politics.AvgMassMilitancy(w) - w.Coef.LaborConcessionThreshold);
+                return mass ? 1.0 : -0.5 + unionConc;
+            case PolicyAxis.ShorterHours:     // 労働時間（WorkHours enum）。**Pref は「進める向き＝enum増＝長時間化」への賛否**（A-1#2配線2026-06-24）。WorkHours enum は Eight<Ten<Twelve<Unlimited＝増が長時間。長時間化＝雇用主(資本)が賛成・労働者(大衆)が反対。StepEnum が短縮(enum減)時に符号反転し「短縮＝大衆賛成・資本反対」になる。法多様性L3＝闘争譲歩で資本の長時間支持が緩む（閾値付き）
+            case PolicyAxis.ChildLabor:       // 児童労働（02断線走査2026-07-28）＝軸の増＝合法化。ShorterHoursと同型：資本が賛成（安価な労働）・大衆が反対（子を取られる）・闘争譲歩で資本が緩む
+                double hoursConc = w.Coef.LaborMilitancyConcession * System.Math.Max(0, Politics.AvgMassMilitancy(w) - w.Coef.LaborConcessionThreshold);
+                return mass ? -1.0 : modern ? 1.0 - hoursConc : 0;
+            case PolicyAxis.Coercion:         // 治安維持力＝それで地位を守る側（旧支配層）が賛成・抑圧される大衆が反対
+            case PolicyAxis.ConscriptionLaw:   // 徴兵法（E5）＝旧支配層/軍が賛成（大軍＝権威）・大衆が反対（取られる）＝治安維持力と同型
+                return trad ? 1.0 : mass ? -1.0 : 0;
+            case PolicyAxis.NavyUpkeep:        // 海軍維持費（2026-08-10 作者裁定＝旧「海軍偏重」の振り替え先）＝艦隊に払う金。旧支配層が賛成（艦隊の威信）・大衆は中立（徴兵と違い取られない）
+                return trad ? 0.5 : 0;
+
+            // === 地位/権力軸（旧支配層＝現秩序の防衛者。自由化で特権を失う。抵抗は富＝特権の大きさで変調）===
+            case PolicyAxis.EducationLaw:     // 世俗の公教育＝教会（旧支配層）が強く抵抗
+            case PolicyAxis.WomenRights:      // ★女性の権利の梯子（統合法・2026-08-10）＝家父長制の根幹に触れるので旧支配層が強く抵抗・近代/大衆（女性・社会党・自由派）が賛成。
+                                              // ⚠旧3軸（財産権/教育権/参政権）は**この1行と一字一句同じ式**を3回書いていた＝統合しても賛否連合は不変。
+                                              // 段による難度差は選好でなく**構造**が持つ：最上段（選挙権）だけが憲法級（政治資本では押せない）＋男性普通選挙が前提。
+            case PolicyAxis.SerfEmancipation: // 農奴解放＝農奴所有の地主が強く抵抗
+                return trad ? -StatusScale * (0.5 + e.Wealth[0]) : 1.0;
+            case PolicyAxis.LandReform:       // 土地改革＝地主が強く抵抗・大衆が強く賛成
+                return trad ? -StatusScale * (0.5 + e.Wealth[0]) : mass ? 2.0 : 1.0;
+            case PolicyAxis.Censorship:       // 報道の自由化＝旧支配層が抵抗（検閲＝統制）・近代/大衆は自由を好む
+            case PolicyAxis.SecretBallot:     // 秘密投票（E5）＝旧支配層が抵抗（票の買収/脅迫の力を失う）・近代/大衆が賛成（真の選挙）
+            case PolicyAxis.Bureaucracy:      // 官僚制度の専門化（E5）＝旧支配層が抵抗（縁故任用の特権を失う）・近代/大衆が賛成（実力任用）
+            case PolicyAxis.StateReligion:    // 国教の寛容化（E6）＝教会（旧支配層）が抵抗（十分の一税/地位）・近代/大衆が賛成（信仰の自由）
+                return trad ? -1.0 : 1.0;
+            case PolicyAxis.Antitrust:        // 独占禁止（E6）＝独占レントを得る旧支配層(塩の王室のgabelle)/資本(茶・トラスト)がともに抵抗・高値を払わされる大衆が賛成
+                return mass ? 1.0 : -1.0;
+            case PolicyAxis.Guild:            // 同業組合の廃止（特権 段4）＝職人（小営業束＝PettyPref が独自の立場）が抵抗・工場資本（自由な労働）と大衆（安い製品・参入の自由）が賛成・旧支配層は中立
+                                              // ⚠GuildLawGate=0 では全ブロック0＝綱領・要求・戦線のどれにも現れない（uishot 1786年の総選挙に「同業組合の廃止」が出た＝休眠の漏れ・2026-09-07 是正）
+                return w.Coef.GuildLawGate > 0 ? (trad ? 0.0 : 1.0) : 0.0;
+            case PolicyAxis.CivilianArms:     // 民間の武器購入の禁止（2026-09-11）＝旧支配層が禁止を望み（武力の独占＝現秩序の防衛・英1819六法）・近代/大衆が許可を望む（自衛と蜂起の手段＝国民衛兵1789）。
+                                              // 地位/権力軸の型（検閲・秘密投票と同じ±1）＝保有から導く量が無い軸。⚠RebelArmsMarketEnabled=0 では全ブロック0＝綱領・要求・戦線のどれにも現れない（Guild と同じ休眠の防壁）
+                return w.Coef.RebelArmsMarketEnabled > 0 ? (trad ? 1.0 : -1.0) : 0.0;
+            case PolicyAxis.WartimeRationing: // 戦時配給（E6）＝国家/軍が総力戦の統制として支持・資本が価格統制で反対（大衆は中立＝公平配給だが統制も伴う）
+                return trad ? 0.5 : modern ? -0.5 : 0;
+            case PolicyAxis.MilitaryExport:   // 軍需輸出の禁止（C5・2026-07-30）＝武器を作って売る資本が利益から反対。強さは**軍需財の生産額シェア**から創発
+                                              // （Tariff の地代シェアと同型＝保有から導出）。武器産業を持たない国では 0＝反対が立たない＝国ごとの特例を書かずに差が出る。
+                                              // 軍の賛成は既存の統帥権（ArmyStake＝軍事軸のみ）が担う＝ここには足さない（作者裁定：法の賛否だけで表現する）。
+                return modern ? -w.Coef.MilitaryExportPrefScale * MilitaryOutputShare(w) : 0;
+            case PolicyAxis.OpiumPossession:  // 阿片の禁止（C3・2026-07-30）＝中毒に蝕まれる大衆が賛成（依存度そのものが賛成の強さ＝害が大きいほど禁令圧が高まる）・
+                                              // 売る側の資本が反対（阿片の生産額シェアから創発）。旧支配層は中立。清の禁令が「阿片が広まってから」出るのが条件から創発する。
+                return mass ? 1.0 + w.Coef.OpiumBanPrefScale * NationalOpiumAddiction(w)
+                     : modern ? -w.Coef.OpiumTradePrefScale * OpiumOutputShare(w) : 0;
+            case PolicyAxis.OpiumExport:      // 阿片の輸出禁止（C3）＝植民地の阿片で稼ぐ資本（東インド会社）だけが反対。自国民は中毒にならないので大衆は無関心
+                return modern ? -w.Coef.OpiumTradePrefScale * OpiumOutputShare(w) : 0;
+            case PolicyAxis.ImmigrationRestriction:
+                // ★移民制限法の政治（点火2026-08-01）：**流入で職を脅かされる大衆が推し、労働力を求める資本が反対する**。
+                // ⚠国名も暦年も書かない——読むのは**実際に流入している量**（前四半期の確定値 World.LastImmigration÷人口）と**失業**。
+                // ★史実＝米の排華移民法1882・紳士協約1907・1924移民法／豪の白豪主義。いずれも労働者の運動が推し、雇主が抵抗した。
+                // ⚠流入がゼロの国では両側とも0＝要求リストに載らない（＝法が争点にならない）＝島国や内陸小国で無意味な要求が出ない。
+                if (w.TotalPopulation <= 1e-9) return 0;
+                double inflowRate = Math.Max(0, w.LastImmigration) / w.TotalPopulation;
+                double pressure = w.Coef.ImmigrationRestrictionPrefScale * inflowRate;
+                return mass ? pressure * (1.0 + AvgUnemployment(w)) : modern ? -pressure : 0;
+            case PolicyAxis.SpecialistExitBan:
+                // ★技術者流出禁止法の政治（段⑤・2026-08-17）。増加方向＝**禁止を強める**。
+                // ⚠国名も暦年も書かない——読むのは**実際に抜かれている量**（前四半期の確定値 LastSpecialistExit÷人口）だけ。
+                //   抜かれていない国では両側とも0＝要求リストに載らない（＝法が争点にならない）。
+                // ★史実＝英の職工移住禁止法（1719 Artificer's Act）＝**製造業者が推した**法である。
+                //   ⚠そして1825年に**自由主義が撤廃した**（団結禁止法と同年）。同じ国で賛成が反対に転じた。
+                // ★★★ その反転を暦年でなく**構造**で出す：賛否は近代エリートの**内側**で割れる——
+                //   ⚠資本（技師を雇う側）は賛成（労働力を他国に競り上げられたくない）。
+                //   ★技師・研究者（自分を売る側）は反対（国外で高く売る機会を失う）。
+                //   ⚠符号は**ブロック内の富の比**で決まる＝資本が優越する初期は通り、専門職が育つほど撤廃へ傾く。
+                //   ★大衆は専門職でないので無関心（OpiumExport の「自国民は中毒にならない」と同じ理由で0）。
+                if (w.TotalPopulation <= 1e-9 || !modern) return 0;
+                double exitRate = Math.Max(0, w.LastSpecialistExit) / w.TotalPopulation;
+                double banPressure = w.Coef.SpecialistExitBanPrefScale * exitRate;
+                if (!(banPressure > 0)) return 0;
+                double capW = 0, proW = 0;
+                foreach (var rr in w.Regions)
+                    foreach (var q in rr.Pops)
+                    {
+                        // ⚠物差しは**富**（規模でなく政治力）。資本家は数が少なく富が大きいので初期は優越する＝史実の順序が出る。
+                        double wealth = Math.Max(0, q.Savings);
+                        if (q.ClassId == PopClass.Capitalist) capW += wealth;
+                        else if (q.ClassId == PopClass.Engineer || q.ClassId == PopClass.Researcher) proW += wealth;
+                    }
+                double bloc = capW + proW;
+                return bloc > 1e-9 ? banPressure * (capW - proW) / bloc : 0;
+            case PolicyAxis.MonetaryStandard:
+                // ★通貨制度の政治（点火2026-08-01）。増加方向＝**兌換の維持（金本位）**。
+                // ⚠読むのは**実際に起きている物価の動き**（ExpectedInflation＝年率の平滑値）と**その勢力の資産保有**だけ。
+                //   金本位そのものが良い/悪いという値は1つも書かない——立場は保有から出る。
+                // ★史実＝1873-96年の大デフレは債務者と債権者の政治戦争だった。抵当を抱えた農民には、
+                //   物価が下がるとは「同じ借金を返すのに去年より多くの小麦を売る」ことを意味した（ブライアン「黄金の十字架」1896）。
+                //   逆にインフレは債権を溶かすので、資産を持つ側が金の規律を要求する（英の銀行・独の1871年金本位移行）。
+                // ⚠物価が安定していれば**両側とも0**＝通貨は争点にならない（平時の国で無意味な要求が出ない）。
+                // ★銀安の政治（銀本位doc G7・2026-08-13）。⚠「銀安だから移行が安くなる」は採らない——史実は逆である。
+                //   ★銀が下がるほど、銀本位国の**輸出業者・農民・債務者は銀に留まりたい**（銀安が有利）。
+                //   ⚠金へ移りたいのは**債権者・輸入業者**——彼らにとって銀安は輸入価格の上昇であり債権の目減りである。
+                //   ⚠新しい選好の型を作らない：既存の「持てる側／持たざる側」の1行に、銀の下落を**インフレと同じ入力**として足すだけ。
+                //   銀本位でなければ silverDrop=0＝この項は消える（銀の段はlive=2026-08-21点火。gate=0に戻せば到達しない＝厳密恒等）。
+                double silverDrop = 0;
+                if (w.MonetaryLaw == MonetaryStandardLaw.Silver && w.WorldSilverPrice > 1e-9)
+                {
+                    double refSilver = Catalog.RefPrices[Catalog.SilverId];
+                    silverDrop = refSilver > 1e-9 ? Math.Clamp(1.0 - w.WorldSilverPrice / refSilver, 0, 1) : 0;
+                    if (!(silverDrop >= 0 && silverDrop <= 1)) silverDrop = 0;   // NaNは中立へ倒す（否定形＝Clampは NaN を消さない）
+                }
+                // ★交易網の引力（タスク#75再開・2026-08-21）：世界貿易が金建てへ移るほど、対外に開いた経済の「持てる側」
+                //   （債権者・大商人）は自国も相手に本位を合わせることを要求する（決済の摩擦と借入条件＝独1871→1870年代の雪崩の網目）。
+                //   入力は TradeGoldPull（＝世界貿易の金建て比率×自国の貿易開放度・MultiNationSim 注入）だけ＝新しい量ゼロ。
+                //   ⚠既に金なら0（引力は「揃える」力であって金を賛美する値ではない）。MonetaryPeerPullScale=0（旧既定・点火5.0=2026-08-21）でこの項は0＝旧挙動と厳密恒等。
+                double peerPull = 0;
+                if (w.Coef.MonetaryPeerPullScale > 0 && w.MonetaryLaw != MonetaryStandardLaw.Gold)
+                {
+                    peerPull = w.Coef.MonetaryPeerPullScale * w.TradeGoldPull;
+                    if (!(peerPull >= 0)) peerPull = 0;   // NaNは中立へ倒す（否定形＝ClampはNaNを消さない）。上限は掛けない（インフレ入力と同格＝Scaleが目盛り）
+                }
+                return w.Coef.MonetaryPrefScale
+                     * (e.Wealth[b] * (Math.Max(0, w.ExpectedInflation) + silverDrop + peerPull)   // 持てる側：インフレ／銀安／交易網の引力→金の規律を要求
+                      - (1.0 - e.Wealth[b]) * (Math.Max(0, -w.ExpectedInflation) + silverDrop));   // 持たざる側：デフレ→兌換停止を／銀安なら銀に留まることを要求
+            case PolicyAxis.CapitalMobility:
+                // ★資本移動の政治（器2026-08-13）。増加方向＝**規制**。⚠新しい選好の型を作らず、保有から導出する。
+                // ・資本／投資家＝**自由を望む**（海外へ投資でき、海外から資金を呼べる）。反対の強さは**実際の対外保有**
+                //   （CapitalAbroad÷名目GDP）から創発＝対外投資を持たない国では反対が立たない＝法が争点にならない。
+                // ・地主／労働＝**規制を望む**（資本が国内に留まれば国内の雇用と地価を支える）。
+                // ★史実＝金融の中心（英シティ）ほど自由を守り、資本を輸入する側（後発国）は流出局面で統制へ傾いた。
+                // ⚠思想③（休眠フラグは既定で厳密恒等）：休眠中に**選好だけ非0**だと、この軸が要求リストに載って
+                //   他の要求を押し出す＝軸を1本足しただけで軌道が動く。実測で捕まえた（2026-08-13・帯が8軸すべてで動いた）。
+                if (w.Coef.CapitalMobilityLawGate <= 0) return 0;
+                double abroadShare = w.NominalGdp > 1e-9 ? Math.Clamp(w.CapitalAbroad / w.NominalGdp, 0, 1) : 0;
+                if (!(abroadShare >= 0 && abroadShare <= 1)) abroadShare = 0;   // NaNは中立へ倒す（否定形で書く＝Clampは NaN を消さない）
+                return modern ? -(1.0 + w.Coef.CapitalControlPrefScale * abroadShare) : 1.0;
+            case PolicyAxis.Nationalization:  // 国有化（E6）＝利潤を没収される資本（近代エリート）が強く反対・大衆が賛成（社会主義的再分配）。旧支配層は中立（土地貴族＝産業資本ではない）
+            case PolicyAxis.NationalizationAll:   // 『全て』も同じ賛否連合（§11-6d）＝軸が別なのは前提DAG（プロレタリア独裁のみ）のためだけ
+                return modern ? -NationalizationCapitalOpposition : mass ? 1.0 : 0;
+            case PolicyAxis.ColonialSuffrage:      // 植民地参政権（作者裁定2026-08-16）＝賛否連合は参政権の梯子と同型（「既存の参政権軸と同型でよい」）：
+                                                   //   旧支配層＝帝国の身分秩序の防衛で反対・大衆＝賛成・近代＝制限選挙まで賛成（それ以上は希釈）＋革命脅威で譲歩。
+                // ⚠思想③（PolicyAxis.CapitalMobility の分岐＝上の実測前例）：休眠中に選好だけ非0だと、この軸が要求リストに載って他の要求を押し出す＝gate=0 では Pref も0。
+                if (w.Coef.SuffrageScopeGate <= 0) return 0;
+                goto case PolicyAxis.Suffrage;
+            case PolicyAxis.MigrantNativeSuffrage: // 移民原住民参政権（同）＝旧支配層が反対（血統と身分の国民の防衛）・近代エリートが賛成（市民的国民）・
+                                                   //   大衆は両義0（連帯と職の競合が相殺＝移民制限法の対立軸〔大衆が制限を推し資本が反対〕と整合・作者裁定「大衆両義でも可」）。
+                if (w.Coef.SuffrageScopeGate <= 0) return 0;   // 思想③＝同上（gate=0 では要求リストに載せない）
+                return trad ? -1.0 : modern ? 1.0 : 0;
+            case PolicyAxis.Suffrage:         // 参政権の梯子：自分の包摂までは賛成・希釈は反対
+                // 旧支配層＝票でなく権力＝拡大は希釈で反対。近代＝制限選挙まで賛成・以上は梯子外し。大衆＝賛成。
+                // ただし**革命脅威下ではエリートが譲歩**（転覆=全てを失うより、参政権を分けて改革で生き延びる＝Reform Acts）。
+                // 大衆の闘争度 threat が高いほど trad/modern の反対が緩み賛成へ転じる＝梯子外しが解け参政権が拡大→空間モデルで不満が票へ流れ沈静化。
+                double threat = Politics.AvgMassMilitancy(w) * w.Coef.SuffrageConcession;
+                return trad ? -1.0 + threat
+                     : modern ? (w.Suffrage < Suffrage.Census ? 1.0 : -1.0 + threat)
+                     : 1.0;
+            default: return 0;
+        }
+    }
+
+    // 議会（議席）の法への力：党≈ブロック（保守0/自由1/社会2）の選好を議席で加重。富でなく票の声。ParliamentEnabled かつ議会のある政体のみ。
+    private static bool HasLegislature(Polity p) => p is Polity.ConstitutionalMonarchy or Polity.Republic;
+
+    private static double ParliamentNet(World w, PolicyAxis a, double sign, in Profile e)
+    {
+        if (!w.ParliamentEnabled || !HasLegislature(w.Polity)) return 0;
+        double sum = 0;
+        for (int party = 0; party < BlocCount; party++) sum += w.PartySeats[party] * Pref(a, party, e, w) * sign;
+        return w.Coef.ParliamentLawWeight * sum;
+    }
+
+    /// <summary>その向きの変更に反対するブロックの力の合計（スライダーの律速）。</summary>
+    public static double OpposingPower(World w, PolicyAxis a, bool increasing)
+    {
+        var e = Build(w);
+        double sign = increasing ? 1 : -1;
+        double sum = 0;
+        for (int b = 0; b < BlocCount; b++)
+        {
+            double pr = Pref(a, b, e, w) * sign;
+            if (pr < 0) sum += e.Power[b] * -pr;   // 進める向きへの反対の強さ×力
+        }
+        sum += PettyOpposing(w, a, sign, e);   // 第4束「小営業」（プチブル利益束2026-08-15）。gate=0＝束が空＝+0で恒等
+        if (w.ParliamentEnabled && HasLegislature(w.Polity))
+            for (int party = 0; party < BlocCount; party++)
+            {
+                double pr = Pref(a, party, e, w) * sign;
+                if (pr < 0) sum += w.Coef.ParliamentLawWeight * w.PartySeats[party] * -pr;
+            }
+        double armyPr = ArmyStake(a) * sign;   // 第6段6-4：軍＝第4の勢力（軍事軸の縮小に抵抗）
+        if (armyPr < 0) sum += ArmyPower(w) * -armyPr;
+        return sum;
+    }
+
+    /// <summary>軍需財（<see cref="Coefficients.MilitaryExportGoods"/>）の生産額が名目GDPに占めるシェア（禁制品doc C5・2026-07-30）。
+    /// 「武器で食っている国ほど武器商人の政治力が強い」を保有から導く。参照価格建て（市場価格でなく）＝価格の暴騰で政治が揺れない。
+    /// 名目GDPが未算出（テスト世界の初期など）なら0＝反対が立たない＝厳密に中立。</summary>
+    private static double MilitaryOutputShare(World w)
+    {
+        double gdp = w.NominalGdp;
+        if (gdp <= 1e-9) return 0;
+        double v = 0;
+        foreach (var r in w.Regions)
+        {
+            if (r.State != RegionState.Active) continue;
+            foreach (int g in w.Coef.MilitaryExportGoods)
+                if (g >= 0 && g < r.Markets.Length) v += r.Markets[g].LastProduced * Catalog.RefPrices[g];
+        }
+        return System.Math.Clamp(v / gdp, 0, 1);
+    }
+
+    /// <summary>阿片（<see cref="Coefficients.OpiumGoodId"/>）の生産額が名目GDPに占めるシェア（禁制品doc C3・2026-07-30）。
+    /// 阿片で稼ぐ資本の政治力＝「売る側の抵抗」を保有から導く（<see cref="MilitaryOutputShare"/> と同型）。</summary>
+    private static double OpiumOutputShare(World w)
+    {
+        double gdp = w.NominalGdp;
+        int g = w.Coef.OpiumGoodId;
+        if (gdp <= 1e-9 || g < 0) return 0;
+        double v = 0;
+        foreach (var r in w.Regions)
+        {
+            if (r.State != RegionState.Active || g >= r.Markets.Length) continue;
+            v += r.Markets[g].LastProduced * Catalog.RefPrices[g];
+        }
+        return System.Math.Clamp(v / gdp, 0, 1);
+    }
+
+    /// <summary>全国の人口加重アヘン中毒度（禁制品doc C3・2026-07-30）。禁令を求める大衆の圧力＝害の大きさ。</summary>
+    private static double NationalOpiumAddiction(World w)
+    {
+        double add = 0, size = 0;
+        foreach (var r in w.Regions)
+        {
+            if (r.State != RegionState.Active) continue;
+            double rp = r.SumPopulation();
+            add += r.OpiumAddiction * rp; size += rp;
+        }
+        return size > 1e-9 ? add / size : 0;
+    }
+
+    // ==== プチブル利益束（第4束「小営業」＝職人+商人・作者承認2026-08-15・docs/202608/20260815_プチブル利益束設計.md タスク#84）====
+    // 「大資本には反対だが私有と営業の自由は死守」という第3の立場（ミッテルシュタント政治・反百貨店運動・1848急進主義の母体）。
+    // 立場は保有から導出（MilitaryExportPref と同型＝国名・年号なし）。対象は下の4軸だけ＝他軸は旧束の値へフォールバック（設計書§2）。
+    // 対立の発現は既存の集計（政治力×立場）から創発＝専用機構なし。休眠 PettyInterestGate=0＝束が空＝全経路 +0 で恒等。
+
+    /// <summary>第4束のブロック番号（FactionSnapshot のクラスタ束分類・Factions/Politics の分類・ComputeDemands が共有）。</summary>
+    public const int PettyBloc = 3;
+
+    /// <summary>小営業束が独自の立場を持つ対象軸（設計書§2の表。累進課税/所得税は表の1行＝2軸）。過剰に広げない。
+    /// ★2026-09-20：専売は軸ごと撤去（政治から切り離した）＝ここからも外した。専売が誰に当たるかは経済の帰着であって政策軸への立場ではない。</summary>
+    internal static bool IsPettyAxis(PolicyAxis a)
+        => a is PolicyAxis.Antitrust or PolicyAxis.Tariff or PolicyAxis.IncomeTax or PolicyAxis.ProgressiveTax
+             or PolicyAxis.Guild;   // ★特権 段4：同業組合の廃止は小営業（職人）の特権そのもの＝独自の立場（反対）
+
+    private const double PettyProgressiveSupport = 0.5;   // 累進/所得税の弱賛成の上限（対アッパー所得差シェア≤1に乗る＝自己有界）
+
+    // 小営業束の立場（対象3軸のみ・連続値）。強さは全て保有・実効率のシェア（≤1）から導出＝自己有界（5問チェック④）。
+    private static double PettyPref(PolicyAxis a, in Profile e, World w) => a switch
+    {
+        // 独禁＝賛成（大資本の解体）。強さ＝企業集中（EffFirms の逆数系＝寡占マークアップの入力を再利用）×自営所得シェア
+        PolicyAxis.Antitrust => FirmConcentration(w) * e.PettyIncome,
+        // 同業組合の廃止＝反対（参入制限のレントを失う）。強さ＝自営所得シェア（保有から導出＝自己有界）
+        PolicyAxis.Guild => w.Coef.GuildLawGate > 0 ? -e.PettyIncome : 0.0,   // ⚠ゲート0で0（休眠の漏れ防止）
+        // 保護関税＝賛成。強さ＝自財（職人の自営レシピの財）の輸入競合シェア＝LastImport÷(LastProduced+LastImport)
+        PolicyAxis.Tariff => ArtisanImportShare(w),
+        // 累進課税/所得税＝中立〜弱賛成。強さ＝対アッパー（旧支配層＋大資本）の相対所得（自分に累進はほぼ届かない）。
+        // アッパー所得＝Income[0]+Income[1]−商人分（商人の所得は Income[1] に混じったまま＝3束シェアを動かさない設計の重複控除）
+        PolicyAxis.IncomeTax or PolicyAxis.ProgressiveTax =>
+            PettyProgressiveSupport * System.Math.Max(0, e.Income[0] + (e.Income[1] - e.PettyIncomeModern) - e.PettyIncome),
+        _ => 0,   // 到達しない（PettyNet/PettyOpposing が対象3軸以外をフォールバックへ振る）
+    };
+
+    /// <summary>集計への小営業束の寄与（力×立場・NetSupport/SupportBreakdown が読む）。対象3軸＝束の立場。
+    /// 他軸＝旧束の値へフォールバック（商人成分×近代の立場＋職人成分×大衆の立場＝gate=0と同じ値＝安全側・設計書§2）。
+    /// gate=0＝分類が束を生まない＝力0で厳密に0（**束の判定切替が唯一の分岐点**）。</summary>
+    private static double PettyNet(World w, PolicyAxis a, double sign, in Profile e)
+    {
+        double pw = e.PettyPowerModern + e.PettyPowerMass;
+        if (pw <= 0) return 0;
+        if (IsPettyAxis(a)) return pw * PettyPref(a, e, w) * sign;   // 対象3軸＝真の第4束（未代表）＝街頭のまま＝ParliamentStreetSupersede を掛けない
+        // フォールバック＝旧束（近代/大衆）から削った質量を等価で返す線形恒等。NetSupport の束項が街頭係数（ParliamentStreetSupersede）で
+        // 縮む議会国では、返す側にも同じ係数を掛けないと「削って返しただけ」の非対象軸が動く（PettyInterestTests の恒等番人・2026-08-31）。
+        double street = w.Coef.ParliamentStreetSupersede > 0 && w.ParliamentEnabled && HasLegislature(w.Polity)
+            ? 1.0 - System.Math.Clamp(w.Coef.ParliamentStreetSupersede, 0, 1) : 1.0;
+        return street * (e.PettyPowerModern * Pref(a, 1, e, w) + e.PettyPowerMass * Pref(a, 2, e, w)) * sign;
+    }
+
+    /// <summary>小営業束の反対力（OpposingPower 用）。フォールバック時は旧束成分ごとに符号を見る（近代と大衆で賛否が割れ得るため＝gate=0と同じ按分）。</summary>
+    private static double PettyOpposing(World w, PolicyAxis a, double sign, in Profile e)
+    {
+        double pw = e.PettyPowerModern + e.PettyPowerMass;
+        if (pw <= 0) return 0;
+        if (IsPettyAxis(a))
+        {
+            double pr = PettyPref(a, e, w) * sign;
+            return pr < 0 ? pw * -pr : 0;
+        }
+        double sum = 0;
+        double prM = Pref(a, 1, e, w) * sign; if (prM < 0) sum += e.PettyPowerModern * -prM;
+        double prS = Pref(a, 2, e, w) * sign; if (prS < 0) sum += e.PettyPowerMass * -prS;
+        return sum;
+    }
+
+    /// <summary>小営業束の per-unit 立場（ComputeDemands の要求生成・押し切り/阻止遺恨のpop写像が読む）。
+    /// 対象3軸＝束の立場×向き・他軸＝旧束の値の力加重平均（フォールバック）。gate=0（束が空）は常に0。</summary>
+    public static double PettyStance(World w, PolicyAxis a, bool increasing)
+    {
+        var e = Build(w);
+        double pw = e.PettyPowerModern + e.PettyPowerMass;
+        if (pw <= 0) return 0;
+        return PettyNet(w, a, increasing ? 1 : -1, e) / pw;
+    }
+
+    /// <summary>企業集中＝財別有効生産者数 EffFirms の逆数の生産額加重平均（寡占マークアップ μ=1+Max/EffFirms の入力の再利用）。
+    /// EffFirms 休眠（DomesticMarkupMax=0＝配列なし）時は EconomyStep.Run 内の再定義と同じ定義を読む＝法的独占（塩/茶×前近代）=1・他は競争的既定
+    /// （producerCount は Max の床側＝競争的なので省略）。参照価格建て＝価格の暴騰で政治が揺れない（MilitaryOutputShare と同作法）。</summary>
+    private static double FirmConcentration(World w)
+    {
+        double conc = 0, tot = 0;
+        foreach (var r in w.Regions)
+        {
+            if (r.State != RegionState.Active) continue;
+            for (int gi = 0; gi < r.Markets.Length; gi++)
+            {
+                double val = r.Markets[gi].LastProduced * Catalog.RefPrices[gi];
+                if (val <= 0) continue;
+                double firms = r.EffFirms is { } ef && gi < ef.Length && ef[gi] >= 1.0
+                    ? ef[gi]
+                    : (gi == Catalog.SaltId || gi == Catalog.TeaId) && r.Industrialization < w.Coef.MonopolyDissolveInd
+                        ? 1.0
+                        : w.Coef.CompetitiveFirmsBase;
+                conc += val / System.Math.Max(1.0, firms);
+                tot += val;
+            }
+        }
+        return tot > 1e-9 ? System.Math.Clamp(conc / tot, 0, 1) : 0;
+    }
+
+    /// <summary>自財の輸入競合シェア＝職人の自営レシピの財（構造マーカー＝LaborPopIndex==OwnerPopIndex==ArtisanPopIndex。
+    /// 財idのハードコードなし）について LastImport÷(LastProduced+LastImport) を参照価格建てで全国集計。輸入品が工房を圧す度合い。</summary>
+    private static double ArtisanImportShare(World w)
+    {
+        double imp = 0, tot = 0;
+        foreach (var r in w.Regions)
+        {
+            if (r.State != RegionState.Active || r.ArtisanPopIndex < 0) continue;
+            foreach (var pr in r.Producers)
+            {
+                if (pr.LaborPopIndex != r.ArtisanPopIndex || pr.OwnerPopIndex != r.ArtisanPopIndex) continue;
+                int g = pr.GoodId;
+                if (g < 0 || g >= r.Markets.Length) continue;
+                var m = r.Markets[g];
+                double rp = Catalog.RefPrices[g];
+                imp += m.LastImport * rp;
+                tot += (m.LastProduced + m.LastImport) * rp;
+            }
+        }
+        return tot > 1e-9 ? System.Math.Clamp(imp / tot, 0, 1) : 0;
+    }
+
+    /// <summary>第6段6-4（2026-07-28）統帥権：軍の政策選好＝軍事軸のみ（武力＝軍事費/治安維持力・徴兵法の増加に賛成＝縮小に反対）。他軸は無関心。
+    /// ★2026-08-18：親軍法の撤去で軸は2本になったが、その2本こそ軍国度（軍事費×徴兵法）の2因子＝軍が押す先は変わっていない。</summary>
+    private static double ArmyStake(PolicyAxis a)
+        => a is PolicyAxis.Coercion or PolicyAxis.ConscriptionLaw ? 1.0 : 0.0;
+
+    /// <summary>第6段6-4（2026-07-28）軍の政治力＝係数×兵士人口シェア×(1−議会統制)。文民統制（ParliamentControl）の確立が
+    /// 軍を政治から退場させる＝プロイセン統帥権（議会が予算を握っても軍は王に従う）と英型シビリアンコントロールの差が1式で出る。
+    /// ArmyPoliticalWeight=0で旧3勢力＝厳密恒等。</summary>
+    internal static double ArmyPower(World w)
+        => w.Coef.ArmyPoliticalWeight <= 0 ? 0
+         : w.Coef.ArmyPoliticalWeight * (w.SoldierSize() / System.Math.Max(1.0, w.TotalPopulation))
+           * (1.0 - System.Math.Clamp(w.ParliamentControl, 0, 1));
+
+    /// <summary>UI表示用：その向きの変更への各ブロックの賛否（旧支配層/近代エリート/大衆・概ね−2..+2）＋純支持。正の純支持＝次の一歩が通る。</summary>
+    public static (double Trad, double Modern, double Mass, double Net) Stance(World w, PolicyAxis a, bool increasing)
+    {
+        var e = Build(w);
+        double sign = increasing ? 1 : -1;
+        return (Pref(a, 0, e, w) * sign, Pref(a, 1, e, w) * sign, Pref(a, 2, e, w) * sign, NetSupport(w, a, increasing));
+    }
+
+    // SupportRate は第3段3-3（2026-07-27）で削除＝呼び出し元ゼロ・Build(w) の4つ目の重複実行を抱えていた死蔵（改革支持の表示は法律タブの段階ボタン/StageHintへ移行済み）。
+
+    /// <summary>★誰がどの程度その一歩を望んでいるか（2026-08-02・作者指示「誰がどの程度望んでいるかも知れるべき」）。
+    /// 正＝押している／負＝抵抗している。<see cref="NetSupport"/> と**同じ項**を勢力ごとに分けて返すだけ＝合計は一致する。
+    /// ⚠副作用なし・表示専用（法律タブのホバー）。</summary>
+    public static (string Who, double Weight)[] SupportBreakdown(World w, PolicyAxis a, bool increasing)
+    {
+        var e = Build(w);
+        double sign = increasing ? 1 : -1;
+        string[] blocNames = ["旧支配層", "近代エリート", "大衆"];
+        var list = new List<(string, double)>(BlocCount + 3);
+        double streetB = w.Coef.ParliamentStreetSupersede > 0 && w.ParliamentEnabled && HasLegislature(w.Polity)
+            ? 1.0 - System.Math.Clamp(w.Coef.ParliamentStreetSupersede, 0, 1) : 1.0;   // ★NetSupport と同じ譲渡率＝合計一致の維持
+        for (int b = 0; b < BlocCount; b++) list.Add((blocNames[b], streetB * e.Power[b] * Pref(a, b, e, w) * sign));
+        // 第4束「小営業」（プチブル利益束2026-08-15）＝PettyInterestGate>0 のみ現れる（休眠では力0＝行なし）。合計は NetSupport と一致（同じ項）
+        double pettyRow = PettyNet(w, a, sign, e);
+        if (System.Math.Abs(pettyRow) > 1e-9) list.Add(("小営業", pettyRow));
+        // ★党別に分解（2026-08-04・作者指摘「POPの誘導が困難で、議会に影響を与えるのが難しい」）。
+        //   旧＝「議会 反対 42」の1行だけで、**どの党が反対しているか**が出ず、誰を増やせば通るのかが読めなかった。
+        //   党＝族（保守0/自由1/社会2）で、族の議席は支持基盤（政治タブ）の階級×思想から積み上がる
+        //   ＝この行を見て「自由党を増やせばよい→どの階級が自由に傾いているか→その階級の識字/意識を上げる」まで一本で辿れる。
+        //   ⚠合計は ParliamentNet と**厳密に一致**（同じ項を分けて足すだけ）＝NetSupport の判定には一切触れない表示のみの変更。
+        if (w.ParliamentEnabled && HasLegislature(w.Polity))
+        {
+            string[] partyNames = ["議会・保守党", "議会・自由党", "議会・社会党"];
+            for (int party = 0; party < BlocCount; party++)
+            {
+                double v = w.Coef.ParliamentLawWeight * w.PartySeats[party] * Pref(a, party, e, w) * sign;
+                if (System.Math.Abs(v) > 1e-9) list.Add((partyNames[party], v));
+            }
+        }
+        double army = ArmyPower(w) * ArmyStake(a) * sign;
+        if (System.Math.Abs(army) > 1e-9) list.Add(("軍", army));
+        if (w.Coef.StateRevenueAllTaxes > 0 && (a is PolicyAxis.IncomeTax or PolicyAxis.PollTax or PolicyAxis.LandTax))
+            list.Add(("国庫", e.StateRevenue * sign));
+        list.Sort((x, y) => y.Item2.CompareTo(x.Item2));   // 賛成が強い順（同値は安定＝List.Sortは不安定だが値が同じなら表示上等価）
+        return [.. list];
+    }
+
+    /// <summary>その向きの変更への純支持（賛成勢力−反対勢力）。正なら法整備が一歩通る／スライダーが動く。</summary>
+    public static double NetSupport(World w, PolicyAxis a, bool increasing)
+    {
+        var e = Build(w);
+        double sign = increasing ? 1 : -1;
+        double sum = 0;
+        // ★議会の二重票の是正（ParliamentStreetSupersede・2026-08-31）：党の選好表＝ブロックの選好表なので、
+        //   議会がある国では同じ選好が街頭力と議席で二重加算されていた（清レポート実測＝共和国化で教育法が−0.98→−2.67）。
+        //   代表された3ブロックの街頭力をこの割合だけ議席チャネルへ譲る＝影響力の置き場所が移るだけ（未代表の小営業・軍・国庫は街頭のまま）。0＝旧＝厳密恒等
+        double street = w.Coef.ParliamentStreetSupersede > 0 && w.ParliamentEnabled && HasLegislature(w.Polity)
+            ? 1.0 - System.Math.Clamp(w.Coef.ParliamentStreetSupersede, 0, 1) : 1.0;
+        for (int b = 0; b < BlocCount; b++) sum += street * e.Power[b] * Pref(a, b, e, w) * sign;
+        sum += PettyNet(w, a, sign, e);   // 第4束「小営業」（プチブル利益束2026-08-15）。gate=0＝束が空＝+0で恒等・対象3軸以外は旧束の値へフォールバック
+        sum += ParliamentNet(w, a, sign, e);
+        // 政12：国家の歳入要求を**独立主体として**全税軸へ直接加算（ブロック力で乗算しない＝専売の in-Pref 方式の奇妙なスケーリングを避ける）。
+        // StateRevenueAllTaxes=0（既定）は専売のみが StateRevenue を得る従来挙動＝厳密一致。>0で所得税・人頭税・土地税も財政逼迫で押せる（戦時所得税＝英1799/米1861）。
+        // 専売は既に Pref 経由で StateRevenue を持つので二重計上を避け対象外。
+        if (w.Coef.StateRevenueAllTaxes > 0 && (a is PolicyAxis.IncomeTax or PolicyAxis.PollTax or PolicyAxis.LandTax))
+            sum += e.StateRevenue * sign;
+        sum += ArmyPower(w) * ArmyStake(a) * sign;   // 第6段6-4：軍＝第4の勢力（軍事軸の増強を推す＝統帥権。ArmyPoliticalWeight=0で0＝恒等）
+        return sum;
+    }
+
+    /// <summary>★法の隔たり∈[0,1]（不満度の導出量・二量分離 段1・2026-09-09）＝ブロックごとに1つ（返り値の添字＝<see cref="BlocOf"/>）。
+    ///
+    /// ★定義＝**選好で重みづけた「余地」の平均**＝Σ|選好| × 望む向きの残り可動域 ÷ Σ|選好|。
+    ///   ・望む向き＝ComputeDemands と**同じ規則**（選好の符号）／余地＝<see cref="FactionSnapshot.Headroom"/> と**同じ1本**（AxisPosition と対）。
+    ///   ・望む法が全て与えられていれば（望む向きに余地が無ければ）0＝隔たり無し。何も与えられていなければ1。
+    ///   ⚠[0,1] は**構造で保証**される（重み平均・各項が[0,1]）＝新しい定数も閾値も置かない。
+    ///   ⚠何も望まないブロック（Σ|選好|≈0）は0＝「不満の理由が無い」＝ゼロ除算も作らない。
+    ///
+    /// ⚠旧経路（4軸座標の距離）との違い＝**現に動かせる法**を見る。座標の距離は「体制の型」への距離で、
+    ///   その体制の下で望む法が既に全部通っていても縮まなかった（英1867以降の労働者が満額の不満を持ち続ける形）。
+    ///
+    /// ★『全て国有化』専用軸は除く＝<see cref="FactionSnapshot.ComputeDemands"/> と同じ除外規則（Nationalization と選好が同一＝同文の二重で重みが倍になる）。
+    /// ⚠コスト＝Build(w) は**1回だけ**（軸ごとに Stance を呼ぶと軸数×2回になる）。呼び手は pop ループの外で1回取ること。
+    /// ⚠キャッシュを作らない（World に置いた瞬間、助走中や月次の読み手に対して古い値を持つ導出量＝それは記憶である）。</summary>
+    internal static double[] LawGap(World w)
+    {
+        var e = Build(w);
+        double[] gap = new double[BlocCount], wsum = new double[BlocCount];
+        foreach (var a in FactionSnapshot.Axes)
+        {
+            if (a == PolicyAxis.NationalizationAll) continue;
+            for (int b = 0; b < BlocCount; b++)
+            {
+                double pref = Pref(a, b, e, w);            // 「進める向き」への選好（+賛成/−反対）
+                double s = System.Math.Abs(pref);
+                if (!(s > 0)) continue;                     // 否定形＝NaN も除外（有限値では s<=0 と同値）。無関心の軸は重みを持たない
+                wsum[b] += s;
+                gap[b] += s * FactionSnapshot.Headroom(w, a, pref >= 0);   // 望む向きの残り可動域（ComputeDemands と同じ向きの決め方）
+            }
+        }
+        for (int b = 0; b < BlocCount; b++)
+        {
+            double v = wsum[b] > 1e-9 ? gap[b] / wsum[b] : 0;
+            gap[b] = !(v > 0) ? 0 : v > 1 ? 1 : v;   // 否定形＝NaN も 0 へ（Math.Clamp は NaN を通す＝「∈[0,1]」の名乗りが嘘になる）
+        }
+        return gap;
+    }
+}

@@ -1,0 +1,19 @@
+## .NET ／ Visual Studio
+bin/
+obj/
+*.user
+.vs/
+
+## Rider
+.idea/
+
+## ビルド成果物・テスト結果・ログ
+[Tt]est[Rr]esults/
+*.log
+
+## 配布物・画面撮影・一時物（2026-09-21 git 整備）
+dist/
+uishot/
+*.tmp
+*.bak
+*.orig

@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- 世界データ（国家・州・植民地）の単一の真実源。NationConfig が委譲して読む（WorldData.cs）。編集後は rebuild で反映 -->
+    <EmbeddedResource Include="world.json" />
+    <!-- 財カタログ（レシピ・tier・需要）の真実源。Catalog.Goods が読む（Catalog.cs）。dumpgoods コマンドで C#定義から再生成・編集後は rebuild で反映 -->
+    <EmbeddedResource Include="goods.json" />
+    <EmbeddedResource Include="megaprojects.json" />
+    <!-- 陸塊テーブル（03地理 手順0）：260地点の陸塊ID＝陸続き判定の真実源。Landmass.cs が読む（裁定A1＝C#フォールバック無し）。編集後は rebuild で反映 -->
+    <EmbeddedResource Include="landmass.json" />
+    <EmbeddedResource Include="places.json" />   <!-- ★場所の一元表（2026-08-26）＝座標の唯一の出所。Places.cs が読む -->
+    <!-- 陸バリア（山脈・砂漠・峠）03手順1：経路グラフの遮断ノード。PathGraph.cs が読む -->
+    <EmbeddedResource Include="barriers.json" />
+    <EmbeddedResource Include="sea_nodes.json" />
+    <EmbeddedResource Include="passages.json" />
+    <!-- 陸か海かの真値（0.25°格子・1440×720・127KB）：地図の背景SVGを焼いたビットマップ。Landmask.cs が読む。
+         州の点群で陸を近似する旧方式が、パナマ地峡・マレー半島・アナトリア・アンダルシアを素通りさせていた是正 -->
+    <EmbeddedResource Include="landmask.bin" />
+    <!-- 陸路用の陸マスク（2026-09-05）：同じSVGを「少しでも陸なら陸・収縮なし」で焼いたもの。海路用（上）は収縮で幅1〜2格子の地峡が消えるため、陸の辺の水判定はこちらを読む（PathGraph）。App の引数 bakemask <out> land で再生成 -->
+    <EmbeddedResource Include="landmask_land.bin" />
+  </ItemGroup>
+
+</Project>
