@@ -1121,12 +1121,11 @@ public class PolicyPoliticsTests
     //   ⚠見るのは**機構と不変条件だけ**（帯の主張はここでは書かない）。ON経路は必ず `w.Coef.X=` で書く（World.Coef は国ごと別インスタンス）。
     //   骨子＝新しい状態を作らず S（MandateSpent）を「b からの目減り」と読み替える：a＝max(0,b−S)／門＝S+代価≤b／回復＝b/40×実行度 の線形。
 
-    /// <summary>政治資本の器を点けた盤面（旗は Run の後に立てる＝助走は旧の軌道そのまま）。</summary>
+    /// <summary>政治資本の盤面（仏1789・8四半期）。★2026-09-21 ㉖で旗 PoliticalCapitalStock を焼き込み＝器は既定で点いている（旧＝Run の後に旗を立てた）。</summary>
     private static Simulation CapitalBoard()
     {
         var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
         sim.Run(8);
-        sim.World.Coef.PoliticalCapitalStock = 1.0;
         return sim;
     }
 
@@ -1236,9 +1235,10 @@ public class PolicyPoliticsTests
         Assert.Equal(0.0, Government.GateInfo(w, sAxis, sInc, sLevel).Cost);
         Assert.True(Government.GateInfo(w, sAxis, sInc, sLevel).Ok, "残り0の国が代価0の法まで通せない＝進行不能");
         Assert.True(Government.CanStep(w, sAxis, sInc));
-        // 旗0では常に真＝1ビットも挙動を変えない
-        w.Coef.PoliticalCapitalStock = 0;
-        Assert.True(Government.PoliticalCapitalAffords(w, 1e9));
+        // ★書き直し（2026-09-21 ㉖）：旧＝「旗0では常に真＝1ビットも挙動を変えない」（在庫の門を素通りする世界があった）。
+        //   焼き込みで旗ごと消えた＝素通りの経路は無い：どれほど大きな代価でも残りを超えれば閉じる。
+        w.PoliticalCapitalMax = 0.2; w.MandateSpent = 0;
+        Assert.False(Government.PoliticalCapitalAffords(w, 1e9), "在庫の門を素通りする経路が残っている");
     }
 
     [Fact]
@@ -1292,25 +1292,34 @@ public class PolicyPoliticsTests
         Assert.Equal(0.0, b.World.MandateSpentNew, 12);
     }
 
+    /// <summary>★書き直し（2026-09-21 ㉖）：旧の主張「旗0では回復が旧の指数減衰（×(1−MandateRecoveryRate)）のまま・b は導出すらされない」は、
+    /// 裁定S1の焼き込みで覆った（旗も MandateRecoveryRate も無い）。器を点ける操作をしない既定の世界そのもので、
+    /// b が導出され、回復が b/MandateRefillQuarters×実行度の**線形**（残りに比例して縮む指数減衰ではない）であることを見る。</summary>
     [Fact]
-    public void 旗0では回復が旧の指数減衰のままである()
+    public void 既定の世界ではbが導出され回復は線形で旧の指数減衰は残っていない()
     {
         var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
         sim.Run(8);
         var w = sim.World; var c = w.Coef;
-        Assert.Equal(0.0, c.PoliticalCapitalStock);       // 既定は休眠（DormantIdentityTests の休眠表にも登録済み）
-        w.MandateSpent = 0.4; w.MandateSpentNew = 0;
+        double b = w.PoliticalCapitalMax;
+        Assert.True(b > 0, $"既定の世界で b が導出されていない（{b}）");
+        w.ParliamentControl = 0;                               // 実行度1（摩擦ゼロ）
+        Assert.False(w.InCivilWar);
+        w.MandateSpent = b; w.MandateSpentNew = 0;             // 空から
         Politics.Step(w, c);
-        Assert.Equal(0.4 * (1.0 - c.MandateRecoveryRate), w.MandateSpent, 12);
-        Assert.Equal(0.0, w.PoliticalCapitalMax);          // b は導出すらされない
+        Assert.Equal(b - b / c.MandateRefillQuarters, w.MandateSpent, 12);   // 空の側でも毎期 b/40
+        w.ParliamentControl = 0;
+        w.MandateSpent = b / (2.0 * c.MandateRefillQuarters); w.MandateSpentNew = 0;   // 満タンの手前（1期ぶんの回復より薄い目減り）
+        Politics.Step(w, c);
+        Assert.Equal(0.0, w.MandateSpent);                     // 線形は0で止まる（指数減衰なら残りに比例して縮むだけで0へ届かない）
     }
 
     // ==== 裁定S1/S2（2026-09-21）＝余白の門 θ の退役・床の保証の廃止 の番人 ==========================================
-    //   旗（PoliticalCapitalStock）が立つと Government.MandateMargin が非憲法級に +∞ を返す＝反対を押し切る一歩の門は在庫ひとつだけ。
+    //   Government.MandateMargin が非憲法級に +∞ を返す＝反対を押し切る一歩の門は在庫ひとつだけ（旗 PoliticalCapitalStock は㉖で焼き込み削除）。
     //   退役の理由は構造：旧 θ は代価を θ×MandateSpendRate で頭打ちにし、b も同じ2係数で作られるので打ち消し合い、在庫の門が一度も噛まなかった。
 
     /// <summary>(a) 代価が残りを超える一歩は**施行（Government.Step の実経路）でも**通らない。
-    /// ⚠旗の盤面では θ が退役している＝ここで一歩を止めているのは在庫の門だけ（照会・点灯の側は上の番人が見ている）。</summary>
+    /// ⚠θ は退役している＝ここで一歩を止めているのは在庫の門だけ（照会・点灯の側は上の番人が見ている）。</summary>
     [Fact]
     public void S1_代価が残りを超える一歩は施行でも通らない()
     {
@@ -1461,18 +1470,18 @@ public class PolicyPoliticsTests
         Assert.True(seen > 0, "テスト前提が崩れた：在庫で否決されたまま開いている戦線が1本も無い（番人が空洞化する）");
     }
 
-    /// <summary>(f) 旗0では**旧の2門がそのまま**＝余白の門 θ は旧の式（MandateWeight×(正統性−0.5)・負側×MandateNegativeScale・正側×押し予算）で
-    /// 一歩ずつ判定され、在庫の門は常に真（否決の文言に「残りが不足」が出ない）。正統性の正側・負側の両方で全軸を式と突き合わせる。
-    /// 最後に同じ盤面で旗を立て、θ に止められていた一歩が在庫潤沢なら通る＝旗が θ を退役させることを見る。</summary>
+    /// <summary>(f) 余白の門 θ は退役した＝非憲法級の一歩は**正統性に依らず**在庫だけで決まる。
+    /// ★書き直し（2026-09-21 ㉖）：旧の主張「旗0では余白の門が旧の式（MandateWeight×(正統性−0.5)・負側×MandateNegativeScale・正側×押し予算）で
+    /// 一歩ずつ判定され、旗1で退役する」は、裁定S1の焼き込みで旗ごと覆った（旗0の世界が無くなった）。いま成り立つべき主張は
+    /// ①非憲法級に「余白」の否決文言は出ない ②在庫が潤沢なら正統性0.3（旧体制の罠の領域）でも純支持が負の一歩が通る
+    /// ③同じ一歩は残りが代価に届かなければ「残りが不足」で否決される（照会も同じ）＝止めているのは在庫だけ。正統性の正側・負側の両方で全軸を見る。</summary>
     [Fact]
-    public void S1_旗0では余白の門が旧の式のまま働き旗1で退役する()
+    public void S1_余白の門は退役し非憲法級は正統性に依らず在庫だけで決まる()
     {
         var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
         sim.Run(8);
-        var w = sim.World; var c = w.Coef;
-        Assert.Equal(0.0, c.PoliticalCapitalStock);
-        int opposed = 0;
-        (PolicyAxis Axis, bool Inc, int Level)? thetaRefused = null;
+        var w = sim.World;
+        int opposed = 0, opposedLowLeg = 0;
         foreach (double leg in new[] { 1.0, 0.8, 0.3 })
         {
             w.Legitimacy = leg;
@@ -1482,28 +1491,23 @@ public class PolicyPoliticsTests
                 foreach (bool inc in new[] { true, false })
                 {
                     int level = Government.NextStage(w, axis, inc);
+                    w.PoliticalCapitalMax = 1e9; w.MandateSpent = 0;                          // 在庫潤沢
                     var g = Government.GateInfo(w, axis, inc, level);
-                    Assert.NotEqual(Government.ReasonNoCapitalStock, g.Reason);          // 旗0で在庫の門は1度も否決しない
-                    if (g.Reason != "" && g.Reason != Government.ReasonNoMandate) continue;   // 前提DAG・不可逆の早期return（θ の外）
-                    double net = PolicyPreferences.NetSupport(w, axis, inc);
-                    double theta = c.MandateWeight * (leg - 0.5);
-                    if (leg < 0.5) theta *= c.MandateNegativeScale;
-                    if (theta > 0) theta *= w.PoliticalPushBudget;
-                    double mul = Government.ReversalCostMul(w, axis, Government.Regressive(axis, inc));
-                    Assert.Equal(net > -theta / mul, g.Ok);                                  // 旧の余白の門そのもの
-                    if (net < 0) opposed++;
-                    if (!g.Ok && thetaRefused == null) thetaRefused = (axis, inc, level);
+                    Assert.NotEqual(Government.ReasonNoMandate, g.Reason);                     // ① 非憲法級に余白の否決は出ない
+                    if (g.Reason != "") continue;                                              // 前提DAG・不可逆の早期return（門の外）
+                    Assert.True(g.Ok, $"{axis}（正統性{leg}）の一歩が在庫潤沢でも通らない");
+                    if (!(g.Cost > 0)) continue;                                               // 無償の一歩（純支持≥0）
+                    opposed++; if (leg < 0.5) opposedLowLeg++;                                 // ② 押し切りの要る一歩が正統性に依らず通った
+                    w.PoliticalCapitalMax = g.Cost * 0.5;                                      // ③ 残りが代価の半分
+                    var g2 = Government.GateInfo(w, axis, inc, level);
+                    Assert.False(g2.Ok, $"{axis}（正統性{leg}）の一歩が残り不足でも通った");
+                    Assert.Equal(Government.ReasonNoCapitalStock, g2.Reason);
+                    Assert.False(Government.CanStep(w, axis, inc));
                 }
             }
         }
-        Assert.True(opposed > 0, "テスト前提が崩れた：純支持が負の一歩が1本も無い（余白の門を突き合わせられない）");
-        Assert.True(thetaRefused != null, "テスト前提が崩れた：θ に止められた一歩が1本も無い");
-        // 旗を立てる＝θ が退役：在庫が潤沢なら、θ に止められていた同じ一歩が通る（正統性0.3＝負側の「旧体制の罠」も退役する）
-        var (ta, ti, tl) = thetaRefused!.Value;
-        c.PoliticalCapitalStock = 1.0;
-        w.PoliticalCapitalMax = 1e9; w.MandateSpent = 0;
-        Assert.True(Government.GateInfo(w, ta, ti, tl).Ok, $"{ta} の一歩が旗1・在庫潤沢でも通らない＝θ が退役していない");
-        Assert.True(Government.CanStep(w, ta, ti));
+        Assert.True(opposed > 0, "テスト前提が崩れた：純支持が負の一歩が1本も無い（門を突き合わせられない）");
+        Assert.True(opposedLowLeg > 0, "テスト前提が崩れた：正統性0.3 で純支持が負の一歩が無い（旧体制の罠の退役を見られない）");
     }
 
     /// <summary>(h) 憲法級（参政権）は S1 の後も**硬い純支持&gt;0**＝2026-08-04 の裁定「参政権は政治資本で押せない」をそのまま保存。
@@ -1531,6 +1535,80 @@ public class PolicyPoliticsTests
         Assert.True(Government.GateInfo(w, PolicyAxis.Suffrage, i, l).Ok, "弁を開いても在庫で押せない");
     }
 
+    /// <summary>(h') 法律タブのホバーは門の理由をそのまま言う（2026-09-21 ㉖）。憲法級の否決（賛成不足＝硬い純支持&gt;0）に
+    /// 「政治資本消費:n　不足」を出さない＝政治資本をいくら貯めても開かない門を政治資本の不足と言わない。
+    /// 在庫の門の否決は従来どおり必要量＋不足。表示は <c>LawRowVM.StageHint</c>＝法律タブが実際に出す1本。</summary>
+    [Fact]
+    public void S1_法律タブのホバーは憲法級の否決を政治資本の不足と言わない()
+    {
+        var sim = CapitalBoard(); var w = sim.World;
+        w.PoliticalCapitalMax = 1e9; w.MandateSpent = 0;   // 在庫は潤沢＝止めているのが在庫でないことを盤面で保証する
+        string[] labels = ["0", "1", "2", "3", "4", "5", "6", "7"];
+        string Line2(PolicyAxis a, int level) =>
+            new PriceOfBread.App.ViewModels.LawRowVM(w, a, "法", labels, () => LawLevel(w, a), () => LawLevel(w, a), _ => { })
+                .StageHint(level).Split('\n')[1];
+        // ① 憲法級（参政権）の否決
+        (bool Inc, int Level)? opp = null;
+        foreach (bool inc in new[] { true, false })
+        {
+            int level = Government.NextStage(w, PolicyAxis.Suffrage, inc);
+            if (Government.GateInfo(w, PolicyAxis.Suffrage, inc, level).Reason == Government.ReasonNoMandate) { opp = (inc, level); break; }
+        }
+        Assert.True(opp != null, "テスト前提が崩れた：憲法級の否決（賛成不足）を作れていない");
+        string constitutional = Line2(PolicyAxis.Suffrage, opp!.Value.Level);
+        Assert.Equal($"制定:不可（{Government.ReasonNoMandate}）", constitutional);
+        Assert.DoesNotContain("政治資本", constitutional);
+        // ② 在庫の門の否決（非憲法級・残りが代価の半分）＝必要量と「不足」
+        var (a2, _, l2, cost) = FindOpposedStep(w);
+        w.PoliticalCapitalMax = cost * 0.5; w.MandateSpent = 0;
+        string stock = Line2(a2, l2);
+        Assert.StartsWith("制定:不可（政治資本消費:", stock);
+        Assert.EndsWith("　不足）", stock);
+    }
+
+    /// <summary>(i) 純支持が NaN の一歩は施行でも否決される＝門を無償で素通りしない（2026-09-21 ㉖・fail-closed）。
+    /// 旧 <c>net &lt;= 閾値</c> は NaN で偽＝否決されず、次の <c>net &lt; 0</c> も偽＝代価0で施行されていた（法＝MandateGate・スライダー＝Move の両方）。
+    /// 在庫の門が唯一の門になった世界では、それは門ごとの素通り。否定形 <c>!(net &gt; 閾値)</c> で NaN を否決の側へ倒す。
+    /// 毒の入れ方＝議会統制を NaN にする（軍の政治力 ArmyPower が NaN になり、ArmyStake=0 の軸でも NaN×0＝NaN が純支持へ入る）。
+    /// 同じ盤面を毒なしでも回し、その一歩が実際に施行されることを確かめる（非空虚性）。</summary>
+    [Fact]
+    public void 純支持がNaNの一歩は施行でも否決され無償で素通りしない()
+    {
+        (int Law, int LawBefore, double Tariff, double TariffBefore) Run(bool poison)
+        {
+            var sim = CapitalBoard(); var w = sim.World;
+            (PolicyAxis Axis, int Level)? step = null;
+            foreach (var axis in SettableAxes)
+                foreach (bool inc in new[] { true, false })
+                {
+                    if (step != null) break;
+                    int level = Government.NextStage(w, axis, inc);
+                    var gi = Government.GateInfo(w, axis, inc, level);
+                    if (gi.Ok && gi.Cost <= 0) step = (axis, level);
+                }
+            Assert.True(step != null, "テスト前提が崩れた：代価0で通る法の一歩が無い");
+            var (a, l) = step!.Value;
+            int lawBefore = LawLevel(w, a);
+            SetLawTarget(w, a, l);
+            double tariffBefore = w.Tariff;
+            w.Policy.TariffTarget = tariffBefore > 0.5 ? tariffBefore - 0.4 : tariffBefore + 0.4;
+            if (poison)
+            {
+                w.ParliamentControl = double.NaN;
+                Assert.True(double.IsNaN(PolicyPreferences.NetSupport(w, a, l > lawBefore)), "テスト前提が崩れた：純支持が NaN になっていない（法）");
+                Assert.True(double.IsNaN(PolicyPreferences.NetSupport(w, PolicyAxis.Tariff, w.Policy.TariffTarget > tariffBefore)), "テスト前提が崩れた：純支持が NaN になっていない（関税）");
+            }
+            Government.Step(w, w.Coef);
+            return (LawLevel(w, a), lawBefore, w.Tariff, tariffBefore);
+        }
+        var clean = Run(poison: false);
+        Assert.NotEqual(clean.LawBefore, clean.Law);                 // 非空虚性：毒が無ければ同じ一歩は施行される
+        Assert.NotEqual(clean.TariffBefore, clean.Tariff);           // 同：関税のスライダーも動く
+        var nan = Run(poison: true);
+        Assert.Equal(nan.LawBefore, nan.Law);                        // NaN の法の一歩は施行されない
+        Assert.Equal(nan.TariffBefore, nan.Tariff);                  // NaN のスライダーの押しは1ミリも動かない
+    }
+
     /// <summary>目標を置ける法軸の現在の段（<see cref="SetLawTarget"/> の鏡像）。</summary>
     private static int LawLevel(World w, PolicyAxis a) => a switch
     {
@@ -1546,13 +1624,13 @@ public class PolicyPoliticsTests
 
     /// <summary>目標を置ける法軸（この番人が押し切りを実演する相手）。実測（仏1789・助走8四半期・正統性1.0）で
     /// 純支持が負＝押し切りが要り、かつ前提DAG・不可逆に塞がれていないのは ShorterHours(−0.075) と ChildLabor(−0.075)。
-    /// ★S1（2026-09-21）以後、旗の立った盤面では余白の門が退役している＝「余白では通る」は条件ではなくなった（在庫だけが門）。</summary>
+    /// ★S1（2026-09-21）以後は余白の門が退役している＝「余白では通る」は条件ではなくなった（在庫だけが門）。</summary>
     private static readonly PolicyAxis[] SettableAxes =
         [PolicyAxis.ShorterHours, PolicyAxis.ChildLabor, PolicyAxis.EducationLaw, PolicyAxis.Censorship,
          PolicyAxis.Bureaucracy, PolicyAxis.SerfEmancipation, PolicyAxis.Suffrage];
 
     /// <summary>純支持が負（＝押し切りが要る）で、在庫が潤沢なら通る一歩を1本見つける。代価つきで返す。
-    /// ★S1 以後の旗の盤面では「通る」を決めるのは在庫だけ＝憲法級（参政権）は硬い純支持&gt;0 のまま否決されるので自然に外れる。</summary>
+    /// ★S1 以後は「通る」を決めるのは在庫だけ＝憲法級（参政権）は硬い純支持&gt;0 のまま否決されるので自然に外れる。</summary>
     private static (PolicyAxis Axis, bool Inc, int Level, double Cost) FindOpposedStep(World w)
     {
         w.Legitimacy = 1.0;                                   // 盤面を固定する（旧＝余白 θ を最大にする理由だったが S1 で θ は退役＝残る役目は再現性）

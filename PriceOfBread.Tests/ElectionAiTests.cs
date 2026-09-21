@@ -487,21 +487,26 @@ public class ElectionAiTests
         double spendRich = w.ElectionLastSpend;
         Assert.True(spendRich > 0, "余裕のある政府が加担しない");
 
-        // ② 政治資本を使い込んだ政府＝同じ看板・同じ余白でも薄くしか注げない（＝やがて静観）
-        // ⚠N2の器（PoliticalCapitalStock・2026-09-21）を点火したら**この 100 は世界では到達不能**になる（門が S ≤ b≈0.2 に縛る）。
-        //   主張（使い込んだ政府は薄くしか注げない）は生きているので、点火のラウンドで**値を b の射程内へ書き直す**こと（削除ではない）。
-        //   旗0の現ツリーでは S を直に置いており門を通らない＝この番人はそのまま有効。
+        // ② 政治資本を使い込んだ政府＝同じ看板・同じ余白でも薄くしか注げない
+        // ★書き直し（2026-09-21 ㉖＝N2/S1 の焼き込み）：旧は S=100 を置き「やがて静観」まで見ていたが、在庫の世界では S は門で b（≈0.2）の近傍に縛られ
+        //   （実測の最大 0.2473＝内戦講和の上乗せ込み・計器 i3 seed2）、1/(1+S) は 0.8 付近より下がらない＝この項だけで静観（レバー<0.05⇔S>19）には届かない（主張の後半は覆った）。
+        //   生きている主張＝「使い込んだ政府は薄くしか注げない」＝在庫を使い切った（S=b・a=0）政府のレバーは 1/(1+S) 倍＝満額より厳密に薄い。
         w.Legitimacy = legit0; w.ElectionPushIdeology = -1; w.ElectionPushStrength = 0; w.ElectionLastSpend = 0;
-        w.MandateSpent = 100;
+        double bNow = w.PoliticalCapitalMax;
+        Assert.True(bNow > 0, "テスト前提の破れ：b が導出されていない（在庫の射程を作れない）");
+        w.MandateSpent = bNow;                             // 在庫を使い切った政府＝世界で到達できる厚み
+        Assert.Equal(0.0, UtilityAgent.FiscalStressOf(w), 12);   // ①の支出の後も逼迫0＝差は S だけ
+        double fc2 = w.FiscalCapacity;
         w.PendingElection = Agenda(0, axis, inc);
         UtilityAgent.DecideElection(w);
-        Assert.Null(w.PendingElection);                    // 静観でも公示は消える（先送りは「何もしない」と同じ）
-        Assert.Equal(-1, w.ElectionPushIdeology);          // 微風＝静観（AiElectionMinPush 未満）
-        Assert.Equal(0.0, w.ElectionLastSpend, 12);
-        Assert.Equal(legit0, w.Legitimacy, 12);            // 静観は1銭も払わない
+        Assert.Null(w.PendingElection);
+        Assert.True(w.ElectionLastSpend > 0, "在庫を使い切っただけで静観した");
+        Assert.Equal(fc2 / (1.0 + bNow), w.ElectionLastSpend, 9);   // レバー＝danger×(1−逼迫)/(1+S)＝1/(1+b)
+        Assert.True(w.ElectionLastSpend < fc2, "使い込んだ政府が満額を注いだ");
 
         // ③ 余白を超える代価＝そもそも動かせない（プレイヤー経路と同じ拒否線）
         w.MandateSpent = 0; w.Legitimacy = 0.5;            // 余白0＝どんな逆風も押し切れない
+        w.ElectionPushIdeology = -1;                       // ②で加担が成立した＝押し込みの記帳を戻す（③は「動かない」ことだけを見る）
         w.PendingElection = Agenda(0, axis, inc);
         UtilityAgent.DecideElection(w);
         Assert.Equal(-1, w.ElectionPushIdeology);

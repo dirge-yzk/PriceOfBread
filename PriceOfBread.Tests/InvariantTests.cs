@@ -74,7 +74,7 @@ public class InvariantTests
     }
 
     /// <summary>NaN破綻の番人（2026-09-21）：★本国を全て失い植民地だけが残った国の形を固定する。
-    /// 現金が尽きた州では州合計の貯蓄が浮動小数の残差で極小の**負値**になる（実測＝旗 PoliticalCapitalStock=1・seed6 の1831年、
+    /// 現金が尽きた州では州合計の貯蓄が浮動小数の残差で極小の**負値**になる（実測＝S1 の腕＝当時の旗 PoliticalCapitalStock=1（2026-09-21 ㉖で既定へ焼き込み）・seed6 の1831年、
     /// 本国州を全部失い植民地3州へ縮んだスペインのエルパソ州で rSav=−8.3e-16＝資本家popの−8.9e-16 が残っただけ）。
     /// 地域物価乗数は (州の1人あたり貯蓄 / 国の1人あたり貯蓄)^RegionalPriceLevelWeight なので、
     /// Math.Pow(負, 0.3)=NaN・Math.Clamp は NaN を除去しない＝州物価→MarketFlow の価格→専売益→国庫→popの貯蓄 と

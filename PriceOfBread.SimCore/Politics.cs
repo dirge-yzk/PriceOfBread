@@ -470,11 +470,11 @@ public static class Politics
         // 第3段3-4/3-5（2026-07-27）＝旧・フロー/ストック混合（LegitimacyIsStock）を1.0焼き込みで簡約：
         // legFlow（毎期計算して重み0で捨てる死荷重）と (1−s)×MandateSpent（同じく重み0の死項）を削除。s=1.0は2026-07-10点火以来の既定＝厳密恒等。
         double leg = w.Legitimacy - erosion + c.LegitimacyRegenRate * Math.Max(0, 1 - w.Legitimacy) * dynRegenMul;   // ストック（前期値から侵食・再生）。P8天命＝回復の変調（×1.0で恒等）
-        // 政治資本の請求（マンデート余白・Government.MandateGate）：余白で反対を押し切った分だけ正統性を削る。
+        // 政治資本の請求（Government.MandateGate／Move）：反対を押し切った分だけ正統性を削る。
         // ストック正統性では前期の減算が残留する→毎期ストック全額を引くと増幅率≈1/RegenRate=50倍の二重計上
         // （一歩ΔM=0.125で累積≈6.25＝即崩壊・2026-07-10再設計）→**今期増分 MandateSpentNew だけを一回減算**し、回復は再生項に一本化。
         // 実効治安維持力（下の Coercion=BaseCoercion×Legitimacy×funding）も連動して弱まる＝押し切る統治は治安維持力も燃やす（意図した結合）。
-        // MandateSpent（減衰ストック）は政治資本UI表示・CrownParliamentの紛争記憶が読む現役フィールド＝存続。
+        // MandateSpent（目減り S）は門・政治資本UI表示（a＝max(0,b−S)）・CrownParliamentの紛争記憶・粛清の記憶・AIの選挙レバーが読む現役フィールド＝存続。
         double mandateClaim = w.MandateSpentNew;
         leg -= mandateClaim;
         w.Explain?.Add("Legitimacy", "マンデート行使(政治資本で反対を押し切る)", -mandateClaim);
@@ -482,16 +482,12 @@ public static class Politics
         // ★政治資本の在庫化（作者裁定N2・2026-09-21）＝S を「押し切った傷」から「b からの目減り」へ読み替え、回復を**線形**にする。
         //   毎期 b/MandateRefillQuarters×実行度 だけ S を減らして0で止める＝空から満タンまで実行度=1 で厳密に40四半期。
         //   ⚠作者は漸近回復を却下（「b 付近で極端に低速になるのは好ましくない」「使えば使うほど事実上の法改正が進むのも違和感」）。
-        //   ⚠**どちらか一方だけ**を走らせる（旧の指数減衰と二重に減らさない＝P9）。旗0で旧の1行と厳密一致。
+        //   ★2026-09-21 ㉖で旗 PoliticalCapitalStock を焼き込み＝旧の指数減衰（MandateRecoveryRate＝0.035/期）は係数ごと削除＝回復はこの線形1本。
         //   ⚠四半期の順序＝Government.Step（QuarterStart で b を導出・消費）→ ここ（QuarterEnd で回復）＝消費が先・回復が後。
         //     S を読む記憶（CrownParliament の紛争記憶・PoliticalQuantities の粛清の記憶）は回復後の S を見る＝旧の減衰と同じ位置。
-        if (c.PoliticalCapitalStock > 0)
-        {
-            double refill = w.PoliticalCapitalMax / Math.Max(1e-9, c.MandateRefillQuarters) * PoliticalQuantities.PoliticalCapitalRate(w);
-            if (!(refill > 0)) refill = 0;   // 否定形＝NaN/負は「回復しない」へ倒す（Math.Max は NaN を除去しない）
-            w.MandateSpent = Math.Max(0, w.MandateSpent - refill);
-        }
-        else w.MandateSpent *= 1.0 - c.MandateRecoveryRate;   // 政治資本の回復を正統性再生率から分離（2026-07-26ユーザー裁定：取得率をやや下げ＝旧0.1共用→専用0.07）
+        double refill = w.PoliticalCapitalMax / Math.Max(1e-9, c.MandateRefillQuarters) * PoliticalQuantities.PoliticalCapitalRate(w);
+        if (!(refill > 0)) refill = 0;   // 否定形＝NaN/負は「回復しない」へ倒す（Math.Max は NaN を除去しない）
+        w.MandateSpent = Math.Max(0, w.MandateSpent - refill);
         double legClamped = Math.Clamp(leg, 0, 1);
         if (w.Explain != null && legClamped != leg)
             w.Explain.Add("Legitimacy", legClamped > leg ? "下限クランプ(0未満を切上げ)" : "上限クランプ(1超を切下げ)", legClamped - leg);

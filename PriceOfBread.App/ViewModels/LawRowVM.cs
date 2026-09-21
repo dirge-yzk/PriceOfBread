@@ -77,7 +77,7 @@ public sealed partial class LawRowVM : ObservableObject
         return Government.GateInfo(_w, _axis.Value, inc, next);
     }
 
-    /// <summary>制定できるか。前提法DAG＋純支持ゲート。政治資本の上限は廃止（2026-07-26）＝コストは常に払える（青天井に積み・正統性で贖う）＝AIと同一条件。</summary>
+    /// <summary>制定できるか。前提法DAG＋純支持ゲート＋政治資本の在庫（★2026-09-21 裁定S1：純支持が負の段は残り a が代価に届くときだけ押せる＝GateInfo が施行と同じ1本を読む）＝AIと同一条件。</summary>
     public bool CanReachAndAfford(int level)
     {
         if (level == CurrentLevel) return true;   // 現行段は常に選べる（no-op）
@@ -100,6 +100,8 @@ public sealed partial class LawRowVM : ObservableObject
         //   下げるボタンのホバーが「政治資本消費:0　不足」＝**政治資本の問題だと嘘をつく**（政治資本をいくら積んでも開かない門なのに）。
         //   GateInfo は前提で止めたとき理由をそのまま返す＝その1本を出すだけ（UIに第二の判定式は置かない）。
         //   ★N2（2026-09-21）：在庫の門の否決（ReasonNoCapitalStock）も同じ扱い＝ここで早期returnせず、下の「必要量＋不足」と勢力の賛否を出す。
+        //   ★2026-09-21 ㉖：ReasonNoMandate（憲法級の硬い門＝賛成不足）も早期returnしない＝勢力の賛否（合計が純支持）を出す。ただし2行目は
+        //     「政治資本消費:n　不足」ではなく理由そのもの（政治資本をいくら貯めても開かない門を政治資本の不足と言わない）。
         //   文字列は Government の const が単一ソース（生成側と比較側で散らせない＝2026-08-22 の作者指示が壊れる事故の型）。
         if (!ok && reason.Length > 0 && reason != Government.ReasonNoMandate && reason != Government.ReasonNoCapitalStock)
             return head + "\n制定:不可\n" + FormatPrereq(reason);
@@ -109,7 +111,9 @@ public sealed partial class LawRowVM : ObservableObject
         //   前提法が足りない等、政治資本では解けない理由は上の2分岐で「制定:不可」＋前提行として処理済み。
         //   併せて**誰がどの程度望んでいるか**を添える（賛成が強い順・NetSupport と同じ項の分解＝合計は一致）。
         var body = new System.Text.StringBuilder(head);
-        body.Append('\n').Append(ok ? $"制定:可能（政治資本消費:{cost * 100:F0}）" : $"制定:不可（政治資本消費:{cost * 100:F0}　不足）");
+        body.Append('\n').Append(ok ? $"制定:可能（政治資本消費:{cost * 100:F0}）"
+            : reason == Government.ReasonNoCapitalStock ? $"制定:不可（政治資本消費:{cost * 100:F0}　不足）"
+            : $"制定:不可（{reason}）");
         var parts = PolicyPreferences.SupportBreakdown(_w, _axis.Value, level > CurrentLevel);
         foreach (var (who, wgt) in parts)
         {
@@ -161,7 +165,7 @@ public sealed partial class LawRowVM : ObservableObject
             // ★「改正可能」の語は出さない（作者指示2026-08-11）＝押せることは目標段の金枠とボタンの有効/無効が示しており、
             //   語を足しても情報が増えない。残すのは**数字（必要な政治資本）と、押せない理由**だけ。
             // ★作者指示2026-08-22「法律タブから『政治資本届かず否決』の文字を削除」＝この定型句は行に出さない。
-            //   押せないことは目標段の枠とボタンの無効が示しており、必要な政治資本の数字はホバー（StageHint＝「政治資本消費:n・不足」）にある。
+            //   押せないことは目標段の枠とボタンの無効が示しており、必要な政治資本の数字（在庫の門）と賛成不足（憲法級の門）はホバー（StageHint）にある。
             //   ⚠他の理由（前提法・政体の制約など）はそのまま出す＝消すのはこの定型句だけ。
             //   ★N2（2026-09-21）：在庫の門の否決も同じ定型句扱い＝行には出さない（必要な政治資本はホバーの数字・残り a/b は政治タブの行が出す）。
             Detail = ok ? (cost > 0.001 ? $"政治資本 {cost * 100:F0}" : "")

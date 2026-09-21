@@ -133,7 +133,10 @@ public class AiFirstWaveTests
         w.Coef.TraditionalistLawGate = 0;
         w.PoliticsEnabled = true;
         w.Legitimacy = 1.0;
-        w.Coef.MandateWeight = 50.0;        // 余白ハンマー＝非憲法級2軸は支持配置に依らず GateInfo が通る（LawPrereq だけが効く状態）。★旗 PoliticalCapitalStock=1（裁定S1）の世界では θ が退役しており、同じ値が「在庫ハンマー」（b≈30）として同じ効果を持つ
+        w.Coef.MandateWeight = 50.0;        // 在庫ハンマー＝非憲法級2軸は支持配置に依らず GateInfo が通る（LawPrereq だけが効く状態）
+        // ★書き直し（2026-09-21 ㉖）：旧＝「余白ハンマー」（θ=50×0.5 が即座に効いた）。θ は退役し門は在庫だけ＝b は Government.Step の頭で四半期に1回しか導出されない
+        //   （この盤面は1四半期も回していない＝b=0 のまま）。同じ式で b を今の係数から導出して満タンにする＝b≈30 の「在庫ハンマー」（主張は不変）。
+        w.PoliticalCapitalMax = PoliticalQuantities.PoliticalCapitalMax(w); w.MandateSpent = 0;
         w.LastImmigration = w.TotalPopulation * 0.05;   // 大量流入（四半期5%）＝制限圧力 40×0.05×(1+失業) ≥ 2.0 ＞ 閉鎖線1.0
         foreach (var pp in w.AllPops()) if (pp.IsModernElite) { pp.Savings = 1e9; break; }   // 近代エリート支配＝教義 Industrialist＝国教は内心の自由へ
         new UtilityAgent().DecideQuarter(w);

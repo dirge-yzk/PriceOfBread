@@ -110,8 +110,8 @@
                     <TextBlock Text="議会統制力" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontBody}"/>
                     <TextBlock Grid.Column="1" Text="{Binding ParliamentControlText}" Classes="val" VerticalAlignment="Center"/>
                 </Grid>
-                <!-- ★政治資本（作者裁定N2・2026-09-21）：現在／最大。物差しは法律タブの代価（×100）と同じ。旗0では行ごと消える。 -->
-                <Grid ColumnDefinitions="*,Auto" Margin="0,2" Background="Transparent" ToolTip.ShowDelay="200" IsVisible="{Binding PoliticalCapitalVisible}">
+                <!-- ★政治資本（作者裁定N2・2026-09-21）：現在／最大。物差しは法律タブの代価（×100）と同じ。2026-09-21 ㉖で常設。 -->
+                <Grid ColumnDefinitions="*,Auto" Margin="0,2" Background="Transparent" ToolTip.ShowDelay="200">
                     <ToolTip.Tip>
                         <TextBlock Text="{Binding PoliticalCapitalTip}" FontSize="{StaticResource FontSmall}"/>
                     </ToolTip.Tip>

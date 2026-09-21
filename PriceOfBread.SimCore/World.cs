@@ -702,9 +702,9 @@ public sealed class World
     public int FactionRevolts { get; internal set; }               // 診断カウンタ：F3b内乱の発火数
     public CrownForm Crown { get; internal set; }       // P2登録簿：君主制の形（初期政体から・遷移でApplyRegimeが更新・廃位でNone）。flag=0では書くだけ（dead write）＝挙動非依存
     public SeizureForm Seizure { get; internal set; }   // P2登録簿：奪取の形（独裁・無政府＝誰が簒奪したか）。同上
-    public double MandateSpent { get; internal set; }   // 政治資本の消費ストック＝マンデート余白で押し切った一歩＋譲歩の累積（Government.Spend/Politicsが加算・MandateRecoveryRateで四半期回復・上限なし2026-07-26）。読み手＝UIの政治資本表示・CrownParliamentの紛争記憶。正統性への減算は MandateSpentNew（今期増分）が担う
+    public double MandateSpent { get; internal set; }   // 政治資本の目減り S＝押し切った一歩＋内戦講和の譲歩の累積（Government.Spend/Politics.ConcedeToFaction が加算・Politics.Step が b/MandateRefillQuarters×実行度で線形に回復し0で止める＝2026-09-21 ㉖）。在庫 a＝max(0, b−S)。読み手＝門・UIの政治資本表示・CrownParliamentの紛争記憶・粛清の記憶・AIの選挙レバー。正統性への減算は MandateSpentNew（今期増分）が担う
     public double MandateSpentNew { get; internal set; }   // 政治資本の**今期増分**（四半期アキュムレータ・Governmentが MandateSpent と同時記帳）。ストック正統性では前期の減算が残留するため、毎期ストック全額を引くと増幅率≈1/RegenRate=50倍の二重計上になる→**今期分だけを一回減算**し Politics.Step 末尾でゼロ化（2026-07-10 政1有効化の再設計）
-    // ★政治資本の最大量 b（作者裁定N2・2026-09-21・PoliticalCapitalStock>0 のときだけ書かれる）＝支持と権力の大きさ。
+    // ★政治資本の最大量 b（作者裁定N2・2026-09-21・毎四半期 Government.Step の頭で書かれる＝㉖で旗を焼き込み）＝支持と権力の大きさ。
     //   プレイヤーが見る在庫は **a ＝ max(0, MandateSpent を b から引いた残り)**＝導出量なので貯めない（P10）。
     //   ⚠**四半期に1回だけ導出して置く**（Government.Step の頭・下の PoliticalPushBudget と同じ場所・同じ作法）：
     //     材料の Ideologies.National は全POP走査で、門（Government.GateInfo）は法律タブが毎tick 45回・エンジンが1四半期に法35軸＋スライダー10本ぶん呼ぶ＝軸ごとに再計算すると重い。
@@ -787,7 +787,7 @@ public sealed class World
     }
     public double CivilWarScore { get; internal set; }   // ★CivilWarByScore（2026-09-06）：内戦の戦勝点（+＝反乱側優勢・−＝中央優勢・|値|≥CollapseScore で決定的決着）。決着で0
     public int RuptureWindowQuarters { get; internal set; }   // 第6段6-8（2026-07-28）断裂の窓：革命鎮圧・内戦制圧・クーデタ直後の残り四半期。>0の間だけ法の不可逆（6-7）が解除＝反動の後退が可能（仏1850選挙法・ストルイピン1907・普三級選挙法）
-    public double PoliticalPushBudget { get; internal set; } = 1.0;   // 第6段6-1（2026-07-28）：今四半期の政治予算係数＝(1/開いた戦線数)^PoliticalBudgetGate。Government.Stepの頭で算出しMove速度・マンデート余白に乗る。★裁定S1（2026-09-21）：PoliticalCapitalStock>0 では**余白側の読み手が消える**（θ ごと退役）＝残るのは Move の速度だけ。「全部を同時には押せない」は在庫（貯めてから通す）が担う＝同じ制約を2度掛けていたのを1度に減らした（P9）
+    public double PoliticalPushBudget { get; internal set; } = 1.0;   // 第6段6-1（2026-07-28）：今四半期の政治予算係数＝(1/開いた戦線数)^PoliticalBudgetGate。Government.Stepの頭で算出しMove速度に乗る。★裁定S1（2026-09-21・㉖で焼き込み）：旧はマンデート余白 θ にも乗っていた＝θ ごと退役し、残るのは Move の速度だけ。「全部を同時には押せない」は在庫（貯めてから通す）が担う＝同じ制約を2度掛けていたのを1度に減らした（P9）
     public double LostRegionsCumulative { get; internal set; }   // 機能7-2（2026-07-28）：失地の長期ストック＝割譲された州数の累計（半減期つき減衰＝Politics.Step）。r[4]ナショナリズムの長期項（アルザス＝ロレーヌ1871→1914）。裁定（機能7-未決2）＝案A採用（案B=現版図−初期版図は建国・統一で意味が壊れる）
     public double VictoryShock { get; internal set; }   // 機能8-②（2026-07-28）：戦勝ショック＝DefeatShockの鏡（決定的勝利で1.0・四半期減衰）。r[4]/r[8]の短期燃料（戦勝→主戦論＝日本型）
     public double FamineMemory { get; internal set; }   // 機能8-④（2026-07-28）：飢えの記憶ストック（毎期 減衰+max(0,飢饉基準−FoodFill)）。r[3]/r[5]の燃料＝飢饉は過ぎても急進思想として残る（1789）

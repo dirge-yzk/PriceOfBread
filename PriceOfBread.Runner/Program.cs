@@ -2739,7 +2739,7 @@ if (args.Length > 0 && args[0] == "eduprobe")
         Console.WriteLine($"      　　　　{EpLaw(PolicyAxis.Bureaucracy, (int)w.Bureaucracy, (int)w.Policy.Bureaucracy, (int)BureaucracyLaw.Professional, "官僚制")}"
             + $" {EpLaw(PolicyAxis.SerfEmancipation, (int)w.SerfEmancipation, (int)w.Policy.SerfEmancipation, (int)ReformLevel.Full, "農奴解放")}"
             + $" 地租目標{w.Policy.LandTaxTarget:F2} 教育費目標{w.Policy.EducationSpendingTarget:F2}");
-        // ★N2（2026-09-21）：政治資本を在庫 a/b で出す。b は PoliticalCapitalStock>0 のときだけ World に置かれる（旗0では 0.000 のまま＝目減り S だけが読める）。
+        // ★N2（2026-09-21）：政治資本を在庫 a/b で出す。b は毎四半期 Government.Step の頭で World に置かれる（2026-09-21 ㉖で旗を焼き込み）。
         //   ⚠点火の証拠は「テスト緑」でも「帯が動いた」でもなく **門が実際に否決した回数**＝上の EpLaw の理由行（「政治資本の残りが不足」）を数えること。
         Console.WriteLine($"      ブロック：伝統{blocT:F3} 近代{blocM:F3} 大衆{blocMass:F3}　正統性{w.Legitimacy:F2}"
             + $" 政治資本{Math.Max(0, w.PoliticalCapitalMax - w.MandateSpent):F3}/{w.PoliticalCapitalMax:F3}（目減り{w.MandateSpent:F2} 実行度{PoliticalQuantities.PoliticalCapitalRate(w):F2}）"

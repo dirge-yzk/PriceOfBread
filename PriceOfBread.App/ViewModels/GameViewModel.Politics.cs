@@ -164,7 +164,6 @@ public partial class GameViewModel
     // ★政治資本の在庫（作者裁定N2・2026-09-21）：現在 a／最大 b。ホバーは b と実行度の材料のデータ行だけ（説明文なし）。
     [ObservableProperty] private string _politicalCapitalText = "";
     [ObservableProperty] private string _politicalCapitalTip = "";
-    [ObservableProperty] private bool _politicalCapitalVisible;       // 旗0では行ごと出さない（それまでの表示のまま）
     // ★2026-08-24作者指示：正統性・予算権・統帥権を**小さな半円グラフ**で（大きな半円＝権力の取り分と同じ色の文法・同じ HalfSlice）。
     //   3つとも同じ (王権, 議会, 軍部) の3値＝軍が指揮権を独占している間は軍部100%の1色になる。値は半円の下の1行と ToolTip。
     [ObservableProperty] private string _legitPieCrown = "";
@@ -236,9 +235,7 @@ public partial class GameViewModel
         }
         // --- ★政治資本の在庫 a/b（作者裁定N2・2026-09-21）：a＝max(0, b−目減り)／b＝支持と権力の大きさ ---
         //   物差しは法律タブの代価表示（cost×100）と同じ＝「政治資本 18 / 22」と「政治資本 2」が同じ単位で並ぶ。
-        //   ⚠旗0（PoliticalCapitalStock=0）では b が World に置かれない＝行ごと出さない（それまでの表示のまま）。
-        PoliticalCapitalVisible = w.Coef.PoliticalCapitalStock > 0;
-        if (PoliticalCapitalVisible)
+        //   ★2026-09-21 ㉖で旗を焼き込み＝行は常設（旧＝旗0では行ごと出さない可視条件）。
         {
             double bMax = w.PoliticalCapitalMax, aNow = Math.Max(0, bMax - w.MandateSpent);
             PoliticalCapitalText = $"{aNow * 100:F0} / {bMax * 100:F0}";

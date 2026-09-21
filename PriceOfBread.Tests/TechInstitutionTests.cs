@@ -18,27 +18,66 @@ public class TechInstitutionTests
     private static NationConfig[] Four() =>
         [NationConfig.France(), NationConfig.Japan(), NationConfig.Britain(), NationConfig.America()];
 
+    /// <summary>主張＝「自由な報道と公教育を持つ国は、世界の技術水準へ届く（停滞帯の床 t&gt;1.10 を越え、宗教教育に固定した国の1.3倍を超える）」。
+    /// これは**機構**の主張（<see cref="TechEducation.GrowTech"/> の革新項は 自由≥閾値 × 公教育 × 報道の自由 で開く）なので、
+    /// 報道法・自由・公教育を**試験の中で固定**した世界で検証する。
+    /// <para>★書き直し（2026-09-21 ㉖・政治資本を唯一の門として既定化した回）。旧と新を並べる（床 1.10・相対 ×1.3・300四半期・同じ4カ国と seed は不変）：</para>
+    /// <para>旧＝「統治AI（UtilityAgent）が治める英・米（公教育）は t&gt;1.10 かつ 宗教固定の対照×1.3 を越える」。英の報道法と政体は AI の選択に任されていた
+    ///   ＝**AI が自国の報道を検閲へ戻すかどうか**という創発に依存する（規律＝xUnit は機構と不変条件だけ・創発の主張は帯が見る）。
+    ///   実測（2026-09-21 ㉖の診断）：AI が治めた英は余白の門 θ の有無に関係なく最後はブルジョワ独裁・国営報道・自由0.5 に至り、違いは検閲を買う時期だけ
+    ///   （θ あり q125 → 在庫の門 q50）。技術はそこで凍る（1.201 → 1.091）。⚠統治しない対照（全国 NullAgent）の英も q25→q50 にブルジョワ独裁・国営報道へ落ち、
+    ///   その 1.110 は終盤の後追い（米の先端への採用）の値＝自由報道の世界の値ではない。</para>
+    /// <para>新＝「報道法＝自由報道・教育法＝公教育・参政権＝初期値（自由＝参政権＋報道法の導出なので自由も固定される）を毎四半期書き戻した英・米は
+    ///   t&gt;1.10 かつ 宗教固定の対照×1.3 を越える」。統治する主体は置かない（全国 <see cref="NullAgent"/>＝政体・報道法を動かす AI がいない）。
+    ///   議会の綱領も報道法・教育法の目標を書き換える（<c>Parliament.TargetDemand</c>）ので英・米の議会は止める（宗教固定の日本と同じ分離手法）。
+    ///   ⚠弱めていない：床も相対の倍率も期間も旧のまま。旧が「AI が自由を保てば届く」の合成だったのを、「自由と公教育があれば届く」の機構そのものへ絞った
+    ///   ＝入力（自由・公教育）を保証したうえで出力（技術）だけを見る。AI が早く検閲を買う挙動は帯の観察事項（99_実装ログ 2026-09-21 ㉖）。</para></summary>
     [Fact]
     public void 公教育の自由国は世界の技術水準へ到達する()   // 英・米＝初期から公教育（早い近代化）
     {
-        // ※統治AI（UtilityAgent）で回す：労働市場の導入後、1789年の政策のまま放置された国は
-        //   労働者の不満が煮えて独裁化し（1810年のロンドン反動を観測＝史実の1848年的な反動）、自由を失い革新が止まる。
-        //   「教育＋自由＋**統治（福祉・組合・参政権の調整）**」が揃って初めて世界の技術水準へ届く＝§0 介入の必要性そのもの。
         // アンカー再設計（#131・2026-07-25）：絶対閾値1点（1.5→1.45と2度器差調整）はカオス軌道のノイズに脆く、水力レシピ追加（1.507→1.493）・
-        // 綿花気候ゲート（1.493→1.369）と**機構的に正しい変更のたびに割れた**。仕様の実体は「公教育＋自由＋統治の国は、宗教教育に固定された国を
-        // 大きく引き離して伸びる（停滞しない）」＝**宗教固定の対照との相対**で検証し、絶対値は停滞の下限（1.25＝宗教固定対照の水準帯）だけを置く。
-        var sim = new MultiNationSim(Four(), seed: 1789, _ => new UtilityAgent(), coef: new Coefficients { ColoniesAreRegions = 0 });   // ⚠環境固定（クラス冒頭の注記）＝3引数版は正規表現が取り逃していた
+        // 綿花気候ゲート（1.493→1.369）と**機構的に正しい変更のたびに割れた**。仕様の実体は「公教育＋自由の国は、宗教教育に固定された国を
+        // 大きく引き離して伸びる（停滞しない）」＝**宗教固定の対照との相対**で検証し、絶対値は停滞の下限だけを置く。
+        var cfg = Four();
+        var sim = new MultiNationSim(cfg, seed: 1789, c => c == cfg[2] || c == cfg[3] ? new FreePressPublicEducationPin() : new NullAgent(),
+            coef: new Coefficients { ColoniesAreRegions = 0 });   // ⚠環境固定（クラス冒頭の注記）
+        sim.Nations[2].World.ParliamentEnabled = false;   // 議会の綱領が報道法・教育法の目標を動かさない（宗教固定の日本と同じ分離手法）
+        sim.Nations[3].World.ParliamentEnabled = false;
         sim.Run(300);
+        foreach (int i in new[] { 2, 3 })   // 前提の番人＝固定が最後まで効いている（効いていなければ主張の入力が崩れている）
+        {
+            var w = sim.Nations[i].World;
+            Assert.Equal(CensorshipLaw.FreePress, w.Censorship);
+            Assert.Equal(EducationLaw.Public, w.EducationLaw);
+            Assert.Equal(Politics.FreedomFromLaws(w.Suffrage, w.Censorship), w.Freedom, 12);
+        }
         var pinned = RunWithJapanPinnedReligious(300);   // 対照＝宗教教育に固定した日本（同seed・同期間の別世界）
         double japanReligious = pinned.Nations[1].World.TechLevel;
         double britain = sim.Nations[2].World.TechLevel, america = sim.Nations[3].World.TechLevel;
         // 期待値再導出（#17・2026-08-08作者許可）：絶対床1.25は軌道ピン化していた（R3安定形＝潤沢判定の是正で
         // 米1.224と髪一重で割れる一方、相対条件×1.3は通過＝仕様の実体は相対側）。#131の設計どおり
         // 「相対＝仕様・絶対＝破綻検出の床」へ純化＝床は停滞帯(≈0.9-1.0)の上・1.10に置く。
-        Assert.True(britain > 1.10, $"イギリス（公教育）が停滞水準にある t={britain:F3}");
-        Assert.True(america > 1.10, $"アメリカ（公教育）が停滞水準にある t={america:F3}");
-        Assert.True(britain > japanReligious * 1.3, $"イギリス（公教育）が宗教固定の対照を引き離せていない 英={britain:F3} 対照={japanReligious:F3}");
-        Assert.True(america > japanReligious * 1.3, $"アメリカ（公教育）が宗教固定の対照を引き離せていない 米={america:F3} 対照={japanReligious:F3}");
+        Assert.True(britain > 1.10, $"イギリス（自由報道＋公教育に固定）が停滞水準にある t={britain:F3}");
+        Assert.True(america > 1.10, $"アメリカ（自由報道＋公教育に固定）が停滞水準にある t={america:F3}");
+        Assert.True(britain > japanReligious * 1.3, $"イギリス（自由報道＋公教育に固定）が宗教固定の対照を引き離せていない 英={britain:F3} 対照={japanReligious:F3}");
+        Assert.True(america > japanReligious * 1.3, $"アメリカ（自由報道＋公教育に固定）が宗教固定の対照を引き離せていない 米={america:F3} 対照={japanReligious:F3}");
+    }
+
+    /// <summary>統治の固定（試験用・2026-09-21 ㉖）：毎四半期の頭で報道法＝自由報道・教育法＝公教育・参政権＝初期値を**状態と目標の両方**へ書き戻し、
+    /// 自由をその場で導き直す（<see cref="Politics.FreedomFromLaws"/>＝エンジンと同じ1本）。他の政策には触れない＝<see cref="NullAgent"/> と同じ。
+    /// ⚠四半期末の技術の伸び（<c>QuarterEnd</c> の GrowTech）は政治の段（Politics.Step）より先に走る＝政変が四半期末に法を動かしても、
+    /// 次の伸びの前にこの書き戻しが入る。</summary>
+    private sealed class FreePressPublicEducationPin : INationAgent
+    {
+        private Suffrage? _suffrage;
+        public void DecideQuarter(World w)
+        {
+            _suffrage ??= w.Suffrage;
+            w.Suffrage = w.Policy.Suffrage = _suffrage.Value;
+            w.Censorship = w.Policy.Censorship = CensorshipLaw.FreePress;
+            w.EducationLaw = w.Policy.EducationLaw = EducationLaw.Public;
+            w.Freedom = Politics.FreedomFromLaws(w.Suffrage, w.Censorship);
+        }
     }
 
     // 2026-07-10更新：収束是正（CatchupAbsorptionBlend）後の軌道では日本が途中で明治化＝革命→議会与党の綱領が

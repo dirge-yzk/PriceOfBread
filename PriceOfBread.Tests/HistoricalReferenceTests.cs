@@ -125,11 +125,11 @@ public class HistoricalReferenceTests
         Assert.True(PoliticalQuantities.MilitaryPoliticalRatio(w) > mid, "解隊の脅威は軍の政治的優位を上げるべき");
         // ② 粛清・人事介入の記憶（文民が反対を押し切った履歴）は圧力を**上げる**＝アサーニャ1931型（満額俸給付き退役でも軍は怒る）。
         //    ⚠先に解隊の脅威を戻す（push は [0,1] クランプなので、解隊で飽和した状態では粛清の寄与が見えない）。
-        //    ⚠N2の器（PoliticalCapitalStock・2026-09-21）を点火すると S は b≈0.2 までしか積めない＝下の 1.0 は世界では到達不能になる。
-        //      主張は**単調性**（記憶が厚いほど圧力が高い）なので式としては生き続けるが、点火のラウンドで値を b の射程内へ書き直すこと。
+        //    ★書き直し（2026-09-21 ㉖＝N2/S1 の焼き込み）：S は門で b（≈0.2）の近傍に縛られる＝旧の 1.0 は世界では到達不能。
+        //      主張は**単調性**（記憶が厚いほど圧力が高い）＝値を b の射程（実測の最大 0.2399＝計器 i3 seed1）へ書き直した。
         Level(0.50);
         w.MandateSpent = 0.0; double calm = PoliticalQuantities.MilitaryPoliticalRatio(w);
-        w.MandateSpent = 1.0; Assert.True(PoliticalQuantities.MilitaryPoliticalRatio(w) > calm, "粛清・人事介入の記憶は軍の政治的優位を上げるべき");
+        w.MandateSpent = 0.2; Assert.True(PoliticalQuantities.MilitaryPoliticalRatio(w) > calm, "粛清・人事介入の記憶は軍の政治的優位を上げるべき");
         w.MandateSpent = 0.0;
 
         // ② 文民制度の弁が厚いほど軍の政治的優位は下がる（Finer/Huntington）

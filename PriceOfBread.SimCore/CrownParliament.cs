@@ -42,7 +42,7 @@ public static class CrownParliament
         // --- 2. 協力度3チャネル（§5判断③＝6ペア行列でなく3チャネル）---
         // ②議会↔王権：③階級親和（王権の基盤=旧支配層〔判断②〕と与党の給源ブロックの距離：保守=+1/自由=0/社会=−1）
         //   − ①政策距離（Policy目標 vs 施行済み現行法/スライダーの正規化乖離＝立法の停滞度。憲法紛争1862型の凍結が高乖離に写る）
-        //   − ②紛争記憶（既存 MandateSpent ストック＝余白で反対を押し切った履歴がそのまま敵対の蓄積器＝新規状態を作らず参照・§4-b）。
+        //   − ②紛争記憶（既存 MandateSpent ストック＝反対を押し切った履歴がそのまま敵対の蓄積器＝新規状態を作らず参照・§4-b）。
         //   議会のない政体はチャネル無定義＝0（中立）。「均衡×敵対」の角＝二重権力（露1917二月）を将来ここで観測する。
         bool hasLegislature = w.Polity is Polity.ConstitutionalMonarchy or Polity.Republic;
         if (hasLegislature && w.ParliamentEnabled)
@@ -56,7 +56,7 @@ public static class CrownParliament
             //   ⇒ −CoopConflictMemoryWeight×memory は −0.004 → −0.120（最悪 −0.24）＝CrownRollbackRate の発火線
             //     CoopParliamentCrown < −0.5（ストルイピン後退・1907六三クーデタ）へ紛争記憶だけで線の24%を供給する＝**届きやすくなる**。
             //   ⚠例外＝Politics.ConcedeToFaction（内戦の講和）は門を通さず積むので S>b は作れる（そのとき残り a=0＝政治資本が尽きた状態）。
-            double memory = System.Math.Min(1.0, w.MandateSpent);                // 紛争記憶（減衰ストック＝数年で薄れる。Politics が毎期減衰済み）
+            double memory = System.Math.Min(1.0, w.MandateSpent);                // 紛争記憶（目減り S＝b/40×実行度で線形に薄れる。Politics が毎期回復済み）
             w.CoopParliamentCrown = System.Math.Clamp(
                 c.CoopClassAffinityWeight * classAffinity - c.CoopPolicyGapWeight * policyDist - c.CoopConflictMemoryWeight * memory, -1, 1);
         }
