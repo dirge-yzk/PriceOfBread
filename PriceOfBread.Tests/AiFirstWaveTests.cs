@@ -133,7 +133,7 @@ public class AiFirstWaveTests
         w.Coef.TraditionalistLawGate = 0;
         w.PoliticsEnabled = true;
         w.Legitimacy = 1.0;
-        w.Coef.MandateWeight = 50.0;        // 余白ハンマー＝非憲法級2軸は支持配置に依らず GateInfo が通る（LawPrereq だけが効く状態）
+        w.Coef.MandateWeight = 50.0;        // 余白ハンマー＝非憲法級2軸は支持配置に依らず GateInfo が通る（LawPrereq だけが効く状態）。★旗 PoliticalCapitalStock=1（裁定S1）の世界では θ が退役しており、同じ値が「在庫ハンマー」（b≈30）として同じ効果を持つ
         w.LastImmigration = w.TotalPopulation * 0.05;   // 大量流入（四半期5%）＝制限圧力 40×0.05×(1+失業) ≥ 2.0 ＞ 閉鎖線1.0
         foreach (var pp in w.AllPops()) if (pp.IsModernElite) { pp.Savings = 1e9; break; }   // 近代エリート支配＝教義 Industrialist＝国教は内心の自由へ
         new UtilityAgent().DecideQuarter(w);

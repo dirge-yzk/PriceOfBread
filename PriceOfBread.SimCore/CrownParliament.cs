@@ -49,9 +49,12 @@ public static class CrownParliament
         {
             double classAffinity = 1.0 - w.GoverningParty;                       // 0保守=+1・1自由=0・2社会=−1（党の給源ブロック＝InterestGroups.Blocs の3区分と同順）
             double policyDist = PolicyDistance(w);                               // [0,1]
-            // ⚠レンジの注記（N2の器・2026-09-21）：PoliticalCapitalStock>0 では押し切りの門が S ≤ b（実測 b≈0.14〜0.29）に縛るので
-            //   **Min(1.0, ·) は事実上効かなくなり、紛争記憶は最大でも b 程度**＝協力度が構造的に優しくなる。
-            //   ⇒ CrownRollbackRate の発火条件 CoopParliamentCrown < −0.5（ストルイピン後退・1907六三クーデタ）が届きにくくなりうる＝点火の測定で見る点。
+            // ★レンジの実測（裁定S1・2026-09-21）＝**ここに書いてあった旧の予測「協力度が構造的に優しくなる」は逆だった**（書き直し）。
+            //   旧の指数減衰の S は実測で 中央0.0041／p90 0.0487／最大0.1417＝そもそも Min(1.0,·) に一度も触っていない。
+            //   θ を退役して在庫だけの門にすると S は 中央0.1196／p90 0.1748／最大0.2399（b 中央0.1804）＝**中央で29倍に厚くなる**（隔離計器・seed1・604四半期）
+            //   （線形回復のもとでは常に b 近傍まで使い切るから）。Min(1.0,·) が効かないのは新旧どちらも同じで、変わるのは値の桁。
+            //   ⇒ −CoopConflictMemoryWeight×memory は −0.004 → −0.120（最悪 −0.24）＝CrownRollbackRate の発火線
+            //     CoopParliamentCrown < −0.5（ストルイピン後退・1907六三クーデタ）へ紛争記憶だけで線の24%を供給する＝**届きやすくなる**。
             //   ⚠例外＝Politics.ConcedeToFaction（内戦の講和）は門を通さず積むので S>b は作れる（そのとき残り a=0＝政治資本が尽きた状態）。
             double memory = System.Math.Min(1.0, w.MandateSpent);                // 紛争記憶（減衰ストック＝数年で薄れる。Politics が毎期減衰済み）
             w.CoopParliamentCrown = System.Math.Clamp(

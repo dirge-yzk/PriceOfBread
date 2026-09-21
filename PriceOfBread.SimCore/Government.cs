@@ -330,9 +330,30 @@ public static class Government
     /// ★憲法級の判定を**軸単位から段単位へ**下ろすために要る（2026-08-10・女性法の統合）：
     /// 統合した「女性の権利」は最上段（選挙権）だけが憲法級で、財産権・教育権の段は普通の政策として政治資本で押せる。
     /// 軸単位のままだと財産権の段まで政治資本不可になり、統合が政治の難度を勝手に上げてしまう。</param>
+    /// <remarks>★裁定S1（2026-09-21）：<b>余白の門 θ は退役した</b>。反対を押し切る一歩の門は<b>政治資本の在庫ひとつだけ</b>
+    /// （<see cref="PoliticalCapitalAffords"/>＝S+代価 ≤ b）＝門を2つから1つへ減らす（削減の向き）。
+    /// 退役の理由は係数ではなく構造：旧 θ は1歩の代価を <c>θ×MandateSpendRate</c> で頭打ちにし、b も同じ2係数
+    /// （MandateWeight×MandateSpendRate）で作られるので<b>両辺で打ち消し合い</b>、満タンなら必ず最も高い一歩を6本以上払えた
+    /// ＝在庫の門が一度も噛まなかった（2026-09-21 ㉓検証＝selfplay-batch 10 の4腕と eduprobe で在庫の否決0件／同じ eduprobe で余白の否決100件）。
+    /// <para>実装＝この関数が非憲法級に <c>+∞</c> を返すだけ。θ を読む4本の脚（施行:<c>MandateGate</c>／照会:<c>CanStep</c>／
+    /// 点灯:<c>GateInfo</c>／スライダー:<c>Move</c>）は<b>すべて比較</b>なので同時に「通す側」へ倒れ、残るのは在庫の門だけになる。</para>
+    /// <para>⚠<b>この戻り値は比較にしか使ってはいけない</b>：算術に混ぜると <c>∞−∞</c>／<c>0×∞</c> で NaN が出る。
+    /// 唯一の除算 <c>−θ/costMul</c> は安全＝<see cref="ReversalCostMul"/> は必ず<b>有限かつ ≥1.0</b> を返す
+    /// （<c>IrreversibleLaws ≥ 1.0</c> の禁止段でも 1.0 を返し、禁止そのものは <see cref="BlockedByIrreversibility"/> が先に止める）。</para>
+    /// <para>結果（裁定が望んだもの）：代価が θ で頭打ちされないので<b>強く反対される改革は高く、貯めてから通す</b>ことになり、
+    /// b の小さい国（低正統性・発言権を持つ層の支持が薄い）は<b>永久に通せない</b>＝S2「床の保証の廃止」。
+    /// 旧体制の罠（正統性&lt;0.5 で人気の法さえ滞る非対称＝MandateNegativeScale）も θ ごと退役し、
+    /// その役目は <c>b = MandateWeight×MandateSpendRate×(正統性+支持)</c> の小ささが負う＝同じ史実を係数1本少なく出す。</para>
+    /// <para>⚠憲法級（参政権・秘密投票・女性の権利の選挙権段）は <b>0</b> を返す＝硬い「純支持&gt;0」のまま
+    /// ＝2026-08-04 の裁定「参政権は政治資本で押せない」を<b>そのまま保存</b>する。切り離し弁は
+    /// <see cref="Coefficients.ConstitutionalMandateScale"/>（0＝切り離す＝既定／&gt;0＝普通の政策として在庫で押せる＝休眠）。</para>
+    /// <para>⚠<c>PoliticalCapitalStock=0</c> では1命令も変わらない＝旧の2門がそのまま＝厳密恒等（P3）。</para></remarks>
     private static double MandateMargin(World w, PolicyAxis a, int targetLevel)
     {
         if (!w.PoliticsEnabled) return 0;
+        // ★S1：旗が立っていれば θ の算術には一度も入らない（到達不能）＝門は在庫だけ。憲法級だけ 0（＝硬い純支持>0）で残す。
+        if (w.Coef.PoliticalCapitalStock > 0)
+            return IsConstitutional(a, targetLevel) && !(w.Coef.ConstitutionalMandateScale > 0) ? 0 : double.PositiveInfinity;
         double theta = w.Coef.MandateWeight * (w.Legitimacy - 0.5);
         theta = w.Legitimacy < 0.5 ? theta * w.Coef.MandateNegativeScale : theta;
         // 第6段6-1：正の余白（押し切る力）は開いた戦線数で正規化＝多くを同時に押すほど各前線の押し切りが弱る。負側（信を失った政権の滞り）は非適用。
@@ -768,6 +789,13 @@ public static class Government
     // mandate=false は**機械導出の従属目標**（治安維持力←軍規模。CoercionFollowsForce で毎期再導出＝政府の意図した押し切りでない）：
     // 余白も消費も適用せず従来の硬い純支持>0ゲート＝実測で余白が初期治安維持力916→軍規模相当250への滑落を解禁し
     // 専制の保持力を崩壊させた（露が1811年に革命→立憲化＝宗教教育停滞の動学が消える）ため、余白は意図した政策押し切りに限る。
+    // ★裁定S1（2026-09-21・PoliticalCapitalStock>0）：**方向ロックは無くなる**（θ=+∞＝下の比較が偽）。代わりに反対の向きへ這い進む
+    //   1ミリごとに在庫から払い、残りが代価に届かなくなった瞬間に止まる＝ロックが「向きの禁止」から「値段」へ変わる。
+    //   ⚠実挙動の最大の変化はここ：実測（隔離計器・seed1・604四半期）でスライダーの押しは 4,788回 → 102,167回（21.3倍）・代価計 0.08 → 54.83
+    //     ＝1国期あたり 0.00142（回復 b/40×実行度 ≈0.00441 の32%）＝在庫が常に空に近い状態で運転される。
+    //   ⚠**旧の硬いゲートへは戻さない**：税4軸と軍事費は 2026-09-20 に段になり**施行が Move 側**なので、ここだけ硬く戻すと
+    //     「税の段が反対を押し切って上がる」経路が消える＝現行より後退する。門は世界に1つ（S1 の字義）＝法もスライダーも在庫で払う。
+    //   ⚠法は同じ四半期の先に課金される（Government.Step は法→スライダーの順）＝スライダーの這い進みが法を飢えさせることはない。
     private static double Move(double cur, double target, Coefficients c, World w, PolicyAxis a, double spendScale = 1.0, bool mandate = true)
     {
         if (Math.Abs(target - cur) < 1e-12) return cur;

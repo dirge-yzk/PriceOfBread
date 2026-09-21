@@ -164,9 +164,11 @@ public static class PoliticalQuantities
         // --- 分子：将校団が政治へ押し出す圧力（4つの加法＝どれか1つが十分に高ければ軍は動く）。⚠**給与を読まない**（水準でなく組織と解隊が効く） ---
         double soldierShare = w.SoldierSize() / Math.Max(1.0, w.TotalPopulation);
         double weight = Clamp01(soldierShare / Math.Max(1e-9, c.MaxSoldierFraction));   // 組織の大きさ＝軍の社会的重み（平時上限 MaxSoldierFraction で正規化）
-        // ⚠レンジの注記（N2の器・2026-09-21）：PoliticalCapitalStock>0 では押し切りの門が S ≤ b（実測 b≈0.14〜0.29）に縛るので
-        //   **Clamp01 は事実上効かなくなり purge ≤ b 程度**＝旧支配層の closedMul が下がり近代法が通りやすくなる＝2026-08-04 の較正と逆向き。
-        //   一方で新しい門（残りが代価に届くときだけ押し切れる）は改革の連打を止める＝較正は逆符号で2つ動く＝腕を分けて測ること。
+        // ★レンジの実測（裁定S1・2026-09-21）＝**ここに書いてあった旧の予測は向きが逆だった**（書き直し）。
+        //   旧の指数減衰の S は 中央0.0041／最大0.1417＝purge は実質ゼロの死項だった。θ を退役して在庫だけの門にすると
+        //   S は 中央0.1196／最大0.2399（b 中央0.1804・隔離計器 seed1・604四半期）＝purge は 0.002 → **0.060（最大0.120）**＝重み0.5で軍国教義の線
+        //   MilitaristDoctrineDegree=0.25（SelfPlay）に対し粛清項だけで最大48%を供給する＝**軍政が出やすくなる**方向。
+        //   Clamp01 が効かないのは新旧どちらも同じで、変わるのは値の桁。較正上の相手は在庫の門（連打を止める）＝腕を分けて測る。
         double purge = Clamp01(w.MandateSpent);                                          // 文民が反対を押し切った履歴＝粛清・人事介入・自律の剥奪の記憶（アサーニャ1931型）
         // ★**組織そのものの消滅の脅威**（2026-08-18・欧露15事例）＝軍が「今の自分」より小さくされようとしている度合い。
         //   ノスケが1920-02-29にヴェルサイユの10万人上限を満たすためエアハルト海兵旅団とレーヴェンフェルト旅団の解散を命じたことが
@@ -284,11 +286,18 @@ public static class PoliticalQuantities
     /// 支持 sup ＝ (現政体の親和 − Ideologies.AffMin) / (AffMax − AffMin) ∈[0,1]   ★正規化は PowerShares.Closeness と同じ既存の書き方
     /// b        ＝ MandateWeight × MandateSpendRate × (正統性 ＋ sup)
     /// </code>
-    /// ★**目盛りの根拠**＝代価と同じ2係数の積で作る＝単位が一致する（代価＝|純支持|×MandateSpendRate／余白 θ＝MandateWeight×(正統性−0.5)）。
-    ///   1歩の最大の代価は <c>cost_max ＝ MandateWeight×(正統性−0.5)×MandateSpendRate×押し予算×憲法級倍率</c> なので
-    ///   <c>b / cost_max ＝ (正統性+sup) / ((正統性−0.5)×押し予算×憲法級倍率) ＞ 1</c>
-    ///   ＝**満タンなら必ず最も高い一歩を1回は払える**＝政治資本のせいで進行不能になる国を構造として作らない（P4）。
-    ///   MandateWeight に比例するので「余白ハンマー」（AiFirstWaveTests の MandateWeight=50）でも b が同時に膨らむ。
+    /// ★**目盛りの根拠**＝代価と同じ2係数の積で作る＝単位が一致する（代価＝|純支持|×MandateSpendRate×後退倍率）。
+    /// ★**床の保証は廃止された**（裁定S2・2026-09-21・旧記述を書き直し。消さないのは「なぜ無くなったか」が読めなくなるから）。
+    ///   旧記述＝「1歩の最大の代価は cost_max＝MandateWeight×(正統性−0.5)×MandateSpendRate×押し予算×憲法級倍率 なので
+    ///   b/cost_max ＞ 1＝満タンなら必ず最も高い一歩を1回は払える」。この不等式は**余白の門 θ が代価を頭打ちにしていたから**成り立っていた。
+    ///   ⇒ 実測（2026-09-21 ㉓検証）で代価上限/b は平均0.103・最大0.162＝満タンは常に最高値の一歩を6本以上払え（1/0.162≈6.2）、
+    ///     在庫の門は selfplay-batch 10 の4腕と eduprobe で**一度も噛まなかった**＝裁定の「支持の薄い独裁は大改革を押し切れない」の否定そのもの。
+    ///   ⇒ S1 で θ を退役（<see cref="Government"/> の MandateMargin が非憲法級に +∞ を返す）＝代価の頭打ちが消え、
+    ///     門の可否は <c>|純支持|×後退倍率 ＞ MandateWeight×(正統性+sup)</c>（MandateSpendRate は両辺で消える）で決まる。
+    ///     実測（隔離計器・seed1・604四半期）では置こうとした一歩の 70.1% が**満タンでも払えない**＝b の小さい国は永久に通せない＝S2 が望んだ姿。
+    ///   ⚠P4（進行不能にしない）の担保は床の保証ではなく**門の置き場所**＝門は純支持&lt;0 の枝の中にしかない
+    ///     （<see cref="Government.PoliticalCapitalAffords"/> の注記）＝代価0の一歩は S がいくつでも必ず通る。
+    ///   MandateWeight に比例するので「在庫ハンマー」（AiFirstWaveTests の MandateWeight=50＝b≈30）でも b が同時に膨らむ。
     /// ★**政体で分岐を書かない**（P2）：支持は <see cref="Ideologies.National"/> の集計で、POP の重みが
     ///   <c>規模×意識×(IdeologyVoiceFloor+0.3×FranchiseVoice)</c>＝発言権による重み付けそのもの。
     ///   <see cref="InterestGroups.FranchiseVoice"/> は閉鎖階級（貴族・聖職）に常に1・参政権の無い大衆に0を返すので、

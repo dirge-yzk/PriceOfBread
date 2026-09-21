@@ -787,7 +787,7 @@ public sealed class World
     }
     public double CivilWarScore { get; internal set; }   // ★CivilWarByScore（2026-09-06）：内戦の戦勝点（+＝反乱側優勢・−＝中央優勢・|値|≥CollapseScore で決定的決着）。決着で0
     public int RuptureWindowQuarters { get; internal set; }   // 第6段6-8（2026-07-28）断裂の窓：革命鎮圧・内戦制圧・クーデタ直後の残り四半期。>0の間だけ法の不可逆（6-7）が解除＝反動の後退が可能（仏1850選挙法・ストルイピン1907・普三級選挙法）
-    public double PoliticalPushBudget { get; internal set; } = 1.0;   // 第6段6-1（2026-07-28）：今四半期の政治予算係数＝(1/開いた戦線数)^PoliticalBudgetGate。Government.Stepの頭で算出しMove速度・マンデート余白に乗る
+    public double PoliticalPushBudget { get; internal set; } = 1.0;   // 第6段6-1（2026-07-28）：今四半期の政治予算係数＝(1/開いた戦線数)^PoliticalBudgetGate。Government.Stepの頭で算出しMove速度・マンデート余白に乗る。★裁定S1（2026-09-21）：PoliticalCapitalStock>0 では**余白側の読み手が消える**（θ ごと退役）＝残るのは Move の速度だけ。「全部を同時には押せない」は在庫（貯めてから通す）が担う＝同じ制約を2度掛けていたのを1度に減らした（P9）
     public double LostRegionsCumulative { get; internal set; }   // 機能7-2（2026-07-28）：失地の長期ストック＝割譲された州数の累計（半減期つき減衰＝Politics.Step）。r[4]ナショナリズムの長期項（アルザス＝ロレーヌ1871→1914）。裁定（機能7-未決2）＝案A採用（案B=現版図−初期版図は建国・統一で意味が壊れる）
     public double VictoryShock { get; internal set; }   // 機能8-②（2026-07-28）：戦勝ショック＝DefeatShockの鏡（決定的勝利で1.0・四半期減衰）。r[4]/r[8]の短期燃料（戦勝→主戦論＝日本型）
     public double FamineMemory { get; internal set; }   // 機能8-④（2026-07-28）：飢えの記憶ストック（毎期 減衰+max(0,飢饉基準−FoodFill)）。r[3]/r[5]の燃料＝飢饉は過ぎても急進思想として残る（1789）
