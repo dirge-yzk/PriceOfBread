@@ -158,6 +158,7 @@ public class ServiceEconomyTests
     {
         var sim = new Simulation(NationConfig.France().ToScenario(17), new NullAgent());
         sim.World.GovDebt = 0;   // P5：仏は重債務開始＝利払いが軍事費を圧迫するため中立財政で隔離
+        foreach (var rg in sim.World.Regions) foreach (var pp in rg.Pops) pp.BondHoldings = 0;   // ★2026-09-21：国債を手で消すなら持ち手の記録（保有台帳）も消す＝Σ保有＝国内元本の不変条件
         sim.Run(20);
         var r = sim.World.Regions[0];
         var soldier = r.Pops[r.SoldierPopIndex];

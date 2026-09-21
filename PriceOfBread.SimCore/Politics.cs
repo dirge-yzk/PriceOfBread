@@ -829,6 +829,7 @@ public static class Politics
     {
         if (newPolity is not (Polity.ProletarianDictatorship or Polity.Anarchy)) return;   // 継承（リセットしない）＝攻略封じ＋史実
         w.GovDebt = 0; w.ForeignDebt = 0;
+        foreach (var r in w.Regions) foreach (var p in r.Pops) p.BondHoldings = 0;   // ★保有台帳（2026-09-21）：否認した割合（全額）だけ保有を消す＝損は持ち手（金は動かない）
         w.OnGoldStandard = false; w.GoldStandardSuspendedInCrisis = true;   // 対外信用の崩壊＝兌換崩壊→外資逃避（CapitalMarket）。当面 借りられない
         // C-中1（史実検証2026-07-22）：革命的否認に信用市場の代償が無かった（BorrowCooldown も触らないため即座に再起債できる＝一過性Anarchyが債務ロンダリング装置になる）。
         // 史実の代償は「永久追放」でなく長期市場からの排除＋高コスト短期化（ソヴィエト1918否認→ジェノヴァ1922決裂、以後も短期の供給者信用は継続）。
@@ -2074,7 +2075,7 @@ public static class Politics
         // 穏健革命は対象外＝過剰適用を避ける。RevolutionTerror=0 で terror=false＝不発（現行0.25採用）。
         bool terror = c.RevolutionTerror > 0
                    && w.Polity is Polity.Republic or Polity.ProletarianDictatorship or Polity.Anarchy;
-        double confiscated = 0;
+        double confiscated = 0, confiscatedBonds = 0;
         foreach (var p in w.AllPops())
         {
             bool deposed = (depTrad && p.Closed)
@@ -2091,16 +2092,19 @@ public static class Politics
                     w.TerrorPurgeCumulative += purged;   // 診断（UI）：粛清量の累計＝書くだけ（挙動非依存）。UIがニュース化に使う
                     double seized = Math.Max(0, p.Savings) * c.RevolutionTerror;   // 資産没収（貴族の所領・資本の没収）
                     p.Savings -= seized; confiscated += seized;
+                    double seizedBonds = p.BondHoldings * c.RevolutionTerror;   // ★保有台帳（2026-09-21）：国債も貯蓄と同じ規則で没収（請求権は国内に残る＝下で大衆へ）
+                    p.BondHoldings -= seizedBonds; confiscatedBonds += seizedBonds;
                 }
             }
             else p.Militancy *= c.ReformMilitancyRelief;                                            // 勝者・中立＝緩和
         }
         // 没収資産を大衆pop（非特権・非エリート・非兵士）へSize按分で再分配＝革命の余剰再分配（保存＝pop→pop純移転・貨幣不変）。受け手不在は全popへ按分。
-        if (confiscated > 0)
+        // ★保有台帳（2026-09-21）：没収した国債も**同じ受け手・同じ按分**で渡す（国の保有の和は不変＝不変条件を保つ）。没収が0の側は +0.0＝貯蓄の分配はビット不変。
+        if (confiscated > 0 || confiscatedBonds > 0)
         {
             double ms = 0; foreach (var p in w.AllPops()) if (!p.Closed && !p.IsModernElite && !p.IsSoldier) ms += p.Size;
-            if (ms > 1e-9) { foreach (var p in w.AllPops()) if (!p.Closed && !p.IsModernElite && !p.IsSoldier) p.Savings += confiscated * (p.Size / ms); }
-            else { double t = 0; foreach (var p in w.AllPops()) t += p.Size; if (t > 1e-9) foreach (var p in w.AllPops()) p.Savings += confiscated * (p.Size / t); }
+            if (ms > 1e-9) { foreach (var p in w.AllPops()) if (!p.Closed && !p.IsModernElite && !p.IsSoldier) { p.Savings += confiscated * (p.Size / ms); p.BondHoldings += confiscatedBonds * (p.Size / ms); } }
+            else { double t = 0; foreach (var p in w.AllPops()) t += p.Size; if (t > 1e-9) foreach (var p in w.AllPops()) { p.Savings += confiscated * (p.Size / t); p.BondHoldings += confiscatedBonds * (p.Size / t); } }
         }
     }
 }

@@ -36,7 +36,12 @@ public static class SaveGame
         string magic = br.ReadString();
         if (magic != Magic && magic != MagicV1) throw new InvalidDataException($"セーブデータの形式が違う（magic={magic}）");
         object? root = new GraphReader(br, named: magic == Magic).ReadValue();
-        return root as MultiNationSim ?? throw new InvalidDataException("セーブデータの復元に失敗（ルートが MultiNationSim でない）");
+        var sim = root as MultiNationSim ?? throw new InvalidDataException("セーブデータの復元に失敗（ルートが MultiNationSim でない）");
+        // ★国債の保有台帳（2026-09-21）：台帳導入前のセーブは Pop.BondHoldings が既定値0で埋まる＝国内債のある国で不変条件（BondLedger）が
+        //   最初の月に割れる（セーブ破れ）。台帳が空で国内債がある国だけ、構築時と同じ起票（購入と同じ規則）で持ち主を記す。
+        //   台帳入りのセーブでは Σ保有＞0 か国内債0 のどちらか＝何もしない（ビット不変）。
+        foreach (var n in sim.Nations) Fiscal.SeedBondHoldings(n.World);
+        return sim;
     }
 
     // --- 値タグ ---

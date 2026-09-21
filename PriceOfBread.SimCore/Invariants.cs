@@ -101,6 +101,39 @@ public sealed class NonNegativeBounds : IInvariant
 }
 
 /// <summary>
+/// 国債の保有台帳（2026-09-21裁定）：国の全POP（Regions の全州＝Fiscal が利払い・償還を配る集合と同じ）の保有の和＝国内元本残高（GovDebt − ForeignDebt）。
+/// 台帳は金を動かさない記録なので、両辺は別々の経路（Fiscal の起債・償還・デフォルト／Politics の否認／POPの移動と国外振替）で動く＝どこかで運び忘れると割れる。
+/// 許容は相対1e-8（貨幣保存と同じ）。尺度は GovDebt・ForeignDebt・保有の和の最大＝国内元本が2つの大きな量の差になる国（対外債の多い国）の桁落ちに頑健。
+/// 保有そのものも非負・有限であること（NaN は否定形で拾う）。状態を持たない＝基準線の取り直し不要。
+/// </summary>
+public sealed class BondLedger : IInvariant
+{
+    public string Name => "国債の保有台帳";
+
+    public void Check(World world)
+    {
+        double held = 0;
+        foreach (var r in world.Regions)
+            foreach (var p in r.Pops)
+            {
+                if (!(p.BondHoldings >= 0) || double.IsInfinity(p.BondHoldings))
+                    throw new InvariantViolationException($"{Name}：[{world.Region.Name}・{world.Year}年] {r.Name}/{p.ClassName} の保有が {p.BondHoldings}");
+                held += p.BondHoldings;
+            }
+        if (!Balanced(world, held))
+            throw new InvariantViolationException(
+                $"{Name}：[{world.Region.Name}・{world.Year}年] 保有の和 {held} ≠ 国内元本 {world.GovDebt - world.ForeignDebt}（国債{world.GovDebt}−対外{world.ForeignDebt}）・ズレ{held - (world.GovDebt - world.ForeignDebt):G6}");
+    }
+
+    /// <summary>Σ保有と国内元本の一致（相対1e-8）。起票（<see cref="Fiscal.SeedBondHoldings"/>）も同じ判定を使う＝検査が割れる時だけ起票する（判定は1本）。</summary>
+    internal static bool Balanced(World world, double held)
+    {
+        double scale = Math.Max(held, Math.Max(Math.Abs(world.GovDebt), Math.Abs(world.ForeignDebt)));
+        return Math.Abs(held - (world.GovDebt - world.ForeignDebt)) <= 1e-8 * Math.Max(1.0, scale);   // NaN は偽＝割れた側へ倒れる
+    }
+}
+
+/// <summary>
 /// 財収支（§11.6）：各財 stock = prev_stock + produced − sold（単一地域は純輸出0）。
 /// 取引フェーズの帳尻が合っているかの恒等式チェック。
 /// </summary>

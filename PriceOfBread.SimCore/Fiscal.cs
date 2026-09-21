@@ -291,8 +291,15 @@ public static class Fiscal
             {
                 double foreignPortion = pool > 1e-9 ? borrowed * (foreignPool / pool) : 0;
                 double domesticPortion = borrowed - foreignPortion;
-                if (domesticPortion > 0 && capSavings > 1e-9)
-                    foreach (var p in capitalists) p.Savings -= domesticPortion * (Math.Max(0, p.Savings) / capSavings);   // 国内＝資本家貯蓄→国庫（純移転・クラウディングアウト）
+                // ★保有台帳（2026-09-21裁定）：各資本家は**払った額だけ**国債を持つ（台帳は金を動かさない＝払う額の式は旧と同一）。
+                //   ⚠門を `capSavings > 1e-9` から `> 0` へ：旧は 0<capSavings≤1e-9 のとき国内分（≤capSavings×BondAppetite）が誰からも引かれずに
+                //   国庫へ湧き、持ち手のいない元本が立っていた。capSavings=0 なら domesticPool=0＝foreignPool/pool=1 で domesticPortion は厳密に0。
+                if (domesticPortion > 0 && capSavings > 0)
+                    foreach (var p in capitalists)
+                    {
+                        double paid = domesticPortion * (Math.Max(0, p.Savings) / capSavings);
+                        p.Savings -= paid; p.BondHoldings += paid;   // 国内＝資本家貯蓄→国庫（純移転・クラウディングアウト）＋同額の保有
+                    }
                 w.CumulativeTradeFlow += foreignPortion;   // 海外＝対外資本流入（BaseMoney+CumulativeTradeFlow同時＝保存）
                 if (c.ForeignLendingDebits > 0) w.PendingForeignBorrow += foreignPortion;   // ★§1-4：貸し手側の引き落とし予約（四半期末に MultiNationSim が他国資本家から対称に控除＝両建て）。0＝旧・片側記帳
                 w.Pay(TreasuryCat.Borrow, borrowed); w.GovDebt += borrowed; w.ForeignDebt += foreignPortion;
@@ -397,27 +404,17 @@ public static class Fiscal
         double interestPaid = Math.Min(Math.Max(0, w.Treasury), interest);
         // ★G8（2026-08-13）：金建て負担で膨らんだ利払いのうち海外へ行く割合。国内分は膨らまないので、分子だけに倍率が乗る
         //   ＝domInt + foreignInt が恒等的に interestPaid に閉じる（保存）。burden=1（既定）では旧式と厳密一致。
-        double foreignDebtFrac = goldDebtBurden > 1.0
-            ? foreignShare * goldDebtBurden / Math.Max(1e-12, 1.0 + foreignShare * (goldDebtBurden - 1.0))
-            : foreignShare;
+        double ForeignFrac(double share) => goldDebtBurden > 1.0
+            ? share * goldDebtBurden / Math.Max(1e-12, 1.0 + share * (goldDebtBurden - 1.0))
+            : share;
+        double foreignDebtFrac = ForeignFrac(foreignShare);
         double foreignInt = interestPaid * foreignDebtFrac;
         w.Pay(TreasuryCat.Interest, -interestPaid);
-        // 接5（監査2026-07-11・2026-07-25休眠配線）：起債は貯蓄比例で資本家から徴収するのに利払いが頭数比例で戻る＝金融中心州の資本家が
-        // 元本を出し利息は地方へ薄く流れる恒常移転（債券所得＝レンティア動学の欠落）。これ>0で Max(0,Savings) 比例へ移行
-        //（経10の預金利息と同じ規範・保有台帳を持たない現行設計での最良近似）。既定0＝頭数比例＝現行と厳密一致。
+        // ★保有台帳（2026-09-21裁定）：国内分の利払いは**保有に比例**。旧＝接5（2026-07-27点火）の「今の貯蓄比」＋頭数比の残り
+        //   ＝「保有台帳を持たない現行設計での最良近似」だった（BondInterestSavingsWeighted は台帳で不要になり削除）。
+        //   受け手＝国の全POP（階級が落ちて投資家でなくなっても、持っている国債の利子は受け取る）。持ち手不在＝国庫残置（保存）。
         double domInt = interestPaid - foreignInt;
-        if (domInt > 1e-12)
-        {
-            double bondWgt = Math.Clamp(c.BondInterestSavingsWeighted, 0, 1);
-            double weightedPart = domInt * bondWgt;
-            if (weightedPart > 1e-12)
-            {
-                double capSavSum = 0; foreach (var p in capitalists) capSavSum += Math.Max(0, p.Savings);
-                if (capSavSum > 1e-9) foreach (var p in capitalists) p.Savings += weightedPart * (Math.Max(0, p.Savings) / capSavSum);
-                else w.Pay(TreasuryCat.Interest, weightedPart);   // 受け手不在/無貯蓄＝国庫残置（保存）
-            }
-            if (domInt - weightedPart > 1e-12) w.Pay(TreasuryCat.Interest, Distribute(capitalists, domInt - weightedPart));   // 受け手不在（債権者が州割譲等で不在）＝国庫残置（保存）
-        }
+        if (domInt > 1e-12) { double back = PayBondHolders(pops, domInt, 0); if (back > 0) w.Pay(TreasuryCat.Interest, back); }
         w.CumulativeTradeFlow -= foreignInt;   // 対外流出（保存）
         w.ForeignIntPaidThisQuarter += foreignInt;   // 02断線走査（2026-07-28）：CapitalMarketが債権国投資家へ配当（旧＝世界から消えるだけの片側記帳）
 
@@ -452,10 +449,21 @@ public static class Fiscal
             //   （foreignDebtFrac＝金建て負担 goldDebtBurden で分子だけ膨らませた比）を流用していた＝分子と分母が別規則。
             //   元本の台帳 `ForeignDebt` は自国通貨建てなので、正しい按分は膨らませていない `foreignShare`。
             //   ⚠実害は銀本位/不換で金建て対外債を負う国＝元本を利払い比で過大に償却し `CumulativeTradeFlow` も同比で余計に流出する。
-            //   ⚠goldDebtBurden≤1 では両者は恒等（foreignDebtFrac=foreignShare）＝差が出るのは金建て負担のある国だけ。0で厳密恒等（休眠）。
-            double frForeign = repay * (c.DebtRepayUsesPrincipalShare > 0 ? foreignShare : foreignDebtFrac);
+            //   ⚠goldDebtBurden≤1 では両者は恒等（foreignDebtFrac=foreignShare）＝差が出るのは金建て負担のある国だけ。0で旧式（利払いの比）。
+            //   （2026-09-21：どちらの腕も比は下の shareNow＝償還時点の元本から取る＝0の腕も起債のある月は旧式とビット一致しない）
+            // ★按分の比は**償還の時点の**元本から取る（2026-09-21・保有台帳の不変条件で露見）。上の foreignShare は月初＝起債の前の比で、
+            //   同じ月に起債すると新発債の構成が按分に入らない：全額対外で借りた月に「国内分」を償還して ForeignDebt>GovDebt（国内元本が負）
+            //   になり、持ち手がいなければ対外債務が国庫残置でタダで消え、いれば払っていない国内の持ち手へ対外の元本が渡っていた。
+            //   利払い（上）は月初の残高に掛かる＝月初の比のままが正しい。起債の無い月は shareNow＝foreignShare（ビット同値）。
+            double shareNow = Math.Clamp(w.ForeignDebt / w.GovDebt, 0, 1);
+            double frForeign = repay * (c.DebtRepayUsesPrincipalShare > 0 ? shareNow : ForeignFrac(shareNow));
+            double domBefore = w.GovDebt - w.ForeignDebt;
             w.Pay(TreasuryCat.DebtRepay, -repay); w.GovDebt -= repay; w.ForeignDebt = Math.Max(0, w.ForeignDebt - frForeign);
-            if (repay - frForeign > 1e-12) w.Pay(TreasuryCat.DebtRepay, Distribute(capitalists, repay - frForeign));   // 受け手不在＝国庫残置（債権者の消えた国内債は実質帳消し・保存）
+            // ★保有台帳（2026-09-21裁定）：国内分の償還は**保有に比例**して払い、同じ比で保有を減らす
+            //   （旧＝貯蓄比で買い・頭数比で償還＝往復ごとに富裕な資本家から貧しい資本家へ富が移る分子と分母の非対称）。
+            //   減らす額＝国内元本の実減（GovDebt−ForeignDebt の差分）＝台帳と元本が同じ量で動く。持ち手不在＝国庫残置（債権者の消えた国内債は実質帳消し・保存）。
+            double back = PayBondHolders(pops, Math.Max(0, repay - frForeign), domBefore - (w.GovDebt - w.ForeignDebt));
+            if (back > 0) w.Pay(TreasuryCat.DebtRepay, back);
             w.CumulativeTradeFlow -= frForeign;
             // 借金ボタンのスタックを返済分だけ減らす（1スタック＝GDP×割合相当）。返せた分だけ出費上限が回復＝のべくりの解除。
             double loanUnit = Math.Max(1e-9, Math.Max(0, w.Gdp) * c.BorrowFractionOfGdp);
@@ -480,6 +488,7 @@ public static class Fiscal
         {
             // 債務消滅（請求権＝保存無影響）。致命的な代償＝兌換崩壊・**信用凍結（貸付消滅→工場が資本を得られず投資/工業化が崩落＝恐慌）**・正統性崩壊（革命リスク）・大衆の暴動・当面 借入不能。
             w.GovDebt = 0; w.ForeignDebt = 0; w.BorrowStacks = 0; w.SpendingCapFactor = 1.0;
+            foreach (var hp in pops) hp.BondHoldings = 0;   // ★保有台帳（2026-09-21）：国が払うのを止めた割合（全額）だけ保有を消す＝損は持ち手（国庫へは何も戻らない・金は動かない）
             w.InsolvencyQuarters = 0; w.BorrowCooldown = c.DefaultCooldownQuarters; w.HadSovereignDefault = true; w.SovereignDefaultCount++;   // C-中9（2026-07-22）：回数も数える（恒久boolでは2度目以降の破産が制度疲労の窓を開けない）
             w.OnGoldStandard = false; w.GoldStandardSuspendedInCrisis = true;
             if (w.Bank is { } dbank) { dbank.Confidence = 0; dbank.Heat = 0; }   // 信用凍結＝Confidence0で次期以降 与信が自然収縮（恐慌）。**Loansは直接0にしない**（基礎貨幣=広義−与信 の保存を破るため）
@@ -655,6 +664,58 @@ public static class Fiscal
             w.NationBuildingSpending = newsSz > 1e-9 ? Math.Clamp(newsW / newsSz * zeal, 0, 1) : 0;
         }
         // POP動詞①（階級への優遇/弾圧）は廃止（2026-07-20ユーザー指示＝税で表現済みで冗長）。弾圧の概念は国内危機（Politics.CheckFactionRevolt→CrisisThroughLawPath＝通知のみ・ボタンなし）へ移行＝⚠2026-09-08に無血鎮圧の枝は撤去・2026-09-11に弾圧/譲歩の択も撤去＝対処は法改正か内戦だけ。
+    }
+
+    /// <summary>★国債の保有台帳（2026-09-21裁定）：cash を**保有に比例**して配り、principal ぶん保有を同じ比で減らす。
+    /// 台帳は金を動かさない＝配る金は呼び手が国庫から出した cash だけ。端数は最後の持ち手へ（<see cref="Distribute"/> と同じ作法＝配った額の和が cash に厳密一致）。
+    /// 持ち手不在（保有の和が0）なら cash をそのまま返す＝呼び手が国庫残置して保存則を守る。</summary>
+    private static double PayBondHolders(List<Pop> pops, double cash, double principal)
+    {
+        double total = 0; Pop? last = null;
+        foreach (var p in pops) if (p.BondHoldings > 0) { total += p.BondHoldings; last = p; }
+        if (last is null) return cash;
+        double done = 0;
+        foreach (var p in pops)
+        {
+            if (!(p.BondHoldings > 0) || ReferenceEquals(p, last)) continue;
+            double share = cash * (p.BondHoldings / total);
+            p.Savings += share; done += share;
+        }
+        last.Savings += cash - done;
+        if (principal > 0)
+        {
+            double keep = principal < total ? 1.0 - principal / total : 0.0;   // 同じ比で減らす＝和は total−principal（負にしない）
+            foreach (var p in pops) p.BondHoldings *= keep;
+        }
+        return 0;
+    }
+
+    /// <summary>★保有台帳の国外振替（2026-09-21）：持ち手が**発行国の外へ出る**（割譲・分離建国・越境移民・招聘）とき、その保有 h を
+    /// 発行国の**対外債**へ振り替える＝請求権は発行国に対するまま残り、持ち手の国の対外債権（ForeignBondClaims）になる。
+    /// ★史実：国債は発行国との契約で、持ち手の主権が変わっても債務者は変わらない（フランクフルト条約1871＝ドイツはフランス国債を
+    ///   一切継承せず、アルザス＝ロレーヌの住民が持つフランス国債はフランスへの請求権のまま国外保有になった）。
+    /// ⚠金は動かない・GovDebt も不変＝国内元本 GovDebt−ForeignDebt が h 減り、台帳も h 減る＝不変条件が厳密に保たれる
+    ///   ＝POPに「どの国の国債か」の次元を持たせずに済む（1本のスカラーは持ち手が発行国の中にいる間だけ有効）。
+    /// ⚠PrevForeignDebt も同額上げる＝CapitalMarket の外債レグがこの増分を「新規の対外借入」として全債権国へ按分し直さない（持ち手の国へ直接付け替え済み）。</summary>
+    internal static void ExportBondHoldings(Pop p, double h, World issuer, World holderNation)
+    {
+        if (!(h > 0)) return;
+        p.BondHoldings -= h;
+        issuer.ForeignDebt += h; issuer.PrevForeignDebt += h;
+        holderNation.ForeignBondClaims += h;
+    }
+
+    /// <summary>★保有台帳の起票（2026-09-21）：国内債があるのに台帳が空の国（開始盤面の初期国債＝仏の米独立戦争債務／台帳導入前のセーブ）に、
+    /// **起債の購入と同じ規則**（投資家の貯蓄比）で保有を起こす。金は動かさない（既に在る請求権の持ち主を記すだけ）。
+    /// 台帳が立っている国・国内債0（検査の許容内）の国では何もしない＝通常の走では構築時に1回だけ効く。投資家の貯蓄が0なら全POPの頭数比（<see cref="Distribute"/> と同じ最後の受け皿）。</summary>
+    internal static void SeedBondHoldings(World w)
+    {
+        double dom = w.GovDebt - w.ForeignDebt, held = 0, invSav = 0, size = 0;
+        foreach (var r in w.Regions) foreach (var p in r.Pops) { held += p.BondHoldings; size += p.Size; if (CapitalMarket.IsInvestor(p, w.Coef)) invSav += Math.Max(0, p.Savings); }
+        if (held > 0 || !(dom > 0) || BondLedger.Balanced(w, held)) return;   // 検査が割れない（端数の残差だけ）なら起票しない＝台帳入りのセーブはビット不変
+        foreach (var r in w.Regions)
+            foreach (var p in r.Pops)
+                p.BondHoldings += dom * (invSav > 0 ? (CapitalMarket.IsInvestor(p, w.Coef) ? Math.Max(0, p.Savings) / invSav : 0) : (size > 0 ? p.Size / size : 0));
     }
 
     /// <summary>頭数比例の分配。受け手不在（空リスト・総人口≈0）なら配れなかった額を返す＝呼び手が国庫残置して保存則を守る

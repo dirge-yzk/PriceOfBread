@@ -198,6 +198,8 @@ public static class Colonial
                         double f = Math.Min(flow * (wgt / srcMass), p.Size);   // 送出比率は自由度加重（同月内の後続植民地は近似＝Sizeで上限）
                         if (f <= 0) continue;
                         double sv = p.Savings * (f / p.Size);   // 持参金＝1人あたり貯蓄ぶん（越境移民と同型）
+                        // ★国債の保有台帳（2026-09-21）：入植者の保有は**送り出しPOPに残す**（債務・結晶資産と同じ扱い）。植民地（Colony）はPOPでなく台帳を持てず、
+                        //   入植先は同じ国の中＝発行国は変わらない＝国の保有の和は不変（送出元は農民・労働者＝買い手でなく、保有は転落で運ばれた分だけ）。
                         p.Size -= f; p.Savings -= sv;
                         moved += f; carried += sv; litSum += p.Literacy * f;
                     }

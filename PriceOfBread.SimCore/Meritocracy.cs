@@ -653,6 +653,7 @@ public static class Meritocracy
         double moveSavings = fromPop.Savings * (flow / fromPop.Size);
         double moveDebt = fromPop.Debt * (flow / fromPop.Size);   // 個人債務も按分して運ぶ（2026-08-02・既定0で 0×比=0.0 の恒等）
         double moveIw = fromPop.IlliquidWealth * (flow / fromPop.Size);   // 結晶資産も按分して運ぶ（退蔵結晶化2026-08-08・既定0で恒等）
+        double moveBond = fromPop.BondHoldings * (flow / fromPop.Size);   // ★国債の保有台帳（2026-09-21）も貯蓄と同じ1人あたり按分で運ぶ（転落・昇格は国内＝発行国は同じ）
         // 人1：識字の選抜運搬（昇格は from.Literacy 比例＝識字の高い者が抜ける）。既定 PromotionLiteracySelection=0.5（#17有効化）で選抜あり。0なら移動者の識字＝src平均（旧恒等）。
         // >0 で選抜強度に応じ移動コホートの識字を src平均より高く取り、質量保存で残留 src の識字を引き下げる（昇格ポンプの自己補充＝二重計上を解消）。
         double srcLit = fromPop.Literacy;
@@ -687,8 +688,8 @@ public static class Meritocracy
             if (c.MigrationCarriesHumanCapital > 0)
                 toPop.Literacy = Math.Clamp((toPop.Literacy * toPop.Size + moveLit * flow) / newSize, 0, 1);
         }
-        fromPop.Size -= flow; fromPop.Savings -= moveSavings; fromPop.Debt -= moveDebt; fromPop.IlliquidWealth -= moveIw;
-        toPop.Size += flow; toPop.Savings += moveSavings; toPop.Debt += moveDebt; toPop.IlliquidWealth += moveIw;
+        fromPop.Size -= flow; fromPop.Savings -= moveSavings; fromPop.Debt -= moveDebt; fromPop.IlliquidWealth -= moveIw; fromPop.BondHoldings -= moveBond;
+        toPop.Size += flow; toPop.Savings += moveSavings; toPop.Debt += moveDebt; toPop.IlliquidWealth += moveIw; toPop.BondHoldings += moveBond;
     }
 
     // 政体の近代性：君主の身分制＝低、自由（立憲君主・共和）・独裁（能力主義的動員）＝開かれた社会＝高

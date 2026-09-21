@@ -157,9 +157,10 @@ public static class Territory
         double moveSavings = perCapita * moveSize;
         double moveDebt = sp.Size > 1e-9 ? sp.Debt / sp.Size * moveSize : 0;   // 個人債務も按分して運ぶ（2026-08-02・既定0で恒等）
         double moveIw = sp.Size > 1e-9 ? sp.IlliquidWealth / sp.Size * moveSize : 0;   // 結晶資産も按分（退蔵結晶化2026-08-08・既定0で恒等）
+        double moveBond = sp.Size > 1e-9 ? sp.BondHoldings / sp.Size * moveSize : 0;   // ★国債の保有台帳（2026-09-21）も按分（州間移動・入植は同じ国の中＝発行国は同じ）
 
 
-        sp.Size -= moveSize; sp.Savings -= moveSavings; sp.Debt -= moveDebt; sp.IlliquidWealth -= moveIw;
+        sp.Size -= moveSize; sp.Savings -= moveSavings; sp.Debt -= moveDebt; sp.IlliquidWealth -= moveIw; sp.BondHoldings -= moveBond;
         // 入植者は人口構成（民族・男女・子供・識字）を携えて移動先へ混ざる＝他の全移動サイト（PopDecision/Meritocracy/Military/越境移民）と同型。
         // これが欠けると入植先のSizeだけ増えてCoreEthnicShare等が据え置き＝EthnicUnity(加重平均)・男女比の保存が静かに破れる（倍率排除⑧の運搬漏れ修正）。
         double newSize = dp.Size + moveSize;
@@ -175,7 +176,7 @@ public static class Territory
             if (c.MigrationCarriesHumanCapital > 0)
                 dp.Militancy = Military.BlendCarry(dp.Militancy, dp.Size, sp.Militancy, moveSize, newSize, clamp: true);   // ★運搬1本化（段1・恒等）
         }
-        dp.Size += moveSize; dp.Savings += moveSavings; dp.Debt += moveDebt; dp.IlliquidWealth += moveIw;
+        dp.Size += moveSize; dp.Savings += moveSavings; dp.Debt += moveDebt; dp.IlliquidWealth += moveIw; dp.BondHoldings += moveBond;
 
     }
 }

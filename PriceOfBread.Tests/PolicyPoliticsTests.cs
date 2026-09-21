@@ -25,6 +25,7 @@ public class PolicyPoliticsTests
     public void 法整備のゲートはNullAgentでは不動で保存も保つ()   // 後方互換
     {
         var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
+        foreach (var rg in sim.World.Regions) foreach (var pp in rg.Pops) pp.BondHoldings = 0;   // ★2026-09-21：国債を手で消すなら持ち手の記録（保有台帳）も消す＝Σ保有＝国内元本の不変条件
         sim.World.GovDebt = 0;   // P5：仏は重債務開始＝デフォルト→闘争度→譲歩で法が動く（それ自体が仏革命の創発＝設計どおり）。本テストは不動性の機構検証なので中立財政で隔離
         var ex = Record.Exception(() => sim.Run(200));
         Assert.Null(ex);

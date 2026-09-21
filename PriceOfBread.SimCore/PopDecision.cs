@@ -71,6 +71,7 @@ public static class PopDecision
         double moveSavings = perCapitaSavings * amount;
         double moveDebt = src.Debt / src.Size * amount;   // 個人債務も按分して運ぶ（2026-08-02・既定0で恒等）
         double moveIw = src.IlliquidWealth / src.Size * amount;   // 結晶資産も按分（退蔵結晶化2026-08-08・既定0で恒等）
+        double moveBond = src.BondHoldings / src.Size * amount;   // ★国債の保有台帳（2026-09-21）も貯蓄と同じ按分（州内の移動＝発行国は同じ）
 
         double newSize = dst.Size + amount;
         if (newSize > Eps)
@@ -90,9 +91,9 @@ public static class PopDecision
         }
         src.Size -= amount;
         src.Savings -= moveSavings;
-        src.Debt -= moveDebt; src.IlliquidWealth -= moveIw;   // ⚠既存バグ修正2026-08-08：moveDebt が計算されるだけで**適用行が無かった**（按分6箇所ルール違反＝移動者の債務が送り出し側に残る）。IWと併せて適用
+        src.Debt -= moveDebt; src.IlliquidWealth -= moveIw; src.BondHoldings -= moveBond;   // ⚠既存バグ修正2026-08-08：moveDebt が計算されるだけで**適用行が無かった**（按分6箇所ルール違反＝移動者の債務が送り出し側に残る）。IWと併せて適用
         dst.Size += amount;
         dst.Savings += moveSavings;
-        dst.Debt += moveDebt; dst.IlliquidWealth += moveIw;
+        dst.Debt += moveDebt; dst.IlliquidWealth += moveIw; dst.BondHoldings += moveBond;
     }
 }

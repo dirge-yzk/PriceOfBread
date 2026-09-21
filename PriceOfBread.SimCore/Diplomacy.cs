@@ -2891,6 +2891,11 @@ public sealed class Diplomacy
         foreach (var m in cede.Markets) { m.PrevStock = m.Stock; m.LastProduced = m.LastSold = m.LastImport = m.LastExport = m.LastShortage = 0; m.PopBought = null; }
         cede.ColonialResources = null;   // 敗者の植民地財を産まないよう国レベル情報をリセット（World複製フィールドは次回MonthSettleが上書き）
         foreach (var p in cede.Pops) p.Militancy = Math.Min(1, p.Militancy + c.CededColonyMilitancy);   // 被征服の不満（CoreEthnicShareはそのまま持ち込み＝EthnicUnity希釈が自動創発）
+        // ★国債の保有台帳（2026-09-21）：割譲州のPOPが持つ敗者の国債は**敗者の対外債へ振替**＝勝者の対外債権になる（金は動かない）。
+        //   ★史実：フランクフルト条約1871＝ドイツはフランス国債を一切継承せず、アルザス＝ロレーヌの住民が持つフランス国債はフランスへの請求権のまま残った。
+        //   ⚠勝者の按分継承（ツューリヒ1859・ヴェルサイユ254条）は国家間の債務分担の取り決めで、持ち手の請求権の債務者は変わらない。
+        //   帳消しにする形は、失地で敗者の債務が軽くなり持ち手だけが損をする（負けるほど財政が楽になる）。
+        foreach (var p in cede.Pops) Fiscal.ExportBondHoldings(p, p.BondHoldings, loser, ww);
         // 保存調整（賠償/越境移民と同型・両国相殺で世界保存）。
         loser.CumulativeTradeFlow -= S; loser.PopulationDelta -= P;
         ww.CumulativeTradeFlow += S; ww.PopulationDelta += P;

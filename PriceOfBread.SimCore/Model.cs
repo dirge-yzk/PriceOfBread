@@ -136,6 +136,14 @@ public sealed class Pop
     /// ★既定0＝誰も読み書きしない厳密恒等（NationalConsciousness のPOP属性化と同型）。
     /// ⚠**POPを按分する6箇所では無条件に運ぶこと**（主フラグでゲートしない＝0×比=0.0 で自動的に恒等）。</summary>
     public double Debt;
+    /// <summary>★国債の保有台帳（2026-09-21裁定＝P10の唯一の例外・作者が明示許可）＝このPOPが持つ**自国の国内債**の額面。
+    /// ⚠**貨幣ではない**——金は Fiscal の起債・利払い・償還の経路どおりに動き、これは「誰がどれだけ持つか」の記録だけ（<see cref="Debt"/> と同型）。
+    /// ★入口＝起債の購入（払った額だけ増える）。出口＝償還（保有比例で減る）／デフォルト・革命的否認（0へ＝損は持ち手）／
+    ///   発行国の外へ出る（割譲・分離建国・越境＝発行国の対外債へ振替＝<see cref="Fiscal.ExportBondHoldings"/>）。
+    /// ★利払いと償還の受け取りは**この保有に比例**（旧＝貯蓄比で買い・頭数で償還＝往復ごとに富裕な資本家から貧しい資本家へ移っていた）。
+    /// ★不変条件＝国の全POPの和＝国内元本残高 GovDebt−ForeignDebt（<see cref="BondLedger"/>・相対1e-8）。
+    /// ⚠**POPを按分する全経路で Savings と同じ規則で運ぶこと**（主フラグでゲートしない＝0×比=0.0 で自動的に恒等）。</summary>
+    public double BondHoldings;
     public double Satisfaction = 1.0;
     public double Literacy;          // 識字（連続・0..1・§A-1／§C）。教育で伸び、革新能力に効く
     public double Consciousness;     // 政治意識（0..1・§9-E）。識字×世俗の水路×都市化で伸びる

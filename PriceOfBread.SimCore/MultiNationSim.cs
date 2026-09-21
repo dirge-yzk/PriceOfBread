@@ -424,6 +424,10 @@ public sealed class MultiNationSim
         };
         // 新国家は常に効用AI（プレイヤー国から独立してもUI操作者はいない＝NullAgentのゾンビ国家を作らない）
         var sim = new Simulation(scenario, new UtilityAgent()) { TelemetryEnabled = parent.TelemetryEnabled };
+        // ★国債の保有台帳（2026-09-21）：出ていく州のPOPが持つ親の国債は**親の対外債へ振替**＝新国家の対外債権になる
+        //   （フランクフルト条約1871と同じ扱い＝債務者は親のまま）。新国家の構築（上）は台帳の立っているPOPに起票しない＝ここで0へ落ちる。
+        //   ⚠構築の後に置く理由＝持ち手の国（sim.World）が要る。この間に不変条件の検査は走らない（検査は月次の Step の末尾だけ）。
+        foreach (var rr in regs) foreach (var p in rr.Pops) Fiscal.ExportBondHoldings(p, p.BondHoldings, pw, sim.World);
 
         // --- 5) Scenario に載らない現在値の継承（技術・法・行政の到達＝独立は文明を巻き戻さない。正統性は既定＝新政権の蜜月）---
         var nw = sim.World;
@@ -1005,6 +1009,10 @@ public sealed class MultiNationSim
             foreach (var rr in rw.Regions) { S += rr.SumSavings(); P += rr.SumPopulation(); }
             double T = System.Math.Max(0, rw.Treasury);
             var moving = new System.Collections.Generic.List<Region>(rw.Regions);
+            // ★国債の保有台帳（2026-09-21）：反乱国は国家ごと消え、その国債（GovDebt）も既存どおり誰にも継承されない＝国が払うのを止めた割合（全額）だけ
+            //   保有を消す＝損は持ち手（金は動かない）。★史実：合衆国憲法修正14条4節（1868）は南部連合の債務の継承・支払いを明文で禁じた。
+            //   rw.GovDebt も同額下げる＝消える直前まで反乱国側の不変条件も厳密。
+            foreach (var rr in moving) foreach (var pp in rr.Pops) { rw.GovDebt -= pp.BondHoldings; pp.BondHoldings = 0; }
             foreach (var rr in moving)
             {
                 rw.Regions.Remove(rr);
@@ -1677,6 +1685,9 @@ public sealed class MultiNationSim
             // 個人債務も按分して運ぶ（2026-08-02・既定0で 0×比=0.0 の恒等）。⚠債務は運賃で目減りしない＝債務は移民に付いて回る
             double debtMove = sp.Size > 1e-9 ? sp.Debt * (flow / sp.Size) : 0;
             double iwMove = sp.Size > 1e-9 ? sp.IlliquidWealth * (flow / sp.Size) : 0;   // 結晶資産も按分（退蔵結晶化2026-08-08・既定0で恒等）
+            // ★国債の保有台帳（2026-09-21）：移民の按分ぶんの保有は**発行国（src）の対外債へ振替**＝請求権は src に対するまま、受入国の対外債権になる
+            //   （国境を越えると1本のスカラーでは「どの国の国債か」を持てない＝Fiscal.ExportBondHoldings の注）。運賃は金の話＝保有は目減りしない。
+            if (sp.Size > 1e-9) Fiscal.ExportBondHoldings(sp, sp.BondHoldings * (flow / sp.Size), src, dst);
             sp.Size -= flow; sp.Savings -= savArriving; sp.Debt -= debtMove; sp.IlliquidWealth -= iwMove;
             dp.Size += flow; dp.Savings += savArriving; dp.Debt += debtMove; dp.IlliquidWealth += iwMove;
             moved += flow; money += savArriving;
@@ -1782,6 +1793,7 @@ public sealed class MultiNationSim
             double sav = sp.Savings * (flow / sp.Size);          // ★持参金（大衆移民と同じ＝自分の貯蓄を持って来る）
             double debtMove = sp.Debt * (flow / sp.Size);
             double iwMove = sp.IlliquidWealth * (flow / sp.Size);
+            Fiscal.ExportBondHoldings(sp, sp.BondHoldings * (flow / sp.Size), src, dst);   // ★国債の保有台帳（2026-09-21）：大衆移民と同じ＝発行国の対外債へ振替
             double newSize = dp.Size + flow;
             // ★人的資本を運搬（⚠招聘の要点はまさにこれ＝識字と技能を持って来る）。MoveMigrants（大衆移民）と同じ加重平均。
             dp.Literacy = (dp.Literacy * dp.Size + sp.Literacy * flow) / newSize;

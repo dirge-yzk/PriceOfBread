@@ -37,6 +37,7 @@ public class TaxTests
         var baseline = new Simulation(NationConfig.France().ToScenario(13), new NullAgent());
         var taxed = new Simulation(NationConfig.France().ToScenario(13), new NullAgent());
         baseline.World.GovDebt = taxed.World.GovDebt = 0;   // P5：仏は重債務開始＝利払いが両系の国庫を0まで枯渇させ税収差が埋もれる（課税0 vs 基準0）ため中立財政で税機構を隔離
+        foreach (var w0 in new[] { baseline.World, taxed.World }) foreach (var rg in w0.Regions) foreach (var pp in rg.Pops) pp.BondHoldings = 0;   // ★2026-09-21：国債を手で消すなら持ち手の記録（保有台帳）も消す＝Σ保有＝国内元本の不変条件
         taxed.World.PoliticalLockEnabled = false;   // 税の歳入・保存機構を検証＝政治ロック（大衆の人頭税反対等）とは直交なので隔離
         // ★主張の書き直し（作者裁定2026-09-20＝率の廃止）：腕は率でなく**対象の広さ**（段2＝奢侈品＋役務）。率はエンジンの標準率1本。
         taxed.World.SetStateMonopolyTier(2);
@@ -54,6 +55,7 @@ public class TaxTests
         var baseline = new Simulation(NationConfig.France().ToScenario(17), new NullAgent());
         var taxed = new Simulation(NationConfig.France().ToScenario(17), new NullAgent());
         baseline.World.GovDebt = taxed.World.GovDebt = 0;   // P5：仏は重債務開始＝切り下げが両系の貯蓄を毎月削り逆進性の対比が埋もれるため中立財政で隔離
+        foreach (var w0 in new[] { baseline.World, taxed.World }) foreach (var rg in w0.Regions) foreach (var pp in rg.Pops) pp.BondHoldings = 0;   // ★2026-09-21：国債を手で消すなら持ち手の記録（保有台帳）も消す＝Σ保有＝国内元本の不変条件
         baseline.World.Policy.PollTaxTarget = 0;     // 既定で人頭税0.5が入る（近世財政）ため、清浄な対比（無税 vs 最大）にして逆進性の直接効果を測る
         taxed.World.Policy.PollTaxTarget = 1.0;
         // ★2026-09-20 段の点火：人頭税は段の法＝目標1.0は最上段（錨 Government.PollTaxTop＝0.5＝開始値そのもの）へ落ちる＝課税側は開始値に留まる。

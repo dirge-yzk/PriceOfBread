@@ -234,6 +234,7 @@ public sealed class Simulation
         if (scenario.CreditEnabled)
             World.Bank = new Bank { Gold = World.TotalMoney, Loans = 0, Confidence = 1.0 };
 
+        Fiscal.SeedBondHoldings(World);   // ★国債の保有台帳（2026-09-21）：初期国債（仏）の持ち主を購入と同じ規則で起票（金は動かない・国内債0の国は何もしない）
         _invariants = [];
         RebaselineInvariants();
     }
@@ -247,6 +248,7 @@ public sealed class Simulation
         _invariants.Add(new PopulationConservation(World));
         _invariants.Add(new NonNegativeBounds());
         _invariants.Add(new GoodsBalance());
+        _invariants.Add(new BondLedger());   // ★国債の保有台帳（2026-09-21）：Σ保有＝国内元本（状態なし）
     }
 
     private static List<Region> BuildSelfSufficientFarm()
