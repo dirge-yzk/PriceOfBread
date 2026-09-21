@@ -2,7 +2,7 @@
 
 /// <summary>
 /// 兵士POP の力学（§6.1 軍制・Part 2）。軍隊規模＝兵士POP数。軍事費が兵士を徴募し給与を払う
-/// （給与＝国庫→兵士で基礎貨幣保存）。兵士は生産せず消費する＝充足(Satisfaction)が戦力ゲージの乗数＝
+/// （給与＝国庫→兵士で基礎貨幣保存）。兵士は生産せず消費する＝補給の充足（食料＋日用品＝<see cref="PowerShares.SoldierWelfare"/>）が戦力ゲージの乗数＝
 /// 給与や補給が切れた軍は大幅に弱くなる。平時は軍事費が兵数を決め、戦時は徴兵で大衆を兵士化
 /// （上限あり・行き過ぎは労働力を奪い経済に打撃）。戦死は兵士POPのみ（<see cref="Diplomacy"/>）。
 /// 治安維持力（BaseCoercion＝警察・内政の鎮圧）とは別レバー。兵士POP の無い地域（単一国テスト等）は対象外＝従来挙動。
@@ -197,11 +197,14 @@ public static class Military
             else DischargeToPool(soldier, poolA, poolB, -delta, c);          // 離職/復員（兵士→プール）
         }
 
-        // 即応度（戦力ゲージの乗数）＝兵士の充足(Satisfaction) × 装備充足(MilitaryEquipFill)。
-        // 給与・補給が切れる（兵が不満）か、武器を買えない（材不足）と下がる＝弱い軍。材で詰まった戦争は負ける（要望）。
-        double sSize = 0, sSat = 0;
-        foreach (var p in w.AllPops()) if (p.IsSoldier) { sSize += p.Size; sSat += p.Satisfaction * p.Size; }
-        double moraleFill = sSize > 1e-9 ? Math.Clamp(sSat / sSize, 0, 1) : 1.0;
+        // 即応度（戦力ゲージの乗数）＝兵卒の補給の充足 × 装備充足(MilitaryEquipFill)。
+        // 給与・補給が切れる（兵が食えない・買えない）か、武器を買えない（材不足）と下がる＝弱い軍。材で詰まった戦争は負ける（要望）。
+        // ★階層3分割（2026-09-22 既定化）：旧＝兵士POPの満足度の平均。分割後の満足度には食料が載らない＝「食えない軍」が即応度から消える
+        //   （1812年の退却・1917年の前線＝飢えた軍は戦えない）。⇒ 兵卒の漏れと**同じ1本**（PowerShares.SoldierWelfare＝食料＋日用品の台帳）を読む
+        //   ＝旧は同じ量（兵士POPの人口加重平均満足度）を2箇所で別々に集計していた重複も畳む。
+        double sSize = 0;
+        foreach (var p in w.AllPops()) if (p.IsSoldier) sSize += p.Size;
+        double moraleFill = PowerShares.SoldierWelfare(w);
         // 課題6（駐屯州調達）：即応の装備充足＝兵士加重の全国平均へ（g=0では旧＝首都州のみ＝厳密同値）。
         double equipFillEff = w.Region.MilitaryEquipFill;
         if (c.GarrisonProcurement > 0 && sSize > 1e-9)

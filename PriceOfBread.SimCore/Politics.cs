@@ -289,7 +289,7 @@ public static class Politics
             //   ⚠起点は FamineDeathFillFloor(0.8) の流用ではない（2026-09-11・段0の計器が「0.8 は pop 単位では慢性の信号」と棄却）。
             //   飽和（駆動=1）は 充足 = FamineDriveOnset − 1/FamineDriveGain＝点火値 10 で 0.63（≈p05）。
             //   ★2四半期で門を越える設計：σ=0.30・駆動1.0 なら 0→0.30→0.51 で RegionalRevoltThreshold=0.50 を**2四半期目に**越え、1四半期では越えない。
-            //   FamineDriveGain=0（既定＝休眠）では p.FoodMet/p.FoodNeed を1度も読まない＝この項ごと消える。
+            //   ★2026-09-22 点火（階層3分割と対＝食料は満足度の台帳に載らないので、飢えが政治へ出る経路はこの項の1本だけ＝思想⑨）。
             double famineMil = 0;
             if (c.FamineDriveGain > 0 && p.FoodNeed > 1e-9)
             {
@@ -385,7 +385,7 @@ public static class Politics
             // 3層分割（5-4）＝各popの重みが文盲(1−ℓ)/教育(min(意識,ℓ))/中間(残り)へ厳密に1へ分割：文盲→天命（素朴王政観）・
             // 教育→綱領政治(politicalGap)・中間→危険な中間（下の闘争度項）＝同じ根（満足）が式でなく人口で分割され二重計上が構造的に不可能（規約3を構造で満たす）。
             var (uneduShare, uneduSatAvg) = PoliticalQuantities.MandateBase(w);
-            double dmSat = c.DynMandateSatWeight * ((uneduSatAvg >= 0 ? uneduSatAvg : w.MeanSatisfactionPol) - 0.5) * 2.0;
+            double dmSat = c.DynMandateSatWeight * ((uneduSatAvg >= 0 ? uneduSatAvg : w.MeanSatisfactionPol) - c.DynMandateSatPivot) / (1.0 - c.DynMandateSatPivot);   // 中立点は分位の写像で導出（Coefficients.DynMandateSatPivot）
             double dmFood = c.DynMandateFoodWeight * Math.Min(0, w.FoodFill - c.DynMandateFoodAnchor);
             double dmWar = -c.DynMandateWarWeight * (w.SelfPower?.WarExhaustion ?? 0);
             double dmGraft = -c.DynMandateGraftWeight * w.EffectiveCorruption;
@@ -1991,7 +1991,7 @@ public static class Politics
         return size > 1e-9 ? core / size : 1.0;   // pop なし＝1.0（少数派度0＝加算なし＝中立）
     }
 
-    // 兵士の政治力＝規模×(0.2+不満)×係数（頭数の単位・兵数に線形で上限なし＝上限は読み手 CoupSupport の取り分が与える）。不満＝兵士POPの闘争度（生活・給与は満足度経由で入る）。
+    // 兵士の政治力＝規模×(0.2+不満)×係数（頭数の単位・兵数に線形で上限なし＝上限は読み手 CoupSupport の取り分が与える）。不満＝兵士POPの闘争度（生活・給与は満足度経由・飢えは飢餓の駆動項経由で入る）。
     // 厭戦は闘争度の目標項（WarWearinessMilitancy）を通って (0.2+不満) に1回だけ入る（明示の厭戦乗数は同じ厭戦の2回目＝P9 で 2026-09-20 に削除）。
     // 読み手は Transition の軍政加算（CoupSupport）だけ。
     private static double SoldierForce(World w, Coefficients c)

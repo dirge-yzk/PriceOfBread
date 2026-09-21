@@ -203,7 +203,7 @@ public sealed class Pop
     public double MilVoice;    // 政治的疎外（意識×発言権の無さ×理想と体制の乖離）
     public double MilWar;      // 厭戦（戦争の長期化）
     public double MilNation;   // 民族的地位（★段2で一本鎖＝少数派 (1−中核度) のみ）
-    public double MilFamine;   // 飢餓の駆動項の寄与（診断・UI表示用＝力学は読まない）。★段2＝FamineDriveGain=0（休眠）では常時0
+    public double MilFamine;   // 飢餓の駆動項の寄与（診断・UI表示用＝力学は読まない）。★2026-09-22 点火（FamineDriveGain=10・階層3分割と対）
     // ★段2（2026-09-09）で MilJobs/MilCrowd/MilGap/MilMid/MilWave を削除＝闘争度の項ごと消えた（11項→5項・設計メモ §7-3）。
     // MilForeign（外圧→闘争度の直加算の診断）は機構撤去（C裁定2026-07-09＝ReformPressureBoost経路へ一本化）後の恒久0だったため削除（監査2026-07-12 死24）
 
@@ -211,13 +211,30 @@ public sealed class Pop
     public double RemainingBudget;   // その月の残予算（必需→日用の優先配分）
     public double GoodDemand;         // 現在処理中の財の希望量
     public double GoodNeed;           // 現在処理中の財の必要量
-    // ⚠この2本は**満足度の台帳**（月次アキュムレータ）。Coefficients.NeedTierSplit を点けると食料（主食＋動物性タンパク）は
-    //   この台帳から抜け、嗜好品は「買えた分」だけが分子にも分母にも載る＝「全財」ではなくなる（作者裁定2026-09-20）。
-    //   飢えの台帳は下の FoodMet/FoodNeed の側（旗に依らず同じ量を測り続ける）。
-    public double NeedMet;            // 満たせた必要量の合計（旗0＝全財）
-    public double NeedTotal;          // 必要量の合計（旗0＝全財）
+    // ⚠この2本は**満足度の台帳**（月次アキュムレータ）＝「全財」ではない（作者裁定2026-09-20・2026-09-22 既定化）：
+    //   食料（主食＋FoodIncludesAnimalProtein>0 のとき動物性タンパク）は載らず、日用品は必要量が分母に、嗜好品は「買えた分」だけが分子にも分母にも載る。
+    //   飢えの台帳は下の FoodMet/FoodNeed の側。
+    public double NeedMet;            // 満たせた必要量の合計（日用品＋買えた嗜好品）
+    public double NeedTotal;          // 必要量の合計（日用品の必要量＋買えた嗜好品）
     public double FoodMet;            // 満たせた**主食**の量（自給＋市場購入）。FoodFill＝扶養力のマルサス項に使う
     public double FoodNeed;           // 必要な**主食**の量（主食のみ＝飢饉判定の分母）
+    /// <summary>★補給の充足∈[0,1]＝食料の台帳＋満足度の台帳＝(FoodMet+NeedMet)/(FoodNeed+NeedTotal)（導出量＝状態を持たない）。
+    /// 階層3分割（作者裁定2026-09-20・2026-09-22 既定化）の後も「食えて、買えているか」の全体＝分割前の満足度と同じ量
+    /// （主食の重み1.0は旧台帳の重みそのもの＝新しい数はゼロ）。政治の読み手（不満・闘争度）は読まない＝物理・経済の行動・評価の読み手だけ：
+    /// 兵卒の実質（PowerShares.SoldierWelfare→即応度・兵卒の漏れ）・国力の生活水準項（NationalScore.MeanSupplyFill）・
+    /// 家計の困窮（LaborSupply＝女性の就労と児童労働）・阿片の困窮ゲート（EconomyStep）。
+    /// ⚠月次の累積器から導く＝EconomyStep.Run の月頭のゼロ化の後（同じ月の消費の途中）に読んではならない（Run の中の読み手は月頭に撮った前月の値＝Scratch.LastSupply）。
+    /// 台帳が空（決算前）は 1.0＝満足度の初期値と同じ中立。</summary>
+    public double SupplyFill
+    {
+        get
+        {
+            double need = FoodNeed + NeedTotal;
+            if (!(need > 0)) return 1.0;
+            double v = (FoodMet + NeedMet) / need;
+            return !(v >= 0) ? 0 : v > 1 ? 1 : v;   // 否定形＝NaN は 0 側（旧 SoldierWelfare の NaN の倒し先と同じ）
+        }
+    }
     public double Paid;               // その月に支払った総額
     public double Earned;             // その月に得た総所得
     public double LandRent;           // その月に受け取った土地の地代（RGOの所有者取り分＝封建貢租）。土地税の課税ベース

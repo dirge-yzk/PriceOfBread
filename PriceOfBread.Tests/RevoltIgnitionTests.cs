@@ -112,7 +112,7 @@ public class RevoltIgnitionTests
         var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
         sim.Run(20);
         var w = sim.World; var c = w.Coef;
-        c.FamineDriveGain = 10;   // ★点火値（既定は0＝休眠）。段0の計器から導出（2026-09-11・Coefficients.FamineDriveGain のコメント）＝§7-3 の仮置き 3.3 は棄却
+        Assert.Equal(10.0, c.FamineDriveGain);   // ★既定＝点火値（2026-09-22・階層3分割と対）。段0の計器から導出（2026-09-11・Coefficients.FamineDriveGain のコメント）＝§7-3 の仮置き 3.3 は棄却（この番人自身が既定値の宣言）
         Assert.Equal(0.73, c.FamineDriveOnset);   // 起点の既定＝5大国の pop 分位 p10 の中央値（この番人自身が既定値の宣言）
         // 盤面を「飢え以外は平穏」に置く：参照点＝現在の生活水準（失望0）・中核民族100%（民族項0）・闘争度0。
         // 食料は飽和帯（充足 0.40 < 0.73−1/10 = 0.63）＝駆動1.0＝targetは他項に依らずクランプで 1.0。
@@ -147,62 +147,40 @@ public class RevoltIgnitionTests
     }
 
     [Fact]
-    public void 段2_飢餓の駆動項は休眠では食料を1度も読まない()
+    public void 階層3分割_飢えは闘争度へ飢餓の項1本だけで入る()
     {
-        // 休眠（既定0）の側の番人＝盤面をどれだけ飢えさせても闘争度に飢餓が入らない（点火A/Bの対照が空洞にならない）。
-        var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
-        sim.Run(20);
-        var w = sim.World; var c = w.Coef;
-        Assert.Equal(0.0, c.FamineDriveGain);   // 既定＝休眠（この番人自身が既定値の宣言）
-        foreach (var p in w.AllPops())
-        {
-            p.Militancy = 0; p.LivingRef = p.Satisfaction; p.CoreEthnicShare = 1.0;
-            p.FoodNeed = 1.0; p.FoodMet = 0.0;   // 全滅級の欠乏
-        }
-        Pop? noble = null;
-        foreach (var p in w.AllPops()) if (p.Closed) { noble = p; break; }
-        Assert.NotNull(noble);
-        Politics.Step(w, c);
-        Assert.True(noble!.Militancy < c.MilitancySpeed * 0.5,
-                    $"休眠のはずの飢餓項が闘争度を動かしている（{noble.Militancy:F3}）");
-    }
-
-    [Fact]
-    public void 器_階層3分割と飢餓の駆動は対で点けて初めて裁定になる()
-    {
-        // ★作者裁定2026-09-20「食料不足は闘争度、日用品は不満度、嗜好品は満足度」の**接続**の番人。
-        //   NeedTierSplit は満足度の台帳から食料を抜くだけ＝それ単独では飢えの出口が無い（＝腕Aは意図的に不完全なアブレーション）。
-        //   飢えを怒りへ運ぶのは FamineDriveGain で、これは**食料の台帳（FoodMet/FoodNeed）だけ**を読む
-        //   ＝分割は駆動の算術に1ビットも触らない（2つの台帳が独立であることの宣言）。
-        static (double famine, double militancy) Probe(double split, double gain)
+        // ★番人(a)の政治側＋(e)（作者裁定2026-09-20「食料不足は闘争度、日用品は不満度、嗜好品は満足度」・2026-09-22 既定化）。
+        //   旧2本（「飢餓の駆動項は休眠では食料を1度も読まない」「階層3分割と飢餓の駆動は対で点けて初めて裁定になる」）の書き換え＝
+        //   裁定で分割も駆動も既定になった＝主張は「既定の世界で、食料の不足は闘争度を上げる／その入口は飢餓の項だけ
+        //   （生活の失望＝満足度を読む側は食料で1ビットも動かない）」。
+        //   満足度の台帳に食料が載らないこと（経済側）は EconomyTests の番人が見る＝2本で「同じ欠乏が2つの量へ入らない」が閉じる。
+        static (double living, double famine, double militancy) Probe(double foodMet)
         {
             var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
             sim.Run(20);
             var w = sim.World; var c = w.Coef;
-            c.NeedTierSplit = split; c.FamineDriveGain = gain;
             foreach (var p in w.AllPops())
             {
                 p.Militancy = 0; p.LivingRef = p.Satisfaction; p.CoreEthnicShare = 1.0;
-                p.FoodNeed = 1.0; p.FoodMet = 0.40;   // 飽和帯（0.40 < 0.73−1/10）
+                p.FoodNeed = 1.0; p.FoodMet = foodMet;
             }
+            // 物差しは閉鎖pop（貴族）＝F1の一揆の緩和も戦死も非閉鎖popだけを書き換える＝同一ティックの下流から隔離（段2の番人と同じ計器）。
             Pop? noble = null;
             foreach (var p in w.AllPops()) if (p.Closed) { noble = p; break; }
             Assert.NotNull(noble);
             Politics.Step(w, c);
-            return (noble!.MilFamine, noble.Militancy);
+            return (noble!.MilLiving, noble.MilFamine, noble.Militancy);
         }
-        // 分割だけ＝飢えの出口が無い（食料は満足度からも抜けている＝この腕では飢えが政治へ1ビットも出ない）。
-        var splitOnly = Probe(1.0, 0.0);
-        Assert.Equal(0.0, splitOnly.famine);
-        Assert.True(splitOnly.militancy < new Coefficients().MilitancySpeed * 0.5,
-                    $"駆動0なのに飢餓が闘争度を動かしている（{splitOnly.militancy:F3}）");
-        // 対で点ける＝裁定そのもの。駆動は飽和（1.0）＝1四半期でσぶんだけ上がる。
-        var both = Probe(1.0, 10.0);
-        Assert.Equal(1.0, both.famine);
-        // 分割は食料の台帳に触らない＝駆動の値は分割の有無で厳密に同じ（分子と分母の非対称を作らない）。
-        var gainOnly = Probe(0.0, 10.0);
-        Assert.Equal(gainOnly.famine, both.famine);
-        Assert.Equal(gainOnly.militancy, both.militancy);
+        Assert.True(new Coefficients().FamineDriveGain > 0, "飢餓の駆動が休眠に戻っている（裁定＝分割と対で既定の点火）");
+        var fed = Probe(1.0);         // 起点 0.73 より上＝駆動0
+        var starving = Probe(0.40);   // 飽和帯（0.40 < 0.73−1/10）＝駆動1
+        Assert.Equal(0.0, fed.famine);
+        Assert.Equal(1.0, starving.famine);
+        // (a) 食料の不足は闘争度を上げる。
+        Assert.True(starving.militancy > fed.militancy + 1e-9,
+                    $"食料の不足が闘争度を上げない（飽食 {fed.militancy:F4} → 飢餓 {starving.militancy:F4}）");
+        // (e) 入口は飢餓の項だけ：生活の失望（満足度を読む項）は食料の有無で1ビットも動かない。
+        Assert.Equal(fed.living, starving.living);
     }
 
     [Fact]
@@ -989,12 +967,19 @@ public class RevoltIgnitionTests
         Assert.Equal(f.Size * f.AvgMilitancy * f.Cohesion * 1.0 * c.FactionRevoltScale * f.EquipFill, Politics.FactionStrength(w, c, f), 12);
 
         // 通しで1年走らせても貨幣保存の番人（Simulation の月次 CheckInvariants）が黙っている＋買い続けた武器庫が育つ（別の世界＝直接 Run の帳簿と混ぜない）
-        var (sim2, f2, _) = 武装する運動(enabled: 1);
+        var (sim2, f2, payer2) = 武装する運動(enabled: 1);
+        // ★「買い続けた」の前提を明示で保つ（2026-09-22）：参加の2条件＝闘争度＞MilitancyThreshold と運動の鍵（束・主軸）を毎四半期そのままにする。
+        //   旧は盤面任せだった＝闘争度は σ=0.3/四半期で減衰して2四半期目に参加の門0.5を割り（旧でも新でも2四半期目以降は1回も買っていない）、
+        //   階層3分割の後の世界ではさらに参加者のイデオロギーの argmax が1四半期目に隣の主軸へ移って f2 の鍵から外れた
+        //   （買い物は同じ州に自然に立った同じ束の運動へ付き、その武器庫は1年で 40→193 と育っていた＝機構は動いていて、外れていたのは器の同一性だけ）。
+        var shares0 = (double[])payer2.IdeologyShares.Clone();
+        void HoldMembership() { payer2.Militancy = 0.9; System.Array.Copy(shares0, payer2.IdeologyShares, shares0.Length); }
+        HoldMembership();
         sim2.Run(1);
         Assert.NotNull(f2.ArmsStock);
         double stock1 = f2.ArmsStock![rifle];
         Assert.True(stock1 > 0);
-        sim2.Run(4);
+        for (int q = 0; q < 4; q++) { HoldMembership(); sim2.Run(1); }
         Assert.True(f2.ArmsStock[rifle] > stock1, $"1年買い続けても武器庫が増えない（{stock1:F3} → {f2.ArmsStock[rifle]:F3}）");
         Assert.True(sim2.World.RebelArmsSpent > 0);
     }

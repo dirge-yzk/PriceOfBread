@@ -249,19 +249,20 @@ public class PowerSharesTests
         w.FiscalFundingRatio = 1.0; w.MilitaryReadiness = 1.0;
         w.ReformistPower = 0; w.RadicalPower = 0;
         w.ArmyAllegiance = 1.0; w.Legitimacy = 1.0;
-        foreach (var p in w.AllPops()) if (p.IsSoldier) p.Satisfaction = 1.0;
+        // ★入力は兵士POPの**補給の台帳**（食料＋日用品・2026-09-22 階層3分割の既定化で満足度から付け替え＝PowerShares.SoldierWelfare）。
+        SetRanksSupply(w, food: 1.0, daily: 1.0);
 
-        // ① 物質（給与・満足）を落とす＝**兵卒の漏れ**だけが増え、将校の漏れは動かない
+        // ① 物質（給与・補給）を落とす＝**兵卒の漏れ**だけが増え、将校の漏れは動かない
         double ranks0 = PowerShares.RanksLeak(w), officers0 = PowerShares.OfficerLeak(w);
-        foreach (var p in w.AllPops()) if (p.IsSoldier) p.Satisfaction = 0;   // 給与3か月未払・給食の悪化
-        if (PowerShares.SoldierWelfare(w) < 1.0)
-        {
-            Assert.True(PowerShares.RanksLeak(w) > ranks0, "物質的苦情で兵卒の漏れが増えない");
-            Assert.Equal(officers0, PowerShares.OfficerLeak(w), 12);   // 将校は賃金では動かない
-        }
+        SetRanksSupply(w, food: 0.0, daily: 0.0);   // 給与3か月未払・給食の悪化
+        // ★前提は if でなく宣言（2026-09-22 ㉘検証）：旧の `if (SoldierWelfare < 1.0)` は、兵卒の実質が補給の台帳を読まなくなる突然変異
+        //   （満足度へ戻す）で黙って飛ばされ、番人が緑のまま残った。この世界（露・seed2）には兵士POPが居る＝前提は必ず立つ。
+        Assert.True(PowerShares.SoldierWelfare(w) < 1.0, $"前提が崩れた：補給が0なのに兵卒の実質が満額（{PowerShares.SoldierWelfare(w)}）＝兵卒の実質が補給の台帳を読んでいない");
+        Assert.True(PowerShares.RanksLeak(w) > ranks0, "物質的苦情で兵卒の漏れが増えない");
+        Assert.Equal(officers0, PowerShares.OfficerLeak(w), 12);   // 将校は賃金では動かない
 
         // ② 制度（文民統制・身分の剥奪）を動かす＝**将校の漏れ**だけが増え、兵卒の漏れは動かない
-        foreach (var p in w.AllPops()) if (p.IsSoldier) p.Satisfaction = 1.0;   // 実質は満額＝兵卒の物質チャネルを閉じる
+        SetRanksSupply(w, food: 1.0, daily: 1.0);   // 実質は満額＝兵卒の物質チャネルを閉じる
         w.ParliamentControl = 0; w.Bureaucracy = BureaucracyLaw.Spoils;
         w.SerfEmancipation = ReformLevel.None; w.LandTax = 0; w.ProgressiveTax = 0;
         double grievanceA = PowerShares.OfficerGrievance(w);
@@ -325,12 +326,25 @@ public class PowerSharesTests
         // ⚠2026-08-18：**「金＝帰属」は取り下げた**（同一の給与で3週間後に符号が反転＝ライヒスヴェーア1920年3月と4月）。
         //   帰属は 人事系譜 × 主権者の正統性 だけで決まり、給与は**兵卒の物質的苦情**の経路にしか残っていない。
         w.Legitimacy = 1.0;
+        SetRanksSupply(w, food: 1.0, daily: 1.0);
         double ranksFed = PowerShares.RanksLeak(w);
-        foreach (var p in w.AllPops()) if (p.IsSoldier) p.Satisfaction = 0;   // 実質＝パンが無い（1917）
-        if (PowerShares.SoldierWelfare(w) < 1.0)
+        // 実質＝**パンだけが無い**（1917：給与は出て日用品は買えるが、パンが無い）。★階層3分割の後も兵卒の実質はパンを数える
+        //   （満足度の台帳からは食料が抜けた＝満足度を読んでいたら、この行は漏れを1ビットも動かさない）。
+        SetRanksSupply(w, food: 0.0, daily: 1.0);
+        // ★前提は if でなく宣言（2026-09-22 ㉘検証）＝上の注記の「満足度を読んでいたら動かない」を、黙って飛ばさずに赤で落とす。
+        Assert.True(PowerShares.SoldierWelfare(w) < 1.0, $"前提が崩れた：パンが無いのに兵卒の実質が満額（{PowerShares.SoldierWelfare(w)}）＝兵卒の実質がパンを数えていない");
+        Assert.True(PowerShares.RanksLeak(w) > ranksFed, "兵卒の実質（パン）が落ちても兵卒の漏れが増えない");
+        Assert.Equal(bound, PowerShares.ArmyBinding(w), 12);   // ⚠帰属は給与では動かない
+    }
+
+    /// <summary>兵士POPの補給の台帳（食料＝FoodMet/FoodNeed・日用品＝NeedMet/NeedTotal）を充足率で置く（PowerShares.SoldierWelfare の入力）。</summary>
+    private static void SetRanksSupply(World w, double food, double daily)
+    {
+        foreach (var p in w.AllPops())
         {
-            Assert.True(PowerShares.RanksLeak(w) > ranksFed, "兵卒の実質が落ちても兵卒の漏れが増えない");
-            Assert.Equal(bound, PowerShares.ArmyBinding(w), 12);   // ⚠帰属は給与では動かない
+            if (!p.IsSoldier) continue;
+            p.FoodNeed = p.Size; p.FoodMet = p.Size * food;
+            p.NeedTotal = p.Size; p.NeedMet = p.Size * daily;
         }
     }
 
@@ -381,7 +395,7 @@ public class PowerSharesTests
         w2.PublicOrder = double.NaN;
         w2.LandTax = double.NaN;
         w2.ProgressiveTax = double.NaN;
-        foreach (var p in w2.AllPops()) { p.Savings = double.NaN; p.LandRent = double.NaN; p.Satisfaction = double.NaN; }
+        foreach (var p in w2.AllPops()) { p.Savings = double.NaN; p.LandRent = double.NaN; p.Satisfaction = double.NaN; p.FoodMet = double.NaN; p.NeedMet = double.NaN; }
         AssertTableWellFormed(w2, "NaN");
         Assert.False(double.IsNaN(PowerShares.ExecutiveWeight(w2)));
         Assert.False(double.IsNaN(PowerShares.Leak(w2)));

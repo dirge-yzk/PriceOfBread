@@ -19,7 +19,10 @@ public class ColonyPromotionTests
     [Fact]
     public void 入植者が過半数の植民地は州へ昇格し保存則が閉じる()
     {
+        // ★計器の隔離（2026-09-22）：飢餓の駆動（既定で点火＝階層3分割と対）を外す。昇格したての州は市場の在庫が無く都市POPの食料充足が0.3に落ち、
+        //   1四半期のうちに飢餓の駆動が州の構成を動かす（中核シェアの州平均が0.49へ）。この番人が測るのは**昇格の台帳**（構成・人口・貨幣）だけ。
         var sim = new MultiNationSim([NationConfig.Britain(), NationConfig.France()], seed: 83, coef: new Coefficients { ColoniesAreRegions = 0 }) { DiplomacyFrozen = true };
+        foreach (var n in sim.Nations) n.World.Coef.FamineDriveGain = 0;   // 係数は国ごとの World.Coef（構築時の coef は各国へ写らない＝ColonySettlerRate と同じく各国へ書く）
         var w = sim.Nations[0].World;
         w.Coef.ColonySettlerRate = 1e-9;   // 判定を有効化（流量はほぼ0＝注入した入植者だけで判定する）
         var canada = w.SelfPower!.ColonyList.First(c => c.Name == "カナダ");

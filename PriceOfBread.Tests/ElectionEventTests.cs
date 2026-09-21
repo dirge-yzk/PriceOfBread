@@ -20,6 +20,9 @@ public class ElectionEventTests
         var sim = new MultiNationSim([WorldData.ByName("イギリス")], seed: 5);
         var w = sim.Nations[0].World;
         w.SelfPower!.IsPlayer = true;
+        // ★計器の隔離（2026-09-22）：飢餓の駆動（既定で点火＝階層3分割と対）を外す。英1国だけの世界は食料を輸入できず（主食充足≈0.75）、
+        //   飢餓の駆動で1786年に内戦へ入り選挙が止まる＝この番人の前提（選挙のある英が4年続く）が世界の偶然になる。測るのは選挙の公示の機構だけ。
+        w.Coef.FamineDriveGain = 0;
         sim.StartWarmup();
         for (int q = 0; q < (int)w.Coef.ElectionIntervalQuarters + 2; q++) sim.StepQuarter();   // 定期選挙を1回跨ぐ
         Assert.Null(w.PendingElection);
@@ -33,6 +36,9 @@ public class ElectionEventTests
         var w = sim.Nations[0].World;
         w.SelfPower!.IsPlayer = true;
         var c = w.Coef;   // ⚠sim.Coef ではない（Fiscal/議会は各国 World.Coef を読む＝CorruptionCoreV2Tests の教訓）
+        // ★計器の隔離（2026-09-22）：飢餓の駆動（既定で点火＝階層3分割と対）を外す。英1国だけの世界は食料を輸入できず（主食充足≈0.75）、
+        //   飢餓の駆動で1786年に内戦へ入り選挙が止まる＝この番人の前提（選挙のある英が4年続く）が世界の偶然になる。測るのは選挙の公示の機構だけ。
+        c.FamineDriveGain = 0;
         sim.StartWarmup();
         c.ElectionEventEnabled = 1.0;
         ElectionEvent? seen = null;

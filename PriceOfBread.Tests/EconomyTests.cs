@@ -41,10 +41,9 @@ public class EconomyTests
     public void 放置で自作農は飢えない()
     {
         // 平年（豊作/不作を切る）＝自給機構の単体検証。不作年の飢饉は意図的な別挙動（要望1b・バッチで検証）
-        // ★主張の書き換え（作者裁定2026-09-20＝階層3分割）：「飢えない」は**食料の台帳**（FoodMet/FoodNeed）で測る。
-        //   旧は満足度（NeedMet/NeedTotal）で測っていたが、NeedTierSplit を点けるとこの最小世界（主食1財のみ）は
-        //   分母が空になり Satisfaction が定義（EconomyStep の NeedTotal ≤ Eps → 1.0）で1.0になる＝主張が空洞化する。
-        //   食料の台帳は旗に依らず同じ量を測り続けるので、こちらが「飢えない」の正しい物差しである。
+        // ★主張の書き換え（作者裁定2026-09-20＝階層3分割・2026-09-22 既定化）：「飢えない」は**食料の台帳**（FoodMet/FoodNeed）で測る。
+        //   旧は満足度（NeedMet/NeedTotal）で測っていたが、分割後の満足度の台帳には主食が載らない＝この最小世界（主食1財のみ）は
+        //   分母が空になり Satisfaction が定義（EconomyStep の NeedTotal ≤ Eps → 1.0）で1.0になる＝満足度では主張が空洞化する。
         var sim = new Simulation(new Scenario { Seed = 1, Coef = new Coefficients { HarvestVariation = 0 } }, new NullAgent());
         sim.Run(400);
         var farmer = sim.World.Region.Pops[0];
@@ -163,67 +162,57 @@ public class EconomyTests
     }
 
     [Fact]
-    public void 器_階層3分割_日用品の不足は不満になり嗜好品の不足は罰にならない()
+    public void 階層3分割_日用品の不足は不満になり嗜好品は上振れだけ()
     {
-        // ★器 NeedTierSplit（作者裁定2026-09-20「食料不足は闘争度、日用品は不満度、嗜好品は満足度」）。
+        // ★作者裁定2026-09-20「食料不足は闘争度、日用品は不満度、嗜好品は満足度」（2026-09-22 既定化）＝番人(b)(c)。
         //   在庫だけを動かして台帳（NeedMet/NeedTotal→Satisfaction）の応答を見る＝機構の検査。
         //   必要量＝BaseNeed×Size＝主食800／日用品500／嗜好品300（ThreeTierRegion）。価格＝参照価格なので弾力は×1.0＝希望量＝必要量。
-        var split = new Coefficients { NeedTierSplit = 1.0 };
-        var old = new Coefficients();
+        var c = new Coefficients();
 
-        // ①日用品の不足＝**不満**（満足度が下がる）。分割しても日用品の扱いは現行のまま。
+        // (b) 日用品の不足＝**不満**（満足度が下がる）。
         var full = ThreeTierRegion(4000, 4000, 4000);
         var dailyShort = ThreeTierRegion(4000, 0, 4000);
-        EconomyStep.Run(full, split); EconomyStep.Run(dailyShort, split);
+        EconomyStep.Run(full, c); EconomyStep.Run(dailyShort, c);
         Assert.True(dailyShort.Pops[0].Satisfaction < full.Pops[0].Satisfaction - 1e-9,
-            $"分割後に日用品の不足が満足度を下げない（満杯 {full.Pops[0].Satisfaction} → 欠乏 {dailyShort.Pops[0].Satisfaction}）");
+            $"日用品の不足が満足度を下げない（満杯 {full.Pops[0].Satisfaction} → 欠乏 {dailyShort.Pops[0].Satisfaction}）");
+        // (e) 同じ不足は2つの量へ入らない：日用品の欠乏は食料の台帳（闘争度へ運ぶ側）を1ビットも動かさない。
+        Assert.Equal(full.Pops[0].FoodMet, dailyShort.Pops[0].FoodMet);
+        Assert.Equal(full.Pops[0].FoodNeed, dailyShort.Pops[0].FoodNeed);
 
-        // ②嗜好品の不足は**罰にならない**＝「買えない嗜好品」は台帳に1ビットも載らない＝その財が世界に無いのと厳密に同じ値。
+        // (c) 嗜好品を買えないことは**罰にならない**＝「買えない嗜好品」は台帳に1ビットも載らない＝その財が世界に無いのと厳密に同じ値。
         //   日用品を半分だけ配給して満足度を1未満の帯へ置く（満杯どうしの比較では上下の差が見えないため）。
         var luxShort = ThreeTierRegion(4000, 250, 0);
         var noLux = ThreeTierRegion(4000, 250, 0, withLuxury: false);
-        EconomyStep.Run(luxShort, split); EconomyStep.Run(noLux, split);
+        EconomyStep.Run(luxShort, c); EconomyStep.Run(noLux, c);
+        Assert.True(noLux.Pops[0].Satisfaction < 1.0 - 1e-9, $"前提が崩れた：日用品の半配給で満足度が1のまま（{noLux.Pops[0].Satisfaction}）＝上下が見えない");
         Assert.Equal(noLux.Pops[0].Satisfaction, luxShort.Pops[0].Satisfaction);
         Assert.Equal(noLux.Pops[0].NeedTotal, luxShort.Pops[0].NeedTotal);
 
-        // ③買えれば**上がる**（上振れ）＝分子・分母の両方に met を積むので比が1へ寄る。
+        // (c) 買えれば**上がる**（上振れ）＝分子・分母の両方に met を積むので比が1へ寄る。
         var luxFull = ThreeTierRegion(4000, 250, 4000);
-        EconomyStep.Run(luxFull, split);
+        EconomyStep.Run(luxFull, c);
         Assert.True(luxFull.Pops[0].Satisfaction > luxShort.Pops[0].Satisfaction + 1e-9,
             $"嗜好品を買えても満足度が上がらない（買えず {luxShort.Pops[0].Satisfaction} → 買えて {luxFull.Pops[0].Satisfaction}）");
-
-        // ④旗0の対照＝裁定が外せと言っている当の項：買えないだけで満足度が下がっていた（嗜好品の need が分母に積まれる）。
-        var oldLuxShort = ThreeTierRegion(4000, 250, 0);
-        var oldNoLux = ThreeTierRegion(4000, 250, 0, withLuxury: false);
-        EconomyStep.Run(oldLuxShort, old); EconomyStep.Run(oldNoLux, old);
-        Assert.True(oldLuxShort.Pops[0].Satisfaction < oldNoLux.Pops[0].Satisfaction - 1e-9,
-            $"旗0の対照が成立しない（買えず {oldLuxShort.Pops[0].Satisfaction} ≥ 財が無い {oldNoLux.Pops[0].Satisfaction}）＝分割の前後で何も変わっていない");
     }
 
     [Fact]
-    public void 器_階層3分割_食料の欠乏は満足度の台帳へ入らない()
+    public void 階層3分割_食料の欠乏は満足度の台帳へ入らない()
     {
-        // ★P9（二重計上の禁止）の本体＝同じ欠乏が「怒りの台帳（FoodMet/FoodNeed）」と「満足度の台帳（NeedMet/NeedTotal）」の
+        // ★番人(a)の経済側＋(e)（P9＝二重計上の禁止の本体）：同じ欠乏が「怒りの台帳（FoodMet/FoodNeed）」と「満足度の台帳（NeedMet/NeedTotal）」の
         //   両方へは入らない。片方（食料の在庫）を0にして、もう片方が**1ビットも動かない**ことを見る。
-        var split = new Coefficients { NeedTierSplit = 1.0 };
+        //   （闘争度の側＝飢えが FamineDrive の1本だけで入ることは RevoltIgnitionTests の番人が見る）
+        var c = new Coefficients();
         var fed = ThreeTierRegion(4000, 250, 150);
         var starving = ThreeTierRegion(0, 250, 150);
-        EconomyStep.Run(fed, split); EconomyStep.Run(starving, split);
+        EconomyStep.Run(fed, c); EconomyStep.Run(starving, c);
         Assert.Equal(1.0, fed.Pops[0].FoodMet / fed.Pops[0].FoodNeed, 9);
         Assert.Equal(0.0, starving.Pops[0].FoodMet / starving.Pops[0].FoodNeed, 9);   // 怒りの台帳は全振れ
         Assert.Equal(fed.Pops[0].NeedMet, starving.Pops[0].NeedMet);                   // 満足度の台帳は不動（厳密一致）
         Assert.Equal(fed.Pops[0].NeedTotal, starving.Pops[0].NeedTotal);
         Assert.Equal(fed.Pops[0].Satisfaction, starving.Pops[0].Satisfaction);
 
-        // 旗0の対照＝同じ欠乏が満足度も下げていた（＝FamineDrive を点けると want と famineMil の2本で闘争度へ入る状態）。
-        var old = new Coefficients();
-        var oldFed = ThreeTierRegion(4000, 250, 150); var oldStarving = ThreeTierRegion(0, 250, 150);
-        EconomyStep.Run(oldFed, old); EconomyStep.Run(oldStarving, old);
-        Assert.True(oldStarving.Pops[0].Satisfaction < oldFed.Pops[0].Satisfaction - 1e-9,
-            $"旗0の対照が成立しない（飢餓 {oldStarving.Pops[0].Satisfaction} ≥ 飽食 {oldFed.Pops[0].Satisfaction}）");
-
-        // 動物性タンパク（FoodIncludesAnimalProtein=1）も同じ扱い＝分割後は満足度の台帳から抜ける（B2＝両台帳への二重計上を作らない）。
-        var meat = new Coefficients { NeedTierSplit = 1.0, FoodIncludesAnimalProtein = 1.0 };
+        // 動物性タンパク（FoodIncludesAnimalProtein=1）も同じ扱い＝満足度の台帳から抜ける（両台帳への二重計上を作らない）。
+        var meat = new Coefficients { FoodIncludesAnimalProtein = 1.0 };
         var meatFed = ThreeTierRegion(4000, 4000, 150, dailyNutrition: 1.0);
         var meatShort = ThreeTierRegion(4000, 0, 150, dailyNutrition: 1.0);
         EconomyStep.Run(meatFed, meat); EconomyStep.Run(meatShort, meat);
@@ -233,37 +222,55 @@ public class EconomyTests
     }
 
     [Fact]
-    public void 器_階層3分割_旗0は既定とビット恒等()
+    public void 備蓄_主食が在庫切れの月はその予算が日用品へ流れない()
     {
-        // 休眠の側の番人（長距離の恒等は selfplay の sha が担う・2段構え）。
-        var baseCoef = new Coefficients();
-        var zeroCoef = new Coefficients { NeedTierSplit = 0.0 };
-        var b = ThreeTierRegion(40_000, 3_000, 1_500); var z = ThreeTierRegion(40_000, 3_000, 1_500);
-        for (int i = 0; i < 12; i++) { EconomyStep.Run(b, baseCoef); EconomyStep.Run(z, zeroCoef); }
-        Assert.Equal(b.Pops[0].NeedMet, z.Pops[0].NeedMet);
-        Assert.Equal(b.Pops[0].NeedTotal, z.Pops[0].NeedTotal);
-        Assert.Equal(b.Pops[0].FoodMet, z.Pops[0].FoodMet);
-        Assert.Equal(b.Pops[0].FoodNeed, z.Pops[0].FoodNeed);
-        Assert.Equal(b.Pops[0].Satisfaction, z.Pops[0].Satisfaction);
-        Assert.Equal(b.SumSavings(), z.SumSavings());
-        // 旗1では同じ盤面の値が割れる（恒等の検査が空洞でないことの宣言）。主食は満杯・日用品は半分・嗜好品は無し＝
-        // 旧は分母に主食800と嗜好品の need を積んで 0.83、分割は日用品だけの比＝0.50。
-        var offOne = ThreeTierRegion(4000, 250, 0); var onOne = ThreeTierRegion(4000, 250, 0);
-        EconomyStep.Run(offOne, baseCoef); EconomyStep.Run(onOne, new Coefficients { NeedTierSplit = 1.0 });
-        Assert.NotEqual(offOne.Pops[0].Satisfaction, onOne.Pops[0].Satisfaction);
+        // ★番人(d)（作者裁定2026-09-20 2'）：主食が**在庫切れで**買えない月、浮いたパン代が同じ月に日用品へ流れて満足度を押し上げてはならない
+        //   （隔離プローブで飢饉の月に 0.20→1.00＝飢饉が不満の台帳を良くする符号反転）。その金は払われずに Savings に残る。
+        //   予算が拘束する家計を置く：貯蓄1000＝主食800を買うと日用品へ200しか残らない（価格＝参照価格1.0・楔なし）。
+        //   ①機構の算術：買占め（PanicBuyWeight＝在庫が目標の1/4未満で主食の希望量そのものを増やす**別の機構**）を外して、備蓄だけを測る（計器の隔離）。
+        var iso = new Coefficients { PanicBuyWeight = 0 };
+        var fed = ThreeTierRegion(4000, 4000, 4000, savings: 1000);
+        var outOfBread = ThreeTierRegion(0, 4000, 4000, savings: 1000);    // 主食の在庫切れ（配給0）
+        var halfBread = ThreeTierRegion(400, 4000, 4000, savings: 1000);   // 半分だけ在庫（配給0.5）
+        EconomyStep.Run(fed, iso); EconomyStep.Run(outOfBread, iso); EconomyStep.Run(halfBread, iso);
+        // 前提：予算は拘束している（主食が買えた月に日用品は満たされていない）＝この主張が空洞でない。
+        Assert.True(fed.Pops[0].Satisfaction < 1.0 - 1e-9, $"前提が崩れた：予算が拘束していない（満足度 {fed.Pops[0].Satisfaction}）");
+        Assert.True(outOfBread.Pops[0].FoodMet < 1e-9 && halfBread.Pops[0].FoodMet < fed.Pops[0].FoodMet - 1e-9, "前提が崩れた：在庫切れになっていない");
+        // 本体：日用品・嗜好品の台帳は、主食が買えた月と厳密に同じ（主食の在庫の有無で下の階層の買い物が1ビットも変わらない）。
+        foreach (var r in new[] { outOfBread, halfBread })
+        {
+            Assert.Equal(fed.Pops[0].NeedMet, r.Pops[0].NeedMet, 9);
+            Assert.Equal(fed.Pops[0].NeedTotal, r.Pops[0].NeedTotal, 9);
+            Assert.Equal(fed.Pops[0].Satisfaction, r.Pops[0].Satisfaction, 9);
+            // 備蓄は払われない（Paid に載らない）＝金は Savings に残る（新しい状態を作らない）：払わなかった額＝買えなかった主食の代金（単価1.0）。
+            //   ⚠この小世界は売上の受け手が居ない（売上が pop へ戻る）ので Savings の残高では測れない＝支払い Paid で測る。
+            Assert.Equal(fed.Pops[0].Paid - (fed.Pops[0].FoodMet - r.Pops[0].FoodMet), r.Pops[0].Paid, 6);
+        }
+
+        // ②既定の係数（買占めあり）でも符号反転は起きない：在庫切れの月に下の階層の買い物は**増えない**（買占めの希望量ぶんまで備蓄される）。
+        var c = new Coefficients();
+        var fedD = ThreeTierRegion(4000, 4000, 4000, savings: 1000);
+        var outD = ThreeTierRegion(0, 4000, 4000, savings: 1000);
+        EconomyStep.Run(fedD, c); EconomyStep.Run(outD, c);
+        Assert.True(outD.Pops[0].NeedMet <= fedD.Pops[0].NeedMet + 1e-9,
+            $"在庫切れの月に浮いたパン代が日用品へ流れた（主食あり {fedD.Pops[0].NeedMet} → 在庫切れ {outD.Pops[0].NeedMet}）");
+        Assert.True(outD.Pops[0].Satisfaction <= fedD.Pops[0].Satisfaction + 1e-9,
+            $"飢饉の月に満足度が上がった（主食あり {fedD.Pops[0].Satisfaction} → 在庫切れ {outD.Pops[0].Satisfaction}）＝符号反転");
+        Assert.True(outD.Pops[0].Paid <= fedD.Pops[0].Paid - fedD.Pops[0].FoodMet + 1e-6,
+            $"買えなかった主食の代金が別の財に払われた（主食あり {fedD.Pops[0].Paid} → 在庫切れ {outD.Pops[0].Paid}）");
     }
 
-    /// <summary>主食/日用品/嗜好品の3財だけの小世界（器 NeedTierSplit の台帳検査用）。
+    /// <summary>主食/日用品/嗜好品の3財だけの小世界（階層3分割の台帳検査用）。
     /// 生産者を置かない＝供給は在庫そのもの（EconomyStep の available = Stock + produced）＝配給率を直接置ける。
-    /// 貯蓄は需要総額の3桁上＝予算は非拘束＝階層順の予算食い潰し（安い順に埋まる）が測定に混ざらない。
+    /// 既定の貯蓄は需要総額の3桁上＝予算は非拘束＝階層順の予算食い潰し（安い順に埋まる）が測定に混ざらない（備蓄の番人だけが savings で拘束させる）。
     /// ⚠売上の受け手（生産者）が居ないので貨幣は保存しない＝この小世界で保存則を主張してはならない（台帳だけの計器）。</summary>
     private static Region ThreeTierRegion(double stapleStock, double dailyStock, double luxuryStock,
-                                          bool withLuxury = true, double dailyNutrition = 0.0)
+                                          bool withLuxury = true, double dailyNutrition = 0.0, double savings = 10_000_000)
     {
         var staple = new Good { Id = 0, Name = "主食", Tier = GoodTier.Staple, BaseNeed = 0.8, RefPrice = 1.0, Elasticity = 0.3 };
         var daily = new Good { Id = 1, Name = "日用品", Tier = GoodTier.Daily, BaseNeed = 0.5, RefPrice = 1.0, Elasticity = 0.3, Nutrition = dailyNutrition };
         var luxury = new Good { Id = 2, Name = "嗜好品", Tier = GoodTier.Luxury, BaseNeed = 0.3, RefPrice = 1.0, Elasticity = 0.3 };
-        var worker = new Pop { ClassId = 0, ClassName = "労働者", IsUrban = false, Size = 1000, Savings = 10_000_000 };
+        var worker = new Pop { ClassId = 0, ClassName = "労働者", IsUrban = false, Size = 1000, Savings = savings };
         return new Region
         {
             Id = 0,

@@ -408,9 +408,13 @@ public static class PowerShares
         return !(v >= 0 && v <= 1) ? 0 : v;
     }
 
-    /// <summary>★兵卒の**実質**の待遇∈[0,1]＝兵士POPの人口加重平均満足度。
+    /// <summary>★兵卒の**実質**の待遇∈[0,1]＝兵士POPの**補給の充足**（食料の台帳＋満足度の台帳）の人口加重平均。
     /// ★★「金」は実質で測る——**1917ロシアは金庫に金があってもパンが無く軍が離反した**。
-    /// ⚠兵士POPが居ない世界は 1.0（中立＝この因子で束縛を減らさない）。</summary>
+    /// ★階層3分割（作者裁定2026-09-20・2026-09-22 既定化）の後は満足度の台帳に食料が載らない＝満足度を読むとパンが消える。
+    ///   ⇒ 食料の台帳（FoodMet/FoodNeed）と満足度の台帳（NeedMet/NeedTotal＝日用品＋買えた嗜好品）を足した**補給の台帳**を読む
+    ///   ＝分割前の満足度と同じ量（主食の重み1.0は旧台帳の重みそのもの＝新しい数も新しい状態もゼロ）。
+    ///   読み手は2つで1本＝兵卒の漏れ（<see cref="RanksLeak"/>）と即応度（<see cref="Military"/>.Step）。
+    /// ⚠兵士POPが居ない世界は 1.0（中立＝この因子で束縛を減らさない）。台帳が空の pop（最初の月次決算の前）も 1.0＝旧の満足度の初期値と同じ中立。</summary>
     public static double SoldierWelfare(World w)
     {
         double size = 0, sat = 0;
@@ -418,8 +422,7 @@ public static class PowerShares
         {
             if (!p.IsSoldier) continue;
             double sz = System.Math.Max(0, p.Size);
-            double s = System.Math.Clamp(p.Satisfaction, 0, 1);
-            if (!(s >= 0 && s <= 1)) s = 0;
+            double s = p.SupplyFill;   // 食料＋満足度の台帳（Pop.SupplyFill＝唯一の定義）
             size += sz; sat += sz * s;
         }
         if (!(size > 1e-12)) return 1.0;

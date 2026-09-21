@@ -32,6 +32,9 @@ public class ElectionAiTests
     private static MultiNationSim AiWorld(ulong seed)
     {
         var sim = new MultiNationSim([WorldData.ByName("イギリス"), WorldData.ByName("アメリカ")], seed, _ => new UtilityAgent());
+        // ★計器の隔離（2026-09-22）：飢餓の駆動（既定で点火＝階層3分割と対）を外す。英米2国の世界では英が食料を賄えず、
+        //   飢餓の駆動で公示の四半期より前に内戦へ入って選挙が止まる（プレイヤー国の公示が立たない）＝前提が世界の偶然になる。測るのは公示の機構だけ。
+        foreach (var n in sim.Nations) n.World.Coef.FamineDriveGain = 0;
         sim.StartWarmup();
         return sim;
     }

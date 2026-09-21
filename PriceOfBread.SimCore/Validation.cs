@@ -208,10 +208,15 @@ public static class Validation
         Higher("価格中間帯・平均", m.MeanMidFrac, 0.40, 0.30);
         Higher("価格中間帯・最小国", m.WorstMidFrac, 0.25, 0.15);
         Fewer("下流の無い財", m.DeadEndGoods, 0, 2, m.DeadEndNames is { Count: > 0 } dn ? $"＝{string.Join("・", dn)}" : "");   // 顔ぶれを実測値に添える（件数だけでは原因が追えない）
-        Higher("満足度・平均", m.MeanSat, 0.55, 0.45);
+        // ★満足度の4本の帯は 2026-09-22 に分位の写像で導き直した（階層3分割で主食が台帳から抜け、水準が構造的に下がったため）。
+        //   ⚠終局（604Q）の国だけでは旧の門が旧分布の全標本より下（終局の最小国は旧0.56〜0.59）＝分位が0に潰れて写像が定義されない
+        //   ⇒ 比べる相手を「全国×四半期の国の平均満足度」に取る（隔離計器 tiersatprobe・seed1-3×604Q）。
+        //   旧0.55/0.45/0.38/0.30 の旧分布での分位＝13.9%/4.0%/0.9%/0.01% → 新分布の同じ分位＝0.26/0.11/0.07/0.04（2回目。1回目は 0.25/0.12/0.07/0.04）。
+        //   ⚠0.01%（11万標本の下から約11件）は推定できない裾＝2回目の推定は床の0.00に落ちた（注意帯が空洞になる）→ 1回目の0.04を残す。
+        Higher("満足度・平均", m.MeanSat, 0.26, 0.11);
         checks.Add(new Check("満足度・最小国",
-            m.WorstSat >= 0.38 ? Verdict.Pass : m.WorstSat >= 0.30 ? Verdict.Warn : Verdict.Fail,
-            $"{m.WorstSat:F2}（{m.WorstSatName}{m.WorstSatDetail}）", "≥0.38合格 / ≥0.30注意"));   // ★誰がなぜ壊れたかを添える（H-02）
+            m.WorstSat >= 0.07 ? Verdict.Pass : m.WorstSat >= 0.04 ? Verdict.Warn : Verdict.Fail,
+            $"{m.WorstSat:F2}（{m.WorstSatName}{m.WorstSatDetail}）", "≥0.07合格 / ≥0.04注意"));   // ★誰がなぜ壊れたかを添える（H-02）
         Higher("工業化の差別化", m.IndustrializationSpread, 0.50, 0.20);
         Truth("戦争が起きる", m.Wars >= 1, $"{m.Wars}件");
         Truth("交易が成立", m.TradeVolume > 0.01, m.TradeVolume.ToString("F2"));

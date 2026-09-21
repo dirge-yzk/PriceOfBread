@@ -11,9 +11,14 @@ namespace PriceOfBread.Tests;
 public class PartyTests
 {
     [Fact]
-    public void 既定は常設3党のみで与党名は族名()
+    public void 動的政党0では常設3党のみで与党名は族名()
     {
+        // ★主張の書き換え（2026-09-22）：旧名「既定は常設3党のみ」は既定 DynamicParties=1.0（点火済み）の下では不変条件ではなかった
+        //   ＝仏 seed11 の最初の12四半期に政党化するクラスタが**たまたま**無かったから通っていた。飢餓の駆動の点火（階層3分割と対）で
+        //   1780年代の仏の食料不足が運動を立て、動的政党（自由主義党）が現れた＝旧名の主張は世界の偶然だった。
+        //   クラスの宣言どおりの不変条件＝「DynamicParties=0 は常設3党のみ（厳密一致）」を明示で測る。
         var sim = new Simulation(NationConfig.France().ToScenario(11), new NullAgent());
+        sim.World.Coef.DynamicParties = 0;
         for (int q = 0; q < 12; q++) sim.StepQuarter();
         var w = sim.World;
         Assert.Equal(3, w.Parties.Count);

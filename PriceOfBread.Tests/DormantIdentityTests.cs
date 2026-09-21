@@ -28,12 +28,7 @@ public class DormantIdentityTests
         "SymmetricTensionVerb",         // AUD-08：AIとプレイヤーの同一動詞
         "RebelArmsMarketEnabled",       // ★武器の市場購入（設計メモ§7 (a)・2026-09-11）＝反乱勢力が参加POPの貯蓄で国軍と同じ財を買う＋法「民間の武器購入」＋FactionStrength 第5因子。
                                         //   0＝EconomyStep の枝に入らず（rebelDemand 全0）・法は7箇所全部が素通り・第5因子は掛けない＝厳密恒等。点火は 1.0（0/1の主フラグ）
-        "FamineDriveGain",              // ★段2（2026-09-09）＝飢餓の駆動項 clamp(g×(FamineDriveOnset−FoodMet/FoodNeed),0,1)。
-                                        //   旧 FamineAbsoluteMilitancy（0.04・live）を置き換えた＝0で p.FoodMet/p.FoodNeed を1度も読まない。
-                                        //   点火値は10・起点 FamineDriveOnset=0.73（2026-09-11・段0の計器の分位から導出＝§7-3 の仮置き3.3/0.8 は棄却）。起点は利得0では読まれない下位パラメータ＝この表には置かない
-        "NeedTierSplit",                // ★階層3分割（作者裁定2026-09-20）＝1つの台帳（NeedMet/NeedTotal）を階層で割る＝食料は怒り（FamineDrive）へ・日用品は不満（台帳）・嗜好品は上振れ（分母にも met）。
-                                        //   0＝needW の再代入も三項も選ばれず、EconomyStep の積み上げ2行が現行と同じ式・同じ演算順序＝ビット恒等。点火は 1.0（0/1の主フラグ）。
-                                        //   ⚠FamineDriveGain と**対で**点ける（分割だけでは飢えが怒りへ出ず、分割なしの点火は want と famineMil の二重計上＝思想⑨）
+        // ★FamineDriveGain は 2026-09-22 に 10 で**点火**、NeedTierSplit は同日に旗ごと削除（階層3分割を既定化＝作者裁定2026-09-20）＝この表から外した。
         "ParticipationDiscontent",      // ★二量分離 段3（2026-09-09）＝参加の述語を不満度へ（読み手は FactionSnapshot.ComputeClusters の1箇所）。
                                         //   0＝旧＝「闘争度 > MilitancyThreshold(0.5)」の二値＝不満度を1度も読まない（ビット恒等）
         "DesperationMilitancyOverride", // ★二量分離 段3（2026-09-09）＝闘争度による層の上書き（窮乏チャネルの意識ゲートを開ける）。0＝×(1−0)＝ビット恒等

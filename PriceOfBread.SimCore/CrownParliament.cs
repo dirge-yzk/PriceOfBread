@@ -75,7 +75,8 @@ public static class CrownParliament
 
         // ③世論↔体制：世論は派生面（§5判断①＝pop層の満足/闘争の集計＝既存データの表面・新規状態ほぼ不要）。
         //   満足した社会=+・高闘争の社会=−。MeanSatisfactionPol/AvgMassMilitancy＝四半期頭の凍結値（第5段5-1・Agg）。
-        w.CoopPublicRegime = System.Math.Clamp((2.0 * w.MeanSatisfactionPol - 1.0) - Politics.AvgMassMilitancy(w), -1, 1);
+        //   満足項の中立点は分位の写像で導出（Coefficients.CoopPublicSatPivot・2026-09-22＝階層3分割で満足度の水準が下がった）。中立点0.5で旧 2×満足−1 と同じ式。
+        w.CoopPublicRegime = System.Math.Clamp((w.MeanSatisfactionPol - c.CoopPublicSatPivot) / (1.0 - c.CoopPublicSatPivot) - Politics.AvgMassMilitancy(w), -1, 1);
 
         // --- P3b 連続動学（2026-07-12・遷移グラフの置換素子・5係数とも点火済み）：政体の漸進変化を「軸の連続移動＋床交差の再ラベル」で
         //     出す4素子。イデオロギー支持は Transition と同じ物差し（Ideologies.National/SupportAt/BasePolityCoord）＝新表なし。

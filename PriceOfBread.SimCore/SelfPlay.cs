@@ -49,7 +49,11 @@ public static class NationalScore
         gdpScale /= 1 + gdpScale / GdpDiminishingDivisor;
         return (gdpScale,
             w.MeanIndustrialization * IndustrializationWeight,        // 近代産業（1人あたりの発展度＝非規模）。比重↑ 8→9。改修2026-06-28：首都州のみ→全州人口加重平均（多州国の脱工業化誤認を解消）
-            MeanSatisfaction(w) * SatisfactionWeight,           // 生活水準（1人あたりの幸福＝非規模）
+            // 生活水準（1人あたりの豊かさ＝非規模）。★2026-09-22：満足度（階層3分割で食料が抜けた＝不満の台帳）から**補給の充足**（食料＋日用品）へ付け替え。
+            //   理由＝国力の生活水準は実質賃金の物差し（主食が支出の大半を占める基礎バスケットに対する購買力）＝食料を抜くと物差しが別物になる。
+            //   実測（隔離計器 tiersatprobe・seed1-3×604Q）：分割後の満足度のまま読むと国間の標準偏差が 0.082→0.169（×12 で 0.99→2.02 点）へ倍増し、
+            //   列強を決める計器の中で生活水準の重みだけが黙って倍になる。補給の充足は分割前の満足度と同じ量＝重み12の較正がそのまま意味を持つ。
+            MeanSupplyFill(w) * SatisfactionWeight,
             // ★2026-08-28：植民地項を**個数→質量**へ（ColoniesAreRegions>0 のみ・0では従来の個数＝厳密恒等）。
             //   個数は州追加の細分化で「行を分けただけで増える」＝スペイン常勝22/30の直接の原因だった（単位の非対称）。
             //   質量＝元の Colony.Population 単位（細分化で不変）。旧世界の英植民地8個≒質量8前後＝スケールも概ね保存。
@@ -68,6 +72,14 @@ public static class NationalScore
         foreach (var p in w.AllPops()) { s += p.Satisfaction * p.Size; n += p.Size; }
         return n > 0 ? s / n : 0;
     }
+
+    /// <summary>国の補給の充足（Pop.SupplyFill の人口加重平均＝食料＋日用品）。読み手は国力の生活水準項だけ（2026-09-22）。MeanSatisfaction と同じ走査・同じ分母。</summary>
+    public static double MeanSupplyFill(World w)
+    {
+        double s = 0, n = 0;
+        foreach (var p in w.AllPops()) { s += p.SupplyFill * p.Size; n += p.Size; }
+        return n > 0 ? s / n : 0;
+    }
 }
 
 /// <summary>AIの教義（国の性格＝戦略の偏り）。均質化を避け、国ごとに異なる道を歩ませる。</summary>
@@ -84,7 +96,10 @@ public sealed class UtilityAgent : INationAgent
     private const double MilitaristBaseUtility = 2.5;           // 軍国教義の軍拡ベース効用
     private const double MilitaristEscapeThreshold = 0.5;       // 軍国の脱出弁：この国庫逼迫度からベース効用を減衰し始める（幅も同値）
     private const double IndustrializationRoomTarget = 4.0;     // 工業化余地の到達目標（★鋼市場診断#1 2026-08-16：AiIndustrialCeilingFrontier はここに触れない＝スタンス選択の目標は投資の物理上限と別判断・記録のみ）
-    private const double UnrestSatisfactionThreshold = 0.7;     // 不満＝満足がこれを下回る分
+    // 不満＝満足がこれを下回る分。★2026-09-22 分位の写像で導き直し（階層3分割で満足度の水準が構造的に下がったため）：
+    //   比べる相手＝全国×四半期の NationalScore.MeanSatisfaction（隔離計器 tiersatprobe・seed1-3×604Q）。旧0.7は旧分布の下から53.3%→ 新分布の53.3%分位
+    //   ＝1回目0.53→2回目0.61（1回目の値で再測定すると分位が44.8%へ8.5pt ずれた＝帰還。写像は2回で打ち切り）。
+    private const double UnrestSatisfactionThreshold = 0.61;
     private const double UModUnrestWeight = 0.3;                // 近代化効用：不満の重み
     private const double UIndRoomWeight = 1.2;                  // 工業化効用：余地の重み
     private const double UModTechWeight = 1.0;                  // 近代化効用：技術差の重み

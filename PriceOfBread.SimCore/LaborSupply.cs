@@ -16,23 +16,29 @@ public static class LaborSupply
     /// <summary>この世界に学校（教育財の市場）が存在するか。無い最小世界では就学による児童労働の置換は起きない。</summary>
     private static bool HasSchool(Region r) => Catalog.EducationId < r.Markets.Length;
 
-    /// <summary>家計の困窮度（0..1）。前月の満足（永続）の遅延値＝1−満足。貧しいほど追加の稼ぎ手を要する。</summary>
-    private static double Need(Pop p) => System.Math.Clamp(1.0 - p.Satisfaction, 0.0, 1.0);
+    /// <summary>家計の困窮度（0..1）＝1−補給の充足（食料＋日用品＝<see cref="Pop.SupplyFill"/>）。貧しいほど追加の稼ぎ手を要する。
+    /// ★2026-09-22：満足度から付け替え。階層3分割（作者裁定2026-09-20）で満足度は「日用品の不満＋嗜好品の上振れ」になり、
+    ///   自給の小農（主食は足りるが日用品を1つも買えない）が**満足度0**に張り付く（隔離計器 tiersatfine：新世界では1783〜1833年の間、
+    ///   人口加重で3割以上が満足度0）＝困窮度が1に飽和し、学校を買えても子供は全員働く（識字の伸びが止まる）。
+    ///   家計が稼ぎ手を増やすのは**家計の全体**（支出の大半が主食＝エンゲル）が足りないとき＝分割前の満足度と同じ量を読む。
+    ///   ⚠政治の量ではない（闘争度・不満度を足さない）＝食料が2つの量へ入る二重計上にならない（思想⑨）。
+    ///   呼び手が値を渡す：EconomyStep は月頭のゼロ化の**前**に撮った前月の値（台帳は月頭に0へ戻る）、TechEducation は当月の決算後の値。</summary>
+    private static double Need(double supplyFill) => System.Math.Clamp(1.0 - supplyFill, 0.0, 1.0);
 
     /// <summary>
     /// 女性の実効労働参加率。構造値（賃金保持から導く r.FemaleParticipation＝基礎0.4〜0.7）に、
     /// 家計困窮による追加就労を上乗せ。困窮項は**賃金を保持できる時のみ**効く（取られるなら formal 労働の誘因がない）。
     /// </summary>
-    public static double FemaleParticipation(Pop p, Region r, Coefficients c)
-        => System.Math.Clamp(r.FemaleParticipation + c.FemaleNeedWeight * Need(p) * r.WomenWageRetention, 0.0, 1.0);
+    public static double FemaleParticipation(Region r, Coefficients c, double supplyFill)
+        => System.Math.Clamp(r.FemaleParticipation + c.FemaleNeedWeight * Need(supplyFill) * r.WomenWageRetention, 0.0, 1.0);
 
     /// <summary>
     /// 子供の労働時間割合（0..1）。学校があれば、家計に余裕があり就学を買えるほど子供は学校へ（労働を離れる）。
     /// 困窮した家・就学を買えない家の子は（合法なら）働く。学校のない世界では就学による置換が起きず合法度に従う。
     /// </summary>
-    public static double ChildLaborRate(Pop p, Region r, Coefficients c)
+    public static double ChildLaborRate(Pop p, Region r, Coefficients c, double supplyFill)
     {
-        double schoolAttend = HasSchool(r) ? p.EducationFill * (1.0 - Need(p)) : 0.0;   // 就学＝学校を買えて(EducationFill)かつ家計に余裕がある(1−困窮)ほど高い
+        double schoolAttend = HasSchool(r) ? p.EducationFill * (1.0 - Need(supplyFill)) : 0.0;   // 就学＝学校を買えて(EducationFill)かつ家計に余裕がある(1−困窮)ほど高い
         return System.Math.Clamp(r.ChildLaborLegal * (1.0 - schoolAttend), 0.0, 1.0);   // 残りの時間を（合法なら）労働へ
     }
 }

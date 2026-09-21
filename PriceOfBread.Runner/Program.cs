@@ -5428,9 +5428,8 @@ if (args.Length > 0 && args[0] == "factionprobe")
     static string FpS(double x) => x < 0 ? "—" : x.ToString("F3");
     // ★段2で実装された（＝もう仮置きではない）：門は RegionalRevoltThreshold＝0.50。起点は FamineDriveOnset（★2026-09-11＝FamineDeathFillFloor の流用をやめた＝計器は係数を読む）。
     double Fp0Anchor = cf0.FamineDriveOnset;   // 飢餓の駆動項の起点（Politics の飢餓項と同じ1本）
-    //   ⚠利得だけは休眠（既定0）なので、0のときに限り導出値 10（Coefficients.FamineDriveGain のコメント）を当てて**予測**を見る（点火後は実値を読む）。
-    //   点火値そのものを測りたいときは POB_COEF=FamineDriveGain=10 で走らせれば力学と計器の両方が同じ値になる。
-    double Fp0Gain = cf0.FamineDriveGain > 0 ? cf0.FamineDriveGain : 10.0;
+    //   ★利得は 2026-09-22 に点火済み（階層3分割と対）＝計器は実値を読むだけ（旧＝休眠中は導出値 10 を当てて予測していた）。
+    double Fp0Gain = cf0.FamineDriveGain;
     double fp0Sat = Fp0Anchor - 1.0 / Fp0Gain;                              // drive が1に飽和する充足（= 0.8 − 1/3.3）＝飢餓項**単独**で2四半期後に門を越えられる水準
     double fp0Half = Fp0Anchor - cf0.RegionalRevoltThreshold / Fp0Gain;     // drive が門を超える充足＝他項と合わせて越えうる水準
     Console.WriteLine($"=== factionprobe seed {fpSeed}／{string.Join("・", fpWatch)}　{fpQ}四半期　点火の各項（年次）===");
@@ -7276,7 +7275,7 @@ if (args.Length > 0 && args[0] == "genderprobe")
                     var p = r.Pops[pi];
                     if (p.IsSoldier || p.Size <= 1e-9) continue;   // 兵士は男性のみ＝就業率の分母に入れない（FemaleShare=0でも明示除外）
                     double fa = p.Size * (1.0 - p.ChildShare) * p.FemaleShare;                 // 成人女性
-                    double part = LaborSupply.FemaleParticipation(p, r, w.Coef);               // 実効参加率（構造+困窮×賃金保持）
+                    double part = LaborSupply.FemaleParticipation(r, w.Coef, p.SupplyFill);    // 実効参加率（構造+困窮×賃金保持）
                     femAd += fa; femWork += fa * part;
                     if (pi == r.ServantPopIndex) { servFem += p.FemaleShare * p.Size; servAll += p.Size; servFemWork += fa * part; }
                 }

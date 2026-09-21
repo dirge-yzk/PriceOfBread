@@ -25,6 +25,7 @@ public static class EconomyStep
         public int[] EffChosen = [];
         public double[] LaborTotalW = [];
         public int[] LaborCount = [];
+        public double[] LastSupply = [];   // ★前月の補給の充足（Pop.SupplyFill）＝月頭のゼロ化の前に撮る作業配列（状態ではない・2026-09-22）
         public bool[] IsStaple = [], IsService = [], AnyProducer = [], AnyUnlocked = [];
         public Good[] ConsumeOrder = [];
     }
@@ -58,8 +59,8 @@ public static class EconomyStep
             System.Array.Clear(s.InputCost); System.Array.Clear(s.ProdW); System.Array.Clear(s.ElecNeed);
             System.Array.Clear(s.SteamNeed); System.Array.Clear(s.EffNeed); System.Array.Clear(s.EffChosen);
         }
-        if (s.LaborTotalW.Length < npops) { s.LaborTotalW = new double[npops]; s.LaborCount = new int[npops]; }
-        else { System.Array.Clear(s.LaborTotalW); System.Array.Clear(s.LaborCount); }
+        if (s.LaborTotalW.Length < npops) { s.LaborTotalW = new double[npops]; s.LaborCount = new int[npops]; s.LastSupply = new double[npops]; }
+        else { System.Array.Clear(s.LaborTotalW); System.Array.Clear(s.LaborCount); }   // LastSupply は Run が月頭に全要素を上書きする
         return s;
     }
 
@@ -312,6 +313,10 @@ public static class EconomyStep
         var inputCost = scratch.InputCost;         // 生産者ごとの投入支払い
 
         region.LastSubsistenceOutput = 0;   // 人2補完：自給産出の月次アキュムレータ（FoodMet/FoodNeedと同じ月次リセット）
+        // ★前月の補給の充足を撮る（2026-09-22）＝台帳（FoodMet/NeedMet…）は下のループで0へ戻る＝その前に読む。読み手＝労働供給（LaborSupply）と阿片の困窮ゲート。
+        //   ⚠旧はこの2つが p.Satisfaction（前月の値が月末まで残る）を読んでいた＝同じ「前月」の時点をそのまま保つ。
+        var lastSupply = scratch.LastSupply;
+        for (int pi0 = 0; pi0 < region.Pops.Count; pi0++) lastSupply[pi0] = region.Pops[pi0].SupplyFill;
         region.LastStateMonopolyRevenue = 0;      // 接2：当月の専売益（月次リセット→購入時に累積。Fiscalの予算基数）
         foreach (var p in region.Pops)
         {
@@ -595,8 +600,8 @@ public static class EconomyStep
                 double adults = 1.0 - lpop.ChildShare - (1.0 - coef.OldLaborFactor) * lpop.OldShare;
                 if (coef.OpiumAddictionGrowth > 0 && region.OpiumAddiction > 0) adults *= Math.Max(0.5, 1.0 - coef.OpiumLaborPenalty * region.OpiumAddiction);   // P3：依存が労働供給を蝕む（床0.5・煙館の昼）
                 // 倍率排除④：女性参加・児童労働を時間配分から創発（家計困窮×賃金保持×就学）。較正harness（学校なし・retention=0）では旧式に恒等一致。
-                lpop.ChildLaborRate = LaborSupply.ChildLaborRate(lpop, region, coef);   // 子供の労働時間割合（識字側＝TechEducationも同式を参照）
-                double work = adults * ((1.0 - lpop.FemaleShare) + lpop.FemaleShare * LaborSupply.FemaleParticipation(lpop, region, coef))
+                lpop.ChildLaborRate = LaborSupply.ChildLaborRate(lpop, region, coef, lastSupply[lp]);   // 子供の労働時間割合（識字側＝TechEducationも同式を参照）
+                double work = adults * ((1.0 - lpop.FemaleShare) + lpop.FemaleShare * LaborSupply.FemaleParticipation(region, coef, lastSupply[lp]))
                             + lpop.ChildShare * coef.ChildWorkFactor * lpop.ChildLaborRate;
                 // 倍率排除②：旧 work/0.64（標準構成を等倍化する正規化定数）を「各popの初期労働供給 work0」基準へ一般化。
                 // 初回（t=0）の work を基準に捕捉＝各popが自分の出発点に対する相対変化（女性財産権法・児童労働禁止・戦死）で効く。標準構成は work0=0.64 で旧挙動と一致＝較正中立。
@@ -1421,8 +1426,10 @@ public static class EconomyStep
                 effBaseNeed = coef.HousingNeedPerUrban * housingGate;
             }
             double popDemand = 0, popDesiredSum = 0;
+            int pIdx = -1;   // 阿片の困窮ゲートが前月の補給の充足（lastSupply）を引く添字
             foreach (var p in region.Pops)
             {
+                pIdx++;
                 p.GoodNeed = effBaseNeed * p.Size;
                 if (housingGood && !p.IsUrban) p.GoodNeed = 0;   // 家賃は都市住民のみ（レビュー2026-07-19：全popに掛かり需要を最大2倍過大計上→摩擦点火で過密ペナルティが過大化していた）
                 if (gi == Catalog.EducationId) p.GoodNeed = coef.EduPerChild * p.ChildShare * p.Size;   // 教育の必要量＝**子供の数**（子供3割×0.2＝従来の0.06と一致。少子化＝学校需要減）
@@ -1434,8 +1441,12 @@ public static class EconomyStep
                 if (gi == Catalog.HigherEducationId) p.GoodNeed = coef.HigherEduNeedPerEducated * Math.Max(p.LastEducationFill, p.Literacy) * p.Literacy * p.Size;
                 if (gi == Catalog.NewspaperId) p.GoodNeed = effBaseNeed * p.Size * p.Literacy;   // 1934拡張E3：新聞は読める者だけの需要（識字比例＝旧・国民運動の識字重みの財化）
                 // P3（2026-07-17）：アヘンの困窮ゲート＝低満足popだけが手を出し（misery gate）、中毒は満足に関わらず必要量になる。主フラグOFFでは従来（effBaseNeed経由）
+                // ★2026-09-22：困窮は**補給の充足**（食料＋日用品＝前月の Pop.SupplyFill）で測る＝分割前の満足度と同じ量。
+                //   分割後の満足度のまま読むと、自給の小農が満足度0に張り付き（新世界では1783〜1833年に人口加重で3割超）ゲートが全員で飽和する
+                //   ＝旧の飽和点0.5（OpiumMiseryScale=2）の分位の写像は満足度0の原子に落ちて定義できない（旧は人口の16.8%が0.5未満）。
+                //   経済の行動であって政治の量ではない＝食料の二重計上にならない（思想⑨）。
                 if (gi == coef.OpiumGoodId && coef.OpiumAddictionGrowth > 0)
-                    p.GoodNeed = (good.BaseNeed * Math.Clamp(coef.OpiumMiseryScale * (1.0 - p.Satisfaction), 0, 1) + region.OpiumAddiction) * p.Size;
+                    p.GoodNeed = (good.BaseNeed * Math.Clamp(coef.OpiumMiseryScale * (1.0 - lastSupply[pIdx]), 0, 1) + region.OpiumAddiction) * p.Size;
                 double marketNeed = staple ? p.GoodNeed * (1.0 - p.Subsistence) : p.GoodNeed;   // 自給分は市場に出さない（農民）
                 double demand = 0;
                 if (marketNeed > 0)
@@ -1639,15 +1650,15 @@ public static class EconomyStep
             }
             else
             {
-                // 需要の階層（エンゲルの法則）：満足度への重みは 生存（主食）＞日用＞贅沢。
-                // 腹が満ちた農民は楽器が買えなくても暴れない＝「空腹」と「紅茶がない」を同じ重みで数えない。
-                double needW = good.Tier switch { GoodTier.Staple => 1.0, GoodTier.Daily => coef.DailyNeedWeight, GoodTier.Luxury => coef.LuxuryNeedWeight, _ => 1.0 };
-                // ★階層3分割（作者裁定2026-09-20・器 NeedTierSplit）：食料の欠乏は**怒り**（FoodMet/FoodNeed→FamineDrive→闘争度）、
-                //   日用品の欠乏は**不満**（この台帳）、嗜好品は**上振れ**（買えた分だけ台帳へ）。同じ欠乏が3つのうち2つへ入らない（思想⑨）。
-                //   ⚠needW=0 で抜けるのは**満足度の台帳だけ**＝下の FoodMet/FoodNeed の積み上げ（:1707-1708）は旗に依らず同じ量を測り続ける
+                // 需要の階層（エンゲルの法則）：「空腹」と「紅茶がない」を同じ台帳で数えない。
+                // 腹が満ちた農民は楽器が買えなくても暴れない＝主食は満足度の台帳に載らず（飢えの台帳へ）、日用＞贅沢の重みで満足度へ。
+                // ★階層3分割（作者裁定2026-09-20・2026-09-22 既定化＝旗 NeedTierSplit と旧の1本台帳の枝を削除）：
+                //   食料の欠乏は**怒り**（FoodMet/FoodNeed→FamineDrive→闘争度）、日用品の欠乏は**不満**（この台帳）、嗜好品は**上振れ**（買えた分だけ台帳へ）。
+                //   同じ欠乏が3つのうち2つへ入らない（思想⑨）。
+                //   ⚠食料が抜けるのは**満足度の台帳だけ**＝下の FoodMet/FoodNeed の積み上げは同じ量を測り続ける
                 //     ＝飢饉の物理（死亡・疫病・移民・扶養力・天命の dmFood）は1本のままで、移るのは政治的帰結だけ。
-                bool tierSplit = coef.NeedTierSplit > 0;
-                if (tierSplit && (staple || foodNonStaple)) needW = 0;
+                bool foodTier = staple || foodNonStaple;
+                double needW = foodTier ? 0.0 : good.Tier switch { GoodTier.Daily => coef.DailyNeedWeight, GoodTier.Luxury => coef.LuxuryNeedWeight, _ => 1.0 };
                 foreach (var p in region.Pops)
                 {
                     double qty = p.GoodDemand * ration[gi];
@@ -1659,6 +1670,16 @@ public static class EconomyStep
                     double pay = qty * m.Price * (1 + stateMonop + distM + monRent + guildRent) - subsidy;  // 専売＋流通マージン＋独占レント＋同業組合の上乗せ込み − 国家負担分＝popの実支払い
                     p.Paid += pay;
                     p.RemainingBudget -= pay;
+                    // ★備蓄（作者裁定2026-09-20 2'）：食料が**在庫切れで**買えなかった分（買えたはずの量 GoodDemand − 配給された量 qty）の予算は、
+                    //   同じ月の下の階層（日用品・嗜好品）へ流さない＝残予算から外すだけで払わない＝金は既存の Savings に残る（新しい状態を作らない・思想⑩）。
+                    //   ⚠無いと「パン代が浮いて布を買う」＝飢饉の月に満足度が上がる符号反転（隔離プローブで 0.20→1.00）。
+                    //   ⚠GoodDemand は既に min(希望, 予算) ＝買えない（予算切れ）分は最初から載っていない＝ここで外すのは在庫切れの分だけ。
+                    //   ⚠単価は上の pay と同じ式（楔5項・補助）＝払ったはずの額を1円も違えずに外す。否定形＝NaN は外さない側。
+                    if (foodTier)
+                    {
+                        double unfilled = p.GoodDemand - qty;
+                        if (unfilled > 0) p.RemainingBudget -= unfilled * m.Price * (1 + stateMonop + distM + monRent + guildRent) - unfilled * insureBase * insure;
+                    }
                     revenue[gi] += qty * m.Price;             // 消費者の支払い（税・マージン抜き）を売上へ（実支払いベース＝保存の要）
                     region.StateSpent += subsidy;             // 国家の医療費負担（国庫→生産者＝保存。pop が払わない分を国庫が補填）
                     region.StateSpent -= qty * m.Price * stateMonop;   // 専売は国庫へ（StateSpentの負値＝国庫収入。Treasury-=StateSpent で精算＝保存）
@@ -1703,8 +1724,7 @@ public static class EconomyStep
                         p.NeedMet += met * needW;
                         // ★嗜好品は分母にも met を積む＝買えた分は「満たされた成分」として比を1へ引き上げ、買えない分は台帳に1ビットも載らない（＝罰にならない）。
                         //   met ≤ GoodNeed（上の met の定義）かつ嗜好は分子=分母＝分子 ≤ 分母は保たれる＝下の Clamp は非拘束のまま（思想⑧）。
-                        //   ⚠旗0では三項の条件が false＝`p.GoodNeed * needW` そのもの＝式も演算順序も現行と同一（ビット恒等）。
-                        p.NeedTotal += (tierSplit && good.Tier == GoodTier.Luxury ? met : p.GoodNeed) * needW;
+                        p.NeedTotal += (good.Tier == GoodTier.Luxury ? met : p.GoodNeed) * needW;
                         if (staple) { p.FoodMet += met; p.FoodNeed += p.GoodNeed; region.LastSubsistenceOutput += sub; }   // 主食のみ別途集計＝FoodFill（扶養力のマルサス項）。不作/高騰/過密で買えねば met<need→飢饉。自給subは生産アンカーの分子へも累積（人2補完）
                         else if (foodNonStaple) { p.FoodMet += met * good.Nutrition; p.FoodNeed += p.GoodNeed * good.Nutrition; }   // ★塊1段1b：動物性タンパクも食料（食卓の17%が消えたらFoodFillが動く）。自給subは主食限定のまま（生産アンカーの較正に触らない・doc3-3の裁定）
                     }
@@ -2575,8 +2595,8 @@ public static class EconomyStep
             //   ⚠**必要なものをどれだけ買えているかだけ**で決まる。直接バフ4件（時短/電化/福祉/年金）は物理削除2026-08-21（思想⑨・各墓標＝Coefficients）。
             //   ★この行の後の加減算は**3件**（2026-09-20に数え直し：ここは「休眠2件のみ」と書いていたが Crime を数え落としていた）＝
             //     阿片減算（OpiumSatisfactionPenalty=0・休眠）／組合加算（UnionSatBonus=0・休眠）／**犯罪減算（Crime.cs の CrimeSatPenalty=0.5＝live）**。
-            //   ★NeedTierSplit（作者裁定2026-09-20）を点けると、この比の中身は「日用品の不足＝不満」と「嗜好品が買えた＝上振れ」だけになり、
-            //     食料の欠乏は FoodMet/FoodNeed → FamineDrive → 闘争度 の1本へ移る（旗0では従来どおり3階層とも比に入る）。
+            //   ★階層3分割（作者裁定2026-09-20・2026-09-22 既定化）＝この比の中身は「日用品の不足＝不満」と「嗜好品が買えた＝上振れ」だけ。
+            //     食料の欠乏は FoodMet/FoodNeed → FamineDrive → 闘争度 の1本へ移った（満足度の水準は主食が抜けたぶん構造的に下がる＝読み手の門は分位の写像で導き直し済み）。
             //   ★その逆（1−これ）が政治へ向かう（Politics.cs の want）。
             p.Satisfaction = p.NeedTotal > Eps ? Math.Clamp(p.NeedMet / p.NeedTotal, 0, 1) : 1.0;
             if (coef.OpiumAddictionGrowth > 0 && region.OpiumAddiction > 0)   // P3：依存の蝕み（消費の充足を上回る害。困窮→アヘン→さらに困窮の負ループはOpiumAddictionDecayと家計予算が律速）
@@ -2613,7 +2633,7 @@ public static class EconomyStep
                 var lpop = region.Pops[s.LaborPopIndex];
                 double unsold = m.LastProduced > Eps ? 1.0 - m.LastSold / m.LastProduced : 0;
                 // 農業労働は自給分（自作＝市場外の雇用）を失業から除く：高自給の貧農の自作を「失業」と数えない
-                // （主食消費は §EconomyStep で自給ぶんを FoodMet（NeedTierSplit=0 なら NeedMet にも）計上済み＝労働側もこれと整合）。工場労働は全量が市場労働＝従来どおり。
+                // （主食消費は §EconomyStep で自給ぶんを FoodMet に計上済み＝労働側もこれと整合）。工場労働は全量が市場労働＝従来どおり。
                 if (s.GoodId == Catalog.FarmLaborId) unsold -= lpop.Subsistence;
                 lpop.UnemploymentRate = Math.Clamp(unsold, 0, 1);
             }

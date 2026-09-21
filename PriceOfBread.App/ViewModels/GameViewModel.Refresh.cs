@@ -506,15 +506,13 @@ public partial class GameViewModel
             double inv = size > 1e-9 ? 1.0 / size : 0;
             double sat = satW * inv, mil = milW * inv, litAvg = litW * inv, fem = femW * inv, child = childW * inv, old = oldW * inv, unemp = unempW * inv;
             double perCap = size > 1e-9 ? sav / size : 0;
-            // ★満足度セルのホバー（作者指示2026-08-15(2)）：主食＝FoodMet/FoodNeed・主食以外＝(NeedMet−FoodMet)/(NeedTotal−FoodNeed)。
+            // ★満足度セルのホバー（作者指示2026-08-15(2)）：主食＝FoodMet/FoodNeed・主食以外＝NeedMet/NeedTotal。
             //   エンジンと同じくクランプ（EconomyStep の Satisfaction=Clamp(NeedMet/NeedTotal) と同族）。
             //   ⚠アヘン・インフラ・福祉等の後段の加減点は診断フィールドが無い＝今回は出さない（将来課題）
             double foodFill = fNeed > 1e-9 ? System.Math.Clamp(fMet / fNeed, 0, 1) : 1.0;
-            // ⚠この引き算は**分子と分母で別の規則**（NeedMet は階層の重み付き・FoodMet は重みなし）＝主食の重みが1.0で
-            //   FoodIncludesAnimalProtein=0 の間だけ偶然一致している。NeedTierSplit を点けると台帳から食料が抜けている＝引くと分子が負になる。
-            //   ⇒ 分割時は引き算しない（台帳＝主食以外そのもの）。旗0では nTot−fNeed／nMet−fMet＝従来と同一。
-            bool tierSplit = _player.Coef.NeedTierSplit > 0;
-            double othNeed = nTot - (tierSplit ? 0 : fNeed), othMet = nMet - (tierSplit ? 0 : fMet);
+            // ★階層3分割（作者裁定2026-09-20・2026-09-22 既定化）＝満足度の台帳（NeedMet/NeedTotal）には食料が載っていない＝台帳そのものが「主食以外」。
+            //   ⚠旧の引き算（nTot−fNeed／nMet−fMet）は分子と分母で別の規則（重み付き台帳−重みなしの食料）だった＝分割後に引くと分子が負になる。
+            double othNeed = nTot, othMet = nMet;
             double othFill = othNeed > 1e-9 ? System.Math.Clamp(othMet / othNeed, 0, 1) : 1.0;
             string satTip = $"主食の充足:{foodFill:P0}\n主食以外の充足:{othFill:P0}";
             // ★増減の向き（作者指示2026-08-16(2)(3)）：四半期境界でのみ確定（StampPopDelta・GameViewModel.Pop.cs）＝規模と失業者で同じ物差し。
