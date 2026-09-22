@@ -390,4 +390,105 @@ public class FiscalTests
         new BondLedger().Check(sim2.Nations[0].World);
         sim2.StepQuarter();   // 読み込んだ世界が月次の検査を通って進む（セーブ破れでない）
     }
+
+    // =====================================================================================================
+    // ★国境をまたぐ金の両建て（2026-09-22）の番人。国ごとの保存（MoneyConservation）は「流出を記帳した国」だけを見る＝
+    //   受け取る国が無くても割れない。ここは**世界の和**と**受け手ごとの額**を直接叩く。
+    // =====================================================================================================
+
+    /// <summary>英・仏・普で、国際金融の外債以外の流れ（外資の逃避・配当・新規の資本移動・国内資本の逃避）を止めた盤面。
+    /// 開始盤面の繰上げを1回済ませる（PrevForeignDebt＝ForeignDebt・元利の管は空）。</summary>
+    private static (MultiNationSim sim, Coefficients coef) QuietBondWorld()
+    {
+        var coef = new Coefficients { CapitalFlightRate = 0, CapitalDividendRate = 0, CapitalDemandScale = 0, CapitalDomesticFlightRate = 0 };
+        var sim = new MultiNationSim([NationConfig.Britain(), NationConfig.France(), NationConfig.Prussia()], 1789, _ => new NullAgent(), coef) { DiplomacyFrozen = true };
+        CapitalMarket.Step(sim.Nations, coef);
+        return (sim, coef);
+    }
+
+    private static double MintedAndFiat(World[] ws) { double s = 0; foreach (var w in ws) s += w.CumulativeGoldMinted + w.CumulativeFiatIssued; return s; }
+    private static double WorldBase(World[] ws) { double s = 0; foreach (var w in ws) s += w.BaseMoney; return s; }
+
+    [Fact]
+    public void 外債の元本_償還は減らした債権の比で債権国へ届き世界の貨幣は変わらない()
+    {
+        var (sim, coef) = QuietBondWorld();
+        var br = sim.Nations[0].World; var fr = sim.Nations[1].World; var pr = sim.Nations[2].World;
+        var all = new[] { br, fr, pr };
+        Assert.True(fr.GovDebt > 0, "前提が崩れた：仏に初期国債がない");
+        foreach (var w in all) Assert.Equal(0.0, w.ForeignBondClaims);   // 開始盤面に対外債権は無い＝下で振り替えた分だけが債権
+        // 仏の最大の持ち手の保有を英へ3・普へ1の比で国外へ振り替える（越境移民・割譲と同じ経路）＝英と普が仏の外債の債権国になる
+        Pop cap = fr.Regions[0].Pops[0];
+        foreach (var r in fr.Regions) foreach (var p in r.Pops) if (p.BondHoldings > cap.BondHoldings) cap = p;
+        double h = cap.BondHoldings;
+        Assert.True(h > 0, "前提が崩れた：仏の国債に持ち手がいない");
+        Fiscal.ExportBondHoldings(cap, 0.6 * h, fr, br);
+        Fiscal.ExportBondHoldings(cap, 0.2 * h, fr, pr);
+        new BondLedger().Check(fr);
+        // 仏の財政を静める（歳入・維持費・福祉が0＝国庫の出入りは減債だけ）＋利子0（元本だけを見る）＋余剰の全額で減債
+        fr.TaxRate = 0; fr.PollTax = 0; fr.LandTax = 0; fr.ProgressiveTax = 0;
+        fr.BaseCoercion = 0; fr.Coef.AdminCostPerPop = 0; fr.SocialSecurity = 0; fr.Pension = ReformLevel.None;
+        fr.GovBondRate = 0; fr.GovAvgCoupon = 0; fr.Coef.BondRepayFrac = 1.0;
+        var guards = Array.ConvertAll(all, w => new MoneyConservation(w));
+        var base0 = Array.ConvertAll(all, w => w.BaseMoney);
+        double world0 = WorldBase(all), mint0 = MintedAndFiat(all);
+        double cBr0 = br.ForeignBondClaims, cPr0 = pr.ForeignBondClaims, fd0 = fr.ForeignDebt;
+
+        Fiscal.Step(fr, fr.Coef);                  // 仏が減債する（国内分は保有比で国内の持ち手へ・対外分は国外へ）
+        double principal = fd0 - fr.ForeignDebt;
+        Assert.True(principal > 0, $"前提が崩れた：対外の元本が償還されていない（国庫 {fr.Treasury}）");
+        CapitalMarket.Step(sim.Nations, coef);     // 四半期末の国際金融＝債権の繰上げと元利の配当
+
+        double tol = 1e-9 * Math.Max(1.0, principal);
+        double gotBr = br.BaseMoney - base0[0], gotPr = pr.BaseMoney - base0[2];
+        // (a) 償還した対外の元本は債権国に同額届く＝仏の減りと債権国の増えが相殺し、世界の基礎貨幣は鋳造・不換の台帳ぶんしか動かない
+        Assert.True(Math.Abs(gotBr + gotPr - principal) <= tol, $"債権国に届いた額 {gotBr + gotPr} ≠ 償還した対外の元本 {principal}（届かない分が世界から消えている）");
+        Assert.True(Math.Abs(fr.BaseMoney - base0[1] + principal) <= tol, $"仏の基礎貨幣の減り {base0[1] - fr.BaseMoney} ≠ 対外の元本 {principal}");
+        double worldDrift = (WorldBase(all) - world0) - (MintedAndFiat(all) - mint0);
+        Assert.True(Math.Abs(worldDrift) <= 1e-9 * Math.Max(1.0, world0), $"世界の基礎貨幣が台帳の外で {worldDrift} 動いた");
+        // (b) 債権国が複数なら、減らした債権の比で配られる＝各債権国の受け取り＝その国の債権の減り（3:1）
+        Assert.True(Math.Abs(gotBr - (cBr0 - br.ForeignBondClaims)) <= tol, $"英の受け取り {gotBr} ≠ 英の債権の減り {cBr0 - br.ForeignBondClaims}");
+        Assert.True(Math.Abs(gotPr - (cPr0 - pr.ForeignBondClaims)) <= tol, $"普の受け取り {gotPr} ≠ 普の債権の減り {cPr0 - pr.ForeignBondClaims}");
+        Assert.True(Math.Abs(gotBr - 3 * gotPr) <= tol, $"受け取りが債権の比 3:1 でない（英 {gotBr} / 普 {gotPr}）");
+        for (int i = 0; i < all.Length; i++) guards[i].Check(all[i]);   // 各国の保存も閉じたまま（債権国は流入を記帳している）
+        new BondLedger().Check(fr);
+    }
+
+    [Theory]
+    [InlineData(0.0)]
+    [InlineData(1.0)]
+    public void 国内資本の逃避_逃げた金は受け皿の国へ届き世界の貨幣は変わらない(double hasHost)
+    {
+        // 対外元本と同じ形の片側記帳だった（CapitalMarket の国内資本の逃避＝流出を記帳するだけで受け手が無い）。
+        // 国際金融の逃避以外の流れを止め、仏だけを切り下げ常習（不信0.5）にする。
+        var coef = new Coefficients { CapitalFlightRate = 0, CapitalDividendRate = 0, CapitalDemandScale = 0, ForeignBondCounterparty = 0, DomesticFlightHasHost = hasHost };
+        var sim = new MultiNationSim([NationConfig.Britain(), NationConfig.France(), NationConfig.Prussia()], 1789, _ => new NullAgent(), coef) { DiplomacyFrozen = true };
+        var br = sim.Nations[0].World; var fr = sim.Nations[1].World; var pr = sim.Nations[2].World;
+        var all = new[] { br, fr, pr };
+        foreach (var w in all) Assert.True(w.NominalGdp > 0, $"前提が崩れた：{w.Region.Name} の名目GDPが立っていない");
+        fr.CumulativeDevaluation = fr.NominalGdp * (coef.CapitalFlightDistrustThreshold + 0.5);
+        var guards = Array.ConvertAll(all, w => new MoneyConservation(w));
+        var base0 = Array.ConvertAll(all, w => w.BaseMoney);
+        var fci0 = Array.ConvertAll(all, w => w.ForeignCapitalIn);
+        double world0 = WorldBase(all), mint0 = MintedAndFiat(all), abroad0 = fr.CapitalAbroad;
+
+        CapitalMarket.Step(sim.Nations, coef);
+
+        double fled = fr.CapitalAbroad - abroad0;
+        Assert.True(fled > 0, "前提が崩れた：仏の資本が逃げていない");
+        double tol = 1e-9 * Math.Max(1.0, fled);
+        double gotBr = br.BaseMoney - base0[0], gotPr = pr.BaseMoney - base0[2];
+        Assert.True(Math.Abs(fr.BaseMoney - base0[1] + fled) <= tol, $"仏の基礎貨幣の減り {base0[1] - fr.BaseMoney} ≠ 逃げた額 {fled}");
+        Assert.True(Math.Abs(gotBr + gotPr - fled) <= tol, $"受け皿の国に届いた額 {gotBr + gotPr} ≠ 逃げた額 {fled}（届かない分が世界から消えている）");
+        double worldDrift = (WorldBase(all) - world0) - (MintedAndFiat(all) - mint0);
+        Assert.True(Math.Abs(worldDrift) <= 1e-9 * Math.Max(1.0, world0), $"世界の基礎貨幣が台帳の外で {worldDrift} 動いた");
+        // 受け皿の按分＝自国以外の信用×名目GDP（CreditRating は同じ Step の信用の写し）
+        double wBr = br.CreditRating * br.NominalGdp, wPr = pr.CreditRating * pr.NominalGdp;
+        Assert.True(Math.Abs(gotBr - fled * wBr / (wBr + wPr)) <= tol, $"英の受け取り {gotBr} が信用×名目GDPの比 {fled * wBr / (wBr + wPr)} でない");
+        // 負債の記帳は DomesticFlightHasHost だけが受け持つ：0＝どの国の外資負債も動かない／1＝受け皿の外資負債＝届いた金
+        Assert.Equal(fci0[1], fr.ForeignCapitalIn);
+        Assert.True(Math.Abs(br.ForeignCapitalIn - fci0[0] - hasHost * gotBr) <= tol, $"英の外資負債の増え {br.ForeignCapitalIn - fci0[0]}（受け取り {gotBr}・DomesticFlightHasHost={hasHost}）");
+        Assert.True(Math.Abs(pr.ForeignCapitalIn - fci0[2] - hasHost * gotPr) <= tol, $"普の外資負債の増え {pr.ForeignCapitalIn - fci0[2]}（受け取り {gotPr}・DomesticFlightHasHost={hasHost}）");
+        for (int i = 0; i < all.Length; i++) guards[i].Check(all[i]);
+    }
 }

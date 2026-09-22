@@ -118,28 +118,34 @@ public static class CapitalMarket
             // 資金逃避（07_再設計 §5(b)＝B3自己成就期待の第2形・2026-07-31）：**外資の引き上げだけでなく、自国の資本家も逃げる**。
             // 引き金＝国債への不信（累積切り下げ／名目GDP＝Fiscal の distrust と同じ物差し）。逃げた金は対外資産（CapitalAbroad）へ移り、
             // 国内の投資原資が痩せる＝「信認を失った国は自国の資本にも見捨てられる」。★自己成就＝逃避→通貨/信認↓→さらに逃避。
-            // 保存＝国内popから引いた額をそのまま CapitalAbroad へ積む（世界の総量は不変）。CapitalDomesticFlightRate=0 で厳密恒等。
+            // 保存＝国内popから引いた額を受け皿の国の投資家へ渡す（下の★2026-09-22）。CapitalDomesticFlightRate=0 で厳密恒等。
             if (c.CapitalDomesticFlightRate > 0 && w[i].NominalGdp > 1e-9)
             {
                 double distrust = System.Math.Clamp(w[i].CumulativeDevaluation / w[i].NominalGdp - c.CapitalFlightDistrustThreshold, 0, 1);
+                // ★★逃避先の実在化（2026-08-14・外交観測が照らした会計非対称）：旧＝CapitalAbroad だけ増やし
+                //   **相手国の ForeignCapitalIn をどこにも増やさない**＝世界のΣ対外純資産が正へ膨張し続け、
+                //   慢性不信の国（清）が幻の対外資産79×GDPを積んで**他国の実物FDIの配当プールを吸い上げていた**
+                //   （還流は CapitalAbroad 比で分配されるため）。
+                //   1で逃避金の受け皿＝自国以外の最も信用の高い国の ForeignCapitalIn へ（credで加重・国名なし＝
+                //   「資本はロンドンへ逃げる」が信用の分布から創発）。0＝負債は立たない（旧挙動）。
+                // ★逃げた**金**の両建て（2026-09-22）：旧＝TakeGold で流出を記帳するだけで、どの国にも金が入らず世界から消えていた
+                //   （国ごとの保存は閉じる＝計器に掛からない片側記帳。対外元本の償還と同じ形）。旧注記の「保存則は移転なので破れず」は誤りだった。
+                //   受け皿は上と同じ「自国以外の信用×名目GDP」の按分＝逃げた金はその国の投資家の預金になる（GiveGold＝外資の流入と同じ入口）。
+                //   受け皿が無い（他国の信用×GDPが0）なら逃げない。DomesticFlightHasHost は負債（ForeignCapitalIn）の記帳だけを受け持つ。
+                double credSum = 0;
                 if (distrust > 0)
+                    for (int h = 0; h < n; h++) if (h != i) credSum += cred[h] * System.Math.Max(0, w[h].NominalGdp);
+                if (credSum > 1e-9)
                 {
                     double want = c.CapitalDomesticFlightRate * distrust * InvestorSavings(w[i]);
                     double got = TakeGold(w[i], want, fromInvestors: true);
                     w[i].CapitalAbroad += got;   // 逃げた金は対外資産＝還流ループ（配当・逃避の按分）に乗る
-                    // ★★逃避先の実在化（2026-08-14・外交観測が照らした会計非対称）：旧＝CapitalAbroad だけ増やし
-                    //   **相手国の ForeignCapitalIn をどこにも増やさない**＝世界のΣ対外純資産が正へ膨張し続け、
-                    //   慢性不信の国（清）が幻の対外資産79×GDPを積んで**他国の実物FDIの配当プールを吸い上げていた**
-                    //   （還流は CapitalAbroad 比で分配されるため）。保存則は移転なので破れず、今まで捕まらなかった。
-                    //   1で逃避金の受け皿＝自国以外の最も信用の高い国の ForeignCapitalIn へ（credで加重・国名なし＝
-                    //   「資本はロンドンへ逃げる」が信用の分布から創発）。0＝旧挙動と厳密恒等。
-                    if (c.DomesticFlightHasHost > 0 && got > 1e-9)
+                    for (int h = 0; h < n; h++)
                     {
-                        double credSum = 0;
-                        for (int h = 0; h < n; h++) if (h != i) credSum += cred[h] * System.Math.Max(0, w[h].NominalGdp);
-                        if (credSum > 1e-9)
-                            for (int h = 0; h < n; h++)
-                                if (h != i) w[h].ForeignCapitalIn += got * (cred[h] * System.Math.Max(0, w[h].NominalGdp) / credSum);
+                        if (h == i) continue;
+                        double k = got * (cred[h] * System.Math.Max(0, w[h].NominalGdp) / credSum);
+                        GiveGold(w[h], k, toInvestors: true);
+                        if (c.DomesticFlightHasHost > 0) w[h].ForeignCapitalIn += k;
                     }
                 }
             }
@@ -219,8 +225,10 @@ public static class CapitalMarket
                         w[j].ForeignBondClaims = System.Math.Max(0, w[j].ForeignBondClaims + delta * (w[j].ForeignBondClaims / worldClaims));
                 }
             }
-            // (2) 利払いの配当：債務国が今四半期に払った対外利子（Fiscalで既に対外流出として記帳済み）を、
+            // (2) 元利の配当：債務国が今四半期に払った対外の利子と**元本**（Fiscalで既に対外流出として記帳済み）を、
             //     債権シェア比で債権国の投資家へGiveGold＝世界で金が閉じる（債権ゼロの初期は投資家貯蓄比で退避＝当期から閉鎖）。
+            //     ★元本（2026-09-22）：旧＝(1) で債権を減らすだけで元本の金はどこにも届かなかった。(1) の減額は各国の債権に比例する＝
+            //       減額後の債権の比は減らした債権の比と同じ＝元本は「減らした債権の比」で返る（同じ四半期の新規引受の按分近似は利子と共通）。
             if (intPool > 1e-9)
             {
                 double claims = 0; for (int i = 0; i < n; i++) claims += w[i].ForeignBondClaims;

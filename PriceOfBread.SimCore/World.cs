@@ -793,7 +793,7 @@ public sealed class World
     public double FamineMemory { get; internal set; }   // 機能8-④（2026-07-28）：飢えの記憶ストック（毎期 減衰+max(0,飢饉基準−FoodFill)）。r[3]/r[5]の燃料＝飢饉は過ぎても急進思想として残る（1789）
     public double ForeignBondClaims { get; internal set; }        // 02断線走査（2026-07-28）：対外債権残高＝自国投資家が持つ他国外債の元本（CapitalMarketが四半期繰上げ・利払い配当の按分キー）。レンティア帝国（シティ/パリ）の物質的基盤
     public double PrevForeignDebt { get; internal set; }           // 02断線走査：前四半期のForeignDebt（Δ＝新規/償還の検出用・CapitalMarketが更新）
-    public double ForeignIntPaidThisQuarter { get; internal set; } // 02断線走査：この四半期に払った対外利子の累計（Fiscalが月次加算・CapitalMarketが配当して0クリア）
+    public double ForeignIntPaidThisQuarter { get; internal set; } // 02断線走査：この四半期に払った対外の利子と元本（元本は2026-09-22〜）の累計（Fiscalが月次加算・CapitalMarketが債権国へ配当して0クリア）。⚠名前は利子だけ＝セーブの名前表の互換のため据え置き
     public Polity CivilWarTarget { get; internal set; }  // 内戦で反乱側が勝った場合の目標政体
     public bool HadCivilWar { get; internal set; }       // 内戦を経験したか（テレメトリ）
     // 貿易テレメトリ§3-4（2026-07-24）：国別×財別の輸出入額（世界価格建て・四半期決済ごとに InternationalMarket.Step が再設定）。

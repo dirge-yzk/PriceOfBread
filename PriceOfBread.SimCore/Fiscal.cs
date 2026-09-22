@@ -464,7 +464,12 @@ public static class Fiscal
             //   減らす額＝国内元本の実減（GovDebt−ForeignDebt の差分）＝台帳と元本が同じ量で動く。持ち手不在＝国庫残置（債権者の消えた国内債は実質帳消し・保存）。
             double back = PayBondHolders(pops, Math.Max(0, repay - frForeign), domBefore - (w.GovDebt - w.ForeignDebt));
             if (back > 0) w.Pay(TreasuryCat.DebtRepay, back);
+            // ★対外の元本も利子と同じ管で債権国へ（2026-09-22）：旧＝ここで流出を記帳するだけで、CapitalMarket は債権（ForeignBondClaims）を
+            //   減らすだけ＝**どの貸し手にも金が届かず世界から消えていた**（国ごとの保存は閉じるので計器に掛からない片側記帳。
+            //   seed1789・604四半期で 467,565）。利払い（上の foreignInt）と貸付（MultiNationSim の貸し手の引き落とし）は両建てだった。
+            //   CapitalMarket が四半期末に、減らした債権と同じ比（＝債権の比）で債権国の投資家へ GiveGold する。
             w.CumulativeTradeFlow -= frForeign;
+            w.ForeignIntPaidThisQuarter += frForeign;
             // 借金ボタンのスタックを返済分だけ減らす（1スタック＝GDP×割合相当）。返せた分だけ出費上限が回復＝のべくりの解除。
             double loanUnit = Math.Max(1e-9, Math.Max(0, w.Gdp) * c.BorrowFractionOfGdp);
             w.BorrowStacks = Math.Max(0, w.BorrowStacks - repay / loanUnit);
