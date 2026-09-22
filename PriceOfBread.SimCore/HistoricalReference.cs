@@ -45,7 +45,11 @@ public sealed record HistoricalEntry(
     // ★E-08 多断面（作者提案2026-09-04）：Maddison の基準年 1820／1870 の政体（許容集合）と世界GDP順位。null＝その断面では採点しない。
     //   主指標（◎7割帯・exact/near）は1913のまま＝既存基線を壊さない。これらは併記の列。
     Polity[]? Exact1820 = null, Polity[]? Exact1870 = null, int? GdpRank1820 = null, int? GdpRank1870 = null,
-    Polity[]? Exact1920 = null);   // ★E-09 WW1の帰結＝1920年12月の政体（帝政4つの消滅・新共和国・ソヴィエト） // 領土（植民地）：1914年の植民地の数。★**場所でなく規模で測る**（作者裁定）＝±ColonyCountTolerance の相対幅
+    Polity[]? Exact1920 = null,   // ★E-09 WW1の帰結＝1920年12月の政体（帝政4つの消滅・新共和国・ソヴィエト） // 領土（植民地）：1914年の植民地の数。★**場所でなく規模で測る**（作者裁定）＝±ColonyCountTolerance の相対幅
+    // ★1950断面（作者裁定2026-09-21・Q668＝1950年1月1日＝終局）：政体の exact/near と従属の許容。照合の規則は主指標（1914）と同じ1本（PolityMatch）。
+    //   SuzerainsOk1950＝null なら従属は数えない／非null なら「従属かつ宗主が集合内」を exact・「任意の宗主に従属」を near（主指標の SubjugatedOk＋SuzerainsOk と同型）。
+    //   1950年に主権を持たない国（併合・植民地・分割）は主指標と同じく「その地の1950年の統治形」を Exact に置く（例：伊の旧諸邦＝伊共和国の共和制）。
+    Polity[]? Exact1950 = null, Polity[]? Near1950 = null, string[]? SuzerainsOk1950 = null);
 
 /// <summary>1国の史実忠実度（バッチ集計）。Exact/Near＝完走シードに占める一致率。LawMatch＝定義済み法軸×シードの一致率（軸なしは NaN）。</summary>
 public sealed record NationFidelity(
@@ -67,7 +71,8 @@ public sealed record NationFidelity(
     double PopGrowthGrossMean = 0,
     // ★E-08 多断面：1820／1870 断面の政体一致率とGDP順位一致率（NaN＝未定義／断面なし）
     double Exact1820 = double.NaN, double Exact1870 = double.NaN, double Econ1820 = double.NaN, double Econ1870 = double.NaN,
-    double Exact1920 = double.NaN);   // ★E-09   // 案Y（2026-08-21）：旧定義（総人口比＝征服インフレ込み）の平均倍率＝人口物差し切替の橋（判定には使わない・診断印字のみ）
+    double Exact1920 = double.NaN,   // ★E-09   // 案Y（2026-08-21）：旧定義（総人口比＝征服インフレ込み）の平均倍率＝人口物差し切替の橋（判定には使わない・診断印字のみ）
+    double Exact1950 = double.NaN, double Near1950 = double.NaN);   // ★1950断面（2026-09-21）：政体の exact/near 一致率（NaN＝断面なし）
 
 public static class HistoricalReference
 {
@@ -164,7 +169,8 @@ public static class HistoricalReference
     }
 
     /// <summary>バッチ集計：完走試合の standings を国別に照合し忠実度を返す（表の順＝world.json の国順）。
-    /// 1934延長（2026-07-19裁定）後は Q524（1914年12月）断面 StandingsAt1914 を優先＝物差しは1914固定・戦間期は自由歴史。
+    /// 1934延長（2026-07-19裁定）後は Q524（1914年1月1日）断面 StandingsAt1914 を優先＝主指標の物差しは1914固定。
+    /// 併記の断面＝1820/1870（政体＋GDP順位）・1920（政体）・1950（政体の exact/near＋従属・Q668＝終局）。いずれも主指標へ合算しない。
     /// 照合は NationStanding.Nation（無ければ首都名へフォールバック＝旧データ互換）。決定論＝入力順のみに依存。</summary>
     public static IReadOnlyList<NationFidelity> Evaluate(IReadOnlyList<MatchResult> completed)
     {
@@ -184,23 +190,23 @@ public static class HistoricalReference
             double tradeRef = 0;
             int ex1820Ok = 0, ex1820N = 0, ex1870Ok = 0, ex1870N = 0, ec1820Ok = 0, ec1820N = 0, ec1870Ok = 0, ec1870N = 0;   // ★E-08 断面の計数
             int ex1920Ok = 0, ex1920N = 0, ecDummyOk = 0, ecDummyN = 0;   // ★E-09（経済は採点しない＝ダミーの計数）
+            int ex1950Ok = 0, nr1950Ok = 0, ex1950N = 0;                  // ★1950断面（政体の exact/near・従属込み）
             foreach (var (tn, op) in TradeOpenness1913) if (tn == e.Nation) { tradeRef = op; break; }
+            NationStanding? Find(IReadOnlyList<NationStanding> sec)   // 照合キー＝Nation（無ければ首都名＝旧データ互換）。主指標と全断面で同じ1本
+            {
+                foreach (var st in sec) if (st.Nation == e.Nation || (st.Nation.Length == 0 && st.Name == e.Capital)) return st;
+                return null;
+            }
             foreach (var r in completed)
             {
-                var stands = r.StandingsAt1914 ?? r.Standings;   // 1934延長2026-07-19：照合はQ524（1914年12月）断面。524以下の走行は最終値＝従来互換
-                NationStanding? s = null;
+                var stands = r.StandingsAt1914 ?? r.Standings;   // 1934延長2026-07-19：照合はQ524（1914年1月1日）断面。524以下の走行は最終値＝従来互換
                 int rank = 0;   // 列強軸：スコア降順の順位（1始まり）。同点は Score の大小のみで数える＝入力順に依存しない決定論
-                foreach (var st in stands)
-                    if (st.Nation == e.Nation || (st.Nation.Length == 0 && st.Name == e.Capital)) { s = st; break; }
-                if (s is null) continue;
+                if (Find(stands) is not { } s) continue;
                 seeds++;
                 // ★E-08 多断面（2026-09-05）：1820／1870 の断面があれば、その時点の導出政体とGDP順位を照合（主指標には合算しない）
                 void Section(IReadOnlyList<NationStanding>? sec, Polity[]? okPol, int? okRank, ref int exOk, ref int exN, ref int ecOk, ref int ecN)
                 {
-                    if (sec is null) return;
-                    NationStanding? s2 = null;
-                    foreach (var st in sec) if (st.Nation == e.Nation || (st.Nation.Length == 0 && st.Name == e.Capital)) { s2 = st; break; }
-                    if (s2 is null) return;
+                    if (sec is null || Find(sec) is not { } s2) return;
                     if (okPol is not null) { exN++; if (System.Array.IndexOf(okPol, s2.DerivedPolity) >= 0) exOk++; }
                     if (okRank is { } orank)
                     {
@@ -211,6 +217,14 @@ public static class HistoricalReference
                 Section(r.StandingsAt1820, e.Exact1820, e.GdpRank1820, ref ex1820Ok, ref ex1820N, ref ec1820Ok, ref ec1820N);
                 Section(r.StandingsAt1870, e.Exact1870, e.GdpRank1870, ref ex1870Ok, ref ex1870N, ref ec1870Ok, ref ec1870N);
                 Section(r.StandingsAt1920, e.Exact1920, null, ref ex1920Ok, ref ex1920N, ref ecDummyOk, ref ecDummyN);   // ★E-09
+                // ★1950断面（2026-09-21）：主指標と同じ照合規則（従属の許容つき）で exact/near を数える（主指標には合算しない）
+                if (r.StandingsAt1950 is { } sec50 && e.Exact1950 is { } ok50 && Find(sec50) is { } s50)
+                {
+                    var (x50, n50) = PolityMatch(s50.DerivedPolity, s50.Suzerain, ok50, e.Near1950, e.SuzerainsOk1950 is not null, e.SuzerainsOk1950);
+                    ex1950N++;
+                    if (x50) ex1950Ok++;
+                    if (n50) nr1950Ok++;
+                }
                 if (e.GreatPowerOk is { } gp)
                 {
                     rank = 1;
@@ -221,16 +235,14 @@ public static class HistoricalReference
                 // 主権軸：史実が従属（併合/保護国/属国）の国は、従属で終局していれば政体に関わらず一致（マイソールが英属国＝史実そのもの）。
                 // 宗主同一性（監査2026-07-12 リ12）：exact＝史実の宗主（SuzerainsOk）に従属／near＝任意の宗主に従属＝「誰が奪ったか」の地理まで測る。
                 // 属国離反の実働（2026-07-12）で宗主の入れ替わりが日常になったため、従属の有無だけの旧判定では勢力圏形成の忠実度が測れない。
-                bool subjugated = e.SubjugatedOk && s.Suzerain.Length > 0;
-                bool suzerainOk = e.SuzerainsOk is null || System.Array.IndexOf(e.SuzerainsOk, s.Suzerain) >= 0;
                 // ★★政体の照合を**導出政体**へ切り替え（2026-08-21・作者裁定「切り替えでよい」）。
                 //   旧＝法と遷移で決まるラベル s.Polity ／ 新＝権力シェアからの読み出し s.DerivedPolity（PowerAffinity.PolityFromShares）。
                 //   ★切替の根拠（実測）＝一致率75〜94%・不一致4件中3件は導出が史実に近い（英1815/清/西1900の「軍事独裁」ラベルは
                 //     いずれも誤りで、導出は正しく議会/王権になる）。⚠旧基準の exact は labelExact として**同走で併記**＝過去測定との橋。
-                bool isExact = (subjugated && suzerainOk) || System.Array.IndexOf(e.Exact, s.DerivedPolity) >= 0;
+                var (isExact, isNear) = PolityMatch(s.DerivedPolity, s.Suzerain, e.Exact, e.Near, e.SubjugatedOk, e.SuzerainsOk);
                 if (isExact) exact++;
-                if (isExact || subjugated || System.Array.IndexOf(e.Near, s.DerivedPolity) >= 0) near++;
-                if ((subjugated && suzerainOk) || System.Array.IndexOf(e.Exact, s.Polity) >= 0) labelExact++;
+                if (isNear) near++;
+                if (PolityMatch(s.Polity, s.Suzerain, e.Exact, e.Near, e.SubjugatedOk, e.SuzerainsOk).Exact) labelExact++;
                 var (m, a) = LawScore(e, s);
                 lawOk += m; lawTot += a;
                 // B-中7：人口成長倍率。帯が未定義／初期人口不明（PopGrowth=0＝建国スポーン等）は測らない。
@@ -297,9 +309,19 @@ public static class HistoricalReference
                 popSeeds > 0 ? popGrossSum / popSeeds : 0,                  // 案Y：旧定義（征服インフレ込み）の平均倍率（併走・診断用）
                 Exact1820: ex1820N > 0 ? (double)ex1820Ok / ex1820N : double.NaN, Exact1870: ex1870N > 0 ? (double)ex1870Ok / ex1870N : double.NaN,   // ★E-08
                 Econ1820: ec1820N > 0 ? (double)ec1820Ok / ec1820N : double.NaN, Econ1870: ec1870N > 0 ? (double)ec1870Ok / ec1870N : double.NaN,
-                Exact1920: ex1920N > 0 ? (double)ex1920Ok / ex1920N : double.NaN));   // ★E-09
+                Exact1920: ex1920N > 0 ? (double)ex1920Ok / ex1920N : double.NaN,   // ★E-09
+                Exact1950: ex1950N > 0 ? (double)ex1950Ok / ex1950N : double.NaN, Near1950: ex1950N > 0 ? (double)nr1950Ok / ex1950N : double.NaN));   // ★1950断面
         }
         return list;
+    }
+
+    /// <summary>1国×1断面の政体照合（主指標と1950断面が共有する1本の規則）。主権軸（裁定2・2026-07-10）＋宗主同一性（監査2026-07-12 リ12）：
+    /// exact＝史実の政体、または従属かつ宗主が許容集合内（集合が null なら宗主不問）／near＝exact ∪ 近い政体 ∪ 任意の宗主に従属。</summary>
+    public static (bool Exact, bool Near) PolityMatch(Polity polity, string suzerain, Polity[] exact, Polity[]? near, bool subjugatedOk, string[]? suzerainsOk)
+    {
+        bool subjugated = subjugatedOk && suzerain.Length > 0;
+        bool isExact = (subjugated && (suzerainsOk is null || System.Array.IndexOf(suzerainsOk, suzerain) >= 0)) || System.Array.IndexOf(exact, polity) >= 0;
+        return (isExact, isExact || subjugated || (near is not null && System.Array.IndexOf(near, polity) >= 0));
     }
 
     // ★貿易開放度の参照（2026-08-15・作者承認「テスト速度に影響しないなら追加」）：1913年の(輸出+輸入)/GDP＝第一次グローバリゼーションの物差し。
@@ -317,9 +339,12 @@ public static class HistoricalReference
     //       BD=BourgeoisDictatorship PD=ProletarianDictatorship MD=MilitaryDictatorship
     // 主権喪失国（併合・保護国化＝印度諸邦/ポーランド/伊独小邦/中央アジア等）：ゲームは国を消さないため、
     // 政体軸は「存続した場合に史実の系が示した統治形」を Exact とし、真の史実（併合/属国化）は外交ログ（属国・州移転・敗戦）の監査で扱う（Note に明記）。
+    // ★1950断面（2026-09-21裁定）は各行の2行目（Exact1950/Near1950/SuzerainsOk1950）＝根拠は行末の「// 1950：」。1950年1月1日の状態で置く
+    //   （インド自治領の共和制化1950/1/26・トルコの政権交代1950/5 のように年内に変わる国は両方を exact にする＝清1912の作法）。
     public static readonly HistoricalEntry[] Table =
     [
         new("フランス", "パリ", [Polity.Republic], [Polity.BourgeoisDictatorship, Polity.ConstitutionalMonarchy],
+            Exact1950: [Polity.Republic], Near1950: [Polity.BourgeoisDictatorship],   // 1950：第四共和政（1946憲法・議会制共和）。近い＝ド・ゴール派の強い執行権志向（ブル独裁）
             SuffrageOk: [Suffrage.AdultMale, Suffrage.Universal], EducationOk: [EducationLaw.Compulsory], SerfOk: [ReformLevel.Full],
             CornLawsOk: [ReformLevel.Limited, ReformLevel.Full], LandReformOk: [ReformLevel.Full, ReformLevel.Limited],
             Note: "第三共和政。男子普選1848・フェリー義務教育1882・封建的負担は1789廃止。近い＝ブル独裁（ボナパルティズム）/立憲（オルレアン系）",
@@ -327,6 +352,7 @@ public static class HistoricalReference
             GreatPowerOk: true,          // 列強軸2026-07-27：1783も1914も列強（普仏戦争の敗北を挟んでも地位は失わない）
             Exact1920: [Polity.Republic], Exact1820: [Polity.ConstitutionalMonarchy], Exact1870: [Polity.Republic], GdpRank1820: 5, GdpRank1870: 6, GdpRank1913: 7, HomeProvinces1914: 7, ColonyProvinces1914: 10),   // 08の6次元2026-07-31：Maddison1913の総GDP順位7位／本土7州（アルザス喪失を除けば1914も本土保持＝領土安定国）
         new("日本", "江戸", [Polity.ConstitutionalMonarchy], [Polity.Despotic],
+            Exact1950: [Polity.ConstitutionalMonarchy], Near1950: [Polity.Republic], SuzerainsOk1950: ["アメリカ"],   // 1950：1947憲法＝象徴天皇の議会制立憲君主制。1952年4月まで米の占領（SCAP）＝米への従属もexact。近い＝君主が象徴に退いた議会制（共和）
             SuffrageOk: [Suffrage.Census], EducationOk: [EducationLaw.Compulsory], SerfOk: [ReformLevel.Full, ReformLevel.Limited],
             LandReformOk: [ReformLevel.Full, ReformLevel.Limited],
             Note: "明治立憲制（1890帝国議会＝納税制限選挙・男子普選は1925＝枠外）。学制1872→義務教育。身分解放1871。近い＝有司専制（超然内閣の権威側読み）。幕府存続は「稀に残る」枠＝nearに数えない",
@@ -334,6 +360,7 @@ public static class HistoricalReference
             GreatPowerOk: true,        // 列強軸2026-07-27：日露戦争1905の勝利で列強入り＝1783は非列強だが1914は列強（台頭の代表例）
             Exact1920: [Polity.ConstitutionalMonarchy], Exact1820: [Polity.Shogunate], Exact1870: [Polity.Absolutist], GdpRank1820: 8, GdpRank1870: 8, GdpRank1913: 10, HomeProvinces1914: 7, ColonyProvinces1914: 1),   // 08の6次元2026-07-31：Maddison1913の総GDP順位は10位前後／本土7州（1914も保持＝領土安定国）
         new("イギリス", "ロンドン", [Polity.ConstitutionalMonarchy], [Polity.Republic],
+            Exact1950: [Polity.ConstitutionalMonarchy], Near1950: [Polity.Republic],   // 1950：議会主権の立憲王政（アトリー労働党内閣）。近い＝共和（1914表と同じ）
             SuffrageOk: [Suffrage.Census, Suffrage.AdultMale], EducationOk: [EducationLaw.Compulsory, EducationLaw.Public],
             SerfOk: [ReformLevel.Full], CornLawsOk: [ReformLevel.None],
             LandReformOk: [ReformLevel.None],
@@ -342,163 +369,221 @@ public static class HistoricalReference
             GreatPowerOk: true,        // 列強軸2026-07-27：全期間を通じ列強（1783は米独立直後の敗戦国だが即座に回復し以後は覇権）。**実測 seed1 で49位＝この軸を追加した直接の動機**
             Exact1920: [Polity.ConstitutionalMonarchy], Exact1820: [Polity.ConstitutionalMonarchy], Exact1870: [Polity.ConstitutionalMonarchy], GdpRank1820: 4, GdpRank1870: 2, GdpRank1913: 5, HomeProvinces1914: 5, ColonyProvinces1914: 21),   // 08：1913年は米独に抜かれて5位／本土5州（1914の連合王国＝安定）
         new("アメリカ", "ニューヨーク", [Polity.Republic], [Polity.BourgeoisDictatorship],
+            Exact1950: [Polity.Republic], Near1950: [Polity.BourgeoisDictatorship],   // 1950：連邦共和制（トルーマン）。近い＝ブル独裁（1914表と同じ）
             SuffrageOk: [Suffrage.AdultMale, Suffrage.Universal], EducationOk: [EducationLaw.Public, EducationLaw.Compulsory], MilitarismOk: false,   // 非軍国＝1914年も志願兵制（徴兵は1917参戦後）＋小さな常備軍＝軍国度は閾値未満のはず
             CornLawsOk: [ReformLevel.None], LandReformOk: [ReformLevel.None, ReformLevel.Limited],
             Note: "連邦共和制。白人男子普選は1850年代までに定着。公教育（州営コモンスクール）。常備軍小＝非軍国",
             GreatPowerOk: true, Exact1920: [Polity.Republic], Exact1820: [Polity.Republic], Exact1870: [Polity.Republic], GdpRank1820: 10, GdpRank1870: 3, GdpRank1913: 1, HomeProvinces1914: 3, ColonyProvinces1914: 2),   // 州数再導出2026-08-09：§13再配分でボストン→NY吸収＝開始州3（保持判定の分母を実州数へ・期待値再導出は許可済み）        // 列強軸2026-07-27：1914には世界最大の工業国＝列強（1783は辺境の新興国＝台頭の代表例）
         new("ロシア", "モスクワ", [Polity.Despotic], [Polity.Absolutist, Polity.ConstitutionalMonarchy],
+            Exact1950: [Polity.ProletarianDictatorship],   // 1950：ソ連＝共産党の一党独裁（スターリン）
             SuffrageOk: [Suffrage.None, Suffrage.Census], EducationOk: [EducationLaw.Religious, EducationLaw.Public], SerfOk: [ReformLevel.Full, ReformLevel.Limited],
             CornLawsOk: [ReformLevel.None], LandReformOk: [ReformLevel.None, ReformLevel.Limited],
             Note: "ツァーリ専制（官僚・軍による上からの統治）。1905十月詔書→ドゥーマ＝半立憲（near）。農奴解放1861（買戻金の残滓＝Limited許容）。ドゥーマ選挙は制限＝Census許容",
             GreatPowerOk: true, Exact1920: [Polity.ProletarianDictatorship], Exact1820: [Polity.Absolutist], Exact1870: [Polity.Absolutist], GdpRank1820: 3, GdpRank1870: 4, GdpRank1913: 4, HomeProvinces1914: 13, ColonyProvinces1914: 0),        // 列強軸2026-07-27：全期間を通じ列強（クリミア1856・日露1905の敗北を挟んでも地位は失わない＝人口と版図の慣性）
         new("プロイセン", "ベルリン", [Polity.ConstitutionalMonarchy], [Polity.Despotic, Polity.MilitaryDictatorship],
+            Exact1950: [Polity.Republic, Polity.ProletarianDictatorship], SuzerainsOk1950: ["アメリカ", "イギリス", "フランス", "ロシア"],   // 1950：普は1947解体・独は分断＝西独（1949基本法・議会制共和）と東独（1949・SED一党独裁・首都は東ベルリン）の両方をexact。西は占領規約（1949-55）・東はソ連管理委＝米英仏ソへの従属もexact
             SuffrageOk: [Suffrage.Census, Suffrage.AdultMale], EducationOk: [EducationLaw.Compulsory],
             PensionOk: [ReformLevel.Limited, ReformLevel.Full], MilitarismOk: true,   // 軍国＝一般兵役義務(1814)＋軍事予算＝軍国度が閾値以上のはず
             CornLawsOk: [ReformLevel.Limited, ReformLevel.Full], LandReformOk: [ReformLevel.None, ReformLevel.Limited],
             Note: "カイザーライヒ＝権威主義的立憲君主制（帝国議会＝男子普選/プロイセン三級選挙＝制限の二重制＝両許容）。義務教育の祖。ビスマルク年金1889＝世界初。軍国主義＝親軍",
             GreatPowerOk: true, Exact1920: [Polity.Republic], Exact1820: [Polity.Absolutist], Exact1870: [Polity.ConstitutionalMonarchy], GdpRank1820: 6, GdpRank1870: 5, GdpRank1913: 3, HomeProvinces1914: 4, ColonyProvinces1914: 3),        // 列強軸2026-07-27：1783は5位相当の列強、1871統一後は欧州最強の陸軍国＝1914も列強
         new("オスマン", "イスタンブール", [Polity.ConstitutionalMonarchy, Polity.MilitaryDictatorship], [Polity.Absolutist, Polity.Despotic],
+            Exact1950: [Polity.Republic, Polity.BourgeoisDictatorship], Near1950: [Polity.MilitaryDictatorship],   // 1950：トルコ共和国。1950年1月は共和人民党の一党優位（1946複数政党化・同年5月の選挙で民主党へ交代）＝共和とブル独裁（ケマル主義の一党体制）の両方をexact。近い＝軍の後見
             SuffrageOk: [Suffrage.None, Suffrage.Census], EducationOk: [EducationLaw.Religious, EducationLaw.Public],
             LandReformOk: [ReformLevel.None],
             Exact1920: [Polity.Absolutist, Polity.MilitaryDictatorship], Exact1820: [Polity.Absolutist], Exact1870: [Polity.Absolutist], GdpRank1820: 12, GdpRank1870: 11, Note: "1908青年トルコ革命＝立憲復活→1913クーデタ＝CUP三頭の軍事支配（名目スルタン）＝両方exact。近い＝ハミト専制の存続。タンジマート＝世俗学校の併存",
             HomeProvinces1914: 8, ColonyProvinces1914: 0, GreatPowerOk: false),
         new("オーストリア", "ウィーン", [Polity.ConstitutionalMonarchy], [Polity.Absolutist, Polity.Despotic],
+            Exact1950: [Polity.Republic], SuzerainsOk1950: ["アメリカ", "イギリス", "フランス", "ロシア"],   // 1950：第二共和政（1945）。1955国家条約まで米英仏ソの4国占領＝占領国への従属もexact
             SuffrageOk: [Suffrage.AdultMale, Suffrage.Census], EducationOk: [EducationLaw.Compulsory, EducationLaw.Public],
             CornLawsOk: [ReformLevel.Limited, ReformLevel.Full], LandReformOk: [ReformLevel.None],
             Note: "二重帝国＝立憲君主制。チスライタニア男子普選1907（ハンガリー側は制限＝Census併存）。帝国国民学校法1869＝義務教育",
             PopGrowthOk: (1.8, 2.6),    // 人口帯拡張2026-07-25：ハプスブルク圏1783約23M→1914約51M＝×2.2。領土は概ね安定。分離独立で州を失う世界線は帯を割る＝それ自体が忠実度の信号
             GreatPowerOk: true, Exact1920: [Polity.Republic], Exact1820: [Polity.Absolutist], Exact1870: [Polity.ConstitutionalMonarchy], GdpRank1820: 9, GdpRank1870: 9, GdpRank1913: 8, HomeProvinces1914: 11, ColonyProvinces1914: 0),        // 列強軸2026-07-27：二重帝国は最後まで列強（1866普墺の敗北・1878以降の相対的衰退を挟んでも五大国の一角）
         new("ネーデルラント", "アムステルダム", [Polity.ConstitutionalMonarchy], [Polity.Republic],
+            Exact1950: [Polity.ConstitutionalMonarchy], Near1950: [Polity.Republic],   // 1950：立憲王政（ユリアナ女王1948即位・1949インドネシアへ主権移譲）
             SuffrageOk: [Suffrage.Census, Suffrage.AdultMale], EducationOk: [EducationLaw.Compulsory, EducationLaw.Public], SerfOk: [ReformLevel.Full],
             CornLawsOk: [ReformLevel.None], LandReformOk: [ReformLevel.None, ReformLevel.Limited],
             Exact1920: [Polity.ConstitutionalMonarchy], Exact1820: [Polity.ConstitutionalMonarchy], Exact1870: [Polity.ConstitutionalMonarchy], Note: "オラニエ立憲王政（1848憲法）。選挙権拡大1887/96＝制限（男子普選1917＝境界）。義務教育1900。ゲーム開始は連邦共和国＝共和残存はnear",
             HomeProvinces1914: 2, ColonyProvinces1914: 3, GreatPowerOk: false),
         new("スペイン", "マドリード", [Polity.ConstitutionalMonarchy], [Polity.MilitaryDictatorship, Polity.Absolutist],
+            Exact1950: [Polity.MilitaryDictatorship], Near1950: [Polity.BourgeoisDictatorship],   // 1950：フランコ体制＝内戦に勝った将軍の独裁（1947王位継承法で名目は王国・フランコが終身の国家元首）。近い＝ファランヘ一党のブル独裁
             SuffrageOk: [Suffrage.AdultMale, Suffrage.Census], SerfOk: [ReformLevel.Full, ReformLevel.Limited],
             CornLawsOk: [ReformLevel.Limited, ReformLevel.Full], LandReformOk: [ReformLevel.None],
             Exact1920: [Polity.ConstitutionalMonarchy], Exact1820: [Polity.ConstitutionalMonarchy, Polity.Absolutist], Exact1870: [Polity.ConstitutionalMonarchy], GdpRank1820: 11, GdpRank1870: 10, Note: "王政復古体制（カノバス体制＝寡頭立憲）。男子普選1890（カシキスモで形骸だが法は普選）。近い＝プロヌンシアミエントの世紀＝軍事独裁/カルリスタ絶対王政",
             PopGrowthOk: (1.6, 2.2), HomeProvinces1914: 4, ColonyProvinces1914: 2, GreatPowerOk: false),   // 人口帯拡張2026-07-25：1783約10.6M→1914約20.5M＝×1.93。本土領土は安定（植民地喪失は本土人口に非算入）
         new("サルデーニャ＝ピエモンテ", "トリノ", [Polity.ConstitutionalMonarchy], [Polity.Republic],
+            Exact1950: [Polity.Republic], Near1950: [Polity.ConstitutionalMonarchy],   // 1950：イタリア共和国（1946国民投票で王政廃止・1948憲法）。近い＝サヴォイア立憲王政の存続（国民投票は54対46）
             SuffrageOk: [Suffrage.AdultMale, Suffrage.Census], EducationOk: [EducationLaw.Public, EducationLaw.Compulsory],
             CornLawsOk: [ReformLevel.Limited, ReformLevel.Full], LandReformOk: [ReformLevel.None],
             Note: "統一イタリア＝サヴォイア立憲王政（アルベルト憲章）。1912準男子普選。カザーティ/コッピーノ法＝公教育。近い＝マッツィーニ/ガリバルディの共和主義",
             GreatPowerOk: true, Exact1920: [Polity.ConstitutionalMonarchy], Exact1820: [Polity.Absolutist], Exact1870: [Polity.ConstitutionalMonarchy], GdpRank1870: 7, GdpRank1913: 9, HomeProvinces1914: 3, ColonyProvinces1914: 2),        // 列強軸2026-07-27：1861統一で列強入り＝8カ国中もっとも新参かつ最弱（定員7の1つ余りはここが外れるのが史実的に自然）
         new("清", "上海", [Polity.Republic], [Polity.Despotic, Polity.MilitaryDictatorship],
+            Exact1950: [Polity.ProletarianDictatorship], Near1950: [Polity.MilitaryDictatorship, Polity.BourgeoisDictatorship],   // 1950：中華人民共和国（1949年10月建国・上海は同年5月に人民解放軍が占領）。近い＝国民党の訓政（党国体制＝ブル独裁）・軍閥（軍事独裁）
             LandReformOk: [ReformLevel.None],
             Exact1920: [Polity.MilitaryDictatorship, Polity.Republic], Exact1820: [Polity.Despotic], Exact1870: [Polity.Despotic], GdpRank1820: 1, GdpRank1870: 1, Note: "辛亥革命1911→1912中華民国＝共和がexact。近い＝清朝専制の存続（Despotic）・袁世凱の軍権支配（MD＝1914年の実態）。法は転換期＝軸なし",
             PopGrowthOk: (1.1, 1.9), HomeProvinces1914: 19, ColonyProvinces1914: 0, GreatPowerOk: false),   // B-中7：史実は約×1.45（実測sim×1.07＝過少）。太平天国の人口損失を含んでなお増加した＝低成長だが停滞ではない
         new("朝鮮", "漢城", [Polity.Absolutist, Polity.Despotic], [],
+            Exact1950: [Polity.Republic], Near1950: [Polity.ProletarianDictatorship, Polity.BourgeoisDictatorship],   // 1950：漢城＝大韓民国（1948・李承晩の大統領制・米軍政は1948に終了＝独立）。近い＝北の朝鮮民主主義人民共和国（1948・一党独裁）・李承晩の権威主義（ブル独裁）。朝鮮戦争は同年6月＝断面の後
             SubjugatedOk: true, SuzerainsOk: ["日本"], Note: "大韓帝国＝専制皇権（光武改革）→1910日本併合＝主権喪失。従属exact＝宗主日本（宗主同一性2026-07-12）・他宗主はnear", GreatPowerOk: false),
         new("マラータ同盟", "プーナ", [Polity.Despotic, Polity.Absolutist], [],
+            Exact1950: [Polity.ConstitutionalMonarchy, Polity.Republic],   // 1950：プーナ＝インドのボンベイ州。1950年1月1日はインド自治領（英王を戴く立憲君主制）・1月26日に共和制＝両方exact。英の宗主権は1947に消滅＝従属は数えない
             SubjugatedOk: true, SuzerainsOk: ["イギリス"], Note: "1818英併合＝主権喪失（第三次マラータ戦争）。藩王国的専制の残存をexact。列強化・常勝は逸脱＝要因果監査", GreatPowerOk: false),
         new("マイソール", "シュリーランガパトナ", [Polity.Despotic, Polity.Absolutist], [],
+            Exact1950: [Polity.ConstitutionalMonarchy, Polity.Republic],   // 1950：マイソール州＝インドの一州（藩王は1950から州元首ラージプラムク）。インド自治領→1950年1月26日共和制＝両方exact。英の宗主権は1947に消滅
             SubjugatedOk: true, SuzerainsOk: ["イギリス"], Note: "1799英征服→藩王国（ウォデヤル朝復位1881＝模範藩王国）。伝統君主制の存続をexact", GreatPowerOk: false),
         new("ハイデラバード", "ハイデラバード", [Polity.Despotic, Polity.Absolutist], [],
+            Exact1950: [Polity.ConstitutionalMonarchy, Polity.Republic],   // 1950：1948ポロ作戦でインドへ併合（ニザームは1950から州元首）。インド自治領→共和制＝両方exact。英の宗主権は1947に消滅
             SubjugatedOk: true, SuzerainsOk: ["イギリス"], Note: "ニザーム藩王国＝英保護下の専制。1914も専制のまま＝exact", GreatPowerOk: false),
         new("シク連邦", "ラホール", [Polity.Despotic, Polity.Absolutist], [Polity.Republic],
+            Exact1950: [Polity.ConstitutionalMonarchy], Near1950: [Polity.Republic],   // 1950：ラホール＝パキスタン自治領（1947分離独立・英王を戴く立憲君主制・共和制は1956）。近い＝東パンジャーブ（シクの多数）を含むインドの共和制
             SubjugatedOk: true, SuzerainsOk: ["イギリス"], Note: "ランジート・シングの王国→1849英併合。専制王国をexact・ミスル合議制（カールサの伝統）＝共和をnear", GreatPowerOk: false),
         new("ビルマ", "ラングーン", [Polity.Despotic, Polity.Absolutist], [],
+            Exact1950: [Polity.Republic], Near1950: [Polity.MilitaryDictatorship],   // 1950：ビルマ連邦（1948独立・議会制共和・英連邦外）。近い＝軍の台頭（1958選挙管理内閣・1962ネウィン）
             SubjugatedOk: true, SuzerainsOk: ["イギリス"], Note: "コンバウン朝専制→1885英併合＝主権喪失。伝統専制の存続をexact", GreatPowerOk: false),
         new("ネパール", "カトマンズ", [Polity.Despotic, Polity.MilitaryDictatorship], [Polity.Absolutist],
+            Exact1950: [Polity.Despotic, Polity.MilitaryDictatorship], Near1950: [Polity.Absolutist, Polity.ConstitutionalMonarchy],   // 1950：ラナ家世襲宰相制の最末期（1950年11月に国王がインド大使館へ・1951年2月の王政復古）＝1914と同じ両方exact。近い＝王政復古（親政/立憲）
             SerfOk: [ReformLevel.None, ReformLevel.Limited],
             Note: "ラナ家世襲宰相制＝軍門閥の実権支配（名目王）＝Des/MDの両方exact。主権は維持（英同盟）", GreatPowerOk: false),
         new("シャム", "バンコク", [Polity.Despotic], [Polity.Absolutist, Polity.ConstitutionalMonarchy],
+            Exact1950: [Polity.ConstitutionalMonarchy, Polity.MilitaryDictatorship],   // 1950：タイ王国＝1932以降の立憲王政だが1947クーデタ→1948ピブーン首相の軍主導政権＝両方exact
             SuffrageOk: [Suffrage.None, Suffrage.Census], SerfOk: [ReformLevel.Full, ReformLevel.Limited],
             Note: "チュラーロンコーン大王＝上からの近代化専制（主権維持＝緩衝国）。奴隷制・賦役の廃止1905＝解放Full許容。立憲革命1932は先＝near", GreatPowerOk: false),
         new("西山朝", "ハノイ", [Polity.Despotic], [Polity.Absolutist],
+            Exact1950: [Polity.ProletarianDictatorship], Near1950: [Polity.Despotic], SuzerainsOk1950: ["フランス"],   // 1950：ハノイ＝仏連合のベトナム国（1949・バオダイ）が保持＝仏への従属をexact。ベトナム民主共和国（1945ハノイで独立宣言・共産党）が北部農村を支配＝プロ独裁もexact。近い＝バオダイの専制
             SubjugatedOk: true, SuzerainsOk: ["阮氏", "フランス"], Note: "史実は1802阮氏に滅亡→仏領インドシナ＝宗主は阮氏/フランスを許容。存続時は農民反乱由来の軍事専制＝Despotic", GreatPowerOk: false),
         new("カンボジア", "プノンペン", [Polity.Absolutist], [Polity.Despotic],
+            Exact1950: [Polity.ConstitutionalMonarchy, Polity.Absolutist], SuzerainsOk1950: ["フランス"],   // 1950：仏連合の協同国（1949）＝シハヌーク王の王国（1947憲法）。完全独立は1953＝仏への従属をexact
             SubjugatedOk: true, SuzerainsOk: ["フランス", "シャム"], Note: "仏保護国1863＝王制存続（ノロドム王）。前史はシャム宗主権（1794以降）＝両許容。伝統王政をexact", GreatPowerOk: false),
         new("ラオス", "ヴィエンチャン", [Polity.Absolutist], [Polity.Despotic],
+            Exact1950: [Polity.ConstitutionalMonarchy, Polity.Absolutist], SuzerainsOk1950: ["フランス"],   // 1950：仏連合の協同国（1949）＝シーサワンウォン王の王国（1947憲法）。完全独立は1953＝仏への従属をexact
             SubjugatedOk: true, SuzerainsOk: ["フランス", "シャム"], Note: "仏保護領1893＝ルアンパバーン王制存続。前史はシャム宗主権＝両許容。伝統王政をexact", GreatPowerOk: false),
         new("ペルシャ", "テヘラン", [Polity.Despotic, Polity.ConstitutionalMonarchy], [Polity.Absolutist],
+            Exact1950: [Polity.ConstitutionalMonarchy], Near1950: [Polity.Absolutist, Polity.Despotic],   // 1950：パフラヴィー朝の立憲王政（議会マジュレス・1949憲法改正で国王権限拡大・1951モサッデク首相）。近い＝国王の親政
             Note: "カージャール専制→1906立憲革命→1911露介入で議会停止＝名目立憲・実態専制＝両方exact", GreatPowerOk: false),
         new("アラビア", "ディルイーヤ", [Polity.Absolutist, Polity.Despotic], [],
+            Exact1950: [Polity.Absolutist], Near1950: [Polity.Despotic],   // 1950：サウジアラビア王国（1932・イブン・サウードの絶対君主制・独立）
             SerfOk: [ReformLevel.None],   // アラビア半島の奴隷制はサウジ1962廃止令まで存続＝1914年に解放済みなら逸脱
             SubjugatedOk: true, SuzerainsOk: ["オスマン"], Note: "第一次サウード国1818滅亡（オスマン＝エジプト遠征）→リヤド再興1902＝1914は名目オスマン宗主権下。伝統専制をexact", GreatPowerOk: false),
         new("イエメン", "サヌア", [Polity.Absolutist], [Polity.Despotic],
+            Exact1950: [Polity.Absolutist], Near1950: [Polity.Despotic],   // 1950：ムタワッキル王国（1918独立・イマーム・アフマドの神権的君主制）
             SerfOk: [ReformLevel.None],   // イエメン1962共和革命まで奴隷制＝1914年に解放済みなら逸脱
             SubjugatedOk: true, SuzerainsOk: ["オスマン"], Note: "ザイド派イマーム国＝神権的君主制（1911ダアーン条約＝オスマン下の自治）", GreatPowerOk: false),
         new("オマーン", "マスカット", [Polity.Absolutist], [Polity.Despotic],
+            Exact1950: [Polity.Absolutist], Near1950: [Polity.Despotic], SuzerainsOk1950: ["イギリス"],   // 1950：マスカット・オマーン＝サイード・ビン・タイムールのスルタン国（英の事実上の保護＝英への従属をexact）
             SerfOk: [ReformLevel.None],   // オマーン1970まで奴隷制＝1914年に解放済みなら逸脱
             SubjugatedOk: true, SuzerainsOk: ["イギリス"], Note: "ブーサイード朝スルタン国（英影響下＝事実上の英保護）", GreatPowerOk: false),
         new("アフガニスタン", "カブール", [Polity.Despotic], [Polity.Absolutist],
+            Exact1950: [Polity.Absolutist], Near1950: [Polity.Despotic, Polity.ConstitutionalMonarchy],   // 1950：アフガニスタン王国（1919独立・ザーヒル・シャー＝1931憲法だが王族宰相の親政）。英の外交管理は1919に消滅＝従属は数えない
             SubjugatedOk: true, SuzerainsOk: ["イギリス"], Note: "アブドゥッラフマーン以降の中央集権専制（鉄のアミール）。外交は英管理（ガンダマク条約）＝英宗主を許容", GreatPowerOk: false),
         new("ブハラ", "ブハラ", [Polity.Absolutist, Polity.Despotic], [],
+            Exact1950: [Polity.ProletarianDictatorship], SuzerainsOk1950: ["ロシア"],   // 1950：1920ブハラ人民ソヴィエト共和国→1924ウズベクSSR＝ソ連の構成国（露への従属と一党独裁をexact）
             SubjugatedOk: true, SuzerainsOk: ["ロシア"], Note: "露保護国1873＝アミール制存続。伝統専制をexact", GreatPowerOk: false),
         new("ヒヴァ", "ヒヴァ", [Polity.Absolutist, Polity.Despotic], [],
+            Exact1950: [Polity.ProletarianDictatorship], SuzerainsOk1950: ["ロシア"],   // 1950：1920ホラズム人民ソヴィエト共和国→1924ウズベク/トルクメンSSR＝ソ連の構成国
             SubjugatedOk: true, SuzerainsOk: ["ロシア"], Note: "露保護国1873＝ハン制存続。同上", GreatPowerOk: false),
         new("コーカンド", "タシュケント", [Polity.Absolutist, Polity.Despotic], [],
+            Exact1950: [Polity.ProletarianDictatorship], SuzerainsOk1950: ["ロシア"],   // 1950：タシュケント＝ウズベクSSRの首都＝ソ連の構成国
             SubjugatedOk: true, SuzerainsOk: ["ロシア"], Note: "1876露併合＝汗国消滅＝主権喪失。伝統専制の存続をexact", GreatPowerOk: false),
         new("モロッコ", "フェズ", [Polity.Absolutist], [Polity.Despotic],
+            Exact1950: [Polity.Absolutist], Near1950: [Polity.Despotic], SuzerainsOk1950: ["フランス", "スペイン"],   // 1950：仏西保護領（1912-56）＝スルタン・ムハンマド5世の王制存続（1914と同じ）
             SubjugatedOk: true, SuzerainsOk: ["フランス", "スペイン"], Note: "アラウィー朝スルタン国→1912仏西保護領（王制存続）。伝統王政をexact", GreatPowerOk: false),
         new("エチオピア", "ゴンダール", [Polity.Despotic], [Polity.Absolutist],
+            Exact1950: [Polity.Absolutist, Polity.Despotic], Near1950: [Polity.ConstitutionalMonarchy],   // 1950：ハイレ・セラシエの絶対君主制（1931憲法の議会は諮問的）。伊占領1936-41から回復＝独立
             SerfOk: [ReformLevel.None],
             Note: "メネリク2世＝集権化・近代化の専制（アドワ1896＝独立防衛に成功した非欧州国）", GreatPowerOk: false),
         new("マダガスカル", "アンタナナリヴ", [Polity.Absolutist, Polity.Despotic], [],
+            Exact1950: [Polity.Absolutist, Polity.Despotic], SuzerainsOk1950: ["フランス"],   // 1950：仏海外領（1946・1947蜂起を鎮圧・独立1960）。1914表と同じく伝統王政の存続をexact
             SubjugatedOk: true, SuzerainsOk: ["フランス"], Note: "メリナ王国＝1896仏併合・王制廃止＝主権喪失。伝統王政の存続をexact", GreatPowerOk: false),
         new("アシャンティ王国", "クマシ", [Polity.Absolutist], [Polity.Despotic],
+            Exact1950: [Polity.Absolutist], Near1950: [Polity.Despotic], SuzerainsOk1950: ["イギリス"],   // 1950：英領ゴールドコースト（独立1957）。アシャンティ王は1935に英の間接統治の下で復位＝伝統王政をexact
             SubjugatedOk: true, SuzerainsOk: ["イギリス"], Note: "アカン人の連合王国＝金とカカオの交易国家で常備軍を持つ。1824アサマンコで英軍を破り総督を討つが、5次に及ぶ英アシャンティ戦争の末1902英領ゴールドコーストへ併合＝主権喪失。伝統王政の存続をexact", GreatPowerOk: false),
         // ★アフリカ5カ国（アフリカ植民doc B〜F・2026-08-13）。いずれも伝統王政の存続をexactとし、列強にはならない。
         new("ソコト", "ソコト", [Polity.Absolutist], [Polity.Despotic],
+            Exact1950: [Polity.Absolutist], Near1950: [Polity.Despotic], SuzerainsOk1950: ["イギリス"],   // 1950：英領ナイジェリア（独立1960）。ソコトのスルタンは間接統治の首長として存続
             SubjugatedOk: true, SuzerainsOk: ["イギリス"], Note: "フラニのジハードが建てた19世紀最大のアフリカ国家（人口1000〜2000万）。1903年カノ・ソコト陥落まで英に屈しなかった＝主権喪失は世紀末。伝統王政の存続をexact", GreatPowerOk: false),
         new("コンゴ王国", "ンバンザ=コンゴ", [Polity.Absolutist], [Polity.Despotic],
+            Exact1950: [Polity.Absolutist], Near1950: [Polity.Despotic], SuzerainsOk1950: ["ポルトガル", "ベルギー"],   // 1950：ンバンザ=コンゴ＝葡領アンゴラ（独立1975）・旧領の北半はベルギー領コンゴ（独立1960）。名目王の系は葡の下で存続
             SubjugatedOk: true, SuzerainsOk: ["ポルトガル", "ベルギー"], Note: "1491年に王が改宗したアフリカ唯一のキリスト教王国。1783年は内戦後の衰退期で、1914年に葡が王制を廃止＝主権喪失。伝統王政の存続をexact", GreatPowerOk: false),
         new("アルジェ摂政国", "アルジェ", [Polity.Absolutist], [Polity.Despotic],
+            Exact1950: [Polity.Absolutist], Near1950: [Polity.Despotic], SuzerainsOk1950: ["フランス"],   // 1950：仏領アルジェリア（本土の県・独立1962）。1914表と同じく専制の存続をexact
             SubjugatedOk: true, SuzerainsOk: ["フランス", "オスマン"], Note: "オスマンの名目宗主下の海賊国家。穀物の未払い債務を口実に1830年仏が侵攻（扇の一撃）＝主権喪失。それまでの専制をexact", GreatPowerOk: false),
         new("オヨ帝国", "オヨ=イレ", [Polity.Absolutist], [Polity.Despotic],
+            Exact1950: [Polity.Absolutist], Near1950: [Polity.Despotic], SuzerainsOk1950: ["イギリス"],   // 1950：英領ナイジェリア。オヨのアラーフィンは間接統治の首長として存続
             SubjugatedOk: true, SuzerainsOk: ["イギリス"], Note: "ヨルバの騎兵帝国＝1783年は全盛期だが1836年に内部崩壊する。崩壊は台本でなく不満と圧力から出るなら出る。専制の存続をexact", GreatPowerOk: false),
         new("ボルヌ帝国", "ンガザルガム", [Polity.Absolutist], [Polity.Despotic],
+            Exact1950: [Polity.Absolutist], Near1950: [Polity.Despotic], SuzerainsOk1950: ["イギリス", "フランス"],   // 1950：英領ナイジェリア北東部と仏領チャド/カメルーンに分割。ボルヌのシェフは間接統治の首長として存続
             SubjugatedOk: true, SuzerainsOk: ["イギリス", "フランス"], Note: "カネム・ボルヌ＝9世紀から続くサハラ縦断交易の塩の帝国。完全内陸＝列強が届くのが最も遅い対照群。専制の存続をexact", GreatPowerOk: false),
         new("ハワイ王国", "ホノルル", [Polity.Absolutist, Polity.ConstitutionalMonarchy], [Polity.Despotic],
+            Exact1950: [Polity.Absolutist, Polity.ConstitutionalMonarchy], Near1950: [Polity.Republic], SuzerainsOk1950: ["アメリカ"],   // 1950：米国のハワイ準州（州昇格1959）。1914表と同じく王制の存続をexact・近い＝準州の代議制（共和）
             SubjugatedOk: true, SuzerainsOk: ["アメリカ", "イギリス"], Note: "カメハメハの統一(1795)以降の独立王国。1840年憲法で立憲君主制へ移行し、1893年に米系入植者のクーデタで王制打倒＝主権喪失。立憲化と王制の存続をexact", GreatPowerOk: false),
         new("ダホメ王国", "アボメイ", [Polity.Absolutist], [Polity.Despotic],
+            Exact1950: [Polity.Absolutist], Near1950: [Polity.Despotic], SuzerainsOk1950: ["フランス"],   // 1950：仏領西アフリカ（独立1960）。1914表と同じく伝統王政の存続をexact
             SubjugatedOk: true, SuzerainsOk: ["フランス"], Note: "フォン人の王国＝常備軍（女性親衛隊）を国制の中心に置いた交易国家。1890/1892仏ダホメ戦争→1894仏領＝主権喪失。伝統王政の存続をexact", GreatPowerOk: false),
         new("スウェーデン", "ストックホルム", [Polity.ConstitutionalMonarchy], [Polity.Republic],
+            Exact1950: [Polity.ConstitutionalMonarchy], Near1950: [Polity.Republic],   // 1950：立憲王政（社会民主党エルランデル内閣）
             SuffrageOk: [Suffrage.AdultMale, Suffrage.Census], EducationOk: [EducationLaw.Compulsory, EducationLaw.Public],
             CornLawsOk: [ReformLevel.Limited, ReformLevel.Full], LandReformOk: [ReformLevel.Limited, ReformLevel.Full],
             Note: "立憲王政（1866二院制）。男子普選1909。義務教育1842＝最初期", GreatPowerOk: false),
         new("デンマーク", "コペンハーゲン", [Polity.ConstitutionalMonarchy], [Polity.Republic],
+            Exact1950: [Polity.ConstitutionalMonarchy], Near1950: [Polity.Republic],   // 1950：立憲王政（1945解放後に議会制を回復）
             SuffrageOk: [Suffrage.AdultMale, Suffrage.Census], EducationOk: [EducationLaw.Compulsory, EducationLaw.Public], PensionOk: [ReformLevel.Limited, ReformLevel.Full],
             CornLawsOk: [ReformLevel.None], LandReformOk: [ReformLevel.Full, ReformLevel.Limited],
             Note: "六月憲法1849＝立憲王政・広範な男子選挙権。義務教育1814＝世界最初期。老齢扶助法1891＝最初期の年金", GreatPowerOk: false),
         new("スイス", "ベルン", [Polity.Republic], [Polity.BourgeoisDictatorship],
+            Exact1950: [Polity.Republic], Near1950: [Polity.BourgeoisDictatorship],   // 1950：連邦共和制（1914表と同じ）
             SuffrageOk: [Suffrage.AdultMale], EducationOk: [EducationLaw.Compulsory, EducationLaw.Public],
             Note: "1848連邦憲法＝連邦共和制・男子普選。義務教育1874", GreatPowerOk: false),
         new("ポーランド", "ワルシャワ", [Polity.ConstitutionalMonarchy, Polity.Republic], [Polity.Absolutist],
+            Exact1950: [Polity.ProletarianDictatorship], SuzerainsOk1950: ["ロシア"],   // 1950：ポーランド人民共和国（統一労働者党の一党独裁・ビェルト）。1949年11月にソ連のロコソフスキー元帥が国防相＝衛星国＝ソ連への従属もexact
             SubjugatedOk: true, SuzerainsOk: ["ロシア", "プロイセン", "オーストリア"], Note: "史実は1795第三次分割で消滅＝宗主は分割三国を許容。存続時は五月三日憲法1791（立憲）〜1918共和が史実の系", GreatPowerOk: false),
         new("ポルトガル", "リスボン", [Polity.Republic], [Polity.ConstitutionalMonarchy, Polity.MilitaryDictatorship],
+            Exact1950: [Polity.BourgeoisDictatorship], Near1950: [Polity.MilitaryDictatorship],   // 1950：サラザールの新国家（1933憲法・国民同盟の一党体制）。近い＝1926軍事クーデタ由来の軍の後見（大統領カルモナ元帥）
             SuffrageOk: [Suffrage.Census, Suffrage.AdultMale],
             CornLawsOk: [ReformLevel.Limited, ReformLevel.Full], LandReformOk: [ReformLevel.None],
             Note: "1910革命＝第一共和政がexact。近い＝立憲王政の存続/軍部介入（1926は先）。第一共和政も識字要件＝制限選挙",
             PopGrowthOk: (1.5, 2.0), GreatPowerOk: false),   // 人口帯拡張2026-07-25：1783約3.4M→1914約6.0M＝×1.76。本土領土は安定（ブラジル喪失1822は植民地＝本土人口に非算入）
         new("ジェノヴァ", "ジェノヴァ", [Polity.ConstitutionalMonarchy], [Polity.Republic],
+            Exact1950: [Polity.Republic], Near1950: [Polity.ConstitutionalMonarchy], SuzerainsOk1950: ["サルデーニャ＝ピエモンテ"],   // 1950：伊共和国の一部（1946）＝伊への従属と共和制をexact。近い＝王政の存続
             SubjugatedOk: true, SuzerainsOk: ["サルデーニャ＝ピエモンテ"], Note: "1815サルデーニャ併合→統一イタリア＝立憲王政の一部がexact。寡頭共和国の伝統＝near", GreatPowerOk: false),
         new("ライン諸邦", "ケルン", [Polity.ConstitutionalMonarchy], [Polity.Absolutist],
+            Exact1950: [Polity.Republic], SuzerainsOk1950: ["プロイセン"],   // 1950：ケルン＝西独ノルトライン=ヴェストファーレン州（1949基本法）＝独への従属と共和制をexact
             SubjugatedOk: true, SuzerainsOk: ["プロイセン", "フランス"], Note: "仏併合（ナポレオン期）→1815普領ラインラント→独帝国＝宗主は普/仏を許容。小邦絶対主義の存続＝near", GreatPowerOk: false),
         new("両シチリア", "ナポリ", [Polity.ConstitutionalMonarchy], [Polity.Absolutist],
+            Exact1950: [Polity.Republic], Near1950: [Polity.ConstitutionalMonarchy], SuzerainsOk1950: ["サルデーニャ＝ピエモンテ"],   // 1950：伊共和国の一部。1946国民投票で南部は王政支持が多数＝近い＝王政の存続
             SubjugatedOk: true, SuzerainsOk: ["サルデーニャ＝ピエモンテ"], Note: "1861統一イタリアへ併合＝立憲王政の一部がexact。ブルボン専制の存続＝near", GreatPowerOk: false),
         new("教皇領", "ローマ", [Polity.Absolutist], [Polity.ConstitutionalMonarchy],
+            Exact1950: [Polity.Absolutist], Near1950: [Polity.Republic], SuzerainsOk1950: ["サルデーニャ＝ピエモンテ"],   // 1950：ローマ＝伊共和国の首都。教皇庁はラテラノ条約（1929）でヴァチカン市国の主権を持つ＝神権的絶対制をexact・伊への従属もexact。近い＝伊共和国の共和制
             SubjugatedOk: true, SuzerainsOk: ["サルデーニャ＝ピエモンテ"], Note: "神権的絶対制（教皇庁は1870併合後も絶対制のまま）がexact。伊併合＝立憲王国の一部", GreatPowerOk: false),
         new("トスカーナ", "フィレンツェ", [Polity.ConstitutionalMonarchy], [Polity.Absolutist],
+            Exact1950: [Polity.Republic], Near1950: [Polity.ConstitutionalMonarchy], SuzerainsOk1950: ["サルデーニャ＝ピエモンテ"],   // 1950：伊共和国の一部（1946）
             SubjugatedOk: true, SuzerainsOk: ["サルデーニャ＝ピエモンテ"], Note: "1860併合＝統一イタリアの一部がexact。ハプスブルク＝ロレーナ家の開明専制の存続＝near", GreatPowerOk: false),
         new("ヴェネツィア", "ヴェネツィア", [Polity.ConstitutionalMonarchy], [Polity.Republic],
+            Exact1950: [Polity.Republic], Near1950: [Polity.ConstitutionalMonarchy], SuzerainsOk1950: ["サルデーニャ＝ピエモンテ"],   // 1950：伊共和国の一部（墺の宗主権は1866に消滅＝宗主は伊のみ）
             SubjugatedOk: true, SuzerainsOk: ["サルデーニャ＝ピエモンテ", "オーストリア"], Note: "1797共和国滅亡→墺領→1866統一イタリア＝宗主は伊/墺を許容。千年共和国の伝統＝near", GreatPowerOk: false),
         new("バイエルン", "ミュンヘン", [Polity.ConstitutionalMonarchy], [Polity.Absolutist],
+            Exact1950: [Polity.Republic], SuzerainsOk1950: ["プロイセン"],   // 1950：西独のバイエルン自由州（1949）
             SubjugatedOk: true, SuzerainsOk: ["プロイセン"], Note: "独帝国内の立憲王国（王冠・議会を保持した構成国）がexact", GreatPowerOk: false),
         new("ザクセン", "ドレスデン", [Polity.ConstitutionalMonarchy], [Polity.Absolutist],
+            Exact1950: [Polity.ProletarianDictatorship], SuzerainsOk1950: ["プロイセン", "ロシア"],   // 1950：東独（SED一党独裁）のザクセン州＝ソ連占領地区から成立＝独とソ連への従属をexact
             SubjugatedOk: true, SuzerainsOk: ["プロイセン"], Note: "独帝国内の立憲王国がexact", GreatPowerOk: false),
         new("ハノーファー", "ハノーファー", [Polity.ConstitutionalMonarchy], [Polity.Absolutist],
+            Exact1950: [Polity.Republic], SuzerainsOk1950: ["プロイセン"],   // 1950：西独ニーダーザクセン州（1946）
             SubjugatedOk: true, SuzerainsOk: ["プロイセン"], Note: "1866普墺戦争で普併合→独帝国＝立憲帝政の一部がexact", GreatPowerOk: false),
         new("ヴュルテンベルク", "シュトゥットガルト", [Polity.ConstitutionalMonarchy], [Polity.Absolutist],
+            Exact1950: [Polity.Republic], SuzerainsOk1950: ["プロイセン"],   // 1950：西独ヴュルテンベルク=バーデン州（1946・1952バーデン=ヴュルテンベルク）
             SubjugatedOk: true, SuzerainsOk: ["プロイセン"], Note: "独帝国内の立憲王国がexact", GreatPowerOk: false),
         new("阮氏", "サイゴン", [Polity.Despotic], [Polity.Absolutist],
+            Exact1950: [Polity.Despotic, Polity.Absolutist], Near1950: [Polity.Republic], SuzerainsOk1950: ["フランス"],   // 1950：サイゴン＝仏連合のベトナム国（1949・元皇帝バオダイが国家元首）＝仏への従属をexact。近い＝1955ベトナム共和国
             SubjugatedOk: true, SuzerainsOk: ["フランス"], Note: "1802全越統一（阮朝）＝明命帝の中央集権専制→1883-85仏保護国化（王制存続）。中央集権専制をexact", GreatPowerOk: false),
         new("ラヘジ", "アデン", [Polity.Absolutist], [Polity.Despotic],
+            Exact1950: [Polity.Absolutist], Near1950: [Polity.Despotic], SuzerainsOk1950: ["イギリス"],   // 1950：英アデン保護領のラヘジ・スルタン国（1914と同じ）
             SubjugatedOk: true, SuzerainsOk: ["イギリス"], Note: "ラヘジ・スルタン国＝英保護領（アデンは1839英直轄）。伝統首長制をexact", GreatPowerOk: false),
         new("デリー", "デリー", [Polity.Despotic, Polity.Absolutist], [],
+            Exact1950: [Polity.ConstitutionalMonarchy, Polity.Republic],   // 1950：インドの首都。1950年1月1日はインド自治領・1月26日に共和制＝両方exact。英の宗主権は1947に消滅
             SubjugatedOk: true, SuzerainsOk: ["イギリス"], Note: "ムガル残滓→1857大反乱後に廃絶＝主権喪失。伝統専制の存続をexact", GreatPowerOk: false),
         new("アワド", "ラクナウ", [Polity.Despotic, Polity.Absolutist], [],
+            Exact1950: [Polity.ConstitutionalMonarchy, Polity.Republic],   // 1950：ラクナウ＝インドの連合州（ウッタル・プラデーシュ）。インド自治領→共和制＝両方exact
             SubjugatedOk: true, SuzerainsOk: ["イギリス"], Note: "1856英併合＝主権喪失。太守（ナワーブ）専制の存続をexact", GreatPowerOk: false),
     ];
 }

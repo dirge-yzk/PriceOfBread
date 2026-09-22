@@ -15,5 +15,5 @@ public static class Calendar
     public const int QuartersPerYear = 4;                       // 1年＝4四半期（年送り境界）
     public const int MonthsPerYear = 12;                        // 1年＝12ヶ月（年↔月換算）
     public const int StartYear = 1783;                          // ゲーム開始暦年（Scenario.StartYear の既定と一致）
-    public const int EndYear = StartYear + Coefficients.GameQuarters / QuartersPerYear;   // 終局暦年＝1934（1783+604/4＝151年）。1914は忠実度の参照断面であって終局ではない
+    public const int EndYear = StartYear + Coefficients.GameQuarters / QuartersPerYear;   // 終局暦年＝1950（1783+668/4＝167年＝1950年1月1日に終局）。1914は忠実度の主指標の断面であって終局ではない
 }

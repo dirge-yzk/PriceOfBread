@@ -202,7 +202,7 @@ public partial class GameViewModel
         ConfirmOpen = true;
     }
 
-    // 終局：1934年12月が終わった（=1935年に入った）らランキングを表示。以後は続行可（観戦）。
+    // 終局：1949年12月が終わった（=EndYear の1950年に入った＝GameQuarters 経過）らランキングを表示。以後は続行可（観戦）。
     private void ShowEnding()
     {
         _endingShown = true;

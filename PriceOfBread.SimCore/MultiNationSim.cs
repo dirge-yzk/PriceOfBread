@@ -573,7 +573,7 @@ public sealed class MultiNationSim
     /// 識字×世俗水路（Elite）の差を技術差へ実体化する。GrowTech は StepQuarter と同一の後追い/革新/フロンティア追随機構
     /// （＝較正済みの技術ダイナミクスそのもの）を回すだけで、係数の外科補正は一切足さない＝差は制度から創発する。
     /// ★2026-08-10：selfplay/fidelity も <see cref="StartWarmup"/> 経由でこの助走を通るようになった（旧コメントの
-    /// 「selfplay/fidelity はこの助走を通らない」「1789→1914を厳密500四半期」は二重に陳腐化していた＝起点は1783・全長604四半期）。
+    /// 「selfplay/fidelity はこの助走を通らない」「1789→1914を厳密500四半期」は二重に陳腐化していた＝起点は1783・全長 GameQuarters）。
     /// 暦を動かさないので1914断面（Q524）も全長も不変。</summary>
     public void WarmupTech(int iterations)
     {

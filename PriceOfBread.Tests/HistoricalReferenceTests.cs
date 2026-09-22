@@ -147,4 +147,65 @@ public class HistoricalReferenceTests
         w.Crown = CrownForm.None; w.ParliamentControl = 0.0;
         Assert.Equal(0.0, PoliticalQuantities.OfficerAppointmentCrownward(w));   // 王も議会もいない＝軍が自分の主
     }
+
+    /// <summary>★1950断面の表の番人（2026-09-21裁定）：全国家ぶん揃い、1914表と同じ形（exact は非空で Anarchy を含まない・near は exact と重ならない）。
+    /// 宗主の許容集合は立ちうる国名（開始時の国＋分離独立の建国名＝ベルギーなど）だけ＝綴りの誤りで従属が黙って一致しなくなる事故を止める。</summary>
+    [Fact]
+    public void 断面1950の表は全国家ぶん揃い1914表と同じ形()
+    {
+        var nations = WorldData.Nations();
+        Assert.Equal(nations.Length, HistoricalReference.Table.Count(e => e.Exact1950 is not null));
+        var names = new HashSet<string>(nations.Select(n => n.Name));
+        foreach (var cfg in nations) foreach (var pv in cfg.Provinces)
+            foreach (var pol in new[] { Polity.Absolutist, Polity.Republic }) names.Add(SecessionNames.Resolve(pv.City, pol, []));   // 建国名（対応表→既定則）
+        foreach (var e in HistoricalReference.Table)
+        {
+            Assert.True(e.Exact1950 is { Length: > 0 }, $"「{e.Nation}」の1950 exact が空");
+            Assert.DoesNotContain(Polity.Anarchy, e.Exact1950!);
+            foreach (var p in e.Near1950 ?? []) { Assert.NotEqual(Polity.Anarchy, p); Assert.True(Array.IndexOf(e.Exact1950!, p) < 0, $"「{e.Nation}」の1950 near に exact と重複：{p}"); }
+            foreach (var s in e.SuzerainsOk1950 ?? [])
+            {
+                Assert.True(s != e.Nation, $"「{e.Nation}」の1950宗主に自国");
+                Assert.True(names.Contains(s), $"「{e.Nation}」の1950宗主「{s}」が開始時の国名にも建国名にもない");
+            }
+        }
+    }
+
+    /// <summary>断面は暦順に並び、1950断面は全長の内側にある（外にあると自己対戦が一度も捕捉しない＝計器が黙って空になる）。</summary>
+    [Fact]
+    public void 断面の四半期は暦順で1950断面は全長の内側()
+    {
+        int[] q = [Coefficients.FidelityQuarters1820, Coefficients.FidelityQuarters1870, Coefficients.FidelityQuarters,
+                   Coefficients.FidelityQuarters1920, Coefficients.FidelityQuarters1950];
+        for (int i = 1; i < q.Length; i++) Assert.True(q[i - 1] < q[i], $"断面の順序が崩れた：{q[i - 1]}→{q[i]}");
+        Assert.True(Coefficients.FidelityQuarters1950 <= Coefficients.GameQuarters, "1950断面が全長の外＝捕捉されない");
+        Assert.Equal(1950, Calendar.StartYear + Coefficients.FidelityQuarters1950 / Calendar.QuartersPerYear);   // Q668＝1950年1月1日
+    }
+
+    /// <summary>1950断面の採点は主指標と同じ従属の規則：許容集合の宗主に従属＝exact／他の宗主に従属＝near／集合が無い国の従属は数えない。</summary>
+    [Fact]
+    public void 断面1950の採点は従属の許容を主指標と同じ規則で数える()
+    {
+        static NationStanding St(string nation, Polity derived, string suzerain = "") =>
+            new("", 0, 0, 0, 0, 0, 0, 0, 0, derived, 0, 0, Nation: nation, Suzerain: suzerain, DerivedPolity: derived);
+        static MatchResult M(params NationStanding[] at1950) =>
+            new(1, Coefficients.GameQuarters, "", 0, 0, [St("日本", Polity.ConstitutionalMonarchy), St("マラータ同盟", Polity.Despotic)], [], [], true, 0, 0, 0, 0, [], 0, 0, 0, 0,
+                StandingsAt1950: at1950);
+        NationFidelity F(IReadOnlyList<NationFidelity> fs, string n) => fs.Single(f => f.Nation == n);
+        // 日本＝SuzerainsOk1950 ["アメリカ"]：米に従属（政体は外れ）＝exact・英に従属＝near・独立の立憲＝exact
+        var fs = HistoricalReference.Evaluate([
+            M(St("日本", Polity.Despotic, "アメリカ"), St("マラータ同盟", Polity.Despotic, "イギリス")),
+            M(St("日本", Polity.Despotic, "イギリス"), St("マラータ同盟", Polity.Republic)),
+            M(St("日本", Polity.ConstitutionalMonarchy), St("マラータ同盟", Polity.ConstitutionalMonarchy)),
+            M(St("日本", Polity.Despotic), St("マラータ同盟", Polity.Despotic)),
+        ]);
+        Assert.Equal(2.0 / 4, F(fs, "日本").Exact1950, 12);
+        Assert.Equal(3.0 / 4, F(fs, "日本").Near1950, 12);
+        // マラータ＝SuzerainsOk1950 null（英の宗主権は1947に消滅）：英に従属しても exact にも near にもならない＝政体だけで採点
+        Assert.Equal(2.0 / 4, F(fs, "マラータ同盟").Exact1950, 12);
+        Assert.Equal(2.0 / 4, F(fs, "マラータ同盟").Near1950, 12);
+        // 断面が無い走行（全長がQ668に届かない）は NaN＝採点しない
+        var none = HistoricalReference.Evaluate([M() with { StandingsAt1950 = null }]);
+        Assert.True(double.IsNaN(F(none, "日本").Exact1950));
+    }
 }

@@ -83,14 +83,17 @@ static void PrintFidelity(BatchSummary b)
         // 08_バランス調整方針（2026-07-31）＝70%計器の6次元化。経済規模・領土（本国/植民地）も**独立の行**で出す（exact/nearへ合算しない）。
         // 各次元の目標＝厳格一致50%（＝体感7割）。★初回実走では「緩≈厳×1.4〜1.5」を確認するため、次元ごとの厳格率をそのまま並べる。
         // ★E-08 多断面（2026-09-05）：1820／1870 の断面を併記（主指標は1913のまま）。定義のある国だけの平均。
-        foreach (var (label, selEx, selEc) in new (string, Func<PriceOfBread.SimCore.NationFidelity, double>, Func<PriceOfBread.SimCore.NationFidelity, double>)[]
-                 { ("1820", f => f.Exact1820, f => f.Econ1820), ("1870", f => f.Exact1870, f => f.Econ1870), ("1920", f => f.Exact1920, f => double.NaN) })
+        // ★1950断面（2026-09-21）：政体の exact と near（従属込み）を併記＝国別は「exact/near」。near の無い断面の行は従来と同じ印字。
+        foreach (var (label, selEx, selNr, selEc) in new (string, Func<PriceOfBread.SimCore.NationFidelity, double>, Func<PriceOfBread.SimCore.NationFidelity, double>, Func<PriceOfBread.SimCore.NationFidelity, double>)[]
+                 { ("1820", f => f.Exact1820, f => double.NaN, f => f.Econ1820), ("1870", f => f.Exact1870, f => double.NaN, f => f.Econ1870),
+                   ("1920", f => f.Exact1920, f => double.NaN, f => double.NaN), ("1950", f => f.Exact1950, f => f.Near1950, f => double.NaN) })
         {
             var ex = fid.Where(f => !double.IsNaN(selEx(f))).ToList();
             var ec = fid.Where(f => !double.IsNaN(selEc(f))).ToList();
+            var nr = fid.Where(f => !double.IsNaN(selNr(f))).ToList();
             if (ex.Count > 0 || ec.Count > 0)
-                System.Console.WriteLine($"  断面{label}年: 政体exact {(ex.Count > 0 ? ex.Average(selEx) : double.NaN):P0}（{ex.Count}カ国）　経済規模 {(ec.Count > 0 ? ec.Average(selEc) : double.NaN):P0}（{ec.Count}カ国）　"
-                    + string.Join("　", ex.Select(f => $"{f.Nation}{selEx(f):P0}")));
+                System.Console.WriteLine($"  断面{label}年: 政体exact {(ex.Count > 0 ? ex.Average(selEx) : double.NaN):P0}（{ex.Count}カ国）{(nr.Count > 0 ? $"　近い {nr.Average(selNr):P0}" : "")}　経済規模 {(ec.Count > 0 ? ec.Average(selEc) : double.NaN):P0}（{ec.Count}カ国）　"
+                    + string.Join("　", ex.Select(f => $"{f.Nation}{selEx(f):P0}" + (double.IsNaN(selNr(f)) ? "" : $"/{selNr(f):P0}"))));
         }
         var econFid = fid.Where(f => !double.IsNaN(f.EconMatch)).ToList();
         if (econFid.Count > 0)
@@ -550,7 +553,7 @@ if (args.Length > 0 && args[0] == "timeprobe")
     {
         double n = MultiNationSim.TicksNations * f, m = MultiNationSim.TicksMarket * f;
         Console.WriteLine($"  各国の日次 {n:F0}ms（{n / Math.Max(1, tAll):P0}）　国際市場 {m:F0}ms（{m / Math.Max(1, tAll):P0}）　その他 {tAll - n - m:F0}ms");
-        Console.WriteLine($"  1四半期あたり {(double)(tAll - tBuild - tWarm) / tq:F1}ms　→ 604四半期なら {(double)(tAll - tBuild - tWarm) / tq * 604 / 1000:F0}秒/試合");
+        Console.WriteLine($"  1四半期あたり {(double)(tAll - tBuild - tWarm) / tq:F1}ms　→ {Coefficients.GameQuarters}四半期なら {(double)(tAll - tBuild - tWarm) / tq * Coefficients.GameQuarters / 1000:F0}秒/試合");
         Console.WriteLine($"  清算内訳: リスト構築 {PriceOfBread.SimCore.InternationalMarket.TimeListsMs}ms　清算ループ {PriceOfBread.SimCore.InternationalMarket.TimeClearMs}ms"
             + $"　財処理 {PriceOfBread.SimCore.InternationalMarket.CntGoods}　買い手行 {PriceOfBread.SimCore.InternationalMarket.CntBuyers}"
             + $"　反復 {PriceOfBread.SimCore.InternationalMarket.CntRollIters}　走査歩 {PriceOfBread.SimCore.InternationalMarket.CntScanSteps}　空振り {PriceOfBread.SimCore.InternationalMarket.CntSkips}"
@@ -581,7 +584,7 @@ if (args.Length > 0 && args[0] == "armstrace")
     var stanc = new List<int[]>();             // 選ばれたスタンス（0近代化 1産業化 2福祉 3緊縮 4軍備）
     var brk   = new List<UtilityAgent.StanceBreakdown[]>();   // uMil の内訳
     var years = new List<int>();
-    for (int q = 0; q < 604; q++)
+    for (int q = 0; q < Coefficients.GameQuarters; q++)
     {
         msT2.StepQuarter();
         if ((q + 1) % Step != 0) continue;
@@ -2071,7 +2074,7 @@ if (args.Length > 0 && args[0] == "parlprobe")
 if (args.Length > 0 && args[0] == "poweraff")
 {
     ulong paSeed = ArgUlong(args, 1, 1789UL);
-    int paEnd = ArgInt(args, 2, 1934);
+    int paEnd = ArgInt(args, 2, Calendar.EndYear);   // 既定＝終局暦年（全長 GameQuarters の年）
     // ★戦間期を厚くした（2026-08-20）＝ファシズムの時代ゲートは (年−1919)/15 で**1.0に達するのは最終年1934年だけ**。
     //   ⚠旧は1917→1926→1934の3点しかなく、育つ軌跡が見えなかった。1919/1923/1929/1932を足して分解能を上げる。
     int[] paYears = [1783, 1800, 1815, 1832, 1848, 1867, 1871, 1889, 1900, 1912, 1917, 1919, 1923, 1926, 1929, 1932, 1934];
@@ -2341,7 +2344,7 @@ if (args.Length > 0 && args[0] == "poweraff")
 if (args.Length > 0 && args[0] == "powershares")
 {
     ulong psSeed = ArgUlong(args, 1, 1789UL);
-    int psEnd = ArgInt(args, 2, 1934);
+    int psEnd = ArgInt(args, 2, Calendar.EndYear);   // 既定＝終局暦年（全長 GameQuarters の年）
     int[] psYearsAll = [1783, 1788, 1800, 1815, 1830, 1832, 1848, 1858, 1867, 1871, 1876, 1879, 1889, 1891, 1900, 1912, 1917, 1936];
     string[] psWatch = ["イギリス", "フランス", "プロイセン", "ロシア", "オーストリア", "日本", "清", "アメリカ", "オスマン", "スペイン", "ポルトガル", "朝鮮"];
     // ★ラテンアメリカ（史学検証3）＝1783年の世界には主権国として存在しない（西/葡の植民地）。
@@ -2938,7 +2941,7 @@ if (args.Length > 0 && args[0] == "diffprobe")
     return;
 }
 
-// === 最小満足度の犯人追跡： dotnet run -- satprobe <seed> ＝ 604四半期後の全国の満足度・分離フラグ・首都保持を一覧 ===
+// === 最小満足度の犯人追跡： dotnet run -- satprobe <seed> ＝ 全長（GameQuarters）後の全国の満足度・分離フラグ・首都保持を一覧 ===
 if (args.Length > 0 && args[0] == "satprobe")
 {
     ulong spSeed = args.Length > 1 && ulong.TryParse(args[1], out var sps) ? sps : 8UL;
@@ -2961,7 +2964,7 @@ if (args.Length > 0 && args[0] == "trenchprobe")
     var simT3 = new MultiNationSim(WorldData.Nations(), sdT3, _ => new UtilityAgent());
     simT3.StartWarmup();   // ★2026-09-07 計器の助走統一：selfplay-batch/popprobe と同じ助走を通す＝「測る世界」を帯の世界と一致させる（旧＝助走なし＝chronicle が popprobe と食い違った構築時型の計器バグ）
     var fillRows = new List<string>();
-    for (int q = 0; q < 604; q++)
+    for (int q = 0; q < Coefficients.GameQuarters; q++)
     {
         simT3.StepQuarter();
         if ((q + 1) % 80 != 0) continue;
@@ -2983,7 +2986,7 @@ if (args.Length > 0 && args[0] == "trenchprobe")
     Console.WriteLine($"=== trenchprobe seed {sdT3}：装備充足率の推移（陸分と合算）===");
     foreach (var r in fillRows) Console.WriteLine("  " + r);
 
-    (int lo, int hi, string name)[] eras = [(1783, 1860, "〜1860"), (1861, 1900, "1861-1900"), (1901, 1913, "1901-1913"), (1914, 1934, "1914-")];
+    (int lo, int hi, string name)[] eras = [(1783, 1860, "〜1860"), (1861, 1900, "1861-1900"), (1901, 1913, "1901-1913"), (1914, Calendar.EndYear, "1914-")];
     Console.WriteLine();
     Console.WriteLine("=== 戦争の長さ（時代区分・終戦年で分類）===");
     foreach (var (lo, hi, name) in eras)
@@ -3002,7 +3005,7 @@ if (args.Length > 0 && args[0] == "trenchprobe")
 if (args.Length > 0 && args[0] == "techtrace")
 {
     ulong sdT = ArgUlong(args, 1, 1);
-    int qsT2 = ArgInt(args, 2, 604);
+    int qsT2 = ArgInt(args, 2, Coefficients.GameQuarters);
     string[] watch = ["イギリス", "フランス", "プロイセン", "ロシア", "アメリカ", "日本", "ヒヴァ", "ラオス", "ダホメ王国"];
     var simT2 = new MultiNationSim(WorldData.Nations(), sdT, _ => new UtilityAgent());
     simT2.StartWarmup();   // ★2026-09-07 計器の助走統一：selfplay-batch/popprobe と同じ助走を通す＝「測る世界」を帯の世界と一致させる（旧＝助走なし＝chronicle が popprobe と食い違った構築時型の計器バグ）
@@ -3130,7 +3133,7 @@ if (args.Length > 0 && args[0] == "africaprobe")
     string[] afrNations = ["モロッコ", "エチオピア", "マダガスカル", "ダホメ王国", "アシャンティ王国"];   // ★案Aで格上げした国はここへ移す
     string[] afrTargets = ["バルバリ", "ソコト", "コンゴ", "南アフリカ"];
     ulong sdA = ArgUlong(args, 1, 1);
-    int qsA = ArgInt(args, 2, 604);
+    int qsA = ArgInt(args, 2, Coefficients.GameQuarters);
     var simA = new MultiNationSim(WorldData.Nations(), sdA, _ => new UtilityAgent());
     simA.StartWarmup();   // ★2026-09-07 計器の助走統一：selfplay-batch/popprobe と同じ助走を通す＝「測る世界」を帯の世界と一致させる（旧＝助走なし＝chronicle が popprobe と食い違った構築時型の計器バグ）
     var dipA = simA.Diplomacy;
@@ -3264,7 +3267,7 @@ if (args.Length > 0 && args[0] == "routecost")
             Geo.SeaDistanceKm(ports[i].Lat, ports[i].Lon, ports[j].Lat, ports[j].Lon, true, true);
     long ms2 = swR.ElapsedMilliseconds;
     System.Console.WriteLine($"初回 {ms1}ms／2回目 {ms2}ms（内部キャッシュの効き）　平均 {(cnt > 0 ? sum / cnt : 0):F0}km　最遠 {mx:F0}km（{mxPair}）");
-    System.Console.WriteLine($"→ 1ヶ月あたりの追加コストの目安：全ペアを毎月引き直すなら {ms2}ms×12ヶ月×604四半期/4 = {ms2 * 12L * 151L / 1000.0:F0}秒/試合");
+    System.Console.WriteLine($"→ 1ヶ月あたりの追加コストの目安：全ペアを毎月引き直すなら {ms2}ms×12ヶ月×{Coefficients.GameQuarters}四半期/4 = {ms2 * Calendar.MonthsPerYear * (Coefficients.GameQuarters / Calendar.QuartersPerYear) / 1000.0:F0}秒/試合");
     return;
 }
 
@@ -4813,7 +4816,7 @@ if (args.Length > 0 && args[0] == "chronicle")
         }
     m.StartWarmup();   // ★2026-09-07：selfplay-batch/popprobe と同じ助走を通す＝「年代記の世界」を帯の世界と一致させる（旧＝助走なし＝英の領土崩壊が年代記に出ず、popprobe（州31→1）と食い違った＝計器の構築時バグ）（--zero の後＝ゼロ化した係数で助走する）
     int N = m.Nations.Count;
-    int Q = Coefficients.GameQuarters;   // 604四半期＝151年（1783→1934。旧コメントの「500四半期＝125年」は1934拡張2026-07-19で陳腐化）
+    int Q = Coefficients.GameQuarters;   // 全長＝668四半期＝167年（1783→1950・1950延長2026-09-21）
 
     string SufJa(Suffrage x) => x switch { Suffrage.None => "参政権なし", Suffrage.Census => "制限選挙", Suffrage.AdultMale => "男子普通選挙", Suffrage.Universal => "普通選挙", _ => x.ToString() };
     string CensJa(CensorshipLaw x) => x switch { CensorshipLaw.StatePressOnly => "国家統制報道", CensorshipLaw.Censorship => "検閲", CensorshipLaw.FreePress => "自由報道", _ => x.ToString() };
@@ -5347,7 +5350,7 @@ if (args.Length > 0 && args[0] == "factionprobe")
     //      州の絶望（RegionRevoltHeat＝F1と同じ物差し）／怨嗟（min(1, FactionRejectionMutation×Rejections)＝変異ロールと同じ飽和の書き方）／
     //      f.Size／hold（LocalizedHold＝州按分後の保持力）／militia（LoyalistMilitia＝郷勇・全国）。
     //   ⚠世界には1ビットも書かない（読み取りのみ・純関数だけを呼ぶ）。⚠MechanismProbe.Site は増やさない（4サイトの成立率の和が1になる性質を壊さない）。
-    //   使い方： dotnet run -- factionprobe [seed=1789] [国名=清/英/仏/露/オスマン] [四半期=604]
+    //   使い方： dotnet run -- factionprobe [seed=1789] [国名=清/英/仏/露/オスマン] [四半期=GameQuarters]
     ulong fpSeed = ArgUlong(args, 1, 1789UL);
     string[] fpWatch = args.Length > 2 && args[2].Length > 0 && !int.TryParse(args[2], out _) ? [args[2]] : ["清", "イギリス", "フランス", "ロシア", "オスマン"];
     int fpQ = ArgInt(args, 3, Coefficients.GameQuarters);
@@ -8024,8 +8027,8 @@ if (args.Length > 0 && args[0] == "selfplay-batch")
     double? ir = ArgDouble(args, 2, null);   // 任意：初期金利の上書き（信用バブル感度の実験）
     int par = ArgInt(args, 3, 0);            // 任意：並列度の明示（0=既定のOOMガード値clamp(コア数,2,max(2,N))。RAM余裕機で 8〜10 等へ＝結果はビット一致）
     ulong seedBase = ArgUlong(args, 4, 1UL); // ★任意（2026-08-14）：シード起点。11 で seeds 11..11+N-1＝**同一ソースのノイズ床**を測る（既定1＝従来）
-    int gqArg = ArgInt(args, 5, 0);          // ★任意（2026-08-30・測定高速化）：四半期数の上書き。探索は 300（1858年まで＝半分の時間）・受け入れは既定604。
-                                             //   ⚠300Q の帯は 604Q と別の物差し（後期次元＝航空/WWI が無測定・断面数も減る）＝同じ長さの腕同士でだけ比較する
+    int gqArg = ArgInt(args, 5, 0);          // ★任意（2026-08-30・測定高速化）：四半期数の上書き。探索は 300（1858年まで＝半分の時間）・受け入れは既定 GameQuarters。
+                                             //   ⚠300Q の帯は全長の帯と別の物差し（後期次元＝航空/WWI が無測定・断面数も減る）＝同じ長さの腕同士でだけ比較する
     int gq = gqArg > 0 ? gqArg : PriceOfBread.SimCore.Coefficients.GameQuarters;
     var b = SelfPlayMatch.RunBatch(n, gq, ir, par > 0 ? par : null, seedBase);
     Console.WriteLine($"=== バッチ自己対戦 seeds {seedBase}..{seedBase + (ulong)b.N - 1}（各{gq}四半期{(ir is { } v ? $"・金利{v:F2}" : "")}）===");
@@ -8347,7 +8350,7 @@ if (args.Length > 0 && args[0] == "milablate")
 if (args.Length > 0 && args[0] == "selfplay")
 {
     ulong sd = ArgUlong(args, 1, 1);
-    var r = SelfPlayMatch.Run(sd, ArgInt(args, 2, 400));   // 第2引数＝四半期数（既定400。バッチ既定のCoefficients.GameQuarters（604）で再現したい時は明示）
+    var r = SelfPlayMatch.Run(sd, ArgInt(args, 2, 400));   // 第2引数＝四半期数（既定400。バッチ既定のCoefficients.GameQuarters（668）で再現したい時は明示）
     Console.WriteLine($"=== 自動テストプレイ seed={r.Seed}（{r.Quarters}四半期＝{r.Quarters / 4}年）===");
     Console.WriteLine($"完走: {(r.Completed ? "○" : "× 中断")}    勝者: {r.Winner}（スコア{r.WinnerScore:F1}）    首位確定: Q{r.DecisionQuarter}/{r.Quarters}");
     Console.WriteLine($"ハーネス合否: 〇{r.HarnessPass} △{r.HarnessWarn} ×{r.HarnessFail}    損失financing 累積(最大): {r.MaxLossFinanced:N0}  ピーク率: {r.WorstLossRate:P2}（名目産出比）");

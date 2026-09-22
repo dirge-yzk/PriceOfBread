@@ -218,8 +218,9 @@ public class NcOpennessTests(ITestOutputHelper output)
         Assert.Equal(100.0, HalfLifeYears(edu), 1);
         // 検算＝81年後（1789→1870）に閉じるのは半分未満＝ブルターニュ/オクシタニアはまだフランス語の多数派でない
         Assert.True(1.0 - Math.Pow(1.0 - edu, 81 * Calendar.QuartersPerYear) < 0.5);
-        // 検算＝ゲーム全長でも公教育なしでは1割に届かない＝学校を持たない帝国は最後まで多民族
-        Assert.True(1.0 - Math.Pow(1.0 - c.EthnicAssimilation, Coefficients.GameQuarters) < 0.10);
+        // 検算＝1914断面（主指標・Q524）までに公教育なしでは1割に届かない＝学校を持たない帝国は大戦まで多民族（墺洪の国勢調査の横這い）。
+        //   ★2026-09-22：旧「ゲーム全長で1割未満」は長さの主張だった（604Qで9.9%・1950延長の668Qで10.9%）＝史実の主張の断面へ書き直した
+        Assert.True(1.0 - Math.Pow(1.0 - c.EthnicAssimilation, Coefficients.FidelityQuarters) < 0.10);
     }
 
     /// <summary>同化の式を単離する2国世界（国際移民プールを切って CoreEthnicShare を動かす経路を同化1本にする）。</summary>

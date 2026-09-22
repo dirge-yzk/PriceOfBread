@@ -1595,7 +1595,7 @@ public sealed class Simulation
         World.UpdateGdpCycle();   // 景気循環トラッカー更新（次四半期のAIの反景気循環的金融政策の入力）
         World.UpdatePriceLevel(World.Coef);   // 物価水準（数量説）＝広義マネー/実質産出の伸び差でインフレ/デフレ
         if (!warm) Snapshot();   // 締めた四半期の盤面をその四半期のラベルで記録（監査2026-07-12 他21：旧＝インクリメント後に呼び翌四半期のラベルが付いていた。現読者は添字参照のみ＝挙動不変）
-        if (warm) return;   // ★暦を進めない：助走を何年回しても開始は1783/Q1（1914断面・604四半期・TechOnset の年ゲートが動かない）
+        if (warm) return;   // ★暦を進めない：助走を何年回しても開始は1783/Q1（1914断面・全長 GameQuarters・TechOnset の年ゲートが動かない）
         World.Quarter++;
         if (World.Quarter > Calendar.QuartersPerYear) { World.Quarter = 1; World.Year++; }
         _quarterIndex++;

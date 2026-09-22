@@ -554,7 +554,7 @@
                 </DockPanel>
             </Border>
 
-            <!-- 終局（1934年12月のあと）：最終ランキング。閉じれば観戦続行可 -->
+            <!-- 終局（1949年12月のあと＝GameQuarters 経過）：最終ランキング。閉じれば観戦続行可 -->
             <Border IsVisible="{Binding EndingOpen}" HorizontalAlignment="Center" VerticalAlignment="Center"
                     Background="{StaticResource ParchmentBrush}" BorderBrush="{StaticResource SandDarkBrush}" BorderThickness="1" CornerRadius="6"
                     MinWidth="560" MaxWidth="640" MaxHeight="720" Padding="0" ZIndex="9">

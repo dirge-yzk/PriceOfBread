@@ -1558,7 +1558,8 @@ public sealed record MatchResult(
     IReadOnlyList<string>? Jumps = null,
     // ★E-08 多断面（2026-09-05）：1820/1870年12月の断面（延長走行のみ非null）。主指標は StandingsAt1914 のまま・これらは併記の物差し
     IReadOnlyList<NationStanding>? StandingsAt1820 = null, IReadOnlyList<NationStanding>? StandingsAt1870 = null,
-    IReadOnlyList<NationStanding>? StandingsAt1920 = null);   // ★E-09 WW1の帰結（1920年12月・政体のみ採点）
+    IReadOnlyList<NationStanding>? StandingsAt1920 = null,    // ★E-09 WW1の帰結（1920年12月・政体のみ採点）
+    IReadOnlyList<NationStanding>? StandingsAt1950 = null);   // ★1950断面（2026-09-21・Q668＝1950年1月1日・政体と従属を採点）。全長がQ668未満の走行はnull
 
 /// <summary>バッチ（複数seed）の集計。</summary>
 public sealed record BatchSummary(
@@ -1628,7 +1629,7 @@ public static class SelfPlayMatch
         // ★開始前の助走（作者裁定2026-08-10）＝**Appの新規ゲームと同じ1本**（MultiNationSim.StartWarmup）。
         // ⚠2026-08-10以前は App だけが助走（4四半期＋技術8反復）を通り、ここは素の盤面から走っていた＝
         //   「遊ぶ世界」と「測る世界」の初期条件が別物だった（帯は、プレイヤーが決して見ない開始価格を測っていた）。
-        // 助走は暦を進めない（World.WarmupFrozen）＝1783/Q1 のまま開始＝1914断面(Q524)も全長604四半期も不変。
+        // 助走は暦を進めない（World.WarmupFrozen）＝1783/Q1 のまま開始＝1914断面(Q524)も全長 GameQuarters も不変。
         // Telemetry を切った**後**に呼ぶ＝助走の四半期でスナップショットを積まない（バッチのメモリを増やさない）。
         sim.StartWarmup();
         // ★異常リストの有界化（2026-08-01・docs/20260801「最終調整ハーネスの設計」§1-4）。
@@ -1649,7 +1650,7 @@ public static class SelfPlayMatch
         var jumpFlipQ = new List<int>[configs.Length];
         for (int i0 = 0; i0 < configs.Length; i0++) { jumpRankPrev[i0] = -1; jumpFlipQ[i0] = new List<int>(); jumpPolityPrev[i0] = sim.Nations[i0].World.Polity; }
         List<NationStanding>? standings1914 = null;   // 忠実度の1914断面（Q524）。1934延長2026-07-19：物差しは1914固定＝走行中に捕捉
-        List<NationStanding>? standings1820 = null, standings1870 = null, standings1920 = null;   // ★E-08（2026-09-05）：1820/1870年12月の断面（併記用・主指標は1914のまま）
+        List<NationStanding>? standings1820 = null, standings1870 = null, standings1920 = null, standings1950 = null;   // ★E-08（2026-09-05）：1820/1870年12月の断面（併記用・主指標は1914のまま）＋1920/1950
         // B-中7（史実検証2026-07-22）：人口の史実照合のため開始時（1783年）の国別人口を捕捉する。
         // 忠実度表に人口軸が無いため「テーマBの是正が帯に一切露出しない」＝計測器の欠落だった。領土不変な定義にするため
         // 絶対人口でなく**1783年比の成長倍率**を測る（本ゲームは国を消さず併合も起きるので絶対値は定義が噛み合わない）。
@@ -1845,6 +1846,7 @@ public static class SelfPlayMatch
                 if (q + 1 == Coefficients.FidelityQuarters1820 && quarters > Coefficients.FidelityQuarters1820) standings1820 = BuildStandings();   // ★E-08
                 if (q + 1 == Coefficients.FidelityQuarters1870 && quarters > Coefficients.FidelityQuarters1870) standings1870 = BuildStandings();
                 if (q + 1 == Coefficients.FidelityQuarters1920 && quarters > Coefficients.FidelityQuarters1920) standings1920 = BuildStandings();   // ★E-09   // 1914年12月の断面＝忠実度の照合対象（終局まで走っても物差しは1914）
+                if (q + 1 == Coefficients.FidelityQuarters1950) standings1950 = BuildStandings();   // ★1950断面＝終局の四半期（最終Standingsへ退避しない＝全長が届かない走行は null＝断面なし）
                 int lead = 0;
                 for (int i = 1; i < scores.Length; i++) if (scores[i] > scores[lead]) lead = i;
                 string leader = sim.Nations[lead].World.SelfPower?.BaseName ?? sim.Nations[lead].World.Region.Name;   // 不変国名で追跡（監査2026-07-12 他17＝首都州名の分裂と同型で、変名（プロイセン→ドイツ）による偽の首位交代も防ぐ）
@@ -1900,7 +1902,7 @@ public static class SelfPlayMatch
         bool deadlocked = frozen > DeadlockFrozenQuarters;   // ★構造フィールドへ（文字列一致をやめる）
         if (deadlocked) anomalies.Add($"デッドロックの疑い：スコアが{frozen}四半期不変");
 
-        var standings = BuildStandings();   // 終局（1934）の最終順位＝勝者・スコア・法多様性・政体分布の対象。忠実度だけは standings1914（Q524断面）
+        var standings = BuildStandings();   // 終局（1950年1月1日）の最終順位＝勝者・スコア・法多様性・政体分布の対象。忠実度だけは standings1914（Q524断面）
 
         // Round2 2026-07-08：「決着が遅い」を異常から除外。首位が終盤まで争われるのはバランス目標③（独走不可・首位交代）の達成であり
         // 病理ではない（旧＝異常扱いは「決着しないバグ」検出のためだったが、デッドロックは frozen 検査が別途担う）。指標としては BatchSummary.LateDecisions に残す。
@@ -1934,7 +1936,7 @@ public static class SelfPlayMatch
             sim.Nations.Sum(n => n.World.ElectionsHeld), sim.Nations.Sum(n => n.World.QuartersWithElections),   // ★E0計器（2026-08-15）
             MajorsTradeGdp(sim),   // ★貿易復活計器（2026-08-15）
             MajorDepressionEpisodes: majorDepressionEpisodes, MajorMaxDrawdown: majorMaxDrawdown, MajorDdNote: majorDdNote,
-            Jumps: [.. jumps], StandingsAt1820: standings1820, StandingsAt1870: standings1870, StandingsAt1920: standings1920);   // ★A-05：跳躍ダイジェスト（報告専用）
+            Jumps: [.. jumps], StandingsAt1820: standings1820, StandingsAt1870: standings1870, StandingsAt1920: standings1920, StandingsAt1950: standings1950);   // ★A-05：跳躍ダイジェスト（報告専用）
     }
 
     private static readonly string[] TradeGdpMajorNames = ["イギリス", "フランス", "ロシア", "プロイセン", "清", "アメリカ"];

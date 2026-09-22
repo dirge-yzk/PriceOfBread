@@ -323,7 +323,7 @@ public sealed class StatTerm
     public IBrush Brush { get; init; } = Brushes.Gray;
 }
 
-// 終局（1934年12月のあと）の最終ランキング1行。
+// 終局（1949年12月のあと＝GameQuarters 経過）の最終ランキング1行。
 public sealed class EndingRow
 {
     public string Order { get; init; } = "";
