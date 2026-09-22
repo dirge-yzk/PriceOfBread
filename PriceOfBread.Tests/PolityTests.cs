@@ -13,13 +13,18 @@ public class PolityTests
     public void 幕府は教育改革で近代政体へ転換する()   // 人口正規化後：宗教教育の幕府は意識が閾値に届かず封建のまま（徳川の罠）。公教育（明治の改革）が意識を育て初めて権威主義が倒れる
     {
         // 宗教教育のままの幕府＝意識が育たず封建が持続（外圧だけでは倒れない＝徳川の罠）
+        // ★計器の隔離（回B 2026-09-22）：この番人が測るのは**意識の経路**（教育→意識→保持力の閾値）だけ。飢餓の駆動は回Bで平常からの急な落ち込みを測るようになり、
+        //   意識と独立の経路（モラル・エコノミー＝文盲の群衆でも急な落ち込みで立つ）として働く＝宗教教育の幕府でも、34年かけて充足が0.67→0.88へ上がった後の不作
+        //   （135四半期目に0.77＝平常から0.11の落差＝飽和）で倒れる（Jカーブ）。それは「徳川の罠」（意識が閾値に届かない）の反証ではない＝両腕で外して意識の経路だけを比べる。
         var stagnant = new Simulation(NationConfig.Japan().ToScenario(1789), new NullAgent());
+        stagnant.World.Coef.FamineDriveGain = 0;
         Assert.Equal(Polity.Shogunate, stagnant.World.Polity);
         stagnant.Run(300);
         Assert.Equal(Polity.Shogunate, stagnant.World.Polity);   // 宗教教育＝意識の上限が低く保持力の閾値に届かない＝権威主義が持続
 
         // 教育改革（公教育）＝意識が育ち、保持力の閾値を超えて権威主義が倒れる（明治型の近代化）
         var reformed = new Simulation(NationConfig.Japan().ToScenario(1789), new NullAgent());
+        reformed.World.Coef.FamineDriveGain = 0;   // 同じ隔離（両腕で揃える＝差は教育法だけ）
         reformed.World.EducationLaw = EducationLaw.Public;
         reformed.World.Policy.EducationLaw = EducationLaw.Public;
         reformed.World.ExternalPressure = 0.8;

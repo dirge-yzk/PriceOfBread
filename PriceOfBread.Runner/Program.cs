@@ -5375,6 +5375,7 @@ if (args.Length > 0 && args[0] == "factionprobe")
     //   ③3層の重み wEdu=min(意識,識字)／wMid=識字−wEdu／文盲=1−識字（Politics.cs の闘争度ループと同一式・和は厳密に1）。
     //   ⚠通算は**国ごとに分ける**（粒度＝計器の5つの失敗型のひとつ）。清の pop 充足 p50 は英より 0.2 低く、混ぜた分位はどちらの国のものでもない。
     var fp0Food = new Dictionary<string, List<(double v, double w)>>();     // pop単位の食料充足（人口加重・国ごとに全観測を通算）
+    var fp0Drop = new Dictionary<string, List<(double v, double w)>>();     // ★回B（2026-09-22）：pop単位の落ち込み D＝平常 FoodRef − 充足（同じ母集団・未捕捉は外す）＝飢餓の駆動の起点と利得の母数
     var fp0Edu = new Dictionary<string, List<(double v, double w)>>();      // 3層＝政治意識あり
     var fp0Mid = new Dictionary<string, List<(double v, double w)>>();      // 3層＝識字あり×政治意識なし（危険な中間）
     var fp0Ill = new Dictionary<string, List<(double v, double w)>>();      // 3層＝文盲
@@ -5426,12 +5427,23 @@ if (args.Length > 0 && args[0] == "factionprobe")
         return tot > 0 ? hit / tot : 0;
     }
     static string FpS(double x) => x < 0 ? "—" : x.ToString("F3");
-    // ★段2で実装された（＝もう仮置きではない）：門は RegionalRevoltThreshold＝0.50。起点は FamineDriveOnset（★2026-09-11＝FamineDeathFillFloor の流用をやめた＝計器は係数を読む）。
-    double Fp0Anchor = cf0.FamineDriveOnset;   // 飢餓の駆動項の起点（Politics の飢餓項と同じ1本）
-    //   ★利得は 2026-09-22 に点火済み（階層3分割と対）＝計器は実値を読むだけ（旧＝休眠中は導出値 10 を当てて予測していた）。
+    // ★段2で実装された（＝もう仮置きではない）：門は RegionalRevoltThreshold＝0.50。計器は係数を読む（2026-09-11）。
+    // ★2026-09-22 回B：駆動は**平常（Pop.FoodRef）からの落ち込み** D＝平常−充足 を測る（Politics.FamineDrive）＝起点は落ち込みの量（充足の水準ではない）。
+    double Fp0Anchor = cf0.FamineDropOnset;   // 飢餓の駆動項の起点＝落ち込み D がこれを超えると駆動>0（Politics.FamineDrive と同じ1本）
     double Fp0Gain = cf0.FamineDriveGain;
-    double fp0Sat = Fp0Anchor - 1.0 / Fp0Gain;                              // drive が1に飽和する充足（= 0.8 − 1/3.3）＝飢餓項**単独**で2四半期後に門を越えられる水準
-    double fp0Half = Fp0Anchor - cf0.RegionalRevoltThreshold / Fp0Gain;     // drive が門を超える充足＝他項と合わせて越えうる水準
+    //   POB_COEF で利得0（休眠）にした導出の腕では飽和・門超えの落ち込みは定義されない＝NaN（印字は「—」・持続の走査は数えない）。
+    double fp0Sat = Fp0Gain > 0 ? Fp0Anchor + 1.0 / Fp0Gain : double.NaN;                              // drive が1に飽和する落ち込み＝飢餓項**単独**で2四半期後に門を越えられる落差
+    double fp0Half = Fp0Gain > 0 ? Fp0Anchor + cf0.RegionalRevoltThreshold / Fp0Gain : double.NaN;     // drive が門を超える落ち込み＝他項と合わせて越えうる落差
+    // 平常は Politics.Step の中で駆動を計算した【後】に今の充足へ寄せられる（慣れの速度 LivingRefSpeed）。計器が四半期末に読む FoodRef は更新後なので、
+    //   エンジンが読んだ更新前の平常へ代数で戻す：ref_pre = (ref_post − s×充足)/(1−s)（充足は次の月頭まで不変＝同じ値）。未捕捉（<0）は D=0 と同じ扱いで外す。
+    static double FpDrop(Pop p, Coefficients c)
+    {
+        if (!(p.FoodNeed > 1e-9) || !(p.FoodRef >= 0)) return double.NaN;
+        double fill = System.Math.Min(1.0, p.FoodMet / p.FoodNeed);
+        double s = c.LivingRefSpeed;
+        double refPre = s > 0 && s < 1 ? (p.FoodRef - s * fill) / (1.0 - s) : p.FoodRef;
+        return refPre - fill;
+    }
     Console.WriteLine($"=== factionprobe seed {fpSeed}／{string.Join("・", fpWatch)}　{fpQ}四半期　点火の各項（年次）===");
     Console.WriteLine($"    候補＝結束≥{cf0.FactionCohesionFightThreshold:F2} かつ州がActive かつ**親が今も所有**（段0の幽霊除外と同じ述語）");
     Console.WriteLine($"    段0の3行（食料/熱/層）＝{fpEvery}年ごとに印字（分布の母集団は毎年ぶん）。⚠pop の FoodMet/FoodNeed は**月次の累積器**（EconomyStep が月頭に0で始める）＝四半期末に読むのは**その四半期の3月目**の値");
@@ -5487,9 +5499,11 @@ if (args.Length > 0 && args[0] == "factionprobe")
                 {
                     if (!(p.Size > 1e-9) || !(p.FoodNeed > 1e-9)) continue;
                     double fill = System.Math.Clamp(p.FoodMet / p.FoodNeed, 0, 1);
-                    if (fill < fp0Sat) fp0RunSat[p] = (fp0RunSat.TryGetValue(p, out var rs) ? rs : 0) + 1;
+                    // ①'の持続は**落ち込み**で測る（回B・2026-09-22）＝駆動が飽和／門超えの落差が続いた四半期数（`>` は NaN で false＝未捕捉と休眠の腕は数えない）
+                    double drop = FpDrop(p, w.Coef);
+                    if (drop > fp0Sat) fp0RunSat[p] = (fp0RunSat.TryGetValue(p, out var rs) ? rs : 0) + 1;
                     else if (fp0RunSat.TryGetValue(p, out var rsEnd)) { FpBag(fp0EpiSat, rKey).Add((rsEnd, p.Size)); fp0RunSat.Remove(p); }
-                    if (fill < fp0Half) fp0RunHalf[p] = (fp0RunHalf.TryGetValue(p, out var rh) ? rh : 0) + 1;
+                    if (drop > fp0Half) fp0RunHalf[p] = (fp0RunHalf.TryGetValue(p, out var rh) ? rh : 0) + 1;
                     else if (fp0RunHalf.TryGetValue(p, out var rhEnd)) { FpBag(fp0EpiHalf, rKey).Add((rhEnd, p.Size)); fp0RunHalf.Remove(p); }
                     if (!fpLadBelow.TryGetValue(rKey, out var lb)) fpLadBelow[rKey] = lb = new double[fpLadder.Length];
                     fpLadTot[rKey] = (fpLadTot.TryGetValue(rKey, out var lt) ? lt : 0) + p.Size;
@@ -5509,7 +5523,7 @@ if (args.Length > 0 && args[0] == "factionprobe")
             double coerce = PoliticalQuantities.EffectiveCoerce(w, c);
             // ---- ★段0（①食料の実分布／③3層の重み）＝Politics の闘争度ループと**同じ母集団**（Seceded州を除く・popの絞りなし）を1回だけ走査する
             {
-                var yFood = new List<(double v, double w)>();
+                var yFood = new List<(double v, double w)>(); var yDrop = new List<(double v, double w)>();
                 var yEdu = new List<(double v, double w)>(); var yMid = new List<(double v, double w)>(); var yIll = new List<(double v, double w)>();
                 var yDisc = new List<(double v, double w)>(); var yPart = new List<(double v, double w)>(); var yMil = new List<(double v, double w)>();
                 double yPop = 0, yNoNeed = 0, yEduS = 0, yMidS = 0, yIllS = 0, yPartS = 0;
@@ -5525,6 +5539,8 @@ if (args.Length > 0 && args[0] == "factionprobe")
                         yPop += p.Size;
                         if (p.FoodNeed > 1e-9) yFood.Add((System.Math.Clamp(p.FoodMet / p.FoodNeed, 0, 1), p.Size));   // 飢餓の駆動項（Politics.cs の FamineDriveGain）と同じ分母ガード・同じクランプ
                         else yNoNeed += p.Size;                                    // 分母なし＝飢餓項は発火しない（分布から外す＝分母を痩せさせないため別に数える）
+                        double yD = FpDrop(p, c);                                  // ★回B：平常からの落ち込み（エンジンが読んだ更新前の平常）＝起点と利得の母数
+                        if (double.IsFinite(yD)) yDrop.Add((yD, p.Size));
                         double we = System.Math.Min(p.Consciousness, p.Literacy), wm = p.Literacy - we, wi = 1.0 - p.Literacy;
                         yEdu.Add((we, p.Size)); yMid.Add((wm, p.Size)); yIll.Add((wi, p.Size));
                         yEduS += we * p.Size; yMidS += wm * p.Size; yIllS += wi * p.Size;
@@ -5534,7 +5550,7 @@ if (args.Length > 0 && args[0] == "factionprobe")
                     }
                 }
                 string fpKey = sp.BaseName;
-                FpBag(fp0Food, fpKey).AddRange(yFood); FpBag(fp0Edu, fpKey).AddRange(yEdu); FpBag(fp0Mid, fpKey).AddRange(yMid); FpBag(fp0Ill, fpKey).AddRange(yIll);
+                FpBag(fp0Food, fpKey).AddRange(yFood); FpBag(fp0Drop, fpKey).AddRange(yDrop); FpBag(fp0Edu, fpKey).AddRange(yEdu); FpBag(fp0Mid, fpKey).AddRange(yMid); FpBag(fp0Ill, fpKey).AddRange(yIll);
                 FpBag(fp0Disc, fpKey).AddRange(yDisc); FpBag(fp0Mil, fpKey).AddRange(yMil); FpBag(fp0Part, fpKey).AddRange(yPart);
                 FpBag(fp0PartShare, fpKey).Add((yPop > 1e-9 ? yPartS / yPop : 0, 1.0));
                 fp0PopAll[fpKey] = (fp0PopAll.TryGetValue(fpKey, out var fpPa) ? fpPa : 0) + yPop;
@@ -5618,6 +5634,7 @@ if (args.Length > 0 && args[0] == "factionprobe")
     // ★段0の総括（2026-09-09）＝上の年次3行の母集団を**国ごとに**通算して印字する。⚠これが無いと fp0* は貯めるだけの死んだ蓄積になる
     //   （本企画が「計器が一番バグる」の5型のひとつ＝刺し忘れとして記録している型）。世界には1ビットも書かない。
     Console.WriteLine("\n=== 段0の総括（国ごと・助走後の全期間を通算）===");
+    var fp0DerivP90 = new List<double>(); var fp0DerivP95 = new List<double>();   // ★回B：国ごとの落ち込み D の p90/p95（起点と利得の導出＝下で中央値を取る）
     foreach (string fpK in fpWatch)
     {
         if (!fp0Food.TryGetValue(fpK, out var kFood)) { Console.WriteLine($"--- {fpK}：観測なし（消滅したか、名前が一致しない）"); continue; }
@@ -5625,24 +5642,29 @@ if (args.Length > 0 && args[0] == "factionprobe")
         var kHeat = FpBag(fp0Heat, fpK); var kHMil = FpBag(fp0HeatMil, fpK);
         var kHMax = FpBag(fp0HeatMax, fpK); var kRatio = FpBag(fp0Ratio, fpK); var kCrowd = FpBag(fp0Crowd, fpK);
         double kPopAll = fp0PopAll.TryGetValue(fpK, out var kpa) ? kpa : 0, kNoNeed = fp0PopNoNeed.TryGetValue(fpK, out var kpn) ? kpn : 0;
-        // §7-3 の飽和形 drive = clamp(g×(アンカー−充足), 0, 1) を**計器の中だけで**当てた分布（点火はしない＝読むだけ）
-        var kDrive = new List<(double v, double w)>(kFood.Count);
+        double kFoodW = 0; foreach (var e in kFood) kFoodW += e.w;
+        Console.WriteLine($"--- {fpK}　①pop単位の食料充足 FoodMet/FoodNeed（主食＋動物性タンパクの栄養加重／観測 {kFood.Count} 件・のべ人口 {(long)System.Math.Round(kFoodW):N0}）＝物理の経路（死亡・疫病・移民）が読む絶対水準");
+        Console.WriteLine($"      分位 p01 {FpS(FpQ(kFood, 0.01))} p05 {FpS(FpQ(kFood, 0.05))} p10 {FpS(FpQ(kFood, 0.10))} p25 {FpS(FpQ(kFood, 0.25))} p50 {FpS(FpQ(kFood, 0.50))} p75 {FpS(FpQ(kFood, 0.75))} p90 {FpS(FpQ(kFood, 0.90))}");
+        Console.WriteLine($"      人口比 <0.73（旧起点＝絶対水準） {FpBelow(kFood, 0.73):P1}／<0.5 {FpBelow(kFood, 0.50):P1}／<0.3 {FpBelow(kFood, 0.30):P1}／<0.1 {FpBelow(kFood, 0.10):P1}　FoodNeed=0（当月に主食需要なし）{(kPopAll > 0 ? kNoNeed / kPopAll : 0):P1}");
+        // ★回B（2026-09-22）：駆動の母数＝平常からの落ち込み D。駆動 = clamp(g×(D − 起点), 0, 1) を同じ分布に当てる（Politics.FamineDrive と同じ式・読むだけ）
+        var kDropL = FpBag(fp0Drop, fpK);
+        var kDrive = new List<(double v, double w)>(kDropL.Count);
         double kDriveSum = 0, kDriveW = 0, kDrivePos = 0, kDriveSat = 0;
-        foreach (var e in kFood)
+        foreach (var e in kDropL)
         {
-            double d = System.Math.Clamp(Fp0Gain * (Fp0Anchor - e.v), 0, 1);
+            double d = Fp0Gain * (e.v - Fp0Anchor); d = !(d > 0) ? 0 : d > 1 ? 1 : d;
             kDrive.Add((d, e.w)); kDriveSum += d * e.w; kDriveW += e.w; if (d > 1e-9) kDrivePos += e.w; if (d > cf0.RegionalRevoltThreshold) kDriveSat += e.w;
         }
-        Console.WriteLine($"--- {fpK}　①pop単位の食料充足 FoodMet/FoodNeed（主食＋動物性タンパクの栄養加重／観測 {kFood.Count} 件・のべ人口 {(long)System.Math.Round(kDriveW):N0}）");
-        Console.WriteLine($"      分位 p01 {FpS(FpQ(kFood, 0.01))} p05 {FpS(FpQ(kFood, 0.05))} p10 {FpS(FpQ(kFood, 0.10))} p25 {FpS(FpQ(kFood, 0.25))} p50 {FpS(FpQ(kFood, 0.50))} p75 {FpS(FpQ(kFood, 0.75))} p90 {FpS(FpQ(kFood, 0.90))}");
-        Console.WriteLine($"      人口比 <{Fp0Anchor:F2}（起点） {FpBelow(kFood, Fp0Anchor):P1}／<0.5 {FpBelow(kFood, 0.50):P1}／<0.3 {FpBelow(kFood, 0.30):P1}／<0.1 {FpBelow(kFood, 0.10):P1}　FoodNeed=0（当月に主食需要なし）{(kPopAll > 0 ? kNoNeed / kPopAll : 0):P1}");
-        Console.WriteLine($"      drive=clamp({Fp0Gain:F1}×({Fp0Anchor:F2}−充足),0,1)：>0 の人口比 {(kDriveW > 0 ? kDrivePos / kDriveW : 0):P1}／>{cf0.RegionalRevoltThreshold:F2} の人口比 {(kDriveW > 0 ? kDriveSat / kDriveW : 0):P1}／平均 {(kDriveW > 0 ? kDriveSum / kDriveW : 0):F4}／p50 {FpS(FpQ(kDrive, 0.50))} p90 {FpS(FpQ(kDrive, 0.90))}　（飽和は充足 {Fp0Anchor - 1.0 / Fp0Gain:F3} 以下）");
+        double kD90 = FpQ(kDropL, 0.90), kD95 = FpQ(kDropL, 0.95);
+        if (kDropL.Count > 0) { fp0DerivP90.Add(kD90); fp0DerivP95.Add(kD95); }
+        Console.WriteLine($"--- {fpK}　①d 平常からの落ち込み D＝FoodRef−充足（観測 {kDropL.Count} 件・人口加重）p01 {FpQ(kDropL, 0.01):F3} p10 {FpQ(kDropL, 0.10):F3} p50 {FpQ(kDropL, 0.50):F3} p75 {FpQ(kDropL, 0.75):F3} p90 {kD90:F3} p95 {kD95:F3} p99 {FpQ(kDropL, 0.99):F3}　>起点{Fp0Anchor:F3} の人口比 {(kDropL.Count > 0 ? 1 - FpBelow(kDropL, Fp0Anchor) : 0):P1}");
+        Console.WriteLine($"      drive=clamp({Fp0Gain:F1}×(D−{Fp0Anchor:F3}),0,1)：>0 の人口比 {(kDriveW > 0 ? kDrivePos / kDriveW : 0):P1}／>{cf0.RegionalRevoltThreshold:F2} の人口比 {(kDriveW > 0 ? kDriveSat / kDriveW : 0):P1}／平均 {(kDriveW > 0 ? kDriveSum / kDriveW : 0):F4}／p50 {FpS(FpQ(kDrive, 0.50))} p90 {FpS(FpQ(kDrive, 0.90))}　（飽和は D {fp0Sat:F3} 以上）");
         var kEpiS = FpBag(fp0EpiSat, fpK); var kEpiH = FpBag(fp0EpiHalf, fpK);
         double kEpiSn = 0, kEpiS2 = 0, kEpiHn = 0, kEpiH2 = 0;
         foreach (var e in kEpiS) { kEpiSn += e.w; if (e.v >= 2) kEpiS2 += e.w; }
         foreach (var e in kEpiH) { kEpiHn += e.w; if (e.v >= 2) kEpiH2 += e.w; }
-        Console.WriteLine($"--- {fpK}　①'欠乏の持続（四半期ごとに走査・終わったエピソードのみ）飽和水準<{fp0Sat:F3}：{kEpiS.Count}件・長さ p50 {FpS(FpQ(kEpiS, 0.50))} p90 {FpS(FpQ(kEpiS, 0.90))} 四半期・2四半期以上 {(kEpiSn > 0 ? kEpiS2 / kEpiSn : 0):P1}");
-        Console.WriteLine($"      門超え水準<{fp0Half:F3}：{kEpiH.Count}件・長さ p50 {FpS(FpQ(kEpiH, 0.50))} p90 {FpS(FpQ(kEpiH, 0.90))} 四半期・2四半期以上 {(kEpiHn > 0 ? kEpiH2 / kEpiHn : 0):P1}　（未終了のエピソードは数えない＝**下側に偏る**）");
+        Console.WriteLine($"--- {fpK}　①'欠乏の持続（四半期ごとに走査・終わったエピソードのみ）飽和の落差 D>{fp0Sat:F3}：{kEpiS.Count}件・長さ p50 {FpS(FpQ(kEpiS, 0.50))} p90 {FpS(FpQ(kEpiS, 0.90))} 四半期・2四半期以上 {(kEpiSn > 0 ? kEpiS2 / kEpiSn : 0):P1}");
+        Console.WriteLine($"      門超えの落差 D>{fp0Half:F3}：{kEpiH.Count}件・長さ p50 {FpS(FpQ(kEpiH, 0.50))} p90 {FpS(FpQ(kEpiH, 0.90))} 四半期・2四半期以上 {(kEpiHn > 0 ? kEpiH2 / kEpiHn : 0):P1}　（未終了のエピソードは数えない＝**下側に偏る**）");
         Console.WriteLine($"--- {fpK}　①''欠乏の梯子（四半期走査・人口加重・終わったエピソードのみ）　水準：pop×四半期の人口比<水準／件数／長さ p50・p90（四半期）／2四半期以上の比");
         double kLadTot = fpLadTot.TryGetValue(fpK, out var klt) ? klt : 0;
         for (int li = 0; li < fpLadder.Length; li++)
@@ -5663,13 +5685,22 @@ if (args.Length > 0 && args[0] == "factionprobe")
         Console.WriteLine($"      闘争度（比較の腕＝現行の参加の述語）p50 {FpS(FpQ(kMil2, 0.50))} p90 {FpS(FpQ(kMil2, 0.90))} p99 {FpS(FpQ(kMil2, 0.99))}　>{kTh:F2} の人口比 {(kMil2.Count > 0 ? 1 - FpBelow(kMil2, kTh) : 0):P2}");
         Console.WriteLine($"      参加=max(不満度,闘争度) p50 {FpS(FpQ(kPart, 0.50))} p90 {FpS(FpQ(kPart, 0.90))} p99 {FpS(FpQ(kPart, 0.99))}　>{kTh:F2} の人口比 {(kPart.Count > 0 ? 1 - FpBelow(kPart, kTh) : 0):P2}　参加加重の人口比（国×年）p50 {FpS(FpQ(kPartSh, 0.50))} p90 {FpS(FpQ(kPartSh, 0.90))}");
     }
-    Console.WriteLine($"--- ⚠起点 {Fp0Anchor:F2}（FamineDriveOnset＝pop単位の平時分布 p10 の中央値・2026-09-11）。FamineDeathFillFloor(0.8・飢饉死の集中) とも 天命 dmFood/飢えの記憶/SelfPlay の飢饉判定（国平均 DynMandateFoodAnchor=0.8）とも別の量＝混ぜない");
+    {
+        // ★回B（2026-09-22）の導出規則（旧起点と同じ形）：起点 = 観測国の落ち込み D の **p90 の中央値**（平時の pop の9割は駆動0）、
+        //   飽和（駆動=1）= 起点 + 1/利得 を **p95 の中央値**に置く → 利得 = 1/(p95中央値 − p90中央値)。導出の腕は POB_COEF="FamineDriveGain=0"（旧の導出も駆動が休眠の世界）。
+        static double Med(List<double> xs) { if (xs.Count == 0) return double.NaN; var t = new List<double>(xs); t.Sort(); return t.Count % 2 == 1 ? t[t.Count / 2] : (t[t.Count / 2 - 1] + t[t.Count / 2]) / 2; }
+        double m90 = Med(fp0DerivP90), m95 = Med(fp0DerivP95);
+        Console.WriteLine($"--- ★導出（回B）：落ち込み D の p90＝[{string.Join(" ", fp0DerivP90.Select(x => x.ToString("F4")))}] → 中央値 {m90:F4}／p95＝[{string.Join(" ", fp0DerivP95.Select(x => x.ToString("F4")))}] → 中央値 {m95:F4}"
+            + $"　⇒ 起点 {m90:F4}・利得 1/({m95:F4}−{m90:F4}) = {(m95 > m90 ? 1.0 / (m95 - m90) : double.NaN):F2}　（この走行の係数：起点 {Fp0Anchor:F3}・利得 {Fp0Gain:F2}）");
+    }
+    Console.WriteLine($"--- ⚠起点 {Fp0Anchor:F3} は**落ち込みの量**（FamineDropOnset＝平常 FoodRef からの落差・回B 2026-09-22）＝充足の水準ではない。FamineDeathFillFloor(0.8・飢饉死の集中) とも 天命 dmFood/飢えの記憶/SelfPlay の飢饉判定（国平均 DynMandateFoodAnchor=0.8）とも別の量＝混ぜない");
     Console.WriteLine($"--- ★段2実施済み：heat は闘争度1量・門は {cf0.RegionalRevoltThreshold:F2}・勢い係数 RegionalRevoltStrength={cf0.RegionalRevoltStrength}（消えた欠乏因子の実測中央値≈0.5 を移した）。上の「>1 の割合」が鎮圧枝の到達性の番人");
     Console.WriteLine($"--- 段0 計器の限界（自己申告）：①pop の FoodMet/FoodNeed は月次の累積器（EconomyStep が月頭に0で始める）＝四半期末に読むのは**その四半期の3月目**だけ（月内の欠乏の谷は見えない）。断面の分位（①②③）は**年1回**（第4四半期）の走査＝①'の持続だけが四半期ごと。");
     Console.WriteLine($"    ②p.Size≤1e-9 の pop を分布から外している（力学の闘争度ループは外さない＝重みゼロなので加重分位は同値だが件数は減る）。");
     Console.WriteLine($"    ③heat の分位は州1件=重み1（F1が州を単位に選ぶため）＝人口加重ではない。④助走（StartWarmup）後の {fpQ} 四半期のみ＝助走中の盤面は入らない。");
     Console.WriteLine($"    ⑥①''の梯子は固定9水準（0.40〜0.80）・終わったエピソードだけ（未終了は数えない＝下側に偏る）・pop の同一性は参照＝消えた pop の走行中エピソードは捨てる。人口比は四半期断面（①の年1回より密）＝①の分位とは母集団が違う。");
     Console.WriteLine($"    ⑤「選択」の州＝エンジンと同じ Politics.SelectRevoltRegion（鍵＝熱×群衆）。群衆/強度/保持/比の分布はこの州のもの（旧の「最熱州」の計器の分布とは母集団が違う＝2026-09-11以前の記録と比べない）。");
+    Console.WriteLine($"    ⑦①d の落ち込み D は四半期末の FoodRef（更新後）を慣れの速度 LivingRefSpeed で**更新前へ代数で戻した**値（充足は次の月頭まで不変）。未捕捉（FoodRef<0）と FoodNeed=0 の pop は外す。①'の持続も同じ D で数える（利得0の腕では飽和・門超えの落差が無い＝数えない）。");
     fpIntensity.Sort();
     string Pct(double pp) => fpIntensity.Count == 0 ? "—" : fpIntensity[System.Math.Clamp((int)(pp * (fpIntensity.Count - 1)), 0, fpIntensity.Count - 1)].ToString("F4");
     Console.WriteLine($"\n--- intensity の分布（候補{fpIntensity.Count}件・段4の RevoltIgnitionIntensity はここから同定する）");

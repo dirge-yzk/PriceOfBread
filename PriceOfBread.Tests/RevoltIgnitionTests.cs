@@ -109,71 +109,72 @@ public class RevoltIgnitionTests
     {
         // ★作者裁定の受け入れ基準そのもの（設計メモ §6-4-1）＝「一瞬の飢餓では起きないが半年（2四半期）続けば越える」。
         //   これは**機構の主張**である（σと利得の算術＋クランプ）＝創発の主張ではない。
-        var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
-        sim.Run(20);
-        var w = sim.World; var c = w.Coef;
-        Assert.Equal(10.0, c.FamineDriveGain);   // ★既定＝点火値（2026-09-22・階層3分割と対）。段0の計器から導出（2026-09-11・Coefficients.FamineDriveGain のコメント）＝§7-3 の仮置き 3.3 は棄却（この番人自身が既定値の宣言）
-        Assert.Equal(0.73, c.FamineDriveOnset);   // 起点の既定＝5大国の pop 分位 p10 の中央値（この番人自身が既定値の宣言）
-        // 盤面を「飢え以外は平穏」に置く：参照点＝現在の生活水準（失望0）・中核民族100%（民族項0）・闘争度0。
-        // 食料は飽和帯（充足 0.40 < 0.73−1/10 = 0.63）＝駆動1.0＝targetは他項に依らずクランプで 1.0。
-        foreach (var p in w.AllPops())
-        {
-            p.Militancy = 0; p.LivingRef = p.Satisfaction; p.CoreEthnicShare = 1.0;
-            p.FoodNeed = 1.0; p.FoodMet = 0.40;
-        }
-        // ⚠物差しに**閉鎖pop（貴族）**を使う：F1の一揆の緩和も戦死も「非閉鎖pop」だけを書き換えるので、
-        //   同一ティックの下流の書き込みから隔離できる＝σと利得の算術だけを測れる（計器の隔離）。
-        Pop? noble = null;
-        foreach (var p in w.AllPops()) if (p.Closed) { noble = p; break; }
-        Assert.NotNull(noble);
+        // ★回B（2026-09-22）で駆動は**平常 FoodRef からの落ち込み**を測る（Politics.FamineDrive）＝盤面は「平常 1.0 から急に落ちた」に置く。
+        var (w, c, noble) = FamineBoard(foodMet: 0.10, foodRef: 1.0);
+        Assert.Equal(GainDefault, c.FamineDriveGain);   // ★既定＝導出値（回B 2026-09-22・Coefficients.FamineDriveGain のコメント）＝この番人自身が既定値の宣言
+        Assert.Equal(OnsetDefault, c.FamineDropOnset);  // 起点の既定＝観測5カ国の落ち込み D の p90 の中央値（この番人自身が既定値の宣言）
+        // 盤面＝「飢え以外は平穏」（参照点＝現在の生活水準で失望0・中核民族100%で民族項0・闘争度0）。
+        // 食料は平常 1.0 から充足 0.10 へ落ちた＝落ち込み 0.90（2四半期目も慣れで 0.873）≫ 起点+1/利得＝駆動1.0＝targetは他項に依らずクランプで 1.0。
+        Assert.True(c.FamineDropOnset + 1.0 / c.FamineDriveGain < 0.85, "前提：落ち込み0.85で飽和しない係数（盤面の置き方を見直す）");
         Politics.Step(w, c);
-        Assert.Equal(c.MilitancySpeed, noble!.Militancy, 9);                       // 1四半期＝σ
+        Assert.Equal(c.MilitancySpeed, noble.Militancy, 9);                       // 1四半期＝σ
         Assert.True(noble.Militancy < c.RegionalRevoltThreshold, $"1四半期の欠乏で門を越えた（{noble.Militancy:F3}）＝作者裁定が破れる");
+        Assert.Equal(1.0 + c.LivingRefSpeed * (0.10 - 1.0), noble.FoodRef, 12);   // 平常は駆動の【後】に慣れの速度で寄る（同一ティック内で閉じない）
         Politics.Step(w, c);
         Assert.Equal(1.0 - Math.Pow(1.0 - c.MilitancySpeed, 2), noble.Militancy, 9);   // 2四半期＝1−(1−σ)²
         Assert.True(noble.Militancy > c.RegionalRevoltThreshold, $"2四半期の欠乏でも門に届かない（{noble.Militancy:F3}）");
         Assert.Equal(1.0, noble.MilFamine);   // 飽和帯＝駆動1.0（診断の内訳も同じ値）
-        // ★起点の番人（2026-09-11）：起点より上（平時の四分位帯）の pop には飢餓の駆動が**厳密に0**＝慢性の信号を作らない。
-        //   充足 = 起点+0.05（全5カ国の p25 帯 0.78〜0.82 の中）→ 駆動 < 0 → 0。斜路の中（起点−0.5/利得＝門0.50に達する充足）→ 駆動 0.5。
-        double above = c.FamineDriveOnset + 0.05, ramp = c.FamineDriveOnset - 0.5 / c.FamineDriveGain;
-        foreach (var p in w.AllPops()) { p.Militancy = 0; p.FoodMet = above; }
+        // ★起点の番人：落ち込みが起点より小さい pop には飢餓の駆動が**厳密に0**（平時の揺れの9割）。
+        //   落ち込み = 起点の半分 → 駆動 0。斜路の中（起点+0.5/利得＝門0.50に達する落ち込み）→ 駆動 0.5。
+        double small = 0.5 * c.FamineDropOnset, ramp = c.FamineDropOnset + 0.5 / c.FamineDriveGain;
+        foreach (var p in w.AllPops()) { p.Militancy = 0; p.FoodRef = 0.9; p.FoodMet = 0.9 - small; }
         Politics.Step(w, c);
         Assert.Equal(0.0, noble.MilFamine);
         // 闘争度の移動は**飢餓以外の4項だけ**（内訳の代入5本は target と同じ値）＝σ×(生活+政治+厭戦+民族)。飢餓が1ビットでも入れば等式が破れる。
         Assert.Equal(c.MilitancySpeed * (noble.MilLiving + noble.MilVoice + noble.MilWar + noble.MilNation), noble.Militancy, 9);
-        foreach (var p in w.AllPops()) { p.Militancy = 0; p.FoodMet = ramp; }
+        foreach (var p in w.AllPops()) { p.Militancy = 0; p.FoodRef = 0.9; p.FoodMet = 0.9 - ramp; }
         Politics.Step(w, c);
-        Assert.Equal(0.5, noble.MilFamine, 9);   // 斜路＝線形（クランプ前）＝門0.50に達する充足で駆動ちょうど0.5
+        Assert.Equal(0.5, noble.MilFamine, 9);   // 斜路＝線形（クランプ前）＝門0.50に達する落ち込みで駆動ちょうど0.5
+    }
+
+    // ★回B（2026-09-22）の既定値の宣言（導出は Coefficients.FamineDriveGain のコメント）＝段2の番人が読む。
+    private const double GainDefault = 30.0;
+    private const double OnsetDefault = 0.07;
+
+    /// <summary>番人の盤面＝英1789を20四半期回し、全popを「飢え以外は平穏」に置いて食料の充足と平常だけを与える。物差しは閉鎖pop（貴族）
+    /// ＝F1の一揆の緩和も戦死も「非閉鎖pop」だけを書き換えるので、同一ティックの下流の書き込みから隔離できる（計器の隔離）。</summary>
+    private static (World w, Coefficients c, Pop noble) FamineBoard(double foodMet, double foodRef)
+    {
+        var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+        sim.Run(20);
+        var w = sim.World; var c = w.Coef;
+        foreach (var p in w.AllPops())
+        {
+            p.Militancy = 0; p.LivingRef = p.Satisfaction; p.CoreEthnicShare = 1.0;
+            p.FoodNeed = 1.0; p.FoodMet = foodMet; p.FoodRef = foodRef;
+        }
+        Pop? noble = null;
+        foreach (var p in w.AllPops()) if (p.Closed) { noble = p; break; }
+        Assert.NotNull(noble);
+        return (w, c, noble!);
     }
 
     [Fact]
     public void 階層3分割_飢えは闘争度へ飢餓の項1本だけで入る()
     {
         // ★番人(a)の政治側＋(e)（作者裁定2026-09-20「食料不足は闘争度、日用品は不満度、嗜好品は満足度」・2026-09-22 既定化）。
-        //   旧2本（「飢餓の駆動項は休眠では食料を1度も読まない」「階層3分割と飢餓の駆動は対で点けて初めて裁定になる」）の書き換え＝
-        //   裁定で分割も駆動も既定になった＝主張は「既定の世界で、食料の不足は闘争度を上げる／その入口は飢餓の項だけ
-        //   （生活の失望＝満足度を読む側は食料で1ビットも動かない）」。
+        //   主張は「既定の世界で、食料の不足は闘争度を上げる／その入口は飢餓の項だけ（生活の失望＝満足度を読む側は食料で1ビットも動かない）」。
         //   満足度の台帳に食料が載らないこと（経済側）は EconomyTests の番人が見る＝2本で「同じ欠乏が2つの量へ入らない」が閉じる。
+        //   ★回B：不足＝平常 1.0 からの急な落ち込み（慢性の低さは駆動しない＝回B番人(b)）。
         static (double living, double famine, double militancy) Probe(double foodMet)
         {
-            var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
-            sim.Run(20);
-            var w = sim.World; var c = w.Coef;
-            foreach (var p in w.AllPops())
-            {
-                p.Militancy = 0; p.LivingRef = p.Satisfaction; p.CoreEthnicShare = 1.0;
-                p.FoodNeed = 1.0; p.FoodMet = foodMet;
-            }
-            // 物差しは閉鎖pop（貴族）＝F1の一揆の緩和も戦死も非閉鎖popだけを書き換える＝同一ティックの下流から隔離（段2の番人と同じ計器）。
-            Pop? noble = null;
-            foreach (var p in w.AllPops()) if (p.Closed) { noble = p; break; }
-            Assert.NotNull(noble);
+            var (w, c, noble) = FamineBoard(foodMet, foodRef: 1.0);
             Politics.Step(w, c);
-            return (noble!.MilLiving, noble.MilFamine, noble.Militancy);
+            return (noble.MilLiving, noble.MilFamine, noble.Militancy);
         }
         Assert.True(new Coefficients().FamineDriveGain > 0, "飢餓の駆動が休眠に戻っている（裁定＝分割と対で既定の点火）");
-        var fed = Probe(1.0);         // 起点 0.73 より上＝駆動0
-        var starving = Probe(0.40);   // 飽和帯（0.40 < 0.73−1/10）＝駆動1
+        var fed = Probe(1.0);         // 平常どおり＝落ち込み0＝駆動0
+        var starving = Probe(0.10);   // 平常 1.0 から 0.10 へ＝飽和帯＝駆動1
         Assert.Equal(0.0, fed.famine);
         Assert.Equal(1.0, starving.famine);
         // (a) 食料の不足は闘争度を上げる。
@@ -181,6 +182,47 @@ public class RevoltIgnitionTests
                     $"食料の不足が闘争度を上げない（飽食 {fed.militancy:F4} → 飢餓 {starving.militancy:F4}）");
         // (e) 入口は飢餓の項だけ：生活の失望（満足度を読む項）は食料の有無で1ビットも動かない。
         Assert.Equal(fed.living, starving.living);
+    }
+
+    [Fact]
+    public void 回B_a_平常から急に落ちると飢餓の駆動が立つ()
+    {
+        // ★モラル・エコノミー（回B 2026-09-22・作者承認）：食料暴動は慣れた水準からの**急な**落ち込みで立つ。
+        //   平常 1.0 の pop が充足 0.75 へ落ちる＝旧式の絶対水準（0.73 未満で駆動）では**駆動0**だった水準でも、落差 0.25 が起点を超えれば駆動が立つ。
+        var (w, c, noble) = FamineBoard(foodMet: 0.75, foodRef: 1.0);
+        double expect = Math.Min(1.0, c.FamineDriveGain * (0.25 - c.FamineDropOnset));
+        Assert.True(expect > 0, "前提：落差0.25が起点を超える係数");
+        Assert.Equal(expect, Politics.FamineDrive(noble, c), 12);   // 純関数＝ループが呼ぶ1本（平常−充足−起点）
+        Politics.Step(w, c);
+        Assert.Equal(expect, noble.MilFamine, 12);                  // ループの寄与も同じ値
+        // 同じ盤面で「落ちていない」腕（平常＝今の充足 0.75）＝駆動0。闘争度は飢餓の項の分だけ上に居る。
+        var (w0, c0, noble0) = FamineBoard(foodMet: 0.75, foodRef: 0.75);
+        Politics.Step(w0, c0);
+        Assert.Equal(0.0, noble0.MilFamine);
+        Assert.True(noble.Militancy > noble0.Militancy + 1e-9, $"急な落ち込みが闘争度を上げない（{noble0.Militancy:F4} → {noble.Militancy:F4}）");
+    }
+
+    [Fact]
+    public void 回B_b_慢性的に低くても平常どおりなら駆動は立たない()
+    {
+        // ★回Bの根（2026-09-22）：コンゴの人口の39.8%が充足0.51〜0.52に恒常的に居て、旧式（絶対水準）は慢性の栄養不足を飢饉と読んで飽和させた
+        //   （同じ9カ国が両シードで1783〜84年に内戦）。慢性的に低いが平常どおりの pop には駆動が**厳密に0**。
+        //   充足 0.45＝旧式の飽和帯（0.73−1/10=0.63 未満＝旧なら駆動1.0）。
+        var (w, c, noble) = FamineBoard(foodMet: 0.45, foodRef: 0.45);
+        for (int q = 0; q < 4; q++)
+        {
+            foreach (var p in w.AllPops()) { p.FoodNeed = 1.0; p.FoodMet = 0.45; }   // 1年間ずっと同じ低さ（慢性）
+            Politics.Step(w, c);
+            Assert.Equal(0.0, noble.MilFamine);
+            Assert.Equal(0.45, noble.FoodRef, 12);   // 平常は慢性の低さのまま（慣れの更新は今の充足へ寄せる＝動かない）
+        }
+        // ★開始時（1783年の塊）の形：平常が未捕捉（-1）の pop は初回に今の充足で捕まる＝慢性の低さが「平常」として入り、駆動0。
+        var (w2, c2, noble2) = FamineBoard(foodMet: 0.45, foodRef: -1.0);
+        Assert.Equal(0.0, Politics.FamineDrive(noble2, c2));   // 純関数は未捕捉＝今の充足として読む（書かない）
+        Assert.Equal(-1.0, noble2.FoodRef);
+        Politics.Step(w2, c2);
+        Assert.Equal(0.0, noble2.MilFamine);
+        Assert.Equal(0.45, noble2.FoodRef, 12);
     }
 
     [Fact]

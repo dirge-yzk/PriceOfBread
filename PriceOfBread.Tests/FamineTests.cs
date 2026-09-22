@@ -44,6 +44,39 @@ public class FamineTests
     }
 
     [Fact]
+    public void 回B_c_物理の経路は慢性の不足にも効き続ける()
+    {
+        // ★回B（2026-09-22）：飢餓の駆動（政治）は平常 Pop.FoodRef からの落ち込みを測るようになったが、飢饉死・疫病の脆弱層集中
+        //   （と国際移民の押し出し＝MultiNationSim が州の FoodFill を読む）は**絶対水準**を読む＝慢性の不足はこれまでどおり人を殺す。
+        //   盤面＝不足州（充足は初期0.15→3年で0.58＝ずっと飢饉死の門 FamineDeathFillFloor の下）。その3年のあいだ毎四半期：
+        //   ①不足州の pop は飢饉死の門の下に居る（慢性）②政治の駆動は0（平常＝初回の低さを捕まえた後、充足はそこから落ちていない）
+        //   ③物理の経路は平常を1ビットも読まない＝平常を「豊かさに慣れた 1.0」に置いた腕と人口の軌道がビット一致。
+        //   そして④不足州は3年で2割以上減る（物理の経路が慢性の不足に効き続ける）。
+        var a = new Simulation(Famine(1), new NullAgent());
+        var b = new Simulation(Famine(1), new NullAgent());
+        foreach (var p in b.World.AllPops()) p.FoodRef = 1.0;
+        var c = a.World.Coef;
+        var poor = a.World.Regions[1];
+        double poor0 = poor.SumPopulation();
+        for (int q = 0; q < 12; q++)
+        {
+            a.Run(1); b.Run(1);
+            // 平常の捕捉＝Politics.Step の初回と同じ作法（今の充足）。この盤面は政治なし＝力学は平常を書かないので、ここで置く。
+            if (q == 0) foreach (var p in poor.Pops) if (p.FoodNeed > 1e-9) p.FoodRef = System.Math.Min(1.0, p.FoodMet / p.FoodNeed);
+            foreach (var p in poor.Pops)
+            {
+                if (!(p.FoodNeed > 1e-9)) continue;
+                double fill = p.FoodMet / p.FoodNeed;
+                Assert.True(fill < c.FamineDeathFillFloor, $"前提：不足州が慢性的に食えていない（{q}四半期目 {p.ClassName} 充足 {fill:F3}）");
+                Assert.Equal(0.0, Politics.FamineDrive(p, c));   // 慢性の低さは政治の駆動にならない
+            }
+            for (int i = 0; i < a.World.Regions.Count; i++)
+                Assert.Equal(a.World.Regions[i].SumPopulation(), b.World.Regions[i].SumPopulation());   // 平常を読む物理の経路は無い（厳密一致）
+        }
+        Assert.True(poor.SumPopulation() < poor0 * 0.8, $"慢性の不足で不足州が減らない（{poor0:F0}→{poor.SumPopulation():F0}）＝物理の経路が止まった");
+    }
+
+    [Fact]
     public void 年齢コホート_実国で老年人口が形成される()   // ①年齢コホート Phase1
     {
         var sim = new Simulation(NationConfig.Britain().ToScenario(9), new NullAgent());

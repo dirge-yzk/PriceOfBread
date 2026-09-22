@@ -553,7 +553,12 @@ public static class PowerShares
     /// ⚠**物質的苦情で動く**（史学検証3）＝ラ・グランハ1836（給与3か月未払）／サンヒル1866（昇進の天井と年金差別）／
     ///   ブラジル1910シバータ（給与引上げ・給食改善・勤務時間制限の要求書）／チリ1931コキンボ（30%減俸）／
     ///   キューバ1933（未払給与と昇進）／エルサルバドル1931（全軍給与の支払停止）。
-    /// ⚠**ここだけが「金」の経路である**（帰属＝<see cref="ArmyBinding"/> からは金を外した＝下記）。</summary>
+    /// ⚠**ここだけが「金」の経路である**（帰属＝<see cref="ArmyBinding"/> からは金を外した＝下記）。
+    /// ⚠**観測のみ**（回B 2026-09-22 に読み手を確認）：読み手は <see cref="ArmyClaim"/> → <see cref="Leak"/>／<see cref="VetoPower"/>／<see cref="Table"/>／
+    ///   <see cref="Shares"/>／<see cref="Level"/>／<see cref="FaitAccompli"/> で、その先は Runner の計器だけ（シムが読む部品＝PowerAffinity の
+    ///   <see cref="CivilianInstitutions"/>・<see cref="ParliamentControl"/> はこの漏れを読まない）。⇒ 兵の飢えが**挙動**へ入る政治の経路は
+    ///   Politics.SoldierForce（兵士POPの闘争度＝飢餓の駆動項経由）の1本だけ＝ここと二重計上にならない。
+    ///   （同じ <see cref="SoldierWelfare"/> は即応度にも入るが、そちらは「飢えた軍は戦えない」という物理の経路＝意志ではなく能力。）</summary>
     public static double RanksLeak(World w)
     {
         double pop = System.Math.Max(1.0, w.TotalPopulation);

@@ -52,6 +52,10 @@ public class FiscalTests
     public void 十分な税は連合を養い絶対王政を保つ()   // 徳川型の抑圧：連合を養えれば自由化を抑える
     {
         var sim = new Simulation(Fisc(12345, 0.60), new NullAgent());
+        // ★計器の隔離（回B 2026-09-22）：この番人が測るのは**財政→連合（治安維持力）→自由化の抑え込み**だけ。飢餓の駆動は回Bで平常からの急な落ち込みを測るようになり、
+        //   この盤面（充足1.0から始まり、不作0.75〜0.82が2〜3年続いて充足が0.6台へ落ちる）では数年ぶんの飢饉が駆動を飽和させ
+        //   （回復期も平常が四半期に3%しか寄らないので落差が残る）、闘争度0.97で絶対王政が倒れる（44四半期目に立憲・52四半期目に共和）＝別の経路。外して財政の経路だけを見る。
+        sim.World.Coef.FamineDriveGain = 0;
         sim.Run(400);
         Assert.True(sim.World.FiscalFundingRatio > 0.9, $"連合が養えていない（funding {sim.World.FiscalFundingRatio:P0}）");
         Assert.Equal(Polity.Absolutist, sim.World.Polity);   // 治安維持力が満たされ自由化を抑え込む＝絶対王政の維持

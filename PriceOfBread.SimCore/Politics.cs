@@ -113,6 +113,23 @@ public static class Politics
         return want;
     }
 
+    /// <summary>飢餓の駆動∈[0,1]（闘争度ループと計器の**同じ1本**）＝<b>平常からの急な落ち込み</b>（2026-09-22 回B・作者承認）。
+    /// <code>駆動 ＝ clamp(FamineDriveGain ×(平常 FoodRef − 今の充足 FoodMet/FoodNeed − FamineDropOnset), 0, 1)</code>
+    /// ★モラル・エコノミー：食料暴動・飢饉の蜂起は慣れた水準からの急な高騰・途絶が引き金で、慢性の貧困ではない＝
+    ///   旧式（絶対水準 0.73 未満で駆動）は慢性の栄養不足を飢饉と読んで飽和させていた（コンゴの人口の39.8%が充足0.51〜0.52に恒常的に居て、
+    ///   同じ9カ国が両シードで1783〜84年に内戦へ落ちた）。慢性の不足は物理の経路（死亡・疫病・移民・扶養力＝絶対水準を読む）だけが運ぶ。
+    /// ⚠純関数＝**書き込まない**（<see cref="LivingWant"/> と同じ作法）。平常の未捕捉（FoodRef&lt;0）は今の充足として読む＝落ち込み0。
+    /// ⚠NaN は否定形で「飢えていない」側へ倒す（Math.Clamp は NaN を通す）。分母なし（FoodNeed≈0）は0。</summary>
+    internal static double FamineDrive(Pop p, Coefficients c)
+    {
+        if (!(c.FamineDriveGain > 0) || !(p.FoodNeed > 1e-9)) return 0;
+        double fill = p.FoodMet / p.FoodNeed;
+        if (fill > 1) fill = 1;                                  // 平常の側（更新）と同じ上限＝満腹を超えた分は落差に数えない
+        double refv = p.FoodRef < 0 ? fill : p.FoodRef;          // 未捕捉＝今の充足（＝ループの初期化直後と同値・こちらは書かない）
+        double drive = c.FamineDriveGain * (refv - fill - c.FamineDropOnset);
+        return !(drive > 0) ? 0 : drive > 1 ? 1 : drive;
+    }
+
     /// <summary>実効発言権∈[0,1]（闘争度ループと**同じ1本**）＝票の発言権 × 選挙の実在（1934拡張E5「紙の参政権」の是正）。
     /// 議会政体×秘密投票=満額／議会×公開投票=買収・脅迫で減／非議会政体=紙の参政権。SecretBallotGate=0 で変調なし＝旧式。</summary>
     internal static double EffectiveVoice(World w, Coefficients c, Pop p)
@@ -259,6 +276,10 @@ public static class Politics
             // ⚠式は <see cref="LivingWant"/> **1本**（段1・2026-09-09）＝闘争度（ストック）と不満度（導出量）が同じ生活苦を読む＝二実装を作らない。
             //   未捕捉の初期化だけはここに残す（純関数は盤面を書かない）＝初期化直後の LivingWant は同じ現在値を読むのでビット同値。
             if (c.LivingRefWeight > 0 && p.LivingRef < 0) p.LivingRef = p.Satisfaction;   // 未捕捉＝現在値で初期化（立ち上がりの跳躍なし）
+            // ★食料の平常（2026-09-22 回B）も同じ作法：未捕捉＝今の充足で初期化＝開始時の慢性の低さは「平常」として入る（1783年の塊の根）。
+            //   分母なし（FoodNeed≈0）・NaN の月は捕捉も更新もしない（否定形の `>= 0` は NaN で false）。
+            double foodFill = p.FoodNeed > 1e-9 ? Math.Min(1.0, p.FoodMet / p.FoodNeed) : double.NaN;
+            if (p.FoodRef < 0 && foodFill >= 0) p.FoodRef = foodFill;
             double want = LivingWant(p, c);
             // 政治の空間モデル（voiceless の一般化）：政治的不満＝**意識 ×（1−実効発言権）× dist(POPの理想点, 現政体座標)**。
             // 社会主義の労働者が絶対王政の下にいる＝4軸で遠い＝高い不満／保守的貴族＝近い＝満足。
@@ -285,17 +306,11 @@ public static class Politics
             else if (migrantIncluded && milReg.Tier != RegionTier.Colonial) minorityMil = 0;
             // [PORT:P1] ★段2＝飢餓の駆動項（設計メモ §7-3・作者裁定2026-09-09）。⚠旧 FamineAbsoluteMilitancy=0.04 は2四半期で闘争度を 0.0024 しか動かせず
             //   （派閥形成の門 0.5 の2桁下）＝「一瞬の飢餓では起きないが半年続けば大量の反乱軍」が**係数の値では表現できない**証明だった＝利得ごと作り直す。
-            //   欠乏の起点は <see cref="Coefficients.FamineDriveOnset"/>（pop単位の平時分布の p10 の中央値＝0.73・導出は係数のコメント）＝そこまで食えている pop は0。
-            //   ⚠起点は FamineDeathFillFloor(0.8) の流用ではない（2026-09-11・段0の計器が「0.8 は pop 単位では慢性の信号」と棄却）。
-            //   飽和（駆動=1）は 充足 = FamineDriveOnset − 1/FamineDriveGain＝点火値 10 で 0.63（≈p05）。
-            //   ★2四半期で門を越える設計：σ=0.30・駆動1.0 なら 0→0.30→0.51 で RegionalRevoltThreshold=0.50 を**2四半期目に**越え、1四半期では越えない。
-            //   ★2026-09-22 点火（階層3分割と対＝食料は満足度の台帳に載らないので、飢えが政治へ出る経路はこの項の1本だけ＝思想⑨）。
-            double famineMil = 0;
-            if (c.FamineDriveGain > 0 && p.FoodNeed > 1e-9)
-            {
-                double drive = c.FamineDriveGain * (c.FamineDriveOnset - p.FoodMet / p.FoodNeed);
-                famineMil = !(drive > 0) ? 0 : drive > 1 ? 1 : drive;   // 否定形＝NaN は「飢えていない」側へ倒す（Math.Clamp は NaN を通す）
-            }
+            //   ★2026-09-22 回B：駆動は**平常（FoodRef）からの急な落ち込み**を測る（式は <see cref="FamineDrive"/> の1本・起点と利得の導出は係数のコメント）。
+            //   ⚠旧式（絶対水準＝充足が FamineDriveOnset 0.73 未満で駆動）は慢性の栄養不足を飢饉と読んで飽和させた（同じ9カ国が両シードで1783〜84年に内戦）。
+            //   ★2四半期で門を越える設計は不変：σ=0.30・駆動1.0 なら 0→0.30→0.51 で RegionalRevoltThreshold=0.50 を**2四半期目に**越え、1四半期では越えない。
+            //   ★階層3分割と対＝食料は満足度の台帳に載らないので、飢えが政治へ出る経路はこの項の1本だけ（思想⑨）。
+            double famineMil = FamineDrive(p, c);
             // [PORT:P1] 闘争度targetへの寄与（加算項）＝生活の失望／法（政治）の隔たり／民族／厭戦／飢餓の**5本**。新規機構はこのポートに独立加算で接続する。
             // ★段2（2026-09-09）で 11項→5項：群衆の熱・失業・格差・危険な中間・革命の波を削除し、民族2項を一本鎖へ畳んだ（設計メモ §2-1/§7-3）。
             // 内訳（診断・UI表示用。target への各寄与ぶんを記録＝計算には不使用・較正中立）。値はすべて target が既に計算済み＝代入5本だけ。
@@ -316,6 +331,10 @@ public static class Politics
             // ★参照点を今の生活水準へ寄せる（⚠want を計算した【後】＝同一ティック内で閉じない）。
             if (c.LivingRefWeight > 0 && c.LivingRefSpeed > 0)
                 p.LivingRef += c.LivingRefSpeed * (p.Satisfaction - p.LivingRef);
+            // ★食料の平常を今の充足へ寄せる（同じ慣れの速度・駆動を計算した【後】＝同一ティック内で閉じない）。
+            //   ⚠利得に関わらず回す＝駆動が休眠の世界でも「慣れ」の分布を計器が測れる（起点と利得はその分布から導いた）。
+            if (c.LivingRefSpeed > 0 && foodFill >= 0)
+                p.FoodRef += c.LivingRefSpeed * (foodFill - p.FoodRef);
         }
         }   // 参政権の範囲2法：州→popの入れ子ループの閉じ（AllPops の展開形）
 

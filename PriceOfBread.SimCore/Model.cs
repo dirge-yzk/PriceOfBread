@@ -183,6 +183,17 @@ public sealed class Pop
     //   ただハーネスが露骨に壊れて調整困難なら休眠でよい」（作者裁定）。
     // ★★実測で壊れず＝**2026-08-21に点火（既定1.0＝live）**。硬性ゲート全緑・人口+7.1（日本90%）・経済−10.0は記録して進む。
     public double LivingRef = -1.0;
+    /// <summary>★食料の平常＝この pop が慣れている食料の充足 FoodMet/FoodNeed（2026-09-22 回B「飢餓の駆動は急な落ち込みを測る」）。
+    /// <code>飢餓の駆動 ＝ clamp(利得 ×(平常 − 今の充足 − 起点), 0, 1)</code>（<see cref="Politics.FamineDrive"/> の1本）。
+    /// ★モラル・エコノミー：食料暴動・飢饉の蜂起は慣れた水準からの**急な**価格高騰・供給途絶が引き金で、慢性の貧困ではない
+    ///   （慢性的に栄養不足の社会は恒常的な内戦にはなかった）。慢性の不足は物理の経路（死亡・疫病・移民・扶養力）が絶対水準で運ぶ。
+    /// ⚠**新しい状態が要る理由**（思想⑩）：「慣れ」は履歴そのもので現在量からは導けず、既存の平滑量はどれも pop 単位の食料の慣れにならない＝
+    ///   <see cref="LivingRef"/> は満足度の慣れ（階層3分割で食料は満足度の台帳から抜けた）／
+    ///   <see cref="Region.FoodFill"/> は州の平滑（時定数≒5か月＝穀倉の備蓄・飢饉死の読み手）で、州内の階級差（貧しい pop の恒常的な低さ）を
+    ///   慢性の信号として残し、しかも1四半期で落差の約半分を吸う／World.FamineMemory は国の不足の積分で水準でない。
+    /// 慣れの速度は <see cref="LivingRef"/> と同じ <see cref="Coefficients.LivingRefSpeed"/>（新しい数を作らない）。
+    /// ⚠−1＝未捕捉（初回の Politics.Step で今の充足に初期化＝開始時の慢性の低さは「平常」として入る＝立ち上がりの跳躍なし）。</summary>
+    public double FoodRef = -1.0;
     public double LastSatisfaction = 1.0;   // ★前月の満足度（2026-08-17・LastEducationFill と同型の退避）。汚職の「薄給の官僚」判定が読む＝
                                             // 汚職の分け前→貯蓄→消費→満足度→汚職 の環を**同一ティックで閉じない**ため（負のフィードバックだが同月で閉じると発散源になる）。
                                             // 書くだけの月は恒等（読み手＝World.OfficialWelfareFill が CorruptionPoorOfficialWeight>0 のときだけ読む）。
@@ -211,7 +222,7 @@ public sealed class Pop
     public double MilVoice;    // 政治的疎外（意識×発言権の無さ×理想と体制の乖離）
     public double MilWar;      // 厭戦（戦争の長期化）
     public double MilNation;   // 民族的地位（★段2で一本鎖＝少数派 (1−中核度) のみ）
-    public double MilFamine;   // 飢餓の駆動項の寄与（診断・UI表示用＝力学は読まない）。★2026-09-22 点火（FamineDriveGain=10・階層3分割と対）
+    public double MilFamine;   // 飢餓の駆動項の寄与（診断・UI表示用＝力学は読まない）。★2026-09-22 点火（回Bで平常からの落ち込みへ＝FamineDriveGain=30・FamineDropOnset=0.07・階層3分割と対）
     // ★段2（2026-09-09）で MilJobs/MilCrowd/MilGap/MilMid/MilWave を削除＝闘争度の項ごと消えた（11項→5項・設計メモ §7-3）。
     // MilForeign（外圧→闘争度の直加算の診断）は機構撤去（C裁定2026-07-09＝ReformPressureBoost経路へ一本化）後の恒久0だったため削除（監査2026-07-12 死24）
 
