@@ -38,7 +38,7 @@ public class DormantIdentityTests
                                         //   0＝旧＝ストック＝厳密恒等。点火値 1.0（記憶が消え、国内経路の運搬漏れが定義ごと消える）
         "SerfGateCoversPool",           // C-03：農奴の移動制限を失業プール経路へも広げる
         "StateAbsorptionBlend",         // E-01：国庫の近代化投資の吸収ゲート（技術/外資/私的建設に既にある同じ写像の4本目）
-        "DomesticFlightHasHost",        // AUD-09：資本逃避の受け皿（器は2026-08-14から在るのに休眠表に載っていなかった＝登録漏れ）
+        // ★DomesticFlightHasHost は 2026-09-22 に**点火**（旗ごと削除＝逃避の受け皿が常に外資の負債を記帳）＝この表から外した。
         "NiterBedEnabled",              // 硝石丘＝硝石の低効率レシピ（財の3分類の再開）＝0で足さない
         "ScarceCountsIncludeColonies",  // 希少鉱物の総量保存の k/N に植民地を数える（分子と分母の非対称の是正）＝0で従来
         "PrivilegeLedgerEnabled",       // 特権の台帳（段1・観測のみ）＝0で1命令も走らない

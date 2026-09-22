@@ -122,16 +122,14 @@ public static class CapitalMarket
             if (c.CapitalDomesticFlightRate > 0 && w[i].NominalGdp > 1e-9)
             {
                 double distrust = System.Math.Clamp(w[i].CumulativeDevaluation / w[i].NominalGdp - c.CapitalFlightDistrustThreshold, 0, 1);
-                // ★★逃避先の実在化（2026-08-14・外交観測が照らした会計非対称）：旧＝CapitalAbroad だけ増やし
-                //   **相手国の ForeignCapitalIn をどこにも増やさない**＝世界のΣ対外純資産が正へ膨張し続け、
-                //   慢性不信の国（清）が幻の対外資産79×GDPを積んで**他国の実物FDIの配当プールを吸い上げていた**
-                //   （還流は CapitalAbroad 比で分配されるため）。
-                //   1で逃避金の受け皿＝自国以外の最も信用の高い国の ForeignCapitalIn へ（credで加重・国名なし＝
-                //   「資本はロンドンへ逃げる」が信用の分布から創発）。0＝負債は立たない（旧挙動）。
                 // ★逃げた**金**の両建て（2026-09-22）：旧＝TakeGold で流出を記帳するだけで、どの国にも金が入らず世界から消えていた
                 //   （国ごとの保存は閉じる＝計器に掛からない片側記帳。対外元本の償還と同じ形）。旧注記の「保存則は移転なので破れず」は誤りだった。
-                //   受け皿は上と同じ「自国以外の信用×名目GDP」の按分＝逃げた金はその国の投資家の預金になる（GiveGold＝外資の流入と同じ入口）。
-                //   受け皿が無い（他国の信用×GDPが0）なら逃げない。DomesticFlightHasHost は負債（ForeignCapitalIn）の記帳だけを受け持つ。
+                //   受け皿＝自国以外の信用×名目GDPの按分（国名なし＝「資本はロンドンへ逃げる」が信用の分布から創発）＝逃げた金はその国の投資家の預金になる
+                //   （GiveGold＝外資の流入と同じ入口）。受け皿が無い（他国の信用×GDPが0）なら逃げない。
+                // ★★請求権の両建て（2026-09-22・作者裁定「全て推奨」で旗 DomesticFlightHasHost を削除）：受け皿は届いた額と同じだけ外資の負債
+                //   （ForeignCapitalIn）を記帳する＝逃げた側の CapitalAbroad に相手が立つ（新規の資本移動 (3) の流入と同じ2行）。
+                //   旧＝CapitalAbroad だけが増え、相手のいない請求権が還流（CapitalAbroad 比の按分）で他国の実物FDIの配当プールを吸っていた
+                //   （2026-08-14 の外交観測：清の幻の対外資産79×GDP）。今は受け皿がその負債に配当を払い、逃避の対象にもなる。
                 double credSum = 0;
                 if (distrust > 0)
                     for (int h = 0; h < n; h++) if (h != i) credSum += cred[h] * System.Math.Max(0, w[h].NominalGdp);
@@ -145,7 +143,7 @@ public static class CapitalMarket
                         if (h == i) continue;
                         double k = got * (cred[h] * System.Math.Max(0, w[h].NominalGdp) / credSum);
                         GiveGold(w[h], k, toInvestors: true);
-                        if (c.DomesticFlightHasHost > 0) w[h].ForeignCapitalIn += k;
+                        w[h].ForeignCapitalIn += k;
                     }
                 }
             }

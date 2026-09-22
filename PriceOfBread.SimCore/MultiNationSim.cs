@@ -894,7 +894,7 @@ public sealed class MultiNationSim
 
     /// <summary>★内戦一元化（CivilWarAsWar・2026-08-30）：内戦決着の再統合＝SpawnNation の厳密な逆。
     /// 政府勝利＝反乱国の全州を親へ返還し国家を除去／反乱勝利＝先に親へ政体を敷き（ImposeRegime と同じ機構）、同じ返還を行う（革命の成就）。
-    /// 保存則＝建国と鏡映の両建て記帳（S=貯蓄和・T=国庫・P=人口・金準備）。民族反転（建国時の 1−x）も戻す。
+    /// 保存則＝反乱国の基礎貨幣（S=貯蓄和＋T=国庫−L=与信）と人口 P を親の台帳へ（貸借の仕分けは ReabsorbNations の★2026-09-22）。民族反転（建国時の 1−x）も戻す。
     /// 白紙講和はここへ来ない＝分断がそのまま残る（台湾・南北型）。</summary>
     /// <summary>★発見・段7（2026-08-31）：思想の伝播。到達(A→B)＝貿易額(A,B)/買い手GDP×メディアA×メディアB×**前四半期の**到達A
     /// （疫病の伝播と同型＝各到達国が新たな発信源・再放射。前四半期スナップショット＝同期読みの閉路禁止・原典§5-5）。
@@ -971,7 +971,7 @@ public sealed class MultiNationSim
         Market.LastPairFlow = pf; Market.PairFlowQ = null;   // 四半期消費（行列はテレメトリへスワップ退避＝pairprobeが読む・次四半期は再確保）
     }
 
-    private void ReabsorbNations()
+    internal void ReabsorbNations()   // internal＝番人（FiscalTests の再併合の貸借）が四半期の他の流れを挟まずにこの1段だけを踏む
     {
         // ★残骸国家の自然再併合（2026-08-31・清プレイレポート同日ラウンド）：内戦の白紙分断で生まれた国が
         //   親のGDP1%未満（スケールフリーの親相対・⚠構造定数＝連続性docの対象として記録）を RumpReabsorbYears 年続けたら
@@ -1005,9 +1005,18 @@ public sealed class MultiNationSim
                 CrownParliament.ApplyRegime(pw, _coef, rebelPolity);
                 Politics.RaiseFoundingInstitutions(pw, allowRevoke: true, _coef);   // 新政体の含意参政権・報道（自由化も反動剥奪も対称）
             }
+            // ★再併合の貸借（2026-09-22・作者裁定「全て推奨」）：反乱国の貸借の各行を「州について親へ行く」か「請求権として消える（金は動かない）」かに仕分ける。
+            //   規則＝貨幣であるものは湧きも消えもしない＝世界の基礎貨幣 Σ(貯蓄＋国庫−与信) は再併合の前後で同じ。
+            //   旧＝親へ渡すのは貯蓄と**正の**国庫だけで、反乱国の与信と負の国庫が国ごと消えた＝世界の貨幣がその額だけ湧いた（㉚の前の木・seed1789・604四半期の一時計器で +10,241）。
+            //   親へ：貯蓄（POPごと）・国庫（負＝当座借越も）・与信（Loans＝預金の対／HouseholdLoans＝POPと一緒に動く Pop.Debt の対）・
+            //         外資の負債と対外資産（ForeignCapitalIn／CapitalAbroad＝工場も投資家も州にいる）・対外債権（ForeignBondClaims）・
+            //         途中の管（元利の管／借入の予約＝同じ四半期の CapitalMarket.Step と貸し手の引き落としで空だが、順序に頼らない）・造幣局の金属準備（現物）。
+            //   消える：反乱国の国債＝国内の保有（下の BondHoldings）と対外債（ForeignDebt）の両方。対外債は債権国の ForeignBondClaims を債権の比で落とす
+            //         （損は持ち手。落とさないと相手のいない債権が元利の配当を吸う）。
+            //   Bank.Gold は導出量（Credit.Step が毎日 BaseMoney から上書き）＝貨幣の行ではない（返還の1行は既存のまま）。
             double S = 0, P = 0;
             foreach (var rr in rw.Regions) { S += rr.SumSavings(); P += rr.SumPopulation(); }
-            double T = System.Math.Max(0, rw.Treasury);
+            double T = rw.Treasury;
             var moving = new System.Collections.Generic.List<Region>(rw.Regions);
             // ★国債の保有台帳（2026-09-21）：反乱国は国家ごと消え、その国債（GovDebt）も既存どおり誰にも継承されない＝国が払うのを止めた割合（全額）だけ
             //   保有を消す＝損は持ち手（金は動かない）。★史実：合衆国憲法修正14条4節（1868）は南部連合の債務の継承・支払いを明文で禁じた。
@@ -1023,10 +1032,27 @@ public sealed class MultiNationSim
                 rr.ColonialResources = null;   // World複製フィールドは親の次回 MonthSettle が上書き
                 pw.Regions.Add(rr);
             }
-            pw.Pay(TreasuryCat.OtherIn, T);
-            pw.CumulativeTradeFlow += S + T;   // 建国時の −(S+T) の鏡映＝親の per-nation 保存が閉じる（反乱国の台帳は国家ごと消える）
+            pw.Pay(T >= 0 ? TreasuryCat.OtherIn : TreasuryCat.OtherOut, T);
+            double L = 0;
+            if (pw.Bank is { } pb && rw.Bank is { } rb)
+            {
+                pb.Loans += rb.Loans; pb.HouseholdLoans += rb.HouseholdLoans; L = rb.Loans + rb.HouseholdLoans;
+                pb.Gold += System.Math.Max(0, rb.Gold);   // 金準備の返還（建国時の対称移転の逆）
+            }
+            pw.CumulativeTradeFlow += S + T - L;   // ＝反乱国の基礎貨幣＝親の per-nation 保存が閉じ、世界の和も動かない（建国時の −(S+T) の鏡映＋反乱国として積んだ分）
             pw.PopulationDelta += P;
-            if (pw.Bank is { } pb && rw.Bank is { } rb) pb.Gold += System.Math.Max(0, rb.Gold);   // 金準備の返還（建国時の対称移転の逆）
+            pw.ForeignCapitalIn += rw.ForeignCapitalIn; pw.CapitalAbroad += rw.CapitalAbroad;
+            // 反乱国の対外債の否認：債権へ繰り上げ済みの額（PrevForeignDebt）を、反乱国以外の債権の比で落とす（反乱国自身の債権は次の行で親へ）
+            double repudiated = rw.PrevForeignDebt, held = 0;
+            for (int j = 0; j < Nations.Count; j++) if (j != ri) held += Nations[j].World.ForeignBondClaims;
+            if (repudiated > 1e-9 && held > 1e-9)
+            {
+                double keep = System.Math.Max(0, 1.0 - repudiated / held);
+                for (int j = 0; j < Nations.Count; j++) if (j != ri) Nations[j].World.ForeignBondClaims *= keep;
+            }
+            pw.ForeignBondClaims += rw.ForeignBondClaims;
+            pw.ForeignIntPaidThisQuarter += rw.ForeignIntPaidThisQuarter; pw.PendingForeignBorrow += rw.PendingForeignBorrow;
+            pw.SilverReserveQty += rw.SilverReserveQty; pw.GoldReserveQty += rw.GoldReserveQty;
             // 反乱国の植民地（戦中に得た場合の防御）＝親へ移す（無主化して消さない）
             if (rebelP.ColonyList.Count > 0) { parentP.ColonyList.AddRange(rebelP.ColonyList); rebelP.ColonyList.Clear(); }
             // ★計器の是正2026-09-08（F3b蜂起doc §5 段1・純記帳）：F3bの「蜂起を武力で鎮圧」ログ（Politics.CheckFactionRevolt の無血鎮圧枝）は

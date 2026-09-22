@@ -2413,7 +2413,7 @@ public sealed class Coefficients
     // ⚠既知の限界＝繰越は**1段（翌月まで）で上書き**＝2ヶ月使わなかった資材は廃棄される。完全な物量管理にするなら累積へ（有界性の設計が要る） */
     public double EuphoriaUsesStableReserve = 1.0;   // 金利doc B7（2026-07-30・点火＝0→1）。経8（Heat符号逆転）：株式ユーフォリア項が参照する与信過熱Heatの分母を、取り付けで縮む実効上限(0)か準備縮小前の安定上限maxLoans(1)かでブレンド切替。0で従来の縮小後基準を厳密再現・1で取り付け中の偽の過熱スパイク→投資刺激の符号逆転を防ぐ
     public double CapitalOutflowFromInvestors = 1.0;   // 経9（帰属修正）：配当/逃避の流出原資。1で投資家(近代エリート)貯蓄から徴収し不足分のみ全pop按分・0で全pop按分。★B4裁定2026-07-31で**連続化**（0..1の按分＝0.5超の崖を廃止）
-    // 資金逃避（07_再設計 §5(b)・2026-07-31点火）：国債への不信が閾値を超えると自国の資本家も対外資産へ逃げる。保存＝国内pop→CapitalAbroad の移転のみ
+    // 資金逃避（07_再設計 §5(b)・2026-07-31点火）：国債への不信が閾値を超えると自国の資本家も対外資産へ逃げる。保存＝金は受け皿の国の投資家へ・請求権は逃げた側の CapitalAbroad と受け皿の ForeignCapitalIn の対（2026-09-22）
     public double CapitalDomesticFlightRate = 0.05;      // 不信1.0あたり四半期に逃げる投資家貯蓄の割合
     public double CapitalFlightDistrustThreshold = 0.02; // 逃避が始まる不信（累積切り下げ／名目GDP）＝切り下げ常習国だけが対象
     public double WelfarePensionClampToTreasury = 1.0;   // 財1（財政規律）：福祉・年金の支出を国庫残高で律速するか。0=現行の無制限（無記録の当座借越を許す・数値中立）／1=Min(cost,Max(0,Treasury))でクランプ。>0.5で発火
@@ -3301,8 +3301,6 @@ public sealed class Coefficients
     // ★汚職の再設計 C1（20260814_汚職をサブシステムにする・作者裁定「それでよい」＝(1−行政)×(1−監視)）。
     //   旧＝(1−AdminEfficiency)×(1−CleanGovernance)＝清廉度は根絶費で買うストック（深さ3＋corruptionRoomの自己言及）。
     //   新＝監視は**法から導出**（報道自由・資格任用・議会の予算権のnoisy-or）＝動詞と自己言及が消える。
-    // ★資本逃避の受け皿（2026-08-14・外交観測 diploprobe が照らした会計非対称の是正）。0＝旧（受け皿なし＝幻の対外資産）＝厳密恒等。
-    public double DomesticFlightHasHost = 0.0;
     // ★2026-09-03（キューAUD-10・監査「その他」）：監視3因子の法→スカラー写像が **Coefficients に無い裸の数値**だった。
     //   ⚠同じ CensorshipLaw を Politics.PressFreedom は 1.0/0.6/0.0 に写す（ここは 1.0/0.4/0.0）＝同一法の2つの別表が
     //   汚職計算（EffectiveCorruption と AdminEfficiency の accountability）の両方に入っている。

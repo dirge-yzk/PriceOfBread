@@ -454,14 +454,13 @@ public class FiscalTests
         new BondLedger().Check(fr);
     }
 
-    [Theory]
-    [InlineData(0.0)]
-    [InlineData(1.0)]
-    public void 国内資本の逃避_逃げた金は受け皿の国へ届き世界の貨幣は変わらない(double hasHost)
+    [Fact]
+    public void 国内資本の逃避_逃げた金は受け皿の国へ届き受け皿に同額の負債が立つ()
     {
         // 対外元本と同じ形の片側記帳だった（CapitalMarket の国内資本の逃避＝流出を記帳するだけで受け手が無い）。
+        // 請求権も片側だった（逃げた側の CapitalAbroad だけが増え、受け皿の負債が立たない＝旗 DomesticFlightHasHost の既定0・2026-09-22 に旗ごと点火）。
         // 国際金融の逃避以外の流れを止め、仏だけを切り下げ常習（不信0.5）にする。
-        var coef = new Coefficients { CapitalFlightRate = 0, CapitalDividendRate = 0, CapitalDemandScale = 0, ForeignBondCounterparty = 0, DomesticFlightHasHost = hasHost };
+        var coef = new Coefficients { CapitalFlightRate = 0, CapitalDividendRate = 0, CapitalDemandScale = 0, ForeignBondCounterparty = 0 };
         var sim = new MultiNationSim([NationConfig.Britain(), NationConfig.France(), NationConfig.Prussia()], 1789, _ => new NullAgent(), coef) { DiplomacyFrozen = true };
         var br = sim.Nations[0].World; var fr = sim.Nations[1].World; var pr = sim.Nations[2].World;
         var all = new[] { br, fr, pr };
@@ -470,6 +469,7 @@ public class FiscalTests
         var guards = Array.ConvertAll(all, w => new MoneyConservation(w));
         var base0 = Array.ConvertAll(all, w => w.BaseMoney);
         var fci0 = Array.ConvertAll(all, w => w.ForeignCapitalIn);
+        var ca0 = Array.ConvertAll(all, w => w.CapitalAbroad);
         double world0 = WorldBase(all), mint0 = MintedAndFiat(all), abroad0 = fr.CapitalAbroad;
 
         CapitalMarket.Step(sim.Nations, coef);
@@ -485,10 +485,84 @@ public class FiscalTests
         // 受け皿の按分＝自国以外の信用×名目GDP（CreditRating は同じ Step の信用の写し）
         double wBr = br.CreditRating * br.NominalGdp, wPr = pr.CreditRating * pr.NominalGdp;
         Assert.True(Math.Abs(gotBr - fled * wBr / (wBr + wPr)) <= tol, $"英の受け取り {gotBr} が信用×名目GDPの比 {fled * wBr / (wBr + wPr)} でない");
-        // 負債の記帳は DomesticFlightHasHost だけが受け持つ：0＝どの国の外資負債も動かない／1＝受け皿の外資負債＝届いた金
+        // 請求権の両建て：受け皿の外資負債の増え＝届いた金（逃げた国の負債は動かない）
         Assert.Equal(fci0[1], fr.ForeignCapitalIn);
-        Assert.True(Math.Abs(br.ForeignCapitalIn - fci0[0] - hasHost * gotBr) <= tol, $"英の外資負債の増え {br.ForeignCapitalIn - fci0[0]}（受け取り {gotBr}・DomesticFlightHasHost={hasHost}）");
-        Assert.True(Math.Abs(pr.ForeignCapitalIn - fci0[2] - hasHost * gotPr) <= tol, $"普の外資負債の増え {pr.ForeignCapitalIn - fci0[2]}（受け取り {gotPr}・DomesticFlightHasHost={hasHost}）");
+        Assert.True(Math.Abs(br.ForeignCapitalIn - fci0[0] - gotBr) <= tol, $"英の外資負債の増え {br.ForeignCapitalIn - fci0[0]} ≠ 受け取り {gotBr}（相手のいない請求権が残る）");
+        Assert.True(Math.Abs(pr.ForeignCapitalIn - fci0[2] - gotPr) <= tol, $"普の外資負債の増え {pr.ForeignCapitalIn - fci0[2]} ≠ 受け取り {gotPr}（相手のいない請求権が残る）");
+        // 世界の請求権の和が釣り合う＝Σ対外資産の増え＝Σ外資負債の増え（逃げた側の資産に、受け皿の負債が同額立つ）
+        double dAbroad = 0, dFci = 0;
+        for (int i = 0; i < all.Length; i++) { dAbroad += all[i].CapitalAbroad - ca0[i]; dFci += all[i].ForeignCapitalIn - fci0[i]; }
+        Assert.True(Math.Abs(dAbroad - dFci) <= tol, $"Σ対外資産の増え {dAbroad} ≠ Σ外資負債の増え {dFci}");
         for (int i = 0; i < all.Length; i++) guards[i].Check(all[i]);
+    }
+
+    [Fact]
+    public void 再併合_反乱国の与信と負の国庫は親へ渡り世界の貨幣は変わらない()
+    {
+        // 旧＝親へ渡すのは貯蓄と正の国庫だけ＝反乱国の与信と負の国庫が国ごと消え、世界の基礎貨幣がその額だけ湧いた（国ごとの保存は閉じる＝計器に掛からない）。
+        // 再併合の1段（MultiNationSim.ReabsorbNations）だけを踏み、四半期の他の流れ（国外移民の持参金など）を挟まない。
+        var sim = new MultiNationSim([WorldData.ByName("イギリス"), WorldData.ByName("フランス")], seed: 1789, coef: new Coefficients()) { DiplomacyFrozen = true };
+        var pw = sim.Nations[0].World; var fw = sim.Nations[1].World;
+        pw.PendingRebelRegions = [pw.Regions[1]]; pw.PendingRebelPolity = Polity.Republic;
+        int n0 = sim.Nations.Count;
+        sim.StepQuarter();
+        Assert.True(sim.Nations.Count > n0, "前提が崩れた：反乱国家が建っていない");
+        var rw = sim.Nations[^1].World;
+        rw.RequestBorrow();
+        sim.StepQuarter();   // 反乱国が自国の投資家から借りる＝国債の持ち手が立つ
+        Assert.True(HeldOf(rw) > 0, "前提が崩れた：反乱国の国債の持ち手がいない");
+        // 反乱国の貸借を、基礎貨幣を動かさない操作で立てる：信用創造（与信と預金の対）・国庫の当座借越での支出・家計の借入（Pop.Debt と HouseholdLoans の対）
+        var rb = rw.Bank!; var pb = pw.Bank!;
+        Pop cap = rw.Regions[0].Pops[0];
+        foreach (var r in rw.Regions) foreach (var p in r.Pops) if (p.Savings > cap.Savings) cap = p;
+        double scale = Math.Max(1.0, rw.TotalMoney);
+        double loan = 0.3 * scale, overdraft = rw.Treasury + 0.2 * scale, hh = 0.05 * scale;
+        rb.Loans += loan; cap.Savings += loan;
+        rw.Pay(TreasuryCat.OtherOut, -overdraft); cap.Savings += overdraft;
+        rb.HouseholdLoans += hh; cap.Debt += hh; cap.Savings += hh;
+        // 請求権：反乱国の対外債（仏と英が3:1で持つ・国内元本は不変＝保有台帳は割れない）と、外資の負債・対外資産
+        double fd = 0.1 * scale;
+        rw.ForeignDebt += fd; rw.GovDebt += fd; rw.PrevForeignDebt += fd;
+        fw.ForeignBondClaims += 0.75 * fd; pw.ForeignBondClaims += 0.25 * fd;
+        rw.ForeignCapitalIn += 0.07 * scale; rw.CapitalAbroad += 0.04 * scale;
+        new BondLedger().Check(rw);
+        Assert.True(rw.Treasury < 0 && rb.Loans > 0 && rb.HouseholdLoans > 0, $"前提が崩れた：国庫 {rw.Treasury}・与信 {rb.Loans}・家計の与信 {rb.HouseholdLoans}");
+
+        var all0 = sim.Nations.ConvertAll(n => n.World).ToArray();
+        double world0 = WorldBase(all0), rebelBase = rw.BaseMoney, parentBase0 = pw.BaseMoney;
+        double Sum(World[] ws, Func<World, double> f) { double s = 0; foreach (var w in ws) s += f(w); return s; }
+        double ca0 = Sum(all0, w => w.CapitalAbroad), fci0 = Sum(all0, w => w.ForeignCapitalIn), claims0 = Sum(all0, w => w.ForeignBondClaims);
+        double heldOthers = fw.ForeignBondClaims + pw.ForeignBondClaims, repudiated = rw.PrevForeignDebt, fwClaims0 = fw.ForeignBondClaims;
+        Assert.True(heldOthers >= repudiated, $"前提が崩れた：反乱国以外の債権 {heldOthers} が否認する対外債 {repudiated} に届かない");
+        double loans0 = pb.Loans, hh0 = pb.HouseholdLoans, tr0 = pw.Treasury, rT = rw.Treasury, rL = rb.Loans, rHH = rb.HouseholdLoans;
+        var guard = new MoneyConservation(pw);
+        var returning = new List<Region>(rw.Regions);
+
+        sim.Diplomacy.PendingReintegrations.Add((pw.SelfPower!, rw.SelfPower!, false, pw.Polity));
+        sim.ReabsorbNations();
+
+        Assert.DoesNotContain(sim.Nations, n => ReferenceEquals(n.World, rw));
+        var all1 = sim.Nations.ConvertAll(n => n.World).ToArray();
+        double tol = 1e-9 * Math.Max(1.0, world0);
+        // (b) 世界の貨幣は変わらない＝親の基礎貨幣の増え＝反乱国の基礎貨幣（貯蓄＋国庫−与信）
+        Assert.True(Math.Abs(WorldBase(all1) - world0) <= tol, $"再併合で世界の基礎貨幣が {WorldBase(all1) - world0} 動いた");
+        Assert.True(Math.Abs(pw.BaseMoney - parentBase0 - rebelBase) <= tol, $"親の基礎貨幣の増え {pw.BaseMoney - parentBase0} ≠ 反乱国の基礎貨幣 {rebelBase}");
+        guard.Check(pw);   // 親の国ごとの保存も閉じる（累積貿易に同額を記帳）
+        // 貨幣の行は親へ：与信・家計の与信・国庫（負のまま）
+        Assert.True(Math.Abs(pb.Loans - loans0 - rL) <= tol, $"親の与信の増え {pb.Loans - loans0} ≠ 反乱国の与信 {rL}");
+        Assert.True(Math.Abs(pb.HouseholdLoans - hh0 - rHH) <= tol, $"親の家計の与信の増え {pb.HouseholdLoans - hh0} ≠ 反乱国の家計の与信 {rHH}");
+        Assert.True(Math.Abs(pw.Treasury - tr0 - rT) <= tol, $"親の国庫の動き {pw.Treasury - tr0} ≠ 反乱国の国庫 {rT}");
+        Assert.Equal(hh, cap.Debt);   // 家計の債務の記録は POP と一緒に親へ（HouseholdLoans の対）
+        // 請求権：外資の負債と対外資産は州について親へ（世界の和は不変）／反乱国の対外債は否認＝債権の和が同額減る（金は動かない）
+        double tolC = 1e-9 * Math.Max(1.0, scale);
+        Assert.True(Math.Abs(Sum(all1, w => w.CapitalAbroad) - ca0) <= tolC, "再併合で世界の対外資産の和が動いた");
+        Assert.True(Math.Abs(Sum(all1, w => w.ForeignCapitalIn) - fci0) <= tolC, "再併合で世界の外資負債の和が動いた");
+        Assert.True(Math.Abs(Sum(all1, w => w.ForeignBondClaims) - (claims0 - repudiated)) <= tolC, $"債権の和の減り {claims0 - Sum(all1, w => w.ForeignBondClaims)} ≠ 否認した対外債 {repudiated}");
+        Assert.True(Math.Abs(fw.ForeignBondClaims - fwClaims0 * (1 - repudiated / heldOthers)) <= tolC, "否認が債権の比で落ちていない");
+        // (c) 反乱国の国債の保有は消える（持ち手の損・親は継承しない）
+        foreach (var r in returning) foreach (var p in r.Pops) Assert.Equal(0.0, p.BondHoldings);
+        new BondLedger().Check(pw);
+        sim.StepQuarter();   // 返った州と与信を含めて1四半期（エンジンの月次検査）
+        new BondLedger().Check(pw);
     }
 }
