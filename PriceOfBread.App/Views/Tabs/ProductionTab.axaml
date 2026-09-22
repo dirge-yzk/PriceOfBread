@@ -136,8 +136,12 @@
                                 <TextBlock Text="独占" Foreground="#FFF6E8" FontSize="{StaticResource FontTiny}"/>
                             </Border>
                         </StackPanel>
-                        <Button Grid.Column="1" Content="✕" Command="{Binding CloseProdDetailCommand}" FontSize="{StaticResource FontBody}"
-                                Padding="8,2" VerticalAlignment="Top" Background="Transparent" BorderThickness="0" Foreground="{StaticResource BronzeBrush}"/>
+                        <!-- ★2026-09-23：手書きしていた Background/BorderThickness/Padding/Foreground を捨てて App.axaml の
+                             Button.close を呼ぶ（4つとも同値＝Transparent・0・8,2・#6B5230＝BronzeBrush の色そのもの）。
+                             これで Focusable=False が付く＝画面中で**唯一** Focusable を落としていないボタンだった
+                             （押した後スペースキーがこのボタンへ行き、一時停止/再開が効かなくなる）。 -->
+                        <Button Grid.Column="1" Classes="close" Content="✕" Command="{Binding CloseProdDetailCommand}"
+                                FontSize="{StaticResource FontBody}" VerticalAlignment="Top"/>
                         </Grid>
                         <!-- ①数値ブロック＝**2行**（作者指示2026-08-10）：
                                  1行目 RGO生産量　工場生産量　輸入量
@@ -471,35 +475,39 @@
                                         BorderBrush="{Binding BorderBrush}" BorderThickness="{Binding BorderThickness}"
                                         CornerRadius="3" Opacity="{Binding Opacity}" ClipToBounds="True"
                                         PointerPressed="OnProdNodePressed">
-                                    <!-- 縦の余白は 2（旧4）＝縦線の中に3段（＋/棟数/−）を積むための実寸を作る。
-                                         内寸＝56 −枠1.5×2 −4 ＝49（選択中は枠3.0で46）＝カウンター 15×3＝45 が収まる（2026-09-08 所有別2段＋＋−を横並び1段へ）。
-                                         横の余白は 5（旧6）＝カウンターを46へ広げた分を本文へ返す（可用幅139px／選択中136px＝GameViewModel.Production.cs の算術）。 -->
+                                    <!-- 縦の余白は 2（旧4）＝縦線の中に4段（▲/民営/国営/▼）を積むための実寸を作る。
+                                         内寸＝56 −枠1.5×2 −4 ＝49（選択中は枠3.0で46）＝カウンター 8+15+15+8＝46 が収まる
+                                         （2026-09-23 に ＋−の横並び1段を ▲▼ の上下2段へ＝作者の図どおり民営/国営の行を挟む）。
+                                         横の余白は 5＝本文の可用幅は 204 −枠1.5×2 −5×2 −(縦線56+隙間6) ＝129px／選択中126px
+                                         （GameViewModel.Production.cs の算術と同じ1本）。 -->
                                     <DockPanel Margin="5,2">
                                         <!-- ★カテゴリの縦線を工場カウンターへ拡張（作者要望2026-09-07 (1)）＝色は従来どおり tier のアクセント。
-                                             中身＝民営「完成/建設中を含む総数」／国営「完成/完成＋建設予定」／＋−（横並び）。
-                                             分子＝完成した民営+国営の合計・分母＝合計＋建設予定（建設中＋まだ着工していない未達の意志）で、
-                                             ＋を押すと予定が増え、満たすまでエンジンが最も効率の良い州へ国営工場を建てる（州の選び方はAIの物差しと同じ1本）。
+                                             中身＝▲／民営「完成/建設中を含む総数」／国営「完成/完成＋建設予定」／▼。
+                                             ★2026-09-23 作者の図＝増加は上三角・減少は下三角で、民営と国営の2行を上下から挟む
+                                               （旧は＋−を最下段に横並び1段）。▲▼ が動かすのは**全国工場目標**（GameViewModel.Production.cs の
+                                               StepFactoryTargetAll）＝国営行の分母だけが動く。民営行は▲▼では動かない。
+                                             ▲を押すと予定が増え、満たすまでエンジンが最も効率の良い州へ国営工場を建てる（州の選び方はAIの物差しと同じ1本）。
                                              ★Button は押下を Handled にする＝親 Border の OnProdNodePressed（財の選択）と衝突しない。
                                              ★無効なボタンはツールチップを出せないので枠側に載せる（画面の作法）＝
                                                「国営 n棟　民営 n棟　建設予定 n棟　予定を含めて n棟」。
-                                             ★−は予定のうちまだ州へ配っていない分しか削れない＝削る余地が無い時も**押せない状態で出す**
-                                               （作者指示2026-09-07「マイナスのボタンは最初から表示する」＝0の時も隠さない）。
-                                             ★幅46＝11pt太字で「305/305」（7半角≒42.7px＝1914年の英の肥料が民営305棟）まで収まる実寸。 -->
+                                             ★▼は予定のうちまだ州へ配っていない分しか削れない＝削る余地が無い時も**押せない状態で出す**
+                                               （作者指示2026-09-07「マイナスのボタンは最初から表示する」＝0の時も隠さない。
+                                                Button.counter:disabled が地色を保ったまま記号だけ薄い墨にする＝▲▼も文字なので同じ規則に乗る）。
+                                             ★幅56＝11pt太字で「民営12/12」（全角2＋半角5≒52.5px）まで。3桁棟数「民営100/100」は約64.7pxで
+                                               末尾が無言で切れる（既存の見切れ・2026-09-23実測。幅を広げると本文側が切れるので広げられない）。 -->
                                         <Border DockPanel.Dock="Left" Width="56" Background="{Binding Accent}" CornerRadius="1" Margin="0,0,6,0"
                                                 ToolTip.Tip="{Binding FactoryTip}" ToolTip.ShowDelay="200">
                                             <StackPanel VerticalAlignment="Center">
+                                                <Button Classes="counter" Content="▲" ClickMode="Press" Height="8" MinHeight="0" Padding="0"
+                                                        FontSize="{StaticResource FontTiny}" HorizontalAlignment="Stretch"
+                                                        Command="{Binding UpFactoryCommand}" IsEnabled="{Binding CanUpFactory}"/>
                                                 <TextBlock Text="{Binding PrivateCount}" FontSize="{StaticResource FontTiny}" FontWeight="Bold"
                                                            Foreground="#FFF6E8" TextAlignment="Center" Height="15"/>
                                                 <TextBlock Text="{Binding StateCount}" FontSize="{StaticResource FontTiny}" FontWeight="Bold"
                                                            Foreground="#FFF6E8" TextAlignment="Center" Height="15"/>
-                                                <Grid ColumnDefinitions="*,*" Height="15">
-                                                    <Button Grid.Column="0" Classes="counter" Content="+" ClickMode="Press" Height="15" MinHeight="0" Padding="0"
-                                                            FontSize="{StaticResource FontTiny}" HorizontalAlignment="Stretch"
-                                                            Command="{Binding UpFactoryCommand}" IsEnabled="{Binding CanUpFactory}"/>
-                                                    <Button Grid.Column="1" Classes="counter" Content="-" ClickMode="Press" Height="15" MinHeight="0" Padding="0"
-                                                            FontSize="{StaticResource FontTiny}" HorizontalAlignment="Stretch"
-                                                            Command="{Binding DownFactoryCommand}" IsEnabled="{Binding CanDownFactory}"/>
-                                                </Grid>
+                                                <Button Classes="counter" Content="▼" ClickMode="Press" Height="8" MinHeight="0" Padding="0"
+                                                        FontSize="{StaticResource FontTiny}" HorizontalAlignment="Stretch"
+                                                        Command="{Binding DownFactoryCommand}" IsEnabled="{Binding CanDownFactory}"/>
                                             </StackPanel>
                                         </Border>
                                         <StackPanel VerticalAlignment="Center" Spacing="0">

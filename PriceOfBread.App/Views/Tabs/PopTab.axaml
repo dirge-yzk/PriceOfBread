@@ -35,7 +35,10 @@
                     <TextBlock Grid.Column="9" Text="{Binding LeanSocialist}" Foreground="{StaticResource InkMutedBrush}" FontSize="{StaticResource FontBody}" TextAlignment="Right"/>
                 </Grid>
                 <!-- ★特権（作者指示2026-09-07(7)(8)）：階級名の下に1行で横並び。先頭は必ず「なし」＝法律の段と同じ2状態
-                     （保有＝墨／非保有＝淡色）。押せない＝ボタンにしない（2026-08-15作者フィードバック(8)）。 -->
+                     （保有＝墨／非保有＝淡色）。押せない＝ボタンにしない（2026-08-15作者フィードバック(8)）。
+                     ★2026-09-23（作者指示「カーソルを合わせた時に内容が出るように」）：Tip は**保有・非保有とも非null**になった
+                     ＝淡い語にもカーソルで内容が出る（GameViewModel.Pop.cs の PopPrivilegeChips）。「なし」だけ null＝吹き出しを出さない。
+                     ⚠Panel の Background="Transparent" がヒット判定＝これを外すと語の上でしか反応しなくなる。 -->
                 <ItemsControl ItemsSource="{Binding Privileges}" Margin="12,1,0,0">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate><StackPanel Orientation="Horizontal" Spacing="8"/></ItemsPanelTemplate>

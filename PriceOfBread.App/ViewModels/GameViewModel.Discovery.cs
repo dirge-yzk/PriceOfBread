@@ -3,6 +3,11 @@
 // 2026-09-07（作者要望11）：エンジンに在る解禁物を全部並べる（未解禁0%も解禁済み100%も載せる）＋パネル寸法を右ドックと一致させた。
 // ⚠UI規律＝説明文なし・データのみ・漢字1字略称なし（ツールチップもデータ）。
 // 2026-09-08（作者裁定）：思想の解禁（社会主義/共産主義/帝国主義/ファシズム）を同じ器で並べる＝Ideologies.EraGates を読む。
+// 2026-09-23（作者裁定「閾値は出さないが、パーセントは出す」＋「政府・思想・技術でカテゴリ分け」「2段組みに」「バーは廃止」）：
+//   ①ホバーから発見の閾値を全て撤去（onset は並べ替えの第2キーとしてだけ残る）／②種別「制度」→「政府」／
+//   ③DiscoveryLeft・DiscoveryRight の2列（派生プロパティ＝状態は増やさない）／④バーは XAML 側で撤去（Pct は ByGate が読むので残す）。
+//   ⚠ホバーは残す：閾値を落とした後に残るのは「その行の時計の名前と現在値」＝技術／最大工業化度／世界技術 の3種で、
+//     どれが解禁を動かすかはパーセント列だけでは読めない（例＝冷蔵は技術でなく工業化度・電信は自国でなく世界技術）。
 using System.Collections.Generic;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -17,6 +22,12 @@ public partial class GameViewModel
     [ObservableProperty] private bool _discoveryOpen;
 
     public List<DiscoveryRow> DiscoveryRows { get; private set; } = [];
+
+    // 2段組（作者指示2026-09-23「2段組みに」）。新しい状態変数は作らず <see cref="DiscoveryRows"/> から毎回導く＝真実源は1本のまま。
+    // 左＝上半分・右＝下半分（奇数なら左が1行多い）＝並べ替え ByGate の全順序を「左列を上から読み切って右列へ」で保つ。
+    private int DiscoveryHalf => (DiscoveryRows.Count + 1) / 2;
+    public List<DiscoveryRow> DiscoveryLeft => DiscoveryRows.GetRange(0, DiscoveryHalf);
+    public List<DiscoveryRow> DiscoveryRight => DiscoveryRows.GetRange(DiscoveryHalf, DiscoveryRows.Count - DiscoveryHalf);
 
     [RelayCommand]
     private void ToggleDiscovery()
@@ -44,9 +55,10 @@ public partial class GameViewModel
         double js = c.DiscoveryInstitutions > 0
             ? Discovery.Unlock(maxInd, 1.0, c.JointStockDiscoveryOnset, c.JointStockDiscoverySpan)
             : (w.JointStock ? 1.0 : 0.0);
-        rows.Add(new DiscoveryRow("特許制度", "制度", pat, $"{pat:P0}", $"中核エリート {w.EliteCore:F2}"));
-        rows.Add(new DiscoveryRow("株式会社", "制度", js, $"{js:P0}", $"最大工業化度 {maxInd:F2}"));
-        rows.Add(new DiscoveryRow("鉄道", "制度", w.Railways ? 1.0 : 0.0, $"{(w.Railways ? 1.0 : 0.0):P0}", $"最大工業化度 {maxInd:F2}"));   // P0統一（「0 %」の空白混入を排除）
+        // ★2026-09-23（作者指示「政府・思想・技術でカテゴリ分け」）：種別の呼び名を「制度」→「政府」へ。並びは既に 政府→思想→技術 の連続ブロック＝見出し行は足さない。
+        rows.Add(new DiscoveryRow("特許制度", "政府", pat, $"{pat:P0}", $"中核エリート {w.EliteCore:F2}"));
+        rows.Add(new DiscoveryRow("株式会社", "政府", js, $"{js:P0}", $"最大工業化度 {maxInd:F2}"));
+        rows.Add(new DiscoveryRow("鉄道", "政府", w.Railways ? 1.0 : 0.0, $"{(w.Railways ? 1.0 : 0.0):P0}", $"最大工業化度 {maxInd:F2}"));   // P0統一（「0 %」の空白混入を排除）
 
         // 思想の解禁（2026-09-08作者裁定）＝後発イデオロギーの解禁度。値は Ideologies.EraGates＝
         // Ideologies.UpdateShares が毎四半期に読む式そのもの（UIに第二の式を置かない）。
@@ -102,32 +114,32 @@ public partial class GameViewModel
             double s = ProductionDiag.TechGate(gid, kv.Value, w.TechLevel);
             double onset = System.Math.Max(kv.Value, Catalog.AdvancedOnset(gid));   // 実効の閾値＝2本のゲートの遅い方
             string name = recipe.Length > 0 ? $"{Catalog.Goods[gid].Name}（{recipe}）" : Catalog.Goods[gid].Name;
-            tech.Add((name, s, onset, $"技術 {w.TechLevel:F2} ／ 発見の閾値 {onset:F2}"));
+            tech.Add((name, s, onset, $"技術 {w.TechLevel:F2}"));   // ★2026-09-23（作者裁定）：閾値は画面に出さない・パーセントで出す＝onset は並べ替え ByGate の第2キーとしてだけ残す
         }
         // ③ 財に紐づかない世界のゲート（産業の形を変えるが Producer を持たないので①②では出ない）。式は全てエンジンと同一。
         if (c.RefrigerationEffect > 0 && c.RefrigerationIndSpan > 0)   // 冷蔵＝生鮮の腐敗低減（EconomyStep の在庫腐敗・工業化度が時計）
             tech.Add(("冷蔵", System.Math.Clamp((maxInd - c.RefrigerationIndOnset) / c.RefrigerationIndSpan, 0, 1), c.RefrigerationIndOnset,
-                      $"最大工業化度 {maxInd:F2} ／ 発見の閾値 {c.RefrigerationIndOnset:F2}"));
+                      $"最大工業化度 {maxInd:F2}"));
         if (c.SteamTechWidth > 0)   // 蒸気動力＝工場が石炭を焚けるか（EconomyStep ②の steamGate）
             tech.Add(("蒸気動力", System.Math.Clamp((w.TechLevel - c.SteamTechOnset) / c.SteamTechWidth, 0, 1), c.SteamTechOnset,
-                      $"技術 {w.TechLevel:F2} ／ 発見の閾値 {c.SteamTechOnset:F2}"));
+                      $"技術 {w.TechLevel:F2}"));
         if (c.RailTechWidth > 0)    // 鉄道輸送＝内陸輸送容量のランプ（Transport の railGate。制度の「鉄道」とは別量）
             tech.Add(("鉄道輸送", System.Math.Clamp((w.TechLevel - c.RailTechOnset) / c.RailTechWidth, 0, 1), c.RailTechOnset,
-                      $"技術 {w.TechLevel:F2} ／ 発見の閾値 {c.RailTechOnset:F2}"));
+                      $"技術 {w.TechLevel:F2}"));
         // 近代港湾（MultiNationSim の港料）はエンジン側が閾値の可否＝ランプでない。同じ形（0か1）で見せる。
-        tech.Add(("近代港湾", w.TechLevel >= c.PortTechOnset ? 1.0 : 0.0, c.PortTechOnset, $"技術 {w.TechLevel:F2} ／ 発見の閾値 {c.PortTechOnset:F2}"));
+        tech.Add(("近代港湾", w.TechLevel >= c.PortTechOnset ? 1.0 : 0.0, c.PortTechOnset, $"技術 {w.TechLevel:F2}"));
         // 電信・鉄道・汽船＝報せの速さ（News の距離ラグが読む世界技術のランプ＝TransportRevolutionOnset/Span・AUD-05）。新しい財を足さず同じ量を見せる。
         if (c.TransportRevolutionSpan > 0)
         {
             double tr = System.Math.Clamp((w.WorldTechLevel - c.TransportRevolutionOnset) / c.TransportRevolutionSpan, 0, 1);
             if (!(tr >= 0)) tr = 0;
             tech.Add(("電信・鉄道・汽船（報せの速さ）", tr, c.TransportRevolutionOnset,
-                      $"世界技術 {w.WorldTechLevel:F2} ／ 閾値 {c.TransportRevolutionOnset:F2}〜{c.TransportRevolutionOnset + c.TransportRevolutionSpan:F2}"));
+                      $"世界技術 {w.WorldTechLevel:F2}"));   // ★閾値の帯（〜）を出していた唯一の行＝2026-09-23 に撤去
         }
         // 鉱脈の発見（ゴールドラッシュの前提＝技術で解禁・2026-09-04に暦年を撤去）
         if (c.MineralDiscoveryTechRef > 0)
             tech.Add(("鉱脈の発見", System.Math.Clamp(w.TechLevel / c.MineralDiscoveryTechRef, 0, 1), c.MineralDiscoveryTechRef,
-                      $"技術 {w.TechLevel:F2} ／ 発見の閾値 {c.MineralDiscoveryTechRef:F2}"));
+                      $"技術 {w.TechLevel:F2}"));
         // 並びは解禁度の降順→閾値の昇順→名前（全順序＝四半期ごとに行が入れ替わらない）。技術と思想で同じ比較子を使う。
         static int ByGate((string Name, double Pct, double Onset, string Tip) a, (string Name, double Pct, double Onset, string Tip) b)
         {
@@ -142,5 +154,7 @@ public partial class GameViewModel
 
         DiscoveryRows = rows;
         OnPropertyChanged(nameof(DiscoveryRows));
+        OnPropertyChanged(nameof(DiscoveryLeft));
+        OnPropertyChanged(nameof(DiscoveryRight));
     }
 }

@@ -9,7 +9,7 @@
          行の型はここに1つだけ置いて両段が共有する（片方だけ直る事故を構造的に防ぐ）。
          ★2026-08-10（作者裁定）：**元の幅650のまま2段**にする（外交だけドックを1280へ広げるのは撤回＝地図が見えなくなっていた）。
          1段＝(650−1−左右余白36−段間16)/2 ≒ 298px。列は 26（順位）｜*（国名＋バッジ）｜58（アクション）｜30（緊張）。
-         58＝侵略/統一戦争ボタン（Button.mini.dense、WrapPanel＝複数同時表示時は行が縦に伸びる）。緊張は「100%」が入る最小幅。
+         58＝侵略/統一戦争ボタン（Button.mini.dense、縦StackPanel＝複数同時表示時は行が縦に伸びる・2026-09-23にWrapPanelから）。緊張は「100%」が入る最小幅。
          余った分は全て国名＝旧レイアウトの MaxWidth=110 より広く、大半の国名が省略なしで出る。
          ⚠この列定義は GameView.axaml の見出し行と**同じ文字列**で二重に書かれている（両方を同時に直すこと）。 -->
     <DataTemplate x:Key="NationRowTemplate" x:DataType="vm:NationCard">
@@ -34,8 +34,18 @@
                         <TextBlock Text="{Binding Badge}" Foreground="#FFF6E8" FontSize="{StaticResource FontTiny}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="66"/>
                     </Border>
                 </Grid>
-                <WrapPanel Grid.Column="2" VerticalAlignment="Center" Margin="0,2">
-                    <Border IsVisible="{Binding ShowUnif}" Background="Transparent" ToolTip.Tip="{Binding UnifTip}" ToolTip.ShowDelay="80" Margin="0,0,4,2">
+                <!-- ★2026-09-23（作者指示「侵略ボタンと緊張の隙間が大きい。侵略ボタンを右に寄せる」）＝右寄せ。
+                     列幅58は変えない（GameView.axaml:148/153 の見出しと同一文字列のまま＝Auto にすると見出しとずれる）。
+                     左へはみ出さない根拠（Yu Gothic UI の実測＝全角1文字ちょうど 1.000em）：
+                       侵略　　＝11×2＋Padding(4+4)＋枠(1+1)＝32 ＋右マージン4＝36 → 原点 58−36＝22 だけ右へ寄る
+                       統一戦争＝11×4＋8＋2＝54 ＋右マージン4＝58＝列幅ちょうど → 原点 58−58＝0＝現状と同じ位置
+                     どちらも desired ≤ 58 ＝原点が負になる枝が無い（＝国名側へ食い込まない）ので MaxWidth は要らない。
+                     ★WrapPanel から**縦 StackPanel** へ：2つ同時に出る行（統一戦争の標的は弱小＝ShowInvade も真）で
+                     WrapPanel は折り返すが、折り返した行は左詰めのまま＝侵略だけ元の位置に取り残されていた。
+                     縦積みなら各段を個別に右寄せできる。58px には2つ並ばない（32+32=64＞58）ので WrapPanel は
+                     元から常に1つずつ折り返していた＝この入れ替えで横に並ぶ組み合わせが消えることは無い。 -->
+                <StackPanel Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,2">
+                    <Border IsVisible="{Binding ShowUnif}" HorizontalAlignment="Right" Background="Transparent" ToolTip.Tip="{Binding UnifTip}" ToolTip.ShowDelay="80" Margin="0,0,4,2">
                         <Button Classes="mini dense" Content="統一戦争" IsEnabled="{Binding CanUnif}"
                                 Command="{Binding UnifCmd}" CommandParameter="{Binding PowerName}"/>
                     </Border>
@@ -44,13 +54,13 @@
                          手動ボタンはそれと二重で、プレイヤーだけが同盟枠を先取りできる非対称を生んでいた（禁輸ボタンと同じ型）。 -->
                     <!-- 禁輸ボタンは廃止（禁制品doc C1・2026-07-30）：禁輸は挑発に同梱＋戦時は強制・終戦で自動解除＝50カ国の手動管理を畳んだ -->
                     <!-- 侵略＝弱小への唯一の動詞（作者裁定2026-08-23＝旧「植民地化」と1本化）。屈服なら属国化/併合・拒めば開戦 -->
-                    <Border IsVisible="{Binding ShowInvade}" Background="Transparent" ToolTip.Tip="{Binding InvadeTip}" ToolTip.ShowDelay="80" Margin="0,0,4,2">
+                    <Border IsVisible="{Binding ShowInvade}" HorizontalAlignment="Right" Background="Transparent" ToolTip.Tip="{Binding InvadeTip}" ToolTip.ShowDelay="80" Margin="0,0,4,2">
                         <Button Classes="mini dense" Content="{Binding InvadeLabel}" IsEnabled="{Binding CanInvade}"
                                 Command="{Binding InvadeCmd}" CommandParameter="{Binding PowerName}"/>
                     </Border>
                     <!-- 通商条約ボタンは廃止（2026-09-07作者指示）：締結は Diplomacy.TradeTreaties の四半期の掃引で**プレイヤーも含めて自動**
                          （同盟・禁輸の自動化と同じ型＝自動化できるレバーは置かない）。関税目標の状態は経済タブが映す。 -->
-                </WrapPanel>
+                </StackPanel>
                 <TextBlock Grid.Column="3" Text="{Binding Tension}" Foreground="{Binding TensionBrush}" FontWeight="Bold" FontSize="{StaticResource FontTiny}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,3,2,3"
                            ToolTip.Tip="{Binding Detail}" ToolTip.ShowDelay="200"/>
             </Grid>

@@ -48,6 +48,8 @@ public partial class GameView : UserControl
 
     private TopLevel? _keyTop;   // キーハンドラを付けた Window（解放用）
 
+    private Key _heldKey = Key.None;   // いま握っているキー＝KeyDown を Handled にした1つ。押しっぱなしのリピート除去と、対になる KeyUp の判別に使う（OnGlobalKeyDown／OnGlobalKeyUp）
+
     private ViewModels.GameViewModel? _vmHooked;   // CenterMap を購読したVM（解放用）
 
     private bool _homed;   // 自国センタリングを一度だけ実行
@@ -60,6 +62,7 @@ public partial class GameView : UserControl
         {
             _keyTop = top;
             top.AddHandler(KeyDownEvent, OnGlobalKeyDown, RoutingStrategies.Tunnel);   // Tunnelのみ（Bubble併記は未処理キーでハンドラが2回走る二重登録だった）
+            top.AddHandler(KeyUpEvent, OnGlobalKeyUp, RoutingStrategies.Tunnel);       // 離した側も横取り（理由は OnGlobalKeyUp のコメント＝KeyDown を握ってもスペースがボタンを押す）
             if (top is Window win) win.WindowState = WindowState.FullScreen;   // ゲーム開始（地図を開いた時）＝フルスクリーン
         }
         if (_vmHooked is null && DataContext is ViewModels.GameViewModel vm)
@@ -95,7 +98,9 @@ public partial class GameView : UserControl
     {
         _vmHooked?.Shutdown();   // 旧VMのタイマー停止（DataContext は差し替え済みで null/新VMになり得るため保持参照で確実に止める）
         _keyTop?.RemoveHandler(KeyDownEvent, OnGlobalKeyDown);
+        _keyTop?.RemoveHandler(KeyUpEvent, OnGlobalKeyUp);   // 登録と対（付けた分だけ外す）
         _keyTop = null;
+        _heldKey = Key.None;
         if (_vmHooked is not null) { _vmHooked.CenterMap -= OnCenterMap; _vmHooked = null; }
     }
 
@@ -157,9 +162,18 @@ public partial class GameView : UserControl
             or (>= Key.D1 and <= Key.D3) or (>= Key.NumPad1 and <= Key.NumPad3)) return;
         if (modal && e.Key == Key.Tab) { e.Handled = true; return; }   // 生産タブは開かない（既定のフォーカス移動も抑止）
         if (modal && e.Key == Key.F) { e.Handled = true; return; }     // 発見パネルもモーダル中は開かない
+        // 押しっぱなしのリピート（毎秒30回）を捨てる。Avalonia 12 の KeyEventArgs にリピートの印は無いので、握ったキーを1つ覚えて同じキーの再入を捨てる
+        //（Windowsのリピートは最後に押した1キーだけ＝覚えるのは1つで足りる）。これが無いと切り替え系（スペース＝停止/再開・TAB＝生産・F＝発見・F11・Esc）は
+        // 離した時の状態が押した長さ任せになり、F5/F9 は押している間ずっと保存/読込が走る。
+        if (_heldKey != Key.None && e.Key == _heldKey) { e.Handled = true; return; }
         if (e.Key == Key.Space)
         {
             vm.TogglePauseCommand.Execute(null);
+            // 押すたびフォーカスを地図へ集める。理由＝パネルやモーダルを閉じてフォーカス先の要素が木から消えると焦点が null のまま誰も戻さず、
+            // 以後キーが届かない経路ができるから（これまでの MapHost.Focus() の呼び手は Loaded の1回と地図の押下だけだった）。
+            // ⚠ フォーカスを奪うので**文字入力欄があるとその入力が切れる**。上のガードで TextBox/ComboBox が Source のときは既に抜けている（現状 TextBox は0個）。
+            // スライダーの矢印キー微調整も外れるため、フォーカスを戻すのは**スペースだけ**に限る（他のキーは握るだけ）。
+            MapHost.Focus();
             e.Handled = true;
         }
         else if (e.Key is >= Key.D1 and <= Key.D3)
@@ -199,6 +213,19 @@ public partial class GameView : UserControl
         // F5＝クイックセーブ／F9＝クイックロード
         else if (e.Key == Key.F5) { vm.SaveGameNowCommand.Execute(null); e.Handled = true; }
         else if (e.Key == Key.F9) { vm.RequestLoadCommand.Execute(null); e.Handled = true; }
+        if (e.Handled) _heldKey = e.Key;   // 握ったキーだけ覚える（未処理キーのリピートは素通しのまま＝上のリピート除去は横取りしたキーにしか効かない）
+    }
+
+    // KeyUp も横取りする理由：**KeyDown を Handled にしても KeyUp は素通りし、フォーカスのあるボタンがスペースで押される**（2026-09-23 実測）。
+    // 前提＝本作のボタンは App.axaml の全クラス（speed/tab/mini/counter/row/warn/dialog/close/lawstage）で Focusable=False ＝
+    // 「スペースでボタンを押す」キーボード操作は元々使えず、ここで握っても実害は無い。**将来 Focusable なボタンを足すとこの1本が邪魔になる**。
+    // ボタン以外で唯一フォーカスを取るのは開戦ポップアップの CheckBox「総動員」だが、モーダル中のスペースは上で横取りせず返している＝
+    // _heldKey が立たないのでここも素通り＝スペースでの開閉は従来どおり効く。
+    private void OnGlobalKeyUp(object? sender, KeyEventArgs e)
+    {
+        if (_heldKey == Key.None || e.Key != _heldKey) return;   // KeyDown を握っていないキー（モーダル中のスペース等）はそのまま通す
+        _heldKey = Key.None;
+        if (e.Key == Key.Space) e.Handled = true;   // 押下を握った時だけ対で握る
     }
 
     // スライダーの硬い上下限は Views/SliderLimit.cs（添付プロパティ）。

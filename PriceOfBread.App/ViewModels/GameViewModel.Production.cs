@@ -80,10 +80,18 @@ public partial class GameViewModel
     /// 1つ入っても1330≦1330＝ちょうど収まる。2つ以上入る断片は EnsureProdLayout の実幅判定が分割数を1つ増やす＝枚数が減る。
     /// 7枚は 7×204＋6×16＝1524＞1330＝入らない）。
     /// ★2026-09-07に 172→204（作者要望(1)(2)）＝縦線を工場カウンターに拡張し、かつ100%表示が切れないための実幅を確保した。
-    ///   カードの本文の可用幅＝204 −枠1.5×2(3) −DockPanel余白5×2(10) −(工場カウンター46+隙間6) ＝**139px**（選択中は枠3.0なので136px）。
-    ///   11pxの実寸（全角11.0・半角6.1）で 2行目「稼働率:100%　供給:100%」＝127px・
-    ///   3行目「生産:1.2k」52.5＋隙間6＋「過不足:-1000%」75.7＝134.2px＝最悪でも136pxに収まる。
-    ///   カウンター46は「305/305」（7半角＝42.7px。1914年の英の肥料が民営305棟＝実測2026-09-07）まで収まる実寸。
+    ///   カードの本文の可用幅＝204 −枠×2 −DockPanel余白5×2(10) −(工場カウンター**56**+隙間6) ＝
+    ///   **129px**（枠1.5）／127.2px（入出力の強調＝枠2.4）／**126px**（選択中＝枠3.0）。
+    ///   ⚠2026-09-23に実測して書き直した：旧コメントは「工場カウンター46」「可用幅139px／選択中136px」と書いていたが、
+    ///     ProductionTab.axaml の縦線の実値は **56**（2026-09-08に民営/国営の2行を入れた時に46→56へ広げ、コメントだけ据え置かれた）
+    ///     ＝10px ぶん本文の見積もりが甘く、下の「収まる」の判定が全部ずれていた。
+    ///   11pxの実寸（全角11.0・半角6.1）で
+    ///     2行目「稼働率:100%　供給:100%」＝**127.0px** ＝枠1.5なら収まるが、**選択中（126px）は1px超過**＝末尾がわずかに切れる。
+    ///     3行目「生産:1.2k」52.5＋隙間6＋「不足1000%」52.5＝**111.0px**＝どの枠でも収まる
+    ///       （旧「過不足:-1000%」は75.7px＝合計134.2pxで129pxを**5px超過**＝1000%級の不足が出た財は末尾が無言で切れていた。
+    ///        2026-09-23の語の切替「余剰n%／不足n%」が、幅としてもこの超過を消した）。
+    ///   カウンター56は「民営12/12」（全角2＋半角5＝52.5px）まで。3桁棟数「民営100/100」は64.7px＝**8.7px超過**で
+    ///     末尾が無言で切れる（1914年の英の肥料が民営305棟＝この見切れは現存。縦線を広げると上の127.0pxが確実に切れるので広げられない）。
     ///   ⚠旧（172px・縦線5）の可用幅は146pxで「稼働率:100%　材料供給:100%」＝149px＝**3px超過**＝末尾の「%」が無言で切れていた（作者報告(2)）。
     /// ★寸法で「収まる」を保証する＝ProductionTab.axaml 側の HorizontalScrollBarVisibility=Disabled とセット
     /// （スクロールバー任せにしない）。ウィンドウが1920より狭い時は盤の右端がクリップされる（作者許容2026-08-15）。</summary>
@@ -487,11 +495,17 @@ public partial class GameViewModel
     private double SurplusRate(double produced, double sold) => produced > QtyEps ? (produced - sold) / produced : double.NaN;
 
     /// <summary>過不足率の表示（否定形の判定＝NaN も「—」へ落とす）。
-    /// ★語は「過不足」1本（作者要望2026-09-07 (5)）＝州別テーブルの列見出しと揃える。旧は「余剰:+12%／不足:-8%」で、
-    ///   不足側が語と符号の二重否定になっており、かつ表の見出し「余剰」に負の値が並んで意味が読めなかった。
-    ///   符号は必ず付ける（＋＝余っている・−＝足りない）＝色（緑/赤）と合わせて2重に読める。</summary>
+    /// ★語は符号で切り替える（作者指示2026-09-23「『過不足:n%』は意味が分からないので『余剰n%』『不足n%』を切り替える」）。
+    ///   これが2026-09-07 (5) の「語は『過不足』1本」を上書きする（同じ作者の新しい指示が勝つ）。旧はコロン付きの
+    ///   「過不足:+12%／過不足:-8%」で、符号だけが意味を担っていた。
+    /// ★語と色は**同じ否定形の式**から出す＝`!(rate &lt; 0)` が真なら「余剰」＋緑（<see cref="PPlus"/>）、偽なら「不足」＋赤。
+    ///   これで語と色が食い違う断面が原理的に無い（呼び出し側の `SurplusBrush` の式＝カードと州別テーブルの両方＝と同一の否定形）。
+    /// ★**0の扱い**：ちょうど0は「余剰0%」（`!(0 &lt; 0)` が真＝緑側）。0へ丸まる負（−0.4%など）は「不足0%」＋赤＝
+    ///   語が符号を語り、数は丸めたままにする（「不足0%」は"ほんの僅かに足りない"の意。0.5%刻みの語を新設しない）。
+    ///   符号は <see cref="Math.Abs"/> で落とす＝負の零（-0.0）が「余剰-0%」と出る穴を塞ぐ（"0%" 書式は -0.0 に「-」を付ける）。
+    /// ★NaN（生産なし）は手前の三項で「過不足:—」へ落ちる＝「余剰—」という無意味な語を作らない（語の無い「—」で残す）。</summary>
     private static string SurplusText(double rate) => !(rate > double.MinValue && rate < double.MaxValue) ? "過不足:—"
-        : "過不足:" + rate.ToString("+0%;-0%");
+        : (!(rate < 0) ? "余剰" : "不足") + Math.Abs(rate).ToString("0%");
 
     /// <summary>一覧表の列見出しを押した＝並べ替え。同じ列を再度押すと昇順⇔降順。
     /// 数量の列は**降順から**（多い順が知りたい列）／材名だけ昇順から始める。</summary>
@@ -647,7 +661,13 @@ public partial class GameViewModel
             //   技術不足（blocked）と同じ淡色を使う＝「触れない材」の色の文法を1つに保つ。
             bool noSource = none && !hasProducer[gi];
             nd.NameBrush = blocked || noSource ? PDimText : PNameText;
-            nd.PriceDiff = hasPd ? pdg.ToString("+0%;-0%") : "";
+            // ★書式の第3節「0%」は必須（2026-09-23・.NET 10で実測）＝**この画面の率の書式は全部3節**
+            //   （nd.PriceDiff／ProdTableRow の Price・Surplus・MatCost／ProdDetail.PriceDiff／BuildPriceRows の Pct の6箇所）。
+            //   2節の "+0%;-0%" は、0へ丸まる負数（−0.4%など）に対して負号を付けたうえで**第1節**を使う＝
+            //   「-+0%」という符号が2つ並んだ文字列を出していた（-0.002 → "-+0%"／-0.2 → "-20%" と挙動が割れる）。
+            //   第3節を足すと 0 も −0.0 も0へ丸まる負も「0%」＝符号の無い零になる（丸めて消えた符号を書かない）。
+            //   ⚠色は割れていなかった（`!(x < 0)` は -0.002 を正しく赤に落とす）＝色の式は触らない。
+            nd.PriceDiff = hasPd ? pdg.ToString("+0%;-0%;0%") : "";
             nd.PriceDiffBrush = pdg <= 0 ? PPriceBelow : PPriceAbove;
             nd.Util = util1;
             nd.UtilBrush = starving ? PMinus : PUtilText;
@@ -658,9 +678,11 @@ public partial class GameViewModel
             blockedOf[gi] = blocked; inactiveOf[gi] = inactive;   // 地色・枠・沈みは選択と併せて ApplyProdSelection が塗る（式は1箇所）
             // 縦線の中の工場カウンター（作者仕様2026-09-07 (1)）＝「今ある棟数 / 予定を含めた棟数」。
             //   分子＝民営と国営の**完成した**合計棟数／分母＝合計＋建設予定（建設中＋まだ着工していない未達の意志）。
-            //   ＋を押すと予定が1増え、エンジンが最も効率の良い州へ国営工場を建てて分子が追いつく。
-            //   −は**予定のうちまだ州へ配っていない分**しか削れない（建った棟は壊せない）＝削る余地が無い時は押せない状態で出す
+            //   ▲を押すと予定が1増え、エンジンが最も効率の良い州へ国営工場を建てて分子が追いつく。
+            //   ▼は**予定のうちまだ州へ配っていない分**しか削れない（建った棟は壊せない）＝削る余地が無い時は押せない状態で出す
             //   （作者指示2026-09-07「マイナスのボタンは最初から表示する」＝0の時も隠さない）。
+            // ★2026-09-23 作者の図＝増加は上三角・減少は下三角。＋−の横並び1段を ▲▼ の上下2段に組み替え、民営/国営の2行を挟む。
+            //   動く値は変えていない（▲▼＝全国工場目標＝国営行の分母。民営行は▲▼では動かない）。
             // ★2026-09-08 作者指示「カードに民営数x/y、国営数x/yを表示する」＝合計1本から所有別の2本へ。
             //   民営の分母は民営の建設中を含む（＝民間建設が盤面に無い現状は完成数と一致する）。国営の分母は完成＋建設予定。
             nd.PrivateCount = $"民営{pvU}/{pvU}";
@@ -681,7 +703,7 @@ public partial class GameViewModel
                     Name = d.Name,
                     IsFactory = isFactory,
                     // 価格＝**世界価格との比**（カードの PriceDiff と同一式＝首都価格×為替／世界価格−1）。安い青・高い赤。
-                    Price = hasPd ? pdg.ToString("+0%;-0%") : "—",
+                    Price = hasPd ? pdg.ToString("+0%;-0%;0%") : "—",
                     PriceV = hasPd ? pdg : double.MinValue,
                     PriceBrush = pdg <= 0 ? PPriceBelow : PPriceAbove,
                     Prod = Qty(prod[gi]),   // 生産量＝カードと同じ量（Market.LastProduced の全州和）
@@ -987,10 +1009,10 @@ public partial class GameViewModel
                 Prod = unavail ? "—" : Qty(m.LastProduced),   // まだ存在しない財は量も出さない（作者裁定2026-08-10）
                 ProdTip = utilTip,   // 稼働率とその内訳（項目5で設備欄から移設・全国値）
                 // 過不足＝生産に対する比（項目3・2026-08-10）。絶対量（生産・消費・その差）はツールチップで読む
-                Surplus = !(surplusRate > double.MinValue && surplusRate < double.MaxValue) ? "—" : surplusRate.ToString("+0%;-0%"),
+                Surplus = !(surplusRate > double.MinValue && surplusRate < double.MaxValue) ? "—" : surplusRate.ToString("+0%;-0%;0%"),
                 SurplusBrush = !(surplusRate < 0) ? PPlus : PMinus,
                 SurplusTip = $"生産 {Qty(m.LastProduced)}/月　消費 {Qty(m.LastSold)}/月　差 {(m.LastProduced - m.LastSold >= 0 ? "＋" : "−")}{Qty(Math.Abs(m.LastProduced - m.LastSold))}",
-                MatCost = matWorld > 1e-6 ? $"{mdiff:+0%;-0%}" : "—",
+                MatCost = matWorld > 1e-6 ? $"{mdiff:+0%;-0%;0%}" : "—",
                 MatCostBrush = mdiff <= 0 ? PPriceBelow : PPriceAbove,
             }));
         }
@@ -1092,7 +1114,7 @@ public partial class GameViewModel
             Tier = TierLabel(gi),   // 見出しだけ素材の産地区分を出す（作者要望2026-09-07 (4)）
             // 項目7（2026-08-10）：詳細パネルでも財名の横に世界価格との比を出す（カードと同じ様式＝安い青・高い赤）。
             //   式はカード（RefreshProduction）と同一＝首都価格×為替／世界価格−1。
-            PriceDiff = !unavail && world > 1e-6 && local > 1e-9 ? (local * ex / world - 1.0).ToString("+0%;-0%") : "",
+            PriceDiff = !unavail && world > 1e-6 && local > 1e-9 ? (local * ex / world - 1.0).ToString("+0%;-0%;0%") : "",
             PriceDiffBrush = world > 1e-6 && local > 1e-9 && local * ex / world - 1.0 > 0 ? PPriceAbove : PPriceBelow,
             LegalMonopoly = legalMonopoly,
             // 数値ブロック＝**2行**（作者指示2026-08-10 C）：
@@ -1257,7 +1279,7 @@ public partial class GameViewModel
     {
         // ★まだ存在しない財は**行を1つも積まない**（作者指示2026-08-11）＝「—」だけの積み上げは読む物がない。
         if (unavailable) return;
-        string Pct(double v) => v.ToString("+0%;-0%");
+        string Pct(double v) => v.ToString("+0%;-0%;0%");
         // 「需要と供給」の駆動値＝在庫の詰まり具合・寡占の上乗せ・輸入の敷居（関税/穀物法）・世界価格。
         string? sdTip = $"在庫/目標 {(double.IsNaN(p.StockRatio) ? "測定なし" : p.StockRatio.ToString("P0"))}"
                      + $"\n寡占の上乗せ {Pct(p.OligopolyMarkup)}"
@@ -1513,7 +1535,7 @@ public partial class GameViewModel
         if (_player.SetStateTarget(ri, gid, p.StateTarget + delta)) Refresh(); else RefreshProduction();
     }
 
-    /// <summary>全国工場目標の増減（作者要望2026-09-07 (1)）＝財カードの縦線の中の＋/−＝**分母を動かす**。
+    /// <summary>全国工場目標の増減（作者要望2026-09-07 (1)）＝財カードの縦線の中の▲/▼（2026-09-23に＋/−から）＝**分母を動かす**。
     /// ★動かす起点はカードが出している分母そのもの（＝合計＋建設予定。目標がそれを超えていれば目標）
     ///   ＝押した数字と置く数字が一致する＝1回押せば必ず1動く。
     /// ★これは「意志」＝目標を上げただけで無から工場は湧かない。満たすまでエンジンが**最も効率の良い州**へ
@@ -1556,7 +1578,7 @@ public sealed partial class ProdNode : ObservableObject
     [ObservableProperty] private string _surplus = "";      // 「過不足:+12%」
     [ObservableProperty] private IBrush? _surplusBrush;
     [ObservableProperty] private IBrush? _accent;
-    // 工場カウンター（作者要望2026-09-07 (1)）＝カテゴリを示す縦線を広げてその中に「今ある棟数/予定を含めた棟数」を出し、分母を＋/−で動かす。
+    // 工場カウンター（作者要望2026-09-07 (1)）＝カテゴリを示す縦線を広げてその中に「今ある棟数/予定を含めた棟数」を出し、分母を▲/▼で動かす（2026-09-23）。
     // 民営＝完成/建設中を含む総数、国営＝完成/完成＋建設予定（World.FactoryCounter の1本）。満たすまでエンジンが最も効率の良い州へ国営工場を建てる。
     [ObservableProperty] private string _privateCount = "";
     [ObservableProperty] private string _stateCount = "";

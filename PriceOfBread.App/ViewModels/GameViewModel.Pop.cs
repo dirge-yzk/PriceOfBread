@@ -71,7 +71,13 @@ public partial class GameViewModel
     /// <summary>その階級が**持ちうる**特権を1行ぶん組む（作者指示2026-09-07(7)(8)）＝先頭が「なし」・以下に特権名。
     /// 保有（残高>0）だけが墨になる＝法律タブの段と同じ2状態の見せ方。機構が休眠の特権（同業組合＝GuildLawGate=0）は並べない。
     /// 残高は <see cref="SimCore.Privileges.Degree"/>（法・政体・工業化から導く観測量）＝UIは新しい状態も判断も持たない。
-    /// 1783年の初期状態は各国の初期法（world.json の polity／initialSerfEmancipation／bureaucracy）がそのまま決める＝国名分岐はゼロ。</summary>
+    /// 1783年の初期状態は各国の初期法（world.json の polity／initialSerfEmancipation／bureaucracy）がそのまま決める＝国名分岐はゼロ。
+    /// ★2026-09-23（作者指示「カーソルを合わせた時に内容が出るように」）：**保有・非保有を問わず全ての語にホバーを出す**。
+    ///   旧は非保有が Tip=null＝カーソルを合わせても何も出ず、淡い語が何を指すのか画面から辿れなかった（保有でも「残高:n%」だけ）。
+    ///   中身＝特権の名前／根拠（法の題名:現在の段。法でない身分制免税は政体）／残高／受益する階級＝すべて「名前:値」の作法。
+    ///   ⚠取り分（PrivilegeTakeYear）・強度（PrivilegeHeldYears）・剥離の怒りは PrivilegeLedgerEnabled=0 で StepMonth が
+    ///     1度も呼ばれない＝常に0（HeldYears は初期値 −1 のまま）＝**出さない**。今の世界で動くのは残高だけ。
+    ///   ⚠「なし」の語は Tip なしのまま（null＝吹き出しを出さない既存作法。説明文を書かない）。</summary>
     private List<PrivilegeChip> PopPrivilegeChips(int classId)
     {
         var chips = new List<PrivilegeChip>();
@@ -82,9 +88,56 @@ public partial class GameViewModel
             double deg = SimCore.Privileges.Degree(_player, _player.Coef, k);
             bool held = deg > 0;   // NaN は held=false へ落ちる
             any |= held;
-            chips.Add(new PrivilegeChip { Name = SimCore.Privileges.Names[k], Held = held, Tip = held ? $"残高:{deg:P0}" : null });
+            string tip = SimCore.Privileges.Names[k];
+            string? src = PopPrivilegeSourceLine(k);
+            if (src is not null) tip += "\n" + src;
+            tip += "\n残高:" + (!(deg >= 0) ? "—" : deg.ToString("P0"));   // 否定形＝NaN は「—」（Math.Clamp は NaN を除去しない・失業者セルと同じ記号）
+            string ben = PopPrivilegeBeneficiaries(k);
+            if (ben.Length > 0) tip += "\n受益:" + ben;
+            chips.Add(new PrivilegeChip { Name = SimCore.Privileges.Names[k], Held = held, Tip = tip });
         }
         chips.Insert(0, new PrivilegeChip { Name = "なし", Held = !any });
         return chips;
+    }
+
+    /// <summary>特権 k の残高を決めている根拠の1行「題名:現在の段」（2026-09-23）＝<see cref="SimCore.Privileges.Degree"/> の分岐を**そのまま映す**
+    /// （UIに第二の判定式を置かない）。段の語は法律タブの行（<see cref="Laws"/>）から読む＝法律タブと同じ文字列になる（第二の名前表を作らない）。
+    /// これで非保有の語も「どの法がそれを消したか」が読める（例：領主権／農奴解放:全面／残高:0%）。
+    /// null＝根拠が法でも政体でもない腕＝行そのものを出さない（嘘の根拠を書かない）。</summary>
+    private string? PopPrivilegeSourceLine(int kind)
+    {
+        var c = _player.Coef;
+        // 身分制免税だけは法律タブに行が無い＝政体が決める（PrivilegeFromCrownShare>0 の腕では王権の取り分＝法でも政体でもないので出さない）。
+        if (kind == SimCore.Privileges.TaxExemption)
+            return c.PrivilegeFromCrownShare > 0 ? null : "政体:" + PolityRegimeJa(_player.Polity);
+        string? title = kind switch
+        {
+            SimCore.Privileges.Tithe => c.StateReligionGate > 0 ? "国教" : null,       // ゲート0＝国教法は率を変調しない＝根拠は TitheRate だけで法でない
+            SimCore.Privileges.VestedOffice => "官僚制度",
+            SimCore.Privileges.Seigneurial => "農奴解放",
+            SimCore.Privileges.Monopoly => c.AntitrustGate > 0 ? "独占禁止" : null,     // ゲート0＝MonopolyRentFactor 常に1.0＝法は効かない
+            SimCore.Privileges.Guild => "同業組合",
+            _ => null,
+        };
+        if (title is null) return null;
+        foreach (var r in Laws)
+            if (r.Title == title)
+                foreach (var s in r.Stages)
+                    if (s.IsCurrent) return title + ":" + s.Label;
+        return title;   // 段が見つからない（法律タブ未構築）＝法の題名だけ
+    }
+
+    /// <summary>特権 k を実際に受ける階級の名前（2026-09-23）。身分制免税だけ2つ＝貴族と聖職者（<see cref="SimCore.Privileges.HeldBy"/> 1本で判定
+    /// ＝取り分の分子と受益の分母を同じ人口で揃える）。名前は pop の ClassName＝POP表の階級名と**同じ文字列**（第二の階級名表を作らない）。</summary>
+    private string PopPrivilegeBeneficiaries(int kind)
+    {
+        string s = "";
+        for (int cls = 0; cls < PopClass.Count; cls++)
+        {
+            if (!SimCore.Privileges.HeldBy(kind, cls)) continue;
+            foreach (var p in _player.AllPops())
+                if (p.ClassId == cls && p.ClassName.Length > 0) { s += (s.Length == 0 ? "" : "・") + p.ClassName; break; }
+        }
+        return s;
     }
 }

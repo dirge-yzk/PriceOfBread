@@ -865,23 +865,41 @@ public partial class GameViewModel
     private MapHoverInfo BuildProvinceHover(Region rg, World ownerWorld, string nation, double pop)
     {
         // タイトル＝州名（国名）。国名の横の緊張表示は撤去（2026-07-12）。
-        // ★支配度 §7（州パネル・2026-09-07 作者指示「半円で」）：4区分の半円（箱 幅140×高さ72・底辺の中点(70,70)・半径68）＋外周の帯＝国家区分の10年前（半径64・線）。
-        //   区分が動く世界（RuleSharesEnabled>0）でだけ描く。色＝国家:鋼青・在地:褐・外国:琥珀・無統治:淡墨（政治タブの金/錆と衝突させない）。値は凡例に数字で。
-        bool hasRule = ownerWorld.Coef.RuleSharesEnabled > 0 && rg.Rule.Length == 4;
-        string rs = "", rl = "", rf = "", ru = "", rb = "", rbText = "";
-        if (hasRule)
+        // ★支配度 §7（州パネル・2026-09-07 作者指示「半円で」）＋2026-09-23 作者指示「支配度は常に表示・切り替え不要／円は縦の幅が半分」：
+        //   4区分の半円（箱 幅70×高さ36・底辺の中点(35,35)・半径34＝旧 140×72 の縦半分）＋外周の帯＝国家区分の10年前（半径32・線）。
+        //   色＝国家:鋼青・在地勢力:褐・外国勢力:琥珀・無統治:淡墨（政治タブの金/錆と衝突させない）。値は凡例に数字で。
+        // ★4区分を何から作るか（2026-09-23）：
+        //   ・「国家」＝live な rg.Dominance。Politics.cs:1797-1805 の積分は**常に走る**（RuleSharesEnabled とは無関係）＝毎四半期動く唯一の量。
+        //   ・残り（1−支配度）は rg.Rule の 在地/外国/無統治 の**比**で配る。Rule は RuleSharesEnabled=0 の間 Politics.cs:1810 が積分しない＝
+        //     初期構成（world.json の rule＝4カ国のみ）のまま動かないので、「動く量」ではなく**残りの内訳の型紙**としてだけ使う。
+        //   ・比の元が無い国（残り57カ国＝Rule=[1,0,0,0]）は残りが丸ごと「無統治」。0% はそのまま 0% と出す＝**無い値をUIで作らない**。
+        //   ⚠エンジンの目標式（Politics.cs:1820-1825＝治安カバレッジ×…）をここへ書き写さない。同じ量の定義がエンジンとUIの2本になるのが最も再発するバグ型。
+        double dom = rg.Dominance;
+        if (!(dom > 0)) dom = 0; else if (!(dom < 1)) dom = 1;   // ⚠Math.Clamp は NaN を落とさない＝否定形で書く
+        double rest = 1.0 - dom;
+        double sLocal = 0, sForeign = 0, sUngov = 0;
+        if (rg.Rule.Length == 4)
         {
-            double f1 = System.Math.Clamp(rg.Rule[0], 0, 1), f2 = System.Math.Min(1.0, f1 + System.Math.Clamp(rg.Rule[1], 0, 1)), f3 = System.Math.Min(1.0, f2 + System.Math.Clamp(rg.Rule[2], 0, 1));
-            rs = HalfSlice(70, 70, 68, 0, f1); rl = HalfSlice(70, 70, 68, f1, f2); rf = HalfSlice(70, 70, 68, f2, f3); ru = HalfSlice(70, 70, 68, f3, 1.0);
-            double ago = rg.RuleStateTenYearsAgo();
-            if (ago >= 0) { rb = HalfArc(70, 70, 64, ago); rbText = $"10年前の国家 {ago:P0}"; }
+            sLocal = rg.Rule[1]; sForeign = rg.Rule[2]; sUngov = rg.Rule[3];
+            if (!(sLocal > 0)) sLocal = 0;
+            if (!(sForeign > 0)) sForeign = 0;
+            if (!(sUngov > 0)) sUngov = 0;
         }
+        double sSum = sLocal + sForeign + sUngov;
+        double fLocal, fForeign, fUngov;
+        if (sSum > 1e-9) { fLocal = rest * sLocal / sSum; fForeign = rest * sForeign / sSum; fUngov = rest * sUngov / sSum; }
+        else { fLocal = 0; fForeign = 0; fUngov = rest; }
+        double f1 = dom, f2 = f1 + fLocal, f3 = f2 + fForeign;
+        string rs = HalfSlice(35, 35, 34, 0, f1), rl = HalfSlice(35, 35, 34, f1, f2), rf = HalfSlice(35, 35, 34, f2, f3), ru = HalfSlice(35, 35, 34, f3, 1.0);
+        string rb = "", rbText = "";
+        double ago = rg.RuleStateTenYearsAgo();
+        if (ago >= 0) { rb = HalfArc(35, 35, 32, ago); rbText = $"10年前の国家 {ago:P0}"; }
         var info = new MapHoverInfo
         {
-            Title = $"{rg.Name}({nation})", HasRule = hasRule,
+            Title = $"{rg.Name}({nation})", HasRule = true,   // 常に表示＝係数のゲートで隠さない（2026-09-23 作者指示）
             RuleState = rs, RuleLocal = rl, RuleForeign = rf, RuleUngoverned = ru, RuleBand = rb,
-            RuleStateText = hasRule ? $"{rg.Rule[0]:P0}" : "", RuleLocalText = hasRule ? $"{rg.Rule[1]:P0}" : "",
-            RuleForeignText = hasRule ? $"{rg.Rule[2]:P0}" : "", RuleUngovernedText = hasRule ? $"{rg.Rule[3]:P0}" : "", RuleBandText = rbText,
+            RuleStateText = $"{dom:P0}", RuleLocalText = $"{fLocal:P0}",
+            RuleForeignText = $"{fForeign:P0}", RuleUngovernedText = $"{fUngov:P0}", RuleBandText = rbText,
         };
         double unemployed = 0;
         foreach (var p in rg.Pops) unemployed += p.Size * p.UnemploymentRate;
