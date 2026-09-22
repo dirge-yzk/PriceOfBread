@@ -291,7 +291,8 @@ public partial class GameViewModel : ViewModelBase
                 _warTracks[t.Id] = new WarTrack
                 {
                     Won0 = t.Won0, Lost0 = t.Lost0, LastScore = t.LastScore, LastMonths = t.LastMonths,
-                    LastDeadSelf = t.DeadSelf, LastDeadEnemy = t.DeadEnemy, CostShare = t.Cost,
+                    LastDeadSelf = t.DeadSelf, LastDeadEnemy = t.DeadEnemy,
+                    LastCivDeadSelf = t.CivSelf, LastCivDeadEnemy = t.CivEnemy, CostShare = t.Cost,
                 };
             foreach (var p in warUi.Pasts)
                 PastWarRows.Add(new PastWarRow { Key = p.Key, EndDay = p.EndDay, Title = p.Title, Detail = p.Detail });
@@ -364,12 +365,17 @@ public partial class GameViewModel : ViewModelBase
     private double TensionPct(double tension)
         => System.Math.Clamp(tension / _player.Coef.WarDeclareTension, 0, 1);
 
+    // ★2026-09-23：最下段を「素のポンド」にした。旧は £1k 未満を全て "£0.0k" に潰しており、**£50未満は必ず「£0.0k」**だった
+    //   （F1 の丸め）。戦争タブの戦費は国の月次戦費を戦線数で割った額＝多正面ではこの帯に落ちるので、
+    //   作者の画面（英 £82.2/月 ÷ 8戦線 × 4ヶ月 ＝ £41）では**原理的に金額が見えなかった**。
+    //   桁に応じて小数を詰める作法は MoneyPerHead と同じ（あちらは1未満の小数まで扱うので刻みが細かい）。
     public static string Money(double v)
     {
         double a = System.Math.Abs(v); string sign = v < 0 ? "-" : "";
         if (a >= 1e6) return $"{sign}£{a / 1e6:F2}M";
         if (a >= 1e4) return $"{sign}£{a / 1e3:F0}k";
-        return $"{sign}£{a / 1e3:F1}k";
+        if (a >= 1e3) return $"{sign}£{a / 1e3:F1}k";
+        return $"{sign}£{a:N0}";
     }
 
     // 1人あたりの金額（ヘッダーの一人当たりGDP）。Money の k/M 表記は人数で割った桁を全部「£0.0k」に潰すので、桁に応じて小数を詰める。

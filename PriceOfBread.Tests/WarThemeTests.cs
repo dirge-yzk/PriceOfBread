@@ -87,4 +87,103 @@ public class WarThemeTests
                 $"{p.BaseName}の海軍シェアが維持費比から外れた（実{p.NavalShare:F3} 期待{expected:F3}・陸{n.World.ArmyUpkeep:F3}/海{n.World.NavyUpkeep:F3}）");
         }
     }
+
+    // ===== 戦争タブの「犠牲者」と「戦費」の番人（2026-09-23）=====
+    // 症状＝終わった8件が全て「犠牲者 自国1人／相手1人・戦費 £0.0k」（作者のスクリーンショット・1790年）。診断で確定した欠陥は2つ：
+    //  ① 民間人の戦争死（WarCivilianToll）が戦争別台帳（War.DeadA/DeadB）に1度も載っていなかった
+    //     ＝画面の「犠牲者」はシム自身が数えた対外戦争死の3.9〜5.3%しか出していなかった（実測 民間/(兵+将)＝17.7〜24.6倍）。
+    //  ② 表示＝Money() が £50未満を必ず「£0.0k」に潰していた／同月にN件終戦すると戦費按分の分母が1になりN重計上。
+    // 「戦費の区分が支出と還流で相殺している」という当初の読みは**反証**された（Colonial.DistributeToPops は配れ残りしか返さない）。
+    // 以下5本で、①の修正・戦線数按分・相殺していないこと・金の保存を固定する。
+
+    /// <summary>1戦線・1ヶ月の統制盤面：フランス(A)を劣勢（戦勝点-0.5）にして民間人が死ぬ側に置き、イギリス(B)は死なない側。
+    /// 自発的な開戦を止めて戦線を1本に固定＝按分の分母が既知（share = 総量/1）になる。
+    /// ★fronts=2（検証2026-09-23）＝**同じ世界のまま戦線だけ2本にする**＝按分の分母 fronts[p] そのものを測る腕。
+    ///   ⚠第3国を足す作り方は採れない（実測：日本を足すと上陸ゲートが閉じて contact が0になり民間人が1人も死なない
+    ///     ＝前提が崩れて測りたい量に届かない）。世界を変えずに戦線数だけを変えるので、1本の腕との差は分母だけ。
+    ///   ⚠fronts=1 は国の並びも手順も旧のままなので、既存の3本の番人は1ビットも動かない。</summary>
+    private static (MultiNationSim sim, War war, World fr, World br) OneFront(double civilianToll, int fronts = 1)
+    {
+        var sim = new MultiNationSim([NationConfig.France(), NationConfig.Britain()], seed: 1789);
+        sim.Coef.WarDeclareTension = 1e9;   // 自発的な宣戦を止める（戦線は手で1本だけ立てる）
+        sim.Run(20);                        // 兵士POP・国庫・海軍が立つまで（構築直後は軍も金も無い）
+        sim.Coef.WarCivilianToll = civilianToll;
+        var fr = sim.Nations[0].World; var br = sim.Nations[1].World;
+        var war = new War { A = fr.SelfPower!, B = br.SelfPower!, Score = -0.5 };   // A＝劣勢＝戦場になる側
+        sim.Diplomacy.Wars.Add(war);
+        for (int i = 1; i < fronts; i++) sim.Diplomacy.Wars.Add(new War { A = fr.SelfPower!, B = br.SelfPower!, Score = -0.5 });
+        return (sim, war, fr, br);
+    }
+
+    [Fact]
+    public void 民間人の戦争死が戦争別台帳に入る()
+    {
+        var (sim, war, fr, br) = OneFront(new Coefficients().WarCivilianToll);
+        double frDead0 = fr.WarDeadCumulative, brDead0 = br.WarDeadCumulative;
+        sim.Diplomacy.Step(sim.Coef, sim.Rng, month: 60);
+        Assert.Single(sim.Diplomacy.Wars);   // 前提が崩れた：戦線が1本でないと按分の分母が変わる
+        Assert.True(war.CivDeadA > 0, $"前提が崩れた：民間人の死が走っていない（接触も劣勢も立っていない・CivDeadA={war.CivDeadA:F9}）");
+        // 戦争別台帳（兵士+将校）＋（民間人）＝この国の今月の戦争死の全て。足りなければ①の再発、超えれば二重計上。
+        Assert.Equal(fr.WarDeadCumulative - frDead0, war.DeadA + war.CivDeadA, 9);
+        Assert.Equal(br.WarDeadCumulative - brDead0, war.DeadB + war.CivDeadB, 9);
+        Assert.Equal(0.0, war.CivDeadB);   // 優勢側（B）の国土は戦場にならない＝民間人は死なない
+    }
+
+    // ★検証2026-09-23で追加：突然変異M4（`civShare = civToll` ＝戦線数で割らない）が上の3本を**全て緑のまま通した**。
+    //   統制盤面が `Assert.Single(Wars)` で戦線を1本に固定しているため、按分の分母（fronts[p]）が一度も働いていない。
+    //   多正面の国は同じ月の死を全戦線へ配るので、割り忘れると戦線の数だけ死者が増える（＝思想⑨の二重計上）。
+    [Fact]
+    public void 民間人の死は戦線数で按分される()
+    {
+        var (sim, war, fr, _) = OneFront(new Coefficients().WarCivilianToll, fronts: 2);
+        double frDead0 = fr.WarDeadCumulative;
+        sim.Diplomacy.Step(sim.Coef, sim.Rng, month: 60);
+        Assert.Equal(2, sim.Diplomacy.Wars.Count);   // 前提が崩れた：フランスの戦線が2本でないと分母を測れない
+        var war2 = sim.Diplomacy.Wars[1];
+        Assert.True(war.CivDeadA > 0, $"前提が崩れた：民間人の死が走っていない（CivDeadA={war.CivDeadA:F9}）");
+        // 2本の戦線の合計＝この国の今月の戦争死のちょうど1本ぶん。割り忘れると戦線の数だけ膨らむ。
+        Assert.Equal(fr.WarDeadCumulative - frDead0, war.DeadA + war.CivDeadA + war2.DeadA + war2.CivDeadA, 9);
+        Assert.Equal(war.CivDeadA, war2.CivDeadA, 12);   // 均等按分＝2本が同額（兵士の戦死と同じ作法）
+    }
+
+    [Fact]
+    public void 民間人の死は兵士の戦死の台帳へ足し込まない()
+    {
+        var (s0, w0, _, _) = OneFront(0.0);                                  // 腕①＝民間人の死なし
+        s0.Diplomacy.Step(s0.Coef, s0.Rng, month: 60);
+        var (s1, w1, _, _) = OneFront(new Coefficients().WarCivilianToll);   // 腕②＝既定
+        s1.Diplomacy.Step(s1.Coef, s1.Rng, month: 60);
+        Assert.Equal(0.0, w0.CivDeadA);
+        Assert.True(w1.CivDeadA > 0, "前提が崩れた：既定の腕で民間人が死んでいない");
+        Assert.Equal(w0.DeadA, w1.DeadA, 12);   // 兵士+将校の欄は民間の有無で1ビットも動かない＝2つの量は別々に配られている
+        Assert.Equal(w0.DeadB, w1.DeadB, 12);
+    }
+
+    [Fact]
+    public void 戦費の区分は支出と還流で相殺せず出た額がPOPへ届く()
+    {
+        var (sim, _, fr, _) = OneFront(new Coefficients().WarCivilianToll);
+        int wc = (int)TreasuryCat.WarCost;
+        double led0 = fr.TreasuryLedger[wc], sav0 = 0;
+        foreach (var p in fr.AllPops()) sav0 += p.Savings;
+        sim.Diplomacy.Step(sim.Coef, sim.Rng, month: 60);
+        double spent = led0 - fr.TreasuryLedger[wc];   // UI（GameViewModel の _monthWarCost）が読むのと同じ向き＝支出が正
+        double sav1 = 0;
+        foreach (var p in fr.AllPops()) sav1 += p.Savings;
+        Assert.True(spent > 0, $"戦費の区分が動かない（月次差分 {spent:F9}）＝支出と還流が同じ区分で相殺している");
+        // 区分から出た額がそのまま自国POPの貯蓄へ（金は消えないし湧かない）。許容は相対＝全POPの貯蓄を足し合わせる桁落ちだけ
+        //（TreasuryLedgerTests と同じ作法。実測の乖離は 27.536442692 対 27.536442693＝相対 1.2e-10）。
+        Assert.True(Math.Abs((sav1 - sav0) - spent) / spent < 1e-6,
+            $"戦費の実払い {spent:F9} と POP へ届いた額 {sav1 - sav0:F9} が一致しない");
+    }
+
+    [Fact]
+    public void 民間人の死を数えても保存則は保たれる()
+    {
+        var sim = new MultiNationSim(FourNations(), seed: 1789);
+        var ex = Record.Exception(() => sim.Run(120));   // §11.6（貨幣・人口保存）が全国・全ティックで走る
+        Assert.Null(ex);
+        Assert.True(sim.Nations.TrueForAll(n => n.World.TotalPopulation > 0), "国/人口が消えた");
+    }
+
 }

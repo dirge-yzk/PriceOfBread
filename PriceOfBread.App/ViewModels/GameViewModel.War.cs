@@ -53,21 +53,27 @@ public partial class GameViewModel
     [ObservableProperty] private bool _noActiveWars = true;
     [ObservableProperty] private bool _hasPastWars;
     private const int PastWarKeepYears = 5;              // 終わった戦争をタブに残す年数
-    // 戦争ごとのUI追跡（レビュー2026-07-19で全面改構）：犠牲者＝エンジンの戦争別台帳 War.DeadA/DeadB（内戦・粛清の混入なし・多正面は按分済み）、
-    // 戦費＝月次 WarCostPerMilitary×Military を自国の戦線数で均等按分した累計、開戦日＝war.Months から導出（ロードしても正しい）。
+    // 戦争ごとのUI追跡（レビュー2026-07-19で全面改構）：戦死＝エンジンの戦争別台帳 War.DeadA/DeadB（兵士＋将校）、
+    // 民間人の死＝War.CivDeadA/CivDeadB（★2026-09-23で追加）＝どちらも内戦・粛清の混入なし・多正面は戦線数で按分済み。
+    // ★戦費＝**エンジンが実際に払った額**（TreasuryLedger[WarCost] の月次差分＝_monthWarCost）をその月の戦線数で均等按分した累計。
+    //   ⚠旧コメントは「WarCostPerMilitary×Military を按分」と書いていたが、それは払う前の請求額 cost で、
+    //     国庫が空なら払えない（Diplomacy.cs:2971 の pay=Min(Treasury,cost)）＝実払いと食い違う。読む先は Refresh.cs:294 の記述が正しい。
+    // 開戦日＝war.Months から導出（ロードしても正しい）。
     // 鍵＝敵Power.Id（変名しても同一の戦争）。Last* は講和で War が消えた後の残置表示用スナップショット。
     private sealed class WarTrack
     {
         public int Won0, Lost0;                       // 開戦時の勝敗回数（結果推定のフォールバック）
         public double LastScore;                      // 直近の戦勝点（自国視点）
         public int LastMonths;                        // 直近の経過月
-        public double LastDeadSelf, LastDeadEnemy;    // 直近の戦争別戦死（War.DeadA/DeadB）
+        public double LastDeadSelf, LastDeadEnemy;    // 直近の戦争別戦死（War.DeadA/DeadB＝兵士＋将校）
+        public double LastCivDeadSelf, LastCivDeadEnemy;   // ★2026-09-23：直近の戦争別の民間人の死（War.CivDeadA/CivDeadB）
         public double CostShare;                      // この戦争に按分した自国戦費の累計
     }
     private readonly Dictionary<long, WarTrack> _warTracks = new();
     private int _warCostStamp = -1;   // 戦費按分の月スタンプ（Refreshは月次以外にも呼ばれる＝二重加算の防止）
     private bool _warSeeded;          // 初回Refresh（新規開始/ロード直後）は戦争タブを自動オープンしない
-    // ロード時に復元する戦争UI状態（セーブ末尾の追記ブロック POBWAR1）。旧セーブには無い＝null（新規追跡で再開）。
-    internal sealed record WarUiSave(int CostStamp, List<(long Id, int Won0, int Lost0, double LastScore, int LastMonths, double DeadSelf, double DeadEnemy, double Cost)> Tracks,
+    // ロード時に復元する戦争UI状態（セーブ末尾の追記ブロック POBWAR2）。旧セーブには無い＝null（新規追跡で再開）。
+    // ★POBWAR2（2026-09-23）＝民間人の死の2列を追記。POBWAR1 のセーブは同じ読み手が8項目で読み、民間は0で始まる（次のRefreshでエンジンから入る）。
+    internal sealed record WarUiSave(int CostStamp, List<(long Id, int Won0, int Lost0, double LastScore, int LastMonths, double DeadSelf, double DeadEnemy, double CivSelf, double CivEnemy, double Cost)> Tracks,
                                      List<(string Key, double EndDay, string Title, string Detail)> Pasts);
 }

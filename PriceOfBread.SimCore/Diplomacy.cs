@@ -128,6 +128,12 @@ public sealed class War
     // 戦争別の戦死台帳（UI表示用の純記帳・2026-07-19。力学は読まない）：WarCasualties の戦死（士官込み）を各サイドに計上。
     // 多正面の国は戦線数で均等按分（エンジンの戦死自体が Power 単位＝#8 なので按分は表示上の近似）。内戦・鎮圧・粛清は含まない。
     public double DeadA, DeadB;
+    // ★民間人の死の台帳（2026-09-23）：WarCivilianToll の戦災死を**兵士戦死と同じ戦線数按分**で各サイドに計上。
+    //   旧＝民間人死は WarDeadCumulative/PopulationDelta にしか入らず、戦争別台帳（＝戦争タブが出す唯一の数）に載らなかった。
+    //   実測（240四半期）で民間/(兵+将)＝17.7〜24.6倍＝画面の「犠牲者」はシム自身が数えた対外戦争死の3.9〜5.3%しか出していなかった。
+    //   ⚠DeadA/DeadB へ**足し込まない**（別の量として持つ）：足すと桁で民間側が支配して兵士の戦死が読めなくなり、
+    //     かつ「犠牲者」が何の数か読めなくなる。二重計上の防止＝toll は1回だけ配る（思想⑨）。
+    public double CivDeadA, CivDeadB;
     // ★白紙講和の指示（点火2026-08-01）：列強の調停が成立した戦争に立つ。StepWars の講和条件へ**足すだけ**＝
     // 終戦の経路（記帳・ResolvePeace・EndWar・復讐心）は1本のまま。⚠介入OFFでは誰も立てない＝厳密恒等。
     public bool ForcedPeace;
@@ -153,6 +159,7 @@ public sealed class EndedWarRecord
     public double Score;      // 最終戦勝点（A側プラス視点・±1.5＝厭戦崩壊の上書き込み）
     public int Months;
     public double DeadA, DeadB;
+    public double CivDeadA, CivDeadB;   // ★2026-09-23：民間人の死（War.CivDeadA/B の終戦時点の写し）
     public int EndYear;       // ★2026-08-13：終戦の暦年（純記帳）。塹壕は「1914以降だけ戦争が伸びる」ことが設計条件なので、
                               //   時代区分で戦争の長さを測れないと点火の可否を判断できない（doc 20260812_塹壕と戦車 T3/T4）。
 }
@@ -2217,6 +2224,7 @@ public sealed class Diplomacy
             }
             WarMilitancy(p, c);    // 闘争度も1回
             double casTotal = WarCasualties(p, c, contact.GetValueOrDefault(p), airCtl);   // 戦死も1回（件数ぶん人口が消える多重計上の解消）。外2：接触強度・E2：制空を渡す
+            double civToll = 0;   // ★2026-09-23：今月のこの国の民間人の死（下の戦争別台帳へ兵士戦死と同じ戦線数按分で配る原資）
             // #136 戦場の資本破壊（2026-07-25）：押し合いで劣勢の側の領土が戦場になる＝工業化資本・旧世代資本・港湾が月次で摩耗
             //（北仏1914-18・南部1864-65。現行は資材競合と兵士戦死のみ＝国土は無傷だった）。劣勢度＝参加戦争の自国視点の敗色の最悪値。
             // 接触が薄い遠隔戦（contact≈0）は摩耗しない＝植民地戦争で本国は無傷（正しい）。WarZoneCapitalDamage=0.01（点火2026-07-25）・0で不発。
@@ -2256,17 +2264,19 @@ public sealed class Diplomacy
                         double toll = civPop * tollRate;
                         foreach (var pp in wz.AllPops()) if (!pp.IsSoldier) pp.Size -= toll * (pp.Size * (1.0 + c.MilitiaCombatValue * pp.MilitiaShare) / civW);
                         wz.PopulationDelta -= toll; wz.WarDeadCumulative += toll;
+                        civToll = toll;   // ★2026-09-23：戦争別台帳へ渡すのは**この1回**（国の累計と戦争別台帳は別物＝二重計上でない）
                     }
                 }
             }
             // 戦争別台帳（UI表示用の純記帳・2026-07-19）：この国の今月の戦死を、参加中の各戦争へ戦線数で均等按分。
-            if (casTotal > 0)
+            // ★2026-09-23：民間人の死も同じ按分で同じ走査に載せる（別の量として別の欄へ）。力学はどちらも読まない＝軌道はビット恒等。
+            if (casTotal > 0 || civToll > 0)
             {
-                double share = casTotal / fronts[p];
+                double share = casTotal / fronts[p], civShare = civToll / fronts[p];
                 foreach (var w2 in Wars)
                 {
-                    if (w2.A == p) w2.DeadA += share;
-                    else if (w2.B == p) w2.DeadB += share;
+                    if (w2.A == p) { w2.DeadA += share; w2.CivDeadA += civShare; }
+                    else if (w2.B == p) { w2.DeadB += share; w2.CivDeadB += civShare; }
                 }
             }
         }
@@ -2376,7 +2386,7 @@ public sealed class Diplomacy
             if (decisive || weary || stalemate || war.ForcedPeace)   // ForcedPeace＝列強の調停（Score は0に置かれている）
             {
                 // 終戦記録（UI用の純記帳・2026-07-19）：削除前の最終値を保存。リングは256件で頭打ち（決定論の丸め）
-                EndedWars.Add(new EndedWarRecord { AId = war.A.Id, BId = war.B.Id, Score = war.Score, Months = war.Months, EndYear = _year, DeadA = war.DeadA, DeadB = war.DeadB });
+                EndedWars.Add(new EndedWarRecord { AId = war.A.Id, BId = war.B.Id, Score = war.Score, Months = war.Months, EndYear = _year, DeadA = war.DeadA, DeadB = war.DeadB, CivDeadA = war.CivDeadA, CivDeadB = war.CivDeadB });
                 if (EndedWars.Count > EndedWarRingCapacity) EndedWars.RemoveAt(0);
                 ResolvePeace(c, war); EndWar(war, i, c);
                 // 監査2026-07-11（他3）：復讐心は EndWar の緊張リセット（_tension[k]=PostWarTension）より後に積む。

@@ -290,7 +290,7 @@ public partial class GameViewModel
             + (myRank == PowerRank.Great ? $"　列強{myPos}位" : myRank == PowerRank.Secondary ? "　準列強" : myRank == PowerRank.Middle ? "　中堅" : "　弱小");
         OnPropertyChanged(nameof(PlayerScoreTip));   // 国名ホバーのスコア4分解を再計算
 
-        // 戦争タブ（レビュー2026-07-19で改構）：犠牲者＝エンジンの戦争別台帳 War.DeadA/DeadB（内戦・粛清の混入なし）、
+        // 戦争タブ（レビュー2026-07-19で改構）：犠牲者＝エンジンの戦争別台帳 War.DeadA/DeadB（兵士＋将校）と CivDeadA/CivDeadB（民間人）＝内戦・粛清の混入なし、
         // 戦費＝エンジンが実際に払った月次額（_monthWarCost＝Diplomacy.Fund の記帳・GameViewModel.cs の OnTick が取る）を戦線数で均等按分した累計、
         // 開戦日＝war.Months から導出、勝敗＝講和ログを一次判定。
         var wrows = new List<WarRow>();
@@ -298,15 +298,21 @@ public partial class GameViewModel
         bool newEnemy = false;
         bool seeded = _warSeeded; _warSeeded = true;
         int monthStamp = (int)(_simDays / (double)Calendar.DaysPerMonth + 1e-9);
+        // ★2026-09-23 戦費按分の分母を「その月に抱えていた戦線数」で固定する。旧＝継続中は myWars.Count、終戦した戦争は
+        //   myWars.Count+1 を各自が使っていたので、**同じ月にN件が終戦すると分母が 0+1=1 になり、N件それぞれが
+        //   その月の国全体の戦費を丸ごと受け取っていた**（思想⑨の二重計上）。終戦月も Fund は走る＝継続分＋終戦分＝その月の全戦線。
+        foreach (var w0 in myWars) nowEnemies.Add((w0.A == me ? w0.B : w0.A).Id);
+        int endedThisRefresh = 0;
+        foreach (var kv in _warTracks) if (!nowEnemies.Contains(kv.Key)) endedThisRefresh++;
+        int frontsThisMonth = myWars.Count + endedThisRefresh;
         bool accrue = myWars.Count > 0 && monthStamp != _warCostStamp;   // 月が変わった最初のRefreshだけ按分（ボタン起因の再Refreshで二重加算しない）
         if (accrue) _warCostStamp = monthStamp;
-        double costShareMonth = myWars.Count > 0 ? _monthWarCost / myWars.Count : 0;
+        double costShareMonth = frontsThisMonth > 0 ? _monthWarCost / frontsThisMonth : 0;
         foreach (var war in myWars)
         {
             bool meIsA = war.A == me;
             var enemy = meIsA ? war.B : war.A;
             double sc = meIsA ? war.Score : -war.Score;
-            nowEnemies.Add(enemy.Id);
             if (!_warTracks.TryGetValue(enemy.Id, out var tr))
             {
                 _warTracks[enemy.Id] = tr = new WarTrack { Won0 = me.WarsWon, Lost0 = me.WarsLost };
@@ -317,6 +323,8 @@ public partial class GameViewModel
             tr.LastMonths = war.Months;
             tr.LastDeadSelf = meIsA ? war.DeadA : war.DeadB;
             tr.LastDeadEnemy = meIsA ? war.DeadB : war.DeadA;
+            tr.LastCivDeadSelf = meIsA ? war.CivDeadA : war.CivDeadB;
+            tr.LastCivDeadEnemy = meIsA ? war.CivDeadB : war.CivDeadA;
             wrows.Add(new WarRow
             {
                 Key = enemy.Id.ToString(),
@@ -325,7 +333,9 @@ public partial class GameViewModel
                 ScoreBrush = sc > 0.05 ? TermPlus : sc < -0.05 ? TermMinus : TermNeutral,
                 Info = $"{DateAt(_simDays - war.Months * (double)Calendar.DaysPerMonth)} 開戦　{war.Months}ヶ月経過",
                 Forces = $"自軍 {Troops(me)}　即応度 {_player.MilitaryReadiness:P0}　敵軍 {Troops(enemy)}",   // ★実兵数（2026-08-08）
-                Losses = $"犠牲者 自国 {PopFmt(tr.LastDeadSelf)}" + (enemy.Nation is not null ? $"　相手 {PopFmt(tr.LastDeadEnemy)}" : ""),
+                // ★2026-09-23：兵士の戦死と民間人の死を**別の行**で出す（民間は兵の17〜25倍＝1本に足すと兵の戦死が桁で消える）
+                Losses = $"戦死 自国 {PopFmt(tr.LastDeadSelf)}" + (enemy.Nation is not null ? $"　相手 {PopFmt(tr.LastDeadEnemy)}" : "")
+                       + $"\n民間人の死 自国 {PopFmt(tr.LastCivDeadSelf)}" + (enemy.Nation is not null ? $"　相手 {PopFmt(tr.LastCivDeadEnemy)}" : ""),
                 Cost = $"戦費 {Money(tr.CostShare)}",
                 Exhaustion = $"厭戦 自国 {me.WarExhaustion:P0}　相手 {enemy.WarExhaustion:P0}",
                 Terms = ExplainTerms("Exhaustion", v => v.ToString("P0")),   // 自国の厭戦の内訳（説明API#63）
@@ -346,27 +356,31 @@ public partial class GameViewModel
             double scEnd = rec is null ? tr.LastScore : rec.AId == me.Id ? rec.Score : -rec.Score;
             double deadSelf = rec is null ? tr.LastDeadSelf : rec.AId == me.Id ? rec.DeadA : rec.DeadB;
             double deadEnemy = rec is null ? tr.LastDeadEnemy : rec.AId == me.Id ? rec.DeadB : rec.DeadA;
+            double civSelf = rec is null ? tr.LastCivDeadSelf : rec.AId == me.Id ? rec.CivDeadA : rec.CivDeadB;
+            double civEnemy = rec is null ? tr.LastCivDeadEnemy : rec.AId == me.Id ? rec.CivDeadB : rec.CivDeadA;
             int months = rec?.Months ?? (tr.LastMonths + 1);
             string result = rec is not null
                 ? (Math.Abs(rec.Score) < _player.Coef.WhitePeaceScore ? "白紙講和" : scEnd > 0 ? "勝利" : "敗北")
                 : me.WarsWon > tr.Won0 && me.WarsLost == tr.Lost0 ? "勝利"
                 : me.WarsLost > tr.Lost0 && me.WarsWon == tr.Won0 ? "敗北" : "白紙講和";
-            tr.CostShare += _monthWarCost / (myWars.Count + 1);   // 終戦月の戦費（Fund は終戦月も走る＝取りこぼし補填）
+            tr.CostShare += costShareMonth;   // 終戦月の戦費（Fund は終戦月も走る＝取りこぼし補填）。分母は継続分＋終戦分＝その月の全戦線
             PastWarRows.Insert(0, new PastWarRow
             {
                 Key = $"{id}@{(int)_simDays}",
                 EndDay = _simDays,
                 Title = $"{ep?.Name ?? "—"}　{result}",
                 Detail = $"{DateAt(_simDays - months * (double)Calendar.DaysPerMonth)}〜{EventDate()}　{months}ヶ月"
-                       + $"\n犠牲者 自国 {PopFmt(deadSelf)}" + (ep?.Nation is not null ? $"　相手 {PopFmt(deadEnemy)}" : "")
-                       + $"　戦費 {Money(tr.CostShare)}",
+                       + $"\n戦死 自国 {PopFmt(deadSelf)}" + (ep?.Nation is not null ? $"　相手 {PopFmt(deadEnemy)}" : "")
+                       + $"\n民間人の死 自国 {PopFmt(civSelf)}" + (ep?.Nation is not null ? $"　相手 {PopFmt(civEnemy)}" : "")
+                       + $"\n戦費 {Money(tr.CostShare)}",
             });
             // #106 終戦ポップアップ：双方の戦死・戦費・得失を表示（同四半期に複数終戦なら最初の1件）
             if (!WarEndPopupOpen)
             {
                 WarEndPopupBody = $"{ep?.Name ?? "—"} との戦争が終結した。\n\n"
                     + $"結果:{result}(戦勝点 {scEnd:+0%;-0%})　{months}ヶ月\n"
-                    + $"犠牲者　自国 {PopFmt(deadSelf)}" + (ep?.Nation is not null ? $"/相手 {PopFmt(deadEnemy)}" : "") + "\n"
+                    + $"戦死　自国 {PopFmt(deadSelf)}" + (ep?.Nation is not null ? $"/相手 {PopFmt(deadEnemy)}" : "") + "\n"
+                    + $"民間人の死　自国 {PopFmt(civSelf)}" + (ep?.Nation is not null ? $"/相手 {PopFmt(civEnemy)}" : "") + "\n"
                     + $"戦費　{Money(tr.CostShare)}\n\n"
                     + (Math.Abs(scEnd) < _player.Coef.WhitePeaceScore ? "得たもの:なし(白紙講和)"
                        : scEnd > 0 ? "得たもの:賠償金"

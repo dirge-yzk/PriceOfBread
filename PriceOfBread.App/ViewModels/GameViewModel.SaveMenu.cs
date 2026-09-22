@@ -64,13 +64,14 @@ public partial class GameViewModel
             SaveGame.Save(_sim, fs);
             // 戦争UIの追跡状態（追記ブロック・レビュー2026-07-19）：戦費按分・勝敗基準・終わった戦争の残置。
             // 旧セーブには無い＝読み側が EOF を許容して null（新規追跡で再開）。
-            bw.Write("POBWAR1");
+            bw.Write("POBWAR2");   // ★2026-09-23：民間人の死の2列を追記（POBWAR1＝その2列が無い版も同じ読み手で読める）
             bw.Write(_warCostStamp);
             bw.Write(_warTracks.Count);
             foreach (var (id, tr) in _warTracks)
             {
                 bw.Write(id); bw.Write(tr.Won0); bw.Write(tr.Lost0); bw.Write(tr.LastScore);
-                bw.Write(tr.LastMonths); bw.Write(tr.LastDeadSelf); bw.Write(tr.LastDeadEnemy); bw.Write(tr.CostShare);
+                bw.Write(tr.LastMonths); bw.Write(tr.LastDeadSelf); bw.Write(tr.LastDeadEnemy);
+                bw.Write(tr.LastCivDeadSelf); bw.Write(tr.LastCivDeadEnemy); bw.Write(tr.CostShare);
             }
             bw.Write(PastWarRows.Count);
             foreach (var pw in PastWarRows) { bw.Write(pw.Key); bw.Write(pw.EndDay); bw.Write(pw.Title); bw.Write(pw.Detail); }
@@ -108,13 +109,21 @@ public partial class GameViewModel
             WarUiSave? warUi = null;
             try
             {
-                if (br.ReadString() == "POBWAR1")
+                string warMagic = br.ReadString();
+                bool war1 = warMagic == "POBWAR1";   // ★旧版＝民間人の死の2列が無い（0で始まり、次のRefreshでエンジンから入る）
+                if (war1 || warMagic == "POBWAR2")
                 {
                     int stamp = br.ReadInt32();
                     int nT = br.ReadInt32();
-                    var tracks = new List<(long, int, int, double, int, double, double, double)>(nT);
+                    var tracks = new List<(long, int, int, double, int, double, double, double, double, double)>(nT);
                     for (int i = 0; i < nT; i++)
-                        tracks.Add((br.ReadInt64(), br.ReadInt32(), br.ReadInt32(), br.ReadDouble(), br.ReadInt32(), br.ReadDouble(), br.ReadDouble(), br.ReadDouble()));
+                    {
+                        long id = br.ReadInt64(); int won0 = br.ReadInt32(), lost0 = br.ReadInt32();
+                        double sc = br.ReadDouble(); int mo = br.ReadInt32();
+                        double ds = br.ReadDouble(), de = br.ReadDouble();
+                        double cs = war1 ? 0 : br.ReadDouble(), ce = war1 ? 0 : br.ReadDouble();
+                        tracks.Add((id, won0, lost0, sc, mo, ds, de, cs, ce, br.ReadDouble()));
+                    }
                     int nP = br.ReadInt32();
                     var pasts = new List<(string, double, string, string)>(nP);
                     for (int i = 0; i < nP; i++)
