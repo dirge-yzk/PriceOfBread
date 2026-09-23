@@ -36,9 +36,8 @@
                      根拠＝固有名詞は途中で切れても固有名詞のまま（誤読にならない）が、「○○の属国」は末尾が落ちると別の語になる。
                      名前だけなら実在の宗主はほぼ66px以内（マラータ同盟58.5／アシャンティ54.8／ライン諸邦49.4／プロイセン45.6／
                      オヨ帝国40.3／イギリス29.9px）。最長の「サルデーニャ＝ピエモンテ」111.4px だけは切れるが、切れても国名として読める。
-                     ⚠**文字列を組むのはこのファイルではない**＝GameViewModel.Refresh.cs（この枠の所有外・行番号は他枠の編集で動くので
-                     `powSuz is not null` の枝をgrepで引く）の `badge = $"{powSuz.Name}の属国"` を `badge = powSuz.Name` にする1行。
-                     **未実施**（所有外のため1バイトも触っていない）。
+                     ★**2026-09-23に実施済み**＝文字列を組むのは GameViewModel.Refresh.cs（`powSuz is not null` の枝をgrepで引く）で、
+                     いまは `badge = powSuz.Name`。MaxWidth 66 は据え置き（名前だけなら実在の宗主はほぼ収まる）。
                      バッジの全文（「○○の属国」）はホバーの詳細（Detail の「関係:」行）に元から残っている。 -->
                 <Grid Grid.Column="1" ColumnDefinitions="Auto,*,Auto" Background="Transparent"
                       ToolTip.Tip="{Binding Detail}" ToolTip.ShowDelay="200">

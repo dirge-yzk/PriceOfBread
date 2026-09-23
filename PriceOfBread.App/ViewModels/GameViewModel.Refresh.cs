@@ -86,7 +86,11 @@ public partial class GameViewModel
             else if (powSuz == me) { badge = "自国の属国"; badgeBrush = BadgeOwnVassal; }
             else if (_sim.Diplomacy.Suzerain(me) == pow) { badge = "自国の宗主"; badgeBrush = BadgeOwnSuzerain; }
             // ★2026-08-01：宗主名を入れると外交タブの行が折り返して太くなる。宗主名はホバーの詳細に残る
-            else if (powSuz is not null) { badge = $"{powSuz.Name}の属国"; badgeBrush = BadgeOtherVassal; }   // 属国は「○○の属国」形式（作者指示2026-08-03）
+            // ★2026-09-23：バッジ本文は**宗主名だけ**にした（旧＝「○○の属国」・作者指示2026-08-03）。
+            //   実写で MaxWidth 66px（DiploTab.axaml のバッジ）に収まらず「オヨ帝国の属」＝**「の属」という存在しない語**が出ていた。
+            //   固有名詞は途中で切れても固有名詞のままだが「○○の属国」は末尾が落ちると別の語になる。属国であることは色（BadgeOtherVassal）が担う。
+            //   ⚠全文（「○○の属国」）はホバーの詳細の「関係:」行に元から残っている（下の rel.Add）。
+            else if (powSuz is not null) { badge = powSuz.Name; badgeBrush = BadgeOtherVassal; }
             else if (_sim.Diplomacy.HasAlliance(me, pow)) { badge = "同盟"; badgeBrush = NewsGreen; }
             else if (pow.Nation is null && pow.ColonyList.Count == 0) { badge = "領土なし"; badgeBrush = BadgeNoTerritory; }   // 全て接収済みの抽象標的（侵略しても空振り＝ボタンは不可理由つきで灰色）
             // 外交アクションの可否：同ランク＝同盟（緊張の増減は#106でポップアップへ移行）／弱小への侵略（実国家間の開戦＝緊張の創発のみ）。
