@@ -1,7 +1,6 @@
 ﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:PriceOfBread.App.ViewModels"
-             xmlns:v="using:PriceOfBread.App.Views"
              x:Class="PriceOfBread.App.Views.Tabs.EconTab"
              x:DataType="vm:GameViewModel">
     <!-- Views/Tabs/EconTab.axaml ＝ 財政（経済）タブの本体。 -->
@@ -98,7 +97,24 @@
                 </Grid>
                 <ContentControl Content="{Binding WelfareLaw}" ContentTemplate="{StaticResource FiscalStageRow}" IsVisible="{Binding WelfareLaw.Visible}"/>
                 <Grid ColumnDefinitions="*,60,64">
-                    <TextBlock Grid.Column="0" Text="{Binding IndLine}" Classes="lever" ToolTip.Tip="{Binding IndTip}" ToolTip.ShowDelay="200" Background="Transparent"/>
+                    <!-- ★技術水準の年次推移をここへ（作者指示2026-08-15「技術力はヘッダーから撤去＝財政タブの技術効率へ移設」・2026-09-23に結線）。
+                         この行だけが「効率 +n%」＝最先端との差を名乗る＝技術の量はこの吹き出しに集める。
+                         折れ線の作りはヘッダー国庫のホバー（GameView.axaml）と同じ1本（HeaderStat＋Polyline）＝新しい部品を作らない。
+                         ⚠箱は Width ではなく MinWidth＝内訳の行が見積りより長いときに無言でクリップさせない。 -->
+                    <TextBlock Grid.Column="0" Text="{Binding IndLine}" Classes="lever" ToolTip.ShowDelay="200" Background="Transparent">
+                        <ToolTip.Tip>
+                            <StackPanel MinWidth="272" Spacing="4">
+                                <TextBlock Text="{Binding IndTip}" FontSize="{StaticResource FontSmall}"/>
+                                <TextBlock Text="{Binding TechHover.GraphTitle}" FontWeight="Bold" FontSize="{StaticResource FontSmall}"/>
+                                <Border Background="#FBF7EC" BorderBrush="{StaticResource SandDarkBrush}" BorderThickness="1" Width="248" Height="72" HorizontalAlignment="Left" IsVisible="{Binding TechHover.HasGraph}">
+                                    <Canvas Width="240" Height="64" Margin="3,3,0,0" ClipToBounds="True">
+                                        <Polyline Points="{Binding TechHover.SafePoints}" Stroke="{StaticResource BlueBrush}" StrokeThickness="1.5"/>
+                                    </Canvas>
+                                </Border>
+                                <TextBlock Text="{Binding TechHover.RangeText}" FontSize="{StaticResource FontTiny}" Foreground="{StaticResource InkMutedBrush}" IsVisible="{Binding TechHover.HasGraph}"/>
+                            </StackPanel>
+                        </ToolTip.Tip>
+                    </TextBlock>
                     <TextBlock Grid.Column="1" Text="{Binding IndAmt}" Classes="dim" TextAlignment="Right" VerticalAlignment="Center"/>
                     <TextBlock Grid.Column="2" Text="{Binding IndAct}" Classes="lever" FontWeight="Bold" TextAlignment="Right"/>
                 </Grid>

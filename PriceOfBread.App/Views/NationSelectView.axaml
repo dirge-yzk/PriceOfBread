@@ -27,9 +27,11 @@
             <Setter Property="TextBlock.Foreground" Value="#2A2118"/>
         </Style>
         <!-- おすすめカード：見出し（左＝国名（強さ）・右端＝難易度の色文字）＋説明（歴史的背景＋プレイフィール） -->
+        <!-- ★2026-09-23：VerticalContentAlignment を Top から Stretch へ。中身を Grid(Auto,*) にしたので、
+             Top のままだと ContentPresenter が中身に desired 高さしか渡さず `*` の行が潰れる（本文の高さ制約が効かない）。 -->
         <Style Selector="Button.card">
             <Setter Property="HorizontalContentAlignment" Value="Left"/>
-            <Setter Property="VerticalContentAlignment" Value="Top"/>
+            <Setter Property="VerticalContentAlignment" Value="Stretch"/>
             <Setter Property="Padding" Value="10,6"/>
         </Style>
         <Style Selector="Button.card TextBlock.cardTitle">
@@ -43,9 +45,20 @@
             <Setter Property="TextWrapping" Value="Wrap"/>
             <Setter Property="LineHeight" Value="13.5"/>
             <Setter Property="Margin" Value="0,3,0,0"/>
-            <!-- 作者指示2026-08-16「テキスト欄が足りていない」：行の途中でぶつ切りにしない＝9行（カード165pxに収まる最大行数）で
-                 行境界＋省略記号の綺麗な終わり。カード高の算術＝165−Padding12−枠2−見出し19−本文Margin3＝129 ≧ 9行×13.5=121.5 -->
-            <Setter Property="MaxLines" Value="9"/>
+            <!-- 作者指示2026-08-16「テキスト欄が足りていない」：行の途中でぶつ切りにしない＝行境界で終わらせる。
+                 ★2026-09-23：**MaxLines="9" を撤去し、本文を Grid の `*` 行に置いて「残りの高さそのもの」を制約にした**。
+                 9 は「165−Padding12−枠2−見出し19−本文Margin3＝129 ≧ 9行×13.5＝121.5」という手計算だった。
+                 実写（清のカード・980×660）で画素を測ると 見出しのインク y230-243／本文9行が 13.5px 間隔で y251..368／
+                 カード下枠 y383 ＝ 内容の下端は 383−枠1−Padding6＝376、10行目の行箱は 371.5..385 で**入らない**
+                 ＝**手計算の9行は合っていた**（前の回の報告「最終行の下に約22px＝1.5行分の空き」は誤り。実測の余りは 4.5px）。
+                 それでも数を置かないのは、カードの寸法を触ったときに行数の再計算が要らなくなるから＝マジックナンバーを1つ減らす。
+                 撤去後も出るのは同じ9行（画像で確認・10行目のインクは1画素も無い＝高さの制約が効いている証拠）。
+             ⚠**TextTrimming は効かない**。この Setter は初回コミットから在るが、省略記号は**一度も出ていない**
+                 （MaxLines 時代の実写＝前の回・高さ制約にした今回の実写＝どちらも「…」無し）。Avalonia 12 は
+                 **横にあふれた行**だけを省略記号へ畳むので、TextWrapping="Wrap" では畳む対象の行が原理的に生まれない。
+                 消さずに残すのは、折返しをやめた時に効くのと、既定値（None）へ戻す意味が無いため。
+                 本当に「続きがある」を出すなら、**本文を9行に収まる長さへ短くする**（SimCore の NationBrief.Description）か
+                 カードを高くするかの二択＝この画面の XAML では作れない。 -->
             <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
         </Style>
     </UserControl.Styles>
@@ -68,15 +81,18 @@
                 <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="vm:NationChoice">
                         <Button Classes="nation card" Command="{Binding ChooseCommand}" Width="227" Height="165">
-                            <StackPanel>
+                            <!-- ★2026-09-23：StackPanel から Grid(Auto,*) へ。StackPanel は子を**高さ無限**で測るので、
+                                 本文の TextBlock には高さの制約が一切届かず、行数は MaxLines の手計算だけが決めていた。
+                                 `*` 行なら本文に「残りの高さ」が渡る＝入らない行が落ちる＝寸法が変われば行数も追随する。 -->
+                            <Grid RowDefinitions="Auto,*">
                                 <!-- 見出し＝国名（強さ）を左・難易度を右端へ（作者指示2026-08-15）。難易度は3値の色分け（VM側のブラシ） -->
                                 <Grid ColumnDefinitions="*,Auto">
                                     <TextBlock Classes="cardTitle" Text="{Binding Title}" TextTrimming="CharacterEllipsis"/>
                                     <TextBlock Grid.Column="1" Classes="cardTitle" Text="{Binding Difficulty}"
                                                Foreground="{Binding DifficultyBrush}" Margin="6,0,0,0"/>
                                 </Grid>
-                                <TextBlock Classes="cardBody" Text="{Binding Description}"/>
-                            </StackPanel>
+                                <TextBlock Grid.Row="1" Classes="cardBody" Text="{Binding Description}"/>
+                            </Grid>
                         </Button>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>

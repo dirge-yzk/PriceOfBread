@@ -17,29 +17,42 @@
     <Grid RowDefinitions="Auto,*">
 
         <!-- 上部バー＝2行×2列（項2,3・2026-07-26）：行0=一次指標＋(右)速度/日付・行1=概況＋(右)タブボタン列（時間の真下）。
-             統計列は*幅＝有限幅で測られWrapPanelが自然に折返す（旧Auto列は無限幅測定で右側と重なるリスクがあった）。 -->
+             左の列は*幅＝有限幅で測られる（旧Auto列は無限幅測定で右側と重なるリスクがあった）。
+             ★2026-09-23：行0の左は Grid（国名だけ*）・行1の左は横StackPanel＝**どちらも折り返さない**（2段化は2026-08-02に却下済み）。 -->
         <Border Grid.Row="0" Background="#E6DEC8" BorderBrush="{StaticResource SandDarkBrush}" BorderThickness="0,0,0,1" Padding="12,8" ZIndex="2">
             <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
                 <!-- ★2026-09-23（作者指示「文字数固定」）：桁が増減しても右の項目が動かないよう、可変長の項目に**画素の最小幅**を置く
                      （既存の先例＝日付 Width=100・一時停止 Width=88）。⚠Width でなく MinWidth：見積りを超える値が来たとき
                      Avalonia の TextBlock は固定 Width の行を黙ってクリップするが、MinWidth なら伸びる（切れない）。
-                     字の実寸＝11pxフォントで全角11.0・半角6.1。この行は FontLead=15（国名だけ18px太字）＝全角15.00／半角8.32。
-                       国庫:-£999.99M       113.2 → 114
-                       収支:＋£999.99M/月    143.2 → 144
-                       国債:£999.99M        104.9 → 106（⚠支払不能中は「　デフォルトまで12四半期」が続いて286.5px になる＝ここだけ伸びる）
-                       戦力余剰:100%        101.6 → 102
-                       地位「列強12位」(18px) 74.0 → 76
+                       国庫:-£999.99M       → 114
+                       収支:＋£999.99M/月    → 144
+                       国債:£999.99M        → 106（⚠支払不能中は「　デフォルトまで12四半期」が続いて実測246pxになる＝ここだけ伸びる）
+                       戦力余剰:100%        → 102
                      ★ToolTip.ShowDelay 80→30（作者指示2026-09-23「詳細表示までの時間を減らす」）。遅延はこの属性1つで決まる（App.axaml に既定の Style は無い）。
-                     ⚠0 にはしない＝ヘッダーを横切っただけで吹き出しが出て、タブボタンや速度ボタンへ向かうカーソルの前に被る。 -->
-                <WrapPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="{Binding PlayerName}" FontWeight="Bold" FontSize="18" Margin="0,0,10,0" ToolTip.ShowDelay="30">
+                     ⚠0 にはしない＝ヘッダーを横切っただけで吹き出しが出て、タブボタンや速度ボタンへ向かうカーソルの前に被る。
+
+                     ★★2026-09-23：WrapPanel をやめて **Grid（国名だけ *・残りは Auto）** にした＝1行目が2段にならないことを**構造で**保証する
+                     （2026-08-02作者裁定「ヘッダーが2段になるのは望まない」）。⚠MinWidth を積むやり方では保証にならない
+                     ＝WrapPanel は総和が可用幅を超えた瞬間に黙って折り返す。実測（サルデーニャ＝ピエモンテ1783・1920全画面）：
+                       右のかたまり（タブ10個 745 ＋群隙間10 ＋速度284 ＋群隙間10 ＋日付100）＝**1149px**（⚠タブは
+                         WarTabVisible=true で常時10個・支配度も RuleSharesLive=true で常時出る＝これが最大でなく**常態**）
+                       可用（1920 − Border Padding 12×2）＝1896 ⇒ 1行目の左のかたまりに使えるのは **747px**
+                       旧の左＝国名171＋余白10＋地位76＋12＋国庫114＋12＋収支144＋12＋国債106＋12＋戦力余剰102＋12＝**783px**
+                       ⇒ 783 > 747 で36px溢れ、**戦力余剰が2段目へ落ちていた**（撮影で確認）。
+                     直した後：Auto側＝国庫114＋12＋収支144＋12＋国債106＋12＋戦力余剰102＋12＝**514px**（位置が固定＝作者の「文字数固定」の目的を構造で達成）、
+                       国名の * ＝747−514＝**233px**（最長の国名「サルデーニャ＝ピエモンテ」実測171px＋余白10＝181 に対し52pxの余り）。
+                     ⚠国名だけ TextTrimming＝溢れるときに削られるのは**国名の末尾**（省略記号が出る＝無言クリップでない）。
+                     ⚠支払不能中は国債が106→246へ伸びて Auto側が654になる＝国名の * が93pxまで痩せる。
+                       根治は「デフォルトまで○四半期」を DebtHeaderTip 側へ畳むこと（GameViewModel.Fiscal.cs＝財政タブの担当）。 -->
+                <Grid Grid.Row="0" Grid.Column="0" ColumnDefinitions="*,Auto,Auto,Auto,Auto" VerticalAlignment="Center">
+                    <TextBlock Grid.Column="0" Text="{Binding PlayerName}" FontWeight="Bold" FontSize="18" Margin="0,0,10,0" VerticalAlignment="Center"
+                               TextTrimming="CharacterEllipsis" ToolTip.ShowDelay="30">
                         <ToolTip.Tip>
                             <TextBlock Text="{Binding PlayerScoreTip}" FontSize="{StaticResource FontSmall}"/>
                         </ToolTip.Tip>
                     </TextBlock>
-                    <!-- 地位（列強12位／準列強／中堅／弱小）＝国名から割って固定幅に。動くのはこちら側（順位もランクも世界が動かす） -->
-                    <TextBlock Text="{Binding PlayerRankText}" FontWeight="Bold" FontSize="18" MinWidth="76" Margin="0,0,12,0" VerticalAlignment="Center"/>
-                    <TextBlock Text="{Binding TreasuryText}" VerticalAlignment="Center" FontSize="{StaticResource FontLead}" MinWidth="114" Margin="0,0,12,0" ToolTip.ShowDelay="30">
+                    <!-- 地位（列強12位／準列強／中堅／弱小）は概況（2行目）へ移した（2026-09-23・上の算術）。順位もランクも世界が動かす量＝概況の他11項と同類。 -->
+                    <TextBlock Grid.Column="1" Text="{Binding TreasuryText}" VerticalAlignment="Center" FontSize="{StaticResource FontLead}" MinWidth="114" Margin="0,0,12,0" ToolTip.ShowDelay="30">
                         <ToolTip.Tip>
                             <StackPanel Width="272" Spacing="4">
                                 <TextBlock Text="{Binding TreasuryHover.GraphTitle}" FontWeight="Bold" FontSize="{StaticResource FontSmall}"/>
@@ -53,13 +66,13 @@
                         </ToolTip.Tip>
                     </TextBlock>
                     <!-- ★2026-09-23：収支は国庫と**別の枠**にする（1枚だと箱の右端は止まっても中の収支の桁が動いて読み位置がずれる） -->
-                    <TextBlock Text="{Binding BalanceText}" VerticalAlignment="Center" FontSize="{StaticResource FontLead}" MinWidth="144" Margin="0,0,12,0"/>
+                    <TextBlock Grid.Column="2" Text="{Binding BalanceText}" VerticalAlignment="Center" FontSize="{StaticResource FontLead}" MinWidth="144" Margin="0,0,12,0"/>
                     <!-- 国債（借入）＝国庫/収支のすぐ隣（2026-08-02ユーザー指示：収支と戦力余剰の間）。ホバーで内訳・支払不能で赤 -->
-                    <TextBlock Text="{Binding DebtHeaderText}" VerticalAlignment="Center" Foreground="{Binding DebtHeaderBrush}" FontSize="{StaticResource FontLead}" MinWidth="106" Margin="0,0,12,0" ToolTip.ShowDelay="30">
+                    <TextBlock Grid.Column="3" Text="{Binding DebtHeaderText}" VerticalAlignment="Center" Foreground="{Binding DebtHeaderBrush}" FontSize="{StaticResource FontLead}" MinWidth="106" Margin="0,0,12,0" ToolTip.ShowDelay="30">
                         <ToolTip.Tip><TextBlock Text="{Binding DebtHeaderTip}" FontSize="{StaticResource FontSmall}"/></ToolTip.Tip>
                     </TextBlock>
                     <!-- 🚂鉄道/⚓船舶はヘッダから貿易タブへ移設（2026-07-24 §3-7・ヘッダに空きを作る） -->
-                    <TextBlock Text="{Binding ExpansionText}" VerticalAlignment="Center" Foreground="{StaticResource BronzeBrush}" FontSize="{StaticResource FontLead}" MinWidth="102" Margin="0,0,12,0" ToolTip.ShowDelay="30">
+                    <TextBlock Grid.Column="4" Text="{Binding ExpansionText}" VerticalAlignment="Center" Foreground="{StaticResource BronzeBrush}" FontSize="{StaticResource FontLead}" MinWidth="102" Margin="0,0,12,0" ToolTip.ShowDelay="30">
                         <ToolTip.Tip>
                             <TextBlock Text="{Binding ExpansionTip}" FontSize="{StaticResource FontSmall}"/>
                         </ToolTip.Tip>
@@ -67,8 +80,8 @@
                     <!-- 政治資本を余剰戦力の隣へ（2026-07-20ユーザー指示） -->
                     <!-- ★政治資本の表示は撤去（2026-08-15＝選挙梯子E5の表示部分を前倒し） -->
                     <!-- ★防衛同盟の枠数は撤去（2026-08-23作者指示）＝外交タブの国カードのバッジ「同盟」で読む -->
-                    <TextBlock Text="{Binding UnifLine}" IsVisible="{Binding UnifLine, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" VerticalAlignment="Center" Foreground="{StaticResource BronzeBrush}" FontSize="{StaticResource FontLead}" FontWeight="Bold" Margin="0,0,12,0"/>
-                </WrapPanel>
+                    <!-- ★統一の機運（UnifLine）も概況（2行目）へ移した（2026-09-23・上の算術）＝長い国名の国ほど機運が立つ（サルデーニャ＝ピエモンテ→イタリア・プロイセン→ドイツ） -->
+                </Grid>
                 <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center" HorizontalAlignment="Right">
                     <!-- タブボタン列＝**速度の左**（2026-08-02ユーザー指示）。ボタンの並び（左から）は主題のまとまり順で固定。
                          ★2026-08-10（作者指示）：E=貿易・S=政治へ入れ替え（旧 E=政治・S=貿易）＝ボタンは動かさずラベルのキーだけ入れ替える。
@@ -106,8 +119,10 @@
                 <!-- ★2026-08-02：**折り返さない**（作者指摘「ヘッダーが2段になっている。これは望んでいない」）。
                      WrapPanel だと項目が増えたぶんだけ段が増え、ヘッダーの高さが勝手に伸びて地図を押し下げていた。
                      StackPanel（横）にして余白と字を詰め、12項目が1段に収まるようにする。
-                     ★2026-09-23の内訳＝GDP・技術水準・人口・識字率・満足度・不満度・闘争度・工業化・外資信用・行政力・正統性・国民意識
-                     ＝最小幅の合計1056px＋余白9px×12＝1164px（全画面1920なら可用1896px・1366でも可用1342pxで収まる）。 -->
+                     ★2026-09-23の内訳＝地位・GDP・人口・識字率・満足度・不満度・闘争度・工業化・外資信用・行政力・正統性・国民意識（＋統一の機運は機運が立つ間だけ末尾に出る）
+                     ＝最小幅の合計1044px＋余白9px×12＝1152px（機運が立つと最大+189で1341px。全画面1920なら可用1896px）。
+                     ⚠この行の実測（1783・1920全画面）＝末尾の国民意識のインク右端が1142px＝**744pxが空いている**。
+                       1行目から移した2つ（地位・統一の機運）はその空きに置いた（技術水準は財政タブへ移した分の96pxが空く）。 -->
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <StackPanel Orientation="Horizontal"/>
@@ -233,26 +248,6 @@
                          旧は辺1本ごとに <Line/> を生成しており、3,000〜4,000個の視覚要素がズーム/パンのたびに再レイアウトされて重かった。
                          見た目は変えず、要素数だけ 4,000→1 にする（v:MapEdgeLayer の Render が同じ点・色・太さで描く）。 -->
                     <v:MapEdgeLayer Edges="{Binding MapEdges}" Width="2000" Height="780" ClipToBounds="False"/>
-                    <!-- 海盆名・海峡/運河マーカー（州○の下層＝○のクリックを妨げない） -->
-                    <ItemsControl ItemsSource="{Binding MapLabels}" ClipToBounds="False">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <Canvas Width="2000" Height="780" ClipToBounds="False"/>
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.Styles>
-                            <Style Selector="ItemsControl > ContentPresenter">
-                                <Setter Property="Canvas.Left" Value="{ReflectionBinding X}"/>
-                                <Setter Property="Canvas.Top" Value="{ReflectionBinding Y}"/>
-                            </Style>
-                        </ItemsControl.Styles>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding Text}" FontSize="{Binding FontSize}" Foreground="{Binding Brush}" LetterSpacing="{Binding LetterSpacing}"
-                                           FontWeight="Bold" ToolTip.Tip="{Binding Tooltip}" ToolTip.ShowDelay="80"/>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
                     <ItemsControl ItemsSource="{Binding BarrierDots}" ClipToBounds="False">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
@@ -292,6 +287,33 @@
                                 <Ellipse Width="{Binding Diameter}" Height="{Binding Diameter}"
                                          Fill="{Binding Fill}" Stroke="{Binding Stroke}" StrokeThickness="{Binding StrokeThickness}"
                                          PointerEntered="OnDotEnter" PointerPressed="OnDotPressed"/>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <!-- 文字（州名・国名・○の中の規模・海盆名・海峡/運河マーカー）＝**州○より後ろ**＝○の上に描く（★2026-09-23）。
+                         旧は○より前（下の層）にあり、○と重なる文字が塗りつぶされていた（撮影で確認：Le Havre→e Havre・Lyon→yon・Britain→Brita）。
+                         ⚠上に載せるとヒットテストが○のクリック/ホバーを奪う。TextBlock は背景が無くても文字の箱で当たる。
+                           そこで**ツールチップを持つラベルだけ**当たりを残す＝IsHitTestVisible を Tooltip の有無に結ぶ。
+                           ・州名/国名/規模（GameViewModel.Map.cs で Tooltip=null）＝当たり無し＝○のクリックとホバーは元どおり通る。
+                           ・海盆名（BuildMapLabels で Tooltip あり）＝海の上で○と重ならない＝当たりを残しても○を邪魔しない。
+                         ⚠ラベルの置き位置そのもの（○の縁からの隙間）は GameViewModel.Map.cs 側。 -->
+                    <ItemsControl ItemsSource="{Binding MapLabels}" ClipToBounds="False">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <Canvas Width="2000" Height="780" ClipToBounds="False"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.Styles>
+                            <Style Selector="ItemsControl > ContentPresenter">
+                                <Setter Property="Canvas.Left" Value="{ReflectionBinding X}"/>
+                                <Setter Property="Canvas.Top" Value="{ReflectionBinding Y}"/>
+                            </Style>
+                        </ItemsControl.Styles>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Text}" FontSize="{Binding FontSize}" Foreground="{Binding Brush}" LetterSpacing="{Binding LetterSpacing}"
+                                           IsHitTestVisible="{Binding Tooltip, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                           FontWeight="Bold" ToolTip.Tip="{Binding Tooltip}" ToolTip.ShowDelay="80"/>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
@@ -396,7 +418,14 @@
                     <Button Classes="mini" Classes.active="{Binding NewsWorld}" Content="世界" Command="{Binding SetNewsFilterCommand}" CommandParameter="world"/>
                     <Button Classes="mini" Classes.active="{Binding NewsMineOnly}" Content="自国のみ" Command="{Binding SetNewsFilterCommand}" CommandParameter="mine"/>
                 </StackPanel>
-                <ScrollViewer MaxHeight="246" VerticalScrollBarVisibility="Auto">
+                <!-- ★2026-09-23：246→240。外枠 Border の MaxHeight=280 から 枠1×2＋Padding 6×2＋見出し行（Button.mini の MinHeight=22＋Margin下4＝26）＝40 を引くと
+                     残りは **240**＝ここが取りうる最大。246 は**どの盤面でも効かない数**だった（Border が先に280で頭打ちになり、
+                     ScrollViewer は常に240で配置される）＝実効の値に書き直しただけ。
+                     ⚠**最下行が半分だけ見えるのは不具合ではない**（2026-09-23に実測で前回の診断を訂正）。撮影で測ると
+                       直す前と直した後で枠の高さ278px・最終インク行1062・下端1068が**1画素も変わらない**。
+                       正体は行の高さ25px（FontEmph=14＋Margin上下2）に対し表示域が240＝9.6行ぶんで、10行目が6割だけ出るだけ。
+                       長い報せは折り返して2行ぶん（50px）になるので、**表示域を行高の倍数にしても揃わない**＝スクロールする一覧では常に起こる。 -->
+                <ScrollViewer MaxHeight="240" VerticalScrollBarVisibility="Auto">
                     <ItemsControl ItemsSource="{Binding Alerts}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>

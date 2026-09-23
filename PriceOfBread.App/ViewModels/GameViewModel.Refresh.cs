@@ -22,6 +22,8 @@ public partial class GameViewModel
         UpdateDate();
         RefreshDaily();   // 国庫の1行は日次と同じ1本（2026-09-11 #19d）＝物価/為替/詳細パネルの価格も同時に最新化
         TreasuryHover = StatG("", "国庫", _histTreasury, Money);   // 国庫の年次推移（ヘッダー国庫のホバー）
+        // 技術水準の年次推移（_histTech）は**財政タブの技術効率の行**が読む＝GameViewModel.Fiscal.cs の TechHover（2026-08-15作者裁定の移設先）。
+        // ⚠ここで同じものを二度作らない（同じ量を2つの名前で呼ばない）。採取は SampleYearStats の _histTech.Add の1本だけ。
         RefreshTrade();   // 貿易タブ（2026-07-24）：開いている時のみ集計（閉＝即return）
         // 金融（財政タブ）：「ラベル｜値」の行に分解（旧FinanceText＝1本の連結文字列は折返し位置が不定・ホバー対象が曖昧だった）。
         InterestLeverLine = $"政策金利 {_player.Policy.InterestRateTarget:P0}　実効 {_player.InterestRate:P0}";   // B1：他11レバーと同じ「目標／実効」の1行ペア
@@ -228,19 +230,42 @@ public partial class GameViewModel
         //   ⚠例外は1行だけ＝一人当たりGDPと世界順位（GDPの量なので置き場はGDPのグラフのホバーしかない・作者指示）。
         //   上位5カ国の一人当たりGDPの一覧とティア内訳（主食/日用品/…/素材）は撤去した。
         string gdpHover = $"GDP　一人当たり {MoneyPerHead(myGdpPc)}　世界{gdpPcPos}位";
-        // ★2026-09-23（作者指示「文字数固定」）：各項目の箱の最小幅（画素）。字の実寸は 11px フォントで全角11.0・半角6.1、
-        //   この行は FontBody=13 なので全角13.00・半角7.21。下の数値は「1900年前後に出うる最長の文字列」の実寸を2の倍数へ切り上げたもの。
-        //     GDP:£999.99M(61位) 128.4→130 ／ 技術水準:12.34 95.3→96 ／ 人口:1234.56M人 103.9→104 ／
-        //     識字率:100% 75.1→76（満足度・不満度・闘争度・行政力・正統性も同じ） ／ 工業化:1000% 82.3→84 ／
-        //     外資信用:100% 88.1→90 ／ 国民意識:-100% 95.3→96。
-        //   合計＝1056px＋項目間の余白 9px×12＝1164px（全画面1920なら可用 1896px に収まる。1366でも可用1342pxで収まる）。
+        // ★2026-09-23（作者指示「文字数固定」）：各項目の箱の最小幅（画素）。この行は FontBody=13。
+        //   下の数値は「1900年前後に出うる最長の文字列」の実寸を2の倍数へ切り上げたもの。
+        //     地位:列強12位 84（★2026-09-23に1行目から移設） ／ GDP:£999.99M(61位) 130 ／ 人口:1234.56M人 104 ／
+        //     識字率:100% 76（満足度・不満度・闘争度・行政力・正統性も同じ） ／ 工業化:1000% 84 ／
+        //     外資信用:100% 90 ／ 国民意識:-100% 96。統一の機運は**末尾**なので0（右に押すものが無い）。
+        //   合計＝1044px＋項目間の余白 9px×12＝1152px（全画面1920なら可用 1896px に収まる）。実測（1783全画面）で末尾のインク右端は1142px。
+        // 地位：列強は順位付き「列強3位」・それ以外は「準列強」「中堅」「弱小」。★2026-09-23に1行目（国名の隣）から概況行へ移したので、
+        // 下の stats が読む前にここで作る（旧はSyncRowsの後で作っており、そのまま stats に入れると1ヶ月前の値が出る）。
+        // 順位＝国力スコア（NationalScore）で自国より上の列強の数＋1（旧＝Powersリストの生成順インデックスは無関係で、
+        // 仏が32番目に生成されると「列強32位」と誤表示していた不具合の修正・2026-07-12）。
+        int myPos = 1;
+        if (myRank == PowerRank.Great)
+        {
+            double myScore = NationalScore.Of(_player);
+            foreach (var q in powers)
+            {
+                if (q == me || q.Nation is not { } qw || _sim.Diplomacy.RankOf(q) != PowerRank.Great) continue;
+                double qs = NationalScore.Of(qw);
+                if (qs > myScore || (qs == myScore && q.Id < me.Id)) myPos++;   // 同点は Id で全順序（ComputeRanks と同規約）
+            }
+        }
+        PlayerName = _player.SelfPower?.Name ?? _player.Region.Name;
+        PlayerRankText = myRank == PowerRank.Great ? $"列強{myPos}位" : myRank == PowerRank.Secondary ? "準列強" : myRank == PowerRank.Middle ? "中堅" : "弱小";
+        OnPropertyChanged(nameof(PlayerScoreTip));   // 国名ホバーのスコア4分解を再計算
         var stats = new List<HeaderStat>
         {
+            // ★2026-09-23：地位は国名の隣から**この行**へ移した＝1行目が2段になる退行の是正（算術は GameView.axaml の1行目のコメント）。
+            //   順位もランクも世界が動かす量＝この行の他11項と同類。1行目に残すと 76+12px を食い、最長の国名
+            //   「サルデーニャ＝ピエモンテ」（実測171px）が1行目に入らず戦力余剰が2段目へ落ちていた（撮影で確認）。
+            //   最長「地位:列強12位」＝13pxで実測84px。
+            StatPlain($"地位:{PlayerRankText}", "地位", 84),
             // ★2026-09-23作者指示：「GDPはnk」→「GDP:nk」（この1行だけ「は」で他は全部「名前:値」だった）
             StatG($"GDP:{Money(myGdp)}({gdpPos}位)", "GDP", _histGdp, Money, 130, gdpHover),   // 後退（ドローダウン）付記は削除（2026-07-18ユーザー指示＝不要）
             // ★2026-09-23作者指示：ジニ係数は撤去（採取 _histGini は残す＝セーブの系列配列に居る）。
-            //   空いた位置に**技術水準**を置く＝_histTech は毎年採取・セーブされているのに描画先が0件の死蔵だった（ここで閉じる）。
-            StatG($"技術水準:{_player.TechLevel:F2}", "技術水準", _histTech, v => v.ToString("F2"), 96),
+            //   ⚠その空きに技術水準を置くのは**差し戻した**＝2026-08-15作者裁定「技術力はヘッダーから撤去＝財政タブの技術効率へ移設」が生きており、
+            //     その撤去の記録がすぐ上の行にコメントで残ったまま再設置していた。年次グラフは TechHover で財政タブへ渡す（_histTech の採取は継続）。
             StatG($"人口:{PopFmt(popTotal)}", "人口", _histPop, PopFmt, 104),   // 内訳（移民の流入/流出・子供比/老年比）はPOPタブへ移送（2026-09-23）
             StatG($"識字率:{lit:P0}", "識字率", _histLit, v => v.ToString("P0"), 76),
             StatG($"満足度:{NationalScore.MeanSatisfaction(_player):P0}", "満足度", _histSat, v => v.ToString("P0"), 76),
@@ -264,29 +289,13 @@ public partial class GameViewModel
             StatG($"国民意識:{_player.NationalConsciousnessDisplay:P0}", "国民意識", _histCons, v => v.ToString("P0"), 96),   // ★2026-08-02：開始時から値がある（World 側で初期値を読み側に持たせた）
             // 政治資本（MandateSpent）はヘッダー上段の戦力余剰の隣へ移動（2026-07-20ユーザー指示）＝CoercionHeaderText。年次履歴 _histMandate は互換のため採取継続。
         };
+        // ★2026-09-23：統一の機運も1行目から**この行の末尾**へ（1行目の2段化の是正）。1行目では最大265px を食い、しかも
+        //   機運が立つのは長い国名の国（サルデーニャ＝ピエモンテ→イタリア・プロイセン→ドイツ）＝国名と同時に溢れる組み合わせだった。
+        //   末尾＝右に押すものが無いので箱の最小幅は要らない（0）。文言は UnifLine の一本（Fiscal.cs が作る）をそのまま読む。
+        if (UnifLine.Length > 0) stats.Add(StatPlain(UnifLine, "統一の機運", 0));
         // ★王権支持度（天命×有効度＋世論の支持）のヘッダー表示は撤去（2026-08-23作者指示）。エンジン側の天命（DynasticMandate）は稼働のまま＝表示だけを畳む。
         // ★制度疲労のヘッダー表示は撤去（2026-08-15作者指示＝機構ごと廃止予定：汚職V2の制度疲労ループが受け皿・台本を創発へdocの残項）
         SyncRows(HeaderStats, stats, h => h.Key, (t, s) => t.CopyFrom(s));   // 据え置き同期＝ヘッダー2行目が点滅しない（キーは GraphTitle でなく Key＝空にならない）
-        // 国名の隣に地位：列強は順位付き「（列強3位）」・それ以外は「（中堅）」「（弱小）」。
-        // 順位＝国力スコア（NationalScore）で自国より上の列強の数＋1（旧＝Powersリストの生成順インデックスは無関係で、
-        // 仏が32番目に生成されると「列強32位」と誤表示していた不具合の修正・2026-07-12）。
-        int myPos = 1;
-        if (myRank == PowerRank.Great)
-        {
-            double myScore = NationalScore.Of(_player);
-            foreach (var q in powers)
-            {
-                if (q == me || q.Nation is not { } qw || _sim.Diplomacy.RankOf(q) != PowerRank.Great) continue;
-                double qs = NationalScore.Of(qw);
-                if (qs > myScore || (qs == myScore && q.Id < me.Id)) myPos++;   // 同点は Id で全順序（ComputeRanks と同規約）
-            }
-        }
-        // ★2026-09-23（作者指示「文字数固定」）：国名と地位を2枚に割る。動くのは地位の側（順位もランクも世界が動かす）＝
-        //   地位だけを固定幅（18px太字で「列強12位」＝74.0px→76）にすれば、その右の国庫以降が桁で動かない。
-        //   ⚠国名を固定幅にはしない＝最長の変体名「ポーランド＝リトアニア」は216pxあり、常時確保するとヘッダー1行目が折り返す（2段化は2026-08-02に却下）。
-        PlayerName = _player.SelfPower?.Name ?? _player.Region.Name;
-        PlayerRankText = myRank == PowerRank.Great ? $"列強{myPos}位" : myRank == PowerRank.Secondary ? "準列強" : myRank == PowerRank.Middle ? "中堅" : "弱小";
-        OnPropertyChanged(nameof(PlayerScoreTip));   // 国名ホバーのスコア4分解を再計算
 
         // 戦争タブ（レビュー2026-07-19で改構）：犠牲者＝エンジンの戦争別台帳 War.DeadA/DeadB（兵士＋将校）と CivDeadA/CivDeadB（民間人）＝内戦・粛清の混入なし、
         // 戦費＝エンジンが実際に払った月次額（_monthWarCost＝Diplomacy.Fund の記帳・GameViewModel.cs の OnTick が取る）を戦線数で均等按分した累計、

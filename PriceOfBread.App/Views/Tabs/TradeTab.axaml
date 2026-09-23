@@ -24,27 +24,39 @@
         <TextBlock Text="{Binding TreatyPortLine}" Foreground="{StaticResource RustBrush}" FontSize="{StaticResource FontSmall}" IsVisible="{Binding HasTreatyPorts}"/>
         <Border Height="1" Background="{StaticResource SandBrush}" Margin="0,4"/>
 
-        <!-- 貿易一覧＝左が輸入・右が輸出（財政タブの収入/支出と同じ作法）。総額は各列の**下端**に置く。 -->
+        <!-- 貿易一覧＝左が輸入・右が輸出（財政タブの収入/支出と同じ作法）。総額は各列の**下端**に置く。
+             ★2026-09-23：**「数量/月」列（52px）を畳んで財名へ回した**。前の回の実写（清1900）で財名が2文字＋省略記号に潰れ、
+               輸入18行中13行・輸出40行中25行が「コー…」「チョ…」「機…」＝**どの財の行かが読めなかった**。
+               列幅の算術（Yu Gothic UI の実測＝漢字1.000em・仮名0.830em・半角0.5545em、この表は FontSmall=12px）：
+                 1段＝(パネル650−枠1−内容Margin36−段間16)/2 ＝ 298.5px
+                 旧 固定列 82+52+62+72 ＝ 268 → 財名 `*` ＝ **30.5px**（漢字2.5字＝goods.json の全138財のうち85財しか入らない）
+                 新 固定列 82+62+72 ＝ 216 → 財名 `*` ＝ **82.5px**（最長の「精密工作機械」72.0px が入る＝**138財すべて**）
+               畳む列に数量を選んだ理由＝**量の情報は隣の列に相対形で残る**（輸入＝依存度「国内消費に占める輸入量」・
+               輸出＝世界シェア「世界の輸出に占める自国の量」）。財ごとに単位が違う素の量（k）は財をまたいで比べられない。
+               ★結果（当方の実写・清1900＝輸入14行＋輸出87行＝101行）：**省略された財名は0行**。最長の「精密工作機械」も出ている。
+             ★2026-09-23（同じ実写で見つけた）：**依存度/世界シェアの数字と相手の名前がくっついて1語に見えた**
+               （「50%サンクトペテ…」「2%ンバンザ=コン…」）。相手の列は72pxいっぱいまで使うので、右揃えの数字と隙間が0になる。
+               直しは**数字側に右マージン4**＝相手の幅を削らずに隙間を作る（「世界シェア」53.9px も「100%」26.6px も 62−4＝58px に入る）。
+             ⚠作者指定2026-08-11の1行＝「材名／額(世界価格比)／量／依存度／相手」から**量を落とした**変更。
+               戻す場合は2段組をやめて一覧を1段（613px）にすれば財名345pxで5列とも入る（縦は2倍になる）。 -->
         <Grid ColumnDefinitions="*,16,*">
             <Grid Grid.Column="0" RowDefinitions="Auto,*,Auto">
                 <StackPanel Grid.Row="0" Spacing="1">
                     <TextBlock Text="輸入(金額の降順)" Classes="section"/>
-                    <Grid ColumnDefinitions="*,82,52,62,72">
+                    <Grid ColumnDefinitions="*,82,62,72">
                         <TextBlock Grid.Column="0" Text="財" Classes="section" FontSize="{StaticResource FontSmall}"/>
                         <TextBlock Grid.Column="1" Text="金額/月" Classes="section" FontSize="{StaticResource FontSmall}" TextAlignment="Right"/>
-                        <TextBlock Grid.Column="2" Text="数量/月" Classes="section" FontSize="{StaticResource FontSmall}" TextAlignment="Right"/>
-                        <TextBlock Grid.Column="3" Text="依存度" Classes="section" FontSize="{StaticResource FontSmall}" TextAlignment="Right"/>
-                        <TextBlock Grid.Column="4" Text="輸入元" Classes="section" FontSize="{StaticResource FontSmall}" TextAlignment="Right"/>
+                        <TextBlock Grid.Column="2" Text="依存度" Classes="section" FontSize="{StaticResource FontSmall}" TextAlignment="Right" Margin="0,0,4,0"/>
+                        <TextBlock Grid.Column="3" Text="輸入元" Classes="section" FontSize="{StaticResource FontSmall}" TextAlignment="Right"/>
                     </Grid>
                     <ItemsControl ItemsSource="{Binding ImportRows}" IsVisible="{Binding HasImportRows}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="vm:TradeRow">
-                                <Grid ColumnDefinitions="*,82,52,62,72" Margin="0,1">
+                                <Grid ColumnDefinitions="*,82,62,72" Margin="0,1">
                                     <TextBlock Grid.Column="0" Text="{Binding Name}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontSmall}" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Name}"/>
                                     <TextBlock Grid.Column="1" Text="{Binding Value}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontSmall}" TextAlignment="Right"/>
-                                    <TextBlock Grid.Column="2" Text="{Binding Qty}" Foreground="{StaticResource InkMutedBrush}" FontSize="{StaticResource FontSmall}" TextAlignment="Right"/>
-                                    <TextBlock Grid.Column="3" Text="{Binding Extra}" Foreground="{StaticResource BlueBrush}" FontSize="{StaticResource FontSmall}" TextAlignment="Right"/>
-                                    <TextBlock Grid.Column="4" Text="{Binding Partner}" Foreground="{StaticResource InkMutedBrush}" FontSize="{StaticResource FontSmall}" TextAlignment="Right"
+                                    <TextBlock Grid.Column="2" Text="{Binding Extra}" Foreground="{StaticResource BlueBrush}" FontSize="{StaticResource FontSmall}" TextAlignment="Right" Margin="0,0,4,0"/>
+                                    <TextBlock Grid.Column="3" Text="{Binding Partner}" Foreground="{StaticResource InkMutedBrush}" FontSize="{StaticResource FontSmall}" TextAlignment="Right"
                                                TextTrimming="CharacterEllipsis"/>
                                 </Grid>
                             </DataTemplate>
@@ -60,22 +72,20 @@
             <Grid Grid.Column="2" RowDefinitions="Auto,*,Auto">
                 <StackPanel Grid.Row="0" Spacing="1">
                     <TextBlock Text="輸出(金額の降順)" Classes="section"/>
-                    <Grid ColumnDefinitions="*,82,52,62,72">
+                    <Grid ColumnDefinitions="*,82,62,72">
                         <TextBlock Grid.Column="0" Text="財" Classes="section" FontSize="{StaticResource FontSmall}"/>
                         <TextBlock Grid.Column="1" Text="金額/月" Classes="section" FontSize="{StaticResource FontSmall}" TextAlignment="Right"/>
-                        <TextBlock Grid.Column="2" Text="数量/月" Classes="section" FontSize="{StaticResource FontSmall}" TextAlignment="Right"/>
-                        <TextBlock Grid.Column="3" Text="世界シェア" Classes="section" FontSize="{StaticResource FontSmall}" TextAlignment="Right"/>
-                        <TextBlock Grid.Column="4" Text="輸出先" Classes="section" FontSize="{StaticResource FontSmall}" TextAlignment="Right"/>
+                        <TextBlock Grid.Column="2" Text="世界シェア" Classes="section" FontSize="{StaticResource FontSmall}" TextAlignment="Right" Margin="0,0,4,0"/>
+                        <TextBlock Grid.Column="3" Text="輸出先" Classes="section" FontSize="{StaticResource FontSmall}" TextAlignment="Right"/>
                     </Grid>
                     <ItemsControl ItemsSource="{Binding ExportRows}" IsVisible="{Binding HasExportRows}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="vm:TradeRow">
-                                <Grid ColumnDefinitions="*,82,52,62,72" Margin="0,1">
+                                <Grid ColumnDefinitions="*,82,62,72" Margin="0,1">
                                     <TextBlock Grid.Column="0" Text="{Binding Name}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontSmall}" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Name}"/>
                                     <TextBlock Grid.Column="1" Text="{Binding Value}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontSmall}" TextAlignment="Right"/>
-                                    <TextBlock Grid.Column="2" Text="{Binding Qty}" Foreground="{StaticResource InkMutedBrush}" FontSize="{StaticResource FontSmall}" TextAlignment="Right"/>
-                                    <TextBlock Grid.Column="3" Text="{Binding Extra}" Foreground="{StaticResource BlueBrush}" FontSize="{StaticResource FontSmall}" TextAlignment="Right"/>
-                                    <TextBlock Grid.Column="4" Text="{Binding Partner}" Foreground="{StaticResource InkMutedBrush}" FontSize="{StaticResource FontSmall}" TextAlignment="Right"
+                                    <TextBlock Grid.Column="2" Text="{Binding Extra}" Foreground="{StaticResource BlueBrush}" FontSize="{StaticResource FontSmall}" TextAlignment="Right" Margin="0,0,4,0"/>
+                                    <TextBlock Grid.Column="3" Text="{Binding Partner}" Foreground="{StaticResource InkMutedBrush}" FontSize="{StaticResource FontSmall}" TextAlignment="Right"
                                                TextTrimming="CharacterEllipsis"/>
                                 </Grid>
                             </DataTemplate>

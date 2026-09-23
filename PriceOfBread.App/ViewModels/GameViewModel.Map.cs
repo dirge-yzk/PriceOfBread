@@ -171,8 +171,12 @@ public partial class GameViewModel
                 //   ★TotalIndustrialization は都市化天井・衛生・スコア・投資上限・移民引力が読む「資本の総量」＝
                 //     地図の開発度も明らかにそちら側である。⚠SimCore の値は1つも変えない（表示だけ）。
                 // ここでは候補に積むだけ＝州ループ後に重なり回避の貪欲配置（2026-07-27ユーザー指摘「文字がかぶらないように」）
+                // ★2026-09-23（作者指摘「都市名の先頭1文字が○に隠れる」）：ラベルの左端に**縁の太さ dotThick を足す**。
+                //   旧 cx+d/2+2.5/_zd は○の**塗りの端**までしか送っておらず、縁とアンチエイリアスが 2.5px の隙間を食っていた
+                //   （実測 gb1783/03e：パリ＝○の外端966.5・文字インク969＝隙間2.5px／グラスゴー＝隙間ほぼ0で G が縁に接する）。
+                //   ⚠新しい数は作らない＝隙間の素は○と同じ dotThick（＝d×0.10）だけ。
                 if (_dotZoom >= LabelThreshold)
-                    labelCands.Add((cx + d / 2 + 2.5 / _zd, cy,
+                    labelCands.Add((cx + d / 2 + dotThick + 2.5 / _zd, cy,
                         $"{MapData.En(rg.Name)}({rg.TotalIndustrialization * 70:F1})", 0, rg.TotalIndustrialization));   // ★2026-08-31：開発度は小数1桁
             }
             if (_dotZoom < LabelThreshold && cenW > 1e-9)   // 州名が消えている帯＝入れ替わりで国名を出す（両方は出さない）
@@ -193,18 +197,19 @@ public partial class GameViewModel
                     double cd = 9.0 / _zd;
                     if (!_colHoverCache.TryGetValue(col, out var chover)) { chover = BuildColonyHover(col, $"{nation}の植民地"); _colHoverCache[col] = chover; }
                     bool aim = ReferenceEquals(col, _interestColony);   // 狙い中＝金縁（02断線走査2026-07-28）
+                    double colThick = aim ? System.Math.Max(1.6, cd * 0.26) : System.Math.Max(0.8, cd * 0.13);   // 縁の太さ＝○とラベル位置の両方がこの1本を読む（同じ式を2本持たない）
                     for (int k = 0; k <= 1; k++)   // 世界の複製は2枚（州○のループと同じ理由）
                         dots.Add(new ProvinceDot
                         {
                             X = ccx + k * MapData.MapWidth - cd / 2, Y = ccy - cd / 2, Diameter = cd,
                             Fill = colFill, Stroke = aim ? InterestStroke : colStroke,
-                            StrokeThickness = aim ? System.Math.Max(1.6, cd * 0.26) : System.Math.Max(0.8, cd * 0.13), Hover = chover,
+                            StrokeThickness = colThick, Hover = chover,
                             Colony = sp != _player.SelfPower ? col : null,
                         });
                     // 植民地名も本国州と同じ規則（○の右隣・同じズーム閾値・同じ重なり回避）で出す（作者要望2026-08-16）。
                     // 括弧の開発度は付けない＝植民地に州の工業化に相当する実体が無い（無い数字は書かない）。順位は人口規模。
                     if (_dotZoom >= LabelThreshold)
-                        labelCands.Add((ccx + cd / 2 + 2.5 / _zd, ccy, MapData.En(col.Name), 1, col.Population));
+                        labelCands.Add((ccx + cd / 2 + colThick + 2.5 / _zd, ccy, MapData.En(col.Name), 1, col.Population));   // ★2026-09-23：州名と同じく縁の太さを吸う
                 }
             }
         }
@@ -218,17 +223,18 @@ public partial class GameViewModel
                 if (System.Math.Abs(col.Latitude) < 1e-9 && System.Math.Abs(col.Longitude) < 1e-9) continue;
                 var (gx, gy) = MapData.Project(col.Latitude, col.Longitude);
                 double gd = 8.0 / _zd;
+                double gThick = System.Math.Max(0.8, gd * 0.13);   // 縁の太さ＝○とラベル位置の両方がこの1本を読む（同じ式を2本持たない）
                 if (!_colHoverCache.TryGetValue(col, out var ghover)) { ghover = BuildColonyHover(col, "未領有"); _colHoverCache[col] = ghover; }
                 for (int k = 0; k <= 1; k++)   // 世界の複製は2枚（州○のループと同じ理由）
                     dots.Add(new ProvinceDot
                     {
                         X = gx + k * MapData.MapWidth - gd / 2, Y = gy - gd / 2, Diameter = gd,
                         Fill = UnclaimedColonyFill,
-                        Stroke = UnclaimedColonyStroke, StrokeThickness = System.Math.Max(0.8, gd * 0.13),
+                        Stroke = UnclaimedColonyStroke, StrokeThickness = gThick,
                         Hover = ghover,
                     });
                 if (_dotZoom >= LabelThreshold)   // 空白地にも地名を出す（作者要望2026-08-16）＝場所の取り合いでは本国州・植民地に譲る
-                    labelCands.Add((gx + gd / 2 + 2.5 / _zd, gy, MapData.En(col.Name), 2, col.Population));
+                    labelCands.Add((gx + gd / 2 + gThick + 2.5 / _zd, gy, MapData.En(col.Name), 2, col.Population));   // ★2026-09-23：州名と同じく縁の太さを吸う
             }
         }
         // 地名ラベルの重なり回避（2026-07-27ユーザー指摘）：本国州（開発度の高い順）→植民地→未領有の順に置き、矩形が重なる後続をスキップ（貪欲・決定論＝同値は名前順）。
@@ -246,13 +252,27 @@ public partial class GameViewModel
             {
                 double lw = cand.Text.Length * fsn * 0.60, lh = fsn * 1.25;
                 double ly = cand.Cy - fsn * 0.62;
+                // ★2026-09-23：先頭1文字に**隣の州の○**が掛かっているときは、その○の右端まで送る。
+                //   ⚠前の回の診断（「自分の○の縁を吸えていない」）は現物と食い違う。実測 gb1783/03e：
+                //     パリは 自分の○の外端966.5・文字インク969＝式どおり隙間2.5px で全文字が出ているのに、
+                //     ルアーヴルは ラベルX≈902 に対し**別の○が904.5まで伸びていて** L が丸ごと消えていた（「e Havre」）。
+                //   ⚠この注記は同じ回の別の枠の変更で前提が変わった（検証担当が commit 前に訂正・2026-09-23）＝
+                //     MapLabels 層は**もう ProvinceDots 層より下ではない**（GameView.axaml の ItemsSource="{Binding MapLabels}" が
+                //     ProvinceDots の後ろへ移り、文字が○の上に描かれるようになった）。よって「○に食われて消える」ことは層で無くなった。
+                //     それでも位置を送るのは**読みやすさのため**＝送らないと先頭文字が○の塗りの上に重なって地色とコントラストを失う。
+                //   判定は**先頭1文字の箱**だけ（幅 fsn×0.60＝下の lw と同じ1文字幅）＝
+                //   名前の後ろに掛かる○は避けない（送りすぎて自分の○から離れない）。送り先の隙間は基本式と同じ 2.5/_zd。
+                double lx = cand.X;
+                foreach (var dt in dots)
+                    if (dt.Y < ly + lh && dt.Y + dt.Diameter > ly && dt.X < cand.X + fsn * 0.60 && dt.X + dt.Diameter > cand.X)
+                        lx = System.Math.Max(lx, dt.X + dt.Diameter + 2.5 / _zd);   // 最も右へ伸びる○に合わせる（逐次更新しない＝○の並び順に依らず決定論）
                 bool clash = false;
                 foreach (var r in placed)
-                    if (cand.X < r.X + r.W && cand.X + lw > r.X && ly < r.Y + r.H && ly + lh > r.Y) { clash = true; break; }
+                    if (lx < r.X + r.W && lx + lw > r.X && ly < r.Y + r.H && ly + lh > r.Y) { clash = true; break; }
                 if (clash) continue;
-                placed.Add((cand.X, ly, lw, lh));
+                placed.Add((lx, ly, lw, lh));
                 for (int k = 0; k <= 1; k++)   // 世界の複製は2枚（州○のループと同じ理由）
-                    labels.Add(new MapLabel { X = cand.X + k * MapData.MapWidth, Y = ly, Text = cand.Text, FontSize = fsn, Brush = ProvinceNameBrush });
+                    labels.Add(new MapLabel { X = lx + k * MapData.MapWidth, Y = ly, Text = cand.Text, FontSize = fsn, Brush = ProvinceNameBrush });
             }
         }
         // 国名ラベルの重なり回避＝州名と同じ貪欲（人口の多い国から置き、重なる後続は落とす＝全景で小国が潰し合わない）。
@@ -898,7 +918,9 @@ public partial class GameViewModel
         if (ago >= 0) { rb = HalfArc(35, 35, 32, ago); rbText = $"10年前の国家 {ago:P0}"; }
         var info = new MapHoverInfo
         {
-            Title = $"{rg.Name}({nation})", HasRule = true,   // 常に表示＝係数のゲートで隠さない（2026-09-23 作者指示）
+            // ★2026-09-23（作者指摘「フィラデルフィア(アメリカ(シャムの属国))」＝括弧が二重）：州名と国名は**全角スペースで並べる**。
+            //   nation は属国のとき既に「アメリカ(シャムの属国)」という括弧付きの名前（:124・作者指示2026-08-03）＝これを更に括弧で包まない。
+            Title = $"{rg.Name}　{nation}", HasRule = true,   // 常に表示＝係数のゲートで隠さない（2026-09-23 作者指示）
             RuleState = rs, RuleLocal = rl, RuleForeign = rf, RuleUngoverned = ru, RuleBand = rb,
             RuleStateText = $"{dom:P0}", RuleLocalText = $"{fLocal:P0}",
             RuleForeignText = $"{fForeign:P0}", RuleUngovernedText = $"{fUngov:P0}", RuleBandText = rbText,
@@ -964,7 +986,7 @@ public partial class GameViewModel
     //   量は同じ台帳を世界価格で割った月割＝貿易タブの輸出一覧と同一の式（UI側で別の式を作らない）。
     // ── 足切り（幻の生産）：世界計が事実上0の財は微小値どうしの比になり、**シェア順に並べるとその幻が上位を独占する**。
     //   絶対量では切れない（穀物と火砲では桁が違う）ので、**世界市場に占める重み**＝世界の生産額（数量×参照価格）／
-    //   輸出額に対する比で切る。該当が無ければ「—」（行は常に2本＝ホバーの高さが州で変わらない）。
+    //   輸出額に対する比で切る。該当が無ければ「なし」（⚠2026-09-23：1材＝1行へ変えたので「行は常に2本」ではなくなった＝最大で 生産材3行＋輸出材3行）。
     //   実測2026-08-10で踏んだ2つの罠と、それぞれに要った桁：
     //   ①生産材＝1788年のパリが「チョコレート 世界の35%」（本当の主産業の石炭は1%で押し出されていた）→ 0.5%で解消。
     //   ②輸出材＝全州が「戦闘機 世界の63%」（まだ誰も作れない財＝各州の初期在庫が決済に載っただけ）。額シェアでは切れず、
@@ -1019,8 +1041,13 @@ public partial class GameViewModel
         // 1%未満は小数1桁（P0だと全て「0%」に潰れて情報が消える）。1%以上は他のUIと同じ P0。
         // 表記＝「材名 量(世界n%)」（作者指摘2026-08-16「材名(量) 世界のn% は読みづらい」＝POPタブ規模の「量(比%)」と同じ読み順に統一）。
         // 該当なしは「なし」（旧「—」・無理に3つ出さない＝資格を満たした分だけ並ぶ）。
+        // ★2026-09-23（作者指摘「コークス 0.3k(世 / 界0.1%)」＝語の途中で折り返す）：読点1行を捨てて**1材＝1行**にする。
+        //   日本語は語境界を持たないので TextWrapping は文字の途中で割る（ProductionTab が全角スペース区切りの断片を
+        //   WrapPanel へ並べているのと同じ理由）。ここは XAML を持たない側なので、改行を材の切れ目に自分で入れる＝
+        //   1材は最長でも「ジャガイモ 1234.5k(世界100%)」≈190px でパネルの内幅470px（GameView.axaml:304 Width=500・Padding14）に必ず収まり、
+        //   折返しそのものが起きない。2行目以降は全角スペース1つ下げて頭の「生産材:」の続きだと分かる形にする。
         static string Top3(List<(string Name, double Amt, double Share)> src)
-            => src.Count == 0 ? "なし" : string.Join("、", src.Take(3).Select(t => $"{t.Name} {Qty(t.Amt)}(世界{(t.Share < 0.01 ? t.Share.ToString("P1") : t.Share.ToString("P0"))})"));
+            => src.Count == 0 ? "なし" : string.Join("\n　", src.Take(3).Select(t => $"{t.Name} {Qty(t.Amt)}(世界{(t.Share < 0.01 ? t.Share.ToString("P1") : t.Share.ToString("P0"))})"));
         info.Lines.Add(new MapHoverLine { Text = $"生産材: {Top3(top3Prod)}", Brush = HoverText });
         info.Lines.Add(new MapHoverLine { Text = $"輸出材: {Top3(top3Exp)}", Brush = HoverText });
     }
@@ -1061,7 +1088,7 @@ public partial class GameViewModel
     // 植民地/未領有標的のホバー：名称（帰属）・不満・海峡/運河（hostなら）・生産物（名前のみ・4品目/行）。
     private MapHoverInfo BuildColonyHover(Colony col, string owner)
     {
-        var info = new MapHoverInfo { Title = $"{col.Name}({owner})" };
+        var info = new MapHoverInfo { Title = $"{col.Name}　{owner}" };   // ★2026-09-23：州ホバーと同じ＝owner が「アメリカ(シャムの属国)の植民地」のとき括弧が二重にならない
         info.Lines.Add(new MapHoverLine { Text = $"不満 {col.Militancy:P0}　規模指数 {col.Population:F1}　開発度 {col.Infra:P0}", Brush = HoverDim });   // 開発度＝R13植民地州単位化（発展した植民地を奪えば高産出を引き継ぐ）
         AppendChokepoint(info, col.Name);
         AppendMegaprojects(info, col.Name);   // ★A-13

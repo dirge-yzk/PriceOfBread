@@ -23,6 +23,45 @@ public partial class GameViewModel
     public ObservableCollection<CompositionRow> CultureRows { get; } = new();
     public string ChildLaborLine { get; private set; } = "";   // 02断線走査2026-07-28：児童労働率（創発量）のPOPタブ表示
 
+    // ★2026-09-24：ヘッダーから畳まれた内訳の**受け取り**（PopTab.axaml:21-28／:69-74 が置き場を確定済み・前の回はここが未結線で内訳が落ちていた）。
+    //   値は GameViewModel.Header.cs の PopulationTerms／LiteracyClassTerms／SatisfactionClassTerms／MilitancyClassTerms を
+    //   **呼ぶだけ**＝このファイルに第二の式を置かない（層の分け方も各層の値もあちらの1本が持つ）。
+    //   ⚠ PopRow（GameViewModel.Rows.cs）と行の組み立て（GameViewModel.Refresh.cs）はこの枠の持ち物ではないので、
+    //     行ごとのプロパティは足さず **VM のプロパティ1本**にした＝規模のセルは $parent 経由でこれを見る（WarTab.axaml:195 と同じ作法）。
+    //   null＝吹き出しを出さない（PrivilegeChip の「なし」と同じ作法。空文字だと空の吹き出しが出る）。
+    [ObservableProperty] private string? _populationTip;    // 規模のセル：人口の保存則3項＋今四半期の移民（流入/流出）＋年齢構成
+    [ObservableProperty] private string? _popsUpperTip;     // 上流の見出し：識字率/満足度/闘争度のその層の実値
+    [ObservableProperty] private string? _popsMiddleTip;    // 中流の見出し：同上
+    [ObservableProperty] private string? _popsLowerTip;     // 下流の見出し：同上
+
+    /// <summary>POPタブのホバー4本を組む（毎Refresh 1回）。⚠呼び手は <see cref="BuildParliament"/> の先頭
+    /// ＝Refresh.cs がこの枠の持ち物でないため、毎Refresh 1回だけ通る点でこの枠の中にある唯一の場所がそこだった。
+    /// Refresh.cs を触れる枠は BuildComposition／BuildParliament と同じ並びへ移してよい（挙動は同じ）。</summary>
+    internal void BuildPopTips()
+    {
+        string body = "";
+        foreach (var t in PopulationTerms()) body += (body.Length == 0 ? "" : "\n") + t.Text;
+        // 題の1行＝ヘッダーの人口 Stat と同じ名前・同じ書式。階級ごとの規模セルに載る内訳なので、全国の量であることを題が名乗る。
+        PopulationTip = body.Length == 0 ? null : $"人口　{PopFmt(_player.TotalPopulation)}\n" + body;
+        var lit = LiteracyClassTerms(); var sat = SatisfactionClassTerms(); var mil = MilitancyClassTerms();
+        PopsUpperTip = PopLayerTip("上流", lit, sat, mil);
+        PopsMiddleTip = PopLayerTip("中流", lit, sat, mil);
+        PopsLowerTip = PopLayerTip("下流", lit, sat, mil);
+    }
+
+    /// <summary>層の見出し1つぶんのホバー＝3本のリストからその層の行だけを拾い、POP表の列と同じ名前を冠する。
+    /// 層の名前と値は Header.cs の3関数が組んだ文字列をそのまま使う（値を組み直さない＝桁も丸めも1箇所）。
+    /// その層の pop が居ない（3関数が行を出さない）なら null＝吹き出しを出さない。</summary>
+    private static string? PopLayerTip(string layer, List<StatTerm> lit, List<StatTerm> sat, List<StatTerm> mil)
+    {
+        string s = "";
+        foreach (var (name, rows) in new (string Name, List<StatTerm> Rows)[] { ("識字率", lit), ("満足度", sat), ("闘争度", mil) })
+            foreach (var t in rows)
+                if (t.Text.StartsWith(layer, StringComparison.Ordinal))
+                    s += (s.Length == 0 ? "" : "\n") + name + t.Text.Substring(layer.Length);   // 「上流　45%」→「識字率　45%」
+        return s.Length == 0 ? null : s;
+    }
+
     // ★増減の向き（作者指示2026-08-16(2)(3)）＝四半期スタンプ方式（GameViewModel.Fiscal.cs の _prevQuarterStamp が手本）。
     //   Refreshは月次でも呼ばれる＝毎回差分を取ると1ヶ月ぶんの微動しか出ない→四半期境界でのみ差分を確定し、境界間は前回確定値を表示。
     //   旧「増減」列は撤去し、規模セル/失業者セルの末尾の矢印（↑→↓）へ畳んだ。閾値は旧増減列と同一（PopTrendFlatK）。

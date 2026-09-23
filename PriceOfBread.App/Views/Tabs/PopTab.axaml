@@ -20,16 +20,19 @@
                     </Border>
                     <!-- ★2026-09-23：ヘッダーの人口 Stat の内訳（移民の流入/流出・子供比/老年比）の**置き場はこのセル**と決めた
                          （ヘッダーをグラフだけにする回で外れる内訳の行き先。行は増やさず既存のセルのホバーへ＝作者指示）。
-                         ⚠この回では値の結線はしていない＝ホバーの属性はまだ書いていない（H枠の側が未着地で、
-                           流入/流出の式を2箇所に書くと「同じ量に2つの定義」になるため）。結線は次の回に1行ずつ：
-                           ここへ ToolTip.Tip="{Binding SizeTip}" ToolTip.ShowDelay="200" を持つ Border を被せ、
-                           PopRow に SizeTip（null 可＝空の吹き出しを出さない既存作法）を足す。
+                         ★2026-09-24 結線（前の回はここが空のままで内訳が落ちていた）＝値は GameViewModel.Header.cs の
+                           PopulationTerms を**呼ぶだけ**（GameViewModel.Pop.cs の BuildPopTips が組む・式は1本のまま）。
+                         ⚠ PopRow（GameViewModel.Rows.cs）はこの枠の持ち物ではないので行ごとの SizeTip は足さず、
+                           VM のプロパティ1本を $parent 経由で見る（WarTab.axaml:195 と同じ作法）。全国の量なので題の1行が「人口 …」と名乗る。
                          ★文言の形（「名前 値」の作法・説明文なし）＝
                            国際移民(世界から) +12.3K / 越境移民(他国から) +4.5K / 越境移民(他国へ) -2.1K / 子供比 34%　老年比 6% -->
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
-                        <TextBlock Text="{Binding Size}" Foreground="{StaticResource BronzeBrush}" FontSize="{StaticResource FontBody}"/>
-                        <TextBlock Text="{Binding SizeArrow}" Foreground="{Binding SizeArrowBrush}" FontSize="{StaticResource FontBody}"/>
-                    </StackPanel>
+                    <Border Grid.Column="1" Background="Transparent" ToolTip.ShowDelay="200"
+                            ToolTip.Tip="{Binding $parent[UserControl].((vm:GameViewModel)DataContext).PopulationTip}">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <TextBlock Text="{Binding Size}" Foreground="{StaticResource BronzeBrush}" FontSize="{StaticResource FontBody}"/>
+                            <TextBlock Text="{Binding SizeArrow}" Foreground="{Binding SizeArrowBrush}" FontSize="{StaticResource FontBody}"/>
+                        </StackPanel>
+                    </Border>
                     <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">
                         <TextBlock Text="{Binding Unemployed}" Foreground="{StaticResource AmberBrush}" FontSize="{StaticResource FontBody}"/>
                         <TextBlock Text="{Binding UnemployedArrow}" Foreground="{Binding UnemployedArrowBrush}" FontSize="{StaticResource FontBody}"/>
@@ -68,18 +71,18 @@
     </UserControl.Resources>
     <!-- ★2026-09-23：ヘッダーの識字率/満足度/闘争度 Stat が持っていた「上流/中流/下流の加重平均」の**置き場はこの3つの見出し**と決めた
          （ヘッダーをグラフだけにする回で外れる内訳の行き先。行は増やさず既存のセルのホバーへ＝作者指示）。
-         ⚠この回では値の結線はしていない＝ホバーの属性はまだ書いていない（H枠の側が未着地で、層の分け方
-           〔GameViewModel.Header.cs の LiteracyClassTerms が使う Closed/IsModernElite の3分岐〕を2箇所に書くと定義が割れるため）。
-           結線は次の回に、上流/中流/下流の各見出しへ ToolTip.Tip="{Binding PopsUpperTip}"（Middle/Lower）を足すだけ。
-         ★文言の形（「名前 値」の作法・説明文なし）＝識字 45%／満足 62%／闘争 3% の3行。 -->
+         ★2026-09-24 結線（前の回はここが空のままで内訳が落ちていた）＝値は GameViewModel.Header.cs の
+           LiteracyClassTerms／SatisfactionClassTerms／MilitancyClassTerms を**呼ぶだけ**（GameViewModel.Pop.cs の
+           BuildPopTips が層ごとに拾い直す）＝層の分け方（Closed/IsModernElite の3分岐）はあちらの1本のまま。
+         ★文言の形（「名前 値」の作法・説明文なし）＝識字率 45%／満足度 62%／闘争度 3% の3行（名前はPOP表の列と同じ語）。 -->
     <StackPanel Spacing="0">
-        <TextBlock Text="上流" Classes="section" Margin="0,4,0,2"/>
+        <TextBlock Text="上流" Classes="section" Margin="0,4,0,2" Background="Transparent" ToolTip.Tip="{Binding PopsUpperTip}" ToolTip.ShowDelay="200"/>
         <ItemsControl ItemsSource="{Binding PopsUpper}" ItemTemplate="{StaticResource PopRowTemplate}"/>
         <Border Height="1" Background="{StaticResource SandBrush}" Margin="0,8,0,4"/>
-        <TextBlock Text="中流" Classes="section" Margin="0,8,0,2"/>
+        <TextBlock Text="中流" Classes="section" Margin="0,8,0,2" Background="Transparent" ToolTip.Tip="{Binding PopsMiddleTip}" ToolTip.ShowDelay="200"/>
         <ItemsControl ItemsSource="{Binding PopsMiddle}" ItemTemplate="{StaticResource PopRowTemplate}"/>
         <Border Height="1" Background="{StaticResource SandBrush}" Margin="0,8,0,4"/>
-        <TextBlock Text="下流" Classes="section" Margin="0,8,0,2"/>
+        <TextBlock Text="下流" Classes="section" Margin="0,8,0,2" Background="Transparent" ToolTip.Tip="{Binding PopsLowerTip}" ToolTip.ShowDelay="200"/>
         <ItemsControl ItemsSource="{Binding PopsLower}" ItemTemplate="{StaticResource PopRowTemplate}"/>
         <TextBlock Text="{Binding ChildLaborLine}" FontSize="{StaticResource FontBody}" Foreground="{StaticResource InkMutedBrush}" Margin="0,8,0,0"/>
         <!-- 文化・宗教の構成（州ラベルを州人口で加重したシェア・#62）。上のPOP表とは列の意味が違うのでセクション自身に見出しを持たせる -->

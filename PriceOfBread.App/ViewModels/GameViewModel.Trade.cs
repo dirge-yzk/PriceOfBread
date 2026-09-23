@@ -11,8 +11,11 @@ namespace PriceOfBread.App.ViewModels;
 // 第1部＝輸出一覧・輸入一覧（額の降順・世界シェア%/輸入依存度%つき）＋ヘッダ行（総額・収支・関税収入）。
 // 第2部＝輸送サマリ（ヘッダから移設した鉄道/船舶＋海運の占有分解）。
 // 全てデータ行のみ（UI恒久規律）。額は世界価格建て（決済実態と一致）・表示は月割（÷MonthsPerClearing＝関税予想 Fiscal.cs と同じ単位ヘルパー）。
-// 貿易の1行（作者指定2026-08-11）＝材名／額(世界価格比)／量／依存度（輸出は世界シェア）／相手。
-public sealed record TradeRow(string Name, string Value, string Qty, string Extra, string Partner = "");
+// 貿易の1行（作者指定2026-08-11）＝材名／額(世界価格比)／依存度（輸出は世界シェア）／相手。
+// ★2026-09-23：**量（Qty）の列を畳んだ**＝2段組の1段298.5pxでは財名に30.5pxしか残らず、実写（清1900）で
+//   輸入18行中13行・輸出40行中25行が「コー…」「チョ…」で読めなかった。量の情報は隣の列に相対形で残る
+//   （輸入＝依存度＝国内消費に占める輸入量／輸出＝世界シェア＝世界の輸出量に占める自国の量）。算術は TradeTab.axaml。
+public sealed record TradeRow(string Name, string Value, string Extra, string Partner = "");
 public sealed record TransportRow(string Label, string Value);
 // ⚠撤去2026-08-23（読み手ゼロ）: LogisticsRow／LogisticsRows ＝州別物流表は axaml から外され、VM 側は宣言だけが残っていた（生成コードも無し）。
 
@@ -83,7 +86,7 @@ public partial class GameViewModel
                     expTotal += eg[g];
                     double share = worldExp[g] > 1e-12 ? eg[g] / worldExp[g] : 0;
                     if (Shown(eg[g] / mpc))
-                        expTmp.Add((eg[g], new TradeRow(Catalog.Goods[g].Name, $"{Money(eg[g] / mpc)}{ratio}", Qty(eg[g] / p / mpc), $"{share:P0}", TopPartner(g, false))));   // 数量はk統一（3桁区切りの全廃・作者裁定2026-08-10）
+                        expTmp.Add((eg[g], new TradeRow(Catalog.Goods[g].Name, $"{Money(eg[g] / mpc)}{ratio}", $"{share:P0}", TopPartner(g, false))));
                 }
                 if (g < ig.Length && ig[g] > 1e-9)
                 {
@@ -92,7 +95,7 @@ public partial class GameViewModel
                     double demand = demandByGood[g];
                     double dep = demand > 1e-9 ? Math.Min(1.0, qtyMonthly / demand) : 0;
                     if (Shown(ig[g] / mpc))
-                        impTmp.Add((ig[g], new TradeRow(Catalog.Goods[g].Name, $"{Money(ig[g] / mpc)}{ratio}", Qty(qtyMonthly), $"{dep:P0}", TopPartner(g, true))));
+                        impTmp.Add((ig[g], new TradeRow(Catalog.Goods[g].Name, $"{Money(ig[g] / mpc)}{ratio}", $"{dep:P0}", TopPartner(g, true))));
                 }
             }
         }

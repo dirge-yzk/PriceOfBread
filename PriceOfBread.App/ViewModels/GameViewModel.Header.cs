@@ -360,11 +360,16 @@ public partial class GameViewModel
     }
 
     // === VM側の内訳ビルダー（SimCore非改変・確定値を横で読み直して構築＝ビット恒等自明）===
-    // ⚠★2026-09-23（作者指示「詳細表示は全てグラフのみ」）：この節の6本はヘッダーのホバーから外れ、**移送先のタブが呼ぶ**。
-    //   移送先＝CreditTerms/AdminTerms→財政タブ・ExplainTerms("Legitimacy")/("NationalConsciousness")→政治タブ・
-    //   PopulationTerms/LiteracyClassTerms/SatisfactionClassTerms/MilitancyClassTerms→POPタブ。
+    // ⚠★2026-09-23（作者指示「詳細表示は全てグラフのみ」）：この節の内訳はヘッダーのホバーから外れ、**移送先のタブが呼ぶ**。
     //   式は**ここにあるものをそのまま呼ぶ**こと（タブ側に第二の式を書き写さない＝同じ量を2つの名前で呼ばない）。
-    //   受け取り側が結線するまでの間この6本は呼ばれない＝結線が済むまでは死蔵（実装ログの申し送りに記載）。
+    //   結線済みの呼び手（2026-09-23に grep で確認・1本も死蔵になっていない）：
+    //     CreditTerms            → GameViewModel.Fiscal.cs の ForeignInTip（財政タブ）
+    //     AdminTerms             → GameViewModel.Fiscal.cs の AdminTip（財政タブ）
+    //     IndustrializationTerms → GameViewModel.Production.cs の ProdRegionHeadTip（生産タブ・州別上位8）
+    //     PopulationTerms        → GameViewModel.Pop.cs（POPタブ）
+    //     LiteracyClassTerms / SatisfactionClassTerms / MilitancyClassTerms → GameViewModel.Pop.cs（POPタブ・同じ1行で3本）
+    //     ExplainTerms("Legitimacy") / ("NationalConsciousness") → GameViewModel.Politics.cs（政治タブ）
+    //   ⚠消す前に必ず grep で呼び手を数えること（この一覧を信じて呼び手0と決めない）。
     // 汚職＝要因の実値を中立表示（行政効率と清廉度が高いほど上限から削られる）。符号分解は誤読を招いたため撤去（2026-07-16）。
     /// <summary>対外信用の内訳（2026-08-13・作者指摘「信用が非常に大切というのがUIからわからない」）。
     /// 信用は4項の**積**なので、どれが足を引っ張っているかは積の各項を並べれば一目で分かる。

@@ -5,7 +5,6 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using Avalonia.Media;
-using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PriceOfBread.SimCore;
@@ -14,7 +13,7 @@ namespace PriceOfBread.App.ViewModels;
 
 public partial class GameViewModel
 {
-    // 経済タブの予算予想（左＝支出／右＝収入）：Fiscal と同式で毎tick再計算＝スライダーに即応し常に現在の予想を表示（四半期を待たない）。
+    // 経済タブの予算予想（左＝支出／右＝収入）：Fiscal と同式で毎tick再計算＝段ボタンを押した瞬間に追従し常に現在の予想を表示（四半期を待たない）。
     // 各行＝「項目 目標%（実効%）　予想額」。合計は各列の下部・収支は最下部（バーは廃止＝2026-07-04指示）。
     [ObservableProperty] private string _interestLine = "";
     [ObservableProperty] private string _adminLine = "";
@@ -62,7 +61,7 @@ public partial class GameViewModel
     private double _fInMonthly, _fOutMonthly;
     [ObservableProperty] private string _foreignInAmt = "";
     [ObservableProperty] private string _foreignOutAmt = "";
-    // 実効額（現在の実効レート×現在のpop基盤＝いま実際に流れている額）。予想額＝スライダー目標ベースと並記。
+    // 実効額（現在の実効レート×現在のpop基盤＝いま実際に流れている額）。予想額＝目標（段ボタンで置いた値）ベースと並記。
     [ObservableProperty] private string _armyAct = "";
     [ObservableProperty] private string _navyAct = "";
     [ObservableProperty] private string _adminAct = "";
@@ -152,7 +151,9 @@ public partial class GameViewModel
     // ⚠撤去2026-09-12（R1・読み手ゼロ）: WelfareMax（社会保障スライダーの上限）／撤去2026-09-20（段の点火）: RegressiveMin（人頭税スライダーの下限＝緊縮の逆進フロア）。
     //   緊縮の上限・下限はエンジンの Government.LawPrereq（「緊縮の上限」「緊縮の下限」）が段ボタンの「押せない段」として出す。
     // レバーの定数上限（VMクランプと**段の値**が同源で参照＝限界値の直書きをしない）。
-    // ⚠2026-09-23：スライダーが全廃されたので読み手は GameViewModel.Law の Lever（段の上限）とここの setter の2つ＝XAML の SliderLimit は読まなくなった。
+    // ⚠2026-09-23：スライダーが全廃されたので読み手は GameViewModel.Law の Lever（段の上限）とここの setter の2つだけ。
+    //   これに伴い Views/SliderLimit.cs（スライダーの硬い上下限＋壁マーカーの添付プロパティ）を**削除**した＝
+    //   添付プロパティ SliderLimit.Max/Min の参照が全 axaml で0件・他タブにも使い手が無かった（死蔵）。
     public const double TariffCeil = 0.75;           // 関税の上限（下限＝Coef.TariffFloor・負＝ダンピング）
     public const double InterestCeil = 0.5;          // 政策金利の上限
 
@@ -179,7 +180,6 @@ public partial class GameViewModel
             double v = System.Math.Clamp(value, _player.Coef.TariffFloor, TariffCeil);   // −25%（負＝ダンピング）〜+75%
             _player.Policy.TariffTarget = v;
             OnPropertyChanged();
-            if (v != value) SnapBack(nameof(Tariff));
         }
     }
 
@@ -188,9 +188,9 @@ public partial class GameViewModel
     //       前提（検地台帳・教育法・緊縮の下限・官僚制度）は段ボタンの「押せない段」＝エンジンの LawPrereq 1本が出す（UIに第二の判定式を置かない）。
     //     ⚠社会保障のスライダーは 2026-09-12 に撤去（法律タブの法へ一本化）。専売の全体スライダーは 2026-07-19 に廃止（生産タブの商品ごとの率）。---
 
-    // スライダーの上限/下限で確実に止める（2026-07-16不具合修正）：バーは常に0〜100%のまま、クランプが効いた時は
-    // ドラッグ確定後に再通知して thumb を上限位置へ戻す（Avalonia はドラッグ中の setter クランプを同期通知では反映しない）。
-    private void SnapBack(string prop) => Dispatcher.UIThread.Post(() => OnPropertyChanged(prop));
+    // ⚠撤去2026-09-23: SnapBack（クランプが効いた時に**ドラッグ確定後**へ再通知して thumb を上限位置へ戻す1本・2026-07-16）。
+    //   つまみが1つも無くなった＝戻す相手が居ない。段ボタンは押した直後に LawRowVM.Refresh が施行値を読み直す＝
+    //   クランプの結果はその場で段の塗りに出る（遅延通知は要らない）。上限・下限そのもの（Clamp/Min）は最終権威として残置。
 
 
     public double AdminSpending
@@ -261,7 +261,7 @@ public partial class GameViewModel
         OnPropertyChanged(nameof(MobilizeButtonText));
     }
 
-    // 金利（中央銀行の政策目標）。低＝信用拡大・高＝引締。バーは0〜100%のまま上限50%でthumbが止まる（IncomeTaxと同型）。
+    // 金利（中央銀行の政策目標）。低＝信用拡大・高＝引締。上限50%＝段ボタンの最上段「最大」（2026-09-23にスライダーから段へ）。
     public double InterestLever
     {
         get => _player.Policy.InterestRateTarget;
@@ -270,12 +270,12 @@ public partial class GameViewModel
             double v = System.Math.Min(value, InterestCeil);
             _player.Policy.InterestRateTarget = v;
             OnPropertyChanged();
-            if (v != value) SnapBack(nameof(InterestLever));
         }
     }
 
     // ★トリレンマ（2026-08-13）：兌換を維持しながら資本も自由なら、金利は自分のものでない＝**掴めなくする**。
-    //   スライダーは消さない（いま金利がいくらかは見えている必要がある）。説明文も書かない（思想⑦）——
+    //   行は消さない（いま金利がいくらかは見えている必要がある）＝2026-09-23からは段ボタンを**丸ごと無効**にする
+    //   （EconTab の ContentControl に IsEnabled＝Avalonia は無効を子へ伝える）。説明文も書かない（思想⑦）——
     //   掴めないことと、この真下に並ぶ通貨制度の法・法律タブの資本移動の法が状態を示していれば足りる。
     //   ⚠エンジン側（Government の rateTarget 差し替え）と**同じ条件式**を読む＝UIとエンジンが食い違わない。
     public bool InterestLeverEnabled
@@ -283,14 +283,21 @@ public partial class GameViewModel
 
     // 近代化投資：四半期に ModernizationBudget（GDP比の凸コスト）を全資本区画の建設予約へ（World.ApplyModernizationInvestment が自動適用）。
     // ★2026-08-10 に財政タブへスライダーを復活。⚠エンジン側の対（Simulation.QuarterStart がプレイヤー国を上書きしない）と**セット**で意味を持つ
-    //   ＝片方だけ戻すと、動かした値が次の四半期に自動値へ戻って「スライダーが効かない」状態になる。
+    //   ＝片方だけ戻すと、押した段が次の四半期に自動値へ戻って「段ボタンが効かない」状態になる。
     public double ModernizationInvest
     {
         get => _player.ModernizationFrac;
         set { _player.ModernizationFrac = value; OnPropertyChanged(); }
     }
 
-    // === 予算予想（経済タブ）：Fiscal.Step と同じ式を「今のスライダー目標＋今のpop状態」で毎tick評価＝常に予想値（四半期を待たない）===
+    /// <summary>技術水準の年次推移（作者指示2026-08-15「技術力はヘッダーから撤去＝財政タブの技術効率へ移設」）。
+    /// 置き場は近代化投資の行＝この行だけが「効率 +n%」（最先端との差）を名乗る＝技術の量はここに集める。
+    /// ★新しい系列も状態変数も作らない＝毎年採取されセーブにも入っている _histTech を、ヘッダーと同じ作り手（StatG）で読むだけ。
+    /// ★毎tickの通知を持たない get-only＝吹き出しが開いた瞬間にだけ評価される
+    ///   （点列は SeriesView のキャッシュ＝年が変わるまで実体を作り直さない。Points は HeaderStat.SafePoints で必ず非null）。</summary>
+    public HeaderStat TechHover => StatG("", "技術水準", _histTech, v => v.ToString("F2"), 0, $"技術水準 {_player.TechLevel:F2}");
+
+    // === 予算予想（経済タブ）：Fiscal.Step と同じ式を「今の目標（段ボタンで置いた値）＋今のpop状態」で毎tick評価＝常に予想値（四半期を待たない）===
     // 収入＝各税の粗収入×汚職控除。支出＝維持費・利払い・軍需/行政（歳入シェア）・社会保障/年金（裁量余剰上限）・近代化投資（国庫割合の月割）。
     private void UpdateForecast()
     {

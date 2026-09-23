@@ -184,7 +184,8 @@ public class HistoricalReferenceTests
 
     /// <summary>1950断面の採点は主指標と同じ従属の規則：許容集合の宗主に従属＝exact／他の宗主に従属＝near／
     /// 空集合 [] の国は従属を near だけに数える／集合が null の国の従属は数えない。★この3枝を1本ずつ見本で押さえる
-    /// （2026-09-23：マラータが null から ["イギリス"] へ移ったので、null の見本をアフガニスタン・[] の見本をオマーンへ置き直した）。</summary>
+    /// （名前入り＝日本の ["アメリカ"]／空集合＝オマーンとマラータ／null＝アフガニスタン。2026-09-23：インド系5カ国は
+    ///  1947に英の宗主権が消滅しているので ["イギリス"] ではなく空集合＝マラータの見本もそちらへ移した）。</summary>
     [Fact]
     public void 断面1950の採点は従属の許容を主指標と同じ規則で数える()
     {
@@ -195,7 +196,7 @@ public class HistoricalReferenceTests
                                                          St("オマーン", Polity.Absolutist), St("アフガニスタン", Polity.Despotic)], [], [], true, 0, 0, 0, 0, [], 0, 0, 0, 0,
                 StandingsAt1950: at1950);
         NationFidelity F(IReadOnlyList<NationFidelity> fs, string n) => fs.Single(f => f.Nation == n);
-        // 日本＝SuzerainsOk1950 ["アメリカ"]：米に従属（政体は外れ）＝exact・英に従属＝near・独立の立憲＝exact
+        // 日本＝SuzerainsOk1950 ["アメリカ"]（名前入りの見本）：米に従属（政体は外れ）＝exact・英に従属＝near・独立の立憲＝exact
         var fs = HistoricalReference.Evaluate([
             M(St("日本", Polity.Despotic, "アメリカ"), St("マラータ同盟", Polity.Despotic, "イギリス"),
               St("オマーン", Polity.Despotic, "イギリス"), St("アフガニスタン", Polity.Republic, "イギリス")),
@@ -208,9 +209,9 @@ public class HistoricalReferenceTests
         ]);
         Assert.Equal(2.0 / 4, F(fs, "日本").Exact1950, 12);
         Assert.Equal(3.0 / 4, F(fs, "日本").Near1950, 12);
-        // マラータ＝SuzerainsOk1950 ["イギリス"]（2026-09-23裁定＝脱植民地化の仕組みが無いので、英の属国のまま1950を迎える
-        //   世界線を表で罰しない）：英に従属＝exact（row1）＋共和・立憲＝exact（row2/row3）＝3/4。near は exact を含む＝3/4。
-        Assert.Equal(3.0 / 4, F(fs, "マラータ同盟").Exact1950, 12);
+        // マラータ＝SuzerainsOk1950 []（空集合・2026-09-23裁定＝英の宗主権は1947に消滅＝英への従属は「近い」だけ）：
+        //   英に従属した row1 は near にだけ入る。exact は共和の row2 と立憲の row3＝2/4、near は row1/row2/row3＝3/4。
+        Assert.Equal(2.0 / 4, F(fs, "マラータ同盟").Exact1950, 12);
         Assert.Equal(3.0 / 4, F(fs, "マラータ同盟").Near1950, 12);
         // オマーン＝SuzerainsOk1950 [] （空集合＝英の正式な保護領ではない・2026-09-23裁定）：
         //   英に従属しても exact にはならず near にだけ入る（row1）。exact は専制君主の row2 だけ＝1/4、near は row1/row2/row3＝3/4。

@@ -48,7 +48,7 @@ public sealed record HistoricalEntry(
     Polity[]? Exact1920 = null,   // ★E-09 WW1の帰結＝1920年12月の政体（帝政4つの消滅・新共和国・ソヴィエト） // 領土（植民地）：1914年の植民地の数。★**場所でなく規模で測る**（作者裁定）＝±ColonyCountTolerance の相対幅
     // ★1950断面（作者裁定2026-09-21・Q668＝1950年1月1日＝終局）：政体の exact/near と従属の許容。照合の規則は主指標（1914）と同じ1本（PolityMatch）。
     //   SuzerainsOk1950＝null なら従属は数えない／非null なら「従属かつ宗主が集合内」を exact・「任意の宗主に従属」を near（主指標の SubjugatedOk＋SuzerainsOk と同型）。
-    //   ＝空集合 [] は「従属を near だけで数える」（exact には数えない）＝正式な保護領ではなかった国の置き方（オマーン・2026-09-23）。
+    //   ＝空集合 [] は「従属を near だけで数える」（exact には数えない）＝1950年には正式な従属ではなかった国の置き方（オマーン・インド系5カ国・2026-09-23）。
     //   1950年に主権を持たない国（併合・植民地・分割）は主指標と同じく「その地の1950年の統治形」を Exact に置く（例：伊の旧諸邦＝伊共和国の共和制）。
     Polity[]? Exact1950 = null, Polity[]? Near1950 = null, string[]? SuzerainsOk1950 = null);
 
@@ -428,13 +428,13 @@ public static class HistoricalReference
             Exact1950: [Polity.Republic], Near1950: [Polity.ProletarianDictatorship, Polity.BourgeoisDictatorship],   // 1950：漢城＝大韓民国（1948・李承晩の大統領制・米軍政は1948に終了＝独立）。近い＝北の朝鮮民主主義人民共和国（1948・一党独裁）・李承晩の権威主義（ブル独裁）。朝鮮戦争は同年6月＝断面の後
             SubjugatedOk: true, SuzerainsOk: ["日本"], Note: "大韓帝国＝専制皇権（光武改革）→1910日本併合＝主権喪失。従属exact＝宗主日本（宗主同一性2026-07-12）・他宗主はnear", GreatPowerOk: false),
         new("マラータ同盟", "プーナ", [Polity.Despotic, Polity.Absolutist], [],
-            Exact1950: [Polity.ConstitutionalMonarchy, Polity.Republic], SuzerainsOk1950: ["イギリス"],   // 1950：プーナ＝インドのボンベイ州。1950年1月1日はインド自治領（英王を戴く立憲君主制）・1月26日に共和制＝両方exact。英の宗主権は1947に消滅したが、脱植民地化の仕組みが今は無い（2026-09-23裁定）＝英の属国のまま1950を迎える世界線を表で罰しない＝英への従属も数える
+            Exact1950: [Polity.ConstitutionalMonarchy, Polity.Republic], SuzerainsOk1950: [],   // 1950：プーナ＝インドのボンベイ州。1950年1月1日はインド自治領（英王を戴く立憲君主制）・1月26日に共和制＝両方exact。英の宗主権は1947に消滅＝英への従属は「近い」だけに数える（空集合・2026-09-23裁定）。⚠ここを ["イギリス"] と置くと逆転する＝1950年に実際に英の影響下だったオマーンが「近い」止まりで、英から独立していたインド5カ国が史実一致になっていた
             SubjugatedOk: true, SuzerainsOk: ["イギリス"], Note: "1818英併合＝主権喪失（第三次マラータ戦争）。藩王国的専制の残存をexact。列強化・常勝は逸脱＝要因果監査", GreatPowerOk: false),
         new("マイソール", "シュリーランガパトナ", [Polity.Despotic, Polity.Absolutist], [],
-            Exact1950: [Polity.ConstitutionalMonarchy, Polity.Republic], SuzerainsOk1950: ["イギリス"],   // 1950：マイソール州＝インドの一州（藩王は1950から州元首ラージプラムク）。インド自治領→1950年1月26日共和制＝両方exact。英の宗主権は1947に消滅したが、脱植民地化の仕組みが今は無い（2026-09-23裁定）＝英の属国のまま1950を迎える世界線を表で罰しない＝英への従属も数える
+            Exact1950: [Polity.ConstitutionalMonarchy, Polity.Republic], SuzerainsOk1950: [],   // 1950：マイソール州＝インドの一州（藩王は1950から州元首ラージプラムク）。インド自治領→1950年1月26日共和制＝両方exact。英の宗主権は1947に消滅＝英への従属は「近い」だけに数える（空集合・2026-09-23裁定）。⚠ここを ["イギリス"] と置くと逆転する＝1950年に実際に英の影響下だったオマーンが「近い」止まりで、英から独立していたインド5カ国が史実一致になっていた
             SubjugatedOk: true, SuzerainsOk: ["イギリス"], Note: "1799英征服→藩王国（ウォデヤル朝復位1881＝模範藩王国）。伝統君主制の存続をexact", GreatPowerOk: false),
         new("ハイデラバード", "ハイデラバード", [Polity.Despotic, Polity.Absolutist], [],
-            Exact1950: [Polity.ConstitutionalMonarchy, Polity.Republic], SuzerainsOk1950: ["イギリス"],   // 1950：1948ポロ作戦でインドへ併合（ニザームは1950から州元首）。インド自治領→共和制＝両方exact。英の宗主権は1947に消滅したが、脱植民地化の仕組みが今は無い（2026-09-23裁定）＝英の属国のまま1950を迎える世界線を表で罰しない＝英への従属も数える
+            Exact1950: [Polity.ConstitutionalMonarchy, Polity.Republic], SuzerainsOk1950: [],   // 1950：1948ポロ作戦でインドへ併合（ニザームは1950から州元首）。インド自治領→共和制＝両方exact。英の宗主権は1947に消滅＝英への従属は「近い」だけに数える（空集合・2026-09-23裁定）。⚠ここを ["イギリス"] と置くと逆転する＝1950年に実際に英の影響下だったオマーンが「近い」止まりで、英から独立していたインド5カ国が史実一致になっていた
             SubjugatedOk: true, SuzerainsOk: ["イギリス"], Note: "ニザーム藩王国＝英保護下の専制。1914も専制のまま＝exact", GreatPowerOk: false),
         new("シク連邦", "ラホール", [Polity.Despotic, Polity.Absolutist], [Polity.Republic],
             Exact1950: [Polity.ConstitutionalMonarchy], Near1950: [Polity.Republic],   // 1950：ラホール＝パキスタン自治領（1947分離独立・英王を戴く立憲君主制・共和制は1956）。近い＝東パンジャーブ（シクの多数）を含むインドの共和制
@@ -581,10 +581,10 @@ public static class HistoricalReference
             Exact1950: [Polity.Absolutist], Near1950: [Polity.Despotic], SuzerainsOk1950: ["イギリス"],   // 1950：英アデン保護領のラヘジ・スルタン国（1914と同じ）
             SubjugatedOk: true, SuzerainsOk: ["イギリス"], Note: "ラヘジ・スルタン国＝英保護領（アデンは1839英直轄）。伝統首長制をexact", GreatPowerOk: false),
         new("デリー", "デリー", [Polity.Despotic, Polity.Absolutist], [],
-            Exact1950: [Polity.ConstitutionalMonarchy, Polity.Republic], SuzerainsOk1950: ["イギリス"],   // 1950：インドの首都。1950年1月1日はインド自治領・1月26日に共和制＝両方exact。英の宗主権は1947に消滅したが、脱植民地化の仕組みが今は無い（2026-09-23裁定）＝英の属国のまま1950を迎える世界線を表で罰しない＝英への従属も数える
+            Exact1950: [Polity.ConstitutionalMonarchy, Polity.Republic], SuzerainsOk1950: [],   // 1950：インドの首都。1950年1月1日はインド自治領・1月26日に共和制＝両方exact。英の宗主権は1947に消滅＝英への従属は「近い」だけに数える（空集合・2026-09-23裁定）。⚠ここを ["イギリス"] と置くと逆転する＝1950年に実際に英の影響下だったオマーンが「近い」止まりで、英から独立していたインド5カ国が史実一致になっていた
             SubjugatedOk: true, SuzerainsOk: ["イギリス"], Note: "ムガル残滓→1857大反乱後に廃絶＝主権喪失。伝統専制の存続をexact", GreatPowerOk: false),
         new("アワド", "ラクナウ", [Polity.Despotic, Polity.Absolutist], [],
-            Exact1950: [Polity.ConstitutionalMonarchy, Polity.Republic], SuzerainsOk1950: ["イギリス"],   // 1950：ラクナウ＝インドの連合州（ウッタル・プラデーシュ）。インド自治領→共和制＝両方exact。英の宗主権は1947に消滅したが、脱植民地化の仕組みが今は無い（2026-09-23裁定）＝英の属国のまま1950を迎える世界線を表で罰しない＝英への従属も数える
+            Exact1950: [Polity.ConstitutionalMonarchy, Polity.Republic], SuzerainsOk1950: [],   // 1950：ラクナウ＝インドの連合州（ウッタル・プラデーシュ）。インド自治領→共和制＝両方exact。英の宗主権は1947に消滅＝英への従属は「近い」だけに数える（空集合・2026-09-23裁定）。⚠ここを ["イギリス"] と置くと逆転する＝1950年に実際に英の影響下だったオマーンが「近い」止まりで、英から独立していたインド5カ国が史実一致になっていた
             SubjugatedOk: true, SuzerainsOk: ["イギリス"], Note: "1856英併合＝主権喪失。太守（ナワーブ）専制の存続をexact", GreatPowerOk: false),
     ];
 }

@@ -18,7 +18,12 @@ public sealed partial class LawStageVM : ObservableObject
     public bool IsCurrent => Row.CurrentLevel == Index;   // 現在施行中の段階（濃い塗り）
     public bool IsTarget => Row.TargetLevel == Index && Row.TargetLevel != Row.CurrentLevel;   // プレイヤーが置いた目標（枠強調）
     public bool Enabled => Row.CanReachAndAfford(Index);  // 前提法が未達 or 政治資本が足りない段階はグレーアウト（押せない）
-    public string Hint => Row.StageHint(Index);           // ホバー：必要な政治資本／不可の理由
+    /// <summary>ホバー：必要な政治資本／不可の理由。★2026-09-23：**空なら null を返す**＝Avalonia の ToolTip.Tip は
+    /// null なら吹き出しを出さないが**空文字では空の吹き出しを出す**（PopTab の特権チップが「なし」だけ null にしている作法と同じ）。
+    /// 軸の無い行（財政タブのレバーの5段＝行政費・近代化投資・関税・政策金利の計20ボタン）は代価も賛否も無く
+    /// StageHint が空を返す＝そのまま束縛すると20個の空の吹き出しが出ていた。畳むのはここ1箇所
+    /// （StageHint の戻りは string のまま＝PriceOfBread.Tests の S1 がこの1本を直接読んで行を数えている）。</summary>
+    public string? Hint => Row.StageHint(Index) is { Length: > 0 } h ? h : null;
     internal void Notify() { OnPropertyChanged(nameof(IsCurrent)); OnPropertyChanged(nameof(IsTarget)); OnPropertyChanged(nameof(Enabled)); OnPropertyChanged(nameof(Hint)); }
 }
 
@@ -92,7 +97,7 @@ public sealed partial class LawRowVM : ObservableObject
     /// 2行目=「現在の段階」／「制定:可能（政治資本消費:n）」／「制定:不可（…）」、以降=勢力の賛否。データのみ＝規律準拠。</summary>
     public string StageHint(int level)
     {
-        if (_axis is null) return "";   // ★軸の無い行（レバーの段）＝代価も賛否も無く、段の値はボタンのラベルそのもの＝ホバーに出す情報が無い（空＝吹き出しを出さない）
+        if (_axis is null) return "";   // ★軸の無い行（レバーの段）＝代価も賛否も無く、段の値はボタンのラベルそのもの＝ホバーに出す情報が無い（空は LawStageVM.Hint が null へ畳む＝吹き出しを出さない）
         string head = $"{Title}:{Stages[level - _levelBase].Label}";   // どの段のホバーかをホバー自身が名乗る（段番号→ラベル添字）
         if (level == CurrentLevel) return head + "\n現在の段階";
         if (level > CurrentLevel && !CanReach(level))

@@ -301,7 +301,10 @@
                              ★国営工場が90＝「− 12/12 ＋」（−/＋ 各20＋数字50）が2桁でも収まる幅。見出し4文字（約48px）も余裕で入る。
                              ヘッダーと行の列定義は**同じ並び**（ずれると数字が別の見出しの下に出る） -->
                         <Grid ColumnDefinitions="*,50,90,40,40,40,40,50">
-                            <TextBlock Grid.Column="0" Text="州名" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkFaintBrush}"/>
+                            <!-- 見出し「州名」のホバー＝工業化の州別上位8（2026-09-23）。行は増やさず既にある見出しのセルに載せる。
+                                 式は GameViewModel.Header.cs の IndustrializationTerms() を呼ぶだけ（GameViewModel.Production.cs の ProdRegionHeadTip）。 -->
+                            <TextBlock Grid.Column="0" Text="州名" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkFaintBrush}"
+                                       ToolTip.Tip="{Binding ProdRegionHeadTip}" ToolTip.ShowDelay="200"/>
                             <TextBlock Grid.Column="1" Text="民営工場" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkFaintBrush}" TextAlignment="Right"/>
                             <TextBlock Grid.Column="2" Text="国営工場" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkFaintBrush}" TextAlignment="Center" Margin="6,0,0,0"/>
                             <TextBlock Grid.Column="3" Text="従業員" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkFaintBrush}" TextAlignment="Right"/>
@@ -475,57 +478,68 @@
                                         BorderBrush="{Binding BorderBrush}" BorderThickness="{Binding BorderThickness}"
                                         CornerRadius="3" Opacity="{Binding Opacity}" ClipToBounds="True"
                                         PointerPressed="OnProdNodePressed">
-                                    <!-- 縦の余白は 2（旧4）＝縦線の中に4段（▲/民営/国営/▼）を積むための実寸を作る。
-                                         内寸＝56 −枠1.5×2 −4 ＝49（選択中は枠3.0で46）＝カウンター 10+13+13+10＝46 が収まる
+                                    <!-- 縦の余白は 0＝縦線の中に4段（▲/民営/国営/▼）を積むための実寸を作る。
+                                         内寸＝56 −枠1.5×2 ＝53（選択中は枠3.0で50）＝カウンター 12+13+13+12＝50 が収まる
                                          （2026-09-23 に ＋−の横並び1段を ▲▼ の上下2段へ＝作者の図どおり民営/国営の行を挟む）。
-                                         ★2026-09-23（2度目）：内訳を 8+15+15+8 から **10+13+13+10** へ組み替えた（合計46は不変）。
-                                           根拠＝Yu Gothic UI（GameView.axaml の FontFamily）の実寸。11px で行箱 14.63px
-                                           （hhea の ascender 2210 + descender 514 を 2048分の11 で割った値）・ベースラインは行箱の上端から 11.87px。
-                                           ▲▼ の字は ink が 8.64px あるので、旧の 8px の箱には**どう置いても収まらなかった**（作者指摘の潰れ）。
-                                           10px の箱＝枠1×2 を除いた内寸8px に行箱を中央寄せすると、▲ の ink は箱の 0.76〜9.39px、
-                                           ▼ は 1.36〜10.00px＝いずれも枠の内側に収まる（▼ は下辺に接する＝この書体の▼が行箱の中心より 0.68px 下にあるため）。
-                                           文字の2行は 13px＝ink の下端は「営」12.72px・「国」12.76px・数字 12.00px で収まる
-                                           （「国営12/12」の「/」だけ 13.15px＝0.15px はみ出して下の枠線に掠るが、字の ink 同士は重ならない）。
+                                         ★2026-09-23（3度目・撮影で潰れが確定した後）：縦の余白 2 を捨てて 46→**50** を取り、
+                                           配分を 10+13+13+10 から **12+13+13+12** へ組み替えた＝▲▼ の当たり判定が 56×10→56×12。
+                                           ⚠文字の2行は 13px から下げられない（Yu Gothic UI・11px の ink 下端＝「営」12.72px・「国」12.76px・数字12.00px）
+                                             ＝46 のままでは ▲11/民営12/国営12/▼11 しか作れず、三角の潰れを字の潰れに替えるだけになる。50 なら両方入る。
+                                           ⚠余白を削っても本文は痩せない＝右の3行は 15.96(12px)+14.63+14.63＝45.22px で、
+                                             46 のときは上下 0.39px しか無かった余りが 50 では 2.39px＝**本文側の余裕も増える**
+                                             （どちらも縦中央寄せ＝見た目の位置は動かない）。
                                          横の余白は 5＝本文の可用幅は 204 −枠1.5×2 −5×2 −(縦線56+隙間6) ＝129px／選択中126px
                                          （GameViewModel.Production.cs の算術と同じ1本）。 -->
-                                    <DockPanel Margin="5,2">
+                                    <DockPanel Margin="5,0">
                                         <!-- ★カテゴリの縦線を工場カウンターへ拡張（作者要望2026-09-07 (1)）＝色は従来どおり tier のアクセント。
-                                             中身＝▲／民営「完成/建設中を含む総数」／国営「完成/完成＋建設予定」／▼。
+                                             中身＝▲／民営「完成した棟数」／国営「完成した棟数（＋まだ建っていない意志）」／▼。
                                              ★2026-09-23 作者の図＝増加は上三角・減少は下三角で、民営と国営の2行を上下から挟む
                                                （旧は＋−を最下段に横並び1段）。▲▼ が動かすのは**全国工場目標**（GameViewModel.Production.cs の
-                                               StepFactoryTargetAll）＝国営行の分母だけが動く。民営行は▲▼では動かない。
+                                               StepFactoryTargetAll）＝国営行の「+n」だけが動く。民営行は▲▼では動かない。
                                              ▲を押すと予定が増え、満たすまでエンジンが最も効率の良い州へ国営工場を建てる（州の選び方はAIの物差しと同じ1本）。
                                              ★Button は押下を Handled にする＝親 Border の OnProdNodePressed（財の選択）と衝突しない。
                                              ★無効なボタンはツールチップを出せないので枠側に載せる（画面の作法）＝
                                                「国営 n棟　民営 n棟　建設予定 n棟　予定を含めて n棟」。
                                              ★▼は予定のうちまだ州へ配っていない分しか削れない＝削る余地が無い時も**押せない状態で出す**
                                                （作者指示2026-09-07「マイナスのボタンは最初から表示する」＝0の時も隠さない。
-                                                Button.counter:disabled が地色を保ったまま記号だけ薄い墨にする＝▲▼も文字なので同じ規則に乗る）。
-                                             ★▲▼ の字は**明示した TextBlock**で置く（2026-09-23）＝Content に文字列を渡すと、
-                                               その字を包む TextBlock の縦の寄せ方が ContentPresenter 任せになり、上端寄せに落ちると字が下の行へ突き抜ける。
-                                               VerticalAlignment=Center を自分で書けば「行箱を内寸の中央へ・字は行箱の中で固定」の1通りに決まる。
-                                               色は書かない＝Button.counter と :disabled が置く前景がそのまま継承される（押せない▼が薄い墨になる規則を壊さない）。
-                                             ★幅56の中身（11px太字の実寸）＝「民営100」38.64px・「民営10000」50.86px＝1つ書きにしたので5桁まで収まる。
-                                               国営は分母を残すため「国営99/99」50.99px までで、**「国営100/100」は59.83px＝3.83px超過**＝末尾が無言で切れる
-                                               （現存する見切れ。本文が124.35px要るので縦線の上限は57.65px＝広げても直らない）。 -->
+                                                Button.counter:disabled が地色を保ったまま記号だけ薄い墨にする）。
+                                             ★▲▼ は**字をやめて図形で置く**（2026-09-23・3度目＝撮影で潰れが確定した）。
+                                               字は 11px で行箱 14.63px（hhea の ascender 2210 + descender 514 を 2048分の11）・ink が 8.64px あり、
+                                               枠1×2 を引いた内寸の箱には上下が切られて入る＝実機では ▲ が 2×3px の点・▼ が幅10pxの線にしか写らなかった。
+                                               Path は書体に依らず**指定した寸法そのもの**で出る＝内寸10px の中へ 10×6 の三角を中央に置く（上下に2pxずつ）。
+                                             ★Fill は継承した前景を自分で引く＝Button.counter の #5A4526 と :disabled の #8C7A55 を
+                                               そのまま使う（色の定義は App.axaml の1箇所のまま＝押せない▼が薄い墨になる規則を壊さない）。
+                                               ⚠Shape.Fill は TextElement.Foreground を自動では読まない（:disabled が落とすのは前景だけ）
+                                                 ＝$self の添付プロパティを束ねる1行が要る。ここを書かないと押せない▼が濃いまま出る。
+                                             ★幅56の中身（11px太字の実寸＝Yu Gothic UI Bold の hmtx。漢字11.00・0=6.107・1=4.426・4=6.338・+=7.638・/=4.549）
+                                               ＝「民営100」38.64px・「民営10000」50.85px＝1つ書きにしたので5桁まで収まる。
+                                               国営の2つ書き「国営100/100」は**59.83px＝3.83px超過**で末尾が無言で切れていた（撮影で確定）。
+                                               ⇒ 分母をやめて**残りの意志がある月だけ差分を足す**＝「国営100」38.64px／「国営100+1」50.70px・
+                                                 「国営12+12」50.70px（予定0の月は 100/100 のように同じ値を2度書かない）。
+                                               ★3桁＋2桁（「国営100+12」56.81px〜「国営999+99」60.33px）は超える＝TextTrimming が「国営100+…」と出す
+                                                 （固定幅で無言にクリップさせない）。数は縦線のツールチップに出る。
+                                                 ⚠これは幅では直せない＝二数を置く形はどれも3桁+2桁を56pxに収められない
+                                                   （最も細い区切りでも「国営999/99」57.25px・半角スペースの「国営444 44」56.71px）。 -->
                                         <Border DockPanel.Dock="Left" Width="56" Background="{Binding Accent}" CornerRadius="1" Margin="0,0,6,0"
                                                 ToolTip.Tip="{Binding FactoryTip}" ToolTip.ShowDelay="200">
                                             <StackPanel VerticalAlignment="Center">
-                                                <Button Classes="counter" ClickMode="Press" Height="10" MinHeight="0" Padding="0"
+                                                <Button Classes="counter" ClickMode="Press" Height="12" MinHeight="0" Padding="0"
                                                         HorizontalAlignment="Stretch"
                                                         Command="{Binding UpFactoryCommand}" IsEnabled="{Binding CanUpFactory}">
-                                                    <TextBlock Text="▲" FontSize="{StaticResource FontTiny}"
-                                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    <Path Data="M 0,6 L 5,0 L 10,6 Z" Stretch="Uniform" Width="10" Height="6"
+                                                          Fill="{Binding $self.(TextElement.Foreground)}"
+                                                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                 </Button>
                                                 <TextBlock Text="{Binding PrivateCount}" FontSize="{StaticResource FontTiny}" FontWeight="Bold"
-                                                           Foreground="#FFF6E8" TextAlignment="Center" Height="13"/>
+                                                           Foreground="#FFF6E8" TextAlignment="Center" Height="13" TextTrimming="CharacterEllipsis"/>
                                                 <TextBlock Text="{Binding StateCount}" FontSize="{StaticResource FontTiny}" FontWeight="Bold"
-                                                           Foreground="#FFF6E8" TextAlignment="Center" Height="13"/>
-                                                <Button Classes="counter" ClickMode="Press" Height="10" MinHeight="0" Padding="0"
+                                                           Foreground="#FFF6E8" TextAlignment="Center" Height="13" TextTrimming="CharacterEllipsis"/>
+                                                <Button Classes="counter" ClickMode="Press" Height="12" MinHeight="0" Padding="0"
                                                         HorizontalAlignment="Stretch"
                                                         Command="{Binding DownFactoryCommand}" IsEnabled="{Binding CanDownFactory}">
-                                                    <TextBlock Text="▼" FontSize="{StaticResource FontTiny}"
-                                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    <Path Data="M 0,0 L 10,0 L 5,6 Z" Stretch="Uniform" Width="10" Height="6"
+                                                          Fill="{Binding $self.(TextElement.Foreground)}"
+                                                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                 </Button>
                                             </StackPanel>
                                         </Border>

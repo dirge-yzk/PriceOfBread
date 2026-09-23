@@ -61,6 +61,7 @@ public partial class GameViewModel
 
     private void BuildParliament()
     {
+        BuildPopTips();   // ★2026-09-24：POPタブのホバー4本（GameViewModel.Pop.cs）。⚠ここに置いた理由＝呼び手は毎Refresh 1回でよく、Refresh.cs はこの枠の持ち物でない（BuildComposition/BuildParliament の並びへ移してよい）
         // ⚠通知は**先に**出す＝false→true へ転じた四半期に画面が追従する（早期returnの後ろに置くと、
         //   議席が0の間は通知が一度も出ず、参政権を得ても議会の節が現れないまま固まる）。
         OnPropertyChanged(nameof(HasParliament));
@@ -290,6 +291,18 @@ public partial class GameViewModel
             //   整形（＋/−・|Δ|<5e-4 の間引き・降順）は既存の ExplainTerms 1本を呼ぶだけ＝第二の式を置かない。
             string legitTip = LegitimacySplitText;
             foreach (var t in ExplainTerms("Legitimacy", v => v.ToString("F3"))) legitTip += "\n" + t.Text;   // 台帳が空（計測前・非プレイヤー）なら1行も足さない＝旧表示のまま
+            // ★2026-09-24：国民意識の説明API内訳も**同じ作法で**この半円のホバーへ（GameViewModel.Header.cs:155 の申し送り
+            //   ＝ヘッダーから畳まれた内訳の移送先。前の回はここが未結線で ExplainLedger の "NationalConsciousness" が死蔵だった）。
+            //   置き場の理由＝政治タブで台帳を持つセルはこの1つだけ（新しい行も新しいプロパティも作らない・2026-07-16の
+            //   「国民意識の重複行は撤去」を戻さない）。⚠題の1行は**台帳に項がある時だけ**＝空ならヘッダーの数字を写さない。
+            //   ⚠書式 P1＝ここに並ぶのは四半期ごとの増分で、ヘッダーと同じ P0 では育成・減衰が全て 0% に潰れて計器が嘘をつく
+            //   （題の1行だけはヘッダーと同じ P0＝水準の数は2つの桁で出さない）。
+            var ncTerms = ExplainTerms("NationalConsciousness", v => v.ToString("P1"));
+            if (ncTerms.Count > 0)
+            {
+                legitTip += $"\n国民意識　{_player.NationalConsciousnessDisplay:P0}";
+                foreach (var t in ncTerms) legitTip += "\n" + t.Text;
+            }
             LegitTip = legitTip;
             BudgetTip = $"{BudgetLawName}　{BudgetPowerText}";
             CommandTip = $"{CommandLawName}　{CommandPowerText}";
