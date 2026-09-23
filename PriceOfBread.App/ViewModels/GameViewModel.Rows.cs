@@ -302,18 +302,22 @@ public sealed partial class HeaderStat : ObservableObject
     /// **空キーが2つ並んだ瞬間に SyncRows がキー重複と見て全行の作り直しへ落ちる**（ヘッダー14項目の破棄・再生成が
     /// 毎 Refresh 走っていた・2026-08-10）。表示には使わない＝一意であればよい。</summary>
     public string Key { get; init; } = "";
+    /// <summary>この項目の箱の最小幅（画素・2026-09-23 作者指示「文字数固定」）＝桁が増減しても右の項目が動かない。
+    /// ★Width でなく **MinWidth**：見積りを超える値が来たときに無言で切れるのでなく伸びる
+    /// （固定 Width は収まらない行を黙ってクリップする＝2026-09-23の罠8）。各項目の最長文字列と算術は Refresh 側に書いてある。
+    /// 行オブジェクトは据え置き同期（SyncRows）で使い回すが、この値は Key ごとの定数なので init のままでよい。</summary>
+    public double BoxWidth { get; init; }
     [ObservableProperty] private global::Avalonia.Points _points = new();
     /// <summary>Polyline へ渡す点列（2026-08-02）。★null を絶対に返さない＝Points が null だと Avalonia が毎フレーム例外を投げる。</summary>
     public global::Avalonia.Points SafePoints => Points ?? new();
     partial void OnPointsChanged(global::Avalonia.Points value) => OnPropertyChanged(nameof(SafePoints));
     [ObservableProperty] private string _rangeText = "";
-    [ObservableProperty] private IReadOnlyList<StatTerm> _terms = System.Array.Empty<StatTerm>();   // 説明API（#63）：この数値の「なぜこの値か」の内訳（前期＋各寄与−各侵食）。空なら非表示
-    public bool HasTerms => Terms.Count > 0;
-    public bool HasHover => HasGraph || HasTerms;   // ホバー（折れ線 or 内訳）を出すか
-    public bool Plain => !HasHover;                 // 素のテキスト（ホバーなし）
+    // ★2026-09-23（作者指示「詳細表示は全てグラフのみ」）：説明API内訳（Terms）はヘッダーから撤去した。
+    //   内訳の行き先＝外資信用/行政力→財政タブ・正統性/国民意識→政治タブ・人口/識字率/満足度/闘争度→POPタブ。
+    public bool HasHover => HasGraph;   // ホバー＝折れ線だけ
+    public bool Plain => !HasGraph;     // 素のテキスト（ホバーなし）
     partial void OnHasGraphChanged(bool value) { OnPropertyChanged(nameof(HasHover)); OnPropertyChanged(nameof(Plain)); }
-    partial void OnTermsChanged(IReadOnlyList<StatTerm> value) { OnPropertyChanged(nameof(HasTerms)); OnPropertyChanged(nameof(HasHover)); OnPropertyChanged(nameof(Plain)); }
-    public void CopyFrom(HeaderStat s) { Text = s.Text; HasGraph = s.HasGraph; Points = s.Points; RangeText = s.RangeText; Terms = s.Terms; }
+    public void CopyFrom(HeaderStat s) { Text = s.Text; HasGraph = s.HasGraph; Points = s.Points; RangeText = s.RangeText; }
 }
 
 // 説明API（#63）の内訳1行＝理由＋符号つき寄与量。正の寄与は緑・負は赤で色分け（データ表示＝UI規律に適合）。

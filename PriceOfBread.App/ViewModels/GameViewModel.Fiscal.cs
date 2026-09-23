@@ -151,7 +151,8 @@ public partial class GameViewModel
     [ObservableProperty] private string _budgetBalanceText = "";
     // ⚠撤去2026-09-12（R1・読み手ゼロ）: WelfareMax（社会保障スライダーの上限）／撤去2026-09-20（段の点火）: RegressiveMin（人頭税スライダーの下限＝緊縮の逆進フロア）。
     //   緊縮の上限・下限はエンジンの Government.LawPrereq（「緊縮の上限」「緊縮の下限」）が段ボタンの「押せない段」として出す。
-    // レバーの定数上限（VMクランプとXAMLの SliderLimit が同源で参照＝限界値の直書きをしない）
+    // レバーの定数上限（VMクランプと**段の値**が同源で参照＝限界値の直書きをしない）。
+    // ⚠2026-09-23：スライダーが全廃されたので読み手は GameViewModel.Law の Lever（段の上限）とここの setter の2つ＝XAML の SliderLimit は読まなくなった。
     public const double TariffCeil = 0.75;           // 関税の上限（下限＝Coef.TariffFloor・負＝ダンピング）
     public const double InterestCeil = 0.5;          // 政策金利の上限
 
@@ -160,23 +161,12 @@ public partial class GameViewModel
     // ⚠撤去2026-09-20（段の点火）: 陸海それぞれのスライダー（ArmyUpkeep/NavyUpkeep）と戦時の下限（ArmyUpkeepFloor/NavyUpkeepFloor→NavalShareMin/Max）。
     //   合計は軍事費の段ボタン（MilitaryLaw）が置き、戦時の床はエンジンの LawPrereq（「戦争中は軍を解散できない」）が「押せない段」として出す。
 
-    // ★陸海の比（作者裁定2026-09-12 R2）：軍事費が段になると**動かせるのは合計と比の2つ**になる。
-    //   段は合計にだけ掛かり内訳は連続のまま（D4）＝ここは金額そのものでなく「海軍の取り分」を動かし、合計は保つ。
-    //   ⚠AIも同じ2フィールドを同じ意味で振る（SelfPlay が GeoNavalShare で ArmyUpkeepTarget/NavyUpkeepTarget を置く）＝対称。
-    private double MilTargetTotal => _player.Policy.ArmyUpkeepTarget + _player.Policy.NavyUpkeepTarget;
-    public double NavalShare
-    {
-        get { double t = MilTargetTotal; return t > 1e-9 ? _player.Policy.NavyUpkeepTarget / t : 0; }
-        set
-        {
-            double t = MilTargetTotal;
-            _player.Policy.NavyUpkeepTarget = t * value;
-            _player.Policy.ArmyUpkeepTarget = t - _player.Policy.NavyUpkeepTarget;
-            OnPropertyChanged(); OnPropertyChanged(nameof(NavalShareLine)); OnPropertyChanged(nameof(ArmyUpkeepLine)); OnPropertyChanged(nameof(NavyUpkeepLine));
-        }
-    }
-    // 他のレバーと同じ書式（名前＋いまの値）。陸海それぞれの**金額**は上の2行が持つので、ここは比だけを名乗る。
-    public string NavalShareLine => $"海軍の比率 {NavalShare:P0}";
+    // ⚠撤去2026-09-23（作者裁定「海軍の比率のレバーを廃止し、プレイヤーもAIと同じ地理由来の配分に乗せる」）:
+    //   MilTargetTotal / NavalShare / NavalShareLine（2026-09-12 R2 で入れ直した「比」のスライダー1本）。
+    //   経緯＝2026-08-04 作者仕様(5)「陸海の割り振りは**廃止**し『陸軍維持費』『海軍維持費』とする」・2026-08-10 作者裁定「陸軍と海軍の
+    //   **注力レバーは廃止**」で一度消えたが、2026-09-20 に軍事費が段になった副作用（陸海2本の金額スライダーの撤去）で「比」1本が復活していた。
+    //   いまは**誰も比を振らない**＝地理が決める（UtilityAgent.SetNavalUpkeepShare を AI もプレイヤーも同じ引数で通る＝Simulation.QuarterStart）。
+    //   動かせるのは軍事費の**合計**（段ボタン＝MilitaryLaw）だけ＝レバーが1本減り、AI・プレイヤー等価が戻る。
     // ⚠3項目を1行に詰めると折り返す（他のレバー行と同じ書式＝2項目に留め、熟練度は右列へ）
     public string ArmyUpkeepLine => $"陸軍維持費 {_player.Policy.ArmyUpkeepTarget:P0}　実効 {_player.ArmyUpkeep:P0}";
     public string NavyUpkeepLine => $"海軍維持費 {_player.Policy.NavyUpkeepTarget:P0}　実効 {_player.NavyUpkeep:P0}";
@@ -208,6 +198,14 @@ public partial class GameViewModel
         get => _player.Policy.AdminSpendingTarget;
         set { _player.Policy.AdminSpendingTarget = value; OnPropertyChanged(); }
     }
+
+    // === ヘッダーから財政タブへ移す内訳（作者裁定2026-09-23＝ヘッダーの詳細はグラフだけにする）。
+    //     ⚠**行を増やさない**＝該当する既存のセルのホバーに入れる（既存の作法）。
+    //     ⚠内訳の式は1つも書き写さない＝既に組んである AdminTerms()／CreditTerms()（GameViewModel.Header.cs・同じ partial class）を**呼ぶだけ**。
+    /// <summary>行政費のセルのホバー＝**行政力**（行政費レバーと行政効率の関係＝2026-08-15に作者指示でヘッダーへ足したもの）。</summary>
+    public string AdminTip => $"行政力　{_player.AdminPowerSmoothed:P0}\n" + string.Join("\n", AdminTerms().Select(t => t.Text));
+    /// <summary>外資流入のセルのホバー＝**外資信用**の4項（信用が何で削れているか＝4項の積）。</summary>
+    public string ForeignInTip => $"外資信用　{_player.CreditRating:P0}\n" + string.Join("\n", CreditTerms().Select(t => t.Text));
 
     // ★汚職根絶の表示は撤去（汚職V2点火2026-08-15・8d裁定＝UIから動詞が消えるのは了承済み）：
     //   V2では根絶費の請求ごと死んでいる（監視は法＝報道/資格任用/議会予算権で買う）。旧 AntiCorruption/AntiCorruptionText は削除。
@@ -398,6 +396,7 @@ public partial class GameViewModel
                    + System.Environment.NewLine + $"旧体制の反対 -{System.Math.Min(1.0, _player.Coef.ModernizationOldGuardResist * tradShare):P0}(旧支配層の政治力 {tradShare:P0})";
             OnPropertyChanged(nameof(IndTip));
         }
+        OnPropertyChanged(nameof(AdminTip)); OnPropertyChanged(nameof(ForeignInTip));   // ヘッダーから移した2つの内訳ホバー（IndTip と同じ追従）
         IncomeLine = $"所得税 {_player.Policy.IncomeTaxTarget:P0}　実効 {_player.TaxRate:P0}";
         IncomeAct = Money(aIncome); IncomeAmt = Money(gIncome);
         ProgLine = $"累進課税 {_player.Policy.ProgressiveTaxTarget:P0}　実効 {_player.ProgressiveTax:P0}"; ProgAct = Money(aProg); ProgAmt = Money(gProg);

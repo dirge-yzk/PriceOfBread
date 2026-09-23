@@ -151,7 +151,8 @@ public partial class GameViewModel
                 .Select(x => $"{PolityRegimeJa(x.Pol)}　{x.Sup:P0}{(x.Pol == current ? "　◀ 現政体" : "")}"));
         }
     }
-    // 国民意識はヘッダー（StatGExplain・年次グラフ＋説明API内訳）へ一本化＝政治タブの重複行と専用プロパティは撤去（2026-07-16）。
+    // 国民意識はヘッダーの年次グラフへ一本化＝政治タブの重複行と専用プロパティは撤去（2026-07-16）。
+    // ⚠2026-09-23：その説明API内訳はヘッダーから外れ、政治タブへ移す（受け取りは ExplainTerms("NationalConsciousness") を呼ぶだけ）。
     // 反体制派の戦力比の内訳（実値＝エンジンの勢力値）：改革派＋急進派 対 治安維持力。ChallengeText のホバー。
     // 語は国内勢力の StrengthTip（勢力の強さ／治安維持力／義勇兵）に揃える＝同じ量を2つの名前で呼ばない。
     public string ChallengeTip
@@ -166,7 +167,7 @@ public partial class GameViewModel
     }
     // 兌換カバー率の内訳（比率＝基礎貨幣÷広義貨幣）。金融テキストのホバー。
     public string CoverTip => _player.BroadMoney <= 1e-9 ? "" : $"基礎貨幣 {Money(_player.BaseMoney)}\n広義貨幣 {Money(_player.BroadMoney)}\n維持線 {_player.Coef.GoldCoverMin:P0}";
-    // 余剰戦力・好戦世論の内訳（World.WarFever の6項を再構成＋膨張意欲の今四半期増分）。ヘッダー左のホバー。
+    // 戦力余剰・好戦世論の内訳（World.WarFever の6項を再構成＋膨張意欲の今四半期増分）。ヘッダー左のホバー。
     public string ExpansionTip
     {
         get
@@ -192,7 +193,7 @@ public partial class GameViewModel
                  + $"\n+{c.WarFeverSoldier * soldierShare:P0}　兵士規模"
                  + $"\n+{c.WarFeverThreat * threat:P0}　外的脅威"
                  + $"\n+{diversion:P0}　大衆の闘争の外征転化"
-                 + $"\n\n余剰戦力の今四半期の増加"
+                 + $"\n\n戦力余剰の今四半期の増加"   // ★2026-09-23作者指示：語を「戦力余剰」へ
                  + $"\n+{gain / cap:P0}　戦争熱の超過分";
             if (bourg > 1e-9) tip += $"\n+{bourg / cap:P0}　商業ロビー";
             return tip;
@@ -256,6 +257,10 @@ public partial class GameViewModel
         _histLit.Add(popTotal > 1e-9 ? litSum / popTotal : 0);
         _histSat.Add(NationalScore.MeanSatisfaction(_player));
         _histMil.Add(Politics.AvgMassMilitancy(_player));
+        // ★2026-09-23（作者指示「識字率の右に満足度・不満度・闘争度」）：不満度＝エンジンの集計 Politics.AvgMassDiscontent
+        //   （大衆POPの人口加重平均。闘争度 AvgMassMilitancy と**同じ母集団の述語**を共有＝UIに第二の式を置かない）。
+        //   ⚠満足度だけ分母が「全POP」で、不満度・闘争度は「大衆のみ」＝母集団を揃えるのは測定回へ送る（2026-09-23の決め）。
+        _histDis.Add(Politics.AvgMassDiscontent(_player));
         _histCorr.Add(EffectiveCorruption());
         _histInd.Add(_player.MeanIndustrialization);
         _histCredit.Add(_player.CreditRating);
@@ -296,7 +301,8 @@ public partial class GameViewModel
         return (c.Pts, c.Min, c.Max);
     }
 
-    private static HeaderStat StatT(string text, string title, List<StatTerm> terms) => new() { Text = text, GraphTitle = title, Key = title, Terms = terms };   // グラフなし・題＋内訳ホバーつき（行政力/軍事力）
+    // ★2026-09-23（作者指示「詳細表示は全てグラフのみ」）：グラフを持たない Stat の作り手（旧 StatT＝行政力）は撤去。
+    //   グラフの無い項目はホバーそのものを持たない（HeaderStat.Plain）＝素の文字だけで出す。
 
     // 説明API（#63）：ある数値の内訳を StatTerm 列へ整形。正の寄与を上・負を下・|Δ|降順、|Δ|<5e-4 は非表示（Runnerのexactコマンドと同流儀）。緑＝加算/赤＝減算。
     private static readonly IBrush TermPlus = new SolidColorBrush(Color.Parse("#2E7D32"));
@@ -311,40 +317,32 @@ public partial class GameViewModel
         return rows;
     }
 
-    private HeaderStat StatG(string text, string title, List<double> series, Func<double, string> fmt)
+    /// <summary>年次グラフの Stat。<paramref name="boxWidth"/>＝桁が動いても右の項目を押さないための箱の最小幅（画素）。
+    /// <paramref name="hoverTitle"/>＝ホバー1行目（既定は title と同じ。GDP だけは「一人当たりGDPと世界順位」をここに載せる
+    /// ＝作者指示2026-09-23「GDPの量なのでGDPのグラフのホバーに1行だけ残す」）。突き合わせキー（Key）は常に title＝ホバー題が
+    /// 毎月変わっても SyncRows が行を作り直さない。</summary>
+    private HeaderStat StatG(string text, string title, List<double> series, Func<double, string> fmt, double boxWidth = 0, string? hoverTitle = null)
     {
         bool has = series.Count >= 1;   // 1点から表示（開始直後からホバーが出る・2026-07-16）
         var (pts, min, max) = SeriesView(series);
         // 起点の年＝人口系列（毎年必ず1点採る基準系列）との長さの差から逆算（2026-08-10）。
-        // 途中から採り始めた系列（ジニ係数＝政治の初回計測後／旧セーブで未復元だった系列）でも年ラベルがずれない。
+        // 途中から採り始めた系列（不満度＝末尾に足した新系列／旧セーブで未復元だった系列）でも年ラベルがずれない。
         int startYear = _histStartYear + Math.Max(0, _histPop.Count - series.Count);
         return new HeaderStat
         {
             Text = text,
             HasGraph = has,
-            GraphTitle = title,
+            GraphTitle = hoverTitle ?? title,
             Key = title,
+            BoxWidth = boxWidth,
             Points = has ? pts : new(),
             RangeText = has ? $"{startYear}〜{startYear + series.Count - 1}年　最小:{fmt(min)}　最大:{fmt(max)}" : "",
         };
     }
 
-    // 説明API（#63）付きの年次グラフStat。ホバーに折れ線＋「なぜこの値か」の内訳を出す。内訳が空（計測前）でもグラフは出る。
-    private HeaderStat StatGExplain(string text, string title, List<double> series, string quantity, Func<double, string> fmt)
-    {
-        var g = StatG(text, title, series, fmt);
-        return new HeaderStat
-        {
-            Text = g.Text, HasGraph = g.HasGraph, GraphTitle = g.GraphTitle, Key = g.Key, Points = g.Points, RangeText = g.RangeText,
-            Terms = ExplainTerms(quantity, fmt),
-        };
-    }
-    // VM側で組んだ内訳（Terms）を持つ年次グラフStat（SimCore非改変の量＝汚職/技術力/識字率/人口/GDP/生産 用）。
-    private HeaderStat StatGT(string text, string title, List<double> series, List<StatTerm> terms, Func<double, string> fmt)
-    {
-        var g = StatG(text, title, series, fmt);
-        return new HeaderStat { Text = g.Text, HasGraph = g.HasGraph, GraphTitle = g.GraphTitle, Key = g.Key, Points = g.Points, RangeText = g.RangeText, Terms = terms };
-    }
+    /// <summary>グラフを持たない Stat（ホバーなし・素の文字）。★2026-09-23「詳細表示は全てグラフのみ」で
+    /// 行政力の内訳ホバーが財政タブへ移った＝この項目はヘッダーでは数字だけを名乗る。</summary>
+    private static HeaderStat StatPlain(string text, string key, double boxWidth) => new() { Text = text, Key = key, BoxWidth = boxWidth };
 
     // 説明API内訳の共通整形（緑=加算/赤=減算・|Δ|<5e-4は呼び出し側で除外済み前提）。
     private static readonly IBrush TermNeutral = new SolidColorBrush(Color.Parse("#5A4E3C"));
@@ -362,6 +360,11 @@ public partial class GameViewModel
     }
 
     // === VM側の内訳ビルダー（SimCore非改変・確定値を横で読み直して構築＝ビット恒等自明）===
+    // ⚠★2026-09-23（作者指示「詳細表示は全てグラフのみ」）：この節の6本はヘッダーのホバーから外れ、**移送先のタブが呼ぶ**。
+    //   移送先＝CreditTerms/AdminTerms→財政タブ・ExplainTerms("Legitimacy")/("NationalConsciousness")→政治タブ・
+    //   PopulationTerms/LiteracyClassTerms/SatisfactionClassTerms/MilitancyClassTerms→POPタブ。
+    //   式は**ここにあるものをそのまま呼ぶ**こと（タブ側に第二の式を書き写さない＝同じ量を2つの名前で呼ばない）。
+    //   受け取り側が結線するまでの間この6本は呼ばれない＝結線が済むまでは死蔵（実装ログの申し送りに記載）。
     // 汚職＝要因の実値を中立表示（行政効率と清廉度が高いほど上限から削られる）。符号分解は誤読を招いたため撤去（2026-07-16）。
     /// <summary>対外信用の内訳（2026-08-13・作者指摘「信用が非常に大切というのがUIからわからない」）。
     /// 信用は4項の**積**なので、どれが足を引っ張っているかは積の各項を並べれば一目で分かる。
@@ -401,7 +404,8 @@ public partial class GameViewModel
         return rows;
     }
 
-    // 闘争度＝階級ごとの平均闘争度そのもの（Pop.Militancy＝闘争度のストック。不満度は別の導出量 Politics.Discontent＝画面は読まない・2026-09-11）。
+    // 闘争度＝階級ごとの平均闘争度そのもの（Pop.Militancy＝闘争度のストック）。
+    // ⚠不満度は別の導出量（Politics.Discontent）＝2026-09-23にヘッダーの独立した項目になった（闘争度の内訳ではない・同じ数を2つの名前で呼ばない）。
     private List<StatTerm> MilitancyClassTerms()
     {
         var rows = new List<StatTerm>();
@@ -459,29 +463,6 @@ public partial class GameViewModel
         if (szSum > 1e-9) rows.Add(Neutral($"子供比 {childSum / szSum:P0}　老年比 {oldSum / szSum:P0}"));
         return rows;
     }
-    // ティア別の産出価値内訳（生産＝Marketsの実産出×参照価格・全ティア／GDP＝Producers.Output×参照価格・役務除外）。
-    private static readonly string[] TierJa = { "主食", "日用品", "奢侈品", "素材", "生産財", "役務" };
-
-    private List<StatTerm> GdpTierTerms()
-    {
-        var acc = new double[TierJa.Length];
-        foreach (var rg in _player.Regions)
-        {
-            if (rg.State != RegionState.Active) continue;
-            foreach (var s in rg.Producers)
-            {
-                var good = rg.GoodOf(s.GoodId);
-                if (good is null || good.Tier == GoodTier.Service) continue;
-                acc[(int)good.Tier] += s.Output * Catalog.RefPrices[s.GoodId];
-            }
-        }
-        return TierValueRows(acc);
-    }
-    private List<StatTerm> TierValueRows(double[] acc)
-    {
-        var rows = new List<StatTerm>();
-        var idx = Enumerable.Range(0, TierJa.Length).OrderByDescending(i => acc[i]);
-        foreach (int i in idx) if (acc[i] >= 1) rows.Add(Signed(acc[i], TierJa[i], v => Money(v)));
-        return rows;
-    }
+    // ★2026-09-23（作者指示「素材などの表示は削除」）：GDPホバーのティア内訳（主食/日用品/奢侈品/素材/生産財/役務）は撤去。
+    //   読み手が0になった GdpTierTerms／TierValueRows／TierJa も同時に削除した（死蔵を残さない）。
 }

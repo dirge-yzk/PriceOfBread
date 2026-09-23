@@ -94,7 +94,10 @@ public partial class GameViewModel : ViewModelBase
     private const string MerchantClass = "商人";
 
     [ObservableProperty] private string _dateText = "";
+    // ★2026-09-23（作者指示「文字数固定」）：国庫と収支を**2枚に割る**。1枚のままだと箱の右端は止まっても
+    //   中の収支の桁が動いて読み位置がずれる（＝指摘が消えない）。それぞれが自前の最小幅を持つ。
     [ObservableProperty] private string _treasuryText = "";
+    [ObservableProperty] private string _balanceText = "";
     // 金融セクション（財政タブ）：1本の連結文字列でなく「ラベル｜値」行に分解（銀行なし＝与信残高/兌換系は「—」）。
     // 金利doc B1（2026-07-30）：金利だけが他11レバーと違い「目標／実効」の1行ペアを持たず、実効が別行に散っていた＝ペアへ統一。
     // 併せて年率換算（World.LoanRateAnnual）を1行で出す＝無次元レバーの目盛だけでは何%の金利なのかが盤面に無かった。
@@ -107,6 +110,11 @@ public partial class GameViewModel : ViewModelBase
     // ⚠撤去2026-08-23（読み手ゼロ）: CreditText ＝与信残高はヘッダー金融ホバー（Header.cs の FinanceTerms）が表示。axaml 束縛なし。
     [ObservableProperty] private string _coverText = "";
     [ObservableProperty] private string _playerName = "";   // 旧DebtText/DebtVisible（未バインド）は削除＝財政劣化の連鎖はDebtLineへ統合（監査2026-07-12 死14）
+    // ★2026-09-23（作者指示「文字数固定」）：地位（列強12位／準列強／中堅／弱小）を国名から割る。
+    //   動くのは**地位の側**（順位・ランクは世界の側で変わる）＝ここだけ固定幅にすれば桁ズレは止まる。
+    //   ⚠国名まで固定幅にはしない：最長の変体名「ポーランド＝リトアニア」は18px太字で216px あり、常時確保すると
+    //     ヘッダー1行目の合計が全画面の枠を越えて WrapPanel が折り返す＝2段化（2026-08-02に却下済み）を招く。
+    [ObservableProperty] private string _playerRankText = "";
     // 速度レベル（1〜3＝レート）と再生状態は分離：1/2/3は速度の選択（ハイライトのみ）・スペースで再生/停止。
     [ObservableProperty] private int _speed = 2;
     [ObservableProperty] private bool _playing;
@@ -169,7 +177,10 @@ public partial class GameViewModel : ViewModelBase
     //   この7項のうち**工業化・金融・対外信用の3つがヘッダーに無かった**。とくに工業化はスコア最大の重み(×9)で
     //   本作の主題そのものなのに、自国の全体値を出す場所がUIのどこにも無かった（敵国は外交ホバー・州別は生産ホバーに有る）。
     private readonly List<double> _histInd = new(), _histCredit = new(), _histFin = new();
-    private readonly List<double> _histGini = new();      // ジニ係数の年次履歴（2026-08-10作者要望＝格差が開いたか縮んだかを推移で読む）
+    private readonly List<double> _histGini = new();      // ジニ係数の年次履歴（2026-08-10作者要望）。★2026-09-23にヘッダー表示は撤去したが**採取は残す**（セーブの系列配列に居る＝外すと旧セーブが黙ってずれる）
+    // ★2026-09-23（作者指示「識字率の右に満足度・不満度・闘争度」）：不満度の年次履歴。
+    // ⚠セーブの系列配列（この下の targets と SaveMenu.cs の lists）の**末尾**に足した＝末尾追加だけが安全（途中に挿すと全系列が黙ってずれる）。
+    private readonly List<double> _histDis = new();
     private int _histStartYear = Calendar.StartYear, _lastSampledYear;
 
     /// <summary>年次系列の点列と最小/最大の記憶（2026-08-10）。系列は**1年に1点しか伸びない**のに、
@@ -279,7 +290,7 @@ public partial class GameViewModel : ViewModelBase
         // 監査2026-07-12（他20）：_histFood を追加＝ロード後も食料グラフの凶作履歴が残る（旧＝セーブ漏れで喪失＋年ラベルずれ）。
         // _satHistory（SatBars削除で読者消滅）はリストごと削除。セーブ形式はビルド内互換のみ（SimCore側と同方針）＝壊れた旧セーブはロード時catchで安全に弾かれる。
         // ⚠_histInd/_histCredit/_histFin（2026-08-13）は配列の**先頭**に挿入した＝この並びより前のセーブは全系列が3つずれて黙って読まれる（SaveMagic は POBSAVE1 のまま＝互換扱いのまま非互換）。
-        List<double>[] targets = [_histInd, _histCredit, _histFin, _histPop, _histGdp, _histProd, _histTech, _histLit, _histSat, _histMil, _histCorr, _histFood, _histLeg, _histCons, _histMandate, _histTreasury, _histGini];
+        List<double>[] targets = [_histInd, _histCredit, _histFin, _histPop, _histGdp, _histProd, _histTech, _histLit, _histSat, _histMil, _histCorr, _histFood, _histLeg, _histCons, _histMandate, _histTreasury, _histGini, _histDis];   // ★2026-09-23：不満度 _histDis を**末尾**に追加（旧セーブは hist.Length=17 で止まる＝不満度だけ空で再開）
         for (int i = 0; i < targets.Length && i < hist.Length; i++) targets[i].AddRange(hist[i]);
         _endingShown = Calendar.StartYear + (int)_simDays / Calendar.DaysPerYear >= Calendar.EndYear;   // 終局後のセーブでランキングを再表示しない。表示暦基準（★2026-08-10に助走が暦を進めなくなり、エンジン暦＝表示暦で一致した。旧＝助走4四半期ぶんエンジンが1年先行＝監査2026-07-11 他9）。★1950延長2026-09-22＝終局は表示暦が EndYear（1950年1月1日）に入った時＝GameQuarters 経過＝自己対戦と同じ四半期（旧＝EndYear+1で自己対戦より4四半期長かった）
         // 戦争UIの追跡状態を復元（レビュー2026-07-19）：戦費按分・勝敗基準・終わった戦争の残置＝ロードで途切れない。
@@ -475,7 +486,8 @@ public partial class GameViewModel : ViewModelBase
     // 日次の描写：価格層だけ（物価・国庫・生産タブの詳細パネルの価格）。重いグラフ本体・地図・国家・POPは触らない＝軽量。
     private void RefreshDaily()
     {
-        TreasuryText = $"国庫:{Money(_player.Treasury)}　収支:{(_monthDelta >= 0 ? "＋" : "−")}{Money(Math.Abs(_monthDelta))}/月";
+        TreasuryText = $"国庫:{Money(_player.Treasury)}";
+        BalanceText = $"収支:{(_monthDelta >= 0 ? "＋" : "−")}{Money(Math.Abs(_monthDelta))}/月";
         OnPropertyChanged(nameof(PriceLevelText)); OnPropertyChanged(nameof(ExchangeRateText));   // 物価・為替（計算プロパティ）を再読込
         RefreshProdDetail();                        // 生産タブの詳細パネルの価格（選択財のみ・軽い）。グラフ本体は月次
     }

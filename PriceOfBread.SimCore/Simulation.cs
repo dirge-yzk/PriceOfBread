@@ -1534,6 +1534,12 @@ public sealed class Simulation
             //     自己対戦（SelfPlay）・較正・その他のテストは IsPlayer を立てない＝この分岐は偽＝AI挙動はビット単位で不変。
             //   プレイヤー国の初期値は MultiNationSim が UtilityAgent.OpeningModernizationFrac で播く（AIと同じ出発点）＝以後はUIの値を尊重。
             if (!self.IsPlayer) World.ModernizationFrac = UtilityAgent.AutoModernizationFrac(World, fs);
+            // ★陸海の比もプレイヤーを地理に乗せる（作者裁定2026-09-23＝財政タブの「海軍の比率」レバーを撤去）。
+            //   2026-08-04 作者仕様(5)「陸海の割り振りは**廃止**」・2026-08-10「陸軍と海軍の注力レバーは廃止」＝**誰も比を振らない**が本来の姿で、
+            //   2026-09-20 に「比」1本だけが復活していた。AI は DecideQuarter の中で同じ関数を通る＝ここは**同じ関数を同じ引数で**呼ぶだけ
+            //   （割り振りの式はどこにも書き写さない）。合計（軍事費の段）は保たれ、比だけが地理で決まる＝AI・プレイヤー等価。
+            //   ⚠AI国はこの枝に入らない（!IsPlayer 側は従来どおり DecideQuarter が呼ぶ）＝自己対戦・較正はビット恒等（プレイヤーが居ない）。
+            else UtilityAgent.SetNavalUpkeepShare(World);
         }
         _agent.DecideQuarter(World);
         UpdateRegionalPriceLevels();           // 地域別の貨幣的物価乗数（地域物価・名目賃金の格差）を四半期ごとに更新。日次の StepDay が r.PriceLevel に適用

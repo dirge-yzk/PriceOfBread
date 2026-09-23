@@ -9,7 +9,9 @@
         <!-- ★財政の段（作者裁定2026-09-12 R1/R2）＝税・支出・軍事費の段ボタン1行。法律タブ／通貨制度の段ボタンと同じ見た目・同じ規則
              （現行=濃塗り／目標=金枠／押せない段=薄く＝App.axaml の Button.lawstage:disabled）。
              項目名は真上の行（所得税 ○%　実効 ○%）が既に名乗るのでここには置かない。
-             ★2026-09-20（段の点火）：税・支出のスライダーは廃止＝段ボタンへ一本化（関税・行政費・近代化投資・金利・陸海の比はスライダーのまま）。 -->
+             ★2026-09-20（段の点火）：税・支出のスライダーは廃止＝段ボタンへ一本化。
+             ★2026-09-23（作者裁定）：残る4本（行政費・近代化投資・関税・政策金利）も5段ボタンへ＝**このタブにスライダーは1本も無い**。
+             陸海の比のレバーは廃止（地理が決める）。社会保障の法の段は法律タブからここへ移設。 -->
         <DataTemplate x:Key="FiscalStageRow" x:DataType="vm:LawRowVM">
             <StackPanel Spacing="1" Margin="0,0,0,2">
                 <ItemsControl ItemsSource="{Binding Stages}">
@@ -60,30 +62,25 @@
                 </Grid>
                 <!-- ★軍事費の段（R2「低/中/高/戦時の4段。戦時経済は総動員とセットで、戦後は下の値に戻る」）。
                      ★M2（2026-09-19）：総動員は戦時段を解禁するだけ＝段は選ぶ（押し上げない）。解禁の外では段3で止まる。
-                     段は**合計**にだけ掛かり、陸海の内訳は連続のつまみ1本で振る（D4）＝上の2行が振り分けた結果を名乗る。
+                     段は**合計**にだけ掛かる（D4）＝上の2行は、地理が決めた比で合計が陸海へ割れた結果を名乗る。
                      ⚠合計の金額行は置かない（同じ金を「軍事費」と「陸軍＋海軍」の2通りで見せる二重表示は2026-08-11に廃止済み）。 -->
                 <Grid ColumnDefinitions="Auto,*">
                     <TextBlock Grid.Column="0" Text="軍事費" Classes="lever" VerticalAlignment="Top" Margin="0,2,8,0"/>
                     <ContentControl Grid.Column="1" Content="{Binding MilitaryLaw}" ContentTemplate="{StaticResource FiscalStageRow}"/>
                 </Grid>
-                <Grid ColumnDefinitions="*,60,64">
-                    <TextBlock Grid.Column="0" Text="{Binding NavalShareLine}" Classes="lever"/>
-                </Grid>
-                <Grid ColumnDefinitions="Auto,*,Auto">
-                    <TextBlock Grid.Column="0" Text="0% ＞" Classes="range" Margin="0,0,4,0"/>
-                    <Slider Grid.Column="1" Minimum="0" Maximum="1" Value="{Binding NavalShare}" TickFrequency="0.05" IsSnapToTickEnabled="True"/>
-                    <TextBlock Grid.Column="2" Text="＜ 100%" Classes="range" Margin="4,0,0,0"/>
-                </Grid>
-                <Grid ColumnDefinitions="*,60,64">
+                <!-- ★「海軍の比率」のレバーは撤去（作者裁定2026-09-23）。2026-08-04 作者仕様(5)「陸海の割り振りは**廃止**し『陸軍維持費』『海軍維持費』とする」・
+                     2026-08-10「陸軍と海軍の**注力レバーは廃止**」で一度消えたものが、2026-09-20（軍事費の段の点火＝陸海2本の金額スライダーの撤去）の
+                     副作用で「比」1本として復活していた＝消し忘れではなく意図して入れ直されたもの。いまは**誰も比を振らない**＝地理が決める
+                     （UtilityAgent.SetNavalUpkeepShare を AI もプレイヤーも同じ引数で通る）＝レバーが1本減り、AI・プレイヤー等価が戻る。 -->
+                <Grid ColumnDefinitions="*,60,64" Background="Transparent" ToolTip.Tip="{Binding AdminTip}" ToolTip.ShowDelay="200">
                     <TextBlock Grid.Column="0" Text="{Binding AdminLine}" Classes="lever"/>
                     <TextBlock Grid.Column="1" Text="{Binding AdminAmt}" Classes="dim" TextAlignment="Right" VerticalAlignment="Center"/>
                     <TextBlock Grid.Column="2" Text="{Binding AdminAct}" Classes="lever" FontWeight="Bold" TextAlignment="Right"/>
                 </Grid>
-                <Grid ColumnDefinitions="Auto,*,Auto">
-                    <TextBlock Grid.Column="0" Text="0% ＞" Classes="range" Margin="0,0,4,0"/>
-                    <Slider Grid.Column="1" Minimum="0" Maximum="1" Value="{Binding AdminSpending}" TickFrequency="0.05" IsSnapToTickEnabled="True"/>
-                    <TextBlock Grid.Column="2" Text="＜ 100%" Classes="range" Margin="4,0,0,0"/>
-                </Grid>
+                <!-- ★レバーの5段（作者裁定2026-09-23）＝行政費・近代化投資・関税・政策金利のスライダーを5段ボタンへ。
+                     4本とも TickFrequency=0.05 の21点の離散値だった＝**粗視化だけ**でエンジンは1ビットも変わらない。
+                     ⚠議会を通す「段の法」にはしない（PolicyAxis を足さない）＝行政費は行政府の内部事項・関税はR3・近代化投資はR4の裁定のまま。 -->
+                <ContentControl Content="{Binding AdminSpendLever}" ContentTemplate="{StaticResource FiscalStageRow}"/>
                 <Grid ColumnDefinitions="*,60,64">
                     <TextBlock Grid.Column="0" Text="{Binding EduLine}" Classes="lever"/>
                     <TextBlock Grid.Column="1" Text="{Binding EduAmt}" Classes="dim" TextAlignment="Right" VerticalAlignment="Center"/>
@@ -92,26 +89,25 @@
                 <ContentControl Content="{Binding EduSpendLaw}" ContentTemplate="{StaticResource FiscalStageRow}"/>
                 <!-- ★社会保障のスライダーは撤去（2026-09-12・R1の付随＝二重操作の解消）：社会保障は既に**法**（救貧法/労災/失業保険/年金）で、
                      同じ Policy.SocialSecurityTarget を法律タブの行とこのスライダーの2箇所が叩いていた（20段のつまみに見えて効果は4段）。
-                     法律タブへ一本化＝同じ法を2箇所に出さない（金本位の二重実装を潰した時と同じ作法）。ここに残るのは支出の**データ行**だけ。 -->
+                     ★2026-09-23（作者裁定）：その**法の段**をここへ移した（金本位・資本移動と同じ扱い＝国庫に触る法は財政の画面で扱う）。
+                     法律タブの「教育と労働」群からは外してある＝同じ法を2箇所に出さない。押せば議会を通る（法としての扱いは不変）。 -->
                 <Grid ColumnDefinitions="*,60,64">
                     <TextBlock Grid.Column="0" Text="{Binding WelLine}" Classes="lever"/>
                     <TextBlock Grid.Column="1" Text="{Binding WelAmt}" Classes="dim" TextAlignment="Right" VerticalAlignment="Center"/>
                     <TextBlock Grid.Column="2" Text="{Binding WelAct}" Classes="lever" FontWeight="Bold" TextAlignment="Right"/>
                 </Grid>
+                <ContentControl Content="{Binding WelfareLaw}" ContentTemplate="{StaticResource FiscalStageRow}" IsVisible="{Binding WelfareLaw.Visible}"/>
                 <Grid ColumnDefinitions="*,60,64">
                     <TextBlock Grid.Column="0" Text="{Binding IndLine}" Classes="lever" ToolTip.Tip="{Binding IndTip}" ToolTip.ShowDelay="200" Background="Transparent"/>
                     <TextBlock Grid.Column="1" Text="{Binding IndAmt}" Classes="dim" TextAlignment="Right" VerticalAlignment="Center"/>
                     <TextBlock Grid.Column="2" Text="{Binding IndAct}" Classes="lever" FontWeight="Bold" TextAlignment="Right"/>
                 </Grid>
                 <!-- ★近代化投資のレバーを復活（2026-08-10）。汚職根絶と違い、これは**自動化できない裁量**＝
-                     「いつ・どれだけ国庫を工業化に注ぐか」は経済運営の主要な判断そのもの（AIもスタンス別に 0.08〜0.15 を自分で選ぶ）。
+                     「いつ・どれだけ国庫を工業化に注ぐか」は経済運営の主要な判断そのもの（AIもスタンス別に率を自分で選ぶ）。
                      ⚠エンジン側の対＝Simulation.QuarterStart がプレイヤー国（Power.IsPlayer）を自動代入から除外する。片方だけでは効かない。
-                     上限は付けない＝100%は禁止ではなく「ほとんどの国で払えないほど高額」（コストが frac→1 で発散する形で表現済み）。 -->
-                <Grid ColumnDefinitions="Auto,*,Auto">
-                    <TextBlock Grid.Column="0" Text="0% ＞" Classes="range" Margin="0,0,4,0"/>
-                    <Slider Grid.Column="1" Minimum="0" Maximum="1" Value="{Binding ModernizationInvest}" TickFrequency="0.05" IsSnapToTickEnabled="True"/>
-                    <TextBlock Grid.Column="2" Text="＜ 100%" Classes="range" Margin="4,0,0,0"/>
-                </Grid>
+                     上限は付けない＝最上段は100%（禁止ではなく「ほとんどの国で払えないほど高額」＝コストが frac→1 で発散する形で表現済み）。
+                     ★2026-09-23：スライダー→5段ボタン（0%/25%/50%/75%/最大）。 -->
+                <ContentControl Content="{Binding ModernizeLever}" ContentTemplate="{StaticResource FiscalStageRow}"/>
                 <!-- 国民形成費レバーは廃止（2026-07-19ユーザー裁定）＝選挙を望む層が自費で国民運動を賄う（内訳はヘッダー国民意識のホバー） -->
                 <Border Height="1" Background="{StaticResource SandBrush}" Margin="0,4"/>
                 <!-- ★汚職根絶の行は撤去（汚職V2点火2026-08-15・8d裁定）：V2では根絶費の動詞ごと死ぬ（監視は法＝報道/資格任用/議会予算権で買う）。
@@ -194,12 +190,9 @@
                     <TextBlock Grid.Column="1" Text="{Binding TariffAmt}" Classes="dim" TextAlignment="Right" VerticalAlignment="Center"/>
                     <TextBlock Grid.Column="2" Text="{Binding TariffAct}" Classes="lever" FontWeight="Bold" TextAlignment="Right"/>
                 </Grid>
-                <Grid ColumnDefinitions="Auto,*,Auto">
-                    <TextBlock Grid.Column="0" Text="-25% ＞" Classes="range" Margin="0,0,4,0"/>
-                    <Slider Grid.Column="1" Minimum="-0.25" Maximum="1" Value="{Binding Tariff}" v:SliderLimit.Max="{x:Static vm:GameViewModel.TariffCeil}" TickFrequency="0.05" IsSnapToTickEnabled="True"/>
-                    <TextBlock Grid.Column="2" Text="＜ 100%" Classes="range" Margin="4,0,0,0"/>
-                </Grid>
-                <Grid ColumnDefinitions="*,60,64">
+                <!-- ★2026-09-23：関税のスライダー→5段ボタン（-25%/0%/25%/50%/最大＝作者の指定）。下限＝Coef.TariffFloor（負＝ダンピング）・上限＝TariffCeil。 -->
+                <ContentControl Content="{Binding TariffLever}" ContentTemplate="{StaticResource FiscalStageRow}"/>
+                <Grid ColumnDefinitions="*,60,64" Background="Transparent" ToolTip.Tip="{Binding ForeignInTip}" ToolTip.ShowDelay="200">
                     <TextBlock Grid.Column="0" Text="外資流入" Classes="dim"/>
                     <!-- ★2026-09-03（AUD-10）：予測列は空＝実効列と同じ数字を2回並べない（他行は Amt/Act が別プロパティ） -->
                     <TextBlock Grid.Column="2" Text="{Binding ForeignInAmt}" Classes="lever" FontWeight="Bold" TextAlignment="Right"/>
@@ -279,43 +272,53 @@
         <TextBlock Text="金融" Classes="section"/>
         <!-- ★2026-08-02の再構成（作者指示）：**数値を上に一列でまとめ**、その下にスライダー、同じ行にスイッチ。
              ⚠「未加入」等の状態文字は出さない＝ボタン自身がスイッチで、押せば反転するので状態はボタンが語る。 -->
-        <!-- ★2026-08-31作者指示：物価・為替・貸出金利は縦並び（他のデータ行と同じ1行1項目） -->
-        <Grid ColumnDefinitions="*,Auto" Margin="0,2">
-            <TextBlock Text="物価" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontBody}"/>
-            <TextBlock Grid.Column="1" Text="{Binding PriceLevelText}" Classes="val" VerticalAlignment="Center"/>
-        </Grid>
-        <Grid ColumnDefinitions="*,Auto" Margin="0,2">
-            <TextBlock Text="為替" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontBody}"/>
-            <TextBlock Grid.Column="1" Text="{Binding ExchangeRateText}" Classes="val" VerticalAlignment="Center"/>
-        </Grid>
-        <Grid ColumnDefinitions="*,Auto" Margin="0,2,0,4">
-            <TextBlock Text="貸出金利" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontBody}"/>
-            <TextBlock Grid.Column="1" Text="{Binding LoanRateText}" Classes="val" VerticalAlignment="Center"/>
-        </Grid>
-        <Grid ColumnDefinitions="*,Auto" Margin="0,2">
-            <TextBlock Text="家計債務" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontBody}"/>
-            <TextBlock Grid.Column="1" Text="{Binding HouseholdLoanText}" Classes="val" VerticalAlignment="Center"/>
-        </Grid>
-        <Grid ColumnDefinitions="*,Auto" Margin="0,2">
-            <TextBlock Text="損失の負債化" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontBody}"/>
-            <TextBlock Grid.Column="1" Text="{Binding LossFinancedText}" Classes="val" VerticalAlignment="Center"/>
-        </Grid>
-        <Grid ColumnDefinitions="*,Auto" Background="Transparent" ToolTip.ShowDelay="200" IsVisible="{Binding CoverVisible}" Margin="0,0,0,4">
-            <ToolTip.Tip><TextBlock Text="{Binding CoverTip}" FontSize="{StaticResource FontSmall}"/></ToolTip.Tip>
-            <TextBlock Text="兌換カバー率" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontBody}"/>
-            <TextBlock Grid.Column="1" Text="{Binding CoverText}" Classes="val" VerticalAlignment="Center"/>
+        <!-- ★2026-08-31作者指示：物価・為替・貸出金利は縦並び（他のデータ行と同じ1行1項目）
+             ★2026-09-23（作者指示「金融が縦に長すぎる。二段組にする」）：データ行6本を**そのまま**左右2列へ振り分けた
+             （中の Grid は1文字も変えていない＝値の位置・書式・ホバーは不変）。6行→3行で送りが約80px縮む。
+             ⚠兌換カバー率だけが条件付き非表示（CoverVisible）なので**右列の最下段**に置く＝消えたときに空くのが列の末尾だけになる。
+             段間は上のブロック（収支・台帳）と同じ *,14,* に揃える。ScrollViewer は足さない（縦送りは GameView の DockScroll が持つ）。 -->
+        <Grid ColumnDefinitions="*,14,*">
+            <StackPanel Grid.Column="0" Spacing="4">
+                <Grid ColumnDefinitions="*,Auto" Margin="0,2">
+                    <TextBlock Text="物価" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontBody}"/>
+                    <TextBlock Grid.Column="1" Text="{Binding PriceLevelText}" Classes="val" VerticalAlignment="Center"/>
+                </Grid>
+                <Grid ColumnDefinitions="*,Auto" Margin="0,2">
+                    <TextBlock Text="為替" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontBody}"/>
+                    <TextBlock Grid.Column="1" Text="{Binding ExchangeRateText}" Classes="val" VerticalAlignment="Center"/>
+                </Grid>
+                <Grid ColumnDefinitions="*,Auto" Margin="0,2,0,4">
+                    <TextBlock Text="貸出金利" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontBody}"/>
+                    <TextBlock Grid.Column="1" Text="{Binding LoanRateText}" Classes="val" VerticalAlignment="Center"/>
+                </Grid>
+            </StackPanel>
+            <StackPanel Grid.Column="2" Spacing="4">
+                <Grid ColumnDefinitions="*,Auto" Margin="0,2">
+                    <TextBlock Text="家計債務" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontBody}"/>
+                    <TextBlock Grid.Column="1" Text="{Binding HouseholdLoanText}" Classes="val" VerticalAlignment="Center"/>
+                </Grid>
+                <Grid ColumnDefinitions="*,Auto" Margin="0,2">
+                    <TextBlock Text="損失の負債化" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontBody}"/>
+                    <TextBlock Grid.Column="1" Text="{Binding LossFinancedText}" Classes="val" VerticalAlignment="Center"/>
+                </Grid>
+                <Grid ColumnDefinitions="*,Auto" Background="Transparent" ToolTip.ShowDelay="200" IsVisible="{Binding CoverVisible}" Margin="0,0,0,4">
+                    <ToolTip.Tip><TextBlock Text="{Binding CoverTip}" FontSize="{StaticResource FontSmall}"/></ToolTip.Tip>
+                    <TextBlock Text="兌換カバー率" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontBody}"/>
+                    <TextBlock Grid.Column="1" Text="{Binding CoverText}" Classes="val" VerticalAlignment="Center"/>
+                </Grid>
+            </StackPanel>
         </Grid>
         <!-- ★2026-08-02：**2段組のレバーと幅を合わせる**（作者指示の再確認）。
              金融ブロックだけ全幅だと、税レバー（左右2列）に対して目盛の縮尺が2倍違って見えた。
-             左列にレバー、右列にスイッチを置けば幅が揃い、行も詰まる。 -->
-        <Grid ColumnDefinitions="*,24,*">
+             左列にレバー、右列にスイッチを置けば幅が揃い、行も詰まる。
+             ★2026-09-23：上のデータ行も二段組にしたので段間を上のブロックと同じ 14 へ揃えた（*,24,* → *,14,*）。 -->
+        <Grid ColumnDefinitions="*,14,*">
             <StackPanel Grid.Column="0" Spacing="2">
                 <TextBlock Text="{Binding InterestLeverLine}" Classes="lever"/>
-                <Grid ColumnDefinitions="Auto,*,Auto">
-                    <TextBlock Grid.Column="0" Text="0% ＞" Classes="range" Margin="0,0,4,0"/>
-                    <Slider Grid.Column="1" Minimum="0" Maximum="1" Value="{Binding InterestLever}" IsEnabled="{Binding InterestLeverEnabled}" v:SliderLimit.Max="{x:Static vm:GameViewModel.InterestCeil}" TickFrequency="0.05" IsSnapToTickEnabled="True"/>
-                    <TextBlock Grid.Column="2" Text="＜ 100%" Classes="range" Margin="4,0,0,0"/>
-                </Grid>
+                <!-- ★2026-09-23：政策金利のスライダー→5段ボタン（上限＝InterestCeil＝最上段「最大」）。
+                     ⚠トリレンマ（兌換維持＋資本自由）で金利が自分のものでなくなる時は**段ごと掴めなくする**＝
+                     IsEnabled をこの ContentControl に置く（Avalonia は無効が子へ伝わる）＝判定式は従来どおり InterestLeverEnabled の1本。 -->
+                <ContentControl Content="{Binding RateLever}" ContentTemplate="{StaticResource FiscalStageRow}" IsEnabled="{Binding InterestLeverEnabled}"/>
             </StackPanel>
             <!-- ★通貨制度（金本位）の**法**をここに置く（作者指示2026-08-11＝金本位は経済の画面で扱いたい）。
                  旧「加入する」ボタンは撤去済み＝あれは同じ Policy.GoldStandardTarget を叩く二重実装で、しかも

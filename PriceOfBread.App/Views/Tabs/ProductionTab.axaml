@@ -476,8 +476,16 @@
                                         CornerRadius="3" Opacity="{Binding Opacity}" ClipToBounds="True"
                                         PointerPressed="OnProdNodePressed">
                                     <!-- 縦の余白は 2（旧4）＝縦線の中に4段（▲/民営/国営/▼）を積むための実寸を作る。
-                                         内寸＝56 −枠1.5×2 −4 ＝49（選択中は枠3.0で46）＝カウンター 8+15+15+8＝46 が収まる
+                                         内寸＝56 −枠1.5×2 −4 ＝49（選択中は枠3.0で46）＝カウンター 10+13+13+10＝46 が収まる
                                          （2026-09-23 に ＋−の横並び1段を ▲▼ の上下2段へ＝作者の図どおり民営/国営の行を挟む）。
+                                         ★2026-09-23（2度目）：内訳を 8+15+15+8 から **10+13+13+10** へ組み替えた（合計46は不変）。
+                                           根拠＝Yu Gothic UI（GameView.axaml の FontFamily）の実寸。11px で行箱 14.63px
+                                           （hhea の ascender 2210 + descender 514 を 2048分の11 で割った値）・ベースラインは行箱の上端から 11.87px。
+                                           ▲▼ の字は ink が 8.64px あるので、旧の 8px の箱には**どう置いても収まらなかった**（作者指摘の潰れ）。
+                                           10px の箱＝枠1×2 を除いた内寸8px に行箱を中央寄せすると、▲ の ink は箱の 0.76〜9.39px、
+                                           ▼ は 1.36〜10.00px＝いずれも枠の内側に収まる（▼ は下辺に接する＝この書体の▼が行箱の中心より 0.68px 下にあるため）。
+                                           文字の2行は 13px＝ink の下端は「営」12.72px・「国」12.76px・数字 12.00px で収まる
+                                           （「国営12/12」の「/」だけ 13.15px＝0.15px はみ出して下の枠線に掠るが、字の ink 同士は重ならない）。
                                          横の余白は 5＝本文の可用幅は 204 −枠1.5×2 −5×2 −(縦線56+隙間6) ＝129px／選択中126px
                                          （GameViewModel.Production.cs の算術と同じ1本）。 -->
                                     <DockPanel Margin="5,2">
@@ -493,21 +501,32 @@
                                              ★▼は予定のうちまだ州へ配っていない分しか削れない＝削る余地が無い時も**押せない状態で出す**
                                                （作者指示2026-09-07「マイナスのボタンは最初から表示する」＝0の時も隠さない。
                                                 Button.counter:disabled が地色を保ったまま記号だけ薄い墨にする＝▲▼も文字なので同じ規則に乗る）。
-                                             ★幅56＝11pt太字で「民営12/12」（全角2＋半角5≒52.5px）まで。3桁棟数「民営100/100」は約64.7pxで
-                                               末尾が無言で切れる（既存の見切れ・2026-09-23実測。幅を広げると本文側が切れるので広げられない）。 -->
+                                             ★▲▼ の字は**明示した TextBlock**で置く（2026-09-23）＝Content に文字列を渡すと、
+                                               その字を包む TextBlock の縦の寄せ方が ContentPresenter 任せになり、上端寄せに落ちると字が下の行へ突き抜ける。
+                                               VerticalAlignment=Center を自分で書けば「行箱を内寸の中央へ・字は行箱の中で固定」の1通りに決まる。
+                                               色は書かない＝Button.counter と :disabled が置く前景がそのまま継承される（押せない▼が薄い墨になる規則を壊さない）。
+                                             ★幅56の中身（11px太字の実寸）＝「民営100」38.64px・「民営10000」50.86px＝1つ書きにしたので5桁まで収まる。
+                                               国営は分母を残すため「国営99/99」50.99px までで、**「国営100/100」は59.83px＝3.83px超過**＝末尾が無言で切れる
+                                               （現存する見切れ。本文が124.35px要るので縦線の上限は57.65px＝広げても直らない）。 -->
                                         <Border DockPanel.Dock="Left" Width="56" Background="{Binding Accent}" CornerRadius="1" Margin="0,0,6,0"
                                                 ToolTip.Tip="{Binding FactoryTip}" ToolTip.ShowDelay="200">
                                             <StackPanel VerticalAlignment="Center">
-                                                <Button Classes="counter" Content="▲" ClickMode="Press" Height="8" MinHeight="0" Padding="0"
-                                                        FontSize="{StaticResource FontTiny}" HorizontalAlignment="Stretch"
-                                                        Command="{Binding UpFactoryCommand}" IsEnabled="{Binding CanUpFactory}"/>
+                                                <Button Classes="counter" ClickMode="Press" Height="10" MinHeight="0" Padding="0"
+                                                        HorizontalAlignment="Stretch"
+                                                        Command="{Binding UpFactoryCommand}" IsEnabled="{Binding CanUpFactory}">
+                                                    <TextBlock Text="▲" FontSize="{StaticResource FontTiny}"
+                                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Button>
                                                 <TextBlock Text="{Binding PrivateCount}" FontSize="{StaticResource FontTiny}" FontWeight="Bold"
-                                                           Foreground="#FFF6E8" TextAlignment="Center" Height="15"/>
+                                                           Foreground="#FFF6E8" TextAlignment="Center" Height="13"/>
                                                 <TextBlock Text="{Binding StateCount}" FontSize="{StaticResource FontTiny}" FontWeight="Bold"
-                                                           Foreground="#FFF6E8" TextAlignment="Center" Height="15"/>
-                                                <Button Classes="counter" Content="▼" ClickMode="Press" Height="8" MinHeight="0" Padding="0"
-                                                        FontSize="{StaticResource FontTiny}" HorizontalAlignment="Stretch"
-                                                        Command="{Binding DownFactoryCommand}" IsEnabled="{Binding CanDownFactory}"/>
+                                                           Foreground="#FFF6E8" TextAlignment="Center" Height="13"/>
+                                                <Button Classes="counter" ClickMode="Press" Height="10" MinHeight="0" Padding="0"
+                                                        HorizontalAlignment="Stretch"
+                                                        Command="{Binding DownFactoryCommand}" IsEnabled="{Binding CanDownFactory}">
+                                                    <TextBlock Text="▼" FontSize="{StaticResource FontTiny}"
+                                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Button>
                                             </StackPanel>
                                         </Border>
                                         <StackPanel VerticalAlignment="Center" Spacing="0">

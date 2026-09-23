@@ -182,28 +182,44 @@ public class HistoricalReferenceTests
         Assert.Equal(1950, Calendar.StartYear + Coefficients.FidelityQuarters1950 / Calendar.QuartersPerYear);   // Q668＝1950年1月1日
     }
 
-    /// <summary>1950断面の採点は主指標と同じ従属の規則：許容集合の宗主に従属＝exact／他の宗主に従属＝near／集合が無い国の従属は数えない。</summary>
+    /// <summary>1950断面の採点は主指標と同じ従属の規則：許容集合の宗主に従属＝exact／他の宗主に従属＝near／
+    /// 空集合 [] の国は従属を near だけに数える／集合が null の国の従属は数えない。★この3枝を1本ずつ見本で押さえる
+    /// （2026-09-23：マラータが null から ["イギリス"] へ移ったので、null の見本をアフガニスタン・[] の見本をオマーンへ置き直した）。</summary>
     [Fact]
     public void 断面1950の採点は従属の許容を主指標と同じ規則で数える()
     {
         static NationStanding St(string nation, Polity derived, string suzerain = "") =>
             new("", 0, 0, 0, 0, 0, 0, 0, 0, derived, 0, 0, Nation: nation, Suzerain: suzerain, DerivedPolity: derived);
         static MatchResult M(params NationStanding[] at1950) =>
-            new(1, Coefficients.GameQuarters, "", 0, 0, [St("日本", Polity.ConstitutionalMonarchy), St("マラータ同盟", Polity.Despotic)], [], [], true, 0, 0, 0, 0, [], 0, 0, 0, 0,
+            new(1, Coefficients.GameQuarters, "", 0, 0, [St("日本", Polity.ConstitutionalMonarchy), St("マラータ同盟", Polity.Despotic),
+                                                         St("オマーン", Polity.Absolutist), St("アフガニスタン", Polity.Despotic)], [], [], true, 0, 0, 0, 0, [], 0, 0, 0, 0,
                 StandingsAt1950: at1950);
         NationFidelity F(IReadOnlyList<NationFidelity> fs, string n) => fs.Single(f => f.Nation == n);
         // 日本＝SuzerainsOk1950 ["アメリカ"]：米に従属（政体は外れ）＝exact・英に従属＝near・独立の立憲＝exact
         var fs = HistoricalReference.Evaluate([
-            M(St("日本", Polity.Despotic, "アメリカ"), St("マラータ同盟", Polity.Despotic, "イギリス")),
-            M(St("日本", Polity.Despotic, "イギリス"), St("マラータ同盟", Polity.Republic)),
-            M(St("日本", Polity.ConstitutionalMonarchy), St("マラータ同盟", Polity.ConstitutionalMonarchy)),
-            M(St("日本", Polity.Despotic), St("マラータ同盟", Polity.Despotic)),
+            M(St("日本", Polity.Despotic, "アメリカ"), St("マラータ同盟", Polity.Despotic, "イギリス"),
+              St("オマーン", Polity.Despotic, "イギリス"), St("アフガニスタン", Polity.Republic, "イギリス")),
+            M(St("日本", Polity.Despotic, "イギリス"), St("マラータ同盟", Polity.Republic),
+              St("オマーン", Polity.Absolutist), St("アフガニスタン", Polity.Absolutist)),
+            M(St("日本", Polity.ConstitutionalMonarchy), St("マラータ同盟", Polity.ConstitutionalMonarchy),
+              St("オマーン", Polity.Despotic), St("アフガニスタン", Polity.Despotic)),
+            M(St("日本", Polity.Despotic), St("マラータ同盟", Polity.Despotic),
+              St("オマーン", Polity.Republic), St("アフガニスタン", Polity.Republic)),
         ]);
         Assert.Equal(2.0 / 4, F(fs, "日本").Exact1950, 12);
         Assert.Equal(3.0 / 4, F(fs, "日本").Near1950, 12);
-        // マラータ＝SuzerainsOk1950 null（英の宗主権は1947に消滅）：英に従属しても exact にも near にもならない＝政体だけで採点
-        Assert.Equal(2.0 / 4, F(fs, "マラータ同盟").Exact1950, 12);
-        Assert.Equal(2.0 / 4, F(fs, "マラータ同盟").Near1950, 12);
+        // マラータ＝SuzerainsOk1950 ["イギリス"]（2026-09-23裁定＝脱植民地化の仕組みが無いので、英の属国のまま1950を迎える
+        //   世界線を表で罰しない）：英に従属＝exact（row1）＋共和・立憲＝exact（row2/row3）＝3/4。near は exact を含む＝3/4。
+        Assert.Equal(3.0 / 4, F(fs, "マラータ同盟").Exact1950, 12);
+        Assert.Equal(3.0 / 4, F(fs, "マラータ同盟").Near1950, 12);
+        // オマーン＝SuzerainsOk1950 [] （空集合＝英の正式な保護領ではない・2026-09-23裁定）：
+        //   英に従属しても exact にはならず near にだけ入る（row1）。exact は専制君主の row2 だけ＝1/4、near は row1/row2/row3＝3/4。
+        Assert.Equal(1.0 / 4, F(fs, "オマーン").Exact1950, 12);
+        Assert.Equal(3.0 / 4, F(fs, "オマーン").Near1950, 12);
+        // アフガニスタン＝SuzerainsOk1950 null（英の外交管理は1919に消滅）：英に従属しても exact にも near にもならない
+        //   ＝政体だけで採点（row1 は共和＝exact/near の両方に無いので、宗主が居ても数えない）。exact=row2 の1/4、near=row2/row3 の2/4。
+        Assert.Equal(1.0 / 4, F(fs, "アフガニスタン").Exact1950, 12);
+        Assert.Equal(2.0 / 4, F(fs, "アフガニスタン").Near1950, 12);
         // 断面が無い走行（全長がQ668に届かない）は NaN＝採点しない
         var none = HistoricalReference.Evaluate([M() with { StandingsAt1950 = null }]);
         Assert.True(double.IsNaN(F(none, "日本").Exact1950));

@@ -105,7 +105,7 @@ public partial class GameViewModel
             string? ReasonTip(string reason) => reason switch
             {
                 "" => null,
-                "余剰戦力が不足" => $"余剰戦力が{willCost / wcap:P0}必要(現在 {_player.ExpansionWill / wcap:P0})",
+                "余剰戦力が不足" => $"戦力余剰が{willCost / wcap:P0}必要(現在 {_player.ExpansionWill / wcap:P0})",   // ⚠case の文字列は**エンジンの理由**（World.CanInvade:1880）＝変えない。変えたのは表示だけ（2026-09-23「余剰戦力」→「戦力余剰」）
                 "属国が上限" => $"属国 {_sim.Diplomacy.DependentCount(me)}/{_player.Coef.MaxDependents}",
                 "兵力が不足" => $"兵力が標的の{_player.Coef.InvadeMilitaryFactor:F1}倍必要(自国 {me.Military * _player.MilitaryReadiness:F2}/標的 {pow.Military:F2})",
                 _ => reason,
@@ -193,9 +193,9 @@ public partial class GameViewModel
         SyncRows(NationsRight, cards.GetRange(half, cards.Count - half), c => c.PowerName, (t, s) => t.CopyFrom(s));
 
         double willCap = _player.Coef.ExpansionWillCap;
-        ExpansionText = $"余剰戦力:{_player.ExpansionWill / willCap:P0}";   // 好戦世論はホバー内訳の先頭へ統合（ヘッダーの類似数値の削減・2026-07-16）
+        ExpansionText = $"戦力余剰:{_player.ExpansionWill / willCap:P0}";   // ★2026-09-23作者指示「余剰戦力」→「戦力余剰」。好戦世論はホバー内訳の先頭へ統合（ヘッダーの類似数値の削減・2026-07-16）
         // ★政治資本（MandateSpent）のヘッダー表示は撤去（2026-08-15作者確認＝選挙梯子E5で廃止予定・表示部分を前倒し。内部は「紛争記憶」への改名待ち＝E5本体）
-        OnPropertyChanged(nameof(ExpansionTip));   // 余剰戦力・好戦世論のホバー内訳を再計算
+        OnPropertyChanged(nameof(ExpansionTip));   // 戦力余剰・好戦世論のホバー内訳を再計算
         // ★防衛同盟の枠数はヘッダーから撤去（2026-08-23作者指示）＝同盟の有無は外交タブの国カードのバッジ「同盟」で読む。
 
         // 概況（上部バー2行目）：人口・GDP・生産・技術力・識字率・満足/闘争度・汚職・正統性・行政力・軍事力。一部はホバーで年次推移グラフ。
@@ -215,59 +215,54 @@ public partial class GameViewModel
         double myGdp = _player.Gdp, myPop = _player.TotalPopulation;
         double myGdpPc = myPop > 1e-9 ? myGdp / (myPop * 1000.0) : 0;
         int gdpPos = 1, gdpPcPos = 1;
-        var pcList = new List<(string Name, double Pc)>();
+        // ★2026-09-23：上位5カ国の一人当たりGDPの一覧（pcList）は撤去＝ホバーが折れ線だけになり読み手が消えた（毎月61カ国ぶんの整形も消える）
         foreach (var q in powers)
         {
-            if (q.Nation is not { } qw) continue;
+            if (q == me || q.Nation is not { } qw) continue;
             double qPop = qw.TotalPopulation;
             double qPc = qPop > 1e-9 ? qw.Gdp / (qPop * 1000.0) : 0;
-            pcList.Add((q.Name, qPc));
-            if (q == me) continue;
             if (qw.Gdp > myGdp) gdpPos++;
             if (qPc > myGdpPc) gdpPcPos++;
         }
-        // 1人あたりGDPのホバー＝上位5カ国の実値（自国が上位内なら重複させない）＝軍事力ホバーと同じ作法
-        var pcTerms = new List<StatTerm>();
-        bool pcSelfInTop = false;
-        foreach (var (nm, pc) in pcList.OrderByDescending(t => t.Pc).Take(5))
-        {
-            pcTerms.Add(Neutral($"{nm}　{MoneyPerHead(pc)}"));
-            if (nm == me.Name) pcSelfInTop = true;
-        }
-        if (!pcSelfInTop) pcTerms.Add(Neutral($"{me.Name}　{MoneyPerHead(myGdpPc)}"));
-        List<StatTerm> GdpTermsWithPc()
-        {
-            var t = new List<StatTerm> { Neutral($"一人当たりGDP {MoneyPerHead(myGdpPc)}({gdpPcPos}位)") };
-            t.AddRange(pcTerms);
-            t.AddRange(GdpTierTerms());
-            return t;
-        }
+        // ★2026-09-23（作者指示「詳細表示は全てグラフのみ」）：ヘッダーのホバーは**折れ線だけ**になった。
+        //   ⚠例外は1行だけ＝一人当たりGDPと世界順位（GDPの量なので置き場はGDPのグラフのホバーしかない・作者指示）。
+        //   上位5カ国の一人当たりGDPの一覧とティア内訳（主食/日用品/…/素材）は撤去した。
+        string gdpHover = $"GDP　一人当たり {MoneyPerHead(myGdpPc)}　世界{gdpPcPos}位";
+        // ★2026-09-23（作者指示「文字数固定」）：各項目の箱の最小幅（画素）。字の実寸は 11px フォントで全角11.0・半角6.1、
+        //   この行は FontBody=13 なので全角13.00・半角7.21。下の数値は「1900年前後に出うる最長の文字列」の実寸を2の倍数へ切り上げたもの。
+        //     GDP:£999.99M(61位) 128.4→130 ／ 技術水準:12.34 95.3→96 ／ 人口:1234.56M人 103.9→104 ／
+        //     識字率:100% 75.1→76（満足度・不満度・闘争度・行政力・正統性も同じ） ／ 工業化:1000% 82.3→84 ／
+        //     外資信用:100% 88.1→90 ／ 国民意識:-100% 95.3→96。
+        //   合計＝1056px＋項目間の余白 9px×12＝1164px（全画面1920なら可用 1896px に収まる。1366でも可用1342pxで収まる）。
         var stats = new List<HeaderStat>
         {
-            // ★2026-08-31作者指示：一人当たりGDPは独立表示をやめ**GDPのホバー内訳**へ（1行目＝自国の一人当たり・以下＝上位5カ国）
-            StatGT($"GDPは{Money(myGdp)}({gdpPos}位)", "GDP", _histGdp, GdpTermsWithPc(), Money),   // 後退（ドローダウン）付記は削除（2026-07-18ユーザー指示＝不要）
-            // ★2026-08-02：ヘッダー1行目から2行目のGDP隣へ移設＋略さず「ジニ係数」（漢字1字の略称禁止と同じ趣旨）
-            // ★2026-08-10作者要望：年次推移のホバーグラフを付ける（他の指標と同じ器＝_histGini を SampleYearStats が毎年1点採取）
-            StatG($"ジニ係数:{_player.GiniIndex:F2}", "ジニ係数", _histGini, v => v.ToString("F2")),
-            StatGT($"人口:{PopFmt(popTotal)}", "人口", _histPop, PopulationTerms(), PopFmt),   // 移民の流入/流出（要素ごと）はホバー内訳へ（2026-07-16）
-            StatGT($"識字率:{lit:P0}", "識字率", _histLit, LiteracyClassTerms(), v => v.ToString("P0")),
-            StatGT($"満足度:{NationalScore.MeanSatisfaction(_player):P0}", "満足度", _histSat, SatisfactionClassTerms(), v => v.ToString("P0")),
-            StatGT($"闘争度:{Politics.AvgMassMilitancy(_player):P0}", "闘争度", _histMil, MilitancyClassTerms(), v => v.ToString("P0")),
+            // ★2026-09-23作者指示：「GDPはnk」→「GDP:nk」（この1行だけ「は」で他は全部「名前:値」だった）
+            StatG($"GDP:{Money(myGdp)}({gdpPos}位)", "GDP", _histGdp, Money, 130, gdpHover),   // 後退（ドローダウン）付記は削除（2026-07-18ユーザー指示＝不要）
+            // ★2026-09-23作者指示：ジニ係数は撤去（採取 _histGini は残す＝セーブの系列配列に居る）。
+            //   空いた位置に**技術水準**を置く＝_histTech は毎年採取・セーブされているのに描画先が0件の死蔵だった（ここで閉じる）。
+            StatG($"技術水準:{_player.TechLevel:F2}", "技術水準", _histTech, v => v.ToString("F2"), 96),
+            StatG($"人口:{PopFmt(popTotal)}", "人口", _histPop, PopFmt, 104),   // 内訳（移民の流入/流出・子供比/老年比）はPOPタブへ移送（2026-09-23）
+            StatG($"識字率:{lit:P0}", "識字率", _histLit, v => v.ToString("P0"), 76),
+            StatG($"満足度:{NationalScore.MeanSatisfaction(_player):P0}", "満足度", _histSat, v => v.ToString("P0"), 76),
+            // ★2026-09-23作者指示「識字率の右に満足度・不満度・闘争度の順」＝足りないのは不満度1つ。
+            //   値はエンジンの集計 Politics.AvgMassDiscontent をそのまま呼ぶ（App側に式を書き写さない）。
+            //   ⚠満足度だけ分母が「全POP」（NationalScore.MeanSatisfaction）で、不満度・闘争度は「大衆のみ」＝母集団を揃えるのは測定回へ送る。
+            StatG($"不満度:{Politics.AvgMassDiscontent(_player):P0}", "不満度", _histDis, v => v.ToString("P0"), 76),
+            StatG($"闘争度:{Politics.AvgMassMilitancy(_player):P0}", "闘争度", _histMil, v => v.ToString("P0"), 76),
             // 生産はヘッダーから撤去（GDP＋役務とほぼ同値・2026-07-16）。_histProd の採取とセーブ枠は互換のため保持。
-            // ★2026-08-15作者指示：技術力はヘッダーから撤去＝財政タブの近代化投資の欄へ「技術効率」として移設（_histTechの採取は継続）
             // ★2026-08-13：国力スコア7項のうちヘッダーに無かった3つ（工業化・対外信用・金融）を追加。
             //   工業化はスコア最大の重み(×9)で本作の主題そのものなのに、**自国の全体値を出す場所がUIに1つも無かった**。
             //   対外信用は外資の流入・引き上げ・配当を全部決めるのに同じく不在（作者指摘）。
-            StatGT($"工業化:{_player.MeanIndustrialization:P0}", "工業化", _histInd, IndustrializationTerms(), v => v.ToString("P0")),   // ★2026-08-31：％表示
+            StatG($"工業化:{_player.MeanIndustrialization:P0}", "工業化", _histInd, v => v.ToString("P0"), 84),   // ★2026-08-31：％表示
             // ★2026-08-15作者指示：「対外信用」は国家信用とも読める＝実体（外資が付くか/逃げるかの係数）に合わせ「外資信用」へ改名
-            StatGT($"外資信用:{_player.CreditRating:P0}", "外資信用", _histCredit, CreditTerms(), v => v.ToString("P0")),
+            StatG($"外資信用:{_player.CreditRating:P0}", "外資信用", _histCredit, v => v.ToString("P0"), 90),   // 4項の内訳（国債残高/兌換/為替/利回り）は財政タブへ移送（2026-09-23）
             // ★2026-08-31作者指示：金融(x/6)と汚職はヘッダーから撤去（_histFin/_histCorr の採取はセーブ互換のため継続）
             // ★2026-08-15作者指示(5)：治安はヘッダーから撤去＝州ホバーへ移設済み（Map.cs・悪化州のみ表示。SecurityTermsも削除済み）
-            // ★2026-08-15作者指示(2)：行政費（財政タブのレバー）との関係をホバー先頭に明示＝AdminTerms。見出しキーもラベルと同じ「行政力」へ
-            StatT($"行政力:{_player.AdminPowerSmoothed:P0}", "行政力", AdminTerms()),   // 内訳＝行政費レバー＋行政効率（官僚・貴族・民族統一・説明責任）
-            StatGExplain($"正統性:{_player.Legitimacy:P0}", "正統性", _histLeg, "Legitimacy", v => v.ToString("F3")),   // 説明API（#63）
-            StatGExplain($"国民意識:{_player.NationalConsciousnessDisplay:P0}", "国民意識", _histCons, "NationalConsciousness", v => v.ToString("P0")),   // ★2026-08-02：開始時から値がある（World 側で初期値を読み側に持たせた）
-            // 政治資本（MandateSpent）はヘッダー上段の余剰戦力の隣へ移動（2026-07-20ユーザー指示）＝CoercionHeaderText。年次履歴 _histMandate は互換のため採取継続。
+            // ★2026-09-23：行政力は年次系列を持たない＝グラフが作れない＝ホバーを持たない素の項目にする（内訳は財政タブへ移送）
+            StatPlain($"行政力:{_player.AdminPowerSmoothed:P0}", "行政力", 76),
+            StatG($"正統性:{_player.Legitimacy:P0}", "正統性", _histLeg, v => v.ToString("F3"), 76),        // 説明API（#63）の内訳は政治タブへ移送（2026-09-23）
+            StatG($"国民意識:{_player.NationalConsciousnessDisplay:P0}", "国民意識", _histCons, v => v.ToString("P0"), 96),   // ★2026-08-02：開始時から値がある（World 側で初期値を読み側に持たせた）
+            // 政治資本（MandateSpent）はヘッダー上段の戦力余剰の隣へ移動（2026-07-20ユーザー指示）＝CoercionHeaderText。年次履歴 _histMandate は互換のため採取継続。
         };
         // ★王権支持度（天命×有効度＋世論の支持）のヘッダー表示は撤去（2026-08-23作者指示）。エンジン側の天命（DynasticMandate）は稼働のまま＝表示だけを畳む。
         // ★制度疲労のヘッダー表示は撤去（2026-08-15作者指示＝機構ごと廃止予定：汚職V2の制度疲労ループが受け皿・台本を創発へdocの残項）
@@ -286,8 +281,11 @@ public partial class GameViewModel
                 if (qs > myScore || (qs == myScore && q.Id < me.Id)) myPos++;   // 同点は Id で全順序（ComputeRanks と同規約）
             }
         }
-        PlayerName = (_player.SelfPower?.Name ?? _player.Region.Name)
-            + (myRank == PowerRank.Great ? $"　列強{myPos}位" : myRank == PowerRank.Secondary ? "　準列強" : myRank == PowerRank.Middle ? "　中堅" : "　弱小");
+        // ★2026-09-23（作者指示「文字数固定」）：国名と地位を2枚に割る。動くのは地位の側（順位もランクも世界が動かす）＝
+        //   地位だけを固定幅（18px太字で「列強12位」＝74.0px→76）にすれば、その右の国庫以降が桁で動かない。
+        //   ⚠国名を固定幅にはしない＝最長の変体名「ポーランド＝リトアニア」は216pxあり、常時確保するとヘッダー1行目が折り返す（2段化は2026-08-02に却下）。
+        PlayerName = _player.SelfPower?.Name ?? _player.Region.Name;
+        PlayerRankText = myRank == PowerRank.Great ? $"列強{myPos}位" : myRank == PowerRank.Secondary ? "準列強" : myRank == PowerRank.Middle ? "中堅" : "弱小";
         OnPropertyChanged(nameof(PlayerScoreTip));   // 国名ホバーのスコア4分解を再計算
 
         // 戦争タブ（レビュー2026-07-19で改構）：犠牲者＝エンジンの戦争別台帳 War.DeadA/DeadB（兵士＋将校）と CivDeadA/CivDeadB（民間人）＝内戦・粛清の混入なし、
@@ -329,7 +327,7 @@ public partial class GameViewModel
             {
                 Key = enemy.Id.ToString(),
                 Enemy = enemy.Name,
-                Score = $"戦勝点 {sc:+0%;-0%}",
+                Score = $"戦勝点 {sc:+0%;-0%;0%}",   // ★2026-09-23：第3節（ゼロ節）を足す＝2節のままだと0へ丸まる負が `-+0%`（符号2つ）で出る（.NET 10 実測）
                 ScoreBrush = sc > 0.05 ? TermPlus : sc < -0.05 ? TermMinus : TermNeutral,
                 Info = $"{DateAt(_simDays - war.Months * (double)Calendar.DaysPerMonth)} 開戦　{war.Months}ヶ月経過",
                 Forces = $"自軍 {Troops(me)}　即応度 {_player.MilitaryReadiness:P0}　敵軍 {Troops(enemy)}",   // ★実兵数（2026-08-08）
@@ -378,7 +376,7 @@ public partial class GameViewModel
             if (!WarEndPopupOpen)
             {
                 WarEndPopupBody = $"{ep?.Name ?? "—"} との戦争が終結した。\n\n"
-                    + $"結果:{result}(戦勝点 {scEnd:+0%;-0%})　{months}ヶ月\n"
+                    + $"結果:{result}(戦勝点 {scEnd:+0%;-0%;0%})　{months}ヶ月\n"   // ★2026-09-23：第3節（ゼロ節）＝0へ丸まる負の `-+0%` を止める
                     + $"戦死　自国 {PopFmt(deadSelf)}" + (ep?.Nation is not null ? $"/相手 {PopFmt(deadEnemy)}" : "") + "\n"
                     + $"民間人の死　自国 {PopFmt(civSelf)}" + (ep?.Nation is not null ? $"/相手 {PopFmt(civEnemy)}" : "") + "\n"
                     + $"戦費　{Money(tr.CostShare)}\n\n"
@@ -410,7 +408,7 @@ public partial class GameViewModel
                 {
                     Key = $"{war.A.Id}|{war.B.Id}",
                     Title = $"{war.A.Name} ⚔ {war.B.Name}",
-                    Info = $"{war.Months}ヶ月経過　{lead}" + (ok ? $"　余剰戦力 {WillPct(_sim.Diplomacy.InterventionWillCost(me, war, cM))}" : $"　{why}"),
+                    Info = $"{war.Months}ヶ月経過　{lead}" + (ok ? $"　戦力余剰 {WillPct(_sim.Diplomacy.InterventionWillCost(me, war, cM))}" : $"　{why}"),   // ★2026-09-23：語を「戦力余剰」へ統一
                     CanMediate = ok, Reason = why,
                 });
             }
@@ -641,7 +639,7 @@ public partial class GameViewModel
 
         // 予算レバーの現在値を通知（ロード時/再描画時）
         OnPropertyChanged(nameof(ArmyUpkeepLine)); OnPropertyChanged(nameof(NavyUpkeepLine));
-        OnPropertyChanged(nameof(NavalShare)); OnPropertyChanged(nameof(NavalShareLine));   // 陸海の比（R2）＝議会/勢力が合計を動かすと比の表示も動く
+        // ⚠撤去2026-09-23：NavalShare/NavalShareLine への通知＝比のレバーごと廃止（地理が置く）。陸海それぞれの**金額**は上の2行が名乗る。
         OnPropertyChanged(nameof(Tariff));
         RefreshLaws();   // 法律タブの段階ボタン行（E8）＋財政の段（R1/R2）：現行段階・改正可否・政治資本コストを毎期更新
         UpdateLawAlert();     // 法律タブの通知＝改革の一歩が「通らない→通る」へ変わったら点灯

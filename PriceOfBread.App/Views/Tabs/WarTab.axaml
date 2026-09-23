@@ -115,10 +115,14 @@
         <StackPanel Grid.Row="0" Grid.Column="2" Spacing="4" VerticalAlignment="Top">
             <!-- ============ 反乱勢力（表示のみ・対処は国内危機イベントのポップアップへ・2026-07-20） ============ -->
             <!-- ★2026-09-07：2段組で列が半分（約299px）になったので数値3列を 68/44/48 へ詰める（末列は戦力比が3桁%を超えても欠けない幅）。
-                 反乱規模の68は PopFmt の最長形（"412.35M人"＝約59px）が入る幅＝清の大POPでも右端が欠けない。
-                 勢力名は * ＋折返しなので、詰めた分は名前が2行になって吸収する。 -->
+                 勢力名は * ＋折返しなので、詰めた分は名前が2行になって吸収する。
+                 ★2026-09-23 作者指示「反乱勢力の規模欄に n人(n%) を表示」＝反乱規模 68→**100**。算術（12pxのFontSmall＝全角12.0・半角6.65）：
+                   最長形「412.35M人(100%)」＝半角13＋全角1＝13×6.65＋12＝98.5px ≦ 100（旧68では "412.35M人" 単体の58.6pxで既に一杯＝()を足すと黙って切れる）。
+                   見出し「反乱規模」＝全角4＝48px。名前列は 298−100−44−48＝106px（旧138px）＝13pxの字で1行8文字
+                   ＝「ロンドンの国民主義の大衆運動」（14文字）は旧138px（1行10文字）と同じ**2行**＝行の高さは変わらない。
+                 ⚠末列（戦力比／点火中は近接度）は**残す**（2026-09-23作者裁定）＝100%超の赤が蜂起の近さを読む唯一の計器。 -->
             <!-- ★2026-09-07：勢力が1つも無い平時に、列見出しだけが宙に浮かないよう行と同じ可視性にする -->
-            <Grid ColumnDefinitions="*,68,44,48" Margin="0,2,0,4">
+            <Grid ColumnDefinitions="*,100,44,48" Margin="0,2,0,4">
                 <TextBlock Grid.Column="0" Text="反乱勢力" Classes="section"/>
                 <TextBlock Grid.Column="1" Text="反乱規模" Classes="section" FontSize="{StaticResource FontSmall}" TextAlignment="Right" VerticalAlignment="Bottom" IsVisible="{Binding !NoFactions}"/>
                 <TextBlock Grid.Column="2" Text="結束" Classes="section" FontSize="{StaticResource FontSmall}" TextAlignment="Right" VerticalAlignment="Bottom" IsVisible="{Binding !NoFactions}"/>
@@ -129,8 +133,9 @@
                     <DataTemplate x:DataType="vm:FactionRow">
                         <Border BorderBrush="{StaticResource SandLightBrush}" BorderThickness="0,0,0,1" Padding="0,4,0,5">
                             <StackPanel Spacing="2">
-                                <Grid ColumnDefinitions="*,68,44,48">
+                                <Grid ColumnDefinitions="*,100,44,48">
                                     <TextBlock Grid.Column="0" Text="{Binding Name}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontBody}" FontWeight="Bold" TextWrapping="Wrap"/>
+                                    <!-- 反乱規模＝「n人(n%)」。(n%) の分母は自国人口（GameViewModel.Politics.cs の natPop にコメントあり）。⚠見出しの列定義（上）と同じ文字列に保つ -->
                                     <TextBlock Grid.Column="1" Text="{Binding Size}" Foreground="{StaticResource BronzeBrush}" FontSize="{StaticResource FontSmall}" TextAlignment="Right" VerticalAlignment="Center"/>
                                     <TextBlock Grid.Column="2" Text="{Binding Cohesion}" Foreground="{StaticResource BronzeBrush}" FontSize="{StaticResource FontSmall}" FontWeight="Bold" TextAlignment="Right" VerticalAlignment="Center"/>
                                     <!-- 末列＝F3b点火不等式の近接度（100%超＝蜂起圏＝警告赤）。見出しは点火中の式で切り替わる（戦力比／連言2門の近接度）。
@@ -161,21 +166,34 @@
 
         <!-- ================= 下段＝全幅（自国の軍事力でも自国の反乱でもない） ================= -->
         <!-- 他国の戦争への調停（列強の介入・プレイヤー側 2026-09-06）：AIと同じ述語で可否・理由を出す。
-             行が 題名＋状況＋ボタン の横並び＝半分の幅では潰れるので全幅の下段に置く。 -->
+             ★2026-09-23 作者指示「他国の戦争を二段組に」＝行を左→右の2列へ折り返す。
+             旧コメント「行が 題名＋状況＋ボタン の横並び＝半分の幅では潰れるので全幅」は**撤回**（潰れない形へ組み替えたため）
+             ＝題名／状況／ボタンを**縦積み**にする。横並び（旧 Grid *,Auto）のまま半分にすると左に 288−87−10＝191px しか残らず、
+             題名（最長級197.5px）が切れ、状況（262.6px）が2行に折り返す＝縦へ伸びて二段組の意味が無くなる。
+             幅の算術（1文字＝フォントサイズ×1.0（全角）／×0.5545（半角）。11pxで全角11.0・半角6.1と同じ比）：
+               ドックの内容幅＝PanelWidth 650 −枠1 −余白(14+22)＝**613px**。1段＝ItemWidth 298（上段の *,16,* と同じ数＝上下で縦の線が通る）。
+               298×2＝596 ≦ 613＝1行に2つ・3つ目から折り返す。溝 Margin 10 を引いた実効幅＝**288px**。
+               題名（FontEmph 14・太字）最長級「オーストリア ⚔ オスマン帝国」＝全角13＋半角2＝13×14＋2×7.76＝**197.5px** ≦ 288（1行）。
+               状況（FontSmall 12）「19ヶ月経過　スペインが優勢 +52%　列強でない」＝全角18＋半角7＝216＋46.6＝**262.6px** ≦ 288（1行）。
+               ボタン「調停を提案」＝Button.mini.dense（11px・Padding 4,2・枠1）＝5×11＋8＋2＝**65px**（dialog の 5×13＋20＋2＝87px から詰めた）。
+               ⚠状況の最悪形「120ヶ月経過　オーストリアが優勢 +100%　戦争が始まったばかり」＝全角25＋半角9＝300＋59.9＝359.9px は2行に折返す
+                 （切れない＝TextWrapping。1行に収まるのは全角24相当まで）。
+             ⚠ItemWidth 298 は PanelWidth（GameViewModel.cs:199）と結合＝ドック幅を変えるならここも直す。 -->
         <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Spacing="4">
             <Border Height="1" Background="{StaticResource SandBrush}" Margin="0,8,0,4"/>
             <TextBlock Text="他国の戦争（調停）" Classes="section" Margin="0,0,0,2"/>
             <ItemsControl ItemsSource="{Binding MediationRows}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate><WrapPanel Orientation="Horizontal" ItemWidth="298"/></ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="vm:MediationRow">
-                        <Border BorderBrush="{StaticResource SandLightBrush}" BorderThickness="0,0,0,1" Padding="0,4,0,6">
-                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
-                                <StackPanel Grid.Column="0" Spacing="2">
-                                    <TextBlock Text="{Binding Title}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontEmph}" FontWeight="Bold"/>
-                                    <TextBlock Text="{Binding Info}" Foreground="{StaticResource InkMutedBrush}" FontSize="{StaticResource FontSmall}" TextWrapping="Wrap"/>
-                                </StackPanel>
-                                <Button Grid.Column="1" Classes="dialog" Content="調停を提案" Command="{Binding $parent[UserControl].((vm:GameViewModel)DataContext).RequestMediateCommand}" CommandParameter="{Binding Key}" IsEnabled="{Binding CanMediate}" VerticalAlignment="Center"/>
-                            </Grid>
+                        <Border BorderBrush="{StaticResource SandLightBrush}" BorderThickness="0,0,0,1" Padding="0,4,0,6" Margin="0,0,10,0">
+                            <StackPanel Spacing="2">
+                                <TextBlock Text="{Binding Title}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontEmph}" FontWeight="Bold" TextTrimming="CharacterEllipsis"/>
+                                <TextBlock Text="{Binding Info}" Foreground="{StaticResource InkMutedBrush}" FontSize="{StaticResource FontSmall}" TextWrapping="Wrap"/>
+                                <Button Classes="mini dense" Content="調停を提案" Command="{Binding $parent[UserControl].((vm:GameViewModel)DataContext).RequestMediateCommand}" CommandParameter="{Binding Key}" IsEnabled="{Binding CanMediate}" HorizontalAlignment="Left" Margin="0,2,0,0"/>
+                            </StackPanel>
                         </Border>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>

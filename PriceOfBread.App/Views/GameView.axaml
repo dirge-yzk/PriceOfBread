@@ -20,13 +20,26 @@
              統計列は*幅＝有限幅で測られWrapPanelが自然に折返す（旧Auto列は無限幅測定で右側と重なるリスクがあった）。 -->
         <Border Grid.Row="0" Background="#E6DEC8" BorderBrush="{StaticResource SandDarkBrush}" BorderThickness="0,0,0,1" Padding="12,8" ZIndex="2">
             <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                <!-- ★2026-09-23（作者指示「文字数固定」）：桁が増減しても右の項目が動かないよう、可変長の項目に**画素の最小幅**を置く
+                     （既存の先例＝日付 Width=100・一時停止 Width=88）。⚠Width でなく MinWidth：見積りを超える値が来たとき
+                     Avalonia の TextBlock は固定 Width の行を黙ってクリップするが、MinWidth なら伸びる（切れない）。
+                     字の実寸＝11pxフォントで全角11.0・半角6.1。この行は FontLead=15（国名だけ18px太字）＝全角15.00／半角8.32。
+                       国庫:-£999.99M       113.2 → 114
+                       収支:＋£999.99M/月    143.2 → 144
+                       国債:£999.99M        104.9 → 106（⚠支払不能中は「　デフォルトまで12四半期」が続いて286.5px になる＝ここだけ伸びる）
+                       戦力余剰:100%        101.6 → 102
+                       地位「列強12位」(18px) 74.0 → 76
+                     ★ToolTip.ShowDelay 80→30（作者指示2026-09-23「詳細表示までの時間を減らす」）。遅延はこの属性1つで決まる（App.axaml に既定の Style は無い）。
+                     ⚠0 にはしない＝ヘッダーを横切っただけで吹き出しが出て、タブボタンや速度ボタンへ向かうカーソルの前に被る。 -->
                 <WrapPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="{Binding PlayerName}" FontWeight="Bold" FontSize="18" Margin="0,0,12,0" ToolTip.ShowDelay="80">
+                    <TextBlock Text="{Binding PlayerName}" FontWeight="Bold" FontSize="18" Margin="0,0,10,0" ToolTip.ShowDelay="30">
                         <ToolTip.Tip>
                             <TextBlock Text="{Binding PlayerScoreTip}" FontSize="{StaticResource FontSmall}"/>
                         </ToolTip.Tip>
                     </TextBlock>
-                    <TextBlock Text="{Binding TreasuryText}" VerticalAlignment="Center" FontSize="{StaticResource FontLead}" Margin="0,0,12,0" ToolTip.ShowDelay="80">
+                    <!-- 地位（列強12位／準列強／中堅／弱小）＝国名から割って固定幅に。動くのはこちら側（順位もランクも世界が動かす） -->
+                    <TextBlock Text="{Binding PlayerRankText}" FontWeight="Bold" FontSize="18" MinWidth="76" Margin="0,0,12,0" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding TreasuryText}" VerticalAlignment="Center" FontSize="{StaticResource FontLead}" MinWidth="114" Margin="0,0,12,0" ToolTip.ShowDelay="30">
                         <ToolTip.Tip>
                             <StackPanel Width="272" Spacing="4">
                                 <TextBlock Text="{Binding TreasuryHover.GraphTitle}" FontWeight="Bold" FontSize="{StaticResource FontSmall}"/>
@@ -39,12 +52,14 @@
                             </StackPanel>
                         </ToolTip.Tip>
                     </TextBlock>
-                    <!-- 国債（借入）＝国庫/収支のすぐ隣（2026-08-02ユーザー指示：収支と余剰戦力の間）。ホバーで内訳・支払不能で赤 -->
-                    <TextBlock Text="{Binding DebtHeaderText}" VerticalAlignment="Center" Foreground="{Binding DebtHeaderBrush}" FontSize="{StaticResource FontLead}" Margin="0,0,12,0" ToolTip.ShowDelay="80">
+                    <!-- ★2026-09-23：収支は国庫と**別の枠**にする（1枚だと箱の右端は止まっても中の収支の桁が動いて読み位置がずれる） -->
+                    <TextBlock Text="{Binding BalanceText}" VerticalAlignment="Center" FontSize="{StaticResource FontLead}" MinWidth="144" Margin="0,0,12,0"/>
+                    <!-- 国債（借入）＝国庫/収支のすぐ隣（2026-08-02ユーザー指示：収支と戦力余剰の間）。ホバーで内訳・支払不能で赤 -->
+                    <TextBlock Text="{Binding DebtHeaderText}" VerticalAlignment="Center" Foreground="{Binding DebtHeaderBrush}" FontSize="{StaticResource FontLead}" MinWidth="106" Margin="0,0,12,0" ToolTip.ShowDelay="30">
                         <ToolTip.Tip><TextBlock Text="{Binding DebtHeaderTip}" FontSize="{StaticResource FontSmall}"/></ToolTip.Tip>
                     </TextBlock>
                     <!-- 🚂鉄道/⚓船舶はヘッダから貿易タブへ移設（2026-07-24 §3-7・ヘッダに空きを作る） -->
-                    <TextBlock Text="{Binding ExpansionText}" VerticalAlignment="Center" Foreground="{StaticResource BronzeBrush}" FontSize="{StaticResource FontLead}" Margin="0,0,12,0" ToolTip.ShowDelay="80">
+                    <TextBlock Text="{Binding ExpansionText}" VerticalAlignment="Center" Foreground="{StaticResource BronzeBrush}" FontSize="{StaticResource FontLead}" MinWidth="102" Margin="0,0,12,0" ToolTip.ShowDelay="30">
                         <ToolTip.Tip>
                             <TextBlock Text="{Binding ExpansionTip}" FontSize="{StaticResource FontSmall}"/>
                         </ToolTip.Tip>
@@ -60,6 +75,8 @@
                          ⚠キーの実体は GameView.axaml.cs の KeyDown。ここは表示ラベルなので**両方を同時に直す**こと。 -->
                     <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                         <Button Classes="tab" Content="TAB:生産" Command="{Binding ToggleProdCommand}"/>
+                        <!-- ★2026-09-23作者指示：発見パネルにもボタンを置く（キー F は GameView.axaml.cs に既存・両方を同時に直すこと） -->
+                        <Button Classes="tab" Content="F:発見" Command="{Binding ToggleDiscoveryCommand}"/>
                         <Button Classes="tab" Content="{Binding DominanceModeLabel}" Command="{Binding ToggleDominanceModeCommand}" IsVisible="{Binding RuleSharesLive}"/>
                         <Button Classes="tab" Content="Q:財政" Command="{Binding SelectTabCommand}" CommandParameter="財政"/>
                         <Button Classes="tab" Classes.alert="{Binding PoliticsTabAlert}" Content="W:法律" Command="{Binding SelectTabCommand}" CommandParameter="法律"/>
@@ -88,18 +105,23 @@
             <ItemsControl Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,4,0,0" ItemsSource="{Binding HeaderStats}">
                 <!-- ★2026-08-02：**折り返さない**（作者指摘「ヘッダーが2段になっている。これは望んでいない」）。
                      WrapPanel だと項目が増えたぶんだけ段が増え、ヘッダーの高さが勝手に伸びて地図を押し下げていた。
-                     StackPanel（横）にして余白と字を詰め、13項目が1段に収まるようにする。 -->
+                     StackPanel（横）にして余白と字を詰め、12項目が1段に収まるようにする。
+                     ★2026-09-23の内訳＝GDP・技術水準・人口・識字率・満足度・不満度・闘争度・工業化・外資信用・行政力・正統性・国民意識
+                     ＝最小幅の合計1056px＋余白9px×12＝1164px（全画面1920なら可用1896px・1366でも可用1342pxで収まる）。 -->
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <StackPanel Orientation="Horizontal"/>
                     </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
+                <!-- ★2026-09-23（作者指示）：①各項目に**画素の最小幅**（BoxWidth）＝桁が動いても右の項目が動かない
+                     （⚠Width でなく MinWidth＝見積りを超える値で無言に切れるのでなく伸びる）。値の算術は Refresh.cs の stats の直前に一覧。
+                     ②ホバーは**折れ線だけ**＝説明API内訳（Terms）はここから撤去し、財政/政治/POPの各タブへ移した。 -->
                 <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="vm:HeaderStat">
-                        <Panel Margin="0,0,9,2">
+                        <Panel Margin="0,0,9,2" MinWidth="{Binding BoxWidth}">
                             <TextBlock Text="{Binding Text}" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontBody}" IsVisible="{Binding Plain}"/>
                             <TextBlock Text="{Binding Text}" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontBody}" IsVisible="{Binding HasHover}"
-                                       ToolTip.ShowDelay="80">
+                                       ToolTip.ShowDelay="30">
                                 <ToolTip.Tip>
                                     <StackPanel Width="272" Spacing="4">
                                         <TextBlock Text="{Binding GraphTitle}" FontWeight="Bold" FontSize="{StaticResource FontSmall}" TextWrapping="Wrap"
@@ -110,13 +132,6 @@
                                             </Canvas>
                                         </Border>
                                         <TextBlock Text="{Binding RangeText}" FontSize="{StaticResource FontTiny}" Foreground="{StaticResource InkMutedBrush}" IsVisible="{Binding HasGraph}"/>
-                                        <ItemsControl ItemsSource="{Binding Terms}" IsVisible="{Binding HasTerms}">
-                                            <ItemsControl.ItemTemplate>
-                                                <DataTemplate x:DataType="vm:StatTerm">
-                                                    <TextBlock Text="{Binding Text}" Foreground="{Binding Brush}" FontSize="{StaticResource FontSmall}"/>
-                                                </DataTemplate>
-                                            </ItemsControl.ItemTemplate>
-                                        </ItemsControl>
                                     </StackPanel>
                                 </ToolTip.Tip>
                             </TextBlock>
@@ -293,24 +308,6 @@
                         <TextBlock Text="{Binding MapHover.Title}" FontWeight="Bold" FontSize="{StaticResource FontTitle}" Foreground="{StaticResource InkBrush}"/>
                         <TextBlock Grid.Column="1" Text="ピン留め" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkMutedBrush}" VerticalAlignment="Center" IsVisible="{Binding HoverPinned}"/>
                     </Grid>
-                    <!-- ★支配度 §7（2026-09-07 作者指示「半円で」）：4区分の半円（幅140×高さ72）＋外周の帯（10年前の国家区分）＋凡例。区分が動く世界だけ（HasRule）。
-                         色＝国家:鋼青（議会と同じ「制度」）・在地:褐（Bronze）・外国:琥珀（Amber）・無統治:淡墨＝政治タブ（王権=金・革命=錆）と同時に見えるので金/錆は使わない（レビュー2026-09-07） -->
-                    <Grid ColumnDefinitions="Auto,12,*" IsVisible="{Binding MapHover.HasRule}">
-                        <Canvas Grid.Column="0" Width="140" Height="72" Background="Transparent">
-                            <Path Data="{Binding MapHover.RuleState, Converter={x:Static vm:Conv.PathData}}" Fill="{StaticResource SteelBrush}"/>
-                            <Path Data="{Binding MapHover.RuleLocal, Converter={x:Static vm:Conv.PathData}}" Fill="{StaticResource BronzeBrush}"/>
-                            <Path Data="{Binding MapHover.RuleForeign, Converter={x:Static vm:Conv.PathData}}" Fill="{StaticResource AmberBrush}"/>
-                            <Path Data="{Binding MapHover.RuleUngoverned, Converter={x:Static vm:Conv.PathData}}" Fill="{StaticResource InkFaintBrush}"/>
-                            <Path Data="{Binding MapHover.RuleBand, Converter={x:Static vm:Conv.PathData}}" Stroke="{StaticResource InkBrush}" StrokeThickness="2.5" Fill="{x:Null}"/>
-                        </Canvas>
-                        <StackPanel Grid.Column="2" Spacing="1" VerticalAlignment="Center">
-                            <Grid ColumnDefinitions="12,4,*,Auto"><Rectangle Width="10" Height="10" Fill="{StaticResource SteelBrush}" VerticalAlignment="Center"/><TextBlock Grid.Column="2" Text="国家" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontSmall}"/><TextBlock Grid.Column="3" Text="{Binding MapHover.RuleStateText}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkBrush}"/></Grid>
-                            <Grid ColumnDefinitions="12,4,*,Auto"><Rectangle Width="10" Height="10" Fill="{StaticResource BronzeBrush}" VerticalAlignment="Center"/><TextBlock Grid.Column="2" Text="在地" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontSmall}"/><TextBlock Grid.Column="3" Text="{Binding MapHover.RuleLocalText}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkBrush}"/></Grid>
-                            <Grid ColumnDefinitions="12,4,*,Auto"><Rectangle Width="10" Height="10" Fill="{StaticResource AmberBrush}" VerticalAlignment="Center"/><TextBlock Grid.Column="2" Text="外国" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontSmall}"/><TextBlock Grid.Column="3" Text="{Binding MapHover.RuleForeignText}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkBrush}"/></Grid>
-                            <Grid ColumnDefinitions="12,4,*,Auto"><Rectangle Width="10" Height="10" Fill="{StaticResource InkFaintBrush}" VerticalAlignment="Center"/><TextBlock Grid.Column="2" Text="無統治" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontSmall}"/><TextBlock Grid.Column="3" Text="{Binding MapHover.RuleUngovernedText}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkBrush}"/></Grid>
-                            <TextBlock Text="{Binding MapHover.RuleBandText}" FontSize="{StaticResource FontTiny}" Foreground="{StaticResource InkMutedBrush}" IsVisible="{Binding MapHover.RuleBandText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
-                        </StackPanel>
-                    </Grid>
                     <ItemsControl ItemsSource="{Binding MapHover.Lines}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
@@ -318,6 +315,28 @@
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
+                    <!-- ★支配度 §7（2026-09-07 作者指示「半円で」）：4区分の半円＋外周の帯（10年前の国家区分）＋凡例。区分が動く世界だけ（HasRule）。
+                         色＝国家:鋼青（議会と同じ「制度」）・在地勢力:褐（Bronze）・外国勢力:琥珀（Amber）・無統治:淡墨＝政治タブ（王権=金・革命=錆）と同時に見えるので金/錆は使わない（レビュー2026-09-07）
+                         ★2026-09-23：①箱を**幅70×高さ36**へ（VM は中心(35,35)・半径34で描いている＝GameViewModel.Map.cs:869。旧140×72だと半円が左上へ寄っていた）
+                         ②10年前の帯は半径32＝線の太さを 2.5→2 ③凡例を2×2の二段組 ④語を「在地」→「在地勢力」「外国」→「外国勢力」
+                         ⑤このブロックを**州の詳細の下へ**（作者指示「円グラフは詳細の下に」） -->
+                    <Grid ColumnDefinitions="Auto,10,*" Margin="0,4,0,0" IsVisible="{Binding MapHover.HasRule}">
+                        <Canvas Grid.Column="0" Width="70" Height="36" Background="Transparent">
+                            <Path Data="{Binding MapHover.RuleState, Converter={x:Static vm:Conv.PathData}}" Fill="{StaticResource SteelBrush}"/>
+                            <Path Data="{Binding MapHover.RuleLocal, Converter={x:Static vm:Conv.PathData}}" Fill="{StaticResource BronzeBrush}"/>
+                            <Path Data="{Binding MapHover.RuleForeign, Converter={x:Static vm:Conv.PathData}}" Fill="{StaticResource AmberBrush}"/>
+                            <Path Data="{Binding MapHover.RuleUngoverned, Converter={x:Static vm:Conv.PathData}}" Fill="{StaticResource InkFaintBrush}"/>
+                            <Path Data="{Binding MapHover.RuleBand, Converter={x:Static vm:Conv.PathData}}" Stroke="{StaticResource InkBrush}" StrokeThickness="2" Fill="{x:Null}"/>
+                        </Canvas>
+                        <!-- 凡例＝2列×2行（国家/在地勢力 上段・外国勢力/無統治 下段）＋帯の注記は下に全幅で1行 -->
+                        <Grid Grid.Column="2" ColumnDefinitions="*,14,*" RowDefinitions="Auto,Auto,Auto" VerticalAlignment="Center">
+                            <Grid Grid.Row="0" Grid.Column="0" ColumnDefinitions="12,4,*,Auto"><Rectangle Width="10" Height="10" Fill="{StaticResource SteelBrush}" VerticalAlignment="Center"/><TextBlock Grid.Column="2" Text="国家" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontSmall}"/><TextBlock Grid.Column="3" Text="{Binding MapHover.RuleStateText}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkBrush}"/></Grid>
+                            <Grid Grid.Row="0" Grid.Column="2" ColumnDefinitions="12,4,*,Auto"><Rectangle Width="10" Height="10" Fill="{StaticResource BronzeBrush}" VerticalAlignment="Center"/><TextBlock Grid.Column="2" Text="在地勢力" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontSmall}"/><TextBlock Grid.Column="3" Text="{Binding MapHover.RuleLocalText}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkBrush}"/></Grid>
+                            <Grid Grid.Row="1" Grid.Column="0" ColumnDefinitions="12,4,*,Auto"><Rectangle Width="10" Height="10" Fill="{StaticResource AmberBrush}" VerticalAlignment="Center"/><TextBlock Grid.Column="2" Text="外国勢力" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontSmall}"/><TextBlock Grid.Column="3" Text="{Binding MapHover.RuleForeignText}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkBrush}"/></Grid>
+                            <Grid Grid.Row="1" Grid.Column="2" ColumnDefinitions="12,4,*,Auto"><Rectangle Width="10" Height="10" Fill="{StaticResource InkFaintBrush}" VerticalAlignment="Center"/><TextBlock Grid.Column="2" Text="無統治" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontSmall}"/><TextBlock Grid.Column="3" Text="{Binding MapHover.RuleUngovernedText}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkBrush}"/></Grid>
+                            <TextBlock Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Text="{Binding MapHover.RuleBandText}" FontSize="{StaticResource FontTiny}" Foreground="{StaticResource InkMutedBrush}" IsVisible="{Binding MapHover.RuleBandText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                        </Grid>
+                    </Grid>
                 </StackPanel>
             </Border>
 
@@ -339,19 +358,28 @@
                     <Button Grid.Column="1" Classes="close" Content="✕" Command="{Binding CloseDiscoveryCommand}"/>
                 </Grid>
                 <Border DockPanel.Dock="Top" Height="1" Background="{StaticResource SandDarkBrush}"/>
+                <!-- ★2026-09-23（作者裁定「バーは廃止」「2段組みに」）：①ProgressBar を撤去して列を詰める（34,*,100,64 → 30,*,46）
+                     ②1列の DiscoveryRows を DiscoveryLeft／DiscoveryRight の2列へ（VM 側の派生プロパティ＝新しい状態は作らない。
+                       左を上から読み切って右へ＝並べ替え ByGate の全順序が2段でも保たれる）。
+                     寸法＝内容幅 650−枠1−左余白14−右余白22＝613px、2段で (613−16)/2＝298.5px、名前欄は 298.5−30−46−左余白6＝216.5px。
+                     最長行「電信・鉄道・汽船（報せの速さ）」は FontBody=13 で 195.0px＝収まる（全角13.00・半角7.21）。
+                     行の高さ＝字13px＋上下余白3+3≒23.4px、1793年仏の53行なら左27行＝約632px（全画面の可用およそ965pxに収まる）。
+                     ⚠可用高さの小さい窓では溢れる＝ScrollViewer は残す。⚠理論上の最長の組（財6字＋製法8字＝208.0px）だけは
+                       名前欄を超えうるので TextTrimming で末尾を「…」にする（無言で切らない）。 -->
                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                    <ItemsControl ItemsSource="{Binding DiscoveryRows}" Margin="14,10,22,14">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Grid ColumnDefinitions="34,*,100,64" Margin="0,3,0,3" ToolTip.Tip="{Binding Tip}">
+                    <Grid ColumnDefinitions="*,16,*" Margin="14,10,22,14">
+                        <Grid.Resources>
+                            <DataTemplate x:Key="DiscoveryRow" x:DataType="vm:DiscoveryRow">
+                                <Grid ColumnDefinitions="30,*,46" Margin="0,3,0,3" ToolTip.Tip="{Binding Tip}" ToolTip.ShowDelay="200" Background="Transparent">
                                     <TextBlock Grid.Column="0" Text="{Binding Kind}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource BronzeBrush}" VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="{StaticResource FontBody}" Foreground="{StaticResource InkBrush}" VerticalAlignment="Center" Margin="6,0,0,0"/>
-                                    <ProgressBar Grid.Column="2" Minimum="0" Maximum="1" Value="{Binding Pct}" Height="10" MinWidth="0" Foreground="#8A6D3B" Background="#E4DCC8" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                    <TextBlock Grid.Column="3" Text="{Binding PctText}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkSoftBrush}" VerticalAlignment="Center" HorizontalAlignment="Right"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="{StaticResource FontBody}" Foreground="{StaticResource InkBrush}" VerticalAlignment="Center" Margin="6,0,0,0" TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding PctText}" FontSize="{StaticResource FontSmall}" Foreground="{StaticResource InkSoftBrush}" VerticalAlignment="Center" HorizontalAlignment="Right"/>
                                 </Grid>
                             </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
+                        </Grid.Resources>
+                        <ItemsControl Grid.Column="0" ItemsSource="{Binding DiscoveryLeft}" ItemTemplate="{StaticResource DiscoveryRow}"/>
+                        <ItemsControl Grid.Column="2" ItemsSource="{Binding DiscoveryRight}" ItemTemplate="{StaticResource DiscoveryRow}"/>
+                    </Grid>
                 </ScrollViewer>
             </DockPanel>
         </Border>

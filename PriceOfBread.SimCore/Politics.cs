@@ -348,7 +348,7 @@ public static class Politics
             // POP動詞①（階級弾圧の表出抑制 express・常時1.0）は2026-07-20廃止＝第3段3-1で削除（2026-07-27・厳密恒等）。
             reformist += p.Size * p.Consciousness * (1 - p.Militancy);
             radical += p.Size * p.Consciousness * p.Militancy;
-            if (unionMob > 0 && !p.Closed && !p.IsModernElite && !p.IsSoldier)
+            if (unionMob > 0 && IsMassPop(p))
                 reformist += p.Size * p.Consciousness * unionMob;   // 組織労働の政治動員＝改革派を押し上げ
             // 窮乏チャネル（パンの蜂起＝1789）：意識が低くても、窮乏で闘争度が暴動水準を超えた群衆は革命的脅威になる
             // （飢えた群衆そのもの＝バスティーユ）。意識ゲートとは別経路で radical 挑戦力に上乗せ。平穏な大衆には発火しない＝徳川パス温存。
@@ -2077,13 +2077,33 @@ public static class Politics
     public static double RevolutionPressure(World w)
         => PoliticalQuantities.ChallengeRatio(w.ReformistPower + w.RadicalPower, PoliticalQuantities.EffectiveCoerce(w, w.Coef));
 
+    // 大衆（労働者・農民。兵士除く）の母集団＝**この1本だけ**（闘争度と不満度は二量分離の対＝分母の式を二度書かない）。
+    private static bool IsMassPop(Pop p) => !p.Closed && !p.IsModernElite && !p.IsSoldier;
+
     // 大衆（労働者・農民。兵士除く）の平均闘争度（人口に依らない水準）。高ければブルジョワが独裁化（ブルジョア独裁の引き金）
     public static double AvgMassMilitancy(World w)   // 戦争熱＝外征の出口にも使う
     {
         double mil = 0, size = 0;
         foreach (var p in w.AllPops())
-            if (!p.Closed && !p.IsModernElite && !p.IsSoldier) { mil += p.Militancy * p.Size; size += p.Size; }
-        return size > 1e-9 ? mil / size : 0;
+            if (IsMassPop(p)) { mil += p.Militancy * p.Size; size += p.Size; }
+        return !(size > 1e-9) ? 0 : mil / size;
+    }
+
+    /// <summary>★大衆の平均不満度∈[0,1]（2026-09-23）＝<see cref="AvgMassMilitancy"/> と**完全に同じ母集団・同じ人口加重**（二量分離の対）。
+    /// 中身は <see cref="Discontent"/> を per-pop に呼ぶだけ＝不満度の定義は1箇所（ここに第二の定義を書かない）。
+    /// ⚠**エンジンの読み手はゼロ**＝ガラス箱（画面に出すだけ）。参加の述語側も ParticipationDiscontent=0（既定）で不満度を1度も読まない。
+    /// ⚠純関数＝World に1ビットも書かない（<see cref="AvgMassMilitancy"/> と同じ作法）。
+    /// ⚠政体座標と法の隔たりは**国の量**＝pop ループの外で1回だけ取る（<see cref="Discontent"/> の注意書き・キャッシュは作らない＝World に置いた導出量は記憶である）。
+    /// ⚠分母が痩せたときのガードは否定形＝NaN も 0 へ（Math.Clamp は NaN を通す）。</summary>
+    public static double AvgMassDiscontent(World w)
+    {
+        var c = w.Coef;
+        double[] coord = PoliticalQuantities.DriftedPolityCoord(w.Polity, w.Suffrage, c);
+        double[] gap = c.DiscontentLawGap > 0 ? PolicyPreferences.LawGap(w) : [];
+        double dis = 0, size = 0;
+        foreach (var p in w.AllPops())
+            if (IsMassPop(p)) { dis += Discontent(w, c, p, coord, gap.Length > 0 ? gap[PolicyPreferences.BlocOf(p)] : 0) * p.Size; size += p.Size; }
+        return !(size > 1e-9) ? 0 : dis / size;
     }
 
     // 政変後：勝者・中立の不満は緩和、失脚した集団のPOPは反革命の激しい不満を抱く（国内が不安定化＝仏革命の再現）。
@@ -2099,7 +2119,7 @@ public static class Politics
         {
             bool deposed = (depTrad && p.Closed)
                         || (depModern && p.IsModernElite)
-                        || (depMass && !p.Closed && !p.IsModernElite && !p.IsSoldier);
+                        || (depMass && IsMassPop(p));
             if (deposed)
             {
                 p.Militancy = Math.Clamp(p.Militancy + c.DeposedMilitancySpike, 0, 1);   // 失脚＝反革命の激しい不満
@@ -2121,8 +2141,8 @@ public static class Politics
         // ★保有台帳（2026-09-21）：没収した国債も**同じ受け手・同じ按分**で渡す（国の保有の和は不変＝不変条件を保つ）。没収が0の側は +0.0＝貯蓄の分配はビット不変。
         if (confiscated > 0 || confiscatedBonds > 0)
         {
-            double ms = 0; foreach (var p in w.AllPops()) if (!p.Closed && !p.IsModernElite && !p.IsSoldier) ms += p.Size;
-            if (ms > 1e-9) { foreach (var p in w.AllPops()) if (!p.Closed && !p.IsModernElite && !p.IsSoldier) { p.Savings += confiscated * (p.Size / ms); p.BondHoldings += confiscatedBonds * (p.Size / ms); } }
+            double ms = 0; foreach (var p in w.AllPops()) if (IsMassPop(p)) ms += p.Size;
+            if (ms > 1e-9) { foreach (var p in w.AllPops()) if (IsMassPop(p)) { p.Savings += confiscated * (p.Size / ms); p.BondHoldings += confiscatedBonds * (p.Size / ms); } }
             else { double t = 0; foreach (var p in w.AllPops()) t += p.Size; if (t > 1e-9) foreach (var p in w.AllPops()) { p.Savings += confiscated * (p.Size / t); p.BondHoldings += confiscatedBonds * (p.Size / t); } }
         }
     }

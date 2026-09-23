@@ -57,7 +57,7 @@ public partial class GameViewModel
             using var bw = new System.IO.BinaryWriter(fs, System.Text.Encoding.UTF8, leaveOpen: true);
             bw.Write(SaveMagic);
             bw.Write(_playerIndex); bw.Write(_simDays); bw.Write(_dayInQuarterUI); bw.Write(_lastSampledYear);
-            List<double>[] lists = [_histInd, _histCredit, _histFin, _histPop, _histGdp, _histProd, _histTech, _histLit, _histSat, _histMil, _histCorr, _histFood, _histLeg, _histCons, _histMandate, _histTreasury, _histGini];   // 他20：_histFood追加・_histTreasury/_satHistory削除（保存/復元と同一の並び）。末尾に正統性・国民意識（2026-07-15）・政治資本（2026-07-16）・ジニ係数（2026-08-10）
+            List<double>[] lists = [_histInd, _histCredit, _histFin, _histPop, _histGdp, _histProd, _histTech, _histLit, _histSat, _histMil, _histCorr, _histFood, _histLeg, _histCons, _histMandate, _histTreasury, _histGini, _histDis];   // 他20：_histFood追加・_histTreasury/_satHistory削除（保存/復元と同一の並び）。末尾に正統性・国民意識（2026-07-15）・政治資本（2026-07-16）・ジニ係数（2026-08-10）・★不満度（2026-09-23＝末尾追加・GameViewModel.cs の targets と同一順）
             bw.Write(lists.Length);
             foreach (var l in lists) { bw.Write(l.Count); foreach (var v in l) bw.Write(v); }
             bw.Flush();

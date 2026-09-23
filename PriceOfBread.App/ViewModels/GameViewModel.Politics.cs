@@ -284,7 +284,13 @@ public partial class GameViewModel
             LegitPieCrown = lp.c; LegitPieParliament = lp.p; LegitPieArmy = lp.a; LegitTopText = lp.top;
             BudgetPieCrown = bp.c; BudgetPieParliament = bp.p; BudgetPieArmy = bp.a; BudgetTopText = bp.top;
             CommandPieCrown = mp.c; CommandPieParliament = mp.p; CommandPieArmy = mp.a; CommandTopText = mp.top;
-            LegitTip = LegitimacySplitText;
+            // ★2026-09-23：正統性の**説明API（ExplainLedger）の内訳**をこの半円のホバーへ足す（行は増やさない＝既存のセルのホバー）。
+            //   理由＝ヘッダーの「正統性」Stat（GameViewModel.Refresh.cs の StatGExplain）が畳まれると ExplainLedger の読み手が
+            //   UI から消えて死蔵になる。書式はそのヘッダーと**同じ F3**＝同じ量が2箇所で違う桁に見えない。
+            //   整形（＋/−・|Δ|<5e-4 の間引き・降順）は既存の ExplainTerms 1本を呼ぶだけ＝第二の式を置かない。
+            string legitTip = LegitimacySplitText;
+            foreach (var t in ExplainTerms("Legitimacy", v => v.ToString("F3"))) legitTip += "\n" + t.Text;   // 台帳が空（計測前・非プレイヤー）なら1行も足さない＝旧表示のまま
+            LegitTip = legitTip;
             BudgetTip = $"{BudgetLawName}　{BudgetPowerText}";
             CommandTip = $"{CommandLawName}　{CommandPowerText}";
             double c1 = ShareCrown, c2 = c1 + ShareParliament, c3 = c2 + ShareArmy;
@@ -399,6 +405,14 @@ public partial class GameViewModel
     private void RefreshFactions()
     {
         var rows = new List<FactionRow>();
+        // ★2026-09-23 作者指示「反乱勢力は規模欄に n人(n%) を表示」。
+        //   **(n%) の分母＝自国人口**（World.TotalPopulation＝分離独立で抜けた州を除く全popの和）。この分母を選ぶ理由は2つ：
+        //     ① エンジンの足切り（Factions.Step の MinSizeFraction）が **同じ w.TotalPopulation** を分母にしている＝画面の%を閾値とそのまま比べられる。
+        //     ② POPタブの規模「3187K(49%)」の分母と同じ＝タブ間で「%」の意味が割れない。
+        //   ⚠分子と分母の非対称（既知・エンジンも同じ）：分子 f.Size は **Active州のpop×参加の重み**の和、分母は Seceded を除く全州。
+        //     よって%は「国の人口のうち、この運動に参加している頭数の割合」＝100%を超えない（参加の重みは∈[0,1]）。
+        //   ⚠TotalPopulation は毎回全州全popを走査するプロパティ＝**行ごとに呼ぶとO(n²)**。ループの外で1回だけ取る。
+        double natPop = _player.TotalPopulation;
         // F3a（2026-07-12）：永続クラスタ（World.Factions＝結束・変異の旗を持つ運動体）があればそれを表示。
         // 無ければ従来のスナップショット（F2互換＝ロード直後や闘争度の低い平時）。
         if (_player.Factions.Count > 0)
@@ -438,7 +452,7 @@ public partial class GameViewModel
                 {
                     Key = display,
                     Name = display,
-                    Size = PopFmt(f.Size),
+                    Size = PopFmt(f.Size) + (!(natPop > 1e-9) ? "" : $"({f.Size / natPop:P0})"),   // 分母＝自国人口（上の natPop のコメント）。比の判定は否定形＝NaN も空へ落ちる
                     Cohesion = f.Cohesion.ToString("P0"),
                     Strength = ratio.ToString("P0"),
                     StrengthTip = tip,
@@ -457,7 +471,7 @@ public partial class GameViewModel
             {
                 Key = f.Name,
                 Name = f.Name,
-                Size = PopFmt(f.Size),
+                Size = PopFmt(f.Size) + (!(natPop > 1e-9) ? "" : $"({f.Size / natPop:P0})"),   // 永続クラスタ側と同じ分母・同じ書式（第二の式を置かない）
                 Cohesion = "—",   // スナップショット＝永続FactionState無し＝結束が定義されない
                 Strength = "—",   // スナップショット＝永続FactionState無し＝FactionStrengthが定義されない（結束・変異を持たない）
                 StrengthTip = "",

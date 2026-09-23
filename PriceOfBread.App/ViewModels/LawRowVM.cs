@@ -27,7 +27,7 @@ public sealed partial class LawStageVM : ObservableObject
 public sealed partial class LawRowVM : ObservableObject
 {
     private readonly World _w;
-    private readonly PolicyAxis? _axis;   // BuildLaws の全呼び出しが値を渡す＝常に非null
+    private readonly PolicyAxis? _axis;   // null＝**政治軸を持たない行**（財政タブのレバーの5段＝行政費/近代化投資/関税/政策金利・2026-09-23）。議会を通らないので門も代価も賛否も無い
     private readonly Func<int> _current;   // 施行中の段階（World の現在値）
     private readonly Func<int> _target;    // プレイヤーが置いた目標（Policy）
     private readonly Action<int> _setTarget;
@@ -65,16 +65,18 @@ public sealed partial class LawRowVM : ObservableObject
     public bool CanReach(int level)
     {
         if (level <= CurrentLevel) return true;
-        return Government.LawPrereq(_w, _axis.Value, level, _w.Coef).Ok;
+        if (_axis is not { } axis) return true;   // 軸の無い行＝前提法DAGが無い（レバーの段）
+        return Government.LawPrereq(_w, axis, level, _w.Coef).Ok;
     }
 
     // その段へ動く「次の一歩」(cur→cur±1)の情報（GateInfoは副作用なし）。降格方向にも純支持コストが要りうる。
     private (bool ok, double cost, string reason) NextStep(int level)
     {
         if (level == CurrentLevel) return (true, 0, "");
+        if (_axis is not { } axis) return (true, 0, "");   // 軸の無い行＝政治ゲートが無い（レバーの段）
         bool inc = level > CurrentLevel;
         int next = CurrentLevel + (inc ? 1 : -1);
-        return Government.GateInfo(_w, _axis.Value, inc, next);
+        return Government.GateInfo(_w, axis, inc, next);
     }
 
     /// <summary>制定できるか。前提法DAG＋純支持ゲート＋政治資本の在庫（★2026-09-21 裁定S1：純支持が負の段は残り a が代価に届くときだけ押せる＝GateInfo が施行と同じ1本を読む）＝AIと同一条件。</summary>
@@ -90,6 +92,7 @@ public sealed partial class LawRowVM : ObservableObject
     /// 2行目=「現在の段階」／「制定:可能（政治資本消費:n）」／「制定:不可（…）」、以降=勢力の賛否。データのみ＝規律準拠。</summary>
     public string StageHint(int level)
     {
+        if (_axis is null) return "";   // ★軸の無い行（レバーの段）＝代価も賛否も無く、段の値はボタンのラベルそのもの＝ホバーに出す情報が無い（空＝吹き出しを出さない）
         string head = $"{Title}:{Stages[level - _levelBase].Label}";   // どの段のホバーかをホバー自身が名乗る（段番号→ラベル添字）
         if (level == CurrentLevel) return head + "\n現在の段階";
         if (level > CurrentLevel && !CanReach(level))
@@ -155,6 +158,12 @@ public sealed partial class LawRowVM : ObservableObject
         if (cur == tgt)
         {
             Amendable = false; Detail = "";   // 変更なし＝現行段階のボタンが濃塗りで示す（重複表示しない）
+        }
+        else if (_axis is null)
+        {
+            // ★軸の無い行（レバーの段・2026-09-23）＝議会を通らないので代価も否決も無い。目標段の金枠だけが「置いた値と施行値の差」を語る
+            //   （行政費・関税・政策金利はエンジンが PolicyBaseSpeed で目標へ寄る＝数四半期は現行段と目標段が別になる）。
+            Amendable = false; Detail = "";
         }
         else
         {

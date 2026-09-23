@@ -31,7 +31,17 @@ public partial class GameViewModel
     public LawRowVM? PollTaxLaw { get; private set; }
     public LawRowVM? LandTaxLaw { get; private set; }
     public LawRowVM? EduSpendLaw { get; private set; }
-    public LawRowVM? MilitaryLaw { get; private set; }   // 軍事費の**合計**（陸海比は連続のつまみ＝GameViewModel.Fiscal の NavalShare）
+    public LawRowVM? MilitaryLaw { get; private set; }   // 軍事費の**合計**（陸海の比は2026-09-23にレバーごと廃止＝地理が置く＝UtilityAgent.SetNavalUpkeepShare）
+    /// <summary>社会保障の法（作者裁定2026-09-23＝法律タブから財政タブへ移設。金本位・資本移動と同じ扱い）。
+    /// 法としての扱いは不変（議会の政治ゲートを通る＝LawRowVM そのもの）＝置き場所だけが違う。法律タブからは外した（同じ法を2箇所に出さない）。</summary>
+    public LawRowVM? WelfareLaw { get; private set; }
+    // === レバーの5段（作者裁定2026-09-23「行政費・近代化投資・関税・金利のバーも5段のボタンにする」）＝**法ではない**4本。
+    //     PolicyAxis を持たない＝議会を通さない（行政費＝行政府の内部事項／関税はR3・近代化投資はR4・政策金利＝段の法の対象外、という既存の裁定は据え置き）。
+    public LawRowVM? AdminSpendLever { get; private set; }
+    public LawRowVM? ModernizeLever { get; private set; }
+    public LawRowVM? TariffLever { get; private set; }
+    public LawRowVM? RateLever { get; private set; }
+    private const int LeverStages = 4;   // レバーの段の**区間数**＝ボタンは5個（Government.TaxLawStages と同じ流儀＝段数を数字で散らさない）
     private LawRowVM[] _fiscalRows = [];
 
     // === 制度（研究C・2026-08-10 表示を新設）：特許制度・株式会社・鉄道。
@@ -101,7 +111,9 @@ public partial class GameViewModel
         // ★資本移動（トリレンマdoc・2026-08-13）。通貨制度の真下＝この2行の組が「金利が自分のものか」を決める（並べれば説明文は要らない＝思想⑦）。
         AddEcon("資本移動", PolicyAxis.CapitalMobility, ["自由", "規制"], () => w.CapitalControlLaw ? 1 : 0, () => p.CapitalControlTarget ? 1 : 0, v => p.CapitalControlTarget = v == 1, () => c.CapitalMobilityLawGate > 0);
         // 社会保障：最下段は救貧法（「なし」廃止＝救貧法が福祉水準0。2026-07-21）。4段＝target×3で写す（エンジン Government の導出と一致）。
-        Add("社会保障", PolicyAxis.SocialSecurity, ["救貧法", "労災", "失業保険", "年金"], () => (int)w.SocialSecurityLaw, () => Math.Clamp((int)Math.Round(p.SocialSecurityTarget * 3), 0, 3), v => p.SocialSecurityTarget = v / 3.0, () => c.SocialSecurityLawGate > 0);
+        // ★2026-09-23（作者裁定「社会保障の段を財政タブへ」）：行は **WelfareLaw** として財政タブの社会保障の金額行の直下に置く。
+        //   法律タブの「教育と労働」群からは外した（下の groups からも外してある）＝同じ法を2箇所に出さない。
+        WelfareLaw = new LawRowVM(w, PolicyAxis.SocialSecurity, "社会保障", ["救貧法", "労災", "失業保険", "年金"], () => (int)w.SocialSecurityLaw, () => Math.Clamp((int)Math.Round(p.SocialSecurityTarget * 3), 0, 3), v => p.SocialSecurityTarget = v / 3.0, () => c.SocialSecurityLawGate > 0);
         Add("秘密投票", PolicyAxis.SecretBallot, ["公開", "秘密"], () => (int)w.SecretBallot, () => (int)p.SecretBallot, v => p.SecretBallot = (SecretBallotLaw)v, () => c.SecretBallotGate > 0);
         Add("官僚制度", PolicyAxis.Bureaucracy, ["猟官制", "資格任用", "専門官僚"], () => (int)w.Bureaucracy, () => (int)p.Bureaucracy, v => p.Bureaucracy = (BureaucracyLaw)v, () => c.BureaucracyAdminSpread > 0);
         Add("国教", PolicyAxis.StateReligion, ["国教のみ", "内心の自由", "信仰の自由", "国家無神論"], () => (int)w.StateReligion, () => (int)p.StateReligion, v => p.StateReligion = (StateReligionLaw)v, () => c.StateReligionGate > 0);   // 国家無神論＝前提DAGでプロレタリア独裁のみ（例外①）
@@ -138,7 +150,7 @@ public partial class GameViewModel
         var groups = new (string Header, string[] Titles)[]
         {
             ("政治参加", ["参政権", "植民地参政権", "移民原住民参政権", "秘密投票", "報道", "国教"]),   // 参政権の範囲2法（2026-08-16）＝参政権の直後。見出しは先頭の「参政権」（常設行）に付く＝gate=0で2行が消えても見出しは残る
-            ("教育と労働", ["教育", "労働組合", "労働時間", "児童労働", "社会保障"]),
+            ("教育と労働", ["教育", "労働組合", "労働時間", "児童労働"]),   // ★2026-09-23：社会保障は財政タブへ移設（WelfareLaw）＝この群から外す。見出しは先頭の「教育」に付くので見出しは残る
             ("身分と土地", ["女性の権利", "穀物法", "土地改革", "農奴解放"]),
             ("国家と軍", ["徴兵法", "戦時配給", "軍需輸出"]),
             ("統治機構", ["官僚制度", "独占禁止"]),
@@ -185,7 +197,28 @@ public partial class GameViewModel
             () => (int)Math.Round(Government.MilitaryTotalTarget(w, p) * Government.MilitaryLawStages),
             v => p.MilitarySpendingTarget = v / (double)Government.MilitaryLawStages,
             levelBase: 1);
-        _fiscalRows = [IncomeTaxLaw, ProgressiveTaxLaw, PollTaxLaw, LandTaxLaw, EduSpendLaw, MilitaryLaw];
+        // ★レバーの5段（作者裁定2026-09-23）。4本とも既にスライダーの TickFrequency=0.05 の**21点の離散値**だったので、
+        //   5段化は**粗視化だけ**＝エンジンは1ビットも変わらない（書き込み口も既存のプロパティ setter をそのまま通る＝クランプを二重に書かない）。
+        //   段の値＝そのレバー自身の**下限と上限を4等分**して Government.Q5（エンジンの0.05格子）へ乗せた5点。
+        //   ⚠新しい上限・下限は1つも作らない（既存の TariffFloor／TariffCeil／InterestCeil／0..1 を読むだけ）＝関税は -25%/0%/25%/50%/最大。
+        //   ⚠格子へ乗せる理由＝施行側（Government）が Q5 を掛けるので、乗せないと「関税 13%　実効 15%」が永久に一致しない。
+        //   ラベルは値そのもの（画面はデータだけ）。最上段だけ「最大」＝そのレバーの上限（関税75%・政策金利50%・他は100%）。
+        double LeverValue(double lo, double hi, int k) => Government.Q5(lo + (hi - lo) * k / (double)LeverStages);
+        int LeverStage(double lo, double hi, double v)
+            => !(hi - lo > 1e-9) ? 0 : Math.Clamp((int)Math.Round((v - lo) / (hi - lo) * LeverStages, MidpointRounding.AwayFromZero), 0, LeverStages);   // 否定形＝NaN/退化した幅は最下段へ
+        LawRowVM Lever(string title, double lo, double hi, Func<double> cur, Func<double> tgt, Action<double> set)
+        {
+            var labels = new string[LeverStages + 1];
+            for (int i = 0; i < labels.Length; i++) labels[i] = i == LeverStages ? "最大" : LeverValue(lo, hi, i).ToString("P0");
+            return new LawRowVM(w, null, title, labels, () => LeverStage(lo, hi, cur()), () => LeverStage(lo, hi, tgt()), v => set(LeverValue(lo, hi, v)));
+        }
+        // 現在段＝**施行値**／目標段＝**目標値**（税の段と同じ写像）。書き込みは財政タブの既存プロパティ＝上限クランプと通知が1箇所に残る。
+        AdminSpendLever = Lever("行政費", 0, 1, () => w.AdminSpending, () => AdminSpending, v => AdminSpending = v);
+        ModernizeLever = Lever("近代化投資", 0, 1, () => w.ModernizationFrac, () => ModernizationInvest, v => ModernizationInvest = v);   // 目標と施行が同じ1本（World.ModernizationFrac）＝即時
+        TariffLever = Lever("関税", c.TariffFloor, TariffCeil, () => w.Tariff, () => Tariff, v => Tariff = v);
+        RateLever = Lever("政策金利", 0, InterestCeil, () => w.InterestRate, () => InterestLever, v => InterestLever = v);
+        _fiscalRows = [IncomeTaxLaw, ProgressiveTaxLaw, PollTaxLaw, LandTaxLaw, EduSpendLaw, MilitaryLaw,
+                       WelfareLaw, AdminSpendLever, ModernizeLever, TariffLever, RateLever];
     }
     private void RefreshLaws()
     {

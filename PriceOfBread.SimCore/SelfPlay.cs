@@ -895,10 +895,12 @@ public sealed class UtilityAgent : INationAgent
     ///   海軍シェアは作者仕様(5)で「払った金の比」になったので、地理は**AIが金をどう割るかの指針**へ役割を移した。
     /// ⚠これを配線し忘れていたため、全AI国が初期値10%の海軍シェアに永久固定され、1914年の海軍上位8国が
     ///   全てアジア・**英の艦隊が圏外**という実測になっていた（2026-08-04の実バグ・作者仕様(5)の実装漏れ）。
-    /// ⚠プレイヤー国（NullAgent）はこの関数を通らない＝プレイヤーが2本のスライダーで自分で決める。
+    /// ★2026-09-23（作者裁定「海軍の比率のレバーを撤去し、プレイヤーもAIと同じ地理由来の配分に乗せる」）：**プレイヤー国もこの関数を通る**。
+    ///   呼び手は Simulation.QuarterStart（IsPlayer の枝＝NullAgent には DecideQuarter が無いため）＝AI とまったく同じ関数・同じ引数。
+    ///   AI 国の経路（DecideQuarter の中のこの呼び出し）は1命令も変えていない＝AI挙動はビット恒等。internal＝同一アセンブリからの呼び出しのため。
     /// ⚠勢力の要求「海軍の増強」（PolicyAxis.NavyUpkeep・2026-08-10）とは**衝突しない**：要求は海軍維持費を上げる＝
     ///   合計を押し上げ、ここは合計を保ったまま比だけを置く。AIでは「要求で金が増え、割り方は地理」となる。</summary>
-    private static void SetNavalUpkeepShare(World w)
+    internal static void SetNavalUpkeepShare(World w)
     {
         if (w.SelfPower is not { } sp || w.Diplomacy is not { } dip) return;   // 単一国（テスト・較正）では走らせない
         double share = Math.Clamp(dip.GeoNavalShare(sp, w.Coef), 0, 1);
