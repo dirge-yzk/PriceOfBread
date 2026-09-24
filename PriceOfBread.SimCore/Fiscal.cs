@@ -396,7 +396,7 @@ public static class Fiscal
                 w.Explain?.Add("Legitimacy", "通貨改革(預金を焼いて記憶を消す)", w.Legitimacy - legBefore);
                 w.GoldParity = parity;
                 w.CurrencyReformCooldown = c.CurrencyReformCooldownMonths;
-                w.LogAdd($"{w.Year} {w.SelfPower?.Name}が通貨改革(新平価{parity:F2}・焼却{burn:F0})");
+                w.LogAdd($"{w.Year} {w.SelfPower?.Name}が通貨改革（新平価{parity:F2}・焼却{burn:F0}）");
             }
         }
 

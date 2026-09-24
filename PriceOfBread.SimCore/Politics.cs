@@ -1042,7 +1042,7 @@ public static class Politics
                 w.PendingSplitPolity = w.CivilWarTarget;   // 離脱側は自分たちの目標政体を持って出る（親の政体更新後では取れないので凍結）
                 w.CivilWarSplitCount++;
                 foreach (var p in w.AllPops()) p.Militancy *= c.ReformMilitancyRelief;   // 割れた＝両陣営とも矛を収める（勝敗と同じ緩和）
-                w.LogAdd($"{w.Year} {w.SelfPower.Name}の内戦が決着せず国が割れた({rebels.Count}州)");
+                w.LogAdd($"{w.Year} {w.SelfPower.Name}の内戦が決着せず国が割れた（{rebels.Count}州）");
                 return;
             }
         }
@@ -1298,7 +1298,7 @@ public static class Politics
             if (w.PendingFactionCrisis is { } prev && !ReferenceEquals(prev, best)) { prev.CrisisDemands = null; prev.CrisisDemandPos = null; }
             w.PendingFactionCrisis = best;
             RecordCrisisDemands(w, best);
-            w.LogAdd($"{w.Year} {w.SelfPower?.Name}で{Factions.DisplayName(best)}が要求を掲げた({w.PendingFactionCrisisDemands})");
+            w.LogAdd($"{w.Year} {w.SelfPower?.Name}で{Factions.DisplayName(best)}が要求を掲げた（{w.PendingFactionCrisisDemands}）");
             return;   // 通常の法改正の遅延＝翌四半期の Government.Step が目標を読む
         }
         MechanismProbe.Eval(MechanismProbe.Site.FactionConcede);
@@ -1318,7 +1318,7 @@ public static class Politics
             best.Rejections += 1;
             RecordCrisisDemands(w, best);
             MechanismProbe.Hit(MechanismProbe.Site.FactionCompensate);
-            w.LogAdd($"{w.Year} {w.SelfPower?.Name}が{Factions.DisplayName(best)}へ別の軸で譲歩した(本丸の要求は通っていない)");
+            w.LogAdd($"{w.Year} {w.SelfPower?.Name}が{Factions.DisplayName(best)}へ別の軸で譲歩した（本丸の要求は通っていない）");
             return;
         }
         ClearFactionCrisis(w);
@@ -1640,7 +1640,7 @@ public static class Politics
             double legBeforeRevolt = w.Legitimacy;
             w.Legitimacy = Math.Max(0, w.Legitimacy - c.RevoltSuppressLegitCost);   // 流血の記憶＝ストック正統性への直接の傷（regenで数年かけ回復）
             w.Explain?.Add("Legitimacy", "一揆鎮圧の流血(ストック正統性への傷)", w.Legitimacy - legBeforeRevolt);   // 説明API（#63）
-            w.LogAdd($"{w.Year} {w.SelfPower?.Name}が{worst.Name}の一揆を鎮圧(死者{dead:F0})");   // 3桁区切りは全廃（作者裁定2026-08-10・外交ログはUIの出来事へそのまま出る）
+            w.LogAdd($"{w.Year} {w.SelfPower?.Name}が{worst.Name}の一揆を鎮圧（死者{dead:F0}）");   // 3桁区切りは全廃（作者裁定2026-08-10・外交ログはUIの出来事へそのまま出る）
         }
         else
         {

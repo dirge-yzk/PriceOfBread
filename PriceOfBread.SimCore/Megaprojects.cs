@@ -64,7 +64,7 @@ public static class Megaprojects
     {
         if (!CanStart(w, mp)) return false;
         mp.Started = true;
-        w.Diplomacy?.Log.Add($"{w.Year} {mp.Name}が着工({w.SelfPower?.Name ?? "中立"})");
+        w.Diplomacy?.Log.Add($"{w.Year} {mp.Name}が着工（{w.SelfPower?.Name ?? "中立"}）");
         return true;
     }
 
@@ -105,7 +105,7 @@ public static class Megaprojects
                     hw.Legitimacy = Math.Clamp(hw.Legitimacy + coef.MegaprojectPrestige, 0, 1);
                     hw.Explain?.Add("Legitimacy", $"{mp.Name}の完成(国家事業の威信)", hw.Legitimacy - legBefore);
                 }
-                dip.Log.Add($"{hw.Year} {mp.Name}が完成({mp.Owner?.Name ?? "中立"})");
+                dip.Log.Add($"{hw.Year} {mp.Name}が完成（{mp.Owner?.Name ?? "中立"}）");
                 continue;
             }
             if (hw.TechLevel < mp.TechGate) continue;   // 技術ゲート＝時代を出す（暦年で発火させない＝台本禁止）
@@ -191,7 +191,7 @@ public static class Megaprojects
         if (best is null) return;
         mp.ForeignPartnerId = best.Id;
         mp.ForeignShare = coef.MegaprojectForeignShare;
-        dip.Log.Add($"{owner.Nation?.Year ?? 0} {mp.Name}に{best.Name}の資本が入った(持分{mp.ForeignShare:P0})");
+        dip.Log.Add($"{owner.Nation?.Year ?? 0} {mp.Name}に{best.Name}の資本が入った（持分{mp.ForeignShare:P0}）");
     }
 
     /// <summary>完成後の恒久的な対外流出＝外資が拠出した元本への利回り。保有国の国庫→外資国の国庫（保存は両建て）。

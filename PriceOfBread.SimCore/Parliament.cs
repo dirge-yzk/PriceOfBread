@@ -479,7 +479,7 @@ public static class Parliament
         if (!(moved >= c.ManifestoFulfillMove)) return;   // 否定形＝NaN も未達成側へ落とす
         w.ManifestoDone = true;
         w.ManifestoCredit += c.ManifestoFulfillCredit;
-        w.LogAdd($"{w.Year} {w.SelfPower?.Name}の与党が公約を果たした({FactionSnapshot.DemandJa(w.ManifestoAxis, w.ManifestoIncrease)})");
+        w.LogAdd($"{w.Year} {w.SelfPower?.Name}の与党が公約を果たした（{FactionSnapshot.DemandJa(w.ManifestoAxis, w.ManifestoIncrease)}）");
     }
 
     /// <summary>★E3（選挙doc §3-0-0）：公示イベントの生成＝**その時点で支持上位3つの思想**が議題を掲げる。

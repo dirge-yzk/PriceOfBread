@@ -5,6 +5,12 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
+    <!-- ★2026-09-25：テストは不変の文化で走らせる（Windows でも Linux でも同じ判定にする）。
+         xUnit の Assert.Contains/StartsWith/EndsWith(string) は現在の文化で比べ、日本語の文化は全角と半角（（と(・＋と+ 等）や
+         ひらがなとカタカナを同じ字と見なす＝戦闘ログの番人が Windows だけで目隠しされていた（クラウドの Ubuntu で初めて落ちた）。
+         1件ずつ Ordinal を書く方式は、これから書くアサートが同じ罠を踏むので設定1行で塞ぐ。Runner（Program.cs）も InvariantCulture。
+         ⚠この設定では ja-JP の CultureInfo を作れない＝テストから App の JaNameComparer（GameViewModel.Production.cs）に触ると例外になる。 -->
+    <InvariantGlobalization>true</InvariantGlobalization>
   </PropertyGroup>
 
   <ItemGroup>

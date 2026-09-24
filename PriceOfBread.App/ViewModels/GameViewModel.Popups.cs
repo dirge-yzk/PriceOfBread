@@ -87,7 +87,7 @@ public partial class GameViewModel
     {
         if (!CanDissolveParliament) return;
         Parliament.Dissolve(_player);
-        _sim.Diplomacy.Log.Add($"{_player.Year} {Me.Name}が議会を解散(総選挙へ)");
+        _sim.Diplomacy.Log.Add($"{_player.Year} {Me.Name}が議会を解散（総選挙へ）");
         OnPropertyChanged(nameof(CanDissolveParliament));
         Refresh();
     }

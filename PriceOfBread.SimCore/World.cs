@@ -1111,7 +1111,7 @@ public sealed class World
             dead += ApplyEpidemicDeaths(wr2, c, jitter, c.EpidemicIntraCountrySpread);
         PopulationDelta -= dead;
         EpidemicActiveYears = c.EpidemicContagiousYears;   // 感染窓を立てる＝以後この国は感染源（伝播）
-        LogAdd($"{Year} {wr.Name}で疫病が流行(死者{dead:F0}・{SelfPower?.Name})");
+        LogAdd($"{Year} {wr.Name}で疫病が流行（死者{dead:F0}・{SelfPower?.Name}）");
         return true;
     }
 

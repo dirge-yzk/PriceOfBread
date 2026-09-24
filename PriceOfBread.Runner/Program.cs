@@ -1342,6 +1342,55 @@ if (args.Length > 0 && args[0] == "deadprobe")
     return;
 }
 
+// === 戦死の計器： dotnet run -- casprobe [四半期=GameQuarters] [seed=1789] ===
+if (args.Length > 0 && args[0] == "casprobe")
+{
+    // ★戦死の計器（測定回 2026-09-24・再較正①・クラウドの cloud-wip/20260924 を査読して是正のうえ取り込み 2026-09-25）。
+    //   観測だけ（Diplomacy.CasualtyProbe＝この世界のインスタンスのフック・既定 null）＝世界を1ビットも変えない。
+    //   ①10年ごとの兵士の戦死（士官を除く）②兵士POPあたりの月戦死率 ③上限が効く月の割合 ④上限が効き始める Rate の分位。
+    //   ⚠人口の内部単位は千人＝戦死・兵士・人口は千人のまま小数で出す（整数へ丸めると月に数十人の戦死が 0 に消える）。
+    //   ⚠戦争の長さはここで測らない＝trenchprobe（EndedWars の終戦月数・時代区分）が持つ。
+    int cpQ = ArgInt(args, 1, Coefficients.GameQuarters);
+    ulong cpSeed = ArgUlong(args, 2, 1789);
+    var cpm = new MultiNationSim(WorldData.Nations(), cpSeed, _ => new UtilityAgent());
+    foreach (var nn in cpm.Nations) nn.TelemetryEnabled = false;
+    cpm.Diplomacy.Log.Enabled = false;
+    cpm.StartWarmup();
+    double cpRate = cpm.Coef.WarCasualtyRate, cpCapShare = cpm.Coef.WarCasualtyMonthlyCap;   // Diplomacy.Step が実際に読む共有の係数
+    var dec = new SortedDictionary<int, double[]>();   // 年代 → [戦死, 兵士POP月和, 交戦国月数, 上限張り付き月数, 世界人口（年代の最後の四半期）]
+    var rStar = new List<double>();                     // 国×月ごとの「上限が効き始める Rate」＝ Rate×上限/上限前
+    int cpYear = cpm.Nations[0].World.Year;
+    double[] Dec(int y) { int d = y / 10 * 10; if (!dec.TryGetValue(d, out var a)) dec[d] = a = new double[5]; return a; }
+    cpm.Diplomacy.CasualtyProbe = (force, soldiers) =>
+    {
+        double cap = soldiers * cpCapShare;   // WarCasualties の上限（兵士の WarCasualtyMonthlyCap/月）
+        var a = Dec(cpYear);
+        a[0] += Math.Min(force, cap); a[1] += soldiers; a[2] += 1; if (force >= cap) a[3] += 1;
+        rStar.Add(force > 1e-12 ? cpRate * cap / force : double.PositiveInfinity);
+    };
+    for (int q = 0; q < cpQ; q++)
+    {
+        cpYear = cpm.Nations[0].World.Year;   // この四半期の暦年（StepQuarter が年を送る前に読む）
+        cpm.StepQuarter();
+        Dec(cpYear)[4] = cpm.Nations.Sum(nn => nn.World.TotalPopulation);   // 毎四半期上書き＝年代の最後の四半期の値が残る
+    }
+    Console.WriteLine($"=== 戦死の計器（seed {cpSeed}・{cpQ}四半期・WarCasualtyRate={cpRate:G4}・上限＝兵士の{cpCapShare:P1}/月）人数の単位は千人 ===");
+    Console.WriteLine($"{"年代",-6}{"兵士の戦死",14}{"交戦国月",10}{"月戦死率",12}{"上限張付",10}{"世界人口",16}");
+    foreach (var (d, a) in dec)
+        Console.WriteLine($"{d,-6}{a[0],14:F2}{a[2],10:N0}{(a[1] > 0 ? a[0] / a[1] : 0),12:G4}{(a[2] > 0 ? a[3] / a[2] : 0),10:P1}{a[4],16:N0}");
+    double tc = dec.Values.Sum(a => a[0]), ts = dec.Values.Sum(a => a[1]), tm = dec.Values.Sum(a => a[2]), tk = dec.Values.Sum(a => a[3]);
+    Console.WriteLine($"{"計",-6}{tc,14:F2}{tm,10:N0}{(ts > 0 ? tc / ts : 0),12:G4}{(tm > 0 ? tk / tm : 0),10:P1}");
+    rStar.Sort();
+    double Pct(double f) => rStar.Count == 0 ? double.NaN : rStar[Math.Min(rStar.Count - 1, (int)(f * rStar.Count))];
+    Console.WriteLine($"上限が効き始める Rate の分位（交戦国月 {rStar.Count:N0}）：p10={Pct(0.1):G4} p25={Pct(0.25):G4} p50={Pct(0.5):G4} p75={Pct(0.75):G4} p90={Pct(0.9):G4}");
+    for (int k = 0; k <= 8; k++)   // 現行 Rate の 2^k 倍（×1〜×256）で何割の月が上限に張り付くか（静的な見積もり・軌道は据え置き）
+    {
+        double r = cpRate * (1 << k);
+        Console.WriteLine($"  Rate={r,-6:G4}（現行×{1 << k}）なら上限張り付き＝{(rStar.Count > 0 ? rStar.Count(x => x <= r) / (double)rStar.Count : 0):P1}");
+    }
+    return;
+}
+
 if (args.Length > 0 && args[0] == "firecheck")
 {
     int fcQ = ArgInt(args, 1, 524);

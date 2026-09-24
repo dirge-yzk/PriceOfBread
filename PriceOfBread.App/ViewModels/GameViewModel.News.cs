@@ -141,7 +141,7 @@ public partial class GameViewModel
             long id = powers[i].Id;
             double prevPurge = _prevTerror != null && _prevTerror.TryGetValue(id, out var pv) ? pv : w.TerrorPurgeCumulative;
             if (w.TerrorPurgeCumulative > prevPurge + 1e-6)
-                QueueNewsText("⚔", $"{powers[i].Name}で恐怖政治:旧支配層が粛清された({PopFmt(w.TerrorPurgeCumulative - prevPurge)})", NewsRed, w.Latitude, w.Longitude, mine);
+                QueueNewsText("⚔", $"{powers[i].Name}で恐怖政治:旧支配層が粛清された（{PopFmt(w.TerrorPurgeCumulative - prevPurge)}）", NewsRed, w.Latitude, w.Longitude, mine);
             if (_prevTerror != null) _prevTerror[id] = w.TerrorPurgeCumulative;
             // 外国経済イベント（外国経済の可視化doc §3-2・2026-07-24）：恐慌入り/回復・金本位の離脱/復帰・デフォルト・大凶作を既存の距離遅延網へ。
             // 自国分は既存の自国エッジ（恐慌/金本位/デフォルト＝即時）が流すため他国のみ＝二重にしない。Id基準＝建国/消滅の国数変動に強い。
@@ -157,12 +157,12 @@ public partial class GameViewModel
                 {
                     // ★語と閾値の1対1（2026-08-23）：>0.25＝恐慌／それ以下＝景気後退＝自国側の通知（ev_depression/ev_recession）と同じ分け方
                     string word = w.GdpPcDrawdown > DepressionSevereDrawdown ? "恐慌" : "景気後退";   // ★E2：以下この節は1人あたりで統一
-                    if (depN && !pe.Dep) { QueueNewsText("📉", $"{powers[i].Name}が{word}に入った(1人あたりの下落{w.GdpPcDrawdown:P0})", NewsRed, w.Latitude, w.Longitude, false); Annal("📉", $"{powers[i].Name}が{word}(下落{w.GdpPcDrawdown:P0})"); }
+                    if (depN && !pe.Dep) { QueueNewsText("📉", $"{powers[i].Name}が{word}に入った（1人あたりの下落{w.GdpPcDrawdown:P0}）", NewsRed, w.Latitude, w.Longitude, false); Annal("📉", $"{powers[i].Name}が{word}（下落{w.GdpPcDrawdown:P0}）"); }
                     else if (!depN && pe.Dep) QueueNewsText("📈", $"{powers[i].Name}の景気が回復した", NewsGreen, w.Latitude, w.Longitude, false);
                     if (w.OnGoldStandard && !pe.Gold) QueueNewsText("🪙", $"{powers[i].Name}が金本位制に加入した", NewsGold, w.Latitude, w.Longitude, false);
                     else if (!w.OnGoldStandard && pe.Gold) QueueNewsText("🪙", $"{powers[i].Name}が兌換を停止した", NewsGold, w.Latitude, w.Longitude, false);
                     if (w.HadSovereignDefault && !pe.Def) { QueueNewsText("💥", $"{powers[i].Name}が債務不履行に陥った", NewsRed, w.Latitude, w.Longitude, false); Annal("💥", $"{powers[i].Name}が債務不履行"); }
-                    if (famN && !pe.Fam) QueueNewsText("🌾", $"{powers[i].Name}が大凶作(収穫{w.HarvestFactor:P0})", NewsRed, w.Latitude, w.Longitude, false);
+                    if (famN && !pe.Fam) QueueNewsText("🌾", $"{powers[i].Name}が大凶作（収穫{w.HarvestFactor:P0}）", NewsRed, w.Latitude, w.Longitude, false);
                 }
                 _prevEconState[id] = (depN, w.OnGoldStandard, w.HadSovereignDefault, famN);
             }
@@ -174,7 +174,7 @@ public partial class GameViewModel
         string me = PlayerNationName;
         double dd = _player.GdpPcDrawdown, heat = _player.FinancialHeat, harvest = _player.HarvestFactor;   // ★E2：1人あたりで統一（外国側・初期基準値と同じ物差し）
         bool depression = _prevDepression ? dd > DepressionExitDrawdown : dd > DepressionDrawdown;   // ★ヒステリシス（2026-08-23）＝外国側と同じ2値
-        if (depression && !_prevDepression) { QueueNews(dd > DepressionSevereDrawdown ? "ev_depression" : "ev_recession", me, 0, 0, true, dd); Annal("📉", dd > DepressionSevereDrawdown ? $"{me}が恐慌(下落{dd:P0})" : $"{me}が景気後退(下落{dd:P0})"); }   // ★年代記の語も通知の分岐と一致させる
+        if (depression && !_prevDepression) { QueueNews(dd > DepressionSevereDrawdown ? "ev_depression" : "ev_recession", me, 0, 0, true, dd); Annal("📉", dd > DepressionSevereDrawdown ? $"{me}が恐慌（下落{dd:P0}）" : $"{me}が景気後退（下落{dd:P0}）"); }   // ★年代記の語も通知の分岐と一致させる
         bool famine = harvest < FamineHarvest;
         if (famine && !_prevFamine) QueueNews("ev_famine", me, 0, 0, true, harvest);
         bool heatHot = heat > FinancialHeatHot;
