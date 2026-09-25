@@ -107,6 +107,10 @@ public class WarThemeTests
         var sim = new MultiNationSim([NationConfig.France(), NationConfig.Britain()], seed: 1789);
         sim.Coef.WarDeclareTension = 1e9;   // 自発的な宣戦を止める（戦線は手で1本だけ立てる）
         sim.Run(20);                        // 兵士POP・国庫・海軍が立つまで（構築直後は軍も金も無い）
+        // ★2026-09-25：上陸ゲートを恒等値（0＝常に陸戦が起きる）へ固定。この盤面が測るのは台帳への配り方で、上陸の可否ではない。
+        //   旧は「20四半期後のフランスの制海権が閾値0.65を超えている」という軌道の偶然に乗っていた（HEAD 72b9468 で 0.69）。
+        //   満足度の分母を大衆へ揃えた回で軌道が動き 0.64 へ＝上陸ゲートが閉じて contact が0になり、3本が「前提が崩れた」で赤になった。
+        sim.Coef.SeaInvasionControlMin = 0;
         sim.Coef.WarCivilianToll = civilianToll;
         var fr = sim.Nations[0].World; var br = sim.Nations[1].World;
         var war = new War { A = fr.SelfPower!, B = br.SelfPower!, Score = -0.5 };   // A＝劣勢＝戦場になる側
@@ -184,6 +188,45 @@ public class WarThemeTests
         var ex = Record.Exception(() => sim.Run(120));   // §11.6（貨幣・人口保存）が全国・全ティックで走る
         Assert.Null(ex);
         Assert.True(sim.Nations.TrueForAll(n => n.World.TotalPopulation > 0), "国/人口が消えた");
+    }
+
+    // ===== 戦死の式の番人（2026-09-25・#17の再較正を WarCasualtyRate=8 据え置きで閉じた回）=====
+    // ⚠機構だけを見る：月の戦死（兵士）＝Rate×接触強度（上限前）で、兵士POP×WarCasualtyMonthlyCap で頭打ちになる。
+    //   上限の下では兵の頭数にも自軍の Military にも依らない（CasualtiesFromContact=1）。史実の桁との照合は計器 casprobe と帯が見る。
+    //   統制盤面＝OneFront の世界に、接触強度を手で渡して WarCasualties を直に呼ぶ（接触は StepWars が戦線から作る量＝ここでは入力）。
+    [Fact]
+    public void 戦死は接触強度に比例し月次上限で頭打ちになる()
+    {
+        var (sim, _, fr, _) = OneFront(new Coefficients().WarCivilianToll);
+        var c = sim.Coef; var p = fr.SelfPower!;
+        Assert.Equal(1.0, c.CasualtiesFromContact);   // 前提：基準は接触（0なら Military 基準の旧経路）
+        double s0 = fr.SoldierSize();
+        Assert.True(s0 > 0, "前提が崩れた：兵士POPが居ない");
+        double capContact = s0 * c.WarCasualtyMonthlyCap / c.WarCasualtyRate;   // この接触で上限にちょうど届く
+
+        // (1) 上限の十分下：兵士の減り＝Rate×接触（制空は中立0.5＝×1.0）
+        double x = 0.01 * capContact;
+        sim.Diplomacy.WarCasualties(p, c, x);
+        double d1 = s0 - fr.SoldierSize();
+        Assert.True(Math.Abs(d1 - c.WarCasualtyRate * x) <= 1e-9 * d1, $"戦死が Rate×接触 でない（実 {d1:G17} 期待 {c.WarCasualtyRate * x:G17}）");
+        // (2) 接触を倍にすると戦死も倍（兵の頭数は(1)で減っているが上限の下では読まない）
+        double s1 = fr.SoldierSize();
+        sim.Diplomacy.WarCasualties(p, c, 2 * x);
+        double d2 = s1 - fr.SoldierSize();
+        Assert.True(Math.Abs(d2 - 2 * d1) <= 1e-9 * d2, $"接触を倍にしても戦死が倍にならない（{d1:G17} → {d2:G17}）");
+        // (3) 接触0＝出血0
+        double s2 = fr.SoldierSize();
+        sim.Diplomacy.WarCasualties(p, c, 0.0);
+        Assert.Equal(s2, fr.SoldierSize());
+        // (4) 上限を大きく超える接触：兵士の減り＝その時点の兵士×月次上限（接触をさらに10倍にしても割合は同じ）
+        foreach (double k in new[] { 1e3, 1e4 })
+        {
+            double sb = fr.SoldierSize();
+            sim.Diplomacy.WarCasualties(p, c, k * capContact);
+            double d = sb - fr.SoldierSize();
+            Assert.True(Math.Abs(d - sb * c.WarCasualtyMonthlyCap) <= 1e-9 * d,
+                $"上限で頭打ちにならない（接触×{k:G}：実 {d:G17} 上限 {sb * c.WarCasualtyMonthlyCap:G17}）");
+        }
     }
 
 }

@@ -769,7 +769,7 @@ public sealed class World
     public double CrimeRate { get; internal set; }             // 月次の窃盗率（最悪地域・貯蓄比）。秩序の崩れ×困窮大衆で湧く（ガラス箱・警告用）
     public double ReformistPower { get; internal set; }
     public double RadicalPower { get; internal set; }
-    public double MeanSatisfactionPol { get; internal set; }   // 全国民の人口加重平均満足度＝経済危機の指標。一党支配→独裁化（ブルジョア/プロレタリア）は満足度が低い危機国のみ（ワイマール型）＝満足した安定な立憲（英・米）を巻き込まない。実装＝NationalScore.MeanSatisfaction（第5段5-1で一元化・Politics.Stepがpop更新後に代入＝従来と同時点）
+    public double MeanSatisfactionPol { get; internal set; }   // 大衆（Politics.IsMassPop＝闘争度・不満度と同じ母集団・2026-09-25 に全国民から変更）の人口加重平均満足度＝経済危機の指標。一党支配→独裁化（ブルジョア/プロレタリア）は満足度が低い危機国のみ（ワイマール型）＝満足した安定な立憲（英・米）を巻き込まない。実装＝NationalScore.MeanSatisfaction（第5段5-1で一元化・Politics.Stepがpop更新後に代入＝従来と同時点）
     public double CivilWarYears { get; internal set; }   // 内戦の残り年数（>0＝内戦中）。拮抗した暴力革命/分離独立で発生＝即フリップせず数年の戦乱
     /// <summary>★B3（実バグ21件・2026-09-07）：「内戦中か」の述語を1本に。旧経路＝CivilWarYears>0。内戦一元化（CivilWarAsWar）の主経路は
     /// CivilWarYears を書かず War（CivilWarParent 付き）で戦うので、経済麻痺・軍需2倍・同盟の参戦判断・選挙停止・軍の実戦・国民形成の危機の6読み手が沈黙していた。

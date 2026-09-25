@@ -7426,7 +7426,7 @@ if (args.Length > 0 && args[0] == "classprobe")
 // 試合1＝初心者スクリプト（App と同じ IsPlayer+NullAgent。UIが呼ぶのと同じ公開動詞だけで監査4-3の①〜⑦を毎四半期実行）、
 // 試合2＝同シードで全AI（対照）。両試合の5年ごとの順位軌跡（序列＝NationalScore.Standing・全国家中）と最終順位差を出す。
 // 手＝①法を1本ずつ（幽霊戦線を作らない） ②近代化投資0.6 ③平時軍事費0/交戦中1.0×2+総動員（講和で復員） ④国営軽工業を州ごと+1（国庫>建設費×4の節度）
-//     ⑤主要輸出財トップ3へ補助金100% ⑥最後通牒は常に受諾（拒否無限の穴） ⑦満足度<0.5で社会保障+0.05。
+//     ⑤主要輸出財トップ3へ補助金100% ⑥最後通牒は常に受諾（拒否無限の穴） ⑦満足度<0.51で社会保障+0.05（2026-09-25 に0.5から写像）。
 // 除外手＝1変数OFF走（寄与の切り分け）。⑥をOFFにすると最後通牒は常に開戦を選ぶ。除外手指定時は対照（試合2）を省略＝除外なし走の試合2と同一なので。
 if (args.Length > 0 && args[0] == "noviceprobe")
 {
@@ -7568,7 +7568,8 @@ if (args.Length > 0 && args[0] == "noviceprobe")
                             foreach (int g in subsidyGoods) pw.SetSubsidyRate(ri, g, 1.0);
                         }
                 }
-                if (!nvOff.Contains(7) && NationalScore.MeanSatisfaction(pw) < 0.5)
+                // 手⑦の門：★2026-09-25 MeanSatisfaction の分母を大衆のみへ揃えたので分位の写像で 0.5→0.51（旧分布の下から38.77%・satqmap seed1-3×668Q・2回目0.5102）
+                if (!nvOff.Contains(7) && NationalScore.MeanSatisfaction(pw) < 0.51)
                     pw.Policy.SocialSecurityTarget = Math.Min(1.0, pw.Policy.SocialSecurityTarget + 0.05);
             }
 

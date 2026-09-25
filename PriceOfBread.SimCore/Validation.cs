@@ -10,7 +10,7 @@ public sealed record NationMetrics(
     string Name,
     double TechLevel,
     double Industrialization,
-    double MeanSatisfaction,    // 人口加重の満足度（全地域）
+    double MeanSatisfaction,    // 人口加重の満足度（全地域・大衆のみ＝NationalScore.MeanSatisfaction・2026-09-25）
     double PriceFloorFrac,      // 床(≤0.051×参照価格)に張り付く財の割合（本拠地市場）
     double PriceCeilFrac,       // 天井(≥19.9×参照価格)に張り付く財の割合
     double PriceMidFrac,        // 中間＝健全な価格発見の割合（高いほど良い＝二極化の逆指標）
@@ -108,8 +108,9 @@ public static class Metrics
         {
             var w = n.World;
             var r = w.Region;   // 本拠地（価格分布の代表。他州は満足度・人口側で合算）
-            double satS = 0, popS = 0, litS = 0;
-            foreach (var p in w.AllPops()) { satS += p.Satisfaction * p.Size; popS += p.Size; litS += p.Literacy * p.Size; }
+            // ★2026-09-25：満足度は唯一の実装 NationalScore.MeanSatisfaction を呼ぶ（旧＝同じ式の手書きの複製＝全POP）。識字は全POPのまま。
+            double popS = 0, litS = 0;
+            foreach (var p in w.AllPops()) { popS += p.Size; litS += p.Literacy * p.Size; }
             int floor = 0, ceil = 0, mid = 0, ng = 0;
             foreach (var g in r.Goods)
             {
@@ -121,7 +122,7 @@ public static class Metrics
             }
             nations.Add(new NationMetrics(
                 w.Region.Name, w.TechLevel, r.TotalIndustrialization,   // 工業化の差別化ガードも新旧合計で測る（ヴィンテージ2026-07-10）
-                popS > 0 ? satS / popS : 0,
+                NationalScore.MeanSatisfaction(w),
                 ng > 0 ? (double)floor / ng : 0,
                 ng > 0 ? (double)ceil / ng : 0,
                 ng > 0 ? (double)mid / ng : 0,
@@ -213,10 +214,13 @@ public static class Validation
         //   ⇒ 比べる相手を「全国×四半期の国の平均満足度」に取る（隔離計器 tiersatprobe・seed1-3×604Q）。
         //   旧0.55/0.45/0.38/0.30 の旧分布での分位＝13.9%/4.0%/0.9%/0.01% → 新分布の同じ分位＝0.26/0.11/0.07/0.04（2回目。1回目は 0.25/0.12/0.07/0.04）。
         //   ⚠0.01%（11万標本の下から約11件）は推定できない裾＝2回目の推定は床の0.00に落ちた（注意帯が空洞になる）→ 1回目の0.04を残す。
-        Higher("満足度・平均", m.MeanSat, 0.26, 0.11);
+        // ★2026-09-25：満足度の分母を大衆のみ（Politics.IsMassPop）へ揃えたので、同じ手順で4本を導き直した（隔離計器 satqmap・seed1-3×668Q・
+        //   q＝旧（全POP）分布で「値＜旧値」の割合 → 新（大衆）分布の q 分位・2回目を小数2桁で採用）。
+        //   平均 合格 0.26（q 11.40%）→0.24／注意 0.11（2.55%）→0.09・最小国 合格 0.07（0.56%）→0.05／注意 0.04（0.13%）→0.02（2回目 0.0238）。
+        Higher("満足度・平均", m.MeanSat, 0.24, 0.09);
         checks.Add(new Check("満足度・最小国",
-            m.WorstSat >= 0.07 ? Verdict.Pass : m.WorstSat >= 0.04 ? Verdict.Warn : Verdict.Fail,
-            $"{m.WorstSat:F2}（{m.WorstSatName}{m.WorstSatDetail}）", "≥0.07合格 / ≥0.04注意"));   // ★誰がなぜ壊れたかを添える（H-02）
+            m.WorstSat >= 0.05 ? Verdict.Pass : m.WorstSat >= 0.02 ? Verdict.Warn : Verdict.Fail,
+            $"{m.WorstSat:F2}（{m.WorstSatName}{m.WorstSatDetail}）", "≥0.05合格 / ≥0.02注意"));   // ★誰がなぜ壊れたかを添える（H-02）
         Higher("工業化の差別化", m.IndustrializationSpread, 0.50, 0.20);
         Truth("戦争が起きる", m.Wars >= 1, $"{m.Wars}件");
         Truth("交易が成立", m.TradeVolume > 0.01, m.TradeVolume.ToString("F2"));

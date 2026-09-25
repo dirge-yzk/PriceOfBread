@@ -258,7 +258,10 @@ public sealed class Coefficients
     //   比べる相手＝立憲/共和・議会ありの国×四半期の MeanSatisfactionPol（隔離計器 tiersatprobe・seed1-3×604Q）。
     //   旧0.66は旧分布の下から11.2%（旧の注記「英0.87/米0.90」は実測の旧分布では再現しない＝旧の国平均の中央値は0.69）→ 新分布の11.2%分位
     //   ＝1回目0.40（分割＋飢餓の駆動だけの世界）→ 2回目0.42（門の写像・連続の読み手の付け替えまで入れた世界。写像は2回で打ち切り）。
-    public double DominanceInstabilitySatisfaction = 0.42;
+    // ★2026-09-25 満足度の分母を大衆のみ（Politics.IsMassPop）へ揃えたので同じ手順で導き直し（隔離計器 satqmap・seed1-3×668Q・立憲/共和×議会の標本）：
+    //   旧0.42は旧（全POP）分布の下から7.01%（HEAD の世界は 09-22 の狙い11.2%からずれている＝q は HEAD の668Q で取り直した）
+    //   → 新（大衆）分布の7.01%分位＝1回目0.4530 → 2回目0.4295 → 0.43（写像は2回で打ち切り）。
+    public double DominanceInstabilitySatisfaction = 0.43;
     public double ConstMonarchyErosion = 0.02;       // 立憲君主制：議会の反王党派（自由+社会の議席）が王冠の正統性を削る＝議会優勢→共和へ（君主の形骸化）。**ストック意味論＝旧0.2×regen0.02**
     public double ParliamentLawWeight = 1.2;          // 法案可決/スライダー律速に効く議席の重み（議席×党選好を NetSupport/OpposingPower に加算）。社会党多数→富裕ブロックの梯子を票で乗り越え参政権拡大＝選挙が法を動かす
     public double LandReformRentCap = 0.3;            // 土地改革：RGO地代（地主取り分）の上限（地代>0.3の国を再分配。小作0.5も自作0.3へ）
@@ -856,7 +859,10 @@ public sealed class Coefficients
     // 平穏線を割った充足の不足幅→信頼目標の下げ感応度。★2026-09-22 分位の写像で導き直し（下の ConfidencePivot と対）：
     //   旧5.0＝「平穏線0.65から0.2割る（水準0.45）で目標0」。水準0.45は旧分布（全国×四半期の平均満足度）の下から4.0%→ 新分布の4.0%分位＝0.11（2回目）
     //   ＝新しい平穏線0.48から0.37割ると目標0 → 1/0.37≈2.7（2つの錨＝平穏線と信頼0の水準を両方とも同じ分位へ写す＝傾きは導出。1回目は 0.43/0.12→3.2）。
-    public double PanicSensitivity = 2.7;
+    // ★2026-09-25 満足度の分母を大衆のみ（Politics.IsMassPop）へ揃えたので同じ手順で導き直し（隔離計器 satqmap・seed1-3×668Q・全国×四半期）：
+    //   旧の信頼0の水準 0.48−1/2.7＝0.1096 は旧（全POP）分布の下から2.53% → 新（大衆）分布の2.53%分位＝1回目0.0861 → 2回目0.0872 → 0.09
+    //   ＝新しい平穏線0.49から0.40割ると目標0 → 1/(0.49−0.09)＝2.5（旧2.7）。
+    public double PanicSensitivity = 2.5;
     public double DrawdownPanic = 3.0;        // 景気後退（トレンドGDPのピーク比収縮）→信頼目標の下げ感応度（収縮10%＝目標−0.3）。4.0は大恐慌77%と過多→3.0で適度。※十分の一税後の恐慌増は不作主導でこの信用ノブでは下がらない（HarvestVariation/税率が効く）
     // シティ型恐慌（A・最終調整2026-06-29・ユーザー指示「恐慌で覇権を揺るがす」）：与信過熱(Heat)そのものが信頼を脆くする＝最も金融化した経済（深い与信＝高Heat）ほど
     // 好況の絶頂でミンスキー暴落する。満足度が高くても過剰レバレッジなら崩れる＝覇権国（ロンドンのシティ）が自らの与信バブルで定期的に恐慌入りする経路。
@@ -868,12 +874,18 @@ public sealed class Coefficients
     //   （Credit の avgSat・隔離計器 tiersatprobe・seed1-3×604Q）。旧0.65は旧分布の下から39.1%→ 新分布の39.1%分位＝1回目0.43→2回目0.48
     //   （1回目の値で再測定すると分位が32.6%へ6.5pt ずれた＝門の写像と連続の読み手の付け替えの帰還。写像は2回で打ち切り）。
     //   ⚠この門は分割の後「大衆の食卓」ではなく日用品の充足を見る（食料の欠乏は闘争度の側へ移った）＝銀行は日用品の買い控え（消費の冷え）で身構える。
-    public double ConfidencePivot = 0.48;
+    // ★2026-09-25 満足度の分母を大衆のみ（Politics.IsMassPop）へ揃え、Credit の avgSat も NationalScore.MeanSatisfaction を呼ぶ形にした（旧＝全POPの手書きの複製）。
+    //   同じ手順で導き直し（隔離計器 satqmap・seed1-3×668Q・全国×四半期）：旧0.48は旧（全POP）分布の下から36.61%
+    //   → 新（大衆）分布の36.61%分位＝1回目0.4915 → 2回目0.4903 → 0.49。
+    public double ConfidencePivot = 0.49;
     // --- B-3 金融危機：銀行取り付け・最後の貸し手・民間負債デフレ伝播。すべて Confidence/maxLoans 経由＝実Loans変化は既存の保存安全コードを通る ---
     // 預金者パニック：充足が平穏線を割った不足幅→実効準備(maxLoans)の縮み（正貨逃避）。取り付けは信頼(貸し手意欲)と別チャネル。
     // ★2026-09-22 分位の写像で導き直し：旧2.0＝「平穏線0.65から0.25割る（水準0.40）で上限 BankRunMax=0.5 に飽和」。水準0.40は旧分布の下から1.6%
     //   → 新分布の1.6%分位＝0.08＝新しい平穏線0.48から0.40割ると飽和 → 0.5/0.40＝1.25（1回目は 0.43/0.08→1.4）。
-    public double BankRunSensitivity = 1.25;
+    // ★2026-09-25 満足度の分母を大衆のみ（Politics.IsMassPop）へ揃えたので同じ手順で導き直し（隔離計器 satqmap・seed1-3×668Q・全国×四半期）：
+    //   旧の飽和の水準 0.48−0.5/1.25＝0.08 は旧（全POP）分布の下から0.96% → 新（大衆）分布の0.96%分位＝1回目0.0544 → 2回目0.0559 → 0.06
+    //   ＝新しい平穏線0.49から0.43割ると飽和 → 0.5/(0.49−0.06)＝1.16（旧1.25）。
+    public double BankRunSensitivity = 1.16;
     public double BankRunMax = 0.5;           // 取り付けによる実効準備の最大縮小率（0.5＝半分まで）
     public double LolrHeatTrigger = 0.9;      // 最後の貸し手の発動：与信過熱度(Heat)がこれ超で危機と判定
     public double LolrDrawdownTrigger = 0.10; // 同：景気後退(GdpDrawdown)がこれ超で危機と判定
@@ -1611,8 +1623,24 @@ public sealed class Coefficients
     public double GovCostVassalThreshold = 0.4;   // 講和の圧勝後：敗者の統治コスト（民族距離0.5＋宗教距離0.5）がこれ以上＝異民族/異教で直接統治が高コスト→属国化（間接統治）／未満＝同族で安く併呑→追加割譲
     public double AllianceBreakTension = 50;      // 同盟国間の緊張がこれを超えると同盟が崩れる（強国は孤立へ）
     public double WarMilitancyRate = 0.004;       // 自国の交戦が pop の闘争度を上げる（戦争疲弊の内政コスト）。⚠WarMilitancyViaTarget>0.5（既定）では不読＝旧経路
-    public double WarCasualtyRate = 8.0;          // 戦死＝交戦兵力(Military)×これ/月。改修2026-06-28：24→8（15%/月上限と相まって年率80%超は桁外れ＝WWI動員の10〜20%/年の一桁過大）。総力戦でも史実水準へ
-    public double WarCasualtyMonthlyCap = 0.04;   // 戦死の月次上限＝兵士の これ（改修2026-06-28：0.15→0.04＝総力戦で年〜40%。膠着戦は WarCasualtyRate×Military で更に低消耗）
+    // 戦死（上限前）＝接触強度×これ/月（CasualtiesFromContact=1：接触＝各戦線の min(aPush,bPush) の和＝投射・戦費充足・上陸・制空を織り込んだ「実際にぶつかった量」）。
+    //   改修2026-06-28：24→8（当時は交戦兵力 Military 基準。15%/月上限と相まって年率80%超は桁外れ＝WWI動員の10〜20%/年の一桁過大）。
+    // ★2026-09-25 **#17の再較正はこれで閉じた＝据え置き 8**（診断＝戦死の計器 casprobe・668四半期・seed1/2/3・世界全体の兵士の戦死・上限後・将校を除く）。
+    //   ⚠前提「英で月21人＝史実の約1/40（アブレーションの16.4倍）なので上げる」は世界×全期で測ると成り立たない（seed1 の英の台帳 533k＝史実の主な戦争の合計 1.69〜1.86M の約0.3倍）。
+    //   錨＝係数が支配する世界大戦以前（1783-1909年）の軍人の戦死。史実の中央 7.22M（帯 4.80〜11.59M）：
+    //     フランス革命戦争 約1.0M・ナポレオン戦争 3.0M（Urlanis 3.105M・WP 2.5〜3.5M）・クリミア 309k（Urlanis）・南北戦争 620k（McPherson）・
+    //     普墺 36k（Singer）・普仏 188k（Urlanis）・露土1877-78 215k（Clodfelter）・日清 30k・日露 130k（Clodfelter）ほか列挙外の戦争。
+    //   実測（Rate=8）＝7.34M／22.5M／15.2M（史実中央の ×1.02／×3.1／×2.1）＝seed1 は帯の中。
+    //     Rate 12（seed1）＝20.7M（×2.86）＝同じ Rate=8 の種の散らばり（7.3〜22.5M）の内側で区別できない。
+    //     Rate 131（16.4倍を戻す値・seed1）＝149.6M（×20.7・1840-1909 は×65.5）・崩壊講和 351→572件・1901-13年の戦争は平均6.4→3.5ヶ月＝却下。
+    //   ⚠ずれは総量でなく**時代の配分**（1790〜1810年代 1/100〜1/1000・1840-1909 ×3〜10・1910-49 ×0.13〜0.66）で、係数1本では直らない
+    //     （年代ごとの一様倍率の対数最適 ×1.12〜1.53・残差の標準偏差1.4桁）。根は分子と分母の非対称＝戦死は質で重みを付けた接触に比例し
+    //     （前近代の装備充足0.6%がそのまま掛かる）、月次上限と厭戦は兵の頭数で割る。直す先は式の基準・大戦の規模×期間・1840-1909 の戦争の多さ（係数ではない）。
+    public double WarCasualtyRate = 8.0;
+    // 戦死の月次上限＝兵士の これ（改修2026-06-28：0.15→0.04＝総力戦で年〜40%。膠着戦は接触が小さく WarCasualtyRate×接触 で更に低消耗）。
+    //   ★2026-09-25 据え置き：Rate=8 で上限に張り付く月は 0.2／1.4／0.8%（seed1-3）＝較正の錨（1783-1909）には効いていない＝動かす根拠が無い
+    //   （上限が効き始めるのは Rate 12〜16 から・128以上では後期の戦争が張り付く）。
+    public double WarCasualtyMonthlyCap = 0.04;
     public double OfficerCasualtyShare = 0.06;    // B-1：戦死の一部が士官＝伝統支配層(貴族)にも及ぶ割合＝WarFeverを煽る貴族も血を流す（士官は少数なので小・上限は貴族の5%/月）
 
     // === 改修2026-06-28：国家ランク・通商破壊・技術優位・外交アクション（ユーザー指示） ===
@@ -2761,7 +2789,7 @@ public sealed class Coefficients
     public double IdeologyGateSocOnset = 0.20;   // 政16：社会主義が発展度で開き始めるonset（最も早い＝暦年1830相当）。IdeologyGateFromDevelopment=0では未使用
     public double IdeologyGateCommOnset = 0.35;   // 政16：共産主義の発展度onset（社会主義より遅い＝暦年1848相当）。IdeologyGateFromDevelopment=0では未使用
     public double IdeologyGateImpOnset = 0.50;   // 政16：帝国主義の発展度onset（最も遅い＝暦年1860相当）。IdeologyGateFromDevelopment=0では未使用
-    public double CasualtiesFromContact = 1.0;   // 外2：戦死の戦力比例項の基準。0=p.Military（品質乗数込み・自軍規模のみ＝現行に厳密一致）／1=各戦線の実接触強度min(aPush,bPush)（遠隔戦は出血せず品質逆転も解消）。#17で再較正
+    public double CasualtiesFromContact = 1.0;   // 外2：戦死の戦力比例項の基準。0=p.Military（品質乗数込み・自軍規模のみ＝現行に厳密一致）／1=各戦線の実接触強度min(aPush,bPush)（遠隔戦は出血せず品質逆転も解消）。#17の再較正は2026-09-25に閉じた（WarCasualtyRate=8 据え置き・根拠はその注記）
     public double WarWearinessDecays = 1.0;   // 外3：非交戦国の厭戦の扱い。0=Step冒頭で即時0リセット（旧＝開戦抑止がtruceペア限定に縮退）／>0=WarWearinessDecayRateで指数減衰（休戦後も数年は厭戦が残り開戦抑止が効く）。バランス2026-07-07有効化：終戦翌月の再参戦（AI監査の愚行#5）を解消し敗戦国に回復期を与える＝首位交代を促す
     public double WarWearinessDecayRate = 0.97;   // 外3：WarWearinessDecays>0のときの非交戦国厭戦の月次残存率。WarWearinessDecays=0では未参照
     public double AbstractTargetReparations = 0.3;   // 外8：抽象標的(Nation==null=GDP0)への決定的勝利時の賠償原資＝敗者Treasuryのこの割合を移転（対清戦争型）。0=賠償0（現行に厳密一致）
@@ -2827,7 +2855,9 @@ public sealed class Coefficients
     // 協力度③世論↔体制（CoopPublicRegime）の満足項の中立点。旧＝式に埋め込みの0.5（2×満足−1）。
     // ★2026-09-22 分位の写像で導き直し（階層3分割）：比べる相手＝全国×四半期の MeanSatisfactionPol（隔離計器 tiersatprobe・seed1-3×604Q）。
     //   旧0.5は旧分布の下から7.5%→ 新分布の7.5%分位＝0.17（1回目・2回目とも）。形は天命と同じ (満足−中立点)÷(1−中立点)（中立点0.5で旧式と厳密に同じ）。
-    public double CoopPublicSatPivot = 0.17;
+    // ★2026-09-25 満足度の分母を大衆のみ（Politics.IsMassPop）へ揃えたので同じ手順で導き直し（隔離計器 satqmap・seed1-3×668Q・全国×四半期）：
+    //   旧0.17は旧（全POP）分布の下から5.37% → 新（大衆）分布の5.37%分位＝1回目0.1342 → 2回目0.1363 → 0.14。
+    public double CoopPublicSatPivot = 0.14;
     public double CoopClassAffinityWeight = 0.5;      // 協力度（議会↔王権）の階級親和項の重み：王権の基盤=旧支配層（史実精査§5判断②）と与党の給源ブロック（保守=旧支配層+1/自由=0/社会=大衆−1）の距離。稼働中
     public double CoopPolicyGapWeight = 1.0;          // 協力度（議会↔王権）の政策距離項の重み：Policy の目標（法軸は与党綱領が引き上げ済み・関税/福祉/累進/所得税は教義/プレイヤー/通商条約が置く＝2026-09-19に経済軸の綱領を撤去）と施行済み現行法/スライダーの正規化乖離＝立法の停滞度（憲法紛争1862型の凍結が高乖離に写る）。稼働中
     public double CoopConflictMemoryWeight = 1.0;     // 協力度（議会↔王権）の紛争記憶項の重み：既存 MandateSpent ストック（反対を押し切った累積＝敵対の蓄積器・史実精査§4-b「新規状態を作らず参照」）をそのまま減算。稼働中
@@ -3023,6 +3053,8 @@ public sealed class Coefficients
     //   隔離計器 tiersatprobe・seed1-3×604Q）。旧0.5は旧分布の下から9.1%→ 新分布の9.1%分位＝1回目0.15→2回目0.16。
     //   ⚠式の2つの錨（中立点＝0・満足1＝満額）を両方とも保つ形 (満足−中立点)÷(1−中立点) に直した（中立点0.5では旧の (満足−0.5)×2 と厳密に同じ式）。
     //     中央値の寄与は旧 0.6×(0.687−0.5)×2＝0.224／新（1回目の世界）0.6×(0.497−0.15)÷0.85＝0.245＝中立点だけ動かして×2を残すと 0.416 へ倍増していた。
+    // ★2026-09-25 満足度の分母を大衆のみ（Politics.IsMassPop）へ揃えた回では**据え置き 0.16**：この門が読むのは MandateBase（全POPの文盲層加重＝量が変わらない）。
+    //   MeanSatisfactionPol を読むのは MandateBase が負のときの代わりの枝だけで、seed1-3×668Q の4腕とも0回（参考：写像を回すと q 6.96%・1回目0.1624→2回目0.1650）。
     public double DynMandateSatPivot = 0.16;
     public double DynMandateFoodWeight = 1.0;   // perf: 食料重み×min(0, FoodFill−アンカー)
     public double DynMandateFoodAnchor = 0.8;   // 食料アンカー＝飢饉閾値基準（プローブ検証済み：1.0基準は慢性輸入国=英を常時罰し終盤BD化→0.8で解消。罰すべきは飢饉であって輸入依存ではない）

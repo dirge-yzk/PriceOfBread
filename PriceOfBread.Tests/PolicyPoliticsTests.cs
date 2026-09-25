@@ -135,6 +135,70 @@ public class PolicyPoliticsTests
         Assert.Equal(paper, Politics.Discontent(w, c, p, coord, 0));
     }
 
+    // ==== 満足度の母集団＝闘争度・不満度と同じ述語（2026-09-25）==========================================================
+    //   ⚠機構だけを見る：満足度の唯一の実装 NationalScore.MeanSatisfaction と、その読み手（MeanSatisfactionPol・Credit の avgSat・
+    //     Validation の満足度）が、闘争度・不満度と同じ母集団（大衆＝閉鎖階級・近代エリート・兵士を除く）を見ること。
+    //     旧＝満足度だけが全POP（分子と分母の非対称）。閾値の水準（分位の写像）は帯が見る＝ここでは見ない。
+
+    /// <summary>閉鎖階級・近代エリート・兵士・大衆が揃った統制盤面（2国の世界を8四半期回して兵士POPを立てる）。
+    /// 大衆の満足度と闘争度は pop ごとに違う既知の値（massBase＋0.1×(i mod 3)＝人口加重が効く）、大衆以外は others へ置く。
+    /// ⚠大衆の述語はここで書き下す（エンジンの IsMassPop を呼ばない）＝エンジンと独立に照合する。</summary>
+    private static (MultiNationSim Sim, World W) MixedClassBoard(double massBase, double others)
+    {
+        var sim = new MultiNationSim([NationConfig.France(), NationConfig.Britain()], seed: 1789);
+        sim.Run(8);
+        var w = sim.Nations[0].World;
+        int i = 0;
+        double closed = 0, elite = 0, soldier = 0, mass = 0;
+        foreach (var p in w.AllPops())
+        {
+            bool isMass = !p.Closed && !p.IsModernElite && !p.IsSoldier;
+            double v = isMass ? massBase + 0.1 * (i++ % 3) : others;
+            p.Satisfaction = v; p.Militancy = v;
+            if (p.Closed) closed += p.Size; else if (p.IsModernElite) elite += p.Size; else if (p.IsSoldier) soldier += p.Size; else mass += p.Size;
+        }
+        Assert.True(closed > 0 && elite > 0 && soldier > 0 && mass > 0,
+            $"前提が崩れた：4つの層が揃っていない（閉鎖{closed:F1}・近代エリート{elite:F1}・兵士{soldier:F1}・大衆{mass:F1}）");
+        return (sim, w);
+    }
+
+    [Fact]
+    public void 満足度の母集団は闘争度と同じ述語である()
+    {
+        var (sim, w) = MixedClassBoard(massBase: 0.3, others: 0.95);
+        double sat = NationalScore.MeanSatisfaction(w);
+        // 満足度と闘争度を pop ごとに同じ値へ置いた＝母集団と人口加重が同じなら2つの集計はビット単位で一致する
+        Assert.Equal(Politics.AvgMassMilitancy(w), sat);
+        // 空洞の検査でない：全POPで平均すると別の値になる盤面である（大衆以外に 0.95 を置いた）
+        double s = 0, n = 0;
+        foreach (var p in w.AllPops()) { s += p.Satisfaction * p.Size; n += p.Size; }
+        Assert.True(System.Math.Abs(s / n - sat) > 1e-3, $"前提が崩れた：全POPの平均 {s / n:F6} と大衆の平均 {sat:F6} が区別できない");
+        // 閉鎖階級・近代エリート・兵士の満足度をどう動かしても1ビットも動かない
+        foreach (var p in w.AllPops()) if (p.Closed || p.IsModernElite || p.IsSoldier) p.Satisfaction = 0.0;
+        Assert.Equal(sat, NationalScore.MeanSatisfaction(w));
+        // 読み手＝ハーネスの満足度（Validation）も同じ実装を通る（旧＝全POPの手書きの複製）
+        Assert.Equal(sat, Metrics.Compute(sim).Nations[0].MeanSatisfaction);
+    }
+
+    [Fact]
+    public void 銀行の平穏線は大衆の満足度だけを読む()
+    {
+        // 同じ種・同じ手数で作った盤面は決定論で同一＝違いは置いた満足度だけ。Credit.Step を1回（1日）だけ回して信頼を比べる。
+        static double Confidence(double massBase, double others)
+        {
+            var (_, w) = MixedClassBoard(massBase, others);
+            Assert.NotNull(w.Bank);
+            Credit.Step(w, w.Coef);
+            return w.Bank!.Confidence;
+        }
+        Assert.True(0.2 + 0.2 < new Coefficients().ConfidencePivot, "前提が崩れた：盤面の大衆（0.2〜0.4）が平穏線を割っていない");
+        double lowFull = Confidence(0.2, 1.0);   // 大衆は平穏線の下・大衆以外は満点
+        double lowZero = Confidence(0.2, 0.0);   // 大衆は同じ・大衆以外を0へ
+        double high = Confidence(0.7, 0.0);      // 大衆だけを平穏線の上へ
+        Assert.Equal(lowFull, lowZero);          // 大衆以外を満点から0へ動かしても信頼は1ビットも動かない（旧＝全POPの手書きの複製を読んでいた）
+        Assert.True(high > lowFull, $"空洞：大衆の満足度を平穏線の上へ上げても信頼が上がらない（{lowFull} → {high}）");
+    }
+
     [Fact]
     public void 法の隔たりは望む向きの余地が消えれば縮み反対側では広がる()   // LawGap＝選好で重みづけた「余地」の平均（向きの決め方は ComputeDemands と同じ）
     {

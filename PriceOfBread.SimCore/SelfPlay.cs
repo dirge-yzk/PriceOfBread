@@ -66,14 +66,18 @@ public static class NationalScore
     public static double Finance(World w) =>
         w.Bank is { } b && w.TotalPopulation > 1 ? Math.Clamp(b.Loans / (w.TotalPopulation * FinancePerCapitaDivisor), 0, FinanceCap) : 0;   // 上限12→6＝ロンドンのシティ（金融）一強を緩和（金融国力は残すが青天井にしない）
 
-    public static double MeanSatisfaction(World w)   // 第5段5-1（2026-07-27）：これが唯一の実装（Politics.StepのMeanSatisfactionPol代入もここを呼ぶ＝旧・重複集計の一元化）
+    // 第5段5-1（2026-07-27）：これが唯一の実装（Politics.StepのMeanSatisfactionPol代入・Credit の avgSat・Validation の満足度もここを呼ぶ）。
+    // ★2026-09-25：分母を**大衆のみ**（Politics.IsMassPop＝不満度・闘争度と同じ母集団）へ揃えた。旧＝全POP（閉鎖階級・近代エリート・兵士を含む）
+    //   ＝満足度だけが別の母集団を見ていた（分子と分母の非対称）。述語は呼ぶだけ（式を二度書かない）。水準の門は分位の写像で導き直した（各係数の注記）。
+    public static double MeanSatisfaction(World w)
     {
         double s = 0, n = 0;
-        foreach (var p in w.AllPops()) { s += p.Satisfaction * p.Size; n += p.Size; }
+        foreach (var p in w.AllPops()) if (Politics.IsMassPop(p)) { s += p.Satisfaction * p.Size; n += p.Size; }
         return n > 0 ? s / n : 0;
     }
 
-    /// <summary>国の補給の充足（Pop.SupplyFill の人口加重平均＝食料＋日用品）。読み手は国力の生活水準項だけ（2026-09-22）。MeanSatisfaction と同じ走査・同じ分母。</summary>
+    /// <summary>国の補給の充足（Pop.SupplyFill の人口加重平均＝食料＋日用品）。読み手は国力の生活水準項だけ（2026-09-22）。
+    /// 分母は**全POP**（国民1人あたりの物差し）＝2026-09-25 に MeanSatisfaction を大衆へ絞った後も据え置き（大衆へ絞っても国間の標準偏差は 0.0807→0.0806＝重み12の較正に影響しない）。</summary>
     public static double MeanSupplyFill(World w)
     {
         double s = 0, n = 0;
@@ -99,7 +103,9 @@ public sealed class UtilityAgent : INationAgent
     // 不満＝満足がこれを下回る分。★2026-09-22 分位の写像で導き直し（階層3分割で満足度の水準が構造的に下がったため）：
     //   比べる相手＝全国×四半期の NationalScore.MeanSatisfaction（隔離計器 tiersatprobe・seed1-3×604Q）。旧0.7は旧分布の下から53.3%→ 新分布の53.3%分位
     //   ＝1回目0.53→2回目0.61（1回目の値で再測定すると分位が44.8%へ8.5pt ずれた＝帰還。写像は2回で打ち切り）。
-    private const double UnrestSatisfactionThreshold = 0.61;
+    // ★2026-09-25 MeanSatisfaction の分母を大衆のみ（Politics.IsMassPop）へ揃えたので同じ手順で導き直し（隔離計器 satqmap・seed1-3×668Q・全国×四半期）：
+    //   旧0.61は旧（全POP）分布の下から51.89% → 新（大衆）分布の51.89%分位＝1回目0.6210 → 2回目0.6167 → 0.62。
+    private const double UnrestSatisfactionThreshold = 0.62;
     private const double UModUnrestWeight = 0.3;                // 近代化効用：不満の重み
     private const double UIndRoomWeight = 1.2;                  // 工業化効用：余地の重み
     private const double UModTechWeight = 1.0;                  // 近代化効用：技術差の重み

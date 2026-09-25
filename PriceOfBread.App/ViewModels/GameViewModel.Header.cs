@@ -259,7 +259,8 @@ public partial class GameViewModel
         _histMil.Add(Politics.AvgMassMilitancy(_player));
         // ★2026-09-23（作者指示「識字率の右に満足度・不満度・闘争度」）：不満度＝エンジンの集計 Politics.AvgMassDiscontent
         //   （大衆POPの人口加重平均。闘争度 AvgMassMilitancy と**同じ母集団の述語**を共有＝UIに第二の式を置かない）。
-        //   ⚠満足度だけ分母が「全POP」で、不満度・闘争度は「大衆のみ」＝母集団を揃えるのは測定回へ送る（2026-09-23の決め）。
+        //   ★2026-09-25：満足度も「大衆のみ」（NationalScore.MeanSatisfaction が Politics.IsMassPop を呼ぶ）へ揃えた＝3系列が同じ母集団。
+        //   ⚠_histSat はセーブされる系列＝それより前のセーブを読むと、その年までは全POPの定義の値が混ざる。
         _histDis.Add(Politics.AvgMassDiscontent(_player));
         _histCorr.Add(EffectiveCorruption());
         _histInd.Add(_player.MeanIndustrialization);

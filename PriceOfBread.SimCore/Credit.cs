@@ -29,12 +29,10 @@ public static class Credit
         double hoardRatio = Math.Clamp(c.CurrencyHoldingRatio * (1.0 + c.HoardPanicWeight * (1.0 - bank.Confidence)), 0, HoardRatioMax);
         bank.Gold = Math.Max(0, w.BaseMoney) * (1.0 - hoardRatio);
 
-        // 割当削減（測定短縮① 2026-07-09）：日次×全国で呼ばれるホットパス＝毎回の List<Pop> 構築を廃止。
-        // 平均満足は直接走査（同一順序＝ビット一致）。全popリストは投資家不在の小世界などコールドパスのみ遅延構築。
-        double sat = 0, size = 0;
-        foreach (var r0 in w.Regions)
-            foreach (var p in r0.Pops) { sat += p.Satisfaction * p.Size; size += p.Size; }
-        double avgSat = size > 1e-9 ? sat / size : 0;
+        // 割当削減（測定短縮① 2026-07-09）：日次×全国で呼ばれるホットパス＝毎回の List<Pop> 構築を廃止。全popリストは投資家不在の小世界などコールドパスのみ遅延構築。
+        // ★2026-09-25：平均満足は唯一の実装 NationalScore.MeanSatisfaction を呼ぶ（旧＝同じ式の手書きの複製で、全POP・Seceded の州まで数えていた）
+        //   ＝下の注記どおり「大衆の充足」（Politics.IsMassPop の母集団）を見る。Seceded の差は seed1-3×668Q で分離州の人口0＝実害なし・所要時間も同等。
+        double avgSat = NationalScore.MeanSatisfaction(w);
         List<Pop>? popsLazy = null;
         List<Pop> Pops()
         {

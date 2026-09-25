@@ -386,7 +386,8 @@ public static class Politics
         w.ReformistPower = reformist;
         w.RadicalPower = radical;
         // 平均満足度＝経済危機の指標（一党支配→独裁化はこれが低い危機国だけ＝満足した安定な立憲を巻き込まない）。
-        // 第5段5-1：実装をNationalScore.MeanSatisfactionへ一元化（旧＝本ループの重複集計。pop更新後の同時点で呼ぶ＝値は従来と厳密一致）。
+        // 第5段5-1：実装をNationalScore.MeanSatisfactionへ一元化（旧＝本ループの重複集計。pop更新後の同時点で呼ぶ）。
+        // ★2026-09-25：母集団は**大衆のみ**（IsMassPop＝闘争度・不満度と同じ）。ガードの sizeSum は全POP＝人口>0で大衆0の国×四半期は実測0件（seed1-3×668Q）。
         w.MeanSatisfactionPol = sizeSum > 1e-9 ? NationalScore.MeanSatisfaction(w) : 1.0;
 
         // POP動詞①（弾圧の遺恨蓄積ループ・ClassStance常時0で不発）は2026-07-20廃止＝第3段3-1で削除（2026-07-27・厳密恒等）。
@@ -2078,7 +2079,8 @@ public static class Politics
         => PoliticalQuantities.ChallengeRatio(w.ReformistPower + w.RadicalPower, PoliticalQuantities.EffectiveCoerce(w, w.Coef));
 
     // 大衆（労働者・農民。兵士除く）の母集団＝**この1本だけ**（闘争度と不満度は二量分離の対＝分母の式を二度書かない）。
-    private static bool IsMassPop(Pop p) => !p.Closed && !p.IsModernElite && !p.IsSoldier;
+    // ★2026-09-25：満足度（NationalScore.MeanSatisfaction）も同じ母集団へ揃えた＝同じアセンブリから呼ぶため private→internal（述語は不変）。
+    internal static bool IsMassPop(Pop p) => !p.Closed && !p.IsModernElite && !p.IsSoldier;
 
     // 大衆（労働者・農民。兵士除く）の平均闘争度（人口に依らない水準）。高ければブルジョワが独裁化（ブルジョア独裁の引き金）
     public static double AvgMassMilitancy(World w)   // 戦争熱＝外征の出口にも使う

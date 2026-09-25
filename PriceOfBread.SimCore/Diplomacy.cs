@@ -2421,9 +2421,10 @@ public sealed class Diplomacy
         foreach (var pop in w.AllPops()) pop.Militancy = Math.Min(1, pop.Militancy + add);
     }
 
-    /// <summary>戦死による人的消耗（交戦兵力に比例）。戦死は兵士POPのみ（徴兵で補充されるが消耗で人口減＝戦争の人的コスト）。規定値−戦死で保存追跡。
-    /// 戻り値＝今月のこの国の戦死総数（士官込み・UI用の戦争別台帳の按分原資。力学には使わない）。</summary>
-    private double WarCasualties(Power p, Coefficients c, double contactStrength, double airControl = 0.5)   // ★2026-09-25：static を外した＝インスタンスの CasualtyProbe を読むため（計算は不変）
+    /// <summary>戦死による人的消耗（接触強度に比例・月次上限＝兵士POP×WarCasualtyMonthlyCap で頭打ち）。戦死は兵士POPのみ（徴兵で補充されるが消耗で人口減＝戦争の人的コスト）。規定値−戦死で保存追跡。
+    /// 戻り値＝今月のこの国の戦死総数（士官込み・UI用の戦争別台帳の按分原資。力学には使わない）。
+    /// internal＝番人テスト用（InternalsVisibleTo・TradeTreaties と同じ流儀・2026-09-25）。呼び出しは StepWars の1箇所だけ。</summary>
+    internal double WarCasualties(Power p, Coefficients c, double contactStrength, double airControl = 0.5)   // ★2026-09-25：static を外した＝インスタンスの CasualtyProbe を読むため（計算は不変）
     {
         if (p.Nation is not { } w) return 0;
         double soldierPop = 0, nobPop = 0;   // 兵士＝戦死の母数／閉鎖層（貴族）＝将校戦死の母数（1回の走査で両方）
@@ -2436,7 +2437,7 @@ public sealed class Diplomacy
             ? c.WarCasualtyRate * (p.Military + c.CasualtiesFromContact * (contactStrength - p.Military))   // =0でp.Military（恒等）／=1で接触強度
             : c.WarCasualtyRate * p.Military;
         casForce *= 1.0 + c.AirCasualtyWeight * Math.Max(0.0, 1.0 - 2.0 * airControl);   // 1934拡張E2：制空劣勢＝上空からの観測砲爆撃で出血増（中立0.5＝×1.0恒等・優勢側は増えない）
-        double cas = Math.Min(casForce, soldierPop * c.WarCasualtyMonthlyCap);   // 交戦兵力に比例・1ヶ月最大で兵士の WarCasualtyMonthlyCap（改修2026-06-28：旧15%/月＝年率80%超は桁外れ→4%/月＝総力戦で年〜40%の史実水準へ）
+        double cas = Math.Min(casForce, soldierPop * c.WarCasualtyMonthlyCap);   // 接触強度に比例・1ヶ月最大で兵士の WarCasualtyMonthlyCap（改修2026-06-28：旧15%/月＝年率80%超は桁外れ→4%/月＝総力戦で年〜40%の史実水準へ）
         CasualtyProbe?.Invoke(casForce, soldierPop);   // 観測だけ（既定 null＝引数ごと評価しない）
         foreach (var pop in w.AllPops()) if (pop.IsSoldier) pop.Size -= cas * (pop.Size / soldierPop);   // 兵士に規模按分で戦死
         w.PopulationDelta -= cas;       // 戦死＝人口減（符号付き台帳）

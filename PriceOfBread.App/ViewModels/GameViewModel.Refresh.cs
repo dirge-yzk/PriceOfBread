@@ -275,7 +275,8 @@ public partial class GameViewModel
             StatG($"満足度:{NationalScore.MeanSatisfaction(_player):P0}", "満足度", _histSat, v => v.ToString("P0"), 76),
             // ★2026-09-23作者指示「識字率の右に満足度・不満度・闘争度の順」＝足りないのは不満度1つ。
             //   値はエンジンの集計 Politics.AvgMassDiscontent をそのまま呼ぶ（App側に式を書き写さない）。
-            //   ⚠満足度だけ分母が「全POP」（NationalScore.MeanSatisfaction）で、不満度・闘争度は「大衆のみ」＝母集団を揃えるのは測定回へ送る。
+            //   ★2026-09-25：満足度（NationalScore.MeanSatisfaction）も「大衆のみ」（Politics.IsMassPop）へ揃えた＝3つの数字が同じ母集団を見る。
+            //   ⚠年次グラフの _histSat はセーブされる系列＝2026-09-25 より前のセーブを読むと、その年までは全POPの定義の値が混ざる。
             StatG($"不満度:{Politics.AvgMassDiscontent(_player):P0}", "不満度", _histDis, v => v.ToString("P0"), 76),
             StatG($"闘争度:{Politics.AvgMassMilitancy(_player):P0}", "闘争度", _histMil, v => v.ToString("P0"), 76),
             // 生産はヘッダーから撤去（GDP＋役務とほぼ同値・2026-07-16）。_histProd の採取とセーブ枠は互換のため保持。
