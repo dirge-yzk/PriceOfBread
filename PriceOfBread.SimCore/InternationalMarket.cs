@@ -75,17 +75,25 @@ public sealed partial class InternationalMarket
     // ※LastSold には積まない：LastSold は財収支恒等式(GoodsBalance)の販売量であり、輸出は LastExport で既に計上済み。ここで足すと同一数量の二重計上→在庫恒等式が破れて InvariantViolationException。採算(SmoothedMargin)は価格vs限界費用ベースで別経路（LastSold非依存）。
     // 実際に渡せた額を返す（呼び出し側は netFlow から差し引き、別途 direct として台帳へ計上＝保存）。生産者不在/産出0の財は0を返し全額 netFlow へフォールバック＝現行経路。
     // internal＝単一国経路（Trade.cs）と多国経路が同じ会計を共有（重複定義の解消）。
-    internal static double PayExportToProducers(Region r, int goodId, double amount)
+    // ★2026-09-26（高速化・厳密恒等）：その財の生産者の列（元の順）と totalOut を、呼び手が持つ記憶（ownPr/ownTotal＝清算の局所・州×財ごと）へ
+    //   初回だけ作って返し、2回目からは州の全生産者（約150）を2周しない。清算の中で Producers・Output・OwnerPopIndex・Pops の数を変える行は無い
+    //   （変わるのは Savings だけ）＝同じ部分列を同じ順で足す＝浮動小数も同一。旧＝成約ごとに全生産者を2周（成約は全長で3.16億回）。
+    internal static double PayExportToProducers(Region r, int goodId, double amount, ref Producer[]? ownPr, ref double ownTotal)
     {
         if (amount <= 1e-12) return 0.0;
-        double totalOut = 0;
-        foreach (var pr in r.Producers) if (pr.GoodId == goodId && pr.OwnerPopIndex >= 0 && pr.OwnerPopIndex < r.Pops.Count) totalOut += Math.Max(0, pr.Output);
-        if (totalOut <= 1e-9) return 0.0;   // 生産者不在＝按分不能＝現行の全pop経路へ全額戻す
-        double paid = 0;
-        foreach (var pr in r.Producers)
+        if (ownPr is null)
         {
-            if (pr.GoodId != goodId || pr.OwnerPopIndex < 0 || pr.OwnerPopIndex >= r.Pops.Count) continue;
-            double sh = Math.Max(0, pr.Output) / totalOut;
+            int n = 0; double totalOut = 0;
+            foreach (var pr in r.Producers) if (pr.GoodId == goodId && pr.OwnerPopIndex >= 0 && pr.OwnerPopIndex < r.Pops.Count) { n++; totalOut += Math.Max(0, pr.Output); }
+            var list = new Producer[n]; n = 0;
+            foreach (var pr in r.Producers) if (pr.GoodId == goodId && pr.OwnerPopIndex >= 0 && pr.OwnerPopIndex < r.Pops.Count) list[n++] = pr;
+            ownPr = list; ownTotal = totalOut;
+        }
+        if (ownTotal <= 1e-9) return 0.0;   // 生産者不在＝按分不能＝現行の全pop経路へ全額戻す
+        double paid = 0;
+        foreach (var pr in ownPr)
+        {
+            double sh = Math.Max(0, pr.Output) / ownTotal;
             r.Pops[pr.OwnerPopIndex].Savings += amount * sh; paid += amount * sh;
         }
         return paid;

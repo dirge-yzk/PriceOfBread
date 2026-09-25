@@ -15,7 +15,7 @@ public sealed partial class InternationalMarket
     //   ⚠SaveGame は2次元配列を往復できない（Arr は1次元前提）＝**ジャグ配列**で持つ。DiffusionWeight=0 では一度も確保されない＝恒等。
     private static double[] CreateFilled(int n, double v) { var a = new double[n]; System.Array.Fill(a, v); return a; }
     // ★清算内部の計器（2026-09-01・POB_TIME=1 のみ・純カウンタ＝挙動非接触。timeprobe が末尾で読む）
-    internal static long TimeListsMs, TimeClearMs;      // 財ごとの (a)平均+売買リスト構築 (b)買い手清算ループ の累計ms
+    internal static long TimeListsTicks, TimeClearTicks;   // 財ごとの (a)平均+売買リスト構築 (b)買い手清算ループ の累計（Stopwatch の刻み。⚠2026-09-26 是正＝旧は財ごとに ElapsedMilliseconds を足して端数を捨てていた＝1財1ms未満の清算がほぼ0に丸められ、高速化の後は「清算ループ」が実時間の数分の1しか数えなかった）
     internal static long CntGoods, CntBuyers, CntRollIters, CntScanSteps, CntSkips, CntFills, CntDeals;
     // 非常口（POB_PAR と同作法・恒等検証のA/B用）：PairRisk のメモ化／連結リスト圧縮を旧walkへ倒す。プロセス内で不変＝1回だけ読む
     private static readonly bool RiskMemoOff = System.Environment.GetEnvironmentVariable("POB_RISK_MEMO") == "0";
@@ -373,10 +373,11 @@ public sealed partial class InternationalMarket
 
         // ---- S4 のプール（clearOn時のみ確保）----
         double twoEps = 2.0 * c.PriceElasticity;   // X_price の指数（ε=0.5 なら 1＝D·rp/d−P−I）
-        double[]? budgetLeft = null; double[]? capLeft = null; double[]? potNew = null; bool[]? skipS = null;
-        int[]? nextS = null;   // ★連結リスト圧縮（2026-09-01）：在庫が尽きた売り手を走査から恒久除去する「次の生存索引」（ON経路のみ）
-        double[]? delivA = null; double[]? kmA = null;   // ★手2：買い手ごとの着値/距離バッファ（伸長のみ・番兵で遅延計算）
-        const double UnsetDeliver = double.NegativeInfinity;   // 未計算の番兵（実着値は価格>0×有限/∞乗数＝−∞にならない）
+        double[]? budgetLeft = null; double[]? capLeft = null; double[]? potNew = null;
+        int[]? nextS = null;   // ★連結リスト圧縮（2026-09-01）：在庫が尽きた売り手（と 2026-09-26 から容量が尽きた売り手）を走査から恒久除去する「次の生存索引」（ON経路のみ）
+        // ★逐次の候補表（2026-09-26・高速化・厳密恒等）：買い手1行のあいだ、訪問済みで有資格の売り手（着値＜MaxValue）を持つ＝伸長のみ・買い手ごとに0から。
+        //   旧＝反復のたびに先頭から走査し直していた（成約の直後の同一の再走査・一時スキップの踏み直し）。下の買い手ループの注記を参照。
+        int[]? candS = null; double[]? candD = null; double[]? candK = null;
         if (clearOn)
         {
             budgetLeft = new double[nn];   // 支払能力＝Apply と同一集合 Σmax(0,Savings)（裁定11・国庫は含めない）
@@ -394,6 +395,8 @@ public sealed partial class InternationalMarket
         var buyers = new List<(int Node, double Price)>(tc);
         var distTop = new double[tc];   // 距離の診断＝どの取引を代表に採ったか（最大額）
         var volLoad = new double[tc];   // 各州がこの期に動かした重量（容量律速の診断＝LastTradeThrottle）
+        // ★財15の生産者の列の記憶（2026-09-26・高速化・厳密恒等）：州(tr添字)ごと・財ごとに PayExportToProducers が初回に作る（財が変わるたびに空へ戻す）。
+        var payPr = new Producer[]?[tc]; var payTot = new double[tc];
 
         var gOrder = new int[gc];
         for (int gi0 = 0; gi0 < gc; gi0++) gOrder[gi0] = gi0;
@@ -408,8 +411,9 @@ public sealed partial class InternationalMarket
         {
             int g = gOrder[gIdx];
             var gd = goodById[g];
-            if (swSec is not null) { TimeClearMs += swSec.ElapsedMilliseconds; swSec.Restart(); }   // ★前財の清算ループ時間（初回は≈0）
+            if (swSec is not null) { TimeClearTicks += swSec.ElapsedTicks; swSec.Restart(); }   // ★前財の清算ループ時間（初回は≈0）
             _volume[g] = 0;
+            Array.Clear(payPr);   // 生産者の列は財ごと（前の財の列を読まない）
             // ★TradeColonialGoods（点火2026-08-26＝既定1.0）：植民地財も二国間清算に載る。0なら旧判定（植民地財除外・阿片は別ゲート）と厳密同値。
             if (gd is null || (gd.IsColonial && !(c.TradeColonialGoods > 0) && !(g == c.OpiumGoodId && c.OpiumAddictionGrowth > 0)) || gd.NonTradeable) continue;
 
@@ -515,7 +519,7 @@ public sealed partial class InternationalMarket
             }
             if (buyers.Count == 0) continue;
             buyers.Sort((x, y) => x.Price != y.Price ? y.Price.CompareTo(x.Price) : string.CompareOrdinal(tr[x.Node].r.Name, tr[y.Node].r.Name));
-            if (swSec is not null) { TimeListsMs += swSec.ElapsedMilliseconds; swSec.Restart(); CntGoods++; CntBuyers += buyers.Count; }   // ★計器
+            if (swSec is not null) { TimeListsTicks += swSec.ElapsedTicks; swSec.Restart(); CntGoods++; CntBuyers += buyers.Count; }   // ★計器
             foreach (var (t, lp) in buyers)
             {
                 var m = tr[t].r.Markets[g];
@@ -539,51 +543,83 @@ public sealed partial class InternationalMarket
                 if (clearOn)
                 {
                     // ==== S4 ON：水準式の裁定清算（同じ買い手が X が尽きるか売り手/容量/予算が尽きるまで次善へ回る）====
-                    if (skipS is null || skipS.Length < sellers.Count) skipS = new bool[Math.Max(64, sellers.Count * 2)];
-                    else Array.Clear(skipS, 0, sellers.Count);
-                    // ★手2（交易高速化doc §3・2026-08-30・厳密恒等）：ロールオーバー反復のあいだ deliver[s] の全入力
-                    //   （価格・距離・楔・危険料・封鎖バイアス）は不変（変わるのは left/skip/capLeft/budget のみ）＝買い手ごとに1回だけ計算。
-                    //   ⚠走査の順序と打ち切り条件（下の break 行）は一字も変えない（次善の近似化＝単価が変わる罠・doc §5）。
-                    if (delivA is null || delivA.Length < sellers.Count) { delivA = new double[Math.Max(64, sellers.Count * 2)]; kmA = new double[delivA.Length]; }
-                    Array.Fill(delivA, UnsetDeliver, 0, sellers.Count);   // 触った売り手だけ遅延計算＝打ち切りの尾の分を新たに払わない（コストは厳密に旧以下）
+                    // ★逐次の候補表（2026-09-26・高速化・厳密恒等）。旧＝反復のたびに先頭(headS)から走査し直し、訪問した有資格の売り手の中から
+                    //   最良(best)と次善(second)を引いていた。反復と反復のあいだに変わるのは「最良の売り手1人の資格」だけなので、走査をやり直さない：
+                    //   (a) 成約の後も最良が有資格のまま（在庫 left と容量 capLeft が残る）なら、次の反復は旧と1点も違わない走査になる
+                    //       ＝前回の best/second をそのまま使う（旧は成約3.16億回のうち99.8%でこの同一の再走査をしていた）。
+                    //       ⚠他の売り手の資格は成約で変わらない＝売り手の行は財ごとに州1つにつき1件・変わる容量は買い手 t と売り手 snA の2州だけで、
+                    //         買い手 t 自身の容量が尽きたら下の break で行ごと終わる。着値は買い手の行のあいだ不変（価格・距離・楔・危険料）。
+                    //   (b) 最良が外れた（一時スキップ・在庫切れ・容量切れ）ときは、候補表（訪問済みで有資格の売り手）から1点除いて最良と次善を引き直し、
+                    //       前回の打ち切り位置(resS)から同じ規則で走査を続ける。1点除くと各位置の「その時点までの最良」は下がらない＝旧の再走査は
+                    //       resS より前で打ち切られない＝旧と同じ集合を訪問する。最良＝(着値, 添字) の辞書式最小（旧の厳密比較＝同値は先に訪問した方＝添字の小さい方）、
+                    //       次善＝着値の多重集合の2番目の値（旧の更新規則と同値）＝走査順に依らない。
+                    //   ⇒ 一時スキップの印（旧 skipS）は二度と読まれない（外した売り手は resS より前にある）＝不要。着値の遅延表（旧 delivA/kmA）も、
+                    //     各売り手を1行につき1回しか訪問しないので不要（距離・危険料の表 kmTab/riskTab は清算全体の純メモのまま＝埋まる対の集合も旧と同一）。
+                    //   ⚠候補表に入れるのは着値 < MaxValue の売り手だけ＝旧の更新規則（初期値 MaxValue との厳密比較）で best/second に一度も入らない売り手（∞・NaN）は旧でも読まれない。
+                    if (candS is null || candS.Length < sellers.Count) { int cn0 = Math.Max(64, sellers.Count * 2); candS = new int[cn0]; candD = new double[cn0]; candK = new double[cn0]; }
+                    double lbMul = 1 + c.TransportMargin * adValoremRev + (borderOnly ? Math.Min(wedge, wedgeHome) : wedge);   // 昇順の打ち切りの下界の倍率（真の下界＝運賃革命の従価割引込み・旧の式そのもの）
+                    int candN = 0, resS = headS, resPrev = -1;   // 候補の数／次に調べる売り手（打ち切り位置）とその手前の生存売り手
+                    int bestA = -1, bestPos = -1; double bestDelA = double.MaxValue, secondDelA = double.MaxValue, bestKmA = 0;
+                    bool keepBest = false;   // (a)：前回の best/second をそのまま使う
                     int guard = 0;
                     while (true)
                     {
                         if (MultiNationSim.TimeOn) CntRollIters++;   // ★計器
                         if (++guard > RolloverGuardMax) break;   // 停止保証
-                        int bestA = -1; double bestDelA = double.MaxValue, secondDelA = double.MaxValue, bestKmA = 0;
-                        for (int s2 = headS, prevS = -1; s2 < sellers.Count; )
+                        if (!keepBest)
                         {
-                            if (left[s2] <= 1e-12)
-                            {   // ★連結リスト圧縮：left は財の清算内で単調減少＝尽きたら戻らない。外すのは旧走査でも必ず continue した
-                                //   純no-opだけ＝訪問集合・順序・打ち切りは不変（ビット恒等）。POB_SKIPLIST=0 で旧walk（unlockなし）。
-                                if (MultiNationSim.TimeOn) CntSkips++;   // ★計器
-                                int nxS = nextS![s2];
-                                if (!SkipListOff) { if (prevS < 0) headS = nxS; else nextS[prevS] = nxS; }
-                                else prevS = s2;
-                                s2 = nxS; continue;
-                            }
-                            if (skipS[s2]) { if (MultiNationSim.TimeOn) CntSkips++; prevS = s2; s2 = nextS![s2]; continue; }   // 買い手一時（Y=0霧散）＝unlinkしない
-                            if (capHard && capLeft![sellers[s2].Node] <= 1e-12) { prevS = s2; s2 = nextS![s2]; continue; }
-                            if (sellers[s2].Price * (1 + c.TransportMargin * adValoremRev + (borderOnly ? Math.Min(wedge, wedgeHome) : wedge)) >= bestDelA) break;   // 昇順の打ち切り（真の下界＝運賃革命の従価割引を込みで下限化）
-                            if (MultiNationSim.TimeOn) CntScanSteps++;   // ★計器
-                            double del2 = delivA[s2];
-                            if (del2 == UnsetDeliver)
+                            // (b) 候補表から最良と次善を引き直す（(着値, 添字) の辞書式＝候補表の並び順に依らない）
+                            bestA = -1; bestPos = -1; bestDelA = double.MaxValue; secondDelA = double.MaxValue;
+                            for (int k = 0; k < candN; k++)
                             {
-                                if (MultiNationSim.TimeOn) CntFills++;   // ★計器
+                                double dk = candD![k]; int sk = candS[k];
+                                if (dk < bestDelA || (dk == bestDelA && sk < bestA)) { secondDelA = bestDelA; bestDelA = dk; bestA = sk; bestPos = k; }
+                                else if (dk < secondDelA) secondDelA = dk;
+                            }
+                            // 打ち切り位置から同じ規則で走査を続ける（初回は headS から＝旧の走査そのもの）
+                            int s2 = resS, prevS = resPrev;
+                            while (s2 < sellers.Count)
+                            {
+                                if (left[s2] <= 1e-12)
+                                {   // ★連結リスト圧縮：left は財の清算内で単調減少＝尽きたら戻らない。外すのは旧走査でも必ず continue した
+                                    //   純no-opだけ＝訪問集合・順序・打ち切りは不変（ビット恒等）。POB_SKIPLIST=0 で旧walk（unlockなし）。
+                                    if (MultiNationSim.TimeOn) CntSkips++;   // ★計器
+                                    int nxS = nextS![s2];
+                                    if (!SkipListOff) { if (prevS < 0) headS = nxS; else nextS[prevS] = nxS; }
+                                    else prevS = s2;
+                                    s2 = nxS; continue;
+                                }
+                                if (capHard && capLeft![sellers[s2].Node] <= 1e-12)
+                                {   // ★容量切れの売り手も同じく外す（2026-09-26）：capLeft は清算の中で減る一方（成約ごとに qA×Wg＞0 を引く）＝一度尽きたら
+                                    //   以後この財の全ての買い手で必ず continue する純no-op（旧＝財をまたいで全ての買い手・全ての反復で踏み直していた）。
+                                    if (MultiNationSim.TimeOn) CntSkips++;   // ★計器
+                                    int nxS = nextS![s2];
+                                    if (!SkipListOff) { if (prevS < 0) headS = nxS; else nextS[prevS] = nxS; }
+                                    else prevS = s2;
+                                    s2 = nxS; continue;
+                                }
+                                if (sellers[s2].Price * lbMul >= bestDelA) break;   // 昇順の打ち切り
+                                if (MultiNationSim.TimeOn) { CntScanSteps++; CntFills++; }   // ★計器（各売り手は1行につき1回だけ訪問＝訪問＝着値の計算）
                                 double km2 = KmOf(sellers[s2].Node, t);
                                 double risk2 = PairRisk(sellers[s2].Node, t);
                                 double bb2 = gd.Tier == GoodTier.Staple ? c.BlockadeStapleBias * risk2 : 0.0;
                                 double mar2 = c.TransportMargin * (1.0 + c.DistanceMarginScale * km2 / DistanceScaleKm) * adValoremRev
                                             + weightAdd * (km2 / DistanceScaleKm) + risk2;
                                 double wS2 = borderOnly && tr[sellers[s2].Node].nation == ni ? wedgeHome : wedge;
-                                kmA![s2] = km2;
-                                del2 = delivA[s2] = sellers[s2].Price * (1 + mar2 + wS2 + bb2);
+                                double del2 = sellers[s2].Price * (1 + mar2 + wS2 + bb2);
+                                if (del2 < double.MaxValue)
+                                {
+                                    candS[candN] = s2; candD![candN] = del2; candK![candN] = km2;
+                                    if (del2 < bestDelA) { secondDelA = bestDelA; bestDelA = del2; bestA = s2; bestPos = candN; }   // 新しく訪問した売り手は候補表の誰よりも添字が大きい＝旧の厳密比較と同じ
+                                    else if (del2 < secondDelA) secondDelA = del2;
+                                    candN++;
+                                }
+                                prevS = s2; s2 = nextS![s2];
                             }
-                            if (del2 < bestDelA) { secondDelA = bestDelA; bestDelA = del2; bestA = s2; bestKmA = kmA![s2]; }
-                            else if (del2 < secondDelA) secondDelA = del2;
-                            prevS = s2; s2 = nextS![s2];
+                            resS = s2; resPrev = prevS;
+                            bestKmA = bestPos >= 0 ? candK![bestPos] : 0;
                         }
+                        keepBest = false;
                         if (bestA < 0 || !(lp > bestDelA)) break;   // 否定形＝NaNは取引しない
                         double unitA = Math.Min(lp, double.IsPositiveInfinity(secondDelA) ? lp : secondDelA);
                         unitA = Math.Max(unitA, sellers[bestA].Price);
@@ -615,7 +651,9 @@ public sealed partial class InternationalMarket
                         if (!(qA > 1e-12))
                         {
                             if (!(X > 1e-12)) break;          // 買い手が満ちた＝この財は終了
-                            skipS[bestA] = true; continue;    // 売り手側の事情（Y=0/容量0/在庫0）＝次善へ回る
+                            // 売り手側の事情（Y=0/容量0/在庫0）＝次善へ回る（旧＝一時スキップの印 skipS[bestA]）＝候補表から外す
+                            candN--; candS[bestPos] = candS[candN]; candD![bestPos] = candD[candN]; candK![bestPos] = candK[candN];
+                            continue;
                         }
                         // ---- 記帳（OFF側の記帳ブロックの写し＝会計は同一。⚠OFF側を直したらここも直す）----
                         if (MultiNationSim.TimeOn) CntDeals++;   // ★計器
@@ -630,7 +668,7 @@ public sealed partial class InternationalMarket
                         netFlow[ni] -= valueA; if (crossA) importVal[ni] += valueA; grossVal[ni] += valueA;
                         tr[t].r.LastPortThroughput += valueA; if (crossA) impByGood[ni][g] += valueA;
                         grossVal[siA] += valueA; tr[snA].r.LastPortThroughput += valueA; if (crossA) expByGood[siA][g] += valueA;
-                        double toProdA = c.ExportRevenueToProducers > 1e-12 ? PayExportToProducers(tr[snA].r, g, valueA * Math.Clamp(c.ExportRevenueToProducers, 0, 1)) : 0.0;
+                        double toProdA = c.ExportRevenueToProducers > 1e-12 ? PayExportToProducers(tr[snA].r, g, valueA * Math.Clamp(c.ExportRevenueToProducers, 0, 1), ref payPr[snA], ref payTot[snA]) : 0.0;
                         netFlow[siA] += valueA - toProdA; direct[siA] += toProdA;
                         if (c.FreightRatePer10Mm > 1e-12)
                         {
@@ -656,6 +694,9 @@ public sealed partial class InternationalMarket
                             capLeft![t] -= qA * Wg; capLeft![snA] -= qA * Wg;
                             if (capLeft![t] <= 1e-12) break;   // この買い手は今清算これ以上運べない
                         }
+                        // 最良が有資格のまま（旧の走査の資格判定そのもの＝否定形の NaN も同じ側）なら (a)、外れたら (b)
+                        if (!(left[bestA] <= 1e-12) && !(capHard && capLeft![snA] <= 1e-12)) keepBest = true;
+                        else { candN--; candS[bestPos] = candS[candN]; candD![bestPos] = candD[candN]; candK![bestPos] = candK[candN]; }
                     }
                     continue;   // 次の買い手へ（旧経路は通らない）
                 }
@@ -771,7 +812,7 @@ public sealed partial class InternationalMarket
                 netFlow[ni] -= value; if (crossBorder) importVal[ni] += value; grossVal[ni] += value;
                 tr[t].r.LastPortThroughput += value; if (crossBorder) impByGood[ni][g] += value;
                 grossVal[si] += value; tr[sn].r.LastPortThroughput += value; if (crossBorder) expByGood[si][g] += value;
-                double toProducers = c.ExportRevenueToProducers > 1e-12 ? PayExportToProducers(tr[sn].r, g, value * Math.Clamp(c.ExportRevenueToProducers, 0, 1)) : 0.0;
+                double toProducers = c.ExportRevenueToProducers > 1e-12 ? PayExportToProducers(tr[sn].r, g, value * Math.Clamp(c.ExportRevenueToProducers, 0, 1), ref payPr[sn], ref payTot[sn]) : 0.0;
                 netFlow[si] += value - toProducers; direct[si] += toProducers;
                 if (c.FreightRatePer10Mm > 1e-12)
                 {
@@ -794,6 +835,7 @@ public sealed partial class InternationalMarket
                 }
             }
         }
+        if (swSec is not null) TimeClearTicks += swSec.ElapsedTicks;   // ★計器：最後の財の清算ループ（旧は足していなかった）
 
         // 容量律速の診断（旧 LastTradeThrottle と同じ意味＝1未満なら鉄道/船/港が交易を絞っていた）
         for (int t = 0; t < tc; t++)

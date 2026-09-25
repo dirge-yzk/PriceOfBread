@@ -554,7 +554,7 @@ if (args.Length > 0 && args[0] == "timeprobe")
         double n = MultiNationSim.TicksNations * f, m = MultiNationSim.TicksMarket * f;
         Console.WriteLine($"  各国の日次 {n:F0}ms（{n / Math.Max(1, tAll):P0}）　国際市場 {m:F0}ms（{m / Math.Max(1, tAll):P0}）　その他 {tAll - n - m:F0}ms");
         Console.WriteLine($"  1四半期あたり {(double)(tAll - tBuild - tWarm) / tq:F1}ms　→ {Coefficients.GameQuarters}四半期なら {(double)(tAll - tBuild - tWarm) / tq * Coefficients.GameQuarters / 1000:F0}秒/試合");
-        Console.WriteLine($"  清算内訳: リスト構築 {PriceOfBread.SimCore.InternationalMarket.TimeListsMs}ms　清算ループ {PriceOfBread.SimCore.InternationalMarket.TimeClearMs}ms"
+        Console.WriteLine($"  清算内訳: リスト構築 {PriceOfBread.SimCore.InternationalMarket.TimeListsTicks * f:F0}ms　清算ループ {PriceOfBread.SimCore.InternationalMarket.TimeClearTicks * f:F0}ms"
             + $"　財処理 {PriceOfBread.SimCore.InternationalMarket.CntGoods}　買い手行 {PriceOfBread.SimCore.InternationalMarket.CntBuyers}"
             + $"　反復 {PriceOfBread.SimCore.InternationalMarket.CntRollIters}　走査歩 {PriceOfBread.SimCore.InternationalMarket.CntScanSteps}　空振り {PriceOfBread.SimCore.InternationalMarket.CntSkips}"
             + $"　着値充填 {PriceOfBread.SimCore.InternationalMarket.CntFills}　成約 {PriceOfBread.SimCore.InternationalMarket.CntDeals}");

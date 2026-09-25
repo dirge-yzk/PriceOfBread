@@ -467,6 +467,8 @@ public static class SeaGraph
     public static double SeaDistanceKm(double lat1, double lon1, double lat2, double lon2, bool suezOpen, bool panamaOpen)
         => SeaDistanceKm(lat1, lon1, lat2, lon2, suezOpen, panamaOpen, LeadBudgetMult);
 
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<(int, int), byte> IsolatedReported = new();   // 孤立成分の診断を書いた組（stderr の重複除去だけ・静的＝セーブに載らない）
+
     /// <inheritdoc cref="SeaDistanceKm(double,double,double,double,bool,bool)"/>
     /// <param name="leadBudgetMult">出港免除の予算倍率（テスト/診断の明示指定口・0＝旧規則）。</param>
     internal static double SeaDistanceKm(double lat1, double lon1, double lat2, double lon2, bool suezOpen, bool panamaOpen, double leadBudgetMult)
@@ -477,8 +479,9 @@ public static class SeaGraph
         if (double.IsPositiveInfinity(d))
         {
             // 孤立成分（データ穴）＝大圏2倍で退避＝交易を全断しない安全側フォールバック。ConservationProbe時は現場をstderrへ（leakhuntと同じ流儀）。
-            if (Simulation.ConservationProbe)
-                Console.Error.WriteLine($"[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 {Nodes[s].Name}→{Nodes[t].Name}");
+            // ★2026-09-26：同じノードの組は1回だけ書く（旧＝leakhunt 668 で同じ2行を1,142万回・1GB超）。stderr の診断だけ＝軌道には触れない。
+            if (Simulation.ConservationProbe && IsolatedReported.TryAdd((s, t), 0))
+                Console.Error.WriteLine($"[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 {Nodes[s].Name}→{Nodes[t].Name}（同じ組は以後省略）");
             return Geo.DistanceKm(lat1, lon1, lat2, lon2) * 2.0;
         }
         return d + stitch;

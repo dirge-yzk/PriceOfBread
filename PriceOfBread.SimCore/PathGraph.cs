@@ -107,6 +107,10 @@ public static class PathGraph
     public sealed record Node(string Name, string Kind, double Lat, double Lon);   // Kind: state/colony/barrier/pass
     public readonly record struct Edge(int A, int B, double Km);
 
+    // ★記憶（2026-09-26・高速化・厳密恒等）：NearestNode と LandDistanceKm は不変の Nodes/Adj に対する座標の純関数＝座標の**厳密なビット**を鍵に答えを覚える。
+    //   ⚠静的フィールドはテキスト順に初期化される＝Nodes の構築より前に置く（構築中に呼ばれても null にならない）。セーブには載らない（静的）。
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<(long, long), int> NearestMemo = new();
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<(long, long, long, long), double> LandKmMemo = new();
     public static readonly Node[] Nodes = LoadNodes();
     private static readonly (int I, int J)[] Walls = BuildWalls();   // ★壁の線分（2026-09-05）。⚠静的フィールドはテキスト順に初期化される＝Edges より前に置く（Nodes と GeoCoef だけに依存）
     public static readonly Edge[] Edges = BuildEdges();
@@ -593,9 +597,12 @@ public static class PathGraph
         return adj;
     }
 
-    /// <summary>最近傍ノード（バリア除く＝出発/到着は必ず州・植民地・峠）。同距離は添字順＝決定論。</summary>
+    /// <summary>最近傍ノード（バリア除く＝出発/到着は必ず州・植民地・峠）。同距離は添字順＝決定論。
+    /// ★2026-09-26：答えを座標の厳密なビットで記憶（<see cref="NearestMemo"/>）＝純関数の記憶＝厳密恒等（港の配線を毎四半期同じ座標で張り直す分が消える）。</summary>
     public static int NearestNode(double lat, double lon)
     {
+        var key = (System.BitConverter.DoubleToInt64Bits(lat), System.BitConverter.DoubleToInt64Bits(lon));
+        if (NearestMemo.TryGetValue(key, out int memo)) return memo;
         int best = -1; double bd = double.MaxValue;
         for (int i = 0; i < Nodes.Length; i++)
         {
@@ -603,6 +610,7 @@ public static class PathGraph
             double d = Geo.DistanceKm(lat, lon, Nodes[i].Lat, Nodes[i].Lon);
             if (d < bd) { bd = d; best = i; }
         }
+        NearestMemo.TryAdd(key, best);
         return best;
     }
 
@@ -630,12 +638,22 @@ public static class PathGraph
         }
     }
 
+    /// <summary>★2026-09-26：答えを4座標の厳密なビットで記憶（<see cref="LandKmMemo"/>）＝純関数の記憶＝厳密恒等（呼ぶたびの Dijkstra が消える）。</summary>
     public static double LandDistanceKm(double lat1, double lon1, double lat2, double lon2)
     {
+        var key = (System.BitConverter.DoubleToInt64Bits(lat1), System.BitConverter.DoubleToInt64Bits(lon1),
+                   System.BitConverter.DoubleToInt64Bits(lat2), System.BitConverter.DoubleToInt64Bits(lon2));
+        if (LandKmMemo.TryGetValue(key, out double memo)) return memo;
         int s = NearestNode(lat1, lon1), t = NearestNode(lat2, lon2);
-        if (s < 0 || t < 0) return double.PositiveInfinity;
-        double stitch = Geo.DistanceKm(lat1, lon1, Nodes[s].Lat, Nodes[s].Lon) + Geo.DistanceKm(lat2, lon2, Nodes[t].Lat, Nodes[t].Lon);
-        return Dijkstra(s, t, null) + stitch;
+        double km;
+        if (s < 0 || t < 0) km = double.PositiveInfinity;
+        else
+        {
+            double stitch = Geo.DistanceKm(lat1, lon1, Nodes[s].Lat, Nodes[s].Lon) + Geo.DistanceKm(lat2, lon2, Nodes[t].Lat, Nodes[t].Lon);
+            km = Dijkstra(s, t, null) + stitch;
+        }
+        LandKmMemo.TryAdd(key, km);
+        return km;
     }
 
     /// <summary>単一始点の全ノード最短距離（km・接ぎ木なしの素のグラフ距離）。到達不能＝+∞（別陸塊・孤立成分）。
