@@ -2,9 +2,9 @@
 
 /// <summary>
 /// 輸送容量（§5.1拡張）：鉄道（内陸→港）と海運（港→世界市場）の容量を、鉄道財/船財の投資で積む。
-/// 投資家が国内市場から鉄道(線路+機関車)/船(帆船+汽船)を買い→容量に変換（在庫消費＝非貨幣）。
+/// 投資家が国内市場から鉄道(線路+機関車)を、商人が船（帆船か汽船の、容量あたりの総費用が安い方）を買い→容量に変換（在庫消費＝非貨幣）。
 /// 容量は毎期減耗し、維持に再投資が要る＝鉄道/船の持続需要を生む（史実：輸送財の需要増）。
-/// 金は 投資家pop→生産者所有者pop で移転＝保存（BaseMoney不変）。積んだ容量が交易量を律速する（<see cref="InternationalMarket"/>＝清算の本体は BilateralMarket.cs）。
+/// 金は 買い手pop→生産者の持ち主pop（出力の割合で按分＝輸出代金と同じ売上の経路）で移転＝保存（BaseMoney不変）。積んだ容量が交易量を律速する（<see cref="InternationalMarket"/>＝清算の本体は BilateralMarket.cs）。
 /// </summary>
 public static class Transport
 {
@@ -46,27 +46,23 @@ public static class Transport
         // 鉄道は技術で解禁（史実1820s〜）：技術がonset未満は内陸輸送が道路/河川（基準値）のみ＝序盤の内陸交易は強く絞られる。船（帆船＝海運）は古来あり据え置き。
         double railGate = System.Math.Clamp((w.TechLevel - c.RailTechOnset) / System.Math.Max(1e-9, c.RailTechWidth), 0, 1);   // 0除算ガード（BilateralMarket.cs の同式と同じ守り）
         BuyToward(w, c, [c.RailGoodId, c.LocoGoodId], target * railGate, rail: true);
+        double shipBefore = w.ShipCapacity;   // 減耗の後・購入の前の容量
         var (shipAdd, steamAdd) = BuyToward(w, c, c.ShipGoodIds, target, rail: false);
-        // 運用コスト監査2026-08-16 #3（汽船の運行燃料・休眠）：ShipCapacity は帆船と汽船の合算＝購入後に区別が消え運航費が同一
-        // （帆船消滅の史実主因の欠落）。購入時の汽船比率をEMAで1本持ち、燃料需要＝ShipFuelRate×ShipCapacity×汽船比率。
-        // ⚠EMA更新も係数ゲート内＝ShipFuelRate=0（既定）では World.ShipSteamShareEma を一切読み書きしない＝厳密恒等。
-        if (c.ShipFuelRate > 0)
+        // 運用コスト監査2026-08-16 #3（汽船の運行燃料）：ShipCapacity は帆船と汽船の合算＝購入後に区別が消える。燃料需要＝ShipFuelRate×ShipCapacity×汽船の割合。
+        // ★2026-09-26（回4-3・項目8）：汽船の割合を平滑値（旧 ShipSteamShareSmoothing）でなく、容量の在庫に占める汽船の容量そのものにする
+        //   ＝（汽船の割合×購入前の容量＋今月の汽船の容量）÷購入後の容量。減耗（上）と戦災（Diplomacy の輸送容量の戦災）は帆船と汽船に同じ率で掛かる＝割合を変えない。
+        //   ⚠燃料の係数の門の外で常に更新する（読み手は燃料の購入だけ＝ShipFuelRate=0 では軌道に効かない）。Min(1) は丸めの守り（定義上1を超えない）。
+        if (shipAdd > 0)
         {
-            if (shipAdd > 1e-9)
-            {
-                double share = steamAdd / shipAdd;
-                if (!(share >= 0 && share <= 1)) share = 0;   // 否定形＝NaNは帆走側へ
-                double a = System.Math.Clamp(c.ShipSteamShareSmoothing, 0, 1);
-                w.ShipSteamShareEma = (1.0 - a) * w.ShipSteamShareEma + a * share;
-                if (!(w.ShipSteamShareEma >= 0 && w.ShipSteamShareEma <= 1)) w.ShipSteamShareEma = 0;
-            }
-            BuyShipFuel(w, c);
+            double s = (w.ShipSteamShareEma * shipBefore + steamAdd) / w.ShipCapacity;
+            w.ShipSteamShareEma = s >= 0 ? System.Math.Min(1.0, s) : 0.0;   // NaN は帆走の側へ
         }
+        if (c.ShipFuelRate > 0) BuyShipFuel(w, c);
     }
 
     // #3 汽船の運行燃料（運用コスト監査2026-08-16）：商人pop（船の買い手＝BuyToward:59 と同じ選択）が地元市場から石炭（または重油＝
     // Colonial B6 の二択・供給実在ガード込み）を買って焚く。決済は BuyToward の船購入と同一パターン（需要計上→在庫/財布律速→
-    // 生産者所有者へ支払い＝pop→pop 移転で保存・LastSold 計上で財収支を保つ）。呼び手が ShipFuelRate>0 でゲート済み。
+    // 生産者の持ち主へ出力の割合で支払い＝pop→pop 移転で保存・LastSold 計上で財収支を保つ）。呼び手が ShipFuelRate>0 でゲート済み。
     private static void BuyShipFuel(World w, Coefficients c)
     {
         double totalWant = c.ShipFuelRate * w.ShipCapacity * w.ShipSteamShareEma;   // 帆走のみ（EMA=0）なら需要ゼロ
@@ -91,41 +87,69 @@ public static class Transport
             if (buy <= 1e-9) continue;
             m.Stock -= buy;
             m.LastSold += buy;          // 汽船が焚く＝消費（財収支に計上）
-            buyer.Savings -= pay;
-            var prod = r.Producers.Find(x => x.GoodId == fuelG);
-            if (prod is not null && (uint)prod.OwnerPopIndex < (uint)r.Pops.Count) r.Pops[prod.OwnerPopIndex].Savings += pay;   // 売り手（生産者の所有者）へ＝保存
-            else buyer.Savings += pay;                                       // 生産者不在／添字範囲外なら払い戻し＝保存（BuyToward と同じ境界ガード）
+            // ★2026-09-26（回4-3・econ-12）：旧＝最初に見つかった生産者の持ち主へ全額。今＝輸出代金と同じ売上の経路（各生産者の出力の割合）。
+            //   生産者が居ないか出力の合計が0なら0が返る＝買い手は払わない（旧の払い戻しの形）＝保存。
+            Producer[]? ownPr = null; double ownTotal = 0;
+            double paid = InternationalMarket.PayExportToProducers(r, fuelG, pay, ref ownPr, ref ownTotal);   // ⚠先に払ってから引く（買い手が持ち主のとき、`-=` の左辺を先に読むと受け取った分を上書きする）
+            buyer.Savings -= paid;
         }
     }
 
     // 目標容量へ向けて鉄道/船を国内市場から購入→容量を積む。**鉄道＝投資家（資本家）・船＝商人**が負担：
     // 商人は貿易と流通で稼ぎ、商船を買って海運を支える（交易↑→商人が富む→商船↑→さらに交易↑の自己強化）。
-    // 在庫が無くても希望量を需要に計上＝生産を立ち上げる（鶏卵回避）。買えた分だけ容量に変換（在庫消費＝非貨幣）。金は買い手pop→生産者所有者で保存。
-    // 戻り値＝今月積んだ容量の（合計, うち汽船tier2分）。#3 運行燃料の汽船比率EMAが読む（読み手が居なくても集計は局所変数のみ＝挙動不変）。
+    // 在庫が無くても希望量を需要に計上＝生産を立ち上げる（鶏卵回避）。買えた分だけ容量に変換（在庫消費＝非貨幣）。金は買い手pop→生産者の持ち主で保存。
+    // ★2026-09-26（回4-3・項目8・econ-12）：船は州ごとに「容量1あたりの総費用」が安い1財だけを欲しがる（旧＝帆船と汽船を同じ単位数ずつ・値段を見ない）。
+    //   帆船＝値段÷TransportCapPerUnit。汽船＝値段÷(TransportCapPerUnit×ShipTier2CapMult)＋寿命（1÷TransportDecay か月）の間に焚く燃料の代金
+    //   （ShipFuelRate×燃料の値段÷TransportDecay・燃料は石炭か重油の安い方＝Colonial.ChooseFuelGood と同じ二択）。
+    //   汽船は、その州に汽船の供給が実在するとき（在庫があるか、今月の生産か輸入が正）だけ候補に入る（ChooseFuelGood の供給の確かめと同じ作法）
+    //   ＝作れない時代に汽船の幻の需要は立たない。同値は帆船（先に並ぶ方）。鉄道（線路と機関車）は補完財なので両方を同じ単位数ずつ（今のまま）。
+    //   量＝州の不足の容量を、選んだ財の1単位の容量で割った単位数（汽船は1単位で×ShipTier2CapMult）。
+    // 戻り値＝今月積んだ容量の（合計, うち汽船tier2分）。Step が汽船の割合（World.ShipSteamShareEma）を更新する。
     private static (double Total, double Steam) BuyToward(World w, Coefficients c, int[] goods, double target, bool rail)
     {
         double addTotal = 0, addSteam = 0;
         double cap = rail ? w.RailCapacity : w.ShipCapacity;
-        double gapUnits = (target - cap) * c.TransportBuildRate / c.TransportCapPerUnit;   // 今月詰めたい総単位数
+        double gapUnits = (target - cap) * c.TransportBuildRate / c.TransportCapPerUnit;   // 今月詰めたい総単位数（1単位＝TransportCapPerUnit の容量で数える）
         if (gapUnits <= 1e-9) return (0, 0);
         int regCount = 0;
         foreach (var r in w.Regions) if (r.State == RegionState.Active && r.InvestorPopIndex >= 0) regCount++;
         if (regCount == 0) return (0, 0);
-        double perGood = gapUnits / regCount / goods.Length;   // 1州1財あたりの希望単位
+        double perGood = rail ? gapUnits / regCount / goods.Length : gapUnits / regCount;   // 1州1財あたりの希望単位（船は選んだ1財だけ）
         foreach (var r in w.Regions)
         {
             if (r.State != RegionState.Active || r.InvestorPopIndex < 0) continue;
             int buyerIdx = rail ? r.InvestorPopIndex : (r.MerchantPopIndex >= 0 ? r.MerchantPopIndex : r.InvestorPopIndex);
             var investor = r.Pops[buyerIdx];
+            int pick = -1;   // 船：この州で容量あたりの総費用が最も安い財
+            if (!rail)
+            {
+                double best = 0;
+                foreach (int gi in goods)
+                {
+                    if (gi < 0 || gi >= r.Markets.Length) continue;
+                    var mg = r.Markets[gi];
+                    bool steam = gi == c.ShipTier2GoodId;
+                    if (steam && !(mg.Stock > 1e-9 || mg.LastProduced + mg.LastImport > 0)) continue;   // 汽船の供給が実在しない州では候補にしない
+                    double cost = mg.Price / (c.TransportCapPerUnit * (steam ? c.ShipTier2CapMult : 1.0));
+                    if (steam && c.ShipFuelRate > 0)
+                    {
+                        var (fuelG, fuelQty) = Colonial.ChooseFuelGood(r, c, 1.0);   // 石炭1の熱量あたりの燃料（重油なら1/比）
+                        cost += c.ShipFuelRate * r.Markets[fuelG].Price * fuelQty / c.TransportDecay;
+                    }
+                    if (pick < 0 || cost < best) { pick = gi; best = cost; }
+                }
+            }
             foreach (int gi in goods)
             {
                 if (gi < 0 || gi >= r.Markets.Length) continue;
+                if (!rail && gi != pick) continue;
                 var m = r.Markets[gi];
+                double mult = (!rail && gi == c.ShipTier2GoodId) ? c.ShipTier2CapMult : 1.0;   // 汽船=tier2＝1単位あたり容量が大（蒸気船の革命）
                 // T1（輸送doc §3-3・2026-07-31）：**買えない国の需要が世界市場に載り、買える国の調達費を押し上げる**歪みの是正。
                 // 旧＝希望量をそのまま計上（在庫0でも生産を駆動する鶏卵回避が目的で、意図は正しい）。⚠ ただし財布を一切見ていなかった。
                 // >0 で「買い手の手持ちで買える単位数 × これ」を希望量の上限にする＝**貯蓄があれば在庫0でも需要は立つ**（鶏卵回避は保つ）が、無い袖の需要は消える。
                 // 0（既定）＝上限なし＝分岐に入らず**厳密恒等**。
-                double want = perGood;
+                double want = perGood / mult;   // 同じ容量に要る単位数（汽船は1/ShipTier2CapMult）
                 if (c.TransportDemandAffordCap > 0 && m.Price > 1e-9)
                     want = System.Math.Min(want, c.TransportDemandAffordCap * System.Math.Max(0, investor.Savings) / m.Price);
                 m.LastDemand += want;               // 在庫が無くても需要を計上＝生産を駆動（鉄道/船の需要が上がる＝史実・ブートストラップ）
@@ -136,15 +160,14 @@ public static class Transport
                 if (buy <= 1e-9) continue;
                 m.Stock -= buy;
                 m.LastSold += buy;          // 財収支に計上（輸送購入＝販売）。在庫減を販売として記録し§11.6財収支を保つ
-                investor.Savings -= pay;
-                var prod = r.Producers.Find(x => x.GoodId == gi);
-                if (prod is not null && (uint)prod.OwnerPopIndex < (uint)r.Pops.Count) r.Pops[prod.OwnerPopIndex].Savings += pay;   // 売り手（生産者の所有者）へ＝金は保存（兄弟の pay-owner 経路と同じ境界ガード）
-                else investor.Savings += pay;                                       // 生産者不在／所有者添字が範囲外なら払い戻し＝金は保存
-                double mult = (!rail && gi == c.ShipTier2GoodId) ? c.ShipTier2CapMult : 1.0;   // 汽船=tier2＝1単位あたり容量が大（蒸気船の革命）
+                // 代金＝輸出代金と同じ売上の経路（各生産者の出力の割合で持ち主へ・econ-12）。生産者が居ないか出力の合計が0なら0が返る＝買い手は払わない（旧の払い戻しの形）＝金は保存。
+                Producer[]? ownPr = null; double ownTotal = 0;
+                double paid = InternationalMarket.PayExportToProducers(r, gi, pay, ref ownPr, ref ownTotal);   // ⚠先に払ってから引く（買い手が持ち主のとき、`-=` の左辺を先に読むと受け取った分を上書きする）
+                investor.Savings -= paid;
                 double add = buy * c.TransportCapPerUnit * mult;
                 if (rail) w.RailCapacity += add; else w.ShipCapacity += add;
                 addTotal += add;
-                if (!rail && gi == c.ShipTier2GoodId) addSteam += add;   // #3 汽船比率（容量加重）の分子
+                if (!rail && gi == c.ShipTier2GoodId) addSteam += add;   // 汽船の割合（容量加重）の分子
             }
         }
         return (addTotal, addSteam);

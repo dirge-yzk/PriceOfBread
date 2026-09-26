@@ -1248,7 +1248,7 @@ public sealed class Coefficients
     public double TransportBaseline = 50.0;         // 前鉄道の基礎輸送（道路/河川＝低容量で高コスト）。鉄道前は州が世界市場と細々としか繋がらず地域価格が割れる→鉄道（容量≈人口×0.08）で統合され収束
     public double RailTechOnset = 0.35;             // 鉄道（内陸輸送）の技術解禁。工業化判定閾値(IndustrializedTechThreshold0.25)の一段上＝工業化に入った国から鉄道を積める。旧1.0は採用上限(AdoptionCeiling0.5)/後追い天井(×CatchupFraction0.7)と不整合で後発国・単一国が永久に解禁できなかった（Wave1-B監査）。船(帆船)は古来あり据え置き
     public double RailTechWidth = 0.5;             // 解禁の幅：onset(0.35)〜onset+width(0.85)で鉄道容量上限が0→満額へ。先端国は満額・工業化途上国も部分的に鉄道を持てる（普及の漸進）
-    public int[] ShipGoodIds = [84, 85];            // 帆船(tier1)・汽船(tier2)
+    public int[] ShipGoodIds = [84, 85];            // 帆船(tier1)・汽船(tier2)。★2026-09-26（回4-3）：Transport が州ごとに容量あたりの総費用（船価＋汽船は寿命の間の燃料）の安い1財だけを買う
     public int ShipTier2GoodId = 85;                // 汽船＝tier2輸送船（蒸気船）。蒸気機関を要する＝供給チェーンで自然に技術ゲート
     public double ShipTier2CapMult = 2.5;           // tier2輸送船は1単位あたり容量が大（蒸気船は帆船より高速・大容量＝海運の革命）
 
@@ -3468,10 +3468,11 @@ public sealed class Coefficients
     public double RailCoalRate = 0.22;          // ★点火2026-08-29（夜間R18燃料クラスタA/B batch30＝破綻0・列強+2.9。⚠損失financing 1/30=seed3トスカーナを記録＝広がるなら0.15へ）。導出＝0.25×(0.4×高度労働0.8+0.3×労働0.5)/石炭0.54。#2 鉄道の運行石炭：インフラ保守1単位あたりの石炭消費（×蒸気ゲート）。火夫（MaintLaborRate=0.3）は雇うのに石炭を買っていない自己矛盾の是正。
     //   点火目標の導出：19世紀鉄道の営業費構成＝人件費≈50%・燃料≈10〜15%→石炭費≈運行要員費（MaintAdvLaborRate 0.4×高度労働価格＋MaintLaborRate 0.3×労働価格）の約1/4
     //   → RailCoalRate ≈ 0.25×(0.4×AdvLabor参照価格+0.3×Labor参照価格)/石炭参照価格 を初期値に Search で再較正。投資予算の律速（maintCostPerUnit）にも同項を載せる＝InvestBudgetIncludesAllInputs と同じ作法
-    public double ShipFuelRate = 0.0;           // #3 汽船（民間海運）の運行燃料：石炭需要/月 = これ×ShipCapacity×汽船比率EMA。買い手＝商人pop（Transport の船購入と同じ決済＝保存）。帆船と汽船の運航費が同一＝帆船消滅の史実主因の欠落の是正。
+    public double ShipFuelRate = 0.0;           // #3 汽船（民間海運）の運行燃料：石炭需要/月 = これ×ShipCapacity×汽船の割合（World.ShipSteamShareEma＝容量の在庫に占める汽船・2026-09-26 から平滑でなく厳密な割合）。買い手＝商人pop（Transport の船購入と同じ決済＝保存）。帆船と汽船の運航費が同一＝帆船消滅の史実主因の欠落の是正。
+    //   ★2026-09-26（回4-3）：船の選択にも入る＝汽船の容量単価に「これ×燃料の値段÷TransportDecay（寿命の間の燃料）」を足して帆船と比べる。
+    //   ⚠点火は保留＝点火値の出所が作者の確認待ち（外部レビューの検討 §10-10［交易5］＝下の導出は単位の無い「海運占有」を容量と読み替えていて単位が合わない）。
     //   点火目標の導出（錨＝植民地補給線の既較正ペア）：石炭400/海運占有0.12（ColonyUpkeepCoalPerDist/ColonyShipOccupyPerDist）≈ 石炭3,333/ShipCapacity単位・1万km航路換算
     //   → 平均航路をn万kmとみなし ShipFuelRate ≈ 3,333×n×(月次換算) を上限目安に、点火時は tradeprobe で燃料需要総量が補給線側と同オーダーに収まるよう再較正。
-    public double ShipSteamShareSmoothing = 0.25; // #3 汽船比率EMA（購入容量ベース）の平滑。ShipFuelRate>0のときのみ読み書き（=0ではEMA自体を更新しない＝ビット恒等）
     public double AirFuelRate = 0.045;          // ★点火2026-08-29（夜間R18燃料クラスタA/B batch30・0.03〜0.06帯の中央）。#4 空軍の燃料：MilitaryScale 1あたりの原油消費/月（作戦機は飛ばすたびに燃料を焚く＝製造時の原油だけでは足りない）。充足は MilitaryAirFill に乗算合成（新フィールドなし）。
     //   点火目標の導出：飛行機の調達レート（MilitaryAirRates[0]=0.03）に対し、運用燃料は機体フローの1〜2倍/月（機体は耐久財・燃料は毎月）→ AirFuelRate ≈ 0.03〜0.06 を初期値に再較正。
     public double MotorFuelRate = 0.05;         // ★点火2026-08-29（夜間R18燃料クラスタA/B batch30）。#4b 輜重自動車（MilitaryGoods の132・rate0.02）の燃料：MilitaryScale 1あたりの原油消費/月。車両は耐久財・燃料は毎月→機体比の論法で0.02×2〜3。原油の供給実在ガード（掘削解禁前は需要を立てない）は空軍と共通
