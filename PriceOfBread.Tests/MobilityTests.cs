@@ -173,14 +173,16 @@ public class MobilityTests
     }
 
     [Fact]
-    public void 転落物差し改革で結晶資産持ち貴族は没落しない()   // rank7（点火0.5・2026-08-16）のON経路＝テストは効果を明示するため1.0で検証：「土地持ち現金なし貴族」の幽霊転落の解消
+    public void 転落物差し改革で所得に見合う資産の貴族は没落しない()   // rank7（点火0.3）のON経路＝テストは効果を明示するため1.0で検証：アンカーを「他人の平均」から「自分の年所得」へ
     {
+        // ⚠2026-09-26：旧名「結晶資産持ち貴族は没落しない」は rank7(a)（結晶資産 IlliquidWealth 込みの判定資産）を見ていたが、
+        //   結晶資産は休眠の枝だけが書き実走では常に0だった＝欄ごと削除（dorm-24）。残る生きた部分＝(b) のアンカーを見る番人へ置き換えた。
         // 双子シム（同シード＝決定論で同一状態）：ON側だけ物差しが変わる＝差分が改革の効果そのもの。
         var off = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
         var on = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
         off.Run(20); on.Run(20);
         off.World.Coef.FallAnchorReform = 0;    // OFF側を明示ピン（2026-08-16に既定0→0.5で点火済み＝対照は明示しないと番人が空洞化する）
-        on.World.Coef.FallAnchorReform = 1.0;   // ON側は効果を可視化する全強度（実運用の既定は0.5）
+        on.World.Coef.FallAnchorReform = 1.0;   // ON側は効果を可視化する全強度（実運用の既定は0.3）
         double[] size0 = new double[2], size1 = new double[2];
         int si = 0;
         foreach (var sim in new[] { off, on })
@@ -190,8 +192,8 @@ public class MobilityTests
             for (int i = 0; i < r.Pops.Count; i++) if (r.Pops[i].Closed && i != r.ClergyPopIndex) { nobleIdx = i; break; }
             Assert.True(nobleIdx >= 0, "閉鎖階級（貴族）が見つからない");
             var noble = r.Pops[nobleIdx];
-            // 「資産の大半が結晶（土地）・流動は平均の半分・所得は平均資産並み」の貴族を直接セット（決定論）。
-            // 旧物差し：Savings/Size=0.5×avg < 0.8×avg ＝転落圏。新物差し：資産(0.5+0.5)×avg ≥ 0.8×年所得(=avg) ＝安泰。
+            // 「資産は平均の半分・年所得も平均資産の半分」の貴族を直接セット（決定論）。
+            // 旧物差し：Savings/Size=0.5×avg < 0.8×avg ＝転落圏。新物差し：資産 0.5×avg ≥ 0.8×年所得(=0.5×avg) ＝安泰（所得に見合う資産）。
             for (int it = 0; it < 6; it++)   // Savingsを書くと平均自身が動く＝数回の反復で不動点へ
             {
                 double totalSav = 0, total = 0;
@@ -199,8 +201,7 @@ public class MobilityTests
                 noble.Savings = 0.5 * (totalSav / total) * noble.Size;
             }
             double avgF; { double totalSav = 0, total = 0; foreach (var p in r.Pops) { totalSav += System.Math.Max(0, p.Savings); total += p.Size; } avgF = totalSav / total; }
-            noble.IlliquidWealth = noble.Savings;                          // 全額結晶＝土地持ち現金なし
-            noble.Earned = avgF * noble.Size / Calendar.MonthsPerYear;     // 年所得/人 ＝ 平均貯蓄/人（アンカーの言語）
+            noble.Earned = 0.5 * avgF * noble.Size / Calendar.MonthsPerYear;   // 年所得/人 ＝ 平均貯蓄/人の半分（アンカーの言語）
             noble.LastEarned = noble.Earned;
             Assert.True(noble.Savings / noble.Size < sim.World.Coef.UpperFallThreshold * avgF, "セットアップ不足：旧物差しの転落圏に居ない");
             size0[si] = noble.Size;
@@ -209,7 +210,7 @@ public class MobilityTests
             si++;
         }
         Assert.True(size1[0] < size0[0] - 1e-9, $"旧物差しで貧窮貴族が転落しない（{size0[0]:F2}→{size1[0]:F2}）＝前提が崩れた");
-        Assert.True(size1[1] > size0[1] - 1e-9, $"改革ONで結晶資産持ち貴族が幽霊転落した（{size0[1]:F2}→{size1[1]:F2}）");
+        Assert.True(size1[1] > size0[1] - 1e-9, $"改革ONで所得に見合う資産の貴族が幽霊転落した（{size0[1]:F2}→{size1[1]:F2}）");
     }
 
     [Fact]

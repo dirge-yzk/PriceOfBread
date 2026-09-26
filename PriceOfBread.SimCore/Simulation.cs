@@ -57,8 +57,7 @@ public sealed class Simulation
     public List<TurnSnapshot> Telemetry { get; } = [];
     public bool TelemetryEnabled = true;   // false＝Snapshot()を止める（selfplay/バッチの割当削減。インスタンス単位＝並列テストと不干渉）
 
-    /// <summary>一時デバッグ用：StepMonth の各サブシステム後に呼ぶ（保存則の漏れ探し）。通常は null。</summary>
-    public static Action<string, World>? Probe;
+    // （一時デバッグ用の静的フック Simulation.Probe と Runner の drift は 2026-09-26 に削除＝同じ役を ProbeCheck（leakhunt）が持つ・fis-19）
 
     public Simulation(Scenario scenario, INationAgent agent)
     {
@@ -134,10 +133,9 @@ public sealed class Simulation
         //   **エンジンの距離計算が全部これを読んでいる**（植民地維持費・脅威・戦力投射・移民・招聘・運河・分離の投射・行政費）。
         //   ⇒ 距離の基準を**経済中心地＝1番目の州**（エンジンが首都として扱い、分離もさせない州）へ移す。
         //   ★実装は**1箇所**＝ここで座標そのものを差し替える（20箇所以上の読み手を書き換えない＝改修面積が最小）。
-        //   ⚠史実の首都は `DisplayCapitalLat/Lon` に残す＝**表示専用**（地図・年代記が読む）。
+        //   ⚠史実の首都の写し（表示専用の DisplayCapitalLat/Lon）は画面も年代記も読んでいなかった＝2026-09-26 に削除（x-03）。
         //   ⚠差が出るのは実測3カ国だけ（露634km・コーカンド167km・モロッコ166km）＝他は200km以内で一致。
         //   ⚠CenterIsFirstProvince=0 で1命令も走らない＝厳密恒等（休眠だった＝2026-09-05 B群で点火・0は従来の腕）。
-        World.DisplayCapitalLat = World.Latitude; World.DisplayCapitalLon = World.Longitude;
         if (scenario.Coef.CenterIsFirstProvince > 0 && World.Regions.Count > 0)
         {
             var c0 = Places.Coord(World.Regions[0].Name);
@@ -874,8 +872,8 @@ public sealed class Simulation
         double draft = PolicyDefaults.MilitarySpendingTarget * coef.MaxSoldierFraction * pw;   // Military.cs の desired と完全一致（不発の上限0.3×pwを撤去）
         if (pw > 1e-9)
         {
-            Military.MoveCohort(peasant, soldier, draft * peasant.Size / pw);
-            Military.MoveCohort(worker,  soldier, draft * worker.Size  / pw);
+            Military.MoveCohort(peasant, soldier, draft * peasant.Size / pw, coef);   // ★2026-09-26：手元の coef を渡す（旧＝3引数版が既定の係数を新しく作っていた・sweep-23）
+            Military.MoveCohort(worker,  soldier, draft * worker.Size  / pw, coef);
         }
 
         var pops = new List<Pop> { nobility, peasant, worker, bourgeois, engineer, soldier, clergy, teacher, bureaucrat, doctor, merchant, artisan, servant };
@@ -1334,7 +1332,7 @@ public sealed class Simulation
         {
             if (System.Array.IndexOf(col.Resources, pr.GoodId) >= 0)
             {
-                ApplyEndowment(pr, ScarceEndowment(pr.GoodId, coef, !w.StepsDiplomacy) * coef.ResourceEndowmentScale, coef);   // 植民地の固有資源＝そのまま州の賦存へ（一次データ）。BuildProvince(769)と同じ ScarceEndowment＝ScarceMineralGate=0（既定）では ResourceEndowment と厳密同値
+                ApplyEndowment(pr, ScarceEndowment(pr.GoodId, coef, !w.StepsDiplomacy) * coef.ResourceEndowmentScale, coef);   // 植民地の固有資源＝そのまま州の賦存へ（一次データ）。BuildProvince(769)と同じ ScarceEndowment＝ScarceMineralGate=0 なら ResourceEndowment と厳密同値（⚠既定は点火済みの1.0＝2026-09-05・x-02 で注記を是正）
                 // ★B5（実バグ21件・2026-09-07）：本国の賦存州は PlantationRentShare（live 0.6）で大農園の地代を当てるのに、植民地格の昇格州は自作農のまま＝史実の逆
                 //   （ベンガル/ジャワ/カリブは大農園）。ColonyPlantationRent>0 かつ Colonial 格のとき賦存RGOに同じ上書き・所有＝資本家（入植の農園主＝開いた階級・0から流入で育つ）。0＝旧＝厳密恒等。
                 if (coef.ColonyPlantationRent > 0 && tier == RegionTier.Colonial && pr.IsRgo && coef.PlantationRentShare > pr.RentShare)
@@ -1385,7 +1383,7 @@ public sealed class Simulation
         // ★段1 器 EduProducersCoexist（2026-09-12）：昇格植民地州も本国州と同じ2件並置を受ける（coef を渡す・researcherIdx は既定 -1 のままなので大学の枝は不変＝0 で厳密恒等）。
         //   渡さないと >0 の世界で StepMonth が [eduIdx+1] を公立学校と誤認する（実体は医療）＝型の統合が起こす静かな破損の型。
         int eduIdx = AddServiceProducers(producers, pops, workerIdx: 2, peasantIdx: 1, teacherIdx: 6, bureaucratIdx: 7, doctorIdx: 8, coef: coef, clergyIdx: 5);
-        AddAdvancedProducers(producers, pops, engineerIdx: 4, workerIdx: 2, ownerIdx: 3, new Coefficients());
+        AddAdvancedProducers(producers, pops, engineerIdx: 4, workerIdx: 2, ownerIdx: 3, coef);   // ★2026-09-26：渡された coef を使う（旧＝ここだけ既定の係数を新しく作っていた＝国ごとの係数・テストの w.Coef.X= が植民地州の高度な生産者に届かなかった・col-26）
         AddArtisanProducers(producers, artisanIdx: 10);
         producers.Add(new Producer { GoodId = Catalog.DomesticServiceId, Productivity = 1.0, Output = 0, MarginalCost = 0.3, LaborPopIndex = 11, OwnerPopIndex = 11, RentShare = 0.0 });
         producers.Add(new Producer { GoodId = Catalog.MilitaryPowerId, Productivity = 1.0, Output = 0, MarginalCost = 0.3, LaborPopIndex = 12, OwnerPopIndex = 12, RentShare = 0.0 });
@@ -1686,9 +1684,8 @@ public sealed class Simulation
 
     private void MonthSettle()
     {
-        // 財3（cadence・スカフォールド配線）：四半期の締め月（_dayInQuarter==89＝quarterDone と同時に走る月次決算）だけ true・他2回（29/59日目）は false。
-        // MonthSettle は月境界（_dayInQuarter∈{29,59,89}）でのみ呼ばれる＝89 が四半期の締め月。FiscalQuarterlyGating=0（既定）では Fiscal が読まないので挙動中立だが、
-        // #17 で財3を有効化した際に切り下げ上限（÷3）・InsolvencyQuarters/BorrowCooldown のカウンタを締め月だけ進められるよう、フラグを正しく立てておく。
+        // 四半期の締め月（_dayInQuarter==89＝quarterDone と同時に走る月次決算）だけ true・他2回（29/59日目）は false。
+        // MonthSettle は月境界（_dayInQuarter∈{29,59,89}）でのみ呼ばれる＝89 が四半期の締め月。読み手＝製法の通知・軍の熟練度（財政の器 FiscalQuarterlyGating は 2026-09-26 に削除）。
         World.IsQuarterEndMonth = _dayInQuarter == Calendar.QuarterEndDayIndex;
         if (World.IsQuarterEndMonth) LogRecipeTransitions();   // ★通知（2026-09-05）：新製法の逆転・職人の没落を報せる（観測のみ・力学非接触）
         // 豊作/不作：年1回ロール（決定論RNG）。主食RGO産出と自給に乗算＝不作は食糧高騰＋自給減で貧農を飢えさせる。
@@ -1877,7 +1874,7 @@ public sealed class Simulation
                 // ※Part2で軍＝兵士POPに刷新したが調達は旧・治安維持力(=警察)基準のままだった。軍隊を主軸に紐づけ直す＝弾薬→火薬→鉛→鉛鉱の連鎖が平時も需要を持ち死蔵を防ぐ。
                 bool atWar = atWarNation;
                 double warExh = atWar && World.SelfPower is { } wsp ? wsp.WarExhaustion : 0;   // 戦時動員の深まり＝厭戦%(長期戦・経済悪化・戦死)を総力戦進行度の代理に
-                double mobilize = 1.0 + World.Coef.WarMobilizationDepth * warExh;   // 既定 WarMobilizationDepth=0 で mobilize=1＝旧挙動。>0で長期戦ほど軍需倍率↑（総動員）
+                double mobilize = 1.0 + World.Coef.WarMobilizationDepth * warExh;   // WarMobilizationDepth=0 なら mobilize=1＝旧挙動（⚠既定は0.5＝live・x-02 で注記を是正）。>0で長期戦ほど軍需倍率↑（総動員）
                 double warMult = World.InCivilWar ? World.Coef.MilitaryWarMult * 2.0 : (atWar ? World.Coef.MilitaryWarMult * mobilize : 1.0);   // 内戦＝対外戦争の2倍の軍需消費（火器需要↑）。対外戦は総力戦の深まりで漸増
                 // 軍需＝**兵士の装備のみ**（治安維持力=軍の一本化2026-06-23：治安維持力は装備された軍の効果＝BaseCoercion を MilitaryScale に含めない＝二重計上を解消し装備コストを下げる）。軍隊規模(兵数)×戦時倍率に比例。
                 // 課題6（駐屯州調達・2026-08-08）：装備需要の州配分＝首都一極と駐屯州比例のブレンド（総量保存）。
@@ -2076,7 +2073,6 @@ public sealed class Simulation
                     if (ps > 1e-9) foreach (var col in sp2.ColonyList) col.Savings += pay * (Math.Max(0, col.PopSize) / ps);
                 }
             }
-        Probe?.Invoke("経済", World);
         ProbeCheck("月次経済");
         Transport.Step(World, World.Coef);                               // §5.1拡張 輸送容量（鉄道/船を積む→Tradeで交易量を律速）
         ProbeCheck("月次輸送");
@@ -2084,10 +2080,8 @@ public sealed class Simulation
         //   ★実測＝`Trade.Step` は `w.TradeEnabled` が真のときだけ走り、その真値は**テスト2本にしか現れなかった**
         //   ＝61カ国の実ゲームでは**1命令も走っていなかった**（二国間交易 `BilateralMarket` が置き換え済み）。
         //   ⚠先に検査内容を実経路へ移してから消した（`ConservationTests` が保存量Dと輸出利潤経路の生存を見る）。
-        Probe?.Invoke("輸送交易", World);
         ProbeCheck("月次交易");
         Colonial.Step(World, World.Coef);                                // §6.1 植民地（インフラ整備→資源産出＋捕囚市場。交易流入で保存）
-        Probe?.Invoke("植民地", World);
         ProbeCheck("月次植民地");
         StepMineralDeposits();   // ★鉱脈在庫（2026-08-14）：掘った分だけ減る・減れば品位が落ちる。ゲート0＝即return＝恒等
         MintGold();                                                      // 鋳造（金鉱→正貨）：金産出の一部が基礎貨幣に（ゴールドラッシュ＝マネー膨張）。GoldMintFraction=0で無効＝較正中立
@@ -2100,7 +2094,6 @@ public sealed class Simulation
         World.StepStateTargets();
         ProbeCheck("月次国営工場");
         Crime.Step(World, World.Coef);                                   // 犯罪と抑止：秩序（治安維持力の人口カバレッジ）が崩れると窃盗＝闇の再分配（純移転）
-        Probe?.Invoke("財政", World);
         ProbeCheck("月次犯罪");
         // 兵士POP軍制（Part 2）：軍事費で徴募し給与を払う（国庫→兵士で保存）。戦時は徴兵。財政の後・外交ゲージ集計の前。
         Military.Step(World, World.Coef, atWarNation);   // 交戦判定はループ前に算出済み（atWarNation）を共用
@@ -2113,7 +2106,6 @@ public sealed class Simulation
         foreach (var r in World.Regions)
             if (r.State == RegionState.Active)
                 PopDecision.Run(r, World.Coef, serfFree);           // §9-D（地域内の階級遷移）
-        Probe?.Invoke("軍政治移民", World);
         ProbeCheck("月次政治");
         if (!World.WarmupFrozen) Territory.Step(World, World.Coef);      // §5.2/§A-8（解錠＋地域間移民）。助走中は止める＝州の解錠も国内移住も「時間が経って起きる」こと
         ProbeCheck("月次領土移民");
@@ -2125,7 +2117,6 @@ public sealed class Simulation
             DemographicStep();           // 人口動態：出生（医療/都市化）−死亡（労働時間）＝動的人口・戦死からの回復も兼ねる（人口転換）。局地飢饉（RegionalFamineStep）も内包
         ProbeCheck("月次人口");
         BackstopNegativeSavings();   // 損失吸収の脆さの会計：貯蓄が負になった pop は不足を信用で埋める（有限責任・保存則厳守）
-        Probe?.Invoke("月末", World);
         ProbeCheck("月次バックストップ");
         CheckInvariants();
     }
@@ -2349,6 +2340,7 @@ public sealed class Simulation
         bool recovering = net >= totalBirths;
         double totalDeaths = recovering ? 0 : totalBirths - net;
         double vulnSum = 0;
+        double diagBirths = 0, diagDeaths = 0;   // ★計器（2026-09-26）：粗出生・粗死亡の累積の元（World.DiagBirths/DiagDeaths へ＝力学は読まない）
         double ghostDeaths = 0;   // 人口保存バグ修正：負人口防止クランプ(下)で削られた「人が足りず起き得なかった死」を集計し、台帳のnetから差し戻す（無クランプ時は0＝ビット恒等・West巨大人口の崩壊時のみ発火）
         bool birthsSuppressed = recovering && massBirthWeight <= 1e-9;   // 人口保存：回復期にmassBirthWeightガード(add0=0)が発火すると実出生0なのに台帳が+=netでズレる＝netを差し引く（正常時false＝ビット恒等・出産可能プール≈0の退化popでのみ発火）
         if (!recovering)
@@ -2401,6 +2393,7 @@ public sealed class Simulation
                     double children = p.ChildShare * p.Size + births - deaths * p.ChildShare;
                     double newSize = p.Size + add;
                     if (newSize < 0) { ghostDeaths += -newSize; newSize = 0; }   // 死亡クランプ発火時の浮動小数丸めでSizeが極小負(≈-3.5e-18)になるのを0にクランプし、削った分をghostDeathsで台帳へ差し戻す（非負境界の保護・正常時newSize≥0で不発＝ビット恒等）
+                    diagBirths += births; diagDeaths += births - (newSize - p.Size);   // ★計器：死亡＝実際に減った人数（クランプ込み）＝出生−実際の増分
                     p.Size = newSize;
                     if (p.Size > 1e-9) p.ChildShare = Math.Clamp(children / p.Size, 0, 1);
                     // 人11a（新生児の識字の無償相続の解消）：出生は Size を増やすだけで Literacy 不変＝新生児が親popの識字を暗黙相続（無償の世代間伝達＝識字ラチェット）。
@@ -2427,6 +2420,7 @@ public sealed class Simulation
                     }
                 }
         }
+        World.DiagBirths += diagBirths; World.DiagDeaths += diagDeaths;   // ★計器（2026-09-26・純記帳）
         World.PopulationDelta += net + ghostDeaths - (birthsSuppressed ? net : 0.0);   // 人口保存：意図netに①クランプで起き得なかった幽霊死ghostDeathsを差し戻し②ガードで実出生0の時はnetを引く（無クランプ・非抑制時は net+0−0＝net＝ビット恒等）。実Size減と一致
         RegionalFamineStep(c);   // 局地飢饉（相対的剥奪）：国の成長は据え置き、国平均より食料が乏しい州にだけ超過死亡を上乗せ。1州なら発火せず＝較正中立
     }
@@ -2480,6 +2474,7 @@ public sealed class Simulation
             }
         }
         World.PopulationDelta -= deadTotal;   // 人口保存（超過死亡を台帳に計上＝回復可能）
+        World.DiagDeaths += deadTotal;         // ★計器（2026-09-26）：粗死亡の累積（力学は読まない）
     }
 
     /// <summary>他12（監査2026-07-11・2026-07-25休眠配線）：StateSpent精算（軍需調達・行政購買）が国庫残高で律速されず、Treasuryが負に落ちても
@@ -2490,7 +2485,7 @@ public sealed class Simulation
     /// （行政需要∝人口・軍需はS3aで必要額min＝fisprobe実測で普が0.6点火後も×0.25ロック継続）。
     /// 弾力的に吸収できる唯一の国家支出＝**インフラ建設**（プロイセン国有鉄道・明治の官営事業＝退蔵の史実の使い道）を
     /// 潤沢超過に比例して増額する。上限は市場の実吸収（鋼・セメントの在庫と価格）＝台本なし。
-    /// ⚠既定 OpulenceSpendRate=0 で 1.0＝乗算恒等。</summary>
+    /// ⚠OpulenceInfraChannel=0（既定＝休眠）で 1.0＝乗算恒等（旧注記は OpulenceSpendRate と書いていた＝そちらは点火済みの0.6・x-02 で是正）。</summary>
     private double HoardSpendScale()
     {
         // ⚠差し戻し2026-08-08＝OpulenceSpendRate=0.6との同時点火で硬性赤（公教育の自由国テスト失敗＝較正世界の
@@ -2587,7 +2582,7 @@ public sealed class Simulation
         if (floor) SellDemonetizedReserves(metal, isFiat);
         if (isFiat) return;   // 不換＝準備需要そのものが無い（造幣しない）
         // ★準備需要（G3）：買う量は「基礎貨幣×目標カバー率 − 現在の準備」＝準備が足りているほど買わない。
-        //   MintReserveTargetWeight=0（既定）で shortfall 係数=1＝旧来の産出比例と厳密一致。
+        //   MintReserveTargetWeight=0 なら shortfall 係数=1＝旧来の産出比例と厳密一致（⚠既定は点火済みの1.0＝2026-08-29・x-02 で注記を是正）。
         double mintScale = 1.0;
         double coverShort = 0;   // ★MintBuysAtMarket（2026-09-06）：カバー率の不足（0..1）＝平価の上でも市場で買う根拠
         double gapLeft = 0;      // ★第2版（2026-09-06）：今月の市場買いの予算＝準備ギャップ（目標カバー率×広義貨幣−基礎貨幣）×売却側と同じ月次率（MintReserveSellRate）

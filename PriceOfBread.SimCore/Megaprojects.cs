@@ -223,7 +223,7 @@ public static class Megaprojects
             case "ArableLand": r.ArableLand += add; break;
             case "GridCapacity": r.GridCapacity += add; break;
             case "Industrialization":
-                // ★州上限（IndustryInvestRegionCap）は投資の**入口3箇所**（World.BuildIndustry 手動建設・World.ApplyModernizationInvestment 国庫投資・EconomyStep の StateBuildQueue ヘッドルーム）
+                // ★州上限（IndustryInvestRegionCap）は投資の**入口**（World.ApplyModernizationInvestment 国庫投資・EconomyStep の StateBuildQueue ヘッドルーム。手動建設 BuildIndustry は2026-09-26に削除）
                 // でしか効いておらず、状態への直接加算は素通りする（設計書§6 地雷#4）。上限は「プレイヤー/AI共通のルール」と宣言されているので建造物にも適用する。
                 r.Industrialization += Math.Min(add, Math.Max(0, c.IndustryInvestRegionCap - r.TotalIndustrialization));
                 break;

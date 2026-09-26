@@ -199,7 +199,7 @@ internal static class PlayHarness
         var sp = w.SelfPower!;
         var coef = w.Coef;
 
-        double pop = 0, urbanPop = 0, lit = 0, sat = 0, mil = 0, cons = 0, savings = 0;
+        double pop = 0, urbanPop = 0, lit = 0, cons = 0, savings = 0;
         var byClass = new Dictionary<int, (double size, double lit, double sat, double mil, double sav)>();
         foreach (var r in w.Regions)
         {
@@ -207,8 +207,7 @@ internal static class PlayHarness
             foreach (var p in r.Pops)
             {
                 pop += p.Size; if (p.IsUrban) urbanPop += p.Size;
-                lit += p.Literacy * p.Size; sat += p.Satisfaction * p.Size;
-                mil += p.Militancy * p.Size; cons += p.Consciousness * p.Size;
+                lit += p.Literacy * p.Size; cons += p.Consciousness * p.Size;
                 savings += p.Savings;
                 byClass.TryGetValue(p.ClassId, out var acc);
                 byClass[p.ClassId] = (acc.size + p.Size, acc.lit + p.Literacy * p.Size,
@@ -219,7 +218,7 @@ internal static class PlayHarness
 
         sb.AppendLine($"================ {w.Year}年 Q{w.Quarter}　{sp.Name} ================");
         sb.AppendLine($"政体 {w.Polity}　正統性 {w.Legitimacy:P0}　自由度 {w.Freedom:F2}　交戦 {(w.AtWarNow ? "★あり" : "なし")}");
-        sb.AppendLine($"人口 {pop:N0}（都市 {urbanPop / N:P1}）　識字 {lit / N:P1}　生活水準 {sat / N:F3}　闘争度 {mil / N:F3}　政治意識 {cons / N:F3}");
+        sb.AppendLine($"人口 {pop:N0}（都市 {urbanPop / N:P1}）　識字 {lit / N:P1}　生活水準 {NationalScore.MeanSatisfaction(w):F3}　闘争度 {Politics.AvgMassMilitancy(w):F3}　政治意識 {cons / N:F3}");   // ★2026-09-26（sweep-13）：生活水準と闘争度は画面・帯と同じ大衆の母集団（エンジンの1本）＝旧は全POPの別の数
         sb.AppendLine($"国庫 {w.Treasury:N0}　名目GDP {w.NominalGdp:N0}　技術 {w.TechLevel:F2}（世界先端 {w.WorldTechLevel:F2}）　エリート {w.Elite:F3}　pop貯蓄計 {savings:N0}");
 
         sb.AppendLine();
@@ -343,7 +342,7 @@ internal static class PlayHarness
     }
 
     /// <summary>プレイヤーの動作（World のメソッド＝UIのボタンと同じ口）。書式：
-    /// !build 州名 ／ !factory 州名 財名 ／ !sell 州名 財名 ／ !subsidy 州名 財名 率 ／
+    /// !factory 州名 財名 ／ !sell 州名 財名 ／ !subsidy 州名 財名 率 ／
     /// !state 州名 財名 段 ／ !monopoly 財名 入|切 ／ !bias 財名 -1|0|1</summary>
     private static string RunVerb(World w, string line)
     {
@@ -363,14 +362,7 @@ internal static class PlayHarness
         {
             switch (a[0])
             {
-                case "build":
-                {
-                    int ri = a.Length > 1 ? RegionOf(a[1]) : 0;
-                    if (ri < 0) return $"⚠州が無い: {a[1]}";
-                    int n = a.Length > 2 && int.TryParse(a[2], out int k) ? k : 1;
-                    int ok = 0; for (int i = 0; i < n; i++) if (w.BuildIndustry(ri)) ok++;
-                    return $"着工 {w.Regions[ri].Name} ×{ok}/{n}" + (ok < n ? "（⚠国庫不足 or 州上限）" : "");
-                }
+                // （!build＝1棟単位の手動建設は 2026-09-26 に削除＝UIにもAIにも無い動詞だった・国家主導の工業化は近代化投資のレバー1本）
                 case "factory":
                 {
                     int ri = RegionOf(a[1]); int gi = GoodOf(a[2]);

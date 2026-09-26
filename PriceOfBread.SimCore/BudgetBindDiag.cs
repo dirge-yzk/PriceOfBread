@@ -16,7 +16,9 @@ public static class BudgetBindDiag
 {
     public static bool On;
 
-    /// <summary>国（World）ごとの計数器。添字は <see cref="Idx"/>。</summary>
+    /// <summary>国（World）ごとの計数器。添字は <see cref="Idx"/>。
+    /// ⚠通常の Dictionary＝スレッド安全でない。★2026-09-26（sweep-25）：<see cref="On"/> の間は MultiNationSim が各国の日次を逐次へ倒す
+    /// （ConservationProbe・TradeReachDiag と同じ扱い）。1プロセスで試合を並列に回す selfplay-batch では On にしないこと（数が混ざる・World を抱えたまま残る）。</summary>
     public static readonly Dictionary<World, double[]> ByWorld = new();
 
     public const int Rows = 0;              // (pop×財) の行数（marketNeed>0 のものだけ）

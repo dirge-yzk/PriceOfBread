@@ -195,18 +195,7 @@ public static class TechEducation
                          / (1.0 + w.TechLevel / c.InnovationScale);
             if (c.InnovateExpertiseWeight > 0) innov *= Math.Pow(ExpertiseRel(w), c.InnovateExpertiseWeight);   // ★厚み（段3）：大学が無ければ先端は押せない。0 で不読
             w.TechLevel += innov;
-            // ★研究の分野時計（段3/段4・2026-08-31）：革新増分を分野へ按分して積む（この加算はTechLevelに触れない）。
-            //   DiscoveryFieldSplit=0＝産業100%（現状の単一時計と同値＝恒等・PatronSharesも呼ばない）。>0で後援者
-            //   （資本家/軍部/知識人）の勢力シェアへ段階的に開く（軍事/思想の時計の読者は段5/段8で配線）。
-            if (c.DiscoveryFieldSplit > 0)
-            {
-                var (pInd, pMil, pTho) = Discovery.PatronShares(w);
-                double g = System.Math.Clamp(c.DiscoveryFieldSplit, 0, 1);
-                w.DiscoveryClocks[Discovery.Industry] += innov * (1.0 - g + g * pInd);
-                w.DiscoveryClocks[Discovery.MilitaryField] += innov * g * pMil;
-                w.DiscoveryClocks[Discovery.Thought] += innov * g * pTho;
-            }
-            else w.DiscoveryClocks[Discovery.Industry] += innov;
+            // （研究の分野時計 World.DiscoveryClocks と按分の器 DiscoveryFieldSplit は 2026-09-26 に削除＝書くだけで読み手が無かった・x-03）
         }
 
         w.TechLevel = Math.Min(w.TechLevel, c.FrontierCeiling);   // 安全上限（逓減で実際は届かない）

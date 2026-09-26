@@ -311,12 +311,11 @@ public static class Military
             if (amount < 1e-12) return;
             double sav2 = from.Savings * (amount / from.Size);
             double debt2 = from.Debt * (amount / from.Size);   // 個人債務も按分して運ぶ（2026-08-02・既定0で恒等）
-            double iw2 = from.IlliquidWealth * (amount / from.Size);   // 結晶資産も按分（退蔵結晶化2026-08-08・既定0で恒等）
             double bond2 = from.BondHoldings * (amount / from.Size);   // ★国債の保有台帳（2026-09-21）も貯蓄と同じ按分（徴兵は国内＝発行国は同じ）
             double children = from.Size * from.ChildShare;
             double olds = from.Size * from.OldShare;   // 老年は徴兵されない（子供と同型の人数保存）＝男手が抜けると残る集団の老年比率が上がる
             double females = adults * from.FemaleShare;
-            from.Size -= amount; from.Savings -= sav2; from.Debt -= debt2; from.IlliquidWealth -= iw2; from.BondHoldings -= bond2;
+            from.Size -= amount; from.Savings -= sav2; from.Debt -= debt2; from.BondHoldings -= bond2;
             if (from.Size > 1e-12)
             {
                 from.ChildShare = Math.Clamp(children / from.Size, 0, 1);
@@ -331,12 +330,11 @@ public static class Military
                 to.Literacy = (to.Literacy * to.Size + from.Literacy * amount) / (to.Size + amount);
                 to.Militancy = BlendCarry(to.Militancy, to.Size, from.Militancy, amount, to.Size + amount, clamp: false);   // ★運搬1本化（段1・恒等）
             }
-            to.Size += amount; to.Savings += sav2; to.Debt += debt2; to.IlliquidWealth += iw2; to.BondHoldings += bond2;   // 兵士は成人男性のみ（FemaleShare=0・ChildShare=0のまま）
+            to.Size += amount; to.Savings += sav2; to.Debt += debt2; to.BondHoldings += bond2;   // 兵士は成人男性のみ（FemaleShare=0・ChildShare=0のまま）
             return;
         }
         double sav = from.Savings * (amount / from.Size);
         double debt = from.Debt * (amount / from.Size);   // 個人債務も按分して運ぶ（復員・通常の2経路が共有）
-        double iwm = from.IlliquidWealth * (amount / from.Size);   // 結晶資産も按分（退蔵結晶化2026-08-08・既定0で恒等）
         double bondm = from.BondHoldings * (amount / from.Size);   // ★国債の保有台帳（2026-09-21）も按分（復員・通常の2経路が共有）
         if (from.IsSoldier && !to.IsSoldier)
         {
@@ -352,8 +350,8 @@ public static class Military
                 to.Literacy = (to.Literacy * to.Size + from.Literacy * amount) / (to.Size + amount);
                 to.Militancy = BlendCarry(to.Militancy, to.Size, from.Militancy, amount, to.Size + amount, clamp: false);   // ★運搬1本化（段1・恒等）
             }
-            from.Size -= amount; from.Savings -= sav; from.Debt -= debt; from.IlliquidWealth -= iwm; from.BondHoldings -= bondm;   // ⚠二重運搬バグ修正2026-08-08（置換が2回当たり −=iwm×2 になっていた＝復員でIW負→クランプが幽霊IW生成）
-            to.Size += amount; to.Savings += sav; to.Debt += debt; to.IlliquidWealth += iwm; to.BondHoldings += bondm;
+            from.Size -= amount; from.Savings -= sav; from.Debt -= debt; from.BondHoldings -= bondm;
+            to.Size += amount; to.Savings += sav; to.Debt += debt; to.BondHoldings += bondm;
             if (to.Size > 1e-12)
             {
                 to.ChildShare = Math.Clamp(childrenTo / to.Size, 0, 1);
@@ -381,7 +379,7 @@ public static class Military
                 to.Militancy = BlendCarry(to.Militancy, to.Size, from.Militancy, amount, newSize, clamp: false);   // ★運搬1本化（段1・恒等）
             }
         }
-        from.Size -= amount; from.Savings -= sav; from.Debt -= debt; from.IlliquidWealth -= iwm; from.BondHoldings -= bondm;
-        to.Size += amount; to.Savings += sav; to.Debt += debt; to.IlliquidWealth += iwm; to.BondHoldings += bondm;
+        from.Size -= amount; from.Savings -= sav; from.Debt -= debt; from.BondHoldings -= bondm;
+        to.Size += amount; to.Savings += sav; to.Debt += debt; to.BondHoldings += bondm;
     }
 }

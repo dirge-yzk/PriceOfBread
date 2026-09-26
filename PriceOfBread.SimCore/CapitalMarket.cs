@@ -109,9 +109,8 @@ public static class CapitalMarket
         // (1) 資本逃避：信用の低い国の外資が本国送還（host から流出）。(2) 配当：host が ForeignCapitalIn に divRate を払う。
         //     両者の総額を owner 国へ CapitalAbroad 比で戻す（逃避は元本＝資産も減る／配当は資産不変）。
         // 帰属修正（監査経9・#17で有効化）：流入は toInvestors:true で投資家貯蓄へ入るのに、配当/逃避の流出は全pop按分＝
-        //   「外資で資本家が潤い、配当は国民の人頭税で払う」非対称。CapitalOutflowFromInvestors>0 で流出も投資家原資（不足分のみ全体フォールバック）・0で全pop按分。
-        //   ⚠2値スイッチ（既定1.0）。B4裁定（2026-07-31）の「中間値＝両者の按分」は未実装＝0<値<1 は 1 と同じ挙動。
-        bool outFromInvestors = c.CapitalOutflowFromInvestors > 0;
+        //   「外資で資本家が潤い、配当は国民の人頭税で払う」非対称の是正＝流出も投資家原資（不足分のみ全体フォールバック）。
+        //   ★2026-09-26：2値の旗 CapitalOutflowFromInvestors（既定1.0）を焼き込み（x-01）。B4裁定（2026-07-31）の「中間値＝両者の按分」は未実装のまま。
         double flightTotal = 0, divTotal = 0;
         var taken = new double[n];   // host 別に実際に抜いた額（逃避＋配当）。保有者が居ない場合の返金に使う＝金を捨てない（保存）
         ProbeSnap();
@@ -150,9 +149,9 @@ public static class CapitalMarket
                 }
             }
             double flight = System.Math.Min(w[i].ForeignCapitalIn, w[i].ForeignCapitalIn * c.CapitalFlightRate * (1.0 - cred[i]));
-            if (flight > 1e-9) { double got = TakeGold(w[i], flight, fromInvestors: outFromInvestors, fallbackToAll: outFromInvestors); w[i].ForeignCapitalIn -= got; flightTotal += got; taken[i] += got; }   // ③修正：実際に引けた額でストックを減らす（Σ流入＝Σ対外保有の台帳整合）
+            if (flight > 1e-9) { double got = TakeGold(w[i], flight, fromInvestors: true, fallbackToAll: true); w[i].ForeignCapitalIn -= got; flightTotal += got; taken[i] += got; }   // ③修正：実際に引けた額でストックを減らす（Σ流入＝Σ対外保有の台帳整合）
             double div = w[i].ForeignCapitalIn * c.CapitalDividendRate;
-            if (div > 1e-9) { double gotDiv = TakeGold(w[i], div, fromInvestors: outFromInvestors, fallbackToAll: outFromInvestors); divTotal += gotDiv; taken[i] += gotDiv; }
+            if (div > 1e-9) { double gotDiv = TakeGold(w[i], div, fromInvestors: true, fallbackToAll: true); divTotal += gotDiv; taken[i] += gotDiv; }
         }
         ProbeDiff("逃避配当");
         double abroadSum = 0; for (int i = 0; i < n; i++) abroadSum += w[i].CapitalAbroad;

@@ -138,9 +138,9 @@ public static class Territory
         foreach (var sp in src.Pops)
         {
             // 人4：地域間移民は経済移民＝閉鎖階級（貴族・聖職）・兵士を動かさない（PopDecision:20 の明示除外・越境の !IsSoldier と対称化）。
-            // RegionMigrationExcludesClosed 既定1.0（#17点火）・0で従来どおり全クラスを動かす＝旧挙動。>0 で除外ON（貴族が毎月世界の技術水準へ経済移民する非対称の解消）。
-            // FrontierDevelopment 較正世界は農民pop単体（Closed/IsSoldier なし）＝いずれの既定でも恒等＝TerritoryTests 中立。
-            if (c.RegionMigrationExcludesClosed > 0 && (sp.Closed || sp.IsSoldier)) continue;
+            // 貴族が毎月世界の技術水準へ経済移民する非対称の解消（★2026-09-26：旗 RegionMigrationExcludesClosed（#17点火）を焼き込み・x-01）。
+            // FrontierDevelopment 較正世界は農民pop単体（Closed/IsSoldier なし）＝TerritoryTests 中立。
+            if (sp.Closed || sp.IsSoldier) continue;
             double moveSize = sp.Size * fraction;
             if (!(moveSize > 1e-9)) continue;   // ★否定形＝NaN も弾く（旧 `moveSize <= 1e-9` は NaN で false ＝ Size/Savings を直接 NaN 化していた）。有限値では厳密同値
             Pop? dp = null;
@@ -156,11 +156,10 @@ public static class Territory
         double perCapita = sp.Size > 1e-9 ? sp.Savings / sp.Size : 0;
         double moveSavings = perCapita * moveSize;
         double moveDebt = sp.Size > 1e-9 ? sp.Debt / sp.Size * moveSize : 0;   // 個人債務も按分して運ぶ（2026-08-02・既定0で恒等）
-        double moveIw = sp.Size > 1e-9 ? sp.IlliquidWealth / sp.Size * moveSize : 0;   // 結晶資産も按分（退蔵結晶化2026-08-08・既定0で恒等）
         double moveBond = sp.Size > 1e-9 ? sp.BondHoldings / sp.Size * moveSize : 0;   // ★国債の保有台帳（2026-09-21）も按分（州間移動・入植は同じ国の中＝発行国は同じ）
 
 
-        sp.Size -= moveSize; sp.Savings -= moveSavings; sp.Debt -= moveDebt; sp.IlliquidWealth -= moveIw; sp.BondHoldings -= moveBond;
+        sp.Size -= moveSize; sp.Savings -= moveSavings; sp.Debt -= moveDebt; sp.BondHoldings -= moveBond;
         // 入植者は人口構成（民族・男女・子供・識字）を携えて移動先へ混ざる＝他の全移動サイト（PopDecision/Meritocracy/Military/越境移民）と同型。
         // これが欠けると入植先のSizeだけ増えてCoreEthnicShare等が据え置き＝EthnicUnity(加重平均)・男女比の保存が静かに破れる（倍率排除⑧の運搬漏れ修正）。
         double newSize = dp.Size + moveSize;
@@ -176,7 +175,7 @@ public static class Territory
             if (c.MigrationCarriesHumanCapital > 0)
                 dp.Militancy = Military.BlendCarry(dp.Militancy, dp.Size, sp.Militancy, moveSize, newSize, clamp: true);   // ★運搬1本化（段1・恒等）
         }
-        dp.Size += moveSize; dp.Savings += moveSavings; dp.Debt += moveDebt; dp.IlliquidWealth += moveIw; dp.BondHoldings += moveBond;
+        dp.Size += moveSize; dp.Savings += moveSavings; dp.Debt += moveDebt; dp.BondHoldings += moveBond;
 
     }
 }

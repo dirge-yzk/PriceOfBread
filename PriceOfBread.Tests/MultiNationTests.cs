@@ -14,6 +14,24 @@ public class MultiNationTests
     private static NationConfig[] FourNations() =>
         [NationConfig.France(), NationConfig.Japan(), NationConfig.Britain(), NationConfig.America()];
 
+    // ★同じ走行を1回に（fis-21・2026-09-26）：旧＝同じ4カ国・seed 1789・400四半期を4本のテストがそれぞれ回していた（同じ軌道＝決定論）。
+    //   開幕の値（各国の基礎貨幣・植民地の総数）を先に取ってから1回だけ回し、3本が読む（xUnit は同じクラスのテストを順に走らせる）。
+    private sealed class FourNations400
+    {
+        public readonly MultiNationSim Sim;
+        public readonly double[] Base0;
+        public readonly int ColoniesBefore;   // 清を含む全勢力（列強は清からも奪うため sim 国だけでは増える）
+        public readonly System.Exception? Error;
+        public FourNations400()
+        {
+            Sim = new MultiNationSim(FourNations(), seed: 1789);
+            Base0 = [.. Sim.Nations.Select(n => n.World.BaseMoney)];
+            ColoniesBefore = Sim.Diplomacy.Powers.Sum(p => p.Colonies);
+            Error = Record.Exception(() => Sim.Run(400));   // §11.6 が全国・全ティックで保持（戦費還流・賠償の対外移転を含む）
+        }
+    }
+    private static readonly System.Lazy<FourNations400> Shared400 = new(() => new FourNations400());
+
     // ★器 SilverParityFromRatio の ON/OFF 経路（2026-09-07）：注入される WorldSilverPrice が
     //   ON＝「同一市場内の 銀/金鉱 比の生きた Active 州の対数平均 ÷ RefPrice 比 × RefPrices[銀]」の手計算と一致（1e-9）し、
     //   既定0＝旧統計 Market.Price[銀] と同一であること。⚠この係数は sim 側 _coef の読み手＝コンストラクタ coef: で渡すのが正しい
@@ -67,8 +85,9 @@ public class MultiNationTests
     public void マクロ層の健全性が回帰しない()
     {
         // 健全なマクロ層を固定（回帰防止）。価格ミクロの二極化＝コブウェブ×損失吸収の脆さ は既知の構造課題で別扱い。
-        var sim = new MultiNationSim(FourNations(), seed: 1789);
-        sim.Run(400);
+        var run = Shared400.Value;
+        Assert.Null(run.Error);
+        var sim = run.Sim;
         var m = Metrics.Compute(sim);
         Assert.True(m.IndustrializationSpread >= 0.5, $"工業化の差別化が消えた（{m.IndustrializationSpread:F2}）");
         // 崩壊の線＝検証ハーネスの「満足度・平均」の合格線（Validation.Evaluate の 0.24）と同じ（2026-09-26 ㊽ で 0.40 から揃えた）。
@@ -83,15 +102,15 @@ public class MultiNationTests
     [Fact]
     public void 四国は100年放置で破綻せず各国が基礎貨幣を保存する()
     {
-        var sim = new MultiNationSim(FourNations(), seed: 1789);
-        double[] base0 = [.. sim.Nations.Select(n => n.World.BaseMoney)];
+        var run = Shared400.Value;
+        var sim = run.Sim;
+        double[] base0 = run.Base0;
 
         // §11.6 が全国・全ティックで保持（戦費還流・賠償の対外移転を含む）
-        var ex = Record.Exception(() => sim.Run(400));
-        Assert.Null(ex);
+        Assert.Null(run.Error);
 
         // 第6段6-8（2026-07-28）：断裂の窓の導入で4カ国世界にも分離建国が出るようになった。分離の親は州・貨幣の物理移転（割譲と同型の
-        // 両建て記帳）で per-nation の単純恒等式が成立しない＝NationModelTests と同作法で除外（世界全体の番人は leakhunt＝53カ国・分離込みで清潔）。
+        // 両建て記帳）で per-nation の単純恒等式が成立しない＝NationModelTests と同作法で除外（世界全体の番人は ConservationTests の世界の合計＝2026-09-26）。
         for (int i = 0; i < base0.Length; i++)
         {
             var w = sim.Nations[i].World;
@@ -101,27 +120,8 @@ public class MultiNationTests
         }
     }
 
-    [Fact]
-    public void 賠償は国家間で相殺し世界全体の基礎貨幣は貿易流入の総和だけ動く()
-    {
-        var sim = new MultiNationSim(FourNations(), seed: 1789);
-        double[] base0 = [.. sim.Nations.Select(n => n.World.BaseMoney)];
-        double worldBase0 = base0.Sum();
-        sim.Run(400);
-        // 賠償は一方の CumulativeTradeFlow を減らし他方を増やす＝世界合計では相殺。
-        // 残る世界全体の動きは植民地採取費（対外流出）＋鋳造/不換発行（新規貨幣の創造＝GoldMintFraction起動 2026-07-10）＝Σ(累積貿易流入＋鋳造＋発行)に一致する。
-        // 第6段6-8（2026-07-28）：4カ国世界にも分離建国が出るようになった。分離の親子は両建て記帳（親側のみ台帳・子の初期基礎貨幣は
-        // 自分の基準線）で「開始4カ国のΣ」との単純比較が成立しない＝親子を除外した各国恒等式のΣで検算（世界全体の番人は leakhunt）。
-        // 賠償の相殺は残存国どうしの ±CumulativeTradeFlow が各国恒等式に入ることで引き続き検証される。
-        double drift = 0;
-        for (int i = 0; i < base0.Length; i++)
-        {
-            var w = sim.Nations[i].World;
-            if (w.HadSecession) continue;
-            drift += w.BaseMoney - base0[i] - w.CumulativeTradeFlow - w.CumulativeGoldMinted - w.CumulativeFiatIssued;
-        }
-        Assert.True(Math.Abs(drift) < 1e-3 * worldBase0, "世界全体の保存破れ（分離の親子を除く）");
-    }
+    // （旧テスト「賠償は国家間で相殺し世界全体の基礎貨幣は貿易流入の総和だけ動く」は 2026-09-26 に削除＝各国の恒等式の和で、
+    //   国ごとの番人が緑なら必ず緑になる恒真の検査だった（fis-21）。世界の合計の番人は ConservationTests（片側記帳を見る形）へ置き換えた）
 
     [Fact]
     public void 同一シードで多国シミュは決定論的()
@@ -171,9 +171,10 @@ public class MultiNationTests
     [Fact]
     public void 緊張は戦争を生み講和で植民地と賠償が動く()
     {
-        var sim = new MultiNationSim(FourNations(), seed: 1789);
-        int coloniesBefore = sim.Diplomacy.Powers.Sum(p => p.Colonies);   // 清を含む全勢力（列強は清からも奪うため sim 国だけでは増える）
-        sim.Run(400);
+        var run = Shared400.Value;
+        Assert.Null(run.Error);
+        var sim = run.Sim;
+        int coloniesBefore = run.ColoniesBefore;
         Assert.NotEmpty(sim.Diplomacy.Log);   // 英仏のライバル構図＋覇権緊張で戦争が起きる
         Assert.Contains(sim.Diplomacy.Log, l => l.Contains("開戦"));
         // 植民地の総数は保存（戦争は移転のみ）。ただし**独立**で離反した分は帝国の手を離れる（消滅でなく解放）。

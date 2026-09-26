@@ -77,12 +77,14 @@ public class FranceTests
     [Fact]
     public void 国家工場建設は基礎貨幣を保存する()   // 国庫→建設の束（生産者）で保存・工業化度が上がる
     {
+        // ★2026-09-26：旧＝1棟単位の手動建設 World.BuildIndustry（テストと PlayHarness だけの動詞）で予約していた。
+        //   動詞を削除し、UI・AI 共通の口＝近代化投資のレバー（ApplyModernizationInvestment が毎四半期 StateBuildQueue へ配る）で予約する。
         var sim = new Simulation(Fr(1789), new NullAgent());
         double base0 = sim.World.BaseMoney, ind0 = sim.World.Region.TotalIndustrialization;   // ヴィンテージ2026-07-10：資本ストックは新旧合計（旧単層と同一動学）で測る
-        bool queued = sim.World.BuildIndustry();   // 国庫から建設を予約
-        Assert.True(queued, "建設を予約できなかった（国庫不足/資本セクターなし）");
+        sim.World.ModernizationFrac = 0.5;   // NullAgent は上書きしない＝単一国では毎四半期この率で国庫から建設を予約する
         var ex = Record.Exception(() => sim.Run(20));   // EconomyStep が束を買い決済（§11.6 が全ティック保持）
         Assert.Null(ex);
+        Assert.True(sim.World.ModernizationBudget() > 0, "近代化投資の予算が立たない（国庫不足＝建設を予約できていない）");
         Assert.True(System.Math.Abs(sim.World.BaseMoney - base0 - sim.World.CumulativeTradeFlow - sim.World.CumulativeGoldMinted - sim.World.CumulativeFiatIssued) < 1e-6 * base0, "国家建設で基礎貨幣保存が破れた");
         Assert.True(sim.World.Region.TotalIndustrialization > ind0, "国家建設で工業化度が上がっていない");
     }

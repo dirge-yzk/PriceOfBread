@@ -35,7 +35,7 @@ public static class Meritocracy
             {
                 total += p.Size; totalSav += Math.Max(0, p.Savings); if (p.IsModernElite) modern += p.Size;
                 if (p.Closed) closed += p.Size;   // ★AUD-07：身分（貴族・聖職）の人口シェア＝政体ラベルの代わりに読む実体
-                if (fallReform) totalAsset += Math.Max(0, p.Savings + p.IlliquidWealth);   // rank7(a)：分母も判定資産（結晶込み）と同じ定義＝対称
+                if (fallReform) totalAsset += Math.Max(0, p.Savings);   // rank7(a)：分母も判定資産と同じ定義＝対称（結晶資産は2026-09-26に削除＝常に0だった）
             }
             if (total <= Eps) continue;
             double avgPerCap = totalSav / total;   // 地域の1人あたり平均貯蓄＝閾値の経済規模スケール
@@ -280,7 +280,7 @@ public static class Meritocracy
                     if (t.Size <= Eps) continue;
                     // rank7（点火 FallAnchorReform=0.3）：判定資産＝結晶込み・アンカー＝自分の所得年数ブレンド（f=0で旧式にビット恒等）。
                     // ③⑤⑥④の全てに同じ物差し（1箇所だけ直すと按分6箇所ルールと同じ罠＝監査の明記）。
-                    if (AssetPerCap(t, c) > c.CapitalRiseThreshold * FallAnchor(t, fallAvg, c))
+                    if (AssetPerCap(t) > c.CapitalRiseThreshold * FallAnchor(t, fallAvg, c))
                         Move(t, capitalist, c.CapitalRiseRate * t.Size, c);
                 }
                 // rank1（点火1.0 MerchantArtisanCapitalRise）：商業・手工業資本→産業資本（Crouzet＝第一世代工場主の過半が商人・職人出自。
@@ -293,7 +293,7 @@ public static class Meritocracy
                         if (idx < 0) continue;
                         var t = r.Pops[idx];
                         if (t.Size <= Eps) continue;
-                        if (AssetPerCap(t, c) > c.CapitalRiseThreshold * FallAnchor(t, fallAvg, c))   // rank7：③と同じ物差し
+                        if (AssetPerCap(t) > c.CapitalRiseThreshold * FallAnchor(t, fallAvg, c))   // rank7：③と同じ物差し
                             Move(t, capitalist, c.CapitalRiseRate * c.MerchantArtisanCapitalRise * t.Size, c);
                     }
                 }
@@ -319,7 +319,7 @@ public static class Meritocracy
                     if (!upper || p.IsSoldier || p.Size <= Eps) continue;
                     // 聖職者は人口比の下限で没落が止まる＝世俗化で明確に減るが**教会は消えない**（設計仕様）。
                     if (r.ClergyPopIndex >= 0 && p == r.Pops[r.ClergyPopIndex] && p.Size <= c.ClergyFloorShare * total) continue;
-                    double pc = AssetPerCap(p, c);   // rank7(a)（点火0.3）：f>0で結晶資産（IlliquidWealth）込み＝「土地持ち現金なし貴族」の幽霊転落の解消。f=0で Savings/Size にビット恒等
+                    double pc = AssetPerCap(p);   // rank7(a)：Savings/Size（結晶資産は2026-09-26に削除＝常に0だった）
                     double anchor = FallAnchor(p, fallAvg, c);   // rank7(b)（点火0.3）：f>0で自分の平滑所得×年数へブレンド。f=0で avgPerCap
                     // ★返済不能（POPの個人債務・2026-08-02）：債務が年所得の DebtRuinRatio 倍を超えたら**没落の判定に算入**する。
                     // ⚠★破産判定そのもの（pc）は `Savings` 据え置き＝**純資産（Savings−Debt）にしない**。純資産にすると
@@ -353,7 +353,7 @@ public static class Meritocracy
                 {
                     var t = r.Pops[targets[i]];
                     if (t.Size <= Eps) continue;
-                    double pc5 = AssetPerCap(t, c);   // rank7：③④⑥と同じ物差し（f=0でビット恒等）
+                    double pc5 = AssetPerCap(t);   // rank7：③④⑥と同じ物差し（f=0でビット恒等）
                     double thr5 = c.MiddleFallThreshold * FallAnchor(t, fallAvg, c);
                     if (pc5 < thr5)
                     {
@@ -368,7 +368,7 @@ public static class Meritocracy
             if (c.MerchantArtisanCapitalRise > 0 && r.MerchantPopIndex >= 0 && avgPerCap > Eps)
             {
                 var mt = r.Pops[r.MerchantPopIndex];
-                double pcM = mt.Size > Eps ? AssetPerCap(mt, c) : 0;   // rank7：⑤と同じ物差し
+                double pcM = mt.Size > Eps ? AssetPerCap(mt) : 0;   // rank7：⑤と同じ物差し
                 double thrM = c.MiddleFallThreshold * FallAnchor(mt, fallAvg, c);
                 if (mt.Size > Eps && pcM < thrM)
                 {
@@ -383,7 +383,7 @@ public static class Meritocracy
             if (r.ArtisanPopIndex >= 0 && avgPerCap > Eps)
             {
                 var artisan = r.Pops[r.ArtisanPopIndex];
-                double pc = artisan.Size > Eps ? AssetPerCap(artisan, c) : 0;   // rank7：③④⑤と同じ物差し（f=0でビット恒等）
+                double pc = artisan.Size > Eps ? AssetPerCap(artisan) : 0;   // rank7：③④⑤と同じ物差し（f=0でビット恒等）
                 double anc6 = FallAnchor(artisan, fallAvg, c);
                 if (artisan.Size > Eps && pc < c.MiddleFallThreshold * anc6)
                 {
@@ -589,11 +589,10 @@ public static class Meritocracy
 
     // ===== リアリティ監査 rank7(点火0.3)/rank8(休眠)/rank12(点火1.0)（作者裁定2026-08-16）の道具 =====
 
-    /// <summary>rank7(a)（点火 FallAnchorReform=0.3）：③④⑤⑥の判定資産（1人あたり）。f=0＝Savings/Size（従来＝ビット恒等）。
-    /// f&gt;0＝(Savings+IlliquidWealth)/Size。⚠IWはSavingsの内数タグ（Model.cs）＝これは結晶分を流動の2倍に重む加重
-    /// ＝土地・地金は「恐慌に溶けない資産」として没落判定で重い（等重にすると(a)は恒等で消える）。</summary>
-    private static double AssetPerCap(Pop p, Coefficients c)
-        => (c.FallAnchorReform > 0 ? p.Savings + p.IlliquidWealth : p.Savings) / Math.Max(Eps, p.Size);
+    /// <summary>rank7(a)：③④⑤⑥の判定資産（1人あたり）＝Savings/Size。
+    /// ⚠旧の f&gt;0 の枝は (Savings+IlliquidWealth)/Size だったが、結晶資産は休眠の枝だけが書き常に0だった＝2026-09-26 に欄ごと削除（dorm-24）。</summary>
+    private static double AssetPerCap(Pop p)
+        => p.Savings / Math.Max(Eps, p.Size);
 
     /// <summary>rank7(b)（点火 FallAnchorReform=0.3）：③④⑤⑥の判定アンカー。f=0＝地域平均資産（avgAsset＝従来avgPerCap）＝
     /// 「他人の平均」相対で、富の裾が膨れるほど健全な中流を機械的に転落させる因果の逆転を持つ。f=1＝**自分の平滑所得×1年**
@@ -652,7 +651,6 @@ public static class Meritocracy
         flow = Math.Min(flow, fromPop.Size);
         double moveSavings = fromPop.Savings * (flow / fromPop.Size);
         double moveDebt = fromPop.Debt * (flow / fromPop.Size);   // 個人債務も按分して運ぶ（2026-08-02・既定0で 0×比=0.0 の恒等）
-        double moveIw = fromPop.IlliquidWealth * (flow / fromPop.Size);   // 結晶資産も按分して運ぶ（退蔵結晶化2026-08-08・既定0で恒等）
         double moveBond = fromPop.BondHoldings * (flow / fromPop.Size);   // ★国債の保有台帳（2026-09-21）も貯蓄と同じ1人あたり按分で運ぶ（転落・昇格は国内＝発行国は同じ）
         // 人1：識字の選抜運搬（昇格は from.Literacy 比例＝識字の高い者が抜ける）。既定 PromotionLiteracySelection=0.5（#17有効化）で選抜あり。0なら移動者の識字＝src平均（旧恒等）。
         // >0 で選抜強度に応じ移動コホートの識字を src平均より高く取り、質量保存で残留 src の識字を引き下げる（昇格ポンプの自己補充＝二重計上を解消）。
@@ -688,8 +686,8 @@ public static class Meritocracy
             if (c.MigrationCarriesHumanCapital > 0)
                 toPop.Literacy = Math.Clamp((toPop.Literacy * toPop.Size + moveLit * flow) / newSize, 0, 1);
         }
-        fromPop.Size -= flow; fromPop.Savings -= moveSavings; fromPop.Debt -= moveDebt; fromPop.IlliquidWealth -= moveIw; fromPop.BondHoldings -= moveBond;
-        toPop.Size += flow; toPop.Savings += moveSavings; toPop.Debt += moveDebt; toPop.IlliquidWealth += moveIw; toPop.BondHoldings += moveBond;
+        fromPop.Size -= flow; fromPop.Savings -= moveSavings; fromPop.Debt -= moveDebt; fromPop.BondHoldings -= moveBond;
+        toPop.Size += flow; toPop.Savings += moveSavings; toPop.Debt += moveDebt; toPop.BondHoldings += moveBond;
     }
 
     // 政体の近代性：君主の身分制＝低、自由（立憲君主・共和）・独裁（能力主義的動員）＝開かれた社会＝高

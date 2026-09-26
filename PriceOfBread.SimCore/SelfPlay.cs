@@ -703,8 +703,9 @@ public sealed class UtilityAgent : INationAgent
         //   **政治側**（PolicyPreferences→議会の要求/強制施行）から運ぶ＝この式は「自力の願望」のみを書く（願望と政治の分業）。
         // ★前線比（2026-09-06・銀本位の史実度 doc §6#1＝「全球収束の世界では絶対閾が氾濫する」）：GoldStandardFrontierRatio>0 では
         //   「自国の工業化 ≥ 比×世界の先端」で金を志向する（先端との距離＝交易網への参加資格）。0＝従来の絶対閾（厳密恒等）。
-        bool goldWish = w.Coef.GoldStandardFrontierRatio > 0 && w.WorldFrontierIndustrialization > 0
-            ? w.MeanIndustrialization >= w.Coef.GoldStandardFrontierRatio * w.WorldFrontierIndustrialization
+        //   ★先端＝World.IndustrialFrontier（2026-09-26：同じ最大の2つ目の欄を1本へ＝助走の直後の最初の四半期だけは0＝絶対閾へ倒れる・この枝は休眠）。
+        bool goldWish = w.Coef.GoldStandardFrontierRatio > 0 && w.IndustrialFrontier > 0
+            ? w.MeanIndustrialization >= w.Coef.GoldStandardFrontierRatio * w.IndustrialFrontier
             : w.MeanIndustrialization > w.Coef.GoldStandardIndThreshold;
         w.Policy.MonetaryTarget = goldWish ? 2
                                 : w.Coef.SilverStandardGate > 0 && w.MeanIndustrialization >= w.Coef.SilverStandardIndThreshold ? 1 : 0;
@@ -782,7 +783,7 @@ public sealed class UtilityAgent : INationAgent
         w.ForceUnlock = w.Regions.Any(r => r.State == RegionState.Locked)
             && w.Treasury > ForceUnlockBufferMult * FiscalBufferOf(w)
             && Politics.AvgMassMilitancy(w) < ForceUnlockMilitancyCeiling;
-        // ※国家主導の工業化（AIがBuildIndustryで後発を追い上げる）は実験した結果、ロシアが工業化すると
+        // ※国家主導の工業化（AIが1棟単位の手動建設＝旧 BuildIndustry で後発を追い上げる）は実験した結果、ロシアが工業化すると
         //   規模(人口→GDP)で常勝になり競争バランスを壊したため不採用。再採用にはスコアの規模偏重の是正が前提。
     }
 
@@ -1618,7 +1619,13 @@ public static class SelfPlayMatch
     private const double LossRateMinOutputShare = 0.001;              // 世界の1国あたり平均産出のこの割合を下回る国は率を計上しない（1/1000＝残骸）
     private const double LossFinancedRateThreshold = 0.35;            // 負債化フロー ÷ 名目産出（四半期・EMA平滑）のピークがこれを超えたら異常
     private const int DeadlockFrozenQuarters = 20;                    // スコア不変がこの四半期数を超えたらデッドロック疑い
-    private const double GreatDepressionDrawdown = 0.25;              // 大恐慌（ピーク比収縮）
+    // ★恐慌の閾値の唯一の定義（fis-24・2026-09-26）：画面の通知（GameViewModel）・年代記（Runner の chronicle）・このバッチが同じ3本を読む
+    //   （旧＝画面とバッチと年代記に同じ値の写しが3組あった）。⚠物差しはまだ2つ：画面と年代記＝エンジンの World.GdpPcDrawdown（1人あたり・
+    //   ピークの忘却あり＝作者裁定E2）／バッチ＝下の自前の EMA（総額・ピークの忘却なし・大国8だけ1人あたり）。バッチを揃えると帯の恐慌の数が変わる
+    //   （段0＝帯を動かさない回なので持ち越し）。
+    public const double DepressionEnterDrawdown = 0.20;               // 恐慌（景気後退）入り＝ピーク比の収縮がこれ超
+    public const double DepressionExitDrawdown = 0.08;                // 回復＝ここまで戻れば脱出（入り0.20／出0.08の2値＝境界の点滅を止める）
+    public const double GreatDepressionDrawdown = 0.25;               // 大恐慌（ピーク比収縮）＝画面の語も「恐慌」（以下は「景気後退」）
     private const double LateDecisionQuarterFraction = 0.9;           // 決着が遅い（総四半期に対する割合）
     private const double HeatPeakDecay = 0.97;                        // 直近ピーク過熱の減衰
     private const double HarvestBadDecay = 0.9;                       // 直近不作の深さの減衰
@@ -1750,7 +1757,7 @@ public static class SelfPlayMatch
         var isMajor = new bool[sim.Nations.Count];
         for (int i = 0; i < sim.Nations.Count; i++)
             isMajor[i] = sim.Nations[i].World.SelfPower is { } mp && majorSet.Contains(mp.BaseName.Length > 0 ? mp.BaseName : mp.Name);
-        const double depEnter = 0.20, depExit = 0.08, warmupQ = 12, gdpSmooth = 0.18, overheatMark = 0.55, harvestMark = 0.12;
+        const double depEnter = DepressionEnterDrawdown, depExit = DepressionExitDrawdown, warmupQ = 12, gdpSmooth = 0.18, overheatMark = 0.55, harvestMark = 0.12;
         const double lossRateSmooth = 0.18, monthsPerQuarter = 3.0;
 
         try

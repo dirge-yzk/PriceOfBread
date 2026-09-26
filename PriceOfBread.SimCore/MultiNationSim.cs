@@ -217,6 +217,10 @@ public sealed class MultiNationSim
                     ports.Add((i, r.Name, node, Geo.DistanceKm(pc.Lat, pc.Lon, PathGraph.Nodes[node].Lat, PathGraph.Nodes[node].Lon)));
                 }
         if (ports.Count == 0) return;   // 港のない世界（較正・最小テスト世界）＝対象なし
+        // ★2026-09-26（econ-04 の残り）：州ごとに四半期ごと Dijkstra（LandDistancesFrom）を回し直していた＝起動時に1回だけ作る全点対の表
+        //   PathGraph.LandMatrix の行を読む（表の各行は LandDistancesFrom(s) そのもの＝同じ double が返る＝厳密恒等）。
+        var landMatrix = PathGraph.LandMatrix();
+        int landN = PathGraph.Nodes.Length;
         for (int i = 0; i < Nations.Count; i++)
         {
             if (hasPort[i]) continue;   // 港のある国は既存の自国港3脚（WirePortDistances）が担う
@@ -226,13 +230,13 @@ public sealed class MultiNationSim
                 if (cc.Lat == 0 && cc.Lon == 0) continue;   // 座標なし州＝旧フォールバック
                 int src = PathGraph.NearestNode(cc.Lat, cc.Lon);
                 if (src < 0) continue;
-                var dist = PathGraph.LandDistancesFrom(src);   // 1州1回のDijkstraで全港州への距離
+                int row = src * landN;   // 全点対の表の src 行＝src から全ノードへの陸路距離（接ぎ木なし）
                 double srcGraft = Geo.DistanceKm(cc.Lat, cc.Lon, PathGraph.Nodes[src].Lat, PathGraph.Nodes[src].Lon);
                 var cands = new List<(double Km, string Name, int Owner)>();
                 foreach (var p in ports)
                 {
                     if (p.Nation == i) continue;   // 外国港のみ（港州ゼロ国では自国港は空集合＝実質全港）
-                    double d = dist[p.Node];
+                    double d = landMatrix[row + p.Node];
                     if (double.IsPositiveInfinity(d)) continue;   // 陸路で届かない＝トランジット不能
                     cands.Add((d + srcGraft + p.Graft, p.Name, p.Nation));
                 }
@@ -583,7 +587,6 @@ public sealed class MultiNationSim
             double frontier = 0;
             foreach (var n in Nations) frontier = Math.Max(frontier, n.World.TechLevel);
             foreach (var n in Nations) n.World.WorldTechLevel = frontier;   // StepDay と同一：後追いが立ち上がる先端を毎反復同期
-            { double fi = 0; foreach (var n in Nations) if (n.World.MeanIndustrialization > fi) fi = n.World.MeanIndustrialization; foreach (var n in Nations) n.World.WorldFrontierIndustrialization = fi; }   // ★工業化の先端も同時に配る（2026-09-06・GoldStandardFrontierRatio が読む）
             { double fe = 0; foreach (var n in Nations) if (n.World.Expertise > fe) fe = n.World.Expertise; foreach (var n in Nations) n.World.WorldFrontierExpertise = fe; }   // ★専門人材率の先端も配る（知識doc 段3）
             { double fd = 0; foreach (var n in Nations) if (n.World.PrivilegeDecayRaw > fd) fd = n.World.PrivilegeDecayRaw; foreach (var n in Nations) n.World.WorldMaxPrivilegeDecayRaw = fd; }   // ★特権段6：制度疲労の導出量の世界最大（正規化の分母）
         }
@@ -603,17 +606,22 @@ public sealed class MultiNationSim
 
     // 保存量プローブ（leakhunt・恒久計測器）：共有層のどのサブステップで D＝基礎貨幣−累積台帳 が動いたかを特定する。
     // 既定OFF（Simulation.ConservationProbe）＝実行ゼロ。詳細は Simulation.ProbeCheck の説明を参照。
+    // ★世界の合計（fis-21・2026-09-26）：国ごとの D は**片側記帳**（払った側だけが記帳し、受け取る国が無い／受け取った側だけが記帳する）を拾えない。
+    //   配列の最後の1枠に世界の W＝Σ現存国（基礎貨幣−鋳造−不換発行）を持ち、共有層の段ごとに ΔW を見る（国ごとの D が閉じていれば ΔW＝ΣΔ累積貿易＝世界の外との出入り）。
+    //   ⚠「国際移民」の段は世界プール（ゲーム外から湧く持参金＝既知の湧き口）で必ず動く＝回1-2 で消える。新しい状態は作らない（既存の配列を1枠伸ばすだけ）。
     private double[]? _probeD;
     private static double ProbeD(World w) => w.BaseMoney - w.CumulativeTradeFlow - w.CumulativeGoldMinted - w.CumulativeFiatIssued;
+    private double ProbeWorldW() { double s = 0; foreach (var n in Nations) { var w = n.World; s += w.BaseMoney - w.CumulativeGoldMinted - w.CumulativeFiatIssued; } return s; }
     private void ProbeSnap()
     {
         if (!Simulation.ConservationProbe) return;
-        if (_probeD is null || _probeD.Length != Nations.Count) _probeD = new double[Nations.Count];
+        if (_probeD is null || _probeD.Length != Nations.Count + 1) _probeD = new double[Nations.Count + 1];
         for (int i = 0; i < Nations.Count; i++) _probeD[i] = ProbeD(Nations[i].World);
+        _probeD[Nations.Count] = ProbeWorldW();
     }
     private void ProbeDiff(string label)
     {
-        if (!Simulation.ConservationProbe || _probeD is null) return;
+        if (!Simulation.ConservationProbe || _probeD is null || _probeD.Length != Nations.Count + 1) return;
         for (int i = 0; i < Nations.Count; i++)
         {
             var w = Nations[i].World;
@@ -622,6 +630,10 @@ public sealed class MultiNationSim
                 Console.Error.WriteLine($"[PROBE共有] {label} {w.Region.Name} {w.Year}年 ΔD={now - _probeD[i]:F6}");
             _probeD[i] = now;
         }
+        double wNow = ProbeWorldW(), wPrev = _probeD[Nations.Count];
+        if (Math.Abs(wNow - wPrev) > 1e-7 * Math.Max(1.0, Math.Abs(wNow)))
+            Console.Error.WriteLine($"[PROBE世界] {label} {Year}年 ΔW={wNow - wPrev:F3}（{(label == "国際移民" ? "既知＝世界プールの持参金（回1-2 で消える）" : "月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]")}）");
+        _probeD[Nations.Count] = wNow;
     }
 
     /// <summary>1日進める（UIの日次描画用）。各国を1日進め、四半期末に共有層をまとめて発火。四半期が締まった日に true を返す。</summary>
@@ -635,7 +647,7 @@ public sealed class MultiNationSim
     ///   **ビット一致を実証**＝armstrace seed1 で（旧一体型≡新逐次）と（新逐次≡新並列）・selfplay seed2 全出力一致・savetest 0.0E+000。
     /// ⚠この保証は Simulation.StepDayDaily の国ローカル不変条件（同所コメント）に立つ＝共有へ触る処理は StepDayClose 側へ。</summary>
     internal static readonly bool ParallelDays = System.Environment.GetEnvironmentVariable("POB_PAR") != "0";
-    public static long TicksNations, TicksMarket;
+    public static long TicksNations, TicksMarket;   // POB_TIME=1 の計器。★2026-09-26（sweep-25）：selfplay-batch は1プロセスで試合を並列に回す＝素の += は数が欠ける＝Interlocked で足す
 
     public bool StepDay()
     {
@@ -648,7 +660,7 @@ public sealed class MultiNationSim
         //   ⚠逐次モードも同じ3相順で回す＝並列との差分が「レースの有無」だけになる（単国 Simulation.StepDay() も同じ3相を順に呼ぶ＝恒等）。
         //   POB_PAR=0 で並列を切る（レース疑いの切り分け用）。
         long t0 = TimeOn ? System.Diagnostics.Stopwatch.GetTimestamp() : 0;
-        bool par = ParallelDays && Nations.Count > 1 && !Simulation.ConservationProbe && !TradeReachDiag.On;
+        bool par = ParallelDays && Nations.Count > 1 && !Simulation.ConservationProbe && !TradeReachDiag.On && !BudgetBindDiag.On;   // ★2026-09-26（sweep-25）：BudgetBindDiag も逐次へ（ByWorld は通常の Dictionary＝並列の日次から書くと壊れる）
         foreach (var sim in Nations) sim.StepDayOpen();
         if (par)
             System.Threading.Tasks.Parallel.For(0, Nations.Count, i => Nations[i].StepDayDaily());
@@ -660,7 +672,7 @@ public sealed class MultiNationSim
         //   共有 List へのレース類を根絶）。再挑戦するなら国別状態ハッシュのフェーズ計器で読み手を特定してから。
         foreach (var sim in Nations) sim.StepDayClose();
         foreach (var sim in Nations) sim.World.FlushLog();      // 国順フラッシュ＝共有ログの順序を旧・直接書きと一致させる（恒等は検査Dで実証）
-        if (TimeOn) TicksNations += System.Diagnostics.Stopwatch.GetTimestamp() - t0;
+        if (TimeOn) System.Threading.Interlocked.Add(ref TicksNations, System.Diagnostics.Stopwatch.GetTimestamp() - t0);
 
         bool quarterDone = _dayInQuarter == Calendar.QuarterEndDayIndex;
         // ★月次清算（2026-08-22・TradeMonthlyClearing）：量の式が月次規模（LastDemand/LastProduced/TargetStock）を読むのに清算が四半期1回＝
@@ -671,7 +683,7 @@ public sealed class MultiNationSim
         {
             int monthIdx = (_dayInQuarter + 1) / Calendar.DaysPerMonth - 1;   // 0 or 1（2＝四半期末は下の既存呼び出し）
             ProbeSnap();
-            { long t1 = TimeOn ? System.Diagnostics.Stopwatch.GetTimestamp() : 0; Market.Step(Nations, _coef, firstClearingOfQuarter: monthIdx == 0); if (TimeOn) TicksMarket += System.Diagnostics.Stopwatch.GetTimestamp() - t1; }
+            { long t1 = TimeOn ? System.Diagnostics.Stopwatch.GetTimestamp() : 0; Market.Step(Nations, _coef, firstClearingOfQuarter: monthIdx == 0); if (TimeOn) System.Threading.Interlocked.Add(ref TicksMarket, System.Diagnostics.Stopwatch.GetTimestamp() - t1); }
             ProbeDiff("国際市場(月)");
         }
         if (quarterDone)
@@ -686,7 +698,7 @@ public sealed class MultiNationSim
             // ★助走中は巨大建造物を進めない（2026-08-10 追加裁定＝能力の凍結）。着工も進捗も完成効果（工業化度・耕地・送電容量）も
             //   「年月をかけて建つ」もの＝暦の進まない助走で建ててはいけない。1783年は技術ゲートでほぼ全件が未解禁＝需要への影響も無い。
             if (!_calendarFrozen) { Megaprojects.Step(Diplomacy, Nations, _coef); ProbeDiff("巨大建造物"); }   // 巨大建造物：保有国を解決し国庫から資材＋労働を買って建て、完成したら州へ恒久効果を貼る（2026-07-28）
-            { long t2 = TimeOn ? System.Diagnostics.Stopwatch.GetTimestamp() : 0; Market.Step(Nations, _coef, firstClearingOfQuarter: !(_coef.TradeMonthlyClearing > 0)); if (TimeOn) TicksMarket += System.Diagnostics.Stopwatch.GetTimestamp() - t2; } ProbeDiff("国際市場");          // 国際市場：州と州の二国間清算（実経路・比較優位）。月次清算ONでは四半期の第3清算＝累計を続ける（リセットしない）
+            { long t2 = TimeOn ? System.Diagnostics.Stopwatch.GetTimestamp() : 0; Market.Step(Nations, _coef, firstClearingOfQuarter: !(_coef.TradeMonthlyClearing > 0)); if (TimeOn) System.Threading.Interlocked.Add(ref TicksMarket, System.Diagnostics.Stopwatch.GetTimestamp() - t2); } ProbeDiff("国際市場");          // 国際市場：州と州の二国間清算（実経路・比較優位）。月次清算ONでは四半期の第3清算＝累計を続ける（リセットしない）
             RewirePorts();   // ★港の配線を盤面から張り直す（毎四半期・無状態＝2026-09-21 案1。旧＝署名で条件付き・2026-08-13）
             StepPorts(); ProbeDiff("港湾");                             // 港湾容量：混雑する港州を国家＋資本家が拡張（Market.Step の取扱高/律速を見て投資。改修2026-06-28）
             StepMarineInsurance(); ProbeDiff("海上保険");                // 海上保険：商人pop基金で通商破壊損失を分散（平時=保険料・封鎖時=保険金。改修2026-06-28・金融改革③）
@@ -717,7 +729,6 @@ public sealed class MultiNationSim
             double frontier = 0;                                       // 世界の技術水準＝各国の最高水準（後発の優位・§5.1）
             foreach (var n in Nations) frontier = Math.Max(frontier, n.World.TechLevel);
             foreach (var n in Nations) n.World.WorldTechLevel = frontier;
-            { double fi = 0; foreach (var n in Nations) if (n.World.MeanIndustrialization > fi) fi = n.World.MeanIndustrialization; foreach (var n in Nations) n.World.WorldFrontierIndustrialization = fi; }   // ★工業化の先端も同時に配る（2026-09-06・GoldStandardFrontierRatio が読む）
             { double fe = 0; foreach (var n in Nations) if (n.World.Expertise > fe) fe = n.World.Expertise; foreach (var n in Nations) n.World.WorldFrontierExpertise = fe; }   // ★専門人材率の先端も配る（知識doc 段3）
             { double fd = 0; foreach (var n in Nations) if (n.World.PrivilegeDecayRaw > fd) fd = n.World.PrivilegeDecayRaw; foreach (var n in Nations) n.World.WorldMaxPrivilegeDecayRaw = fd; }   // ★特権段6：制度疲労の導出量の世界最大（正規化の分母）
             // 接7（監査2026-07-11・2026-07-25休眠配線）：外圧（改革派の追い風＝明治の黒船）が創建時定数0.3で全国・全期間凍結だった＝
@@ -735,7 +746,7 @@ public sealed class MultiNationSim
                 }
             // 政16（世界工業化の先端状態量・スカフォールド完成）：各国 MeanIndustrialization の最大値＝「世界最先端の工業化度」を
             // 全 World.IndustrialFrontier へ注入（WorldTechLevel と同型）。Ideology の発展度ゲート（IdeologyGateFromDevelopment>0）が
-            // 代理(WorldTechLevel との max)でなくこれを参照する。既定 IdeologyGateFromDevelopment=0 では暦年ゲートを厳密再現＝結果に無影響（中立）。
+            // 代理(WorldTechLevel との max)でなくこれを参照する。IdeologyGateFromDevelopment=0 なら暦年ゲートを厳密再現（⚠既定は点火済みの1.0＝2026-09-06・この値は live・x-02 で注記を是正）。
             double indFrontier = 0;
             foreach (var n in Nations) indFrontier = Math.Max(indFrontier, n.World.MeanIndustrialization);
             foreach (var n in Nations) n.World.IndustrialFrontier = indFrontier;
@@ -834,8 +845,7 @@ public sealed class MultiNationSim
                 }
             // 財5（対外国債の他国資本引き当て・プール注入）：各国の対外国債プールに『他モデル国の資本家貯蓄の合計』＝対外国債の引き受け余力を注入。
             // Fiscal.Step はこれを上限に対外債発行をクランプする（実引き当て/保有国配分は #17 の CapitalMarket 経路で・notes 参照）。
-            // 既定1.0＝毎四半期このプールへ注入し Fiscal 側が上限として読む。0では Fiscal 側が読まない＝注入しても未使用で挙動中立。
-            if (_coef.ForeignBondFromInvestors > 0.5)
+            // 毎四半期このプールへ注入し Fiscal 側が上限として読む（★2026-09-26：旗 ForeignBondFromInvestors を焼き込み・x-01）。
             {
                 double worldCapSavings = 0;
                 foreach (var n in Nations)
@@ -851,8 +861,8 @@ public sealed class MultiNationSim
             }
             // ★§1-4（ForeignLendingDebits・2026-08-30）：対外借入元本の貸し手側引き落とし。借り手は Fiscal で +CumulativeTradeFlow 済み＝
             //   ここで他国資本家の貯蓄から比例控除し、貸し手国の CumulativeTradeFlow を同額 − する＝両建てで世界の貨幣創造を閉じる。
-            //   比例の物差し＝国内債と同じ max(0,Savings) 比（Fiscal の domestic 枝と同型）。係数0＝予約が立たない＝1命令も走らない。
-            if (_coef.ForeignLendingDebits > 0)
+            //   比例の物差し＝国内債と同じ max(0,Savings) 比（Fiscal の domestic 枝と同型）。★2026-09-26：旗 ForeignLendingDebits を焼き込み（x-01）。
+            {
                 for (int bi = 0; bi < Nations.Count; bi++)
                 {
                     var bw = Nations[bi].World;
@@ -881,6 +891,7 @@ public sealed class MultiNationSim
                         if (debited > 1e-12) lw.CumulativeTradeFlow -= debited;   // 貸し手側の台帳＝流出（借り手の +流入 と対）
                     }
                 }
+            }
             ReabsorbNations();       // ★内戦一元化：内戦決着の再統合（州の返還・国家除去）。SpawnSecededNations の前＝同四半期の建国と衝突しない
             SpawnSecededNations();   // 建国キューの回収（分離戦勝利の州→新国家）。Nations走査の外＝リスト追記が安全・新国家は次の四半期から鼓動
             StepDiffusion();         // ★発見・段7：思想の伝播（貿易路×メディア・前四半期読み＝閉路なし）。DiffusionWeight=0で即return＝恒等
@@ -1722,12 +1733,11 @@ public sealed class MultiNationSim
             // R3：越境するのは savArriving のみ（運賃 sav−savArriving は sp に残る＝送出経済に留まり保存則が閉じる）。fare=0 で savArriving=sav＝現行と厳密恒等。
             // 個人債務も按分して運ぶ（2026-08-02・既定0で 0×比=0.0 の恒等）。⚠債務は運賃で目減りしない＝債務は移民に付いて回る
             double debtMove = sp.Size > 1e-9 ? sp.Debt * (flow / sp.Size) : 0;
-            double iwMove = sp.Size > 1e-9 ? sp.IlliquidWealth * (flow / sp.Size) : 0;   // 結晶資産も按分（退蔵結晶化2026-08-08・既定0で恒等）
             // ★国債の保有台帳（2026-09-21）：移民の按分ぶんの保有は**発行国（src）の対外債へ振替**＝請求権は src に対するまま、受入国の対外債権になる
             //   （国境を越えると1本のスカラーでは「どの国の国債か」を持てない＝Fiscal.ExportBondHoldings の注）。運賃は金の話＝保有は目減りしない。
             if (sp.Size > 1e-9) Fiscal.ExportBondHoldings(sp, sp.BondHoldings * (flow / sp.Size), src, dst);
-            sp.Size -= flow; sp.Savings -= savArriving; sp.Debt -= debtMove; sp.IlliquidWealth -= iwMove;
-            dp.Size += flow; dp.Savings += savArriving; dp.Debt += debtMove; dp.IlliquidWealth += iwMove;
+            sp.Size -= flow; sp.Savings -= savArriving; sp.Debt -= debtMove;
+            dp.Size += flow; dp.Savings += savArriving; dp.Debt += debtMove;
             moved += flow; money += savArriving;
         }
         if (moved <= 0) return;
@@ -1843,7 +1853,6 @@ public sealed class MultiNationSim
             if (!(flow > 1e-9)) continue;
             double sav = sp.Savings * (flow / sp.Size);          // ★持参金（大衆移民と同じ＝自分の貯蓄を持って来る）
             double debtMove = sp.Debt * (flow / sp.Size);
-            double iwMove = sp.IlliquidWealth * (flow / sp.Size);
             Fiscal.ExportBondHoldings(sp, sp.BondHoldings * (flow / sp.Size), src, dst);   // ★国債の保有台帳（2026-09-21）：大衆移民と同じ＝発行国の対外債へ振替
             double newSize = dp.Size + flow;
             // ★人的資本を運搬（⚠招聘の要点はまさにこれ＝識字と技能を持って来る）。MoveMigrants（大衆移民）と同じ加重平均。
@@ -1860,8 +1869,8 @@ public sealed class MultiNationSim
             }
             // ⚠お雇い外国人は**中核民族に数えない**（MoveMigrants の大衆移民と同じ＝希釈）。契約が切れれば帰る人々である。
             if (dst.EthnicEnabled) dp.CoreEthnicShare = dp.CoreEthnicShare * dp.Size / newSize;
-            sp.Size -= flow; sp.Savings -= sav; sp.Debt -= debtMove; sp.IlliquidWealth -= iwMove;
-            dp.Size += flow; dp.Savings += sav; dp.Debt += debtMove; dp.IlliquidWealth += iwMove;
+            sp.Size -= flow; sp.Savings -= sav; sp.Debt -= debtMove;
+            dp.Size += flow; dp.Savings += sav; dp.Debt += debtMove;
             moved += flow; money += sav;
         }
         if (!(moved > 0)) return;

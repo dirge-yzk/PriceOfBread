@@ -222,9 +222,9 @@ public static class Fiscal
         //   対外債務はロンドン建て＝金建てである（★インドの Home Charges・清の庚子賠款）。銀が下がれば、同じ利払いに
         //   より多くの自国通貨が要る＝⚠実質負担が膨らむ。膨らんだ分は【債権者が受け取る】——移転であって、湧いてはならない
         //   （下の foreignDebtFrac が同じ倍率で割り当てるので、国内分＋海外分＝interest が恒等的に閉じる）。
-        //   GoldDebtBurdenGate=0 なら burden=1（★2026-08-29点火＝既定1＝金建て）。
+        //   ★2026-09-26：旗 GoldDebtBurdenGate（点火2026-08-29＝既定1＝金建て）を焼き込み（x-01）。
         double goldDebtBurden = 1.0;
-        if (c.GoldDebtBurdenGate > 0 && w.MonetaryLaw == MonetaryStandardLaw.Silver && w.WorldSilverPrice > 1e-9)
+        if (w.MonetaryLaw == MonetaryStandardLaw.Silver && w.WorldSilverPrice > 1e-9)
         {
             double refSilver = Catalog.RefPrices[Catalog.SilverId];
             double b = refSilver > 1e-9 ? refSilver / w.WorldSilverPrice : 1.0;
@@ -277,16 +277,16 @@ public static class Fiscal
             // 0で関税と独立（19世紀の資本移動は関税と別＝高関税の米/露も外債を発行）→兌換性/信認ベースの開放度へ。中間で部分連動。
             // ★トリレンマを閉じる①（2026-08-13）：資本開放度を**法**から導出し、関税との連動を切る。
             //   旧＝関税の従属変数なので「関税は高いが資本は自由」（19世紀後半の独/米）が原理的に表現できなかった。
-            //   規制でも0にしない（★密輸と同じ理由＝規制しても抜け道はあった）。既定 CapitalMobilityLawGate=0 で下の旧式のみ＝厳密恒等。
+            //   規制でも0にしない（★密輸と同じ理由＝規制しても抜け道はあった）。CapitalMobilityLawGate=0 で下の旧式のみ（⚠既定は点火済みの1.0＝2026-08-13・x-02 で注記を是正）。
             double openness = c.CapitalMobilityLawGate > 0
                 ? (w.CapitalControlLaw ? Math.Clamp(c.CapitalControlOpenness, 0, 1) : 1.0)
                 : Math.Clamp(1.0 - c.CapitalOpennessTariffWeight * w.Tariff, 0, 1);
             double domesticPool = capSavings * c.BondAppetite;
             double foreignPool = openness * c.ForeignBondCapacity * Math.Max(0, gdp) * Math.Clamp(w.GovBondRate / Math.Max(1e-9, c.BondBaseRate), 0, ForeignBondYieldRatioCap);
-            // 財5（対外国債をモデル外の無限プールから閉鎖系へ）：ForeignBondFromInvestors=1 で foreignPool を他モデル国の資本家貯蓄から実引き当て。
-            // 02断線走査2026-07-28：注入（MultiNationSim→World.ForeignBondInvestorPool）と保有国配分（CapitalMarket の外債レグ＝ForeignBondClaims 繰上げ＋利払い配当）は**実装済み**＝
-            // 旧「ここに閉じて実装不能・統合担当の設計が要る」注記は陳腐化のため是正。既定1.0＝他国投資家プールから実引き当て。0なら無限プール（旧）。
-            if (c.ForeignBondFromInvestors > 0.5 && w.ForeignBondInvestorPool >= 0.0)
+            // 財5（対外国債をモデル外の無限プールから閉鎖系へ）：foreignPool を他モデル国の資本家貯蓄から実引き当て。
+            // 注入（MultiNationSim→World.ForeignBondInvestorPool）と保有国配分（CapitalMarket の外債レグ＝ForeignBondClaims 繰上げ＋利払い配当）は実装済み。
+            // ★2026-09-26：旗 ForeignBondFromInvestors（既定1.0）を焼き込み（x-01）。
+            if (w.ForeignBondInvestorPool >= 0.0)
                 foreignPool = Math.Min(foreignPool, Math.Max(0.0, w.ForeignBondInvestorPool));   // 実引き当て：他国投資家プールを超えて対外債を発行できない（保存）
             double pool = domesticPool + foreignPool;
             double borrowed = Math.Min(borrowWant, pool);
@@ -304,7 +304,7 @@ public static class Fiscal
                         p.Savings -= paid; p.BondHoldings += paid;   // 国内＝資本家貯蓄→国庫（純移転・クラウディングアウト）＋同額の保有
                     }
                 w.CumulativeTradeFlow += foreignPortion;   // 海外＝対外資本流入（BaseMoney+CumulativeTradeFlow同時＝保存）
-                if (c.ForeignLendingDebits > 0) w.PendingForeignBorrow += foreignPortion;   // ★§1-4：貸し手側の引き落とし予約（四半期末に MultiNationSim が他国資本家から対称に控除＝両建て）。0＝旧・片側記帳
+                w.PendingForeignBorrow += foreignPortion;   // ★§1-4：貸し手側の引き落とし予約（四半期末に MultiNationSim が他国資本家から対称に控除＝両建て）。旗 ForeignLendingDebits は2026-09-26に焼き込み（x-01）
                 w.Pay(TreasuryCat.Borrow, borrowed); w.GovDebt += borrowed; w.ForeignDebt += foreignPortion;
                 // R9：新発債を現行市場金利で既往クーポンへ加重平均で混ぜる（BondRolloverFrac<1の時のみ意味を持つ。既定1.0では翌月頭のrolloverでGovBondRateに上書きされ未読＝ビット一致）。残高0からの借入はdebtBefore=0で現行金利へ自然収束
                 { double debtBefore = w.GovDebt - borrowed; w.GovAvgCoupon = (debtBefore * w.GovAvgCoupon + borrowed * w.GovBondRate) / System.Math.Max(1e-9, w.GovDebt); }
@@ -333,14 +333,14 @@ public static class Fiscal
         if (devalueRoom > 1e-9)
         {
             double totalSav = 0; foreach (var p in pops) totalSav += Math.Max(0, p.Savings);
-            // 財3（cadence整合・切り下げ上限）：DevaluationCapFrac は注釈上「四半期あたり」だが Fiscal.Step は月次実行＝そのまま毎月適用すると実効約14%/四半期に膨れる（1−(1−0.05)^3）。
-            // FiscalQuarterlyGating=1 で月次上限を3か月ぶんに割り（÷3）、四半期あたりの累積が DevaluationCapFrac に整合。既定0＝割らず（÷1）＝現行と厳密一致（数値中立）。
-            double devalCap = c.DevaluationCapFrac / (1.0 + c.FiscalQuarterlyGating * (Calendar.MonthsPerQuarter - 1));   // 既定0で ÷1（現行）／1で ÷3（月次を四半期整合）
-            double devalue = Math.Min(devalueRoom, totalSav * devalCap);   // 四半期あたり有界（インフレ税の上限）。超過は underfunding で劣化
+            // 財3（cadence整合・切り下げ上限）：DevaluationCapFrac は**月あたり**の上限（Fiscal.Step は月次実行）。
+            // ★2026-09-26（dorm-29）：旧の注釈は「四半期あたり」と書き、四半期へ割る休眠の器 FiscalQuarterlyGating（既定0＝÷1）を持っていた＝
+            //   較正は月次で進む値に乗っているので、器を削除し単位の書き方を月へ直した（挙動は1ビットも変わらない）。
+            double devalue = Math.Min(devalueRoom, totalSav * c.DevaluationCapFrac);   // 月あたり有界（インフレ税の上限）。超過は underfunding で劣化
             if (devalue > 1e-9)
             {
                 // 不換シニョリッジ（fiat-expansion-as-haircut-not-issue）：切り下げのうち FiatIssueFrac は pop から取らず新規発行＝マネーストック膨張(M↑)。
-                // 既定 FiatIssueFrac=0 で issue=0＝全額ヘアカット(pop→国庫の純移転)＝現行恒等。発行ぶんは CumulativeFiatIssued に積み Invariants の expected に算入(鋳造と同型)。M↑→P↑は下の FiatInflationPressure が表現＝二重取りなし。
+                // FiatIssueFrac=0 で issue=0＝全額ヘアカット(pop→国庫の純移転)（⚠既定は点火済みの0.2＝2026-07-18・x-02 で注記を是正）。発行ぶんは CumulativeFiatIssued に積み Invariants の expected に算入(鋳造と同型)。M↑→P↑は下の FiatInflationPressure が表現＝二重取りなし。
                 double issue = devalue * c.FiatIssueFrac;
                 double haircut = devalue - issue;
                 if (haircut > 1e-12) foreach (var p in pops) p.Savings -= haircut * (Math.Max(0, p.Savings) / totalSav);
@@ -459,7 +459,7 @@ public static class Fiscal
             //   になり、持ち手がいなければ対外債務が国庫残置でタダで消え、いれば払っていない国内の持ち手へ対外の元本が渡っていた。
             //   利払い（上）は月初の残高に掛かる＝月初の比のままが正しい。起債の無い月は shareNow＝foreignShare（ビット同値）。
             double shareNow = Math.Clamp(w.ForeignDebt / w.GovDebt, 0, 1);
-            double frForeign = repay * (c.DebtRepayUsesPrincipalShare > 0 ? shareNow : ForeignFrac(shareNow));
+            double frForeign = repay * shareNow;   // ★2026-09-26：旗 DebtRepayUsesPrincipalShare（点火2026-09-05）を焼き込み（x-01）＝元本の比
             double domBefore = w.GovDebt - w.ForeignDebt;
             w.Pay(TreasuryCat.DebtRepay, -repay); w.GovDebt -= repay; w.ForeignDebt = Math.Max(0, w.ForeignDebt - frForeign);
             // ★保有台帳（2026-09-21裁定）：国内分の償還は**保有に比例**して払い、同じ比で保有を減らす
@@ -482,16 +482,11 @@ public static class Fiscal
 
         // === ソブリン・デフォルト：借入上限に張り付き返済できない＝信用が尽き支払不能→**債務不履行（致命的）** ===
         // 借金ボタンの逃げ道（革命による債務帳消し）が無くなった分、過剰債務は「破滅的なデフォルト」で決着する＝借りすぎた覇権/軍国が崩れて上位が入れ替わる。
-        // 財3（cadence整合・四半期カウンタ）：BorrowCooldown（減算）・InsolvencyQuarters（加算）は名前どおり「四半期」単位のはずだが Fiscal.Step が月次実行のため月次で進み、
-        // クールダウン「6年(=24Q)」が実効2年・「≒2年(=8Q)の支払不能」が8か月に3倍速化する。FiscalQuarterlyGating=1 で四半期の締め月(w.IsQuarterEndMonth)にのみ進める。
-        // 既定0＝毎月進む（現行と厳密一致）。四半期の締め月フラグ＝World.IsQuarterEndMonth は Simulation の月次決算で設定済み（02断線走査2026-07-28：「要用意」の陳腐注記を是正）。
-        bool quarterTick = c.FiscalQuarterlyGating <= 0.5 || w.IsQuarterEndMonth;   // 既定＝常に true（毎月＝現行）／gating時＝締め月のみ
-        if (quarterTick)
-        {
-            if (w.BorrowCooldown > 0) w.BorrowCooldown--;
-            if (w.BorrowStacks >= c.MaxBorrowStacks - 1e-9) w.InsolvencyQuarters++; else w.InsolvencyQuarters = 0;
-        }
-        else if (w.BorrowStacks < c.MaxBorrowStacks - 1e-9) w.InsolvencyQuarters = 0;   // 上限を離れたら即リセット（非締め月でも支払不能の連続性を保つ＝gating時のみ到達）
+        // 財3（cadence）：BorrowCooldown（減算）・InsolvencyQuarters（加算）は**月**で進むカウンタ（Fiscal.Step は月次実行）。
+        //   ⚠名前は「Quarters」だが単位は月＝DefaultTriggerQuarters=8 は8か月の支払不能・DefaultCooldownQuarters=24 は2年の借入禁止。
+        //   ★2026-09-26（dorm-29）：四半期の締め月だけ進める休眠の器 FiscalQuarterlyGating（既定0＝毎月）を削除し、単位の書き方を月へ直した（挙動は1ビットも変わらない）。
+        if (w.BorrowCooldown > 0) w.BorrowCooldown--;
+        if (w.BorrowStacks >= c.MaxBorrowStacks - 1e-9) w.InsolvencyQuarters++; else w.InsolvencyQuarters = 0;
         if (w.InsolvencyQuarters >= c.DefaultTriggerQuarters)
         {
             // 債務消滅（請求権＝保存無影響）。致命的な代償＝兌換崩壊・**信用凍結（貸付消滅→工場が資本を得られず投資/工業化が崩落＝恐慌）**・正統性崩壊（革命リスク）・大衆の暴動・当面 借入不能。
@@ -522,7 +517,7 @@ public static class Fiscal
         if (w.MonetaryEnabled)
         {
             // 正貨準備カバー率（convertibility-not-reserve-backed＋fx-peg防衛）：信用込み広義マネーに対する正貨(基礎貨幣)の比＝BaseMoney/BroadMoney。
-            // 低いと金流出で兌換を守れず停止（1797英/1893米型の投機アタック）。既定GoldCoverMin=0で coverage<0 never・coverage>=0 always＝発火せず＝現行恒等。
+            // 低いと金流出で兌換を守れず停止（1797英/1893米型の投機アタック）。GoldCoverMin=0 なら coverage<0 never・coverage>=0 always＝発火しない（⚠既定は0.25＝live・x-02 で注記を是正）。
             double coverage = w.BroadMoney > 1e-9 ? w.BaseMoney / w.BroadMoney : 1.0;
             if (w.OnGoldStandard)
             {
@@ -589,7 +584,7 @@ public static class Fiscal
             double welfareReq = c.WelfareCostRate * w.SocialSecurity * massSize;
             // funding修正：給付の上限を**裁量余剰(FiscalCapacity)**から（国庫は基礎義務に食われ常時0で福祉が餓死していた）。余剰の無い国は福祉も出せず赤字を作らない。
             double welfareCost = Math.Min(welfareReq, c.WelfareRevenueShare * w.FiscalCapacity * w.SpendingCapFactor);   // 借入スタックの出費上限ペナルティ（公共サービス）
-            // 財1：福祉支出を国庫残高でクランプ（無記録の当座借越の防止）。利払い/維持費は Max(0,Treasury) で守られているが福祉/年金だけ守られておらず、残高が負に落ちても債務計上も利払いもなく翌月税収で黙って埋まっていた（記録されない政府短期紙幣の発行）。既定 WelfarePensionClampToTreasury=0＝現行の無制限（数値中立）／1＝残高までクランプ（財政規律）。
+            // 財1：福祉支出を国庫残高でクランプ（無記録の当座借越の防止）。利払い/維持費は Max(0,Treasury) で守られているが福祉/年金だけ守られておらず、残高が負に落ちても債務計上も利払いもなく翌月税収で黙って埋まっていた（記録されない政府短期紙幣の発行）。WelfarePensionClampToTreasury=0＝無制限（旧）／1＝残高までクランプ（財政規律）（⚠既定は点火済みの1.0・x-02 で注記を是正）。
             // B4裁定（2026-07-31）：白黒スイッチの連続化＝0で無制限／1で残高まで完全クランプ／中間は当座借越を部分的に許す
             // （StateSpendTreasuryClamp と同型のブレンド。0.5超で発火という崖を廃止＝「途中の度合いも取れる」）。
             if (c.WelfarePensionClampToTreasury > 0)
@@ -609,7 +604,7 @@ public static class Fiscal
             double oldSize = 0; foreach (var p in pops) if (!p.IsSoldier) oldSize += p.Size * p.OldShare;
             double pensionReq = c.PensionCostRate * pensionLevel * oldSize;
             double pensionCost = Math.Min(pensionReq, c.WelfareRevenueShare * w.FiscalCapacity * w.SpendingCapFactor);   // 福祉と同じ裁量余剰から（借入スタックの出費上限ペナルティ込み）
-            // 財1：年金支出も国庫残高でクランプ（福祉と同型・無記録の当座借越の防止）。既定 WelfarePensionClampToTreasury=0＝現行の無制限（数値中立）／1＝残高までクランプ。
+            // 財1：年金支出も国庫残高でクランプ（福祉と同型・無記録の当座借越の防止）。WelfarePensionClampToTreasury=0＝無制限（旧）／1＝残高までクランプ（⚠既定は点火済みの1.0・x-02 で注記を是正）。
             if (c.WelfarePensionClampToTreasury > 0)   // B4裁定（2026-07-31）：福祉と同型の連続ブレンド
                 pensionCost = pensionCost * (1.0 - c.WelfarePensionClampToTreasury)
                             + Math.Min(pensionCost, Math.Max(0, w.Treasury)) * c.WelfarePensionClampToTreasury;

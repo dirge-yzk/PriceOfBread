@@ -657,9 +657,9 @@ public static class PathGraph
     }
 
     /// <summary>単一始点の全ノード最短距離（km・接ぎ木なしの素のグラフ距離）。到達不能＝+∞（別陸塊・孤立成分）。
-    /// Stage C（内陸国トランジット）の構築時配線が「1州→全外国港州」を1回のDijkstraで引くための多目的版
-    /// （LandDistanceKm を港ごとに呼ぶと同じ探索を何十回も繰り返す）。呼び出し側が両端の接ぎ木距離を足す。</summary>
-    public static double[] LandDistancesFrom(int source)
+    /// 全点対の表 <see cref="LandMatrix"/> の1行を作る。呼び出し側が両端の接ぎ木距離を足す。
+    /// ★2026-09-26：内陸国トランジットの配線（MultiNationSim.WireTransitPorts）も表の行を読むようになった＝呼び手は表の構築だけ（econ-04）。</summary>
+    private static double[] LandDistancesFrom(int source)
     {
         var dist = new double[Nodes.Length];
         System.Array.Fill(dist, double.PositiveInfinity);

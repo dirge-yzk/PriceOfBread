@@ -46,7 +46,7 @@ public class GeographyCoverageTests
     /// <summary>★首都座標の番人（2026-09-03・キューA-01／出典 トリアージ 2-A 1-3）。
     /// ⚠**2026-09-03 の作者裁定（J-003）で番人の意味が変わった**：「**首都（史実に基づく・表示のみ）と、経済中心地は別でよい**」。
     /// ⇒ 2つの座標が**食い違うこと自体は仕様**になった（エンジンの距離は経済中心地＝1番目の州を読み、
-    /// world.json の首都は `World.DisplayCapitalLat/Lon` として表示専用に降格＝係数 `CenterIsFirstProvince` で切り替え）。
+    /// world.json の首都は表示専用に降格＝係数 `CenterIsFirstProvince` で切り替え。表示専用の写し `World.DisplayCapitalLat/Lon` は読み手0で 2026-09-26 に削除）。
     /// ★よってこの番人が今なお守っているのは「**表示用の首都が地点表に載っていること**」＝地図に描ける、という一点だけである
     /// （⚠モロッコのラバトが places.json に登録すらされていなかった、という実害を捕まえたのがこの検査）。</summary>
     /// <summary>（旧説明）

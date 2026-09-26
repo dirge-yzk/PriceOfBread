@@ -32,7 +32,11 @@ if [ -z "$DOTNET" ] || [ ! -x "$DOTNET" ]; then
   done
 fi
 [ -n "$DOTNET" ] && [ -x "$DOTNET" ] || { echo "!! dotnet が見つからない（DOTNET=... で明示指定してください）"; exit 1; }
-SNAP="${SNAP_DIR:-${TMPDIR:-/c/Users/$USERNAME/AppData/Local/Temp}/claude/pob-measure-snap}"
+# ★2026-09-26（fis-23）：既定の隔離先を**この実行だけのもの**にする（旧＝固定の pob-measure-snap を全実行で共有＝SNAP_DIR を渡し忘れた
+#   2本目の measure.sh が1本目の走行中のスナップショットを rm -rf していた）。既定を使ったときだけ終わりに片付ける。
+SNAP_OWNED=0
+if [ -z "${SNAP_DIR:-}" ]; then SNAP_OWNED=1; fi
+SNAP="${SNAP_DIR:-${TMPDIR:-/c/Users/$USERNAME/AppData/Local/Temp}/claude/pob-measure-snap-$$}"
 
 echo "[1/4] ソースを隔離ディレクトリへ複製（bin/obj/docs/dist を除く）"
 rm -rf "$SNAP" && mkdir -p "$SNAP" || exit 1
@@ -68,8 +72,12 @@ echo "[4/4] 測定: $*"
 # ★忠実度の基線（裁定①の条件2＝前回値との差分を必ず併記）は**作業ツリー直下**に置く。
 # 隔離スナップショットは毎回作り直されるので、そこに置くと「前回」が常に存在しない。
 export POB_FIDELITY_BASELINE="${POB_FIDELITY_BASELINE:-$SRC_DIR/.pob-fidelity-baseline.tsv}"
+# ★2026-09-26（fis-23）：Runner は基線の1行目に走行条件（シード・長さ・係数の上書き・このソースの SOURCE-HASH）を書き、次の走行で突き合わせる
+#   ＝長さや上書きの違う腕の値と黙って差を取らない（条件が違えば「前回値なし（条件違い）」）。
+export POB_SOURCE_HASH="$HASH"
 "$DOTNET" "$SNAP/PriceOfBread.Runner/bin/Release/net10.0/PriceOfBread.Runner.dll" "$@" > "$OUT" 2>&1
 RC=$?
+[ "$SNAP_OWNED" = "1" ] && rm -rf "$SNAP"   # 既定の隔離先だけ片付ける（SNAP_DIR を渡した腕は呼び手のもの＝残す）
 echo "      終了コード=$RC　テスト=$TEST_RC　出力=$OUT　マニフェスト=$OUT.manifest（SOURCE-HASH=$HASH）"
 # ★★終了コードは3値（裁定①・2026-08-01）。裁定順序「破綻しない ＞ 正しい挙動 ＞ バランス」を大小へ写す。
 #   0 ＝ 硬性ゲート全緑・テスト緑・6次元も到達

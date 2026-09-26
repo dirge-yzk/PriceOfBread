@@ -464,7 +464,7 @@ public sealed class Coefficients
     public double AusterityStartDebt = 0.2;      // 債務/GDP がこれ超で緊縮開始（借金がかさむほど弱者救済を削り逆進課税を上げる＝赤字を貸し手に響かない形で閉じる負のフィードバック）
     public double AusterityRange = 0.8;          // ここ幅で緊縮が0→満額（債務/GDP = Start+Range で弱者救済ゼロ・逆進課税が最大上乗せ）
     public double AusterityTaxHike = 0.5;        // 満額緊縮時に人頭税へ上乗せする逆進課税の幅（貴族免除の人頭税＝負担は弱者に集中）
-    public double DevaluationCapFrac = 0.05;     // 四半期に切り下げ（インフレ税）で吸える総貯蓄の上限割合。超過赤字は underfunding（連合の薄給＝治安維持力減）で優雅に劣化＝構造的に過大な連合は経済を枯渇させず萎む
+    public double DevaluationCapFrac = 0.05;     // **月に**切り下げ（インフレ税）で吸える総貯蓄の上限割合（Fiscal.Step は月次・2026-09-26 に単位の書き方を是正）。超過赤字は underfunding（連合の薄給＝治安維持力減）で優雅に劣化＝構造的に過大な連合は経済を枯渇させず萎む
     public double FiatIssueFrac = 0.2;   /* リアリティ群点火2026-07-18＝不換シニョリッジ(インフレ税) */           // 不換シニョリッジ（fiat-expansion-as-haircut-not-issue）：赤字補填の切り下げのうち、popから取らず新規発行する割合＝マネーストック膨張(M↑→P↑)。CumulativeFiatIssuedに積みInvariantsのexpectedに算入。0で全額ヘアカット＝現行恒等
     public double DebtDistressRatio = 2.0;        // 債務/GDP がこれを超えると信用力が尽き新規国債が売れない（債権者は支払不能国に貸さない）＝債務の発散とスパイラルを断つ
     public double BondRateMax = 0.30;            // 国債金利の上限（年率）。これ以上は市場が値付けせず＝事実上の債務不履行（利払いを切り下げ/薄給で処理）
@@ -475,10 +475,10 @@ public sealed class Coefficients
     public double BorrowFractionOfGdp = 0.10;    // 借金ボタン1回でGDPのこの割合を借入（資本家貯蓄＋外資から調達＝保存）。1回=1スタック
     public double MaxBorrowStacks = 20.0;        // スタック上限。出費上限＝公共サービス支出 ×max(0,1−stacks/これ)。20スタックでサービス0%（＝もう借りても国が回らない）。返済でスタック減・返せねば のべくり
     // ソブリン・デフォルト（2026-06-23）：借入上限に張り付き返済できない国は信用が尽き**債務不履行**＝致命的ペナルティ（安易な逃げ道でない＝破滅）。
-    public int DefaultTriggerQuarters = 8;       // 借入上限(MaxBorrowStacks)に連続でこの四半期 張り付くとデフォルト（≒2年の支払不能で破綻宣言）
+    public int DefaultTriggerQuarters = 8;       // 借入上限(MaxBorrowStacks)に連続でこの**月数** 張り付くとデフォルト（8か月の支払不能で破綻宣言）。⚠名前は Quarters だがカウンタは月次で進む（2026-09-26 に書き方を是正・dorm-29）
     public double DefaultLegitimacyHit = 0.5;    // デフォルト時の正統性崩壊（→闘争度↑・革命リスク）。信用と威信の喪失
     public double DefaultMilitancyHit = 0.25;    // デフォルト時の大衆の闘争度スパイク（経済混乱→暴動）
-    public int DefaultCooldownQuarters = 24;     // デフォルト後の借入禁止（信用回復まで＝6年）。この間は赤字を切り下げ/薄給で凌ぐしかない
+    public int DefaultCooldownQuarters = 24;     // デフォルト後の借入禁止の**月数**（信用回復まで＝2年。⚠名前は Quarters だが月次で減る・2026-09-26 に書き方を是正）。この間は赤字を切り下げ/薄給で凌ぐしかない
     public double CrowdingOutWeight = 1.5;       // クラウディングアウト（金利チャネル）：政府の国債金利プレミアム(GovBondRate−基礎)×これ を民間投資のハードルレートに上乗せ。＝政府借入が民間投資を締め出す（高債務国で工業化↓・金本位の信用国は弱い＝条件付き）
     // ⚠**この較正の出所に注意**（2026-08-01訂正）：「既定治安維持力400で≈0.5」は BaseCoercion を独立に掃引する**単一国の較正世界**の数字で、
     //   多国シムでは治安維持力は兵数×即応度から出る（CoercionPerSoldier・2026-06-23の一本化）ので400は現れない。値の妥当性は多国側で測り直すこと。
@@ -1518,7 +1518,7 @@ public sealed class Coefficients
     public double MegaprojectPrestige = 0.05;   // **点火2026-07-28（段6）**：Formations の統一の威信0.1の半分＝建国より軽い一回加算     // 建造物の完成が正統性へ与える一回加算。0=無効＝厳密恒等
     // 段7 反景気循環（ニューディール）。発動条件は「恐慌 かつ **起債可能**」＝Fiscal.cs:162 と同一の3条件。
     // ⚠「財政に余裕」を条件にすると不況時に発動しない（設計書§4-6 の自己矛盾）。起債可能を条件にすると
-    //   デフォルト直後は BorrowCooldown=24四半期で6年間発動せず「破産した国はニューディールを打てない」が自動で出る。
+    //   デフォルト直後は BorrowCooldown=24（月＝2年）のあいだ発動せず「破産した国はニューディールを打てない」が自動で出る。
     public double MegaprojectCounterCyclical = 1.0;   // **点火2026-07-28（段7）**：恐慌かつ起債可能なら拠出2倍   // 恐慌時に建造物への国庫拠出を何倍にするか（0=無効＝厳密恒等・1.0で「恐慌時は倍」相当の加算率）
     public double MegaprojectCrisisDrawdown = 0.08;   // 恐慌とみなす GdpDrawdown の閾値（トレンドGDPのピーク比収縮）
     // 段5 外資パートナー（2026-07-28）。**単一パートナー**＝相手は決定論のargmaxで1カ国だけ・持分は係数で固定（交渉しない）。
@@ -1910,7 +1910,7 @@ public sealed class Coefficients
     public double PatentDiscoverySpan = 0.1;      // 特許の普及幅（旧閾値0.4を中点に±0.05＝形式は連続・分布は旧とほぼ同一）
     public double JointStockDiscoveryOnset = 0.25; // 株式会社の傾斜開始＝maxIndのランプ（旧閾値0.3が中点・span0.1＝細いランプ）。時期感1850〜1870
     public double JointStockDiscoverySpan = 0.1;  // 株式会社の普及幅（細いランプ＝除去は不連続のみ）
-    public double DiscoveryFieldSplit = 0.0;      // ★段4ゲート（休眠）：分野時計の按分を後援者の勢力へ開く（0=産業100%＝現状の単一時計と同値＝厳密恒等）。段5以降で軍事/思想の読者を配線
+    // 【墓標2026-09-26】DiscoveryFieldSplit（分野時計の按分・休眠）＝時計 World.DiscoveryClocks に読み手が無かった＝時計ごと削除（x-03）。Discovery.PatronShares は呼び手0（0-3 の Discovery 分で扱う）
     public double DiffusionWeight = 1.0;   // ★点火2026-09-04（E-12b・IdeologyReachGate と同時＝読者が居て初めて世界が動く）         // ★発見・段7（思想の伝播・休眠）：到達(A→B)=貿易量(A,B)/買い手GDP×メディアA×メディアB×前四半期の到達A。メディア=NewsFill×識字+RadioFill（全て既存量＝「思想は商人と本と留学生を通じて広がった」＝貿易路がそのまま伝播路・原典§5-4）。0＝ペア記帳（PairFlowQ）も伝播も1命令も走らない＝厳密恒等。読者（思想eraゲートの置換）は段8＝絶対に混ぜない
     public double IdeologyReachGate = 1.0;   // ★点火2026-09-04（E-12b・DiffusionWeight と同時）：batch10＝◎17→18・法58→64・列強再現27.5→30.0・開放度0.189→0.200・exact46維持。社会主義の創発到達＝1848〜1875の窓（自家発火は種の書き戻しが原因＝修正済み）。記録＝人口17→10（ゲート外7カ国）・欧州大陸の到達が遅い＝欧州内貿易の空洞化（既知）       // ★発見・段8（思想の読者・休眠）：解禁 era = max(era, これ×IdeologyReach[k])。到達は段7が貿易路×メディアで積む0..1（発展度と同じ物差し＝新閾値なし）。起点は名前で書かない＝自力で解禁した国が National シェアを種として放射する。0＝不読＝厳密恒等。⚠DiffusionWeight と同時点火（片方だけでは1ビットも動かない＝deadprobe 2026-09-04）
     public double IsolationExportWeight = 1.0;   // ★点火2026-08-31（T2腕＝欧州内50.3%/英世界工場復帰）   // ★鎖国の対称化（2026-08-31・pairprobe実測「関税100%の朝鮮が世界一の輸出国」＝輸入関税だけで鎖国を表現する構造穴）：売り側access×=(1−これ×関税²)。二乗＝新しい数を作らず**高関税レジームだけ**を閉じる（0.25→×0.94・0.8→×0.36・1.0→×0＝真の鎖国）。関税が政治で下がれば輸出も開く＝開国が貿易の両面を開く。0＝旧＝厳密恒等
@@ -2388,14 +2388,8 @@ public sealed class Coefficients
     public double MilitarizeEducationDrive = 1.0;  // 【L4点火測定中2026-08-08】Militarizeスタンスに公教育＋教育費0.4の目標を追記（義務教育は兵営国家の発明＝プロイセン1763・明治学制）。露のElite封鎖の解錠。0=恒等
     public double InitialLandTaxScale = 0.2;       // 【L3点火測定中2026-08-08＝0.2・台帳と軍国税は対で一つの機構】1783年の地租台帳：全53カ国一律 InitialLandTax=max(world.json値, これ)（Scenario.cs:55「確立国家は台帳を持つ」の履行）。0=恒等
     public double OpulenceInfraChannel = 0.0;      // 支出反射のインフラ拡張（退蔵→鉄道国家の建設）。0.6同時点火で硬性赤（公教育テスト）＝分離休眠2026-08-08。単独再測定用
-    // ── 退蔵結晶化（課題7・wf_0c5ad336設計2＝審査82/78・2026-08-08）：貯蓄ストック（所得の700-1200倍）を「消さず」
-    //   流動と結晶（IlliquidWealth＝Savingsの内数タグ）に再分類し、流動分だけを所得アンカーへ数十年の双方向緩和で収束させる。
-    //   Savings総量は1円も動かさない＝貨幣制度（TotalMoney/BaseMoney/兌換/税/国債/与信）の全読者を凍結。──
-    public double HoardCrystallizeRate = 0.0;      // 【Stage1中止2026-08-08＝Y15×床1000×elas基点でも各国独立経済テスト赤＝蓄積退蔵の結晶化が投資予算を痩せさせ床0.4×所得(旧の1/155)では防げない。読者点火は資本コスト群(IndCapitalCost連立4+D+P)の同時Search前提と実測確定】双方向結晶化速度/月（0=厳密恒等）（0=IW恒0=liquid≡Savings=厳密恒等。点火帯0.002-0.004＝超過半減期14-29年＝投資縮小≤5%/年）
-    public double WealthAnchorYears = 15.0;        // 【Stage1梯子＝15（安全側）→8→4】流動貯蓄のアンカー（この年数分の所得までは結晶化しない）。段6のSearch次元（2-5）
-    public double WealthAnchorFloorPerCapita = 1000.0; // 【400→1000へ2026-08-08＝結晶化の対象を病的退蔵（貴族3000/資本家3200/商人1500）に限定＝大衆播種(200-1000)は全額保護。テスト世界の一律1000/人播種とも整合】所得によらない生存バッファ床/人
+    // 【墓標2026-09-26】退蔵結晶化（HoardCrystallizeRate・WealthAnchorYears・WealthAnchorFloorPerCapita）と結晶資産 Pop.IlliquidWealth＝休眠の枝だけが書き常に0を運んでいた（dorm-24・思想⑩）。再挑戦するなら §30 レールごと設計し直すこと
     // 【墓標2026-08-29】InvestIncomeFloor/InvestFloorUsesIndustrialRent/InvestReadsLiquid/ConsumeReadsLiquid＝Stage1中止の予算配線4本を撤去
-    //   （休眠削除＝厳密恒等。IlliquidWealth 自体は段3の他読者が live なので残る。再挑戦するなら §30 レールごと設計し直すこと）
     public double PanicBuyWeight = 0.5;   /* ★点火2026-09-06＝0.0→0.5・〔6-2〕主食の買占め（B3 自己成就期待の残り半分） */            // 【休眠2026-08-08＝0.5は閾値0.5/0.75とも小世界の慢性低在庫で常時発動し輸出/税テスト3本の前提を崩す＝在庫閾値では分離不能→危機ゲート（戦争/飢饉文脈）付きの再設計が必要】B3自己成就的期待（2026-08-08作者裁定「入れてみよう」・docs/202607/05§B）：主食の棚が
     // 半分を切ると買い占めが加速（希少→退蔵購入→さらに希少＝バンクランの財版。HoardPanicWeight=資金側は既にlive）。
     // 予算とelasMaxが物理蓋・0=乗算ごとスキップ=厳密恒等。点火0.5
@@ -2474,7 +2468,7 @@ public sealed class Coefficients
     // ⚠実測（2026-07-31・単独）＝硬性ゲートは全緑だが◎7割帯 21→13・固着4→8・逸脱過多13→17。★**帯の劣化は較正で取り戻す対象であって、機構の可否の判断材料にはしない**（作者裁定）。
     // ⚠既知の限界＝繰越は**1段（翌月まで）で上書き**＝2ヶ月使わなかった資材は廃棄される。完全な物量管理にするなら累積へ（有界性の設計が要る） */
     public double EuphoriaUsesStableReserve = 1.0;   // 金利doc B7（2026-07-30・点火＝0→1）。経8（Heat符号逆転）：株式ユーフォリア項が参照する与信過熱Heatの分母を、取り付けで縮む実効上限(0)か準備縮小前の安定上限maxLoans(1)かでブレンド切替。0で従来の縮小後基準を厳密再現・1で取り付け中の偽の過熱スパイク→投資刺激の符号逆転を防ぐ
-    public double CapitalOutflowFromInvestors = 1.0;   // 経9（帰属修正）：配当/逃避の流出原資。1で投資家(近代エリート)貯蓄から徴収し不足分のみ全pop按分・0で全pop按分。★B4裁定2026-07-31で**連続化**（0..1の按分＝0.5超の崖を廃止）
+    // 【墓標2026-09-26・旗の焼き込み（x-01・0-4）】CapitalOutflowFromInvestors（経9・既定1.0）＝配当/逃避の流出は投資家貯蓄から（不足分のみ全pop按分）に固定。⚠B4裁定2026-07-31の「0..1の連続化」は未実装のまま（旗は2値だった）
     // 資金逃避（07_再設計 §5(b)・2026-07-31点火）：国債への不信が閾値を超えると自国の資本家も対外資産へ逃げる。保存＝金は受け皿の国の投資家へ・請求権は逃げた側の CapitalAbroad と受け皿の ForeignCapitalIn の対（2026-09-22）
     public double CapitalDomesticFlightRate = 0.05;      // 不信1.0あたり四半期に逃げる投資家貯蓄の割合
     public double CapitalFlightDistrustThreshold = 0.02; // 逃避が始まる不信（累積切り下げ／名目GDP）＝切り下げ常習国だけが対象
@@ -2512,18 +2506,17 @@ public sealed class Coefficients
     public double CurrencyHoldingRatio = 0.1;   // 経6（流通現金）：家計・企業の手元現金退蔵比率。準備＝BaseMoney×(1−実効比率)。0＝全額準備（流通現金ゼロ・旧）
     public double HoardPanicWeight = 1.0;       // 信用崩壊時の退蔵増幅（Confidence=0で退蔵率が2倍＝準備がさらに1割減る）。0で静的のみ
     // 経20（退蔵の取り崩し no-hoard-drain・R4派生2026-07-14）：消費が需要上限で頭打ちのため所得＞必要消費のpop（世界の技術水準商人id10＝流通/輸入マージン・交易余剰の残余請求者＝マシュー正帰還）が貯蓄を消費ドレインなく単調累積し二極化する。富者が所得を消費・雇用・投資へ回す欠落機構の最小実装＝直近支払いの一定倍を超える退蔵の一部を地域内全popへSize按分で還流（pop→pop純移転＝MoneyConservation不変・GoodsBalance不変）。west=45000（米の対仏2倍成長＝史実）の再有効化の前提。
-    public double HoardDishoardRate = 0.0;        // 既定0＝ドレインなし＝現行と厳密一致。**#66再計測2026-07-15＝0.05で却下（現base）＝calib24-24-24堅持だが batch破綻10/30・ハーネス20/30＋leakhunt seed1で人口保存違反(−14)＝退蔵ドレインが経済を不安定化し潜在の人口保存エッジケースを誘発。west25000base では貯蓄暴走が生きた問題でなく（#55結論）ドレインは害のみ**。>0で超過退蔵のその割合を毎月取り崩し還流。**ドレイン機構は休眠温存（点火するなら先に人口保存バグの特定が必要）**。**#55/west45000（America2倍）は保留**＝pop保存バグ(幽霊死/出生抑制/非負Size)修正でleakhunt seed1は完走したがbatch破綻6/30・ハーネス24/30・exact11%（巨大Americaが世界経済を歪め・ドレイン0.05では貯蓄暴走を抑えきれず）＝west25000維持（America101%で十分・BuildFrontier=R4が本命）
-    public double HoardConsumptionMultiple = 24.0; // 退蔵とみなす閾値＝直近支払い(p.Paid)の何倍を超える貯蓄か（24≒24ヶ月分の消費を超える貯蓄が「退蔵」）。HoardDishoardRate=0では未使用
+    // 【墓標2026-09-26】HoardDishoardRate・HoardConsumptionMultiple＝退蔵の取り崩し（#66 で却下の休眠）を削除（dorm-24）
     // 経7（与信の州横断配分 CreditSpreadAcrossProvinces）＝2026-07-09裁定で不採用確定（0.25でもテスト赤・過剰な細分化）→2026-07-12裁定で機構ごと廃止（Credit.csのelse枝と係数を削除）。再検討する場合は設計doc「全域監査」2026-07-11 死28 と当時の設計を参照
     public double WageClampMin = 0.3;   // 経12：賃金/役務の床＝WageClampMin×(参照価格×物価水準)。旧MarketFlowの直書き0.3を係数化（値同一＝中立）
     public double WageClampMax = 3.0;   // 経12：賃金/役務の天井＝WageClampMax×(参照価格×物価水準)。旧MarketFlowの直書き3.0を係数化。平坦な帯域拡大(5.0)は首位交代退行で保留＝工業化度連動(WageClampIndScale)が正着
     public double WageClampIndScale = 1.0;  // 【R2点火2026-07-15＝1.0・工業化連動】賃金天井を工業化度でスケール＝effWageMax=WageClampMax×(1+これ×Industrialization)。0=固定3.0（現行と厳密恒等）・>0で工業国のみ天井が上がり実質賃金が伸びる（未工業国は据置＝平坦拡大の"富国青天井で独走固定化"を回避）。産業革命の賃金上昇・英独と亜阿の国際賃金格差拡大の史実
     public double WageClampSoftBand = 1.0;   // 経12（**【現行1.0＝有効＝SoftBand】**）：賃金の床天井をハードクランプ(0)か対数飽和SoftBand(1)かで切替。0=従来のClampで旧挙動・>0.5で財と同じSoftBand（鋭さはSoftBandSharpness流用）に切替え賃金圧縮を緩和。※0.3〜3.0倍の帯域自体は残存（R2）
-    public double FiscalQuarterlyGating = 0.0;   // 財3（cadence整合）：四半期注釈の機構（DevaluationCapFrac・InsolvencyQuarters・BorrowCooldown）を月次(0・現行の3倍速)でなく四半期単位(1)で進めるか。0=現行の月次で厳密一致。1で切り下げ上限を月次÷3・カウンタを締め月(World.IsQuarterEndMonth)のみ進める（スカフォールド）
+    // 【墓標2026-09-26】FiscalQuarterlyGating（財3の四半期の刻みの器・休眠0）＝較正は月次で進む値に乗っている＝器を削除し、DevaluationCapFrac・DefaultTriggerQuarters・DefaultCooldownQuarters の単位の書き方を月へ直した（dorm-29・挙動不変）
     // **点火2026-07-31（07_再設計 第2弾2a）**：前提（注入＝MultiNationSim・保有国配分＝CapitalMarket の外債レグ）が02断線走査で揃った＝対外国債が完全な閉鎖系になる。
     // シティ/パリの引受能力が世界の借入を規定する＝「貸し手のいない借金はできない」。
-    public double ForeignBondFromInvestors = 1.0;   // 財5（対外国債の閉鎖系化）：対外国債プールをモデル外の無限プールでなく他国資本家貯蓄から実引き当てするか。0=現行の無限プール＝厳密一致。1でWorld.ForeignBondInvestorPoolを上限に引き当て
-    public double ForeignLendingDebits = 1.0;   // ★点火(保存則の是正)2026-08-30（合成先行300Q＝経済+10.0/列強+7.6/法+3.5/exact+1.5/破綻0。604Q受け入れbatch30で最終確認・記録は20260830doc）       // ★片側記帳の是正（帰還構造の全数調査 §1-4・2026-08-30）：対外国債の元本を貸し手（他国資本家貯蓄）から実際に引き落とす（借り手の+CumulativeTradeFlowと両建て＝世界レベルの貨幣創造を閉じる）。0＝旧・片側記帳＝厳密恒等。点火はE3腕
+    // 【墓標2026-09-26・旗の焼き込み（x-01・0-4）】ForeignBondFromInvestors（財5・既定1.0）＝対外国債は他国資本家のプール World.ForeignBondInvestorPool を上限に引き当て（旧＝モデル外の無限プール）
+    // 【墓標2026-09-26・旗の焼き込み（x-01・0-4）】ForeignLendingDebits（§1-4・点火2026-08-30）＝対外借入元本を貸し手の他国資本家から引き落とす両建て（旧＝片側記帳）
     public double CapitalOpennessTariffWeight = 1.0;   // 財6（資本開放度の脱・関税連動）：openness=Clamp(1−これ×Tariff,0,1)の関税連動の強さ。1.0=現行の完全連動(1−Tariff)＝厳密一致。0で関税と独立（高関税の米/露も外債発行）＝兌換性/信認ベースへ
     public double DebtGdpAnnualized = 1.0;   // 財7（債務/GDPの単位整合・**2026-07-26点火＝第4群**）：金本位資格/離脱・国債金利プレミアムの分母を年換算GDPへ。点火と同時に4閾値/係数を÷12/×12（下記）＝代数恒等の単位フリップ（FP丸めの軌道再抽選のみ）。以後 dGdp は「債務/年GDP」＝史実（英1815=250%）と直接比較可能＝#17で史実レンジへの再較正と信認割引（BondRateRepresentationDiscount）再挑戦が解禁
     public double CoercionUpkeepToSoldiers = 0.0;   // 財14（抑圧装置の維持費の帰属）：連合維持費（軍・警察・官僚の俸給）を兵士pop・官僚(ClassId8)popへ傾斜させる割合。0=現行の全popへ頭数比例＝厳密一致。1で全額を兵士＋官僚へ・残りを全popへ。受け手不在時は国庫残置
@@ -2605,7 +2598,7 @@ public sealed class Coefficients
     public double IndustrializationPopWeighted = 1.0;   /* #17有効化 */   // 人16（工業化度の人口加重）：DemographicStepの出生率・扶養力に効く工業化度を非加重州平均(avgInd)から人口加重平均(ΣInd×rpop/Σrpop)へ。0=非加重（現行）と厳密一致・1で人口加重。1州世界では両者恒等＝較正中立
     public double MigrationCarriesHumanCapital = 1.0;   /* #17有効化 */   // 人1：移動サイトが識字・闘争度もsize加重で運搬する強さ（0=運ばない＝現行の着地時無償識字獲得を温存／>0で運搬ON）。国家集計は加重平均で中立・per-region分布のみ実勢化。共有係数（PopDecision/Meritocracy/Territory/Military/MultiNationSimが参照）
     public double PromotionLiteracySelection = 0.5;   /* #17有効化 */   // 人1：昇格の識字選抜強度（Meritocracy）。0=選抜なし＝移動コホートの識字＝src平均（現行恒等）／>0で移動者の識字を引き上げ質量保存で残留srcを引き下げ＝昇格ポンプの自己補充を解消。MigrationCarriesHumanCapital>0とセットの時のみ発火
-    public double RegionMigrationExcludesClosed = 1.0;   /* #17有効化 */   // 人4：地域間移民（Territory.MoveRegion）が閉鎖階級（貴族・聖職）・兵士を除外する（0=従来どおり全クラスを動かす＝現行維持／>0でPopDecisionのClosed除外・越境の!IsSoldierと対称化）。FrontierDevelopment較正世界は農民pop単体で恒等
+    // 【墓標2026-09-26・旗の焼き込み（x-01・0-4）】RegionMigrationExcludesClosed（人4・#17点火）＝地域間移民は閉鎖階級と兵士を動かさない
     public double LiteracyGenerationalDecay = 0.002;   /* 【R10点火2026-07-13＝0.002】 */   // 人11b：識字の世代減衰（TechEducation・月次）。0=減衰なし＝既得識字は永遠保持（旧ラチェット）／>0でEducationFillを上回る分に微小な世代減衰＝教育投資の維持費（教育崩壊で識字後退）。0.002＝超過分の半減期≈29年（世代規模）＝使わなければ失う
     public double EducationGateUsesEma = 0.0;   // 人13：昇格の高等教育ゲート（Meritocracy）に多年EMAを使う（0=当月EducationFillの瞬間フロー＝現行／1=EducationEmaストックで判定＝一時的な教育の途絶で資格が消えない）
     public double EducationEmaRate = 0.05;   // 人13：EducationEmaの当月Fillへの月次収束率。EducationGateUsesEma=0の既定では未使用＝挙動非依存。値は#17で較正
@@ -2749,7 +2742,7 @@ public sealed class Coefficients
     // ★希少鉱物の総量保存の k/N に植民地の固有資源を数える（2026-09-06・分子と分母の非対称の是正＝植民地の産地も E を受け取るのに数えていなかった）。0＝従来。
     public double ScarceCountsIncludeColonies = 0.0;
     public double AntiImperialCoversRegions = 1.0;   /* ★点火2026-09-05 B群(G3 AUD-09)＝0.0→1.0・batch10連鎖の実測（凍結木）で硬性ゲート緑 */  // ★AUD-09（監査2026-09-02 medium・2026-09-03投入）：反帝世論（C1）の不満加重平均に**植民地格の州**も含める。⚠現行は ColonyList だけを見るのに、掛ける帝国規模は `ColonyList.Count + ColonialRegions`＝分子と分母が別台帳。開幕一括昇格で ColonyList が空の帝国は反帝世論が厳密に0（維持費は既に両方を見ている＝ここだけ取り残された）。0で厳密恒等
-    public double DebtRepayUsesPrincipalShare = 1.0;   /* ★点火2026-09-05 B群(G3 AUD-09)＝0.0→1.0・batch10連鎖の実測（凍結木）で硬性ゲート緑 */   // ★AUD-09（監査2026-09-02 low・2026-09-03投入）：減債の対外/国内按分を**元本の比**（foreignShare）で行う。⚠現行は**利払いの比**（金建て負担で分子だけ膨らませた foreignDebtFrac）を流用＝分子と分母が別規則で、金建て対外債を負う銀本位/不換の国が元本を過大償却し対外流出も過大。0で厳密恒等
+    // 【墓標2026-09-26・旗の焼き込み（x-01・0-4）】DebtRepayUsesPrincipalShare（AUD-09・点火2026-09-05）＝減債の対外/国内按分は元本の比（旧＝利払いの比）
     public double CoalitionClosenessFloor = 0.5;   /* ★点火2026-09-05 B群(G3 AUD-09)＝0.0→0.5・batch10連鎖の実測（凍結木）で硬性ゲート緑 */    // ★AUD-09（監査2026-09-02 medium・2026-09-03投入）：機関どうしの近さ（PowerAffinity.Closeness）の床。⚠現行は革命が厳密に0を返し、選定が `pull>bestPull`（初期値0）なので**革命は誰とも組めず誰にも組まれない**＝設計「王権も議会も痩せて初めて革命の引力が勝つ」が到達不能。床＝CapitalCreditFloor と同じ「ゲートでなくプレミアム」の書き方。0で厳密恒等
     public double ElectoralDistortion = 0.3;   // 政9：得票→議席の制度歪み。0=純比例代表（恒等）／>0で得票率を凸変換 v^(1+これ) 再正規化＝第一党の議席プレミアム・小党の死票
     public double DecayShockRepeatable = 1.0;      // C-中9（史実検証2026-07-22・**2026-07-23点火**）：制度疲労の改革の窓を(a)破産の回数エッジで2度目以降も開く (b)クールダウン中のショックを保留して窓が開いたら消費する。0=旧挙動（破産は1ゲーム1回・クールダウン中のショックは永久消失）＝厳密恒等
@@ -3461,7 +3454,7 @@ public sealed class Coefficients
     // ⚠N3（蓄積）とN4（消費）を同じバッチで測っていない＝別の帯を動かす。両方とも点火済み（1.0）。
     public double ConscriptConsciousnessWeight = 1.0;   // ★点火2026-08-29（夜間R16クラスタA/B batch30＝帯中立・破綻0。N3は既点火済み＝同時測定はしていない）。徴募可能人口に (1 − これ×(1−州の国民意識)) を掛ける。1で「国民意識0の州は兵ゼロ」
     public double SecessionConsciousnessWeight = 1.0;   // ★点火2026-08-13（同一ソースA/B：経済規模 +11.2・領土本国 +5.8・列強再現率 +3.7・政体exact +1.2／法 −1.5・人口 −2.9）。分離圧力に (1 − これ×州の国民意識) を掛ける
-    public double GoldDebtBurdenGate = 1.0;            // **主フラグ**★点火2026-08-29（夜間R19単独A/B batch30＝列強+2.9・破綻0・帯中立）：0で対外債務は自国通貨建てのまま／1で**金建て**＝銀安がそのまま実質負担になる（インドの Home Charges・清の庚子賠款）
+    // 【墓標2026-09-26・旗の焼き込み（x-01・0-4）】GoldDebtBurdenGate（銀本位G8・点火2026-08-29）＝銀本位国の対外債務は金建て（銀安が実質負担になる）
     public double GoldDebtBurdenCap = 3.0;             // 実質負担の上限倍率。青天井にすると銀の谷で利払いが発散し「破綻しない」を割る（思想＝破綻しない＞正しい挙動）
     public double MintReserveTargetWeight = 1.0;       // ★点火2026-08-29（夜間R20造幣3本クラスタA/B batch30＝列強+5.8で夜間最良・破綻0）。準備不足に応じて造幣量を絞る強さ。0＝旧来の産出比例／1＝「基礎貨幣×目標カバー率−現準備」の不足度に完全比例
     public double TrilemmaRateResponse = 0.5;          // カバー率の不足に対する金利の応答。金利↑→PolicyRateCapitalDraw で正貨が来る→カバー率が戻る→金利↓＝自己安定

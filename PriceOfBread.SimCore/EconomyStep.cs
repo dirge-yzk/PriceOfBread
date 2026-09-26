@@ -2577,21 +2577,7 @@ public static class EconomyStep
         foreach (var p in region.Pops)
         {
             p.Savings += p.Earned - p.Paid;
-            // 退蔵結晶化 段3（既定0=ブロックごとスキップ=厳密恒等）：アンカー超過の流動貯蓄を月次で結晶へ・不足なら結晶を売却（双方向・
-            // 自己制動の指数緩和＝没落貴族の土地売り）。タグの付け替えのみ＝貨幣は1円も動かない（Savings不変）。
-            if (coef.HoardCrystallizeRate > 0)
-            {
-                // 前提修正2026-08-08（wf_d460b52d調査1）：アンカーは**平滑所得**＝max(当月, 前月)＝当月参照の順循環スパイラル
-                // （所得低下→アンカー即縮小→結晶化→翌月予算縮小→他者所得低下）を切断。
-                double anchor = coef.WealthAnchorYears * 12.0 * Math.Max(0, Math.Max(p.Earned, p.LastEarned)) + coef.WealthAnchorFloorPerCapita * p.Size;
-                double crystGap = (p.Savings - p.IlliquidWealth) - anchor;
-                double crystMove = coef.HoardCrystallizeRate * crystGap;
-                if (crystMove < -p.IlliquidWealth) crystMove = -p.IlliquidWealth;   // 売却は保有結晶が上限
-                p.IlliquidWealth += crystMove;
-                double savCap = Math.Max(0, p.Savings);   // 税・窃盗・ヘアカットで Savings が削られた月の担保処分整合
-                if (!(p.IlliquidWealth >= 0)) p.IlliquidWealth = 0;                 // 否定形＝NaNも0へ
-                else if (p.IlliquidWealth > savCap) p.IlliquidWealth = savCap;
-            }
+            // （退蔵結晶化 段3＝HoardCrystallizeRate と結晶資産 Pop.IlliquidWealth は 2026-09-26 に削除＝休眠の枝だけが書き、常に0を運んでいた）
             // ★★★**これは「満足度」ではなく「生活水準」である**（作者裁定 2026-08-19）。
             //   ⚠**必要なものをどれだけ買えているかだけ**で決まる。直接バフ4件（時短/電化/福祉/年金）は物理削除2026-08-21（思想⑨・各墓標＝Coefficients）。
             //   ★この行の後の加減算は**3件**（2026-09-20に数え直し：ここは「休眠2件のみ」と書いていたが Crime を数え落としていた）＝
@@ -2606,23 +2592,7 @@ public static class EconomyStep
             if (!p.Closed && !p.IsModernElite && !p.IsSoldier && region.LaborWellbeing > 0) p.Satisfaction = Math.Clamp(p.Satisfaction + region.LaborWellbeing, 0, 1);
         }
 
-        // 退蔵の取り崩し（no-hoard-drain・経20・R4派生）：消費が需要上限で頭打ちのため所得＞必要消費のpop（世界の技術水準商人・地主）が
-        // 貯蓄を消費ドレインなく単調累積し二極化する。富者が所得を消費・雇用・投資へ回す欠落機構の最小実装＝直近支払いの一定倍を超える
-        // 退蔵の一部を地域内全popへSize按分で還流（pop→pop純移転＝MoneyConservation不変・GoodsBalance不変）。HoardDishoardRate=0（既定）でドレイン0＝現行と厳密一致。
-        if (coef.HoardDishoardRate > 0)
-        {
-            double pool = 0;
-            foreach (var p in region.Pops)
-            {
-                double excess = p.Savings - coef.HoardConsumptionMultiple * Math.Max(0, p.Paid);
-                if (excess > 0) { double drain = coef.HoardDishoardRate * excess; p.Savings -= drain; pool += drain; }
-            }
-            if (pool > 0)
-            {
-                if (totalPop > Eps) foreach (var p in region.Pops) p.Savings += pool * (p.Size / totalPop);
-                else { double back = pool / Math.Max(1, region.Pops.Count); foreach (var p in region.Pops) p.Savings += back; }   // 受け手不在の退避（起こらない）
-            }
-        }
+        // （退蔵の取り崩し＝HoardDishoardRate は 2026-09-26 に削除＝#66 で却下された休眠の枝）
 
         // 失業＝自分の労働（労働力/農業/高度）の売れ残り率。職の喪失は所得の算術を超えて怒りを生む（Politics が参照。
         // 賃金の下方硬直と対＝不況は価格でなく雇用量で調整される→失業が立つ→社会保障がこれを和らげる＝福祉の意味）。

@@ -128,12 +128,16 @@ if (args.Length > 0 && args[0] == "popprobe")
     //   引数2＝シード（既定1）。参照7カ国（帯定義国）を全部見張る＝英過小・仏過大の因子分解。
     ulong ppSeed = args.Length > 1 && ulong.TryParse(args[1], out var pps) ? pps : 1UL;
     string[] watch = ["イギリス", "フランス", "プロイセン", "アメリカ", "ロシア", "清", "スペイン", "日本", "オーストリア", "ポルトガル"];
-    int[] cuts = [4, 100, 200, 300, 400, 524];
+    int[] cuts = [4, 100, 200, 300, 400, 524, Coefficients.GameQuarters];   // ★2026-09-26：断面668（全長の終端）を足した（回0-4・計器の裁き10）
     var msP = new MultiNationSim(WorldData.Nations(), ppSeed, _ => new UtilityAgent());
     int n0P = msP.Nations.Count;   // 初期国数（ベタ書き禁止＝world.json の実件数から取る）
     msP.StartWarmup();   // ★2026-08-21：selfplay-batch と同じ助走を通す＝「測る世界」を帯の世界と一致させる（暦は進まない・人口動態は凍結）
     var immCum = new System.Collections.Generic.Dictionary<string, double>();   // 累積流入（国際＋越境）
     var emiCum = new System.Collections.Generic.Dictionary<string, double>();   // 累積流出（越境）
+    var poolCum = new System.Collections.Generic.Dictionary<string, double>();  // ★2026-09-26：うち世界プール（ゲーム外から湧く国際移民）の累積流入＝回1-2 の観測の物差し
+    // ★2026-09-26：粗出生・粗死亡（‰/年）＝前の断面からの World.DiagBirths/DiagDeaths の増分÷年数÷今の人口（計器の裁き10・純記帳）
+    var prevBirths = new System.Collections.Generic.Dictionary<string, double>();
+    var prevDeaths = new System.Collections.Generic.Dictionary<string, double>();
     var pop0 = new System.Collections.Generic.Dictionary<string, double>();     // 1783年人口（成長倍率の分母）
     // ★物差しの検証（2026-08-21）：帯の実装（SelfPlay の PopGrowth）＝**現保有州**の総人口比なので、征服が倍率を膨らませ（仏）、
     //   領土崩壊が倍率を潰す（清・西）＝「領土不変な定義」というコメントの意図と乖離。初期州集合ベースの倍率を併記して汚染量を実測する。
@@ -145,7 +149,10 @@ if (args.Length > 0 && args[0] == "popprobe")
             pop0[p0.BaseName] = s0.World.TotalPopulation;
             initRegions[p0.BaseName] = [.. s0.World.Regions];
         }
-    Console.WriteLine("断面Q,国名,人口,倍率,倍率初期州,州数,扶養力,人口/扶養力,扶養力基準,医療(門番後),医者役務,食料比,食料比生産,主食純輸入,耕地計,出生率倍率,空き土地ブースト,工業化,都市化,識字,社会保障,土地改革,累積流入,累積流出,累計戦死");
+    Console.WriteLine("断面Q,国名,人口,倍率,倍率初期州,州数,扶養力,人口/扶養力,扶養力基準,医療(門番後),医者役務,食料比,食料比生産,主食純輸入,耕地計,出生率倍率,空き土地ブースト,工業化,都市化,識字,社会保障,土地改革,累積流入,累積流出,累計戦死,粗出生‰,粗死亡‰,うち世界プール累積");
+    int prevCutP = 0;
+    // 粗率（‰/年）＝区間の人数÷区間の年数÷今の人口×1000（区間＝前の断面から今の断面まで）
+    double CrudeRate(double count, double pop, int span) => pop > 1e-9 && span > 0 ? count / (span / (double)Calendar.QuartersPerYear) / pop * 1000.0 : 0;
     int doneP = 0;
     // ★計器の是正2026-09-08（F3b蜂起doc §5 段1）：旧＝終局の国数−初期の国数＝**純増**しか出せず、建国も消滅も見えなかった
     //   （13国が同時に建って12国が再併合されると「1回」と印字される）。参照集合の出入りで**建国回数と消滅回数を別に数える**。
@@ -164,6 +171,7 @@ if (args.Length > 0 && args[0] == "popprobe")
                 if (simP.World.SelfPower is not { } pwA || System.Array.IndexOf(watch, pwA.BaseName) < 0) continue;
                 immCum.TryGetValue(pwA.BaseName, out var ic); immCum[pwA.BaseName] = ic + simP.World.LastImmigration;
                 emiCum.TryGetValue(pwA.BaseName, out var ec); emiCum[pwA.BaseName] = ec + simP.World.LastEmigration;
+                poolCum.TryGetValue(pwA.BaseName, out var pc); poolCum[pwA.BaseName] = pc + simP.World.LastImmigrationExternal;
             }
         }
         foreach (var simP in msP.Nations)
@@ -180,9 +188,13 @@ if (args.Length > 0 && args[0] == "popprobe")
                 $"{w.DiagHealthcare:F3},{w.DiagDoctorCare:F3},{w.DiagFoodRatio:F3},{w.FoodRatioProductionSmoothed:F3},{w.DiagStapleNetImport:F1},{w.DiagLandAnchor:F0}," +
                 $"{w.DiagFertility:F3},{w.DiagLandRoom:F3}," +
                 $"{w.MeanIndustrialization:F2},{w.UrbanShare:F3},{(sz > 1e-9 ? lit / sz : 0):F3},{w.SocialSecurity:F3},{(int)w.LandReform}," +
-                $"{immCum.GetValueOrDefault(pw.BaseName):F1},{emiCum.GetValueOrDefault(pw.BaseName):F1},{w.WarDeadCumulative:F1}");
+                $"{immCum.GetValueOrDefault(pw.BaseName):F1},{emiCum.GetValueOrDefault(pw.BaseName):F1},{w.WarDeadCumulative:F1}," +
+                $"{CrudeRate(w.DiagBirths - prevBirths.GetValueOrDefault(pw.BaseName), w.TotalPopulation, cut - prevCutP):F1},{CrudeRate(w.DiagDeaths - prevDeaths.GetValueOrDefault(pw.BaseName), w.TotalPopulation, cut - prevCutP):F1}," +
+                $"{poolCum.GetValueOrDefault(pw.BaseName):F1}");
+            prevBirths[pw.BaseName] = w.DiagBirths; prevDeaths[pw.BaseName] = w.DiagDeaths;
         }
         Console.WriteLine($"# Q{cut}: 国数 {msP.Nations.Count}（初期{n0P}）");
+        prevCutP = cut;
     }
     // ★国の出入り＝**今日の主犯**。史実の1783-1914で新国家は30前後（中南米18・バルカン6・白ノルウェー等）。
     Console.WriteLine($"\n★建国 {birthsP} 回／消滅 {deathsP} 回（初期{n0P}カ国→{msP.Nations.Count}カ国・純増{msP.Nations.Count - n0P}）");
@@ -1969,7 +1981,7 @@ if (args.Length > 0 && args[0] == "silverprobe")
     svm.StartWarmup();   // 自己対戦バッチと同じ開始盤面から測る
     string svOv = Coefficients.OverrideSummary();
     Console.WriteLine($"=== 銀本位プローブ seed={svSeed}／上書き={(svOv.Length > 0 ? svOv : "なし")} ===");
-    Console.WriteLine($"    SilverStandardGate={svc.SilverStandardGate} StandardMetalMintGate={svc.StandardMetalMintGate} GoldDebtBurdenGate={svc.GoldDebtBurdenGate}"
+    Console.WriteLine($"    SilverStandardGate={svc.SilverStandardGate} StandardMetalMintGate={svc.StandardMetalMintGate}"
                     + $" 銀閾={svc.SilverStandardIndThreshold} 金閾={svc.GoldStandardIndThreshold} GoldMintFraction={svc.GoldMintFraction} MintReserveTargetWeight={svc.MintReserveTargetWeight}");
     Console.WriteLine($"    RefPrice: 銀({Catalog.SilverId})={Catalog.RefPrices[Catalog.SilverId]:F3}　金鉱({Catalog.GoldOreId})={Catalog.RefPrices[Catalog.GoldOreId]:F3}");
     var svEverAg = new List<string>(); var svEverAu = new List<string>();
@@ -3438,19 +3450,37 @@ if (args.Length > 0 && args[0] == "leakhunt")
     int lquarters = args.Length > 2 && int.TryParse(args[2], out var lq) ? lq : Coefficients.GameQuarters;
     Simulation.ConservationProbe = true;
     var lm = new MultiNationSim(WorldData.Nations(), lseed, _ => new UtilityAgent());
+    // ★世界の台帳（fis-21・2026-09-26）：国ごとの D は片側記帳を拾えない＝四半期ごとに世界の合計を「正当な湧き口と消え口」で説明できるかを見る
+    //   （ConservationTests の世界の合計の番人と同じ式）。人口＝Σ現存国の全州−（出生−戦争以外の死亡−戦死）の累積／
+    //   貨幣＝Σ現存国の基礎貨幣−（鋳造＋不換発行）の累積（累積は一度でも居た国の全部）。
+    //   ⚠既定の世界では国際移民の世界プール（ゲーム外から人と持参金が湧く）が毎四半期ここに乗る＝POB_COEF="WorldMigrationPoolFrac=0" で閉じて見る（回1-2 で消える）。
+    //   ⚠共有層の段ごとの [PROBE世界] は、月次の段で積んだ片側（起債・利払いの対外分）と四半期末の相手側が別の段に出る＝判定はこの四半期の合計で行う。
+    var lseen = new List<Simulation>(lm.Nations); var lseenSet = new HashSet<Simulation>(lm.Nations);
+    (double Pop, double Money) LWorld()
+    {
+        double pop = 0, money = 0;
+        foreach (var n in lm.Nations) { foreach (var r in n.World.Regions) pop += r.SumPopulation(); money += n.World.BaseMoney; }
+        foreach (var n in lseen) { var w = n.World; pop -= w.DiagBirths - w.DiagDeaths - w.WarDeadCumulative; money -= w.CumulativeGoldMinted + w.CumulativeFiatIssued; }
+        return (pop, money);
+    }
+    int lPopBad = 0, lMoneyBad = 0; double lPopSum = 0, lMoneySum = 0;
     try
     {
+        var lw0 = LWorld();
         for (int q = 0; q < lquarters; q++)
         {
             lm.StepQuarter();
-            // 退蔵結晶化の不変条件（2026-08-08）：IW は非負・有限（≤Savings は月次クランプが1ヶ月遅れで担保＝四半期境界の厳格判定は偽陽性になるため課さない）
-            foreach (var ln in lm.Nations)
-                foreach (var lr in ln.World.Regions)
-                    foreach (var lp in lr.Pops)
-                        if (!(lp.IlliquidWealth >= 0) || double.IsInfinity(lp.IlliquidWealth))
-                            throw new InvalidOperationException($"IW不変条件違反: {ln.World.SelfPower?.BaseName}/{lr.Name}/{lp.ClassName} IW={lp.IlliquidWealth} S={lp.Savings}");
+            foreach (var n in lm.Nations) if (lseenSet.Add(n)) lseen.Add(n);
+            var lw = LWorld();
+            double dP = lw.Pop - lw0.Pop, dM = lw.Money - lw0.Money;
+            if (Math.Abs(dP) > 1e-6 * Math.Max(1.0, Math.Abs(lw.Pop))) { lPopBad++; lPopSum += dP; if (lPopBad <= 20) Console.Error.WriteLine($"[世界の台帳] Q{q + 1}（{lm.Year}年）人口 {dP:+0.0;-0.0}"); }
+            if (Math.Abs(dM) > 1e-6 * Math.Max(1.0, Math.Abs(lw.Money))) { lMoneyBad++; lMoneySum += dM; if (lMoneyBad <= 20) Console.Error.WriteLine($"[世界の台帳] Q{q + 1}（{lm.Year}年）基礎貨幣 {dM:+0.0;-0.0}"); }
+            lw0 = lw;
         }
-        System.Console.WriteLine($"leakhunt 完走（seed={lseed}・{lquarters}四半期・保存則違反なし・IW不変条件OK）");
+        // （退蔵結晶化の IW 不変条件は 2026-09-26 に削除＝結晶資産 Pop.IlliquidWealth ごと消えた・dorm-24）
+        System.Console.WriteLine($"leakhunt 完走（seed={lseed}・{lquarters}四半期・保存則違反なし）");
+        System.Console.WriteLine($"世界の台帳：説明できない増減＝人口 {lPopBad}四半期（累計 {lPopSum:+0.0;-0.0}）・基礎貨幣 {lMoneyBad}四半期（累計 {lMoneySum:+0.0;-0.0}）"
+                                 + (Coefficients.OverrideSummary() is { Length: > 0 } lov ? $"（上書き {lov}）" : "（既定の世界＝世界プールの湧き分を含む）"));
     }
     catch (Exception lex)
     {
@@ -4861,7 +4891,7 @@ if (args.Length > 0 && args[0] == "politics-ablation")
 
 // === 完全な1ゲームの年代記（日付つきイベント＋10年ごと順位）： dotnet run -- chronicle [seed] ===
 // WorldData の全ロスター×Coefficients.GameQuarters（1783年起点）を1試合プレイし、順位変動・政変・法律変更・戦争・恐慌を yyyymmdd で記録する。
-// 日付はUI(GameViewModel)と同一規約：四半期境界＝各年の 01/04/07/10 月 1日。恐慌の定義もUIと同じ World.GdpDrawdown(>20%景気後退/>25%大恐慌)。
+// 日付はUI(GameViewModel)と同一規約：四半期境界＝各年の 01/04/07/10 月 1日。恐慌の定義もUIと同じ World.GdpPcDrawdown（1人あたり・閾値は SelfPlayMatch の1組＝>20%入り/<8%脱出/>25%大恐慌）。★2026-09-26 是正（fis-24）：旧は総額の World.GdpDrawdown を読みながら「UIと同じ」と書いていた
 if (args.Length > 0 && args[0] == "chronicle")
 {
     ulong seed = args.Length > 1 && ulong.TryParse(args[1], out var s) ? s : 1789UL;
@@ -4919,7 +4949,7 @@ if (args.Length > 0 && args[0] == "chronicle")
     var pWomen = m.Nations.Select(n => n.World.WomenRights).ToArray();   // ★女性の権利の梯子（統合法・2026-08-10）＝旧・財産権/参政権の2系列を1本へ
     var pConsc = m.Nations.Select(n => n.World.ConscriptionLaw).ToArray();   // ★2026-08-18：親軍法の撤去＝年表の軍事立法は徴兵法のエッジで追う
     var pGold = m.Nations.Select(n => n.World.OnGoldStandard).ToArray();
-    // 恐慌エピソード（UIと同じ World.GdpDrawdown：>20%入り/<8%脱出・助走12Q以降）
+    // 恐慌エピソード（UIと同じ World.GdpPcDrawdown：>20%入り/<8%脱出・助走12Q以降）
     var inDep = new bool[N]; var depEnterC = new int[N]; var depDepth = new double[N]; var depTroughC = new int[N];
     var depCount = new int[N]; var depMaxDepth = new double[N]; var polChanges = new int[N];
     int greatDepTotal = 0, depTotal = 0;
@@ -4935,7 +4965,7 @@ if (args.Length > 0 && args[0] == "chronicle")
 
     void CloseDep(int i, int c, bool ongoing)
     {
-        bool great = depDepth[i] > 0.25;
+        bool great = depDepth[i] > SelfPlayMatch.GreatDepressionDrawdown;
         if (great) greatDepTotal++;
         depTotal++; depCount[i]++; depMaxDepth[i] = Math.Max(depMaxDepth[i], depDepth[i]);
         string span = ongoing ? $"{Date(depTroughC[i])}底・終局まで継続" : $"{Date(depTroughC[i])}底・{Date(c)}回復・{(c - depEnterC[i]) / 4.0:F1}年";
@@ -5023,12 +5053,12 @@ if (args.Length > 0 && args[0] == "chronicle")
             if (w.WomenRights != pWomen[i]) { Ev(c, i, "法律", $"女性の権利：{WomenJa(pWomen[i])} → {WomenJa(w.WomenRights)}"); pWomen[i] = w.WomenRights; }
             if (w.ConscriptionLaw != pConsc[i]) { Ev(c, i, "法律", $"徴兵：{pConsc[i]} → {w.ConscriptionLaw}"); pConsc[i] = w.ConscriptionLaw; }
             if (w.OnGoldStandard != pGold[i]) { Ev(c, i, "法律", w.OnGoldStandard ? "金本位制に加入" : "金本位制を離脱（兌換停止）"); pGold[i] = w.OnGoldStandard; }
-            // 恐慌（UIと同じ閾値）
-            double dd = w.GdpDrawdown;
+            // 恐慌（UIと同じ物差しと閾値＝1人あたり・SelfPlayMatch の1組）
+            double dd = w.GdpPcDrawdown;
             if (c > 12)
             {
-                if (!inDep[i] && dd > 0.20) { inDep[i] = true; depEnterC[i] = c; depDepth[i] = dd; depTroughC[i] = c; }
-                else if (inDep[i]) { if (dd > depDepth[i]) { depDepth[i] = dd; depTroughC[i] = c; } if (dd < 0.08) CloseDep(i, c, false); }
+                if (!inDep[i] && dd > SelfPlayMatch.DepressionEnterDrawdown) { inDep[i] = true; depEnterC[i] = c; depDepth[i] = dd; depTroughC[i] = c; }
+                else if (inDep[i]) { if (dd > depDepth[i]) { depDepth[i] = dd; depTroughC[i] = c; } if (dd < SelfPlayMatch.DepressionExitDrawdown) CloseDep(i, c, false); }
             }
             bool famine = w.HarvestFactor < 0.80; if (famine && !pFamine[i]) Ev(c, i, "飢饉", $"飢饉（不作 {w.HarvestFactor:P0}）"); pFamine[i] = famine;
             bool heat = w.FinancialHeat > 0.85; if (heat && !pHeat[i]) Ev(c, i, "金融", $"信用過熱（与信 {w.FinancialHeat:P0}）"); pHeat[i] = heat;
@@ -5111,7 +5141,7 @@ if (args.Length > 0 && args[0] == "britcw")
     var bm = new MultiNationSim(bcc, bseed, _ => new UtilityAgent());
     var bw = bm.Nations[2].World;   // イギリス
     string BDate(int c) { int year = 1783 + c / 4; int mm = c % 4; int month = mm == 0 ? 1 : mm == 1 ? 4 : mm == 2 ? 7 : 10; return $"{year:D4}{month:D2}01"; }
-    double BMeanMil(World w) { double s = 0, n = 0; foreach (var p in w.AllPops()) if (!p.Closed && !p.IsModernElite && !p.IsSoldier) { s += p.Militancy * p.Size; n += p.Size; } return n > 1e-9 ? s / n : 0; }
+    double BMeanMil(World w) => Politics.AvgMassMilitancy(w);   // ★2026-09-26（sweep-13）：大衆の述語の手書きの写しをやめ、エンジンの1本を呼ぶ（同じ母集団・同じ順）
     bool bwas = bw.CivilWarYears > 0; int bsec = 0, brev = 0;
     Console.WriteLine($"=== イギリス内戦の原因診断 seed {bseed} ===");
     Console.WriteLine("日付      経路  challenge  coerce reform radical rad>ref 目標政体       正統性 満足 平均闘争 参政権 関税 自由度 | 分離州(関税利害/乖離/州闘争)");
@@ -6262,33 +6292,7 @@ if (args.Length > 0 && args[0] == "rankavg")
     return;
 }
 
-// === 貨幣保存の漏れ探し： dotnet run -- drift ===
-if (args.Length > 0 && args[0] == "drift")
-{
-    var dsc = new Scenario { Seed = 1789, StartYear = 1783, Kind = ScenarioKind.France, PoliticsEnabled = true, InitialPolity = Polity.Absolutist, FiscalEnabled = true, TaxRate = 0.10, InitialTreasury = 200_000, BaseCoercion = 1500, EducationLaw = EducationLaw.Religious, ExternalPressure = 0.1 };
-    var dsim = new Simulation(dsc, new NullAgent());
-    foreach (var p in dsim.World.Region.Producers) p.SubsidyRate = 1.0;
-    double b0 = dsim.World.BaseMoney;
-    double lastDrift = 0;
-    Simulation.Probe = (label, w) =>
-    {
-        double drift = w.BaseMoney - b0 - w.CumulativeTradeFlow;
-        if (Math.Abs(drift - lastDrift) > 0.01)
-            Console.WriteLine($"  ★漏れ {label}: {drift - lastDrift:+0.0000;-0.0000}（累計 {drift:F4}）国庫 {w.Treasury:F0}");
-        lastDrift = drift;
-    };
-    try
-    {
-        for (int q = 0; q < 20; q++)
-        {
-            dsim.StepQuarter();
-            Console.WriteLine($"Q{q + 1}: 累計乖離 {dsim.World.BaseMoney - b0 - dsim.World.CumulativeTradeFlow:F4} 国庫 {dsim.World.Treasury:F0}");
-        }
-    }
-    catch (Exception e) { Console.WriteLine($"停止: {e.Message}"); }
-    Simulation.Probe = null;
-    return;
-}
+// （貨幣保存の漏れ探し drift は 2026-09-26 に削除＝鋳造と不換発行の項を欠き鋳造のある世界で偽の漏れを報告した・leakhunt が同じ役を持つ・fis-19）
 
 // === 助走（政治凍結）の検証： dotnet run -- warmtest ===
 if (args.Length > 0 && args[0] == "warmtest")
@@ -6549,21 +6553,18 @@ if (args.Length > 0 && args[0] == "services")
             if (sim4.Nations[i].World.Polity != lastPol[i])
             {
                 var w2 = sim4.Nations[i].World;
-                double mm = 0, ms = 0;
-                foreach (var p in w2.AllPops()) if (!p.Closed && !p.IsModernElite && !p.IsSoldier) { mm += p.Militancy * p.Size; ms += p.Size; }
-                Console.WriteLine($"  政変 {w2.Year}年 {w2.Region.Name}: {lastPol[i]} → {w2.Polity}（大衆闘争度 {(ms > 1 ? mm / ms : 0):F2}）");
+                Console.WriteLine($"  政変 {w2.Year}年 {w2.Region.Name}: {lastPol[i]} → {w2.Polity}（大衆闘争度 {Politics.AvgMassMilitancy(w2):F2}）");   // ★sweep-13：述語の写しをやめエンジンの1本へ
                 lastPol[i] = w2.Polity;
             }
         if (q % 4 == 3)   // パリの年次トレース（恐慌→政治の較正計測）
         {
             var wp = sim4.Nations[0].World;
             var rp = wp.Region;
-            double mm2 = 0, ms2 = 0, sat2 = 0;
-            foreach (var p in wp.AllPops()) if (!p.Closed && !p.IsModernElite && !p.IsSoldier) { mm2 += p.Militancy * p.Size; sat2 += p.Satisfaction * p.Size; ms2 += p.Size; }
+            double mil2 = Politics.AvgMassMilitancy(wp), satM2 = NationalScore.MeanSatisfaction(wp);   // ★sweep-13：大衆の平均はエンジンの1本（闘争度・満足度とも同じ母集団）
             var lm = rp.Markets[Catalog.LaborId];
             double unemp = UnemploymentOf(rp, Catalog.LaborId);
             var bk = wp.Bank;
-            Console.WriteLine($"  巴里 {wp.Year} 闘争{mm2 / ms2:F2} 満足{sat2 / ms2:F2} 失業{unemp:P0} 不作{wp.HarvestFactor:F2} パン価格{rp.Markets[62].Price:F2} 賃金{lm.Price:F2}" +
+            Console.WriteLine($"  巴里 {wp.Year} 闘争{mil2:F2} 満足{satM2:F2} 失業{unemp:P0} 不作{wp.HarvestFactor:F2} パン価格{rp.Markets[62].Price:F2} 賃金{lm.Price:F2}" +
                 (bk is null ? "" : $" 信用{bk.Loans:F0}/金{bk.Gold:F0} 過熱{wp.FinancialHeat:F2} 信頼{bk.Confidence:F2} 金利{wp.InterestRate:F2}"));
         }
     }
@@ -6573,8 +6574,8 @@ if (args.Length > 0 && args[0] == "services")
         var w = n.World;
         var r0 = w.Region;
         double pop = w.TotalPopulation;
-        double lit = 0, sat = 0, ssz = 0;
-        foreach (var p in w.AllPops()) { lit += p.Literacy * p.Size; sat += p.Satisfaction * p.Size; ssz += p.Size; }
+        double lit = 0, ssz = 0;
+        foreach (var p in w.AllPops()) { lit += p.Literacy * p.Size; ssz += p.Size; }
         var laborM = r0.Markets[Catalog.LaborId];
         var eduM = r0.Markets[Catalog.EducationId];
         var medM = r0.Markets[Catalog.HealthcareId];
@@ -6586,9 +6587,8 @@ if (args.Length > 0 && args[0] == "services")
                 else if (p.RecipeName == "蒸気機関") steamL += p.Output;
                 else elecL += p.Output;
             }
-        double massM = 0, massSz = 0;
-        foreach (var p in w.AllPops()) if (!p.Closed && !p.IsModernElite && !p.IsSoldier) { massM += p.Militancy * p.Size; massSz += p.Size; }
-        Console.WriteLine($"\n--- {r0.Name}（{w.EducationLaw}/{w.Polity}/自由{w.Freedom:F1}） 技術{w.TechLevel:F2} 識字{lit / ssz:P0} 満足{sat / ssz:F2} 国庫{w.Treasury:F0} 行政効率{w.AdminEfficiency:P0} 治安{w.PublicOrder:P0}（犯罪率{w.CrimeRate:P2}） 大衆闘争度{(massSz > 1 ? massM / massSz : 0):F2}");
+        double massMil = Politics.AvgMassMilitancy(w);   // ★sweep-13：述語の写しをやめエンジンの1本へ
+        Console.WriteLine($"\n--- {r0.Name}（{w.EducationLaw}/{w.Polity}/自由{w.Freedom:F1}） 技術{w.TechLevel:F2} 識字{lit / ssz:P0} 満足{NationalScore.MeanSatisfaction(w):F2} 国庫{w.Treasury:F0} 行政効率{w.AdminEfficiency:P0} 治安{w.PublicOrder:P0}（犯罪率{w.CrimeRate:P2}） 大衆闘争度{massMil:F2}");
         var advM = r0.Markets[Catalog.AdvLaborId];
         var farmM = r0.Markets[Catalog.FarmLaborId];
         var facts = r0.Producers.Where(p => p.BuysLabor).ToList();
@@ -8249,16 +8249,26 @@ if (args.Length > 0 && args[0] == "selfplay-batch")
         //   **悪化の検出は差分でしか出せない**。基線は POB_FIDELITY_BASELINE のパス（measure.sh が作業ツリー直下を渡す
         //   ＝隔離スナップショットではなく走行を跨いで残る場所）。⚠毎回上書きする＝常に「直前の走行との差」を意味する。
         string basePath = Environment.GetEnvironmentVariable("POB_FIDELITY_BASELINE") ?? "";
+        // ★基線に走行条件を書く（fis-23・2026-09-26）：旧＝数字だけを書いたので、長さ・シード・係数の上書きの違う腕や、同時に回した別の腕の値と
+        //   黙って差を取っていた。1行目に「#条件」（シード・四半期数・係数の上書き・measure.sh が渡す SOURCE-HASH）を書き、読むときに突き合わせる。
+        //   条件が食い違えば差を出さない（「前回値なし（条件違い）」）。⚠条件の記録が無い旧い基線は従来どおり差を出す（出力は旧と1字も変わらない）。
+        string condKey = $"seeds={seedBase}..{seedBase + (ulong)b.N - 1}・四半期={gq}・上書き={(PriceOfBread.SimCore.Coefficients.OverrideSummary() is { Length: > 0 } ovc ? ovc : "なし")}";
+        string condLine = $"#条件\t{condKey}\tSOURCE-HASH={Environment.GetEnvironmentVariable("POB_SOURCE_HASH") ?? "?"}";
+        string? prevCond = null;
         var prev = new Dictionary<string, double>();
         if (basePath.Length > 0 && File.Exists(basePath))
             foreach (var ln in File.ReadAllLines(basePath))
             {
                 int tab = ln.IndexOf('\t');
+                if (ln.StartsWith("#条件\t")) { prevCond = ln[(tab + 1)..]; continue; }
                 if (tab > 0 && double.TryParse(ln[(tab + 1)..], System.Globalization.NumberStyles.Float,
                         System.Globalization.CultureInfo.InvariantCulture, out double pv)) prev[ln[..tab]] = pv;
             }
-        var now = new List<string>();
+        bool condMismatch = prevCond is not null && prevCond.Split('\t')[0] != condKey;
+        if (condMismatch) prev.Clear();   // 条件違い＝差を取らない（相手が別の物差し）
+        var now = new List<string> { condLine };
         Console.WriteLine($"\n=== 6次元{Target:P0}ゲート（★終了コード2＝未達。硬性ゲートの赤(1)とは別の意味）===");
+        if (prevCond is not null) Console.WriteLine($"  前回の基線：{prevCond.Replace('\t', '・')}{(condMismatch ? "　⚠条件が違う＝差を出さない" : "")}");
         int gated = 0, passed = 0;
         foreach (var (nm, vals) in dims)
         {
@@ -8268,7 +8278,7 @@ if (args.Length > 0 && args[0] == "selfplay-batch")
             now.Add($"{nm}\t{rate.ToString("R", System.Globalization.CultureInfo.InvariantCulture)}");
             string delta = prev.TryGetValue(nm, out double p0)
                 ? $"　前回比 {(rate - p0) * 100:+0.0;-0.0;±0.0} pt"
-                : "　前回値なし";
+                : condMismatch ? "　前回値なし（条件違い）" : "　前回値なし";
             if (l.Count < MinRefEntriesForGate)
             { Console.WriteLine($"  報告 {nm}: {rate:P1}（参照{l.Count}カ国＝{MinRefEntriesForGate}件未満につきゲート外）{delta}"); continue; }
             gated++;

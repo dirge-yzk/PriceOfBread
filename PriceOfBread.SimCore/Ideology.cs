@@ -45,6 +45,9 @@ public static class Ideologies
         //   ★史実の順序どおり＝1861年の農奴解放が貴族の反動を生み、1876年の秩禄処分が士族反乱を生んだ。
         double privLoss = w.Coef.ReactionFromLoss > 0 ? 1.0 - PowerShares.PrivilegeIntact(w) : 0;
         if (!(privLoss >= 0 && privLoss <= 1)) privLoss = 0;
+        // ★国民意識→ナショナリズム（休眠）の国民意識もループ前に1回（add-05・2026-09-26）：World.NationalConsciousness は全POPを走査する＝
+        //   ループの中で読むと点火した瞬間に POP 数の2乗になっていた。読む値（各POPの Size と国民意識）はこのループで書かれない＝厳密恒等。
+        double ncForNationalism = w.Coef.NationalismFromConsciousness > 0 ? System.Math.Max(0, w.NationalConsciousness) : 0;
         foreach (var p in w.AllPops())
         {
             var r = p.IdeologyShares;
@@ -84,7 +87,7 @@ public static class Ideologies
             // （統一運動＝1848の前提。旧＝ナショはイベント駆動のみで、125年×53カ国で統一閾値0.25に誰も届かなかった）。
             // ⚠既定0＝加算ごとスキップ＝厳密恒等。国名なし＝国民意識という既存の実数から創発。
             if (w.Coef.NationalismFromConsciousness > 0)
-                r[4] += w.Coef.NationalismFromConsciousness * System.Math.Max(0, w.NationalConsciousness);
+                r[4] += w.Coef.NationalismFromConsciousness * ncForNationalism;
             // ★マニフェストの達成（作者指示2026-08-24）＝加担した思想へ支持が乗る（減衰ストック・Parliament.StepManifesto が積む）。
             //   出来事→思想の既存パターン（上の nationalismSurge・depSoc と同じ位置・同じ物差し）＝新しい経路を作らない。
             if (w.ManifestoIdeology >= 0 && w.ManifestoIdeology < r.Length && w.ManifestoCredit > 0)

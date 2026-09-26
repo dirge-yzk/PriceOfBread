@@ -258,9 +258,6 @@ public sealed class Pop
     public double Earned;             // その月に得た総所得
     public double LandRent;           // その月に受け取った土地の地代（RGOの所有者取り分＝封建貢租）。土地税の課税ベース
     public double IndustrialRent;     // その月に受け取った工業レント（非RGO・投資家所有の利潤。設計3段1＝物差し専用の書き込みタグ・挙動の読者なし）
-    public double IlliquidWealth;     // 結晶資産（土地・什器・地金）＝Savingsの**内数タグ**（contra勘定・貨幣を動かさない）。退蔵結晶化 段3。
-                                      // ⚠TotalMoney=ΣSavingsの全読者は無変更＝貨幣制度の土台は凍結。（予算側の液体読み2本は2026-08-29撤去＝
-                                      // 現在の読者は結晶化/融解の段3経路のみ）。POP按分の全サイトでDebtと同様に無条件運搬（0×比=0で恒等）
     public double DemandIncomeFactor = 1.0;   // 所得翻訳ゲートの需要係数（設計3段2。DemandIncomeElasticity>0 のときのみ月次計算＝既定では書かず読まず）
 }
 

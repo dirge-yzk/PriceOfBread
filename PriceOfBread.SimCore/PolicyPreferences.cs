@@ -632,7 +632,7 @@ public static class PolicyPreferences
         sum += PettyNet(w, a, sign, e);   // 第4束「小営業」（プチブル利益束2026-08-15）。gate=0＝束が空＝+0で恒等・対象3軸以外は旧束の値へフォールバック
         sum += ParliamentNet(w, a, sign, e);
         // 政12：国家の歳入要求を**独立主体として**全税軸へ直接加算（ブロック力で乗算しない＝専売の in-Pref 方式の奇妙なスケーリングを避ける）。
-        // StateRevenueAllTaxes=0（既定）は専売のみが StateRevenue を得る従来挙動＝厳密一致。>0で所得税・人頭税・土地税も財政逼迫で押せる（戦時所得税＝英1799/米1861）。
+        // StateRevenueAllTaxes=0 なら専売のみが StateRevenue を得る従来挙動（⚠既定は点火済みの1.0・x-02 で注記を是正）。>0で所得税・人頭税・土地税も財政逼迫で押せる（戦時所得税＝英1799/米1861）。
         // 専売は既に Pref 経由で StateRevenue を持つので二重計上を避け対象外。
         if (w.Coef.StateRevenueAllTaxes > 0 && (a is PolicyAxis.IncomeTax or PolicyAxis.PollTax or PolicyAxis.LandTax))
             sum += e.StateRevenue * sign;

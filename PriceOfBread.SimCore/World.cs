@@ -154,13 +154,12 @@ public sealed class World
     public double WelfareFunding { get; internal set; } = 1.0;     // 社会保障の充足率。財政不足で効果（不満緩和・医療による人口増）が減衰
     public double TechLevel { get; internal set; }
     public double WorldTechLevel { get; internal set; } // 世界の技術先端（多国・§5.1）。後発はここへ収束（後発の優位）。単独＝0
-    public double WorldFrontierIndustrialization { get; internal set; }   // ★世界の工業化の先端（多国・MultiNationSim が WorldTechLevel と同時に配る・2026-09-06）。金本位志向の前線比（GoldStandardFrontierRatio）が読む
     // ★知識と人的資本（作者採用2026-09-06）：厚み＝専門人材率（近代エリート層の高等教育充足×人数÷全人口・毎四半期の導出量＝保存しない）・世界の先端・接触度
     public double Expertise { get; internal set; }                    // 専門人材率（UI 語彙）。TechEducation が Elite と同時に計算
     public double WorldFrontierExpertise { get; internal set; }       // 世界の専門人材率の先端（MultiNationSim が配る）
     public double TradeContactShare { get; internal set; } = 1.0;     // 接触度＝自国のペア貿易の世界シェア÷平均（平均1.0・鎖国0）。MultiNationSim が四半期に書く。単国＝1.0
     public double SeigneurialDegree0 { get; internal set; } = -1;   // ★支配度の一般化 段1：1783年の未解放度（在地の目標の分母）。負＝未設定（最初の四半期に Politics が書く）
-    public double IndustrialFrontier { get; internal set; } // 政16：世界最先端の工業化度＝各国MeanIndustrializationの最大。MultiNationSimが四半期同期で全国に注入。IdeologyGateFromDevelopment>0が参照。単一国/初四半期は0でIdeologyが自国値へフォールバック＝既定0では未読で中立
+    public double IndustrialFrontier { get; internal set; } // 政16：世界最先端の工業化度＝各国MeanIndustrializationの最大。MultiNationSimが四半期同期で全国に注入。読み手＝Ideology の発展度ゲート（点火1.0）・AIの近代化の包絡・金本位志向の前線比（休眠）。単一国/初四半期は0でIdeologyが自国値へフォールバック。★2026-09-26：同じ最大を持つ2つ目の欄 WorldFrontierIndustrialization（助走でも配っていた）を削除して1本にした（sweep-15）
     public double Elite { get; internal set; }        // エリート水準（識字×世俗度）。技術を駆動（教育2段階の到達点）
     // ★本国のエリート水準（2026-08-26・植民地の州昇格に伴う分母の是正）。植民地格の州を除いた同じ式。
     //   ⚠なぜ要るか＝Elite は**率**なので、植民地が州になると非識字の現地住民で薄まる。研究の産出は Elite×総人口＝
@@ -417,7 +416,7 @@ public sealed class World
     public double LastTributeOut { get; internal set; }          // 直近四半期に宗主へ払った貢納（診断・予算表＝月表示は/3。監査2026-07-11 接1）
     public double LastTributeIn { get; internal set; }           // 直近四半期に属国から受け取った貢納合計（同上）
     public bool LandTaxUnlocked { get; internal set; }     // 検地台帳の完成（行政力が閾値に達した実績＝一方向）
-    public bool IsQuarterEndMonth { get; internal set; }   // 財3（cadence）：四半期の締め月の月次決算で true。設定は Simulation の月次決算で配線済み＝FiscalQuarterlyGating=1経路で参照（02断線走査2026-07-28：「要設定配線」の陳腐注記を是正）
+    public bool IsQuarterEndMonth { get; internal set; }   // 四半期の締め月の月次決算で true（Simulation の月次決算が書く）。読み手＝製法の通知・軍の熟練度（旧読み手の財政の器 FiscalQuarterlyGating は 2026-09-26 に削除）
     // 財5（対外国債の閉鎖系化）：他モデル国の資本家貯蓄の合計（対外国債の引き受け余力）。注入は MultiNationSim（ForeignBondFromInvestors>0.5 のときだけ）。
     // ★**初期値は −1＝「未注入」**（2026-07-31 点火時の是正）：0で初期化すると、外交層のない単一国世界（較正・テスト）でも「引き受け手ゼロ」と判定され
     //   起債が丸ごと死ぬ（実測＝FiscalTests の緊縮が発火しなくなった）。Fiscal 側は `>= 0` を注入済みの印として読む。
@@ -466,6 +465,10 @@ public sealed class World
     // ★人口診断（2026-08-01・popprobe 用の純記帳。力学は読まない＝挙動非依存）。
     // 扶養力のどの項が律速しているかを外から見るための窓＝「英の人口が131年横ばい」の原因特定に使う。
     public double DiagCapacity, DiagCapacityBaseline, DiagHealthcare, DiagDoctorCare, DiagFoodRatio, DiagLandAnchor;
+    // ★粗出生・粗死亡の累積（2026-09-26・回0-4＝計器の裁き10・純記帳＝力学は1か所も読まない）：出生＝DemographicStep の出生の総和／
+    //   死亡＝戦争以外で人口台帳（PopulationDelta）から引いた実際の人数（人口動態の死亡・局地飢饉・疫病・遠征の疫病）。戦死は WarDeadCumulative。
+    //   ⇒ 世界の総人口の番人（ConservationTests）が「出生−死亡−戦死」以外の増減＝片側記帳を見つける物差しになる。popprobe の粗出生・粗死亡の列の元。
+    public double DiagBirths, DiagDeaths;
     // ★人口診断の拡張（2026-08-21・人口忠実度の原因究明。純記帳＝力学は読まない）：
     //   出生率倍率・空き土地ブースト・主食純輸入（生産アンカー分子）・出生死亡の累積＝「英が増えず仏が増える」の因子分解用。
     public double DiagFertility, DiagLandRoom, DiagStapleNetImport;
@@ -509,7 +512,7 @@ public sealed class World
     }
     public double[] PartySeats { get; } = new double[3];    // 議席シェア（得票率・保守/自由/社会）＝F4後も常に族の集計値（互換射影）
     public double[] VoteShares { get; } = new double[3];    // 政7：毎期の得票率（世論・表示専用・保守/自由/社会）。SeatsFrozenBetweenElections=0ではPartySeatsと同時更新で恒等・>0で確定議席と分離
-    public double CivilWarRebelStrength { get; internal set; }   // 政13：内戦中に反乱側へ分離計上した累積動員（政府側の一方的徴集→治安維持力上昇を相殺する仮想戦力）。CivilWarRebelSide=0（既定）では常に0＝挙動非依存
+    public double CivilWarRebelStrength { get; internal set; }   // 政13：内戦中に反乱側へ分離計上した累積動員（政府側の一方的徴集→治安維持力上昇を相殺する仮想戦力）。CivilWarRebelSide=0 なら常に0（⚠既定は点火済みの0.5＝live・x-02 で注記を是正）
     public int QuartersSinceElection { get; internal set; }
     public int ElectionsHeld { get; internal set; }          // E0計器（選挙doc §8-a）：総選挙の実施回数（繰り上げ含む・非選挙政体は数えない・助走込み）
     public int QuartersWithElections { get; internal set; }  // E0計器：選挙政体で過ごした四半期数。平均間隔＝これ÷回数（史実英1832-1914＝約15.6Q）
@@ -728,7 +731,7 @@ public sealed class World
     public double CoopParliamentCrown { get; internal set; }   // 協力度チャネル②議会↔王権∈[-1,1]＝階級親和−政策距離−紛争記憶(MandateSpent)。議会なし政体=0（チャネル無定義）。「均衡×敵対」=二重権力の観測が目的
     public double CoopPublicRegime { get; internal set; }      // 協力度チャネル③世論↔体制∈[-1,1]＝満足度と大衆闘争度の集計（世論は派生面＝史実精査§5判断①・新規状態ほぼ不要）
     public double ArmyAllegiance { get; internal set; }        // 軍帰属∈[-1,1]：+1=王権・−1=議会・0=自律（兵士の思想が割れている軍）。兵士のイデオロギー傾き＋将校の任免権の所在から導出（給与の乗算は2026-08-18撤去＝給与は向きでなく規律・能力を動かす＝CrownParliament の帰属導出）
-    public double[] RegimeTrackRecord { get; } = new double[4];   // 政体形態の実績ストック∈[-1,+1]（信認⇔失望・4系統：0君主/1議会制/2強権/3急進）。正=長期成功で信認された形態（英CMがentrench）／負=危機で倒れた形態（discredited→極端が浮上）。CoopPublicRegimeを符号のまま蓄積＋半減期50年で減衰＋Transition支持へ符号付き乗数。RegimeTrackRecordWeight=0（既定）で書くだけ＝厳密恒等（docs/2026-07-13_形態別失望ストック.md）
+    public double[] RegimeTrackRecord { get; } = new double[4];   // 政体形態の実績ストック∈[-1,+1]（信認⇔失望・4系統：0君主/1議会制/2強権/3急進）。正=長期成功で信認された形態（英CMがentrench）／負=危機で倒れた形態（discredited→極端が浮上）。CoopPublicRegimeを符号のまま蓄積＋半減期50年で減衰＋Transition支持へ符号付き乗数。RegimeTrackRecordWeight=0 なら書くだけ（⚠既定は点火済みの0.3＝live・x-02 で注記を是正）（docs/2026-07-13_形態別失望ストック.md）
     public int HighAdminQuarters { get; internal set; }           // 行政効率が高い状態の連続四半期数（07_再設計 §1・2026-07-31）。専制→絶対王政（官僚絶対主義）の変異トリガー。CrownFormMutation=0では加算されない
     public int RegimeTenureQuarters { get; internal set; }        // 現政体の在任四半期数（政体交代でリセット）。実績ストックの正の信認ゲート＝長期成功のみ信認へ寄る（始まったばかりの形態は実績を持てない）
     // ★国民意識のpop化（器2026-08-01）：backing field を明示化しただけ。NationConsciousnessPerPop=0 では旧値をそのまま返す＝**1ビットも動かない**。
@@ -971,8 +974,8 @@ public sealed class World
 
     /// <summary>通貨改革の予約（プレイヤーのボタンもAIも**この同じ口**を通る）。parity＝新平価。</summary>
     public void RequestCurrencyReform(double parity) => PendingCurrencyReform = Math.Clamp(parity, Coef.ExchangeRateFloor, 1.0);   // 新平価を [ExchangeRateFloor,1.0] にクランプして予約（月次で消化・CurrencyReformCooldown）
-    public int InsolvencyQuarters { get; internal set; }          // 借入上限(MaxBorrowStacks)に張り付いて返済できない連続四半期数。閾値超で**ソブリン・デフォルト**（致命的）
-    public int BorrowCooldown { get; internal set; }              // デフォルト後の借入禁止四半期（信用喪失）。0になるまで借りられない
+    public int InsolvencyQuarters { get; internal set; }          // 借入上限(MaxBorrowStacks)に張り付いて返済できない連続**月数**（⚠名前は Quarters だが Fiscal.Step が月次で進める）。閾値超で**ソブリン・デフォルト**（致命的）
+    public int BorrowCooldown { get; internal set; }              // デフォルト後の借入禁止の残り**月数**（信用喪失）。0になるまで借りられない
     public bool HadSovereignDefault { get; internal set; }        // 過去にデフォルトしたか（年表・診断）
 
     // --- 国際・世界市場（§5.1・段4d）---
@@ -1110,6 +1113,7 @@ public sealed class World
         if (c.EpidemicIntraCountrySpread > 0 && wr2 is not null)
             dead += ApplyEpidemicDeaths(wr2, c, jitter, c.EpidemicIntraCountrySpread);
         PopulationDelta -= dead;
+        DiagDeaths += dead;   // ★計器（2026-09-26）：粗死亡の累積（力学は読まない）
         EpidemicActiveYears = c.EpidemicContagiousYears;   // 感染窓を立てる＝以後この国は感染源（伝播）
         LogAdd($"{Year} {wr.Name}で疫病が流行（死者{dead:F0}・{SelfPower?.Name}）");
         return true;
@@ -1142,9 +1146,6 @@ public sealed class World
     // ★残骸国家の自然再併合（2026-08-31）：内戦の白紙分断で生まれた国の親の名前（BaseName）。空＝対象外。
     //   RumpReabsorbYears>0 のとき、親GDP1%未満が続いた分断国を MultiNationSim が平和的に親へ戻す（軌道は再統合キューと同じ）。
     public string RumpParentName = "";
-    // ★研究の分野時計（段3・2026-08-31）：産業0/軍事1/思想2 の研究点（GrowTech の革新増分を按分して積む＝総量不変）。
-    //   読み手は Discovery.Unlock の呼び出し側のみ（段2の制度移行は暫定時計=TechLevel を読む＝この配列は段4で読者を得る）。
-    public double[] DiscoveryClocks = new double[Discovery.FieldCount];
     // ★発見・段7（2026-08-31）：思想の到達度（イデオロギー別 0..1）。発明国で立ち（種まきは段8の思想発見・診断は diffprobe）、
     //   貿易路×メディアで広がる（MultiNationSim.StepDiffusion）。読者は段8の思想eraゲート置換まで無し＝恒等。
     public double[] IdeologyReach = new double[Ideologies.Count];
@@ -1169,9 +1170,6 @@ public sealed class World
     //   ⚠状態が1つ減る＝POBSIM1 セーブは読めない（v2 以後はフィールドの増減を名前表で吸収＝<see cref="SaveGame"/>）。
 
     public double Latitude { get; internal set; }    // ★**経済中心地**の緯度（度）＝エンジンの距離計算はすべてこれを読む。⚠CenterIsFirstProvince>0 では1番目の州の座標へ差し替わる（J-003）
-    // ★J-003（2026-09-03）：**史実の首都**（world.json の座標）＝**表示専用**。⚠力学は読まない（読むと「首都の概念が2つ」に逆戻りする）。
-    public double DisplayCapitalLat { get; internal set; }
-    public double DisplayCapitalLon { get; internal set; }
     public double Longitude { get; internal set; }   // 首都の経度（度）。日本の遠さ＝交易の天然の障壁
 
     /// <summary>対外交易アクセス（禁輸・交戦で縮む）。単独＝Player、多国＝SelfPower で判定。</summary>
@@ -1277,7 +1275,7 @@ public sealed class World
         }
     }
 
-    /// <summary>官僚制度（1934拡張E5）の行政効率係数＝1+Spread×段階オフセット（猟官−1/資格任用0/専門+1）。BureaucracyAdminSpread=0（既定）で常に1.0＝恒等。</summary>
+    /// <summary>官僚制度（1934拡張E5）の行政効率係数＝1+Spread×段階オフセット（猟官−1/資格任用0/専門+1）。BureaucracyAdminSpread=0 なら常に1.0（⚠既定は0.12＝live・x-02 で注記を是正）。</summary>
     private double BureaucracyFactor()
     {
         if (Coef.BureaucracyAdminSpread <= 0) return 1.0;
@@ -1469,23 +1467,8 @@ public sealed class World
         return s;
     }
 
-    /// <summary>1棟単位の手動建設：国庫から固定費を支出し工業化度を積む。
-    /// 保存：国庫→建設を担う資本家pop の貯蓄へ移転（BaseMoney不変）。工業化度は非貨幣の資本ストック。
-    /// 国庫が足りなければ false。
-    /// ⚠★**テスト専用**（2026-08-10 死コード掃除で確認＝呼び手は FranceTests だけ）。実ゲームのUIもAIもこの動詞を使わない：
-    ///   国家主導の工業化は <see cref="ApplyModernizationInvestment"/>（率のレバー）に一本化されている。
-    ///   AIに1棟ずつ建てさせる旧案は「ロシアが工業化すると規模で常勝」の実験結果で**不採用**（経緯は SelfPlay.cs の同旨コメント）。
-    ///   ＝呼び手ゼロに見えても消さない（消すと国庫→建設予約の単体検証が失われる）。</summary>
-    public bool BuildIndustry(int regionIndex = 0)
-    {
-        if (regionIndex < 0 || regionIndex >= Regions.Count) return false;
-        var r = Regions[regionIndex];
-        if (r.State != RegionState.Active || !r.CapitalEnabled || r.InvestorPopIndex < 0) return false;   // 非稼働（locked）州では建設不可・資本セクター（投資家階級）が要る
-        if (r.TotalIndustrialization >= Coef.IndustryInvestRegionCap) return false;   // Round2 2026-07-08：州上限はプレイヤー/AI共通（係数コメントの宣言どおり）。旧実装は手動建設だけ素通し＝工業化暴走の一因。上限判定は新旧合計（ヴィンテージ2026-07-10）
-        if (Treasury < r.StateBuildQueue + Coef.StateBuildCost) return false;   // 国庫が予約分＋今回分を賄えるか
-        r.StateBuildQueue += Coef.StateBuildCost;   // 次の四半期に EconomyStep が建設の束を買い工業化度に変換（資本家と同じ経路・国庫負担で保存）
-        return true;
-    }
+    // （1棟単位の手動建設 BuildIndustry は 2026-09-26 に削除＝呼び手はテストと PlayHarness の !build だけで、UIにもAIにも無い動詞だった（x-04）。
+    //   国家主導の工業化は ApplyModernizationInvestment（率のレバー）の1本＝国庫→建設予約の検証もそちらで行う＝FranceTests）
 
     /// <summary>★着工の可否と理由（清プレイレポート§4-3・2026-08-31）：BuildFactory と**同じ条件**を理由つきで返す（第二の基準を作らない）。
     /// ハーネス/AI/UIのツールチップが読む。判定順も BuildFactory と同一。</summary>
@@ -1927,6 +1910,7 @@ public sealed class World
                 double rate = exposed * Coef.EpidemicSeverity, dead = 0;
                 foreach (var p in AllPops()) if (p.IsSoldier) { double d = p.Size * rate; p.Size -= d; dead += d; }
                 PopulationDelta -= dead;
+                DiagDeaths += dead;   // ★計器（2026-09-26）：粗死亡の累積（力学は読まない）
             }
         }
         bool ok = Diplomacy!.Subjugate(SelfPower!, target, Coef);   // 屈服（属国化/併合）か拒否（開戦）か＝結果判定は1箇所
@@ -2272,7 +2256,7 @@ public sealed class World
     /// 補償は払わない（金は動かない＝保存則は不変）＝利潤の行き先が民間から国庫へ移るだけ。
     /// 抑圧力＜抵抗なら**その月は0件**（押し切れないのに法だけ掲げ続けても何も接収できない）。
     /// 押し切った月は代償を払う＝資本家popの闘争度↑（次の払い下げの買い手が消える）・資本逃避で私的投資予算↓。
-    /// NationalizationSeizureRate=0（既定）では呼び手の条件が偽＝1命令も走らない。</summary>
+    /// NationalizationSeizureRate=0 なら呼び手の条件が偽＝1命令も走らない（⚠既定は点火済みの0.05＝2026-08-29・live・x-02 で注記を是正）。</summary>
     private void Seize(Region r, Producer p, double suppress, double capitalPower)
     {
         double want = Coef.NationalizationStateShare * p.Scale;
