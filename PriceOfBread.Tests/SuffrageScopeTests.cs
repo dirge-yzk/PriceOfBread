@@ -31,8 +31,8 @@ public class SuffrageScopeTests
     }
 
     // ★J-001の範囲（2026-09-04・運転規則§9）：参政権の範囲が縛るのは代表（法）と課税への同意まで。**発言権は票の前提にしない**
-    //   （チャーティスト1839/反穀物法同盟1838/1848年＝票の無い層に声があった）。利益集団の重みを算入率で乗じる腕は別フラグ
-    //   SuffrageScopeVoice（既定0）に分離した。以下の2主張＝主フラグだけでは発言権は動かない／両腕ONで従来（V6）どおり乗る。
+    //   （チャーティスト1839/反穀物法同盟1838/1848年＝票の無い層に声があった）。利益集団の重みを算入率で乗じる測定専用の腕
+    //   SuffrageScopeVoice は 2026-09-26 に削除した（棚卸し dorm-49）＝その腕を立てて乗ることを確かめていたテストも一緒に削除。
     [Fact]
     public void 参政権の範囲だけでは植民地州の大衆の発言権は変わらない()
     {
@@ -45,25 +45,7 @@ public class SuffrageScopeTests
         }
         var (_, _, massOff) = InterestGroups.Blocs(off.World);
         var (_, _, massOn) = InterestGroups.Blocs(on.World);
-        Assert.Equal(massOff, massOn, 12);   // 発言権の腕が0＝算入率は利益集団の重みに触れない（ビット恒等）
-    }
-
-    [Fact]
-    public void 植民地参政権の全面算入で植民地州の大衆が発言権に乗る()
-    {
-        var (off, on) = Twins();
-        foreach (var sim in new[] { off, on })
-        {
-            sim.World.Coef.SuffrageScopeVoice = 1.0;   // 発言権の腕を明示的にON（V6の全効果＝比較測定用の形）
-            // 植民地州の大衆popへ巨大な貯蓄を注入（双子とも同額）＝算入されれば大衆の力が跳ね、されなければ1ビットも動かない
-            var col = sim.World.Regions[1];
-            foreach (var p in col.Pops)
-                if (!p.Closed && !p.IsModernElite && !p.IsSoldier) { p.Savings = 1e9; break; }
-        }
-        var (_, _, massOff) = InterestGroups.Blocs(off.World);
-        var (_, _, massOn) = InterestGroups.Blocs(on.World);
-        Assert.True(massOn > massOff,
-            $"全面算入なのに植民地州の大衆が発言権に乗らない（なし {massOff:F4} / 全面 {massOn:F4}）");
+        Assert.Equal(massOff, massOn, 12);   // 算入率は利益集団の重みに触れない（ビット恒等）
     }
 
     [Fact]

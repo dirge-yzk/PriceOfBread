@@ -292,7 +292,7 @@ public static class Military
         return clamp ? Math.Clamp(v, 0, 1) : v;
     }
 
-    public static void MoveCohort(Pop? from, Pop? to, double amount) => MoveCohort(from, to, amount, new Coefficients());
+    // 【削除2026-09-26（棚卸し sweep-23）】3引数版 MoveCohort（呼ぶたびに既定の係数 new Coefficients() を作って4引数版を呼んでいた）＝呼び手は手元の係数を渡す。
 
     /// <summary>階級間の人の移動（係数付き）。人1（人的資本の運搬整合）：MigrationCarriesHumanCapital=1 で識字・闘争度も size 加重で運搬（0=現行の無運搬で厳密恒等）。</summary>
     public static void MoveCohort(Pop? from, Pop? to, double amount, Coefficients c)

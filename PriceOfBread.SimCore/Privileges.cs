@@ -102,7 +102,7 @@ public static class Privileges
         if (!(clergySize > 1e-9)) return 0;
         double collected = 0;
         foreach (var p in pops)
-            if (!p.Closed && !p.IsModernElite && !p.IsSoldier && p.Earned > 0)
+            if (Politics.IsMassPop(p) && p.Earned > 0)
             {
                 double t = System.Math.Min(titheRate * p.Earned, System.Math.Max(0, p.Savings));
                 p.Savings -= t; collected += t;

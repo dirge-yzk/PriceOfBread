@@ -507,10 +507,10 @@ public sealed class MultiNationSim
         Nations.Add(sim);
         if (civilWar)
         {
-            // ★内戦一元化：反乱国家＝休戦を張らない（呼び出し側が直ちに DeclareCivilWar する）。ログも開戦側が出す。
+            // ★内戦一元化：反乱国家＝講和相当の状態を張らない（呼び出し側が直ちに DeclareCivilWar する）。ログも開戦側が出す。
             return;
         }
-        Diplomacy.RegisterIndependence(parentPower, power, _coef);   // 残留緊張＋規模で決まる休戦（従属なし＝独立国）
+        Diplomacy.RegisterIndependence(parentPower, power, _coef);   // 残留緊張（従属なし＝独立国）
         Diplomacy.Log.Add(regs.Count > 1
             ? $"{pw.Year} {parentPower.Name}が内戦で分裂し{name}が成立（{regs.Count}州）"
             : $"{pw.Year} {name}が{parentPower.Name}から分離し建国（{reg.Name}）");   // 文言規約（Diplomacy:664）：「独立」は植民地独立の集計語＝分離建国では使わない（6-8で4国世界にも分離が出て集計衝突が顕在化・2026-07-28）
@@ -745,8 +745,8 @@ public sealed class MultiNationSim
                     w.ExternalPressure = gap * (coastal ? 1.0 : _coef.ExternalPressureInlandFactor);
                 }
             // 政16（世界工業化の先端状態量・スカフォールド完成）：各国 MeanIndustrialization の最大値＝「世界最先端の工業化度」を
-            // 全 World.IndustrialFrontier へ注入（WorldTechLevel と同型）。Ideology の発展度ゲート（IdeologyGateFromDevelopment>0）が
-            // 代理(WorldTechLevel との max)でなくこれを参照する。IdeologyGateFromDevelopment=0 なら暦年ゲートを厳密再現（⚠既定は点火済みの1.0＝2026-09-06・この値は live・x-02 で注記を是正）。
+            // 全 World.IndustrialFrontier へ注入（WorldTechLevel と同型）。Ideology の発展度ゲート（思想の解禁度）が
+            // 代理(WorldTechLevel との max)でなくこれを参照する（暦年ゲートとの混合は 2026-09-26 に削除＝解禁度は発展度だけ）。
             double indFrontier = 0;
             foreach (var n in Nations) indFrontier = Math.Max(indFrontier, n.World.MeanIndustrialization);
             foreach (var n in Nations) n.World.IndustrialFrontier = indFrontier;

@@ -240,32 +240,8 @@ public static class Politics
         double warWeariness = w.SelfPower?.WarExhaustion ?? 0;   // 厭戦（対外戦争のみ・較正は0）。闘争度入力へ（旧：Ideology の階級分岐で直接加点）
         // 政治の空間モデル：現政体の4軸座標（実参政権でドリフト済＝第5段5-1でPoliticalQuantitiesへ一元化）をループ前に1回算出。各popの理想点との距離が政治的不満。
         double[] regimeCoord = PoliticalQuantities.DriftedPolityCoord(w.Polity, w.Suffrage, c);
-        // 人口加重ジニ（O(n log n)）＝**診断量**（ヘッダーの統計・SocialThemeTests）。★段2（2026-09-09）で闘争度の入力から外した
-        // ＝格差は want（1−満足／失望）と二重計上だった（設計メモ §2-1）。格差が広がれば下層の満足が落ちる＝同じ根を2度数えていた。
-        // 加重ロレンツ曲線を昇順に台形則で積分（x=累積人口シェア・y=累積富シェア）し gini=1−Σ(Δx)(y_i+y_{i-1})。全popが同じ pc なら曲線が対角線＝0。
-        var wpcList = new List<(double pc, double size)>();
-        foreach (var gp in w.AllPops()) { if (gp.Size <= 1e-9) continue; wpcList.Add((Math.Max(0, gp.Savings) / gp.Size, gp.Size)); }
-        double gini = 0;
-        if (wpcList.Count > 1)
-        {
-            wpcList.Sort((a, b) => a.pc.CompareTo(b.pc));
-            double totSize = 0, totWealth = 0; foreach (var e in wpcList) { totSize += e.size; totWealth += e.pc * e.size; }
-            if (totSize > 1e-9 && totWealth > 1e-9)
-            {
-                double cumX = 0, cumY = 0, area = 0;   // area＝ロレンツ曲線下の面積（台形則）
-                foreach (var e in wpcList)
-                {
-                    double prevX = cumX, prevY = cumY;
-                    cumX += e.size / totSize; cumY += e.pc * e.size / totWealth;
-                    area += (cumX - prevX) * (cumY + prevY);   // 台形＝Δx×(y_i+y_{i-1})/2 の /2 は最後にまとめて処理せず gini 式に吸収
-                }
-                gini = 1.0 - area;   // area は既に (y_i+y_{i-1}) 形＝2×(曲線下面積)。ジニ=1−2×面積 と一致
-            }
-        }
-        w.GiniIndex = Math.Clamp(gini, 0, 1);
         // 参政権の範囲2法（作者裁定2026-08-16・SuffrageScopeGate>0のみ）：移民原住民参政権の少数派緩和は「州の格」を読む
         // ＝ループを州→popの入れ子へ（AllPops と同じ走査順・Seceded スキップ＝gate=0 で厳密恒等）。
-        bool migrantIncluded = c.SuffrageScopeGate > 0 && w.EthnicEnabled && w.MigrantNativeSuffrage == MigrantNativeSuffrageLaw.Granted;
         foreach (var milReg in w.Regions)
         {
         if (milReg.Seceded) continue;
@@ -300,10 +276,10 @@ public static class Politics
             double minorityMil = w.EthnicEnabled ? c.MinorityMilitancy * (1.0 - p.CoreEthnicShare) : 0;
             // 参政権の範囲2法（2026-08-16）：移民原住民参政権「あり」＝本国州の非中核分(1−CoreEthnicShare)が政治的国民に算入される
             // ＝少数派の地位不満は ×(1−算入)＝算入1で0（新しい定数を作らない創発形）。植民地格の州は対象外（そちらは植民地参政権＝分離圧の緩和側）。
-            // ★E-05段3（2026-09-03）：格を見ず**算入率**で連続に緩める＝本国州は中核度≈1でほぼ0まで消え、植民地は中核度≈0でほとんど残る。SuffrageScopeUnified=0 で下の else へ落ちる＝厳密恒等。
-            if (c.SuffrageScopeUnified > 0 && c.SuffrageScopeGate > 0 && w.EthnicEnabled)
+            // ★E-05段3（2026-09-03）：格を見ず**算入率**で連続に緩める＝本国州は中核度≈1でほぼ0まで消え、植民地は中核度≈0でほとんど残る
+            //   （旗 SuffrageScopeUnified は 2026-09-26 に焼き込み＝格を読む旧の枝＝移民原住民参政権「あり」で本国州だけ0 は削除）。
+            if (c.SuffrageScopeGate > 0 && w.EthnicEnabled)
                 minorityMil *= 1.0 - System.Math.Clamp(SuffrageInclusion(w, milReg), 0, 1);
-            else if (migrantIncluded && milReg.Tier != RegionTier.Colonial) minorityMil = 0;
             // [PORT:P1] ★段2＝飢餓の駆動項（設計メモ §7-3・作者裁定2026-09-09）。⚠旧 FamineAbsoluteMilitancy=0.04 は2四半期で闘争度を 0.0024 しか動かせず
             //   （派閥形成の門 0.5 の2桁下）＝「一瞬の飢餓では起きないが半年続けば大量の反乱軍」が**係数の値では表現できない**証明だった＝利得ごと作り直す。
             //   ★2026-09-22 回B：駆動は**平常（FoodRef）からの急な落ち込み**を測る（式は <see cref="FamineDrive"/> の1本・起点と利得の導出は係数のコメント）。
@@ -397,8 +373,7 @@ public static class Politics
         // 「食えている限りの忠誠」＝dmFood/dmWar/dmGraft が王朝循環の条件を担う（§8-6）。決定的勝敗のインパルスは読まない＝DefeatShock/VictoryLegitBoost専属・二重流入排除。
         // 効果＝正統性の**連続項のみ**非対称増幅（離散インパルス＝敗戦ショック/戦勝/破産/鎮圧/建国には掛けない）。
         double dynErodeMul = 1.0, dynRegenMul = 1.0;
-        if (c.DynasticMandateEnabled > 0.5)
-        {
+        {   // 天命（P8・2026-07-18 点火＝旗 DynasticMandateEnabled は 2026-09-26 に焼き込み）
             if (w.DynasticMandate < 0) w.DynasticMandate = 0.5;   // 未捕捉のみ初期化（0.5=中立・跳躍なし）
             double dmPrev = w.DynasticMandate;
             // 5-3/5-4：文盲層（重み＝1−識字）の加重満足＝天命の母数（PoliticalQuantities.MandateBase＝UIと共有の唯一実装。母数ゼロ＝全pop平均へ退避）。
@@ -512,9 +487,9 @@ public static class Politics
         if (w.Explain != null && legClamped != leg)
             w.Explain.Add("Legitimacy", legClamped > leg ? "下限クランプ(0未満を切上げ)" : "上限クランプ(1超を切下げ)", legClamped - leg);
         w.Legitimacy = legClamped;
-        // [PORT:P3] P10①信任帝政の正統性の下限（2026-07-18・RedefinedMandateEnabled=0で不走行＝恒等）：立憲君主×王冠保持×高NC×高天命の時のみ Legitimacy≥floor×Mandate の床。
+        // [PORT:P3] P10①信任帝政の正統性の下限（2026-07-18 点火＝旗 RedefinedMandateEnabled は 2026-09-26 に焼き込み）：立憲君主×王冠保持×高NC×高天命の時のみ Legitimacy≥floor×Mandate の床。
         // 「民の信任を得た皇帝はパンの値段ではもう滅びない」。⚠稀であるべき＝条件を厳しく（緩いと立憲固着＋仏が共和に届かない）。加算でなく床＝天命との二重計上なし。
-        if (c.RedefinedMandateEnabled > 0.5 && w.DynasticMandate >= 0
+        if (w.DynasticMandate >= 0
             && w.Polity == Polity.ConstitutionalMonarchy && w.Crown != CrownForm.None
             && w.NationalConsciousness >= c.RedefinedMandateNcMin && w.DynasticMandate >= c.RedefinedMandateMandateMin)
         {
@@ -552,8 +527,7 @@ public static class Politics
             w.DecayPrevDefault = w.HadSovereignDefault;
             // C-中9（史実検証2026-07-22）：上の恒久boolでは破産は1ゲーム1回しか窓を開かない（オスマン1875→ミドハト憲法1876、エジプト1876、西は19世紀に6回デフォルト）。
             // さらに Prev の更新が下のクールダウン判定の外にあるため、破産が別ショックの20四半期クールダウン中に起きると唯一のエッジが消費され緩和が永久に失われる（オスマン1875破産→1877露土敗戦が実例）。
-            // 回数エッジ＋保留ラッチで両方を解消。DecayShockRepeatable=0 で両方とも不読＝厳密恒等。
-            if (c.DecayShockRepeatable > 0)
+            // 回数エッジ＋保留ラッチで両方を解消（2026-07-23 点火＝旗 DecayShockRepeatable は 2026-09-26 に焼き込み）。
             {
                 if (w.SovereignDefaultCount > w.DecayPrevDefaultCount) shock = true;
                 w.DecayPrevDefaultCount = w.SovereignDefaultCount;
@@ -605,7 +579,7 @@ public static class Politics
         else
         {
             Transition(w, c, reformist, radical, coerce);
-            if (w.CivilWarYears <= 0 || c.DominanceIsStock > 0) CheckSecession(w, c, coerce);   // ★E-06：ストックは内戦中も積分する（判定だけ内戦後）。DominanceIsStock=0 では従来どおり内戦中は呼ばない＝恒等。革命が起きなければ分離独立を判定（保持力は人口項を内包・政5で coerce=軍/警察由来の保持力を渡す）
+            CheckSecession(w, c, coerce);   // ★E-06：ストックは内戦中も積分する（判定だけ内戦後・旗 DominanceIsStock は 2026-09-26 に焼き込み）。革命が起きなければ分離独立を判定（保持力は人口項を内包・政5で coerce=軍/警察由来の保持力を渡す）
             if (w.CivilWarYears <= 0) CheckFactionRevolt(w, c, coerce);   // F3b 組織運動の内乱（結束した国内勢力＝太平天国型・FactionRevoltScale=1.0稼働・0で観察のみ）
             if (w.CivilWarYears <= 0) CheckRegionalRevolt(w, c, coerce);   // F1 州一揆（王権議会F1・RegionalRevoltThreshold=0で無効・★段2で現行0.50）
         }
@@ -653,7 +627,7 @@ public static class Politics
         double[] curCoord = PoliticalQuantities.DriftedPolityCoord(w.Polity, w.Suffrage, c);
         // 法多様性（政体・2026-07-07）：大衆闘争×ブルジョワ勢力＝ブルジョア独裁の引き金（下記 AvgMassMilitancy の設計コメントの配線＝
         // 高闘争の議会制国家でエリートが秩序回復の独裁を敷く）。議会制の立憲/共和のみ＝較正（ParliamentEnabled=false）遮蔽。
-        // ★2026-08-12：**危機ゲートの非対称を解消**（BourgeoisCoupNeedsCrisis=1で有効・0で旧挙動）。
+        // ★2026-08-12：**危機ゲートの非対称を解消**（旗 BourgeoisCoupNeedsCrisis は 2026-09-26 に焼き込み）。
         //   すぐ上の一党支配→独裁化（domDictator）は「満足した安定な立憲/共和は独裁の引力を受けない」という危機ゲート
         //   （MeanSatisfactionPol < DominanceInstabilitySatisfaction）を持つのに、**同じ「議会制国家がエリート独裁に転ぶ」
         //   現象を測るこの項だけが素通り**していた。近代ブロックが厚い国ほど値が大きくなるので、最も厚いアメリカ
@@ -661,7 +635,7 @@ public static class Politics
         //   参政権と報道を1段ずつ失って識字26%・技術2.64まで落ちる（実測）。秩序回復の独裁は**回復すべき無秩序**を要る。
         double bourgeoisCoup = 0;
         if (c.BourgeoisCoupWeight > 0 && w.ParliamentEnabled && w.Polity is Polity.ConstitutionalMonarchy or Polity.Republic
-            && (c.BourgeoisCoupNeedsCrisis <= 0 || w.MeanSatisfactionPol < c.DominanceInstabilitySatisfaction))
+            && w.MeanSatisfactionPol < c.DominanceInstabilitySatisfaction)
         {
             var (_, modernPower, _) = InterestGroups.Blocs(w);
             bourgeoisCoup = c.BourgeoisCoupWeight * modernPower * AvgMassMilitancy(w);
@@ -684,8 +658,8 @@ public static class Politics
         }
         if (attractor == w.Polity || best - cur <= c.PolityInertia * w.Legitimacy) return;   // 現状が引力点 or イデオロギー差が保持力に届かない＝変化なし
         // 政2：上からの改革（明治型・欽定憲法・露大改革）＝支配ブロック自身が主導する代議制/近代化への移行。大衆動員(challenge)が治安維持力を超えずとも遷移できる例外チャネル。
-        // ReformFromAboveEnabled=0 では下の challenge<=coerce ゲートが無条件で効く＝旧挙動（明治1889/プロイセン欽定/露大改革は不能・現行1.0点火）。
-        // >0 で「①引力点が別政体（上の第1ゲートを通過済＝支配層含む国民集計で現政体より別政体の支持が高い）②正統性侵食が進行中(Legitimacy<閾値)③遷移先が反動的奪取でない代議制方向」の三条件が揃えば coerce ゲートを免除。
+        // （旗 ReformFromAboveEnabled は 2026-09-26 に焼き込み＝旧挙動＝challenge<=coerce ゲートが無条件で明治1889/プロイセン欽定/露大改革が不能）。
+        // 「①引力点が別政体（上の第1ゲートを通過済＝支配層含む国民集計で現政体より別政体の支持が高い）②正統性侵食が進行中(Legitimacy<閾値)③遷移先が反動的奪取でない代議制方向」の三条件が揃えば coerce ゲートを免除。
         // ＝支配層が自ら立憲化/近代化するので暴動を要しない。奪取(独裁/無政府)や急進暴力革命は対象外＝あくまで漸進の上からの改革のみ。
         // C-高1(1)（史実検証2026-07-22）：anticipation＝大衆動員圧(challenge/coerce)＋外圧が高いほど発火閾値が上がる（革命の予感が王を動かす＝
         // 自由民権運動1874-84・ハイドパーク暴動1866→第二次選挙法）。旧＝正統性ストック平衡が完全閉鎖でも0.895・恒常内戦でも0.445で閾値0.4を割らず
@@ -695,15 +669,15 @@ public static class Politics
         double anticipation = c.ReformAnticipationWeight > 0
             ? c.ReformAnticipationWeight * PoliticalQuantities.ChallengeRatio(challenge, coerce)
             : 0;
-        bool reformFromAbove = c.ReformFromAboveEnabled > 0 && !IsSeizure(attractor)
+        bool reformFromAbove = !IsSeizure(attractor)
                              && w.Legitimacy < c.ReformFromAboveLegitThreshold + anticipation;
         if (challenge <= coerce && !reformFromAbove) return;   // 動員（改革派＋急進派）が実効治安維持力を超えない＝国家が鎮圧＝高治安維持力の権威主義は工業化しても徳川に留まる（上からの改革チャネルのみ免除）
-        // P3c 遷移グラフの廃止（PolityGraphRetired=0で従来どおり・現行1.0）：**平和的な漸進遷移**（非奪取×改革派主導）はグラフのジャンプから外す＝
+        // P3c 遷移グラフの廃止（旗 PolityGraphRetired は 2026-09-26 に焼き込み）：**平和的な漸進遷移**（非奪取×改革派主導）はグラフのジャンプから外す＝
         // 連続動学（P3b＝議会/王権圧力→統制力→床交差の再ラベル・廃位・王権の形の変異）が同じ帰結を漸進で出す。
         // 暴力革命（急進主導）と奪取（独裁/無政府）は史実どおり不連続イベント＝ExecuteRegimeChange のまま。
         // C-高1(2)：改革派主導の平和的遷移でも「上からの改革」が発火しているなら下賜（ExecuteRegimeChange の GrantedControlOnReform）に到達させる
         //（旧＝この早期returnが下賜の点火口を殺し、欽定憲法が原理的に不能だった）。ReformGrantPcWidth=0 では旧条件のまま＝厳密恒等。
-        if (c.PolityGraphRetired > 0 && !IsSeizure(attractor) && radical <= reformist && !(reformFromAbove && c.ReformGrantPcWidth > 0)) return;
+        if (!IsSeizure(attractor) && radical <= reformist && !(reformFromAbove && c.ReformGrantPcWidth > 0)) return;
         ExecuteRegimeChange(w, c, attractor, reformFromAbove, reformist, radical, challenge, coerce);
     }
 
@@ -761,8 +735,8 @@ public static class Politics
         //   共和革命＝土地改革（限定的）・プロレタリア独裁＝全面（集産化）。**書くのは既存の法**＝FarmRentCap が
         //   地代を削り、地代の資本化＝旧支配層の政治力が一緒に痩せる（機構は全て既存・この1本だけが欠けていた）。
         //   ⚠検地台帳の前提は迂回＝没収に台帳は要らない（参政権の floor-raise と同じ扱い）。
-        //   ⚠立憲君主制には適用しない＝地主との妥協の産物（英・七月王政）。RevolutionLandReform=0 で厳密恒等。
-        if (c.RevolutionLandReform > 0 && dt)
+        //   ⚠立憲君主制には適用しない＝地主との妥協の産物（英・七月王政）。（旗 RevolutionLandReform は 2026-09-26 に焼き込み）
+        if (dt)
         {
             var floor = target == Polity.ProletarianDictatorship ? ReformLevel.Full
                       : target == Polity.Republic ? ReformLevel.Limited
@@ -792,8 +766,8 @@ public static class Politics
         //   史実の梯子＝英1832→1867→1884→1918、仏1791制限→1792男子普選（革命は連続した政変として表現される）。
         //   ⚠上げも下げも1段＝反動の剥奪も一括では起きない（対称）。
         //   ⚠初期化（allowRevoke=false）は対象外＝シナリオの開始値はそのまま尊重する。
-        //   ⚠StagePrereq=0 で従来と厳密一致（現行1.0点火）。
-        if (allowRevoke && c is not null && c.StagePrereq > 0)
+        //   （旗 StagePrereq は 2026-09-26 に焼き込み）
+        if (allowRevoke && c is not null)
         {
             int su = (int)w.Suffrage, pr = (int)w.Censorship;
             sufTarget = (Suffrage)Math.Clamp((int)sufTarget, su - 1, su + 1);
@@ -803,9 +777,9 @@ public static class Politics
         {
             // 反革命の波（復古王政・ビスマルク反社会主義法・ナポレオン3世のクーデタ）：政体転換は参政権・報道を**政体の含意水準へ上げも下げも**＝ラチェット解除。
             // 下げても大衆の支持が強ければ AI/議会が翌期に自らの選好で再拡大しうる＝19世紀の振り子（剥奪は反動ブロックの支配が続く間だけ保つ）。
-            // 政3：縮小方向（剥奪）を反動系政体への遷移時のみに限定するラチェット。SuffrageRatchetOnLiberalize=0（または c=null の初期化パス）では従来どおり上げも下げも
+            // 政3：縮小方向（剥奪）を反動系政体への遷移時のみに限定するラチェット（旗 SuffrageRatchetOnLiberalize は 2026-09-26 に焼き込み）。c=null の初期化パスでは従来どおり上げも下げも
             // （立憲化で参政権が Census へ縮む旧バグ＝現行1.0点火で解消済み）。>0 かつ遷移先が代議制（反動系でない）なら floor-raise のみ＝自由化はラチェット（19世紀に立憲化が選挙権を狭めた例はない）。
-            bool ratchet = c is not null && c.SuffrageRatchetOnLiberalize > 0 && !IsReactionaryPolity(w.Polity);
+            bool ratchet = c is not null && !IsReactionaryPolity(w.Polity);
             if (ratchet)
             {
                 // 自由化遷移＝下限を上げるのみ（剥奪しない）。反動政体への遷移(下の else 相当の剥奪)だけがラチェットを解除する。
@@ -853,8 +827,8 @@ public static class Politics
         w.OnGoldStandard = false; w.GoldStandardSuspendedInCrisis = true;   // 対外信用の崩壊＝兌換崩壊→外資逃避（CapitalMarket）。当面 借りられない
         // C-中1（史実検証2026-07-22）：革命的否認に信用市場の代償が無かった（BorrowCooldown も触らないため即座に再起債できる＝一過性Anarchyが債務ロンダリング装置になる）。
         // 史実の代償は「永久追放」でなく長期市場からの排除＋高コスト短期化（ソヴィエト1918否認→ジェノヴァ1922決裂、以後も短期の供給者信用は継続）。
-        // ※制度疲労ショックとは切り離す（HadSovereignDefault/SovereignDefaultCount は立てない＝革命そのものが既に体制転換なので二重計上を避ける）。RepudiationCreditPenalty=0で不読（現行1.0点火）。
-        if (c.RepudiationCreditPenalty > 0) w.BorrowCooldown = c.DefaultCooldownQuarters;
+        // ※制度疲労ショックとは切り離す（HadSovereignDefault/SovereignDefaultCount は立てない＝革命そのものが既に体制転換なので二重計上を避ける）。（旗 RepudiationCreditPenalty は 2026-09-26 に焼き込み）
+        w.BorrowCooldown = c.DefaultCooldownQuarters;
     }
 
     // 各政体が成立時に失脚させる（特権を奪う）ブロック：旧→新で誰が権力を失うか。
@@ -898,8 +872,8 @@ public static class Politics
             if (soldier is null) continue;
             var peasant = r.Pops.Find(p => p.ClassId == c.SoldierRecruitClassA);   // 徴集プールは Military.cs と同じ設定（農民）
             var worker = r.Pops.Find(p => p.ClassId == c.SoldierRecruitClassB);    // 同（都市労働者）
-            if (peasant is not null) { double m = peasant.Size * c.CivilWarConscriptRate; Military.MoveCohort(peasant, soldier, m); conscripted += m; }
-            if (worker is not null) { double m = worker.Size * c.CivilWarConscriptRate; Military.MoveCohort(worker, soldier, m); conscripted += m; }
+            if (peasant is not null) { double m = peasant.Size * c.CivilWarConscriptRate; Military.MoveCohort(peasant, soldier, m, c); conscripted += m; }   // ★2026-09-26（sweep-23）：手元の c を渡す（旧＝3引数版＝既定の係数）
+            if (worker is not null) { double m = worker.Size * c.CivilWarConscriptRate; Military.MoveCohort(worker, soldier, m, c); conscripted += m; }
         }
         // 政13：内戦に反乱側がなく、徴集が国家の兵士pop（→CoercionTarget→治安維持力）へ一方的流入＝内戦激化が政府の治安維持力を機械的に高める（恐怖政治で貴族が最も死んだ仏革命と逆）。
         // 徴集の一部を challenge 側の仮想戦力として分離計上する（反乱側も動員する）。累積で持ち、決着時の challenge に加算＝内戦が長引くほど反乱側も増強され、政府の一方的な治安維持力上昇を相殺。
@@ -950,7 +924,6 @@ public static class Politics
         w.CivilWarYears = 0; w.CivilWarScore = 0;
         challenge += w.CivilWarRebelStrength;   // 政13：反乱側の累積動員を決着判定へ（CivilWarRebelSide=0で加算なし・現行0.5）。決着後にリセット（下）
         w.CivilWarRebelStrength = 0;   // 内戦終了＝反乱側戦力をクリア（次の内戦は新規に積む）
-        w.LastCivilWarChallenge = challenge; w.LastCivilWarCoerce = coerce;   // ★A-02：決着判定の両辺を診断へ残す（力学は読まない）
         if (w.SecedingRegion is { } reg)   // 分離戦の決着：中央が弱い（動員>治安維持力）と離脱成功＝州喪失、さもなくば再統合
         {
             w.SecedingRegion = null;
@@ -999,7 +972,7 @@ public static class Politics
         //   ⚠**国名も文化名も出てこない**（思想②）。アメリカ南部が離れるのは南部のpopの思想分布がそうさせるからで、
         //   「南部だから」ではない。だから同じ条件が揃えば清でも墺でも起きる。
         // ③首都（Id0）は必ず中央に残る＝親が消滅しない・首都不変条件を壊さない。
-        if (c.CivilWarSplitEnabled > 0 && w.RevoltingFaction is null && !w.StepsDiplomacy
+        if (w.RevoltingFaction is null && !w.StepsDiplomacy
             && w.SelfPower is not null && w.Regions.Count > 1
             && attack < (coerce + militia) * c.CivilWarLandslideRatio
             && coerce + militia < attack * c.CivilWarLandslideRatio)
@@ -1031,12 +1004,11 @@ public static class Politics
                             - Ideologies.Support(agg, w.Polity, c.IdeologyAffinitySlope);
                 // ★分裂の断層（2026-09-06・作者設計「分裂の判定に地図の上の断層が無い」＝マンチェスター王国/ルアーヴル王国/リヨン王国が勝者に出る）：
                 //   思想の傾きだけで割ると同文化の中核州が割れる。器>0 では**民族の断層**（中核度<0.5＝分離の内乱と同じ物差し・新しい数なし）が
-                //   ある州だけが離れる。断層の無い一様な国では拮抗の内戦は分裂でなく通常決着（革命/鎮圧）へ落ちる。0＝従来。
-                if (c.SplitRequiresFaultLine > 0 && !(AvgRegionCoreShare(r) < 0.5)) continue;
+                //   ある州だけが離れる。断層の無い一様な国では拮抗の内戦は分裂でなく通常決着（革命/鎮圧）へ落ちる（旗 SplitRequiresFaultLine は 2026-09-26 に焼き込み）。
+                if (!(AvgRegionCoreShare(r) < 0.5)) continue;
                 if (edge > edgeMean) (rebels ??= []).Add(r);   // 平均より反乱側＝この国の中で相対的に離れたい塊
             }
             if (rebels is not null && rebels.Count * 2 >= edgeN) rebels = null;   // 多数派の離脱は分裂でない＝通常決着（革命）へ
-            w.CivilWarSplitCandidateRegions = rebels?.Count ?? 0;
             if (rebels is { Count: > 0 })
             {
                 w.PendingSplitRegions = rebels;
@@ -1068,7 +1040,7 @@ public static class Politics
                 var (dt, dm, dmass) = Dispossessed(w.CivilWarTarget);
                 ResolveRevolt(w, c, dt, dm, dmass);
                 if (IsSeizure(w.CivilWarTarget)) w.RuptureWindowQuarters = Math.Max(w.RuptureWindowQuarters, (int)c.RuptureWindowQuartersOnCrush);   // 奪取系への内戦勝利も断裂の窓（即時転換側 L620 と対称）
-                if (c.RevolutionLandReform > 0 && dt)   // 内戦を経た革命勝利も土地改革の floor-raise を適用（即時転換側 L650-660 と対称）
+                if (dt)   // 内戦を経た革命勝利も土地改革の floor-raise を適用（即時転換側 L650-660 と対称）
                 {
                     var floor = w.CivilWarTarget == Polity.ProletarianDictatorship ? ReformLevel.Full
                               : w.CivilWarTarget == Polity.Republic ? ReformLevel.Limited
@@ -1730,19 +1702,9 @@ public static class Politics
             // ★E-05段3（2026-09-03）：⚠旧はここで `Tier == Colonial` を見ていた＝**同じ問い（代表を得ているか）に法が2本**。
             //   新＝格を見ず、上の少数派の地位不満と**同じ算入率**を使う＝規則は1本（作者裁定「法側で制御したい」）。
             //   ⚠本国州も同じ式を通るが、中核度≈1＝算入率≈1＝圧力≈0への割引＝**従来ここに来ていなかった州の挙動は実質変わらない**。
-            //   SuffrageScopeUnified=0 で下の else へ落ちる＝厳密恒等。
-            if (c.SuffrageScopeUnified > 0 && c.SuffrageScopeGate > 0)
+            //   （旗 SuffrageScopeUnified は 2026-09-26 に焼き込み＝格を読む旧の枝は削除）
+            if (c.SuffrageScopeGate > 0)
                 pressure *= 1.0 - System.Math.Clamp(SuffrageInclusion(w, r), 0, 1);
-            else if (c.SuffrageScopeGate > 0 && r.Tier == RegionTier.Colonial)
-            {
-                double inc = w.ColonialSuffrage switch
-                {
-                    ColonialSuffrageLaw.Full => 1.0,
-                    ColonialSuffrageLaw.OwnNationals => AvgRegionCoreShare(r),
-                    _ => 0.0,
-                };
-                pressure *= 1.0 - inc;
-            }
             // ★E-05 段1（作者裁定2026-09-03「あらゆる反乱は1つの経路で発生し、1つの方法で対処する。植民地反乱と国内反乱でルールが異なるのはダメ」）。
             //   ⚠**「植民地なら」という条件を1つも書かない**＝植民地が離れやすいのは格が違うからではなく**遠いから**である。
             //   ★保持力は「軍が届く分だけ」効く＝`Diplomacy.Projection` と**同じ形・同じ係数**（DistanceWarDecay / DistanceNormKm）を州へ当てる。
@@ -1795,7 +1757,7 @@ public static class Politics
         }
         // ★E-06 支配度＝ストックの積分（作者裁定2026-09-05・設計 20260903_支配度はストックにする_再裁定 §4）。
         //   ②支配度 += (引き留め − 離脱圧力) × 速度。引き留め＝この州に届く保持力（E-05段1の投射・段2の共有分母を掛けた後）＝判定と同じ数。
-        //   ⚠書き手はここ1箇所。格（Tier）は読まない＝本国の辺境州も同じ式で減る・増える。積分は常に走り、読むのは下の判定（DominanceIsStock>0）だけ＝0で厳密恒等。
+        //   ⚠書き手はここ1箇所。格（Tier）は読まない＝本国の辺境州も同じ式で減る・増える。積分は常に走り、読むのは下の判定だけ。
         //   ⚠圧力が保持力を下回る限り支配度は回復する（上限1）＝「戦争で軍が減っても全植民地が同時に独立しない」のはストックの慣性が担う。
         double sharedDivDom = c.SecessionHoldSharedArmy > 0 ? 1.0 + c.SecessionHoldSharedArmy * System.Math.Max(0, restive - 1) : 1.0;
         Region? lowest = null; double lowestDom = double.PositiveInfinity;
@@ -1838,13 +1800,12 @@ public static class Politics
         }
         w.SecessionHold = c.SecessionHoldProjection > 0 ? worstEffHold : hold;   // ★E-05段1：UIが見る保持力も「その州に届く分」＝表示と判定を同じ数にする
         // ★同時独立（SecessionAsWar・作者裁定2026-09-06）：クールダウン（内戦4年・国につき1つ）を撤去。支配度が尽きた州（旧判定＝圧力最大の州）は
-        //   その四半期に内戦一元化の経路へ＝複数州が同時に独立の戦争へ入る。多国シム（SecessionSpawnsNation・共有外交）でのみ。0＝下の従来経路＝厳密恒等。
-        bool secAsWar = c.SecessionAsWar > 0 && c.SecessionSpawnsNation > 0 && !w.StepsDiplomacy && w.SelfPower is not null;
+        //   その四半期に内戦一元化の経路へ＝複数州が同時に独立の戦争へ入る。多国シム（SecessionSpawnsNation・共有外交）でのみ（旗 SecessionAsWar は 2026-09-26 に焼き込み）。
+        bool secAsWar = c.SecessionSpawnsNation > 0 && !w.StepsDiplomacy && w.SelfPower is not null;
         if (secAsWar)
         {
             List<Region>? go = null;
-            if (c.DominanceIsStock > 0) { foreach (var (r3, _, _) in margins) if (!(r3.Dominance > 0)) (go ??= []).Add(r3); }
-            else if (worst is not null && worstPressure > c.SecessionThreshold && worstPressure > (c.SecessionHoldProjection > 0 ? worstEffHold : hold)) (go ??= []).Add(worst);
+            foreach (var (r3, _, _) in margins) if (!(r3.Dominance > 0)) (go ??= []).Add(r3);
             if (go is not null)
             {
                 (w.PendingSecessionWars ??= []).AddRange(go);
@@ -1853,7 +1814,6 @@ public static class Politics
             }
             return;
         }
-        if (c.DominanceIsStock > 0)
         {
             // ★E-06 段2：独立の判定＝支配度が尽きた州（最も低い1州）。圧力の瞬間値でなくストックの到達＝軍の一時的な減少で全植民地が同時に離れない。
             //   ⚠内戦中（CivilWarYears>0）は積分だけ＝判定しない（計測①②2026-09-05＝内戦中に積分が止まると分離の待ち行列が4年刻みで詰まり、総数−33〜37%・中南米が1824〜45へ遅れた）。
@@ -1865,13 +1825,7 @@ public static class Politics
                 w.HadCivilWar = true; w.HadSecession = true;
             }
         }
-        else if (worst is not null && worstPressure > c.SecessionThreshold && worstPressure > (c.SecessionHoldProjection > 0 ? worstEffHold : hold))
-        {
-            w.SecedingRegion = worst;
-            StartCivilWar(w, c);
-            w.CivilWarTarget = w.Polity;   // 分離戦＝政体は変わらない（再統合 or 喪失）
-            w.HadCivilWar = true; w.HadSecession = true;
-        }
+        // （旧判定＝圧力の瞬間値が最大の州が保持力を超えたら分離＝旗 DominanceIsStock=0 の枝は 2026-09-26 に削除）
     }
 
     /// <summary>州の関税利害を**実利から創発**（倍率排除：静的な資源ラベル写像を撤去）。
@@ -1961,7 +1915,7 @@ public static class Politics
     /// ⚠残る1段（植民地参政権の「なし」＝入植者すら本国議会に代表を持たない）は**領域の属性**であって民族の話ではない
     ///   （英領インドはウェストミンスターに議席なし／仏領アルジェリアのコロンはパリに議席あり）。
     ///   ⇒ これを法で表すなら「編入するか植民地のままか」という別の決定が要る＝**J-009 の裁定待ち**。
-    /// ⚠SuffrageScopeUnified=0 では呼び手が旧の分岐へ落ちる（この関数は呼ばれない）＝厳密恒等。</summary>
+    /// </summary>
     private static double SuffrageInclusion(World w, Region r)
         => w.MigrantNativeSuffrage == MigrantNativeSuffrageLaw.Granted ? 1.0 : AvgRegionCoreShare(r);
 
@@ -2078,8 +2032,37 @@ public static class Politics
     public static double RevolutionPressure(World w)
         => PoliticalQuantities.ChallengeRatio(w.ReformistPower + w.RadicalPower, PoliticalQuantities.EffectiveCoerce(w, w.Coef));
 
+    /// <summary>人口加重ジニ係数∈[0,1]（O(n log n)）＝**診断量**（ヘッダーの統計・SocialThemeTests）。★段2（2026-09-09）で闘争度の入力から外した
+    /// ＝格差は want（1−満足／失望）と二重計上だった（設計メモ §2-1）。格差が広がれば下層の満足が落ちる＝同じ根を2度数えていた。
+    /// 加重ロレンツ曲線を昇順に台形則で積分（x=累積人口シェア・y=累積富シェア）し gini=1−Σ(Δx)(y_i+y_{i-1})。全popが同じ pc なら曲線が対角線＝0。
+    /// ★2026-09-26（棚卸し pol-37）：**読むときに計算する**（旧＝Politics.Step が全61カ国で毎四半期計算して World.GiniIndex に置いていた＝読み手は画面のヘッダー（プレイヤー国）とテストだけ）＝状態を1つ減らした。</summary>
+    public static double GiniIndex(World w)
+    {
+        var wpcList = new List<(double pc, double size)>();
+        foreach (var gp in w.AllPops()) { if (gp.Size <= 1e-9) continue; wpcList.Add((Math.Max(0, gp.Savings) / gp.Size, gp.Size)); }
+        double gini = 0;
+        if (wpcList.Count > 1)
+        {
+            wpcList.Sort((a, b) => a.pc.CompareTo(b.pc));
+            double totSize = 0, totWealth = 0; foreach (var e in wpcList) { totSize += e.size; totWealth += e.pc * e.size; }
+            if (totSize > 1e-9 && totWealth > 1e-9)
+            {
+                double cumX = 0, cumY = 0, area = 0;   // area＝ロレンツ曲線下の面積（台形則）
+                foreach (var e in wpcList)
+                {
+                    double prevX = cumX, prevY = cumY;
+                    cumX += e.size / totSize; cumY += e.pc * e.size / totWealth;
+                    area += (cumX - prevX) * (cumY + prevY);   // 台形＝Δx×(y_i+y_{i-1})/2 の /2 は最後にまとめて処理せず gini 式に吸収
+                }
+                gini = 1.0 - area;   // area は既に (y_i+y_{i-1}) 形＝2×(曲線下面積)。ジニ=1−2×面積 と一致
+            }
+        }
+        return Math.Clamp(gini, 0, 1);
+    }
+
     // 大衆（労働者・農民。兵士除く）の母集団＝**この1本だけ**（闘争度と不満度は二量分離の対＝分母の式を二度書かない）。
     // ★2026-09-25：満足度（NationalScore.MeanSatisfaction）も同じ母集団へ揃えた＝同じアセンブリから呼ぶため private→internal（述語は不変）。
+    // ★2026-09-26（棚卸し sweep-13）：同じ述語の手書きの写し（植民地の本国圧力・組合の厚生・役務の順位・債務不履行の打撃・特権の俸給・初期の闘争度・大衆の所得）もこの1本を呼ぶ。
     internal static bool IsMassPop(Pop p) => !p.Closed && !p.IsModernElite && !p.IsSoldier;
 
     // 大衆（労働者・農民。兵士除く）の平均闘争度（人口に依らない水準）。高ければブルジョワが独裁化（ブルジョア独裁の引き金）

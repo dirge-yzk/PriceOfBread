@@ -598,14 +598,11 @@ public partial class GameViewModel
             // ⚠目標には**陸海の再配分を必ず掛ける**＝エンジンの EconomyStep.BaseArmsTarget と同一（分子と分母を同じ規則に）。
             double BaseTarget(int b) => r.MilitaryScalePeace * milRates[b] * MilMul(c.MilitaryGoods[b]) / Math.Max(1e-6, BaseWear(b));
             double BaseHeld(int b) => r.ArmsStock is { } bd && bd.TryGetValue(c.MilitaryGoods[b], out double bv) ? bv : BaseTarget(b);
-            // 予算の充足（EconomyStep）：pro rata（全段を一律に削る）と旧・残余カスケードの二択。
+            // 予算の充足（EconomyStep）：残余カスケード（pro rata の器 MilitaryProcureProRata は 2026-09-26 に削除）。
             double estCost = 0;
             for (int b = 0; b < c.MilitaryGoods.Length; b++) estCost += r.MilitaryScale * milRates[b] * Price(c.MilitaryGoods[b]);
             double signalBudget = r.MilitaryBudgetCeiling;   // EconomyStep と同じ＝Budget ≤ Ceiling は Simulation の書き手の単調性で成立（旧 Math.Max(Ceiling, Budget) と同値・2026-09-11 M4）
-            double allCost = c.MilitaryProcureProRata > 0 ? EconomyStep.MilitaryProcurementNeed(r, c) : 0.0;
-            bool proRata = c.MilitaryProcureProRata > 0 && allCost > Eps;
-            double affordAll = proRata ? Math.Min(1.0, signalBudget / allCost) : 0.0;
-            double afford = proRata ? affordAll : (estCost > Eps ? Math.Min(1.0, r.MilitaryAffordRaw) : 0.0);
+            double afford = estCost > Eps ? Math.Min(1.0, r.MilitaryAffordRaw) : 0.0;
             // 耐久装備の目標在庫と発注（EconomyStep）
             double wear = Math.Max(1e-6, c.ArmsWearRate);
             double warWear = wear * (1.0 + c.ArmsWarWearScale * Math.Max(0, r.MilitaryWarMultLast - 1.0));
@@ -659,7 +656,7 @@ public partial class GameViewModel
                 double qCost = 0;
                 for (int b = 0; b < c.MilitaryQualityGoods.Length; b++)
                     qCost += (stock ? StockOrder(c.MilitaryQualityGoods[b], qRates[b]) : r.MilitaryScale * qRates[b]) * Price(c.MilitaryQualityGoods[b]);
-                double qAfford = proRata ? (qCost > Eps ? affordAll : 0.0) : (qCost > Eps ? Math.Min(1.0, remaining / qCost) : 0.0);
+                double qAfford = qCost > Eps ? Math.Min(1.0, remaining / qCost) : 0.0;
                 AddGroup(rows, "上位装備", TierRows("上位", c.MilitaryQualityGoods, qRates, qAfford));
 
                 if (EconomyStep.AllPresent(c.MilitaryTier3Goods, ng))
@@ -668,7 +665,7 @@ public partial class GameViewModel
                     double t3Cost = 0;
                     for (int b = 0; b < c.MilitaryTier3Goods.Length; b++)
                         t3Cost += (stock ? StockOrder(c.MilitaryTier3Goods[b], t3Rates[b]) : r.MilitaryScale * t3Rates[b]) * Price(c.MilitaryTier3Goods[b]);
-                    double t3Afford = proRata ? (t3Cost > Eps ? affordAll : 0.0) : (t3Cost > Eps ? Math.Min(1.0, remaining3 / t3Cost) : 0.0);
+                    double t3Afford = t3Cost > Eps ? Math.Min(1.0, remaining3 / t3Cost) : 0.0;
                     AddGroup(rows, "最上位装備", TierRows("最上位", c.MilitaryTier3Goods, t3Rates, t3Afford));
 
                     if (EconomyStep.AllPresent(c.MilitaryAirGoods, ng))
@@ -683,7 +680,7 @@ public partial class GameViewModel
                             if (r.Markets[Catalog.CrudeOilId].LastProduced > Colonial.OilViableProductionFrac * afNeed)
                             { airFuelNeed = afNeed; aCost += airFuelNeed * Price(Catalog.CrudeOilId); }
                         }
-                        double aAfford = proRata ? (aCost > Eps ? affordAll : 0.0) : (aCost > Eps ? Math.Min(1.0, remainingA / aCost) : 0.0);
+                        double aAfford = aCost > Eps ? Math.Min(1.0, remainingA / aCost) : 0.0;
                         var air = new List<ArmyNeedRow>();
                         for (int b = 0; b < c.MilitaryAirGoods.Length; b++)
                         {

@@ -228,7 +228,7 @@ public sealed class Simulation
         // P6 乾隆帝の遺産（2026-07-17）：非特権大衆の初期闘争度（清＝白蓮教乱前夜の慢性的混乱）。既定0=不走行＝恒等
         if (scenario.InitialMassMilitancy > 0)
             foreach (var rg in World.Regions) foreach (var p in rg.Pops)
-                if (!p.Closed && !p.IsModernElite && !p.IsSoldier) p.Militancy = scenario.InitialMassMilitancy;
+                if (Politics.IsMassPop(p)) p.Militancy = scenario.InitialMassMilitancy;
         if (scenario.CreditEnabled)
             World.Bank = new Bank { Gold = World.TotalMoney, Loans = 0, Confidence = 1.0 };
 
@@ -753,8 +753,8 @@ public sealed class Simulation
     // 対象＝軍需の最終財（火砲81/小銃82/弾薬83/帆船84/軍艦86）と軍需専用の中間財（火薬38/帆布42）。
     // 馬127は除外（畜産＝食料源と競合する既知の感度・MilitaryRates 0.1で症状の主因でない）。
     // 技術ゲート財（汽船85/装甲艦105等）は対象外＝TechOnset>0 の並存レシピも触らない（TechGatedScaleZero と整合）。
-    // ★規模と備蓄の深さは <see cref="Coefficients.InitialArmsIndustryScale"/>／<see cref="Coefficients.InitialArsenalMonths"/>
-    //   （どちらも0で旧初期値と厳密恒等＝アブレーションの腕を POB_COEF で測れる）。
+    // ★備蓄の深さは <see cref="Coefficients.InitialArsenalMonths"/>（0で旧初期値と厳密恒等＝アブレーションの腕を POB_COEF で測れる）。
+    //   操業規模の器 InitialArmsIndustryScale は 2026-08-22 の実測で棄却＝2026-09-26 に削除（棚卸し mil-21・dorm-36）。
     internal static readonly int[] InitialArmsIndustryGoods = [38, 42, 81, 82, 83, 84, 86];
 
     private static Region BuildProvince(int id, ProvinceSpec p, NationConfig cfg, Coefficients coef, bool sharedWorld = false)
@@ -812,12 +812,6 @@ public sealed class Simulation
             }
             else if (pr.IsRgo && !Climate.StapleSelfSufficient(pr.GoodId, plat, plon)) ApplyEndowment(pr, ResourceScarcity * coef.ResourceScarcityScale, coef);   // ★Scale=1.0（既定）でビット恒等＝診断用レバー
         }
-        // ★初期軍需産業の播種（<see cref="InitialArmsIndustryGoods"/> の全文）：初期軍隊と同じ「平時の均衡」を供給側にも置く。
-        //   TechOnset>0（晩期の並存レシピ）は触らない＝1783年に作れる既定レシピだけを操業状態にする。0で1つも触らない＝厳密恒等。
-        if (coef.InitialArmsIndustryScale > 0)
-            foreach (var pr in producers)
-                if (!pr.IsRgo && !(pr.TechOnset > 0) && System.Array.IndexOf(InitialArmsIndustryGoods, pr.GoodId) >= 0)
-                    pr.Scale = coef.InitialArmsIndustryScale;
 
         // ★貴族・聖職の初期資産＝土地（2026-08-04・作者指示「現在の問題を全て解決して」の統一根）。
         //   ── 実測（blocprobe・1783年）────────────────────────────────────────────
@@ -2009,7 +2003,7 @@ public sealed class Simulation
                 if (r.SoldierPopIndex >= 0)
                 {
                     double pe = 0, ps = 0;
-                    foreach (var p in r.Pops) if (!p.IsSoldier && !p.Closed && !p.IsModernElite) { pe += p.Earned; ps += p.Size; }
+                    foreach (var p in r.Pops) if (Politics.IsMassPop(p)) { pe += p.Earned; ps += p.Size; }
                     double civWage = ps > 1e-9 ? Math.Max(0, pe / ps) : 0;
                     r.SoldierPayBudget = Math.Min(Math.Max(0, World.Treasury), r.Pops[r.SoldierPopIndex].Size * civWage * World.Coef.SoldierPayMult);
                     World.LastSoldierPay += r.Pops[r.SoldierPopIndex].Size * civWage * World.Coef.SoldierPayMult;   // 請求書＝国庫minで切る前の真の額（形が先・金が後 段0・読み手は既定0の配線Dのみ）

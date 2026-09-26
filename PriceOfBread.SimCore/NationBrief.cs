@@ -78,23 +78,8 @@ public static class NationBrief
     public static double SecessionHold(NationConfig c, Coefficients coef)
         => 1.0 / (1.0 + Population(c) * coef.SecessionHoldPerPop);
 
-    /// <summary>本国州が他国と陸続きでないか（同doc §3 ＋地理＝投射圏の外にいるか）。
-    /// 判定は陸塊テーブルの真値＝**自国の本国州が載る陸塊のどれにも、他国の本国州が1つも無い**こと。
-    /// 島国（英・日）と大洋の向こう（米）がここで拾われる。植民地は数えない
-    /// （英の北米植民地でアメリカが「陸続き」になってしまう＝当面どの国の**軍**も届かないかを見たいので本国州だけ）。</summary>
-    public static bool IsIsolated(NationConfig c, NationConfig[] all)
-    {
-        var mine = new HashSet<string>();
-        foreach (var p in c.Provinces) if (Landmass.IsRegistered(p.City)) mine.Add(Landmass.LandmassOf(p.City));
-        if (mine.Count == 0) return false;
-        foreach (var other in all)
-        {
-            if (ReferenceEquals(other, c)) continue;
-            foreach (var p in other.Provinces)
-                if (Landmass.IsRegistered(p.City) && mine.Contains(Landmass.LandmassOf(p.City))) return false;
-        }
-        return true;
-    }
+    // 【削除2026-09-26（棚卸し x-04）】IsIsolated（本国州が他国と陸続きでないか）＝呼び手がテストだけだった。
+    //   陸続きの判定の実体は下の NeighborMilitary（同じ陸塊の他国の軍＝島国と大洋の向こうは0）が難易度に使っている。
 
     /// <summary>同じ陸塊に本国州を持つ他国の軍のうち、上位3つの和（＝取り囲まれの度合い）。
     /// 最大1つでは足りない＝プロイセンは墺2.6・露2.0・仏1.8に**同時に**面しており、最大値だけ見ると

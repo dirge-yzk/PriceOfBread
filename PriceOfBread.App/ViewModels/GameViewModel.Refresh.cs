@@ -148,12 +148,10 @@ public partial class GameViewModel
                             detail += $"\n・{f.Name} +{TensionPct(f.Value):P0}";
                     }
                 }
-                // 自国との関係（同盟・禁輸・休戦の残り年数・属国/宗主）＝意思決定情報
+                // 自国との関係（同盟・禁輸・属国/宗主）＝意思決定情報
                 var rel = new List<string>();
                 if (_sim.Diplomacy.HasAlliance(me, pow)) rel.Add("防衛同盟");
                 if (_sim.Diplomacy.HasEmbargo(me, pow)) rel.Add("禁輸中");
-                int truceYears = _sim.Diplomacy.TruceYearsLeft(me, pow);
-                if (truceYears > 0) rel.Add($"休戦:あと{truceYears}年");
                 if (powSuz == me) rel.Add("自国の属国");
                 else if (powSuz is not null) rel.Add($"{powSuz.Name}の属国");   // 帰属の明記（2026-07-19）：他国の勢力圏もホバーで判る
                 if (_sim.Diplomacy.Suzerain(me) == pow) rel.Add("自国の宗主");

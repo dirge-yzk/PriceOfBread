@@ -16,13 +16,10 @@ public static class PopClass
     public const int Worker = 2;       // 工場労働者（＝SoldierRecruitClassB）
     public const int Capitalist = 3;   // 資本家（近代エリート・投資元手）
     public const int Engineer = 4;     // 技師（近代エリート・工場生産性）
-    public const int Soldier = 5;      // 兵士（IsSoldier フラグ併用。ClassId直書きは排除済み箇所あり）
+    // 5＝兵士（IsSoldier フラグ）・7＝教師（公教育）・9＝医者（医療）・10＝商人（流通マージン＋貿易の仲立ち）・12＝家事使用人（#12）
+    //   ＝名前で読む箇所が無い（州の添字 TeacherPopIndex 等とフラグが担う）＝定数は 2026-09-26 に削除（棚卸し x-04）。番号の並びは不変。
     public const int Clergy = 6;       // 聖職者（十分の一税の受け手・世俗化で没落）
-    public const int Teacher = 7;      // 教師（公教育の教育を算出）
     public const int Bureaucrat = 8;   // 官僚（行政力/俸給/汚職分配/弾圧の受け手）
-    public const int Doctor = 9;       // 医者（医療を算出）
-    public const int Merchant = 10;    // 商人（流通マージン＋貿易の仲立ち）
     public const int Artisan = 11;     // 職人（手工業の自営＝ギルド）
-    public const int Servant = 12;     // 家事使用人（家事奉仕を算出・#12）
     public const int Researcher = 13;  // ★研究者（高等教育を算出＝大学。2026-08-17）。⚠ResearcherFrac=0 の世界には**存在しない**（pops に並べない＝Pops.Count が13のまま）
 }

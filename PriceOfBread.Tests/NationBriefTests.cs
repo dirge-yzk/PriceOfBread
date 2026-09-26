@@ -4,8 +4,8 @@ using Xunit;
 namespace PriceOfBread.Tests;
 
 /// <summary>国家選択画面の「おすすめと難易度」（docs/202608/おすすめ国家と難易度_2026-08-09_完了.md【完了】.md）の番人。
-/// 固定するのは3点＝①3列×2カ国に必ず割れる（空の列を作らない）②地理の判定が陸塊テーブルの真値から出る
-/// ③現時点の割り当て（＝ピン。係数が動いて順位が入れ替わったらここが赤くなる＝**ラベルが黙って変わらない**）。</summary>
+/// 固定するのは2点＝①3列×2カ国に必ず割れる（空の列を作らない）（旧②＝地理の判定 IsIsolated はテストだけの呼び手で 2026-09-26 に削除＝x-04）
+/// ②現時点の割り当て（＝ピン。係数が動いて順位が入れ替わったらここが赤くなる＝**ラベルが黙って変わらない**）。</summary>
 public class NationBriefTests
 {
     [Fact]
@@ -22,21 +22,6 @@ public class NationBriefTests
         int easy = 0, normal = 0, hard = 0;
         foreach (var v in d.Values) { if (v == "簡単") easy++; else if (v == "普通") normal++; else hard++; }
         Assert.Equal(2, easy); Assert.Equal(4, normal); Assert.Equal(1, hard);   // 簡単2/普通4/挑戦的1（作者指示2026-08-11）
-    }
-
-    /// <summary>★地理＝本国州が他国と陸続きでないか。植民地は数えない（英の北米植民地でアメリカが陸続きにならない）。</summary>
-    [Theory]
-    [InlineData("イギリス", true)]
-    [InlineData("アメリカ", true)]
-    [InlineData("日本", true)]
-    [InlineData("プロイセン", false)]
-    [InlineData("ロシア", false)]
-    [InlineData("清", false)]
-    public void 投射圏の外にいるかは陸塊テーブルから出る(string name, bool isolated)
-    {
-        var all = WorldData.Nations();
-        var c = System.Array.Find(all, n => n.Name == name)!;
-        Assert.Equal(isolated, NationBrief.IsIsolated(c, all));
     }
 
     /// <summary>現時点の割り当て（2026-08-11の係数での実測）。

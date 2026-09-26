@@ -246,7 +246,7 @@ public static class Colonial
                 double homePressure = c.ColonialUnrestHomeWeight * (colMilSum / colPopSum) * Math.Min(1.0, colonies / Math.Max(1.0, c.ColoniesForFullColonial));
                 if (homePressure > 1e-9) MechanismProbe.Hit(MechanismProbe.Site.AntiImperialOpinion);
                 if (homePressure > 1e-9)
-                    foreach (var pop in w.AllPops()) if (!pop.Closed && !pop.IsModernElite && !pop.IsSoldier) pop.Militancy = Math.Min(1, pop.Militancy + homePressure);
+                    foreach (var pop in w.AllPops()) if (Politics.IsMassPop(pop)) pop.Militancy = Math.Min(1, pop.Militancy + homePressure);
             }
         }
 

@@ -26,8 +26,8 @@ public class SocialThemeTests
         var ex = Record.Exception(() => sim.Run(200));
         Assert.Null(ex);   // §11.6（保存・境界）が全ティック保持＝有効化しても破れない
         Assert.True(Math.Abs(sim.World.TotalPopulation - (p0 + sim.World.PopulationDelta)) < 1e-6 * p0, "テーマG有効化で人口保存が破れた");
-        Assert.InRange(sim.World.GiniIndex, 0.0, 1.0);
-        Assert.True(sim.World.GiniIndex > 0, "多階級の実国でジニ係数が0＝格差の診断量が算出されていない");
+        Assert.InRange(Politics.GiniIndex(sim.World), 0.0, 1.0);
+        Assert.True(Politics.GiniIndex(sim.World) > 0, "多階級の実国でジニ係数が0＝格差の診断量が算出されていない");
     }
 
     [Fact]
@@ -37,13 +37,12 @@ public class SocialThemeTests
         sim.Run(8);   // pop に貯蓄を持たせる
         // 全POPの1人あたり貯蓄を均一化→ジニ≈0
         foreach (var p in sim.World.AllPops()) p.Savings = p.Size * 10.0;
-        Politics.Step(sim.World, sim.World.Coef);
-        double giniEqual = sim.World.GiniIndex;
+        double giniEqual = Politics.GiniIndex(sim.World);
         Assert.True(giniEqual < 0.05, $"完全平等でジニが0付近にならない（{giniEqual:F3}）");
         // 1つのPOPに富を偏在させる→ジニ増加
         var rich = System.Linq.Enumerable.First(sim.World.AllPops());
         rich.Savings = rich.Size * 1000.0;
-        Politics.Step(sim.World, sim.World.Coef);
-        Assert.True(sim.World.GiniIndex > giniEqual + 0.05, $"富の偏在でジニが増えない（平等{giniEqual:F3}→偏在{sim.World.GiniIndex:F3}）");
+        double giniRich = Politics.GiniIndex(sim.World);
+        Assert.True(giniRich > giniEqual + 0.05, $"富の偏在でジニが増えない（平等{giniEqual:F3}→偏在{giniRich:F3}）");
     }
 }

@@ -1576,7 +1576,7 @@ public class PolicyPoliticsTests
     }
 
     /// <summary>(h) 憲法級（参政権）は S1 の後も**硬い純支持&gt;0**＝2026-08-04 の裁定「参政権は政治資本で押せない」をそのまま保存。
-    /// 在庫がどれだけ潤沢でも、純支持が負の参政権の一歩は「余白」の文言で否決される。弁 ConstitutionalMandateScale&gt;0 で初めて在庫で押せる。</summary>
+    /// 在庫がどれだけ潤沢でも、純支持が負の参政権の一歩は「余白」の文言で否決される（在庫で押せるようにする弁 ConstitutionalMandateScale は 2026-09-26 に削除＝dorm-50）。</summary>
     [Fact]
     public void S1_憲法級は在庫が潤沢でも純支持が負なら通らない()
     {
@@ -1596,8 +1596,6 @@ public class PolicyPoliticsTests
         Assert.False(g.Ok, "憲法級が在庫で押し切れた＝2026-08-04 の裁定が破れた");
         Assert.Equal(Government.ReasonNoMandate, g.Reason);
         Assert.False(Government.CanStep(w, PolicyAxis.Suffrage, i));
-        w.Coef.ConstitutionalMandateScale = 1.0;           // 弁を開く＝普通の政策として在庫で押せる
-        Assert.True(Government.GateInfo(w, PolicyAxis.Suffrage, i, l).Ok, "弁を開いても在庫で押せない");
     }
 
     /// <summary>(h') 法律タブのホバーは門の理由をそのまま言う（2026-09-21 ㉖）。憲法級の否決（賛成不足＝硬い純支持&gt;0）に

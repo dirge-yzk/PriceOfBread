@@ -139,7 +139,7 @@ public static class Credit
             //   回収側（delta<0）は従来のまま。新しい数は作らない。
             if (c.CreditDemandDriven > 0 && delta > 0)
             {
-                double budgetMonth = c.IndInvestFromIncome > 0 ? c.IndInvestFromIncome * Math.Max(0, inv.LastEarned) : c.IndInvestmentFrac * Math.Max(0, inv.Savings);
+                double budgetMonth = c.IndInvestmentFrac * Math.Max(0, inv.Savings);
                 double needDaily = Math.Max(0, budgetMonth - Math.Max(0, inv.Savings)) / (double)Calendar.DaysPerMonth;
                 double capacity = Math.Max(0, inv.LastEarned * Calendar.MonthsPerYear * c.SoeSaleYears - bank.Loans);
                 delta = Math.Min(delta, Math.Min(needDaily, capacity));

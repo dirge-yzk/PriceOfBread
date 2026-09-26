@@ -40,9 +40,8 @@ public static class BudgetBindDiag
     public const int InputDemVal = 16;      // 工場投入
     public const int InvestDemVal = 17;     // 建設投資
     public const int MilDemVal = 18;        // 軍需
-    public const int TradeQRaw = 19;        // 買い手の希望輸入量（クリップ前）
-    public const int TradeQRawDesired = 20; // 同・買い手 scale を「予算で切られる前の需要」に置き換えた場合
-    public const int Count = 21;
+    // 【削除2026-09-26（dorm-49・econ-15）】TradeQRaw・TradeQRawDesired（買い手の希望輸入量と、その scale を予算の前の需要へ置き換えた反実仮想）＝旧経路の中だけで書かれていた
+    public const int Count = 19;
 
     public static double[] For(World w)
     {
@@ -77,14 +76,6 @@ public static class BudgetBindDiag
         if (w is null) return;
         var a = For(w);
         a[PopDemVal] += pop; a[InputDemVal] += input; a[InvestDemVal] += invest; a[MilDemVal] += mil;
-    }
-
-    /// <summary>交易の scale を「予算で切られる前の需要」に置き換えた一次見積り（純読み取り）。</summary>
-    public static void TradeScaleRow(World? w, double qRaw, double ratio)
-    {
-        if (w is null) return;
-        var a = For(w);
-        a[TradeQRaw] += qRaw; a[TradeQRawDesired] += qRaw * ratio;
     }
 
     /// <summary>州の消費ループを抜けた時点の予算（月初／使い残し／実支払い）。</summary>

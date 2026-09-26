@@ -114,7 +114,7 @@ public sealed class Good
     public bool IsColonial;     // 気候ゲート財（Catalog.IsColonial と同値）＝賦存州（Resources に列挙）のみ産する。非賦存州は BuildProvince が生産者を除去
     public double Spoilage;     // 在庫の月次腐敗・劣化率（保管期間に応じた減衰。穀物/生鮮＝高・金属/燃料＝低。だぶつきの恒久滞留を防ぐ）
     public bool NonTradeable;   // 輸送不可（労働力・教育・行政・医療＝役務）。地元市場のみ＝貿易・世界価格の対象外
-    public bool GrainChain;     // A-高3：穀物法の課税客体（麦・小麦粉）。史実の客体は穀粒と挽き割りで、焼成パンの国際貿易は存在しない。CornLawGrainChainGate=0 で不読＝恒等
+    public bool GrainChain;     // A-高3：穀物法の課税客体（麦・小麦粉）。史実の客体は穀粒と挽き割りで、焼成パンの国際貿易は存在しない（旗 CornLawGrainChainGate は 2026-09-26 に焼き込み）
     public double Nutrition;    // ★塊1（2026-08-31）：非主食の食べ物度（加工肉/干物=1.0）。主食はTierで常に食料＝この値は読まない。FoodIncludesAnimalProtein=0 で不読＝恒等
 }
 
@@ -240,7 +240,7 @@ public sealed class Pop
     /// <summary>★補給の充足∈[0,1]＝食料の台帳＋満足度の台帳＝(FoodMet+NeedMet)/(FoodNeed+NeedTotal)（導出量＝状態を持たない）。
     /// 階層3分割（作者裁定2026-09-20・2026-09-22 既定化）の後も「食えて、買えているか」の全体＝分割前の満足度と同じ量
     /// （主食の重み1.0は旧台帳の重みそのもの＝新しい数はゼロ）。政治の読み手（不満・闘争度）は読まない＝物理・経済の行動・評価の読み手だけ：
-    /// 兵卒の実質（PowerShares.SoldierWelfare→即応度・兵卒の漏れ）・国力の生活水準項（NationalScore.MeanSupplyFill）・
+    /// 兵卒の実質（PowerShares.SoldierWelfare→即応度）・国力の生活水準項（NationalScore.MeanSupplyFill）・
     /// 家計の困窮（LaborSupply＝女性の就労と児童労働）・阿片の困窮ゲート（EconomyStep）。
     /// ⚠月次の累積器から導く＝EconomyStep.Run の月頭のゼロ化の後（同じ月の消費の途中）に読んではならない（Run の中の読み手は月頭に撮った前月の値＝Scratch.LastSupply）。
     /// 台帳が空（決算前）は 1.0＝満足度の初期値と同じ中立。</summary>
@@ -258,7 +258,6 @@ public sealed class Pop
     public double Earned;             // その月に得た総所得
     public double LandRent;           // その月に受け取った土地の地代（RGOの所有者取り分＝封建貢租）。土地税の課税ベース
     public double IndustrialRent;     // その月に受け取った工業レント（非RGO・投資家所有の利潤。設計3段1＝物差し専用の書き込みタグ・挙動の読者なし）
-    public double DemandIncomeFactor = 1.0;   // 所得翻訳ゲートの需要係数（設計3段2。DemandIncomeElasticity>0 のときのみ月次計算＝既定では書かず読まず）
 }
 
 /// <summary>レシピの投入（§2.4・§11.2 Recipe）：産出1単位あたり投入財をどれだけ要するか。</summary>
@@ -337,7 +336,6 @@ public sealed class Market
     public double PrevImport;   // ★S2台帳衛生（TradeLedgerFix・2026-08-30）：前清算の輸入量。ゼロ化(:EconomyStep)直前に退避＝清算外の読み手（人口の主食純輸入）が常に0を見る非対称の是正。読み手はTradeLedgerFix>0のみ
     public double PrevExport;   // 同・前清算の輸出量
     public double LastDemand;   // 前期の総需要（消費＋投入）。次期の労働配分の重み（持続・リセットしない）
-    public double LastDesiredDemand;   // ★2026-08-21（測定専用）：pop の予算制約を**外した**場合の総需要。TradeScaleUsesDesired=0 では読み手ゼロ＝純記帳
     public double ReservationWage;  // 留保賃金＝労働者が慣れた賃金の下限（労働財のみ使用）。賃上げに速く・賃下げに遅く追従＝下方硬直の創発源
     // 配給率の記帳（作者指示2026-08-10「生産コスト欄の各材に供給率を出す」）＝EconomyStep のクリアリングが決めた
     // その月のこの財の配給率 ration[gi]（買い手が欲しかった量のうち実際に渡った比）。Producer.LastMaterialFill は

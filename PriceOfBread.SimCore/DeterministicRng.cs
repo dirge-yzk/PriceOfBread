@@ -47,11 +47,4 @@ public sealed class DeterministicRng
 
     /// <summary>[0,1) の倍精度乱数。</summary>
     public double NextDouble() => (NextULong() >> 11) * (1.0 / 9007199254740992.0);
-
-    /// <summary>[0, maxExclusive) の整数。</summary>
-    public int NextInt(int maxExclusive)
-    {
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(maxExclusive);
-        return (int)(NextDouble() * maxExclusive);
-    }
 }

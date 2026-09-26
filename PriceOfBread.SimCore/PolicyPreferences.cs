@@ -194,17 +194,8 @@ public static class PolicyPreferences
                             if (Catalog.Goods[gC].Tier is GoodTier.Producer or GoodTier.Intermediate) tradeBase += impC[gC];
                     tariffExtra -= w.Coef.TariffExportOppositionWeight * System.Math.Clamp(tradeBase / e.NominalGdp, 0, 1);
                 }
-                // ★器 TariffRetaliationViaPolitics（2026-09-04）：報復の圧力を**支持項**として国内生産者（旧支配層＝地代・近代エリート）に載せる。
-                //   偏倚/TariffReactionMax∈[−1,1]（正＝相手が壁を上げた＝報復したい・負＝相互低減の誘い）。0＝この行は不読＝厳密恒等。
-                //   ★実測2026-09-04（batch10）：全生産者（旧支配層＋近代エリート）に一律で乗せる形は**差し戻し**＝偏倚は大半の国で正なので
-                //     全員の「上げ」支持が増え、下げの錠が強くなった（開放度0.211→0.156・清+10pt・計算時間2.7倍）。
-                //   史実の形＝報復（「公正貿易」）を求めたのは**閉め出された輸出者**（英1880年代の公正貿易同盟＝ランカシャー/シェフィールドの輸出産業）。
-                //     ＝近代エリートのみ・重み＝輸出/GDP（既存量・クランプ0..1）。旧支配層には乗せない（地代は輸出市場を持たない）。
-                //     既定0＝この行は不読＝厳密恒等。再測は E-14。
-                double retal = w.Coef.TariffRetaliationViaPolitics > 0 && w.Coef.TariffReactionMax > 1e-9 && modern && e.NominalGdp > 1e-9
-                    ? w.Coef.TariffRetaliationViaPolitics * (w.TariffRetaliationBias / w.Coef.TariffReactionMax)
-                      * System.Math.Clamp(w.LastExportValue / e.NominalGdp, 0, 1) : 0.0;
-                return w.Coef.RentProtectionWeightCoef * e.Rent[b] - (mass ? 1.0 : 0) + tariffExtra + retal;
+                // （報復の圧力を支持項として載せる器 TariffRetaliationViaPolitics は2回差し戻し＝2026-09-26 に削除・dorm-51。偏倚は Government が目標へ足す1本だけ）
+                return w.Coef.RentProtectionWeightCoef * e.Rent[b] - (mass ? 1.0 : 0) + tariffExtra;
             }
             case PolicyAxis.CornLaws:         // 穀物法＝地主が賛成・産業/大衆は安いパンで撤廃
                 return w.Coef.RentProtectionWeightCoef * e.Rent[b] - (trad ? 0 : 1.0);
@@ -611,7 +602,7 @@ public static class PolicyPreferences
         }
         double army = ArmyPower(w) * ArmyStake(a) * sign;
         if (System.Math.Abs(army) > 1e-9) list.Add(("軍", army));
-        if (w.Coef.StateRevenueAllTaxes > 0 && (a is PolicyAxis.IncomeTax or PolicyAxis.PollTax or PolicyAxis.LandTax))
+        if (a is PolicyAxis.IncomeTax or PolicyAxis.PollTax or PolicyAxis.LandTax)
             list.Add(("国庫", e.StateRevenue * sign));
         list.Sort((x, y) => y.Item2.CompareTo(x.Item2));   // 賛成が強い順（同値は安定＝List.Sortは不安定だが値が同じなら表示上等価）
         return [.. list];
@@ -632,9 +623,9 @@ public static class PolicyPreferences
         sum += PettyNet(w, a, sign, e);   // 第4束「小営業」（プチブル利益束2026-08-15）。gate=0＝束が空＝+0で恒等・対象3軸以外は旧束の値へフォールバック
         sum += ParliamentNet(w, a, sign, e);
         // 政12：国家の歳入要求を**独立主体として**全税軸へ直接加算（ブロック力で乗算しない＝専売の in-Pref 方式の奇妙なスケーリングを避ける）。
-        // StateRevenueAllTaxes=0 なら専売のみが StateRevenue を得る従来挙動（⚠既定は点火済みの1.0・x-02 で注記を是正）。>0で所得税・人頭税・土地税も財政逼迫で押せる（戦時所得税＝英1799/米1861）。
+        // 所得税・人頭税・土地税も財政逼迫で押せる（戦時所得税＝英1799/米1861）。旗 StateRevenueAllTaxes（0＝専売のみ）は 2026-09-26 に焼き込み。
         // 専売は既に Pref 経由で StateRevenue を持つので二重計上を避け対象外。
-        if (w.Coef.StateRevenueAllTaxes > 0 && (a is PolicyAxis.IncomeTax or PolicyAxis.PollTax or PolicyAxis.LandTax))
+        if (a is PolicyAxis.IncomeTax or PolicyAxis.PollTax or PolicyAxis.LandTax)
             sum += e.StateRevenue * sign;
         sum += ArmyPower(w) * ArmyStake(a) * sign;   // 第6段6-4：軍＝第4の勢力（軍事軸の増強を推す＝統帥権。ArmyPoliticalWeight=0で0＝恒等）
         return sum;

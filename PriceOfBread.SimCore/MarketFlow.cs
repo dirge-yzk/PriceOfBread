@@ -11,7 +11,7 @@
 ///   （月次決算・月末の清算・四半期の首と末）にあり、旬は月をまたがない＝旬の中では入力が定数で、同じ写像を h 回まわしているだけ。
 ///   ・内側（|t|&lt;<see cref="InnerT"/>）の財と役務＝閉じた式 P′＝SB_h(P0·(1＋y0)^h)。SB_h は SoftBand を h 回重ねた厳密な形。
 ///     ⚠ 1＋h·y の形は使わない（端では y≈−0.163＝h=10 で価格が負になる）。(1＋y)^h なら常に正。
-///   ・帯の端・休眠の上乗せ・固い帯（WageClampSoftBand=0）・労働（初回は閉じた式を使わない）＝日次の写像を h 回まわし、
+///   ・帯の端・休眠の上乗せ・退化した帯（L≦Eps）・労働（初回は閉じた式を使わない）＝日次の写像を h 回まわし、
 ///     値がビットで止まったら残りを打ち切る（入力が定数なので以後も同じ値＝厳密に同じ結果）。局所変数だけで回す＝状態を持たない。
 ///   h=1 なら旧来の日次と1ビットも変わらない。
 /// 金の移動は伴わない（価格を置くだけ）＝保存則に無関係。クリアリング・所得決済は月次のまま。
@@ -49,10 +49,9 @@ public static class MarketFlow
         double effWageMax = coef.WageClampMax * (1 + coef.WageClampIndScale * region.Industrialization);
         double lnCeilWage = System.Math.Log(effWageMax);
         double lnFloorWage = -System.Math.Log(coef.WageClampMin);
-        bool wageSoft = coef.WageClampSoftBand > 0.5;
         // 閉じた式が使えるのは、h>1 で、SoftBand の両側の帯が正のときだけ（L≦Eps の退化は日次の SoftBandLn が rp を返す枝＝日次へ落とす）。
         bool closedGoods = h > 1 && lnFloorGoods > Eps && lnCeilGoods > Eps;
-        bool closedWage = h > 1 && wageSoft && lnFloorWage > Eps && lnCeilWage > Eps;
+        bool closedWage = h > 1 && lnFloorWage > Eps && lnCeilWage > Eps;
         // 組合の賃金交渉（no-monopsony-wage）：組織率(LaborWellbeing代理)で留保賃金の上昇速度を増幅＝賃上げに速く・賃下げに抗う。UnionWageRiseBoost=0.5 だが LaborWellbeing は UnionSatBonus=0（休眠）で実効0＝ReservationWageRiseのまま。下方(Fall)は触らず下方硬直温存。
         //   coef と region.LaborWellbeing（月次）だけで決まる＝財ループ不変＝州1回へ巻き上げ（同じ double＝ビット恒等）。
         double unionRise = coef.ReservationWageRise * (1.0 + coef.UnionWageRiseBoost * region.LaborWellbeing);
@@ -70,17 +69,15 @@ public static class MarketFlow
             // 在庫ギャップ＝自己有界な正規化差 (Target−Stock)/(Target+Stock)∈(−1,1)（役務の flow と同形）。手クランプ不要で過剰/不足が対称（倍率排除）。
             double gap = (m.TargetStock - m.Stock) / (m.TargetStock + m.Stock + Eps);
             // ★価格振動の根①（2026-09-07・器 PriceLawSupplyIncludesStock／2026-09-08 作者裁定「備蓄がある限り、それは生産できているものとみなす」）：
-            //   0＝旧式（今月の流入だけ）＝輸入の無い月は倉庫が満杯でも供給0と読まれ、需給差が+1へ飽和して価格が上がり続ける（硫黄の鋸歯の根）。
-            //   1＝**需要までは備蓄が生産の代わりをする**＝supply = max(流入, min(流入+在庫, 需要))。上限が需要なので
+            //   旧式（今月の流入だけ）＝輸入の無い月は倉庫が満杯でも供給0と読まれ、需給差が+1へ飽和して価格が上がり続けた（硫黄の鋸歯の根）。
+            //   新＝**需要までは備蓄が生産の代わりをする**＝supply = max(流入, min(流入+在庫, 需要))。上限が需要なので
             //     ・流入が需要を超える月は従来どおり流入がそのまま供給（豊作で価格が落ちる挙動は不変）
             //     ・流入が細っても在庫が需要を覆う月は供給=需要＝需給差0＝**上がりも下がりもしない**（欠乏でないので煽らない）
             //     ・在庫も足りない月だけ不足の分だけ上がる
             //   ⚠在庫の「過剰」を需給差へ足してはいけない＝在庫ギャップ項（上の gap）が既に同じ過剰を下押ししており**二重計上**になる。
             //     実際 max(0, Stock−Target) を足した版は供給が過大に見え、限界的な生産者が price<=mc で止まって機構の番人3件が赤になった（2026-09-08 差し戻し）。
             double flowIn = m.LastProduced + m.LastImport;
-            double supply = coef.PriceLawSupplyIncludesStock > 0
-                ? System.Math.Max(flowIn, System.Math.Min(flowIn + m.Stock, totalDemand))
-                : flowIn;
+            double supply = System.Math.Max(flowIn, System.Math.Min(flowIn + m.Stock, totalDemand));   // 旗 PriceLawSupplyIncludesStock（2026-09-08 点火）は 2026-09-26 に焼き込み
 
             // 物価水準（名目のヴェール）：参照価格アンカー・床天井を rp×P でスケール＝賃金/財が一斉に騰落＝一般インフレ/デフレ。P≡1＝従来同値。
             double pl = region.PriceLevel;
@@ -92,7 +89,7 @@ public static class MarketFlow
                 double flow = (totalDemand - supply) / (totalDemand + supply + Eps);
                 double adj = coef.FlowAdjustSpeed * flow / div;
                 // 賃金/役務の床天井。0.3–3.0×(参照価格×物価水準)。財側の SoftBand が係数化済みなのに賃金だけ直書きだった＝係数化（値は同一で中立）。
-                // WageClampSoftBand=1.0（有効）＝財と同じ対数飽和(SoftBand)＝実質賃金成長・国際賃金格差の圧縮を緩める。0で従来のハードクランプ（1789基準3倍を天井に固定）。
+                // 財と同じ対数飽和(SoftBand)＝実質賃金成長・国際賃金格差の圧縮を緩める（旗 WageClampSoftBand＝ハードクランプとの切替は 2026-09-26 に焼き込み）。
                 // R2（賃金天井の工業化連動）：天井を固定WageClampMaxでなく工業化度でスケール＝未工業国は従来の3倍据置・工業国のみ実質賃金が伸びる（史実の産業革命の賃金上昇・国際格差の拡大）。WageClampIndScale=1.0（R2点火2026-07-15）。0でeffWageMax=WageClampMax＝旧恒等。床(Min)は据置（下方硬直の温存）。effWageMax とその対数は州1回に巻き上げ済み
                 double wrp = good.RefPrice * pl;
                 if (gi is Catalog.LaborId or Catalog.AdvLaborId or Catalog.FarmLaborId)
@@ -111,7 +108,7 @@ public static class MarketFlow
                         if (!(rw > Eps)) rw = P;   // 否定形＝NaN も初期化側へ（Math.Max は NaN を除去しない）
                         double rwSpeed = target >= rw ? unionRise : coef.ReservationWageFall;
                         rw += (target - rw) * rwSpeed;
-                        double p1 = WageBand(System.Math.Max(target, rw), wrp, wageSoft, lnFloorWage, lnCeilWage, k, coef.WageClampMin, effWageMax);
+                        double p1 = SoftBandLn(System.Math.Max(target, rw), wrp, lnFloorWage, lnCeilWage, k);   // 賃金の床/天井＝WageClampMin/effWageMax（財の SoftBand と同じ対数空間飽和）
                         bool still = Same(p1, P) && Same(rw, RW);
                         P = p1; RW = rw;
                         if (still) break;
@@ -149,7 +146,7 @@ public static class MarketFlow
                     while (run < h)
                     {
                         run++;
-                        double p1 = WageBand(P * (1 + adj), wrp, wageSoft, lnFloorWage, lnCeilWage, k, coef.WageClampMin, effWageMax);
+                        double p1 = SoftBandLn(P * (1 + adj), wrp, lnFloorWage, lnCeilWage, k);
                         bool still = Same(p1, P);
                         P = p1;
                         if (still) break;
@@ -252,12 +249,6 @@ public static class MarketFlow
         double amp = coef.PriceAmpCenter + (coef.PriceAmpEdge - coef.PriceAmpCenter) * System.Math.Pow(ndist, coef.PriceAmpPower);
         return (coef.PriceAdjustSpeed * gap + coef.FlowAdjustSpeed * flow) / div * amp;
     }
-
-    /// <summary>賃金/役務の床天井（旧来の日次の式そのまま）。SoftBand（既定）か、WageClampSoftBand=0 のハードクランプ。</summary>
-    private static double WageBand(double price, double wrp, bool soft, double lnFloorWage, double lnCeilWage, double k, double clampMin, double effWageMax)
-        => soft
-            ? SoftBandLn(price, wrp, lnFloorWage, lnCeilWage, k)   // 床/天井の倍率＝WageClampMin/effWageMax（財の SoftBand と同じ対数空間飽和）
-            : System.Math.Clamp(price, wrp * clampMin, wrp * effWageMax);   // 従来のハードクランプ（係数化のみ・値は同一）
 
     /// <summary>ビット単位で同じか（打ち切りの判定）。+0/−0 を区別し、同じビットの NaN を同一と見る＝写像の不動点を厳密に言う。</summary>
     private static bool Same(double a, double b) => System.BitConverter.DoubleToInt64Bits(a) == System.BitConverter.DoubleToInt64Bits(b);

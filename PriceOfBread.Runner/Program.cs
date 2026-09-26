@@ -908,15 +908,10 @@ if (args.Length > 0 && args[0] == "indprobe")
     int ipQuarters = args.Length > 1 && int.TryParse(args[1], out var qn) ? qn : 12;
     // ★2026-08-02：**プレイヤー国を再現できるようにする**（作者報告「プレイヤーの国家の数値が非常に低くなる」）。
     // 実ゲームのプレイヤー国は NullAgent＝AIが一切介入しない（MainWindowViewModel のエージェント生成）。全AIで測ると
-    // この非対称が見えないので、`indprobe <四半期> <sbLimit|0> <国名>` で1カ国だけ NullAgent にできる。
+    // この非対称が見えないので、`indprobe <四半期> 0 <国名>` で1カ国だけ NullAgent にできる（第2引数＝旧 StateBuildUnitsPerMonth は 2026-09-26 に係数ごと削除＝読まない）。
     string playerName = args.Length > 3 ? args[3] : "";
     var ipm = new MultiNationSim(WorldData.Nations(), 1789UL,
         cfg => playerName.Length > 0 && cfg.Name == playerName ? new NullAgent() : new UtilityAgent());
-    if (args.Length > 2 && double.TryParse(args[2], out var sbLimit) && sbLimit > 0)
-    {
-        foreach (var nn in ipm.Nations) nn.World.Coef.StateBuildUnitsPerMonth = sbLimit;   // 建設の工期の効果測定（バランス調査2026-07-27）
-        System.Console.WriteLine($"StateBuildUnitsPerMonth={sbLimit}（全国に適用）");
-    }
     string[] targets = ["イギリス", "フランス", "両シチリア", "日本", "プロイセン"];
     var ipc = new Coefficients();
     System.Console.WriteLine($"建設束: 鋼{ipc.SteelGoodId} 機械{ipc.MachineGoodId} セメント{ipc.CementGoodId} 製材{ipc.LumberGoodId}　IndInvestmentSpeed={ipc.IndInvestmentSpeed} IndPerConstruction={ipc.IndPerConstruction} IndInvestmentFrac={ipc.IndInvestmentFrac} IndProductivityScale={ipc.IndProductivityScale} IndCapitalCost={ipc.IndCapitalCost}");
@@ -1355,7 +1350,7 @@ if (args.Length > 0 && args[0] == "deadprobe")
     Console.WriteLine($"=== 摂動走行（D-35後半・seed 1789・{dpQ}四半期・振る値 {dpVal}） ===");
     Console.WriteLine($"⚠「動かない候補」＝点火しても世界が1ビットも動かない係数。★死蔵と断定はしない。");
     Console.WriteLine($"⚠この計器の限界は3つ（2026-09-03 に全部踏んだ）：");
-    Console.WriteLine($"  ①**構築時に読む係数は判定できない**＝シムを作ってから書き換えるので届かない（例：CenterIsFirstProvince・InitialArmsIndustryScale・ResearcherFrac）。外から POB_COEF で1本ずつ起動すれば測れる。");
+    Console.WriteLine($"  ①**構築時に読む係数は判定できない**＝シムを作ってから書き換えるので届かない（例：CenterIsFirstProvince・ResearcherFrac）。外から POB_COEF で1本ずつ起動すれば測れる。");
     Console.WriteLine($"  ②**二重休眠**＝別のフラグが0で封じている係数は単独で振っても動かない（例：AbsorptionIncomeRef と Weight は両方>0が条件）。");
     Console.WriteLine($"  ③**射程不足**＝その事件が起きない距離だと動かない（例：ファシズムは1919年以降・国内危機は100年で19回）。");
     Console.WriteLine($"既定0の係数 {names.Count} 本を1本ずつ検査する。");
@@ -1809,7 +1804,7 @@ if (args.Length > 0 && args[0] == "endowprobe")
         }
         Console.WriteLine();
     }
-    Console.WriteLine($"=== 賦存の翻訳（seed {epSeed}／ResourceScarcityScale={new Coefficients().ResourceScarcityScale}／ResourceEndowmentScale={new Coefficients().ResourceEndowmentScale}／TradeArbitrageMax={new Coefficients().TradeArbitrageMax}） ===");
+    Console.WriteLine($"=== 賦存の翻訳（seed {epSeed}／ResourceScarcityScale={new Coefficients().ResourceScarcityScale}／ResourceEndowmentScale={new Coefficients().ResourceEndowmentScale}） ===");
     EpDump(0);
     for (int q = 1; q <= epQ; q++) { epm.StepQuarter(); if (q == 120 || q == 200 || q == 400 || q == epQ) EpDump(q); }
     return;
@@ -2191,12 +2186,11 @@ if (args.Length > 0 && args[0] == "poweraff")
         Console.WriteLine("  " + JpPad("国名", 12) + JpPad("政体", 20)
             + "【連合前】" + JpPad("王権", 6) + JpPad("議会", 6) + JpPad("軍部", 6) + JpPad("革命", 6)
             + "｜【連合後】" + JpPad("王権", 6) + JpPad("議会", 6) + JpPad("軍部", 6) + JpPad("革命", 6)
-            + "｜軍の同盟先" + JpPad("単独支配", 12) + "｜★導出政体" + JpPad("(現行と一致?)", 14) + "｜旧" + JpPad("執行", 5) + JpPad("軍部", 5) + JpPad("革命", 5));
+            + "｜軍の同盟先" + JpPad("単独支配", 12) + "｜★導出政体" + JpPad("(現行と一致?)", 14));
         foreach (var nm in paWatch)
         {
             var w = PaFind(nm); if (w is null) continue;
             var c = PowerAffinity.Coalition(w);
-            var o = PowerShares.Shares(w);
             string sole = c.SoleRuler is { } sr ? PowerAffinity.HolderNames[(int)sr] + "★" : "連合政治";
             string armyAlly = c.Ally[(int)PowerAffinity.Holder.Army] == PowerAffinity.Holder.Army
                 ? "単独" : PowerAffinity.HolderNames[(int)c.Ally[(int)PowerAffinity.Holder.Army]];
@@ -2209,8 +2203,7 @@ if (args.Length > 0 && args[0] == "poweraff")
                 // ★★★権力シェアからの導出政体（作者裁定2026-08-19）と現行ラベルの食い違いを並べる。
                 //   ⚠**忠実度の政体次元を導出へ切り替えると前後で数字が比較不能になる**ので、切り替えの前にここで影響を見積もる。
                 + "｜" + JpPad(PowerAffinity.PolityFromShares(w).ToString(), 22)
-                + JpPad(PowerAffinity.PolityFromShares(w) == w.Polity ? "一致" : "⚠不一致", 8)
-                + "｜  " + JpPad($"{o[0] * 100:F0}", 5) + JpPad($"{o[2] * 100:F0}", 5) + JpPad($"{o[3] * 100:F0}", 5));
+                + JpPad(PowerAffinity.PolityFromShares(w) == w.Polity ? "一致" : "⚠不一致", 8));
             // ★★★予算権と統帥権（作者設計 2026-08-20）＝Lc/Lp × 法の重み。⚠独立ストックを持たない。
             var (l2c, l2p) = PowerAffinity.Legitimacy2(w);
             var (bC, bP, bA) = PowerAffinity.BudgetShares(w);
@@ -2402,242 +2395,8 @@ if (args.Length > 0 && args[0] == "poweraff")
     return;
 }
 
-// === 権力の取り分の観測（docs/202608/20260818_権力の取り分を同一スケールへ_部分完了.md 第1段・2026-08-18）：
-//     dotnet run -- powershares [seed=1789] [終了年=1934] ===
-// ★**階級 × 機関の重み表**（旧支配層/近代エリート/大衆/小営業/王そのもの × 執行権/議会/将校/兵卒/革命勢力）を
-//   年代断面で印字する**読み取り専用**の計器。PowerShares は純関数でどの挙動にも配線されていない
-//   ＝この命令は世界を1ビットも変えない。取り分＝表の【列】の合計／貴族率＝表の【行】の比。
-// ★見るもの：① 全セルの合計が厳密に1（＝同一スケールで動いていることの検算・全国の最大誤差を末尾に出す）
-//   ② 執行権が強い国でも常在項で軍部が消えないか（史学検証2の修正A＝軍は執行権の道具）
-//   ③ 軍事独裁の相対条件（軍部が最大 かつ どの相手も組む相手として成立しない）が狙うべき国だけに出るか
-//   ④ 拒否権（クーデタの手前＝日本1912の二個師団増設問題の型）が読めるか
-//   ⑤ 防衛反応型の第2の引き金＝**軍の取り分が急激に削られた**国（前断面比の削減率）
-//   ⑥ 三つの貴族率（執行権＝集権度の逆／議会＝議会の性格／将校＝将校団の性格）と将校/兵卒の乖離
-// ★★★硬性条件（そのまま較正の物差し）：**1783〜1934を通じて軍の政治シェアがほぼ0であるべき国**＝
-//   英・米・蘭・白・デンマーク・ノルウェー・スイス（スウェーデンは1809年の1件のみ）。⚠ここに軍部が湧いたら無条件で赤。
-// ★★★史学検証1の**4つの検証点**（旧写像＝王権＝貴族／議会＝近代エリート なら4つとも逆に出るはず）：
-//   英1815＝穀物法（議会の貴族率が高いか）／仏1788＝貴族が執行権に反抗するか
-//   日1876＝執行権が旧支配層を解体するか／独1879＝ユンカーと重工業が同じ側か
-// ★★★三つの貴族率の**3つの検証点**：英の議会の貴族率が1832/1867で下がるか／日本の執行権の貴族率が1871で急落するか／
-//   露の将校と兵卒の乖離が1917で最大か
-if (args.Length > 0 && args[0] == "powershares")
-{
-    ulong psSeed = ArgUlong(args, 1, 1789UL);
-    int psEnd = ArgInt(args, 2, Calendar.EndYear);   // 既定＝終局暦年（全長 GameQuarters の年）
-    int[] psYearsAll = [1783, 1788, 1800, 1815, 1830, 1832, 1848, 1858, 1867, 1871, 1876, 1879, 1889, 1891, 1900, 1912, 1917, 1936];
-    string[] psWatch = ["イギリス", "フランス", "プロイセン", "ロシア", "オーストリア", "日本", "清", "アメリカ", "オスマン", "スペイン", "ポルトガル", "朝鮮"];
-    // ★ラテンアメリカ（史学検証3）＝1783年の世界には主権国として存在しない（西/葡の植民地）。
-    //   分離独立で立ち上がれば名前で拾える＝見つからなければ「この世界に存在しない」と明示する（勝手に埋めない）。
-    string[] psLatin = ["ブラジル", "チリ", "ペルー", "ボリビア", "エクアドル", "メキシコ", "アルゼンチン", "コロンビア", "ベネズエラ"];
-    // 硬性条件の対象。⚠白/諾は1783年に主権国として存在しない＝見つからなければ判定対象外として明示する。
-    string[] psQuiet = ["イギリス", "アメリカ", "ネーデルラント", "ベルギー", "デンマーク", "ノルウェー", "スイス"];
-    const double psQuietMax = 0.10;   // 「ほぼ0」の判定＝軍部シェア10%未満
-    var psm = new MultiNationSim(WorldData.Nations(), psSeed, _ => new UtilityAgent());
-    foreach (var nn in psm.Nations) nn.TelemetryEnabled = false;
-    psm.Diplomacy.Log.Enabled = false;
-    psm.StartWarmup();
-    var psPrevArmy = new Dictionary<string, double>();
-    var psPrevExec = new Dictionary<string, double>();
-    var psQuietWorst = new Dictionary<string, (double share, int year)>();
-    var psTrace = new List<string>();
-    World? PsFind(string nm) => psm.Nations
-        .FirstOrDefault(n => n.World.SelfPower is { } p && (p.BaseName.Length > 0 ? p.BaseName : p.Name) == nm)?.World;
-    static string PsNum(double v, int wd = 5) => double.IsNaN(v) ? "算不能".PadLeft(wd) : v.ToString("F2").PadLeft(wd);
-    void PsRow(World w, string nm)
-    {
-        var t = PowerShares.Table(w);
-        var sh = PowerShares.Shares(w);
-        double prev = psPrevArmy.TryGetValue(nm, out var pv) ? pv : 0;
-        double cut = PowerShares.CutSeverity(prev, sh[(int)PowerShares.Holder.Army]);
-        double prevE = psPrevExec.TryGetValue(nm, out var pe) ? pe : sh[(int)PowerShares.Holder.Executive];
-        psPrevArmy[nm] = sh[(int)PowerShares.Holder.Army];
-        psPrevExec[nm] = sh[(int)PowerShares.Holder.Executive];
-        Console.WriteLine($"  {JpPad(w.SelfPower!.Name, 12)}{JpPad(w.Polity.ToString(), 22)}"
-            + $" 取り分 執行{sh[0] * 100,4:F0} 議会{sh[1] * 100,4:F0} 軍部{sh[2] * 100,4:F0} 革命{sh[3] * 100,4:F0}"
-            + $" ｜漏れ{PowerShares.Leak(w) * 100,4:F0} 常在{PowerShares.ArmyBaseline(w) * 100,4:F0}"
-            + $" 拒否{PowerShares.VetoPower(w) * 100,4:F0} 水準{JpPad(PowerShares.MilitaryLevelNames[(int)PowerShares.Level(w)], 6)}"
-            + $" 同盟{JpPad(PowerShares.HolderNames[(int)PowerShares.Ally(w)], 10)}削減{cut * 100,4:F0} 執行Δ{(sh[0] - prevE) * 100,5:F0}");
-        Console.WriteLine("      " + JpPad("階級＼機関", 14) + string.Concat(PowerShares.OrganNames.Select(o => JpPad(o, 8))) + "行計");
-        for (int ci = 0; ci < PowerShares.ClassCount; ci++)
-        {
-            double rowSum = 0;
-            for (int oi = 0; oi < PowerShares.OrganCount; oi++) rowSum += t[ci][oi];
-            Console.WriteLine("      " + JpPad(PowerShares.ClassNames[ci], 14)
-                + string.Concat(Enumerable.Range(0, PowerShares.OrganCount).Select(oi => JpPad($"{t[ci][oi] * 100:F1}", 8)))
-                + $"{rowSum * 100,4:F1}");
-        }
-        double navShare = w.ArmyUpkeep + w.NavyUpkeep > 1e-12 ? w.NavyUpkeep / (w.ArmyUpkeep + w.NavyUpkeep) : double.NaN;
-        Console.WriteLine($"      貴族率 執行{PsNum(PowerShares.ExecutiveNobility(w))}(集権{PsNum(1 - PowerShares.ExecutiveNobility(w))})"
-            + $" 議会{PsNum(PowerShares.ParliamentNobility(w))} 将校{PsNum(PowerShares.ArmyNobility(w))}"
-            + $" 将校/兵卒の乖離{PsNum(PowerShares.OfficerRankSplit(w))}"
-            + $" ｜文民制度{PowerShares.CivilianInstitutions(w):F2} 将校の不満{PowerShares.OfficerGrievance(w):F2}"
-            + $" 将校漏れ{PowerShares.OfficerLeak(w):F2} 兵卒漏れ{PowerShares.RanksLeak(w):F2} 海軍比{PsNum(navShare)}"
-            + $" ｜特権{PowerShares.PrivilegeIntact(w):F2} 恩顧{PowerShares.StatePatronage(w):F2} 王そのもの{PowerShares.StateCapacity(w):F2}"
-            + $" 統制{PowerShares.ParliamentControl(w):F2}(実効{PowerShares.ParliamentEffective(w):F2}"
-            + $"/掌握{PowerShares.ParliamentGrip(w):F2}/固定歳出{PowerShares.LockedSpending(w):F2})"
-            + $" 規律の文民依存{PowerShares.DisciplineDependsOnParliament(w):F2} スト{PowerShares.StrikePower(w):F2}"
-            + $" 命令の留保{PowerShares.CommandWithheld(w):F2} 追認{PowerShares.FaitAccompli(w):F2} 武力{PowerShares.ArmyForce(w):F2} 束縛{PowerShares.ArmyBinding(w):F2}"
-            + $" 帰属{PowerShares.ArmyExecutiveTilt(w),5:F2} 実質{PowerShares.SoldierWelfare(w):F2} 正統{w.Legitimacy:F2} 革命{PowerShares.RevolutionLeak(w):F2}");
-    }
-    void PsDump(int year)
-    {
-        Console.WriteLine($"\n=== {year}年（seed{psSeed}）階級 × 機関の重み表（％・全セルの合計＝100） ===");
-        foreach (var nm in psWatch) { var w = PsFind(nm); if (w is not null) PsRow(w, nm); }
-        // ★ラテンアメリカ（存在すれば出す＝アンデス圏の軍部シェアが構造的に高いかの検証）
-        var latinFound = new List<(string nm, double army, double civ)>();
-        foreach (var nm in psLatin)
-        {
-            var w = PsFind(nm);
-            if (w is null) continue;
-            latinFound.Add((nm, PowerShares.Shares(w)[(int)PowerShares.Holder.Army], PowerShares.CivilianInstitutions(w)));
-            PsRow(w, nm);
-        }
-        // 検算＝全国（監視国だけでない）で「表の合計が1」「全セルが[0,1]」が成り立つか
-        double worst = 0; string worstWho = ""; bool range = true; int seeks = 0;
-        var byArmy = new List<(string nm, double army, double civ)>();
-        foreach (var n in psm.Nations)
-        {
-            var w = n.World;
-            double sum = 0;
-            var t = PowerShares.Table(w);
-            for (int ci = 0; ci < PowerShares.ClassCount; ci++)
-                for (int oi = 0; oi < PowerShares.OrganCount; oi++)
-                { sum += t[ci][oi]; if (!(t[ci][oi] >= 0 && t[ci][oi] <= 1)) range = false; }
-            double err = System.Math.Abs(sum - 1.0);
-            if (err > worst) { worst = err; worstWho = w.SelfPower?.Name ?? "?"; }
-            if (PowerShares.SeeksMilitaryRule(w)) seeks++;
-            byArmy.Add((w.SelfPower?.Name ?? "?", PowerShares.Shares(w)[(int)PowerShares.Holder.Army], PowerShares.CivilianInstitutions(w)));
-        }
-        Console.WriteLine($"  検算：表の合計1からの最大誤差 {worst:E1}（{worstWho}・全{psm.Nations.Count}カ国）　全セル[0,1] {(range ? "○" : "× 破れ")}　軍政を狙う国 {seeks}");
-        Console.WriteLine("  軍部シェア上位10（国別の定数を1つも置いていない＝文民制度の厚みの差で並ぶはず）:");
-        foreach (var x in byArmy.OrderByDescending(x => x.army).Take(10))
-            Console.WriteLine($"    {JpPad(x.nm, 16)}軍部 {x.army:P1}　文民制度 {x.civ:F2}");
-        // ★★★硬性条件の追跡（全期間の最悪値を覚えておき、末尾で判定する）
-        foreach (var qn in psQuiet)
-        {
-            var w = PsFind(qn);
-            if (w is null) continue;
-            double a = PowerShares.Shares(w)[(int)PowerShares.Holder.Army];
-            if (!psQuietWorst.TryGetValue(qn, out var cur) || a > cur.share) psQuietWorst[qn] = (a, year);
-        }
-        // ★★★三つの貴族率の推移（末尾でまとめて出す）
-        {
-            var gb = PsFind("イギリス"); var jp = PsFind("日本"); var ru = PsFind("ロシア");
-            psTrace.Add($"  {year,4}  英の議会の貴族率 {PsNum(gb is null ? double.NaN : PowerShares.ParliamentNobility(gb))}"
-                + $"　日の執行権の貴族率 {PsNum(jp is null ? double.NaN : PowerShares.ExecutiveNobility(jp))}"
-                + $"　露の将校の貴族率 {PsNum(ru is null ? double.NaN : PowerShares.ArmyNobility(ru))}"
-                + $"（将校/兵卒の乖離 {PsNum(ru is null ? double.NaN : PowerShares.OfficerRankSplit(ru))}）");
-        }
-        // ★★★検証点（該当年だけ1行で判定を出す）
-        void PsCheck(string nm, string what, System.Func<World, (bool ok, string detail)> f)
-        {
-            var w = PsFind(nm);
-            if (w is null) { Console.WriteLine($"  ★検証点[{what}]：{nm} はこの世界に存在しない（＝判定不能・勝手に埋めない）"); return; }
-            var (ok, detail) = f(w);
-            Console.WriteLine($"  ★検証点[{what}]　{nm}　{(ok ? "○" : "×")}　{detail}");
-        }
-        if (year == 1815) PsCheck("イギリス", "英1815 穀物法＝議会は貴族的か", w =>
-        {
-            double pn = PowerShares.ParliamentNobility(w);
-            return (pn > 0.5, $"議会の貴族率 {PsNum(pn)}（>0.50で議会が貴族的）");
-        });
-        if (year == 1788) PsCheck("フランス", "仏1788 貴族は執行権に反抗するか", w =>
-        {
-            var sc = PowerShares.ClassScan(w);
-            return (sc.Lean[(int)PowerShares.Cls.OldRuling] < 0.5,
-                $"貴族の執行権への傾き {PsNum(sc.Lean[(int)PowerShares.Cls.OldRuling])}（<0.50で議会/反乱側）　特権保全 {PowerShares.PrivilegeIntact(w):F2}　王そのもの {PowerShares.StateCapacity(w):F2}");
-        });
-        if (year == 1876) PsCheck("日本", "日1876 執行権が旧支配層を解体するか", w =>
-            (PowerShares.PrivilegeIntact(w) < 0.5,
-                $"特権保全 {PowerShares.PrivilegeIntact(w):F2}（<0.50で解体）　執行権の貴族率 {PsNum(PowerShares.ExecutiveNobility(w))}（＝集権度の逆）"));
-        if (year == 1879) PsCheck("プロイセン", "独1879 ユンカーと重工業は同じ側か", w =>
-        {
-            var sc = PowerShares.ClassScan(w);
-            double a = sc.Lean[(int)PowerShares.Cls.OldRuling], b = sc.Lean[(int)PowerShares.Cls.ModernElite];
-            double gap = System.Math.Abs(a - b);
-            return (gap < 0.25, $"貴族 {PsNum(a)} / 近代エリート {PsNum(b)}　差 {PsNum(gap)}（<0.25で同じ側）　恩顧 {PowerShares.StatePatronage(w):F2}");
-        });
-        if (year == 1867) PsCheck("プロイセン", "普1867 形式上は立憲でも議会の実効はほぼゼロか", w =>
-        {
-            double eff = PowerShares.ParliamentEffective(w);
-            return (eff < 0.2, $"形式上の統制 {PowerShares.ParliamentControl(w):F2} → 実効 {eff:F2}（歳入の掌握 {PowerShares.ParliamentGrip(w):F2} × (1−固定歳出 {PowerShares.LockedSpending(w):F2})）");
-        });
-        if (year == 1936) PsCheck("日本", "日1936 議会が痩せた国で不処罰が累積し水準が上がるか", w =>
-        {
-            var lv = PowerShares.Level(w);
-            return (true, $"水準 {PowerShares.MilitaryLevelNames[(int)lv]}　拒否権 {PowerShares.VetoPower(w):F2}　文民制度 {PowerShares.CivilianInstitutions(w):F2}（正統性 {w.Legitimacy:F2}）　追認 {PowerShares.FaitAccompli(w):F2}");
-        });
-        if (year == 1900) PsCheck("朝鮮", "朝1900 議会が一度も無い国で表が破綻せず執行権内部の分裂として出るか", w =>
-        {
-            var t = PowerShares.Table(w);
-            double parl = 0; for (int i = 0; i < PowerShares.ClassCount; i++) parl += t[i][(int)PowerShares.Organ.Parliament];
-            double exec = 0; for (int i = 0; i < PowerShares.ClassCount; i++) exec += t[i][(int)PowerShares.Organ.Executive];
-            double noble = PowerShares.ExecutiveNobility(w);
-            return (parl < 1e-9 && exec > 0,
-                $"議会の列 {parl:P1}（0が○）　執行権の列 {exec:P1}　執行権内部の分裂＝貴族率 {PsNum(noble)}（外戚 対 摂政の代理）／王そのもの {PowerShares.StateCapacity(w):F2}");
-        });
-        if (year == 1917) PsCheck("ロシア", "露1917 将校は貴族のまま兵卒が離反するか", w =>
-        {
-            double nob = PowerShares.ArmyNobility(w), sp = PowerShares.OfficerRankSplit(w);
-            return (nob > 0.2, $"将校の貴族率 {PsNum(nob)}　将校/兵卒の乖離 {PsNum(sp)}　兵卒の実質 {PowerShares.SoldierWelfare(w):F2}　将校漏れ {PowerShares.OfficerLeak(w):F2} 兵卒漏れ {PowerShares.RanksLeak(w):F2}");
-        });
-        // ★★★史学検証3の追加検証点
-        if (year == 1891) PsCheck("チリ", "智1891 陸軍と海軍が分かれるか（分けられないなら将校と兵卒）", w =>
-        {
-            double sp = PowerShares.OfficerRankSplit(w);
-            double nav = w.ArmyUpkeep + w.NavyUpkeep > 1e-12 ? w.NavyUpkeep / (w.ArmyUpkeep + w.NavyUpkeep) : double.NaN;
-            return (!double.IsNaN(sp) && sp > 0.05,
-                $"⚠軍種別の帰属は**算出不能**（軍種別の人事・恩顧の状態が現物に無い）＝将校/兵卒の乖離 {PsNum(sp)} で代理　海軍比 {PsNum(nav)}　将校漏れ {PowerShares.OfficerLeak(w):F2} 兵卒漏れ {PowerShares.RanksLeak(w):F2}");
-        });
-        if (year == 1936) PsCheck("スペイン", "西1936 将校と兵卒の符号が逆になるか", w =>
-        {
-            var sc = PowerShares.ClassScan(w);
-            var oc = PowerShares.OfficerComposition(w);
-            double lean = 0, ws = 0;
-            for (int i = 0; i < PowerShares.ClassCount; i++)
-            { if (!(oc[i] > 0) || double.IsNaN(sc.Lean[i])) continue; lean += oc[i] * sc.Lean[i]; ws += oc[i]; }
-            double off = ws > 1e-12 ? lean / ws : double.NaN;
-            bool opposed = !double.IsNaN(off) && !double.IsNaN(sc.SoldierLean) && (off - 0.5) * (sc.SoldierLean - 0.5) < 0;
-            return (opposed, $"将校の傾き {PsNum(off)} / 兵卒の傾き {PsNum(sc.SoldierLean)}（0.50を挟んで反対なら○）　乖離 {PsNum(PowerShares.OfficerRankSplit(w))}");
-        });
-        if (year == 1889) PsCheck("ブラジル", "伯1889 軍部の上昇は軍政でなく執行権の崩壊として出るか", w =>
-        {
-            var sh = PowerShares.Shares(w);
-            return (!PowerShares.SeeksMilitaryRule(w), $"軍政を狙う＝{PowerShares.SeeksMilitaryRule(w)}（false が○＝支えるのをやめる型）　執行権 {sh[0]:P1} 軍部 {sh[2]:P1} 同盟先 {PowerShares.HolderNames[(int)PowerShares.Ally(w)]}");
-        });
-        if (year == 1891 || year == 1936)
-        {
-            var andes = latinFound.Where(x => x.nm is "ペルー" or "ボリビア" or "エクアドル").ToList();
-            var iberia = new[] { "スペイン", "ポルトガル" }.Select(PsFind).Where(x => x is not null)
-                .Select(x => PowerShares.Shares(x!)[(int)PowerShares.Holder.Army]).ToList();
-            if (andes.Count > 0 && iberia.Count > 0)
-                Console.WriteLine($"  ★検証点[アンデス圏は構造的に高いか]　アンデス平均 {andes.Average(x => x.army):P1}（文民制度 {andes.Average(x => x.civ):F2}）　イベリア平均 {iberia.Average():P1}　{(andes.Average(x => x.army) > iberia.Average() ? "○" : "×")}");
-            else
-                Console.WriteLine("  ★検証点[アンデス圏は構造的に高いか]：アンデス三国がこの世界に存在しない（＝判定不能・勝手に埋めない）");
-        }
-    }
-    int psQ = 0;
-    foreach (int y in psYearsAll)
-    {
-        if (y > psEnd) break;
-        int target = (y - 1783) * 4;
-        for (; psQ < target; psQ++) psm.StepQuarter();
-        PsDump(y);
-    }
-    Console.WriteLine("\n=== 三つの貴族率の推移（英の議会＝1832/1867で下がるか／日の執行権＝1871で急落するか／露の将校＝1917まで高いか） ===");
-    foreach (var line in psTrace) Console.WriteLine(line);
-    Console.WriteLine("\n=== ★★★硬性条件：軍の政治シェアが全期間ほぼ0であるべき国（英・米・蘭・白・デンマーク・ノルウェー・スイス） ===");
-    bool psQuietOk = true;
-    foreach (var qn in psQuiet)
-    {
-        if (!psQuietWorst.TryGetValue(qn, out var v)) { Console.WriteLine($"  {JpPad(qn, 16)}（この世界に存在しない＝判定対象外）"); continue; }
-        bool ok = v.share < psQuietMax;
-        if (!ok) psQuietOk = false;
-        Console.WriteLine($"  {JpPad(qn, 16)}最大 {v.share:P1}（{v.year}年）　{(ok ? "○" : "× 赤＝軍部が湧いている")}");
-    }
-    Console.WriteLine($"  判定：{(psQuietOk ? "○ 全て10%未満" : "× 赤")}");
-    return;
-}
+// 【削除2026-09-26（棚卸し pol-09）】powershares（権力の取り分の表モデル＝階級×機関の表・取り分・軍政の判定の観測）＝表モデルごと削除。
+//   同じ問いの現行の計器は poweraff（PowerAffinity＝正統性の按分・軍の独占）。旧い計器は `git show b7fd1c8:PriceOfBread.Runner/Program.cs` にある。
 
 // === 初期整合の検算： dotnet run -- initcheck [seed] ===
 // ★作者裁定2026-08-21（初期整合パス「これは作る」）の**第1段＝検算と警告**。
@@ -4155,7 +3914,6 @@ if (args.Length > 0 && args[0] == "numdef")
             }));
         }
     }
-    TradeReachDiag.Cheap = true;
     for (int q = 1; q <= ndQ; q++)
     {
         bool on = System.Array.IndexOf(ndSamples, q) >= 0;
@@ -4163,13 +3921,12 @@ if (args.Length > 0 && args[0] == "numdef")
         ndm.StepQuarter();
         if (on) { NdDump(q); TradeReachDiag.On = false; }
     }
-    TradeReachDiag.Cheap = false;
     return;
 }
 
 // === 到達性の実測（2026-08-21・「そもそも相手に到達できているか」）： dotnet run -- reachprobe [Q] ===
 //   ①州が海に出られているか（linked）②越境 vs 同国（統計から落ちる分＝定義の問題か実体の問題か）
-//   ③実際に取引が立った国ペアの数 ④買い手の棄却理由 ⑤枝刈り（相手の絞り込み）が最良を取り逃していないか。
+//   ③実際に取引が立った国ペアの数。⚠旧経路だけの ④買い手の棄却理由 ⑤枝刈りの検証 は 2026-09-26 に旧経路ごと削除（econ-15）。
 if (args.Length > 0 && args[0] == "reachprobe")
 {
     int rpQ = ArgInt(args, 1, 524);
@@ -4185,9 +3942,6 @@ if (args.Length > 0 && args[0] == "reachprobe")
         Console.WriteLine($"  州: 総{TradeReachDiag.RegTotal} 接続{TradeReachDiag.RegLinked} 凍結{TradeReachDiag.RegFrozen} 港無し{TradeReachDiag.RegNoPortLink} 座標無し{TradeReachDiag.RegNoCoord}");
         double vc = TradeReachDiag.ValueCross, vd = TradeReachDiag.ValueDomestic;
         Console.WriteLine($"  成約額: 越境{vc:F0}（{TradeReachDiag.TxCross}件） 同国{vd:F0}（{TradeReachDiag.TxDomestic}件） 越境比{vc / System.Math.Max(1e-9, vc + vd):P1}　額加重平均距離{TradeReachDiag.KmValWeighted / System.Math.Max(1e-9, vc + vd):F0}km");
-        Console.WriteLine($"  買い手行: {TradeReachDiag.BuyerRows}　売り手ゼロ{TradeReachDiag.NoSeller}　マージン不足{TradeReachDiag.NoMargin}　成立{TradeReachDiag.Dealt}");
-        Console.WriteLine($"  量: 希望{TradeReachDiag.QWant:F0} → 成約{TradeReachDiag.QGot:F0}（在庫/流量で切られた件数{TradeReachDiag.QClipped}）");
-        Console.WriteLine($"  枝刈り: 評価件数 枝刈り{TradeReachDiag.ScanPruned} / 全探索{TradeReachDiag.ScanFull}（{TradeReachDiag.ScanPruned / System.Math.Max(1.0, TradeReachDiag.ScanFull):P1}）　最良取り逃し{TradeReachDiag.PruneWorseBest}（取引消滅{TradeReachDiag.PruneKilledDeal}）　着値超過平均{TradeReachDiag.PruneDeliverExcess / System.Math.Max(1.0, TradeReachDiag.PruneWorseBest):P1}　量の目減り{TradeReachDiag.PruneQLost:F0}");
         Console.WriteLine($"  取引が立った国ペア（有向）: {TradeReachDiag.PairValue.Count}");
         var top = TradeReachDiag.PairValue.OrderByDescending(kv => kv.Value).Take(6)
             .Select(kv => $"{NameOf((int)(kv.Key / 1000))}→{NameOf((int)(kv.Key % 1000))}={kv.Value:F0}");
@@ -4220,159 +3974,8 @@ if (args.Length > 0 && args[0] == "reachprobe")
     return;
 }
 
-// 量式の厳密分解（2026-08-21・「1件あたりの量が小さい／成約は小さい市場ばかり」主張の検証）。
-//   value = access × TradeSpeed × gap × scaleT × unit （BilateralMarket の量式）なので
-//   貿易額/GDP = (世界の市場額/GDP) × (買い手帯シェア) × (成約シェア) × (成約市場額あたりの成約額)
-//   と**掛け算で閉じる**形に割り、どの因子が年代で落ちるかを見る。純テレメトリ（TradeReachDiag.On のみ）＝挙動不変。
-if (args.Length > 0 && args[0] == "gapdec")
-{
-    int gdQ = ArgInt(args, 1, 524);
-    var gdm = new MultiNationSim(WorldData.Nations(), 1789UL, _ => new UtilityAgent());
-    foreach (var nn in gdm.Nations) nn.TelemetryEnabled = false;
-    gdm.Diplomacy.Log.Enabled = false;
-    gdm.StartWarmup();
-    int[] gdSamples = [4, 40, 80, 120, 160, 200, 240, 280, 320, 360, 400, 440, 480, gdQ];
-    Console.WriteLine("年,Q,世界GDP月次,世界実GDP,世界市場額,市場額/GDP%,市場数量/実GDP%,市場価格比,買い手行,買帯シェア%,成約行,成約シェア%,成約額,強度%,貿易/GDP%,越境比%,平均scaleT全,平均scaleT成約,平均gap,平均lp_avg,平均着値_avg,平均access成約,平均unitlp,成約/出せる額%,流量律速%,QGot_QWant%,クリップ件");
-    void GdDump(int q)
-    {
-        double gdp = 0, rgdp = 0;
-        foreach (var n in gdm.Nations) { gdp += System.Math.Max(0, n.World.NominalGdp); rgdp += System.Math.Max(0, n.World.Gdp); }
-        double mw = TradeReachDiag.MarketValWorld, mr = TradeReachDiag.MarketRefWorld, ma = TradeReachDiag.MarketValAll, md = TradeReachDiag.MarketValDealt, v = TradeReachDiag.ValueDealt;
-        long rw = TradeReachDiag.RowsWorld, ra = TradeReachDiag.RowsAll, rd = TradeReachDiag.RowsDealt;
-        double P(double a, double b) => b > 1e-12 ? a / b * 100 : 0;
-        double gapAvg = TradeReachDiag.GapDealt / System.Math.Max(1, rd), lpAvg = TradeReachDiag.LpOverAvgDealt / System.Math.Max(1, rd);
-        Console.WriteLine(string.Join(",", new[]
-        {
-            (1783 + q / 4).ToString(), q.ToString(),
-            $"{gdp:F0}", $"{rgdp:F0}", $"{mw:F0}", $"{P(mw * 4, gdp * Calendar.MonthsPerYear):F1}", $"{P(mr * 4, rgdp):F1}", $"{(mr > 1e-9 ? mw / mr : 0):F3}",
-            rw.ToString() + "/" + ra.ToString(), $"{P(ma, mw):F1}",
-            rd.ToString(), $"{P(md, ma):F1}",
-            $"{v:F0}", $"{P(v, md):F3}", $"{P(v * 4, gdp * Calendar.MonthsPerYear):F3}",
-            $"{P(TradeReachDiag.ValueCross, TradeReachDiag.ValueCross + TradeReachDiag.ValueDomestic):F1}",
-            $"{TradeReachDiag.ScaleTAll / System.Math.Max(1, ra):F1}", $"{TradeReachDiag.ScaleTDealt / System.Math.Max(1, rd):F1}",
-            $"{gapAvg:F5}", $"{lpAvg:F4}", $"{lpAvg - gapAvg:F4}",
-            $"{TradeReachDiag.AccessDealt / System.Math.Max(1, rd):F4}",
-            $"{TradeReachDiag.UnitOverLp / System.Math.Max(1, rd):F4}",
-            $"{P(v, TradeReachDiag.SellOfferVal):F3}",
-            $"{P(TradeReachDiag.SellFlowBound, TradeReachDiag.SellRows):F1}",
-            $"{P(TradeReachDiag.QGot, TradeReachDiag.QWant):F1}", TradeReachDiag.QClipped.ToString(),
-        }));
-    }
-    for (int q = 1; q <= gdQ; q++)
-    {
-        bool on = System.Array.IndexOf(gdSamples, q) >= 0;
-        TradeReachDiag.On = on;
-        gdm.StepQuarter();
-        if (on) { GdDump(q); TradeReachDiag.On = false; }
-    }
-    // 最終Qの補足：律速率とアクセスの分布（量の外側の蓋が効いているか）
-    {
-        var thAll = new List<double>(); double accSum = 0; int accN = 0;
-        foreach (var n in gdm.Nations)
-        {
-            var w = n.World; if (w.SelfPower is null) continue;
-            accSum += w.ExternalTradeAccess(); accN++;
-            foreach (var r in w.Regions) if (r.State == RegionState.Active) thAll.Add(r.LastTradeThrottle);
-        }
-        thAll.Sort();
-        Console.WriteLine($"# 最終Q 律速率 p10={thAll[thAll.Count / 10]:F3} 中央={thAll[thAll.Count / 2]:F3} p90={thAll[thAll.Count * 9 / 10]:F3} 平均対外アクセス={accSum / System.Math.Max(1, accN):F3}");
-    }
-    return;
-}
-
-// === 「器（scaleT）が縮んだ」主張の反証（2026-08-21）： dotnet run -- vesselprobe [Q] ===
-//   ①器の内訳＝max(需要,産出,在庫目標) のどれが効いているか（縮んだのか、床に着いたのか）
-//   ②残差ゼロの恒等分解＝Σq×Ref = TradeSpeed × Σ(access×gap×scaleT×Ref) × クリップ率
-//   ③財別の内訳＝GDPの伸びが器に載らない財がどれか。純テレメトリ（Cheap＝全探索だけ飛ばす）。
-if (args.Length > 0 && args[0] == "vesselprobe")
-{
-    int vpQ = ArgInt(args, 1, 524);
-    var vpc = new Coefficients();
-    var vpm = new MultiNationSim(WorldData.Nations(), 1789UL, _ => new UtilityAgent());
-    foreach (var nn in vpm.Nations) nn.TelemetryEnabled = false;
-    vpm.Diplomacy.Log.Enabled = false;
-    vpm.StartWarmup();
-    Console.WriteLine($"★条件: TradeSpeed={vpc.TradeSpeed} TradeArbitrageMax={vpc.TradeArbitrageMax} TradeBandWiden={vpc.TradeBandWiden} TransportMargin={vpc.TransportMargin}");
-    Console.WriteLine("年,Q,実GDP,器W/GDP,需要W/GDP,産出W/GDP,在庫目標W/GDP,勝ち需要%,勝ち産出%,勝ち在庫%,成約器/GDP,acc器加重,gap器加重,クリップ率%,希望Q/GDP,実現Q/GDP,恒等残差%,名目貿易/GDP%,買行,売手ゼロ%,マージン不足%,成立%,英貿易/GDP%,世界産出Ref/GDP");
-    void VpDump(int q)
-    {
-        double rgdp = 0, ngdp = 0;
-        foreach (var n in vpm.Nations) { rgdp += Math.Max(0, n.World.Gdp); ngdp += Math.Max(0, n.World.NominalGdp); }
-        double R(double a) => rgdp > 1 ? a * 4.0 / rgdp : 0;
-        double sw = TradeReachDiag.RefScaleW, sd = TradeReachDiag.ScaleRefDealt;
-        double accW = sd > 1e-9 ? TradeReachDiag.AccScaleRefDealt / sd : 0;
-        double gapW = sd > 1e-9 ? TradeReachDiag.GapScaleRefDealt / sd : 0;
-        double want = TradeReachDiag.QRefWant, got = TradeReachDiag.QRefGot;
-        double ident = vpc.TradeSpeed * TradeReachDiag.AccGapScaleRefDealt;   // 恒等式の右辺（クリップ前）
-        long br = Math.Max(1, TradeReachDiag.BuyerRows);
-        // 世界の総産出（非役務・参照価格）＝GDPと同じ物差しの分母チェック
-        double outRef = 0;
-        foreach (var n in vpm.Nations) foreach (var r in n.World.Regions)
-        {
-            if (r.State != RegionState.Active) continue;
-            foreach (var s in r.Producers) { var gg = r.GoodOf(s.GoodId); if (gg is null || gg.Tier == GoodTier.Service) continue; outRef += s.Output * gg.RefPrice; }
-        }
-        var bw = vpm.Nations.FirstOrDefault(n => n.World.SelfPower is { } p && (p.BaseName.Length > 0 ? p.BaseName : p.Name) == "イギリス")?.World;
-        double brit = bw is not null ? TradeGdp(bw) * 100 : 0;
-        Console.WriteLine(string.Join(",", new[]
-        {
-            (1783 + q / 4).ToString(), q.ToString(), $"{rgdp:F0}",
-            $"{R(sw):F3}", $"{R(TradeReachDiag.RefDemandW):F3}", $"{R(TradeReachDiag.RefProducedW):F3}", $"{R(TradeReachDiag.RefTargetW):F3}",
-            $"{100.0 * TradeReachDiag.WinD / Math.Max(1, TradeReachDiag.RowsWorld):F1}", $"{100.0 * TradeReachDiag.WinP / Math.Max(1, TradeReachDiag.RowsWorld):F1}", $"{100.0 * TradeReachDiag.WinT / Math.Max(1, TradeReachDiag.RowsWorld):F1}",
-            $"{R(sd):F3}", $"{accW:F4}", $"{gapW:F5}",
-            $"{(want > 1e-9 ? got / want * 100 : 0):F1}", $"{R(want):F5}", $"{R(got):F5}",
-            $"{(ident > 1e-9 ? (want / ident - 1) * 100 : 0):F3}",
-            $"{(ngdp > 1 ? TradeReachDiag.ValueDealt * 4.0 / ngdp * 100 : 0):F3}",
-            TradeReachDiag.BuyerRows.ToString(),
-            $"{100.0 * TradeReachDiag.NoSeller / br:F1}", $"{100.0 * TradeReachDiag.NoMargin / br:F1}", $"{100.0 * TradeReachDiag.Dealt / br:F1}",
-            $"{brit:F3}", $"{(rgdp > 1 ? outRef / rgdp : 0):F3}",
-        }));
-    }
-    // 財別の内訳（器とGDPのどちらが伸びたか）
-    void VpGoods(int q)
-    {
-        var goods = vpm.Nations[0].World.Region.Goods;
-        var byId = new Good?[Catalog.Goods.Length + 8];
-        foreach (var g in goods) if (g.Id < byId.Length) byId[g.Id] = g;
-        var vess = new double[byId.Length]; var prod = new double[byId.Length]; var outp = new double[byId.Length];
-        foreach (var n in vpm.Nations) foreach (var r in n.World.Regions)
-        {
-            if (r.State != RegionState.Active) continue;
-            for (int g = 0; g < r.Markets.Length && g < byId.Length; g++)
-            {
-                var gd0 = byId[g]; if (gd0 is null) continue;
-                var m0 = r.Markets[g];
-                double st0 = Math.Max(Math.Max(m0.LastDemand, m0.LastProduced), m0.TargetStock);
-                bool tradeable = !gd0.IsColonial && !gd0.NonTradeable;
-                if (tradeable) vess[g] += st0 * gd0.RefPrice;
-                prod[g] += m0.LastProduced * gd0.RefPrice;
-            }
-            foreach (var s in r.Producers) { var gg = r.GoodOf(s.GoodId); if (gg is null || gg.Id >= outp.Length) continue; outp[gg.Id] += s.Output * gg.RefPrice; }
-        }
-        Console.WriteLine($"--- 財別（Q{q}／{1783 + q / 4}年）上位12：財,器Ref,市場産出Ref,生産者産出Ref,交易可,役務 ---");
-        foreach (int g in Enumerable.Range(0, byId.Length).Where(g => byId[g] is not null).OrderByDescending(g => outp[g]).Take(12))
-            Console.WriteLine($"  {byId[g]!.Name,-10} 器{vess[g],14:F0} 市場産出{prod[g],14:F0} 生産者産出{outp[g],14:F0} 交易可={(!byId[g]!.IsColonial && !byId[g]!.NonTradeable ? "○" : "×")} 役務={(byId[g]!.Tier == GoodTier.Service ? "○" : "×")}");
-        double vAll = 0, oAll = 0, oTradeable = 0;
-        for (int g = 0; g < byId.Length; g++)
-        {
-            if (byId[g] is not { } gg2) continue;
-            vAll += vess[g];
-            if (gg2.Tier != GoodTier.Service) { oAll += outp[g]; if (!gg2.IsColonial && !gg2.NonTradeable) oTradeable += outp[g]; }
-        }
-        Console.WriteLine($"  合計 器={vAll:F0} 非役務産出={oAll:F0} うち交易可={oTradeable:F0}（{(oAll > 1 ? oTradeable / oAll : 0):P1}） 器/交易可産出={(oTradeable > 1 ? vAll / oTradeable : 0):F3}");
-    }
-    int[] vpS = [4, 20, 40, 80, 120, 160, 200, 240, 280, 320, 360, 400, 440, 480, vpQ];
-    TradeReachDiag.Cheap = true;
-    for (int q = 1; q <= vpQ; q++)
-    {
-        bool on = Array.IndexOf(vpS, q) >= 0;
-        TradeReachDiag.On = on;
-        vpm.StepQuarter();
-        if (on) { VpDump(q); TradeReachDiag.On = false; if (q == 40 || q == vpQ) VpGoods(q); }
-    }
-    TradeReachDiag.Cheap = false;
-    return;
-}
+// 【削除2026-09-26（棚卸し econ-15）】gapdec（量式の厳密分解）と vesselprobe（器 scaleT の反証）＝どちらも旧経路（定数速度×自州規模の量式
+//   value = access × TradeSpeed × gap × scaleT × unit）を分解する計器で、既定の清算（S4＝水準式）では列の大半が常に0だった。旧経路ごと削除。
 
 // === 購買力の実測（2026-08-21）： dotnet run -- budgetprobe [Q] ===
 //   主張「買い手の購買力は枯れていない（需要Σ/生産Σ=0.92）」の検証。
@@ -4413,7 +4016,7 @@ if (args.Length > 0 && args[0] == "budgetprobe")
             Console.WriteLine($"  {wn,-6} {a[PriceOfBread.SimCore.BudgetBindDiag.DesiredVal],10:F0} {a[PriceOfBread.SimCore.BudgetBindDiag.DemandVal],10:F0}   {R(PriceOfBread.SimCore.BudgetBindDiag.DemandVal, PriceOfBread.SimCore.BudgetBindDiag.DesiredVal),6:F3}   {R(PriceOfBread.SimCore.BudgetBindDiag.DemandValTrade, PriceOfBread.SimCore.BudgetBindDiag.DesiredValTrade),6:F3} {R(PriceOfBread.SimCore.BudgetBindDiag.DemandValStaple, PriceOfBread.SimCore.BudgetBindDiag.DesiredValStaple),6:F3} {R(PriceOfBread.SimCore.BudgetBindDiag.DemandValDaily, PriceOfBread.SimCore.BudgetBindDiag.DesiredValDaily),6:F3} {R(PriceOfBread.SimCore.BudgetBindDiag.DemandValLux, PriceOfBread.SimCore.BudgetBindDiag.DesiredValLux),6:F3} |"
                 + $" {(a[PriceOfBread.SimCore.BudgetBindDiag.Rows] > 0 ? 100.0 * a[PriceOfBread.SimCore.BudgetBindDiag.BoundRows] / a[PriceOfBread.SimCore.BudgetBindDiag.Rows] : 0),10:F1} {a[PriceOfBread.SimCore.BudgetBindDiag.BudgetStart],10:F0} {a[PriceOfBread.SimCore.BudgetBindDiag.BudgetLeft],10:F0} {(a[PriceOfBread.SimCore.BudgetBindDiag.BudgetStart] > 1e-9 ? 100.0 * a[PriceOfBread.SimCore.BudgetBindDiag.BudgetLeft] / a[PriceOfBread.SimCore.BudgetBindDiag.BudgetStart] : 0),4:F0} |"
                 + $" {(prod > 1e-9 ? dem / prod : 0),11:F3} {(dem > 1e-9 ? shortg / dem : 0),10:F3} {tg,9:F2}"
-                + $" | 需要の内訳 pop{R(PriceOfBread.SimCore.BudgetBindDiag.PopDemVal, -1):P0}　希望輸入量×{R(PriceOfBread.SimCore.BudgetBindDiag.TradeQRawDesired, PriceOfBread.SimCore.BudgetBindDiag.TradeQRaw):F2}（予算の蓋を外した場合）");
+                + $" | 需要の内訳 pop{R(PriceOfBread.SimCore.BudgetBindDiag.PopDemVal, -1):P0}");
         }
     }
     void BpWorld(int q)
@@ -4442,8 +4045,7 @@ if (args.Length > 0 && args[0] == "budgetprobe")
             //   （しかも ×4＝四半期清算時代の名残で、月次清算の今は ×12 が正しい）。分母 `wGdp` は月次のまま＝**4倍過大**。
             //   ★両方とも清算/月次の同じ期間なので、正しい比は**年換算を掛けずにそのまま割る**（×12/×12 は約分される）。
             //   ⚠この計器で読んだ過去の貿易/GDP は4倍に読めていた（monoprobe＝Σ貿易×年換算/ΣGDP×12 と食い違っていた実体）。
-            + $"　世界貿易/GDP {(wGdp > 1e-9 ? wTradeVal / wGdp * 100 : 0):F2}%"
-            + $"　希望輸入量×{W(PriceOfBread.SimCore.BudgetBindDiag.TradeQRawDesired, PriceOfBread.SimCore.BudgetBindDiag.TradeQRaw):F2}（予算の蓋を外した場合）");
+            + $"　世界貿易/GDP {(wGdp > 1e-9 ? wTradeVal / wGdp * 100 : 0):F2}%");
     }
     for (int q = 1; q <= bpQ; q++)
     {
@@ -4847,9 +4449,9 @@ if (args.Length > 0 && args[0] == "politics-ablation")
 {
     ulong paSeed = args.Length > 1 && ulong.TryParse(args[1], out var pas) ? pas : 1UL;
     string[] paFlags = [
-        "DynasticMandateEnabled", "RedefinedMandateEnabled", "RegimeTrackRecordWeight",
+        "RegimeTrackRecordWeight",
         "DecayReformResistWeight", "DecayTechAdoptWeight", "DecayMilitaryWeight",
-        "ReformFromAboveEnabled", "ReformAnticipationWeight", "WarCoercionDrain",   // PushedLawGrievance は 2026-09-20 に係数ごと削除（段の点火）
+        "ReformAnticipationWeight", "WarCoercionDrain",   // PushedLawGrievance は 2026-09-20 に係数ごと削除（段の点火）・DynasticMandateEnabled／RedefinedMandateEnabled／ReformFromAboveEnabled は 2026-09-26 に旗ごと焼き込み（x-01）
     ];
     int PaRun(string? flag)
     {

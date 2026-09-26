@@ -24,7 +24,7 @@ namespace PriceOfBread.SimCore;
 public static class Places
 {
     /// <summary>Terrain＝地形タグ（設計doc 20260826_地形と輸送コスト.DONE.md の7タグ）。空＝平地（既定）。
-    /// ★(3)「1枚の表」＝地形はこの表の1列（作者指示）。TerrainCostEnabled=0 で不読＝厳密恒等・既定は点火。</summary>
+    /// ★(3)「1枚の表」＝地形はこの表の1列（作者指示）。清算は常に読む（旗 TerrainCostEnabled は 2026-09-26 に焼き込み）。</summary>
     public sealed record Place(string Name, double Lat, double Lon, string Kind, string Terrain);
 
     /// <summary>州を敷いたときの**最長の間隔**（km・作者指定 2026-08-27「州数1.5倍相当＝約850kmまで」）。

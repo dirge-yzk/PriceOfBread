@@ -62,7 +62,7 @@ public partial class GameViewModel
 
         // 思想の解禁（2026-09-08作者裁定）＝後発イデオロギーの解禁度。値は Ideologies.EraGates＝
         // Ideologies.UpdateShares が毎四半期に読む式そのもの（UIに第二の式を置かない）。
-        // 並べ替えの閾値は発展度側のオンセット（暦年とのブレンド比 IdeologyGateFromDevelopment は式の中）。
+        // 並べ替えの閾値は発展度のオンセット（解禁度は発展度だけで決まる＝暦年の混合は 2026-09-26 に削除）。
         var era = Ideologies.EraGates(w);
         var reach = w.IdeologyReach;
         string Tip(Ideology k)

@@ -218,7 +218,7 @@ public static class Government
         // ★旧「海軍偏重」の漸進（Move(w.NavalEmphasis, …)）は撤去（2026-08-10 作者裁定）＝陸海の配分は上の2本の維持費だけが決める。
         //   政治ゲートは合計に1回だけ掛かる（PolicyAxis.Coercion）＝内訳に2枚目のゲートは無い。
         // 関税目標＝国内政治由来(p.TariffTarget)＋外交層の報復/相互偏倚(TariffRetaliationBias)。偏倚は既定0＝従来。多国かつTariffRetaliation>0でのみ非0
-        w.Tariff            = Move(w.Tariff,            Math.Clamp(Q5(p.TariffTarget) + (c.TariffRetaliationViaPolitics > 0 ? 0.0 : w.TariffRetaliationBias), c.TariffFloor, 1), c, w, PolicyAxis.Tariff);   // 器：ViaPolitics>0 では偏倚は支持側（PolicyPreferences）で読む   // 下限＝負の関税（ダンピング）。AIも産業スタンスの輸出攻勢で負値を使う（SelfPlay側のダンピング＝条件を外れると0へ解除・監査2026-07-11 他6）
+        w.Tariff            = Move(w.Tariff,            Math.Clamp(Q5(p.TariffTarget) + w.TariffRetaliationBias, c.TariffFloor, 1), c, w, PolicyAxis.Tariff);   // 下限＝負の関税（ダンピング）。AIも産業スタンスの輸出攻勢で負値を使う（SelfPlay側のダンピング＝条件を外れると0へ解除・監査2026-07-11 他6）
         // 金利＝中央銀行の金融政策レバー（利益集団の抵抗は受けない）。目標へ寄る。
         // ★トリレンマを閉じる②（2026-08-13）：**「兌換維持＋資本自由」のときだけ金利は自分のものでなくなる**。
         //   このとき目標は政策の意思でなく**正貨のカバー率を守るための帰結**＝カバー率が目標を下回れば上げ、十分なら下げる。
@@ -346,7 +346,7 @@ public static class Government
     /// その役目は <c>b = MandateWeight×MandateSpendRate×(正統性+支持)</c> の小ささが負う＝同じ史実を係数1本少なく出す。</para>
     /// <para>⚠憲法級（参政権・秘密投票・女性の権利の選挙権段）は <b>0</b> を返す＝硬い「純支持&gt;0」のまま
     /// ＝2026-08-04 の裁定「参政権は政治資本で押せない」を<b>そのまま保存</b>する。切り離し弁は
-    /// <see cref="Coefficients.ConstitutionalMandateScale"/>（0＝切り離す＝既定／&gt;0＝普通の政策として在庫で押せる＝休眠）。</para>
+    /// 2026-09-26 に削除した（棚卸し dorm-50＝0が正しい値として確定した旗）。</para>
     /// <para>★焼き込み（2026-09-21 ㉖）：旗 PoliticalCapitalStock と θ の算術（正統性の傾き・負側の減衰・押し予算・憲法級倍率）を削除。</para></remarks>
     private static double MandateMargin(World w, PolicyAxis a, int targetLevel)
     {
@@ -354,8 +354,8 @@ public static class Government
         // ★S1：門は在庫だけ＝非憲法級は +∞（θ を読む4本の脚の比較が「通す側」へ倒れる）。
         // ★憲法級の法（2026-08-04・作者指示「少なくとも参政権は固く」）：**政治資本では押し切れない**＝0（硬い純支持>0）。
         //   誰が票を持つかは統治の土台であって、政権の政治資本で動かせる普通の政策ではない。史実でも参政権の拡大は
-        //   **力の均衡が実際に動いたとき**に通った（1832年の大改革法は革命寸前の圧力の産物・1867/1884も同じ）。弁＝ConstitutionalMandateScale>0。
-        return IsConstitutional(a, targetLevel) && !(w.Coef.ConstitutionalMandateScale > 0) ? 0 : double.PositiveInfinity;
+        //   **力の均衡が実際に動いたとき**に通った（1832年の大改革法は革命寸前の圧力の産物・1867/1884も同じ）。
+        return IsConstitutional(a, targetLevel) ? 0 : double.PositiveInfinity;
     }
 
     /// <summary>憲法級＝「誰が票を持つか・票がどう数えられるか」を決める法（2026-08-04）。
@@ -439,7 +439,7 @@ public static class Government
         // ★旧「海軍偏重」の戦線は撤去（2026-08-10 作者裁定）＝陸海の内訳は独立の政治戦線を持たない（軍事費の合計だけが戦線）。
         //   ⚠意図した副作用：軸が1本減る＝目標が動かない幽霊戦線が消え、PoliticalPushBudget=(1/N)^Gate が他軸を薄めなくなる。
         if (!w.CoercionFollowsForce) Front(w.BaseCoercion / Math.Max(1e-9, w.Coef.CoercionMax), Q5(p.CoercionTarget / Math.Max(1e-9, w.Coef.CoercionMax)));
-        Front(w.Tariff, Q5(Math.Clamp(Q5(p.TariffTarget) + (w.Coef.TariffRetaliationViaPolitics > 0 ? 0.0 : w.TariffRetaliationBias), w.Coef.TariffFloor, 1)));   // 器：同上（戦線数の側も同じ式）。関税は R3 で段の対象外＝Q5 のまま   // wave2b：施行側（L157相当＝報復偏倚＋関税床込み）と同じ目標式へ。旧は偏倚/床を無視していた
+        Front(w.Tariff, Q5(Math.Clamp(Q5(p.TariffTarget) + w.TariffRetaliationBias, w.Coef.TariffFloor, 1)));   // 戦線数の側も施行と同じ式。関税は R3 で段の対象外＝Q5 のまま   // wave2b：施行側（L157相当＝報復偏倚＋関税床込み）と同じ目標式へ。旧は偏倚/床を無視していた
         return n;
     }
 
@@ -475,33 +475,10 @@ public static class Government
     internal static bool PoliticalCapitalAffords(World w, double cost)
         => w.MandateSpent + cost <= w.PoliticalCapitalMax;
 
-    /// <summary>既得層の怒り（§13 後退の怒り＝<see cref="ReversalAnger"/> の唯一の呼び手）：その法を支持していたブロックの闘争度を上げる。
-    /// sign=-1（反対ブロック対象）／+1（賛成ブロック対象）で対象と符号を選ぶ。rate=0 で完全不走行＝ビット恒等。
-    /// ★旧の呼び手＝押し切り遺恨（PushedLawGrievance）と阻止の不満（BlockedLawGrievance）は裁定C2（2026-09-12「法の変更そのものは闘争度に関与しない」）で
-    ///   段の世界では不到達になり、2026-09-20 の段の点火でラッパ2本・係数2本ごと削除した。</summary>
-    private static void Grievance(World w, PolicyAxis a, bool increasing, double net, double rate, int sign)
-    {
-        if (rate <= 0) return;
-        var (trad, modern, mass, _) = PolicyPreferences.Stance(w, a, increasing);   // 各ブロックの符号付き賛否（負＝反対）
-        // 第4束「小営業」（プチブル利益束2026-08-15）：対象3軸のみ独自の立場・他軸は旧束の値（＝下の modern/mass 分岐がそのまま担う）。gate=0＝null＝恒等
-        var petty = w.Coef.PettyInterestGate > 0 && PolicyPreferences.IsPettyAxis(a) ? InterestGroups.PettyPops(w) : null;
-        double pettyStance = petty != null ? PolicyPreferences.PettyStance(w, a, increasing) : 0;
-        double bump = rate * Math.Min(1.0, -net);
-        foreach (var p in w.AllPops())
-        {
-            if (p.IsSoldier) continue;
-            double stance = p.Closed ? trad
-                : petty != null && petty.Contains(p) ? pettyStance
-                : p.IsModernElite ? modern : mass;   // このpopの属すブロックの賛否
-            double signed = stance * sign;
-            if (signed > 0) p.Militancy = Math.Min(1.0, p.Militancy + bump * Math.Min(1.0, signed));   // 対象ブロックのみ・強さ比例
-        }
-    }
-
     // ★裁定C2（2026-09-12「法の変更そのものは闘争度に関与しない。実税が生活を苦しくし、結果として不満度を上げて反乱が増える形にする」）：
     //   押し切り遺恨／阻止の不満のラッパ2本は 2026-09-20 の段の点火で削除。税から闘争度への経路は実税→生活水準→不満度（Politics の力学）1本。
-    //   ⚠Grievance **本体は残す**：ReversalAnger（§13 後退の怒り・特権doc 2026-09-06/07）が「新しい式を作らない」と明記して同じ関数を呼ぶ。
-    //     ReversalAnger も字義では C2 の射程だが、IrreversibleLaws=1.0 と PrivilegeStripMilitancy=0 で**二重に不到達**＝どちらに倒しても実挙動は厳密恒等＝作者裁定案件として残す。
+    //   ★2026-09-26（棚卸し pol-27）：残っていた §13 後退の怒り（ReversalAnger）と本体 Grievance も削除した＝IrreversibleLaws=1.0（後退は禁止）と
+    //     PrivilegeStripMilitancy=0 で**二重に不到達**だった。点火すれば裁定C2 に反し、しなければ死蔵＝どちらに倒しても残す理由が無い。
 
     /// <summary>法整備の一歩が現在の政治均衡（純支持＋政治資本の在庫）で通るかの照会（UIの法律タブ通知用・裁定2026-07-09）。
     /// MandateGate と同じ判定式だが**副作用なし**＝政治資本を消費しない（実際の施行は Government.Step の通常経路のみ）。
@@ -527,8 +504,8 @@ public static class Government
         //   ⚠StepEnum は元々1段ずつ進める（ci+1 を照会する）ので、施行の速さ自体はこれでは変わらない。
         //     変わるのは**遠い段を目標に置けなくなる**こと＝プレイヤーもAIも各段を別々の決断として払う
         //     （UIは遠い段が灰色になり理由が出る／AIの綱領・要求も飛び越しを目標にできない）。
-        //   ⚠StagePrereq=0 で従来と厳密一致（休眠）。
-        if (c.StagePrereq > 0 && StagedAxis(a) && targetLevel > CurrentStage(w, a) + 1)
+        //   （旗 StagePrereq は 2026-09-26 に焼き込み）
+        if (StagedAxis(a) && targetLevel > CurrentStage(w, a) + 1)
             return (false, "前段階が必要");
         // ★税・支出・軍事費の段（作者裁定2026-09-12 R1/R2）＝**押せなさの根拠をここへ集める**＝法律タブの可否とエンジンの施行が同じ1本を読む。
         //   新しい定数を1つも置かない（検地台帳・教育法・緊縮の逆進フロア・総動員は全て既存の量）。
@@ -796,10 +773,10 @@ public static class Government
         double resist = PolicyPreferences.OpposingPower(w, a, increasing);
         // P1-C 予算闘争（憲法紛争1862型）：非協力的な議会（CoopParliamentCrown<0）×高い統制力＝予算軸（所得税）のスライダーが
         // 議会の拒否で動きにくい。免責＝協力度は紛争記憶（MandateSpent）の減衰と与党交代で回復。既定0で恒等。
-        // 機能2-1（2026-07-28）：予算協賛の対象を所得税のみ→全税軸へ（ParliamentBudgetScope>0）。議会の同意なしに予算（歳入構成）は動かない
+        // 機能2-1（2026-07-28）：予算協賛の対象を所得税のみ→全税軸へ（旗 ParliamentBudgetScope は 2026-09-26 に焼き込み）。議会の同意なしに予算（歳入構成）は動かない
         // ＝憲法紛争1862の一般化。機能1-像1（絶対王政は同意コスト0）は非議会政体で ParliamentControl≈0＝この項が消えることで相対的に成立（新規実装ゼロ）。
         if (w.Coef.ParliamentBudgetVeto > 0 && (a == PolicyAxis.IncomeTax
-            || (w.Coef.ParliamentBudgetScope > 0 && a is PolicyAxis.PollTax or PolicyAxis.LandTax or PolicyAxis.ProgressiveTax)))   // [PORT:P6] 予算闘争→法ゲートの抵抗への加算（★専売は Move を持たない＝2026-09-20 に腕を削除。門は World.SetStateMonopolyOn 側の GateInfo）
+            || a is PolicyAxis.PollTax or PolicyAxis.LandTax or PolicyAxis.ProgressiveTax))   // [PORT:P6] 予算闘争→法ゲートの抵抗への加算（★専売は Move を持たない＝2026-09-20 に腕を削除。門は World.SetStateMonopolyOn 側の GateInfo）
             resist += w.Coef.ParliamentBudgetVeto * Math.Max(0, w.ParliamentControl) * Math.Max(0, -w.CoopParliamentCrown);
         double speed = c.PolicyBaseSpeed / (1.0 + c.PolicyResistanceWeight * resist) * (mandate ? w.PoliticalPushBudget : 1.0);   // 第6段6-1：政治の押しのみ戦線数で正規化（機械追従＝武力統合の治安維持力は対象外）
         // 政体フレーバー レバー2（2026-07-24）：勅令は速い＝非選挙政体（絶対/専制/幕府/軍政）はスライダー歩幅×(1+これ)（議会審議を経ない＝
@@ -836,13 +813,13 @@ public static class Government
     {
         if (!regressive) return false;
         var c = w.Coef;
-        // 政4（既存・恒久）：農奴解放・土地改革＝再農奴化の封じ（IrreversibleEmancipation=1.0焼き込み済み・窓too＝再隷農化した国は存在しない）。
-        if (c.IrreversibleEmancipation > 0 && (a is PolicyAxis.SerfEmancipation or PolicyAxis.LandReform)) return true;
+        // 政4（既存・恒久）：農奴解放・土地改革＝再農奴化の封じ（旗 IrreversibleEmancipation は 2026-09-26 に焼き込み・窓too＝再隷農化した国は存在しない）。
+        if (a is PolicyAxis.SerfEmancipation or PolicyAxis.LandReform) return true;
         if (c.IrreversibleLaws <= 0) return false;
         if (w.RuptureWindowQuarters > 0) return false;   // 断裂の窓＝反動の後退はここだけ
         if (!ProtectedLaw(w, a)) return false;           // 報道・国教・税・関税等＝可逆
         // ★支配度doc §13（作者追記裁定2026-09-06・器2026-09-07）：IrreversibleLaws は 0..1 の連続。1.0＝現行の bool 禁止（厳密恒等）。
-        //   <1 では禁止せず、後退は同じ純支持ゲート（MandateGate＝余白÷倍率・押し切りの政治資本×倍率）と既得層の怒り（ReversalAnger）で通る。
+        //   <1 では禁止せず、後退は同じ純支持ゲート（MandateGate＝余白÷倍率・押し切りの政治資本×倍率）で通る（既得層の怒りは置かない＝裁定C2・pol-27）。
         return c.IrreversibleLaws >= 1.0;
     }
 
@@ -854,22 +831,15 @@ public static class Government
         _ => false,
     };
 
-    /// <summary>§13 後退のコスト倍率＝1/(1−IrreversibleLaws)。1.0（禁止）は BlockedByIrreversibility が先に止める・0 で倍率1（純支持と怒りだけ）・断裂の窓と非保護軸は1。</summary>
+    /// <summary>§13 後退のコスト倍率＝1/(1−IrreversibleLaws)。1.0（禁止）は BlockedByIrreversibility が先に止める・0 で倍率1（純支持だけ）・断裂の窓と非保護軸は1。</summary>
     internal static double ReversalCostMul(World w, PolicyAxis a, bool regressive)
     {
         var c = w.Coef;
         if (!regressive || !(c.IrreversibleLaws > 0) || c.IrreversibleLaws >= 1.0 || w.RuptureWindowQuarters > 0 || !ProtectedLaw(w, a)) return 1.0;
-        if (c.IrreversibleEmancipation > 0 && (a is PolicyAxis.SerfEmancipation or PolicyAxis.LandReform)) return 1.0;
+        if (a is PolicyAxis.SerfEmancipation or PolicyAxis.LandReform) return 1.0;
         return 1.0 / (1.0 - c.IrreversibleLaws);
     }
 
-    /// <summary>§13 後退の怒り＝その法を支持していたブロック（反対＝後退に反対する側）の闘争度を特権剥離と同じ率（PrivilegeStripMilitancy）で上げる。
-    /// Grievance の鏡像を**そのまま**呼ぶ（新しい式を作らない）。断裂の窓の後退は既存のまま（怒りなし）。</summary>
-    private static void ReversalAnger(World w, PolicyAxis a, bool increasing, bool regressive)
-    {
-        if (!regressive || w.Coef.IrreversibleLaws >= 1.0 || w.RuptureWindowQuarters > 0 || !ProtectedLaw(w, a)) return;
-        Grievance(w, a, increasing, -1.0, w.Coef.PrivilegeStripMilitancy, -1);
-    }
     internal static bool AtWar(World w)
     {
         if (w.Diplomacy is not { } dip || w.SelfPower is not { } sp) return false;
@@ -889,10 +859,7 @@ public static class Government
         // 前提法DAG（E4）：一段上げる先(ci+1)の前提が未達なら据え置き（段階スキップ禁止＝StepEnumは1段ずつ・前提の連鎖を一歩ごと再確認）。
         if (increasing && !LawPrereq(w, a, ci + 1, w.Coef).Ok) return cur;
         if (MandateGate(w, a, increasing, ci + (increasing ? 1 : -1), ReversalCostMul(w, a, regressive)))
-        {
-            ReversalAnger(w, a, increasing, regressive);   // §13：通った後退は既得層を怒らせる（IrreversibleLaws=1.0 では到達しない）
             return (T)Enum.ToObject(typeof(T), ci + (increasing ? 1 : -1));
-        }
         return cur;   // 力の均衡（＋余白）が許さない＝据え置き（例：参政権はブルジョワが制限選挙で止める）
     }
 
@@ -907,7 +874,6 @@ public static class Government
         // 旧＝StepBoolはLawPrereqを読まず、GateInfo経由の人間プレイヤーにだけ前提が効きAI/施行では素通り＝非対称（女性参政権←女性教育権の唯一のbool前提が骨抜き）だった。
         if (target && !cur && !LawPrereq(w, a, 1, w.Coef).Ok) return cur;
         if (!MandateGate(w, a, target, target ? 1 : 0, ReversalCostMul(w, a, regressive))) return cur;
-        ReversalAnger(w, a, target, regressive);   // §13
         return target;
     }
 }

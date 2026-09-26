@@ -33,20 +33,16 @@ public static class InterestGroups
             + (p.Closed && w.Coef.LandedPowerCapitalization > 0 ? w.Coef.LandedPowerCapitalization * Math.Max(0, p.LandRent) : 0);
         // 参政権の範囲2法（作者裁定2026-08-16）：政治的国民への算入率でpopを加重（植民地格の州＝植民地参政権・本国州の非中核分＝移民原住民参政権）。
         // ループは AllPops と同じ走査順（w.Regions→r.Pops・Seceded スキップ）の入れ子＝州の格が読める形。
-        // SuffrageScopeGate=0 では乗算パス自体に入らない＝旧挙動と厳密恒等（加算順も同一＝ビット恒等）。⚠既定は1.0（点火2026-09-06）＝この乗算は下の SuffrageScopeVoice=0 が閉じている。
         // ★J-001の範囲（2026-09-04・運転規則§9で作者裁定を差し戻し）：参政権の範囲が縛るのは**本国議会の代表と課税への同意**（Fiscal/Government）まで。
-        //   発言権（この関数＝利益集団の重み）は票の前提にしない＝票の無い層にも声はあった（チャーティスト1839/反穀物法同盟1838/1848年）。
-        //   ここだけ別の腕 SuffrageScopeVoice（既定0）＝主フラグ点火時もこの乗算は走らない。両方>0 で従来のV6挙動。
-        bool scopeOn = w.Coef.SuffrageScopeGate > 0 && w.Coef.SuffrageScopeVoice > 0;
+        //   発言権（この関数＝利益集団の重み）は票の前提にしない＝票の無い層にも声はあった（チャーティスト1839/反穀物法同盟1838/1848年）
+        //   ＝算入率はここでは掛けない（測定専用の腕 SuffrageScopeVoice は 2026-09-26 に削除＝dorm-49）。
         double totalWealth = 0, totalPop = 0;
         foreach (var r in w.Regions)
         {
             if (r.Seceded) continue;
             foreach (var p in r.Pops)
             {
-                double lw = LandedWealth(p), sz = p.Size;
-                if (scopeOn) { double inc = SuffrageInclusion(w, r, p); lw *= inc; sz *= inc; }
-                totalWealth += lw; totalPop += sz;
+                totalWealth += LandedWealth(p); totalPop += p.Size;
             }
         }
 
@@ -69,7 +65,6 @@ public static class InterestGroups
             foreach (var p in r.Pops)
             {
                 double lw = LandedWealth(p), sz = p.Size;
-                if (scopeOn) { double inc = SuffrageInclusion(w, r, p); lw *= inc; sz *= inc; }   // 算入率＝分子側も同じ加重（分母と同時に痩せる＝比の整合）
                 double wealthShare = totalWealth > 1e-9 ? lw / totalWealth : 0;
                 double share = beta > 0 && totalPop > 1e-9
                     ? (1.0 - beta) * wealthShare + beta * (sz / totalPop)

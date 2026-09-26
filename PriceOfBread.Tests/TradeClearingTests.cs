@@ -6,22 +6,18 @@ using Xunit;
 
 namespace PriceOfBread.Tests;
 
-/// <summary>S4 裁定清算（TradeArbitrageClearing・2026-08-30・docs/202608/20260822_貿易数量則の書き換え_設計_部分完了.md §1）の番人。
-/// 既定0のビット恒等は既存フルスイートが番人（新コードは clearOn 分岐の内側＝0では1命令も通らない）。
-/// ここでは (a)既定値 (b)点火が世界を動かす（フィンガープリント） (c)ON の財保存＝売り手減=買い手増=LastImport
+/// <summary>S4 裁定清算（2026-08-30 点火・docs/202608/20260822_貿易数量則の書き換え_設計_部分完了.md §1）の番人。
+/// ここでは (a)既定値 (c)財保存＝売り手減=買い手増=LastImport
 /// (d)最安の売り手が尽きたら**同じ買い手が同じ清算内で次善から買う**（旧経路は1買い手1成約＝構造的に不可能だった）を固定する。
-/// ⚠OFF側の対照は既定に寄りかからず**明示的に0へピン**する（2026-08-16の作法）。</summary>
+/// ★2026-09-26（棚卸し econ-15）：旧経路（TradeArbitrageClearing=0）と同期容量の旗（TradeCapacityHard）は旗ごと削除した＝
+/// OFF と ON の指紋の比較（b）も一緒に外した（比べる相手が無い）。</summary>
 public class TradeClearingTests
 {
     private static NationConfig[] TwoPorts() => [WorldData.ByName("ジェノヴァ"), WorldData.ByName("トスカーナ")];
 
-    private static (MultiNationSim sim, int good, Region seller, Region seller2, List<Region> buyers) Make(
-        double clearing, double capHard = 0)
+    private static (MultiNationSim sim, int good, Region seller, Region seller2, List<Region> buyers) Make()
     {
         var sim = new MultiNationSim(TwoPorts(), seed: 1789) { DiplomacyFrozen = true };
-        sim.Coef.TradeArbitrageClearing = clearing;
-        sim.Coef.TradeCapacityHard = capHard;
-        sim.Coef.TradeArbitrageMax = 0;   // 旧経路の裁定ブーストは黙らせる（測るのは新経路だけ）
         var gd = sim.Nations[0].World.Region.Goods
             .First(g => !g.IsColonial && !g.NonTradeable && g.Tier != GoodTier.Staple && !g.GrainChain
                         && Array.IndexOf(sim.Coef.MilitaryExportGoods, g.Id) < 0);
@@ -62,17 +58,15 @@ public class TradeClearingTests
     {
         // ★2026-08-30 点火宣言（batch10段階測定＝貿易/GDP 0.5%→42〜66%・開放度次元が初の非ゼロ・本国96.7/経済41.2）
         var c = new Coefficients();
-        Assert.Equal(1.0, c.TradeArbitrageClearing);
-        Assert.Equal(1.0, c.TradeCapacityHard);
         Assert.Equal(1.0, c.TradeMonthlyClearing);
         Assert.Equal(1.0, c.TradeLedgerFix);
         Assert.Equal(1.0, c.PriceLawSeesExports);
     }
 
     [Fact]
-    public void ONは財を保存する_売り手減は買い手増と一致()
+    public void 裁定清算は財を保存する_売り手減は買い手増と一致()
     {
-        var (sim, g, seller, seller2, _) = Make(clearing: 1);
+        var (sim, g, seller, seller2, _) = Make();
         double s0 = seller.Markets[g].Stock + seller2.Markets[g].Stock;
         double othersBefore = 0;
         foreach (var n in sim.Nations) foreach (var r in n.World.Regions)
@@ -83,7 +77,7 @@ public class TradeClearingTests
         foreach (var n in sim.Nations) foreach (var r in n.World.Regions)
             if (!ReferenceEquals(r, seller) && !ReferenceEquals(r, seller2))
             { othersAfter += r.Markets[g].Stock; imported += r.Markets[g].LastImport; }
-        Assert.True(exported > 1e-9, "ONで1件も成約していない（機構が働いていない＝ゲート緑の嘘）");
+        Assert.True(exported > 1e-9, "1件も成約していない（機構が働いていない＝ゲート緑の嘘）");
         Assert.Equal(s0 - s1, othersAfter - othersBefore, 6);   // 売り手が減った分だけ買い手が増える（無から湧かない）
         Assert.Equal(exported, imported, 6);                    // 台帳の対称
         Assert.True(seller.Markets[g].Stock >= seller.Markets[g].TargetStock - 1e-9,
@@ -93,26 +87,11 @@ public class TradeClearingTests
     [Fact]
     public void 最安が尽きたら同じ清算内で次善から買う()
     {
-        var (sim, g, seller, seller2, _) = Make(clearing: 1);
+        var (sim, g, seller, seller2, _) = Make();
         sim.Market.Step(sim.Nations, sim.Coef);
         // 最安（avail=50）はほぼ喰い尽くされ、なお足りない需要が次善（0.6wp）から買われている
         Assert.True(seller.Markets[g].LastExport > 1e-9, "最安の売り手から買っていない");
         Assert.True(seller2.Markets[g].LastExport > 1e-9,
             "次善の売り手から買っていない＝ロールオーバー（skip→continue）が機能していない（旧経路は1買い手1成約でここが構造的に0になる）");
-    }
-
-    [Fact]
-    public void OFFピンとONでフィンガープリントが変わる()
-    {
-        double Fp(double on)
-        {
-            var (sim, g, _, _, _) = Make(clearing: on);
-            sim.Market.Step(sim.Nations, sim.Coef);
-            double acc = 0; int k = 0;
-            foreach (var n in sim.Nations) foreach (var r in n.World.Regions)
-            { acc += r.Markets[g].Stock * ++k; acc += r.Markets[g].LastImport * 31; }
-            return acc;
-        }
-        Assert.NotEqual(Fp(0), Fp(1));   // 点火が世界を動かす（＝ONが本当に別経路を通った証拠）
     }
 }

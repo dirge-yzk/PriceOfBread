@@ -81,7 +81,8 @@ public static class ArmyShape
             foreach (var r in w.Regions) if (r.State == RegionState.Active && r.IsPort) seaValue += r.LastPortThroughput;
             foreach (var col in p.ColonyList) seaValue += col.Value;
             p.NeedSea += c.SeaEscortPerTradeValue * seaValue;   // ★通商保護＝**絶対量**（正規化しない）。英の海軍が世界最大になるのは守るべき海上価値が世界最大だから
-            double q = Quality(w, c);
+            var (qTech, qCohesion, qMilitarism) = Quality(w, c);
+            double q = qTech * qCohesion * qMilitarism;
             p.NeedMen = c.SoldiersPerMilitary * ((p.NeedLand + p.NeedInternal) + c.NavalCrewPerGauge * p.NeedSea) / System.Math.Max(0.05, q);
             p.AttentionColSumMax = maxColSum;
         }
@@ -93,8 +94,10 @@ public static class ArmyShape
 
     /// <summary>軍の質（技術×結束×軍国）。⚠**装備充足と即応度を入れない**——入れると
     /// 「装備が買えない→必要兵数が増える→予算が人へ→さらに買えない」の正帰還が閉じる（旧 SoldierSustainDriven 凍結と同型の罠）。
-    /// 理想は**原因だけ**で作り、症状（充足率）は結果側にだけ出す。式は Diplomacy の戦力合成と同一。</summary>
-    private static double Quality(World w, Coefficients c)
+    /// 理想は**原因だけ**で作り、症状（充足率）は結果側にだけ出す。
+    /// ★2026-09-26（棚卸し mil-13）：Diplomacy の戦力合成も**この1本**を読む（旧＝同じ式の写しが2か所・制度疲労の門が InstitutionalDecay と DecayForReaders で食い違っていた）。
+    ///   3因子を別々に返す＝各呼び手の掛ける順（浮動小数の結合順）をそのまま保つ。</summary>
+    internal static (double Tech, double Cohesion, double Militarism) Quality(World w, Coefficients c)
     {
         double techQuality = c.TechMilLowFloor + (1 - c.TechMilLowFloor) * System.Math.Clamp(w.TechLevel / c.TechMilFullLevel, 0, 1);
         if (c.DecayMilitaryWeight > 0 && w.DecayForReaders > 0)   // ★特権段6：読み手は DecayForReaders（ゲート0で従来値）
@@ -102,8 +105,8 @@ public static class ArmyShape
                 * System.Math.Clamp((w.WorldTechLevel - w.TechLevel) / System.Math.Max(1e-9, w.WorldTechLevel), 0, 1), 0, 0.9);
         double cohesion = w.EthnicEnabled ? 1 + c.UnityMilitaryQuality * (w.EthnicUnity - 0.5) : 1.0;
         // ①軍の練度（2026-08-18・親軍法の撤去）＝識字×組織（専門官僚制・鉄道）×勤務年数。旧＝親軍法ONで一律1.3の段差。
-        // 露は皆兵＋巨額でも低質（識字と下士官層の不在）・英は志願長期勤務で最高＝法でなく実物量が質を作る（式は Diplomacy の戦力合成と同一）。
+        // 露は皆兵＋巨額でも低質（識字と下士官層の不在）・英は志願長期勤務で最高＝法でなく実物量が質を作る。
         double militarism = 1.0 + (c.MilitarismStrengthBonus - 1.0) * PoliticalQuantities.ArmyProfessionalism(w);
-        return techQuality * cohesion * militarism;
+        return (techQuality, cohesion, militarism);
     }
 }

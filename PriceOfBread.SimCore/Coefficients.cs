@@ -61,8 +61,8 @@ public sealed class Coefficients
        どちらも 0/1 の構造スイッチ（中間値に意味なし＝運用禁止）。 */
     public double TradeMonthlyClearing = 1.0;   // ★点火2026-08-30（貿易数量則ラウンド・batch10段階測定→フルスタック採用）
     public double TradeLedgerFix = 1.0;     // S2台帳衛生（案E・2026-08-30）：人口の主食純輸入をゼロ化前の前清算値（Market.PrevImport/Export）で読む。0＝旧（常に0を見る＝発火不能）＝厳密恒等
-    public double TradeArbitrageClearing = 1.0;   // ★点火2026-08-30＝世界貿易/GDP 0.5%→42〜66%（1914断面42%≈史実40%）・開放度次元が初の非ゼロ   // **S4主フラグ**（2026-08-30・docs/202608 §1）：数量則を水準式へ＝買い X=min(価格静止,物理)・売り Y=min(価格静止,在庫−地元分)・次善へ回る反復＋支払能力（Apply集合）。TradeSpeed は ON で不読。0＝旧（定数速度×自州規模）＝厳密恒等
-    public double TradeCapacityHard = 1.0;        // ★点火2026-08-30＝hard腕が本国96.7(基線同値)/経済41.2(最高)/ハーネス0で最良・容量投資が意味を持つ形        // S4-1（TradeArbitrageClearing>0 のときのみ意味）：容量を同期制約に＝capLeft 両端減算・θ乗算撤去・potential 新定義。0＝影計測（capLeft を切らない・θ/potential は新定義で書く）
+    // 【墓標2026-09-26・旗の焼き込み（econ-15・x-01・0-3）】TradeArbitrageClearing（S4主フラグ・点火2026-08-30＝世界貿易/GDP 0.5%→42〜66%）と TradeCapacityHard（S4-1＝容量を同期制約に）
+    //   ＝BilateralMarket は水準式の裁定清算と同期容量制約だけになった。旧経路（定数速度×自州規模）と、その専用の係数 TradeSpeed・TradeArbitrageMax・TradeBuyerScaleMult・TradeSellerFlowMult も削除
     // ★価格振動の根①（作者観察2026-09-07「硫黄が400%と34%で往復」・4レンズ→反証で確定）：日次価格則の供給項が LastProduced+LastImport だけで
     //   **倉庫の在庫を数えない**＝輸入の無い月は在庫が満杯でも需給差 flow が+1へ飽和し、参照価格からの距離で強くなる増幅項（PriceAmpEdge）が押し上げを
     //   加速する（観測点＝参照の8倍で月×6.4・端では×92）。1＝supply に m.Stock を足す（TargetStockBuffer=1.0＝在庫は既に「1ヶ月分の需要」の単位＝次元が合う）。
@@ -77,11 +77,11 @@ public sealed class Coefficients
     //   帯＝exact 45→48・near 77→79・◎ 8→10・固着 27→26・逸脱 12→9・貿易 11.73→10.53・人口 21.8→18.6。
     //   ⚠清が8/10勝（常勝の疑い）で硬性ゲートは赤だが、**作者裁定 2026-09-08「清の常勝は破綻ではなくバランス。破綻とはゲームがプレイ不可能になる状況」**
     //   ＝順序（破綻しない＞正しい挙動＞バランス）で正しい挙動が上＝点火する。清の抑制は別途（切り分けの腕 stock2/unit2）。
-    public double PriceLawSupplyIncludesStock = 1.0;
+    // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】PriceLawSupplyIncludesStock＝需要までは備蓄が生産の代わりをする＝供給＝max(流入, min(流入＋在庫, 需要))（2026-09-08 点火・作者裁定「備蓄がある限り、それは生産できているものとみなす」）
     // ★価格振動の根②（同日）：BilateralMarket の買い手の発注量 xPrice が「最良の着値 bestDelA」で静止点を解くのに、支払いは約定単価 unitA
     //   （売り手側 yPrice は unitA で解く＝非対称）。単一供給の財（硫黄＝両シチリア1州）では unitA=lp なので過剰発注→着値が閾を割ると0＝bang-bang。
     //   1＝買い手も unitA で解く。0＝旧式＝厳密恒等。単独腕 tradeunit で計測。
-    public double TradeBuyerSolvesAtUnitPrice = 1.0;   // ★点火 2026-09-08（上と対で1本＝腕 price2b）。単独では硬性ゲート赤＝必ず上と同時
+    // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】TradeBuyerSolvesAtUnitPrice＝買い手の静止点を実際に払う単価で解く（2026-09-08 点火・PriceLawSupplyIncludesStock と対）
     // ★計器（同日）：表示用「世界価格」統計（BilateralMarket の平均価格）の [0.1,10]×参照 クランプ＝偏在財（硫黄・銀）で常に振り切れ、画面の値が嘘になる。
     //   1＝クランプなしの生の平均。⚠SilverParityFromRatio=0 の旧経路ではこの統計が銀本位国の平価にも流れる＝両者を合わせて測る。0＝旧式＝厳密恒等。
     public double WorldPriceStatUnclamped = 0.0;
@@ -494,7 +494,7 @@ public sealed class Coefficients
     //   基質（WelfareSatBonus＝満足度への直接加算）が作者裁定2026-08-17/19で撤去されたため、配分係数だけ残しても対象が存在しない＝道連れで削除。
     // ★段2で削除（設計メモ §2-1／§7-3）：InequalityMilitancy＝格差(ジニ)の闘争度加算と、その中立アンカー GiniNeutral。
     //   格差が広がれば下層の満足が落ちる＝want と二重計上（旧コメントは politicalGap との二重は避けたが want との重なりを見ていなかった）。
-    //   ⚠World.GiniIndex 自体は**診断量として残す**（ヘッダーの統計・SocialThemeTests）＝力学は読まない。
+    //   ⚠ジニ係数自体は**診断量として残す**（Politics.GiniIndex＝読むときに計算・ヘッダーの統計・SocialThemeTests）＝力学は読まない。
     public double StrikeProductionHit = 0.25;     // 本国の労働争議減産（no-graduated-unrest-stages）：組合容認かつ高闘争地域でstrikeIntensity×これ だけ操業停止。**0.25で有効化済み**（台帳訂正2026-07-12・旧注記「既定0＝不発」は誤り）
     public double StrikeMilitancyThreshold = 0.5; // ストライキ開始の地域平均闘争度の中間閾値（革命未満の争議段）。StrikeProductionHit=0なら土台のみ
     public double LaborUnionToleratedOutputMul = 0.95;  // 労働組合(容認)の工場出力乗数＝賃上げ/ストで▲5%（資本が反対する理由）。旧・スイッチ直書き0.95を係数化（H・値据え置き）
@@ -707,7 +707,7 @@ public sealed class Coefficients
     // === テーマJ（関税戦争・公害）===
     public double TariffRetaliation = 0.5;       // 報復関税（tariff-no-strategic-retaliation）：相手の対自国関税の超過分に比例して自国関税目標を上げ/友好低関税国に下げる偏倚。0で偏倚なし（現行恒等）。多国かつ>0でのみ発火
     public double TariffReactionMax = 0.25;      // 報復/相互低減で偏倚させ得る上限(±)。TariffRetaliation=0なら無効
-    public double TariffRetaliationViaPolitics = 0.0;   // ★器（2026-09-04・休眠・**2回差し戻し**＝一律形9/4：開放度0.211→0.156／輸出者だけ形9/5：◎18→12・開放度0.122→0.089。現行の目標直接加算が実測上は最も開放的）：報復偏倚を目標への加算でなく**関税スタンスの支持項**にする。史実の報復は政治で争われた（メリーヌ1892・ビューロー1902は保護派政権が可決／英1903チェンバレンの関税改革は選挙で敗北＝1932年まで一方的自由貿易）。tariffprobe実測＝自由党政権の英が報復偏倚+0.18で29%の床を作っていた。1＝目標には足さず、支持側で 旧支配層・近代エリート（国内生産者）に 偏倚/TariffReactionMax を加える。0＝従来（目標へ直接加算）＝厳密恒等
+    // 【墓標2026-09-26（棚卸し econ-16・dorm-51）】TariffRetaliationViaPolitics（報復の圧力を支持項へ通す器・休眠0）＝2回差し戻し（一律形9/4：開放度0.211→0.156／輸出者だけ形9/5：◎18→12）＝再挑戦の計画が無い＝削除
     public double PollutionCapacityWeight = 0.15; // 工業化の環境外部性（no-environmental-pollution-externality）：capacityに −これ×都市化×avgInd×(1−衛生) を加算＝工業都市の公害超過死亡。上下水道で緩和。0で従来完全一致
 
     // --- 税制の拡張（土地税は検地台帳でアンロック。所得税の天井/ラッチは2026-09-12に廃止＝行政の弱さは汚職漏れが額で表す）---
@@ -1009,12 +1009,12 @@ public sealed class Coefficients
     // 過去の減価の記憶を、**現に残っている預金を焼却する**代価で帳消しにし、実力に合った新平価で建て直す。
     // 既定 0.0＝発動しない＝厳密恒等（Fiscal の新ブロックが1命令も走らない）。
     // ★2026-08-13（作者裁定「行政費は汚職などで抜け落ちるが、それ以外は価格相応の働きをするように」）：
-    //   行政（と行政費で買う上下水道）の調達に**買い控えのゲート**を掛けるか。1=旧挙動（掛ける）／0=掛けない＝裁定側。
+    //   行政（と行政費で買う上下水道）の調達に**買い控えのゲート**を掛けない（旗 AdminProcurePriceGate＝1が旧挙動・0＝裁定側）。
     //   予算の制約（afford＝金で買える量）はどちらでも残る＝それ自体が「価格相応」。ここで外すのはその上に重ねた
     //   「参照価格より高いから買わない」という追加の拒否で、金を持っていても行政が働かなくなる原因だった。
     //   ★点火2026-08-13＝0（実測10シード・硬性ゲート全緑）：合計+18.8pt。**列強再現率 22.5→30.0**（本調査の対象軸）・
     //   人口 17.1→21.4・領土本国 79.2→82.5・領土植民地 40.0→44.2・政体exact 35.3→37.6。経済規模だけ −3.7。
-    public double AdminProcurePriceGate = 0.0;
+    // 【墓標2026-09-26（棚卸し dorm-50）】AdminProcurePriceGate＝0で確定（上の裁定）＝旧挙動の枝ごと削除
     //   ★点火2026-08-13（実測10シード・硬性ゲート全緑）：合計+10.0pt。経済規模 32.5→41.2・列強再現率 17.5→22.5・人口 11.4→17.1。
     //   発動は131年55カ国で4回＝稀で重い事件（1797仏・1854西・1869モロッコ・1914マラータ）。スペインだけが実力の平価0.86を選んだ。
     public double CurrencyReformEnabled = 1.0;
@@ -1048,22 +1048,15 @@ public sealed class Coefficients
     public double TreatyPortReparationMult = 2.5;     // 条約港の講和での賠償倍率（「多額の賠償金」＝属国化の代わりに金と通商特権を取る）
     public double TradeBiasStrength = 0.25;   // 敷居を動かす幅（世界価格比）。高く買う＝輸入の敷居を25%下げる／安く売る＝輸出の敷居を25%上げる。0で厳密恒等
     public double TariffProtect = 1.0;               // 輸入の敷居を上げる強さ：輸入閾値＝世界価格×(1+輸送費+関税率×これ)。高関税＝輸入減→国内価格高止まり→国内産業を保護（輸入代替）
-    public double TariffExportDrag = 0.3;            // トレードオフ化2026-07-06:保護の代償。正の関税率×これ を輸出閾値から引く＝高関税で自国の輸出競争力が落ちる（報復/交易縮小）。0で旧挙動（保護がほぼ無料）。関税0の国・非交易較正には無影響
+    // 【墓標2026-09-26（econ-15・sweep-20）】TariffExportDrag（0.3・保護の代償＝輸出閾値から関税×これを引く）＝唯一の読み手 Trade.cs が 2026-09-03 に削除されて読み手0だった
     public double TariffRevenueRate = 1.0;           // 関税収入＝輸入額（世界価格建て）×関税率×これ→国庫（popが負担＝保護下でも消費する分の関税）。慢性赤字の主財源
     public double TariffFloor = -0.25;               // 関税の下限＝負の関税（ダンピング／輸出補助金）。負の関税は輸出閾値を|関税|ぶん引き上げ→輸出増（世界市場へ安売り）、国庫→商人の補助金。AI（産業スタンスのダンピング）とプレイヤーの双方が負値を使う。条約は負値を物差しにしない
     // 土地（耕地）＝固定生産要素。農村人口が耕地賦存量(Region.ArableLand)を超えると土地作物RGOが収穫逓減し、食料/人↓→所得↓→移民が自然に止まる（room/容量番兵を撤去した本体）。
     public double LandDiminishExponent = 0.7;       // landFactor=min(1,(耕地/農村人口)^これ)。農村が耕地の2倍で産出0.76倍・4倍で0.57倍。0＝逓減なし
 
     // --- 国際・世界市場（§5.1・段4d）---
-    public double TradeSpeed = 0.05;        // 交易量の速さ（価格差→輸出入量）。⚠2026-08-30 S4点火後は**既定経路で不読**（旧経路＝TradeArbitrageClearing=0時のみ。単一国の Trade.cs は 2026-09-03 に削除済み）＝掃除はS6/#17再較正と同席
-    // ★裁定流量の価格差感応化（2026-08-17・休眠＝docs/202608/20260817_裁定流量の価格差感応化_完了.md）：
-    //   売り手が動かせる量は アクセス×TradeSpeed×規模 だけで**価格差を見ない**（＝定数蓋・鋼市場診断β／8/15「残る律速は速度」と同一犯）。
-    //   これ>0 で 裁定margin x=世界平均/自州価格−1 に応じ 流量に x/(1+x/これ) を上乗せ＝**自己有界**（x→∞で(1+これ)倍へ漸近）。
-    //   値の読み方＝「最大何倍まで速く出せるか−1」（1.0で最大2倍・4.0で最大5倍）。x が小さい領域では f≈x＝線形で平時を歪めない。
-    //   買い手側の q は既に価格差比例なので触らない（同じ x を両側に掛けると価格差が二乗＝二重計上）。0で分岐ごとスキップ＝ビット恒等。
-    //   ★点火4.0（2026-08-29・batch30 A/B＝鉄道低下0.25の上）＝貿易0.12→0.15%・政体47.5→48.0・列強31.7→32.5・人口29.0→31.0・
-    //     法57.0→57.9・スペイン常勝25→20/30／植民地30.0→26.1・経済−0.9。硬性全緑。差し戻しは0へ。
-    public double TradeArbitrageMax = 4.0;   // ⚠B19（2026-09-07）：読み手は BilateralMarket の旧経路（TradeArbitrageClearing=0）だけ＝**既定経路（S4点火後）では不読**。値を見て「点火済み」と誤読しない（S6/#17 の掃除で係数ごと削除候補）
+    // 【墓標2026-09-26（econ-15）】TradeSpeed（旧経路の交易量の速さ）・TradeArbitrageMax（旧経路の売り手の流量に価格差を効かせる器・2026-08-29 点火）
+    //   ＝どちらも読み手は旧経路（TradeArbitrageClearing=0）だけ＝S4 点火後は不読だった＝旧経路ごと削除
     // ★植民地財の交易解禁（2026-08-21・反実仮想レバー／既定0＝BilateralMarket:245 の判定が旧と厳密同値＝ビット恒等）。
     //   検証する主張＝「実在する定義の穴は植民地財が二国間交易にも貿易統計にも一切入らないことだけ（規模は数%）」。
     //   >0 で IsColonial 財（生ゴム/金鶏樹皮/パーム油/象牙/サトウキビ/カカオ/茶葉/コーヒー豆/香辛料/アヘン/グアノ）を
@@ -1083,13 +1076,7 @@ public sealed class Coefficients
     //   ⚠既定値は動かさない＝掃引の物差し専用。POB_COEF で切り替えて測る。
     public double ResourceScarcityScale = 1.0;
     public double ResourceEndowmentScale = 1.0;
-    // ★器の反実仮想レバー（2026-08-21・診断専用／既定1.0＝分岐を1命令も通らない＝ビット恒等）。
-    //   「第2の栓＝買い手の注文式の器 scaleT が実質GDP比で縮んだこと」という主張を、**売り手側の蓋と分離して**A/Bするために置く。
-    //   TradeBuyerScaleMult＝買い手の q（注文量）だけを倍する／TradeSellerFlowMult＝売り手の flowS（出せる量）だけを倍する。
-    //   TradeSpeed を上げると両側が同時に動く＝どちらが律速かを切り分けられない、という測定上の穴を塞ぐ物差し。
-    //   ⚠既定値は動かさない＝掃引の物差し専用。POB_COEF で切り替えて測る。
-    public double TradeBuyerScaleMult = 1.0;
-    public double TradeSellerFlowMult = 1.0;
+    // 【墓標2026-09-26（econ-15）】TradeBuyerScaleMult・TradeSellerFlowMult（旧経路の器 scaleT／流量の蓋を片側だけ倍する診断レバー）＝旧経路ごと削除
     public double TransportMargin = 0.18;   // 世界価格との輸送マージン（この帯の中は裁定しない＝広いほど地域価格が割れる）。前鉄道の道路/河川は高コスト
     // ⚠撤去2026-08-12（旧世界市場の撤去で読み手消滅）: WorldPriceSpeed  国際市場（多国）の世界価格が需給差で動く速さ（§5.1 多国版）
     // === テーマI（国際貿易・植民地）===
@@ -1100,7 +1087,7 @@ public sealed class Coefficients
     // タスクC（市場の権利構造・独占レント方式）：EffFirms/マークアップの崩壊を避け、既存の安定した「上乗せ→保有pop」経路（専売/流通マージンと同型）で表現。伝統的独占の超過利潤を消費者→保有エリートへ移転し、近代化で解体＝「市場の自由化」体験。
     public double MonopolyRentPremium = 0.15;   /* リアリティ群点火2026-07-18＝塩gabelle/茶の独占レント(resentment無し・工業化で自然消滅) */   // 伝統的独占(塩の王室のgabelle・茶の東インド会社)の買い手価格上乗せ率。**タスクC/#4試験2026-07-15＝0.3+resentment0.05でbatch◎24・清entrench解消の好結果だが、テストゲートで5失敗（茶ルーティングのIndexクラッシュ[修正済]＋resentment闘争度が政治を自律撹乱＝幕府→共和/NullAgentでも参政権変化の4政治テスト破壊）。清を直す強さと政治を壊す強さが同一＝resentment方式は両立不能で差し戻し。機構は休眠温存**。**タスクC点火試験2026-07-15＝0.5でleakhunt清潔・機構は妥当だが帯劣化（exact39→35・清11→17常勝・首位交代61.7→43.4・固着+4）＝エリートへのレント集中が伝統帝国(清)を entrench＋「解体=工業化連動」が"工業化しなければレント保持"の倒錯誘因を生む＝保留。政体連動の解体＋別効果経路なら要再設計**。機構(徴収→保有pop・保存清潔・休眠恒等)は温存。0=独占なし＝現行と厳密一致。>0で塩(id6)/茶(id74)の買い手価格に上乗せ→塩は国庫(王室)・茶は資本家(会社)へ移転（消費者→保有者で保存）＝大衆が高値で苦しみエリートが儲ける。独占の廃止(下記フェード)で価格下落・生活水準↑
     public double MonopolyDissolveInd = 0.3;   // 独占が完全解体する工業化度。読み手は2形（2026-09-11に旧 LegalMonopolyDissolveInd を統合＝閾値の名は1本）：①フェード＝実効率 MonopolyRentPremium×max(0,1−Industrialization/これ)（EconomyStep.MonopolyDegree・MonopolyRentPremium=0では0）②段差＝Industrialization<これ の伝統経済で塩(6)/茶(74)が EffFirms=1（EconomyStep の EffFirms＝DomesticMarkupMax>0 のみ／PolicyPreferences.FirmConcentration＝EffFirms null 時の Antitrust 軸＝**live**）。フェードが0になる点と段差の縁が同じ工業化度＝近代化(=営業の自由・独占の廃止の創発的代理)で独占が消える
-    public double MonopolyResentmentMilitancy = 0.0;  // タスクC/#4＝差し戻し（0.05で政治を自律撹乱＝上記MonopolyRentPremium参照）。政治腐敗＝独占の純コスト化：独占価格を払う大衆popの月次闘争度上昇＝これ×monRent（買い手ループ）。0で不発。>0で独占が伝統帝国を富ませてentrenchするのを、大衆の不満→不安定で相殺し「独占は悪・解体で生活改善＋安定」を創発（独占レント素点火の清entrench問題への対処）
+    // 【墓標2026-09-26（棚卸し econ-16・dorm-23）】MonopolyResentmentMilitancy（独占価格を払う大衆の闘争度へ直接加算・休眠0）＝差し戻し（0.05で政治を自律撹乱）・思想⑨の型＝削除
 
     // --- 資本・建設（§2.4 拡張：地域集約の「工業化度」。投資＝機械・セメントを消費して積む）---
     public double IndDepreciation = 0.003;        // 工業資本の減価（D1腕＝IndDepreciation0.0045/IndCapitalCost0.45は2026-08-09に一度採用→州23件還流後のアブレーションで符号反転（経済21.3vs30.0・総合−7.8）＝同日差し戻し。原本=rs_D1/wavef_full/wavef_noD1）
@@ -1125,15 +1112,15 @@ public sealed class Coefficients
     // 配線＝新旧合計(TotalIndustrialization)を従来読者へ・座礁控除(ProductiveIndustrialization)は生産性チャネルのみ＝座礁だけが現行との差分（較正中立の分割・Model.cs Region参照）。
     public double VintageMigrateRate = 0.005;     // ヴィンテージ資本（no-vintage-capital-depreciation）：現世代→旧世代の月次経年率。0.005＝半減期約11.6年（19世紀設備の世代交代）。0で二層化せずOldVintageCapital=0（現行恒等）
     public double VintageObsolescence = 0.5;      // 旧世代の生産性寄与を技術差で割り引く座礁の強さ（座礁分＝これ×techGap・techGap=2で全損）。トリアージ/承認工程に推奨値なし＝配線テスト値0.5を採用（保守側はここから半減）。0で割引なし＝Industrialization単一スカラーの現行に恒等
-    public double RevolutionLandReform = 1.0;      // ★2026-08-04（列強再現率）：革命が土地権力を壊す＝共和革命で土地改革（限定的）・プロレタリア独裁で全面を floor-raise。史実＝封建地代の廃止1789年8月4日。旧＝政変後も貴族の地代＝政治力が無傷で反動ピンポンに130年浪費（仏の技術0.28）。0で厳密恒等
+    // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】RevolutionLandReform＝革命が土地権力を壊す＝共和革命で限定・プロ独裁で全面の土地改革を floor-raise（2026-08-04 点火）
     // BlockedLawGrievance（阻止された要求の不満）は 2026-09-20 に係数ごと削除＝裁定C2（PushedLawGrievance と対・段の点火で不到達になった）。
     public double OpulenceTaxRelief = 1.0;         // ★2026-08-04（P4）：国庫が月次義務の8四半期分を超えたら超過に比例してAIの税目標を縮める（床0.25）。旧＝スタンスの税目標が固定率で、黒字国が経済から貨幣を吸い上げ続けデフレ螺旋（プロイセン国庫1.3M/GDP17k・米38M）。0で厳密恒等
     public double LandedPowerCapitalization = 8000;   // ★2026-08-04（統一根の作り直し）：旧支配層の政治力の基盤に**土地**を算入＝Blocs の富に Closed 階級の地代（LandRent・月次フロー）×これを資本化して足す。⚠最初の実装（ClosedWealthMultiple=25＝流動資産を25倍）は**政治力と消費力を混同**し、貴族の消費予算が小国の物価を吊り上げて満足最小国が崩壊（ハーネス4/10赤）・教育市場崩壊等テスト4赤＝撤回。土地は政治力ではあるが流動的な購買力ではない。0で厳密恒等
     public double PrivateAbsorptionBlend = 1.0;   // ★2026-08-04：私的建設の desiredGrowth に吸収能力（AbsorptionOf＝技術/外資と同じ写像・床は CapitalCreditFloor 共有）を掛ける適用率。速度を絞る＝天井なし＝デッドロックなし（敵対審査の推奨形）。0で厳密恒等
-    public double StateAbsorptionBlend = 0.0;     // ★2026-09-03（作者指摘「近代化に必要なレバーが最初からオープンで、技術差が早期に埋まる」）：**国庫の**近代化投資（StateBuildQueue→stateConstruction）に同じ吸収ゲートを掛ける適用率。⚠吸収ゲートは技術・外資・私的建設の3経路に既にあり、この1本にだけ無かった＝非西欧の近代化はほぼ全て国庫経由なので、アジア過近代化の直撃点。床・写像は上3本と共有（新しい数字を作らない）。0で厳密恒等
+    // 【墓標2026-09-26（棚卸し econ-16・dorm-16）】StateAbsorptionBlend（国庫の近代化投資の吸収ゲート・休眠0）＝E-16 で差し戻し（09-21 作者裁定で棄却の側へ閉じた）＝枝ごと削除
     // ⚠撤去2026-08-12（再点火禁止・読み手ごと削除）: MilitarizeSpendThreatSpan  【墓標2026-08-08＝「形が先・金が後」（SpendFromNeedWeight）が代替済み・再点火禁止】★2026-08-04：Militarize の軍事費0.7を脅威で連続化＝0.7−これ×(1−脅威)。**0.4はA/B実測で棄却＝休眠確定**（政体exact−4.3・法−3.8・列強−3.8・経済−2.5＝軍縮した列強の軍事項が痩せて順位が崩れる。多様性は土地の政治力による教義の是正が既に担う）。0で旧＝0.7固定（厳密恒等）
     public double ClosedWealthMultiple = 1.0;     // ★2026-08-04（統一根）：貴族・聖職の初期資産の倍率＝**土地**。旧＝3000/人で資本家3200/人とほぼ同額＝旧支配層の政治力が英3%（blocprobe実測）＝法の門番が全員素通り＝全国1783年に近代法＝工業化の全球収束。1.0で旧と厳密恒等
-    public double IndInvestFromIncome = 0.0;      // ★**0で確定＝休眠**（2026-08-04）。器と診断は残すが点火しない。      // ★2026-08-04（作者指摘「工業化なくしてコストをかけられる方が根本問題」）：私的投資の原資を**貯蓄ストックでなく所得フロー**にする。投資家の四半期所得のこの割合まで投資へ。【診断は正しい／基準の入れ替えだけでは直らない】投資家の**所得**はGDPの約20%＝妥当だが、**貯蓄ストック**は所得の700〜1200倍＝175〜300年分（英2127万・清8724万）。旧式 0.05×貯蓄 は英で106万/四半期＝投資家の四半期所得の62倍＝**予算が制約として一切効かず**、律速は材料だけ（輸入で埋まる）＝「工業化なくして金をかけられる」の実体。★しかし 0.4×所得 で点火すると旧式の約1/150になり、資本の更新が追いつかず**世界が崩壊した**（実測：英GDP 290,733→2）。釣り合わせるには係数を150倍＝「四半期所得の60倍を投資」という無意味な式になる＝**資本コストの較正があの巨大な貯蓄ストックを前提に組まれている**。直すなら建設コスト・減価率・貯蓄ストックを同じラウンドで一緒に動かす必要がある。0で旧式＝厳密恒等
+    // 【墓標2026-09-26（棚卸し dorm-50）】IndInvestFromIncome（私的投資の原資を貯蓄でなく所得にする器・「0で確定＝休眠」2026-08-04）＝削除。0.4×所得で点火すると世界が崩壊した（英GDP 290,733→2）＝資本コストの較正が貯蓄ストック（所得の175〜300年分）を前提に組まれている。再挑戦は建設費・減価・貯蓄を同じ回で動かす大改修と一緒に（検討 §10-10［金融1］）
     public double IndInvestmentFrac = 0.05;       // 投資家（資本家）が貯蓄からこの割合まで投資に回せる（affordability 上限）
     public double IndInvestmentSpeed = 0.012;     // 投資の速さ（純収益→建設需要への換算）
     public double IndPerConstruction = 0.01;      // 建設1単位が工業化度を上げる量（要較正）
@@ -1211,7 +1198,7 @@ public sealed class Coefficients
     // 工場建設が食う束（鋼＋機械＋セメント＋製材）＝これらの死蔵を解消する消費先（最も不足する成分が律速）
     // 機械は少数の専門職が担う資本財段で常に最も薄い→建設での必要量を下げ「機械は希少でも工業化の壁にはしない」
     // （機械は発電機・電化製品など他用途で価値を保つ）。建設の主体は構造材（鋼・セメント・製材）。
-    public double StateBuildUnitsPerMonth = 0;    // 国家建設の月次単位数の物理上限＝建設の工期（バランス調査2026-07-27・dormant温存）。0=無制限＝現行恒等。
+    // 【墓標2026-09-26（棚卸し dorm-49）】StateBuildUnitsPerMonth（国家建設の月次単位数の全国一律の上限・休眠0・Runner の indprobe だけが立てた）＝思想⑧（天井の廃止）の型＝削除。下の実測は記録として残す
     // 実測2026-07-27：現行は開幕に「AI国庫×初期市場在庫200」で全AI国が1四半期に工業化+2.0のバースト（地図の開発度表示で可視化された）。
     // 2.0/月に絞ると10年で序列が史実化（英0.83>普0.73>日0.56>伊0.42>仏0.31・民間投資が主役に復権）が、**忠実度がexact38→28/near70→57へ大幅劣化**
     // （逸脱過多13→23カ国＝アジア後発国の経済→政変→戦争の全連鎖が開幕バーストの上に較正されている）＝バーストは忠実度較正の暗黙の土台。
@@ -1255,7 +1242,7 @@ public sealed class Coefficients
     //   **海運容量に足されている**＝陸の容量が海運を代理する物理の取り違え。⚠実害＝鉄道以前の内陸州（中欧・中央アジア・
     //   アフリカ内陸）が構造的に貿易ゼロ。1で**陸側（railToPort）へ移す**＝鉄道の登場が内陸を開く筋が容量から立つ。
     //   ⚠0＝既定＝旧経路＝厳密恒等。点火は単独A/B。
-    public double TransportBaselineIsLand = 1.0;   // ★点火2026-09-03（B-06・単独A/B batch10）＝鉄道以前の道路・河川の容量を**陸側**へ戻した（旧＝海運容量に加算＝物理の取り違え）。
+    // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】TransportBaselineIsLand＝鉄道以前の道路・河川の容量を陸側へ（B-06・2026-09-03 点火）
                                                    //   ⚠経済規模 16.3→26.3（+10.0）／列強再現率 18.8→27.5（+8.8）／政体exact 43.3→46.2／法 56.8→59.7／◎16→17。
                                                    //   ⚠記録＝領土植民地 35.0→30.0（−5.0）／人口 15.7→14.3。要注意フラグはモンゴル最下位6/10（既知の慢性観察）。差し戻し口＝この値を0へ。
     public double TransportBaseline = 50.0;         // 前鉄道の基礎輸送（道路/河川＝低容量で高コスト）。鉄道前は州が世界市場と細々としか繋がらず地域価格が割れる→鉄道（容量≈人口×0.08）で統合され収束
@@ -1279,10 +1266,10 @@ public sealed class Coefficients
     //   監査doc の案A＝**AIとプレイヤーが同じ動詞を使う**）：旧はAIだけ別実装だった——
     //   AI＝即時 AddTension(+6)・ランプ無し・クールダウン無視、プレイヤー＝+25 を6ヶ月ランプ・18ヶ月クールダウン。
     //   同じ行為の力学が主体で変わる＝規律⑤違反。1で AI も RaiseTension/EaseTension を呼ぶ（効果量・ランプ・クールダウン・禁輸・政治的帰結が完全一致）。
-    //   ⚠0＝旧経路＝厳密恒等。★休戦中の可否も動詞側へ寄せる（点火時は両者とも休戦中は撃てない）。
+    //   ⚠0＝旧経路＝厳密恒等。
     public double SymmetricTensionVerb = 0.0;
     public double InsultChance = 0.35;            // 3ヶ月毎にライバルを侮辱する確率。0.6→0.35＝ライバル間の緊張エスカレートを抑え開戦回数を減らす
-    public double InsultTension = 6;              // 侮辱の緊張↑（15→6＝休戦明けの急再燃を防ぐ。再上昇は脅威/イデオロギー主体の緩やかなものに＝同一ペアの時計仕掛け連戦を防ぐ）
+    public double InsultTension = 6;              // 侮辱の緊張↑（15→6＝講和後の急再燃を防ぐ。再上昇は脅威/イデオロギー主体の緩やかなものに＝同一ペアの時計仕掛け連戦を防ぐ）
     // ★緊張のラチェット解消（2026-07-31・英崩壊の切り分けで判明）：緊張は**100超で減衰が完全に止まり**、
     // 開戦閾値140への一方通行になっていた。講和後の PostWarTension(38)+RevanchismTension(70)=108 も、
     // AI屈服の ConcedeTensionTarget(110) も、どちらも**この「永久に冷めない帯」に着地**しており、
@@ -1351,7 +1338,7 @@ public sealed class Coefficients
     //     （法 55.2→59.2・経済規模 28.7→32.5・領土本国 80.8→83.3・人口 5.7→11.4＝移民の暴走が正された分）。
     //     3機構の合計は基線比 **+36.6pt**。
     public double ImmigrationAbsorbExponent = 2.0;
-    public double WarScoreDecomposition = 0.0;
+    // 【墓標2026-09-26（棚卸し dorm-42）】WarScoreDecomposition（戦勝点の分解を年表に1行出す診断の旗・既定0）＝材料の積算3本ごと削除
     // ★塹壕（2026-08-13・doc 20260812_塹壕と戦車）：守る側の機関銃（陸分の上位軍需）が押し合いを削り、
     //   攻める側の戦車（陸分のtier3）がその壁を無効化する。0＝壁なし＝厳密恒等（分岐に入らない）。
     //   1で「守る側が機関銃を満たし攻める側が戦車ゼロ」のとき押しが0＝完全な膠着。
@@ -1422,7 +1409,7 @@ public sealed class Coefficients
     public double ArmsStockEnabled = 1.0;
     public double ArmsWearRate = 0.02;            // 平時の月次摩耗率（定常で 目標×これ ＝ 現行の平時フローに一致するよう逆算）
     public double ArmsWarWearScale = 1.0;         // 戦闘消耗＝摩耗に (warMult−1)×これ を上乗せ（1.0＝9倍戦時は摩耗9倍）
-    public double MilitaryProcureProRata = 0.0;   // 一律比例按分。2026-08-13 実測で差し戻し（破綻1/10）＝0で休眠
+    // 【墓標2026-09-26（棚卸し mil-21・dorm-36）】MilitaryProcureProRata（軍需の4段を一律比例で削る器・休眠0）＝2026-08-13 実測で差し戻し（破綻1/10）＝削除
     // 直下 TrenchDefenseWeight の注記：
     //   ★点火2026-08-13＝0.5（ArmsStockEnabled と**対**。装備が戦場に残る世界でのみ意味を持つ）。
     //   ★装備がフローだった頃に単独で測ると −17.8〜−26.4pt だった＝前提（戦場に装備がある）が偽だったため。
@@ -1458,12 +1445,11 @@ public sealed class Coefficients
     public double WarExhaustionMilitancy = 0.04;  // 厭戦→闘争度：厭戦%に比例して交戦国の大衆の闘争度が上がる（長期戦・敗色→革命）。⚠WarMilitancyViaTarget>0.5（既定）では不読＝旧経路
     public double WarFeverMilitancy = 0.6;     // 闘争度→戦争熱：大衆の闘争度が戦争熱を押し上げる（外征で内憂をそらす）
     public double WarFeverMilitancyGate = 0.5; // その出口は**好戦世論の公共圏に比例して**開く加点（将校貴族 trad と合算しClampで上限1）。★2026-08-18＝旧「親軍法ONで満額」の段差を撤去
-    public double WarWearyThreshold = 0.5;        // 疲弊がこれ超なら新たな戦争に入らない（数年の休戦）
+    public double WarWearyThreshold = 0.5;        // 疲弊がこれ超なら新たな戦争に入らない（講和後も数年は減衰中の厭戦が再戦を抑える＝休戦の仕組みの代わり・Q9）
     public double WarPeaceExhaustion = 0.9;       // 双方がこれ超なら早期講和（疲れ果てて手打ち）。#17 0.8→0.9（#8多正面集約の修正後に再有効化）：早期白紙講和を遅らせ戦争が一方の崩壊(厭戦≥1.0=決定的)まで続く＝決定的決着→割譲→#15復讐心の発火を可能に
-    public int WarMaxMonths = 60;                 // これを超えた膠着は白紙講和
-    public double PostWarTension = 38;            // 講和後（休戦中の凍結値）の緊張。休戦明けに緊張がゆっくり100へ再上昇＝中後期戦争を生むが時計仕掛けにはしない
-    // ★作者裁定 2026-09-07「休戦は固定値でなく規模で」：講和・分離独立の休戦年数 += これ × max(両者の戦争疲弊 0..1)。疲弊＝期間×戦死の既存ストック＝戦争の規模。0＝恒等（休戦なし）。
-    public double TruceYearsPerExhaustion = 0.0;
+    // 【墓標2026-09-26】WarMaxMonths（60か月の膠着で白紙講和）＝厭戦が34か月以内に両者1.0へ届く＝一度も効かない時計（項目20 E）。NaN の出口は Diplomacy の weary の否定形が担う
+    public double PostWarTension = 38;            // 講和後の緊張の置き直し値。そこからゆっくり100へ再上昇＝中後期戦争を生むが時計仕掛けにはしない
+    // 【墓標2026-09-26】TruceYearsPerExhaustion（規模で決める休戦・休眠0＝09-07 裁定の器）＝作者裁定 Q9 で休戦の仕組みごと削除（講和に不戦年限の条項は無く、厭戦と財政が担う）。既定0で休戦は常に0年だった＝挙動不変
     public double ReparationGdpFraction = 0.2;    // 賠償金＝敗者GDP×戦勝点×これ。完全勝利(戦勝点1)で GDP の20%（普仏戦争の50億フラン≒仏GDP25%規模に近づける＝大国も戦争で痩せる。0.1→0.2）
     public double SpoilsWorthThreshold = 10_000;  // 抽象勢力（清）への開戦に要する最低限の戦果＝植民地が無く国庫もこれ未満なら攻める意味なし（賠償0の無意味な連戦を防ぐ）
 
@@ -1586,13 +1572,13 @@ public sealed class Coefficients
     // 固定4000kmは「帆船と伝令の1783年」と「蒸気船・鉄道・電信の1913年」を同じ投射圏で扱っていた＝時代が出ない。
     // 実効投射圏 = CessionMaxDistanceKm + CessionRangeTechKm × TechLevel（内生・実測アンカー＝英1806年 t1.00／1858年 t1.80／1913年 t2.92）。
     // 0で従来の固定値＝**厳密恒等**（休眠）。点火時は基礎を下げて技術項を上げる（例：基礎1500＋技術1200×t → 1783年1500km・1913年約5000km）。
-    public double CessionRangeTechKm = 0.0;
+    // 【墓標2026-09-26（棚卸し mil-21・dorm-41）】CessionRangeTechKm（上の器・休眠0）＝根拠のない4000kmに技術の倍率を足す形＝作者裁定4（09-08）の技術水準の倍率の撤去の方向＝削除
     public double CessionMaxDistanceKm = 4000;     // 監査2026-07-05：割譲の投射圏＝**勝者の首都**から割譲候補州までの大圏距離の上限。圏外は割譲不可＝賠償のみ（実走で清がボストン/リガ獲得＝地理無制約の是正。全拠点アンカーは連鎖征服で無効化されたため首都のみ）。0以下=無制約（旧挙動）。首都座標未登録のテスト小世界は自動的に無制約
     public double WarDefeatMilitancySpike = 0.15;  // 決定的敗北で全popの闘争度に上乗せ（敗戦→革命の火種）
     public double DefeatShockDecay = 0.85;         // 敗戦ショックの四半期減衰（1.0から数年で消える）
     public double DefeatShockLegitWeight = 0.075;  // 敗戦ショック→正統性の低下幅（leg −= これ×DefeatShock）。**ストック意味論＝ショックは減衰0.85で毎期加算され累積Σ0.85^t≈6.67倍→旧0.5（フロー一回分）÷6.67≈0.075**＝敗戦一発の総打撃を旧水準に保つ
     public double CededColonyMilitancy = 0.3;      // 移転州（被征服地）の pop に上乗せする不満（征服への反発＝高すぎると即分離）
-    public double RevanchismTension = 70.0;        // #15 復讐心：領土を奪われた国が勝者へ抱く恒久的遺恨（緊張上乗せ・ライバル閾値40超＝休戦明けに失地回復戦を駆動。仏アルザス・ロレーヌ1871→1914型）
+    public double RevanchismTension = 70.0;        // #15 復讐心：領土を奪われた国が勝者へ抱く恒久的遺恨（緊張上乗せ・ライバル閾値40超＝講和の後に失地回復戦を駆動。仏アルザス・ロレーヌ1871→1914型）
     // #21 会議外交（Concert of Europe・賠償抑制アームのみ）：講和時、傍観する非交戦の列強が多く・勝者が覇権的なほど「会議度」が高まり、勝者の**賠償**戦果を削る
     // （サンステファノ→ベルリン1878でロシアの過大な戦果が列強会議で削られた型）。覇権的勝者ほど傍観列強に戦果を削られ、覇権が縮めば抑制も緩む自己抑制形＝ロンドン一強の抑制候補。
     // **植民地/割譲アームは不採用**（ベルリン会議1884-85はアフリカ分割を「加速」＝史実逆行、かつ植民地→ThreatScore→開戦網への非局所波及）。賠償のみ＝Treasury移転で保存則内に閉じる。
@@ -1744,7 +1730,7 @@ public sealed class Coefficients
     //   3層の振る舞い分け（⑤＝政治／自ら暴力／合流）が担う。層の重み wMid=識字−min(意識,識字) は他の読み手が保持している。
     public double RevolutionConsciousness = 0.25;  // 第5段5-6点火（2026-07-28）：暴力革命の成立→国民意識へ NC+=これ×(1−NC)（ナポレオンの鎖①＝臣民が国民になる・学校天井をバイパス＝直接回路化）。受け皿＝Military徴兵深度の国民意識ゲート（既配線）。0で旧恒等
     public double IrreversibleLaws = 1.0;          // 第6段6-7点火（2026-07-28）：支持層を作る法の不可逆＝参政権/女性の権利（★2026-08-10 統合＝梯子の全段）/社会保障制度は平時に後退不能・労働時間/児童労働は戦時のみ緩和可（英1915軍需品法）。報道/国教は可逆。水準スライダーは常に自由（制度と水準で割れる史実）。0で旧恒等（農奴解放のみ既存不可逆）
-    //   ★支配度doc §13（2026-09-07 器）：0..1 の連続へ。1.0＝bool 禁止（現行・厳密恒等）／<1＝禁止せず純支持ゲートを倍率 1/(1−g) で通す＋既得層の怒り（PrivilegeStripMilitancy を共有）／0＝純支持と怒りだけ。段階点火の腕＝0.5
+    //   ★支配度doc §13（2026-09-07 器）：0..1 の連続へ。1.0＝bool 禁止（現行・厳密恒等）／<1＝禁止せず純支持ゲートを倍率 1/(1−g) で通す／0＝純支持だけ（既得層の怒り＝ReversalAnger は裁定C2 に反する不到達の枝として 2026-09-26 に削除＝pol-27）。段階点火の腕＝0.5
     public double RuptureWindowQuartersOnCrush = 8;   // 第6段6-8点火（2026-07-28）：断裂の窓の長さ＝革命鎮圧・内戦制圧・弾圧の直後この四半期数だけ6-7を解除（反動の後退はこの窓のみ＝仏1850・ストルイピン1907）。0で窓なし
     public double LawEnforcementAdminGate = 0.5;   // 第6段6-8点火（2026-07-28）：執行の飢餓＝先進方向の法浸透（労働時間短縮・児童労働禁止・女性賃金保持）の追従速度×min(1, 行政力/これ)。法は残して監督官を切る反動（1802徒弟法の空文化）。緩和方向は即時（規制撤廃に監督官は不要）。0で旧恒等
     // ⚠撤去2026-09-11（要求は法の経路の点火）：第6段6-6の別軸譲歩（主フラグ・緩和・結束残存の係数3本と Politics の施行関数）は読み手ごと物理削除。
@@ -1788,7 +1774,7 @@ public sealed class Coefficients
     public double ExternalPressureNationalism = 0.3;   // 機能8-⑤点火（2026-07-28）：外圧→r[4]（攘夷→富国強兵・清の反帝国主義）。ExternalPressureDerived=1と同時点火＝外圧が実体（技術格差×海の接触）を持つ。0で恒等
     public double DefeatShockTensionRelief = 2.0;  // 機能9-1点火（2026-07-28）：ハイエナ抑制＝敗戦ショックが高い相手への緊張は100超でも減衰（普仏戦争後の仏が連続で食われない）。月次×max(両者shock)。0で恒等
     public double DefeatShockProtectMin = 0.3;     // 機能9-1：保護が効く敗戦ショックの下限（数年で切れる＝DefeatShockDecayが窓）
-    public double ParliamentBudgetScope = 1.0;     // 機能2-1点火（2026-07-28）：予算協賛の対象を所得税のみ→全税軸（人頭/土地/累進/消費）へ＝議会の同意なしに歳入構成は動かない（憲法紛争の一般化）。0で旧＝所得税のみ
+    // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】ParliamentBudgetScope＝予算協賛の対象を全税軸へ（機能2-1・2026-07-28 点火）
     public double ElectionEventEnabled = 1.0;   // 【点火1.0・2026-08-17】A/B＝def4(38.2/74.3/61.5/0.63)→eD(**exact40.2**/73.1/61.3/0.66)・硬性緑・372緑。AI等価物と確定形（レバー＝裁量余剰の%・効き＝A/(A+半減点)・代価＝投入額）が揃ってから点火。★E2（選挙doc §7）：総選挙の公示イベント＝「どの思想に加担するか」の択（§3-0/3-2）。0＝公示もポップアップも押し込みもAIの判断も1命令も走らない厳密恒等。★E4のAI等価物（2026-08-17・docs/202608/20260817_選挙イベントのAI等価物_完了.md）でこの1本がプレイヤーとAIの**共通ゲート**になった＝点火すると全国に公示が立ち、プレイヤー国はモーダル・AI国は UtilityAgent.DecideElection が同じ四半期に同じ動詞（World.ResolveElection）で答える（別フラグを作らない＝片方だけ点火して非対称を再生産できない）。点火は単独で測る
     // ★E3''（確定形2026-08-17・作者裁定 docs/202608/20260817_選挙の押し込みの凸性_部分完了.md §3）：**代価は曲げない・効きを曲げる**。
     //   レバー＝裁量余剰(FiscalCapacity)の何%を注ぐか／投入額＝裁量余剰×レバー／金の代価＝投入額そのもの（国庫→pop）／
@@ -1910,7 +1896,7 @@ public sealed class Coefficients
     public double PatentDiscoverySpan = 0.1;      // 特許の普及幅（旧閾値0.4を中点に±0.05＝形式は連続・分布は旧とほぼ同一）
     public double JointStockDiscoveryOnset = 0.25; // 株式会社の傾斜開始＝maxIndのランプ（旧閾値0.3が中点・span0.1＝細いランプ）。時期感1850〜1870
     public double JointStockDiscoverySpan = 0.1;  // 株式会社の普及幅（細いランプ＝除去は不連続のみ）
-    // 【墓標2026-09-26】DiscoveryFieldSplit（分野時計の按分・休眠）＝時計 World.DiscoveryClocks に読み手が無かった＝時計ごと削除（x-03）。Discovery.PatronShares は呼び手0（0-3 の Discovery 分で扱う）
+    // 【墓標2026-09-26】DiscoveryFieldSplit（分野時計の按分・休眠）＝時計 World.DiscoveryClocks に読み手が無かった＝時計ごと削除（x-03）。Discovery.PatronShares（呼び手0）と分野の定数も 0-3 で削除
     public double DiffusionWeight = 1.0;   // ★点火2026-09-04（E-12b・IdeologyReachGate と同時＝読者が居て初めて世界が動く）         // ★発見・段7（思想の伝播・休眠）：到達(A→B)=貿易量(A,B)/買い手GDP×メディアA×メディアB×前四半期の到達A。メディア=NewsFill×識字+RadioFill（全て既存量＝「思想は商人と本と留学生を通じて広がった」＝貿易路がそのまま伝播路・原典§5-4）。0＝ペア記帳（PairFlowQ）も伝播も1命令も走らない＝厳密恒等。読者（思想eraゲートの置換）は段8＝絶対に混ぜない
     public double IdeologyReachGate = 1.0;   // ★点火2026-09-04（E-12b・DiffusionWeight と同時）：batch10＝◎17→18・法58→64・列強再現27.5→30.0・開放度0.189→0.200・exact46維持。社会主義の創発到達＝1848〜1875の窓（自家発火は種の書き戻しが原因＝修正済み）。記録＝人口17→10（ゲート外7カ国）・欧州大陸の到達が遅い＝欧州内貿易の空洞化（既知）       // ★発見・段8（思想の読者・休眠）：解禁 era = max(era, これ×IdeologyReach[k])。到達は段7が貿易路×メディアで積む0..1（発展度と同じ物差し＝新閾値なし）。起点は名前で書かない＝自力で解禁した国が National シェアを種として放射する。0＝不読＝厳密恒等。⚠DiffusionWeight と同時点火（片方だけでは1ビットも動かない＝deadprobe 2026-09-04）
     public double IsolationExportWeight = 1.0;   // ★点火2026-08-31（T2腕＝欧州内50.3%/英世界工場復帰）   // ★鎖国の対称化（2026-08-31・pairprobe実測「関税100%の朝鮮が世界一の輸出国」＝輸入関税だけで鎖国を表現する構造穴）：売り側access×=(1−これ×関税²)。二乗＝新しい数を作らず**高関税レジームだけ**を閉じる（0.25→×0.94・0.8→×0.36・1.0→×0＝真の鎖国）。関税が政治で下がれば輸出も開く＝開国が貿易の両面を開く。0＝旧＝厳密恒等
@@ -2115,7 +2101,7 @@ public sealed class Coefficients
     //   一方で帯は4次元とも悪化させる（列強 +2.0→±0.0・人口 −4.3→−10.6・領土本国 −0.8→−5.0・政体exact +2.1→+2.0）。
     //   ＝「fill を改善しないのに帯だけ動かす因子は落として単純化」（例外のつぎ足し禁止）。
     //   ★機構は残置＝再点火が意味を持つのは**需要側（StateProcurePriceGate の崖）を直した後**。
-    public double InitialArmsIndustryScale = 0.0;
+    // 【墓標2026-09-26（棚卸し mil-21・dorm-36）】InitialArmsIndustryScale（初期の軍需産業の操業規模・休眠0）＝上の実測で棄却＝削除（初期の工廠備蓄 InitialArsenalMonths は別の器）
     // ★採用（2026-08-22）。首都市場に置く軍需最終財の初期在庫＝平時消費（MilitaryUpkeepScale×初期兵×レート）の月数。0＝休眠（旧＝全財一律200＝清の小銃で6日分）。
     //   効く経路＝**在庫→価格が参照帯に留まる→StateProcurePriceGate が開く→国家が実際に買う**（ration は元から1.0・生産は0.0＝どちらも経路ではない）。
     public double InitialArsenalMonths = 12.0;
@@ -2352,10 +2338,8 @@ public sealed class Coefficients
     //   ρ=0.79（海項なし）で R2 の blocking ゲートは通過済み。英の NeedMen 過小（84 vs 史実相当≈250-400）は k≤0.5 の
     //   部分ブレンドなら人口駆動側が支える＝k=1.0 への到達は海項の再設計とセット。
     // ⚠S4容量信号の分母は市場価格＝供給過剰国で床に張り付き発散（日本21228実測）＝R4で読む前に RefPrice 錨定へ直すこと。
-    public double SpendFromNeedWeight = 0.0;       // 【棄却2026-08-08＝0.5で人口−7.1・列強−5.0（旧脅威応答棄却と同型＝物差しの軍事項が支出量を土台）】配線C：請求書駆動（錨=扶養限界目標・RefPrice建て）。物差し再較正とセットで再挑戦
-    public double SpendFromNeedMin = 0.10;         // 請求書駆動目標のclamp下限（読み手は SpendFromNeedWeight>0 のみ＝既定で死蔵）
-    public double SpendFromNeedMax = 0.85;         // 同・上限（スライダー[0,1]の物理＝ハーネスを壊した種類の折れ点ではない）
-    public double SoldierPayRevenueShare = 0.25;   // S4容量信号の分子シェア＝「歳入フローが賃金請求書を担えるか」。段0-2は診断値のみ（旧SoldierPayAffordRawの約分欠陥を持たない）
+    // 【墓標2026-09-26（棚卸し mil-21・dorm-36）】SpendFromNeedWeight・SpendFromNeedMin・SpendFromNeedMax（軍事費目標を理想軍の請求書へ寄せる器・休眠0）＝棄却2026-08-08（0.5で人口−7.1・列強−5.0）・軍事費は 09-20 に4段の法へ移った＝削除
+    // 【墓標2026-09-26（棚卸し sweep-20）】SoldierPayRevenueShare（0.25・S4容量信号の分子シェア・「段0-2は診断値のみ」）＝SimCore・App・Runner・テストに読み手0だった
     public double FiscalBufferSoldierPayWeight = 0.5;  // 【1.0は人口−10/列強−8.7/領土植−9.2＝衝撃過大→0.5測定中2026-08-08・作者裁定「安定するように」】兵士給与を**潤沢判定（OpulenceLineOf）にのみ**算入（緊縮反射FiscalBufferOfは不変＝旧全面算入の緊縮暴発を回避）
     public double WartimeBudgetFollowsNeed = 0.35; // 【1.0は硬性赤（各国独立経済テスト＝戦費が経済を焼き尽くす国）→0.35を測定中2026-08-08】課題5（戦時afford崩落）：戦時は装備必要額がMilitaryWarMult(9.0)倍になるのに
     // 予算milCapは平時のまま＝開戦で afford が9分の1へ崩落していた。1.0で予算も同じ戦時倍率へ追随＝**戦費の赤字財政**
@@ -2451,16 +2435,16 @@ public sealed class Coefficients
 
     // === リアリティ監査 2026-07-02 Wave1（致命バグ・保存則・ガード）===
     // すべて既定値が現行挙動を厳密再現する dormant 係数（#17 較正再走で有効化）。純粋なバグ修正は係数を伴わず live 済み。
-    public double ReignitionTrickleConserves = 0.0;   /* ★★★**恒久的に0（作者裁定2026-08-01）＝これは不具合ではなく実装である。**
+    /* 【墓標2026-09-26（棚卸し dorm-50）】ReignitionTrickleConserves＝★★★**恒久的に0（作者裁定2026-08-01）＝これは不具合ではなく実装である**＝旗と逆側の枝を削除。
     // 再点火トリクルの「幽霊需要」は、**上位工場を先に建て、その後に必要な下流財を整備する**というプレイのための需要を作っている。
     // ⚠不具合を事実上の実装として使っている状態だが、**これが最もスマートな解決**（作者の言）＝**点火しない**。
     // 実測（2026-07-31・参考）：点火するとテスト180緑・破綻0・デッドロック0・異常0のまま★ハーネス不合格10/10（上位軍需が全滅）・◎7割帯21→6・逸脱過多13→39・
     // 最貧国の満足度0.06。つまり現行の経済はこの需要の上に立っている。⚠**再点火の検討をしないこと。** */
     public double InvestBudgetIncludesAllInputs = 1.0;   /* **点火2026-07-31（S5パッケージA・単独で採用）**：投資家建設の予算律速に鉄道/機関車費・保守要員費を算入＝投資家貯蓄が負に振れる穴を閉じる。
     // ★実測（単独・SOURCE-HASH 8e3…系）＝硬性ゲート全緑（破綻0/デッドロック0/異常0/ハーネス不合格0/フラグ0・テスト180緑）・◎7割帯 21→23・逸脱過多13→13・exact22%据え置き・near62→61。
-    // ⚠同じ束の Reignition／CurrentInputFill は単独でも壊すので**一緒に点火しないこと**（Carryover と2本同時は満足度最小国が×＝ハーネス1/10） */   // 経4（予算制約）：投資家建設の予算律速に鉄道/機関車費(ConsRail/ConsLoco)・保守要員費(高度労働0.4+労働0.3)を算入。0=加算0で現行と厳密一致・1で全費目を予算に算入し投資家貯蓄が負に振れるのを防ぐ
+    // ⚠同じ束の Reignition／CurrentInputFill は単独でも壊した（2026-09-26 に旗ごと削除）（Carryover と2本同時は満足度最小国が×＝ハーネス1/10） */   // 経4（予算制約）：投資家建設の予算律速に鉄道/機関車費(ConsRail/ConsLoco)・保守要員費(高度労働0.4+労働0.3)を算入。0=加算0で現行と厳密一致・1で全費目を予算に算入し投資家貯蓄が負に振れるのを防ぐ
     public double InsuranceSubsidyConsistent = 1.0;   // 経13（予算制約）：医療保険補助のベースを基礎価格から税・流通込み総額へ揃える（buyerPriceの(1-insure)と整合）。1でpayがbuyerPriceに一致し予算超過（貯蓄負値化）を解消（2026-07-19バグ監査で有効化）。0=基礎価格ベース。較正harnessはSocialSecurity=0→insure=0で全域中立（この既定変更は較正に不影響）
-    public double CurrentInputFillGates = 0.0;   /* ★★★**恒久的に0（作者裁定2026-08-01）＝上と同じ理由で「意図した実装」。**
+    /* 【墓標2026-09-26（棚卸し dorm-50）】CurrentInputFillGates＝★★★**恒久的に0（作者裁定2026-08-01）＝上と同じ理由で「意図した実装」**＝旗と逆側の枝を削除。
     // 当期投入が涸れても前期充足率で産出できることが、**上位工場を先に建ててから下流を整備する**プレイの余地を作っている。
     // 実測（2026-07-31・参考）：単独点火でテスト6本失敗（MultiNation/Tax 系）＝産出水準そのものが下がり較正の土台が動く。⚠**再点火の検討をしないこと。** */
     public double ConstructionMaterialCarryover = 1.0;   /* ★**点火2026-08-01（作者裁定＝リアリティ優先・帯とは切り分ける）**：
@@ -2488,10 +2472,9 @@ public sealed class Coefficients
     //   r = (LastEarned/Size) ÷ basketRef（basketRef＝Staple∪Daily の BaseNeed×RefPrice＝月収が基礎バスケット何個分か）。
     //   Daily/Luxury かつ非役務の desired にのみ乗算（Staple除外＝FoodMet/マルサス項・満足度台帳は式レベルで不変）。
     //   貧国popは r≤1 で f=1 厳密＝需要不変。
-    public double DemandIncomeElasticity = 0.0;    // 【梯子測定済み・差し戻し2026-08-08】k=0.1＝経済規模−1.3pt／k=0.4＝−2.5pt＋政体exact−7.0（貧国エリートの奢侈需要だけ持ち上がり英大衆はr≈1.1で入力なし）。
+    // 【墓標2026-09-26（棚卸し econ-16・dorm-51）】DemandIncomeElasticity・DemandIncomeFactorMax（所得翻訳ゲート＝需要の所得係数・休眠0）＝梯子測定で差し戻し（k=0.1＝経済規模−1.3pt／k=0.4＝−2.5pt＋政体exact−7.0）＝削除
     // 段5（WageClampMax増）も前提不成立＝WageClampIndScale=1.0 live で英の実効天井は既に約10×rp＝天井は縛っていない（賃金が均衡で天井に届かないのが実態）。
     // **確定測定＝「賃金→予算の翻訳だけでは経済規模軸は閉じない」**＝貯蓄・投資の一括再較正ラウンド（退蔵結晶化=設計2が候補）への入力。計器（incomeprobe）・物差し（IndustrialRent）・本配線は残置。0＝厳密恒等
-    public double DemandIncomeFactorMax = 2.0;     // f の上限（世界需要の一斉膨張と商人マージン正帰還の物理蓋）。NaNは否定形ガードで中立1.0へ
     public double ColonialProfitMerchantShare = 0.3;   // 経15（帝国の分配政治）：植民地交易益(colonialProfit)のうち商人pop(MerchantPopIndex)へ傾斜配分する割合。0=全pop人頭按分で現行と厳密一致・>0で商人・特許会社へ集中。残余は全pop按分・受け皿不在時は残余へ還付
     public double ColonialProfitInvestorShare = 0.3;   // 経15：植民地交易益のうち投資家pop(InvestorPopIndex=資本家)へ傾斜配分する割合。0=現行の全pop按分・>0で資本家へ集中
     public double MaintLocoRate = 0.5;   // 経18（係数化・中立）：インフラ保守1単位あたりの機関車(車両更新)消費率。既定0.5=旧直書きと同値
@@ -2511,7 +2494,7 @@ public sealed class Coefficients
     public double WageClampMin = 0.3;   // 経12：賃金/役務の床＝WageClampMin×(参照価格×物価水準)。旧MarketFlowの直書き0.3を係数化（値同一＝中立）
     public double WageClampMax = 3.0;   // 経12：賃金/役務の天井＝WageClampMax×(参照価格×物価水準)。旧MarketFlowの直書き3.0を係数化。平坦な帯域拡大(5.0)は首位交代退行で保留＝工業化度連動(WageClampIndScale)が正着
     public double WageClampIndScale = 1.0;  // 【R2点火2026-07-15＝1.0・工業化連動】賃金天井を工業化度でスケール＝effWageMax=WageClampMax×(1+これ×Industrialization)。0=固定3.0（現行と厳密恒等）・>0で工業国のみ天井が上がり実質賃金が伸びる（未工業国は据置＝平坦拡大の"富国青天井で独走固定化"を回避）。産業革命の賃金上昇・英独と亜阿の国際賃金格差拡大の史実
-    public double WageClampSoftBand = 1.0;   // 経12（**【現行1.0＝有効＝SoftBand】**）：賃金の床天井をハードクランプ(0)か対数飽和SoftBand(1)かで切替。0=従来のClampで旧挙動・>0.5で財と同じSoftBand（鋭さはSoftBandSharpness流用）に切替え賃金圧縮を緩和。※0.3〜3.0倍の帯域自体は残存（R2）
+    // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】WageClampSoftBand＝賃金の床天井を財と同じ対数飽和 SoftBand で（経12・点火済み＝ハードクランプの枝を削除）
     // 【墓標2026-09-26】FiscalQuarterlyGating（財3の四半期の刻みの器・休眠0）＝較正は月次で進む値に乗っている＝器を削除し、DevaluationCapFrac・DefaultTriggerQuarters・DefaultCooldownQuarters の単位の書き方を月へ直した（dorm-29・挙動不変）
     // **点火2026-07-31（07_再設計 第2弾2a）**：前提（注入＝MultiNationSim・保有国配分＝CapitalMarket の外債レグ）が02断線走査で揃った＝対外国債が完全な閉鎖系になる。
     // シティ/パリの引受能力が世界の借入を規定する＝「貸し手のいない借金はできない」。
@@ -2527,8 +2510,8 @@ public sealed class Coefficients
     public double FreightRatePer10Mm = 0.10;     // 04材化(b)（2026-07-29）：運賃率＝荷価の10%/10,000km（ロンドン→ボンベイ18,000kmで約18%）。荷主（輸入国）が払い実効海運容量シェアで各国へ按分（E2裁定）。0で完全恒等
     // ★貿易復活プログラム（2026-08-15・作者裁定「貿易を先に挟む」・tradewhy分解＝99_実装ログ§4-15）：
     //   1914年の世界貿易/GDP 0.2%（史実の英は輸出だけで約25%）の壁＝①関税wedgeが同国ペアにも掛かる内国関税 ②運賃革命が従量成分にしか効かない。
-    public double TariffBorderOnly = 1.0;        // ★点火2026-08-15（ign_trade1・acc_full）：①関税・穀物法wedgeを国境のみに（同国売り手には掛けない・同国取引を輸入統計/関税徴収から除外＝内国関税の撤廃）。0に戻せば旧（全ペアwedge）とビット恒等
-    public double FreightRevolutionAdValorem = 1.0;   // ★点火2026-08-15（ign_trade1）：②運賃革命をad valoremマージンにも適用（史実1870-1913＝運賃約8割減は全面的）。0に戻せば×1.0＝ビット恒等
+    // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】TariffBorderOnly＝関税・穀物法の楔を国境だけに＝同国の売り手には掛けない・同国取引を輸入統計と関税の基礎から除く（2026-08-15 点火）
+    // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】FreightRevolutionAdValorem＝運賃革命を従価マージンにも（2026-08-15 点火）
     public double TradeBandWiden = 0.5;          // ★点火2026-08-15（ign_trade1）：③帯の拡張（tradewhy2＝量の分解2026-08-15）：売り手帯=平均×(1+w)・買い手帯=平均/(1+w)。旧＝平均分割は「世界の裾と裾」しか取引できず、穀物大国（露≈平均価格）がロンドン（平均の1.5倍）へ売れない構造遮断＝麦・石炭の貿易死の主因。成立判定（着値vs自州価格）と量式は不変＝ペア黒字の取引を到達可能にするだけ。0＝×1.0/÷1.0＝ビット恒等。設計値0.5。点火はA/B（貿易/GDP＋帯・壁2本との合成も測る）
     public double TradeAccessNormalized = 1.0;   // ★点火2026-08-15（ign_trade1＝主動因・貿易0.23→1.19%・帯全次元改善）：④対外アクセスの正規化：TradeAccessのlostを真のシェア（lost/Σ全相手weight）へ。旧＝TradeWeight（平均0.25・総和≈15）をシェア扱い＝平均4カ国と禁輸/交戦で床0.10＝実測で英仏露普清が全員恒久床。正規化で禁輸4/60≈7%喪失の史実スケールへ。0＝旧式ビット恒等。点火はA/B
     public double RiskLambda = 2.0;              // 03手順7：リスク線積分の強度＝1−exp(−λΣ敵支配度×km/1e4)。完全支配10,000kmで0.86≈旧ChokeBlockadePenalty(0.8)の帯を継承
@@ -2556,7 +2539,7 @@ public sealed class Coefficients
     //   表の値は doc の仮置き（データ）＝ゲートを開けたときだけ効く。
     //   ★点火2026-08-28（batch30 A/B・同一バイナリ）＝硬性全緑・列強35.8→36.7・経済36.7→38.3・植民地46.7→48.3・本国97.8／
     //     政体48.3→46.3・人口26.2→25.2・貿易0.12→0.09（山岳・不毛の陸脚が高くなる分＝正しい向き）。差し戻しはこの1本を0へ。
-    public double TerrainCostEnabled = 1.0;
+    // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】TerrainCostEnabled＝地形の陸路コスト係数の表を読む（2026-08-26 設計・点火済み）
     public double[] TerrainHorseCost = [1.0, 0.8, 0.9, 1.5, 3.0, 2.5, 8.0];
     public double[] TerrainRailCost  = [1.0, 1.0, 1.0, 1.5, 1.2, 5.0, 3.0];
     // 水運の口（doc第3列＝水路州は陸路でなく船の容量を使える）。0＝閉（従来）。>0＝水路州の陸脚コスト係数をこの値へ
@@ -2642,12 +2625,12 @@ public sealed class Coefficients
     public double ConscriptionEnemyRatioWeight = 1.0;   // 外12：敵陸軍優勢(比>1)→動員深度の重み（同上）
 
     // === リアリティ監査 2026-07-02 Wave4（政治・制度・外交の機構）===
-    // 点火状況は各行参照（政16 IdeologyGateFromDevelopment は既定0.5で live）。
+    // 点火状況は各行参照。
     // LegitimacyIsStock は第3段3-4/3-5（2026-07-27）で削除＝1.0（2026-07-10点火）をPoliticsへ焼き込み。正統性は常にストック（旧フロー混合＝重み0の死荷重 legFlow/(1−s)×MandateSpent を同時削除）。
     public double LegitimacyRegenRate = 0.1;    // 政1：正統性ストックの四半期再生率。**0.02（時定数12.5年）は過剰安定＝革命が起きず世界が固化（上海97%・首位確定Q152・幕府消滅を実測2026-07-10）→0.1（時定数2.5年）へ**。侵食族は平衡対応（erosion=regen×旧水準）で×5済み＝平衡不変・過渡だけ速い。政治資本の回復は MandateRecoveryRate へ分離（2026-07-26）→ 2026-09-21 ㉖で MandateRefillQuarters の線形回復へ置換（係数は削除）
-    public double ReformFromAboveEnabled = 1.0;   // 政2（**【現行1.0＝有効】**上からの改革の遷移経路）：>0で支配ブロック主導の代議制/近代化への遷移が大衆動員(challenge≤coerce)でも成立（明治1889/プロイセン欽定/露大改革）。0でchallenge≤coerceゲートが無条件＝旧挙動
+    // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】ReformFromAboveEnabled＝上からの改革の遷移経路（政2・点火済み）
     public double ReformFromAboveLegitThreshold = 0.4;   // 政2：上からの改革が発火する正統性の上限（Legitimacy<これ＝侵食が進行中の体制のみ自己改革）。ReformFromAboveEnabled=0では未評価
-    public double SuffrageRatchetOnLiberalize = 1.0;   // 政3（**【現行1.0＝有効＝立憲化で参政権を狭めるバグ解消済】**）：>0で縮小方向の剥奪を反動系政体への遷移時のみに限定＝自由化はラチェット（立憲化で選挙権を狭めない）。0で旧＝上げも下げも（バグ）
+    // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】SuffrageRatchetOnLiberalize＝自由化の遷移で参政権を狭めない（政3・点火済み）
     // ★2026-08-01の調整（0.5→1.0）。治安維持力項の上限を SecessionThreshold と同じ高さにする＝
     //   **十分な軍を置いた国は、それだけで分離を抑えうる**（清が太平天国を鎮圧し、英がアイルランドを保った形）。
     //   0.5 では上限0.715＝閾値1.43の半分にしかならず、軍をいくら持っても保持力が足りなかった。
@@ -2656,13 +2639,13 @@ public sealed class Coefficients
     public double ConsciousnessFromSchoolingStock = 1.0;   /* #17保留:PolicyPolitics/Polityテスト */   // 政15（変換係数が現行の教育法を読む＝世代遅れなし）：混合比∈[0,1]。0=今期の教育法の即時値を全pop一律（現行恒等）／>0でpopの就学履歴ストックと混ぜ世代遅れを作る
     public double SchoolingStockSpeed = 0.02;   // 政15：就学履歴ストックが今期の変換係数へ寄る四半期速度（法改正が変換に効くまで数年）。ConsciousnessFromSchoolingStock=0では未使用
     public double CivilWarRebelSide = 0.5;   // 政13（内戦に反乱側がなく動員が現体制の治安維持力を強化）：内戦徴集量のうちchallenge側の仮想戦力として累積計上する割合。0=反乱側戦力ゼロ＝challenge不変（現行恒等）／>0で内戦が長引くほど反乱側も増強
-    public double IrreversibleEmancipation = 1.0;   // 政4：農奴解放・土地改革の不可逆化。0=現行（自由党綱領が生のLimited代入＝再農奴化バグ温存）／>0で自由党綱領を引き上げのみ(Math.Max)化＋StepEnumで両軸の減少禁止＝一度布告した解放は巻き戻せない
+    // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】IrreversibleEmancipation＝農奴解放・土地改革の不可逆（政4・点火済み）
     public double SeatsFrozenBetweenElections = 1.0;   // 政7：選挙間の議席固定。0=PartySeatsを毎期の世論で上書き＝直接民主制的（VoteShares==PartySeats恒等）／>0で得票率はVoteShares(表示)に置きPartySeats(確定議席)は選挙時スナップショットで固定＝レームダック
     public double CenterIsFirstProvince = 1.0;   /* ★点火2026-09-05 B群(G5 中心州)＝0.0→1.0・batch10連鎖の実測（凍結木）で硬性ゲート緑 */      // ★J-003（作者裁定2026-09-03「首都（史実・表示のみ）と経済中心地は別でよい」）：エンジンの距離計算の基準を**1番目の州**（＝エンジンが首都として扱う州）の座標へ差し替える。⚠世界データの首都座標は `World.DisplayCapitalLat/Lon` に残り**表示専用**になる。実測で差が出るのは3カ国（露634km・コーカンド167km・モロッコ166km）。0で厳密恒等
     // ⚠撤去2026-09-08（段6）：SuppressIsCivilWar／SuppressCostFromScale は無血鎮圧の枝ごと物理削除（読み手ゼロ）。鎮圧＝内戦経路が唯一の形。
     // ⚠撤去2026-09-11（要求は法の経路の点火）：プレイヤーの危機ダイアログの受諾禁止（体制転覆の相手）の係数は決着関数ごと物理削除＝受諾のボタンそのものが無い。
     public double CultureDistanceFromEthnic = 1.0;   /* ★点火2026-09-05 B群(G1 E-05)＝0.0→1.0・batch10連鎖の実測（凍結木）で硬性ゲート緑 */  // ★E-05段5（2026-09-03）：分離の文化距離を**民族の実体**（1−州の平均中核度）へ寄せる混合比。⚠現行は文字列比較で、昇格した植民地は宗主国の首都と同じ文化・宗教を代入されるため**インドの文化距離がロンドンと0**＝文化/民族の分離圧力が植民地で恒等的に0（プロイセン領ポーランドの方がインドより離反圧力が高い）。⚠寄せ切ると SecessionCultureAdditive と合わせて2乗になるので中間値から掃く。0で厳密恒等
-    public double SuffrageScopeUnified = 1.0;   /* ★点火2026-09-05 B群(G1 E-05)＝0.0→1.0・batch10連鎖の実測（凍結木）で硬性ゲート緑 */       // ★E-05段3（作者裁定2026-09-03「選挙権のない原住民などと同様に、法側で制御したい」「5は不要な差異＝外科的すぎる」）：参政権の範囲を**1本の算入率**へ畳む＝少数派の地位不満と分離圧力が同じ量を読む。⚠格（Tier）の分岐を2箇所とも撤去し、植民地が違って見えるのは**人口の中核度が低いという帰結**にする。0で厳密恒等
+    // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】SuffrageScopeUnified＝参政権の範囲を1本の算入率へ畳む（E-05段3・2026-09-05 点火）
     public double UpkeepDistanceGeneral = 1.0;   /* ★点火2026-09-05 B群(G1 E-05)＝0.0→1.0・batch10連鎖の実測（凍結木）で硬性ゲート緑 */      // ★E-05段4（作者裁定2026-09-03「維持費は本国州にも必要なはず。植民地は遠く、それが高額なだけ」）：行政費（AdminCostPerPop＝既に全州のPOPに掛かっている）に**首都からの距離**の割増を掛ける。⚠植民地専用の平場（ColonyUpkeepBase）は二重計上なので点火時に外す。0で厳密恒等
     public double SecessionHoldSharedArmy = 1.0;   /* ★点火2026-09-05 B群(G1 E-05)＝0.0→1.0・batch10連鎖の実測（凍結木）で硬性ゲート緑 */    // ★E-05段2（作者裁定2026-09-03「同じフォルダに入る→反乱鎮圧コストが合計になる」）：同時に閾値を越えている運動の数で保持力を割る（分母 `1+これ×(件数−1)`）。⚠実体は統合せず**国家の側の分母だけ**が割れる＝これが「フォルダ」。★形は既存の `ColonialHoldSharedArmy` の一般化＝新しい写像を作らない。⚠数える対象に**格を見ない**（植民地格の州・本国の州・組織運動の蜂起がすべて同じ1件）。0で分母1＝厳密恒等
     public double SecessionHoldProjection = 1.0;   /* ★点火2026-09-05 B群(G1 E-05)＝0.0→1.0・batch10連鎖の実測（凍結木）で硬性ゲート緑 */    // ★E-05段1（作者裁定2026-09-03「あらゆる反乱は1つの経路で発生し、1つの方法で対処する。植民地と国内でルールが異なるのはダメ」）：分離の保持力に**投射**（首都→州の距離減衰・`Diplomacy.Projection` と同じ形・同じ係数）を掛ける適用率。⚠「植民地なら」という条件を1つも書かずに「遠い領土は保ちにくい」を出す＝国内の辺境にも同じ規則が効く。0で厳密恒等
@@ -2676,7 +2659,7 @@ public sealed class Coefficients
     public double BarrierWallSegments = 1.0;   /* ★点火2026-09-05＝0.0→1.0・バリアの壁を線分に（作者指摘2026-09-05） */   // 1＝同じ山脈名（語幹）のバリア点を WallLinkKm 以内で結んだ**線分**も壁とし、辺の大圏弧が交差すれば張らない（峠を端点とする辺は免除・地元免除は線分に効かせない）。監査＝点の壁は隙間だらけ（アルプス518km・カフカス578km）で19本が隙間を抜け、9本が地元免除で山脈を縦断していた
     public double WallLinkKm = 700.0;          //   壁の線分にする点の間隔の上限（データの最大間隔＝ヒマラヤ694・サハラ697 を含む）
 
-    public double DominanceIsStock = 1.0;   /* ★点火2026-09-05＝0.0→1.0・E-06 支配度ストック＋同時独立（batch10 硬性ゲート緑・建国13/試合・列強再現25.0・◎15） */            // 1＝独立判定を「支配度≤0」へ置換（最も低い州が離脱）。0＝従来判定＝厳密恒等
+    // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】DominanceIsStock＝独立の判定＝支配度（ストック）が尽きた州（E-06・2026-09-05 点火）
     public double DominanceSpeed = 0.025;            //   四半期あたりの積分速度＝(hold−pressure)≈−1 が10年続くと 1→0（分離判定と同じ四半期刻み）
     public double DominanceMatureYears = 30.0;       //   初期値＝保有年数÷これ（世代長＝同化の物差し）。HeldSince=0（中核）＝1.0
     // ★支配度の一般化（作者採用2026-09-06・docs/202609/20260906/20260906_支配度の一般化_領土と州パネル_設計_部分完了.md 段1）：州の4区分（国家・在地・外国・無統治）を
@@ -2720,14 +2703,14 @@ public sealed class Coefficients
     //   従来＝分離は「国につき同時に1つ・内戦4年（CivilWarYears）の後に決着」＝根拠のない直列化で、支配度ストックでは中南米の独立が4年刻みの行列になった。
     //   新＝支配度が尽きた州（旧判定では圧力最大の州）は**その四半期に**内戦一元化の経路（SpawnNation＋内戦タグの戦争）へ＝複数州が同時にそれぞれ独立の戦争に入る。
     //   決着は戦争が決める（政府勝利＝再併合／反乱勝利＝独立が確定＝政体は敷かない／白紙＝分断）。0＝従来の内戦タイマー経路＝厳密恒等。多国シムのみ。
-    public double SecessionAsWar = 1.0;   /* ★点火2026-09-05＝0.0→1.0・同時独立＝クールダウン撤去（作者裁定2026-09-06） */
+    // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】SecessionAsWar＝同時独立＝支配度が尽きた州は分離独立の戦争へ（2026-09-05 点火・作者裁定2026-09-06）
 
     // ★貴族の保守性を所得構成から（作者裁定2026-09-06「貴族が保守に固着する理由＝作者裁定ではない。歴史的に正しい形にする」）。
     //   旧＝Closed（特権身分）は固定分岐 r[伝統]=4+2×富・r[反動]=2 で、所得の源を見ない＝「貴族は常に保守」の台本（20260814 doc の生き残った所見＝固着の真因）。
     //   史実＝保守性は**所得の構成**から出る：地代依存の貴族（ユンカー・露）は保守に固着し、商業化した貴族（英ホイッグ）は自由主義へ、没落した貴族（ポーランド小貴族）は急進・国民主義へ。
     //   新＝Closed も他階級と同じ式（地代依存度 rentier・相対的富 rich/poor）で重みを出し、特権は**伝統/反動への加算項**（NoblePrivilegeWeight）として残す。
     //   0＝旧分岐＝厳密恒等。1＝一本化。⚠総政変の恒等物差しに触る（doc 記載）＝batch10 で採否。
-    public double NobleWeightsFromIncome = 1.0;   /* ★点火2026-09-05＝0.0→1.0・貴族の保守性を所得構成から（作者裁定2026-09-06「歴史的に正しい形に」） */
+    // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】NobleWeightsFromIncome＝貴族の思想の重みを所得構成から（2026-09-05 点火・作者裁定2026-09-06）
     public double NoblePrivilegeWeight = 2.0;   //   特権身分の加算（伝統に＋これ・反動に＋これ/2）＝旧分岐の伝統4/反動2と地代依存度2×1+0.5 の差を埋める尺度（旧と同等の合計から出発）
 
     // ★堆肥＝肥料の低効率レシピ（作者裁定2026-09-06「肥料を低効率でRGOに生産させる（堆肥など）」＝E-13 硫黄の産地化を「代替が機能する」形で再開するための器）。
@@ -2745,13 +2728,13 @@ public sealed class Coefficients
     // 【墓標2026-09-26・旗の焼き込み（x-01・0-4）】DebtRepayUsesPrincipalShare（AUD-09・点火2026-09-05）＝減債の対外/国内按分は元本の比（旧＝利払いの比）
     public double CoalitionClosenessFloor = 0.5;   /* ★点火2026-09-05 B群(G3 AUD-09)＝0.0→0.5・batch10連鎖の実測（凍結木）で硬性ゲート緑 */    // ★AUD-09（監査2026-09-02 medium・2026-09-03投入）：機関どうしの近さ（PowerAffinity.Closeness）の床。⚠現行は革命が厳密に0を返し、選定が `pull>bestPull`（初期値0）なので**革命は誰とも組めず誰にも組まれない**＝設計「王権も議会も痩せて初めて革命の引力が勝つ」が到達不能。床＝CapitalCreditFloor と同じ「ゲートでなくプレミアム」の書き方。0で厳密恒等
     public double ElectoralDistortion = 0.3;   // 政9：得票→議席の制度歪み。0=純比例代表（恒等）／>0で得票率を凸変換 v^(1+これ) 再正規化＝第一党の議席プレミアム・小党の死票
-    public double DecayShockRepeatable = 1.0;      // C-中9（史実検証2026-07-22・**2026-07-23点火**）：制度疲労の改革の窓を(a)破産の回数エッジで2度目以降も開く (b)クールダウン中のショックを保留して窓が開いたら消費する。0=旧挙動（破産は1ゲーム1回・クールダウン中のショックは永久消失）＝厳密恒等
+    // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】DecayShockRepeatable＝制度疲労の改革の窓を破産の回数エッジで再び開く＋保留ラッチ（C-中9・2026-07-23 点火）
     // A-高3（史実検証2026-07-22）：穀物法の課税客体を GoodDef.GrainChain（麦15・小麦粉47）へ拡張するか。0=旧挙動＝Tier==Staple のみ＝厳密恒等。
     // 旧実装は課税対象が {パン,米,野菜,芋,トウモロコシ} で、史実の客体である麦・小麦粉が素通りしていた。パン(62)の投入は小麦粉のみなので
     // 穀物法Full でも小麦粉を輸入して国内製パンすれば完全に迂回でき、法が自己無効化していた（＝1846年型「地主 vs 産業資本」が経済的に空砲）。
     // 既存 Staple 集合は残し**追加のみ**（帯への差分を最小化）。封鎖狙撃 blockadeBias は窒息が趣旨なので Staple 判定のまま据え置き。
-    public double CornLawGrainChainGate = 1.0;   // **2026-07-23点火**
-    public double RepudiationCreditPenalty = 1.0;  // C-中1（史実検証2026-07-22・**2026-07-23点火**）：革命的債務否認に借入禁止期間（DefaultCooldownQuarters）を課すか。0=旧挙動（否認しても即座に再起債可＝一過性Anarchyが債務ロンダリング装置）＝厳密恒等
+    // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】CornLawGrainChainGate＝穀物法の客体に麦の連鎖（麦・小麦粉）を含める（2026-07-23 点火）
+    // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】RepudiationCreditPenalty＝革命的債務否認に借入の禁止期間（C-中1・2026-07-23 点火）
     // ConservativePlatformMilitarism（逆規約1=旧恒等/0=撤去）は第8段8-2（2026-07-28）で焼き込み削除＝撤去は恒久決定（2026-07-23点火）。逆規約の是正1/2
     // **再点火2026-07-31（07_再設計 第1弾1d）**：過去に全面版=1を「帯−3/人口崩れ」で差し戻した履歴があるが、
     // 08の新しい70%計器（6次元）で帯の物差し自体を引き直すため、B5手順（全実装→値レビュー→シミュレート→崩し変数リスト→調整）に従って再投入する。
@@ -2767,36 +2750,33 @@ public sealed class Coefficients
     // ★2026-08-12（既定1.0＝是正側）：ブルジョア独裁の引き金に、一党支配→独裁化（Politics.cs:499）と**同じ危機ゲート**
     //   （MeanSatisfactionPol < DominanceInstabilitySatisfaction）を課す。0で旧挙動＝素通り。
     //   同じ現象を測る2本のゲートの一方だけが危機を要求していた非対称の解消であって、新しい閾値は増やしていない。
-    public double BourgeoisCoupNeedsCrisis = 1.0; // ブルジョア独裁の引力＝ブルジョワ勢力×大衆平均闘争度（Politics:525設計コメントの配線）。議会制の立憲/共和のみ＝較正遮蔽。目標＝ブルジョワ独裁1/30→3/30
+    // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】BourgeoisCoupNeedsCrisis＝ブルジョア独裁の引力に危機ゲート（満足度が不安定の線を下回るときだけ・2026-08-12）
     // ★近代化投資（2026-08-04・作者指示「工業化投資を近代化投資に変更…制度疲労・技術力などを改善する効果を持つ」）
     public double ModernizationOldGuardResist = 0.5;  // 旧支配層の政治力シェア1.0あたり近代化投資が止まる割合（免許・検地・認可を握るのが旧支配層）。制度疲労が旧支配層の政治力を膨らませる既存経路と結び「改革を要する国ほど改革できない」が創発。0で乗算恒等
     public double ModernizationCostGdpShare = 1.0;   // frac/(1-frac) に掛かる係数。frac=0.3 で四半期GDPの約0.43倍＝年GDP比11%（発展途上国家の投資率として妥当）・frac=0.8 で4倍・frac→1 で発散。A=2.0 も試したが年GDP比21%は高すぎ、帯も経済規模−6.3で劣った（2026-08-04実測）。**国庫比でなく絶対額**にすることで「100%はほとんどの国で不可能」を成立させる。0で旧式（国庫×frac×0.5）＝厳密恒等
     public double ModernizationDecayCost = 1.5;       // 制度疲労1.0あたりの追加コスト倍率（清decay0.8で×2.2）＝科挙官僚制が鉄道を敷くのに要した余分
     public double ModernizationTechLagCost = 1.0;     // 世界の技術水準からの遅れ1.0あたりの追加コスト倍率＝技術を輸入に頼る国の割高さ
     public double ModernizationDecayRelief = 0.10;    // 実現した工業化度1あたりの制度疲労の低下。**0.02→0.10（2026-08-04）**：0.02では疲労0.8の解消に100年以上かかり、作者指示「近代化投資で疲労が取り除きやすくなるからペナルティを大きくする」の前提（取り除ける）が満たされないまま罰だけが重くなっていた（実測＝疲労を抱える露/墺が列強になれず列強・再現率が−11pt）。0.10で持続的な投資が約20年で疲労を解消＝明治型の速さ。0で恒等
-    public double ModernizationTechGain = 0.0;        // ★2026-08-04：**0で確定**（直接の技術チャネルは置かない）。理由＝制度疲労は既に技術採用を律している（DecayTechAdoptWeight＝チャネル②）ので、近代化投資が制度疲労を削れば**技術はその経路で自動的に伸びる**。直接加点を併置すると二重計上になり、実測で「公教育の普(0.32) vs 宗教教育の露(0.31)」＝**教育が技術を分ける**という中核の不変条件が壊れた（テスト赤）。器は残す（残差比例の形）が既定は0
+    // 【墓標2026-09-26（棚卸し dorm-50）】ModernizationTechGain（近代化投資の直接の技術加点・「0で確定」2026-08-04）＝削除。制度疲労が技術採用を律しているので近代化投資が疲労を削れば技術は伸びる＝直接の加点は二重計上（実測で公教育の普 vs 宗教教育の露の差が消えた）
     public double IndustryInvestRegionCap = 5.0;        /* Phase2 2026-07-08 */ // 近代化投資（World.ApplyModernizationInvestment）の州上限＝この工業化度に達した州へは国庫投資を注がない（プレイヤー/AI共通。富国の首都一極への無限投資＝工業化度30超の暴走を防ぐ）
-    public double StateRevenueAllTaxes = 1.0;   // 政12：国家の歳入要求の全税軸配線。0=どの税もStateRevenueを得ない（旧は専売のみ＝2026-09-20に専売の軸ごと撤去）／>0で所得税・人頭税・土地税のNetSupportにStateRevenueを独立主体として直接加算＝戦時所得税が可能に
-    // ★2026-09-03（キューAUD-04・監査「暦年・台本」）：ファシズムだけ発展度ブレンドが無く**純暦年**（1919〜）だった＝
-    //   どの世界線でも1919年より前にファシズムは0＝規律①（台本禁止）違反。社会/共産/帝国と同じ形の器を足す。
-    //   ⚠0＝旧経路（純暦年）＝1命令も変わらない厳密恒等。>0 で「暦年」と「発展度＋危機」の混合になる。
+    // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】StateRevenueAllTaxes＝国家の歳入要求を所得税・人頭税・土地税の純支持へ（政12・点火済み）
+    // ★2026-09-03（キューAUD-04・監査「暦年・台本」）：ファシズムだけ発展度ブレンドが無く**純暦年**（1919〜）だった＝規律①（台本禁止）違反。
     //   ★発展度の閾値は他3つと同じ目盛り（IdeologyGateSpan を共用）＝新しい幅の係数を作らない。
-    public double FascismGateFromDevelopment = 1.0;   /* ★点火2026-09-05 B群(G4 ファシズム)＝0.0→1.0・batch10連鎖の実測（凍結木）で硬性ゲート緑 */
+    // 【墓標2026-09-26】FascismGateFromDevelopment（2026-09-05 に 1.0 へ点火）・IdeologyGateFromDevelopment（2026-09-06 に 1.0 へ点火）・IdeologyGateIndDynamic（休眠0・07-15 却下）
+    //   ＝暦年と発展度の混合比＝暦年の項は 0.0×有限値で1ビットも効かない＝思想の暦年ゲートごと削除（棚卸し pol-01・項目20 E）。解禁度は発展度だけ
     // ファシズムが開く発展度（他3つ＝Soc/Comm/Imp の Onset と同じ目盛り。★最も遅く開く＝帝国主義より後）。
     public double IdeologyGateFascOnset = 0.75;
-    public double FascismCrisisWeight = 1.0;   /* ★点火2026-09-05 B群(G4 ファシズム)＝0.0→1.0・batch10連鎖の実測（凍結木）で硬性ゲート緑 */      // ★2026-09-04（J-005②の実測で判明）：ファシズムの発展度ゲートに**危機の条件**を掛ける。⚠発展度だけで点火したら大戦前にファシズムが解禁され、1914年の帯が全次元で悪化した（◎17→14）。史実＝伊1922・独1933は最も発展した社会ではない。要るのは**敗戦か恐慌 × 左派の脅威**。★材料は全部既存（DefeatShock・GdpDrawdown・左派シェア）＝暦年を1つも書かない。0で crisis=1.0＝この項を入れる前と厳密同値
+    // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】FascismCrisisWeight＝ファシズムの発展度ゲートに危機の条件（敗戦か恐慌×左派の脅威）を掛ける（2026-09-05 点火）
     public double FascismCrisisSlumpRef = 0.20;   // 恐慌の物差し＝GDPドローダウンがこれで満額（0.20＝−20%＝史実の大恐慌級）。FascismCrisisWeight=0では不読
     public double FascismCrisisLeftRef = 0.30;    // 左派の脅威の物差し＝社会主義＋共産主義のシェアがこれで満額。FascismCrisisWeight=0では不読
-    public double IdeologyGateFromDevelopment = 1.0;   /* ★点火2026-09-06＝0.5→1.0・E-03 暦年ゲート撤去（再測で採用） */   // 政16（load-bearing・**【現行0.5＝有効＝暦年と発展度を50/50ブレンド】**旧コメント「必ずdormant」は誤り）：社会/共産/帝国の暦年ゲートを『世界最先端の工業化度＋都市労働者シェア』由来の発展度ゲートへ置換する割合。0=暦年ゲートを厳密再現／1=発展度ゲート。線形ブレンド era=(1-g)×暦年+g×発展度
-    public double IdeologyGateIndScale = 3.0;   // 政16：発展度スカラーの工業化正規化スケール（frontierInd/これ をClamp01）。非0必須（0除算回避）。IdeologyGateFromDevelopment=0では結果に無影響
-    public double IdeologyGateIndDynamic = 0.0;   // 【#17イデオロギー暦年ゲートの工業化連動】＝**再計測2026-07-15＝0.3も却下**（calib24-24-24堅持だがexact41→39・清12→16・首位交代55.8→43.5＝0.3は1.0(exact40/首位59.1)より更に悪化＝非単調で好値なし）。旧記録：点火1.0でほぼ中立（exact41→40・首位交代55.8→59.1改善だがexact−1）＝exact優先で保留（機構は休眠温存）。ブレンド比gを固定でなく自国工業化度で動的化＝g=baseG+これ×(1−baseG)×devFactor（工業国ほどg→1＝自国の発展度でイデオロギーが創発・未工業国はbaseG）。0=固定g（現行と厳密恒等）
-    public double IdeologyGateUrbanWeight = 0.5;   // 政16：発展度スカラーにおける都市労働者シェアの加重（0=工業化度のみ・1=都市シェアのみ）。IdeologyGateFromDevelopment=0では未使用
-    public double IdeologyGateSpan = 0.35;   // 政16：発展度ゲートがonsetから全開(1)まで開く幅。非0必須（0除算回避）。狭いほど閾値付近で急に開く。IdeologyGateFromDevelopment=0では未使用
-    public double IdeologyGateSocOnset = 0.20;   // 政16：社会主義が発展度で開き始めるonset（最も早い＝暦年1830相当）。IdeologyGateFromDevelopment=0では未使用
-    public double IdeologyGateCommOnset = 0.35;   // 政16：共産主義の発展度onset（社会主義より遅い＝暦年1848相当）。IdeologyGateFromDevelopment=0では未使用
-    public double IdeologyGateImpOnset = 0.50;   // 政16：帝国主義の発展度onset（最も遅い＝暦年1860相当）。IdeologyGateFromDevelopment=0では未使用
+    public double IdeologyGateIndScale = 3.0;   // 政16：発展度スカラーの工業化正規化スケール（frontierInd/これ をClamp01）。非0必須（0除算回避）
+    public double IdeologyGateUrbanWeight = 0.5;   // 政16：発展度スカラーにおける都市労働者シェアの加重（0=工業化度のみ・1=都市シェアのみ）
+    public double IdeologyGateSpan = 0.35;   // 政16：発展度ゲートがonsetから全開(1)まで開く幅。非0必須（0除算回避）。狭いほど閾値付近で急に開く
+    public double IdeologyGateSocOnset = 0.20;   // 政16：社会主義が発展度で開き始めるonset（最も早い＝史実の1830年代に当たる）
+    public double IdeologyGateCommOnset = 0.35;   // 政16：共産主義の発展度onset（社会主義より遅い＝史実の1848年に当たる）
+    public double IdeologyGateImpOnset = 0.50;   // 政16：帝国主義の発展度onset（最も遅い＝史実の1860年代に当たる）
     public double CasualtiesFromContact = 1.0;   // 外2：戦死の戦力比例項の基準。0=p.Military（品質乗数込み・自軍規模のみ＝現行に厳密一致）／1=各戦線の実接触強度min(aPush,bPush)（遠隔戦は出血せず品質逆転も解消）。#17の再較正は2026-09-25に閉じた（WarCasualtyRate=8 据え置き・根拠はその注記）
-    public double WarWearinessDecays = 1.0;   // 外3：非交戦国の厭戦の扱い。0=Step冒頭で即時0リセット（旧＝開戦抑止がtruceペア限定に縮退）／>0=WarWearinessDecayRateで指数減衰（休戦後も数年は厭戦が残り開戦抑止が効く）。バランス2026-07-07有効化：終戦翌月の再参戦（AI監査の愚行#5）を解消し敗戦国に回復期を与える＝首位交代を促す
+    public double WarWearinessDecays = 1.0;   // 外3：非交戦国の厭戦の扱い。0=Step冒頭で即時0リセット（旧＝厭戦の開戦抑止が講和の翌月に消える）／>0=WarWearinessDecayRateで指数減衰（講和後も数年は厭戦が残り開戦抑止が効く）。バランス2026-07-07有効化：終戦翌月の再参戦（AI監査の愚行#5）を解消し敗戦国に回復期を与える＝首位交代を促す
     public double WarWearinessDecayRate = 0.97;   // 外3：WarWearinessDecays>0のときの非交戦国厭戦の月次残存率。WarWearinessDecays=0では未参照
     public double AbstractTargetReparations = 0.3;   // 外8：抽象標的(Nation==null=GDP0)への決定的勝利時の賠償原資＝敗者Treasuryのこの割合を移転（対清戦争型）。0=賠償0（現行に厳密一致）
     public double ThreatUsesColonyValue = 1.0;   /* #17有効化 */   // 外10：脅威評価・海軍シェアの植民地規模基準。0=植民地個数（旧式＝インド1個<小島3個）／>0=Σ Colony.Value（資源数＋人口）
@@ -2814,19 +2794,19 @@ public sealed class Coefficients
     // 法/スライダーの硬い「純支持>0」ゲートを、反対を押し切れる形へ一般化した器。旧＝余白 θ=MandateWeight×(Legitimacy−0.5)（2026-07-09〜09-21）。
     // ★現行＝純支持<0 の一歩は政治資本の在庫 a=max(0,b−S) が代価に届くときだけ通る（Government.PoliticalCapitalAffords）。押し切った分だけ正統性も燃やす（MandateSpentNew→Politics が減算）＝自己制限的。
     // 旧体制の罠（低正統性で人気の法さえ滞る＝旧 MandateNegativeScale で半減した負側 θ）は θ ごと退役し、b（正統性＋支持）の小ささが担う＝係数は削除（㉖）。
-    public double StagePrereq = 1.0;   // ★2026-08-04（作者指示「参政権含めいくつかの法は1段階ずつしか進まないように（1つ前の段階を前提条件にする）」）：多段の法で1つ前の段を前提にする＝段の飛び越し禁止。StepEnumは元々1段ずつなので施行の速さは変わらず、変わるのは**遠い段を目標に置けない**こと＝プレイヤーもAIも各段を別々の決断として払う。0で従来と厳密一致（休眠）
+    // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】StagePrereq＝多段の法は1つ前の段を前提（段の飛び越し禁止・作者指示2026-08-04）
     // ==== 税・支出・軍事費の段（作者裁定2026-09-12 R1/R2・2026-09-20 点火＝主フラグ FiscalLawStages を削除）====
     // R1「全ての税に関するスライダーを廃止し『なし/低/中/高』の4段階のボタンにする。法として扱え反乱に乗り、権力を無視して課税できない。税の挙動は今までと同じ」
     // R2「軍事費は『低/中/高/戦時』の4段。戦時経済は総動員とセットで、戦後は下の値に戻る」／R3「関税はスライダーを維持」。
     // ★2026-09-20 作者裁定「専売は政治問題ではなく生産マネジメントの範囲」＝専売は政策軸ごと撤去（段の軸は税4軸＋軍事費）。
     // 段の本体は Government（TaxStage/TaxValue/Q4/MilitaryTotalTarget/LawPrereq）。旗と「段の無い世界」の枝（スライダー・緊縮と戦時の床の Max・押し切り/阻止の遺恨）は削除済み。
-    public double ConstitutionalMandateScale = 0.0;   // ★2026-08-04（作者指示「少なくとも参政権は固く」）：憲法級の法（参政権/秘密投票/★女性の権利は**選挙権の段だけ**＝2026-08-10 の段単位判定）に効くマンデート余白の倍率。0＝政治資本では押し切れない＝実際の支持が正でなければ通らない。誰が票を持つかは統治の土台であって政権の政治資本で動かせる政策ではない（1832/1867/1884の拡大はいずれも力の均衡が実際に動いた結果）。★2026-09-21 裁定S1（θ 退役）以後は **0/1 の弁**：0＝憲法級だけ硬い「純支持>0」（在庫がいくらあっても押せない）／>0＝普通の政策と同じく在庫で押せる（Government.MandateMargin が +∞ を返す）。休眠（既定0）
+    // 【墓標2026-09-26（棚卸し dorm-50）】ConstitutionalMandateScale（憲法級の法＝参政権/秘密投票/女性の権利の選挙権段を在庫で押せるようにする弁・既定0）＝削除。作者指示（2026-08-04「少なくとも参政権は固く」）＝0が正しい値＝憲法級は硬い「純支持>0」（Government.MandateMargin が 0 を返す）。誰が票を持つかは統治の土台であって政権の政治資本で動かせる政策ではない（1832/1867/1884の拡大はいずれも力の均衡が実際に動いた結果）
     // ★MandateWeight の意味は裁定S1（2026-09-21・㉖で焼き込み）で変わった＝旧「余白の傾き」／新「**在庫 b の目盛り**」。
     //   θ は退役し（Government.MandateMargin が非憲法級に +∞）、門は b＝これ×MandateSpendRate×(正統性+支持) だけ。
     //   門の判定式 |純支持|×後退倍率 ≤ これ×(正統性+支持) では **MandateSpendRate が両辺で消える**＝可否を決めるのはこの1本。
     //   MandateSpendRate が決めるのは「1歩でいくら正統性が燃えるか」だけになる。
     //   ⚠2026-07-09 の梯子制約（0.5/0.4 は仏+Modernizer で普通選挙を通す）は**法には掛からなくなる**＝参政権を守るのは θ の大きさではなく
-    //     ConstitutionalMandateScale=0 の切り離し（実測でも θ 退役後の参政権は 8,593件すべて否決・通ったのは純支持>0 の8件だけ＝隔離計器・seed1・604四半期）。
+    //     憲法級の切り離し（Government.MandateMargin・実測でも θ 退役後の参政権は 8,593件すべて否決・通ったのは純支持>0 の8件だけ＝隔離計器・seed1・604四半期）。
     //     制約は**選挙側へ移る**＝World.ResolveElection / SelfPlay.DecideElection が θ_e=これ×(正統性−0.5) を自前で書いており（S は触らない別通貨）、
     //     実測の看板逆風 |純支持| ≥ 0.39（ElectionAiTests）に θ_e が届き始めるのは **これ ≥ 0.78** ＝そこが新しい上限の根拠。
     //   目盛りの候補（S1 点火後の実測分布から導出・代価の中央0.2408／p75 0.3297／p90 0.4348・中央(正統性+支持)=中央b/(0.3×0.5)=1.2027）：
@@ -2850,7 +2830,7 @@ public sealed class Coefficients
     //   同時に「通す側」へ倒れ、**反対を押し切る一歩の門は在庫ひとつだけ**になる（門を2つから1つへ＝削減の向き）。
     //   退役の理由＝θ が代価を θ×MandateSpendRate で頭打ちにし、b も同じ2係数で作られるので打ち消し合い、
     //   在庫の門が一度も噛まなかった（2026-09-21 ㉓検証＝selfplay-batch 10 の4腕と eduprobe で在庫の否決0件／同じ eduprobe で余白の否決100件）。S2＝床の保証は同時に廃止。
-    //   ⚠憲法級（参政権等）だけは 0 を返す＝硬い「純支持>0」＝2026-08-04 の裁定をそのまま保存（弁は ConstitutionalMandateScale）。
+    //   ⚠憲法級（参政権等）だけは 0 を返す＝硬い「純支持>0」＝2026-08-04 の裁定をそのまま保存（弁 ConstitutionalMandateScale は 2026-09-26 に削除＝dorm-50）。
     // ★主フラグ PoliticalCapitalStock（N2/S1・0/1）は 2026-09-21 ㉖で 1.0 を焼き込んで削除＝在庫の門・線形回復・θ の退役が既定（旧の余白の門と指数減衰の枝は削除）。
     public double MandateRefillQuarters = 40;    // 空から満タンまでの四半期数（作者裁定＝実行度が最大のとき10年）。実行度 ≥ 1/(1+2.667)≈0.273 なので最悪でも ≈147四半期＝0の吸収状態を作らない
 
@@ -3014,7 +2994,7 @@ public sealed class Coefficients
     public double ShogunateEndMilitancy = 0.5;    // 幕府が倒れる内圧＝大衆の闘争度（同ゲートの内圧(c)と同水準）。★内圧が外圧（緊張/200）を上回れば議会つきで終わる＝A1「どちらも許す」
     public double DespoticToAbsolutistAdmin = 0.6;      // 専制→絶対王政（官僚絶対主義）の行政効率の閾値
     public double DespoticToAbsolutistQuarters = 8.0;   // 同・継続四半期数（2年＝一時的な好調では変異しない）
-    public double PolityGraphRetired = 1.0;        // **P3c主フラグ**：1=平和的漸進遷移（非奪取×改革派主導）をグラフから廃止＝連続動学＋床交差が担う。暴力革命・奪取はイベントのまま。0=従来（厳密恒等）
+    // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】PolityGraphRetired＝平和的漸進遷移を遷移グラフから廃止（P3c・点火済み）
     // --- 政体形態の実績ストック（信認⇔失望・経路依存・2026-07-13・設計doc「形態別失望ストック」）---
     // 蓄積/減衰は書くだけ（P0観測と同型）＝いつ走っても恒等。読むのは Transition の注入のみで RegimeTrackRecordWeight=0なら無効（現行0.3＝有効）。
     public double RegimeRecordAccumRate = 0.02;    // CoopPublicRegime（満足−闘争）×これ/四半期で現政体系統の実績が符号のまま積む（+信認/−失望）
@@ -3029,9 +3009,9 @@ public sealed class Coefficients
     // P9 国民意識v2「購入モデル」（2026-07-17）：NCは育つものでなく買うもの（機会費用＋維持費で全国飽和を根治）。主フラグは2026-07-27にNationBuildPurchaseMode=1（常にv2）を焼き込み削除済み＝v1蓄積式へ戻す道は無い
     // P8 天命 DynasticMandate v1.1（2026-07-17・プローブ検証済み仕様）：前近代の正統性＝統治パフォーマンス直結。「パンの値段→天命→正統性→革命」。
     // Legitimacy（制度のストック・既存不変）と役割を完全分離＝Mandateは民のパフォーマンス評価EMA。⚠命名：Mandate単独は既存の政治資本（MandateSpent/MandateGate/MandateWeight）と衝突するため DynMandate 接頭辞
-    public double DynasticMandateEnabled = 1;   // 点火1（2026-07-18）。0=状態更新も不走行＝厳密恒等（旧挙動）
+    // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】DynasticMandateEnabled＝天命（P8・2026-07-18 点火）
     // P10 天命v1.2「再定義された天命」＝信任帝政ルート（2026-07-18・命名層はイベント不採用で除く＝機械的実体2片）：天命を捨てず再定義して近代化する第二の道（清の「もしも」・大政奉還後の天皇制）
-    public double RedefinedMandateEnabled = 1;      // 点火1（2026-07-18計測）。0=両片とも不走行＝厳密恒等
+    // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】RedefinedMandateEnabled＝信任帝政の正統性の下限（P10①・2026-07-18 点火）
     public double RedefinedMandateFloor = 0.6;      // ①正統性の下限＝立憲君主×王冠保持×高NC×高天命の時のみ Legitimacy≥これ×Mandate（加算でなく床＝二重計上なし）。「民の信任を得た皇帝はパンの値段ではもう滅びない」
     public double RedefinedMandateNcMin = 0.5;      // 高NCの閾値（信任帝政の資格）
     public double RedefinedMandateMandateMin = 0.6; // 高天命の閾値（⚠緩いと立憲固着＋仏が共和に届かない＝難しく較正）
@@ -3048,7 +3028,7 @@ public sealed class Coefficients
     public int UnificationAiWarGapYears = 3;        // 宣戦後の次判定間隔（年）＝1864→1866→1870の連続戦争の律動
     public double OpiumMiseryScale = 2.0;        // 素のアヘン需要の困窮ゲート＝baseNeed×clamp(これ×(1−満足),0,1)。満足な民は手を出さない・中毒は満足に関わらず必要
     public double OpiumLaborPenalty = 1.0;       // 依存が労働供給を蝕む＝成人労働×(1−これ×中毒度)（床0.5）
-    public double OpiumSatisfactionPenalty = 0.0;// ⚠休眠2026-08-19（作者裁定「阿片も抜く。これは後で何とかする」）：満足度への直接【減算】＝思想⑨の裏返し。
+    // 【墓標2026-09-26（棚卸し econ-16・dorm-22）】OpiumSatisfactionPenalty（満足度への直接の減算・休眠0＝作者裁定2026-08-19「阿片も抜く」）＝思想⑨の裏返し＝削除。
                                                  // ★「中毒者は阿片を**需要する**」形は既に入っている（EconomyStep の必要量に州の中毒度を足す・困窮の門の外）＝買えなければ NeedMet が下がり満足度が自然に落ちる。この減算は⑨の二重計上（2026-09-26 訂正・棚卸し dorm-22）。旧0.5
                                                  // （旧注記：1.0はハーネス13/30＝満足↓→困窮ゲート消費↑の正帰還が強すぎ→0.5へ・2026-07-18）
     public double OpiumBanTensionRate = 2.5;     // 禁令中の輸出国との緊張蓄積/月（取締り・没収が敵意を積む＝林則徐→アヘン戦争。開戦閾値160へ数年で到達する規模）
@@ -3170,10 +3150,9 @@ public sealed class Coefficients
     // ==== 参政権の範囲2法（作者裁定2026-08-16・docs/202608/20260815_失業プールと社会移動_部分完了.md 末尾「参政権の範囲2法」節）====
     // 植民地参政権（なし/自国民のみ/全面）＋移民原住民参政権（なし/あり）＝「誰が政治的国民か」を法にする。
     public double SuffrageScopeGate = 1.0;   /* ★点火2026-09-06＝0.0→1.0・E-11 参政権の範囲法（再測で採用） */             // **主フラグ・点火済み**：0へ戻せば全効果が1命令も走らない厳密恒等（法選好Pref=0＝要求にも載らない・UIの2行も非表示＝natVis と同型）。
-    public double SuffrageScopeVoice = 0.0;            // J-001の範囲外（2026-09-04）：利益集団の発言権を算入率で乗じる腕。史実では票の無い層にも声があった（チャーティスト/反穀物法同盟）＝既定0で主フラグ点火時も走らない。V6の全効果を再現したい測定でのみ1
-                                                       //   >0で算入率（植民地格の州＝植民地参政権 0/CoreEthnicShare/1・本国州の非中核分＝移民原住民参政権 0/1）が
-                                                       //   発言権（InterestGroups.Blocs）・課税への同意（Fiscal consent の voice）・分離圧 ×(1−算入率)・少数派闘争度 ×(1−算入) に効く。
-                                                       //   ⚠点火は再較正ラウンドのみ（AI工業化バースト2026-07-27と同じ扱い＝忠実度の暗黙の土台を動かす）
+    //   算入率（植民地格の州＝植民地参政権 0/CoreEthnicShare/1・本国州の非中核分＝移民原住民参政権 0/1）が
+    //   課税への同意（Fiscal consent の voice）・分離圧 ×(1−算入率)・少数派闘争度 ×(1−算入) に効く。発言権（InterestGroups.Blocs）には掛けない（J-001の範囲）。
+    // 【墓標2026-09-26（棚卸し dorm-49）】SuffrageScopeVoice（利益集団の発言権を算入率で乗じる測定専用の腕・既定0）＝削除。発言権は票の前提にしない（チャーティスト/反穀物法同盟）
 
     // ==== プチブル利益束（作者承認2026-08-15「それでよい」・設計doc「プチブル利益束設計」タスク#84）====
     // 法選好（PolicyPreferences）の trad/modern/mass 3束に第4束「小営業」＝職人pop＋商人pop を足す。
@@ -3269,9 +3248,9 @@ public sealed class Coefficients
     //   ほぼ全州で成立する。首都だけ除外しても「16州→1州」が1イベントで起きる＝「南部が離れる」と「国が消える」を区別できない。
     // ⚠人口次元の「英×0.99」「清×0.74」は**人口の話ではなく、この解体の話だった**（アメリカは5州を保ち×10.7で伸びている
     //   ＝人口モデル自体は正常）。★再点火するなら、分離する州を「首都から連続した少数派の塊」に限る設計が要る（別ラウンド）。
-    public double CivilWarSplitEnabled = 1.0;   // ★再点火2026-08-29（作者裁定「硬性緑なら点火でよい」・R15 batch30＝破綻0/分裂36回/スペイン常勝は20→16へ改善。人口−5.8の代償は上の注記どおり＝英停滞の符号を含み記録済み）。器→実機能：拮抗した内戦は国を割る
+    // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】CivilWarSplitEnabled＝拮抗した内戦は国を割る（2026-08-29 再点火）
     // ★分裂の断層（2026-09-06・作者設計）：拮抗の内戦で離れる州を「民族の断層（中核度<0.5）」がある州に限る。0＝従来（思想の傾きだけ）。
-    public double SplitRequiresFaultLine = 1.0;   /* ★点火2026-09-06＝0.0→1.0・分裂の断層＝民族の断層がある州だけ離れる（作者設計2026-09-06・batch10 本国+6/固着−9） */
+    // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】SplitRequiresFaultLine＝分裂の断層＝民族の断層がある州だけ離れる（2026-09-06 点火）
     // ★特権の台帳（作者設計2026-09-06「特権システム＝制度疲労の置換」段1）：既存3破片（十分の一税・身分制免税・身分任用＝汚職の取り分）の取り分を記帳し
     //   保有年数のストックを積む（観測のみ・誰も読まない）。0＝1命令も走らない（厳密恒等）。段3以降（剥離の怒り・制度疲労の導出）がこれを読む。
     public double PrivilegeLedgerEnabled = 0.0;
@@ -3314,7 +3293,7 @@ public sealed class Coefficients
     public double ConstitutionalControlExit = 0.35;    // 立憲の下抜け（ヒステリシス）：これ以下で専制系へ戻る（墺斯曼1878停止・ちらつき防止）
     // ★読み手＝CrownParliament の政体ラベルのヒステリシス（立憲系はこの下抜けの床で判定）。
     //   ⚠ 2026-09-26 訂正（外部レビューの検討 §10-10［政治4］）：旧注記の「読み手ゼロ（2026-08-01の全数走査で確定）」は誤り。
-    public double RepublicControlFloor = 0.85;         // 軸→法：PC≥これで建国参政権AdultMale（共和級の議会支配）
+    // 【墓標2026-09-26（棚卸し sweep-20）】RepublicControlFloor（0.85・軸→法：PC≥これで建国参政権AdultMale）＝読み手0（08-01 の精査で死蔵と記録済み）
 
     // ==== トリレンマを閉じる（2026-08-13・docs/202608/20260812_トリレンマを閉じる_完了.md）====
     // 現状は3つ（兌換の維持・資本の自由・金融政策の自律）を同時に持てていた＝トリレンマを破っていた。閉じるのに要るのは2つだけ：
@@ -3541,25 +3520,14 @@ public sealed class Coefficients
     //   で親がバッチ測定済み＝0.5を採用（1.0は地図の線が最少だが帯は0.5が上）。0＝旧規則（無制限免除）とビット恒等＝新しい実測（陸マスクの走査）は1回も走らない。
     public double SeaStitchLeadBudgetMult = 0.5;   // 【点火0.5・2026-08-16 点火梯子＝単独 exact43.3＝全16腕で最良／合成comp4で near77.4・人口28.6。1.0は地図の線は最少だが帯は0.5が上。合成comp4（12本＋海0.5）で exact41.6/near77.4/法63.2/貿易0.66・硬性緑】
 
-    // ==== 反実仮想（測定専用・2026-08-21）＝「金詰まりで買えないのか」の因果テスト ====
-    // POP の購入は demand=min(desired, RemainingBudget/buyerPrice)（EconomyStep）。>0 でこの蓋を**丸ごと外す**（demand=desired・k の大きさは読まない）。
-    //   ⚠ 2026-09-26 訂正（棚卸し dorm-49）：旧注記の「(1+k) 倍に緩める」は実装と違っていた。
-    // ⚠**採用候補ではない**：緩めた分は払えない金で買う＝保存則が破れる（leakhunt は当然赤になる）。
-    //   目的は「予算が binding なら緩めたときに交易が増えるはず」という**因果の向き**を1本だけ確かめること。
-    // 既定0＝分岐を1命令も通らない＝ビット恒等（×1.0 の乗算も残さない）。
-    public double PopBudgetRelax = 0.0;
-
-    // 交易量 q ∝ scaleT = max(LastDemand, LastProduced, TargetStock) であり、TargetStock も需要に比例する
-    //（MarketFlow: TargetStock = max(TargetStockFloor, TargetStockBuffer×totalDemand)）。
-    // つまり pop の予算制約が需要を切ると、その分だけ交易の「規模」も切られる。ここはその経路**だけ**を外して測る
-    //（金の流れは1円も変えない＝保存則は保たれる＝PopBudgetRelax と違い leakhunt が緑のまま走る）。
-    // 実測（budgetprobe・1793年）：世界貿易/GDP 8.31%→11.28%（+36%）。既定0＝読み手ゼロ＝ビット恒等。
-    public double TradeScaleUsesDesired = 0.0;
+    // 【墓標2026-09-26（棚卸し dorm-49）】エンジンの中の測定専用の腕2本を削除した：PopBudgetRelax（POP の予算の蓋を外す反実仮想＝保存則を破る）と
+    //   TradeScaleUsesDesired（旧経路の交易の規模を予算の前の需要へ置き換える反実仮想・その素 Market.LastDesiredDemand を毎月全POP×全財で記帳していた）。
+    //   反実仮想は Runner のプローブの中で世界を複製して行う（エンジンに誤って点火できる腕を置かない）
 
     // ==== 環境変数による係数の上書き（測定用・2026-08-12）====
     // なぜ要るか：A/B を**同一バイナリ・同一ソースハッシュ**で取るため。従来は既定値を書き換えて2回ビルドしていたが、
     // その間に他の編集が混ざると「挙動不変のはずの変更で軌道が動く」事故になる（設計doc「測定汚染」2026-07-28 と同じ罠）。
-    //   使い方: POB_COEF="CrownlessCollapseKeepsRepublic=0;BourgeoisCoupNeedsCrisis=0" bash measure.sh ...
+    //   使い方: POB_COEF="CrownlessCollapseKeepsRepublic=0;FactionOpportunism=0" bash measure.sh ...
     // 決定論：同じ環境変数なら同じ値＝再現する。未指定なら1件も触らない（＝厳密恒等）。
     // 名前を間違えたら**黙って無視せず例外**＝「掛けたつもりの実験が素通り」を構造で防ぐ（番人の空洞化対策）。
     private static readonly (string Name, double Value)[] Overrides = ParseOverrides();

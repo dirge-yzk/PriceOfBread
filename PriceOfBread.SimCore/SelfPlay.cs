@@ -1229,10 +1229,7 @@ public sealed class UtilityAgent : INationAgent
                     p.Suffrage = Suffrage.Census;
                 break;
         }
-        // 形が先・金が後 配線C（2026-08-08・AI補助＝点火キュー規律で必ずコスト側の後）：軍事費目標をスタンス定数から
-        // 「理想軍の装備請求書 ÷ 歳入の軍事シェア」へブレンド＝軍事費の**スタンス非依存化**（作者既決方向）。
-        // 材料は EconomyStep.MilitaryProcurementNeed と同じ（NeedMen×MilitaryUpkeepScale×Σrate×首都価格＝新定数なし）。
-        // ⚠既定 SpendFromNeedWeight=0 で分岐不実行＝厳密恒等。Militarizeスタンスの教義効果（治安維持力・検閲・組合）は不変＝支出定数だけが形から決まる。
+        // （形が先・金が後 配線C＝軍事費目標を理想軍の請求書へ寄せる器 SpendFromNeedWeight は 2026-08-08 に棄却・2026-09-26 に削除＝棚卸し mil-21）
         // ソ連風税制（2026-08-08作者裁定）：プロ独裁＝取引税型の極端な専売＋大規模な社会保障＋累進最大＝
         // 計画経済の財政的な顔（価格配分は触らない）。法の可否は通常の政治ゲートが決める＝台本でなく目標。
         if (w.Coef.SovietTaxProfile > 0 && w.Polity == Polity.ProletarianDictatorship)
@@ -1241,24 +1238,6 @@ public sealed class UtilityAgent : INationAgent
             p.ProgressiveTaxTarget = Math.Max(p.ProgressiveTaxTarget, Government.ProgressiveTaxTop);   // ★錨2026-09-18＝累進の教義最大＝段の最上段
             p.SocialSecurityTarget = Math.Max(p.SocialSecurityTarget, 1.0);
             p.SocialSecurityLaw = SocialSecurityLaw.Pension;   // 4段の最上位を目標化（実際の到達は政治ゲート）
-        }
-        if (w.Coef.SpendFromNeedWeight > 0 && w.LastRevenue > 1e-9)
-        {
-            // 請求書の錨＝扶養限界目標（Military.SustainTargetOf＝兵数の錨と単一ソース）。
-            // ⚠旧配線のNeedMen錨は棄却済み（相手の現在兵数を読む外側ループ・§45-1）＝差し替え2026-08-08。
-            // 装備単価は**参照価格建て**（市場価格の循環を避ける＝S4欠陥の教訓）。
-            double bill = Military.SustainTargetOf(w, w.Coef, out _);
-            if (bill > 1e-9)
-            {
-                double refBasket = 0;
-                for (int b = 0; b < w.Coef.MilitaryGoods.Length; b++)
-                    if (w.Coef.MilitaryGoods[b] < Catalog.RefPrices.Length) refBasket += w.Coef.MilitaryRates[b] * Catalog.RefPrices[w.Coef.MilitaryGoods[b]];
-                double billSpend = Math.Clamp(
-                    w.Coef.MilitaryUpkeepScale * bill * refBasket / Math.Max(1e-9, w.Coef.MilitaryRevenueShare * w.LastRevenue),
-                    w.Coef.SpendFromNeedMin, w.Coef.SpendFromNeedMax);
-                double lam = Math.Clamp(w.Coef.SpendFromNeedWeight, 0, 1);
-                p.MilitarySpendingTarget = (1.0 - lam) * p.MilitarySpendingTarget + lam * billSpend;
-            }
         }
         // ★戦時段の選択（作者裁定2026-09-19 M2）：総動員中かつ交戦中のAIは軍事費の最上段（戦時経済）を**選ぶ**＝プレイヤーの法律タブの段ボタン
         //   （GameViewModel.Law の `v / 段数`）と同じ書き込み口・同じ写像に v=最上段を入れる＝新しい数は置かない。総動員は段を解禁するだけで押し上げない

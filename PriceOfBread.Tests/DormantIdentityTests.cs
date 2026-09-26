@@ -19,9 +19,7 @@ public class DormantIdentityTests
     private static readonly string[] DormantZeroFields =
     [
         // ★GoldRushEmergent は 2026-09-04 に 1.0 で**点火**（J-005）＝この表から外した。
-        "SuffrageScopeVoice",           // J-001範囲外の腕（発言権∝票）＝既定0
         "ScarceCapFollowsEndowment",    // E-15 手順3：希少鉱物の産地の天井を賦存比例に
-        "TariffRetaliationViaPolitics", // 報復関税を政治（支持項）に通す器
         // ★ChilledMeatEnabled は 2026-09-04 に 1.0 で**点火**＝この表から外した。
         "MeritModernityFromClosed",     // AUD-07：メリトクラシーの政体バフ除去
         "PrivilegeFromCrownShare",      // AUD-07：身分制免税の政体バフ除去
@@ -37,7 +35,6 @@ public class DormantIdentityTests
         "NationConsciousnessDerived",   // ★段4（2026-09-09・作者裁定5／§7-7バグb）＝国民意識をストックから**同じ漸化式の不動点**へ。
                                         //   0＝旧＝ストック＝厳密恒等。点火値 1.0（記憶が消え、国内経路の運搬漏れが定義ごと消える）
         "SerfGateCoversPool",           // C-03：農奴の移動制限を失業プール経路へも広げる
-        "StateAbsorptionBlend",         // E-01：国庫の近代化投資の吸収ゲート（技術/外資/私的建設に既にある同じ写像の4本目）
         // ★DomesticFlightHasHost は 2026-09-22 に**点火**（旗ごと削除＝逃避の受け皿が常に外資の負債を記帳）＝この表から外した。
         "NiterBedEnabled",              // 硝石丘＝硝石の低効率レシピ（財の3分類の再開）＝0で足さない
         "ScarceCountsIncludeColonies",  // 希少鉱物の総量保存の k/N に植民地を数える（分子と分母の非対称の是正）＝0で従来
@@ -58,7 +55,6 @@ public class DormantIdentityTests
         "RuleSharesTaxBase",            // 支配度 段3＝課税・徴兵ベースを区分へ（仲介者の取り分は貴族へ）
         "ForeignRuleFromTreaty",        // 支配度 段5＝条約港→外国持分（観測のみ）
         "MusketRecipeEnabled",          // 前期の軍需レシピ（マスケット/鋳鉄砲）＝0で Producer を足さない
-        "TruceYearsPerExhaustion",      // 作者裁定＝規模で決める休戦（0＝休戦なし）
         "SilverRushEnabled",            // 銀の後期産地＝シルバーラッシュ（0＝解禁も富鉱化もしない）
         "MineralCostFollowsGrade",      // ★器（2026-09-07）＝鉱脈の倍率を鉱物RGOの限界費用にも通す（EconomyStep.MineralSelfCost）。0＝MarginalCost そのまま＝厳密恒等
         "EndowmentCostFollowsAbundance",   // ★器（2026-09-08）＝賦存倍率>1 の州の自己費用を賦存で割る（Simulation.ApplyEndowment）。0＝MarginalCost そのまま＝厳密恒等
@@ -111,6 +107,7 @@ public class DormantIdentityTests
         "MilitaryProcurePriceGateScale",   // 軍需財の国家調達の価格ゲート倍率（1＝満額＝旧恒等・0＝価格を見ない）
         "MilitaryBuildCostCapScale",       // 軍需工場の建設費上限の倍率（1＝旧恒等）
         "FactoryBuildPriceGateScale",      // 裁定②＝工事の進捗/素材需要の価格ゲート混合（1＝旧恒等・0＝価格を見ずに進む）
+        "UnificationV1Only",               // ★2026-09-26（fis-27・dorm-52）：統一戦争の名指し（北ドイツ連邦・ドイツ・イタリアの3件）＝1が旧挙動。点火（0＝名指しの撤去）は回8-3（col-19）
     ];
 
     [Fact]
@@ -123,6 +120,9 @@ public class DormantIdentityTests
             Assert.True(f is not null, $"休眠係数「{name}」が Coefficients に無い（改名したら本テストの表も直す）");
             Assert.True(f!.GetValue(c) is double d && d == 1.0, $"scale型の休眠係数「{name}」の既定が1.0でない（点火したなら表から外す）");
         }
+        // ★2026-09-26（fis-27・dorm-52）：投射の起点を州の支配へ広げる旗は「到達しない値」（>1.0）で休眠＝支配の国家区分 Rule[0] は1を超えない。
+        //   点火（≦1.0）は dorm-09（支配の4区分）の後＝回6-4。値が1のちょうど上なので上の表（==1.0）にも既定ゼロの表にも載らない＝ここで見る。
+        Assert.True(c.ProjectionRuleMin > 1.0, $"休眠の ProjectionRuleMin が {c.ProjectionRuleMin}＝到達する値（点火したなら本テストからも外す）");
         // 機構の恒等＝既定の FactoryBuildProgress は FactoryBuildAfford そのもの（ビット同値・参照束の物差しも名目のまま）
         foreach (var (now, rf, pl) in new[] { (1.0, 1.0, 1.0), (3.7, 1.2, 1.4), (0.2, 5.0, 0.7), (12.0, 2.0, 3.0) })
             Assert.Equal(c.FactoryBuildAfford(now, rf), c.FactoryBuildProgress(now, rf, pl));
@@ -142,29 +142,8 @@ public class DormantIdentityTests
         }
     }
 
-    [Fact]
-    public void 休眠フラグをゼロで明示しても軌道が変わらない()
-    {
-        const int Q = 8;
-        var baseSim = new MultiNationSim(WorldData.Nations(), 4242, _ => new UtilityAgent());
-        baseSim.StartWarmup();
-        for (int q = 0; q < Q; q++) baseSim.StepQuarter();
-
-        var zeroSim = new MultiNationSim(WorldData.Nations(), 4242, _ => new UtilityAgent());
-        foreach (var n in zeroSim.Nations)
-            foreach (var name in DormantZeroFields)
-                typeof(Coefficients).GetField(name)!.SetValue(n.World.Coef, 0.0);
-        zeroSim.StartWarmup();
-        for (int q = 0; q < Q; q++) zeroSim.StepQuarter();
-
-        Assert.Equal(baseSim.Nations.Count, zeroSim.Nations.Count);
-        for (int i = 0; i < baseSim.Nations.Count; i++)
-        {
-            var a = baseSim.Nations[i].World; var b = zeroSim.Nations[i].World;
-            Assert.True(a.BaseMoney == b.BaseMoney && a.TotalPopulation == b.TotalPopulation,
-                $"{a.SelfPower?.Name}：休眠0の明示で軌道が動いた（基礎貨幣 {a.BaseMoney}⇔{b.BaseMoney}／人口 {a.TotalPopulation}⇔{b.TotalPopulation}）");
-        }
-    }
+    // 【削除2026-09-26（棚卸し fis-22）】「休眠フラグをゼロで明示しても軌道が変わらない」＝既定値そのもの（0）を明示で書き直して8四半期回す検査＝必ず一致する
+    //   （情報を増やさない約56四半期ぶんの計算）。既定が0であることは上の「休眠フラグは既定でゼロである」が見る。
 
     /// <summary>★D-35「死蔵ゼロ」の台帳（2026-09-03・出典 トリアージ 2-D 10-1b）。
     ///
@@ -177,7 +156,8 @@ public class DormantIdentityTests
     ///
     /// ★それでも今この検査に価値があるのは、捕まえたい失敗が「**新しく器を入れて休眠表に載せ忘れる**」だからで、
     /// それはこの台帳にも載っていない新しい名前として必ず現れる（＝赤になる）。
-    /// ⚠点火して既定が0でなくなった係数はここから外すこと（残っていても赤にはならないが、台帳が嘘になる）。</summary>
+    /// ⚠点火して既定が0でなくなった係数はここから外すこと（残っていても赤にはならないが、台帳が嘘になる）。
+    /// ★2026-09-26（fis-27・dorm-52）：点火済みの DevelopmentMemory（0.4）・PanicBuyWeight（0.5）・ScarceMineralGate（1.0）が残っていた＝外した。</summary>
     private static readonly string[] ZeroDefaultLedger =
     [
         // ★D-35 の反射走査が拾った「初期化子なし」の宣言（`public double X;`）＝静的なテキスト検索では見えない4本。
@@ -185,31 +165,31 @@ public class DormantIdentityTests
         //   ⚠主フラグではないので休眠表には置かない（休眠表は「これ1本で機構が入り切りする器」の一覧である）。
         "PopDebtLossShare", "DebtRepayFrac", "DebtRuinRatio",
         "HouseholdCreditMonths",
-        "AbsorptionIncomeRef", "AbsorptionIncomeWeight", "AdminProcurePriceGate",
+        "AbsorptionIncomeRef", "AbsorptionIncomeWeight",
         "AiCrisisBorrow", "AiDevelopmentalSubsidy",   // AiMobilization は 2026-09-20 に係数ごと削除（段の点火で総動員のAI分岐が常時 live）
-        "ArmyShapeGauge", "BondRateDebtQuad", "CessionRangeTechKm",
+        "ArmyShapeGauge", "BondRateDebtQuad",
         "CoercionUpkeepToSoldiers", "CohortGateK",
-        "ConstitutionalMandateScale", "CorruptionPoorOfficialWeight", "CurrentInputFillGates",
-        "DemandIncomeElasticity", "DevelopmentMemory", "DomesticMarkupMax", "EducationGateUsesEma",
+        "CorruptionPoorOfficialWeight",
+        "DomesticMarkupMax", "EducationGateUsesEma",
         "ElectionBribePovertyWeight", "EnclosureRate", "EraNavalFuel",
         "FamineAbsoluteThreshold", "FertileAbsoluteBlend",
         "FertilityEquilibriumWeight", "FertilityIncomeSurvivalGate", "FertilityLandDivisionSlope",
         "FoodIncludesAnimalProtein", "GarrisonProcurement",
         "HigherEduNeedPerEducated",
-        "IdeologyGateIndDynamic", "IncumbencyBias", "IndInvestFromIncome",
-        "InitialArmsIndustryScale", "InterestCapitalization", "LoanSpread",
-        "MigrationFarePerkKm", "MilitaryProcureProRata", "ModernizationTechGain",
-        "ModernizationToHigherEdu", "MonopolyResentmentMilitancy", "NationalismFromConsciousness",
+        "IncumbencyBias",
+        "InterestCapitalization", "LoanSpread",
+        "MigrationFarePerkKm",
+        "ModernizationToHigherEdu", "NationalismFromConsciousness",
         "NavalFuelPerGauge", "NewbornLiteracyDilution", "NobleInvests",
-        "OpiumSatisfactionPenalty", "OpulenceInfraChannel", "PanicBuyWeight",
-        "PettyInterestGate", "PolicyRateLoanWeight", "PopBudgetRelax",
+        "OpulenceInfraChannel",
+        "PettyInterestGate", "PolicyRateLoanWeight",
         "PreemptiveSeizeWeight", "PromotionGateHigherEdu", "ReactionFromLoss",
-        "ReignitionTrickleConserves", "ResearchBaseRefPop", "ResearchScaleWeight",
-        "ResearcherFrac", "RuralPromotionRate", "ScarceMineralGate",
+        "ResearchBaseRefPop", "ResearchScaleWeight",
+        "ResearcherFrac", "RuralPromotionRate",
         "SeaEscortPerTradeValue", "ShipFuelRate", "SilverStandardIndThreshold",
-        "SoeSaleMilitancyCeil", "SpecialistExitBanPrefScale", "SpendFromNeedWeight",
-        "StateBuildUnitsPerMonth", "SubmitProbabilistic", "TradeScaleUsesDesired",
-        "TransportDemandAffordCap", "TransportPotentialWeight", "WarScoreDecomposition",
+        "SoeSaleMilitancyCeil", "SpecialistExitBanPrefScale",
+        "SubmitProbabilistic",
+        "TransportDemandAffordCap", "TransportPotentialWeight",
         "WarStartPoliticsScale",
     ];
 

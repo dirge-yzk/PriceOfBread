@@ -472,7 +472,6 @@ public sealed class World
     // ★人口診断の拡張（2026-08-21・人口忠実度の原因究明。純記帳＝力学は読まない）：
     //   出生率倍率・空き土地ブースト・主食純輸入（生産アンカー分子）・出生死亡の累積＝「英が増えず仏が増える」の因子分解用。
     public double DiagFertility, DiagLandRoom, DiagStapleNetImport;
-    public double GiniIndex { get; internal set; }                // 国単位ジニ係数。全POPの1人あたり貯蓄から毎期Politicsが算出。★段2（2026-09-09）で闘争度の入力から外れ**診断量のみ**（want との二重計上）。0=完全平等
     public double Tariff { get; internal set; }          // 関税（現在値）
     public double TariffRetaliationBias { get; internal set; }   // 外交層(Diplomacy)が月次算出する関税目標への加算偏倚(±・報復=＋/相互低減=−)。Governmentが関税目標へ足す。既定0＝現行。多国かつTariffRetaliation>0でのみ非0
     public double AusterityIntensity { get; internal set; }   // 債務緊縮の強度（0..1・債務/GDP由来）。弱者救済の上限＝1−これ／逆進課税の下限＝これ×係数／⚠裁定B（2026-09-12）＝その上限・下限は**実効値を書き換えず** Government.LawPrereq の「緊縮の上限／緊縮の下限」という門になる（旧の Min/Max は 2026-09-20 削除）（強度そのものの式は不変＝CrownParliament の三部会召集はこの信号を読む）
@@ -815,13 +814,9 @@ public sealed class World
     // ★内戦による国家分裂（器2026-08-01・2026-08-29再点火＝既定1。=0なら誰も書かず誰も読まない）
     public List<Region>? PendingSplitRegions { get; internal set; }   // 分裂の建国待ち（離脱側の州集合。要素1＝従来の分離独立と同一経路）
     public Polity? PendingSplitPolity { get; internal set; }          // 離脱側が持って出る政体（親の政体更新後では取れないので凍結して持つ）
-    public int CivilWarSplitCandidateRegions { get; internal set; }   // 診断：直近の決着で反乱側に付いた州数
     public int CivilWarSplitCount { get; internal set; }              // 診断：分裂が成立した回数
-    // ★2026-09-03（キューA-02／出典 トリアージ 2-A 3-5）：内戦の決着判定の**両辺**を残す＝『内戦がなぜ割れないか』の計器。
-    //   旧＝challenge（反乱側）と coerce（保持側）は ProcessCivilWar のローカルで、決着の理由が事後に一切読めなかった。
-    //   ⚠診断専用＝力学はこの2本を読まない（読み手を作らないことが恒等の担保）。決着のたびに上書き（最後の1回が残る）。
-    public double LastCivilWarChallenge { get; internal set; }
-    public double LastCivilWarCoerce { get; internal set; }
+    // 【削除2026-09-26（棚卸し x-03）】書くだけの診断3本＝LastCivilWarChallenge・LastCivilWarCoerce（内戦の決着判定の両辺・A-02）と
+    //   CivilWarSplitCandidateRegions（直近の決着で反乱側に付いた州数）＝画面にも Runner にも読み手が無かった（⑩）。要るなら Runner の計器で決着の場で読む。
 
     // --- 信用・銀行（§2.5.1・段4）---
     public Bank? Bank { get; internal set; }
@@ -1861,7 +1856,7 @@ public sealed class World
         if (Diplomacy.Suzerain(target) is not null) { reason = "既に従属"; return false; }
         if (Diplomacy.Suzerain(SelfPower) == target) { reason = "従属関係"; return false; }   // 監査2026-07-05：自国の宗主は狙えない（従属関係の内側では開戦しない）
         if (target.Nation is null && target.ColonyList.Count == 0) { reason = "奪う領土なし"; return false; }   // 全て接収済みの抽象標的＝余剰戦力を捨てて「植民地+0」の空振りになる
-        if (Diplomacy.IsAtWar(SelfPower, target) || Diplomacy.InTruce(SelfPower, target)) { reason = "交戦/休戦中"; return false; }
+        if (Diplomacy.IsAtWar(SelfPower, target)) { reason = "交戦中"; return false; }
         if (Diplomacy.DependentCount(SelfPower) >= Coef.MaxDependents) { reason = "属国が上限"; return false; }   // 過伸展の上限＝AI側の呼び出しにしか無かった条件をゲートへ移設（対称）
         if (ExpansionWill < InvadeWillCost(target)) { reason = "余剰戦力が不足"; return false; }
         if (SelfPower.Military * MilitaryReadiness < Coef.InvadeMilitaryFactor * target.Military) { reason = "兵力が不足"; return false; }
@@ -1931,7 +1926,7 @@ public sealed class World
     /// <summary>P4：現在狙える統一の変体（適格×ナショシェア×必要州が欠け）。null=機運なし（UIボタンの表示ゲート）。</summary>
     public FormationRule? UnificationRule => Diplomacy is { } dU && SelfPower is { } spU ? Formations.UnificationCandidate(dU, spU, this, Coef) : null;
 
-    /// <summary>P4：統一戦争の宣戦可否（対象＝必要州の保有国のみ。休戦・同盟・交戦中は不可）。理由を out で返す（UI非活性表示用）。</summary>
+    /// <summary>P4：統一戦争の宣戦可否（対象＝必要州の保有国のみ。同盟・交戦中は不可）。理由を out で返す（UI非活性表示用）。</summary>
     public bool CanUnificationWar(Power target, out string reason)
     {
         reason = "";
@@ -1940,7 +1935,6 @@ public sealed class World
         if (rule is null) { reason = "統一の機運なし"; return false; }
         if (!Formations.UnificationTargets(d, sp, rule).Contains(target)) { reason = "必要州の保有国ではない"; return false; }
         if (d.IsAtWar(sp, target)) { reason = "交戦中"; return false; }
-        if (d.InTruce(sp, target)) { reason = "休戦中"; return false; }
         if (d.HasAlliance(sp, target)) { reason = "同盟中"; return false; }
         return true;
     }

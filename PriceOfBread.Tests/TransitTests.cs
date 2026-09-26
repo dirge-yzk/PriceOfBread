@@ -113,7 +113,6 @@ public class TransitTests
     public void 通行料は利用国国庫から港所有国国庫へ移転し保存する()
     {
         var sim = new MultiNationSim(World3(), seed: 11) { DiplomacyFrozen = true };
-        sim.Coef.TradeArbitrageClearing = 0;   // ★2026-08-30 S4点火後＝このテストは**旧数量則の前提**で交易を仕込む（トランジット会計の番人）＝旧経路へ恒久ピン
         sim.Coef.TransitEnabled = 1.0;
         var swiss = sim.Nations[0].World; var genoa = sim.Nations[1].World; var tuscany = sim.Nations[2].World;
         var bern = swiss.Regions[0]; var genoaPort = genoa.Regions[0];
@@ -126,6 +125,11 @@ public class TransitTests
         double wp = sim.Market.Price[gd.Id];
         var bm = bern.Markets[gd.Id]; bm.Price = 0.001 * wp; bm.Stock = 20000; bm.TargetStock = 10000;      // ベルン＝激安在庫＝輸出側
         var gm = genoaPort.Markets[gd.Id]; gm.Price = 10.0 * wp; gm.TargetStock = 10000;                     // ジェノヴァ＝高値＝輸入側（取引の相手）
+        // ★2026-09-26（棚卸し econ-15＝旧経路の削除）：清算は S4 の水準式だけ＝量は売り手の産出と買い手の需要から解く
+        //   （旧経路＝定数速度×規模の前提で仕込んでいた）。ベルンに産出、ジェノヴァに需要を置き、両国に容量を与える。
+        bm.LastProduced = 20000; bm.LastDemand = 0; bm.LastExport = 0;
+        gm.LastDemand = 20000; gm.LastProduced = 0; gm.LastImport = 0; gm.Stock = 0;
+        genoa.RailCapacity = 1e6; genoa.ShipCapacity = 1e6;
         double tA0 = swiss.Treasury, tB0 = genoa.Treasury, tC0 = tuscany.Treasury;
         double D(World w) => w.BaseMoney - w.CumulativeTradeFlow - w.CumulativeGoldMinted - w.CumulativeFiatIssued;
         double dA0 = D(swiss), dB0 = D(genoa), dC0 = D(tuscany);
@@ -147,7 +151,6 @@ public class TransitTests
     public void 交戦中は第2候補へ迂回し両方交戦なら旧フォールバックへ退避する()
     {
         var sim = new MultiNationSim(World3(), seed: 13) { DiplomacyFrozen = true };
-        sim.Coef.TradeArbitrageClearing = 0;   // ★2026-08-30 S4点火後＝このテストは**旧数量則の前提**で交易を仕込む（トランジット会計の番人）＝旧経路へ恒久ピン
         sim.Coef.TransitEnabled = 1.0;
         var swiss = sim.Nations[0].World; var genoa = sim.Nations[1].World; var tuscany = sim.Nations[2].World;
         var bern = swiss.Regions[0];
@@ -157,13 +160,20 @@ public class TransitTests
         sim.Diplomacy.Wars.Add(new War { A = swiss.SelfPower!, B = genoa.SelfPower! });
         sim.Market.Step(sim.Nations, sim.Coef);
         Assert.Equal("リヴォルノ", bern.LastTransitPortName);
-        // 第2候補の所有国とも開戦→旧フォールバック（首都基準）＝鎖国はしない・通行料も発生しない
+        // 第2候補の所有国とも開戦→港を借りない（陸路の直行だけ）＝鎖国はしない・通行料も発生しない
         sim.Diplomacy.Wars.Add(new War { A = swiss.SelfPower!, B = tuscany.SelfPower! });
         double tB0 = genoa.Treasury, tC0 = tuscany.Treasury;
         swiss.Tariff = 0; genoa.Tariff = 0; tuscany.Tariff = 0;   // 国庫の動き＝通行料だけにして「不発」を金でも確認
+        // ★2026-09-26（棚卸し econ-15＝旧経路の削除）：S4 の水準式で交易を1本立てる（ベルン＝産出のある激安の売り手・ジェノヴァ＝需要のある高値の買い手）
+        var gd = swiss.Region.Goods.First(g => !g.IsColonial && !g.NonTradeable && g.Tier != GoodTier.Staple && !g.GrainChain
+                                               && Array.IndexOf(sim.Coef.MilitaryExportGoods, g.Id) < 0);
+        double wp = sim.Market.Price[gd.Id];
+        var bm = bern.Markets[gd.Id]; bm.Price = 0.001 * wp; bm.Stock = 20000; bm.TargetStock = 10000; bm.LastProduced = 20000; bm.LastDemand = 0; bm.LastExport = 0;
+        var gm = genoa.Regions[0].Markets[gd.Id]; gm.Price = 10.0 * wp; gm.TargetStock = 10000; gm.LastDemand = 20000; gm.LastProduced = 0; gm.LastImport = 0; gm.Stock = 0;
+        swiss.RailCapacity = 1e6; swiss.ShipCapacity = 1e6; genoa.RailCapacity = 1e6; genoa.ShipCapacity = 1e6;
         sim.Market.Step(sim.Nations, sim.Coef);
         Assert.Equal("", bern.LastTransitPortName);
-        Assert.True(bern.LastTradeDistanceKm > 0);   // フォールバック（首都基準の国一律km）は生きている＝交易は死なない
+        Assert.True(bern.LastTradeDistanceKm > 0);   // 陸路の直行は生きている＝交易は死なない
         Assert.True(Math.Abs(genoa.Treasury - tB0) < 1e-9 && Math.Abs(tuscany.Treasury - tC0) < 1e-9, "フォールバック時に通行料が発生した");
     }
 }

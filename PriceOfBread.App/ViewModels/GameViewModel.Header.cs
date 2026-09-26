@@ -271,10 +271,10 @@ public partial class GameViewModel
         _histCons.Add(Math.Max(0, _player.NationalConsciousness));   // 初期−1（未捕捉）はグラフを歪めないよう0でクランプ（他系列と同年数に揃える）
         _histMandate.Add(_player.MandateSpent);   // 上限廃止（2026-07-26）＝生値を採取
         _histTreasury.Add(_player.Treasury);
-        // ジニ係数（Politics が全POPの1人あたり貯蓄から毎期算出した確定値）。
-        // ★開始盤面の経済助走は政治を止めて回す（WarmupEconomy）＝1783年の起点では**まだ一度も測っていない**（0のまま）。
-        //   未計測の0を起点に残すと折れ線が毎回そこまで落ちる。測れた年から始める（起点の年は系列長から逆算＝RangeText）。
-        if (_histGini.Count > 0 || _player.GiniIndex > 0) _histGini.Add(_player.GiniIndex);
+        // ジニ係数（全POPの1人あたり貯蓄から読むときに計算＝Politics.GiniIndex・2026-09-26 に World の欄を廃止）。
+        //   0（貯蓄が全く無い開始直後の世界）を起点に残すと折れ線が毎回そこまで落ちる＝測れた年から始める（起点の年は系列長から逆算＝RangeText）。
+        double gini = Politics.GiniIndex(_player);
+        if (_histGini.Count > 0 || gini > 0) _histGini.Add(gini);
     }
 
     // 折れ線の点列（幅240×高さ64・min-max正規化）。1点＝水平線（開始直後からホバーが出る・2026-07-16）。

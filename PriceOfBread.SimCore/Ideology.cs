@@ -104,7 +104,7 @@ public static class Ideologies
             // ★★★10 王党派（2026-08-19・作者裁定）：**政治意識を持つ王権支持者**＝「意識が上がる＝議会支持」という一本道を断つ。
             //   供給＝**王権から実際に利益を得ている層** × 政治意識。誰が利益を得ているかは既存の唯一実装を読む
             //   （PowerShares.PrivilegeIntact＝農奴制/免税/身分、PowerShares.StatePatronage＝関税/国家発注/秩序）。
-            //   ⚠閉鎖階級→特権／近代エリート→恩顧／それ以外→供給チャネルなし＝PowerShares.PopExecutiveLean と同じ写像。
+            //   ⚠閉鎖階級→特権／近代エリート→恩顧／それ以外→供給チャネルなし＝旧 PowerShares.PopExecutiveLean（表モデルと一緒に 2026-09-26 に削除＝pol-09）と同じ写像。
             //   ⚠⚠次段の課題：この2関数は観測層(PowerShares)にあり、エンジンが観測層を呼ぶのは依存の向きとして逆。
             //     ただし「実装を2つ作らない」規律を優先した（旧doc §6-2 危険7）。移すならエンジン側の適切な場所へ。
             //   RoyalistGate=0 で1行も走らず r[10]=0 ＝ 配列長10と数値等価（9ファシズムと同じ作法）。
@@ -134,22 +134,12 @@ public static class Ideologies
     // 本体（呼び手が既に人口を数えている場合はこちら＝UpdateShares は1巡で済ませる）。
     private static EraGateSet EraGates(World w, double totPop, double urbanPop)
     {
-        double year = w.Year;
-        // イデオロギー創発の暦年オンセットと立ち上がり幅（マジックナンバー一掃2026-07-20＝値据え置き・命名のみ）
-        const int SocialismOnsetYear = 1830, CommunismOnsetYear = 1848, ImperialismOnsetYear = 1860, FascismOnsetYear = 1919;
-        const double IdeologyEraSpanYears = 40.0, FascismEraSpanYears = 15.0;
-        double eraSoc  = PoliticalQuantities.Clamp01((year - SocialismOnsetYear) / IdeologyEraSpanYears);   // 社会主義＝1830s〜
-        double eraComm = PoliticalQuantities.Clamp01((year - CommunismOnsetYear) / IdeologyEraSpanYears);   // 共産主義＝1848（共産党宣言）〜
-        double eraImp  = PoliticalQuantities.Clamp01((year - ImperialismOnsetYear) / IdeologyEraSpanYears);   // 帝国主義＝19c後半〜
-        double eraFasc = PoliticalQuantities.Clamp01((year - FascismOnsetYear) / FascismEraSpanYears);   // ファシズム（E7）＝両大戦間（1919〜）。第一次大戦後の危機で結晶
-        // ※ナショナリズムは時代ゲートを廃止＝**ボナパルティズムとしても扱う**：仏革命〜ナポレオン(1789〜)の革命的ナショナリズム
-        //   ＝軍事的強権・国民動員は初期から存在する（MilitaryDictatorship への親和が高い＝ボナパルト型）。よって1850ゲートを掛けない。
-        // ※社会/共産/帝国の暦年ゲートは観念論の例外に見えるが**実証上 load-bearing**（2026-06-18 検証で撤去を試行）：撤去すると
-        //   工業化したほぼ全社会で社会主義が創発し、共和(親和1.0)＞立憲(0.5)の差で政体が共和へ homogenize（立憲君主制 51%→9%・希少政体消滅）。
-        //   史実でも工業化した英独日伊北欧は立憲君主制のまま＝ゲートは「立憲君主制を中道として生存させる」役割を担う。よって暦年ゲートは保持する。
-        // 政16（暦年ゲート→発展度ゲート・現行 IdeologyGateFromDevelopment=0.5＝暦年と発展度の50/50ブレンド・load-bearing）：暦年の一次関数ゲートは
-        //   「工業化が早い世界線でも1830年まで社会主義ゼロ」という観念論の例外。g の分だけ暦年を「世界最先端の工業化度＋都市労働者シェア」から創発する
-        //   発展度スカラー dev へ置換する（era=(1-g)×暦年+g×発展度・g=0 で暦年ゲートを厳密再現）。
+        // ★思想の解禁度＝**発展度だけ**（2026-09-26 削除＝棚卸し pol-01・項目20 E）。旧＝暦年のゲート（社会主義1830・共産主義1848・帝国主義1860・ファシズム1919）と
+        //   発展度の混合 era=(1−g)×暦年+g×発展度。g＝IdeologyGateFromDevelopment／FascismGateFromDevelopment は 2026-09-05・09-06 に 1.0 へ点火済み
+        //   ＝暦年の項は 0.0×有限値＝0 で1ビットも効いていなかった（台本の見かけだけが残っていた）。混ぜる割合の係数3本（g・gF・工業化連動の IdeologyGateIndDynamic=0）ごと削除。
+        // ※ナショナリズムは時代ゲートを持たない＝**ボナパルティズムとしても扱う**：仏革命〜ナポレオン(1789〜)の革命的ナショナリズム
+        //   ＝軍事的強権・国民動員は初期から存在する（MilitaryDictatorship への親和が高い＝ボナパルト型）。
+        // 政16：発展度スカラー dev＝「世界最先端の工業化度＋都市労働者シェア」。「工業化が早い世界線でも1830年まで社会主義ゼロ」という観念論の例外を置かない。
         //   立憲温存効果の維持：発展度ゲートは社会主義を早期に**全開にしない**よう onset+span で段階的に開く（下の Onset/Span 係数）。
         //   ★「世界最先端の工業化度」は w.IndustrialFrontier（WorldTechLevel と同型・MultiNationSim が各国最高の MeanIndustrialization を毎四半期注入）。
         //   単一国較正/多国の初四半期は注入前で 0 のため、自国 MeanIndustrialization をフォールバック下限に用いる（active-path では常に自国値以上＝下限は縮退時のみ効く）。
@@ -158,45 +148,31 @@ public static class Ideologies
         // 発展度スカラー dev∈[0,1]＝工業化度（IdeologyGateIndScale で0..1へ）と都市労働者シェアの加重（IdeologyGateUrbanWeight）。
         double dev = PoliticalQuantities.Clamp01((1.0 - w.Coef.IdeologyGateUrbanWeight) * PoliticalQuantities.Clamp01(frontierInd / w.Coef.IdeologyGateIndScale)
                            + w.Coef.IdeologyGateUrbanWeight * urbanWorkerShare);
-        double devSoc  = PoliticalQuantities.Clamp01((dev - w.Coef.IdeologyGateSocOnset)  / w.Coef.IdeologyGateSpan);   // 社会主義＝発展度で最初に開く
-        double devComm = PoliticalQuantities.Clamp01((dev - w.Coef.IdeologyGateCommOnset) / w.Coef.IdeologyGateSpan);   // 共産主義＝次に開く
-        double devImp  = PoliticalQuantities.Clamp01((dev - w.Coef.IdeologyGateImpOnset)  / w.Coef.IdeologyGateSpan);   // 帝国主義＝最も遅く開く（暦年 1830<1848<1860 の順序を発展度で再現）
-        double g = w.Coef.IdeologyGateFromDevelopment;                                   // 暦年と発展度のブレンド比
-        // #17：ブレンド比を自国工業化度で動的化＝工業国ほどg→1（イデオロギーが自国の発展度から創発）・未工業国はbaseGのまま。IdeologyGateIndDynamic=0で固定g＝厳密恒等。
-        if (w.Coef.IdeologyGateIndDynamic > 0)
-            g += w.Coef.IdeologyGateIndDynamic * (1.0 - g) * PoliticalQuantities.Clamp01(w.MeanIndustrialization / w.Coef.IdeologyGateIndScale);
-        eraSoc  = (1.0 - g) * eraSoc  + g * devSoc;
-        eraComm = (1.0 - g) * eraComm + g * devComm;
-        eraImp  = (1.0 - g) * eraImp  + g * devImp;
-        // ★AUD-04（2026-09-03）：ファシズムにも同じ器を与える（★ 2026-09-05 点火＝既定1.0）。⚠FascismGateFromDevelopment=0 なら
-        //   下の混合は eraFasc を1ビットも変えない（gF=0 ＝ 恒等）。点火時は「戦間期の暦年」でなく
+        double eraSoc  = PoliticalQuantities.Clamp01((dev - w.Coef.IdeologyGateSocOnset)  / w.Coef.IdeologyGateSpan);   // 社会主義＝発展度で最初に開く
+        double eraComm = PoliticalQuantities.Clamp01((dev - w.Coef.IdeologyGateCommOnset) / w.Coef.IdeologyGateSpan);   // 共産主義＝次に開く
+        double eraImp  = PoliticalQuantities.Clamp01((dev - w.Coef.IdeologyGateImpOnset)  / w.Coef.IdeologyGateSpan);   // 帝国主義＝最も遅く開く（1830<1848<1860 の順序を発展度で再現）
+        // ★AUD-04（2026-09-03）：ファシズムも同じ発展度の目盛りから開く。「戦間期の暦年」でなく
         //   「発展した社会が危機に落ちたか」から開く＝台本でなく条件で書く（規律①）。
-        double gF = w.Coef.FascismGateFromDevelopment;
-        if (gF > 0)
+        double eraFasc = PoliticalQuantities.Clamp01((dev - w.Coef.IdeologyGateFascOnset) / w.Coef.IdeologyGateSpan);
+        // ★2026-09-04（J-005②の実測で判明）：⚠**発展度だけでは史実に反する**。
+        //   点火して測ったら1914年の断面が動いた＝**大戦前にファシズムが解禁されていた**（◎7割帯 17→14）。
+        //   史実＝伊1922・独1933は**最も発展した社会ではない**（英仏米の方が上）。要ったのは組み合わせ＝
+        //   **敗戦（または報われない勝利）× 大衆的な左翼の脅威 × 自由主義秩序の信用失墜（恐慌）**。
+        //   ★このコードのコメントは元から「発展した社会が**危機に落ちたか**」と書いていた＝**条件の後半が未実装だった**。
+        //   ⚠材料は全部ある（DefeatShock・GdpDrawdown・左派のイデオロギーシェア）＝暦年を1つも書かずに条件が書ける。
+        //   （2026-09-05 B群で点火＝旗 FascismCrisisWeight は 2026-09-26 に焼き込み）
         {
-            double devFasc = PoliticalQuantities.Clamp01((dev - w.Coef.IdeologyGateFascOnset) / w.Coef.IdeologyGateSpan);
-            // ★2026-09-04（J-005②の実測で判明）：⚠**発展度だけでは史実に反する**。
-            //   点火して測ったら1914年の断面が動いた＝**大戦前にファシズムが解禁されていた**（◎7割帯 17→14）。
-            //   史実＝伊1922・独1933は**最も発展した社会ではない**（英仏米の方が上）。要ったのは組み合わせ＝
-            //   **敗戦（または報われない勝利）× 大衆的な左翼の脅威 × 自由主義秩序の信用失墜（恐慌）**。
-            //   ★このコードのコメントは元から「発展した社会が**危機に落ちたか**」と書いていた＝**条件の後半が未実装だった**。
-            //   ⚠材料は全部ある（DefeatShock・GdpDrawdown・左派のイデオロギーシェア）＝暦年を1つも書かずに条件が書ける。
-            //   ⚠FascismCrisisWeight=0 で crisis=1.0＝**この行を入れる前と厳密同値**（休眠だった＝2026-09-05 B群で点火・0は従来の腕）。
-            if (w.Coef.FascismCrisisWeight > 0)
-            {
-                double defeat = PoliticalQuantities.Clamp01(w.DefeatShock);
-                double slump = PoliticalQuantities.Clamp01(w.GdpDrawdown / System.Math.Max(1e-9, w.Coef.FascismCrisisSlumpRef));
-                // ⚠**前期の**左派シェアを読む（National は pop に保存済みの値を集計する）＝同じティックの循環を作らない
-                //   （この関数はこれからシェアを計算する場所なので、今期の値は存在しない）。
-                var natIdeo = National(w);
-                double left = PoliticalQuantities.Clamp01((natIdeo[(int)Ideology.Socialism] + natIdeo[(int)Ideology.Communism]) / System.Math.Max(1e-9, w.Coef.FascismCrisisLeftRef));
-                double crisis = PoliticalQuantities.Clamp01(System.Math.Max(defeat, slump) * left);   // ⚠敗戦か恐慌の**どちらか**（両方は要らない）× 左派の脅威
-                devFasc *= crisis;
-            }
-            eraFasc = (1.0 - gF) * eraFasc + gF * devFasc;
+            double defeat = PoliticalQuantities.Clamp01(w.DefeatShock);
+            double slump = PoliticalQuantities.Clamp01(w.GdpDrawdown / System.Math.Max(1e-9, w.Coef.FascismCrisisSlumpRef));
+            // ⚠**前期の**左派シェアを読む（National は pop に保存済みの値を集計する）＝同じティックの循環を作らない
+            //   （この関数はこれからシェアを計算する場所なので、今期の値は存在しない）。
+            var natIdeo = National(w);
+            double left = PoliticalQuantities.Clamp01((natIdeo[(int)Ideology.Socialism] + natIdeo[(int)Ideology.Communism]) / System.Math.Max(1e-9, w.Coef.FascismCrisisLeftRef));
+            double crisis = PoliticalQuantities.Clamp01(System.Math.Max(defeat, slump) * left);   // ⚠敗戦か恐慌の**どちらか**（両方は要らない）× 左派の脅威
+            eraFasc *= crisis;
         }
         // ★発見・段8（思想の読者・2026-09-04）：貿易路×メディアで届いた到達（IdeologyReach・段7が積む0..1）が解禁を開く。
-        //   era = max(era, gate×reach)＝暦年/発展度で開かない国にも「商人と本と留学生」が運ぶ（原典§5-4）。
+        //   era = max(era, gate×reach)＝発展度で開かない国にも「商人と本と留学生」が運ぶ（原典§5-4）。
         //   ⚠IdeologyReachGate=0 ならこの節は1ビットも触らない（恒等）。DiffusionWeight と同時点火（片方では動かない）＝★ 2026-09-04 点火＝既定1.0。
         if (w.Coef.IdeologyReachGate > 0 && w.IdeologyReach is { } rch && rch.Length > (int)Ideology.Fascism)
         {
@@ -223,12 +199,9 @@ public static class Ideologies
         double rich = PoliticalQuantities.Clamp01((wealthRel - 1) / WealthExcessCap) * WealthExcessCap;                             // 平均超の富（0..3＝失う物）
         double poor = PoliticalQuantities.Clamp01(1 - wealthRel);                                           // 平均未満の窮乏（0..1）
 
-        if (p.Closed && !(c.NobleWeightsFromIncome > 0))            // 特権身分（貴族・聖職）＝旧秩序の受益者＝伝統・反動（富で増す）
+        if (p.Closed)
         {
-            r[0] = 4 + 2 * rich; r[1] = 2; r[8] = rich; r[4] = 0.5;
-        }
-        else if (p.Closed)
-        {
+            // （旧＝特権身分は所得構成を見ず一律に伝統・反動＝旗 NobleWeightsFromIncome=0 の枝は 2026-09-26 に削除）
             // ★所得構成から（NobleWeightsFromIncome・2026-09-06）：地代依存の貴族＝伝統、商業化した貴族（富裕・非地代）＝自由/帝国、没落貴族（窮乏）＝国民主義・急進。
             //   特権は加算（NoblePrivilegeWeight）＝旧秩序の受益者であることは所得源に依らず残る。
             r[0] = 2 * rentier + 0.5 + c.NoblePrivilegeWeight;
