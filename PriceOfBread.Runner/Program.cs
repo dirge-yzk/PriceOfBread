@@ -558,6 +558,12 @@ if (args.Length > 0 && args[0] == "timeprobe")
             + $"　財処理 {PriceOfBread.SimCore.InternationalMarket.CntGoods}　買い手行 {PriceOfBread.SimCore.InternationalMarket.CntBuyers}"
             + $"　反復 {PriceOfBread.SimCore.InternationalMarket.CntRollIters}　走査歩 {PriceOfBread.SimCore.InternationalMarket.CntScanSteps}　空振り {PriceOfBread.SimCore.InternationalMarket.CntSkips}"
             + $"　着値充填 {PriceOfBread.SimCore.InternationalMarket.CntFills}　成約 {PriceOfBread.SimCore.InternationalMarket.CntDeals}");
+        // ★無効な売り手を訪ねない（2026-09-26）：機構が働いたか＝行ごと飛ばした買い手行（条件別・買い手行に対する割合）・lp で打ち切った回数・楔の下界で飛ばした売り手。
+        long rsN = PriceOfBread.SimCore.InternationalMarket.CntRowSkipNeed, rsR = PriceOfBread.SimCore.InternationalMarket.CntRowSkipRef,
+             rsD = PriceOfBread.SimCore.InternationalMarket.CntRowSkipDead, rsB = PriceOfBread.SimCore.InternationalMarket.CntRowSkipBudget;
+        long rsAll = rsN + rsR + rsD + rsB, rowsAll = PriceOfBread.SimCore.InternationalMarket.CntBuyers;
+        Console.WriteLine($"  無効な売り手を訪ねない: 行ごと飛ばした {rsAll}（買い手行の {(rowsAll > 0 ? 100.0 * rsAll / rowsAll : 0):F1}%＝不足なし {rsN}・参照価格0 {rsR}・需要0 {rsD}・予算0 {rsB}）"
+            + $"　lp で打ち切り {PriceOfBread.SimCore.InternationalMarket.CntCutLp}　楔の下界で飛ばした売り手 {PriceOfBread.SimCore.InternationalMarket.CntWedgeSkips}");
         // ★国内価格の旬次（2026-09-26 A3）：機構が本当に働いたか＝閉じた式で進んだ財の割合（1−e）・日次に落ちた理由・打ち切りで省いた日数（1−f）。
         //   助走も含む（計器は構築から数える）。検算＝閉じた式＋日次の理由の和＝財の歩／日次の回＋省いた日＝日次に落ちた財×h（刻み1は×1）。
         long mfSteps = MarketFlow.CntGoodSteps, mfCg = MarketFlow.CntClosedGoods, mfCs = MarketFlow.CntClosedService;
