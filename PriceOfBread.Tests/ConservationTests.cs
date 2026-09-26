@@ -92,7 +92,7 @@ public class ConservationTests
     {
         public readonly List<string> PopBreaks = [], MoneyBreaks = [];
         public double PopMoved, MoneyMoved, PopUnexplained, MoneyUnexplained;
-        public const int ShortQuarters = 40;   // 常設の長さ（約40秒）。全長（668四半期・約7分）は下の保留の番人
+        public const int ShortQuarters = 40;   // 常設の長さ（約40秒）。全長（668四半期・約7分）は下の番人＝保存則に触る回でだけ回す（Category=FullLength）
         public readonly int Quarters;
 
         public WorldLedgerRun(int quarters)
@@ -191,8 +191,11 @@ public class ConservationTests
     /// <summary>★全長（668四半期）の世界の合計（2026-09-26 回0-4 で**漏れを見つけた**番人・約7分）。
     /// 見つけた漏れ＝講和の賠償の片側記帳（勝者が抽象標的＝Nation の無い勢力のとき、払った国だけが流出を記帳し金が世界から消えた＝
     /// seed1789 の Q317（1862年 カザフ草原←ポーランド −1009.0）・Q598（1932年 アチェ←マイソール −888.4）。逆向きの AbstractTargetReparations も同じ形）。
-    /// ★回1-1（2026-09-26）で閉じた＝賠償は貨幣経済を持つ2国の間だけで動く（Diplomacy.ResolvePeace）→ Skip を外した。</summary>
+    /// ★回1-1（2026-09-26）で閉じた＝賠償は貨幣経済を持つ2国の間だけで動く（Diplomacy.ResolvePeace）→ Skip を外した。
+    /// ★作者裁定（2026-09-26）：普段のフルスイートからは外し、**保存則に触る回でだけ回す**＝印 Category=FullLength
+    /// （普段＝`--filter "Category!=FullLength"`・保存則の回＝`--filter "Category=FullLength"`・回し方は README の計測の節）。</summary>
     [Fact]
+    [Trait("Category", "FullLength")]
     public void 世界の基礎貨幣は全長でも鋳造と不換発行でしか動かない()
     {
         var run = WorldRunFull.Value;

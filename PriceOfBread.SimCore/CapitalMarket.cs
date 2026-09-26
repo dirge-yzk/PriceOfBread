@@ -109,8 +109,12 @@ public static class CapitalMarket
         // (1) 資本逃避：信用の低い国の外資が本国送還（host から流出）。(2) 配当：host が ForeignCapitalIn に divRate を払う。
         //     両者の総額を owner 国へ CapitalAbroad 比で戻す（逃避は元本＝資産も減る／配当は資産不変）。
         // 帰属修正（監査経9・#17で有効化）：流入は toInvestors:true で投資家貯蓄へ入るのに、配当/逃避の流出は全pop按分＝
-        //   「外資で資本家が潤い、配当は国民の人頭税で払う」非対称の是正＝流出も投資家原資（不足分のみ全体フォールバック）。
-        //   ★2026-09-26：2値の旗 CapitalOutflowFromInvestors（既定1.0）を焼き込み（x-01）。B4裁定（2026-07-31）の「中間値＝両者の按分」は未実装のまま。
+        //   「外資で資本家が潤い、配当は国民の人頭税で払う」非対称の是正＝流出も投資家原資。
+        //   ★2026-09-26：2値の旗 CapitalOutflowFromInvestors（既定1.0）を焼き込み（x-01）。
+        //   ★★2026-09-27：不足分の全popフォールバックを撤去＝流出は**投資家まで**（流入は投資家へだけ入る＝分子と分母の対称）。
+        //     払えない分は不履行＝債権（ForeignCapitalIn）は残り、実際に払えた額だけ減る。旧＝投資家が尽きると農民・労働者の貯蓄まで国外へ出し、
+        //     受け皿の基礎貨幣が干上がって物価が下限に張り付き主食の採算が割れた（世界規模の補給崩壊の根）。
+        //     B4裁定（2026-07-31）の「中間値＝両者の按分」は、全pop按分の経路が無くなったので対象が無い。
         double flightTotal = 0, divTotal = 0;
         var taken = new double[n];   // host 別に実際に抜いた額（逃避＋配当）。保有者が居ない場合の返金に使う＝金を捨てない（保存）
         ProbeSnap();
@@ -137,7 +141,7 @@ public static class CapitalMarket
                 if (credSum > 1e-9)
                 {
                     double want = c.CapitalDomesticFlightRate * distrust * InvestorSavings(w[i]);
-                    double got = TakeGold(w[i], want, fromInvestors: true);
+                    double got = TakeGold(w[i], want);
                     w[i].CapitalAbroad += got;   // 逃げた金は対外資産＝還流ループ（配当・逃避の按分）に乗る
                     for (int h = 0; h < n; h++)
                     {
@@ -149,9 +153,9 @@ public static class CapitalMarket
                 }
             }
             double flight = System.Math.Min(w[i].ForeignCapitalIn, w[i].ForeignCapitalIn * c.CapitalFlightRate * (1.0 - cred[i]));
-            if (flight > 1e-9) { double got = TakeGold(w[i], flight, fromInvestors: true, fallbackToAll: true); w[i].ForeignCapitalIn -= got; flightTotal += got; taken[i] += got; }   // ③修正：実際に引けた額でストックを減らす（Σ流入＝Σ対外保有の台帳整合）
+            if (flight > 1e-9) { double got = TakeGold(w[i], flight); w[i].ForeignCapitalIn -= got; flightTotal += got; taken[i] += got; }   // ③修正：実際に引けた額でストックを減らす（Σ流入＝Σ対外保有の台帳整合）
             double div = w[i].ForeignCapitalIn * c.CapitalDividendRate;
-            if (div > 1e-9) { double gotDiv = TakeGold(w[i], div, fromInvestors: true, fallbackToAll: true); divTotal += gotDiv; taken[i] += gotDiv; }
+            if (div > 1e-9) { double gotDiv = TakeGold(w[i], div); divTotal += gotDiv; taken[i] += gotDiv; }
         }
         ProbeDiff("逃避配当");
         double abroadSum = 0; for (int i = 0; i < n; i++) abroadSum += w[i].CapitalAbroad;
@@ -192,7 +196,7 @@ public static class CapitalMarket
             for (int i = 0; i < n; i++)
             {
                 if (demand[i] > 0) { double k = demand[i] * dFill; w[i].ForeignCapitalIn += k; GiveGold(w[i], k, toInvestors: true); }   // 流入→投資家貯蓄（工業化を支える）
-                else if (supply[i] > 0) { double k = System.Math.Min(supply[i] * sFill, InvestorSavings(w[i])); w[i].CapitalAbroad += k; TakeGold(w[i], k, fromInvestors: true); }   // 送り出し→対外資産
+                else if (supply[i] > 0) { double k = System.Math.Min(supply[i] * sFill, InvestorSavings(w[i])); w[i].CapitalAbroad += k; TakeGold(w[i], k); }   // 送り出し→対外資産
             }
         }
         ProbeDiff("新規フロー");
@@ -260,28 +264,13 @@ public static class CapitalMarket
         return s;
     }
 
-    // 金を国外へ出す（pop から引く＋CumulativeTradeFlow に流出計上）。実際に引けた額を返す（残高不足は部分＝部分的な不履行）。
-    // fromInvestors＝投資家(近代エリート)の貯蓄を原資にする。fallbackToAll＝投資家で賄えない不足分のみ全pop按分で追加徴収（配当/逃避の帰属修正・監査経9）。
-    private static double TakeGold(World w, double amount, bool fromInvestors = false, bool fallbackToAll = false)
-    {
-        double done = TakeGoldFrom(w, amount, fromInvestors);
-        // 投資家原資で不足した分だけ非投資家(残りの全pop)へフォールバック＝原資は投資家優先だが不履行を全体で埋める（不足分のみ全体按分）。
-        if (fallbackToAll && fromInvestors && amount - done > 1e-9)
-            done += TakeGoldFrom(w, amount - done, fromInvestors: false, excludeInvestors: true);
-        return done;
-    }
-
-    // 指定 pop 集合から貯蓄比例で amount を引く（TakeGold の実体）。excludeInvestors＝投資家を除いた残りの pop から引く（フォールバック用）。
-    private static double TakeGoldFrom(World w, double amount, bool fromInvestors, bool excludeInvestors = false)
+    // 金を国外へ出す（投資家(近代エリート)の貯蓄から貯蓄比例で引く＋CumulativeTradeFlow に流出計上）。実際に引けた額を返す（残高不足は部分＝部分的な不履行）。
+    // ★2026-09-27：原資は投資家だけ＝流入（GiveGold の toInvestors）と対称。旧＝fallbackToAll で投資家の不足分を全popから追加徴収していた
+    //   （その撤去で呼び手が全て投資家原資になり、旧 TakeGoldFrom の fromInvestors/excludeInvestors は読み手が無くなった＝ここへ畳んだ）。
+    private static double TakeGold(World w, double amount)
     {
         var pops = new List<Pop>();
-        foreach (var r in w.Regions) foreach (var p in r.Pops)
-        {
-            bool isInv = IsInvestor(p, w.Coef);   // ★NobleInvests（既定0＝旧述語と恒等）
-            if (fromInvestors && !isInv) continue;
-            if (excludeInvestors && isInv) continue;
-            pops.Add(p);
-        }
+        foreach (var r in w.Regions) foreach (var p in r.Pops) if (IsInvestor(p, w.Coef)) pops.Add(p);   // ★NobleInvests（既定0＝旧述語と恒等）
         double total = 0; foreach (var p in pops) total += System.Math.Max(0, p.Savings);
         double take = System.Math.Min(amount, total);   // 残高超は引けない（払えない＝部分的不履行）
         if (take <= 1e-12 || total <= 1e-9) return 0;
@@ -302,7 +291,7 @@ public static class CapitalMarket
         var pops = new List<Pop>();
         foreach (var r in w.Regions) foreach (var p in r.Pops) if (!toInvestors || IsInvestor(p, w.Coef)) pops.Add(p);
         if (pops.Count == 0) foreach (var r in w.Regions) foreach (var p in r.Pops) pops.Add(p);   // 投資家不在なら全popへ
-        if (pops.Count == 0) { w.Pay(TreasuryCat.OtherIn, amount); w.CumulativeTradeFlow += amount; return; }   // pop不在の World（併合国の残骸等）＝国庫残置（wave2b：pops[^1]のIndexOutOfRange回避。TakeGoldFromは同条件で0返しなのに片側だけ守られていなかった）
+        if (pops.Count == 0) { w.Pay(TreasuryCat.OtherIn, amount); w.CumulativeTradeFlow += amount; return; }   // pop不在の World（併合国の残骸等）＝国庫残置（wave2b：pops[^1]のIndexOutOfRange回避。TakeGoldは同条件で0返しなのに片側だけ守られていなかった）
         double total = 0; foreach (var p in pops) total += System.Math.Max(0, p.Savings);
         double done = 0;
         if (total > 1e-9)

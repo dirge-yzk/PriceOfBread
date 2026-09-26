@@ -62,7 +62,9 @@ if [ "${RUN_TESTS:-0}" = "1" ]; then
   echo "[3.5] 隔離ディレクトリでテスト"
   # ★2026-08-01：**テストの終了コードを捨てない**。旧は `| tail -1` でパイプ末尾の RC になり、
   #   テストが赤でも measure.sh は 0 を返していた＝Runner のゲート0が「全ゲート緑」と印字した裏でテストが落ちていた（実際に踏んだ）。
-  "$DOTNET" test "$SNAP/PriceOfBread.slnx" -c Release --no-build > "$OUT.tests" 2>&1
+  # ★2026-09-27（作者裁定 2026-09-26）：全長の保存則の番人（約7分）は普段外す＝印 Category=FullLength。保存則に触る回は別に
+  #   `dotnet test ... --filter "Category=FullLength"` で回す（README §1-2）。
+  "$DOTNET" test "$SNAP/PriceOfBread.slnx" -c Release --no-build --filter "Category!=FullLength" > "$OUT.tests" 2>&1
   TEST_RC=$?
   tail -1 "$OUT.tests"
   [ "$TEST_RC" = "0" ] || echo "  ★赤：テストが失敗している（詳細＝$OUT.tests）"

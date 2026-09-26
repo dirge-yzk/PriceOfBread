@@ -500,6 +500,85 @@ public class FiscalTests
         for (int i = 0; i < all.Length; i++) guards[i].Check(all[i]);
     }
 
+    // =====================================================================================================
+    // ★金利生活者のポンプ（2026-09-27）の番人。世界規模の補給崩壊の根は貨幣の崩壊だった：
+    //   ①切下げの記憶が壊れたまま兌換へ戻れた（改革は兌換停止中にしかできない＝記憶が1世紀凍結し国内資本の逃避が止まらない）
+    //   ②配当と逃避の払いが投資家で足りないと全POPから取った（流入は投資家へだけ入る＝分子と分母の非対称）＝受け皿の大衆の貨幣が国外へ抜けた。
+    // =====================================================================================================
+
+    [Fact]
+    public void 外資の配当と逃避は投資家までしか払わない_不足は不履行で債権が残る()
+    {
+        // 外資の流入・逃避の受け皿・新規の資本移動は、どれも投資家の貯蓄へだけ入る（GiveGold の toInvestors）。流出も投資家まで＝
+        // 投資家が尽きても農民・労働者の貯蓄は国外へ出ない。払えない分は不履行＝債権（ForeignCapitalIn）は払えた額しか減らない。
+        // 国際金融の外資以外の流れ（新規の資本移動・国内資本の逃避・外債の元利）を止め、仏の外資の負債を投資家の貯蓄の千倍にする（持ち主は英）。
+        var coef = new Coefficients { CapitalDemandScale = 0, CapitalDomesticFlightRate = 0, ForeignBondCounterparty = 0 };
+        var sim = new MultiNationSim([NationConfig.Britain(), NationConfig.France(), NationConfig.Prussia()], 1789, _ => new NullAgent(), coef) { DiplomacyFrozen = true };
+        var br = sim.Nations[0].World; var fr = sim.Nations[1].World; var pr = sim.Nations[2].World;
+        var all = new[] { br, fr, pr };
+        var fpops = new List<Pop>(); foreach (var r in fr.Regions) fpops.AddRange(r.Pops);
+        double inv0 = 0; int nOther = 0;
+        foreach (var p in fpops) { if (CapitalMarket.IsInvestor(p, fr.Coef)) inv0 += Math.Max(0, p.Savings); else if (p.Savings > 0) nOther++; }
+        Assert.True(inv0 > 0, "前提が崩れた：仏に投資家の貯蓄が無い");
+        Assert.True(nOther > 0, "前提が崩れた：仏に貯蓄を持つ投資家でない人がいない");
+        double claim = 1000 * inv0;
+        fr.ForeignCapitalIn += claim; br.CapitalAbroad += claim;
+        Assert.True(fr.ForeignCapitalIn * coef.CapitalDividendRate > inv0, "前提が崩れた：配当が投資家の貯蓄に収まる（不足が起きない）");
+        var other0 = fpops.Select(p => CapitalMarket.IsInvestor(p, fr.Coef) ? double.NaN : p.Savings).ToArray();
+        var guards = Array.ConvertAll(all, w => new MoneyConservation(w));
+        double world0 = WorldBase(all), mint0 = MintedAndFiat(all), base0 = fr.BaseMoney, fci0 = fr.ForeignCapitalIn;
+
+        CapitalMarket.Step(sim.Nations, coef);
+
+        // (a) 投資家でない人の貯蓄は1ビットも動かない
+        for (int i = 0; i < fpops.Count; i++)
+            if (!double.IsNaN(other0[i]))
+                Assert.True(fpops[i].Savings == other0[i], $"投資家でない {fpops[i].ClassName} の貯蓄が {other0[i]}→{fpops[i].Savings} に動いた（配当・逃避の不足を大衆から取っている）");
+        // (b) 仏が払った額は投資家の貯蓄まで（払い切って尽きる）
+        double paid = base0 - fr.BaseMoney, tol = 1e-9 * Math.Max(1.0, inv0);
+        Assert.True(paid <= inv0 + tol, $"仏が払った額 {paid} が投資家の貯蓄 {inv0} を超えた");
+        Assert.True(paid >= inv0 - tol, $"前提が崩れた：投資家が払い切っていない（{paid} / {inv0}）");
+        // (c) 払えない分は不履行＝債権は払えた額しか減らず、大半が残る
+        Assert.True(fr.ForeignCapitalIn >= fci0 - paid - tol, $"債権の減り {fci0 - fr.ForeignCapitalIn} が払った額 {paid} を超えた（払わずに消えた請求権）");
+        Assert.True(fr.ForeignCapitalIn > 0.5 * fci0, "不履行の債権が消えた");
+        double worldDrift = (WorldBase(all) - world0) - (MintedAndFiat(all) - mint0);
+        Assert.True(Math.Abs(worldDrift) <= 1e-9 * Math.Max(1.0, world0), $"世界の基礎貨幣が台帳の外で {worldDrift} 動いた");
+        for (int i = 0; i < all.Length; i++) guards[i].Check(all[i]);
+    }
+
+    [Fact]
+    public void 兌換への復帰は通貨改革を通る_切下げの記憶が壊れたままでは戻れない()
+    {
+        // 改革は兌換停止中にしかできない（Fiscal の改革の条件 !OnGoldStandard）。再加入が記憶（累積切下げ÷名目GDP）を見ないと、
+        // 改革より先に戻った国は記憶が1世紀凍結し、CapitalMarket の国内資本の逃避が止まらなかった（露1804〜11年の先着争い）。
+        // 同じ盤面を2つ作り、記憶だけを違える。再加入の他の条件（債務・財政・カバー率）と改革の静穏の月数はこの盤面の係数で外す
+        // ＝対照が同じ月に戻れることで確かめる。
+        World Board(bool broken)
+        {
+            var sim = new MultiNationSim([NationConfig.Britain(), NationConfig.France(), NationConfig.Prussia()], 1789, _ => new NullAgent()) { DiplomacyFrozen = true };
+            var w = sim.Nations[0].World;
+            w.Coef.GoldStandardMaxDebt = double.MaxValue; w.Coef.GoldStandardMinFunding = 0; w.Coef.GoldRejoinCoverMargin = 0;
+            w.Coef.CurrencyReformCalmMonths = 0;
+            w.MonetaryLaw = MonetaryStandardLaw.Silver;   // 金属本位の法は立てたまま（露の銀本位）＝兌換停止中
+            w.OnGoldStandard = false;
+            if (broken) w.CumulativeDevaluation = w.NominalGdp * (w.Coef.CapitalFlightDistrustThreshold + 0.5);
+            return w;
+        }
+        var ctl = Board(false); var brk = Board(true);
+        Assert.True(ctl.MonetaryEnabled, "前提が崩れた：英に貨幣経済が無い");
+        Fiscal.Step(ctl, ctl.Coef);
+        Assert.True(ctl.OnGoldStandard, "前提が崩れた：記憶の無い対照が再加入しない（盤面が再加入の他の条件を満たしていない）");
+        Fiscal.Step(brk, brk.Coef);
+        Assert.False(brk.OnGoldStandard, "切下げの記憶が壊れたまま兌換へ戻った（通貨改革を通らない回復）");
+        // 通貨改革（プレイヤーのボタンとAIが押すのと同じ口）→ 記憶が消える。改革した月は改革の前の記憶で判定＝戻るのは翌月
+        brk.RequestCurrencyReform(brk.ExchangeRate);
+        Fiscal.Step(brk, brk.Coef);
+        Assert.Equal(0.0, brk.CumulativeDevaluation);
+        Assert.False(brk.OnGoldStandard, "改革と同じ月に兌換へ戻った（改革の前の記憶で判定していない）");
+        Fiscal.Step(brk, brk.Coef);
+        Assert.True(brk.OnGoldStandard, "通貨改革の後も兌換へ戻れない");
+    }
+
     [Fact]
     public void 再併合_反乱国の与信と負の国庫は親へ渡り世界の貨幣は変わらない()
     {

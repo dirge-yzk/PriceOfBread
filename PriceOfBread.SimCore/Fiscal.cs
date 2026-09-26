@@ -360,11 +360,13 @@ public static class Fiscal
         // ⚠新平価は Convertibility>0 でしか効かない（World の rateTarget）＝「金本位に戻った日に履行される約束」。
         w.NoDevaluationMonths = devalued ? 0 : w.NoDevaluationMonths + 1;
         if (w.CurrencyReformCooldown > 0) w.CurrencyReformCooldown--;
+        // ★切下げの記憶が壊れている（不信＝累積切下げ／名目GDP が閾値超）。読み手は2つ＝改革の発動と、下の金本位への再加入（2026-09-27）。
+        //   改革した月は改革の前の値のまま＝再加入はその翌月から（改革→兌換の回復の順）。
+        bool broken = nominalGdp > 1e-9 && w.CumulativeDevaluation / nominalGdp > c.CapitalFlightDistrustThreshold;
         if (c.CurrencyReformEnabled > 0.5 && w.PendingCurrencyReform > 0)
         {
             double parity = w.PendingCurrencyReform;
             w.PendingCurrencyReform = 0;
-            bool broken = nominalGdp > 1e-9 && w.CumulativeDevaluation / nominalGdp > c.CapitalFlightDistrustThreshold;
             if (w.MonetaryEnabled && !w.OnGoldStandard && broken
                 && w.NoDevaluationMonths >= c.CurrencyReformCalmMonths
                 && w.FiscalFundingRatio >= c.GoldStandardMinFunding
@@ -534,10 +536,12 @@ public static class Fiscal
                     }
                 }
             }
-            // #125 振動抑制（2026-07-25）：再加入は離脱閾値より高いカバー率（×GoldRejoinCoverMargin＝シュミットトリガー）＋クールダウン明け。
-            // Margin=1.0・Years=0（既定）で旧条件と厳密一致＝恒等。
+            // #125 振動抑制（2026-07-25）：再加入は離脱閾値より高いカバー率（×GoldRejoinCoverMargin＝シュミットトリガー）。Margin=1.0 で旧条件と厳密一致。
+            // ★兌換の回復は通貨改革を通る（2026-09-27）：切下げの記憶が壊れたまま（broken＝改革の発動と同じ1本）では戻れない。
+            //   旧＝カバー率・債務・財政だけを見た＝改革より先に再加入すると、改革は兌換停止中にしかできないので記憶が1世紀凍結し、
+            //   CapitalMarket の資本逃避が止まらなかった（露1804〜11年の先着争い＝世界規模の補給崩壊の根）。史実＝露カンクリン改革1839〜43（アシグナツィアを実勢で銀に換算してから兌換）・ウィッテ改革1897・レンテンマルク1923→金本位1924。
             else if (w.MetallicStandardLaw && dGdp <= c.GoldStandardMaxDebt && w.FiscalFundingRatio >= c.GoldStandardMinFunding
-                     && coverage >= c.GoldCoverMin * c.GoldRejoinCoverMargin)
+                     && coverage >= c.GoldCoverMin * c.GoldRejoinCoverMargin && !broken)
             { w.OnGoldStandard = true; w.GoldStandardSuspendedInCrisis = false; }
         }
         // #2 Fisher：名目金利＝実質（基礎＋債務上乗せ）＋期待インフレ。高インフレ→高名目金利／デフレ→低名目金利だが実質債務は重い。
