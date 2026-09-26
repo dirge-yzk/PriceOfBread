@@ -188,11 +188,11 @@ public class ConservationTests
             $"{run.MoneyBreaks.Count}/{run.Quarters} 四半期で片側記帳（金が湧いた/消えた・累計 {run.MoneyUnexplained:+0.0;-0.0}）：\n" + string.Join("\n", run.MoneyBreaks.Take(8)));
     }
 
-    /// <summary>★全長（668四半期）の世界の合計（保留＝2026-09-26 に**漏れを見つけた**番人）。
-    /// ⚠1回約7分＝常設しない（savetest の長距離と同じ2段構え＝直したら手で外して確かめる）。人口の側は全長でも緑だった（2026-09-26 の1回）。</summary>
-    [Fact(Skip = "漏れの発見（2026-09-26・回0-4）：全長668四半期で世界の基礎貨幣が2四半期だけ鋳造・不換発行で説明できない＝Q317（1862年）−1009.0・Q598（1932年）−888.4。"
-               + "現場＝Diplomacy の講和の賠償（Diplomacy.cs の `if (loser.Nation is { } lw) lw.CumulativeTradeFlow -= rep; if (winner.Nation is { } ww) …`）：勝者が抽象標的（Nation の無い勢力＝1862年はカザフ草原・敗者ポーランド・賠償1009.005／1932年はアチェ・敗者マイソール・888.411）のとき、"
-               + "払った国だけが流出を記帳し金は世界から消える（片側記帳）。直すのは保存則の回（1-1）。直したら Skip を外し、1回だけ手で回して緑を確かめる")]
+    /// <summary>★全長（668四半期）の世界の合計（2026-09-26 回0-4 で**漏れを見つけた**番人・約7分）。
+    /// 見つけた漏れ＝講和の賠償の片側記帳（勝者が抽象標的＝Nation の無い勢力のとき、払った国だけが流出を記帳し金が世界から消えた＝
+    /// seed1789 の Q317（1862年 カザフ草原←ポーランド −1009.0）・Q598（1932年 アチェ←マイソール −888.4）。逆向きの AbstractTargetReparations も同じ形）。
+    /// ★回1-1（2026-09-26）で閉じた＝賠償は貨幣経済を持つ2国の間だけで動く（Diplomacy.ResolvePeace）→ Skip を外した。</summary>
+    [Fact]
     public void 世界の基礎貨幣は全長でも鋳造と不換発行でしか動かない()
     {
         var run = WorldRunFull.Value;

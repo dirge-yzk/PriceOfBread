@@ -75,7 +75,7 @@ public sealed class MultiNationSim
                 Gdp = sim.World.Gdp, Treasury = sim.World.Treasury,
                 TradeWeight = DefaultTradeWeightBase + TradeWeightIndustrializationSlope * cfg.Industrialization,   // 倍率排除⑤：工業先進国ほど交易比重が大きい（旧 ProductivityBonus 駆動→工業化度へ。発展度の状態変数から創発）
             };
-            foreach (var (cname, cres, cpop) in cfg.InitialColonies) { var cc = Geo.ColonyCoord(cname); power.ColonyList.Add(new Colony { Name = cname, Resources = [.. cres], Population = cpop, Latitude = cc.Lat, Longitude = cc.Lon }); }   // 名前＋固有資源＋人口規模＋座標（史実1780）
+            foreach (var (cname, cres, cpop) in cfg.InitialColonies) { var cc = Geo.ColonyCoord(cname); power.ColonyList.Add(new Colony { Name = cname, Resources = [.. cres], Population = cpop, PopSize = cpop * _coef.ColonialPopScale, Latitude = cc.Lat, Longitude = cc.Lon }); }   // 名前＋固有資源＋人口規模＋座標（史実1780）。住民数は人口ウェイト×換算＝作成時の1か所（回1-1・col-01）
             sim.World.Diplomacy = Diplomacy;     // 読み取り用（植民地アクセス・交易）
             sim.World.SelfPower = power;
             // ★近代化投資レバーの出発点を全国で揃える（2026-08-02・UtilityAgent.OpeningModernizationFrac を見よ）。
@@ -99,7 +99,7 @@ public sealed class MultiNationSim
         foreach (var t in setup.Targets)
         {
             var p = new Power { Id = Diplomacy.Powers.Count, Name = t.Name, BaseName = t.Name, Military = t.Military, Gdp = 0, Treasury = t.Treasury, TradeWeight = 0.0, RequiresQuinine = t.Quinine };
-            foreach (var c in t.Colonies) { var cc = Geo.ColonyCoord(c.Name); p.ColonyList.Add(new Colony { Name = c.Name, Resources = [.. c.Resources], Population = c.Population, Latitude = cc.Lat, Longitude = cc.Lon, Malarial = t.Quinine }); }   // 熱帯(Quinine)標的の州はマラリア地＝征服で本国へ風土病が付いて回る。Resourcesは試合ごとに複製（キャッシュ共有回避）
+            foreach (var c in t.Colonies) { var cc = Geo.ColonyCoord(c.Name); p.ColonyList.Add(new Colony { Name = c.Name, Resources = [.. c.Resources], Population = c.Population, PopSize = c.Population * _coef.ColonialPopScale, Latitude = cc.Lat, Longitude = cc.Lon, Malarial = t.Quinine }); }   // ★回1-1（col-01）：住民数も作成時に置く（旧＝未設定のまま侵略で州化され、住民0・耕地1.8の州になった＝約650万人分が消えた）。熱帯(Quinine)標的の州はマラリア地＝征服で本国へ風土病が付いて回る。Resourcesは試合ごとに複製（キャッシュ共有回避）
             Diplomacy.Powers.Add(p);
         }
         _nextPowerId = Diplomacy.Powers.Count;   // ★建国スポーンはここから単調採番（起動時のId=Powers.Countの連番と同じ値で始まり、以後は欠番があっても戻らない）
@@ -154,7 +154,6 @@ public sealed class MultiNationSim
             var cols = new System.Collections.Generic.List<Colony>(sp.ColonyList);
             foreach (var col in cols)
             {
-                if (col.PopSize <= 0) col.PopSize = col.Population * _coef.ColonialPopScale;   // Colonial.cs の初期化と同一式（人口ウェイト→実体）
                 if (w.Regions.Exists(r => r.Name == col.Name)) continue;
                 sp.ColonyList.Remove(col);
                 // ⚠PromotedColonies には数えない＝これは**初期条件**であってプレイ中の昇格ではない。
@@ -388,18 +387,16 @@ public sealed class MultiNationSim
         double parentGoldBefore = pw.Bank?.Gold ?? 0;   // 保存：親から実際に移せる金は min(親金, S)。下で新国家の金準備をこの値でクランプ（親金<S の水増しを防ぐ・2026-07-19バグ監査）
         if (pw.Bank is { } pbank) pbank.Gold = Math.Max(0, pbank.Gold - S);   // 新国家側は構築時 Bank.Gold=TotalMoney(=S) が立つ＝世界の金準備を水増ししない（兌換カバー率の歪み防止）
 
-        // --- 3) 州を新国家の首都に整形（割譲と同型のリセット）＋民族の再アンカー ---
+        // --- 3) 州を新国家の首都に整形＋付け直し（回1-1＝割譲・建国・再併合の1本 Territory.Rehome の建国）---
+        //   民族＝旧少数派がこの国の中核になる（CoreEthnicShare の意味は「所属国の中核民族に属する割合」＝反転が要る・敵対検証2026-07-12）。
+        //   併合の荷物0（案Y・2026-08-21：分離建国の創設州は新国家の「生まれの人口」）・市場の台帳のリセット・植民地財の空化。
+        //   ⚠格と支配度は独立が確定するまで動かさない（RegisterIndependence／内戦の白紙講和で本土へ）＝親が勝てば元の格のまま戻る。
         for (int k = 0; k < regs.Count; k++)
         {
             var rr = regs[k];
             rr.Id = k; rr.Seceded = false;   // 新世界の州Id＝0が首都（World.Region=Regions[0] 規約）
-            rr.AnnexBaggage = 0;   // 案Y（2026-08-21）：分離建国の創設州は新国家の「生まれの人口」＝併合の荷物ではない（親の下で付いた旧記帳もここで清算）。失う側（親）は分子が現行どおり減る＝「分離で州を失う世界線は帯を割る」の設計意図を保存
-            foreach (var m in rr.Markets) { m.PrevStock = m.Stock; m.LastProduced = m.LastSold = m.LastImport = m.LastExport = m.LastShortage = 0; m.PopBought = null; }
-            rr.ColonialResources = null;   // World複製フィールドは新Worldの次回MonthSettleが上書き
+            Territory.Rehome(rr, Territory.Rehoming.Seceded);
         }
-        // 独立＝旧少数派がこの国の中核になる（CoreEthnicShare の意味は「所属国の中核民族に属する割合」＝反転が要る。
-        // 割譲の無変更持ち込みは「征服＝被支配民は勝者の中核でない」だから正しく、独立はその逆＝敵対検証2026-07-12の指摘）。
-        foreach (var rr in regs) foreach (var p in rr.Pops) p.CoreEthnicShare = 1.0 - p.CoreEthnicShare;
 
         // --- 4) 名前・設定（親の現行法・税を継承した NationConfig 経由＝ToScenario と同形の手組み）---
         string name = SecessionNames.Resolve(reg.Name, polity ?? pw.Polity, Diplomacy.Powers);
@@ -691,7 +688,7 @@ public sealed class MultiNationSim
             ProbeSnap();                                              // 保存量プローブ（leakhunt・既定OFF＝実行ゼロ）
             foreach (var n in Nations) NationalScore.StepStanding(n.World);   // 国力の在庫を1期ぶん寄せる（2026-08-02）＝序列は在庫で決まる。外交(ComputeRanks)より前
             if (_coef.ThreatRailTargetWeight > 0) StepSecurityThreat();   // ★安保手順3（2026-08-30点火＝既定1）：脅威の観測（=0なら1命令も走らない。threatprobe と同式）
-            UpdateTradeWeights(); ProbeDiff("交易比重");                // 外1：交易比重を現在のGDPシェアから四半期同期（TradeWeightDynamic=0 で1789固定値を維持＝恒等）
+            UpdateTradeWeights(); ProbeDiff("交易比重");                // 外1：交易比重を貿易取扱高のシェア（LastExportValue+LastImportValue の EMA）から四半期同期（TradeWeightDynamic=0 で1789固定値を維持＝恒等）
             if (!DiplomacyFrozen)
                 for (int m = 0; m < Calendar.MonthsPerQuarter; m++) { Diplomacy.Step(_coef, Rng, _quarter * Calendar.MonthsPerQuarter + m); ProbeDiff($"外交m{m}"); }   // 共有外交を月次3回（戦争の月次カデンス）。凍結中＝経済助走で戦争・緊張を進めない
             StepCanals(); ProbeDiff("運河");   // 海峡・運河：扼者を解決し、運河は host 保有国の資本家が建設（§B）
@@ -1038,9 +1035,7 @@ public sealed class MultiNationSim
                 rw.Regions.Remove(rr);
                 rr.Id = pw.Regions.Count;   // 親は必ず首都（Id0）を持つ＝返還州は末尾へ連番
                 rr.Seceded = false;
-                foreach (var pp in rr.Pops) pp.CoreEthnicShare = 1.0 - pp.CoreEthnicShare;   // 建国時の反転を戻す（親の中核定義へ復帰）
-                foreach (var m in rr.Markets) { m.PrevStock = m.Stock; m.LastProduced = m.LastSold = m.LastImport = m.LastExport = m.LastShortage = 0; m.PopBought = null; }
-                rr.ColonialResources = null;   // World複製フィールドは親の次回 MonthSettle が上書き
+                Territory.Rehome(rr, Territory.Rehoming.Returned);   // 回1-1：建国時の反転を戻す（親の中核定義へ復帰）・市場の台帳のリセット・植民地財の空化（null にしない＝col-02）
                 pw.Regions.Add(rr);
             }
             pw.Pay(T >= 0 ? TreasuryCat.OtherIn : TreasuryCat.OtherOut, T);
@@ -1413,7 +1408,7 @@ public sealed class MultiNationSim
         }
     }
 
-    // 外1：交易比重（TradeWeight）を現在のGDPシェアから四半期同期。1789固定値だと1900年に経済覇権となった国を禁輸しても痛みが初期比重のまま＝関税報復/禁輸/国際価格形成の比重が化石化する問題を解く。
+    // 外1：交易比重（TradeWeight）を貿易取扱高のシェアから四半期同期（A-中6 で GDP シェアから置き換え＝下の注記）。1789固定値だと1900年に経済覇権となった国を禁輸しても痛みが初期比重のまま＝関税報復/禁輸/国際価格形成の比重が化石化する問題を解く。
     // 既定1.0（点火2026-07-23）＝取扱高シェアで毎四半期更新。0で即 return＝コンストラクタで設定した 0.15+0.10×Industrialization を1789固定維持。抽象標的（Nation=null）は据え置き。
     // A-中6（史実検証2026-07-22）：駆動変数を GDP シェアから**貿易取扱高**（LastExportValue+LastImportValue の EMA）のシェアへ。
     // GDP駆動だと開放度を無視して1913年の米・清・露を過大にする（清は巨大GDPだが広東体制の閉鎖経済）。旧＝1783年の値で604四半期凍結＝

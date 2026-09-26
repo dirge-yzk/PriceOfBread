@@ -178,4 +178,58 @@ public static class Territory
         dp.Size += moveSize; dp.Savings += moveSavings; dp.Debt += moveDebt; dp.BondHoldings += moveBond;
 
     }
+
+    /// <summary>州が持ち主を替えるときの種類（<see cref="Rehome"/> の引数）。</summary>
+    internal enum Rehoming
+    {
+        Ceded,      // 割譲（講和の割譲・植民地格の州の複数割譲）
+        Seceded,    // 建国（開戦時の建国・分裂・分離独立）と、内戦の白紙講和で反乱国が親から取った州
+        Returned,   // 再併合（反乱国の州が親へ戻る）
+        Sovereign,  // 独立の確定（州は動かない＝新しい国の本土になる）
+    }
+
+    /// <summary>★移転の付け直し（回1-1・col-03／col-04・2026-09-26）＝割譲・建国・再併合・独立の確定が**必ず通る1本**。
+    /// 州の格・中核民族の割合（独立の確定では支配度も）を「新しい持ち主から見た関係」で決め直す。
+    /// ⚠旧＝割譲（Diplomacy.TransferRegion）・建国（MultiNationSim.SpawnNation）・再併合（ApplyReintegrations）の3か所が
+    ///   市場のリセットだけを写し、格・支配度・民族は前の持ち主のまま運んでいた＝独立した旧植民地は首都を含む全州が植民地格のまま、
+    ///   ポーランドの州は露へ移っても露の中核民族のままだった。
+    /// ・割譲＝植民地格は植民地のまま・本国の州は編入（Integrated＝ゲーム中にコア化はしない）。**支配度は動かさない**（前の持ち主の下の値のまま）。
+    ///   ⚠回1-1 の計測で「支配度0から積み上げる」を試した＝差し戻し：支配度0の州は翌四半期の積分で引き留め≦離脱圧力なら即座に独立の戦争へ入る
+    ///   （割譲の翌四半期に分離独立＝10シードの建国 35→296・世界規模の補給崩壊 1→2/10）。割譲の支配度の初期値は回6-x（保有と由来から導く）で決める。
+    ///   民族＝両国の主流文化（<see cref="Power.Culture"/>）が同じなら割合を保ち、違えば0（征服した土地の住民は征服者の中核民族ではない
+    ///   ＝越境移民が受入国で core=0 になるのと同じ規約）。
+    /// ・建国＝民族の割合を反転（旧少数派が新しい国の中核）。格と支配度は**独立が確定するまで動かさない**
+    ///   （親が勝てば再併合で元の格のまま戻る＝失敗した植民地の蜂起で植民地が本土に化けない）。
+    /// ・再併合＝建国の反転を戻す。格・支配度は動かさない。
+    /// ・独立の確定＝新しい国の本土（Core・支配度1＝保有開始年0の州と同じ初期値）。
+    /// 市場の月次台帳のリセット（財収支の恒等式を保つ）と植民地財の空化は移転の3種で共通。⚠植民地財を null にしない（col-02）：
+    ///   null は単一国テストの旧経路（EconomyStep の else 枝）＝需要まで植民地財11種を代金なしに湧かせ、首都になれば
+    ///   Simulation の植民地資源の上書き（非 null の首都だけ）も効かず、植民地の代価を永久に払わない国になった。
+    /// 状態も係数も増やさない（読むのは州の格・民族の割合と、呼び手が渡す主流文化の一致だけ）。</summary>
+    internal static void Rehome(Region r, Rehoming how, bool sameCore = false)
+    {
+        if (how != Rehoming.Sovereign)
+        {
+            foreach (var m in r.Markets) { m.PrevStock = m.Stock; m.LastProduced = m.LastSold = m.LastImport = m.LastExport = m.LastShortage = 0; m.PopBought = null; }
+            r.ColonialResources = [];   // World複製フィールドは新しい持ち主の次回 MonthSettle が上書き（首都になった州だけが植民地財の産出を担う）
+        }
+        switch (how)
+        {
+            case Rehoming.Ceded:
+                if (r.Tier != RegionTier.Colonial) r.Tier = RegionTier.Integrated;
+                if (!sameCore) foreach (var p in r.Pops) p.CoreEthnicShare = 0.0;
+                break;
+            case Rehoming.Seceded:
+                foreach (var p in r.Pops) p.CoreEthnicShare = 1.0 - p.CoreEthnicShare;
+                r.AnnexBaggage = 0;   // 案Y：建国の州は新しい国の「生まれの人口」＝併合の荷物ではない（親の下で付いた旧記帳もここで清算）
+                break;
+            case Rehoming.Returned:
+                foreach (var p in r.Pops) p.CoreEthnicShare = 1.0 - p.CoreEthnicShare;   // 建国時の反転を戻す（親の中核定義へ復帰）
+                break;
+            case Rehoming.Sovereign:
+                r.Tier = RegionTier.Core;
+                r.Dominance = 1.0;
+                break;
+        }
+    }
 }

@@ -967,7 +967,7 @@ public sealed class Coefficients
     public double AssimilationEducationBonus = 0.0015581;// 公教育/義務教育の同化加速（合計0.0017314＝半減期100年＝「学校が農民をフランス人にする」）
     public double DiscriminationLiteracy = 0.45;    // 平均識字がこれ未満だと差別で移民を阻む：流入 ×clamp(平均識字/これ)＝低教育＝排斥
     public double UnityMilitaryQuality = 0.2;       // 〔軍の結束〕Power.Military ×(1+これ×(統一度−0.5))＝同質な軍は強い・多民族軍は脆い
-    public double ConquestForeignWeight = 1.0;      // 倍率排除⑧/item4：征服で抱える植民地人口(col.PopSize・1000人単位)を自国人口単位へ換算する係数。希釈=homePop/(homePop+これ×植民地人口)＝相対規模から創発（旧 一律 ConquestUnityDrop=0.06 を置換）
+    // 【墓標2026-09-26】ConquestForeignWeight（植民地の奪取で勝者の全POPの中核民族割合を縮める換算）＝回1-1（col-04・mil-18）で削除。州になった植民地の住民は core=0 で作られる＝民族統一度は既に下がる（二重の希釈・思想⑨）
     public double UnityAdminBonus = 0.12;           // 〔近代化〕行政効率 ×(1+これ×(統一度−0.5))＝国民国家は中央の指令が届く
     // #14 少数民族の経済的実体：少数派（CoreEthnicShare<1）の階級は昇格に摩擦・不満が高い＝同化までの過渡で「別挙動」を持つ（均質pop=core1で効果0＝較正中立）。EthnicEnabledでgate。
     public double MinorityPromotionPenalty = 0.5;   // 昇格率 ×(1−これ×(1−core))＝完全少数派(core=0)で昇格半減＝ガラスの天井（移民/被征服層が下層に滞留）。0で無効
@@ -1451,7 +1451,7 @@ public sealed class Coefficients
     public double PostWarTension = 38;            // 講和後の緊張の置き直し値。そこからゆっくり100へ再上昇＝中後期戦争を生むが時計仕掛けにはしない
     // 【墓標2026-09-26】TruceYearsPerExhaustion（規模で決める休戦・休眠0＝09-07 裁定の器）＝作者裁定 Q9 で休戦の仕組みごと削除（講和に不戦年限の条項は無く、厭戦と財政が担う）。既定0で休戦は常に0年だった＝挙動不変
     public double ReparationGdpFraction = 0.2;    // 賠償金＝敗者GDP×戦勝点×これ。完全勝利(戦勝点1)で GDP の20%（普仏戦争の50億フラン≒仏GDP25%規模に近づける＝大国も戦争で痩せる。0.1→0.2）
-    public double SpoilsWorthThreshold = 10_000;  // 抽象勢力（清）への開戦に要する最低限の戦果＝植民地が無く国庫もこれ未満なら攻める意味なし（賠償0の無意味な連戦を防ぐ）
+    // 【墓標2026-09-26】SpoilsWorthThreshold（抽象標的の国庫が1万を超えれば攻める価値がある）＝回1-1で削除。抽象標的は賠償を払わない（貨幣経済を持つ2国の間だけ）ので国庫は戦果にならない。world.json の国庫は全て閾値未満＝挙動不変
 
     // --- 戦争熱／膨張意欲（案Y・植民地獲得を許容する国内世論。段B＝計算と累積のみ／消費は段Cで配線。値は暫定でsweep対象） ---
     public double WarFeverMilitarism = 0.4;   // ×好戦世論の公共圏（報道自由度×識字×都市化×対外屈辱∈[0,1]）。★2026-08-18＝旧「親軍法ONで満額」の段差を撤去（1914年の熱狂は都市の教育ある中産層／黄色新聞の米1898）
@@ -2778,7 +2778,7 @@ public sealed class Coefficients
     public double CasualtiesFromContact = 1.0;   // 外2：戦死の戦力比例項の基準。0=p.Military（品質乗数込み・自軍規模のみ＝現行に厳密一致）／1=各戦線の実接触強度min(aPush,bPush)（遠隔戦は出血せず品質逆転も解消）。#17の再較正は2026-09-25に閉じた（WarCasualtyRate=8 据え置き・根拠はその注記）
     public double WarWearinessDecays = 1.0;   // 外3：非交戦国の厭戦の扱い。0=Step冒頭で即時0リセット（旧＝厭戦の開戦抑止が講和の翌月に消える）／>0=WarWearinessDecayRateで指数減衰（講和後も数年は厭戦が残り開戦抑止が効く）。バランス2026-07-07有効化：終戦翌月の再参戦（AI監査の愚行#5）を解消し敗戦国に回復期を与える＝首位交代を促す
     public double WarWearinessDecayRate = 0.97;   // 外3：WarWearinessDecays>0のときの非交戦国厭戦の月次残存率。WarWearinessDecays=0では未参照
-    public double AbstractTargetReparations = 0.3;   // 外8：抽象標的(Nation==null=GDP0)への決定的勝利時の賠償原資＝敗者Treasuryのこの割合を移転（対清戦争型）。0=賠償0（現行に厳密一致）
+    // 【墓標2026-09-26】AbstractTargetReparations（外8・抽象標的の国庫の3割を賠償へ）＝回1-1で削除。抽象標的は World を持たない＝受け手だけが +rep を記帳して金が世界の外から湧いた（片側記帳・段0の番人 fis-21）
     public double ThreatUsesColonyValue = 1.0;   /* #17有効化 */   // 外10：脅威評価・海軍シェアの植民地規模基準。0=植民地個数（旧式＝インド1個<小島3個）／>0=Σ Colony.Value（資源数＋人口）
     public double FrozenTensionDecays = 1.0;   // 外11：開戦経路が塞がれた（従属）ペアの緊張≥100の扱い。0=永久凍結（旧＝同盟不可/宥和判定を恒久的に歪める）／>0=FrozenTensionDecayRateの微小減衰を許す。バランス2026-07-07有効化：凍結緊張のデッドロック解消
     public double FrozenTensionDecayRate = 0.2;   // 外11：FrozenTensionDecays>0のとき開戦不能ペアの≥100緊張に課す月次減衰。FrozenTensionDecays=0では未参照

@@ -23,11 +23,13 @@ public static class Colonial
     {
         int colonies = w.SelfPower?.Colonies ?? 0;
         var r = w.Region;   // 本国（首都地域）
-        if (colonies <= 0 || r.State != RegionState.Active || r.ColonialResources is null) { w.ColonialPop = 0; w.LastColonialUpkeep = 0; return; }   // 全喪失後に旧値が残らない（接1診断）
-
         // 開発度の減衰（維持しないと衰える）。★助走中は敷設（下の w.ColonialInfra += dev）を止めているので、減衰だけ効かせると
         //   植民地開発度が一方的に痩せる＝凍結は両側で（2026-08-10 追加裁定・本国の工業化の減価と同じ扱い）。
+        //   ★回1-1（add-04・2026-09-26）：下の早期 return より**前**に置く＝植民地を全て失った国でも開発度は減衰する
+        //   （旧＝return の後ろ＝最後の値のまま凍結し、再獲得で古い開発度が効き始めた）。
         if (!w.WarmupFrozen) w.ColonialInfra = Math.Max(0, w.ColonialInfra * (1 - c.ColonialInfraDepreciation));
+        // 全喪失後に旧値が残らない（接1診断）。★回1-1（col-08）：海運の占有も0へ戻す（旧＝最後の月の占有が永久に残り、交易の海運を細らせた）。
+        if (colonies <= 0 || r.State != RegionState.Active || r.ColonialResources is null) { w.ColonialPop = 0; w.LastColonialUpkeep = 0; w.ColonialShipBurden = 0; return; }
 
         // 0. 維持費（帝国の過伸展）：基礎＋不満は俸給（金銭）、距離は**物理消費**（汽船の石炭＋駐留の缶詰糧食）＋海運の混雑から創発。
         //    遠方植民地が多い国（イギリス）ほど石炭・糧食が逼迫し交易船が補給に取られる＝一強の是正を物理コストで律する（固定倍率2.0を排除）。
@@ -136,7 +138,6 @@ public static class Colonial
         double popSum = 0, perColonyOutput = 0;
         foreach (var col in w.SelfPower!.ColonyList)
         {
-            if (col.PopSize <= 0) col.PopSize = col.Population * c.ColonialPopScale;   // 初期化（人口ウェイト→実体）
             double exploitation = 1.0 - c.ColonialPayShare;   // 採取の上がりのうち現地に落ちない割合＝搾取
             double malariaDeath = col.Malarial ? c.ColonialExploitMortality * (1.0 - malariaFill) : 0;   // マラリア地は既存の植民地月次死亡率で、キニーネ未供給の分だけ蝕まれる（マラリア専用倍率を置かない）
             // 開始前の助走（w.WarmupFrozen・2026-08-10）は現地人口・識字・不満を進めない＝どれも「年月が経って積み上がる」量。

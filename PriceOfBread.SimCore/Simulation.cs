@@ -892,7 +892,6 @@ public sealed class Simulation
             // 既定 HeldSince=0 では 1783−0 ＝ 1783 ≥ CoreHeldYears(150) なので**この経路の全州が Core**。
             // ★B14（実バグ21件・2026-09-07）：world.json に heldSince（併合年＝ポーランド分割地/シレジア/ガリツィア/リガ/バグダード/台湾 等28州）を入れた。
             //   HeldSinceFromData=0（既定）では読まない＝全州 Core・支配度1.0＝旧＝厳密恒等（群計測の腕にするための読み手ゲート・採用後は係数を消して常時読む）。
-            HeldSince = coef.HeldSinceFromData > 0 ? p.HeldSince : 0,
             Dominance = !(coef.HeldSinceFromData > 0) || p.HeldSince <= 0 ? 1.0 : Math.Clamp((Calendar.StartYear - p.HeldSince) / coef.DominanceMatureYears, 0.0, 1.0),   // ★E-06 支配度の初期値＝保有年数÷世代長（中核＝1）
             Tier = !(coef.HeldSinceFromData > 0) || (Calendar.StartYear - p.HeldSince) >= coef.CoreHeldYears ? RegionTier.Core : RegionTier.Integrated,
             Malarial = p.Malarial,
@@ -1310,7 +1309,7 @@ public sealed class Simulation
     /// ── 設計判断（記録・docs/202608/植民地州昇格_2026-08-09_完了.md【完了】.md）───────────────
     ///   ・農制＝自作農（farmLordShare=0）＝北西部条例/ホームステッドの物理。プランテーション上書き（PlantationRentShare）も適用しない（昇格の定義＝入植者多数の州）
     ///   ・市場在庫＝0 で開始（CatalogEconomy の初期200を持たせない）＝「AI国庫×初期市場在庫200の開幕工業化バースト」（indprobe実測2026-07-27）を新州で再現しない
-    ///   ・Tier既定=Integrated（議席あり・植民地維持費なし。tier 引数で Colonial も渡せる＝開始時の一括昇格）・HeldSince=現在年＝Core にはしない（1633年線・「ゲーム中のコア化はしない」の規則どおり＝HomeProvinces1914 計器の分子定義を守る）
+    ///   ・Tier既定=Integrated（議席あり・植民地維持費なし。tier 引数で Colonial も渡せる＝開始時の一括昇格）・Core にはしない（「ゲーム中のコア化はしない」の規則どおり＝HomeProvinces1914 計器の分子定義を守る）
     ///   ・港州（IsPort）＝⚠是正2026-08-28：landmass.json の coastal（沿岸か否かの一次データ）から引く（未登録は旧挙動どおり true へ倒す）。座標は Climate.CityCoord（史実の積出港・landmass 機械検証済み）。既存内陸州の最寄り港は再配線しない（既存州の挙動を動かさない。⚠PortRewireEnabled>0.5 では MultiNationSim.RewirePorts が四半期末に WirePortDistances を張り直す＝新港が最寄りなら切り替わる・doc 20260812_港の配線を領土に追随させる）
     ///   ・州の Culture/Religion＝首都州と同じ（入植者多数＝本国文化が主流になった州。現地住民の民族の実体は CoreEthnicShare=0 が担う＝分離圧力・同化・国民意識が既存機構で働く）</summary>
     internal static Region PromoteColonyToRegion(World w, Coefficients coef, Colony col, RegionTier tier = RegionTier.Integrated)
@@ -1390,7 +1389,7 @@ public sealed class Simulation
             // ⚠是正2026-09-02（G03監査#2）：未登録名を旧挙動どおり true（港）へ倒すのは fail-open で同じ穴が再発する
             //   （内陸植民地が landmass.json 未登録なら再び海港になる）＝fail-closed（false）へ倒し、ログで沈黙を避ける。
             Id = newId, Name = col.Name, IsPort = Landmass.CoastalOf(col.Name, fallback: false),
-            Tier = tier, HeldSince = w.Year, Dominance = 0.0, Malarial = col.Malarial,
+            Tier = tier, Dominance = 0.0, Malarial = col.Malarial,   // 支配度0＝取った年から数える
             Rule = [0.0, 1.0, 0.0, 0.0],   // ★支配度の一般化 段1：昇格した植民地＝間接統治（在地1.0）から始める（段2で支配度と同じ物理で国家区分が育つ）
             RuleInit = [0.0, 1.0, 0.0, 0.0],   // ★E-06 昇格した植民地＝支配度0から積み上げる（引き留め>圧力で育つ）   // ★格は呼び手が決める（入植者昇格＝Integrated／開始時の一括昇格＝Colonial）
             Terrain = Places.TerrainOf(col.Name),   // ★(3) 地形タグ（昇格植民地も同じ1枚の表から）

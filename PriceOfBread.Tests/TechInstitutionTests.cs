@@ -43,14 +43,30 @@ public class TechInstitutionTests
             coef: new Coefficients { ColoniesAreRegions = 0 });   // ⚠環境固定（クラス冒頭の注記）
         sim.Nations[2].World.ParliamentEnabled = false;   // 議会の綱領が報道法・教育法の目標を動かさない（宗教固定の日本と同じ分離手法）
         sim.Nations[3].World.ParliamentEnabled = false;
-        sim.Run(300);
-        foreach (int i in new[] { 2, 3 })   // 前提の番人＝固定が最後まで効いている（効いていなければ主張の入力が崩れている）
+        // 前提の番人＝固定が効いている（効いていなければ主張の入力が崩れている）。
+        // ★回1-1（2026-09-26）で**全ての四半期の終わり**を見る形へ（旧＝300四半期の終わりの1点だけ）。
+        //   固定は四半期の頭に書き戻し、技術の伸び（QuarterEnd の GrowTech）は政治の段と講和より先に走る（下の FreePressPublicEducationPin の注記）
+        //   ＝その四半期に政体が替わった国は、法が伸びの後に動いた＝その四半期だけ数えない（次の四半期の頭に書き戻しが入る）。
+        //   ⚠旧の1点は「最後の四半期に政変が無い軌道」を暗に仮定していた＝回1-1 の軌道（1858年＝最後の四半期に英が講和の後に絶対王政へ）で
+        //     伸びの入力は固定されていたのに赤になった。新は残りの全ての四半期（旧の1点を含む）で固定を確かめる。
+        var polity = new[] { sim.Nations[2].World.Polity, sim.Nations[3].World.Polity };
+        int pinChecked = 0; var pinBroken = new System.Collections.Generic.List<string>();
+        for (int q = 0; q < 300; q++)
         {
-            var w = sim.Nations[i].World;
-            Assert.Equal(CensorshipLaw.FreePress, w.Censorship);
-            Assert.Equal(EducationLaw.Public, w.EducationLaw);
-            Assert.Equal(Politics.FreedomFromLaws(w.Suffrage, w.Censorship), w.Freedom, 12);
+            sim.StepQuarter();
+            for (int k = 0; k < 2; k++)
+            {
+                var w = sim.Nations[2 + k].World;
+                bool regimeChanged = w.Polity != polity[k]; polity[k] = w.Polity;
+                if (regimeChanged) continue;
+                pinChecked++;
+                if (w.Censorship != CensorshipLaw.FreePress || w.EducationLaw != EducationLaw.Public
+                    || !(System.Math.Abs(Politics.FreedomFromLaws(w.Suffrage, w.Censorship) - w.Freedom) <= 1e-12))
+                    pinBroken.Add($"Q{q + 1} {w.SelfPower?.Name} 報道={w.Censorship} 教育={w.EducationLaw} 自由={w.Freedom:F3}");
+            }
         }
+        Assert.True(pinBroken.Count == 0, $"固定が崩れた四半期 {pinBroken.Count}件（政体の替わった四半期を除く）：" + string.Join("／", pinBroken.Take(5)));
+        Assert.True(pinChecked >= 2 * 300 * 9 / 10, $"政体の替わった四半期が多すぎて固定を確かめられない（{pinChecked}/{2 * 300}）");
         var pinned = RunWithJapanPinnedReligious(300);   // 対照＝宗教教育に固定した日本（同seed・同期間の別世界）
         double japanReligious = pinned.Nations[1].World.TechLevel;
         double britain = sim.Nations[2].World.TechLevel, america = sim.Nations[3].World.TechLevel;

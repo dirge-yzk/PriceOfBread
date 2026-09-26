@@ -179,13 +179,17 @@ public class MultiNationTests
         Assert.Contains(sim.Diplomacy.Log, l => l.Contains("開戦"));
         // 植民地の総数は保存（戦争は移転のみ）。ただし**独立**で離反した分は帝国の手を離れる（消滅でなく解放）。
         // 戦争割譲は本国**州**を World 間で移すだけ（植民地数は不変＝"州移転"・植民地化しない）。
-        int independents = sim.Diplomacy.Log.Count(l => l.Contains("独立"));
+        // ★回1-1（2026-09-26）：独立の確定で本土になった植民地格の州（SovereignColonialRegions）も「独立」の出口
+        //   ＝ログの「独立」の行数（分離独立の建国・独立戦争の行も数える近似）でなく、Validation と同じ台帳で数える。
+        int independents = sim.Diplomacy.IndependentColonies.Count + sim.Diplomacy.SovereignColonialRegions;
+        int logIndependents = sim.Diplomacy.Log.Count(l => l.Contains("独立"));
         int promoted = sim.Diplomacy.Log.Count(l => l.Contains("州へ昇格"));   // 植民地州昇格（2026-08-09）＝植民地が本国州になる出口（消滅でなく編入）
         // ★第4の出口（J-006・2026-09-05＝Validation の「植民地の保存」と同じ式）：同名の州を既に持つ国へ渡った Colony は消滅（領土は州として保有）。
         //   回B（2026-09-22）の軌道で初めて踏んだ（1834 日本が蝦夷地を侵略→「蝦夷地は日本が既に州として保有＝植民地オブジェクトは消滅」）＝番人の式の欠け。
         int absorbed = sim.Diplomacy.AbsorbedColonies;
         int coloniesAfter = sim.Diplomacy.Powers.Sum(p => p.Colonies);
-        Assert.Equal(coloniesBefore, coloniesAfter + independents + promoted + absorbed);
+        Assert.True(coloniesBefore == coloniesAfter + independents + promoted + absorbed,
+            $"植民地の保存：初期{coloniesBefore} ≠ 保有{coloniesAfter}＋独立{independents}（Colony {sim.Diplomacy.IndependentColonies.Count}・本土化した州 {sim.Diplomacy.SovereignColonialRegions}／ログの「独立」{logIndependents}行）＋昇格{promoted}（台帳 {sim.Diplomacy.PromotedColonies}）＋吸収{absorbed}");
     }
 
     /// <summary>★戦闘ログの書式の番人（2026-08-10・作者指定「yyyy/mm/dd『イギリスがポルトガルに陸戦で快勝（戦勝点+n）』」）。

@@ -33,7 +33,7 @@ public sealed record SimMetrics(
     int TotalColonies,                // 全勢力（清等を含む）の植民地総数（保存の確認）
     double TradeVolume,               // 世界市場の直近総取引量
     int WorldPricesMoved,             // 初期1.0から動いた世界価格の財数（価格発見）
-    int IndependentColonies = 0,      // 独立した旧植民地の数（監査2026-07-12 死12：保存検査＝保有＋独立が初期総数と一致）
+    int IndependentColonies = 0,      // 独立した旧植民地の数（監査2026-07-12 死12：保存検査＝保有＋独立が初期総数と一致）。★回1-1：独立の確定で本土になった植民地格の州（SovereignColonialRegions）を含む
     int PromotedColonies = 0,         // 州へ昇格した植民地の累計（2026-08-09＝保存検査の第3の出口）
     int AbsorbedColonies = 0,         // ★J-006（2026-09-05）：同名州の保有国へ渡って消滅した Colony＝第4の出口
     int InitialColonies = -1,         // 構築時の植民地総数（-1＝未捕捉の旧経路＝検査スキップ）
@@ -174,7 +174,7 @@ public static class Metrics
             if (Math.Abs(sim.Market.Price[g] / init - 1.0) > PriceMovedThreshold) moved++;
         }
         return new SimMetrics(sim.Year, nations, deadEnd, indSpread, wars, totalCol, tradeVol, moved,
-            sim.Diplomacy.IndependentColonies.Count, sim.Diplomacy.PromotedColonies, sim.Diplomacy.AbsorbedColonies, sim.Diplomacy.InitialColonyCount, deadEndNames);
+            sim.Diplomacy.IndependentColonies.Count + sim.Diplomacy.SovereignColonialRegions, sim.Diplomacy.PromotedColonies, sim.Diplomacy.AbsorbedColonies, sim.Diplomacy.InitialColonyCount, deadEndNames);
     }
 }
 

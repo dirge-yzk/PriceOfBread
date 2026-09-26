@@ -101,4 +101,121 @@ public class ColonyPromotionTests
         Assert.True(sim.Diplomacy.PromotedColonies >= promotedBefore + 1, "保存検査の台帳（PromotedColonies）が進んでいない");   // 同じ期に他の植民地格の州も昇格しうる（重い入植率）
         Assert.Contains(sim.Diplomacy.Log.Concat(w.PendingLog), l => l.Contains("カナダ") && l.Contains("昇格"));
     }
+
+    // ============================================================================================
+    // ★回1-1（植民地の型統合の後始末・2026-09-26）の番人＝機構と不変条件だけ（帯は batch10 が見る）。
+    //   割譲・建国・再併合・独立の確定は Territory.Rehome の1本を通る：格・支配度・中核民族の割合・植民地財を新しい持ち主から見た関係で付け直す。
+    //   ⚠講和は StepWars の中でしか呼ばれない＝戦勝点を手で置いて ResolvePeace を直接踏む（RevoltIgnitionTests の段7と同じ流儀）。
+    // ============================================================================================
+
+    /// <summary>col-01：侵略で奪った抽象標的の植民地は、住民ごと州になる（旧＝抽象標的の Colony は住民数が未設定のまま州化され、住民0の州になった）。</summary>
+    [Fact]
+    public void 回1_1_侵略で奪った植民地は住民ごと州になり台帳が閉じる()
+    {
+        var sim = new MultiNationSim([NationConfig.Britain(), NationConfig.France()], seed: 83) { DiplomacyFrozen = true };
+        var w = sim.Nations[0].World; var bp = w.SelfPower!;
+        var target = sim.Diplomacy.Powers.First(p => p.Nation is null && p.ColonyList.Count > 0 && p.ColonyList.All(c => !w.Regions.Exists(r => r.Name == c.Name)));
+        var cols = target.ColonyList.ToArray();
+        double natives = 0;
+        foreach (var col in cols)
+        {
+            Assert.Equal(col.Population * sim.Coef.ColonialPopScale, col.PopSize);   // 住民数は作成時に人口ウェイト×換算（1か所）
+            natives += col.PopSize;
+        }
+        Assert.True(natives > 0, "前提が崩れた：抽象標的の植民地に住民がいない");
+        bp.Military = 1e6;   // 屈服線を必ず越える（判定の中身ではなく、屈服した後の州化を見る）
+        double popBaseline = w.TotalPopulation - w.PopulationDelta;
+        var money = new MoneyConservation(w);
+        double before = w.TotalPopulation;
+        Assert.True(sim.Diplomacy.Subjugate(bp, target, sim.Coef));
+        Assert.Empty(target.ColonyList);
+        foreach (var col in cols)
+        {
+            var reg = w.Regions.Single(r => r.Name == col.Name);
+            Assert.Equal(RegionTier.Colonial, reg.Tier);
+            Assert.Equal(col.PopSize, reg.SumPopulation(), 9);   // 現地住民がそのまま州の人口（入植者0）
+            Assert.All(reg.Pops, p => Assert.Equal(0.0, p.CoreEthnicShare * p.Size));   // 現地住民は宗主の中核民族ではない
+        }
+        Assert.Equal(before + natives, w.TotalPopulation, 6);   // 奪った植民地の人口が消えない
+        Assert.True(Math.Abs((w.TotalPopulation - w.PopulationDelta) - popBaseline) < 1e-3, "人口保存の破れ（州化の PopulationDelta 記帳漏れ）");
+        money.Check(w);
+    }
+
+    /// <summary>col-03・col-04：割譲した本国の州は編入（Integrated）で入り、主流文化の違う勝者の中核民族にはならない。主流文化が同じなら割合を保つ。
+    /// 支配度は動かさない（回1-1 の計測で支配度0を差し戻した＝割譲の翌四半期に分離独立が起きる）。</summary>
+    [Fact]
+    public void 回1_1_割譲した本国の州は編入の格で入り民族は勝者から見て付け直る()
+    {
+        foreach (bool sameCulture in new[] { false, true })
+        {
+            var sim = new MultiNationSim([WorldData.ByName("フランス"), WorldData.ByName("スペイン")], seed: 1789) { DiplomacyFrozen = true };
+            var fr = sim.Nations[0].World; var es = sim.Nations[1].World;
+            // 主流文化は Diplomacy.Step の月次同期が書く（凍結した外交では走らない）＝同期の結果をここで置く
+            fr.SelfPower!.Culture = fr.Region.Culture;
+            es.SelfPower!.Culture = sameCulture ? fr.Region.Culture : es.Region.Culture;
+            Assert.NotEqual(fr.Region.Culture, es.Region.Culture);
+            var core0 = new System.Collections.Generic.Dictionary<string, double[]>();
+            var tier0 = new System.Collections.Generic.Dictionary<string, RegionTier>();
+            var dom0 = new System.Collections.Generic.Dictionary<string, double>();
+            foreach (var r in es.Regions) { core0[r.Name] = r.Pops.Select(p => p.CoreEthnicShare).ToArray(); tier0[r.Name] = r.Tier; dom0[r.Name] = r.Dominance; }
+            var mine = new System.Collections.Generic.HashSet<Region>(fr.Regions);
+            var war = new War { A = fr.SelfPower, B = es.SelfPower!, Score = 1.3 };   // 決定的（割譲の線1.2以上）・壊滅未満（属国化1.4未満）＝境界改定の1州（＋制海権があれば植民地格の州）
+            sim.Diplomacy.ResolvePeace(sim.Coef, war);
+            var got = fr.Regions.FindAll(r => !mine.Contains(r));
+            Assert.Contains(got, r => tier0[r.Name] != RegionTier.Colonial);   // 本国の州が1つ移った（境界改定）
+            foreach (var reg in got)
+            {
+                // 本国の州の割譲＝編入（ゲーム中にコア化しない）・植民地格の州は植民地のまま
+                Assert.Equal(tier0[reg.Name] == RegionTier.Colonial ? RegionTier.Colonial : RegionTier.Integrated, reg.Tier);
+                Assert.Equal(dom0[reg.Name], reg.Dominance);     // 支配度は動かさない（0 にすると翌四半期に独立の戦争＝回1-1 の計測で差し戻し）
+                Assert.NotNull(reg.ColonialResources);            // null＝単一国の旧経路（植民地財が代金なしに湧く・col-02）
+                for (int i = 0; i < reg.Pops.Count; i++)
+                    Assert.Equal(sameCulture ? core0[reg.Name][i] : 0.0, reg.Pops[i].CoreEthnicShare);
+            }
+        }
+    }
+
+    /// <summary>col-03：独立が確定した国の州は本土（旧＝植民地格のまま＝議会の有権者0・所得税は植民地の率・国力に植民地の質量）。
+    /// 失敗した独立戦争の州は、再併合で元の格（植民地）のまま親へ戻る（建国の時点では格を動かさない）。民族の割合は往復で閉じる。</summary>
+    [Fact]
+    public void 回1_1_独立の確定で本土になり_失敗した蜂起は植民地の格のまま戻る()
+    {
+        foreach (bool rebelWins in new[] { true, false })
+        {
+            var sim = new MultiNationSim([NationConfig.Britain(), NationConfig.France()], seed: 83) { DiplomacyFrozen = true };
+            var pw = sim.Nations[0].World;
+            var canada = pw.Regions.First(r => r.Name == "カナダ");
+            Assert.Equal(RegionTier.Colonial, canada.Tier);
+            var natives = canada.Pops.OrderByDescending(p => p.Size).First();   // 現地住民（農民）＝宗主の中核民族ではない
+            double core0 = natives.CoreEthnicShare;
+            Assert.True(core0 < 0.25, $"前提が崩れた：現地住民の中核民族割合が低くない（{core0:F3}）＝反転の向きを見分けられない");
+            pw.PendingSecessionWars = [canada];   // 分離独立の戦争（開戦時に建国）
+            sim.StepQuarter();
+            var rw = sim.Nations.First(n => n.World.Regions.Contains(canada)).World;
+            Assert.NotSame(pw, rw);
+            Assert.Equal(RegionTier.Colonial, canada.Tier);   // 戦争の決着まで格は動かさない
+            Assert.NotNull(canada.ColonialResources);          // null＝単一国の旧経路（植民地財が代金なしに湧く・col-02）
+            Assert.True(natives.CoreEthnicShare > 0.75, $"建国で民族の割合が反転していない（旧少数派が新しい国の中核・{natives.CoreEthnicShare:F3}）");
+            var war = sim.Diplomacy.Wars.Single(x => x.CivilWarParent == pw.SelfPower && (x.A == rw.SelfPower || x.B == rw.SelfPower));
+            Assert.True(war.CivilWarSecession, "前提が崩れた：分離独立の戦争になっていない");
+            double parentSign = war.A == pw.SelfPower ? 1.0 : -1.0;
+            war.Score = parentSign * (rebelWins ? -0.6 : 0.6);
+            sim.Diplomacy.ResolvePeace(sim.Coef, war);
+            if (rebelWins)
+            {
+                // 独立の確定＝新しい国の本土（旧＝植民地格のまま＝議会の有権者0・所得税は植民地の率・国力に植民地の質量）
+                Assert.Equal(RegionTier.Core, canada.Tier);
+                Assert.Equal(1.0, canada.Dominance);
+                Assert.Contains(canada, rw.Regions);
+            }
+            else
+            {
+                sim.StepQuarter();   // 再併合は四半期末
+                Assert.Contains(canada, pw.Regions);
+                Assert.Equal(RegionTier.Colonial, canada.Tier);   // 失敗した蜂起で植民地が本土に化けない
+                Assert.NotNull(canada.ColonialResources);
+                Assert.True(natives.CoreEthnicShare < 0.25, $"再併合で民族の割合が裏返ったまま戻った（{natives.CoreEthnicShare:F3}／出発 {core0:F3}）");
+            }
+        }
+    }
 }

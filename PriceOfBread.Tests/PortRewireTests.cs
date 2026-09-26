@@ -43,7 +43,7 @@ public class PortRewireTests
         livorno.Id = newId;
         gw.Regions.Add(livorno);
         foreach (var m in livorno.Markets) { m.PrevStock = m.Stock; m.LastProduced = m.LastSold = m.LastImport = m.LastExport = m.LastShortage = 0; m.PopBought = null; }
-        livorno.ColonialResources = null;
+        livorno.ColonialResources = [];   // 本体（Territory.Rehome）と同じ＝null は単一国テストの旧経路（植民地財が代金なしに湧く・col-02）
         tw.CumulativeTradeFlow -= S; tw.PopulationDelta -= P;
         gw.CumulativeTradeFlow += S; gw.PopulationDelta += P;
     }

@@ -327,6 +327,7 @@ public sealed class Diplomacy
     }
     public List<Colony> IndependentColonies = [];   // 独立した旧植民地＝自由な供給者として世界市場に残る（資源は消えない・誰の専有でもなくなる）
     public int PromotedColonies;   // 州へ昇格した植民地の累計（2026-08-09＝植民地保存検査の第3の出口。移転でも独立でも消滅でもなく編入）
+    public int SovereignColonialRegions;   // ★回1-1（2026-09-26）：独立の確定（RegisterIndependence）で本土になった植民地格の州の累計＝植民地保存検査の「独立」の出口の州版（Colony の独立＝IndependentColonies と同じ出口）。検査の台帳だけ＝力学は読まない
     public int AbsorbedColonies;   // ★J-006（2026-09-05）：同名の州を既に持つ国へ渡った植民地＝Colony オブジェクトが消滅（領土は州として保有済み）。保存検査の第4の出口（実測＋独立＋昇格＋吸収＝初期）
     public int InitialColonyCount;   // 構築時の植民地総数（監査2026-07-12 死12：Validationの保存検査の基準線＝保有合計＋独立数が常にこれと一致するはず）
     /// <summary>★初期の植民地質量（2026-08-28）＝質量→個数単位の換算の錨（構築時に1回）。忠実度の参照値は旧個数単位なので
@@ -455,7 +456,17 @@ public sealed class Diplomacy
     /// <summary>分離独立の建国時に呼ぶ：旧宗主との間に講和相当の状態（残留緊張）を張る。従属は張らない（独立国）。
     /// ⚠2026-09-26（作者裁定 Q9）：休戦の仕組みは丸ごと削除した（19世紀の講和に不戦年限の条項は無く、再戦の抑えは厭戦と財政が担う）。</summary>
     internal void RegisterIndependence(Power parent, Power child, Coefficients c)
-        => ResetTensionTo(Key(parent, child), c.PostWarTension, TensionReason.Secession);
+    {
+        ResetTensionTo(Key(parent, child), c.PostWarTension, TensionReason.Secession);
+        // ★回1-1（col-03）：独立の確定＝新しい国の州は本土（旧＝植民地格のまま＝独立した旧植民地の議会の有権者が0・所得税が植民地の率・国力に植民地の質量）。
+        //   植民地格だった州は「独立」の出口として数える（Validation「植民地の保存」＝保有＋独立＋昇格＋吸収＝初期）。
+        if (child.Nation is { } cw)
+            foreach (var r in cw.Regions)
+            {
+                if (r.State == RegionState.Active && r.Tier == RegionTier.Colonial) SovereignColonialRegions++;
+                Territory.Rehome(r, Territory.Rehoming.Sovereign);
+            }
+    }
 
     /// <summary>国名の動的変更（統一・formable・独立国家の命名）。BaseName は不変＝忠実度照合・宗主同一性・集計鍵は壊れない。
     /// 表示名は世界に一つ（先着＝二つのドイツ禁止）。以後の全ログ・UIは発話時に Power.Name を読むため自動で新名になる。</summary>
@@ -1262,7 +1273,8 @@ public sealed class Diplomacy
     }
 
     // 緊張100以上が WarTriggerMonths 続いたペアを開戦（攻守区別なし）。
-    // 戦う意味があるか：双方が経済国ならイデオロギー/安全保障でありうる。一方が抽象勢力（清）なら、奪う植民地も国庫も無ければ無意味＝出涸らしは攻めない（賠償0の無意味な連戦を防ぐ）。
+    // 戦う意味があるか：双方が経済国ならイデオロギー/安全保障でありうる。一方が抽象勢力なら、奪う植民地が無ければ無意味＝出涸らしは攻めない。
+    // ★回1-1（2026-09-26）：旧「国庫が SpoilsWorthThreshold を超えれば攻める価値がある」の枝は削除＝抽象標的は賠償を払わない（ResolvePeace＝貨幣経済を持つ2国の間だけ）ので国庫は戦果にならない。
     private bool WorthFighting(Power a, Power b, Coefficients c)
     {
         // ★★到達できない相手には宣戦しない（点火2026-08-01）。
@@ -1299,7 +1311,7 @@ public sealed class Diplomacy
             && Projection(a, b, c) < c.DefendProjectionMin && Projection(b, a, c) < c.DefendProjectionMin) return false;
         if (a.Nation is not null && b.Nation is not null) return true;
         var target = a.Nation is null ? a : b;
-        return target.ColonyList.Count > 0 || target.Treasury > c.SpoilsWorthThreshold;
+        return target.ColonyList.Count > 0;
     }
 
     // 阿片緊張（2026-07-17／禁制品doc C3 で法へ移行 2026-07-30）：禁令中の国は、アヘン産地植民地を持ち**なお輸出を許可している**国との緊張を毎月積む
@@ -2471,18 +2483,14 @@ public sealed class Diplomacy
                     for (double takeBudget = -parentScore; takeBudget >= c.RevoltExpansionScore; takeBudget -= c.RevoltExpansionScore)
                     {
                         int before = cwrW.Regions.Count;
-                        if (!CedeTerritory(c, cwpW, cwRebel, cwParent.Name)) break;   // 圏外／最後の1州＝これ以上は取れない
+                        // 取った州は**建国路と同じ作法**（Territory.Rehome の建国＝中核民族の反転・併合の荷物0）で付け直す（回1-1）。
+                        //   ⚠割譲の作法で付け直すと、再併合の一括反転（ApplyReintegrations）が片道だけ掛かり、返った州の民族比が裏返ったまま親に残る。
+                        if (!CedeTerritory(c, cwpW, cwRebel, cwParent.Name, how: Territory.Rehoming.Seceded)) break;   // 圏外／最後の1州＝これ以上は取れない
                         if (cwrW.Regions.Count <= before) break;                      // 二重防御（移転が起きていないなら回さない）
-                        // 取った州を**建国路と同じ作法**へ揃える。Id の再付与・市場のリセット・ColonialResources の破棄は TransferRegion が
-                        // 既に済ませているので、残るのは MultiNationSim.SpawnNation の 3) の**2行だけ**（新しい規則は書かない）：
-                        //   ⚠TransferRegion は勝者の Regions **末尾**へ Add する（敗者側の遷都はリスト順を変えるが勝者側は不変）＝直前に動いた州はこれ。
-                        //   ・中核民族の反転＝独立の建国と同じ（「所属国の中核民族に属する割合」の基準が親から反乱国へ移る）。これを書かないと
-                        //     再併合の一括反転（ApplyReintegrations）が**片道だけ**掛かり、返った州の民族比が裏返ったまま親に残る。
-                        //   ・併合の荷物は0＝内戦で動く州は「外から連れてきた人口」ではない（案Y・SpawnNation の AnnexBaggage=0 と同じ理由）。
-                        var moved = cwrW.Regions[^1];
-                        foreach (var p in moved.Pops) p.CoreEthnicShare = 1.0 - p.CoreEthnicShare;
-                        moved.AnnexBaggage = 0;
                     }
+                // ★回1-1（col-03）：分断の固定＝反乱国は独立国として残る＝独立の確定と同じ付け直し（本土・支配度1）。
+                //   緊張の置き直しは直後の EndWar が講和の値で上書きする（分離戦の反乱勝ちの枝と同じ順）。
+                RegisterIndependence(cwParent, cwRebel, c);
                 return;
             }
             bool rebelWon = parentScore < 0;
@@ -2584,15 +2592,9 @@ public sealed class Diplomacy
                         Simulation.PromoteColonyToRegion(winWr, c, col, RegionTier.Colonial);
                     }
                     else { loser.ColonyList.RemoveAt(k); captured++; if (winner.Nation is not null) { AbsorbedColonies++; Log.Add($"{_year} {col.Name}は{winner.Name}が既に州として保有＝植民地オブジェクトは消滅"); } else winner.ColonyList.Add(col); }   // ★J-006（2026-09-05）：同名州を持つ勝者へは Colony を渡さない（往復の禁止）。抽象標的（Nation==null）だけ旧どおりリストで持つ
-                    if (winner.Nation is { EthnicEnabled: true } wWin)   // 征服＝異民族を抱える→各popの中核民族割合↓（倍率排除⑧/item4：一律−0.06でなく**抱える異民族の相対規模**から創発）
-                    {
-                        // 希釈＝植民地の異民族人口(core=0)を国民に混ぜた加重平均の縮小率＝homePop/(homePop+異民族)。
-                        // 小国が大領土を併合＝強く希釈／大国が小植民地＝ほぼ無影響（一律の手書き0.06を撤去）。
-                        double homePop = System.Math.Max(1e-9, wWin.TotalPopulation);
-                        double foreign = c.ConquestForeignWeight * System.Math.Max(0, col.PopSize);
-                        double dilution = homePop / (homePop + foreign);
-                        foreach (var rr in wWin.Regions) foreach (var pp in rr.Pops) pp.CoreEthnicShare = System.Math.Max(0.05, pp.CoreEthnicShare * dilution);
-                    }
+                    // ★回1-1（col-04・mil-18・2026-09-26）：旧＝ここで勝者の**全POP**の中核民族割合を homePop/(homePop+植民地人口) で縮めていた＝二重の希釈。
+                    //   州になった植民地の住民は core=0 で作られる（PromoteColonyToRegion）ので、民族統一度（加重平均）は住民が加わるだけで既に下がる。
+                    //   本国の住民の民族は征服で変わらない（思想⑨）＝縮める式と係数 ConquestForeignWeight を削除した。
                 }
                 else k++;   // この植民地は予算に対し高すぎる＝より価値の低い次の植民地へ
             }
@@ -2639,16 +2641,24 @@ public sealed class Diplomacy
             && winner.Nation is { } wf0 && loser.Nation is { } lf0
             && Geo.DistanceKm(wf0.Latitude, wf0.Longitude, lf0.Latitude, lf0.Longitude) > c.TreatyPortWinnerDistanceKm;
         double repBase = c.ReparationGdpFraction * loser.Gdp * sa * (farCrush ? c.TreatyPortReparationMult : 1.0);
-        // 外8：抽象標的（Nation==null＝GDP=0）は上式で賠償0＝WorthFighting が Treasury で開戦を許すのに戦果ゼロの無意味な連戦になる。
-        // AbstractTargetReparations=0.3（既定）かつ決定的勝利（sa≥1）なら、敗者 Treasury のその割合を賠償原資に足す（対清戦争型＝賠償金が主戦果）。0で賠償0（旧）。
-        if (c.AbstractTargetReparations > 0 && loser.Nation is null && sa >= 1.0)
-            repBase += c.AbstractTargetReparations * Math.Max(0, loser.Treasury);
         repBase -= repCut * repBase;   // #21 会議外交：会議度に応じ賠償を削る（repCut=0＝現行ビット恒等・x−0*x==x）。植民地/割譲は不変＝賠償のみ抑制
-        double rep = Math.Min(repBase, Math.Max(0, loser.Treasury));
-        loser.Pay(TreasuryCat.OtherOut, -rep); winner.Pay(TreasuryCat.OtherIn, rep);
-        // 賠償＝国家間の対外移転。各国の貿易収支に計上（保存則の基準）
-        if (loser.Nation is { } lw) lw.CumulativeTradeFlow -= rep;
-        if (winner.Nation is { } ww) ww.CumulativeTradeFlow += rep;
+        // ★賠償は**貨幣経済を持つ2国の間だけ**で動く（回1-1・2026-09-26・段0の番人 fis-21 が全長で発見）。
+        //   抽象標的（Nation の無い勢力）は World を持たない＝国庫も基礎貨幣も無い（Power.Treasury は台帳の外の「支払い能力の見積もり」＝Fund と同じ扱い）。
+        //   ⚠旧＝片側記帳：勝者が抽象標的だと敗者だけが −rep を記帳して金が世界から消え（seed1789 全長で 1862年 カザフ草原←ポーランド 1,009・1932年 アチェ←マイソール 888）、
+        //     逆向き（外8 AbstractTargetReparations＝抽象標的の国庫の3割）は受け手だけが +rep を記帳して金が世界の外から湧いた。
+        //   保存則が閉じる形は「受け手の無い支払い・出し手の無い受け取りは起きない」の1つだけ（世界の基礎貨幣は鋳造と不換発行でしか動かない）。
+        //   ⇒ どちらかが抽象標的なら賠償は0。抽象標的との戦争の戦果は植民地（土地と住民）だけ。外8 の係数は読み手ごと削除した。
+        //   ⚠WorthFighting の「国庫が閾値（SpoilsWorthThreshold＝1万）を超える抽象標的は攻める価値がある」の枝も削除した（抽象標的の国庫は world.json の 500〜4,000 で、
+        //     賠償で増えなくなった今は恒に閾値未満＝読み手ごと不発）。
+        double rep = 0.0;
+        if (loser.Nation is { } lw && winner.Nation is { } ww)
+        {
+            rep = Math.Min(repBase, Math.Max(0, loser.Treasury));   // 払える範囲（外交層の財布＝同期窓の内側の現在値）
+            loser.Pay(TreasuryCat.OtherOut, -rep); winner.Pay(TreasuryCat.OtherIn, rep);
+            // 賠償＝国家間の対外移転。両国の貿易収支に計上（保存則の基準）
+            lw.CumulativeTradeFlow -= rep;
+            ww.CumulativeTradeFlow += rep;
+        }
         Log.Add($"{_year} {winner.Name}が{loser.Name}に勝利（戦勝点{sa:0.00}）:{(captured > 0 ? $"植民地+{captured}[{string.Join("/", captNames)}]・" : "")}賠償{rep:F0}");   // 3桁区切りは全廃（作者裁定2026-08-10・外交ログはUIの出来事へそのまま出る）
 
         // 決定的敗北の本国帰結（doc改善#3）：敗戦ショックで正統性を揺るがし（→Politics 遷移＝敗戦→革命・仏1870/露1917）、
@@ -2780,7 +2790,7 @@ public sealed class Diplomacy
     /// 保存則：移転州の貯蓄総額 S・人口 P を賠償/越境移民と同型に**両国で相殺**（loser−/winner+）＝世界保存。Id は勝者内で一意の非ゼロを再付与。
     /// 選択：takePrize=false＝**最小GDPの非首都州**（境界改定＝アルザス・ロレーヌ型）。takePrize=true＝**最大GDPの州（首都を含む）**＝必要な土地を奪う（圧勝の併合）。
     /// 首都(Id0)を奪った場合は残active州から新首都を昇格＝「首都を持つ」不変条件を維持（国家消滅は別機構）。最後の1州だけは残す。決定論：tiebreak は Id 昇順・新規RNG draw なし。</summary>
-    private bool CedeTerritory(Coefficients c, World loser, Power winner, string loserName, bool takePrize = false)
+    private bool CedeTerritory(Coefficients c, World loser, Power winner, string loserName, bool takePrize = false, Territory.Rehoming how = Territory.Rehoming.Ceded)
     {
         if (winner.Nation is not { } ww) return false;   // 抽象勢力は受け皿の World を持たない（呼び出し側で gate 済みだが二重防御）
         int activeCount = 0; foreach (var r in loser.Regions) if (r.State == RegionState.Active) activeCount++;
@@ -2843,13 +2853,13 @@ public sealed class Diplomacy
             if (better) { best = g; cede = r; bestDist = dist; }
         }
         if (cede is null) return false;   // 移転できる州がない（投射圏内に候補なし＝賠償のみ）
-        TransferRegion(c, loser, winner, ww, cede, loserName);
+        TransferRegion(c, loser, winner, ww, cede, loserName, how);
         return true;   // ★是正（監査2026-09-02 #23）：戻り値＝実際に移転したか。_pendingRevanchの予約可否に使う（下）
     }
 
     /// <summary>州の物理移転（★2026-08-31にCedeTerritoryから抽出＝ビット同一・従属の一般化V2の複数割譲と共用）。
     /// 首都喪失の遷都・保存調整・被征服不満・GoodsBalance維持を一括で行う。</summary>
-    private void TransferRegion(Coefficients c, World loser, Power winner, World ww, Region cede, string loserName)
+    private void TransferRegion(Coefficients c, World loser, Power winner, World ww, Region cede, string loserName, Territory.Rehoming how = Territory.Rehoming.Ceded)
     {
         bool wasCapital = cede.Id == 0;
         // 保存量＝移転州の貯蓄総額・人口（**同一値を両辺に使い浮動小数ズレ回避**＝TotalMoney/TotalPopulation の実減と CumulativeTradeFlow/PopulationDelta の調整をビット一致させる）。
@@ -2879,10 +2889,10 @@ public sealed class Diplomacy
                 loser.Regions.Remove(newCap); loser.Regions.Insert(0, newCap);   // 外9：World.Region(=Regions[0]) が本国市場/賃金/軍需/移民指標を参照するため、新首都をリスト先頭へ並べ替え＝Id0 と Regions[0] の乖離（首都の二重化）を防ぐ
             }
         }
-        // GoodsBalance 維持：移転先の次回検査前に財収支恒等式を保つ（分離Lockと同手順）。
-        foreach (var m in cede.Markets) { m.PrevStock = m.Stock; m.LastProduced = m.LastSold = m.LastImport = m.LastExport = m.LastShortage = 0; m.PopBought = null; }
-        cede.ColonialResources = null;   // 敗者の植民地財を産まないよう国レベル情報をリセット（World複製フィールドは次回MonthSettleが上書き）
-        foreach (var p in cede.Pops) p.Militancy = Math.Min(1, p.Militancy + c.CededColonyMilitancy);   // 被征服の不満（CoreEthnicShareはそのまま持ち込み＝EthnicUnity希釈が自動創発）
+        // 格・民族・市場の台帳・植民地財を新しい持ち主から見た関係で付け直す（回1-1＝割譲・建国・再併合の1本・支配度は割譲では動かさない）。
+        //   民族の一致＝両国の主流文化が同じか（違えば割譲州の住民は勝者の中核民族ではない＝col-04）。
+        Territory.Rehome(cede, how, sameCore: loser.SelfPower is { } lsp0 && lsp0.Culture == winner.Culture);
+        foreach (var p in cede.Pops) p.Militancy = Math.Min(1, p.Militancy + c.CededColonyMilitancy);   // 被征服の不満
         // ★国債の保有台帳（2026-09-21）：割譲州のPOPが持つ敗者の国債は**敗者の対外債へ振替**＝勝者の対外債権になる（金は動かない）。
         //   ★史実：フランクフルト条約1871＝ドイツはフランス国債を一切継承せず、アルザス＝ロレーヌの住民が持つフランス国債はフランスへの請求権のまま残った。
         //   ⚠勝者の按分継承（ツューリヒ1859・ヴェルサイユ254条）は国家間の債務分担の取り決めで、持ち手の請求権の債務者は変わらない。
@@ -2950,7 +2960,7 @@ public sealed class Diplomacy
         double cost = c.WarCostPerMilitary * p.Military;
         double pay = Math.Min(Math.Max(0, p.Treasury), cost);
         // ★是正（監査2026-09-02 #27）：抽象標的（Nation==null）はWorld外の財布＝pay分の受け手が無いまま黙って蒸発していた
-        //（貢納・戦利品で増えるTreasuryがSpoilsWorthThreshold判定に使われるので実害あり）。実在国のみ実際に引く＝抽象標的は支払い能力だけ評価。
+        //（当時は貢納・戦利品で増えるTreasuryが開戦の価値の判定 SpoilsWorthThreshold に使われていた＝回1-1で判定ごと削除）。実在国のみ実際に引く＝抽象標的は支払い能力だけ評価。
         if (p.Nation is { } w)
         {
             p.Pay(TreasuryCat.WarCost, -pay);
