@@ -253,6 +253,10 @@ public partial class GameViewModel
     //   ⚠この撤去で「UI規律の唯一の説明文の例外」（加入/離脱の確認モーダル本文）も消える＝説明文は画面から全廃された。
     /// <summary>兌換カバー率を出すか。★金本位に関わるとき（加入中・志向あり・兌換停止中）だけ意味を持つ（2026-08-02の整理）。</summary>
     public bool CoverVisible => _player.MonetaryEnabled && (_player.OnGoldStandard || _player.Policy.MonetaryTarget >= 2 || _player.GoldStandardSuspendedInCrisis);
+    /// <summary>貸出金利を出すか。★年率換算（World.LoanRateAnnual）の係数が0のあいだは常に0.0%＝エンジンに量が無い＝行ごと隠す（2026-09-26・点火すれば自動で出る）。</summary>
+    public bool LoanRateVisible => _player.Coef.LoanSpread > 0 || _player.Coef.PolicyRateLoanWeight > 0;
+    /// <summary>家計債務を出すか。★書き手（借入と返済）と同じ門＝個人債務の主フラグが0のあいだは残高が常に0＝行ごと隠す（2026-09-26）。</summary>
+    public bool HouseholdLoanVisible => _player.Bank is not null && _player.Coef.PopDebtDriven > 0;
     /// <summary>★総動員のスイッチ（戦争タブの総動員トグル）。総動員中は「復員」に変わる。</summary>
     public string MobilizeButtonText => PlayerMobilized ? "復員" : "総動員";
     [RelayCommand] private void ToggleMobilize()

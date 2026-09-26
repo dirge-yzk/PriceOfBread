@@ -107,7 +107,7 @@ public sealed class Colony
     public double Savings;                              // 蓄え（搾取の分け前が貯まり、本国財の購入＝捕囚市場で還流する）
     public double Militancy;                            // 独立への不満（搾取×識字＝接触で育つ。産出を乱し、本国の抑えを超えると独立）
     public double Literacy = 0.05;                      // 識字（開発との接触でゆっくり上がる＝教育された植民地ほど独立を求める）
-    public double Infra;                                // R13：この植民地固有の開発度。所有国の国家開発度へ緩やかに収束するが、征服/独立でオブジェクトごと移動＝開発済み植民地を奪えば産出を引き継ぎ・独立後も凍結しない。ColonialInfraPerColony=0（既定）では未使用＝現行と厳密一致
+    public double Infra;                                // R13：この植民地固有の開発度。所有国の国家開発度へ緩やかに収束するが、征服/独立でオブジェクトごと移動＝開発済み植民地を奪えば産出を引き継ぎ・独立後も凍結しない。ColonialInfraPerColony=0 なら未使用＝旧と厳密一致（★ 2026-07-15 点火＝既定1.0）
     // --- 入植と州昇格（2026-08-09・作者裁定2026-08-08「植民地州昇格＝実装」。設計原典＝docs/202607/20260731_植民地のラベル化_部分完了.md §3-3d）---
     public double SettlerSize;                          // 本国からの入植者（1単位=1000人）。送出popから物理移転（PopulationDeltaで台帳を閉じる＝湧かない）。過半数（ColonyPromotionCoreShare）で州昇格
     public double SettlerSavings;                       // 入植者の持参金の蓄え（送出popのSavingsから運搬＝CumulativeTradeFlowで台帳を閉じる）。昇格時に新州のpopへ移す

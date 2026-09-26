@@ -224,7 +224,7 @@ public static class Government
         //   このとき目標は政策の意思でなく**正貨のカバー率を守るための帰結**＝カバー率が目標を下回れば上げ、十分なら下げる。
         //   ⚠新しい概念は1つも置かない：目標カバー率は既存の再加入条件（GoldCoverMin×GoldRejoinCoverMargin）をそのまま読む。
         //   自己安定する：金利↑→PolicyRateCapitalDraw で正貨が来る→カバー率が戻る→金利↓（★史実＝誰も金融政策の自律を選ばなかった）。
-        //   既定 TrilemmaRateGate=0 で下の分岐に入らず＝厳密恒等。
+        //   TrilemmaRateGate=0 なら下の分岐に入らず＝厳密恒等（★ 2026-08-13 点火＝既定1.0）。
         double rateTarget = Q5(Math.Clamp(p.InterestRateTarget, 0, 1));
         // ★銀の段の軽い規律（SilverLightDiscipline・2026-08-21・**live=1**）：金利防衛（バンクレート）は発券銀行制度＝金の段の制度。
         //   1783年の銀正貨国に金利レバーの自動化を課すと約60カ国のレバーが死ぬ（19-6差し戻しの根①）＝銀の段では自動化しない。

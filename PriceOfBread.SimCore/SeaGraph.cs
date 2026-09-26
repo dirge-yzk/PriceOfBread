@@ -351,7 +351,7 @@ public static class SeaGraph
         }
     }
 
-    private static readonly System.Collections.Concurrent.ConcurrentDictionary<(int, int, int), int> NearestCache = new();   // 0.1°量子化＋出港予算の1/1000量子化＝有界（貿易重心が毎四半期動いても鍵は格子に落ちる）・決定論
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<(int, int, int), int> NearestCache = new();   // 0.1°量子化＋出港予算の1/1000量子化＝有界（照会点は州・首都・港の座標と、運河の通行料が毎四半期作る交易の重心＝動いても鍵は格子に落ちる）・決定論
 
     /// <summary>接ぎ木の「出港の一歩目」免除に上限を掛ける係数（<see cref="Coefficients.SeaStitchLeadBudgetMult"/>・2026-08-16）。
     /// ⚠SeaGraph は完全静的な地理データ層で、Coefficients を配線する経路が構造的に無い（World も Simulation も知らない・
@@ -488,7 +488,7 @@ public static class SeaGraph
     }
 
     /// <summary>03手順7：最短路の海盆別距離分解（km）。リスク線積分 risk=1−exp(−λ Σ_b 敵支配度_b×km_b/1e4) の基礎。
-    /// 辺の海盆＝両端が同盆ならその盆・跨ぎは半々。キャッシュ＝(s,t,設定)（tは重心の最寄りノード＝四半期でほぼ不変＝有界）。</summary>
+    /// 辺の海盆＝両端が同盆ならその盆・跨ぎは半々。キャッシュ＝(s,t,設定)（s・t＝売り手と買い手の州の最寄りの海ノード＝州の座標は動かない＝有界）。</summary>
     private static readonly System.Collections.Concurrent.ConcurrentDictionary<(int, int, int), double[]> RouteBasinCache = new();
     public static double[] RouteBasinKm(int s, int t, bool suezOpen, bool panamaOpen)
     {

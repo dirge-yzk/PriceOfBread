@@ -479,7 +479,7 @@ public sealed class World
     public double InterestRate { get; internal set; }    // 金利（0..1・現在値）。金融政策＝低いほど銀行が貸す（信用ブーム→投資加速・バブル）、高いほど引締（安定・成長鈍化）
     /// <summary>実効の貸出金利（**年率**）。無次元の政策レバー <see cref="InterestRate"/> を年率へ換算する**唯一の地点**（金利doc B1・2026-07-30）。
     /// 式は <c>Credit.Step</c> の loanRate と同一（同順＝ビット一致）。LoanSpread / PolicyRateLoanWeight が既定0のあいだは 0＝利息なし
-    /// ＝「UIに出すべき量がエンジンに存在しない」状態そのものを数値で見せる（B4の点火で意味を持つ）。</summary>
+    /// ＝エンジンに量が無い（B4の点火で意味を持つ）。★画面はその間、貸出金利の行ごと隠す（2026-09-26・点火まで出さない）。</summary>
     public double LoanRateAnnual => Coef.LoanSpread + Coef.PolicyRateLoanWeight * InterestRate;
 
     // --- 政治（§9-E／§A-11・段3）---

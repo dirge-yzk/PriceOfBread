@@ -291,7 +291,8 @@
         <!-- ★2026-08-31作者指示：物価・為替・貸出金利は縦並び（他のデータ行と同じ1行1項目）
              ★2026-09-23（作者指示「金融が縦に長すぎる。二段組にする」）：データ行6本を**そのまま**左右2列へ振り分けた
              （中の Grid は1文字も変えていない＝値の位置・書式・ホバーは不変）。6行→3行で送りが約80px縮む。
-             ⚠兌換カバー率だけが条件付き非表示（CoverVisible）なので**右列の最下段**に置く＝消えたときに空くのが列の末尾だけになる。
+             ⚠条件付き非表示の行（貸出金利＝LoanRateVisible・家計債務＝HouseholdLoanVisible・兌換カバー率＝CoverVisible）は**各列の最下段**に置く＝消えたときに空くのが列の末尾だけになる。
+             ★2026-09-26（外部レビューの検討 項目13前）：貸出金利と家計債務は、エンジンに量が立つ係数（年率換算の2本／個人債務の主フラグ）が0のあいだは行ごと隠す（点火すれば自動で出る）。
              段間は上のブロック（収支・台帳）と同じ *,14,* に揃える。ScrollViewer は足さない（縦送りは GameView の DockScroll が持つ）。 -->
         <Grid ColumnDefinitions="*,14,*">
             <StackPanel Grid.Column="0" Spacing="4">
@@ -303,19 +304,19 @@
                     <TextBlock Text="為替" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontBody}"/>
                     <TextBlock Grid.Column="1" Text="{Binding ExchangeRateText}" Classes="val" VerticalAlignment="Center"/>
                 </Grid>
-                <Grid ColumnDefinitions="*,Auto" Margin="0,2,0,4">
+                <Grid ColumnDefinitions="*,Auto" Margin="0,2,0,4" IsVisible="{Binding LoanRateVisible}">
                     <TextBlock Text="貸出金利" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontBody}"/>
                     <TextBlock Grid.Column="1" Text="{Binding LoanRateText}" Classes="val" VerticalAlignment="Center"/>
                 </Grid>
             </StackPanel>
             <StackPanel Grid.Column="2" Spacing="4">
                 <Grid ColumnDefinitions="*,Auto" Margin="0,2">
-                    <TextBlock Text="家計債務" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontBody}"/>
-                    <TextBlock Grid.Column="1" Text="{Binding HouseholdLoanText}" Classes="val" VerticalAlignment="Center"/>
-                </Grid>
-                <Grid ColumnDefinitions="*,Auto" Margin="0,2">
                     <TextBlock Text="損失の負債化" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontBody}"/>
                     <TextBlock Grid.Column="1" Text="{Binding LossFinancedText}" Classes="val" VerticalAlignment="Center"/>
+                </Grid>
+                <Grid ColumnDefinitions="*,Auto" Margin="0,2" IsVisible="{Binding HouseholdLoanVisible}">
+                    <TextBlock Text="家計債務" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontBody}"/>
+                    <TextBlock Grid.Column="1" Text="{Binding HouseholdLoanText}" Classes="val" VerticalAlignment="Center"/>
                 </Grid>
                 <Grid ColumnDefinitions="*,Auto" Background="Transparent" ToolTip.ShowDelay="200" IsVisible="{Binding CoverVisible}" Margin="0,0,0,4">
                     <ToolTip.Tip><TextBlock Text="{Binding CoverTip}" FontSize="{StaticResource FontSmall}"/></ToolTip.Tip>

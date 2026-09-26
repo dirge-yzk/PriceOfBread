@@ -168,7 +168,7 @@ public static class Ideologies
         eraSoc  = (1.0 - g) * eraSoc  + g * devSoc;
         eraComm = (1.0 - g) * eraComm + g * devComm;
         eraImp  = (1.0 - g) * eraImp  + g * devImp;
-        // ★AUD-04（2026-09-03）：ファシズムにも同じ器を与える。⚠FascismGateFromDevelopment=0（既定）では
+        // ★AUD-04（2026-09-03）：ファシズムにも同じ器を与える（★ 2026-09-05 点火＝既定1.0）。⚠FascismGateFromDevelopment=0 なら
         //   下の混合は eraFasc を1ビットも変えない（gF=0 ＝ 恒等）。点火時は「戦間期の暦年」でなく
         //   「発展した社会が危機に落ちたか」から開く＝台本でなく条件で書く（規律①）。
         double gF = w.Coef.FascismGateFromDevelopment;
@@ -197,7 +197,7 @@ public static class Ideologies
         }
         // ★発見・段8（思想の読者・2026-09-04）：貿易路×メディアで届いた到達（IdeologyReach・段7が積む0..1）が解禁を開く。
         //   era = max(era, gate×reach)＝暦年/発展度で開かない国にも「商人と本と留学生」が運ぶ（原典§5-4）。
-        //   ⚠IdeologyReachGate=0（既定）＝この節は1ビットも触らない（恒等）。DiffusionWeight と同時点火（片方では動かない）。
+        //   ⚠IdeologyReachGate=0 ならこの節は1ビットも触らない（恒等）。DiffusionWeight と同時点火（片方では動かない）＝★ 2026-09-04 点火＝既定1.0。
         if (w.Coef.IdeologyReachGate > 0 && w.IdeologyReach is { } rch && rch.Length > (int)Ideology.Fascism)
         {
             double gr = w.Coef.IdeologyReachGate;

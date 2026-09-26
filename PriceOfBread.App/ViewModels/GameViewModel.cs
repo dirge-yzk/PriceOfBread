@@ -102,6 +102,7 @@ public partial class GameViewModel : ViewModelBase
     // 金融セクション（財政タブ）：1本の連結文字列でなく「ラベル｜値」行に分解（銀行なし＝与信残高/兌換系は「—」）。
     // 金利doc B1（2026-07-30）：金利だけが他11レバーと違い「目標／実効」の1行ペアを持たず、実効が別行に散っていた＝ペアへ統一。
     // 併せて年率換算（World.LoanRateAnnual）を1行で出す＝無次元レバーの目盛だけでは何%の金利なのかが盤面に無かった。
+    // ★2026-09-26：換算の係数が0のあいだ（今の既定）は行ごと隠す（LoanRateVisible）＝点火まで 0.0% を出さない。
     [ObservableProperty] private string _interestLeverLine = "";
     [ObservableProperty] private string _loanRateText = "";
     // ★2026-09-03（キューA-03／出典 トリアージ 2-A 3-6）：慢性赤字の分子（硬性ゲート LossFinancedRate の材料）と家計債務が
@@ -415,6 +416,7 @@ public partial class GameViewModel : ViewModelBase
     private int _dayInQuarterUI;        // 0..89（月/四半期境界の検出）
 
     // 三層時計に合わせた描写：日次＝価格（物価/国庫/生産詳細）、月次＝生産グラフ/POP/外交/州、四半期＝地図/法律。
+    // ⚠2026-09-26 ㊽ から国内価格は旬の最終日（PriceFlowStepDays＝5日ごと）にだけ動く＝その間の日は同じ価格を描き直す（描写は日次のまま）。
     // ＝それぞれの表示頻度をその計算頻度に一致させる（シム計算は軽く、重いのはUI再構築＝各層のcadenceで最小限に描く）。
     private void OnTick(object? sender, EventArgs e)
     {
@@ -477,7 +479,7 @@ public partial class GameViewModel : ViewModelBase
                 { var swQ = System.Diagnostics.Stopwatch.StartNew(); Refresh(includeMap: true); PerfQuarterRefreshMs += swQ.Elapsed.TotalMilliseconds; }          // 四半期＝地図含む全再構築（政策・議会・所有権が変わる層）
             }
             else if (monthCrossed) { var swM = System.Diagnostics.Stopwatch.StartNew(); Refresh(includeMap: false); PerfMonthRefreshMs += swM.Elapsed.TotalMilliseconds; }   // 月次＝地図以外（生産グラフ・POP・外交・州＝MonthSettle の層）
-            else { var swR = System.Diagnostics.Stopwatch.StartNew(); RefreshDaily(); PerfDailyMs += swR.Elapsed.TotalMilliseconds; }   // 日次＝価格のみ（物価・国庫・生産詳細＝MarketFlow の層）
+            else { var swR = System.Diagnostics.Stopwatch.StartNew(); RefreshDaily(); PerfDailyMs += swR.Elapsed.TotalMilliseconds; }   // 日次＝価格のみ（物価・国庫・生産詳細＝MarketFlow の層・価格そのものは旬の最終日に動く）
         }
         UpdateDate();           // 毎tick 日付を進める（経過日だけ安く更新＝UIスレッドを塞がず入力が通る）
         if (TabEcon) UpdateForecast();   // 予想値の毎tick更新は財政タブ表示中のみ（閉じている間は月次/四半期の Refresh 内呼び出しが最新化）

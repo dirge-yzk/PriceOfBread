@@ -14,7 +14,9 @@ public static class EconomyStep
     private const int ServiceRankCount = 3;                   // 役務の購入優先順位の階層数（下層/中流/上流＝ServiceRank の 0/1/2）
 
     // batch30高速化 §3-2（2026-07-27）：Run の作業配列を ThreadStatic で再利用＝毎呼び出しの new（約20KB×バッチ約860万回＝アロケの94%）を排除。
-    // Array.Clear のゼロ化は new と同値＝ビット恒等。ThreadStatic＝並列は試合（Simulation）単位でスレッド間共有なし＝決定論不変、
+    // Array.Clear のゼロ化は new と同値＝ビット恒等。ThreadStatic＝スレッドごとに1組（⚠ 2026-09-26 訂正：旧注記の「並列は試合単位」は古い＝今は試合の中でも
+    //   日次の相2を国ごとに並列で回す。ただし Run の呼び手は月次決算（MonthSettle＝逐次の締め境界）だけで、並列の相の中では呼ばれない。
+    //   1つのスレッドが複数の国・試合の Run を順に呼ぶが、呼ぶたびに消してから使う＝持ち越しなし＝決定論不変）、
     // Region に持たせない＝SaveGame（リフレクション全フィールド直列化）にも乗らない。conCarryApplied は null をフラグとして読むため対象外（従来どおり都度確保）。
     private sealed class Scratch
     {
@@ -1710,8 +1712,8 @@ public static class EconomyStep
                     if (p.GoodNeed > Eps)
                     {
                         // 経2（飢饉の深さ）：自給充足の収穫係数。従来は局地 HarvestFactor のみ＝作物病害(CropHealth)・緯度帯天候(WeatherBandFactor)・土地逓減(landFactor)が
-                        // 高自給の貧農の自家消費に届かず、ジャガイモ胴枯病型の飢饉の核心層が病害を免れていた。SubsistenceHarvestFullExposure=0（既定）で
-                        // subFactor=HarvestFactor＝現行と厳密一致。=1 で市場向けRGO（供給①の harvestMul・landFactor）と同じ三重積算（WeatherBandFactor×CropHealth[主食id]×landFactor）を自給にも乗せる。
+                        // 高自給の貧農の自家消費に届かず、ジャガイモ胴枯病型の飢饉の核心層が病害を免れていた。SubsistenceHarvestFullExposure=0 なら
+                        // subFactor=HarvestFactor＝旧と厳密一致。=1（★ 既定＝点火済み）で市場向けRGO（供給①の harvestMul・landFactor）と同じ三重積算（WeatherBandFactor×CropHealth[主食id]×landFactor）を自給にも乗せる。
                         double subFactor = region.HarvestFactor;
                         if (staple && coef.SubsistenceHarvestFullExposure > 0)
                         {

@@ -52,7 +52,7 @@ public static class InterestGroups
 
         // 実効参政権＝法律（World.Suffrage）。政体が含意する参政権は遷移/初期化の一回 floor-raise で法へ畳み込み済（倍率排除②）＝毎期の max(法,政体) 写像を廃止。
         var eff = w.Suffrage;
-        // 政11：力の按分基準。InterestGroupHeadcountWeight=0（既定）は純富シェア（従来恒等）。>0で人口シェアを β 加重合成
+        // 政11：力の按分基準。InterestGroupHeadcountWeight=0 なら純富シェア（従来恒等）。>0で人口シェアを β 加重合成（★ 2026-07-07 有効化＝既定0.25）
         // base=(1−β)×富シェア+β×人口シェア＝普通選挙下で貧しい多数派に頭数由来の力を与える（プロ独裁で労働者＞資本家）。
         // 参政権のない大衆は PoliticalWeight（FranchiseVoice）が0で pw=0＝頭数を増やしても議会外では効かない＝FranchiseVoice を持つ層にのみ実効。
         double beta = w.Coef.InterestGroupHeadcountWeight;

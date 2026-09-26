@@ -1055,7 +1055,7 @@ public sealed class Coefficients
     public double LandDiminishExponent = 0.7;       // landFactor=min(1,(耕地/農村人口)^これ)。農村が耕地の2倍で産出0.76倍・4倍で0.57倍。0＝逓減なし
 
     // --- 国際・世界市場（§5.1・段4d）---
-    public double TradeSpeed = 0.05;        // 交易量の速さ（価格差→輸出入量）。⚠2026-08-30 S4点火後は**既定経路で不読**（旧経路＝TradeArbitrageClearing=0時と単一国Trade.csのみ）＝掃除はS6/#17再較正と同席
+    public double TradeSpeed = 0.05;        // 交易量の速さ（価格差→輸出入量）。⚠2026-08-30 S4点火後は**既定経路で不読**（旧経路＝TradeArbitrageClearing=0時のみ。単一国の Trade.cs は 2026-09-03 に削除済み）＝掃除はS6/#17再較正と同席
     // ★裁定流量の価格差感応化（2026-08-17・休眠＝docs/202608/20260817_裁定流量の価格差感応化_完了.md）：
     //   売り手が動かせる量は アクセス×TradeSpeed×規模 だけで**価格差を見ない**（＝定数蓋・鋼市場診断β／8/15「残る律速は速度」と同一犯）。
     //   これ>0 で 裁定margin x=世界平均/自州価格−1 に応じ 流量に x/(1+x/これ) を上乗せ＝**自己有界**（x→∞で(1+これ)倍へ漸近）。
@@ -3049,7 +3049,7 @@ public sealed class Coefficients
     public double OpiumMiseryScale = 2.0;        // 素のアヘン需要の困窮ゲート＝baseNeed×clamp(これ×(1−満足),0,1)。満足な民は手を出さない・中毒は満足に関わらず必要
     public double OpiumLaborPenalty = 1.0;       // 依存が労働供給を蝕む＝成人労働×(1−これ×中毒度)（床0.5）
     public double OpiumSatisfactionPenalty = 0.0;// ⚠休眠2026-08-19（作者裁定「阿片も抜く。これは後で何とかする」）：満足度への直接【減算】＝思想⑨の裏返し。
-                                                 // ★正しい形の候補＝「中毒者は阿片を**需要する**」（財の需要として立てれば、買えなければ NeedMet が下がり満足度が自然に落ちる）。旧0.5
+                                                 // ★「中毒者は阿片を**需要する**」形は既に入っている（EconomyStep の必要量に州の中毒度を足す・困窮の門の外）＝買えなければ NeedMet が下がり満足度が自然に落ちる。この減算は⑨の二重計上（2026-09-26 訂正・棚卸し dorm-22）。旧0.5
                                                  // （旧注記：1.0はハーネス13/30＝満足↓→困窮ゲート消費↑の正帰還が強すぎ→0.5へ・2026-07-18）
     public double OpiumBanTensionRate = 2.5;     // 禁令中の輸出国との緊張蓄積/月（取締り・没収が敵意を積む＝林則徐→アヘン戦争。開戦閾値160へ数年で到達する規模）
     public double OpiumBanThreshold = 0.05;      // AIが禁令を出す全国平均中毒度の閾値（解除は×0.3のヒステリシス）
@@ -3312,8 +3312,8 @@ public sealed class Coefficients
     public double CrownlessCollapseKeepsRepublic = 1.0;
     public double ConstitutionalControlFloor = 0.45;   // 立憲化の床：ParliamentControl≥これで立憲/共和ラベル（下賜0.3<床＝弱い議会ではラベル不変＝プロイセン/明治型の自然点）
     public double ConstitutionalControlExit = 0.35;    // 立憲の下抜け（ヒステリシス）：これ以下で専制系へ戻る（墺斯曼1878停止・ちらつき防止）
-    // ⚠**読み手ゼロ**（2026-08-01の全数走査で確定）。値を変えても何も起きない。★削除しないのは、これが
-    //   「政体ラベルを決める閾値として設計されたが実装が入っていない」＝**未実装の発見**だからである（消すと発見ごと消える）。
+    // ★読み手＝CrownParliament の政体ラベルのヒステリシス（立憲系はこの下抜けの床で判定）。
+    //   ⚠ 2026-09-26 訂正（外部レビューの検討 §10-10［政治4］）：旧注記の「読み手ゼロ（2026-08-01の全数走査で確定）」は誤り。
     public double RepublicControlFloor = 0.85;         // 軸→法：PC≥これで建国参政権AdultMale（共和級の議会支配）
 
     // ==== トリレンマを閉じる（2026-08-13・docs/202608/20260812_トリレンマを閉じる_完了.md）====
@@ -3542,7 +3542,8 @@ public sealed class Coefficients
     public double SeaStitchLeadBudgetMult = 0.5;   // 【点火0.5・2026-08-16 点火梯子＝単独 exact43.3＝全16腕で最良／合成comp4で near77.4・人口28.6。1.0は地図の線は最少だが帯は0.5が上。合成comp4（12本＋海0.5）で exact41.6/near77.4/法63.2/貿易0.66・硬性緑】
 
     // ==== 反実仮想（測定専用・2026-08-21）＝「金詰まりで買えないのか」の因果テスト ====
-    // POP の購入は demand=min(desired, RemainingBudget/buyerPrice)（EconomyStep）。この蓋だけを (1+k) 倍に緩める。
+    // POP の購入は demand=min(desired, RemainingBudget/buyerPrice)（EconomyStep）。>0 でこの蓋を**丸ごと外す**（demand=desired・k の大きさは読まない）。
+    //   ⚠ 2026-09-26 訂正（棚卸し dorm-49）：旧注記の「(1+k) 倍に緩める」は実装と違っていた。
     // ⚠**採用候補ではない**：緩めた分は払えない金で買う＝保存則が破れる（leakhunt は当然赤になる）。
     //   目的は「予算が binding なら緩めたときに交易が増えるはず」という**因果の向き**を1本だけ確かめること。
     // 既定0＝分岐を1命令も通らない＝ビット恒等（×1.0 の乗算も残さない）。

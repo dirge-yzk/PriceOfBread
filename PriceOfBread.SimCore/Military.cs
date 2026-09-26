@@ -145,7 +145,7 @@ public static class Military
         // 覇権国は−20%（平時の小軍）・追う側は+20%（軍拡の無理＝afford<1と労働流出が自然に請求書を出す）。
         // ★錨は人口・歳入＝ゆっくりしか動かない量＝「兵数→脅威→目標」の外側ループが構造的に閉じている
         //   （NeedMen錨定 R2a の失敗＝相手の現在兵数を読んで ρ0.79→0.43、の是正）。
-        // ⚠既定 ArmySustainWeight=0 ではブロックごとスキップ＝厳密恒等。Diplomacy==null（単一国較正）も不発。
+        // ⚠ArmySustainWeight=0 ならブロックごとスキップ＝厳密恒等（★ 2026-08-08 採用＝既定0.25）。Diplomacy==null（単一国較正）も不発。
         double sustainTargetNat = 0, sustainNatManpower = 0;
         if (c.ArmySustainWeight > 0 && w.Diplomacy is not null && w.SelfPower is not null)
             sustainTargetNat = SustainTargetOf(w, c, out sustainNatManpower);
@@ -324,7 +324,7 @@ public static class Military
                 from.FemaleShare = adultsLeft > 1e-12 ? Math.Clamp(females / adultsLeft, 0, 1) : 0.5;
             }
             if (to.Size + amount > 1e-12) to.CoreEthnicShare = (to.CoreEthnicShare * to.Size + from.CoreEthnicShare * amount) / (to.Size + amount);   // 倍率排除⑧：徴兵は中核民族割合を運搬（軍の結束は兵士の民族構成から創発）
-            // 人1：識字・闘争度も運搬（新兵の人的資本を無償生成しない）。MigrationCarriesHumanCapital=0（既定）で from の属性を無視＝現行の to 据え置きと厳密恒等。
+            // 人1：識字・闘争度も運搬（新兵の人的資本を無償生成しない）。MigrationCarriesHumanCapital=0 なら from の属性を無視＝旧の to 据え置きと厳密恒等（★ #17 で有効化＝既定1.0）。
             if (c.MigrationCarriesHumanCapital > 0 && to.Size + amount > 1e-12)
             {
                 to.Literacy = (to.Literacy * to.Size + from.Literacy * amount) / (to.Size + amount);
@@ -344,7 +344,7 @@ public static class Military
             double adultsTo = to.Size * (1.0 - to.ChildShare);
             double femalesTo = adultsTo * to.FemaleShare;
             if (to.Size + amount > 1e-12) to.CoreEthnicShare = (to.CoreEthnicShare * to.Size + from.CoreEthnicShare * amount) / (to.Size + amount);   // 倍率排除⑧：復員も中核民族割合を運搬
-            // 人1：復員兵の識字・闘争度も市民階級へ運搬（従軍で得た闘争度＝退役軍人の政治化）。MigrationCarriesHumanCapital=0（既定）で恒等。
+            // 人1：復員兵の識字・闘争度も市民階級へ運搬（従軍で得た闘争度＝退役軍人の政治化）。MigrationCarriesHumanCapital=0 なら恒等（★ #17 で有効化＝既定1.0）。
             if (c.MigrationCarriesHumanCapital > 0 && to.Size + amount > 1e-12)
             {
                 to.Literacy = (to.Literacy * to.Size + from.Literacy * amount) / (to.Size + amount);
@@ -372,7 +372,7 @@ public static class Military
             to.ChildShare = (to.ChildShare * to.Size + from.ChildShare * amount) / newSize;
             to.OldShare = (to.OldShare * to.Size + from.OldShare * amount) / newSize;   // 倍率排除⑧：老年比率も運搬（OldShare=0の世界では恒等＝較正中立）
             to.CoreEthnicShare = (to.CoreEthnicShare * to.Size + from.CoreEthnicShare * amount) / newSize;   // 倍率排除⑧：中核民族割合も運搬
-            // 人1：階級間移動でも識字・闘争度を運搬（着地と同時の無償識字獲得を解消）。MigrationCarriesHumanCapital=0（既定）で from の属性を無視＝現行の to 据え置きと厳密恒等。
+            // 人1：階級間移動でも識字・闘争度を運搬（着地と同時の無償識字獲得を解消）。MigrationCarriesHumanCapital=0 なら from の属性を無視＝旧の to 据え置きと厳密恒等（★ #17 で有効化＝既定1.0）。
             if (c.MigrationCarriesHumanCapital > 0)
             {
                 to.Literacy = (to.Literacy * to.Size + from.Literacy * amount) / newSize;

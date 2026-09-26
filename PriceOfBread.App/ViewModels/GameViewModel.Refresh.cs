@@ -667,6 +667,7 @@ public partial class GameViewModel
         OnPropertyChanged(nameof(ParliamentText));
         OnPropertyChanged(nameof(PriceLevelText)); OnPropertyChanged(nameof(ExchangeRateText));
         OnPropertyChanged(nameof(MobilizeButtonText)); OnPropertyChanged(nameof(CoverVisible));
+        OnPropertyChanged(nameof(LoanRateVisible)); OnPropertyChanged(nameof(HouseholdLoanVisible));   // 金融の条件付きの2行（2026-09-26）
         OnPropertyChanged(nameof(InterestLever));
         OnPropertyChanged(nameof(InterestLeverEnabled));   // ★トリレンマ（2026-08-13）：兌換維持＋資本自由へ入った/出た瞬間に掴める/掴めないが切り替わる
         OnPropertyChanged(nameof(ModernizationInvest));
