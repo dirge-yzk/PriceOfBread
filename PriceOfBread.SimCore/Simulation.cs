@@ -1457,9 +1457,20 @@ public sealed class Simulation
         if (_dayInQuarter == 0) { QuarterStart(); ProbeCheck("四半期首"); }
     }
 
+    /// <summary>★信用の「月の中の定数」（2026-09-26 A2-1・結果を変えない高速化）＝名目GDP・大衆の平均満足・平均工業化。
+    /// 旧＝<see cref="Credit.Step"/> が毎日・各国で3つとも全件集計していた（作業スレッドの標本の約3割＝`World.get_Gdp`）。
+    /// 3つの入力（産出・州の状態・州とPOPの出入り・POPの規模と満足と身分・工業化・参照価格・物価水準）を書く行は、どれも
+    /// 月次決算・四半期の首と末・共有層（外交・国際市場・移民）の中にあり、日次相（価格形成・建設・信用）はどれも書かない
+    /// ＝月の初日の日次で求めた値は、月の残りの日に毎日求める値とビット単位で同じ。
+    /// ⚠ 境界相の外から入力を書く動詞はプレイヤーの侵略（<see cref="World.Invade"/>＝兵の疫病死と植民地の州化）だけで、そこで表から外す。
+    /// ⚠ 置き場＝静的な弱参照の表（World が消えれば消える）＝セーブに載らない（SaveGame はインスタンスのフィールドだけを辿る）。
+    ///   表に無いとき（ロード直後・新しい国）は、その日に求める。並列の日次から書くが、鍵は自国の World だけ（他国の値を読まない）・表はスレッド安全。</summary>
+    internal static readonly System.Runtime.CompilerServices.ConditionalWeakTable<World, System.Runtime.CompilerServices.StrongBox<(double NominalGdp, double AvgSat, double MeanInd)>> CreditMonth = new();
+
     /// <summary>純粋な日次（価格形成・建設・信用）＝**国ローカル**＝並列可。実測74%の時間がここ（timeprobe 2026-08-29）。
     /// ⚠不変条件＝自国 World/Region 以外に触れない・乱数を引かない・共有状態（Diplomacy/他国World/静的可変）へ書かない。
-    ///   これが並列化の根拠なので、共有へ触る処理を足すなら StepDayClose 側へ。番人＝armstrace の並列/逐次ビット一致。</summary>
+    ///   これが並列化の根拠なので、共有へ触る処理を足すなら StepDayClose 側へ。番人＝armstrace の並列/逐次ビット一致。
+    ///   （例外は <see cref="CreditMonth"/> だけ＝静的な表だが、書くのも読むのも自国の World の鍵だけ・表はスレッド安全。）</summary>
     public void StepDayDaily()
     {
         // 日次（鼓動）：価格形成・建設の進捗・信用。毎日わずかに動く層。
@@ -1477,7 +1488,16 @@ public sealed class Simulation
         ProbeCheck("日次価格");
         World.StepConstruction();                                                   // 工場建設の進捗（日次・労務費を毎日払って進む）
         ProbeCheck("日次建設");
-        Credit.Step(World, World.Coef);                                             // 信用（与信・信頼）も日次で動く（速度は日数配分）
+        (double NominalGdp, double AvgSat, double MeanInd)? creditMonth = null;
+        if (World.Bank is not null)   // 銀行の無い世界では Credit.Step が何もしない＝求めない
+        {
+            bool fresh = !CreditMonth.TryGetValue(World, out var box);
+            if (box is null) { box = new(); CreditMonth.Add(World, box); }
+            if (fresh || _dayInQuarter % Calendar.DaysPerMonth == 0)
+                box.Value = (World.NominalGdp, NationalScore.MeanSatisfaction(World), World.MeanIndustrialization);
+            creditMonth = box.Value;
+        }
+        Credit.Step(World, World.Coef, creditMonth);                                // 信用（与信・信頼）も日次で動く（速度は日数配分）
         ProbeCheck("日次信用");
         // 助走中は暦を進めない（World.WarmupFrozen・2026-08-10）。Tick は「開始からの経過日数」＝年境界の唯一の読み手が
         // 豊凶ロール（MonthSettle の harvestYear）なので、止めれば助走が何年ぶんでも天候は1783年の1回きり＝時間が経たない。

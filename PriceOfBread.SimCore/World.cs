@@ -1314,7 +1314,10 @@ public sealed class World
     // MonetaryEnabled の国だけ動く（合成較正/最小テスト世界は P≡1＝MarketFlow が rp×1 で従来同値＝較正世界で恒等）。
     public double PriceLevel { get; internal set; } = 1.0;
     public bool MonetaryEnabled { get; internal set; }
-    public double NominalGdp => Gdp * (MonetaryEnabled ? PriceLevel : 1.0);   // 名目GDP＝実質×物価。国債負担はこれで測る＝デフレで実質債務↑（負債デフレ）・インフレで債務軽減
+    public double NominalGdp => NominalOf(Gdp);   // 名目GDP＝実質×物価。国債負担はこれで測る＝デフレで実質債務↑（負債デフレ）・インフレで債務軽減
+    /// <summary>実質→名目の換算（名目GDPの唯一の式）。★2026-09-26 A2-2：同じ呼び出しの中で実質と名目の両方を読む読み手が、
+    /// <see cref="Gdp"/>（州×生産者の全件走査）を1回だけ走らせて換算する口（同じ式・同じ順＝ビット単位で同じ）。</summary>
+    internal double NominalOf(double realGdp) => realGdp * (MonetaryEnabled ? PriceLevel : 1.0);
     public double ExpectedInflation { get; internal set; }   // 期待インフレ（年率・平滑）。名目金利＝実質＋これ（Fisher効果）。Fiscal が国債金利に乗せる
     // 為替レート（通貨の金価値・1.0=平価。段4-貨幣 第3a段）。金本位中は1.0固定（兌換が平価を守る）／不換は PPP(1/P)＋貿易収支で変動（インフレで対外減価）。
     // 国際市場は「局所価格×ExchangeRate＝金建て」で輸出入を判定＝不換の減価が国内インフレを相殺し貿易を絶縁（金枯渇を防ぐ）。決済は世界価格×数量の金＝保存不変。
@@ -1928,6 +1931,9 @@ public sealed class World
         }
         bool ok = Diplomacy!.Subjugate(SelfPower!, target, Coef);   // 屈服（属国化/併合）か拒否（開戦）か＝結果判定は1箇所
         if (ok) AddProximityTension(target);   // 勢力圏の衝突＝近接列強と緊張↑（グレートゲーム）。屈服して領土を得たときのみ加算
+        // ★A2-1（2026-09-26）：兵の疫病死と植民地の州化は信用の「月の中の定数」の入力＝表から外し、次の日次で求め直させる。
+        //   AI は四半期末（境界相）にしか呼ばないので何も変わらない。プレイヤーは月の途中で呼べる＝旧と同じく翌日から新しい値を読む。
+        Simulation.CreditMonth.Remove(this);
         return ok;
     }
 

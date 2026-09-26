@@ -42,11 +42,13 @@ public static class CapitalMarket
         }
         var ret = new double[n];    // 投資収益率（＝資本価格）：工業化の伸びしろ×信用。高い国が外資を呼ぶ
         var cred = new double[n];   // 信用：低債務×金本位×通貨安定。低いと外資が逃げる
+        var ngdp = new double[n];   // 名目GDP（下の1周目で国ごとに1回だけ求める）
         for (int i = 0; i < n; i++)
         {
             w[i] = nations[i].World;
+            ngdp[i] = w[i].NominalGdp;   // ★A2-2（2026-09-26）：名目GDP（州×生産者の全件走査）は国ごとにこの1回だけ。この関数が書くのは貯蓄・対外資産・外資・信用の記帳だけ＝産出・州・物価水準は動かない＝下の読み手はビット単位で同じ値を読む
             // [単位・B13] 債務/GDP＝**月次名目**（GovDebt÷月次NominalGdp）＝Fiscal の年次名目 dGdp の約12倍の値。NoGdpDistressDebtRatio・信用の閾値はこの単位
-            double debtR = w[i].NominalGdp > 1e-9 ? w[i].GovDebt / w[i].NominalGdp : (w[i].GovDebt > 0 ? NoGdpDistressDebtRatio : 0);
+            double debtR = ngdp[i] > 1e-9 ? w[i].GovDebt / ngdp[i] : (w[i].GovDebt > 0 ? NoGdpDistressDebtRatio : 0);
             // ★AUD-09（Fiscal.cs の dGdp と同じ規律・同じ書き方）：分母の絶対値ガードだけでは微小非ゼロで比が発散し、
             //   NaN は `Math.Clamp` を素通りして CreditDebtTerm を毒する。⚠否定形で番兵へ倒す。
             //   ★有限値では厳密同値：読み手は下2行の `Clamp(1−debtR/DebtDistressRatio, 0, 1)` だけで、
@@ -119,9 +121,9 @@ public static class CapitalMarket
             // 引き金＝国債への不信（累積切り下げ／名目GDP＝Fiscal の distrust と同じ物差し）。逃げた金は対外資産（CapitalAbroad）へ移り、
             // 国内の投資原資が痩せる＝「信認を失った国は自国の資本にも見捨てられる」。★自己成就＝逃避→通貨/信認↓→さらに逃避。
             // 保存＝国内popから引いた額を受け皿の国の投資家へ渡す（下の★2026-09-22）。CapitalDomesticFlightRate=0 で厳密恒等。
-            if (c.CapitalDomesticFlightRate > 0 && w[i].NominalGdp > 1e-9)
+            if (c.CapitalDomesticFlightRate > 0 && ngdp[i] > 1e-9)
             {
-                double distrust = System.Math.Clamp(w[i].CumulativeDevaluation / w[i].NominalGdp - c.CapitalFlightDistrustThreshold, 0, 1);
+                double distrust = System.Math.Clamp(w[i].CumulativeDevaluation / ngdp[i] - c.CapitalFlightDistrustThreshold, 0, 1);
                 // ★逃げた**金**の両建て（2026-09-22）：旧＝TakeGold で流出を記帳するだけで、どの国にも金が入らず世界から消えていた
                 //   （国ごとの保存は閉じる＝計器に掛からない片側記帳。対外元本の償還と同じ形）。旧注記の「保存則は移転なので破れず」は誤りだった。
                 //   受け皿＝自国以外の信用×名目GDPの按分（国名なし＝「資本はロンドンへ逃げる」が信用の分布から創発）＝逃げた金はその国の投資家の預金になる
@@ -132,7 +134,7 @@ public static class CapitalMarket
                 //   （2026-08-14 の外交観測：清の幻の対外資産79×GDP）。今は受け皿がその負債に配当を払い、逃避の対象にもなる。
                 double credSum = 0;
                 if (distrust > 0)
-                    for (int h = 0; h < n; h++) if (h != i) credSum += cred[h] * System.Math.Max(0, w[h].NominalGdp);
+                    for (int h = 0; h < n; h++) if (h != i) credSum += cred[h] * System.Math.Max(0, ngdp[h]);
                 if (credSum > 1e-9)
                 {
                     double want = c.CapitalDomesticFlightRate * distrust * InvestorSavings(w[i]);
@@ -141,7 +143,7 @@ public static class CapitalMarket
                     for (int h = 0; h < n; h++)
                     {
                         if (h == i) continue;
-                        double k = got * (cred[h] * System.Math.Max(0, w[h].NominalGdp) / credSum);
+                        double k = got * (cred[h] * System.Math.Max(0, ngdp[h]) / credSum);
                         GiveGold(w[h], k, toInvestors: true);
                         w[h].ForeignCapitalIn += k;
                     }
@@ -174,7 +176,7 @@ public static class CapitalMarket
         {
             if (ret[i] > worldRate)
             {
-                demand[i] = (ret[i] - worldRate) * System.Math.Max(0, w[i].NominalGdp) * c.CapitalDemandScale;
+                demand[i] = (ret[i] - worldRate) * System.Math.Max(0, ngdp[i]) * c.CapitalDemandScale;
                 totalDemand += demand[i];
             }
             else

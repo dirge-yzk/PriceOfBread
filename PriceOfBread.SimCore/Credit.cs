@@ -11,7 +11,9 @@ public static class Credit
     private const double HoardRatioMax = 0.9;  // タンス預金率（退蔵）の上限クランプ
     private const double GoldCoverCreditFloor = 0.25; // カバー率防衛時の与信下限比率（全面凍結はしない）
 
-    public static void Step(World w, Coefficients c)
+    /// <param name="month">★月の中の定数（2026-09-26 A2-1）＝名目GDP・大衆の平均満足・平均工業化。日次の呼び手（<see cref="Simulation.StepDayDaily"/>）が
+    /// 月の初日に1回だけ求めて渡す（結果が変わらない根拠は <see cref="Simulation.CreditMonth"/>）。null＝ここで求める（テストの直呼び＝旧と同じ）。</param>
+    public static void Step(World w, Coefficients c, (double NominalGdp, double AvgSat, double MeanInd)? month = null)
     {
         var bank = w.Bank;
         if (bank is null) return;
@@ -32,7 +34,7 @@ public static class Credit
         // 割当削減（測定短縮① 2026-07-09）：日次×全国で呼ばれるホットパス＝毎回の List<Pop> 構築を廃止。全popリストは投資家不在の小世界などコールドパスのみ遅延構築。
         // ★2026-09-25：平均満足は唯一の実装 NationalScore.MeanSatisfaction を呼ぶ（旧＝同じ式の手書きの複製で、全POP・Seceded の州まで数えていた）
         //   ＝下の注記どおり「大衆の充足」（Politics.IsMassPop の母集団）を見る。Seceded の差は seed1-3×668Q で分離州の人口0＝実害なし・所要時間も同等。
-        double avgSat = NationalScore.MeanSatisfaction(w);
+        double avgSat = month?.AvgSat ?? NationalScore.MeanSatisfaction(w);
         List<Pop>? popsLazy = null;
         List<Pop> Pops()
         {
@@ -56,7 +58,7 @@ public static class Credit
         double debtDeflation = w.MonetaryEnabled ? c.DebtDeflationWeight * Math.Max(0, -w.ExpectedInflation) * bank.Heat : 0;
         // 国債二次流通の評価損（no-bond-secondary-market）：BondPrice下落(利回り上昇)で国内債を抱える銀行が評価損→信頼↓→与信収縮（平時のマーク・トゥ・マーケット）。既存診断値BondPriceを配線。BondLossConfWeight=0で恒等（既定0.5）。
         // [単位・B13] 債務/GDP＝**月次名目**（GovDebt÷月次NominalGdp・Clamp 0..1）＝年次名目の約12倍の値で飽和が早い
-        double bondLoss = w.FiscalEnabled ? c.BondLossConfWeight * Math.Max(0, 1.0 - w.BondPrice) * Math.Clamp(w.GovDebt / Math.Max(1.0, w.NominalGdp), 0, 1) : 0;
+        double bondLoss = w.FiscalEnabled ? c.BondLossConfWeight * Math.Max(0, 1.0 - w.BondPrice) * Math.Clamp(w.GovDebt / Math.Max(1.0, month?.NominalGdp ?? w.NominalGdp), 0, 1) : 0;
         // シティ型恐慌（A・最終調整2026-06-29）：与信過熱(Heat・前期＝持ち越したレバレッジ)が閾値を超えると、満足度が高くても信頼が脆くなる＝
         // 最も金融化した経済（深い与信＝高Heat＝覇権の金融中心）ほど好況の絶頂でミンスキー暴落を起こす。着火後は既存 DrawdownPanic が暴落へ増幅。OverheatFragility=0で恒等（既定1.1）。
         double overheatFragility = c.OverheatFragility * Math.Max(0, bank.Heat - c.OverheatFragilityThreshold);
@@ -75,7 +77,7 @@ public static class Credit
         double devFactor = 1.0;
         if (c.CreditMultiplierDevWeight > 0)
         {
-            double dev = Math.Clamp(w.MeanIndustrialization / c.CreditDevScale, 0, 1);           // 0=前工業（露清）〜1=工業化（英独）
+            double dev = Math.Clamp((month?.MeanInd ?? w.MeanIndustrialization) / c.CreditDevScale, 0, 1);           // 0=前工業（露清）〜1=工業化（英独）
             double target = c.CreditMultiplierDevFloor + (1 - c.CreditMultiplierDevFloor) * dev;  // floor（前工業でも手形/両替商の最低与信）〜1（満額の近代信用創造）
             devFactor = 1.0 + (target - 1.0) * c.CreditMultiplierDevWeight;                       // Weight=0で1.0（恒等）・1でtargetそのもの
         }

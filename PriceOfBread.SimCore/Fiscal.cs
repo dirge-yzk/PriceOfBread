@@ -18,6 +18,9 @@ public static class Fiscal
     public static void Step(World w, Coefficients c)
     {
         if (!w.FiscalEnabled) return;
+        // ★A2-2（2026-09-26）：GDP（州×生産者の全件走査）はこの1回だけ（旧＝実質3か所・名目4か所で呼ぶたびに走査）。
+        //   この関数が書くのは国庫・貯蓄・国債と台帳だけ＝産出・州・物価水準は動かない＝下の読み手は getter とビット単位で同じ値を読む。
+        double gdp = w.Gdp, nominalGdp = w.NominalOf(gdp);
 
         var pops = new List<Pop>();
         foreach (var r in w.Regions) pops.AddRange(r.Pops);
@@ -268,7 +271,7 @@ public static class Fiscal
         // プールを超えては借りられない（保存）。20スタックで頭打ち（もう借りても公共サービスが0%＝国が回らない）。返済でスタック減・返せねば のべくり。
         if (w.BorrowQueue > 0 && w.BorrowStacks < c.MaxBorrowStacks && w.BorrowCooldown <= 0)   // 予約キューを毎月1件処理（連続起債）。デフォルト後のクールダウン中は借りられない（信用喪失）
         {
-            double borrowWant = Math.Max(0, w.Gdp) * c.BorrowFractionOfGdp;
+            double borrowWant = Math.Max(0, gdp) * c.BorrowFractionOfGdp;
             double capSavings = 0; foreach (var p in capitalists) capSavings += Math.Max(0, p.Savings);
             // 財6（資本開放度の脱・関税連動）：openness の関税連動を CapitalOpennessTariffWeight で連続化。既定1.0＝openness=Clamp(1−1.0×Tariff,0,1)＝旧 Clamp(1−Tariff,0,1) と代数的に厳密一致（数値中立）。
             // 0で関税と独立（19世紀の資本移動は関税と別＝高関税の米/露も外債を発行）→兌換性/信認ベースの開放度へ。中間で部分連動。
@@ -279,7 +282,7 @@ public static class Fiscal
                 ? (w.CapitalControlLaw ? Math.Clamp(c.CapitalControlOpenness, 0, 1) : 1.0)
                 : Math.Clamp(1.0 - c.CapitalOpennessTariffWeight * w.Tariff, 0, 1);
             double domesticPool = capSavings * c.BondAppetite;
-            double foreignPool = openness * c.ForeignBondCapacity * Math.Max(0, w.Gdp) * Math.Clamp(w.GovBondRate / Math.Max(1e-9, c.BondBaseRate), 0, ForeignBondYieldRatioCap);
+            double foreignPool = openness * c.ForeignBondCapacity * Math.Max(0, gdp) * Math.Clamp(w.GovBondRate / Math.Max(1e-9, c.BondBaseRate), 0, ForeignBondYieldRatioCap);
             // 財5（対外国債をモデル外の無限プールから閉鎖系へ）：ForeignBondFromInvestors=1 で foreignPool を他モデル国の資本家貯蓄から実引き当て。
             // 02断線走査2026-07-28：注入（MultiNationSim→World.ForeignBondInvestorPool）と保有国配分（CapitalMarket の外債レグ＝ForeignBondClaims 繰上げ＋利払い配当）は**実装済み**＝
             // 旧「ここに閉じて実装不能・統合担当の設計が要る」注記は陳腐化のため是正。既定1.0＝他国投資家プールから実引き当て。0なら無限プール（旧）。
@@ -361,7 +364,7 @@ public static class Fiscal
         {
             double parity = w.PendingCurrencyReform;
             w.PendingCurrencyReform = 0;
-            bool broken = w.NominalGdp > 1e-9 && w.CumulativeDevaluation / w.NominalGdp > c.CapitalFlightDistrustThreshold;
+            bool broken = nominalGdp > 1e-9 && w.CumulativeDevaluation / nominalGdp > c.CapitalFlightDistrustThreshold;
             if (w.MonetaryEnabled && !w.OnGoldStandard && broken
                 && w.NoDevaluationMonths >= c.CurrencyReformCalmMonths
                 && w.FiscalFundingRatio >= c.GoldStandardMinFunding
@@ -389,7 +392,7 @@ public static class Fiscal
                     double bite = burn / sav;
                     foreach (var p in pops) p.Militancy = Math.Min(1, p.Militancy + bite);   // 消えた分だけ怒る（新係数を作らない）
                 }
-                double forgiveRatio = w.NominalGdp > 1e-9 ? Math.Min(1.0, w.CumulativeDevaluation / w.NominalGdp) : 0;
+                double forgiveRatio = nominalGdp > 1e-9 ? Math.Min(1.0, w.CumulativeDevaluation / nominalGdp) : 0;
                 w.CumulativeDevaluation *= 1.0 - Math.Clamp(c.CurrencyReformForgiveShare, 0, 1);
                 double legBefore = w.Legitimacy;
                 w.Legitimacy = Math.Max(0, w.Legitimacy - c.CurrencyReformLegitimacyHit * forgiveRatio);
@@ -471,7 +474,7 @@ public static class Fiscal
             w.CumulativeTradeFlow -= frForeign;
             w.ForeignIntPaidThisQuarter += frForeign;
             // 借金ボタンのスタックを返済分だけ減らす（1スタック＝GDP×割合相当）。返せた分だけ出費上限が回復＝のべくりの解除。
-            double loanUnit = Math.Max(1e-9, Math.Max(0, w.Gdp) * c.BorrowFractionOfGdp);
+            double loanUnit = Math.Max(1e-9, Math.Max(0, gdp) * c.BorrowFractionOfGdp);
             w.BorrowStacks = Math.Max(0, w.BorrowStacks - repay / loanUnit);
         }
         if (w.GovDebt <= 1e-9) w.BorrowStacks = 0;   // 完済＝スタック消滅
@@ -504,7 +507,7 @@ public static class Fiscal
         }
         // 財7（債務/GDPの単位整合）：NominalGdp は月次フロー、GovBondRate は年率（利払いを/12）。分母を DebtGdpAnnualized で年換算する（×12）。
         // 既定1.0＝分母を年換算（×12・2026-07-26点火）。0なら旧・月次GDP基準のまま。
-        double gdpDenom = w.NominalGdp * (1.0 + c.DebtGdpAnnualized * (Calendar.MonthsPerYear - 1));   // 既定1.0で ×12（年換算）／0で ×1（月次のまま・旧）
+        double gdpDenom = nominalGdp * (1.0 + c.DebtGdpAnnualized * (Calendar.MonthsPerYear - 1));   // 既定1.0で ×12（年換算）／0で ×1（月次のまま・旧）
         // [単位・B13] 債務/GDP＝**年次名目**（GovDebt÷(月次NominalGdp×12)・DebtGdpAnnualized=1）。金本位加入・国債金利の閾値はこの単位。⚠CapitalMarket/Credit は月次名目・Government/PolicyPreferences は月次実質＝同名で3種（#17で1本化）
         //   台帳（2026-09-11 #10）：PowerShares.cs の debtGrip＝月次名目の Clamp（物理・用途別に別＝触らない）／Runner milfund・hangtest の dGdp＝月次名目（計器）／App のヘッダー「対年GDP」＝この行と同じ年次名目（旧＝年次実質＝表示だけ別物差しだったのを統一）
         double dGdp = gdpDenom > 1e-9 ? w.GovDebt / gdpDenom : (w.GovDebt > 0 ? DebtRatioUnbounded : 0);   // #1 名目GDP基準＝デフレ国は実質債務が膨らみ兌換維持不能（負債デフレ→兌換停止）
@@ -550,7 +553,7 @@ public static class Fiscal
         double convDiscount = 1.0 - w.Convertibility * (1.0 - c.GoldStandardRateDiscount);
         // 政策金利（バンクレート）が国債金利の床を押し上げる（引締め＝政府の借入も高くつく）。較正は InterestRate=0＝中立。
         // 信認の喪失（改修2026-06-28・金融改革①）：累積切り下げ/名目GDP比＝紙幣増発で赤字を埋めた履歴が国債金利に構造的に上乗せ（切り下げ常習国は債券価格が低迷＝信認の喪失を内生化）。
-        double distrust = c.BondRateDistrustScale * (w.CumulativeDevaluation / Math.Max(1.0, w.NominalGdp));
+        double distrust = c.BondRateDistrustScale * (w.CumulativeDevaluation / Math.Max(1.0, nominalGdp));
         // 監査2026-07-05（F2）：債務二次項＝高債務での非線形スパイク（買い手希少性）。BondRateDebtQuad=0（既定）で現行の線形と厳密一致。
         double bondInside = c.BondBaseRate + c.BondRateDebtScale * dGdp + c.BondRateDebtQuad * dGdp * dGdp + fisher + distrust + c.PolicyRateBondWeight * w.InterestRate;
         // 政体フレーバー レバー3（2026-07-24）→第3波連続化（2026-07-28）：議会の信認割引＝議会の予算統制（ParliamentControl）が

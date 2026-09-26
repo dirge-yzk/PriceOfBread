@@ -87,10 +87,13 @@ public static class PolicyPreferences
         public readonly double PettyPowerMass;     // 同・職人（旧束=大衆）成分。旧束別に持つ＝非対象軸のフォールバック集計が「旧束の値」へ厳密に戻る（設計書§2）
         public readonly double PettyIncome;        // 小営業の所得シェア（自営所得シェア＝独禁・累進/所得税の強さの導出元）
         public readonly double PettyIncomeModern;  // うち商人分（対アッパー相対所得の重複控除用）
+        // ★2026-09-26 A2-2：名目GDP（World.NominalGdp と同じ値）。Build で州×生産者の走査を1回だけ走らせて持つ＝Pref の読み手は走査し直さない。
+        //   Build と Pref は同じ呼び出しの中で読むだけ（このファイルに産出・州・物価水準を書く行は無い）＝値は getter とビット単位で同じ。
+        public readonly double NominalGdp;
         public Profile(double[] pw, double[] we, double[] re, double[] inc, double[] po, double[] old, double sr,
-                       double petM, double petS, double petInc, double petIncM)
+                       double petM, double petS, double petInc, double petIncM, double nominalGdp)
         { Power = pw; Wealth = we; Rent = re; Income = inc; Poll = po; Old = old; StateRevenue = sr;
-          PettyPowerModern = petM; PettyPowerMass = petS; PettyIncome = petInc; PettyIncomeModern = petIncM; }
+          PettyPowerModern = petM; PettyPowerMass = petS; PettyIncome = petInc; PettyIncomeModern = petIncM; NominalGdp = nominalGdp; }
     }
 
     /// <summary>大衆の平均失業率（人口加重・移民制限法の選好と SelfPlay の移民法の意図が読む＝唯一定義・2026-09-11 #13）。⚠労働市場の無い小シナリオでは0＝無影響。</summary>
@@ -132,12 +135,13 @@ public static class PolicyPreferences
         Normalize(wealth, tw); Normalize(rent, tr); Normalize(income, ti); Normalize(poll, tp);
         for (int i = 0; i < BlocCount; i++) old[i] = blocPop[i] > 1e-9 ? old[i] / blocPop[i] : 0;   // ブロック内の高齢比率＝水準（高齢化した国だけ大きい）
         // 国家の歳入要求：常に基礎0.5（国家は財源を欲する）＋財政逼迫（funding不足・債務/GDP）で増す。＝誰も支持しない税も国家が押せる。
+        double gdp = w.Gdp;   // ★A2-2：州×生産者の走査はこの1回だけ（旧＝ここで2回・Pref の名目GDPの読み手ごとに1回ずつ）
         double stress = w.FiscalEnabled
             // [単位・B13] 債務/GDP＝**月次実質**（GovDebt÷月次Gdp・Min 1）＝Government の緊縮と同じ単位・Fiscal の年次名目とは別
-            ? System.Math.Clamp((1.0 - w.FiscalFundingRatio) + (w.Gdp > 1e-9 ? System.Math.Min(1.0, w.GovDebt / w.Gdp) : 0), 0, 1.0)
+            ? System.Math.Clamp((1.0 - w.FiscalFundingRatio) + (gdp > 1e-9 ? System.Math.Min(1.0, w.GovDebt / gdp) : 0), 0, 1.0)
             : 0;
         return new Profile(power, wealth, rent, income, poll, old, 0.5 + stress,
-            pettyM, pettyS, ti > 1e-9 ? pettyInc / ti : 0, ti > 1e-9 ? pettyIncM / ti : 0);
+            pettyM, pettyS, ti > 1e-9 ? pettyInc / ti : 0, ti > 1e-9 ? pettyIncM / ti : 0, w.NominalOf(gdp));
     }
 
     private static void Normalize(double[] a, double total)
@@ -180,7 +184,7 @@ public static class PolicyPreferences
                 // ★輸出利害の反関税（TariffExportOppositionWeight・2026-08-31）：輸出で食う資本（近代エリート）は自由貿易を推す
                 //   （マンチェスター学派・穀物法撤廃1846の物質的基盤）。強さ＝輸出/GDPシェア（既存の LastExportValue／名目GDP・クランプ0..1）。
                 //   ⚠保護利害（TariffInterestPref＝後発の資本家は保護を求める）と**同じブロック内で正面から割れる**＝独1879 vs 英1846が保有から出る。0＝恒等
-                if (modern && w.Coef.TariffExportOppositionWeight > 0 && w.NominalGdp > 1e-9)
+                if (modern && w.Coef.TariffExportOppositionWeight > 0 && e.NominalGdp > 1e-9)
                 {
                     // ★案C拡張（2026-08-31）：反対の物質基盤＝輸出＋**中間投入の輸入**（資本の投入コスト利害＝原料関税は自分の原価）。
                     //   輸出だけだと「貿易が死んだ後では反対が立たない」履歴の罠（実測）＝投入輸入が現在の生産から立つ分だけ罠が浅くなる。
@@ -188,7 +192,7 @@ public static class PolicyPreferences
                     if (w.ImportsByGood is { } impC)
                         for (int gC = 0; gC < impC.Length && gC < Catalog.Goods.Length; gC++)
                             if (Catalog.Goods[gC].Tier is GoodTier.Producer or GoodTier.Intermediate) tradeBase += impC[gC];
-                    tariffExtra -= w.Coef.TariffExportOppositionWeight * System.Math.Clamp(tradeBase / w.NominalGdp, 0, 1);
+                    tariffExtra -= w.Coef.TariffExportOppositionWeight * System.Math.Clamp(tradeBase / e.NominalGdp, 0, 1);
                 }
                 // ★器 TariffRetaliationViaPolitics（2026-09-04）：報復の圧力を**支持項**として国内生産者（旧支配層＝地代・近代エリート）に載せる。
                 //   偏倚/TariffReactionMax∈[−1,1]（正＝相手が壁を上げた＝報復したい・負＝相互低減の誘い）。0＝この行は不読＝厳密恒等。
@@ -197,9 +201,9 @@ public static class PolicyPreferences
                 //   史実の形＝報復（「公正貿易」）を求めたのは**閉め出された輸出者**（英1880年代の公正貿易同盟＝ランカシャー/シェフィールドの輸出産業）。
                 //     ＝近代エリートのみ・重み＝輸出/GDP（既存量・クランプ0..1）。旧支配層には乗せない（地代は輸出市場を持たない）。
                 //     既定0＝この行は不読＝厳密恒等。再測は E-14。
-                double retal = w.Coef.TariffRetaliationViaPolitics > 0 && w.Coef.TariffReactionMax > 1e-9 && modern && w.NominalGdp > 1e-9
+                double retal = w.Coef.TariffRetaliationViaPolitics > 0 && w.Coef.TariffReactionMax > 1e-9 && modern && e.NominalGdp > 1e-9
                     ? w.Coef.TariffRetaliationViaPolitics * (w.TariffRetaliationBias / w.Coef.TariffReactionMax)
-                      * System.Math.Clamp(w.LastExportValue / w.NominalGdp, 0, 1) : 0.0;
+                      * System.Math.Clamp(w.LastExportValue / e.NominalGdp, 0, 1) : 0.0;
                 return w.Coef.RentProtectionWeightCoef * e.Rent[b] - (mass ? 1.0 : 0) + tariffExtra + retal;
             }
             case PolicyAxis.CornLaws:         // 穀物法＝地主が賛成・産業/大衆は安いパンで撤廃
@@ -244,13 +248,13 @@ public static class PolicyPreferences
             case PolicyAxis.MilitaryExport:   // 軍需輸出の禁止（C5・2026-07-30）＝武器を作って売る資本が利益から反対。強さは**軍需財の生産額シェア**から創発
                                               // （Tariff の地代シェアと同型＝保有から導出）。武器産業を持たない国では 0＝反対が立たない＝国ごとの特例を書かずに差が出る。
                                               // 軍の賛成は既存の統帥権（ArmyStake＝軍事軸のみ）が担う＝ここには足さない（作者裁定：法の賛否だけで表現する）。
-                return modern ? -w.Coef.MilitaryExportPrefScale * MilitaryOutputShare(w) : 0;
+                return modern ? -w.Coef.MilitaryExportPrefScale * MilitaryOutputShare(w, e.NominalGdp) : 0;
             case PolicyAxis.OpiumPossession:  // 阿片の禁止（C3・2026-07-30）＝中毒に蝕まれる大衆が賛成（依存度そのものが賛成の強さ＝害が大きいほど禁令圧が高まる）・
                                               // 売る側の資本が反対（阿片の生産額シェアから創発）。旧支配層は中立。清の禁令が「阿片が広まってから」出るのが条件から創発する。
                 return mass ? 1.0 + w.Coef.OpiumBanPrefScale * NationalOpiumAddiction(w)
-                     : modern ? -w.Coef.OpiumTradePrefScale * OpiumOutputShare(w) : 0;
+                     : modern ? -w.Coef.OpiumTradePrefScale * OpiumOutputShare(w, e.NominalGdp) : 0;
             case PolicyAxis.OpiumExport:      // 阿片の輸出禁止（C3）＝植民地の阿片で稼ぐ資本（東インド会社）だけが反対。自国民は中毒にならないので大衆は無関心
-                return modern ? -w.Coef.OpiumTradePrefScale * OpiumOutputShare(w) : 0;
+                return modern ? -w.Coef.OpiumTradePrefScale * OpiumOutputShare(w, e.NominalGdp) : 0;
             case PolicyAxis.ImmigrationRestriction:
                 // ★移民制限法の政治（点火2026-08-01）：**流入で職を脅かされる大衆が推し、労働力を求める資本が反対する**。
                 // ⚠国名も暦年も書かない——読むのは**実際に流入している量**（前四半期の確定値 World.LastImmigration÷人口）と**失業**。
@@ -328,7 +332,7 @@ public static class PolicyPreferences
                 // ⚠思想③（休眠フラグは既定で厳密恒等）：休眠中に**選好だけ非0**だと、この軸が要求リストに載って
                 //   他の要求を押し出す＝軸を1本足しただけで軌道が動く。実測で捕まえた（2026-08-13・帯が8軸すべてで動いた）。
                 if (w.Coef.CapitalMobilityLawGate <= 0) return 0;
-                double abroadShare = w.NominalGdp > 1e-9 ? Math.Clamp(w.CapitalAbroad / w.NominalGdp, 0, 1) : 0;
+                double abroadShare = e.NominalGdp > 1e-9 ? Math.Clamp(w.CapitalAbroad / e.NominalGdp, 0, 1) : 0;
                 if (!(abroadShare >= 0 && abroadShare <= 1)) abroadShare = 0;   // NaNは中立へ倒す（否定形で書く＝Clampは NaN を消さない）
                 return modern ? -(1.0 + w.Coef.CapitalControlPrefScale * abroadShare) : 1.0;
             case PolicyAxis.Nationalization:  // 国有化（E6）＝利潤を没収される資本（近代エリート）が強く反対・大衆が賛成（社会主義的再分配）。旧支配層は中立（土地貴族＝産業資本ではない）
@@ -392,9 +396,8 @@ public static class PolicyPreferences
     /// <summary>軍需財（<see cref="Coefficients.MilitaryExportGoods"/>）の生産額が名目GDPに占めるシェア（禁制品doc C5・2026-07-30）。
     /// 「武器で食っている国ほど武器商人の政治力が強い」を保有から導く。参照価格建て（市場価格でなく）＝価格の暴騰で政治が揺れない。
     /// 名目GDPが未算出（テスト世界の初期など）なら0＝反対が立たない＝厳密に中立。</summary>
-    private static double MilitaryOutputShare(World w)
+    private static double MilitaryOutputShare(World w, double gdp)
     {
-        double gdp = w.NominalGdp;
         if (gdp <= 1e-9) return 0;
         double v = 0;
         foreach (var r in w.Regions)
@@ -408,9 +411,8 @@ public static class PolicyPreferences
 
     /// <summary>阿片（<see cref="Coefficients.OpiumGoodId"/>）の生産額が名目GDPに占めるシェア（禁制品doc C3・2026-07-30）。
     /// 阿片で稼ぐ資本の政治力＝「売る側の抵抗」を保有から導く（<see cref="MilitaryOutputShare"/> と同型）。</summary>
-    private static double OpiumOutputShare(World w)
+    private static double OpiumOutputShare(World w, double gdp)
     {
-        double gdp = w.NominalGdp;
         int g = w.Coef.OpiumGoodId;
         if (gdp <= 1e-9 || g < 0) return 0;
         double v = 0;

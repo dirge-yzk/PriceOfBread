@@ -1611,6 +1611,10 @@ public sealed class MultiNationSim
         // 毎四半期上限まで流出する多重排水（プロイセン技術0.38へ空洞化を実測）＝移民は最良の行き先を選ぶ。
         if (_coef.CrossBorderMigrationByOpportunity > 0)
         {
+            // ★A2-3（2026-09-26・結果を変えない高速化）：受入国ごとの最良州と機会は1回だけ求めて使い回す（旧＝送出国ごとに全受入国の全州を引き直す）。
+            //   Territory.Opportunity は州の値だけを読む純関数・MoveMigrants が書くのは送出州と受入州の POP と2国の台帳だけ
+            //   ＝移民が起きた2国だけ引き直せば、旧と同じ値を同じ順で比べる（選ぶ規則も同値の先勝ちも同じ）。
+            var dstBest = new Region?[n]; var dstOpp = new double[n]; var dstKnown = new bool[n];
             for (int s = 0; s < n; s++)
             {
                 var src = Nations[s].World;
@@ -1623,8 +1627,13 @@ public sealed class MultiNationSim
                 {
                     if (d == s) continue;
                     var dst = Nations[d].World;
-                    Region? dstR = null; double bestO = double.NegativeInfinity;
-                    foreach (var r in dst.Regions) if (r.State == RegionState.Active) { double o = Territory.Opportunity(r, _coef); if (double.IsFinite(o) && (dstR is null || o > bestO)) { dstR = r; bestO = o; } }
+                    if (!dstKnown[d])
+                    {
+                        Region? bR = null; double bO = double.NegativeInfinity;
+                        foreach (var r in dst.Regions) if (r.State == RegionState.Active) { double o = Territory.Opportunity(r, _coef); if (double.IsFinite(o) && (bR is null || o > bO)) { bR = r; bO = o; } }
+                        dstBest[d] = bR; dstOpp[d] = bO; dstKnown[d] = true;
+                    }
+                    Region? dstR = dstBest[d]; double bestO = dstOpp[d];
                     if (dstR is null) continue;
                     double gap = bestO - worst - _coef.CrossBorderOppGapThreshold;
                     // R3：距離減衰＝遠い行き先ほど引力gap（＝行き先選好＋流量）が細る。scale=0で乗算せず厳密恒等（×1.0はIEEE754で正確＝恒等でも安全だが分岐で明示）。
@@ -1633,7 +1642,10 @@ public sealed class MultiNationSim
                     if (gap > bestGap) { bestGap = gap; bestD = d; bestDstR = dstR; }
                 }
                 if (bestD >= 0 && bestDstR is not null)
+                {
                     MoveMigrants(src, Nations[bestD].World, srcR, bestDstR, bestGap);
+                    dstKnown[s] = dstKnown[bestD] = false;   // 州の POP が動いた2国だけ引き直す
+                }
             }
             return;
         }
@@ -1752,6 +1764,10 @@ public sealed class MultiNationSim
     {
         if (!(_coef.RecruitCostPerHead > 0)) return;   // ⚠0なら経路に入らない（0除算も踏まない。★2026-08-29点火＝既定100）
         int n = Nations.Count;
+        // ★A2-3（2026-09-26・結果を変えない高速化）：送出国ごとの送出州・専門職の数・その州の機会は1回だけ求めて使い回す
+        //   （旧＝受入国ごとに全送出国の全州を引き直す）。MoveSpecialists が書くのは送出州と受入州の POP と2国の台帳だけ
+        //   ＝招聘が起きた2国だけ引き直せば、旧と同じ値を同じ順で比べる。
+        var srcBest = new Region?[n]; var srcPool = new double[n]; var srcOpp = new double[n]; var srcKnown = new bool[n];
         for (int d = 0; d < n; d++)
         {
             var dst = Nations[d].World;
@@ -1771,17 +1787,23 @@ public sealed class MultiNationSim
                 double ban = System.Math.Clamp(src.SpecialistExitBan, 0, 1);
                 if (ban >= 1.0) continue;   // ★段⑤：完全な流出禁止法＝呼べない（自力で育てるしかない＝近代化の壁）
                 // 送出州＝専門職が最も多く居る州（★呼ぶ側は「居る所」から呼ぶ）
-                Region? srcR = null; double pool = 0;
-                foreach (var r in src.Regions)
+                if (!srcKnown[sIdx])
                 {
-                    if (r.State != RegionState.Active) continue;
-                    double sz = 0;
-                    foreach (var cls in SpecialistClasses)
-                    { var q = r.Pops.Find(x => x.ClassId == cls && !x.IsSoldier); if (q is not null && q.Size > 0) sz += q.Size; }
-                    if (sz > pool) { pool = sz; srcR = r; }
+                    Region? bR = null; double pl = 0;
+                    foreach (var r in src.Regions)
+                    {
+                        if (r.State != RegionState.Active) continue;
+                        double sz = 0;
+                        foreach (var cls in SpecialistClasses)
+                        { var q = r.Pops.Find(x => x.ClassId == cls && !x.IsSoldier); if (q is not null && q.Size > 0) sz += q.Size; }
+                        if (sz > pl) { pl = sz; bR = r; }
+                    }
+                    srcBest[sIdx] = bR; srcPool[sIdx] = pl; srcKnown[sIdx] = true;
+                    if (bR is not null && pl > 1e-9) srcOpp[sIdx] = Territory.Opportunity(bR, _coef);   // 旧と同じく、送出できる州があるときだけ求める
                 }
+                Region? srcR = srcBest[sIdx]; double pool = srcPool[sIdx];
                 if (srcR is null || !(pool > 1e-9)) continue;
-                double srcO = Territory.Opportunity(srcR, _coef);
+                double srcO = srcOpp[sIdx];
                 if (!double.IsFinite(srcO)) continue;
                 // ⚠1人あたり実費＝基礎費 ×（相手が豊かなほどの割増）×（遠いほどの割増）
                 double premium = 1.0 + System.Math.Max(0, srcO - dstO) / System.Math.Max(1e-9, _coef.RecruitPremiumScale);
@@ -1794,7 +1816,10 @@ public sealed class MultiNationSim
                 if (heads > bestHeads) { bestHeads = heads; bestS = sIdx; bestSrcR = srcR; bestCost = perHead; }
             }
             if (bestS >= 0 && bestSrcR is not null)
+            {
                 MoveSpecialists(Nations[bestS].World, dst, bestSrcR, dstR, bestHeads, bestCost);
+                srcKnown[bestS] = srcKnown[d] = false;   // 州の POP が動いた2国だけ引き直す
+            }
         }
         // ⚠予約のゼロ化は**無条件**（EconomyStep:1674 と同じ規律＝条件の内側でゼロ化すると永久滞留する既知のバグ型）。
         //   ★カネは Pay した分しか国庫を出ていないので、捨てても保存は不変＝これが「空振りの返金」である。
