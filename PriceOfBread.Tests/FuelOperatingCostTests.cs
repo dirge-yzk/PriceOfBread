@@ -14,8 +14,6 @@ public class FuelOperatingCostTests
     {
         // ★2026-08-29 夜間R18で RailCoalRate/AirFuelRate/MotorFuelRate を点火（帯中立・破綻0）。
         //   NavalFuelPerGauge と ShipFuelRate は実測逆算（fidelity/tradeprobe）が要るので休眠のまま＝この2本の番人は残す。
-        //   ★2026-09-26（回4-3）：汽船の割合（ShipSteamShareEma）は燃料の門の外で常に更新する形になった＝「割合0」の主張は外した（割合の正しさは下の番人）。
-        //   ShipFuelRate の点火は、点火値の出所が作者の確認待ち（外部レビューの検討 §10-10［交易5］）。
         var c = new Coefficients();
         Assert.Equal(0.0, c.NavalFuelPerGauge);
         Assert.Equal(0.22, c.RailCoalRate);
@@ -26,6 +24,7 @@ public class FuelOperatingCostTests
         var sim = new Simulation(new Scenario { Seed = 11, Kind = ScenarioKind.France }, new NullAgent());
         sim.Run(120);
         Assert.Equal(1.0, sim.World.NavalFuelFillEma);                              // 書き手（NavalFuelStep）が一度も走っていない
+        Assert.Equal(0.0, sim.World.ShipSteamShareEma);                             // EMA更新が ShipFuelRate ゲート内に居る証拠（点火3本では動かない）
         Assert.Equal(0.0, sim.World.TreasuryLedger[(int)TreasuryCat.Navy]);         // Navy枠の書き手は海軍燃料のみ＝休眠でゼロ
     }
 
@@ -138,160 +137,6 @@ public class FuelOperatingCostTests
         Assert.True(m.LastDemand > demand0, "運行燃料の石炭需要が立っていない");
         Assert.True(m.Stock < stock0, "石炭在庫が減っていない（焚いていない）");
         Assert.Equal(money0, r.SumSavings(), 6);   // 商人→生産者所有者のpop間移転＝地域の総貯蓄は不変（保存）
-    }
-
-    // ★2026-09-26（回4-3・項目8）：船は州ごとに容量あたりの総費用が安い1財だけを欲しがる。
-    //   全ての活動州で帆船(84)と汽船(85)の値段・在庫・生産をそろえ、商人と投資家の財布を潤沢にして Transport.Step を直接呼ぶ。
-    static Simulation ShipWorld(ulong seed, Coefficients coef, double sailPrice, double steamPrice, bool steamSupplied)
-    {
-        var sim = new Simulation(new Scenario { Seed = seed, Kind = ScenarioKind.France, Coef = coef }, new NullAgent());
-        sim.Run(8);
-        var w = sim.World;
-        w.ShipCapacity = 0;   // 目標との差を最大に＝必ず買いに行く
-        foreach (var r in w.Regions)
-        {
-            if (r.State != RegionState.Active) continue;
-            var sail = r.Markets[84]; var steam = r.Markets[85];
-            sail.Price = sailPrice; sail.Stock = 1_000_000;
-            steam.Price = steamPrice; steam.Stock = steamSupplied ? 1_000_000 : 0;
-            steam.LastProduced = 0; steam.LastImport = 0;   // 供給の実在は在庫だけで決める
-            foreach (var pr in r.Producers) if (pr.GoodId == 84 || pr.GoodId == 85) pr.Output = steamSupplied || pr.GoodId == 84 ? 1.0 : 0.0;
-            if (r.MerchantPopIndex >= 0) r.Pops[r.MerchantPopIndex].Savings = 1e9;
-            if (r.InvestorPopIndex >= 0) r.Pops[r.InvestorPopIndex].Savings = 1e9;
-        }
-        return sim;
-    }
-
-    static (double Sail, double Steam) ShipDemand(World w)
-    {
-        double s = 0, t = 0;
-        foreach (var r in w.Regions) if (r.State == RegionState.Active) { s += r.Markets[84].LastDemand; t += r.Markets[85].LastDemand; }
-        return (s, t);
-    }
-
-    [Theory]
-    [InlineData(10.0, 1.0, false)]    // 汽船の容量単価 1/75 < 帆船 10/30 ＝汽船だけ
-    [InlineData(1.0, 100.0, true)]    // 帆船 1/30 < 汽船 100/75 ＝帆船だけ
-    public void 船の選択_容量あたりの総費用が安い方にだけ需要が立つ(double sailPrice, double steamPrice, bool sailWins)
-    {
-        var coef = new Coefficients();
-        var sim = ShipWorld(51, coef, sailPrice, steamPrice, steamSupplied: true);
-        var (s0, t0) = ShipDemand(sim.World);
-        Transport.Step(sim.World, coef);
-        var (s1, t1) = ShipDemand(sim.World);
-        if (sailWins) { Assert.True(s1 > s0, "帆船の需要が立っていない"); Assert.Equal(t0, t1); }
-        else { Assert.True(t1 > t0, "汽船の需要が立っていない"); Assert.Equal(s0, s1); }
-    }
-
-    [Fact]
-    public void 船の選択_汽船の供給が無い州では汽船の需要が立たない()
-    {
-        var coef = new Coefficients();
-        var sim = ShipWorld(52, coef, sailPrice: 10.0, steamPrice: 0.01, steamSupplied: false);   // 値段だけなら汽船が圧倒的に安い
-        var (s0, t0) = ShipDemand(sim.World);
-        Transport.Step(sim.World, coef);
-        var (s1, t1) = ShipDemand(sim.World);
-        Assert.Equal(t0, t1);                          // 作れない船の需要は0（旧＝在庫0でも汽船の需要を立てていた）
-        Assert.True(s1 > s0, "帆船の需要が立っていない");
-        Assert.Equal(0.0, sim.World.ShipSteamShareEma);
-    }
-
-    [Fact]
-    public void 船の選択_積んだ容量は単位の容量どおりで代金は生産者の持ち主へ保存される()
-    {
-        var coef = new Coefficients();
-        var sim = ShipWorld(53, coef, sailPrice: 10.0, steamPrice: 1.0, steamSupplied: true);   // 汽船が安い
-        var w = sim.World;
-        double stock0 = 0, money0 = 0, buyers0 = 0;
-        foreach (var r in w.Regions)
-        {
-            if (r.State != RegionState.Active) continue;
-            stock0 += r.Markets[85].Stock; money0 += r.SumSavings();
-            if (r.InvestorPopIndex >= 0) buyers0 += r.Pops[r.MerchantPopIndex >= 0 ? r.MerchantPopIndex : r.InvestorPopIndex].Savings;
-        }
-        Transport.Step(w, coef);
-        double stock1 = 0, money1 = 0, buyers1 = 0;
-        foreach (var r in w.Regions)
-        {
-            if (r.State != RegionState.Active) continue;
-            stock1 += r.Markets[85].Stock; money1 += r.SumSavings();
-            if (r.InvestorPopIndex >= 0) buyers1 += r.Pops[r.MerchantPopIndex >= 0 ? r.MerchantPopIndex : r.InvestorPopIndex].Savings;
-        }
-        double bought = stock0 - stock1;
-        Assert.True(bought > 0, "汽船を買っていない");
-        Assert.Equal(bought * coef.TransportCapPerUnit * coef.ShipTier2CapMult, w.ShipCapacity, 6);   // 汽船は1単位で容量×2.5（購入前の容量は0）
-        Assert.Equal(1.0, w.ShipSteamShareEma);
-        Assert.Equal(money0, money1, 3);                                    // 買い手→生産者の持ち主＝州の中の移転（保存）
-        Assert.True(buyers1 < buyers0 - 0.5 * bought * 1.0, "買い手が代金を払っていない（払い戻しに落ちている）");
-    }
-
-    [Fact]
-    public void 船の選択_買い手が生産者の持ち主でも金は保存される()
-    {
-        // ⚠実装で踏んだ罠の番人：`買い手.Savings -= 払う関数(...)` と書くと、左辺を先に読むので、買い手が持ち主のとき受け取った分が上書きで消える
-        //   （ConservationTests の貨幣保存が −0.03 で赤になった）。汽船の生産者の持ち主を買い手（商人）にして、州の貯蓄の和が動かないことを見る。
-        var coef = new Coefficients();
-        var sim = ShipWorld(56, coef, sailPrice: 10.0, steamPrice: 1.0, steamSupplied: true);
-        var w = sim.World;
-        double money0 = 0; int owned = 0;
-        foreach (var r in w.Regions)
-        {
-            if (r.State != RegionState.Active || r.InvestorPopIndex < 0) continue;
-            int buyerIdx = r.MerchantPopIndex >= 0 ? r.MerchantPopIndex : r.InvestorPopIndex;
-            foreach (var pr in r.Producers) if (pr.GoodId == 85) { pr.OwnerPopIndex = buyerIdx; owned++; }
-            money0 += r.SumSavings();
-        }
-        Assert.True(owned > 0, "汽船の生産者が居ない世界ではテストにならない");
-        Transport.Step(w, coef);
-        double money1 = 0;
-        foreach (var r in w.Regions) if (r.State == RegionState.Active && r.InvestorPopIndex >= 0) money1 += r.SumSavings();
-        Assert.True(System.Math.Abs(money1 - money0) <= 1e-12 * money0 + 1e-6, $"金が保存されていない（{money0:R} → {money1:R}）");
-    }
-
-    [Fact]
-    public void 汽船の割合は減耗と購入をどう重ねても容量の在庫の割合と一致する()
-    {
-        var coef = new Coefficients();
-        var sim = ShipWorld(54, coef, sailPrice: 10.0, steamPrice: 1.0, steamSupplied: true);
-        var w = sim.World;
-        w.ShipCapacity = 5000; w.ShipSteamShareEma = 0;   // 始まりは帆船だけ
-        double steamCap = 0;
-        for (int k = 0; k < 12; k++)
-        {
-            bool steamCheap = k % 3 != 1;
-            double stock85 = 0;
-            foreach (var r in w.Regions)
-            {
-                if (r.State != RegionState.Active) continue;
-                r.Markets[84].Price = steamCheap ? 10.0 : 0.2;   // 帆船 0.2/30 < 汽船 1/75
-                stock85 += r.Markets[85].Stock;
-            }
-            if (k % 4 == 3) { const double wear = 0.3; w.ShipCapacity *= 1.0 - wear; steamCap *= 1.0 - wear; }   // 戦災（Diplomacy の輸送容量の戦災と同じ一律の掛け算）
-            Transport.Step(w, coef);
-            double stock85b = 0;
-            foreach (var r in w.Regions) if (r.State == RegionState.Active) stock85b += r.Markets[85].Stock;
-            steamCap = steamCap * (1 - coef.TransportDecay) + (stock85 - stock85b) * coef.TransportCapPerUnit * coef.ShipTier2CapMult;
-            double expect = steamCap / w.ShipCapacity;   // 汽船の容量は在庫(1e6)の差から数える＝差の丸め（約1e-10）ぶんだけ相対の許容を置く
-            Assert.True(System.Math.Abs(w.ShipSteamShareEma - expect) <= 1e-9 * System.Math.Max(expect, 1e-12), $"{k}: 割合 {w.ShipSteamShareEma:R} ≠ 汽船の容量÷容量 {expect:R}");
-        }
-        Assert.True(w.ShipSteamShareEma > 0 && w.ShipSteamShareEma < 1, $"帆船と汽船が混ざっていない（{w.ShipSteamShareEma}）");
-    }
-
-    [Fact]
-    public void 汽船燃料ON_汽船の割合が0の国は燃料を買わない()
-    {
-        var coef = new Coefficients { ShipFuelRate = 1.0 };
-        var sim = ShipWorld(55, coef, sailPrice: 10.0, steamPrice: 0.01, steamSupplied: false);   // 汽船は買えない＝割合0のまま
-        var w = sim.World;
-        w.ShipSteamShareEma = 0; w.ShipCapacity = 1000.0;
-        double d0 = 0, st0 = 0;
-        foreach (var r in w.Regions) if (r.State == RegionState.Active) { d0 += r.Markets[Catalog.CoalId].LastDemand + r.Markets[Catalog.CrudeOilId].LastDemand; st0 += r.Markets[Catalog.CoalId].Stock; }
-        Transport.Step(w, coef);
-        double d1 = 0, st1 = 0;
-        foreach (var r in w.Regions) if (r.State == RegionState.Active) { d1 += r.Markets[Catalog.CoalId].LastDemand + r.Markets[Catalog.CrudeOilId].LastDemand; st1 += r.Markets[Catalog.CoalId].Stock; }
-        Assert.Equal(0.0, w.ShipSteamShareEma);
-        Assert.Equal(d0, d1);
-        Assert.Equal(st0, st1);
     }
 
     [Fact]
