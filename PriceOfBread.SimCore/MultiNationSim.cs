@@ -653,7 +653,7 @@ public sealed class MultiNationSim
         if (par)
             System.Threading.Tasks.Parallel.For(0, Nations.Count, i => Nations[i].StepDayDaily());
         else
-            foreach (var sim in Nations) sim.StepDayDaily();    // 各国の鼓動（日次価格形成）
+            foreach (var sim in Nations) sim.StepDayDaily();    // 各国の鼓動（価格形成＝旬の最終日だけ・建設・信用）
         // 締め境界＝**常に逐次**。★月次決算の並列化は2026-08-29に実測で差し戻し：ログを国別バッファへ退避しても
         //   armstrace が1788年（助走明け最初の断面）から発散＝決算は**他国の当日更新を恒常的に読む**（旧調査の疑いどおり。
         //   候補＝金融の相互参照：通貨ペア引力・金利・金流。ログ退避（World.PendingLog）は恒等が証明できたので恒久採用＝

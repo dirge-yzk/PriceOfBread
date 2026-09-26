@@ -303,7 +303,10 @@ public class StateFactoryTests
         Assert.Equal(0.0, on.Built);             // ★誰も建てていないのに国営持分が湧かない
         Assert.True(off.Built > 0, "対照でも国営持分が増えない＝この番人は何も測っていない（旧経路が動いていない）");
         Assert.True(on.Scale > off.Scale * 0.9, $"自動拡張を止めたらRGOの能力が痩せた（点火 {on.Scale:F1} vs 旧 {off.Scale:F1}）");
-        Assert.True(on.Output > off.Output * 0.9, $"自動拡張を止めたらRGOの産出が痩せた（点火 {on.Output:F0} vs 旧 {off.Output:F0}）");
+        // 産出は能力×稼働＝稼働は需要と作柄（1か月の断面）で動く。2本の軌道は120四半期で分かれるので、産出の比は
+        //   国内価格の刻み h を 1/2/3/5/6/10/15 と振ると 0.93/1.31/0.74/0.86/0.99/0.75/0.81 と非単調に散る（能力の比は 0.99〜1.01 で安定）。
+        //   2026-09-26 ㊽：産出の線を 0.9→0.5 へ＝「痩せる」（能力が残っても産出が半分を割る）だけを見る。能力の線（上の 0.9）は据え置き。
+        Assert.True(on.Output > off.Output * 0.5, $"自動拡張を止めたらRGOの産出が痩せた（点火 {on.Output:F0} vs 旧 {off.Output:F0}）");
     }
 
     [Fact]

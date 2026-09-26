@@ -558,6 +558,18 @@ if (args.Length > 0 && args[0] == "timeprobe")
             + $"　財処理 {PriceOfBread.SimCore.InternationalMarket.CntGoods}　買い手行 {PriceOfBread.SimCore.InternationalMarket.CntBuyers}"
             + $"　反復 {PriceOfBread.SimCore.InternationalMarket.CntRollIters}　走査歩 {PriceOfBread.SimCore.InternationalMarket.CntScanSteps}　空振り {PriceOfBread.SimCore.InternationalMarket.CntSkips}"
             + $"　着値充填 {PriceOfBread.SimCore.InternationalMarket.CntFills}　成約 {PriceOfBread.SimCore.InternationalMarket.CntDeals}");
+        // ★国内価格の旬次（2026-09-26 A3）：機構が本当に働いたか＝閉じた式で進んだ財の割合（1−e）・日次に落ちた理由・打ち切りで省いた日数（1−f）。
+        //   助走も含む（計器は構築から数える）。検算＝閉じた式＋日次の理由の和＝財の歩／日次の回＋省いた日＝日次に落ちた財×h（刻み1は×1）。
+        long mfSteps = MarketFlow.CntGoodSteps, mfCg = MarketFlow.CntClosedGoods, mfCs = MarketFlow.CntClosedService;
+        long mfStart = MarketFlow.CntDailyStartBand, mfPred = MarketFlow.CntDailyPredBand, mfLab = MarketFlow.CntDailyLabor,
+             mfMu = MarketFlow.CntDailyMarkup, mfHard = MarketFlow.CntDailyHardBand, mfNaN = MarketFlow.CntDailyNaN, mfH1 = MarketFlow.CntDailyStep1;
+        long mfDaily = mfStart + mfPred + mfLab + mfMu + mfHard + mfNaN + mfH1, mfRun = MarketFlow.CntDailyDaysRun, mfSkip = MarketFlow.CntDailyDaysSkipped;
+        double PcMf(long a, long b) => b > 0 ? 100.0 * a / b : 0.0;
+        Console.WriteLine($"  国内価格（旬 h={msTi.Nations[0].World.Coef.PriceFlowStepDays}日）: 財の歩 {mfSteps}　閉じた式 {mfCg + mfCs}（{PcMf(mfCg + mfCs, mfSteps):F1}%＝財 {mfCg}・役務 {mfCs}）"
+            + $"　日次に落ちた {mfDaily}（e={PcMf(mfDaily, mfSteps):F1}%）");
+        Console.WriteLine($"    日次の理由: 始めの帯 {mfStart}（上側 {MarketFlow.CntDailyStartHigh}・下側 {mfStart - MarketFlow.CntDailyStartHigh}／うち役務 {MarketFlow.CntDailyStartService}）　予測の帯 {mfPred}　労働 {mfLab}　休眠の上乗せ {mfMu}　固い帯 {mfHard}　NaN {mfNaN}　刻み1 {mfH1}"
+            + $"　／日次の回 {mfRun}　打ち切りで省いた日 {mfSkip}（f={PcMf(mfRun, mfRun + mfSkip):F1}%）"
+            + $"　検算 {(mfCg + mfCs + mfDaily == mfSteps ? "OK" : "不一致")}");
     }
     return;
 }

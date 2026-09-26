@@ -1434,10 +1434,11 @@ public sealed class Simulation
     }
 
     /// <summary>四半期＝90回の日次刻み。三層時計の合成（戦略前段→3×月次決算→戦略後段）はそのまま StepDay 内の境界で発火する
-    /// ＝テスト・self-play は従来どおりこのメソッドを呼べばよい（合成順・RNG順は不変、変わるのは価格形成が日次になった点のみ）。</summary>
+    /// ＝テスト・self-play は従来どおりこのメソッドを呼べばよい（合成順・RNG順は不変、変わるのは価格形成が日次になった点のみ）。
+    /// ★2026-09-26 A3：価格形成は旬次（<see cref="Coefficients.PriceFlowStepDays"/> 日ごとに h 日ぶんを1歩）。公開の <see cref="StepDay"/> は1日のまま。</summary>
     public void StepQuarter() { for (int d = 0; d < Calendar.DaysPerQuarter; d++) StepDay(); }
 
-    /// <summary>1日進める（三層時計の最小単位）。日次＝価格形成の鼓動。30日ごとに月次決算、90日目に戦略。四半期が締まった日に true。</summary>
+    /// <summary>1日進める（三層時計の最小単位）。日次＝価格形成の鼓動（価格が動くのは旬の最終日＝A3）。30日ごとに月次決算、90日目に戦略。四半期が締まった日に true。</summary>
     /// <summary>1日を進める（単独呼び用）。多国（MultiNationSim）は3相を別々に呼ぶ＝
     /// StepDayOpen（境界・逐次）→ StepDayDaily（純粋日次・並列可）→ StepDayClose（境界・逐次）。
     /// この一体呼びは3相を順に呼ぶだけ＝単国経路（テスト・leakhunt）は分割前とビット恒等（2026-08-29 高速化裁定）。</summary>
@@ -1474,6 +1475,14 @@ public sealed class Simulation
     public void StepDayDaily()
     {
         // 日次（鼓動）：価格形成・建設の進捗・信用。毎日わずかに動く層。
+        // ★価格形成は旬次（2026-09-26 A3）：旬の最終日（(日＋1)%h==0＝h=PriceFlowStepDays）にだけ MarketFlow を呼び、h 日ぶんを1歩で進める。
+        //   h は30の約数だけ＝旬は月をまたがない＝月次決算（日29/59/89 の締め）と四半期首の AI が読む価格は、今と同じ「その月の30日ぶん寄せた価格」。
+        //   助走も同じ判定（助走は StepQuarter＝この日次を通る）。州への写し・建設・信用は毎日のまま。新しい状態は持たない（_dayInQuarter は既にセーブに載る）。
+        //   ⚠ 旬の0〜(h−2)日目に価格を読むもの（建設の建材4財・画面）は、前の旬の価格を読む（遅れは最大 h−1 日）。
+        int hFlow = World.Coef.PriceFlowStepDays;
+        if (hFlow < 1 || Calendar.DaysPerMonth % hFlow != 0)
+            throw new System.InvalidOperationException($"PriceFlowStepDays={hFlow} は {Calendar.DaysPerMonth} の約数でない（旬は月をまたげない）");
+        bool priceDay = (_dayInQuarter + 1) % hFlow == 0;
         foreach (var r in World.Regions)
             if (r.State == RegionState.Active)
             {
@@ -1483,7 +1492,7 @@ public sealed class Simulation
                 r.FinancialHeat = World.FinancialHeat;   // 与信過熱を州へ複製（改修2026-06-28・投資ハードルのバブル項へ）
                 r.SpendingCapFactor = World.SpendingCapFactor;   // 借入スタックの出費上限を州へ複製（産業政策レバー2＝補助金の国庫肩代わりに乗せる。SubsidyRespectsSpendingCap=0で不読＝恒等）
                 r.CivilWarActive = World.InCivilWar;   // ★B3：述語1本（CivilWarPredicateUnified=1.0＝2026-09-08点火＝War で戦う内戦もここへ届く）      // 内戦中を州へ複製（#136 内戦の経済麻痺の読み口。CivilWarEconomyDisruption=0で不読＝恒等）
-                MarketFlow.StepDay(r, World.Coef);   // 物価水準を複製し需給を読み価格を少しずつ動かす
+                if (priceDay) MarketFlow.StepDay(r, World.Coef, hFlow);   // 物価水準を複製し需給を読み、旬の h 日ぶん価格を少しずつ動かす
             }
         ProbeCheck("日次価格");
         World.StepConstruction();                                                   // 工場建設の進捗（日次・労務費を毎日払って進む）

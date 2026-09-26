@@ -1,40 +1,74 @@
 ﻿namespace PriceOfBread.SimCore;
 
 /// <summary>
-/// 日次の価格形成（三層時計の「鼓動」＝市場フロー）。月次決算（<see cref="EconomyStep"/>）が残した需給
+/// 国内の価格形成（三層時計の「鼓動」＝市場フロー）。月次決算（<see cref="EconomyStep"/>）が残した需給
 /// （LastDemand／LastProduced＋LastImport／Stock）を読み、価格を clearing 目標へ**少しずつ**寄せる。
-/// 速度は月次係数を <see cref="Coefficients.PriceFlowDailyDiv"/>（≒30日）で割って配分するので、
-/// 30日ぶんの積分が従来の月次1回の更新にほぼ一致する＝較正を温存したまま、日々わずかに価格が動く。
+/// 速度は月次係数を <see cref="Coefficients.PriceFlowDailyDiv"/>（≒30日）で割った**1日あたり**の値で、
+/// 30日ぶんの積分が従来の月次1回の更新にほぼ一致する＝較正を温存する（旬次になっても1日あたりの式は変えない）。
+/// ★旬次（2026-09-26 A3・作者裁定「ゲームの高速化を優先し、多少の帯の悪化は受け入れる」）：呼び手（<see cref="Simulation.StepDayDaily"/>）は
+///   旬の最終日（<see cref="Coefficients.PriceFlowStepDays"/>＝h 日ごと）にだけ呼び、h 日ぶんを1歩で進める。
+///   根拠＝ここが読む入力（需給・在庫・在庫目標の倍率・物価水準・工業化・組合厚生・EffFirms）の書き手はすべて境界相
+///   （月次決算・月末の清算・四半期の首と末）にあり、旬は月をまたがない＝旬の中では入力が定数で、同じ写像を h 回まわしているだけ。
+///   ・内側（|t|&lt;<see cref="InnerT"/>）の財と役務＝閉じた式 P′＝SB_h(P0·(1＋y0)^h)。SB_h は SoftBand を h 回重ねた厳密な形。
+///     ⚠ 1＋h·y の形は使わない（端では y≈−0.163＝h=10 で価格が負になる）。(1＋y)^h なら常に正。
+///   ・帯の端・休眠の上乗せ・固い帯（WageClampSoftBand=0）・労働（初回は閉じた式を使わない）＝日次の写像を h 回まわし、
+///     値がビットで止まったら残りを打ち切る（入力が定数なので以後も同じ値＝厳密に同じ結果）。局所変数だけで回す＝状態を持たない。
+///   h=1 なら旧来の日次と1ビットも変わらない。
 /// 金の移動は伴わない（価格を置くだけ）＝保存則に無関係。クリアリング・所得決済は月次のまま。
 /// </summary>
 public static class MarketFlow
 {
     private const double Eps = 1e-9;
 
-    public static void StepDay(Region region, Coefficients coef)
+    /// <summary>閉じた式を使う内側の境界（t＝ln(P/rp)/L・L はその向きの帯の対数）。財では参照の1/10〜10倍、賃金では0.55〜√(3(1+工業化))倍
+    /// （財は既存の pricedist の床・天井の境と同じ）。安定の根拠＝平衡まわりの1日の縮み g≦0.008·amp、|t|&lt;0.5 ⇔ amp&lt;4.02
+    /// ⇒ h=10 で hg≦0.32（行き過ぎの限界1・安定の限界2から遠い）。判定は歩の始めと、SB を掛ける前の予測 P0·(1＋y0)^h の両方で行う
+    /// （予測は帯で小さくなる前の値＝安全側）。⚠ 否定形で判定する＝NaN は日次の経路へ落ち、NaN の伝わり方は旧来のまま。</summary>
+    private const double InnerT = 0.5;
+
+    // ★旬次の計器（2026-09-26 A3）：POB_TIME=1 のときだけ、州ごとの局所の数を出口で足す（既定は足さない）。timeprobe が読む。
+    //   財の歩＝この関数が動かした（死んでいない）財の数。閉じた式／日次に落ちた理由別の内訳の和は、財の歩の数に一致する。
+    //   日次の回＝日次の写像を実際にまわした回数・省いた日＝ビットで止まって打ち切った残りの日数（日次に落ちた財×h＝回＋省いた日）。
+    internal static long CntGoodSteps, CntClosedGoods, CntClosedService,
+        CntDailyStartBand, CntDailyStartHigh, CntDailyStartService, CntDailyPredBand, CntDailyLabor, CntDailyMarkup, CntDailyHardBand, CntDailyNaN, CntDailyStep1,
+        CntDailyDaysRun, CntDailyDaysSkipped;
+
+    /// <param name="days">この1歩で進める日数 h（旬の長さ）。1＝旧来の日次。</param>
+    public static void StepDay(Region region, Coefficients coef, int days = 1)
     {
+        int h = days;
         double div = coef.PriceFlowDailyDiv;
+        double k = coef.SoftBandSharpness;
         // ★2026-09-03（キューA-09／出典 トリアージ 2-A 10-4c）：財側の SoftBand の境界対数は**係数だけで決まる定数**なので、
         //   財×日ごとに Math.Log を2回呼ぶ必要がない。ここで1回だけ計算して渡す＝同じ double を使うのでビット恒等。
         double lnCeilGoods = System.Math.Log(coef.PriceCeilFactor);
         double lnFloorGoods = -System.Math.Log(coef.PriceFloorFactor);
         // ★2026-09-08（10-4c の残り＝賃金側）：賃金の天井 effWageMax は coef と region.Industrialization だけで決まり、
-        //   この foreach は市場（m.*）しか書かない＝**財ループ不変**（日をまたげば動くが、StepDay 1回の中では定数）。
+        //   この foreach は市場（m.*）しか書かない＝**財ループ不変**（月次で動くが、StepDay 1回の中では定数）。
         //   よって天井/床の対数も財ごとに Math.Log を呼ぶ必要がない＝役務1財あたり2回→州1回へ。渡す double は同一＝ビット恒等。
         double effWageMax = coef.WageClampMax * (1 + coef.WageClampIndScale * region.Industrialization);
         double lnCeilWage = System.Math.Log(effWageMax);
         double lnFloorWage = -System.Math.Log(coef.WageClampMin);
+        bool wageSoft = coef.WageClampSoftBand > 0.5;
+        // 閉じた式が使えるのは、h>1 で、SoftBand の両側の帯が正のときだけ（L≦Eps の退化は日次の SoftBandLn が rp を返す枝＝日次へ落とす）。
+        bool closedGoods = h > 1 && lnFloorGoods > Eps && lnCeilGoods > Eps;
+        bool closedWage = h > 1 && wageSoft && lnFloorWage > Eps && lnCeilWage > Eps;
+        // 組合の賃金交渉（no-monopsony-wage）：組織率(LaborWellbeing代理)で留保賃金の上昇速度を増幅＝賃上げに速く・賃下げに抗う。UnionWageRiseBoost=0.5 だが LaborWellbeing は UnionSatBonus=0（休眠）で実効0＝ReservationWageRiseのまま。下方(Fall)は触らず下方硬直温存。
+        //   coef と region.LaborWellbeing（月次）だけで決まる＝財ループ不変＝州1回へ巻き上げ（同じ double＝ビット恒等）。
+        double unionRise = coef.ReservationWageRise * (1.0 + coef.UnionWageRiseBoost * region.LaborWellbeing);
+        long nSteps = 0, nClosedG = 0, nClosedS = 0, nStart = 0, nStartHi = 0, nStartSvc = 0, nPred = 0, nLabor = 0, nMarkup = 0, nHard = 0, nNaN = 0, nStep1 = 0, nRun = 0, nSkip = 0;
         foreach (var good in region.Goods)
         {
             int gi = good.Id;
             var m = region.Markets[gi];
             double totalDemand = m.LastDemand;
             if (totalDemand < Eps && m.LastProduced < Eps) continue;   // まだ決算が無い／死んだ財は動かさない
+            nSteps++;
 
+            // 在庫目標・在庫ギャップ・供給は価格に依らない＝旬の中で定数（日次でも毎日同じ値を書いていた）＝1歩に1回だけ求める。
             m.TargetStock = System.Math.Max(coef.TargetStockFloor, coef.TargetStockBuffer * totalDemand) * region.StockpileFactor(gi, coef);
             // 在庫ギャップ＝自己有界な正規化差 (Target−Stock)/(Target+Stock)∈(−1,1)（役務の flow と同形）。手クランプ不要で過剰/不足が対称（倍率排除）。
             double gap = (m.TargetStock - m.Stock) / (m.TargetStock + m.Stock + Eps);
-            // ★価格振動の根①（2026-09-07・器 PriceLawSupplyIncludesStock）：0＝旧式（今月の流入だけ）・1＝倉庫の在庫も供給に数える（在庫が満ちている州は下がる）。
             // ★価格振動の根①（2026-09-07・器 PriceLawSupplyIncludesStock／2026-09-08 作者裁定「備蓄がある限り、それは生産できているものとみなす」）：
             //   0＝旧式（今月の流入だけ）＝輸入の無い月は倉庫が満杯でも供給0と読まれ、需給差が+1へ飽和して価格が上がり続ける（硫黄の鋸歯の根）。
             //   1＝**需要までは備蓄が生産の代わりをする**＝supply = max(流入, min(流入+在庫, 需要))。上限が需要なので
@@ -54,59 +88,192 @@ public static class MarketFlow
             {
                 // 役務は在庫を持てない＝フローのみで価格形成。賃金は下方硬直（賃下げ方向は遅い＝持続的失業を生む）。
                 // 需給差は自然有界な正規化差 (D−S)/(D+S)∈[−1,1]（段A。弾力性は役務＝賃金には掛けない＝賃金硬直を温存）。
+                // ⚠ 需給差は価格に依らない＝旬の中で定数＝月の中に押し戻す力が無い（振動もしない）。
                 double flow = (totalDemand - supply) / (totalDemand + supply + Eps);
                 double adj = coef.FlowAdjustSpeed * flow / div;
-                double target = m.Price * (1 + adj);   // 無拘束の目標賃金（需給が指す clearing）
+                // 賃金/役務の床天井。0.3–3.0×(参照価格×物価水準)。財側の SoftBand が係数化済みなのに賃金だけ直書きだった＝係数化（値は同一で中立）。
+                // WageClampSoftBand=1.0（有効）＝財と同じ対数飽和(SoftBand)＝実質賃金成長・国際賃金格差の圧縮を緩める。0で従来のハードクランプ（1789基準3倍を天井に固定）。
+                // R2（賃金天井の工業化連動）：天井を固定WageClampMaxでなく工業化度でスケール＝未工業国は従来の3倍据置・工業国のみ実質賃金が伸びる（史実の産業革命の賃金上昇・国際格差の拡大）。WageClampIndScale=1.0（R2点火2026-07-15）。0でeffWageMax=WageClampMax＝旧恒等。床(Min)は据置（下方硬直の温存）。effWageMax とその対数は州1回に巻き上げ済み
+                double wrp = good.RefPrice * pl;
                 if (gi is Catalog.LaborId or Catalog.AdvLaborId or Catalog.FarmLaborId)
                 {
                     // 下方硬直は固定倍率でなく留保賃金から創発：留保賃金は賃上げに速く・賃下げに遅く追従し、賃金はそれを下限に置く。
                     // 持続失業（超過供給）では目標がじわじわ下がり留保賃金も遅れて切り下がる＝名目賃金は下がりにくいが永久には張り付かない。
-                    if (!(m.ReservationWage > Eps)) m.ReservationWage = m.Price;   // 否定形＝NaN も初期化側へ（Math.Max は NaN を除去しない）
-                    // 組合の賃金交渉（no-monopsony-wage）：組織率(LaborWellbeing代理)で留保賃金の上昇速度を増幅＝賃上げに速く・賃下げに抗う。UnionWageRiseBoost=0.5 だが LaborWellbeing は UnionSatBonus=0（休眠）で実効0＝ReservationWageRiseのまま。下方(Fall)は触らず下方硬直温存。
-                    double unionRise = coef.ReservationWageRise * (1.0 + coef.UnionWageRiseBoost * region.LaborWellbeing);
-                    double rwSpeed = target >= m.ReservationWage ? unionRise : coef.ReservationWageFall;
-                    m.ReservationWage += (target - m.ReservationWage) * rwSpeed;
-                    m.Price = System.Math.Max(target, m.ReservationWage);
+                    // ★旬次（A3）：労働（3財＝生きた財の約3%）は初回は閉じた式を使わない＝日次の写像を h 回（打ち切りつき）＝旬の終わりの賃金と
+                    //   留保賃金（＝失業）は日次と一致する。Rise/Fall は1日あたりの定数（÷div しない）なので、閉じた式にするなら相ごとの形が要る（設計 §2）。
+                    double P = m.Price, RW = m.ReservationWage;
+                    int run = 0;
+                    while (run < h)
+                    {
+                        run++;
+                        double target = P * (1 + adj);   // 無拘束の目標賃金（需給が指す clearing）
+                        double rw = RW;
+                        if (!(rw > Eps)) rw = P;   // 否定形＝NaN も初期化側へ（Math.Max は NaN を除去しない）
+                        double rwSpeed = target >= rw ? unionRise : coef.ReservationWageFall;
+                        rw += (target - rw) * rwSpeed;
+                        double p1 = WageBand(System.Math.Max(target, rw), wrp, wageSoft, lnFloorWage, lnCeilWage, k, coef.WageClampMin, effWageMax);
+                        bool still = Same(p1, P) && Same(rw, RW);
+                        P = p1; RW = rw;
+                        if (still) break;
+                    }
+                    m.ReservationWage = RW;
+                    m.Price = P;
+                    if (h == 1) nStep1++; else nLabor++;
+                    nRun += run; nSkip += h - run;
                 }
-                else m.Price = target;
-                // 賃金/役務の床天井。0.3–3.0×(参照価格×物価水準)。財側の SoftBand が係数化済みなのに賃金だけ直書きだった＝係数化（値は同一で中立）。
-                // WageClampSoftBand=1.0（有効）＝財と同じ対数飽和(SoftBand)＝実質賃金成長・国際賃金格差の圧縮を緩める。0で従来のハードクランプ（1789基準3倍を天井に固定）。
-                double wrp = good.RefPrice * pl;
-                // R2（賃金天井の工業化連動）：天井を固定WageClampMaxでなく工業化度でスケール＝未工業国は従来の3倍据置・工業国のみ実質賃金が伸びる（史実の産業革命の賃金上昇・国際格差の拡大）。WageClampIndScale=1.0（R2点火2026-07-15）。0でeffWageMax=WageClampMax＝旧恒等。床(Min)は据置（下方硬直の温存）。effWageMax とその対数は :24 で州1回に巻き上げ済み
-                m.Price = coef.WageClampSoftBand > 0.5
-                    ? SoftBandLn(m.Price, wrp, lnFloorWage, lnCeilWage, coef.SoftBandSharpness)   // 床/天井の倍率＝WageClampMin/effWageMax（財の SoftBand と同じ対数空間飽和）
-                    : System.Math.Clamp(m.Price, wrp * coef.WageClampMin, wrp * effWageMax);      // 従来のハードクランプ（係数化のみ・値は同一）
+                else
+                {
+                    double P0 = m.Price;
+                    if (closedWage)
+                    {
+                        double t0 = BandT(P0, wrp, lnFloorWage, lnCeilWage, out _);
+                        if (System.Math.Abs(t0) < InnerT)
+                        {
+                            double g1 = 1 + adj;
+                            double tp = BandT(P0 * System.Math.Pow(g1, h), wrp, lnFloorWage, lnCeilWage, out double lp);
+                            if (g1 > 0 && System.Math.Abs(tp) < InnerT)
+                            {
+                                m.Price = wrp * System.Math.Exp(lp * SoftT(tp, k, h));   // P′＝SB_{w,h}(P0·(1＋a)^h)
+                                nClosedS++;
+                                continue;
+                            }
+                            nPred++;
+                        }
+                        else if (MultiNationSim.TimeOn && double.IsNaN(t0)) nNaN++;
+                        else { nStart++; if (MultiNationSim.TimeOn) { nStartSvc++; if (t0 > 0) nStartHi++; } }   // 計器の内訳（役務・上側＝参照より高い側）は POB_TIME のときだけ
+                    }
+                    else if (h == 1) nStep1++;
+                    else nHard++;
+                    double P = P0;
+                    int run = 0;
+                    while (run < h)
+                    {
+                        run++;
+                        double p1 = WageBand(P * (1 + adj), wrp, wageSoft, lnFloorWage, lnCeilWage, k, coef.WageClampMin, effWageMax);
+                        bool still = Same(p1, P);
+                        P = p1;
+                        if (still) break;
+                    }
+                    m.Price = P;
+                    nRun += run; nSkip += h - run;
+                }
             }
             else
             {
                 // 加速度的な是正（要望）：平衡(100%)近くは緩やか、端ほど急峻。距離は対数 |ln(価格/参照価格)| で測り
                 // ＝床(5%)と天井(2000%)が同じ正規化距離1.0＝対称。倍率＝Center＋(Edge−Center)×ndist^Power。
                 double rp = System.Math.Max(good.RefPrice * pl, Eps);
-                // 段B：需給に**価格弾力性**を入れる＝実効需要 eD=D×(rp/P)^ε は割高で減り、実効供給 eS=S×(P/rp)^ε は割高で増える。
-                // すると需給差 (eD−eS)/(eD+eS) は有限価格 P*=rp×(D/S)^(1/2ε) でゼロを切る＝価格が自律的に均衡へ収束する復元力。
-                // P=rp（平衡価格）では eD=D, eS=S＝段Aと同一（平常較正への影響は小）。離れた時だけ押し戻す＝クランプは外側の安全網に降格。
-                double dev = m.Price / rp;
-                // ★価格法則の輸出反映（2026-08-22・PriceLawSeesExports）：輸入は :27 で供給側に載るのに輸出は在庫にしか載らない非対称を閉じる。
+                // ★価格法則の輸出反映（2026-08-22・PriceLawSeesExports）：輸入は供給側に載るのに輸出は在庫にしか載らない非対称を閉じる。
                 //   輸出州の産出が「過剰供給」と読まれて価格が崩れ、地元価格で決まる採算が産出を絞り輸出余剰が消える自壊を止める。
-                //   TargetStock（:24）には入れない＝在庫目標は国内需要のまま。0＝旧式を逐語＝ビット恒等（分岐で足し算自体を回避）。
-                double eD = (coef.PriceLawSeesExports > 0 ? totalDemand + m.LastExport : totalDemand) * System.Math.Pow(dev, -coef.PriceElasticity);
-                double eS = supply * System.Math.Pow(dev, coef.PriceElasticity);
-                double flow = (eD - eS) / (eD + eS + Eps);
-                double lnRef = coef.PriceAmpLnScale;   // amp曲線の端の対数距離（=ln20≈3.0）。安全網クランプ幅とは分離
-                double ndist = System.Math.Min(1.0, System.Math.Abs(System.Math.Log(m.Price / rp)) / lnRef);
-                double amp = coef.PriceAmpCenter + (coef.PriceAmpEdge - coef.PriceAmpCenter) * System.Math.Pow(ndist, coef.PriceAmpPower);
-                m.Price *= 1 + (coef.PriceAdjustSpeed * gap + coef.FlowAdjustSpeed * flow) / div * amp;   // gap は自己有界∈(−1,1)＝旧 symGap クランプ不要
+                //   TargetStock には入れない＝在庫目標は国内需要のまま。0＝旧式を逐語＝ビット恒等（分岐で足し算自体を回避）。
+                double demandRaw = coef.PriceLawSeesExports > 0 ? totalDemand + m.LastExport : totalDemand;
                 // 国内寡占マークアップ（no-market-power-monopoly）：財別有効生産者数EffFirmsが少ない財ほど価格支配で上乗せ。μ=1+DomesticMarkupMax/EffFirms はEffFirms→∞で1へ漸近＝自己有界（談合/鉄道プール）。
-                // DomesticMarkupMax=0（既定）またはEffFirms未確保でμ=1＝現行price-takerに恒等。月次μを日次へ薄く配分。
+                // DomesticMarkupMax=0（既定）またはEffFirms未確保でμ=1＝現行price-takerに恒等。月次μを1日あたりへ薄く配分。
+                // ⚠休眠の枝＝点火されたら日次へ落とす（閉じた式に μ を畳まない）。
+                bool markup = false;
+                double muDay = 1.0;
                 if (coef.DomesticMarkupMax > 0 && region.EffFirms is { } ef && gi < ef.Length && ef[gi] >= 1.0)
                 {
                     double mu = 1.0 + coef.DomesticMarkupMax / ef[gi];
-                    m.Price *= 1.0 + (mu - 1.0) / div;
+                    muDay = 1.0 + (mu - 1.0) / div;
+                    markup = true;
                 }
-                m.Price = SoftBandLn(m.Price, rp, lnFloorGoods, lnCeilGoods, coef.SoftBandSharpness);   // ハードクランプ→対数空間の滑らかな飽和（内部は恒等≒・境界に漸近＝角を除去）
+                double P0 = m.Price;
+                if (closedGoods && !markup)
+                {
+                    double t0 = BandT(P0, rp, lnFloorGoods, lnCeilGoods, out _);
+                    if (System.Math.Abs(t0) < InnerT)
+                    {
+                        // y0 は歩の始めの価格で1回だけ（日次の式と同じ式・同じ順）。1＋y0≧0.837（|y|≦0.61·8/30）＝(1＋y0)^h は常に正。
+                        double g1 = 1 + GoodsY(P0, rp, demandRaw, supply, gap, coef, div);
+                        double tp = BandT(P0 * System.Math.Pow(g1, h), rp, lnFloorGoods, lnCeilGoods, out double lp);
+                        if (g1 > 0 && System.Math.Abs(tp) < InnerT)
+                        {
+                            m.Price = rp * System.Math.Exp(lp * SoftT(tp, k, h));   // P′＝SB_h(P0·(1＋y0)^h)
+                            nClosedG++;
+                            continue;
+                        }
+                        nPred++;
+                    }
+                    else if (MultiNationSim.TimeOn && double.IsNaN(t0)) nNaN++;
+                    else { nStart++; if (MultiNationSim.TimeOn && t0 > 0) nStartHi++; }   // 計器の内訳（上側＝参照より高い側）は POB_TIME のときだけ
+                }
+                else if (h == 1) nStep1++;
+                else if (markup) nMarkup++;
+                else nHard++;
+                // 日次の写像（旧来の1日ぶんと同じ式・同じ順）を h 回。帯に張り付く財（供給0・在庫0で参照の約49倍）はここ＝張り付く水準を保つ。
+                double P = P0;
+                int run = 0;
+                while (run < h)
+                {
+                    run++;
+                    double p1 = P * (1 + GoodsY(P, rp, demandRaw, supply, gap, coef, div));   // gap は自己有界∈(−1,1)＝旧 symGap クランプ不要
+                    if (markup) p1 *= muDay;
+                    p1 = SoftBandLn(p1, rp, lnFloorGoods, lnCeilGoods, k);   // ハードクランプ→対数空間の滑らかな飽和（内部は恒等≒・境界に漸近＝角を除去）
+                    bool still = Same(p1, P);
+                    P = p1;
+                    if (still) break;
+                }
+                m.Price = P;
+                nRun += run; nSkip += h - run;
             }
         }
+        if (MultiNationSim.TimeOn)
+        {
+            System.Threading.Interlocked.Add(ref CntGoodSteps, nSteps);
+            System.Threading.Interlocked.Add(ref CntClosedGoods, nClosedG);
+            System.Threading.Interlocked.Add(ref CntClosedService, nClosedS);
+            System.Threading.Interlocked.Add(ref CntDailyStartBand, nStart);
+            System.Threading.Interlocked.Add(ref CntDailyStartHigh, nStartHi);
+            System.Threading.Interlocked.Add(ref CntDailyStartService, nStartSvc);
+            System.Threading.Interlocked.Add(ref CntDailyPredBand, nPred);
+            System.Threading.Interlocked.Add(ref CntDailyLabor, nLabor);
+            System.Threading.Interlocked.Add(ref CntDailyMarkup, nMarkup);
+            System.Threading.Interlocked.Add(ref CntDailyHardBand, nHard);
+            System.Threading.Interlocked.Add(ref CntDailyNaN, nNaN);
+            System.Threading.Interlocked.Add(ref CntDailyStep1, nStep1);
+            System.Threading.Interlocked.Add(ref CntDailyDaysRun, nRun);
+            System.Threading.Interlocked.Add(ref CntDailyDaysSkipped, nSkip);
+        }
     }
+
+    /// <summary>財の1日ぶんの伸び y（P←P·(1＋y) の y）。段B：需給に**価格弾力性**を入れる＝実効需要 eD=D×(rp/P)^ε は割高で減り、
+    /// 実効供給 eS=S×(P/rp)^ε は割高で増える。すると需給差 (eD−eS)/(eD+eS) は有限価格 P*=rp×(D/S)^(1/2ε) でゼロを切る＝価格が自律的に均衡へ収束する復元力。
+    /// P=rp（平衡価格）では eD=D, eS=S＝段Aと同一（平常較正への影響は小）。離れた時だけ押し戻す＝クランプは外側の安全網に降格。
+    /// ⚠ 旧来の日次の式を同じ順で書き写したもの（日次の経路と閉じた式の y0 はこの1本）＝h=1 でビット恒等。</summary>
+    private static double GoodsY(double price, double rp, double demandRaw, double supply, double gap, Coefficients coef, double div)
+    {
+        double dev = price / rp;
+        double eD = demandRaw * System.Math.Pow(dev, -coef.PriceElasticity);
+        double eS = supply * System.Math.Pow(dev, coef.PriceElasticity);
+        double flow = (eD - eS) / (eD + eS + Eps);
+        double lnRef = coef.PriceAmpLnScale;   // amp曲線の端の対数距離（=ln20≈3.0）。安全網クランプ幅とは分離
+        double ndist = System.Math.Min(1.0, System.Math.Abs(System.Math.Log(price / rp)) / lnRef);
+        double amp = coef.PriceAmpCenter + (coef.PriceAmpEdge - coef.PriceAmpCenter) * System.Math.Pow(ndist, coef.PriceAmpPower);
+        return (coef.PriceAdjustSpeed * gap + coef.FlowAdjustSpeed * flow) / div * amp;
+    }
+
+    /// <summary>賃金/役務の床天井（旧来の日次の式そのまま）。SoftBand（既定）か、WageClampSoftBand=0 のハードクランプ。</summary>
+    private static double WageBand(double price, double wrp, bool soft, double lnFloorWage, double lnCeilWage, double k, double clampMin, double effWageMax)
+        => soft
+            ? SoftBandLn(price, wrp, lnFloorWage, lnCeilWage, k)   // 床/天井の倍率＝WageClampMin/effWageMax（財の SoftBand と同じ対数空間飽和）
+            : System.Math.Clamp(price, wrp * clampMin, wrp * effWageMax);   // 従来のハードクランプ（係数化のみ・値は同一）
+
+    /// <summary>ビット単位で同じか（打ち切りの判定）。+0/−0 を区別し、同じビットの NaN を同一と見る＝写像の不動点を厳密に言う。</summary>
+    private static bool Same(double a, double b) => System.BitConverter.DoubleToInt64Bits(a) == System.BitConverter.DoubleToInt64Bits(b);
+
+    /// <summary>SoftBand の正規化距離 t＝ln(max(P,Eps)/rp)/L（L＝その向きの帯の対数）。<see cref="SoftBandLn"/> と同じ式。</summary>
+    private static double BandT(double price, double rp, double lnFloorPos, double lnCeilPos, out double L)
+    {
+        double u = System.Math.Log(System.Math.Max(price, Eps) / rp);
+        L = u >= 0 ? lnCeilPos : lnFloorPos;
+        return u / L;
+    }
+
+    /// <summary>SoftBand を h 回重ねた正規化距離：s＝t／(1＋h·|t|^k)^(1/k)。
+    /// |SB(t)|^−k＝|t|^−k＋1 なので h 回重ねると ＋h（厳密）。h=1 なら <see cref="SoftBandLn"/> の soft と同じ式。</summary>
+    private static double SoftT(double t, double k, int h)
+        => t / System.Math.Pow(1 + h * System.Math.Pow(System.Math.Abs(t), k), 1.0 / k);
 
     /// <summary>対数空間の滑らかな飽和。内部（|乖離|が小）では恒等≒で価格を素通しし、境界 rp×倍率へ**漸近**する
     /// （ハードな Clamp と違い導関数が連続＝角が無い）。床/天井の倍率が非対称でも可。k が大きいほどハードクランプに近い。

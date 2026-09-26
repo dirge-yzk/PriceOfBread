@@ -1738,6 +1738,7 @@ public static class EconomyStep
             m.LastShortage = Math.Max(0, totalDemand - available);
             // ※価格形成（在庫ギャップ＋需給フロー）は日次へ移譲（MarketFlow.StepDay）。月次決算はここまで＝
             //   クリアリングと所得決済（金の動き）だけを担い、価格は鼓動（日次）が需給を読んで少しずつ動かす（三層時計）。
+            //   ★2026-09-26 A3：鼓動の刻みは旬（PriceFlowStepDays 日ごとに h 日ぶんを1歩）＝この決算が読む価格は今までと同じ「月の30日ぶん寄せた価格」。
         }
         // ★純テレメトリ（2026-08-21）：全財を買い終えた時点の**使い残し**。予算が binding なら 0 に張り付く。
         if (BudgetBindDiag.On)
