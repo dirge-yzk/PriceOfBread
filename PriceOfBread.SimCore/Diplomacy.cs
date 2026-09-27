@@ -2311,8 +2311,16 @@ public sealed class Diplomacy
             //   旧＝運は盤面非依存に毎月加算＝誰も届かない戦線で戦勝点が乱歩し±1.5へ到達（幽霊戦線の決定的勝利）。0＝不読＝恒等。
             //   ★E-17b（運∝接触・reachFrac）は実測で差し戻し＝純ゲート（両者の押しが0なら運0）へ戻す。
             if (c.WarLuckNeedsContact > 0 && !(aPush + bPush > 0)) luck *= 1.0 - c.WarLuckNeedsContact;
-            war.Score = Math.Clamp(war.Score + c.WarPushSpeed * (aPush - bPush) + luck, -CollapseScore, CollapseScore);
-            double delta = c.WarPushSpeed * (aPush - bPush) + luck;   // 記帳用（この値は war.Score の計算に使わない）
+            // ★2026-09-28 回8-1（棚卸し mil-04）：押しを**割合**で測る＝(押しA−押しB)÷(押しA＋押しB)（塹壕の後の押し）。
+            //   内戦の押し合い（Politics.ProcessCivilWar・(攻−守)÷(攻＋守)×WarPushSpeed）と同じ物差し＝係数も同じ WarPushSpeed。
+            //   旧＝押しの**差**をゲージの単位のまま WarPushSpeed に掛けた。ゲージは装備の充足・質・兵数で時代と規模により約1000倍動くので、
+            //     前近代と小国の戦争は押しがほぼ0で運（±WarLuck）だけで決まり、後期の大国は1か月で決着した（1914年以降の戦争は平均約4か月）。
+            //   新＝月の戦勝点の動きは最大 WarPushSpeed（一方だけが押す戦線）で、ゲージの規模に依らない＝運（±WarLuck）と同じ単位で比べられる。
+            //   両者の押しが0（上陸不能・投射0）なら割合も0（運も上の WarLuckNeedsContact で0）。否定形＝押しが NaN なら押し合いなし。
+            double pushShare = aPush + bPush > 0 ? (aPush - bPush) / (aPush + bPush) : 0;
+            if (!(pushShare >= -1 && pushShare <= 1)) pushShare = 0;
+            war.Score = Math.Clamp(war.Score + c.WarPushSpeed * pushShare + luck, -CollapseScore, CollapseScore);
+            double delta = c.WarPushSpeed * pushShare + luck;   // 記帳用（この値は war.Score の計算に使わない）
             war.PushA += aPush; war.PushB += bPush;   // 崩壊講和の取り分の材料（純記帳・war.Score の式には一切入れない）
 
             // ★戦闘のラウンド記録（2026-08-04・作者仕様(1)「戦争をラウンド化する。1ヵ月1ラウンド」）。
