@@ -500,6 +500,7 @@
    "initialCensorship": "Censorship",
    "initialCornLaws": "Full",
    "initialSerfEmancipation": "Full",
+   "initialMonetaryLaw": "Gold",
    "provinces": [
     {
      "city": "ロンドン",

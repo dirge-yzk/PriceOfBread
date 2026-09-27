@@ -595,13 +595,13 @@ public class FiscalTests
     {
         // 改革は兌換停止中にしかできない（Fiscal の改革の条件 !OnGoldStandard）。再加入が記憶（累積切下げ÷名目GDP）を見ないと、
         // 改革より先に戻った国は記憶が1世紀凍結し、CapitalMarket の国内資本の逃避が止まらなかった（露1804〜11年の先着争い）。
-        // 同じ盤面を2つ作り、記憶だけを違える。再加入の他の条件（債務・財政・カバー率）と改革の静穏の月数はこの盤面の係数で外す
+        // 同じ盤面を2つ作り、記憶だけを違える。再加入の他の条件（財政・カバー率）と改革の静穏の月数はこの盤面の係数で外す
         // ＝対照が同じ月に戻れることで確かめる。
         World Board(bool broken)
         {
             var sim = new MultiNationSim([NationConfig.Britain(), NationConfig.France(), NationConfig.Prussia()], 1789, _ => new NullAgent()) { DiplomacyFrozen = true };
             var w = sim.Nations[0].World;
-            w.Coef.GoldStandardMaxDebt = double.MaxValue; w.Coef.GoldStandardMinFunding = 0; w.Coef.GoldRejoinCoverMargin = 0;
+            w.Coef.GoldStandardMinFunding = 0; w.Coef.GoldRejoinCoverMargin = 0;
             w.Coef.CurrencyReformCalmMonths = 0;
             w.MonetaryLaw = MonetaryStandardLaw.Silver;   // 金属本位の法は立てたまま（露の銀本位）＝兌換停止中
             w.OnGoldStandard = false;
@@ -621,6 +621,40 @@ public class FiscalTests
         Assert.False(brk.OnGoldStandard, "改革と同じ月に兌換へ戻った（改革の前の記憶で判定していない）");
         Fiscal.Step(brk, brk.Coef);
         Assert.True(brk.OnGoldStandard, "通貨改革の後も兌換へ戻れない");
+    }
+
+    /// <summary>★兌換の門は債務の水準を読まない（作者裁定 2026-09-28 F6 の1歩目）。旧＝債務/年GDP の固定の閾値（停止 7.5%・再加入 4.2%）。
+    /// 史実＝英は1815年に国債が GDP の約2.5倍でも1821年に兌換を再開し1914年まで保った。停止は取り付け（金の流出が準備を超える）と戦費で起きた。
+    /// 盤面＝維持費0の英（払えた比1＝財政の門は開く）に年GDP の2倍の国債。(1) 兌換中なら止めない (2) 停止中なら戻れる
+    /// (3) 対照＝同じ盤面で準備が割れる（取り付け）と止める＝門そのものは生きている。</summary>
+    [Fact]
+    public void 債務が年GDPの2倍の英も取り付けが無ければ兌換を止めず_停止中なら戻れる()
+    {
+        World Board(bool on)
+        {
+            var w = QuietBritain();
+            w.MonetaryLaw = MonetaryStandardLaw.Gold; w.Policy.MonetaryTarget = 2;
+            w.OnGoldStandard = on;
+            w.GovDebt = 2.0 * w.NominalGdp * Calendar.MonthsPerYear; w.ForeignDebt = 0;
+            return w;
+        }
+        double Coverage(World w) => w.BaseMoney / w.BroadMoney;
+        var keep = Board(true);
+        Assert.True(keep.MonetaryEnabled && keep.NominalGdp > 0, "前提が崩れた：英に貨幣経済が無い");
+        Assert.True(Coverage(keep) >= keep.Coef.GoldCoverMin * keep.Coef.GoldRejoinCoverMargin, $"前提が崩れた：準備が薄い（カバー率 {Coverage(keep)}）");
+        Fiscal.Step(keep, keep.Coef);
+        Assert.Equal(1.0, keep.FiscalFundingRatio);
+        Assert.True(keep.GovDebt > 1.5 * keep.NominalGdp * Calendar.MonthsPerYear, "前提が崩れた：債務が年GDP の2倍に届いていない");
+        Assert.True(keep.OnGoldStandard, "債務が年GDP の2倍の英が、取り付けも財政不足も無いのに兌換を止めた");
+
+        var back = Board(false);
+        Fiscal.Step(back, back.Coef);
+        Assert.True(back.OnGoldStandard, "債務が年GDP の2倍の英が、準備と財政が足りているのに兌換へ戻れない（英1821年の再開）");
+
+        var run = Board(true);
+        run.Bank!.Loans = run.TotalMoney + run.Treasury;   // 準備（基礎貨幣）が与信に食われて0＝取り付けで金が流出し尽くした盤面
+        Fiscal.Step(run, run.Coef);
+        Assert.False(run.OnGoldStandard, "準備が割れても兌換を止めない（取り付けの門が死んでいる＝この番人の対照が崩れた）");
     }
 
     [Fact]

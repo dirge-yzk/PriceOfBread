@@ -679,9 +679,13 @@ public sealed class UtilityAgent : INationAgent
         // ★前線比（2026-09-06・銀本位の史実度 doc §6#1＝「全球収束の世界では絶対閾が氾濫する」）：GoldStandardFrontierRatio>0 では
         //   「自国の工業化 ≥ 比×世界の先端」で金を志向する（先端との距離＝交易網への参加資格）。0＝従来の絶対閾（厳密恒等）。
         //   ★先端＝World.IndustrialFrontier（2026-09-26：同じ最大の2つ目の欄を1本へ＝助走の直後の最初の四半期だけは0＝絶対閾へ倒れる・この枝は休眠）。
-        bool goldWish = w.Coef.GoldStandardFrontierRatio > 0 && w.IndustrialFrontier > 0
-            ? w.MeanIndustrialization >= w.Coef.GoldStandardFrontierRatio * w.IndustrialFrontier
-            : w.MeanIndustrialization > w.Coef.GoldStandardIndThreshold;
+        // ★金の国は自分から金を降りない（作者裁定 2026-09-28 F6 の2歩目）：史実で金から銀へ法で戻った国は無い。離脱は危機と政治の側が持つ
+        //   （兌換停止＝Fiscal の OnGoldStandard／法を下げる要求＝PolicyPreferences の債務者の側→議会・蜂起の強制施行 Politics）。
+        //   ⚠これが無いと、初期値で金に置いた英（工業化が閾値に遠い）は最初の四半期に銀へ戻る。
+        bool goldWish = w.MonetaryLaw == MonetaryStandardLaw.Gold
+            || (w.Coef.GoldStandardFrontierRatio > 0 && w.IndustrialFrontier > 0
+                ? w.MeanIndustrialization >= w.Coef.GoldStandardFrontierRatio * w.IndustrialFrontier
+                : w.MeanIndustrialization > w.Coef.GoldStandardIndThreshold);
         w.Policy.MonetaryTarget = goldWish ? 2
                                 : w.Coef.SilverStandardGate > 0 && w.MeanIndustrialization >= w.Coef.SilverStandardIndThreshold ? 1 : 0;
         // ★資本移動（トリレンマdoc・2026-08-13）：国庫の立場は状況で割れる——**借りたいときは自由・正貨が逃げているときは規制**。

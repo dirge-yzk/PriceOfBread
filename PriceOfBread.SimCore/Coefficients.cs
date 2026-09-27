@@ -983,12 +983,11 @@ public sealed class Coefficients
     public double RegionalPriceLevelMin = 0.7;      // 地域物価乗数の下限（辺境デフレの底）
     public double RegionalPriceLevelMax = 1.45;     // 地域物価乗数の上限（金融中心の物価高の天井）
     // 金本位制（信用ゲート＋黄金の足枷）。加入＝資格（コストでない）、加入中＝規律。
-    public double GoldStandardMaxDebt = 0.0416666666666666667;   // 加入の信用要件：債務/**年**GDP がこれ以下。財7単位フリップ2026-07-26＝旧0.5（月次GDP比）÷12＝代数恒等。**年GDP比4.2%＝史実（英1815=250%）に対し極端に厳しい＝#17で史実レンジへ再較正する主対象**。〔②検討〕旧単位での緩和(1.5)は急進化＋techテスト破綻で据置だった（②は慢性赤字の解決が先）
+    // 【削除2026-09-28（作者裁定 F6）】GoldStandardMaxDebt（加入：債務/年GDP≤4.2%）・GoldStandardSuspendDebt（停止：>7.5%）＝史実の英（1815年に債務が GDP の約2.5倍で1821年に兌換を再開）に合わない門。兌換の門は取り付け（GoldCoverMin）と財政（FiscalFundingRatio）だけ＝Fiscal.Step の注記
     public double GoldCoverMin = 0.25;              // 兌換維持に要る正貨準備カバー率（convertibility-not-reserve-backed＋fx-peg防衛）＝BaseMoney/BroadMoney。これ未満で兌換停止クライシス(金流出で守れない)。
                                                     // 有効化2026-07-10（キュー1）：実測（goldprobe 5seeds×500Q・加入国10.9万サンプル）＝健全帯 中央0.52/p25 0.48/p1 0.43・危機の谷は0.21以下〜負値へ突き抜ける。
                                                     // 0.25＝健全帯の床(p1=0.43)より下・危機の谷より上＝下回りは加入四半期の約0.1%＝「実在するが常態でない」兌換停止（1797英/1893米型）。0.5だと36.6%が下回り常時発火＝不採用
     public double GoldStandardMinFunding = 0.85;    // 加入の信用要件：連合維持を払えている（funding ratio がこれ以上）。危機でこれを割ると強制離脱（兌換停止）
-    public double GoldStandardSuspendDebt = 0.075;  // 加入中でも債務/**年**GDP がこれを超えると兌換維持不能→強制離脱（信用暴落）。財7単位フリップ2026-07-26＝旧0.9（月次GDP比）÷12＝代数恒等（#17再較正の主対象）
     public double GoldStandardRateDiscount = 0.6;   // 完全兌換時の国債金利の倍率（信用＝低金利。0.6＝4割引）。Convertibilityでlerp＝部分兌換は中間
     // 兌換可能性 Convertibility∈[0,1]（倍率排除②）：金本位/不換の bool 分岐を連続化。1=完全兌換(金)・0=不換。OnGoldStandard(資格)を非対称速度で滑らかに追従＝部分兌換の移行を表現。
     public double ConvertibilityRiseSpeed = 0.05;   // 加入後に兌換が確立する速さ（準備・信認の積み上げ＝遅い）

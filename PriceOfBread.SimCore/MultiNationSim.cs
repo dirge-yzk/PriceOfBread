@@ -405,7 +405,7 @@ public sealed class MultiNationSim
             Coercion = pw.BaseCoercion, Treasury = T, Latitude = cc.Lat, Longitude = cc.Lon,
             InitialTariff = pw.Tariff,
             InitialSuffrage = pw.Suffrage, InitialCensorship = pw.Censorship,
-            InitialCornLaws = pw.CornLaws, InitialSerfEmancipation = pw.SerfEmancipation,
+            InitialCornLaws = pw.CornLaws, InitialSerfEmancipation = pw.SerfEmancipation, InitialMonetaryLaw = pw.MonetaryLaw,
         };
         var scenario = new Scenario
         {
@@ -420,6 +420,7 @@ public sealed class MultiNationSim
             InitialSuffrage = pw.Suffrage, InitialCensorship = pw.Censorship,
             InitialCornLaws = pw.CornLaws, InitialSerfEmancipation = pw.SerfEmancipation,
             InitialImmigration = pw.ImmigrationRestriction,   // 移民制限法の継承（E7・独立は制度を巻き戻さない＝他の法と同じ規則）
+            InitialMonetaryLaw = pw.MonetaryLaw,              // 通貨制度の継承（F6・金の親から独立した国は金で始まる＝同じ規則）
         };
         // 新国家は常に効用AI（プレイヤー国から独立してもUI操作者はいない＝NullAgentのゾンビ国家を作らない）
         var sim = new Simulation(scenario, new UtilityAgent()) { TelemetryEnabled = parent.TelemetryEnabled };

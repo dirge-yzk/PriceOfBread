@@ -508,17 +508,24 @@ public static class Fiscal
         // 財7（債務/GDPの単位整合）：NominalGdp は月次フロー、GovBondRate は年率（利払いを/12）。分母を DebtGdpAnnualized で年換算する（×12）。
         // 既定1.0＝分母を年換算（×12・2026-07-26点火）。0なら旧・月次GDP基準のまま。
         double gdpDenom = nominalGdp * (1.0 + c.DebtGdpAnnualized * (Calendar.MonthsPerYear - 1));   // 既定1.0で ×12（年換算）／0で ×1（月次のまま・旧）
-        // [単位・B13] 債務/GDP＝**年次名目**（GovDebt÷(月次NominalGdp×12)・DebtGdpAnnualized=1）。金本位加入・国債金利の閾値はこの単位。⚠CapitalMarket/Credit は月次名目・Government/PolicyPreferences は月次実質＝同名で3種（#17で1本化）
+        // [単位・B13] 債務/GDP＝**年次名目**（GovDebt÷(月次NominalGdp×12)・DebtGdpAnnualized=1）。国債金利の債務比プレミアムはこの単位。⚠CapitalMarket/Credit は月次名目・Government/PolicyPreferences は月次実質＝同名で3種（#17で1本化）
         //   台帳（2026-09-11 #10）：PowerShares.cs の debtGrip＝月次名目の Clamp（物理・用途別に別＝触らない）／Runner milfund・hangtest の dGdp＝月次名目（計器）／App のヘッダー「対年GDP」＝この行と同じ年次名目（旧＝年次実質＝表示だけ別物差しだったのを統一）
-        double dGdp = gdpDenom > 1e-9 ? w.GovDebt / gdpDenom : (w.GovDebt > 0 ? DebtRatioUnbounded : 0);   // #1 名目GDP基準＝デフレ国は実質債務が膨らみ兌換維持不能（負債デフレ→兌換停止）
+        double dGdp = gdpDenom > 1e-9 ? w.GovDebt / gdpDenom : (w.GovDebt > 0 ? DebtRatioUnbounded : 0);   // #1 名目GDP基準＝デフレ国は実質債務が膨らみ国債金利が上がる（負債デフレ）
         // ★AUD-09（監査2026-09-02 low・規律「比のガードは絶対値で書かない」）：分母の絶対値ガード（1e-9）だけでは、
         //   分母が**微小だが非ゼロ**のとき比が番兵を何桁も飛び越える（GDPが消えかけた残余国で万%＝WorstLossRate と同型）。
         //   ⚠**否定形**で書く＝NaN も同じ枝へ落ちる（`Math.Min` では NaN が素通りして GovBondRate を毒する）。
-        //   ★有限値では厳密同値：読み手は兌換停止（閾値0.075）と国債金利（BondRateMax=0.30 でクランプ済み）の2つだけで、
-        //     どちらも番兵 1e9 のはるか手前で飽和している＝**挙動は変わらず、報告される数字と NaN 経路だけが正される**。
+        //   ★有限値では厳密同値：読み手は国債金利（BondRateMax=0.30 でクランプ済み）だけで、番兵 1e9 のはるか手前で飽和している
+        //     ＝**挙動は変わらず、報告される数字と NaN 経路だけが正される**（兌換の門は 2026-09-28 から債務比を読まない＝下）。
         if (!(dGdp <= DebtRatioUnbounded)) dGdp = DebtRatioUnbounded;
-        // 金本位の信用ゲート（資格＝コストでない）：低債務＋払える財政なら加入できる。加入中＝国債金利を信用で優遇（低金利）。
-        // 加入中でも債務が膨らむ／維持費を払えないと正貨を守れず強制離脱（兌換停止＝信用暴落）。紙幣増発で赤字を埋める国は信用が無く加入不可。
+        // 金本位の信用ゲート（資格＝コストでない）：準備が足り、払える財政なら加入できる。加入中＝国債金利を信用で優遇（低金利）。
+        // 加入中でも取り付けで準備が割れる／維持費を払えないと正貨を守れず強制離脱（兌換停止＝信用暴落）。紙幣増発で赤字を埋める国は信用が無く加入不可。
+        // ★債務の水準では門を引かない（作者裁定 2026-09-28 F6 の1歩目）。旧＝債務/年GDP の固定の閾値（停止 7.5%・再加入 4.2%＝係数
+        //   GoldStandardSuspendDebt・GoldStandardMaxDebt。注記が自ら「英1815=250% に対し極端に厳しい」と書いていた）＝金の法の英が兌換へ戻れず財政が細った。
+        //   史実の兌換停止は債務の水準でなく、取り付け（金の流出が準備を超える＝英1797の侵攻の噂）と戦費（米1862・仏1870）で起きた。
+        //   英は1815年に国債が GDP の約2.5倍でも1821年に兌換を再開して1914年まで保ち、仏は1871〜73年の賠償（GDP の約4分の1）の後も1876〜78年に金へ移った。
+        //   ⇒ 門は既存の2つの量で引く＝①正貨準備カバー率（取り付け）②維持費を払えた比 FiscalFundingRatio（利払いは維持費より先に国庫から出る
+        //   ＝債務の重さは利払いが歳入を食う分だけここに出る・戦費で国庫が尽きた月も同じ）。債務の水準そのものは国債金利の債務比プレミアムと、
+        //   借入の上限→不履行（上＝強制離脱）が持つ＝二重に数えない。係数2本を削除。
         if (w.MonetaryEnabled)
         {
             // 正貨準備カバー率（convertibility-not-reserve-backed＋fx-peg防衛）：信用込み広義マネーに対する正貨(基礎貨幣)の比＝BaseMoney/BroadMoney。
@@ -527,7 +534,7 @@ public static class Fiscal
             if (w.OnGoldStandard)
             {
                 // ★3値化2026-08-13：兌換の規律は**銀本位でも同じ足枷**＝MetallicStandardLaw（銀でも金でも真）を読む。休眠時は旧 GoldStandardLaw と厳密に一致。
-                if (!w.MetallicStandardLaw || dGdp > c.GoldStandardSuspendDebt || w.FiscalFundingRatio < GoldSuspendMinFundingRatio || coverage < c.GoldCoverMin)
+                if (!w.MetallicStandardLaw || w.FiscalFundingRatio < GoldSuspendMinFundingRatio || coverage < c.GoldCoverMin)
                 {
                     w.OnGoldStandard = false; w.GoldStandardSuspendedInCrisis = w.MetallicStandardLaw;   // 自発離脱 or 危機での強制停止（準備枯渇＝兌換停止クライシス含む）
                     // GoldCoverMin有効化2026-07-10：強制停止を観測可能に（スカラーカウンタ＝batch頻度集計・Diplomacyログ＝年代記）。自発離脱（AIが志向を下げた）は数えない。
@@ -535,15 +542,15 @@ public static class Fiscal
                     {
                         bool coverTrip = coverage < c.GoldCoverMin;
                         w.GoldSuspensions++; if (coverTrip) w.GoldCoverSuspensions++;
-                        w.LogAdd($"{w.Year} {w.SelfPower?.Name}が兌換停止（金本位から強制離脱・{(coverTrip ? $"正貨準備カバー率{coverage:P0}<{c.GoldCoverMin:P0}" : dGdp > c.GoldStandardSuspendDebt ? "債務超過" : "財政不足")}）");
+                        w.LogAdd($"{w.Year} {w.SelfPower?.Name}が兌換停止（金本位から強制離脱・{(coverTrip ? $"正貨準備カバー率{coverage:P0}<{c.GoldCoverMin:P0}" : "財政不足")}）");
                     }
                 }
             }
             // #125 振動抑制（2026-07-25）：再加入は離脱閾値より高いカバー率（×GoldRejoinCoverMargin＝シュミットトリガー）。Margin=1.0 で旧条件と厳密一致。
             // ★兌換の回復は通貨改革を通る（2026-09-27）：切下げの記憶が壊れたまま（broken＝改革の発動と同じ1本）では戻れない。
-            //   旧＝カバー率・債務・財政だけを見た＝改革より先に再加入すると、改革は兌換停止中にしかできないので記憶が1世紀凍結し、
+            //   旧＝カバー率・財政だけを見た＝改革より先に再加入すると、改革は兌換停止中にしかできないので記憶が1世紀凍結し、
             //   CapitalMarket の資本逃避が止まらなかった（露1804〜11年の先着争い＝世界規模の補給崩壊の根）。史実＝露カンクリン改革1839〜43（アシグナツィアを実勢で銀に換算してから兌換）・ウィッテ改革1897・レンテンマルク1923→金本位1924。
-            else if (w.MetallicStandardLaw && dGdp <= c.GoldStandardMaxDebt && w.FiscalFundingRatio >= c.GoldStandardMinFunding
+            else if (w.MetallicStandardLaw && w.FiscalFundingRatio >= c.GoldStandardMinFunding
                      && coverage >= c.GoldCoverMin * c.GoldRejoinCoverMargin && !broken)
             { w.OnGoldStandard = true; w.GoldStandardSuspendedInCrisis = false; }
         }

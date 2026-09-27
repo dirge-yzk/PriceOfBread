@@ -82,4 +82,36 @@ public class NationModelTests
         Assert.DoesNotContain(WorldData.Setup().Targets, t => t.Name == "蝦夷地");
         Assert.Contains(WorldData.ByName("日本").Provinces, p => p.City == "蝦夷地");
     }
+
+    /// <summary>★作者裁定 2026-09-28 F6：英は1783年に金本位で始まる（1717年以後の事実上の金本位・1816/21年に法＝データ）。
+    /// 金で始まるのは英だけ（他は既定の不換→最初の四半期に AI が銀へ）。金の国は自分から金を降りない＝英の工業化は閾値に遠いのに、
+    /// 助走と最初の四半期を金のまま越える。旧＝AI の金の願望は工業化だけ＝英も最初の四半期に銀へ戻った。
+    /// 対照＝銀の国は（工業化が閾値に届かない限り）金を志向しない＝降りない規則は「金の国」だけに掛かる。</summary>
+    [Fact]
+    public void 英は一七八三年に金本位で始まり_金の国は自分から金を降りない()
+    {
+        Assert.Equal(MonetaryStandardLaw.Gold, NationConfig.Britain().InitialMonetaryLaw);   // データ（world.json の initialMonetaryLaw）
+        foreach (var n in WorldData.Nations())
+            if (n.Name != "イギリス") Assert.NotEqual(MonetaryStandardLaw.Gold, n.InitialMonetaryLaw);
+
+        var w = new Simulation(NationConfig.Britain().ToScenario(7), new NullAgent()).World;
+        Assert.Equal(MonetaryStandardLaw.Gold, w.MonetaryLaw);   // 構築の時点で金（初期値が法と目標の両方に入る）
+        Assert.Equal(2, w.Policy.MonetaryTarget);
+        Assert.True(w.MeanIndustrialization <= w.Coef.GoldStandardIndThreshold, "前提が崩れた：英の工業化が閾値を超えている（自力の願望で金になり、降りない規則を検査しない）");
+        var ai = new UtilityAgent();
+        ai.DecideQuarter(w);
+        Assert.Equal(2, w.Policy.MonetaryTarget);   // 自分から金を降りない
+        // 対照：同じ盤面を銀へ置くと、AI は金を志向しない（工業化の願望は閾値の下）
+        w.MonetaryLaw = MonetaryStandardLaw.Silver;
+        ai.DecideQuarter(w);
+        Assert.NotEqual(2, w.Policy.MonetaryTarget);
+
+        // 開始の盤面（助走の後）と最初の四半期の後も、英は金・他は金でない
+        var m = new MultiNationSim([NationConfig.Britain(), NationConfig.France(), NationConfig.Prussia()], 7UL, _ => new UtilityAgent());
+        m.StartWarmup();
+        Assert.Equal(MonetaryStandardLaw.Gold, m.Nations[0].World.MonetaryLaw);
+        Assert.Equal(1, m.Nations.Count(x => x.World.MonetaryLaw == MonetaryStandardLaw.Gold));
+        m.StepQuarter();
+        Assert.Equal(MonetaryStandardLaw.Gold, m.Nations[0].World.MonetaryLaw);
+    }
 }
