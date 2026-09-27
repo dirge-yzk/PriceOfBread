@@ -73,16 +73,10 @@ public sealed class Power
             return n;
         }
     }
-    public double Treasury;       // 戦費の財布（Nation 紐付き国は World.Treasury と同期）
-
-    /// <summary>Power 側の国庫を動かす唯一の口（2026-08-13）。国を持つ Power は **World の台帳にも同時に記帳**する
-    /// ＝Diplomacy.Step の同期窓（冒頭で World→Power・末尾で Power→World）の内側で動いた分が財政タブから消えない。
-    /// 抽象標的（Nation==null）はモデル外の財布なので台帳を持たない。</summary>
-    public void Pay(TreasuryCat cat, double delta)
-    {
-        Treasury += delta;
-        if (Nation is { } nw) nw.TreasuryLedger[(int)cat] += delta;
-    }
+    /// <summary>抽象標的（Nation==null）の財布＝世界の外の「支払い能力の見積もり」（戦費の Fund が読むだけ・減らない）。
+    /// ★国を持つ Power はこれを使わない＝国庫は World.Treasury を直接読み、動かすのは World.Pay だけ
+    /// （2026-09-28 支払いの一元化 段1-3＝旧の同期窓〔Diplomacy.Step の冒頭で World→Power・末尾で Power→World を代入〕と Power.Pay を撤去）。</summary>
+    public double Treasury;
     public double WarExhaustion;  // 戦争疲弊 0..1
     public double TradeWeight = 0.2;  // 世界市場でのこの国の比重（禁輸で失われる交易シェア）
     public int WarsWon, WarsLost; // 戦争の勝敗回数（決定的講和。白紙講和は除く）。テスト記録用
@@ -760,10 +754,10 @@ public sealed class Diplomacy
             }
         }
         double prizeRaw = c.PrizeMoneyRate * advantage * ((1.0 - c.PrizeCargoShare) * Math.Max(0, vw.Gdp) + c.PrizeCargoShare * cargoBase);
-        double prize = Math.Min(prizeRaw, Math.Max(0, victim.Treasury));   // 払える範囲（国庫）。PrizeCargoShare=0で旧式 PrizeMoneyRate×GDP×advantage に厳密一致
+        double prize = Math.Min(prizeRaw, Math.Max(0, vw.Treasury));   // 払える範囲（国庫）。PrizeCargoShare=0で旧式 PrizeMoneyRate×GDP×advantage に厳密一致
         if (prize <= 1e-9) return;
-        victim.Pay(TreasuryCat.OtherOut, -prize); vw.CumulativeTradeFlow -= prize;   // 敵＝拿捕で対外流出
-        raider.Pay(TreasuryCat.OtherIn, prize); rw.CumulativeTradeFlow += prize;   // 制海国＝拿捕賞金の対外流入（保存）
+        vw.Pay(TreasuryCat.OtherOut, -prize); vw.CumulativeTradeFlow -= prize;   // 敵＝拿捕で対外流出
+        rw.Pay(TreasuryCat.OtherIn, prize); rw.CumulativeTradeFlow += prize;   // 制海国＝拿捕賞金の対外流入（保存）
     }
 
     public void Step(Coefficients c, DeterministicRng rng, int month)
@@ -772,7 +766,6 @@ public sealed class Diplomacy
         foreach (var p in Powers)
         {
             if (p.Nation is not { } nw) { p.NavalShare = c.AbstractNavalShare; continue; }   // 抽象標的＝弱小海軍（陸の守りが主・B-1）
-            p.Treasury = nw.Treasury;
             p.Gdp = nw.Gdp;
             // 軍隊規模＝兵士POP数（軍事費が徴募）。即応度（兵士の充足）が乗数＝給与/補給が切れた軍は大幅に弱い。
             // 扶養限界＝大軍は給与（民間賃金×兵数）を要し、払えなければ充足が落ち戦力が下がる（経済が要る）。治安維持力（警察）とは分離。
@@ -908,10 +901,7 @@ public sealed class Diplomacy
         // ★理想の軍隊の形（2026-08-01・ArmyShapeEnabled=1.0 live＝NeedSea が軍需の陸海再配分へ流れる）。四半期に1回で十分（形は年単位でしか動かない）＝53×53の対を毎月回さない。
         // ArmyShapeEnabled=0 で1命令も実行しない。
         if (month % Calendar.MonthsPerQuarter == 0) ArmyShape.Compute(this, c);
-
-        // 戦費・賠償の結果を各国の経済へ書き戻す
-        foreach (var p in Powers)
-            if (p.Nation is { } nw) nw.SetTreasuryRaw(p.Treasury);
+        // （戦費・賠償・拿捕・貢納は World.Pay で国庫へ直接記帳する＝末尾の書き戻しの同期窓は 2026-09-28 に撤去）
     }
 
     // 大国であること自体が周囲の緊張を生む（GDP・植民地・軍が平均超の国へ、皆の緊張が上がる→孤立＝覇権防止）
@@ -1224,11 +1214,11 @@ public sealed class Diplomacy
             // 貢納（属国→宗主・四半期）。運河通行料と同じ両建てで保存。
             if (month % Calendar.MonthsPerQuarter == 0)
             {
-                double tribute = Math.Min(c.VassalTributeRate * Math.Max(0, d.Gdp), Math.Max(0, d.Treasury));
+                double tribute = Math.Min(c.VassalTributeRate * Math.Max(0, d.Gdp), Math.Max(0, d.Nation.Treasury));
                 if (tribute > 1e-9)
                 {
-                    d.Pay(TreasuryCat.TributeOut, -tribute); d.Nation.CumulativeTradeFlow -= tribute;   // 従属＝対外流出
-                    s.Pay(TreasuryCat.TributeIn, tribute); s.Nation.CumulativeTradeFlow += tribute;   // 宗主＝対外流入（保存）
+                    d.Nation.Pay(TreasuryCat.TributeOut, -tribute); d.Nation.CumulativeTradeFlow -= tribute;   // 従属＝対外流出
+                    s.Nation.Pay(TreasuryCat.TributeIn, tribute); s.Nation.CumulativeTradeFlow += tribute;   // 宗主＝対外流入（保存）
                     d.Nation.LastTributeOut = tribute; s.Nation.LastTributeIn += tribute;   // 診断（予算表・接1）
                 }
             }
@@ -2660,8 +2650,8 @@ public sealed class Diplomacy
         double rep = 0.0;
         if (loser.Nation is { } lw && winner.Nation is { } ww)
         {
-            rep = Math.Min(repBase, Math.Max(0, loser.Treasury));   // 払える範囲（外交層の財布＝同期窓の内側の現在値）
-            loser.Pay(TreasuryCat.OtherOut, -rep); winner.Pay(TreasuryCat.OtherIn, rep);
+            rep = Math.Min(repBase, Math.Max(0, lw.Treasury));   // 払える範囲（国庫の現在値）
+            lw.Pay(TreasuryCat.OtherOut, -rep); ww.Pay(TreasuryCat.OtherIn, rep);
             // 賠償＝国家間の対外移転。両国の貿易収支に計上（保存則の基準）
             lw.CumulativeTradeFlow -= rep;
             ww.CumulativeTradeFlow += rep;
@@ -2965,13 +2955,13 @@ public sealed class Diplomacy
     private static double Fund(Power p, Coefficients c, out double payRatio)
     {
         double cost = c.WarCostPerMilitary * p.Military;
-        double pay = Math.Min(Math.Max(0, p.Treasury), cost);
+        double pay = Math.Min(Math.Max(0, p.Nation?.Treasury ?? p.Treasury), cost);   // 国を持つ Power は World の国庫・抽象標的は世界の外の財布（見積もり）
         // ★是正（監査2026-09-02 #27）：抽象標的（Nation==null）はWorld外の財布＝pay分の受け手が無いまま黙って蒸発していた
         //（当時は貢納・戦利品で増えるTreasuryが開戦の価値の判定 SpoilsWorthThreshold に使われていた＝回1-1で判定ごと削除）。実在国のみ実際に引く＝抽象標的は支払い能力だけ評価。
         if (p.Nation is { } w)
         {
-            p.Pay(TreasuryCat.WarCost, -pay);
-            if (pay > 0) p.Pay(TreasuryCat.WarCost, Colonial.DistributeToPops(w, pay));   // 戦費は自国 pop へ還流（金は消えない）。唯一定義＝Colonial（2026-09-11 M7・旧の同文複製を削除。差＝0<pay≤1e-12 だけ配らず 0 を返す＝Invariants の許容 1e-8×scale 未満）
+            w.Pay(TreasuryCat.WarCost, -pay);
+            if (pay > 0) w.Pay(TreasuryCat.WarCost, Colonial.DistributeToPops(w, pay));   // 戦費は自国 pop へ還流（金は消えない）。唯一定義＝Colonial（2026-09-11 M7・旧の同文複製を削除。差＝0<pay≤1e-12 だけ配らず 0 を返す＝Invariants の許容 1e-8×scale 未満）
         }
         payRatio = cost > 1e-9 ? pay / cost : 1.0;   // 外13：支払い能力（0..1）。国庫枯渇＝0＝厭戦加算に使う
         return cost > 1e-9 ? WarFundFloor + WarFundPayWeight * payRatio : 1.0;   // 戦力充足＝払えなくても 0.3（現物徴発）

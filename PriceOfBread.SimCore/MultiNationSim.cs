@@ -69,7 +69,7 @@ public sealed class MultiNationSim
                 //   **1783年の画面だけが別のスケール**を映していた（実測＝英450→翌年20＝20倍の段差）。
                 //   同じ式で播けば段差が消える（充足度と質の乗数は初回Stepで乗る）。
                 Military = sim.World.SoldierSize() / _coef.SoldiersPerMilitary,
-                Gdp = sim.World.Gdp, Treasury = sim.World.Treasury,
+                Gdp = sim.World.Gdp,
                 TradeWeight = DefaultTradeWeightBase + TradeWeightIndustrializationSlope * cfg.Industrialization,   // 倍率排除⑤：工業先進国ほど交易比重が大きい（旧 ProductivityBonus 駆動→工業化度へ。発展度の状態変数から創発）
             };
             foreach (var (cname, cres, cpop) in cfg.InitialColonies) { var cc = Geo.ColonyCoord(cname); power.ColonyList.Add(new Colony { Name = cname, Resources = [.. cres], Population = cpop, PopSize = cpop * _coef.ColonialPopScale, Latitude = cc.Lat, Longitude = cc.Lon }); }   // 名前＋固有資源＋人口規模＋座標（史実1780）。住民数は人口ウェイト×換算＝作成時の1か所（回1-1・col-01）
@@ -481,7 +481,7 @@ public sealed class MultiNationSim
         {
             Id = _nextPowerId++, Name = name, BaseName = name, Nation = nw,   // ★Powers.Count でなく単調カウンタ（wave2b是正）＝ReabsorbNations の RemovePower で欠番が出ても既存Idと衝突しない
             Military = parentPower.Military * (parentPop > 1e-9 ? P / parentPop : 0),   // 初期表示値のみ（次の Diplomacy.Step が兵士POPから再導出＝実体は移転した兵士）
-            Gdp = nw.Gdp, Treasury = T, TradeWeight = DefaultTradeWeightBase,
+            Gdp = nw.Gdp, TradeWeight = DefaultTradeWeightBase,
             Culture = reg.Culture, Religion = reg.Religion,   // 次の毎月同期まで州ラベルで代用
         };
         power.SpawnedDuringPlay = true;   // ★プレイ中に生まれた国＝ハーネスの「満足度・最小国」の対象外（Validation.WorstSat）

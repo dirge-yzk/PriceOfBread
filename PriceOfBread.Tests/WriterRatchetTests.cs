@@ -77,6 +77,8 @@ public class WriterRatchetTests
     //   基準値＝2026-09-28 の実測（d3dc133）。段1〜段3で支払いを1本の移し方へ寄せるたびに下げる（＝宣言）。増やす変更は、1本の移し方を通すこと。
     // ★2026-09-28 段1-1（死んだ支払いの枝の削除）：Savings 94→91・StateSpent 26→25・TradeFlow 34→33・Paid 10→9・Earned 14→11
     //   ＝建設工賃の旧経路2（資本家・国家）・植民地の採取決済（TradeFlow 1・植民地の蓄え 1・植民地交易益の傾斜配分 Earned 3）。
+    // ★2026-09-28 段1-3（国庫の口を1本へ）：Treasury 2→0＝外交層の財布 Power.Treasury への代入（同期窓の冒頭・助走明けの同期）を撤去。
+    //   国を持つ Power の国庫は World.Treasury（private set）＝口は World.Pay だけ。Power.Treasury は抽象標的の財布（構築時の初期化子だけが書く）。
     [InlineData("Savings", 91)]               // POP の貯蓄（段3の終わりに Pop の中の3つへ閉じる）
     [InlineData("StateSpent", 25)]            // 州の未精算の国家支出（段2-1で区分つきへ）
     [InlineData("CumulativeTradeFlow", 33)]   // 世界の台帳・国境をまたいだ出入り（移し方の中の1か所へ畳む）
@@ -86,7 +88,7 @@ public class WriterRatchetTests
     [InlineData("HouseholdLoans", 4)]         // 銀行の与信（家計）
     [InlineData("Paid", 9)]                  // 月内の仮勘定（払い）
     [InlineData("Earned", 11)]                // 月内の仮勘定（受け取り）
-    [InlineData("Treasury", 2)]               // 外交層の財布 Power.Treasury への代入（World.Treasury は private set＝構造で閉じている）
+    [InlineData("Treasury", 0)]               // 外交層の財布 Power.Treasury への代入（World.Treasury は private set＝構造で閉じている）
     public void お金への書き手は増やさない(string member, int baseline)
     {
         int n = CountWriters(member);
