@@ -369,8 +369,8 @@ public sealed partial class InternationalMarket
             if (swSec is not null) { TimeClearTicks += swSec.ElapsedTicks; swSec.Restart(); }   // ★前財の清算ループ時間（初回は≈0）
             _volume[g] = 0;
             Array.Clear(payPr);   // 生産者の列は財ごと（前の財の列を読まない）
-            // ★TradeColonialGoods（点火2026-08-26＝既定1.0）：植民地財も二国間清算に載る。0なら旧判定（植民地財除外・阿片は別ゲート）と厳密同値。
-            if (gd is null || (gd.IsColonial && !(c.TradeColonialGoods > 0) && !(g == c.OpiumGoodId && c.OpiumAddictionGrowth > 0)) || gd.NonTradeable) continue;
+            // ★植民地財も二国間清算に載る（点火2026-08-26・2026-09-28 に旗 TradeColonialGoods ごと焼き込み）。
+            if (gd is null || gd.NonTradeable) continue;
 
             // ---- 平均価格（世界価格の後継）＝参加州の金建て局所価格の単純平均。市場ではなく**統計** ----
             //   用途は①表示②数量の正規化（旧が世界価格で割っていた分母）だけ。清算には使わない。

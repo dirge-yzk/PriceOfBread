@@ -1583,7 +1583,6 @@ if (args.Length > 0 && args[0] == "openprobe")
                 foreach (var r in w.Regions)
                 {
                     if (r.State != RegionState.Active) continue;
-                    a[7] += r.ColonialImportCost;
                     for (int g = 0; g < r.Markets.Length; g++)
                     {
                         if (g == Catalog.GoldOreId || g == Catalog.SilverId) continue;   // 準備放出（DumpReserve）は植民地機構ではない
@@ -1606,7 +1605,6 @@ if (args.Length > 0 && args[0] == "openprobe")
         int year = 1783 + q / 4;
         if (System.Array.IndexOf(opYears, year) >= 0)
         {
-            double cf = opm.Nations[0].World.Coef.ColonialExtractionFraction;
             foreach (var wn in opWatch)
             {
                 if (!acc.TryGetValue(wn, out var a)) continue;
@@ -1615,7 +1613,7 @@ if (args.Length > 0 && args[0] == "openprobe")
                 double codeOpen = a[5] * 4.0 / System.Math.Max(1.0, a[6]) * 100;
                 double inFlow = a[3] * 1.5, inCol = a[2] * 1.5, outFlow = a[4] * 1.5;   // 8ヶ月→12ヶ月
                 double inFlowR = a[9] * 1.5, outFlowR = a[10] * 1.5;
-                double claimed = cf > 1e-9 ? a[7] / cf * 1.5 : 0;
+                double claimed = 0;   // 旧・植民地の採取決済（Region.ColonialImportCost）は 2026-09-28 に削除＝常に0（列の形は保つ）
                 Console.WriteLine($"{year},{wn},{a[0]:F0},{a[8]:F0},{a[1]:F0},{trueOpen:F4},{codeOpen:F3},{(trueOpen > 1e-12 ? codeOpen / trueOpen : 0):F2},{inFlow:F0},{inFlow / gdpY * 100:F3},{inCol / gdpY * 100:F3},{outFlow:F0},{outFlow / gdpY * 100:F3},{inFlowR:F0},{inFlowR / rgdpY * 100:F3},{outFlowR / rgdpY * 100:F3},{claimed / gdpY * 100:F3}");
             }
         }
@@ -3835,11 +3833,10 @@ if (args.Length > 0 && args[0] == "numdef")
             if (idx < 0) continue;
             var w = ndm.Nations[idx].World;
             double er = w.ExchangeRate > 1e-9 ? w.ExchangeRate : 1.0;
-            double prodRef = 0, prodGold = 0, plW = 0, plWsum = 0, col = 0;
+            double prodRef = 0, prodGold = 0, plW = 0, plWsum = 0;
             foreach (var r in w.Regions)
             {
                 if (r.State != RegionState.Active) continue;
-                col += r.ColonialImportCost;
                 double rw = 0;
                 for (int g = 0; g < r.Markets.Length && g < Catalog.Goods.Length; g++)
                 {
@@ -3873,8 +3870,7 @@ if (args.Length > 0 && args[0] == "numdef")
                 }
             }
             double vaRef = grossRef - interRef;
-            double cf = w.Coef.ColonialExtractionFraction;
-            double colFull = cf > 1e-9 ? col / cf : 0;   // 支払いは抽出割合ぶん＝割り戻して「植民地から入った財の総額」
+            double colFull = 0;   // 旧・植民地の採取決済（Region.ColonialImportCost）は 2026-09-28 に削除＝常に0（列の形は保つ）
             double ei = (w.ExportsByGood?.Sum() ?? 0) + (w.ImportsByGood?.Sum() ?? 0);
             double xRef = TradeReachDiag.CrossRefByNation.Length > idx ? TradeReachDiag.CrossRefByNation[idx] : 0;
             double dRef = TradeReachDiag.DomRefByNation.Length > idx ? TradeReachDiag.DomRefByNation[idx] : 0;
@@ -3941,10 +3937,7 @@ if (args.Length > 0 && args[0] == "reachprobe")
             double stat = TradeGdp(w) * 100;
             double cross = TradeReachDiag.CrossByNation[idx] * 4.0 / gdp * 100;
             double dom = TradeReachDiag.DomByNation[idx] * 4.0 / gdp * 100;
-            double colRev = 0;
-            foreach (var r in w.Regions) colRev += r.ColonialImportCost;
-            double cf = w.Coef.ColonialExtractionFraction;
-            colRev = cf > 1e-9 ? colRev / cf : 0;
+            double colRev = 0;   // 旧・植民地の採取決済（Region.ColonialImportCost）は 2026-09-28 に削除＝常に0（列の形は保つ）
             Console.WriteLine($"    {wn,-6} 統計貿易/GDP {stat,6:F2}%　越境{cross,6:F2}%　同国{dom,7:F2}%　植民地財流入/GDP {colRev * 4.0 / gdp * 100,6:F2}%　州{TradeReachDiag.ActiveByNation[idx],3}中接続{TradeReachDiag.LinkedByNation[idx],3}　関税{w.Tariff:P0}");
         }
     }

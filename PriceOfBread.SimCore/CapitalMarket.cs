@@ -205,49 +205,45 @@ public static class CapitalMarket
 
         // === 02断線走査（2026-07-28）繋ぐべき筆頭＝対外国債の相手方（レンティア帝国の成立）===
         // 旧＝外債の利子は債務国のCumulativeTradeFlowから一方向に消えるだけ（片側記帳）＝「債務国は痛むが債権国は儲からない」
-        // ＝19世紀金融の主役（シティのアルゼンチン債・パリのロシア債）が不在だった。ForeignBondCounterparty=0で配当なし（旧）。
-        // 今四半期の対外利払い（Fiscal が月次加算）はゲートの外で毎期回収＝0 のとき積み上がり続け再点火時に一括配当される事故を防ぐ。
+        // ＝19世紀金融の主役（シティのアルゼンチン債・パリのロシア債）が不在だった（2026-09-28 に旗 ForeignBondCounterparty ごと焼き込み）。
         double intPool = 0; for (int i = 0; i < n; i++) { intPool += w[i].ForeignIntPaidThisQuarter; w[i].ForeignIntPaidThisQuarter = 0; }
-        if (c.ForeignBondCounterparty > 0)
+        // (1) 債権ストックの繰上げ：各債務国のΔForeignDebt（新規>0/償還<0）を債権国（自国以外）の投資家貯蓄比で按分してForeignBondClaimsへ。
+        //     償還は各債権国の債権シェア比で減額（二国間台帳は持たない＝按分近似・決定論）。
+        double worldClaims = 0; for (int i = 0; i < n; i++) worldClaims += w[i].ForeignBondClaims;
+        for (int i = 0; i < n; i++)
         {
-            // (1) 債権ストックの繰上げ：各債務国のΔForeignDebt（新規>0/償還<0）を債権国（自国以外）の投資家貯蓄比で按分してForeignBondClaimsへ。
-            //     償還は各債権国の債権シェア比で減額（二国間台帳は持たない＝按分近似・決定論）。
-            double worldClaims = 0; for (int i = 0; i < n; i++) worldClaims += w[i].ForeignBondClaims;
-            for (int i = 0; i < n; i++)
+            double delta = w[i].ForeignDebt - w[i].PrevForeignDebt;
+            w[i].PrevForeignDebt = w[i].ForeignDebt;
+            if (System.Math.Abs(delta) < 1e-9) continue;
+            if (delta > 0)
             {
-                double delta = w[i].ForeignDebt - w[i].PrevForeignDebt;
-                w[i].PrevForeignDebt = w[i].ForeignDebt;
-                if (System.Math.Abs(delta) < 1e-9) continue;
-                if (delta > 0)
-                {
-                    double lenders = 0; for (int j = 0; j < n; j++) if (j != i) lenders += InvestorSavings(w[j]);
-                    if (lenders > 1e-9)
-                        for (int j = 0; j < n; j++) if (j != i) w[j].ForeignBondClaims += delta * (InvestorSavings(w[j]) / lenders);
-                }
-                else if (worldClaims > 1e-9)
-                {
-                    for (int j = 0; j < n; j++)
-                        w[j].ForeignBondClaims = System.Math.Max(0, w[j].ForeignBondClaims + delta * (w[j].ForeignBondClaims / worldClaims));
-                }
+                double lenders = 0; for (int j = 0; j < n; j++) if (j != i) lenders += InvestorSavings(w[j]);
+                if (lenders > 1e-9)
+                    for (int j = 0; j < n; j++) if (j != i) w[j].ForeignBondClaims += delta * (InvestorSavings(w[j]) / lenders);
             }
-            // (2) 元利の配当：債務国が今四半期に払った対外の利子と**元本**（Fiscalで既に対外流出として記帳済み）を、
-            //     債権シェア比で債権国の投資家へGiveGold＝世界で金が閉じる（債権ゼロの初期は投資家貯蓄比で退避＝当期から閉鎖）。
-            //     ★元本（2026-09-22）：旧＝(1) で債権を減らすだけで元本の金はどこにも届かなかった。(1) の減額は各国の債権に比例する＝
-            //       減額後の債権の比は減らした債権の比と同じ＝元本は「減らした債権の比」で返る（同じ四半期の新規引受の按分近似は利子と共通）。
-            if (intPool > 1e-9)
+            else if (worldClaims > 1e-9)
             {
-                double claims = 0; for (int i = 0; i < n; i++) claims += w[i].ForeignBondClaims;
-                double basis = claims;
-                if (basis <= 1e-9) { for (int i = 0; i < n; i++) basis += InvestorSavings(w[i]); }
-                if (basis > 1e-9)
-                    for (int i = 0; i < n; i++)
-                    {
-                        double share = claims > 1e-9 ? w[i].ForeignBondClaims / claims : InvestorSavings(w[i]) / basis;
-                        if (share > 1e-12) GiveGold(w[i], intPool * share, toInvestors: true);
-                    }
+                for (int j = 0; j < n; j++)
+                    w[j].ForeignBondClaims = System.Math.Max(0, w[j].ForeignBondClaims + delta * (w[j].ForeignBondClaims / worldClaims));
             }
-            ProbeDiff("外債利払い");
         }
+        // (2) 元利の配当：債務国が今四半期に払った対外の利子と**元本**（Fiscalで既に対外流出として記帳済み）を、
+        //     債権シェア比で債権国の投資家へGiveGold＝世界で金が閉じる（債権ゼロの初期は投資家貯蓄比で退避＝当期から閉鎖）。
+        //     ★元本（2026-09-22）：旧＝(1) で債権を減らすだけで元本の金はどこにも届かなかった。(1) の減額は各国の債権に比例する＝
+        //       減額後の債権の比は減らした債権の比と同じ＝元本は「減らした債権の比」で返る（同じ四半期の新規引受の按分近似は利子と共通）。
+        if (intPool > 1e-9)
+        {
+            double claims = 0; for (int i = 0; i < n; i++) claims += w[i].ForeignBondClaims;
+            double basis = claims;
+            if (basis <= 1e-9) { for (int i = 0; i < n; i++) basis += InvestorSavings(w[i]); }
+            if (basis > 1e-9)
+                for (int i = 0; i < n; i++)
+                {
+                    double share = claims > 1e-9 ? w[i].ForeignBondClaims / claims : InvestorSavings(w[i]) / basis;
+                    if (share > 1e-12) GiveGold(w[i], intPool * share, toInvestors: true);
+                }
+        }
+        ProbeDiff("外債利払い");
     }
 
 

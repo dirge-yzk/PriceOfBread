@@ -509,7 +509,6 @@ public sealed class Region
     public double WomenWageRetention;                 // 賃金保持（World から複製・連続0..1。倍率排除④）。女性参加・女性識字の駆動
     public double ChildLaborLegal = 1.0;              // 児童労働の合法度（World から複製・連続0..1。倍率排除④）。子供の労働/就学の時間配分を律する（旧 bool ChildLaborAllowed を連続化）
     public double ColonialAccess = 1.0;               // 植民地素材の入手率（植民地保有×制海＝封鎖で下がる §6.1）
-    public double ColonialImportCost;                 // 今期の植民地輸入の支払い（対外流出＝金流に計上）
     public int[] Resources = [];                      // この州の強み資源 good.Id（NationConfig の Provinces で指定＝産出が増産される財）。UIの地域表示に使う
     public string Culture = "", Religion = "";        // 州の主流文化・宗教の自由文字列ラベル（漢/ウイグル/儒仏/イスラム…）。データ先行＝文化/宗教システム未実装でも保持（[[successor-culture-religion-vision]]）
     public int[]? ColonialResources;                  // この国の植民地が産する固有資源の good.Id（史実・1780）。null＝全植民地財（単一国テスト用の従来挙動）

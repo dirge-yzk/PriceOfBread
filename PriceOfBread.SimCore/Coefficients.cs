@@ -31,7 +31,7 @@ public sealed class Coefficients
     // ★再点火発注の決済（点火2026-08-01・作者指摘「実装の形としては正だが、実装方法としてスマートでない。同等かよりリアリティのある挙動を確保できるなら差し替えて」）。
     // 0＝旧（現物だけが動き、代金も所得も発生しない）／1＝止まった工場の持ち主が貯蓄から払い、売った側が受け取る。
     // ⚠**発注量・配給・物量の消費は1つも変えない**＝作者が意図した「上位工場を先に建ててから下流を整備する」プレイの余地はそのまま残る。
-    public double ReignitionOrderSettles = 1.0;
+    // 【墓標2026-09-28・旗の焼き込み（支払い 段1-1）】ReignitionOrderSettles（上の注記・点火2026-08-01）＝1 の形だけを残した（0＝現物だけが動く旧経路）
     public double ReignitionDemandFrac = 0.03;  // 入力需要の再点火トリクル＝採算が合えば「作りたい量」のこの割合を最低需要に（産出の床に代わるデッドロック防止。死んだ工場も需要を残し価格で蘇生＝無から有なし）
     public double PriceFactorMin = 0.4;      // 価格弾力の下クランプ
     public double PriceFactorMax = 1.4;      // 価格弾力の上クランプ
@@ -663,7 +663,7 @@ public sealed class Coefficients
     // --- 植民地POP（現地住民の実体）と独立 ---
     public double ColonialPopScale = 500;        // 人口ウェイト→住民数の換算（ベンガル8→4000単位=400万・代表スケール）
     public double ColonialPopGrowth = 0.0008;    // 住民の月次成長
-    public double ColonialPayShare = 0.3;        // 採取費のうち現地住民の手に渡る分け前（残りは中抜き＝対外消失。搾取の度合い）
+    public double ColonialPayShare = 0.3;        // 植民地の上がりのうち現地住民の手に渡る分け前（1−これ＝搾取の度合い＝Colonial の住民の死亡に効く）。★旧・採取費の分配の読み手は 2026-09-28 に削除
     public double ColonialExploitMortality = 0.002; // B-4：搾取×(0.5+不満)が住民の死亡を高める＝搾取が成長を上回ると人口減（ベンガル飢饉型の負ループ。人口減→産出減→…）
     // 植民地の過伸展（最終調整2026-06-29・ユーザー指示「覇権が現れづらい仕組み」）：行政・駐留・制海の限界で、保持能力（基礎＋軍事力×係数）を超える植民地は AI が新規に獲得しない＝
     // 最多保有国（覇権）の植民地獲得だけが頭打ちになり、植民地スコアの独占が緩む（少数しか持たない挑戦者は無傷＝恐慌脱植民地化のような逆効果がない）。帝国過伸展(Kennedy)の実体化。既定0で無制限＝旧挙動。
@@ -689,7 +689,7 @@ public sealed class Coefficients
     //     保存の記帳は既に書かれている。格は Colonial のまま（議会代表なし・維持費あり）＝Integrated への自動昇格は従来どおり残る。
     //   ⚠0＝1件も昇格しない＝厳密恒等。
     //   ★点火2026-08-26：実測（batch5）＝破綻0/デッドロック0/異常0/**ハーネス不合格0**・exact49%/near81%（基線と同等）・州209→245。
-    //     ⚠TradeColonialGoods と**対で**点火する（植民地財の交易解禁の前提が「植民地が自分で産む」こと）。差し戻しは両方を0へ。
+    //     ⚠TradeColonialGoods と**対で**点火した（植民地財の交易解禁の前提が「植民地が自分で産む」こと）。TradeColonialGoods は 2026-09-28 に焼き込み済み。
     public double ColoniesAreRegions = 1.0;
     public double ColonySettlerRate = 0.00015;       // 入植の月次流量係数（本国の自由な大衆の総数×これ×距離減衰×マラリア鎮静率が各植民地へ移住）。0＝入植なし＝昇格も発火しない＝厳密恒等（休眠マスター）。0.00015＝英の対植民地移住が年5〜6万人規模（史実の19世紀英移民10〜20万/年の下側）＝点火測定値2026-08-09
     public double ColonyPromotionCoreShare = 0.5;    // 昇格に要る入植者比率（過半数・作者裁定2026-07-31）。米準州/シベリア/自治領＝入植者多数が一般則（アルジェリア型＝欧州系1割での統合は選挙権差別が前提の特例＝再現しない）
@@ -1063,7 +1063,8 @@ public sealed class Coefficients
     //   ⚠0＝BilateralMarket:258 の判定が旧と厳密同値＝ビット恒等。ColoniesAreRegions と**対で**点火する。
     //   ★点火2026-08-26：貿易/GDP 0.08%→0.13%（+63%）。⚠水準は依然ほぼゼロ＝縛っているのは「何を交易してよいか」ではなく
     //     **運びたい量と運賃**（輸送容量は潜在量の10倍余り・内陸州は片脚4,788km相当）。次の本丸は陸路の直行と運賃。
-    public double TradeColonialGoods = 1.0;
+    // 【墓標2026-09-28・旗の焼き込み（支払い 段1-1）】TradeColonialGoods（上の注記・点火2026-08-26）＝植民地財も二国間清算に載る形だけを残し、
+    //   旧の採取決済（ColonialExtractionFraction・ColonialProfitMerchantShare/InvestorShare・Region.ColonialImportCost）ごと削除。
     // ★賦存の反実仮想レバー（2026-08-21・診断専用／既定1.0＝×1.0はIEEE754で厳密恒等＝ビット恒等）。
     //   「非賦存州も0.4で自給するから比較優位が価格差に翻訳されない」という主張をA/Bで検証/反証するために置く。
     //   ResourceScarcityScale＝非賦存RGOの産出倍率(ResourceScarcity=0.4)に掛ける（0.1で0.04＝賦存比100倍・0で非産地は厳密0）。
@@ -1532,7 +1533,6 @@ public sealed class Coefficients
     public double InsurancePayoutFrac = 0.5;   // 保険金＝封鎖損失(取扱高×(1−raid))×これを 商人基金→荷主へ（基金が尽きれば部分払い＝ロイズの破綻）。海運リスクの分散
 
     public double ColoniesForFullColonial = 3.0;  // 植民地素材を満たすのに要る植民地数（少ないと入手率↓・封鎖で更に↓）
-    public double ColonialExtractionFraction = 0.25;  // 植民地輸入の支払いのうち国外へ出る割合（採取費）。残りは交易益として本国に還流＝帝国は富ませる
     public double WhitePeaceScore = 0.25;         // 戦勝点がこれ未満の講和は白紙（得るものなし）
     // 植民地の奪取：戦勝点(0〜100点＝sa×100)＝奪取予算。コスト＝基本30点 ＋ 資源 ＋ 開発の重み（加算）。
     // ＝未開発でも30点要る（初期に大量簒奪できない）、開発・資源を生む植民地ほど高くつく。完全勝利(100点)でも上限3つ。
@@ -1793,7 +1793,7 @@ public sealed class Coefficients
     public double EarlyElectionEnabled = 1.0;      // 機能2-5点火（2026-07-28）：不信任＝与党の民意（VoteShares）が閾値割れで繰り上げ総選挙。0で旧＝固定周期のみ恒等
     public double NoConfidenceThreshold = 0.2;     // 機能2-5：与党族の得票率がこれ未満＝内閣が倒れる（第三共和政＝平均8ヶ月内閣の史実側）
     public double EarlyElectionMinQuarters = 4;    // 機能2-5：繰り上げ選挙の最短間隔（1年＝選挙の乱発防止）
-    public double ForeignBondCounterparty = 1.0;   // 02断線走査点火（2026-07-28）：外債の利子を債権国投資家へ配当（債権ストック=ForeignBondClaims按分・世界で金が閉じる）＝レンティア帝国（シティ/パリ）の成立。旧＝利子が世界から消える片側記帳。0で旧恒等
+    // 【墓標2026-09-28・旗の焼き込み（支払い 段1-1）】ForeignBondCounterparty（既定1.0）＝02断線走査点火（2026-07-28）：外債の利子を債権国投資家へ配当（債権ストック=ForeignBondClaims按分・世界で金が閉じる）＝レンティア帝国（シティ/パリ）の成立。旧＝利子が世界から消える片側記帳。0で旧恒等
     public double TreatyRatificationWeight = 0.5;  // **点火2026-07-31（07_再設計 第1弾1c）**：議会統制力0.5以上の議会国は講和の従属条項を批准しない。機能2-6配線（2026-07-28・帯リスク高＝戦争終結ループ直撃）：議会統制力がこれ以上の議会国（立憲/共和）は講和の従属条項を拒否（属国化→追加割譲へ振替＝講和は成立）。0で不読＝厳密恒等
     public double AppeaseMilitaryRatio = 2.5;      // 相手の軍が自軍のこれ倍超＝勝てない相手＝挑発せず宥和（緊張を下げる）
     public double HegemonRestraintFloor = 0.25;    // 突出自制の下限＝覇権国でも植民地化意欲はこの割合までしか落ちない（完全停止はしない）
@@ -1882,7 +1882,7 @@ public sealed class Coefficients
     // MilRatio=0で不読＝旧挙動（即開戦）＝厳密恒等。初版1.8→採用3.0（2.5倍=植民地化の無血屈服より手前の帯）。
     public double AISubmitMilRatio = 3.0;   // **2026-07-25採用（第3群C-高6）**：軍事3倍差で弱い側が屈服（緊張解消＋正統性コスト＝戦わずに折れる外交）＝exact37/near70。WarDeclareTension下げ戻しは次段バッチで実施
     public double SubmitProbabilistic = 0.0;   // ★屈服の確率化（AI審査3-1・2026-08-31休眠）：3.0倍の決定論的な崖（2.9倍で戦争・3.1倍で無血屈服）を逓減へ。屈服確率=clamp((陣営比−1)/(AISubmitMilRatio−1),0,1)＝互角0%・崖の線で100%（新しい数は作らない＝既存の線が確実点になる）。ファショダで引いた英仏と引かなかった日露が同じ機構から出る。専用RNG系列（SubmitRng）＝0では未消費＝厳密恒等
-    public double CapturedColoniesAreRegions = 1.0;   // ★実装2026-08-31・点火2026-08-31（V1V2腕＝ハーネス0/10・植民地+2.5）★従属の一般化・第一切片（docs/202608/20260828_従属の一般化_部分完了.md §0）：講和奪取/無血併合で得た Colony をその場で植民地格の州（RegionTier.Colonial）へ実体化＝「開始時の植民地は州・プレイ中の獲得は Colony」という格差ある二重管理の解消。変換は既存の PromoteColonyToRegion（保存記帳込み）・保存検査は PromotedColonies へ計上。同名州ガードで不可なら旧経路（ColonyList）へフォールバック。0＝旧経路＝厳密恒等
+    // 【墓標2026-09-28・旗の焼き込み（支払い 段1-1）】CapturedColoniesAreRegions（実装・点火2026-08-31＝V1V2腕＝ハーネス0/10・植民地+2.5）★従属の一般化・第一切片（docs/202608/20260828_従属の一般化_部分完了.md §0）：講和奪取/無血併合で得た Colony をその場で植民地格の州（RegionTier.Colonial）へ実体化＝「開始時の植民地は州・プレイ中の獲得は Colony」という格差ある二重管理の解消。変換は既存の PromoteColonyToRegion（保存記帳込み）・保存検査は PromotedColonies へ計上。同名州ガードで不可なら旧経路（ColonyList）へフォールバック。0＝旧経路＝厳密恒等
     public double ColonialRegionCession = 1.0;        // ★実装2026-08-31・点火2026-08-31（V1V2腕＝植民地+10.9・列強+3.8・首位確定Q109→Q200/交代1.6→3.0＝ラウンドBの記録コストを戦争の意味の回復で相殺）★従属の一般化V2（講和量差の是正）：講和で敗者の**植民地格の州**を複数割譲できる器＝旧・植民地奪取（ColonyCaptureMax/Budget/コスト式）を州側へ移植。V1で戦利品の器がColony→州へ移ると州割譲は1戦争1州＝「七年戦争でカナダとインドを同時に」が消えるための対。reach条件＝colonialReachと同じ（海軍あり＋制海権≧SeaInvasionControlMin）・コストの人口はSumPopulation/ColonialPopScale＝Colony.Populationと同じ物差し。0＝不発＝厳密恒等
     // ==== 研究＝解禁の唯一の形（docs/202608/20260827・段1〜3実装2026-08-31）====
     public double DiscoveryInstitutions = 1.0;    // ★点火2026-08-31（段2腕＝◎+1/法+2.2/植民地+3.3・列強−6.3はノイズ帯縁=#17答え合わせ対象）★段2ゲート：Institutions の bool 閾値（特許/株式会社）を Discovery.Unlock の傾斜へ置換。暫定時計=TechLevel×適性（特許=EliteCore・株式=最大工業化度）。boolは表示のみ（ramp≥0.5）へ。0＝旧bool閾値＝厳密恒等
@@ -2431,10 +2431,10 @@ public sealed class Coefficients
     // ⚠不具合を事実上の実装として使っている状態だが、**これが最もスマートな解決**（作者の言）＝**点火しない**。
     // 実測（2026-07-31・参考）：点火するとテスト180緑・破綻0・デッドロック0・異常0のまま★ハーネス不合格10/10（上位軍需が全滅）・◎7割帯21→6・逸脱過多13→39・
     // 最貧国の満足度0.06。つまり現行の経済はこの需要の上に立っている。⚠**再点火の検討をしないこと。** */
-    public double InvestBudgetIncludesAllInputs = 1.0;   /* **点火2026-07-31（S5パッケージA・単独で採用）**：投資家建設の予算律速に鉄道/機関車費・保守要員費を算入＝投資家貯蓄が負に振れる穴を閉じる。
+    /* 【墓標2026-09-28・旗の焼き込み（支払い 段1-1）】InvestBudgetIncludesAllInputs（既定1.0）＝**点火2026-07-31（S5パッケージA・単独で採用）**：投資家建設の予算律速に鉄道/機関車費・保守要員費を算入＝投資家貯蓄が負に振れる穴を閉じる。
     // ★実測（単独・SOURCE-HASH 8e3…系）＝硬性ゲート全緑（破綻0/デッドロック0/異常0/ハーネス不合格0/フラグ0・テスト180緑）・◎7割帯 21→23・逸脱過多13→13・exact22%据え置き・near62→61。
     // ⚠同じ束の Reignition／CurrentInputFill は単独でも壊した（2026-09-26 に旗ごと削除）（Carryover と2本同時は満足度最小国が×＝ハーネス1/10） */   // 経4（予算制約）：投資家建設の予算律速に鉄道/機関車費(ConsRail/ConsLoco)・保守要員費(高度労働0.4+労働0.3)を算入。0=加算0で現行と厳密一致・1で全費目を予算に算入し投資家貯蓄が負に振れるのを防ぐ
-    public double InsuranceSubsidyConsistent = 1.0;   // 経13（予算制約）：医療保険補助のベースを基礎価格から税・流通込み総額へ揃える（buyerPriceの(1-insure)と整合）。1でpayがbuyerPriceに一致し予算超過（貯蓄負値化）を解消（2026-07-19バグ監査で有効化）。0=基礎価格ベース。較正harnessはSocialSecurity=0→insure=0で全域中立（この既定変更は較正に不影響）
+    // 【墓標2026-09-28・旗の焼き込み（支払い 段1-1）】InsuranceSubsidyConsistent（既定1.0）＝経13（予算制約）：医療保険補助のベースを基礎価格から税・流通込み総額へ揃える（buyerPriceの(1-insure)と整合）。1でpayがbuyerPriceに一致し予算超過（貯蓄負値化）を解消（2026-07-19バグ監査で有効化）。0=基礎価格ベース。較正harnessはSocialSecurity=0→insure=0で全域中立（この既定変更は較正に不影響）
     /* 【墓標2026-09-26（棚卸し dorm-50）】CurrentInputFillGates＝★★★**恒久的に0（作者裁定2026-08-01）＝上と同じ理由で「意図した実装」**＝旗と逆側の枝を削除。
     // 当期投入が涸れても前期充足率で産出できることが、**上位工場を先に建ててから下流を整備する**プレイの余地を作っている。
     // 実測（2026-07-31・参考）：単独点火でテスト6本失敗（MultiNation/Tax 系）＝産出水準そのものが下がり較正の土台が動く。⚠**再点火の検討をしないこと。** */
@@ -2455,7 +2455,7 @@ public sealed class Coefficients
     // === リアリティ監査 2026-07-02 Wave2（経済・金融の機構）===
     // 点火状況は各行参照。経18/経12の一部は「直書き定数の係数化」で値同一＝中立。
     public double SubsistenceHarvestFullExposure = 1.0;   // 経2（飢饉の深さ）：自給充足の収穫係数の露出度。0=局地HarvestFactorのみで現行と厳密一致・1で市場向けRGOと同じ三重積算(WeatherBandFactor×CropHealth[主食id]×landFactor)を自給にも乗じ、ジャガイモ胴枯病型の飢饉の核心層(高自給の貧農)に病害・緯度帯天候・土地逓減を届かせる
-    public double ConstructionLaborViaMarket = 1.0;   // **点火2026-07-28（巨大建造物§3-1）＝§3-2の律速追加と同一バッチ**   // 経5（労働の二重雇用）：建設工賃を労働力財のinvestDemand(保守要員と同経路)へ回すか。0=現行の直接Savings加算で厳密一致・1で建設労働を市場需要として立てる（需要計上=EconomyStep.cs:329-349・決済=:868-922）
+    // 【墓標2026-09-28・旗の焼き込み（支払い 段1-1）】ConstructionLaborViaMarket（点火2026-07-28）＝建設工賃は労働力財の市場で買う形だけを残した。旧＝材料費比例の工賃を工員の Savings へ直書き（月内の仮勘定を通らない）＝削除
     public double DemandElasticityMaxDaily = 2.5;   // 【R1点火2026-07-13＝2.5】経11（大量消費化）：日用品(Daily)の需要上クランプ。1.4=PriceFactorMaxと同値で現行と厳密一致・>1.4で価格暴落による大量消費化(産業革命の綿布型)を許す。2.5＝安価工業製品を基礎量の2.5倍まで大量消費
     public double DemandElasticityMaxLuxury = 2.0;   // 【R1点火2026-07-13＝2.0】経11：奢侈品(Luxury)の需要上クランプ。1.4=PriceFactorMaxと同値で現行と厳密一致・>1.4で安価工業製品の大量消費化を許す
     // ── 所得翻訳ゲート（設計3・2026-08-08 敵対審査済み）：GDP∝人口＝英14位の根＝「生産性↑が需要へ翻訳されない蓋」を、
@@ -2466,8 +2466,6 @@ public sealed class Coefficients
     // 【墓標2026-09-26（棚卸し econ-16・dorm-51）】DemandIncomeElasticity・DemandIncomeFactorMax（所得翻訳ゲート＝需要の所得係数・休眠0）＝梯子測定で差し戻し（k=0.1＝経済規模−1.3pt／k=0.4＝−2.5pt＋政体exact−7.0）＝削除
     // 段5（WageClampMax増）も前提不成立＝WageClampIndScale=1.0 live で英の実効天井は既に約10×rp＝天井は縛っていない（賃金が均衡で天井に届かないのが実態）。
     // **確定測定＝「賃金→予算の翻訳だけでは経済規模軸は閉じない」**＝貯蓄・投資の一括再較正ラウンド（退蔵結晶化=設計2が候補）への入力。計器（incomeprobe）・物差し（IndustrialRent）・本配線は残置。0＝厳密恒等
-    public double ColonialProfitMerchantShare = 0.3;   // 経15（帝国の分配政治）：植民地交易益(colonialProfit)のうち商人pop(MerchantPopIndex)へ傾斜配分する割合。0=全pop人頭按分で現行と厳密一致・>0で商人・特許会社へ集中。残余は全pop按分・受け皿不在時は残余へ還付
-    public double ColonialProfitInvestorShare = 0.3;   // 経15：植民地交易益のうち投資家pop(InvestorPopIndex=資本家)へ傾斜配分する割合。0=現行の全pop按分・>0で資本家へ集中
     public double MaintLocoRate = 0.5;   // 経18（係数化・中立）：インフラ保守1単位あたりの機関車(車両更新)消費率。既定0.5=旧直書きと同値
     public double MaintAdvLaborRate = 0.4;   // 経18（係数化・中立）：インフラ保守1単位あたりの高度労働力(機関士・保線技師)消費率。既定0.4=旧直書きと同値
     public double MaintLaborRate = 0.3;   // 経18（係数化・中立）：インフラ保守1単位あたりの労働力(火夫・荷役)消費率。既定0.3=旧直書きと同値

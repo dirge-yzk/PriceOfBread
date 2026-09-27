@@ -362,7 +362,6 @@ public static class EconomyStep
         }
 
         // 植民地素材の輸入（植民地と制海で供給）。封鎖/植民地喪失で ColonialAccess↓→枯渇（§6.1）。
-        region.ColonialImportCost = 0;
         if (region.ColonialResources is { } cres)
         {
             // 経19（往復を閉じる）：パイプライン状態は係数有効時のみ遅延確保＝月跨ぎで Region に保持され pipe[gid] が先月の書込みを読む（読み出し⇄書き込みが閉じる）。
@@ -675,12 +674,11 @@ public static class EconomyStep
             double costPerUnit = coef.ConsSteel * sP + coef.ConsMachine * mP + coef.ConsCement * cP + coef.ConsLumber * lP;
             // 経4：建設1単位に付随する鉄道・機関車（下段の鉄道インフラ需要で construction 比例に消費）も本来は予算の律速に入る。
             // costPerUnit 自体は「材料束の純価格」（下段の stateConstruction が StateBuildQueue の割り算に使う＝鉄道を含めない）ので別変数 buildCostPerUnit で資本家建設の予算律速だけに算入。
-            // InvestBudgetIncludesAllInputs=1.0（点火2026-07-31）で予算に算入し貯蓄が負に振れるのを防ぐ。0で加算0＝旧恒等。
+            // 予算に算入し貯蓄が負に振れるのを防ぐ（点火2026-07-31・2026-09-28 に旗 InvestBudgetIncludesAllInputs ごと焼き込み）。
             double buildCostPerUnit = costPerUnit;
             if (coef.RailGoodId < ng && coef.LocoGoodId < ng)
-                buildCostPerUnit += coef.InvestBudgetIncludesAllInputs
-                             * (coef.ConsRail * Math.Max(region.Markets[coef.RailGoodId].Price, Eps)
-                              + coef.ConsLoco * Math.Max(region.Markets[coef.LocoGoodId].Price, Eps));
+                buildCostPerUnit += coef.ConsRail * Math.Max(region.Markets[coef.RailGoodId].Price, Eps)
+                              + coef.ConsLoco * Math.Max(region.Markets[coef.LocoGoodId].Price, Eps);
             // ★投資に回せるのは**いま稼いでいるフロー**（2026-08-04・作者指摘「根本問題はコストをかければ工業化できることよりも、
             //   工業化なくしてコストをかけられる方」）。
             //   ── 実測（powertrace・1800年）───────────────────────────────────────
@@ -742,13 +740,13 @@ public static class EconomyStep
                 investDemand[coef.CementGoodId] += coef.ConsCement * construction;
                 investDemand[coef.LumberGoodId] += coef.ConsLumber * construction;
             }
-            // 経5（労働の二重雇用・ConstructionLaborViaMarket=1.0 点火2026-07-28）：建設工賃を労働力財の investDemand（保守要員と同経路）へ回し、
+            // 経5（労働の二重雇用・点火2026-07-28・2026-09-28 に旗 ConstructionLaborViaMarket と旧経路を削除）：建設工賃を労働力財の investDemand（保守要員と同経路）へ回し、
             // 建設ブームが労働需給を逼迫させ賃金クランプ・失業に効く。労働量＝工賃予算/労働価格で換算（材料cost比例の工賃を労働財の量へ）。
-            // 決済（下段）では conLaborUnits×ration[Labor]×労働価格を投資家/国庫が支払い revenue[Labor] へ計上＝インフラ保守の決済と同型（支払い＝労働pop受取で保存）。0 なら conLaborUnits=0＝直接 Savings 加算の旧経路。
+            // 決済（下段）では conLaborUnits×ration[Labor]×労働価格を投資家/国庫が支払い revenue[Labor] へ計上＝インフラ保守の決済と同型（支払い＝労働pop受取で保存）。
             double lWagePrice = Catalog.LaborId < ng ? Math.Max(region.Markets[Catalog.LaborId].Price, Eps) : 1.0;
-            if (coef.ConstructionLaborViaMarket > 0 && Catalog.LaborId < ng && conWorker >= 0)
+            if (Catalog.LaborId < ng && conWorker >= 0)
             {
-                conLaborUnits = coef.ConstructionLaborViaMarket * coef.ConstructionLaborWageFrac * costPerUnit * construction / lWagePrice;
+                conLaborUnits = coef.ConstructionLaborWageFrac * costPerUnit * construction / lWagePrice;
                 investDemand[Catalog.LaborId] += conLaborUnits;
             }
             // 国家の手動建設（プレイヤー）：資本家と同じ建設の束を国庫負担で買い増す（決済は後段）。
@@ -780,10 +778,10 @@ public static class EconomyStep
             investDemand[coef.MachineGoodId] += coef.ConsMachine * stateConstruction;
             investDemand[coef.CementGoodId] += coef.ConsCement * stateConstruction;
             investDemand[coef.LumberGoodId] += coef.ConsLumber * stateConstruction;
-            // 経5：国家建設の工賃も同経路（国庫負担）＝決済は国庫（StateSpent）が支払う。0 なら stateConLaborUnits=0＝直接加算の旧経路。
-            if (coef.ConstructionLaborViaMarket > 0 && Catalog.LaborId < ng && conWorker >= 0)
+            // 経5：国家建設の工賃も同経路（国庫負担）＝決済は国庫（StateSpent）が支払う。
+            if (Catalog.LaborId < ng && conWorker >= 0)
             {
-                stateConLaborUnits = coef.ConstructionLaborViaMarket * coef.ConstructionLaborWageFrac * costPerUnit * stateConstruction / lWagePrice;
+                stateConLaborUnits = coef.ConstructionLaborWageFrac * costPerUnit * stateConstruction / lWagePrice;
                 investDemand[Catalog.LaborId] += stateConLaborUnits;
             }
             // 巨大建造物（2026-07-28）：国家建設とは**別キュー**。★州上限5.0のヘッドルーム（stateHeadroomUnits）を通さない＝
@@ -796,9 +794,9 @@ public static class EconomyStep
                 investDemand[coef.MachineGoodId] += coef.ConsMachine * monumentConstruction;
                 investDemand[coef.CementGoodId] += coef.ConsCement * monumentConstruction;
                 investDemand[coef.LumberGoodId] += coef.ConsLumber * monumentConstruction;
-                if (coef.ConstructionLaborViaMarket > 0 && Catalog.LaborId < ng && conWorker >= 0)
+                if (Catalog.LaborId < ng && conWorker >= 0)
                 {
-                    monumentLaborUnits = coef.ConstructionLaborViaMarket * coef.ConstructionLaborWageFrac * costPerUnit * monumentConstruction / lWagePrice;
+                    monumentLaborUnits = coef.ConstructionLaborWageFrac * costPerUnit * monumentConstruction / lWagePrice;
                     investDemand[Catalog.LaborId] += monumentLaborUnits;
                 }
             }
@@ -817,19 +815,18 @@ public static class EconomyStep
             double railP = railLoco ? Math.Max(region.Markets[coef.RailGoodId].Price, Eps) : 0;
             double locoP = railLoco ? Math.Max(region.Markets[coef.LocoGoodId].Price, Eps) : 0;
             double maintCostPerUnit = cP + railP + coef.MaintLocoRate * locoP;   // 経18：機関車の更新頻度（耐久財＝低頻度。既定0.5＝旧直書きと同値・中立）
-            // 経4：保守1単位に付随する運行要員費（下段の運行要員需要で maintenance 比例に消費＝高度労働0.4＋労働0.3）も予算の律速に入れる（InvestBudgetIncludesAllInputs=1.0 点火・0で加算0＝旧恒等）。
+            // 経4：保守1単位に付随する運行要員費（下段の運行要員需要で maintenance 比例に消費＝高度労働0.4＋労働0.3）も予算の律速に入れる（点火2026-07-31・旗は焼き込み済み）。
             if (Catalog.AdvLaborId < ng)
-                maintCostPerUnit += coef.InvestBudgetIncludesAllInputs
-                                  * (coef.MaintAdvLaborRate * Math.Max(region.Markets[Catalog.AdvLaborId].Price, Eps)
-                                   + coef.MaintLaborRate * Math.Max(region.Markets[Catalog.LaborId].Price, Eps));   // 経18：運行要員の係数化（既定0.4/0.3＝旧直書きと同値・中立）
+                maintCostPerUnit += coef.MaintAdvLaborRate * Math.Max(region.Markets[Catalog.AdvLaborId].Price, Eps)
+                                   + coef.MaintLaborRate * Math.Max(region.Markets[Catalog.LaborId].Price, Eps);   // 経18：運行要員の係数化（既定0.4/0.3＝旧直書きと同値・中立）
             // 運用コスト監査2026-08-16 #2（鉄道の運行石炭）：火夫（MaintLaborRate）は雇うのに石炭を買っていない自己矛盾の是正。
-            // 蒸気ゲート＝下段②の steamGate と同式（鉄道が蒸気化した分だけ焚く＝年号は読まない）。投資予算の律速にも同項＝InvestBudgetIncludesAllInputs と同じ作法。
+            // 蒸気ゲート＝下段②の steamGate と同式（鉄道が蒸気化した分だけ焚く＝年号は読まない）。投資予算の律速にも同項＝上の運行要員費と同じ作法。
             // RailCoalRate=0 なら railCoalGate=0＝需要側・決済側とも1命令も足さない（★2026-08-29点火＝既定0.22）。導出は係数コメント（Coefficients.RailCoalRate）。
             if (coef.RailCoalRate > 0 && railLoco && Catalog.CoalId < ng)
             {
                 railCoalGate = Math.Clamp((region.TechLevel - coef.SteamTechOnset) / coef.SteamTechWidth, 0.0, 1.0);
                 if (!(railCoalGate >= 0 && railCoalGate <= 1)) railCoalGate = 0;   // 否定形＝NaNは蒸気以前へ
-                maintCostPerUnit += coef.InvestBudgetIncludesAllInputs * coef.RailCoalRate * railCoalGate * Math.Max(region.Markets[Catalog.CoalId].Price, Eps);
+                maintCostPerUnit += coef.RailCoalRate * railCoalGate * Math.Max(region.Markets[Catalog.CoalId].Price, Eps);
             }
             double maintBudget = Math.Max(0, budget - construction * buildCostPerUnit);
             maintenance = coef.InfraMaintRate * region.TotalIndustrialization;   // 保守は立っている資本の総量に比例（座礁設備も維持費を食う＝先行国の足枷。ヴィンテージ2026-07-10）
@@ -1598,8 +1595,8 @@ public static class EconomyStep
                     double qty = p.GoodDemand * ration[gi];
                     if (popBought is not null) popBought[p.ClassId] += qty;   // 純記帳（項目6）：この財を実際に買ったのは誰か＝階級別の量
                     // 経13：補助のベースを基礎価格(m.Price)から税・流通込み総額へ揃える（buyerPrice の (1-insure) と整合）。
-                    // InsuranceSubsidyConsistent=1.0（2026-07-19有効化）＝総額ベース＝pay が buyerPrice に一致し予算超過（貯蓄負値化）を解消。0で基礎価格ベース（旧）。どちらも保存は成立（pop+国庫＝生産者+商人）。
-                    double insureBase = m.Price * (1.0 + coef.InsuranceSubsidyConsistent * (stateMonop + distM));
+                    // 総額ベース（2026-07-19有効化・2026-09-28 に旗 InsuranceSubsidyConsistent ごと焼き込み）＝pay が buyerPrice に一致し予算超過（貯蓄負値化）を解消。保存は成立（pop+国庫＝生産者+商人）。
+                    double insureBase = m.Price * (1.0 + (stateMonop + distM));
                     double subsidy = qty * insureBase * insure;   // 健康保険(#3)：医薬品の購入費の insure 割合を国家が肩代わり（insure>0 は医薬品のみ）
                     double pay = qty * m.Price * (1 + stateMonop + distM + monRent + guildRent) - subsidy;  // 専売＋流通マージン＋独占レント＋同業組合の上乗せ込み − 国家負担分＝popの実支払い
                     p.Paid += pay;
@@ -1692,12 +1689,9 @@ public static class EconomyStep
                 double pay = clearPrice[inp.GoodId] * s.Output * eq * ration[inp.GoodId];
                 ic += pay;
                 revenue[inp.GoodId] += pay;
-                if (coef.ReignitionOrderSettles > 0)
-                {
-                    // 需要フェーズと**同じ式**（s.Output はこの2フェーズ間で動かない）＝発注量を再現し、配給された分だけ請求する。
-                    double tq = Math.Max(0, coef.ReignitionDemandFrac * s.DesiredOutput - s.Output) * eq;
-                    trickleBill += clearPrice[inp.GoodId] * tq * ration[inp.GoodId];
-                }
+                // 再点火発注の代金（2026-09-28 に旗 ReignitionOrderSettles ごと焼き込み）：需要フェーズと**同じ式**（s.Output はこの2フェーズ間で動かない）＝発注量を再現し、配給された分だけ請求する。
+                double tq = Math.Max(0, coef.ReignitionDemandFrac * s.DesiredOutput - s.Output) * eq;
+                trickleBill += clearPrice[inp.GoodId] * tq * ration[inp.GoodId];
             }
             // ★止まった工場の持ち主が再開準備の代金を払う（点火2026-08-01）。払えるのは貯蓄の範囲まで＝**無一文なら準備もできない**。
             // ⚠払い切れなかった分は現物だけが動いた状態が残る（旧＝全額がその状態だった）。
@@ -1768,27 +1762,20 @@ public static class EconomyStep
             // 巨大建造物§3-2（2026-07-28）：**労働もリービッヒ律速に入れる**。従来は労働を買っても built に一切入らず「買えた分だけ払う」だけで、
             // 「資本があっても人がいないと工場は建たない」が成立していなかった。各資材項は sEff/ConsSteel = construction×ration[財] に等しいので、
             // 労働も同型で construction×ration[労働]。★資材は繰り越せるが**労働は繰り越せない**（今月雇えなかった大工は今月働いていない）＝
-            // *App の足し戻しを持たないのが正しい非対称。ConstructionLaborViaMarket=0 では conLaborUnits=0 で分岐に入らない＝厳密恒等。
+            // *App の足し戻しを持たないのが正しい非対称。
             if (conLaborUnits > 0 && Catalog.LaborId < ng)
                 built = Math.Min(built, construction * ration[Catalog.LaborId]);
             double cost = sGot * clearPrice[sg] + mGot * clearPrice[mg] + cGot * clearPrice[cg] + lGot * clearPrice[lg];   // 支払いは新規購入(*Got)のみ＝充当した繰越は先月支払い済み（保存）
             region.Pops[region.InvestorPopIndex].Paid += cost;   // 投資家（資本家）が建設を負担
-            // 経5：建設工賃の決済（ConstructionLaborViaMarket=1.0 点火）＝労働力財市場から工賃分の労働（conLaborUnits）を買う一本化＝インフラ保守の決済と同型
+            // 経5：建設工賃の決済＝労働力財市場から工賃分の労働（conLaborUnits）を買う一本化＝インフラ保守の決済と同型
             // （投資家が支払い・revenue[Labor] へ計上→income で労働pop の賃金に変換＝支払い総額＝労働pop受取で保存）。二重雇用（工場へ全量売りつつ建設賃金も別途受領）を解消。
-            if (coef.ConstructionLaborViaMarket > 0)
+            // ★2026-09-28（支払い 段1-1）：旗 ConstructionLaborViaMarket（既定1）の旧経路＝材料費比例の工賃を工員の Savings へ直書き（月内の仮勘定を通らない）を削除。
+            if (conLaborUnits > 0 && Catalog.LaborId < ng)
             {
-                if (conLaborUnits > 0 && Catalog.LaborId < ng)
-                {
-                    double labQ = conLaborUnits * ration[Catalog.LaborId];
-                    double labPay = labQ * clearPrice[Catalog.LaborId];
-                    region.Pops[region.InvestorPopIndex].Paid += labPay;
-                    revenue[Catalog.LaborId] += labPay;
-                }
-            }
-            else
-            {
-                double invLabor = coef.ConstructionLaborWageFrac * cost;   // 0への退避（二分探索の基線）：工賃を材料費比例で conWorker の Savings へ直接加算
-                if (conWorker >= 0) { region.Pops[region.InvestorPopIndex].Paid += invLabor; region.Pops[conWorker].Savings += invLabor; }
+                double labQ = conLaborUnits * ration[Catalog.LaborId];
+                double labPay = labQ * clearPrice[Catalog.LaborId];
+                region.Pops[region.InvestorPopIndex].Paid += labPay;
+                revenue[Catalog.LaborId] += labPay;
             }
             revenue[sg] += sGot * clearPrice[sg];
             revenue[mg] += mGot * clearPrice[mg];
@@ -1879,26 +1866,18 @@ public static class EconomyStep
                                     Math.Min(cGot / Math.Max(Eps, coef.ConsCement), lGot / Math.Max(Eps, coef.ConsLumber)));
             // 巨大建造物§3-2（2026-07-28・国家経路にも適用）：資本家経路（投資の決済）にだけ労働律速を入れると、**国庫で建てる限り労働ゼロでも建つ**
             // という非対称が残る。段7のニューディールは定義上「国家が建てる」経路なので、ここを外すと「好況時に民間から労働を奪って建設が止まる」側だけが
-            // 国家経路で免除され、§3-3 の「建造物と工場が労働を取り合う」が成立しない。ConstructionLaborViaMarket=0 では stateConLaborUnits=0＝厳密恒等。
+            // 国家経路で免除され、§3-3 の「建造物と工場が労働を取り合う」が成立しない。
             if (stateConLaborUnits > 0 && Catalog.LaborId < ng)
                 built = Math.Min(built, stateConstruction * ration[Catalog.LaborId]);
             double cost = sGot * clearPrice[sg] + mGot * clearPrice[mg] + cGot * clearPrice[cg] + lGot * clearPrice[lg];
             region.StateSpent += cost;   // 国庫が負担（Simulation が国庫から引く＝国庫→生産者で保存）
-            // 経5：国家建設の工賃決済（ConstructionLaborViaMarket=1.0 点火）＝労働力財市場から工賃分を買い、支払い主体は国庫（StateSpent）＝行政・軍需と同じ国庫→労働pop経路で保存。
-            if (coef.ConstructionLaborViaMarket > 0)
+            // 経5：国家建設の工賃決済＝労働力財市場から工賃分を買い、支払い主体は国庫（StateSpent）＝行政・軍需と同じ国庫→労働pop経路で保存（旧経路は 2026-09-28 に削除＝上の資本家経路と同じ）。
+            if (stateConLaborUnits > 0 && Catalog.LaborId < ng)
             {
-                if (stateConLaborUnits > 0 && Catalog.LaborId < ng)
-                {
-                    double labQ = stateConLaborUnits * ration[Catalog.LaborId];
-                    double labPay = labQ * clearPrice[Catalog.LaborId];
-                    region.StateSpent += labPay;
-                    revenue[Catalog.LaborId] += labPay;
-                }
-            }
-            else
-            {
-                double stLabor = coef.ConstructionLaborWageFrac * cost;   // 0への退避（二分探索の基線）：工賃を材料費比例で直接加算
-                if (conWorker >= 0) { region.StateSpent += stLabor; region.Pops[conWorker].Savings += stLabor; }
+                double labQ = stateConLaborUnits * ration[Catalog.LaborId];
+                double labPay = labQ * clearPrice[Catalog.LaborId];
+                region.StateSpent += labPay;
+                revenue[Catalog.LaborId] += labPay;
             }
             revenue[sg] += sGot * clearPrice[sg];
             revenue[mg] += mGot * clearPrice[mg];
@@ -2467,39 +2446,17 @@ public static class EconomyStep
                 region.EffFirms[gi2] = legalMonopoly ? 1.0 : Math.Max(coef.CompetitiveFirmsBase, producerCount[gi2]);
             }
         }
-        // 植民地素材（生産者なし）の売上：採取費だけ国外へ流出、残りは交易益として本国 pop へ還流＝帝国は富ませる（保存）
-        // 監査2026-07-11（二1）：対象を植民地財（IsColonial）に限定。気候ゲート（2026-07-05）以降は通常交易財（米等）も非適地州で
-        // 生産者ゼロになるが、輸入時に世界価格を対外支払い済み＝一律25%を対外流出させると同一輸入品への対外二重払いだった。
-        // 通常財の生産者不在売上は #6（B-A2）と同型に商人（輸入の捌き手）へ＝国内移転で保存。商人不在（合成テスト世界）は全pop按分＝取りこぼさない。
-        double colonialRevenue = 0;
+        // 生産者のいない財の売上：#6（B-A2）と同型に商人（輸入の捌き手）へ＝国内移転で保存。商人不在（合成テスト世界）は全pop按分＝取りこぼさない。
+        // ★2026-09-28（支払い 段1-1）：植民地財の旧・採取決済（旗 TradeColonialGoods=0 の枝＝売上の25%を対外流出・残りを「植民地交易益」として
+        //   商人・投資家・全popへ傾斜配分）を係数4本（TradeColonialGoods・ColonialExtractionFraction・ColonialProfitMerchantShare/InvestorShare）と
+        //   Region.ColonialImportCost ごと削除した。植民地財は二国間交易で着値を既に対外へ払っている＝通常財と同じ商人経路（退行修正 2026-08-30 の形）だけを残す。
         for (int gi = 0; gi < ng; gi++)
         {
             if (producerCount[gi] != 0 || revenue[gi] <= 0) continue;
             var gd0 = region.GoodOf(gi);
             if (gd0 is null) continue;
-            // ★退行修正（帰還構造の全数調査 §1-1・2026-08-30）：TradeColonialGoods>0 では植民地財は二国間交易で**着値を既に対外へ払っている**＝
-            //   旧・採取決済（25%対外消滅＋75%を地元へ配る）を重ねると、植民地を持たない国の輸入コーヒー代が「植民地交易益」に化けて
-            //   基礎貨幣が恒久消滅していた（実測＝清2.5%GDP/年が採取扱い・消滅0.26〜0.63%GDP/年）。通常財と同じ商人経路へ＝対外二重払いの根絶。
-            //   フラグ0＝旧経路そのまま（厳密恒等）。
-            if (gd0.IsColonial && !(coef.TradeColonialGoods > 0)) colonialRevenue += revenue[gi];
-            else if (region.MerchantPopIndex >= 0) region.Pops[region.MerchantPopIndex].Earned += revenue[gi];
+            if (region.MerchantPopIndex >= 0) region.Pops[region.MerchantPopIndex].Earned += revenue[gi];
             else if (totalPop > Eps) foreach (var p in region.Pops) p.Earned += revenue[gi] * (p.Size / totalPop);
-        }
-        region.ColonialImportCost = coef.ColonialExtractionFraction * colonialRevenue;   // 対外流出（金流に計上）
-        double colonialProfit = colonialRevenue - region.ColonialImportCost;             // 本国に残る交易益
-        if (colonialProfit > Eps)
-        {
-            // 経15（帝国の分配政治）：植民地交易益の帰属。従来は全pop Size比例＝「帝国が誰を富ませるか」の階級政治（商人・特許会社・資本家・国庫）が消える。
-            // ColonialProfitMerchantShare/InvestorShare（既定 0.3/0.3）＝商人pop・投資家popへ各3割を傾斜配分し、残余を全pop按分。0なら全額が残余按分＝旧恒等（保存＝pop受取合計＝colonialProfit）。
-            // 受け皿popが不在（index<0）の場合はそのシェアを残余へ戻す（配分先が無いレントを取りこぼさない＝保存維持）。
-            double merchShare = coef.ColonialProfitMerchantShare;
-            double invShare = coef.ColonialProfitInvestorShare;
-            double residual = colonialProfit;
-            if (merchShare > 0 && region.MerchantPopIndex >= 0)
-            { double m = colonialProfit * merchShare; region.Pops[region.MerchantPopIndex].Earned += m; residual -= m; }
-            if (invShare > 0 && region.InvestorPopIndex >= 0)
-            { double v = colonialProfit * invShare; region.Pops[region.InvestorPopIndex].Earned += v; residual -= v; }
-            if (totalPop > Eps && residual > 0) foreach (var p in region.Pops) p.Earned += residual * (p.Size / totalPop);
         }
 
         foreach (var p in region.Pops)

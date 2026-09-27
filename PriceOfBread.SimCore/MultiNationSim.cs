@@ -381,8 +381,7 @@ public sealed class MultiNationSim
         pw.Pay(TreasuryCat.OtherOut, -T);
         pw.CumulativeTradeFlow -= S + T;
         pw.PopulationDelta -= P;
-        double parentGoldBefore = pw.Bank?.Gold ?? 0;   // 保存：親から実際に移せる金は min(親金, S)。下で新国家の金準備をこの値でクランプ（親金<S の水増しを防ぐ・2026-07-19バグ監査）
-        if (pw.Bank is { } pbank) pbank.Gold = Math.Max(0, pbank.Gold - S);   // 新国家側は構築時 Bank.Gold=TotalMoney(=S) が立つ＝世界の金準備を水増ししない（兌換カバー率の歪み防止）
+        // （Bank.Gold の親⇄新国家の移し替え2行は 2026-09-28 に削除＝Bank.Gold は導出量で、翌日の Credit.Step が BaseMoney から上書きするまで読み手が無い）
 
         // --- 3) 州を新国家の首都に整形＋付け直し（回1-1＝割譲・建国・再併合の1本 Territory.Rehome の建国）---
         //   民族＝旧少数派がこの国の中核になる（CoreEthnicShare の意味は「所属国の中核民族に属する割合」＝反転が要る・敵対検証2026-07-12）。
@@ -476,7 +475,6 @@ public sealed class MultiNationSim
         // 目標を継承しないと既定0（救貧法）へ毎期引き戻され「独立は制度を巻き戻さない」に反して福祉が浸食される。継承法段（救貧0/労災0.33/失業0.67/年金1.0）を目標に写す。
         nw.Policy.SocialSecurityTarget = (int)pw.SocialSecurityLaw / SocialSecurityLawMaxLevel;
         nw.Quarter = pw.Quarter;
-        if (nw.Bank is { } nbank) nbank.Gold = System.Math.Min(nbank.Gold, parentGoldBefore);   // 保存：構築時に立った Bank.Gold(=S) を「親から実際に移せた金 min(親金,S)」へクランプ＝親金<S のとき世界の金準備が S−親金 だけ水増しされるのを防ぐ（2026-07-19バグ監査）
 
         // --- 6) Power 生成（コンストラクタと同型）＋共有外交への接続 ---
         var power = new Power
@@ -1019,7 +1017,7 @@ public sealed class MultiNationSim
             //         途中の管（元利の管／借入の予約＝同じ四半期の CapitalMarket.Step と貸し手の引き落としで空だが、順序に頼らない）・造幣局の金属準備（現物）。
             //   消える：反乱国の国債＝国内の保有（下の BondHoldings）と対外債（ForeignDebt）の両方。対外債は債権国の ForeignBondClaims を債権の比で落とす
             //         （損は持ち手。落とさないと相手のいない債権が元利の配当を吸う）。
-            //   Bank.Gold は導出量（Credit.Step が毎日 BaseMoney から上書き）＝貨幣の行ではない（返還の1行は既存のまま）。
+            //   Bank.Gold は導出量（Credit.Step が毎日 BaseMoney から上書き）＝貨幣の行ではない（返還の1行も 2026-09-28 に削除）。
             double S = 0, P = 0;
             foreach (var rr in rw.Regions) { S += rr.SumSavings(); P += rr.SumPopulation(); }
             double T = rw.Treasury;
@@ -1041,7 +1039,6 @@ public sealed class MultiNationSim
             if (pw.Bank is { } pb && rw.Bank is { } rb)
             {
                 pb.Loans += rb.Loans; pb.HouseholdLoans += rb.HouseholdLoans; L = rb.Loans + rb.HouseholdLoans;
-                pb.Gold += System.Math.Max(0, rb.Gold);   // 金準備の返還（建国時の対称移転の逆）
             }
             pw.CumulativeTradeFlow += S + T - L;   // ＝反乱国の基礎貨幣＝親の per-nation 保存が閉じ、世界の和も動かない（建国時の −(S+T) の鏡映＋反乱国として積んだ分）
             pw.PopulationDelta += P;

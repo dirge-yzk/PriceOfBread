@@ -497,7 +497,7 @@ public class FiscalTests
         // 対外元本と同じ形の片側記帳だった（CapitalMarket の国内資本の逃避＝流出を記帳するだけで受け手が無い）。
         // 請求権も片側だった（逃げた側の CapitalAbroad だけが増え、受け皿の負債が立たない＝旗 DomesticFlightHasHost の既定0・2026-09-22 に旗ごと点火）。
         // 国際金融の逃避以外の流れを止め、仏だけを切り下げ常習（不信0.5）にする。
-        var coef = new Coefficients { CapitalFlightRate = 0, CapitalDividendRate = 0, CapitalDemandScale = 0, ForeignBondCounterparty = 0 };
+        var coef = new Coefficients { CapitalFlightRate = 0, CapitalDividendRate = 0, CapitalDemandScale = 0 };   // 外債の元利は構築直後で空（新規の起債も利払いも無い）
         var sim = new MultiNationSim([NationConfig.Britain(), NationConfig.France(), NationConfig.Prussia()], 1789, _ => new NullAgent(), coef) { DiplomacyFrozen = true };
         var br = sim.Nations[0].World; var fr = sim.Nations[1].World; var pr = sim.Nations[2].World;
         var all = new[] { br, fr, pr };
@@ -547,7 +547,7 @@ public class FiscalTests
         // ★2026-09-27（C）：払えない逃避は不履行＝債権ごと消える（受入国の負債と持ち主の対外資産が同じ額だけ減る・貨幣は払えた額しか動かない）。
         //   旧＝負債は払えた額しか減らず、払えなかった元本が毎四半期もう一度の逃避と配当を請求され続けた。払えない配当は積まない（同じ規則）。
         // 国際金融の外資以外の流れ（新規の資本移動・国内資本の逃避・外債の元利）を止め、仏の外資の負債を投資家の貯蓄の千倍にする（持ち主は英）。
-        var coef = new Coefficients { CapitalDemandScale = 0, CapitalDomesticFlightRate = 0, ForeignBondCounterparty = 0 };
+        var coef = new Coefficients { CapitalDemandScale = 0, CapitalDomesticFlightRate = 0 };   // 外債の元利は構築直後で空（新規の起債も利払いも無い）
         var sim = new MultiNationSim([NationConfig.Britain(), NationConfig.France(), NationConfig.Prussia()], 1789, _ => new NullAgent(), coef) { DiplomacyFrozen = true };
         var br = sim.Nations[0].World; var fr = sim.Nations[1].World; var pr = sim.Nations[2].World;
         var all = new[] { br, fr, pr };

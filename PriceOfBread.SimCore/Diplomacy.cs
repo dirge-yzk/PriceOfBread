@@ -1923,9 +1923,9 @@ public sealed class Diplomacy
             {
                 int n = target.ColonyList.Count;
                 foreach (var col in target.ColonyList) col.Militancy = Math.Max(col.Militancy, c.ColonizeAnnexMilitancy);   // A5：無血併合にも被支配の不満＝後に植民地独立判定(Colonial)で離反しうる（抵抗の実体化）
-                // ★従属の一般化・第一切片（CapturedColoniesAreRegions・2026-08-31）：接収した Colony をその場で植民地格の州へ実体化
-                //   （不満は上で col.Militancy に置いた後＝Promote が現地農民の Militancy へ写す）。同名州ガードで不可なら旧経路。0＝旧経路＝恒等
-                if (n > 0 && c.CapturedColoniesAreRegions > 0 && great.Nation is { } greatW)
+                // ★従属の一般化・第一切片（2026-08-31・2026-09-28 に旗 CapturedColoniesAreRegions ごと焼き込み）：接収した Colony をその場で植民地格の州へ実体化
+                //   （不満は上で col.Militancy に置いた後＝Promote が現地農民の Militancy へ写す）。
+                if (n > 0 && great.Nation is { } greatW)
                 {
                     foreach (var col in target.ColonyList)
                     {
@@ -2588,8 +2588,8 @@ public sealed class Diplomacy
                     //   同名の二重在籍は Colonial.cs の昇格ガード（同名州が居る国では昇格しない）が引き続き防ぐ。
                     // 外15：武力奪取した植民地に被征服の不満を付す（無血併合 Subjugate・州割譲:CededColonyMilitancy は+0.3 を課すのに、戦争で奪った植民地だけ据え置き＝最も従順という逆転を是正）。
                     if (c.ConquestColonyMilitancy > 0) col.Militancy = Math.Min(1.0, Math.Max(col.Militancy, c.ConquestColonyMilitancy * c.ColonizeAnnexMilitancy));   // 02断線走査2026-07-28：係数を式に乗せる＝武力奪取の不満＞無血併合（被征服の序列が独立圧に効く）
-                    // ★従属の一般化・第一切片（CapturedColoniesAreRegions・2026-08-31）：奪取した Colony をその場で州へ実体化（同名州ガードで不可なら旧経路）。0＝旧経路＝恒等
-                    if (c.CapturedColoniesAreRegions > 0 && winner.Nation is { } winWr)
+                    // ★従属の一般化・第一切片（2026-08-31・2026-09-28 に旗 CapturedColoniesAreRegions ごと焼き込み）：奪取した Colony をその場で州へ実体化
+                    if (winner.Nation is { } winWr)
                     {
                         loser.ColonyList.RemoveAt(k); captured++;
                         // ★J-006（2026-09-05）：同名州を持つ勝者へは Colony を渡さない（往復の禁止）。★回1-2（2026-09-27）：住民は PromoteColonyToRegion がその州へ運ぶ
@@ -2598,7 +2598,7 @@ public sealed class Diplomacy
                         // ⚠PromotedColonies は増やさない（同上＝Colonial tier は Colonies に数えられ続ける＝二重計上になる）
                         Simulation.PromoteColonyToRegion(winWr, c, col, RegionTier.Colonial);
                     }
-                    else { loser.ColonyList.RemoveAt(k); captured++; if (winner.Nation is not null) { AbsorbedColonies++; Log.Add($"{_year} {col.Name}は{winner.Name}が既に州として保有＝植民地オブジェクトは消滅"); } else winner.ColonyList.Add(col); }   // 旗0（CapturedColoniesAreRegions=0）の旧経路と、抽象標的（Nation==null）の勝者＝旧どおりリストで持つ
+                    else { loser.ColonyList.RemoveAt(k); captured++; winner.ColonyList.Add(col); }   // 抽象標的（Nation==null）の勝者＝旧どおりリストで持つ（旗0の旧経路＝Colony ごと消える枝は 2026-09-28 に削除）
                     // ★回1-1（col-04・mil-18・2026-09-26）：旧＝ここで勝者の**全POP**の中核民族割合を homePop/(homePop+植民地人口) で縮めていた＝二重の希釈。
                     //   州になった植民地の住民は core=0 で作られる（PromoteColonyToRegion）ので、民族統一度（加重平均）は住民が加わるだけで既に下がる。
                     //   本国の住民の民族は征服で変わらない（思想⑨）＝縮める式と係数 ConquestForeignWeight を削除した。

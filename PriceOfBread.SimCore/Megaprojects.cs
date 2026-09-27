@@ -38,7 +38,7 @@ public static class Megaprojects
 
     /// <summary>残りの建設に要る金額の見積り（2026-08-02・作者指示「工場建設のようにコストを表示してクリック」）。
     /// 建設の束1単位は工場・国家建設と**同じ束**（鋼1.0／機械0.15／セメント0.4／製材0.5）を食い、
-    /// さらに材料費×ConstructionLaborWageFrac の工賃が労働市場に立つ（ConstructionLaborViaMarket=1で点火済み）。
+    /// さらに材料費×ConstructionLaborWageFrac の工賃が労働市場に立つ。
     /// ★価格は **host 州のローカル市場**を読む＝EconomyStep が実際に払う場所と同じ（首都価格で代用すると内陸/植民地 host でずれる）。
     /// 見積りであって固定価格ではない（工場の FactorySpec.Cost と違い、資材相場で実支出は上下する）。</summary>
     public static double EstimateCost(Region host, Megaproject mp, Coefficients coef)
@@ -48,7 +48,7 @@ public static class Megaprojects
         double cP = Math.Max(host.Markets[coef.CementGoodId].Price, 1e-9);
         double lP = Math.Max(host.Markets[coef.LumberGoodId].Price, 1e-9);
         double costPerUnit = coef.ConsSteel * sP + coef.ConsMachine * mP + coef.ConsCement * cP + coef.ConsLumber * lP;
-        double perUnit = costPerUnit * (1.0 + coef.ConstructionLaborViaMarket * coef.ConstructionLaborWageFrac);
+        double perUnit = costPerUnit * (1.0 + coef.ConstructionLaborWageFrac);
         return Math.Max(0, mp.BuildUnits - mp.BuildProgress) * perUnit;
     }
 

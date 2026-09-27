@@ -2082,14 +2082,7 @@ public sealed class Simulation
                 //     二重計上にならない（思想⑨）。どちらも EconomyStep の同一走行でゼロ化され、この loop は同じ Active 州だけを回る。
                 World.Pay(TreasuryCat.StateMonopoly, r.LastStateMonopolyRevenue);
                 World.Pay(TreasuryCat.OtherOut, -(r.StateSpent + r.LastStateMonopolyRevenue));   // 軍需調達の支払い（国庫→生産者で保存）
-                World.CumulativeTradeFlow -= r.ColonialImportCost;       // 植民地輸入の支払いは対外流出（保存）
-                // 採取費の一部は現地住民の手に渡る（搾取の分け前＝植民地POPの蓄え→捕囚市場の財布になって本国へ還流する）。
-                if (r.ColonialImportCost > 1e-9 && World.SelfPower is { } sp2 && sp2.ColonyList.Count > 0)
-                {
-                    double pay = r.ColonialImportCost * World.Coef.ColonialPayShare;
-                    double ps = 0; foreach (var col in sp2.ColonyList) ps += Math.Max(0, col.PopSize);
-                    if (ps > 1e-9) foreach (var col in sp2.ColonyList) col.Savings += pay * (Math.Max(0, col.PopSize) / ps);
-                }
+                // （植民地の採取費の対外流出と、その一部を植民地の蓄えへ渡す枝は 2026-09-28 に削除＝旗 TradeColonialGoods=1 で常に0だった）
             }
         ProbeCheck("月次経済");
         Transport.Step(World, World.Coef);                               // §5.1拡張 輸送容量（鉄道/船を積む→Tradeで交易量を律速）
