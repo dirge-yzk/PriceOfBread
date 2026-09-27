@@ -190,42 +190,67 @@ public class WarThemeTests
         Assert.True(sim.Nations.TrueForAll(n => n.World.TotalPopulation > 0), "国/人口が消えた");
     }
 
-    // ===== 戦死の式の番人（2026-09-25・#17の再較正を WarCasualtyRate=8 据え置きで閉じた回）=====
-    // ⚠機構だけを見る：月の戦死（兵士）＝Rate×接触強度（上限前）で、兵士POP×WarCasualtyMonthlyCap で頭打ちになる。
-    //   上限の下では兵の頭数にも自軍の Military にも依らない（CasualtiesFromContact=1）。史実の桁との照合は計器 casprobe と帯が見る。
-    //   統制盤面＝OneFront の世界に、接触強度を手で渡して WarCasualties を直に呼ぶ（接触は StepWars が戦線から作る量＝ここでは入力）。
+    // ===== 戦死の式の番人（2026-09-25 初版・2026-09-27 回2-1b で基準を兵の頭数へ＝棚卸し mil-01）=====
+    // ⚠機構だけを見る：月の戦死（兵士・上限前）＝Rate×兵士POP×（接触÷自軍の Military）で、兵士POP×WarCasualtyMonthlyCap で頭打ちになる。
+    //   分子（戦死）と分母（月次上限・厭戦＝戦死÷兵士）が同じ頭数の規則で数えられる（回2-1b の番人）。
+    //   ①同じ戦争（同じ接触・同じゲージ）で兵の頭数だけ変えると、戦死は頭数に比例し、厭戦の増分は変わらない。
+    //   ②兵1人あたりのゲージ（装備・質＝時代で約1000倍動く量）だけ変える＝ゲージと接触を同じ倍率で動かしても、戦死は動かない。
+    //   史実の桁との照合は計器 casprobe と帯が見る。統制盤面＝OneFront の世界に、接触強度とゲージを手で渡して WarCasualties を直に呼ぶ。
     [Fact]
-    public void 戦死は接触強度に比例し月次上限で頭打ちになる()
+    public void 戦死は兵の頭数と接触した割合に比例し月次上限で頭打ちになる()
     {
         var (sim, _, fr, _) = OneFront(new Coefficients().WarCivilianToll);
         var c = sim.Coef; var p = fr.SelfPower!;
-        Assert.Equal(1.0, c.CasualtiesFromContact);   // 前提：基準は接触（0なら Military 基準の旧経路）
-        double s0 = fr.SoldierSize();
-        Assert.True(s0 > 0, "前提が崩れた：兵士POPが居ない");
-        double capContact = s0 * c.WarCasualtyMonthlyCap / c.WarCasualtyRate;   // この接触で上限にちょうど届く
+        double s0 = fr.SoldierSize(), m0 = p.Military;
+        Assert.True(s0 > 0 && m0 > 0, $"前提が崩れた：兵士POPか軍事ゲージが無い（兵士 {s0:G6}・ゲージ {m0:G6}）");
+        // 1回呼んで、兵士の減りと厭戦の増分を返す（厭戦は毎回0から＝上限1のクランプに触れない・制空は既定の中立0.5＝×1.0）
+        (double dead, double exh) Hit(double contactStrength)
+        {
+            double sb = fr.SoldierSize();
+            p.WarExhaustion = 0;
+            sim.Diplomacy.WarCasualties(p, c, contactStrength);
+            return (sb - fr.SoldierSize(), p.WarExhaustion);
+        }
+        double share = 0.05 * c.WarCasualtyMonthlyCap / c.WarCasualtyRate;   // 自軍のうち接触した割合＝上限の1/20（係数の値に依らず上限の十分下）
 
-        // (1) 上限の十分下：兵士の減り＝Rate×接触（制空は中立0.5＝×1.0）
-        double x = 0.01 * capContact;
-        sim.Diplomacy.WarCasualties(p, c, x);
-        double d1 = s0 - fr.SoldierSize();
-        Assert.True(Math.Abs(d1 - c.WarCasualtyRate * x) <= 1e-9 * d1, $"戦死が Rate×接触 でない（実 {d1:G17} 期待 {c.WarCasualtyRate * x:G17}）");
-        // (2) 接触を倍にすると戦死も倍（兵の頭数は(1)で減っているが上限の下では読まない）
+        // (1) 水準：兵士の減り＝Rate×兵士×接触÷ゲージ・厭戦の増分＝重み×戦死÷兵士＝重み×Rate×割合
+        var (d1, e1) = Hit(share * m0);
+        Assert.True(Math.Abs(d1 - c.WarCasualtyRate * s0 * share) <= 1e-9 * d1, $"戦死が Rate×兵士×接触÷ゲージ でない（実 {d1:G17} 期待 {c.WarCasualtyRate * s0 * share:G17}）");
+        Assert.True(Math.Abs(e1 - c.WarExhaustionCasualty * c.WarCasualtyRate * share) <= 1e-9 * e1, $"厭戦の増分が 重み×Rate×割合 でない（実 {e1:G17}）");
+
+        // (2) 同じ戦争で兵の頭数だけ3倍（接触もゲージも同じ）：戦死は頭数に比例して3倍・厭戦の増分（戦死÷兵士）は同じ
         double s1 = fr.SoldierSize();
-        sim.Diplomacy.WarCasualties(p, c, 2 * x);
-        double d2 = s1 - fr.SoldierSize();
-        Assert.True(Math.Abs(d2 - 2 * d1) <= 1e-9 * d2, $"接触を倍にしても戦死が倍にならない（{d1:G17} → {d2:G17}）");
-        // (3) 接触0＝出血0
+        foreach (var pop in fr.AllPops()) if (pop.IsSoldier) pop.Size *= 3.0;
+        var (d2, e2) = Hit(share * m0);
+        Assert.True(Math.Abs(d2 - c.WarCasualtyRate * 3.0 * s1 * share) <= 1e-9 * d2, $"頭数を3倍にしても戦死が頭数に比例しない（実 {d2:G17} 期待 {c.WarCasualtyRate * 3.0 * s1 * share:G17}）");
+        Assert.True(Math.Abs(e2 - e1) <= 1e-9 * e1, $"頭数だけ変えたのに厭戦の増分が動いた（{e1:G17} → {e2:G17}）＝分子と分母の規則が違う");
+
+        // (3) 兵1人あたりのゲージだけ1000倍（接触も同じ倍率＝接触した割合は同じ）：戦死は動かない＝ゲージに引きずられない
         double s2 = fr.SoldierSize();
-        sim.Diplomacy.WarCasualties(p, c, 0.0);
-        Assert.Equal(s2, fr.SoldierSize());
-        // (4) 上限を大きく超える接触：兵士の減り＝その時点の兵士×月次上限（接触をさらに10倍にしても割合は同じ）
+        p.Military = 1000 * m0;
+        var (d3, e3) = Hit(share * 1000 * m0);
+        p.Military = m0;
+        Assert.True(Math.Abs(d3 - c.WarCasualtyRate * s2 * share) <= 1e-9 * d3, $"ゲージを1000倍にすると戦死が動く（実 {d3:G17} 期待 {c.WarCasualtyRate * s2 * share:G17}）");
+        Assert.True(Math.Abs(e3 - e1) <= 1e-9 * e1, $"ゲージだけ変えたのに厭戦の増分が動いた（{e1:G17} → {e3:G17}）");
+
+        // (4) 接触0＝出血0。自軍のゲージが0や NaN なら押しも無い＝出血0（割合へ0除算・NaN を通さない）
+        Assert.Equal(0.0, Hit(0.0).dead);
+        foreach (double m in new[] { 0.0, double.NaN })
+        {
+            p.Military = m;
+            var (dz, ez) = Hit(share * m0);
+            Assert.True(dz == 0.0 && ez == 0.0, $"ゲージ {m} で出血か厭戦が立った（戦死 {dz:G17}・厭戦 {ez:G17}）");
+        }
+        p.Military = m0;
+        Assert.True(double.IsFinite(fr.SoldierSize()), "兵士POPが非有限になった");
+
+        // (5) 上限を大きく超える接触：兵士の減り＝その時点の兵士×月次上限（接触をさらに10倍にしても割合は同じ）
         foreach (double k in new[] { 1e3, 1e4 })
         {
             double sb = fr.SoldierSize();
-            sim.Diplomacy.WarCasualties(p, c, k * capContact);
-            double d = sb - fr.SoldierSize();
+            var (d, _) = Hit(k * m0);
             Assert.True(Math.Abs(d - sb * c.WarCasualtyMonthlyCap) <= 1e-9 * d,
-                $"上限で頭打ちにならない（接触×{k:G}：実 {d:G17} 上限 {sb * c.WarCasualtyMonthlyCap:G17}）");
+                $"上限で頭打ちにならない（割合×{k:G}：実 {d:G17} 上限 {sb * c.WarCasualtyMonthlyCap:G17}）");
         }
     }
 

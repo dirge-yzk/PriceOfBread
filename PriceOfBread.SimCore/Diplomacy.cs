@@ -2164,20 +2164,20 @@ public sealed class Diplomacy
             payRatio[p] = pr;
         }
         // 外2：各戦線の実接触強度＝min(aPush,bPush)＝両軍が実際にぶつかる前線の激しさ（投射が届かず片側Push≈0の遠隔戦は接触も薄い）。
-        // Power単位に合算＝多正面国の総接触。CasualtiesFromContact=1.0 live（0では計算せず WarCasualties も無視）。fundRatio 確定後に計算（Fund の副作用を二重に踏まない）。
+        // Power単位に合算＝多正面国の総接触。fundRatio 確定後に計算（Fund の副作用を二重に踏まない）。
+        // ★2026-09-27 回2-1b：旗 CasualtiesFromContact（1.0で点火済み・0＝自軍の Military を基準にする旧の枝）を焼き込んで削除＝常に計算する。
         var contact = new Dictionary<Power, double>();
-        if (c.CasualtiesFromContact > 0)
-            foreach (var war in Wars)
-            {
-                double acC = AirCtl(war.A, war.B);   // 1934拡張E2：制空の押し合い補正（空軍0の時代＝0.5＝×1.0恒等）
-                // ★上陸ゲート（2026-08-01）：海越え戦線では制海権を取った側しか押せない（SeaInvasionControlMin=0 で常に1.0＝恒等）
-                double landC = LandBattleHappens(war.A, war.B, c) ? 1.0 : 0.0;   // ★どちらか一方でも上陸できれば陸戦は起きる（起きたら双方が全力で戦う）
-                double aPush = war.A.LandPower / Math.Max(1, fronts[war.A]) * fundRatio[war.A] * Projection(war.A, war.B, c) * landC * (1.0 + c.AirControlPushWeight * (acC - 0.5));
-                double bPush = war.B.LandPower / Math.Max(1, fronts[war.B]) * fundRatio[war.B] * Projection(war.B, war.A, c) * landC * (1.0 + c.AirControlPushWeight * (0.5 - acC));
-                double contactStrength = Math.Min(aPush, bPush);   // 前線の実接触＝弱い側の押し（片側が届かなければ小）
-                contact[war.A] = contact.GetValueOrDefault(war.A) + contactStrength;
-                contact[war.B] = contact.GetValueOrDefault(war.B) + contactStrength;
-            }
+        foreach (var war in Wars)
+        {
+            double acC = AirCtl(war.A, war.B);   // 1934拡張E2：制空の押し合い補正（空軍0の時代＝0.5＝×1.0恒等）
+            // ★上陸ゲート（2026-08-01）：海越え戦線では制海権を取った側しか押せない（SeaInvasionControlMin=0 で常に1.0＝恒等）
+            double landC = LandBattleHappens(war.A, war.B, c) ? 1.0 : 0.0;   // ★どちらか一方でも上陸できれば陸戦は起きる（起きたら双方が全力で戦う）
+            double aPush = war.A.LandPower / Math.Max(1, fronts[war.A]) * fundRatio[war.A] * Projection(war.A, war.B, c) * landC * (1.0 + c.AirControlPushWeight * (acC - 0.5));
+            double bPush = war.B.LandPower / Math.Max(1, fronts[war.B]) * fundRatio[war.B] * Projection(war.B, war.A, c) * landC * (1.0 + c.AirControlPushWeight * (0.5 - acC));
+            double contactStrength = Math.Min(aPush, bPush);   // 前線の実接触＝弱い側の押し（片側が届かなければ小）
+            contact[war.A] = contact.GetValueOrDefault(war.A) + contactStrength;
+            contact[war.B] = contact.GetValueOrDefault(war.B) + contactStrength;
+        }
         // 1934拡張E2：制空の集計（Power単位）＝空襲厭戦・化学兵器泥沼・戦死増幅の入力。敵に空軍が無い時代＝全て中立（恒等）。
         var enemyAir = new Dictionary<Power, double>();
         var enemyAirFill = new Dictionary<Power, double>();
@@ -2413,7 +2413,7 @@ public sealed class Diplomacy
         foreach (var pop in w.AllPops()) pop.Militancy = Math.Min(1, pop.Militancy + add);
     }
 
-    /// <summary>戦死による人的消耗（接触強度に比例・月次上限＝兵士POP×WarCasualtyMonthlyCap で頭打ち）。戦死は兵士POPのみ（徴兵で補充されるが消耗で人口減＝戦争の人的コスト）。規定値−戦死で保存追跡。
+    /// <summary>戦死による人的消耗（兵の頭数×接触した割合に比例・月次上限＝兵士POP×WarCasualtyMonthlyCap で頭打ち）。戦死は兵士POPのみ（徴兵で補充されるが消耗で人口減＝戦争の人的コスト）。規定値−戦死で保存追跡。
     /// 戻り値＝今月のこの国の戦死総数（士官込み・UI用の戦争別台帳の按分原資。力学には使わない）。
     /// internal＝番人テスト用（InternalsVisibleTo・TradeTreaties と同じ流儀・2026-09-25）。呼び出しは StepWars の1箇所だけ。</summary>
     internal double WarCasualties(Power p, Coefficients c, double contactStrength, double airControl = 0.5)   // ★2026-09-25：static を外した＝インスタンスの CasualtyProbe を読むため（計算は不変）
@@ -2422,14 +2422,18 @@ public sealed class Diplomacy
         double soldierPop = 0, nobPop = 0;   // 兵士＝戦死の母数／閉鎖層（貴族）＝将校戦死の母数（1回の走査で両方）
         foreach (var pop in w.AllPops()) { if (pop.IsSoldier) soldierPop += pop.Size; else if (pop.Closed) nobPop += pop.Size; }
         if (soldierPop < 1e-9) return 0;
-        // 外2：戦力比例項の基準。CasualtiesFromContact=1.0（既定）で各戦線の実接触強度 min(aPush,bPush)（＝敵戦力・投射・戦費充足を織り込んだ
-        // 「実際にぶつかった量」）＝投射が届かぬ遠隔戦は接触≈0で出血せず、装備が良い軍ほど絶対戦死が増える逆転（品質乗数は相対的押し合いに吸収）も解消。
-        // 0で p.Military（品質乗数込み・自軍規模のみ＝旧）。
-        double casForce = c.CasualtiesFromContact > 0
-            ? c.WarCasualtyRate * (p.Military + c.CasualtiesFromContact * (contactStrength - p.Military))   // =0でp.Military（恒等）／=1で接触強度
-            : c.WarCasualtyRate * p.Military;
+        // ★2026-09-27 回2-1b（棚卸し mil-01）：戦死の基準を**兵の頭数**へ揃えた（分子と分母の非対称の是正）。
+        //   接触強度 min(aPush,bPush) は押しの**ゲージ**（装備の充足・質・熟練で重みを付けた量＝兵士1人あたりが時代で約1000倍動く）。
+        //   旧＝戦死＝Rate×接触（ゲージ）なのに、月次上限と厭戦は兵の頭数で割っていた＝前近代は装備の充足0.6%がそのまま戦死に掛かり、
+        //   接触は両軍で同じ値なので勝者と敗者が同じ人数死んでいた。
+        //   新＝接触÷自軍のゲージ（＝自軍のうち実際にぶつかった割合・StepWars の戦災の contactNorm と同じ比）×兵の頭数×Rate。
+        //   分子（戦死）も分母（上限＝兵士×上限率・厭戦＝戦死÷兵士）も頭数で数える＝ゲージが時代で動いても1人あたりの出血は動かない。
+        //   同じ接触なら、兵1人あたりのゲージが高い側（装備・質の良い軍）ほど自軍のうちぶつかる割合が小さく、死ぬ人数が少ない。
+        //   ⚠割合は上限・下限で削らない（思想⑧）＝押しに熟練・制空が乗るので1を超えうる。頭打ちは既存の兵士の月次上限だけ。
+        //   ⚠自軍のゲージが0なら押しも0＝接触0＝出血0。`>` の比較で守る＝ゲージが NaN でも0の側へ倒れる（割合へ NaN を通さない）。
+        double casForce = p.Military > 1e-9 ? c.WarCasualtyRate * soldierPop * (contactStrength / p.Military) : 0;
         casForce *= 1.0 + c.AirCasualtyWeight * Math.Max(0.0, 1.0 - 2.0 * airControl);   // 1934拡張E2：制空劣勢＝上空からの観測砲爆撃で出血増（中立0.5＝×1.0恒等・優勢側は増えない）
-        double cas = Math.Min(casForce, soldierPop * c.WarCasualtyMonthlyCap);   // 接触強度に比例・1ヶ月最大で兵士の WarCasualtyMonthlyCap（改修2026-06-28：旧15%/月＝年率80%超は桁外れ→4%/月＝総力戦で年〜40%の史実水準へ）
+        double cas = Math.Min(casForce, soldierPop * c.WarCasualtyMonthlyCap);   // 1ヶ月最大で兵士の WarCasualtyMonthlyCap（改修2026-06-28：旧15%/月＝年率80%超は桁外れ→4%/月＝総力戦で年〜40%の史実水準へ）
         CasualtyProbe?.Invoke(casForce, soldierPop);   // 観測だけ（既定 null＝引数ごと評価しない）
         foreach (var pop in w.AllPops()) if (pop.IsSoldier) pop.Size -= cas * (pop.Size / soldierPop);   // 兵士に規模按分で戦死
         w.PopulationDelta -= cas;       // 戦死＝人口減（符号付き台帳）
