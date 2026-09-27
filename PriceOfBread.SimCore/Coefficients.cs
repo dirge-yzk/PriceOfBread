@@ -921,8 +921,7 @@ public sealed class Coefficients
     // ★**結論＝この回は休眠へ差し戻す（0/0）。** 機構を作り直してから #17 較正ラウンドで点火する。B3（除数の是正）は恒等なので残す。
     public double LoanSpread = 0.0;           // 民間貸出金利の**年率**スプレッド（no-loan-interest-cashflow）：借り手(投資家)→預金者の利息移転 bank.Loans×(これ+政策金利項)。pop→pop純移転で保存。0で利息なし
     public double PolicyRateLoanWeight = 0.0; // 政策金利（無次元0..1）→年率への換算重み（引締めが借り手の利払いを増やす）。0で無効
-    // ★需要駆動の与信（2026-09-06 設計・6-3 の前提）：借入＝投資の不足分だけ・残高≤年間所得×SoeSaleYears。0＝従来（準備×乗数で機械的に借りる＝厳密恒等）。
-    public double CreditDemandDriven = 0.0;
+    // （需要駆動の与信の器 CreditDemandDriven は 2026-09-28 に削除＝作者裁定 A16「器は点火せず、返せる額を与信の上限へ」＝Credit.Step の上限の式が SoeSaleYears を読む）
     public double BondLossConfWeight = 0.5;   // 国債二次流通(no-bond-secondary-market)：BondPrice下落(利回り上昇)の評価損が銀行信頼targetConfを下げる×(国内債/GDP)。0で恒等。BondPriceは既存診断値を配線
     public double DebtDeflationWeight = 4.0;  // フィッシャー民間負債デフレ：デフレ率×レバレッジ(Heat)→信頼目標の下げ（実質債務増→債務者破産→さらにデフレの渦）。MonetaryEnabled時のみ
 
@@ -1172,7 +1171,7 @@ public sealed class Coefficients
     }
     // ★裁定②の安全弁（同日）：AIの工事出費の律速に素材の月次支出を数える旗 FacilityBuildOutlayIncludesMaterial は 2026-09-27（線2）に点火して焼き込み（旗ごと削除）
     //   ＝SelfPlay.TryBuildFacility が常に World.ConstructionMaterialPerMonth を足す（工事費の6割＝FactoryMaterialFrac が律速から漏れていた）。
-    public double SoeSaleYears = 5.0;             // 国営工場の民間売却価格＝年間利益×これ（資本家の貯蓄が足りないと売れない＝レッセフェール移行のゲート）
+    public double SoeSaleYears = 5.0;             // 国営工場の民間売却価格＝年間利益×これ（資本家の貯蓄が足りないと売れない＝レッセフェール移行のゲート）。★2つ目の読み手（A16・2026-09-28）＝与信の上限の「借り手の返せる額」＝投資家の年間所得×これ（Credit.Step）＝同じ「年間所得×年数」の物差し
     // 工業化由来の生産性＝1 + Gain×工業化度/(1+工業化度/Scale)。固定上限を持たず Scale で逓減（飽和）し頭打ち。
     public double IndProductivityGain = 1.2;      // 低工業化度での生産性の伸び（飽和カーブの初期傾き）
     public double IndProductivityScale = 2.5;     // 生産性の逓減スケール（工業化度がこれを超えると伸びが鈍る）

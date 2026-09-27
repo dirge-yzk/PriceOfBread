@@ -93,6 +93,19 @@ public static class Credit
             double gcFloor = c.GoldCoverMin * (1.0 + c.GoldCoverCreditRestraint);
             if (gcFloor > 1e-9 && gcCoverage < gcFloor) maxLoans *= System.Math.Max(GoldCoverCreditFloor, gcCoverage / gcFloor);
         }
+        // ★借り手の返せる額（作者裁定 A16・E6 の1歩目・2026-09-28）：与信の上限＝「準備×信用乗数」と「借り手が返せる額」の小さい方。
+        //   旧＝上限は準備の側だけ＝借り手の所得と無関係に準備×乗数まで貸した（与信÷投資家の年間所得＝英1813〜23 で55〜66倍・世界の和で1883年に約200倍＝r81 の計器）。
+        //   そこへ金が流出すると、与信が国内の貨幣の全部（貯蓄＋国庫）を超えて基礎貨幣が負になる（(79) の英 1853 −1.8M）。
+        //   ⚠回収は基礎貨幣を動かさない（投資家の預金と与信が同じ額だけ減る）＝負へ落ちた国は回収では戻らない（戻すのは交易・鋳造・発行＝E6 の2歩目の償却）。
+        //   この上限は「与信で負へ落ちる深さ」を返せる額までに押さえるだけ。⚠損失の負債化（Simulation.BackstopNegativeSavings）はこの上限の外で残高を積む。
+        //   返せる額＝首都の投資家（与信の借り手＝下の枝と同じ）の前月の所得×12×SoeSaleYears（国営工場の払い下げ価格と同じ「年間所得×年数」の物差し）。
+        //   ⚠NaN は比較が偽＝準備の上限のまま（否定形）。投資家のいない小シナリオ（全POPへ注入する枝）は準備の上限だけ（従来と同じ）。
+        //   最後の貸し手は準備を広げるだけ＝返せる額は越えない（下の effMaxLoans でも同じ比較）。過熱度の分母（maxLoans）も返せる額を見る＝所得が落ちると過熱度が上がる（債務÷所得）。
+        var home = w.Region;
+        double repayable = double.PositiveInfinity;
+        if (home.InvestorPopIndex >= 0 && home.InvestorPopIndex < home.Pops.Count)
+            repayable = Math.Max(0, home.Pops[home.InvestorPopIndex].LastEarned) * Calendar.MonthsPerYear * c.SoeSaleYears;
+        if (repayable < maxLoans) maxLoans = repayable;
         // 銀行取り付け（B-3）：預金者のパニック（充足が平穏線を割る）で正貨が逃避＝実効準備が縮む＝willingな銀行でも貸せない（貸し手意欲Confidenceと別の流動性チャネル）。
         double run = Math.Clamp(c.BankRunSensitivity * Math.Max(0, c.ConfidencePivot - avgSat), 0, c.BankRunMax);
         // 最後の貸し手（B-3 Bagehot）：危機（過熱 or 後退）かつ財政が健全（solvent）なら国庫/中銀が流動性を供給し取り付けを和らげる＝恐慌の底打ち（根治はしない）。AIの安全弁。
@@ -101,6 +114,7 @@ public static class Credit
         // LOLR準備拡張（no-lolr-balance-sheet）：危機×財政健全でmaxLoansを一時拡張＝バジョット原則「平時に蓄えた準備を危機に高利で貸す」。信用創造はBaseMoney中立(広義のみ膨張)ゆえInvariants変更不要。LolrReserveBoost=0で恒等（既定0.5）。
         double lolrBoost = crisis && w.FiscalFundingRatio > c.LolrMinFunding ? c.LolrReserveBoost : 0;
         double effMaxLoans = maxLoans * (1.0 - run) * (1.0 + lolrBoost);
+        if (repayable < effMaxLoans) effMaxLoans = repayable;   // ★A16：最後の貸し手の準備拡張でも返せる額は越えない
         // Heat符号逆転の是正（経8）：Heat=Loans/実効上限 は取り付けで分母（準備）が縮むと跳ね上がる。
         // この Heat は World.FinancialHeat 経由で株式ユーフォリア項(EquityHeatEuphoria・既定有効)へ配線され、投資ハードルから減じられる＝
         // 「取り付けの最中に投資が刺激される」符号逆転を生む。安定準備(取り付け前 maxLoans＝run/lolr 反映前)基準の使用率なら、パニックで縮む分母に振り回されない。
@@ -114,7 +128,7 @@ public static class Credit
         if (w.Explain is { } exCredit)
         {
             exCredit.Reset("CreditTarget");
-            exCredit.Add("CreditTarget", "準備×信用乗数（与信上限）", maxLoans);
+            exCredit.Add("CreditTarget", "与信の上限（準備×信用乗数と返せる額の小さい方）", maxLoans);
             exCredit.Add("CreditTarget", "銀行取り付けと最後の貸し手", effMaxLoans - maxLoans);
             exCredit.Add("CreditTarget", "銀行の信頼（ミンスキー）", effMaxLoans * bank.Confidence - effMaxLoans);
             exCredit.Add("CreditTarget", "政策金利（貸出意欲）", targetLoans - effMaxLoans * bank.Confidence);
@@ -129,22 +143,11 @@ public static class Credit
         // 引締/恐慌→与信回収→投資縮小。投資家がいない小シナリオは全 pop へ（従来挙動＝テスト安全）。
         // 地方与信（CreditSpreadAcrossProvinces＝全州の投資家へ貯蓄比例配分）は2026-07-09の実測でテスト赤化＝不採用確定、
         // 2026-07-12のユーザー裁定で機構ごと廃止（恒久デッドコードだったelse枝と係数を削除）。与信は首都州の投資家のみ＝ロンドン一強の金融面は覇権抑制の裁定（92%受容）に従う。
-        var home = w.Region;
+        // （需要駆動の与信の器 CreditDemandDriven は作者裁定 A16 で点火せず削除＝不足分は投資家の貯蓄の5%−貯蓄＝常に0で、点火すると回収だけが働いた。
+        //   後半の「残高≤返せる額」は上の与信の上限へ入れた）
         if (home.InvestorPopIndex >= 0 && home.InvestorPopIndex < home.Pops.Count)
         {
             var inv = home.Pops[home.InvestorPopIndex];
-            // ★需要駆動の与信（設計 docs/202609/20260906/20260906_貸出金利6-3_与信の需要駆動_設計_未着手.md・器 CreditDemandDriven・既定0＝従来）：
-            //   旧＝準備×乗数の目標額まで機械的に借りて使わない現金を抱える（与信÷年利潤≈200倍＝金利>0で利息が利潤を全額吸う）。
-            //   新＝借りるのは**投資の不足分だけ**（投資予算＝EconomyStep と同じ式 − 手元現金）、残高は**返済能力**（年間所得×SoeSaleYears＝P/E と同じ物差し）を超えない。
-            //   回収側（delta<0）は従来のまま。新しい数は作らない。
-            if (c.CreditDemandDriven > 0 && delta > 0)
-            {
-                double budgetMonth = c.IndInvestmentFrac * Math.Max(0, inv.Savings);
-                double needDaily = Math.Max(0, budgetMonth - Math.Max(0, inv.Savings)) / (double)Calendar.DaysPerMonth;
-                double capacity = Math.Max(0, inv.LastEarned * Calendar.MonthsPerYear * c.SoeSaleYears - bank.Loans);
-                delta = Math.Min(delta, Math.Min(needDaily, capacity));
-                if (!(delta >= 0)) delta = 0;   // 否定形＝NaN は貸さない
-            }
             double actual = Math.Max(delta, -Math.Max(0, inv.Savings));   // 回収は投資家の貯蓄まで（負債で保存）
             inv.Savings += actual;
             bank.Loans += actual;

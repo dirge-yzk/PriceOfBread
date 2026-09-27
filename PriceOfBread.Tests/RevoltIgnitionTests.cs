@@ -1322,6 +1322,10 @@ public class RevoltIgnitionTests
         {
             var f = new FactionState { Region = w.Regions[0], Bloc = 2, Ideo = (int)Ideology.Communism, Size = 1.0, AvgMilitancy = 1.0, Cohesion = 1.0, Rejections = 3.0 };
             w.Factions.Add(f); w.PendingFactionCrisis = f;   // 同じ危機の札（通知）
+            // ★潤沢の減税（AI だけの反射・SelfPlay.RelieveOpulence）を明示ピンで外す（2026-09-28 (82)）＝この番人が見るのは危機の要求の経路。
+            //   ⚠あの反射は Apply の段の整形（GateTax）の**後**に税の目標へ連続の倍率を掛ける＝門が拒む段を置きうる（A16 の後の英＝人頭税の目標 0.5→0.42＝段3→2・
+            //   危機の経路の門は段2を拒む）。旧の盤面は国庫が潤沢線の下で反射が走らず、この食い違いを見ていなかった＝00一覧に記録（幽霊戦線の疑い）。
+            w.Coef.OpulenceTaxRelief = 0;
         }
         Assert.Equal(PolicyVector(wb), PolicyVector(wa));   // 前提：出発点の法目標が同じ
         var lawsA = LawVector(wa);

@@ -369,6 +369,10 @@ public class ElectionAiTests
 
         // ③ 動かせない看板（余白超え）は**1銭も払わない**
         w.Legitimacy = 0.5;   // 余白0
+        // ★③の看板は③の盤面（正統性0.5）で選び直す（2026-09-28 (82)）：純支持は正統性にも依る（勢力の力の項）＝①の最安の逆風が③で順風へ返りうる
+        //   （A16 の後の英＝人頭税↑の純支持が正統性1.0 で −0.0098・0.5 で +0.0015＝逆風でない看板は余白0でも門を通る＝この節の前提が崩れる）。
+        (axis, inc, net) = FindPricedAgenda(w);
+        Assert.True(net < 0, "テスト前提の破れ：③の時点で値段のつく看板が無い");
         double t0 = w.Treasury, m0 = TotalMoneyOf(w);
         w.PendingElection = Agenda(0, axis, inc);
         w.ResolveElection(0, 1.0);
@@ -509,6 +513,9 @@ public class ElectionAiTests
 
         // ③ 余白を超える代価＝そもそも動かせない（プレイヤー経路と同じ拒否線）
         w.MandateSpent = 0; w.Legitimacy = 0.5;            // 余白0＝どんな逆風も押し切れない
+        // ★③の看板は③の盤面（正統性0.5）で選び直す（2026-09-28 (82)）＝純支持は正統性にも依る（上の「金の代価」の③と同じ理由）。
+        (axis, inc, net) = FindPricedAgenda(w);
+        Assert.True(net < 0, "テスト前提の破れ：③の時点で値段のつく看板が無い");
         w.ElectionPushIdeology = -1;                       // ②で加担が成立した＝押し込みの記帳を戻す（③は「動かない」ことだけを見る）
         w.PendingElection = Agenda(0, axis, inc);
         UtilityAgent.DecideElection(w);
