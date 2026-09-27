@@ -75,7 +75,7 @@ public static class ArmyShape
             double garrisonMen = c.InternalGarrisonPerPop * w.TotalPopulation * unrest[i];   // 内的秩序＝八旗/緑営・露の内地守備・オスマンの駐屯
             p.NeedInternal = garrisonMen / System.Math.Max(1e-9, c.SoldiersPerMilitary);
             double seaValue = 0;
-            // ⚠**IsPort で絞る**（2026-08-01 の自己バグ修正）：LastPortThroughput は名前に反して**内陸州にも立つ**（世界市場との取引額そのもの）。
+            // ⚠**IsPort で絞る**（2026-08-01 の自己バグ修正）：LastPortThroughput は名前に反して**内陸州にも立つ**（最寄り港・借りた港まで運んだ海路の荷。2026-09-27 回4-1 から陸路の直行は積まない）。
             // 絞らずに足すと、段1プローブで**スイス248・内モンゴル239**が「守るべき海上価値」の上位に来た（英は65）＝機構ごと誤り。
             // 既存の SyncBasinPresence が `r.State == Active && r.IsPort` で絞っているのが正しい作法。
             foreach (var r in w.Regions) if (r.State == RegionState.Active && r.IsPort) seaValue += r.LastPortThroughput;

@@ -417,7 +417,7 @@ public partial class GameViewModel
                 if (rr.State != RegionState.Active || rr.IsPort) continue;
                 // ★★2026-08-16：**その州が実際に何も動かしていないなら陸脚を描かない**（作者指示＝貿易一覧と同じ規則）。
                 // ⚠陸脚の流通量＝州の決済額 <c>Region.LastPortThroughput</c>（名前に反して内陸州にも立つ＝
-                //   その州が世界市場と取引した額そのもの・四半期ごとに BilateralMarket が 0 から積み直す）。
+                //   その州が海路で取引した額＝港まで運んだ荷・陸路の直行は積まない〔2026-09-27 回4-1〕・四半期ごとに BilateralMarket が 0 から積み直す）。
                 //   月額へ直して貿易一覧と同じ丸め（£0.0k）で切る＝一覧に1行も出ない州の道は地図にも出さない。
                 if (!FlowShown(rr.LastPortThroughput / Calendar.MonthsPerQuarter)) continue;
                 // ★トランジット州の陸路も描く（作者指摘2026-08-11「内陸国が直接、海に接続している」）。

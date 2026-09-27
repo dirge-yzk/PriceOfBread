@@ -302,7 +302,7 @@ public sealed partial class InternationalMarket
         }
 
         var netFlow = new double[nn]; var direct = new double[nn];
-        var importVal = new double[nn]; var grossVal = new double[nn];
+        var importVal = new double[nn]; var exportVal = new double[nn];   // 越境の輸入額・輸出額（同じ国の州どうしは数えない＝分子と分母を同じ規則で）
         double freightPool = 0;
         var shipShare = new double[nn];
         if (c.FreightRatePer10Mm > 1e-12)
@@ -591,9 +591,13 @@ public sealed partial class InternationalMarket
                     m.Stock += qA; m.LastImport += qA;
                     bool crossA = siA != ni;   // 同国取引は輸入の統計と関税の基礎に数えない（国境の税）
                     if (c.DiffusionWeight > 0 && siA != ni) AccumulatePairFlow(siA, ni, valueA, netFlow.Length);   // ★段7：伝播のペア記帳（国際取引のみ・0＝不読＝恒等）
-                    netFlow[ni] -= valueA; if (crossA) importVal[ni] += valueA; grossVal[ni] += valueA;
-                    tr[t].r.LastPortThroughput += valueA; if (crossA) impByGood[ni][g] += valueA;
-                    grossVal[siA] += valueA; tr[snA].r.LastPortThroughput += valueA; if (crossA) expByGood[siA][g] += valueA;
+                    netFlow[ni] -= valueA;
+                    // ★2026-09-27（回4-1・項目12①・新1）：輸出の統計も輸入と同じ「国境を越えるか」の1本で数える。旧＝総取引額（買い手側と売り手側の両方に積む）
+                    //   から輸入額を引いて輸出額にしていた＝同じ国の州どうしの取引が2回入り、輸出額＝本当の輸出＋国内の州間取引の2倍だった。
+                    if (crossA) { importVal[ni] += valueA; impByGood[ni][g] += valueA; exportVal[siA] += valueA; expByGood[siA][g] += valueA; }
+                    // ★2026-09-27（回4-1・項目12②）：港の取扱高は海路の成約だけ（この組の着値を決めた経路＝KmOf(snA, t) が書いた向きの印）。
+                    //   陸路の直行は港を通らない。同じ国の沿岸の海路（英のニューカッスル→ロンドンの石炭）は積む＝国境でなく経路で分ける。
+                    if (!kmLand[snA * tc + t]) { tr[t].r.LastPortThroughput += valueA; tr[snA].r.LastPortThroughput += valueA; }
                     double toProdA = c.ExportRevenueToProducers > 1e-12 ? PayExportToProducers(tr[snA].r, g, valueA * Math.Clamp(c.ExportRevenueToProducers, 0, 1), ref payPr[snA], ref payTot[snA]) : 0.0;
                     netFlow[siA] += valueA - toProdA; direct[siA] += toProdA;
                     if (c.FreightRatePer10Mm > 1e-12)
@@ -642,14 +646,14 @@ public sealed partial class InternationalMarket
         {
             if (freightPool > 1e-12) netFlow[i] += freightPool * shipShare[i];
             if (Math.Abs(netFlow[i]) > 1e-12 || Math.Abs(direct[i]) > 1e-12)
-                Apply(nations[i].World, netFlow[i], grossVal[i], c, direct[i]);
+                Apply(nations[i].World, netFlow[i], importVal[i] + exportVal[i], c, direct[i]);   // 仲介料の基数＝越境の輸入＋輸出（MerchantTradeMargin の定義どおり）
         }
         for (int i = 0; i < nn; i++)
         {
             var w0 = nations[i].World;
             w0.LastTariffRevenue = 0;
             w0.LastImportValue = importVal[i];
-            w0.LastExportValue = Math.Max(0, grossVal[i] - importVal[i]);
+            w0.LastExportValue = exportVal[i];   // ＝ExportsByGood の和（同じ成約を同じ条件で積む）
             if (tar[i] >= 0) CollectTariff(w0, importVal[i] * tar[i] * c.TariffRevenueRate);
             else PaySubsidy(w0, w0.LastExportValue * Math.Abs(tar[i]) * c.TariffRevenueRate, tradeBias: false);
             if (biasCost[i] > 1e-12) PaySubsidy(w0, biasCost[i], tradeBias: true);

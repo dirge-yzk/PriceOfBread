@@ -381,12 +381,12 @@ public sealed class Region
     public RegionState State = RegionState.Active;   // §A-8
     public bool IsPort;                               // 港州（§5.1拡張）。世界市場と直接交易できる。内陸州は鉄道で港経由（容量ゲート）
     public double PortCapacity;                        // 港湾取扱容量（改修2026-06-28）。0スタート、国家＋資本家の投資で積む。港州の実効海運に**加法的**に上乗せ（0なら従来挙動＝較正中立）。混雑（取扱高>容量）で投資を呼ぶ
-    public double LastPortThroughput;
+    public double LastPortThroughput;                  // 港の取扱高＝この州が買い手か売り手の**海路の成約**の額（四半期累計・港料・保険・拿捕・運河・通過港・海軍の配置が読む）。陸路の直行は積まない（2026-09-27 回4-1）。内陸州にも立つ＝最寄り港（借りた港）まで運んだ海路の荷
     // ★陸路交易の可視化（2026-08-31・作者報告「陸上交易の経路が非表示」）：この州が**陸路**で運んだ最大の取引の相手州名と額
     //   （四半期記録・純テレメトリ＝力学は読まない）。書き手＝BilateralMarket の成約（viaLand<viaSea の対のみ）。
     //   リセット＝四半期の第1清算（LastPortThroughput と同じ暦）。地図が PathGraph の実経路で描く。
     public string LastLandPartnerName = "";
-    public double LastLandPartnerFlow;                 // 直近の取扱高（輸出入額・港利益と投資判断の基礎）。InternationalMarket が毎期設定
+    public double LastLandPartnerFlow;                 // 陸路の最大の取引の額（上の注記）
     public double NearestPortDistanceKm;              // 最寄り港への海路距離km（trade-capacity-even-share-not-network）。内陸州のrailToPort減衰に使用。0=未設定（港州/距離不問）＝減衰なし（現行）
     public string NearestPortName = "";               // 03 §12-3（2026-07-28）：最寄り港の州名（内陸州が「どの港から海へ出るか」＝手順4の3脚距離と手順5の海盆継承が読む。港州/未設定は空）
     public double PortLandKm;                         // 03手順4A：最寄り港への**陸グラフ**距離km（静的＝構築時にPathGraphで1回計算。港州/未設定=0）。3脚の陸脚

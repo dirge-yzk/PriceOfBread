@@ -114,6 +114,10 @@ public class TransitTests
     {
         var sim = new MultiNationSim(World3(), seed: 11) { DiplomacyFrozen = true };
         sim.Coef.TransitEnabled = 1.0;
+        // ★2026-09-27（回4-1・項目12②）：港の取扱高は海路の成約だけになった。この世界（スイス・ジェノヴァ・トスカーナ）の組は全て陸で繋がり、
+        //   ベルンの荷は陸路の直行が勝つ（ジェノヴァ行きもリヴォルノ行きも＝港を通らない＝通行料は立たない・正しい）。検証対象は通行料の移転と保存なので、
+        //   上のテストと同じく陸路を落として、借りた港を通る経路だけの世界で検証する（環境固定の作法）。
+        sim.Coef.LandRouteEnabled = 0.0;
         var swiss = sim.Nations[0].World; var genoa = sim.Nations[1].World; var tuscany = sim.Nations[2].World;
         var bern = swiss.Regions[0]; var genoaPort = genoa.Regions[0];
         // 交易を確実に立てる（関税・売買方針の国庫経路を全て黙らせ、国庫の増減＝通行料だけにする）
