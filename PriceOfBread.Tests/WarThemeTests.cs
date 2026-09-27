@@ -45,11 +45,11 @@ public class WarThemeTests
 
     // ===== 「海軍の増強」の施行経路（2026-08-10 作者裁定の番人）=====
     // 裁定＝陸海の注力レバー（旧 NavalEmphasis）は廃止し、陸軍維持費・海軍維持費で表現する。
-    // 政治チャネル（勢力の要求「海軍の増強」・与党の綱領）は殺さず PolicyAxis.NavyUpkeep＝**金の要求**へ振り替えた。
+    // 政治チャネル（勢力の要求「海軍の増強」）は殺さず PolicyAxis.NavyUpkeep＝**金の要求**へ振り替えた（与党の綱領は 2026-09-26 に撤去＝回5-1）。
     // 以下2本で「要求→海軍維持費の目標」と「海軍シェアは維持費の比だけから決まる」を固定する。
 
     [Fact]
-    public void 海軍の増強は勢力への譲歩と与党の綱領で海軍維持費を動かす()
+    public void 海軍の増強は勢力への譲歩と要求の目標で海軍維持費を動かす()
     {
         // (1) 勢力への譲歩（Politics.ApplyDemand）＝要求を呑んだら**その場で**実効値と目標の両方が動く。
         var sim = new Simulation(NationConfig.Britain().ToScenario(1), new NullAgent());
@@ -65,12 +65,12 @@ public class WarThemeTests
         Assert.Equal(1, Politics.ApplyDemand(w, w.Coef, PolicyAxis.NavyUpkeep, inc: false, n: 1));
         Assert.True(w.NavyUpkeep < up, "海軍を縮小できない");
 
-        // (2) 与党の要求綱領（Parliament.TargetDemand）＝目標だけを置く（施行は Government の政治ゲート越し）。
+        // (2) 要求の目標（Parliament.TargetDemand＝危機の要求・一揆への譲歩）＝目標だけを置く（施行は Government の政治ゲート越し）。
         var sim2 = new Simulation(NationConfig.Britain().ToScenario(1), new NullAgent());
         var w2 = sim2.World;
         double tgt0 = w2.Policy.NavyUpkeepTarget;
         Parliament.TargetDemand(w2, PolicyAxis.NavyUpkeep, inc: true);
-        Assert.True(w2.Policy.NavyUpkeepTarget > tgt0, $"綱領が目標を置けない（{tgt0:F3}→{w2.Policy.NavyUpkeepTarget:F3}）");
+        Assert.True(w2.Policy.NavyUpkeepTarget > tgt0, $"要求が目標を置けない（{tgt0:F3}→{w2.Policy.NavyUpkeepTarget:F3}）");
     }
 
     [Fact]

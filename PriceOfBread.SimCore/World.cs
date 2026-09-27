@@ -208,7 +208,7 @@ public sealed class World
     internal static readonly GoodTier[] StateMonopolyLadder = [GoodTier.Luxury, GoodTier.Service, GoodTier.Daily, GoodTier.Staple];
     internal static int StateMonopolyMaxTier => StateMonopolyLadder.Length;
     /// <summary>今の段＝梯子の先頭から「その区分の財が全て課税されている」段の数（最初の欠け／空の区分で止まる）。
-    /// **決断の格子**（AIの教義・議会の綱領・譲歩が1段ずつ動かす単位）＝<see cref="Government.TaxStage"/> と同じ役回り。
+    /// **決断の格子**（AIの教義・要求への応答・譲歩が1段ずつ動かす単位）＝<see cref="Government.TaxStage"/> と同じ役回り。
     /// ⚠導出量＝新しい状態変数を作らない（思想⑩）。</summary>
     internal int StateMonopolyTier
     {

@@ -602,13 +602,13 @@ public class PolicyPoliticsTests
         var before = Snap();
         Assert.Contains(before, v => v > 1e-9);   // 前提＝専売にしている材がある（空振りの番人にしない）
 
-        // (2) 勢力の要求・綱領・譲歩のどれにも専売が現れない＝全軸×全ブロックを総当たりする
+        // (2) 勢力の要求・要求の目標・譲歩のどれにも専売が現れない＝全軸×全ブロックを総当たりする
         for (int b = 0; b <= PolicyPreferences.PettyBloc; b++)
             foreach (var d in FactionSnapshot.ComputeDemands(w, b))
                 Assert.DoesNotContain("専売", FactionSnapshot.DemandJa(d.Axis, d.Increase));
         foreach (var a in FactionSnapshot.Axes)
         {
-            Parliament.TargetDemand(w, a, inc: true);    // 与党の綱領
+            Parliament.TargetDemand(w, a, inc: true);    // 要求の目標（危機の要求・一揆への譲歩）
             Parliament.TargetDemand(w, a, inc: false);
             Politics.ApplyDemand(w, w.Coef, a, inc: true, 1);    // 勝った運動の強制施行
             Politics.ApplyDemand(w, w.Coef, a, inc: false, 1);

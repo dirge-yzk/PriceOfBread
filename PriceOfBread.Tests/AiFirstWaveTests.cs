@@ -37,7 +37,6 @@ public class AiFirstWaveTests
     {
         var sim = new Simulation(NationConfig.France().ToScenario(seed), new NullAgent());
         var w = sim.World;
-        w.Coef.TraditionalistLawGate = 0;   // 黒船ゲートは本テストの対象外（干渉を切る）
         w.Polity = Polity.Absolutist;
         w.Legitimacy = 1.0;                 // revolt項＝闘争×(1−正統性)=0＝スタンス選択を撹乱しない
         foreach (var pp in w.AllPops()) if (!pp.Closed && !pp.IsSoldier) pp.Militancy = 0.9;   // 譲歩反射（:772）の点火材料
@@ -130,7 +129,6 @@ public class AiFirstWaveTests
         var w = sim.World;
         w.Coef.AiLawWriteCoverage = 1.0;
         w.Coef.AiLawGateUnified = 0;        // ⚠明示ピン（既定は点火1.0）＝統一ゲート抜きでも通る＝StepLawToward経由の独立設計の証明
-        w.Coef.TraditionalistLawGate = 0;
         w.PoliticsEnabled = true;
         w.Legitimacy = 1.0;
         w.Coef.MandateWeight = 50.0;        // 在庫ハンマー＝非憲法級2軸は支持配置に依らず GateInfo が通る（LawPrereq だけが効く状態）
@@ -150,7 +148,6 @@ public class AiFirstWaveTests
         var sim = new Simulation(NationConfig.France().ToScenario(7), new NullAgent());
         var w = sim.World;
         w.Coef.AiLawWriteCoverage = 0;   // ★OFF側を明示ピン（2026-08-16に既定0→1.0で点火済み）
-        w.Coef.TraditionalistLawGate = 0;
         w.LastImmigration = w.TotalPopulation * 0.05;
         foreach (var pp in w.AllPops()) if (pp.IsModernElite) { pp.Savings = 1e9; break; }
         new UtilityAgent().DecideQuarter(w);
@@ -278,5 +275,51 @@ public class AiFirstWaveTests
         int nFolded = FrontsAfterStep(folded), nHeld = FrontsAfterStep(held);
         Assert.True(nFolded >= 2, $"テスト前提が崩れた：畳んだ側の戦線数が{nFolded}（飽和域で測れない）");
         Assert.Equal(nFolded + 1, nHeld);
+    }
+
+    // ============ 回5-1 項目19（2026-09-26）：AIだけの伝統主義ゲートの削除 ============
+    // 旧＝伝統教義（Balanced）・議会なし・緊張40以下・大衆闘争0.5以下のAIは、近代化の法（教育法・参政権・女性の権利・秘密投票・専門官僚制・独禁・同業組合）を
+    //   目標に置かなかった（SelfPlay.ModernizationLawsGated・係数 TraditionalistLawGate）。プレイヤー（NullAgent）には無い門＝思想⑤の違反。
+    // 主張＝同じ盤面でAIが置ける段は、法律タブが押せる段と同じ物差し（Government.GateInfo）だけで決まる。
+
+    /// <summary>旧ゲートが閉じていた盤面（伝統教義・議会なし・対外緊張0・大衆闘争0）。前提そのものを自己検証する（非空虚性）。
+    /// 政治ロックの隔離弁を切る＝照会の純支持を中立にして、規則（前提DAG・不可逆）だけが段を塞ぐ盤面にする（聖職者の世俗化テストと同じ標準手法）。</summary>
+    private static World TraditionalQuietWorld()
+    {
+        var w = new Simulation(NationConfig.Japan().ToScenario(53), new NullAgent()).World;
+        foreach (var pp in w.AllPops()) if (!pp.Closed) pp.Militancy = 0;
+        w.PoliticalLockEnabled = false;
+        Assert.False(w.Polity is Polity.ConstitutionalMonarchy or Polity.Republic, $"テスト前提が崩れた：政体が{w.Polity}（議会あり）");
+        Assert.Equal(Doctrine.Balanced, UtilityAgent.DoctrineFrom(w));
+        Assert.Null(w.Diplomacy);   // 単一国＝対外緊張0（旧ゲートの外圧(a)が立たない）
+        Assert.False(Politics.AvgMassMilitancy(w) > 0.5, "テスト前提が崩れた：大衆闘争が内圧の線を越えている");
+        return w;
+    }
+
+    [Fact]
+    public void 伝統教義の平時のAIも近代化スタンスで教育法の次の段を目標に置く()
+    {
+        var w = TraditionalQuietWorld();
+        var cur = w.EducationLaw;
+        Assert.True(cur < EducationLaw.Public, $"テスト前提が崩れた：教育法が既に{cur}");
+        Assert.True(Government.GateInfo(w, PolicyAxis.EducationLaw, increasing: true, (int)cur + 1).Ok,
+            "テスト前提が崩れた：法律タブでも次の1段が押せない盤面");
+        UtilityAgent.Apply(w, UtilityAgent.Stance.Modernize);
+        Assert.Equal(cur + 1, w.Policy.EducationLaw);   // 旧＝ゲートで目標を置かず現行のまま
+    }
+
+    [Theory]
+    [InlineData(0, PolicyAxis.EducationLaw)]   // 近代化スタンス
+    [InlineData(1, PolicyAxis.EducationLaw)]   // 産業スタンス
+    [InlineData(2, PolicyAxis.WomenRights)]    // 福祉スタンス（女性の権利を梯子の最上段まで望む）
+    public void 伝統教義の平時のAIが置く段は法律タブと同じ門だけで決まる(int stance, PolicyAxis axis)
+    {
+        var w = TraditionalQuietWorld();
+        int Cur() => axis == PolicyAxis.EducationLaw ? (int)w.EducationLaw : (int)w.WomenRights;
+        int Target() => axis == PolicyAxis.EducationLaw ? (int)w.Policy.EducationLaw : (int)w.Policy.WomenRights;
+        int cur = Cur();
+        bool tab = Government.GateInfo(w, axis, increasing: true, cur + 1).Ok;   // プレイヤーの法律タブ（LawRowVM.CanReachAndAfford）と同じ関数
+        UtilityAgent.Apply(w, (UtilityAgent.Stance)stance);
+        Assert.Equal(tab ? cur + 1 : cur, Target());   // AIだけが止まる門は無い（止まるのは法律タブでも押せない段だけ）
     }
 }

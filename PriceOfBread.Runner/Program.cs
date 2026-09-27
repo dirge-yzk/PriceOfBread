@@ -2505,20 +2505,6 @@ if (args.Length > 0 && args[0] == "eduprobe")
         }
         return (oT, oS, priceW > 1e-9 ? price / priceW : double.NaN, stock, demand, teacher, clergy, prod);
     }
-    // 近代化法ゲート（UtilityAgent.ModernizationLawsGated と同じ条件を**同じ順**で再現）。どの条件で抜けたかを文字列で返す＝推測を挟まない。
-    static (bool gated, string why) EpGate(World w)
-    {
-        if (!(w.Coef.TraditionalistLawGate > 0)) return (false, "係数0＝休眠");
-        if (w.Polity is Polity.ConstitutionalMonarchy or Polity.Republic) return (false, "代議制＝対象外");
-        var doc = UtilityAgent.DoctrineFrom(w);
-        double tension = w.Diplomacy is { } dip && w.SelfPower is { } sp ? dip.MaxTension(sp) : 0;
-        double mil = Politics.AvgMassMilitancy(w);
-        if (doc != Doctrine.Balanced) return (false, $"教義={doc}");
-        if (tension > 40.0) return (false, $"外圧 緊張{tension:F1}>40");
-        if (mil > 0.5) return (false, $"内圧 闘争{mil:F2}>0.5");
-        return (true, $"★封鎖 教義Balanced・緊張{tension:F1}≤40・闘争{mil:F2}≤0.5");
-    }
-
     // 初期（最初の断面）の階級別 識字と構成シェアを覚え、以後の分解に使う
     var epBaseLit = new System.Collections.Generic.Dictionary<string, double[]>();
     var epBaseShare = new System.Collections.Generic.Dictionary<string, double[]>();
@@ -2545,7 +2531,6 @@ if (args.Length > 0 && args[0] == "eduprobe")
         double urbanF = 1.0 + (w.Coef.UrbanConsciousnessBoost - 1.0) * urban;   // 都市率で加重した平均の都市倍率
         double targetApprox = System.Math.Clamp(avgLit * convStock * urbanF * press, 0, 1);
         var (oT, oS, price, stock, demand, teacher, clergy, prod) = EpEdu(w);
-        var (gated, why) = EpGate(w);
         double tension = w.Diplomacy is { } dip2 && w.SelfPower is { } sp2 ? dip2.MaxTension(sp2) : 0;
         double landTax = w.LandTax, progTax = w.ProgressiveTax;
         double serfV = w.SerfEmancipation switch { ReformLevel.None => 1.0, ReformLevel.Limited => 0.5, _ => 0.0 };
@@ -2554,7 +2539,7 @@ if (args.Length > 0 && args[0] == "eduprobe")
             : w.EducationLaw == EducationLaw.Public ? w.Coef.PublicEduFundingShare * w.EducationSpending : 0;
 
         Console.WriteLine($"  {JpPad(nm, 10)}{JpPad(w.Polity.ToString(), 22)} 教育法{JpPad(w.EducationLaw.ToString(), 11)} 検閲{JpPad(w.Censorship.ToString(), 15)} 参政{JpPad(w.Suffrage.ToString(), 10)}"
-            + $" 教義{JpPad(UtilityAgent.DoctrineFrom(w).ToString(), 14)} 近代化法ゲート={(gated ? "封鎖" : "通す")}（{why}）");
+            + $" 教義{JpPad(UtilityAgent.DoctrineFrom(w).ToString(), 14)}");
         Console.WriteLine($"      識字{EpNum(avgLit)} 教育充足{EpNum(avgFill)} 意識{EpNum(avgCons)}(target≈{EpNum(targetApprox)}) 闘争{EpNum(avgMil)}"
             + $" 新聞{EpNum(avgNews)} 都市率{EpNum(urban)} Elite{EpNum(w.Elite)} 技術{EpNum(w.TechLevel)} 人口{tot,10:F0} 緊張{tension,6:F1}");
         Console.WriteLine($"      意識の因子＝識字{EpNum(avgLit)} × 変換{EpNum(convStock)}(今期法の即時値{convertNow:F2}) × 都市{EpNum(urbanF)} × 報道{EpNum(press)}"
@@ -2633,7 +2618,7 @@ if (args.Length > 0 && args[0] == "eduprobe")
     var epC = new Coefficients();
     Console.WriteLine($"\n  参考係数：識字の世代減衰 LiteracyGenerationalDecay={epC.LiteracyGenerationalDecay}"
         + $"　識字の伸び速度（法別）なし0.0001/宗教0.004/公教育0.005/義務0.007　児童労働ペナルティ{epC.ChildLaborLiteracyPenalty}"
-        + $"　意識の変換係数（法別）なし0.10/宗教0.15/公教育1.0/義務1.0　伝統体制の近代化法ゲート TraditionalistLawGate={epC.TraditionalistLawGate}");
+        + $"　意識の変換係数（法別）なし0.10/宗教0.15/公教育1.0/義務1.0");
     return;
 }
 
@@ -6385,7 +6370,6 @@ if (args.Length > 0 && args[0] == "clergydbg")
     var cfg = NationConfig.Japan();
     var csim = new Simulation(cfg.ToScenario(53), new UtilityAgent());
     csim.World.ParliamentEnabled = false;
-    csim.World.Coef.TraditionalistLawGate = 0;
     csim.World.PoliticalLockEnabled = false;
     for (int q = 0; q < 400; q++)
     {

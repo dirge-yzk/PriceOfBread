@@ -9,8 +9,8 @@
 public sealed class PoliticalParty
 {
     public string Name = "";
-    public int Family;                 // 0=保守 1=自由 2=社会（綱領と互換射影の族）
-    public int Bloc = -1;              // 給源ブロック（結党時のクラスタ由来・要求綱領の導出に使う。常設=-1）
+    public int Family;                 // 0=保守 1=自由 2=社会（互換射影の族）
+    // 【墓標2026-09-26・回5-1 項目17】Bloc（給源ブロック＝動的与党の選挙時の要求の導出元）＝唯一の読み手（要求の押し込み）の撤去で書くだけの欄になった＝削除（思想⑩）
     public int Ideo = -1;              // イデオロギー（動的政党＝国民政党のキー。常設=-1）
     public double VoteShare;           // 全国得票率
     public bool Permanent;             // 常設3党
@@ -20,7 +20,8 @@ public sealed class PoliticalParty
 /// <summary>
 /// 議会・選挙・政党（段5）。政体（権威/自由の層）の**上に乗る層**：自由な政体では数年ごとの選挙で与党が決まり、
 /// 議席が**党選好×議席**として法の通りやすさ（PolicyPreferences.ParliamentNet→NetSupport）に入る＝**選挙で政権交代→通る向きが変わる**。
-/// 与党の綱領が目標を直接置くのは法軸（参政権・教育法・労働法）だけ。経済軸（福祉・関税・累進）の目標は置かない（2026-09-19・二重計上の撤去＝ApplyPlatform の注記）。
+/// 議会は目標（w.Policy）を1つも書かない（2026-09-26・回5-1 項目17＝綱領〔法軸〕と動的与党の選挙時の要求を撤去。経済軸の綱領は 2026-09-19 に撤去済み）。
+/// 党が効くのは法の通りやすさ（議席×党選好＝ParliamentNet）だけ。法軸の旧綱領の段は AI の意図（UtilityAgent.Apply の「議会の構成」の段落）へ移した＝プレイヤーの目標は上書きされない。
 /// 政党＝11イデオロギー（<see cref="Ideologies"/>）の3族クラスタ（PoliticalQuantities.FamilyOf）：保守(伝統/反動/ナショ/帝国/ファシズム/王党派)・自由(自由/共和)・社会(社会/共産/無政府)。
 /// 得票＝Σ 有権者(規模×参政権ゲート) × そのpopのイデオロギー比。＝参政権の拡大が大衆政党(社会/自由)を押し上げる中心ドラマ。
 /// 経済運営（行政費・財政ストレス対応・工業化）は doctrine（<see cref="UtilityAgent"/>）のまま＝党は「色」を、AIは「経営」を担う。
@@ -34,7 +35,7 @@ public static class Parliament
 
     public static void Step(World w, Coefficients c)
     {
-        if (!w.ParliamentEnabled || !w.PoliticsEnabled || w.InCivilWar) return;   // ★B3：述語1本   // 内戦中は平時の選挙・綱領適用を止める（戦乱中に政権交代→政策書換は非現実的。A-4#12）
+        if (!w.ParliamentEnabled || !w.PoliticsEnabled || w.InCivilWar) return;   // ★B3：述語1本   // 内戦中は平時の選挙を止める（戦乱中の政権交代は非現実的。A-4#12）
 
         if (w.Parties.Count == 0)   // 遅延初期化（較正/最小世界＝ParliamentEnabled=falseなら空のまま）
         {
@@ -73,7 +74,6 @@ public static class Parliament
         w.QuartersSinceElection++;
 
         bool hasElections = w.Polity is Polity.ConstitutionalMonarchy or Polity.Republic;
-        bool electedNow = false;   // F4：この四半期に選挙があった（動的与党の要求綱領＝マニフェストは選挙時のみ書く）
         if (hasElections)
         {
             w.QuartersWithElections++;   // E0計器：選挙政体の在籍四半期（平均間隔の分子）。カウンタのみ＝挙動不変
@@ -106,7 +106,6 @@ public static class Parliament
                 w.QuartersSinceElection = 0;
                 w.ElectionsHeld++;   // E0計器：総選挙の実施（定期・繰り上げの別を問わない）
                 if (c.SeatsFrozenBetweenElections > 0) SnapshotSeats(w);   // 政7：選挙で議席を確定（以後の世論変動は VoteShares のみ動く）
-                electedNow = true;
                 // ★E3：加担の押し込みは開票1回で消費（未回答の公示も流す＝択の先送りは「何もしない」と同じ）
                 if (c.ElectionEventEnabled > 0) { w.ElectionPushIdeology = -1; w.ElectionPushStrength = 0; w.PendingElection = null; }
             }
@@ -124,21 +123,13 @@ public static class Parliament
             if (c.SeatsFrozenBetweenElections > 0) SnapshotSeats(w);   // 政7：非選挙政体は毎期スナップショット＝VoteShares と PartySeats は恒等（凍結でも従来同値）
         }
 
-        var govParty = GoverningPartyOf(w);
-        w.GoverningPartyName = govParty?.Name ?? "";   // F4：与党の実体名（族内最大得票・未初期化=空でUIが族名へフォールバック）
-
-        // 政10：非選挙政体は綱領も宮廷党派の要求（下の F4 の !hasElections 枝）も書かない。NonElectedSkipsPlatform（既定1.0）＝法の目標は
-        // DecideQuarter（AIの経営）とプレイヤーに委ねる。0で全政体に ApplyPlatform（法軸＝ブルジョア独裁の自由党・プロ独裁の社会党の分だけ）と
-        // 動的与党の毎期の要求が走る。⚠この return を消すと下の `!hasElections` 枝（毎期の要求押し）が既定で点火する。
-        // ★2026-09-19：旧注記の「保護関税・穀物法全面・累進ゼロへの恒久固定」は経済軸の綱領とともに撤去済み（保守の綱領は目標を1つも書かない）。
-        if (c.NonElectedSkipsPlatform > 0 && !hasElections) return;
-
-        ApplyPlatform(w, (Party)w.GoverningParty);
-        // F4：与党が動的政党（クラスタ由来）なら、族綱領に加えて由来ブロックの要求top-kを政策目標へ押す（DynamicParties=0で不発）。
-        // 選挙のある政体＝**選挙の四半期だけ**（マニフェスト＝毎期押すと共和国の法が振動し米・スイスが逸脱過多化した実測2026-07-12）。
-        // 選挙なし政体＝毎期（宮廷の党派圧力は常設）。
-        if (c.DynamicParties > 0 && (electedNow || !hasElections) && govParty is { Permanent: false, Bloc: >= 0 } dgp)
-            foreach (var d in FactionSnapshot.ComputeDemands(w, dgp.Bloc)) TargetDemand(w, d.Axis, d.Increase);
+        w.GoverningPartyName = GoverningPartyOf(w)?.Name ?? "";   // F4：与党の実体名（族内最大得票・未初期化=空でUIが族名へフォールバック）
+        // 【墓標2026-09-26・回5-1 項目17】ここにあった3つを撤去＝議会は目標を1つも書かない。
+        //   ①綱領 ApplyPlatform（選挙政体で自由党・社会党が与党だと、毎四半期、教育法・参政権・労働時間・労組の目標をプレイヤー国の分まで上書き）
+        //   ②動的与党の選挙時の要求（FactionSnapshot.ComputeDemands→TargetDemand を門なしで。関税・累進・社会保障を含む軸を上げ下げ1段ずつ）
+        //   ③非選挙政体の return（係数 NonElectedSkipsPlatform＝①②の後ろに何も残らず意味を失った）。
+        //   法が通るか・どれだけ速く動くかは従来どおり議席×党選好（PolicyPreferences.ParliamentNet→NetSupport・OpposingPower）。
+        //   ①の段は AI の意図（UtilityAgent.Apply の「議会の構成」の段落・与党の札で読む）へ移した＝値も適用範囲も同じで、門（GateAllLawTargets）の前に置く。
     }
 
     /// <summary>機能2-4（2026-07-28）：議会の解散＝任期満了扱いにして次のStepで総選挙（プレイヤーの動詞。AI側の等価物＝不信任の繰り上げ選挙2-5）。</summary>
@@ -280,7 +271,7 @@ public static class Parliament
             var np = new PoliticalParty
             {
                 Name = $"{FactionSnapshot.IdeologyJa((Ideology)f.Ideo)}党",
-                Family = PoliticalQuantities.FamilyOf(f.Ideo), Bloc = f.Bloc, Ideo = f.Ideo,
+                Family = PoliticalQuantities.FamilyOf(f.Ideo), Ideo = f.Ideo,
             };
             w.Parties.Add(np);
             w.LogAdd($"{w.Year} {w.SelfPower?.Name}で{np.Name}が結党した");
@@ -312,25 +303,25 @@ public static class Parliament
         return best;
     }
 
-    // F4：動的与党の綱領＝族綱領（ApplyPlatform）に加えて由来ブロックの要求top-kを**政策目標**へ一歩ずつ押す
-    // （現行法から要求方向へ1段＝Governmentの利益集団ゲートが可決を律速＝強制施行のApplyDemandとは別物）。
+    // 要求を**政策目標**へ1段置く（現行法から要求方向へ1段＝Governmentの利益集団ゲートが可決を律速＝強制施行のApplyDemandとは別物）。
+    // 呼び手＝危機の要求（TargetCrisisDemands）と州一揆への譲歩（Politics.ConcedeToRevolt）。
     // internal（2026-08-10）：番人テストが軸ごとの「目標を置く経路」を直接叩けるように（理由は Politics.ApplyDemand と同じ）。
-    // ★要求は法の経路（2026-09-11）：gated=true＝置く前に**法律タブと同じ** Government.GateInfo を見て、通らない段は置かない（＝拒否）。
+    // ★要求は法の経路（2026-09-11）：置く前に**法律タブと同じ** Government.GateInfo を見て、通らない段は置かない（＝拒否）。
     //   LawRowVM.CanReachAndAfford（前提DAG＋純支持ゲート）と同じ関数＝AIとプレイヤーの「置ける段」が1本の物差しで決まる（幽霊戦線も作らない）。
-    //   gated=false（既定＝議会の綱領の呼び手）＝旧＝見ない＝厳密恒等。
-    internal static void TargetDemand(World w, PolicyAxis a, bool inc, bool gated = false)
+    //   ★2026-09-26（回5-1 項目17）：門を見ない呼び手（議会の動的与党の要求）の撤去で引数 gated を削除＝常に門を見る。
+    internal static void TargetDemand(World w, PolicyAxis a, bool inc)
     {
         var p = w.Policy;
         int n = inc ? 1 : -1;
         int StepTo(int cur, int max)
         {
             int next = System.Math.Clamp(cur + n, 0, max);
-            return gated && next != cur && !Government.GateInfo(w, a, inc, next).Ok ? cur : next;
+            return next != cur && !Government.GateInfo(w, a, inc, next).Ok ? cur : next;
         }
-        bool FlipTo(bool cur) => gated && cur != inc && !Government.GateInfo(w, a, inc, inc ? 1 : 0).Ok ? cur : inc;   // bool法＝同じ門（gated=false では常に inc＝旧）
+        bool FlipTo(bool cur) => cur != inc && !Government.GateInfo(w, a, inc, inc ? 1 : 0).Ok ? cur : inc;   // bool法＝同じ門
         // ★税・支出の段（作者裁定2026-09-12 R1）：段になった軸は**段で置く**（staged:true）。
         //   ⚠0.15刻み（FactionConcessionSlider）のままだと段の第1境界0.175を越えられず「要求は成立するが施行されない no-op 要求」が生える
-        //     （社会保障が 2026-09-11 に同じ罠で Slide→段へ直された前例）。gated なら StepTo が法律タブと同じ門（GateInfo）を見る。
+        //     （社会保障が 2026-09-11 に同じ罠で Slide→段へ直された前例）。StepTo が法律タブと同じ門（GateInfo）を見る。
         //   段を持たない連続の軸（社会保障の水準・関税・海軍維持費・専売）は旧式（0.15刻み）。
         double Slide(double cur, bool staged = false)
             => staged
@@ -348,9 +339,9 @@ public static class Parliament
             case PolicyAxis.SerfEmancipation: p.SerfEmancipation = (ReformLevel)StepTo((int)w.SerfEmancipation, 2); break;
             case PolicyAxis.WomenRights: p.WomenRights = (WomenRightsLaw)StepTo((int)w.WomenRights, 3); break;   // ★統合法（2026-08-10）：現行段から1段ずつ（旧・bool2本の直接反転を置換）
             case PolicyAxis.IncomeTax: p.IncomeTaxTarget = Slide(w.TaxRate, staged: true); break;   // ★R1：段
-            // ★要求は法の経路（gated）：社会保障は法（Government.Step が SocialSecurityLaw を StepEnum）＝目標は法の段（v/3＝法律タブ GameViewModel.Law.cs と同じ単位）で置く。
-            //   旧 Slide(+0.15) は Government の Round(Q5(target)×3) で段に届かない（0.15→0.45→0段）no-op 要求になりうる（ApplyDemand の直書きが隠していた）。gated=false＝旧
-            case PolicyAxis.SocialSecurity: p.SocialSecurityTarget = gated ? StepTo((int)w.SocialSecurityLaw, Government.SocialSecurityMaxLevel) / (double)Government.SocialSecurityMaxLevel : Slide(w.SocialSecurity); break;
+            // ★要求は法の経路：社会保障は法（Government.Step が SocialSecurityLaw を StepEnum）＝目標は法の段（v/3＝法律タブ GameViewModel.Law.cs と同じ単位）で置く。
+            //   旧 Slide(+0.15) は Government の Round(Q5(target)×3) で段に届かない（0.15→0.45→0段）no-op 要求になりうる（ApplyDemand の直書きが隠していた）。
+            case PolicyAxis.SocialSecurity: p.SocialSecurityTarget = StepTo((int)w.SocialSecurityLaw, Government.SocialSecurityMaxLevel) / (double)Government.SocialSecurityMaxLevel; break;
             case PolicyAxis.Tariff: p.TariffTarget = Slide(w.Tariff); break;
             case PolicyAxis.PollTax: p.PollTaxTarget = Slide(w.PollTax, staged: true); break;                        // ★R1：段
             case PolicyAxis.ProgressiveTax: p.ProgressiveTaxTarget = Slide(w.ProgressiveTax, staged: true); break;   // ★R1：段
@@ -369,7 +360,7 @@ public static class Parliament
             // ★是正2026-08-01：同上（兌換の維持＝増加向き）／★3値化2026-08-13（点火1.0=2026-08-21）：銀を経由する梯子では1段ずつ（gate=0に戻せば旧2値と同じ両端）
             case PolicyAxis.MonetaryStandard: p.MonetaryTarget = w.Coef.SilverStandardGate > 0 ? StepTo((int)w.MonetaryLaw, 2) : (FlipTo(w.MonetaryLaw == MonetaryStandardLaw.Gold) ? 2 : 0); break;
             case PolicyAxis.CapitalMobility: p.CapitalControlTarget = FlipTo(w.CapitalControlLaw); break;   // ★資本移動の法（トリレンマdoc・2026-08-13）＝増加向き＝規制
-            // 参政権の範囲2法（2026-08-16）：綱領の梯子（ApplyPlatform）には載せない（休眠中は載せない＝作者指示）。ここは要求top-k経由のみ
+            // 参政権の範囲2法（2026-08-16）：ここは要求top-k経由のみ
             // ＝休眠中は Pref=0 で要求に載らず不到達・点火時に目標を置く経路が無いと no-op 要求になるので先に配線（2026-08-01の是正と同型）。
             case PolicyAxis.ColonialSuffrage: p.ColonialSuffrage = (ColonialSuffrageLaw)StepTo((int)w.ColonialSuffrage, 2); break;
             case PolicyAxis.MigrantNativeSuffrage: p.MigrantNativeSuffrage = (MigrantNativeSuffrageLaw)StepTo((int)w.MigrantNativeSuffrage, 1); break;
@@ -387,11 +378,11 @@ public static class Parliament
             case PolicyAxis.OpiumExport: p.OpiumExportBan = FlipTo(w.OpiumExportBan); break;   // 阿片の輸出法（C3・2026-07-30）
             case PolicyAxis.Nationalization:   // 未点灯の最初の1部門を目標に（enum順＝決定論。減少向きは点灯中の最後を解除）
                 // 最終段『全て』（§11-6d）は前提DAG（プロレタリア独裁のみ＋官僚制度）を綱領でも踏む＝通らない目標を置いて幽霊戦線を開かない。
-                if (gated && !Government.GateInfo(w, a, inc, inc ? 1 : 0).Ok) break;   // ★要求は法の経路（gated）：部門を灯す/消す目標も同じ門
+                if (!Government.GateInfo(w, a, inc, inc ? 1 : 0).Ok) break;   // ★要求は法の経路：部門を灯す/消す目標も同じ門
                 if (inc) { if (!p.NationalizeRailways) p.NationalizeRailways = true; else if (!p.NationalizeMines) p.NationalizeMines = true; else if (!p.NationalizeMilitary) p.NationalizeMilitary = true; else if (!p.NationalizeOil) p.NationalizeOil = true; else if (!p.NationalizeElectricity) p.NationalizeElectricity = true; else if (!p.NationalizeAll && Government.LawPrereq(w, PolicyAxis.NationalizationAll, 1, w.Coef).Ok) p.NationalizeAll = true; }
                 else { if (p.NationalizeAll) p.NationalizeAll = false; else if (p.NationalizeElectricity) p.NationalizeElectricity = false; else if (p.NationalizeOil) p.NationalizeOil = false; else if (p.NationalizeMilitary) p.NationalizeMilitary = false; else if (p.NationalizeMines) p.NationalizeMines = false; else p.NationalizeRailways = false; }
                 break;
-            // 行政費＝doctrine（AIの経営）の領域＝党綱領は触れない（ApplyPlatformと同じ線引き）。
+            // 行政費＝doctrine（AIの経営）の領域＝要求は置かない。
             // ⚠治安維持力（軍事費）・教育費・土地税は 2026-09-12 の段（R1/R2）で**法になったので上の3 case が置く**。
         }
     }
@@ -405,9 +396,9 @@ public static class Parliament
     internal static void TargetCrisisDemands(World w)
     {
         if (w.PendingRevoltDemand != 0)
-            TargetDemand(w, (PolicyAxis)(System.Math.Abs(w.PendingRevoltDemand) - 1), w.PendingRevoltDemand > 0, gated: true);
+            TargetDemand(w, (PolicyAxis)(System.Math.Abs(w.PendingRevoltDemand) - 1), w.PendingRevoltDemand > 0);
         if (w.PendingFactionCrisis is not { } f) return;
-        foreach (var d in FactionSnapshot.ComputeDemands(w, f.Bloc, lawsOnly: true)) TargetDemand(w, d.Axis, d.Increase, gated: true);
+        foreach (var d in FactionSnapshot.ComputeDemands(w, f.Bloc, lawsOnly: true)) TargetDemand(w, d.Axis, d.Increase);
     }
 
 
@@ -432,39 +423,6 @@ public static class Parliament
         Polity.ProletarianDictatorship => Party.Socialist,
         _ => Party.Conservative,   // 絶対/専制/幕府/軍政/無政府＝旧支配層・軍＝保守
     };
-
-    // 与党の綱領→法軸（参政権・教育法・労働組合・労働時間）の目標を**引き上げる向きだけ**置く（doctrine の後）。実際の移動は Government が利益集団の抵抗で律速。
-    // 自由党・社会党は教育法（公教育）と参政権（制限選挙／男子普選）を Max で引き上げ、労働時間を短縮し、社会党は労組を容認する＝どれも後退を作らない。
-    // 保守党の綱領は目標を1つも置かない（その選好＝保護・低福祉・累進反対は、議席×党選好として NetSupport に入っている）。
-    //   ★2026-08-18（親軍法の撤去）：軍事の党派差は綱領の生代入でなく、軍事費（Coercion軸）と徴兵法への**選好**として NetSupport に入る。
-    // ★★2026-09-19（経済軸の綱領の撤去＝P9二重計上・P8黙った持ち上げ/切り下げ）：旧＝ここが関税・福祉・累進の目標を毎四半期直接書いていた
-    //   （保守＝関税の床0.3・福祉の上限0.1・累進0／自由＝関税の上限0.1・福祉の床0.34／社会＝福祉1.0・累進の床0.5／少数与党は連立相手の定数へ寄せる）。
-    //   ⚠同じ党の同じ軸の選好は既に ParliamentNet（議席×Pref(軸, 党)・PolicyPreferences.cs）として NetSupport に入っている
-    //     ＝党は**通るか**（純支持）と**どちらへ動くか**（目標）の両方に自分の選好を入れていた＝同じ原因の二重計上。2026-08-02 の3法（穀物法など）と同じ型の残り。
-    //   ⚠Min/Max の形は選ばれた目標を黙って削る/持ち上げていた（プレイヤーの財政タブ・法律タブの目標も毎四半期上書き＝P5/P8）。
-    //   撤去後の役割：通るか＝NetSupport（ParliamentNet・OpposingPower の議会項）／どこを目指すか＝SelfPlay の教義・プレイヤーの UI・通商条約／
-    //   動的与党の選挙時の要求（TargetDemand＝1段ずつ）。連立の妥協＝相手党の議席×Pref が ParliamentNet に既に入っている。
-    private static void ApplyPlatform(World w, Party gov)
-    {
-        var p = w.Policy;
-        switch (gov)
-        {
-            case Party.Liberal:        // 近代エリート＝公教育・制限選挙・時短
-                p.EducationLaw = (EducationLaw)System.Math.Max((int)p.EducationLaw, (int)EducationLaw.Public);   // 引き上げのみ（可決は議席ゲート）
-                p.Suffrage = (Suffrage)System.Math.Max((int)p.Suffrage, (int)Suffrage.Census);
-                // 政4：農奴解放・土地改革は綱領が書かない（旧・自由党の生Limited代入＝再農奴化バグの枝は第3段3-6＝2026-07-27に削除済み）。
-                if (p.WorkHours > WorkHours.Ten) p.WorkHours = WorkHours.Ten;   // 10時間法
-                // ★親軍法の撤去（2026-08-18）：自由党綱領の「反軍」は軍国度の因子（軍事費＝Coercion軸／徴兵法）への賛否として既に効いている＝ここに3本目の書き手を置かない。
-                break;
-            case Party.Socialist:      // 大衆＝普通選挙・労働法
-                p.EducationLaw = (EducationLaw)System.Math.Max((int)p.EducationLaw, (int)EducationLaw.Public);
-                p.Suffrage = (Suffrage)System.Math.Max((int)p.Suffrage, (int)Suffrage.AdultMale);   // 大衆政党が普通選挙を押す＝議席で梯子を越える
-                p.LaborUnion = LaborUnionLaw.Tolerated;
-                p.WorkHours = WorkHours.Eight;   // 8時間労働
-                // ★親軍法の撤去（2026-08-18）：社会党綱領の「反軍」も同上＝徴兵法/軍事費への選好（PolicyPreferences）が担う。
-                break;
-        }
-    }
 
     /// <summary>★マニフェスト（作者指示2026-08-24）＝総選挙で加担した議題の達成判定。
     /// 公約した軸が約束の向きへ <see cref="Coefficients.ManifestoFulfillMove"/> 以上動いたら達成＝加担した思想へ支持が乗る

@@ -1539,7 +1539,7 @@ public static class Politics
             PolicyAxis.MigrantNativeSuffrage => StepEnumAxis((int)w.MigrantNativeSuffrage, 1, v => { w.MigrantNativeSuffrage = (MigrantNativeSuffrageLaw)v; p.MigrantNativeSuffrage = w.MigrantNativeSuffrage; }),
             // ★海軍維持費（2026-08-10 作者裁定「陸軍と海軍の注力レバーは廃止し、海軍維持費と陸軍維持費で表現する」）。
             //   「海軍の増強」は抽象的な注力度でなく**金の要求**＝海軍維持費（実効値と目標）を上げる。旧・海軍偏重の軸はここへ振り替えた。
-            //   ⚠AIもプレイヤーも同じ経路（勢力への譲歩／議会の綱領／財政タブの陸軍維持費・海軍維持費）を通る＝対称。
+            //   ⚠AIもプレイヤーも同じ経路（勢力への譲歩／財政タブの陸軍維持費・海軍維持費）を通る＝対称（議会の綱領は 2026-09-26 に撤去）。
             PolicyAxis.NavyUpkeep => ConcedeNavyUpkeep(w, p, inc, c.FactionConcessionSlider * n),
             _ => 0,   // 行政費等の内部事項は要求として強制しない
         };
@@ -1626,7 +1626,7 @@ public static class Politics
 
     // 譲歩＝大衆の窮乏に直結する順の優先梯子を1段（パンの一揆→穀物法撤廃が先頭＝1846年）。梯子→軸の対応は下の選択1本。
     // ★F1 譲歩は法の経路（作者裁定2026-09-11・同日点火＝F3b の危機の要求と**同じ目標機構**）：次の段を**法の目標**として置く
-    //   ＝Parliament.TargetDemand（gated＝TargetCrisisDemands が使う同じ1本＝AI の Apply／初心者経路／法律タブと同じ p.X・同じ Government.GateInfo＝通らない段は置かれない＝拒否）。
+    //   ＝Parliament.TargetDemand（TargetCrisisDemands が使う同じ1本＝AI の Apply／初心者経路／法律タブと同じ p.X・同じ Government.GateInfo＝通らない段は置かれない＝拒否）。
     //   現行法は1行も書かない＝施行は Government.Step の通常経路（純支持＞−余白・前提DAG・不可逆・憲法級）＝滞りうるし通らないこともある。
     //   政治資本の請求も置かない＝通常の法改正は施行側（Government.MandateGate）が反対を押し切った分だけ Spend する＝第二の課金を作らない。
     //   記録（World.PendingRevoltDemand）＝AI の Apply はスタンス既定で法目標を毎期再代入する（SelfPlay.Apply の p.WorkHours=Twelve／SocialSecurityTarget／CornLaws の StepLawToward）ので、
@@ -1645,7 +1645,7 @@ public static class Politics
         w.PendingRevoltDemand = inc ? (int)axis + 1 : -((int)axis + 1);
         w.PendingRevoltDemandPos = FactionSnapshot.AxisPosition(w, axis);
         w.PendingRevoltRegion = worst.Id;
-        Parliament.TargetDemand(w, axis, inc, gated: true);
+        Parliament.TargetDemand(w, axis, inc);
     }
 
     // 分離独立（§9-E拡張）：州の関税利害が国政策と乖離＋州の不満が高いと分離圧力。中央の保持力を超える州があれば離脱→内戦（再統合戦）。稀に発生。

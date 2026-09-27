@@ -149,7 +149,7 @@ public static class FactionSnapshot
     internal static readonly PolicyAxis[] Axes = System.Enum.GetValues<PolicyAxis>();
 
     /// <summary>即時に上げ下げできる軸＝連続のままの Government.Move（1期1段の法の梯子ではない）＝**危機の要求**（ComputeDemands の lawsOnly＝危機側の読み手だけが渡す・
-    /// 綱領と UI は全軸）から除く軸＝Coercion（武力＝軍事費と治安維持力・AxisPosition が別量 BaseCoercion を読み、CoercionFollowsForce 下では目標が軍規模で毎期上書きされる）／
+    /// 総選挙の議題と UI は全軸）から除く軸＝Coercion（武力＝軍事費と治安維持力・AxisPosition が別量 BaseCoercion を読み、CoercionFollowsForce 下では目標が軍規模で毎期上書きされる）／
     /// NavyUpkeep（海軍維持費＝Coercion 軸の合計ゲート越しの連続の比）／Tariff（R3＝スライダーのまま）。1期0.018の動きで「譲歩された」と読めてしまう（必ず受諾の壊れ方）。
     /// SocialSecurity は法（Government.Step が SocialSecurityLaw を StepEnum）＝残す。
     /// ★裁定C1（2026-09-12「税率は反乱の要求に乗せる」・2026-09-20 点火）：税5軸は段の法になった＝ここから外した（旧9軸→4軸）。
@@ -160,7 +160,7 @@ public static class FactionSnapshot
     // ブロックの要求 top-k：各政策軸の「進める向き」への選好（法をゲートする PolicyPreferences.Stance と同じ Pref 表＝対称性）を評価し、
     // 望む向きの残り可動域（現行法/スライダーが端に達していれば要求は消える）を掛けたスコアの上位を返す。
     // lawsOnly（範囲是正2026-09-11）＝即時値の軸を除く（危機側の読み手＝Politics.RecordCrisisDemands／Parliament.TargetCrisisDemands／factionprobe の行き先が true で渡す）。
-    //   既定 false＝綱領（Parliament の与党の要求押し・総選挙の議題）と UI（Compute・App）は全軸＝減税を掲げる政党は残る（作者裁定(3)は「蜂起の要求」についての裁定）。
+    //   既定 false＝総選挙の議題（Parliament.BuildElectionEvent）と UI（Compute・App）は全軸＝減税を掲げる政党は残る（与党の要求押しは 2026-09-26 に撤去＝回5-1）（作者裁定(3)は「蜂起の要求」についての裁定）。
     public static List<Demand> ComputeDemands(World w, int bloc, bool lawsOnly = false)
     {
         var list = new List<Demand>();
@@ -170,7 +170,7 @@ public static class FactionSnapshot
             // 選好は Nationalization と同一なので載せると**同文の二重要求**になる（ゲート緑≠機構が働いた・2026-08-01の施行なきno-op要求と同族の罠）。
             if (axis == PolicyAxis.NationalizationAll) continue;
             // ★要求は法の経路（作者裁定2026-09-11「蜂起の要求に、即座に上げ下げできるもの(減税など)は加えない」）：
-            //   即時値の軸（IsInstantAxis）は**危機の要求**に載せない（lawsOnly＝危機側の読み手だけ）。綱領・UI（lawsOnly=false）は全軸のまま（範囲是正2026-09-11）。
+            //   即時値の軸（IsInstantAxis）は**危機の要求**に載せない（lawsOnly＝危機側の読み手だけ）。総選挙の議題・UI（lawsOnly=false）は全軸のまま（範囲是正2026-09-11）。
             // ★裁定C1（2026-09-12「税率は反乱の要求に乗せる」）：段になった税5軸は**もう即座に上げ下げできない**（4段の法）ので除外しない
             //   （2026-09-20 の段の点火で条件式を IsInstantAxis の4軸＝治安維持力・海軍維持費・関税・専売へ畳んだ。専売は同日の裁定で段の法から外れて即時値の側に残った）。
             if (lawsOnly && IsInstantAxis(axis)) continue;

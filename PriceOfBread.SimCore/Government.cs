@@ -13,7 +13,7 @@ public static class Government
 {
     internal const double SliderStep = 0.05;          // スライダーの5%刻み（UI/AI共通の20段量子化）。⚠internal（2026-09-20）＝専売の広さ（World.StateMonopolyBreadth）も同じ格子に乗る（番人が丸め幅を名指しで書ける）
     /// <summary>税・支出の法の最上段（作者裁定2026-09-12 R1「なし/低/中/高の4段階のボタン」）＝序数0..3。値は 段×<see cref="TaxLawTop"/>/3。
-    /// internal＝議会の綱領（Parliament.TargetDemand）・勢力の譲歩（Politics.ApplyDemand）・AIの目標整形（SelfPlay.GateAllLawTargets）が同じ段数で置く。</summary>
+    /// internal＝要求への応答（Parliament.TargetDemand）・勢力の譲歩（Politics.ApplyDemand）・AIの目標整形（SelfPlay.GateAllLawTargets）が同じ段数で置く。</summary>
     internal const int TaxLawStages = 3;
     // ==== 段の錨（2026-09-18）＝最上段が意味する率 ====
     // なぜ要るか：梯子を [0,1] の3等分に打つと最下段の非ゼロが所得の33%になり、**エンジン自身の教義値（0.15〜0.35）が全て段0（＝無税）へ丸まる**。
@@ -42,7 +42,7 @@ public static class Government
     /// <summary>軍事費の法の最上段（作者裁定2026-09-12 R2「低/中/高/戦時の4段」）＝序数1..4。値は 段/4（0.25／0.5／0.75／1.0）。
     /// ⚠「なし」が無いので分母は4（税の3ではない）＝最下段でも軍事費は0にならない。最上段＝戦時経済＝総動員とセット。</summary>
     internal const int MilitaryLawStages = 4;
-    internal const int SocialSecurityMaxLevel = 3;    // 社会保障法の最上段（Pension）＝4段（PoorLaw..Pension）の最大序数。internal（2026-09-11）＝Parliament.TargetDemand（gated）が法の段で目標を置く。2026-07-21「なし」廃止で救貧法が最下段（序数0＝福祉水準0）
+    internal const int SocialSecurityMaxLevel = 3;    // 社会保障法の最上段（Pension）＝4段（PoorLaw..Pension）の最大序数。internal（2026-09-11）＝Parliament.TargetDemand が法の段で目標を置く。2026-07-21「なし」廃止で救貧法が最下段（序数0＝福祉水準0）
 
     /// <summary>R1 蜂起R群2026-08-16（診断A1・本丸）：軍事力→治安維持力目標。CoercionSoftCap=0＝旧 min(x, CoercionMax)＝**ビット恒等**／
     /// >0＝漸近逓減 x/(1+x/CoercionMax)（SelfPlay.Score.Military と同じ既存の逓減形・x→∞でCoercionMaxへ漸近）。
@@ -503,7 +503,7 @@ public static class Government
         //   多段の法は**1つ前の段を踏んでいることを前提**にする＝段の飛び越しを禁じる。
         //   ⚠StepEnum は元々1段ずつ進める（ci+1 を照会する）ので、施行の速さ自体はこれでは変わらない。
         //     変わるのは**遠い段を目標に置けなくなる**こと＝プレイヤーもAIも各段を別々の決断として払う
-        //     （UIは遠い段が灰色になり理由が出る／AIの綱領・要求も飛び越しを目標にできない）。
+        //     （UIは遠い段が灰色になり理由が出る／AIの要求も飛び越しを目標にできない）。
         //   （旗 StagePrereq は 2026-09-26 に焼き込み）
         if (StagedAxis(a) && targetLevel > CurrentStage(w, a) + 1)
             return (false, "前段階が必要");
@@ -772,7 +772,7 @@ public static class Government
         if (!(net > -(mandate ? MandateMargin(w, a, -1) : 0))) return cur;   // ★否定形（2026-09-21 ㉖）＝NaN の押しは動かさない（旧 `<=` は NaN で素通りし、下の `net < 0` も偽＝無償で動いた）。純反対＝その向きへロック（mandate=false の機械追従だけ。政策の押しは MandateMargin=+∞ で倒れず下の在庫で払う）。スライダーは段の概念がない＝targetLevel=−1（憲法級の段判定に掛からない）
         double resist = PolicyPreferences.OpposingPower(w, a, increasing);
         // P1-C 予算闘争（憲法紛争1862型）：非協力的な議会（CoopParliamentCrown<0）×高い統制力＝予算軸（所得税）のスライダーが
-        // 議会の拒否で動きにくい。免責＝協力度は紛争記憶（MandateSpent）の減衰と与党交代で回復。既定0で恒等。
+        // 議会の拒否で動きにくい。免責＝協力度は紛争記憶（MandateSpent）の減衰と議席の構成の変化で回復（2026-09-26 回5-1 Q16＝旧「与党交代」）。既定0で恒等。
         // 機能2-1（2026-07-28）：予算協賛の対象を所得税のみ→全税軸へ（旗 ParliamentBudgetScope は 2026-09-26 に焼き込み）。議会の同意なしに予算（歳入構成）は動かない
         // ＝憲法紛争1862の一般化。機能1-像1（絶対王政は同意コスト0）は非議会政体で ParliamentControl≈0＝この項が消えることで相対的に成立（新規実装ゼロ）。
         if (w.Coef.ParliamentBudgetVeto > 0 && (a == PolicyAxis.IncomeTax

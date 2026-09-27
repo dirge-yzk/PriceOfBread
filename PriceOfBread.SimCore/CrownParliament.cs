@@ -40,14 +40,17 @@ public static class CrownParliament
             w.ParliamentControl = System.Math.Max(0, w.ParliamentControl - c.CrownRollbackRate);
 
         // --- 2. 協力度3チャネル（§5判断③＝6ペア行列でなく3チャネル）---
-        // ②議会↔王権：③階級親和（王権の基盤=旧支配層〔判断②〕と与党の給源ブロックの距離：保守=+1/自由=0/社会=−1）
+        // ②議会↔王権：③階級親和（王権の基盤=旧支配層〔判断②〕と議席の構成の距離＝Σ議席×(1−族番号)＝保守の議席−社会の議席∈[−1,1]・王冠なしは0）
         //   − ①政策距離（Policy目標 vs 施行済み現行法/スライダーの正規化乖離＝立法の停滞度。憲法紛争1862型の凍結が高乖離に写る）
         //   − ②紛争記憶（既存 MandateSpent ストック＝反対を押し切った履歴がそのまま敵対の蓄積器＝新規状態を作らず参照・§4-b）。
         //   議会のない政体はチャネル無定義＝0（中立）。「均衡×敵対」の角＝二重権力（露1917二月）を将来ここで観測する。
         bool hasLegislature = w.Polity is Polity.ConstitutionalMonarchy or Polity.Republic;
         if (hasLegislature && w.ParliamentEnabled)
         {
-            double classAffinity = 1.0 - w.GoverningParty;                       // 0保守=+1・1自由=0・2社会=−1（党の給源ブロック＝InterestGroups.Blocs の3区分と同順）
+            // ★回5-1 項目16／Q16（2026-09-26）：旧＝`1.0 − GoverningParty`（第一党の札で保守+1・自由0・社会−1 に段差で跳ぶ）→ 議席の加重平均へ。
+            //   議席の和は1に正規化済み（ComputeVotes）＝保守+1・自由0・社会−1 の重みを議席で平均した値。第一党が替わっても議席が同じなら協力度は動かない。
+            //   王冠の無い国（共和国）では王権の基盤との親和がそもそも定義されない＝0（登録簿の Crown で見る＝上のストルイピン後退と同じ守り・旗は読まない）。
+            double classAffinity = w.Crown != CrownForm.None ? w.PartySeats[0] - w.PartySeats[2] : 0.0;
             double policyDist = PolicyDistance(w);                               // [0,1]
             // ★レンジの実測（裁定S1・2026-09-21）＝**ここに書いてあった旧の予測「協力度が構造的に優しくなる」は逆だった**（書き直し）。
             //   旧の指数減衰の S は実測で 中央0.0041／p90 0.0487／最大0.1417＝そもそも Min(1.0,·) に一度も触っていない。
@@ -539,8 +542,8 @@ public static class CrownParliament
     }
 
     // 政策距離∈[0,1]＝Policy の目標と施行済み現行値の正規化乖離の平均。
-    // 法軸のうち参政権・教育法・労組・労働時間の目標は与党綱領（Parliament.ApplyPlatform）が毎四半期引き上げ済み（他の法軸は教義・プレイヤー）／スライダー4項（関税・福祉・累進・所得税）の目標は
-    // 教義（SelfPlay）・プレイヤー・通商条約が置く（2026-09-19に経済軸の綱領を撤去＝与党はこの3軸の目標を書かず、議席×党選好として純支持に入る）。
+    // 目標は教義（SelfPlay）・プレイヤー・通商条約・要求への応答が置く＝議会は目標を書かない（2026-09-19 に経済軸の綱領・2026-09-26 に法軸の綱領を撤去＝回5-1 項目17。
+    // 法軸の旧綱領の段は AI の意図〔UtilityAgent.Apply〕へ移した）。党の選好は議席×党選好として純支持に入る。
     // 「国家が目指す法」と「実際に施行されている法」のギャップ＝立法の停滞度（政治ゲートに阻まれた目標＝議会の不満）。
     // enum＝|目標−現行|/レンジ・bool＝不一致1・スライダー＝|目標−現行|（いずれも[0,1]）。既存データのみ＝純関数。
     private static double PolicyDistance(World w)

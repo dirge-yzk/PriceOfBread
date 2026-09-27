@@ -29,7 +29,7 @@ public class TechInstitutionTests
     ///   その 1.110 は終盤の後追い（米の先端への採用）の値＝自由報道の世界の値ではない。</para>
     /// <para>新＝「報道法＝自由報道・教育法＝公教育・参政権＝初期値（自由＝参政権＋報道法の導出なので自由も固定される）を毎四半期書き戻した英・米は
     ///   t&gt;1.10 かつ 宗教固定の対照×1.3 を越える」。統治する主体は置かない（全国 <see cref="NullAgent"/>＝政体・報道法を動かす AI がいない）。
-    ///   議会の綱領も報道法・教育法の目標を書き換える（<c>Parliament.TargetDemand</c>）ので英・米の議会は止める（宗教固定の日本と同じ分離手法）。
+    ///   英・米の議会は止める（宗教固定の日本と同じ分離手法。旧は議会の綱領も報道法・教育法の目標を書き換えた＝2026-09-26 に撤去＝回5-1・今は議席の純支持を切る分離）。
     ///   ⚠弱めていない：床も相対の倍率も期間も旧のまま。旧が「AI が自由を保てば届く」の合成だったのを、「自由と公教育があれば届く」の機構そのものへ絞った
     ///   ＝入力（自由・公教育）を保証したうえで出力（技術）だけを見る。AI が早く検閲を買う挙動は帯の観察事項（99_実装ログ 2026-09-21 ㉖）。</para></summary>
     [Fact]
@@ -41,7 +41,7 @@ public class TechInstitutionTests
         var cfg = Four();
         var sim = new MultiNationSim(cfg, seed: 1789, c => c == cfg[2] || c == cfg[3] ? new FreePressPublicEducationPin() : new NullAgent(),
             coef: new Coefficients { ColoniesAreRegions = 0 });   // ⚠環境固定（クラス冒頭の注記）
-        sim.Nations[2].World.ParliamentEnabled = false;   // 議会の綱領が報道法・教育法の目標を動かさない（宗教固定の日本と同じ分離手法）
+        sim.Nations[2].World.ParliamentEnabled = false;   // 議会を止める（宗教固定の日本と同じ分離手法。綱領は 2026-09-26 に撤去）
         sim.Nations[3].World.ParliamentEnabled = false;
         // 前提の番人＝固定が効いている（効いていなければ主張の入力が崩れている）。
         // ★回1-1（2026-09-26）で**全ての四半期の終わり**を見る形へ（旧＝300四半期の終わりの1点だけ）。
@@ -100,6 +100,7 @@ public class TechInstitutionTests
     // 公教育へ転換する（新基準＝忠実度7割では**望ましい**挙動・batch30で日本exact73%）。機構の意図＝
     // 「宗教教育に**留まる**国は追いつけない」を検証するため、日本の議会を無効化（梯子テストと同じ分離手法）＝
     // NullAgent世界では教育目標が初期値（宗教）のまま動かず、綱領上書きによる転換だけを封じる（政変・経済は生きたまま）。
+    // ★2026-09-26（回5-1 項目17）：綱領は撤去＝議会はもう目標を書かない。分離は議席の純支持を切る分として残す。
     private static MultiNationSim RunWithJapanPinnedReligious(int quarters)
     {
         var sim = new MultiNationSim(Four(), seed: 1789, coef: new Coefficients { ColoniesAreRegions = 0 });

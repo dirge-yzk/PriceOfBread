@@ -382,31 +382,9 @@ public sealed class UtilityAgent : INationAgent
         double MilitaristBase, double TensionTerm, double ColonyDefense, double Survival, double Tension,
         string ThreatFrom, double ThreatRatio);   // ★脅威の出所＝生存効用の max を取った相手（argmax の写し）と、そのときの比
 
-    /// <summary>裁定2026-07-09（黒船動学・Plan A）：伝統教義（旧支配層が支配・非軍国＝<see cref="Doctrine.Balanced"/>）のAIは、
-    /// **外圧なしの平時には近代化の法**（教育法・参政権・女性財産権）を目標に置かない＝満ち足りた幕府は**選んで**鎖国を保つ。
-    /// 外圧＝(a)対外緊張>40（黒船・砲艦外交）(b)存亡の脅威（最強他国の軍/自軍>SurvivalThreatRatio＝ChooseStance の生存判定と同型）
-    /// (c)大衆の闘争度>0.5（下からの内圧）。いずれかが立てば近代化が始まる（明治維新）。
-    /// 幕府「稀だが残る」裁定の維持：高正統性の伝統体制が政治資本で自己近代化し全滅するのを防ぐ。外圧＝黒船が来れば近代化が始まる。
-    /// 経済目標（教育費・行政費・税制・投資）は据え置き＝鎖国の幕府も経済は回す。軍国(Militarist)は別教義＝プロイセン型の軍近代化は妨げない。
-    /// TraditionalistLawGate=1で有効・0で旧挙動（休眠可能）。決定論＝RNGなし（政治状態だけの関数）。</summary>
-    private static bool ModernizationLawsGated(World w)
-    {
-        if (w.Coef.TraditionalistLawGate <= 0) return false;        // 休眠＝旧挙動
-        // ★代議制（立憲/共和）は対象外（2026-08-04）：この門番の本義は「外圧なき伝統体制は近代化法を目標に置かない」。
-        //   議会を持つ国は法の行方を**議会政治**（NetSupport＝ブロック＋議席）が決める＝門前払いする理由がない。
-        //   土地の政治力（LandedPowerCapitalization）で旧支配層が強くなった結果、**単一国テストの英**（立憲・識字最高）まで
-        //   Balanced 教義に倒れて世俗化が止まった（テスト赤2件）＝1783年の英は地主支配の議会のまま近代化した史実と矛盾。
-        if (w.Polity is Polity.ConstitutionalMonarchy or Polity.Republic) return false;
-        if (DoctrineFrom(w) != Doctrine.Balanced) return false;     // 伝統教義のみ（DoctrineFrom：旧支配層が支配し非軍国＝伝統的均衡）
-        const double PressureTension = 40.0;                        // 外圧(a)：この緊張超＝黒船が来ている
-        const double PressureMilitancy = 0.5;                       // 内圧(c)：大衆闘争がこれ超＝下からの改革圧力（SuffrageReformThreshold と同水準）
-        double tension = w.Diplomacy is { } dip && w.SelfPower is { } sp ? dip.MaxTension(sp) : 0;
-        if (tension > PressureTension) return false;
-        // 外圧(b)＝全球の軍事比較は撤去（2026-07-09実測：53カ国世界では「地球のどこかに強軍がある」が常時真＝江戸1.2 vs 英4.5でゲート不発＝幕府0/30のまま）。
-        // 黒船の本義は**近接圧力**＝(a)の対外緊張が既に担う（ペリー来航＝緊張上昇イベント）。交戦中は緊張が高いので(a)に包含される。
-        if (Politics.AvgMassMilitancy(w) > PressureMilitancy) return false;
-        return true;   // 平時の伝統体制＝近代化法を目標に置かない（目標は初期値＝現状のまま＝現状維持）
-    }
+    // 【墓標2026-09-26・回5-1 項目19】AIだけの伝統主義ゲート（旧 ModernizationLawsGated・係数 TraditionalistLawGate・裁定2026-07-09 黒船動学）を削除。
+    //   プレイヤー（NullAgent）には無い門＝思想⑤の違反。近代化の法（教育法・参政権・女性の権利・秘密投票・専門官僚制・独禁・同業組合）を置けるかは
+    //   法律タブと同じ GateInfo（GateAllLawTargets）・旧支配層の抵抗（PolicyPreferences）・政治資本の在庫で決まる＝プレイヤーと同じ物差し。
 
     /// <summary>財政バッファ＝月次義務（維持費＋利払い＋行政・軍装備の請求権）の <see cref="Coefficients.FiscalStressBufferMonths"/> か月分。
     /// 財政逼迫の物差し（監査2026-07-11 リ4）：旧＝国庫50,000の絶対額固定を53カ国（初期国庫約370倍差）へ一律適用＝
@@ -539,7 +517,7 @@ public sealed class UtilityAgent : INationAgent
     /// <summary>E5/E6の9法へのAI目標書き手（02断線走査2026-07-28）：doctrine から新法の目標を導く。器・効果・主フラグは全て点火済みだったが
     /// 書き手が人間UIのみで、53カ国バッチでは9法が enum 既定値から永久に動かなかった（プロイセン文官改革もソ連国有化も英配給も原理的に不発）。
     /// 実際の施行は政治ゲート（Government.StepEnum/StepBool＝利益集団の抵抗）が決める。</summary>
-    private static void DecideModernLaws(World w, NationPolicy p, Stance s, bool lawGate)
+    private static void DecideModernLaws(World w, NationPolicy p, Stance s)
     {
         bool atWar = w.Diplomacy is { } dip && w.SelfPower is { } sp && dip.Wars.Any(war => war.A == sp || war.B == sp);
         p.WartimeRationing = atWar;                                                       // 交戦中のみ配給（平時は解除＝資本の反対を無用に買わない）
@@ -551,16 +529,13 @@ public sealed class UtilityAgent : INationAgent
         if (w.Coef.RebelArmsMarketEnabled > 0) p.CivilianArmsBan = w.Suffrage < Suffrage.AdultMale;
         p.ConscriptionLaw = (s == Stance.Militarize || atWar) ? ConscriptionLaw.Selective
             : (w.Suffrage >= Suffrage.AdultMale ? ConscriptionLaw.Volunteer : p.ConscriptionLaw);   // 常備軍志向＝徴兵制／平時の自由民主国＝小さな職業軍（英米型）。他は現状維持
-        if (!lawGate)   // 裁定2026-07-09：外圧なき伝統体制には近代化法を勧めない（秘密投票・専門官僚・独禁は近代化法）
-        {
-            if (w.Suffrage >= Suffrage.AdultMale) p.SecretBallot = SecretBallotLaw.Secret;   // 大衆選挙＝買収・威圧の排除が票の実在に直結
-            if (w.AdminEfficiency > ProfessionalBureaucracyAdminThreshold) p.Bureaucracy = BureaucracyLaw.Professional;   // 行政力が育った国＝専門官僚制へ（プロイセン文官改革）
-            if (w.MeanIndustrialization > AntitrustIndThreshold)
-                p.Antitrust = w.MeanIndustrialization > TrustbustIndThreshold ? AntitrustLaw.Trustbust : AntitrustLaw.CartelBan;   // 工業化＝独占の弊害が政治問題化（シャーマン法1890）
-            // ★特権 段4：工業化した国は同業組合を剥がす（独禁と同じ閾値＝工業の政治が立つ度合い・新しい数を作らない）。ゲート0＝目標を書かない＝恒等
-            if (w.Coef.GuildLawGate > 0 && w.MeanIndustrialization > AntitrustIndThreshold)
-                p.Guild = w.MeanIndustrialization > TrustbustIndThreshold ? GuildLaw.None : GuildLaw.Limited;
-        }
+        if (w.Suffrage >= Suffrage.AdultMale) p.SecretBallot = SecretBallotLaw.Secret;   // 大衆選挙＝買収・威圧の排除が票の実在に直結
+        if (w.AdminEfficiency > ProfessionalBureaucracyAdminThreshold) p.Bureaucracy = BureaucracyLaw.Professional;   // 行政力が育った国＝専門官僚制へ（プロイセン文官改革）
+        if (w.MeanIndustrialization > AntitrustIndThreshold)
+            p.Antitrust = w.MeanIndustrialization > TrustbustIndThreshold ? AntitrustLaw.Trustbust : AntitrustLaw.CartelBan;   // 工業化＝独占の弊害が政治問題化（シャーマン法1890）
+        // ★特権 段4：工業化した国は同業組合を剥がす（独禁と同じ閾値＝工業の政治が立つ度合い・新しい数を作らない）。ゲート0＝目標を書かない＝恒等
+        if (w.Coef.GuildLawGate > 0 && w.MeanIndustrialization > AntitrustIndThreshold)
+            p.Guild = w.MeanIndustrialization > TrustbustIndThreshold ? GuildLaw.None : GuildLaw.Limited;
         if (w.Polity == Polity.ProletarianDictatorship)
         {   // プロ独裁＝全部門国有化（5部門＋『全て』＝ソ連型計画経済。§11-6d統合後の全点灯）
             p.NationalizeRailways = p.NationalizeMines = p.NationalizeMilitary = p.NationalizeOil
@@ -570,7 +545,7 @@ public sealed class UtilityAgent : INationAgent
             p.NationalizeRailways = p.NationalizeElectricity = true;   // 社会党執政＝自然独占2部門（アトリー型・戦後国有化。旧・通信は『全て』へ統合＝ソ連型以外は目標に置けない）
 
         // ★AI第1波③（2026-08-16・AiLawWriteCoverage>0）：書き手ゼロ2法（移民制限法・国教法）のAI目標。
-        // 旧＝議会与党の綱領（Parliament.ApplyPlatform）のみ＝非選挙政体（1783年の54カ国中46カ国）では誰もこの2法を動かさなかった。
+        // 旧＝議会与党の綱領（Parliament.ApplyPlatform・2026-09-26 に撤去＝回5-1）のみ＝非選挙政体（1783年の54カ国中46カ国）では誰もこの2法を動かさなかった。
         // ⚠書き込みは必ず StepLawToward 経由（GateInfo確認・1段ずつ）＝AiLawGateUnified の状態に依存せず幽霊戦線を新設しない独立設計。
         // ⚠0＝ブロックごと不実行（新しい読みもしない）＝ビット恒等。
         if (w.Coef.AiLawWriteCoverage > 0)
@@ -1129,10 +1104,9 @@ public sealed class UtilityAgent : INationAgent
         foreach (var mp in dip.Megaprojects) Megaprojects.TryStart(w, mp);
     }
 
-    private static void Apply(World w, Stance s)
+    internal static void Apply(World w, Stance s)   // internal＝番人テストがスタンスを固定して呼ぶためだけ（回5-1 項目19・可視性のみ）
     {
         var p = w.Policy;
-        bool lawGate = ModernizationLawsGated(w);   // 裁定2026-07-09：伝統体制の平時は近代化法（教育/参政権/女性財産権）を目標に置かない（黒船動学）
         p.CoercionTarget = 400;          // 既定＝低治安維持力（警察・内政の鎮圧）。軍備スタンス(Militarize)のみ4000へ
         // ★専売（作者裁定2026-09-20「専売の率を法律から完全に消す。材を選ぶのみにする」）＝教義が選ぶのは率でなく**対象の広さ**（World.StateMonopolyLadder の段）。
         //   逆進性の順＝奢侈が先・主食が最後。旧の率（0.1〜0.4・ソ連風0.8）はこの段へ翻訳した＝新しい数も新しい状態変数も作らない（毎期ここで導出して末尾で書く）。
@@ -1144,13 +1118,10 @@ public sealed class UtilityAgent : INationAgent
         switch (s)
         {
             case Stance.Modernize:
-                if (!lawGate)   // 裁定2026-07-09：外圧なき伝統体制は教育法を目標に置かない（教育費など経済目標は据え置き）
-                {
-                    p.EducationLaw = EducationLaw.Public;
-                    // 豊かな近代化国は義務教育へ＝popが買えない教育を国庫が買い全民就学（多大な財政コスト＝豊かさが前提）。
-                    if (w.EducationLaw >= EducationLaw.Public && w.TechLevel > CompulsoryEduTechThreshold && w.Treasury > CompulsoryEduBufferMult * FiscalBufferOf(w))   // 旧150,000固定＝旧閾値50,000の3倍→バッファの3倍へ規模中立化（監査2026-07-11 リ4：小型先進国が義務教育を目標に置けなかった）
-                        p.EducationLaw = EducationLaw.Compulsory;
-                }
+                p.EducationLaw = EducationLaw.Public;
+                // 豊かな近代化国は義務教育へ＝popが買えない教育を国庫が買い全民就学（多大な財政コスト＝豊かさが前提）。
+                if (w.EducationLaw >= EducationLaw.Public && w.TechLevel > CompulsoryEduTechThreshold && w.Treasury > CompulsoryEduBufferMult * FiscalBufferOf(w))   // 旧150,000固定＝旧閾値50,000の3倍→バッファの3倍へ規模中立化（監査2026-07-11 リ4：小型先進国が義務教育を目標に置けなかった）
+                    p.EducationLaw = EducationLaw.Compulsory;
                 p.EducationSpendingTarget = Government.EducationSpendingTop;   // ★錨2026-09-18＝この軸の教義最大＝段の最上段（値は Government へ移設・ここは参照）
                 p.AdminSpendingTarget = 0.6;    // 近代国家＝行政を整備（汚職を抑える＝税の漏れが減る→検地台帳のアンロックにも繋がる）
                 p.IncomeTaxTarget = 0.25;   // 治安維持力は上の教義既定に従う（軍国は大軍のまま近代化）
@@ -1158,15 +1129,12 @@ public sealed class UtilityAgent : INationAgent
                 stateMonopTier = 1;   // 専売は奢侈品どまり（旧0.2）
                 p.SocialSecurityTarget = 0.3;   // 近代国家は公共医療を一定維持＝人口増（乳児死亡の低下）
                 p.ChildLaborAllowed = false;    // 近代化＝児童労働を禁止（出力↓だが識字↑＝教育→医療→人口）
-                if (!lawGate)   // 裁定2026-07-09：女性財産権・参政権も同ゲート（黒船が来れば置かれる＝明治維新）
-                {
-                    if (w.TechLevel > WomenPropertyTechThreshold) RaiseWomenRights(p, WomenRightsLaw.Property);   // 成熟した近代国家＝女性財産権（労働供給+2割・普通選挙への布石）
-                    if (w.TechLevel > WomenSuffrageTechThreshold) RaiseWomenRights(p, WomenRightsLaw.Suffrage);   // ★統合法：選挙権の段は財産権より後（tech閾値↑）。教育権の段は梯子が通る
-                    if (w.TechLevel > CensusSuffrageTechThreshold && p.Suffrage < Suffrage.Census) p.Suffrage = Suffrage.Census;
-                }
+                if (w.TechLevel > WomenPropertyTechThreshold) RaiseWomenRights(p, WomenRightsLaw.Property);   // 成熟した近代国家＝女性財産権（労働供給+2割・普通選挙への布石）
+                if (w.TechLevel > WomenSuffrageTechThreshold) RaiseWomenRights(p, WomenRightsLaw.Suffrage);   // ★統合法：選挙権の段は財産権より後（tech閾値↑）。教育権の段は梯子が通る
+                if (w.TechLevel > CensusSuffrageTechThreshold && p.Suffrage < Suffrage.Census) p.Suffrage = Suffrage.Census;
                 break;
             case Stance.Industrialize:
-                if (!lawGate) p.EducationLaw = EducationLaw.Public;   // 裁定2026-07-09：伝統体制の平時は教育法も据え置き
+                p.EducationLaw = EducationLaw.Public;
                 p.EducationSpendingTarget = 0.6;
                 p.AdminSpendingTarget = 0.5;
                 p.IncomeTaxTarget = 0.15; p.TariffTarget = 0.2;
@@ -1177,12 +1145,7 @@ public sealed class UtilityAgent : INationAgent
             case Stance.Welfare:
                 p.SocialSecurityTarget = 0.6; p.EducationSpendingTarget = 0.5;
                 p.AdminSpendingTarget = 0.5;
-                // 他18（監査2026-07-11・2026-07-25修正）：女性財産権/参政権はゲート対象3法＝Welfareスタンス（飢饉駆動で伝統体制も入る）
-                // だけ無ゲートで目標化される実装漏れ＝裁定2026-07-09「外圧なき伝統体制には近代化法を置かない」に矛盾していた
-                if (!lawGate)
-                {
-                    RaiseWomenRights(p, WomenRightsLaw.Suffrage);   // 労働者福祉＝女性の権利も梯子の最上段まで推進（北欧型・自分の賃金を持ち、学び、投票する）
-                }
+                RaiseWomenRights(p, WomenRightsLaw.Suffrage);   // 労働者福祉＝女性の権利も梯子の最上段まで推進（北欧型・自分の賃金を持ち、学び、投票する）
                 p.IncomeTaxTarget = 0.2;
                 p.ProgressiveTaxTarget = 0.6; p.LandTaxTarget = Government.LandTaxTop; p.PollTaxTarget = 0;   // 福祉の財源＝富裕層から（再分配）
                 stateMonopTier = 1;   // 逆進税は最小限＝奢侈品だけ（旧0.1）
@@ -1224,7 +1187,7 @@ public sealed class UtilityAgent : INationAgent
                 // 参政権の制限選挙（Census）への後退を**目標に置く**だけ＝実際に通るかは通常の政治ゲート（参政権は憲法級＝硬い純支持＞0）が決める。
                 // ＝後退は支持が反対を上回るときだけ通る（参政権は 2026-08-04 から憲法級＝政治資本では押し切れない。旧注記「正統性の高い軍国民主国だけが
                 //   大衆の反対を押し切って後退でき、その度に政治資本を燃やす」は余白 θ の世界の記述＝2026-09-21 ㉖で訂正）。
-                // 高闘争時は下の譲歩（AdultMale目標）が上書き＝革命脅威下では後退できない。社会党与党は Parliament の綱領が再引き上げ＝右派政権のみ実行可。
+                // 高闘争時は下の譲歩（AdultMale目標）が上書き＝革命脅威下では後退できない。社会党与党は下の「議会の構成を読む」段落が引き上げる＝右派政権のみ実行可。
                 if (w.Polity is Polity.ConstitutionalMonarchy or Polity.Republic && DoctrineFrom(w) == Doctrine.Militarist)
                     p.Suffrage = Suffrage.Census;
                 break;
@@ -1262,7 +1225,30 @@ public sealed class UtilityAgent : INationAgent
         if (Politics.AvgMassMilitancy(w) > w.Coef.SuffrageReformThreshold && p.Suffrage < Suffrage.AdultMale)
             p.Suffrage = Suffrage.AdultMale;
 
-        DecideModernLaws(w, p, s, lawGate);   // 02断線走査2026-07-28：E5/E6の9法にもAIの目標を置く（施行可否は政治ゲート）
+        // ★議会の構成を読む（回5-1 項目17・2026-09-26）：旧 Parliament.ApplyPlatform の法軸の段を AI の意図へ移した＝値も適用範囲も同じ
+        //   （議会あり・政治あり・内戦中でない・立憲か共和）。旧はプレイヤー国の目標まで毎四半期上書きし、門の畳み（GateAllLawTargets）の**後**に書いて幽霊戦線を作っていた。
+        //   ここはスタンス既定（検閲・労組・労働時間の毎期の再代入）と軍国の民主的後退の後ろ＝旧と同じく与党の段がそれらを上書きし、
+        //   危機の要求（TargetCrisisDemands）と門の畳みの前＝危機の要求が最後の言葉・通らない段は法律タブと同じ GateInfo で畳まれる。
+        //   読むのは与党の札（第一党）＝プレイヤーも政治タブで同じ札を見る。⚠AI は Parliament.Step より前に判断する＝選挙の四半期だけ新しい与党の段が1期遅れる。
+        if (w.ParliamentEnabled && w.PoliticsEnabled && !w.InCivilWar
+            && w.Polity is Polity.ConstitutionalMonarchy or Polity.Republic)
+        {
+            if (w.GoverningParty == (int)Parliament.Party.Liberal)          // 近代エリート＝公教育・制限選挙・10時間法
+            {
+                if (p.EducationLaw < EducationLaw.Public) p.EducationLaw = EducationLaw.Public;
+                if (p.Suffrage < Suffrage.Census) p.Suffrage = Suffrage.Census;
+                if (p.WorkHours > WorkHours.Ten) p.WorkHours = WorkHours.Ten;
+            }
+            else if (w.GoverningParty == (int)Parliament.Party.Socialist)   // 大衆＝公教育・男子普選・労組の容認・8時間労働
+            {
+                if (p.EducationLaw < EducationLaw.Public) p.EducationLaw = EducationLaw.Public;
+                if (p.Suffrage < Suffrage.AdultMale) p.Suffrage = Suffrage.AdultMale;
+                p.LaborUnion = LaborUnionLaw.Tolerated;
+                p.WorkHours = WorkHours.Eight;
+            }
+        }
+
+        DecideModernLaws(w, p, s);   // 02断線走査2026-07-28：E5/E6の9法にもAIの目標を置く（施行可否は政治ゲート）
 
         // 反景気循環的金融政策（教義の金利を上書き）：景気後退で利下げ＝信用を支え恐慌を緩衝、過熱で利上げ＝引締。
         // ＝賢い中央銀行ほど恐慌を浅く短くできる（恐慌回避の巧拙が国力差に出るか計測する）。
@@ -1301,7 +1287,7 @@ public sealed class UtilityAgent : INationAgent
 
         // ★★3法のAI（設計＝docs/202608/20260802_3法の開放_部分完了.md【完了】.md・段2・2026-08-02）：穀物法・土地改革・農奴解放。
         // ⚠これまでAIは3軸に触れず「議会が自動で動かすから」とされていたが、**1783年の54カ国中46カ国は非選挙政体で
-        //   ApplyPlatform が丸ごとスキップされる**＝実際には誰も動かしていなかった。開放の主効果はここに出る（露・清・オスマン）。
+        //   ApplyPlatform（2026-09-26 に撤去＝回5-1）が丸ごとスキップされる**＝実際には誰も動かしていなかった。開放の主効果はここに出る（露・清・オスマン）。
         // ⚠⚠**PolicyPreferences を「AIの賛否」として読んではならない**＝あれはゲートの入力（物質的立場）で、
         //   それを意図として読むと「通る法しか望まない」トートロジーになり、自党を割って押し切る型が表現できなくなる。
         //   だからAIは**既存の物質量**だけを読む。

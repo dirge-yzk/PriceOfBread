@@ -820,7 +820,7 @@ public sealed class Simulation
         //   1783年の現実は逆＝土地が国富の過半で、それを握るのが貴族（英の改革法1832は地主支配への闘争そのもの・
         //   ユンカーは1918年まで支配・仏は革命前夜）。
         //   ── 帰結の連鎖（これが「制度の階段が立たない」の統一根）───────────────
-        //   旧支配層に富が無い → DoctrineFrom が近代化派に倒れる → 法の門番（ModernizationLawsGated＝伝統教義のみ発動）が
+        //   旧支配層に富が無い → DoctrineFrom が近代化派に倒れる → 法の門番（旧 ModernizationLawsGated＝伝統教義のみ発動・2026-09-26 に削除＝回5-1 項目19）が
         //   全員素通り → 教育/官僚/検閲が全国1783年に通る（lawtiming実測）→ 識字・技術・吸収能力が収束 → 工業化が全球収束。
         //   ⚠ClosedWealthMultiple=1.0 で旧と厳密恒等（×1.0はIEEE754で恒等）。
         var nobility     = MkPop(0, "貴族",       false, cfg.Nobility * (1 - cfg.ClergyFrac) * share, cfg.NobLit,  3000 * coef.ClosedWealthMultiple, closed: true);
@@ -1563,7 +1563,7 @@ public sealed class Simulation
         }
         _agent.DecideQuarter(World);
         UpdateRegionalPriceLevels();           // 地域別の貨幣的物価乗数（地域物価・名目賃金の格差）を四半期ごとに更新。日次の StepDay が r.PriceLevel に適用
-        Parliament.Step(World, World.Coef);   // 議会・選挙（段5）：与党の綱領が法軸（参政権・教育法・労組・労働時間）の目標を引き上げ（doctrine の後・経済軸は書かない＝2026-09-19）。ParliamentEnabled の国のみ＝較正不変
+        Parliament.Step(World, World.Coef);   // 議会・選挙（段5）：得票・選挙・議席。目標は書かない（法軸の綱領は 2026-09-26 に撤去＝回5-1 項目17・AI の意図へ移設／経済軸は 2026-09-19）。ParliamentEnabled の国のみ＝較正不変
         World.ApplyModernizationInvestment();      // 近代化投資（UI・AI 共通の動詞）
         Government.Step(World, World.Coef);   // 政策を反映（法整備＝即時／スライダー＝利益集団の力で律速して漸進）
     }

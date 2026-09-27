@@ -1288,14 +1288,13 @@ public class RevoltIgnitionTests
         var (ok, _, reason) = Government.GateInfo(w, PolicyAxis.Antitrust, true, (int)AntitrustLaw.CartelBan);
         Assert.False(ok); Assert.Contains("官僚制度", reason);   // 法律タブならこの段は押せない（LawRowVM.CanReachAndAfford＝同じ関数）
         p.Antitrust = w.Antitrust;
-        Parliament.TargetDemand(w, PolicyAxis.Antitrust, true, gated: true);
+        Parliament.TargetDemand(w, PolicyAxis.Antitrust, true);
         Assert.Equal(w.Antitrust, p.Antitrust);        // 置かれない＝拒否（幽霊戦線も開かない）
-        Parliament.TargetDemand(w, PolicyAxis.Antitrust, true);   // gated=false（議会の綱領の旧作法）＝門を見ずに置く
-        Assert.Equal(AntitrustLaw.CartelBan, p.Antitrust);
+        // （旧の対照＝門を見ない呼び手〔議会の動的与党の要求〕は 2026-09-26 に撤去＝回5-1 項目17・引数 gated ごと消えた）
         // 前提が満ちて門が開けば同じ呼び出しで置かれる
         w.Bureaucracy = BureaucracyLaw.MeritExam; w.PoliticalLockEnabled = false;
         p.Antitrust = w.Antitrust;
-        Parliament.TargetDemand(w, PolicyAxis.Antitrust, true, gated: true);
+        Parliament.TargetDemand(w, PolicyAxis.Antitrust, true);
         Assert.Equal(AntitrustLaw.CartelBan, p.Antitrust);
         Assert.Equal(AntitrustLaw.None, w.Antitrust);   // 目標だけ＝現行法は Government.Step が動かす
     }
@@ -1387,7 +1386,7 @@ public class RevoltIgnitionTests
         Assert.Equal(mil0, Array.ConvertAll(w.Regions[2].Pops.ToArray(), q => q.Militancy));   // 目標を置いただけでは鎮まらない（緩和は施行の時点）
         Assert.Equal(law0 + (inc ? 1 : -1), F1TargetLevel(w, axis));          // 目標＝現行法から1段（法律タブが書くのと同じ p.X）
         var placed = PolicyVector(w);
-        Parliament.TargetDemand(w, axis, inc, gated: true);                    // 同じ関数（初心者経路/AI）を重ねても動かない＝同じ段を指している
+        Parliament.TargetDemand(w, axis, inc);                                 // 同じ関数（初心者経路/AI）を重ねても動かない＝同じ段を指している
         Assert.Equal(placed, PolicyVector(w));
         Government.Step(w, w.Coef);                                            // 通常の施行経路（1期1段・前提DAG・不可逆・MandateGate）
         Assert.Equal(law0 + (inc ? 1 : -1), F1LawLevel(w, axis));

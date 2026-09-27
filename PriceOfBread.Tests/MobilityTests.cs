@@ -158,10 +158,6 @@ public class MobilityTests
         var cfg = NationConfig.Japan();
         var sim = new Simulation(cfg.ToScenario(53), new UtilityAgent());   // 統治AI＝いずれ公教育へ世俗化→聖職者は教育収入を失う
         sim.World.ParliamentEnabled = false;   // 聖職の世俗化没落＋下限（Meritocracy）の機構を検証＝議会の教育加速は別レイヤーなので isolate
-        // ★黒船門番も isolate（2026-08-04）：土地の政治力（LandedPowerCapitalization）で外圧なき幕府は公教育を
-        //   目標に置かなくなった（裁定2026-07-09の門番が**初めて実際に閉まる**ようになった＝設計どおり）。
-        //   このテストの主題は「世俗化が起きたとき聖職者は没落するが絶滅しない」＝世俗化の政治的可否は別レイヤー。
-        sim.World.Coef.TraditionalistLawGate = 0;
         sim.World.PoliticalLockEnabled = false;   // 法の政治ゲートも isolate（所得税テストと同じ標準手法）＝土地の政治力で旧支配層が世俗化を票で止めるのは正しい挙動だが、このテストの主題ではない
 
         var r = sim.World.Region;
