@@ -254,4 +254,38 @@ public class WarThemeTests
         }
     }
 
+    // ===== 押しの式は1か所（2026-09-28 回8-1・棚卸し mil-11）=====
+    // ⚠機構だけを見る：戦線ごとの押しは月に1回だけ計算され、接触（戦死の入力＝各戦線の min(押しA, 押しB) の和）と
+    //   戦勝点の押し合い（War.PushA/PushB に積む値）が**同じ値**を読む。旧＝同じ式を2か所に書いていた（片方だけ直す事故の型）。
+    //   盤面＝仏×英・仏×米の2戦線（相手の距離が違う＝2本の押しが違う）。運と塹壕は0＝押しの値がそのまま見える。
+    //   接触は CasualtyProbe の上限前の戦死から逆算する（戦死＝Rate×兵士×接触÷ゲージ・制空は空軍0の時代＝×1.0）。
+    [Fact]
+    public void 押しは戦線ごとに1回だけ計算され接触と戦勝点が同じ値を読む()
+    {
+        var sim = new MultiNationSim([NationConfig.France(), NationConfig.Britain(), NationConfig.America()], seed: 1789);
+        var c = sim.Coef;
+        c.WarDeclareTension = 1e9;   // 自発的な宣戦を止める（戦線は手で立てる）
+        sim.Run(20);                 // 兵士POP・国庫・海軍が立つまで
+        c.SeaInvasionControlMin = 0; // 上陸ゲートを恒等へ（測るのは押しの通り道で、上陸の可否ではない）
+        c.WarLuck = 0; c.TrenchDefenseWeight = 0;
+        var fr = sim.Nations[0].World.SelfPower!; var br = sim.Nations[1].World.SelfPower!; var am = sim.Nations[2].World.SelfPower!;
+        var w1 = new War { A = fr, B = br }; var w2 = new War { A = fr, B = am };
+        sim.Diplomacy.Wars.Add(w1); sim.Diplomacy.Wars.Add(w2);
+        var hits = new System.Collections.Generic.List<(double force, double soldiers)>();
+        sim.Diplomacy.CasualtyProbe = (f, s) => hits.Add((f, s));
+        sim.Diplomacy.Step(c, sim.Rng, month: 61);   // 四半期の AI・調停が走らない月
+        Assert.Equal(2, sim.Diplomacy.Wars.Count);   // 前提が崩れた：戦線が講和で消えた
+        Assert.True(w1.PushA > 0 && w2.PushA > 0 && w1.PushB > 0 && w2.PushB > 0, $"前提が崩れた：押しが立っていない（{w1.PushA:G6}/{w1.PushB:G6}/{w2.PushA:G6}/{w2.PushB:G6}）");
+        Assert.True(Math.Abs(w1.PushA - w2.PushA) > 1e-6 * w1.PushA, "前提が崩れた：2本の戦線の押しが同じ（添字の取り違えを測れない）");
+        // 戦死の計器は Powers の順に交戦国ごとに1回呼ばれる（仏・英・米）
+        var order = new System.Collections.Generic.List<Power>();
+        foreach (var p in sim.Diplomacy.Powers) if (p == fr || p == br || p == am) order.Add(p);
+        Assert.Equal(3, hits.Count);
+        double Contact(Power p) { var (f, s) = hits[order.IndexOf(p)]; return f * p.Military / (c.WarCasualtyRate * s); }
+        double m1 = Math.Min(w1.PushA, w1.PushB), m2 = Math.Min(w2.PushA, w2.PushB);
+        Assert.True(Math.Abs(Contact(fr) - (m1 + m2)) <= 1e-9 * (m1 + m2), $"仏の接触 {Contact(fr):G17} が2戦線の min(押し) の和 {m1 + m2:G17} でない");
+        Assert.True(Math.Abs(Contact(br) - m1) <= 1e-9 * m1, $"英の接触 {Contact(br):G17} が仏英戦線の min(押し) {m1:G17} でない");
+        Assert.True(Math.Abs(Contact(am) - m2) <= 1e-9 * m2, $"米の接触 {Contact(am):G17} が仏米戦線の min(押し) {m2:G17} でない");
+    }
+
 }

@@ -2156,14 +2156,27 @@ public sealed class Diplomacy
         // 外2：各戦線の実接触強度＝min(aPush,bPush)＝両軍が実際にぶつかる前線の激しさ（投射が届かず片側Push≈0の遠隔戦は接触も薄い）。
         // Power単位に合算＝多正面国の総接触。fundRatio 確定後に計算（Fund の副作用を二重に踏まない）。
         // ★2026-09-27 回2-1b：旗 CasualtiesFromContact（1.0で点火済み・0＝自軍の Military を基準にする旧の枝）を焼き込んで削除＝常に計算する。
+        // ★2026-09-28 回8-1（棚卸し mil-11）：押しの式はここの1か所だけ＝戦線ごとに1回計算し、下の戦勝点の押し合いが同じ値を読む
+        //   （旧＝同じ式を戦勝点の側でもう一度書き、1か月に2回計算していた＝片方だけ直す事故の型）。
+        //   塹壕は戦勝点の側で後から掛ける（接触には掛けない＝意図的な非対称）＝式が同じ間は値も同じ。
+        //   ⚠値は月の初めの盤面から取る＝全ての戦線が同じ盤面で同時に戦う（旧＝下の講和の走査で先に終わった戦争の結果
+        //     〔割譲・属国化・運河の通行〕を、同じ月の他の戦線の2回目の計算だけが読めた）。配列は Wars の添字に揃える
+        //     （下の走査は後ろから1つずつ RemoveAt するだけ＝まだ訪れていない添字はずれない・追加は末尾）。
         var contact = new Dictionary<Power, double>();
-        foreach (var war in Wars)
+        int nWars = Wars.Count;
+        var pushA = new double[nWars]; var pushB = new double[nWars]; var landFront = new bool[nWars];
+        for (int wi = 0; wi < nWars; wi++)
         {
-            double acC = AirCtl(war.A, war.B);   // 1934拡張E2：制空の押し合い補正（空軍0の時代＝0.5＝×1.0恒等）
-            // ★上陸ゲート（2026-08-01）：海越え戦線では制海権を取った側しか押せない（SeaInvasionControlMin=0 で常に1.0＝恒等）
-            double landC = LandBattleHappens(war.A, war.B, c) ? 1.0 : 0.0;   // ★どちらか一方でも上陸できれば陸戦は起きる（起きたら双方が全力で戦う）
+            var war = Wars[wi];
+            double acC = AirCtl(war.A, war.B);   // 1934拡張E2：制空の押し合い補正（偵察・着弾観測＝制空側の砲兵が当たる）。空軍0の時代＝0.5＝×1.0恒等
+            // ★上陸ゲート（2026-08-01・作者裁定）：海越え戦線では**制海権を取った側だけが陸で押せる**＝海軍で勝たないとブリテン島に乗れない
+            //   （SeaInvasionControlMin=0 で常に1.0＝恒等）。★どちらか一方でも上陸できれば陸戦は起きる（起きたら双方が全力で戦う）。
+            //   ⚠片側だけを0にすると守る側が自国土で押し返せなくなる。
+            double landC = LandBattleHappens(war.A, war.B, c) ? 1.0 : 0.0;
+            // 押し合い＝陸軍力×戦費充足×投射係数の差（B-1）。**戦力は戦線数で割る**＝多正面の国は各戦線で弱くなり連合が勝つ（弱い側が崩壊＝決定的）。
             double aPush = war.A.LandPower / Math.Max(1, fronts[war.A]) * fundRatio[war.A] * Projection(war.A, war.B, c) * landC * (1.0 + c.AirControlPushWeight * (acC - 0.5));
             double bPush = war.B.LandPower / Math.Max(1, fronts[war.B]) * fundRatio[war.B] * Projection(war.B, war.A, c) * landC * (1.0 + c.AirControlPushWeight * (0.5 - acC));
+            pushA[wi] = aPush; pushB[wi] = bPush; landFront[wi] = landC > 0;
             double contactStrength = Math.Min(aPush, bPush);   // 前線の実接触＝弱い側の押し（片側が届かなければ小）
             contact[war.A] = contact.GetValueOrDefault(war.A) + contactStrength;
             contact[war.B] = contact.GetValueOrDefault(war.B) + contactStrength;
@@ -2270,13 +2283,8 @@ public sealed class Diplomacy
             war.Months++;
             // 戦況の運（決定的会戦・補給・士気の揺らぎ）：盤面非依存の決定論ハッシュ（A-3#8）。ペア×年×経過月で変動。
             double luck = c.WarLuck * (Hash01(Key(war.A, war.B) ^ ((long)_year << 20), war.Months) * 2 - 1);
-            // 押し合い＝陸軍力×戦費充足×投射係数の差（B-1）。**戦力は戦線数で割る**＝多正面の国は各戦線で弱くなり連合が勝つ（弱い側が崩壊＝決定的）。
-            // 1934拡張E2：制空補正（偵察・着弾観測＝制空側の砲兵が当たる）。空軍0の時代＝AirCtl 0.5＝×1.0恒等。
-            double acP = AirCtl(war.A, war.B);
-            // ★上陸ゲート（2026-08-01・作者裁定）：海越え戦線では**制海権を取った側だけが陸で押せる**＝海軍で勝たないとブリテン島に乗れない
-            double landP = LandBattleHappens(war.A, war.B, c) ? 1.0 : 0.0;   // ★同上。⚠片側だけを0にすると守る側が自国土で押し返せなくなる
-            double aPush = war.A.LandPower / Math.Max(1, fronts[war.A]) * fundRatio[war.A] * Projection(war.A, war.B, c) * landP * (1.0 + c.AirControlPushWeight * (acP - 0.5));
-            double bPush = war.B.LandPower / Math.Max(1, fronts[war.B]) * fundRatio[war.B] * Projection(war.B, war.A, c) * landP * (1.0 + c.AirControlPushWeight * (0.5 - acP));
+            // 押し合い＝上の接触の走査で戦線ごとに1回だけ計算した値（mil-11・式は1か所）。
+            double aPush = pushA[i], bPush = pushB[i];
             // ★塹壕（2026-08-13・doc 20260812_塹壕と戦車）：守る側の機関銃が壁を作り、攻める側の戦車だけが壁を消す。
             //   ⚠読むのは**陸分**の充足率（MilitaryQualityLandFill/MilitaryTier3LandFill）。合算を読むと
             //     弩級戦艦で塹壕を破れてしまう（上位段とtier3は陸海が同居している）。
@@ -2311,7 +2319,7 @@ public sealed class Diplomacy
             //   戦争の解決は元から**月次**（war.Months が月で進み、毎月この押し合いが1回走る）＝ラウンドの実体は既にある。
             //   欠けていたのは**その月に何が起きたかが誰にも見えない**ことだった（終戦時に一括で結果が出るだけ）。
             //   ここでは新しい判定を足さず、**この月の押し合いの結果をそのまま**年表へ書く＝表示と物理が同じ。
-            //   ⚠陸戦か海戦か＝上陸ゲート（landP）で決まる。陸で押し合えない月は海の戦い（制海権の奪い合い）である。
+            //   ⚠陸戦か海戦か＝上陸ゲート（landFront＝接触の走査で取った値）で決まる。陸で押し合えない月は海の戦い（制海権の奪い合い）である。
             //   ⚠勝敗の度合いは delta（今月の戦勝点の動き）を CollapseScore で正規化した値で語る＝別の物差しを作らない。
             //   ⚠BattleLogEnabled=0 で1行も書かない（既定ON・lean バッチは Log.Enabled=false で元から沈黙）。
             // ★書式の確定（2026-08-10・作者指定「yyyy/mm/dd『イギリスがポルトガルに陸戦で快勝（戦勝点+n）』」）：
@@ -2326,7 +2334,7 @@ public sealed class Diplomacy
             //     （Tests は不変の文化で走らせる＝PriceOfBread.Tests.csproj）。年表と出来事パネルの本文の括弧も同じ回に全角へ揃えた。
             if (c.BattleLogEnabled > 0 && Log.Enabled && Math.Abs(delta) > 1e-9)
             {
-                string kind = landP > 0 ? "陸戦" : "海戦";
+                string kind = landFront[i] ? "陸戦" : "海戦";
                 double mag = Math.Abs(delta) / Math.Max(1e-9, CollapseScore);
                 string grade = mag >= c.BattleDecisiveMargin ? "圧勝" : mag >= c.BattleClearMargin ? "快勝" : "辛勝";
                 var winner = delta > 0 ? war.A : war.B;
