@@ -86,7 +86,7 @@ public static class EconomyStep
     {
         double basket = 0;
         for (int b = 0; b < coef.MilitaryGoods.Length; b++)
-            basket += coef.MilitaryRates[b] * (region.GoodOf(coef.MilitaryGoods[b])?.RefPrice ?? 0);   // ⚠発見の係数（EquipNeedsDiscovery）は掛けない＝ここは**必要量ではなく単位換算**（ゲージ→建造費）であり、発見のたびに換算尺が動くと艦隊ゲージが不連続に伸縮する
+            basket += coef.MilitaryRates[b] * (region.GoodOf(coef.MilitaryGoods[b])?.RefPrice ?? 0);   // ⚠発見の解禁度（DiscoveredRates）は掛けない＝ここは**必要量ではなく単位換算**（ゲージ→建造費）であり、発見のたびに換算尺が動くと艦隊ゲージが不連続に伸縮する
         double sp = Catalog.SpoilageOf(coef.WarshipGoodId);
         if (!(basket > 0) || !(sp > 1e-12)) return double.NaN;   // ⚠否定形＝NaN が来ても落ちる側へ倒す
         return coef.SoldiersPerMilitary * coef.MilitaryUpkeepScale * basket / sp;
@@ -142,16 +142,14 @@ public static class EconomyStep
         return !(best > 0) ? 0.0 : Math.Min(1.0, best);   // 否定形＝NaN は「まだ発見していない」側へ倒す
     }
 
-    /// <summary>装備の原単位表に発見の係数を掛けた表を返す（<c>1 − k(1 − 解禁度)</c>＝既存の価格ゲート StateProcurePriceGate と同じ混合の形）。
-    /// ⚠<c>EquipNeedsDiscovery=0</c>（既定）では**引数の配列をそのまま返す**＝1命令も実行しない＝厳密恒等。
-    /// 必要量（分母）・発注（分子）・見積（予算）の全てがこの1本を通る＝分子と分母の非対称を作らない。</summary>
+    /// <summary>装備の原単位表に発見の解禁度を掛けた表を返す（<c>原単位 × 解禁度</c>）。
+    /// 必要量（分母）・発注（分子）・見積（予算）・目標在庫の全てがこの1本を通る＝分子と分母の非対称を作らない。
+    /// ★旗 EquipNeedsDiscovery（旧＝<c>1 − k(1 − 解禁度)</c> の k）は 2026-09-27 回2-1 で点火して削除＝常にこの形。</summary>
     internal static double[] DiscoveredRates(Region region, Coefficients coef, int[] goods, double[] rates)
     {
-        double k = coef.EquipNeedsDiscovery;
-        if (!(k > 0)) return rates;   // 否定形＝NaN も休眠側へ
         var res = new double[rates.Length];
         for (int b = 0; b < rates.Length; b++)
-            res[b] = b < goods.Length ? rates[b] * (1.0 - k * (1.0 - EquipUnlock(region, coef, goods[b]))) : rates[b];
+            res[b] = b < goods.Length ? rates[b] * EquipUnlock(region, coef, goods[b]) : rates[b];
         return res;
     }
 
@@ -159,6 +157,7 @@ public static class EconomyStep
     /// ⚠これは初期化の手抜きではなく物理である＝1783年に既に存在する軍は既に装備を持っている。
     ///   0から始めると開幕1ヶ月目に全世界の軍が丸腰になり、即応度0→Military0→脅威比の発散という
     ///   いま直そうとしている病そのものを新たに作ってしまう。
+    /// ★目標は発見の解禁度を通した表（<see cref="DiscoveredRates"/>）から出る＝未発見の装備は目標0＝在庫0で始まる（満額で持って始まらない・2026-09-27 回2-1）。
     /// ⚠反乱勢力の武器庫（FactionState.ArmsStock・2026-09-11）は**この規則を当てない**＝呼び手が全財を0で TryAdd してから渡す（新しい運動は丸腰から）。</summary>
     private static double ArmsHeld(Dictionary<int, double> stock, int gid, double target)
         => stock.TryGetValue(gid, out double v) ? v : target;
@@ -170,14 +169,14 @@ public static class EconomyStep
     private static double BaseArmsTarget(double scalePeace, double rate, double wear, double milMul)
         => scalePeace * rate * milMul / Math.Max(1e-6, wear);
 
-    /// <summary>一律レートが含意する海のコストシェア（＝いま実際に買っている比・発見の係数を通した後の表で）。
+    /// <summary>一律レートが含意する海のコストシェア（＝いま実際に買っている比・発見の解禁度を通した後の表で）。
     /// 国家調達の陸海再配分（NavalProcurementNeedsPort／FromShape）と反乱勢力の武器購入が**同じ1本**を読む（2026-09-11）。</summary>
     private static double FleetCostShare(Region region, Coefficients coef, double[] rates)
     {
         double flatNaval = 0, flatAll = 0;
         for (int b = 0; b < coef.MilitaryGoods.Length; b++)
         {
-            double cst = rates[b] * region.Markets[coef.MilitaryGoods[b]].Price;   // ★発見の係数を通した後の比＝「いま実際に買っている比」（未発明の汽船を陸の重みに数えない）
+            double cst = rates[b] * region.Markets[coef.MilitaryGoods[b]].Price;   // ★発見の解禁度を通した後の比＝「いま実際に買っている比」（未発明の汽船を陸の重みに数えない）
             flatAll += cst;
             if (System.Array.IndexOf(coef.FleetGoodIds, coef.MilitaryGoods[b]) >= 0) flatNaval += cst;
         }
@@ -211,7 +210,7 @@ public static class EconomyStep
     /// 「不足分の費用」で見積もる。予算の上限式がフロー基準のままだと、発注だけがストック基準になって
     /// **在庫を積み上げる原資が構造的に足りない**（実測：ストック版の方が装備が少なくなった）。
     /// 消耗品の段（基本・空軍）は false で呼ぶ＝従来どおりフロー。</param>
-    /// <param name="rates">★発見の係数を掛けた後の原単位表（<see cref="DiscoveredRates"/>）。既定では素の表そのもの。</param>
+    /// <param name="rates">★発見の解禁度を掛けた後の原単位表（<see cref="DiscoveredRates"/>）。</param>
     private static double TierCost(Region region, Coefficients coef, int[] goods, double[] rates, bool durable)
     {
         double cost = 0;
@@ -874,10 +873,10 @@ public static class EconomyStep
         //   ⚠旧＝分子（実発注）にだけ MilMul が掛かり、分母（equipWant）は一律レート＝比が MilMul 倍に膨らむ（「軍艦1083%」と同型の非対称）。
         double navalMul = 1.0, landMul = 1.0;
         // ★装備の発見（作者裁定2026-09-08）＝まだ発見していない装備を、必要量（分母）にも発注（分子）にも見積（予算）にも入れない。
-        //   Run 内で不変なので4つの装備表ぶんだけ先に引く。EquipNeedsDiscovery=0（既定）では**素の配列をそのまま指す**＝厳密恒等。
+        //   Run 内で不変なので4つの装備表ぶんだけ先に引く（読み手は下の2つの milProc ブロックだけ＝軍需の無い州では引かない）。
         double[] milRates = coef.MilitaryRates, qRates = coef.MilitaryQualityRates,
                  t3Rates = coef.MilitaryTier3Rates, airRates = coef.MilitaryAirRates;
-        if (milProc && coef.EquipNeedsDiscovery > 0)
+        if (milProc)
         {
             milRates = DiscoveredRates(region, coef, coef.MilitaryGoods, coef.MilitaryRates);
             qRates = DiscoveredRates(region, coef, coef.MilitaryQualityGoods, coef.MilitaryQualityRates);
@@ -894,7 +893,7 @@ public static class EconomyStep
             double signalBudget = region.MilitaryBudgetCeiling;
             // ★段2（2026-08-01）：軍需の内訳を理想の陸海比へ再配分する係数を作る（総額は保存）。
             // NavalProcurementFromShape=0 または理想が未算出（ShapeNavalShare<0）なら両方1.0＝**厳密恒等**。
-            double flatShare = FleetCostShare(region, coef, milRates);   // 一律レートが含意する海のコストシェア（＝いま実際に買っている比・発見の係数を通した後）＝反乱勢力の武器購入と同じ1本
+            double flatShare = FleetCostShare(region, coef, milRates);   // 一律レートが含意する海のコストシェア（＝いま実際に買っている比・発見の解禁度を通した後）＝反乱勢力の武器購入と同じ1本
             // ★港のない州は軍艦を買わない（2026-08-01）。
             // ── なぜ要るか（実測で見つかった構造バグ）──────────────────────────────
             // 段Aの計器で1914年の艦隊ストックを並べたら **1位 清・2位 広州王国・3位 西山朝**、海軍力の順位は
@@ -2049,7 +2048,7 @@ public static class EconomyStep
                 int gi = coef.MilitaryGoods[b];
                 // ★E1（作者裁定2026-08-26）：分子（実発注の militaryDemand）と同じ陸海の再配分を分母にも掛ける＝比が乗数ぶん膨らまない。
                 double mul = System.Array.IndexOf(coef.FleetGoodIds, gi) >= 0 ? navalMul : landMul;
-                double want = region.MilitaryScale * milRates[b] * mul;   // afford前の必要量（★発見の係数を通した後＝未発見の装備は理想の軍隊に入らない）
+                double want = region.MilitaryScale * milRates[b] * mul;   // afford前の必要量（★発見の解禁度を通した後＝未発見の装備は理想の軍隊に入らない）
                 equipWant += want;
                 double got = 0;
                 if (militaryDemand[gi] > 0)

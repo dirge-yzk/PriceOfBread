@@ -1051,21 +1051,28 @@ public class RevoltIgnitionTests
     {
         // 汽船85＝既定Producerに TechOnset=0.5 が焼かれている（EquipDiscoveryTests と同じ前提）。艦隊財ではない（FleetGoodIds＝戦闘艦）
         // ＝陸海の規則で消えるのではなく**発見**で消えることを見る。
+        // ★双子（2026-09-27 回2-1＝旗 EquipNeedsDiscovery を点火して削除したので OFF の腕は無い）：B だけ汽船の原単位を**素の表で0**にする（「要らない」を表で言う）。
+        //   運動の購入が発見の表を通っていれば、A の汽船は既に0＝A と B の決済は同じ（汽船の需要も武器庫も充足もビット一致）。素の表を読んでいれば A だけ汽船を買う。
         int ship = Catalog.SteamshipId; const int rifle = 82;
-        var (simOn, fOn, _) = 武装する運動(enabled: 1, tune: c => c.EquipNeedsDiscovery = 1.0);
-        var (simOff, fOff, _) = 武装する運動(enabled: 1, tune: c => c.EquipNeedsDiscovery = 0.0);
-        foreach (var s in new[] { simOn, simOff })
+        var (simA, fA, _) = 武装する運動(enabled: 1);
+        var (simB, fB, _) = 武装する運動(enabled: 1, tune: c =>
+        {
+            var z = (double[])c.MilitaryRates.Clone();
+            z[Array.IndexOf(c.MilitaryGoods, ship)] = 0.0;
+            c.MilitaryRates = z;
+        });
+        foreach (var s in new[] { simA, simB })
         {
             Assert.True(s.World.Region.TechLevel < 0.5, $"前提が崩れた：初期技術 {s.World.Region.TechLevel:F3}");
             Assert.True(Array.IndexOf(s.World.Coef.FleetGoodIds, ship) < 0, "前提が崩れた：汽船が艦隊財に数えられている");
             EconomyStep.Run(s.World.Region, s.World.Coef, 1.0, null, s.World);
         }
-        Assert.Equal(0.0, EconomyStep.EquipUnlock(simOn.World.Region, simOn.World.Coef, ship));   // 1783年＝汽船は未発見
-        Assert.NotNull(fOn.ArmsStock);
-        Assert.Equal(0.0, fOn.ArmsStock![ship]);      // 未発見の汽船は1単位も買わない（必要量0＝発注0）
-        Assert.True(fOn.ArmsStock[rifle] > 0);       // 発見済みの小銃は買う
-        Assert.True(simOn.World.Region.Markets[ship].LastDemand < simOff.World.Region.Markets[ship].LastDemand,
-            $"未発見の汽船の需要が消えていない（発見あり {simOn.World.Region.Markets[ship].LastDemand:F3} ≥ 対照 {simOff.World.Region.Markets[ship].LastDemand:F3}）");
+        Assert.Equal(0.0, EconomyStep.EquipUnlock(simA.World.Region, simA.World.Coef, ship));   // 1783年＝汽船は未発見
+        Assert.NotNull(fA.ArmsStock);
+        Assert.Equal(0.0, fA.ArmsStock![ship]);      // 未発見の汽船は1単位も買わない（必要量0＝発注0）
+        Assert.True(fA.ArmsStock[rifle] > 0);       // 発見済みの小銃は買う
+        Assert.Equal(simB.World.Region.Markets[ship].LastDemand, simA.World.Region.Markets[ship].LastDemand);
+        Assert.Equal(fB.EquipFill, fA.EquipFill);
     }
 
 

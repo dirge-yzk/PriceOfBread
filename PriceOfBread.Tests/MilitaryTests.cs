@@ -136,29 +136,45 @@ public class MilitaryTests
         Assert.Equal(a.World.Treasury, b.World.Treasury);
     }
 
-    /// <summary>★前期の軍需レシピ（2026-09-07）ON経路：MusketRecipeEnabled=1 で小銃(82)・火砲(81)に鋼を要しない並存レシピが足され、
-    /// 密閉英国の1783〜（鋼＝坩堝鋼のみの時代）でも小銃が作られる（既定＝鋼レシピだけ＝ほぼ作れない）。0 の恒等は DormantIdentity と FullChainTests（生産者数）が番人。
-    /// ⚠計器の是正（2026-09-08・統合検証）：**最終四半期の LastProduced（一瞬のフロー）で測っていたのを累積へ替えた**。
-    ///   同日点火の PriceLawSupplyIncludesStock（在庫のある市場は供給が満ちているとみなす・2026-09-26 に旗を焼き込み）が入ると、
-    ///   マスケットで供給が増えた側は12期目に在庫20.8（≈3期分）を積んで価格が 3.46→1.71 へ落ち、その月だけフローが絞られる
-    ///   ＝ON 7.43／OFF 12.06 で逆転した。機構は健全で、24/60/120/240期のどの断面でも ON が 4〜16倍（実測）。
-    ///   在庫の周期に乗る一瞬の値ではなく、**期間中に作れた総量**で測る＝計器が価格の在庫項に依存しない。</summary>
+    /// <summary>★前期の軍需レシピ（2026-09-07 器・2026-09-27 回2-1 で旗ごと点火）：小銃(82)・火砲(81)に鋼を要しない並存レシピ（マスケット・鋳鉄砲）が
+    /// 技術の始まり0で1つずつ立ち、密閉英国の1783〜（鋼＝坩堝鋼のみの時代）でも小銃が作られる。
+    /// ⚠計器（2026-09-08・統合検証）：**一瞬のフローではなく累積**で測る＝在庫の周期で価格が落ちた月だけフローが絞られても計器が揺れない
+    ///   （PriceLawSupplyIncludesStock の在庫項で 12期目の LastProduced が逆転した前例）。</summary>
     [Fact]
     public void 前期の軍需レシピは鋼の無い時代に小銃を作る()
     {
-        double Produced(bool on)
+        var sim = new Simulation(NationConfig.Britain().ToScenario(29), new NullAgent());
+        var r = sim.World.Region;
+        var musket = Assert.Single(r.Producers, p => p.GoodId == 82 && p.RecipeName == "マスケット");
+        var castGun = Assert.Single(r.Producers, p => p.GoodId == 81 && p.RecipeName == "鋳鉄砲");
+        foreach (var p in new[] { musket, castGun })
         {
-            var sc = NationConfig.Britain().ToScenario(29);
-            sc.Coef.MusketRecipeEnabled = on ? 1 : 0;
-            var sim = new Simulation(sc, new NullAgent());
-            double cumulative = 0;
-            for (int q = 0; q < 12; q++) { sim.Run(1); cumulative += sim.World.Region.Markets[82].LastProduced; }
-            double musket = 0; foreach (var pr in sim.World.Region.Producers) if (pr.GoodId == 82 && pr.RecipeName == "マスケット") musket += pr.Output;
-            if (on) Assert.True(musket > 0, "マスケットのレシピが産出していない（並存レシピの注入漏れか投入不足）");
-            return cumulative;
+            Assert.Equal(0.0, p.TechOnset);
+            Assert.DoesNotContain(p.Inputs, inp => inp.GoodId == 32);   // 鋼を要しない
         }
-        double off = Produced(false), onv = Produced(true);
-        Assert.True(onv > off, $"前期レシピで小銃の産出が増えていない（既定 {off:F2} / 前期レシピ {onv:F2}）");
+        double cumulative = 0;
+        for (int q = 0; q < 12; q++) { sim.Run(1); cumulative += musket.Output; }
+        Assert.True(cumulative > 0, "マスケットのレシピが12四半期で1単位も産出していない（並存レシピの注入漏れか投入不足）");
+    }
+
+    /// <summary>★前期の軍需レシピの転換は**費用で**起きる（暦年を書かない）：限界費用はエンジンと同じ式（自己費用＋投入費）。
+    /// 鋼が坩堝鋼の値段（ベッセマー以前）ならマスケットが安く、ベッセマー転炉の限界費用まで下がれば既定（鋼）の小銃が安い。
+    /// ⚠火砲はこの形にならない（鋳鉄砲＝鉄1.3＋製材0.3 が、ベッセマーの値段でも既定＝鋼1.0＋機械部品0.5 より安い）＝このテストは小銃だけを固定する。</summary>
+    [Fact]
+    public void 小銃の製法の転換は鋼の値段で起きる()
+    {
+        var sim = new Simulation(NationConfig.Britain().ToScenario(29), new NullAgent());
+        var r = sim.World.Region; var c = sim.World.Coef;
+        double Mc(Producer p) => EconomyStep.MineralSelfCost(p, r, c) + EconomyStep.InputCostPerUnit(p, r, r, c);
+        var musket = Assert.Single(r.Producers, p => p.GoodId == 82 && p.RecipeName == "マスケット");
+        var rifle = Assert.Single(r.Producers, p => p.GoodId == 82 && p.Inputs.Any(inp => inp.GoodId == 32));   // 既定（鋼）レシピ
+        var bessemer = Assert.Single(r.Producers, p => p.GoodId == 32 && p.TechOnset > 0);                     // 既定の鋼＝ベッセマー転炉（onset 0.55）
+        var crucible = Assert.Single(r.Producers, p => p.GoodId == 32 && p.RecipeName == "坩堝鋼");
+
+        r.Markets[32].Price = Mc(crucible);   // ベッセマー以前＝鋼は坩堝鋼の値段
+        Assert.True(Mc(musket) < Mc(rifle), $"坩堝鋼の値段でマスケットが安くない（マスケット {Mc(musket):F3} / 既定 {Mc(rifle):F3}）");
+        r.Markets[32].Price = Mc(bessemer);   // ベッセマー以後＝鋼が安い
+        Assert.True(Mc(rifle) < Mc(musket), $"ベッセマーの値段で既定の小銃が安くない（既定 {Mc(rifle):F3} / マスケット {Mc(musket):F3}）＝転換が費用で起きない");
     }
 
     /// <summary>M4（2026-09-11）：恒常性の信号の分子は上限（MilitaryBudgetCeiling）1本＝旧 Math.Max(Ceiling, Budget) は Budget ≤ Ceiling の単調性で同値。

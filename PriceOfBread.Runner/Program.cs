@@ -6758,7 +6758,7 @@ if (args.Length > 0 && args[0] == "milstart")
                 double a = c.FactoryBuildAfford(Math.Max(Price(g), 1e-9), rp);
                 return a > 0 && a <= 1 ? 1.0 - c.StateProcurePriceGate * (1.0 - a) : 1.0;
             }
-            double[] milRates = EconomyStep.DiscoveredRates(r, c, c.MilitaryGoods, c.MilitaryRates);   // 発見の係数込みの原単位＝エンジンと同じ1本（EquipNeedsDiscovery=0 では素の配列・2026-09-11 #17）
+            double[] milRates = EconomyStep.DiscoveredRates(r, c, c.MilitaryGoods, c.MilitaryRates);   // 発見の解禁度込みの原単位＝エンジンと同じ1本（2026-09-11 #17）
             double flatNaval = 0, flatAll = 0;
             for (int b = 0; b < c.MilitaryGoods.Length; b++)
             {

@@ -54,7 +54,7 @@ public class DormantIdentityTests
         "RuleSharesReach",              // 支配度 段4＝公共財の到達を国家区分に比例（教育の財源率・年金）
         "RuleSharesTaxBase",            // 支配度 段3＝課税・徴兵ベースを区分へ（仲介者の取り分は貴族へ）
         "ForeignRuleFromTreaty",        // 支配度 段5＝条約港→外国持分（観測のみ）
-        "MusketRecipeEnabled",          // 前期の軍需レシピ（マスケット/鋳鉄砲）＝0で Producer を足さない
+        // ★MusketRecipeEnabled（前期の軍需レシピ）は 2026-09-27 回2-1 で**点火**（旗ごと削除）＝この表から外した。
         "SilverRushEnabled",            // 銀の後期産地＝シルバーラッシュ（0＝解禁も富鉱化もしない）
         "MineralCostFollowsGrade",      // ★器（2026-09-07）＝鉱脈の倍率を鉱物RGOの限界費用にも通す（EconomyStep.MineralSelfCost）。0＝MarginalCost そのまま＝厳密恒等
         "EndowmentCostFollowsAbundance",   // ★器（2026-09-08）＝賦存倍率>1 の州の自己費用を賦存で割る（Simulation.ApplyEndowment）。0＝MarginalCost そのまま＝厳密恒等
@@ -84,7 +84,7 @@ public class DormantIdentityTests
         // ★CoupForceShare／CoupMassArmyDiscount（作者裁定2026-09-19 R3/R4＝クーデタ項の取り分化と職業軍の度合い π）は 2026-09-20 に既定化（腕 A4）＝旗と旧式の枝ごと削除＝この表から外した。
         "ColonialRegionSettlement",     // 実バグ B1＝植民地格の州への入植と Integrated 昇格
         "ColonyDevCostFromRegion",      // 実バグ B2＝植民地格の州の奪取コストが州の開発度を読む
-        "EquipNeedsDiscovery",          // 装備の発見（作者裁定2026-09-08）＝まだ発見していない装備を理想の軍隊に入れない。0＝原単位表は素の配列そのもの＝厳密恒等
+        // ★EquipNeedsDiscovery（装備の発見）は 2026-09-27 回2-1 で**点火**（旗ごと削除）＝この表から外した。
         "AdoptExpertiseWeight", "InnovateExpertiseWeight", "TeacherQualityWeight", "EduFundingCashClamp", "CatchupContactWeight",   // 知識と人的資本の経路（作者採用2026-09-06）＝0で従来
         "EduReachFromAdmin",            // 特権 段1（作者裁定2026-09-08）＝義務教育の国庫給付の天井に行政の充足率（0で×1.0＝給付は行政を見ない＝従来）
         "EduProducersCoexist",          // ★教育の三層化 段1 器（2026-09-12）＝教区学校（聖職者・紙）と公立学校（教師・書籍）を常設2件で並置し教育法を非活性側の Scale=0 へ降格。

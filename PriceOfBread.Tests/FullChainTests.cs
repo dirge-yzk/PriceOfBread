@@ -20,7 +20,7 @@ public class FullChainTests
         var sim = new Simulation(Full(1), new NullAgent());
         Assert.Equal(130, sim.World.Regions[0].Goods.Count);   // ★2026-09-04：129→130＝冷蔵庫（作者提案の冷蔵＝消費財かつ生肉の遠距離輸送を開く財）     // ＋1934拡張E2/E3の6財（飛行機・戦闘機・自動車・化学兵器・新聞・ラジオ＝2026-07-19）。上下水道/電化インフラはService＝国家世界のみ
         // ★2026-09-06：126→127＝E-13 再開で黄鉄鉱法（化学薬品の第2レシピ）を点火＝フルチェーンにも1件。代替レシピの注入は AddAlternateRecipes（構築経路）へ移した（同日）。
-        Assert.Equal(127, sim.World.Regions[0].Producers.Count);   // ★2026-09-04：125→126＝冷蔵の加工肉レシピ（ChilledMeatEnabled 点火＝加工肉の第2生産者が全州に立つ）   // ★2026-09-04：124→125＝冷蔵庫の生産者（財の追加に伴う。⚠冷蔵の加工肉は ChilledMeatEnabled=0 で休眠＝この数には入らない）   // ★2026-08-14：123→124＝石油ケロシン（灯油の第2レシピ・KeroseneFromOilEnabled=1点火＝原油の40年の買い手ゼロの穴埋め） // 同6財の生産者＋水力発電（A-中1・2026-07-23＝電力の第3レシピ）＋坩堝鋼/錬鉄レール（CrucibleSteelEnabled=1・第7段第1波2026-07-28）。並存レシピ（人絹/鉄筋コンクリート/合成ゴム）は国家世界のビルダー側
+        Assert.Equal(129, sim.World.Regions[0].Producers.Count);   // ★2026-09-27：127→129＝前期の軍需レシピ（マスケット・鋳鉄砲）を回2-1 で旗ごと点火＝小銃・火砲の第2生産者   // ★2026-09-04：125→126＝冷蔵の加工肉レシピ（ChilledMeatEnabled 点火＝加工肉の第2生産者が全州に立つ）   // ★2026-09-04：124→125＝冷蔵庫の生産者（財の追加に伴う。⚠冷蔵の加工肉は ChilledMeatEnabled=0 で休眠＝この数には入らない）   // ★2026-08-14：123→124＝石油ケロシン（灯油の第2レシピ・KeroseneFromOilEnabled=1点火＝原油の40年の買い手ゼロの穴埋め） // 同6財の生産者＋水力発電（A-中1・2026-07-23＝電力の第3レシピ）＋坩堝鋼/錬鉄レール（CrucibleSteelEnabled=1・第7段第1波2026-07-28）。並存レシピ（人絹/鉄筋コンクリート/合成ゴム）は国家世界のビルダー側
 
         double base0 = sim.World.BaseMoney;
         var ex = Record.Exception(() => sim.Run(400));

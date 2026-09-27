@@ -1025,27 +1025,25 @@ public sealed class Simulation
         //   小銃(82)＝鋼0.6＋製材0.4／火砲(81)＝鋼1.0＋機械部品0.5 は鋼を要するが、鋼の既定レシピ（ベッセマー）は onset0.55（≈1858）まで無く坩堝鋼（5倍高い・規模0.05）だけ
         //   ＝軍需は鋼に縛られて作れない。史実のマスケット（錬鉄の銃身）と鋳鉄砲/青銅砲は鋼を要しない＝**時代錯誤の投入**。
         //   坩堝鋼/錬鉄レールと同じ型で「マスケット」（鉄1.0＋製材0.4）「鋳鉄砲」（鉄1.3＋製材0.3）を TechOnset=0 で並存させる。生産性＝既定×MusketProductivity（前装式・手工程）。
-        //   onset後は鋼が安くなり既定（鋼）レシピがコストで自動的に駆逐（1860年代の後装ライフル・鋼製砲への転換が創発）。新しい財は足さない。
-        //   ⚠MusketRecipeEnabled=0 で Producer を1件も足さない＝厳密恒等（FullChainTests の生産者数も不変）。全国対称（国名を書かない）。
-        if (coef.MusketRecipeEnabled > 0)
-            {
-                Producer? rifleDefault = null, cannonDefault = null;
-                foreach (var pr in producers)
-                {
-                    if (pr.GoodId == 82 && pr.TechOnset <= 0 && rifleDefault is null) rifleDefault = pr;
-                    else if (pr.GoodId == 81 && pr.TechOnset <= 0 && cannonDefault is null) cannonDefault = pr;
-                }
-                if (rifleDefault is not null)   // 軍需の無い世界（最小シナリオ）は不発
-                    producers.Add(new Producer { GoodId = 82, RecipeName = "マスケット", TechOnset = 0,
-                        Productivity = rifleDefault.Productivity * coef.MusketProductivity, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa,
-                        LaborPopIndex = rifleDefault.LaborPopIndex, OwnerPopIndex = rifleDefault.OwnerPopIndex, RentShare = 1.0, BuysLabor = true,
-                        Inputs = [new Input(31, 1.0), new Input(39, 0.4), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(82))] });
-                if (cannonDefault is not null)
-                    producers.Add(new Producer { GoodId = 81, RecipeName = "鋳鉄砲", TechOnset = 0,
-                        Productivity = cannonDefault.Productivity * coef.MusketProductivity, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa,
-                        LaborPopIndex = cannonDefault.LaborPopIndex, OwnerPopIndex = cannonDefault.OwnerPopIndex, RentShare = 1.0, BuysLabor = true,
-                        Inputs = [new Input(31, 1.3), new Input(39, 0.3), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(81))] });
-            }
+        //   onset後は鋼が安くなり、小銃は既定（鋼）レシピがコストで自動的に駆逐（1860年代の後装ライフルへの転換が創発）。新しい財は足さない。
+        //   ⚠火砲は転換しない＝鋳鉄砲（鉄1.3＋製材0.3）はベッセマーの限界費用の鋼でも既定（鋼1.0＋機械部品0.5）より安い（1783年の参照価格で 2.50 対 4.10・2026-09-27 回2-1 で確認）。
+        //   ★旗 MusketRecipeEnabled は 2026-09-27 回2-1 で点火して削除＝常に足す（古いセーブは組み立て直さない＝前期レシピの無いまま続く・作者裁定 B13）。全国対称（国名を書かない）。
+        Producer? rifleDefault = null, cannonDefault = null;
+        foreach (var pr in producers)
+        {
+            if (pr.GoodId == 82 && pr.TechOnset <= 0 && rifleDefault is null) rifleDefault = pr;
+            else if (pr.GoodId == 81 && pr.TechOnset <= 0 && cannonDefault is null) cannonDefault = pr;
+        }
+        if (rifleDefault is not null)   // 軍需の無い世界（最小シナリオ）は不発
+            producers.Add(new Producer { GoodId = 82, RecipeName = "マスケット", TechOnset = 0,
+                Productivity = rifleDefault.Productivity * coef.MusketProductivity, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa,
+                LaborPopIndex = rifleDefault.LaborPopIndex, OwnerPopIndex = rifleDefault.OwnerPopIndex, RentShare = 1.0, BuysLabor = true,
+                Inputs = [new Input(31, 1.0), new Input(39, 0.4), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(82))] });
+        if (cannonDefault is not null)
+            producers.Add(new Producer { GoodId = 81, RecipeName = "鋳鉄砲", TechOnset = 0,
+                Productivity = cannonDefault.Productivity * coef.MusketProductivity, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa,
+                LaborPopIndex = cannonDefault.LaborPopIndex, OwnerPopIndex = cannonDefault.OwnerPopIndex, RentShare = 1.0, BuysLabor = true,
+                Inputs = [new Input(31, 1.3), new Input(39, 0.3), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(81))] });
         // ★石油ケロシン（灯油doc・2026-08-13）：灯油(68)の**第2レシピ**。既定は鯨油/魚油（漁獲0.8）。
         // ⚠★2026-09-03（キューAUD-09・監査「保存則・台帳」）：**追加根拠のコメントが事実と食い違っていた**。
         //   「原油には買い手が1本も無い40年の空白があった」と書かれていたが、現物には AddAdvancedProducers 側に

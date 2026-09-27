@@ -552,7 +552,7 @@ public partial class GameViewModel
         bool milProc = r.MilitaryScale > Eps && EconomyStep.AllPresent(c.MilitaryGoods, ng);
         if (milProc)
         {
-            // 装備の原単位＝発見の係数を通した表（EconomyStep.DiscoveredRates＝エンジンと同じ1本。EquipNeedsDiscovery=0 では素の配列そのもの・2026-09-11 #17）
+            // 装備の原単位＝発見の解禁度を通した表（EconomyStep.DiscoveredRates＝エンジンと同じ1本・2026-09-11 #17）
             double[] milRates = EconomyStep.DiscoveredRates(r, c, c.MilitaryGoods, c.MilitaryRates),
                      qRates = EconomyStep.DiscoveredRates(r, c, c.MilitaryQualityGoods, c.MilitaryQualityRates),
                      t3Rates = EconomyStep.DiscoveredRates(r, c, c.MilitaryTier3Goods, c.MilitaryTier3Rates),

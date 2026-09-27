@@ -28,14 +28,18 @@ public class DemographyBirthWeightTests
         var on = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
         on.World.Coef.FertileAbsoluteBlend = 1.0;   // 開始前に点火＝凍結分母を一度も読まない側
         double p0 = on.World.TotalPopulation;
-        off.Run(40); on.Run(40);   // 10年＝配分差が規模に積もる
         var ro = off.World.Region; var rn = on.World.Region;
+        // 標準構成（農民 F=0.5・子供0.3）は重み=Size のまま＝配分を奪われる側ではない（偏構成popの重みが落ちる分だけ
+        // 配分シェアはむしろ増える）。「奪われない」の片側だけを固定する。
+        // ⚠計器（2026-09-27 回2-1）：**1四半期**（同じ盤面から規則だけ違う1歩＝機構の層）で見る。旧＝10年後の大きさで比べていたが、
+        //   OFF と ON は別の軌道＝10年のうちに片方だけ危機が起きると総人口が割れ（前期の軍需レシピの点火後は q30 で 15,012 対 14,378）、
+        //   大きさの比が配分の規則でなく軌道の分岐を測っていた（q20 までの比は点火の前後で同じ 1.022〜1.026）。
+        off.Run(1); on.Run(1);
+        Assert.True(rn.Pops[1].Size > ro.Pops[1].Size,
+            $"標準構成popが共通分母で出生配分を失った（1四半期 OFF {ro.Pops[1].Size:F2} / ON {rn.Pops[1].Size:F2}）＝物差しがずれている");
+        off.Run(39); on.Run(39);   // 10年＝配分差が規模に積もる
         Assert.True(rn.Pops[6].Size < ro.Pops[6].Size * 0.99,
             $"女性比0.1の聖職者の出生配分が規模比例（旧凍結分母）より小さくならない（OFF {ro.Pops[6].Size:F1} / ON {rn.Pops[6].Size:F1}）");
-        // 標準構成（農民 F=0.5・子供0.3）は重み=Size のまま＝配分を奪われる側ではない（偏構成popの重みが落ちる分だけ
-        // 配分**シェア**はむしろ増える＝実測+6%。総量netは保存されるので「奪われない」の片側だけを固定する）
-        Assert.True(rn.Pops[1].Size > ro.Pops[1].Size * 0.999,
-            $"標準構成popが共通分母で出生配分を失った（OFF {ro.Pops[1].Size:F0} / ON {rn.Pops[1].Size:F0}）＝物差しがずれている");
         // 人口保存：配分の重みが変わるだけ＝Σbirths−Σdeaths=net（ロジスティック軌道）は既存の正規化で不変
         Assert.True(System.Math.Abs(on.World.TotalPopulation - (p0 + on.World.PopulationDelta)) < 1e-6 * p0,
             "FertileAbsoluteBlend=1 で人口保存（Σbirths=net）が破れた");

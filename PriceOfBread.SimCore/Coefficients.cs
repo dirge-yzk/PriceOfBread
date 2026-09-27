@@ -1995,10 +1995,9 @@ public sealed class Coefficients
     public double KeroseneOilInput = 0.5;         // 灯油1単位あたりの原油。1870年代の精製収率45〜60%（残りは廃棄・ナフサ）
     public double KeroseneOilProductivity = 1.6;  // 連続精製の生産性（既定＝鯨油レシピの相対。史実の価格差5〜10倍はこれと投入係数の合成で出す）
     public double CrucibleSteelEnabled = 1.0;   // 第7段第1波③点火（2026-07-28・#17較正後の再点火＝過去差し戻しは帯のみが理由）：坩堝鋼/ベッセマー不連続＝1783年から安価な鋼が在る現状を直し製鋼転換が時代を刻む（鋼原価+77%が機械〜工業財連鎖へ波及）。0で恒等
-    // ★前期の軍需レシピ（2026-09-07・単独計測）：小銃/火砲の鋼を要しない前期レシピ（マスケット＝鉄＋製材／鋳鉄砲＝鉄＋製材）を坩堝鋼と同じ型で並存。0＝足さない＝厳密恒等。
+    // ★前期の軍需レシピ（2026-09-07 器・2026-09-27 回2-1 で旗ごと点火＝常に並存）：小銃/火砲の鋼を要しない前期レシピ（マスケット＝鉄＋製材／鋳鉄砲＝鉄＋製材）を坩堝鋼と同じ型で並存（Simulation.AddAlternateRecipes）。
     //   根＝armsdebug（英 seed1）：1783〜1858年は鋼が坩堝鋼しか無く小銃が需要の5%＝英が動員するたび軍事力0＝ダホメ/ヴェネツィアに属国化・1870年代の完敗・植民地州の喪失。
-    public double MusketRecipeEnabled = 0.0;
-    public double MusketProductivity = 0.8;     // 前期レシピの生産性＝既定（鋼）レシピ比（前装式・手工程）。鋼が安くなると既定がコストで勝つ＝転換が創発
+    public double MusketProductivity = 0.8;     // 前期レシピの生産性＝既定（鋼）レシピ比（前装式・手工程）。鋼が安くなると小銃は既定がコストで勝つ＝転換が創発（⚠火砲は鋳鉄砲が安いまま＝Simulation.AddAlternateRecipes の注記）
     public double LandRoomFertilityCap = 0.6;      // B-高2（史実検証2026-07-22・**2026-07-23点火**）：landRoom の上限＝世界の技術水準出生倍率−1。旧1e9＝実質無上限で、米は西部解錠後 landRoom≈3.7＝出生倍率4.7倍→年6.4%成長（史実3.09%・人類最大の観測値フッター派約4.0%）＝生物学的に不可能だった。0.6＝倍率1.6（米CBR約55/1000÷基準35/1000）
     public double LandAnchorCapacityWeight = 1.0;   // 人2c 土地アンカー（2026-07-11・#17級）：capacityBaselineへ＋これ×max(0, Σ耕地/(1−都市化)−capacityBaseline)＝土地が養える人口を天井に（米25×の構造解・下方向なし・センチネル除外で較正厳密恒等）。0で休眠
     public double SanitationCapacityWeight = 0.4; // **衛生の扶養力連結（近代公衆衛生→死亡率低下）**：sanitation=上下水道(InfraFill)+石鹸(SoapFill)+電化(ElecInfraFill)の人口加重∈[0,1]。capacity に +これ×都市化×(sanitation−1) ＝不衛生な都市で疫病死↑→扶養力↓。**都市化で按分**＝疫病は過密の問題（既存の疫病圧 (都市人口/人口)×(1−衛生) と一貫・農村は影響小）。施設/石鹸の無い世界は sanitation=1.0 で中立（較正温存）。19世紀の死亡率低下の主因は医療より衛生＝直接チャネル
@@ -2049,12 +2048,11 @@ public sealed class Coefficients
     //   汽船（既定レシピの TechOnset=0.5＝フルトン以降）と自動車（DefaultRecipeOnset=1.50）が**まだ発明されていないのに分母に居座り**、
     //   さらに見積（estCost・MilitaryProcurementNeed）を膨らませて予算充足を薄め、買えるはずの小銃まで買えなくしていた。
     //   ── 形 ────────────────────────────────────────────────────────────────
-    //   必要量（分母）にも発注（分子）にも**同じ係数**を掛ける＝分子と分母の非対称を作らない。
+    //   必要量（分母）にも発注（分子）にも見積（予算）にも**同じ解禁度**を掛ける＝分子と分母の非対称を作らない。
     //   解禁の判定は新設せず、この世界の解禁の1本＝ProductionDiag.TechGate（AdvancedTechScale×RecipeTechScale）だけを読む
     //   （その州に実在する製法のうち最も早く解禁されるもの／生産者の居ない財は既定レシピの onset）。
-    //   混合は既存の価格ゲート（StateProcurePriceGate）と同じ形 `1 − k(1 − 解禁度)`＝連続＝崖を作らない。
-    //   0＝休眠（同じ配列をそのまま指す＝厳密恒等）／1＝未発見の装備は理想の軍隊に1単位も入らない。読み手＝EconomyStep.DiscoveredRates。
-    public double EquipNeedsDiscovery = 0.0;
+    //   原単位×解禁度（0..1の連続量）＝崖を作らない。未発見の装備は理想の軍隊に1単位も入らない（目標在庫も0＝満額で持って始まらない）。
+    //   旗 EquipNeedsDiscovery は 2026-09-27 回2-1 で点火して削除＝常にこの形。係数は置かない。読み手＝EconomyStep.DiscoveredRates。
     // ★★①基本段の耐久品ストック（2026-08-26・記録 docs/202608/20260826_軍縮と理想の軍隊_部分完了.md §7）
     //   ⚠発見＝装備充足 MilitaryEquipFill は「その月に首都市場で買えた比率」というフローで、在庫の概念が無い。
     //     即応度に平滑も床も無いので（Military.cs:216）**1ヶ月の調達失敗が全軍を消す**（実測＝1850年断面の英が
