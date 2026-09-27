@@ -579,9 +579,9 @@ public sealed class Diplomacy
     public void AddTension(Power a, Power b, double d, TensionReason reason) => AddTensionKeyed(Key(a, b), d, reason);
 
     // 緊張の増分の実体（鍵で受ける）。クランプで切られた分は台帳へ積まない＝内訳合計と現在値の恒等。
-    private void AddTensionKeyed(long k, double d, TensionReason reason)
+    private double AddTensionKeyed(long k, double d, TensionReason reason)   // 戻り値＝実際に動いた量（クランプの後・NaN は0）
     {
-        if (double.IsNaN(d)) return;   // NaN の増分は捨てる（Clamp は NaN を通し _tension を恒久に汚す）。有限値では厳密恒等
+        if (double.IsNaN(d)) return 0;   // NaN の増分は捨てる（Clamp は NaN を通し _tension を恒久に汚す）。有限値では厳密恒等
         // ⚠旧 `!(d == d)` から書き換え（2026-09-03・意味は同一）。コンパイラが CS1718「同じ変数と比較されました」を出し続け、
         //   **本物の自己比較バグを警告の海に埋める**ため。⚠規律「ガードは否定形で書く」は**閾値**の話であって、
         //   NaN そのものを見る場所は `double.IsNaN` の方が意図が明示的（否定形が要るのは `!(x > t)` のような比較の側）。
@@ -589,6 +589,7 @@ public sealed class Diplomacy
         double now = Math.Clamp(old + d, 0, 200);
         _tension[k] = now;
         if (now != old) Why(k)[(int)reason] += now - old;
+        return now - old;
     }
 
     // 緊張が「冷める」書き込み（減衰・屈服・調停）＝理由は消えず、内訳を比例で縮める（合計＝新しい値を保つ）。
@@ -874,7 +875,7 @@ public sealed class Diplomacy
             if (!fighting && !civilWarFighting) p.WarExhaustion = c.WarWearinessDecays > 0 ? p.WarExhaustion * c.WarWearinessDecayRate : 0;
         }
 
-        StepTensionRamp(c);            // 予約された緊張操作を毎月少しずつ反映＋クールダウン消化（2026-07-04）
+        StepTensionRamp(c);            // 予約された緊張操作を毎月少しずつ反映（2026-07-04・政治的帰結と近隣波及は動いた分だけ＝2026-09-28）
         _rankClock++;                  // P14：再分類の減速（閾値付近のGreat⇔Middleチャタリング＝列強動詞の点滅を抑える）。≤1=毎月（現行と厳密恒等）・4=年次（威信の残光＝スコア急落国が最長1年Greatを保つ）
         if (c.RankUpdateIntervalQuarters <= 1.001 || _rankClock >= (int)(c.RankUpdateIntervalQuarters * (double)Calendar.MonthsPerQuarter)) { ComputeRanks(c); _rankClock = 0; }   // 国家ランク（列強/中堅/弱小）を相対スコアで再分類（アクション可否・UI表示・ラベルのみ）
         ThreatTension(c);              // 経済/軍事大国であること自体が周囲の緊張を生む（覇権防止）
@@ -1377,7 +1378,7 @@ public sealed class Diplomacy
                             if (c.AISubmitMilRatio > 0
                                 && submitYields)
                             {
-                                CoolTensionTo(k, System.Math.Min(_tension.GetValueOrDefault(k), c.ConcedeTensionTarget)); _tensionRamp[k] = 0; _warClock[k] = 0;   // 屈服＝緊張を宥和側へ（ResolvePendingWar の受諾と同型）
+                                CoolTensionTo(k, System.Math.Min(_tension.GetValueOrDefault(k), c.ConcedeTensionTarget)); _tensionRamp.Remove(DirKey(a, b)); _tensionRamp.Remove(DirKey(b, a)); _warClock[k] = 0;   // 屈服＝緊張を宥和側へ・両向きのならしを消す（ResolvePendingWar の受諾と同型）
                                 if (weak.Nation is { } wn)   // 屈辱（下関・三国干渉＝国内の怒り）。説明APIへ記帳（2026-07-27：未記帳の書き込み現場を解消＝内訳合計と最終値の恒等）
                                 {
                                     double actualCost = System.Math.Min(c.AISubmitLegitCost, wn.Legitimacy);
@@ -1636,23 +1637,20 @@ public sealed class Diplomacy
                 if (q == p || q.Nation is null) continue;   // 抽象標的は同盟・侮辱の相手にしない
                 double t = Tension(p, q);
                 bool sameRank = Bracket(q, c) == pr;
-                // 侮辱・宥和はAIのみ（プレイヤーは緊+/緊-・植民地化を UI で能動的に操作＝自動で動かさない）。
+                // 挑発・宥和を AI が自分で押す（プレイヤーは同じ動詞を UI のポップアップで押す＝自動では押さない）。
                 if (!p.IsPlayer)
                 {
                     bool hopeless = q.Military > p.Military * c.AppeaseMilitaryRatio;   // 勝てない相手（軍が桁違い）＝挑発は自滅
-                    // 緊張を高める（侮辱＋禁輸）：同ランクのライバルへ。ただし**勝てない相手は挑発しない**（生存＝賢く避ける）。政治的帰結＋近隣波及はプレイヤーの挑発と同一（対称）
-                    if (q == rival && sameRank && !hopeless && rng.NextDouble() < c.InsultChance)
-                    {
-                        // ★AUD-08：同一動詞へ（SymmetricTensionVerb=0 では下の旧経路＝厳密恒等）。⚠RNGはこの if の条件で既に引いてある＝消費順は不変。
-                        if (c.SymmetricTensionVerb > 0) RaiseTension(p, q, c);
-                        else { AddTension(p, q, c.InsultTension, TensionReason.Provocation); _embargo.Add(Key(p, q)); TensionPolitics(p, q, TensionPoliticsKind.Provoke, c); SpreadProvocationTension(p, q, c.InsultTension, c); }
-                    }
-                    // 宥和（改修2026-06-28）：勝てない強敵と高緊張なら、むしろ緊張を下げて生存を図る（弱小・劣勢国の自衛的外交）。政治的帰結はプレイヤーの緩和と同一（格上への宥和＝増幅なし）
-                    else if (hopeless && t > c.FriendlyTensionMax && !AtWar(p, q) && rng.NextDouble() < c.InsultChance)
-                    {
-                        if (c.SymmetricTensionVerb > 0) EaseTension(p, q, c);   // ★AUD-08：同一動詞（0では下の旧経路＝厳密恒等）
-                        else { AddTension(p, q, -c.InsultTension, TensionReason.Appeasement); TensionPolitics(p, q, TensionPoliticsKind.Appease, c); }
-                    }
+                    // ★2026-09-28 回8-1（棚卸し dip-04・検討 20-A3・AUD-08 の点火）：AI もプレイヤーと**同じ動詞**（RaiseTension／EaseTension）だけを使う
+                    //   ＝緊張の量・ならし・禁輸・政治的帰結・近隣への波及が主体で変わらない（旧＝AI だけ即時±6 の直書き・プレイヤーは+25 を6か月・18か月の待ち）。
+                    //   押すのは**相手へ向けた自分のならしが空のときだけ**＝乱数（旧 InsultChance 35%/四半期）を撤去（検討 §10-10［戦争⑥］の案）。
+                    //   ⚠押す頻度の値を戦争の頻度の史実に合わせるのは作者裁定 A7（計測で探す）＝この回では決めていない。
+                    bool rampEmpty = !_tensionRamp.ContainsKey(DirKey(p, q));
+                    // 緊張を高める（挑発＋禁輸）：同ランクのライバルへ。ただし**勝てない相手は挑発しない**（生存＝賢く避ける）。
+                    if (q == rival && sameRank && !hopeless && rampEmpty) RaiseTension(p, q, c);
+                    // 宥和（改修2026-06-28）：勝てない強敵と高緊張なら、むしろ緊張を下げて生存を図る（弱小・劣勢国の自衛的外交）。格上への宥和＝増幅なし。
+                    //   ⚠動詞は同じ束の間だけ（EaseTension の Bracket の門・プレイヤーと同じ）＝格上の束へは宥和できない。
+                    else if (hopeless && t > c.FriendlyTensionMax && !AtWar(p, q) && rampEmpty) EaseTension(p, q, c);
                 }
                 // 防衛同盟：**プレイヤーも自動**（同ランク／覇権への合従＝ランク横断）で、共通の敵を恐れる二国が手を結ぶ（三国協商）。締結はこの1経路のみ（手動の同盟動詞は無い＝全国対称）。
                 bool antiHegemonAlly = coalitionFoe != null && coalitionFoe == hegemon;   // 覇権への合従は弱者連合＝ランクを問わない
@@ -1742,36 +1740,41 @@ public sealed class Diplomacy
         if (best is not null) gw.Invade(best);   // ★実行もプレイヤーと同じ動詞（World.Invade＝余剰戦力・船・糧食・キニーネの消費込み）
     }
 
-    // === 外交アクション（プレイヤー/AI 共通・改修2026-06-28）。同ランク間が原則。プレイヤーは UI から、AI は DiplomacyAI が等価の行動を取る。===
-    // 緊張操作の漸進＋クールダウン（2026-07-04）：即時±25でなく、TensionActionRampMonths かけて毎月少しずつ反映。
-    // 同じ相手への再操作は TensionActionCooldownMonths のクールダウン＝連打で緊張を自由に上下できない。
-    private readonly Dictionary<long, double> _tensionRamp = new();          // 残りの反映量（符号付き）
-    private readonly Dictionary<long, int> _tensionActionCooldown = new();   // 残りクールダウン（月）
+    // === 外交アクション（プレイヤー/AI 共通・改修2026-06-28）。同ランク間が原則。プレイヤーは UI から、AI は DiplomacyAI が同じ動詞を押す。===
+    // 緊張操作の漸進（2026-07-04）：即時±25でなく、TensionActionRampMonths かけて毎月少しずつ反映（1か月に動くのは押した国ごとに ActionTensionStep÷月数まで）。
+    // ★2026-09-28 回8-1（dip-04・検討 20-A3）：ならしの鍵を**向き付き**（DirKey(押した国, 相手)）にし、政治的帰結と近隣への波及を
+    //   **毎月実際に動いた緊張**に比例して払う（押した瞬間の全額払いを撤去）。同じ相手への18か月の待ち（旧 TensionActionCooldownMonths）は撤去した
+    //   ＝根拠の無いクールダウン（作者の恒久方針 2026-09-06）。連打は政治の代価（動いた分だけ払う）とならしの速さ（月の上限）が担う。
+    private readonly Dictionary<long, double> _tensionRamp = new();          // DirKey(押した国, 相手) → 残りの反映量（符号付き）
 
-    /// <summary>この2国間の緊張操作クールダウン残り（月・0=操作可）。UIの表示/非活性用。</summary>
-    public int TensionActionCooldown(Power a, Power b) => _tensionActionCooldown.GetValueOrDefault(Key(a, b));
+    /// <summary>actor が target へ押した緊張のうち、まだ反映されていない量（符号付き・0＝空）。UI の表示が読む。</summary>
+    public double TensionRampRemaining(Power actor, Power target) => _tensionRamp.GetValueOrDefault(DirKey(actor, target));
 
-    // 毎月：予約された緊張変化を少しずつ適用し、クールダウンを減らす（Step から呼ぶ）。
-    private void StepTensionRamp(Coefficients c)
+    // 毎月：予約された緊張変化を少しずつ適用する（Step から呼ぶ）。internal＝番人テスト用（InternalsVisibleTo）。
+    internal void StepTensionRamp(Coefficients c)
     {
-        if (_tensionRamp.Count > 0)
+        if (_tensionRamp.Count == 0) return;
+        double perMonth = c.ActionTensionStep / Math.Max(1, c.TensionActionRampMonths);
+        // ⚠走査は鍵の昇順に固定する＝辞書の列挙順（セーブ/ロードで空きの再利用が変わる）に依らない。政治的帰結（同じ国の正統性）と
+        //   近隣への波及（別の組の緊張）が同じ月に重なる＝足す順とクランプが結果に効く（savetest の往復で実測して確定）。
+        var rampKeys = new List<long>(_tensionRamp.Keys);
+        rampKeys.Sort();
+        foreach (var dk in rampKeys)
         {
-            double perMonth = c.ActionTensionStep / Math.Max(1, c.TensionActionRampMonths);
-            foreach (var k in new List<long>(_tensionRamp.Keys))
-            {
-                double remain = _tensionRamp[k];
-                double d = Math.Clamp(remain, -perMonth, perMonth);
-                AddTensionKeyed(k, d, d >= 0 ? TensionReason.Provocation : TensionReason.Appeasement);   // ランプの出所は挑発/緩和の2動詞だけ＝符号で判別できる
-                remain -= d;
-                if (Math.Abs(remain) < 1e-9) _tensionRamp.Remove(k); else _tensionRamp[k] = remain;
-            }
+            double remain = _tensionRamp[dk];
+            int actorId = (int)(dk >> 32), targetId = (int)(uint)dk;
+            Power? actor = Powers.Find(p => p.Id == actorId), target = Powers.Find(p => p.Id == targetId);
+            if (actor is null || target is null) { _tensionRamp.Remove(dk); continue; }   // 除去された国（再併合）のならしは消える
+            double d = Math.Clamp(remain, -perMonth, perMonth);
+            // ランプの出所は挑発/緩和の2動詞だけ＝符号で判別できる。moved＝上限200・下限0で切った後に実際に動いた量
+            double moved = AddTensionKeyed(Key(actor, target), d, d >= 0 ? TensionReason.Provocation : TensionReason.Appeasement);
+            // 政治的帰結＝実際に動いた緊張の割合（|moved|÷ActionTensionStep）＝押した総量が同じなら払う総額は押した瞬間の全額払いと同じ・上限で切れた分は払わない
+            if (moved != 0 && c.ActionTensionStep > 0)
+                TensionPolitics(actor, target, d >= 0 ? TensionPoliticsKind.Provoke : TensionPoliticsKind.Appease, c, Math.Abs(moved) / c.ActionTensionStep);
+            if (d > 0) SpreadProvocationTension(actor, target, d, c);   // 近隣への波及＝その月の挑発の分（総量は押した瞬間の旧 ActionTensionStep と同じ）
+            remain -= d;
+            if (Math.Abs(remain) < 1e-9) _tensionRamp.Remove(dk); else _tensionRamp[dk] = remain;
         }
-        if (_tensionActionCooldown.Count > 0)
-            foreach (var k in new List<long>(_tensionActionCooldown.Keys))
-            {
-                int left = _tensionActionCooldown[k] - 1;
-                if (left <= 0) _tensionActionCooldown.Remove(k); else _tensionActionCooldown[k] = left;
-            }
     }
 
     /// <summary>政治的帰結の係数（種別ごとの出所）。開戦だけ別係数＝既定0＝厳密恒等の休眠。</summary>
@@ -1780,10 +1783,11 @@ public sealed class Diplomacy
 
     /// <summary>政治的帰結の見積もり（純関数・副作用なし・RNGなし）。本体 <see cref="TensionPolitics"/> とUIのボタン脇3行が
     /// **この1箇所**を読む＝式の二実装を作らない（2026-08-10 作者FB②）。actor.Nation が無い（抽象勢力）なら既定＝全0。</summary>
-    public static TensionPoliticsPreview PreviewTensionPolitics(Power actor, Power target, TensionPoliticsKind kind, Coefficients c)
+    /// <paramref name="share"/>＝押した1回分（ActionTensionStep）に対する割合（既定1＝ボタン脇の見積もり・開戦）。緊張の操作は毎月実際に動いた分だけ払う（StepTensionRamp）。
+    public static TensionPoliticsPreview PreviewTensionPolitics(Power actor, Power target, TensionPoliticsKind kind, Coefficients c, double share = 1.0)
     {
         if (actor.Nation is not { } w) return default;
-        double scale = TensionPoliticsScaleOf(kind, c);
+        double scale = TensionPoliticsScaleOf(kind, c) * share;   // share=1 は ×1.0＝IEEE で厳密恒等（開戦・見積もりは旧と1ビットも変わらない）
         var agg = Ideologies.National(w);
         double hawk = agg[1] + agg[4] + agg[8] + agg[9];
         double dove = agg[2] + agg[3];
@@ -1805,10 +1809,10 @@ public sealed class Diplomacy
     /// 作用先＝正統性（外交起因の前例＝AI屈服の屈辱・敗戦・戦勝と同流儀。ストック正統性の一発インパルス＝regenで数年かけ回復）。
     /// タカ派(反動1/ナショ4/帝国8/ファシ9)は挑発・開戦に喝采し格下への宥和を弱腰と見る。ハト派(自由2/共和3)は逆。シェアは参政権voice加重（Ideologies.National）
     /// ＝参政権が広いほど世論の政治的帰結が重くなるのが自動で乗る。係数0で厳密恒等。</summary>
-    internal void TensionPolitics(Power actor, Power target, TensionPoliticsKind kind, Coefficients c)
+    internal void TensionPolitics(Power actor, Power target, TensionPoliticsKind kind, Coefficients c, double share = 1.0)
     {
         if (!(TensionPoliticsScaleOf(kind, c) > 0) || actor.Nation is not { } w) return;   // 否定形＝NaNも非発火側へ倒す
-        var pv = PreviewTensionPolitics(actor, target, kind, c);
+        var pv = PreviewTensionPolitics(actor, target, kind, c, share);
         (string cheerWho, string backlashWho) = kind switch
         {
             TensionPoliticsKind.Provoke => ("挑発の喝采(国粋・帝国派)", "攻撃的外交への反発(自由・共和派)"),
@@ -1836,33 +1840,26 @@ public sealed class Diplomacy
         }
     }
 
-    /// <summary>挑発する（同ランク間）。ActionTensionStep を数ヶ月かけて反映。クールダウン中は不可。近隣波及＋交易断絶＋国内の政治的帰結つき。</summary>
+    /// <summary>挑発する（同ランク間）。ActionTensionStep を数ヶ月かけて反映（押すたびに積む・待ちは無い）。交易断絶は押した瞬間・近隣波及と国内の政治的帰結は毎月動いた分だけ。</summary>
     public bool RaiseTension(Power actor, Power target, Coefficients c)
     {
         if (actor == target || target.Nation is null || Bracket(actor, c) != Bracket(target, c)) return false;   // ★B8（実バグ21件・2026-09-07）：UIのポップアップは Bracket（併合束）で相手を出すのに動詞は素の RankOf で拒んでいた＝同じ1本を読む
-        long k = Key(actor, target);
-        if (_tensionActionCooldown.GetValueOrDefault(k) > 0) return false;
-        _tensionRamp[k] = _tensionRamp.GetValueOrDefault(k) + c.ActionTensionStep;
-        _tensionActionCooldown[k] = c.TensionActionCooldownMonths;
-        // 禁輸ボタンの廃止（禁制品doc C1・2026-07-30）：AIの侮辱（DiplomacyAI）は緊張と**同時に**禁輸を科す。
-        // 挑発＝侮辱のプレイヤー側の同一動詞なので、ここでも同じく禁輸を伴う＝思想⑤（動詞の効果が主体で変わらない）。
+        long k = Key(actor, target), dk = DirKey(actor, target);
+        _tensionRamp[dk] = _tensionRamp.GetValueOrDefault(dk) + c.ActionTensionStep;
+        // 禁輸ボタンの廃止（禁制品doc C1・2026-07-30）：挑発は緊張と**同時に**禁輸を科す（2026-09-28 から AI もこの動詞を押す＝旧 AI の侮辱の直書きは削除）。
+        // 動詞の効果が主体で変わらない＝思想⑤。
         // ⚠ 禁制品doc §2-4 の前提「AIは禁輸を呼ばない」は現物と食い違う（Diplomacy.Embargo() というメソッドを呼ばないだけで、DiplomacyAI が
         //   _embargo.Add を直に書いている）。ボタンだけ消すと**AIは禁輸できてプレイヤーはできない**逆向きの非対称になるため、動詞へ畳んだ。
         // 解除は戦争終結（EndWar）と属国化（StepDependency）のみ＝50カ国分の手動管理が消える（作者裁定「マイクロマネジメント過ぎる」）。
-        _embargo.Add(k);
-        TensionPolitics(actor, target, TensionPoliticsKind.Provoke, c);
-        SpreadProvocationTension(actor, target, c.ActionTensionStep, c);
+        _embargo.Add(k);   // 禁輸は押した瞬間（何度書いても同じ結果）
         return true;
     }
-    /// <summary>緊張を緩和する（同ランク間）。ActionTensionStep を数ヶ月かけて減らす。クールダウン中は不可。国内の政治的帰結つき（格下への宥和＝弱腰）。</summary>
+    /// <summary>緊張を緩和する（同ランク間）。ActionTensionStep を数ヶ月かけて減らす（押すたびに積む・待ちは無い）。国内の政治的帰結は毎月動いた分だけ（格下への宥和＝弱腰）。</summary>
     public bool EaseTension(Power actor, Power target, Coefficients c)
     {
         if (actor == target || target.Nation is null || Bracket(actor, c) != Bracket(target, c)) return false;   // ★B8（実バグ21件・2026-09-07）：UIのポップアップは Bracket（併合束）で相手を出すのに動詞は素の RankOf で拒んでいた＝同じ1本を読む
-        long k = Key(actor, target);
-        if (_tensionActionCooldown.GetValueOrDefault(k) > 0) return false;
-        _tensionRamp[k] = _tensionRamp.GetValueOrDefault(k) - c.ActionTensionStep;
-        _tensionActionCooldown[k] = c.TensionActionCooldownMonths;
-        TensionPolitics(actor, target, TensionPoliticsKind.Appease, c);
+        long dk = DirKey(actor, target);
+        _tensionRamp[dk] = _tensionRamp.GetValueOrDefault(dk) - c.ActionTensionStep;
         return true;
     }
     /// <summary>#106 最後通牒の決着（UIから）。fight=true＝開戦（既存の StartWar 経路）／false＝屈服＝緊張を開戦閾値未満へ下げて戦争を回避。いずれも PendingWar をクリア。プレイヤー経路のみ＝自己対戦/較正に無影響。</summary>
@@ -1875,7 +1872,7 @@ public sealed class Diplomacy
         if (fight) { StartWar(player, foe, c); _warClock[k] = 0; }
         else
         {
-            CoolTensionTo(k, System.Math.Min(_tension.GetValueOrDefault(k), c.ConcedeTensionTarget)); _tensionRamp[k] = 0; _warClock[k] = 0;   // 屈服＝緊張を宥和側へ・ランプ解除・クロックを切る＝開戦を回避
+            CoolTensionTo(k, System.Math.Min(_tension.GetValueOrDefault(k), c.ConcedeTensionTarget)); _tensionRamp.Remove(DirKey(player, foe)); _tensionRamp.Remove(DirKey(foe, player)); _warClock[k] = 0;   // 屈服＝緊張を宥和側へ・両向きのならしを消す・クロックを切る＝開戦を回避
             // 屈服の屈辱（2026-07-27対称化）：AI屈服はAISubmitLegitCostを払うのにプレイヤーの要求受諾は無償だった非対称を解消（下関・三国干渉＝国内の怒りは誰が飲んでも同じ）。
             if (player.Nation is { } pw)
             {
@@ -1897,7 +1894,7 @@ public sealed class Diplomacy
 
     // 禁輸ボタンの廃止（禁制品doc C1・2026-07-30）：旧 Embargo()/LiftEmbargo() は**プレイヤーのボタン専用**の動詞だった
     // （唯一の呼び出しが GameViewModel の DiploEmbargo）。50カ国分を手動で管理するマイクロマネジメントを畳み、禁輸は
-    //   ① 挑発／侮辱に同梱（RaiseTension・DiplomacyAI）　② 戦時の強制禁輸（StartWar ほか）　の2経路だけにした。
+    //   ① 挑発に同梱（RaiseTension＝AI もプレイヤーも同じ動詞）　② 戦時の強制禁輸（StartWar ほか）　の2経路だけにした。
     // 解除も自動（戦争終結 EndWar・属国化 StepDependency）＝プレイヤーが個別に付け外しする面は無い。読み手（HasEmbargo・交易アクセス）は不変。
     /// <summary>侵略の**結果判定だけ**（作者裁定2026-08-23の1本化）：実効戦力が屈服線を超えれば屈服（抽象標的＝植民地を接収／実在国＝属国化）、
     /// 超えなければ拒否＝開戦。★可否（<see cref="World.CanInvade"/>）・余剰戦力の消費・物資（船/糧食/キニーネ）は呼び出し側の

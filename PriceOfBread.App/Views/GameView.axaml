@@ -438,13 +438,13 @@
                         <TextBlock Text="{Binding TensionPopupBody}" Foreground="{StaticResource InkBrush}" FontSize="{StaticResource FontBody}" TextWrapping="Wrap"/>
                         <!-- 2択＝ボタンは元のまま。緊張量と政治的帰結の3行はホバーで読む（作者裁定2026-08-10）。
                              ツールチップはポップアップ＝中身が何行でもモーダルのレイアウトは動かない。 -->
-                        <TextBlock Classes="dim" FontSize="{StaticResource FontSmall}" Height="16" Text="{Binding TensionCooldownText}"/>
+                        <TextBlock Classes="dim" FontSize="{StaticResource FontSmall}" Height="16" Text="{Binding TensionRampText}"/>
                         <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
                             <Button x:Name="TensionProvokeButton" Classes="dialog" Content="挑発する"
-                                    Command="{Binding TensionRaiseCommand}" IsEnabled="{Binding TensionActionsEnabled}"
+                                    Command="{Binding TensionRaiseCommand}"
                                     ToolTip.Tip="{Binding TensionProvokeTip}" ToolTip.ShowDelay="200"/>
                             <Button x:Name="TensionEaseButton" Classes="dialog" Content="緊張を緩和する"
-                                    Command="{Binding TensionEaseCommand}" IsEnabled="{Binding TensionActionsEnabled}"
+                                    Command="{Binding TensionEaseCommand}"
                                     ToolTip.Tip="{Binding TensionEaseTip}" ToolTip.ShowDelay="200"/>
                             <Button Classes="dialog" Content="静観する" Command="{Binding TensionIgnoreCommand}"/>
                         </StackPanel>

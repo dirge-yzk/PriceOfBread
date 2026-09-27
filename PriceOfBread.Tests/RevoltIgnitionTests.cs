@@ -383,7 +383,9 @@ public class RevoltIgnitionTests
     // ============================================================================================
     private static bool 段3_内戦だけの親で選定を1回回す(bool addExternalWar)
     {
-        var coef = new Coefficients { FactionOverwhelmFactor = 1e9 };   // 圧倒の迂回路を閉じる＝**弱みの項だけ**が点火を決める帯にする
+        // 圧倒の迂回路を閉じる＝**弱みの項だけ**が点火を決める帯にする。★2026-09-28 回8-1：自発的な開戦も止める（外征は対照の腕が手で足す1本だけ）
+        //   ＝AI の挑発がならしで毎月動くようになり、8四半期の助走で仏英が開戦しうる（内戦だけの腕に外征が紛れると弱みの切り分けが崩れる）。
+        var coef = new Coefficients { FactionOverwhelmFactor = 1e9, WarDeclareTension = 1e9 };
         var sim = new MultiNationSim([NationConfig.France(), NationConfig.Japan(), NationConfig.Britain(), NationConfig.America()],
                                      seed: 1789, coef: coef);
         sim.Run(8);
@@ -391,6 +393,7 @@ public class RevoltIgnitionTests
         Assert.True(coef.FactionOpportunism > 0, "前提が崩れた：好機のブレーキが休眠＝この番人は空洞");
         Assert.True(pw.FactionRng is not null && coef.FactionRevoltScale > 0, "前提が崩れた：F3bが遮蔽されている");
         sim.Diplomacy.DeclareCivilWar(pw.SelfPower!, sim.Nations[1].World.SelfPower!, pw.Polity, coef);   // 反乱国が地図の上に立った状態
+        Assert.False(sim.Diplomacy.Wars.Exists(w => (w.A == pw.SelfPower || w.B == pw.SelfPower) && w.CivilWarParent is null), "前提が崩れた：助走の間に外征が立った＝内戦だけの腕にならない");
         if (addExternalWar) sim.Diplomacy.Wars.Add(new War { A = pw.SelfPower!, B = sim.Nations[2].World.SelfPower! });   // 対照＝外征（内戦タグなし）
         Assert.True(Government.AtWar(pw), "前提が崩れた：内戦が交戦として数えられていない＝旧経路の再現になっていない");
         pw.Legitimacy = 1.0;   // 弱みの正統性項を閉じる（閾値0.5＝1四半期の変動では割らない）

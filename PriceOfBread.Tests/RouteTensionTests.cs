@@ -32,6 +32,7 @@ public class RouteTensionTests
         c.EthnicTensionRate = 0; c.EthnicAffinityRelief = 0;
         c.LawTensionRate = 0; c.ReligionTensionRate = 0; c.ReligionAffinityRelief = 0;
         c.OpiumBanTensionRate = 0; c.TensionDecay = 0; c.ProtectorTensionRate = 0;
+        c.ActionTensionStep = 0;   // ★2026-09-28 回8-1：AI の挑発も同じ動詞＝ならしが毎月動く（旧＝押した瞬間に入り切った）＝緊張の操作も黙らせる
         sim.StartWarmup();     // 扼者の解決（StepCanals）は助走中も通る
         sim.StepQuarter();     // 海盆プレゼンスの同期を最低1回通す（取扱高ゼロ＝港海盆の均等フォールバック）
         var ru = sim.Nations[0].World.SelfPower!;

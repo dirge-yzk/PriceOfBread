@@ -223,9 +223,8 @@ public partial class GameViewModel
         TensionPopupBody += $"\n\n{pow.Name} {Troops(pow)}　+ 同盟 {Men(foeAl.Sum(TroopUnits))}";
         if (foeAl.Count > 0) TensionPopupBody += $"\n{pow.Name} の同盟:{foeList}";
         BuildTensionActionTips(me, pow);   // 2つのボタンのホバー＝緊張量＋政治的帰結の3行（項5・2026-07-27／作者FB②・2026-08-10）
-        int cdMonths = dip.TensionActionCooldown(me, pow);   // 02断線走査（2026-07-28）
-        TensionActionsEnabled = cdMonths <= 0;
-        TensionCooldownText = cdMonths > 0 ? $"外交操作の再開まで {cdMonths}ヶ月" : "";
+        double ramp = dip.TensionRampRemaining(me, pow);   // 自国が押してまだ反映されていない緊張（回8-1＝待ちの撤去の後はデータだけを出す）
+        TensionRampText = System.Math.Abs(ramp) >= 0.5 ? $"反映待ちの緊張 {(ramp > 0 ? "+" : "-")}{System.Math.Abs(ramp):F0}" : "";
     }
 
     /// <summary>uishot（無人撮影）専用フック：最も緊張の高い同ランク国で緊張モーダルを実際に組んで開く。
@@ -256,9 +255,8 @@ public partial class GameViewModel
     // ★式はUIで組み立てない＝エンジンの純関数 Diplomacy.PreviewTensionPolitics（本体 TensionPolitics と同じ1箇所）を読む。
     [ObservableProperty] private string _tensionProvokeTip = "";
     [ObservableProperty] private string _tensionEaseTip = "";
-    // 02断線走査（2026-07-28）：TensionActionCooldown の可視化＝「押せるのに何も起きない」の解消（残月数を出し・押せない間は非活性）。
-    [ObservableProperty] private bool _tensionActionsEnabled = true;
-    [ObservableProperty] private string _tensionCooldownText = "";
+    // ★2026-09-28 回8-1：待ち（旧 TensionActionCooldown・18か月）の撤去＝ボタンは常に押せる。自国が押してまだ反映されていない緊張の量だけを出す。
+    [ObservableProperty] private string _tensionRampText = "";
     private void BuildTensionActionTips(Power me, Power foe)
     {
         var c = _player.Coef;

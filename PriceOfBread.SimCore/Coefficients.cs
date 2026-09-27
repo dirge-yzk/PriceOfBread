@@ -1256,14 +1256,9 @@ public sealed class Coefficients
 
     // --- 外交・戦争（§6.1 国際層）---
     // ※旧 MilitaryFromCoercion / GdpPerMilitary（治安維持力ベースの軍ゲージ）は Part 2 で兵士POPベースに置換し廃止。
-    // ★2026-09-03（キューAUD-08・監査「AI/プレイヤー対称」20件／作者裁定2026-09-03「侮辱・緊張緩和はポップアップのみにする」＝
-    //   監査doc の案A＝**AIとプレイヤーが同じ動詞を使う**）：旧はAIだけ別実装だった——
-    //   AI＝即時 AddTension(+6)・ランプ無し・クールダウン無視、プレイヤー＝+25 を6ヶ月ランプ・18ヶ月クールダウン。
-    //   同じ行為の力学が主体で変わる＝規律⑤違反。1で AI も RaiseTension/EaseTension を呼ぶ（効果量・ランプ・クールダウン・禁輸・政治的帰結が完全一致）。
-    //   ⚠0＝旧経路＝厳密恒等。
-    public double SymmetricTensionVerb = 0.0;
-    public double InsultChance = 0.35;            // 3ヶ月毎にライバルを侮辱する確率。0.6→0.35＝ライバル間の緊張エスカレートを抑え開戦回数を減らす
-    public double InsultTension = 6;              // 侮辱の緊張↑（15→6＝講和後の急再燃を防ぐ。再上昇は脅威/イデオロギー主体の緩やかなものに＝同一ペアの時計仕掛け連戦を防ぐ）
+    // 【墓標2026-09-28・点火して旗ごと削除（回8-1・棚卸し dip-04＝dorm-04・検討 20-A3・AUD-08）】SymmetricTensionVerb（AI も RaiseTension/EaseTension を呼ぶ）を点火し、
+    //   AI だけの旧経路（即時 AddTension ±6・ならし無し）と、その量 InsultTension=6・AI だけの乱数 InsultChance=0.35/四半期（検討 F 群の時間定数の兄弟）を削除した。
+    //   AI は「相手へ向けた自分のならしが空のときだけ」同じ動詞を押す。押す頻度を史実の戦争の頻度に合わせるのは作者裁定 A7（計測で探す）。
     // ★緊張のラチェット解消（2026-07-31・英崩壊の切り分けで判明）：緊張は**100超で減衰が完全に止まり**、
     // 開戦閾値140への一方通行になっていた。講和後の PostWarTension(38)+RevanchismTension(70)=108 も、
     // AI屈服の ConcedeTensionTarget(110) も、どちらも**この「永久に冷めない帯」に着地**しており、
@@ -1695,8 +1690,9 @@ public sealed class Coefficients
     public double BattleDecisiveMargin = 0.06;     // 今月の戦勝点の動き÷崩壊点 がこれ以上なら「圧勝」
     public double BattleClearMargin = 0.02;        // 同上・これ以上なら「快勝」（未満は「辛勝」）
     public double ActionTensionStep = 25.0;        // 「挑発する/緊張を緩和する」1回の緊張増減量（合計。TensionActionRampMonthsかけて徐々に反映）
-    public int TensionActionRampMonths = 6;        // 緊張操作の反映期間（月）＝即時でなく毎月 Step/Ramp ずつ動く（2026-07-04）
-    public int TensionActionCooldownMonths = 18;   // 緊張操作のクールダウン（月・対相手ごと）＝連打防止の長い待ち
+    public int TensionActionRampMonths = 6;        // 緊張操作の反映期間（月）＝即時でなく毎月 Step/Ramp ずつ動く（2026-07-04）。押した国ごとに1か月に動くのは Step/Ramp まで（何度押しても）
+    // 【墓標2026-09-28（回8-1・棚卸し dip-04・検討 20-A3）】TensionActionCooldownMonths=18（同じ相手への再操作の待ち）＝根拠の無いクールダウン（作者の恒久方針 2026-09-06）＝削除。
+    //   連打は政治的帰結（毎月実際に動いた緊張に比例して払う）とならしの速さ（上の月の上限）が担う。
     // 外交アクションの政治的帰結（2026-07-27ユーザー設計）：能動的な挑発/宥和を国内のイデオロギー構成が評価する（作用先＝正統性・AI/プレイヤー対称の4サイト）。
     public double TensionPoliticsScale = 0.03;     // 挑発＝タカ派(反動/ナショ/帝国/ファシ)の喝采−ハト派(自由/共和)の反発、宥和＝逆。正統性への一発インパルス×シェア差（参政権voice加重＝Ideologies.National）。0で厳密恒等
     public double WarFeverWeakness = 1.5;          // 格下への宥和の「弱腰」増幅＝タカ派の失望×(1+これ×好戦世論)。格上への宥和は自衛＝増幅なし（AI屈服の屈辱AISubmitLegitCostの連続版）

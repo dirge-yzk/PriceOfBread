@@ -156,4 +156,91 @@ public class TensionPoliticsTests(ITestOutputHelper output)
         Assert.NotEqual(la2, sim2.Nations[0].World.Legitimacy);
         Assert.NotEqual(lb2, sim2.Nations[1].World.Legitimacy);
     }
+
+    // ===== 緊張の操作＝待ちなし・動いた分だけ払う・AI も同じ動詞（2026-09-28 回8-1・棚卸し dip-04・検討 20-A3）=====
+    // ⚠機構だけを見る。①何度押しても1か月に動く緊張は ActionTensionStep÷TensionActionRampMonths まで（押した国ごと）。
+    //   ②押した瞬間は禁輸だけ・政治的帰結と近隣への波及は毎月実際に動いた緊張に比例して払う＝総額は押した回数×1回分の見積もり。
+    //   ③上限200で切れた分は払わない。④AI は相手へ向けた自分のならしが空のときだけ同じ動詞を押す（乱数なし）。⑤屈服は両向きのならしを消す。
+    private static void SetTension(Diplomacy dip, Power a, Power b, double v) => dip.AddTension(a, b, v - dip.Tension(a, b), TensionReason.Initial);
+
+    [Fact]
+    public void 緊張の操作は待ちなしで積み1か月の動きは上限まで政治的帰結と波及は動いた分だけ払う()
+    {
+        var sim = WarmSim(); var c = sim.Coef; var dip = sim.Diplomacy;
+        var fr = sim.Nations[0].World.SelfPower!; var br = sim.Nations[1].World.SelfPower!; var pr = sim.Nations[2].World.SelfPower!;
+        var w = sim.Nations[0].World;
+        for (int i = 0; i < 2 * c.TensionActionRampMonths; i++) dip.StepTensionRamp(c);   // 助走の四半期に AI が押したならしを流し切る（AI の動詞は走らない）
+        SetTension(dip, fr, br, 50); SetTension(dip, fr, pr, 10);
+        double perMonth = c.ActionTensionStep / c.TensionActionRampMonths;
+        var pv = Diplomacy.PreviewTensionPolitics(fr, br, TensionPoliticsKind.Provoke, c);
+        double full = pv.TargetLegitimacy - w.Legitimacy;   // 1回分の全額（クランプ前）
+        Assert.True(Math.Abs(full) > 1e-9, "前提が崩れた：政治的帰結が0＝検査が空洞");
+        bool prNear = Geo.DistanceKm(pr.Nation!.Latitude, pr.Nation.Longitude, br.Nation!.Latitude, br.Nation.Longitude) < c.ProximityTensionRange;
+        Assert.True(prNear && c.ProvokeProximitySpread > 0, "前提が崩れた：プロイセンが英の近隣でない（波及を測れない）");
+        double leg0 = w.Legitimacy, t0 = dip.Tension(fr, br), tp0 = dip.Tension(fr, pr);
+        for (int k = 0; k < 3; k++) Assert.True(dip.RaiseTension(fr, br, c), "動詞が拒んだ（同じ束でないか、待ちが残っている）");
+        Assert.Equal(3 * c.ActionTensionStep, dip.TensionRampRemaining(fr, br), 9);   // 待ちは無い＝3回とも積む
+        Assert.True(dip.HasEmbargo(fr, br));                                            // 禁輸は押した瞬間
+        Assert.Equal(leg0, w.Legitimacy);                                              // 政治的帰結は押した瞬間には払わない
+        Assert.Equal(t0, dip.Tension(fr, br)); Assert.Equal(tp0, dip.Tension(fr, pr)); // 緊張も波及もまだ動かない
+        int months = 3 * c.TensionActionRampMonths;
+        for (int m = 0; m < months; m++)
+        {
+            double tb = dip.Tension(fr, br);
+            dip.StepTensionRamp(c);
+            Assert.True(Math.Abs(dip.Tension(fr, br) - tb - perMonth) <= 1e-9, $"{m + 1}か月目の動き {dip.Tension(fr, br) - tb:G17} が月の上限 {perMonth:G17} でない");
+        }
+        Assert.Equal(0.0, dip.TensionRampRemaining(fr, br));
+        Assert.True(Math.Abs(dip.Tension(fr, br) - (t0 + 3 * c.ActionTensionStep)) <= 1e-9);
+        Assert.True(Math.Abs((w.Legitimacy - leg0) - 3 * full) <= 1e-12, $"政治的帰結の総額 {w.Legitimacy - leg0:G17} が3回分 {3 * full:G17} でない");
+        Assert.True(Math.Abs((dip.Tension(fr, pr) - tp0) - 3 * c.ActionTensionStep * c.ProvokeProximitySpread) <= 1e-9, $"近隣への波及の総額 {dip.Tension(fr, pr) - tp0:G17} が3回分でない");
+
+        // ③ 上限200：残り5しか動けない＝政治的帰結は5÷ActionTensionStep 回分だけ
+        SetTension(dip, fr, br, 195);
+        double leg1 = w.Legitimacy;
+        Assert.True(dip.RaiseTension(fr, br, c));
+        for (int m = 0; m < c.TensionActionRampMonths; m++) dip.StepTensionRamp(c);
+        Assert.Equal(200, dip.Tension(fr, br), 9);
+        Assert.True(Math.Abs((w.Legitimacy - leg1) - full * 5 / c.ActionTensionStep) <= 1e-12, $"上限で切れた分まで払った（{w.Legitimacy - leg1:G17}・期待 {full * 5 / c.ActionTensionStep:G17}）");
+    }
+
+    [Fact]
+    public void AIは相手へ向けた自分のならしが空のときだけ同じ動詞を押す()
+    {
+        var sim = WarmSim(); var c = sim.Coef; var dip = sim.Diplomacy;
+        c.WarDeclareTension = 1e9;   // 開戦・屈服の判定を止める（測るのは押す規則）
+        var fr = sim.Nations[0].World.SelfPower!; var br = sim.Nations[1].World.SelfPower!; var pr = sim.Nations[2].World.SelfPower!;
+        for (int i = 0; i < 2 * c.TensionActionRampMonths; i++) dip.StepTensionRamp(c);   // 助走の四半期に AI が押したならしを流し切る
+        Assert.Equal(0.0, dip.TensionRampRemaining(fr, br)); Assert.Equal(0.0, dip.TensionRampRemaining(br, fr));
+        SetTension(dip, fr, br, 150); SetTension(dip, fr, pr, 0); SetTension(dip, br, pr, 0);   // 仏英が互いの唯一のライバル
+        Assert.Equal(dip.Bracket(fr, c), dip.Bracket(br, c));
+        double perMonth = c.ActionTensionStep / c.TensionActionRampMonths;
+        dip.Step(c, sim.Rng, month: 3);   // 四半期の月＝AI が動く（ならしの反映は AI の前に走る）
+        // 押す向き＝勝てる相手なら挑発（+）・勝てない相手なら宥和（−）
+        double Want(Power p, Power q) => q.Military > p.Military * c.AppeaseMilitaryRatio ? -c.ActionTensionStep : c.ActionTensionStep;
+        double wf = Want(fr, br), wb = Want(br, fr);
+        Assert.Equal(wf, dip.TensionRampRemaining(fr, br), 9);
+        Assert.Equal(wb, dip.TensionRampRemaining(br, fr), 9);
+        dip.Step(c, sim.Rng, month: 4); dip.Step(c, sim.Rng, month: 5);
+        dip.Step(c, sim.Rng, month: 6);   // ならしが残っている＝押さない
+        Assert.True(Math.Abs(dip.TensionRampRemaining(fr, br) - Math.Sign(wf) * (c.ActionTensionStep - 3 * perMonth)) <= 1e-9, $"ならしが残るのに押した（仏→英 {dip.TensionRampRemaining(fr, br):G17}）");
+        Assert.True(Math.Abs(dip.TensionRampRemaining(br, fr) - Math.Sign(wb) * (c.ActionTensionStep - 3 * perMonth)) <= 1e-9, $"ならしが残るのに押した（英→仏 {dip.TensionRampRemaining(br, fr):G17}）");
+        dip.Step(c, sim.Rng, month: 7); dip.Step(c, sim.Rng, month: 8);
+        dip.Step(c, sim.Rng, month: 9);   // ならしが空になった月＝また押す
+        Assert.Equal(wf, dip.TensionRampRemaining(fr, br), 9);
+        Assert.Equal(wb, dip.TensionRampRemaining(br, fr), 9);
+    }
+
+    [Fact]
+    public void 要求を受け入れると両向きのならしが消える()
+    {
+        var sim = WarmSim(); var c = sim.Coef; var dip = sim.Diplomacy;
+        var fr = sim.Nations[0].World.SelfPower!; var br = sim.Nations[1].World.SelfPower!;
+        SetTension(dip, fr, br, 150);
+        Assert.True(dip.RaiseTension(fr, br, c)); Assert.True(dip.RaiseTension(br, fr, c));
+        fr.PendingWar = br;
+        dip.ResolvePendingWar(fr, false, c);   // 屈服＝緊張を宥和側へ
+        Assert.Equal(0.0, dip.TensionRampRemaining(fr, br));
+        Assert.Equal(0.0, dip.TensionRampRemaining(br, fr));
+    }
 }
