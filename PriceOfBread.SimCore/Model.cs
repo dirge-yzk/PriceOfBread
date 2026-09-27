@@ -277,7 +277,7 @@ public sealed class Producer
     public double LaborWeight;
     public double Output;         // 実産出（§9-A がゆっくり寄せる状態変数）
     public double DesiredOutput;  // 採算が合えば作りたい量（能力×採算）。入力需要の再点火トリクルに使う（死んでも需要を残し価格で蘇生＝床なしでデッドロック防止）
-    public double MarginalCost;   // 1単位の付加価値費用（賃金・生存線分）。退出閾値には投入費を加算（§9-A 仕組み2）
+    public double MarginalCost;   // 1単位の付加価値費用（賃金・生存線分）＝**参照価格の単位**。読むときは EconomyStep.MineralSelfCost（×自己費用の物価水準 World.CostPriceLevel×州の乗数＝価格と同じ単位・2026-09-27 (73)）を通す。退出閾値には投入費を加算（§9-A 仕組み2）
     public int OwnerPopIndex;     // 地代/利潤の受け手
     public int LaborPopIndex;     // 賃金の受け手
     public double RentShare;      // ρ。自営は実質無関係（owner==labor）

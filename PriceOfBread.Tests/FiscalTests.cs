@@ -507,10 +507,12 @@ public class FiscalTests
     // =====================================================================================================
 
     [Fact]
-    public void 外資の配当と逃避は投資家までしか払わない_不足は不履行で債権が残る()
+    public void 外資の配当と逃避は投資家までしか払わない_払えない逃避は債権ごと消える()
     {
         // 外資の流入・逃避の受け皿・新規の資本移動は、どれも投資家の貯蓄へだけ入る（GiveGold の toInvestors）。流出も投資家まで＝
-        // 投資家が尽きても農民・労働者の貯蓄は国外へ出ない。払えない分は不履行＝債権（ForeignCapitalIn）は払えた額しか減らない。
+        // 投資家が尽きても農民・労働者の貯蓄は国外へ出ない。
+        // ★2026-09-27（C）：払えない逃避は不履行＝債権ごと消える（受入国の負債と持ち主の対外資産が同じ額だけ減る・貨幣は払えた額しか動かない）。
+        //   旧＝負債は払えた額しか減らず、払えなかった元本が毎四半期もう一度の逃避と配当を請求され続けた。払えない配当は積まない（同じ規則）。
         // 国際金融の外資以外の流れ（新規の資本移動・国内資本の逃避・外債の元利）を止め、仏の外資の負債を投資家の貯蓄の千倍にする（持ち主は英）。
         var coef = new Coefficients { CapitalDemandScale = 0, CapitalDomesticFlightRate = 0, ForeignBondCounterparty = 0 };
         var sim = new MultiNationSim([NationConfig.Britain(), NationConfig.France(), NationConfig.Prussia()], 1789, _ => new NullAgent(), coef) { DiplomacyFrozen = true };
@@ -527,6 +529,8 @@ public class FiscalTests
         var other0 = fpops.Select(p => CapitalMarket.IsInvestor(p, fr.Coef) ? double.NaN : p.Savings).ToArray();
         var guards = Array.ConvertAll(all, w => new MoneyConservation(w));
         double world0 = WorldBase(all), mint0 = MintedAndFiat(all), base0 = fr.BaseMoney, fci0 = fr.ForeignCapitalIn;
+        var fcis0 = Array.ConvertAll(all, w => w.ForeignCapitalIn);
+        var cas0 = Array.ConvertAll(all, w => w.CapitalAbroad);
 
         CapitalMarket.Step(sim.Nations, coef);
 
@@ -538,9 +542,16 @@ public class FiscalTests
         double paid = base0 - fr.BaseMoney, tol = 1e-9 * Math.Max(1.0, inv0);
         Assert.True(paid <= inv0 + tol, $"仏が払った額 {paid} が投資家の貯蓄 {inv0} を超えた");
         Assert.True(paid >= inv0 - tol, $"前提が崩れた：投資家が払い切っていない（{paid} / {inv0}）");
-        // (c) 払えない分は不履行＝債権は払えた額しか減らず、大半が残る
-        Assert.True(fr.ForeignCapitalIn >= fci0 - paid - tol, $"債権の減り {fci0 - fr.ForeignCapitalIn} が払った額 {paid} を超えた（払わずに消えた請求権）");
-        Assert.True(fr.ForeignCapitalIn > 0.5 * fci0, "不履行の債権が消えた");
+        // (c) 払えない逃避は債権ごと消える＝仏の負債は払えた額でなく逃避の額だけ減る（CreditRating＝同じ Step の信用の写し）。
+        //     払えない配当は積まない＝負債の減りは逃避の額ちょうど。持ち主の対外資産も同じ額だけ減る（請求権の両側を同時に）。
+        double flight = Math.Min(fci0, fci0 * coef.CapitalFlightRate * (1.0 - fr.CreditRating)), tolC = 1e-9 * Math.Max(1.0, fci0);
+        Assert.True(flight > 2 * paid, $"前提が崩れた：逃避 {flight} の大半が払える（払えた額 {paid}）");
+        Assert.True(Math.Abs(fci0 - fr.ForeignCapitalIn - flight) <= tolC, $"仏の負債の減り {fci0 - fr.ForeignCapitalIn} ≠ 逃避の額 {flight}（払えなかった元本が債権のまま残る／未払いの配当が積まれた）");
+        double dFci = 0, dCa = 0;
+        for (int i = 0; i < all.Length; i++) { dFci += fcis0[i] - all[i].ForeignCapitalIn; dCa += cas0[i] - all[i].CapitalAbroad; }
+        Assert.True(Math.Abs(dCa - dFci) <= tolC, $"持ち主の対外資産の減り {dCa} ≠ 受入国の負債の減り {dFci}（請求権の片側だけが消えた）");
+        Assert.True(Math.Abs(cas0[0] - br.CapitalAbroad - flight) <= tolC, $"英の対外資産の減り {cas0[0] - br.CapitalAbroad} ≠ 仏の逃避の額 {flight}");
+        // (d) 貨幣は払えた額しか動かない＝世界の基礎貨幣は台帳の外で動かない・各国の保存も閉じる
         double worldDrift = (WorldBase(all) - world0) - (MintedAndFiat(all) - mint0);
         Assert.True(Math.Abs(worldDrift) <= 1e-9 * Math.Max(1.0, world0), $"世界の基礎貨幣が台帳の外で {worldDrift} 動いた");
         for (int i = 0; i < all.Length; i++) guards[i].Check(all[i]);

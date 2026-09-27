@@ -1305,6 +1305,16 @@ public sealed class World
     // 金は厳密保存・Pは名目のヴェール＝保存則に無関係（pop貯蓄は金＝名目のままなので、P上昇で実質購買力が目減り＝インフレ税が創発）。
     // MonetaryEnabled の国だけ動く（合成較正/最小テスト世界は P≡1＝MarketFlow が rp×1 で従来同値＝較正世界で恒等）。
     public double PriceLevel { get; internal set; } = 1.0;
+    /// <summary>★自己費用の物価水準（2026-09-27 (73)）＝<see cref="PriceLevel"/> の遅い趨勢。<see cref="UpdatePriceLevel"/> が P を更新した直後に
+    /// M/Y の趨勢と同じ速さ（<see cref="Coefficients.MonetaryTrendSpeed"/>）で P を追う。生産者の自己費用（<see cref="EconomyStep.MineralSelfCost"/>）の
+    /// 単位＝参照価格の単位の MarginalCost を名目へ直す物価（×州の乗数）。
+    /// ⚠**新しい状態が要る理由**（思想⑩の例外）：P は (M/Y)/趨勢 の循環成分で、産出が落ちた四半期に上がる。自己費用を P そのもので伸縮すると
+    ///   （(68) の D）費用が市場価格（アンカーへ遅れて寄る）に先行して採算を圧縮し「産出↓→P↑→費用↑→産出↓」の正帰還を閉じた（恐慌 ×1.7）。
+    ///   盤面に P の遅い趨勢は無い（M/Y の趨勢 _moTrend は貨幣の厚みの趨勢で物価ではない・州の物価水準は P の日々の写し）。
+    ///   市場価格そのもの（生存の籠の実現物価指数）で測る形は、籠の価格が参照価格×P の 1.1〜2.8倍に張り付いていて（主食の希少地代・植民地財）
+    ///   自己費用の水準ごと上げてしまい、1種 200四半期で恐慌 242回（(73) の腕 d）。
+    /// 長期では P と同じ（単位の対称＝D と同じ）・短期では名目で固定に近い（r71 の安定器が戻る）。1.0＝平価（P の初期値と同じ）。</summary>
+    public double CostPriceLevel { get; internal set; } = 1.0;
     public bool MonetaryEnabled { get; internal set; }
     public double NominalGdp => NominalOf(Gdp);   // 名目GDP＝実質×物価。国債負担はこれで測る＝デフレで実質債務↑（負債デフレ）・インフレで債務軽減
     /// <summary>実質→名目の換算（名目GDPの唯一の式）。★2026-09-26 A2-2：同じ呼び出しの中で実質と名目の両方を読む読み手が、
@@ -1386,6 +1396,7 @@ public sealed class World
         if (!(FiatInflationPressure > 0)) FiatInflationPressure = 0;   // 否定形＝NaN も消す（有限値では旧と同値：Fiscal は正の圧しか積まない）
         else { PriceLevel *= 1.0 + c.FiatInflationWeight * FiatInflationPressure; FiatInflationPressure = 0; }
         PriceLevel = Math.Clamp(PriceLevel, c.PriceLevelFloor, c.PriceLevelCeil);
+        CostPriceLevel += c.MonetaryTrendSpeed * (PriceLevel - CostPriceLevel);   // ★自己費用の物価＝P の遅い趨勢（M/Y の趨勢と同じ速さ・(73)）
         // #2 期待インフレ（年率・平滑）＝直近の物価騰落。名目金利が乗せる（Fisher）。
         double infl = before > 1e-9 ? (PriceLevel / before - 1.0) * Calendar.QuartersPerYear : 0;   // 四半期→年率
         ExpectedInflation += Coef.InflationExpectationSmoothing * (infl - ExpectedInflation);   // EMA

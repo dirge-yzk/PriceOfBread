@@ -289,22 +289,26 @@ public class ConservationTests
     }
 
     /// <summary>受入国の流入の合計は上限 C_d（受入の上限率×人口×移民制限法×受入能力≦1）以下・閉鎖の国は同じ条件の開放の国の2割以下。
-    /// 上限率を小さくして両方で上限が効く盤面にする（効いていない盤面では「2割以下」は言えない）。</summary>
+    /// 上限率を小さくして両方で上限が効く盤面にする（効いていない盤面では「2割以下」は言えない）。
+    /// 受入国＝盤面の6か国のうち開放で最も多く受け入れる国（どの国が引き寄せるかは1四半期の軌道で決まる＝創発。番人は規則だけを見る・2026-09-27 (73)
+    /// 旧＝米に固定。自己費用の単位の是正で1四半期目の州の費用が動き、米の機会が他国を下回って番人が空振りした）。</summary>
     [Fact]
     public void 国家間移民の受入は上限以下_閉鎖は開放の2割以下()
     {
-        double Inflow(ImmigrationLaw law, out double capNoAbsorb)
+        double Inflow(string name, ImmigrationLaw law, out double capNoAbsorb)
         {
             var sim = MigrationBoard(new Coefficients { ImmigrationReceiveCapFrac = 1e-5 });
-            var us = sim.Nations.First(n => n.World.SelfPower?.BaseName == "アメリカ").World;
-            us.ImmigrationRestriction = law;
-            capNoAbsorb = sim.Coef.ImmigrationReceiveCapFrac * us.TotalPopulation * (law == ImmigrationLaw.Closed ? sim.Coef.ImmigrationClosedFrac : 1.0);
+            var dst = sim.Nations.First(n => n.World.SelfPower?.BaseName == name).World;
+            dst.ImmigrationRestriction = law;
+            capNoAbsorb = sim.Coef.ImmigrationReceiveCapFrac * dst.TotalPopulation * (law == ImmigrationLaw.Closed ? sim.Coef.ImmigrationClosedFrac : 1.0);
             sim.MigrateBetweenNations();
-            return us.LastImmigration;
+            return dst.LastImmigration;
         }
-        double open = Inflow(ImmigrationLaw.Open, out double capOpen);
-        double closed = Inflow(ImmigrationLaw.Closed, out double capClosed);
-        Assert.True(open > 0, "開放の米に1人も来ていない＝番人が何も検査していない");
+        string[] board = ["イギリス", "フランス", "アメリカ", "プロイセン", "ロシア", "スペイン"];   // MigrationBoard と同じ6か国
+        string name = board.OrderByDescending(n => Inflow(n, ImmigrationLaw.Open, out _)).First();
+        double open = Inflow(name, ImmigrationLaw.Open, out double capOpen);
+        double closed = Inflow(name, ImmigrationLaw.Closed, out double capClosed);
+        Assert.True(open > 0, $"開放の{name}（最も受け入れる国）に1人も来ていない＝番人が何も検査していない");
         Assert.True(open <= capOpen * (1 + 1e-9), $"受入の上限を超えた（{open:F4} > {capOpen:F4}）");
         Assert.True(closed <= capClosed * (1 + 1e-9), $"閉鎖の受入の上限を超えた（{closed:F4} > {capClosed:F4}）");
         Assert.True(closed <= 0.2 * open * (1 + 1e-9), $"閉鎖（{closed:F4}）が開放（{open:F4}）の2割を超えた");

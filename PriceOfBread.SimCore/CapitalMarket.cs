@@ -107,16 +107,19 @@ public static class CapitalMarket
         double riskAppetite = System.Math.Clamp(1.0 - c.CapitalContagion * (1.0 - worldCred), 0, 1);
 
         // (1) 資本逃避：信用の低い国の外資が本国送還（host から流出）。(2) 配当：host が ForeignCapitalIn に divRate を払う。
-        //     両者の総額を owner 国へ CapitalAbroad 比で戻す（逃避は元本＝資産も減る／配当は資産不変）。
+        //     払えた総額を owner 国へ CapitalAbroad 比で戻す（逃避は元本＝資産も逃避の額だけ減る／配当は資産不変）。
         // 帰属修正（監査経9・#17で有効化）：流入は toInvestors:true で投資家貯蓄へ入るのに、配当/逃避の流出は全pop按分＝
         //   「外資で資本家が潤い、配当は国民の人頭税で払う」非対称の是正＝流出も投資家原資。
         //   ★2026-09-26：2値の旗 CapitalOutflowFromInvestors（既定1.0）を焼き込み（x-01）。
         //   ★★2026-09-27：不足分の全popフォールバックを撤去＝流出は**投資家まで**（流入は投資家へだけ入る＝分子と分母の対称）。
-        //     払えない分は不履行＝債権（ForeignCapitalIn）は残り、実際に払えた額だけ減る。旧＝投資家が尽きると農民・労働者の貯蓄まで国外へ出し、
-        //     受け皿の基礎貨幣が干上がって物価が下限に張り付き主食の採算が割れた（世界規模の補給崩壊の根）。
+        //     旧＝投資家が尽きると農民・労働者の貯蓄まで国外へ出し、受け皿の基礎貨幣が干上がって物価が下限に張り付き主食の採算が割れた（世界規模の補給崩壊の根）。
         //     B4裁定（2026-07-31）の「中間値＝両者の按分」は、全pop按分の経路が無くなったので対象が無い。
-        double flightTotal = 0, divTotal = 0;
-        var taken = new double[n];   // host 別に実際に抜いた額（逃避＋配当）。保有者が居ない場合の返金に使う＝金を捨てない（保存）
+        // ★★2026-09-27（C）：払えない逃避は**債権ごと消える**＝不履行で債権者が損をかぶる。host の ForeignCapitalIn は逃避の額だけ減り、
+        //   下の還流で owner の CapitalAbroad も同じ額だけ減る（請求権の両側を同時に消す・貨幣は払えた額しか動かない）。
+        //   旧＝負債は払えた額しか減らず、払えなかった元本が債権のまま残って毎四半期もう一度の逃避と配当を請求された（戻らない輪）。
+        //   払えない配当も同じ規則＝未払いを積まない（host に延滞の負債も、owner に未収の債権も立たない）。
+        double flightTotal = 0;   // 逃避で消えた請求権の総額（払えた額でなく逃避の額）
+        var taken = new double[n];   // host 別に実際に抜いた額（逃避＋配当）＝owner へ戻る金。保有者が居ない場合は抜いた host へ返金＝金を捨てない（保存）
         ProbeSnap();
         for (int i = 0; i < n; i++)
         {
@@ -153,18 +156,17 @@ public static class CapitalMarket
                 }
             }
             double flight = System.Math.Min(w[i].ForeignCapitalIn, w[i].ForeignCapitalIn * c.CapitalFlightRate * (1.0 - cred[i]));
-            if (flight > 1e-9) { double got = TakeGold(w[i], flight); w[i].ForeignCapitalIn -= got; flightTotal += got; taken[i] += got; }   // ③修正：実際に引けた額でストックを減らす（Σ流入＝Σ対外保有の台帳整合）
+            if (flight > 1e-9) { taken[i] += TakeGold(w[i], flight); w[i].ForeignCapitalIn -= flight; flightTotal += flight; }   // 払えない分も債権ごと消える（C）＝下の還流で owner も同額減る＝Σ流入＝Σ対外保有の台帳整合
             double div = w[i].ForeignCapitalIn * c.CapitalDividendRate;
-            if (div > 1e-9) { double gotDiv = TakeGold(w[i], div); divTotal += gotDiv; taken[i] += gotDiv; }
+            if (div > 1e-9) taken[i] += TakeGold(w[i], div);   // 払えない配当は積まない（未払いの負債も未収の債権も立たない）
         }
         ProbeDiff("逃避配当");
-        double abroadSum = 0; for (int i = 0; i < n; i++) abroadSum += w[i].CapitalAbroad;
-        double backTotal = flightTotal + divTotal;
-        if (abroadSum > 1e-9 && backTotal > 1e-9)
+        double abroadSum = 0, backTotal = 0; for (int i = 0; i < n; i++) { abroadSum += w[i].CapitalAbroad; backTotal += taken[i]; }
+        if (abroadSum > 1e-9 && backTotal + flightTotal > 1e-9)
             for (int i = 0; i < n; i++)
             {
                 double share = w[i].CapitalAbroad / abroadSum;
-                w[i].CapitalAbroad = System.Math.Max(0, w[i].CapitalAbroad - flightTotal * share);   // 引き上げた元本ぶん資産が減る
+                w[i].CapitalAbroad = System.Math.Max(0, w[i].CapitalAbroad - flightTotal * share);   // 消えた元本ぶん資産が減る（払えなかった分も＝債権者が損をかぶる）
                 GiveGold(w[i], backTotal * share, toInvestors: true);
             }
         else if (backTotal > 1e-9)   // ★A-2#4修正：対外保有が無い（台帳のズレ）期に抜いた配当/逃避がどの pop にも戻らず蒸発するのを防ぐ＝抜いた host へ返金（金を捨てない）

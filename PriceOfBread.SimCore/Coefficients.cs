@@ -971,7 +971,7 @@ public sealed class Coefficients
 
     // 貨幣・物価水準（段4-貨幣 第1段。MonetaryEnabled の国のみ。較正＝P≡1で不変）。物価＝名目のヴェール（金は保存）。
     public double MonetaryPriceSensitivity = 0.25;  // 物価水準の感応度：P を「広義マネー/実質産出 のトレンド比」へ寄せる速度。高いほど物価がキビキビ動く
-    public double MonetaryTrendSpeed = 0.02;        // M/Y トレンドの追従速度（遅い＝secular な産出成長を吸収。小さいほど長期デフレが残り、大きいほど純粋に循環のみ）
+    public double MonetaryTrendSpeed = 0.02;        // M/Y トレンドの追従速度（遅い＝secular な産出成長を吸収。小さいほど長期デフレが残り、大きいほど純粋に循環のみ）。★同じ速さで自己費用の物価水準 World.CostPriceLevel が P を追う（2026-09-27 (73)）
     // 鋳造（金鉱→正貨）：金鉱産出の一部を造幣局が新鋳貨で買い取る＝基礎貨幣が増える（金産出国の通貨的優位・ゴールドラッシュ→マネー膨張→インフレ/好況）。
     // 鋳造分は金の商品市場から引き取られる＝宝飾と造幣が金を奪い合う（金価格↑）。0=無効（較正中立）。保存：CumulativeGoldMinted 台帳で基礎貨幣増を追跡。
     public double GoldMintFraction = 0.2;           // 金鉱の月次産出のうち鋳造（貨幣化）に回る割合。0=中立。0.2起動（キュー3・金発見移民 2026-07-10）＝金鉱州の産金→新鋳貨が鉱山所有者へ＝金鉱国の購買力/賃金↑→移民機会↑（ゴールドラッシュの貨幣面）。旧保存テストは CumulativeGoldMinted 込みの式へ更新済み
@@ -1027,8 +1027,8 @@ public sealed class Coefficients
     public double OffGoldCapitalPenalty = 0.5;       // 不換国の対外信用の倍率（金本位＝1.0。不換は外資が付きにくく逃げやすい）
     public double CapitalDemandScale = 0.02;         // 流入需要＝(収益率−世界平均)×名目GDP×これ（吸収力＝経済規模）
     public double CapitalExportFrac = 0.10;          // 資本余剰国が対外投資に回す投資家貯蓄の割合。※衰退実験(0.28)は逆効果（覇権がレンティア化し配当で首位維持）＝既定0.10に復帰
-    public double CapitalDividendRate = 0.02;        // 外資への四半期配当率（ForeignCapitalIn に対し・本国へ送金＝外資のコスト）
-    public double CapitalFlightRate = 0.15;          // 資本逃避：毎四半期 ForeignCapitalIn×これ×(1−信用) が本国送還（信用崩壊で急増）
+    public double CapitalDividendRate = 0.02;        // 外資への四半期配当率（ForeignCapitalIn に対し・本国へ送金＝外資のコスト）。払えない配当は積まない（未払いの負債も未収の債権も立たない）
+    public double CapitalFlightRate = 0.15;          // 資本逃避：毎四半期 ForeignCapitalIn×これ×(1−信用) が本国送還（信用崩壊で急増）。払えない分は債権ごと消える（受入国の負債と持ち主の対外資産が同額減る・2026-09-27 C）
     public double CapitalContagion = 0.6;            // 伝染：危機国の割合×これだけ世界の資本意欲が縮む（サドンストップ）
     public double CapitalCreditFloor = 0.5;          // 信用の床：収益率＝伸びしろ×(これ+(1−これ)×信用)。信用が低くても高潜在国は資本を呼ぶ（ゲートでなくプレミアム）。代償は高い逃避・配当
     // 関税＝輸入関税（保護＋歳入）。19世紀国家財政の主柱（米：所得税前は歳入の過半）＋産業政策（リスト/ビスマルク/共和党）。
@@ -1385,7 +1385,7 @@ public sealed class Coefficients
     // ★器（2026-09-07・休眠）：鉱脈の倍率（MineralDepletion×MineralGradeFactor）を鉱物RGOの**限界費用**にも通す（EconomyStep.MineralSelfCost）。
     //   旧＝倍率は Capacity にだけ乗る＝GoldRushEndowment 5.0 の州は量が5倍でも単位費用は平年と同じ＝富鉱が「安い限界供給者」にならない・
     //   枯れた鉱脈（DepositGradeFloor 0.15）が「高い限界供給者」にならない＝価格が鉱脈の質を反映しない。新しい数値は作らない（同じ積で割るだけ）。
-    public double MineralCostFollowsGrade = 0.0;         // 0＝自己費用は MarginalCost のまま（従来の1行が走る）＝厳密恒等。1＝MarginalCost÷(MineralDepletion×MineralGradeFactor)
+    public double MineralCostFollowsGrade = 0.0;         // 0＝鉱脈で割らない（自己費用＝MarginalCost×自己費用の物価水準×州の乗数のまま）＝厳密恒等。1＝さらに÷(MineralDepletion×MineralGradeFactor)
     // ★器（2026-09-08・作者裁定「同一生産コスト辺りの産出能力にするのが正しい」・休眠）：賦存を**同じ費用でどれだけ採れるか**にする。
     //   旧＝賦存倍率（Simulation.ResourceEndowment 鉱物4.0/他3.5・希少鉱物の総量保存 ScarceEndowment・非産地の ResourceScarcity 0.4）は
     //     Productivity＝Capacity にしか乗らず、自己費用（Producer.MarginalCost＝Catalog.RgoVa 0.34）は全州で同じ

@@ -166,7 +166,7 @@ public class MilitaryTests
     {
         var sim = new Simulation(NationConfig.Britain().ToScenario(29), new NullAgent());
         var r = sim.World.Region; var c = sim.World.Coef;
-        double Mc(Producer p) => EconomyStep.MineralSelfCost(p, r, c) + EconomyStep.InputCostPerUnit(p, r, r, c);
+        double Mc(Producer p) => EconomyStep.MineralSelfCost(p, r, c, sim.World) + EconomyStep.InputCostPerUnit(p, r, r, c);
         var musket = Assert.Single(r.Producers, p => p.GoodId == 82 && p.RecipeName == "マスケット");
         var rifle = Assert.Single(r.Producers, p => p.GoodId == 82 && p.Inputs.Any(inp => inp.GoodId == 32));   // 既定（鋼）レシピ
         var bessemer = Assert.Single(r.Producers, p => p.GoodId == 32 && p.TechOnset > 0);                     // 既定の鋼＝ベッセマー転炉（onset 0.55）

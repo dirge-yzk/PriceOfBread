@@ -8165,9 +8165,6 @@ try
             foreach (int gid in traceGoods)
             {
                 var mk = r.Markets[gid];
-                var prod = r.Producers.FirstOrDefault(p => p.GoodId == gid);
-                double mc = prod?.MarginalCost ?? 0;
-                if (prod != null) foreach (var inp in prod.Inputs) mc += r.Markets[inp.GoodId].Price * inp.QtyPerOutput;
                 parts.Add($"{Catalog.Goods[gid].Name} P{mk.Price:F2} 産{mk.LastProduced:F0} 需{mk.LastDemand:F0} 輸入{mk.LastImport:F0} 輸出{mk.LastExport:F0}");
             }
             trace.Add($"Q{q + 1,3}  金世界{sim.Market.Price[4]:F2} 日関税{sim.Nations[1].World.Tariff:F2}  " + string.Join("   ", parts));
@@ -8217,7 +8214,7 @@ foreach (var n in sim.Nations)
 }
 
 // --- 床財の採算分解（イギリス＝二極化最悪国）：赤字(price<mc・倒産が効く) vs 黒字だが床(price≥mc・倒産は効かない) ---
-var brR = sim.Nations[2].World.Region;
+var brR = sim.Nations[2].World.Region; var brC = sim.Nations[2].World.Coef;
 int lossFloor = 0, profitFloor = 0;
 var lossEx = new List<string>(); var profitEx = new List<string>();
 foreach (var g in brR.Goods)
@@ -8226,8 +8223,7 @@ foreach (var g in brR.Goods)
     if (mk.Price > g.RefPrice * 0.051) continue;                       // 床財のみ
     var prod = brR.Producers.FirstOrDefault(p => p.GoodId == g.Id);
     if (prod == null) continue;                                        // 生産者なし（植民地財等）は除外
-    double mc = prod.MarginalCost;
-    foreach (var inp in prod.Inputs) mc += brR.Markets[inp.GoodId].Price * inp.QtyPerOutput;
+    double mc = EconomyStep.MineralSelfCost(prod, brR, brC, sim.Nations[2].World) + EconomyStep.InputCostPerUnit(prod, brR, brR, brC);   // エンジンの①供給と同じ mc（同じ関数＝表示が静かに嘘にならない・旧＝素の MarginalCost＋素の原単位の写し）
     if (mk.Price < mc) { lossFloor++; if (lossEx.Count < 6) lossEx.Add($"{g.Name}(P{mk.Price:F3}<mc{mc:F3} 産{mk.LastProduced:F0} 需{mk.LastDemand:F0} Sc{prod.Scale:F2})"); }
     else { profitFloor++; if (profitEx.Count < 6) profitEx.Add($"{g.Name}(P{mk.Price:F3}≥mc{mc:F3} 産{mk.LastProduced:F0} 需{mk.LastDemand:F0} Sc{prod.Scale:F2})"); }
 }

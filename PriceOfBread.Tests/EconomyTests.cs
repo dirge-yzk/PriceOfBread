@@ -161,6 +161,61 @@ public class EconomyTests
         }
     }
 
+    /// <summary>★2026-09-27 (73)：自己費用は価格と同じ単位＝自己費用の物価水準（<see cref="World.CostPriceLevel"/>＝P の遅い趨勢）×州の乗数で伸縮する。
+    /// 自己費用の物価水準を2倍にすると、全ての生産者（RGO・工場・役務・労働）の自己費用もちょうど2倍。1.0（乗数1）では MarginalCost（参照価格の単位）そのもの。
+    /// 物価水準 P（州の写しも国の値も）は読まない＝費用は P の循環に先行しない。鉱脈の器（MineralCostFollowsGrade）を点けても同じ規則（割る前に掛かる）。
+    /// ×2 は浮動小数点で厳密＝完全一致で比べる。</summary>
+    [Fact]
+    public void 自己費用は自己費用の物価水準で伸縮する_価格と同じ単位()
+    {
+        foreach (var coef in new[] { new Coefficients(), new Coefficients { MineralCostFollowsGrade = 1.0 } })
+        {
+            var sim = new Simulation(new Scenario { Kind = ScenarioKind.Nation, NationConfig = WorldData.ByName("イギリス"), Seed = 1, Coef = coef }, new NullAgent());
+            var w = sim.World;
+            var all = w.Regions.SelectMany(r => r.Producers.Select(p => (r, p))).ToList();
+            Assert.Contains(all, x => x.p.IsRgo);
+            Assert.Contains(all, x => !x.p.IsRgo && x.p.Inputs.Count > 0);   // 工場（投入を持つ非RGO）も同じ入口を通る
+            Assert.Contains(all, x => x.p.IsRgo && Catalog.IsMineral(x.p.GoodId));
+            foreach (var (region, p) in all)
+            {
+                region.LocalPriceMultiplier = 1.0; w.CostPriceLevel = 1.0;
+                region.PriceLevel = 3.0; w.PriceLevel = 0.5;   // 物価水準 P は読まない
+                double one = EconomyStep.MineralSelfCost(p, region, coef, w);
+                if (!(coef.MineralCostFollowsGrade > 0 && p.IsRgo && Catalog.IsMineral(p.GoodId)))
+                    Assert.Equal(p.MarginalCost, one);   // 1.0＝参照価格の単位の値そのもの
+                w.CostPriceLevel = 0.6;
+                double lo = EconomyStep.MineralSelfCost(p, region, coef, w);
+                w.CostPriceLevel = 1.2;
+                double hi = EconomyStep.MineralSelfCost(p, region, coef, w);
+                Assert.True(hi == 2.0 * lo,
+                    $"{Catalog.Goods[p.GoodId].Name}（{(p.IsRgo ? "RGO" : "非RGO")}・{p.RecipeName}）：自己費用の物価 0.6→1.2 で自己費用が {lo}→{hi}（2倍でない）");
+                region.LocalPriceMultiplier = 2.0;   // 州の乗数（州の物価水準と同じ写し方）も同じく掛かる
+                Assert.True(EconomyStep.MineralSelfCost(p, region, coef, w) == 2.0 * hi, $"{Catalog.Goods[p.GoodId].Name}：州の乗数2で2倍でない");
+            }
+        }
+    }
+
+    /// <summary>★2026-09-27 (73)：自己費用の物価水準は P を**遅く**追う＝<see cref="World.UpdatePriceLevel"/> が P を更新した直後に
+    /// M/Y の趨勢と同じ速さ（MonetaryTrendSpeed）で1回だけ寄る。P が跳ねた四半期に費用は跳ねない（(68) の D の正帰還を閉じない）。</summary>
+    [Fact]
+    public void 自己費用の物価水準は物価水準の遅い趨勢()
+    {
+        var sim = new Simulation(new Scenario { Kind = ScenarioKind.Nation, NationConfig = WorldData.ByName("イギリス"), Seed = 1 }, new NullAgent());
+        var w = sim.World; var c = w.Coef;
+        Assert.True(w.MonetaryEnabled);
+        w.UpdatePriceLevel(c);   // 初回は趨勢の基準を取るだけ（P も費用の物価も動かない）
+        Assert.Equal(1.0, w.CostPriceLevel);
+        for (int i = 0; i < 6; i++)
+        {
+            w.PriceLevel = i % 2 == 0 ? 2.0 : 0.5;   // 物価を大きく振る
+            double c0 = w.CostPriceLevel;
+            w.UpdatePriceLevel(c);
+            double p1 = w.PriceLevel;
+            Assert.Equal(c0 + c.MonetaryTrendSpeed * (p1 - c0), w.CostPriceLevel);   // 更新後の P へ、趨勢の速さで1回だけ寄る
+            Assert.True(Math.Abs(w.CostPriceLevel - c0) < Math.Abs(p1 - c0), "自己費用の物価が P に追いついた（遅い趨勢でない）");
+        }
+    }
+
     [Fact]
     public void 階層3分割_日用品の不足は不満になり嗜好品は上振れだけ()
     {

@@ -617,7 +617,7 @@ public static class EconomyStep
                 boost *= 1.0 + coef.ScaleEconomyGain * u / (u + coef.ScaleEconomyHalf);
             }
             s.Capacity = region.Pops[lp].Size * fraction * s.Productivity * boost * harvestMul * mineralMul;
-            double mc = MineralSelfCost(s, region, coef) + InputCostPerUnit(s, region, region, coef);   // ★器 MineralCostFollowsGrade（2026-09-07・既定0＝休眠）：ゲート0で MineralSelfCost は s.MarginalCost をそのまま返す＝旧1行と厳密恒等
+            double mc = MineralSelfCost(s, region, coef, world) + InputCostPerUnit(s, region, region, coef);   // 自己費用（×自己費用の物価水準＝P の遅い趨勢×州の乗数・2026-09-27 (73)）＋投入費（名目）
             double price = region.Markets[s.GoodId].Price;
             double profitFactor = price <= mc ? 0.0 : Math.Min(1.0, (price - mc) / (mc * coef.SupplySlope));
             s.DesiredOutput = s.Capacity * profitFactor;                  // 採算が合えば作りたい量（再点火トリクル用＝充足前）
@@ -2392,7 +2392,7 @@ public static class EconomyStep
             s.LastRevenue = producerRevenue; s.LastCost = inputCost[pi] + wages;   // 工場別の収入・支出（損益＝収入−支出。UI表示用）
 
             // 操業規模の更新（参入退出）：採算（価格 vs 限界費用）で伸縮。採算良→拡張（労働を集める）・採算悪→縮小（≒閉鎖・労働を手放す）。
-            double mc = MineralSelfCost(s, region, coef) + InputCostPerUnit(s, region, region, coef);   // ★器 MineralCostFollowsGrade（2026-09-07・既定0＝休眠）：ゲート0で MineralSelfCost は s.MarginalCost をそのまま返す＝旧1行と厳密恒等
+            double mc = MineralSelfCost(s, region, coef, world) + InputCostPerUnit(s, region, region, coef);   // ①供給と同じ mc（自己費用×自己費用の物価水準＋投入費）
             double margin = mc > Eps ? (clearPrice[gi] - mc) / mc : 0;
             // 倍率排除（長い裾）：補助金工場の操業床 floor=1.0（外科的）を撤去。補助金は赤字を国庫が肩代わり（上の赤字分岐の StateSpent）＝採算が実質 break-even。
             // よって「採算を非負に底上げ」＝補助の経済的意味そのものから操業維持が創発（scaleTarget≥1）。旧 floor=1.0 と挙動同値。
@@ -2625,18 +2625,25 @@ public static class EconomyStep
         return c;
     }
 
-    /// <summary>★器 MineralCostFollowsGrade（2026-09-07・既定0＝**休眠**）：鉱物RGOの自己費用（Producer.MarginalCost＝Catalog.RgoVa）を
-    /// 鉱脈の倍率（MineralDepletion×MineralGradeFactor＝①供給の mineralMul と**同じ積**）で割る＝富鉱（GoldRushEndowment 5.0 の州）は
-    /// 安い限界供給者・枯れた鉱脈（DepositGradeFloor）は高い限界供給者。旧＝倍率は Capacity にだけ乗り単位費用は不変＝銀ラッシュの州でも
-    /// 掘る採算（profitFactor／決算の margin）は平年と同じだった。読み手＝①供給の mc と決算の操業規模の mc の**2箇所**（同じ物差し）。
-    /// internal＝ProductionDiag（恒等式3の自己費用列・稼働率の採算項）が**同じ関数**を読む（InputCostPerUnit と同じ理由＝表示が静かに嘘にならない）。
-    /// ゲート0・非RGO・非鉱物・倍率が非正/NaN のときは s.MarginalCost をそのまま返す＝×1.0 すら掛けない＝厳密恒等。</summary>
-    internal static double MineralSelfCost(Producer s, Region region, Coefficients coef)
+    /// <summary>生産者の**自己費用**（1単位の付加価値費用＝<see cref="Producer.MarginalCost"/>）を**価格と同じ単位**で返す＝
+    /// RGO・工場・役務・労働の**全ての生産者**の唯一の入口。
+    /// ①★自己費用の物価水準（2026-09-27 (73)）：MarginalCost は**参照価格の単位**（Catalog.RgoVa／FactoryVa・労働 0.35）なのに、価格は
+    ///   参照価格×州の物価水準（MarketFlow のアンカー）で動く＝単位の非対称だった（旧＝名目で固定＝物価が下がった州では採算が物価の下落だけで
+    ///   赤字になった・(68) の診断）。名目へは <see cref="World.CostPriceLevel"/>（P の遅い趨勢）×州の乗数（<see cref="Region.LocalPriceMultiplier"/>＝
+    ///   州の物価水準と同じ写し方）を掛ける＝長期では価格と同じ単位・短期では物価の循環に先行しない（P そのものを掛けた (68) の D は恐慌 ×1.7）。
+    ///   投入費（InputCostPerUnit）は州の価格そのもの＝元から名目。<paramref name="world"/>＝null（較正の1州・単体テスト）は平価 1.0。
+    /// ②★器 MineralCostFollowsGrade（2026-09-07・既定0＝**休眠**）：鉱物RGOは①をさらに鉱脈の倍率（MineralDepletion×MineralGradeFactor
+    ///   ＝①供給の mineralMul と**同じ積**）で割る＝富鉱（GoldRushEndowment 5.0 の州）は安い限界供給者・枯れた鉱脈（DepositGradeFloor）は
+    ///   高い限界供給者。ゲート0・非RGO・非鉱物・倍率が非正/NaN のときは割らない。
+    /// 読み手＝①供給の mc と決算の操業規模の mc の**2箇所**（同じ物差し）＋ProductionDiag（恒等式3の自己費用列・稼働率の採算項）＋
+    /// Runner の検証レポートの床財の採算＝全て**この関数**を読む（InputCostPerUnit と同じ理由＝表示が静かに嘘にならない）。</summary>
+    internal static double MineralSelfCost(Producer s, Region region, Coefficients coef, World? world)
     {
-        if (!(coef.MineralCostFollowsGrade > 0) || !s.IsRgo || !Catalog.IsMineral(s.GoodId)) return s.MarginalCost;
+        double own = s.MarginalCost * (world?.CostPriceLevel ?? 1.0) * region.LocalPriceMultiplier;   // ①参照価格の単位→州の名目（自己費用の物価水準）
+        if (!(coef.MineralCostFollowsGrade > 0) || !s.IsRgo || !Catalog.IsMineral(s.GoodId)) return own;
         double gm = region.MineralDepletion * region.MineralGradeFactor;
-        if (!(gm > Eps)) return s.MarginalCost;   // 否定形＝NaN/非正の倍率は従来側へ倒す（Clamp は NaN を消さない）
-        return s.MarginalCost / gm;
+        if (!(gm > Eps)) return own;   // 否定形＝NaN/非正の倍率は割らない側へ倒す（Clamp は NaN を消さない）
+        return own / gm;
     }
 
     /// <summary>投入の有効係数：電化した工場は労働力の投入が減る（機械化＝電力が人手を節約する）。他の投入は不変。

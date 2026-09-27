@@ -1349,7 +1349,7 @@ public partial class GameViewModel
     }
 
     /// <summary>左段＝生産にかかるコストの羅列（作者仕様2026-08-10）。
-    /// エンジンの限界費用 <c>mc = MarginalCost + InputCostPerUnit</c>（EconomyStep）の内訳を
+    /// エンジンの限界費用 <c>mc = MineralSelfCost（MarginalCost×自己費用の物価水準×州の乗数） + InputCostPerUnit</c>（EconomyStep）の内訳を
     /// <see cref="ProductionDiag.ExplainCost"/> が1箇所で再評価し、ここはその戻り値を文字に直すだけ
     /// （UI に第二の式を置かない）。合計＝mc の一致は番人テストが固定する。
     /// ★書式（作者フィードバック2026-08-10 項目1）：左＝<c>果実(×0.5)</c>（材名と産出1単位あたりの必要量）／

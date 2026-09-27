@@ -92,11 +92,11 @@ public static class ProductionDiag
 
     /// <summary>ある州でこの財を1単位作るのにかかる費用の内訳。
     ///
-    /// **恒等式3（限界費用）**：<c>Σ材料費 ＋ 人件費 ＋ 自己費用 ＝ Producer.MarginalCost + InputCostPerUnit ＝ mc</c>
+    /// **恒等式3（限界費用）**：<c>Σ材料費 ＋ 人件費 ＋ 自己費用 ＝ MineralSelfCost + InputCostPerUnit ＝ mc</c>
     ///   ＝EconomyStep ①供給の <c>mc</c>（採算判定 <c>price ≤ mc</c> が読む当の値）と同じ数。
     ///   ・材料費／人件費＝<see cref="EconomyStep.InputCostPerUnit"/> の各項を、労働（労働力・高度労働力・農業労働力）と
     ///     それ以外に振り分けただけ＝和は厳密に InputCostPerUnit（加算順だけが違う）。
-    ///   ・自己費用＝<c>Producer.MarginalCost</c>（賃金は投入費へ移った＝残る管理・資本/土地の付加価値）。
+    ///   ・自己費用＝<see cref="EconomyStep.MineralSelfCost"/>＝<c>Producer.MarginalCost</c>×自己費用の物価水準（<see cref="World.CostPriceLevel"/>＝P の遅い趨勢）×州の乗数（賃金は投入費へ移った＝残る管理・資本/土地の付加価値・2026-09-27 (73) で価格と同じ単位へ）。
     /// 番人テスト（ProductionDiagTests）が <c>Rebuilt == Mc</c> を固定する。
     ///
     /// ⚠<paramref name="HasProducer"/> が false＝その財の生産者が国内に1人も居ない（気候ゲート・植民地素材）。
@@ -215,7 +215,7 @@ public static class ProductionDiag
             if (inp.GoodId < 0 || inp.GoodId >= region.Markets.Length) inRange = false;
         }
         // EconomyStep ①供給の mc そのもの。範囲外の投入がある小世界だけは同じ和を自前で積む（Price が0を返す＝同値）。
-        double own = EconomyStep.MineralSelfCost(s, region, coef);   // ★器 MineralCostFollowsGrade と同じ自己費用（既定0＝s.MarginalCost）
+        double own = EconomyStep.MineralSelfCost(s, region, coef, w);   // エンジンと同じ自己費用（MarginalCost×自己費用の物価水準×州の乗数・器 MineralCostFollowsGrade も同じ1本）
         double mc = own + (inRange ? EconomyStep.InputCostPerUnit(s, home, region, coef) : material + labor);
         return new CostParts(items, material, labor, own, mc, true, s.RecipeName);
     }
@@ -261,7 +261,7 @@ public static class ProductionDiag
     /// エンジンの実式（EconomyStep.cs ①供給）は生産者ごとに
     /// <code>
     ///   Capacity = 労働pop.Size × fraction × Productivity × boost × harvestMul × mineralMul
-    ///   mc       = MarginalCost + InputCostPerUnit
+    ///   mc       = MineralSelfCost（MarginalCost×自己費用の物価水準×州の乗数） + InputCostPerUnit
     ///   profit   = price ≤ mc ? 0 : min(1,(price−mc)/(mc×SupplySlope))
     ///   fill     = LastInputFill（**労働込み**の最小配給率）
     ///   target   = Capacity × fill × profit × invAdj
@@ -306,7 +306,7 @@ public static class ProductionDiag
             {
                 if (s.GoodId != goodId || s.Bankrupt) continue;
                 nProd++;
-                double mc = EconomyStep.MineralSelfCost(s, region, coef) + EconomyStep.InputCostPerUnit(s, region, region, coef);      // EconomyStep ①供給の mc（同じ関数・生産者は region 所属＝home==market）
+                double mc = EconomyStep.MineralSelfCost(s, region, coef, w) + EconomyStep.InputCostPerUnit(s, region, region, coef);      // EconomyStep ①供給の mc（同じ関数・生産者は region 所属＝home==market）
                 double price = region.Markets[s.GoodId].Price;
                 double profit = price <= mc ? 0.0 : Math.Min(1.0, (price - mc) / (mc * coef.SupplySlope));   // 同 profitFactor
                 double fill = s.LastInputFill;                                                    // 同（労働込み）
