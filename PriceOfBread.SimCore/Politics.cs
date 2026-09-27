@@ -725,7 +725,7 @@ public static class Politics
         if (reformFromAbove && c.PolityLabelFromAxes > 0) return;
         CrownParliament.ApplyRegime(w, c, target);   // 登録簿＋政体キャッシュ（flag=1はPCジャンプも）＝単一の書き込み口（P2）
         RaiseFoundingInstitutions(w, allowRevoke: true, c);   // 新政体の含意参政権・報道へ（自由化＝拡張／反動＝剥奪＝ラチェット解除・反革命の波。政3：c 渡しで自由化はラチェット可）
-        RepudiateDebt(w, c, target);          // 既定は債務継承（史実）。急進革命のみ否認＝下記
+        if (target is Polity.ProletarianDictatorship or Polity.Anarchy) Fiscal.RepudiateDebt(w, c);   // 既定は債務継承（史実）。急進革命のみ否認（継承＝リセットしない＝攻略封じ＋史実）
         var (dt, dm, dmass) = Dispossessed(target);
         ResolveRevolt(w, c, dt, dm, dmass);   // 敗れたブロックが失脚（既存の失脚スパイクを流用＝反革命の芽）
         // ★革命は土地権力を壊す（2026-08-04・列強再現率の診断）。史実のフランス革命の核心＝**封建地代の廃止**
@@ -813,23 +813,6 @@ public static class Politics
     /// <summary>政3：参政権・報道の剥奪（縮小方向）を許す「反動系」政体か。代議制（立憲君主制・共和）＝自由化方向のみ false（自由化はラチェット）。
     /// 絶対君主・専制・幕府・各独裁・無政府＝反動/権威主義への遷移＝剥奪を許す（復古王政・ビスマルク反社会主義法・ナポレオン3世のクーデタ・プロ独裁の集権）。</summary>
     private static bool IsReactionaryPolity(Polity p) => p is not (Polity.ConstitutionalMonarchy or Polity.Republic);
-
-    /// <summary>政権交代に伴う国債の扱い。**既定は継承**（史実：復古フランスも明治政府も旧体制の債務を引き継いだ）。
-    /// **急進革命（プロレタリア独裁・無政府）のみ債務を否認**する（ソ連1917のツァーリ債務否認）＝例外。
-    /// これにより「借金を貯めてから政体を変えれば財政リセット」という非現実的な攻略を封じる。
-    /// 否認の代償＝国際信用の崩壊：兌換停止→外資は CapitalMarket で逃避し当面借りられない（砲艦外交・国際財政管理の含意）。
-    /// GovDebt は通貨でなく請求権の数値なので、ゼロ化は基礎貨幣保存に影響しない（債権者＝資本家の保有分が焦げ付くのは別途その貯蓄で表現済み）。</summary>
-    private static void RepudiateDebt(World w, Coefficients c, Polity newPolity)
-    {
-        if (newPolity is not (Polity.ProletarianDictatorship or Polity.Anarchy)) return;   // 継承（リセットしない）＝攻略封じ＋史実
-        w.GovDebt = 0; w.ForeignDebt = 0;
-        foreach (var r in w.Regions) foreach (var p in r.Pops) p.BondHoldings = 0;   // ★保有台帳（2026-09-21）：否認した割合（全額）だけ保有を消す＝損は持ち手（金は動かない）
-        w.OnGoldStandard = false; w.GoldStandardSuspendedInCrisis = true;   // 対外信用の崩壊＝兌換崩壊→外資逃避（CapitalMarket）。当面 借りられない
-        // C-中1（史実検証2026-07-22）：革命的否認に信用市場の代償が無かった（BorrowCooldown も触らないため即座に再起債できる＝一過性Anarchyが債務ロンダリング装置になる）。
-        // 史実の代償は「永久追放」でなく長期市場からの排除＋高コスト短期化（ソヴィエト1918否認→ジェノヴァ1922決裂、以後も短期の供給者信用は継続）。
-        // ※制度疲労ショックとは切り離す（HadSovereignDefault/SovereignDefaultCount は立てない＝革命そのものが既に体制転換なので二重計上を避ける）。（旗 RepudiationCreditPenalty は 2026-09-26 に焼き込み）
-        w.BorrowCooldown = c.DefaultCooldownQuarters;
-    }
 
     // 各政体が成立時に失脚させる（特権を奪う）ブロック：旧→新で誰が権力を失うか。
     private static (bool trad, bool modern, bool mass) Dispossessed(Polity target) => target switch
@@ -1034,7 +1017,7 @@ public static class Politics
                 RevolutionAwakensNation(w, c);      // 第5段5-6：内戦を経た革命の勝利も国民意識の直接回路（即時転換と対称）
                 CrownParliament.ApplyRegime(w, c, w.CivilWarTarget);   // P2：登録簿＋政体キャッシュの単一の書き込み口（flag=0では従来のPolity書きと恒等）
                 RaiseFoundingInstitutions(w, allowRevoke: true, c);   // 内戦勝利の新政体へ（反動勝利＝剥奪・自由革命＝拡張。政3：c 渡しで自由化はラチェット可）
-                RepudiateDebt(w, c, w.CivilWarTarget);   // 内戦の政権交代も既定は継承・急進革命のみ否認
+                if (w.CivilWarTarget is Polity.ProletarianDictatorship or Polity.Anarchy) Fiscal.RepudiateDebt(w, c);   // 内戦の政権交代も既定は継承・急進革命のみ否認
                 // wave2b：即時転換側（ExecuteRegimeChange L640）と同じ失脚規則を使う（旧＝ここだけ手書きの近似で
                 // BourgeoisDictatorship/MilitaryDictatorship/Anarchy 系の失脚対象がずれていた）。
                 var (dt, dm, dmass) = Dispossessed(w.CivilWarTarget);

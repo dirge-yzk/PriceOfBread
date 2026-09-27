@@ -495,10 +495,9 @@ public static class Fiscal
         if (w.InsolvencyQuarters >= c.DefaultTriggerQuarters)
         {
             // 債務消滅（請求権＝保存無影響）。致命的な代償＝兌換崩壊・**信用凍結（貸付消滅→工場が資本を得られず投資/工業化が崩落＝恐慌）**・正統性崩壊（革命リスク）・大衆の暴動・当面 借入不能。
-            w.GovDebt = 0; w.ForeignDebt = 0; w.BorrowStacks = 0; w.SpendingCapFactor = 1.0;
-            foreach (var hp in pops) hp.BondHoldings = 0;   // ★保有台帳（2026-09-21）：国が払うのを止めた割合（全額）だけ保有を消す＝損は持ち手（国庫へは何も戻らない・金は動かない）
-            w.InsolvencyQuarters = 0; w.BorrowCooldown = c.DefaultCooldownQuarters; w.HadSovereignDefault = true; w.SovereignDefaultCount++;   // C-中9（2026-07-22）：回数も数える（恒久boolでは2度目以降の破産が制度疲労の窓を開けない）
-            w.OnGoldStandard = false; w.GoldStandardSuspendedInCrisis = true;
+            RepudiateDebt(w, c);   // 債務・保有・兌換・借入の停止＝急進革命の否認と同じ中身（1か所）。以下はデフォルトだけの代償
+            w.BorrowStacks = 0; w.SpendingCapFactor = 1.0;
+            w.InsolvencyQuarters = 0; w.HadSovereignDefault = true; w.SovereignDefaultCount++;   // C-中9（2026-07-22）：回数も数える（恒久boolでは2度目以降の破産が制度疲労の窓を開けない）
             if (w.Bank is { } dbank) { dbank.Confidence = 0; dbank.Heat = 0; }   // 信用凍結＝Confidence0で次期以降 与信が自然収縮（恐慌）。**Loansは直接0にしない**（基礎貨幣=広義−与信 の保存を破るため）
             double legBeforeDefault = w.Legitimacy;
             w.Legitimacy = Math.Max(0, w.Legitimacy - c.DefaultLegitimacyHit);
@@ -720,6 +719,22 @@ public static class Fiscal
         p.BondHoldings -= h;
         issuer.ForeignDebt += h; issuer.PrevForeignDebt += h;
         holderNation.ForeignBondClaims += h;
+    }
+
+    /// <summary>国債の消滅（急進革命の否認と、ソブリン・デフォルトの共通の中身＝1か所・支払いの一元化 段1-5・2026-09-28＝旧 Politics.RepudiateDebt と Fiscal のデフォルトの同じ文）。
+    /// 政権交代に伴う国債の扱いは**既定は継承**（史実：復古フランスも明治政府も旧体制の債務を引き継いだ）＝**急進革命（プロレタリア独裁・無政府）のみ否認**して
+    /// ここを呼ぶ（ソ連1917のツァーリ債務否認・呼び手は Politics の2か所）＝「借金を貯めてから政体を変えれば財政リセット」という非現実的な攻略を封じる。
+    /// 国債と対外債を消し、保有台帳も同じ割合（全額）だけ消す＝損は持ち手（国庫へは何も戻らない・金は動かない＝請求権だけ）。
+    /// 対外信用の崩壊＝兌換崩壊→外資逃避（CapitalMarket）・当面 借りられない（DefaultCooldownQuarters）。
+    /// C-中1（史実検証2026-07-22）：革命的否認に信用市場の代償が無かった（BorrowCooldown も触らないため即座に再起債できる＝一過性Anarchyが債務ロンダリング装置になる）。
+    /// 史実の代償は「永久追放」でなく長期市場からの排除＋高コスト短期化（ソヴィエト1918否認→ジェノヴァ1922決裂、以後も短期の供給者信用は継続）。
+    /// ※制度疲労ショック（HadSovereignDefault/SovereignDefaultCount）・信用凍結・正統性はデフォルトの側だけが足す（革命そのものが既に体制転換＝二重計上を避ける）。（旗 RepudiationCreditPenalty は 2026-09-26 に焼き込み）</summary>
+    internal static void RepudiateDebt(World w, Coefficients c)
+    {
+        w.GovDebt = 0; w.ForeignDebt = 0;
+        foreach (var r in w.Regions) foreach (var p in r.Pops) p.BondHoldings = 0;   // ★保有台帳（2026-09-21）
+        w.OnGoldStandard = false; w.GoldStandardSuspendedInCrisis = true;
+        w.BorrowCooldown = c.DefaultCooldownQuarters;
     }
 
     /// <summary>★保有台帳の起票（2026-09-21）：国内債があるのに台帳が空の国（開始盤面の初期国債＝仏の米独立戦争債務／台帳導入前のセーブ）に、

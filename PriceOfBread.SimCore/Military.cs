@@ -299,6 +299,7 @@ public static class Military
     {
         if (from == null || to == null || amount < 1e-12 || from.Size < 1e-12) return;
         amount = Math.Min(amount, from.Size);
+        double size0 = from.Size;   // 動かす前の人数＝お金の按分の分母（お金は末尾で1回だけ運ぶ）
         if (to.IsSoldier && !from.IsSoldier)
         {
             // 徴兵：**成人男性**だけが抜ける（動けるのは成人男性の数まで）。残る集団の女性比率・子供比率が上がる＝男手の消えた村。
@@ -309,13 +310,10 @@ public static class Military
             double draftable = c.ConscriptExcludeOldMales > 0 ? from.Size * Math.Max(0, 1.0 - from.ChildShare - from.OldShare) : adults;
             amount = Math.Min(amount, draftable * (1.0 - from.FemaleShare));
             if (amount < 1e-12) return;
-            double sav2 = from.Savings * (amount / from.Size);
-            double debt2 = from.Debt * (amount / from.Size);   // 個人債務も按分して運ぶ（2026-08-02・既定0で恒等）
-            double bond2 = from.BondHoldings * (amount / from.Size);   // ★国債の保有台帳（2026-09-21）も貯蓄と同じ按分（徴兵は国内＝発行国は同じ）
             double children = from.Size * from.ChildShare;
             double olds = from.Size * from.OldShare;   // 老年は徴兵されない（子供と同型の人数保存）＝男手が抜けると残る集団の老年比率が上がる
             double females = adults * from.FemaleShare;
-            from.Size -= amount; from.Savings -= sav2; from.Debt -= debt2; from.BondHoldings -= bond2;
+            from.Size -= amount;
             if (from.Size > 1e-12)
             {
                 from.ChildShare = Math.Clamp(children / from.Size, 0, 1);
@@ -330,13 +328,9 @@ public static class Military
                 to.Literacy = (to.Literacy * to.Size + from.Literacy * amount) / (to.Size + amount);
                 to.Militancy = BlendCarry(to.Militancy, to.Size, from.Militancy, amount, to.Size + amount, clamp: false);   // ★運搬1本化（段1・恒等）
             }
-            to.Size += amount; to.Savings += sav2; to.Debt += debt2; to.BondHoldings += bond2;   // 兵士は成人男性のみ（FemaleShare=0・ChildShare=0のまま）
-            return;
+            to.Size += amount;   // 兵士は成人男性のみ（FemaleShare=0・ChildShare=0のまま）
         }
-        double sav = from.Savings * (amount / from.Size);
-        double debt = from.Debt * (amount / from.Size);   // 個人債務も按分して運ぶ（復員・通常の2経路が共有）
-        double bondm = from.BondHoldings * (amount / from.Size);   // ★国債の保有台帳（2026-09-21）も按分（復員・通常の2経路が共有）
-        if (from.IsSoldier && !to.IsSoldier)
+        else if (from.IsSoldier && !to.IsSoldier)
         {
             // 復員：成人男性が市民階級へ戻る＝受け入れ側の女性比率・子供比率が下がる。
             double childrenTo = to.Size * to.ChildShare;
@@ -350,36 +344,45 @@ public static class Military
                 to.Literacy = (to.Literacy * to.Size + from.Literacy * amount) / (to.Size + amount);
                 to.Militancy = BlendCarry(to.Militancy, to.Size, from.Militancy, amount, to.Size + amount, clamp: false);   // ★運搬1本化（段1・恒等）
             }
-            from.Size -= amount; from.Savings -= sav; from.Debt -= debt; from.BondHoldings -= bondm;
-            to.Size += amount; to.Savings += sav; to.Debt += debt; to.BondHoldings += bondm;
+            from.Size -= amount;
+            to.Size += amount;
             if (to.Size > 1e-12)
             {
                 to.ChildShare = Math.Clamp(childrenTo / to.Size, 0, 1);
                 to.OldShare = Math.Clamp(oldsTo / to.Size, 0, 1);   // 老年人数を保存（OldShare=0の世界では0のまま＝較正中立）
                 to.FemaleShare = Math.Clamp(femalesTo / (adultsTo + amount), 0, 1);
             }
-            return;
         }
-        // 通常の階級間移動：男女比・子供比は移動者で加重混合
-        double newSize = to.Size + amount;
-        if (newSize > 1e-12)
+        else
         {
-            // ★分子と分母の非対称（wave2b G11#2）：FemaleShare は成人内比率（徴兵経路の females=adults*FemaleShare と同じ定義）だが、
-            //   ここは子供込みの Size で加重していた＝from/to の ChildShare が異なると女性人数の和がずれる。成人数で加重して揃える（同じChildShareなら旧式と厳密同値）。
-            double adultsToF = to.Size * (1.0 - to.ChildShare), adultsFromF = amount * (1.0 - from.ChildShare);
-            double adultsSumF = adultsToF + adultsFromF;
-            to.FemaleShare = adultsSumF > 1e-12 ? (to.FemaleShare * adultsToF + from.FemaleShare * adultsFromF) / adultsSumF : to.FemaleShare;
-            to.ChildShare = (to.ChildShare * to.Size + from.ChildShare * amount) / newSize;
-            to.OldShare = (to.OldShare * to.Size + from.OldShare * amount) / newSize;   // 倍率排除⑧：老年比率も運搬（OldShare=0の世界では恒等＝較正中立）
-            to.CoreEthnicShare = (to.CoreEthnicShare * to.Size + from.CoreEthnicShare * amount) / newSize;   // 倍率排除⑧：中核民族割合も運搬
-            // 人1：階級間移動でも識字・闘争度を運搬（着地と同時の無償識字獲得を解消）。MigrationCarriesHumanCapital=0 なら from の属性を無視＝旧の to 据え置きと厳密恒等（★ #17 で有効化＝既定1.0）。
-            if (c.MigrationCarriesHumanCapital > 0)
+            // 通常の階級間移動：男女比・子供比は移動者で加重混合
+            double newSize = to.Size + amount;
+            if (newSize > 1e-12)
             {
-                to.Literacy = (to.Literacy * to.Size + from.Literacy * amount) / newSize;
-                to.Militancy = BlendCarry(to.Militancy, to.Size, from.Militancy, amount, newSize, clamp: false);   // ★運搬1本化（段1・恒等）
+                // ★分子と分母の非対称（wave2b G11#2）：FemaleShare は成人内比率（徴兵経路の females=adults*FemaleShare と同じ定義）だが、
+                //   ここは子供込みの Size で加重していた＝from/to の ChildShare が異なると女性人数の和がずれる。成人数で加重して揃える（同じChildShareなら旧式と厳密同値）。
+                double adultsToF = to.Size * (1.0 - to.ChildShare), adultsFromF = amount * (1.0 - from.ChildShare);
+                double adultsSumF = adultsToF + adultsFromF;
+                to.FemaleShare = adultsSumF > 1e-12 ? (to.FemaleShare * adultsToF + from.FemaleShare * adultsFromF) / adultsSumF : to.FemaleShare;
+                to.ChildShare = (to.ChildShare * to.Size + from.ChildShare * amount) / newSize;
+                to.OldShare = (to.OldShare * to.Size + from.OldShare * amount) / newSize;   // 倍率排除⑧：老年比率も運搬（OldShare=0の世界では恒等＝較正中立）
+                to.CoreEthnicShare = (to.CoreEthnicShare * to.Size + from.CoreEthnicShare * amount) / newSize;   // 倍率排除⑧：中核民族割合も運搬
+                // 人1：階級間移動でも識字・闘争度を運搬（着地と同時の無償識字獲得を解消）。MigrationCarriesHumanCapital=0 なら from の属性を無視＝旧の to 据え置きと厳密恒等（★ #17 で有効化＝既定1.0）。
+                if (c.MigrationCarriesHumanCapital > 0)
+                {
+                    to.Literacy = (to.Literacy * to.Size + from.Literacy * amount) / newSize;
+                    to.Militancy = BlendCarry(to.Militancy, to.Size, from.Militancy, amount, newSize, clamp: false);   // ★運搬1本化（段1・恒等）
+                }
             }
+            from.Size -= amount;
+            to.Size += amount;
         }
-        from.Size -= amount; from.Savings -= sav; from.Debt -= debt; from.BondHoldings -= bondm;
-        to.Size += amount; to.Savings += sav; to.Debt += debt; to.BondHoldings += bondm;
+        // ★お金の運搬（3経路で1本＝支払いの一元化 段1-5・2026-09-28）：貯蓄・個人債務（2026-08-02）・国債の保有台帳（2026-09-21・徴兵は国内＝発行国は同じ）を
+        //   1人あたりで按分して運ぶ。分母は動かす前の人数 size0＝旧の3枝（徴兵・復員・通常）と同じ式・同じ値（上の枝は Savings・Debt・BondHoldings を読まない）。
+        double sav = from.Savings * (amount / size0);
+        double debt = from.Debt * (amount / size0);
+        double bondm = from.BondHoldings * (amount / size0);
+        from.Savings -= sav; from.Debt -= debt; from.BondHoldings -= bondm;
+        to.Savings += sav; to.Debt += debt; to.BondHoldings += bondm;
     }
 }

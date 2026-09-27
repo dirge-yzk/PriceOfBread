@@ -81,7 +81,8 @@ public class WriterRatchetTests
     //   国を持つ Power の国庫は World.Treasury（private set）＝口は World.Pay だけ。Power.Treasury は抽象標的の財布（構築時の初期化子だけが書く）。
     // ★2026-09-28 段1-2（按分の本体を1本へ）：Savings 91→83＝World.Distribute（旧 Fiscal.Distribute）へ畳んだ複製＝Colonial.DistributeToPops 2・
     //   World.DistributeToVoters 2・GiveGold 1・信用の利息の配当 1・海上保険の受け手側 2。
-    [InlineData("Savings", 83)]               // POP の貯蓄（段3の終わりに Pop の中の3つへ閉じる）
+    // ★2026-09-28 段1-5（重複の削除）：Savings 83→79＝Military.MoveCohort の3枝（徴兵・復員・通常）のお金の運搬を末尾の1か所へ。
+    [InlineData("Savings", 79)]               // POP の貯蓄（段3の終わりに Pop の中の3つへ閉じる）
     [InlineData("StateSpent", 25)]            // 州の未精算の国家支出（段2-1で区分つきへ）
     [InlineData("CumulativeTradeFlow", 33)]   // 世界の台帳・国境をまたいだ出入り（移し方の中の1か所へ畳む）
     [InlineData("CumulativeFiatIssued", 3)]   // 不換の発行と回収（2）＋銀行なしの底打ち（1＝段2-2で消える）
