@@ -994,8 +994,8 @@ public sealed class World
     public double GoldReserveQty { get; internal set; }
     public double RailCapacity { get; internal set; }          // 鉄道輸送容量（内陸→港）。0スタート、鉄道財の投資で積む（§5.1拡張）
     public double ShipCapacity { get; internal set; }          // 海運輸送容量（港→世界市場）。船財の投資で積む
-    // 運用コスト監査2026-08-16（#3 汽船の運行燃料・休眠）：購入容量に占める汽船（tier2）の比率EMA（0=帆走のみ）。ShipCapacity は帆船と汽船の合算で購入後に区別が消えるため、燃料需要の按分にこの1本だけ状態を持つ。
-    // 書き手＝Transport.Step（ShipFuelRate>0 のときのみ＝既定0ではEMA自体を更新しない＝ビット恒等）。
+    // 運用コスト監査2026-08-16（#3 汽船の運行燃料）：ShipCapacity に占める汽船（tier2）の容量の割合（0=帆走のみ）。ShipCapacity は帆船と汽船の合算で購入後に区別が消えるため、燃料需要の按分にこの1本だけ状態を持つ（在庫の中身は記憶が無いと導けない）。
+    // 書き手＝Transport.Step（2026-09-26 回4-3 から常に・購入のたびに容量加重で厳密に＝旧の平滑 ShipSteamShareSmoothing は削除）。名前の Ema は旧の名残（セーブの名前表を変えない）。
     public double ShipSteamShareEma { get; internal set; }
     public double ColonialShipBurden { get; internal set; }    // 植民地補給航路による海運の混雑（Colonial が毎期設定）。交易の実効海運＝ShipCapacity/(1+これ)＝遠方帝国ほど交易船が補給に取られる（スケールフリー）
     public double LossFinanced { get; internal set; }          // 累積：損失で貯蓄が負になり信用で埋めた額（有限責任の負債化）。慢性赤字の可視化＝隠蔽しない

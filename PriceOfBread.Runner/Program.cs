@@ -735,7 +735,7 @@ if (args.Length > 0 && args[0] == "transportdump")
     var msT = new MultiNationSim(WorldData.Nations(), 1UL, _ => new UtilityAgent());
     msT.StartWarmup();   // ★2026-09-07 計器の助走統一：selfplay-batch/popprobe と同じ助走を通す＝「測る世界」を帯の世界と一致させる（旧＝助走なし＝chronicle が popprobe と食い違った構築時型の計器バグ）
     for (int q = 0; q < tq; q++) msT.StepQuarter();
-    System.Console.WriteLine("国名,人口,GDP,鉄道容量,海運容量,合計容量,容量per人口,容量perGDP,平均律速,植民地海運負担,商人貯蓄,投資家貯蓄");
+    System.Console.WriteLine("国名,人口,GDP,鉄道容量,海運容量,合計容量,容量per人口,容量perGDP,平均律速,植民地海運負担,商人貯蓄,投資家貯蓄,汽船の割合");   // 汽船の割合＝海運容量に占める汽船（2026-09-26 回4-3）
     foreach (var simT in msT.Nations)
     {
         var wT = simT.World;
@@ -750,7 +750,7 @@ if (args.Length > 0 && args[0] == "transportdump")
         }
         System.Console.WriteLine($"{wT.SelfPower?.Name},{wT.TotalPopulation:F0},{wT.Gdp:F0},{wT.RailCapacity:F1},{wT.ShipCapacity:F1},{capT:F1}," +
             $"{(wT.TotalPopulation > 1e-9 ? capT / wT.TotalPopulation : 0):F5},{(wT.Gdp > 1e-9 ? capT / wT.Gdp : 0):F5}," +
-            $"{(thrN > 0 ? thrSum / thrN : 1.0):F3},{wT.ColonialShipBurden:F3},{merSav:F1},{invSav:F1}");
+            $"{(thrN > 0 ? thrSum / thrN : 1.0):F3},{wT.ColonialShipBurden:F3},{merSav:F1},{invSav:F1},{wT.ShipSteamShareEma:F3}");
     }
     return;
 }

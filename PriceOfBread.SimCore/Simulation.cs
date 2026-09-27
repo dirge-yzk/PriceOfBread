@@ -148,17 +148,7 @@ public sealed class Simulation
         // ★代替レシピ（坩堝鋼/錬鉄レール・石油ケロシン・冷蔵の加工肉・黄鉄鉱法）の注入は AddAlternateRecipes（州の構築経路）へ移した（2026-09-06）。
         //   旧＝ここで World.Regions を走査＝**構築時に存在した州だけ**に注入され、昇格植民地・建国州は代替を持たなかった
         //   （実測＝E-13 で黄鉄鉱法を持たない州が硫黄34倍のルブラン法を回し、化学薬品の平均価格が16倍・中央値は2倍）。
-        // リ5（監査2026-07-11・2026-07-25休眠配線）：汽船(85)・機関車(88)が1783年から無ゲート（Complexity6=FreeDepth境界で自動ゲート不発・
-        // 蒸気機関自体も無ゲート）＝フルトン以前から大容量汽船と機関車が流通し、序盤の海運容量と機械連鎖の立ち上がりが史実より早い。
-        // 1で汽船 onset0.5（実用化1807→普及≈1840s）・機関車 onset0.6（ロケット号1829→幹線網≈1850s）を既定レシピへ（クロムなめし0.55/原油0.6の
-        // アンカーと同尺度）。船購入(Transport)は帆船が据え置きゲート無し＝onset前は帆船が海運を担う。0=不読＝厳密恒等（CrucibleSteelと同型の起動時パス）。
-        if (scenario.Coef.SteamTransportOnset > 0)
-            foreach (var r in World.Regions)
-                foreach (var pr in r.Producers)
-                {
-                    if (pr.GoodId == Catalog.SteamshipId && pr.TechOnset <= 0) pr.TechOnset = 0.5;
-                    else if (pr.GoodId == Catalog.LocomotiveId && pr.TechOnset <= 0) pr.TechOnset = 0.6;
-                }
+        //   ★汽船(85)・機関車(88)の onset（リ5・SteamTransportOnset）も 2026-09-27 に AddAlternateRecipes へ移した（同じ穴＝植民地格の州は1783年から無ゲートだった）。
         // 倍率排除⑧：各popの中核民族割合を国の初期統一度で初期化（以後 移民[core=0で希釈]/同化/征服で per-pop に変動＝EthnicUnity が加重平均から創発）。
         // ⑭-B（史実検証2026-07-22）：CoreInitByRegionCulture>0 では州の Culture ラベルで分化＝主流文化州は高・少数文化州は低（墺のボヘミア/ハンガリー・
         // 露のポーランドが「どの州か」を持つ＝分離圧力の地理的局在）。加重平均はデータ u0 と州構成のブレンド＝0で国一律u0＝厳密恒等。
@@ -993,10 +983,22 @@ public sealed class Simulation
     /// <summary>職人の工房（工場との並存レシピ）：衣料・家具・革製品・陶磁器を手仕事で作る自営（全付加価値が職人の収入）。
     /// 1789年は職人が主役（操業規模1.0 vs 工場0.05）。工場が機械・電化で安くなるほど職人レシピは採算で負け、
     /// 没落して労働者へ転落する（ラッダイトの母体＝転落の闘争度が政治に流れ込む）。</summary>
-    /// <summary>★代替レシピ（並存レシピ）の注入＝州の構築経路で1回（2026-09-06）。坩堝鋼/錬鉄レール・石油ケロシン・冷蔵の加工肉・黄鉄鉱法。
+    /// <summary>★代替レシピ（並存レシピ）の注入＝州の構築経路で1回（2026-09-06）。坩堝鋼/錬鉄レール・石油ケロシン・冷蔵の加工肉・黄鉄鉱法。汽船・機関車の onset（2026-09-27）。
     /// 旧＝Simulation のコンストラクタで構築時の州だけに注入していた（昇格植民地・建国州が代替を持たない穴）。各器=0 で1件も足さない＝恒等。</summary>
     private static void AddAlternateRecipes(List<Producer> producers, Coefficients coef)
     {
+        // リ5（監査2026-07-11・2026-07-25休眠配線）：汽船(85)・機関車(88)が1783年から無ゲート（Complexity6=FreeDepth境界で自動ゲート不発・
+        // 蒸気機関自体も無ゲート）＝フルトン以前から大容量汽船と機関車が流通し、序盤の海運容量と機械連鎖の立ち上がりが史実より早い。
+        // 1で汽船 onset0.5（実用化1807→普及≈1840s）・機関車 onset0.6（ロケット号1829→幹線網≈1850s）を既定レシピへ（クロムなめし0.55/原油0.6の
+        // アンカーと同尺度）。船購入(Transport)は汽船の解禁度（EconomyStep.EquipUnlock）を読む＝onset前は帆船が海運を担う。0=不読。
+        // ★2026-09-27（回4-3 の再挑戦）：コンストラクタの走査（構築時の州だけ）からここへ移した＝代替レシピと同じ穴。
+        //   旧＝植民地格の州（PromoteColonyToRegion）の汽船と機関車は onset0 のまま＝1783年から作れた（seed 1 の開幕で77州）。
+        if (coef.SteamTransportOnset > 0)
+            foreach (var pr in producers)
+            {
+                if (pr.GoodId == Catalog.SteamshipId && pr.TechOnset <= 0) pr.TechOnset = 0.5;
+                else if (pr.GoodId == Catalog.LocomotiveId && pr.TechOnset <= 0) pr.TechOnset = 0.6;
+            }
         // A-高1（史実検証2026-07-22）：鋼のベッセマー不連続。既定レシピ（鉄1.0+コークス0.4＝ベッセマー転炉）を onset0.55（≈1858・原油0.6/クロムなめし0.55と整合）で
         // ゲートし、TechOnset=0 の「坩堝鋼」（鉄2.2+コークス1.2・Productivity0.9＝るつぼ1基数十kgのバッチ＝5倍以上高い）と「錬鉄レール」（鉄1.3＝
         // RailTechOnset0.35 が鋼onsetより手前にあるため、これが無いと最初の鉄道が坩堝鋼で敷設され逆向きに行き過ぎる）を並存させる。

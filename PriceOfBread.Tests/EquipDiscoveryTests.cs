@@ -43,6 +43,25 @@ public class EquipDiscoveryTests
     }
 
     [Fact]
+    public void 汽船と機関車の解禁は植民地格の州にも焼かれる()
+    {
+        // ★2026-09-27（回4-3 の再挑戦）：旧＝汽船(85) onset0.5・機関車(88) onset0.6 をコンストラクタが「構築時の州」だけに焼いていた
+        //   ＝植民地格の州（PromoteColonyToRegion＝開幕の植民地・講和で奪った植民地）は onset0 のまま1783年から作れた（seed 1 の開幕で77州）。
+        //   州の構築経路（AddAlternateRecipes）へ移した＝どの州も同じ解禁。
+        var sim = new MultiNationSim(WorldData.Nations(), 1, _ => new UtilityAgent());
+        int colonial = 0, bad = 0;
+        foreach (var n in sim.Nations)
+            foreach (var r in n.World.Regions)
+            {
+                if (r.Tier == RegionTier.Colonial) colonial++;
+                foreach (var pr in r.Producers)
+                    if ((pr.GoodId == Catalog.SteamshipId && !(pr.TechOnset >= 0.5)) || (pr.GoodId == Catalog.LocomotiveId && !(pr.TechOnset >= 0.6))) bad++;
+            }
+        Assert.True(colonial > 0, "植民地格の州が無い世界ではテストにならない");
+        Assert.Equal(0, bad);
+    }
+
+    [Fact]
     public void 解禁は連続_崖を作らない()
     {
         var sim = Build(33);
