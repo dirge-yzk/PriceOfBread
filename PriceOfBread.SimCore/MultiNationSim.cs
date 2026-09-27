@@ -1322,11 +1322,8 @@ public sealed class MultiNationSim
         double take = Math.Min(amount, fromTotal);
         if (take <= 1e-12 || fromTotal <= 1e-9) return;
         foreach (var p in from) p.Savings -= take * (Math.Max(0, p.Savings) / fromTotal);
-        double toSize = 0; foreach (var p in to) toSize += p.Size;
-        if (toSize <= 1e-9) { to[0].Savings += take; return; }   // 規模0の縮退＝先頭へ寄せ保存
-        double done = 0;
-        for (int i = 0; i < to.Count - 1; i++) { double s = take * (to[i].Size / toSize); to[i].Savings += s; done += s; }
-        to[^1].Savings += take - done;   // 端数は最後のpopへ＝厳密保存
+        double back = World.Distribute(to, take);   // 規模比例・端数は最後のpopへ＝厳密保存
+        if (back > 0) to[0].Savings += back;   // 規模0の縮退＝先頭へ寄せ保存
     }
 
     // 港湾料を全pop（荷主）から薄く徴収し港所有者（地元投資家）へ。関税(CollectTariff)と同型＝pop間の国内移転で保存（owner も徴収対象に含むが両建てで純0）。

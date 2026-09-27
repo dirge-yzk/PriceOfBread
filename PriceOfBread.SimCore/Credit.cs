@@ -211,8 +211,8 @@ public static class Credit
                 // 利潤は預金者への配当ゆえ Size(人頭) でなく預金額比例が正しい（人頭だと無貯蓄の貧農も同額/人＝資本家→大衆の意図せぬ恒常移転）。
                 // 徴収側（上の tot）と同形の Math.Max(0, Savings) 重み。LoanSpread 既定0でdormant＝現行挙動に影響なし。
                 var pops = Pops();
-                double sz = 0; foreach (var p in pops) sz += Math.Max(0, p.Savings);
-                if (sz > 1e-9) { double done = 0; for (int i = 0; i < pops.Count - 1; i++) { double s = paid * (Math.Max(0, pops[i].Savings) / sz); pops[i].Savings += s; done += s; } pops[^1].Savings += paid - done; }
+                var held = new List<double>(pops.Count); foreach (var p in pops) held.Add(Math.Max(0, p.Savings));
+                World.Distribute(pops, paid, held);   // ⚠預金の合計≈0 なら配らない（旧と同じ＝戻り値を捨てる。受け手不在の保存の穴は段2-2）
             }
         }
     }

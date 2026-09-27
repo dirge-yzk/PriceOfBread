@@ -39,7 +39,7 @@ public class InvariantTests
         Assert.Throws<InvariantViolationException>(() => inv.Check(sim.World));
     }
 
-    /// <summary>M7（2026-09-11）：pop への配分の唯一定義＝Colonial.DistributeToPops（旧 Diplomacy の同文複製を削除）。
+    /// <summary>M7（2026-09-11）：pop への配分の唯一定義＝World.Distribute（旧 Diplomacy の同文複製を削除・2026-09-28 に Colonial.DistributeToPops もここへ畳んだ＝全POP×頭数は呼び手が集合を名乗る）。
     /// Σ⊿Savings==amount（保存）・受け手不在（総人口0）で amount をそのまま返す・Seceded 州の pop には配らない（AllPops 基準）・
     /// 1e-12 以下と NaN は配らず 0 を返す（否定形ガード＝Invariants の許容 1e-8×scale 未満）。</summary>
     [Fact]
@@ -54,23 +54,23 @@ public class InvariantTests
         double OtherSavings() { double s = 0; foreach (var p in other!.Pops) s += p.Savings; return s; }
 
         double before = SumSavings();
-        Assert.Equal(0.0, Colonial.DistributeToPops(w, 1000.0));
+        Assert.Equal(0.0, World.Distribute(new List<Pop>(w.AllPops()), 1000.0));
         Assert.True(Math.Abs(SumSavings() - before - 1000.0) <= 1e-6, $"配分が保存しない（Σ⊿Savings={SumSavings() - before}）");
 
         other!.Seceded = true;
         double otherBefore = OtherSavings(), before2 = SumSavings();
-        Assert.Equal(0.0, Colonial.DistributeToPops(w, 500.0));
+        Assert.Equal(0.0, World.Distribute(new List<Pop>(w.AllPops()), 500.0));
         Assert.Equal(otherBefore, OtherSavings());   // 分離凍結中の pop は受け手でない
         Assert.True(Math.Abs(SumSavings() - before2 - 500.0) <= 1e-6, "分離州を除いても保存する");
         other.Seceded = false;
 
         double before3 = SumSavings();
-        Assert.Equal(0.0, Colonial.DistributeToPops(w, 1e-13));
-        Assert.Equal(0.0, Colonial.DistributeToPops(w, double.NaN));
+        Assert.Equal(0.0, World.Distribute(new List<Pop>(w.AllPops()), 1e-13));
+        Assert.Equal(0.0, World.Distribute(new List<Pop>(w.AllPops()), double.NaN));
         Assert.Equal(before3, SumSavings());   // 微小/NaN は1銭も動かさない
 
         foreach (var r in w.Regions) foreach (var p in r.Pops) p.Size = 0;
-        Assert.Equal(700.0, Colonial.DistributeToPops(w, 700.0));   // 受け手不在＝配れなかった額をそのまま返す（呼び手が出所へ戻す）
+        Assert.Equal(700.0, World.Distribute(new List<Pop>(w.AllPops()), 700.0));   // 受け手不在＝配れなかった額をそのまま返す（呼び手が出所へ戻す）
     }
 
     /// <summary>NaN破綻の番人（2026-09-21）：★本国を全て失い植民地だけが残った国の形を固定する。

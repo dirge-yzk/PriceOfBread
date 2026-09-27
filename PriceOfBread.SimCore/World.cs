@@ -565,7 +565,7 @@ public sealed class World
     /// <para>⚠**「豊かさ」に所得（<c>LastEarned</c>）を選んだ理由**（票を売る判断は所得か資産かの設計判断）：
     /// ①全国側の単価が名目GDP÷人口＝**フロー**なので、pop側もフローでないと次元が揃わずブレンドが意味を持たない。
     /// ②史実の買収は「何日分の稼ぎか」で値が付いた（英のtreating＝日雇いの数日分の酒と数シリング／名望家は桁が違うので買えない）。
-    /// ③**資産（Savings）にすると自己参照になる**——選挙資金は <see cref="DistributeToVoters"/> で有権者の貯蓄へ還流するので、
+    /// ③**資産（Savings）にすると自己参照になる**——選挙資金は <see cref="ResolveElection"/> で有権者の貯蓄へ還流する（有権者の重みの <see cref="Distribute"/>）ので、
     ///   買収そのものが半減点を動かす（前任が踏んだ罠＝貯蓄をスナップショットしないとAI経路とプレイヤー経路がビット一致しない）。
     /// ④<c>Earned</c> でなく <c>LastEarned</c>＝<see cref="EconomyStep"/> の月初に確定する退避値＝**呼ばれる時点に依存しない**
     ///   （<c>Earned</c> は期中に積み上がる＝UIが途中で読むと別の値になる）。</para>
@@ -648,7 +648,16 @@ public sealed class World
         // 金の代価＝投入額そのもの。既存の国庫支出と同じ作法（Territory の武力解錠・Colonial の維持費と同型）＝
         // 国庫から引き、届かなかった分だけ国庫へ戻す＝貨幣は湧かず消えない（leakhunt が検出する保存則）。
         Pay(TreasuryCat.OtherOut, -amount);
-        Pay(TreasuryCat.OtherOut, DistributeToVoters(amount));
+        // 選挙資金は**有権者の重みで** pop へ配る（保存）。重みは効きを決めるのと同じ 規模×FranchiseVoice＝金は票を持つ者に渡る
+        // （制限選挙では名望家へのパトロネジ・普通選挙では大衆へ薄く）。受け手不在（有権者ゼロ）＝国庫へ戻す。
+        var voters = new List<Pop>(); var voice = new List<double>();
+        foreach (var p in AllPops())
+        {
+            double v = p.Size * InterestGroups.FranchiseVoice(p, Suffrage, Coef);
+            if (v <= 1e-9) continue;
+            voters.Add(p); voice.Add(v);
+        }
+        Pay(TreasuryCat.OtherOut, Distribute(voters, amount, voice));
         ElectionPushIdeology = ideology;
         ElectionPushStrength = effect;
         // ★マニフェスト＝加担した議題を公約として持つ（達成判定は Parliament.StepManifesto・作者指示2026-08-24）
@@ -661,29 +670,30 @@ public sealed class World
         ElectionsBacked++;   // 診断カウンタ（E4・書くだけ）：加担が**成立**した回数＝プレイヤー/AI共通の1点で数える
     }
 
-    /// <summary>選挙資金を**有権者の重みで**pop へ配る（保存）。重みは効きを決めるのと同じ 規模×FranchiseVoice
-    /// ＝金は票を持つ者に渡る（制限選挙では名望家へのパトロネジ・普通選挙では大衆へ薄く）。
-    /// 受け手不在（有権者ゼロ）なら配れなかった額を返す＝呼び手が国庫へ戻す（貨幣保存・Colonial.DistributeToPops と同作法）。</summary>
-    private double DistributeToVoters(double amount)
+    /// <summary>★按分の1本（支払いの一元化 段1-2・2026-09-28＝旧 Fiscal.Distribute の本体をここへ移した）。
+    /// 額×(重み÷合計) を先頭から順に足し、端数は最後の受け手へ＝合計が厳密に <paramref name="amount"/>（複合代入の罠を避ける2文）。
+    /// 重み＝<paramref name="weights"/>（pops と同じ並び・呼び手が今の時点の値で詰める）／null なら頭数（Size）。
+    /// 受け手不在（空リスト・重みの合計≈0）なら配れなかった額を返す＝呼び手が出所へ戻して保存則を守る
+    /// （貨幣保存リーク修正 2026-07-07：国内債権者が州割譲で転出し capitalists が空になると、利払い/減債の国内分が国庫から引かれたまま無配分で消えていた）。
+    /// ⚠否定形のガード＝NaN の額・合計は配らない。旧の複製（Colonial.DistributeToPops・World.DistributeToVoters・GiveGold と信用の利息の配当・
+    ///   保険の受け手側）は式・足し順・端数の行き先・縮退の枝が同じだったのでここへ畳んだ。縮退の枝が違う複製（符号つきの与信の注入・
+    ///   貿易の残余・国債の持ち手・窃盗・年金）は段2-3（計画 §10-12）。</summary>
+    internal static double Distribute(List<Pop> pops, double amount, List<double>? weights = null)
     {
-        if (amount <= 1e-12) return 0;
-        var take = new List<Pop>(); var voice = new List<double>();   // 受け手とその声（規模×発言権）＝配分で再計算しない
+        if (!(amount > 1e-12)) return 0;
+        if (pops.Count == 0) return amount;
         double total = 0;
-        foreach (var p in AllPops())
-        {
-            double v = p.Size * InterestGroups.FranchiseVoice(p, Suffrage, Coef);
-            if (v <= 1e-9) continue;
-            take.Add(p); voice.Add(v); total += v;
-        }
-        if (take.Count == 0 || !(total > 1e-9)) return amount;
+        if (weights is null) foreach (var p in pops) total += p.Size;
+        else foreach (var x in weights) total += x;
+        if (!(total > 1e-9)) return amount;
         double done = 0;
-        for (int i = 0; i < take.Count - 1; i++)
+        for (int i = 0; i < pops.Count - 1; i++)
         {
-            double share = amount * (voice[i] / total);
-            take[i].Savings += share;
+            double share = amount * ((weights is null ? pops[i].Size : weights[i]) / total);
+            pops[i].Savings += share;
             done += share;
         }
-        take[^1].Savings += amount - done;   // 端数は最後の受け手へ＝合計が厳密に amount（複合代入の罠を避ける2文）
+        pops[^1].Savings += amount - done;
         return 0;
     }
     public double ExternalPressure { get; internal set; }

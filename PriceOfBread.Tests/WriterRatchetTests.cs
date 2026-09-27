@@ -79,7 +79,9 @@ public class WriterRatchetTests
     //   ＝建設工賃の旧経路2（資本家・国家）・植民地の採取決済（TradeFlow 1・植民地の蓄え 1・植民地交易益の傾斜配分 Earned 3）。
     // ★2026-09-28 段1-3（国庫の口を1本へ）：Treasury 2→0＝外交層の財布 Power.Treasury への代入（同期窓の冒頭・助走明けの同期）を撤去。
     //   国を持つ Power の国庫は World.Treasury（private set）＝口は World.Pay だけ。Power.Treasury は抽象標的の財布（構築時の初期化子だけが書く）。
-    [InlineData("Savings", 91)]               // POP の貯蓄（段3の終わりに Pop の中の3つへ閉じる）
+    // ★2026-09-28 段1-2（按分の本体を1本へ）：Savings 91→83＝World.Distribute（旧 Fiscal.Distribute）へ畳んだ複製＝Colonial.DistributeToPops 2・
+    //   World.DistributeToVoters 2・GiveGold 1・信用の利息の配当 1・海上保険の受け手側 2。
+    [InlineData("Savings", 83)]               // POP の貯蓄（段3の終わりに Pop の中の3つへ閉じる）
     [InlineData("StateSpent", 25)]            // 州の未精算の国家支出（段2-1で区分つきへ）
     [InlineData("CumulativeTradeFlow", 33)]   // 世界の台帳・国境をまたいだ出入り（移し方の中の1か所へ畳む）
     [InlineData("CumulativeFiatIssued", 3)]   // 不換の発行と回収（2）＋銀行なしの底打ち（1＝段2-2で消える）

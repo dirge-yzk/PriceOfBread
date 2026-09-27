@@ -154,7 +154,7 @@ public static class Fiscal
             {
                 // 官僚が実際に受け取れた分だけ歳入から漏れる（官僚popが存在してもSize≈0だとDistributeが未配分で返す＝
                 // 旧コードは戻りを捨てて revenue-=leak だけ実行し、その額が誰の手にも渡らず消えていた＝seed25/27の貨幣保存違反の根因）。
-                double delivered = leak - Distribute(bureaucrats, leak);
+                double delivered = leak - World.Distribute(bureaucrats, leak);
                 revenue -= delivered;
                 // ★特権台帳（段1・観測）：既得の官職の取り分＝官僚へ渡った汚職の分×身分の度合い（猟官1／資格任用0.5／専門0＝PowerShares.PrivilegeIntact と同じ物差し）
                 if (c.PrivilegeLedgerEnabled > 0)
@@ -436,11 +436,11 @@ public static class Fiscal
             double coercerSize = 0; foreach (var p in coercers) coercerSize += p.Size;
             double targeted = pay * c.CoercionUpkeepToSoldiers;   // 傾斜配分に回す分
             double flat = pay - targeted;                          // 残りは従来どおり全popへ頭数比例
-            if (flat > 1e-12) w.Pay(TreasuryCat.Admin, Distribute(pops, flat));
-            w.Pay(TreasuryCat.Admin, Distribute(coercers, targeted));   // 受け手不在＝国庫残置（民へは還流しない＝維持費が経済から抜ける）
+            if (flat > 1e-12) w.Pay(TreasuryCat.Admin, World.Distribute(pops, flat));
+            w.Pay(TreasuryCat.Admin, World.Distribute(coercers, targeted));   // 受け手不在＝国庫残置（民へは還流しない＝維持費が経済から抜ける）
         }
         else
-            w.Pay(TreasuryCat.Admin, Distribute(pops, pay));   // 既定＝全popへ頭数比例（現行と厳密一致）。受け手不在＝国庫残置（保存）
+            w.Pay(TreasuryCat.Admin, World.Distribute(pops, pay));   // 既定＝全popへ頭数比例（現行と厳密一致）。受け手不在＝国庫残置（保存）
         w.FiscalFundingRatio = upkeep > 1e-9 ? pay / upkeep : 1.0;
 
         // ★撤去2026-08-16（C2-C5）：汚職根絶費の実支払い（acPay→官僚popへ俸給分配・TreasuryCat.AntiCorruption 記帳・LastAntiCorruptionCost 診断）を物理削除。
@@ -607,7 +607,7 @@ public static class Fiscal
             w.LastWelfareCost = welfareCost;   // 診断
             w.WelfareFunding = welfareReq > 1e-9 ? welfareCost / welfareReq : 1.0;   // 充足率。約束した福祉が歳入を超えると減衰（財源不足）
             w.Pay(TreasuryCat.Welfare, -welfareCost);   // 国庫から支払い（不足分は赤字→国債→緊縮の既存フィードバックが SocialSecurity を抑える）
-            w.Pay(TreasuryCat.Welfare, Distribute(masses, welfareCost));   // 受け手不在＝国庫残置（保存）
+            w.Pay(TreasuryCat.Welfare, World.Distribute(masses, welfareCost));   // 受け手不在＝国庫残置（保存）
         }
         else w.WelfareFunding = 1.0;
 
@@ -724,7 +724,7 @@ public static class Fiscal
 
     /// <summary>★保有台帳の起票（2026-09-21）：国内債があるのに台帳が空の国（開始盤面の初期国債＝仏の米独立戦争債務／台帳導入前のセーブ）に、
     /// **起債の購入と同じ規則**（投資家の貯蓄比）で保有を起こす。金は動かさない（既に在る請求権の持ち主を記すだけ）。
-    /// 台帳が立っている国・国内債0（検査の許容内）の国では何もしない＝通常の走では構築時に1回だけ効く。投資家の貯蓄が0なら全POPの頭数比（<see cref="Distribute"/> と同じ最後の受け皿）。</summary>
+    /// 台帳が立っている国・国内債0（検査の許容内）の国では何もしない＝通常の走では構築時に1回だけ効く。投資家の貯蓄が0なら全POPの頭数比（<see cref="World.Distribute"/> と同じ最後の受け皿）。</summary>
     internal static void SeedBondHoldings(World w)
     {
         double dom = w.GovDebt - w.ForeignDebt, held = 0, invSav = 0, size = 0;
@@ -733,26 +733,5 @@ public static class Fiscal
         foreach (var r in w.Regions)
             foreach (var p in r.Pops)
                 p.BondHoldings += dom * (invSav > 0 ? (CapitalMarket.IsInvestor(p, w.Coef) ? Math.Max(0, p.Savings) / invSav : 0) : (size > 0 ? p.Size / size : 0));
-    }
-
-    /// <summary>頭数比例の分配。受け手不在（空リスト・総人口≈0）なら配れなかった額を返す＝呼び手が国庫残置して保存則を守る
-    /// （貨幣保存リーク修正 2026-07-07：国内債権者が州割譲で転出し capitalists が空になると、利払い/減債の国内分が国庫から引かれたまま無配分で消えていた）。</summary>
-    private static double Distribute(List<Pop> pops, double amount)
-    {
-        if (amount <= 1e-12) return 0;
-        if (pops.Count == 0) return amount;
-        double total = 0;
-        foreach (var p in pops) total += p.Size;
-        if (total <= 1e-9) return amount;
-
-        double done = 0;
-        for (int i = 0; i < pops.Count - 1; i++)
-        {
-            double share = amount * (pops[i].Size / total);
-            pops[i].Savings += share;
-            done += share;
-        }
-        pops[^1].Savings += amount - done;
-        return 0;
     }
 }

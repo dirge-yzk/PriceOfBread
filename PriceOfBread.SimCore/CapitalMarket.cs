@@ -290,11 +290,9 @@ public static class CapitalMarket
         foreach (var r in w.Regions) foreach (var p in r.Pops) if (!toInvestors || IsInvestor(p, w.Coef)) pops.Add(p);
         if (pops.Count == 0) foreach (var r in w.Regions) foreach (var p in r.Pops) pops.Add(p);   // 投資家不在なら全popへ
         if (pops.Count == 0) { w.Pay(TreasuryCat.OtherIn, amount); w.CumulativeTradeFlow += amount; return; }   // pop不在の World（併合国の残骸等）＝国庫残置（wave2b：pops[^1]のIndexOutOfRange回避。TakeGoldは同条件で0返しなのに片側だけ守られていなかった）
-        double total = 0; foreach (var p in pops) total += System.Math.Max(0, p.Savings);
-        double done = 0;
-        if (total > 1e-9)
-            for (int i = 0; i < pops.Count - 1; i++) { double s = amount * (System.Math.Max(0, pops[i].Savings) / total); pops[i].Savings += s; done += s; }
-        pops[^1].Savings += amount - done;   // 端数は最後のpopへ（残高ゼロでも受け取れる）
+        var held = new List<double>(pops.Count); foreach (var p in pops) held.Add(System.Math.Max(0, p.Savings));   // 重み＝貨幣の保有（貯蓄比）
+        double left = World.Distribute(pops, amount, held);
+        if (left > 0) pops[^1].Savings += left;   // 保有の合計≈0 の縮退＝最後のpopへ全額（残高ゼロでも受け取れる）
         w.CumulativeTradeFlow += amount;   // 対外流入（保存：金が国内へ）
     }
 }

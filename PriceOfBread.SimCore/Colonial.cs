@@ -82,7 +82,7 @@ public static class Colonial
         {
             double paid = Math.Min(Math.Max(0, w.Treasury), totalUpkeep);
             w.Pay(TreasuryCat.ColonialUpkeep, -paid);
-            w.Pay(TreasuryCat.ColonialUpkeep, DistributeToPops(w, paid));   // 海軍・駐留の俸給＝本国popへ（保存）。受け手不在＝国庫残置
+            w.Pay(TreasuryCat.ColonialUpkeep, World.Distribute(new List<Pop>(w.AllPops()), paid));   // 海軍・駐留の俸給＝本国popへ（保存）。受け手不在＝国庫残置
             w.LastColonialUpkeep = paid;
         }
         // 距離維持費の物理消費：国庫が本国市場から燃料・缶詰糧食を買う（在庫律速・需要計上で価格律速・産業と競合）。支払いは生産者へ（保存）。
@@ -123,7 +123,7 @@ public static class Colonial
                     r.Markets[ship].Stock -= shipUse; r.Markets[ship].LastExport += shipUse;   // 植民地へ輸出（在庫減＝財収支は Export に計上）
                     r.Markets[rail].Stock -= railUse; r.Markets[rail].LastExport += railUse;
                     inv.Savings -= cost;                       // 私的投資家が自腹で（保存：投資家→生産者）
-                    double undelivered = DistributeToPops(w, cost);   // ※投資家自身も受け手＝複合代入（+=）だと配分前の読取値で上書きし按分が消える。2文で分ける
+                    double undelivered = World.Distribute(new List<Pop>(w.AllPops()), cost);   // ※投資家自身も受け手＝複合代入（+=）だと配分前の読取値で上書きし按分が消える。2文で分ける
                     inv.Savings += undelivered;                // 受け手不在＝投資家へ差し戻し（保存）
                     if (!w.WarmupFrozen) w.ColonialInfra += dev;   // ★助走：汽船・線路は買って払うが**開発度は上げない**（能力の凍結・本国の建設と同じ扱い）
                 }
@@ -279,7 +279,7 @@ public static class Colonial
             if (bs > 1e-9) foreach (var col in w.SelfPower.ColonyList) col.Savings -= revenue * (col.Savings / bs);
             int ip = r.InvestorPopIndex;
             if (ip >= 0 && ip < r.Pops.Count) r.Pops[ip].Savings += revenue;
-            else revenue -= DistributeToPops(w, revenue);   // 受け手不在＝届かなかった分は流入させない（台帳と実額の一致＝保存）
+            else revenue -= World.Distribute(new List<Pop>(w.AllPops()), revenue);   // 受け手不在＝届かなかった分は流入させない（台帳と実額の一致＝保存）
             w.CumulativeTradeFlow += revenue;              // 外部マネーの流入（保存）
         }
 
@@ -440,27 +440,7 @@ public static class Colonial
         double cost = got * price;
         m.Stock -= got; m.LastExport += got;                              // 物理消費（汽船が焚く・駐留が食う＝本国市場から域外圏へ出る。財収支台帳に計上）
         w.Pay(cat, -cost);
-        w.Pay(cat, DistributeToPops(w, cost));                           // 代金は本国pop（生産者）へ＝保存。受け手不在＝国庫残置
+        w.Pay(cat, World.Distribute(new List<Pop>(w.AllPops()), cost));   // 代金は本国pop（生産者）へ＝保存。受け手不在＝国庫残置
         return got;                                                        // 買えた量（マラリア鎮静の充足率の算出に使う）
-    }
-
-    // 金額を全 pop へ規模按分で還流（端数は最後の pop へ＝厳密保存）。
-    // 受け手不在（空・総人口≈0）なら配れなかった額を返す＝呼び手が出所へ戻し保存則を守る（貨幣保存リーク修正 2026-07-07）。
-    // ★internal化（監査G10#3）：Territory.cs の同名複製が w.Regions を直接走査して分離凍結中(Seceded)popも受け手に含めていた
-    //   （AllPops()はSeceded除外）＝武力解錠の軍事調達代金が分離側の凍結popへ払われる食い違い。3複製をこの1本へ統合し、
-    //   Territory はこちらを internal 経由で呼ぶ（Diplomacy.cs の複製は既に AllPops 基準＝対象外）。
-    internal static double DistributeToPops(World w, double amount)
-    {
-        if (!(amount > 1e-12)) return 0;   // ⚠否定形＝NaN も弾く
-        var pops = new List<Pop>();
-        foreach (var p in w.AllPops()) pops.Add(p);
-        if (pops.Count == 0) return amount;
-        double total = 0;
-        foreach (var p in pops) total += p.Size;
-        if (total <= 1e-9) return amount;
-        double done = 0;
-        for (int i = 0; i < pops.Count - 1; i++) { double s = amount * (pops[i].Size / total); pops[i].Savings += s; done += s; }
-        pops[^1].Savings += amount - done;
-        return 0;
     }
 }
