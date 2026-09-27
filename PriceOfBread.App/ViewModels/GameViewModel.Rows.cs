@@ -388,17 +388,3 @@ public sealed class MapLabel
     public string? Tooltip { get; init; }   // null＝ツールチップなし（州名ラベル等。空文字だと空の吹き出し＝残骸が出る）
     public double LetterSpacing { get; init; }   // B3（2026-09-05）：国名を領土の広がりに沿わせる文字間隔（px・既定0）
 }
-
-// 地図中心UI（2026-06-29 再構成）：州○。所有国の色で塗る。座標は MapData で投影済み（Canvas.Left/Top = X/Y）。
-public sealed class ProvinceDot
-{
-    public double X { get; init; }
-    public double Y { get; init; }
-    public double Diameter { get; init; }
-    public IBrush Fill { get; init; } = Brushes.Gray;
-    public IBrush Stroke { get; init; } = Brushes.Black;
-    public double StrokeThickness { get; init; } = 0.5;
-    public MapHoverInfo? Hover { get; init; }   // 左上パネルに出す詳細（ツールチップの代替）
-    public PriceOfBread.SimCore.Region? Region { get; init; }   // ★州パネル §7（2026-09-07）：自国/他国の州○＝左クリックでパネルをピン留め（同じ○でもう一度＝解除）
-    public PriceOfBread.SimCore.Colony? Colony { get; init; }   // 02断線走査2026-07-28：他国植民地○のみ非null＝クリックで「狙う」（講和の優先割譲 Colony.PlayerInterest）
-}

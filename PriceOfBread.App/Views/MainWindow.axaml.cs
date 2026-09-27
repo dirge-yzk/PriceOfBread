@@ -134,13 +134,13 @@ public partial class MainWindow : Window
                 var keepFill2 = gvm.PoliticalFill; gvm.PoliticalFill = null;
                 lines.Add($"frame_ms_pan_world_no_fill	{await PanMs(60):F1}");
                 gvm.PoliticalFill = keepFill2;
-                // 層ごとの寄与（2026-09-05）：州○/ラベル/障壁○を空にして全景を測る→政治の塗りも外して測る＝どの層がフレーム時間を食うか
-                var keepDots = gvm.ProvinceDots; var keepLabels = gvm.MapLabels; var keepBarriers = gvm.BarrierDots; var keepFill = gvm.PoliticalFill;
-                gvm.ProvinceDots = new(); gvm.MapLabels = new(); gvm.BarrierDots = new();
-                lines.Add($"frame_ms_world_no_dots_labels	{await FrameMs(() => gv.ZoomToWorld()):F1}");
+                // 層ごとの寄与（2026-09-05）：ラベルを空にして全景を測る→政治の塗りも外して測る＝どの層がフレーム時間を食うか（★F7：州○・障壁○は廃止済み）
+                var keepLabels = gvm.MapLabels; var keepFill = gvm.PoliticalFill;
+                gvm.MapLabels = new();
+                lines.Add($"frame_ms_world_no_labels	{await FrameMs(() => gv.ZoomToWorld()):F1}");
                 gvm.PoliticalFill = null;
                 lines.Add($"frame_ms_world_no_fill	{await FrameMs(() => gv.ZoomToWorld()):F1}");
-                gvm.ProvinceDots = keepDots; gvm.MapLabels = keepLabels; gvm.BarrierDots = keepBarriers; gvm.PoliticalFill = keepFill;
+                gvm.MapLabels = keepLabels; gvm.PoliticalFill = keepFill;
             }
             foreach (var t in BootLog.Recent()) lines.Add("bootlog\t" + t);
         }
@@ -224,14 +224,40 @@ public partial class MainWindow : Window
             Capture(dir, "03_地図_一時停止.png");
             // 州ホバー（左上パネル）＝マウスの無い無人撮影では**開けない**（緊張モーダルのツールチップと同じ制約）。
             // 中身をログへ落として実測する＝生産材/輸出材の上位3材と世界シェアが空でないこと・幻の値でないことを追える。
+            // ★F7（2026-09-28）：州○の廃止＝州の当たりは塗り分けのセル（MapHitAt）。各州・各未領有標的の**自分の座標**を当てて、
+            //   自分が返るかを数える＝座標→州の当たりの無人の確かめ（自分が返らない州＝同じ格子を先着の種に取られた／隣の種の方が近い）。
             var seenHover = new System.Collections.Generic.HashSet<string>();
             string playerName = gvm.PlayerName.Split('　')[0];   // 「プロイセン　列強5位」→国名だけ（ホバー題は「州名（国名）」）
-            foreach (bool mine in new[] { true, false })         // 自国の州を先に＝作者が実際に見る画面から確かめられる
-                foreach (var dot in gvm.ProvinceDots)
+            int hitOk = 0, hitAll = 0, colOk = 0, colAll = 0;
+            var hitMiss = new System.Collections.Generic.List<string>();
+            var provHits = new System.Collections.Generic.List<(bool Mine, ViewModels.MapHoverInfo Hv)>();
+            foreach (var sim in gvm.Sim.Nations)
+                foreach (var rg in sim.World.Regions)
                 {
-                    if (dot.Hover is not { } hv || hv.Lines.Count == 0) continue;
-                    if (hv.Title.Contains(playerName, StringComparison.Ordinal) != mine || !seenHover.Add(hv.Title)) continue;
-                    if (!hv.Lines.Any(l => l.Text.StartsWith("生産材", StringComparison.Ordinal))) continue;   // 州○のみ（植民地○・障壁○は持たない）
+                    if (rg.State != PriceOfBread.SimCore.RegionState.Active || !MapData.CityCoords.TryGetValue(rg.Name, out var co)) continue;
+                    var (hx, hy) = MapData.Project(co.Lat, co.Lon);
+                    var hit = gvm.MapHitAt(hx, hy);
+                    hitAll++;
+                    if (ReferenceEquals(hit.Region, rg)) hitOk++;
+                    else if (hitMiss.Count < 12) hitMiss.Add(rg.Name + "→" + (hit.Region?.Name ?? hit.Hover?.Title ?? "なし"));
+                    if (hit.Region is not null && hit.Hover is { } hh) provHits.Add((hh.Title.Contains(playerName, StringComparison.Ordinal), hh));
+                }
+            foreach (var pw in gvm.Sim.Diplomacy.Powers)
+            {
+                if (pw.Nation is not null) continue;
+                foreach (var col in pw.ColonyList)
+                {
+                    if (Math.Abs(col.Latitude) < 1e-9 && Math.Abs(col.Longitude) < 1e-9) continue;
+                    var (hx, hy) = MapData.Project(col.Latitude, col.Longitude);
+                    colAll++;
+                    if (gvm.MapHitAt(hx, hy).Hover?.Title.StartsWith(col.Name + "　", StringComparison.Ordinal) == true) colOk++;
+                }
+            }
+            BootLog.Write($"uishot: 州の当たり 自分の座標で自分 {hitOk}/{hitAll}・未領有の標的 {colOk}/{colAll}" + (hitMiss.Count > 0 ? "・外れ " + string.Join(" ", hitMiss) : ""));
+            foreach (bool mine in new[] { true, false })         // 自国の州を先に＝作者が実際に見る画面から確かめられる
+                foreach (var (m, hv) in provHits)
+                {
+                    if (m != mine || hv.Lines.Count == 0 || !seenHover.Add(hv.Title)) continue;
                     BootLog.Write($"uishot: 州ホバー {hv.Title}\n  " + string.Join("\n  ", hv.Lines.Select(l => l.Text)));
                     if (seenHover.Count >= 12) break;
                 }
@@ -254,11 +280,12 @@ public partial class MainWindow : Window
                 await Task.Delay(700);
                 Capture(dir, "03e_地図_州名帯.png");
             }
-            // ★州パネル（2026-09-07 作者指示「政治・支配度は半円で」）：最初の州○をピン留めして撮る＝支配度の半円（区分が動く世界＝POB_COEF RuleSharesEnabled=1 で出る）とピンの表示の無人確認
-            var pinDot = gvm.ProvinceDots.FirstOrDefault(d => d.Region is not null && d.Hover is not null);
-            if (pinDot is not null)
+            // ★州パネル（2026-09-07 作者指示「政治・支配度は半円で」）：州をピン留めして撮る＝支配度の半円（区分が動く世界＝POB_COEF RuleSharesEnabled=1 で出る）とピンの表示の無人確認
+            //   ★F7：州○の廃止＝自国の首都の座標を塗り分けのセルで当てる（クリックと同じ MapHitAt）
+            var pin = gvm.PlayerCapitalCanvas() is { } pc ? gvm.MapHitAt(pc.X, pc.Y) : default;
+            if (pin.Region is not null && pin.Hover is not null)
             {
-                gvm.TogglePin(pinDot.Hover, pinDot.Region); await Task.Delay(400); Capture(dir, "03f_州パネル.png");
+                gvm.TogglePin(pin.Hover, pin.Region); await Task.Delay(400); Capture(dir, "03f_州パネル.png");
                 gvm.HoverPinned = false; gvm.MapHover = null; await Task.Delay(200);
             }
             // 全景（2026-09-02）＝州名が消えて**国名（英語）**が出る帯。政治の塗り分けの全体像もここで見る。

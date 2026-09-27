@@ -130,16 +130,15 @@ public partial class GameViewModel : ViewModelBase
     partial void OnPlayingChanged(bool value) => OnPropertyChanged(nameof(PlayIcon));
 
 
-    // 地図中心UI：全国の州○＋ラベル層。**リストごと差し替え**（要素単位のCollectionChanged千発を出さない＝ズーム/四半期の再構築が軽い）。
-    [ObservableProperty] private List<ProvinceDot> _provinceDots = new();
+    // 地図中心UI：ラベル層と線の層。**リストごと差し替え**（要素単位のCollectionChanged千発を出さない＝ズーム/四半期の再構築が軽い）。
+    // ★F7（作者裁定 2026-09-28）：州○（ProvinceDots）と山脈・砂漠・峠の○（BarrierDots）は廃止＝州は塗り分けと地名で表す。
     [ObservableProperty] private List<MapLabel> _mapLabels = new();
     [ObservableProperty] private List<MapEdgeLine> _mapEdges = new();   // 03地理 手順1（§6作者裁定）：陸グラフの辺＝陸路の骨格を地図に出す（データそのものの表示＝思想⑦に反しない）
-    [ObservableProperty] private List<ProvinceDot> _barrierDots = new();   // 山脈・砂漠・峠のバリアノード＝辺が張られていない理由が見える
-    // 州○ホバー＝地図左上の固定パネルに詳細（ツールチップより長いリストを出せる・上位品目のハイライト付き）。
+    // 州ホバー＝地図左上の固定パネルに詳細（ツールチップより長いリストを出せる・上位品目のハイライト付き）。
     [ObservableProperty] private MapHoverInfo? _mapHover;
-    // ★州パネルのピン留め（支配度 §7「ホバーで要約・クリックでピン」・2026-09-07）：州○の左クリックで左上パネルを固定。同じ○でもう一度＝解除。他の○＝持ち替え。
+    // ★州パネルのピン留め（支配度 §7「ホバーで要約・クリックでピン」・2026-09-07）：州の左クリックで左上パネルを固定。同じ州でもう一度＝解除。他の州＝持ち替え（当たりは塗り分けのセル＝MapHitAt）。
     [ObservableProperty] private bool _hoverPinned;
-    private Region? _pinnedRegion;   // ピンの鍵＝州（MapHoverInfo は四半期ごとに作り直される＝実体で比べると「同じ○で解除」が壊れ、表示も固まる＝レビュー是正2026-09-07）
+    private Region? _pinnedRegion;   // ピンの鍵＝州（MapHoverInfo は四半期ごとに作り直される＝実体で比べると「同じ州で解除」が壊れ、表示も固まる＝レビュー是正2026-09-07）
     public void TogglePin(MapHoverInfo? hover, Region? region)
     {
         if (hover is null || region is null) return;

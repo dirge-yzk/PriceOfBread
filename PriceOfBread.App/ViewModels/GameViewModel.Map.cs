@@ -1,4 +1,4 @@
-﻿// GameViewModel.Map.cs ＝ 地図＝州○/ラベル/経路グラフの構築とホバー詳細。
+﻿// GameViewModel.Map.cs ＝ 地図＝地名ラベル/経路グラフの構築とホバー詳細（州の当たりは GameViewModel.MapFill.cs の MapHitAt）。
 // ★2026-08-10のUI分割：GameViewModel.cs から**メンバーを移しただけ**（ロジック・順序とも不変）。
 //   同じ partial class GameViewModel の一部＝どのファイルからでも全メンバーに触れる。
 using System;
@@ -15,36 +15,37 @@ namespace PriceOfBread.App.ViewModels;
 
 public partial class GameViewModel
 {
-    // 地図中心UI（2026-06-29 再構成）：全国の active 州を○として配置（所有国の色・人口で大小・自国は白縁で強調）。
+    // 地図中心UI（2026-06-29 再構成）。★F7（作者裁定 2026-09-28）：州○（開発度で直径が変わる〇）を廃止＝
+    //   見分けにくく描画も重い。州は政治の塗り分け（色）と地名（文字）で表し、ホバー・クリックは塗り分けのセルで当てる。
     // 座標は MapData.CityCoords（実在都市の緯度経度）→等距円筒投影。未登録の都市は地図に出さない。
-    // 州○のズーム補正：拡大しても○が画面上で巨大化しないよう、ズーム率で直径を割る（縮小側は1でクランプ＝設計サイズ維持）。
+    // ズーム補正：拡大しても文字・線が画面上で巨大化しないよう、ズーム率で大きさを割る（縮小側は1でクランプ＝設計サイズ維持）。
     // 再構築はデバウンス（ホイール停止後に1回だけ・OnTickで消化）＝ズームの重さの主因を除去。
-    private double _dotZoom = 1.0;
+    private double _mapZoom = 1.0;
     private double _pendingZoom = 1.0;
     private bool _zoomDirty;
     private long _zoomStamp;
-    public void SetDotZoom(double scale, bool immediate = false)
+    public void SetMapZoom(double scale, bool immediate = false)
     {
         _pendingZoom = System.Math.Max(1.0, scale);
-        if (immediate)   // 初期カメラ設定（HomeView）用：デバウンスを飛ばして即時補正＝起動の一瞬だけ○が大きく見えるちらつきを根絶（2026-07-26ユーザー指摘）
+        if (immediate)   // 初期カメラ設定（HomeView）用：デバウンスを飛ばして即時補正＝起動の一瞬だけ文字が大きく見えるちらつきを根絶（2026-07-26ユーザー指摘）
         {
             _zoomDirty = false;
-            _dotZoom = _pendingZoom;
+            _mapZoom = _pendingZoom;
             RefreshMap(zoomOnly: true);
             return;
         }
-        if (System.Math.Abs(_pendingZoom - _dotZoom) / _dotZoom < 0.10) return;
+        if (System.Math.Abs(_pendingZoom - _mapZoom) / _mapZoom < 0.10) return;
         _zoomDirty = true;
         _zoomStamp = System.Environment.TickCount64;
     }
     private void ConsumeZoom()
     {
         // ★2026-08-31軽量化（作者報告「時間が動いている際のズームが重い」）：走行中は再構築の間合いを広げる（シムがコアを食う裏で
-        //   ○600個の作り直しを連打しない）。ズームの見た目自体は変換行列で即時＝この待ちは「○の大きさ補正と地名の出し直し」だけ。
+        //   地名の作り直しを連打しない）。ズームの見た目自体は変換行列で即時＝この待ちは「文字の大きさ補正と地名の出し直し」だけ。
         long wait = Speed > 0 ? 300 : 120;
         if (!_zoomDirty || System.Environment.TickCount64 - _zoomStamp < wait) return;   // ホイールが止まってから反映
         _zoomDirty = false;
-        _dotZoom = _pendingZoom;
+        _mapZoom = _pendingZoom;
         RefreshMap(zoomOnly: true);
     }
 
@@ -63,13 +64,10 @@ public partial class GameViewModel
     //   ⚠建造物は「地理に固定され所有は政治で動く」物なのに、地図から完全に読めなかった（生産タブの帯は自国の建設地しか出さない）。
     //   _cpByHost（海峡/運河）と同じ多値辞書＝同じ州に複数建つ場合も落とさない。
     private readonly Dictionary<string, List<Megaproject>> _megaByHost = new();   // 海峡/運河/建造物の host 州名→情報（州ホバーに統合表示）。**多値**＝同一 host に複数の個体が載る（2026-07-28：旧 1対1 辞書は最後の1件で静かに上書きしていた）
-    private double _zd = 1.0;   // サイズ用ズーム係数（5.0でクランプ＝それ以上ズームしても文字/○が縮まない）
-    // 02断線走査2026-07-28：講和の優先割譲（Colony.PlayerInterest）の唯一の書き手＝他国植民地○のクリックで狙いを付ける（再クリックで解除・金縁で表示）
+    private double _zd = 1.0;   // サイズ用ズーム係数（5.0でクランプ＝それ以上ズームしても文字/線が縮まない）
+    // 02断線走査2026-07-28：講和の優先割譲（Colony.PlayerInterest）の唯一の書き手＝他国植民地のクリックで狙いを付ける（再クリックで解除・地名を金で表示）
     private SimCore.Colony? _interestColony;
-    private static readonly IBrush InterestStroke = new SolidColorBrush(Color.Parse("#C9A227"));
-    private static readonly IBrush HomeProvinceStroke = new SolidColorBrush(Color.FromArgb(150, 20, 14, 8));      // 共通の薄い暗縁（自国の白縁は廃止）
-    private static readonly IBrush UnclaimedColonyFill = new SolidColorBrush(Color.FromArgb(70, 175, 175, 175));  // 未領有の植民地化標的（中立色）の塗り
-    private static readonly IBrush UnclaimedColonyStroke = new SolidColorBrush(Color.FromArgb(200, 150, 150, 150));
+    private static readonly IBrush InterestBrush = new SolidColorBrush(Color.Parse("#C9A227"));
     public void ToggleColonyInterest(SimCore.Colony col)
     {
         _interestColony = ReferenceEquals(_interestColony, col) ? null : col;
@@ -78,15 +76,15 @@ public partial class GameViewModel
 
     private void RefreshMap(bool zoomOnly = false)
     {
-        var dots = new List<ProvinceDot>(ProvinceDots.Count + 64);
         var labels = new List<MapLabel>(MapLabels.Count + 16);
-        // 地名ラベルの候補（重なり回避の貪欲配置＝○を全部積んでから確定）。
+        // 地名ラベルの候補（重なり回避の貪欲配置＝全部積んでから確定）。
         // Tier＝0本国州／1植民地／2未領有＝場所の取り合いは本国州が先（同Tier内は Prio 降順→名前順＝決定論）。
-        var labelCands = new List<(double X, double Cy, string Text, int Tier, double Prio)>();
+        // Brush＝狙い中の植民地だけ金（旧・植民地○の金縁の置き換え＝F7・線と色と文字だけ）。
+        var labelCands = new List<(double X, double Cy, string Text, int Tier, double Prio, IBrush Brush)>();
         // 国名ラベル（2026-09-02作者指示）：州名が出ないズーム帯＝引いた全景でだけ、国名を英語で本国州の重心へ。
         // 重みは人口＝飛び地や小さな辺境に引かれず「国の重心」に乗る。
         var nationCands = new List<(double X, double Cy, string Text, double Prio, double Ext)>();   // Ext＝本国州の東西の広がり（キャンバスpx・B3の文字間隔用）
-        _zd = System.Math.Min(_dotZoom, 5.0);   // ★2026-08-31：ズーム上限2倍（6→12）に合わせ○の縮小補正も2.5→5.0（それ以上は縮まない）
+        _zd = System.Math.Min(_mapZoom, 5.0);   // ★2026-08-31：ズーム上限2倍（6→12）に合わせ縮小補正も2.5→5.0（それ以上は文字が縮まない）
         if (!zoomOnly)
         {
             BuildWorldTotals();   // 州ホバーの世界シェアの分母（財別の世界計）＝ホバーを組む前に1回だけ
@@ -105,25 +103,12 @@ public partial class GameViewModel
             }
             RefreshPoliticalFill();   // 政治の塗り分け（2026-09-02）＝所有が変わった時だけ焼き直す（ズームだけの更新では触らない）
         }
-        // 〇の大きさ＝**ラベルの開発度と完全一致**（2026-08-31作者指示）：TotalIndustrialization を最大州で正規化した比の**線形**写像。
-        //   旧＝生産力ベース×べき0.7＝表示数字と序列が食い違い得た。開始直後（工業化ほぼゼロ）は人口で代替（従来と同じ立ち上がり保護）。
-        double maxInd = 1e-9, maxPop = 1e-9;
-        for (int si = 0; si < _sim.Nations.Count; si++)
-            foreach (var rg in _sim.Nations[si].World.Regions)
-                if (rg.State == RegionState.Active && MapData.CityCoords.ContainsKey(rg.Name))
-                {
-                    maxInd = System.Math.Max(maxInd, rg.TotalIndustrialization);
-                    maxPop = System.Math.Max(maxPop, rg.SumPopulation());
-                }
-        bool useProd = maxInd > 0.02;   // 世界の最大開発度が実質ゼロの開幕だけ人口比で代替
         for (int ni = 0; ni < _sim.Nations.Count; ni++)
         {
             var w = _sim.Nations[ni].World;
             string nation = w.SelfPower?.Name ?? w.Region.Name;
             // 属国は「国名（○○の属国）」形式（作者指示2026-08-03）＝地図ホバーで主権の帰属が一目で読める
             if (w.SelfPower is { } spN && _sim.Diplomacy.Suzerain(spN) is { } suzN) nation = $"{nation}({suzN.Name}の属国)";
-            var baseCol = MapData.NationColor(w.SelfPower?.Name ?? w.Region.Name, ni);   // 所有国色（政体色マップモードは撤去2026-07-17）
-            var fill = new SolidColorBrush(baseCol);
             var homeCoords = new List<(double Lat, double Lon)>();
             double cenX = 0, cenY = 0, cenW = 0;
             double extMinX = double.PositiveInfinity, extMaxX = double.NegativeInfinity;   // B3（2026-09-05）：国名を領土の広がりに沿わせる   // 国名ラベルの位置＝中核州の人口重み重心（植民地・植民地格の州は入れない＝ラベルが海へ流れない）
@@ -134,34 +119,10 @@ public partial class GameViewModel
                 homeCoords.Add(co);
                 var (cx, cy) = MapData.Project(co.Lat, co.Lon);
                 double pop = rg.SumPopulation();
-                double ratio = useProd ? rg.TotalIndustrialization / maxInd : pop / maxPop;   // [0,1]＝最大州で正規化（表示の開発度と同じ量）
-                double d = (DotMin + (DotMax - DotMin) * System.Math.Clamp(ratio, 0.0, 1.0)) / _zd;   // ★線形＝○の大きさが数字と完全一致（ズーム補正は5.0でクランプ）
-                if (!_provHoverCache.TryGetValue(rg, out var hover)) { hover = BuildProvinceHover(rg, w, nation, pop); _provHoverCache[rg] = hover; }   // ホバー詳細（ズーム時はキャッシュ）
-                // 縁は直径比例の細線（塗り分けはしない＝所有国色がそのまま見える。港の情報はホバーへ）
+                // ホバー詳細（ズーム時はキャッシュ）。★F7：当たりは塗り分けのセル（MapHitAt）がこのキャッシュを州で引く
+                if (!_provHoverCache.ContainsKey(rg)) _provHoverCache[rg] = BuildProvinceHover(rg, w, nation, pop);
                 if (rg.Tier != RegionTier.Colonial) { cenX += cx * pop; cenY += cy * pop; cenW += pop; if (cx < extMinX) extMinX = cx; if (cx > extMaxX) extMaxX = cx; }   // 国名の位置は**中核の重心**＝植民地格の州（州へ昇格した植民地）は入れない（西・葡・蘭の名が大西洋やインド洋へ流れる）
-                double dotThick = System.Math.Max(0.4, d * 0.10);
-                // 東西ループ用に3コピー（-MapWidth / 0 / +MapWidth）。MapHost のクリップで可視範囲だけ描画され、パンの折り返しが継ぎ目なく繋がる。
-                // ★追記2026-08-31（軽量版）：○の中の規模（人口）は**可視サイズのときだけ MapLabel を1枚追加**（ドット側の視覚は増やさない）。
-                //   はみ出さない条件＝見かけのフォント7px以上（d×0.34×zoom/zd）。中央寄せは文字数×0.30em の近似。
-                double sizeFont = d * 0.34;
-                if (sizeFont * _dotZoom / _zd >= 7.0)
-                {
-                    double people = pop * 1000.0;
-                    string sizeText = people >= 1e6 ? $"{people / 1e6:0.#}M" : people >= 1e3 ? $"{people / 1e3:0}k" : "";
-                    if (sizeText.Length > 0)
-                        labels.Add(new MapLabel
-                        {
-                            X = cx - sizeText.Length * sizeFont * 0.30, Y = cy - sizeFont * 0.66,
-                            Text = sizeText, FontSize = sizeFont, Brush = DotSizeBrush, Tooltip = null,
-                        });
-                }
-                for (int k = 0; k <= 1; k++)   // ★2026-08-02：世界の複製は**2枚で足りる**。ClampAndWrap が translate.X を (−period, 0] に折り返し、period = 2000×scale ≥ ウィンドウ幅なので k=−1 の複製は必ず画面外（[tx−period, tx] ⊆ (−∞,0]）＝全レイヤの要素の1/3が毎フレーム無駄だった。見た目は不変。
-                    dots.Add(new ProvinceDot
-                    {
-                        X = cx + k * MapData.MapWidth - d / 2, Y = cy - d / 2, Diameter = d, Fill = fill,
-                        Stroke = HomeProvinceStroke, StrokeThickness = dotThick, Hover = hover, Region = rg,
-                    });
-                // ズーム時＝州名を英語で○の右隣に（世界全景では出さない＝密集を避ける・軽量化）。ズームを引くと消える。
+                // ズーム時＝州名を英語で**州の座標の位置**に（世界全景では出さない＝密集を避ける・軽量化）。ズームを引くと消える。
                 // 括弧の数値＝州の開発度（項3・2026-07-27）＝工業化度×70（初期の最先進＝ロンドン0.42→29・マンチェスター→26。終盤は100超も正常）。表示のみ。
                 //   ★2026-09-01：初期按分を人口シェア→indShare（産業地理の一次データ）へ＝ダブリン最先進の倒錯は解消済み。仏も0.25で点灯（パリ4.5）。
                 // ⚠★2026-08-02の是正：**新旧合計（TotalIndustrialization）で表示する**。
@@ -171,74 +132,47 @@ public partial class GameViewModel
                 //   ★TotalIndustrialization は都市化天井・衛生・スコア・投資上限・移民引力が読む「資本の総量」＝
                 //     地図の開発度も明らかにそちら側である。⚠SimCore の値は1つも変えない（表示だけ）。
                 // ここでは候補に積むだけ＝州ループ後に重なり回避の貪欲配置（2026-07-27ユーザー指摘「文字がかぶらないように」）
-                // ★2026-09-23（作者指摘「都市名の先頭1文字が○に隠れる」）：ラベルの左端に**縁の太さ dotThick を足す**。
-                //   旧 cx+d/2+2.5/_zd は○の**塗りの端**までしか送っておらず、縁とアンチエイリアスが 2.5px の隙間を食っていた
-                //   （実測 gb1783/03e：パリ＝○の外端966.5・文字インク969＝隙間2.5px／グラスゴー＝隙間ほぼ0で G が縁に接する）。
-                //   ⚠新しい数は作らない＝隙間の素は○と同じ dotThick（＝d×0.10）だけ。
-                if (_dotZoom >= LabelThreshold)
-                    labelCands.Add((cx + d / 2 + dotThick + 2.5 / _zd, cy,
-                        $"{MapData.En(rg.Name)}({rg.TotalIndustrialization * 70:F1})", 0, rg.TotalIndustrialization));   // ★2026-08-31：開発度は小数1桁
+                if (_mapZoom >= LabelThreshold)
+                    labelCands.Add((cx, cy, $"{MapData.En(rg.Name)}({rg.TotalIndustrialization * 70:F1})", 0, rg.TotalIndustrialization, ProvinceNameBrush));   // ★2026-08-31：開発度は小数1桁
             }
-            if (_dotZoom < LabelThreshold && cenW > 1e-9)   // 州名が消えている帯＝入れ替わりで国名を出す（両方は出さない）
+            if (_mapZoom < LabelThreshold && cenW > 1e-9)   // 州名が消えている帯＝入れ替わりで国名を出す（両方は出さない）
                 nationCands.Add((cenX / cenW, cenY / cenW, MapData.EnNation(w.SelfPower?.Name ?? w.Region.Name), cenW, extMaxX > extMinX ? extMaxX - extMinX : 0));
-            // 植民地○（本国色の中空ドット＝本国州と区別）。本国州とほぼ同位置の植民地（例：ボスポラス＝イスタンブール）は重複なので出さない。
+            // 植民地（昇格前の Colony）：ホバー詳細と地名。本国州とほぼ同位置の植民地（例：ボスポラス＝イスタンブール）は地名が重複するので出さない。
             if (w.SelfPower is { } sp)
             {
-                var colFill = new SolidColorBrush(Color.FromArgb(80, baseCol.R, baseCol.G, baseCol.B));
-                var colStroke = new SolidColorBrush(baseCol);
                 foreach (var col in sp.ColonyList)
                 {
                     if (System.Math.Abs(col.Latitude) < 1e-9 && System.Math.Abs(col.Longitude) < 1e-9) continue;   // 座標未登録(0,0)は出さない
+                    if (!_colHoverCache.ContainsKey(col)) _colHoverCache[col] = BuildColonyHover(col, $"{nation}の植民地");
                     bool overlapsHome = false;
                     foreach (var hc in homeCoords)
                         if (System.Math.Abs(hc.Lat - col.Latitude) < 0.6 && System.Math.Abs(hc.Lon - col.Longitude) < 0.6) { overlapsHome = true; break; }
-                    if (overlapsHome) continue;   // 本国州と重なる植民地（咽喉点等）は二重丸になるので省く
+                    if (overlapsHome) continue;   // 本国州と重なる植民地（咽喉点等）は地名が二重になるので省く
                     var (ccx, ccy) = MapData.Project(col.Latitude, col.Longitude);
-                    double cd = 9.0 / _zd;
-                    if (!_colHoverCache.TryGetValue(col, out var chover)) { chover = BuildColonyHover(col, $"{nation}の植民地"); _colHoverCache[col] = chover; }
-                    bool aim = ReferenceEquals(col, _interestColony);   // 狙い中＝金縁（02断線走査2026-07-28）
-                    double colThick = aim ? System.Math.Max(1.6, cd * 0.26) : System.Math.Max(0.8, cd * 0.13);   // 縁の太さ＝○とラベル位置の両方がこの1本を読む（同じ式を2本持たない）
-                    for (int k = 0; k <= 1; k++)   // 世界の複製は2枚（州○のループと同じ理由）
-                        dots.Add(new ProvinceDot
-                        {
-                            X = ccx + k * MapData.MapWidth - cd / 2, Y = ccy - cd / 2, Diameter = cd,
-                            Fill = colFill, Stroke = aim ? InterestStroke : colStroke,
-                            StrokeThickness = colThick, Hover = chover,
-                            Colony = sp != _player.SelfPower ? col : null,
-                        });
-                    // 植民地名も本国州と同じ規則（○の右隣・同じズーム閾値・同じ重なり回避）で出す（作者要望2026-08-16）。
+                    // 植民地名も本国州と同じ規則（座標の位置・同じズーム閾値・同じ重なり回避）で出す（作者要望2026-08-16）。
                     // 括弧の開発度は付けない＝植民地に州の工業化に相当する実体が無い（無い数字は書かない）。順位は人口規模。
-                    if (_dotZoom >= LabelThreshold)
-                        labelCands.Add((ccx + cd / 2 + colThick + 2.5 / _zd, ccy, MapData.En(col.Name), 1, col.Population));   // ★2026-09-23：州名と同じく縁の太さを吸う
+                    // 狙い中（02断線走査2026-07-28）＝地名を金で書く（旧・植民地○の金縁）。
+                    if (_mapZoom >= LabelThreshold)
+                        labelCands.Add((ccx, ccy, MapData.En(col.Name), 1, col.Population, ReferenceEquals(col, _interestColony) ? InterestBrush : ProvinceNameBrush));
                 }
             }
         }
-        // 未領有の植民地化標的（抽象勢力＝Nation==null）を中立色(灰)の○で表示＝「アフリカ分割」等の盤面。征服されると本国色○へ移る。
-        // ★ラベルの貪欲配置より**前**に置く（後ろだと未領有の地名が候補に間に合わない）。dots への追加順は変わらない＝見た目は不変。
+        // 未領有の植民地化標的（抽象勢力＝Nation==null）＝ホバー詳細と地名。当たりは塗り分けの「当たりだけの種」（MapFill.Build）。
         foreach (var p in _sim.Diplomacy.Powers)
         {
-            if (p.Nation is not null) continue;   // 実国は上で本国色＋植民地を描画済み
+            if (p.Nation is not null) continue;   // 実国は上で扱い済み
             foreach (var col in p.ColonyList)
             {
                 if (System.Math.Abs(col.Latitude) < 1e-9 && System.Math.Abs(col.Longitude) < 1e-9) continue;
+                if (!_colHoverCache.ContainsKey(col)) _colHoverCache[col] = BuildColonyHover(col, "未領有");
                 var (gx, gy) = MapData.Project(col.Latitude, col.Longitude);
-                double gd = 8.0 / _zd;
-                double gThick = System.Math.Max(0.8, gd * 0.13);   // 縁の太さ＝○とラベル位置の両方がこの1本を読む（同じ式を2本持たない）
-                if (!_colHoverCache.TryGetValue(col, out var ghover)) { ghover = BuildColonyHover(col, "未領有"); _colHoverCache[col] = ghover; }
-                for (int k = 0; k <= 1; k++)   // 世界の複製は2枚（州○のループと同じ理由）
-                    dots.Add(new ProvinceDot
-                    {
-                        X = gx + k * MapData.MapWidth - gd / 2, Y = gy - gd / 2, Diameter = gd,
-                        Fill = UnclaimedColonyFill,
-                        Stroke = UnclaimedColonyStroke, StrokeThickness = gThick,
-                        Hover = ghover,
-                    });
-                if (_dotZoom >= LabelThreshold)   // 空白地にも地名を出す（作者要望2026-08-16）＝場所の取り合いでは本国州・植民地に譲る
-                    labelCands.Add((gx + gd / 2 + gThick + 2.5 / _zd, gy, MapData.En(col.Name), 2, col.Population));   // ★2026-09-23：州名と同じく縁の太さを吸う
+                if (_mapZoom >= LabelThreshold)   // 空白地にも地名を出す（作者要望2026-08-16）＝場所の取り合いでは本国州・植民地に譲る
+                    labelCands.Add((gx, gy, MapData.En(col.Name), 2, col.Population, ProvinceNameBrush));
             }
         }
         // 地名ラベルの重なり回避（2026-07-27ユーザー指摘）：本国州（開発度の高い順）→植民地→未領有の順に置き、矩形が重なる後続をスキップ（貪欲・決定論＝同値は名前順）。
         // 判定はキャンバス座標＝ズームインするほど文字がキャンバス比で小さくなり、密集地（低地諸国・北イタリア等）もズームすれば順次現れる。
+        // ★F7（2026-09-28）：○を廃止＝文字は**座標を中心に**置く（旧＝○の右隣＋隣の○を避ける送り）。中央寄せは国名と同じ作法（文字数×幅の近似）。
         if (labelCands.Count > 0)
         {
             double fsn = 9.5 / _zd;
@@ -251,32 +185,18 @@ public partial class GameViewModel
             foreach (var cand in labelCands)
             {
                 double lw = cand.Text.Length * fsn * 0.60, lh = fsn * 1.25;
-                double ly = cand.Cy - fsn * 0.62;
-                // ★2026-09-23：先頭1文字に**隣の州の○**が掛かっているときは、その○の右端まで送る。
-                //   ⚠前の回の診断（「自分の○の縁を吸えていない」）は現物と食い違う。実測 gb1783/03e：
-                //     パリは 自分の○の外端966.5・文字インク969＝式どおり隙間2.5px で全文字が出ているのに、
-                //     ルアーヴルは ラベルX≈902 に対し**別の○が904.5まで伸びていて** L が丸ごと消えていた（「e Havre」）。
-                //   ⚠この注記は同じ回の別の枠の変更で前提が変わった（検証担当が commit 前に訂正・2026-09-23）＝
-                //     MapLabels 層は**もう ProvinceDots 層より下ではない**（GameView.axaml の ItemsSource="{Binding MapLabels}" が
-                //     ProvinceDots の後ろへ移り、文字が○の上に描かれるようになった）。よって「○に食われて消える」ことは層で無くなった。
-                //     それでも位置を送るのは**読みやすさのため**＝送らないと先頭文字が○の塗りの上に重なって地色とコントラストを失う。
-                //   判定は**先頭1文字の箱**だけ（幅 fsn×0.60＝下の lw と同じ1文字幅）＝
-                //   名前の後ろに掛かる○は避けない（送りすぎて自分の○から離れない）。送り先の隙間は基本式と同じ 2.5/_zd。
-                double lx = cand.X;
-                foreach (var dt in dots)
-                    if (dt.Y < ly + lh && dt.Y + dt.Diameter > ly && dt.X < cand.X + fsn * 0.60 && dt.X + dt.Diameter > cand.X)
-                        lx = System.Math.Max(lx, dt.X + dt.Diameter + 2.5 / _zd);   // 最も右へ伸びる○に合わせる（逐次更新しない＝○の並び順に依らず決定論）
+                double lx = cand.X - lw / 2, ly = cand.Cy - fsn * 0.62;
                 bool clash = false;
                 foreach (var r in placed)
                     if (lx < r.X + r.W && lx + lw > r.X && ly < r.Y + r.H && ly + lh > r.Y) { clash = true; break; }
                 if (clash) continue;
                 placed.Add((lx, ly, lw, lh));
-                for (int k = 0; k <= 1; k++)   // 世界の複製は2枚（州○のループと同じ理由）
-                    labels.Add(new MapLabel { X = lx + k * MapData.MapWidth, Y = ly, Text = cand.Text, FontSize = fsn, Brush = ProvinceNameBrush });
+                for (int k = 0; k <= 1; k++)   // 世界の複製は2枚（ClampAndWrap が translate.X を (−period, 0] に折り返す＝k=−1 は必ず画面外）
+                    labels.Add(new MapLabel { X = lx + k * MapData.MapWidth, Y = ly, Text = cand.Text, FontSize = fsn, Brush = cand.Brush });
             }
         }
         // 国名ラベルの重なり回避＝州名と同じ貪欲（人口の多い国から置き、重なる後続は落とす＝全景で小国が潰し合わない）。
-        // 文字は州名より大きく（画面上サイズ一定＝キャンバス比では 15/_zd）。中央寄せは文字数×0.30em の近似（○内の規模表示と同じ作法）。
+        // 文字は州名より大きく（画面上サイズ一定＝キャンバス比では 15/_zd）。中央寄せは文字数×幅の近似（州名と同じ作法）。
         if (nationCands.Count > 0)
         {
             double fsn2 = 15.0 / _zd;
@@ -299,15 +219,14 @@ public partial class GameViewModel
                     if (lx < r.X + r.W && lx + lw > r.X && ly < r.Y + r.H && ly + lh > r.Y) { clash = true; break; }
                 if (clash) continue;
                 placedN.Add((lx, ly, lw, lh));
-                for (int k = 0; k <= 1; k++)   // 世界の複製は2枚（州○のループと同じ理由）
+                for (int k = 0; k <= 1; k++)   // 世界の複製は2枚（地名ラベルのループと同じ理由）
                     labels.Add(new MapLabel { X = lx + k * MapData.MapWidth, Y = ly, Text = cand.Text, FontSize = fsn2, Brush = NationNameBrush, LetterSpacing = spacing });
             }
         }
         BuildMapLabels(labels);   // 海盆名＋海峡/運河マーカー（データのツールチップ付き）
-        BuildPathGraphLayer();    // 03地理 手順1：陸グラフの辺＋バリア表示（§6＝地理の型F検出器を兼ねる）
+        BuildPathGraphLayer();    // 03地理 手順1：陸グラフの辺（§6＝地理の型F検出器を兼ねる）
 
-        ProvinceDots = dots;   // 一括差し替え＝バインディング通知1回（要素単位の更新イベントを出さない）
-        MapLabels = labels;
+        MapLabels = labels;   // 一括差し替え＝バインディング通知1回（要素単位の更新イベントを出さない）
         RefreshPinnedHover();   // ★州パネルのピン＝作り直した要約へ差し替え（レビュー是正2026-09-07）
     }
 
@@ -331,10 +250,9 @@ public partial class GameViewModel
     public void SetMapFitScale(double s) { if (s > 1e-6) _mapFitScale = s; }
     private double LabelThreshold => _mapFitScale > 1e-6 ? _mapFitScale * 3.0 : 1.6;
 
-    // 03地理 手順1（2026-07-28・§6作者裁定）：陸グラフ（PathGraph）の辺とバリアを地図に描く。
+    // 03地理 手順1（2026-07-28・§6作者裁定）：陸グラフ（PathGraph）の辺を地図に描く（バリアの○は F7 で廃止）。
     // 「マップに線を引けば×0.23の誤りが一目で分かる」＝refprice と同役の地理検出器。静的幾何＝ズーム時は太さのみ追随。
     private static readonly IBrush EdgeBrush = new SolidColorBrush(Color.Parse("#2E4E6E"));       // 陸路の骨格（海色より少し明るい藍）
-    private static readonly IBrush DotSizeBrush = new SolidColorBrush(Color.Parse("#F5F0E2"));    // ○内の規模テキスト（クリーム＝州色の上で読める）
     private static readonly IBrush PassEdgeBrush = new SolidColorBrush(Color.Parse("#8A6E2E"));   // 峠経由の辺（割増＝琥珀系）
     // ★2026-08-01：海の辺を**はっきり明るく**した（ユーザー報告「海上の線が海と同化して非常に見づらい」）。
     // ⚠旧 #1F3A55 は海の塗り #16314E と各チャンネル差が9しかなく、コントラスト比 約1.1:1＝事実上見えない。
@@ -345,8 +263,6 @@ public partial class GameViewModel
     //   分けると接ぎ木だけが浮いて、港から放射状に別物が生えているように見えた。同じ色なら港から港まで1本の網に読める。
     private static readonly IBrush SeaEdgeBrush = new SolidColorBrush(Color.Parse("#4E7FA8"));
     private static readonly IBrush SeaStitchBrush = SeaEdgeBrush;   // 接ぎ木＝海路と同一（太さだけ僅かに細い）
-    private static readonly IBrush BarrierFill = new SolidColorBrush(Color.Parse("#4A3B2A"));     // 山脈・砂漠（暗褐）
-    private static readonly IBrush PassFill = new SolidColorBrush(Color.Parse("#C9A227"));        // 峠（金）
     private double _edgeZd = -1;   // ★2026-08-02：陸/海グラフの線を最後に組んだときのズーム。同じなら組み直さない
     private (bool Suez, bool Panama) _edgeChokes = (true, true);   // ⚠運河は開通で線が増える＝ズームが同じでも組み直す必要がある
 
@@ -674,7 +590,7 @@ public partial class GameViewModel
             else if (x1 - x2 > MapData.MapWidth / 2) x1 -= MapData.MapWidth;
             var brush = a.Kind == "pass" || b.Kind == "pass" ? PassEdgeBrush : EdgeBrush;
             double t = Scale(kv.Value, landMax, th);
-            for (int k = 0; k <= 1; k++)   // 世界の複製は2枚（州○のループと同じ理由）
+            for (int k = 0; k <= 1; k++)   // 世界の複製は2枚（地名ラベルのループと同じ理由）
                 edges.Add(new MapEdgeLine
                 {
                     Start = new Avalonia.Point(x1 + k * MapData.MapWidth, y1),
@@ -719,7 +635,7 @@ public partial class GameViewModel
                 foreach (var cpx in _sim.Diplomacy.Chokepoints) if (cpx.Id == chokeId && cpx.IsOpen && cpx.Owner is { Nation: not null }) { gateCp = cpx; break; }
             bool gateClosed = gateCp is not null && _player.SelfPower is { } gsp && gateCp.Owner != gsp && _sim.Diplomacy.IsAtWar(gsp, gateCp.Owner!);
             if (!gateClosed)
-                for (int k = 0; k <= 1; k++)   // 世界の複製は2枚（州○のループと同じ理由）
+                for (int k = 0; k <= 1; k++)   // 世界の複製は2枚（地名ラベルのループと同じ理由）
                     edges.Add(new MapEdgeLine
                     {
                         Start = new Avalonia.Point(x1 + k * MapData.MapWidth, y1),
@@ -735,7 +651,7 @@ public partial class GameViewModel
                 if (dl > 1e-9)
                 {
                     double px = -ddy / dl, py = ddx / dl;            // 水路に直交する単位ベクトル
-                    double half = (gateClosed ? 9.0 : 7.0) / _zd;      // 門の半長（ズーム補正＝○と同じ物差し・海路より一回り長く水路を跨ぐ）
+                    double half = (gateClosed ? 9.0 : 7.0) / _zd;      // 門の半長（ズーム補正＝文字と同じ物差し・海路より一回り長く水路を跨ぐ）
                     double gth = System.Math.Max(1.0, (gateClosed ? 3.2 : 2.0) / _zd);   // 海路（≈0.5〜1px）より太い＝門が主役
                     for (int k = 0; k <= 1; k++)
                         edges.Add(new MapEdgeLine
@@ -780,26 +696,12 @@ public partial class GameViewModel
                 });
         }
         MapEdges = edges;
-        var bdots = new List<ProvinceDot>(64 * 3);
-        double bd = 5.0 / _zd;
-        foreach (var n in SimCore.PathGraph.Nodes)
-        {
-            if (n.Kind is not ("barrier" or "pass")) continue;
-            var (bx, by) = MapData.Project(n.Lat, n.Lon);
-            var hover = new MapHoverInfo { Title = n.Name };   // データのみ（指標名規約＝説明文なし）
-            for (int k = 0; k <= 1; k++)   // 世界の複製は2枚（州○のループと同じ理由）
-                bdots.Add(new ProvinceDot
-                {
-                    X = bx + k * MapData.MapWidth - bd / 2, Y = by - bd / 2, Diameter = bd,
-                    Fill = n.Kind == "pass" ? PassFill : BarrierFill, Stroke = Brushes.Transparent, StrokeThickness = 0, Hover = hover,
-                });
-        }
-        BarrierDots = bdots;
+        // ★F7（2026-09-28）：山脈・砂漠・峠の○（BarrierDots）も州○と一緒に廃止。峠を通る陸路は琥珀の線（PassEdgeBrush）で描かれている。
     }
 
     private void BuildMapLabels(List<MapLabel> labels)
     {
-        if (_dotZoom < LabelThreshold) return;   // ズームを引くと海盆名も消える（軽量化）
+        if (_mapZoom < LabelThreshold) return;   // ズームを引くと海盆名も消える（軽量化）
         // 海盆：海の上に薄い英語ラベル。ツールチップ＝日本語名と母港とする国（4カ国/行）。
         foreach (var (basin, ben, bja, blat, blon) in BasinLabels)
         {
@@ -811,7 +713,7 @@ public partial class GameViewModel
                 tipB += "\n" + string.Join("・", members.Skip(i).Take(4));
             double fs = 15.0 / _zd;
             var (bx, by) = MapData.Project(blat, blon);
-            for (int k = 0; k <= 1; k++)   // 世界の複製は2枚（州○のループと同じ理由）
+            for (int k = 0; k <= 1; k++)   // 世界の複製は2枚（地名ラベルのループと同じ理由）
                 labels.Add(new MapLabel
                 {
                     X = bx + k * MapData.MapWidth - ben.Length * fs * 0.30, Y = by - fs * 0.6,
@@ -864,8 +766,6 @@ public partial class GameViewModel
             info.Lines.Add(new MapHoverLine { Text = eff.Length > 0 ? $"{mp.Name}({state}) {eff}" : $"{mp.Name}({state})", Brush = HoverHead, Weight = FontWeight.Bold });
         }
     }
-
-    private const double DotMin = 5.0, DotMax = 19.0;   // ○の直径の範囲＝正規化比[0,1]を線形で画素径へ（RefreshMap 内）
 
     // 州の生産力＝産出（LastProduced）を参照価格で評価した総額。Header の生産履歴グラフが使う。
     private static double RegionProduction(Region rg)
@@ -1073,7 +973,7 @@ public partial class GameViewModel
                 for (int gi = 0; gi < gc && gi < eg.Length; gi++) exp[gi] += eg[gi];
         }
         // 足切りの基準＝世界の総生産額／総輸出額（財の重みを測る母数）。生産は参照価格で額へ直す
-        // （地図の○の大きさ RegionProduction と同じ評価軸）。輸出は既に世界価格建ての額。
+        // （Header の生産履歴の RegionProduction と同じ評価軸）。輸出は既に世界価格建ての額。
         double prodValue = 0, expValue = 0;
         for (int gi = 0; gi < gc; gi++)
         {

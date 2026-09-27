@@ -18,7 +18,8 @@ namespace PriceOfBread.App.Views;
 // Views/GameView.axaml.cs ＝ 外枠の code-behind（地図の拡縮/パン・全画面キー操作）。各タブのハンドラは Views/Tabs/*.axaml.cs。
 // 地図中心UI（2026-06-29 再構成）：MapRoot（仮想2000×780＝MapData.MapWidth×MapHeight）に拡縮(Scale)＋移動(Translate)の RenderTransform を当てる。
 // ホイール=カーソル中心ズーム／背景ドラッグ=パン。**縦はマップ外に出ない（クランプ）／横は東西ループ（折り返し）**。
-// 州○（Ellipse）上の押下はパンせずクリック（詳細モーダル）に通す。横ループは VM が州○を2コピー描き、ここで translate.X を周期で折り返して継ぎ目なく繋ぐ。
+// ★F7（2026-09-28）：州○を廃止＝州のホバー・クリックは**塗り分けのセル**で当てる（GameViewModel.MapHitAt）。押下は常にパンの始まりで、
+//   動かさずに離したときだけクリック（州パネルのピン留め／他国植民地の狙い）。横ループは VM が層を2コピー描き、ここで translate.X を周期で折り返して継ぎ目なく繋ぐ。
 public partial class GameView : UserControl
 {
     private readonly ScaleTransform _scale = new(1, 1);
@@ -37,7 +38,7 @@ public partial class GameView : UserControl
         MapHost.PointerMoved += OnMoved;
         MapHost.PointerReleased += OnReleased;
         MapHost.SizeChanged += OnHostSizeChanged;
-        MapHost.PointerExited += (_, _) => { _hoverDot = null; if (DataContext is ViewModels.GameViewModel vmx && !vmx.HoverPinned) vmx.MapHover = null; };   // 地図から離れたら左上パネルを閉じる
+        MapHost.PointerExited += (_, _) => { if (DataContext is ViewModels.GameViewModel vmx && !vmx.HoverPinned) vmx.MapHover = null; };   // 地図から離れたら左上パネルを閉じる
         // スペース＝停止/再開、1〜3＝速度。フォーカス位置に依存せず効くよう Window(TopLevel) にトンネル登録して
         // どの子（タブ/速度ボタン等）より先に横取りする。ComboBox/TextBox 上では選択・入力を邪魔しない。
         MapHost.Focusable = true;
@@ -90,7 +91,7 @@ public partial class GameView : UserControl
         }
         else { _translate.X = MapHost.Bounds.Width / 2 - MapData.MapWidth * s / 2; _translate.Y = 0; }
         ClampAndWrap();
-        (DataContext as ViewModels.GameViewModel)?.SetDotZoom(s, immediate: true);   // 即時補正＝初回描画（_dotZoom=1）と初期ズームの間の「一瞬大きい○」を根絶。首都なし分岐でも適用
+        (DataContext as ViewModels.GameViewModel)?.SetMapZoom(s, immediate: true);   // 即時補正＝初回描画（_mapZoom=1）と初期ズームの間の「一瞬大きい文字」を根絶。首都なし分岐でも適用
         _homed = true;
     }
 
@@ -104,42 +105,29 @@ public partial class GameView : UserControl
         if (_vmHooked is not null) { _vmHooked.CenterMap -= OnCenterMap; _vmHooked = null; }
     }
 
-    // 州○ホバー：詳細を地図左上の固定パネルへ（ツールチップより長いリストを出せる）。
-    private Ellipse? _hoverDot;                       // いま詳細を出している○（消す判定の基準＝OnMoved のヒステリシス）
-    private const double HoverExitMargin = 5.0;       // 出した○の外周からこれだけ離れて初めて消す（円の縁での点滅を消す幅・単位は○のローカル座標＝px）
+    // 州ホバー：詳細を地図左上の固定パネルへ（ツールチップより長いリストを出せる）。
+    // ★F7（2026-09-28）：当たりは塗り分けのセル＝カーソルの下に塗られている州／植民地（塗りと同じ割り当て・VM の MapHitAt）。
+    //   州と州の境は塗りの境そのもの＝隣へ移れば持ち替え、海・塗られていない陸へ出れば閉じる（旧・○の縁の点滅止めの幅は不要＝境に隙間が無い）。
+    private const double ClickSlop = 5.0;   // 押してから離すまでにこれ以内しか動かなければクリック（画面px）＝ドラッグのパンと分ける。値は旧・○のホバーの離脱幅を引き継ぐ
+    private Point _pressAt;
 
-    private void OnDotEnter(object? sender, PointerEventArgs e)
+    private void HoverAt(PointerEventArgs e)
     {
-        if (sender is Ellipse el && el.DataContext is ViewModels.ProvinceDot dot && DataContext is ViewModels.GameViewModel vm)
-        {
-            if (!vm.HoverPinned) vm.MapHover = dot.Hover;   // ピン留め中は持ち替えない（§7）
-            _hoverDot = el;
-        }
+        if (DataContext is not ViewModels.GameViewModel vm || vm.HoverPinned) return;   // ピン留め中は持ち替えない（§7）
+        var p = e.GetPosition(MapRoot);   // キャンバス座標（拡縮・移動を織り込む）
+        var hover = vm.MapHitAt(p.X, p.Y).Hover;
+        if (!ReferenceEquals(vm.MapHover, hover)) vm.MapHover = hover;
     }
 
-    /// <summary>いま詳細を出している○から**十分に**離れたか。基準の○を見失った（州○は四半期ごとに作り直される）時は
-    /// 即座に消す＝残骸を残さない（○の上に居る場合は呼び出し側が先に持ち替えている）。</summary>
-    private bool LeftHoverDot(PointerEventArgs e)
+    // クリック（動かさずに離した）：他国の植民地＝狙いのトグル（02断線走査2026-07-28＝講和の優先割譲 Colony.PlayerInterest の書き手）。
+    //   州＝左クリックで州パネルをピン留め（同じ州でもう一度＝解除・2026-09-07）。右クリックは植民地の狙いだけ（旧・植民地○と同じ）。
+    private void ClickAt(PointerEventArgs e, bool left)
     {
-        if (_hoverDot is null || !_hoverDot.IsAttachedToVisualTree()) return true;
-        var p = e.GetPosition(_hoverDot);   // ○のローカル座標（0,0〜Bounds）＝ズーム・東西ループを織り込んだ実位置
-        var b = _hoverDot.Bounds;
-        return p.X < -HoverExitMargin || p.Y < -HoverExitMargin
-            || p.X > b.Width + HoverExitMargin || p.Y > b.Height + HoverExitMargin;
-    }
-
-    // 植民地○クリック：狙いのトグル（02断線走査2026-07-28＝講和の優先割譲 Colony.PlayerInterest の書き手）。州○（Colony=null）は左クリックで州パネルをピン留め（同じ州でもう一度＝解除・2026-09-07）。
-    private void OnDotPressed(object? sender, PointerPressedEventArgs e)
-    {
-        if (sender is Ellipse el && el.DataContext is ViewModels.ProvinceDot dot && DataContext is ViewModels.GameViewModel vm)
-        {
-            if (dot.Colony is not null) { vm.ToggleColonyInterest(dot.Colony); e.Handled = true; }
-            else if (dot.Region is not null && dot.Hover is not null && e.GetCurrentPoint(el).Properties.IsLeftButtonPressed)
-            {
-                vm.TogglePin(dot.Hover, dot.Region);   // ★州パネルのピン留め（§7）：同じ州の○でもう一度＝解除（鍵は州＝四半期の作り直しに耐える）
-                e.Handled = true;
-            }
-        }
+        if (DataContext is not ViewModels.GameViewModel vm) return;
+        var p = e.GetPosition(MapRoot);
+        var (hover, region, aim) = vm.MapHitAt(p.X, p.Y);
+        if (aim is not null) vm.ToggleColonyInterest(aim);
+        else if (left && region is not null && hover is not null) vm.TogglePin(hover, region);   // 鍵は州＝四半期の作り直しに耐える
     }
 
     // 外交の行クリック：その国の座標（仮想キャンバス）が画面中央に来るよう translate を合わせる（ズームは維持）。
@@ -288,7 +276,7 @@ public partial class GameView : UserControl
             _landLod = 0;
             ApplyLandLod();
         }
-        catch { /* 背景が出なくても○とゲームは動く（致命的にしない） */ }
+        catch { /* 背景が出なくても地図の他の層とゲームは動く（致命的にしない） */ }
     }
 
     private static RenderTargetBitmap? BuildLandBitmap()
@@ -298,7 +286,7 @@ public partial class GameView : UserControl
         using var reader = new StreamReader(stream);
         var doc = XDocument.Parse(reader.ReadToEnd());
 
-        // 陸＝明るいタン／湖＝海色。○（彩度高）はどちらの上でも映える。
+        // 陸＝明るいタン／湖＝海色。
         // ★2026-08-31作者指示：**国境線を消す**＝SVGは国ごとのパスなので、旧「海岸線の薄い暗線」は実際には現代の国境として
         //   見えていた（1783年の世界に現代国境は不適）。線は**陸と同色の縫い目埋め**へ＝隣接国パス間の1px隙間（AAシーム）を塞ぎつつ
         //   国境は不可視。海岸線は陸/海の色境界として自然に残る。
@@ -482,7 +470,7 @@ public partial class GameView : UserControl
         _translate.X = MapHost.Bounds.Width / 2 - MapData.MapWidth * s / 2;
         _translate.Y = 0;
         ClampAndWrap();
-        (DataContext as ViewModels.GameViewModel)?.SetDotZoom(s, immediate: true);
+        (DataContext as ViewModels.GameViewModel)?.SetMapZoom(s, immediate: true);
     }
 
     // uishot 用（2026-09-05・B4検証）：画面中心を保ったままフィット倍率の factor 倍へ＝州名の帯を決定的に撮る。
@@ -494,7 +482,7 @@ public partial class GameView : UserControl
         _translate.X = MapHost.Bounds.Width / 2 - cx * s;
         _translate.Y = MapHost.Bounds.Height / 2 - cy * s;
         ClampAndWrap();
-        (DataContext as ViewModels.GameViewModel)?.SetDotZoom(s, immediate: true);
+        (DataContext as ViewModels.GameViewModel)?.SetMapZoom(s, immediate: true);
     }
 
     // 計測用（2026-09-06）：パン試験＝translate を動かす（ユーザーのドラッグと同じ経路）。
@@ -532,43 +520,28 @@ public partial class GameView : UserControl
         _translate.Y = p.Y - (p.Y - _translate.Y) * factor;
         _scale.ScaleX = _scale.ScaleY = newScale;
         ClampAndWrap();
-        if (DataContext is ViewModels.GameViewModel vmz) vmz.SetDotZoom(newScale);   // 州○のズーム補正（拡大しても○が巨大化しない）
+        if (DataContext is ViewModels.GameViewModel vmz) vmz.SetMapZoom(newScale);   // 文字のズーム補正（拡大しても文字が巨大化しない）
         e.Handled = true;
     }
 
     private void OnPressed(object? sender, PointerPressedEventArgs e)
     {
         MapHost.Focus();   // 地図のどこかを押すたびにフォーカスを確保＝スペース/数字キーが効く
-        if (e.Source is Ellipse or Button) return;   // 州○の押下はクリック扱い（パンしない）
-        if (!e.GetCurrentPoint(MapHost).Properties.IsLeftButtonPressed) return;
+        if (e.Source is Button) return;
+        _pressAt = e.GetPosition(MapHost);
+        if (!e.GetCurrentPoint(MapHost).Properties.IsLeftButtonPressed)
+        {
+            ClickAt(e, left: false);   // 右/中ボタン＝パンしない＝押した時点でクリック（植民地の狙いだけ）
+            return;
+        }
         _panning = true;
-        _last = e.GetPosition(MapHost);
+        _last = _pressAt;
         e.Pointer.Capture(MapHost);
     }
 
     private void OnMoved(object? sender, PointerEventArgs e)
     {
-        // ○から離れたら左上のホバーパネルを消す（残骸を残さない）。
-        // ★2026-08-10（作者報告「国にマウスを当てた時、円の縁で表示が出たり消えたりする」）：
-        //   旧は「Source が Ellipse でなければ即消す」で、当たり判定の境界＝円の縁ではポインタの微動が
-        //   内/外を1pxごとに跨ぐたび PointerEntered（出す）と PointerMoved（消す）が交互に走っていた。
-        //   出す線と消す線を分ける＝①いま○の上なら出す（同じ○なら同じ実体の代入＝通知も再描画も起きない）
-        //   ②直前の○の外周から HoverExitMargin px 離れて初めて消す。境界に幅がある限り点滅は構造的に起きない。
-        //   判定は円の実体（Ellipse）のローカル座標＝地図の東西ループ・ズームに自然に追従する。
-        if (DataContext is ViewModels.GameViewModel vmm)
-        {
-            if (e.Source is Ellipse over && over.DataContext is ViewModels.ProvinceDot od)
-            {
-                if (!vmm.HoverPinned) vmm.MapHover = od.Hover;   // 重なった○の間を渡っても切れない（持ち替える）。ピン留め中は固定
-                _hoverDot = over;
-            }
-            else if (vmm.MapHover is not null && !vmm.HoverPinned && LeftHoverDot(e))
-            {
-                vmm.MapHover = null;
-                _hoverDot = null;
-            }
-        }
-        if (!_panning) return;
+        if (!_panning) { HoverAt(e); return; }   // パン中は持ち替えない（地図が動いているだけ）
         var cur = e.GetPosition(MapHost);
         _translate.X += cur.X - _last.X;
         _translate.Y += cur.Y - _last.Y;
@@ -578,11 +551,16 @@ public partial class GameView : UserControl
 
     private void OnReleased(object? sender, PointerReleasedEventArgs e)
     {
+        if (_panning)
+        {
+            var d = e.GetPosition(MapHost) - _pressAt;
+            if (Math.Abs(d.X) <= ClickSlop && Math.Abs(d.Y) <= ClickSlop) ClickAt(e, left: true);
+        }
         _panning = false;
         e.Pointer.Capture(null);
     }
 
-    // 縦＝マップ外（極より上下）に出さないクランプ。横＝東西ループ（translate.X を地図1周期で折り返す。州○は2コピーなので継ぎ目なし）。
+    // 縦＝マップ外（極より上下）に出さないクランプ。横＝東西ループ（translate.X を地図1周期で折り返す。層は2コピーなので継ぎ目なし）。
     private void ClampAndWrap()
     {
         double s = _scale.ScaleX;

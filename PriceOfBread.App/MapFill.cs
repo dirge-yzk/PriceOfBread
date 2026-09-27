@@ -30,9 +30,8 @@ public static class MapFill
     public const int Nx = 3600;                    // 表示は経度360°ぶん＝東西で巻く
     public static readonly int Ny = (int)Math.Round((MapData.LatTop - MapData.LatBottom) / CellDeg);
     private const double KmPerDeg = 111.32;        // 緯度1°の距離（子午線）
-    private const byte FillAlpha = 105;            // 背景の陸色と州○が透けて見える濃さ
+    private const byte FillAlpha = 105;            // 背景の陸色が透けて見える濃さ
     private const byte BorderAlpha = 200;          // 国境線の濃さ（B1'・2026-09-05）
-    private static short[]? _ownFinal;             // 国境線用＝膨らませ後の最終の持ち主（作業場・使い回す）
 
     private static byte[]? _land;    // 表示格子の陸（0/1）。地図は不変なので一度だけ焼く
     private static float[]? _dist; private static short[]? _own; private static byte[]? _px;   // 焼くときの作業場（使い回す）
@@ -62,14 +61,19 @@ public static class MapFill
 
     private static readonly object Gate = new();   // 作業場（下の使い回し配列）を守る＝セーブ読込で新旧2つのVMが重なっても混ざらない
 
-    /// <summary>種から塗りを1枚焼く（重いのは呼び出し側が背景スレッドで回す）。種が無ければ null。</summary>
-    public static WriteableBitmap? Build(IReadOnlyList<Seed> seeds)
+    /// <summary>種から塗りを1枚焼く（重いのは呼び出し側が背景スレッドで回す）。種が無ければ null。
+    /// ★地図の州○の廃止（作者裁定 F7・2026-09-28）：州の当たり（ホバー・クリック）は**この塗りの割り当てそのもの**で取る＝
+    ///   <paramref name="hit"/>＝格子ごとの種の番号（-1＝海・塗られていない）。塗りと当たりが同じ規則の1本。
+    ///   種の [0, painted) は塗る種、[painted, Count) は当たりだけの種（未領有の植民地化標的）＝塗られた格子には入らず、
+    ///   どの国も届かない陸だけを取る＝塗りの絵は当たりだけの種の有無で1画素も変わらない。</summary>
+    public static WriteableBitmap? Build(IReadOnlyList<Seed> seeds, int painted, out short[]? hit)
     {
+        hit = null;
         if (seeds.Count == 0) return null;
-        lock (Gate) return BuildCore(seeds);
+        lock (Gate) return BuildCore(seeds, painted, out hit);
     }
 
-    private static WriteableBitmap BuildCore(IReadOnlyList<Seed> seeds)
+    private static WriteableBitmap BuildCore(IReadOnlyList<Seed> seeds, int painted, out short[] hit)
     {
         var land = Land();
         int n = Nx * Ny;
@@ -92,7 +96,7 @@ public static class MapFill
         // 押し込む先のバケツは必ず今より後ろ＝バケツ順の処理で厳密に最短が出る。
         double maxKm = Places.MaxSpacingKm;
         int nb = (int)Math.Ceiling(maxKm) + 2;
-        var buckets = new List<int>[nb];
+        var buckets = new List<int>?[nb];
 
         void Push(int cell, float d)
         {
@@ -101,58 +105,66 @@ public static class MapFill
             (buckets[b] ??= new List<int>(512)).Add(cell);
         }
 
-        for (int si = 0; si < seeds.Count; si++)
+        // 種 [s0, s1) を置いて広げる。s0 より前の種が既に取った格子には入らない（s0=0 の1回目は制約なし）。
+        void Spread(int s0, int s1)
         {
-            int c = CellOf(seeds[si].Lat, seeds[si].Lon);
-            if (c < 0) continue;
-            if (land[c] == 0) { int c2 = NearestLand(land, c); if (c2 < 0) continue; c = c2; }   // 海へ丸められた港町は近くの陸へ吸着
-            if (owner[c] >= 0) continue;   // 同じ格子に2つ目＝先着（決定論：種の並び順）
-            dist[c] = 0f; owner[c] = (short)si; Push(c, 0f);
-        }
-
-        for (int b = 0; b < nb; b++)
-        {
-            var q = buckets[b];
-            if (q is null) continue;
-            for (int qi = 0; qi < q.Count; qi++)
+            for (int si = s0; si < s1; si++)
             {
-                int c = q[qi];
-                float dc = dist[c];
-                if ((int)dc != b) continue;   // より短い距離で入れ直された古い項目
-                int iy = c / Nx, ix = c - iy * Nx;
-                short own = owner[c];
-                float sx = stepX[iy];
-                float sd = MathF.Sqrt(sx * sx + stepY * stepY);   // 斜めの実距離＝前線が45°の直線に折れない（4近傍だとひし形になる）
-                int e = ix == Nx - 1 ? c - (Nx - 1) : c + 1;      // 東（端で巻く＝東西ループ）
-                int w2 = ix == 0 ? c + (Nx - 1) : c - 1;          // 西
-                Relax(e, dc + sx, own);
-                Relax(w2, dc + sx, own);
-                if (iy > 0)
-                {
-                    Relax(c - Nx, dc + stepY, own);
-                    Relax(e - Nx, dc + sd, own); Relax(w2 - Nx, dc + sd, own);
-                }
-                if (iy < Ny - 1)
-                {
-                    Relax(c + Nx, dc + stepY, own);
-                    Relax(e + Nx, dc + sd, own); Relax(w2 + Nx, dc + sd, own);
-                }
+                int c = CellOf(seeds[si].Lat, seeds[si].Lon);
+                if (c < 0) continue;
+                if (land[c] == 0) { int c2 = Nearest(c, c3 => land[c3] != 0); if (c2 < 0) continue; c = c2; }   // 海へ丸められた港町は近くの陸へ吸着
+                if (owner[c] >= 0) continue;   // 同じ格子に2つ目＝先着（決定論：種の並び順）
+                dist[c] = 0f; owner[c] = (short)si; Push(c, 0f);
             }
-            buckets[b] = null;   // 使い終わったバケツは捨てる（ピークメモリを抑える）
+
+            for (int b = 0; b < nb; b++)
+            {
+                var q = buckets[b];
+                if (q is null) continue;
+                for (int qi = 0; qi < q.Count; qi++)
+                {
+                    int c = q[qi];
+                    float dc = dist[c];
+                    if ((int)dc != b) continue;   // より短い距離で入れ直された古い項目
+                    int iy = c / Nx, ix = c - iy * Nx;
+                    short own = owner[c];
+                    float sx = stepX[iy];
+                    float sd = MathF.Sqrt(sx * sx + stepY * stepY);   // 斜めの実距離＝前線が45°の直線に折れない（4近傍だとひし形になる）
+                    int e = ix == Nx - 1 ? c - (Nx - 1) : c + 1;      // 東（端で巻く＝東西ループ）
+                    int w2 = ix == 0 ? c + (Nx - 1) : c - 1;          // 西
+                    Relax(e, dc + sx, own);
+                    Relax(w2, dc + sx, own);
+                    if (iy > 0)
+                    {
+                        Relax(c - Nx, dc + stepY, own);
+                        Relax(e - Nx, dc + sd, own); Relax(w2 - Nx, dc + sd, own);
+                    }
+                    if (iy < Ny - 1)
+                    {
+                        Relax(c + Nx, dc + stepY, own);
+                        Relax(e + Nx, dc + sd, own); Relax(w2 + Nx, dc + sd, own);
+                    }
+                }
+                buckets[b] = null;   // 使い終わったバケツは捨てる（ピークメモリを抑える）
+            }
+
+            void Relax(int c2, float nd, short own)
+            {
+                if (!(nd <= maxKm)) return;     // 否定形＝NaNは広げない
+                if (land[c2] == 0) return;      // 陸だけ（海を渡らない＝州の無い島は塗らない）
+                if (owner[c2] >= 0 && owner[c2] < s0) return;   // 前の回の種が取った格子＝当たりだけの種は塗られた土地を奪わない
+                if (!(nd < dist[c2])) return;
+                dist[c2] = nd; owner[c2] = own; Push(c2, nd);
+            }
         }
 
-        void Relax(int c2, float nd, short own)
-        {
-            if (!(nd <= maxKm)) return;     // 否定形＝NaNは広げない
-            if (land[c2] == 0) return;      // 陸だけ（海を渡らない＝州の無い島は塗らない）
-            if (!(nd < dist[c2])) return;
-            dist[c2] = nd; owner[c2] = own; Push(c2, nd);
-        }
+        Spread(0, painted);
 
         var drawn = _drawn;
         // ★国境線（B1'・2026-09-05）：最終の持ち主（膨らませ後）を1本の配列に残し、東/南の隣が別の持ち主なら暗い画素にする＝国境が見える。
         //   海岸は型紙（背景の絵）が決めるので線を引かない（陸と海の色境界がそのまま海岸線）。
-        var ownFinal = _ownFinal ??= new short[n];
+        // ★F7（2026-09-28）：この配列がそのまま州の当たりになる＝呼び出し側へ渡すので、焼くたびに新しく作る（UIが読んでいる間に次の1枚が書き換えない）。
+        var ownFinal = new short[n];
         System.Array.Fill(ownFinal, (short)-1);
         for (int c = 0; c < n; c++)
         {
@@ -195,6 +207,11 @@ public static class MapFill
             px[o + 2] = (byte)(col.R * BorderAlpha * 45 / 100 / 255);
             px[o + 3] = BorderAlpha;
         }
+        // 当たりだけの種（未領有の標的）＝塗りと国境線を焼いた後に広げる＝絵は変わらない。どの国も届かない陸（背景の絵の上の陸）だけを当たりに足す。
+        Spread(painted, seeds.Count);
+        for (int c = 0; c < n; c++)
+            if (ownFinal[c] < 0 && owner[c] >= painted && (drawn is null || drawn[c] != 0)) ownFinal[c] = owner[c];
+        hit = ownFinal;
 
         var bmp = new WriteableBitmap(new PixelSize(Nx, Ny), new Vector(96, 96), PixelFormat.Bgra8888, AlphaFormat.Premul);
         using (var fb = bmp.Lock())
@@ -218,8 +235,22 @@ public static class MapFill
         return iy * Nx + ix;
     }
 
-    /// <summary>海へ落ちた種を近傍の陸へ吸着（0.1°格子は海峡や小島を海へ丸める）。見つからなければ -1＝その種は捨てる。</summary>
-    private static int NearestLand(byte[] land, int c)
+    /// <summary>★F7（2026-09-28）：州の当たり＝キャンバス座標（幅 MapWidth・高さ MapHeight の塗りの絵の上の点）→その画素の持ち主の種の番号（-1＝無し）。
+    /// 塗られていない格子（海岸の町の座標・小島＝0.1°格子で海へ丸められた所）は、**種を陸へ吸着したのと同じ半径**で最寄りの持ち主を借りる
+    /// ＝種の吸着と当たりが同じ規則（海岸の州名の上でも、その州に当たる）。</summary>
+    public static int HitAt(short[] hit, double x, double y)
+    {
+        x %= MapData.MapWidth; if (x < 0) x += MapData.MapWidth;
+        int ix = (int)(x * Nx / MapData.MapWidth), iy = (int)(y * Ny / MapData.MapHeight);
+        if (!(ix >= 0 && ix < Nx && iy >= 0 && iy < Ny) || hit.Length != Nx * Ny) return -1;   // 否定形＝NaN も外
+        int c = iy * Nx + ix;
+        if (hit[c] < 0) { c = Nearest(c, c3 => hit[c3] >= 0); if (c < 0) return -1; }
+        return hit[c];
+    }
+
+    /// <summary>近傍で条件を満たす最寄りの格子（半径5格子までの環）。種の陸への吸着（0.1°格子は海峡や小島を海へ丸める）と、州の当たりの両方が使う。
+    /// 見つからなければ -1＝その種は捨てる／当たりは無し。</summary>
+    private static int Nearest(int c, Func<int, bool> ok)
     {
         int iy0 = c / Nx, ix0 = c - iy0 * Nx;
         for (int r = 1; r <= 5; r++)
@@ -233,7 +264,7 @@ public static class MapFill
                     int ix = (ix0 + dx) % Nx;
                     if (ix < 0) ix += Nx;
                     int c2 = iy * Nx + ix;
-                    if (land[c2] != 0) return c2;
+                    if (ok(c2)) return c2;
                 }
             }
         return -1;
