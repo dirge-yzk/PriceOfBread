@@ -48,6 +48,7 @@ public sealed class NationConfig
     public CensorshipLaw InitialCensorship = CensorshipLaw.StatePressOnly; // 米蘭＝自由報道／英＝検閲付／他＝国家報道のみ
     public ReformLevel InitialCornLaws = ReformLevel.None;                 // 穀物法：地主保護の農業国＝全面（英の穀物法）／自由貿易・輸出国＝なし（蘭米）
     public ReformLevel InitialSerfEmancipation = ReformLevel.None;         // 農奴解放：東欧の農奴制＝なし（露普墺日）／西欧の自由労働＝全面（英米蘭）／封建残滓＝限定（仏伊西土）
+    public ImmigrationLaw InitialImmigration = ImmigrationLaw.Open;        // ★移民制限法（作者裁定 2026-09-27 E7）：日本＝鎖国・朝鮮＝海禁で閉鎖／清＝広東一口通商と満洲の封禁で選別／他＝開放
     // 国土を分ける州（代表都市＋人口Share〔合計1〕＋その州の強み資源 good.Id[]）。未指定なら単一地域。
     // 列挙財＝増産（×3.5・地理的な得意＝輸出）／非列挙のRGOは減産（×0.4・要輸入。ただし主食 麦/米/野菜は食料安全保障で減産しない）。
     public ProvinceSpec[] Provinces = [];
@@ -72,7 +73,7 @@ public sealed class NationConfig
         InitialInterestRate = InitialInterestRate,  // 中庸の金利＝信用の過剰変動を抑える初期設定（プレイヤーが上下で金融政策）
         InitialTariff = InitialTariff,  // 関税の初期値（日本＝鎖国）
         InitialSuffrage = InitialSuffrage, InitialCensorship = InitialCensorship,
-        InitialCornLaws = InitialCornLaws, InitialSerfEmancipation = InitialSerfEmancipation,
+        InitialCornLaws = InitialCornLaws, InitialSerfEmancipation = InitialSerfEmancipation, InitialImmigration = InitialImmigration,
     };
 
     // === 4つの国家モデル（archetype）===

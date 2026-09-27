@@ -191,6 +191,7 @@ public sealed class Simulation
             Censorship = scenario.InitialCensorship,        // 初期報道法（米蘭＝自由／英＝検閲付／他＝国家報道のみ）
             CornLaws = scenario.InitialCornLaws,            // 初期穀物法（農業国＝保護／自由貿易国＝なし）
             SerfEmancipation = scenario.InitialSerfEmancipation,   // 初期農奴解放（東欧＝未解放／西欧＝全面）
+            ImmigrationRestriction = scenario.InitialImmigration,  // 初期移民制限法（日朝＝閉鎖／清＝選別／他＝開放）
             // 金本位の志向は AI/プレイヤーが決める（UtilityAgent は信用があれば志向＝史実の規範。NullAgent のテストは志向せず＝従来挙動）。実加入は信用ゲートが決める
         };
         World.Suffrage = World.Policy.Suffrage;       // 法整備の現在値＝初期は政策の初期値（利益集団のゲートで漸進）
@@ -208,6 +209,7 @@ public sealed class Simulation
         World.ChildLaborLegal = World.ChildLaborAllowed ? 1.0 : 0.0;  // 児童労働の合法度の初期値＝児童労働法のアンカー。以後 MonthSettle で連続追従（倍率排除④）
         World.CornLaws = World.Policy.CornLaws;             // 穀物法の現在値＝初期値（農業国＝保護／自由貿易国＝なし）
         World.SerfEmancipation = World.Policy.SerfEmancipation;   // 農奴解放の現在値＝初期値（東欧＝未解放／西欧＝全面）
+        World.ImmigrationRestriction = World.Policy.ImmigrationRestriction;   // 移民制限法の現在値＝初期値
         // 軍事費の現在値＝初期目標（兵士の徴募/給与を駆動）。★陸海へ按分（2026-08-04）
         World.Policy.Bureaucracy = World.Bureaucracy;   // ★官僚制度の目標も初期値に揃える（Government が翌期に巻き戻さない・2026-08-04）
         World.SetMilitarySpending(Math.Clamp(World.Policy.ArmyUpkeepTarget + World.Policy.NavyUpkeepTarget, 0, 1),
@@ -653,7 +655,7 @@ public sealed class Simulation
     //
     // ★k は world.json から数える＝**産地を足せば E は自動で下がる**（手で書かない＝doc §4-1 の要求）。
     // ★N は**州のみ**（植民地は生産者を1つも持たないことを2026-08-13に確認済み）。
-    // 硫黄は k=1（パレルモのみ。蝦夷地は抽象標的で州でない）→ E = 4.0 + 183×0.4 = **77.2**＝現行最大の約20倍。
+    // 硫黄は k=1（パレルモのみ。北九州は後期産地＝k に数えない・蝦夷地の抽象標的は 2026-09-28 に削除）→ E = 4.0 + 183×0.4 = **77.2**＝現行最大の約20倍。
     // ScarceMineralGate=0 で E を返さない＝厳密恒等。
     private static int[]? _scarceCounts;   // 財ID→産地の州数（world.json から1回だけ数える・決定論）
     private static int _scarceProvinceTotal;

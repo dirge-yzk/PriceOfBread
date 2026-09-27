@@ -203,6 +203,7 @@
    "initialCensorship": "StatePressOnly",
    "initialCornLaws": "Full",
    "initialSerfEmancipation": "None",
+   "initialImmigration": "Closed",
    "provinces": [
     {
      "city": "江戸",
@@ -2031,6 +2032,7 @@
    "initialCensorship": "StatePressOnly",
    "initialCornLaws": "Full",
    "initialSerfEmancipation": "None",
+   "initialImmigration": "Selective",
    "provinces": [
     {
      "city": "上海",
@@ -2370,6 +2372,7 @@
    "initialCensorship": "StatePressOnly",
    "initialCornLaws": "Full",
    "initialSerfEmancipation": "None",
+   "initialImmigration": "Closed",
    "provinces": [
     {
      "city": "漢城",
@@ -5632,24 +5635,6 @@
       20
      ],
      "population": 0.5
-    }
-   ]
-  },
-  {
-   "name": "蝦夷地",
-   "military": 0.2,
-   "treasury": 800,
-   "quinine": false,
-   "colonies": [
-    {
-     "name": "蝦夷地",
-     "resources": [
-      20,
-      1,
-      11,
-      5
-     ],
-     "population": 1
     }
    ]
   },

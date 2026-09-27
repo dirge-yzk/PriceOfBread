@@ -55,4 +55,31 @@ public class NationModelTests
         double russia = sim.Nations[1].World.TechLevel;
         Assert.True(prussia > russia * 2, $"公教育のプロイセン({prussia:F2})が宗教教育のロシア({russia:F2})を大きく上回るはず（前改革期1789-1864）");
     }
+
+    /// <summary>★作者裁定 2026-09-27 E7：1783年の移民制限法は史実から置く（日本＝鎖国・朝鮮＝海禁で閉鎖／清＝選別／英＝開放）。
+    /// 現在値と目標の両方＝目標だけ Open のままだと Government が翌四半期に開放へ引き戻す。</summary>
+    [Fact]
+    public void 一七八三年の日本と朝鮮は移民を閉じ清は選別する()
+    {
+        foreach (var (name, law) in new[] { ("日本", ImmigrationLaw.Closed), ("朝鮮", ImmigrationLaw.Closed), ("清", ImmigrationLaw.Selective), ("イギリス", ImmigrationLaw.Open) })
+        {
+            var w = new Simulation(WorldData.ByName(name).ToScenario(1), new NullAgent()).World;
+            Assert.True(w.ImmigrationRestriction == law, $"{name} の移民制限法（現在値）が {w.ImmigrationRestriction}（史実＝{law}）");
+            Assert.True(w.Policy.ImmigrationRestriction == law, $"{name} の移民制限法（目標）が {w.Policy.ImmigrationRestriction}（史実＝{law}）");
+        }
+    }
+
+    /// <summary>★作者裁定 2026-09-27 E9：同じ土地を州と抽象標的の植民地に二重に登録しない（旧＝日本の州「蝦夷地」と抽象標的「蝦夷地」の住民50万人）。
+    /// 蝦夷地は日本の州1つで全体を表す。</summary>
+    [Fact]
+    public void 抽象標的の植民地は州と同名にならない_蝦夷地は日本の州だけ()
+    {
+        var provinces = new HashSet<string>();
+        foreach (var n in WorldData.Nations()) foreach (var p in n.Provinces) provinces.Add(p.City);
+        foreach (var t in WorldData.Setup().Targets)
+            foreach (var c in t.Colonies)
+                Assert.False(provinces.Contains(c.Name), $"抽象標的「{t.Name}」の植民地「{c.Name}」が州と同じ土地に二重に登録されている");
+        Assert.DoesNotContain(WorldData.Setup().Targets, t => t.Name == "蝦夷地");
+        Assert.Contains(WorldData.ByName("日本").Provinces, p => p.City == "蝦夷地");
+    }
 }

@@ -119,7 +119,6 @@ public static class WorldData
     internal static WorldSetup BootstrapSetup() => new(
         [   // 抽象標的（AddTarget 順）：目玉資源は被りを避ける（史実＋やや誇張）
             new TargetDto("琉球", 0.1, 500, false, [new ColonyDto("琉球", [25, 17, 20], 0.5)]),
-            new TargetDto("蝦夷地", 0.2, 800, false, [new ColonyDto("蝦夷地", [20, 1, 11, 5], 1)]),
             new TargetDto("アルタ=カリフォルニア", 0.4, 3_000, false, [new ColonyDto("アルタ=カリフォルニア", [4, 15, 19, 11], 1.5)]),
             new TargetDto("ボルネオ", 0.5, 3_000, false, [new ColonyDto("ボルネオ", [21, 10, 29, 11], 2)]),
             new TargetDto("マレー", 0.4, 2_500, false, [new ColonyDto("マレー", [29, 21], 1.5)]),

@@ -330,7 +330,7 @@ public static class Colonial
             {
                 double tot = Math.Max(0, col.PopSize) + col.SettlerSize;
                 if (col.SettlerSize > 1e-9 && tot >= c.ColonyPromotionMinPop && col.SettlerSize / tot > c.ColonyPromotionCoreShare
-                    && !w.Regions.Exists(r => r.Name == col.Name))   // 同名州が既に居る国（例：蝦夷地＝日本の辺境州と征服標的の二重在籍）では昇格しない＝州名の一意性（座標表・地図・扼者解決のキー）を守る
+                    && !w.Regions.Exists(r => r.Name == col.Name))   // 同名州が既に居る国（旧例：蝦夷地＝日本の州と抽象標的の二重在籍・2026-09-28 に抽象標的を削除＝既定のデータには無い）では昇格しない＝州名の一意性（座標表・地図・扼者解決のキー）を守る
                     (promote ??= []).Add(col);
             }
             if (promote is not null)

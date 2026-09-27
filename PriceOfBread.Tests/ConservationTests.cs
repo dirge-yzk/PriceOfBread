@@ -346,7 +346,9 @@ public class ConservationTests
     }
 
     /// <summary>★J-006 の吸収（回1-2・作者裁定 2026-09-26「住民が消えるのは好ましくない」）：同名の州を既に持つ国へ渡った植民地は、
-    /// Colony オブジェクトは消えるが住民（と蓄え）はその州へ入る。統制盤面＝日本（蝦夷地の州を持つ）が抽象標的「蝦夷地」を無血で侵略（屈服線0）。
+    /// Colony オブジェクトは消えるが住民（と蓄え）はその州へ入る。統制盤面＝日本（蝦夷地の州を持つ）が、盤面の中で作った同名の抽象標的を無血で侵略（屈服線0）。
+    /// ★2026-09-28（作者裁定 E9）：既定の世界から抽象標的「蝦夷地」を消した＝同名の二重登録はデータに無い。規則（同名の州へ住民を運ぶ）は残るので、
+    ///   抽象標的は既定の世界に依存せず盤面の中で作る（MultiNationSim の構築と同じ形＝住民は人口の重み×ColonialPopScale）。
     /// ⚠突然変異「吸収で住民を捨てる」で赤になる。</summary>
     [Fact]
     public void J006の吸収で住民は同名の州へ入る()
@@ -354,8 +356,11 @@ public class ConservationTests
         var coef = new Coefficients { ColonizeSubmitRatio = 0 };   // 屈服線0＝必ず屈服（戦争にしない）
         var sim = new MultiNationSim([WorldData.ByName("日本")], seed: 1789, coef: coef);
         var jp = sim.Nations[0].World;
-        var ezo = sim.Diplomacy.Powers.First(p => p.Nation is null && p.ColonyList.Exists(c => c.Name == "蝦夷地"));
-        var col = ezo.ColonyList.Find(c => c.Name == "蝦夷地")!;
+        var ezo = new Power { Id = sim.Diplomacy.Powers.Max(p => p.Id) + 1, Name = "蝦夷地", BaseName = "蝦夷地", Military = 0.2, Gdp = 0, Treasury = 800, TradeWeight = 0.0 };
+        var cc = Geo.ColonyCoord("蝦夷地");
+        var col = new Colony { Name = "蝦夷地", Resources = [20, 11], Population = 0.05, PopSize = 0.05 * coef.ColonialPopScale, Latitude = cc.Lat, Longitude = cc.Lon };
+        ezo.ColonyList.Add(col);
+        sim.Diplomacy.Powers.Add(ezo);
         var region = jp.Regions.Find(r => r.Name == "蝦夷地")!;
         double people = System.Math.Max(0, col.PopSize) + col.SettlerSize;
         Assert.True(people > 0, "前提が崩れた：抽象標的の蝦夷地に住民がいない");
