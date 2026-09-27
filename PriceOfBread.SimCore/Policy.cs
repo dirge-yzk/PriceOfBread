@@ -62,7 +62,7 @@ public enum CommandLaw { Crown, Split, Parliament }
 /// 進み方は既存の法改正機構（<see cref="Government.StepEnum"/>＝議会/世論の純支持ゲート）に完全に乗る＝新しい特例機構はない。</summary>
 public enum WomenRightsLaw { None, Property, Education, Suffrage }
 
-/// <summary>移民制限法（法の棚卸しdoc L2・2026-08-01）。⚠**機構（国際移民の流入）はあるのに法が無かった唯一の領域**。
+/// <summary>移民制限法（法の棚卸しdoc L2・2026-08-01）。⚠**機構（移民の流入）はあるのに法が無かった唯一の領域**。★回1-2（2026-09-27）：受入の上限から溢れた分は送出州に残る＝「別の国へ回す」でなく「流れを減らす」法。
 /// Open＝制限なし（現行と厳密同義）／Selective＝選別（識字・資産で選ぶ＝流入は減るが質は上がる）／Closed＝閉鎖。
 /// ★史実＝米の排華移民法1882・日米紳士協約1907・1924移民法／豪の白豪主義。**流入で職を脅かされる大衆が推し、労働力を求める資本が反対する**。</summary>
 public enum ImmigrationLaw { Open, Selective, Closed }

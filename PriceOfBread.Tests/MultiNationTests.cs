@@ -276,21 +276,27 @@ public class MultiNationTests
         // 機能5（2026-07-28）：屈服判定の陣営戦力化（抑止＝覇権は戦わずに引かせる）＋参戦拒否の緊張代償で、開戦数は
         // 「覇権の対立中心性」の物差しとして反転しうる（英の splendid isolation・二番手どうしの戦争）。ガードの本義＝§6.1
         // ThreatTension（大国であること自体が周囲の緊張を集める）を**累積緊張の積分**で直接測る形へ更新（3度目の物差し是正）。
+        // ★2026-09-27 回1-2（4度目の物差し是正）：旧＝400四半期（100年）の累積緊張の合計＝「英が100年覇権国であり続けること」まで測っていた（軌道の分岐）。
+        //   世界プールを閉じると、この4カ国の世界では英が移民の送出で縮み（400四半期の人口 26.8千→16.8千・日本 40.0千）、(62) と合わせた木で
+        //   29,193 対 29,326 に反転した（緊張の内訳の脅威でも 929 対 1,562＝日本のほうが大きい国になった）。英が覇権を保つかは創発＝帯が見る。
+        //   ⇒ 本義だけを測る：英が初期条件（史実の1783年）で明白な覇権国である最初の10年（40四半期）に、緊張の内訳の「脅威」（TensionReason.Threat）の
+        //   累積を比べる（初期の史実ライバルやイデオロギーの緊張は混ぜない）。着手前・(62)・回1-2 単独・合わせた木の4本とも英 149〜175・日本 0。
         var sim = new MultiNationSim(FourNations(), seed: 1789, coef: new Coefficients { ColoniesAreRegions = 0 });
         sim.Nations[1].World.ParliamentEnabled = false;
-        double britTension = 0, japanTension = 0;
+        double britThreat = 0, japanThreat = 0;
         var brit = sim.Diplomacy.Powers.First(p => p.BaseName == "イギリス");
         var japan = sim.Diplomacy.Powers.First(p => p.BaseName == "日本");
-        for (int q = 0; q < 400; q++)
+        double ThreatOf(Power a, Power b) { foreach (var (r, v) in sim.Diplomacy.TensionBreakdown(a, b)) if (r == TensionReason.Threat) return v; return 0; }
+        for (int q = 0; q < 40; q++)
         {
             sim.StepQuarter();
             foreach (var p in sim.Diplomacy.Powers)
             {
-                if (p != brit) britTension += sim.Diplomacy.Tension(brit, p);
-                if (p != japan) japanTension += sim.Diplomacy.Tension(japan, p);
+                if (p != brit) britThreat += ThreatOf(brit, p);
+                if (p != japan) japanThreat += ThreatOf(japan, p);
             }
         }
-        Assert.True(britTension > japanTension, $"覇権の英（累積緊張{britTension:F0}）が孤立の日本（{japanTension:F0}）より周囲の緊張を集めるはず");
+        Assert.True(britThreat > japanThreat, $"覇権の英（脅威の緊張の累積{britThreat:F0}）が孤立の日本（{japanThreat:F0}）より周囲の緊張を集めるはず");
     }
 
     // ===== 近代化投資の裁量（2026-08-10 是正の番人）=====

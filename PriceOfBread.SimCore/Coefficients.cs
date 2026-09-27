@@ -275,7 +275,7 @@ public sealed class Coefficients
     //   （コンゴ・ハワイ・ダホメ・ボルヌ・デリー・アシャンティ・オヨ・エチオピア・アルジェ）が両シードで1783〜84年に内戦（首都の政変の経路）へ落ち、
     //   コンゴでは人口の39.8%が充足0.51〜0.52に恒常的に居た（起点0.73の下＝駆動飽和）。史実（モラル・エコノミー）：食料暴動・飢饉の蜂起は
     //   慣れた水準からの急な高騰・途絶が引き金で、慢性的に栄養不足の社会は恒常的な内戦にはなかった。慢性の不足は物理の経路
-    //   （飢饉死 FamineDeathFillFloor・疫病の脆弱層 EpidemicVulnConcentration・国際移民の押し出し＝州の FoodFill・扶養力 FoodCapacityWeight＝すべて絶対水準）が運ぶ。
+    //   （飢饉死 FamineDeathFillFloor・疫病の脆弱層 EpidemicVulnConcentration・国家間移民の押し出し＝州の FoodFill・扶養力 FoodCapacityWeight＝すべて絶対水準）が運ぶ。
     //   平常 Pop.FoodRef＝pop の充足の慣れ（新しい状態・要る理由は Model.cs の注記）。慣れの速度は LivingRefSpeed（半減期≒6年）を共用＝新しい数なし。
     //   ★起点と利得の導出＝旧起点と同じ形の規則（先に決めてから数字を読む）。母数＝pop 単位の落ち込み D＝平常−充足
     //     （factionprobe 1789 524Q・年次断面・人口加重・観測5カ国＝清/英/仏/露/オスマン・導出の腕は POB_COEF="FamineDriveGain=0"＝旧の導出と同じく駆動が休眠の世界）。
@@ -744,7 +744,7 @@ public sealed class Coefficients
     public double ClergyAttractThreshold = 2.5;  // 聖職者の魅力閾値（平均比の豊かさ）。これ超で識字の高い下層が教会へ
     public double ClergyJoinRate = 0.004;        // 下層→聖職者の四半期移動率（宗教学校の社会のみ）
     public double ClergyExitRate = 0.004;        // ★点火2026-08-31（ラウンドB）＝聖職者の退出（世俗化・AI審査3-5）：非宗教学校の社会で聖職の実入りが平均を割ると教師/都市労働者へ（入口ClergyJoinRate=0.004の対称・同率）。0で退出なし
-    // --- 国家間移民（豊かさの引力で大衆が移る・ゼロサム。ゲーム外からの流入＝WorldMigrationPoolFrac とは別）---
+    // --- 国家間移民（豊かさの引力で大衆が移る・ゼロサム＝人はゲームの外から来ない。回1-2・2026-09-27 に世界プール WorldMigrationPoolFrac を削除）---
     public double EmigrationRate = 0.004;        // 機会差1.0あたりの四半期流出率
     public double EmigrationMaxFrac = 0.003;     // 四半期の流出上限（人口割合）＝大量流出の暴走防止
     // 移民の自己制限（07_再設計 §12-1・A4裁定・2026-07-31）：人が減るほど賃金と機会が上がり縁故が細る＝流出は自然に止まる。
@@ -939,7 +939,7 @@ public sealed class Coefficients
     public double RegionMobility = 0.03;            // 地域間移民の緩和速度
     public double MigrationSecondDestShare = 0.3;   // 監査2026-07-05（D2）：州間移民の第2目的地への分岐率。0=最大機会の単一州へ一極吸引（現行と厳密一致）・0.3程度で第2機会の州にも分散（現実の移民は複数都市へ散る）。#17で有効化検討
     public double TransportFriction = 0.15;         // 距離/輸送の摩擦（引力から差し引く）
-    // 民族統一度（倍率排除⑧で POP属性化＝各popの CoreEthnicShare 加重平均から創発。EthnicEnabled の国のみ・較正＝無効）。国際移民で希釈→同化で回復、低統一度は移民を引き低教育は排斥で阻む。
+    // 民族統一度（倍率排除⑧で POP属性化＝各popの CoreEthnicShare 加重平均から創発。EthnicEnabled の国のみ・較正＝無効）。移民（国家間移民）で希釈→同化で回復、低統一度は移民を引き低教育は排斥で阻む。
     // ★段2で削除（設計メモ §7-3）：UnityMilitancyRelief（上昇鈍化）と UnitySecessionMilitancy（国項）。
     //   EthnicUnity は **CoreEthnicShare の人口加重平均そのもの**＝同じ民族統一度を闘争度の中で3度読んでいた
     //   （国項×自分の中核度／pop項(1−中核度)／上昇鈍化）。pop解像度の1本（MinorityMilitancy）だけを残す＝国平均はそこから創発する。
@@ -1248,13 +1248,11 @@ public sealed class Coefficients
     public int ShipTier2GoodId = 85;                // 汽船＝tier2輸送船（蒸気船）。蒸気機関を要する＝供給チェーンで自然に技術ゲート
     public double ShipTier2CapMult = 2.5;           // tier2輸送船は1単位あたり容量が大（蒸気船は帆船より高速・大容量＝海運の革命）
 
-    // --- 国際移民（§A-3拡張：ゲーム外＝未モデルの世界全体から、機会の高い国へ大衆が流入。非ゼロサム＝他国を奪わない。史実：米は欧州各地・アジアから移民吸収）---
-    public double MigrationStayHome = 0.55;         /* 移民史実化2026-07-08：0.7→0.55 */ // この機会水準以下なら移民は来ない。0.7では米が125年不発（対仏比13.6%のまま・史実は253%へ）＝seed1実測。流入量＝世界プール（WorldMigrationPoolFrac×世界人口）のpull比例配分（02断線走査2026-07-28：旧ImmigrationRate記述を是正）
+    // --- 移民の機会と着地（国家間移民の行き先の機会＝Territory.Opportunity。★回1-2・2026-09-27：ゲーム外からの国際移民＝世界プールは削除＝MigrationStayHome も削除）---
     // 改修2026-06-28：アメリカ脱工業化の構造修正（移民が農業世界の技術水準一極に吸われず工業州にも流れ、労働者として着地する）。多国移民専用＝単一国較正は内部移民非走行で不変。
     public double IndustrialOpportunityWeight = 0.5; // 工業化度1あたり移民機会の上乗せ（Opportunity ×(1+これ×Ind)）。空世界の技術水準の静的高生産性一極吸引を解く
     public double OpportunityWageWeight = 0.2;       // 州の労働価格プレミアム（1人あたり月次所得の対国平均比＝Region.WagePremium）1あたり移民機会の上乗せ（Opportunity ×(1+これ×(premium−1))）。金鉱州の高賃金→移民殺到＝ゴールドラッシュを賃金経由で創発（キュー3・金発見移民）。0=恒等（較正中立＝単一州はpremium=1）。0.2採用＝実測2026-07-10：(a)wageprobe＝前提「欧州平時bestOpp<0.55」は不成立（全53カ国が常時>0.55＝国際流入は受入上限ImmigrationReceiveCapFracで飽和＝重みは国際流入量を変えず磁石化リスクなし（02断線走査2026-07-28：死んだImmigrationMaxFracの論拠を実係数へ差し替え）・実効は金鉱/ブーム州への誘導＝受入州選択・国内移動）(b)提案帯0.3-0.4は4国回帰番人「工業化の差別化」を壊す（0.3→spread0.15/0.4→0.22＜基準0.5＝賃金スパイク追随が工業州への集積を乱す）→番人合格の上限0.2
-    public double ImmigrantWorkerBase = 0.3;         // 移民のうち労働者になる基礎割合（農業州＝Ind0で3割が労働者・7割農民）
-    public double ImmigrantWorkerPerInd = 0.2;       // ＋行き先州の工業化度1あたり労働者割合↑（Ind3で〜0.85上限＝工業州は労働者として着地）
+    public double ImmigrantWorkerBase = 0.3;         // 入植者のうち労働者になる割合（植民地の州昇格＝Simulation.PromoteColonyToRegion。★回1-2 で国際移民の着地＝ImmigrantWorkerPerInd と共に使っていた経路は削除）
 
     // --- 外交・戦争（§6.1 国際層）---
     // ※旧 MilitaryFromCoercion / GdpPerMilitary（治安維持力ベースの軍ゲージ）は Part 2 で兵士POPベースに置換し廃止。
@@ -1847,14 +1845,6 @@ public sealed class Coefficients
     // 飢饉クラスタの他機構（超過死亡・地方蜂起・Factions危機）は州単位へ移行済みで、MoveMigrants の上限緩和だけが国平均の取り残し＝
     // 英5州構成では州FoodFill0.4でも国平均0.91までしか下がらず、アイルランド型の集中的大量脱出が構造的に発火しない。
     public double FaminePushRegionBlend = 1.0;   // ⚠台帳矛盾の確定（第2段2-7・2026-07-27）：コメントは「2026-07-23点火→同日休眠へ戻し」だが**実リテラルは1.0＝戻し忘れで稼働中**。以後の全基線（fidelity exact38/near70等）はこの1.0込みで測定されている＝**現状の正は1.0（基線側）**。0への差し戻しは挙動変更＝1項目1バッチで別途裁定（旧・戻し根拠＝州化で飢饉検知が敏感化→欧州の流出加速→英×0.99へ人口逆行、Boost=2.0と同系）
-    // B-高6（史実検証2026-07-22）：受入capのクリップ余剰を、cap未達の国へ pull 比で再配分する（総量はプール側 poolSize が律する＝洪水なし）。
-    // 0=旧挙動＝余剰は捨てられ実効流入が名目を下回る＝厳密恒等。旧実装は cap 係数=プール係数(0.004)が同一のため「pullシェアが人口シェアを超える国は必ずcap張り付き」
-    // が算術的に保証され、**流入量が pull（アメリカが豊かなこと）でなく自国人口に比例する**因果の逆転が起きていた。
-    public double MigrationRedistributeClipped = 1.0;   // ⚠台帳矛盾の確定（FaminePushRegionBlendと同型の戻し忘れ）：コメントは「2026-07-23点火→同日休眠へ戻し」だが実リテラルは1.0＝稼働中。以後の全基線はこの1.0込みで測定されている＝現状の正は1.0（基線側）。0へ戻すかは別途1項目1バッチで裁定
-    // B-高4（史実検証2026-07-22）：外部移民の識字を定数(0.15)から「流出圧が正の国の人口加重識字」の運搬へ移行する比率。0=定数＝厳密恒等。
-    // 0.15は1897年ロシア農村級の下限で、史実の大西洋移民は識字0.73（Dillingham委員会）＝3-5倍の過小。identity経路（自然増・越境・国内・昇格）が
-    // 全て識字を運搬する中で外部移民だけが運ばず、**移民磁石だけが技術ペナルティを負う**非対称だった（米国成人識字は大量移民期に80%→92.3%と上昇）。
-    public double ImmigrantLiteracyCarry = 1.0;   // **2026-07-23点火・同日1.0→0.5**（満額運搬は受入国の識字を動かしすぎ＝時代加重の実測0.4-0.6帯の中央へ）
     // C-高4（史実検証2026-07-22）：身分制免税＝旧体制（絶対王政/専制/幕府）における閉鎖階級（貴族・聖職）の課税ベース割引率。
     // 0=割引なし（×1.0＝厳密恒等）。点火0.6＝貴族は所得税・土地税を4割しか払わない（taille réelle・ユンカーのGrundsteuer免除。
     // vingtième/capitation は貴族にも課されており実態は「免除」でなく「過少査定」＝完全免除1.0は取らない）。
@@ -1977,7 +1967,6 @@ public sealed class Coefficients
                                            // 0.3 では押し出し上限 0.0048＝同式の PushUnrestWeight(上限0.5) の約1/100＝ノイズ級で機構が事実上死んでいた。6.0 で上限 0.096＝不満項の約2割＝副次要因として意味を持つ水準。             // 接16：州別犯罪率を移民の押し出し（pushPenalty）へ加重＝治安悪化からの逃避。0=不読
     public double SteamTransportOnset = 1.0;   // **点火2026-07-27（機能優先ラウンド第1群）**         // リ5：1で汽船(85)onset0.5・機関車(88)onset0.6を既定レシピへ＝フルトン以前の汽船流通を止める（起動時パス・CrucibleSteelと同型）。0=無ゲート（現行）
     public double DisasterAgeMortalityExcess = 0.4;   // **点火2026-07-27（機能優先ラウンド第2群）**  // リ10：災害死（疫病・局地飢饉）の子供/老年の超過死亡倍率＝ChildShare/OldShareへ運搬しコホートの穴を残す。0=均等死＝比率不変（現行）
-    public double MigrantDowryWorldBase = 1.0;   // **点火2026-07-27（機能優先ラウンド第1群）**       // リ11：外部移民の持参金基準を受入地1人当たり貯蓄(0)→世界平均(1)へブレンド＝富裕国ほど外生マネーが湧く自己強化を解消。0=現行
     public double StateSpendTreasuryClamp = 1.0;   // **点火2026-07-27（機能優先ラウンド第1群）**     // 他12：軍需/行政の予算を「いま国庫にある現金」で比例縮小＝StateSpent精算の無利子当座借越（財政規律の迂回）を封じる。0=現行
     public double ConscriptExcludeOldMales = 1.0;   // **点火2026-07-27（機能優先ラウンド第3群）**    // 他13：徴兵上限を働き盛り男性（成人−老年）へ＝総動員時の老年男性二重計上（OldShare水増し）を解消。0=現行
     public double ExternalPressureDerived = 1.0;   // **点火2026-07-27（機能優先ラウンド第2群）**     // 接7：外圧を創建時定数0.3から「世界の技術水準格差×海の接触」の四半期導出へ（1で有効）。0=定数据え置き（現行）
@@ -2579,14 +2568,13 @@ public sealed class Coefficients
     public double LiteracyGenerationalDecay = 0.002;   /* 【R10点火2026-07-13＝0.002】 */   // 人11b：識字の世代減衰（TechEducation・月次）。0=減衰なし＝既得識字は永遠保持（旧ラチェット）／>0でEducationFillを上回る分に微小な世代減衰＝教育投資の維持費（教育崩壊で識字後退）。0.002＝超過分の半減期≈29年（世代規模）＝使わなければ失う
     public double EducationGateUsesEma = 0.0;   // 人13：昇格の高等教育ゲート（Meritocracy）に多年EMAを使う（0=当月EducationFillの瞬間フロー＝現行／1=EducationEmaストックで判定＝一時的な教育の途絶で資格が消えない）
     public double EducationEmaRate = 0.05;   // 人13：EducationEmaの当月Fillへの月次収束率。EducationGateUsesEma=0の既定では未使用＝挙動非依存。値は#17で較正
-    public double CrossBorderMigrationByOpportunity = 1.0;   // 人3/外14：国家間移民の送出/受入州を機会で選ぶ（送出=Opportunity×FoodFill最悪州・受入=Opportunity最大州）。量ゲートも同じ州判定＝gap=受入国最良州機会−送出国最悪州機会(×食料充足)−閾値。0で越境移民なし（旧・満足度ベース経路は2026-07-28に係数ごと削除済み）
+    public double CrossBorderMigrationByOpportunity = 1.0;   // 人3/外14：国家間移民を州の機会で判定する（★回1-2・2026-09-27＝全ての Active 州が送出州・各国の最良州が受入州・差＝受入国の最良州の機会−送出州の機会×食料充足−閾値＝MultiNationSim.MigrateBetweenNations の5段）。0で越境移民なし（旧・満足度ベース経路は2026-07-28に係数ごと削除済み）
     public double CrossBorderOppGapThreshold = 0.5;    // 州機会gapの発火閾値（機会スケール1〜3に合わせた初期値＝要batch測定。旧EmigrationGapThreshold=満足度スケール0.15は不適合）
     // R3 移民の距離減衰＋渡航コスト財化（2026-07-13・残タスク表 最高インパクト）。移民3関数がGeo/距離を一切読まない＝欧州の農民が米も豪も同確率だった。
     // 大圏距離 Geo.DistanceKm（首都間・海路運河は移民には過剰精緻＝陸海両用の距離近似）。両係数とも既定0で厳密恒等（scale=0→減衰1.0・fare=0→運賃なし）。
     public double MigrationDistanceScale = 10000.0;   // 【点火2026-07-13(2)＝10000km】0=距離無感応（厳密恒等）。>0で越境移民の引力gapに距離減衰 1/(1+DistanceKm/これ) を乗じる＝近い行き先を選ぶ（史実の距離逓減：欧州内・北大西洋が主流で遠距離は運賃/情報で細る）。10000＝欧州→米6000km:0.63/アルゼンチン11000km:0.48/豪16000km:0.38＝機会の大きい米が距離でも勝ち残る緩い減衰。要batch調律
     public double MigrationFarePerkKm = 0.0;   /* 休眠。#54再点火試験2026-07-14＝0.1でmassBirthWeightガード後seed3は完走するが、住民が≈0まで流出した国家がゾンビ残存→多国batchでO(N²)膨張→約12倍低速化。要ゾンビ国家清掃（civilian pop→0の国の消滅機構）。R3距離感応が移民リアリティの核心は提供済み＝運賃は保留 */      // 【休眠に戻した2026-07-13(2)＝要追加調査】0=渡航コストなし（厳密恒等）。>0で移民1人が距離比例の運賃(=これ×DistanceKm/1000)を要する＝貯蓄が運賃に満たない最貧層は動けない（貧困の罠）。運賃分は送出経済に残し保存則を閉じる。**点火0.1で保存則は清潔（leakhunt seed1/25/27緑）だがseed3が破綻＝運賃コード外の下流でSize NaN（診断未発火＝affordFrac自体は有限）＝運賃の軌道摂動が潜在NaNバグを露出。距離減衰は完走。運賃コード（IsFinite安全弁）は残置し、潜在NaN特定後に再点火**
-    public double WorldMigrationPoolFrac = 0.004;      // キュー7：国際流入の世界プール化＝総量(世界人口×これ/四半期＝旧cap0.004と同規模＝年1.6%)を各国引力で比例配分。旧「自国人口比例」は小国の米に絶対数が入らない構造だった。0で旧挙動（休眠可）
-    public double ImmigrationReceiveCapFrac = 0.012;   // **2026-07-23 B-高6＝台帳一致**（コメントの0.012へ・旧リテラル0.004は台帳の食い違い）   // 世界プールの受入国側の物理上限（/四半期・中間案(b)2026-07-10）＝アイルランド脱出級の絶対フロー年4.8%。無上限は高識字小国への洪水→エリート崩壊を実測。旧cap0.004の3倍＝米国は救い洪水は律する
+    public double ImmigrationReceiveCapFrac = 0.012;   // **2026-07-23 B-高6＝台帳一致**（コメントの0.012へ・旧リテラル0.004は台帳の食い違い）   // 受入国側の物理上限（/四半期・中間案(b)2026-07-10）＝アイルランド脱出級の絶対フロー年4.8%。無上限は高識字小国への洪水→エリート崩壊を実測。★回1-2（2026-09-27）：世界プールの上限から国家間移民の受入の上限へ（超えた分は送出州に残る）
     // ★移民制限法の効き（2026-08-01）。⚠既定は Open＝1.0 なのでどちらも読まれない＝厳密恒等。
     // 値の根拠＝米1924年移民法は前年比で流入を約8割削った（年約70万→約16万）＝Closed≈0.2。Selective はその中間（紳士協約1907型の部分制限）。
     // 選好の強さ：流入率（前四半期の流入÷人口）1あたりの要求の大きさ。⚠受入上限が年4.8%＝四半期0.012 なので、
@@ -2603,10 +2591,6 @@ public sealed class Coefficients
     public double SpecialistExitBanPrefScale = 0.0;
     public double ImmigrationSelectiveFrac = 0.5;   // 選別：受入上限を半分に
     public double ImmigrationClosedFrac = 0.2;      // 閉鎖：受入上限を2割に（★完全ゼロにしない＝密航・家族呼び寄せ・特例は史実にも残った）
-    public double ExternalImmigrantProfile = 1.0;   // 人10：ゲーム外移民に固定プロファイル(低識字・若年成人男性偏重)を加重混合。0=現行の受入popクローン（恒等）
-    public double ImmigrantProfileLiteracy = 0.15;   // 人10：外部移民の識字（低・ExternalImmigrantProfile>0でのみ使用。#17で再較正）
-    public double ImmigrantProfileFemaleShare = 0.35;   // 人10：外部移民の成人女性比率（若年成人男性偏重＝低め。同上）
-    public double ImmigrantProfileChildShare = 0.15;   // 人10：外部移民の子供比率（単身移民＝低め。同上）
     public double TradeWeightDynamic = 1.0;   // 外1（A-中6・**2026-07-23点火＝取扱高駆動へ書き換え**）：TradeWeightを四半期ごと貿易取扱高（輸出+輸入額のEMA）シェアから再計算。0=1789の0.15+0.10×Industrializationを固定維持（恒等）。GDP駆動は開放度を無視して1913年の米・清・露を過大にするため取扱高へ変更
     public double TradeWeightBase = 0.15;   // 外1：動的TradeWeightのベース（TradeWeightDynamic>0でのみ使用。現行式の切片に対応。#17較正）
     public double TradeWeightGdpSlope = 0.10;   // 外1：動的TradeWeightの相対取扱高シェア(世界平均1)への傾き（同上。#17較正）

@@ -30,9 +30,6 @@ public sealed class MultiNationSim
     private const double TradeWeightIndustrializationSlope = 0.10;   // 工業化度あたりの交易比重の増分（初期国のみ）
     private const double SocialSecurityLawMaxLevel = 3.0;            // 社会保障法の最上位段（年金=3）＝法段を目標[0,1]へ正規化する除数（2026-07-21「なし」廃止・4段）
     private const double MigrationFareDistanceUnitKm = 1000.0;       // 渡航運賃の距離単位（MigrationFarePerkKm＝この距離あたりの運賃）
-    private const double ImmigrantSavingsFraction = 0.6;             // 移民の持参金＝受入地の1人当たり貯蓄への比率（やや貧しい移民）
-    private const double ImmigrantWorkerFracMin = 0.15;             // 移民の労働者着地比率のクランプ下限（農業州でも最低これだけは労働者）
-    private const double ImmigrantWorkerFracMax = 0.85;             // 移民の労働者着地比率のクランプ上限（工業州でも上限これだけ）
     private const double RumpGdpFractionOfParent = 0.01;             // 残骸国家判定＝親GDP比のこの割合未満が続いたら再併合対象
     private const double EpidemicTransmitSeverityFloor = 0.5;        // 国家間伝播で発症した疫病の重症度の下限（上限は+NextDouble()で1.5まで）
 
@@ -605,7 +602,7 @@ public sealed class MultiNationSim
     // 既定OFF（Simulation.ConservationProbe）＝実行ゼロ。詳細は Simulation.ProbeCheck の説明を参照。
     // ★世界の合計（fis-21・2026-09-26）：国ごとの D は**片側記帳**（払った側だけが記帳し、受け取る国が無い／受け取った側だけが記帳する）を拾えない。
     //   配列の最後の1枠に世界の W＝Σ現存国（基礎貨幣−鋳造−不換発行）を持ち、共有層の段ごとに ΔW を見る（国ごとの D が閉じていれば ΔW＝ΣΔ累積貿易＝世界の外との出入り）。
-    //   ⚠「国際移民」の段は世界プール（ゲーム外から湧く持参金＝既知の湧き口）で必ず動く＝回1-2 で消える。新しい状態は作らない（既存の配列を1枠伸ばすだけ）。
+    //   新しい状態は作らない（既存の配列を1枠伸ばすだけ）。★回1-2（2026-09-27）で世界プール（ゲーム外から湧く持参金＝旧の既知の湧き口）は消えた。
     private double[]? _probeD;
     private static double ProbeD(World w) => w.BaseMoney - w.CumulativeTradeFlow - w.CumulativeGoldMinted - w.CumulativeFiatIssued;
     private double ProbeWorldW() { double s = 0; foreach (var n in Nations) { var w = n.World; s += w.BaseMoney - w.CumulativeGoldMinted - w.CumulativeFiatIssued; } return s; }
@@ -629,7 +626,7 @@ public sealed class MultiNationSim
         }
         double wNow = ProbeWorldW(), wPrev = _probeD[Nations.Count];
         if (Math.Abs(wNow - wPrev) > 1e-7 * Math.Max(1.0, Math.Abs(wNow)))
-            Console.Error.WriteLine($"[PROBE世界] {label} {Year}年 ΔW={wNow - wPrev:F3}（{(label == "国際移民" ? "既知＝世界プールの持参金（回1-2 で消える）" : "月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]")}）");
+            Console.Error.WriteLine($"[PROBE世界] {label} {Year}年 ΔW={wNow - wPrev:F3}（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）");
         _probeD[Nations.Count] = wNow;
     }
 
@@ -699,11 +696,10 @@ public sealed class MultiNationSim
             RewirePorts();   // ★港の配線を盤面から張り直す（毎四半期・無状態＝2026-09-21 案1。旧＝署名で条件付き・2026-08-13）
             StepPorts(); ProbeDiff("港湾");                             // 港湾容量：混雑する港州を国家＋資本家が拡張（Market.Step の取扱高/律速を見て投資。改修2026-06-28）
             StepMarineInsurance(); ProbeDiff("海上保険");                // 海上保険：商人pop基金で通商破壊損失を分散（平時=保険料・封鎖時=保険金。改修2026-06-28・金融改革③）
-            // 移民は助走では動かさない（2026-08-10）。国際移民は**モデル外からの流入＝人口の生成**なので、
-            // 暦を止めた10年の助走で回すと「時間が経たないのに人口が16%増える」（実測でそうなった）。国家間移民は総量保存だが同じく時間の流れ。
+            // 移民は助走では動かさない（2026-08-10）。移民は総量保存だが時間の流れ（暦を止めた助走で人を動かさない）。
             if (!_calendarFrozen)
             {
-                MigrateInternational(); ProbeDiff("国際移民");               // 国際移民：機会の高い国へ大衆が流入（米の台頭＝創発）
+                StepAssimilation(); ProbeDiff("同化");                       // 民族の同化（移民の希釈への歯止め）
                 // ★2026-09-03（J-004）：⚠移民は**受入国/送出国のPOP構成**を変えるので、国の国民意識（POPのsize加重平均）が動く。
                 //   ⇒ 説明台帳へ1行足す。⚠Explain は既定 null＝バッチ/較正では getter を1回も余分に呼ばない（恒等・ゼロコスト）。
                 double[]? ncBeforeMig = null;
@@ -1434,19 +1430,9 @@ public sealed class MultiNationSim
     }
     private const double TradeValueSmoothing = 0.1;   // 取扱高EMAの時定数（約2.5年）
 
-    // 国際移民（§A-3拡張）：機会（生活水準×辺境の空き＝土地機会）が高い国へ、**ゲーム外＝未モデルの世界全体**から大衆（農民・労働者）が流入。
-    // 他国を奪わない非ゼロサム（史実：米は欧州各地・アジアから移民を吸収）。新規人口＝PopulationDelta、持参金＝CumulativeTradeFlow（外部流入）で保存。
-    internal void MigrateInternational()   // ★段4（2026-09-09）：internal＝同化の式をテストから単離して検証するため（AccumulatePopConsciousness と同じ扱い）
+    // 民族の同化の段（回1-2・2026-09-27＝旧 MigrateInternational の同化の部分だけを残した。世界プール＝ゲーム外から人と持参金が湧く経路は削除）。
+    internal void StepAssimilation()   // ★段4（2026-09-09）：internal＝同化の式をテストから単離して検証するため（AccumulatePopConsciousness と同じ扱い）
     {
-        // 世界移民プール（キュー7・ユーザー発案2026-07-10）：WorldMigrationPoolFrac>0 なら、旧「受入国の人口比例」
-        // （inflow=min(rate×pull,cap)×**自国**人口＝小国の米に絶対数が入らない構造）を廃し、
-        // 総量=世界人口×係数/四半期 を各国の引力（pull=bestOpp−StayHome・民族/差別補正込み）で比例配分する。
-        // 「金が出た州は全州でトップに見える→プールの大シェア」がそのまま実装＝殺到の弁は土地逓減・住宅摩擦・第2目的地分散。0で旧挙動。
-        foreach (var sim0 in Nations) { sim0.World.LastImmigration = 0; sim0.World.LastImmigrationExternal = 0; sim0.World.LastEmigration = 0; sim0.World.LastSpecialistExit = 0; }   // ★段⑤：専門職の流出カウンタも同じ場所で0に（無条件＝滞留しない）   // 診断（UI）：四半期の移民収支カウンタ（国際→越境の順に加算）
-        // 02断線走査2026-07-28：プール経路一本化＝旧・受入国人口比例経路（ImmigrationRate/ImmigrationMaxFrac）を係数ごと削除（WorldMigrationPoolFrac>0恒久＝旧経路は不達だった）
-        double worldPop = 0, pullSum = 0;
-        var pulls = new (Region best, double pull, World w)[Nations.Count];
-        int pi = 0;
         foreach (var sim in Nations)
         {
             var w = sim.World;
@@ -1471,87 +1457,6 @@ public sealed class MultiNationSim
                     p.CoreEthnicShare = Math.Clamp(p.CoreEthnicShare + assim * resist * kernel, 0, 1);   // 倍率排除⑧：同化は per-pop で中核割合を1へ寄せる（EthnicUnity は加重平均から創発）
                 }
             }
-            // 国際移民（ゲーム外からの流入）の引力＝最も機会の高い州（賃金＝生産性×空き×雇用＝Territory.Opportunity）。
-            // 新大陸＝労働希少→高生産性の辺境に空きが多い＝機会が高く、移民を引く（満足度の飽和に依存しない・史実の引力）。流入先もその州（首都投入を廃止）。
-            Region? best = null; double bestOpp = 0;
-            foreach (var r in w.Regions)
-                if (r.State == RegionState.Active) { double o = Territory.Opportunity(r, _coef); if (best is null || o > bestOpp) { best = r; bestOpp = o; } }
-            if (best is null) { pi++; continue; }
-            double pull = bestOpp - _coef.MigrationStayHome;
-            // 民族：低統一度は移民を引く（坩堝＝アメリカ）／低教育は差別で移民を阻む（平均識字が閾値未満で減衰＝排斥）。
-            if (w.EthnicEnabled)
-            {
-                pull *= 1.0 + _coef.EthnicDraw * (1.0 - w.EthnicUnity);
-                pull *= Math.Clamp(AvgLiteracy(w) / _coef.DiscriminationLiteracy, 0, 1);
-            }
-            worldPop += w.TotalPopulation;
-            if (pull > 0) { pulls[pi] = (best, pull, w); pullSum += pull; }
-            pi++;
-        }
-        if (pullSum > 1e-9)
-        {
-            double poolSize = _coef.WorldMigrationPoolFrac * worldPop;   // 旧cap＝0.004/四半期×各国人口の総和と同規模＝総量は保ち配分だけ引力比例へ
-            // B-高4（史実検証2026-07-22）：外部移民の識字＝流出圧が正の国（pull≤0＝行き先として魅力がない側＝送出側）の人口加重識字を運搬。
-            // Carry=0 では null＝AddImmigrants が定数 ImmigrantProfileLiteracy を使う＝厳密恒等。
-            double? poolLit = null;
-            if (_coef.ImmigrantLiteracyCarry > 0)
-            {
-                double litSum = 0, litPop = 0;
-                foreach (var sim2 in Nations)
-                {
-                    var w2 = sim2.World;
-                    Region? b2 = null; double o2 = 0;
-                    foreach (var r in w2.Regions) if (r.State == RegionState.Active) { double o = Territory.Opportunity(r, _coef); if (b2 is null || o > o2) { b2 = r; o2 = o; } }
-                    if (b2 is null) continue;
-                    if (o2 - _coef.MigrationStayHome <= 0) { double p2 = w2.TotalPopulation; litSum += AvgLiteracy(w2) * p2; litPop += p2; }
-                }
-                if (litPop > 1e-9)
-                    poolLit = _coef.ImmigrantProfileLiteracy + _coef.ImmigrantLiteracyCarry * (litSum / litPop - _coef.ImmigrantProfileLiteracy);
-            }
-            // B-高6（史実検証2026-07-22）：cap のクリップ余剰を pull 比で再配分（Redistribute=0＝余剰は捨てる＝厳密恒等）。
-            // 旧実装は cap係数=プール係数のため「pullシェア>人口シェアの国は必ずcap張り付き」が算術保証され、流入が pull でなく自国人口に比例していた。
-            // 総量はプール側 poolSize が律する＝再配分しても洪水にならない。1ラウンドのみ（2巡目以降の残余は微小＝簡潔優先）。
-            double surplus = 0, uncappedPull = 0;
-            foreach (var (best, pull, w) in pulls!)
-            {
-                if (pull <= 0 || best is null) continue;
-                double inflow = poolSize * pull / pullSum;
-                // 受入の物理上限（プール保留の解除2026-07-10・中間案(b)）：無上限だとプールが高識字の小国へ集中し
-                // 旧上限の数倍の流入→識字希釈→エリート崩壊を実測（公教育プロイセンが宗教露を下回る逆転）。
-                // 上限＝アイルランド脱出級の絶対フロー（0.012/四半期≈年4.8%）＝米国は救い、洪水は律する。
-                // ★移民制限法（法の棚卸しdoc L2・2026-08-01）：受入国の法が物理上限をさらに絞る。
-                // ⚠**総量は絞られない**——絞られた分は下の surplus 経路で**他国へ再配分**される（世界プールの保存＝史実の「締め出された移民は別の国へ行く」）。
-                // Open＝1.0（既定＝現行と厳密同義）／Selective＝選別で流入が細る／Closed＝ほぼ閉じる。
-                // ★史実＝米の排華移民法1882・紳士協約1907・1924移民法／豪の白豪主義。閉じた国の分がカナダ・南米・豪へ流れた。
-                double lawCap = w.ImmigrationRestriction switch
-                {
-                    ImmigrationLaw.Selective => _coef.ImmigrationSelectiveFrac,
-                    ImmigrationLaw.Closed => _coef.ImmigrationClosedFrac,
-                    _ => 1.0,
-                };
-                double cap = _coef.ImmigrationReceiveCapFrac * w.TotalPopulation * lawCap * AbsorbCap(best, _coef);
-                if (inflow > cap) { surplus += inflow - cap; inflow = cap; }
-                else uncappedPull += pull;
-                if (inflow > 1e-9) AddImmigrants(w, best, inflow, _coef, poolLit, WorldSavPerCapIfNeeded());
-            }
-            if (_coef.MigrationRedistributeClipped > 0 && surplus > 1e-9 && uncappedPull > 1e-9)
-                foreach (var (best, pull, w) in pulls!)
-                {
-                    if (pull <= 0 || best is null) continue;
-                    // ★是正2026-08-01：**再配分ラウンドにも法の上限を掛ける**。旧はここで lawCap を掛け忘れており、
-                    // 閉じた国が1周目で締め出した移民を2周目に無制限の上限まで受け取っていた＝移民制限法が骨抜きだった。
-                    double lawCap2 = w.ImmigrationRestriction switch
-                    {
-                        ImmigrationLaw.Selective => _coef.ImmigrationSelectiveFrac,
-                        ImmigrationLaw.Closed => _coef.ImmigrationClosedFrac,
-                        _ => 1.0,
-                    };
-                    double cap = _coef.ImmigrationReceiveCapFrac * w.TotalPopulation * lawCap2 * AbsorbCap(best, _coef);   // ★再配分側にも同じ項（2026-08-01に lawCap を掛け忘れて骨抜きになった前科と同じ穴を開けない）
-                    double basePart = poolSize * pull / pullSum;
-                    if (basePart >= cap) continue;   // cap 到達国は受けない（再クリップの単純化＝1ラウンド）
-                    double extra = Math.Min(surplus * (pull / uncappedPull) * _coef.MigrationRedistributeClipped, cap - basePart);
-                    if (extra > 1e-9) AddImmigrants(w, best, extra, _coef, poolLit, WorldSavPerCapIfNeeded());
-                }
         }
     }
 
@@ -1565,7 +1470,7 @@ public sealed class MultiNationSim
     /// 新＝**binding な制約そのもの**に既存の混雑量を通す。cap ∝ pop × (食料充足×住居充足×土地逓減)^e となり、
     /// 耕地は移民で増えない既存ストックなので、指数 e が十分大きいと1人あたり流入が人口の減少関数になり**水準で止まる**。
     /// 止まる位置を決めるのは新しい数ではなく、既に較正されている耕地・住宅の供給力・食料生産である。
-    /// 移民そのものは止めない＝絞られた分は既存の余剰再配分で他国へ回る（史実の「締め出された移民は別の国へ行く」）。
+    /// ★回1-2（2026-09-27）：絞られた分は送出州に残る（旧＝世界プールの余剰再配分で他国へ回した。プールは削除）。
     ///
     /// 既定 <c>ImmigrationAbsorbExponent = 2.0</c>＝受入能力が有効。0 なら 1.0 を返す＝**厳密恒等**（掛け算が1回増えるだけで値は不変）。</summary>
     private static double AbsorbCap(Region? r, Coefficients c)
@@ -1578,131 +1483,148 @@ public sealed class MultiNationSim
         return Math.Pow(slack, c.ImmigrationAbsorbExponent);
     }
 
-    // リ11（監査2026-07-11・2026-07-25休眠配線）：世界平均の1人当たり貯蓄（持参金の受入国非依存基準）。四半期の移民処理内で
-    // 高々1回だけ計算してキャッシュ（呼び出しごとの全popスキャンを回避）。MigrantDowryWorldBase=0 では 0 を返すだけ＝厳密恒等。
-    private double _worldSavPerCapCache; private int _worldSavPerCapQuarter = -1;
-    private double WorldSavPerCapIfNeeded()
+    // 国家間移民（回1-2・2026-09-27＝国際移民を閉じる・外部レビューの検討 §10-3 Q3／項目3）：機会（Territory.Opportunity＝土地逓減・住宅摩擦・
+    // 賃金プレミアムを含む飽和しない実体量）の差で、各州の大衆（農民・労働者）が豊かな国の最良州へ移る。「アメリカに流すのではなく、アメリカが豊かだから流入する」。
+    // ★人はゲームの外から来ない＝送出州から引いた分だけ受入州に着く（旧の世界プール＝世界人口×0.004/四半期を送出国から1人も引かずに配り、
+    //   持参金を世界平均の貯蓄から湧かせた経路は削除）。保存：出る側 PopulationDelta−/持参金は CumulativeTradeFlow−、入る側 ＋（両国で閉じる）。
+    // 流量はすべて四半期の初めの値で決め、決め終えてから移す。
+    //   1 受入国 d＝最良州とその機会 O_d・受入の重み a_d（民族：低統一度は引く・低識字は差別で阻む）・受入の上限 C_d（人口×移民制限法×受入能力）
+    //   2 送出州 r（全ての Active 州）＝押し出し P_r＝機会×州の食料充足。差 g_rd＝(O_d−P_r−閾値)×距離の減衰（正のものだけ）・重み w_rd＝g_rd×a_d
+    //   3 階級ごとの流出 F＝min(EmigrationRate×最良の行き先の差, 上限×(1＋飢え))×人数×送出の床。**流出の上限はここで1回だけ**＝行き先がいくつあっても同じ
+    //     （旧＝「最悪の1州→最良の1国」の1組だけ動かしていた。全組で上限まで抜くと1国が多重に排水される＝プロイセン技術0.38への空洞化を実測したため。
+    //     上限を1回だけ掛ければ、1つの州が多くの国へ同時に上限まで流れ出ることが構造的に起きない）。
+    //   4 F を w_rd の比で行き先へ割り当てる（休眠の運賃は払える割合を掛ける）。受入国ごとの合計が C_d を超えたら d への分をすべて C_d÷合計で縮める
+    //     ＝**縮んだ分は送出州に残る**（消えない・湧かない。移民制限法は「別の国へ回す」でなく「流れを減らす」法＝作者裁定 B3）。
+    //   5 移す（MoveMigrants＝決まった人数を1つの階級だけ・属性の運搬は旧のまま）。
+    internal void MigrateBetweenNations()   // internal＝番人テストが段を単離して1回だけ呼ぶため（StepAssimilation・MoveMigrants と同じ扱い）
     {
-        if (_coef.MigrantDowryWorldBase <= 0) return 0;
-        if (_worldSavPerCapQuarter == _quarter) return _worldSavPerCapCache;
-        double sav = 0, size = 0;
-        foreach (var sim in Nations)
-            foreach (var r in sim.World.Regions)
+        foreach (var sim0 in Nations) { var w0 = sim0.World; w0.LastImmigration = 0; w0.LastEmigration = 0; w0.LastSpecialistExit = 0; }   // 診断（UI）：四半期の移民収支カウンタ（★段⑤：専門職の流出カウンタも同じ場所で0に＝無条件＝滞留しない）
+        if (!(_coef.CrossBorderMigrationByOpportunity > 0)) return;   // 0＝越境移民なし（旧・満足度ベース経路は2026-07-28に係数ごと削除済み）
+        int n = Nations.Count;
+        // 1. 受入国ごとの最良州・機会・重み・上限
+        var dstR = new Region?[n]; var dstO = new double[n]; var dstA = new double[n]; var dstCap = new double[n];
+        for (int d = 0; d < n; d++)
+        {
+            var w = Nations[d].World;
+            Region? bR = null; double bO = double.NegativeInfinity;
+            // ★非有限の遮断（2026-07-31・Territory 側と同じ流儀）：評価できない州は選ばない
+            foreach (var r in w.Regions) if (r.State == RegionState.Active) { double o = Territory.Opportunity(r, _coef); if (double.IsFinite(o) && (bR is null || o > bO)) { bR = r; bO = o; } }
+            if (bR is null) continue;
+            dstR[d] = bR; dstO[d] = bO;
+            // 民族：低統一度は移民を引く（坩堝＝アメリカ）／低教育は差別で移民を阻む（平均識字が閾値未満で減衰＝排斥）。
+            dstA[d] = w.EthnicEnabled
+                ? (1.0 + _coef.EthnicDraw * (1.0 - w.EthnicUnity)) * Math.Clamp(PoliticalQuantities.AvgLiteracy(w) / _coef.DiscriminationLiteracy, 0, 1)
+                : 1.0;
+            // 受入の物理上限＝アイルランド脱出級の絶対フロー（ImmigrationReceiveCapFrac/四半期）×移民制限法×受入能力（混雑で縮む＝AbsorbCap）。
+            // ★移民制限法（法の棚卸しdoc L2・2026-08-01）：Open＝1.0／Selective＝選別で細る／Closed＝ほぼ閉じる
+            //   （史実＝米の排華移民法1882・紳士協約1907・1924移民法／豪の白豪主義）。
+            double lawCap = w.ImmigrationRestriction switch
+            {
+                ImmigrationLaw.Selective => _coef.ImmigrationSelectiveFrac,
+                ImmigrationLaw.Closed => _coef.ImmigrationClosedFrac,
+                _ => 1.0,
+            };
+            dstCap[d] = _coef.ImmigrationReceiveCapFrac * w.TotalPopulation * lawCap * AbsorbCap(bR, _coef);
+        }
+        // 2〜4. 送出州ごと・階級ごとの流量を決める（まだ移さない）
+        var plan = new List<(World Src, Region SrcR, int Cls, int D, double Flow)>();
+        var toD = new double[n];
+        var decay = new double[n]; var gap = new double[n];
+        for (int s = 0; s < n; s++)
+        {
+            var src = Nations[s].World;
+            // R3：距離減衰＝遠い行き先ほど差（＝行き先選好＋流量）が細る（国の座標の間＝旧と同じ式）。scale=0 で乗算しない。
+            for (int d = 0; d < n; d++)
+                decay[d] = d != s && dstR[d] is not null && _coef.MigrationDistanceScale > 0
+                    ? 1.0 / (1.0 + Geo.DistanceKm(src.Latitude, src.Longitude, Nations[d].World.Latitude, Nations[d].World.Longitude) / (_coef.MigrationDistanceScale * _coef.EraFactor(src.WorldTechLevel, _coef.EraMigrationScale)))   // ★時代関数化：大西洋横断が6週間→6日
+                    : 1.0;
+            foreach (var r in src.Regions)
             {
                 if (r.State != RegionState.Active) continue;
-                foreach (var p in r.Pops) { sav += Math.Max(0, p.Savings); size += p.Size; }
-            }
-        _worldSavPerCapCache = size > 1e-9 ? sav / size : 0;
-        _worldSavPerCapQuarter = _quarter;
-        return _worldSavPerCapCache;
-    }
-
-    private static double AvgLiteracy(World w)
-    {
-        double lit = 0, size = 0;
-        foreach (var p in w.AllPops()) { lit += p.Literacy * p.Size; size += p.Size; }
-        return size > 1e-9 ? lit / size : 0.5;
-    }
-
-    // 国家間移民：機会（生活水準＋賃金）の差が大きい国の組で、貧しい側の大衆（農民・労働者）が豊かな側へ移る（ゼロサム）。
-    // 「アメリカに流すのではなく、アメリカが豊かだから流入する」＝機会の引力のみで駆動（行き先のスクリプトなし）。
-    // 保存：出る側 PopulationDelta−/持参金は CumulativeTradeFlow−、入る側 ＋（人口・基礎貨幣の台帳が両国で閉じる）。
-    private void MigrateBetweenNations()
-    {
-        int n = Nations.Count;
-        // 量ゲートの州判定化（キュー7・ユーザー発案2026-07-10）：国平均の満足度ベース（opp[]＝晩期に全国≈0.9へ飽和
-        // ＝NY0.96 vs パリ0.97でgap≈0＝欧州→米の持続流が死ぬ）でなく、**受入国の最良州機会 − 送出国の最悪州機会（×食料充足）**で
-        // 判定＝Opportunityは土地逓減・住宅摩擦・賃金プレミアムを含む飽和しない実体量。
-        // **各送出国は今四半期の最良の行き先1国のみ**＝州機会gapは多くの国組で開くため、全組判定だと1国が同時に多数へ
-        // 毎四半期上限まで流出する多重排水（プロイセン技術0.38へ空洞化を実測）＝移民は最良の行き先を選ぶ。
-        if (_coef.CrossBorderMigrationByOpportunity > 0)
-        {
-            // ★A2-3（2026-09-26・結果を変えない高速化）：受入国ごとの最良州と機会は1回だけ求めて使い回す（旧＝送出国ごとに全受入国の全州を引き直す）。
-            //   Territory.Opportunity は州の値だけを読む純関数・MoveMigrants が書くのは送出州と受入州の POP と2国の台帳だけ
-            //   ＝移民が起きた2国だけ引き直せば、旧と同じ値を同じ順で比べる（選ぶ規則も同値の先勝ちも同じ）。
-            var dstBest = new Region?[n]; var dstOpp = new double[n]; var dstKnown = new bool[n];
-            for (int s = 0; s < n; s++)
-            {
-                var src = Nations[s].World;
-                Region? srcR = null; double worst = double.PositiveInfinity;
-                // ★非有限の遮断（2026-07-31・Territory 側と同じ流儀）：評価できない州は送出元に選ばない。有限値のみの世界では旧と厳密一致。
-                foreach (var r in src.Regions) if (r.State == RegionState.Active) { double push = Territory.Opportunity(r, _coef) * r.FoodFill; if (double.IsFinite(push) && (srcR is null || push < worst)) { srcR = r; worst = push; } }
-                if (srcR is null) continue;
-                int bestD = -1; Region? bestDstR = null; double bestGap = 0;
+                double push = Territory.Opportunity(r, _coef) * r.FoodFill;
+                if (!double.IsFinite(push)) continue;   // ★非有限の遮断＝評価できない州は送出元にしない
+                double gMax = 0, wSum = 0;
                 for (int d = 0; d < n; d++)
                 {
-                    if (d == s) continue;
-                    var dst = Nations[d].World;
-                    if (!dstKnown[d])
-                    {
-                        Region? bR = null; double bO = double.NegativeInfinity;
-                        foreach (var r in dst.Regions) if (r.State == RegionState.Active) { double o = Territory.Opportunity(r, _coef); if (double.IsFinite(o) && (bR is null || o > bO)) { bR = r; bO = o; } }
-                        dstBest[d] = bR; dstOpp[d] = bO; dstKnown[d] = true;
-                    }
-                    Region? dstR = dstBest[d]; double bestO = dstOpp[d];
-                    if (dstR is null) continue;
-                    double gap = bestO - worst - _coef.CrossBorderOppGapThreshold;
-                    // R3：距離減衰＝遠い行き先ほど引力gap（＝行き先選好＋流量）が細る。scale=0で乗算せず厳密恒等（×1.0はIEEE754で正確＝恒等でも安全だが分岐で明示）。
-                    if (_coef.MigrationDistanceScale > 0 && gap > 0)
-                        gap *= 1.0 / (1.0 + Geo.DistanceKm(src.Latitude, src.Longitude, dst.Latitude, dst.Longitude) / (_coef.MigrationDistanceScale * _coef.EraFactor(src.WorldTechLevel, _coef.EraMigrationScale)));   // ★時代関数化：大西洋横断が6週間→6日（2026-08-29点火＝既定1。=0で×1恒等）
-                    if (gap > bestGap) { bestGap = gap; bestD = d; bestDstR = dstR; }
+                    gap[d] = 0;
+                    if (d == s || dstR[d] is null) continue;
+                    double g = (dstO[d] - push - _coef.CrossBorderOppGapThreshold) * decay[d];
+                    if (!(g > 0)) continue;   // 差が0以下の国へは1人も行かない
+                    gap[d] = g;
+                    if (g > gMax) gMax = g;
+                    wSum += g * dstA[d];
                 }
-                if (bestD >= 0 && bestDstR is not null)
+                if (!(wSum > 0)) continue;
+                foreach (int cls in MigrantClasses)   // 農民・労働者（大衆）が移る
                 {
-                    MoveMigrants(src, Nations[bestD].World, srcR, bestDstR, bestGap);
-                    dstKnown[s] = dstKnown[bestD] = false;   // 州の POP が動いた2国だけ引き直す
+                    var sp = r.Pops.Find(x => x.ClassId == cls && !x.IsSoldier);
+                    if (sp is null || !(sp.Size >= 1e-9)) continue;   // ★否定形＝NaN の Size も弾く
+                    // 危機時の上限緩和：故郷の飢饉(1-FoodFill)に比例して MaxFrac を引き上げ＝アイルランド型の大量脱出。
+                    // B-高5（史実検証2026-07-22）：判定を送出**州**の FoodFill へブレンド（RegionBlend=0で国平均のみ）。
+                    double effFill = src.FoodFill + _coef.FaminePushRegionBlend * (r.FoodFill - src.FoodFill);
+                    double srcFamine = Math.Max(0.0, 1.0 - effFill);
+                    double maxFrac = _coef.EmigrationMaxFrac * (1.0 + _coef.FaminePushMaxFracBoost * srcFamine);
+                    double flow = Math.Min(_coef.EmigrationRate * gMax, maxFrac) * sp.Size;
+                    // 移民の自己制限（07_再設計 §12-1・A4裁定・2026-07-31）：人が減るほど賃金が上がり、縁故と渡航費のネットワークが細る＝流出は自己制限的。
+                    //   送出側の残存規模で表す：閾値未満へ近づくほど流出が絞られ、下限では止まる（「最後の住民は故郷を捨てない」）。EmigrationFloorSize=0 で絞らない。
+                    if (_coef.EmigrationFloorSize > 0)
+                    {
+                        double room = (sp.Size - _coef.EmigrationFloorSize) / Math.Max(1e-9, _coef.EmigrationFloorSize * _coef.EmigrationFloorSpan);
+                        flow *= Math.Clamp(room, 0, 1);
+                    }
+                    if (!(flow > 1e-9)) continue;   // ★否定形＝NaN の流量を弾く
+                    for (int d = 0; d < n; d++)
+                    {
+                        if (!(gap[d] > 0)) continue;
+                        double f = flow * (gap[d] * dstA[d] / wSum);
+                        // R3 貧困の罠（休眠 MigrationFarePerkKm）：運賃を賄える貯蓄がある層だけ動ける。1人当たり貯蓄が運賃の2倍で全員可・運賃以下で0。
+                        //   0 の間はこの分岐に入らない（距離計算もしない）。
+                        if (_coef.MigrationFarePerkKm > 0)
+                        {
+                            var dw = Nations[d].World;
+                            double fare = _coef.MigrationFarePerkKm * Geo.DistanceKm(src.Latitude, src.Longitude, dw.Latitude, dw.Longitude) / MigrationFareDistanceUnitKm;
+                            if (fare > 1e-9)
+                            {
+                                double perCap = sp.Size > 1e-9 ? sp.Savings / sp.Size : 0;
+                                double af = (perCap - fare) / fare;
+                                // 安全弁：fare/perCap が非有限（座標NaN／貯蓄NaN）ならゲートを飛ばす（割り当て据え置き）＝NaN を Size に伝播させない。
+                                f *= double.IsFinite(af) ? Math.Clamp(af, 0, 1) : 1.0;
+                                if (Simulation.ConservationProbe && (!double.IsFinite(fare) || !double.IsFinite(perCap)))
+                                    Console.Error.WriteLine($"[R3診断] 非有限：{src.Region.Name}({src.Latitude},{src.Longitude})→{dw.Region.Name}({dw.Latitude},{dw.Longitude}) fare={fare} perCap={perCap} sav={sp.Savings} size={sp.Size}");
+                            }
+                        }
+                        if (!(f > 0)) continue;
+                        plan.Add((src, r, cls, d, f)); toD[d] += f;
+                    }
                 }
             }
-            return;
         }
-        // 02断線走査2026-07-28：旧・満足度ベース経路（opp[]＝MigrationWageWeight/FaminePushWeight/EmigrationGapThreshold）を係数ごと削除。
-        // 州機会判定（上のreturnブロック）が唯一の経路＝新経路の FoodFill 直乗せと WagePremium が飢饉/賃金プッシュを代替済み。フラグ0では越境移民なし。
+        // 4〜5. 受入の上限で縮めてから移す（縮んだ分は送出州に残る）
+        foreach (var (src, srcR, cls, d, f) in plan)
+        {
+            double cap = dstCap[d];
+            double scale = toD[d] <= cap ? 1.0 : cap > 0 ? cap / toD[d] : 0.0;   // ★上限が NaN なら0の側へ倒す（fail-closed）
+            double flow = f * scale;
+            if (!(flow > 1e-9)) continue;
+            MoveMigrants(src, Nations[d].World, srcR, dstR[d]!, cls, flow);
+        }
     }
 
-    // 越境移民の実転送（旧・全組ループと州判定モードの共通部）：大衆（農民・労働者）が srcR→dstR へ移る。保存＝人口/貨幣台帳が両国で閉じる。
-    // internal＝P12残渣②のON経路/保存則テスト用（InternalsVisibleTo・Coef と同じ流儀）。
-    internal void MoveMigrants(World src, World dst, Region srcR, Region dstR, double gap)
+    // 越境移民の実転送：大衆（農民・労働者）の1つの階級 cls を srcR→dstR へ、決まった人数 flow だけ移す（流量は MigrateBetweenNations が決める）。
+    // 保存＝人口/貨幣台帳が両国で閉じる。internal＝P12残渣②のON経路/保存則テスト用（InternalsVisibleTo・Coef と同じ流儀）。
+    internal void MoveMigrants(World src, World dst, Region srcR, Region dstR, int cls, double flow)
     {
         double moved = 0, money = 0;
         // R3 渡航コスト：距離比例の運賃（1人あたり）。MigrationFarePerkKm=0 で fare=0＝以下の運賃ロジックを一切通らず厳密恒等（距離計算もしない）。
+        // 払える割合（貧困の罠）は流量を決める側（MigrateBetweenNations の段4）が掛ける。ここは持参金から運賃を引くだけ。
         double fare = 0;
         if (_coef.MigrationFarePerkKm > 0)
             fare = _coef.MigrationFarePerkKm * Geo.DistanceKm(src.Latitude, src.Longitude, dst.Latitude, dst.Longitude) / MigrationFareDistanceUnitKm;
-        foreach (int cls in MigrantClasses)   // 農民・労働者（大衆）が移る
-        {
+        {   // 運搬（旧の階級ループの本体＝属性を運ぶ行は回1-2 で1行も変えていない）
             var sp = srcR.Pops.Find(x => x.ClassId == cls && !x.IsSoldier);
             var dp = dstR.Pops.Find(x => x.ClassId == cls && !x.IsSoldier);
-            if (sp is null || dp is null || !(sp.Size >= 1e-9)) continue;   // ★否定形＝NaN の Size も弾く（有限値では旧 `sp.Size < 1e-9` と厳密同値）
-            // 危機時の上限緩和：故郷の飢饉(1-FoodFill)に比例して MaxFrac を引き上げ＝アイルランド型の大量脱出。Boost=0 で現行の固定上限（中立）。
-            // B-高5（史実検証2026-07-22）：判定を送出**州**の FoodFill へブレンド（RegionBlend=0で国平均のみ＝厳密恒等）。
-            // 送出州の選定（上の州機会判定ブロック）は州単位なのに上限緩和だけ国平均に落ちる取り残し＝英5州構成では州FoodFill0.4でも国平均0.91までしか下がらず、
-            // 飢饉時ほど確実に上限律速域に入る（州の飢饉情報が最も必要な瞬間にだけ捨てられる）。アイルランド型・ヴォルガ1891が構造的に発火しなかった。
-            double effFill = src.FoodFill + _coef.FaminePushRegionBlend * (srcR.FoodFill - src.FoodFill);
-            double srcFamine = Math.Max(0.0, 1.0 - effFill);
-            double maxFrac = _coef.EmigrationMaxFrac * (1.0 + _coef.FaminePushMaxFracBoost * srcFamine);
-            double flow = Math.Min(_coef.EmigrationRate * gap, maxFrac) * sp.Size;
-            // 移民の自己制限（07_再設計 §12-1・A4裁定・2026-07-31）：★「国が空になる」こと自体がモデルの欠陥。
-            // 史実の最悪例（アイルランド1845-1914＝人口半減）でもゼロには程遠い。人が減るほど (1)労働が希少になり賃金が上がる
-            // (2)土地が空く (3)縁故と渡航費のネットワークが細る＝**流出は自己制限的**。
-            // ここでは (1)(3) を送出側の残存規模で表す：閾値未満へ近づくほど流出が絞られ、下限では止まる（「最後の住民は故郷を捨てない」）。
-            // EmigrationFloorSize=0 で従来と厳密恒等。★国の消滅処理（ゾンビ清掃）は A4 裁定で廃案＝上流でしか直さない。
-            if (_coef.EmigrationFloorSize > 0)
-            {
-                double room = (sp.Size - _coef.EmigrationFloorSize) / Math.Max(1e-9, _coef.EmigrationFloorSize * _coef.EmigrationFloorSpan);
-                flow *= Math.Clamp(room, 0, 1);
-            }
-            // R3 貧困の罠：運賃を賄える貯蓄がある層だけ動ける（fare>0時のみ）。1人当たり貯蓄が運賃の2倍で全員可・運賃以下で0。
-            // fare=0 では affordFrac 分岐を通らず flow 不変＝厳密恒等（負貯蓄popでも Math.Clamp に触れない）。
-            if (fare > 1e-9)
-            {
-                double perCap = sp.Size > 1e-9 ? sp.Savings / sp.Size : 0;
-                double af = (perCap - fare) / fare;
-                // 安全弁：fare/perCap が非有限（座標NaN／貯蓄NaN）ならゲートを飛ばす（flow据え置き）＝NaN を Size に伝播させない。
-                flow *= double.IsFinite(af) ? Math.Clamp(af, 0, 1) : 1.0;
-                if (Simulation.ConservationProbe && (!double.IsFinite(fare) || !double.IsFinite(perCap)))
-                    Console.Error.WriteLine($"[R3診断] 非有限：{src.Region.Name}({src.Latitude},{src.Longitude})→{dst.Region.Name}({dst.Latitude},{dst.Longitude}) fare={fare} perCap={perCap} sav={sp.Savings} size={sp.Size}");
-            }
-            if (!(flow > 1e-9)) continue;   // ★否定形＝NaN の流量を弾く（旧は NaN 素通しで Size/Savings を直接汚染した）
+            if (sp is null || dp is null || !(sp.Size >= 1e-9)) return;   // ★否定形＝NaN の Size も弾く
+            if (!(flow > 1e-9)) return;   // ★否定形＝NaN の流量を弾く（旧は NaN 素通しで Size/Savings を直接汚染した）
             double sav = sp.Savings * (flow / sp.Size);   // 持参金＝1人あたり貯蓄ぶん
             // R3 運賃控除：越境するのは運賃を引いた持参金だけ（運賃分は送出経済に残る＝保存則を閉じる）。fare=0 では savArriving=sav で厳密恒等（Math.Max に触れない）。非有限fareは運賃控除せず（安全弁）。
             double savArriving = fare > 1e-9 && double.IsFinite(fare) ? Math.Max(0, sav - fare * flow) : sav;
@@ -1735,7 +1657,7 @@ public sealed class MultiNationSim
             dp.Size += flow; dp.Savings += savArriving; dp.Debt += debtMove;
             moved += flow; money += savArriving;
         }
-        if (moved <= 0) return;
+        if (!(moved > 0)) return;
         src.LastEmigration += moved; dst.LastImmigration += moved;           // 診断（UI）：越境の流出/流入
         src.PopulationDelta -= moved; dst.PopulationDelta += moved;          // 人口台帳（両国で相殺）
         src.CumulativeTradeFlow -= money; dst.CumulativeTradeFlow += money;  // 持参金＝対外移転（基礎貨幣の台帳が閉じる）
@@ -1756,7 +1678,7 @@ public sealed class MultiNationSim
     //   先進国が一瞬で空になる（既に前例＝MigrateBetweenNations の旧・全組判定でプロイセン技術0.38への空洞化を実測）。
     //
     // ★ 保存（作者裁定2026-08-16「保存です。POPは無からわかない」）：送出国が減り受入国が増える＝ゼロサム。
-    //   ⚠大衆移民（モデル外から流入・非ゼロサム）との非対称は**意図的**＝大衆は数千万人・技師は数万人規模。
+    //   ★大衆移民も同じくゼロサム（回1-2・2026-09-27＝ゲーム外から湧く世界プールを削除）。
     //   世界全体の技師の総数は**高等教育で育つ分だけ**増える。奪い合いでは増えない。
     //
     // ★★ 自己制限的である（新しい上限は要らない）：A が B から呼ぶ→B の技師が減る→B の賃金が上がる→
@@ -1892,43 +1814,6 @@ public sealed class MultiNationSim
         double v = w.NationalConsciousness;
         if (!(v >= 0)) v = w.InitialNationalConsciousness >= 0 ? w.InitialNationalConsciousness : c.NationBuildInitialDefault;
         return v;
-    }
-
-    // 外部からの移民を大衆（農民・労働者）として受入州に追加。持参金は受入地の1人当たり貯蓄の6割（やや貧しい移民）。保存則に計上。
-    // 改修2026-06-28：農民/労働者の配分を**行き先州の工業化度**で創発させる（旧・固定50/50）。工業州ほど労働者として着地＝移民が都市工業へ流れ脱工業化を解く（農業世界の技術水準では農民寄り）。
-    // B-高4（史実検証2026-07-22）：profileLit＝世界プール経路が渡す送出側加重識字（null＝定数 ImmigrantProfileLiteracy＝従来）。
-    // リ11（監査2026-07-11・2026-07-25休眠配線）：持参金の基準が受入国の富に比例＝富裕国ほど移民1人あたり多くの外生マネーが湧く
-    // 自己強化バイアス（越境移民は送出側基準のゼロサム移転なのに、外部移民だけ受入国比例で鋳造する非対称）。MigrantDowryWorldBase>0 で
-    // 基準を世界平均1人当たり貯蓄へブレンド（呼び手が WorldSavPerCapIfNeeded() を渡す）。既定1.0（点火2026-07-27）＝世界平均基準。0で受入地比例。
-    private static void AddImmigrants(World w, Region region, double inflow, Coefficients c, double? profileLit = null, double worldSavPerCap = 0)
-    {
-        w.LastImmigration += inflow;   // 診断（UI）：国際流入
-        w.LastImmigrationExternal += inflow;   // 診断（UI）：うち国際移民（世界プールから）＝越境と区別（書くだけ・挙動非依存）
-        double moneyIn = 0, added = 0;
-        double workerFrac = Math.Clamp(c.ImmigrantWorkerBase + c.ImmigrantWorkerPerInd * region.TotalIndustrialization, ImmigrantWorkerFracMin, ImmigrantWorkerFracMax);   // 着地階級は工業の規模＝新旧合計（ヴィンテージ2026-07-10）
-        foreach (int cls in MigrantClasses)   // 農民(1)・労働者(2)
-        {
-            var p = region.Pops.Find(x => x.ClassId == cls);
-            if (p is null) continue;
-            double add = inflow * (cls == PopClass.Worker ? workerFrac : 1.0 - workerFrac);   // 工業州＝労働者寄り／農業州＝農民寄り
-            double dowryBase = p.Size > 1e-9 ? p.Savings / p.Size : 0;   // 受入地の1人当たり貯蓄（現行基準）
-            if (c.MigrantDowryWorldBase > 0) dowryBase = (1.0 - c.MigrantDowryWorldBase) * dowryBase + c.MigrantDowryWorldBase * worldSavPerCap;   // リ11：世界平均基準へブレンド
-            double sav = dowryBase * ImmigrantSavingsFraction * add;
-            if (w.EthnicEnabled && p.Size + add > 1e-9) p.CoreEthnicShare = p.CoreEthnicShare * p.Size / (p.Size + add);   // 倍率排除⑧：国際移民は中核外(core=0)＝混ざって希釈（旧 EthnicDilution 明示式の創発版）
-            // 人10：外部移民の固定プロファイル（低識字・若年成人男性偏重＝低女性比/低子供比）を Size 加重で混合。既定1.0で混合。0で受入popの属性クローン（据え置き）と厳密恒等。
-            if (c.ExternalImmigrantProfile > 0 && p.Size + add > 1e-9)
-            {
-                double ns = p.Size + add;
-                p.Literacy = (p.Literacy * p.Size + (profileLit ?? c.ImmigrantProfileLiteracy) * add) / ns;
-                p.FemaleShare = (p.FemaleShare * p.Size + c.ImmigrantProfileFemaleShare * add) / ns;
-                p.ChildShare = (p.ChildShare * p.Size + c.ImmigrantProfileChildShare * add) / ns;
-                p.OldShare = p.OldShare * p.Size / ns;   // 若年偏重＝外部移民の老年比率0で希釈（旧ImmigrantProfileOldShareはパラメータでなく設計値0＝C裁定2026-07-09で定数化）
-            }
-            p.Size += add; p.Savings += sav;
-            moneyIn += sav; added += add;
-        }
-        w.PopulationDelta += added;         // 新規人口＝**実際に加算した分**（受入クラス欠落時も台帳が実体と一致＝人口保存の堅牢化・レビュー指摘）
-        w.CumulativeTradeFlow += moneyIn;   // 持参金＝ゲーム外からの流入（金保存）
     }
 
     public int Year => Nations.Count > 0 ? Nations[0].World.Year : 0;

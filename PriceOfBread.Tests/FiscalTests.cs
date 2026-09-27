@@ -315,7 +315,7 @@ public class FiscalTests
         var brWorker = br.Regions[0].Pops.Find(p => p.ClassId == PopClass.Worker && !p.IsSoldier)!;
         double hb0 = brWorker.BondHoldings;
         Assert.True(hw > 0, "前提が崩れた：労働者が持ち手になっていない");
-        sim.MoveMigrants(fr, br, frR, br.Regions[0], 1.0);
+        sim.MoveMigrants(fr, br, frR, br.Regions[0], PopClass.Worker, coef.EmigrationMaxFrac * sw);   // ★回1-2：流量は呼び手が決める（1階級）
         double left = sw - worker.Size;
         Assert.True(left > 0, "前提が崩れた：移民が出ていない");
         double exported = hw * left / sw;

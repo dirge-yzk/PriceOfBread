@@ -450,13 +450,12 @@ public partial class GameViewModel
         if (Math.Abs(baseP) >= 5e-4) rows.Add(Signed(baseP, "初期人口", pf));
         if (Math.Abs(other) >= 5e-4) rows.Add(Signed(other, "自然増減と移民と領土(累積)", pf));
         if (Math.Abs(war) >= 5e-4) rows.Add(Signed(-war, "戦没と粛清(累積)", pf));
-        // 今四半期の移民（要素ごと）：流入＝国際（世界プール）＋越境（他国から）／流出＝越境（他国へ）。
-        double extIn = _player.LastImmigrationExternal, crossIn = Math.Max(0, _player.LastImmigration - extIn), crossOut = _player.LastEmigration;
-        if (extIn >= 5e-4 || crossIn >= 5e-4)
+        // 今四半期の移民（要素ごと）：流入＝越境（他国から）／流出＝越境（他国へ）。★回1-2（2026-09-27）で国際移民（世界プール）の内訳は削除。
+        double crossIn = _player.LastImmigration, crossOut = _player.LastEmigration;
+        if (crossIn >= 5e-4)
         {
             rows.Add(Neutral("流入(今四半期)"));
-            if (extIn >= 5e-4) rows.Add(Signed(extIn, "国際移民(世界から)", pf));
-            if (crossIn >= 5e-4) rows.Add(Signed(crossIn, "越境移民(他国から)", pf));
+            rows.Add(Signed(crossIn, "越境移民(他国から)", pf));
         }
         if (crossOut >= 5e-4)
         {

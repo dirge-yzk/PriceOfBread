@@ -1302,8 +1302,10 @@ public sealed class Simulation
     /// <summary>植民地の州昇格（2026-08-09・作者裁定2026-08-08「植民地州昇格＝実装」・設計原典＝docs/202607/20260731_植民地のラベル化_部分完了.md §3-3d）。
     /// 入植者が過半数に達した植民地（<see cref="Colonial"/>.Step §5 が判定）を、宗主の**完全な州**（pop/生産者/市場・RegionTier.Integrated）として実体化する。
     /// ── 保存則（思想⑥）＝湧かさない ────────────────────────────────────────
-    ///   人口＝現地住民(col.PopSize)＋入植者(col.SettlerSize)だけ。骨格階級は全て Size0（辺境の兵士Size0と同じ作法）＝社会移動・国内移住が埋める。台帳＝PopulationDelta へ全額（AddImmigrants の作法）。
+    ///   人口＝現地住民(col.PopSize)＋入植者(col.SettlerSize)だけ。骨格階級は全て Size0（辺境の兵士Size0と同じ作法）＝社会移動・国内移住が埋める。台帳＝PopulationDelta へ全額。
     ///   貨幣＝col.Savings（現地の蓄え）＋col.SettlerSavings（持参金）だけ。台帳＝CumulativeTradeFlow へ全額（同上）。植民地は元々台帳の外（Diplomacy.cs Colony 参照）＝ここで初めて台帳の内側に入る。
+    /// ── 同名の州が既に在る（J-006＝同じ領土を既に州として保有）とき（回1-2・2026-09-27）──────────────
+    ///   新しい州は作らず、住民をその州の同じ階級へ運んでその州を返す（作者裁定 2026-09-26「住民が消えるのは好ましくない」。旧＝呼び手が Colony を捨て、住民も消えた）。
     /// ── 設計判断（記録・docs/202608/植民地州昇格_2026-08-09_完了.md【完了】.md）───────────────
     ///   ・農制＝自作農（farmLordShare=0）＝北西部条例/ホームステッドの物理。プランテーション上書き（PlantationRentShare）も適用しない（昇格の定義＝入植者多数の州）
     ///   ・市場在庫＝0 で開始（CatalogEconomy の初期200を持たせない）＝「AI国庫×初期市場在庫200の開幕工業化バースト」（indprobe実測2026-07-27）を新州で再現しない
@@ -1334,7 +1336,7 @@ public sealed class Simulation
             else if (!w.StepsDiplomacy && coef.ScarceMineralGate > 0 && Catalog.IsScarceMineral(pr.GoodId, coef)) pr.Productivity = 0;   // ★共有世界だけ（2026-09-06）   // ★同上（植民地→州の昇格側）
             else if (pr.IsRgo && !Climate.StapleSelfSufficient(pr.GoodId, clat, clon)) ApplyEndowment(pr, ResourceScarcity * coef.ResourceScarcityScale, coef);
         }
-        // 階級構成：実人口は現地住民＋入植者だけ（保存則＝湧かさない）。入植者の着地は農民/労働者（AddImmigrants と同型。新州は Ind=0＝農民寄り）。
+        // 階級構成：実人口は現地住民＋入植者だけ（保存則＝湧かさない）。入植者の着地は農民/労働者（新州は Ind=0＝農民寄り＝ImmigrantWorkerBase の割合だけ労働者）。
         double natives = Math.Max(0, col.PopSize);
         double workerFrac = Math.Clamp(coef.ImmigrantWorkerBase, 0.0, 1.0);
         double settlerWorker = col.SettlerSize * workerFrac, settlerPeasant = col.SettlerSize - settlerWorker;
@@ -1369,6 +1371,20 @@ public sealed class Simulation
         peasant.Savings = col.Savings + savPerSettler * settlerPeasant;
         worker.Savings = savPerSettler * settlerWorker;
         worker.CoreEthnicShare = 1.0;   // 労働者枠は入植者のみ
+        // ★J-006 の吸収（回1-2・2026-09-27・作者裁定 2026-09-26「住民が消えるのは好ましくない」）：同名の州を既に持つ＝同じ領土を既に州として保有している
+        //   （一度州になった領土は Colony に戻さない＝J-006「止める」2026-09-05）。旧＝呼び手が Colony オブジェクトを捨て、住民も州へ入らずに消えた。
+        //   新＝新しい州は作らず、上で組んだ住民（現地の農民＋入植の農民・労働者＝蓄え・識字・不満・中核民族の割合）をその州の同じ階級へ運ぶ
+        //   （運搬は州間の移住・入植と同じ1本＝Territory.MoveBetweenRegions）。記帳は新しい州のときと同じ（台帳の外から入った分だけ）。
+        if (w.Regions.Find(x => x.Name == col.Name) is { } same)
+        {
+            double pop0 = same.SumPopulation(), sav0 = same.SumSavings();
+            foreach (var mp in new[] { peasant, worker })
+                if (mp.Size > 1e-9 && same.Pops.Find(x => x.ClassId == mp.ClassId && !x.IsSoldier) is { } dp) Territory.MoveBetweenRegions(mp, dp, mp.Size, coef);
+            double inP = same.SumPopulation() - pop0, inS = same.SumSavings() - sav0;
+            w.CumulativeTradeFlow += inS; w.PopulationDelta += inP;
+            same.AnnexBaggage += inP;   // 案Y（観測専用）：併合の持ち込み人口＝本土の自然増ではない（新しい州のときと同じ記帳）
+            return same;
+        }
         var soldier = new Pop { ClassId = 5, ClassName = "兵士", IsUrban = false, Satisfaction = 1.0, IsSoldier = true, FemaleShare = 0, ChildShare = 0, Literacy = peasant.Literacy };   // Size0の器（辺境と同じ作法）＝軍事費が平時均衡で徴募
         var pops = new List<Pop> { nobility, peasant, worker, bourgeois, engineer, clergy, teacher, bureaucrat, doctor, merchant, artisan, servant, soldier };
         // ★段1 器 EduProducersCoexist（2026-09-12）：昇格植民地州も本国州と同じ2件並置を受ける（coef を渡す・researcherIdx は既定 -1 のままなので大学の枝は不変＝0 で厳密恒等）。
@@ -1405,7 +1421,7 @@ public sealed class Simulation
         if (!Landmass.IsRegistered(col.Name)) w.LogAdd($"{w.Year} {col.Name}州はlandmass.json未登録＝IsPort=falseへ倒した（沈黙回避）");   // fail-closed の可視化
         foreach (var m in region.Markets) { m.Stock = 0; m.PrevStock = 0; }   // 在庫0で開始（上記の設計判断）。Last*=0 は初期値どおり＝財収支恒等式（GoodsBalance）が最初から閉じる
         w.Regions.Add(region);
-        // 保存の記帳（同一値を両辺に使う＝CedeTerritory/AddImmigrants の作法）
+        // 保存の記帳（同一値を両辺に使う＝CedeTerritory の作法）
         double S = region.SumSavings(), P = region.SumPopulation();
         w.CumulativeTradeFlow += S;   // 蓄え＋持参金＝台帳の外から国家台帳へ（外部マネー流入）
         w.PopulationDelta += P;       // 現地住民＋入植者＝台帳の外から（ゲーム外流入の作法）

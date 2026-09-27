@@ -58,7 +58,8 @@ public static class PoliticalQuantities
     // ======================================================================================================
 
     /// <summary>徴兵法の**法定**深さ∈[0,1]（志願0／選抜0.5／皆兵1.0）。「法が最大どれだけ徴発してよいか」の上限であって実績ではない。
-    /// ⚠実際に徴集される割合は予算が決める（独50%対仏85%＝同じ皆兵法で1.7倍の開き）＝<see cref="EffectiveConscriptionDepth"/>。</summary>
+    /// ⚠実際に徴集される割合は予算が決める（独50%対仏85%＝同じ皆兵法で1.7倍の開き）。
+    /// （旧＝実効徴兵深度 EffectiveConscriptionDepth＝min(法定深度, 養える兵数÷適齢人口)。呼び手0のまま＝作者裁定 2026-09-26（4b）で削除・回1-2）</summary>
     public static double ConscriptionDepth(ConscriptionLaw law) => law switch
     {
         ConscriptionLaw.Universal => 1.0,   // 国民皆兵（普1814の一般兵役義務・仏の徴兵制）
@@ -258,16 +259,6 @@ public static class PoliticalQuantities
         double other = Math.Max(0, w.LastAdminClaim) + Math.Max(0, w.LastUpkeep) + Math.Max(0, w.LastInterest);
         double tot = mil + other;
         return tot > 1e-9 ? Clamp01(mil / tot) : 0;
-    }
-
-    /// <summary>**実効徴兵深度**∈[0,1]＝min(法定深度, 予算が養えている兵数 ÷ 適齢人口)。作者裁定2026-08-18の第6項。
-    /// ⚠**法は上限・予算が実体**（独は皆兵法で適齢の約50%・仏は約85%・墺洪は約20%＝同じ法で3倍以上の開き）。
-    /// 適齢人口の代理＝総人口×<see cref="Coefficients.MaxSoldierFraction"/>（平時に兵にできる上限＝既存の較正済みスケール）。</summary>
-    public static double EffectiveConscriptionDepth(World w)
-    {
-        double pool = Math.Max(1.0, w.TotalPopulation) * Math.Max(1e-9, w.Coef.MaxSoldierFraction);
-        double affordable = Clamp01(w.SoldierSize() / pool);
-        return Math.Min(ConscriptionDepth(w.ConscriptionLaw), affordable);
     }
 
     /// <summary>NaN を0側へ倒す [0,1] クランプ（否定形＝<see cref="Math.Clamp"/> は NaN を消さない＝memory「NaNとfail-openガード」）。</summary>

@@ -169,21 +169,21 @@ public class NcOpennessTests(ITestOutputHelper output)
             if (sp is not null && dp is not null) before[cls] = (sp.Size, dp.Size, dp.NationalConsciousness);
         }
         double massBefore = NcMass(src, dst);
-        sim.MoveMigrants(src, dst, srcR, dstR, gap: 50.0);
+        foreach (var (cls, b) in before) sim.MoveMigrants(src, dst, srcR, dstR, cls, sim.Coef.EmigrationMaxFrac * b.spSize);   // ★回1-2：流量は呼び手が決める（1階級ずつ）
         int movedClasses = 0;
         foreach (var (cls, b) in before)
         {
             var sp = srcR.Pops.Find(x => x.ClassId == cls && !x.IsSoldier)!;
             var dp = dstR.Pops.Find(x => x.ClassId == cls && !x.IsSoldier)!;
             double flow = b.spSize - sp.Size;
-            if (!(flow > 1e-9)) continue;   // 床（EmigrationFloorSize）で動かない階級はスキップ
+            if (!(flow > 1e-9)) continue;
             movedClasses++;
             // 出発pop の1人当たりNCは不変（人が減っただけ）・到着popはSize加重平均
             Assert.Equal(0.8, sp.NationalConsciousness, 12);
             Assert.Equal((b.dpNc * b.dpSize + 0.8 * flow) / (b.dpSize + flow), dp.NationalConsciousness, 12);
             Assert.True(dp.NationalConsciousness > b.dpNc, "高NC移民の流入で到着popのNCは上がるはず");
         }
-        Assert.True(movedClasses > 0, "1階級も移動していない＝テスト前提の破れ（gap/床の見直しが要る）");
+        Assert.True(movedClasses > 0, "1階級も移動していない＝テスト前提の破れ");
         Assert.Equal(massBefore, NcMass(src, dst), 6);   // 総量保存＝NC×Sizeは湧かず消えず（移転のみ）
     }
 
@@ -193,7 +193,7 @@ public class NcOpennessTests(ITestOutputHelper output)
         var (sim, src, dst, srcR, dstR) = MigrationWorld();
         sim.Coef.MigrantCarriesConsciousness = 0.0;   // OFF経路の回帰ピン（既定は点火済み1.0＝2026-08-09。既定非依存で明示OFF）
         var spSize0 = srcR.Pops.Find(x => x.ClassId == PopClass.Peasant && !x.IsSoldier)!.Size;
-        sim.MoveMigrants(src, dst, srcR, dstR, gap: 50.0);
+        sim.MoveMigrants(src, dst, srcR, dstR, PopClass.Peasant, sim.Coef.EmigrationMaxFrac * spSize0);
         var sp = srcR.Pops.Find(x => x.ClassId == PopClass.Peasant && !x.IsSoldier)!;
         var dp = dstR.Pops.Find(x => x.ClassId == PopClass.Peasant && !x.IsSoldier)!;
         Assert.True(spSize0 - sp.Size > 1e-9, "移動が起きていない＝テスト前提の破れ");
@@ -223,11 +223,10 @@ public class NcOpennessTests(ITestOutputHelper output)
         Assert.True(1.0 - Math.Pow(1.0 - c.EthnicAssimilation, Coefficients.FidelityQuarters) < 0.10);
     }
 
-    /// <summary>同化の式を単離する2国世界（国際移民プールを切って CoreEthnicShare を動かす経路を同化1本にする）。</summary>
+    /// <summary>同化の式を単離する2国世界（同化の段だけを呼ぶ＝CoreEthnicShare を動かす経路は同化1本）。</summary>
     private static (MultiNationSim sim, Pop pop) AssimWorld(double revival, double literacy, double core)
     {
         var sim = new MultiNationSim([WorldData.ByName("スイス"), WorldData.ByName("ジェノヴァ")], seed: 17);
-        sim.Coef.WorldMigrationPoolFrac = 0;   // 国際移民＝0人＝希釈の経路を閉じる（残るのは同化の1行だけ）
         sim.Coef.AssimilationRevival = revival;
         var w = sim.Nations[0].World;
         w.EthnicEnabled = true;
@@ -241,7 +240,7 @@ public class NcOpennessTests(ITestOutputHelper output)
     {
         var (sim, pop) = AssimWorld(revival: 0, literacy: 1.0, core: 0.4);   // 識字1.0＝抵抗が最大の帯
         double before = pop.CoreEthnicShare;
-        sim.MigrateInternational();
+        sim.StepAssimilation();
         var c = sim.Coef;
         double assim = c.EthnicAssimilation + (sim.Nations[0].World.EducationLaw is EducationLaw.Public or EducationLaw.Compulsory ? c.AssimilationEducationBonus : 0);
         double resist = Math.Max(0.0, 1.0 - c.AssimilationLiteracyResist * 1.0);
@@ -256,17 +255,17 @@ public class NcOpennessTests(ITestOutputHelper output)
         // 識字0.99＞0.95＝逆流（自民族語の学校網と出版市場を持てた少数派）
         var (simHi, popHi) = AssimWorld(revival: ign, literacy: 0.99, core: 0.4);
         double beforeHi = popHi.CoreEthnicShare;
-        simHi.MigrateInternational();
+        simHi.StepAssimilation();
         Assert.True(popHi.CoreEthnicShare < beforeHi, $"識字0.99では中核度が下がるはず（{beforeHi:F6}→{popHi.CoreEthnicShare:F6}）");
         // 識字0.58＜0.95＝なお同化（ハンガリーのマジャール化の反例が壊れないこと）
         var (simLo, popLo) = AssimWorld(revival: ign, literacy: 0.58, core: 0.4);
         double beforeLo = popLo.CoreEthnicShare;
-        simLo.MigrateInternational();
+        simLo.StepAssimilation();
         Assert.True(popLo.CoreEthnicShare > beforeLo, "識字0.58では同化が進むはず");
         // 反転点ちょうど（識字0.95）では1ビットも動かない＝符号が連続に反転する
         var (simMid, popMid) = AssimWorld(revival: ign, literacy: 0.95, core: 0.4);
         double beforeMid = popMid.CoreEthnicShare;
-        simMid.MigrateInternational();
+        simMid.StepAssimilation();
         Assert.Equal(beforeMid, popMid.CoreEthnicShare, 15);
     }
 
@@ -275,7 +274,7 @@ public class NcOpennessTests(ITestOutputHelper output)
     public void 段4_逆流の核は中核度1のPOPを動かさない()
     {
         var (sim, pop) = AssimWorld(revival: 1.0 / 0.95, literacy: 1.0, core: 1.0);
-        sim.MigrateInternational();
+        sim.StepAssimilation();
         Assert.Equal(1.0, pop.CoreEthnicShare, 15);
     }
 

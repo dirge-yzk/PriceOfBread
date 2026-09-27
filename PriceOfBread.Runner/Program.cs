@@ -132,9 +132,8 @@ if (args.Length > 0 && args[0] == "popprobe")
     var msP = new MultiNationSim(WorldData.Nations(), ppSeed, _ => new UtilityAgent());
     int n0P = msP.Nations.Count;   // 初期国数（ベタ書き禁止＝world.json の実件数から取る）
     msP.StartWarmup();   // ★2026-08-21：selfplay-batch と同じ助走を通す＝「測る世界」を帯の世界と一致させる（暦は進まない・人口動態は凍結）
-    var immCum = new System.Collections.Generic.Dictionary<string, double>();   // 累積流入（国際＋越境）
+    var immCum = new System.Collections.Generic.Dictionary<string, double>();   // 累積流入（越境。★回1-2・2026-09-27 に国際移民＝世界プールは削除）
     var emiCum = new System.Collections.Generic.Dictionary<string, double>();   // 累積流出（越境）
-    var poolCum = new System.Collections.Generic.Dictionary<string, double>();  // ★2026-09-26：うち世界プール（ゲーム外から湧く国際移民）の累積流入＝回1-2 の観測の物差し
     // ★2026-09-26：粗出生・粗死亡（‰/年）＝前の断面からの World.DiagBirths/DiagDeaths の増分÷年数÷今の人口（計器の裁き10・純記帳）
     var prevBirths = new System.Collections.Generic.Dictionary<string, double>();
     var prevDeaths = new System.Collections.Generic.Dictionary<string, double>();
@@ -149,7 +148,7 @@ if (args.Length > 0 && args[0] == "popprobe")
             pop0[p0.BaseName] = s0.World.TotalPopulation;
             initRegions[p0.BaseName] = [.. s0.World.Regions];
         }
-    Console.WriteLine("断面Q,国名,人口,倍率,倍率初期州,州数,扶養力,人口/扶養力,扶養力基準,医療(門番後),医者役務,食料比,食料比生産,主食純輸入,耕地計,出生率倍率,空き土地ブースト,工業化,都市化,識字,社会保障,土地改革,累積流入,累積流出,累計戦死,粗出生‰,粗死亡‰,うち世界プール累積");
+    Console.WriteLine("断面Q,国名,人口,倍率,倍率初期州,州数,扶養力,人口/扶養力,扶養力基準,医療(門番後),医者役務,食料比,食料比生産,主食純輸入,耕地計,出生率倍率,空き土地ブースト,工業化,都市化,識字,社会保障,土地改革,累積流入,累積流出,累計戦死,粗出生‰,粗死亡‰");
     int prevCutP = 0;
     // 粗率（‰/年）＝区間の人数÷区間の年数÷今の人口×1000（区間＝前の断面から今の断面まで）
     double CrudeRate(double count, double pop, int span) => pop > 1e-9 && span > 0 ? count / (span / (double)Calendar.QuartersPerYear) / pop * 1000.0 : 0;
@@ -171,7 +170,6 @@ if (args.Length > 0 && args[0] == "popprobe")
                 if (simP.World.SelfPower is not { } pwA || System.Array.IndexOf(watch, pwA.BaseName) < 0) continue;
                 immCum.TryGetValue(pwA.BaseName, out var ic); immCum[pwA.BaseName] = ic + simP.World.LastImmigration;
                 emiCum.TryGetValue(pwA.BaseName, out var ec); emiCum[pwA.BaseName] = ec + simP.World.LastEmigration;
-                poolCum.TryGetValue(pwA.BaseName, out var pc); poolCum[pwA.BaseName] = pc + simP.World.LastImmigrationExternal;
             }
         }
         foreach (var simP in msP.Nations)
@@ -189,8 +187,7 @@ if (args.Length > 0 && args[0] == "popprobe")
                 $"{w.DiagFertility:F3},{w.DiagLandRoom:F3}," +
                 $"{w.MeanIndustrialization:F2},{w.UrbanShare:F3},{(sz > 1e-9 ? lit / sz : 0):F3},{w.SocialSecurity:F3},{(int)w.LandReform}," +
                 $"{immCum.GetValueOrDefault(pw.BaseName):F1},{emiCum.GetValueOrDefault(pw.BaseName):F1},{w.WarDeadCumulative:F1}," +
-                $"{CrudeRate(w.DiagBirths - prevBirths.GetValueOrDefault(pw.BaseName), w.TotalPopulation, cut - prevCutP):F1},{CrudeRate(w.DiagDeaths - prevDeaths.GetValueOrDefault(pw.BaseName), w.TotalPopulation, cut - prevCutP):F1}," +
-                $"{poolCum.GetValueOrDefault(pw.BaseName):F1}");
+                $"{CrudeRate(w.DiagBirths - prevBirths.GetValueOrDefault(pw.BaseName), w.TotalPopulation, cut - prevCutP):F1},{CrudeRate(w.DiagDeaths - prevDeaths.GetValueOrDefault(pw.BaseName), w.TotalPopulation, cut - prevCutP):F1}");
             prevBirths[pw.BaseName] = w.DiagBirths; prevDeaths[pw.BaseName] = w.DiagDeaths;
         }
         Console.WriteLine($"# Q{cut}: 国数 {msP.Nations.Count}（初期{n0P}）");
@@ -3197,13 +3194,15 @@ if (args.Length > 0 && args[0] == "leakhunt")
     // ★世界の台帳（fis-21・2026-09-26）：国ごとの D は片側記帳を拾えない＝四半期ごとに世界の合計を「正当な湧き口と消え口」で説明できるかを見る
     //   （ConservationTests の世界の合計の番人と同じ式）。人口＝Σ現存国の全州−（出生−戦争以外の死亡−戦死）の累積／
     //   貨幣＝Σ現存国の基礎貨幣−（鋳造＋不換発行）の累積（累積は一度でも居た国の全部）。
-    //   ⚠既定の世界では国際移民の世界プール（ゲーム外から人と持参金が湧く）が毎四半期ここに乗る＝POB_COEF="WorldMigrationPoolFrac=0" で閉じて見る（回1-2 で消える）。
+    //   ★人口には国を持たない勢力（抽象標的）の植民地の住民も数える（回1-2・作者裁定 2026-09-26「住民が消えるのは好ましくない」）＝奪われて州に入るのは世界の中の移転。
+    //   ★回1-2（2026-09-27）で国際移民の世界プール（ゲーム外から人と持参金が湧く既知の湧き口）は消えた＝既定の世界で閉じる。
     //   ⚠共有層の段ごとの [PROBE世界] は、月次の段で積んだ片側（起債・利払いの対外分）と四半期末の相手側が別の段に出る＝判定はこの四半期の合計で行う。
     var lseen = new List<Simulation>(lm.Nations); var lseenSet = new HashSet<Simulation>(lm.Nations);
     (double Pop, double Money) LWorld()
     {
         double pop = 0, money = 0;
         foreach (var n in lm.Nations) { foreach (var r in n.World.Regions) pop += r.SumPopulation(); money += n.World.BaseMoney; }
+        foreach (var lap in lm.Diplomacy.Powers) if (lap.Nation is null) foreach (var lcol in lap.ColonyList) pop += Math.Max(0, lcol.PopSize) + lcol.SettlerSize;   // 抽象標的の植民地の住民
         foreach (var n in lseen) { var w = n.World; pop -= w.DiagBirths - w.DiagDeaths - w.WarDeadCumulative; money -= w.CumulativeGoldMinted + w.CumulativeFiatIssued; }
         return (pop, money);
     }
@@ -3224,7 +3223,7 @@ if (args.Length > 0 && args[0] == "leakhunt")
         // （退蔵結晶化の IW 不変条件は 2026-09-26 に削除＝結晶資産 Pop.IlliquidWealth ごと消えた・dorm-24）
         System.Console.WriteLine($"leakhunt 完走（seed={lseed}・{lquarters}四半期・保存則違反なし）");
         System.Console.WriteLine($"世界の台帳：説明できない増減＝人口 {lPopBad}四半期（累計 {lPopSum:+0.0;-0.0}）・基礎貨幣 {lMoneyBad}四半期（累計 {lMoneySum:+0.0;-0.0}）"
-                                 + (Coefficients.OverrideSummary() is { Length: > 0 } lov ? $"（上書き {lov}）" : "（既定の世界＝世界プールの湧き分を含む）"));
+                                 + (Coefficients.OverrideSummary() is { Length: > 0 } lov ? $"（上書き {lov}）" : ""));
     }
     catch (Exception lex)
     {

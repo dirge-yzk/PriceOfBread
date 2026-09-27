@@ -82,9 +82,11 @@ public class ConservationTests
     //   世界全体の合計だけがそれを見つける。⇒ 世界の総人口と世界の基礎貨幣を、**正当な湧き口と消え口だけ**で説明できるかを見る。
     //   人口：Σ現存国の全州（分離した州を含む）の人口 −（出生 − 戦争以外の死亡 − 戦死）の累積（一度でも居た国の全部）＝一定。
     //   貨幣：Σ現存国の基礎貨幣 −（鋳造 + 不換発行）の累積（一度でも居た国の全部）＝一定。
-    // ⚠**国際移民の世界プール**（WorldMigrationPoolFrac＝ゲーム外から人と持参金が湧く既知の湧き口）は、この番人の世界では係数で0にして合わせる。
-    //   ★回1-2（国際移民を閉じる）でプールそのものが消えたら、下の `WorldMigrationPoolFrac = 0` の1行を外して締める。
-    // ⚠植民地（Colony オブジェクト）は国の台帳の外にある＝入植・植民地交易・州昇格は世界の外との出入りに見える。
+    // ★回1-2（2026-09-27・国際移民を閉じる）：旧＝国際移民の世界プール（WorldMigrationPoolFrac＝ゲーム外から人と持参金が湧く既知の湧き口）を
+    //   この番人の世界では係数で0にして合わせていた＝プールそのものを削除したので、既定の世界のまま締める（差し引きなし）。
+    // ★人口には国を持たない勢力（抽象標的）の植民地の住民も数える（回1-2・作者裁定 2026-09-26「住民が消えるのは好ましくない」）
+    //   ＝奪われて州になる（PromoteColonyToRegion）のも、J-006 の吸収で同名の州へ運ばれるのも、世界の中の移転。
+    //   ⚠植民地（Colony オブジェクト）の蓄えは貨幣の台帳の外のまま（抽象標的の植民地は蓄えを積まない＝Colonial.Step は国の植民地だけ）。
     // ★状態は1つも増やさない（出生と死亡の累積 World.DiagBirths/DiagDeaths は popprobe の計器と共用の純記帳）。
     // ⚠静的フラグ（ConservationProbe）は使わない（上と同じ理由＝並列のテストを数え込む）＝このテストが自分で合計を取る。
 
@@ -98,8 +100,7 @@ public class ConservationTests
         public WorldLedgerRun(int quarters)
         {
             Quarters = quarters;
-            var coef = new Coefficients { WorldMigrationPoolFrac = 0 };   // ★世界プール＝既知の湧き口を番人の世界では閉じる（回1-2 でこの行を外す）
-            var sim = new MultiNationSim(WorldData.Nations(), 1789UL, _ => new UtilityAgent(), coef);
+            var sim = new MultiNationSim(WorldData.Nations(), 1789UL, _ => new UtilityAgent());   // ★既定の世界（回1-2 で世界プールの差し引きを外した）
             foreach (var n in sim.Nations) n.TelemetryEnabled = false;
             sim.Diplomacy.Log.Enabled = false;
             sim.StartWarmup();
@@ -139,6 +140,8 @@ public class ConservationTests
                     var (p, c, m, mi) = NationTotals(n);
                     pop += p; created += c; money += m; minted += mi;
                 }
+                foreach (var ap in sim.Diplomacy.Powers)   // 抽象標的（Nation の無い勢力）の植民地の住民
+                    if (ap.Nation is null) foreach (var col in ap.ColonyList) pop += System.Math.Max(0, col.PopSize) + col.SettlerSize;
                 return (pop, created, money, minted);
             }
             // 国ごと：人口と基礎貨幣は現存国だけ（消えた国の州と金は親へ移っている）／出生・死亡・戦死・鋳造・不換発行の累積は一度でも居た国の全部
@@ -188,6 +191,19 @@ public class ConservationTests
             $"{run.MoneyBreaks.Count}/{run.Quarters} 四半期で片側記帳（金が湧いた/消えた・累計 {run.MoneyUnexplained:+0.0;-0.0}）：\n" + string.Join("\n", run.MoneyBreaks.Take(8)));
     }
 
+    /// <summary>★全長（668四半期）の世界の総人口（回1-2・2026-09-27）。旧＝全長では人口を見ていなかった（抽象標的の植民地を奪うと住民が世界の外から湧き、
+    /// J-006 の吸収では住民が消えた＝seed1789 で21四半期・計 +6,850）。抽象標的の植民地の住民を世界の合計に含め、吸収で住民を同名の州へ運んで閉じた。
+    /// 走行は下の貨幣の番人と共有（同じ1本の全長）。印 Category=FullLength（保存則に触る回でだけ回す）。</summary>
+    [Fact]
+    [Trait("Category", "FullLength")]
+    public void 世界の総人口は全長でも出生と死亡と戦死でしか動かない()
+    {
+        var run = WorldRunFull.Value;
+        Assert.True(run.PopMoved > 0, "世界の総人口が一度も動いていない＝番人が何も検査していない");
+        Assert.True(run.PopBreaks.Count == 0,
+            $"{run.PopBreaks.Count}/{run.Quarters} 四半期で片側記帳（人が湧いた/消えた・累計 {run.PopUnexplained:+0.0;-0.0}）：\n" + string.Join("\n", run.PopBreaks.Take(8)));
+    }
+
     /// <summary>★全長（668四半期）の世界の合計（2026-09-26 回0-4 で**漏れを見つけた**番人・約7分）。
     /// 見つけた漏れ＝講和の賠償の片側記帳（勝者が抽象標的＝Nation の無い勢力のとき、払った国だけが流出を記帳し金が世界から消えた＝
     /// seed1789 の Q317（1862年 カザフ草原←ポーランド −1009.0）・Q598（1932年 アチェ←マイソール −888.4）。逆向きの AbstractTargetReparations も同じ形）。
@@ -202,5 +218,151 @@ public class ConservationTests
         Assert.True(run.MoneyMoved > 0, "世界の基礎貨幣が一度も動いていない＝番人が何も検査していない");
         Assert.True(run.MoneyBreaks.Count == 0,
             $"{run.MoneyBreaks.Count}/{run.Quarters} 四半期で片側記帳（金が湧いた/消えた・累計 {run.MoneyUnexplained:+0.0;-0.0}）：\n" + string.Join("\n", run.MoneyBreaks.Take(8)));
+    }
+
+    // ================================================================================================
+    // ★国家間移民の番人（回1-2・2026-09-27＝国際移民を閉じる・外部レビューの検討 §10-3 Q3／項目3 の4）。
+    //   段を単離して1回だけ呼ぶ（MultiNationSim.MigrateBetweenNations は internal）。6か国（英・仏・米・普・露・西）＝行き先が複数ある盤面。
+    //   外交は止める（戦争で州が動くと移民の前後が比べられない）。1四半期だけ回して州の食料充足と機会を実体化してから測る。
+
+    private static MultiNationSim MigrationBoard(Coefficients? coef = null)
+    {
+        var sim = new MultiNationSim([WorldData.ByName("イギリス"), WorldData.ByName("フランス"), WorldData.ByName("アメリカ"),
+                                      WorldData.ByName("プロイセン"), WorldData.ByName("ロシア"), WorldData.ByName("スペイン")], seed: 1789, coef: coef) { DiplomacyFrozen = true };
+        foreach (var n in sim.Nations) n.TelemetryEnabled = false;
+        sim.Diplomacy.Log.Enabled = false;
+        sim.StepQuarter();
+        return sim;
+    }
+
+    private static (double Pop, double Money) MigrationWorldTotals(MultiNationSim sim)
+    {
+        double pop = 0, money = 0;
+        foreach (var n in sim.Nations) { foreach (var r in n.World.Regions) pop += r.SumPopulation(); money += n.World.BaseMoney; }
+        return (pop, money);
+    }
+
+    [Fact]
+    public void 国家間移民の段の前後で世界の総人口と基礎貨幣は変わらない()
+    {
+        var sim = MigrationBoard();
+        var (p0, m0) = MigrationWorldTotals(sim);
+        sim.MigrateBetweenNations();
+        var (p1, m1) = MigrationWorldTotals(sim);
+        double moved = 0; foreach (var n in sim.Nations) moved += n.World.LastEmigration;
+        Assert.True(moved > 0, "この盤面で1人も移っていない＝番人が何も検査していない");
+        Assert.True(System.Math.Abs(p1 - p0) <= 1e-9 * p0, $"移民の段で世界の総人口が動いた（{p1 - p0:+0.000000;-0.000000}・移動 {moved:F1}）＝人が湧いた/消えた");
+        Assert.True(System.Math.Abs(m1 - m0) <= 1e-9 * System.Math.Abs(m0), $"移民の段で世界の基礎貨幣が動いた（{m1 - m0:+0.000000;-0.000000}）＝持参金が湧いた/消えた");
+    }
+
+    /// <summary>流出の上限は送出州・階級ごとに1回だけ＝行き先がいくつあっても EmigrationMaxFrac×(1＋飢え)×人数 を超えない。
+    /// 受入の上限は外して（上限を巨大・受入能力の指数0）送出側の上限だけを見る。流出率を大きくして、正の差のある州は全て上限に張り付く盤面にする
+    /// （1783年の既定では差が小さく上限に届く州が無い＝上限の掛け方を検査できない）。⚠突然変異「上限を行き先ごとに掛ける」で赤になる。</summary>
+    [Fact]
+    public void 国家間移民の流出は行き先の数によらず上限を1回だけ()
+    {
+        var sim = MigrationBoard(new Coefficients { ImmigrationReceiveCapFrac = 1e9, ImmigrationAbsorbExponent = 0, EmigrationRate = 1.0 });
+        var c = sim.Coef;
+        var bound = new List<(Pop Pop, double Size0, double Cap)>();
+        foreach (var n in sim.Nations)
+        {
+            var w = n.World;
+            foreach (var r in w.Regions)
+            {
+                if (r.State != RegionState.Active) continue;
+                double effFill = w.FoodFill + c.FaminePushRegionBlend * (r.FoodFill - w.FoodFill);
+                double maxFrac = c.EmigrationMaxFrac * (1.0 + c.FaminePushMaxFracBoost * System.Math.Max(0.0, 1.0 - effFill));
+                foreach (var p in r.Pops)
+                    if (!p.IsSoldier && (p.ClassId == PopClass.Peasant || p.ClassId == PopClass.Worker) && p.Size > 1e-9)
+                        bound.Add((p, p.Size, maxFrac * p.Size));
+            }
+        }
+        sim.MigrateBetweenNations();
+        double worst = 0;
+        foreach (var (p, s0, cap) in bound)
+        {
+            double outflow = s0 - p.Size;   // 受入州の POP は流入で相殺される＝差し引きの流出は上限以下のまま
+            Assert.True(outflow <= cap * (1 + 1e-9) + 1e-12, $"1つの POP から上限を超えて流出した（{outflow:F4} > 上限 {cap:F4}・人数 {s0:F1}）＝上限が行き先ごとに掛かっている");
+            if (cap > 0) worst = System.Math.Max(worst, outflow / cap);
+        }
+        Assert.True(worst > 0.99, $"上限に届いた POP が1つも無い（最大 {worst:P1}）＝上限の番人が何も検査していない");
+    }
+
+    /// <summary>受入国の流入の合計は上限 C_d（受入の上限率×人口×移民制限法×受入能力≦1）以下・閉鎖の国は同じ条件の開放の国の2割以下。
+    /// 上限率を小さくして両方で上限が効く盤面にする（効いていない盤面では「2割以下」は言えない）。</summary>
+    [Fact]
+    public void 国家間移民の受入は上限以下_閉鎖は開放の2割以下()
+    {
+        double Inflow(ImmigrationLaw law, out double capNoAbsorb)
+        {
+            var sim = MigrationBoard(new Coefficients { ImmigrationReceiveCapFrac = 1e-5 });
+            var us = sim.Nations.First(n => n.World.SelfPower?.BaseName == "アメリカ").World;
+            us.ImmigrationRestriction = law;
+            capNoAbsorb = sim.Coef.ImmigrationReceiveCapFrac * us.TotalPopulation * (law == ImmigrationLaw.Closed ? sim.Coef.ImmigrationClosedFrac : 1.0);
+            sim.MigrateBetweenNations();
+            return us.LastImmigration;
+        }
+        double open = Inflow(ImmigrationLaw.Open, out double capOpen);
+        double closed = Inflow(ImmigrationLaw.Closed, out double capClosed);
+        Assert.True(open > 0, "開放の米に1人も来ていない＝番人が何も検査していない");
+        Assert.True(open <= capOpen * (1 + 1e-9), $"受入の上限を超えた（{open:F4} > {capOpen:F4}）");
+        Assert.True(closed <= capClosed * (1 + 1e-9), $"閉鎖の受入の上限を超えた（{closed:F4} > {capClosed:F4}）");
+        Assert.True(closed <= 0.2 * open * (1 + 1e-9), $"閉鎖（{closed:F4}）が開放（{open:F4}）の2割を超えた");
+    }
+
+    [Fact]
+    public void 国家間移民は差が0以下の国へは1人も行かない()
+    {
+        var sim = MigrationBoard(new Coefficients { CrossBorderOppGapThreshold = 1e9 });   // どの組も差＝機会の差−閾値≦0
+        var (p0, _) = MigrationWorldTotals(sim);
+        var sizes = new List<(Pop Pop, double Size)>();
+        foreach (var n in sim.Nations) foreach (var p in n.World.AllPops()) sizes.Add((p, p.Size));
+        sim.MigrateBetweenNations();
+        foreach (var n in sim.Nations) { Assert.Equal(0.0, n.World.LastImmigration); Assert.Equal(0.0, n.World.LastEmigration); }
+        foreach (var (p, s) in sizes) Assert.Equal(s, p.Size);
+        Assert.Equal(p0, MigrationWorldTotals(sim).Pop);
+    }
+
+    /// <summary>持参金＝送出 POP の1人あたり貯蓄×動いた人数（外から湧かない）。受入 POP の貯蓄の増分・送出 POP の減分・両国の台帳の記帳が同じ額。</summary>
+    [Fact]
+    public void 国家間移民の持参金は送出POPの1人あたり貯蓄と人数の積()
+    {
+        var sim = MigrationBoard();
+        var src = sim.Nations[0].World; var dst = sim.Nations[2].World;   // 英→米
+        var sp = src.Regions[0].Pops.Find(p => p.ClassId == PopClass.Worker && !p.IsSoldier)!;
+        var dp = dst.Regions[0].Pops.Find(p => p.ClassId == PopClass.Worker && !p.IsSoldier)!;
+        double flow = 0.01 * sp.Size, perHead = sp.Savings / sp.Size;
+        double spSav0 = sp.Savings, dpSav0 = dp.Savings, srcFlow0 = src.CumulativeTradeFlow, dstFlow0 = dst.CumulativeTradeFlow;
+        Assert.True(perHead > 0, "前提が崩れた：送出 POP に貯蓄が無い");
+        sim.MoveMigrants(src, dst, src.Regions[0], dst.Regions[0], PopClass.Worker, flow);
+        double dowry = perHead * flow, tol = 1e-9 * System.Math.Max(1.0, dowry);
+        Assert.True(System.Math.Abs(dp.Savings - dpSav0 - dowry) <= tol, $"受入 POP の貯蓄の増分 {dp.Savings - dpSav0} ≠ 持参金 {dowry}");
+        Assert.True(System.Math.Abs(spSav0 - sp.Savings - dowry) <= tol, $"送出 POP の貯蓄の減分 {spSav0 - sp.Savings} ≠ 持参金 {dowry}");
+        Assert.True(System.Math.Abs(dst.CumulativeTradeFlow - dstFlow0 - dowry) <= tol && System.Math.Abs(srcFlow0 - src.CumulativeTradeFlow - dowry) <= tol, "両国の台帳の記帳が持参金と一致しない");
+    }
+
+    /// <summary>★J-006 の吸収（回1-2・作者裁定 2026-09-26「住民が消えるのは好ましくない」）：同名の州を既に持つ国へ渡った植民地は、
+    /// Colony オブジェクトは消えるが住民（と蓄え）はその州へ入る。統制盤面＝日本（蝦夷地の州を持つ）が抽象標的「蝦夷地」を無血で侵略（屈服線0）。
+    /// ⚠突然変異「吸収で住民を捨てる」で赤になる。</summary>
+    [Fact]
+    public void J006の吸収で住民は同名の州へ入る()
+    {
+        var coef = new Coefficients { ColonizeSubmitRatio = 0 };   // 屈服線0＝必ず屈服（戦争にしない）
+        var sim = new MultiNationSim([WorldData.ByName("日本")], seed: 1789, coef: coef);
+        var jp = sim.Nations[0].World;
+        var ezo = sim.Diplomacy.Powers.First(p => p.Nation is null && p.ColonyList.Exists(c => c.Name == "蝦夷地"));
+        var col = ezo.ColonyList.Find(c => c.Name == "蝦夷地")!;
+        var region = jp.Regions.Find(r => r.Name == "蝦夷地")!;
+        double people = System.Math.Max(0, col.PopSize) + col.SettlerSize;
+        Assert.True(people > 0, "前提が崩れた：抽象標的の蝦夷地に住民がいない");
+        double pop0 = region.SumPopulation(), delta0 = jp.PopulationDelta;
+        int regions0 = jp.Regions.Count, absorbed0 = sim.Diplomacy.AbsorbedColonies;
+        Assert.True(sim.Diplomacy.Subjugate(jp.SelfPower!, ezo, coef));
+        Assert.Equal(absorbed0 + 1, sim.Diplomacy.AbsorbedColonies);   // 保存検査の第4の出口（Colony オブジェクトは消える）
+        Assert.Empty(ezo.ColonyList);
+        Assert.Equal(regions0, jp.Regions.Count);   // 同名の州が在る＝新しい州は作らない
+        double tol = 1e-9 * System.Math.Max(1.0, pop0 + people);
+        Assert.True(System.Math.Abs(region.SumPopulation() - pop0 - people) <= tol, $"蝦夷地の州の人口 {pop0:F1}→{region.SumPopulation():F1}（住民 {people:F1} が入っていない）");
+        Assert.True(System.Math.Abs(jp.PopulationDelta - delta0 - people) <= tol, "人口の台帳（PopulationDelta）に住民が記帳されていない");
     }
 }

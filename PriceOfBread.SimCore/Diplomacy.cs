@@ -328,7 +328,7 @@ public sealed class Diplomacy
     public List<Colony> IndependentColonies = [];   // 独立した旧植民地＝自由な供給者として世界市場に残る（資源は消えない・誰の専有でもなくなる）
     public int PromotedColonies;   // 州へ昇格した植民地の累計（2026-08-09＝植民地保存検査の第3の出口。移転でも独立でも消滅でもなく編入）
     public int SovereignColonialRegions;   // ★回1-1（2026-09-26）：独立の確定（RegisterIndependence）で本土になった植民地格の州の累計＝植民地保存検査の「独立」の出口の州版（Colony の独立＝IndependentColonies と同じ出口）。検査の台帳だけ＝力学は読まない
-    public int AbsorbedColonies;   // ★J-006（2026-09-05）：同名の州を既に持つ国へ渡った植民地＝Colony オブジェクトが消滅（領土は州として保有済み）。保存検査の第4の出口（実測＋独立＋昇格＋吸収＝初期）
+    public int AbsorbedColonies;   // ★J-006（2026-09-05）：同名の州を既に持つ国へ渡った植民地＝Colony オブジェクトが消滅（領土は州として保有済み・★回1-2＝住民はその州へ運ぶ）。保存検査の第4の出口（実測＋独立＋昇格＋吸収＝初期）
     public int InitialColonyCount;   // 構築時の植民地総数（監査2026-07-12 死12：Validationの保存検査の基準線＝保有合計＋独立数が常にこれと一致するはず）
     /// <summary>★初期の植民地質量（2026-08-28）＝質量→個数単位の換算の錨（構築時に1回）。忠実度の参照値は旧個数単位なので
     /// 質量×(初期個数/初期質量) で同じ目盛りへ写す＝1783年で両計測が厳密一致・以後の増減だけが単位差を持つ（データで錨づけ）。</summary>
@@ -1927,18 +1927,18 @@ public sealed class Diplomacy
                 //   （不満は上で col.Militancy に置いた後＝Promote が現地農民の Militancy へ写す）。同名州ガードで不可なら旧経路。0＝旧経路＝恒等
                 if (n > 0 && c.CapturedColoniesAreRegions > 0 && great.Nation is { } greatW)
                 {
-                    foreach (var col in target.ColonyList.ToArray())
-                        if (!greatW.Regions.Exists(r => r.Name == col.Name))
-                        {
-                            target.ColonyList.Remove(col);
-                            // ⚠PromotedColonies は増やさない（実測2026-08-31＝保存検査が8/10赤）：Colonial tier の州は
-                            //   Power.Colonies（=ColonyList+ColonialRegions）に数えられ続ける＝リスト−1と州+1で総数不変。
-                            //   カウンタも足すと二重計上（構築時の一括昇格 PromoteAllColonies が数えないのと同じ規約）。
-                            Simulation.PromoteColonyToRegion(greatW, c, col, RegionTier.Colonial);
-                        }
-                    // ★J-006「止める」（作者裁定2026-09-05）：同名の州を既に持つ＝**同じ領土を既に州として保有**している。旧＝Colony オブジェクトのまま
-                    //   great.ColonyList へ持ち越し（州⇔Colony の往復＝二重の実体・同名衝突の唯一の発生源）。新＝捨てる（一度州になった領土は二度と Colony に戻さない）。
-                    if (target.ColonyList.Count > 0) { foreach (var dup in target.ColonyList) { AbsorbedColonies++; Log.Add($"{_year} {dup.Name}は{great.Name}が既に州として保有＝植民地オブジェクトは消滅"); } target.ColonyList.Clear(); }
+                    foreach (var col in target.ColonyList)
+                    {
+                        // ★J-006「止める」（作者裁定2026-09-05）：同名の州を既に持つ＝**同じ領土を既に州として保有**している＝Colony オブジェクトは消える
+                        //   （旧＝great.ColonyList へ持ち越し＝州⇔Colony の往復＝二重の実体）。★回1-2（2026-09-27）：住民は PromoteColonyToRegion がその州へ運ぶ
+                        //   （旧＝住民ごと捨てた＝作者裁定 2026-09-26「住民が消えるのは好ましくない」）。保存検査の台帳は AbsorbedColonies（第4の出口）。
+                        if (greatW.Regions.Exists(r => r.Name == col.Name)) { AbsorbedColonies++; Log.Add($"{_year} {col.Name}は{great.Name}が既に州として保有＝住民は州へ"); }
+                        // ⚠PromotedColonies は増やさない（実測2026-08-31＝保存検査が8/10赤）：Colonial tier の州は
+                        //   Power.Colonies（=ColonyList+ColonialRegions）に数えられ続ける＝リスト−1と州+1で総数不変。
+                        //   カウンタも足すと二重計上（構築時の一括昇格 PromoteAllColonies が数えないのと同じ規約）。
+                        Simulation.PromoteColonyToRegion(greatW, c, col, RegionTier.Colonial);
+                    }
+                    target.ColonyList.Clear();
                 }
                 else if (n > 0) { great.ColonyList.AddRange(target.ColonyList); target.ColonyList.Clear(); }   // 抽象弱小＝植民地を接収
                 Log.Add($"{_year} {great.Name}が{target.Name}を侵略（併合・植民地+{n}）");
@@ -2585,13 +2585,16 @@ public sealed class Diplomacy
                     // 外15：武力奪取した植民地に被征服の不満を付す（無血併合 Subjugate・州割譲:CededColonyMilitancy は+0.3 を課すのに、戦争で奪った植民地だけ据え置き＝最も従順という逆転を是正）。
                     if (c.ConquestColonyMilitancy > 0) col.Militancy = Math.Min(1.0, Math.Max(col.Militancy, c.ConquestColonyMilitancy * c.ColonizeAnnexMilitancy));   // 02断線走査2026-07-28：係数を式に乗せる＝武力奪取の不満＞無血併合（被征服の序列が独立圧に効く）
                     // ★従属の一般化・第一切片（CapturedColoniesAreRegions・2026-08-31）：奪取した Colony をその場で州へ実体化（同名州ガードで不可なら旧経路）。0＝旧経路＝恒等
-                    if (c.CapturedColoniesAreRegions > 0 && winner.Nation is { } winWr && !winWr.Regions.Exists(r => r.Name == col.Name))
+                    if (c.CapturedColoniesAreRegions > 0 && winner.Nation is { } winWr)
                     {
                         loser.ColonyList.RemoveAt(k); captured++;
+                        // ★J-006（2026-09-05）：同名州を持つ勝者へは Colony を渡さない（往復の禁止）。★回1-2（2026-09-27）：住民は PromoteColonyToRegion がその州へ運ぶ
+                        //   （旧＝Colony ごと住民を捨てた＝作者裁定 2026-09-26「住民が消えるのは好ましくない」）。保存検査の台帳は AbsorbedColonies（第4の出口）。
+                        if (winWr.Regions.Exists(r => r.Name == col.Name)) { AbsorbedColonies++; Log.Add($"{_year} {col.Name}は{winner.Name}が既に州として保有＝住民は州へ"); }
                         // ⚠PromotedColonies は増やさない（同上＝Colonial tier は Colonies に数えられ続ける＝二重計上になる）
                         Simulation.PromoteColonyToRegion(winWr, c, col, RegionTier.Colonial);
                     }
-                    else { loser.ColonyList.RemoveAt(k); captured++; if (winner.Nation is not null) { AbsorbedColonies++; Log.Add($"{_year} {col.Name}は{winner.Name}が既に州として保有＝植民地オブジェクトは消滅"); } else winner.ColonyList.Add(col); }   // ★J-006（2026-09-05）：同名州を持つ勝者へは Colony を渡さない（往復の禁止）。抽象標的（Nation==null）だけ旧どおりリストで持つ
+                    else { loser.ColonyList.RemoveAt(k); captured++; if (winner.Nation is not null) { AbsorbedColonies++; Log.Add($"{_year} {col.Name}は{winner.Name}が既に州として保有＝植民地オブジェクトは消滅"); } else winner.ColonyList.Add(col); }   // 旗0（CapturedColoniesAreRegions=0）の旧経路と、抽象標的（Nation==null）の勝者＝旧どおりリストで持つ
                     // ★回1-1（col-04・mil-18・2026-09-26）：旧＝ここで勝者の**全POP**の中核民族割合を homePop/(homePop+植民地人口) で縮めていた＝二重の希釈。
                     //   州になった植民地の住民は core=0 で作られる（PromoteColonyToRegion）ので、民族統一度（加重平均）は住民が加わるだけで既に下がる。
                     //   本国の住民の民族は征服で変わらない（思想⑨）＝縮める式と係数 ConquestForeignWeight を削除した。

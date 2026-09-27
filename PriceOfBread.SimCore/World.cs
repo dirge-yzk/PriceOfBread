@@ -693,8 +693,7 @@ public sealed class World
     public ExplainLedger? Explain;   // 説明台帳（#63）。null＝説明モードオフ（既定・ゼロコスト）。装着すると Politics 等が各数値の内訳を横に記帳する（本計算はビット恒等・ExplainLedger 参照）。
     // ★2026-09-03（A-17）：PopMilDiagnostics は撤去（内訳は常時計算＝バッチでも読める）。読み手を残すと『ゲート緑≠機構が働いた』の温床になる。
     public double SecessionHold { get; internal set; }                // 診断：中央の保持力（正統性/人口＋軍事項）
-    public double LastImmigration { get; internal set; }              // 診断：今四半期の移民流入（国際＋越境の合計・人口千人）
-    public double LastImmigrationExternal { get; internal set; }      // 診断（UI・2026-07-16）：うち国際移民（世界プールから）。越境流入＝LastImmigration−これ。**書くだけ＝挙動非依存**
+    public double LastImmigration { get; internal set; }              // 診断：今四半期の移民流入（越境の流入・人口千人。★回1-2・2026-09-27 に国際移民＝世界プールとその内訳 LastImmigrationExternal を削除）
     public double LastEmigration { get; internal set; }               // 診断：今四半期の移民流出（越境）
     public List<FactionState> Factions { get; } = [];        // F3a：持続する国内勢力（クラスタの永続化）。ParliamentEnabled世界のみFactions.Stepが更新
     public FactionState? RevoltingFaction { get; internal set; }   // F3b：進行中の内乱の主体（経済決着の要求源・SecedingRegionと同じ参照作法）
@@ -757,7 +756,7 @@ public sealed class World
         internal set => _ncScalar = value;
     }   // 国民意識∈[0,1]＝構築される市民的結束（EthnicUnityの与件とは別・docs/2026-07-13_国民意識.md）。公教育×識字＋徴兵で育つ・多民族は育ちにくい（天井でなく抵抗）・国難は既存結束で符号が決まる両刃。-1=未捕捉（初回に初期値で立ち上げ）。⚠旧・汚職チャネル（低国民意識×代議制の civicGraft→Fiscal leak）は汚職V2恒久ONにつきC2-C5撤去（2026-08-16）＝現読者は civicCarriesEthnic（下）と CrownParliament の蓄積ゲート
     public double Coercion { get; internal set; }
-    // 民族統一度（0..1のスカラー。POPは作らない＝以前の「民族POP不採用」と整合）。史実の初期値→国際移民で希釈→同化で回復。
+    // 民族統一度（0..1のスカラー。POPは作らない＝以前の「民族POP不採用」と整合）。史実の初期値→移民（国家間移民）で希釈→同化で回復。
     // 高い＝不満の上昇が鈍い・軍が結束・近代化が通りやすい／低い＝移民を引く（坩堝）・分離圧力。EthnicEnabled が false の世界（合成較正・最小テスト）では全効果が無効＝較正不変。
     // 倍率排除⑧：国一律スカラーを廃し、各popの中核民族割合(CoreEthnicShare)の人口加重平均から創発させる計算プロパティ。
     // !EthnicEnabled（合成較正・最小テスト世界）は1.0＝全効果が無効＝較正不変。移民(core=0)で希釈・同化で回復・征服で低下が pop属性から自動で出る。
