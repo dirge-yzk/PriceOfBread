@@ -135,10 +135,10 @@ public class AiFirstWaveTests
         // ★書き直し（2026-09-21 ㉖）：旧＝「余白ハンマー」（θ=50×0.5 が即座に効いた）。θ は退役し門は在庫だけ＝b は Government.Step の頭で四半期に1回しか導出されない
         //   （この盤面は1四半期も回していない＝b=0 のまま）。同じ式で b を今の係数から導出して満タンにする＝b≈30 の「在庫ハンマー」（主張は不変）。
         w.PoliticalCapitalMax = PoliticalQuantities.PoliticalCapitalMax(w); w.MandateSpent = 0;
-        w.LastImmigration = w.TotalPopulation * 0.05;   // 大量流入（四半期5%）＝制限圧力 40×0.05×(1+失業) ≥ 2.0 ＞ 閉鎖線1.0
+        w.LastImmigration = w.TotalPopulation * 0.05;   // 大量流入（四半期5%）＝制限圧力 40×0.05×(1+失業) ≥ 2.0 ＞ 開放の上限の線 0.48（F5）
         foreach (var pp in w.AllPops()) if (pp.IsModernElite) { pp.Savings = 1e9; break; }   // 近代エリート支配＝教義 Industrialist＝国教は内心の自由へ
         new UtilityAgent().DecideQuarter(w);
-        Assert.Equal(ImmigrationLaw.Selective, w.Policy.ImmigrationRestriction);   // 願望は閉鎖(2)・目標は次の1段（選別）
+        Assert.Equal(ImmigrationLaw.Selective, w.Policy.ImmigrationRestriction);   // 今の法（開放）から1段（選別）
         Assert.Equal(StateReligionLaw.InnerFreedom, w.Policy.StateReligion);       // 国教のみ→内心の自由（1段）
     }
 
@@ -153,6 +153,43 @@ public class AiFirstWaveTests
         new UtilityAgent().DecideQuarter(w);
         Assert.Equal(ImmigrationLaw.Open, w.Policy.ImmigrationRestriction);        // 書き手ゼロのまま＝enum既定値
         Assert.Equal(StateReligionLaw.StateChurch, w.Policy.StateReligion);
+    }
+
+    /// <summary>★作者裁定 2026-09-28 F5：移民制限法の AI は流入の圧力で締めるだけ＝開くのは資本の要求（危機の要求）か外圧（条約港）だけ。
+    /// 締める線＝今の法の受入の上限まで流入が満ちたときの圧力（(63) の上限＝ImmigrationReceiveCapFrac×法の率・失業0）＝開放0.48・選別0.24。
+    /// 門（Government.GateInfo＝法律タブと同じ）は在庫ハンマーで両向きとも開けてある＝動かない理由は AI の意図だけ。</summary>
+    [Theory]
+    //          今の法                    流入（人口比/四半期） 失業  条約港 資本の危機  目標
+    [InlineData(ImmigrationLaw.Closed,    0.0,   0.0, 0, false, ImmigrationLaw.Closed)]      // 圧力も資本の要求も外圧も無い＝現状維持（旧＝圧力0.15未満で開放へ戻した）
+    [InlineData(ImmigrationLaw.Closed,    0.05,  0.0, 0, true,  ImmigrationLaw.Selective)]   // 資本の要求（危機の要求に「移民の受け入れ」）＝1段開く
+    [InlineData(ImmigrationLaw.Closed,    0.0,   0.0, 1, false, ImmigrationLaw.Selective)]   // 外圧（不平等条約の港）＝1段開く
+    [InlineData(ImmigrationLaw.Selective, 0.006, 0.2, 0, false, ImmigrationLaw.Closed)]      // 選別の上限まで満ち職が足りない＝閉鎖へ届く（旧＝閉鎖の線1.0に届かなかった）
+    [InlineData(ImmigrationLaw.Open,      0.011, 0.0, 0, false, ImmigrationLaw.Open)]        // 開放の上限に届かない＝締めない（旧＝選別の線0.4で締めた）
+    public void 移民制限法のAIは流入の圧力で締め_開くのは資本の要求か外圧だけ(ImmigrationLaw law, double inflow, double unemployment, int treatyPorts, bool capitalCrisis, ImmigrationLaw expect)
+    {
+        var sim = new Simulation(NationConfig.France().ToScenario(7), new NullAgent());
+        var w = sim.World;
+        w.Coef.AiLawWriteCoverage = 1.0;
+        w.PoliticsEnabled = true;
+        w.Legitimacy = 1.0;
+        w.Coef.MandateWeight = 50.0;        // 在庫ハンマー（上のテストと同じ）
+        w.PoliticalCapitalMax = PoliticalQuantities.PoliticalCapitalMax(w); w.MandateSpent = 0;
+        w.ImmigrationRestriction = law; w.Policy.ImmigrationRestriction = law;
+        w.LastImmigration = w.TotalPopulation * inflow;
+        foreach (var pp in w.AllPops()) pp.UnemploymentRate = unemployment;
+        w.TreatyPortsGranted = treatyPorts;
+        if (capitalCrisis)
+        {
+            var f = new FactionState { Region = w.Regions[0], Bloc = 1, Size = 1.0, AvgMilitancy = 1.0, Cohesion = 1.0 };
+            w.Factions.Add(f); w.PendingFactionCrisis = f;   // 資本（近代エリート）の運動の危機＝プレイヤーと同じ札
+            Assert.Contains(FactionSnapshot.ComputeDemands(w, 1, lawsOnly: true), d => d.Axis == PolicyAxis.ImmigrationRestriction && !d.Increase);   // 前提：資本の要求に「移民の受け入れ」がある
+        }
+        if (law != ImmigrationLaw.Open)
+            Assert.True(Government.GateInfo(w, PolicyAxis.ImmigrationRestriction, false, (int)law - 1).Ok, "前提が崩れた：開く1段が門で止まる");
+        if (law != ImmigrationLaw.Closed)
+            Assert.True(Government.GateInfo(w, PolicyAxis.ImmigrationRestriction, true, (int)law + 1).Ok, "前提が崩れた：締める1段が門で止まる");
+        new UtilityAgent().DecideQuarter(w);
+        Assert.Equal(expect, w.Policy.ImmigrationRestriction);
     }
 
     // ============ ④ AiDevelopmentalSubsidy＝既存休眠のON経路（点火A/Bは親が実施） ============

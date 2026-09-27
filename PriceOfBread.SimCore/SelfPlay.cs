@@ -337,11 +337,8 @@ public sealed class UtilityAgent : INationAgent
                                                         // 屈服線（AISubmitMilRatio=3.0）・宥和線（AppeaseMilitaryRatio=2.5）よりずっと手前＝「戦えるが苦しい」帯で踏む
     private const double MobilizeLosingScore = 0.5;     // 敗色（自国視点の war.Score 負側）がこれを超えたら存亡＝本土が蹂躙されている
                                                         // （レジームチェンジ1.0・割譲 TerritoryCessionScore=1.2 の手前で踏み込む＝間に合う総動員）
-    // AI第1波③（2026-08-16）移民制限法のAI判定線（Coefficients.AiLawWriteCoverage>0 のときだけ読む）。
-    // 物差し＝大衆の制限圧力（ImmigrationRestrictionPrefScale×流入率×(1+失業)＝法選好の大衆スタンスと同じ量＝「法が争点になる強さ」）：
-    private const double AiImmigrationClosePressure = 1.0;    // これ超＝閉鎖を目標（大衆スタンス満額＝他の法軸の±1と並ぶ強さ＝排華移民法1882級の運動）
-    private const double AiImmigrationSelectPressure = 0.4;   // これ超＝選別を目標（識字・資産で選ぶ＝1924移民法の割当の型）
-    private const double AiImmigrationReopenPressure = 0.15;  // これ未満＝開放へ戻す。0.15..0.4はヒステリシス帯＝現状維持（法→流入減→即撤回の振動を防ぐ）
+    // 【墓標2026-09-28（作者裁定 F5）】移民制限法のAI判定線3本（閉鎖1.0・選別0.4・開放へ戻す0.15）を削除。締める線は (63) の受入の上限の係数から導き、
+    //   開放へ戻す枝は消した（DecideModernLaws の移民制限の段落）。
     // ★E4（総選挙の公示のAI等価物・2026-08-17）の判定線（Coefficients.ElectionEventEnabled>0 のときだけ読む）。
     // ⚠新しい係数は作らない（ゲートは ElectionEventEnabled 1本＝点火でプレイヤーとAIが同時に有効になる）。ここはAIの判断線＝SelfPlay私有定数。
     // ⚠★E3''（確定形2026-08-17）で AiElectionMandateBudget は撤去した＝レバーは「政治資本の何割を賭けるか」ではなく
@@ -553,15 +550,27 @@ public sealed class UtilityAgent : INationAgent
             // 移民制限：読むのは**実際に起きている量**＝流入（前四半期の確定値÷人口）と大衆の失業。
             //   PolicyPreferences.ImmigrationRestriction（法選好の大衆スタンス）と同じ材料・同じ合成＝法が争点になる強さそのもの。
             //   ⚠⚠NetSupport（ゲートの出力）を意図として読んではならない（「通る法しか望まない」トートロジー＝Apply の3法ブロックの禁則）＝物質量を直接読む。
-            //   流入が多く職が足りない国ほど強い制限へ＝流入国（新大陸）で創発する。圧力が引けば開放へ戻す（可逆法）。
+            // ★作者裁定 2026-09-28 F5：
+            //   締める線＝**今の法の受入の上限まで流入が満ちたときの圧力**（失業0・受入能力1）。上限は (63) の
+            //     ImmigrationReceiveCapFrac×人口×法の率×受入能力（MultiNationSim.MigrateBetweenNations の lawCap と同じ係数）
+            //     ＝開放 40×0.012＝0.48・選別 ×ImmigrationSelectiveFrac＝0.24。今の法の上限まで流入が届き、職が足りない（失業>0）ときに1段締める。
+            //     流入は今の法の下で測った量（法は DecideQuarter の後の Government.Step で動き、移民は四半期末）＝線と同じ法を読む。
+            //   旧＝絶対の線（閉鎖1.0・選別0.4・開放へ戻す0.15）。(63) の後は圧力の最大が 開放0.48・選別0.24・閉鎖0.096（×(1＋失業)）で、
+            //     閉鎖へは届かず、閉鎖の下では必ず「開放へ戻す」線を下回った＝1783年の鎖国が1〜2四半期で開国した（(75) §5）。
+            //   ★開く向きはここに書かない＝流入の圧力が無い間は現状維持（PolicyPreferences の「流入ゼロの国では争点にならない」と同じ読み）。
+            //     開くのは資本の要求（危機の要求＝この後の Parliament.TargetCrisisDemands／内戦の講和＝Politics.ConcedeToFaction）か外圧だけ。
+            //     外圧＝不平等条約で港を開かされていること（TreatyPortsGranted＞0＝講和が積む既存の数・南京条約1842／安政条約1858／江華島条約1876）。
+            //   どの向きも StepLawToward＝法律タブ（LawRowVM）と同じ Government.GateInfo を通る。
             double inflowRate = w.TotalPopulation > 1e-9 ? System.Math.Max(0, w.LastImmigration) / w.TotalPopulation : 0;
             double unemployment = PolicyPreferences.AvgUnemployment(w);   // 唯一定義（旧＝口だけ複製を2026-09-11 #13 で畳んだ）
             double pressure = w.Coef.ImmigrationRestrictionPrefScale * inflowRate * (1.0 + unemployment);
             if (!(pressure >= 0)) pressure = 0;   // NaNガードは否定形（Clamp/MaxはNaNを消さない）＝非有限は「圧力なし」＝現状維持側へ
-            int immWant = pressure > AiImmigrationClosePressure ? (int)ImmigrationLaw.Closed
-                        : pressure > AiImmigrationSelectPressure ? (int)ImmigrationLaw.Selective
-                        : pressure < AiImmigrationReopenPressure ? (int)ImmigrationLaw.Open
-                        : (int)p.ImmigrationRestriction;   // 帯の間＝現状維持（法→流入減→即撤回の振動を作らないヒステリシス）
+            int immWant = (int)p.ImmigrationRestriction;   // 現状維持
+            if (w.ImmigrationRestriction != ImmigrationLaw.Closed
+                && pressure > w.Coef.ImmigrationRestrictionPrefScale * w.Coef.ImmigrationReceiveCapFrac
+                              * (w.ImmigrationRestriction == ImmigrationLaw.Open ? 1.0 : w.Coef.ImmigrationSelectiveFrac))
+                immWant = System.Math.Max(immWant, (int)w.ImmigrationRestriction + 1);
+            if (w.TreatyPortsGranted > 0) immWant = (int)ImmigrationLaw.Open;   // 外圧
             StepLawToward(w, p, PolicyAxis.ImmigrationRestriction, (int)p.ImmigrationRestriction, immWant, (int)ImmigrationLaw.Closed,
                 v => p.ImmigrationRestriction = (ImmigrationLaw)v);
 
