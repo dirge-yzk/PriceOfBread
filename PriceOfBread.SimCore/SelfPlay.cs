@@ -1701,6 +1701,7 @@ public static class SelfPlayMatch
         // （同期間フロー同士の比＝次元が合い、規模にも年数にも非依存）。単発スパイクで鳴らないようEMAで平滑化する。
         var prevLoss = new double[configs.Length];    // 前四半期の LossFinanced（差分＝当期の負債化フロー）
         var lossRate = new double[configs.Length];    // 負債化フロー ÷ 名目産出（四半期）の平滑値
+        var satWindow = new List<double[]>(Validation.SatRecentQuarters);   // ★(68) 直近の四半期ごとの各国の満足度（ハーネスの最小国に添える・報告専用＝力学に触れない）
         double worstLossRate = 0;
         string worstLossNation = ""; double worstLossGdpQ = 0; int worstLossQuarter = -1;
         double worldOutPrev = 0, worldOutThis = 0;   // 世界の四半期名目産出（当期は集計中なので床には前期を使う＝決定論）
@@ -1821,6 +1822,8 @@ public static class SelfPlayMatch
                     }
                     else { gdpTrend[i] = w.Gdp; gdpPeak[i] = w.Gdp; double pc0 = w.Gdp / System.Math.Max(1.0, w.TotalPopulation); gdpPcTrend[i] = pc0; gdpPcPeak[i] = pc0; }   // 助走中はトレンドとピークを初期化（立ち上げを恐慌と誤認しない）
                 }
+                if (q >= quarters - Validation.SatRecentQuarters)   // ★(68) 添字は sim.Nations と同じ（Metrics.Compute と同じ順）
+                    satWindow.Add([.. sim.Nations.Select(n => NationalScore.MeanSatisfaction(n.World))]);
                 if (q + 1 == Coefficients.FidelityQuarters && quarters > Coefficients.FidelityQuarters)
                     standings1914 = BuildStandings();
                 if (q + 1 == Coefficients.FidelityQuarters1820 && quarters > Coefficients.FidelityQuarters1820) standings1820 = BuildStandings();   // ★E-08
@@ -1888,7 +1891,14 @@ public static class SelfPlayMatch
         // 病理ではない（旧＝異常扱いは「決着しないバグ」検出のためだったが、デッドロックは frozen 検査が別途担う）。指標としては BatchSummary.LateDecisions に残す。
 
         // 検証ハーネスの合否（自己対戦の最終状態）。保存則・満足度などのマクロ健全性を記録。
-        var hc = Validation.Evaluate(Metrics.Compute(sim));
+        var hm = Metrics.Compute(sim);
+        // ★(68)：最小国の文言に直近の平均と振れ幅を添える（判定は終局の値のまま＝Validation.SatRecentQuarters の注記）。
+        hm = hm with { Nations = [.. hm.Nations.Select((nm, i) =>
+        {
+            var v = satWindow.Where(a => i < a.Length).Select(a => a[i]).ToList();   // 窓の中で生まれた国は生まれてからの分だけ
+            return v.Count > 0 ? nm with { SatRecentMean = v.Average(), SatRecentSwing = v.Max() - v.Min() } : nm;
+        })] };
+        var hc = Validation.Evaluate(hm);
         int hp = Validation.Count(hc, Verdict.Pass), hw = Validation.Count(hc, Verdict.Warn), hf = Validation.Count(hc, Verdict.Fail);
         var harnessIssues = hc.Where(ch => ch.Verdict != Verdict.Pass)
             .Select(ch => $"{(ch.Verdict == Verdict.Fail ? "×" : "△")} {ch.Name}：実測{ch.Value}（目標{ch.Target}）").ToList();

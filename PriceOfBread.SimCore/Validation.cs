@@ -22,7 +22,10 @@ public sealed record NationMetrics(
     bool SpawnedDuringPlay = false,   // ★プレイ中に生まれた国（分離独立・内戦分裂）＝WorstSat の対象外
     // ★2026-09-03（H-02 診断）：満足度が 0.00 になる国が出たとき、「受け手が居ないのか／本当に貧しいのか」を
     //   再走せずに切り分けるための最小の内訳。⚠診断専用＝判定には一切使わない。
-    int ActiveRegions = 0, int FoundingRegions = 0, double FoodFill = 0, double PopCount = 0);
+    int ActiveRegions = 0, int FoundingRegions = 0, double FoodFill = 0, double PopCount = 0,
+    // ★2026-09-27 (68)：直近 Validation.SatRecentQuarters 四半期の満足度の平均と振れ幅（最大−最小）。SelfPlayMatch.Run が走行中に読んだ値から書く＝
+    //   履歴を持たない呼び手（Runner の検証レポート・テスト）は NaN＝文言に出さない。⚠診断専用＝判定には一切使わない。
+    double SatRecentMean = double.NaN, double SatRecentSwing = double.NaN);
 
 public sealed record SimMetrics(
     int Year,
@@ -75,7 +78,8 @@ public sealed record SimMetrics(
             NationMetrics? worst = null;
             foreach (var n in Nations) if (!n.SpawnedDuringPlay && (worst is null || n.MeanSatisfaction < worst.MeanSatisfaction)) worst = n;
             if (worst is null) foreach (var n in Nations) if (worst is null || n.MeanSatisfaction < worst.MeanSatisfaction) worst = n;
-            return worst is null ? "" : $"・州{worst.ActiveRegions}/{worst.FoundingRegions}・主食{worst.FoodFill:F2}・人口{worst.PopCount:F0}";
+            return worst is null ? "" : $"・州{worst.ActiveRegions}/{worst.FoundingRegions}・主食{worst.FoodFill:F2}・人口{worst.PopCount:F0}"
+                + (double.IsNaN(worst.SatRecentMean) ? "" : $"・直近{Validation.SatRecentQuarters}四半期 平均{worst.SatRecentMean:F2} 振れ{worst.SatRecentSwing:F2}");   // ★(68) 谷の読みかを添える
         }
     }
 
@@ -191,6 +195,12 @@ public sealed record Check(string Name, Verdict Verdict, string Value, string Ta
 /// </summary>
 public static class Validation
 {
+    /// <summary>★2026-09-27 (68)：「満足度・最小国」に添える直近の四半期の数（平均と振れ幅＝<see cref="NationMetrics.SatRecentMean"/>）。
+    /// ⚠判定は終局の1四半期の値のまま。貯蓄が月収の1〜2か月分しかない国は日用品を買える月と買えない月が交互に来る＝終局の1値が
+    /// 2か月周期の谷を読むことがある（(68) の診断＝r64 の不合格9種のうち8四半期平均が0.05を割ったのは4種）＝計器に限界を自己申告させる。
+    /// 8＝2年＝周期（2か月）の12倍かつ偶奇の四半期を4つずつ含む。報告専用（力学は読まない）。</summary>
+    public const int SatRecentQuarters = 8;
+
     public static List<Check> Evaluate(SimMetrics m)
     {
         var checks = new List<Check>();
