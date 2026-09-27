@@ -149,7 +149,7 @@ public class MilitaryTests
         var castGun = Assert.Single(r.Producers, p => p.GoodId == 81 && p.RecipeName == "鋳鉄砲");
         foreach (var p in new[] { musket, castGun })
         {
-            Assert.Equal(0.0, p.TechOnset);
+            Assert.Equal(1.0, ProductionDiag.TechGate(p.GoodId, p.TechOnset, r.TechLevel));   // 1783年は満額（退場は下の番人）
             Assert.DoesNotContain(p.Inputs, inp => inp.GoodId == 32);   // 鋼を要しない
         }
         double cumulative = 0;
@@ -159,7 +159,8 @@ public class MilitaryTests
 
     /// <summary>★前期の軍需レシピの転換は**費用で**起きる（暦年を書かない）：限界費用はエンジンと同じ式（自己費用＋投入費）。
     /// 鋼が坩堝鋼の値段（ベッセマー以前）ならマスケットが安く、ベッセマー転炉の限界費用まで下がれば既定（鋼）の小銃が安い。
-    /// ⚠火砲はこの形にならない（鋳鉄砲＝鉄1.3＋製材0.3 が、ベッセマーの値段でも既定＝鋼1.0＋機械部品0.5 より安い）＝このテストは小銃だけを固定する。</summary>
+    /// ⚠火砲はこの形にならない（鋳鉄砲＝鉄1.3＋製材0.3 が、ベッセマーの値段でも既定＝鋼1.0＋機械部品0.5 より安い）＝このテストは小銃だけを固定する。
+    /// 火砲（と小銃）の転換は下の「後継の発見で退場する」が固定する（史実の転換は費用でなく性能で起きた）。</summary>
     [Fact]
     public void 小銃の製法の転換は鋼の値段で起きる()
     {
@@ -175,6 +176,45 @@ public class MilitaryTests
         Assert.True(Mc(musket) < Mc(rifle), $"坩堝鋼の値段でマスケットが安くない（マスケット {Mc(musket):F3} / 既定 {Mc(rifle):F3}）");
         r.Markets[32].Price = Mc(bessemer);   // ベッセマー以後＝鋼が安い
         Assert.True(Mc(rifle) < Mc(musket), $"ベッセマーの値段で既定の小銃が安くない（既定 {Mc(rifle):F3} / マスケット {Mc(musket):F3}）＝転換が費用で起きない");
+    }
+
+    /// <summary>★前期の軍需レシピの退場（2026-09-27・回2-1 の続き）：能力に「1 − 後継の解禁度」が乗る
+    /// （TechOnset＝−ベッセマー転炉の onset＝Catalog.RecipeTechScale の負の枝・解禁の仕組みは1本のまま）。
+    /// ①1783年は満額 ②後継の解禁の帯の中は、ちょうど 1 − 後継の解禁度（連続＝崖を作らない）
+    /// ③後継の解禁の後は操業規模も産出も0（未発明と同じ扱い）で、火砲・小銃は発見済みのまま（既定のレシピが引き継ぐ）。</summary>
+    [Fact]
+    public void 前期の軍需レシピは後継の発見で退場する()
+    {
+        var sim = new Simulation(NationConfig.Britain().ToScenario(29), new NullAgent());
+        var w = sim.World; var r = w.Region; var c = w.Coef;
+        var musket = Assert.Single(r.Producers, p => p.GoodId == 82 && p.RecipeName == "マスケット");
+        var castGun = Assert.Single(r.Producers, p => p.GoodId == 81 && p.RecipeName == "鋳鉄砲");
+        var bessemer = Assert.Single(r.Producers, p => p.GoodId == 32 && p.TechOnset > 0);   // 後継を実用にした発見＝鋼の既定レシピ（ベッセマー転炉）
+        var old = new[] { musket, castGun };
+
+        // ①1783年＝後継の onset の手前＝満額
+        Assert.True(r.TechLevel < bessemer.TechOnset, $"前提が崩れている（初期技術 {r.TechLevel:F3}／後継の onset {bessemer.TechOnset:F3}）");
+        foreach (var p in old) Assert.Equal(1.0, ProductionDiag.TechGate(p.GoodId, p.TechOnset, r.TechLevel));
+
+        // ②後継の解禁の帯の中＝1 − 後継の解禁度（連続）
+        foreach (double t in new[] { bessemer.TechOnset + 0.25, bessemer.TechOnset + 0.5, bessemer.TechOnset + 0.75 })
+            foreach (var p in old)
+            {
+                double g = ProductionDiag.TechGate(p.GoodId, p.TechOnset, t);
+                Assert.Equal(1.0 - ProductionDiag.TechGate(32, bessemer.TechOnset, t), g, 12);
+                Assert.True(g > 0 && g < 1, $"{p.RecipeName}：技術 {t:F2} で退場が0か1に潰れている（{g:F3}）＝崖ができている");
+            }
+
+        // ③後継の解禁の後＝操業規模も産出も0・装備は発見済みのまま
+        w.TechLevel = bessemer.TechOnset + 2.0;
+        sim.Run(2);
+        foreach (var p in old)
+        {
+            Assert.Equal(0.0, ProductionDiag.TechGate(p.GoodId, p.TechOnset, r.TechLevel));
+            Assert.True(p.Output == 0.0 && p.Scale == 0.0, $"{p.RecipeName}：後継の解禁の後も産出 {p.Output}／操業規模 {p.Scale}");
+        }
+        Assert.Equal(1.0, EconomyStep.EquipUnlock(r, c, 81));   // 火砲は既定のレシピ（鋼の砲）で作れる＝発見済みのまま
+        Assert.Equal(1.0, EconomyStep.EquipUnlock(r, c, 82));
     }
 
     /// <summary>M4（2026-09-11）：恒常性の信号の分子は上限（MilitaryBudgetCeiling）1本＝旧 Math.Max(Ceiling, Budget) は Budget ≤ Ceiling の単調性で同値。

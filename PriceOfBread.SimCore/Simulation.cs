@@ -1026,23 +1026,28 @@ public sealed class Simulation
         // ★前期の軍需レシピ（2026-09-07・英の軍が立たない根＝armsdebug 実測：1783年の小銃在庫363/目標3696・発注は毎期立つのに60年間充足0.02〜0.09）：
         //   小銃(82)＝鋼0.6＋製材0.4／火砲(81)＝鋼1.0＋機械部品0.5 は鋼を要するが、鋼の既定レシピ（ベッセマー）は onset0.55（≈1858）まで無く坩堝鋼（5倍高い・規模0.05）だけ
         //   ＝軍需は鋼に縛られて作れない。史実のマスケット（錬鉄の銃身）と鋳鉄砲/青銅砲は鋼を要しない＝**時代錯誤の投入**。
-        //   坩堝鋼/錬鉄レールと同じ型で「マスケット」（鉄1.0＋製材0.4）「鋳鉄砲」（鉄1.3＋製材0.3）を TechOnset=0 で並存させる。生産性＝既定×MusketProductivity（前装式・手工程）。
-        //   onset後は鋼が安くなり、小銃は既定（鋼）レシピがコストで自動的に駆逐（1860年代の後装ライフルへの転換が創発）。新しい財は足さない。
-        //   ⚠火砲は転換しない＝鋳鉄砲（鉄1.3＋製材0.3）はベッセマーの限界費用の鋼でも既定（鋼1.0＋機械部品0.5）より安い（1783年の参照価格で 2.50 対 4.10・2026-09-27 回2-1 で確認）。
-        //   ★旗 MusketRecipeEnabled は 2026-09-27 回2-1 で点火して削除＝常に足す（古いセーブは組み立て直さない＝前期レシピの無いまま続く・作者裁定 B13）。全国対称（国名を書かない）。
+        //   坩堝鋼/錬鉄レールと同じ型で「マスケット」（鉄1.0＋製材0.4）「鋳鉄砲」（鉄1.3＋製材0.3）を1783年から満額で並存させる（退場は下）。生産性＝既定×MusketProductivity（前装式・手工程）。
+        //   新しい財は足さない。★旗 MusketRecipeEnabled は 2026-09-27 回2-1 で点火して削除＝常に足す（古いセーブは組み立て直さない＝前期レシピの無いまま続く・作者裁定 B13）。全国対称（国名を書かない）。
+        // ★退場（2026-09-27 回2-1 の続き・(62) の申し送り③）：前期レシピの TechOnset＝−（後継の解禁の onset）＝能力に「1 − 後継の解禁度」が乗る（Catalog.RecipeTechScale の負の枝）。
+        //   後継＝既定のレシピ（鋼の後装施条砲・鋼の小銃）を実用にした発見＝この州の鋼の製法のうち最も遅く解禁されるもの＝ベッセマー転炉（上の鋼の既定レシピ・onset 0.55）。
+        //   根＝火砲は費用で転換しない（鋳鉄砲＝鉄1.3＋製材0.3 はベッセマーの限界費用の鋼でも既定＝鋼1.0＋機械部品0.5 より安い・1783年の参照価格で 2.50 対 4.10）
+        //   ＝1950年まで鋳鉄の前装砲が残っていた。史実の転換（アームストロング1859・クルップ1860年代）は費用でなく性能（射程・発射速度）で起き、1880年以後に鋳鉄の滑腔砲を買う軍は無い。
+        //   小銃も同じ規則の1本（史実の後装銃・施条銃は前装の滑腔銃より高かった＝費用の転換は後押しに過ぎない）。onset は鋼のデータから読む＝新しい係数を作らない。
         Producer? rifleDefault = null, cannonDefault = null;
+        double successorOnset = 0;
         foreach (var pr in producers)
         {
             if (pr.GoodId == 82 && pr.TechOnset <= 0 && rifleDefault is null) rifleDefault = pr;
             else if (pr.GoodId == 81 && pr.TechOnset <= 0 && cannonDefault is null) cannonDefault = pr;
+            else if (pr.GoodId == 32 && pr.TechOnset > successorOnset) successorOnset = pr.TechOnset;
         }
         if (rifleDefault is not null)   // 軍需の無い世界（最小シナリオ）は不発
-            producers.Add(new Producer { GoodId = 82, RecipeName = "マスケット", TechOnset = 0,
+            producers.Add(new Producer { GoodId = 82, RecipeName = "マスケット", TechOnset = -successorOnset,
                 Productivity = rifleDefault.Productivity * coef.MusketProductivity, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa,
                 LaborPopIndex = rifleDefault.LaborPopIndex, OwnerPopIndex = rifleDefault.OwnerPopIndex, RentShare = 1.0, BuysLabor = true,
                 Inputs = [new Input(31, 1.0), new Input(39, 0.4), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(82))] });
         if (cannonDefault is not null)
-            producers.Add(new Producer { GoodId = 81, RecipeName = "鋳鉄砲", TechOnset = 0,
+            producers.Add(new Producer { GoodId = 81, RecipeName = "鋳鉄砲", TechOnset = -successorOnset,
                 Productivity = cannonDefault.Productivity * coef.MusketProductivity, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa,
                 LaborPopIndex = cannonDefault.LaborPopIndex, OwnerPopIndex = cannonDefault.OwnerPopIndex, RentShare = 1.0, BuysLabor = true,
                 Inputs = [new Input(31, 1.3), new Input(39, 0.3), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(81))] });

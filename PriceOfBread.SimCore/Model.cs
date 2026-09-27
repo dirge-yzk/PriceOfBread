@@ -313,7 +313,7 @@ public sealed class Producer
     public bool BuysLabor;         // 労働力（財）を市場から買う工場。労働配分（pop労働の取り合い）に参加せず、賃金でなく労働購入で人を雇う
     public bool IsRgo;             // 自家農家・採取場（土地の生産者）。農業労働力を買い、残余＝地代の行き先が農制（地主/自作）。土地税の課税ベース
     public string RecipeName = ""; // 複数レシピの表示名（例：電力の「石炭火力」「石油火力」）。空＝単一レシピ
-    public double TechOnset;       // この生産者(レシピ)が採用可能になる技術水準（0=無ゲート＝1789年から）。代替レシピで近代側の製法を晩期にゲート＝発明の時期の表現（電化/蒸気のonsetと同型・外科的な暦年ゲートではない）。Catalog.RecipeTechScale で能力に乗る
+    public double TechOnset;       // この生産者(レシピ)が採用可能になる技術水準（0=無ゲート＝1789年から・負＝後継の onset で退場する前期レシピ＝マスケット・鋳鉄砲）。代替レシピで近代側の製法を晩期にゲート＝発明の時期の表現（電化/蒸気のonsetと同型・外科的な暦年ゲートではない）。Catalog.RecipeTechScale で能力に乗る
     public double ElecFill;        // 電化率（0..1・EMA）。電力を買えた工場は稼働率が上がり（夜間操業）労働投入が減る（機械化）。電力が高い/送電網が無いと0
     public double SteamFill;       // 蒸気動力化率（0..1・EMA・電化と同型）。蒸気機関の発明後（SteamScale>0）採算が合えば石炭を焚き稼働率↑（SteamBoost）。1789年は水車/畜力＝0＝無ブースト・石炭を焚かない。電化が安くなると電力が蒸気を代替（(1−ElecFill)）
     public int[] EffGoods = [];    // RGOの効率化材の候補（肥料/帆船/飼料/工具/火薬…）。市場が安い・profit-gateを通る物を毎期選ぶ。空＝なし（工場・役務）。Catalog.RgoBoosterGoods で設定

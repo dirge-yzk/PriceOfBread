@@ -549,10 +549,13 @@ public static class Catalog
     }
 
     /// <summary>レシピ別の技術ゲート（代替レシピの近代側の製法を晩期に解禁＝発明の時期。Producer.TechOnset で指定）。
-    /// onset≤0 は無ゲート（1789年から）。AdvancedTechScale（good複雑度ベース）と同型だが、**同一財の複数レシピを個別にゲート**できる
-    /// （例：紙＝木材パルプ製紙を晩期にゲート／ぼろ布製紙は早期）。暦年でなく内生的技術水準が時計＝外科的でない（電化/蒸気と同思想）。</summary>
+    /// onset=0 は無ゲート（1789年から）。AdvancedTechScale（good複雑度ベース）と同型だが、**同一財の複数レシピを個別にゲート**できる
+    /// （例：紙＝木材パルプ製紙を晩期にゲート／ぼろ布製紙は早期）。暦年でなく内生的技術水準が時計＝外科的でない（電化/蒸気と同思想）。
+    /// ★onset&lt;0 は**退場**＝後継の解禁度を引いた割合 <c>1 − RecipeTechScale(−onset)</c>（2026-09-27 前期の軍需レシピ）。
+    ///   同じ時計・同じ幅の裏返し＝能力・未発明の判定・操業規模0・生産タブの灰色化の全てが、この1本から退場を読む（新しい判定を作らない）。</summary>
     public static double RecipeTechScale(double onset, double techLevel)
-        => onset <= 0 ? 1.0 : System.Math.Clamp((techLevel - onset) / AdvancedTechWidth, 0.0, 1.0);
+        => onset < 0 ? 1.0 - System.Math.Clamp((techLevel + onset) / AdvancedTechWidth, 0.0, 1.0)
+         : onset <= 0 ? 1.0 : System.Math.Clamp((techLevel - onset) / AdvancedTechWidth, 0.0, 1.0);
 
     /// <summary>デフォルトレシピ（goods.json の Inputs）が「近代的な製法」で1789年には時代錯誤になる財の技術 onset。
     /// 旧法は AddAdvancedProducers / 合成ビルダーが onset=0 の代替レシピで早期供給する＝早期は旧法・晩期は近代法（創発的な製法転換）。0=無ゲート（大半の財）。</summary>

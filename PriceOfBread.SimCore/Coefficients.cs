@@ -1996,7 +1996,7 @@ public sealed class Coefficients
     public double CrucibleSteelEnabled = 1.0;   // 第7段第1波③点火（2026-07-28・#17較正後の再点火＝過去差し戻しは帯のみが理由）：坩堝鋼/ベッセマー不連続＝1783年から安価な鋼が在る現状を直し製鋼転換が時代を刻む（鋼原価+77%が機械〜工業財連鎖へ波及）。0で恒等
     // ★前期の軍需レシピ（2026-09-07 器・2026-09-27 回2-1 で旗ごと点火＝常に並存）：小銃/火砲の鋼を要しない前期レシピ（マスケット＝鉄＋製材／鋳鉄砲＝鉄＋製材）を坩堝鋼と同じ型で並存（Simulation.AddAlternateRecipes）。
     //   根＝armsdebug（英 seed1）：1783〜1858年は鋼が坩堝鋼しか無く小銃が需要の5%＝英が動員するたび軍事力0＝ダホメ/ヴェネツィアに属国化・1870年代の完敗・植民地州の喪失。
-    public double MusketProductivity = 0.8;     // 前期レシピの生産性＝既定（鋼）レシピ比（前装式・手工程）。鋼が安くなると小銃は既定がコストで勝つ＝転換が創発（⚠火砲は鋳鉄砲が安いまま＝Simulation.AddAlternateRecipes の注記）
+    public double MusketProductivity = 0.8;     // 前期レシピの生産性＝既定（鋼）レシピ比（前装式・手工程）。後継（ベッセマー転炉）の解禁度だけ前期レシピの能力が退く＝小銃・火砲とも退場（2026-09-27・Simulation.AddAlternateRecipes の注記）
     public double LandRoomFertilityCap = 0.6;      // B-高2（史実検証2026-07-22・**2026-07-23点火**）：landRoom の上限＝世界の技術水準出生倍率−1。旧1e9＝実質無上限で、米は西部解錠後 landRoom≈3.7＝出生倍率4.7倍→年6.4%成長（史実3.09%・人類最大の観測値フッター派約4.0%）＝生物学的に不可能だった。0.6＝倍率1.6（米CBR約55/1000÷基準35/1000）
     public double LandAnchorCapacityWeight = 1.0;   // 人2c 土地アンカー（2026-07-11・#17級）：capacityBaselineへ＋これ×max(0, Σ耕地/(1−都市化)−capacityBaseline)＝土地が養える人口を天井に（米25×の構造解・下方向なし・センチネル除外で較正厳密恒等）。0で休眠
     public double SanitationCapacityWeight = 0.4; // **衛生の扶養力連結（近代公衆衛生→死亡率低下）**：sanitation=上下水道(InfraFill)+石鹸(SoapFill)+電化(ElecInfraFill)の人口加重∈[0,1]。capacity に +これ×都市化×(sanitation−1) ＝不衛生な都市で疫病死↑→扶養力↓。**都市化で按分**＝疫病は過密の問題（既存の疫病圧 (都市人口/人口)×(1−衛生) と一貫・農村は影響小）。施設/石鹸の無い世界は sanitation=1.0 で中立（較正温存）。19世紀の死亡率低下の主因は医療より衛生＝直接チャネル
