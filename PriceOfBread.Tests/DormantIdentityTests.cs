@@ -59,7 +59,7 @@ public class DormantIdentityTests
         "MineralCostFollowsGrade",      // ★器（2026-09-07）＝鉱脈の倍率を鉱物RGOの限界費用にも通す（EconomyStep.MineralSelfCost）。0＝鉱脈で割らない＝厳密恒等
         "EndowmentCostFollowsAbundance",   // ★器（2026-09-08）＝賦存倍率>1 の州の自己費用を賦存で割る（Simulation.ApplyEndowment）。0＝MarginalCost そのまま＝厳密恒等
         "EndowmentCostFollowsScarcity",    // ★器（2026-09-08）＝賦存倍率<1（非産地0.4）の州の自己費用を上げる（同上）。0＝上げない＝厳密恒等
-        "FacilityBuildOutlayIncludesMaterial",   // 裁定②の安全弁＝AIの工事出費の律速に素材を数える（0＝工賃だけ）。FactoryBuildPriceGateScale は既定1.0＝恒等
+        // ★FacilityBuildOutlayIncludesMaterial（裁定②の安全弁）は 2026-09-27 線2 で**点火**（旗ごと削除）＝この表から外した。
         "FactoryBuildRefIsReal",        // 進捗/素材ゲートの参照束を実質（×PriceLevel）へ＝兄弟ゲートと同じ物差し（0＝名目＝旧恒等）
         // ★PriceLawSupplyIncludesStock と TradeBuyerSolvesAtUnitPrice は 2026-09-08 に 1.0 で**対で点火**（腕 price2b）＝この表から外した。
         "WorldPriceStatUnclamped",      // 表示用の世界価格統計のクランプを外す（0＝旧式）
@@ -85,7 +85,7 @@ public class DormantIdentityTests
         "ColonialRegionSettlement",     // 実バグ B1＝植民地格の州への入植と Integrated 昇格
         "ColonyDevCostFromRegion",      // 実バグ B2＝植民地格の州の奪取コストが州の開発度を読む
         // ★EquipNeedsDiscovery（装備の発見）は 2026-09-27 回2-1 で**点火**（旗ごと削除）＝この表から外した。
-        "AdoptExpertiseWeight", "InnovateExpertiseWeight", "TeacherQualityWeight", "EduFundingCashClamp", "CatchupContactWeight",   // 知識と人的資本の経路（作者採用2026-09-06）＝0で従来
+        "AdoptExpertiseWeight", "InnovateExpertiseWeight", "TeacherQualityWeight", "CatchupContactWeight",   // 知識と人的資本の経路（作者採用2026-09-06）＝0で従来（★EduFundingCashClamp は 2026-09-27 線2 で点火・旗ごと削除）
         "EduReachFromAdmin",            // 特権 段1（作者裁定2026-09-08）＝義務教育の国庫給付の天井に行政の充足率（0で×1.0＝給付は行政を見ない＝従来）
         "EduProducersCoexist",          // ★教育の三層化 段1 器（2026-09-12）＝教区学校（聖職者・紙）と公立学校（教師・書籍）を常設2件で並置し教育法を非活性側の Scale=0 へ降格。
                                         //   0＝AddServiceProducers が従来の1件だけを add・StepMonth の月次差し替えがそのまま走る・EconomyStep は Scale を読まない＝ビット恒等。点火は段3（batch30 単独＋savetest）

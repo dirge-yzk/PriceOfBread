@@ -1528,7 +1528,7 @@ public sealed class World
 
     /// <summary>建設の進行（**日次**）。1日ぶんの労務費を払えた日だけ1日進む（払えなければ停滞）。完成で BuiltScale が1棟増える。国庫→工員で保存。</summary>
     /// <summary>★裁定②の安全弁（2026-09-07）：建設中の1棟の**素材**の月次支出＝現在の州価格×必要量（AccumulateFactoryBuild と同じ量の式）。
-    /// AIの工事出費の律速が FacilityBuildOutlayIncludesMaterial>0 で読む。素材市場の無い世界は0。</summary>
+    /// AIの工事出費の律速（SelfPlay.TryBuildFacility）が読む（2026-09-27 に旗 FacilityBuildOutlayIncludesMaterial を焼き込み）。素材市場の無い世界は0。</summary>
     public static double ConstructionMaterialPerMonth(Region r, Producer p, Coefficients c)
     {
         int nm = r.Markets.Length;

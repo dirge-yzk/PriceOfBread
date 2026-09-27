@@ -240,6 +240,39 @@ public class FiscalTests
         new BondLedger().Check(x); new BondLedger().Check(y);
     }
 
+    /// <summary>★減債の線＝借入の線（2026-09-27・線2）。借金ボタンは「国庫＜維持費＋利払い（LastUpkeep＋LastInterest）」で押される（SelfPlay）。
+    /// 減債も同じ線＝(1) 国庫がその帯（維持費＜国庫＜維持費＋利払い）にある月は返さない (2) 返した後の国庫は借入の線を割らない。
+    /// 旧＝維持費だけの線＝帯の中で借りながら返していた（借入のある国×四半期の81%）。双子：p＝今月の義務を読むだけ・t＝減債なし・b＝減債あり。</summary>
+    [Fact]
+    public void 減債の線は借入の線と同じ()
+    {
+        World Board() { var x = QuietBritain(); x.Coef.BondRepayFrac = 0; x.RequestBorrow(); Fiscal.Step(x, x.Coef); return x; }
+        void SetTreasury(World x, double v) => x.Pay(TreasuryCat.OtherIn, v - x.Treasury);
+        var p = Board();
+        double debt = p.GovDebt;
+        Assert.True(debt > 0, "前提が崩れた：起債が立っていない");
+        Fiscal.Step(p, p.Coef);                           // 今月の義務（維持費・利払い）は国庫に依らない＝双子の同じ月の値
+        double u = p.LastUpkeep, i = p.LastInterest;
+        Assert.True(i > 0, "前提が崩れた：利払いが0");
+        // (1) 帯の中＝返さない
+        var t = Board(); var b = Board();
+        foreach (var x in new[] { t, b }) SetTreasury(x, 2 * u + 1.5 * i);   // 利払いと維持費を払った後に「維持費＋利払いの半分」が残る
+        t.Coef.BondRepayFrac = 0; b.Coef.BondRepayFrac = 1.0;
+        Fiscal.Step(t, t.Coef); Fiscal.Step(b, b.Coef);
+        Assert.Equal(i, t.LastInterest); Assert.Equal(u, t.LastUpkeep);
+        Assert.True(t.Treasury > u && t.Treasury < u + i, $"前提が崩れた：国庫 {t.Treasury} が帯（{u}〜{u + i}）にない");
+        Assert.Equal(t.GovDebt, b.GovDebt);               // 借入の線を割る国庫からは返さない
+        Assert.Equal(t.Treasury, b.Treasury);
+        // (2) 帯の上＝返すが、返した後の国庫は借入の線に止まる
+        var t2 = Board(); var b2 = Board();
+        foreach (var x in new[] { t2, b2 }) SetTreasury(x, 2 * (u + i) + 0.5 * debt);
+        t2.Coef.BondRepayFrac = 0; b2.Coef.BondRepayFrac = 1.0;
+        Fiscal.Step(t2, t2.Coef); Fiscal.Step(b2, b2.Coef);
+        Assert.True(b2.GovDebt < t2.GovDebt - 1e-9 * debt, "前提が崩れた：帯の上で減債が起きていない");
+        Assert.True(b2.Treasury >= b2.LastUpkeep + b2.LastInterest - 1e-9 * debt,
+            $"返した後の国庫 {b2.Treasury} が借入の線 {b2.LastUpkeep + b2.LastInterest} を割った＝次の四半期に借りる");
+    }
+
     [Fact]
     public void 国債台帳_階級移動と州間移動と長い走で不変条件が保たれる()
     {

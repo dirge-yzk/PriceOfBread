@@ -1960,7 +1960,7 @@ public sealed class Simulation
                 // 史実の公教育は共同体が教師俸給を払い親も一部払う混合財政（プロイセン無償化1888・仏1881・英1891）＝定義的特徴は歳出項目化。PublicEduFundingShare=0 で旧挙動と厳密一致。
                 r.CompulsoryEduFunding = (World.EducationLaw == EducationLaw.Compulsory ? World.EducationSpending
                     : World.EducationLaw == EducationLaw.Public ? World.Coef.PublicEduFundingShare * World.EducationSpending : 0)
-                    * (World.Coef.EduFundingCashClamp > 0 ? StateBudgetCashScale() : 1.0)   // ★段7（知識doc §3-3）：軍事費・行政費と同じ国庫現金クランプ（抜けていた実バグ）。0 で
+                    * StateBudgetCashScale()   // ★段7（知識doc §3-3）：軍事費・行政費と同じ国庫現金クランプ（抜けていた実バグ・2026-09-27 に旗 EduFundingCashClamp を焼き込み）
                     * Politics.RuleReach(r, World.Coef);   // ★支配度 段4（2026-09-07）：公共財の到達＝国家区分に比例（RuleSharesReach=0 で ×1＝恒等）。0 で従来
                 if (r.EducationProducerIndex >= 0)
                 {
@@ -2492,7 +2492,7 @@ public sealed class Simulation
     }
 
     /// <summary>他12（監査2026-07-11・2026-07-25休眠配線）：StateSpent精算（軍需調達・行政購買）が国庫残高で律速されず、Treasuryが負に落ちても
-    /// 債務計上も利払いもなく翌月税収で黙って埋まる当座借越＝借入・切下げ・デフォルトという財政規律機構の静かな迂回。1で両予算を
+    /// 債務計上も利払いもなく翌月税収で黙って埋まる当座借越＝借入・切下げ・デフォルトという財政規律機構の静かな迂回。1で軍需・行政（と教育＝2026-09-27 に EduFundingCashClamp を焼き込み）の予算を
     /// 「いま国庫にある現金」で比例縮小（財1の福祉クランプと同じ規律を第一請求権側にも・購入が立たない分は市場に残る＝保存非接触）。既定0＝縮小なし＝現行と厳密一致。</summary>
 
     /// <summary>支出反射のインフラ拡張（2026-08-08）：行政・軍需の実支出は**需要でキャップ**され国庫が減らない
@@ -2693,7 +2693,13 @@ public sealed class Simulation
                     double mintWage = (uint)p.LaborPopIndex < (uint)r.Pops.Count && p.LaborPopIndex != p.OwnerPopIndex
                         ? share * Math.Clamp(World.Coef.MintWageShare, 0, 1) : 0;
                     if (mintWage > 0) r.Pops[p.LaborPopIndex].Savings += mintWage;
-                    r.Pops[p.OwnerPopIndex].Savings += share - mintWage;
+                    // ★2026-09-27（線2・国営持分の対称）：所有者の取り分のうち国営持分（World.StateProfitShare＝唯一の定義）は国庫へ。
+                    //   赤字の側（EconomyStep の「国営持分の赤字は国庫が負う」）と同じ持分＝旧は費用だけが国庫・造幣の代金は貴族と農民へ
+                    //   （s4 の英＝国有化したロンドンの銀山が黒字なのに国庫が 1931〜50 負のまま）。受け手が変わるだけ＝BaseMoney と鋳造の台帳は不変。
+                    double ownCut = share - mintWage;
+                    double stateCut = ownCut * World.StateProfitShare(p, r, World.Coef);
+                    if (stateCut > 0) World.Pay(TreasuryCat.StateFactory, stateCut); else stateCut = 0;
+                    r.Pops[p.OwnerPopIndex].Savings += ownCut - stateCut;
                 }
             m.Stock -= qty; m.LastSold += qty;        // 造幣局への引き取り＝GoodsBalance不変（Stock−／LastSold＋で対称）
             // ★★準備需要を**需要として計上する**（2026-08-13・実測で発見した会計の欠落）。

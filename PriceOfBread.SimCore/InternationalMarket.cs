@@ -78,7 +78,10 @@ public sealed partial class InternationalMarket
     // ★2026-09-26（高速化・厳密恒等）：その財の生産者の列（元の順）と totalOut を、呼び手が持つ記憶（ownPr/ownTotal＝清算の局所・州×財ごと）へ
     //   初回だけ作って返し、2回目からは州の全生産者（約150）を2周しない。清算の中で Producers・Output・OwnerPopIndex・Pops の数を変える行は無い
     //   （変わるのは Savings だけ）＝同じ部分列を同じ順で足す＝浮動小数も同一。旧＝成約ごとに全生産者を2周（成約は全長で3.16億回）。
-    internal static double PayExportToProducers(Region r, int goodId, double amount, ref Producer[]? ownPr, ref double ownTotal)
+    // ★2026-09-27（線2・国営持分の対称）：各生産者の取り分のうち国営持分（World.StateProfitShare＝唯一の定義）は国庫へ（TreasuryCat.StateFactory）。
+    //   赤字の側（EconomyStep の「国営持分の赤字は国庫が負う」）と同じ持分＝旧は国有化した輸出産業の費用だけが国庫・代金は所有者POPへ（分子と分母の非対称）。
+    //   受け手が変わるだけ（どちらも同じ国の BaseMoney）＝返す額・呼び手の台帳（directLedger→CumulativeTradeFlow・買い手の引き落とし）は不変。
+    internal static double PayExportToProducers(Region r, int goodId, double amount, ref Producer[]? ownPr, ref double ownTotal, World w)
     {
         if (amount <= 1e-12) return 0.0;
         if (ownPr is null)
@@ -94,7 +97,9 @@ public sealed partial class InternationalMarket
         foreach (var pr in ownPr)
         {
             double sh = Math.Max(0, pr.Output) / ownTotal;
-            r.Pops[pr.OwnerPopIndex].Savings += amount * sh; paid += amount * sh;
+            double stateCut = amount * sh * World.StateProfitShare(pr, r, w.Coef);
+            if (stateCut > 0) w.Pay(TreasuryCat.StateFactory, stateCut); else stateCut = 0;
+            r.Pops[pr.OwnerPopIndex].Savings += amount * sh - stateCut; paid += amount * sh;
         }
         return paid;
     }

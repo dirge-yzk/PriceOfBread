@@ -199,7 +199,7 @@ public sealed class Coefficients
     public double AdoptExpertiseWeight = 0.0;     // 段3：採用（コピー）の吸収の識字項を 広さ^(1−a)×厚み^a へ。a は小さく（読める職工でコピーはできる）。厚み＝Expertise÷世界先端
     public double InnovateExpertiseWeight = 0.0;  // 段3：革新に厚み^b を掛ける（大学が無ければ先端は押せない）。b は大きく
     public double TeacherQualityWeight = 0.0;     // 段5：教育の生産性×(1+これ×(教師の識字×教師の高等教育充足−1))＝師範学校の効果
-    public double EduFundingCashClamp = 0.0;      // 段7：教育の国庫購入に StateBudgetCashScale を掛ける（軍事費・行政費と同じ＝抜けていた実バグ）。⚠非恒等＝単独計測・採用時はゲートを外す
+    // ★段7 EduFundingCashClamp（教育の国庫購入に StateBudgetCashScale を掛ける＝軍事費・行政費と同じ）は 2026-09-27（線2）に点火して焼き込み（旗ごと削除・一覧の前提バグ E1）。
     public double CatchupContactWeight = 0.0;     // 段8：後追いの天井 = 先端×catchFrac×(1−これ×(1−接触度))。AdoptionCeiling の床には掛けない（鎖国で原始に戻らない）
     // ★行政を通る教育給付（作者裁定2026-09-08）：義務教育の国庫肩代わりの**天井にだけ**行政の充足率を掛ける＝1−これ×(1−AdminFill)。
     //   就学督促・教員俸給の支払・校舎の設置は地方行政の実体が要る（法を布告しても村に届かない）。0 で ×1.0＝厳密恒等。
@@ -1170,9 +1170,8 @@ public sealed class Coefficients
         double a = FactoryBuildAfford(cpuNow, cpuRef);
         return FactoryBuildPriceGateScale < 1.0 ? 1.0 - System.Math.Max(0, FactoryBuildPriceGateScale) * (1.0 - a) : a;
     }
-    // ★裁定②の安全弁（同日）：AIの工事出費の律速（FacilityBuildOutlayShare×財政バッファ）に**素材の月次支出**（現在の州価格）を数える。
-    //   旧＝工賃だけ＝素材が高い時期に B で工事が止まらなくなると国庫が素材で流出する（R16＝工事の重なりで軍事独裁53%の再来を防ぐ）。0＝工賃だけ＝恒等。
-    public double FacilityBuildOutlayIncludesMaterial = 0.0;
+    // ★裁定②の安全弁（同日）：AIの工事出費の律速に素材の月次支出を数える旗 FacilityBuildOutlayIncludesMaterial は 2026-09-27（線2）に点火して焼き込み（旗ごと削除）
+    //   ＝SelfPlay.TryBuildFacility が常に World.ConstructionMaterialPerMonth を足す（工事費の6割＝FactoryMaterialFrac が律速から漏れていた）。
     public double SoeSaleYears = 5.0;             // 国営工場の民間売却価格＝年間利益×これ（資本家の貯蓄が足りないと売れない＝レッセフェール移行のゲート）
     // 工業化由来の生産性＝1 + Gain×工業化度/(1+工業化度/Scale)。固定上限を持たず Scale で逓減（飽和）し頭打ち。
     public double IndProductivityGain = 1.2;      // 低工業化度での生産性の伸び（飽和カーブの初期傾き）

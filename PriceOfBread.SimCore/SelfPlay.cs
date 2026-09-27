@@ -990,7 +990,7 @@ public sealed class UtilityAgent : INationAgent
                 if (pr0.ConstructionLeft > 0)
                 {
                     monthlyBuild += pr0.ConstructionPayPerDay * Calendar.DaysPerMonth;
-                    if (w.Coef.FacilityBuildOutlayIncludesMaterial > 0) monthlyBuild += World.ConstructionMaterialPerMonth(rg0, pr0, w.Coef);   // ★裁定②の安全弁＝素材も律速に数える（0＝工賃だけ＝恒等）
+                    monthlyBuild += World.ConstructionMaterialPerMonth(rg0, pr0, w.Coef);   // ★裁定②の安全弁＝素材も律速に数える（2026-09-27 焼き込み＝工事費の6割が律速から漏れていた）
                 }
                 int pw = Math.Max(0, pr0.StateTarget - World.StateUnits(pr0, w.Coef));
                 pendingWill += pw;
@@ -1088,7 +1088,7 @@ public sealed class UtilityAgent : INationAgent
             if (bp.ConstructionLeft > 0)
             {
                 monthlyBuild += bp.ConstructionPayPerDay * Calendar.DaysPerMonth;
-                if (w.Coef.FacilityBuildOutlayIncludesMaterial > 0) monthlyBuild += World.ConstructionMaterialPerMonth(w.Regions[ri], bp, w.Coef);
+                monthlyBuild += World.ConstructionMaterialPerMonth(w.Regions[ri], bp, w.Coef);
             }   // その月に始まった工事だけを律速へ（拒まれた月は目標が残り月次で再挑戦＝従来どおり）
         }
     }

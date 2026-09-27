@@ -804,7 +804,7 @@ public static class EconomyStep
             }
             // プレイヤーの工場建設（特定財）＝共通ヘルパーへ抽出（2026-08-09・capゲート穴の閉鎖）。式・順序は抽出前と同一＝
             // CapitalEnabled=true の州ではビット恒等。材料需要は国庫負担の物理＝資本区画の有無と無関係（非cap州は下のelse分岐が同じ式で積む）。
-            AccumulateFactoryBuild(region, coef, investDemand, ref factoryBuildUnits, ref factoryTierUnits);
+            AccumulateFactoryBuild(region, coef, investDemand, ref factoryBuildUnits, ref factoryTierUnits, world);
             bool railLoco = coef.RailGoodId < ng && coef.LocoGoodId < ng;
             // 鉄道インフラ：工業化に伴い敷設（線路・機関車を消費）。死蔵解消＋資本財段へ波及（機関車←蒸気機関←機械部品）
             if (railLoco)
@@ -863,7 +863,7 @@ public static class EconomyStep
         {
             // capゲート穴の閉鎖（2026-08-09）：資本区画のない州（または投資家pop不在）でも着工中の工場は材料を買う。
             // 従来は材料費ゼロ・工賃のみで完成する抜け道（素材階層+αの導入で価値が増すため恒久閉鎖）。
-            AccumulateFactoryBuild(region, coef, investDemand, ref factoryBuildUnits, ref factoryTierUnits);
+            AccumulateFactoryBuild(region, coef, investDemand, ref factoryBuildUnits, ref factoryTierUnits, world);
         }
 
         // 軍需調達：国家が軍需財を消費（平時の維持＋戦時増）。財源＝国庫（予算内に収める）。消費が入力へ波及（火薬/鉛/帆船…）。
@@ -2564,9 +2564,14 @@ public static class EconomyStep
     /// <summary>工場建設（着工中Producer）の材料需要（既存4材束＋素材階層+α）を積む。
     /// 2026-08-09にcapブロックから抽出＝資本区画のない州で材料費ゼロのまま工場が完成する潜在罠の閉鎖（建設経路調査の発見）。
     /// 実ゲームの全州生成経路（初期/辺境/植民地昇格）はCapitalEnabled=true＝挙動不変（将来の州生成経路への保険）。
-    /// 価格読みと式は抽出前のcapブロックと同一表現＝cap州でビット恒等。</summary>
-    private static void AccumulateFactoryBuild(Region region, Coefficients coef, double[] investDemand, ref double factoryBuildUnits, ref double factoryTierUnits)
+    /// 価格読みと式は抽出前のcapブロックと同一表現＝cap州でビット恒等。
+    /// ★2026-09-27（線2・国庫の門）：材料は**工事が進むときだけ**買う＝工賃の日次の門（<see cref="World.StepConstruction"/> の
+    /// 「国庫＜1日分の工賃×採算率なら進まない」）と同じ述語。旧＝国庫を見ずに毎月買った＝工賃で止まった工事が材料だけを買い続け、
+    /// 取り消しの動詞も無いので国庫が負のまま戻らない吸収状態になった（5年以上の負の国庫22件中20件・分離国が建国の四半期に沈む型）。
+    /// 工事はそのまま待ち、国庫が戻れば材料も工賃も再開する。world=null（較正・単体テスト）は国庫が無い＝門なし＝恒等。</summary>
+    private static void AccumulateFactoryBuild(Region region, Coefficients coef, double[] investDemand, ref double factoryBuildUnits, ref double factoryTierUnits, World? world)
     {
+        double treasury = world?.Treasury ?? double.PositiveInfinity;
         double sP = Math.Max(region.Markets[coef.SteelGoodId].Price, Eps);
         double mP = Math.Max(region.Markets[coef.MachineGoodId].Price, Eps);
         double cP = Math.Max(region.Markets[coef.CementGoodId].Price, Eps);
@@ -2581,6 +2586,7 @@ public static class EconomyStep
         foreach (var cs in region.Producers)
             if (cs.ConstructionLeft > 0)
             {
+                if (!(treasury >= cs.ConstructionPayPerDay * buildAfford)) continue;   // 工事が進まない月は材料を買わない（否定形＝NaN は買わない側）
                 var fs = Catalog.FactorySpec(cs.GoodId);
                 double conMonths = Math.Max(1.0, fs.Quarters * (double)Calendar.MonthsPerQuarter);                              // 建設の月数（四半期×3）
                 double u = coef.FactoryMaterialFrac * fs.Cost / conMonths / Math.Max(Eps, costPerUnitRef) * buildAfford;   // 素材の必要量×採算率＝支払いは量×現在価格＝真の価格依存

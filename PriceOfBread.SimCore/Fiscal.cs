@@ -446,10 +446,13 @@ public static class Fiscal
         // ★撤去2026-08-16（C2-C5）：汚職根絶費の実支払い（acPay→官僚popへ俸給分配・TreasuryCat.AntiCorruption 記帳・LastAntiCorruptionCost 診断）を物理削除。
         //   V2点火2026-08-15で請求が恒等0＝この支払いは一度も走らない死骸だった。TreasuryCat.AntiCorruption の enum 値自体は台帳の添字互換のため残置（払い手ゼロ＝表示は0行フィルタで出ない）。
 
-        // 減債：維持費の上に余剰があれば返済（健全国は減債＝スパイラル回避）。金利＝基礎＋×(債務/GDP)。
-        if (w.GovDebt > 1e-9 && w.Treasury > upkeep)
+        // 減債：強制義務（維持費＋利払い）の上に余剰があれば返済（健全国は減債＝スパイラル回避）。金利＝基礎＋×(債務/GDP)。
+        // ★2026-09-27（線2）：線を借入の線（SelfPlay の借金ボタン＝国庫＜LastUpkeep＋LastInterest で借りる）にそろえる。
+        //   旧＝維持費だけの線＝国庫が「維持費＜国庫＜維持費＋利払い」の帯では同じ四半期に借りながら返していた（借入のある国×四半期の81%）。
+        //   条件と返済額の両方を同じ基準へ＝返した後の国庫が借入の線を割らない。
+        if (w.GovDebt > 1e-9 && w.Treasury > upkeep + interest)
         {
-            double repay = Math.Min(w.GovDebt * c.BondRepayFrac, w.Treasury - upkeep);
+            double repay = Math.Min(w.GovDebt * c.BondRepayFrac, w.Treasury - (upkeep + interest));
             // ★AUD-09（監査2026-09-02 low・2026-09-03投入）：⚠ここは**元本**の按分なのに、上で作った**利払い**の按分
             //   （foreignDebtFrac＝金建て負担 goldDebtBurden で分子だけ膨らませた比）を流用していた＝分子と分母が別規則。
             //   元本の台帳 `ForeignDebt` は自国通貨建てなので、正しい按分は膨らませていない `foreignShare`。

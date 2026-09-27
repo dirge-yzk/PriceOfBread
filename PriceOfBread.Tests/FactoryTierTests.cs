@@ -188,4 +188,37 @@ public class FactoryTierTests
         }
     }
 
+    /// <summary>★国庫の門（2026-09-27・線2）：材料は工事が進むときだけ買う＝工賃の日次の門（World.StepConstruction）と同じ述語。
+    /// 3世界の単月切り分け：C＝建設なし・A＝建設中で国庫が負・B＝建設中で国庫が正。A は C と1ビットも違わない（材料の需要も国庫負担も立たない）。
+    /// B は材料が立つ＝門が「いつも閉じている」空の番人でないことの対照。旧＝国庫を見ずに毎月買った＝止まった工事が材料だけを買い続けた。</summary>
+    [Fact]
+    public void 国庫が負のとき着工中の工場は材料を買わない()
+    {
+        var sA = new Simulation(Fr(11), new NullAgent());
+        var sB = new Simulation(Fr(11), new NullAgent());
+        var sC = new Simulation(Fr(11), new NullAgent());
+        sA.Run(40); sB.Run(40); sC.Run(40);
+        var rA = sA.World.Regions[0]; var rB = sB.World.Regions[0]; var rC = sC.World.Regions[0];
+        int sg = sA.World.Coef.SteelGoodId;
+        var spec = Catalog.FactorySpec(sg);
+        double days = Math.Max(1, spec.Quarters) * (double)Calendar.DaysPerQuarter;
+        double payPerDay = (1.0 - sA.World.Coef.FactoryMaterialFrac) * spec.Cost / days;   // BuildFactory と同じ1日分の工賃
+        foreach (var r in new[] { rA, rB })
+        {
+            var p = World.FindFactory(r, sg);
+            Assert.NotNull(p);
+            p!.ConstructionLeft = days; p.ConstructionPayPerDay = payPerDay;
+        }
+        foreach (var s in new[] { sA, sC }) s.World.Pay(TreasuryCat.OtherOut, -(s.World.Treasury + 1000.0));   // 国庫＝−1000（A と C は同じ）
+        Assert.True(sA.World.Treasury < 0 && sC.World.Treasury == sA.World.Treasury, "前提が崩れた：A と C の国庫が同じ負の値でない");
+        Assert.True(sB.World.Treasury >= payPerDay, "前提が崩れた：B の国庫が1日分の工賃に届かない");
+        EconomyStep.Run(rA, sA.World.Coef, 1.0, null, sA.World);
+        EconomyStep.Run(rB, sB.World.Coef, 1.0, null, sB.World);
+        EconomyStep.Run(rC, sC.World.Coef, 1.0, null, sC.World);
+        Assert.True(rB.Markets[sg].LastDemand > rC.Markets[sg].LastDemand + 1e-9, "前提が崩れた：国庫が正でも建設材料の需要が立たない");
+        foreach (int g in new[] { sg, sA.World.Coef.MachineGoodId, sA.World.Coef.CementGoodId, sA.World.Coef.LumberGoodId })
+            Assert.Equal(rC.Markets[g].LastDemand, rA.Markets[g].LastDemand);   // 国庫が負＝材料の需要は建設なしとビット一致
+        Assert.Equal(rC.StateSpent, rA.StateSpent);                             // 国庫負担（材料の決済）も立たない
+    }
+
 }

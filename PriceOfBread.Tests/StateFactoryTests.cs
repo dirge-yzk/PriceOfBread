@@ -455,4 +455,73 @@ public class StateFactoryTests
         }
         Assert.Equal((st, pv), w.NationFactoryUnits(32));   // カードの分子＝全国工場目標の分子（式は1本）
     }
+
+    // ★国営持分の対称（2026-09-27・線2）：赤字の側（EconomyStep の「国営持分の赤字は国庫が負う」）と同じ持分（World.StateProfitShare＝唯一の定義）で、
+    //   市場の外で生産者へ直接払われる代金（輸出代金の分配・造幣局の買い）も国庫へ入る。旧＝費用だけが国庫・代金は所有者POPへ（s4 の英の国有の銀山）。
+
+    [Fact]
+    public void 国営持分の輸出の代金は持分の割合だけ国庫へ()
+    {
+        var w = Warm(2055).World;
+        var r = w.Regions[0];
+        var p = Steel(r);
+        foreach (var q in r.Producers) if (q.GoodId == 32) q.Output = 0;   // 按分を1本に閉じる（この生産者が全額の取り分）
+        p.Output = 1.0;
+        if (!(p.Scale > 1e-6)) p.Scale = 1.0;
+        p.BuiltScale = 0.5 * p.Scale;                                         // 国営持分 1/2
+        double f = World.StateProfitShare(p, r, w.Coef);
+        Assert.True(Math.Abs(f - 0.5) < 1e-12, $"前提が崩れた：国営持分が 1/2 でない（{f}）");
+        double amount = 1000.0;
+        double t0 = w.Treasury, led0 = w.TreasuryLedger[(int)TreasuryCat.StateFactory], own0 = r.Pops[p.OwnerPopIndex].Savings, base0 = w.BaseMoney;
+        Producer[]? ownPr = null; double ownTotal = 0;
+        double paid = InternationalMarket.PayExportToProducers(r, 32, amount, ref ownPr, ref ownTotal, w);
+        Assert.Equal(amount, paid, 9);                                                  // 返す額（呼び手の台帳 directLedger・買い手の引き落とし）は不変
+        Assert.Equal(amount * f, w.Treasury - t0, 9);                                    // 持分の割合だけ国庫へ
+        Assert.Equal(amount * f, w.TreasuryLedger[(int)TreasuryCat.StateFactory] - led0, 9);   // 区分＝国営工場
+        Assert.Equal(amount * (1 - f), r.Pops[p.OwnerPopIndex].Savings - own0, 9);       // 残りが所有者POPへ
+        Assert.Equal(amount, w.BaseMoney - base0, 6);                                    // 受け手が変わるだけ＝同じ国の基礎貨幣が同額増える
+    }
+
+    [Fact]
+    public void 国営持分の造幣の代金は持分の割合だけ国庫へ()
+    {
+        var sim = new Simulation(NationConfig.France().ToScenario(1), new NullAgent());   // MoneyThemeTests の造幣局の盤面と同じ（密閉1国）
+        var w = sim.World;
+        Assert.True(w.Coef.MintPriceFloorGate > 0 && w.Coef.StandardMetalMintGate > 0, "前提＝床モードと本位金属が live");
+        w.Coef.MintBuysAtMarket = 0; w.Coef.MintFloorRespectsReserve = 0; w.Coef.MintParitySells = 0;   // 隔離＝平価の持ち込み（床）だけ
+        w.MonetaryLaw = MonetaryStandardLaw.Silver;
+        int ag = Catalog.SilverId;
+        Region? r = null; Producer? p = null;
+        foreach (var rr in w.Regions)
+            if (r is null && rr.State == RegionState.Active && rr.GoodOf(ag) is not null)
+                foreach (var q in rr.Producers) if (q.GoodId == ag && q.OwnerPopIndex >= 0 && q.OwnerPopIndex < rr.Pops.Count) { r = rr; p = q; break; }
+        Assert.True(r is not null && p is not null, "前提が崩れた：銀の生産者のいる州が無い");
+        foreach (var other in w.Regions)   // 首都州以外の銀在庫を0＝州ループが1州に閉じる
+            if (!ReferenceEquals(other, r) && other.GoodOf(ag) is not null) other.Markets[ag].Stock = 0;
+        foreach (var q in r!.Producers) if (q.GoodId == ag) q.Output = 0;
+        p!.Output = 1.0;
+        if (!(p.Scale > 1e-6)) p.Scale = 1.0;
+        p.BuiltScale = 0.5 * p.Scale;
+        double f = World.StateProfitShare(p, r, w.Coef);
+        Assert.True(Math.Abs(f - 0.5) < 1e-12, $"前提が崩れた：国営持分が 1/2 でない（{f}）");
+        var m = r.Markets[ag];
+        double parity = Catalog.RefPrices[ag];
+        m.Price = parity * 0.5; m.Stock = 10.0;   // 平価の下＝造幣局が平価で引き取る
+        double value = m.Stock * Math.Clamp(w.Coef.MintFloorBuyRate, 0, 1) * parity;
+        bool split = p.LaborPopIndex != p.OwnerPopIndex && (uint)p.LaborPopIndex < (uint)r.Pops.Count;
+        double wage = split ? value * Math.Clamp(w.Coef.MintWageShare, 0, 1) : 0;
+        double t0 = w.Treasury, led0 = w.TreasuryLedger[(int)TreasuryCat.StateFactory], own0 = r.Pops[p.OwnerPopIndex].Savings;
+        double lab0 = split ? r.Pops[p.LaborPopIndex].Savings : 0;
+        double D(World x) => x.BaseMoney - x.CumulativeTradeFlow - x.CumulativeGoldMinted - x.CumulativeFiatIssued;
+        double d0 = D(w), minted0 = w.CumulativeGoldMinted;
+        var mint = typeof(Simulation).GetMethod("MintGold", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        Assert.NotNull(mint);
+        mint!.Invoke(sim, null);
+        Assert.Equal(value, w.CumulativeGoldMinted - minted0, 9);                        // 前提：造幣が1回だけ平価で立った
+        Assert.Equal((value - wage) * f, w.Treasury - t0, 9);                             // 所有者の取り分のうち持分の割合だけ国庫へ
+        Assert.Equal((value - wage) * f, w.TreasuryLedger[(int)TreasuryCat.StateFactory] - led0, 9);
+        Assert.Equal((value - wage) * (1 - f), r.Pops[p.OwnerPopIndex].Savings - own0, 9);
+        if (split) Assert.Equal(wage, r.Pops[p.LaborPopIndex].Savings - lab0, 9);       // 労働の取り分（MintWageShare）は変えない
+        Assert.True(Math.Abs(D(w) - d0) <= 1e-9 * Math.Max(1.0, Math.Abs(d0)), $"保存量Dが動いた {d0}→{D(w)}");   // 受け手が変わるだけ＝鋳造の台帳と基礎貨幣は対
+    }
 }

@@ -598,7 +598,7 @@ public sealed partial class InternationalMarket
                     // ★2026-09-27（回4-1・項目12②）：港の取扱高は海路の成約だけ（この組の着値を決めた経路＝KmOf(snA, t) が書いた向きの印）。
                     //   陸路の直行は港を通らない。同じ国の沿岸の海路（英のニューカッスル→ロンドンの石炭）は積む＝国境でなく経路で分ける。
                     if (!kmLand[snA * tc + t]) { tr[t].r.LastPortThroughput += valueA; tr[snA].r.LastPortThroughput += valueA; }
-                    double toProdA = c.ExportRevenueToProducers > 1e-12 ? PayExportToProducers(tr[snA].r, g, valueA * Math.Clamp(c.ExportRevenueToProducers, 0, 1), ref payPr[snA], ref payTot[snA]) : 0.0;
+                    double toProdA = c.ExportRevenueToProducers > 1e-12 ? PayExportToProducers(tr[snA].r, g, valueA * Math.Clamp(c.ExportRevenueToProducers, 0, 1), ref payPr[snA], ref payTot[snA], nations[siA].World) : 0.0;
                     netFlow[siA] += valueA - toProdA; direct[siA] += toProdA;
                     if (c.FreightRatePer10Mm > 1e-12)
                     {

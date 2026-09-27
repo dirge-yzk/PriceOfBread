@@ -98,7 +98,7 @@ public static class Transport
             // ★2026-09-26（回4-3・econ-12）：旧＝最初に見つかった生産者の持ち主へ全額。今＝輸出代金と同じ売上の経路（各生産者の出力の割合）。
             //   生産者が居ないか出力の合計が0なら0が返る＝買い手は払わない（旧の払い戻しの形）＝保存。
             Producer[]? ownPr = null; double ownTotal = 0;
-            double paid = InternationalMarket.PayExportToProducers(r, fuelG, pay, ref ownPr, ref ownTotal);   // ⚠先に払ってから引く（買い手が持ち主のとき、`-=` の左辺を先に読むと受け取った分を上書きする）
+            double paid = InternationalMarket.PayExportToProducers(r, fuelG, pay, ref ownPr, ref ownTotal, w);   // ⚠先に払ってから引く（買い手が持ち主のとき、`-=` の左辺を先に読むと受け取った分を上書きする）
             buyer.Savings -= paid;
         }
     }
@@ -176,7 +176,7 @@ public static class Transport
                 m.LastSold += buy;          // 財収支に計上（輸送購入＝販売）。在庫減を販売として記録し§11.6財収支を保つ
                 // 代金＝輸出代金と同じ売上の経路（各生産者の出力の割合で持ち主へ・econ-12）。生産者が居ないか出力の合計が0なら0が返る＝買い手は払わない（旧の払い戻しの形）＝金は保存。
                 Producer[]? ownPr = null; double ownTotal = 0;
-                double paid = InternationalMarket.PayExportToProducers(r, gi, pay, ref ownPr, ref ownTotal);   // ⚠先に払ってから引く（買い手が持ち主のとき、`-=` の左辺を先に読むと受け取った分を上書きする）
+                double paid = InternationalMarket.PayExportToProducers(r, gi, pay, ref ownPr, ref ownTotal, w);   // ⚠先に払ってから引く（買い手が持ち主のとき、`-=` の左辺を先に読むと受け取った分を上書きする）
                 investor.Savings -= paid;
                 double add = buy * c.TransportCapPerUnit * mult;
                 if (rail) w.RailCapacity += add; else w.ShipCapacity += add;
