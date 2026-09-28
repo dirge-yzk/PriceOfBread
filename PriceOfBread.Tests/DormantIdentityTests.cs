@@ -73,7 +73,7 @@ public class DormantIdentityTests
         "RevoltVoiceFloor",             // F3b蜂起doc 裁定1＝(1−発言権)の床（旧支配層と普選後の大衆の恒久ゼロを外す）。0で FactionStrength は1命令も変わらない
         "RevoltMilitiaRaise",           // F3b蜂起doc 段5＝蜂起した運動のブロックのPOPが不満度に応じて武器を取る率（Pop.MilitiaShare）。0で誰も札を持たない＝全読み手が恒等
         "MilitiaCombatValue",           // F3b蜂起doc 段5＝民兵1人あたりの戦力 a（<1＝弱兵）。戦場の民間人死の配分の重み 1+a×民兵率 も同じ a。0で戦力にも死の配分にも寄与しない
-        "SoldierDefectionByMilitancy",  // F3b蜂起doc 段5＝守備兵の寝返り率＝min(1, これ×兵士POPの闘争度)。0で旧＝反乱州の守備兵は州ごと全員が寝返る
+        // ★SoldierDefectionByMilitancy（F3b蜂起doc 段5＝守備兵の寝返りは割合）は 2026-09-29 処理の一元化 段3 で**点火**（係数ごと削除）＝この表から外した。
         "RevoltCooldownRetire",         // F3b蜂起doc 段6＝4四半期の固定タイマーの退役（代替＝結束0からの再成長と「もう野に出ている」状態の排他）。0で旧タイマーがそのまま効く
         "RevoltExpansionScore",         // F3b蜂起doc 段7＝反乱の膨張（膠着の講和で戦勝点を予算に既存の割譲経路で親の州を取る・州1つの値段）。0で内戦の講和は1命令も変わらない
         // ★要求は法の経路（作者裁定2026-09-11）は同日に**点火**（主フラグごと削除・旧3枝も物理削除）＝この表から外した。

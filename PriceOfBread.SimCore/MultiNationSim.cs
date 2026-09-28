@@ -264,7 +264,8 @@ public sealed class MultiNationSim
     // 保存則＝割譲（Diplomacy.CedeTerritory）と同型の両建て記帳。決定論＝親のindex昇順・乱数種は MixSeed(_seed, 新index) の純関数・乱数不使用。
     // ★2026-09-28（処理の一元化 段2 束3）：旧経路の内戦（Politics.ProcessCivilWar）が決着で積んだ2本の予約（国家分裂 PendingSplitRegions／
     //   単一州の分離戦の勝利 PendingSecessionRegion）は旧経路ごと削除（作者裁定 a・g）＝建国は全て開戦時（戦争の形）。
-    private void SpawnSecededNations()
+    // internal＝番人（RevoltIgnitionTests の守備兵の寝返り）が四半期の他の流れを挟まずにこの1段だけを踏む（ReabsorbNations と同じ作法）。
+    internal void SpawnSecededNations()
     {
         int count0 = Nations.Count;   // 走査前の国数を固定（追記しても再走査しない）
         for (int i = 0; i < count0; i++)
@@ -328,37 +329,52 @@ public sealed class MultiNationSim
         var pw = parent.World;
         var parentPower = pw.SelfPower!;   // SpawnSecededNations 側で非nullゲート済み
 
-        // --- 0) 段5＝守備兵の寝返りは**割合**（作者裁定3・2026-09-08）---
-        // ⚠旧＝離脱する州の兵士POPは州ごと新国家へ移る＝**常に全員が寝返る**（「政府が軍を丸ごと敵に渡す」が全建国で起きる）。
-        //   C案の「守備兵は寝返らない」も常に寝返らない側の絶対規則＝どちらも非歴史的最適解の型。史実の寝返りは最大の機序
-        //   （セポイ1857・ペトログラード守備隊1917・キール軍港1918）だが常時ではない＝**兵士POPの闘争度が寝返り率を決める**（二値にしない）。
+        // --- 0) 段5＝守備兵の寝返りは**割合**（作者裁定3・2026-09-08／点火＝2026-09-29 処理の一元化 段3・作者裁定＝推奨）---
+        // ⚠旧（休眠の間）＝離脱する州の兵士POPは州ごと新国家へ移る＝**常に全員が寝返る**（「政府が軍を丸ごと敵に渡す」が全建国で起きる＝
+        //   首都の分離独立の反乱の勝ち 94.6%〔r95〕）。C案の「守備兵は寝返らない」も常に寝返らない側の絶対規則＝どちらも非歴史的最適解の型。
+        //   史実の寝返りは最大の機序（セポイ1857・ペトログラード守備隊1917・キール軍港1918）だが常時ではない
+        //   （鎮圧＝パリ1848年6月・ウィーン1848年10月・コミューン1871・ダブリン1916）＝**寝返る割合は守備兵（兵士POP）の闘争度そのもの**
+        //   （二値にしない・つまみを持たない＝旧係数 SoldierDefectionByMilitancy は1で焼き込んで削除）。
         // ⚠寝返らなかった分は親の残る州の兵士POPへ移す＝親に留まる（「離脱州の守備隊のうち忠誠を守った部隊は本国軍へ復帰した」）。
+        // ★武器も兵と一緒に（2026-09-29 段3・分子と分母の対称）：出ていく州の武器庫（Region.ArmsStock＝耐久装備の在庫）のうち、
+        //   寝返らなかった兵と**同じ割合**を忠誠の兵と同じ州の武器庫へ移す（旧＝兵は割合でも武器庫は州ごと全部が反乱国へ渡った＝
+        //   首都の武器庫は全国軍の分〔GarrisonProcurement=0＝調達は首都の1州〕）。移すのは財の量そのもの（出る側から引いた量を受ける側へ足す＝財は湧かず消えない）。
+        //   ⚠読むのは在庫にある財だけ＝未初期化の財（EconomyStep.ArmsHeld の「未初期化は目標」）は量を持たないので運ばない。
+        //   守備兵がいない州は割合が定まらない＝武器庫は州ごと反乱国へ（兵のいない武器庫は蜂起した側の手に落ちる）。
         // ⚠**人口台帳の順序に手を入れない**＝下の 1) S/P 確定より前・親の内側だけで動かす。親の総人口も総貨幣も不変で、
         //   確定される移転量 P が「寝返った分だけ」になる（S/P 確定と PopulationDelta -= P の間には1命令も入れない＝Invariants の帯）。
         // ⚠移す動詞は既存の Military.MoveCohort（規模・貯蓄・債務・結晶資産・年齢/男女コホートを既存の作法で運ぶ）＝新しい経路を作らない。
-        // ⚠SoldierDefectionByMilitancy=0（既定）では1命令も走らない＝厳密恒等。
-        if (_coef.SoldierDefectionByMilitancy > 0)
+        Pop? loyalPop = null;
+        Region? loyalRegion = null;
+        foreach (var rr in pw.Regions)   // 親が保持する最初の活動州の兵士POP（出ていかない州＝首都の分離独立では遷都先の候補の州）＝決定論
         {
-            Pop? loyalPop = null;
-            foreach (var rr in pw.Regions)   // 親が保持する最初の活動州の兵士POP（出ていかない州＝首都の分離独立では遷都先の候補の州）＝決定論
-            {
-                if (rr.State != RegionState.Active) continue;
-                bool leaving = false;
-                foreach (var q in regs) if (ReferenceEquals(q, rr)) { leaving = true; break; }
-                if (leaving) continue;
-                loyalPop = rr.Pops.Find(x => x.IsSoldier);
-                if (loyalPop is not null) break;
-            }
-            if (loyalPop is not null)
-                foreach (var rr in regs)
-                {
-                    var garrison = rr.Pops.Find(x => x.IsSoldier);
-                    if (garrison is null || !(garrison.Size > 1e-9)) continue;
-                    double defect = PoliticalQuantities.Clamp01(_coef.SoldierDefectionByMilitancy * garrison.Militancy);
-                    if (!(defect < 1.0)) continue;   // 否定形＝NaN も旧（全員寝返る）側へ倒れる（Math.Clamp は NaN を除去しない）
-                    Military.MoveCohort(garrison, loyalPop, garrison.Size * (1.0 - defect), _coef);
-                }
+            if (rr.State != RegionState.Active) continue;
+            bool leaving = false;
+            foreach (var q in regs) if (ReferenceEquals(q, rr)) { leaving = true; break; }
+            if (leaving) continue;
+            loyalPop = rr.Pops.Find(x => x.IsSoldier);
+            if (loyalPop is not null) { loyalRegion = rr; break; }
         }
+        if (loyalPop is not null && loyalRegion is not null)
+            foreach (var rr in regs)
+            {
+                var garrison = rr.Pops.Find(x => x.IsSoldier);
+                if (garrison is null || !(garrison.Size > 1e-9)) continue;
+                double stay = 1.0 - PoliticalQuantities.Clamp01(garrison.Militancy);   // 寝返らない割合＝1−闘争度
+                if (!(stay > 0)) continue;   // 否定形＝NaN も全員寝返る側へ倒れる（Math.Clamp は NaN を除去しない）
+                Military.MoveCohort(garrison, loyalPop, garrison.Size * stay, _coef);
+                if (rr.ArmsStock is { } arms)
+                {
+                    var kept = loyalRegion.ArmsStock ??= new System.Collections.Generic.Dictionary<int, double>();
+                    int[] goods = [.. arms.Keys];   // 鍵の写しを走査（値の書き換えで列挙を壊さない）＝鍵の順は挿入順＝決定論
+                    foreach (int g in goods)
+                    {
+                        double moved = arms[g] * stay;
+                        arms[g] -= moved;
+                        kept[g] = kept.GetValueOrDefault(g) + moved;
+                    }
+                }
+            }
 
         // --- 1) 国庫の分与（新国家の運転資金＝移転前の人口比）---
         double P = 0;

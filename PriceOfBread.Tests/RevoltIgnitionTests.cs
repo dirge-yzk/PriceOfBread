@@ -696,7 +696,7 @@ public class RevoltIgnitionTests
         Assert.Equal(1.5, on.ArmedRate / on.HomeRate, 9);     // ★a=0.5＝武器を取った層は 1+0.5×1.0 倍の率で死ぬ（配り直しただけ＝Σ重みで割る）
     }
 
-    // 建国路（MultiNationSim.SpawnNation）の寝返りを実経路で測る。⚠人口・貨幣の保存は Simulation の月次 CheckInvariants が
+    // 建国路（MultiNationSim.SpawnNation）を実経路で踏む（民兵の札と戦力。守備兵は闘争度0.5＝半分が寝返る＝両腕とも同じ）。⚠人口・貨幣の保存は Simulation の月次 CheckInvariants が
     //   この StepQuarter の中で見張っている（建国は S/P 確定と PopulationDelta の間に1命令も入れてはいけない帯＝doc §7-3）。
     private static (double RebelSoldiers, double ParentSoldiers, double RebelMilitary, double HomeLabor) 段5_反乱国家を建てる(
         Coefficients coef, double militiaShare = 0, int quarters = 1, bool frozen = true)
@@ -730,15 +730,60 @@ public class RevoltIgnitionTests
             $"民兵が労働から抜けていない（民兵0.5 {armed.HomeLabor:F2} ≥ 民兵0 {none.HomeLabor:F2}）＝札が労働供給へ届いていない");
     }
 
-    [Fact]
-    public void 段5_寝返りは割合であり守備兵が全員は移らない()   // (iii) 裁定3＝二値にしない
+    // ★段5＝守備兵の寝返りと武器庫（2026-09-29 処理の一元化 段3＝点火・旧係数 SoldierDefectionByMilitancy を1で焼き込んで削除）。
+    //   首都の分離独立（首都州が反乱国へ・政府は残る州へ遷都）で、首都の守備兵（兵士POP）は**闘争度の割合**だけ寝返り、
+    //   残りは親の最初の残る州の兵士POPへ移る。首都の武器庫（Region.ArmsStock＝全国軍の耐久装備）も**同じ割合**で割れ、
+    //   寝返らなかった分は忠誠の兵と同じ州の武器庫へ移る（分子と分母の対称＝旧は兵が割合でも武器庫は全部が反乱国へ渡った）。
+    //   建国路の1段（MultiNationSim.SpawnSecededNations）だけを踏む＝四半期の他の流れを挟まない＝闘争度が動かない＝割合を厳密に測れる。
+    //   保存＝全ての国の人口の和と、全ての州の武器庫の和が1段の前後で変わらない（財も人も湧かず消えず、移るだけ）。
+    [Theory]
+    [InlineData(0.0)]   // 誰も寝返らない＝兵も武器庫も全部が政府に残る
+    [InlineData(0.5)]   // 半分ずつ
+    [InlineData(1.0)]   // 全員が寝返る＝兵も武器庫も全部が反乱国へ
+    public void 段5_首都の守備兵と武器庫は闘争度の割合で寝返り残りは忠誠の兵と同じ州へ(double militancy)
     {
-        var off = 段5_反乱国家を建てる(new Coefficients());                                     // 旧＝州ごと全員が寝返る（＝常に寝返る絶対規則）
-        var on = 段5_反乱国家を建てる(new Coefficients { SoldierDefectionByMilitancy = 1.0 });   // 寝返り率＝兵士POPの闘争度
-        Assert.True(off.RebelSoldiers > 0, "前提が崩れた：旧経路で反乱国に兵が渡っていない");
-        Assert.True(on.RebelSoldiers < off.RebelSoldiers, $"寝返りが割合になっていない（ON {on.RebelSoldiers:F1} ≥ OFF {off.RebelSoldiers:F1}）");
-        Assert.True(on.RebelSoldiers > 0, $"全員が親に残った＝二値の逆側になっている（ON {on.RebelSoldiers:F1}）");
-        Assert.True(on.ParentSoldiers > off.ParentSoldiers, $"寝返らなかった兵が親に留まっていない（ON {on.ParentSoldiers:F1} ≤ OFF {off.ParentSoldiers:F1}）");
+        var sim = new MultiNationSim([WorldData.ByName("イギリス"), WorldData.ByName("フランス")], seed: 1789) { DiplomacyFrozen = true };
+        sim.StepQuarter();   // 首都の武器庫が立つ（軍需の調達は首都の1州）
+        var pw = sim.Nations[0].World;
+        var capital = pw.Regions[0];
+        var garrison = capital.Pops.Find(p => p.IsSoldier);
+        Assert.True(garrison is not null && garrison.Size > 1e-9, "前提が崩れた：首都に守備兵がいない");
+        Assert.True(capital.ArmsStock is { Count: > 0 }, "前提が崩れた：首都に武器庫がない");
+        var loyal = pw.Regions.Find(r => !ReferenceEquals(r, capital) && r.State == RegionState.Active && r.Pops.Exists(p => p.IsSoldier));
+        Assert.True(loyal is not null, "前提が崩れた：親に兵士POPのいる残る州がない");
+        var loyalSoldier = loyal!.Pops.Find(p => p.IsSoldier)!;
+        garrison!.Militancy = militancy;
+        double g0 = garrison.Size, l0 = loyalSoldier.Size;
+        var arms0 = new Dictionary<int, double>(capital.ArmsStock!);
+        var loyalArms0 = loyal.ArmsStock is { } la ? new Dictionary<int, double>(la) : new Dictionary<int, double>();
+        double armsTotal0 = 0, pop0 = 0;
+        foreach (var n in sim.Nations) { pop0 += n.World.TotalPopulation; foreach (var r in n.World.Regions) if (r.ArmsStock is { } a) foreach (var kv in a) armsTotal0 += kv.Value; }
+        Assert.True(armsTotal0 > 0, "前提が崩れた：武器庫が空");
+
+        pw.PendingRebelRegions = [capital];
+        pw.PendingRebelPolity = Polity.Republic;
+        int n0 = sim.Nations.Count;
+        sim.SpawnSecededNations();
+        Assert.True(sim.Nations.Count == n0 + 1, "前提が崩れた：反乱国家が建っていない");
+        var rw = sim.Nations[^1].World;
+        Assert.Contains(capital, rw.Regions);
+        Assert.DoesNotContain(capital, pw.Regions);
+
+        // 兵：寝返った割合＝闘争度・残りは忠誠の兵の州へ
+        Assert.Equal(g0 * militancy, garrison.Size, 9);
+        Assert.Equal(l0 + g0 * (1.0 - militancy), loyalSoldier.Size, 9);
+        // 武器庫：同じ割合で割れ、寝返らなかった分は忠誠の兵と同じ州の武器庫へ
+        var loyalArms = loyal.ArmsStock ?? new Dictionary<int, double>();
+        foreach (var (g, a0) in arms0)
+        {
+            Assert.Equal(a0 * militancy, capital.ArmsStock!.GetValueOrDefault(g), 9);
+            Assert.Equal(loyalArms0.GetValueOrDefault(g) + a0 * (1.0 - militancy), loyalArms.GetValueOrDefault(g), 9);
+        }
+        // 保存：人も財も湧かず消えない
+        double armsTotal1 = 0, pop1 = 0;
+        foreach (var n in sim.Nations) { pop1 += n.World.TotalPopulation; foreach (var r in n.World.Regions) if (r.ArmsStock is { } a) foreach (var kv in a) armsTotal1 += kv.Value; }
+        Assert.True(Math.Abs(armsTotal1 - armsTotal0) <= 1e-12 * armsTotal0, $"武器庫の和が動いた（{armsTotal0:R} → {armsTotal1:R}）");
+        Assert.True(Math.Abs(pop1 - pop0) <= 1e-12 * pop0, $"人口の和が動いた（{pop0:R} → {pop1:R}）");
     }
 
     [Fact]
