@@ -133,6 +133,40 @@ public class WarThemeTests
         Assert.Equal(0.0, war.CivDeadB);   // 優勢側（B）の国土は戦場にならない＝民間人は死なない
     }
 
+    // ★厭戦の経済悪化は1人あたりの落ち込み（2026-09-29 首都の分離独立の続き）＝領土を失って総額が落ちただけの国は不況ではない（GDP と人口が一緒に去った）。
+    //   統制盤面＝OneFront の仏（交戦中）が、1人あたりの産出が国の平均以下の州を割譲する（残る国の1人あたりは落ちない）→ 景気の追跡を8四半期ぶん回す
+    //   ＝割譲しない双子（同じ種）より総額の落ち込み GdpDrawdown だけが深い。外交の1か月の厭戦の内訳（説明台帳）の「経済悪化」＝係数×1人あたりの落ち込み
+    //   （双子を超えない）。旧＝総額の落ち込みで測った（首都を失った政府の厭戦に首都州の GDP の分が「不況」として入った＝(97) §8）。
+    [Fact]
+    public void 厭戦の経済悪化は1人あたりの落ち込みで測り領土を失った総額の落ち込みを数えない()
+    {
+        var (sim, _, fr, br) = OneFront(new Coefficients().WarCivilianToll);
+        var (_, _, twin, _) = OneFront(new Coefficients().WarCivilianToll);   // 割譲しない双子（同じ種＝同じ盤面）
+        var c = sim.Coef;
+        static double Out(Region r) { double g = 0; foreach (var s in r.Producers) { var good = r.GoodOf(s.GoodId); if (good is null || good.Tier == GoodTier.Service) continue; g += s.Output * good.RefPrice; } return g; }
+        double natPc = fr.Gdp / fr.TotalPopulation;
+        Region? cede = null; double best = 0;   // 1人あたりが国の平均以下の州のうち、産出の最も大きい州（総額の落ち込みを立てる）
+        foreach (var r in fr.Regions)
+        {
+            if (r.Id == 0 || r.State != RegionState.Active || !(r.SumPopulation() > 0)) continue;
+            double o = Out(r);
+            if (o / r.SumPopulation() <= natPc && o > best) { best = o; cede = r; }
+        }
+        Assert.True(cede is not null, $"前提が崩れた：1人あたりが国の平均以下の州がない（国の平均 {natPc:G6}）");
+        Territory.TransferRegion(fr, br, cede!, Territory.Rehoming.Ceded);
+        for (int i = 0; i < 8; i++) { fr.UpdateGdpCycle(); twin.UpdateGdpCycle(); }
+        double pc0 = twin.GdpPcDrawdown;
+        Assert.True(fr.GdpPcDrawdown <= pc0 + 1e-12, $"前提が崩れた：割譲で1人あたりが落ちた（双子 {pc0:G6} → {fr.GdpPcDrawdown:G6}）");
+        Assert.True(fr.GdpDrawdown > twin.GdpDrawdown + 0.01, $"前提が崩れた：割譲で総額の落ち込みが立っていない（総額 {fr.GdpDrawdown:G6}・双子 {twin.GdpDrawdown:G6}）");
+        fr.Explain = new ExplainLedger();
+        sim.Diplomacy.Step(sim.Coef, sim.Rng, month: 60);
+        double econ = double.NaN;
+        foreach (var term in fr.Explain.Get("Exhaustion")) if (term.Reason == "経済悪化") econ = term.Delta;
+        Assert.False(double.IsNaN(econ), "前提が崩れた：厭戦の内訳に経済悪化の項がない（戦争が回っていない）");
+        Assert.Equal(c.WarExhaustionEcon * fr.GdpPcDrawdown, econ);
+        Assert.True(econ <= c.WarExhaustionEcon * pc0 + 1e-15, $"領土を失った総額の落ち込みが厭戦に入った（経済悪化 {econ:G6}・割譲の前 {c.WarExhaustionEcon * pc0:G6}）");
+    }
+
     // ★検証2026-09-23で追加：突然変異M4（`civShare = civToll` ＝戦線数で割らない）が上の3本を**全て緑のまま通した**。
     //   統制盤面が `Assert.Single(Wars)` で戦線を1本に固定しているため、按分の分母（fronts[p]）が一度も働いていない。
     //   多正面の国は同じ月の死を全戦線へ配るので、割り忘れると戦線の数だけ死者が増える（＝思想⑨の二重計上）。

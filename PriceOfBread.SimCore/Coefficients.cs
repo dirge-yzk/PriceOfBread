@@ -1439,7 +1439,7 @@ public sealed class Coefficients
     //   ⚠一度出した相手は TensionRepromptDrop ぶん下がるまで再通知しない＝頻繁には出ない。
     public double WarCostPerMilitary = 400.0;     // 軍ゲージ1あたりの月次戦費（とにかく金食い虫）
     public double WarExhaustionRate = 0.03;       // 戦争疲弊（厭戦%）の蓄積：戦争の持続（月あたり基礎）
-    public double WarExhaustionEcon = 0.10;       // ＋経済悪化（GdpDrawdown）に比例して厭戦が増す（月）
+    public double WarExhaustionEcon = 0.10;       // ＋経済悪化（1人あたりの落ち込み GdpPcDrawdown・2026-09-29＝領土を失った総額の落ち込みは数えない）に比例して厭戦が増す（月）
     public double WarExhaustionBlockade = 0.07;   // ＋通商破壊（海上封鎖）の度合い(1−CommerceRaidFactor)に比例して厭戦が増す（月）。改修2026-06-28：封鎖の即時の痛みを厭戦へ直結（兵糧攻め＝海軍劣勢国の士気を削る）
     public double WarExhaustionCasualty = 0.6;    // ＋戦死（兵士に対する戦死率）に比例して厭戦が増す
     public double WarExhaustionMilitancy = 0.04;  // 厭戦→闘争度：厭戦%に比例して交戦国の大衆の闘争度が上がる（長期戦・敗色→革命）。⚠WarMilitancyViaTarget>0.5（既定）では不読＝旧経路

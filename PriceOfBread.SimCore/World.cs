@@ -1194,16 +1194,21 @@ public sealed class World
     ///   座標（<see cref="Latitude"/>／<see cref="Longitude"/>）を構築時のまま残した＝植民地の距離・条約港・投射が失った首都から測られ、
     ///   割譲の射程（Regions[0] の座標を読む）とだけ物差しが割れていた。Formations 側は旧首都の植民地財も空にしなかった
     ///   （植民地財の産出は首都州だけが担う＝旧首都が産出を続けると二重になる。移転の付け直し Territory.Rehome と同じ扱いへ）。
-    /// 旧首都がまだこの国に居れば新首都の旧 Id を渡す（州 Id の一意性）。座標は構築時と同じ規則（州の座標表・未登録の州名は据え置き＝幻の座標を作らない）。</summary>
+    /// 旧首都がまだこの国に居れば新首都の旧 Id を渡す（州 Id の一意性）。座標は構築時と同じ規則（州の座標表・未登録の州名は据え置き＝幻の座標を作らない）。
+    /// ★武器は政府について行く（2026-09-29）：軍需の調達は首都の1州（武器庫＝全国軍の分）＝旧首都がまだこの国に居れば、その武器庫を新首都へ移す
+    ///   （国家形成の遷都・内戦の再併合で首都州が戻るとき＝財は湧かず消えない）。旧首都が既に外れていれば（割譲・首都の分離独立）武器庫は州と一緒に去った。
+    ///   新首都の武器庫は開いた空で来る＝無い財は0（EconomyStep.ArmsHeld の「未初期化は目標」は一度も開いていない1783年の開幕の武器庫だけ＝遷都先に財が湧かない）。</summary>
     internal void SetCapital(Region capital)
     {
         if (!ReferenceEquals(Regions[0], capital) || capital.Id != 0)
         {
+            var arms = capital.ArmsStock ??= new Dictionary<int, double>();
             var old = Regions.Find(r => r.Id == 0 && !ReferenceEquals(r, capital));
             if (old is not null)
             {
                 old.Id = capital.Id;   // Idスワップ＝州Idの一意性を維持（旧首都は新首都の旧Idへ）
                 if (old.ColonialResources is not null) old.ColonialResources = [];   // 植民地財は首都州だけ（null は単一国テストの旧経路＝触らない）
+                if (old.ArmsStock is { } oldArms) { foreach (var (g, a) in oldArms) arms[g] = arms.GetValueOrDefault(g) + a; oldArms.Clear(); }
             }
             capital.Id = 0;
             Regions.Remove(capital); Regions.Insert(0, capital);   // World.Region(=Regions[0]) が首都＝Id0 と Regions[0] の乖離（首都の二重化）を防ぐ
@@ -1344,7 +1349,8 @@ public sealed class World
     public double GdpDrawdown => GdpPeak > 1 ? PoliticalQuantities.Clamp01(1.0 - GdpTrend / GdpPeak) : 0;   // トレンドGDPのピーク比収縮＝景気後退の度合い
     // ★E2（作者裁定2026-08-26）：**1人あたり**のドローダウン。割譲や分離で総額が落ちただけの国を「恐慌」と呼ばないための物差し。
     //   ⚠厳密な切り分けはしない（作者裁定）＝割譲でサプライ網が壊れて本当に縮んだ場合はこちらも落ちる＝恐慌と出るのが正しい。
-    //   読み手は**表示側だけ**（通知・年代記・外交ホバー）。エンジンの資本破壊や金融の判断は従来どおり総額の GdpDrawdown を見る。
+    //   読み手＝表示側（通知・年代記・外交ホバー）と、エンジンでは厭戦の経済悪化の項（Diplomacy.StepWars・2026-09-29＝首都や州を失った総額の落ち込みを
+    //   不況と数えない）。エンジンの資本破壊や金融の判断は従来どおり総額の GdpDrawdown を見る。
     public double GdpPcTrend { get; private set; }
     public double GdpPcPeak { get; private set; }
     public double GdpPcDrawdown => GdpPcPeak > 0 && GdpPeak > 1 ? PoliticalQuantities.Clamp01(1.0 - GdpPcTrend / GdpPcPeak) : 0;

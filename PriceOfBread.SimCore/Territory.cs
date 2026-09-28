@@ -257,19 +257,24 @@ public static class Territory
             foreach (var p in r.Pops) Fiscal.ExportBondHoldings(p, p.BondHoldings, from, to);
             to.CumulativeTradeFlow += S; to.PopulationDelta += P;
         }
-        if (wasCapital)
-        {
-            // 首都を失った：残る active 州のうち最大GDPを新首都へ（同値は Id の小さい方）＝「首都を持つ」不変条件を維持。
-            Region? cap = null; double capBest = double.MinValue;
-            foreach (var q in from.Regions)
-            {
-                if (q.State != RegionState.Active) continue;
-                double g = 0; foreach (var s in q.Producers) { var good = q.GoodOf(s.GoodId); if (good is null || good.Tier == GoodTier.Service) continue; g += s.Output * good.RefPrice; }
-                if (g > capBest || (g == capBest && (cap is null || q.Id < cap.Id))) { capBest = g; cap = q; }
-            }
-            if (cap is not null) from.SetCapital(cap);
-        }
+        if (wasCapital && NextCapital(from) is { } cap) from.SetCapital(cap);   // 首都を失った＝「首都を持つ」不変条件を維持
         Rehome(r, how, sameCore);
+    }
+
+    /// <summary>★遷都先の選び方の1本＝首都を失った国が移る州＝残る active 州のうち最大GDP（同値は Id の小さい方）。
+    /// 呼び手＝州の移し替え（<see cref="TransferRegion"/>＝首都州はもう外れている）と、首都の分離独立の建国（MultiNationSim.SpawnNation の段5＝
+    /// 首都州が出ていく前に <paramref name="leaving"/> を除いて同じ州を先に決め、忠誠の兵と武器庫をそこへ送る・2026-09-29）。
+    /// ⚠建国で出ていく州は両経路とも1つ（首都の蜂起＝本拠州・分離独立＝州ごとに建国）＝2つの呼び手は同じ州を選ぶ。</summary>
+    internal static Region? NextCapital(World from, IReadOnlyList<Region>? leaving = null)
+    {
+        Region? cap = null; double capBest = double.MinValue;
+        foreach (var q in from.Regions)
+        {
+            if (q.State != RegionState.Active || (leaving is not null && leaving.Contains(q))) continue;
+            double g = 0; foreach (var s in q.Producers) { var good = q.GoodOf(s.GoodId); if (good is null || good.Tier == GoodTier.Service) continue; g += s.Output * good.RefPrice; }
+            if (g > capBest || (g == capBest && (cap is null || q.Id < cap.Id))) { capBest = g; cap = q; }
+        }
+        return cap;
     }
 
     /// <summary>州を国へ迎える＝Id は国の中で最大＋1（Id0＝首都は不変）。移し替え（<see cref="TransferRegion"/>）と植民地の州化（Simulation.PromoteColonyToRegion）の1本。</summary>
