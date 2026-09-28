@@ -154,6 +154,39 @@ public class FiscalTests
     }
 
     [Fact]
+    public void 国債台帳_返し終えつつある国債に残る丸めのズレでは割れず運び忘れでは割れる()
+    {
+        // ★2026-09-28（支払いの一元化 段2-1 の合流）：全長の番人（Category=FullLength）が seed1789 の清で止まった偽陽性の再現。
+        //   ズレは国債が最大のときの桁の丸め（相対1e-15級）で、比例の償還（Σ保有×keep と 国債−元本）は絶対値のまま保つ
+        //   ＝国債を返して小さくなるほどズレの相対が膨らむ。許容の尺度は台帳を通った元本の流れ（起債と償還の累計）＝貨幣保存が累積貿易を入れるのと同じ形。
+        var b = QuietBritain();
+        b.Coef.BondRepayFrac = 0;
+        b.RequestBorrow();
+        FiscalMonth(b, Short);
+        double g0 = b.GovDebt - b.ForeignDebt;
+        Assert.True(g0 > 2e3, $"前提が崩れた：起債が小さい（{g0}）＝丸めの残り（相対1e-11）が旧の許容の床 1e-8 を越える盤面にならない");
+        // 最大時の桁の丸めの残り（g0 の相対 1e-11＝旧の許容 1e-8 より3桁小さい）を最大の持ち手に置く＝全長で積もる丸めの形
+        Pop? top = null;
+        foreach (var p in AllPopsOf(b)) if (p.BondHoldings > 0 && (top is null || p.BondHoldings > top.BondHoldings)) top = p;
+        Assert.NotNull(top);
+        double drift = 1e-11 * g0;
+        top!.BondHoldings += drift;
+        new BondLedger().Check(b);   // 最大時＝どちらの尺度でも割れない
+        // 半分ずつ返す（r＝1 の余剰から・減債率 0.5）＝国債が最大時の 1e-4 を割るまで
+        b.Coef.BondRepayFrac = 0.5;
+        for (int m = 0; m < 60 && b.GovDebt > 1e-4 * g0; m++) FiscalMonth(b, 1, Ample);
+        double held = HeldOf(b), dom = b.GovDebt - b.ForeignDebt;
+        Assert.True(b.GovDebt <= 1e-4 * g0 && b.GovDebt > 0, $"前提が崩れた：国債が返されていない（{b.GovDebt}・最大 {g0}）");
+        Assert.True(Math.Abs(held - dom - drift) <= 1e-3 * drift, $"比例の償還がズレを絶対値のまま保っていない（{held - dom} 対 {drift}）");
+        double oldScale = Math.Max(held, Math.Max(Math.Abs(b.GovDebt), Math.Abs(b.ForeignDebt)));
+        Assert.True(Math.Abs(held - dom) > 1e-8 * Math.Max(1.0, oldScale), "前提が崩れた：旧の尺度（今の残高）でも割れない盤面");
+        new BondLedger().Check(b);   // 丸めの残り＝割れない（台帳を通った流れ≒2×最大時の桁）
+        // 運び忘れ＝保有の総額の1%が消える（返し終えつつある小さな国債でも、流れの桁の1e-8 より何桁も大きい）
+        top.BondHoldings -= 0.01 * held;
+        Assert.Throws<InvariantViolationException>(() => new BondLedger().Check(b));
+    }
+
+    [Fact]
     public void 国債台帳_利払いと償還は保有比例で買い手でない持ち手も受け取る()
     {
         var t = QuietBritain(); var b = QuietBritain();

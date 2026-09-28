@@ -103,7 +103,8 @@ public sealed class NonNegativeBounds : IInvariant
 /// <summary>
 /// 国債の保有台帳（2026-09-21裁定）：国の全POP（Regions の全州＝Fiscal が利払い・償還を配る集合と同じ）の保有の和＝国内元本残高（GovDebt − ForeignDebt）。
 /// 台帳は金を動かさない記録なので、両辺は別々の経路（Fiscal の起債・償還・デフォルト／Politics の否認／POPの移動と国外振替）で動く＝どこかで運び忘れると割れる。
-/// 許容は相対1e-8（貨幣保存と同じ）。尺度は GovDebt・ForeignDebt・保有の和の最大＝国内元本が2つの大きな量の差になる国（対外債の多い国）の桁落ちに頑健。
+/// 許容は相対1e-8（貨幣保存と同じ）。尺度は GovDebt・ForeignDebt・保有の和と、台帳を通った元本の流れ（起債と償還の累計）の最大＝国内元本が2つの大きな量の差になる国（対外債の多い国）の桁落ちと、
+/// 大きかった国債を返し終えつつある国の丸めの残り（下の <see cref="Balanced"/>）に頑健。
 /// 保有そのものも非負・有限であること（NaN は否定形で拾う）。状態を持たない＝基準線の取り直し不要。
 /// </summary>
 public sealed class BondLedger : IInvariant
@@ -125,10 +126,17 @@ public sealed class BondLedger : IInvariant
                 $"{Name}：[{world.Region.Name}・{world.Year}年] 保有の和 {held} ≠ 国内元本 {world.GovDebt - world.ForeignDebt}（国債{world.GovDebt}−対外{world.ForeignDebt}）・ズレ{held - (world.GovDebt - world.ForeignDebt):G6}");
     }
 
-    /// <summary>Σ保有と国内元本の一致（相対1e-8）。起票（<see cref="Fiscal.SeedBondHoldings"/>）も同じ判定を使う＝検査が割れる時だけ起票する（判定は1本）。</summary>
+    /// <summary>Σ保有と国内元本の一致（相対1e-8）。起票（<see cref="Fiscal.SeedBondHoldings"/>）も同じ判定を使う＝検査が割れる時だけ起票する（判定は1本）。
+    /// ★尺度に台帳を通った元本の流れ（国庫の台帳の起債 Borrow と償還 DebtRepay の累計）を入れる（2026-09-28・支払いの一元化 段2-1 の合流で見つけた偽陽性）。
+    ///   ズレは浮動小数の丸めで、国債が最大のときの桁で積もる（相対1e-15級）。比例の償還（Σ保有×keep と 国債−元本）はズレを**絶対値のまま**保つ
+    ///   ＝国債を返して小さくなるほどズレの相対が膨らむ（seed1789 の清＝国債の最大 842万・ズレ −1.35e-8〔最大時の相対 1.6e-15〕が、償還で 1948年に
+    ///   国債 1.7 まで下がった所で相対 7.7e-9＝旧の尺度〔今の残高〕の許容 1e-8×max(1,1.7) を越えて全長の番人が止まった）。
+    ///   貨幣保存（<see cref="MoneyConservation"/>）が累積貿易を尺度に入れるのと同じ形＝台帳を通った量の桁で丸めの許容を測る（新しい状態は持たない＝既存の累計を読む）。
+    ///   運び忘れ（保有の一部が消える・湧く）は流れの桁の1e-8 より何桁も大きい＝検出力は保つ。</summary>
     internal static bool Balanced(World world, double held)
     {
-        double scale = Math.Max(held, Math.Max(Math.Abs(world.GovDebt), Math.Abs(world.ForeignDebt)));
+        double flow = Math.Abs(world.TreasuryLedger[(int)TreasuryCat.Borrow]) + Math.Abs(world.TreasuryLedger[(int)TreasuryCat.DebtRepay]);
+        double scale = Math.Max(Math.Max(held, flow), Math.Max(Math.Abs(world.GovDebt), Math.Abs(world.ForeignDebt)));
         return Math.Abs(held - (world.GovDebt - world.ForeignDebt)) <= 1e-8 * Math.Max(1.0, scale);   // NaN は偽＝割れた側へ倒れる
     }
 }
