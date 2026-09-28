@@ -1521,6 +1521,7 @@ public sealed record MatchResult(
     int SpawnedNations = 0, int Formations = 0,   // 国家アイデンティティ2026-07-12：分離独立で建国した国数・変名（統一/formable）した国数＝状態由来（leanのログ抑制に非依存）
     int CivilWarSplits = 0,   // ★2026-08-13：内戦分裂（CivilWarSplitEnabled）の成立回数。旧は World.CivilWarSplitCount に**読み手がゼロ**で、
                               //   機構が働いたかどうかを**観測すらできなかった**（2026-08-01に「帝国を丸ごと解体する」として差し戻したまま）。
+                              //   ★2026-09-28（処理の一元化 段2 束3）：旧経路の国家分裂を削除＝政体をめぐる内戦が分断（白紙講和）で終わった回数（Diplomacy.ResolvePeace）。
     IReadOnlyList<NationStanding>? StandingsAt1914 = null,   // 忠実度の照合断面（Q524＝1914年12月・1934延長2026-07-19）。null＝524以下の走行＝最終Standingsで照合（従来互換）
     bool Deadlocked = false,    // ★ゲート3是正2（2026-08-01）：デッドロックの構造フィールド。⚠旧は Anomalies の文字列一致（"デッドロック" を含むか）で判定しており、
                                 //   メッセージ文言を変えた瞬間に**硬性ゲートが静かに恒真になる**（最終調整ハーネス設計 §1-3）。
@@ -1667,7 +1668,7 @@ public static class SelfPlayMatch
                 // ＝宣言（NationStanding.PopGrowth の注記「領土不変な定義」）どおりの実装。旧値（総人口比＝征服インフレ込み）は PopGrowthGross として併走＝新旧併記の橋
                 // （宗主厳格化2026-07-12・導出政体2026-08-21と同型）。分離・割譲で州を**失う**側は分子が減ったまま＝「帯を割る」設計意図を保存。
                 // Σの範囲は TotalPopulation と同じ非Seceded＝州が去れば荷物ごと去る・内部移住にも自動整合（案X初期州フィルタの欠陥を回避）。
-                double baggage = 0; foreach (var rb in w.Regions) if (!rb.Seceded) baggage += rb.AnnexBaggage;
+                double baggage = 0; foreach (var rb in w.Regions) baggage += rb.AnnexBaggage;
                 double growthGross = initPop.TryGetValue(bn, out var p0) && p0 > 1e-9 ? w.TotalPopulation / p0 : 0;   // 0=初期人口不明＝測定対象外（建国スポーンなど）
                 double growth = growthGross > 0 ? System.Math.Max(0, w.TotalPopulation - baggage) / p0 : 0;
                 return new NationStanding(w.Region.Name, NationalScore.Standing(w), w.TechLevel,   // 序列は在庫（2026-08-02）＝忠実度の列強軸も首位交代も同じ物差しで見る

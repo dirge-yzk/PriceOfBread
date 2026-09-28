@@ -259,49 +259,48 @@ public sealed class MultiNationSim
         foreach (var d in setup.Dependencies) { if (P(d.Suzerain) is { } s && P(d.Dependent) is { } dep) Diplomacy.SetDependency(s, dep); }
     }
 
-    // 分離独立の建国（SecessionSpawnsNation>0）：Politics.ProcessCivilWar が親Worldへ記録した建国要求を四半期末に回収し、
-    // 州を物理移転して新国家（新World＋新Power）を立てる。保存則＝割譲（Diplomacy.CedeTerritory）と同型の両建て記帳。
-    // 決定論＝親のindex昇順・乱数種は MixSeed(_seed, 新index) の純関数・乱数不使用。
+    // 蜂起と分離独立の建国：Politics が親Worldへ記録した建国要求（蜂起＝PendingRebelRegions・分離独立＝PendingSecessionWars）を四半期末に回収し、
+    // 州を物理移転して新国家（新World＋新Power）を立て、内戦タグの戦争を開く（決着は Diplomacy.ResolvePeace の戦後処理の1本）。
+    // 保存則＝割譲（Diplomacy.CedeTerritory）と同型の両建て記帳。決定論＝親のindex昇順・乱数種は MixSeed(_seed, 新index) の純関数・乱数不使用。
+    // ★2026-09-28（処理の一元化 段2 束3）：旧経路の内戦（Politics.ProcessCivilWar）が決着で積んだ2本の予約（国家分裂 PendingSplitRegions／
+    //   単一州の分離戦の勝利 PendingSecessionRegion）は旧経路ごと削除（作者裁定 a・g）＝建国は全て開戦時（戦争の形）。
     private void SpawnSecededNations()
     {
         int count0 = Nations.Count;   // 走査前の国数を固定（追記しても再走査しない）
         for (int i = 0; i < count0; i++)
         {
             var pw = Nations[i].World;
-            // ★内戦一元化（CivilWarAsWar・2026-08-30）：蜂起＝開戦時の建国。SpawnNation（同じ建国路）＋内戦タグ付き開戦。
+            // ★内戦一元化（2026-08-30）：蜂起＝開戦時の建国。SpawnNation（同じ建国路）＋内戦タグ付き開戦。
+            // ★首都の分離独立（2026-09-28 段2 束3・作者裁定 a）：蜂起が首都州に拠ったら、蜂起側が首都州を握り、政府は残る州のうち最大GDPの州へ遷都して戦う
+            //   （Territory.TransferRegion の首都を失ったときの遷都＝World.SetCapital の1本）。決着で首都を返すために首都州を記す（World.SecedingRegion）。
             if (pw.PendingRebelRegions is { Count: > 0 } rebelRegs)
             {
                 var rebelPolity = pw.PendingRebelPolity;
                 pw.PendingRebelRegions = null;
-                if (_coef.CivilWarAsWar > 0 && pw.SelfPower is { } parentPw)
+                if (pw.SelfPower is { } parentPw)
                 {
-                    var aliveR = pw.LeavableRegions(rebelRegs);
+                    var aliveR = pw.LeavableRegions(rebelRegs, capital: true);
                     if (aliveR.Count > 0)
                     {
+                        var capital = pw.Regions[0];
                         int beforeN = Nations.Count;
-                        SpawnNation(Nations[i], aliveR, rebelPolity, civilWar: true);
+                        SpawnNation(Nations[i], aliveR, rebelPolity);
                         if (Nations.Count > beforeN && Nations[^1].World.SelfPower is { } rebelPw)
+                        {
+                            if (aliveR.Contains(capital))
+                            {
+                                pw.SecedingRegion = capital;
+                                Diplomacy.Log.Add($"{pw.Year} {parentPw.Name}の政府は{pw.Regions[0].Name}へ移った（首都{capital.Name}は{rebelPw.Name}の手に）");
+                            }
                             Diplomacy.DeclareCivilWar(parentPw, rebelPw, rebelPolity, _coef);
+                        }
                     }
                     // 本拠州が同じ四半期に離れられなくなった（割譲・首都への昇格）＝蜂起は地図の上に立たなかった＝運動の参照を外す（燃え尽きではない）。
                     //   ⚠旧＝参照が残り、次にどこかの再併合が無条件に外すまで「内戦中の運動」として数えられた（分離の共有分母 civilFronts）。
                     //   2026-09-28（処理の一元化 段2 束2）で再併合はその戦争の運動だけを外すようになった＝ここで外す。
                     else if (pw.RevoltingFaction is { } stillborn && rebelRegs.Contains(stillborn.Region)) pw.RevoltingFaction = null;
                 }
-                continue;   // 同じ親から同四半期に2国は作らない（既存の分裂・分離と同じ規律）
-            }
-            // ★内戦による国家分裂（点火2026-08-01）：離脱側の州集合をまとめて1つの新国家にする。
-            // ⚠分離独立（単一州）と**同じ建国路**を通る＝保存則も命名も継承も1本で済む。
-            if (pw.PendingSplitRegions is { Count: > 0 } split)
-            {
-                var polity = pw.PendingSplitPolity;
-                pw.PendingSplitRegions = null; pw.PendingSplitPolity = null;
-                var alive = pw.LeavableRegions(split);   // 二重防御：同四半期の割譲等で不在／首都へ昇格していたら除く
-                if (alive.Count > 0) SpawnNation(Nations[i], alive, polity);
-                // ⚠コメント是正2026-09-08：旧コメントは「分離独立の要求は次の四半期へ持ち越さず捨てる」と書いていたが**嘘**だった。
-                //   この continue が捨てるのは今期の**処理順**だけで、他レーンの予約（PendingSecessionWars／PendingSecessionRegion）は
-                //   null 化されないまま残り、翌期の同じ走査で処理される＝持ち越される。null にしているのは自レーン（PendingSplitRegions）のみ。
-                continue;   // 同じ親から同四半期に2国は作らない（内戦の決着が優先・他レーンの予約は翌期へ持ち越し）
+                continue;   // 同じ親から同四半期に2国は作らない（他レーンの予約は翌期へ持ち越し）
             }
             // ★同時独立（SecessionAsWar・2026-09-06）：分離独立の戦争へ入る州を**州ごとに**建国し分離戦を開く（同じ親から同四半期に複数可＝「バラバラに分裂してもよい」）。
             //   首都（Id0）は出ない・親に州が1つしか残らないなら出ない（首都不変条件）。決着は Diplomacy.ResolvePeace の内戦分岐（CivilWarSecession）。
@@ -312,29 +311,22 @@ public sealed class MultiNationSim
                     foreach (var r in pw.LeavableRegions(secWars))
                     {
                         int beforeN = Nations.Count;
-                        SpawnNation(Nations[i], [r], null, civilWar: true);
+                        SpawnNation(Nations[i], [r], null);
                         if (Nations.Count > beforeN && Nations[^1].World.SelfPower is { } secPw)
                             Diplomacy.DeclareCivilWar(parentSec, secPw, pw.Polity, _coef, secession: true);
                     }
-                continue;
             }
-            if (pw.PendingSecessionRegion is not { } reg) continue;
-            pw.PendingSecessionRegion = null;
-            // 二重防御：同四半期の割譲等で不在／内戦中の遷都で首都（Id0）へ昇格していたら建国不成立（首都不変条件＝Regions[0]の全読者を守る）
-            if (pw.LeavableRegions([reg]).Count == 0) continue;
-            SpawnNation(Nations[i], reg);
         }
     }
 
-    private void SpawnNation(Simulation parent, Region reg) => SpawnNation(parent, [reg], null);
-
-    /// <summary>★多州の建国（2026-08-01・内戦による国家分裂）。単一州の呼び口は上のラッパ＝**要素1なら旧経路と完全に同じ**。
-    /// regs[0] が新首都（World.Region=Regions[0] 規約）。polity=null で親の政体を継ぐ（分離独立）／指定で離脱側の政体を持って出る（内戦分裂）。</summary>
-    private void SpawnNation(Simulation parent, System.Collections.Generic.IReadOnlyList<Region> regs, Polity? polity, bool civilWar = false)
+    /// <summary>★建国路の1本＝反乱国家の建国（呼び手が直ちに内戦タグの戦争を開く＝講和相当の状態は張らない・ログも開戦側）。
+    /// regs[0] が新首都（World.Region=Regions[0] 規約）。polity=null で親の政体を継ぐ（分離独立）／指定で蜂起側の目指す政体を持って出る（政体戦・要求戦）。
+    /// ★2026-09-28（処理の一元化 段2 束3）：旧経路の内戦の決着で建てた2本（国家分裂＝多州・単一州の分離戦の勝利）は旧経路ごと削除＝独立の確定は決着（ConfirmIndependence）。</summary>
+    private void SpawnNation(Simulation parent, System.Collections.Generic.IReadOnlyList<Region> regs, Polity? polity)
     {
         var reg = regs[0];
         var pw = parent.World;
-        var parentPower = pw.SelfPower!;   // ProcessCivilWar 側で非nullゲート済み
+        var parentPower = pw.SelfPower!;   // SpawnSecededNations 側で非nullゲート済み
 
         // --- 0) 段5＝守備兵の寝返りは**割合**（作者裁定3・2026-09-08）---
         // ⚠旧＝離脱する州の兵士POPは州ごと新国家へ移る＝**常に全員が寝返る**（「政府が軍を丸ごと敵に渡す」が全建国で起きる）。
@@ -348,7 +340,7 @@ public sealed class MultiNationSim
         if (_coef.SoldierDefectionByMilitancy > 0)
         {
             Pop? loyalPop = null;
-            foreach (var rr in pw.Regions)   // 親が保持する最初の活動州の兵士POP（首都 Id0 は建国路の全経路で必ず親に残る）＝決定論
+            foreach (var rr in pw.Regions)   // 親が保持する最初の活動州の兵士POP（出ていかない州＝首都の分離独立では遷都先の候補の州）＝決定論
             {
                 if (rr.State != RegionState.Active) continue;
                 bool leaving = false;
@@ -375,7 +367,7 @@ public sealed class MultiNationSim
         double T = Math.Max(0, pw.Treasury) * (parentPop > 1e-9 ? P / parentPop : 0);   // 国庫の人口比分与（新国家の運転資金）
 
         // --- 2) 親から外す＋付け直し（州の移し替えの1本 Territory.TransferRegion の建国＝新しい国の器は下で州から組む・2026-09-28 処理の一元化 段2 B）---
-        //   親の台帳（割譲の送り手と同じ「同一値を両辺に使う」作法）・首都を失えば遷都（今は首都は出ない＝首都の分離独立の備え）・
+        //   親の台帳（割譲の送り手と同じ「同一値を両辺に使う」作法）・首都を失えば遷都（首都の分離独立＝政府は残る州の最大GDPの州へ・2026-09-28 段2 束3）・
         //   民族＝旧少数派がこの国の中核になる（CoreEthnicShare の意味は「所属国の中核民族に属する割合」＝反転が要る・敵対検証2026-07-12）・
         //   併合の荷物0（案Y・2026-08-21：分離建国の創設州は新国家の「生まれの人口」）・市場の台帳のリセット・植民地財の空化。
         //   ⚠格と支配度は独立が確定するまで動かさない（RegisterIndependence／内戦の白紙講和で本土へ）＝親が勝てば元の格のまま戻る。
@@ -388,7 +380,12 @@ public sealed class MultiNationSim
         for (int k = 0; k < regs.Count; k++) regs[k].Id = k;
 
         // --- 4) 名前・設定（親の現行法・税を継承した NationConfig 経由＝ToScenario と同形の手組み）---
-        string name = SecessionNames.Resolve(reg.Name, polity ?? pw.Polity, Diplomacy.Powers);
+        //   名前（作者承認 2026-09-28）＝分離独立（polity=null）は史実の国名（SecessionNames の対応表）／政体をめぐる内戦は目指す政体の頭書き＋親の国名
+        //   （共和制フランス）／同じ政体の要求戦は運動の表示名を頭に（本拠州がこの建国の州の運動＝TriggerFactionRevolt が立てた主体）。表は SecessionNames の1か所。
+        string? movement = pw.RevoltingFaction is { } mv && regs.Contains(mv.Region) ? Factions.DisplayName(mv) : null;
+        string name = polity is { } pol
+            ? SecessionNames.CivilWarName(parentPower.Name, pol, pw.Polity, movement, Diplomacy.Powers)
+            : SecessionNames.Resolve(reg.Name, pw.Polity, Diplomacy.Powers);
         var cc = Climate.CityCoord(reg.Name);
         if (cc.Lat == 0 && cc.Lon == 0) { cc = (pw.Latitude, pw.Longitude); }   // 座標未登録州は親首都へフォールバック
         var cfg = new NationConfig
@@ -464,15 +461,6 @@ public sealed class MultiNationSim
         nw.StepsDiplomacy = false; nw.CoercionFollowsForce = true;
         Diplomacy.Powers.Add(power);
         Nations.Add(sim);
-        if (civilWar)
-        {
-            // ★内戦一元化：反乱国家＝講和相当の状態を張らない（呼び出し側が直ちに DeclareCivilWar する）。ログも開戦側が出す。
-            return;
-        }
-        Diplomacy.RegisterIndependence(parentPower, power, _coef);   // 残留緊張（従属なし＝独立国）
-        Diplomacy.Log.Add(regs.Count > 1
-            ? $"{pw.Year} {parentPower.Name}が内戦で分裂し{name}が成立（{regs.Count}州）"
-            : $"{pw.Year} {name}が{parentPower.Name}から分離し建国（{reg.Name}）");   // 文言規約（Diplomacy:664）：「独立」は植民地独立の集計語＝分離建国では使わない（6-8で4国世界にも分離が出て集計衝突が顕在化・2026-07-28）
     }
 
     public void Run(int quarters) { for (int q = 0; q < quarters; q++) StepQuarter(); }
@@ -996,6 +984,12 @@ public sealed class MultiNationSim
             //   ★返還州の Id は親の中で最大＋1（Territory.Adopt）。⚠旧＝`親の州の数` で振った＝建国で親の州が抜けて Id が歯抜けのとき
             //   既存の州と同じ Id が付いた（0..9 から 4 が抜けて数が9 → 返還州に 9）。Id で州を引く所（Politics の州の索引）と割譲先の同点決着が崩れていた。
             foreach (var rr in moving) Territory.TransferRegion(rw, pw, rr, Territory.Rehoming.Returned);
+            // ★首都を返す（2026-09-28 処理の一元化 段2 束3・作者裁定 a）：首都の分離独立の反乱国が握っていた首都州が戻った＝政府は戦時の首都から戻る
+            //   （反乱の勝ち＝革命政府が首都で新しい政体を敷く／政府の勝ち＝首都を再征服）。遷都の1本（World.SetCapital＝Id と Regions[0]・距離の基準の座標・植民地財）。
+            //   返還州は Territory.Adopt が最大＋1の Id を振った後＝SetCapital が戦時の首都と Id を入れ替える。
+            //   首都州がこの国へ戻らなかった（戦中に第三国へ割譲された）ままこの親の内戦が全て終わったら、記しだけを外す（戦時の首都が首都のまま）。
+            if (pw.SecedingRegion is { } seat && moving.Contains(seat)) pw.SetCapital(seat);
+            if (pw.SecedingRegion is { } seat2 && (moving.Contains(seat2) || !Diplomacy.Wars.Exists(x => x.CivilWarParent == parentP))) pw.SecedingRegion = null;
             pw.Pay(T >= 0 ? TreasuryCat.OtherIn : TreasuryCat.OtherOut, T);
             double L = 0;
             if (pw.Bank is { } pb && rw.Bank is { } rb)

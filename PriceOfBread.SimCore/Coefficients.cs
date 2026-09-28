@@ -389,15 +389,12 @@ public sealed class Coefficients
     //   便乗そのものは**意識**の側に残っている（BandwagonWeight＝勢いある運動が無学の民を政治化する）＝根は1本のまま。
     public double DeposedMilitancySpike = 0.6;        // 革命で失脚した集団のPOPの闘争度の急騰（反革命＝国内不安定＝仏革命の再現）
     public double RevolutionTerror = 0.25;             // 政（タスクB恐怖政治）【採用2026-07-14＝0.25・急進革命限定版】＝exact38→39(歴代最良)・清13→11・首位交代58.7→61.7（0.15はexact36で劣る＝0.25採用）急進革命(共和/プロレタリア独裁/アナーキー)の勝利時のみ失脚した旧支配層をSize×これ粛清＋Savings×これ没収→大衆へ再分配。0=休眠。旧R5(全失脚革命に適用)は◎−4で保留したがタスクBは的を絞り再挑戦：革命で失脚した旧支配層（Closed＝貴族聖職／ProletarianDictatorshipではModernEliteも）のPOPを、特権剥奪に留まらず物理的に粛清・亡命でSizeのこの割合だけ縮小（仏革命の断頭台・ロシア革命の白系亡命）。人口台帳へ計上（保存）。0=既定＝死亡0で現行と厳密一致。決着1回あたりの累積粛清率
-    // 内戦（拮抗した暴力革命・分離独立）：即フリップでなく数年の戦乱を経て決着＝生産低下・戦死・正統性低下。
-    public double CivilWarDurationYears = 4.0;        // 内戦の継続年数
-    // ★タイマー撤去（作者方針2026-09-06「根拠のないクールダウン等は作らない」）：内戦の決着を「4年経ったら一発判定」から
-    //   外戦と同じ**戦勝点**（押し合い＝(攻−守)/(攻+守)×WarPushSpeed・決定的＝CollapseScore）と**厭戦**（WarExhaustionRate を親国へ積み
-    //   WarWearyThreshold で拮抗決着＝既存の分裂/再統合判定）へ。新しい数は作らない（外戦の定数を共有）。0＝従来の CivilWarDurationYears（厳密恒等）。
-    //   多国シムのみ（単国シム/較正は回収者がいない＝従来）。
-    public double CivilWarByScore = 1.0;   /* ★点火2026-09-06＝0.0→1.0・内戦の決着を4年タイマーから戦勝点/厭戦へ（作者方針2026-09-06） */
-    public double CivilWarLandslideRatio = 1.8;       // 動員が治安維持力×これ未満＝拮抗→内戦／超＝圧勝で即フリップ
-    public double CivilWarConscriptRate = 0.03;       // 内戦中の四半期徴集率（大衆→兵士）。労働喪失で生産減＋火器需要↑が創発（外科的penalty不要）。軍需は別途×2
+    // 【墓標2026-09-28・旧経路の内戦の削除（処理の一元化 段2 束3・作者裁定 a・g）】第二の戦争エンジン Politics.ProcessCivilWar と共に9本を削除＝
+    //   CivilWarDurationYears（4年のタイマー）・CivilWarByScore（抽象的な戦勝点の決着）・CivilWarConscriptRate（徴集）・CivilWarCasualtyRate（戦死）・
+    //   CivilWarLegitimacyDrain（正統性の減算）・CivilWarCivilianToll（民間人の死）・CivilWarRebelSide（反乱側の仮想戦力）・SecessionSpawnsNation（分離の建国の旗）・
+    //   CivilWarAsWar（内戦を戦争にする旗）。内戦は全て戦争の形（首都の蜂起＝首都の分離独立）＝戦死・民間人の死・厭戦は対外戦争と同じ1本（Diplomacy）。
+    //   残るのは拮抗の判定 CivilWarLandslideRatio（首都の蜂起か即時の政変か）と内戦の経済麻痺 CivilWarEconomyDisruption（World.InCivilWar が読む）。
+    public double CivilWarLandslideRatio = 1.8;       // 動員が治安維持力×これ未満＝拮抗→首都の蜂起（首都の分離独立＝戦争の形の内戦）／超＝圧勝で即フリップ
     // 分離独立（§9-E拡張）：州の関税利害が国政策と乖離＋州の不満で分離圧力。中央の保持力（治安維持力×正統性÷人口規模）を超えると離脱→内戦（再統合戦）。稀に。
     public double SecessionPressureScale = 1.0;       // 分離圧力＝関税乖離(0..2)×州平均闘争度×これ
     public double CultureSecessionWeight = 1.0;       // #13 文化/宗教の異質性が分離圧力を増幅：首都と文化・宗教が違う州ほど分離志向↑（分離圧力 ×(1+これ×文化距離0..1)）。同一/未設定で0＝較正中立＝多民族帝国(墺洪/オスマン)の分裂を文化ラベルから創発
@@ -410,8 +407,6 @@ public sealed class Coefficients
     // ★0.000005 で正統性項は 英0.92・仏0.86・露0.86・清0.36 になり、治安維持力項と合わせて閾値を超えうる＝
     //   **強く正統な国は帝国を保てる／弱く正統性を欠く国は割れる**という本来の形になる。
     public double SecessionHoldPerPop = 0.000005;      // 中央の保持力＝治安維持力×正統性をこれ×人口で割る（大国ほど辺境を抑えにくい）
-    public double CivilWarCasualtyRate = 0.003;       // 内戦の四半期死亡率（大衆・兵士。4年で約5%）
-    public double CivilWarLegitimacyDrain = 0.03;     // 内戦中の正統性低下（四半期）
     public double MilitaryCoupWeight = 1.4;           // 兵士の政治力＝規模×(0.2+不満)×これ＝軍政の支持への加算の入力（Politics.CoupSupport）。決めるのは引力点だけで、実行は兵士込みの挑戦力が保持力を超える門2に従う（CoercionSoftCap の注記）。兵の頭数を保持力の単位へ換える交換比＝取り分 sf/(sf+保持力) の曲がり所を動かす
     public double IndustrializedTechThreshold = 0.25;  // 経路分類：工業化とみなす技術水準（§B-5。失敗0.1<これ<採用0.5）
     public double IndustrializedUrbanThreshold = 0.45; // 経路分類：工業化とみなす都市率（高め＝都市化単独では誤分類しない・技術主導）
@@ -1956,7 +1951,6 @@ public sealed class Coefficients
     //（生産・資本・民間人が無傷＝太平天国の長江壊滅・米内戦の南部資本半減が表現不能。軍需2倍はむしろ軍需景気）。対外戦争は戦費・資材競合・
     // 兵士/士官の戦死・封鎖・厭戦のみ＝**国土は無傷**（北仏1914-18型の戦場破壊なし）。以下3本で物理ダメージを追加（点火試験値・値は各行参照）。
     public double CivilWarEconomyDisruption = 0.2;  // **2026-07-25点火試験**：内戦中の実効生産性×(1−これ)（流通麻痺・徴発・戦場化・労働の逃散）。0=不読＝恒等
-    public double CivilWarCivilianToll = 0.005;     // **2026-07-25点火試験**：内戦中の民間超過死亡（四半期・非兵士pop比。飢餓・虐殺・流民＝太平天国の主死因は戦闘でない。3年内戦で約6%減）。0=恒等
     public double WarCivilianToll = 0.002;          // 第7段第1波②点火（2026-07-28）：対外戦争の民間人死＝劣勢度×接触強度×これ（月次・非兵士pop比）。戦争が本当に恐ろしくなる（厭戦→革命の実体＝餓死）。CivilWarCivilianTollと同じ保存作法。0で恒等
     public double WarZoneCapitalDamage = 0.01;      // **2026-07-25点火試験**：対外戦争＝劣勢側の領土が戦場になる：敗色×接触強度に応じ工業化資本・港湾が月次摩耗。0=恒等
     // 機構B 矯正講和（革命輸出doc §3・2026-07-25実装）：壊滅級勝利×政体イデオロギー距離≥閾値＝勝者が敗者の政体を自陣営へ矯正（講和条項＝新しい宣戦動詞は作らない）。
@@ -2624,7 +2618,6 @@ public sealed class Coefficients
     public double SecessionCultureAdditive = 3.0;   // 政14（**【R8点火2026-07-13＝3.0】** 旧0.5は効果≈0.1で分離閾値1.43に届かず実質関税駆動だった＝民族主因の分離が出なかった）：>0で文化/宗教距離×州少数派度×州不満を関税と独立の加算圧力に（民族主因の分離）。参考例（5.0の場合）＝強民族州(文化距離1×少数派0.8×不満0.8)で加算≈0.64＝関税項と合わせ閾値超えが可能に＝バルカン型の民族分離を実数化。0で旧の乗算構造のみ。EthnicEnabledの国のみ
     public double ConsciousnessFromSchoolingStock = 1.0;   /* #17保留:PolicyPolitics/Polityテスト */   // 政15（変換係数が現行の教育法を読む＝世代遅れなし）：混合比∈[0,1]。0=今期の教育法の即時値を全pop一律（現行恒等）／>0でpopの就学履歴ストックと混ぜ世代遅れを作る
     public double SchoolingStockSpeed = 0.02;   // 政15：就学履歴ストックが今期の変換係数へ寄る四半期速度（法改正が変換に効くまで数年）。ConsciousnessFromSchoolingStock=0では未使用
-    public double CivilWarRebelSide = 0.5;   // 政13（内戦に反乱側がなく動員が現体制の治安維持力を強化）：内戦徴集量のうちchallenge側の仮想戦力として累積計上する割合。0=反乱側戦力ゼロ＝challenge不変（現行恒等）／>0で内戦が長引くほど反乱側も増強
     // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】IrreversibleEmancipation＝農奴解放・土地改革の不可逆（政4・点火済み）
     public double SeatsFrozenBetweenElections = 1.0;   // 政7：選挙間の議席固定。0=PartySeatsを毎期の世論で上書き＝直接民主制的（VoteShares==PartySeats恒等）／>0で得票率はVoteShares(表示)に置きPartySeats(確定議席)は選挙時スナップショットで固定＝レームダック
     public double CenterIsFirstProvince = 1.0;   /* ★点火2026-09-05 B群(G5 中心州)＝0.0→1.0・batch10連鎖の実測（凍結木）で硬性ゲート緑 */      // ★J-003（作者裁定2026-09-03「首都（史実・表示のみ）と経済中心地は別でよい」）：エンジンの距離計算の基準を**1番目の州**（＝エンジンが首都として扱う州）の座標へ差し替える。⚠世界データの首都座標は `World.DisplayCapitalLat/Lon` に残り**表示専用**になる。実測で差が出るのは3カ国（露634km・コーカンド167km・モロッコ166km）。0で厳密恒等
@@ -2674,7 +2667,7 @@ public sealed class Coefficients
     //   B14 world.json の heldSince（併合年）を読む＝新領土は支配度が低く Integrated 格で始まる（E-06 の核心が開始盤面に効く）。0＝読まない＝全州 Core・支配度1＝旧。採用後は係数を消して常時読む。
     public double HeldSinceFromData = 0.0;
     // ★実バグ21件 第4波 B3（2026-09-07・単独計測）：「内戦中か」を World.InCivilWar の1本へ＝CivilWarAsWar の主経路（War で戦う）でも経済麻痺・軍需2倍・
-    //   同盟の参戦判断・選挙停止・軍の実戦・国民形成の危機が効く。0＝CivilWarYears>0 だけ＝旧＝厳密恒等。
+    //   同盟の参戦判断・選挙停止・軍の実戦・国民形成の危機が効く。0＝旧経路の内戦だけ（2026-09-28 にその経路を削除＝0では内戦中が常に偽）。
     //   ★1.0で**点火**（F3b蜂起doc §5 段3・作者裁定②＝2026-09-08）：内戦の生産麻痺→FoodFill低下→飢餓が、10^6級の死者を出す唯一の経路。
     //     ⚠親も反乱国も真＝親の全州が生産−20%を受ける。清・露・オスマンの経済帯が悪化することは作者が受容済み（帯の悪化は差し戻しの理由にしない・記録する）。
     public double CivilWarPredicateUnified = 1.0;
@@ -3215,7 +3208,6 @@ public sealed class Coefficients
     public double CultureFormationGate = 1.0;       // 主フラグ：0＝自動生成規則を一切列挙しない＝CultureRealms 型に触れない＝厳密恒等
     public double CultureFormationNeedsGain = 1.0;  // 自動生成規則に「開幕より同文化の州を増やした」ことを要件として課す（Gate=0 では読み手ゼロ）
     public double CoreHeldYears = 150.0;
-    public double SecessionSpawnsNation = 1.0;     // **分離独立の建国フラグ**：1=分離戦勝利の州をLocked休眠でなく新国家（新World＋新Power）としてスポーン。0=従来のLocked化（厳密恒等）。多国シム（StepsDiplomacy=false）でのみ実効
 
     // ★★内戦による国家分裂（docs/202607/20260731_内戦による国家分裂_部分完了.md【一部】.md・器2026-08-01）：
     // 0＝決着は従来の二値（挑戦力 > 治安維持力+民兵 で反乱勝利）＝**厳密恒等**／1＝**州が陣営を選び**、両陣営が州を保持したまま拮抗すれば国が2つに割れる。
@@ -3253,7 +3245,6 @@ public sealed class Coefficients
     //   歪み＝職人→工場労働者の没落（Meritocracy）が法の度合×これ だけ遅れる（0..1）。剥がすと労働は工場へ流れるが職人の失業＝ラッダイト（既存の裁定と整合）
     public double GuildMobilityDrag = 0.0;
     // ==== 内戦を戦争に一元化（docs/202608/20260827_内戦を戦争に一元化する_部分完了.md・2026-08-30実装）＝主フラグ点火済み（FactionJoinMilitancy は段2で削除＝下記）====
-    public double CivilWarAsWar = 1.0;   // ★点火2026-08-30（合成先行300Q＝経済+10.0/列強+7.6/法+3.5/exact+1.5/破綻0。604Q受け入れbatch30で最終確認・記録は20260830doc）              // **主フラグ**：蜂起＝即座に反乱国家を建て（SpawnNation を決着時→開戦時へ）既存の戦争システムで戦う。決着＝政府勝利→再併合／反乱勝利→親へ政体change＋再併合／白紙→分断存続（台湾型）。0＝旧・4年タイマー内戦＝厳密恒等
     // ★段2で削除：FactionJoinMilitancy（派閥の頭数に入るPOPの闘争度の下限）。唯一の読み手が**組織核 org の平均を取るループ**で、
     //   その org ごと削除されたため読み手ゼロになった。⚠参加の述語そのものは廃止ではなく**格上げ**＝作者裁定2026-09-09 その2の①
     //   「参加は不満度が決める」に従い、⑤3層の実装で不満度を読む形で作り直す（闘争度の下限としては戻さない）。

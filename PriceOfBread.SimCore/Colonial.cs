@@ -174,7 +174,7 @@ public static class Colonial
             var srcPops = new List<(Pop P, double Wgt)>(); double srcMass = 0;
             foreach (var rg in w.Regions)
             {
-                if (rg.State != RegionState.Active || rg.Seceded) continue;
+                if (rg.State != RegionState.Active) continue;
                 foreach (var p in rg.Pops)
                 {
                     if (p.IsSoldier || p.Size <= 1e-9) continue;
@@ -354,7 +354,7 @@ public static class Colonial
             var srcR = new List<(Pop P, double Wgt)>(); double srcMassR = 0;
             foreach (var rg in w.Regions)
             {
-                if (rg.State != RegionState.Active || rg.Seceded || rg.Tier == RegionTier.Colonial) continue;
+                if (rg.State != RegionState.Active || rg.Tier == RegionTier.Colonial) continue;
                 foreach (var p in rg.Pops)
                 {
                     if (p.IsSoldier || p.Size <= 1e-9) continue;
@@ -365,7 +365,7 @@ public static class Colonial
             List<Region>? promoteR = null;
             foreach (var cr in w.Regions)
             {
-                if (cr.State != RegionState.Active || cr.Seceded || cr.Tier != RegionTier.Colonial || cr.Id == 0) continue;
+                if (cr.State != RegionState.Active || cr.Tier != RegionTier.Colonial || cr.Id == 0) continue;
                 var ccr = Places.Coord(cr.Name);
                 double kmS = (Math.Abs(ccr.Lat) < 1e-9 && Math.Abs(ccr.Lon) < 1e-9) ? 0 : Geo.SeaDistanceKm(w.Latitude, w.Longitude, ccr.Lat, ccr.Lon, suezOpen, panamaOpen);
                 double attract = 1.0 / (1.0 + kmS / Diplomacy.DistanceNormKm);

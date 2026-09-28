@@ -38,7 +38,7 @@ public partial class GameViewModel : ViewModelBase
     private double _prevDeval; private bool _prevAusterity, _prevDepression, _prevHeatHot, _prevFamine;
     // 全国の政体・内戦の前回値（政変/内戦の発火検出）。★国の Id をキー（2026-09-28 処理の一元化 段2 束2）＝旧は Powers の添字の配列で、
     //   国の数が変わった四半期（建国・再併合）に配列ごと作り直して比べなかった＝戦争の形の革命（再併合と同じ四半期に親の政体が変わる）の政変の報せが出なかった。
-    private System.Collections.Generic.Dictionary<long, Polity>? _prevPolities; private System.Collections.Generic.Dictionary<long, bool>? _prevCivilWar;
+    private System.Collections.Generic.Dictionary<long, Polity>? _prevPolities;
     private System.Collections.Generic.HashSet<long>? _prevCivilWarKeys;   // ★内戦一元化：タグ付き戦争のペアIdキー（新経路の内戦検出）
     private System.Collections.Generic.Dictionary<long, double>? _prevTerror;   // 国ごとの粛清累計の前回値（恐怖政治ニュース・Id基準＝count変動に強い）
     private System.Collections.Generic.HashSet<long>? _prevPowerIds;   // 前四半期に存在した実国のId集合（分離独立の建国ニュース＝新Id出現）
@@ -612,29 +612,5 @@ public partial class GameViewModel : ViewModelBase
         _ => "—",
     };
 
-    // 政体で変わる国号（イギリス王国／イギリス共和国／…）。9政体すべてに固有の名。
-    // ★2026-08-23：**元の名前が既に国号を含む場合は剥がしてから付ける**（旧＝「ハワイ王国」＋「王国」＝「ハワイ王国王国」。
-    //   コンゴ/ダホメ/アシャンティ/マラーターも同型）。剥がすことで共和政になれば「ハワイ共和国」と政体に追随する。
-    //   長い国号から先に照合する（人民共和国→共和国 の順でないと「人民」が残る）。
-    private static readonly string[] PolityTitleSuffixes = { "人民共和国", "立憲王国", "統領政府", "軍事政権", "共和国", "王国", "帝国", "幕府" };
-    private static string PolityTitleJa(string baseName, Polity? p) => StripPolityTitle(baseName) + (p switch
-    {
-        Polity.Absolutist => "王国",
-        Polity.Despotic => "帝国",
-        Polity.ConstitutionalMonarchy => "立憲王国",
-        Polity.Shogunate => "幕府",
-        Polity.Republic => "共和国",
-        Polity.BourgeoisDictatorship => "統領政府",
-        Polity.ProletarianDictatorship => "人民共和国",
-        Polity.MilitaryDictatorship => "軍事政権",
-        Polity.Anarchy => "(内乱)",
-        _ => "",
-    });
-
-    private static string StripPolityTitle(string name)
-    {
-        foreach (var sfx in PolityTitleSuffixes)
-            if (name.Length > sfx.Length && name.EndsWith(sfx, System.StringComparison.Ordinal)) return name[..^sfx.Length];
-        return name;
-    }
+    // 政体で変わる国号（イギリス王国／イギリス共和国／…）と内戦の国名（政体の頭書き）の表は SimCore の1か所（SecessionNames・2026-09-28 処理の一元化 段2 束3）。
 }

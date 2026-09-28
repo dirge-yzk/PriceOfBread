@@ -95,19 +95,17 @@ public class NationIdentityTests
         var sim = new MultiNationSim(configs, 17UL, _ => new NullAgent());
         var austria = sim.Nations.First(n => n.World.SelfPower!.BaseName == "オーストリア");
         var w = austria.World;
-        w.Coef.SecessionSpawnsNation = 1.0;   // 各国Worldの係数（Politicsが読む）
         var brussels = w.Regions.First(r => r.Name == "ブリュッセル");
         double savings = brussels.SumSavings(); double pop = brussels.SumPopulation();
-        // 勝ち確定の分離戦を注入：保持力を潰し、決着四半期へ
-        w.SecedingRegion = brussels;
-        w.CivilWarYears = 0.25;
-        w.BaseCoercion = 0;
-        foreach (var p in w.AllPops()) { p.Militancy = 1.0; p.Consciousness = 1.0; }
+        // 分離独立の予約（支配度が尽きた州＝Politics.CheckSecession が積む）を置く＝四半期末に建国＋分離独立戦争。
+        // ★2026-09-28（処理の一元化 段2 束3）：旧＝旧経路の単一州の分離戦（CivilWarYears・係数 SecessionSpawnsNation）を注入して決着で建国＝その経路は削除（作者裁定 g）。
+        w.PendingSecessionWars = [brussels];
         int nations0 = sim.Nations.Count, powers0 = sim.Diplomacy.Powers.Count;
         sim.StepQuarter();
-        Assert.Equal(nations0 + 1, sim.Nations.Count);
-        Assert.Equal(powers0 + 1, sim.Diplomacy.Powers.Count);
-        var belgium = sim.Nations[^1].World;
+        Assert.True(sim.Nations.Count >= nations0 + 1);
+        Assert.Equal(sim.Nations.Count - nations0, sim.Diplomacy.Powers.Count - powers0);
+        var belgium = sim.Nations.First(n => n.World.SelfPower!.BaseName == "ベルギー").World;
+        Assert.Contains(sim.Diplomacy.Wars, x => x.CivilWarSecession && x.CivilWarParent == w.SelfPower && (x.A == belgium.SelfPower || x.B == belgium.SelfPower));
         Assert.Equal("ベルギー", belgium.SelfPower!.Name);
         Assert.Equal("ベルギー", belgium.SelfPower!.BaseName);
         Assert.Same(brussels, belgium.Region);            // 同一Region実体の物理移転（首都Id0）

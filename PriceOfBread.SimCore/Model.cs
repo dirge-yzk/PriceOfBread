@@ -445,7 +445,7 @@ public sealed class Region
     // ★純テレメトリ（2026-08-26・作者指摘「輸送力が州割りになっている」の定量化）＝その州に配られた輸送容量の実値。
     //   BilateralMarket が cap を組み立てた場所で書くだけ＝**計器が式を二重定義しない**。力学は一切読まない。
     public double LastTransportCap;
-    public bool CivilWarActive;                       // 内戦中か（World.CivilWarYears>0 の複製・#136）。内戦の経済麻痺（CivilWarEconomyDisruption）の読み口。false＝中立
+    public bool CivilWarActive;                       // 内戦中か（World.InCivilWar の複製・#136）。内戦の経済麻痺（CivilWarEconomyDisruption）の読み口。false＝中立
     // 弧3-1（2026-07-24）：成長の出所内訳＝工業化増分の累積を建て手別に分離（国家建設 vs 資本家投資）。純カウンタ・力学は読まない。
     // 「エンジンが国家から民間へ移る瞬間」を数字で見る＝発展段階の可視化の本体
     public double CumStateIndustrialization;
@@ -599,7 +599,6 @@ public sealed class Region
     public double[] StateSpent = new double[(int)TreasuryCat.Count];
     public double CumEducationCost;                   // 義務教育の国庫負担の累積（診断・UI予算表示用。リセットせず差分で期間値）
     public double CumStateMonopolyRevenue;                  // 専売益の累積（診断・UI予算表示用。同上）
-    public bool Seceded;                              // 分離独立で失った州（Locked＋この印）＝辺境開発（懐柔）の対象外。武力（ForceUnlock）による再征服のみで復帰（監査2026-07-11 他2：無償の自動開発による自動復帰の遮断）
     public bool JointStockApplied;                    // 株式会社の州ブースト（IndustrializationBoost×1.6）適用済みか＝所有国のフラグと毎期整合（監査2026-07-11 二2：割譲との干渉＝二重適用/恒久未適用の是正。Institutions.Step が管理）
     public double JointStockMulApplied = 1.0;         // ★研究・段2（2026-08-31）：株式会社ブーストの連続適用倍率（DiscoveryInstitutions>0でのみ書かれる。1.0＝未適用＝ゲート0で不読＝恒等）
     // 巨大建造物（2026-07-28）：国家建設とは**別キュー・別アキュムレータ**にする。理由＝StateBuildQueue に相乗りさせると

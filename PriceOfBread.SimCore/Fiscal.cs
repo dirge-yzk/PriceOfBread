@@ -566,7 +566,6 @@ public static class Fiscal
                 bool reachOn = c.RuleSharesReach > 0;
                 foreach (var rg in w.Regions)
                 {
-                    if (rg.Seceded) continue;   // AllPops() と同じ集合
                     double reach = reachOn ? Politics.RuleReach(rg, c) : 1.0;
                     foreach (var p in rg.Pops) if (!p.IsSoldier && p.OldShare > 1e-9) { elderly.Add(p); elderW.Add(p.Size * p.OldShare * reach); elderSize += p.Size * p.OldShare; }
                 }

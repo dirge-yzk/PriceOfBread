@@ -2460,7 +2460,6 @@ public sealed class Simulation
         if (!recovering)
             foreach (var r in World.Regions)
             {
-                if (r.Seceded) continue;   // seceded州は国家人口動態の対象外＝凍結（監査2026-07-14・集計是正。TotalPopulation除外と一致させΣ配分=netの保存を保つ）
                 foreach (var p in r.Pops)
                     if (!p.IsSoldier)
                     {
@@ -2473,7 +2472,6 @@ public sealed class Simulation
             }
         foreach (var r in World.Regions)
         {
-            if (r.Seceded) continue;   // seceded州は出生死亡の対象外（同上）
             foreach (var p in r.Pops)
                 if (!p.IsSoldier)
                 {

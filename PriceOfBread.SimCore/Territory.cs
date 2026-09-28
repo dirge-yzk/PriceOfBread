@@ -23,25 +23,20 @@ public static class Territory
                     double unlockPay = c.ForceUnlockTreasuryCost * w.FiscalFundingRatio;
                     r.Infra += c.ForceUnlockRate * w.FiscalFundingRatio;
                     w.Pay(TreasuryCat.Army, -unlockPay);   // 区分＝陸軍（作者裁定 Q14）
-                    w.Pay(TreasuryCat.Army, World.Distribute(new List<Pop>(w.AllPops()), unlockPay));   // 軍事調達→pop へ還流（保存）。受け手不在＝国庫残置。★是正（監査G10#3）：Colonial/Diplomacyと同じAllPops基準の1本を共用（旧はSeceded凍結popも受け手に含めていた）
+                    w.Pay(TreasuryCat.Army, World.Distribute(new List<Pop>(w.AllPops()), unlockPay));   // 軍事調達→pop へ還流（保存）。受け手不在＝国庫残置。★是正（監査G10#3）：Colonial/Diplomacyと同じAllPops基準の1本を共用
                     foreach (var p in w.AllPops())
                         p.Militancy = PoliticalQuantities.Clamp01(p.Militancy + c.ForceUnlockMilitancy * w.FiscalFundingRatio);   // 制圧の不満（戦争疲弊）＝制圧の進み方（r）に比例
                 }
-                else if (!r.Seceded)
+                else
                 {
                     // 資金注入（懐柔/開発）：遅いが軋轢小（§2.5/§2.2.1）。
-                    // 分離独立で失った州（Seceded）は対象外＝勝手に開発されて元の国へ自動復帰しない（監査2026-07-11 他2）。
-                    // 分離州の復帰は上の武力（ForceUnlock＝再征服の実費＝国庫出血＋全popの闘争度）だけが通る。
+                    // （旧＝分離独立で失った州 Seceded は対象外だった＝その経路〔単国の世界の単一州の分離〕は 2026-09-28 段2 束3 で削除＝Locked は辺境だけ）
                     r.Infra += c.FrontierDevelopmentRate;
                 }
 
                 if (r.Infra >= c.FrontierUnlockThreshold)
                 {
-                    // 集計是正（監査2026-07-14）：seceded州の再征服＝住民が国家会計へ復帰＝分離時の PopulationDelta -= P の対称（+= P）。
-                    // 凍結中は人口動態対象外でSizeが不変＝分離時と同額＝厳密に相殺し人口保存不変量を維持。frontier州（Seceded=false）は対象外。
-                    if (r.Seceded) w.PopulationDelta += r.SumPopulation();
                     r.State = RegionState.Active;
-                    r.Seceded = false;   // 再征服の完了＝通常州へ復帰
                     foreach (var m in r.Markets) m.PrevStock = m.Stock;   // 財収支の恒等式を満たす初期化（次月から市場が回る）
                 }
             }
@@ -249,7 +244,6 @@ public static class Territory
         double S = r.SumSavings(), P = r.SumPopulation();
         from.Regions.Remove(r);
         from.CumulativeTradeFlow -= S; from.PopulationDelta -= P;
-        r.Seceded = false;
         if (to is not null)
         {
             Adopt(to, r);

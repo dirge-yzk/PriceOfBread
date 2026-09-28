@@ -93,7 +93,6 @@ public static class PoliticalQuantities
         double lit = 0, size = 0;
         foreach (var r in w.Regions)
         {
-            if (r.Seceded) continue;
             if (coreOnly && r.Tier == RegionTier.Colonial) continue;
             foreach (var p in r.Pops) { lit += p.Literacy * p.Size; size += p.Size; }
         }

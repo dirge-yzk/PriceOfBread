@@ -214,7 +214,7 @@ public static class Politics
         //   （TriggerFactionRevolt が札を立ててから建国＝開戦までに四半期の境界を跨ぐ＝処理順に依存させない）。
         //   ⚠民兵率0の世界（RevoltMilitiaRaise=0＝既定）ではこの条件の中で1回も書かない＝厳密恒等。
         //   ⚠「内戦中か」の物差しは World.InCivilWar **1本**（新しい述語を作らない）＝CivilWarPredicateUnified=1.0 が点火済みなので
-        //     旧経路（CivilWarYears>0）も War 経路（CivilWarParent 付き＝親も反乱国も真）も同じ1本で見える。
+        //     War 経路（CivilWarParent 付き＝親も反乱国も真）が見える（旧経路の内戦 CivilWarYears は 2026-09-28 段2 束3 で削除）。
         //     ⚠それを0へ戻すと反乱国の民兵は建国の翌四半期に剥がれる（＝この札は内戦の述語に依存している）。
         bool inRevolt = w.InCivilWar || w.RevoltingFaction is not null || w.PendingRebelRegions is not null;
         foreach (var p in w.AllPops())
@@ -241,10 +241,9 @@ public static class Politics
         // 政治の空間モデル：現政体の4軸座標（実参政権でドリフト済＝第5段5-1でPoliticalQuantitiesへ一元化）をループ前に1回算出。各popの理想点との距離が政治的不満。
         double[] regimeCoord = PoliticalQuantities.DriftedPolityCoord(w.Polity, w.Suffrage, c);
         // 参政権の範囲2法（作者裁定2026-08-16・SuffrageScopeGate>0のみ）：移民原住民参政権の少数派緩和は「州の格」を読む
-        // ＝ループを州→popの入れ子へ（AllPops と同じ走査順・Seceded スキップ＝gate=0 で厳密恒等）。
+        // ＝ループを州→popの入れ子へ（AllPops と同じ走査順＝gate=0 で厳密恒等）。
         foreach (var milReg in w.Regions)
         {
-        if (milReg.Seceded) continue;
         foreach (var p in milReg.Pops)
         {
             // ★★★生活苦＝**失望**＝【低下】から生まれる（2026-08-19裁定・2026-08-21点火＝既定1.0）。⚠0に戻すと旧式（絶対水準）＝対照用。
@@ -520,7 +519,7 @@ public static class Politics
             bool defeatNow = w.DefeatShock >= 0.5;                            // 決定的敗戦（ResolvePeace が 1.0 を注入した直後の高水準・減衰済み残滓と区別）
             if (defeatNow && !w.DecayPrevDefeatShock) shock = true;
             w.DecayPrevDefeatShock = defeatNow;
-            bool cwNow = w.CivilWarYears > 0;                                 // 大規模反乱（内戦の勃発エッジ）
+            bool cwNow = w.InCivilWar;                                        // 大規模反乱（内戦の勃発エッジ）。★2026-09-28（処理の一元化 段2 束3）：旧経路の内戦（CivilWarYears）を削除＝「内戦中か」の述語の1本（戦争の形の内戦＝首都の蜂起・地方の蜂起・分離独立）
             if (cwNow && !w.DecayPrevCivilWar) shock = true;
             w.DecayPrevCivilWar = cwNow;
             if (w.HadSovereignDefault && !w.DecayPrevDefault) shock = true;   // 国家破産（恒久フラグの立ち上がり）
@@ -575,14 +574,17 @@ public static class Politics
 
         // 財政破綻は外科的な政体フリップでなく**経済悪化（信用収縮＝Credit）**として効かせ、政治的帰結は通常の遷移に委ねる（債務不履行→経済悪化の段階）。
         Factions.Step(w, c);   // F3a：国内勢力の永続化と変異（牙＝下の CheckFactionRevolt・FactionRevoltScale=1.0 稼働中）
-        if (w.CivilWarYears > 0) ProcessCivilWar(w, c, reformist + radical, coerce);   // 内戦中は通常遷移せず戦乱を進める
-        else
-        {
-            Transition(w, c, reformist, radical, coerce);
-            CheckSecession(w, c, coerce);   // ★E-06：ストックは内戦中も積分する（判定だけ内戦後・旗 DominanceIsStock は 2026-09-26 に焼き込み）。革命が起きなければ分離独立を判定（保持力は人口項を内包・政5で coerce=軍/警察由来の保持力を渡す）
-            if (w.CivilWarYears <= 0) CheckFactionRevolt(w, c, coerce);   // F3b 組織運動の内乱（結束した国内勢力＝太平天国型・FactionRevoltScale=1.0稼働・0で観察のみ）
-            if (w.CivilWarYears <= 0) CheckRegionalRevolt(w, c, coerce);   // F1 州一揆（王権議会F1・RegionalRevoltThreshold=0で無効・★段2で現行0.50）
-        }
+        // ★旧経路の内戦（第二の戦争エンジン＝ProcessCivilWar）を削除（2026-09-28 処理の一元化 段2 束3・作者裁定 a）＝内戦は全て戦争の形（首都の蜂起も）。
+        //   旧＝CivilWarYears>0 の間は通常遷移・F3b・F1 を止めて抽象的な戦勝点で数年を戦った。
+        //   ★首都が反乱国の手にある間（首都の分離独立の内戦中＝World.SecedingRegion）は通常の遷移と蜂起の判定をしない＝政体の問いは戦場で決まる
+        //   （旧経路の「内戦中は通常遷移せず戦乱を進める」と同じ規則＝首都の政変は旧経路の内戦だった）。⚠旧＝戦争の形の地方の蜂起・分離独立の内戦は止めていない＝そのまま。
+        //   ⚠止めないと、首都を失った政府が戦争の途中で自ら反乱側の政体へ転じ（圧勝の即時の政変）、政体をめぐる内戦が要求戦に化けた（年代記 seed1 の英 1788）。
+        bool capitalHeld = w.SecedingRegion is not null;
+        if (!capitalHeld) Transition(w, c, reformist, radical, coerce);
+        bool capitalRose = w.PendingRebelRegions is not null;   // 首都の蜂起を予約した四半期＝他の蜂起は判定しない（旧＝旧経路の内戦が始まった四半期と同じ扱い）。予約は四半期末に回収＝この四半期の Transition だけが書く
+        CheckSecession(w, c, coerce);   // ★E-06：ストックは内戦中も積分する（旗 DominanceIsStock は 2026-09-26 に焼き込み）。分離独立を判定（保持力は人口項を内包・政5で coerce=軍/警察由来の保持力を渡す）
+        if (!capitalRose && !capitalHeld) CheckFactionRevolt(w, c, coerce);   // F3b 組織運動の内乱（結束した国内勢力＝太平天国型・FactionRevoltScale=1.0稼働・0で観察のみ）
+        if (!capitalRose && !capitalHeld) CheckRegionalRevolt(w, c, coerce);   // F1 州一揆（王権議会F1・RegionalRevoltThreshold=0で無効・★段2で現行0.50）
 
         w.Freedom = FreedomFromLaws(w.Suffrage, w.Censorship);   // 倍率排除②：政体ラベルでなく参政権＋報道法から創発
 
@@ -679,15 +681,29 @@ public static class Politics
         //（旧＝この早期returnが下賜の点火口を殺し、欽定憲法が原理的に不能だった）。ReformGrantPcWidth=0 では旧条件のまま＝厳密恒等。
         if (!IsSeizure(attractor) && radical <= reformist && !(reformFromAbove && c.ReformGrantPcWidth > 0)) return;
         // ★様態の判定はここ（政体変更の唯一の呼び手＝引力点の遷移）だけ（2026-09-28 処理の一元化 段2 束2・A）。
-        //   旧＝ExecuteRegimeChange の先頭にあった＝内戦の決着（旧経路の ProcessCivilWar・戦争の形の MultiNationSim.ReabsorbNations）が
+        //   旧＝ExecuteRegimeChange の先頭にあった＝内戦の決着（旧経路の内戦・戦争の形の MultiNationSim.ReabsorbNations）が
         //   実行部だけを呼べず、実行部を丸写しするか（旧経路）登録簿と建国制度の2行だけを書く（戦争の形）しかなかった。
-        // 様態：独裁・無政府への奪取 or 急進主導＝暴力（拮抗なら内戦・圧勝なら即時）／代議制への漸進＝平和即時。
+        // 様態：独裁・無政府への奪取 or 急進主導＝暴力（拮抗なら首都の蜂起・圧勝なら即時）／代議制への漸進＝平和即時。
         // 政2：上からの改革は支配層主導の平穏な漸進＝暴力(内戦)経路を通さず平和即時遷移（既定 reformFromAbove=false で従来どおり）
         bool violent = (IsSeizure(attractor) || radical > reformist) && !reformFromAbove;
+        // ★首都の分離独立（2026-09-28 処理の一元化 段2 束3・作者裁定 a）：拮抗した暴力の転換＝首都の蜂起は、蜂起側が首都州を握る反乱国を建て、
+        //   政府は残りの州へ遷都して戦争の形の内戦を戦う（ウィーン1848・ローマ1849・パリ・コミューン1871・リスボン1910・ペトログラード1917
+        //   ＝数日の革命も、軍が一方に付いて最初の月で決着する戦争）。決着は戦後処理の1本（Diplomacy.ResolvePeace→MultiNationSim.ReabsorbNations
+        //   ＝反乱の勝ち＝親の政体変更＋首都を返す／政府の勝ち＝再併合＋首都州に鎮圧の後始末）。
+        //   ⚠旧＝旧経路の内戦（第二の戦争エンジン ProcessCivilWar＝抽象的な戦勝点・独自の戦死と徴集と正統性の減算・国家分裂）で数年を戦った＝削除した。
+        //   残すのは拮抗の判定（CivilWarLandslideRatio）だけ＝圧勝は下の即時の政変。
+        //   ・平和的な転換（上からの改革・漸進）はここへ来ない＝violent が偽（2026-08-30 の幕府の教訓・条件①）。
+        //   ・首都の外に政府が移れる州が無い国（州が1つ）と単国の世界（建国の回収者がいない）は即時の政変（条件②）。
+        //   ・内乱が既に地図の上で進んでいる間（InCivilWar）と蜂起の予約中は新しい蜂起を立てない＝状態で排他（タイマーではない・F3b の状態の門と同じ述語）。
+        //     旧経路の「内戦中は通常遷移しない」の置き換え＝戦争の形の内戦の親も反乱国も、この間は拮抗の転換を起こさない。
         if (violent && challenge < coerce * c.CivilWarLandslideRatio)
         {
-            StartCivilWar(w, c); w.CivilWarTarget = attractor; w.HadCivilWar = true;   // 拮抗した暴力転換＝内戦（数年）
-            return;
+            if (w.InCivilWar || w.PendingRebelRegions is not null) return;
+            if (RaiseRevolt(w, w.Regions[0], attractor))
+            {
+                w.LogAdd($"{w.Year} {w.SelfPower?.Name}の首都{w.Regions[0].Name}で蜂起＝政府は首都を出て戦う（内戦）");
+                return;
+            }
         }
         // ★親軍法の撤去（2026-08-18）：軍事独裁への遷移で法を立てる行を削除。政体由来の軍事費の床も撤去済み（Government・2026-08-19）
         //   ＝軍政の軍国性は PoliticalQuantities.MilitaryPoliticalRatio 等の導出量が担う。
@@ -713,8 +729,9 @@ public static class Politics
 
     // P3a 奪取イベント化（2026-07-12・ビット同一抽出）：政体変更の**実行部**＝覚醒と断裂の窓（暴力の転換）→登録簿（ApplyRegime）→
     // 建国制度→債務→失脚→土地改革。★2026-09-28（処理の一元化 段2 束2・A）：様態の判定（拮抗の暴力転換→内戦・上からの改革の下賜）は
-    // 唯一の呼び手 Transition へ移し、ここは**実行部だけ**＝即時の政変（Transition）・旧経路の内戦の決着（ProcessCivilWar）・
-    // 戦争の形の内戦の決着（MultiNationSim.ReabsorbNations）の3経路が同じ1本を通る（Politics.SettleRevolt）。
+    // 唯一の呼び手 Transition へ移し、ここは**実行部だけ**＝即時の政変（Transition）・内戦の決着（Politics.SettleRevolt＝戦争の形の
+    // MultiNationSim.ReabsorbNations と、州が1つの国・単国の世界の蜂起の即時の決着）が同じ1本を通る。
+    // （旧経路の内戦の決着 ProcessCivilWar は 2026-09-28 段2 束3 で削除＝首都の蜂起も戦争の形）
     // ⚠旧＝戦争の形の内戦で革命が勝つと登録簿と建国制度の2行だけ＝急進革命の国債の否認・失脚・土地改革・覚醒・断裂の窓が走らなかった
     //   （戦争で勝ったプロレタリア革命が国債を引き継ぎ地代も残る）。規則そのもの（既定は継承・急進革命だけ否認）は変えていない。
     // ⚠矯正講和（Diplomacy.ResolvePeace）と床交差の再ラベル（CrownParliament）は意図どおりこの実行部を通らない（押し付けられた政体・ラベルの付け替え）。
@@ -832,188 +849,24 @@ public static class Politics
         _                                                        => (false, false, false),
     };
 
-    /// <summary>内戦の開始（5経路共通）。★CivilWarByScore（2026-09-06）：多国シムでは残り年数でなく戦勝点で決着する＝旗として +∞ を立て
-    /// （読み手は全て「>0＝内戦中」）、ProcessCivilWar が決着で0へ戻す。0（既定）＝従来の CivilWarDurationYears（厳密恒等）。</summary>
-    private static void StartCivilWar(World w, Coefficients c)
+    /// <summary>★蜂起を地図の上に立てる1本（2026-09-28 処理の一元化 段2 束3）＝本拠州（首都も）に拠る反乱国の建国の予約。
+    /// 四半期末に MultiNationSim が回収して建国（SpawnNation＝守備兵の寝返りも同じ建国路）＋内戦タグの開戦（Diplomacy.DeclareCivilWar）。
+    /// 首都が出るなら政府は残る州へ遷都して戦う（Territory.TransferRegion→World.SetCapital）＝首都の分離独立（作者裁定 a）。
+    /// 呼び手＝首都の蜂起（<see cref="Transition"/> の拮抗した暴力の転換）と組織運動の蜂起（<see cref="TriggerFactionRevolt"/>）。
+    /// 立てられない＝単国の世界（建国の回収者がいない）・その州が出ると政府に移れる州が残らない（州が1つの国）＝false（呼び手が即時の決着へ）。
+    /// ⚠旧＝組織運動は「首都発は旧経路・地方発だけ戦争」の2本、首都の政変は旧経路（第二の戦争エンジン ProcessCivilWar）だけだった。</summary>
+    private static bool RaiseRevolt(World w, Region seat, Polity polity)
     {
-        bool byScore = c.CivilWarByScore > 0 && !w.StepsDiplomacy && w.SelfPower is not null;
-        w.CivilWarYears = byScore ? double.PositiveInfinity : c.CivilWarDurationYears;
-        w.CivilWarScore = 0;
-    }
-
-    // 内戦の進行（拮抗した暴力革命・分離独立）：四半期ごとに戦死・正統性低下、年数が尽きたら決着。
-    // 決着：動員（reformist+radical）が治安維持力を依然超えていれば反乱勝利＝目標政体へ／さもなくば中央が鎮圧（闘争度緩和）。
-    private static void ProcessCivilWar(World w, Coefficients c, double challenge, double coerce)
-    {
-        foreach (var p in w.AllPops())
-        {
-            if (p.Closed || p.IsModernElite) continue;   // 戦死は大衆・兵士（特権身分・近代エリートは戦場外）
-            double dead = p.Size * c.CivilWarCasualtyRate;
-            p.Size -= dead;
-            w.PopulationDelta -= dead; w.WarDeadCumulative += dead;   // 人口保存（戦死を台帳に計上）
-        }
-        // 動員：大衆を兵士へ徴集（労働喪失→生産減・火器需要↑が創発。外科的な生産penaltyの代わり）。
-        double conscripted = 0;   // 政13：今期の内戦徴集量（反乱側の仮想戦力へ回す分の基礎）
-        foreach (var r in w.Regions)
-        {
-            if (r.State != RegionState.Active) continue;
-            var soldier = r.Pops.Find(p => p.IsSoldier);   // 兵士はフラグで判定（ClassId==5 直書きを排除）
-            if (soldier is null) continue;
-            var peasant = r.Pops.Find(p => p.ClassId == c.SoldierRecruitClassA);   // 徴集プールは Military.cs と同じ設定（農民）
-            var worker = r.Pops.Find(p => p.ClassId == c.SoldierRecruitClassB);    // 同（都市労働者）
-            if (peasant is not null) { double m = peasant.Size * c.CivilWarConscriptRate; Military.MoveCohort(peasant, soldier, m, c); conscripted += m; }   // ★2026-09-26（sweep-23）：手元の c を渡す（旧＝3引数版＝既定の係数）
-            if (worker is not null) { double m = worker.Size * c.CivilWarConscriptRate; Military.MoveCohort(worker, soldier, m, c); conscripted += m; }
-        }
-        // 政13：内戦に反乱側がなく、徴集が国家の兵士pop（→CoercionTarget→治安維持力）へ一方的流入＝内戦激化が政府の治安維持力を機械的に高める（恐怖政治で貴族が最も死んだ仏革命と逆）。
-        // 徴集の一部を challenge 側の仮想戦力として分離計上する（反乱側も動員する）。累積で持ち、決着時の challenge に加算＝内戦が長引くほど反乱側も増強され、政府の一方的な治安維持力上昇を相殺。
-        // CivilWarRebelSide=0 では累積ゼロ＝決着判定の challenge は旧式のまま。>0（現行0.5）で徴集量のその割合を反乱戦力として蓄積。
-        w.CivilWarRebelStrength += c.CivilWarRebelSide * conscripted;
-        double legBeforeCivilWar = w.Legitimacy;
-        w.Legitimacy = PoliticalQuantities.Clamp01(w.Legitimacy - c.CivilWarLegitimacyDrain);
-        w.Explain?.Add("Legitimacy", "内戦の消耗(戦乱が信任を削る)", w.Legitimacy - legBeforeCivilWar);   // 説明API（#63）
-        // #136 内戦の民間人死（2026-07-25）：内戦は兵士だけでなく民間を殺す（太平天国の主死因は戦闘でなく飢餓・虐殺・流民）。
-        // 四半期率×非兵士人口を規模按分で減算＝Diplomacy.WarCasualties と同じ保存作法（Size減算＋PopulationDelta台帳）。
-        // CivilWarCivilianToll=0 で不発（現行0.005）。
-        // ★段5＝民兵率が死の**配分**の重みになる（作者裁定3・2026-09-08）：武器を取った層は戦場に居る＝同じ総死者を配り直すだけ
-        //   （新しい死の経路を作らない・総量 toll も台帳も1ビットも変えない＝不満が農民中心なら農民が多く死ぬ）。
-        //   重み 1+a×民兵率 の a は民兵1人あたりの戦力（MilitiaCombatValue）と**同じ量**＝新しい数はゼロ。
-        //   ⚠民兵率0（既定）では重みが厳密に1.0＝Σ重み==Σ規模（×1.0はIEEE754で正確）＝旧式とビット恒等。
-        if (c.CivilWarCivilianToll > 0)
-        {
-            double civPop = 0, civW = 0;
-            foreach (var p in w.AllPops()) if (!p.IsSoldier) { civPop += p.Size; civW += p.Size * (1.0 + c.MilitiaCombatValue * p.MilitiaShare); }
-            if (civPop > 1e-9)
-            {
-                double toll = civPop * c.CivilWarCivilianToll;
-                foreach (var p in w.AllPops()) if (!p.IsSoldier) p.Size -= toll * (p.Size * (1.0 + c.MilitiaCombatValue * p.MilitiaShare) / civW);
-                w.PopulationDelta -= toll; w.WarDeadCumulative += toll;
-            }
-        }
-        if (double.IsPositiveInfinity(w.CivilWarYears) && w.SelfPower is { } cwp)
-        {
-            // ★CivilWarByScore：決着＝戦勝点（外戦と同じ押し合い・月次 WarPushSpeed を四半期へ×3）か厭戦（外戦と同じ WarExhaustionRate を親国へ積む＝
-            //   内戦中の国は新たな外戦に入らない＝史実の帰結）。攻守の対は決着判定と同じ物差し（分離戦＝動員vs保持力／勢力＝勢力強度vs保持力+郷勇）。
-            double atk = w.RevoltingFaction is { } rq && w.SecedingRegion is null ? FactionStrength(w, c, rq) : challenge + w.CivilWarRebelStrength;
-            double def = coerce + (w.RevoltingFaction is { } rm && w.SecedingRegion is null ? LoyalistMilitia(w, c, rm) : 0);
-            double push = atk + def > 1e-9 ? (atk - def) / (atk + def) : 0;
-            if (!(push > -1 && push < 1)) push = 0;   // 否定形＝NaN は押し合いなし
-            w.CivilWarScore = Math.Clamp(w.CivilWarScore + push * c.WarPushSpeed * (12.0 / Calendar.QuartersPerYear), -Diplomacy.CollapseScore, Diplomacy.CollapseScore);
-            cwp.WarExhaustion = Math.Min(1, cwp.WarExhaustion + c.WarExhaustionRate * (12.0 / Calendar.QuartersPerYear));
-            bool decisive = Math.Abs(w.CivilWarScore) >= Diplomacy.CollapseScore - 1e-9;
-            // ★第2版（2026-09-06・cwscore 腕＝建国2倍/列強再現−12 で差し戻し）：拮抗の終結は外戦が**講和を受ける**閾値（WarPeaceExhaustion）と同じ。
-            //   旧＝WarWearyThreshold（「新たな戦争に入らない」閾値＝意味が違う）で≈2年で終わり分裂判定に落ちる回数が倍増した。
-            bool weary = cwp.WarExhaustion >= c.WarPeaceExhaustion;
-            if (!decisive && !weary) return;
-        }
-        else
-        {
-            w.CivilWarYears -= 1.0 / Calendar.QuartersPerYear;
-            if (w.CivilWarYears > 0) return;
-        }
-        w.CivilWarYears = 0; w.CivilWarScore = 0;
-        challenge += w.CivilWarRebelStrength;   // 政13：反乱側の累積動員を決着判定へ（CivilWarRebelSide=0で加算なし・現行0.5）。決着後にリセット（下）
-        w.CivilWarRebelStrength = 0;   // 内戦終了＝反乱側戦力をクリア（次の内戦は新規に積む）
-        if (w.SecedingRegion is { } reg)   // 分離戦の決着：中央が弱い（動員>治安維持力）と離脱成功＝州喪失、さもなくば再統合
-        {
-            w.SecedingRegion = null;
-            if (challenge > coerce && reg.State == RegionState.Active)   // 離脱成功＝州は連邦から脱退
-            {
-                // 建国モード（SecessionSpawnsNation>0）：多国シム（共有外交あり＝StepsDiplomacy=false）でのみ建国要求を親Worldへ記録し、
-                // MultiNationSim が四半期末に新国家として実体化する（ベルギー独立型）。単一国シム/較正には回収者がいないため従来のLocked経路へ。
-                if (c.SecessionSpawnsNation > 0 && !w.StepsDiplomacy && w.SelfPower is not null)
-                {
-                    w.PendingSecessionRegion = reg;
-                    foreach (var p in reg.Pops) p.Militancy *= c.ReformMilitancyRelief;   // 独立達成＝闘争の目的を得た（鎮圧側:下の緩和と同形・フィルタなし）
-                }
-                else
-                {
-                // 集計是正（監査2026-07-14）：seceded州の住民は国家会計から抜ける＝TotalPopulation除外の対称として PopulationDelta を同額引く
-                // （割譲 CedeTerritory の loser.PopulationDelta -= P と同作法）。人口保存不変量 TotalPopulation==初期+PopulationDelta を維持。貨幣は非接触（ユーザー指定＝人口・識字・食料のみ）。
-                w.PopulationDelta -= reg.SumPopulation();
-                reg.State = RegionState.Locked; reg.Infra = 0;
-                reg.Seceded = true;   // 監査2026-07-11（他2）：分離喪失州の印＝辺境開発（懐柔）の対象外。旧＝無償の自動開発が約100ヶ月でActiveへ戻し元の国へ自動復帰＝分離独立が「8年の休眠ペナルティ」に退化していた。復帰は武力（ForceUnlock＝再征服・国庫と闘争度の実費）のみ
-                foreach (var m in reg.Markets) { m.PrevStock = m.Stock; m.LastProduced = m.LastSold = m.LastImport = m.LastExport = m.LastShortage = 0; m.PopBought = null; }   // 財収支の恒等式を保つ
-                }
-            }
-            else   // 中央が鎮圧＝再統合（その州の闘争度緩和）
-                foreach (var p in reg.Pops) p.Militancy *= c.ReformMilitancyRelief;
-            // F3b 分離戦の主体（民族分岐で記録）も決着で燃え尽きる（成功＝独立を達成し国内運動でなくなる／鎮圧＝組織壊滅）。
-            // CheckSecession 発の分離戦は主体なし（null）＝従来どおり。
-            SpendRevolt(w, w.RevoltingFaction);
-            return;
-        }
-        // F3b 湘軍項：反乱の主体（RevoltingFaction）と思想距離が遠い有産ブロックが体制側で郷勇を組む＝決着判定の保持側へ加算
-        // （曽国藩＝異端の大反乱ほど郷紳が王朝側に立つ。国家革命＝主体なしの内戦では従来どおり0）。
-        double militia = w.RevoltingFaction is { } rfm ? LoyalistMilitia(w, c, rfm) : 0;
-        // F3b 決着の対称性（2026-07-12）：勢力の内乱は発火と同じ物差し（勢力強度＝現在値を再計測）で決着する。
-        // 国民総動員(challenge)で測ると無選挙権の一クラスタの蜂起が国全体の不満を背負って勝ってしまう（英の社会主義蜂起が政権を取る等）
-        // ＝勝敗の非対称バグ。国家革命（主体なし＝Transition/分離発）は従来どおり challenge（政13の反乱側累積動員も challenge 側のみ）。
-        double attack = w.RevoltingFaction is { } rfa ? FactionStrength(w, c, rfa) : challenge;
-        // ★内戦による国家分裂（点火2026-08-01・docs/202607/20260731_内戦による国家分裂_部分完了.md【一部】.md）。
-        // ── なぜ要るか ────────────────────────────────────────────────────────
-        // 内戦の決着が「反乱が勝つ／中央が勝つ」の二値しかないのは史実の姿ではない。**どちらも押し切れないと国が割れる**
-        // （アメリカ南北戦争1861・グラン・コロンビアの解体1831・墨の連邦派対中央派）。
-        // ── どう判定するか ──────────────────────────────────────────────────
-        // ①拮抗＝どちらの戦力も相手の CivilWarLandslideRatio 倍に届かない。★**新しい帯を作らない**——発火側にしか
-        //   使われていなかった同じ定数を決着側にも使う（同じ定数で「圧勝か拮抗か」を測る＝物差しが1本）。
-        // ②州が陣営を選ぶ＝その州のPOPの思想分布が、反乱の目標政体を現政体より支持するか（Ideologies.Regional）。
-        //   ⚠**国名も文化名も出てこない**（思想②）。アメリカ南部が離れるのは南部のpopの思想分布がそうさせるからで、
-        //   「南部だから」ではない。だから同じ条件が揃えば清でも墺でも起きる。
-        // ③首都（Id0）は必ず中央に残る＝親が消滅しない・首都不変条件を壊さない。
-        if (w.RevoltingFaction is null && !w.StepsDiplomacy
-            && w.SelfPower is not null && w.Regions.Count > 1
-            && attack < (coerce + militia) * c.CivilWarLandslideRatio
-            && coerce + militia < attack * c.CivilWarLandslideRatio)
-        {
-            // ★★再点火の是正（2026-08-13・差し戻しの根を断つ）＝**傾きを絶対値でなく国の平均との差で測る**。
-            // 旧＝「反乱の目標政体を現政体より支持するか」を各州で**絶対値**判定していた。⚠内戦中は国全体の思想が反乱側へ寄るので
-            //   ほぼ全州で成立し、16州→1州が1イベントで起きた（帝国の解体）＝「南部が離れる」と「国が消える」が区別できなかった。
-            // ★新＝各州の傾き edge を出し、**国の平均より反乱側へ寄っている州だけ**が離れる。
-            //   ⚠国が一様に反乱側なら平均を超える州は出ない＝分裂しない（それは分裂でなく**革命**であり、下の通常決着が受ける）。
-            // ★さらに、離脱側が多数派になる場合も分裂ではない（それは中央が負けたということ）＝通常決着へ落とす。
-            // ⚠新しい帯も閾値も1つも足していない——平均という物差しは分布そのものから出る。
-            double edgeSum = 0; int edgeN = 0;
-            foreach (var r in w.Regions)
-            {
-                if (r.State != RegionState.Active) continue;
-                var agg0 = Ideologies.Regional(w, r);
-                edgeSum += Ideologies.Support(agg0, w.CivilWarTarget, c.IdeologyAffinitySlope)
-                         - Ideologies.Support(agg0, w.Polity, c.IdeologyAffinitySlope);
-                edgeN++;
-            }
-            double edgeMean = edgeN > 0 ? edgeSum / edgeN : 0;
-            if (!(edgeMean > double.NegativeInfinity && edgeMean < double.PositiveInfinity)) edgeMean = 0;   // NaNは平均0へ倒す（否定形で書く）
-            System.Collections.Generic.List<Region>? rebels = null;
-            foreach (var r in w.Regions)
-            {
-                if (r.Id == 0 || r.State != RegionState.Active) continue;
-                var agg = Ideologies.Regional(w, r);
-                double edge = Ideologies.Support(agg, w.CivilWarTarget, c.IdeologyAffinitySlope)
-                            - Ideologies.Support(agg, w.Polity, c.IdeologyAffinitySlope);
-                // ★分裂の断層（2026-09-06・作者設計「分裂の判定に地図の上の断層が無い」＝マンチェスター王国/ルアーヴル王国/リヨン王国が勝者に出る）：
-                //   思想の傾きだけで割ると同文化の中核州が割れる。器>0 では**民族の断層**（中核度<0.5＝分離の内乱と同じ物差し・新しい数なし）が
-                //   ある州だけが離れる。断層の無い一様な国では拮抗の内戦は分裂でなく通常決着（革命/鎮圧）へ落ちる（旗 SplitRequiresFaultLine は 2026-09-26 に焼き込み）。
-                if (!(AvgRegionCoreShare(r) < 0.5)) continue;
-                if (edge > edgeMean) (rebels ??= []).Add(r);   // 平均より反乱側＝この国の中で相対的に離れたい塊
-            }
-            if (rebels is not null && rebels.Count * 2 >= edgeN) rebels = null;   // 多数派の離脱は分裂でない＝通常決着（革命）へ
-            if (rebels is { Count: > 0 })
-            {
-                w.PendingSplitRegions = rebels;
-                w.PendingSplitPolity = w.CivilWarTarget;   // 離脱側は自分たちの目標政体を持って出る（親の政体更新後では取れないので凍結）
-                w.CivilWarSplitCount++;
-                foreach (var p in w.AllPops()) p.Militancy *= c.ReformMilitancyRelief;   // 割れた＝両陣営とも矛を収める（勝敗と同じ緩和）
-                w.LogAdd($"{w.Year} {w.SelfPower.Name}の内戦が決着せず国が割れた（{rebels.Count}州）");
-                return;
-            }
-        }
-        // 決着の当てはめは戦争の形の内戦（MultiNationSim.ReabsorbNations）と同じ1本（2026-09-28 処理の一元化 段2 束2）。
-        //   旧経路の国には反乱していた州の区別が無い（首都の政変・単国の世界）＝鎮圧の後始末は全POPへ（旧のまま）。
-        SettleRevolt(w, c, rebelWon: attack > coerce + militia, w.CivilWarTarget, w.RevoltingFaction, w.AllPops());
+        if (w.StepsDiplomacy || w.SelfPower is null || w.LeavableRegions([seat], capital: true).Count == 0) return false;
+        w.PendingRebelRegions = [seat];
+        w.PendingRebelPolity = polity;
+        w.HadCivilWar = true;
+        return true;
     }
 
     /// <summary>★内戦の決着の当てはめ＝③政体・⑤人と政治の1本（2026-09-28 処理の一元化 段2 束2）。
-    /// 旧経路（<see cref="ProcessCivilWar"/>）と戦争の形（MultiNationSim.ReabsorbNations＝講和の予約を四半期末に回収）が同じ規則を通る。
+    /// 戦争の形（MultiNationSim.ReabsorbNations＝講和の予約を四半期末に回収）と、地図の上に立てられない蜂起の即時の決着（<see cref="TriggerFactionRevolt"/>＝州が1つの国・単国の世界）が同じ規則を通る。
+    /// （旧経路の内戦 ProcessCivilWar は 2026-09-28 段2 束3 で削除）
     /// <list type="bullet">
     /// <item>反乱の勝ち＝目標政体が今の政体と違えば政体変更の実行部（<see cref="ExecuteRegimeChange"/>・暴力の転換）／同じ政体の要求戦なら運動の要求をのむ（<see cref="ConcedeToFaction"/>）。</item>
     /// <item>政府の勝ち＝鎮圧の後始末＝<paramref name="rebels"/>（反乱していた州の住民・作者裁定 d）の闘争度の緩和と断裂の窓（1849年の反動）。
@@ -1051,8 +904,9 @@ public static class Politics
 
     // F3b 組織運動の内乱（牙と変異・2026-07-12）：結束した国内勢力（F3a＝州×階級×主軸のクラスタ）が保持力を上回ると内乱化。
     // Transition＝国家集計の即時革命／F1＝無組織の食料一揆（即時・小）／F3b＝**持続した組織運動の大内乱**（結束ゲート0.5≈3年超）＝
-    // 同じ闘争度を読むが関数形と時定数が別・CivilWarYearsゲート＋F1との排他（RevoltCooldownRetire=0＝共有クールダウン／>0＝内乱の進行と州の状態）。決着はクラスタ性格で3分岐（裁定2026-07-11）＝
-    // 民族（本拠州が少数派）→分離戦／政治（主軸の最寄り政体≠現政体）→政体戦（勝利時はApplyRegimeが登録簿へ）／経済→要求戦（ConcedeToFaction）。
+    // 同じ闘争度を読むが関数形と時定数が別・F1との排他（RevoltCooldownRetire=0＝共有クールダウン／>0＝内乱の進行と州の状態）。決着は目標政体で2分岐＝
+    // 政治（主軸の最寄り政体≠現政体）→政体戦／経済→要求戦（ConcedeToFaction）。どちらも本拠州（首都も）に拠る反乱国の戦争（TriggerFactionRevolt）。
+    // ⚠旧の民族分岐（本拠州が少数派→旧経路の単一州の分離戦）は 2026-09-28 段2 束3 で削除（作者裁定 g）＝民族の分離は支配度の分離独立（CheckSecession）の1本。
     private static void CheckFactionRevolt(World w, Coefficients c, double coerce)
     {
         if (c.FactionRevoltScale <= 0 || w.FactionRng is null) return;
@@ -1082,8 +936,8 @@ public static class Politics
             // ★段0＝幽霊の封じ（F3b蜂起doc §7-1・2026-09-08・係数なし）。反乱国家が建つと本拠州は親の Regions を離れるが、
             //   FactionState は親のリストに残って Region 参照を握ったままになる（建国路は w.Factions を掃除しない）。
             //   州の State は Active のままなので上の除外を素通りし、(a) FactionStrength が**他国のPOP**を読み、
-            //   (b) 選ばれると下の民族分岐が親の所有していない州を SecedingRegion に代入 → StartCivilWar →
-            //   CivilWarYears が減らないまま Transition/分離/F3b/F1 が全停止する＝**破綻**。既存述語で所有だけを見る。
+            //   (b) 選ばれると親の所有していない州に蜂起を立てる（旧＝民族分岐が SecedingRegion に代入→旧経路の内戦の年数が減らないまま
+            //   Transition/分離/F3b/F1 が全停止する＝**破綻**）。既存述語で所有だけを見る。
             if (!w.Regions.Contains(f.Region)) continue;
             double strength = FactionStrength(w, c, f);
             // ★段4＝点火の付け替え（F3b蜂起doc §3-2・2026-09-08）。旧：点火も決着も **同じ FactionStrength vs 保持力+郷勇** ＝
@@ -1148,11 +1002,11 @@ public static class Politics
         //   分母に置くと「成立率0%の機構がある」という嘘の内訳になる＝計器が一番バグる）。残る3行の成立率の和が1。
         // ★要求は法の経路（作者裁定2026-09-11・同日点火）：決着は1本＝通知→通常の法改正（AI＝SelfPlay.Apply／プレイヤー＝法律タブ）→要求した法が動かなければ蜂起（政体が同じでも）。
         //   旧3枝（受諾／別軸譲歩／蜂起・AI即決とプレイヤーの択＝ApplyDemand 直書きの蜂起専用改正ルート）は物理削除。
-        CrisisThroughLawPath(w, c, best);
+        CrisisThroughLawPath(w, c, best, coerce);
     }
 
-    // 蜂起の点火（CrisisThroughLawPath＝要求した法が通常経路で1段も動かなかった運動）。性格で3分岐＝民族分離／政体戦／体制内要求戦。
-    private static void TriggerFactionRevolt(World w, Coefficients c, FactionState best)
+    // 蜂起の点火（CrisisThroughLawPath＝要求した法が通常経路で1段も動かなかった運動）。目標政体で2分岐＝政体戦／体制内要求戦。
+    private static void TriggerFactionRevolt(World w, Coefficients c, FactionState best, double coerce)
     {
         w.RevoltCooldownQuarters = c.RegionalRevoltCooldown;
         w.FactionRevolts++;
@@ -1163,7 +1017,7 @@ public static class Politics
         //     ブロックの分類は FactionStrength／LoyalistMilitia と**同じ物差し**（新しい分類を作らない）。
         //   ⚠兵士POPは民兵ではない（常備軍そのもの）＝守備兵の去就は建国路の寝返り（SoldierDefectionByMilitancy）が別に決める。
         //   ⚠人を作らない＝**札**（率）を貼るだけ。人口も貨幣も1ビットも動かない（保存則に触れない）。
-        //   ⚠下の3分岐（内戦一元化・分離戦・政体戦）より**前**に置く＝どの決着経路でも民兵は立つ（経路ごとの非対称を作らない）。
+        //   ⚠下の決着（地図の上の蜂起・即時の決着）より**前**に置く＝どの決着経路でも民兵は立つ（経路ごとの非対称を作らない）。
         //   ⚠RevoltMilitiaRaise=0（既定）では1命令も走らない＝厳密恒等。
         if (c.RevoltMilitiaRaise > 0)
         {
@@ -1178,50 +1032,27 @@ public static class Politics
                 p.MilitiaShare = share;
             }
         }
-        // ★内戦一元化（CivilWarAsWar・2026-08-30・doc §3）：蜂起＝即座に反乱国家を建て、既存の戦争システムで戦う。
-        //   本拠州が首都（Id0）の運動は州を割れない＝旧経路へフォールバック（doc ③首都は必ず中央に残る）。
-        //   単国シム（StepsDiplomacy=true）には建国の回収者がいない＝旧経路（較正・テスト世界の挙動を変えない）。
-        // ★是正2026-08-30（幕府テスト赤の根因）：**首都発の運動は戦争化しない**＝仏1789・明治維新型の首都革命は
-        //   その場の政変（旧経路＝挑戦vs保持力の即時決着）が史実の形。初版は首都運動を地方へ旗揚げさせて全蜂起を戦争化し、
-        //   「教育改革→近代政体」の平和的転換まで分離戦争に化けさせていた（Shogunate が永続）。
-        //   戦争化するのは**本拠が地方の運動だけ**（太平天国・南北戦争・ヴァンデ型）＝一元化の対象は「地図の上の戦闘」であり宮廷政変ではない。
-        if (c.CivilWarAsWar > 0 && !w.StepsDiplomacy && w.SelfPower is not null && w.Regions.Count > 1
-            && best.Region.Id != 0 && w.Regions.Contains(best.Region))
-        {
-            Region baseReg = best.Region;
-            w.PendingRebelRegions = [baseReg];
-            w.PendingRebelPolity = NearestPolity(best.Ideo);
-            w.HadCivilWar = true;
-            w.RevoltingFaction = best;   // 決着（Diplomacy.ResolvePeace の内戦分岐→再併合）で運動は燃え尽きる
-            w.LogAdd($"{w.Year} {w.SelfPower?.Name}で{Factions.DisplayName(best)}が蜂起し{baseReg.Name}に拠って立った（内戦）");
-            return;
-        }
-        // 【民族】本拠州が少数派（中核度<0.5）＝分離の内乱（CheckSecessionの発火と完全同型→既存の分離戦処理が全て担う）
-        if (best.Region.Id != 0 && AvgRegionCoreShare(best.Region) < 0.5)
-        {
-            w.SecedingRegion = best.Region;
-            StartCivilWar(w, c); w.CivilWarTarget = w.Polity;
-            w.HadCivilWar = true; w.HadSecession = true;
-            w.RevoltingFaction = best;   // 主体の記録＝分離戦の決着でも運動は燃え尽きる（下の SecedingRegion 分岐）
-            w.LogAdd($"{w.Year} {w.SelfPower?.Name}で{Factions.DisplayName(best)}が分離の内乱を起こした");
-            return;
-        }
-        // 【政治】主軸イデオロギーの最寄り政体が現政体と異なる＝政体戦（勝利時は既存のApplyRegime経路が登録簿・建国制度・債務否認まで処理）
+        // ★蜂起は地図の上に立つ（内戦一元化・2026-08-30／首都の分離独立・2026-09-28 処理の一元化 段2 束3・作者裁定 a）＝本拠州に拠る反乱国を建て、
+        //   既存の戦争システムで戦う（RaiseRevolt）。首都発の運動も同じ＝蜂起側が首都州を握り、政府は残る州へ遷都して戦う。
+        //   目標＝主軸イデオロギーの最寄り政体。今の政体と違えば政体戦（反乱の勝ち＝政体変更の実行部）／同じなら要求戦（チャーティスト・パンと土地＝勝てば要求をのませる）。
+        //   ⚠旧＝首都発の運動は戦争化せず旧経路（第二の戦争エンジン ProcessCivilWar）で数年を戦った（是正2026-08-30＝幕府テスト赤の根因は、
+        //     初版が首都運動を**地方へ**旗揚げさせて平和的な転換まで分離戦争に化けさせたこと。蜂起は要求が法で1段も動かなかった運動だけ＝平和的な転換ではない。
+        //     首都の運動は首都に拠る＝一元化の対象は地図の上の戦闘）。旧の民族分岐（本拠州が少数派→旧経路の単一州の分離）は削除（作者裁定 g）。
         Polity target = NearestPolity(best.Ideo);
-        StartCivilWar(w, c);
-        w.HadCivilWar = true;
-        w.RevoltingFaction = best;
-        if (target != w.Polity)
+        if (RaiseRevolt(w, best.Region, target))
         {
-            w.CivilWarTarget = target;
-            w.LogAdd($"{w.Year} {w.SelfPower?.Name}で{Factions.DisplayName(best)}が蜂起した");
+            w.RevoltingFaction = best;   // 決着（Diplomacy.ResolvePeace の内戦分岐→再併合・分断・独立の確定）で運動は燃え尽きる
+            w.LogAdd($"{w.Year} {w.SelfPower?.Name}で{Factions.DisplayName(best)}が蜂起し{best.Region.Name}に拠って立った（内戦）");
+            return;
         }
-        else
-        {
-            // 【経済】現体制の枠内の要求戦（チャーティスト・パンと土地）＝政体は変えず要求をのませる内乱
-            w.CivilWarTarget = w.Polity;
-            w.LogAdd($"{w.Year} {w.SelfPower?.Name}で{Factions.DisplayName(best)}が要求を掲げて蜂起した");
-        }
+        // 地図の上に立てられない（州が1つの国・単国の世界）＝即時の決着（条件②）。判定は旧経路の内戦の決着の物差しだけを残す
+        //   ＝勢力強度 vs 保持力＋郷勇（点火の門とは別＝「勝てるか」は決着にだけ）。当てはめは戦争の形の決着と同じ1本（SettleRevolt）＝
+        //   反乱の勝ち＝政体変更の実行部／要求をのむ・政府の勝ち＝本拠州の住民に鎮圧の後始末（作者裁定 d）・運動は燃え尽きる。
+        bool won = FactionStrength(w, c, best) > coerce + LoyalistMilitia(w, c, best);
+        w.LogAdd(won
+            ? $"{w.Year} {w.SelfPower?.Name}で{Factions.DisplayName(best)}が蜂起し政府が屈した"
+            : $"{w.Year} {w.SelfPower?.Name}で{Factions.DisplayName(best)}の蜂起が鎮圧された");
+        SettleRevolt(w, c, won, target, best, best.Region.Pops);
     }
 
     // 要求リストの表示文字列（PendingFactionCrisisDemands）。
@@ -1248,7 +1079,7 @@ public static class Politics
     /// ⚠政体の分類（NearestPolity）は点火の門に使わない＝TriggerFactionRevolt の結果側（分離戦／政体戦／要求戦）にだけ残る。
     /// ⚠RevoltCooldownQuarters は書かない（蜂起の枝＝TriggerFactionRevolt が旧どおり書く＝新しい待ち行列を作らない）。運動は解散しない（09-09）。
     /// 計器＝3行の試行は**評価の四半期**にだけ数える（通知の四半期は分母に入れない＝成立率の和が1のまま）。</summary>
-    private static void CrisisThroughLawPath(World w, Coefficients c, FactionState best)
+    private static void CrisisThroughLawPath(World w, Coefficients c, FactionState best, double coerce)
     {
         if (!ReferenceEquals(w.PendingFactionCrisis, best) || best.CrisisDemands is null)   // 記録なし＝旧セーブから読んだ札も通知からやり直す
         {
@@ -1280,7 +1111,7 @@ public static class Politics
         }
         ClearFactionCrisis(w);
         MechanismProbe.Hit(MechanismProbe.Site.FactionRevolt);
-        TriggerFactionRevolt(w, c, best);   // 要求が通らなかった＝蜂起（政体が同じでも）
+        TriggerFactionRevolt(w, c, best, coerce);   // 要求が通らなかった＝蜂起（政体が同じでも）
     }
 
     // 通知時点の要求（法だけ＝ComputeDemands の lawsOnly＝危機側の読み手だけが即時値の軸を除く・綱領側は全軸）と位置を運動側に記録し、表示用の文字列も更新する。
@@ -1733,7 +1564,7 @@ public static class Politics
             // ★段3＝亡霊の残り(ii)（F3b蜂起doc・2026-09-08・係数なし）：反乱国を**実数で**数える。
             //   旧＝`RevoltingFaction is not null` の1枠だけ＝N個の反乱国が同時に立っていても分母は1（建国済みの州は
             //   w.Regions を離れているので上の走査でも数えられない）＝分子と分母の非対称。新＝この国を CivilWarParent とする War の本数。
-            //   ⚠戦争の無い旧経路（単国シム・CivilWarYears>0）では本数0なので RevoltingFaction の1枠へ落ちる＝そこは従来どおり。
+            //   ⚠戦争の無い単国の世界では本数0なので RevoltingFaction の1枠へ落ちる（2026-09-28 から単国の蜂起は即時の決着＝参照は立たない）。
             //   ⚠その1枠は**親がまだ本拠州を持っているとき**だけ数える（段0と同じ述語）＝建国後に置き去りにされた主体の亡霊で分母を永久に膨らませない。
             int civilFronts = 0;
             if (w.Diplomacy is { } dipCw && w.SelfPower is { } spCw)
@@ -1748,13 +1579,11 @@ public static class Politics
         //   ⚠書き手はここ1箇所。格（Tier）は読まない＝本国の辺境州も同じ式で減る・増える。積分は常に走り、読むのは下の判定だけ。
         //   ⚠圧力が保持力を下回る限り支配度は回復する（上限1）＝「戦争で軍が減っても全植民地が同時に独立しない」のはストックの慣性が担う。
         double sharedDivDom = c.SecessionHoldSharedArmy > 0 ? 1.0 + c.SecessionHoldSharedArmy * System.Math.Max(0, restive - 1) : 1.0;
-        Region? lowest = null; double lowestDom = double.PositiveInfinity;
         foreach (var (r2, h2, p2) in margins)
         {
             double d = r2.Dominance + (h2 / sharedDivDom - p2) * c.DominanceSpeed;
             if (!(d > 0)) d = 0; else if (d > 1) d = 1;
             r2.Dominance = d;
-            if (d < lowestDom) { lowestDom = d; lowest = r2; }
         }
         // ★支配度の一般化 段1（2026-09-06・観測のみ）：4区分を目標へ寄せる。目標は既存量だけ＝国家＝行政効率×支配度（行政の到達×駐留と意識の帰結）、
         //   在地＝農奴解放の未解放度×国家の残り、外国＝0（段5で講和・占領から）、無統治＝残り。速度は DominanceSpeed（新しい速度定数を作らない）。合計1を保つ。
@@ -1788,30 +1617,17 @@ public static class Politics
         }
         w.SecessionHold = c.SecessionHoldProjection > 0 ? worstEffHold : hold;   // ★E-05段1：UIが見る保持力も「その州に届く分」＝表示と判定を同じ数にする
         // ★同時独立（SecessionAsWar・作者裁定2026-09-06）：クールダウン（内戦4年・国につき1つ）を撤去。支配度が尽きた州（旧判定＝圧力最大の州）は
-        //   その四半期に内戦一元化の経路へ＝複数州が同時に独立の戦争へ入る。多国シム（SecessionSpawnsNation・共有外交）でのみ（旗 SecessionAsWar は 2026-09-26 に焼き込み）。
-        bool secAsWar = c.SecessionSpawnsNation > 0 && !w.StepsDiplomacy && w.SelfPower is not null;
-        if (secAsWar)
+        //   その四半期に内戦一元化の経路へ＝複数州が同時に独立の戦争へ入る（旗 SecessionAsWar は 2026-09-26 に焼き込み）。
+        // ★旧経路の単一州の分離（単国の世界・CivilWarYears の4年の内戦→州を Locked＋Seceded で凍結）は削除（2026-09-28 処理の一元化 段2 束3・作者裁定 g）
+        //   ＝分離独立は戦争の形の1本（係数 SecessionSpawnsNation も焼き込み）。単国の世界（建国の回収者がいない）は支配度を積分するだけで分離しない。
+        if (w.StepsDiplomacy || w.SelfPower is null) return;
+        List<Region>? go = null;
+        foreach (var (r3, _, _) in margins) if (!(r3.Dominance > 0)) (go ??= []).Add(r3);
+        if (go is not null)
         {
-            List<Region>? go = null;
-            foreach (var (r3, _, _) in margins) if (!(r3.Dominance > 0)) (go ??= []).Add(r3);
-            if (go is not null)
-            {
-                (w.PendingSecessionWars ??= []).AddRange(go);
-                w.HadSecession = true;
-                foreach (var r3 in go) w.LogAdd($"{w.Year} {r3.Name}が{w.SelfPower?.Name}からの独立を求めて立った（分離独立戦争）");
-            }
-            return;
-        }
-        {
-            // ★E-06 段2：独立の判定＝支配度が尽きた州（最も低い1州）。圧力の瞬間値でなくストックの到達＝軍の一時的な減少で全植民地が同時に離れない。
-            //   ⚠内戦中（CivilWarYears>0）は積分だけ＝判定しない（計測①②2026-09-05＝内戦中に積分が止まると分離の待ち行列が4年刻みで詰まり、総数−33〜37%・中南米が1824〜45へ遅れた）。
-            if (w.CivilWarYears <= 0 && lowest is not null && !(lowestDom > 0))
-            {
-                w.SecedingRegion = lowest;
-                StartCivilWar(w, c);
-                w.CivilWarTarget = w.Polity;
-                w.HadCivilWar = true; w.HadSecession = true;
-            }
+            (w.PendingSecessionWars ??= []).AddRange(go);
+            w.HadSecession = true;
+            foreach (var r3 in go) w.LogAdd($"{w.Year} {r3.Name}が{w.SelfPower?.Name}からの独立を求めて立った（分離独立戦争）");
         }
         // （旧判定＝圧力の瞬間値が最大の州が保持力を超えたら分離＝旗 DominanceIsStock=0 の枝は 2026-09-26 に削除）
     }

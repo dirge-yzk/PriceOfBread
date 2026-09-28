@@ -365,7 +365,7 @@ public sealed class Diplomacy
     private const double ThreatColonyWeight = 0.35;
     private const double ThreatMilitaryWeight = 0.20;
     private const double DefectionTensionResidue = 30;        // 従属離反が残す遺恨（緊張）
-    internal const double CollapseScore = 1.5;   // ★internal（2026-09-06）：内戦の戦勝点（Politics.ProcessCivilWar・CivilWarByScore）も同じ物差しで決着する                 // 戦勝点の絶対上限＝厭戦崩壊の決定的スコア
+    internal const double CollapseScore = 1.5;   // ★internal（2026-09-06）：旧経路の内戦の戦勝点も同じ物差しで決着した（その経路は 2026-09-28 に削除＝内戦は戦争の形で同じ戦勝点）                 // 戦勝点の絶対上限＝厭戦崩壊の決定的スコア
     internal const double DistanceNormKm = 10_000.0;          // 距離減衰の正規化単位（km）＝エンジン内の距離の物差しの1本（2026-09-28 処理の一元化 段1＝植民地の維持費と入植・国際市場の運賃と危険料・侵略の船需要の同値の写し3本を畳んだ）。★internal 化2026-09-03＝Politics の分離判定が**同じ物差し**で保持力を割るため（「軍が届くか」の物差しはエンジン内で1本）
     private const double ColonizeGdpNormalizer = 100_000.0;   // 植民地化価値のGDP正規化（per 100k）
     private const double AiColonizeMinProjection = 0.2;       // AI植民地化で標的として考慮する最小投射
@@ -875,10 +875,8 @@ public sealed class Diplomacy
         {
             bool fighting = false;
             foreach (var war in Wars) if (war.A == p || war.B == p) { fighting = true; break; }
-            // ★CivilWarByScore（2026-09-06 第2版）：内戦中の国は交戦中＝厭戦を減衰させない（減衰させると≈1.0で飽和し講和閾値0.9に届く前に…と、
-            //   逆に到達が早まる歪みが出る）。CivilWarByScore=0 では従来（内戦は非交戦扱い）＝厳密恒等。
-            bool civilWarFighting = c.CivilWarByScore > 0 && p.Nation is { } cwn && cwn.CivilWarYears > 0;
-            if (!fighting && !civilWarFighting) p.WarExhaustion = c.WarWearinessDecays > 0 ? p.WarExhaustion * c.WarWearinessDecayRate : 0;
+            // （旧経路の内戦〔CivilWarYears〕の国を交戦中と数える枝は 2026-09-28 段2 束3 で削除＝内戦は全て Wars にある戦争＝上の走査が数える）
+            if (!fighting) p.WarExhaustion = c.WarWearinessDecays > 0 ? p.WarExhaustion * c.WarWearinessDecayRate : 0;
         }
 
         StepTensionRamp(c);            // 予約された緊張操作を毎月少しずつ反映（2026-07-04・政治的帰結と近隣波及は動いた分だけ＝2026-09-28）
@@ -2349,7 +2347,7 @@ public sealed class Diplomacy
             //   ★E-17b（運∝接触・reachFrac）は実測で差し戻し＝純ゲート（両者の押しが0なら運0）へ戻す。
             if (c.WarLuckNeedsContact > 0 && !(aPush + bPush > 0)) luck *= 1.0 - c.WarLuckNeedsContact;
             // ★2026-09-28 回8-1（棚卸し mil-04）：押しを**割合**で測る＝(押しA−押しB)÷(押しA＋押しB)（塹壕の後の押し）。
-            //   内戦の押し合い（Politics.ProcessCivilWar・(攻−守)÷(攻＋守)×WarPushSpeed）と同じ物差し＝係数も同じ WarPushSpeed。
+            //   旧経路の内戦の押し合い（(攻−守)÷(攻＋守)×WarPushSpeed・2026-09-28 に削除）と同じ物差し＝係数も同じ WarPushSpeed。
             //   旧＝押しの**差**をゲージの単位のまま WarPushSpeed に掛けた。ゲージは装備の充足・質・兵数で時代と規模により約1000倍動くので、
             //     前近代と小国の戦争は押しがほぼ0で運（±WarLuck）だけで決まり、後期の大国は1か月で決着した（1914年以降の戦争は平均約4か月）。
             //   新＝月の戦勝点の動きは最大 WarPushSpeed（一方だけが押す戦線）で、ゲージの規模に依らない＝運（±WarLuck）と同じ単位で比べられる。
@@ -2522,6 +2520,13 @@ public sealed class Diplomacy
         if (Math.Abs(s) < c.WhitePeaceScore && cwRebel is not null)   // 内戦の白紙＝分断が固定（台湾・南北型の創発）
         {
             Log.Add($"{_year} {cwParent!.Name}の内戦は膠着のまま終わった＝分断（{cwRebel.Name}が存続）");
+            // ★分断の記録と首都（2026-09-28 処理の一元化 段2 束3）：政体をめぐる内戦の分断の回数（SelfPlay の「内戦分裂」＝旧経路の国家分裂の計器を戦争の形へ）。
+            //   首都の分離独立が分断で固まった＝首都州は反乱国に残る＝政府の戦時の首都がそのまま首都（首都を返す記しを外す）。
+            if (cwParent.Nation is { } splitW)
+            {
+                if (!war.CivilWarSecession) splitW.CivilWarSplitCount++;
+                if (splitW.SecedingRegion is { } heldSeat && cwRebel.Nation is { } heldBy && heldBy.Regions.Contains(heldSeat)) splitW.SecedingRegion = null;
+            }
             if (cwRebel.Nation is { } rumpW && rumpW.RumpParentName.Length == 0) rumpW.RumpParentName = cwParent.BaseName.Length > 0 ? cwParent.BaseName : cwParent.Name;   // ★残骸再併合の親リンク（2026-08-31）
             double parentScore = war.A == cwParent ? s : -s;
             // ★段7＝反乱の膨張の器（F3b蜂起doc 裁定①＝A・2026-09-08。**休眠**＝RevoltExpansionScore=0 では下の1本の比較で必ず抜ける）。

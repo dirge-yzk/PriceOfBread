@@ -562,6 +562,10 @@ public class RevoltIgnitionTests
         w.Coef.FactionCohesionDecay = 0;        // 不在減衰を凍結（通知→評価の2四半期で結束が門を割らない）
         w.Coef.RegionalRevoltThreshold = 0;     // F1 遮蔽（同じ州の熱で F1 が先に燃えると共有クールダウンが F3b の評価を止める）
         w.Coef.RevoltMilitiaRaise = militiaRaise;
+        // ★2026-09-28（処理の一元化 段2 束3）：単国の世界の蜂起は地図の上に立てられない＝即時の決着（旧＝旧経路の内戦 ProcessCivilWar）。
+        //   小さな運動は負ける＝本拠州に鎮圧の後始末（闘争度×ReformMilitancyRelief）が掛かる＝この番人が測る「民兵を立てた後の闘争度」が書き換わる。
+        //   民兵の札だけを測るので後始末の緩和を1（据え置き）にピンする（後始末そのものは WarThemeTests の番人が見る）。
+        w.Coef.ReformMilitancyRelief = 1.0;
         tune?.Invoke(f.Region);
         // ★要求は法の経路（2026-09-11点火）：1四半期目＝通知（誰も法の目標を置かない＝NullAgent）→翌評価で要求が通っていない＝蜂起
         Politics.Step(w, w.Coef);
@@ -625,14 +629,20 @@ public class RevoltIgnitionTests
         var (w, f) = 段5_蜂起させる(militiaRaise: 0.5);
         double raised = 0; foreach (var p in f.Region.Pops) raised = Math.Max(raised, p.MilitiaShare);
         Assert.True(raised > 0, "前提が崩れた：民兵が1人も立っていない");
-        Assert.True(w.CivilWarYears > 0 || w.RevoltingFaction is not null, "前提が崩れた：内戦の状態になっていない");
+        // 内戦の状態＝この国を親とする内戦タグの戦争（World.InCivilWar の1本）。★2026-09-28：旧＝旧経路の内戦（CivilWarYears）が立った
+        //   ＝その経路は削除・単国の世界の蜂起は即時の決着＝戦争の形の内戦の状態を盤面に置いて「状態で剥がす」を測る。
+        var dip = new Diplomacy();
+        var me = new Power { Name = "政府", Nation = w };
+        w.Diplomacy = dip; w.SelfPower = me;
+        dip.Wars.Add(new War { A = me, B = new Power { Name = "反乱" }, CivilWarParent = me });
+        Assert.True(w.InCivilWar, "前提が崩れた：内戦の状態になっていない");
 
         Politics.Step(w, w.Coef);   // 内戦中の四半期＝剥がれない（時間で消していないことの対照）
         double still = 0; foreach (var p in f.Region.Pops) still = Math.Max(still, p.MilitiaShare);
         Assert.True(still > 0, "内戦中に民兵の札が剥がれた＝戦争という状態でなく時間で剥がしている");
 
         // 戦争の終わり（再併合・独立の確定・白紙分断のどれで終わっても同じ状態＝内戦でなくなる）
-        w.CivilWarYears = 0; w.RevoltingFaction = null; w.PendingRebelRegions = null;
+        dip.Wars.Clear(); w.RevoltingFaction = null; w.PendingRebelRegions = null;
         Politics.Step(w, w.Coef);
         foreach (var p in w.AllPops()) Assert.Equal(0.0, p.MilitiaShare);   // 武器を置いて畑と工場へ戻る＝労働供給がその瞬間に回復する
     }
@@ -650,33 +660,40 @@ public class RevoltIgnitionTests
     }
 
     [Fact]
-    public void 段5_死は増えず配分だけが民兵へ寄る()   // 裁定3＝死は既存の3経路のいずれかを通す（新しい死の経路を作らない）
+    public void 段5_死は増えず配分だけが民兵へ寄る()   // 裁定3＝死は既存の経路を通す（新しい死の経路を作らない）
     {
-        // 同じ州・同じブロックの2つのPOPを「武器を取った側」と「家にいた側」に分け、内戦の民間人死（既存経路）の配分だけを見る。
-        static (double Pop, double Militia, double Home) 内戦の1四半期(double a)
+        // 同じ州・同じブロックの2つのPOPを「武器を取った側」と「家にいた側」に分け、戦場の民間人死（Diplomacy の戦争の民間人死）の配分だけを見る。
+        // ★2026-09-28（処理の一元化 段2 束3）：旧＝旧経路の内戦の民間人死（ProcessCivilWar・CivilWarCivilianToll）で測った＝その経路は削除
+        //   ＝内戦は全て戦争の形＝蜂起した国の民間人も対外戦争と同じ1本（WarCivilianToll×劣勢×接触）で死ぬ＝その1本の配分の重みを測る。
+        //   ⚠総数では比べない：a は Power.Military（民兵の戦力）にも入る＝押しと戦死が動く。見るのは配分の重みそのもの＝同じ月の2つのPOPの死亡率の比
+        //   （重み 1+a×民兵率＝武装1.0 と 非武装0.0 で比は 1+a）。総死者を配り直すだけ＝重みは Σ で正規化（Diplomacy の戦場の民間人死）。
+        static (double ArmedRate, double HomeRate, double CivDead) 戦場の1か月(double a)
         {
+            var sim = new MultiNationSim([NationConfig.France(), NationConfig.Britain()], seed: 1789);
+            sim.Coef.WarDeclareTension = 1e9;   // 自発的な宣戦を止める（戦線は手で1本だけ立てる）
+            sim.Run(20);
+            sim.Coef.SeaInvasionControlMin = 0; // 上陸ゲートを恒等値へ（この盤面が測るのは死の配分で、上陸の可否ではない＝WarThemeTests.OneFront と同じ）
+            sim.Coef.MilitiaCombatValue = a;
+            var fr = sim.Nations[0].World; var br = sim.Nations[1].World;
             Pop? armed = null, athome = null;
-            var (w, _) = 段5_蜂起させる(militiaRaise: 1.0, tune: home =>
+            foreach (var p in fr.Regions[1].Pops)
             {
-                foreach (var p in home.Pops)
-                {
-                    if (p.IsSoldier) continue;
-                    if (p.ClassId == PopClass.Peasant) { armed = p; p.Militancy = 1.0; }
-                    else if (p.ClassId == PopClass.Worker) { athome = p; p.Militancy = 0.0; }
-                }
-            });
-            w.Coef.MilitiaCombatValue = a;
-            Assert.True(armed is not null && athome is not null && armed.MilitiaShare > athome.MilitiaShare,
-                        "前提が崩れた：2つのPOPが武装/非武装に分かれていない");
-            Assert.True(w.CivilWarYears > 0 && w.Coef.CivilWarCivilianToll > 0, "前提が崩れた：内戦の民間人死が走らない帯にいる");
-            Politics.Step(w, w.Coef);   // ProcessCivilWar＝内戦の民間人死（既存経路）
-            return (w.TotalPopulation, armed!.Size, athome!.Size);
+                if (p.IsSoldier) continue;
+                if (p.ClassId == PopClass.Peasant) { armed = p; p.MilitiaShare = 1.0; }
+                else if (p.ClassId == PopClass.Worker) { athome = p; p.MilitiaShare = 0.0; }
+            }
+            Assert.True(armed is not null && athome is not null && armed.Size > 1e-6 && athome.Size > 1e-6, "前提が崩れた：2つのPOPが揃っていない");
+            var war = new War { A = fr.SelfPower!, B = br.SelfPower!, Score = -0.5 };   // A＝劣勢＝戦場になる側
+            sim.Diplomacy.Wars.Add(war);
+            double a0 = armed!.Size, h0 = athome!.Size;
+            sim.Diplomacy.Step(sim.Coef, sim.Rng, month: 60);
+            return ((a0 - armed.Size) / a0, (h0 - athome.Size) / h0, war.CivDeadA);
         }
-        var off = 内戦の1四半期(0);
-        var on = 内戦の1四半期(0.5);
-        Assert.Equal(off.Pop, on.Pop, 6);   // ★総死者は1人も増えない＝新しい死の経路を作っていない（配り直しただけ）
-        Assert.True(on.Militia < off.Militia, $"武器を取った層が多く死んでいない（a=0.5 {on.Militia:F3} ≥ a=0 {off.Militia:F3}）");
-        Assert.True(on.Home > off.Home, $"家にいた層が相対的に生き残っていない（a=0.5 {on.Home:F3} ≤ a=0 {off.Home:F3}）");
+        var off = 戦場の1か月(0);
+        var on = 戦場の1か月(0.5);
+        Assert.True(off.CivDead > 0 && on.CivDead > 0, "前提が崩れた：戦場の民間人死が走らない帯にいる");
+        Assert.Equal(1.0, off.ArmedRate / off.HomeRate, 9);   // a=0＝重みは全員1＝民兵率に関わらず同じ死亡率
+        Assert.Equal(1.5, on.ArmedRate / on.HomeRate, 9);     // ★a=0.5＝武器を取った層は 1+0.5×1.0 倍の率で死ぬ（配り直しただけ＝Σ重みで割る）
     }
 
     // 建国路（MultiNationSim.SpawnNation）の寝返りを実経路で測る。⚠人口・貨幣の保存は Simulation の月次 CheckInvariants が
@@ -1246,7 +1263,10 @@ public class RevoltIgnitionTests
         Assert.Equal(1, w.FactionRevolts);            // 要求した法が1段も動かなかった＝蜂起（政体が同じでも）
         Assert.Null(w.PendingFactionCrisis);
         Assert.Equal(4.0, f.Rejections);              // TriggerFactionRevolt の +1 だけ（新しい記帳は足していない）
-        Assert.Same(f, w.RevoltingFaction);           // 決着の3分岐（TriggerFactionRevolt）はそのまま＝政体の分類は結果側に残る
+        // ★2026-09-28（処理の一元化 段2 束3）：単国の世界の蜂起は地図の上に立てられない＝即時の決着（Politics.SettleRevolt）＝運動は燃え尽きる
+        //   （旧＝旧経路の内戦の主体 RevoltingFaction に残った）。政体の分類（要求戦＝政体が同じ）は決着の側に残る。
+        Assert.Null(w.RevoltingFaction);
+        Assert.Equal(0.0, f.Cohesion);
     }
 
     [Fact]

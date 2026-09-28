@@ -552,4 +552,226 @@ public class WarThemeTests
         Assert.True(rw.VictoryShock >= 1.0, "独立を勝ち取った国に戦勝の衝撃が無い");
         Assert.Equal(lost0 + n, fr.LostRegionsCumulative);
     }
+
+    // ============================================================================================
+    // ★首都の分離独立と内戦の国名（2026-09-28 処理の一元化 段2 束3・作者裁定 a・g・内戦の国名）の番人。
+    //   首都の蜂起＝拮抗した暴力の転換（Politics.Transition）は、蜂起側が首都州を握る反乱国を建て、政府は残りの州へ遷都して戦争の形の内戦を戦う。
+    //   旧経路の内戦（第二の戦争エンジン ProcessCivilWar）は削除＝州が1つの国と単国の世界は即時の政変。平和的な転換（上からの改革）は戦争にしない。
+    //   様態の判定は Transition の唯一の枝＝盤面の思想と正統性を置いて Transition の1段だけを踏む（機構の検査であって創発の主張ではない）。
+    // ============================================================================================
+    /// <summary>全POPの思想を1つに寄せて意識を1に（国民集計＝規模×意識×発言権の加重＝意識0の盤面は集計が空で引力点が動かない）、
+    /// 正統性を0に（保持の慣性＝PolityInertia×正統性を0へ＝引力点がそのまま遷移先）。
+    /// 軍部の支持（CoupSupport＝兵力÷(兵力＋保持力)）は外す＝手で渡す保持力が小さいと軍政が引力点を奪う（引力点を思想だけで決める盤面）。
+    /// 戻り値＝盤面を元に戻す手（建国路は四半期の Politics.Step を通るので、置いた思想のまま次の四半期へ持ち込まない）。</summary>
+    private static Action PinIdeology(World w, Ideology ideo)
+    {
+        double coup0 = w.Coef.MilitaryCoupSupport;
+        w.Coef.MilitaryCoupSupport = 0;
+        var saved = new System.Collections.Generic.List<(Pop P, double[] S, double C)>();
+        foreach (var p in w.AllPops())
+        {
+            saved.Add((p, (double[])p.IdeologyShares.Clone(), p.Consciousness));
+            System.Array.Clear(p.IdeologyShares); p.IdeologyShares[(int)ideo] = 1.0; p.Consciousness = 1.0;
+        }
+        double leg0 = w.Legitimacy;
+        w.Legitimacy = 0;
+        return () => { foreach (var (p, s, cs) in saved) { System.Array.Copy(s, p.IdeologyShares, s.Length); p.Consciousness = cs; } w.Legitimacy = leg0; w.Coef.MilitaryCoupSupport = coup0; };
+    }
+
+    private static void Transition(World w, double reformist, double radical, double coerce)
+        => typeof(Politics).GetMethod("Transition", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!
+            .Invoke(null, [w, w.Coef, reformist, radical, coerce]);
+
+    [Fact]
+    public void 首都の蜂起は反乱国が首都州を握り政府は遷都して戦う()
+    {
+        var sim = Board("フランス", "イギリス");
+        var fr = sim.Nations[0].World;
+        var capital = fr.Regions[0];
+        var polity0 = fr.Polity;
+        Assert.True(fr.Regions.Count > 1 && capital.Id == 0, "前提が崩れた：遷都先の州が無い");
+        // 拮抗した暴力の転換＝奪取（共産主義の引力点）・挑戦 1.5 ＞ 保持力 1.0・挑戦 ＜ 保持力×圧勝比 1.8
+        var restore = PinIdeology(fr, Ideology.Communism);
+        Transition(fr, reformist: 0, radical: 1.5, coerce: 1.0);
+        restore();
+        Assert.Equal(polity0, fr.Polity);   // 即時の政変ではない（旧＝旧経路の内戦が立った）
+        Assert.NotNull(fr.PendingRebelRegions);
+        Assert.Same(capital, Assert.Single(fr.PendingRebelRegions!));   // 蜂起は首都に拠る
+        Assert.Equal(Polity.ProletarianDictatorship, fr.PendingRebelPolity);   // 蜂起側は目指す政体を持って立つ
+
+        sim.StepQuarter();   // 建国路（SpawnNation）＋内戦タグの開戦
+
+        var rw = sim.Nations[^1].World;
+        Assert.NotSame(fr, rw);
+        Assert.Same(capital, rw.Regions[0]);             // 蜂起側が首都州を握った（反乱国の首都）
+        Assert.DoesNotContain(capital, fr.Regions);
+        Assert.Equal(0, fr.Regions[0].Id);               // 政府は残りの州へ遷都した（首都＝Id0・Regions[0]）
+        Assert.Same(capital, fr.SecedingRegion);          // 決着で首都を返すための記し
+        var war = sim.Diplomacy.Wars.Find(x => x.CivilWarParent == fr.SelfPower && (x.A == rw.SelfPower || x.B == rw.SelfPower));
+        Assert.True(war is not null && !war.CivilWarSecession, "首都の蜂起が政体をめぐる戦争の形の内戦になっていない");
+        Assert.True(fr.InCivilWar && rw.InCivilWar);
+    }
+
+    [Fact]
+    public void 上からの改革は首都の蜂起にならない()
+    {
+        // 条件①（2026-08-30 の幕府の教訓）：平和的な転換は戦争にしない＝上からの改革（正統性の侵食・代議制の引力点）は急進主導でも暴力の転換ではない。
+        var sim = Board("フランス", "イギリス");
+        var fr = sim.Nations[0].World;
+        Assert.Equal(Polity.Republic, Politics.NearestPolity((int)Ideology.Republicanism));   // 代議制の引力点（奪取ではない）
+        foreach (var (reformist, radical) in new[] { (1.5, 0.0), (0.0, 1.5) })
+        {
+            fr.ParliamentControl = 0; var pc0 = fr.ParliamentControl;   // 下賜（統制力の床）を毎回0から測る
+            var restore = PinIdeology(fr, Ideology.Republicanism);
+            Transition(fr, reformist, radical, coerce: 1.0);
+            restore();
+            Assert.Null(fr.PendingRebelRegions);   // 蜂起を立てない
+            Assert.True(fr.ParliamentControl > pc0 || fr.Polity != Polity.Absolutist, "前提が崩れた：転換が起きていない（上からの改革の下賜も政体の変更も無い）");
+        }
+        sim.StepQuarter();
+        Assert.DoesNotContain(sim.Diplomacy.Wars, x => x.CivilWarParent == fr.SelfPower && !x.CivilWarSecession);
+        Assert.Null(fr.SecedingRegion);
+    }
+
+    [Fact]
+    public void 州が1つの国と単国の世界の首都の蜂起は即時の政変()
+    {
+        // 条件②：首都の外に政府が移れる州が無い（州が1つ）＝蜂起は地図の上に立てられない＝拮抗の判定だけ残した即時の政変。
+        var sim = Board("フランス", "イギリス");
+        var fr = sim.Nations[0].World;
+        foreach (var r in fr.Regions) if (r.Id != 0) r.State = RegionState.Locked;   // 首都のほかに active の州が無い国
+        var polity0 = fr.Polity;
+        var restore = PinIdeology(fr, Ideology.Communism);
+        Transition(fr, reformist: 0, radical: 1.5, coerce: 1.0);
+        restore();
+        Assert.Null(fr.PendingRebelRegions);
+        Assert.NotEqual(polity0, fr.Polity);   // 即時の政変（旧＝旧経路の内戦が数年）
+
+        // 単国の世界（建国の回収者がいない）も同じ
+        var one = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
+        var w = one.World;
+        var p0 = w.Polity;
+        var restore1 = PinIdeology(w, Ideology.Communism);
+        Transition(w, reformist: 0, radical: 1.5, coerce: 1.0);
+        restore1();
+        Assert.Null(w.PendingRebelRegions);
+        Assert.NotEqual(p0, w.Polity);
+    }
+
+    /// <summary>首都の蜂起（政体をめぐる内戦）を立てた盤面＝フランス（絶対君主制）の首都に共和制を目指す反乱国。</summary>
+    private static (MultiNationSim Sim, World Parent, Region Capital, Power Rebel, War War) CapitalRevoltBoard()
+    {
+        var sim = Board("フランス", "イギリス");
+        var fr = sim.Nations[0].World;
+        var capital = fr.Regions[0];
+        Assert.Equal(Polity.Absolutist, fr.Polity);
+        fr.PendingRebelRegions = [capital]; fr.PendingRebelPolity = Polity.Republic;
+        sim.StepQuarter();
+        var rebel = sim.Nations[^1].World.SelfPower!;
+        var war = sim.Diplomacy.Wars.Find(x => x.CivilWarParent == fr.SelfPower && (x.A == rebel || x.B == rebel));
+        Assert.True(war is not null && rebel.Nation!.Regions[0] == capital, "前提が崩れた：首都の蜂起の内戦が立っていない");
+        return (sim, fr, capital, rebel, war!);
+    }
+
+    [Fact]
+    public void 内戦の間は両陣営が政体の頭書きと国名で呼ばれ終戦の再併合で通常の国号へ戻り首都も返る()
+    {
+        var (sim, fr, capital, rebel, _) = CapitalRevoltBoard();
+        var frP = fr.SelfPower!;
+        var wars = sim.Diplomacy.Wars;
+        Assert.Equal("共和制フランス", rebel.Name);          // 反乱側＝目指す政体の頭書き＋国名
+        Assert.Equal(rebel.Name, rebel.BaseName);            // 内部の鍵も同じ名（一意）
+        Assert.Equal("王政フランス", SecessionNames.DisplayName(frP, Polity.Absolutist, wars));   // 政府側＝今の政体の頭書き＋国名（外交タブ）
+        Assert.Equal("王政フランス", SecessionNames.WarName(frP, wars));                          // 同（戦争タブ）
+        Assert.Equal("共和制フランス", SecessionNames.DisplayName(rebel, Polity.Republic, wars));  // 頭書きの名に国号を足さない
+        Assert.Equal("フランス", frP.Name);                   // 政府の名そのものは変えない（表示だけ）
+
+        // 政府の勝ち＝再併合（四半期末）＝首都を返す・首都州に鎮圧の後始末・通常の国号へ
+        sim.Diplomacy.PendingReintegrations.Add((frP, rebel, false, fr.Polity));
+        sim.ReabsorbNations();
+        Assert.Same(capital, fr.Regions[0]);
+        Assert.Equal(0, capital.Id);
+        Assert.Null(fr.SecedingRegion);
+        Assert.Equal(SecessionNames.TitledName("フランス", Polity.Absolutist), SecessionNames.DisplayName(frP, Polity.Absolutist, sim.Diplomacy.Wars));
+        Assert.Equal("フランス", SecessionNames.WarName(frP, sim.Diplomacy.Wars));
+    }
+
+    [Fact]
+    public void 首都が反乱国の手にある間は政府の政体は変わらない()
+    {
+        // 旧経路の「内戦中は通常遷移せず戦乱を進める」と同じ規則＝政体の問いは戦場で決まる（首都を失った政府が戦争の途中で自ら転じない）。
+        // 対照＝同じ盤面で首都の記しだけを外すと、同じ四半期の政治で政体が動く（盤面が遷移を起こせることの確認）。
+        static Polity StepWithPressure(bool held)
+        {
+            var (_, fr, _, _, _) = CapitalRevoltBoard();
+            if (!held) fr.SecedingRegion = null;
+            PinIdeology(fr, Ideology.Communism);   // 戻さない（この四半期の政治の入力そのもの）
+            foreach (var p in fr.AllPops()) p.Militancy = 1.0;
+            fr.BaseCoercion = 0;
+            Politics.Step(fr, fr.Coef);
+            return fr.Polity;
+        }
+        Assert.NotEqual(Polity.Absolutist, StepWithPressure(held: false));   // 前提：首都が政府の手にあれば遷移が起きる盤面
+        Assert.Equal(Polity.Absolutist, StepWithPressure(held: true));
+    }
+
+    [Fact]
+    public void 首都の蜂起の反乱が勝てば親の政体が変わり首都を返す()
+    {
+        var (sim, fr, capital, rebel, _) = CapitalRevoltBoard();
+        sim.Diplomacy.PendingReintegrations.Add((fr.SelfPower!, rebel, true, Polity.Republic));
+        sim.ReabsorbNations();
+        Assert.Equal(Polity.Republic, fr.Polity);   // 反乱の勝ち＝親の政体変更（政体変更の実行部）
+        Assert.Same(capital, fr.Regions[0]);        // 首都を返す
+        Assert.Null(fr.SecedingRegion);
+    }
+
+    [Fact]
+    public void 首都の蜂起が分断で終われば首都は反乱国に残り反乱国は頭書きの名のまま()
+    {
+        var (sim, fr, capital, rebel, war) = CapitalRevoltBoard();
+        var wartimeCapital = fr.Regions[0];
+        int splits0 = fr.CivilWarSplitCount;
+        war.Score = 0;   // 白紙＝分断が固定
+        sim.Diplomacy.ResolvePeace(sim.Coef, war);
+        sim.Diplomacy.Wars.Remove(war);   // 終戦の1本（EndWar）が戦争を外す＝ここでは講和の当てはめだけを踏んだので手で外す
+        Assert.Null(fr.SecedingRegion);                // 首都を返す記しを外す＝戦時の首都がそのまま首都
+        Assert.Same(wartimeCapital, fr.Regions[0]);
+        Assert.Same(capital, rebel.Nation!.Regions[0]);
+        Assert.Equal(splits0 + 1, fr.CivilWarSplitCount);   // 内戦の分断の回数（旧＝旧経路の国家分裂の計器）
+        Assert.Equal("共和制フランス", SecessionNames.DisplayName(rebel, Polity.ConstitutionalMonarchy, sim.Diplomacy.Wars));   // 分断が固まった＝頭書きの名のまま（政体が後で変わっても）
+        Assert.Equal(SecessionNames.TitledName("フランス", Polity.Absolutist), SecessionNames.DisplayName(fr.SelfPower!, Polity.Absolutist, sim.Diplomacy.Wars));
+    }
+
+    [Fact]
+    public void 同じ政体の要求戦は反乱側に運動の名を頭に付け分離独立戦争は史実の国名のまま()
+    {
+        var sim = Board("フランス", "イギリス");
+        var fr = sim.Nations[0].World;
+        var home = fr.Regions[1];
+        var mv = new FactionState { Region = home, Bloc = 2, Ideo = (int)Ideology.Socialism, Size = 1.0, AvgMilitancy = 1.0, Cohesion = 1.0, Mutated = true, MutantName = "パンと土地の同盟" };
+        fr.Factions.Add(mv); fr.RevoltingFaction = mv;
+        fr.PendingRebelRegions = [home]; fr.PendingRebelPolity = fr.Polity;   // 同じ政体＝要求戦
+        sim.StepQuarter();
+        var rebel = sim.Nations[^1].World.SelfPower!;
+        Assert.Equal("パンと土地の同盟・フランス", rebel.Name);
+        Assert.Equal("フランス", SecessionNames.WarName(fr.SelfPower!, sim.Diplomacy.Wars));   // 要求戦＝政府側は頭書きを付けない（政体をめぐる内戦ではない）
+
+        // 分離独立戦争＝SecessionNames の史実の国名（対応表）
+        var at = Board("オーストリア", "イギリス");
+        var aw = at.Nations[0].World;
+        var brussels = aw.Regions.Find(r => r.Name == "ブリュッセル")!;
+        aw.PendingSecessionWars = [brussels];
+        at.StepQuarter();
+        Assert.Contains(at.Diplomacy.Powers, p => p.Name == "ベルギー" && p.Nation is { } bw && bw.Regions.Contains(brussels));
+    }
+
+    [Fact]
+    public void 内戦の国名は一意で埋まっていれば序数を頭に付ける()
+    {
+        var existing = new System.Collections.Generic.List<Power> { new() { Name = "フランス", BaseName = "フランス" }, new() { Name = "共和制フランス", BaseName = "共和制フランス" } };
+        Assert.Equal("第2共和制フランス", SecessionNames.CivilWarName("フランス", Polity.Republic, Polity.Absolutist, null, existing));
+        Assert.Equal("帝政フランス", SecessionNames.CivilWarName("共和制フランス", Polity.Despotic, Polity.Republic, null, existing));   // 頭書きを重ねない
+        Assert.Equal("共和制ハワイ", SecessionNames.CivilWarName("ハワイ王国", Polity.Republic, Polity.Absolutist, null, existing));   // 国号は剥がす
+    }
 }

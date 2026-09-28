@@ -418,9 +418,9 @@ public class PolicyPoliticsTests
     }
 
     /// <summary>M8（2026-09-11）：平均識字の唯一定義（旧 TechEducation.AvgLiteracy／CrownParliament のインライン和を吸収）。
-    /// 分離州は除外・coreOnly は植民地格を除外・全 Size=0 で 0。</summary>
+    /// coreOnly は植民地格を除外・全 Size=0 で 0（★2026-09-28：分離で凍結した州 Region.Seceded の腕は経路ごと削除）。</summary>
     [Fact]
-    public void 平均識字は分離州を除き本国のみの腕で植民地格を除き人口ゼロで0()
+    public void 平均識字は本国のみの腕で植民地格を除き人口ゼロで0()
     {
         var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
         var w = sim.World;
@@ -434,9 +434,7 @@ public class PolicyPoliticsTests
         other.Tier = RegionTier.Colonial;
         Assert.True(System.Math.Abs(PoliticalQuantities.AvgLiteracy(w, coreOnly: true) - 0.2) < 1e-9, "本国のみの腕で植民地格の州が除かれない");
         Assert.Equal(all, PoliticalQuantities.AvgLiteracy(w));   // 既定腕は格を見ない
-        other.Tier = RegionTier.Core; other.Seceded = true;
-        Assert.True(System.Math.Abs(PoliticalQuantities.AvgLiteracy(w) - 0.2) < 1e-9, "分離州が平均から除かれない");
-        other.Seceded = false;
+        other.Tier = RegionTier.Core;
         foreach (var r in w.Regions) foreach (var p in r.Pops) p.Size = 0;
         Assert.Equal(0.0, PoliticalQuantities.AvgLiteracy(w));
     }
@@ -1236,6 +1234,16 @@ public class PolicyPoliticsTests
         return sim;
     }
 
+    // 内戦の状態＝この国を親とする内戦タグの戦争（World.InCivilWar の1本）。
+    // ★2026-09-28（処理の一元化 段2 束3）：旧＝CivilWarYears=1 を書いた＝旧経路の内戦（第二の戦争エンジン）は削除＝内戦は全て戦争の形。
+    private static void EnterCivilWar(World w)
+    {
+        var dip = new Diplomacy();
+        var me = new Power { Name = "政府", Nation = w };
+        w.Diplomacy = dip; w.SelfPower = me;
+        dip.Wars.Add(new War { A = me, B = new Power { Name = "反乱" }, CivilWarParent = me });
+    }
+
     [Fact]
     public void 政治資本の回復は線形で実行度が最大なら空から満タンまで40四半期()
     {
@@ -1259,7 +1267,7 @@ public class PolicyPoliticsTests
     {
         var sim = CapitalBoard(); var w = sim.World; var c = w.Coef;
         w.ParliamentControl = 0;
-        w.CivilWarYears = 1;                                       // 内戦＝摩擦+1（制度の摩擦だけで作る＝不満・闘争度は1つも読まない）
+        EnterCivilWar(w);                                          // 内戦＝摩擦+1（制度の摩擦だけで作る＝不満・闘争度は1つも読まない）
         Assert.True(w.InCivilWar);
         Assert.Equal(0.5, PoliticalQuantities.PoliticalCapitalRate(w), 12);
 
@@ -1276,7 +1284,7 @@ public class PolicyPoliticsTests
     {
         var sim = CapitalBoard(); var w = sim.World;
         // 摩擦は 議会の実効統制×議席の分裂 ＋ 議会の実効統制 ＋ 内戦 の3項だけ＝最悪でも 1+2/3+1
-        w.ParliamentControl = 1.0; w.CivilWarYears = 1;
+        w.ParliamentControl = 1.0; EnterCivilWar(w);
         w.PartySeats[0] = w.PartySeats[1] = w.PartySeats[2] = 1.0 / 3.0;   // 完全な三分＝分裂は最大（2/3）
         double worst = PoliticalQuantities.PoliticalCapitalRate(w);
         Assert.True(worst > 0, "最悪の摩擦で実行度が0＝0の吸収状態になっている");

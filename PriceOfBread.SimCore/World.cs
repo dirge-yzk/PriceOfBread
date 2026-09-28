@@ -528,7 +528,6 @@ public sealed class World
     }
     public double[] PartySeats { get; } = new double[3];    // 議席シェア（得票率・保守/自由/社会）＝F4後も常に族の集計値（互換射影）
     public double[] VoteShares { get; } = new double[3];    // 政7：毎期の得票率（世論・表示専用・保守/自由/社会）。SeatsFrozenBetweenElections=0ではPartySeatsと同時更新で恒等・>0で確定議席と分離
-    public double CivilWarRebelStrength { get; internal set; }   // 政13：内戦中に反乱側へ分離計上した累積動員（政府側の一方的徴集→治安維持力上昇を相殺する仮想戦力）。CivilWarRebelSide=0 なら常に0（⚠既定は点火済みの0.5＝live・x-02 で注記を是正）
     public int QuartersSinceElection { get; internal set; }
     public int ElectionsHeld { get; internal set; }          // E0計器（選挙doc §8-a）：総選挙の実施回数（繰り上げ含む・非選挙政体は数えない・助走込み）
     public int QuartersWithElections { get; internal set; }  // E0計器：選挙政体で過ごした四半期数。平均間隔＝これ÷回数（史実英1832-1914＝約15.6Q）
@@ -798,22 +797,19 @@ public sealed class World
     public double ReformistPower { get; internal set; }
     public double RadicalPower { get; internal set; }
     public double MeanSatisfactionPol { get; internal set; }   // 大衆（Politics.IsMassPop＝闘争度・不満度と同じ母集団・2026-09-25 に全国民から変更）の人口加重平均満足度＝経済危機の指標。一党支配→独裁化（ブルジョア/プロレタリア）は満足度が低い危機国のみ（ワイマール型）＝満足した安定な立憲（英・米）を巻き込まない。実装＝NationalScore.MeanSatisfaction（第5段5-1で一元化・Politics.Stepがpop更新後に代入＝従来と同時点）
-    public double CivilWarYears { get; internal set; }   // 内戦の残り年数（>0＝内戦中）。拮抗した暴力革命/分離独立で発生＝即フリップせず数年の戦乱
-    /// <summary>★B3（実バグ21件・2026-09-07）：「内戦中か」の述語を1本に。旧経路＝CivilWarYears>0。内戦一元化（CivilWarAsWar）の主経路は
-    /// CivilWarYears を書かず War（CivilWarParent 付き）で戦うので、経済麻痺・軍需2倍・同盟の参戦判断・選挙停止・軍の実戦・国民形成の危機の6読み手が沈黙していた。
-    /// CivilWarPredicateUnified>0 のとき「自分が当事者で CivilWarParent の付いた War がある」も内戦中。0＝旧＝厳密恒等。
-    /// ★2026-09-08に1.0で**点火**（F3b蜂起doc §5 段3）＝6読み手が一斉に生きた（生産麻痺→FoodFill低下→飢餓が10^6級の死者へ届く唯一の経路）。</summary>
+    /// <summary>★B3（実バグ21件・2026-09-07）：「内戦中か」の述語を1本に＝「自分が当事者で CivilWarParent の付いた War がある」。
+    /// 旧＝旧経路（CivilWarYears>0）だけを見て、内戦一元化の主経路（War で戦う）では経済麻痺・軍需2倍・同盟の参戦判断・選挙停止・軍の実戦・国民形成の危機の6読み手が沈黙していた。
+    /// ★2026-09-08に1.0で**点火**（F3b蜂起doc §5 段3）＝6読み手が一斉に生きた（生産麻痺→FoodFill低下→飢餓が10^6級の死者へ届く唯一の経路）。
+    /// ★2026-09-28（処理の一元化 段2 束3）：旧経路の内戦（CivilWarYears・第二の戦争エンジン）を削除＝内戦は全て戦争の形（首都の蜂起も）。</summary>
     public bool InCivilWar
     {
         get
         {
-            if (CivilWarYears > 0) return true;
             if (!(Coef.CivilWarPredicateUnified > 0) || Diplomacy is not { } d || SelfPower is not { } sp) return false;
             foreach (var war in d.Wars) if (war.CivilWarParent is not null && (war.A == sp || war.B == sp)) return true;
             return false;
         }
     }
-    public double CivilWarScore { get; internal set; }   // ★CivilWarByScore（2026-09-06）：内戦の戦勝点（+＝反乱側優勢・−＝中央優勢・|値|≥CollapseScore で決定的決着）。決着で0
     public int RuptureWindowQuarters { get; internal set; }   // 第6段6-8（2026-07-28）断裂の窓：革命鎮圧・内戦制圧・クーデタ直後の残り四半期。>0の間だけ法の不可逆（6-7）が解除＝反動の後退が可能（仏1850選挙法・ストルイピン1907・普三級選挙法）
     public double PoliticalPushBudget { get; internal set; } = 1.0;   // 第6段6-1（2026-07-28）：今四半期の政治予算係数＝(1/開いた戦線数)^PoliticalBudgetGate。Government.Stepの頭で算出しMove速度に乗る。★裁定S1（2026-09-21・㉖で焼き込み）：旧はマンデート余白 θ にも乗っていた＝θ ごと退役し、残るのは Move の速度だけ。「全部を同時には押せない」は在庫（貯めてから通す）が担う＝同じ制約を2度掛けていたのを1度に減らした（P9）
     public double LostRegionsCumulative { get; internal set; }   // 機能7-2（2026-07-28）：失地の長期ストック＝割譲された州数の累計（半減期つき減衰＝Politics.Step）。r[4]ナショナリズムの長期項（アルザス＝ロレーヌ1871→1914）。裁定（機能7-未決2）＝案A採用（案B=現版図−初期版図は建国・統一で意味が壊れる）
@@ -822,7 +818,6 @@ public sealed class World
     public double ForeignBondClaims { get; internal set; }        // 02断線走査（2026-07-28）：対外債権残高＝自国投資家が持つ他国外債の元本（CapitalMarketが四半期繰上げ・利払い配当の按分キー）。レンティア帝国（シティ/パリ）の物質的基盤
     public double PrevForeignDebt { get; internal set; }           // 02断線走査：前四半期のForeignDebt（Δ＝新規/償還の検出用・CapitalMarketが更新）
     public double ForeignIntPaidThisQuarter { get; internal set; } // 02断線走査：この四半期に払った対外の利子と元本（元本は2026-09-22〜）の累計（Fiscalが月次加算・CapitalMarketが債権国へ配当して0クリア）。⚠名前は利子だけ＝セーブの名前表の互換のため据え置き
-    public Polity CivilWarTarget { get; internal set; }  // 内戦で反乱側が勝った場合の目標政体
     public bool HadCivilWar { get; internal set; }       // 内戦を経験したか（テレメトリ）
     // 貿易テレメトリ§3-4（2026-07-24）：国別×財別の輸出入額（世界価格建て・四半期決済ごとに InternationalMarket.Step が再設定）。
     // 純カウンタ＝力学は一切読まない。貿易タブの一覧・世界シェア・首位供給国の材料。null＝多国シム未走行（単一国/較正）
@@ -833,14 +828,14 @@ public sealed class World
     public string[]? ExportToByGood;
     public double[]? ExportsByGood { get; internal set; }
     public double[]? ImportsByGood { get; internal set; }
-    public Region? SecedingRegion { get; internal set; }   // 分離独立で内戦中の州（null=通常の革命内戦・非null=その州の分離戦）。Region参照＝州移転でリスト添字がずれても安全（添字依存の排除）
-    public Region? PendingSecessionRegion { get; internal set; }   // 分離戦勝利＝建国待ちの州（SecessionSpawnsNation>0のみ）。MultiNationSim が四半期末に回収して新国家をスポーン。単一国シム（回収者なし）では書かれない
+    // ★首都の分離独立で反乱国に握られている首都州（2026-09-28 処理の一元化 段2 束3・作者裁定 a＝決着で首都を返す）。null＝首都は政府の手にある。
+    //   書き手＝建国（MultiNationSim.SpawnSecededNations＝蜂起側が首都州を握った）と決着（再併合で戻れば遷都して null・白紙の分断で反乱国に残れば null）。
+    //   ⚠盤面から導けない唯一の量（遷都した政府の州から「戦前の首都」は分からない）。旧＝旧経路の単一州の分離戦の州（同じ「分離独立で内戦中の州」）＝その経路は削除。
+    //   Region参照＝州移転でリスト添字がずれても安全（添字依存の排除）
+    public Region? SecedingRegion { get; internal set; }
     public bool HadSecession { get; internal set; }            // 分離戦を経験したか（テレメトリ）
 
-    // ★内戦による国家分裂（器2026-08-01・2026-08-29再点火＝既定1。=0なら誰も書かず誰も読まない）
-    public List<Region>? PendingSplitRegions { get; internal set; }   // 分裂の建国待ち（離脱側の州集合。要素1＝従来の分離独立と同一経路）
-    public Polity? PendingSplitPolity { get; internal set; }          // 離脱側が持って出る政体（親の政体更新後では取れないので凍結して持つ）
-    public int CivilWarSplitCount { get; internal set; }              // 診断：分裂が成立した回数
+    public int CivilWarSplitCount { get; internal set; }              // 診断：内戦が分断で終わった回数（政体をめぐる内戦の白紙講和＝Diplomacy.ResolvePeace）。★2026-09-28：旧＝旧経路の内戦の国家分裂（削除）
     // 【削除2026-09-26（棚卸し x-03）】書くだけの診断3本＝LastCivilWarChallenge・LastCivilWarCoerce（内戦の決着判定の両辺・A-02）と
     //   CivilWarSplitCandidateRegions（直近の決着で反乱側に付いた州数）＝画面にも Runner にも読み手が無かった（⑩）。要るなら Runner の計器で決着の場で読む。
 
@@ -1159,8 +1154,8 @@ public sealed class World
     //   ここへ積み、境界（逐次）で FlushLog が国順に写す＝ログ順の決定論を保つ。Diplomacy=null（較正/単国）ではフラッシュ時に捨てる（旧 ?. と同じ帰結）。
     //   保存時は境界で常に空（フラッシュ済み）＝セーブ形は実質不変。
     public List<string> PendingLog = new();
-    // ★内戦一元化（CivilWarAsWar・2026-08-30）：蜂起＝反乱国家の建国要求。MultiNationSim が四半期末に回収して
-    //   SpawnNation（分離独立と同じ建国路）＋内戦タグ付き開戦を行う。単国シム（StepsDiplomacy）には回収者がいない＝旧経路へフォールバック。
+    // ★内戦一元化（2026-08-30）：蜂起＝反乱国家の建国要求（本拠州・首都も＝2026-09-28 首都の分離独立）。MultiNationSim が四半期末に回収して
+    //   SpawnNation（分離独立と同じ建国路）＋内戦タグ付き開戦を行う。単国シム（StepsDiplomacy）には回収者がいない＝書かない（蜂起は即時の決着・Politics.RaiseRevolt）。
     public List<Region>? PendingRebelRegions;
     public Polity PendingRebelPolity;
     // ★同時独立（SecessionAsWar・2026-09-06）：分離独立の戦争に入る州（複数可）。CheckSecession が積み、MultiNationSim が四半期末に**州ごとに**建国＋分離戦を開く。
@@ -1220,12 +1215,15 @@ public sealed class World
     /// <summary>★建国で出ていける州の選び方の1本（2026-09-28 処理の一元化 段2 C）＝望まれた州のうち、今もこの国にある active の非首都州（重複は1つ）。
     /// ⚠旧＝建国の4経路（開戦時の建国・分裂・同時独立・単一州の分離）が同じ判定を別々に書き、親に残る州の数の条件が
     ///   「出る州の数 &lt; 州の数」・「州の数 &gt; 1」・なし、とばらばらだった。首都（Id0）は出ない＝親には必ず首都が残る＝3つとも同じ意味だった。
-    ///   重複を落とす＝同時独立の予約は同じ州が2度並びうる（旧はループの中で「まだ親にあるか」を確かめて2度目を落としていた）。</summary>
-    internal List<Region> LeavableRegions(IEnumerable<Region> wanted)
+    ///   重複を落とす＝同時独立の予約は同じ州が2度並びうる（旧はループの中で「まだ親にあるか」を確かめて2度目を落としていた）。
+    /// ★<paramref name="capital"/>＝首都の分離独立（2026-09-28 段2 束3・作者裁定 a）：蜂起は首都州にも拠れる。ただし出た後に政府が移れる active の州が
+    ///   残ること（無ければ1つも出さない＝州が1つの国は即時の政変）。分離独立（支配度）は首都を出さないまま（capital=false）。</summary>
+    internal List<Region> LeavableRegions(IEnumerable<Region> wanted, bool capital = false)
     {
         var list = new List<Region>();
         foreach (var r in wanted)
-            if (r.State == RegionState.Active && r.Id != 0 && Regions.Contains(r) && !list.Contains(r)) list.Add(r);
+            if (r.State == RegionState.Active && (capital || r.Id != 0) && Regions.Contains(r) && !list.Contains(r)) list.Add(r);
+        if (capital && list.Exists(r => r.Id == 0) && !Regions.Exists(r => r.State == RegionState.Active && !list.Contains(r))) list.Clear();
         return list;
     }
 
@@ -1502,29 +1500,24 @@ public sealed class World
     }
 
     /// <summary>国家会計上の全 pop を走査（国家レベルの subsystem 用）。
-    /// 分離独立で失った州（Seceded）は除外＝住民ごと国家会計から抜ける（監査2026-07-14・集計是正）。
-    /// 較正/テスト世界にはSeceded州が存在しない＝厳密恒等。物理的な pop（凍結中の seceded 住民）はセーブ・再征服のため Regions に残る。</summary>
+    /// ★2026-09-28（処理の一元化 段2 束3）：分離で失った州を国に残したまま凍結する旧経路（Region.Seceded＝単国の世界の単一州の分離）を削除
+    ///   ＝分離した州は新しい国へ移る（建国路）＝国の州は全て国家会計に入る（旧＝Seceded の州を除いた）。</summary>
     public IEnumerable<Pop> AllPops()
     {
         foreach (var r in Regions)
-        {
-            if (r.Seceded) continue;
             foreach (var p in r.Pops)
                 yield return p;
-        }
     }
 
-    // TotalMoney は seceded 州の貯蓄も算入したまま（貨幣保存＝BaseMoney/CumulativeTradeFlow を触らない＝集計是正2026-07-14はユーザー指定どおり人口・識字・食料のみ）。
-    // 凍結中の seceded 住民の貯蓄はその州に物理的に残る＝貨幣は消えない・保存則に非接触。
     public double TotalMoney
     {
         get { double s = 0; foreach (var r in Regions) s += r.SumSavings(); return s; }
     }
 
-    /// <summary>国家人口＝分離独立で失った州（Seceded）を除く（監査2026-07-14・集計是正）。分離時に PopulationDelta を同額引く（Politics）＝人口保存不変量 TotalPopulation==初期+PopulationDelta を維持。</summary>
+    /// <summary>国家人口＝全州の人口（★2026-09-28：旧＝分離で凍結した州 Seceded を除いた＝その経路は削除）。人口保存不変量 TotalPopulation==初期+PopulationDelta。</summary>
     public double TotalPopulation
     {
-        get { double s = 0; foreach (var r in Regions) { if (r.Seceded) continue; s += r.SumPopulation(); } return s; }
+        get { double s = 0; foreach (var r in Regions) s += r.SumPopulation(); return s; }
     }
 
     /// <summary>兵士POP（IsSoldier）の総数＝軍隊規模の素（戦力ゲージ＝これ÷係数×即応度）。</summary>

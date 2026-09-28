@@ -156,12 +156,6 @@
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
             <TextBlock Text="目立った反乱勢力なし" Classes="dim" Margin="0,6,0,10" IsVisible="{Binding NoFactions}"/>
-            <!-- 区切りは再征服の行と同じ可視性＝対象の州が無い平時に線だけが宙に浮かない -->
-            <Border Height="1" Background="{StaticResource SandBrush}" Margin="0,4" IsVisible="{Binding HasLockedRegions}"/>
-            <!-- ★再征服＝失った州（分離独立で抜けた州）を武力で取り戻す＝反乱の後始末なのでこの列に置く（2026-09-07）。
-                 2026-08-24作者指示：スイッチを撤去して**常時ON**＝残すのは対象の州数（データ）だけ。
-                 ⚠2026-09-08：「未開拓の辺境」は辺境の廃止（2026-08-26）で生成されなくなり、ForceUnlockStateText の該当枝も削除した。 -->
-            <TextBlock Text="{Binding ForceUnlockStateText}" IsVisible="{Binding HasLockedRegions}" Foreground="{StaticResource BronzeBrush}" FontSize="{StaticResource FontSmall}" TextWrapping="Wrap" Margin="0,2,0,2"/>
         </StackPanel>
 
         <!-- ================= 下段＝全幅（自国の軍事力でも自国の反乱でもない） ================= -->

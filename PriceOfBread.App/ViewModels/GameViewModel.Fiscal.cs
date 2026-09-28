@@ -213,24 +213,9 @@ public partial class GameViewModel
     // 阿片（主フラグONのゲームのみ表示）：★禁令のチェックボックスは廃止（禁制品doc C3/U4・2026-07-30）＝法2本（保有3段・輸出2段）へ移行し法律タブへ。
     // 中毒度の表示は残す＝中毒は財の性質であって禁令の特例ではない（麦に BaseNeed があるのと同型）。
     public bool OpiumVisible => _player.Coef.OpiumAddictionGrowth > 0;
-    // 02断線走査2026-07-28：再征服（武力解錠）＝分離/凍結州の唯一の復帰経路。毎月国庫出血＋全pop闘争度↑で凍結州のInfraを直接回復。
-    // ★2026-08-24作者指示：スイッチは撤去し**常時ON**（GameViewModel.InitAfterSimReady で立てる）＝押すか押さないかの判断が要らないレバーは置かない。
-    //   残すのは状態の行だけ（何州を開けようとしているか＝データ）。実費（国庫1000/月・闘争度）は Territory.Step が持つ。
-    public bool HasLockedRegions => _player.Regions.Any(r => r.State == RegionState.Locked);
-    /// <summary>いま何が起きているか＝武力で開ける対象の内訳。
-    /// 実ゲームで Locked になる州は分離独立で抜けた州だけ（Politics.cs:863＝Seceded=true）＝再征服（Territory.cs:17-28）の対象。
-    /// ⚠旧「未開拓の辺境」枝は撤去（辺境の廃止2026-08-26・world.json の frontiers[] は0件／Locked かつ Seceded=false を作るのは
-    ///   テストシナリオ FrontierDevelopment（Simulation.cs:302）だけ＝実プレイでは到達しない）。</summary>
-    public string ForceUnlockStateText
-    {
-        get
-        {
-            int lost = 0;
-            foreach (var r in _player.Regions)
-                if (r.State == RegionState.Locked && r.Seceded) lost++;
-            return lost > 0 ? $"再征服　失った州 {lost}" : "";
-        }
-    }
+    // ★再征服の行（HasLockedRegions／ForceUnlockStateText）は削除（2026-09-28 処理の一元化 段2 束3）：実ゲームで Locked になる州は
+    //   分離独立で凍結した州だけだった（旧経路の単一州の分離＝Region.Seceded）＝その経路を削除（作者裁定 g）＝分離した州は新しい国へ移る。
+    //   Locked を作るのはテストシナリオ FrontierDevelopment だけ（辺境の廃止2026-08-26）＝画面に出す対象が無い。
 
     [ObservableProperty] private string _opiumLine = "";
     private double OpiumAvgAddiction()
@@ -374,7 +359,6 @@ public partial class GameViewModel
         // ★汚職根絶のラベル更新は撤去（汚職V2点火2026-08-15＝表示ごと削除）
         // 国民形成費のレバー行は廃止（2026-07-19）＝国民運動は需要駆動（内訳はヘッダー国民意識の説明API）
         if (OpiumVisible) OpiumLine = $"アヘン中毒度 {OpiumAvgAddiction():P1}";   // 中毒度は財の性質＝表示は残る（禁令は法律タブへ移行・2026-07-30）
-        OnPropertyChanged(nameof(HasLockedRegions)); OnPropertyChanged(nameof(ForceUnlockStateText));   // 分離/凍結州の出現・再征服の完了で州数の表示を追随（2026-08-24：州数が古いまま残る不具合の是正）
         EduLine = $"教育費 {_player.Policy.EducationSpendingTarget:P0}　実効 {_player.EducationSpending:P0}"; EduAct = Money(_eduMonthly); EduAmt = Money(_eduMonthly);   // 実績（市場依存＝予想も実績値）
         WelLine = $"社会保障 {_player.Policy.SocialSecurityTarget:P0}　実効 {_player.SocialSecurity:P0}"; WelAct = Money(aWel); WelAmt = Money(wel);   // 02断線走査（2026-07-28）：「約束した福祉の何割が払えたか」の可視化（ビスマルク年金の財源問題）
         PensionLine = "年金"; PensionAct = Money(aPen); PensionAmt = Money(pen);

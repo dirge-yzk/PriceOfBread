@@ -71,7 +71,7 @@ public partial class GameViewModel
             //   ラベル（w.Polity）でなく PowerAffinity.PolityFromShares（権力シェアの読み出し）を表示する。
             //   忠実度ハーネスの照合と同じ物差し＝画面と帯が同じものを見る。⚠月次リフレッシュ×61カ国×自国POP走査＝軽い。
             Polity? derived = pow.Nation is { } dnw ? PowerAffinity.PolityFromShares(dnw) : (Polity?)null;
-            string name = PolityTitleJa(pow.Name, derived);   // 政体で変わる国号（イギリス共和国 等）
+            string name = SecessionNames.DisplayName(pow, derived, _sim.Diplomacy.Wars);   // 政体で変わる国号（イギリス共和国 等）・政体をめぐる内戦の間は両陣営が頭書き＋国名（表は SimCore の1か所）
             string score = pow.Nation != null ? NationalScore.Of(pow.Nation).ToString("F0") : "—";
             string polity = PolityRegimeJa(derived);   // ★導出政体（同上）
             // 低い＝多民族/多宗派（移民を引く・分離圧力）。宗教統一は民族統一と対称の派生スカラー＝州宗教の最大シェア（#62で露出）
@@ -331,7 +331,7 @@ public partial class GameViewModel
             if (accrue) tr.CostShare += costShareMonth;
             tr.Civil = war.CivilWarParent is not null; tr.Secession = war.CivilWarSecession; tr.MeParent = war.CivilWarParent == me;
             tr.Demand = tr.Civil && war.CivilWarParent!.Nation?.Polity == war.CivilWarPolity;   // 同じ政体の要求戦
-            tr.EnemyName = enemy.Name;
+            tr.EnemyName = SecessionNames.WarName(enemy, _sim.Diplomacy.Wars);   // 政体をめぐる内戦の政府側は戦争の間だけ頭書き＋国名（反乱側は名そのものが頭書きつき）
             tr.LastScore = sc;
             tr.LastMonths = war.Months;
             tr.LastDeadSelf = meIsA ? war.DeadA : war.DeadB;
@@ -341,7 +341,7 @@ public partial class GameViewModel
             wrows.Add(new WarRow
             {
                 Key = enemy.Id.ToString(),
-                Enemy = enemy.Name,
+                Enemy = tr.EnemyName,
                 Score = $"戦勝点 {sc:+0%;-0%;0%}",   // ★2026-09-23：第3節（ゼロ節）を足す＝2節のままだと0へ丸まる負が `-+0%`（符号2つ）で出る（.NET 10 実測）
                 ScoreBrush = sc > 0.05 ? TermPlus : sc < -0.05 ? TermMinus : TermNeutral,
                 Info = $"{DateAt(_simDays - war.Months * (double)Calendar.DaysPerMonth)} 開戦　{war.Months}ヶ月経過",
@@ -419,11 +419,13 @@ public partial class GameViewModel
                 if (war.A.Nation is null && war.B.Nation is null) continue;
                 bool ok = _sim.Diplomacy.CanOfferPeace(me, war, cM, out var why);
                 double sc = war.Score;
-                string lead = System.Math.Abs(sc) < 0.05 ? "拮抗" : (sc > 0 ? $"{war.A.Name}が優勢 {sc:+0%}" : $"{war.B.Name}が優勢 {-sc:+0%}");
+                // 政体をめぐる内戦の政府側は戦争の間だけ頭書き＋国名（戦争タブの自国の戦争と同じ表＝SimCore の1か所）
+                string aName = SecessionNames.WarName(war.A, _sim.Diplomacy.Wars), bName = SecessionNames.WarName(war.B, _sim.Diplomacy.Wars);
+                string lead = System.Math.Abs(sc) < 0.05 ? "拮抗" : (sc > 0 ? $"{aName}が優勢 {sc:+0%}" : $"{bName}が優勢 {-sc:+0%}");
                 mrows.Add(new MediationRow
                 {
                     Key = $"{war.A.Id}|{war.B.Id}",
-                    Title = $"{war.A.Name} ⚔ {war.B.Name}",
+                    Title = $"{aName} ⚔ {bName}",
                     Info = $"{war.Months}ヶ月経過　{lead}" + (ok ? $"　戦力余剰 {WillPct(_sim.Diplomacy.InterventionWillCost(me, war, cM))}" : $"　{why}"),   // ★2026-09-23：語を「戦力余剰」へ統一
                     CanMediate = ok, Reason = why,
                 });

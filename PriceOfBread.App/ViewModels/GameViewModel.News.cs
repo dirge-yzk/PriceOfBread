@@ -84,10 +84,9 @@ public partial class GameViewModel
         if (_prevPolities == null)
         {
             _prevPolities = new System.Collections.Generic.Dictionary<long, Polity>();
-            _prevCivilWar = new System.Collections.Generic.Dictionary<long, bool>();
             _prevTerror = new System.Collections.Generic.Dictionary<long, double>();
             foreach (var p in powers)
-                if (p.Nation is { } tw) { _prevPolities[p.Id] = tw.Polity; _prevCivilWar[p.Id] = tw.CivilWarYears > 0; _prevTerror[p.Id] = tw.TerrorPurgeCumulative; }
+                if (p.Nation is { } tw) { _prevPolities[p.Id] = tw.Polity; _prevTerror[p.Id] = tw.TerrorPurgeCumulative; }
             _prevAusterity = _player.AusterityIntensity > AusterityActive;
             _prevDeval = _player.CumulativeDevaluation;
             _prevDepression = _player.GdpPcDrawdown > DepressionDrawdown;   // ★E2：1人あたり（割譲で総額が落ちただけの国を恐慌と呼ばない）
@@ -97,7 +96,7 @@ public partial class GameViewModel
             return;
         }
 
-        // ★内戦一元化（CivilWarAsWar・2026-08-31）：新経路の内戦は CivilWarYears を立てない（実体は War.CivilWarParent 付きの戦争）＝
+        // ★内戦一元化（2026-08-31）：内戦の実体は War.CivilWarParent 付きの戦争（2026-09-28 から首都の蜂起も＝旧経路の CivilWarYears は削除）＝
         //   タグ付き戦争の出現＝開戦ニュース・消滅＝決着の年表。ペアIdキー＝国数の変動（建国/消滅）に強い（Id基準の作法）。
         if (_player.Diplomacy is { } dipCw)
         {
@@ -133,8 +132,6 @@ public partial class GameViewModel
             long id = powers[i].Id;
             if (_prevPolities.TryGetValue(id, out var prev) && w.Polity != prev)
             { QueueNews("ev_revolution", powers[i].Name, w.Latitude, w.Longitude, mine, PolityRegimeJa(w.Polity)); Annal("🏛", $"{powers[i].Name}:{PolityRegimeJa(prev)} → {PolityRegimeJa(w.Polity)}"); }
-            bool cw = w.CivilWarYears > 0;
-            if (cw && _prevCivilWar!.TryGetValue(id, out var prevCw) && !prevCw) { QueueNews("ev_civilwar", powers[i].Name, w.Latitude, w.Longitude, mine); Annal("⚔", $"{powers[i].Name}で内戦"); }
             // 恐怖政治（タスクB）：粛清累計が増えた＝急進革命で旧支配層が粛清・亡命した。Id基準で前回値と比較。
             double prevPurge = _prevTerror != null && _prevTerror.TryGetValue(id, out var pv) ? pv : w.TerrorPurgeCumulative;
             if (w.TerrorPurgeCumulative > prevPurge + 1e-6)
@@ -164,7 +161,6 @@ public partial class GameViewModel
                 _prevEconState[id] = (depN, w.OnGoldStandard, w.HadSovereignDefault, famN);
             }
             _prevPolities[id] = w.Polity;
-            _prevCivilWar![id] = cw;
         }
 
         // 自国の経済イベント（突入の瞬間＝エッジのみ）。自国＝距離0＝即時。

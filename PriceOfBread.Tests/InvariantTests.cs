@@ -40,10 +40,10 @@ public class InvariantTests
     }
 
     /// <summary>M7（2026-09-11）：pop への配分の唯一定義＝World.Distribute（旧 Diplomacy の同文複製を削除・2026-09-28 に Colonial.DistributeToPops もここへ畳んだ＝全POP×頭数は呼び手が集合を名乗る）。
-    /// Σ⊿Savings==amount（保存）・受け手不在（総人口0）で amount をそのまま返す・Seceded 州の pop には配らない（AllPops 基準）・
+    /// Σ⊿Savings==amount（保存）・受け手不在（総人口0）で amount をそのまま返す・
     /// 1e-12 以下と NaN は配らず 0 を返す（否定形ガード＝Invariants の許容 1e-8×scale 未満）。</summary>
     [Fact]
-    public void popへの配分は保存し受け手不在は返し分離州には配らない()
+    public void popへの配分は保存し受け手不在は返す()   // ★2026-09-28：分離で凍結した州（Region.Seceded）の腕は経路ごと削除（処理の一元化 段2 束3・作者裁定 g）
     {
         var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
         var w = sim.World;
@@ -57,12 +57,8 @@ public class InvariantTests
         Assert.Equal(0.0, World.Distribute(new List<Pop>(w.AllPops()), 1000.0));
         Assert.True(Math.Abs(SumSavings() - before - 1000.0) <= 1e-6, $"配分が保存しない（Σ⊿Savings={SumSavings() - before}）");
 
-        other!.Seceded = true;
-        double otherBefore = OtherSavings(), before2 = SumSavings();
-        Assert.Equal(0.0, World.Distribute(new List<Pop>(w.AllPops()), 500.0));
-        Assert.Equal(otherBefore, OtherSavings());   // 分離凍結中の pop は受け手でない
-        Assert.True(Math.Abs(SumSavings() - before2 - 500.0) <= 1e-6, "分離州を除いても保存する");
-        other.Seceded = false;
+        double otherBefore = OtherSavings();
+        Assert.True(otherBefore > 0, "前提が崩れた：他の州に貯蓄が無い");   // 受け手は国の全州（AllPops）
 
         double before3 = SumSavings();
         Assert.Equal(0.0, World.Distribute(new List<Pop>(w.AllPops()), 1e-13));

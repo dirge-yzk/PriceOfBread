@@ -376,7 +376,6 @@ public static class CrownParliament
         double gainAcc = 0, loseAcc = 0;   // ★J-004：加重平均で見た増分と減衰（報告専用・力学は読まない）
         foreach (var r in w.Regions)
         {
-            if (r.Seceded) continue;   // wave2b：AllPops/World.NationalConsciousness と同じ走査規則（分離喪失州は親国の加重平均に算入しない）
             var cc = Climate.CityCoord(r.Name);
             double km = Geo.DistanceKm(cap.Lat, cap.Lon, cc.Lat, cc.Lon);
             // 到達＝1/(1+km/減衰長)。⚠**否定形**で書く（NaN座標が来ても reach=1 に落ちず 0 側へ倒れる）

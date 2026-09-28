@@ -4510,7 +4510,7 @@ if (args.Length > 0 && args[0] == "chronicle")
 
     // 前回値（エッジ検出）
     var pPol = m.Nations.Select(n => n.World.Polity).ToArray();
-    var pCW = new bool[N]; var pDef = new bool[N];
+    var pDef = new bool[N];
     // ★計器2026-09-08：戦争経路の内戦・分離戦を**戦争オブジェクト単位**で数える（ラッチboolの置き換え）＋国の出入りを建国/消滅で別に数える。
     var seenCivilWars = new HashSet<War>();
     int civilWarCount = 0, secWarCount = 0, birthCount = 0, deathCount = 0, maxRebelNations = 0;
@@ -4616,9 +4616,7 @@ if (args.Length > 0 && args[0] == "chronicle")
         {
             var w = m.Nations[i].World;
             if (w.Polity != pPol[i]) { Ev(c, i, "政変", $"{PolJa(pPol[i])} → {PolJa(w.Polity)}"); pPol[i] = w.Polity; polChanges[i]++; }
-            // ⚠計器の是正2026-09-08（F3b蜂起doc §5 段1）：内戦一元化（CivilWarAsWar）の主経路は **CivilWarYears を1度も書かない**
-            //   （戦争システムで戦う）ので、この旧経路だけの述語では年代記の内戦が0件になっていた。戦争側の内戦は下の戦争走査で拾う。
-            bool cw = w.CivilWarYears > 0; if (cw && !pCW[i]) Ev(c, i, "内戦", "内戦が勃発（旧経路＝首都の政変）"); pCW[i] = cw;
+            // （旧経路の内戦〔CivilWarYears＝首都の政変〕の行は 2026-09-28 処理の一元化 段2 束3 で削除＝首都の蜂起も戦争の形＝上の戦争走査が1本で拾う）
             if (w.HadSovereignDefault && !pDef[i]) Ev(c, i, "財政", "国家デフォルト（債務不履行）"); pDef[i] = w.HadSovereignDefault;
             // 法律変更（離散法のみ。関税は連続値のため除外）
             if (w.Suffrage != pSuf[i]) { Ev(c, i, "法律", $"参政権：{SufJa(pSuf[i])} → {SufJa(w.Suffrage)}"); pSuf[i] = w.Suffrage; }
@@ -4721,29 +4719,24 @@ if (args.Length > 0 && args[0] == "britcw")
     var bw = bm.Nations[2].World;   // イギリス
     string BDate(int c) { int year = 1783 + c / 4; int mm = c % 4; int month = mm == 0 ? 1 : mm == 1 ? 4 : mm == 2 ? 7 : 10; return $"{year:D4}{month:D2}01"; }
     double BMeanMil(World w) => Politics.AvgMassMilitancy(w);   // ★2026-09-26（sweep-13）：大衆の述語の手書きの写しをやめ、エンジンの1本を呼ぶ（同じ母集団・同じ順）
-    bool bwas = bw.CivilWarYears > 0; int bsec = 0, brev = 0;
+    bool bwas = bw.InCivilWar; int bsec = 0, brev = 0;
     Console.WriteLine($"=== イギリス内戦の原因診断 seed {bseed} ===");
-    Console.WriteLine("日付      経路  challenge  coerce reform radical rad>ref 目標政体       正統性 満足 平均闘争 参政権 関税 自由度 | 分離州(関税利害/乖離/州闘争)");
+    Console.WriteLine("日付      経路  challenge  coerce reform radical rad>ref 目標政体       正統性 満足 平均闘争 参政権 関税 自由度 | 首都の蜂起");
     for (int q = 0; q < Coefficients.GameQuarters; q++)
     {
         bm.StepQuarter();
         int c = q + 1;
-        bool now = bw.CivilWarYears > 0;
+        bool now = bw.InCivilWar;   // ★2026-09-28：旧経路の内戦（CivilWarYears）を削除＝内戦は全て戦争の形（首都の蜂起も）
         if (now && !bwas)
         {
             double popScale = bw.TotalPopulation / Math.Max(1.0, bw.Coef.PoliticalReferencePop);
             double coerce = bw.Coercion * popScale;
             double reform = bw.ReformistPower, radical = bw.RadicalPower, challenge = reform + radical;
-            bool secession = bw.SecedingRegion is not null;
+            var cwar = bm.Diplomacy.Wars.Find(x => x.CivilWarParent == bw.SelfPower);
+            bool secession = cwar?.CivilWarSecession ?? false;
             if (secession) bsec++; else brev++;
-            string segInfo = "—";
-            if (bw.SecedingRegion is { } reg)
-            {
-                double stance = bw.Tariff * 2 - 1;
-                double rmil = 0, rsz = 0; foreach (var p in reg.Pops) if (!p.Closed && !p.IsSoldier) { rmil += p.Militancy * p.Size; rsz += p.Size; }
-                segInfo = $"{reg.Name}(利害{reg.TariffInterest:+0.00;-0.00}/乖離{Math.Abs(stance - reg.TariffInterest):F2}/州闘争{(rsz > 1e-9 ? rmil / rsz : 0):F2})";
-            }
-            Console.WriteLine($"{BDate(c)} {(secession ? "分離戦" : "革命　")} {challenge,9:F0} {coerce,7:F0} {reform,6:F0} {radical,6:F0} {(radical > reform ? "○" : "×"),5} {bw.CivilWarTarget,-14} {bw.Legitimacy,5:F2} {bw.MeanSatisfactionPol,4:F2} {BMeanMil(bw),6:F2} {bw.Suffrage,-10} {bw.Tariff,4:F2} {bw.Freedom,4:F2} | {segInfo}");
+            string capInfo = bw.SecedingRegion is { } held ? $"{held.Name}→遷都 {bw.Regions[0].Name}" : "—";
+            Console.WriteLine($"{BDate(c)} {(secession ? "分離戦" : "革命　")} {challenge,9:F0} {coerce,7:F0} {reform,6:F0} {radical,6:F0} {(radical > reform ? "○" : "×"),5} {(cwar?.CivilWarPolity.ToString() ?? "—"),-14} {bw.Legitimacy,5:F2} {bw.MeanSatisfactionPol,4:F2} {BMeanMil(bw),6:F2} {bw.Suffrage,-10} {bw.Tariff,4:F2} {bw.Freedom,4:F2} | {capInfo}");
         }
         bwas = now;
     }
@@ -5173,7 +5166,6 @@ if (args.Length > 0 && args[0] == "factionprobe")
             string rKey = spR.BaseName;
             foreach (var reg0 in w.Regions)
             {
-                if (reg0.Seceded) continue;
                 foreach (var p in reg0.Pops)
                 {
                     if (!(p.Size > 1e-9) || !(p.FoodNeed > 1e-9)) continue;
@@ -5211,7 +5203,6 @@ if (args.Length > 0 && args[0] == "factionprobe")
                 double[] fpGap = c.DiscontentLawGap > 0 ? PolicyPreferences.LawGap(w) : [];
                 foreach (var reg0 in w.Regions)
                 {
-                    if (reg0.Seceded) continue;
                     foreach (var p in reg0.Pops)
                     {
                         if (!(p.Size > 1e-9)) continue;
@@ -6191,16 +6182,16 @@ if (args.Length > 0 && args[0] == "civilwar")
         NationConfig[] cc = [NationConfig.France(), NationConfig.Japan(), NationConfig.Britain(), NationConfig.America(), NationConfig.Russia(), NationConfig.Prussia(), NationConfig.Ottoman()];
         var cm = new MultiNationSim(cc, sd, _ => new UtilityAgent());
         cm.StartWarmup();   // ★2026-09-07 計器の助走統一：selfplay-batch/popprobe と同じ助走を通す＝「測る世界」を帯の世界と一致させる（旧＝助走なし＝chronicle が popprobe と食い違った構築時型の計器バグ）
-        var wasCW = new bool[cc.Length];
+        var wasCW = new HashSet<Simulation>();   // ★2026-09-28：国の添字でなく国で持つ（建国・再併合で国の数が変わる＝旧は配列が7のまま添字あふれ）
         int cwThisPlay = 0;
         for (int q = 0; q < 400; q++)
         {
             cm.StepQuarter();
-            for (int i = 0; i < cm.Nations.Count; i++)
+            foreach (var n in cm.Nations)
             {
-                bool now = cm.Nations[i].World.CivilWarYears > 0;
-                if (now && !wasCW[i]) { totalCW++; cwThisPlay++; }   // 0→内戦＝発火
-                wasCW[i] = now;
+                bool now = n.World.InCivilWar;   // ★2026-09-28：旧経路の内戦（CivilWarYears）を削除＝戦争の形の内戦（親も反乱国も真）
+                if (now && wasCW.Add(n)) { totalCW++; cwThisPlay++; }   // 0→内戦＝発火
+                else if (!now) wasCW.Remove(n);
             }
         }
         if (cwThisPlay > 0) playsWithCW++;
@@ -6429,7 +6420,6 @@ if (args.Length > 0 && args[0] == "ethnoprobe")
             var w = ns.World; if (!w.EthnicEnabled) continue;
             foreach (var r in w.Regions)
             {
-                if (r.Seceded) continue;
                 double sz = 0, cs = 0, lt = 0;
                 foreach (var p in r.Pops) { sz += p.Size; cs += p.Size * p.CoreEthnicShare; lt += p.Size * p.Literacy; }
                 if (!(sz > 1e-9)) continue;
@@ -6451,7 +6441,6 @@ if (args.Length > 0 && args[0] == "ethnoprobe")
                 Region? worst = null; double worstCore = 2, worstLit = 0;
                 foreach (var r in w.Regions)
                 {
-                    if (r.Seceded) continue;
                     double sz = 0, cs = 0, lt = 0;
                     foreach (var p in r.Pops) { sz += p.Size; cs += p.Size * p.CoreEthnicShare; lt += p.Size * p.Literacy; }
                     if (!(sz > 1e-9)) continue;

@@ -39,7 +39,6 @@ public static class InterestGroups
         double totalWealth = 0, totalPop = 0;
         foreach (var r in w.Regions)
         {
-            if (r.Seceded) continue;
             foreach (var p in r.Pops)
             {
                 totalWealth += LandedWealth(p); totalPop += p.Size;
@@ -61,7 +60,6 @@ public static class InterestGroups
         double trad = 0, modern = 0, mass = 0, pettyM = 0, pettyS = 0;
         foreach (var r in w.Regions)
         {
-            if (r.Seceded) continue;
             foreach (var p in r.Pops)
             {
                 double lw = LandedWealth(p), sz = p.Size;

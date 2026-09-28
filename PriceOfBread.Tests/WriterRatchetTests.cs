@@ -62,9 +62,12 @@ public class WriterRatchetTests
     // ★2026-09-28 基準値の更新（＝宣言・処理の一元化 段2 束2＝戦後処理の1本）：闘争度 38→**35**・正統性 15→**14**（実数は着手前 36・15）。
     //   内戦の決着を Politics.SettleRevolt の1本へ畳んだ＝旧経路の鎮圧の緩和（全POP）と戦争の形の休眠の後始末（返還州の緩和・正統性の減算）が1行の緩和になり、
     //   休眠の後始末の正統性の減算は旧経路の鎮圧の行に無い＝持ち込まなかった（係数 RevoltAftermathOnWarPath ごと削除）。
-    [InlineData("Militancy", 35)]      // 力学1・運搬8（式は1本化済み）・事件スパイク約17・緩和約7・初期化ほか（内戦の決着の緩和は SettleRevolt の1本）
+    // ★2026-09-28 基準値の更新（＝宣言・処理の一元化 段2 束3＝旧経路の内戦〔第二の戦争エンジン ProcessCivilWar〕と単一州の分離の削除）：
+    //   闘争度 35→**32**（旧経路の分離戦の決着の緩和2本〔独立・鎮圧〕と国家分裂の両陣営の緩和1本）・正統性 14→**13**（内戦の消耗 CivilWarLegitimacyDrain）。
+    //   首都の蜂起は戦争の形（決着の緩和は SettleRevolt の1本・戦死と民間人の死は対外戦争と同じ1本）。
+    [InlineData("Militancy", 32)]      // 力学1・運搬8（式は1本化済み）・事件スパイク約17・緩和約4・初期化ほか（内戦の決着の緩和は SettleRevolt の1本）
     [InlineData("Satisfaction", 4)]    // ⚠プロパティ代入のみ（初期化子は構築＝対象外）
-    [InlineData("Legitimacy", 14)]
+    [InlineData("Legitimacy", 13)]
     [InlineData("Consciousness", 1)]   // ★これが手本（書き手1本＝力学だけ）
     public void 心理量への書き手は増やさない(string member, int baseline)
     {
