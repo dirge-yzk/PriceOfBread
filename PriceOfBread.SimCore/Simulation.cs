@@ -2768,16 +2768,24 @@ public sealed class Simulation
     /// 損失吸収の脆さの会計（§9-C 拡張）：月次の全フロー後、損失で貯蓄が負になった pop の不足を信用（借入）で埋める。
     /// 貯蓄→0・Bank.Loans＋不足 ＝ BaseMoney(=TotalMoney+Treasury−Loans) を不変に保つ（保存則厳守）。資本家は損失を負債として抱え、
     /// 貯蓄は0で下げ止まる＝有限責任。慢性赤字は負債(OutstandingLoans)の増加として可視化される（隠蔽しない）。Bank が無い構成では何もしない。
+    /// <para>★返せない与信の償却（作者裁定 E6 の2歩目・2026-09-28）：埋めた後も基礎貨幣が負の国は、負の分だけ銀行の与信（<see cref="Bank.Loans"/>）を
+    /// 償却し、同じ額を非常発行として台帳（<see cref="World.CumulativeFiatIssued"/>）に積む＝下の銀行の無い世界の③と同じ型（貨幣を作る）。
+    /// 基礎貨幣が負＝与信が国内の貨幣の全部（貯蓄＋国庫）を越えた＝越えた分は国の中のどのお金でも返せない。回収は基礎貨幣を動かさない
+    /// （預金と与信が同じ額だけ減る）ので、負の国は回収では戻らない（(82) の §2）。償却は与信の残高まで（国庫の負の分は与信でない＝残る）。
+    /// ⚠この月に上で積んだ損失の負債化も同じ残高に入る＝負の国では、上限（A16）の外で積む与信も同じ規則で閉じる。
+    /// ⚠家計の与信（<see cref="Bank.HouseholdLoans"/> と <see cref="Pop.Debt"/>・休眠の器 PopDebtDriven）は償却しない：借りる枠が借り手の所得で決まり
+    /// （A16 と同じ「返せる額」）、返済の出口を自分で持つ。点火するときは同じ規則をここへ（お金の書き手を増やさない＝WriterRatchetTests）。</para>
     /// </summary>
-    private void BackstopNegativeSavings()
+    internal void BackstopNegativeSavings()
     {
-        if (World.Bank is not null)
+        double fiat = 0;   // 非常発行（シニョリッジ）＝台帳へ積むのは末尾の1行だけ（銀行の償却と、銀行の無い世界の③で同じ行）
+        if (World.Bank is { } bank)
         {
             foreach (var r in World.Regions)
                 foreach (var p in r.Pops)
                     if (p.Savings < 0)
                     {
-                        World.Bank.Loans += -p.Savings;   // 不足を借入（負債↑）
+                        bank.Loans += -p.Savings;   // 不足を借入（負債↑）
                         World.LossFinanced += -p.Savings; // 可視化：損失の負債化を累積記録
                         // ★入口A（損失の記憶・2026-08-02）：**記録を併記するだけ**＝貸し手側（Bank.Loans）は1ビットも変えない。
                         //   PopDebtLossShare は「消えた赤字のうち個人が背負う割合」＝有限責任の度合い（1.0で無限責任）。
@@ -2785,8 +2793,12 @@ public sealed class Simulation
                         if (World.Coef.PopDebtDriven > 0) p.Debt += -p.Savings * World.Coef.PopDebtLossShare;
                         p.Savings = 0;                    // 下げ止まり（TotalMoney＋不足, Loans＋不足 で相殺＝保存）
                     }
-            return;
+            // ★E6：負の分だけ与信を償却（基礎貨幣は償却の額だけ上がり、非常発行が同じ額だけ台帳に積まれる＝保存量は動かない）。
+            //   ⚠NaN は比較が偽＝何もしない（否定形の門）。償却の後の基礎貨幣＝0（与信が足りれば）か国庫の負の分（与信を全部消しても残る分）。
+            double writeOff = Math.Min(-World.BaseMoney, bank.Loans);
+            if (writeOff > 0) { bank.Loans -= writeOff; fiat = writeOff; }
         }
+        else
         // 銀行の無い世界（前近代・試験世界）：質屋・施し＝地域の最富裕層が貧者の不足を底打ちする（非公式信用）。
         // 純移転（富裕→貧者）なので保存則は不変。額は微小（自営の連続赤字の端数）＝富裕層には誤差。
         foreach (var r in World.Regions)
@@ -2816,9 +2828,10 @@ public sealed class Simulation
                     }
                 }
                 // ③地域全体が債務超過で埋めきれない極端な残余のみ、最後の手段として非常発行(シニョリッジ)を台帳へ計上し0で下げ止め＝保存則を保ちつつクラッシュを回避。
-                if (p.Savings < 0) { World.CumulativeFiatIssued += -p.Savings; p.Savings = 0; }
+                if (p.Savings < 0) { fiat += -p.Savings; p.Savings = 0; }
             }
         }
+        World.CumulativeFiatIssued += fiat;   // 非常発行の台帳（銀行の償却・銀行の無い世界の③）
     }
 
 

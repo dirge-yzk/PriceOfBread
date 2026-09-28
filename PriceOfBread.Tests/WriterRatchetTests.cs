@@ -82,12 +82,15 @@ public class WriterRatchetTests
     // ★2026-09-28 段1-2（按分の本体を1本へ）：Savings 91→83＝World.Distribute（旧 Fiscal.Distribute）へ畳んだ複製＝Colonial.DistributeToPops 2・
     //   World.DistributeToVoters 2・GiveGold 1・信用の利息の配当 1・海上保険の受け手側 2。
     // ★2026-09-28 段1-5（重複の削除）：Savings 83→79＝Military.MoveCohort の3枝（徴兵・復員・通常）のお金の運搬を末尾の1か所へ。
+    // ★2026-09-28 E6 の2歩目（基礎貨幣が負の国の返せない与信の償却）：数は変えない。CumulativeFiatIssued 3 のまま＝償却の非常発行は
+    //   Simulation.BackstopNegativeSavings の末尾の1行（銀行の無い世界の③と同じ行）。Loans 6 のまま＝償却の1行（+1）と、
+    //   Credit.Step の与信の増減（投資家の枝と全POPへ注入する枝の同じ2行）を1行へ（−1）。
     [InlineData("Savings", 79)]               // POP の貯蓄（段3の終わりに Pop の中の3つへ閉じる）
     [InlineData("StateSpent", 25)]            // 州の未精算の国家支出（段2-1で区分つきへ）
     [InlineData("CumulativeTradeFlow", 33)]   // 世界の台帳・国境をまたいだ出入り（移し方の中の1か所へ畳む）
-    [InlineData("CumulativeFiatIssued", 3)]   // 不換の発行と回収（2）＋銀行なしの底打ち（1＝段2-2で消える）
+    [InlineData("CumulativeFiatIssued", 3)]   // 不換の発行と回収（2）＋非常発行（1＝負の国の与信の償却と銀行なしの底打ち・後者は段2-2で消える）
     [InlineData("CumulativeGoldMinted", 2)]   // 鋳造と準備の売却
-    [InlineData("Loans", 6)]                  // 銀行の与信（企業・損失の負債化）
+    [InlineData("Loans", 6)]                  // 銀行の与信（企業・損失の負債化・負の国の償却）
     [InlineData("HouseholdLoans", 4)]         // 銀行の与信（家計）
     [InlineData("Paid", 9)]                  // 月内の仮勘定（払い）
     [InlineData("Earned", 11)]                // 月内の仮勘定（受け取り）

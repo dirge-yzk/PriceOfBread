@@ -145,18 +145,16 @@ public static class Credit
         // 2026-07-12のユーザー裁定で機構ごと廃止（恒久デッドコードだったelse枝と係数を削除）。与信は首都州の投資家のみ＝ロンドン一強の金融面は覇権抑制の裁定（92%受容）に従う。
         // （需要駆動の与信の器 CreditDemandDriven は作者裁定 A16 で点火せず削除＝不足分は投資家の貯蓄の5%−貯蓄＝常に0で、点火すると回収だけが働いた。
         //   後半の「残高≤返せる額」は上の与信の上限へ入れた）
+        // 与信の増減を書くのは下の1行だけ（2026-09-28 E6：投資家の枝と全POPへ注入する枝の同じ行を1本へ＝お金の書き手を増やさない側の整理・ビット恒等）。
+        double lent = delta;
         if (home.InvestorPopIndex >= 0 && home.InvestorPopIndex < home.Pops.Count)
         {
             var inv = home.Pops[home.InvestorPopIndex];
-            double actual = Math.Max(delta, -Math.Max(0, inv.Savings));   // 回収は投資家の貯蓄まで（負債で保存）
-            inv.Savings += actual;
-            bank.Loans += actual;
+            lent = Math.Max(delta, -Math.Max(0, inv.Savings));   // 回収は投資家の貯蓄まで（負債で保存）
+            inv.Savings += lent;
         }
-        else
-        {
-            bank.Loans += delta;
-            InjectMoney(Pops(), delta);
-        }
+        else InjectMoney(Pops(), delta);
+        bank.Loans += lent;
 
         // 民間貸出の金利キャッシュフロー（no-loan-interest-cashflow）：借り手(投資家)が利息を払い、銀行利潤として預金者(全pop)へ分配＝pop→pop純移転でBaseMoney保存。
         // 既定 LoanSpread=0・PolicyRateLoanWeight=0 で loanRate=0＝利息なし＝現行恒等。引締め(InterestRate↑)で借り手の利払い増＝金融政策の所得分配チャネル（資本家が借金で建て利潤から利息を払う）。

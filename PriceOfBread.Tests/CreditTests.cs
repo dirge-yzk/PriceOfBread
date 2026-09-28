@@ -157,6 +157,71 @@ public class CreditTests
         Assert.True(Math.Abs(w.BaseMoney - base0) <= 1e-9 * loans0, $"回収で基礎貨幣が動いた（{base0} → {w.BaseMoney}）＝回収は負の基礎貨幣を戻さない、の前提が崩れた");
     }
 
+    /// <summary>★基礎貨幣が負の国の返せない与信の償却（作者裁定 E6 の2歩目・2026-09-28）。月末の損失の負債化（<c>Simulation.BackstopNegativeSavings</c>）の後、
+    /// 基礎貨幣が負の国は負の分だけ銀行の与信を償却し、同じ額を非常発行として台帳に積む（銀行の無い世界の非常発行と同じ型＝貨幣を作る）。
+    /// 盤面＝英を1四半期温めた世界。与信 L を信用創造の対（与信と預金）で置き、国庫と国内の貨幣（貯蓄の和）を置き、1つの POP に今月の損失を置く。
+    /// (1) 負の国（基礎貨幣＝0.5L−0.1L−L＝−0.6L）：償却の後、基礎貨幣は0・貯蓄は全て非負・与信＝L＋損失−償却・非常発行の増分＝償却＝負の分・保存量の検査（MoneyConservation）が通る
+    /// (2) 対照＝正の国（2L−0.1L−L＝0.9L）：損失は与信になるだけ（非常発行は動かない・基礎貨幣も動かない）
+    /// (3) 与信より深い負（国庫 −0.5L）：償却は与信の残高まで（与信0・非常発行＝与信）・国庫の負の分は残る（与信でない）・保存量の検査が通る。</summary>
+    [Fact]
+    public void 基礎貨幣が負の国は負の分だけ与信を償却し非常発行として台帳に積む()
+    {
+        static (Simulation Sim, double L, double Loss) Setup(double moneyShare, double treasuryShare)
+        {
+            var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+            sim.Run(1);
+            var w = sim.World; var bank = w.Bank!; var inv = w.Region.Pops[w.Region.InvestorPopIndex];
+            double L = 0.5 * w.TotalMoney;
+            double d = L - bank.Loans; bank.Loans += d; inv.Savings += d;   // 信用創造の対（与信と預金）
+            w.SetTreasuryRaw(treasuryShare * L);                               // 盤面づくり（保存量の検査はこの後で取る）
+            var victim = w.Region.Pops[0]; victim.Savings = 0;
+            double pos = 0; foreach (var p in w.AllPops()) pos += Math.Max(0, p.Savings);
+            foreach (var p in w.AllPops()) p.Savings = p.Savings > 0 ? p.Savings * (moneyShare * L / pos) : 0;   // 国内の貨幣＝moneyShare×L
+            double loss = 0.1 * L; victim.Savings = -loss;                   // 今月の損失
+            Assert.True(w.Bank!.HouseholdLoans == 0, "前提が崩れた：家計の与信が0でない（休眠の器が点いている）");
+            return (sim, L, loss);
+        }
+
+        // (1) 負の国
+        {
+            var (sim, L, loss) = Setup(moneyShare: 0.5, treasuryShare: 0);
+            var w = sim.World; var bank = w.Bank!;
+            double b0 = w.BaseMoney, loans0 = bank.Loans, fiat0 = w.CumulativeFiatIssued;
+            Assert.True(Math.Abs(b0 + 0.6 * L) <= 1e-9 * L, $"前提が崩れた：基礎貨幣が −0.6L でない（{b0}・L {L}）");
+            var mc = new MoneyConservation(w);
+            sim.BackstopNegativeSavings();
+            foreach (var p in w.AllPops()) Assert.True(p.Savings >= 0, $"償却の後に負の貯蓄が残った（{p.Savings}）");
+            Assert.True(Math.Abs(w.BaseMoney) <= 1e-9 * L, $"負の国の基礎貨幣が償却で0へ戻らない（{b0} → {w.BaseMoney}）");
+            Assert.True(Math.Abs((w.CumulativeFiatIssued - fiat0) + b0) <= 1e-9 * L, $"非常発行の増分が負の分と一致しない（{w.CumulativeFiatIssued - fiat0} 対 {-b0}）");
+            Assert.True(Math.Abs(bank.Loans - (loans0 + loss + b0)) <= 1e-9 * L, $"与信＝L＋損失−償却 にならない（{bank.Loans} 対 {loans0 + loss + b0}）");
+            mc.Check(w);   // 世界の台帳は非常発行で説明できる（保存量 D＝基礎貨幣−交易−鋳造−不換 が動かない）
+        }
+        // (2) 対照＝正の国
+        {
+            var (sim, L, loss) = Setup(moneyShare: 2.0, treasuryShare: 0);
+            var w = sim.World; var bank = w.Bank!;
+            double b0 = w.BaseMoney, loans0 = bank.Loans, fiat0 = w.CumulativeFiatIssued;
+            Assert.True(b0 > 0.8 * L, $"前提が崩れた：対照の基礎貨幣が正でない（{b0}）");
+            sim.BackstopNegativeSavings();
+            Assert.Equal(fiat0, w.CumulativeFiatIssued);
+            Assert.True(Math.Abs(bank.Loans - (loans0 + loss)) <= 1e-12 * L, $"正の国で損失が与信にならない（{bank.Loans} 対 {loans0 + loss}）");
+            Assert.True(Math.Abs(w.BaseMoney - b0) <= 1e-9 * L, $"正の国で基礎貨幣が動いた（{b0} → {w.BaseMoney}）");
+        }
+        // (3) 与信より深い負：基礎貨幣＝0.2L−0.1L−0.5L−L＝−1.4L・損失の後の与信 1.1L
+        {
+            var (sim, L, loss) = Setup(moneyShare: 0.2, treasuryShare: -0.5);
+            var w = sim.World; var bank = w.Bank!;
+            double b0 = w.BaseMoney, loans0 = bank.Loans, fiat0 = w.CumulativeFiatIssued;
+            Assert.True(-b0 > loans0 + loss, $"前提が崩れた：負の分が与信より浅い（{b0}・与信 {loans0 + loss}）");
+            var mc = new MoneyConservation(w);
+            sim.BackstopNegativeSavings();
+            Assert.Equal(0.0, bank.Loans);
+            Assert.True(Math.Abs((w.CumulativeFiatIssued - fiat0) - (loans0 + loss)) <= 1e-9 * L, $"償却が与信の残高と一致しない（非常発行 {w.CumulativeFiatIssued - fiat0}・与信 {loans0 + loss}）");
+            Assert.True(Math.Abs(w.BaseMoney - (-0.3 * L)) <= 1e-9 * L, $"国庫の負の分が残らない（{w.BaseMoney} 対 {-0.3 * L}）");
+            mc.Check(w);
+        }
+    }
+
     [Fact]
     public void 信用下でも決定論的()
     {
