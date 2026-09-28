@@ -91,12 +91,20 @@ public class FiscalTests
     // =====================================================================================================
 
     private static List<Pop> AllPopsOf(World w) { var l = new List<Pop>(); foreach (var r in w.Regions) l.AddRange(r.Pops); return l; }
-    // ★借入は国家の支払い率 r＜1 の月だけ・減債は r＝1 の月の余剰（spare）から（作者裁定 F3・2026-09-28 段2-1）。月初に r を決める Simulation を通らない
-    //   単体の Fiscal.Step で盤面を作る番人は、起債の月は r＜1（Short）、減債の月は r＝1 と余剰を渡して踏む。借入は予約なしでエンジンが r＜1 の月に1件（2026-09-28）
-    //   ＝双子の片方だけ起債させるときは、借りない側を借入の冷却中（BorrowCooldown＝1 か月）にして同じ r で踏む（冷却は Fiscal の借入の門と月末の減算しか読まない）。
-    //   借りる額は払えない額（−spare）だけ・1件の額まで（2026-09-28）＝r＜1 の月に spare を省くと、払えない額が1件の額より大きい月（−Ample）として踏む＝満額の1件。
+    // ★借入は払えない額（−spare）のある月だけ・減債は r＝1 の月の余剰（spare）から（作者裁定 F3・2026-09-28 段2-1）。月初に r を決める Simulation を通らない
+    //   単体の Fiscal.Step で盤面を作る番人は、起債の月は r＜1（Short）と払えない額、減債の月は r＝1 と余剰を渡して踏む。借入は予約なしでエンジンが払えない月に1件（2026-09-28）
+    //   ＝双子の片方だけ起債させるときは、借りない側を借入の冷却中（BorrowCooldown＝2 か月＝月末の Step の減算の後に次の借入の門が読む）にして同じ r で踏む
+    //   （冷却は Fiscal.Borrow の門と月末の減算しか読まない）。借りる額は払えない額（−spare）だけ・1件の額まで（2026-09-28）＝r＜1 の月に spare を省くと、
+    //   払えない額が1件の額より大きい月（−Ample）として踏む＝満額の1件。
+    //   ⚠2026-09-28 (b) から借入は月初の Fiscal.Borrow（r を決める前・切り下げより先）＝この補助は「月末の決算 Step → 次の月初の借入 Borrow」の順で踏む
+    //   ＝借りた月の利払いは次の Step から（旧＝Step の中で利払いの後に借りた形と同じ量の流れ＝番人の双子の差がそのまま国債の購入になる）。
     private const double Short = 0.5, Ample = 1e18;
-    private static void FiscalMonth(World w, double r, double? spare = null) { w.FiscalFundingRatio = r; Fiscal.Step(w, w.Coef, spare ?? (r < 1 ? -Ample : 0)); }
+    private static void FiscalMonth(World w, double r, double? spare = null)
+    {
+        double sp = spare ?? (r < 1 ? -Ample : 0);
+        w.FiscalFundingRatio = r; Fiscal.Step(w, w.Coef, sp);
+        Fiscal.Borrow(w, w.Coef, sp);
+    }
     private static double HeldOf(World w) { double h = 0; foreach (var r in w.Regions) foreach (var p in r.Pops) h += p.BondHoldings; return h; }
 
     /// <summary>英を1四半期温め、財政の国債以外の流れ（税・汚職の漏れ・維持費の頭数分配・福祉・年金・外債）を止めた盤面。
@@ -122,7 +130,7 @@ public class FiscalTests
         var t = QuietBritain(); var b = QuietBritain();   // 双子（b だけ起債する）
         Assert.Equal(0.0, b.GovDebt);
         t.Coef.BondRepayFrac = 0; b.Coef.BondRepayFrac = 0;   // 1か月目は買うだけ
-        t.BorrowCooldown = 1;                                   // t は借りない（同じ r で踏む）
+        t.BorrowCooldown = 2;                                   // t は借りない（同じ r で踏む・月末の減算の後に借入の門が読む＝2）
         FiscalMonth(t, Short); FiscalMonth(b, Short);
         var tp = AllPopsOf(t); var bp = AllPopsOf(b);
         double domestic = b.GovDebt - b.ForeignDebt;
@@ -196,7 +204,7 @@ public class FiscalTests
     {
         var t = QuietBritain(); var b = QuietBritain();
         t.Coef.BondRepayFrac = 0; b.Coef.BondRepayFrac = 0;
-        t.BorrowCooldown = 1;                                   // t は借りない（同じ r で踏む）
+        t.BorrowCooldown = 2;                                   // t は借りない（同じ r で踏む・月末の減算の後に借入の門が読む＝2）
         FiscalMonth(t, Short); FiscalMonth(b, Short);
         // 双子に同じ徴兵を1回＝最大の持ち手の一部が兵士POPへ（保有は貯蓄と同じ1人あたりで運ばれる＝兵士は買い手でないのに持ち手になる）
         var r0t = t.Regions[0]; var r0b = b.Regions[0];

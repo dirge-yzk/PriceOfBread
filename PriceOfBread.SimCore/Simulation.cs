@@ -2037,7 +2037,7 @@ public sealed class Simulation
         //   全ての行（予算・工賃・材料・国営持分の赤字・補助・保険・福祉・年金・維持費・利子・戦費・貢納・選挙・通行料…）に同じ r を掛ける＝優先順位を作らない。
         //   払える額（Q1）＝max(0, 国庫)＋当月の歳入の見込み（LastRevenue）。請求（Q2）＝今月の予算（上の州ループで立った額）＋予約＋
         //   月中に決まるものは既存の量で見込む（先月の請求 Last*・先月の区分つき StateSpent・生産者の先月の損益・工事中の棟の工賃）。
-        //   元本の返済（減債）だけは請求の外＝ r＝1 の月の余剰（spare＞0）から・借入は r＜1 の月だけ（どちらも Fiscal）。
+        //   元本の返済（減債）だけは請求の外＝ r＝1 の月の余剰（spare＞0）から（Fiscal）・借入は払えない額（spare＜0）の分だけ・r を決める前（下の Fiscal.Borrow）。
         //   置き場所＝既存の FiscalFundingRatio（旧＝維持費の充足率）。逼迫度＝1−r（UtilityAgent.FiscalStressOf）。
         //   撤去したもの＝国庫の現金クランプ StateBudgetCashScale（係数 StateSpendTreasuryClamp）・兵士の給与の州ごとの min(国庫)・日次の工賃の丸休みの門・
         //   材料の門・Fiscal の滝（利払い→維持費→福祉/年金→減債）・WelfarePensionClampToTreasury・SpendingCapFactor（Q9）・手書きの Min(Max(0,国庫)) の門。
@@ -2087,9 +2087,17 @@ public sealed class Simulation
         //   ＝不足を量で減らした上に同じ額を他人からも取る二重（切り下げの収入が税収の 0.1%→22〜41%・取った金は翌月の余剰＝減債へ回った）。
         //   ⇒ 切り下げの余地を月初に払える額へ入れて r を決め、取った金はその月の支払いに使う。余地は既存の不換の国の発行の規則のまま
         //   （払えない分×(1−兌換)・銀正貨国は改鋳の窓・月に総貯蓄の DevaluationCapFrac まで・うち FiatIssueFrac は新規発行）＝規則は1本。
+        // ★払える額の中身の順＝税・歳入 → 借入 → それでも足りない分だけ切り下げ（作者裁定 2026-09-28 (b)「切り下げは借りられないとき（上限・冷却中）だけ」）。
+        //   旧（(89)〜(93)）＝切り下げを先に払える額へ入れ、借入は月末の Fiscal が r＜1 の月に切り下げの残りだけ借りた（借りた金は翌月の払える額）
+        //   ＝切り下げの97〜99% は借りられた四半期に起き（借入の11〜32倍・税収の30〜45%）、紙幣の増発が信用より先に立っていた。
+        //   史実の紙幣の増発は信用が尽きた後（アッシニャ1790〜・墺1811・米のグリーンバック1862）。⇒ 払えない額（−spare）を、借入の上限の下・冷却中でなければ
+        //   先に借りてその月の払える額へ入れ（Fiscal.Borrow＝1件の額と貸し手のプールまで）、残った払えない額だけを下の切り下げの余地が読む。
+        //   ⚠優先順位の滝ではない＝支払いの行は全て同じ1本の率 r（下）。順があるのは払える額の中身だけ。
         if (World.FiscalEnabled)
         {
-            double deficit = spare < 0 ? -spare : 0;   // 否定形＝NaN は0
+            double borrowed = Fiscal.Borrow(World, World.Coef, spare);
+            payable += borrowed; spare += borrowed;   // 借りた金はこの月の払える額＝r に入る（切り下げと同じ扱い）
+            double deficit = spare < 0 ? -spare : 0;   // 否定形＝NaN は0（借りた後に残った払えない額＝借りられない月は全額）
             // 兌換可能性で切り下げ可能量を連続スケール（倍率排除②）：完全兌換(Conv=1)＝切り下げ封印（金の規律）／不換(Conv=0)＝赤字全額を切り下げ可。部分兌換は中間。
             double devalueRoom = deficit * (1.0 - World.Convertibility);
             // ★銀の段の軽い規律（SilverLightDiscipline・2026-08-21）：銀正貨国の切り下げ＝**改鋳（debasement）**は史実で日常だった
@@ -2196,7 +2204,7 @@ public sealed class Simulation
         StepMineralDeposits();   // ★鉱脈在庫（2026-08-14）：掘った分だけ減る・減れば品位が落ちる。ゲート0＝即return＝恒等
         MintGold();                                                      // 鋳造（金鉱→正貨）：金産出の一部が基礎貨幣に（ゴールドラッシュ＝マネー膨張）。GoldMintFraction=0で無効＝較正中立
         ProbeCheck("月次鋳造");
-        Fiscal.Step(World, World.Coef, spare);                           // §9-F/§6.2（全 pop に課税）。spare＝月初の払える額−請求（＞0＝減債の原資・＜0＝借入の額〔1件の額まで〕）
+        Fiscal.Step(World, World.Coef, spare);                           // §9-F/§6.2（全 pop に課税）。spare＝月初の払える額（借入と切り下げの後）−請求（＞0＝減債の原資）
         ProbeCheck("月次財政");
         // 国営工場カウンター（作者裁定2026-08-10）：目標と現在の差を1歩ずつ埋める（着工の再挑戦・1棟ずつの払い下げ）＋
         // 国有化法の接収。★財政の**後**に置く＝払い下げ代金と国庫の残高が同じ月の中で前後しない
