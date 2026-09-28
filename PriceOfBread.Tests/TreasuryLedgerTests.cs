@@ -345,7 +345,8 @@ public class TreasuryLedgerTests
     /// （2026-09-28 (b) から借りられる月は借入が先に払えない額を埋める＝切り下げの規則は借りられない月で測る・順は下の番人）
     /// ①F の r ＝ (払える額＋切り下げ) ÷ 請求＝取った金はその月の支払いに使われる（請求は G の r ＝ 払える額 ÷ 請求 から戻す）
     /// ②切り下げの額＝余地の規則 (1−兌換)×（請求−払える額−min(0,国庫)）そのもの＝払えなかった請求と同じ額を別に取らない。
-    /// 突然変異：切り下げを r の後へ戻す（段2-1 の形＝F の r が G と同じ）→①が赤／r に入れた上に月末でも取る（二重）→②が赤。</summary>
+    /// ③（2026-09-29）その月の国債の金利に、この月の切り下げの速さ（×12÷年名目GDP）が信認の喪失として乗る＝月次決算が月末の Fiscal.Step へ切り下げの額を渡す。
+    /// 突然変異：切り下げを r の後へ戻す（段2-1 の形＝F の r が G と同じ）→①が赤／r に入れた上に月末でも取る（二重）→②が赤／切り下げの額を渡さない→③が赤。</summary>
     [Fact]
     public void 切り下げは払える額に入り同じ月の支払いに使われ払えなかった請求と同じ額を別に取らない()
     {
@@ -386,6 +387,15 @@ public class TreasuryLedgerTests
         double expect = System.Math.Min(1.0, (pf + dev) / claims);
         Assert.True(System.Math.Abs(rF - expect) <= 1e-9, $"r {rF:F6} ≠ (払える額＋切り下げ)÷請求 {expect:F6}（G の r {rG:F6}）");
         Assert.True(rF > rG, "切り下げた金がその月の支払いに使われていない");
+        // ③ その月の国債の金利に、この月の切り下げの速さ（×12÷年名目GDP）が信認の喪失として乗る（2026-09-29＝月次決算が月末の Fiscal.Step へこの月の切り下げを渡す）。
+        //   G との差＝BondRateDistrustScale×速さ×兌換の割引×議会の割引（G は同じ月に未払いの利子が元本へ入った分だけ債務比が大きい＝その差は桁違いに小さい）。
+        //   突然変異：月次決算が切り下げを渡さない（0）→赤。
+        double speed = dev * Calendar.MonthsPerYear / (wf.NominalGdp * Calendar.MonthsPerYear);
+        double disc = (1.0 - conv * (1.0 - wf.Coef.GoldStandardRateDiscount)) * (1.0 - wf.Coef.BondRateRepresentationDiscount * PoliticalQuantities.Clamp01(wf.ParliamentControl));
+        double want = wf.Coef.BondRateDistrustScale * speed * disc;
+        double got = wf.GovBondRate - wg.GovBondRate;
+        Assert.True(want > 1e-4 && wf.GovBondRate < wf.Coef.BondRateMax, $"前提：信認の喪失の上乗せ {want:E3} が立たないか上限に張り付いた（{wf.GovBondRate:F4}）");
+        Assert.True(System.Math.Abs(got - want) <= 0.02 * want, $"切り下げた月の金利の上乗せ {got:E4} ≠ 0.5×速さ×割引 {want:E4}（月次決算が切り下げの額を渡していない）");
     }
 
     /// <summary>★借りられる月は切り下げない＝払える額の中身の順は 税・歳入→借入→それでも足りない分だけ切り下げ（作者裁定 2026-09-28 (b)「切り下げは借りられないとき（上限・冷却中）だけ」）。

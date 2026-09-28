@@ -2089,6 +2089,7 @@ public sealed class Simulation
         //   史実の紙幣の増発は信用が尽きた後（アッシニャ1790〜・墺1811・米のグリーンバック1862）。⇒ 払えない額（−spare）を、借入の上限の下・冷却中でなければ
         //   先に借りてその月の払える額へ入れ（Fiscal.Borrow＝1件の額と貸し手のプールまで）、残った払えない額だけを下の切り下げの余地が読む。
         //   ⚠優先順位の滝ではない＝支払いの行は全て同じ1本の率 r（下）。順があるのは払える額の中身だけ。
+        double devalued = 0;   // この月の切り下げの額＝通貨改革の発動の門（切下げゼロの連続月数）と、月末の Fiscal.Step の国債の金利の信認の喪失（直近の切り下げの速さ・2026-09-29）が読む
         if (World.FiscalEnabled)
         {
             double borrowed = Fiscal.Borrow(World, World.Coef, spare);
@@ -2106,7 +2107,6 @@ public sealed class Simulation
                 if (!(specie >= 0)) specie = 0; else if (specie > 1) specie = 1;   // NaNは0へ倒す（否定形＝ClampはNaNを消さない）
                 devalueRoom = deficit * (1.0 - World.Convertibility * (1.0 - specie));
             }
-            bool devalued = false;   // 通貨改革の発動ゲート（切下げゼロの連続月数）が読む
             if (devalueRoom > 1e-9)
             {
                 double totalSav = 0; foreach (var dr in World.Regions) foreach (var dp in dr.Pops) totalSav += Math.Max(0, dp.Savings);
@@ -2119,13 +2119,13 @@ public sealed class Simulation
                     double issue = devalue * World.Coef.FiatIssueFrac;
                     double haircut = devalue - issue;
                     if (haircut > 1e-12) foreach (var dr in World.Regions) foreach (var dp in dr.Pops) dp.Savings -= haircut * (Math.Max(0, dp.Savings) / totalSav);
-                    World.Pay(TreasuryCat.Devalue, devalue); World.CumulativeDevaluation += devalue; devalued = true;
+                    World.Pay(TreasuryCat.Devalue, devalue); World.CumulativeDevaluation += devalue; devalued = devalue;
                     World.CumulativeFiatIssued += issue;   // BaseMoney の正当な増加源（Invariants 算入）
                     World.FiatInflationPressure += devalue / Math.Max(1.0, World.BroadMoney);   // 紙幣増発＝インフレ圧（名目GDP↑→実質債務減）
                     payable += devalue; spare += devalue;   // 取った金はこの月の払える額＝r に入る（請求を切った上で別に取らない）
                 }
             }
-            World.NoDevaluationMonths = devalued ? 0 : World.NoDevaluationMonths + 1;
+            World.NoDevaluationMonths = devalued > 0 ? 0 : World.NoDevaluationMonths + 1;
         }
         double payRate = claims > 0 ? payable / claims : 1.0;
         if (!(payRate >= 0)) payRate = 0; else if (payRate > 1) payRate = 1;   // 否定形＝NaN は払わない側
@@ -2200,7 +2200,7 @@ public sealed class Simulation
         StepMineralDeposits();   // ★鉱脈在庫（2026-08-14）：掘った分だけ減る・減れば品位が落ちる。ゲート0＝即return＝恒等
         MintGold();                                                      // 鋳造（金鉱→正貨）：金産出の一部が基礎貨幣に（ゴールドラッシュ＝マネー膨張）。GoldMintFraction=0で無効＝較正中立
         ProbeCheck("月次鋳造");
-        Fiscal.Step(World, World.Coef, spare);                           // §9-F/§6.2（全 pop に課税）。spare＝月初の払える額（借入と切り下げの後）−請求（＞0＝減債の原資）
+        Fiscal.Step(World, World.Coef, spare, devalued);                 // §9-F/§6.2（全 pop に課税）。spare＝月初の払える額（借入と切り下げの後）−請求（＞0＝減債の原資）・devalued＝この月の切り下げ（国債の金利の信認の喪失）
         ProbeCheck("月次財政");
         // 国営工場カウンター（作者裁定2026-08-10）：目標と現在の差を1歩ずつ埋める（着工の再挑戦・1棟ずつの払い下げ）＋
         // 国有化法の接収。★財政の**後**に置く＝払い下げ代金と国庫の残高が同じ月の中で前後しない

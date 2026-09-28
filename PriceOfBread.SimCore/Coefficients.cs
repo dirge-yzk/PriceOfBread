@@ -446,9 +446,11 @@ public sealed class Coefficients
     public double ForeignBondCapacity = 0.05;    // 海外の購入余力＝開放度(1-Tariff)×GDP×これ×金利誘引。海外債は対外資本流入（保存＝BaseMoney+CumulativeTradeFlow同時）
     public double BondRolloverFrac = 0.01;       // R9（国債の満期構造）＝**2026-07-23点火（C〜H中4）**：毎月ストックのうち満期到来し現行市場金利GovBondRateへ乗り換わる割合∈[0,1]。旧1.0=永久/浮動（金利変動が全ストックへ即時波及＝英3%コンソルの固定クーポンが再現不能）。0.01≈平均満期8年強＝コンソル（超長期）と短期債の混合の近似＝金利スパイラルの即時全額波及を緩和・高債務国の財政破綻が史実的に緩やかに
     public double BondBaseRate = 0.04;           // 国債の基礎金利
-    public double BondRateDebtScale = 1.44;      // 金利上昇＝×(債務/年GDP)。債務が嵩むほど高金利（スパイラル）。財7単位フリップ2026-07-26＝旧0.12（月次GDP比）×12＝代数恒等
-    public double BondRateDebtQuad = 0.0;        // 監査2026-07-05（F2）：国債金利の債務二次項＝×(債務/年GDP)²。高債務での非線形スパイク（買い手希少性）を表現。0=無効（現行の線形のみ＝厳密一致）。#17で有効化検討（有効化時は年GDP単位＝旧月次値の144倍相当）
-    public double BondRepayFrac = 0.05;          // 国庫に余剰がある時に返済する債務の割合（健全国は減債）
+    public double BondRateDebtScale = 0.018;     // 金利上昇＝×(債務/年名目GDP)。★史実から（2026-09-29・作者裁定＝(94) の申し送り1 の (i)）：英のコンソル＝国債÷年GDP 約2.5（1815〜20）で利回り約4.5%
+                                                 //   ＝信認のある国（完全兌換 0.6×議会が予算を握る 0.9）で (0.04＋2.5×これ)×0.54≒4.6%／不換・議会の弱い周縁国（西・葡・希・オスマン・ラテンアメリカ）は国債÷年GDP 1〜2 で 5.8〜7.6%
+                                                 //   ＋期待インフレと信認の喪失（史実6〜10%）。旧 1.44（旧の月次比 0.12×12 を年へ換算したまま＝年GDP 比1につき+144%・単独で BondRateMax を越えた）
+    // 【削除2026-09-29】BondRateDebtQuad（監査2026-07-05 F2＝債務の二次項・既定0＝休眠）＝英の債務比2.5 で金利が跳ねない史実と合わない（棚卸し dorm-51／fis-17）
+    public double BondRepayFrac = 0.05;         // 国庫に余剰がある時に返済する債務の割合（健全国は減債）
     // ⚠緊縮の3係数（裁定B・2026-09-12）：**実効値を削る/持ち上げる**のをやめ、Government.LawPrereq の門
     //   （人頭税の「緊縮の下限」＝AusterityStage／社会保障の「緊縮の上限」＝1−AusterityIntensity を段へ写したもの）が同じ量から同じ制約を出す。
     //   ⚠専売は 2026-09-20 に政策軸ごと撤去した＝緊縮の下限も上限も持たない（政治が触る量ではない）。
@@ -459,8 +461,10 @@ public sealed class Coefficients
     public double FiatIssueFrac = 0.2;   /* リアリティ群点火2026-07-18＝不換シニョリッジ(インフレ税) */           // 不換シニョリッジ（fiat-expansion-as-haircut-not-issue）：赤字補填の切り下げのうち、popから取らず新規発行する割合＝マネーストック膨張(M↑→P↑)。CumulativeFiatIssuedに積みInvariantsのexpectedに算入。0で全額ヘアカット＝現行恒等
     public double DebtDistressRatio = 2.0;        // 債務/GDP がこれを超えると信用力が尽き新規国債が売れない（債権者は支払不能国に貸さない）＝債務の発散とスパイラルを断つ
     public double BondRateMax = 0.30;            // 国債金利の上限（年率）。これ以上は市場が値付けせず＝事実上の債務不履行（利払いを切り下げ/薄給で処理）
-    // 国債二次流通（改修2026-06-28・金融改革①）：信認シグナルの内生化。BondPrice=BondBaseRate/GovBondRate（永久債＝利回り上昇で価格暴落）。切り下げ常習＝信認喪失で利回り高止まり、外資逃避と連動。
-    public double BondRateDistrustScale = 0.06;  // 累積切り下げ/名目GDP比 が国債金利に上乗せ（信認の喪失＝切り下げ常習国は構造的に高金利・債券価格低迷）。0で旧挙動
+    // 国債二次流通（改修2026-06-28・金融改革①）：信認シグナルの内生化。BondPrice=BondBaseRate/GovBondRate（永久債＝利回り上昇で価格暴落）。切り下げを続ける国＝信認喪失で利回り高止まり、外資逃避と連動。
+    public double BondRateDistrustScale = 0.5;   // 信認の喪失＝**直近の切り下げの速さ**（この月の切り下げ×12÷年名目GDP）×これ を国債金利に上乗せ（2026-09-29・作者裁定＝(94) の申し送り1 の (i)）。
+                                                 //   史実＝不換の増発が年に GDP の数%の国（米のグリーンバック1862〜64・アルゼンチン1885〜90）で国債の利回りが数%上がり、止めると戻った＝GDP 比1%につき約0.5%。
+                                                 //   記憶は既往債の平均クーポン（R9 の満期構造）が持つ＝止めた国の上乗せは乗り換えとともに薄まる。旧 0.06×累積の切り下げ÷**月次**名目GDP（通貨改革まで減らず単独で BondRateMax を越えた）
     public double BondYieldFlightWeight = 1.5;   // 国債の利回りスプレッド(GovBondRate−BondBaseRate)が対外信用(CapitalMarket)を下げる強さ＝国債暴落→資本逃避→為替減価→さらに金利↑のバーリング危機ループ。0で旧挙動
     // === 借入（Fiscal.Borrow の1行＝月初に払えない額があればエンジンが自動で借りる＝切り下げより先・2026-09-28 (b)）：1件の額＝名目GDP×これ・借入額＝min(1件の額, 月初の払えない額)・上限＝利払い÷歳入 ===
     public double BorrowFractionOfGdp = 0.10;    // 1件の額＝月次**名目**GDPのこの割合＝月に借りられる額の上限（資本家貯蓄＋外資から調達＝保存）。借りるのは払えない額だけで1件の額まで（2026-09-28 に実質→名目＝払えない額・国債と同じ物差し）
@@ -1936,7 +1940,7 @@ public sealed class Coefficients
     // レバー3 議会の信認割引：選挙のある政体（立憲/共和）の国債金利に連続割引＝予算統制→債権者の信認（英コンソルが安かった理由）。
     // convDiscount と同形の乗数。C〜H中6（英仏が同一条件で価格付けされる問題）の一般則。0で×1.0＝厳密恒等。
     public double BondRateRepresentationDiscount = 0.1;   // 【0.2→0.1へ減衰2026-08-08作者裁定＝連立とセットの攪乱源】議会統制力の連続量へ改修して再点火（旧・政体ラベル二値0.2は2026-07-25差し戻し＝DebtGdp年換算フリップで再挑戦解禁の記録どおり）。
-    // 政体フレーバーdocの留意どおり DebtGdpAnnualized=0 のままでは歪みだけ出る＝**財7（債務/GDP年率化・第4群）とセットでのみ再挑戦**。0=×1.0恒等
+    // 政体フレーバーdocの留意どおり債務/GDP が月次のままでは歪みだけ出る＝**財7（債務/GDP年率化・第4群）とセットでのみ再挑戦**（旗 DebtGdpAnnualized は 2026-09-29 に焼き込み＝常に年）。0=×1.0恒等
     // ⚠撤去2026-08-22: ExportDemandWeight(0.25)・ExportDemandSmoothing・Market.ExportSmoothed（貿易特化レバー1＝輸出EMAの別建て加算）＝準レント配分では価格に輸出需要が載る（次元の合った1本）ので不要。墓標は準レント注記。
     // ★段2で削除（作者裁定2026-09-09 part3「よくわからない・全て消しましょう」）：革命の波（RevolutionExportRate / RevolutionWaveDistanceKm /
     //   RevolutionWaveHalflifeQuarters / RevolutionWaveMilitancy / EraRevolutionWave）。1848年の同時多発は**伝染ではない**
@@ -2486,7 +2490,8 @@ public sealed class Coefficients
     // 【墓標2026-09-26・旗の焼き込み（x-01・0-4）】ForeignBondFromInvestors（財5・既定1.0）＝対外国債は他国資本家のプール World.ForeignBondInvestorPool を上限に引き当て（旧＝モデル外の無限プール）
     // 【墓標2026-09-26・旗の焼き込み（x-01・0-4）】ForeignLendingDebits（§1-4・点火2026-08-30）＝対外借入元本を貸し手の他国資本家から引き落とす両建て（旧＝片側記帳）
     public double CapitalOpennessTariffWeight = 1.0;   // 財6（資本開放度の脱・関税連動）：openness=Clamp(1−これ×Tariff,0,1)の関税連動の強さ。1.0=現行の完全連動(1−Tariff)＝厳密一致。0で関税と独立（高関税の米/露も外債発行）＝兌換性/信認ベースへ
-    public double DebtGdpAnnualized = 1.0;   // 財7（債務/GDPの単位整合・**2026-07-26点火＝第4群**）：金本位資格/離脱・国債金利プレミアムの分母を年換算GDPへ。点火と同時に4閾値/係数を÷12/×12（下記）＝代数恒等の単位フリップ（FP丸めの軌道再抽選のみ）。以後 dGdp は「債務/年GDP」＝史実（英1815=250%）と直接比較可能＝#17で史実レンジへの再較正と信認割引（BondRateRepresentationDiscount）再挑戦が解禁
+    // 【墓標2026-09-29・旗の焼き込み】DebtGdpAnnualized（財7・2026-07-26 点火＝既定1.0）＝国債金利の債務比の分母を年換算GDPへ＝Fiscal は常に年（月次×12）。
+    //   史実レンジへの再較正（BondRateDebtScale 1.44→0.018・信認の喪失を直近の切り下げの速さ÷年GDP へ）を同じ日に行い、旧の月次の枝（0）は較正の意味を失った
     public double CoercionUpkeepToSoldiers = 0.0;   // 財14（抑圧装置の維持費の帰属）：連合維持費（軍・警察・官僚の俸給）を兵士pop・官僚(ClassId8)popへ傾斜させる割合。0=現行の全popへ頭数比例＝厳密一致。1で全額を兵士＋官僚へ・残りを全popへ。受け手不在時は国庫残置
     public double WarFarmOutputDamage = 0.3;      // 05-A（2026-07-29）：戦場強度1.0で主食RGO産出−30%（劣勢側のみ・終戦で即回復）。戦争→飢饉→政変の連鎖
     public double WarLivestockRequisition = 0.03; // ★点火2026-08-31（ラウンドB）＝戦争被害のストック化（AI審査3-11）：戦場強度1.0で家畜RGOの操業規模を3%/月で徴発（軍馬・輓獣・食肉＝flowでなくstock）。回復は既存のRGO供給弾力（年単位）から自然に出る＝回復コードなし（鉱脈在庫と同じ思想）。0で徴発なし

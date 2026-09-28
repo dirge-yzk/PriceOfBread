@@ -972,7 +972,7 @@ public sealed class World
     /// <summary>国債（永久債/コンソル）の二次流通価格（改修2026-06-28・金融改革①）。クーポン固定の永久債は価格∝1/利回り＝**利回り上昇で価格暴落**＝信認シグナル。1.0平価。名目のヴェール（pop貯蓄には触れない＝保存）。</summary>
     public double BondPrice => GovBondRate > 1e-9 ? Coef.BondBaseRate / GovBondRate : 1.0;
     public double ForeignDebt { get; internal set; }   // うち海外保有分（対外債務＝利払い/不履行が対外）
-    public double CumulativeDevaluation { get; internal set; }   // 累積の通貨切り下げ額（債務不履行で全popの貯蓄を希薄化＝インフレ税）。**挙動の被乗数**＝Fiscal の distrust（国債金利BondRateDistrustScale）→CrowdingPremium→民間投資と対外信用に直接効く（02断線走査2026-07-28：旧「診断・歴史」注記は削除リファクタで壊す危険があった）
+    public double CumulativeDevaluation { get; internal set; }   // 累積の通貨切り下げ額（債務不履行で全popの貯蓄を希薄化＝インフレ税）。**挙動の被乗数**＝資本逃避の不信（CapitalMarket）・通貨改革と兌換の再加入の門（Fiscal の broken）・AI の改革の判断が読む（02断線走査2026-07-28：旧「診断・歴史」注記は削除リファクタで壊す危険があった）。⚠国債の金利（信認の喪失）は 2026-09-29 から累積でなく直近の切り下げの速さ（Fiscal.Step の devalued）を読む
     public double CumulativeFiatIssued { get; internal set; }    // 累積の不換新規発行（fiat-expansion-as-haircut-not-issue）。基礎貨幣の正当な増加源＝貨幣保存の基準に算入（鋳造CumulativeGoldMintedと同型）。FiatIssueFrac=0で常に0＝較正中立
     // 借入（Fiscal の1行＝国家の支払い率 r＜1 の月にエンジンが自動で借りる・2026-09-28 作者裁定「借入は自動化・借金ボタンは不要」＝予約の列 BorrowQueue と RequestBorrow を削除）。借入額＝min(1件の額, 月初の払えない額)。
     //   上限＝利払い÷歳入（Coefficients.MaxInterestShareOfRevenue・2026-09-28）＝旧の借入スタック BorrowStacks（過去の1件の額で数えた借入の累計）は上限が読まなくなり削除（思想⑩・棚卸し fis-01）。

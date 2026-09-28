@@ -15,11 +15,12 @@ public static class Fiscal
     private const double ForeignBondYieldRatioCap = 3.0;     // 対外債容量の利回り倍率クランプ上限（GovBondRate/BondBaseRate の上限）
     private const double FranchiseAdultMale = 0.7;           // 参政権レベル→市民運動基盤の重み（男子普通選挙）
     private const double FranchiseCensus = 0.25;             // 参政権レベル→市民運動基盤の重み（制限選挙）
-    private const double DebtRatioUnbounded = 1e9;            // NominalGdp≈0 かつ債務ありのときの代替（極大）債務/GDP比
+    private const double DebtRatioUnbounded = 1e9;            // NominalGdp≈0 かつ債務（か切り下げ）ありのときの代替（極大）の比（債務÷年GDP・切り下げの速さ÷年GDP）
 
     /// <param name="spare">月初の払える額（借入と切り下げの後）−国家の支払いの請求（Simulation が r と同時に求める）。＞0＝ r＝1 の月の余剰＝減債の原資。
     /// 借入と切り下げは月初に Simulation が払える額の側へ入れて取る（借入＝<see cref="Borrow"/>・2026-09-28）＝ここでは借りも取りもしない。単体で呼ぶ試験の既定0＝減債もしない。</param>
-    public static void Step(World w, Coefficients c, double spare = 0)
+    /// <param name="devalued">この月の月初に Simulation が取った切り下げの額（国庫の台帳の区分 Devalue へ入った額）＝国債の金利の信認の喪失が読む「直近の切り下げの速さ」（2026-09-29）。単体で呼ぶ試験の既定0＝この月は切り下げていない。</param>
+    public static void Step(World w, Coefficients c, double spare = 0, double devalued = 0)
     {
         if (!w.FiscalEnabled) return;
         double payRate = w.FiscalFundingRatio;   // 国家の支払い率 r（月初に Simulation が決めた1本）
@@ -445,10 +446,10 @@ public static class Fiscal
             w.Explain?.Add("Legitimacy", "国家破産（デフォルト）の信認崩壊", w.Legitimacy - legBeforeDefault);   // 説明API（#63）
             foreach (var dp in pops) if (Politics.IsMassPop(dp)) dp.Militancy = PoliticalQuantities.Clamp01(dp.Militancy + c.DefaultMilitancyHit);
         }
-        // 財7（債務/GDPの単位整合）：NominalGdp は月次フロー、GovBondRate は年率（利払いを/12）。分母を DebtGdpAnnualized で年換算する（×12）。
-        // 既定1.0＝分母を年換算（×12・2026-07-26点火）。0なら旧・月次GDP基準のまま。
-        double gdpDenom = nominalGdp * (1.0 + c.DebtGdpAnnualized * (Calendar.MonthsPerYear - 1));   // 既定1.0で ×12（年換算）／0で ×1（月次のまま・旧）
-        // [単位・B13] 債務/GDP＝**年次名目**（GovDebt÷(月次NominalGdp×12)・DebtGdpAnnualized=1）。国債金利の債務比プレミアムはこの単位。⚠CapitalMarket/Credit は月次名目・Government/PolicyPreferences は月次実質＝同名で3種（#17で1本化）
+        // 財7（債務/GDPの単位整合）：NominalGdp は月次フロー、GovBondRate は年率（利払いを/12）。分母は年の名目GDP（月次×12）。
+        //   ★2026-09-29：旗 DebtGdpAnnualized（2026-07-26 点火＝既定1.0）を焼き込み＝国債の金利の2つの上乗せ（債務比・信認の喪失）を史実の年の単位で出し直した（下）＝旧の月次の枝（0）は較正の意味を失った。
+        double gdpDenom = nominalGdp * Calendar.MonthsPerYear;   // 年の名目GDP
+        // [単位・B13] 債務/GDP＝**年次名目**（GovDebt÷(月次NominalGdp×12)）。国債金利の債務比プレミアムはこの単位。⚠CapitalMarket/Credit は月次名目・Government/PolicyPreferences は月次実質＝同名で3種（#17で1本化）
         //   台帳（2026-09-11 #10）：PowerShares.cs の debtGrip＝月次名目の Clamp（物理・用途別に別＝触らない）／Runner milfund・hangtest の dGdp＝月次名目（計器）／App のヘッダー「対年GDP」＝この行と同じ年次名目（旧＝年次実質＝表示だけ別物差しだったのを統一）
         double dGdp = gdpDenom > 1e-9 ? w.GovDebt / gdpDenom : (w.GovDebt > 0 ? DebtRatioUnbounded : 0);   // #1 名目GDP基準＝デフレ国は実質債務が膨らみ国債金利が上がる（負債デフレ）
         // ★AUD-09（監査2026-09-02 low・規律「比のガードは絶対値で書かない」）：分母の絶対値ガード（1e-9）だけでは、
@@ -501,10 +502,23 @@ public static class Fiscal
         // 金利の兌換割引を連続化（倍率排除②）：完全兌換(Conv=1)で GoldStandardRateDiscount(0.6)・不換(Conv=0)で1.0。部分兌換は中間＝信用プレミアムが連続。
         double convDiscount = 1.0 - w.Convertibility * (1.0 - c.GoldStandardRateDiscount);
         // 政策金利（バンクレート）が国債金利の床を押し上げる（引締め＝政府の借入も高くつく）。較正は InterestRate=0＝中立。
-        // 信認の喪失（改修2026-06-28・金融改革①）：累積切り下げ/名目GDP比＝紙幣増発で赤字を埋めた履歴が国債金利に構造的に上乗せ（切り下げ常習国は債券価格が低迷＝信認の喪失を内生化）。
-        double distrust = c.BondRateDistrustScale * (w.CumulativeDevaluation / Math.Max(1.0, nominalGdp));
-        // 監査2026-07-05（F2）：債務二次項＝高債務での非線形スパイク（買い手希少性）。BondRateDebtQuad=0（既定）で現行の線形と厳密一致。
-        double bondInside = c.BondBaseRate + c.BondRateDebtScale * dGdp + c.BondRateDebtQuad * dGdp * dGdp + fisher + distrust + c.PolicyRateBondWeight * w.InterestRate;
+        // ★信認の喪失＝**直近の切り下げの速さ**（この月の切り下げ×12÷年の名目GDP＝年の切り下げが年GDP の何割か・名目÷名目）（2026-09-29・作者裁定＝(94) の申し送り1 の (i)）。
+        //   旧（2026-06-28 金融改革①）＝累積の切り下げ÷**月次**名目GDP×0.06＝累積は通貨改革まで減らず、分母は月次（年に直すと12倍）＝(94)(95) で上限の国×四半期の中央 0.45〜1.28
+        //   ＝単独で BondRateMax 0.30 を越え、国債の平均クーポンが 0.29〜0.30 に張り付いた（上限＝利払い÷歳入≧0.55 が国債÷年GDP 約0.2〜0.4 で閉じた）。
+        //   史実の信認の喪失は累積でなく最近の増発の速さ（アッシニャ1790〜96・墺1811 の前後・米のグリーンバック1862〜64・アルゼンチン1885〜90＝不換の発行が年に GDP の数%の国で
+        //   国債の利回りが数%上がり、増発を止めると戻った）＝GDP 比1%につき約0.5%（BondRateDistrustScale）。
+        //   ★記憶は払う利子の側が持つ＝増発を止めた月から市場の金利は下がるが、高い金利で乗り換えた既往債の平均クーポン GovAvgCoupon（R9 の満期構造＝月に
+        //   BondRolloverFrac だけ乗り換わる）が時間とともに薄まる＝新しい状態を作らない。⚠累積の切り下げ CumulativeDevaluation は資本逃避（CapitalMarket）・
+        //   通貨改革と兌換の再加入の門（broken）・AI の改革の判断が読むまま（金利生活者のポンプの歯止め＝2026-09-27）＝国債の金利だけが読まなくなった。
+        //   ⚠否定形＝NaN の切り下げは0・年GDP が0で切り下げありは番兵（BondRateMax で頭打ち）。
+        double devalSpeed = devalued > 0 ? (gdpDenom > 1e-9 ? devalued * Calendar.MonthsPerYear / gdpDenom : DebtRatioUnbounded) : 0;
+        if (!(devalSpeed <= DebtRatioUnbounded)) devalSpeed = DebtRatioUnbounded;
+        double distrust = c.BondRateDistrustScale * devalSpeed;
+        // ★債務比の上乗せ（BondRateDebtScale×債務÷年名目GDP）は史実から（2026-09-29）＝英のコンソル（国債÷年GDP 約2.5 の1815〜20年に利回り約4.5%）を信認のある国
+        //   （完全兌換・議会が予算を握る＝割引 0.6×0.9）で出す：(0.04＋2.5×0.018)×0.54≒4.6%。同じ式で不換・議会の弱い周縁国（西・葡・希・オスマン・ラテンアメリカ）は
+        //   国債÷年GDP 1〜2 で 5.8〜7.6%＋期待インフレと信認の喪失（史実6〜10%）。旧＝1.44（旧の月次比 0.12×12 を年へ換算したまま＝年GDP 比1につき+144%）。
+        //   監査2026-07-05（F2）の債務の二次項 BondRateDebtQuad（既定0＝休眠）は削除（英の債務比2.5 で金利が跳ねない史実と合わない・棚卸し dorm-51／fis-17）。
+        double bondInside = c.BondBaseRate + c.BondRateDebtScale * dGdp + fisher + distrust + c.PolicyRateBondWeight * w.InterestRate;
         // 政体フレーバー レバー3（2026-07-24）→第3波連続化（2026-07-28）：議会の信認割引＝議会の予算統制（ParliamentControl）が
         // 強いほど債権者の信認で金利が安い（英コンソル＝財政軍事国家論）。旧・政体ラベル二値→統制力の連続量へ（倍率排除＝ラベル不読・
         // DebtGdp年換算フリップ2026-07-26で再挑戦解禁の記録どおり）。BondRateRepresentationDiscount=0で×1.0＝厳密恒等。
@@ -517,9 +531,8 @@ public static class Fiscal
             bl.Reset("BondRate");
             bl.Add("BondRate", "基礎金利", c.BondBaseRate * convDiscount);
             bl.Add("BondRate", "債務比プレミアム", c.BondRateDebtScale * dGdp * convDiscount);
-            bl.Add("BondRate", "高債務の加速", c.BondRateDebtQuad * dGdp * dGdp * convDiscount);
             bl.Add("BondRate", "インフレ期待", fisher * convDiscount);
-            bl.Add("BondRate", "信認喪失（切り下げ歴）", distrust * convDiscount);
+            bl.Add("BondRate", "信認喪失（直近の切り下げ）", distrust * convDiscount);
             bl.Add("BondRate", "政策金利", c.PolicyRateBondWeight * w.InterestRate * convDiscount);
             bl.Add("BondRate", "金本位の信認割引", bondInside * (convDiscount - 1.0));
             bl.Add("BondRate", "議会の信認割引", bondInside * convDiscount * (reprDiscount - 1.0));
@@ -637,7 +650,7 @@ public static class Fiscal
         // ★借入の上限＝利払いが歳入の限界（MaxInterestShareOfRevenue）に届く所（作者裁定 2026-09-28・棚卸し fis-01）。旧＝借入スタック20（1スタック＝月次**実質**GDP の10%
         //   ＝年GDP の約17%で全ての国が同じ天井・1815年の英の250%は原理的に出ない）。史実で借りられなくなったのは水準そのものでなく、利払いが歳入を食う割合と市場の信認
         //   （英1818-22 利払い約3,100万ポンド÷歳入約5,600万≒0.55 で借りずに持ちこたえ・仏1788 3.18億÷4.72億リーヴル≒0.67 で支払停止）＝同じ限界でも、
-        //   歳入の厚い国（英）と金利の安い国（金本位・議会の信認割引）ほど深く借りられ、信認を失った国（切り下げ歴・高債務の金利）は浅い所で止まる。
+        //   歳入の厚い国（英）と金利の安い国（金本位・議会の信認割引）ほど深く借りられ、信認を失った国（直近の切り下げ・高債務の金利＝その金利で乗り換えた平均クーポン）は浅い所で止まる。
         //   ⚠門は直近の月次決算の利払いの請求（LastInterest＝国債×平均クーポン）と歳入（LastRevenue）＝どちらも名目の量＝物価水準が変わっても比は変わらない
         //   （r の請求と払える額が読むのと同じ2つの量・Step の不履行の計数と巨大建造物の「まだ借りられる」も同じ1本）。旧のスタック（過去の1件の額で数えた借入の累計）は
         //   分子と分母が別の時点・別の物差しだった＝2026-09-28 に削除（思想⑩・棚卸し fis-01「スタック数は残高から導ける」）。

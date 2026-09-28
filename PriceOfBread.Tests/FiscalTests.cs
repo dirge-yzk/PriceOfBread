@@ -677,6 +677,88 @@ public class FiscalTests
         Assert.False(run.OnGoldStandard, "準備が割れても兌換を止めない（取り付けの門が死んでいる＝この番人の対照が崩れた）");
     }
 
+    // ★国債の金利を史実から出し直した（2026-09-29・作者裁定＝(94) の申し送り1 の (i)）の番人の盤面：静かな英に、金利の式が読む量だけを置く
+    //   （兌換・議会の予算の掌握・期待インフレ0・政策金利0・国債＝年名目GDP の debtYears 倍）。r＝1・余剰0＝借りも返しもしない月＝国債は動かない。
+    private static World BondBoard(double conv, double parliament, double debtYears)
+    {
+        var w = QuietBritain();
+        w.Convertibility = conv; w.ParliamentControl = parliament;
+        w.ExpectedInflation = 0; w.InterestRate = 0;
+        w.GovDebt = debtYears * w.NominalGdp * Calendar.MonthsPerYear; w.ForeignDebt = 0;
+        w.FiscalFundingRatio = 1.0;
+        return w;
+    }
+
+    /// <summary>★債務比の上乗せは史実から（BondRateDebtScale＝英のコンソル）：国債÷年名目GDP が2.5 の信認のある国（完全兌換・議会が予算を握る・切り下げなし）の金利は
+    /// 約4〜5%（英1815〜20 のコンソル約4.5%）。不換・議会の弱い周縁国は国債÷年GDP 1.5 で6〜10%（西・葡・希・オスマン・ラテンアメリカ）。
+    /// 突然変異：旧の係数 1.44 へ戻す→信認のある国が上限 0.30 に張り付いて赤／分母を月次の名目GDP へ戻す（旧の DebtGdpAnnualized=0 の枝）→赤。</summary>
+    [Fact]
+    public void 国債の金利_債務が年GDPの2倍半でも信認のある国は4から5パーセントで不換の周縁国は6から10パーセント()
+    {
+        var credible = BondBoard(conv: 1.0, parliament: 1.0, debtYears: 2.5);
+        Assert.True(credible.NominalGdp > 0, "前提が崩れた：英に名目GDPが無い");
+        Fiscal.Step(credible, credible.Coef);
+        Assert.True(credible.GovDebt >= 2.5 * credible.NominalGdp * Calendar.MonthsPerYear * (1 - 1e-12), "前提が崩れた：国債が動いた");
+        Assert.InRange(credible.GovBondRate, 0.04, 0.05);
+
+        var periphery = BondBoard(conv: 0.0, parliament: 0.0, debtYears: 1.5);
+        Fiscal.Step(periphery, periphery.Coef);
+        Assert.InRange(periphery.GovBondRate, 0.06, 0.10);
+        Assert.True(periphery.GovBondRate > credible.GovBondRate, "債務の軽い不換の国が債務の重い信認のある国より安く借りている");
+    }
+
+    /// <summary>★信認の喪失＝**直近の切り下げの速さ**（この月の切り下げ×12÷年名目GDP×BondRateDistrustScale）＝累積でない（旧＝累積の切り下げ÷月次名目GDP×0.06＝
+    /// 通貨改革まで減らず単独で上限 0.30 を越えた）。双子（同じ盤面）の片方だけ1か月、年GDP の5%の速さで切り下げる（Simulation と同じく累積にも積む）：
+    /// ①その月の市場の金利の上乗せ＝0.5×5%＝2.5%（名目・年÷名目・年）②止めた翌月から市場の金利は双子と同じ（累積を読まない）
+    /// ③払う利子（既往債の平均クーポン）の差は乗り換え（R9 の満期構造）とともに毎月薄まって0へ向かう＝記憶は払う利子の側が持つ（新しい状態なし）。
+    /// 突然変異：累積の切り下げを読む→②が赤／分母を月次の名目GDP（×12 を落とす）→①が赤／速さを年に直さない→①が赤。</summary>
+    [Fact]
+    public void 国債の金利_信認の喪失は直近の切り下げの速さで止めた国の上乗せは乗り換えとともに薄まる()
+    {
+        var dev = BondBoard(conv: 0.0, parliament: 0.0, debtYears: 0.5);
+        var ctl = BondBoard(conv: 0.0, parliament: 0.0, debtYears: 0.5);
+        // 釣り合いの月（どちらも切り下げない）＝平均クーポンを市場の金利にそろえる
+        Fiscal.Step(dev, dev.Coef); Fiscal.Step(ctl, ctl.Coef);
+        Assert.Equal(ctl.GovBondRate, dev.GovBondRate);
+        dev.GovAvgCoupon = dev.GovBondRate; ctl.GovAvgCoupon = ctl.GovBondRate;
+        // ① 切り下げの月＝年GDP の5%の速さ（この月の額＝月次GDP の5%＝×12÷年GDP＝0.05）
+        double devalue = 0.05 * dev.NominalGdp;
+        dev.CumulativeDevaluation += devalue;
+        Fiscal.Step(dev, dev.Coef, 0, devalue); Fiscal.Step(ctl, ctl.Coef);
+        double premium = dev.GovBondRate - ctl.GovBondRate;
+        Assert.True(Math.Abs(premium - dev.Coef.BondRateDistrustScale * 0.05) <= 1e-12, $"切り下げの月の上乗せ {premium} が 0.5×年GDP の5%＝{dev.Coef.BondRateDistrustScale * 0.05} でない（速さか年の単位が崩れた）");
+        Assert.True(premium > 0.02 && premium < 0.03, $"上乗せ {premium}（GDP 比1%につき約0.5%）");
+        // ② 止めた翌月から市場の金利は双子と同じ ③ 払う利子の差は毎月薄まる
+        double prevGap = double.PositiveInfinity;
+        for (int m = 0; m < 24; m++)
+        {
+            Fiscal.Step(dev, dev.Coef); Fiscal.Step(ctl, ctl.Coef);
+            Assert.Equal(ctl.GovBondRate, dev.GovBondRate);
+            double gap = dev.GovAvgCoupon - ctl.GovAvgCoupon;
+            Assert.True(gap > 0, $"{m + 1} か月目：切り下げた月の金利で乗り換えた分が平均クーポンに残っていない（差 {gap}）");
+            Assert.True(gap < prevGap, $"{m + 1} か月目：平均クーポンの差 {gap} が薄まらない（前の月 {prevGap}）");
+            prevGap = gap;
+        }
+        Assert.True(prevGap < dev.Coef.BondRolloverFrac * premium, "2年たっても払う利子の上乗せが乗り換え1か月分より大きい");
+    }
+
+    /// <summary>★単位の対称：同じ実体で物価水準が2倍の双子（名目の量＝国債・切り下げの額・名目GDP が全て2倍）は同じ金利（債務÷年名目GDP・切り下げの速さ÷年名目GDP＝名目÷名目）。
+    /// 突然変異：信認の喪失か債務比の分母を実質GDP にする→赤。</summary>
+    [Fact]
+    public void 国債の金利_物価水準が2倍の双子は同じ金利()
+    {
+        var a = BondBoard(conv: 0.3, parliament: 0.5, debtYears: 1.0);
+        var b = BondBoard(conv: 0.3, parliament: 0.5, debtYears: 1.0);
+        double n0 = b.NominalGdp;
+        b.PriceLevel *= 2; b.GovDebt *= 2; b.LastTariffRevenue *= 2;
+        Assert.True(Math.Abs(b.NominalGdp - 2 * n0) <= 1e-12 * n0, $"前提が崩れた：名目GDPが2倍にならない（{n0}→{b.NominalGdp}）");
+        double devalue = 0.03 * n0;   // 年GDP の3%の速さ（月次GDP の3%×12÷年GDP）＝信認の喪失 0.5×0.03（上限 0.30 の手前で比べる）
+        Fiscal.Step(a, a.Coef, 0, devalue);
+        Fiscal.Step(b, b.Coef, 0, 2 * devalue);
+        Assert.True(a.GovBondRate < a.Coef.BondRateMax, $"前提が崩れた：上限に張り付いた（{a.GovBondRate}）");
+        Assert.True(Math.Abs(a.GovBondRate - b.GovBondRate) <= 1e-12, $"物価水準2倍の双子の金利 {b.GovBondRate} が {a.GovBondRate} と違う（実質の物差しが混じった）");
+    }
+
     [Fact]
     public void 再併合_反乱国の与信と負の国庫は親へ渡り世界の貨幣は変わらない()
     {
