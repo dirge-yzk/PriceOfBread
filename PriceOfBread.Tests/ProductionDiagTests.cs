@@ -453,6 +453,9 @@ public class ProductionDiagTests
         // ★書き直し（2026-09-20・R2）：旧はここで「政治の門が閉じた国では押しても点かない」ことで鏡の不在を測っていた。
         //   作者裁定で専売は政治から切り離され門そのものが消えた＝**門に依らない形**で同じ性質を測る。
         //   エンジン側だけを書き換えて ProdDetail を一切触らず、表示がそれに追随するかを見る（鏡があれば false のまま止まる）。
+        // ★前提は盤面に任せず置く（2026-09-28 作者裁定 A7 の回）：12四半期の軌道で AI が梯子の財を全て専売にした国が出た（仏）＝前提が軌道に依っていた。
+        //   エンジンの唯一のセッター（SetStateMonopolyTier＝プレイヤーが1つずつ外すのと同じ規則）で梯子を全て外してから測る。
+        foreach (var n in sim.Nations) n.World.SetStateMonopolyTier(0);
         var mirror = sim.Nations[1].World;
         int mgi = FirstUntaxedLadderGood(mirror);
         Assert.True(mgi >= 0, "前提が崩れた：まだ専売にしていない梯子の財が無い");
