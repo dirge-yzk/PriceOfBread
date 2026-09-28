@@ -145,7 +145,7 @@ public static class Factions
         var petty = w.Coef.PettyInterestGate > 0 ? InterestGroups.PettyPops(w) : null;   // 第4束「小営業」＝クラスタ分類（FactionSnapshot.ComputeClusters）と同じ物差し（gate=0で従来とビット恒等）
         foreach (var p in w.AllPops())
         {
-            int b = p.Closed ? 0 : petty != null && petty.Contains(p) ? PolicyPreferences.PettyBloc : p.IsModernElite ? 1 : 2;
+            int b = PolicyPreferences.BlocOf(p, petty);
             if (b != bloc || p.IsSoldier) continue;
             sum += p.Consciousness * p.Size; size += p.Size;
         }

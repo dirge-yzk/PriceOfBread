@@ -202,8 +202,7 @@ public static class Military
         // ★階層3分割（2026-09-22 既定化）：旧＝兵士POPの満足度の平均。分割後の満足度には食料が載らない＝「食えない軍」が即応度から消える
         //   （1812年の退却・1917年の前線＝飢えた軍は戦えない）。⇒ 兵卒の漏れと**同じ1本**（PowerShares.SoldierWelfare＝食料＋日用品の台帳）を読む
         //   ＝旧は同じ量（兵士POPの人口加重平均満足度）を2箇所で別々に集計していた重複も畳む。
-        double sSize = 0;
-        foreach (var p in w.AllPops()) if (p.IsSoldier) sSize += p.Size;
+        double sSize = w.SoldierSize();
         double moraleFill = PowerShares.SoldierWelfare(w);
         // 課題6（駐屯州調達）：即応の装備充足＝兵士加重の全国平均へ（g=0では旧＝首都州のみ＝厳密同値）。
         double equipFillEff = w.Region.MilitaryEquipFill;

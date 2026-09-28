@@ -2171,7 +2171,7 @@ public sealed class Simulation
         if (World.StepsDiplomacy)
             World.Diplomacy?.Step(World.Coef, Rng, (int)(World.Tick / Calendar.DaysPerMonth));  // §6.1 外交・戦争（月次・opt-in。多国では共有外交を MultiNationSim が進める）
         // rank3：農奴解放の梯子（Colonial.cs入植と同じ物差し）＝SerfMobilityGate>0のとき農村→都市流を縛る（ループ不変＝外で1回）
-        double serfFree = World.SerfEmancipation switch { ReformLevel.Full => 1.0, ReformLevel.Limited => 0.5, _ => 0.0 };
+        double serfFree = 1.0 - Privileges.SeigneurialDegree(World);
         foreach (var r in World.Regions)
             if (r.State == RegionState.Active)
                 PopDecision.Run(r, World.Coef, serfFree);           // §9-D（地域内の階級遷移）

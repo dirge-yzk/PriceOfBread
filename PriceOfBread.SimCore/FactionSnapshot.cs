@@ -97,7 +97,7 @@ public static class FactionSnapshot
 
     /// <summary>pop 1つの（束・主軸）＝クラスタの鍵の**唯一の定義**（束＝InterestGroups の分類＋第4束・主軸＝イデオロギーの argmax）。</summary>
     internal static (int Bloc, int Ideo) BlocIdeo(Pop p, HashSet<Pop>? petty)
-        => (p.Closed ? 0 : petty != null && petty.Contains(p) ? PolicyPreferences.PettyBloc : p.IsModernElite ? 1 : 2, ArgMax(p.IdeologyShares));
+        => (PolicyPreferences.BlocOf(p, petty), ArgMax(p.IdeologyShares));
 
     /// <summary>スナップショットの計算（World 非変更・決定論）。クラスタなし＝空リスト（UI側は「目立った国内勢力なし」表示）。</summary>
     public static List<Faction> Compute(World w)

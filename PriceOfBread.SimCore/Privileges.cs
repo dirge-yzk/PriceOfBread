@@ -19,7 +19,8 @@ public static class Privileges
 
     /// <summary>身分の度合い（猟官1／資格任用0.5／専門0）＝PowerShares.PrivilegeIntact と同じ物差し。</summary>
     public static double EstateDegree(World w) => w.Bureaucracy switch { BureaucracyLaw.Spoils => 1.0, BureaucracyLaw.MeritExam => 0.5, _ => 0.0 };
-    /// <summary>領主権の残高＝農奴解放の未解放度（なし1／限定0.5／全面0）＝PowerShares.PrivilegeIntact と同じ物差し。</summary>
+    /// <summary>領主権の残高＝農奴解放の未解放度（なし1／限定0.5／全面0）＝PowerShares.PrivilegeIntact と同じ物差し。
+    /// ★農民の移動の自由（入植の送り元・社会移動の農村の池・農村→都市の流れ）は 1−これ（2026-09-28 処理の一元化 段1＝旧は同じ switch の写しが6箇所）。</summary>
     public static double SeigneurialDegree(World w) => w.SerfEmancipation switch { ReformLevel.None => 1.0, ReformLevel.Limited => 0.5, _ => 0.0 };
     /// <summary>同業組合の残高＝法の度合（保護1／制限0.5／廃止0）＝上の2つと同じ物差し（★段4・GuildLawGate=0 でも読めるが上乗せ係数0で効かない）。</summary>
     public static double GuildDegree(World w) => w.Guild switch { GuildLaw.Full => 1.0, GuildLaw.Limited => 0.5, _ => 0.0 };

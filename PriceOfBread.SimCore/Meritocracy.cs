@@ -429,7 +429,7 @@ public static class Meritocracy
         //   SerfGateCoversPool=0（既定）では乗算に入らない＝厳密恒等。
         if (c.SerfGateCoversPool > 0 && c.SerfMobilityGate > 0 && !src.IsUrban)
         {
-            double serfFreePool = w.SerfEmancipation switch { ReformLevel.Full => 1.0, ReformLevel.Limited => 0.5, _ => 0.0 };
+            double serfFreePool = 1.0 - Privileges.SeigneurialDegree(w);
             flow *= (1.0 - c.SerfMobilityGate) + c.SerfMobilityGate * serfFreePool;
             if (flow <= Eps) return;
         }

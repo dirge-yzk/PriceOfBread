@@ -31,9 +31,9 @@ public static class PowerShares
     ///   シュタイン改革／1861露農奴解放／廃藩置県・秩禄処分）＝**符号が両方向に出る**。</summary>
     public static double PrivilegeIntact(World w)
     {
-        double serf = w.SerfEmancipation switch { ReformLevel.None => 1.0, ReformLevel.Limited => 0.5, _ => 0.0 };
+        double serf = Privileges.SeigneurialDegree(w);
         double taxExempt = 1.0 - PoliticalQuantities.Clamp01(w.LandTax + w.ProgressiveTax);   // NaN は Clamp01 が0＝「手を付けていない」側（1.0）へ
-        double estate = w.Bureaucracy switch { BureaucracyLaw.Spoils => 1.0, BureaucracyLaw.MeritExam => 0.5, _ => 0.0 };
+        double estate = Privileges.EstateDegree(w);
         double v = (serf + taxExempt + estate) / 3.0;
         return !(v >= 0 && v <= 1) ? 0.5 : v;
     }

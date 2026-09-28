@@ -1170,7 +1170,7 @@ public static class Politics
             foreach (var p in best.Region.Pops)
             {
                 if (p.IsSoldier) continue;
-                int pb = p.Closed ? 0 : pettyM != null && pettyM.Contains(p) ? PolicyPreferences.PettyBloc : p.IsModernElite ? 1 : 2;
+                int pb = PolicyPreferences.BlocOf(p, pettyM);
                 if (pb != best.Bloc) continue;
                 double share = Math.Min(1.0, c.RevoltMilitiaRaise * p.Militancy);
                 if (!(share > p.MilitiaShare)) continue;   // 否定形＝NaN は据え置き（上げる側にしか書かない＝再蜂起で札が減らない）
@@ -1386,7 +1386,7 @@ public static class Politics
         var shares = new double[2][] { new double[Ideologies.Count], new double[Ideologies.Count] };
         foreach (var p in w.AllPops())
         {
-            int pb = p.Closed ? 0 : petty != null && petty.Contains(p) ? PolicyPreferences.PettyBloc : p.IsModernElite ? 1 : 2;
+            int pb = PolicyPreferences.BlocOf(p, petty);
             if (pb >= 2 || pb == f.Bloc || p.IsSoldier) continue;
             size[pb] += p.Size;
             for (int i = 0; i < Ideologies.Count; i++) shares[pb][i] += p.IdeologyShares[i] * p.Size;

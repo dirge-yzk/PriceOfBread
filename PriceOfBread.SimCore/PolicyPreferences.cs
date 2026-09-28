@@ -106,8 +106,9 @@ public static class PolicyPreferences
 
     /// <summary>popの3ブロック分類（0旧支配層/1近代エリート/2大衆）。<see cref="LawGap"/> の添字はこれ。
     /// ⚠第4束「小営業」（<see cref="PettyBloc"/>）は**この分類の上に重なる横断的な束**で、対象3軸以外は旧束の値へ落ちる（PettyNet のフォールバック）
-    /// ＝pop から見た所属は 0/1/2 の1本のまま。⚠クラスタ側の4値分類（Factions/FactionSnapshot/Politics に同型が5箇所）とは別物。</summary>
-    internal static int BlocOf(Pop p) => p.Closed ? 0 : p.IsModernElite ? 1 : 2;
+    /// ＝pop から見た所属は 0/1/2 の1本のまま。
+    /// ★クラスタ側の4値分類（<paramref name="petty"/> を渡すと小営業＝<see cref="PettyBloc"/>）も同じ1本（2026-09-28 処理の一元化 段1＝旧は FactionSnapshot・Factions・Politics に同じ三項式の写しが4箇所）。petty=null＝3値。</summary>
+    internal static int BlocOf(Pop p, HashSet<Pop>? petty = null) => p.Closed ? 0 : petty != null && petty.Contains(p) ? PettyBloc : p.IsModernElite ? 1 : 2;
 
     private static Profile Build(World w)
     {

@@ -169,7 +169,7 @@ public static class Colonial
         {
             // 農奴は移動の自由がない（移動証明・人格的隷属）＝農奴解放の段階が農民の送出を握る（None=0／Limited=0.5／Full=1）。
             // 都市労働者は賃労働＝常に自由。露/普の入植が農奴解放（1861年型＝ゲーム内の法）後に始まる史実の順序が**法から**出る（国名条件なし）。
-            double serfFree = w.SerfEmancipation switch { ReformLevel.Full => 1.0, ReformLevel.Limited => 0.5, _ => 0.0 };
+            double serfFree = 1.0 - Privileges.SeigneurialDegree(w);   // 移動の自由＝1−領主権の残高（なし0／限定0.5／全面1・物差しは Privileges の1本）
             var srcPops = new List<(Pop P, double Wgt)>(); double srcMass = 0;
             foreach (var rg in w.Regions)
             {
@@ -349,7 +349,7 @@ public static class Colonial
         //   （議席あり・維持費なし・Core にはならない）。PromotedColonies++ で保存検査（植民地の保存）の台帳が閉じる。ColonialRegionSettlement=0＝旧＝厳密恒等。
         if (c.ColonialRegionSettlement > 0 && c.ColonySettlerRate > 0 && !w.WarmupFrozen)
         {
-            double serfFreeR = w.SerfEmancipation switch { ReformLevel.Full => 1.0, ReformLevel.Limited => 0.5, _ => 0.0 };
+            double serfFreeR = 1.0 - Privileges.SeigneurialDegree(w);
             var srcR = new List<(Pop P, double Wgt)>(); double srcMassR = 0;
             foreach (var rg in w.Regions)
             {
