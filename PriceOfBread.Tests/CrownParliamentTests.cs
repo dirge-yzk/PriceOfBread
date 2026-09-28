@@ -104,4 +104,72 @@ public class CrownParliamentTests
         double left = CoopAfterStep(a, 0.3, 0.3, 0.4, gov: 0, crown: CrownForm.Absolutist);
         Assert.Equal(new Coefficients().CoopClassAffinityWeight * 0.6, right - left, 9);   // 同じ盤面に王冠を置けば議席が効く
     }
+
+    // ==== 政権への失望（作者裁定 2026-09-29「連続した革命は許容するが6往復はやりすぎ＝政権への失望のような量が積もって止まる仕掛け」）====
+    // 在庫＝World.RecentRegimeChanges（直近の政変の数・減衰つき）。数える＝CrownParliament.ApplyRegime（事件の政変）／忘れる＝CrownParliament.Step（RegimeRecordDecay）。
+    // 期待 H＝1/max(1,在庫)。読み手＝Politics.Step の1か所＝①動員（改革派＋急進派）×H ②正統性の床 1−H。
+
+    [Fact]
+    public void 政権への失望_事件の政変だけを1回と数え_漸進の再ラベルは数えず_実績ストックと同じ率で忘れる()
+    {
+        var sim = new Simulation(NationConfig.France().ToScenario(1), new NullAgent());
+        var w = sim.World; var c = w.Coef;
+        Assert.Equal(Polity.Absolutist, w.Polity);                // 前提＝1783年のフランスは絶対王政
+        Assert.Equal(0.0, w.RecentRegimeChanges);                 // 開幕は0（政変の記憶なし）
+        CrownParliament.ApplyRegime(w, c, Polity.Absolutist);      // 同じ政体の書き直し＝政変ではない
+        Assert.Equal(0.0, w.RecentRegimeChanges);
+        CrownParliament.ApplyRegime(w, c, Polity.Republic);        // 事件の政変（即時の政変・内戦の決着・矯正講和が通る唯一の書き込み口）
+        Assert.Equal(1.0, w.RecentRegimeChanges);
+        CrownParliament.ApplyRegime(w, c, Polity.Absolutist);      // 復古＝もう1回
+        Assert.Equal(2.0, w.RecentRegimeChanges);
+        CrownParliament.ApplyRegime(w, c, Polity.Absolutist);
+        Assert.Equal(2.0, w.RecentRegimeChanges);
+
+        // 漸進＝床交差の再ラベル（王冠のある絶対王政で統制力が立憲の床を上抜け）は数えない。1四半期の Step で減衰だけが掛かる。
+        w.ParliamentControl = 0.95;
+        CrownParliament.Step(w, c);
+        Assert.Equal(Polity.ConstitutionalMonarchy, w.Polity);    // 前提＝再ラベルが起きた
+        Assert.Equal(2.0 * (1.0 - c.RegimeRecordDecay), w.RecentRegimeChanges);   // +1 されず、実績ストックと同じ率で薄れただけ
+    }
+
+    /// <summary>同じ種の同じ盤面を20四半期進め、直近の政変の数と正統性だけを置いて Politics.Step を1回踏む（F1 は切る＝鎮圧の正統性の傷を混ぜない）。</summary>
+    private static World 失望の盤面(double recent, double legitimacy = -1)
+    {
+        var sim = new Simulation(NationConfig.France().ToScenario(11), new NullAgent());
+        sim.Run(20);
+        var w = sim.World;
+        w.Coef.RegionalRevoltThreshold = 0;   // F1 を切る（一揆の鎮圧が正統性を削る＝床の検査を汚す）
+        w.RecentRegimeChanges = recent;
+        if (legitimacy >= 0) w.Legitimacy = legitimacy;
+        w.Explain = new ExplainLedger();
+        Politics.Step(w, w.Coef);
+        return w;
+    }
+
+    [Fact]
+    public void 政権への失望_動員は期待で割られ_政変1回以下では割られない()
+    {
+        var w0 = 失望の盤面(0.0);
+        var w1 = 失望の盤面(1.0);
+        var w3 = 失望の盤面(3.0);
+        Assert.True(w0.ReformistPower + w0.RadicalPower > 0, "前提が崩れた：動員が0＝割られたかを読めない");
+        Assert.Equal(w0.ReformistPower, w1.ReformistPower);        // 最初の政変は期待で起きる（H=1）＝ビット一致
+        Assert.Equal(w0.RadicalPower, w1.RadicalPower);
+        Assert.Equal(w0.ReformistPower / 3.0, w3.ReformistPower, 1e-9 * Math.Max(1.0, w0.ReformistPower));   // 3回の後は3分の1
+        Assert.Equal(w0.RadicalPower / 3.0, w3.RadicalPower, 1e-9 * Math.Max(1.0, w0.RadicalPower));
+    }
+
+    [Fact]
+    public void 政権への失望_期待を割られた層は今の政権を受け入れる_正統性の床()
+    {
+        var lo = 失望の盤面(1.0, legitimacy: 0.05);
+        var hi = 失望の盤面(4.0, legitimacy: 0.05);
+        Assert.True(lo.Legitimacy < 0.5, $"前提が崩れた：床の無い腕で正統性が回復しすぎた（{lo.Legitimacy:F3}）");
+        Assert.DoesNotContain(lo.Explain!.Get("Legitimacy"), t => t.Reason.StartsWith("政変続きへの失望"));   // H=1＝床0＝何もしない
+        Assert.True(hi.Legitimacy >= 0.75 - 1e-12, $"床 1−1/4＝0.75 に届いていない（{hi.Legitimacy:F3}）");
+        var lift = hi.Explain!.Get("Legitimacy").Where(t => t.Reason.StartsWith("政変続きへの失望")).ToList();
+        Assert.Single(lift);
+        Assert.True(lift[0].Delta > 0, "床の持ち上げが台帳に記帳されていない");
+        Assert.True(hi.Coercion > lo.Coercion, "保持力（治安維持力×正統性）が床の正統性を読んでいない");
+    }
 }

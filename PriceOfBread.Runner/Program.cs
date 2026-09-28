@@ -5240,7 +5240,7 @@ if (args.Length > 0 && args[0] == "factionprobe")
                     if (h > maxHeat) maxHeat = h;
                 }
                 // ★項目3（2026-09-11）：F1 が実際に評価する州＝エンジンと**同じ関数**（Politics.SelectRevoltRegion）で選ぶ＝鍵は 熱×群衆（旧計器は「最熱州」を別ループで写していた）。
-                //   ⚠段6の排他（RevoltCooldownRetire>0 で蜂起を予約した州を外す）も同じ。
+                //   ⚠段6の排他（蜂起を予約した州を外す＝2026-09-29 点火）も同じ。
                 var (hot, hotHeat, hCrowd) = Politics.SelectRevoltRegion(w, c);
                 FpBag(fp0Heat, fpKey).AddRange(yHeat); FpBag(fp0HeatMax, fpKey).Add((hotHeat, 1.0));
                 double hMil = 0, hStr = 0, hHold = 0, hRatio = 0;

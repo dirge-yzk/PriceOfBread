@@ -213,6 +213,7 @@ public static class CrownParliament
         //     読み手＝Transition（RegimeTrackRecordWeight=0.3・現政体族の乗数）・PowerAffinity.ArmyHoldsCommand（[1]の符号）・CivicOpenness（[1]の正部）。
         w.RegimeTenureQuarters++;
         for (int i = 0; i < RegimeFamilyCount; i++) w.RegimeTrackRecord[i] *= 1.0 - c.RegimeRecordDecay;
+        w.RecentRegimeChanges *= 1.0 - c.RegimeRecordDecay;   // ★政権への失望（2026-09-29）も同じ政治の記憶＝同率で薄れる（世代交代で忘れる）
         double record = w.CoopPublicRegime;   // [-1,1]
         if (record > 0)   // 正の信認は時間が要る（始まったばかりの形態は実績を持てない）
             record *= PoliticalQuantities.Clamp01(w.RegimeTenureQuarters / (Calendar.QuartersPerYear * System.Math.Max(1.0, c.RegimeRecordSuccessTenureGate)));
@@ -472,7 +473,11 @@ public static class CrownParliament
             case Polity.MilitaryDictatorship: w.Seizure = SeizureForm.Military; break;
             case Polity.Anarchy: w.Seizure = SeizureForm.Anarchy; break;
         }
-        if (w.Polity != target) w.RegimeTenureQuarters = 0;   // 実績：政体交代で在任年数リセット（新体制は実績ゼロから積み直す）
+        if (w.Polity != target)
+        {
+            w.RegimeTenureQuarters = 0;   // 実績：政体交代で在任年数リセット（新体制は実績ゼロから積み直す）
+            w.RecentRegimeChanges += 1;   // ★政権への失望（2026-09-29）：事件の政変を1回と数える（即時の政変・内戦の決着・矯正講和）。⚠床交差の再ラベル（Step の P2＝漸進）は数えない
+        }
         w.Polity = target;
         if (c.PolityLabelFromAxes > 0) w.ParliamentControl = ParliamentControlTarget(target);
     }

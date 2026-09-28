@@ -738,7 +738,7 @@ public sealed class World
     //   ⚠Parliament.Step（QuarterStart のこの導出より前）は前四半期の値を読む＝PoliticalPushBudget と同じ1期ラグ（既存の作法どおり）。
     //     起動直後の1四半期だけ 0＝門が閉じる側へ倒れる（fail-open にしない）。翌期から正しい値。
     public double PoliticalCapitalMax { get; internal set; }
-    public int RevoltCooldownQuarters { get; internal set; }   // F1/F3b共有のクールダウン（四半期・発火のたびに再設定）。⚠RevoltCooldownRetire>0 では読み手が消え、残高を消化するだけの死んだ数になる（段6・2026-09-08）
+    // 【墓標2026-09-29】RevoltCooldownQuarters（F1/F3b 共有のクールダウン＝4四半期の固定タイマー）＝作者裁定 2026-09-29「根拠のない待ち」で撤去（段6 の点火＝Politics.CheckFactionRevolt の注記）。
     // ★F1 譲歩は法の経路（作者裁定2026-09-11＝F3b の危機の要求と同じ目標機構）：一揆に譲歩した梯子の段の記録
     //   ＝±(軸の序数+1)（FactionState.CrisisDemands と同じ符号化・0＝無し）と、置いた時点の FactionSnapshot.AxisPosition。書き手＝Politics.ConcedeToRevolt（次の譲歩は上書き）。
     //   読み手＝Parliament.TargetCrisisDemands（AI の SelfPlay.Apply の末尾で毎期置き直す＝スタンス既定の再代入（p.WorkHours=Twelve／SocialSecurityTarget／CornLaws の StepLawToward）に
@@ -758,6 +758,12 @@ public sealed class World
     public double[] RegimeTrackRecord { get; } = new double[4];   // 政体形態の実績ストック∈[-1,+1]（信認⇔失望・4系統：0君主/1議会制/2強権/3急進）。正=長期成功で信認された形態（英CMがentrench）／負=危機で倒れた形態（discredited→極端が浮上）。CoopPublicRegimeを符号のまま蓄積＋半減期50年で減衰＋Transition支持へ符号付き乗数。RegimeTrackRecordWeight=0 なら書くだけ（⚠既定は点火済みの0.3＝live・x-02 で注記を是正）（docs/2026-07-13_形態別失望ストック.md）
     public int HighAdminQuarters { get; internal set; }           // 行政効率が高い状態の連続四半期数（07_再設計 §1・2026-07-31）。専制→絶対王政（官僚絶対主義）の変異トリガー。CrownFormMutation=0では加算されない
     public int RegimeTenureQuarters { get; internal set; }        // 現政体の在任四半期数（政体交代でリセット）。実績ストックの正の信認ゲート＝長期成功のみ信認へ寄る（始まったばかりの形態は実績を持てない）
+    // ★政権への失望（作者裁定 2026-09-29「政権への失望のような量が積もって止まる仕掛け」・ナポレオン3世の人民投票1851）＝**直近の政変の数**（減衰つき）。
+    //   書き手＝CrownParliament.ApplyRegime（事件で政体を変える唯一の書き込み口＝即時の政変・内戦の決着・矯正講和）で +1（⚠床交差の再ラベル＝漸進は数えない）／
+    //   CrownParliament.Step で実績ストックと同じ政治の記憶の減衰（RegimeRecordDecay＝半減期50年＝世代交代で忘れる）。
+    //   読み手＝Politics.Step の1か所＝期待 H＝1/max(1,これ)（政変のたびに「次の政権こそ」が割られる＝最初の政変は期待で起きる）→ 動員（改革派＋急進派）×H・正統性の床 1−H。
+    //   ⚠新しい状態の理由＝盤面から導けない（在任は最後の1回しか覚えず、実績ストックは満足を積む量で回数を持たない）。建国した国は0から（実績ストック・正統性の蜜月と同じ＝新しい政体の歴史の始まり）。
+    public double RecentRegimeChanges { get; internal set; }
     // ★国民意識のpop化（器2026-08-01）：backing field を明示化しただけ。NationConsciousnessPerPop=0 では旧値をそのまま返す＝**1ビットも動かない**。
     // >0 で pop 加重平均へ切り替わる＝既存の読み手6箇所・書き手4箇所を**一切無改修**のまま pop 側へ移行できる（EthnicUnity と同型の先例）。
     private double _ncScalar = -1;

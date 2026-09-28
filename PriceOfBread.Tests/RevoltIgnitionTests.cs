@@ -265,7 +265,6 @@ public class RevoltIgnitionTests
             Rejections = 3.0,   // 通知の四半期には動かない（動けば「決着の枝を踏んだ」＝物差しの汚れ）
         };
         w.Factions.Add(f);
-        w.RevoltCooldownQuarters = 0;   // F1/F3b共有のクールダウンを開ける（閉じていると選定ループに入らない）
         return f;
     }
 
@@ -366,8 +365,11 @@ public class RevoltIgnitionTests
     //   親が恒久に弱みになり、好機のブレーキ（FactionOpportunism）も圧倒判定も両方外れた＝1つ目の蜂起が2つ目を呼ぶ。
     //   ⚠2本の腕の違いは**普通の戦争を1本足したかどうかだけ**＝点火したなら弱みの項が読んだのは外征だと確定する
     //     （足りない強度で落ちたのではないことは、外征ありの腕が点火することが証明する）。
+    //   ★2026-09-29 段6 の点火（共有クールダウンの撤去）で、内戦の最中は状態の排他（World.InCivilWar）が選定そのものを止める
+    //     ＝「1つ目の蜂起が2つ目を呼ばない」は排他が構造で満たす（外征の弱みがあっても内戦の最中は新しい旗は立たない）。
+    //     対照は内戦の無い親＝外征の弱みで選ばれ、弱みが無ければ待つ（好機のブレーキ）。
     // ============================================================================================
-    private static bool 段3_内戦だけの親で選定を1回回す(bool addExternalWar)
+    private static bool 段3_親で選定を1回回す(bool civilWar, bool addExternalWar)
     {
         // 圧倒の迂回路を閉じる＝**弱みの項だけ**が点火を決める帯にする。★2026-09-28 回8-1：自発的な開戦も止める（外征は対照の腕が手で足す1本だけ）
         //   ＝AI の挑発がならしで毎月動くようになり、8四半期の助走で仏英が開戦しうる（内戦だけの腕に外征が紛れると弱みの切り分けが崩れる）。
@@ -378,25 +380,25 @@ public class RevoltIgnitionTests
         var pw = sim.Nations[0].World;
         Assert.True(coef.FactionOpportunism > 0, "前提が崩れた：好機のブレーキが休眠＝この番人は空洞");
         Assert.True(pw.FactionRng is not null && coef.FactionRevoltScale > 0, "前提が崩れた：F3bが遮蔽されている");
-        sim.Diplomacy.DeclareCivilWar(pw.SelfPower!, sim.Nations[1].World.SelfPower!, pw.Polity, coef);   // 反乱国が地図の上に立った状態
+        if (civilWar) sim.Diplomacy.DeclareCivilWar(pw.SelfPower!, sim.Nations[1].World.SelfPower!, pw.Polity, coef);   // 反乱国が地図の上に立った状態
         Assert.False(sim.Diplomacy.Wars.Exists(w => (w.A == pw.SelfPower || w.B == pw.SelfPower) && w.CivilWarParent is null), "前提が崩れた：助走の間に外征が立った＝内戦だけの腕にならない");
         if (addExternalWar) sim.Diplomacy.Wars.Add(new War { A = pw.SelfPower!, B = sim.Nations[2].World.SelfPower! });   // 対照＝外征（内戦タグなし）
-        Assert.True(Government.AtWar(pw), "前提が崩れた：内戦が交戦として数えられていない＝旧経路の再現になっていない");
+        Assert.Equal(civilWar || addExternalWar, Government.AtWar(pw));   // 前提＝内戦も交戦として数えられる（旧経路の再現）
+        Assert.Equal(civilWar, pw.InCivilWar);
         pw.Legitimacy = 1.0;   // 弱みの正統性項を閉じる（閾値0.5＝1四半期の変動では割らない）
         Assert.False(pw.GdpDrawdown > coef.FactionStrikeDrawdown, $"前提が崩れた：恐慌項が開いている（GdpDrawdown {pw.GdpDrawdown:F3}）＝弱みの切り分けができない");
-        pw.RevoltCooldownQuarters = 0;
         var f = 巨大な運動を差し込む(pw, pw.Regions[0]);   // 段0と同じ注入＝保持力を桁で上回る運動（力の門は確実に越える）
         Politics.Step(pw, coef);
         return ReferenceEquals(pw.PendingFactionCrisis, f);   // 札が立った＝選定に入った／立たない＝好機を待った
     }
 
     [Fact]
-    public void 段3_内戦は好機の弱みに数えない()
+    public void 段3_内戦の最中の親には次の旗が立たず_外征の弱みでも開かない()
     {
-        bool onlyCivil = 段3_内戦だけの親で選定を1回回す(addExternalWar: false);
-        bool withExternal = 段3_内戦だけの親で選定を1回回す(addExternalWar: true);
-        Assert.True(withExternal, "対照が成立しない：外征があっても選ばれていない＝強度が足りない帯に落ちている");
-        Assert.False(onlyCivil);   // 内戦しか無い親は弱みでない＝圧倒に届かない運動は待つ（1つ目が2つ目を呼ばない）
+        Assert.True(段3_親で選定を1回回す(civilWar: false, addExternalWar: true), "対照が成立しない：外征の弱みで選ばれていない＝強度が足りない帯に落ちている");
+        Assert.False(段3_親で選定を1回回す(civilWar: false, addExternalWar: false));   // 弱みが無い＝圧倒に届かない運動は待つ（好機のブレーキ）
+        Assert.False(段3_親で選定を1回回す(civilWar: true, addExternalWar: true));    // 外征の弱みがあっても、内戦の最中は新しい旗は立たない（状態の排他）
+        Assert.False(段3_親で選定を1回回す(civilWar: true, addExternalWar: false));   // 1つ目の蜂起が2つ目を呼ばない
     }
 
     // ============================================================================================
@@ -434,7 +436,6 @@ public class RevoltIgnitionTests
             Rejections = rejections,
         };
         w.Factions.Add(f);
-        w.RevoltCooldownQuarters = 0;   // F1/F3b共有のクールダウンを開ける（閉じていると選定ループに入らない）
         return (w, f);
     }
 
@@ -575,7 +576,6 @@ public class RevoltIgnitionTests
         // ★要求は法の経路（2026-09-11点火）：1四半期目＝通知（誰も法の目標を置かない＝NullAgent）→翌評価で要求が通っていない＝蜂起
         Politics.Step(w, w.Coef);
         Assert.Same(f, w.PendingFactionCrisis);
-        w.RevoltCooldownQuarters = 0;
         Politics.Step(w, w.Coef);
         Assert.True(w.FactionRevolts > 0, $"前提が崩れた：蜂起が点火していない（bloc {bloc}／床 {voiceFloor}／θ {theta}）");
         return (w, f);
@@ -870,71 +870,92 @@ public class RevoltIgnitionTests
     }
 
     // ============================================================================================
-    // ★段6＝クールダウンの畳み込み（F3b蜂起doc §6・2026-09-08）。旧＝RevoltCooldownQuarters（4四半期の固定タイマー）で
-    //   「同一国で年に何度も燃えない」を作っていた＝物理でない待ち行列。代替は (a) 決着で結束0→ロジスティック再成長（4〜16年）
-    //   (b)「その運動はもう野に出ている」という状態の排他。RevoltCooldownRetire=0 で旧・>0 で差し替え。
-    //   物差しは段0と同じ通知の札（World.PendingFactionCrisis）。
+    // ★段6＝クールダウンの畳み込み（F3b蜂起doc §6・2026-09-08）＝**2026-09-29 点火**（作者裁定「蜂起の共有クールダウンは撤去＝根拠のない待ち」）。
+    //   旧＝RevoltCooldownQuarters（4四半期の固定タイマー）で「同一国で年に何度も燃えない」を作っていた＝物理でない待ち行列
+    //   （旗 RevoltCooldownRetire・係数 RegionalRevoltCooldown ごと削除）。F1 が燃えるたびに F3b の選定も4四半期止まっていた。
+    //   残るのは (a) 決着で結束0→ロジスティック再成長（4〜16年） (b)「その運動はもう野に出ている」という状態の排他。
+    //   物差しは段0と同じ通知の札（World.PendingFactionCrisis）と、F1 の一揆の記録（鎮圧でも譲歩でも1行＝分岐非依存）。
     // ============================================================================================
-    private static (World w, FactionState f) 段6_危機の寸前を作る(double retire, int cooldown)
+    private static (World w, FactionState f) 段6_危機の寸前を作る()
     {
         var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
         sim.Run(20);
         var w = sim.World;
-        var f = 巨大な運動を差し込む(w, w.Regions[1]);   // ⚠この中で RevoltCooldownQuarters=0 に開けている
-        w.Coef.RevoltCooldownRetire = retire;           // ⚠係数は**世界側**のインスタンスに書く（World.Coef は国ごと別物）
-        w.RevoltCooldownQuarters = cooldown;
+        var f = 巨大な運動を差し込む(w, w.Regions[1]);
+        w.PendingLog.Clear();   // 助走の記録を外す＝以後の一揆の行はこの検査の四半期のものだけ
         return (w, f);
     }
 
-    [Fact]
-    public void 段6対照_既定ではクールダウンが選定を止める()   // ⚠先に対照＝これが通らないと下の退役テストは空洞
+    /// <summary>1州だけを飢えさせて熱を門の上に置く（他の州は平穏）＝F1 が必ずその州で燃える盤面。</summary>
+    private static Region 段6_飢えた州を作る(World w, int idx)
     {
-        var (w, _) = 段6_危機の寸前を作る(retire: 0.0, cooldown: 4);
-        Politics.Step(w, w.Coef);
-        Assert.Null(w.PendingFactionCrisis);   // タイマーが閉じている間は保持力を超えた運動でも選定ループに入らない（旧挙動）
+        var hungry = w.Regions[idx];
+        foreach (var r in w.Regions) { r.FoodFill = 1.0; foreach (var p in r.Pops) { p.Militancy = 0; p.Satisfaction = 1.0; } }
+        hungry.FoodFill = 0.0;
+        foreach (var p in hungry.Pops) { p.Militancy = 1.0; p.Satisfaction = 0.0; }
+        Assert.True(Politics.RegionRevoltHeat(hungry, w.Coef) > w.Coef.RegionalRevoltThreshold, "前提が崩れた：飢えた州の熱が閾値を超えていない");
+        return hungry;
     }
 
     [Fact]
-    public void 段6_退役の腕ではタイマーが選定を止めない()
+    public void 段6_熱が門の上にある州は翌四半期も一揆を起こす_待ちで数えない()
     {
-        var (w, f) = 段6_危機の寸前を作る(retire: 1.0, cooldown: 4);
+        var (w, _) = 段6_危機の寸前を作る();
+        w.Factions.Clear();              // F3bを外し、F1だけを見る
+        w.Coef.MilitancySpeed = 0;       // 盤面を凍結＝熱は2四半期とも門の上（測るのは待ちの有無だけ）
+        var hungry = 段6_飢えた州を作る(w, 1);
         Politics.Step(w, w.Coef);
-        Assert.Same(f, w.PendingFactionCrisis);   // 選定に入った（タイマーが効いていれば札は立たない＝退役の係数が読まれた）
+        Assert.Contains(w.PendingLog, l => l.Contains("一揆") && l.Contains(hungry.Name));   // 対照＝1四半期目に燃えた
+        Assert.Null(w.PendingRebelRegions);   // 前提＝首都の蜂起で F1 の判定が飛ばされていない
+        w.PendingLog.Clear();
+        Politics.Step(w, w.Coef);
+        Assert.Contains(w.PendingLog, l => l.Contains("一揆") && l.Contains(hungry.Name));   // 旧＝共有のタイマーが4四半期閉じていた
     }
 
     [Fact]
-    public void 段6_退役の腕でも既に蜂起が野に出ていれば次の旗は立たない()
+    public void 段6_一揆が燃えた翌四半期も組織運動の選定は止まらない()
     {
-        var (w, _) = 段6_危機の寸前を作る(retire: 1.0, cooldown: 0);
+        // 旧＝F1 が燃えると共有のタイマーが4四半期閉じ、F3b の選定ループに入れなかった（結束のある運動の86四半期のうち60四半期）。
+        var (w, f) = 段6_危機の寸前を作る();
+        w.Coef.MilitancySpeed = 0;
+        foreach (var r in w.Regions) if (r != f.Region) foreach (var p in r.Pops) p.Militancy = 0;
+        foreach (var p in f.Region.Pops) p.Militancy = 1.0;   // 運動の本拠が門の上＝同じ四半期に F1 も燃える
+        Politics.Step(w, w.Coef);
+        Assert.Same(f, w.PendingFactionCrisis);                    // 1四半期目＝通知（誰も法の目標を置かない＝NullAgent）
+        Assert.Contains(w.PendingLog, l => l.Contains("一揆"));   // 同じ四半期に F1 が燃えた（旧＝ここで共有のタイマーが閉じた）
+        Assert.Equal(0, w.FactionRevolts);
+        Politics.Step(w, w.Coef);
+        Assert.Equal(1, w.FactionRevolts);   // 評価の四半期＝要求した法が1段も動かなかった＝蜂起（旧＝タイマーで選定に入れなかった）
+    }
+
+    [Fact]
+    public void 段6_既に蜂起が野に出ていれば次の旗は立たない()
+    {
+        var (w, _) = 段6_危機の寸前を作る();
         w.PendingRebelRegions = [w.Regions[1]];   // 既に別の運動が州に拠って立った（建国＝開戦の直前）
         Politics.Step(w, w.Coef);
-        Assert.Null(w.PendingFactionCrisis);   // 時間ではなく**状態**で排他されている（タイマーは0＝開いている）
+        Assert.Null(w.PendingFactionCrisis);   // 時間ではなく**状態**で排他されている
     }
 
     [Fact]
     public void 段6_蜂起を予約した州はF1の走査から外れる()
     {
-        // 対照：飢えた州を1つ作る＝F1（州一揆）が必ずその州で発火する（発火は共有カウンタの再セットで観測＝分岐非依存）。
-        var (w, _) = 段6_危機の寸前を作る(retire: 1.0, cooldown: 0);
+        // 対照：飢えた州を1つ作る＝F1（州一揆）の走査がその州を選ぶ。
+        var (w, _) = 段6_危機の寸前を作る();
         w.Factions.Clear();   // F3bを外し、F1だけを見る（同じ四半期に両方走るため）
-        var hungry = w.Regions[1];
-        foreach (var r in w.Regions) { r.FoodFill = 1.0; foreach (var p in r.Pops) { p.Militancy = 0; p.Satisfaction = 1.0; } }
-        hungry.FoodFill = 0.0;
-        foreach (var p in hungry.Pops) { p.Militancy = 1.0; p.Satisfaction = 0.0; }
-        Assert.True(Politics.RegionRevoltHeat(hungry, w.Coef) > w.Coef.RegionalRevoltThreshold, "前提が崩れた：飢えた州の熱が閾値を超えていない");
-        Politics.Step(w, w.Coef);
-        Assert.True(w.RevoltCooldownQuarters > 0, "対照が成立しない：飢えた州でF1が発火していない");
+        var hungry = 段6_飢えた州を作る(w, 1);
+        Assert.Same(hungry, Politics.SelectRevoltRegion(w, w.Coef).Region);
 
-        // 本体：同じ州が蜂起を予約している（＝組織運動が既にその州に拠って立っている）なら、F1は同じ州を二重に燃やさない。
-        var (w2, _) = 段6_危機の寸前を作る(retire: 1.0, cooldown: 0);
-        w2.Factions.Clear();
-        var hungry2 = w2.Regions[1];
-        foreach (var r in w2.Regions) { r.FoodFill = 1.0; foreach (var p in r.Pops) { p.Militancy = 0; p.Satisfaction = 1.0; } }
-        hungry2.FoodFill = 0.0;
-        foreach (var p in hungry2.Pops) { p.Militancy = 1.0; p.Satisfaction = 0.0; }
-        w2.PendingRebelRegions = [hungry2];
-        Politics.Step(w2, w2.Coef);
-        Assert.Equal(0, w2.RevoltCooldownQuarters);   // 走査から外れた＝F1は発火していない
+        // 本体：同じ州が蜂起を予約している（＝同じ四半期に組織運動がその州に拠って立った）なら、F1 の走査はその州を選ばない。
+        //   ⚠Step で見ない理由＝四半期の頭に予約がある盤面は「首都の蜂起の四半期」として F1 の判定そのものが飛ぶ（Politics.Step の capitalRose）
+        //   ＝排他が効くのは F3b が同じ四半期の中で予約を立てた後の F1 だけ＝走査の関数（エンジンと計器が共有する1本）を直接見る。
+        w.PendingRebelRegions = [hungry];
+        Assert.NotSame(hungry, Politics.SelectRevoltRegion(w, w.Coef).Region);
+
+        // 対照の続き：予約を下ろせば同じ州が門を越えて燃える（熱が門の上にある盤面であることの確認）。
+        w.PendingRebelRegions = null;
+        Politics.Step(w, w.Coef);
+        Assert.Contains(w.PendingLog, l => l.Contains("一揆") && l.Contains(hungry.Name));
     }
 
     // ============================================================================================
@@ -1217,7 +1238,7 @@ public class RevoltIgnitionTests
         Assert.True(w.Regions.Count > 2, "前提が崩れた：非首都州が2つ以上ない");
         if (strengthScale > 0) c.RegionalRevoltStrength = strengthScale;
         c.MilitancySpeed = 0;   // 盤面を凍結＝闘争度は F1 の枝でしか動かない（測るのは選択と緩和だけ）
-        w.Factions.Clear(); w.RevoltCooldownQuarters = 0; w.PendingRebelRegions = null;
+        w.Factions.Clear(); w.PendingRebelRegions = null;
         foreach (var r in w.Regions) foreach (var p in r.Pops) p.Militancy = 0;
         var micro = w.Regions[1]; var big = w.Regions[2];
         // 微小州＝群衆を合計10人に潰す（フォートシンプソン／チャーチルの写し）。大州＝群衆はそのまま（数千）。熱は閉鎖階級・兵士も同じ値に置く＝州平均がその値そのもの
@@ -1243,7 +1264,7 @@ public class RevoltIgnitionTests
         var polity0 = w.Polity;
         Politics.Step(w, w.Coef);
         Assert.Equal(polity0, w.Polity);
-        Assert.True(w.RevoltCooldownQuarters > 0, "F1が発火していない（大州の熱0.6は門0.5超）");
+        Assert.Contains(w.PendingLog, l => l.Contains("一揆"));   // F1が発火した（大州の熱0.6は門0.5超）＝鎮圧でも譲歩でも一揆の記録が1行
         Assert.Contains(w.PendingLog, l => l.Contains("一揆") && l.Contains(big.Name));
         Assert.DoesNotContain(w.PendingLog, l => l.Contains("一揆") && l.Contains(micro.Name));
 
@@ -1254,7 +1275,6 @@ public class RevoltIgnitionTests
         Assert.Same(w2.Regions[2], sel2);
         Assert.True(heat2 < w2.Coef.RegionalRevoltThreshold, "前提が崩れた：ぬるい大州が門を越えている");
         Politics.Step(w2, w2.Coef);
-        Assert.Equal(0, w2.RevoltCooldownQuarters);
         Assert.DoesNotContain(w2.PendingLog, l => l.Contains("一揆"));
     }
 
@@ -1358,7 +1378,6 @@ public class RevoltIgnitionTests
             Assert.True(Government.EnactingStage(w, topAxis, topInc), $"本丸 {topAxis} の段が施行中でない");
         }
         else Assert.True(topInc ? p1 > p0 : p1 < p0, $"本丸 {topAxis} が通常経路で動いていない（{p0:F3}→{p1:F3}）");
-        w.RevoltCooldownQuarters = 0;
         Politics.Step(w, w.Coef);                     // 評価＝本丸が動いた＝受諾の実体（怨嗟の解消は施行の時点）
         Assert.Equal(0.0, f.Rejections);
         Assert.Equal(0, w.FactionRevolts);
@@ -1379,7 +1398,6 @@ public class RevoltIgnitionTests
         Politics.Step(w, w.Coef);
         Assert.Same(f, w.PendingFactionCrisis);
         Assert.Equal(0, w.FactionRevolts);            // 通知の四半期＝通常の法改正の遅延（タイマーではない＝四半期順序そのもの）
-        w.RevoltCooldownQuarters = 0;
         Politics.Step(w, w.Coef);
         Assert.Equal(1, w.FactionRevolts);            // 要求した法が1段も動かなかった＝蜂起（政体が同じでも）
         Assert.Null(w.PendingFactionCrisis);
@@ -1614,7 +1632,7 @@ public class RevoltIgnitionTests
         {
             var c = w.Coef;
             c.MilitancySpeed = 0; c.RegionalRevoltStrength = 1e9;   // 勢い≫保持＝譲歩枝
-            w.Factions.Clear(); w.RevoltCooldownQuarters = 0; w.PendingRebelRegions = null;
+            w.Factions.Clear(); w.PendingRebelRegions = null;
             foreach (var r in w.Regions) foreach (var p in r.Pops) p.Militancy = 0;
             foreach (var p in w.Regions[1].Pops) p.Militancy = 0.9;   // 同じ州の同じ一揆
         }
@@ -1691,7 +1709,6 @@ public class RevoltIgnitionTests
             if (concede) w.Policy.PollTaxTarget = Government.TaxValue(PolicyAxis.PollTax, 1);   // 法の目標を1段下げる＝法律タブ／AIの Apply が置くのと同じ p.X
             Assert.Equal(concede, Government.EnactingStage(w, PolicyAxis.PollTax, increasing: false));
             Assert.Equal(2, Government.TaxStage(PolicyAxis.PollTax, w.PollTax));              // ⚠実効段は**まだ1段も動いていない**（Move は指数接近＝境界まで4〜6四半期）
-            w.RevoltCooldownQuarters = 0;
             Politics.Step(w, w.Coef);                                     // 評価の四半期
             return (w.FactionRevolts, f.Rejections);
         }
