@@ -152,11 +152,18 @@ public class MultiNationTests
         sim.Run(200);
         foreach (var n in sim.Nations)
         {
-            int producing = n.World.Region.Producers.Count(p => p.Output > 0.5);
+            // ★2026-09-28（植民地の費用の側 c1・c2・R2 を (89) の main へ載せた木）：測る州を**首都**から**経済の中心＝人口が最大の本国の州**へ
+            //   （作者裁定 J-003「首都と経済中心地は別でよい」）。この盤面では首都が人口ごと空になる＝パリの人口 1785年 約6,800→1833年 3,638（r88）・62（(89)）・
+            //   726（r88＋この回）・12（(89)＋この回）。12 の木でも仏の人口 3.2万・名目GDP 12.7万はボルドー（1.7万人・産出財83）ほかで回っている
+            //   ＝首都の産出財は「国の経済が機能するか」を測っていなかった（首都12人で産出財7）。
+            //   ⚠首都の空洞化そのものは別の既存の問題として記録（99_実装ログ (90)）。国の規模の変化（仏の名目GDP r88 18.5万→12.7万）はこの番人でなく帯が見る。
+            var hub = n.World.Regions.Where(r => r.State == RegionState.Active && r.Tier != RegionTier.Colonial)
+                                     .OrderByDescending(r => r.SumPopulation()).FirstOrDefault() ?? n.World.Region;
+            int producing = hub.Producers.Count(p => p.Output > 0.5);
             // 期待値再導出（#17・2026-08-08作者許可）：床30は軌道ピン化していた（ナショ0.01加算・植民地州昇格などの
             // 機構的に正しい変更のたびに割れる）。仕様の実体＝「各国が機能する独立経済を持つ」＝破綻検出の床（>12）へ純化
             //（実測の真の崩壊は7＝結晶化の需要収縮で観測済み。軌道ゆらぎの谷は17前後）。
-            Assert.True(producing > 12, $"{n.World.Region.Name} の産出財が乏しい（{producing}）");
+            Assert.True(producing > 12, $"{n.World.SelfPower?.Name} の経済の中心 {hub.Name} の産出財が乏しい（{producing}・首都 {n.World.Region.Name} は {n.World.Region.Producers.Count(p => p.Output > 0.5)}）");
         }
     }
 
