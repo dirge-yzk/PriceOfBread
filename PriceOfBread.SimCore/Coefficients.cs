@@ -1697,7 +1697,7 @@ public sealed class Coefficients
     public double TensionPoliticsScale = 0.03;     // 挑発＝タカ派(反動/ナショ/帝国/ファシ)の喝采−ハト派(自由/共和)の反発、宥和＝逆。正統性への一発インパルス×シェア差（参政権voice加重＝Ideologies.National）。0で厳密恒等
     public double WarFeverWeakness = 1.5;          // 格下への宥和の「弱腰」増幅＝タカ派の失望×(1+これ×好戦世論)。格上への宥和は自衛＝増幅なし（AI屈服の屈辱AISubmitLegitCostの連続版）
     public double WarStartPoliticsScale = 0.0;     // ★休眠（2026-08-10 作者FB③）：開戦そのものの政治的帰結＝挑発と同じ向き（タカ派の喝采−ハト派の反発）を**開戦を選んだ側**の正統性へ。0で1命令も実行しない厳密恒等（点火はバッチ測定で）。防衛側には掛けない＝被攻撃国は分裂でなく結束（別機構）
-    public double ProvokeProximitySpread = 0.3;    // 挑発の近隣波及＝標的の近隣諸国(ProximityTensionRange内)も挑発者への緊張を＋step×これ。軍需の押し上げは既存経路（脅威→大軍許容→軍事費→軍需財）から創発＝直接ブーストは二重計上のため置かない（2026-07-27ユーザー裁定）
+    public double ProvokeProximitySpread = 0.3;    // 挑発の近隣波及＝標的の近隣諸国(ProximityTensionRange内)も挑発者への緊張を＋動いた緊張×これ×(1−距離÷範囲)（2026-09-28 作者裁定 A7 の回＝隣接で最大・距離に比例して減衰）。軍需の押し上げは既存経路（脅威→大軍許容→軍事費→軍需財）から創発＝直接ブーストは二重計上のため置かない（2026-07-27ユーザー裁定）
     public double ColonizeSubmitRatio = 3.0;       // 侵略：実効戦力が屈服線（＝標的の軍事ゲージ×これ）以上なら標的は屈服→属国化/併合、未満なら拒否→戦争
     public double ColonizeSubmitFloorMilitary = 0.05;   // 屈服線の床＝無防備な標的にも最小限の遠征が要る（0で床なし＝軍を持たない国が無料で無血併合される）。★2026-08-23：要求余剰戦力の分母と屈服判定の分母が別の床を使っていた二重定義を、この1つへ統合
     public double ColonizeRivalTension = 22.0;     // 植民地化が**他の列強**との緊張を高める量（グレートゲーム＝勢力圏争い・他列強の警戒）

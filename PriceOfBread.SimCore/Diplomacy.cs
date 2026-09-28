@@ -1644,10 +1644,27 @@ public sealed class Diplomacy
                     // ★2026-09-28 回8-1（棚卸し dip-04・検討 20-A3・AUD-08 の点火）：AI もプレイヤーと**同じ動詞**（RaiseTension／EaseTension）だけを使う
                     //   ＝緊張の量・ならし・禁輸・政治的帰結・近隣への波及が主体で変わらない（旧＝AI だけ即時±6 の直書き・プレイヤーは+25 を6か月・18か月の待ち）。
                     //   押すのは**相手へ向けた自分のならしが空のときだけ**＝乱数（旧 InsultChance 35%/四半期）を撤去（検討 §10-10［戦争⑥］の案）。
-                    //   ⚠押す頻度の値を戦争の頻度の史実に合わせるのは作者裁定 A7（計測で探す）＝この回では決めていない。
                     bool rampEmpty = !_tensionRamp.ContainsKey(DirKey(p, q));
+                    // ★2026-09-28 作者裁定 A7（押す理由・待ちでなく理由で起きる）：挑発は**目標がある相手へだけ**押す。
+                    //   目標＝緊張の内訳のうち、相手から何かを得る／取り返す理由の和（領土＝失地回復・分離独立の遺恨／植民地＝植民地の競合・アヘン交易／
+                    //   勢力圏＝勢力圏への接近・交易路の扼圧・同じ宗教の住民の保護・属国の離反／報復＝戦争の遺恨／1783年の係争＝初期の対立のデータ）。
+                    //   線は既存の RivalTensionThreshold（これ超＝ライバル・RevanchismTension の注記どおり失地回復の戦争を駆動する線）。
+                    //   ⚠目標に数えない＝挑発・宥和・近隣への波及（押した緊張が次の押す理由になる正帰還＝旧は総緊張で選んだライバルを押し続けた）・
+                    //     参戦要請の拒否・調停の拒否（信義の傷＝同盟を割る量）・軍事的緊張（覇権への恐れ＝合従で応える）・政体/民族/法/宗教の隔たり。
+                    //   開戦の線の手前：線を越える押しは**戦争を望むときだけ**＝既存の開戦の見込み（WarOutlook の勝勢シェア＝画面の戦争見通しと同じ値）が半分を超え、
+                    //   戦う意味（WorthFighting＝届くか）がある。望まない側は線の手前で止まる＝緊張の開戦は、線を越えて押した側（勝てると見た側）の選択になる。
                     // 緊張を高める（挑発＋禁輸）：同ランクのライバルへ。ただし**勝てない相手は挑発しない**（生存＝賢く避ける）。
-                    if (q == rival && sameRank && !hopeless && rampEmpty) RaiseTension(p, q, c);
+                    if (q == rival && sameRank && !hopeless && rampEmpty)
+                    {
+                        double goal = 0;
+                        if (_tensionWhy.TryGetValue(Key(p, q), out var why))
+                            foreach (var gr in (ReadOnlySpan<TensionReason>)[TensionReason.Initial, TensionReason.Revanchism, TensionReason.Secession, TensionReason.Colonial, TensionReason.Opium,
+                                                                            TensionReason.Proximity, TensionReason.RouteDependence, TensionReason.Protector, TensionReason.Defection, TensionReason.WarResidue])
+                                if ((int)gr < why.Length) goal += why[(int)gr];
+                        if (goal > c.RivalTensionThreshold
+                            && (t + c.ActionTensionStep < c.WarDeclareTension || (WarOutlook(p, q, c).WinShare > 0.5 && WorthFighting(p, q, c))))
+                            RaiseTension(p, q, c);
+                    }
                     // 宥和（改修2026-06-28）：勝てない強敵と高緊張なら、むしろ緊張を下げて生存を図る（弱小・劣勢国の自衛的外交）。格上への宥和＝増幅なし。
                     //   ⚠動詞は同じ束の間だけ（EaseTension の Bracket の門・プレイヤーと同じ）＝格上の束へは宥和できない。
                     else if (hopeless && t > c.FriendlyTensionMax && !AtWar(p, q) && rampEmpty) EaseTension(p, q, c);
@@ -1771,7 +1788,8 @@ public sealed class Diplomacy
             // 政治的帰結＝実際に動いた緊張の割合（|moved|÷ActionTensionStep）＝押した総量が同じなら払う総額は押した瞬間の全額払いと同じ・上限で切れた分は払わない
             if (moved != 0 && c.ActionTensionStep > 0)
                 TensionPolitics(actor, target, d >= 0 ? TensionPoliticsKind.Provoke : TensionPoliticsKind.Appease, c, Math.Abs(moved) / c.ActionTensionStep);
-            if (d > 0) SpreadProvocationTension(actor, target, d, c);   // 近隣への波及＝その月の挑発の分（総量は押した瞬間の旧 ActionTensionStep と同じ）
+            // 近隣への波及＝その月に**実際に動いた**挑発の分（作者裁定 A7 の回・2026-09-28）＝政治的帰結と同じ量に比例（旧＝予定の d＝上限200で動かない押しも波及した）
+            if (moved > 0) SpreadProvocationTension(actor, target, moved, c);
             remain -= d;
             if (Math.Abs(remain) < 1e-9) _tensionRamp.Remove(dk); else _tensionRamp[dk] = remain;
         }
@@ -1826,7 +1844,7 @@ public sealed class Diplomacy
         w.Legitimacy = pv.AfterLegitimacy;
     }
 
-    /// <summary>挑発の近隣波及（2026-07-27ユーザー設計）：標的の近隣諸国（本国間 ProximityTensionRange 内）も挑発者への緊張を高める＝
+    /// <summary>挑発の近隣波及（2026-07-27ユーザー設計）：標的の近隣諸国（本国間 ProximityTensionRange 内・隣接で最大・距離に比例して減衰＝2026-09-28）も挑発者への緊張を高める＝
     /// 相手だけでなく近所全体を巻き込む。地域の軍拡は既存経路（脅威下の大軍許容→軍事費→軍需財）から創発（直接の軍需ブーストは二重計上のため置かない）。</summary>
     private void SpreadProvocationTension(Power actor, Power target, double baseStep, Coefficients c)
     {
@@ -1835,8 +1853,11 @@ public sealed class Diplomacy
         {
             if (q == actor || q == target || q.Nation is not { } qw) continue;
             if (AtWar(actor, q)) continue;   // 交戦中は既に最大の敵対＝波及の意味なし
-            if (Geo.DistanceKm(qw.Latitude, qw.Longitude, tw.Latitude, tw.Longitude) < c.ProximityTensionRange)
-                AddTension(actor, q, baseStep * c.ProvokeProximitySpread, TensionReason.ProvocationSpread);
+            // ★作者裁定 A7 の回（2026-09-28）：隣接で最大・距離に比例して減衰（ProximityTensionRange の意味＝勢力圏への接近の式〔World.cs〕と同じ形）。
+            //   旧＝範囲の内側は距離によらず一律＝範囲の縁の国も隣国と同じだけ挑発者を敵視した。
+            double km = Geo.DistanceKm(qw.Latitude, qw.Longitude, tw.Latitude, tw.Longitude);
+            if (km < c.ProximityTensionRange)
+                AddTension(actor, q, baseStep * c.ProvokeProximitySpread * (1 - km / c.ProximityTensionRange), TensionReason.ProvocationSpread);
         }
     }
 

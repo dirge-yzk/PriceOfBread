@@ -159,7 +159,8 @@ public class TensionPoliticsTests(ITestOutputHelper output)
 
     // ===== 緊張の操作＝待ちなし・動いた分だけ払う・AI も同じ動詞（2026-09-28 回8-1・棚卸し dip-04・検討 20-A3）=====
     // ⚠機構だけを見る。①何度押しても1か月に動く緊張は ActionTensionStep÷TensionActionRampMonths まで（押した国ごと）。
-    //   ②押した瞬間は禁輸だけ・政治的帰結と近隣への波及は毎月実際に動いた緊張に比例して払う＝総額は押した回数×1回分の見積もり。
+    //   ②押した瞬間は禁輸だけ・政治的帰結と近隣への波及は毎月実際に動いた緊張に比例して払う＝総額は押した回数×1回分の見積もり
+    //   （波及は隣接で最大・距離に比例して減衰＝作者裁定 A7 の回）。
     //   ③上限200で切れた分は払わない。④AI は相手へ向けた自分のならしが空のときだけ同じ動詞を押す（乱数なし）。⑤屈服は両向きのならしを消す。
     private static void SetTension(Diplomacy dip, Power a, Power b, double v) => dip.AddTension(a, b, v - dip.Tension(a, b), TensionReason.Initial);
 
@@ -175,8 +176,9 @@ public class TensionPoliticsTests(ITestOutputHelper output)
         var pv = Diplomacy.PreviewTensionPolitics(fr, br, TensionPoliticsKind.Provoke, c);
         double full = pv.TargetLegitimacy - w.Legitimacy;   // 1回分の全額（クランプ前）
         Assert.True(Math.Abs(full) > 1e-9, "前提が崩れた：政治的帰結が0＝検査が空洞");
-        bool prNear = Geo.DistanceKm(pr.Nation!.Latitude, pr.Nation.Longitude, br.Nation!.Latitude, br.Nation.Longitude) < c.ProximityTensionRange;
-        Assert.True(prNear && c.ProvokeProximitySpread > 0, "前提が崩れた：プロイセンが英の近隣でない（波及を測れない）");
+        double prKm = Geo.DistanceKm(pr.Nation!.Latitude, pr.Nation.Longitude, br.Nation!.Latitude, br.Nation.Longitude);
+        Assert.True(prKm < c.ProximityTensionRange && prKm > 0 && c.ProvokeProximitySpread > 0, "前提が崩れた：プロイセンが英の近隣でない（波及を測れない）");
+        double spread = c.ProvokeProximitySpread * (1 - prKm / c.ProximityTensionRange);   // 隣接で最大・距離に比例して減衰（作者裁定 A7 の回）
         double leg0 = w.Legitimacy, t0 = dip.Tension(fr, br), tp0 = dip.Tension(fr, pr);
         for (int k = 0; k < 3; k++) Assert.True(dip.RaiseTension(fr, br, c), "動詞が拒んだ（同じ束でないか、待ちが残っている）");
         Assert.Equal(3 * c.ActionTensionStep, dip.TensionRampRemaining(fr, br), 9);   // 待ちは無い＝3回とも積む
@@ -193,15 +195,81 @@ public class TensionPoliticsTests(ITestOutputHelper output)
         Assert.Equal(0.0, dip.TensionRampRemaining(fr, br));
         Assert.True(Math.Abs(dip.Tension(fr, br) - (t0 + 3 * c.ActionTensionStep)) <= 1e-9);
         Assert.True(Math.Abs((w.Legitimacy - leg0) - 3 * full) <= 1e-12, $"政治的帰結の総額 {w.Legitimacy - leg0:G17} が3回分 {3 * full:G17} でない");
-        Assert.True(Math.Abs((dip.Tension(fr, pr) - tp0) - 3 * c.ActionTensionStep * c.ProvokeProximitySpread) <= 1e-9, $"近隣への波及の総額 {dip.Tension(fr, pr) - tp0:G17} が3回分でない");
+        Assert.True(Math.Abs((dip.Tension(fr, pr) - tp0) - 3 * c.ActionTensionStep * spread) <= 1e-9, $"近隣への波及の総額 {dip.Tension(fr, pr) - tp0:G17} が3回分×距離の減衰 {3 * c.ActionTensionStep * spread:G17} でない");
 
-        // ③ 上限200：残り5しか動けない＝政治的帰結は5÷ActionTensionStep 回分だけ
+        // ③ 上限200：残り5しか動けない＝政治的帰結も近隣への波及も5÷ActionTensionStep 回分だけ（作者裁定 A7 の回＝波及も実際に動いた分）
         SetTension(dip, fr, br, 195);
-        double leg1 = w.Legitimacy;
+        double leg1 = w.Legitimacy, tp1 = dip.Tension(fr, pr);
         Assert.True(dip.RaiseTension(fr, br, c));
         for (int m = 0; m < c.TensionActionRampMonths; m++) dip.StepTensionRamp(c);
         Assert.Equal(200, dip.Tension(fr, br), 9);
         Assert.True(Math.Abs((w.Legitimacy - leg1) - full * 5 / c.ActionTensionStep) <= 1e-12, $"上限で切れた分まで払った（{w.Legitimacy - leg1:G17}・期待 {full * 5 / c.ActionTensionStep:G17}）");
+        Assert.True(Math.Abs((dip.Tension(fr, pr) - tp1) - 5 * spread) <= 1e-9, $"上限で切れた分まで波及した（{dip.Tension(fr, pr) - tp1:G17}・期待 {5 * spread:G17}）");
+    }
+
+    // ===== AI の押す理由（作者裁定 A7・2026-09-28）=====
+    // ⚠機構だけを見る。①ライバルでも、緊張の内訳に目標（領土・植民地・勢力圏・報復・初期の係争）がライバルの線を超えて無ければ押さない
+    //   （挑発・その波及・軍事的緊張は目標に数えない）。②目標が線を超えれば押す。③開戦の線を越える押しは、勝勢シェア（WarOutlook）が半分を超える側だけ。
+    [Fact]
+    public void AIは目標の無い相手へは押さず開戦を望まない側は開戦の線を越えて押さない()
+    {
+        // 盤面＝仏英が互いの唯一のライバル（第三国の緊張を0へ）・助走の四半期に AI が押したならしを流し切る。部ごとに新しい盤面（内訳を持ち込まない）。
+        (MultiNationSim sim, Coefficients c, Diplomacy dip, Power p, Power q) Board()
+        {
+            var sim = WarmSim(); var c = sim.Coef; var dip = sim.Diplomacy;
+            var fr = sim.Nations[0].World.SelfPower!; var br = sim.Nations[1].World.SelfPower!; var pr = sim.Nations[2].World.SelfPower!;
+            for (int i = 0; i < 2 * c.TensionActionRampMonths; i++) dip.StepTensionRamp(c);
+            Assert.Equal(dip.Bracket(fr, c), dip.Bracket(br, c));
+            SetTension(dip, fr, pr, 0); SetTension(dip, br, pr, 0);
+            // 押す側＝勝てない相手でない側（勝てない相手へは宥和が走る＝測りたい規則の外）
+            var (p, q) = br.Military > fr.Military * c.AppeaseMilitaryRatio ? (br, fr) : (fr, br);
+            Assert.False(q.Military > p.Military * c.AppeaseMilitaryRatio, "前提が崩れた：どちらの向きも勝てない相手");
+            return (sim, c, dip, p, q);
+        }
+        static double Goal(Diplomacy dip, Power p, Power q)
+        {
+            double g = 0;
+            foreach (var (r, v) in dip.TensionBreakdown(p, q))
+                if (r is TensionReason.Initial or TensionReason.Revanchism or TensionReason.Secession or TensionReason.Colonial or TensionReason.Opium
+                    or TensionReason.Proximity or TensionReason.RouteDependence or TensionReason.Protector or TensionReason.Defection or TensionReason.WarResidue) g += v;
+            return g;
+        }
+
+        // ① 目標の無い緊張（挑発・近隣への波及・軍事的緊張）だけでライバルの線を大きく超える＝押さない
+        {
+            var (sim, c, dip, p, q) = Board();
+            c.WarDeclareTension = 1e9;   // 開戦・屈服の判定を止める（測るのは目標の門）
+            SetTension(dip, p, q, 0);    // 初期の係争を打ち消す＝目標の内訳は非目標の分の符号反転（≦0）
+            double n0 = -Goal(dip, p, q);
+            // 波及だけで「目標に数えれば線を超える」量を置く（波及を目標に数える取り違えを捕まえる）
+            dip.AddTension(p, q, c.RivalTensionThreshold + 5 + n0, TensionReason.ProvocationSpread); dip.AddTension(p, q, 20, TensionReason.Threat); dip.AddTension(p, q, 10, TensionReason.Provocation);
+            Assert.True(dip.Tension(p, q) > c.RivalTensionThreshold + 40 && dip.Tension(p, q) < 200, $"前提が崩れた：緊張 {dip.Tension(p, q):G6}");
+            Assert.False(Goal(dip, p, q) > c.RivalTensionThreshold, $"前提が崩れた：目標の内訳が既に線を超えている（{Goal(dip, p, q):G6}）");
+            dip.Step(c, sim.Rng, month: 3);   // 四半期の月＝AI が動く
+            Assert.False(dip.TensionRampRemaining(p, q) > 0, $"目標の無い相手へ押した（{dip.TensionRampRemaining(p, q):G6}）");
+        }
+        // ② 目標（植民地の競合）が線を超える＝押す
+        {
+            var (sim, c, dip, p, q) = Board();
+            c.WarDeclareTension = 1e9;
+            SetTension(dip, p, q, 0);
+            dip.AddTension(p, q, c.RivalTensionThreshold + 10 - Goal(dip, p, q), TensionReason.Colonial);
+            Assert.True(Goal(dip, p, q) > c.RivalTensionThreshold && dip.Tension(p, q) < 200, $"前提が崩れた：目標 {Goal(dip, p, q):G6}・緊張 {dip.Tension(p, q):G6}");
+            dip.Step(c, sim.Rng, month: 3);
+            Assert.Equal(c.ActionTensionStep, dip.TensionRampRemaining(p, q), 9);
+        }
+        // ③ 開戦の線の手前（あと1回で越える）：勝勢シェアが半分を超える側だけが押す・もう一方は押さない
+        {
+            var (sim, c, dip, p, q) = Board();
+            SetTension(dip, p, q, c.WarDeclareTension - c.ActionTensionStep + 5);   // 初期の係争（目標）で積む＝目標は線を超えている
+            Assert.True(Goal(dip, p, q) > c.RivalTensionThreshold, $"前提が崩れた：目標の内訳 {Goal(dip, p, q):G6}");
+            var strong = dip.WarOutlook(p, q, c).WinShare > 0.5 ? p : q; var weak = strong == p ? q : p;
+            Assert.True(dip.WarOutlook(weak, strong, c).WinShare <= 0.5);
+            dip.Step(c, sim.Rng, month: 3);
+            Assert.True(dip.Tension(p, q) < c.WarDeclareTension, "前提が崩れた：押す前に線を越えた");
+            Assert.Equal(c.ActionTensionStep, dip.TensionRampRemaining(strong, weak), 9);
+            Assert.False(dip.TensionRampRemaining(weak, strong) > 0, $"開戦を望まない側が線を越えて押した（{dip.TensionRampRemaining(weak, strong):G6}）");
+        }
     }
 
     [Fact]
