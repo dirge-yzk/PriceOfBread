@@ -366,7 +366,7 @@ public sealed class Diplomacy
     private const double ThreatMilitaryWeight = 0.20;
     private const double DefectionTensionResidue = 30;        // 従属離反が残す遺恨（緊張）
     internal const double CollapseScore = 1.5;   // ★internal（2026-09-06）：内戦の戦勝点（Politics.ProcessCivilWar・CivilWarByScore）も同じ物差しで決着する                 // 戦勝点の絶対上限＝厭戦崩壊の決定的スコア
-    internal const double DistanceNormKm = 10_000.0;          // 距離減衰の正規化単位（km）。★internal 化2026-09-03＝Politics の分離判定が**同じ物差し**で保持力を割るため（「軍が届くか」の物差しはエンジン内で1本）
+    internal const double DistanceNormKm = 10_000.0;          // 距離減衰の正規化単位（km）＝エンジン内の距離の物差しの1本（2026-09-28 処理の一元化 段1＝植民地の維持費と入植・国際市場の運賃と危険料・侵略の船需要の同値の写し3本を畳んだ）。★internal 化2026-09-03＝Politics の分離判定が**同じ物差し**で保持力を割るため（「軍が届くか」の物差しはエンジン内で1本）
     private const double ColonizeGdpNormalizer = 100_000.0;   // 植民地化価値のGDP正規化（per 100k）
     private const double AiColonizeMinProjection = 0.2;       // AI植民地化で標的として考慮する最小投射
     private const double OfficerCasualtyPopCap = 0.05;        // 将校戦死の貴族人口上限（5%/月）
@@ -498,7 +498,7 @@ public sealed class Diplomacy
                 {
                     if (p.Nation is not { } w) continue;
                     double ratio = (NationalScore.Military(w) + NationalScore.Wealth(w)) / topC;
-                    double fade = System.Math.Clamp(ratio / c.TreatyPortLapseRatio, 0, 1) * c.DominanceSpeed;
+                    double fade = PoliticalQuantities.Clamp01(ratio / c.TreatyPortLapseRatio) * c.DominanceSpeed;
                     if (!(fade > 0)) continue;
                     foreach (var r in w.Regions)
                         for (int k = 0; k < r.ForeignShares.Length; k++) if (r.ForeignShares[k] > 0) r.ForeignShares[k] = System.Math.Max(0, r.ForeignShares[k] * (1.0 - fade));
@@ -728,7 +728,7 @@ public sealed class Diplomacy
         if (raider.Nation is not { } rw || victim.Nation is not { } vw) return;
         double sc = SeaControl(raider, victim);
         if (sc <= 0.5) return;   // 制海権を握る側だけが拿捕できる
-        double advantage = Math.Clamp((sc - 0.5) * 2, 0, 1);   // 制海優位（0..1）
+        double advantage = PoliticalQuantities.Clamp01((sc - 0.5) * 2);   // 制海優位（0..1）
         // 拿捕原資（prize-money-gdp-based-no-cargo）：①敵GDP比例（旧）と②敵が通商破壊で実際に失った海上取扱高比例（新）をブレンド。
         // ②＝敵の全活性州 LastPortThroughput の合計×通商破壊で失った海運割合(LastBlockadeRisk)＝交易していない内陸大国(露/墺)を封鎖しても積荷項0＝海軍の意味が交易構造から創発。両値とも既存（新規データなし）。
         double cargoBase = 0;
@@ -737,7 +737,7 @@ public sealed class Diplomacy
             double victimThroughput = 0;
             foreach (var r in vw.Regions) if (r.State == RegionState.Active) victimThroughput += r.LastPortThroughput;
             double raidLoss = victim.Nation?.LastBlockadeRisk ?? 0.0;   // 03手順7：奪われた海運割合＝リスク線積分（旧CommerceRaidFactorの置換・抽象標的は0）
-            cargoBase = victimThroughput * Math.Clamp(raidLoss, 0, 1);
+            cargoBase = victimThroughput * PoliticalQuantities.Clamp01(raidLoss);
             // 外4：raidLoss は victim の**総**損失（連合合算海軍基準）なのに、制海権を握る各raiderがそれぞれ総額基準で賞金化＝共同封鎖で二重取り。
             // 対策：同じ victim を封鎖する（sc>0.5 の）全交戦raiderの海軍力比で cargoBase を按分＝連合封鎖でも合計は総損失を超えない（保存整合）。
             // PrizeLossProrated=1.0（既定・完全按分）。0で按分係数1＝旧挙動。
@@ -834,7 +834,7 @@ public sealed class Diplomacy
             {
                 double ff = nw.NavalFuelFillEma;
                 if (!(ff >= 0 && ff <= 1)) ff = 1.0;   // 否定形＝NaNは中立へ（Clampは NaN を消さない）
-                double floor = Math.Clamp(c.NavalFuelSortieFloor, 0, 1);
+                double floor = PoliticalQuantities.Clamp01(c.NavalFuelSortieFloor);
                 p.NavalFuelMul = floor + (1.0 - floor) * ff;
             }
             // 艦隊摩耗（07_再設計 §6-1・A6裁定「する」・2026-07-31）：交戦中は、自分が展開している海盆で敵艦隊と接触するほど艦が沈む。
@@ -1375,7 +1375,7 @@ public sealed class Diplomacy
                             if (c.SubmitProbabilistic > 0 && SubmitRng is { } submitRng && c.AISubmitMilRatio > 1.0)
                             {
                                 double sideRatio = Math.Max(aSide, bSide) / Math.Max(Math.Min(aSide, bSide), 1e-9);
-                                submitYields = submitRng.NextDouble() < Math.Clamp((sideRatio - 1.0) / (c.AISubmitMilRatio - 1.0), 0.0, 1.0);
+                                submitYields = submitRng.NextDouble() < PoliticalQuantities.Clamp01((sideRatio - 1.0) / (c.AISubmitMilRatio - 1.0));
                             }
                             if (c.AISubmitMilRatio > 0
                                 && submitYields)
@@ -1817,11 +1817,11 @@ public sealed class Diplomacy
         else
         {
             // 格下への宥和＝弱腰（好戦世論で増幅）。格上への宥和＝自衛＝増幅なし（基礎分のみ）。AI屈服の屈辱（AISubmitLegitCost）の連続版。
-            weak = actor.Military >= target.Military ? 1.0 + c.WarFeverWeakness * System.Math.Clamp(w.WarFever(), 0, 1) : 1.0;
+            weak = actor.Military >= target.Military ? 1.0 + c.WarFeverWeakness * PoliticalQuantities.Clamp01(w.WarFever()) : 1.0;
             cheer = scale * dove; backlash = scale * hawk * weak;
         }
         double targetLeg = w.Legitimacy + cheer - backlash;   // ⚠加算の順序は旧実装のまま（結合則を変えると最下位ビットが動き較正が揺れる）
-        double afterLeg = System.Math.Clamp(targetLeg, 0, 1);
+        double afterLeg = PoliticalQuantities.Clamp01(targetLeg);
         return new TensionPoliticsPreview(hawk, dove, cheer, backlash, weak, hawkCheers, targetLeg, afterLeg, afterLeg - w.Legitimacy);
     }
 
@@ -2039,7 +2039,7 @@ public sealed class Diplomacy
         {
             double mine = SideMilitary(side, greatPower, c), his = SideMilitary(greatPower, side, c);
             double lean = his / Math.Max(1e-9, mine + his);   // 調停者が敵側に回ったときの重み（0..1・対等なら0.5）
-            double weary = Math.Clamp(side.WarExhaustion / Math.Max(1e-9, c.WarPeaceExhaustion), 0, 1);
+            double weary = PoliticalQuantities.Clamp01(side.WarExhaustion / Math.Max(1e-9, c.WarPeaceExhaustion));
             double winning = Math.Max(0, side == war.A ? war.Score : -war.Score);   // いま勝っている分（手放したくない）
             return lean + weary > winning + c.InterventionSubmitBar;
         }
@@ -2251,7 +2251,7 @@ public sealed class Diplomacy
                 foreach (var w2 in Wars)
                     if (w2.A == p) losing = Math.Max(losing, Math.Max(0, -w2.Score));
                     else if (w2.B == p) losing = Math.Max(losing, Math.Max(0, w2.Score));
-                double contactNorm = p.Military > 1e-9 ? Math.Clamp(contact.GetValueOrDefault(p) / p.Military, 0, 1) : 0;
+                double contactNorm = p.Military > 1e-9 ? PoliticalQuantities.Clamp01(contact.GetValueOrDefault(p) / p.Military) : 0;
                 double wear = c.WarZoneCapitalDamage * losing * contactNorm;
                 if (wear > 1e-12)
                 {
@@ -2396,7 +2396,7 @@ public sealed class Diplomacy
                 if (c.CollapseImposeFromFront > 0)
                 {
                     double winPush = aLoses ? war.PushB : war.PushA, losePush = aLoses ? war.PushA : war.PushB;
-                    double reach = Math.Clamp(2.0 * winPush / (winPush + losePush + 1e-12), 0, 1);   // 押し合いが五分＝1.0（現行と同じ満額）
+                    double reach = PoliticalQuantities.Clamp01(2.0 * winPush / (winPush + losePush + 1e-12));   // 押し合いが五分＝1.0（現行と同じ満額）
                     double impose = CollapseScore * (1.0 - c.CollapseImposeFromFront * (1.0 - reach));
                     war.Score = aLoses ? -impose : impose;
                 }
@@ -3199,7 +3199,7 @@ public sealed class Diplomacy
             // HighTensionDecayRate＝「遺恨ゼロのとき平時の何倍で冷めるか」＝既定1.0（点火2026-08-01）が「平時と同じ」。0で分岐に入らない。
             else if (c.HighTensionDecayRate > 0 && t >= c.HighTensionBand)
             {
-                double rate = c.TensionDecay * c.HighTensionDecayRate * (1.0 - Math.Clamp(_grudge.GetValueOrDefault(k), 0, 1));
+                double rate = c.TensionDecay * c.HighTensionDecayRate * (1.0 - PoliticalQuantities.Clamp01(_grudge.GetValueOrDefault(k)));
                 if (rate > 0) CoolTensionTo(k, Math.Max(0, t - rate));
             }
         }

@@ -1674,7 +1674,8 @@ public class PolicyPoliticsTests
     /// <summary>(i) 純支持が NaN の一歩は施行でも否決される＝門を無償で素通りしない（2026-09-21 ㉖・fail-closed）。
     /// 旧 <c>net &lt;= 閾値</c> は NaN で偽＝否決されず、次の <c>net &lt; 0</c> も偽＝代価0で施行されていた（法＝MandateGate・スライダー＝Move の両方）。
     /// 在庫の門が唯一の門になった世界では、それは門ごとの素通り。否定形 <c>!(net &gt; 閾値)</c> で NaN を否決の側へ倒す。
-    /// 毒の入れ方＝議会統制を NaN にする（軍の政治力 ArmyPower が NaN になり、ArmyStake=0 の軸でも NaN×0＝NaN が純支持へ入る）。
+    /// 毒の入れ方＝軍の政治力の重み ArmyPoliticalWeight を NaN にする（ArmyPower が NaN になり、ArmyStake=0 の軸でも NaN×0＝NaN が純支持へ入る）。
+    /// ⚠旧は議会統制 ParliamentControl を NaN にしていた＝2026-09-28 の処理の一元化 段1 で Math.Clamp(…,0,1) を Clamp01（NaN を0へ）へ畳んだので、議会統制の NaN は ArmyPower の手前で0へ倒れ、純支持へ届かなくなった（門の fail-closed はそのまま）。
     /// 同じ盤面を毒なしでも回し、その一歩が実際に施行されることを確かめる（非空虚性）。</summary>
     [Fact]
     public void 純支持がNaNの一歩は施行でも否決され無償で素通りしない()
@@ -1699,7 +1700,7 @@ public class PolicyPoliticsTests
             w.Policy.TariffTarget = tariffBefore > 0.5 ? tariffBefore - 0.4 : tariffBefore + 0.4;
             if (poison)
             {
-                w.ParliamentControl = double.NaN;
+                w.Coef.ArmyPoliticalWeight = double.NaN;   // World.Coef は国ごとの写し＝この国だけ
                 Assert.True(double.IsNaN(PolicyPreferences.NetSupport(w, a, l > lawBefore)), "テスト前提が崩れた：純支持が NaN になっていない（法）");
                 Assert.True(double.IsNaN(PolicyPreferences.NetSupport(w, PolicyAxis.Tariff, w.Policy.TariffTarget > tariffBefore)), "テスト前提が崩れた：純支持が NaN になっていない（関税）");
             }

@@ -389,7 +389,7 @@ public static class Formations
             if (c.FormationLegitimacyBoost > 0)   // 成立の威信（第4段4-2で0.1点火・2026-07-27）
             {
                 double legBeforeForm = w.Legitimacy;
-                w.Legitimacy = System.Math.Clamp(w.Legitimacy + c.FormationLegitimacyBoost, 0, 1);
+                w.Legitimacy = PoliticalQuantities.Clamp01(w.Legitimacy + c.FormationLegitimacyBoost);
                 w.Explain?.Add("Legitimacy", "国家統一の威信（イタリア/ドイツ型の建国）", w.Legitimacy - legBeforeForm);   // 説明API（#63）
             }
             // 第4段4-1（2026-07-27）：成立時の遷都＝NewCapital の州が自国 active 州にあれば首都(Id0)へ昇格（伊統一→ローマ等の死蔵データ約35規則を点火）。

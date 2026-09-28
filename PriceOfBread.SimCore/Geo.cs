@@ -13,7 +13,7 @@ public static class Geo
         double dLon = (lon2 - lon1) * System.Math.PI / DegToRadDivisor;
         double a = System.Math.Sin(dLat / 2) * System.Math.Sin(dLat / 2)
                  + System.Math.Cos(lat1 * System.Math.PI / DegToRadDivisor) * System.Math.Cos(lat2 * System.Math.PI / DegToRadDivisor) * System.Math.Sin(dLon / 2) * System.Math.Sin(dLon / 2);
-        a = System.Math.Clamp(a, 0.0, 1.0);   // 近対蹠点で a が浮動小数誤差で 1 を僅かに超えると sqrt(1−a)=sqrt(負)=NaN＝ハバーサインの標準堅牢化（従来は分離建国で対蹠に近い国対が生じ NaN 距離→運賃 NaN→Size NaN で破綻。他の呼出元は Min/比較で NaN を黙って濾過していた）
+        a = PoliticalQuantities.Clamp01(a);   // 近対蹠点で a が浮動小数誤差で 1 を僅かに超えると sqrt(1−a)=sqrt(負)=NaN＝ハバーサインの標準堅牢化（従来は分離建国で対蹠に近い国対が生じ NaN 距離→運賃 NaN→Size NaN で破綻。他の呼出元は Min/比較で NaN を黙って濾過していた）
         return R * 2 * System.Math.Atan2(System.Math.Sqrt(a), System.Math.Sqrt(1 - a));
     }
 

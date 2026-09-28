@@ -114,7 +114,7 @@ public sealed partial class InternationalMarket
             foreach (var r in W.Regions) if (r.State == RegionState.Active) activeCount++;
             double evenShare = activeCount > 0 ? 1.0 / activeCount : 1.0;
             // ★(4) 潜在量比例の配分（TransportShareByPotential・既定1.0＝潜在量比例。0で均等割り）。前期の LastTradePotential を読む。
-            double kPot = Math.Clamp(c.TransportShareByPotential, 0, 1);
+            double kPot = PoliticalQuantities.Clamp01(c.TransportShareByPotential);
             double totalPot = 0;
             if (kPot > 0) foreach (var r in W.Regions) if (r.State == RegionState.Active) totalPot += Math.Max(0, r.LastTradePotential);
             bool potOk = kPot > 0 && totalPot > 1e-9;   // 分母が痩せたら（開幕・実績なし）均等へ倒す＝立ち上がりの跳躍なし
@@ -167,7 +167,7 @@ public sealed partial class InternationalMarket
                 double portBonus = c.TransportEnabled ? c.PortCapToThroughput * r.PortCapacity : 0;
                 double inlandRail = railToPort;
                 if (!r.IsPort && c.InlandPortDistanceDecay > 1e-12 && r.NearestPortDistanceKm > 1e-9)
-                    inlandRail = railToPort / (1.0 + c.InlandPortDistanceDecay * r.NearestPortDistanceKm / DistanceScaleKm);
+                    inlandRail = railToPort / (1.0 + c.InlandPortDistanceDecay * r.NearestPortDistanceKm / Diplomacy.DistanceNormKm);
                 double cap = c.TransportEnabled ? (r.IsPort ? shipEff : Math.Min(inlandRail, shipEff)) + portBonus : double.MaxValue;
                 r.LastTransportCap = cap;   // ★純テレメトリ（式の二重定義をしない）
                 // ★(1.5)：陸直行のために**州自身の座標**も持つ（上の lat/lon は最寄り港へ置き換えられている）。
@@ -189,8 +189,8 @@ public sealed partial class InternationalMarket
         for (int t0 = 0; t0 < tc; t0++)
         {
             var W0 = nations[tr[t0].nation].World;
-            double rg0 = Math.Clamp((W0.TechLevel - c.RailTechOnset) / Math.Max(1e-9, c.RailTechWidth), 0, 1);
-            landRatio[t0] = c.LandSeaCostRatio * (1.0 - rg0 * (1.0 - Math.Clamp(c.RailCostFraction, 0, 1)));
+            double rg0 = PoliticalQuantities.Clamp01((W0.TechLevel - c.RailTechOnset) / Math.Max(1e-9, c.RailTechWidth));
+            landRatio[t0] = c.LandSeaCostRatio * (1.0 - rg0 * (1.0 - PoliticalQuantities.Clamp01(c.RailCostFraction)));
             double rg = rg0;
             int ti = (int)tr[t0].r.Terrain;
             double horse = ti < c.TerrainHorseCost.Length ? c.TerrainHorseCost[ti] : 1.0;
@@ -277,7 +277,7 @@ public sealed partial class InternationalMarket
             var kmB = SeaGraph.RouteBasinKm(SeaGraph.NearestSeaNode(tr[seller].lat, tr[seller].lon), SeaGraph.NearestSeaNode(tr[buyer].lat, tr[buyer].lon), suezOkN[bi], panOkN[bi]);
             double integral = 0;
             for (int b = 0; b < Basins.Count; b++) integral += natHostility[bi][b] * kmB[b];
-            double risk = 1.0 - Math.Exp(-c.RiskLambda * integral / DistanceScaleKm);
+            double risk = 1.0 - Math.Exp(-c.RiskLambda * integral / Diplomacy.DistanceNormKm);
             riskTab[seller * tc + buyer] = risk;
             return risk;
         }
@@ -318,7 +318,7 @@ public sealed partial class InternationalMarket
         if (c.TransportRevolutionMax > 0)
             for (int i = 0; i < nn; i++) if (nations[i].World.TechLevel > frontierTech) frontierTech = nations[i].World.TechLevel;
         double freightRevolution = c.TransportRevolutionMax > 0
-            ? 1.0 - c.TransportRevolutionMax * Math.Clamp((frontierTech - c.TransportRevolutionOnset) / c.TransportRevolutionSpan, 0.0, 1.0)
+            ? 1.0 - c.TransportRevolutionMax * PoliticalQuantities.Clamp01((frontierTech - c.TransportRevolutionOnset) / c.TransportRevolutionSpan)
             : 1.0;
         // ★貿易復活②（2026-08-15・tradewhy分解＝99_実装ログ§4-15）：運賃革命を**ad valoremマージンにも**適用。
         //   旧＝従量成分（WeightMarginAdd）だけが半減し、TransportMargin×(1+距離)の従価部分は1783年から不変
@@ -532,8 +532,8 @@ public sealed partial class InternationalMarket
                             double km2 = KmOf(sellers[s2].Node, t);
                             double risk2 = PairRisk(sellers[s2].Node, t);
                             double bb2 = gd.Tier == GoodTier.Staple ? c.BlockadeStapleBias * risk2 : 0.0;
-                            double mar2 = c.TransportMargin * (1.0 + c.DistanceMarginScale * km2 / DistanceScaleKm) * adValoremRev
-                                        + weightAdd * (km2 / DistanceScaleKm) + risk2;
+                            double mar2 = c.TransportMargin * (1.0 + c.DistanceMarginScale * km2 / Diplomacy.DistanceNormKm) * adValoremRev
+                                        + weightAdd * (km2 / Diplomacy.DistanceNormKm) + risk2;
                             double del2 = sellers[s2].Price * (1 + mar2 + wS2 + bb2);
                             if (del2 < double.MaxValue)
                             {
@@ -569,7 +569,7 @@ public sealed partial class InternationalMarket
                     double rpS = gd.RefPrice * tr[snA].r.PriceLevel * exRate[siA];
                     double yPrice = rpS > 1e-9 ? (msA.LastProduced + msA.LastImport) * unitA / rpS - msA.LastDemand - msA.LastExport : 0.0;
                     double Y = sellAccB * Math.Max(0, Math.Min(yPrice, left[bestA]));   // 物理上限＝avail（=Stock−TargetStock・left が消化を追う）
-                    double frA = c.FreightRatePer10Mm > 1e-12 ? c.FreightRatePer10Mm * bestKmA / DistanceScaleKm : 0.0;
+                    double frA = c.FreightRatePer10Mm > 1e-12 ? c.FreightRatePer10Mm * bestKmA / Diplomacy.DistanceNormKm : 0.0;
                     double pot = Math.Min(Math.Min(X, Y), left[bestA]);
                     pot = Math.Min(pot, budgetLeft[ni] / Math.Max(1e-12, unitA * (1 + frA)));   // 支払能力（Apply集合）
                     if (pot > 0) { potNew[t] += pot * Wg; potNew[snA] += pot * Wg; }   // 容量で切る**前**＝θ/T4 の分母
@@ -598,11 +598,11 @@ public sealed partial class InternationalMarket
                     // ★2026-09-27（回4-1・項目12②）：港の取扱高は海路の成約だけ（この組の着値を決めた経路＝KmOf(snA, t) が書いた向きの印）。
                     //   陸路の直行は港を通らない。同じ国の沿岸の海路（英のニューカッスル→ロンドンの石炭）は積む＝国境でなく経路で分ける。
                     if (!kmLand[snA * tc + t]) { tr[t].r.LastPortThroughput += valueA; tr[snA].r.LastPortThroughput += valueA; }
-                    double toProdA = c.ExportRevenueToProducers > 1e-12 ? PayExportToProducers(tr[snA].r, g, valueA * Math.Clamp(c.ExportRevenueToProducers, 0, 1), ref payPr[snA], ref payTot[snA], nations[siA].World) : 0.0;
+                    double toProdA = c.ExportRevenueToProducers > 1e-12 ? PayExportToProducers(tr[snA].r, g, valueA * PoliticalQuantities.Clamp01(c.ExportRevenueToProducers), ref payPr[snA], ref payTot[snA], nations[siA].World) : 0.0;
                     netFlow[siA] += valueA - toProdA; direct[siA] += toProdA;
                     if (c.FreightRatePer10Mm > 1e-12)
                     {
-                        double freightA = c.FreightRatePer10Mm * valueA * (bestKmA / DistanceScaleKm);
+                        double freightA = c.FreightRatePer10Mm * valueA * (bestKmA / Diplomacy.DistanceNormKm);
                         netFlow[ni] -= freightA; freightPool += freightA;
                     }
                     if (buyDear > 0) biasCost[ni] += qA * avg * buyDear;

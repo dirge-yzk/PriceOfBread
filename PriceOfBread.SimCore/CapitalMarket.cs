@@ -57,14 +57,14 @@ public static class CapitalMarket
             // 国債二次流通との連動（改修2026-06-28・金融改革①）：国債の利回りスプレッド(暴落)が対外信用を下げる＝国債暴落→資本逃避→為替減価→（既存経路で）さらに国債金利↑のバーリング危機ループ。
             double bondSpread = System.Math.Max(0, w[i].GovBondRate - c.BondBaseRate);
             double bondConf = System.Math.Clamp(1.0 - c.BondYieldFlightWeight * bondSpread, BondConfMin, 1.0);
-            double cr = System.Math.Clamp(1.0 - debtR / c.DebtDistressRatio, 0, 1)
+            double cr = PoliticalQuantities.Clamp01(1.0 - debtR / c.DebtDistressRatio)
                       * (c.OffGoldCapitalPenalty + (1.0 - c.OffGoldCapitalPenalty) * w[i].Convertibility)   // 兌換可能性で対外信用を連続補間（倍率排除②・Conv=1で無ペナルティ・Conv=0で0.5）
                       * System.Math.Clamp(w[i].ExchangeRate, ExchangeRateCreditFloor, 1.0)   // 減価＝対外信用の低下
                       * bondConf;   // 国債暴落＝信認喪失で外資が逃げる
             cred[i] = cr;
             // ★純記帳（2026-08-13）：信用と4つの内訳を World へ写す。読み手はUIだけ＝力学に一切影響しない。
             w[i].CreditRating = cr;
-            w[i].CreditDebtTerm = System.Math.Clamp(1.0 - debtR / c.DebtDistressRatio, 0, 1);
+            w[i].CreditDebtTerm = PoliticalQuantities.Clamp01(1.0 - debtR / c.DebtDistressRatio);
             w[i].CreditGoldTerm = c.OffGoldCapitalPenalty + (1.0 - c.OffGoldCapitalPenalty) * w[i].Convertibility;
             w[i].CreditFxTerm = System.Math.Clamp(w[i].ExchangeRate, ExchangeRateCreditFloor, 1.0);
             w[i].CreditBondTerm = bondConf;
@@ -104,7 +104,7 @@ public static class CapitalMarket
         }
         double worldRate = 0, worldCred = 0; for (int i = 0; i < n; i++) { worldRate += ret[i]; worldCred += cred[i]; } worldRate /= n; worldCred /= n;
         // 伝染（倍率排除）：危機国の閾値カウント(cr<0.4)でなく**世界平均信用の低下**で連続的に。信用が下がるほど資本意欲が滑らかに縮む＝0.4クリフのないサドンストップ。
-        double riskAppetite = System.Math.Clamp(1.0 - c.CapitalContagion * (1.0 - worldCred), 0, 1);
+        double riskAppetite = PoliticalQuantities.Clamp01(1.0 - c.CapitalContagion * (1.0 - worldCred));
 
         // (1) 資本逃避：信用の低い国の外資が本国送還（host から流出）。(2) 配当：host が ForeignCapitalIn に divRate を払う。
         //     払えた総額を owner 国へ CapitalAbroad 比で戻す（逃避は元本＝資産も逃避の額だけ減る／配当は資産不変）。
@@ -129,7 +129,7 @@ public static class CapitalMarket
             // 保存＝国内popから引いた額を受け皿の国の投資家へ渡す（下の★2026-09-22）。CapitalDomesticFlightRate=0 で厳密恒等。
             if (c.CapitalDomesticFlightRate > 0 && ngdp[i] > 1e-9)
             {
-                double distrust = System.Math.Clamp(w[i].CumulativeDevaluation / ngdp[i] - c.CapitalFlightDistrustThreshold, 0, 1);
+                double distrust = PoliticalQuantities.Clamp01(w[i].CumulativeDevaluation / ngdp[i] - c.CapitalFlightDistrustThreshold);
                 // ★逃げた**金**の両建て（2026-09-22）：旧＝TakeGold で流出を記帳するだけで、どの国にも金が入らず世界から消えていた
                 //   （国ごとの保存は閉じる＝計器に掛からない片側記帳。対外元本の償還と同じ形）。旧注記の「保存則は移転なので破れず」は誤りだった。
                 //   受け皿＝自国以外の信用×名目GDPの按分（国名なし＝「資本はロンドンへ逃げる」が信用の分布から創発）＝逃げた金はその国の投資家の預金になる

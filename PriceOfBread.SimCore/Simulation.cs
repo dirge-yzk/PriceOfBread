@@ -214,7 +214,7 @@ public sealed class Simulation
         World.Policy.MonetaryTarget = (int)World.MonetaryLaw;    // 目標も現在値に揃える（官僚制度と同じ＝翌期に巻き戻さない）
         // 軍事費の現在値＝初期目標（兵士の徴募/給与を駆動）。★陸海へ按分（2026-08-04）
         World.Policy.Bureaucracy = World.Bureaucracy;   // ★官僚制度の目標も初期値に揃える（Government が翌期に巻き戻さない・2026-08-04）
-        World.SetMilitarySpending(Math.Clamp(World.Policy.ArmyUpkeepTarget + World.Policy.NavyUpkeepTarget, 0, 1),
+        World.SetMilitarySpending(PoliticalQuantities.Clamp01(World.Policy.ArmyUpkeepTarget + World.Policy.NavyUpkeepTarget),
                                   World.Policy.ArmyUpkeepTarget + World.Policy.NavyUpkeepTarget > 1e-9
                                       ? World.Policy.NavyUpkeepTarget / (World.Policy.ArmyUpkeepTarget + World.Policy.NavyUpkeepTarget) : 0.5);
         World.Tariff = scenario.InitialTariff;                          // 関税の現在値＝初期値（日本＝鎖国。開国まで世界市場から孤立）
@@ -886,7 +886,7 @@ public sealed class Simulation
             // 既定 HeldSince=0 では 1783−0 ＝ 1783 ≥ CoreHeldYears(150) なので**この経路の全州が Core**。
             // ★B14（実バグ21件・2026-09-07）：world.json に heldSince（併合年＝ポーランド分割地/シレジア/ガリツィア/リガ/バグダード/台湾 等28州）を入れた。
             //   HeldSinceFromData=0（既定）では読まない＝全州 Core・支配度1.0＝旧＝厳密恒等（群計測の腕にするための読み手ゲート・採用後は係数を消して常時読む）。
-            Dominance = !(coef.HeldSinceFromData > 0) || p.HeldSince <= 0 ? 1.0 : Math.Clamp((Calendar.StartYear - p.HeldSince) / coef.DominanceMatureYears, 0.0, 1.0),   // ★E-06 支配度の初期値＝保有年数÷世代長（中核＝1）
+            Dominance = !(coef.HeldSinceFromData > 0) || p.HeldSince <= 0 ? 1.0 : PoliticalQuantities.Clamp01((Calendar.StartYear - p.HeldSince) / coef.DominanceMatureYears),   // ★E-06 支配度の初期値＝保有年数÷世代長（中核＝1）
             Tier = !(coef.HeldSinceFromData > 0) || (Calendar.StartYear - p.HeldSince) >= coef.CoreHeldYears ? RegionTier.Core : RegionTier.Integrated,
             Malarial = p.Malarial,
             Rule = p.Rule is { Length: 4 } ? (double[])p.Rule.Clone() : cfg.Rule is { Length: 4 } ? (double[])cfg.Rule.Clone() : [1.0, 0.0, 0.0, 0.0],   // ★支配度の一般化 段1（2026-09-06）：4区分の初期値（州→国既定→国家1.0）
@@ -1349,7 +1349,7 @@ public sealed class Simulation
         }
         // 階級構成：実人口は現地住民＋入植者だけ（保存則＝湧かさない）。入植者の着地は農民/労働者（新州は Ind=0＝農民寄り＝ImmigrantWorkerBase の割合だけ労働者）。
         double natives = Math.Max(0, col.PopSize);
-        double workerFrac = Math.Clamp(coef.ImmigrantWorkerBase, 0.0, 1.0);
+        double workerFrac = PoliticalQuantities.Clamp01(coef.ImmigrantWorkerBase);
         double settlerWorker = col.SettlerSize * workerFrac, settlerPeasant = col.SettlerSize - settlerWorker;
         double peasantSize = natives + settlerPeasant;
         double savPerSettler = col.SettlerSize > 1e-9 ? col.SettlerSavings / col.SettlerSize : 0;   // 持参金は入植者の頭数按分
@@ -1880,7 +1880,7 @@ public sealed class Simulation
                         {
                             double colScale = (col.PopSize > 0 ? col.PopSize / Math.Max(1e-9, col.Population * World.Coef.ColonialPopScale) : 1.0) * 0.8;   // 独立後＝外資なしでやや低い産出
                             // 独立ショック（B-4）：独立直後は産出が崩壊し IndependenceShockYears 年かけて回復（ハイチ1804型＝独立はショック）。
-                            double recovery = col.FreedYear < 0 ? 1.0 : Math.Clamp((World.Year - col.FreedYear) / (double)Math.Max(1, World.Coef.IndependenceShockYears), 0, 1);
+                            double recovery = col.FreedYear < 0 ? 1.0 : PoliticalQuantities.Clamp01((World.Year - col.FreedYear) / (double)Math.Max(1, World.Coef.IndependenceShockYears));
                             foreach (int res in col.Resources)
                                 if (res >= 0 && res < r.ColonialSupply.Length)
                                     r.ColonialSupply[res] += World.Coef.ColonialProductionPerColony * colScale * myShare * recovery;
@@ -1986,7 +1986,7 @@ public sealed class Simulation
                         {
                             // 教師の質（師範学校の効果）＝公立学校側の恒久プロパティ。基底 TeacherEduProductivity から毎月計算し直す（累積乗算にしない）。0 で不読＝構築時の値のまま
                             var tp = r.Pops[r.TeacherPopIndex];
-                            double q = 1.0 + World.Coef.TeacherQualityWeight * (System.Math.Clamp(tp.Literacy, 0, 1) * System.Math.Clamp(tp.HigherEduFill, 0, 1) - 1.0);
+                            double q = 1.0 + World.Coef.TeacherQualityWeight * (PoliticalQuantities.Clamp01(tp.Literacy) * PoliticalQuantities.Clamp01(tp.HigherEduFill) - 1.0);
                             pub.Productivity = World.Coef.TeacherEduProductivity * (q > 0 ? q : 1.0);
                         }
                     }
@@ -2006,7 +2006,7 @@ public sealed class Simulation
                         if (World.Coef.TeacherQualityWeight > 0 && r.TeacherPopIndex < r.Pops.Count)
                         {
                             var tp = r.Pops[r.TeacherPopIndex];
-                            double q = 1.0 + World.Coef.TeacherQualityWeight * (System.Math.Clamp(tp.Literacy, 0, 1) * System.Math.Clamp(tp.HigherEduFill, 0, 1) - 1.0);
+                            double q = 1.0 + World.Coef.TeacherQualityWeight * (PoliticalQuantities.Clamp01(tp.Literacy) * PoliticalQuantities.Clamp01(tp.HigherEduFill) - 1.0);
                             if (q > 0) ep.Productivity *= q;
                         }
                         if (ep.Inputs.Count > 0) ep.Inputs[0] = new Input(Catalog.BookId, 0.05);   // 書籍（教科書）＝紙の上位投入
@@ -2106,7 +2106,7 @@ public sealed class Simulation
                     double rmil = 0, rsz = 0; foreach (var mp in r.Pops) { rmil += mp.Size * mp.Militancy; rsz += mp.Size; }
                     double avgMil = rsz > 1e-9 ? rmil / rsz : 0;
                     double strikeIntensity = Math.Max(0, avgMil - World.Coef.StrikeMilitancyThreshold);
-                    union *= Math.Clamp(1.0 - strikeIntensity * World.Coef.StrikeProductionHit, 0, 1);
+                    union *= PoliticalQuantities.Clamp01(1.0 - strikeIntensity * World.Coef.StrikeProductionHit);
                 }
                 // 満足度への直接バフ（時短whWell・福祉WelfareSatComponent・年金PensionWellbeing）は物理削除2026-08-21（思想⑨＝支出/法は財を経ずに満足度を動かさない。
                 // 作者裁定8/19「満足度という値を捨てて生活水準＝買えたかのみ」）。時短は出力減 whOut・福祉/年金は現金給付（→消費→生活水準）としてのみ残る。
@@ -2256,7 +2256,7 @@ public sealed class Simulation
         // 実食料の連結（マルサスの積極的抑制）：主食充足 FoodFill（消費ベース∈[0,1]）が1未満＝凶作/過密/高騰で主食が買えない＝飢饉。
         // 食料は年単位の備蓄でならす（月次の振れを直に死へ変換しない＝餓死は数ヶ月の欠乏で起きる）＝緩やかな移動平均で扶養力に効かせる。
         double prevFood = World.FoodFill;
-        double rawFill = foodNeed > 1e-9 ? Math.Clamp(foodMet / foodNeed, 0, 1) : 1.0;
+        double rawFill = foodNeed > 1e-9 ? PoliticalQuantities.Clamp01(foodMet / foodNeed) : 1.0;
         // 説明API（#63）：食料充足＝前期の備蓄（1−s）×前期＋今期の需給 s×rawFill（平滑）。Explain=nullでゼロコスト。
         if (World.Explain != null)
         {
@@ -2280,7 +2280,7 @@ public sealed class Simulation
             avgInd += r.TotalIndustrialization; actN++;   // 扶養力の工業化項＝立っている資本の総量（新旧合計＝ヴィンテージ休眠時は恒等。2026-07-10）
             double rpop = r.SumPopulation();
             indPopSum += r.TotalIndustrialization * rpop; indPopWeight += rpop;
-            double rsanit = Math.Clamp(r.InfraFill + c.SoapSanitationWeight * r.SoapFill + c.ElecInfraSanitationWeight * r.ElecInfraFill, 0, 1);
+            double rsanit = PoliticalQuantities.Clamp01(r.InfraFill + c.SoapSanitationWeight * r.SoapFill + c.ElecInfraSanitationWeight * r.ElecInfraFill);
             sanitSum += rsanit * rpop; sanitPop += rpop;
             // 人2：この州の主食RGO産出を合計（LastProduced＝需要非クランプの実産出。regionLandFactor[耕地逓減]×農業生産性×HarvestFactor×WeatherBandFactor×CropHealth を既に内包＝「耕地×技術×豊凶の代理」）。
             foreach (var g in r.Goods) if (g.Tier == GoodTier.Staple)
@@ -2419,7 +2419,7 @@ public sealed class Simulation
                 foreach (var p in r.Pops)
                     if (!p.IsSoldier)
                     {
-                        double ff = p.FoodNeed > 1e-9 ? Math.Clamp(p.FoodMet / p.FoodNeed, 0, 1) : 1.0;
+                        double ff = p.FoodNeed > 1e-9 ? PoliticalQuantities.Clamp01(p.FoodMet / p.FoodNeed) : 1.0;
                         // 第4段4-5（2026-07-27）：飢饉死の絶対水準ゲート＝充足がFamineDeathFillFloor以上のpopは飢饉集中の対象外（重み1.0＝ベース死亡のみ）。
                         // 旧・(1−ff)連続重みは「国平均をわずかに下回る州が構造的に常時半数」→恒常的な偽陽性の超過死亡を飢えていない層にも配っていた。Floor=1.0で旧恒等。
                         double shortfall = ff < c.FamineDeathFillFloor ? 1.0 - ff : 0.0;
@@ -2451,7 +2451,7 @@ public sealed class Simulation
                     else
                     {
                         births = c.CrudeBirthRate / Calendar.MonthsPerYear * fertility * bw;   // 出生は配分鍵比例（既定 Size＝現行の粗出生）
-                        double ff = p.FoodNeed > 1e-9 ? Math.Clamp(p.FoodMet / p.FoodNeed, 0, 1) : 1.0;
+                        double ff = p.FoodNeed > 1e-9 ? PoliticalQuantities.Clamp01(p.FoodMet / p.FoodNeed) : 1.0;
                         double shortfallD = ff < c.FamineDeathFillFloor ? 1.0 - ff : 0.0;   // 第4段4-5：絶対飢餓ライン（vulnSum側と同式＝配分の正規化整合）
                         double w = p.Size * (1.0 + c.FamineMortalityConcentration * shortfallD);   // 脆弱性重み（真に飢えた層に集中）
                         double deathsRaw = vulnSum > 1e-9 ? totalDeaths * (w / vulnSum) : 0;
@@ -2464,13 +2464,13 @@ public sealed class Simulation
                     if (newSize < 0) { ghostDeaths += -newSize; newSize = 0; }   // 死亡クランプ発火時の浮動小数丸めでSizeが極小負(≈-3.5e-18)になるのを0にクランプし、削った分をghostDeathsで台帳へ差し戻す（非負境界の保護・正常時newSize≥0で不発＝ビット恒等）
                     diagBirths += births; diagDeaths += births - (newSize - p.Size);   // ★計器：死亡＝実際に減った人数（クランプ込み）＝出生−実際の増分
                     p.Size = newSize;
-                    if (p.Size > 1e-9) p.ChildShare = Math.Clamp(children / p.Size, 0, 1);
+                    if (p.Size > 1e-9) p.ChildShare = PoliticalQuantities.Clamp01(children / p.Size);
                     // 人11a（新生児の識字の無償相続の解消）：出生は Size を増やすだけで Literacy 不変＝新生児が親popの識字を暗黙相続（無償の世代間伝達＝識字ラチェット）。
                     // NewbornLiteracyDilution=0 で希釈なし＝現行と厳密一致・1で出生分（識字0の新生児 births 人）を加重平均で希釈：Lit_new = Lit_old×(Size−births)/Size。
                     // 死亡は平均識字で抜ける（平均不変）ため births のみで希釈。生存者(Size−births)が旧識字を担い、新生児は0＝親の識字を無償相続しない。（教育側の識字ラチェットは TechEducation.cs=別担当）
                     if (c.NewbornLiteracyDilution > 0 && births > 1e-12 && p.Size > 1e-9)
                     {
-                        double diluted = p.Literacy * Math.Clamp((p.Size - births) / p.Size, 0, 1);   // 新生児=識字0 で加重平均（births 人が0を持ち込む）
+                        double diluted = p.Literacy * PoliticalQuantities.Clamp01((p.Size - births) / p.Size);   // 新生児=識字0 で加重平均（births 人が0を持ち込む）
                         p.Literacy += c.NewbornLiteracyDilution * (diluted - p.Literacy);   // 0で不変（恒等）・1で完全希釈
                     }
                     // 老年コホートの追跡（①年齢コホート・Phase1）：成人(=非子供)のうち生産年齢が老年へ送られ、老年は既存の成人死亡の内訳として厚く死ぬ（老衰）。
@@ -2510,7 +2510,7 @@ public sealed class Simulation
             if (region.State != RegionState.Active) continue;
             double met = 0, need = 0;
             foreach (var p in region.Pops) { met += p.FoodMet; need += p.FoodNeed; }
-            double raw = need > 1e-9 ? Math.Clamp(met / need, 0, 1) : 1.0;
+            double raw = need > 1e-9 ? PoliticalQuantities.Clamp01(met / need) : 1.0;
             region.FoodFill += c.FoodFillSmoothing * (raw - region.FoodFill);   // 州の食料充足を平滑（穀倉の備蓄＝餓死は数ヶ月の持続的欠乏で起きる）
         }
         if (c.RegionalFamineMortality <= 0) return;
@@ -2528,14 +2528,14 @@ public sealed class Simulation
             foreach (var p in region.Pops) if (!p.IsSoldier)
             {
                 massPop += p.Size;
-                double ff = p.FoodNeed > 1e-9 ? Math.Clamp(p.FoodMet / p.FoodNeed, 0, 1) : 1.0;
+                double ff = p.FoodNeed > 1e-9 ? PoliticalQuantities.Clamp01(p.FoodMet / p.FoodNeed) : 1.0;
                 vulnSum += p.Size * (1.0 + c.FamineMortalityConcentration * (1.0 - ff));
             }
             if (massPop < 1e-9 || vulnSum < 1e-9) continue;
             double regionDeaths = c.RegionalFamineMortality * shortfall * massPop;   // 月次の超過死亡＝相対不足×係数×州人口
             foreach (var p in region.Pops) if (!p.IsSoldier)
             {
-                double ff = p.FoodNeed > 1e-9 ? Math.Clamp(p.FoodMet / p.FoodNeed, 0, 1) : 1.0;
+                double ff = p.FoodNeed > 1e-9 ? PoliticalQuantities.Clamp01(p.FoodMet / p.FoodNeed) : 1.0;
                 double w = p.Size * (1.0 + c.FamineMortalityConcentration * (1.0 - ff));
                 double d = Math.Min(p.Size, regionDeaths * (w / vulnSum));   // 食料不足の層に集中（地主/資本家は生き延びる）
                 World.CarryDeathAgeStructure(p, p.Size, d, c.DisasterAgeMortalityExcess);   // リ10：飢饉死も年齢構成へ運搬（既定0＝即リターン＝恒等）
@@ -2644,13 +2644,12 @@ public sealed class Simulation
             double coverage = World.BroadMoney > 1e-9 ? World.BaseMoney / World.BroadMoney : 1.0;
             double coverTarget = World.Coef.GoldCoverMin * World.Coef.GoldRejoinCoverMargin;
             double shortfall = coverTarget > 1e-9 ? (coverTarget - coverage) / coverTarget : 0;
-            shortfall = Math.Clamp(shortfall, 0, 1);
-            if (!(shortfall >= 0 && shortfall <= 1)) shortfall = 0;   // NaNは造幣停止側へ倒す（否定形で書く＝Clampは NaN を消さない）
+            shortfall = PoliticalQuantities.Clamp01(shortfall);   // NaN は Clamp01 が0＝造幣停止側へ倒す
             mintScale = 1.0 - World.Coef.MintReserveTargetWeight * (1.0 - shortfall);
-            mintScale = Math.Clamp(mintScale, 0, 1);
+            mintScale = PoliticalQuantities.Clamp01(mintScale);
             coverShort = shortfall;
             if (World.Coef.MintBuysAtMarket > 0 && shortfall > 1e-9)
-                gapLeft = Math.Max(0, coverTarget * World.BroadMoney - World.BaseMoney) * Math.Clamp(World.Coef.MintReserveSellRate, 0, 1);   // 買い戻しの歩調＝投げ売りと同じ率（独1873-79の逆向き）
+                gapLeft = Math.Max(0, coverTarget * World.BroadMoney - World.BaseMoney) * PoliticalQuantities.Clamp01(World.Coef.MintReserveSellRate);   // 買い戻しの歩調＝投げ売りと同じ率（独1873-79の逆向き）
         }
         // ★跛行本位（2026-09-06・器 MintFloorRespectsReserve）：床モードの standing offer は準備が目標を十分超えたら**閉じる**（ラテン通貨同盟 1873-78＝銀の自由鋳造停止）。
         //   これが無いと、金へ移った国が投げ売る銀を残りの銀本位国の造幣局が平価で無限に吸い、銀/金比が1.0に釘付けになる（goldwave 腕で実測＝金圏49/61でも比1.0）。
@@ -2670,7 +2669,7 @@ public sealed class Simulation
         double sellLeft = 0;
         if (floor && World.Coef.MintParitySells > 0 && !(coverShort > 1e-9))
         {
-            sellLeft = (metal == Catalog.SilverId ? World.SilverReserveQty : World.GoldReserveQty) * Math.Clamp(World.Coef.MintFloorBuyRate, 0, 1);
+            sellLeft = (metal == Catalog.SilverId ? World.SilverReserveQty : World.GoldReserveQty) * PoliticalQuantities.Clamp01(World.Coef.MintFloorBuyRate);
             if (!(sellLeft > 1e-12)) sellLeft = 0;   // 否定形＝NaN/非正の準備は売らない側へ
         }
         foreach (var r in World.Regions)
@@ -2704,8 +2703,8 @@ public sealed class Simulation
             if (!floor && m.LastProduced <= 0) continue;   // 旧来＝産出のある月しか買わない／★床＝在庫があれば買う（自由鋳造は持ち込み制＝産出と無関係）
             if (m.Price > parity && !atMarket) continue;
             if (floorClosed && !atMarket) continue;   // ★跛行本位：閉じた造幣局は平価で買わない（準備不足の市場買いだけは残る）   // 市場価格＞平価なら鋳造停止（宝飾/工業へ流れる＝正帰還の遮断・史実の固定平価）。★MintBuysAtMarket=0 で従来
-            double qty = atMarket ? Math.Min(m.Stock * Math.Clamp(World.Coef.MintFloorBuyRate, 0, 1), gapLeft / m.Price)   // 市場買い＝床と同じ在庫上限×今月の予算（第1版の産出比例は銀鉱州にしか買い手が立たなかった）
-                               : floor ? m.Stock * Math.Clamp(World.Coef.MintFloorBuyRate, 0, 1)
+            double qty = atMarket ? Math.Min(m.Stock * PoliticalQuantities.Clamp01(World.Coef.MintFloorBuyRate), gapLeft / m.Price)   // 市場買い＝床と同じ在庫上限×今月の予算（第1版の産出比例は銀鉱州にしか買い手が立たなかった）
+                               : floor ? m.Stock * PoliticalQuantities.Clamp01(World.Coef.MintFloorBuyRate)
                                : Math.Min(frac * mintScale * m.LastProduced, m.Stock);
             if (qty <= 1e-12) continue;
             double totOut = 0;
@@ -2730,7 +2729,7 @@ public sealed class Simulation
                     //（ゴールドラッシュの創発）が出ず、金鉱州の所得が所有者に偏る。これ>0で賃金分を労働popへ（自営＝同一popなら実質不変・
                     // 総額不変＝保存とCumulativeGoldMintedは非接触）。0（対照腕）で全額所有者・既定0.5でlive。
                     double mintWage = (uint)p.LaborPopIndex < (uint)r.Pops.Count && p.LaborPopIndex != p.OwnerPopIndex
-                        ? share * Math.Clamp(World.Coef.MintWageShare, 0, 1) : 0;
+                        ? share * PoliticalQuantities.Clamp01(World.Coef.MintWageShare) : 0;
                     if (mintWage > 0) r.Pops[p.LaborPopIndex].Savings += mintWage;
                     // ★2026-09-27（線2・国営持分の対称）：所有者の取り分のうち国営持分（World.StateProfitShare＝唯一の定義）は国庫へ。
                     //   赤字の側（EconomyStep の「国営持分の赤字は国庫が負う」）と同じ持分＝旧は費用だけが国庫・造幣の代金は貴族と農民へ
@@ -2764,7 +2763,7 @@ public sealed class Simulation
     ///   独は売却額を回収したが銀安で損を出し1879年に売却を停止した——その損得の表現は簡略化し、供給ショックだけを採る）。</summary>
     private void SellDemonetizedReserves(int lawMetal, bool isFiat)
     {
-        double rate = Math.Clamp(World.Coef.MintReserveSellRate, 0, 1);
+        double rate = PoliticalQuantities.Clamp01(World.Coef.MintReserveSellRate);
         if (rate <= 0) return;
         if (World.SilverReserveQty > 1e-9 && (isFiat || lawMetal != Catalog.SilverId))
             World.SilverReserveQty -= DumpReserve(Catalog.SilverId, World.SilverReserveQty * rate);
@@ -2892,7 +2891,7 @@ public sealed class Simulation
         if (World.Diplomacy is null) return 1.0;
         var p = World.SelfPower ?? World.Diplomacy.Player;
         if (p is null) return 1.0;
-        double byColonies = Math.Clamp(p.Colonies / World.Coef.ColoniesForFullColonial, 0.0, 1.0);
+        double byColonies = PoliticalQuantities.Clamp01(p.Colonies / World.Coef.ColoniesForFullColonial);
         return byColonies * World.Diplomacy.TradeAccess(p);
     }
 

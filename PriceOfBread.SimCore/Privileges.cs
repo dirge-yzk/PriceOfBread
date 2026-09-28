@@ -37,7 +37,7 @@ public static class Privileges
     public static double TaxExemptionDegree(World w, Coefficients c, double crownShare)
         => !(c.PrivilegeTaxDiscount > 0) ? 0.0
          : c.PrivilegeFromCrownShare > 0
-            ? c.PrivilegeTaxDiscount * c.PrivilegeFromCrownShare * System.Math.Clamp(crownShare, 0, 1)
+            ? c.PrivilegeTaxDiscount * c.PrivilegeFromCrownShare * PoliticalQuantities.Clamp01(crownShare)
             : (w.Polity is Polity.Absolutist or Polity.Despotic or Polity.Shogunate ? c.PrivilegeTaxDiscount : 0.0);
 
     /// <summary>特許会社の残高＝独占レントがまだどこかに立つか。州の度合は物理側の唯一定義 <see cref="EconomyStep.MonopolyDegree"/>（premium=1＝度合[0,1]）を呼ぶ＝

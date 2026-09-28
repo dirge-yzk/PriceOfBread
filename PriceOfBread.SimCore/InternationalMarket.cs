@@ -23,7 +23,6 @@ public sealed partial class InternationalMarket
     public IReadOnlyList<double> Price => _price;
     public IReadOnlyList<double> Volume => _volume;
 
-    private const double DistanceScaleKm = 10_000.0;   // 海路距離をマージンへ落とす正規化スケール（km）
     private const double PriceBandFloorMul = 0.1;       // 平均価格の対RefPrice下限倍率
     private const double PriceBandCeilMul = 10.0;       // 平均価格の対RefPrice上限倍率
     // ⚠2026-08-12：MaxExportMarginCap / WorldPriceStepMin / WorldPriceStepMax は撤去した。

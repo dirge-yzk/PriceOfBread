@@ -183,7 +183,7 @@ public static class ProductionDiag
         var coef = w.Coef;
         double Price(int gid) => gid >= 0 && gid < region.Markets.Length ? region.Markets[gid].Price : 0.0;
         // その材の供給率＝EconomyStep が記帳した配給率（Market.LastRation）。市場を持たない財は 1.0（測る対象が無い）
-        double Fill(int gid) => gid >= 0 && gid < region.Markets.Length ? Math.Clamp(region.Markets[gid].LastRation, 0, 1) : 1.0;
+        double Fill(int gid) => gid >= 0 && gid < region.Markets.Length ? PoliticalQuantities.Clamp01(region.Markets[gid].LastRation) : 1.0;
         if (found is not { } f)
         {
             // 生産者が国内に1人も居ない財＝既定レシピ（goods.json）を、その州の価格で積むだけ。

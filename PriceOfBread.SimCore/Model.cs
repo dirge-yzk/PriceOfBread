@@ -464,7 +464,7 @@ public sealed class Region
     public double StockpileFactor(int goodId, Coefficients c)
     {
         if (!(c.StockpilePanicWeight > 0) || !(WarScareTension > c.StockpileTensionThreshold)) return 1.0;   // 否定形＝NaN は在庫目標を動かさない側へ倒す（有限値では旧 <= と厳密同値）
-        double scare = System.Math.Clamp((WarScareTension - c.StockpileTensionThreshold) / System.Math.Max(1e-9, c.StockpileTensionSpan), 0, 1);
+        double scare = PoliticalQuantities.Clamp01((WarScareTension - c.StockpileTensionThreshold) / System.Math.Max(1e-9, c.StockpileTensionSpan));
         bool priority = goodId >= 0 && goodId < Catalog.Goods.Length
                         && (Catalog.Goods[goodId].Tier == GoodTier.Staple || System.Array.IndexOf(c.MilitaryGoods, goodId) >= 0);
         return 1.0 + c.StockpilePanicWeight * scare * (priority ? 1.0 : c.StockpileOtherFrac);

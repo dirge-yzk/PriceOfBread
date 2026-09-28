@@ -28,7 +28,7 @@ public static class CrownParliament
             w.ParliamentControl = target;   // 未捕捉のみ初期化（構築時ApplyRegime未経由の小世界向け）
         // P1-H 破産召集（1789三部会）：財政緊縮が深い（AusterityIntensity>0.5）ほど王権は議会に予算協力を乞う＝統制力が上がる。既定0.02で点火（0で休眠）。
         if (c.SummonParliamentRate > 0 && w.AusterityIntensity > 0.5)
-            w.ParliamentControl = System.Math.Clamp(w.ParliamentControl + c.SummonParliamentRate * (w.AusterityIntensity - 0.5) * 2.0, 0, 1);
+            w.ParliamentControl = PoliticalQuantities.Clamp01(w.ParliamentControl + c.SummonParliamentRate * (w.AusterityIntensity - 0.5) * 2.0);
         // P1-E ストルイピン後退：敵対的議会×高正統性×王権寄りの軍＝王権が統制力を段階的に巻き戻す（1907六三クーデタ）。既定0.02で点火（0で休眠）。
         // ★2026-08-12：`w.Crown != CrownForm.None` を追加（CrownlessCollapseKeepsRepublic>0 のときのみ＝0 は旧挙動の再現）
         //   ＝**王冠の無い共和国で「王権が統制力を巻き戻す」処理が走っていた**。
@@ -109,7 +109,7 @@ public static class CrownParliament
             // P10②権力の呼吸は第3段3-6（2026-07-27）で削除＝RedefinedBreathAmplitude=0（0.3点火は清30%下振れ+仏共和未達で却下済み2026-07-18）の恒等ブロック（×1.0の死荷重）。
             if (c.ParliamentPressureRate > 0 && rep - cur > inertia
                 && w.ReformistPower + w.RadicalPower > PoliticalQuantities.EffectiveCoerce(w, c))   // 第5段5-1：coerce 4実装の一元化（従来と同時点＝挙動恒等）
-                w.ParliamentControl = System.Math.Clamp(w.ParliamentControl + c.ParliamentPressureRate * (rep - cur), 0, 1);
+                w.ParliamentControl = PoliticalQuantities.Clamp01(w.ParliamentControl + c.ParliamentPressureRate * (rep - cur));
             // ②王権圧力：王権の形の支持が代議制を上回る分×正統性で巻き戻す（一般化した反動の常時項。P1-Eクーデタ型とは別）。
             //   慣性バーなし＝**旧グラフの平和的復帰の置換素子**（王権は代議制優位でない限り常に取り返す。旧世界では緊縮の
             //   P1-H召集でPCが床を越えてもグラフが翌期Despoticへ戻していた＝これなしではオマーン1809立憲が固着＝2026-07-12実測）。
@@ -215,7 +215,7 @@ public static class CrownParliament
         for (int i = 0; i < RegimeFamilyCount; i++) w.RegimeTrackRecord[i] *= 1.0 - c.RegimeRecordDecay;
         double record = w.CoopPublicRegime;   // [-1,1]
         if (record > 0)   // 正の信認は時間が要る（始まったばかりの形態は実績を持てない）
-            record *= System.Math.Clamp(w.RegimeTenureQuarters / (Calendar.QuartersPerYear * System.Math.Max(1.0, c.RegimeRecordSuccessTenureGate)), 0, 1);
+            record *= PoliticalQuantities.Clamp01(w.RegimeTenureQuarters / (Calendar.QuartersPerYear * System.Math.Max(1.0, c.RegimeRecordSuccessTenureGate)));
         int fam = RegimeFamily(w.Polity);
         w.RegimeTrackRecord[fam] = System.Math.Clamp(w.RegimeTrackRecord[fam] + c.RegimeRecordAccumRate * record, -1, 1);
 
@@ -248,7 +248,7 @@ public static class CrownParliament
                 double crisisMult = 1.0 + (nbAtWar ? c.NationBuildCrisisDefense : 0)
                                         + (w.InCivilWar ? c.NationBuildCrisisCivilWar : 0)   // ★B3：述語1本
                                         + (w.BornOfSecession && nbAtWar ? c.NationBuildCrisisIndependence : 0);
-                double dragV2 = System.Math.Clamp(w.EthnicUnity + c.NationBuildCivicFloor, 0, 1);   // 多民族は1単位のNCが高くつく（墺の悲劇）・civicで克服可（CivicOpennessEnabled=1で開放度の天井へ置換＝P12残渣①）
+                double dragV2 = PoliticalQuantities.Clamp01(w.EthnicUnity + c.NationBuildCivicFloor);   // 多民族は1単位のNCが高くつく（墺の悲劇）・civicで克服可（CivicOpennessEnabled=1で開放度の天井へ置換＝P12残渣①）
                 double lawCeil = w.EducationLaw switch { EducationLaw.Compulsory => 0.9, EducationLaw.Public => 0.7, EducationLaw.Religious => 0.4, _ => 0.2 };
                 double ceilingNb = lawCeil * System.Math.Min(1.0, avgLit / 0.6);
                 double ceilScalar = ceilingNb;
@@ -310,7 +310,7 @@ public static class CrownParliament
                 //   天井/床に当たった四半期だけ内訳合計と実値がずれる（実測＝仏で 4.9e-5）。
                 //   ★これは既知の教訓（「Explain会計＝クランプ分も記帳する」）の**同じ型の再発**である。
                 //   ⚠Explain は既定 null＝バッチ/較正では1命令も走らない＝厳密恒等。
-                w.NationalConsciousness = System.Math.Clamp(rawNc2, 0, 1);   // ⚠PerPop>0 では _ncScalar を書くだけ（getter は読まない）
+                w.NationalConsciousness = PoliticalQuantities.Clamp01(rawNc2);   // ⚠PerPop>0 では _ncScalar を書くだけ（getter は読まない）
                 // ★国民意識のPOP化（点火2026-08-01）：国のスカラーは上のまま残し、**POP側にも同じ形で積む**。
                 // 違いは3つだけ——⑴民族の抵抗を国平均(EthnicUnity)でなく**そのPOPの中核民族シェア**で見る、
                 // ⑵**首都からの距離**で配信が減衰する（学校も新聞も鉄道の先には届きにくい）、⑶天井はPOPごとに残る。
@@ -320,8 +320,8 @@ public static class CrownParliament
                     double drive = c.NationBuildAccumRate * (spendTerm + radioTerm + conscriptTerm) * crisisMult;
                     double prevReported = w.NationalConsciousness;   // ★J-004：**実際に報告される量**（POP加重平均）の前期値
                     double popAvg = AccumulatePopConsciousness(w, c, drive, ceilingNb, c.NationBuildDecayRate, openness, out double wGain, out double wLose);
-                    double lever = System.Math.Clamp(c.NationConsciousnessPerPop, 0, 1);
-                    w.NationalConsciousness = System.Math.Clamp((1 - lever) * w.NationalConsciousness + lever * popAvg, 0, 1);
+                    double lever = PoliticalQuantities.Clamp01(c.NationConsciousnessPerPop);
+                    w.NationalConsciousness = PoliticalQuantities.Clamp01((1 - lever) * w.NationalConsciousness + lever * popAvg);
                     // ★J-004：台帳をPOP側の物語で書き直す＝**報告される量そのもの**の内訳になる。
                     //   ⚠4行目「人口構成の変化」は残差ではなく**実体のある項**＝移民・出生・階級移動で加重（POPの大きさ）が動くと、
                     //   一人ひとりの意識が変わらなくても国の加重平均は動く。単純な漸化式が合わない理由がこれである。
@@ -390,9 +390,9 @@ public static class CrownParliament
                 //   外すと彼らが −1 のまま残り、国の加重平均を永久に汚す（旧実装の実害）。
                 if (!(p.Size > 1e-9)) continue;
                 if (p.NationalConsciousness < 0) p.NationalConsciousness = seed;
-                double coreShare = System.Math.Clamp(p.CoreEthnicShare, 0, 1);
+                double coreShare = PoliticalQuantities.Clamp01(p.CoreEthnicShare);
                 // P12残渣①：ON＝民族抵抗は速度でなく天井（core=1.0・天井=ceiling×(1−民族距離×(1−開放度))）／OFF＝現行の速度core・天井そのまま（ビット恒等）
-                double core = open ? 1.0 : System.Math.Clamp(1.0 - c.NationConsciousnessCoreWeight * (1.0 - coreShare), 0, 1);
+                double core = open ? 1.0 : PoliticalQuantities.Clamp01(1.0 - c.NationConsciousnessCoreWeight * (1.0 - coreShare));
                 double ceil = open ? ceiling * (1.0 - (1.0 - coreShare) * (1.0 - openness)) : ceiling;
                 double head = System.Math.Max(0, ceil - p.NationalConsciousness);
                 double before = p.NationalConsciousness;
@@ -401,14 +401,14 @@ public static class CrownParliament
                     // ★段4（作者裁定5）：同じ漸化式の**不動点**＝ NC* = 天井 × d/(decay+d)、d = drive×到達×core。
                     //   記憶を持たない＝同じ盤面なら何度でも同じ値（前期の値を1度も読まない）。⚠NaN/0除算は否定形で0側へ。
                     double d = drive * reach * core;
-                    p.NationalConsciousness = !(decay + d > 0) ? 0.0 : System.Math.Clamp(ceil * d / (decay + d), 0, 1);
+                    p.NationalConsciousness = !(decay + d > 0) ? 0.0 : PoliticalQuantities.Clamp01(ceil * d / (decay + d));
                     // 報告専用（台帳の恒等は保つ）：増分/減衰でなく**実際に動いた向き**を積む。
                     double moved = p.NationalConsciousness - before;
                     if (moved > 0) gainAcc += moved * p.Size; else loseAcc += -moved * p.Size;
                 }
                 else
                 {
-                    p.NationalConsciousness = System.Math.Clamp(p.NationalConsciousness * (1 - decay) + drive * reach * core * head, 0, 1);
+                    p.NationalConsciousness = PoliticalQuantities.Clamp01(p.NationalConsciousness * (1 - decay) + drive * reach * core * head);
                     gainAcc += drive * reach * core * head * p.Size;   // ★J-004：報告専用（クランプ前の増分）
                     loseAcc += before * decay * p.Size;                // ★J-004：報告専用
                 }
@@ -439,10 +439,10 @@ public static class CrownParliament
             Polity.BourgeoisDictatorship => 0.3,       // 共和の自己クーデタ＝共和経験の残滓（ナポレオン3世型）
             _ => 0.0,                                  // 君主・専制・幕府・軍政・無政府＝血統と身分の国民
         };
-        rep = System.Math.Max(rep, System.Math.Clamp(w.RegimeTrackRecord[1], 0, 1));   // 「あった履歴」＝議会制系の信認ストック正部（専制へ後退しても約2世代は残る）
+        rep = System.Math.Max(rep, PoliticalQuantities.Clamp01(w.RegimeTrackRecord[1]));   // 「あった履歴」＝議会制系の信認ストック正部（専制へ後退しても約2世代は残る）
         double suffrage = Ideologies.Openness(w.Suffrage);
-        double freedom = System.Math.Clamp(w.Freedom, 0, 1);
-        return System.Math.Clamp((rep + suffrage + freedom) / 3.0, 0, 1);
+        double freedom = PoliticalQuantities.Clamp01(w.Freedom);
+        return PoliticalQuantities.Clamp01((rep + suffrage + freedom) / 3.0);
     }
 
     /// <summary>政体→実績の4系統（0君主/1議会制/2強権/3急進・docs/2026-07-13_形態別失望ストック.md §3.1）。
@@ -556,7 +556,7 @@ public static class CrownParliament
             if (range <= 0) return;
             sum += System.Math.Abs(System.Convert.ToInt32(tgt) - System.Convert.ToInt32(cur)) / (double)range; n++;
         }
-        void Slider(double cur, double tgt) { sum += System.Math.Clamp(System.Math.Abs(tgt - cur), 0, 1); n++; }
+        void Slider(double cur, double tgt) { sum += PoliticalQuantities.Clamp01(System.Math.Abs(tgt - cur)); n++; }
 
         Enum2(w.Suffrage, p.Suffrage);
         Enum2(w.EducationLaw, p.EducationLaw);

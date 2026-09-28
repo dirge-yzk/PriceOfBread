@@ -64,14 +64,14 @@ public static class Fiscal
         double[]? ruleMul = null, ruleCut = null; Pop?[]? ruleLord = null;
         if (c.RuleSharesTaxBase > 0)
         {
-            double g = c.RuleSharesTaxBase, deliver = 1.0 - Math.Clamp(c.PrivilegeTaxDiscount, 0, 1);
+            double g = c.RuleSharesTaxBase, deliver = 1.0 - PoliticalQuantities.Clamp01(c.PrivilegeTaxDiscount);
             ruleMul = new double[pops.Count]; ruleCut = new double[pops.Count]; ruleLord = new Pop?[pops.Count];
             int ri = 0;
             foreach (var r in w.Regions)
             {
                 Pop? lord = null; foreach (var lp in r.Pops) if (lp.ClassId == PopClass.Noble && !lp.IsSoldier && lp.Size > 1e-9) { lord = lp; break; }
                 double mul = Politics.RuleDelivery(r, c, g);
-                double cut = r.Rule.Length == 4 ? g * Math.Clamp(r.Rule[1], 0, 1) * (1.0 - deliver) : 0;
+                double cut = r.Rule.Length == 4 ? g * PoliticalQuantities.Clamp01(r.Rule[1]) * (1.0 - deliver) : 0;
                 foreach (var p in r.Pops) { if (ri >= pops.Count) break; ruleMul[ri] = mul; ruleCut[ri] = lord is not null ? cut : 0; ruleLord[ri] = lord; ri++; }
             }
             if (ri != pops.Count) { ruleMul = null; ruleCut = null; ruleLord = null; }   // ⚠添字が合わない（集合の定義が変わった）ときは旧挙動へ倒す＝壊さない
@@ -220,7 +220,7 @@ public static class Fiscal
         foreach (var p in pops) if (CapitalMarket.IsInvestor(p, c)) capitalists.Add(p);   // 国内の買い手＝資本家/近代エリート（NobleInvests>0で貴族も。既定0＝旧述語と厳密恒等）
         // R9（満期構造）：既往債は発行時クーポン(GovAvgCoupon)で利払い。毎月 BondRolloverFrac だけ現行市場金利GovBondRateへ乗り換わる。
         // BondRolloverFrac=1.0（既定）で GovAvgCoupon=GovBondRate にビット一致＝浮動永久債＝旧式 GovDebt*GovBondRate/12 と厳密一致。
-        double rollover = System.Math.Clamp(c.BondRolloverFrac, 0, 1);
+        double rollover = PoliticalQuantities.Clamp01(c.BondRolloverFrac);
         w.GovAvgCoupon = (1.0 - rollover) * w.GovAvgCoupon + rollover * w.GovBondRate;
         double interest = w.GovDebt * w.GovAvgCoupon / Calendar.MonthsPerYear;   // 月次（クーポンは年率。Fiscal.Step は月次実行なので /12）
         // ★金建て債務の実質負担（銀本位doc G8・2026-08-13）＝**史実で銀本位国を金へ追い込んだ最大の力**。
@@ -237,7 +237,7 @@ public static class Fiscal
             if (!(b >= 1.0 && b <= c.GoldDebtBurdenCap)) b = 1.0;   // NaNは負担なしへ倒す（否定形＝Clampは NaN を消さない）
             goldDebtBurden = b;
         }
-        double foreignShare = w.GovDebt > 1e-9 ? Math.Clamp(w.ForeignDebt / w.GovDebt, 0, 1) : 0;
+        double foreignShare = w.GovDebt > 1e-9 ? PoliticalQuantities.Clamp01(w.ForeignDebt / w.GovDebt) : 0;
         if (goldDebtBurden > 1.0) interest *= 1.0 + foreignShare * (goldDebtBurden - 1.0);   // 対外分だけが金建て＝国内債は自国通貨のまま
         // 裁量余剰（EMA）＝公共サービスの財源。**純税収から強制義務（維持費＋利払い）を引いた余り**から支弁する（funding修正の核心）：
         // 余剰の無い国（高治安維持力で維持費が歳入を食う France 等）は自然にサービス≈0＝赤字を作らない／余剰のある国（英）は歳入からサービスが機能。
@@ -285,8 +285,8 @@ public static class Fiscal
             //   旧＝関税の従属変数なので「関税は高いが資本は自由」（19世紀後半の独/米）が原理的に表現できなかった。
             //   規制でも0にしない（★密輸と同じ理由＝規制しても抜け道はあった）。CapitalMobilityLawGate=0 で下の旧式のみ（⚠既定は点火済みの1.0＝2026-08-13・x-02 で注記を是正）。
             double openness = c.CapitalMobilityLawGate > 0
-                ? (w.CapitalControlLaw ? Math.Clamp(c.CapitalControlOpenness, 0, 1) : 1.0)
-                : Math.Clamp(1.0 - c.CapitalOpennessTariffWeight * w.Tariff, 0, 1);
+                ? (w.CapitalControlLaw ? PoliticalQuantities.Clamp01(c.CapitalControlOpenness) : 1.0)
+                : PoliticalQuantities.Clamp01(1.0 - c.CapitalOpennessTariffWeight * w.Tariff);
             double domesticPool = capSavings * c.BondAppetite;
             double foreignPool = openness * c.ForeignBondCapacity * Math.Max(0, gdp) * Math.Clamp(w.GovBondRate / Math.Max(1e-9, c.BondBaseRate), 0, ForeignBondYieldRatioCap);
             // 財5（対外国債をモデル外の無限プールから閉鎖系へ）：foreignPool を他モデル国の資本家貯蓄から実引き当て。
@@ -402,7 +402,7 @@ public static class Fiscal
                     foreach (var p in pops) p.Militancy = Math.Min(1, p.Militancy + bite);   // 消えた分だけ怒る（新係数を作らない）
                 }
                 double forgiveRatio = nominalGdp > 1e-9 ? Math.Min(1.0, w.CumulativeDevaluation / nominalGdp) : 0;
-                w.CumulativeDevaluation *= 1.0 - Math.Clamp(c.CurrencyReformForgiveShare, 0, 1);
+                w.CumulativeDevaluation *= 1.0 - PoliticalQuantities.Clamp01(c.CurrencyReformForgiveShare);
                 double legBefore = w.Legitimacy;
                 w.Legitimacy = Math.Max(0, w.Legitimacy - c.CurrencyReformLegitimacyHit * forgiveRatio);
                 w.Explain?.Add("Legitimacy", "通貨改革(預金を焼いて記憶を消す)", w.Legitimacy - legBefore);
@@ -485,7 +485,7 @@ public static class Fiscal
             //   同じ月に起債すると新発債の構成が按分に入らない：全額対外で借りた月に「国内分」を償還して ForeignDebt>GovDebt（国内元本が負）
             //   になり、持ち手がいなければ対外債務が国庫残置でタダで消え、いれば払っていない国内の持ち手へ対外の元本が渡っていた。
             //   利払い（上）は月初の残高に掛かる＝月初の比のままが正しい。起債の無い月は shareNow＝foreignShare（ビット同値）。
-            double shareNow = Math.Clamp(w.ForeignDebt / w.GovDebt, 0, 1);
+            double shareNow = PoliticalQuantities.Clamp01(w.ForeignDebt / w.GovDebt);
             double frForeign = repay * shareNow;   // ★2026-09-26：旗 DebtRepayUsesPrincipalShare（点火2026-09-05）を焼き込み（x-01）＝元本の比
             double domBefore = w.GovDebt - w.ForeignDebt;
             w.Pay(TreasuryCat.DebtRepay, -repay); w.GovDebt -= repay; w.ForeignDebt = Math.Max(0, w.ForeignDebt - frForeign);
@@ -524,7 +524,7 @@ public static class Fiscal
             double legBeforeDefault = w.Legitimacy;
             w.Legitimacy = Math.Max(0, w.Legitimacy - c.DefaultLegitimacyHit);
             w.Explain?.Add("Legitimacy", "国家破産（デフォルト）の信認崩壊", w.Legitimacy - legBeforeDefault);   // 説明API（#63）
-            foreach (var dp in pops) if (Politics.IsMassPop(dp)) dp.Militancy = Math.Clamp(dp.Militancy + c.DefaultMilitancyHit, 0, 1);
+            foreach (var dp in pops) if (Politics.IsMassPop(dp)) dp.Militancy = PoliticalQuantities.Clamp01(dp.Militancy + c.DefaultMilitancyHit);
         }
         // 財7（債務/GDPの単位整合）：NominalGdp は月次フロー、GovBondRate は年率（利払いを/12）。分母を DebtGdpAnnualized で年換算する（×12）。
         // 既定1.0＝分母を年換算（×12・2026-07-26点火）。0なら旧・月次GDP基準のまま。
@@ -589,7 +589,7 @@ public static class Fiscal
         // 政体フレーバー レバー3（2026-07-24）→第3波連続化（2026-07-28）：議会の信認割引＝議会の予算統制（ParliamentControl）が
         // 強いほど債権者の信認で金利が安い（英コンソル＝財政軍事国家論）。旧・政体ラベル二値→統制力の連続量へ（倍率排除＝ラベル不読・
         // DebtGdp年換算フリップ2026-07-26で再挑戦解禁の記録どおり）。BondRateRepresentationDiscount=0で×1.0＝厳密恒等。
-        double reprDiscount = 1.0 - c.BondRateRepresentationDiscount * Math.Clamp(w.ParliamentControl, 0, 1);
+        double reprDiscount = 1.0 - c.BondRateRepresentationDiscount * PoliticalQuantities.Clamp01(w.ParliamentControl);
         double bondPre = bondInside * convDiscount * reprDiscount;
         w.GovBondRate = Math.Min(c.BondRateMax, bondPre);
         // 説明API（#63）：国債金利の内訳＝各プレミアム×兌換割引−上限クランプ。Explain=nullでゼロコスト・戻り値不変。
@@ -692,7 +692,7 @@ public static class Fiscal
                 if (p.IsSoldier || p.Closed) continue;   // 特権身分・兵士は市民運動の担い手でない
                 newsW += p.NewsFill * p.Literacy * p.Size; newsSz += p.Size;   // 識字×読めた率＝「実際に新聞を読む国民」の割合（NewsFillは識字比需要の充足なので識字を再掛けして規模化）
             }
-            w.NationBuildingSpending = newsSz > 1e-9 ? Math.Clamp(newsW / newsSz * zeal, 0, 1) : 0;
+            w.NationBuildingSpending = newsSz > 1e-9 ? PoliticalQuantities.Clamp01(newsW / newsSz * zeal) : 0;
         }
         // POP動詞①（階級への優遇/弾圧）は廃止（2026-07-20ユーザー指示＝税で表現済みで冗長）。弾圧の概念は国内危機（Politics.CheckFactionRevolt→CrisisThroughLawPath＝通知のみ・ボタンなし）へ移行＝⚠2026-09-08に無血鎮圧の枝は撤去・2026-09-11に弾圧/譲歩の択も撤去＝対処は法改正か内戦だけ。
     }

@@ -215,8 +215,8 @@ public static class FactionSnapshot
         {
             PolicyAxis.IncomeTax => Stage(w.TaxRate),
             PolicyAxis.SocialSecurity => w.SocialSecurity,
-            PolicyAxis.Coercion => System.Math.Clamp(w.BaseCoercion / System.Math.Max(1e-9, w.Coef.CoercionMax), 0, 1),
-            PolicyAxis.Tariff => System.Math.Clamp(w.Tariff, 0, 1),
+            PolicyAxis.Coercion => PoliticalQuantities.Clamp01(w.BaseCoercion / System.Math.Max(1e-9, w.Coef.CoercionMax)),
+            PolicyAxis.Tariff => PoliticalQuantities.Clamp01(w.Tariff),
             PolicyAxis.EducationSpending => Stage(w.EducationSpending),
             PolicyAxis.PollTax => Stage(w.PollTax),
             PolicyAxis.LandTax => Stage(w.LandTax),
@@ -258,7 +258,7 @@ public static class FactionSnapshot
             PolicyAxis.Nationalization => NationalizationLitRate(w),
             _ => 0.5,
         };
-        return System.Math.Clamp(v, 0, 1);   // ⚠端の外（税率>1等）を先に畳む＝Headroom 側の 1−v も [0,1] に収まる（旧＝反転後に Clamp・同値）
+        return PoliticalQuantities.Clamp01(v);   // ⚠端の外（税率>1等）を先に畳む＝Headroom 側の 1−v も [0,1] に収まる（旧＝反転後に Clamp・同値）
     }
 
     // 02断線走査（2026-07-28）：国有化6行（5部門＋『全て』＝§11-6d統合）の点灯率（Headroom用＝全点灯で要求が消える）。

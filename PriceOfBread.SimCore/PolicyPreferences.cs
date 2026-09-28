@@ -138,7 +138,7 @@ public static class PolicyPreferences
         double gdp = w.Gdp;   // ★A2-2：州×生産者の走査はこの1回だけ（旧＝ここで2回・Pref の名目GDPの読み手ごとに1回ずつ）
         double stress = w.FiscalEnabled
             // [単位・B13] 債務/GDP＝**月次実質**（GovDebt÷月次Gdp・Min 1）＝Government の緊縮と同じ単位・Fiscal の年次名目とは別
-            ? System.Math.Clamp((1.0 - w.FiscalFundingRatio) + (gdp > 1e-9 ? System.Math.Min(1.0, w.GovDebt / gdp) : 0), 0, 1.0)
+            ? PoliticalQuantities.Clamp01((1.0 - w.FiscalFundingRatio) + (gdp > 1e-9 ? System.Math.Min(1.0, w.GovDebt / gdp) : 0))
             : 0;
         return new Profile(power, wealth, rent, income, poll, old, 0.5 + stress,
             pettyM, pettyS, ti > 1e-9 ? pettyInc / ti : 0, ti > 1e-9 ? pettyIncM / ti : 0, w.NominalOf(gdp));
@@ -192,7 +192,7 @@ public static class PolicyPreferences
                     if (w.ImportsByGood is { } impC)
                         for (int gC = 0; gC < impC.Length && gC < Catalog.Goods.Length; gC++)
                             if (Catalog.Goods[gC].Tier is GoodTier.Producer or GoodTier.Intermediate) tradeBase += impC[gC];
-                    tariffExtra -= w.Coef.TariffExportOppositionWeight * System.Math.Clamp(tradeBase / e.NominalGdp, 0, 1);
+                    tariffExtra -= w.Coef.TariffExportOppositionWeight * PoliticalQuantities.Clamp01(tradeBase / e.NominalGdp);
                 }
                 // （報復の圧力を支持項として載せる器 TariffRetaliationViaPolitics は2回差し戻し＝2026-09-26 に削除・dorm-51。偏倚は Government が目標へ足す1本だけ）
                 return w.Coef.RentProtectionWeightCoef * e.Rent[b] - (mass ? 1.0 : 0) + tariffExtra;
@@ -298,7 +298,7 @@ public static class PolicyPreferences
                 if (w.MonetaryLaw == MonetaryStandardLaw.Silver && w.WorldSilverPrice > 1e-9)
                 {
                     double refSilver = Catalog.RefPrices[Catalog.SilverId];
-                    silverDrop = refSilver > 1e-9 ? Math.Clamp(1.0 - w.WorldSilverPrice / refSilver, 0, 1) : 0;
+                    silverDrop = refSilver > 1e-9 ? PoliticalQuantities.Clamp01(1.0 - w.WorldSilverPrice / refSilver) : 0;
                     if (!(silverDrop >= 0 && silverDrop <= 1)) silverDrop = 0;   // NaNは中立へ倒す（否定形＝Clampは NaN を消さない）
                 }
                 // ★交易網の引力（タスク#75再開・2026-08-21）：世界貿易が金建てへ移るほど、対外に開いた経済の「持てる側」
@@ -323,7 +323,7 @@ public static class PolicyPreferences
                 // ⚠思想③（休眠フラグは既定で厳密恒等）：休眠中に**選好だけ非0**だと、この軸が要求リストに載って
                 //   他の要求を押し出す＝軸を1本足しただけで軌道が動く。実測で捕まえた（2026-08-13・帯が8軸すべてで動いた）。
                 if (w.Coef.CapitalMobilityLawGate <= 0) return 0;
-                double abroadShare = e.NominalGdp > 1e-9 ? Math.Clamp(w.CapitalAbroad / e.NominalGdp, 0, 1) : 0;
+                double abroadShare = e.NominalGdp > 1e-9 ? PoliticalQuantities.Clamp01(w.CapitalAbroad / e.NominalGdp) : 0;
                 if (!(abroadShare >= 0 && abroadShare <= 1)) abroadShare = 0;   // NaNは中立へ倒す（否定形で書く＝Clampは NaN を消さない）
                 return modern ? -(1.0 + w.Coef.CapitalControlPrefScale * abroadShare) : 1.0;
             case PolicyAxis.Nationalization:  // 国有化（E6）＝利潤を没収される資本（近代エリート）が強く反対・大衆が賛成（社会主義的再分配）。旧支配層は中立（土地貴族＝産業資本ではない）
@@ -397,7 +397,7 @@ public static class PolicyPreferences
             foreach (int g in w.Coef.MilitaryExportGoods)
                 if (g >= 0 && g < r.Markets.Length) v += r.Markets[g].LastProduced * Catalog.RefPrices[g];
         }
-        return System.Math.Clamp(v / gdp, 0, 1);
+        return PoliticalQuantities.Clamp01(v / gdp);
     }
 
     /// <summary>阿片（<see cref="Coefficients.OpiumGoodId"/>）の生産額が名目GDPに占めるシェア（禁制品doc C3・2026-07-30）。
@@ -412,7 +412,7 @@ public static class PolicyPreferences
             if (r.State != RegionState.Active || g >= r.Markets.Length) continue;
             v += r.Markets[g].LastProduced * Catalog.RefPrices[g];
         }
-        return System.Math.Clamp(v / gdp, 0, 1);
+        return PoliticalQuantities.Clamp01(v / gdp);
     }
 
     /// <summary>全国の人口加重アヘン中毒度（禁制品doc C3・2026-07-30）。禁令を求める大衆の圧力＝害の大きさ。</summary>
@@ -471,7 +471,7 @@ public static class PolicyPreferences
         // フォールバック＝旧束（近代/大衆）から削った質量を等価で返す線形恒等。NetSupport の束項が街頭係数（ParliamentStreetSupersede）で
         // 縮む議会国では、返す側にも同じ係数を掛けないと「削って返しただけ」の非対象軸が動く（PettyInterestTests の恒等番人・2026-08-31）。
         double street = w.Coef.ParliamentStreetSupersede > 0 && w.ParliamentEnabled && HasLegislature(w.Polity)
-            ? 1.0 - System.Math.Clamp(w.Coef.ParliamentStreetSupersede, 0, 1) : 1.0;
+            ? 1.0 - PoliticalQuantities.Clamp01(w.Coef.ParliamentStreetSupersede) : 1.0;
         return street * (e.PettyPowerModern * Pref(a, 1, e, w) + e.PettyPowerMass * Pref(a, 2, e, w)) * sign;
     }
 
@@ -523,7 +523,7 @@ public static class PolicyPreferences
                 tot += val;
             }
         }
-        return tot > 1e-9 ? System.Math.Clamp(conc / tot, 0, 1) : 0;
+        return tot > 1e-9 ? PoliticalQuantities.Clamp01(conc / tot) : 0;
     }
 
     /// <summary>自財の輸入競合シェア＝職人の自営レシピの財（構造マーカー＝LaborPopIndex==OwnerPopIndex==ArtisanPopIndex。
@@ -545,7 +545,7 @@ public static class PolicyPreferences
                 tot += (m.LastProduced + m.LastImport) * rp;
             }
         }
-        return tot > 1e-9 ? System.Math.Clamp(imp / tot, 0, 1) : 0;
+        return tot > 1e-9 ? PoliticalQuantities.Clamp01(imp / tot) : 0;
     }
 
     /// <summary>第6段6-4（2026-07-28）統帥権：軍の政策選好＝軍事軸のみ（武力＝軍事費/治安維持力・徴兵法の増加に賛成＝縮小に反対）。他軸は無関心。
@@ -559,7 +559,7 @@ public static class PolicyPreferences
     internal static double ArmyPower(World w)
         => w.Coef.ArmyPoliticalWeight <= 0 ? 0
          : w.Coef.ArmyPoliticalWeight * (w.SoldierSize() / System.Math.Max(1.0, w.TotalPopulation))
-           * (1.0 - System.Math.Clamp(w.ParliamentControl, 0, 1));
+           * (1.0 - PoliticalQuantities.Clamp01(w.ParliamentControl));
 
     /// <summary>UI表示用：その向きの変更への各ブロックの賛否（旧支配層/近代エリート/大衆・概ね−2..+2）＋純支持。正の純支持＝次の一歩が通る。</summary>
     public static (double Trad, double Modern, double Mass, double Net) Stance(World w, PolicyAxis a, bool increasing)
@@ -581,7 +581,7 @@ public static class PolicyPreferences
         string[] blocNames = ["旧支配層", "近代エリート", "大衆"];
         var list = new List<(string, double)>(BlocCount + 3);
         double streetB = w.Coef.ParliamentStreetSupersede > 0 && w.ParliamentEnabled && HasLegislature(w.Polity)
-            ? 1.0 - System.Math.Clamp(w.Coef.ParliamentStreetSupersede, 0, 1) : 1.0;   // ★NetSupport と同じ譲渡率＝合計一致の維持
+            ? 1.0 - PoliticalQuantities.Clamp01(w.Coef.ParliamentStreetSupersede) : 1.0;   // ★NetSupport と同じ譲渡率＝合計一致の維持
         for (int b = 0; b < BlocCount; b++) list.Add((blocNames[b], streetB * e.Power[b] * Pref(a, b, e, w) * sign));
         // 第4束「小営業」（プチブル利益束2026-08-15）＝PettyInterestGate>0 のみ現れる（休眠では力0＝行なし）。合計は NetSupport と一致（同じ項）
         double pettyRow = PettyNet(w, a, sign, e);
@@ -618,7 +618,7 @@ public static class PolicyPreferences
         //   議会がある国では同じ選好が街頭力と議席で二重加算されていた（清レポート実測＝共和国化で教育法が−0.98→−2.67）。
         //   代表された3ブロックの街頭力をこの割合だけ議席チャネルへ譲る＝影響力の置き場所が移るだけ（未代表の小営業・軍・国庫は街頭のまま）。0＝旧＝厳密恒等
         double street = w.Coef.ParliamentStreetSupersede > 0 && w.ParliamentEnabled && HasLegislature(w.Polity)
-            ? 1.0 - System.Math.Clamp(w.Coef.ParliamentStreetSupersede, 0, 1) : 1.0;
+            ? 1.0 - PoliticalQuantities.Clamp01(w.Coef.ParliamentStreetSupersede) : 1.0;
         for (int b = 0; b < BlocCount; b++) sum += street * e.Power[b] * Pref(a, b, e, w) * sign;
         sum += PettyNet(w, a, sign, e);   // 第4束「小営業」（プチブル利益束2026-08-15）。gate=0＝束が空＝+0で恒等・対象3軸以外は旧束の値へフォールバック
         sum += ParliamentNet(w, a, sign, e);

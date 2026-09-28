@@ -199,12 +199,12 @@ public static class EconomyStep
         a = Math.Max(0, a * (1.0 - Math.Min(0.9, warWear)));   // 1期で全損はしない＝上限0.9
         a += got;
         stock[gid] = a;
-        return want * (target > Eps ? Math.Clamp(a / target, 0, 1) : 1.0);
+        return want * (target > Eps ? PoliticalQuantities.Clamp01(a / target) : 1.0);
     }
 
     /// <summary>装備充足＝必要量のうち買えた（持っている）割合∈[0,1]。必要量が無ければ1.0。国軍（Region.MilitaryEquipFill）と反乱勢力（FactionState.EquipFill）の**唯一の定義**。</summary>
     internal static double EquipFill(double equipWant, double equipGot)
-        => equipWant > Eps ? Math.Clamp(equipGot / equipWant, 0, 1) : 1.0;
+        => equipWant > Eps ? PoliticalQuantities.Clamp01(equipGot / equipWant) : 1.0;
 
     /// <param name="durable">★段2a（2026-08-13）：true かつ ArmsStockEnabled>0 のとき、その段を**耐久品**として
     /// 「不足分の費用」で見積もる。予算の上限式がフロー基準のままだと、発注だけがストック基準になって
@@ -251,7 +251,7 @@ public static class EconomyStep
             if (pr.LaborPopIndex == region.ArtisanPopIndex && pr.OwnerPopIndex == region.ArtisanPopIndex) art[pr.GoodId] += pr.Output;
         }
         var share = new double[ngoods];
-        for (int g = 0; g < ngoods; g++) share[g] = tot[g] > Eps ? Math.Clamp(art[g] / tot[g], 0, 1) : 0;
+        for (int g = 0; g < ngoods; g++) share[g] = tot[g] > Eps ? PoliticalQuantities.Clamp01(art[g] / tot[g]) : 0;
         return share;
     }
 
@@ -341,7 +341,7 @@ public static class EconomyStep
         // PrevStock 確定前に適用＝期内の財収支（在庫＝前在庫＋生産＋輸入−販売−輸出）は保たれる（腐敗は期の起点に織り込み）。
         // 冷蔵の時代動学（B-2）：工業化が進むと生鮮（肉・魚・乳・果実）の腐敗が下がる＝1870s冷凍肉貿易革命。工業国ほど効く。
         double refrigeration = coef.RefrigerationEffect > 0
-            ? Math.Clamp((region.TotalIndustrialization - coef.RefrigerationIndOnset) / coef.RefrigerationIndSpan, 0, 1) : 0;   // 冷蔵チェーンは立っている設備の規模＝新旧合計（ヴィンテージ2026-07-10）
+            ? PoliticalQuantities.Clamp01((region.TotalIndustrialization - coef.RefrigerationIndOnset) / coef.RefrigerationIndSpan) : 0;   // 冷蔵チェーンは立っている設備の規模＝新旧合計（ヴィンテージ2026-07-10）
         foreach (var good in region.Goods)
             if (good.Spoilage > 0)
             {
@@ -384,7 +384,7 @@ public static class EconomyStep
                 // lag は 0..1 の連続近似（1で満額を1ヶ月遅延）として blend。0 なら即月＝旧恒等。
                 if (coef.ColonialImportLagMonths > 0 && region.ColonialImportPipeline is { } pipe && gid < pipe.Length)
                 {
-                    double lag = Math.Clamp(coef.ColonialImportLagMonths, 0.0, 1.0);
+                    double lag = PoliticalQuantities.Clamp01(coef.ColonialImportLagMonths);
                     double arrive = (1.0 - lag) * import + lag * pipe[gid];   // 今月着荷＝即時分＋先月パイプライン分
                     pipe[gid] = import;                                        // 今月発注分を来月へ繰越
                     m.Stock += arrive;
@@ -471,7 +471,7 @@ public static class EconomyStep
                 double totNow = region.Industrialization + region.OldVintageCapital;
                 if (totNow > region.DevelopmentPeak) region.DevelopmentPeak = totNow;
                 if (region.DevelopmentPeak > 1e-9)
-                    dep *= 1.0 - coef.DevelopmentMemory * (1.0 - Math.Clamp(totNow / region.DevelopmentPeak, 0, 1));
+                    dep *= 1.0 - coef.DevelopmentMemory * (1.0 - PoliticalQuantities.Clamp01(totNow / region.DevelopmentPeak));
             }
             region.Industrialization *= 1.0 - dep;
             region.OldVintageCapital *= 1.0 - dep;   // ヴィンテージ有効化2026-07-10：旧世代も同率の物理減価＝新旧合計(TotalIndustrialization)は旧単層と同一動学（分割は恒等・座礁だけが差分）
@@ -491,7 +491,7 @@ public static class EconomyStep
         }
         double effInd = region.ProductiveIndustrialization;   // 生産性チャネル＝座礁控除後（休眠時はIndustrializationに恒等）
         // 機械化度（技術的失業 no-labor-saving-tech-unemployment の駆動）：稼働資本の飽和カーブ∈[0,1)。LaborSaveRate=0で0固定＝EffectiveQtyで未使用＝中立。座礁した旧世代は稼働しない＝控除後を読む。
-        region.Mechanization = coef.LaborSaveRate > 0 ? effInd / (effInd + coef.LaborSaveIndHalf) : 0.0;
+        region.Mechanization = coef.LaborSaveRate > 0 ? Colonial.OutputCurve(effInd, coef.LaborSaveIndHalf) : 0.0;
         // 工業化由来の生産性は逓減（飽和カーブ）。固定上限を持たずに頭打ちになるので、上限を外しても発散しない。
         double indMult = cap
             ? 1.0 + coef.IndProductivityGain * effInd / (1.0 + effInd / coef.IndProductivityScale)
@@ -827,8 +827,7 @@ public static class EconomyStep
             // RailCoalRate=0 なら railCoalGate=0＝需要側・決済側とも1命令も足さない（★2026-08-29点火＝既定0.22）。導出は係数コメント（Coefficients.RailCoalRate）。
             if (coef.RailCoalRate > 0 && railLoco && Catalog.CoalId < ng)
             {
-                railCoalGate = Math.Clamp((region.TechLevel - coef.SteamTechOnset) / coef.SteamTechWidth, 0.0, 1.0);
-                if (!(railCoalGate >= 0 && railCoalGate <= 1)) railCoalGate = 0;   // 否定形＝NaNは蒸気以前へ
+                railCoalGate = PoliticalQuantities.Clamp01((region.TechLevel - coef.SteamTechOnset) / coef.SteamTechWidth);   // NaN は Clamp01 が0＝蒸気以前へ
                 maintCostPerUnit += coef.RailCoalRate * railCoalGate * Math.Max(region.Markets[Catalog.CoalId].Price, Eps);
             }
             double maintBudget = Math.Max(0, budget - construction * buildCostPerUnit);
@@ -911,7 +910,7 @@ public static class EconomyStep
             }
             else if (coef.NavalProcurementFromShape > 0 && region.ShapeNavalShare >= 0)
             {
-                double want = Math.Clamp(region.ShapeNavalShare, 0, 1);
+                double want = PoliticalQuantities.Clamp01(region.ShapeNavalShare);
                 double k = coef.NavalProcurementFromShape;
                 if (flatShare > Eps && flatShare < 1 - Eps)
                 {
@@ -1163,7 +1162,7 @@ public static class EconomyStep
         // === ② 工場の投入需要 ＋ 財ごとの生産者数。電化の意思決定もここ ===
         bool elecOn = Catalog.ElectricityId < ng && isService.Length > Catalog.ElectricityId;   // 電力を持つ世界か（小シナリオは対象外）
         bool energyOn = coef.EnergyPerOutput > 0 && Catalog.CoalId < ng;   // #9 石炭動力を持つ世界か（石炭good非搭載の最小テスト経済では inputNeed[CoalId] が範囲外になるので必須ガード＝電化の elecOn と同型）
-        double steamGate = energyOn ? Math.Clamp((region.TechLevel - coef.SteamTechOnset) / coef.SteamTechWidth, 0.0, 1.0) : 0.0;   // 蒸気機関の発明・普及度（電化の AdvancedTechScale(電力) と同役）。0=未発明＝石炭を焚かない（1789年の蒸気の時代錯誤を解消）
+        double steamGate = energyOn ? PoliticalQuantities.Clamp01((region.TechLevel - coef.SteamTechOnset) / coef.SteamTechWidth) : 0.0;   // 蒸気機関の発明・普及度（電化の AdvancedTechScale(電力) と同役）。0=未発明＝石炭を焚かない（1789年の蒸気の時代錯誤を解消）
         var elecNeed = scratch.ElecNeed;
         var steamNeed = scratch.SteamNeed;  // 蒸気動力化した工場の石炭（燃料）購入量。電化分は電力が代替（(1−ElecFill)）。energyOn かつ steamGate>0 でのみ立つ（旧：全機械化工場が無条件で焚いていた＝時代錯誤を是正）
         var effNeed = scratch.EffNeed;      // RGO効率化材の購入量
@@ -1321,7 +1320,7 @@ public static class EconomyStep
             if (gi == Catalog.HealthcareId)
             {
                 // 衛生＝上下水道(InfraFill)＋石鹸消費(SoapFill)＋電化インフラ(ElecInfraFill)の上乗せ（公衆衛生＝清潔/電動上水。医療品ほどではない＝控えめ）。施設/石鹸の無い世界は従来どおり疫病なし
-                double sanitation = Math.Clamp(region.InfraFill + coef.SoapSanitationWeight * region.SoapFill + coef.ElecInfraSanitationWeight * region.ElecInfraFill, 0.0, 1.0);
+                double sanitation = PoliticalQuantities.Clamp01(region.InfraFill + coef.SoapSanitationWeight * region.SoapFill + coef.ElecInfraSanitationWeight * region.ElecInfraFill);
                 double diseasePressure = totalPop > Eps ? (urbanPop / totalPop) * (1.0 - sanitation) : 0;
                 effBaseNeed *= 1.0 + coef.HealthCrowdingBoost * diseasePressure;
             }
@@ -1361,7 +1360,7 @@ public static class EconomyStep
                 //   ＝旧の飽和点0.5（OpiumMiseryScale=2）の分位の写像は満足度0の原子に落ちて定義できない（旧は人口の16.8%が0.5未満）。
                 //   経済の行動であって政治の量ではない＝食料の二重計上にならない（思想⑨）。
                 if (gi == coef.OpiumGoodId && coef.OpiumAddictionGrowth > 0)
-                    p.GoodNeed = (good.BaseNeed * Math.Clamp(coef.OpiumMiseryScale * (1.0 - lastSupply[pIdx]), 0, 1) + region.OpiumAddiction) * p.Size;
+                    p.GoodNeed = (good.BaseNeed * PoliticalQuantities.Clamp01(coef.OpiumMiseryScale * (1.0 - lastSupply[pIdx])) + region.OpiumAddiction) * p.Size;
                 double marketNeed = staple ? p.GoodNeed * (1.0 - p.Subsistence) : p.GoodNeed;   // 自給分は市場に出さない（農民）
                 double demand = 0;
                 if (marketNeed > 0)
@@ -1420,9 +1419,9 @@ public static class EconomyStep
             if (gi == coef.SoapGoodId) region.SoapFill = ration[gi];   // 石鹸の消費充足＝衛生(公衆衛生)へ（疫病ブロックで sanitation に加算）
             // 1934拡張E3：新聞/ラジオの per-pop 充足（予算×配給で実際に読めた率）。国民意識（CrownParliament）と政治意識（Politics）が読む。
             if (gi == Catalog.NewspaperId)
-                foreach (var p in region.Pops) p.NewsFill = p.GoodNeed > Eps ? Math.Clamp(p.GoodDemand * ration[gi] / p.GoodNeed, 0, 1) : 0;
+                foreach (var p in region.Pops) p.NewsFill = p.GoodNeed > Eps ? PoliticalQuantities.Clamp01(p.GoodDemand * ration[gi] / p.GoodNeed) : 0;
             else if (gi == Catalog.RadioId)
-                foreach (var p in region.Pops) p.RadioFill = p.GoodNeed > Eps ? Math.Clamp(p.GoodDemand * ration[gi] / p.GoodNeed, 0, 1) : 0;
+                foreach (var p in region.Pops) p.RadioFill = p.GoodNeed > Eps ? PoliticalQuantities.Clamp01(p.GoodDemand * ration[gi] / p.GoodNeed) : 0;
             if (housingGood) region.HousingFill = housingGate > 0 ? ration[gi] : 1.0;   // 住居充足＝移民摩擦へ。都市化ゲート未満の州＝住居需要なし＝過密なし(1.0)
             // （レビュー2026-07-19 HIGH：旧は ration=0/0=0 を全農村州に書き、摩擦0.5点火で農村の移民引力だけ×0.5＝「過密都市は流入が鈍る」の意図が逆転しロンドン一強を強化していた）
             // 効率化材は**最低優先**＝コアを満たした残余だけ買える（工具を機械が先取り→建設は遅延しない）。
@@ -1504,7 +1503,7 @@ public static class EconomyStep
                     // ★行政を通る給付（作者裁定2026-09-08）：EduReachFromAdmin=0 で ×1.0＝厳密恒等。AdminFill は前月値（書き手は同月の後段）。
                     // ⚠ take が NaN なら下の判定が false ＝給付をスキップ（否定形の番人。Math.Clamp は NaN を除かない）。
                     double take = Math.Min(remaining, unmet * region.CompulsoryEduFunding
-                        * (coef.EduReachFromAdmin > 0 ? 1.0 - coef.EduReachFromAdmin * (1.0 - Math.Clamp(region.AdminFill, 0, 1)) : 1.0));
+                        * (coef.EduReachFromAdmin > 0 ? 1.0 - coef.EduReachFromAdmin * (1.0 - PoliticalQuantities.Clamp01(region.AdminFill)) : 1.0));
                     if (take > 1e-12)
                     {
                         double gr = take / unmet;   // Σ_p need×(1−fill)×gr ＝ unmet×gr ＝ take（保存）
@@ -2061,11 +2060,11 @@ public static class EconomyStep
                         bool seaG = System.Array.IndexOf(coef.FleetGoodIds, gs) >= 0;
                         if (!seaG) { tWantLand += need; tGotLand += Math.Min(a, need); }
                     }
-                    tFill = sWant > Eps ? Math.Clamp(sHave / sWant, 0, 1) : 0.0;
+                    tFill = sWant > Eps ? PoliticalQuantities.Clamp01(sHave / sWant) : 0.0;
                 }
                 else
-                tFill = tWant > Eps ? Math.Clamp(tGot / tWant, 0, 1) : 0.0;
-                return (tFill, tWantLand > Eps ? Math.Clamp(tGotLand / tWantLand, 0, 1) : 0.0);   // 分子分母とも MilitaryScale 比例＝痩せても比は跳ねない
+                tFill = tWant > Eps ? PoliticalQuantities.Clamp01(tGot / tWant) : 0.0;
+                return (tFill, tWantLand > Eps ? PoliticalQuantities.Clamp01(tGotLand / tWantLand) : 0.0);   // 分子分母とも MilitaryScale 比例＝痩せても比は跳ねない
             }
 
             // 上位軍需の充足率＝戦力の質的乗数（Diplomacy が Power.Military を 1+Bonus×これ で増幅）
@@ -2091,7 +2090,7 @@ public static class EconomyStep
                     revenue[gi] += pay;
                     region.StateSpent[(int)TreasuryCat.Army] += pay;
                 }
-                region.MilitaryAirFill = aWant > Eps ? Math.Clamp(aGot / aWant, 0, 1) : 0.0;
+                region.MilitaryAirFill = aWant > Eps ? PoliticalQuantities.Clamp01(aGot / aWant) : 0.0;
                 // 運用コスト監査2026-08-16 #4：空軍燃料の決済＋充足の乗算合成（新フィールドを増やさない＝AirPower=Military×MilitaryAirFill の既存経路に燃料が噛む）。
                 // ⚠aWant（分母）には一切触れない＝既定0（airFuelWant=0）で分岐ごと不実行＝厳密恒等。燃料が買えない空軍は飛べない（fill×=燃料充足）。
                 if (airFuelWant > 0 && airFuelNeed > Eps && Catalog.CrudeOilId < ng)
@@ -2100,8 +2099,7 @@ public static class EconomyStep
                     double afPay = afGot * clearPrice[Catalog.CrudeOilId];
                     revenue[Catalog.CrudeOilId] += afPay;
                     region.StateSpent[(int)TreasuryCat.Army] += afPay;
-                    double fuelFill = Math.Clamp(afGot / airFuelNeed, 0, 1);
-                    if (!(fuelFill >= 0 && fuelFill <= 1)) fuelFill = 0;   // 否定形＝NaNは飛べない側へ（Clampは NaN を消さない）
+                    double fuelFill = PoliticalQuantities.Clamp01(afGot / airFuelNeed);   // NaN は Clamp01 が0＝飛べない側へ
                     region.MilitaryAirFill *= fuelFill;
                 }
             }
@@ -2165,7 +2163,7 @@ public static class EconomyStep
             double pay = got * clearPrice[Catalog.AdminId];
             revenue[Catalog.AdminId] += pay;
             region.StateSpent[(int)TreasuryCat.Admin] += pay;
-            region.AdminFill = adminNeed > Eps ? Math.Clamp(got / adminNeed, 0, 1) : 1.0;
+            region.AdminFill = adminNeed > Eps ? PoliticalQuantities.Clamp01(got / adminNeed) : 1.0;
         }
 
         // 上下水道の決済：国家が買った上下水道の支払い（→施設＝建設会社の売上・国庫→popで保存）。充足率＝衛生。
@@ -2175,7 +2173,7 @@ public static class EconomyStep
             double pay = got * clearPrice[Catalog.InfrastructureId];
             revenue[Catalog.InfrastructureId] += pay;
             region.StateSpent[(int)TreasuryCat.Admin] += pay;
-            region.InfraFill = infraNeed > Eps ? Math.Clamp(got / infraNeed, 0, 1) : 1.0;
+            region.InfraFill = infraNeed > Eps ? PoliticalQuantities.Clamp01(got / infraNeed) : 1.0;
         }
 
         // 電化インフラの決済（上下水道と同型）：充足率を保存（満足度＋衛生＋送電容量の便益に使う）。施設の無い世界は ElecInfraFill=0＝便益なし。
@@ -2185,7 +2183,7 @@ public static class EconomyStep
             double pay = got * clearPrice[Catalog.ElecInfraId];
             revenue[Catalog.ElecInfraId] += pay;
             region.StateSpent[(int)TreasuryCat.Admin] += pay;
-            region.ElecInfraFill = elecInfraNeed > Eps ? Math.Clamp(got / elecInfraNeed, 0, 1) : 0.0;
+            region.ElecInfraFill = elecInfraNeed > Eps ? PoliticalQuantities.Clamp01(got / elecInfraNeed) : 0.0;
         }
 
         // 兵力の決済：国家が買った兵力の支払い（→兵士の売上＝給与・国庫→兵士で保存）。買えない月は兵士の収入が絶える＝充足↓＝弱兵。
@@ -2295,7 +2293,7 @@ public static class EconomyStep
             // 産業政策 レバー1（2026-07-24）：補助依存ストックの月次更新＝国庫が赤字を埋めて操業した月に漸増・自立（黒字 or 支え手なし）で同率漸減。
             // 読み手は供給①の SubsidySoftBudgetDecay（0.4 で live＝実効生産性を蝕む）。
             bool propped = valueAdded < 0 && (stateCover > Eps || subRate > Eps);
-            s.SubsidyDependence = Math.Clamp(s.SubsidyDependence + (propped ? coef.SubsidyDependenceRate : -coef.SubsidyDependenceRate), 0, 1);
+            s.SubsidyDependence = PoliticalQuantities.Clamp01(s.SubsidyDependence + (propped ? coef.SubsidyDependenceRate : -coef.SubsidyDependenceRate));
             region.Pops[s.OwnerPopIndex].Earned += rent;
             region.Pops[s.LaborPopIndex].Earned += wages;
             if (s.IsRgo && rent > 0) region.Pops[s.OwnerPopIndex].LandRent += rent;   // RGOの地代（封建貢租）＝土地税の課税ベース（Fiscal）
@@ -2409,9 +2407,9 @@ public static class EconomyStep
             //   ★階層3分割（作者裁定2026-09-20・2026-09-22 既定化）＝この比の中身は「日用品の不足＝不満」と「嗜好品が買えた＝上振れ」だけ。
             //     食料の欠乏は FoodMet/FoodNeed → FamineDrive → 闘争度 の1本へ移った（満足度の水準は主食が抜けたぶん構造的に下がる＝読み手の門は分位の写像で導き直し済み）。
             //   ★その逆（1−これ）が政治へ向かう（Politics.cs の want）。
-            p.Satisfaction = p.NeedTotal > Eps ? Math.Clamp(p.NeedMet / p.NeedTotal, 0, 1) : 1.0;
+            p.Satisfaction = p.NeedTotal > Eps ? PoliticalQuantities.Clamp01(p.NeedMet / p.NeedTotal) : 1.0;
             // 組合の非物質的厚生（LaborWellbeing＝UnionSatBonus×組織率・休眠0）：大衆POP（非特権・非エリート・非兵士）の満足度↑
-            if (Politics.IsMassPop(p) && region.LaborWellbeing > 0) p.Satisfaction = Math.Clamp(p.Satisfaction + region.LaborWellbeing, 0, 1);
+            if (Politics.IsMassPop(p) && region.LaborWellbeing > 0) p.Satisfaction = PoliticalQuantities.Clamp01(p.Satisfaction + region.LaborWellbeing);
         }
 
         // （退蔵の取り崩し＝HoardDishoardRate は 2026-09-26 に削除＝#66 で却下された休眠の枝）
@@ -2428,7 +2426,7 @@ public static class EconomyStep
                 // 農業労働は自給分（自作＝市場外の雇用）を失業から除く：高自給の貧農の自作を「失業」と数えない
                 // （主食消費は §EconomyStep で自給ぶんを FoodMet に計上済み＝労働側もこれと整合）。工場労働は全量が市場労働＝従来どおり。
                 if (s.GoodId == Catalog.FarmLaborId) unsold -= lpop.Subsistence;
-                lpop.UnemploymentRate = Math.Clamp(unsold, 0, 1);
+                lpop.UnemploymentRate = PoliticalQuantities.Clamp01(unsold);
             }
 
         // rank11（ServiceUnemployment=1.0点火2026-08-16・社会移動監査2026-08-15）：役務専任popの失業＝教育→教師/医療→医者/行政→官僚/家事奉仕→使用人。
@@ -2443,7 +2441,7 @@ public static class EconomyStep
                     var sp = region.Pops[s.LaborPopIndex];
                     if (sp.IsSoldier) continue;
                     double unsold = m.LastProduced > Eps ? 1.0 - m.LastSold / m.LastProduced : 0;
-                    sp.UnemploymentRate = Math.Clamp(coef.ServiceUnemployment * unsold, 0, 1);
+                    sp.UnemploymentRate = PoliticalQuantities.Clamp01(coef.ServiceUnemployment * unsold);
                 }
 
         // rank10b（JobSearchUsesEma=0.02点火2026-08-16＝月次EMA率・記憶約4年）：慢性失業の記憶＝失業プールの駆動を瞬間UでなくU多年EMAへ。

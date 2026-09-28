@@ -32,8 +32,7 @@ public static class PowerShares
     public static double PrivilegeIntact(World w)
     {
         double serf = w.SerfEmancipation switch { ReformLevel.None => 1.0, ReformLevel.Limited => 0.5, _ => 0.0 };
-        double taxExempt = 1.0 - System.Math.Clamp(w.LandTax + w.ProgressiveTax, 0, 1);
-        if (!(taxExempt >= 0 && taxExempt <= 1)) taxExempt = 1.0;   // 否定形（NaNは「手を付けていない」側へ）
+        double taxExempt = 1.0 - PoliticalQuantities.Clamp01(w.LandTax + w.ProgressiveTax);   // NaN は Clamp01 が0＝「手を付けていない」側（1.0）へ
         double estate = w.Bureaucracy switch { BureaucracyLaw.Spoils => 1.0, BureaucracyLaw.MeritExam => 0.5, _ => 0.0 };
         double v = (serf + taxExempt + estate) / 3.0;
         return !(v >= 0 && v <= 1) ? 0.5 : v;
@@ -44,12 +43,9 @@ public static class PowerShares
     /// ⚠**インフラは0**として扱う＝現物に「国家が供給するインフラ」の単一スカラーが無い（巨大建造物は離散イベント）。</summary>
     public static double StatePatronage(World w)
     {
-        double tariff = System.Math.Clamp(w.Tariff, 0, 1);
-        if (!(tariff >= 0 && tariff <= 1)) tariff = 0;
-        double orders = System.Math.Clamp(w.MilitarySpending, 0, 1);
-        if (!(orders >= 0 && orders <= 1)) orders = 0;
-        double order = System.Math.Clamp(w.PublicOrder, 0, 1);
-        if (!(order >= 0 && order <= 1)) order = 0;
+        double tariff = PoliticalQuantities.Clamp01(w.Tariff);
+        double orders = PoliticalQuantities.Clamp01(w.MilitarySpending);
+        double order = PoliticalQuantities.Clamp01(w.PublicOrder);
         return (tariff + orders + order) / 3.0;
     }
 
@@ -87,8 +83,7 @@ public static class PowerShares
         double tot = annual + standing;
         double taxGrip = !(tot > 1e-12) ? 0 : annual / tot;
         if (!(taxGrip >= 0 && taxGrip <= 1)) taxGrip = 0;
-        double debtGrip = System.Math.Clamp(System.Math.Max(0, w.GovDebt) / System.Math.Max(1.0, w.NominalGdp), 0, 1);
-        if (!(debtGrip >= 0 && debtGrip <= 1)) debtGrip = 0;
+        double debtGrip = PoliticalQuantities.Clamp01(System.Math.Max(0, w.GovDebt) / System.Math.Max(1.0, w.NominalGdp));
         double v = 1.0 - (1.0 - taxGrip) * (1.0 - debtGrip);
         return !(v >= 0 && v <= 1) ? 0 : v;
     }
@@ -105,8 +100,7 @@ public static class PowerShares
         double floor = 0;
         if (w.AtWarNow && c.WartimeUpkeepFloor > 0)
             floor = System.Math.Max(floor, (w.ArmyUpkeep + w.NavyUpkeep) * c.WartimeUpkeepFloor);
-        double v = System.Math.Clamp(floor, 0, 1);
-        return !(v >= 0 && v <= 1) ? 0 : v;
+        return PoliticalQuantities.Clamp01(floor);   // NaN は Clamp01 が0へ
     }
 
     /// <summary>★★★**議会の実効統制**∈[0,1]＝<code>形式上の統制 × 歳入の掌握 ×（1 − 年次審議の外の歳出）</code>。
@@ -128,15 +122,13 @@ public static class PowerShares
     public static double CivilianInstitutions(World w)
     {
         double parliament = ParliamentEffective(w);   // ★形式上でなく**実効**（歳入を止められるか）で測る＝史学検証4
-        double bureau = System.Math.Clamp(PoliticalQuantities.BureaucracyDepth(w.Bureaucracy), 0, 1);   // ★既存の唯一実装を読む
-        double parties = System.Math.Clamp(Ideologies.Openness(w.Suffrage), 0, 1);
-        if (!(parties >= 0 && parties <= 1)) parties = 0;
+        double bureau = PoliticalQuantities.Clamp01(PoliticalQuantities.BureaucracyDepth(w.Bureaucracy));   // ★既存の唯一実装を読む
+        double parties = PoliticalQuantities.Clamp01(Ideologies.Openness(w.Suffrage));
         // ★4本目＝正統性（史学検証5・東アジア）。**不処罰は累積する**（日本1928張作霖爆殺の行政処分のみ→三月事件の処罰なし→
         //   十月事件の20日謹慎→満州事変と朝鮮軍の越境が無処罰で当人は後に首相→五・一五の助命嘆願11万通）。
         //   ⚠これを新しいストックで書かない——**介入が成功して罰されなければ正統性が落ち、次の介入が容易になる**が
         //   ここに入っていれば自動で閉じる。断ち切ったのが「体制が覆せない唯一のアクター」だったことも正統性の側の量。
-        double legitimacy = System.Math.Clamp(w.Legitimacy, 0, 1);
-        if (!(legitimacy >= 0 && legitimacy <= 1)) legitimacy = 0;
+        double legitimacy = PoliticalQuantities.Clamp01(w.Legitimacy);
         double v = (parliament + bureau + parties + legitimacy) / 4.0;
         return !(v >= 0 && v <= 1) ? 0 : v;
     }

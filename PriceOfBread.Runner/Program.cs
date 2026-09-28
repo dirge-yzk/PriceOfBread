@@ -948,11 +948,11 @@ if (args.Length > 0 && args[0] == "diploprobe")
         var ns = dpm.Nations.Where(n => n.World.SelfPower is not null).ToList();
         var vec = ns.Select(n => DiploCore.SupplyVector(n.World)).ToList();
         // ★観測v2：⑧はDiploCore側で対外資本ポジションから出す（中央値正規化は撤去）。Pは逓減つき相対（§5-2）
-        double maxMil = System.Math.Max(1e-9, ns.Max(n => DiploCore.MilitaryDiminished(n.World.SelfPower!.Military)));
+        double maxMil = System.Math.Max(1e-9, ns.Max(n => NationalScore.Military(n.World)));
         Console.WriteLine($"=== {label}：sベクトル（P=軍事力/世界最大） ===");
         Console.WriteLine("  国            P    " + string.Join(" ", DiploCore.CatNames.Select(c => c.PadRight(4))));
         foreach (var (n, v) in ns.Zip(vec))
-            Console.WriteLine($"  {n.World.SelfPower!.Name,-12} {DiploCore.MilitaryDiminished(n.World.SelfPower.Military) / maxMil,4:F2} " + string.Join(" ", v.Select(x => $"{x,5:F2}")) + $"  金融生値{(n.World.CapitalAbroad - n.World.ForeignCapitalIn) / System.Math.Max(1.0, n.World.NominalGdp),7:F3}");
+            Console.WriteLine($"  {n.World.SelfPower!.Name,-12} {NationalScore.Military(n.World) / maxMil,4:F2} " + string.Join(" ", v.Select(x => $"{x,5:F2}")) + $"  金融生値{(n.World.CapitalAbroad - n.World.ForeignCapitalIn) / System.Math.Max(1.0, n.World.NominalGdp),7:F3}");
         // 全ペアのコア項（交易到達＝首都間距離の仮関数13i）
         var pairs = new List<(string a, string b, double core, double comp, double reach)>();
         for (int i = 0; i < ns.Count; i++)
@@ -961,8 +961,8 @@ if (args.Length > 0 && args[0] == "diploprobe")
                 var wa = ns[i].World; var wb = ns[j].World;
                 double km = Geo.DistanceKm(wa.Latitude, wa.Longitude, wb.Latitude, wb.Longitude);
                 double reach = DiploCore.ReachInterim(km);
-                double core = DiploCore.CoreTerm(vec[i], vec[j], DiploCore.MilitaryDiminished(wa.SelfPower!.Military) / maxMil, DiploCore.MilitaryDiminished(wb.SelfPower!.Military) / maxMil, reach);
-                pairs.Add((wa.SelfPower.Name, wb.SelfPower.Name, core, DiploCore.Complement(vec[i], vec[j]), reach));
+                double core = DiploCore.CoreTerm(vec[i], vec[j], NationalScore.Military(wa) / maxMil, NationalScore.Military(wb) / maxMil, reach);
+                pairs.Add((wa.SelfPower!.Name, wb.SelfPower!.Name, core, DiploCore.Complement(vec[i], vec[j]), reach));
             }
         Console.WriteLine("  --- 敵対上位15（コア項が負） ---");
         foreach (var pr in pairs.OrderBy(x => x.core).Take(15))
@@ -1032,8 +1032,8 @@ if (args.Length > 0 && args[0] == "diploprobe")
             if (ia < 0 || ib < 0 || ia == ib) continue;
             var wa = ns[ia].World; var wb = ns[ib].World;
             double km2 = Geo.DistanceKm(wa.Latitude, wa.Longitude, wb.Latitude, wb.Longitude);
-            double core2 = DiploCore.CoreTerm(vec[ia], vec[ib], DiploCore.MilitaryDiminished(wa.SelfPower!.Military) / maxMil, DiploCore.MilitaryDiminished(wb.SelfPower!.Military) / maxMil, DiploCore.ReachInterim(km2));
-            Console.WriteLine($"    {wa.SelfPower.Name}×{wb.SelfPower.Name}  コア項{core2,7:F3}  補完度{DiploCore.Complement(vec[ia], vec[ib]),7:F3}");
+            double core2 = DiploCore.CoreTerm(vec[ia], vec[ib], NationalScore.Military(wa) / maxMil, NationalScore.Military(wb) / maxMil, DiploCore.ReachInterim(km2));
+            Console.WriteLine($"    {wa.SelfPower!.Name}×{wb.SelfPower!.Name}  コア項{core2,7:F3}  補完度{DiploCore.Complement(vec[ia], vec[ib]),7:F3}");
         }
     }
     DpDump("1783（助走明けQ0）");
@@ -1809,7 +1809,7 @@ if (args.Length > 0 && args[0] == "endowprobe")
 //   1表で切り分ける。取引の成立条件（BilateralMarket の成約判定）＝ lp買 > lp売×(1+margin+wedge) なので、
 //   国家間の価格分散（max/min）が (1+margin+wedge) を下回れば貿易はゼロ＝どの項が支配的かを財別・年代別に出す。
 //   ⚠下の margin/wedge は近似（旧式・リスク0前提）：現行 BilateralMarket は TreatyPortTariffScale・穀物チェーンゲート・
-//   buyDear・adValoremRev・DistanceScaleKm も持つ（この計器は複製していない＝式の二重定義を避けて概形だけ見る）。
+//   buyDear・adValoremRev・Diplomacy.DistanceNormKm も持つ（この計器は複製していない＝式の二重定義を避けて概形だけ見る）。
 if (args.Length > 0 && args[0] == "tradewhy")
 {
     int twQ = ArgInt(args, 1, 524);

@@ -64,7 +64,7 @@ public static class Factions
             // 結束の成長＝意識ある層ほど組織が速い（指導部の創発）。変異済みは2倍（旗の下の凝集）。
             double consc = consciousnessByBloc[bloc] ??= BlocConsciousness(w, bloc);
             double growth = c.FactionCohesionGrowth * (0.5 + consc) * (st.Mutated ? 2.0 : 1.0);
-            st.Cohesion = System.Math.Clamp(st.Cohesion + growth * (1.0 - st.Cohesion), 0, 1);
+            st.Cohesion = PoliticalQuantities.Clamp01(st.Cohesion + growth * (1.0 - st.Cohesion));
             // 2) 変異のロール（1クラスタ1回まで・危機×結束のみ・独立RNG系列）
             if (!st.Mutated && st.Cohesion >= MutationCohesionGate)   // 変異は結束した運動体のみ（頻度絞り2026-07-12＝旗は安売りしない）
             {
@@ -125,7 +125,7 @@ public static class Factions
                     if ((ca.Lat == 0 && ca.Lon == 0) || (cb.Lat == 0 && cb.Lon == 0)) continue;
                     if (Geo.DistanceKm(ca.Lat, ca.Lon, cb.Lat, cb.Lon) > c.FactionMergeRangeKm) continue;
                     var big = a.Size >= b.Size ? a : b; var small = big == a ? b : a;
-                    big.Cohesion = System.Math.Clamp(big.Cohesion + c.FactionMergeCohesionGain * small.Cohesion, 0, 1);
+                    big.Cohesion = PoliticalQuantities.Clamp01(big.Cohesion + c.FactionMergeCohesionGain * small.Cohesion);
                     big.Rejections = System.Math.Max(big.Rejections, small.Rejections);   // 怨嗟は深い方が残る
                     small.Cohesion = 0; small.AbsentQuarters = (int)c.FactionForgetQuarters;   // 吸収＝次の掃除で自然消滅（即Removeせず走査を壊さない）
                     merged.Add(big); merged.Add(small);

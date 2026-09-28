@@ -7,7 +7,7 @@
 public static class NationalScore
 {
     // マジックナンバー命名（挙動不変・値据え置き）：スコア合成の重み/スケール/上限。
-    private const double MilitaryDiminishingCap = 12.0;   // 軍事項の逓減キャップ
+    private const double MilitaryDiminishingCap = 12.0;   // 軍事項の逓減キャップ（Runner の外交の観測 dpdump も Military() を読む＝旧 DiploCore.MilitaryDiminished の写経 12.0／2.0 は 2026-09-28 に削除）
     private const double GdpScaleDivisor = 12000.0;       // 経済規模の基準スケール
     private const double GdpDiminishingDivisor = 12.0;    // 経済規模の限界逓減
     private const double IndustrializationWeight = 9.0;   // 近代産業の重み
@@ -28,7 +28,7 @@ public static class NationalScore
     {
         double now = Of(w);
         if (double.IsNaN(w.ScoreStanding)) { w.ScoreStanding = now; return; }   // 開始時の種＝そのときの実力
-        double r = System.Math.Clamp(w.Coef.ScoreInertiaRate, 0, 1);
+        double r = PoliticalQuantities.Clamp01(w.Coef.ScoreInertiaRate);
         w.ScoreStanding += (now - w.ScoreStanding) * r;
     }
     // 規模偏重の是正（ユーザ指定）：GDP（＝人口×生産＝規模に比例）と軍（兵数＝人口に比例）の比重を下げ、
@@ -288,7 +288,7 @@ public sealed class UtilityAgent : INationAgent
     {
         double easeInd = 1 - fiscalStress;
         double ceil = EffectiveIndCeiling(w);   // ★鋼市場診断#1（2026-08-16）：プレイヤー自動化もAIと同じ包絡（この関数の存在理由＝対称）。既定0＝定数2.5＝ビット恒等
-        double indGap = System.Math.Clamp((ceil - w.MeanIndustrialization) / ceil, 0, 1);
+        double indGap = PoliticalQuantities.Clamp01((ceil - w.MeanIndustrialization) / ceil);
         return System.Math.Max(0, indGap * easeInd * ModernizeInvestFrac);
     }
 
@@ -470,13 +470,13 @@ public sealed class UtilityAgent : INationAgent
                 survival = w.Coef.SurvivalMilitaryWeight * Math.Clamp(ratio - w.Coef.SurvivalThreatRatio, 0, SurvivalRatioCap);
                 // ★②2026-08-26：見込みの薄さで割り引く（SurvivalHopelessScale=0 では分岐に入らない＝厳密恒等）。
                 if (w.Coef.SurvivalHopelessScale > 0)
-                    survival *= 1.0 - w.Coef.SurvivalHopelessScale * (1.0 - Math.Clamp(w.Coef.SurvivalThreatRatio / ratio, 0, 1));
+                    survival *= 1.0 - w.Coef.SurvivalHopelessScale * (1.0 - PoliticalQuantities.Clamp01(w.Coef.SurvivalThreatRatio / ratio));
             }
         }
         // 軍国の脱出弁（生存）：破産寸前（国庫逼迫>0.5）は軍国教義の底上げ2.5を緩め、緊縮(uFis)へ舵を切れるようにする。
         // 旧実装は軍国が固定2.5で福祉/緊縮を数学的に選べず、軍事費0.7＋逆進課税満額のまま破産スパイラルで見殺しになった（AI監査2026-07-06）。脅威(tension/survival)は残すので本当に攻められている時は軍拡を続ける。
-        double militaristBase = (doctrine == Doctrine.Militarist ? MilitaristBaseUtility : 0.0) * (1.0 - Math.Clamp((fiscalNeed - MilitaristEscapeThreshold) / MilitaristEscapeThreshold, 0, 1));
-        double tensionTerm = TensionUtilityWeight * Math.Clamp(tension / TensionNormalizer, 0, 1);   // ★2026-08-26：計器が読むための命名のみ（評価順は ((mb+t)+cd)+s のまま＝ビット恒等）
+        double militaristBase = (doctrine == Doctrine.Militarist ? MilitaristBaseUtility : 0.0) * (1.0 - PoliticalQuantities.Clamp01((fiscalNeed - MilitaristEscapeThreshold) / MilitaristEscapeThreshold));
+        double tensionTerm = TensionUtilityWeight * PoliticalQuantities.Clamp01(tension / TensionNormalizer);   // ★2026-08-26：計器が読むための命名のみ（評価順は ((mb+t)+cd)+s のまま＝ビット恒等）
         double uMil = militaristBase + tensionTerm + colonyDefense + survival;
 
         // 第5段5-2（2026-07-27）体制AIに目：旧SelfPlayはLegitimacy/AvgMassMilitancyを一切読まず「革命が見えないAI」だった（中核ルールdoc §1-1）。
@@ -899,9 +899,9 @@ public sealed class UtilityAgent : INationAgent
     internal static void SetNavalUpkeepShare(World w)
     {
         if (w.SelfPower is not { } sp || w.Diplomacy is not { } dip) return;   // 単一国（テスト・較正）では走らせない
-        double share = Math.Clamp(dip.GeoNavalShare(sp, w.Coef), 0, 1);
+        double share = PoliticalQuantities.Clamp01(dip.GeoNavalShare(sp, w.Coef));
         var p = w.Policy;
-        double total = Math.Clamp(p.ArmyUpkeepTarget + p.NavyUpkeepTarget, 0, 1);
+        double total = PoliticalQuantities.Clamp01(p.ArmyUpkeepTarget + p.NavyUpkeepTarget);
         p.NavyUpkeepTarget = total * share;
         p.ArmyUpkeepTarget = total - p.NavyUpkeepTarget;
     }
@@ -965,7 +965,7 @@ public sealed class UtilityAgent : INationAgent
         if (pr.LaborPopIndex >= 0 && pr.LaborPopIndex < rg.Pops.Count)
         {
             var lp = rg.Pops[pr.LaborPopIndex];
-            if (lp.Size > 1e-9) idle = Math.Clamp(lp.UnemploymentRate, 0, 1);
+            if (lp.Size > 1e-9) idle = PoliticalQuantities.Clamp01(lp.UnemploymentRate);
         }
         return new(eff * (1.0 + FacilityBuildIdleWeight * idle), eff, worldOpened);
     }
@@ -1387,7 +1387,7 @@ public sealed class UtilityAgent : INationAgent
             // ★鋼市場診断#1（2026-08-16）：分母＝EffectiveIndCeiling＝α=0で定数2.5＝ビット恒等／AiIndustrialCeilingFrontier=α>0 で
             //   max(2.5, α×World.IndustrialFrontier)＝世界前線連動。★段階掃引0.6/0.8/1.0の結論＝**α=0.6で点火済み（live）**（露規模常勝の前科）。
             double indCeil = EffectiveIndCeiling(w);
-            double indGap = Math.Clamp((indCeil - w.MeanIndustrialization) / indCeil, 0, 1);
+            double indGap = PoliticalQuantities.Clamp01((indCeil - w.MeanIndustrialization) / indCeil);
             // ★採算で絞る（2026-08-03・作者指示「AIがより効果的に近代化投資を行うように」）：
             //   建設は鋼/機械/セメント/製材の**束**を買う。束が参照価格より高騰していると、同じ国庫で買える単位が減り、
             //   さらに需要を足すぶん価格を押し上げる＝**産出は増えず物価だけ上がる**。実測（indprobe）で英の鋼は

@@ -25,7 +25,7 @@ public static class Territory
                     w.Pay(TreasuryCat.Army, -unlockPay);   // 区分＝陸軍（作者裁定 Q14）
                     w.Pay(TreasuryCat.Army, World.Distribute(new List<Pop>(w.AllPops()), unlockPay));   // 軍事調達→pop へ還流（保存）。受け手不在＝国庫残置。★是正（監査G10#3）：Colonial/Diplomacyと同じAllPops基準の1本を共用（旧はSeceded凍結popも受け手に含めていた）
                     foreach (var p in w.AllPops())
-                        p.Militancy = Math.Clamp(p.Militancy + c.ForceUnlockMilitancy * w.FiscalFundingRatio, 0, 1);   // 制圧の不満（戦争疲弊）＝制圧の進み方（r）に比例
+                        p.Militancy = PoliticalQuantities.Clamp01(p.Militancy + c.ForceUnlockMilitancy * w.FiscalFundingRatio);   // 制圧の不満（戦争疲弊）＝制圧の進み方（r）に比例
                 }
                 else if (!r.Seceded)
                 {

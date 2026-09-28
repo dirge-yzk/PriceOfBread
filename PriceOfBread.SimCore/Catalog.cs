@@ -536,7 +536,7 @@ public static class Catalog
         if (id < 0 || id >= Complexity.Length) return 1.0;
         double onset = AdvancedOnset(id);
         if (onset <= 0) return 1.0;                    // 浅い財＝常に解禁
-        return System.Math.Clamp((techLevel - onset) / AdvancedTechWidth, 0.0, 1.0);
+        return PoliticalQuantities.Clamp01((techLevel - onset) / AdvancedTechWidth);
     }
 
     /// <summary>先進財の発明ゲートが開き始める技術水準（0＝無ゲート）。<see cref="AdvancedTechScale"/> が使うのと同じ1本の式＝
@@ -554,8 +554,8 @@ public static class Catalog
     /// ★onset&lt;0 は**退場**＝後継の解禁度を引いた割合 <c>1 − RecipeTechScale(−onset)</c>（2026-09-27 前期の軍需レシピ）。
     ///   同じ時計・同じ幅の裏返し＝能力・未発明の判定・操業規模0・生産タブの灰色化の全てが、この1本から退場を読む（新しい判定を作らない）。</summary>
     public static double RecipeTechScale(double onset, double techLevel)
-        => onset < 0 ? 1.0 - System.Math.Clamp((techLevel + onset) / AdvancedTechWidth, 0.0, 1.0)
-         : onset <= 0 ? 1.0 : System.Math.Clamp((techLevel - onset) / AdvancedTechWidth, 0.0, 1.0);
+        => onset < 0 ? 1.0 - PoliticalQuantities.Clamp01((techLevel + onset) / AdvancedTechWidth)
+         : onset <= 0 ? 1.0 : PoliticalQuantities.Clamp01((techLevel - onset) / AdvancedTechWidth);
 
     /// <summary>デフォルトレシピ（goods.json の Inputs）が「近代的な製法」で1789年には時代錯誤になる財の技術 onset。
     /// 旧法は AddAdvancedProducers / 合成ビルダーが onset=0 の代替レシピで早期供給する＝早期は旧法・晩期は近代法（創発的な製法転換）。0=無ゲート（大半の財）。</summary>

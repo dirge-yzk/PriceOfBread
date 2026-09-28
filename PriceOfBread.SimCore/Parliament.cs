@@ -326,7 +326,7 @@ public static class Parliament
         double Slide(double cur, bool staged = false)
             => staged
                 ? Government.TaxValue(a, StepTo(Government.TaxStage(a, cur), Government.TaxLawStages))   // ★錨2026-09-18＝段↔率の写像は Government の2本だけ（軸ごとの錨）
-                : System.Math.Clamp(cur + n * w.Coef.FactionConcessionSlider, 0, 1);
+                : PoliticalQuantities.Clamp01(cur + n * w.Coef.FactionConcessionSlider);
         switch (a)
         {
             case PolicyAxis.Suffrage: p.Suffrage = (Suffrage)StepTo((int)w.Suffrage, 3); break;

@@ -44,9 +44,9 @@ public static class Meritocracy
             // M ＝ 政体の近代性 ＋ 近代的利益団体の勢力割合
             // ★AUD-07（2026-09-03）：政体ラベルの固定表 → 身分の閉鎖度からの導出へ（MeritModernityFromClosed=0 で旧＝厳密恒等）。
             double modernity = c.MeritModernityFromClosed > 0
-                ? Math.Clamp(1.0 - closed / total, 0, 1) * c.MeritModernityFromClosed
+                ? PoliticalQuantities.Clamp01(1.0 - closed / total) * c.MeritModernityFromClosed
                 : PolityModernity(w.Polity);
-            double m = Math.Clamp(modernity + (modern / total) * c.MeritGroupWeight, 0, 1);
+            double m = PoliticalQuantities.Clamp01(modernity + (modern / total) * c.MeritGroupWeight);
             meritW += m * total; meritP += total;   // グローバル値は全州の人口加重平均でループ後に確定（per-regionの昇格は下で local m を使う）
 
             if (r.MeritFromIndex < 0 || r.MeritToIndex < 0) continue;
@@ -173,7 +173,7 @@ public static class Meritocracy
                         double f = Math.Min(c.ArtisanDeclineRate * artisan.Size * Math.Min(attract - 1.0, 1.0), artisan.Size);
                         if (c.CohortGateK > 0) f *= CohortGate(artisan, c);   // rank8（休眠）：所得差駆動の緩い没落＝非ショック（破産⑥は素通しのまま）
                         // ★特権 段4（同業組合・2026-09-07）：組合が職人を職に縛る＝工場への移動が法の度合×GuildMobilityDrag だけ遅れる（歪み＝表裏の裏）。0＝恒等
-                        if (c.GuildLawGate > 0 && c.GuildMobilityDrag > 0) f *= 1.0 - Math.Clamp(c.GuildMobilityDrag * Privileges.GuildDegree(w), 0, 1);
+                        if (c.GuildLawGate > 0 && c.GuildMobilityDrag > 0) f *= 1.0 - PoliticalQuantities.Clamp01(c.GuildMobilityDrag * Privileges.GuildDegree(w));
                         // 失業プール点火時は行き先も同経路（資格があれば専門職に踏み留まる職人＝没落一直線でない）
                         if (c.JobSearchRate > 0) RouteViaPool(r, w, m, avgPerCap, artisan, 1, f, secular, higherEdu, gateEma, c, forced: true);
                         else Move(artisan, from, f, c);
@@ -580,11 +580,11 @@ public static class Meritocracy
         double minorityF = w.EthnicEnabled
             ? Math.Max(0, 1.0 - c.MinorityPromotionPenalty * (1.0 - c.MinorityPenaltyModernBlend * m) * (1.0 - src.CoreEthnicShare))
             : 1.0;
-        if (target == r.BureaucratPopIndex) return Math.Clamp(src.Literacy * higherEdu * minorityF, 0, 1);
+        if (target == r.BureaucratPopIndex) return PoliticalQuantities.Clamp01(src.Literacy * higherEdu * minorityF);
         double gateEdu = higherEdu;
         if (c.PromotionGateOwnSchooling > 0)
             gateEdu = Math.Max(higherEdu, c.PromotionGateOwnSchooling * (gateEma ? src.EducationEma : src.EducationFill));
-        return Math.Clamp(src.Literacy * gateEdu * secular * minorityF, 0, 1);
+        return PoliticalQuantities.Clamp01(src.Literacy * gateEdu * secular * minorityF);
     }
 
     // ===== リアリティ監査 rank7(点火0.3)/rank8(休眠)/rank12(点火1.0)（作者裁定2026-08-16）の道具 =====
@@ -613,7 +613,7 @@ public static class Meritocracy
     {
         double f = c.FallAnchorReform;
         if (f <= 0 || shock) return 1.0;
-        double depth = threshold > Eps ? Math.Clamp((threshold - pc) / threshold, 0, 1) : 1.0;
+        double depth = threshold > Eps ? PoliticalQuantities.Clamp01((threshold - pc) / threshold) : 1.0;
         return (1.0 - f) + f * depth;
     }
 
@@ -661,9 +661,9 @@ public static class Meritocracy
         if (selectLiteracy && c.MigrationCarriesHumanCapital > 0 && c.PromotionLiteracySelection > 0 && srcSizeAfter > Eps)
         {
             // 選抜コホートの識字＝src平均＋選抜強度×(1−src平均)（上位ほど識字が高い方向）。残留は質量保存で下がる。
-            moveLit = Math.Clamp(srcLit + c.PromotionLiteracySelection * (1.0 - srcLit), 0, 1);
+            moveLit = PoliticalQuantities.Clamp01(srcLit + c.PromotionLiteracySelection * (1.0 - srcLit));
             double residualLit = (srcLit * fromPop.Size - moveLit * flow) / srcSizeAfter;
-            fromPop.Literacy = Math.Clamp(residualLit, 0, 1);
+            fromPop.Literacy = PoliticalQuantities.Clamp01(residualLit);
         }
         // rank12（点火 ProfessionGenderGate=1.0 経由の genderAccess）：性別の選抜運搬＝識字選抜（上）と同型。
         // 行き先が女性に閉じた職ほど移動コホートの女性比が下がり、残留側で質量保存（クランプ時のみ微小非保存＝識字と同じ許容）。
@@ -672,7 +672,7 @@ public static class Meritocracy
         if (genderAccess < 1.0 && srcSizeAfter > Eps)
         {
             moveFem = fromPop.FemaleShare * genderAccess;
-            fromPop.FemaleShare = Math.Clamp((fromPop.FemaleShare * fromPop.Size - moveFem * flow) / srcSizeAfter, 0, 1);
+            fromPop.FemaleShare = PoliticalQuantities.Clamp01((fromPop.FemaleShare * fromPop.Size - moveFem * flow) / srcSizeAfter);
         }
         double newSize = toPop.Size + flow;
         if (newSize > Eps)
@@ -684,7 +684,7 @@ public static class Meritocracy
             toPop.CoreEthnicShare = (toPop.CoreEthnicShare * toPop.Size + fromPop.CoreEthnicShare * flow) / newSize;   // 倍率排除⑧：昇格も中核民族割合を運搬
             // 人1：識字の運搬（MigrationCarriesHumanCapital=1.0 既定＝#17有効化。加重混合＝国家集計は中立、per-region 分布が実勢化。0なら旧・運ばない）。
             if (c.MigrationCarriesHumanCapital > 0)
-                toPop.Literacy = Math.Clamp((toPop.Literacy * toPop.Size + moveLit * flow) / newSize, 0, 1);
+                toPop.Literacy = PoliticalQuantities.Clamp01((toPop.Literacy * toPop.Size + moveLit * flow) / newSize);
         }
         fromPop.Size -= flow; fromPop.Savings -= moveSavings; fromPop.Debt -= moveDebt; fromPop.BondHoldings -= moveBond;
         toPop.Size += flow; toPop.Savings += moveSavings; toPop.Debt += moveDebt; toPop.BondHoldings += moveBond;

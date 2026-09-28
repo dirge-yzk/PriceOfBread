@@ -24,7 +24,7 @@ public static class Politics
             Suffrage.Census => 0.50,
             _ => 0.20,                            // None＝閉鎖（参政権なき社会は報道自由でも先端革新に届かない）
         };
-        return Math.Clamp(political + 0.25 * PressFreedom(press), 0, 1);   // 報道自由（単一ソース）＝先端の知の流通。検閲＝情報が流れない
+        return PoliticalQuantities.Clamp01(political + 0.25 * PressFreedom(press));   // 報道自由（単一ソース）＝先端の知の流通。検閲＝情報が流れない
     }
 
     /// <summary>報道自由度∈[0,1]（**政治側の**単一ソース・倍率排除/長い裾）。国家報道のみ=0／検閲付=0.6／自由報道=1.0。
@@ -206,7 +206,7 @@ public static class Politics
 
         double convertNow = ConsciousnessConversion(w.EducationLaw);   // 政15：今期の教育法の即時変換係数（既定はこのまま全pop一律）
         // 便乗の勢い＝前期の運動力(改革派+急進派)÷実効保持力（第5段5-1＝PoliticalQuantities一元化・前期Coercion×現人口＝従来と同時点）。革命が近いほど大衆が雪崩を打つ（仏革命の群衆）。
-        double momentum = Math.Clamp((w.ReformistPower + w.RadicalPower) / Math.Max(1, PoliticalQuantities.EffectiveCoerce(w, c)) * c.BandwagonSensitivity, 0, 1);
+        double momentum = PoliticalQuantities.Clamp01((w.ReformistPower + w.RadicalPower) / Math.Max(1, PoliticalQuantities.EffectiveCoerce(w, c)) * c.BandwagonSensitivity);
 
         // ★段5＝民兵の札は「戦争の終わり」で剥がれる（作者裁定3・2026-09-08）＝**タイマーを作らない**。
         //   内戦が終われば（再併合・独立の確定・白紙分断のどれで終わっても InCivilWar が偽になる）武器を置いて畑と工場へ戻る
@@ -231,7 +231,7 @@ public static class Politics
             double newsReach = c.NewsConsciousnessFloor + (1.0 - c.NewsConsciousnessFloor) * p.NewsFill;
             double press = 0.75 + 0.5 * PressFreedom(w.Censorship) * newsReach;
             // [PORT:P2] 意識targetへの寄与＝識字×教育変換×都市化＋便乗、×報道（新聞/検閲）。時定数17年の遅い変数＝速い興奮は闘争度(P1)の仕事
-            double target = Math.Clamp((p.Literacy * convert * urban + bandwagon) * press, 0, 1);
+            double target = PoliticalQuantities.Clamp01((p.Literacy * convert * urban + bandwagon) * press);
             p.Consciousness += c.ConsciousnessSpeed * (target - p.Consciousness);
         }
 
@@ -279,7 +279,7 @@ public static class Politics
             // ★E-05段3（2026-09-03）：格を見ず**算入率**で連続に緩める＝本国州は中核度≈1でほぼ0まで消え、植民地は中核度≈0でほとんど残る
             //   （旗 SuffrageScopeUnified は 2026-09-26 に焼き込み＝格を読む旧の枝＝移民原住民参政権「あり」で本国州だけ0 は削除）。
             if (c.SuffrageScopeGate > 0 && w.EthnicEnabled)
-                minorityMil *= 1.0 - System.Math.Clamp(SuffrageInclusion(w, milReg), 0, 1);
+                minorityMil *= 1.0 - PoliticalQuantities.Clamp01(SuffrageInclusion(w, milReg));
             // [PORT:P1] ★段2＝飢餓の駆動項（設計メモ §7-3・作者裁定2026-09-09）。⚠旧 FamineAbsoluteMilitancy=0.04 は2四半期で闘争度を 0.0024 しか動かせず
             //   （派閥形成の門 0.5 の2桁下）＝「一瞬の飢餓では起きないが半年続けば大量の反乱軍」が**係数の値では表現できない**証明だった＝利得ごと作り直す。
             //   ★2026-09-22 回B：駆動は**平常（FoodRef）からの急な落ち込み**を測る（式は <see cref="FamineDrive"/> の1本・起点と利得の導出は係数のコメント）。
@@ -385,7 +385,7 @@ public static class Politics
             double dmWar = -c.DynMandateWarWeight * (w.SelfPower?.WarExhaustion ?? 0);
             double dmGraft = -c.DynMandateGraftWeight * w.EffectiveCorruption;
             double dynPerf = dmSat + dmFood + dmWar + dmGraft;
-            double dmTarget = Math.Clamp(0.5 + dynPerf, 0, 1);
+            double dmTarget = PoliticalQuantities.Clamp01(0.5 + dynPerf);
             w.DynasticMandate += c.DynMandateEmaRate * (dmTarget - w.DynasticMandate);
             if (w.Explain != null)   // 説明API：天命の内訳（合計＝最終値の厳密分解）
             {
@@ -483,7 +483,7 @@ public static class Politics
         double refill = w.PoliticalCapitalMax / Math.Max(1e-9, c.MandateRefillQuarters) * PoliticalQuantities.PoliticalCapitalRate(w);
         if (!(refill > 0)) refill = 0;   // 否定形＝NaN/負は「回復しない」へ倒す（Math.Max は NaN を除去しない）
         w.MandateSpent = Math.Max(0, w.MandateSpent - refill);
-        double legClamped = Math.Clamp(leg, 0, 1);
+        double legClamped = PoliticalQuantities.Clamp01(leg);
         if (w.Explain != null && legClamped != leg)
             w.Explain.Add("Legitimacy", legClamped > leg ? "下限クランプ(0未満を切上げ)" : "上限クランプ(1超を切下げ)", legClamped - leg);
         w.Legitimacy = legClamped;
@@ -717,7 +717,7 @@ public static class Politics
         {
             double grant = c.GrantedControlOnReform
                 + c.ReformGrantPcWidth * PoliticalQuantities.ChallengeRatio(challenge, coerce);
-            w.ParliamentControl = Math.Clamp(Math.Max(w.ParliamentControl, grant), 0, 1);
+            w.ParliamentControl = PoliticalQuantities.Clamp01(Math.Max(w.ParliamentControl, grant));
             w.ReformGrantCount++;   // C-高1完成検証（2026-07-25）：下賜の発生数（診断＝chronicleが集計。挙動非依存）
         }
         // P2（flag=1）：上からの改革は**PC床（上の下賜）だけ**を書きラベルは導出に委ねる＝下賜0.3<立憲床0.45なら幕府/専制のまま
@@ -863,7 +863,7 @@ public static class Politics
         // CivilWarRebelSide=0 では累積ゼロ＝決着判定の challenge は旧式のまま。>0（現行0.5）で徴集量のその割合を反乱戦力として蓄積。
         w.CivilWarRebelStrength += c.CivilWarRebelSide * conscripted;
         double legBeforeCivilWar = w.Legitimacy;
-        w.Legitimacy = Math.Clamp(w.Legitimacy - c.CivilWarLegitimacyDrain, 0, 1);
+        w.Legitimacy = PoliticalQuantities.Clamp01(w.Legitimacy - c.CivilWarLegitimacyDrain);
         w.Explain?.Add("Legitimacy", "内戦の消耗(戦乱が信任を削る)", w.Legitimacy - legBeforeCivilWar);   // 説明API（#63）
         // #136 内戦の民間人死（2026-07-25）：内戦は兵士だけでなく民間を殺す（太平天国の主死因は戦闘でなく飢餓・虐殺・流民）。
         // 四半期率×非兵士人口を規模按分で減算＝Diplomacy.WarCasualties と同じ保存作法（Size減算＋PopulationDelta台帳）。
@@ -1413,7 +1413,7 @@ public static class Politics
     internal static double LocalizedHold(World w, Coefficients c, Region region, double coerce)   // ★B9（2026-09-07）：Region で受ける＝州一揆（CheckRegionalRevolt）と共有（新関数を作らない）
     {
         if (!(c.FactionRevoltLocalCoerce > 0)) return coerce;   // ⚠否定形＝フラグNaNも旧側（全国）へ倒す
-        double blend = Math.Clamp(c.FactionRevoltLocalCoerce, 0, 1);
+        double blend = PoliticalQuantities.Clamp01(c.FactionRevoltLocalCoerce);
         double share = region.SumPopulation() / Math.Max(1.0, w.TotalPopulation);
         if (!(share >= 0 && share <= 1)) share = 1.0;   // ⚠否定形＝NaN/比の暴れは全国（旧挙動）へ倒す（Clamp/Min/MaxはNaNを除去しない）
         return coerce * ((1.0 - blend) + blend * share);
@@ -1468,7 +1468,7 @@ public static class Politics
                 if (s == s0) return 0;
                 set(Government.TaxValue(a, s)); return 1;   // ★錨2026-09-18＝段↔率の写像は Government の2本だけ（軸ごとの錨）
             }
-            double v = Math.Clamp(cur + (inc ? 1 : -1) * c.FactionConcessionSlider * n, 0, 1);
+            double v = PoliticalQuantities.Clamp01(cur + (inc ? 1 : -1) * c.FactionConcessionSlider * n);
             set(v); return Math.Abs(v - cur) > 1e-9 ? 1 : 0;
         }
         int Flip(bool cur, Action<bool> set) { if (cur == inc) return 0; set(inc); return 1; }
@@ -1491,7 +1491,7 @@ public static class Politics
             PolicyAxis.ProgressiveTax => Slide(w.ProgressiveTax, v => { w.ProgressiveTax = v; p.ProgressiveTaxTarget = v; }, staged: true),   // ★R1：段
             // 02断線走査（2026-07-28）：施行できない11軸のうち表示つき3軸＋E5/E6の8軸を接続＝「要求受諾が政治資本だけ燃やすno-op」の解消。
             // 治安維持力の緩和＝ポップアップに表示されながら唯一実装されていなかった大衆の第一要求（CoercionFollowsForce下では次期に軍規模へ再追従＝一時的緩和として正しい）。
-            PolicyAxis.Coercion => Slide(Math.Clamp(w.BaseCoercion / Math.Max(1e-9, c.CoercionMax), 0, 1), v => { w.BaseCoercion = v * c.CoercionMax; p.CoercionTarget = v * c.CoercionMax; }),
+            PolicyAxis.Coercion => Slide(PoliticalQuantities.Clamp01(w.BaseCoercion / Math.Max(1e-9, c.CoercionMax)), v => { w.BaseCoercion = v * c.CoercionMax; p.CoercionTarget = v * c.CoercionMax; }),
             PolicyAxis.EducationSpending => Slide(w.EducationSpending, v => { w.EducationSpending = v; p.EducationSpendingTarget = v; }, staged: true),   // ★R1：段
             PolicyAxis.LandTax => Slide(w.LandTax, v => { w.LandTax = v; p.LandTaxTarget = v; }, staged: true),   // ★R1：段
             PolicyAxis.ConscriptionLaw => StepEnumAxis((int)w.ConscriptionLaw, 2, v => { w.ConscriptionLaw = (ConscriptionLaw)v; p.ConscriptionLaw = w.ConscriptionLaw; }),
@@ -1532,7 +1532,7 @@ public static class Politics
     // 合計（陸＋海）が1.0を超える分だけ陸軍から出す＝上限に張り付いた時だけ内訳が動き、普段は海軍の純増（＝軍拡）。動いたら1を返す。
     private static int ConcedeNavyUpkeep(World w, NationPolicy p, bool inc, double step)
     {
-        double navy = Math.Clamp(w.NavyUpkeep + (inc ? step : -step), 0, 1);
+        double navy = PoliticalQuantities.Clamp01(w.NavyUpkeep + (inc ? step : -step));
         if (Math.Abs(navy - w.NavyUpkeep) <= 1e-9) return 0;
         w.SetMilitaryUpkeep(w.ArmyUpkeep, navy);
         p.NavyUpkeepTarget = navy;
@@ -1687,7 +1687,7 @@ public static class Politics
             //   ⚠本国州も同じ式を通るが、中核度≈1＝算入率≈1＝圧力≈0への割引＝**従来ここに来ていなかった州の挙動は実質変わらない**。
             //   （旗 SuffrageScopeUnified は 2026-09-26 に焼き込み＝格を読む旧の枝は削除）
             if (c.SuffrageScopeGate > 0)
-                pressure *= 1.0 - System.Math.Clamp(SuffrageInclusion(w, r), 0, 1);
+                pressure *= 1.0 - PoliticalQuantities.Clamp01(SuffrageInclusion(w, r));
             // ★E-05 段1（作者裁定2026-09-03「あらゆる反乱は1つの経路で発生し、1つの方法で対処する。植民地反乱と国内反乱でルールが異なるのはダメ」）。
             //   ⚠**「植民地なら」という条件を1つも書かない**＝植民地が離れやすいのは格が違うからではなく**遠いから**である。
             //   ★保持力は「軍が届く分だけ」効く＝`Diplomacy.Projection` と**同じ形・同じ係数**（DistanceWarDecay / DistanceNormKm）を州へ当てる。
@@ -1757,14 +1757,14 @@ public static class Politics
         {
             // 目標（既存量だけ・2026-09-07 是正）：無統治＝(1−治安カバレッジ)×(1−支配度)（中核州は0・辺境ほど・治安が抜けるほど）／在地＝未解放度×(1−無統治)／国家＝残り。
             //   ⚠行政効率は「行政財の充足」＝不足の量で到達ではない（仏英1798で0.1＝無統治6〜8割に出た）ので国家の目標には使わない。
-            double order = System.Math.Clamp(w.PublicOrder, 0, 1);
+            double order = PoliticalQuantities.Clamp01(w.PublicOrder);
             double degNow = Privileges.SeigneurialDegree(w);
             if (w.SeigneurialDegree0 < 0) w.SeigneurialDegree0 = degNow;   // 最初の四半期＝1783年の未解放度を分母に固定
             double localScale = w.SeigneurialDegree0 > 1e-9 ? degNow / w.SeigneurialDegree0 : 0;   // 法が動いた分だけ在地が動く（初期に未解放でない国は0）
             foreach (var r4 in w.Regions)
             {
                 if (r4.State != RegionState.Active || r4.Rule.Length != 4) continue;
-                double tUngov = (1.0 - order) * (1.0 - System.Math.Clamp(r4.Dominance, 0, 1));
+                double tUngov = (1.0 - order) * (1.0 - PoliticalQuantities.Clamp01(r4.Dominance));
                 double tLocal = System.Math.Min(1.0 - tUngov, (r4.RuleInit.Length == 4 ? r4.RuleInit[1] : 0) * localScale);
                 double tForeign = c.ForeignRuleFromTreaty > 0 ? ForeignShareSum(r4) : 0.0;   // ★段5：外国持分の合計（ゲート0＝0＝旧）
                 double tState = System.Math.Max(0, 1.0 - tLocal - tForeign - tUngov);
@@ -1882,7 +1882,7 @@ public static class Politics
     {
         double nc = 0, size = 0;
         foreach (var p in r.Pops) if (!p.IsSoldier && p.NationalConsciousness >= 0) { nc += p.NationalConsciousness * p.Size; size += p.Size; }
-        return size > 1e-9 ? Math.Clamp(nc / size, 0, 1) : 0;
+        return size > 1e-9 ? PoliticalQuantities.Clamp01(nc / size) : 0;
     }
 
     // 政14：州の平均中核民族割合（人口加重・兵士除く）。(1−これ)＝州の少数派度＝民族主因の分離圧力の源（均質州=1で加算0）。
@@ -1908,7 +1908,7 @@ public static class Politics
     {
         double g = c.RuleSharesReach;
         if (!(g > 0) || r.Rule.Length != 4) return 1.0;
-        double v = (1.0 - g) + g * System.Math.Clamp(r.Rule[0], 0, 1);
+        double v = (1.0 - g) + g * PoliticalQuantities.Clamp01(r.Rule[0]);
         return !(v >= 0 && v <= 1) ? 1.0 : v;
     }
 
@@ -1937,8 +1937,8 @@ public static class Politics
     internal static double RuleDelivery(Region r, Coefficients c, double g)
     {
         if (!(g > 0) || r.Rule.Length != 4) return 1.0;
-        double deliver = 1.0 - System.Math.Clamp(c.PrivilegeTaxDiscount, 0, 1);
-        double v = (1.0 - g) + g * (System.Math.Clamp(r.Rule[0], 0, 1) + System.Math.Clamp(r.Rule[1], 0, 1) * deliver);
+        double deliver = 1.0 - PoliticalQuantities.Clamp01(c.PrivilegeTaxDiscount);
+        double v = (1.0 - g) + g * (PoliticalQuantities.Clamp01(r.Rule[0]) + PoliticalQuantities.Clamp01(r.Rule[1]) * deliver);
         return !(v >= 0 && v <= 1) ? 1.0 : v;
     }
 
@@ -2001,13 +2001,13 @@ public static class Politics
             foreach (var p in w.AllPops())
             {
                 double v = p.NationalConsciousness >= 0 ? p.NationalConsciousness : seed;
-                p.NationalConsciousness = Math.Clamp(v + c.RevolutionConsciousness * (1.0 - v), 0, 1);
+                p.NationalConsciousness = PoliticalQuantities.Clamp01(v + c.RevolutionConsciousness * (1.0 - v));
             }
             return;
         }
         if (w.NationalConsciousness < 0)
             w.NationalConsciousness = w.InitialNationalConsciousness >= 0 ? w.InitialNationalConsciousness : c.NationBuildInitialDefault;
-        w.NationalConsciousness = Math.Clamp(w.NationalConsciousness + c.RevolutionConsciousness * (1.0 - w.NationalConsciousness), 0, 1);
+        w.NationalConsciousness = PoliticalQuantities.Clamp01(w.NationalConsciousness + c.RevolutionConsciousness * (1.0 - w.NationalConsciousness));
     }
 
     /// <summary>機能6-2（2026-07-28）：国内の革命圧力∈[0,1]＝動員（改革派＋急進派）÷実効保持力のクランプ比（Transitionと同じ物差し＝新概念なし）。
@@ -2040,7 +2040,7 @@ public static class Politics
                 gini = 1.0 - area;   // area は既に (y_i+y_{i-1}) 形＝2×(曲線下面積)。ジニ=1−2×面積 と一致
             }
         }
-        return Math.Clamp(gini, 0, 1);
+        return PoliticalQuantities.Clamp01(gini);
     }
 
     // 大衆（労働者・農民。兵士除く）の母集団＝**この1本だけ**（闘争度と不満度は二量分離の対＝分母の式を二度書かない）。
@@ -2090,7 +2090,7 @@ public static class Politics
                         || (depMass && IsMassPop(p));
             if (deposed)
             {
-                p.Militancy = Math.Clamp(p.Militancy + c.DeposedMilitancySpike, 0, 1);   // 失脚＝反革命の激しい不満
+                p.Militancy = PoliticalQuantities.Clamp01(p.Militancy + c.DeposedMilitancySpike);   // 失脚＝反革命の激しい不満
                 if (terror && !p.IsSoldier && p.Size > 0)
                 {
                     double purged = p.Size * c.RevolutionTerror;

@@ -102,7 +102,7 @@ public static class Megaprojects
                 if (coef.MegaprojectPrestige > 0)
                 {
                     double legBefore = hw.Legitimacy;
-                    hw.Legitimacy = Math.Clamp(hw.Legitimacy + coef.MegaprojectPrestige, 0, 1);
+                    hw.Legitimacy = PoliticalQuantities.Clamp01(hw.Legitimacy + coef.MegaprojectPrestige);
                     hw.Explain?.Add("Legitimacy", $"{mp.Name}の完成(国家事業の威信)", hw.Legitimacy - legBefore);
                 }
                 dip.Log.Add($"{hw.Year} {mp.Name}が完成（{mp.Owner?.Name ?? "中立"}）");

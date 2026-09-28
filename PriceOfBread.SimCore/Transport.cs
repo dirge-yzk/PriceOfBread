@@ -44,7 +44,7 @@ public static class Transport
             if (congN > 0) target *= 1.0 + c.TransportCongestionWeight * (congSum / congN);
         }
         // 鉄道は技術で解禁（史実1820s〜）：技術がonset未満は内陸輸送が道路/河川（基準値）のみ＝序盤の内陸交易は強く絞られる。船（帆船＝海運）は古来あり据え置き。
-        double railGate = System.Math.Clamp((w.TechLevel - c.RailTechOnset) / System.Math.Max(1e-9, c.RailTechWidth), 0, 1);   // 0除算ガード（BilateralMarket.cs の同式と同じ守り）
+        double railGate = PoliticalQuantities.Clamp01((w.TechLevel - c.RailTechOnset) / System.Math.Max(1e-9, c.RailTechWidth));   // 0除算ガード（BilateralMarket.cs の同式と同じ守り）
         BuyToward(w, c, [c.RailGoodId, c.LocoGoodId], target * railGate, rail: true, 1.0);
         // ★2026-09-27（回4-3 の再挑戦・作者裁定 2026-09-26 (3)「汽船の性能を上げるべき」）：汽船の性能を、植民地補給線と同じ機関の時代係数から導く。
         //   era＝EraFactor(前線技術, EraColonyCoal)＝運賃革命のランプ（前線 1.7〜2.9）に沿って 1.0→0.5（複式機関1860年代→三段膨張1880年代・史実の石炭/馬力時は約4ポンド→1.5ポンド）。

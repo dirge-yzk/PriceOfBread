@@ -58,26 +58,25 @@ public static class Credit
         double debtDeflation = w.MonetaryEnabled ? c.DebtDeflationWeight * Math.Max(0, -w.ExpectedInflation) * bank.Heat : 0;
         // 国債二次流通の評価損（no-bond-secondary-market）：BondPrice下落(利回り上昇)で国内債を抱える銀行が評価損→信頼↓→与信収縮（平時のマーク・トゥ・マーケット）。既存診断値BondPriceを配線。BondLossConfWeight=0で恒等（既定0.5）。
         // [単位・B13] 債務/GDP＝**月次名目**（GovDebt÷月次NominalGdp・Clamp 0..1）＝年次名目の約12倍の値で飽和が早い
-        double bondLoss = w.FiscalEnabled ? c.BondLossConfWeight * Math.Max(0, 1.0 - w.BondPrice) * Math.Clamp(w.GovDebt / Math.Max(1.0, month?.NominalGdp ?? w.NominalGdp), 0, 1) : 0;
+        double bondLoss = w.FiscalEnabled ? c.BondLossConfWeight * Math.Max(0, 1.0 - w.BondPrice) * PoliticalQuantities.Clamp01(w.GovDebt / Math.Max(1.0, month?.NominalGdp ?? w.NominalGdp)) : 0;
         // シティ型恐慌（A・最終調整2026-06-29）：与信過熱(Heat・前期＝持ち越したレバレッジ)が閾値を超えると、満足度が高くても信頼が脆くなる＝
         // 最も金融化した経済（深い与信＝高Heat＝覇権の金融中心）ほど好況の絶頂でミンスキー暴落を起こす。着火後は既存 DrawdownPanic が暴落へ増幅。OverheatFragility=0で恒等（既定1.1）。
         double overheatFragility = c.OverheatFragility * Math.Max(0, bank.Heat - c.OverheatFragilityThreshold);
-        double targetConf = Math.Clamp(
-            1.0 - c.PanicSensitivity * Math.Max(0, c.ConfidencePivot - avgSat) - c.DrawdownPanic * w.GdpDrawdown - fiscalDefault - debtDeflation - bondLoss - overheatFragility, 0, 1);
+        double targetConf = PoliticalQuantities.Clamp01(1.0 - c.PanicSensitivity * Math.Max(0, c.ConfidencePivot - avgSat) - c.DrawdownPanic * w.GdpDrawdown - fiscalDefault - debtDeflation - bondLoss - overheatFragility);
         // 信用は日次（三層時計）。速度を日数配分（÷PriceFlowDailyDiv）＝30日積分が従来の月次1回にほぼ一致＝較正温存。
         // パニック/平時の非対称（速い崩落・遅い醸成）も貸し剥がし倍率も比なので、一律に割っても保たれる。
         double div = c.PriceFlowDailyDiv;
         double spd = (targetConf < bank.Confidence ? c.PanicSpeed : c.ConfidenceSpeed) / div;
-        bank.Confidence = Math.Clamp(bank.Confidence + spd * (targetConf - bank.Confidence), 0, 1);
+        bank.Confidence = PoliticalQuantities.Clamp01(bank.Confidence + spd * (targetConf - bank.Confidence));
 
         // 金融政策：低金利ほど銀行は貸す（信用ブーム→投資加速）、高金利は引締（安定）。＝中央銀行のレバー
-        double appetite = Math.Clamp(1.0 - c.InterestRateEffect * w.InterestRate, 0, 1);
+        double appetite = PoliticalQuantities.Clamp01(1.0 - c.InterestRateEffect * w.InterestRate);
         // R12（信用乗数の発展度スケール化・2026-07-13）：全国全時代一律3.0を「発展度（工業化）」でスケール＝1789の露清オスマンに
         // 英規模の近代銀行はない＝浅い銀行（正貨中心）から工業化とともに近代信用創造へ深化（金融深化125年）。devFactor=1で×1.0＝厳密恒等（Weight=0）。
         double devFactor = 1.0;
         if (c.CreditMultiplierDevWeight > 0)
         {
-            double dev = Math.Clamp((month?.MeanInd ?? w.MeanIndustrialization) / c.CreditDevScale, 0, 1);           // 0=前工業（露清）〜1=工業化（英独）
+            double dev = PoliticalQuantities.Clamp01((month?.MeanInd ?? w.MeanIndustrialization) / c.CreditDevScale);           // 0=前工業（露清）〜1=工業化（英独）
             double target = c.CreditMultiplierDevFloor + (1 - c.CreditMultiplierDevFloor) * dev;  // floor（前工業でも手形/両替商の最低与信）〜1（満額の近代信用創造）
             devFactor = 1.0 + (target - 1.0) * c.CreditMultiplierDevWeight;                       // Weight=0で1.0（恒等）・1でtargetそのもの
         }

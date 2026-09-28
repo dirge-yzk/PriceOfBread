@@ -3399,8 +3399,7 @@ public sealed class Coefficients
     public double EraFactor(double worldTech, double k)
     {
         if (k == 0) return 1.0;
-        double ramp = Math.Clamp((worldTech - TransportRevolutionOnset) / Math.Max(1e-9, TransportRevolutionSpan), 0, 1);
-        if (!(ramp >= 0 && ramp <= 1)) ramp = 0;   // NaNは「技術以前」へ倒す（否定形で書く＝Clampは NaN を消さない）
+        double ramp = PoliticalQuantities.Clamp01((worldTech - TransportRevolutionOnset) / Math.Max(1e-9, TransportRevolutionSpan));   // NaN は Clamp01 が0＝「技術以前」へ倒す
         return Math.Max(0.05, 1.0 + k * ramp);
     }
 

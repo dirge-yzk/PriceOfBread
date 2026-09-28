@@ -114,13 +114,6 @@ public static class DiploCore
     public const double ColonySupplyScale = 20.0;   // 植民地1人口ウェイトの供給価値の目盛り（観測用・較正対象）
     public const double FinanceScale = 0.5;         // 対外資本ポジション=GDPの50%で全強度（観測用・probe が生値併記）
 
-    /// <summary>P＝軍事力の逓減つき相対値（doc §5-2＝既存 SelfPlay の MilitaryDiminishingCap=12.0 の形を流用）。</summary>
-    public static double MilitaryDiminished(double military)
-    {
-        double m = System.Math.Max(0, military) * 2.0;
-        return m / (1 + m / 12.0);
-    }
-
     /// <summary>競合度＝s_a·s_b。⚠内積そのまま＝同符号（共に過多・共に不足）が正＝競合（doc §0）。</summary>
     public static double Rivalry(double[] a, double[] b)
     {
@@ -135,7 +128,7 @@ public static class DiploCore
     /// <summary>コア項＝補完度 × min(P_a,P_b) × 交易到達。符号を持つ（正＝協力・負＝敵対）。
     /// min(P)＝関係を動かすのは弱い方の力が上限（13k＝小国同盟が弱くなる懸念は未決・観測で見る）。</summary>
     public static double CoreTerm(double[] a, double[] b, double pA, double pB, double reach)
-        => Complement(a, b) * System.Math.Min(System.Math.Clamp(pA, 0, 1), System.Math.Clamp(pB, 0, 1)) * System.Math.Clamp(reach, 0, 1);
+        => Complement(a, b) * System.Math.Min(PoliticalQuantities.Clamp01(pA), PoliticalQuantities.Clamp01(pB)) * PoliticalQuantities.Clamp01(reach);
 
     /// <summary>交易到達の仮関数（13i 未決＝仮置き）：首都間距離の半減カーネル。
     /// ★本実装では BilateralMarket の実経路コストを使う（doc §0）——観測の初回はこの近似で回し、経路接続は点火段で。</summary>

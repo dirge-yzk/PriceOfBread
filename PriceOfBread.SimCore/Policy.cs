@@ -224,10 +224,10 @@ public sealed class NationPolicy
     /// <summary>軍事費の合計目標（旧 MilitarySpendingTarget の互換読み）。書き込みは陸海比を保って按分する。</summary>
     public double MilitarySpendingTarget
     {
-        get => System.Math.Clamp(ArmyUpkeepTarget + NavyUpkeepTarget, 0, 1);
+        get => PoliticalQuantities.Clamp01(ArmyUpkeepTarget + NavyUpkeepTarget);
         set
         {
-            double t = System.Math.Clamp(value, 0, 1), cur = ArmyUpkeepTarget + NavyUpkeepTarget;
+            double t = PoliticalQuantities.Clamp01(value), cur = ArmyUpkeepTarget + NavyUpkeepTarget;
             double s = cur > 1e-9 ? NavyUpkeepTarget / cur : 0.1;   // 比を保つ（初期化前は旧 NavalShareBase 相当）
             NavyUpkeepTarget = t * s; ArmyUpkeepTarget = t - NavyUpkeepTarget;
         }

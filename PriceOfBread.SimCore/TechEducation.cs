@@ -21,8 +21,8 @@ public static class TechEducation
         // ★穴③（2026-08-31）：行政の脚＝×(1−AbsorptionAdminWeight×(1−行政効率))。IncomeAbsorption と同形・0＝×1.0＝厳密恒等。
         //   識字と所得は輸出成功の循環で満たされる（世界工場の椅子取り）＝科挙官僚制/植民地行政の質だけが循環の外の判別子（洋務運動の原器）。
         double adminAbs = c.AbsorptionAdminWeight > 0
-            ? 1.0 - c.AbsorptionAdminWeight * (1.0 - Math.Clamp(w.AdminEfficiency, 0, 1)) : 1.0;
-        double breadth = Math.Clamp(w.Elite / c.EliteForFullTech, 0, 1);
+            ? 1.0 - c.AbsorptionAdminWeight * (1.0 - PoliticalQuantities.Clamp01(w.AdminEfficiency)) : 1.0;
+        double breadth = PoliticalQuantities.Clamp01(w.Elite / c.EliteForFullTech);
         // ★厚み（作者採用2026-09-06 段3）：採用の識字項を 広さ^(1−a)×厚み^a へ。a=0 で広さそのもの（分岐＝ビット恒等）。
         if (c.AdoptExpertiseWeight > 0) breadth = Math.Pow(breadth, 1.0 - c.AdoptExpertiseWeight) * Math.Pow(ExpertiseRel(w), c.AdoptExpertiseWeight);
         return breadth * pressAbs * IncomeAbsorption(w, c) * adminAbs;
@@ -40,7 +40,7 @@ public static class TechEducation
         double pop = w.TotalPopulation;
         double perCap = pop > 1 ? w.Gdp / pop : 0;
         if (!(perCap > 0)) perCap = 0;   // NaN も落とす（否定形で書く＝有限値では厳密同値）
-        double f = Math.Clamp(perCap / c.AbsorptionIncomeRef, 0, 1);
+        double f = PoliticalQuantities.Clamp01(perCap / c.AbsorptionIncomeRef);
         return 1.0 - c.AbsorptionIncomeWeight * (1.0 - f);
     }
 
@@ -147,7 +147,7 @@ public static class TechEducation
         //    後追いで届くのは先端×CatchupFraction まで＝**永遠の二番手**（§2.8 革新≠採用：コピーで先端には並べない。
         //    並ぶには自由＋公教育で自ら革新するしかない）。※教育が万国で機能するようになった（教師崩壊の修正）際、
         //    後追いが先端へ完全収束し国の差別化が消えたため、コピーの天井を明示した。
-        double baseTarget = c.AdoptionCeiling * Math.Clamp(w.Elite / c.EliteForFullTech, 0, 1);
+        double baseTarget = c.AdoptionCeiling * PoliticalQuantities.Clamp01(w.Elite / c.EliteForFullTech);
         // 後発国のキャッチアップ（最終調整2026-06-29）：近代化国（FrontierCapable＝自由＋公教育＝吸収能力あり）は前線の高い比率(CatchupFractionAdvanced)まで・速い速度で追い上げる。
         // 非近代化（検閲/宗教教育の巨人＝清/印）は従来の CatchupFraction 0.5 で頭打ち＝置いていかれる。両 Advanced 係数を基礎値と同値にすれば旧挙動に恒等。
         bool absorptive = FrontierCapable(w, c);
@@ -166,9 +166,9 @@ public static class TechEducation
         }
         if (c.DecayTechAdoptWeight > 0) adoptRate *= 1.0 - Math.Clamp(c.DecayTechAdoptWeight * w.InstitutionalDecay, 0, DecayAdoptPenaltyCap);   // P7②制度疲労＝採用速度の遅延（科挙官僚制が技師を作らない）。live（DecayTechAdoptWeight=0.75）・0で恒等
         // ★接触（作者採用2026-09-06 段8）：後追いは人と物の往来に乗る＝天井の**床より上**にだけ接触度を掛ける（鎖国でも基礎は失われない）。0 で ×1.0。
-        double contact = c.CatchupContactWeight > 0 ? 1.0 - c.CatchupContactWeight * (1.0 - Math.Clamp(w.TradeContactShare, 0, 1)) : 1.0;
+        double contact = c.CatchupContactWeight > 0 ? 1.0 - c.CatchupContactWeight * (1.0 - PoliticalQuantities.Clamp01(w.TradeContactShare)) : 1.0;
         double adoptionCeil = Math.Max(c.AdoptionCeiling, w.WorldTechLevel * catchFrac * contact);
-        double catchupTarget = baseTarget + Math.Max(0, adoptionCeil - c.AdoptionCeiling) * Math.Clamp(w.Elite / c.EliteForCatchup, 0, 1);
+        double catchupTarget = baseTarget + Math.Max(0, adoptionCeil - c.AdoptionCeiling) * PoliticalQuantities.Clamp01(w.Elite / c.EliteForCatchup);
         if (catchupTarget > baseTarget + 1e-9)
         {
             // 多国：世界の技術水準へギャップ比例で後追い（遅れているほど速い＝後発のブースト）。近代化国はより高い天井・速い速度（Gerschenkron）

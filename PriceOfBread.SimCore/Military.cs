@@ -27,11 +27,11 @@ public static class Military
         if (over > 0) v += c.SkillGainRate * over * (1.0 - v);        // 閾値超過分で育つ（1.0へ漸近＝上限を別に置かない）
         else v -= c.SkillDecayPerQuarter * v * Math.Min(1.0, -over / Math.Max(1e-9, c.SkillUpkeepThreshold));   // 割れた深さに比例して錆びる
         if (fighting) v += c.SkillWarGain * (1.0 - v);                 // 実戦（内戦含む）
-        return Math.Clamp(v, 0, 1);
+        return PoliticalQuantities.Clamp01(v);
     }
 
     /// <summary>熟練度による戦力倍率（1.0〜1+SkillCombatMax）。作者指示「最大でも2倍程度の強さに留める」。</summary>
-    public static double SkillCombatMultiplier(double skill, Coefficients c) => 1.0 + c.SkillCombatMax * Math.Clamp(skill, 0, 1);
+    public static double SkillCombatMultiplier(double skill, Coefficients c) => 1.0 + c.SkillCombatMax * PoliticalQuantities.Clamp01(skill);
 
     /// <summary>扶養限界目標＝SustainLimit × clamp(近隣ライバル最大limit ÷ 自国limit, ArmsRaceLow, ArmsRaceHigh)。
     /// Step（兵数の錨）と SelfPlay 配線C（請求書駆動の軍事費）と armyneed プローブの**単一ソース**。
@@ -86,7 +86,7 @@ public static class Military
                 {
                     double nc = 0, ncSize = 0;
                     foreach (var p in r.Pops) if (!p.IsSoldier && p.NationalConsciousness >= 0) { nc += p.NationalConsciousness * p.Size; ncSize += p.Size; }
-                    double avgNc = ncSize > 1e-9 ? Math.Clamp(nc / ncSize, 0, 1) : 1.0;   // 1つも捕捉されていない＝機構が休眠＝割引なし
+                    double avgNc = ncSize > 1e-9 ? PoliticalQuantities.Clamp01(nc / ncSize) : 1.0;   // 1つも捕捉されていない＝機構が休眠＝割引なし
                     share = Math.Max(0, 1.0 - c.ConscriptConsciousnessWeight * (1.0 - avgNc));
                 }
                 natManpower += (pa + pb + sld.Size) * share; poolEarn += pe; poolSize += ps;
@@ -118,8 +118,8 @@ public static class Military
             }
             double exh = self.WarExhaustion;                                             // 0..1（総力戦の進行度の代理）
             double frontDepth = Math.Min(1.0, Math.Max(0, fronts - 1) * c.ConscriptionFrontStep);   // 単一戦線=0（恒等）、多正面で深まる
-            double ratioDepth = self.LandPower > 1e-9 ? Math.Clamp(enemyLand / self.LandPower - 1.0, 0, 1) : 0;   // 敵優勢(比>1)で深まる。互角以下=0
-            double depth = Math.Clamp(c.ConscriptionExhaustionWeight * exh + frontDepth + c.ConscriptionEnemyRatioWeight * ratioDepth, 0, 1);   // 段階化の合成（各重み0で depth=0）
+            double ratioDepth = self.LandPower > 1e-9 ? PoliticalQuantities.Clamp01(enemyLand / self.LandPower - 1.0) : 0;   // 敵優勢(比>1)で深まる。互角以下=0
+            double depth = PoliticalQuantities.Clamp01(c.ConscriptionExhaustionWeight * exh + frontDepth + c.ConscriptionEnemyRatioWeight * ratioDepth);   // 段階化の合成（各重み0で depth=0）
             // 下限＝限定戦争の徴兵率、上限＝現行の総動員（ConscriptionFraction）。depth=0（既定or小戦争）で上限に張り付かせず ConscriptionFloorFraction へ、depth=1 で総動員。
             conscriptFrac = c.ConscriptionFloorFraction + (c.ConscriptionFraction - c.ConscriptionFloorFraction) * depth;
         }
@@ -137,7 +137,7 @@ public static class Military
             //   ⚠国民意識のゲート（低NC国は総動員が届かない）を**緩める**方向にだけ効く＝ゲート自体は残す。
             //   ⚠SkillMobilizationRelief=0 で ×1.0＝厳密恒等。
             double ncGate = c.NationBuildMobilizationWeight * (1.0 - Math.Max(0, w.NationalConsciousness));
-            ncGate *= Math.Max(0, 1.0 - c.SkillMobilizationRelief * Math.Clamp(w.ArmySkill, 0, 1));
+            ncGate *= Math.Max(0, 1.0 - c.SkillMobilizationRelief * PoliticalQuantities.Clamp01(w.ArmySkill));
             conscriptFrac *= Math.Max(MobilizationGateFloor, 1.0 - ncGate);
         }
         // 扶養限界方式（作者設計2026-08-08＝軍拡・建艦競争の駆動）：目標兵数の錨を「人口と経済から決まる扶養限界」に置く。
@@ -178,7 +178,7 @@ public static class Military
             // 戦時徴兵の max 経路（下の wartimeConscript）は不変＝平時=扶養限界・戦時=人口。
             if (sustainTargetNat > 0 && sustainNatManpower > 1e-9)
             {
-                double susK = Math.Clamp(c.ArmySustainWeight, 0, 1);
+                double susK = PoliticalQuantities.Clamp01(c.ArmySustainWeight);
                 desired = (1.0 - susK) * desired + susK * sustainTargetNat * (manpower / sustainNatManpower);
             }
             double rate = c.SoldierMigrationRate;
@@ -219,7 +219,7 @@ public static class Military
             double garFill = fw / sSize;
             equipFillEff = (1.0 - c.GarrisonProcurement) * equipFillEff + c.GarrisonProcurement * garFill;
         }
-        w.MilitaryReadiness = Math.Clamp(moraleFill * equipFillEff, 0, 1);
+        w.MilitaryReadiness = PoliticalQuantities.Clamp01(moraleFill * equipFillEff);
 
         NavalFuelStep(w, c);   // 運用コスト監査2026-08-16（#1 海軍の運用燃料）：NavalFuelPerGauge=0（既定）では先頭ガードで即return＝厳密恒等
     }
@@ -236,9 +236,8 @@ public static class Military
         if (!(c.NavalFuelPerGauge > 0)) return;   // 否定形＝NaN係数も不走行側へ
         var r = w.Region;
         double gauge = w.SelfPower?.FleetGauge ?? 0;   // 単一国較正（SelfPowerなし）・艦隊駆動OFFでは0＝燃料需要なし（fill=1.0側）
-        double steamGate = Math.Clamp((w.TechLevel - c.SteamTechOnset) / c.SteamTechWidth, 0.0, 1.0);   // EconomyStep の蒸気ゲートと同式（帆走艦隊は焚かない）
-        if (!(steamGate >= 0 && steamGate <= 1)) steamGate = 0;   // 否定形＝NaNは帆走側へ
-        double coalWant = c.NavalFuelPerGauge * gauge * Math.Clamp(w.NavyUpkeep, 0, 1) * steamGate * c.EraFactor(w.WorldTechLevel, c.EraNavalFuel);
+        double steamGate = PoliticalQuantities.Clamp01((w.TechLevel - c.SteamTechOnset) / c.SteamTechWidth);   // EconomyStep の蒸気ゲートと同式（帆走艦隊は焚かない）（NaN は Clamp01 が0＝帆走側へ）
+        double coalWant = c.NavalFuelPerGauge * gauge * PoliticalQuantities.Clamp01(w.NavyUpkeep) * steamGate * c.EraFactor(w.WorldTechLevel, c.EraNavalFuel);
         double fill = 1.0;   // 需要ゼロ（帆走・係船・艦隊なし）＝燃料は制約でない
         if (coalWant > 1e-9 && r.State == RegionState.Active && Catalog.CoalId < r.Markets.Length)
         {
@@ -247,7 +246,7 @@ public static class Military
             fill = want > 1e-9 ? got / want : 1.0;
             if (!(fill >= 0 && fill <= 1)) fill = 1.0;   // 否定形＝NaNは中立へ
         }
-        double a = Math.Clamp(c.NavalFuelFillSmoothing, 0, 1);   // 炭庫の在庫月数＝月次の品切れで即座に艦隊を縛らない
+        double a = PoliticalQuantities.Clamp01(c.NavalFuelFillSmoothing);   // 炭庫の在庫月数＝月次の品切れで即座に艦隊を縛らない
         w.NavalFuelFillEma = (1.0 - a) * w.NavalFuelFillEma + a * fill;
         if (!(w.NavalFuelFillEma >= 0 && w.NavalFuelFillEma <= 1)) w.NavalFuelFillEma = 1.0;   // 否定形＝NaNは中立へ
     }
@@ -289,7 +288,7 @@ public static class Military
     public static double BlendCarry(double toVal, double toSize, double fromVal, double amount, double newSize, bool clamp)
     {
         double v = (toVal * toSize + fromVal * amount) / newSize;
-        return clamp ? Math.Clamp(v, 0, 1) : v;
+        return clamp ? PoliticalQuantities.Clamp01(v) : v;
     }
 
     // 【削除2026-09-26（棚卸し sweep-23）】3引数版 MoveCohort（呼ぶたびに既定の係数 new Coefficients() を作って4引数版を呼んでいた）＝呼び手は手元の係数を渡す。
@@ -316,10 +315,10 @@ public static class Military
             from.Size -= amount;
             if (from.Size > 1e-12)
             {
-                from.ChildShare = Math.Clamp(children / from.Size, 0, 1);
-                from.OldShare = Math.Clamp(olds / from.Size, 0, 1);   // 老年人数を保存（OldShare=0の世界では0のまま＝較正中立）
+                from.ChildShare = PoliticalQuantities.Clamp01(children / from.Size);
+                from.OldShare = PoliticalQuantities.Clamp01(olds / from.Size);   // 老年人数を保存（OldShare=0の世界では0のまま＝較正中立）
                 double adultsLeft = adults - amount;
-                from.FemaleShare = adultsLeft > 1e-12 ? Math.Clamp(females / adultsLeft, 0, 1) : 0.5;
+                from.FemaleShare = adultsLeft > 1e-12 ? PoliticalQuantities.Clamp01(females / adultsLeft) : 0.5;
             }
             if (to.Size + amount > 1e-12) to.CoreEthnicShare = (to.CoreEthnicShare * to.Size + from.CoreEthnicShare * amount) / (to.Size + amount);   // 倍率排除⑧：徴兵は中核民族割合を運搬（軍の結束は兵士の民族構成から創発）
             // 人1：識字・闘争度も運搬（新兵の人的資本を無償生成しない）。MigrationCarriesHumanCapital=0 なら from の属性を無視＝旧の to 据え置きと厳密恒等（★ #17 で有効化＝既定1.0）。
@@ -348,9 +347,9 @@ public static class Military
             to.Size += amount;
             if (to.Size > 1e-12)
             {
-                to.ChildShare = Math.Clamp(childrenTo / to.Size, 0, 1);
-                to.OldShare = Math.Clamp(oldsTo / to.Size, 0, 1);   // 老年人数を保存（OldShare=0の世界では0のまま＝較正中立）
-                to.FemaleShare = Math.Clamp(femalesTo / (adultsTo + amount), 0, 1);
+                to.ChildShare = PoliticalQuantities.Clamp01(childrenTo / to.Size);
+                to.OldShare = PoliticalQuantities.Clamp01(oldsTo / to.Size);   // 老年人数を保存（OldShare=0の世界では0のまま＝較正中立）
+                to.FemaleShare = PoliticalQuantities.Clamp01(femalesTo / (adultsTo + amount));
             }
         }
         else

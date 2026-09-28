@@ -9,5 +9,5 @@ public static class Discovery
 {
     /// <summary>解禁度（ramp・0..1）。⚠span≤0 は設定ミス＝階段を作らず常に0（安全側＝危険な閾値の再発明を封じる）。</summary>
     public static double Unlock(double clock, double aptitude, double onset, double span)
-        => span > 0 ? System.Math.Clamp((clock * aptitude - onset) / span, 0.0, 1.0) : 0.0;
+        => span > 0 ? PoliticalQuantities.Clamp01((clock * aptitude - onset) / span) : 0.0;
 }

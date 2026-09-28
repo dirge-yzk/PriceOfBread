@@ -108,7 +108,7 @@ public static class NationBrief
         Terms(NationConfig c, NationConfig[] all, Coefficients coef)
     {
         // ①資源の余裕＝国庫が行政費だけで持つ月数。桁で効く（清4 と 蘭6667）ので対数で圧縮（1ヶ月=0／10000ヶ月=1）。
-        double resource = Math.Clamp(Math.Log10(Math.Max(1.0, TreasuryMonths(c, coef))) / 4.0, 0, 1);
+        double resource = PoliticalQuantities.Clamp01(Math.Log10(Math.Max(1.0, TreasuryMonths(c, coef))) / 4.0);
         // ②人口による分離圧に抗う力（Politics の保持力と同式）。
         double hold = SecessionHold(c, coef);
         // ③安全＝陸続きの隣国の軍（上位3和）に対する自国の軍。海に隔てられていれば隣国0＝1.0（英・米・日）。
@@ -117,7 +117,7 @@ public static class NationBrief
         //   ★作者指摘2026-08-11「イギリスは操作量が多く簡単でない」＝資源が豊かでも、州5＋植民地11＋世界一の工業は
         //   最も忙しい盤面になる。難易度は「生き残れるか」だけでなく「回せるか」でもある。
         //   工業を3倍で数えるのは、1点の工業化度が概ね数州ぶんの生産・補助金・建設の判断を増やすため。
-        double load = Math.Clamp((c.Provinces.Length + c.InitialColonies.Length + 3.0 * c.Industrialization) / 25.0, 0, 1);
+        double load = PoliticalQuantities.Clamp01((c.Provinces.Length + c.InitialColonies.Length + 3.0 * c.Industrialization) / 25.0);
         double ease = 0.35 * resource + 0.25 * hold + 0.15 * safety - 0.25 * load - 0.30 * c.InstitutionalDecay;
         return (ease, resource, hold, safety, load, c.InstitutionalDecay);
     }

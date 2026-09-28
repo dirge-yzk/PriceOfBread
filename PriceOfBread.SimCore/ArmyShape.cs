@@ -90,7 +90,7 @@ public static class ArmyShape
 
     /// <summary>不穏度＝内向きに使われる軍の割合（大衆の闘争度×正統性の欠如）。★これが注意配分の分母に入り、列和を1未満にする。</summary>
     private static double Unrest(Power p)
-        => p.Nation is { } w ? System.Math.Clamp(Politics.AvgMassMilitancy(w) * (1.0 - w.Legitimacy), 0, 1) : 0;
+        => p.Nation is { } w ? PoliticalQuantities.Clamp01(Politics.AvgMassMilitancy(w) * (1.0 - w.Legitimacy)) : 0;
 
     /// <summary>軍の質（技術×結束×軍国）。⚠**装備充足と即応度を入れない**——入れると
     /// 「装備が買えない→必要兵数が増える→予算が人へ→さらに買えない」の正帰還が閉じる（旧 SoldierSustainDriven 凍結と同型の罠）。
@@ -99,10 +99,10 @@ public static class ArmyShape
     ///   3因子を別々に返す＝各呼び手の掛ける順（浮動小数の結合順）をそのまま保つ。</summary>
     internal static (double Tech, double Cohesion, double Militarism) Quality(World w, Coefficients c)
     {
-        double techQuality = c.TechMilLowFloor + (1 - c.TechMilLowFloor) * System.Math.Clamp(w.TechLevel / c.TechMilFullLevel, 0, 1);
+        double techQuality = c.TechMilLowFloor + (1 - c.TechMilLowFloor) * PoliticalQuantities.Clamp01(w.TechLevel / c.TechMilFullLevel);
         if (c.DecayMilitaryWeight > 0 && w.DecayForReaders > 0)   // ★特権段6：読み手は DecayForReaders（ゲート0で従来値）
             techQuality *= 1.0 - System.Math.Clamp(c.DecayMilitaryWeight * w.DecayForReaders
-                * System.Math.Clamp((w.WorldTechLevel - w.TechLevel) / System.Math.Max(1e-9, w.WorldTechLevel), 0, 1), 0, 0.9);
+                * PoliticalQuantities.Clamp01((w.WorldTechLevel - w.TechLevel) / System.Math.Max(1e-9, w.WorldTechLevel)), 0, 0.9);
         double cohesion = w.EthnicEnabled ? 1 + c.UnityMilitaryQuality * (w.EthnicUnity - 0.5) : 1.0;
         // ①軍の練度（2026-08-18・親軍法の撤去）＝識字×組織（専門官僚制・鉄道）×勤務年数。旧＝親軍法ONで一律1.3の段差。
         // 露は皆兵＋巨額でも低質（識字と下士官層の不在）・英は志願長期勤務で最高＝法でなく実物量が質を作る。

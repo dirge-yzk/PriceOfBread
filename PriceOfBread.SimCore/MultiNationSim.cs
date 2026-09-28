@@ -364,7 +364,7 @@ public sealed class MultiNationSim
                 {
                     var garrison = rr.Pops.Find(x => x.IsSoldier);
                     if (garrison is null || !(garrison.Size > 1e-9)) continue;
-                    double defect = Math.Clamp(_coef.SoldierDefectionByMilitancy * garrison.Militancy, 0, 1);
+                    double defect = PoliticalQuantities.Clamp01(_coef.SoldierDefectionByMilitancy * garrison.Militancy);
                     if (!(defect < 1.0)) continue;   // 否定形＝NaN も旧（全員寝返る）側へ倒れる（Math.Clamp は NaN を除去しない）
                     Military.MoveCohort(garrison, loyalPop, garrison.Size * (1.0 - defect), _coef);
                 }
@@ -734,7 +734,7 @@ public sealed class MultiNationSim
                     var w = n.World;
                     bool coastal = false;
                     foreach (var r in w.Regions) if (r.State == RegionState.Active && r.IsPort) { coastal = true; break; }
-                    double gap = Math.Clamp((frontier - w.TechLevel) / Math.Max(1e-9, _coef.ExternalPressureGapScale), 0, 1);
+                    double gap = PoliticalQuantities.Clamp01((frontier - w.TechLevel) / Math.Max(1e-9, _coef.ExternalPressureGapScale));
                     w.ExternalPressure = gap * (coastal ? 1.0 : _coef.ExternalPressureInlandFactor);
                 }
             // 政16（世界工業化の先端状態量・スカフォールド完成）：各国 MeanIndustrialization の最大値＝「世界最先端の工業化度」を
@@ -920,7 +920,7 @@ public sealed class MultiNationSim
                 if (r.State != RegionState.Active) continue;
                 foreach (var p2 in r.Pops) { m += (p2.NewsFill * p2.Literacy + p2.RadioFill) * p2.Size; sz += p2.Size; }
             }
-            media[i2] = sz > 1e-9 ? System.Math.Clamp(m / sz, 0, 1) : 0;
+            media[i2] = sz > 1e-9 ? PoliticalQuantities.Clamp01(m / sz) : 0;
         }
         var prev = new double[n][];
         for (int i2 = 0; i2 < n; i2++)
@@ -1109,7 +1109,7 @@ public sealed class MultiNationSim
                 var m = Nations[j].World;
                 if (m.EpidemicActiveYears <= 0) continue;   // 感染源でない
                 double km = Geo.DistanceKm(w.Latitude, w.Longitude, m.Latitude, m.Longitude);
-                double proximity = Math.Clamp(1.0 - km / (_coef.EpidemicTransmitRange * _coef.EraFactor(w.WorldTechLevel, _coef.EraEpidemicRange)), 0, 1);   // ★時代関数化（掃討第2波2026-08-13）：鉄道と汽船で伝播距離が伸びる（2026-08-29点火＝既定1。=0で×1恒等）              // 陸路＝近いほど強い
+                double proximity = PoliticalQuantities.Clamp01(1.0 - km / (_coef.EpidemicTransmitRange * _coef.EraFactor(w.WorldTechLevel, _coef.EraEpidemicRange)));   // ★時代関数化（掃討第2波2026-08-13）：鉄道と汽船で伝播距離が伸びる（2026-08-29点火＝既定1。=0で×1恒等）              // 陸路＝近いほど強い
                 double trade = _coef.EpidemicTradeTransmit * w.ExternalTradeAccess() * m.ExternalTradeAccess();   // 海路＝両国が交易に開かれているほど（港経由のコレラ）
                 // 戦争＝距離に依らない強制的な濃厚接触（軍営・前線・補給線・復員兵）＝最強の伝播経路（スペイン風邪1918型）。
                 double war = w.SelfPower is { } sp && m.SelfPower is { } mp && Diplomacy.IsAtWar(sp, mp) ? _coef.EpidemicWarTransmit : 0;
@@ -1450,7 +1450,7 @@ public sealed class MultiNationSim
                     // 逆流の核＝core×(1−core)：中核度1のPOPは1ビットも動かない（**持っていない民族は復興できない**＝
                     // 単一文化国の自国民が自分から離反する暴走を構造で閉じる）。同化側の核は従来どおり (1−core)＝core=0 から立ち上がる。
                     double kernel = resist > 0 ? 1.0 - p.CoreEthnicShare : p.CoreEthnicShare * (1.0 - p.CoreEthnicShare);
-                    p.CoreEthnicShare = Math.Clamp(p.CoreEthnicShare + assim * resist * kernel, 0, 1);   // 倍率排除⑧：同化は per-pop で中核割合を1へ寄せる（EthnicUnity は加重平均から創発）
+                    p.CoreEthnicShare = PoliticalQuantities.Clamp01(p.CoreEthnicShare + assim * resist * kernel);   // 倍率排除⑧：同化は per-pop で中核割合を1へ寄せる（EthnicUnity は加重平均から創発）
                 }
             }
         }
@@ -1474,7 +1474,7 @@ public sealed class MultiNationSim
         if (r is null || !(c.ImmigrationAbsorbExponent > 0)) return 1.0;
         double rural = 0;
         foreach (var p in r.Pops) if (!p.IsUrban) rural += p.Size;
-        double slack = Math.Clamp(r.FoodFill, 0, 1) * Math.Clamp(r.HousingFill, 0, 1) * Territory.LandFactor(r, rural, c);
+        double slack = PoliticalQuantities.Clamp01(r.FoodFill) * PoliticalQuantities.Clamp01(r.HousingFill) * Territory.LandFactor(r, rural, c);
         if (!(slack > 0)) return 0;   // 否定形＝NaN もここで落ちる（有限値では厳密同値）
         return Math.Pow(slack, c.ImmigrationAbsorbExponent);
     }
@@ -1509,7 +1509,7 @@ public sealed class MultiNationSim
             dstR[d] = bR; dstO[d] = bO;
             // 民族：低統一度は移民を引く（坩堝＝アメリカ）／低教育は差別で移民を阻む（平均識字が閾値未満で減衰＝排斥）。
             dstA[d] = w.EthnicEnabled
-                ? (1.0 + _coef.EthnicDraw * (1.0 - w.EthnicUnity)) * Math.Clamp(PoliticalQuantities.AvgLiteracy(w) / _coef.DiscriminationLiteracy, 0, 1)
+                ? (1.0 + _coef.EthnicDraw * (1.0 - w.EthnicUnity)) * PoliticalQuantities.Clamp01(PoliticalQuantities.AvgLiteracy(w) / _coef.DiscriminationLiteracy)
                 : 1.0;
             // 受入の物理上限＝アイルランド脱出級の絶対フロー（ImmigrationReceiveCapFrac/四半期）×移民制限法×受入能力（混雑で縮む＝AbsorbCap）。
             // ★移民制限法（法の棚卸しdoc L2・2026-08-01）：Open＝1.0／Selective＝選別で細る／Closed＝ほぼ閉じる
@@ -1566,7 +1566,7 @@ public sealed class MultiNationSim
                     if (_coef.EmigrationFloorSize > 0)
                     {
                         double room = (sp.Size - _coef.EmigrationFloorSize) / Math.Max(1e-9, _coef.EmigrationFloorSize * _coef.EmigrationFloorSpan);
-                        flow *= Math.Clamp(room, 0, 1);
+                        flow *= PoliticalQuantities.Clamp01(room);
                     }
                     if (!(flow > 1e-9)) continue;   // ★否定形＝NaN の流量を弾く
                     for (int d = 0; d < n; d++)
@@ -1584,7 +1584,7 @@ public sealed class MultiNationSim
                                 double perCap = sp.Size > 1e-9 ? sp.Savings / sp.Size : 0;
                                 double af = (perCap - fare) / fare;
                                 // 安全弁：fare/perCap が非有限（座標NaN／貯蓄NaN）ならゲートを飛ばす（割り当て据え置き）＝NaN を Size に伝播させない。
-                                f *= double.IsFinite(af) ? Math.Clamp(af, 0, 1) : 1.0;
+                                f *= double.IsFinite(af) ? PoliticalQuantities.Clamp01(af) : 1.0;
                                 if (Simulation.ConservationProbe && (!double.IsFinite(fare) || !double.IsFinite(perCap)))
                                     Console.Error.WriteLine($"[R3診断] 非有限：{src.Region.Name}({src.Latitude},{src.Longitude})→{dw.Region.Name}({dw.Latitude},{dw.Longitude}) fare={fare} perCap={perCap} sav={sp.Savings} size={sp.Size}");
                             }
@@ -1707,7 +1707,7 @@ public sealed class MultiNationSim
             {
                 if (sIdx == d) continue;
                 var src = Nations[sIdx].World;
-                double ban = System.Math.Clamp(src.SpecialistExitBan, 0, 1);
+                double ban = PoliticalQuantities.Clamp01(src.SpecialistExitBan);
                 if (ban >= 1.0) continue;   // ★段⑤：完全な流出禁止法＝呼べない（自力で育てるしかない＝近代化の壁）
                 // 送出州＝専門職が最も多く居る州（★呼ぶ側は「居る所」から呼ぶ）
                 if (!srcKnown[sIdx])

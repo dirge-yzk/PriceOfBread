@@ -7,7 +7,6 @@
 public sealed class World
 {
     private const double SanitationMortalityReduction = 0.7;   // 衛生整備が疫病致死率を下げる最大割合（完全には消さない）
-    private const double InvadeDistanceReferenceKm = 10_000.0; // 侵略の船需要における距離正規化基準（km）
 
     public World(List<Region> regions, Coefficients coef)
     {
@@ -402,7 +401,7 @@ public sealed class World
     //   単独では監視を完成させない。スケールを下げると「3つ揃えても取り切れない残余」が出る。1.0＝旧とビット恒等。
     public double OversightPress => Coef.OversightFactorScale * Censorship switch { CensorshipLaw.FreePress => 1.0, CensorshipLaw.Censorship => Coef.OversightPressCensored, _ => 0.0 };   // ★AUD-10：裸の数値を係数へ（値は据え置き＝恒等）
     public double OversightMerit => Coef.OversightFactorScale * Bureaucracy switch { BureaucracyLaw.Professional => 1.0, BureaucracyLaw.MeritExam => Coef.OversightMeritExam, _ => 0.0 };   // ★AUD-10：同上
-    public double OversightBudget => Coef.OversightFactorScale * (ParliamentControl >= 0 ? System.Math.Clamp(ParliamentControl, 0, 1) : 0);   // 未初期化(-1)＝予算権なし側へ
+    public double OversightBudget => Coef.OversightFactorScale * (ParliamentControl >= 0 ? PoliticalQuantities.Clamp01(ParliamentControl) : 0);   // 未初期化(-1)＝予算権なし側へ
     public double OversightV2
     {
         get
@@ -430,20 +429,20 @@ public sealed class World
     public double ArmyUpkeep { get; internal set; }   // 陸軍維持費（0..1）
     public double NavyUpkeep { get; internal set; }   // 海軍維持費（0..1）
     /// <summary>軍事費＝陸海の維持費の和（0..1にクランプ）。**派生量**＝既存の全ての読み手はここを見る。</summary>
-    public double MilitarySpending => Math.Clamp(ArmyUpkeep + NavyUpkeep, 0, 1);
+    public double MilitarySpending => PoliticalQuantities.Clamp01(ArmyUpkeep + NavyUpkeep);
     /// <summary>払った金から出る海軍シェア（0..1）。両方0なら0.5（中立）＝ゼロ除算なし。</summary>
     public double NavalSpendShare => ArmyUpkeep + NavyUpkeep > 1e-9 ? NavyUpkeep / (ArmyUpkeep + NavyUpkeep) : 0.5;
     /// <summary>軍事費を陸海へ按分して置く（旧 setter の互換口）。share＝海軍の取り分。</summary>
     internal void SetMilitarySpending(double total, double navalShare)
     {
-        double t = Math.Clamp(total, 0, 1), s = Math.Clamp(navalShare, 0, 1);
+        double t = PoliticalQuantities.Clamp01(total), s = PoliticalQuantities.Clamp01(navalShare);
         NavyUpkeep = t * s; ArmyUpkeep = t - NavyUpkeep;
     }
     /// <summary>陸海の維持費を直接置く（2026-08-10・「海軍の増強」の要求施行が使う）。
     /// 和が1.0を超える分だけ**陸軍から出す**＝上限に張り付いた時だけ内訳が動く（普段は海軍の純増＝軍拡）。</summary>
     internal void SetMilitaryUpkeep(double army, double navy)
     {
-        double n = Math.Clamp(navy, 0, 1), a = Math.Clamp(army, 0, 1);
+        double n = PoliticalQuantities.Clamp01(navy), a = PoliticalQuantities.Clamp01(army);
         if (a + n > 1) a = 1 - n;
         ArmyUpkeep = a; NavyUpkeep = n;
     }
@@ -504,7 +503,7 @@ public sealed class World
         {
             double g = Coef.DecayFromPrivilege;
             if (!(g > 0)) return InstitutionalDecay;
-            double derived = WorldMaxPrivilegeDecayRaw > 1e-12 ? InstitutionalDecayCeiling * System.Math.Clamp(PrivilegeDecayRaw / WorldMaxPrivilegeDecayRaw, 0, 1) : 0;
+            double derived = WorldMaxPrivilegeDecayRaw > 1e-12 ? InstitutionalDecayCeiling * PoliticalQuantities.Clamp01(PrivilegeDecayRaw / WorldMaxPrivilegeDecayRaw) : 0;
             return (1.0 - g) * InstitutionalDecay + g * derived;
         }
     }
@@ -540,7 +539,7 @@ public sealed class World
     /// ⚠プレイヤー（UIのスライダー）とAI（<see cref="UtilityAgent.DecideElection"/>）とUIの表示が**この1本**を読む。</summary>
     public double ElectionSpendOf(double lever)
     {
-        double s = System.Math.Clamp(lever, 0, 1);
+        double s = PoliticalQuantities.Clamp01(lever);
         if (!(s > 0)) return 0;              // NaNガードは否定形（Clamp は NaN を消さない）
         double fc = FiscalCapacity;
         if (!(fc > 0)) return 0;             // 裁量余剰が無い国は1銭も注げない（借金してまでは買わない＝福祉と同じ財源）
@@ -1039,9 +1038,9 @@ public sealed class World
     /// 致死率＝基礎×(1−衛生整備0.7×工業化飽和)×jitter×scale。savings不変（金は保存）・戻り値＝死者数。EpidemicVulnConcentration の脆弱層集中もここで処理。</summary>
     private double ApplyEpidemicDeaths(Region wr, Coefficients c, double jitter, double scale)
     {
-        double oldDev = wr.TotalIndustrialization / (wr.TotalIndustrialization + c.EpidemicSanitationHalf);   // 工業化proxy（旧）。致死率を下げるが完全には消さない。衛生インフラは立っている設備の総量＝新旧合計（ヴィンテージ2026-07-10）
+        double oldDev = Colonial.OutputCurve(wr.TotalIndustrialization, c.EpidemicSanitationHalf);   // 工業化proxy（旧）。致死率を下げるが完全には消さない。衛生インフラは立っている設備の総量＝新旧合計（ヴィンテージ2026-07-10）
         // 致死率の衛生連動（epidemic-ignores-built-sanitation）：工業化proxyと実衛生財(上下水道+石鹸+電化)をブレンド。EpidemicSanitationWeight=0で旧proxy厳密一致。
-        double realSanit = System.Math.Clamp(wr.InfraFill + c.SoapSanitationWeight * wr.SoapFill + c.ElecInfraSanitationWeight * wr.ElecInfraFill, 0, 1);
+        double realSanit = PoliticalQuantities.Clamp01(wr.InfraFill + c.SoapSanitationWeight * wr.SoapFill + c.ElecInfraSanitationWeight * wr.ElecInfraFill);
         double sanitDev = (1.0 - c.EpidemicSanitationWeight) * oldDev + c.EpidemicSanitationWeight * realSanit;
         double deathFrac = c.EpidemicSeverity * (1.0 - SanitationMortalityReduction * sanitDev) * jitter * scale;
         double dead = 0;
@@ -1051,10 +1050,10 @@ public sealed class World
         else
         {
             double totalD = 0, wsum = 0;
-            foreach (var p in wr.Pops) { totalD += p.Size * deathFrac; double ff = p.FoodNeed > 1e-9 ? System.Math.Clamp(p.FoodMet / p.FoodNeed, 0, 1) : 1.0; wsum += p.Size * (1.0 + c.EpidemicVulnConcentration * (p.ChildShare + p.OldShare + (1.0 - ff))); }
+            foreach (var p in wr.Pops) { totalD += p.Size * deathFrac; double ff = p.FoodNeed > 1e-9 ? PoliticalQuantities.Clamp01(p.FoodMet / p.FoodNeed) : 1.0; wsum += p.Size * (1.0 + c.EpidemicVulnConcentration * (p.ChildShare + p.OldShare + (1.0 - ff))); }
             foreach (var p in wr.Pops)
             {
-                double ff = p.FoodNeed > 1e-9 ? System.Math.Clamp(p.FoodMet / p.FoodNeed, 0, 1) : 1.0;
+                double ff = p.FoodNeed > 1e-9 ? PoliticalQuantities.Clamp01(p.FoodMet / p.FoodNeed) : 1.0;
                 double wp = p.Size * (1.0 + c.EpidemicVulnConcentration * (p.ChildShare + p.OldShare + (1.0 - ff)));
                 double d = System.Math.Min(p.Size, wsum > 1e-9 ? totalD * (wp / wsum) : 0);
                 CarryDeathAgeStructure(p, p.Size, d, c.DisasterAgeMortalityExcess);
@@ -1076,8 +1075,8 @@ public sealed class World
         double dOld = d * os * (1.0 + excess) / wTot;
         double after = sizeBefore - d;
         if (after <= 1e-9) return;
-        p.ChildShare = System.Math.Clamp((cs * sizeBefore - dChild) / after, 0, 1);
-        p.OldShare = System.Math.Clamp((os * sizeBefore - dOld) / after, 0, 1);
+        p.ChildShare = PoliticalQuantities.Clamp01((cs * sizeBefore - dChild) / after);
+        p.OldShare = PoliticalQuantities.Clamp01((os * sizeBefore - dOld) / after);
     }
 
     /// <summary>接12（監査2026-07-11・2026-07-25休眠配線）：疫病の**発生**確率にも衛生を接続するための読み口＝最過密州の衛生整備度
@@ -1093,8 +1092,8 @@ public sealed class World
             if (us > worstUrban) { worstUrban = us; worst = r; }
         }
         if (worst is null) return 0;
-        double oldDev = worst.TotalIndustrialization / (worst.TotalIndustrialization + c.EpidemicSanitationHalf);
-        double realSanit = System.Math.Clamp(worst.InfraFill + c.SoapSanitationWeight * worst.SoapFill + c.ElecInfraSanitationWeight * worst.ElecInfraFill, 0, 1);
+        double oldDev = Colonial.OutputCurve(worst.TotalIndustrialization, c.EpidemicSanitationHalf);
+        double realSanit = PoliticalQuantities.Clamp01(worst.InfraFill + c.SoapSanitationWeight * worst.SoapFill + c.ElecInfraSanitationWeight * worst.ElecInfraFill);
         return (1.0 - c.EpidemicSanitationWeight) * oldDev + c.EpidemicSanitationWeight * realSanit;
     }
 
@@ -1273,11 +1272,11 @@ public sealed class World
                 Explain.Add("AdminEfficiency", "貴族の統治", aristocratic * (1 - market));
                 Explain.Add("AdminEfficiency", "民族統一度", baseEff * (unity - 1));
                 Explain.Add("AdminEfficiency", "報道自由と実力任用", baseEff * unity * (accountability - 1));
-                double raw2 = baseEff * unity * accountability * BureaucracyFactor(), cl = System.Math.Clamp(raw2, 0, 1);
+                double raw2 = baseEff * unity * accountability * BureaucracyFactor(), cl = PoliticalQuantities.Clamp01(raw2);
                 Explain.Add("AdminEfficiency", "官僚制度(猟官/資格任用/専門)", baseEff * unity * accountability * (BureaucracyFactor() - 1));
                 if (cl != raw2) Explain.Add("AdminEfficiency", cl > raw2 ? "下限クランプ" : "上限クランプ", cl - raw2);
             }
-            return System.Math.Clamp(baseEff * unity * accountability * BureaucracyFactor(), 0, 1);
+            return PoliticalQuantities.Clamp01(baseEff * unity * accountability * BureaucracyFactor());
         }
     }
 
@@ -1292,13 +1291,13 @@ public sealed class World
     // GDP景気循環トラッカー（反景気循環的金融政策の入力）。四半期ごとに UpdateGdpCycle で更新。
     public double GdpTrend { get; private set; }
     public double GdpPeak { get; private set; }
-    public double GdpDrawdown => GdpPeak > 1 ? Math.Clamp(1.0 - GdpTrend / GdpPeak, 0, 1) : 0;   // トレンドGDPのピーク比収縮＝景気後退の度合い
+    public double GdpDrawdown => GdpPeak > 1 ? PoliticalQuantities.Clamp01(1.0 - GdpTrend / GdpPeak) : 0;   // トレンドGDPのピーク比収縮＝景気後退の度合い
     // ★E2（作者裁定2026-08-26）：**1人あたり**のドローダウン。割譲や分離で総額が落ちただけの国を「恐慌」と呼ばないための物差し。
     //   ⚠厳密な切り分けはしない（作者裁定）＝割譲でサプライ網が壊れて本当に縮んだ場合はこちらも落ちる＝恐慌と出るのが正しい。
     //   読み手は**表示側だけ**（通知・年代記・外交ホバー）。エンジンの資本破壊や金融の判断は従来どおり総額の GdpDrawdown を見る。
     public double GdpPcTrend { get; private set; }
     public double GdpPcPeak { get; private set; }
-    public double GdpPcDrawdown => GdpPcPeak > 0 && GdpPeak > 1 ? Math.Clamp(1.0 - GdpPcTrend / GdpPcPeak, 0, 1) : 0;
+    public double GdpPcDrawdown => GdpPcPeak > 0 && GdpPeak > 1 ? PoliticalQuantities.Clamp01(1.0 - GdpPcTrend / GdpPcPeak) : 0;
     public void UpdateGdpCycle()
     {
         double g = Gdp;
@@ -1391,10 +1390,10 @@ public sealed class World
             double hi = lo * (1.0 + c.GoldCoverCreditRestraint);
             double band = hi - lo;
             double cover = baseM / broad;
-            double full = band > 1e-9 ? Math.Clamp((cover - lo) / band, 0, 1) : 1.0;
+            double full = band > 1e-9 ? PoliticalQuantities.Clamp01((cover - lo) / band) : 1.0;
             convTarget = 1.0 + (full - 1.0) * c.ConvertibilityCoverageBand;   // Band=0で1.0（旧）・1で full そのもの
         }
-        Convertibility = Math.Clamp(Convertibility + (convTarget < Convertibility ? c.ConvertibilityDropSpeed : c.ConvertibilityRiseSpeed) * (convTarget - Convertibility), 0, 1);
+        Convertibility = PoliticalQuantities.Clamp01(Convertibility + (convTarget < Convertibility ? c.ConvertibilityDropSpeed : c.ConvertibilityRiseSpeed) * (convTarget - Convertibility));
         // 金本位：物価は正貨（BaseMoney＝金）に縛られる＝貿易赤字で金が流出すると M/Y↓→デフレ（Hume の正貨流出入）。
         // 不換（金本位外）：広義マネー（金+信用）＝信用膨張で増やせる→好況インフレ・紙幣増発も可能。兌換可能性で連続補間（部分兌換）。
         double money = broad + (baseM - broad) * Convertibility;   // Conv=1→BaseMoney(金)・Conv=0→BroadMoney(信用込み)
@@ -1656,8 +1655,8 @@ public sealed class World
         //   ＝科挙官僚制が鉄道を敷くのに要した余分な費用・技術を輸入に頼る国の割高さ。
         //   ⚠ModernizationCostGdpShare=0 で旧式（国庫比）に戻る＝休眠。
         double costMul = 1.0
-            + Coef.ModernizationDecayCost * Math.Clamp(InstitutionalDecay, 0, 1)
-            + Coef.ModernizationTechLagCost * (WorldTechLevel > 1e-9 ? Math.Clamp((WorldTechLevel - TechLevel) / WorldTechLevel, 0, 1) : 0);
+            + Coef.ModernizationDecayCost * PoliticalQuantities.Clamp01(InstitutionalDecay)
+            + Coef.ModernizationTechLagCost * (WorldTechLevel > 1e-9 ? PoliticalQuantities.Clamp01((WorldTechLevel - TechLevel) / WorldTechLevel) : 0);
         //   ── 費用は frac に対して**凸**（2026-08-04）─────────────────────────────
         //   要求額 = A × GDP × コスト倍率 × frac/(1−frac)。frac→1 で**発散**＝「100%はほとんどの国で不可能」が
         //   閾値でなく形として成立する（線形にして係数を大きくすると、通常域まで一緒に潰れて覇権が消える＝実測でテスト赤）。
@@ -1719,10 +1718,10 @@ public sealed class World
         //   ⚠大学の無い州へ配っても買えないだけ＝カネは国庫に残る（StateBuildQueue と同じ fail-safe）。
         // ★段④：招聘へ回す分（⚠学費より先に取る＝「育てる」より「呼ぶ」が即効という順序ではなく、単に配分の順序）。
         //   ⚠k=0 で予約が立たない＝厳密恒等。★空振りは RecruitSpecialists が使わずに終わる＝国庫に残る。
-        double recPart = budget * System.Math.Clamp(Coef.ModernizationToRecruit, 0, 1);
+        double recPart = budget * PoliticalQuantities.Clamp01(Coef.ModernizationToRecruit);
         if (recPart > 0) { RecruitBudget += recPart; budget -= recPart; }
         if (!(budget > 0)) return;
-        double eduPart = budget * System.Math.Clamp(Coef.ModernizationToHigherEdu, 0, 1);
+        double eduPart = budget * PoliticalQuantities.Clamp01(Coef.ModernizationToHigherEdu);
         var weight = new double[Regions.Count];   // 州ごとの重み（合計と配分で同じ州走査を2度しない）
         if (eduPart > 0)
         {
@@ -1793,7 +1792,7 @@ public sealed class World
         // 1914年の熱狂は都市の教育ある中産層と学生に限られた／徴兵の無い英の1900年南阿主戦熱・常備軍10万未満の米の1898年
         // ＝軍の大きさでも徴兵でもなく**燃えうる公共圏**が決める。屈辱が無ければ0＝平時の食欲は下の緊張・将校貴族・兵士規模の項が担う。
         double mil = PoliticalQuantities.WarFeverPublicSphere(this);
-        double outlet = Math.Clamp(trad + Coef.WarFeverMilitancyGate * mil, 0, 1);
+        double outlet = PoliticalQuantities.Clamp01(trad + Coef.WarFeverMilitancyGate * mil);
         double diversion = Coef.WarFeverMilitancy * Politics.AvgMassMilitancy(this) * outlet;
         return Coef.WarFeverMilitarism * mil
              + Coef.WarFeverMilSpend * (Coef.WarFeverUsesBudgetShare > 0 ? PoliticalQuantities.MilitaryBudgetShare(this) : MilitarySpending)   // ★B-03：水準→中央歳出シェア（0で旧＝厳密恒等）
@@ -1864,7 +1863,7 @@ public sealed class World
     private double InvadeWillCost(Power t) => Diplomacy is not null && SelfPower is not null
         ? Diplomacy.ColonizeWillCost(SelfPower, t, Coef)
         : Coef.ExpansionWillCap;
-    private double InvadeShipReq(Power t) => Coef.InvadeShipsBase * (1 + Coef.InvadeShipDistanceScale * NearestColonyKm(t) / InvadeDistanceReferenceKm);
+    private double InvadeShipReq(Power t) => Coef.InvadeShipsBase * (1 + Coef.InvadeShipDistanceScale * NearestColonyKm(t) / Diplomacy.DistanceNormKm);
 
     /// <summary>侵略の可否＝**唯一のゲート**（旧「植民地化」と1本化・作者裁定2026-08-23）。AI・プレイヤー・UI がこの1本だけを読む。
     /// 標的は弱小（Minor）＝抽象標的でも実在の弱小国でもよい。行為者のランクは問わない（旧・植民地化の「列強のみ」は撤去）＝
@@ -1921,7 +1920,7 @@ public sealed class World
         if (target.RequiresQuinine)   // 熱帯（マラリア）標的：防護に要るキニーネは「養う遠征軍と同規模」＝缶詰要求量を流用（曝露＝物理）。未防護の兵が既存の疫病致死率で死ぬ＝マラリア専用倍率を置かない
         {
             double need = InvadeCannedReq(target), have = InvQuinineStock();
-            double fill = Math.Clamp(have / Math.Max(1e-9, need), 0, 1);
+            double fill = PoliticalQuantities.Clamp01(have / Math.Max(1e-9, need));
             if (InvQuinineId < Region.Markets.Length)
                 Region.Markets[InvQuinineId].Stock = Math.Max(0, Region.Markets[InvQuinineId].Stock - Math.Min(have, need));   // 持っている分だけ消費（防護に充てる）
             double exposed = 1.0 - fill;
@@ -2029,7 +2028,7 @@ public sealed class World
         var r = Regions[regionIndex];
         var p = FindFactory(r, goodId);
         if (p is null) return;
-        p.SubsidyRate = StateProfitShare(p, r, Coef) >= 1.0 ? 0.0 : System.Math.Clamp(rate, 0, 1);
+        p.SubsidyRate = StateProfitShare(p, r, Coef) >= 1.0 ? 0.0 : PoliticalQuantities.Clamp01(rate);
     }
 
     /// <summary>補助金を設定できるか（UI表示用）＝<see cref="CanSellFactory"/> と同じ理由連鎖の作法。
@@ -2075,7 +2074,7 @@ public sealed class World
     private double UnitSalePrice(Producer p, double profit)
     {
         double unit = Coef.FactoryBuildScale > 1e-9 ? Math.Min(Coef.FactoryBuildScale, p.BuiltScale) : p.BuiltScale;
-        double frac = p.BuiltScale > 1e-9 ? Math.Clamp(unit / p.BuiltScale, 0, 1) : 1.0;
+        double frac = p.BuiltScale > 1e-9 ? PoliticalQuantities.Clamp01(unit / p.BuiltScale) : 1.0;
         return profit * Calendar.MonthsPerYear * Coef.SoeSaleYears * frac;
     }
 
@@ -2288,8 +2287,8 @@ public sealed class World
         p.StateTarget = Math.Max(p.StateTarget, StateUnitsOf(p));   // 接収した持分をカウンターが翌月に売り戻さない
         double share = take / p.Scale;
         if (r.InvestorPopIndex >= 0 && r.InvestorPopIndex < r.Pops.Count)
-            r.Pops[r.InvestorPopIndex].Militancy = Math.Clamp(r.Pops[r.InvestorPopIndex].Militancy + Coef.SeizureMilitancyCost * share, 0, 1);
-        r.SeizureChill = Math.Clamp(r.SeizureChill + Coef.SeizureInvestmentChill * share, 0, 1);
+            r.Pops[r.InvestorPopIndex].Militancy = PoliticalQuantities.Clamp01(r.Pops[r.InvestorPopIndex].Militancy + Coef.SeizureMilitancyCost * share);
+        r.SeizureChill = PoliticalQuantities.Clamp01(r.SeizureChill + Coef.SeizureInvestmentChill * share);
     }
 
     /// <summary>都市率＝都市階級の人口割合（M2）。active 州のみ（分離独立/凍結州を除外＝TotalPopulation/Gdp/MeanIndustrialization と一貫。2026-07-19バグ監査で取りこぼしを是正）。</summary>

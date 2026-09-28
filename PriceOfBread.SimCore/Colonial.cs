@@ -8,7 +8,6 @@
 /// </summary>
 public static class Colonial
 {
-    private const double DistanceNormalizeKm = 10_000.0;        // 海路距離の正規化スケール（維持費・独立の距離減衰で共有）
     internal const double OilViableProductionFrac = 0.25;       // 石油を燃料二択に載せる継続生産の下限（必要量比）。海軍運用燃料・民間汽船燃料（運用コスト監査2026-08-16）と共有
     private const double ColonyLiteracyCap = 0.9;               // 植民地識字の上限
     private const double ColonyMilitancyLiteracyBase = 0.3;     // 不満成長の識字ベース項（教育された植民地ほど独立志向）
@@ -45,7 +44,7 @@ public static class Colonial
         void AccumUpkeep(double clat, double clon, double popWeight, double militancy, bool malarial)
         {
             double km = (Math.Abs(clat) < 1e-9 && Math.Abs(clon) < 1e-9) ? 0 : Geo.SeaDistanceKm(w.Latitude, w.Longitude, clat, clon, suezOpen, panamaOpen);
-            double distF = km / DistanceNormalizeKm;
+            double distF = km / Diplomacy.DistanceNormKm;
             totalUpkeep += c.ColonyUpkeepBase * (1 + c.ColonyUpkeepMilitancyScale * popWeight * militancy);
             coalWant += c.ColonyUpkeepCoalPerDist * c.EraFactor(w.WorldTechLevel, c.EraColonyCoal) * distF;
             foodWant += c.ColonyUpkeepFoodPerDist * c.EraFactor(w.WorldTechLevel, c.EraColonyFood) * distF;
@@ -66,7 +65,7 @@ public static class Colonial
         {
             // 座標未設定(0,0)の抽象植民地は距離項を中立に＝幻の遠距離コストを防ぐ（A-2#5。例：仏首都→(0,0)＝ギニア湾沖の幻の5400km）。基礎維持費のみ課す。
             double km = (Math.Abs(col.Latitude) < 1e-9 && Math.Abs(col.Longitude) < 1e-9) ? 0 : Geo.SeaDistanceKm(w.Latitude, w.Longitude, col.Latitude, col.Longitude, suezOpen, panamaOpen);
-            double distF = km / DistanceNormalizeKm;
+            double distF = km / Diplomacy.DistanceNormKm;
             // 俸給（金銭）＝基礎×(1＋不満項)。不満項＝人口ウェイト×不満（B-1：高不満の大植民地ほど駐留・鎮圧が高くつく＝インド大反乱型）。
             totalUpkeep += c.ColonyUpkeepBase * (1 + c.ColonyUpkeepMilitancyScale * col.Population * col.Militancy);
             // ★時代関数化（掃討第2波2026-08-13）：汽船の燃費は改善し続け（複式→三段膨張機関）、糧食は缶詰・冷蔵で変わった
@@ -147,7 +146,7 @@ public static class Colonial
                 col.PopSize *= Math.Max(0.5, 1 + c.ColonialPopGrowth - c.ColonialExploitMortality * exploitation * (0.5 + col.Militancy) - malariaDeath);
                 col.Literacy = Math.Min(ColonyLiteracyCap, col.Literacy + c.ColonialLiteracyGrowth * outputRate);
                 // 恐慌の脱植民地化（旧ColonialCrisisMilitancy）はC裁定2026-07-09で撤去＝脆弱な挑戦者の植民地をより奪い覇権の相対優位を拡大する逆効果を実証済み
-                col.Militancy = Math.Clamp(col.Militancy + c.ColonialMilitancyGrowth * exploitation * (ColonyMilitancyLiteracyBase + col.Literacy) - c.ColonialMilitancyDecay, 0, 1);
+                col.Militancy = PoliticalQuantities.Clamp01(col.Militancy + c.ColonialMilitancyGrowth * exploitation * (ColonyMilitancyLiteracyBase + col.Literacy) - c.ColonialMilitancyDecay);
             }
             popSum += col.PopSize + col.SettlerSize;   // 入植者も「数えられる」人口（州昇格2026-08-09。既定 SettlerSize=0＝厳密恒等）
             if (perColony)
@@ -186,7 +185,7 @@ public static class Colonial
             {
                 // 距離減衰＝渡航費の物理（維持費・独立holdと同じ海路距離を使う＝新係数を作らない）。座標未設定(0,0)の抽象植民地は距離項を中立に（AccumUpkeep と同じ幻距離回避）。
                 double kmS = (Math.Abs(col.Latitude) < 1e-9 && Math.Abs(col.Longitude) < 1e-9) ? 0 : Geo.SeaDistanceKm(w.Latitude, w.Longitude, col.Latitude, col.Longitude, suezOpen, panamaOpen);
-                double attract = 1.0 / (1.0 + kmS / DistanceNormalizeKm);
+                double attract = 1.0 / (1.0 + kmS / Diplomacy.DistanceNormKm);
                 if (col.Malarial) attract *= malariaFill;   // マラリア地はキニーネの鎮静率のぶんだけしか入植が立たない
                 double flow = Math.Min(c.ColonySettlerRate * srcMass * attract, srcMass * SettlerMonthlyOutflowCap);
                 if (srcMass > 1e-9 && flow > 1e-9)
@@ -300,7 +299,7 @@ public static class Colonial
                 // 外5：距離減衰（ColonialHoldDistanceDecay 既定0.3・0で距離項なし）。>0で本国首都→植民地の海路距離で hold を割り引く（属国離反 Diplomacy.Projection と同型＝地球の裏側は隣接島より保ちにくい）。
                 // 座標未設定(0,0)の抽象植民地は距離項を中立に（AccumUpkeep と同じ幻の遠距離コスト回避）。
                 double km = (Math.Abs(col.Latitude) < 1e-9 && Math.Abs(col.Longitude) < 1e-9) ? 0 : Geo.SeaDistanceKm(w.Latitude, w.Longitude, col.Latitude, col.Longitude, suezOpen, panamaOpen);
-                double distDecay = 1.0 / (1.0 + c.ColonialHoldDistanceDecay * km / DistanceNormalizeKm);
+                double distDecay = 1.0 / (1.0 + c.ColonialHoldDistanceDecay * km / Diplomacy.DistanceNormKm);
                 double hold = baseHold * distDecay / sharedDiv;
                 MechanismProbe.Eval(MechanismProbe.Site.ColonyIndependence);   // ★D-34：⚠Eval が小さいこと自体が所見＝昇格で ColonyList が痩せると独立判定に載る植民地が居なくなる
                 if (col.Militancy > c.ColonialIndependenceMilitancy && col.PopSize * col.Militancy > hold)
@@ -368,7 +367,7 @@ public static class Colonial
                 if (cr.State != RegionState.Active || cr.Seceded || cr.Tier != RegionTier.Colonial || cr.Id == 0) continue;
                 var ccr = Places.Coord(cr.Name);
                 double kmS = (Math.Abs(ccr.Lat) < 1e-9 && Math.Abs(ccr.Lon) < 1e-9) ? 0 : Geo.SeaDistanceKm(w.Latitude, w.Longitude, ccr.Lat, ccr.Lon, suezOpen, panamaOpen);
-                double attract = 1.0 / (1.0 + kmS / DistanceNormalizeKm);
+                double attract = 1.0 / (1.0 + kmS / Diplomacy.DistanceNormKm);
                 if (cr.Malarial) attract *= malariaFill;
                 double flow = Math.Min(c.ColonySettlerRate * srcMassR * attract, srcMassR * SettlerMonthlyOutflowCap);
                 if (srcMassR > 1e-9 && flow > 1e-9)

@@ -17,7 +17,7 @@ public static class Crime
         // 秩序＝実効治安維持力の人口カバレッジ。財政破綻（funding↓）や正統性喪失で警察が崩れると治安も崩れる。
         // 治安維持力は人口あたりの強度（政体と同じ正規化）：実効力＝Coercion×人口/基準人口（第5段5-1＝PoliticalQuantitiesへ一元化・従来と同時点）。
         double effCoerce = PoliticalQuantities.EffectiveCoerce(w, c);
-        double order = Math.Clamp(effCoerce / Math.Max(1e-9, pop * c.CrimeOrderPerPop), 0, 1);
+        double order = PoliticalQuantities.Clamp01(effCoerce / Math.Max(1e-9, pop * c.CrimeOrderPerPop));
         w.PublicOrder = order;
         double worstRate = 0;
 
@@ -34,7 +34,7 @@ public static class Crime
                 criminal += p.Size * p.Militancy * (1.0 - p.Satisfaction);
             // 都市化（B-4）：過密スラム・匿名性・相対的剥奪が犯罪を増幅（19世紀ロンドン/パリ）。農村中心の地域は影響小。
             double urbanShare = r.SumUrbanPopulation() / regionPop;
-            double crimeRate = c.CrimeBase * (1.0 - order) * Math.Clamp(c.CrimeMilitancyWeight * criminal / regionPop, 0, 1) * (1.0 + c.CrimeUrbanWeight * urbanShare);
+            double crimeRate = c.CrimeBase * (1.0 - order) * PoliticalQuantities.Clamp01(c.CrimeMilitancyWeight * criminal / regionPop) * (1.0 + c.CrimeUrbanWeight * urbanShare);
             r.CrimeRate = crimeRate;   // 接16（監査2026-07-11・2026-07-25休眠配線）：州別値を保持（旧はローカルで捨てていた）＝移民pushの読み口（CrimePushWeight=0では誰も読まない）
             worstRate = Math.Max(worstRate, crimeRate);
             if (crimeRate <= 1e-9 || criminal <= 1e-9) continue;   // 受け手（困窮大衆）が実質不在なら盗まない＝盗んだpoolが再分配されず消える保存則違反の防止（leakhunt 2026-07-09）
@@ -78,7 +78,7 @@ public static class Crime
                     double wpc = pp.Size > 1e-9 ? Math.Max(0, pp.Savings) / pp.Size : 0;
                     double wealthRel = meanWpc > 1e-9 ? wpc / meanWpc : 1;
                     double penalty = crimeRate * (c.CrimeSatPenalty + c.CrimeWealthFearWeight * Math.Max(0, wealthRel - 1));
-                    pp.Satisfaction = Math.Clamp(pp.Satisfaction - penalty, 0, 1);
+                    pp.Satisfaction = PoliticalQuantities.Clamp01(pp.Satisfaction - penalty);
                 }
             }
         }

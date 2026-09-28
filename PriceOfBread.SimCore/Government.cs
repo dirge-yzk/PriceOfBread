@@ -225,7 +225,7 @@ public static class Government
         //   ⚠新しい概念は1つも置かない：目標カバー率は既存の再加入条件（GoldCoverMin×GoldRejoinCoverMargin）をそのまま読む。
         //   自己安定する：金利↑→PolicyRateCapitalDraw で正貨が来る→カバー率が戻る→金利↓（★史実＝誰も金融政策の自律を選ばなかった）。
         //   TrilemmaRateGate=0 なら下の分岐に入らず＝厳密恒等（★ 2026-08-13 点火＝既定1.0）。
-        double rateTarget = Q5(Math.Clamp(p.InterestRateTarget, 0, 1));
+        double rateTarget = Q5(PoliticalQuantities.Clamp01(p.InterestRateTarget));
         // ★銀の段の軽い規律（SilverLightDiscipline・2026-08-21・**live=1**）：金利防衛（バンクレート）は発券銀行制度＝金の段の制度。
         //   1783年の銀正貨国に金利レバーの自動化を課すと約60カ国のレバーが死ぬ（19-6差し戻しの根①）＝銀の段では自動化しない。
         //   0に戻せば旧来（銀の段も自動化）と厳密恒等。
@@ -236,11 +236,11 @@ public static class Government
             double gap = coverTarget > 1e-9 ? (coverTarget - coverage) / coverTarget : 0;
             gap = Math.Clamp(gap, -1, 1);
             if (!(gap >= -1 && gap <= 1)) gap = 0;   // NaNは中立へ倒す（否定形で書く＝Clampは NaN を消さない）
-            rateTarget = Math.Clamp(w.InterestRate + c.TrilemmaRateResponse * gap, 0, 1);
+            rateTarget = PoliticalQuantities.Clamp01(w.InterestRate + c.TrilemmaRateResponse * gap);
         }
         w.InterestRate += c.PolicyBaseSpeed * (rateTarget - w.InterestRate);
         // 行政費＝官僚機構の予算編成（行政府の内部事項＝利益集団の抵抗は受けない）。目標へ寄る。
-        w.AdminSpending += c.PolicyBaseSpeed * (Q5(Math.Clamp(p.AdminSpendingTarget, 0, 1)) - w.AdminSpending);
+        w.AdminSpending += c.PolicyBaseSpeed * (Q5(PoliticalQuantities.Clamp01(p.AdminSpendingTarget)) - w.AdminSpending);
         // ★撤去2026-08-16（C2-C5）：汚職根絶費の予算編成（AntiCorruptionSpending←AntiCorruptionTarget平滑）を物理削除＝汚職V2恒久ONで下流（Fiscal請求・清廉度更新）が全て死んでいた。
         // P9改（2026-07-19ユーザー裁定）：国民形成費レバーは廃止＝NationBuildingSpending は Fiscal の需要駆動ブロック
         // （「選挙を望む層」の自費拠出＝実支払い/満額）が毎月導出する。ここでは動かさない。
@@ -256,7 +256,7 @@ public static class Government
         //   ⚠w.AusterityIntensity の計算は残る＝三部会の召集信号（CrownParliament が >0.5 を読む）と門の材料。
         //   軍事費の緊縮は**不採用**（2026-06-18 検証）：負債国だけが動員解除し財政健全な覇権国は軍を維持＝非対称な武装解除で力の格差が拡大した。
         w.AusterityIntensity = (w.FiscalEnabled && w.GovDebt > 0 && w.Gdp > 1e-9)
-            ? Math.Clamp((w.GovDebt / w.Gdp - c.AusterityStartDebt) / c.AusterityRange, 0, 1) : 0;   // [単位・B13] 債務/GDP＝**月次実質**（GovDebt÷月次Gdp）。AusterityStartDebt/Range はこの単位（Fiscal の年次名目 dGdp の約1/12 とは別の物差し）
+            ? PoliticalQuantities.Clamp01((w.GovDebt / w.Gdp - c.AusterityStartDebt) / c.AusterityRange) : 0;   // [単位・B13] 債務/GDP＝**月次実質**（GovDebt÷月次Gdp）。AusterityStartDebt/Range はこの単位（Fiscal の年次名目 dGdp の約1/12 とは別の物差し）
     }
 
     // スライダーの5%刻み：0..1の目標を0.05単位に丸める（UI/AI共通の「つまみは20段」仕様）。
@@ -312,7 +312,7 @@ public static class Government
     /// ⚠錨2026-09-18：床は**率**なので、その軸の錨で正規化してから段へ写す（旧は錨1.0を前提に率をそのまま×3していた＝
     ///   人頭税なら満額緊縮の床0.5に対し段2＝0.333＜0.5 で床が床でなくなる）。新しい数はゼロ＝同じ <see cref="Coefficients.AusterityTaxHike"/>。</summary>
     private static int AusterityStage(World w, Coefficients c, PolicyAxis a)
-        => (int)Math.Ceiling(Math.Clamp(Math.Min(1.0, w.AusterityIntensity * c.AusterityTaxHike) / TaxLawTop(a), 0, 1) * TaxLawStages);
+        => (int)Math.Ceiling(PoliticalQuantities.Clamp01(Math.Min(1.0, w.AusterityIntensity * c.AusterityTaxHike) / TaxLawTop(a)) * TaxLawStages);
 
     /// <summary>★段になった財政の軸（作者裁定2026-09-12 R1/R2・2026-09-20 点火）。
     /// 関税は対象外（R3「関税はスライダーを維持してよい」）・行政費/金利は利益集団の抵抗を受けない内部事項なので元から軸を持たない。
@@ -546,7 +546,7 @@ public static class Government
                 // ★裁定B（2026-09-12）：緊縮の福祉天井（旧＝Step が w.SocialSecurity を毎期 1−緊縮強度 で削る＝法を1ミリも動かさず実効値だけを削る残骸）を門へ移す。
                 //   新しい量はゼロ＝同じ 1−AusterityIntensity を段（救貧/労災/失業/年金）へ写すだけ。切り捨て＝天井を跨ぐ段は選べない（段の値が天井を超えると名乗りが嘘になる）。
                 //   ⚠天井型の前提は**登る側にしか掛けない**（2026-09-12 反証と同文）＝緊縮は既に制定された福祉法を剥がす力を持たない（剥がれなさは ProtectedLaw が別に持つ）。
-                if (targetLevel > (int)Math.Floor(Math.Clamp(1.0 - w.AusterityIntensity, 0, 1) * SocialSecurityMaxLevel)
+                if (targetLevel > (int)Math.Floor(PoliticalQuantities.Clamp01(1.0 - w.AusterityIntensity) * SocialSecurityMaxLevel)
                     && targetLevel > CurrentStage(w, a)) return (false, "緊縮の上限");
                 break;
         }
