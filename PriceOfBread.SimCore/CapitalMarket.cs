@@ -12,7 +12,7 @@ namespace PriceOfBread.SimCore;
 /// </summary>
 public static class CapitalMarket
 {
-    private const int NoGdpDistressDebtRatio = 9;       // NominalGdp≈0 かつ債務ありのときの代替（極大）債務比率
+    private const int NoGdpDistressDebtRatio = 9;       // NominalGdp≈0 かつ債務ありのときの代替（極大）債務比率（年の名目GDP の9倍＝DebtDistressRatio を越える番兵）
     private const double BondConfMin = 0.2;             // 国債スプレッドが対外信認を下げる際の下限クランプ
     private const double ExchangeRateCreditFloor = 0.3; // 為替減価が対外信認を削る際の下限クランプ
 
@@ -47,12 +47,14 @@ public static class CapitalMarket
         {
             w[i] = nations[i].World;
             ngdp[i] = w[i].NominalGdp;   // ★A2-2（2026-09-26）：名目GDP（州×生産者の全件走査）は国ごとにこの1回だけ。この関数が書くのは貯蓄・対外資産・外資・信用の記帳だけ＝産出・州・物価水準は動かない＝下の読み手はビット単位で同じ値を読む
-            // [単位・B13] 債務/GDP＝**月次名目**（GovDebt÷月次NominalGdp）＝Fiscal の年次名目 dGdp の約12倍の値。NoGdpDistressDebtRatio・信用の閾値はこの単位
-            double debtR = ngdp[i] > 1e-9 ? w[i].GovDebt / ngdp[i] : (w[i].GovDebt > 0 ? NoGdpDistressDebtRatio : 0);
+            // [単位・B13] 債務/GDP＝**年次名目**（GovDebt÷(月次NominalGdp×12)）＝Fiscal の国債の金利の dGdp と同じ物差し（2026-09-29・棚卸し fis-02）。
+            //   旧＝月次名目（GovDebt÷月次NominalGdp）＝閾値 DebtDistressRatio 2.0 は年に直すと約0.17＝国債÷年GDP が史実の水準（英1815 約2.5・仏1789 0.6〜0.8）へ
+            //   立った国は対外信用の債務の項が0＝外資が逃げた。NoGdpDistressDebtRatio・信用の閾値はこの単位。
+            double debtR = ngdp[i] > 1e-9 ? w[i].GovDebt / (ngdp[i] * Calendar.MonthsPerYear) : (w[i].GovDebt > 0 ? NoGdpDistressDebtRatio : 0);
             // ★AUD-09（Fiscal.cs の dGdp と同じ規律・同じ書き方）：分母の絶対値ガードだけでは微小非ゼロで比が発散し、
             //   NaN は `Math.Clamp` を素通りして CreditDebtTerm を毒する。⚠否定形で番兵へ倒す。
             //   ★有限値では厳密同値：読み手は下2行の `Clamp(1−debtR/DebtDistressRatio, 0, 1)` だけで、
-            //     DebtDistressRatio=2.0 に対し番兵9は既に 0 へクランプされる帯＝**挙動は変わらない**。
+            //     DebtDistressRatio=3.0 に対し番兵9は既に 0 へクランプされる帯＝**挙動は変わらない**。
             if (!(debtR <= NoGdpDistressDebtRatio)) debtR = NoGdpDistressDebtRatio;
             // 国債二次流通との連動（改修2026-06-28・金融改革①）：国債の利回りスプレッド(暴落)が対外信用を下げる＝国債暴落→資本逃避→為替減価→（既存経路で）さらに国債金利↑のバーリング危機ループ。
             double bondSpread = System.Math.Max(0, w[i].GovBondRate - c.BondBaseRate);

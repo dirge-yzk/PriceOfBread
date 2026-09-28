@@ -411,6 +411,11 @@ public class RevoltIgnitionTests
     private static (World W, FactionState F) 段4_絶望した州に小さな運動を置く(double regionMilitancy, double fight, double rejections)
     {
         var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+        // 初期の国債（world.json の govDebt＝1783年の英 年GDP の約1.1・2026-09-29）を構築の直後に消す＝旧の盤面（英の初期国債0）と同じ状態から回す。
+        //   ⚠緊縮の強度は債務÷**月次実質**GDP で測る（年GDP の約8%で満額・棚卸し fis-02）＝初期の国債があると「緊縮の下限／上限」の門が人頭税と社会保障の段を塞ぎ、
+        //   この盤面が測る法の経路（受諾・施行・通らない段）の前提が崩れる（門そのものの番人は別）。金は動かない＝請求権と保有の記録だけを消す。
+        sim.World.GovDebt = 0; sim.World.ForeignDebt = 0;
+        foreach (var r in sim.World.Regions) foreach (var p in r.Pops) p.BondHoldings = 0;
         sim.Run(20);
         var w = sim.World;
         Assert.True(w.Regions.Count > 1 && w.FactionRng is not null && w.Coef.FactionRevoltScale > 0, "前提が崩れた：F3bが遮蔽されている");
@@ -1136,6 +1141,9 @@ public class RevoltIgnitionTests
     private static World 項目3_盤面(double microHeat, double bigHeat, double strengthScale = -1)
     {
         var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+        // 初期の国債を構築の直後に消す＝旧の盤面と同じ状態から回す（理由は 段4_絶望した州に小さな運動を置く と同じ＝緊縮の門が法の経路の前提を塞ぐ）
+        sim.World.GovDebt = 0; sim.World.ForeignDebt = 0;
+        foreach (var r in sim.World.Regions) foreach (var p in r.Pops) p.BondHoldings = 0;
         sim.Run(20);
         var w = sim.World; var c = w.Coef;
         Assert.True(w.Regions.Count > 2, "前提が崩れた：非首都州が2つ以上ない");

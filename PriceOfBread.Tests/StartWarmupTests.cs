@@ -93,6 +93,32 @@ public class StartWarmupTests
         }
     }
 
+    /// <summary>★助走は国債の残高を動かさない＋開幕の国債は1783年の史実（2026-09-29）。国債は「年月が経って積み上がる/減る量」（人口・資本と同じ）
+    /// ＝助走の余剰で返さない・赤字で借りない・不履行へ数えない（旧＝仏の米独立戦争債務 年GDP の約0.76 が助走の5年の余剰で返され、開幕に0.04 へ痩せた）。
+    /// ①全ての国の国債・対外債・保有の和が助走なしの盤面と同じ ②開幕（既定の助走の後）の国債÷年名目GDP＝英 0.9〜1.4（1783 約2.4億ポンド÷GDP 約2億）・
+    /// 仏 0.45〜0.8（米独立戦争の後・1789 0.6〜0.8）・蘭 1.2〜2.2（ホラント州を主とする約6億ギルダー）。
+    /// 突然変異：助走の減債の門を外す→①②が赤／英の初期国債を0に戻す→②が赤。</summary>
+    [Fact]
+    public void 助走は国債を動かさず開幕の英の国債は年GDPの約1倍()
+    {
+        var bare = Build();
+        var warmed = Build();
+        warmed.StartWarmup();
+        static double Held(World w) { double h = 0; foreach (var r in w.Regions) foreach (var p in r.Pops) h += p.BondHoldings; return h; }
+        for (int i = 0; i < bare.Nations.Count; i++)
+        {
+            var a = bare.Nations[i].World; var b = warmed.Nations[i].World;
+            Assert.Equal(a.GovDebt, b.GovDebt);
+            Assert.Equal(a.ForeignDebt, b.ForeignDebt);
+            Assert.Equal(Held(a), Held(b), 6);
+        }
+        var names = WorldData.Nations().Select(n => n.Name).ToList();
+        double Ratio(string name) { var w = warmed.Nations[names.IndexOf(name)].World; return w.GovDebt / (w.NominalGdp * Calendar.MonthsPerYear); }
+        Assert.InRange(Ratio("イギリス"), 0.9, 1.4);
+        Assert.InRange(Ratio("フランス"), 0.45, 0.8);
+        Assert.InRange(Ratio("ネーデルラント"), 1.2, 2.2);
+    }
+
     [Fact]
     public void 助走は建材の需要を殺さない()
     {

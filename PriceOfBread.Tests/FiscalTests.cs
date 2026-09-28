@@ -118,6 +118,9 @@ public class FiscalTests
         w.BaseCoercion = 0; w.Coef.AdminCostPerPop = 0;                        // 維持費0＝頭数比の俸給分配が0
         w.SocialSecurity = 0; w.Pension = ReformLevel.None;                    // 福祉・年金（借入スタックの出費上限に依存＝双子で食い違う）を止める
         w.Coef.ForeignBondCapacity = 0;                                        // 全額を国内の投資家が引き受ける
+        // 初期の国債（world.json の govDebt＝1783年の英の国債 年GDP の約1.1・2026-09-29）と保有を消す＝国債の流れは番人が起こしたものだけ（金は動かない＝請求権と記録だけ）
+        w.GovDebt = 0; w.ForeignDebt = 0;
+        foreach (var r in w.Regions) foreach (var p in r.Pops) p.BondHoldings = 0;
         // 歳入の基数だけを立てる（関税の実収の診断値＝Fiscal.Step の中では予算の基数にだけ入り金を動かさない＝双子の差は国債の流れのまま）。
         //   借入の上限＝利払い÷歳入（2026-09-28）＝歳入0の国は借りられない＝税を止めたこの盤面でも借入の門を開けるため。
         w.LastTariffRevenue = w.Coef.MonthsPerClearing * w.NominalGdp;
@@ -757,6 +760,117 @@ public class FiscalTests
         Fiscal.Step(b, b.Coef, 0, 2 * devalue);
         Assert.True(a.GovBondRate < a.Coef.BondRateMax, $"前提が崩れた：上限に張り付いた（{a.GovBondRate}）");
         Assert.True(Math.Abs(a.GovBondRate - b.GovBondRate) <= 1e-12, $"物価水準2倍の双子の金利 {b.GovBondRate} が {a.GovBondRate} と違う（実質の物差しが混じった）");
+    }
+
+    /// <summary>★資本市場の債務の物差しは**年の**名目GDP（2026-09-29・棚卸し fis-02）＝国債の金利の債務比と同じ単位。旧＝月次名目GDP 比（DebtDistressRatio 2.0＝年に直すと約0.17）
+    /// ＝国債÷年GDP が史実の水準の国は対外信用の債務の項が0＝外資が逃げた。盤面＝外交を止めた英仏の構築直後に、英の国債＝年名目GDP の n 倍を置いて四半期末の国際金融を1回。
+    /// ①債務の項＝1−n÷DebtDistressRatio（年GDP の1倍で 0.6〜0.7）②仏1789（0.7）で 0.7〜0.85・英1815（2.5）でも0より大きい ③物価水準が2倍の双子（名目を全て2倍）は同じ項。
+    /// 突然変異：分母を月次に戻す（×12 を落とす）→①②が赤／DebtDistressRatio を旧の 2.0 へ→①②が赤／分母を実質GDP にする→③が赤。</summary>
+    [Fact]
+    public void 対外信用の債務の項は年の名目GDPで測り英1815の債務でも尽きない()
+    {
+        static double Term(double years, bool doublePrice)
+        {
+            var sim = new MultiNationSim([NationConfig.Britain(), NationConfig.France()], 1789, _ => new NullAgent()) { DiplomacyFrozen = true };
+            var br = sim.Nations[0].World;
+            double n0 = br.NominalGdp;
+            Assert.True(n0 > 0, "前提が崩れた：英の名目GDPが立っていない");
+            if (doublePrice)
+            {
+                br.PriceLevel *= 2; br.LastTariffRevenue *= 2;
+                Assert.True(Math.Abs(br.NominalGdp - 2 * n0) <= 1e-12 * n0, $"前提が崩れた：名目GDPが2倍にならない（{n0}→{br.NominalGdp}）");
+            }
+            br.GovDebt = years * br.NominalGdp * Calendar.MonthsPerYear; br.ForeignDebt = 0;
+            CapitalMarket.Step(sim.Nations, new Coefficients());
+            return br.CreditDebtTerm;
+        }
+        double c = new Coefficients().DebtDistressRatio;
+        double one = Term(1.0, false);
+        Assert.True(Math.Abs(one - (1.0 - 1.0 / c)) <= 1e-12, $"年GDP の1倍の国債の債務の項 {one} が 1−1÷{c} でない（物差しが年の名目GDP でない）");
+        Assert.InRange(one, 0.6, 0.7);
+        Assert.InRange(Term(0.7, false), 0.7, 0.85);
+        Assert.True(Term(2.5, false) > 0, "英1815（国債÷年GDP 約2.5）で対外信用の債務の項が尽きた");
+        Assert.True(Math.Abs(Term(1.0, true) - one) <= 1e-12, "物価水準2倍の双子の債務の項が違う（実質の物差しが混じった）");
+    }
+
+    /// <summary>★減債は年に残高の約1%（減債基金・2026-09-29）＝余剰のある英でも10年で国債の1割しか返さない（史実＝英の国債は1783〜92 の平時に約2.4億ポンドのまま・
+    /// 1816〜1914 も名目で年約0.3%しか減らない）。旧＝月に5%（年60%）＝余剰のある国は数年で返し切り、初期の国債（英 年GDP の約1.1）が開幕から3〜6年で0になった。
+    /// 盤面＝静かな英に国債＝年名目GDP の1.1倍（全て国内の持ち手）・毎月 r＝1 で余剰は十分（Ample）を120か月。
+    /// 突然変異：BondRepayFrac を旧の 0.05 へ戻す→赤。</summary>
+    [Fact]
+    public void 減債は年に残高の約1パーセントで余剰のある英も10年で国債の1割しか返さない()
+    {
+        var w = QuietBritain();
+        double d0 = 1.1 * w.NominalGdp * Calendar.MonthsPerYear;
+        w.GovDebt = d0; w.ForeignDebt = 0;
+        Fiscal.SeedBondHoldings(w);
+        for (int m = 0; m < 120; m++) FiscalMonth(w, 1, Ample);
+        double left = w.GovDebt / d0;
+        Assert.InRange(left, 0.85, 0.95);   // 年1% の10年＝(1−0.01/12)^120≒0.905
+        new BondLedger().Check(w);
+    }
+
+    /// <summary>★開始前の助走（World.WarmupFrozen）は国債の残高を動かさない（2026-09-29）＝借りない・返さない・不履行へ数えない（人口・資本と同じ「年月が経って積み上がる量」）。
+    /// 盤面＝静かな英に国債（年名目GDP の1倍・国内の持ち手）を置き、助走の印を立てた国と立てない双子で同じ月を踏む。
+    /// ①払えない額があっても借りない ②余剰があっても返さない ③借入の上限の上で払えない月でも不履行の計数は進まない。対照（印なし）では①②③が起きる。
+    /// 突然変異：借入の門を外す→①が赤／減債の門を外す→②が赤／不履行の計数の門を外す→③が赤。</summary>
+    [Fact]
+    public void 助走中は国債を借りも返しもせず不履行へ数えない()
+    {
+        static World Board(bool warm)
+        {
+            var w = QuietBritain();
+            w.GovDebt = 1.0 * w.NominalGdp * Calendar.MonthsPerYear; w.ForeignDebt = 0;
+            Fiscal.SeedBondHoldings(w);
+            w.LastInterest = 0; w.LastRevenue = w.NominalGdp;   // 借入の上限の下
+            w.WarmupFrozen = warm;
+            return w;
+        }
+        // ① 借入
+        var warm1 = Board(true);
+        Assert.Equal(0.0, Fiscal.Borrow(warm1, warm1.Coef, -Ample));
+        var ctl = Board(false);
+        Assert.True(Fiscal.Borrow(ctl, ctl.Coef, -Ample) > 0, "対照が崩れた：助走の外で払えない額があっても借りない");
+        // ② 減債（r＝1・余剰は十分）
+        var warm = Board(true); double d0 = warm.GovDebt;
+        warm.FiscalFundingRatio = 1; Fiscal.Step(warm, warm.Coef, Ample);
+        Assert.Equal(d0, warm.GovDebt);
+        var ctl2 = Board(false);
+        ctl2.FiscalFundingRatio = 1; Fiscal.Step(ctl2, ctl2.Coef, Ample);
+        Assert.True(ctl2.GovDebt < d0, "対照が崩れた：助走の外で余剰があっても返さない");
+        // ③ 不履行の計数（借入の上限の上＝限界0・払えない月）
+        var warm3 = Board(true); warm3.Coef.MaxInterestShareOfRevenue = 0;
+        warm3.FiscalFundingRatio = Short; Fiscal.Step(warm3, warm3.Coef, -Ample);
+        Assert.Equal(0, warm3.InsolvencyQuarters);
+        var ctl3 = Board(false); ctl3.Coef.MaxInterestShareOfRevenue = 0;
+        ctl3.FiscalFundingRatio = Short; Fiscal.Step(ctl3, ctl3.Coef, -Ample);
+        Assert.Equal(1, ctl3.InsolvencyQuarters);
+    }
+
+    /// <summary>★外資の貸し手は**低金利の国ほど深い**（2026-09-29・向きの是正）：外資のプール＝開放度×ForeignBondCapacity×月次名目GDP×（基礎金利÷国債の金利・上限3）。
+    /// 旧＝金利÷基礎金利＝金利が下がると外資が縮んだ（英のコンソルの国が最も浅い市場になる逆向き）。盤面＝静かな英の双子（国内の買い手0＝BondAppetite 0・
+    /// 1件の額を大きく＝外資のプールで止まる）で、国債の金利だけを変えて同じ払えない額を借りる。
+    /// ①金利 2% の国は 8% の国より多く借りる（比 4＝(0.04÷0.02)÷(0.04÷0.08)）②4% の国の半分が 8%・1% の国は上限3＝4% の国の3倍。
+    /// 突然変異：旧の向き（金利÷基礎金利）へ戻す→①②が赤。</summary>
+    [Fact]
+    public void 外資の貸し手は低金利の国ほど深い()
+    {
+        static double Lend(double rate)
+        {
+            var w = QuietBritain();
+            w.Coef.ForeignBondCapacity = new Coefficients().ForeignBondCapacity;
+            w.Coef.BondAppetite = 0;                 // 国内の買い手0＝外資のプールだけ
+            w.Coef.BorrowFractionOfGdp = 10;         // 1件の額＞外資のプール
+            w.LastInterest = 0; w.LastRevenue = w.NominalGdp;   // 借入の上限の下
+            w.GovBondRate = rate;
+            return Fiscal.Borrow(w, w.Coef, -1e18);
+        }
+        double r1 = Lend(0.01), r2 = Lend(0.02), r4 = Lend(0.04), r8 = Lend(0.08);
+        Assert.True(r4 > 0, "前提が崩れた：外資から借りられない盤面");
+        Assert.True(r2 > r8, $"金利 2% の国（{r2}）が 8% の国（{r8}）より外資から借りられない");
+        Assert.True(Math.Abs(r2 / r8 - 4.0) <= 1e-9, $"金利 2% と 8% の借入の比 {r2 / r8} が 4 でない");
+        Assert.True(Math.Abs(r8 / r4 - 0.5) <= 1e-9, $"金利 8% の借入 {r8} が 4% の国 {r4} の半分でない");
+        Assert.True(Math.Abs(r1 / r4 - 3.0) <= 1e-9, $"金利 1% の借入 {r1} が上限（4% の国の3倍）で止まっていない");
     }
 
     [Fact]

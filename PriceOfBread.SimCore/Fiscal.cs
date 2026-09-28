@@ -12,7 +12,7 @@ public static class Fiscal
 {
     // マジックナンバー命名（挙動不変・値据え置き）
     private const double GoldSuspendMinFundingRatio = 0.7;   // 金本位維持の最低funding比（下回ると強制離脱）※加入閾値 c.GoldStandardMinFunding とは別（ヒステリシス）
-    private const double ForeignBondYieldRatioCap = 3.0;     // 対外債容量の利回り倍率クランプ上限（GovBondRate/BondBaseRate の上限）
+    private const double ForeignBondYieldRatioCap = 3.0;     // 対外債容量の信認の倍率クランプ上限（BondBaseRate/GovBondRate の上限＝2026-09-29 に向きを是正）
     private const double FranchiseAdultMale = 0.7;           // 参政権レベル→市民運動基盤の重み（男子普通選挙）
     private const double FranchiseCensus = 0.25;             // 参政権レベル→市民運動基盤の重み（制限選挙）
     private const double DebtRatioUnbounded = 1e9;            // NominalGdp≈0 かつ債務（か切り下げ）ありのときの代替（極大）の比（債務÷年GDP・切り下げの速さ÷年GDP）
@@ -393,7 +393,9 @@ public static class Fiscal
 
         // 減債：r＝1 の月の余剰（月初の払える額−全ての国家の支払いの請求＝spare）から返済（作者裁定 F3・Q2・2026-09-28）。金利＝基礎＋×(債務/GDP)。
         //   借入は月初の払えない額（spare＜0）の分だけ（Borrow）＝借りた後の spare は0以下＝同じ月に借りながら返すことが構造的に起きない（旧＝借入の線 国庫＜LastUpkeep＋LastInterest に揃えた2026-09-27 の形の一般形）。
-        if (w.GovDebt > 1e-9 && payRate >= 1 && spare > 0)
+        //   ★開始前の助走（World.WarmupFrozen）は返さない（2026-09-29）＝国債の残高は「年月が経って積み上がる/減る量」（人口・資本と同じ・借入 Borrow と不履行の計数も同じ門）。
+        //   旧＝助走の5年（60か月）の余剰で初期の国債を返した＝仏の米独立戦争債務（年GDP の約0.76）が開幕に0.04 へ痩せていた。
+        if (w.GovDebt > 1e-9 && payRate >= 1 && spare > 0 && !w.WarmupFrozen)
         {
             double repay = Math.Min(w.GovDebt * c.BondRepayFrac, spare);
             // ★AUD-09（監査2026-09-02 low・2026-09-03投入）：⚠ここは**元本**の按分なのに、上で作った**利払い**の按分
@@ -434,7 +436,8 @@ public static class Fiscal
         // ★張り付き＝今月の借入の門が閉じていた（直近の利払い≧限界×直近の歳入＝月初の Borrow と同じ1本＝上の underLimit の外）のに、払えない（r＜1）月（2026-09-28）。
         //   旧＝スタックが上限20に張り付いた月（r は見ない）。旧のスタックは r＜1 の月の借入でだけ積もり r＝1 の月の減債で離れた＝張り付きは「払えずに借り尽くした」だった。
         //   利払い÷歳入は借りなくても歳入の落ち込みや金利の上昇で限界を越える＝r＝1 で全ての請求を払えている国（国庫の蓄え）は数えない＝払えている国を不履行にしない。
-        if (payRate < 1 && w.GovDebt > 1e-9 && !underLimit) w.InsolvencyQuarters++; else w.InsolvencyQuarters = 0;
+        //   助走（World.WarmupFrozen）は数えない＝時間が経たない月に不履行へ届かない（国債の残高を動かさない＝減債・借入と同じ門）。
+        if (payRate < 1 && w.GovDebt > 1e-9 && !underLimit && !w.WarmupFrozen) w.InsolvencyQuarters++; else w.InsolvencyQuarters = 0;
         if (w.InsolvencyQuarters >= c.DefaultTriggerQuarters)
         {
             // 債務消滅（請求権＝保存無影響）。致命的な代償＝兌換崩壊・**信用凍結（貸付消滅→工場が資本を得られず投資/工業化が崩落＝恐慌）**・正統性崩壊（革命リスク）・大衆の暴動・当面 借入不能。
@@ -449,7 +452,7 @@ public static class Fiscal
         // 財7（債務/GDPの単位整合）：NominalGdp は月次フロー、GovBondRate は年率（利払いを/12）。分母は年の名目GDP（月次×12）。
         //   ★2026-09-29：旗 DebtGdpAnnualized（2026-07-26 点火＝既定1.0）を焼き込み＝国債の金利の2つの上乗せ（債務比・信認の喪失）を史実の年の単位で出し直した（下）＝旧の月次の枝（0）は較正の意味を失った。
         double gdpDenom = nominalGdp * Calendar.MonthsPerYear;   // 年の名目GDP
-        // [単位・B13] 債務/GDP＝**年次名目**（GovDebt÷(月次NominalGdp×12)）。国債金利の債務比プレミアムはこの単位。⚠CapitalMarket/Credit は月次名目・Government/PolicyPreferences は月次実質＝同名で3種（#17で1本化）
+        // [単位・B13] 債務/GDP＝**年次名目**（GovDebt÷(月次NominalGdp×12)）。国債金利の債務比プレミアムと CapitalMarket の対外信用の債務の項（2026-09-29 から）はこの単位。⚠Credit は月次名目・Government/PolicyPreferences は月次実質＝同名で3種（#17で1本化）
         //   台帳（2026-09-11 #10）：PowerShares.cs の debtGrip＝月次名目の Clamp（物理・用途別に別＝触らない）／Runner milfund・hangtest の dGdp＝月次名目（計器）／App のヘッダー「対年GDP」＝この行と同じ年次名目（旧＝年次実質＝表示だけ別物差しだったのを統一）
         double dGdp = gdpDenom > 1e-9 ? w.GovDebt / gdpDenom : (w.GovDebt > 0 ? DebtRatioUnbounded : 0);   // #1 名目GDP基準＝デフレ国は実質債務が膨らみ国債金利が上がる（負債デフレ）
         // ★AUD-09（監査2026-09-02 low・規律「比のガードは絶対値で書かない」）：分母の絶対値ガード（1e-9）だけでは、
@@ -657,6 +660,7 @@ public static class Fiscal
         //   否定形＝NaN は借りない。歳入0の国は利払い0でも借りられない（返す財源の無い国に貸し手はいない）。
         double shortfall = spare < 0 ? -spare : 0;   // 否定形＝NaN は借りない
         if (!(shortfall > 0) || w.BorrowCooldown > 0) return 0;   // 月に1件。デフォルト後のクールダウン中は借りられない（信用喪失）
+        if (w.WarmupFrozen) return 0;   // ★開始前の助走は借りない（2026-09-29）＝国債の残高は時間が経って積み上がる量（減債・不履行の計数と同じ門・Step）。払えない額は切り下げの余地か r＜1 のまま
         if (!(w.LastInterest < c.MaxInterestShareOfRevenue * w.LastRevenue)) return 0;
         // 1件の額＝月次**名目**GDP×割合（2026-09-28・単位の対称）。旧＝実質GDP（参照価格の産出）＝払えない額・国債・プールは名目なので、
         //   物価水準が1から離れる国ほど1件の物差しがずれた（分子と分母の非対称）。下の外資のプールも同じ理由で名目。
@@ -675,7 +679,11 @@ public static class Fiscal
             ? (w.CapitalControlLaw ? PoliticalQuantities.Clamp01(c.CapitalControlOpenness) : 1.0)
             : PoliticalQuantities.Clamp01(1.0 - c.CapitalOpennessTariffWeight * w.Tariff);
         double domesticPool = capSavings * c.BondAppetite;
-        double foreignPool = openness * c.ForeignBondCapacity * Math.Max(0, nominalGdp) * Math.Clamp(w.GovBondRate / Math.Max(1e-9, c.BondBaseRate), 0, ForeignBondYieldRatioCap);
+        // ★外資の貸し手は**低金利の国ほど深い**（2026-09-29・向きの是正）＝信認（基礎金利÷その国の国債の金利）に比例。旧＝金利÷基礎金利（金利が下がると外資が縮む）。
+        //   国債の金利は利回りを求める誘引ではなく危険の値段（債務比・期待インフレ・直近の切り下げの上乗せを、兌換と議会の信認で割り引いた量）＝同じ危険なら期待収益は同じ。
+        //   史実＝低金利の国ほど深い市場（英のコンソル 1850〜1913 約3%・蘭）で、高金利の国は割り当てで締め出された（オスマン1875・エジプト1876・アルゼンチン1890 の前後に新規の起債が止まった）。
+        //   否定形＝金利が NaN ならプールは NaN＝下の `!(borrowed > 1e-9)` で借りない（旧と同じ）。
+        double foreignPool = openness * c.ForeignBondCapacity * Math.Max(0, nominalGdp) * Math.Clamp(c.BondBaseRate / Math.Max(1e-9, w.GovBondRate), 0, ForeignBondYieldRatioCap);
         // 財5（対外国債をモデル外の無限プールから閉鎖系へ）：foreignPool を他モデル国の資本家貯蓄から実引き当て。
         // 注入（MultiNationSim→World.ForeignBondInvestorPool）と保有国配分（CapitalMarket の外債レグ＝ForeignBondClaims 繰上げ＋利払い配当）は実装済み。
         // ★2026-09-26：旗 ForeignBondFromInvestors（既定1.0）を焼き込み（x-01）。

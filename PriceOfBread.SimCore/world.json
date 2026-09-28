@@ -25,7 +25,7 @@
    "coercion": 400,
    "treasury": 200000,
    "nationalConsciousness0": 0.1,
-   "govDebt": 600000,
+   "govDebt": 470000,
    "initialTariff": 0.25,
    "industrialization": 0.25,
    "initialColonies": [
@@ -324,6 +324,7 @@
    "education": "Public",
    "coercion": 380,
    "treasury": 550000,
+   "govDebt": 750000,
    "initialTariff": 0.3,
    "industrialization": 1.4,
    "initialColonies": [
@@ -601,6 +602,7 @@
    "education": "Public",
    "coercion": 180,
    "treasury": 200000,
+   "govDebt": 48000,
    "nationalConsciousness0": 0.32,
    "initialTariff": 0.1,
    "industrialization": 0.2,
@@ -706,6 +708,7 @@
    "education": "Religious",
    "coercion": 700,
    "treasury": 200000,
+   "govDebt": 20000,
    "institutionalDecay": 0.4,
    "initialTariff": 0.3,
    "industrialization": 0,
@@ -1373,6 +1376,7 @@
    "education": "Religious",
    "coercion": 500,
    "treasury": 220000,
+   "govDebt": 90000,
    "initialTariff": 0.3,
    "industrialization": 0.2,
    "initialColonies": [],
@@ -1566,6 +1570,7 @@
    "education": "Public",
    "coercion": 250,
    "treasury": 400000,
+   "govDebt": 160000,
    "initialTariff": 0.05,
    "industrialization": 0.2,
    "initialColonies": [
@@ -1676,6 +1681,7 @@
    "education": "Religious",
    "coercion": 500,
    "treasury": 205000,
+   "govDebt": 95000,
    "initialTariff": 0.3,
    "industrialization": 0,
    "initialColonies": [
