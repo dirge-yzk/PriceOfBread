@@ -757,8 +757,8 @@ public sealed class Diplomacy
         double prizeRaw = c.PrizeMoneyRate * advantage * ((1.0 - c.PrizeCargoShare) * Math.Max(0, vw.Gdp) + c.PrizeCargoShare * cargoBase);
         double prize = Math.Min(prizeRaw, Math.Max(0, vw.Treasury));   // 払える範囲（国庫）。PrizeCargoShare=0で旧式 PrizeMoneyRate×GDP×advantage に厳密一致
         if (prize <= 1e-9) return;
-        vw.Pay(TreasuryCat.OtherOut, -prize); vw.CumulativeTradeFlow -= prize;   // 敵＝拿捕で対外流出
-        rw.Pay(TreasuryCat.OtherIn, prize); rw.CumulativeTradeFlow += prize;   // 制海国＝拿捕賞金の対外流入（保存）
+        vw.Pay(TreasuryCat.WarCost, -prize); vw.CumulativeTradeFlow -= prize;   // 敵＝拿捕で対外流出（区分＝戦費・作者裁定 Q14）
+        rw.Pay(TreasuryCat.WarCost, prize); rw.CumulativeTradeFlow += prize;   // 制海国＝拿捕賞金の対外流入（保存・区分＝戦費）
     }
 
     public void Step(Coefficients c, DeterministicRng rng, int month)
@@ -2685,7 +2685,7 @@ public sealed class Diplomacy
         if (loser.Nation is { } lw && winner.Nation is { } ww)
         {
             rep = Math.Min(repBase, Math.Max(0, lw.Treasury));   // 払える範囲（国庫の現在値）
-            lw.Pay(TreasuryCat.OtherOut, -rep); ww.Pay(TreasuryCat.OtherIn, rep);
+            lw.Pay(TreasuryCat.WarCost, -rep); ww.Pay(TreasuryCat.WarCost, rep);   // 区分＝戦費（作者裁定 Q14）
             // 賠償＝国家間の対外移転。両国の貿易収支に計上（保存則の基準）
             lw.CumulativeTradeFlow -= rep;
             ww.CumulativeTradeFlow += rep;

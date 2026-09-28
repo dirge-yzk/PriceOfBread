@@ -63,7 +63,7 @@ public sealed partial class InternationalMarket
         var merchants = new List<Pop>();
         foreach (var r in w.Regions) if (r.MerchantPopIndex >= 0 && r.MerchantPopIndex < r.Pops.Count) merchants.Add(r.Pops[r.MerchantPopIndex]);
         if (merchants.Count == 0) return;
-        w.Pay(TreasuryCat.Tariff, -pay);
+        w.Pay(tradeBias ? TreasuryCat.Subsidy : TreasuryCat.Tariff, -pay);   // 売買方針の代金＝補助金・ダンピング＝負の関税（作者裁定 Q14）
         double each = pay / merchants.Count;
         foreach (var p in merchants) p.Savings += each;
         // 関税会計の分離（2026-08-08）：売買方針の代金は関税の実収に混ぜない・ダンピング補助金は関税の純額から減算。
