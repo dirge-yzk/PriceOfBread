@@ -358,6 +358,14 @@ public static class Politics
             sizeSum += p.Size;
         }
         reformist *= 1 + c.ReformPressureBoost * w.ExternalPressure;   // 明治の追い風（§A-11）
+        // ★政権への失望（作者裁定 2026-09-29「連続した革命は許容するが6往復はやりすぎ＝政権への失望のような量が積もって止まる仕掛け」）。
+        //   期待 H＝1/max(1, 直近の政変の数)＝政変のたびに「次の政権こそ」が割られる（最初の政変は期待で起きる＝H=1・2回目の後は半分・3回目の後は3分の1）。
+        //   ①動員：失望した層は動かない＝改革派・急進派の**両方**に同じ H（分子と分母を同じ規則で＝急進主導か改革主導かの判定は変わらない）。
+        //     蓄えるのは H を掛けた後の動員＝読み手（Transition の挑戦・床交差の議会圧力の門・便乗の勢い・革命圧力）が同じ1量を読む。
+        //   ②正統性の床 1−H は下（信任帝政の下限の後）。直近の政変の数の書き手は CrownParliament.ApplyRegime（数える）と CrownParliament.Step（忘れる）。
+        double hope = 1.0 / Math.Max(1.0, w.RecentRegimeChanges);
+        reformist *= hope;
+        radical *= hope;
         w.ReformistPower = reformist;
         w.RadicalPower = radical;
         // 平均満足度＝経済危機の指標（一党支配→独裁化はこれが低い危機国だけ＝満足した安定な立憲を巻き込まない）。
@@ -486,18 +494,22 @@ public static class Politics
         if (w.Explain != null && legClamped != leg)
             w.Explain.Add("Legitimacy", legClamped > leg ? "下限クランプ(0未満を切上げ)" : "上限クランプ(1超を切下げ)", legClamped - leg);
         w.Legitimacy = legClamped;
-        // [PORT:P3] P10①信任帝政の正統性の下限（2026-07-18 点火＝旗 RedefinedMandateEnabled は 2026-09-26 に焼き込み）：立憲君主×王冠保持×高NC×高天命の時のみ Legitimacy≥floor×Mandate の床。
-        // 「民の信任を得た皇帝はパンの値段ではもう滅びない」。⚠稀であるべき＝条件を厳しく（緩いと立憲固着＋仏が共和に届かない）。加算でなく床＝天命との二重計上なし。
-        if (w.DynasticMandate >= 0
+        // ★正統性の底（下から支える受け入れ）＝2つの床の大きい方・書き手は1本（WriterRatchetTests＝心理量の書き手を増やさない）。加算でなく床＝同じ正統性に別の項を足さない（二重計上なし）。
+        // ①[PORT:P3] P10①信任帝政の正統性の下限（2026-07-18 点火＝旗 RedefinedMandateEnabled は 2026-09-26 に焼き込み）：立憲君主×王冠保持×高NC×高天命の時のみ Legitimacy≥floor×Mandate の床。
+        //   「民の信任を得た皇帝はパンの値段ではもう滅びない」。⚠稀であるべき＝条件を厳しく（緩いと立憲固着＋仏が共和に届かない）。天命との二重計上なし。
+        double mandateFloor = w.DynasticMandate >= 0
             && w.Polity == Polity.ConstitutionalMonarchy && w.Crown != CrownForm.None
-            && w.NationalConsciousness >= c.RedefinedMandateNcMin && w.DynasticMandate >= c.RedefinedMandateMandateMin)
+            && w.NationalConsciousness >= c.RedefinedMandateNcMin && w.DynasticMandate >= c.RedefinedMandateMandateMin
+            ? c.RedefinedMandateFloor * w.DynasticMandate : 0;
+        // ②政権への失望＝秩序の受け入れ（作者裁定 2026-09-29・ナポレオン3世の人民投票1851＝1848年からの政変続きの後、秩序を約束する強い指導者を92%が承認）。
+        //   期待を割られた層（1−H）は今の政権を受け入れる＝正統性の底が 1−H へ上がる＝今の政権が続きやすくなる（慣性の棒 PolityInertia×正統性・保持力・上からの改革の門が同じ正統性を読む）。
+        //   直近の政変が1回以下（H=1）なら床0＝何もしない。
+        double orderFloor = 1.0 - hope;
+        double legFloor = Math.Max(mandateFloor, orderFloor);   // 旧＝①を当ててから②を当てる2行＝同じ値（max は結合的）
+        if (w.Legitimacy < legFloor)
         {
-            double floorLeg = c.RedefinedMandateFloor * w.DynasticMandate;
-            if (w.Legitimacy < floorLeg)
-            {
-                w.Explain?.Add("Legitimacy", "信任帝政の下限(民の信任を得た皇帝)", floorLeg - w.Legitimacy);
-                w.Legitimacy = floorLeg;
-            }
+            w.Explain?.Add("Legitimacy", mandateFloor >= orderFloor ? "信任帝政の下限(民の信任を得た皇帝)" : "政変続きへの失望(秩序の受け入れ)", legFloor - w.Legitimacy);
+            w.Legitimacy = legFloor;
         }
         w.DefeatShock *= c.DefeatShockDecay;   // 敗戦ショックは四半期で減衰（leg が今期の全幅を浴びた後・数年で消える）。Politics.Step は四半期1回
         w.VictoryShock *= c.VictoryShockDecay;   // 機能8-②（2026-07-28）：戦勝の熱狂も同様に数年で冷める（r[4]/r[8]の持続はこの減衰だけが決める＝Ideologyは毎期クリア再構成）
@@ -904,30 +916,26 @@ public static class Politics
 
     // F3b 組織運動の内乱（牙と変異・2026-07-12）：結束した国内勢力（F3a＝州×階級×主軸のクラスタ）が保持力を上回ると内乱化。
     // Transition＝国家集計の即時革命／F1＝無組織の食料一揆（即時・小）／F3b＝**持続した組織運動の大内乱**（結束ゲート0.5≈3年超）＝
-    // 同じ闘争度を読むが関数形と時定数が別・F1との排他（RevoltCooldownRetire=0＝共有クールダウン／>0＝内乱の進行と州の状態）。決着は目標政体で2分岐＝
+    // 同じ闘争度を読むが関数形と時定数が別・F1との排他（内乱の進行と州の状態＝2026-09-29 に共有クールダウンを撤去）。決着は目標政体で2分岐＝
     // 政治（主軸の最寄り政体≠現政体）→政体戦／経済→要求戦（ConcedeToFaction）。どちらも本拠州（首都も）に拠る反乱国の戦争（TriggerFactionRevolt）。
     // ⚠旧の民族分岐（本拠州が少数派→旧経路の単一州の分離戦）は 2026-09-28 段2 束3 で削除（作者裁定 g）＝民族の分離は支配度の分離独立（CheckSecession）の1本。
     private static void CheckFactionRevolt(World w, Coefficients c, double coerce)
     {
         if (c.FactionRevoltScale <= 0 || w.FactionRng is null) return;
-        // ★段6＝クールダウンの畳み込み（F3b蜂起doc §6・2026-09-08）。旧＝RevoltCooldownQuarters（4四半期の固定タイマー）で
+        // ★段6＝クールダウンの畳み込み（F3b蜂起doc §6・2026-09-08）＝**2026-09-29 点火**（作者裁定「蜂起の共有クールダウンは撤去＝根拠のない待ち」＝
+        //   旗 RevoltCooldownRetire・タイマー World.RevoltCooldownQuarters・係数 RegionalRevoltCooldown を削除）。旧＝4四半期の固定タイマーで
         //   「同一国で年に何度も燃えない」を作っていた＝**物理でない待ち行列**（実測でヴュルテンベルクが69年間ぴったり毎年7月1日に蜂起＝
-        //   タイマーがメトロノームとして見えていた）。代替は2つとも既に実体がある：
-        //     (a) 燃え尽き＝決着で結束0（Politics.cs の旧経路2サイト＋段2で戦争経路にも清算を置いた）。
-        //         再び戦えるまでロジスティック再成長 0.05×(0.5+意識)×(変異?2:1)×(1−結束) で4〜16年＝**枯れて満ちる物理量**。
+        //   タイマーがメトロノームとして見えていた）。F1 が燃えるたびに F3b も4四半期止まった（結束のある運動の86四半期のうち60四半期）。代替は2つとも既に実体がある：
+        //     (a) 燃え尽き＝決着で結束0（Politics.SpendRevolt）。再び戦えるまでロジスティック再成長 0.05×(0.5+意識)×(変異?2:1)×(1−結束) で4〜16年＝**枯れて満ちる物理量**。
         //     (b) 物理的排他＝「内乱が今まさに地図の上で進行している」＝新しい旗は立たない（反乱国の州は w.Regions を離れ、
         //         建国前の予約中は PendingRebelRegions が握る）。⚠これは時間ではなく**状態**なので待ち行列にならない。
-        //   ⚠RevoltCooldownRetire=0（既定）では旧タイマーの読みがそのまま残る＝厳密恒等。
-        if (c.RevoltCooldownRetire > 0)
-        {
-            // 既に内乱が地図の上で進行している＝新しい旗は立たない（状態＝終われば必ず解ける／時間で数えない）。
-            // ⚠述語に `RevoltingFaction is not null` を入れない：参照は戦争の決着でだけ外れる（再併合・白紙の分断・独立の確定＝2026-09-28 から3つとも
-            //   Politics.SpendRevolt を通る。旧＝白紙と独立は参照を残したまま return し、この述語に入れると一度膠着した国は二度と蜂起できない恒久の錠になった）。
-            //   状態（地図の上の内乱）だけを見る＝参照の外し忘れが錠にならない。
-            // ⚠InCivilWar は CivilWarPredicateUnified（点火済み1.0）に依存する＝0へ戻すと戦争経路の内戦をこの述語が見なくなる（段5の民兵の剥離と同じ依存）。
-            if (w.InCivilWar || w.PendingRebelRegions is not null) return;
-        }
-        else if (w.RevoltCooldownQuarters > 0) return;   // 旧＝F1と共有のクールダウン（減算はF1側＝同四半期の二重発火を構造的に防止）
+        //   ⚠往復の歯止めは待ちでなく政権への失望（World.RecentRegimeChanges＝同じ日の作者裁定・Politics.Step の動員と正統性の床）。
+        // 既に内乱が地図の上で進行している＝新しい旗は立たない（状態＝終われば必ず解ける／時間で数えない）。
+        // ⚠述語に `RevoltingFaction is not null` を入れない：参照は戦争の決着でだけ外れる（再併合・白紙の分断・独立の確定＝2026-09-28 から3つとも
+        //   Politics.SpendRevolt を通る。旧＝白紙と独立は参照を残したまま return し、この述語に入れると一度膠着した国は二度と蜂起できない恒久の錠になった）。
+        //   状態（地図の上の内乱）だけを見る＝参照の外し忘れが錠にならない。
+        // ⚠InCivilWar は CivilWarPredicateUnified（点火済み1.0）に依存する＝0へ戻すと戦争経路の内戦をこの述語が見なくなる（段5の民兵の剥離と同じ依存）。
+        if (w.InCivilWar || w.PendingRebelRegions is not null) return;
         FactionState? best = null; double bestStrength = 0, bestDespair = 0;
         foreach (var f in w.Factions)
         {
@@ -1008,7 +1016,6 @@ public static class Politics
     // 蜂起の点火（CrisisThroughLawPath＝要求した法が通常経路で1段も動かなかった運動）。目標政体で2分岐＝政体戦／体制内要求戦。
     private static void TriggerFactionRevolt(World w, Coefficients c, FactionState best, double coerce)
     {
-        w.RevoltCooldownQuarters = c.RegionalRevoltCooldown;
         w.FactionRevolts++;
         best.Rejections += 1;   // ★段3：対決＝最後の拒否（内戦へ到達＝怨嗟は満額）
         // ★段5＝民兵（作者裁定3・2026-09-08）：蜂起した運動の**自分のブロックのPOP**が、不満度に応じて武器を取る。
@@ -1077,7 +1084,7 @@ public static class Politics
     /// </list>
     /// ⚠法を書く行はここに1行も無い（ApplyDemand を呼ばない）。目標を置くのは AI＝SelfPlay.Apply（Parliament.TargetCrisisDemands）／プレイヤー＝法律タブ／初心者＝同じ関数＝同じ p.X。
     /// ⚠政体の分類（NearestPolity）は点火の門に使わない＝TriggerFactionRevolt の結果側（分離戦／政体戦／要求戦）にだけ残る。
-    /// ⚠RevoltCooldownQuarters は書かない（蜂起の枝＝TriggerFactionRevolt が旧どおり書く＝新しい待ち行列を作らない）。運動は解散しない（09-09）。
+    /// ⚠待ちは書かない（共有のクールダウンは 2026-09-29 に撤去＝新しい待ち行列を作らない）。運動は解散しない（09-09）。
     /// 計器＝3行の試行は**評価の四半期**にだけ数える（通知の四半期は分母に入れない＝成立率の和が1のまま）。</summary>
     private static void CrisisThroughLawPath(World w, Coefficients c, FactionState best, double coerce)
     {
@@ -1401,7 +1408,7 @@ public static class Politics
     }
 
     // F1 州一揆（王権議会F1・2026-07-10）：飢えた州の大衆蜂起（パンの一揆＝1789地方蜂起・シレジア織工・チャーティスト）。
-    // 発火＝州の熱（★段2＝州平均闘争度そのもの。飢えは闘争度の中の飢餓の駆動項が運ぶ）>閾値（頻度の律速＝RevoltCooldownRetire=0では共有クールダウン／>0では発火した州の闘争度が半減して満ちるまでの時間）。政府の裁定は決定論2分岐＝
+    // 発火＝州の熱（★段2＝州平均闘争度そのもの。飢えは闘争度の中の飢餓の駆動項が運ぶ）>閾値（★2026-09-29 共有クールダウンを撤去＝熱が門の上にある間は毎四半期燃える・蜂起を予約した州は走査から外す）。政府の裁定は決定論2分岐＝
     // **鎮圧**（州の蜂起勢力≤中央保持力＝戦死（人口台帳）・闘争度は部分緩和・正統性ストックに流血の傷＝ペテルルー）／
     // **譲歩**（勝てない＝大衆要求の優先梯子〔穀物法撤廃→労働時間短縮→年金→農奴解放→参政権〕を1段のみ、政治資本を燃やす＝負のマンデート。
     //   法の**目標**として置くだけ＝施行と代金は Government.Step の通常経路・ConcedeToRevolt 参照）。
@@ -1409,13 +1416,10 @@ public static class Politics
     private static void CheckRegionalRevolt(World w, Coefficients c, double coerce)
     {
         // ★F1 譲歩は法の経路：前回の譲歩で置いた要求の法が動いたかの判定と緩和は **Step の先頭**（施行の翌四半期の政治より前＝分離・F3b・内戦の判定より先に鎮める）。
-        // ★段6：減算はここに残す（F3bと共有のカウンタ＝F1休眠時も減る）。返るかどうかだけを係数で開閉する
-        //   ＝RevoltCooldownRetire=0 で旧とビット恒等・>0 でタイマーは残高を消化するだけの死んだ数になる（読み手ゼロ）。
-        if (w.RevoltCooldownQuarters > 0) { w.RevoltCooldownQuarters--; if (!(c.RevoltCooldownRetire > 0)) return; }
+        // ★段6（2026-09-29 点火）：共有のクールダウン（4四半期の固定タイマー）は撤去＝待ちで数えない。
         if (c.RegionalRevoltThreshold <= 0) return;
         var (worst, worstHeat, crowd) = SelectRevoltRegion(w, c);   // ★項目3（2026-09-11）：選択は計器（factionprobe 段0）と共有の1本（鍵＝熱×群衆）
         if (worst is null || worstHeat <= c.RegionalRevoltThreshold) return;
-        w.RevoltCooldownQuarters = c.RegionalRevoltCooldown;
         double strength = worstHeat * crowd * c.RegionalRevoltStrength;   // 蜂起の勢い＝熱×州大衆の規模（challenge/coerce と同じ人口スケールの物差し）
         // ★B9（実バグ21件・2026-09-07・2026-09-11点火）：蜂起力は州の人口スケール・coerce は全国スケール＝大国では譲歩枝が構造的に到達不能（州の数が政治結果を決めていた）
         //   ＝F3b と同じ LocalizedHold（州按分）を読む。
@@ -1677,9 +1681,9 @@ public static class Politics
         foreach (var r in w.Regions)
         {
             if (r.State != RegionState.Active) continue;
-            // ★段6：タイマーの代わりの**物理的排他**＝同じ州で同じ四半期に組織運動の蜂起（F3b）と無組織の一揆（F1）を二重に起こさない。
-            //   旧はクールダウンがこれを兼ねていた（F3bが立つと必ず4四半期ぶん塞がった）。0では PendingRebelRegions を読まない＝恒等。
-            if (c.RevoltCooldownRetire > 0 && w.PendingRebelRegions is { } pend && pend.Contains(r)) continue;
+            // ★段6（2026-09-29 点火）：タイマーの代わりの**物理的排他**＝同じ州で同じ四半期に組織運動の蜂起（F3b）と無組織の一揆（F1）を二重に起こさない。
+            //   旧はクールダウンがこれを兼ねていた（F3bが立つと必ず4四半期ぶん塞がった）。
+            if (w.PendingRebelRegions is { } pend && pend.Contains(r)) continue;
             double heat = RegionRevoltHeat(r, c);   // ★段2＝州平均闘争度そのもの（1量）
             double crowd = RegionCrowd(r);
             double key = heat * crowd;

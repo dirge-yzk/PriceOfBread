@@ -2847,7 +2847,7 @@ public sealed class Coefficients
     //   そのままにすると強度が倍化して**鎮圧の枝が到達不能**になり、F1が常に譲歩する。段0実測（factionprobe・seed1789・300四半期・5カ国8273州年）の
     //   欠乏因子の中央値＝清0.535／英0.511／仏0.431／露0.559／オスマン0.423。件数（州×年）で加重した平均が **0.509**＝**消えた因子の実測水準**をそのまま係数へ移す。
     public double RegionalRevoltStrength = 0.5;    // 蜂起の勢い係数（熱×州大衆規模×これ vs coerce＝Transitionのchallengeと同じ物差し）
-    public int RegionalRevoltCooldown = 4;         // 発火後のクールダウン（四半期）＝同一国で年に何度も燃えない。⚠RevoltCooldownRetire>0 では読み手が消える（下）
+    // 【墓標2026-09-29】RegionalRevoltCooldown=4（F1/F3b 共有の発火後のクールダウン・四半期）＝作者裁定 2026-09-29「蜂起の共有クールダウンは撤去（根拠のない待ち）」で削除（下の段6 の墓標）。
     public double RevoltSuppressDeadFrac = 0.002;  // 鎮圧の戦死＝州大衆の0.2%（1848年級。貯蓄は遺族に残る＝貨幣保存非接触・人口台帳に計上）
     public double RevoltSuppressLegitCost = 0.05;  // 鎮圧の正統性コスト（ストックへ直接＝流血の記憶。regen0.1で数年かけ回復）
     // ★項目2(b)（設計メモ §7 作者裁定2026-09-09「弾圧は鎮めない・譲歩が鎮める」・2026-09-11 点火＝係数を削除）：F1鎮圧枝は闘争度を緩和しない
@@ -2928,13 +2928,11 @@ public sealed class Coefficients
     public double MilitiaCombatValue = 0.0;
     // ★守備兵の寝返り（旧 SoldierDefectionByMilitancy）は 2026-09-29 処理の一元化 段3 で**点火**（係数ごと削除）＝寝返る割合は守備兵の闘争度そのもの
     //   （つまみを持たない）・寝返らなかった兵と同じ割合の武器庫が忠誠の兵と同じ州へ移る＝MultiNationSim.SpawnNation の段5。
-    // ★段6＝クールダウンの畳み込み（F3b蜂起doc §6・2026-09-08）：RevoltCooldownQuarters（=RegionalRevoltCooldown 4四半期の固定タイマー）を退役させる。
-    //   旧の根拠は「同一国で年に何度も燃えない」だけ＝**枯れも満ちもしない待ち行列**（実測：ヴュルテンベルクが69年間ぴったり毎年7月1日に蜂起＝
-    //   タイマーがメトロノームとして地図に見えていた）。代替は新設ゼロ＝(a) 決着で結束0→ロジスティック再成長（4〜16年＝枯れて満ちる物理量）
-    //   (b) 「内乱が今まさに地図の上で進行している」という**状態**（World.InCivilWar／建国前の予約 PendingRebelRegions）＋反乱国の州が w.Regions を離れる物理的排他。
-    //   >0 で F3b の読みを (b) に差し替え、F1 は残高を消化するだけ（返らない）＋蜂起予約中の州を最悪州の走査から除く。
-    //   0＝旧タイマーがそのまま効く＝厳密恒等（カウンタの書き手8箇所と減算はどちらの腕でも同じ数を書く）。
-    public double RevoltCooldownRetire = 0.0;
+    // 【墓標2026-09-29】RevoltCooldownRetire（段6＝クールダウンの畳み込み・F3b蜂起doc §6・2026-09-08 の休眠の旗）＝作者裁定 2026-09-29 で**点火**（旗・タイマー
+    //   World.RevoltCooldownQuarters・係数 RegionalRevoltCooldown ごと削除）。旧の根拠は「同一国で年に何度も燃えない」だけ＝枯れも満ちもしない待ち行列
+    //   （ヴュルテンベルクが69年間ぴったり毎年7月1日に蜂起した）。残るのは (a) 決着で結束0→再成長（4〜16年）(b) 内乱が地図の上で進行している状態の排他
+    //   （World.InCivilWar／PendingRebelRegions）と、蜂起を予約した州を F1 の走査から外す排他（Politics.SelectRevoltRegion）。
+    //   往復の歯止めは待ちではなく政権への失望（World.RecentRegimeChanges）＝同じ日の作者裁定。
     // ★段7＝反乱の膨張の器（F3b蜂起doc 裁定①＝A・2026-09-08。**休眠で入れるだけ＝点火は次ラウンド**）：
     //   内戦タグの講和は3枝（膠着＝分断固定／分離戦で反乱勝ち＝独立確定／それ以外＝再併合予約）とも**割譲の手前で return** する
     //   ＝反乱国の版図は点火時の州のまま永久に凍る（合流の経路も無い＝どの Regions.Add も既存の反乱国へ州を足さない）。
@@ -2973,7 +2971,7 @@ public sealed class Coefficients
     // 蓄積/減衰は書くだけ（P0観測と同型）＝いつ走っても恒等。読むのは Transition の注入のみで RegimeTrackRecordWeight=0なら無効（現行0.3＝有効）。
     public double RegimeRecordAccumRate = 0.02;    // CoopPublicRegime（満足−闘争）×これ/四半期で現政体系統の実績が符号のまま積む（+信認/−失望）
     public double RegimeRecordSuccessTenureGate = 20.0;  // 正の信認が満額になる在任年数（長期成功のみ信認へ寄る＝始まったばかりの形態は実績を持てない）。負の失望は在任に関わらず即時（失敗の刻印は速い）
-    public double RegimeRecordDecay = 0.00346;     // 実績の四半期減衰率（半減期50年＝2世代・ユーザー指定）。信認も失望も同率で0へ薄れる（世代交代で忘れる）
+    public double RegimeRecordDecay = 0.00346;     // 実績の四半期減衰率（半減期50年＝2世代・ユーザー指定）。信認も失望も同率で0へ薄れる（世代交代で忘れる）。★2026-09-29：政権への失望（World.RecentRegimeChanges＝直近の政変の数）も同じ記憶としてこの率で薄れる
     public double RegimeTrackRecordWeight = 0.3;   // **主フラグ**：Transition の各政体支持へ符号付き乗数 (1+これ×実績) を掛ける＝信認された形態は選ばれ/粘り、失望された形態は避けられる。0=読まない＝厳密恒等。**固着⇔カオスの直接ノブ**（正の信認=安定・負の失望=多様化）
     // --- 国民意識（市民的結束＝民主主義の前提・2026-07-13・設計doc「国民意識」）。蓄積は書くだけ（実値既定） ---
     // NationalConsciousnessInitial / NationBuildRate / NationBuildReligiousDrag / NationBuildCrisisWeight は第3段3-6（2026-07-27）で削除＝v1国民意識（到達不能）の専用係数。宗教civicは第5段5-5で新設計へ。
