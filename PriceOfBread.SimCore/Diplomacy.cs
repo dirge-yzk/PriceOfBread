@@ -455,6 +455,9 @@ public sealed class Diplomacy
     internal void RegisterIndependence(Power parent, Power child, Coefficients c)
     {
         ResetTensionTo(Key(parent, child), c.PostWarTension, TensionReason.Secession);
+        // ★作者裁定 c（2026-09-28・§13-1）：分離独立でも失地の累計を増やす（旧＝講和の割譲だけ）＝独立が確定した州の数（分断・分離戦の敗北・分離の建国・調停の独立）。
+        //   割譲と同じ1州1.0＝物差しは1本（Politics.Step の半減期20年の減衰・失地の民族主義 r[4] の長期項）。再併合で戻りうる建国の時点（開戦時の建国）では数えない。
+        if (parent.Nation is { } lostW && child.Nation is { } gotW) lostW.LostRegionsCumulative += gotW.Regions.Count;
         // ★回1-1（col-03）：独立の確定＝新しい国の州は本土（旧＝植民地格のまま＝独立した旧植民地の議会の有権者が0・所得税が植民地の率・国力に植民地の質量）。
         //   植民地格だった州は「独立」の出口として数える（Validation「植民地の保存」＝保有＋独立＋昇格＋吸収＝初期）。
         if (child.Nation is { } cw)
@@ -2106,6 +2109,8 @@ public sealed class Diplomacy
     {
         reason = "";
         if (g == war.A || g == war.B || g.Nation is null) { reason = "当事国"; return false; }
+        // ★作者裁定 e（2026-09-28）：調停は分離戦だけ（結果は独立＝ResolvePeace）。政体と要求をめぐる内戦は国内の戦い＝列強は割って入らない。
+        if (war.CivilWarParent is not null && !war.CivilWarSecession) { reason = "内戦"; return false; }
         if (RankOf(g) != PowerRank.Great) { reason = "列強でない"; return false; }   // ⚠植民地化(Colonize)と揃えて Great に限る＝中堅まで許すと発火頻度が桁で変わる
         if (AtWar(g, war.A) || AtWar(g, war.B)) { reason = "交戦中"; return false; }
         if (g.WarExhaustion > c.WarWearyThreshold) { reason = "厭戦"; return false; }
@@ -2497,55 +2502,52 @@ public sealed class Diplomacy
     internal void ResolvePeace(Coefficients c, War war)
     {
         double s = Math.Clamp(war.Score, -1, 1);
-        // ★内戦一元化（2026-08-30）：内戦タグの戦争は通常講和（植民地争奪・賠償・割譲）を通らない＝領土の内側の戦い。
-        //   政府勝利＝反乱国を再併合／反乱勝利＝親へ政体change＋再併合（革命の成就）／白紙＝分断が固定（台湾・南北型の創発）。
-        if (war.CivilWarParent is { } cwParent)
+        // ★戦後処理の1本（2026-09-28 処理の一元化 段2 束2・作者「対外戦争・内戦・分離独立の戦後処理を全て1本に」）。
+        //   入口はこの1本。**種類（内戦のタグ＝CivilWarParent／CivilWarSecession／CivilWarPolity）は条件だけを決める**＝州の行き先
+        //   （対外＝割譲／内戦＝分断・独立の確定・再併合）と政体（反乱の勝ち＝CivilWarPolity）。当てはめる段は共通：
+        //   ①記録＝EndWar（講和の後に呼び手が通す）②州＝Territory.TransferRegion（割譲／再併合）③政体＝Politics.ExecuteRegimeChange の実行部
+        //   ④金＝賠償（対外だけ＝国内の戦いに賠償は無い）⑤人と政治＝勝敗の帰結（OutcomeShocks）と運動の燃え尽き（Politics.SpendRevolt／SettleRevolt）⑥通知＝年代記。
+        //   ⚠旧＝内戦タグは入口の直後に別の枝へ return し、対外の後処理を1行も共有しなかった（敗者の衝撃・失地・運動の錠の解除が抜けていた）。
+        //   ⚠講和は月次・再併合は四半期末という予約のずれは残す（国を除くと Nations の添字が動くため＝再併合の政体・後始末は MultiNationSim.ReabsorbNations が同じ1本を呼ぶ）。
+        var cwParent = war.CivilWarParent;
+        var cwRebel = cwParent is null ? null : war.A == cwParent ? war.B : war.A;
+        // ★作者裁定 e（2026-09-28）：調停は分離戦だけ（政体の内戦は CanOfferPeace が外す）＝結果は独立（ベルギー1831・ギリシャ1830＝列強の会議が独立を承認した）。
+        //   ⚠調停の白紙（Score=0）を分断として扱うと残骸の自然再併合（RumpParentName）の対象になる＝承認された独立ではなくなる。
+        if (cwRebel is not null && war.CivilWarSecession && war.ForcedPeace)
         {
-            var cwRebel = war.A == cwParent ? war.B : war.A;
+            ConfirmIndependence(cwParent!, cwRebel, c);
+            Log.Add($"{_year} {cwRebel.Name}の独立が確定（列強の調停・{cwParent!.Name}からの分離）");
+            return;
+        }
+        if (Math.Abs(s) < c.WhitePeaceScore && cwRebel is not null)   // 内戦の白紙＝分断が固定（台湾・南北型の創発）
+        {
+            Log.Add($"{_year} {cwParent!.Name}の内戦は膠着のまま終わった＝分断（{cwRebel.Name}が存続）");
+            if (cwRebel.Nation is { } rumpW && rumpW.RumpParentName.Length == 0) rumpW.RumpParentName = cwParent.BaseName.Length > 0 ? cwParent.BaseName : cwParent.Name;   // ★残骸再併合の親リンク（2026-08-31）
             double parentScore = war.A == cwParent ? s : -s;
-            if (Math.Abs(s) < c.WhitePeaceScore)
-            {
-                Log.Add($"{_year} {cwParent.Name}の内戦は膠着のまま終わった＝分断（{cwRebel.Name}が存続）");
-                if (cwRebel.Nation is { } rumpW && rumpW.RumpParentName.Length == 0) rumpW.RumpParentName = cwParent.BaseName.Length > 0 ? cwParent.BaseName : cwParent.Name;   // ★残骸再併合の親リンク（2026-08-31）
-                // ★段7＝反乱の膨張の器（F3b蜂起doc 裁定①＝A・2026-09-08。**休眠**＝RevoltExpansionScore=0 では下の1本の比較で必ず抜ける）。
-                //   欠陥＝内戦タグの講和は3枝とも**割譲の手前で return** する＝反乱国の版図は建国時の州のまま永久に凍る
-                //   （合流も機能していない＝どの経路も既存の反乱国へ州を足さない）。史実の大反乱の規模は合流ではなく**移動と吸収**から来た。
-                //   >0 で「押していた分だけ親の州を取る」＝**既存の戦勝点を予算**（1州の値段＝係数）にし、**既存の割譲経路**
-                //   （CedeTerritory の境界改定＝反乱国の首都に最も近い親の非首都州。投射圏・上陸ゲート・最後の1州ガード・
-                //   人口/貨幣の両建て記帳〔Territory.TransferRegion〕ごと再利用）で払う。第二の実装も新しい状態も作らない。
-                //   ⚠この枝**だけ**に置く：再併合の枝は反乱国の**全州**を親へ返す（ApplyReintegrations の moving＝rw.Regions 全部）ので
-                //     膨張しても消える／分離戦の勝利（独立確定）へ広げるかは別の裁定＝別に測る。
-                //   ⚠代償（作者了承済み）：膨張したまま膠着＝**大きな永久の分割**が残る（この枝は |戦勝点|<0.25 で終わった戦争そのもの）。
-                //     だから点火は段2（燃え尽き）と段3（亡霊）を測ってから。⚠0.25 以上の値では1州も動かない（この枝の定義＝構造上の上限）。
-                //   ⚠NaN：戦勝点が NaN なら上の Math.Abs(s) < WhitePeaceScore が偽＝この枝に入らない。takeBudget が NaN でも `>=` は偽＝旧側。
-                if (c.RevoltExpansionScore > 0 && parentScore < 0 && cwParent.Nation is { } cwpW && cwRebel.Nation is { } cwrW)
-                    for (double takeBudget = -parentScore; takeBudget >= c.RevoltExpansionScore; takeBudget -= c.RevoltExpansionScore)
-                    {
-                        int before = cwrW.Regions.Count;
-                        // 取った州は**建国路と同じ作法**（Territory.Rehome の建国＝中核民族の反転・併合の荷物0）で付け直す（回1-1）。
-                        //   ⚠割譲の作法で付け直すと、再併合の一括反転（ApplyReintegrations）が片道だけ掛かり、返った州の民族比が裏返ったまま親に残る。
-                        if (!CedeTerritory(c, cwpW, cwRebel, cwParent.Name, how: Territory.Rehoming.Seceded)) break;   // 圏外／最後の1州＝これ以上は取れない
-                        if (cwrW.Regions.Count <= before) break;                      // 二重防御（移転が起きていないなら回さない）
-                    }
-                // ★回1-1（col-03）：分断の固定＝反乱国は独立国として残る＝独立の確定と同じ付け直し（本土・支配度1）。
-                //   緊張の置き直しは直後の EndWar が講和の値で上書きする（分離戦の反乱勝ちの枝と同じ順）。
-                RegisterIndependence(cwParent, cwRebel, c);
-                return;
-            }
-            bool rebelWon = parentScore < 0;
-            (rebelWon ? cwRebel : cwParent).WarsWon++;
-            (rebelWon ? cwParent : cwRebel).WarsLost++;
-            if (war.CivilWarSecession && rebelWon)
-            {
-                // ★同時独立（2026-09-06）：分離独立の戦争で新国家が勝った＝独立が確定。親へ政体は敷かず、再併合もしない（残留緊張は通常の終戦が張る）。
-                RegisterIndependence(cwParent, cwRebel, c);
-                Log.Add($"{_year} {cwRebel.Name}の独立が確定（{cwParent.Name}が分離戦に敗北）");
-                return;
-            }
-            PendingReintegrations.Add((cwParent, cwRebel, rebelWon, war.CivilWarPolity));
-            Log.Add(rebelWon
-                ? $"{_year} {cwParent.Name}の内戦は{cwRebel.Name}の勝利＝革命の成就（政体change・再統合）"
-                : $"{_year} {cwParent.Name}が内戦を鎮定＝{cwRebel.Name}を再併合");
+            // ★段7＝反乱の膨張の器（F3b蜂起doc 裁定①＝A・2026-09-08。**休眠**＝RevoltExpansionScore=0 では下の1本の比較で必ず抜ける）。
+            //   欠陥＝内戦タグの講和は3枝とも**割譲の手前で return** する＝反乱国の版図は建国時の州のまま永久に凍る
+            //   （合流も機能していない＝どの経路も既存の反乱国へ州を足さない）。史実の大反乱の規模は合流ではなく**移動と吸収**から来た。
+            //   >0 で「押していた分だけ親の州を取る」＝**既存の戦勝点を予算**（1州の値段＝係数）にし、**既存の割譲経路**
+            //   （CedeTerritory の境界改定＝反乱国の首都に最も近い親の非首都州。投射圏・上陸ゲート・最後の1州ガード・
+            //   人口/貨幣の両建て記帳〔Territory.TransferRegion〕ごと再利用）で払う。第二の実装も新しい状態も作らない。
+            //   ⚠この枝**だけ**に置く：再併合の枝は反乱国の**全州**を親へ返す（ReabsorbNations の moving＝rw.Regions 全部）ので
+            //     膨張しても消える／分離戦の勝利（独立確定）へ広げるかは別の裁定＝別に測る。
+            //   ⚠代償（作者了承済み）：膨張したまま膠着＝**大きな永久の分割**が残る（この枝は |戦勝点|<0.25 で終わった戦争そのもの）。
+            //     だから点火は段2（燃え尽き）と段3（亡霊）を測ってから。⚠0.25 以上の値では1州も動かない（この枝の定義＝構造上の上限）。
+            //   ⚠NaN：戦勝点が NaN なら上の Math.Abs(s) < WhitePeaceScore が偽＝この枝に入らない。takeBudget が NaN でも `>=` は偽＝旧側。
+            if (c.RevoltExpansionScore > 0 && parentScore < 0 && cwParent.Nation is { } cwpW && cwRebel.Nation is { } cwrW)
+                for (double takeBudget = -parentScore; takeBudget >= c.RevoltExpansionScore; takeBudget -= c.RevoltExpansionScore)
+                {
+                    int before = cwrW.Regions.Count;
+                    // 取った州は**建国路と同じ作法**（Territory.Rehome の建国＝中核民族の反転・併合の荷物0）で付け直す（回1-1）。
+                    //   ⚠割譲の作法で付け直すと、再併合の一括反転（ReabsorbNations）が片道だけ掛かり、返った州の民族比が裏返ったまま親に残る。
+                    //   失地の累計は下の独立の確定が反乱国の全州で数える（CedeRegion は建国の作法の州を数えない＝二重にしない）。
+                    if (!CedeTerritory(c, cwpW, cwRebel, cwParent.Name, how: Territory.Rehoming.Seceded)) break;   // 圏外／最後の1州＝これ以上は取れない
+                    if (cwrW.Regions.Count <= before) break;                      // 二重防御（移転が起きていないなら回さない）
+                }
+            // ★回1-1（col-03）：分断の固定＝反乱国は独立国として残る＝独立の確定と同じ付け直し（本土・支配度1）。
+            //   緊張の置き直しは直後の EndWar が講和の値で上書きする（分離戦の反乱勝ちの枝と同じ順）。
+            ConfirmIndependence(cwParent, cwRebel, c);
             return;
         }
         if (Math.Abs(s) < c.WhitePeaceScore)   // 戦勝点が小さい＝白紙講和（得るものなし）
@@ -2555,6 +2557,30 @@ public sealed class Diplomacy
         }
         Power winner = s > 0 ? war.A : war.B, loser = s > 0 ? war.B : war.A;
         winner.WarsWon++; loser.WarsLost++;   // 勝敗を記録（テスト用）
+        double absScore = Math.Abs(war.Score);   // 未クランプ（決定的=1.0／厭戦崩壊=1.5）
+        if (cwRebel is not null)
+        {
+            bool rebelWon = winner == cwRebel;
+            if (war.CivilWarSecession && rebelWon)
+            {
+                // ★同時独立（2026-09-06）：分離独立の戦争で新国家が勝った＝独立が確定。親へ政体は敷かず、再併合もしない（残留緊張は通常の終戦が張る）。
+                ConfirmIndependence(cwParent!, cwRebel, c);
+                Log.Add($"{_year} {cwRebel.Name}の独立が確定（{cwParent!.Name}が分離戦に敗北）");
+                // ★作者裁定 b：敗者にも同じ帰結＝州を実際に失った親が敗戦の衝撃を負い、新しい国が勝利の衝撃を得る（種類でなく勝敗と失ったもの）。
+                OutcomeShocks(c, winner.Nation, loser.Nation, absScore);
+                return;
+            }
+            // 再併合＝州は全て親へ戻る（四半期末の MultiNationSim.ReabsorbNations）。反乱の勝ち＝親に CivilWarPolity を敷く（革命の成就）／同じ政体なら要求をのむ。
+            PendingReintegrations.Add((cwParent!, cwRebel, rebelWon, war.CivilWarPolity));
+            Log.Add(rebelWon
+                ? $"{_year} {cwParent!.Name}の内戦は{cwRebel.Name}の勝利＝革命の成就（政体change・再統合）"
+                : $"{_year} {cwParent!.Name}が内戦を鎮定＝{cwRebel.Name}を再併合");
+            // ★作者裁定 b：勝敗の帰結は**残る国**に＝再併合で残るのは親の World で、それは勝った側の国になる（反乱の勝ち＝新体制の親）。
+            //   国家として何かを失ったのは鎮定された反乱国の住民だけ（敗戦の怒り＝その州の住民が親へ持ち帰り、鎮圧の後始末が和らげる）。
+            //   反乱が勝った側の敗者＝旧体制は、政体変更の実行部の失脚（Politics の ResolveRevolt）が受ける＝国家の敗戦の衝撃は掛けない（新体制を旧体制の敗北で揺らさない）。
+            OutcomeShocks(c, cwParent!.Nation, rebelWon ? null : cwRebel.Nation, absScore);
+            return;
+        }
         double sa = Math.Abs(s);
         // #21 会議外交（賠償抑制アーム・計測2026-07-15＝0.10で却下＝下記係数コメント参照）：純読み取りで「会議度」を導出（副作用なし＝ThreatScore/AtWar/IsGreatPower は純関数）。
         // 会議度＝傍観する非交戦の列強数 × 勝者の覇権度（ThreatScore）。賠償抑制率 repCut = Min(上限, 主レバー × 会議度)。ConcertReparationRestraint=0.04（点火2026-07-28）・0でスキップ。
@@ -2696,23 +2722,9 @@ public sealed class Diplomacy
 
         // 決定的敗北の本国帰結（doc改善#3）：敗戦ショックで正統性を揺るがし（→Politics 遷移＝敗戦→革命・仏1870/露1917）、
         // 圧勝なら敗者の非首都州を1つ割譲（領土再編＝普仏戦争のアルザス・ロレーヌ）。全て多国限定＝較正中立。
-        double absScore = Math.Abs(war.Score);   // 未クランプ（決定的=1.0／厭戦崩壊=1.5）
-        // P1-D 勝利の免責（DefeatShockの対称・普墺/普仏戦争のビスマルク免責）：決定的勝利は政権の正統性ストックを直接押し上げる
-        // ＝予算闘争や余白の押し切りで削った政治資本が戦勝で赦される。ストック正統性（LegitimacyIsStock）が減算を保持するのと対。VictoryLegitBoost=0.05 live・0で不発。
-        if (absScore >= 1.0 && c.VictoryLegitBoost > 0 && winner.Nation is { } vw)
-        {
-            double legBefore = vw.Legitimacy;
-            vw.Legitimacy = Math.Min(1.0, vw.Legitimacy + c.VictoryLegitBoost * Math.Min(absScore, CollapseScore));
-            vw.Explain?.Add("Legitimacy", "戦勝の免責(決定的勝利が政治資本を赦す)", vw.Legitimacy - legBefore);   // 説明API（#63）：正統性ストックへの実加算を記帳
-        }
-        // 機能8-②（2026-07-28）：戦勝ショック＝DefeatShockの鏡（決定的勝利→主戦論＝日清・日露後の日本型）。
-        // Ideologyのr[4]/r[8]が読む（Politicsで四半期減衰）。国名も暦年も書かない＝全53カ国に等しく適用。
-        if (absScore >= 1.0 && winner.Nation is { } vws)
-            vws.VictoryShock = Math.Max(vws.VictoryShock, 1.0);
+        OutcomeShocks(c, winner.Nation, loser.Nation, absScore);   // ⑤勝敗の帰結（内戦・分離の講和と同じ1本）
         if (absScore >= 1.0 && loser.Nation is { } dw)
         {
-            dw.DefeatShock = Math.Max(dw.DefeatShock, 1.0);   // 正統性ショック（Politics で数年かけて減衰しつつ遷移を駆動）。小国相手の屈辱的敗北でも起きる（アドワ型）
-            foreach (var pop in dw.AllPops()) pop.Militancy = Math.Min(1, pop.Militancy + c.WarDefeatMilitancySpike);   // 敗戦の怒り＝革命の火種
             // 圧勝の戦果（必要な土地を割譲→残りの帰結を統治コスト/政治方針で決定）：
             //   ①決定的(≥TerritoryCessionScore=1.2)＝必要な土地を1州割譲（壊滅以上なら首都含む価値ある州＝takePrize）。
             //   ②壊滅(≥VassalizeWinScore=1.4)かつ敗者が独立で州が残る → 残りの帰結（**属国一本化**・傀儡/レジームチェンジは撤去）：
@@ -2818,6 +2830,40 @@ public sealed class Diplomacy
         }
     }
 
+    /// <summary>⑤勝敗の帰結（戦後処理の1本・2026-09-28 処理の一元化 段2 束2＝旧は対外の講和の中だけ）。決定的（|戦勝点|≧1）なら
+    /// 勝者の国＝勝利の免責（正統性）と戦勝の衝撃／敗者の国＝敗戦の衝撃と敗戦の怒り（全POPの闘争度）。★作者裁定 b＝内戦・分離の敗者にも同じ帰結
+    /// （種類でなく勝敗と実際に失ったもの＝呼び手が「残る国・失った国」を渡す）。null の側には何もしない。</summary>
+    private static void OutcomeShocks(Coefficients c, World? winW, World? loseW, double absScore)
+    {
+        // P1-D 勝利の免責（DefeatShockの対称・普墺/普仏戦争のビスマルク免責）：決定的勝利は政権の正統性ストックを直接押し上げる
+        // ＝予算闘争や余白の押し切りで削った政治資本が戦勝で赦される。ストック正統性（LegitimacyIsStock）が減算を保持するのと対。VictoryLegitBoost=0.05 live・0で不発。
+        if (absScore >= 1.0 && c.VictoryLegitBoost > 0 && winW is { } vw)
+        {
+            double legBefore = vw.Legitimacy;
+            vw.Legitimacy = Math.Min(1.0, vw.Legitimacy + c.VictoryLegitBoost * Math.Min(absScore, CollapseScore));
+            vw.Explain?.Add("Legitimacy", "戦勝の免責(決定的勝利が政治資本を赦す)", vw.Legitimacy - legBefore);   // 説明API（#63）：正統性ストックへの実加算を記帳
+        }
+        // 機能8-②（2026-07-28）：戦勝ショック＝DefeatShockの鏡（決定的勝利→主戦論＝日清・日露後の日本型）。
+        // Ideologyのr[4]/r[8]が読む（Politicsで四半期減衰）。国名も暦年も書かない＝全53カ国に等しく適用。
+        if (absScore >= 1.0 && winW is { } vws)
+            vws.VictoryShock = Math.Max(vws.VictoryShock, 1.0);
+        if (absScore >= 1.0 && loseW is { } dw)
+        {
+            dw.DefeatShock = Math.Max(dw.DefeatShock, 1.0);   // 正統性ショック（Politics で数年かけて減衰しつつ遷移を駆動）。小国相手の屈辱的敗北でも起きる（アドワ型）
+            foreach (var pop in dw.AllPops()) pop.Militancy = Math.Min(1, pop.Militancy + c.WarDefeatMilitancySpike);   // 敗戦の怒り＝革命の火種
+        }
+    }
+
+    /// <summary>独立の確定（内戦の分断・分離戦の反乱の勝ち・分離戦の調停）＝独立国としての付け直し（<see cref="RegisterIndependence"/>）と、
+    /// その州を本拠にした運動の燃え尽き（<see cref="Politics.SpendRevolt"/>＝独立を達成して国内の運動でなくなる・旧経路の分離の決着と同じ）。
+    /// ⚠旧＝運動の参照を残したまま return した＝一度膠着・独立した国は二度と蜂起できない恒久の錠（CheckFactionRevolt の注記）。</summary>
+    private void ConfirmIndependence(Power parent, Power child, Coefficients c)
+    {
+        if (parent.Nation is { } pw && pw.RevoltingFaction is { } mv && child.Nation is { } cw && cw.Regions.Contains(mv.Region))
+            Politics.SpendRevolt(pw, mv);
+        RegisterIndependence(parent, child, c);
+    }
+
     /// <summary>決定的敗北の領土割譲＝**World間 Region フル移転**（プロヴィンス略奪のVic2化）：敗者の active 州を1つ
     /// 敗者 World から外し勝者 World へ移す。州は**完全経済（pop/生産者/市場）を保ったまま新所有者で稼働**（Lock休眠でなく所有権移転）。
     /// 保存則：移転州の貯蓄総額 S・人口 P を賠償/越境移民と同型に**両国で相殺**（loser−/winner+）＝世界保存。Id は勝者内で一意の非ゼロを再付与。
@@ -2898,7 +2944,9 @@ public sealed class Diplomacy
         //   民族の一致＝両国の主流文化が同じか（違えば割譲州の住民は勝者の中核民族ではない＝col-04）。
         Territory.TransferRegion(loser, ww, cede, how, sameCore: loser.SelfPower is { } lsp0 && lsp0.Culture == winner.Culture);
         foreach (var p in cede.Pops) p.Militancy = Math.Min(1, p.Militancy + c.CededColonyMilitancy);   // 被征服の不満
-        loser.LostRegionsCumulative += 1.0;   // 機能7-2（2026-07-28）：失地の長期ストック（Politics.Stepが半減期20年で減衰・r[4]の長期項）
+        // 機能7-2（2026-07-28）：失地の長期ストック（Politics.Stepが半減期20年で減衰・r[4]の長期項）。
+        //   ★建国の作法（反乱の膨張）の州はここで数えない＝反乱国の州は独立の確定（RegisterIndependence）が全州まとめて数える（二重にしない・作者裁定 c）。
+        if (how != Territory.Rehoming.Seceded) loser.LostRegionsCumulative += 1.0;
         Log.Add($"{_year} {winner.Name}が{loserName}から{cede.Name}を州移転（領土再編）");
     }
 

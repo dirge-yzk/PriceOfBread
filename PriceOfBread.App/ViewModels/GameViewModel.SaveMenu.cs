@@ -161,6 +161,9 @@ public partial class GameViewModel
     }
     public Action<int>? OnLoadSlot { get; set; }        // MainWindowViewModel が差す（スロットのロード＝新VMへ差し替え）
     public Action<int>? OnSwitchPlayer { get; set; }    // 内戦の陣営選択（P8）：反乱側の新国家へ乗り換える
+    public Action<int, string>? OnFollowPlayer { get; set; }   // ★作者裁定 f（2026-09-28）：操作国が再併合で消えた／添字がずれた＝エンジンが IsPlayer を移した国へ画面を付け直す（操作者の差し替えはエンジン側で済み）
+    /// <summary>付け直した直後の報せ（終戦の枠を使う＝戦争の決着の報せ）。</summary>
+    public void ShowNotice(string body) { WarEndPopupBody = body; WarEndPopupOpen = true; }
 
     /// <summary>ビューが外れた時に旧VMのタイマーを止める（ロード/タイトル復帰でバックグラウンド進行しない）。</summary>
     public void Shutdown() { Playing = false; _timerStopped = true; _timer?.Dispose(); }

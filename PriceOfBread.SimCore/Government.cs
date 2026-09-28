@@ -65,7 +65,8 @@ public static class Government
     /// <paramref name="Stage"/>＝2：段飛ばし禁止（StagedAxis）で現在段を持つ・1：現在段だけ（NextStage が読む）・0：段なし／
     /// <paramref name="Open"/>＝施行と戦線の両方の門（null＝常に）／<paramref name="Enact"/>＝施行の特例（null＝<see cref="StepLevel"/> で目標へ1段・第3引数は Target の値）／
     /// <paramref name="FrontOpen"/>＝戦線の数えだけの門（null＝Open）。
-    /// ⚠施行と戦線がずれている軸は2本（通貨＝FrontsCountMonetary の既定0・『全て』国有化＝施行は政体で丸めた目標）＝この表の行に見える形で残す（直すのは段2＝挙動が変わる）。</summary>
+    /// ★2026-09-28（処理の一元化 段2 束2）：施行と戦線がずれていた2本（通貨＝戦線だけの門 FrontsCountMonetary の既定0・『全て』国有化＝施行は政体で丸めた目標）を揃えた
+    /// ＝どの行も施行と戦線が同じ目標と同じ門を読む（戦線だけの門は国教のプロレタリア独裁＝政体が法を無効化する1本だけ）。</summary>
     internal sealed record LevelLaw(PolicyAxis Axis, Func<World, int> Get, Action<World, int> Set, Func<World, NationPolicy, int> Target, int Top, int Stage = 0,
         Func<World, bool>? Open = null, Action<World, NationPolicy, int>? Enact = null, Func<World, bool>? FrontOpen = null);
 
@@ -95,13 +96,12 @@ public static class Government
         // ★B16（実バグ21件・2026-09-07）：通貨の梯子は政治ゲートを通るのに戦線に数えられていなかった＝到達不能な通貨目標を持つAIの
         //   開きっぱなしの戦線が診断にも現れない（当時の徴候＝毎四半期 BlockedGrievance が発火し続けること。その発火は裁定C2で止まり 2026-09-20 に削除したが、
         //   幽霊戦線そのもの＝PoliticalPushBudget を毎期薄める害は残るので、この数え上げは無関係に要る）。
-        //   FrontsCountMonetary>0 で同じ目標の写像（SilverStandardGate の有無）を1戦線に数える。0＝旧＝厳密恒等（⚠既定0＝施行と戦線のずれ・段2）。
+        //   ★2026-09-28（処理の一元化 段2 束2）：戦線だけの門（FrontsCountMonetary・既定0）を削除＝施行と同じ目標の写像（SilverStandardGate の有無）で1戦線に数える。
         new(PolicyAxis.MonetaryStandard, w => (int)w.MonetaryLaw, (w, v) => w.MonetaryLaw = (MonetaryStandardLaw)v,
             (w, p) => w.Coef.SilverStandardGate > 0 ? Math.Clamp(p.MonetaryTarget, 0, 2) : (p.MonetaryTarget >= 2 ? (int)MonetaryStandardLaw.Gold : (int)MonetaryStandardLaw.Fiat), 2,
             Enact: (w, p, t) => w.MonetaryLaw = w.Coef.SilverStandardGate > 0
                 ? (MonetaryStandardLaw)StepLevel((int)w.MonetaryLaw, t, w, PolicyAxis.MonetaryStandard)
-                : StepLevel(w.MonetaryLaw == MonetaryStandardLaw.Gold ? 1 : 0, p.MonetaryTarget >= 2 ? 1 : 0, w, PolicyAxis.MonetaryStandard) == 1 ? MonetaryStandardLaw.Gold : MonetaryStandardLaw.Fiat,
-            FrontOpen: w => w.Coef.FrontsCountMonetary > 0),
+                : StepLevel(w.MonetaryLaw == MonetaryStandardLaw.Gold ? 1 : 0, p.MonetaryTarget >= 2 ? 1 : 0, w, PolicyAxis.MonetaryStandard) == 1 ? MonetaryStandardLaw.Gold : MonetaryStandardLaw.Fiat),
         // ★資本移動＝海外へ投資する資本と国内に雇用を求める側の政治（トリレンマdoc・2026-08-13）。位置＝自由0／規制1.0。
         new(PolicyAxis.CapitalMobility, w => w.CapitalControlLaw ? 1 : 0, (w, v) => w.CapitalControlLaw = v == 1, (w, p) => p.CapitalControlTarget ? 1 : 0, 1),
         new(PolicyAxis.Censorship, w => (int)w.Censorship, (w, v) => w.Censorship = (CensorshipLaw)v, (w, p) => (int)p.Censorship, 2, Stage: 2),   // 報道の自由化（旧支配層が抵抗）
@@ -171,11 +171,12 @@ public static class Government
         // ★『全て』（作者裁定2026-08-14 §11-6d）＝旧 Telecom/Manufacturing/Agriculture/Retail の統合。専用軸 NationalizationAll ＝
         //   賛否は Nationalization と同一で、前提DAG（プロレタリア独裁のみ＋官僚制度）だけが加わる（StepLevel 内の LawPrereq が読む）。
         //   政体を離れて残った制定目標は現状へ丸める。撤回（false向き）は常に目標どおり＝ポスト・ソ連の民営化。
-        //   ⚠2026-09-18 点検：旧注記の「参政権 sufTarget と同じ作法」の sufTarget は 2026-09-12 FIX3-1 で削除済み。この丸めも施行上は LawPrereq（プロレタリア独裁のみ）と重複し、
-        //     戦線の数え上げ（Target＝p.NationalizeAll）は丸めない p を読むので「戦線を数え続けない」効果も持たない（⚠施行と戦線のずれ・段2）。
+        //   ⚠2026-09-18 点検：旧注記の「参政権 sufTarget と同じ作法」の sufTarget は 2026-09-12 FIX3-1 で削除済み。この丸めも施行上は LawPrereq（プロレタリア独裁のみ）と重複する。
+        //   ★2026-09-28（処理の一元化 段2 束2）：丸めを**目標（Target）そのもの**へ移した＝施行と戦線の数え上げが同じ丸めた目標を読む
+        //     （旧＝施行だけが丸め、戦線は丸めない p を読んだ＝政体を離れた国に届かない『全て』の目標が恒久の幽霊戦線になっていた）。施行は既定の StepLevel（同じ一歩）。
         //   位置は表に出さない（FactionSnapshot.AxisPosition＝0.5・要求の軸から除く ComputeDemands と同じ）。旧4部門の4戦線が1戦線に畳まれる（§11-6d）。
-        new(PolicyAxis.NationalizationAll, w => w.NationalizeAll ? 1 : 0, (w, v) => w.NationalizeAll = v == 1, (w, p) => p.NationalizeAll ? 1 : 0, 1,
-            Enact: (w, p, t) => w.NationalizeAll = StepLevel(w.NationalizeAll ? 1 : 0, w.Polity == Polity.ProletarianDictatorship ? t : (t == 1 && w.NationalizeAll ? 1 : 0), w, PolicyAxis.NationalizationAll) == 1),
+        new(PolicyAxis.NationalizationAll, w => w.NationalizeAll ? 1 : 0, (w, v) => w.NationalizeAll = v == 1,
+            (w, p) => p.NationalizeAll && (w.Polity == Polity.ProletarianDictatorship || w.NationalizeAll) ? 1 : 0, 1),
         // 参政権の範囲2法（作者裁定2026-08-16・SuffrageScopeGate=1.0＝点火2026-09-06）：植民地参政権（3段）・移民原住民参政権（2段）。
         // gate=0 へ戻すと目標＝現在（既定 None・AI/議会/勢力が目標を置かない）＝StepLevel が即 return＝厳密恒等。
         new(PolicyAxis.ColonialSuffrage, w => (int)w.ColonialSuffrage, (w, v) => w.ColonialSuffrage = (ColonialSuffrageLaw)v, (w, p) => (int)p.ColonialSuffrage, 2, Stage: 2),   // なし→自国民のみ→全面を1段ずつ
@@ -452,7 +453,7 @@ public static class Government
         //   （旧＝この関数の中で Q5 を掛けていたので、呼び手が段を渡しても 1/3 が 0.35 へ丸め直されていた）。
         void Front(double cur, double target) { if (Math.Abs(target - cur) > 0.026) n++; }
         // ★段の法＝表 LevelLaws の1本（施行と同じ行の目標と門を読む＝2026-09-28 処理の一元化 段1。旧は軸ごとの1行＝施行と手で対応させていた）。
-        //   ⚠戦線だけの門（FrontOpen）＝通貨（FrontsCountMonetary・B16）と国教（プロレタリア独裁では国家無神論の強制＝戦線にしない）。
+        //   ⚠戦線だけの門（FrontOpen）＝国教（プロレタリア独裁では国家無神論の強制＝戦線にしない）の1本だけ（通貨の門は 2026-09-28 に削除＝施行と同じく数える）。
         foreach (var law in LevelLaws)
             if ((law.FrontOpen ?? law.Open)?.Invoke(w) != false && law.Get(w) != law.Target(w, p)) n++;
         // ★天井の廃止（2026-09-12 FIX1）以後、所得税/累進は他の税と**同じ Q4 1本**＝施行（Step:145-146）と同一式（幽霊戦線が立たない）。

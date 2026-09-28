@@ -324,54 +324,40 @@ public class RevoltIgnitionTests
 
     // ============================================================================================
     // ★段2＝鎮圧の後始末（F3b蜂起doc §3-4・作者裁定②＝A・2026-09-08）。
-    //   内戦一元化の主経路（War で戦う）の再併合サイト MultiNationSim.ApplyReintegrations には
-    //   正統性の減算も闘争度の緩和も結束の焼失も断裂の窓も**1行も無かった**＝鎮圧されても運動は結束満額のまま残り、
-    //   同じ旗が翌期また立つ（旧経路 Politics.cs:979-985 は4つとも書いている）。RevoltAftermathOnWarPath>0 で埋める。
-    //   ⚠実経路（F3b点火→建国→戦争→講和）は現行の点火不等式ではどの種でも踏まれないので（段1の実測＝604四半期で0件）、
-    //     ここでは**再併合の予約を直接置いて**サイトだけを踏ませる＝機構の検査であって創発の主張ではない。
-    //   ⚠2本の腕は種も注入も同一で、違いは係数1本だけ。OFF側も明示的に0で回す（既定に寄りかかった対照は点火で空洞化する）。
+    //   内戦一元化の主経路（War で戦う）の再併合サイト（MultiNationSim.ReabsorbNations）には後始末が1行も無かった＝鎮圧されても運動は結束満額のまま残り、
+    //   同じ旗が翌期また立つ。★2026-09-28（処理の一元化 段2 束2）：休眠の係数 RevoltAftermathOnWarPath を削除し、旧経路の鎮圧の行（Politics.SettleRevolt）を
+    //   常に通す＝運動の燃え尽き・断裂の窓・**反乱していた州（返還州）の住民だけ**の闘争度の緩和（作者裁定 d）。正統性の減算は旧経路の鎮圧の行に無い＝持ち込まない。
+    //   ⚠実経路（F3b点火→建国→戦争→講和）は稀＝**再併合の予約を直接置き、四半期の他の流れを挟まずに再併合の1段だけを踏む**（FiscalTests の再併合の貸借と同じ流儀）
+    //     ＝機構の検査であって創発の主張ではない。
     // ============================================================================================
-    private static (double Cohesion, double Militancy, double Legitimacy, int Rupture) 段2_再併合を1回踏む(double gate)
+    [Fact]
+    public void 段2_戦争経路の再併合で運動が燃え尽き返還州だけが静まる()
     {
         var sim = new MultiNationSim([NationConfig.France(), NationConfig.Japan(), NationConfig.Britain(), NationConfig.America()],
-                                     seed: 1789, coef: new Coefficients { RevoltAftermathOnWarPath = gate });
+                                     seed: 1789, coef: new Coefficients());
         sim.Run(8);
         var pw = sim.Nations[0].World; var rw = sim.Nations[1].World;
         Assert.True(pw.SelfPower is not null && rw.SelfPower is not null && pw.Regions.Count > 0 && rw.Regions.Count > 0);
-        var spent = new FactionState   // 内乱の主体＝親が武力で決着させた運動（結束は闘争閾値0.8を大きく超えたまま）
+        var c = sim.Coef;
+        var spent = new FactionState   // 内乱の主体＝本拠州が反乱国の州（親が武力で決着させた運動・結束は闘争閾値0.8を大きく超えたまま）
         {
-            Region = pw.Regions[0], Bloc = 2, Ideo = (int)Ideology.Communism,
-            // ⚠規模は1＝**F3bの選定に乗らない**大きさ（段2で組織核が消え強度が数倍になり、旧の 1e6 では同じティックで
-            //   選定に乗って決着の枝の書き込みが入る＝2腕の差が再併合の後始末以外の書き込みで汚れた）。
-            //   後始末のサイト（ApplyReintegrations）は pw.RevoltingFaction を見るだけで規模を読まない＝測るものは変わらない。
-            Size = 1.0, AvgMilitancy = 1.0, Cohesion = 1.0,
+            Region = rw.Regions[0], Bloc = 2, Ideo = (int)Ideology.Communism, Size = 1.0, AvgMilitancy = 1.0, Cohesion = 1.0,
         };
         pw.Factions.Add(spent);
         pw.RevoltingFaction = spent;
         pw.Legitimacy = 0.5; pw.RuptureWindowQuarters = 0;
         var returning = new System.Collections.Generic.List<Region>(rw.Regions);   // 返還される州（＝闘争度の緩和の対象）
+        var home = new System.Collections.Generic.List<Region>(pw.Regions);        // 親の元からの州（＝緩和しない・作者裁定 d）
         foreach (var r in returning) foreach (var p in r.Pops) p.Militancy = 0.5;
+        foreach (var r in home) foreach (var p in r.Pops) p.Militancy = 0.4;
         sim.Diplomacy.PendingReintegrations.Add((pw.SelfPower!, rw.SelfPower!, false, pw.Polity));   // 親の勝利＝鎮定して再併合
-        sim.Run(1);
-        double mil = 0, pop = 0;
-        foreach (var r in returning) foreach (var p in r.Pops) { mil += p.Militancy * p.Size; pop += p.Size; }
-        Assert.True(pop > 0, "返還州にPOPがない（注入の前提が崩れた）");
-        return (spent.Cohesion, mil / pop, pw.Legitimacy, pw.RuptureWindowQuarters);
-    }
-
-    [Fact]
-    public void 段2_戦争経路の再併合で運動が燃え尽き返還州が静まり正統性が傷つく()
-    {
-        var off = 段2_再併合を1回踏む(0.0);
-        var on = 段2_再併合を1回踏む(1.0);
-        double fight = new Coefficients().FactionCohesionFightThreshold;
-        // 対照＝現行（OFF）では運動は1ビットも燃え尽きない＝翌期そのまま再蜂起できる（これが欠陥の実体）
-        Assert.True(off.Cohesion > fight, $"対照が成立しない：OFFでも結束が闘争閾値を割った（{off.Cohesion:F3}）");
-        Assert.True(on.Cohesion < off.Cohesion, $"結束が清算されていない（ON {on.Cohesion:F3} / OFF {off.Cohesion:F3}）");
-        Assert.True(on.Cohesion < fight, $"清算後も闘争閾値を上回る＝翌期また立てる（{on.Cohesion:F3}）");
-        Assert.True(on.Militancy < off.Militancy, $"返還州が静まっていない（ON {on.Militancy:F4} / OFF {off.Militancy:F4}）");
-        Assert.True(on.Legitimacy < off.Legitimacy, $"流血の記憶が正統性に残っていない（ON {on.Legitimacy:F4} / OFF {off.Legitimacy:F4}）");
-        Assert.True(on.Rupture > off.Rupture, $"断裂の窓が開いていない（ON {on.Rupture} / OFF {off.Rupture}）");
+        sim.ReabsorbNations();
+        Assert.Equal(0.0, spent.Cohesion);             // 燃え尽き＝翌期そのまま再蜂起できない
+        Assert.Null(pw.RevoltingFaction);
+        foreach (var r in returning) foreach (var p in r.Pops) Assert.Equal(0.5 * c.ReformMilitancyRelief, p.Militancy, 12);   // 返還州だけが静まる
+        foreach (var r in home) foreach (var p in r.Pops) Assert.Equal(0.4, p.Militancy, 12);                                  // 親の元からの州は触らない
+        Assert.Equal((int)c.RuptureWindowQuartersOnCrush, pw.RuptureWindowQuarters);   // 反動の窓（1849年）
+        Assert.Equal(0.5, pw.Legitimacy);             // 正統性は削らない（旧経路の鎮圧の行に無い）
     }
 
     // ============================================================================================

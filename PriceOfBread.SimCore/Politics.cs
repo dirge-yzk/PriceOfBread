@@ -678,35 +678,16 @@ public static class Politics
         // C-高1(2)：改革派主導の平和的遷移でも「上からの改革」が発火しているなら下賜（ExecuteRegimeChange の GrantedControlOnReform）に到達させる
         //（旧＝この早期returnが下賜の点火口を殺し、欽定憲法が原理的に不能だった）。ReformGrantPcWidth=0 では旧条件のまま＝厳密恒等。
         if (!IsSeizure(attractor) && radical <= reformist && !(reformFromAbove && c.ReformGrantPcWidth > 0)) return;
-        ExecuteRegimeChange(w, c, attractor, reformFromAbove, reformist, radical, challenge, coerce);
-    }
-
-    /// <summary>奪取＝討議でなく実力で押し込む政体（独裁・無政府）。様態判定と政2の適用除外で共有。</summary>
-    private static bool IsSeizure(Polity p) => p is Polity.BourgeoisDictatorship or Polity.ProletarianDictatorship
-                                                 or Polity.MilitaryDictatorship or Polity.Anarchy;
-
-    // P3a 奪取イベント化（2026-07-12・ビット同一抽出）：政体変更の**実行部**＝様態（拮抗の暴力転換→内戦／圧勝・平和→即時）→
-    // 登録簿（ApplyRegime）→建国制度→債務→失脚、を Transition（引力点グラフ）から分離。将来のP3b（連続動学＝統制力の床交差・
-    // 廃位イベント・王権の形の変異）が同じ実行部を呼ぶ＝政体変更の単一の書き込み経路。条件・呼び出し順とも旧 Transition 本文のまま。
-    internal static void ExecuteRegimeChange(World w, Coefficients c, Polity target, bool reformFromAbove,
-                                             double reformist, double radical, double challenge, double coerce)
-    {
+        // ★様態の判定はここ（政体変更の唯一の呼び手＝引力点の遷移）だけ（2026-09-28 処理の一元化 段2 束2・A）。
+        //   旧＝ExecuteRegimeChange の先頭にあった＝内戦の決着（旧経路の ProcessCivilWar・戦争の形の MultiNationSim.ReabsorbNations）が
+        //   実行部だけを呼べず、実行部を丸写しするか（旧経路）登録簿と建国制度の2行だけを書く（戦争の形）しかなかった。
         // 様態：独裁・無政府への奪取 or 急進主導＝暴力（拮抗なら内戦・圧勝なら即時）／代議制への漸進＝平和即時。
         // 政2：上からの改革は支配層主導の平穏な漸進＝暴力(内戦)経路を通さず平和即時遷移（既定 reformFromAbove=false で従来どおり）
-        bool violent = (IsSeizure(target) || radical > reformist) && !reformFromAbove;
+        bool violent = (IsSeizure(attractor) || radical > reformist) && !reformFromAbove;
         if (violent && challenge < coerce * c.CivilWarLandslideRatio)
         {
-            StartCivilWar(w, c); w.CivilWarTarget = target; w.HadCivilWar = true;   // 拮抗した暴力転換＝内戦（数年）
+            StartCivilWar(w, c); w.CivilWarTarget = attractor; w.HadCivilWar = true;   // 拮抗した暴力転換＝内戦（数年）
             return;
-        }
-        // ★段2（作者裁定2026-09-09 part3）＝**革命の波を削除**した。1848年の同時多発は伝染ではなく
-        // 1845-47年の胴枯病と穀物の不作が欧州を**同時に**襲った共通ショックであり、それは盤面（飢餓の駆動項）に既にある。
-        // 台本がある限り創発を検証すらできないので、放送も受信も消す。⚠国民の覚醒（RevolutionAwakensNation）は別機構＝残す。
-        if (violent)
-        {
-            RevolutionAwakensNation(w, c);
-            // 第6段6-8b：奪取型の暴力転換（軍政・独裁＝クーデタ）＝断裂の窓（ナポレオン3世1851・ストルイピン1907型の書き換え解禁）。
-            if (IsSeizure(target)) w.RuptureWindowQuarters = Math.Max(w.RuptureWindowQuarters, (int)c.RuptureWindowQuartersOnCrush);
         }
         // ★親軍法の撤去（2026-08-18）：軍事独裁への遷移で法を立てる行を削除。政体由来の軍事費の床も撤去済み（Government・2026-08-19）
         //   ＝軍政の軍国性は PoliticalQuantities.MilitaryPoliticalRatio 等の導出量が担う。
@@ -723,6 +704,31 @@ public static class Politics
         // P2（flag=1）：上からの改革は**PC床（上の下賜）だけ**を書きラベルは導出に委ねる＝下賜0.3<立憲床0.45なら幕府/専制のまま
         // 「近代法を持つが議会に権力を渡さない」プロイセン/明治型が自然点になる（ラベルが後日 床交差で変わった時だけ建国制度が走る）。
         if (reformFromAbove && c.PolityLabelFromAxes > 0) return;
+        ExecuteRegimeChange(w, c, attractor, violent);
+    }
+
+    /// <summary>奪取＝討議でなく実力で押し込む政体（独裁・無政府）。様態判定と政2の適用除外で共有。</summary>
+    private static bool IsSeizure(Polity p) => p is Polity.BourgeoisDictatorship or Polity.ProletarianDictatorship
+                                                 or Polity.MilitaryDictatorship or Polity.Anarchy;
+
+    // P3a 奪取イベント化（2026-07-12・ビット同一抽出）：政体変更の**実行部**＝覚醒と断裂の窓（暴力の転換）→登録簿（ApplyRegime）→
+    // 建国制度→債務→失脚→土地改革。★2026-09-28（処理の一元化 段2 束2・A）：様態の判定（拮抗の暴力転換→内戦・上からの改革の下賜）は
+    // 唯一の呼び手 Transition へ移し、ここは**実行部だけ**＝即時の政変（Transition）・旧経路の内戦の決着（ProcessCivilWar）・
+    // 戦争の形の内戦の決着（MultiNationSim.ReabsorbNations）の3経路が同じ1本を通る（Politics.SettleRevolt）。
+    // ⚠旧＝戦争の形の内戦で革命が勝つと登録簿と建国制度の2行だけ＝急進革命の国債の否認・失脚・土地改革・覚醒・断裂の窓が走らなかった
+    //   （戦争で勝ったプロレタリア革命が国債を引き継ぎ地代も残る）。規則そのもの（既定は継承・急進革命だけ否認）は変えていない。
+    // ⚠矯正講和（Diplomacy.ResolvePeace）と床交差の再ラベル（CrownParliament）は意図どおりこの実行部を通らない（押し付けられた政体・ラベルの付け替え）。
+    internal static void ExecuteRegimeChange(World w, Coefficients c, Polity target, bool violent)
+    {
+        // ★段2（作者裁定2026-09-09 part3）＝**革命の波を削除**した。1848年の同時多発は伝染ではなく
+        // 1845-47年の胴枯病と穀物の不作が欧州を**同時に**襲った共通ショックであり、それは盤面（飢餓の駆動項）に既にある。
+        // 台本がある限り創発を検証すらできないので、放送も受信も消す。⚠国民の覚醒（RevolutionAwakensNation）は別機構＝残す。
+        if (violent)
+        {
+            RevolutionAwakensNation(w, c);   // 第5段5-6：暴力の転換（即時・内戦を経た勝利とも）＝国民意識の直接回路
+            // 第6段6-8b：奪取型の暴力転換（軍政・独裁＝クーデタ）＝断裂の窓（ナポレオン3世1851・ストルイピン1907型の書き換え解禁）。
+            if (IsSeizure(target)) w.RuptureWindowQuarters = Math.Max(w.RuptureWindowQuarters, (int)c.RuptureWindowQuartersOnCrush);
+        }
         CrownParliament.ApplyRegime(w, c, target);   // 登録簿＋政体キャッシュ（flag=1はPCジャンプも）＝単一の書き込み口（P2）
         RaiseFoundingInstitutions(w, allowRevoke: true, c);   // 新政体の含意参政権・報道へ（自由化＝拡張／反動＝剥奪＝ラチェット解除・反革命の波。政3：c 渡しで自由化はラチェット可）
         if (target is Polity.ProletarianDictatorship or Polity.Anarchy) Fiscal.RepudiateDebt(w, c);   // 既定は債務継承（史実）。急進革命のみ否認（継承＝リセットしない＝攻略封じ＋史実）
@@ -933,8 +939,7 @@ public static class Politics
                 foreach (var p in reg.Pops) p.Militancy *= c.ReformMilitancyRelief;
             // F3b 分離戦の主体（民族分岐で記録）も決着で燃え尽きる（成功＝独立を達成し国内運動でなくなる／鎮圧＝組織壊滅）。
             // CheckSecession 発の分離戦は主体なし（null）＝従来どおり。
-            if (w.RevoltingFaction is { } sf) sf.Cohesion = 0;
-            w.RevoltingFaction = null;
+            SpendRevolt(w, w.RevoltingFaction);
             return;
         }
         // F3b 湘軍項：反乱の主体（RevoltingFaction）と思想距離が遠い有産ブロックが体制側で郷勇を組む＝決着判定の保持側へ加算
@@ -1002,50 +1007,46 @@ public static class Politics
                 return;
             }
         }
-        if (attack > coerce + militia)   // 反乱が依然優勢＝革命勝利→目標政体へ（失脚で不安定）
+        // 決着の当てはめは戦争の形の内戦（MultiNationSim.ReabsorbNations）と同じ1本（2026-09-28 処理の一元化 段2 束2）。
+        //   旧経路の国には反乱していた州の区別が無い（首都の政変・単国の世界）＝鎮圧の後始末は全POPへ（旧のまま）。
+        SettleRevolt(w, c, rebelWon: attack > coerce + militia, w.CivilWarTarget, w.RevoltingFaction, w.AllPops());
+    }
+
+    /// <summary>★内戦の決着の当てはめ＝③政体・⑤人と政治の1本（2026-09-28 処理の一元化 段2 束2）。
+    /// 旧経路（<see cref="ProcessCivilWar"/>）と戦争の形（MultiNationSim.ReabsorbNations＝講和の予約を四半期末に回収）が同じ規則を通る。
+    /// <list type="bullet">
+    /// <item>反乱の勝ち＝目標政体が今の政体と違えば政体変更の実行部（<see cref="ExecuteRegimeChange"/>・暴力の転換）／同じ政体の要求戦なら運動の要求をのむ（<see cref="ConcedeToFaction"/>）。</item>
+    /// <item>政府の勝ち＝鎮圧の後始末＝<paramref name="rebels"/>（反乱していた州の住民・作者裁定 d）の闘争度の緩和と断裂の窓（1849年の反動）。
+    ///   正本は旧経路の鎮圧の行（⚠旧の戦争の形の休眠の後始末 RevoltAftermathOnWarPath は正統性も削っていたが、旧経路の鎮圧の行には無い＝削除した）。</item>
+    /// <item>どちらでも運動は燃え尽きる（<see cref="SpendRevolt"/>）。</item>
+    /// </list>
+    /// ⚠旧＝戦争の形で要求戦の反乱が勝っても何も起きなかった（ConcedeToFaction の呼び手が旧経路だけ）・革命の勝ちは登録簿と建国制度の2行だけ。</summary>
+    internal static void SettleRevolt(World w, Coefficients c, bool rebelWon, Polity target, FactionState? movement, IEnumerable<Pop> rebels)
+    {
+        if (rebelWon)   // 反乱が依然優勢＝革命勝利→目標政体へ（失脚で不安定）
         {
-            if (w.RevoltingFaction is { } rf && w.CivilWarTarget == w.Polity)
-            {
-                // F3b 経済決着：政体は変わらない＝運動の要求をのませる（F1譲歩の大型版＝要求top-kを複数段・政治資本を大量に燃やす）。
-                // 緩和は運動の本拠州の大衆のみ（全国一律にしない＝Transition鎮圧緩和との二重を作らない）。
-                ConcedeToFaction(w, c, rf);
-                foreach (var p in rf.Region.Pops) if (!p.Closed && !p.IsSoldier) p.Militancy *= c.ReformMilitancyRelief;
-                w.LogAdd($"{w.Year} {w.SelfPower?.Name}が{Factions.DisplayName(rf)}の要求をのんだ");
-            }
-            else
-            {
-                RevolutionAwakensNation(w, c);      // 第5段5-6：内戦を経た革命の勝利も国民意識の直接回路（即時転換と対称）
-                CrownParliament.ApplyRegime(w, c, w.CivilWarTarget);   // P2：登録簿＋政体キャッシュの単一の書き込み口（flag=0では従来のPolity書きと恒等）
-                RaiseFoundingInstitutions(w, allowRevoke: true, c);   // 内戦勝利の新政体へ（反動勝利＝剥奪・自由革命＝拡張。政3：c 渡しで自由化はラチェット可）
-                if (w.CivilWarTarget is Polity.ProletarianDictatorship or Polity.Anarchy) Fiscal.RepudiateDebt(w, c);   // 内戦の政権交代も既定は継承・急進革命のみ否認
-                // wave2b：即時転換側（ExecuteRegimeChange L640）と同じ失脚規則を使う（旧＝ここだけ手書きの近似で
-                // BourgeoisDictatorship/MilitaryDictatorship/Anarchy 系の失脚対象がずれていた）。
-                var (dt, dm, dmass) = Dispossessed(w.CivilWarTarget);
-                ResolveRevolt(w, c, dt, dm, dmass);
-                if (IsSeizure(w.CivilWarTarget)) w.RuptureWindowQuarters = Math.Max(w.RuptureWindowQuarters, (int)c.RuptureWindowQuartersOnCrush);   // 奪取系への内戦勝利も断裂の窓（即時転換側 L620 と対称）
-                if (dt)   // 内戦を経た革命勝利も土地改革の floor-raise を適用（即時転換側 L650-660 と対称）
-                {
-                    var floor = w.CivilWarTarget == Polity.ProletarianDictatorship ? ReformLevel.Full
-                              : w.CivilWarTarget == Polity.Republic ? ReformLevel.Limited
-                              : (ReformLevel?)null;
-                    if (floor is { } fl && (int)w.LandReform < (int)fl)
-                    {
-                        w.LandReform = fl;
-                        w.Policy.LandReform = (ReformLevel)Math.Max((int)w.Policy.LandReform, (int)fl);
-                    }
-                }
-            }
+            // F3b 経済決着：政体は変わらない＝運動の要求をのませる（F1譲歩の大型版＝要求top-kを複数段・政治資本を大量に燃やす）。
+            if (target != w.Polity) ExecuteRegimeChange(w, c, target, violent: true);   // 内戦を経た勝利＝暴力の転換（覚醒・断裂の窓・否認・失脚・土地改革は即時の政変と同じ1本）
+            else if (movement is not null) ConcedeToFaction(w, c, movement);
         }
         else   // 中央が持ちこたえた＝反乱鎮圧（闘争度緩和）
         {
-            foreach (var p in w.AllPops()) p.Militancy *= c.ReformMilitancyRelief;
+            foreach (var p in rebels) p.Militancy *= c.ReformMilitancyRelief;
             // 第6段6-8b：内戦の制圧＝断裂の窓（1849年の反動＝墺1851大晦日勅令・普三級選挙法）。
             w.RuptureWindowQuarters = Math.Max(w.RuptureWindowQuarters, (int)c.RuptureWindowQuartersOnCrush);
         }
-        // F3b 決着＝運動の燃え尽き（2026-07-12）：鎮圧＝組織壊滅（1849年の反動・指導部の処刑流刑）／勝利＝要求は法へ・運動は解散。
-        // 結束を残すと同じ運動が数年おきに再蜂起し続ける（蘭で実測6回/125年）＝再蜂起には組織の再建（結束の再成長≈20年）が要る。
-        if (w.RevoltingFaction is { } spent) spent.Cohesion = 0;
-        w.RevoltingFaction = null;   // 決着＝内乱の主体を解放（勝敗どちらでも）
+        SpendRevolt(w, movement);
+    }
+
+    /// <summary>F3b 決着＝運動の燃え尽き（2026-07-12）：鎮圧＝組織壊滅（1849年の反動・指導部の処刑流刑）／勝利＝要求は法へ・運動は解散／
+    /// 独立・分断＝国内の運動でなくなる。結束を残すと同じ運動が数年おきに再蜂起し続ける（蘭で実測6回/125年）＝再蜂起には組織の再建（結束の再成長≈20年）が要る。
+    /// ★2026-09-28（処理の一元化 段2 束2）：戦争の形の白紙講和（分断）と独立の確定もここを通す＝旧はどちらも参照を残したまま return し、
+    /// 一度膠着した国は二度と蜂起できない恒久の錠になっていた（CheckFactionRevolt の注記）。主体の参照はその運動のときだけ外す（同時に別の内戦が進んでいても他の運動を解かない）。</summary>
+    internal static void SpendRevolt(World w, FactionState? movement)
+    {
+        if (movement is null) return;
+        movement.Cohesion = 0;
+        if (ReferenceEquals(w.RevoltingFaction, movement)) w.RevoltingFaction = null;   // 決着＝内乱の主体を解放（勝敗どちらでも）
     }
 
     // F3b 組織運動の内乱（牙と変異・2026-07-12）：結束した国内勢力（F3a＝州×階級×主軸のクラスタ）が保持力を上回ると内乱化。
@@ -1066,9 +1067,9 @@ public static class Politics
         if (c.RevoltCooldownRetire > 0)
         {
             // 既に内乱が地図の上で進行している＝新しい旗は立たない（状態＝終われば必ず解ける／時間で数えない）。
-            // ⚠述語に `RevoltingFaction is not null` を**入れてはならない**：この参照を null に戻すのは再併合（親の勝利）だけで、
-            //   白紙＝分断存続（Diplomacy.ResolvePeace の内戦分岐）と分離独立の確定は**参照を残したまま return する**＝
-            //   一度膠着した国は二度と蜂起できない**恒久の錠**になる（4四半期のタイマーより悪い）。
+            // ⚠述語に `RevoltingFaction is not null` を入れない：参照は戦争の決着でだけ外れる（再併合・白紙の分断・独立の確定＝2026-09-28 から3つとも
+            //   Politics.SpendRevolt を通る。旧＝白紙と独立は参照を残したまま return し、この述語に入れると一度膠着した国は二度と蜂起できない恒久の錠になった）。
+            //   状態（地図の上の内乱）だけを見る＝参照の外し忘れが錠にならない。
             // ⚠InCivilWar は CivilWarPredicateUnified（点火済み1.0）に依存する＝0へ戻すと戦争経路の内戦をこの述語が見なくなる（段5の民兵の剥離と同じ依存）。
             if (w.InCivilWar || w.PendingRebelRegions is not null) return;
         }
@@ -1419,9 +1420,10 @@ public static class Politics
         return coerce * ((1.0 - blend) + blend * share);
     }
 
-    // F3b 経済決着（唯一の呼び手＝内戦の講和で要求戦の反乱が勝った ProcessCivilWar）：運動の要求top-k（ブロックのPref×残り可動域＝FactionSnapshotと同じ導出）をのませる。
+    // F3b 経済決着（唯一の呼び手＝内戦の決着 SettleRevolt で要求戦の反乱が勝ったとき＝旧経路・戦争の形の両方）：運動の要求top-k（ブロックのPref×残り可動域＝FactionSnapshotと同じ導出）をのませる。
     // 最上位はFactionConcessionSteps段・以下1段。現行値とPolicy目標の両方を書く（書かないとGovernmentが翌期戻す）。
     // ⚠蜂起前の危機の決着はここを通らない（要求は法の経路＝CrisisThroughLawPath・2026-09-11）＝ApplyDemand の直書きは内戦に勝った運動だけ。
+    // ★2026-09-28（処理の一元化 段2 束2）：戦争の形の内戦で要求戦の反乱が勝ったときもここを通る（旧＝再併合だけで要求は何ものまれなかった）。
     private static void ConcedeToFaction(World w, Coefficients c, FactionState f)
     {
         var demands = FactionSnapshot.ComputeDemands(w, f.Bloc);
@@ -1434,6 +1436,9 @@ public static class Politics
         //   そのとき人気のある法（代価0）は通る＝門を押し切りの枝の中に置いてあるから（進行不能にしない・P4）。
         w.MandateSpent += spend;        // 上限廃止（2026-07-26ユーザー裁定）
         w.MandateSpentNew += spend;
+        // 緩和は運動の本拠州の大衆のみ（全国一律にしない＝Transition鎮圧緩和との二重を作らない）。戦争の形では本拠州は再併合で親へ戻った後。
+        foreach (var p in f.Region.Pops) if (!p.Closed && !p.IsSoldier) p.Militancy *= c.ReformMilitancyRelief;
+        w.LogAdd($"{w.Year} {w.SelfPower?.Name}が{Factions.DisplayName(f)}の要求をのんだ");
     }
 
     // 要求1軸の強制施行（enum＝n段・スライダー＝FactionConcessionSlider×n・bool＝反転）。動いた段数を返す（政治資本の請求単位）。

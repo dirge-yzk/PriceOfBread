@@ -161,7 +161,19 @@ public partial class MainWindowViewModel : ViewModelBase
         var vm = GameViewModel.TryLoad(slot, GoToTitle, LoadQuick);
         if (vm is not null) { (CurrentPage as GameViewModel)?.Shutdown(); CurrentPage = Wire(vm); }
     }
-    private GameViewModel Wire(GameViewModel vm) { vm.OnLoadSlot = LoadSlot; vm.OnSwitchPlayer = SwitchPlayer; return vm; }
+    private GameViewModel Wire(GameViewModel vm) { vm.OnLoadSlot = LoadSlot; vm.OnSwitchPlayer = SwitchPlayer; vm.OnFollowPlayer = FollowPlayer; return vm; }
+    // ★作者裁定 f（2026-09-28）：エンジンが操作国を移した後（反乱側の国が再併合された）＝画面だけを付け直す。操作者（NullAgent）と外交の IsPlayer はエンジンが移し済み
+    //   ＝SwitchPlayer と違い旧国の操作者に触らない（旧国はもう Nations に居ない／添字がずれている）。
+    private void FollowPlayer(int newIndex, string notice)
+    {
+        if (CurrentPage is not GameViewModel old) return;
+        var sim = old.Sim;
+        if (newIndex < 0 || newIndex >= sim.Nations.Count) return;
+        old.Shutdown();
+        var vm = Wire(new GameViewModel(sim, newIndex, null, GoToTitle, LoadQuick));
+        if (notice.Length > 0) vm.ShowNotice(notice);
+        CurrentPage = vm;
+    }
     // ★内戦の陣営選択（P8・2026-09-06）：同じ世界のまま操作国を反乱側の新国家へ。旧国は効用AIへ・新国は操作者（NullAgent）へ・外交の IsPlayer も移す。
     private void SwitchPlayer(int newIndex)
     {

@@ -65,11 +65,9 @@ public class DormantIdentityTests
         "PeacetimeConscriptGrievance",  // 支配度doc §15＝平時の植民地徴兵の遺恨
         // ★B9（州一揆の保持力の州按分）・項目2(b)（F1鎮圧枝の緩和なし）・項目3（F1の州選択＝熱×群衆）は 2026-09-11 に1腕で**点火**（係数ごと削除）＝この表から外した。
         "DesperationLayerBlend",        // ★⑤3層の振る舞い分け（2026-09-11）＝窮乏チャネルの「誰が動くか」を層の重みで読む（エンジン内で wMid を読む唯一の箇所）。0＝旧ゲート＝ビット恒等
-        "FrontsCountMonetary",          // 実バグ B16＝通貨制度を開いた戦線に数える
         "ColonyPlantationRent",         // 実バグ B5＝植民地格の昇格州に大農園の地代
         "HeldSinceFromData",            // 実バグ B14＝world.json の heldSince を読む（0＝全州 Core・支配度1）
         // ★CivilWarPredicateUnified は 2026-09-08 に 1.0 で**点火**（F3b蜂起doc §5 段3・作者裁定②）＝この表から外した。
-        "RevoltAftermathOnWarPath",     // F3b蜂起doc 段2＝鎮圧の後始末を live 経路へ（正統性・返還州の闘争度・結束0・断裂の窓）。0で MultiNationSim は現行のまま
         "RevoltIgnitionIntensity",      // F3b蜂起doc 段4＝点火の付け替え（門1＝FactionStrength÷f.Size の示強量）。0で旧2門（力の門＋好機/圧倒）＝厳密恒等
         "RevoltGrievanceWeight",        // F3b蜂起doc 段4＝門2の怨嗟の重み（min(1, FactionRejectionMutation×Rejections)）。0で加算項が消える
         "RevoltVoiceFloor",             // F3b蜂起doc 裁定1＝(1−発言権)の床（旧支配層と普選後の大衆の恒久ゼロを外す）。0で FactionStrength は1命令も変わらない

@@ -68,8 +68,26 @@ public partial class GameViewModel
         public double LastDeadSelf, LastDeadEnemy;    // 直近の戦争別戦死（War.DeadA/DeadB＝兵士＋将校）
         public double LastCivDeadSelf, LastCivDeadEnemy;   // ★2026-09-23：直近の戦争別の民間人の死（War.CivDeadA/CivDeadB）
         public double CostShare;                      // この戦争に按分した自国戦費の累計
+        // ★内戦の種類（2026-09-28 処理の一元化 段2 束2）＝終戦の報せの得失を種類で書き分ける（旧＝内戦でも「賠償金」と書いた）。
+        //   毎回の Refresh で生きている戦争から取り直す（セーブしない＝ロード後の最初の Refresh で入る）。
+        public bool Civil, Secession, MeParent, Demand;
+        public string EnemyName = "";                 // 相手の名（再併合で相手の国が消えた後の表示）
     }
     private readonly Dictionary<long, WarTrack> _warTracks = new();
+    // 内戦の終戦の得失（エンジンの戦後処理 Diplomacy.ResolvePeace の枝と同じ分け方＝分断／独立の確定／再併合〔反乱の勝ち＝政体の転換・同じ政体なら要求の受諾〕）。
+    private string CivilWarOutcome(WarTrack tr, double scEnd)
+    {
+        string foe = tr.EnemyName;
+        if (System.Math.Abs(scEnd) < _player.Coef.WhitePeaceScore)
+            return tr.MeParent ? $"失ったもの:{foe}の州(分断)" : "得たもの:独立(分断)";
+        if (scEnd > 0)
+            return tr.MeParent ? $"得たもの:{foe}の再併合"
+                 : tr.Secession ? "得たもの:独立"
+                 : tr.Demand ? "得たもの:要求の受諾" : "得たもの:政体の転換";
+        return !tr.MeParent ? "失ったもの:国家(再併合)"
+             : tr.Secession ? $"失ったもの:{foe}の独立"
+             : tr.Demand ? "失ったもの:要求の受諾" : "失ったもの:政体";
+    }
     private int _warCostStamp = -1;   // 戦費按分の月スタンプ（Refreshは月次以外にも呼ばれる＝二重加算の防止）
     private bool _warSeeded;          // 初回Refresh（新規開始/ロード直後）は戦争タブを自動オープンしない
     // ロード時に復元する戦争UI状態（セーブ末尾の追記ブロック POBWAR2）。旧セーブには無い＝null（新規追跡で再開）。

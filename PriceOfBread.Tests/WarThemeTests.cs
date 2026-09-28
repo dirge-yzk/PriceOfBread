@@ -414,4 +414,142 @@ public class WarThemeTests
         Assert.True(dip.IsAtWar(suz, attacker), "前提が崩れた：宗主が参戦していない");
         Assert.True(dip.IsAtWar(ally, attacker), "宗主の同盟国が連鎖参戦しない（AI の同盟国の参戦と非対称）");
     }
+
+    // ============================================================================================
+    // ★戦後処理の1本（2026-09-28 処理の一元化 段2 束2・作者「対外戦争・内戦・分離独立の戦後処理を全て1本に」）の番人。
+    //   講和（Diplomacy.ResolvePeace）と再併合（MultiNationSim.ReabsorbNations）は稀な枝＝盤面へ内戦を直に立て、決着の1段だけを踏む
+    //   （機構の検査であって創発の主張ではない＝RevoltIgnitionTests の段7・FiscalTests の再併合の貸借と同じ流儀）。
+    // ============================================================================================
+    /// <summary>フランスの非首都州1つに反乱国を建て、内戦タグの戦争（親＝A）を立てた盤面（外交は凍結＝戦勝点は手で置いた値のまま）。</summary>
+    private static (MultiNationSim Sim, World Parent, Power Rebel, War War) CivilWarBoard()
+    {
+        var sim = Board("フランス", "イギリス");
+        var fr = sim.Nations[0].World;
+        fr.PendingRebelRegions = [fr.Regions[1]]; fr.PendingRebelPolity = Polity.Republic;
+        sim.StepQuarter();   // 建国路（SpawnNation）＋内戦タグ付き開戦
+        var rebel = sim.Nations[^1].World.SelfPower!;
+        Assert.NotSame(fr.SelfPower, rebel);
+        var war = sim.Diplomacy.Wars.Find(x => x.CivilWarParent == fr.SelfPower);
+        Assert.True(war is not null && war.A == fr.SelfPower, "前提が崩れた：内戦タグの戦争が親を A 側にして立っていない");
+        return (sim, fr, rebel, war!);
+    }
+
+    /// <summary>反乱国の州を本拠にした運動を親の蜂起の主体に置く（TriggerFactionRevolt が置くのと同じ参照）。</summary>
+    private static FactionState Movement(World parent, World rebel)
+    {
+        var mv = new FactionState { Region = rebel.Regions[0], Bloc = 2, Ideo = (int)Ideology.Communism, Size = 1.0, AvgMilitancy = 1.0, Cohesion = 1.0 };
+        parent.Factions.Add(mv); parent.RevoltingFaction = mv;
+        return mv;
+    }
+
+    [Fact]
+    public void 戦争の形の急進革命が勝つと国債の否認と失脚と土地改革が走る()
+    {
+        // 旧＝戦争の形の革命の勝ちは登録簿と建国制度の2行だけ＝戦争で勝ったプロレタリア革命が国債を引き継ぎ、地代も旧支配層も無傷で残った。
+        var (sim, fr, rebel, _) = CivilWarBoard();
+        Assert.True(fr.GovDebt > 0, "前提が崩れた：親に国債が無い＝否認を見分けられない");
+        Assert.NotEqual(Polity.ProletarianDictatorship, fr.Polity);
+        Assert.NotEqual(ReformLevel.Full, fr.LandReform);
+        foreach (var p in fr.AllPops()) p.Militancy = 0.2;
+        foreach (var p in rebel.Nation!.AllPops()) p.Militancy = 0.2;
+
+        sim.Diplomacy.PendingReintegrations.Add((fr.SelfPower!, rebel, true, Polity.ProletarianDictatorship));
+        sim.ReabsorbNations();
+
+        Assert.Equal(Polity.ProletarianDictatorship, fr.Polity);
+        Assert.Equal(0.0, fr.GovDebt);                   // 急進革命だけ否認（即時の政変と同じ規則）
+        Assert.Equal(ReformLevel.Full, fr.LandReform);   // プロレタリア独裁＝全面の土地改革
+        Assert.Contains(fr.AllPops(), p => p.Closed && p.Militancy > 0.2);   // 失脚＝旧支配層の反革命の不満
+    }
+
+    [Fact]
+    public void 戦争の形の穏健な革命は国債を継承する()
+    {
+        // 既定は継承（史実＝自由主義の革命は旧債務を引き継いだ）。否認は急進革命だけ＝規則は変えていない。
+        var (sim, fr, rebel, _) = CivilWarBoard();
+        double debt0 = fr.GovDebt;
+        Assert.True(debt0 > 0, "前提が崩れた：親に国債が無い");
+        Assert.NotEqual(Polity.Republic, fr.Polity);
+
+        sim.Diplomacy.PendingReintegrations.Add((fr.SelfPower!, rebel, true, Polity.Republic));
+        sim.ReabsorbNations();
+
+        Assert.Equal(Polity.Republic, fr.Polity);
+        Assert.Equal(debt0, fr.GovDebt);                         // 継承
+        Assert.True((int)fr.LandReform >= (int)ReformLevel.Limited, "共和革命の土地改革（限定）が走っていない");
+    }
+
+    [Fact]
+    public void 戦争の形の要求戦で反乱が勝つと要求がのまれる()
+    {
+        // 旧＝ConcedeToFaction の呼び手は旧経路だけ＝戦争の形の要求戦は反乱が勝っても再併合だけで何も起きなかった。
+        var (sim, fr, rebel, _) = CivilWarBoard();
+        var mv = Movement(fr, rebel.Nation!);
+        var polity0 = fr.Polity;
+        double spent0 = fr.MandateSpent;
+
+        sim.Diplomacy.PendingReintegrations.Add((fr.SelfPower!, rebel, true, polity0));   // 同じ政体＝要求戦
+        sim.ReabsorbNations();
+
+        Assert.Equal(polity0, fr.Polity);
+        Assert.True(fr.MandateSpent > spent0, "要求をのむ講和の政治資本が燃えていない＝要求がのまれていない");
+        Assert.Contains(fr.PendingLog, l => l.Contains("要求をのんだ"));
+        Assert.Equal(0.0, mv.Cohesion);   // 勝った運動も解散する（燃え尽き）
+        Assert.Null(fr.RevoltingFaction);
+    }
+
+    [Fact]
+    public void 内戦の白紙講和の後は運動の錠が外れる()
+    {
+        // 旧＝白紙（分断）と独立の確定は運動の参照を残したまま return＝一度膠着した国は二度と蜂起できない恒久の錠。
+        var (sim, fr, rebel, war) = CivilWarBoard();
+        var mv = Movement(fr, rebel.Nation!);
+        war.Score = -0.1;   // |戦勝点| < WhitePeaceScore＝白紙＝分断が固定
+
+        sim.Diplomacy.ResolvePeace(sim.Coef, war);
+
+        Assert.True(rebel.Nation!.RumpParentName.Length > 0, "前提が崩れた：分断の枝を通っていない");
+        Assert.Null(fr.RevoltingFaction);
+        Assert.Equal(0.0, mv.Cohesion);
+    }
+
+    [Fact]
+    public void 分離戦の調停は独立で終わり政体の内戦は調停されない()
+    {
+        // 作者裁定 e：調停は分離戦だけ（結果は独立＝ベルギー1831・ギリシャ1830）・政体の内戦には効かせない。
+        var (sim, fr, rebel, war) = CivilWarBoard();
+        var rw = rebel.Nation!;
+        var gb = sim.Nations[1].World.SelfPower!;
+        Assert.False(sim.Diplomacy.CanOfferPeace(gb, war, sim.Coef, out var why));
+        Assert.Equal("内戦", why);
+        war.CivilWarSecession = true;
+        sim.Diplomacy.CanOfferPeace(gb, war, sim.Coef, out var why2);
+        Assert.NotEqual("内戦", why2);   // 分離戦は内戦を理由に断らない（他の門＝列強・投射・期間は通常どおり）
+
+        double lost0 = fr.LostRegionsCumulative; int n = rw.Regions.Count;
+        war.Score = 0; war.ForcedPeace = true;   // 調停＝白紙で矛を収める（ExecuteMediation と同じ置き方）
+        sim.Diplomacy.ResolvePeace(sim.Coef, war);
+
+        Assert.Equal("", rw.RumpParentName);                   // 分断ではない＝残骸の自然再併合の対象にしない
+        Assert.Empty(sim.Diplomacy.PendingReintegrations);     // 再併合もしない
+        Assert.All(rw.Regions, r => Assert.Equal(RegionTier.Core, r.Tier));   // 独立の確定＝本土
+        Assert.Equal(lost0 + n, fr.LostRegionsCumulative);    // 作者裁定 c：分離独立でも失地の累計
+    }
+
+    [Fact]
+    public void 分離戦に決定的に負けた親は敗戦の衝撃と失地を負う()
+    {
+        // 作者裁定 b：内戦・分離の敗者にも同じ帰結（種類でなく勝敗と実際に失ったもの）。旧＝内戦の枝は対外の帰結を1行も通らなかった。
+        var (sim, fr, rebel, war) = CivilWarBoard();
+        var rw = rebel.Nation!;
+        war.CivilWarSecession = true; war.Score = -1.2;
+        Assert.True(fr.DefeatShock < 1.0 && rw.VictoryShock < 1.0, "前提が崩れた：衝撃が既に立っている");
+        double lost0 = fr.LostRegionsCumulative; int n = rw.Regions.Count;
+
+        sim.Diplomacy.ResolvePeace(sim.Coef, war);
+
+        Assert.True(fr.DefeatShock >= 1.0, "州を失った親に敗戦の衝撃が無い");
+        Assert.True(rw.VictoryShock >= 1.0, "独立を勝ち取った国に戦勝の衝撃が無い");
+        Assert.Equal(lost0 + n, fr.LostRegionsCumulative);
+    }
 }

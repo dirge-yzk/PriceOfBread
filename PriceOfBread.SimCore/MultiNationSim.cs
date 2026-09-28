@@ -283,6 +283,10 @@ public sealed class MultiNationSim
                         if (Nations.Count > beforeN && Nations[^1].World.SelfPower is { } rebelPw)
                             Diplomacy.DeclareCivilWar(parentPw, rebelPw, rebelPolity, _coef);
                     }
+                    // 本拠州が同じ四半期に離れられなくなった（割譲・首都への昇格）＝蜂起は地図の上に立たなかった＝運動の参照を外す（燃え尽きではない）。
+                    //   ⚠旧＝参照が残り、次にどこかの再併合が無条件に外すまで「内戦中の運動」として数えられた（分離の共有分母 civilFronts）。
+                    //   2026-09-28（処理の一元化 段2 束2）で再併合はその戦争の運動だけを外すようになった＝ここで外す。
+                    else if (pw.RevoltingFaction is { } stillborn && rebelRegs.Contains(stillborn.Region)) pw.RevoltingFaction = null;
                 }
                 continue;   // 同じ親から同四半期に2国は作らない（既存の分裂・分離と同じ規律）
             }
@@ -862,7 +866,7 @@ public sealed class MultiNationSim
     }
 
     /// <summary>★内戦一元化（CivilWarAsWar・2026-08-30）：内戦決着の再統合＝SpawnNation の厳密な逆。
-    /// 政府勝利＝反乱国の全州を親へ返還し国家を除去／反乱勝利＝先に親へ政体を敷き（ImposeRegime と同じ機構）、同じ返還を行う（革命の成就）。
+    /// 政府勝利＝反乱国の全州を親へ返還し国家を除去／反乱勝利＝同じ返還の後に政体変更の実行部（Politics.SettleRevolt＝旧経路の内戦の決着と同じ1本・革命の成就）。
     /// 保存則＝反乱国の基礎貨幣（S=貯蓄和＋T=国庫−L=与信）と人口 P を親の台帳へ（貸借の仕分けは ReabsorbNations の★2026-09-22）。民族反転（建国時の 1−x）も戻す。
     /// 白紙講和はここへ来ない＝分断がそのまま残る（台湾・南北型）。</summary>
     /// <summary>★発見・段7（2026-08-31）：思想の伝播。到達(A→B)＝貿易額(A,B)/買い手GDP×メディアA×メディアB×**前四半期の**到達A
@@ -942,6 +946,7 @@ public sealed class MultiNationSim
 
     internal void ReabsorbNations()   // internal＝番人（FiscalTests の再併合の貸借）が四半期の他の流れを挟まずにこの1段だけを踏む
     {
+        System.Collections.Generic.HashSet<Power>? peaceful = null;   // 残骸の平和的復帰＝戦争の決着ではない＝決着の当てはめ（政体・鎮圧の後始末）を通さない
         // ★残骸国家の自然再併合（2026-08-31・清プレイレポート同日ラウンド）：内戦の白紙分断で生まれた国が
         //   親のGDP1%未満（スケールフリーの親相対・⚠構造定数＝連続性docの対象として記録）を RumpReabsorbYears 年続けたら
         //   平和的に親へ戻す（産出1の死骸が61カ国の外交・清算・ハーネスを漂う問題の是正）。親が交戦中/不在なら持ち越し。
@@ -958,6 +963,7 @@ public sealed class MultiNationSim
                     && !Diplomacy.IsAtWar(par2, rp2))
                 {
                     Diplomacy.PendingReintegrations.Add((par2, rp2, false, pw2.Polity));
+                    (peaceful ??= []).Add(rp2);
                     rw2.RumpParentName = "";   // 二重予約の防止
                     Diplomacy.Log.Add($"{pw2.Year} {rp2.Name}は立ち行かず{par2.Name}へ平和的に復帰した");
                 }
@@ -969,11 +975,7 @@ public sealed class MultiNationSim
             int ri = Nations.FindIndex(n => n.World.SelfPower == rebelP);
             if (pi < 0 || ri < 0 || pi == ri) continue;   // どちらかが既に消滅（防御・二重予約）
             var pw = Nations[pi].World; var rw = Nations[ri].World;
-            if (rebelWon && pw.PoliticsEnabled && pw.Polity != rebelPolity)
-            {
-                CrownParliament.ApplyRegime(pw, _coef, rebelPolity);
-                Politics.RaiseFoundingInstitutions(pw, allowRevoke: true, _coef);   // 新政体の含意参政権・報道（自由化も反動剥奪も対称）
-            }
+            // ★政体の変更は州が戻った後（下の決着の当てはめ）＝革命の後始末（失脚・恐怖政治・土地改革）が再統一した国の全POPに掛かる（旧経路の内戦の勝ちと同じ範囲）。
             // ★再併合の貸借（2026-09-22・作者裁定「全て推奨」）：反乱国の貸借の各行を「州について親へ行く」か「請求権として消える（金は動かない）」かに仕分ける。
             //   規則＝貨幣であるものは湧きも消えもしない＝世界の基礎貨幣 Σ(貯蓄＋国庫−与信) は再併合の前後で同じ。
             //   旧＝親へ渡すのは貯蓄と**正の**国庫だけで、反乱国の与信と負の国庫が国ごと消えた＝世界の貨幣がその額だけ湧いた（㉚の前の木・seed1789・604四半期の一時計器で +10,241）。
@@ -1016,30 +1018,26 @@ public sealed class MultiNationSim
             // 反乱国の植民地（戦中に得た場合の防御）＝親へ移す（無主化して消さない）
             foreach (var col in rebelP.ColonyList) Diplomacy.AcquireColony(parentP, col, _coef);   // 植民地の受け取りの1本（講和の奪取・無血併合と同じ＝国を持つ受け手は植民地格の州へ）
             rebelP.ColonyList.Clear();
-            // ★計器の是正2026-09-08（F3b蜂起doc §5 段1・純記帳）：F3bの「蜂起を武力で鎮圧」ログ（Politics.CheckFactionRevolt の無血鎮圧枝）は
-            //   到達不能になり（枝そのものは2026-09-08の段6で物理削除）、鎮圧が年代記から消えていた。鎮圧の実体は「親が内戦に勝って再併合する」
-            //   この経路なので、決着した運動の名をここで出す＝計器を実経路へ移す（力学は1ビットも読まない）。
-            string spentName = pw.RevoltingFaction is { } spentF ? $"（{Factions.DisplayName(spentF)}の蜂起を鎮圧）" : "";
-            // ★段2＝鎮圧の後始末（F3b蜂起doc §3-4・作者裁定②＝A・2026-09-08）。旧コメントは「燃え尽き＝旧経路と同じ帰結」と書いていたが
-            //   **嘘**だった：旧経路（Politics.cs:985 の ProcessCivilWar 決着）は主体の解放の前に `spent.Cohesion = 0` を書いて組織を壊滅させるが、
-            //   ここは参照を捨てるだけで結束は満額のまま残る＝同じ運動が結束0.8超のまま翌期また立てる（ヴュルテンベルクの毎年7月1日の正体）。
-            //   ⚠この4行はすべて**既存の量の再利用**（新しい数はゼロ）。RevoltAftermathOnWarPath=0 で1命令も走らない＝現行のまま。
-            //   ⚠主体（pw.RevoltingFaction）がある＝F3bの運動が武力で決着した場合だけ。残骸の平和的復帰（RumpReabsorb）には後始末を書かない。
-            if (_coef.RevoltAftermathOnWarPath > 0 && pw.RevoltingFaction is { } spent)
+            // ★決着の当てはめ＝③政体・⑤人と政治（2026-09-28 処理の一元化 段2 束2）＝旧経路の内戦の決着と同じ1本（Politics.SettleRevolt）。
+            //   反乱の勝ち＝政体変更の実行部（急進革命だけ国債の否認・失脚・土地改革・覚醒・断裂の窓＝即時の政変と同じ規則）／同じ政体の要求戦は要求をのむ（ConcedeToFaction）。
+            //   政府の勝ち＝鎮圧の後始末は**反乱していた州（返還州）の住民だけ**（作者裁定 d）＋断裂の窓。運動はどちらでも燃え尽きる。
+            //   ⚠旧＝革命の勝ちは登録簿と建国制度の2行だけ・要求戦の勝ちは何も起きない・鎮圧の後始末は休眠の係数（RevoltAftermathOnWarPath＝0）の裏
+            //     ＝旧経路の鎮圧の行（Politics.ProcessCivilWar）を正本に1本へ畳み、係数は削除した（旧の休眠の枝が足していた正統性の減算は旧経路の鎮圧の行に無い＝持ち込まない）。
+            //   運動＝本拠州がこの反乱国の州だった運動だけ（同じ親で別の内戦が進んでいても他の運動を解かない）。残骸の平和的復帰は戦争の決着ではない＝当てはめない。
+            var movement = pw.RevoltingFaction is { } mv && moving.Contains(mv.Region) ? mv : null;
+            // ★計器（F3b蜂起doc §5 段1・純記帳）：鎮圧の実体は「親が内戦に勝って再併合する」この経路＝決着した運動の名をここで出す（力学は読まない）。
+            string spentName = movement is not null && !rebelWon ? $"（{Factions.DisplayName(movement)}の蜂起を鎮圧）" : "";
+            var polityBefore = pw.Polity;
+            if (pw.PoliticsEnabled && !(peaceful?.Contains(rebelP) ?? false))
+                Politics.SettleRevolt(pw, _coef, rebelWon, rebelPolity, movement, moving.SelectMany(r => r.Pops));
+            // ★作者裁定 f（2026-09-28）：反乱側に乗り換えたプレイヤーの国が吸収された＝親の国で続ける（操作者と外交の IsPlayer を親へ・画面は GameViewModel が追従して通知）。
+            //   ⚠AI の国は何もしない（操作者が居ない）＝エンジンの規則は同じ。
+            if (rebelP.IsPlayer)
             {
-                spent.Cohesion = 0;   // 組織の壊滅＝旧経路 Politics.cs:985 と同じ1行（結束の再成長は FactionCohesionGrowth のロジスティック＝物理的に4〜16年）
-                // 恐怖（人は静まる）＝**返還州のPOPだけ**。全国一律にすると旧経路 Politics.cs:979 と二重になる。
-                // フィルタなしは中央が鎮圧して州を再統合する Politics.cs:869 と同形（同じ状況＝同じ規則）。
-                foreach (var rr in moving) foreach (var pp in rr.Pops) pp.Militancy *= _coef.ReformMilitancyRelief;
-                if (!rebelWon)   // 親が鎮定した側だけ＝反乱勝利は上の ApplyRegime/RaiseFoundingInstitutions が新体制を敷く（正統性へ二重に触らない）
-                {
-                    double legBeforeCw = pw.Legitimacy;
-                    pw.Legitimacy = System.Math.Max(0, pw.Legitimacy - _coef.RevoltSuppressLegitCost);   // 流血の記憶＝F1の鎮圧 Politics.cs:1498 と同じストックへの傷
-                    pw.Explain?.Add("Legitimacy", "内戦の鎮定の流血(ストック正統性への傷)", pw.Legitimacy - legBeforeCw);   // 説明API（#63）
-                    pw.RuptureWindowQuarters = System.Math.Max(pw.RuptureWindowQuarters, (int)_coef.RuptureWindowQuartersOnCrush);   // 反動の窓＝旧経路 Politics.cs:981 と同じ
-                }
+                rebelP.IsPlayer = false; parentP.IsPlayer = true;
+                Nations[pi].SetAgent(new NullAgent());
+                Diplomacy.Log.Add($"{pw.Year} {rebelP.Name}は{parentP.Name}へ再併合された＝操作国は{parentP.Name}");
             }
-            pw.RevoltingFaction = null;   // 運動の主体はここで軍事的に決着した（参照の解放のみ）
             Diplomacy.RemovePower(rebelP, _coef);   // 反乱国が巻き込まれていた第三国との戦争も EndWar を通して終わる＝終戦の記録が残る
             Nations.RemoveAt(ri);
             // ★国の番号のずれ（2026-09-28 処理の一元化 段2 B）：四半期のペア貿易額 PairFlowQ は国の番号（Nations の添字）で引く＝除いた国の行と列を落とす。
@@ -1047,9 +1045,11 @@ public sealed class MultiNationSim
             //   （除いた国の番号より後ろの全ての国が、隣の国の貿易で接触度と思想の到達を受け取った）。
             if (Market.PairFlowQ is { } pfq && ri < pfq.Length)
                 Market.PairFlowQ = pfq.Where((_, a) => a != ri).Select(row => row.Where((_, b) => b != ri).ToArray()).ToArray();
-            Diplomacy.Log.Add(rebelWon
+            Diplomacy.Log.Add(!rebelWon
+                ? $"{pw.Year} {parentP.Name}が{rebelP.Name}を再併合＝内戦の傷跡だけが残った{spentName}"
+                : rebelPolity != polityBefore
                 ? $"{pw.Year} {rebelP.Name}が{parentP.Name}を制した＝{rebelPolity}の下で再統一"
-                : $"{pw.Year} {parentP.Name}が{rebelP.Name}を再併合＝内戦の傷跡だけが残った{spentName}");
+                : $"{pw.Year} {rebelP.Name}の要求が通り{parentP.Name}へ再統一");
         }
         Diplomacy.PendingReintegrations.Clear();
     }

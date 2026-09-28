@@ -80,23 +80,20 @@ public partial class GameViewModel
                 }
         _prevPowerIds = curIds;
 
-        // 初回のみ開始イベント。国数が変動（建国/消滅）した四半期は配列を作り直すが開始は再告知しない（建国は上で既に告知済み）。
-        bool firstInit = _prevPolities == null;
-        if (_prevPolities == null || _prevPolities.Length != powers.Count)
+        // 初回のみ開始イベント（基準化だけ）。★前回値は国の Id をキーに持つ＝国数が変動（建国/消滅）した四半期も比べる（建国は上で既に告知済み・新しい国は前回値が無い＝比べない）。
+        if (_prevPolities == null)
         {
-            _prevPolities = powers.Select(p => p.Nation?.Polity).ToArray();
-            _prevCivilWar = powers.Select(p => (p.Nation?.CivilWarYears ?? 0) > 0).ToArray();
+            _prevPolities = new System.Collections.Generic.Dictionary<long, Polity>();
+            _prevCivilWar = new System.Collections.Generic.Dictionary<long, bool>();
             _prevTerror = new System.Collections.Generic.Dictionary<long, double>();
-            foreach (var p in powers) if (p.Nation is { } tw) _prevTerror[p.Id] = tw.TerrorPurgeCumulative;
-            if (firstInit)
-            {
-                _prevAusterity = _player.AusterityIntensity > AusterityActive;
-                _prevDeval = _player.CumulativeDevaluation;
-                _prevDepression = _player.GdpPcDrawdown > DepressionDrawdown;   // ★E2：1人あたり（割譲で総額が落ちただけの国を恐慌と呼ばない）
-                _prevHeatHot = _player.FinancialHeat > FinancialHeatHot;
-                _prevFamine = _player.HarvestFactor < FamineHarvest;
-                QueueNews("ev_start", PlayerNationName, 0, 0, true);
-            }
+            foreach (var p in powers)
+                if (p.Nation is { } tw) { _prevPolities[p.Id] = tw.Polity; _prevCivilWar[p.Id] = tw.CivilWarYears > 0; _prevTerror[p.Id] = tw.TerrorPurgeCumulative; }
+            _prevAusterity = _player.AusterityIntensity > AusterityActive;
+            _prevDeval = _player.CumulativeDevaluation;
+            _prevDepression = _player.GdpPcDrawdown > DepressionDrawdown;   // ★E2：1人あたり（割譲で総額が落ちただけの国を恐慌と呼ばない）
+            _prevHeatHot = _player.FinancialHeat > FinancialHeatHot;
+            _prevFamine = _player.HarvestFactor < FamineHarvest;
+            QueueNews("ev_start", PlayerNationName, 0, 0, true);
             return;
         }
 
@@ -132,13 +129,13 @@ public partial class GameViewModel
         {
             var w = powers[i].Nation;
             if (w == null) continue;
-            bool mine = i == _playerIndex;
-            if (_prevPolities[i] is { } prev && w.Polity != prev)
+            bool mine = w == _player;
+            long id = powers[i].Id;
+            if (_prevPolities.TryGetValue(id, out var prev) && w.Polity != prev)
             { QueueNews("ev_revolution", powers[i].Name, w.Latitude, w.Longitude, mine, PolityRegimeJa(w.Polity)); Annal("🏛", $"{powers[i].Name}:{PolityRegimeJa(prev)} → {PolityRegimeJa(w.Polity)}"); }
             bool cw = w.CivilWarYears > 0;
-            if (cw && !_prevCivilWar![i]) { QueueNews("ev_civilwar", powers[i].Name, w.Latitude, w.Longitude, mine); Annal("⚔", $"{powers[i].Name}で内戦"); }
+            if (cw && _prevCivilWar!.TryGetValue(id, out var prevCw) && !prevCw) { QueueNews("ev_civilwar", powers[i].Name, w.Latitude, w.Longitude, mine); Annal("⚔", $"{powers[i].Name}で内戦"); }
             // 恐怖政治（タスクB）：粛清累計が増えた＝急進革命で旧支配層が粛清・亡命した。Id基準で前回値と比較。
-            long id = powers[i].Id;
             double prevPurge = _prevTerror != null && _prevTerror.TryGetValue(id, out var pv) ? pv : w.TerrorPurgeCumulative;
             if (w.TerrorPurgeCumulative > prevPurge + 1e-6)
                 QueueNewsText("⚔", $"{powers[i].Name}で恐怖政治:旧支配層が粛清された（{PopFmt(w.TerrorPurgeCumulative - prevPurge)}）", NewsRed, w.Latitude, w.Longitude, mine);
@@ -166,8 +163,8 @@ public partial class GameViewModel
                 }
                 _prevEconState[id] = (depN, w.OnGoldStandard, w.HadSovereignDefault, famN);
             }
-            _prevPolities[i] = w.Polity;
-            _prevCivilWar![i] = cw;
+            _prevPolities[id] = w.Polity;
+            _prevCivilWar![id] = cw;
         }
 
         // 自国の経済イベント（突入の瞬間＝エッジのみ）。自国＝距離0＝即時。

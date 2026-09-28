@@ -36,7 +36,9 @@ public partial class GameViewModel : ViewModelBase
     // イベントログ（アラート）：SimCore は外交ログしか持たないので、UI 側が四半期ごとに「状態遷移の瞬間」を検出して
     // 「yyyy/MM/dd 国名で、〇〇が発生」の形で Alerts に積む。解決法は提示しない（何が起きたかだけ）。
     private double _prevDeval; private bool _prevAusterity, _prevDepression, _prevHeatHot, _prevFamine;
-    private Polity?[]? _prevPolities; private bool[]? _prevCivilWar;   // 全国の政体・内戦の前回値（政変/内戦の発火検出）
+    // 全国の政体・内戦の前回値（政変/内戦の発火検出）。★国の Id をキー（2026-09-28 処理の一元化 段2 束2）＝旧は Powers の添字の配列で、
+    //   国の数が変わった四半期（建国・再併合）に配列ごと作り直して比べなかった＝戦争の形の革命（再併合と同じ四半期に親の政体が変わる）の政変の報せが出なかった。
+    private System.Collections.Generic.Dictionary<long, Polity>? _prevPolities; private System.Collections.Generic.Dictionary<long, bool>? _prevCivilWar;
     private System.Collections.Generic.HashSet<long>? _prevCivilWarKeys;   // ★内戦一元化：タグ付き戦争のペアIdキー（新経路の内戦検出）
     private System.Collections.Generic.Dictionary<long, double>? _prevTerror;   // 国ごとの粛清累計の前回値（恐怖政治ニュース・Id基準＝count変動に強い）
     private System.Collections.Generic.HashSet<long>? _prevPowerIds;   // 前四半期に存在した実国のId集合（分離独立の建国ニュース＝新Id出現）
@@ -461,6 +463,18 @@ public partial class GameViewModel : ViewModelBase
             // 戦費の按分累計は Refresh 内（月スタンプで1回/月・戦線数で均等按分）＝レビュー2026-07-19で移設
             if (quarterCrossed)
             {
+                // ★作者裁定 f（2026-09-28）：操作国が再併合で吸収された（反乱側に乗り換えた後に親が勝った・革命が成就した）＝エンジンは親の国へ
+                //   IsPlayer と操作者を移している（MultiNationSim.ReabsorbNations）。画面を親の国へ付け直して報せる。
+                //   ⚠国を除くと Nations の添字が動く＝操作国より前の反乱国が消えても _playerIndex がずれる＝同じ付け直しで直す（報せは出さない）。
+                int follow = _sim.Nations.FindIndex(n => n.World.SelfPower?.IsPlayer == true);
+                if (follow >= 0 && (follow != _playerIndex || !ReferenceEquals(_sim.Nations[follow].World, _player)))
+                {
+                    bool absorbed = !_sim.Nations.Exists(n => ReferenceEquals(n.World, _player));
+                    string newName = _sim.Nations[follow].World.SelfPower!.Name;
+                    string notice = absorbed ? $"{PlayerNationName}は{newName}へ再併合された。\n\n操作国:{newName}" : "";
+                    OnFollowPlayer?.Invoke(follow, notice);
+                    return;
+                }
                 // （借入はエンジンが自動で借りる＝Fiscal の1行・国家の支払い率 r＜1 の月・2026-09-28 作者裁定「借入は自動化・借金ボタンは不要」＝画面の自動起債の予約2行を削除）
                 // 法律の自動決定（UtilityAgent.DecideLaws の四半期呼び出し）は廃止＝プレイヤーが政治タブで目標を置く（AIボタンで随時助言）。
                 DetectEvents();

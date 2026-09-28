@@ -2667,8 +2667,8 @@ public sealed class Coefficients
     // ★支配度doc §15（2026-09-06 追記裁定・器2026-09-07）：平時の徴募でも植民地格／在地区分が国家区分を上回る州から引いた分は遺恨（ConscriptGrievanceRate×これ）。0＝旧＝厳密恒等。
     public double PeacetimeConscriptGrievance = 0.0;
     // ★実バグ21件 第3波（2026-09-07・群計測1本）。B9（州一揆の保持力を LocalizedHold で読む）は 2026-09-11 に点火＝係数を削除（CheckRegionalRevolt は常に州按分）。
-    //   B16 通貨制度の目標を開いた戦線（CountOpenFronts）に数える＝到達不能な通貨目標が診断に現れ、他軸の押しが薄まる。0＝数えない＝旧。
-    public double FrontsCountMonetary = 0.0;
+    //   B16 通貨制度の目標を開いた戦線（CountOpenFronts）に数える係数 FrontsCountMonetary は 2026-09-28（処理の一元化 段2 束2）に削除した＝
+    //   施行と戦線が法の軸の表（Government.LevelLaws）の同じ1行を読む＝通貨も他の法と同じく目標≠現在なら1戦線。
     //   B5 植民地格（Colonial）へ昇格した州の賦存RGOに PlantationRentShare を当て所有＝資本家（本国と同じ大農園の物理・史実の逆を正す）。0＝自作農のまま＝旧。
     public double ColonyPlantationRent = 0.0;
     //   B14 world.json の heldSince（併合年）を読む＝新領土は支配度が低く Integrated 格で始まる（E-06 の核心が開始盤面に効く）。0＝読まない＝全州 Core・支配度1＝旧。採用後は係数を消して常時読む。
@@ -2854,8 +2854,8 @@ public sealed class Coefficients
     public double RevoltSuppressLegitCost = 0.05;  // 鎮圧の正統性コスト（ストックへ直接＝流血の記憶。regen0.1で数年かけ回復）
     // ★項目2(b)（設計メモ §7 作者裁定2026-09-09「弾圧は鎮めない・譲歩が鎮める」・2026-09-11 点火＝係数を削除）：F1鎮圧枝は闘争度を緩和しない
     //   （残るのは死者と正統性の傷＝ペテルルー）。譲歩の緩和は施行の時点（Politics.Step 先頭の記録下ろし）。
-    //   ⚠他の鎮圧サイト（F3b 再併合の返還州 ×ReformMilitancyRelief＝MultiNationSim.ApplyReintegrations／RevoltAftermathOnWarPath）は同じ原理の候補だが
-    //     2026-09-08 の裁定②で意図して書かれた後始末＝ここでは触らない（作者裁定待ち）。
+    //   ⚠他の鎮圧サイト（内戦の決着 Politics.SettleRevolt＝反乱していた州の ×ReformMilitancyRelief）は同じ原理の候補だが
+    //     2026-09-08 の裁定②と 2026-09-28 の裁定 d で意図して書かれた後始末＝ここでは触らない（作者裁定待ち）。
     // ⚠目盛りの根拠が S1（2026-09-21）で動いた：旧の「余白押し切り1歩」の上限は θ×MandateSpendRate ≦ 0.3×0.5×0.5 = 0.075 だったので 0.125 は既に1.7倍。
     //   θ 退役後の世界では b の中央が 0.1804（隔離計器・seed1・604四半期）＝1段の講和で b の69%・2段（0.25）で b を超えて残り a=0。
     //   回復は b/40 ≈ 0.0045/期（実行度1）＝2段の講和から満タンまで 0.25/0.0045 ≈ 55四半期（約14年）の政治的破産。
@@ -2886,11 +2886,9 @@ public sealed class Coefficients
     //   「根拠のないクールダウンを作らない」の鏡像。しかも結束（Cohesion）が既に4〜16年で育つ＝「長く続いた運動は組織されている」の二重。
     //   FactionState.QuartersActive はこの1本が唯一の読み手だったので、フィールドごと削除した（合流/離脱は AbsentQuarters が見ている）。
     public double FactionCohesionFightThreshold = 0.8;   // 内乱化に要る結束（≈持続3年超の組織運動のみ＝一揆や瞬間革命と役割分担）
-    // ★段2＝鎮圧の後始末（F3b蜂起doc §3-4・作者裁定②＝A・2026-09-08）：内戦一元化の主経路（War で戦う）の再併合サイト
-    //   （MultiNationSim.ApplyReintegrations）には**正統性の減算も闘争度の緩和も結束の焼失も断裂の窓も1行も無かった**＝
-    //   鎮圧されても運動は結束満額のまま残り、翌期また同じ旗が立つ（等間隔の再蜂起の正体）。>0 で旧経路と同じ4つを live 経路にも書く
-    //   （すべて既存の量＝RevoltSuppressLegitCost / ReformMilitancyRelief / RuptureWindowQuartersOnCrush の再利用・新しい数はゼロ）。0＝厳密恒等。
-    public double RevoltAftermathOnWarPath = 0.0;
+    // ★段2＝鎮圧の後始末（F3b蜂起doc §3-4・作者裁定②＝A・2026-09-08）の係数 RevoltAftermathOnWarPath は 2026-09-28（処理の一元化 段2 束2）に削除した＝
+    //   戦争の形の再併合も旧経路の鎮圧の行（Politics.SettleRevolt の1本＝返還州の闘争度の緩和・断裂の窓・運動の燃え尽き）を常に通る。
+    //   旧の休眠の枝が足していた正統性の減算（RevoltSuppressLegitCost）は旧経路の鎮圧の行に無い＝持ち込まなかった（RevoltSuppressLegitCost は F1 の鎮圧だけが読む）。
     // ★段4＝点火の付け替え（F3b蜂起doc §3-2・作者裁定・2026-09-08）：点火と決着が**同じ不等式**（FactionStrength > 保持力+郷勇）だった＝
     //   蜂起は勝てるときにしか始まれず成功率が構造的に100%。さらに左辺は f.Size に比例する州クラスタ規模、右辺の郷勇は全国スケール＝
     //   点火が人口に**反比例**し、人口最大の清で太平天国が最も出にくかった（実測：125年でヴュルテンベルク65件・清0件）。

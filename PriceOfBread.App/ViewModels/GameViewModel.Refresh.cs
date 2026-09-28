@@ -329,6 +329,9 @@ public partial class GameViewModel
                 if (seeded) newEnemy = true;   // 初回Refresh（新規開始/ロード直後）は既存の戦争で自動オープンしない
             }
             if (accrue) tr.CostShare += costShareMonth;
+            tr.Civil = war.CivilWarParent is not null; tr.Secession = war.CivilWarSecession; tr.MeParent = war.CivilWarParent == me;
+            tr.Demand = tr.Civil && war.CivilWarParent!.Nation?.Polity == war.CivilWarPolity;   // 同じ政体の要求戦
+            tr.EnemyName = enemy.Name;
             tr.LastScore = sc;
             tr.LastMonths = war.Months;
             tr.LastDeadSelf = meIsA ? war.DeadA : war.DeadB;
@@ -378,7 +381,7 @@ public partial class GameViewModel
             {
                 Key = $"{id}@{(int)_simDays}",
                 EndDay = _simDays,
-                Title = $"{ep?.Name ?? "—"}　{result}",
+                Title = $"{ep?.Name ?? (tr.EnemyName.Length > 0 ? tr.EnemyName : "—")}　{result}",
                 Detail = $"{DateAt(_simDays - months * (double)Calendar.DaysPerMonth)}〜{EventDate()}　{months}ヶ月"
                        + $"\n戦死 自国 {PopFmt(deadSelf)}" + (ep?.Nation is not null ? $"　相手 {PopFmt(deadEnemy)}" : "")
                        + $"\n民間人の死 自国 {PopFmt(civSelf)}" + (ep?.Nation is not null ? $"　相手 {PopFmt(civEnemy)}" : "")
@@ -387,12 +390,13 @@ public partial class GameViewModel
             // #106 終戦ポップアップ：双方の戦死・戦費・得失を表示（同四半期に複数終戦なら最初の1件）
             if (!WarEndPopupOpen)
             {
-                WarEndPopupBody = $"{ep?.Name ?? "—"} との戦争が終結した。\n\n"
+                WarEndPopupBody = $"{ep?.Name ?? (tr.EnemyName.Length > 0 ? tr.EnemyName : "—")} との戦争が終結した。\n\n"
                     + $"結果:{result}(戦勝点 {scEnd:+0%;-0%;0%})　{months}ヶ月\n"   // ★2026-09-23：第3節（ゼロ節）＝0へ丸まる負の `-+0%` を止める
                     + $"戦死　自国 {PopFmt(deadSelf)}" + (ep?.Nation is not null ? $"/相手 {PopFmt(deadEnemy)}" : "") + "\n"
                     + $"民間人の死　自国 {PopFmt(civSelf)}" + (ep?.Nation is not null ? $"/相手 {PopFmt(civEnemy)}" : "") + "\n"
                     + $"戦費　{Money(tr.CostShare)}\n\n"
-                    + (Math.Abs(scEnd) < _player.Coef.WhitePeaceScore ? "得たもの:なし(白紙講和)"
+                    + (tr.Civil ? CivilWarOutcome(tr, scEnd)
+                       : Math.Abs(scEnd) < _player.Coef.WhitePeaceScore ? "得たもの:なし(白紙講和)"
                        : scEnd > 0 ? "得たもの:賠償金"
                        : "失ったもの:賠償金");
                 WarEndPopupOpen = true;
