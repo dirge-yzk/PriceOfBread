@@ -235,7 +235,7 @@ public sealed class UtilityAgent : INationAgent
     /// 通貨制度（MonetaryTarget）＝CountOpenFronts に数えられない軸＝幽霊戦線を作らない（実加入も信用ゲートが握る）／
     /// 社会保障法＝Government.Step がスライダー（SocialSecurityTarget）から毎期導出＝法目標の書き込み口が別／
     /// 移民制限法・国教法＝AiLawWriteCoverage の書き手が常に StepLawToward 経由（二重整形しない）。</summary>
-    private static void GateAllLawTargets(World w, NationPolicy p)
+    internal static void GateAllLawTargets(World w, NationPolicy p)   // internal＝番人（潤沢の減税も門を通る）が冪等性を確かめるためだけ（可視性のみ）
     {
         GateLaw(w, PolicyAxis.EducationLaw, (int)w.EducationLaw, (int)p.EducationLaw, (int)EducationLaw.Compulsory, v => p.EducationLaw = (EducationLaw)v);
         GateLaw(w, PolicyAxis.Suffrage, (int)w.Suffrage, (int)p.Suffrage, (int)Suffrage.Universal, v => p.Suffrage = (Suffrage)v);
@@ -754,7 +754,8 @@ public sealed class UtilityAgent : INationAgent
             && w.NominalGdp > 1e-9 && w.CumulativeDevaluation / w.NominalGdp > w.Coef.CapitalFlightDistrustThreshold
             && w.NoDevaluationMonths >= w.Coef.CurrencyReformCalmMonths)
             w.RequestCurrencyReform(w.ExchangeRate);
-        RelieveOpulence(w);    // 国庫が潤沢なら減税（2026-08-04）＝退蔵のデフレ螺旋を防ぐ
+        // ★潤沢の減税（RelieveOpulence）は Apply の中＝門（GateAllLawTargets）の前へ移した（2026-09-28 (85)）。
+        //   旧はここ＝門の**後**に税の目標へ連続の倍率を掛け、門が拒む段を置けた（AI だけ・プレイヤーは法律タブで門を通る）。
         // ★鋼市場診断#5（2026-08-16・AiProtectiveTariff>0のみ）：保護関税の反射。
         // ⚠**順序**＝関税目標を書く既存の3か所（Apply のスタンス定数／ダンピングの解除／RelieveOpulence の減税乗算）の**後**に置く。
         //   前に置くと同じ四半期の Apply が上書きし、反射が一度も効かない（衝突ではなく無効化になる）。
@@ -782,7 +783,8 @@ public sealed class UtilityAgent : INationAgent
     /// 吸い上げ続け、需要（＝貯蓄駆動）が痩せてデフレ螺旋に入る（プロイセンのGDP 34k→17k の主因）。
     /// 税は月次義務の OpulenceBufferQuarters 四半期分を超える国庫を「取り過ぎ」とみなし、超過に比例して
     /// スタンスの税目標を連続に縮める（グラッドストン流の減税）。⚠増税側はいじらない＝財政逼迫の既存反射（uFis）が担う。
-    /// ⚠プレイヤー国（NullAgent）はこの関数を通らない＝プレイヤーの税は自由。OpulenceTaxRelief=0 で厳密恒等。</summary>
+    /// ⚠プレイヤー国（NullAgent）はこの関数を通らない＝プレイヤーの税は自由。OpulenceTaxRelief=0 で厳密恒等。
+    /// ⚠呼び手は Apply の末尾（GateAllLawTargets の前）だけ＝縮めた目標も法律タブと同じ門で段へ整形される（2026-09-28 (85)）。</summary>
     private static void RelieveOpulence(World w)
     {
         if (w.Coef.OpulenceTaxRelief <= 0 || w.SelfPower is null) return;
@@ -1479,6 +1481,10 @@ public sealed class UtilityAgent : INationAgent
         //   （Parliament.TargetCrisisDemands＝gated）＝通らない段は置かない＝拒否。プレイヤー国は Apply を通らず法律タブで同じ p.X を書く＝IsPlayer で分岐しない。
         //   ⚠必ず全法書き込みの後・GateAllLawTargets の前＝スタンス既定（Censorship/LaborUnion/WorkHours の毎期再代入）や DecideModernLaws・財政逼迫の ×ease に
         //     上書きされない位置（危機の要求が最後の言葉・整形は GateAllLawTargets が旧どおり）。
+        // ★潤沢の減税（2026-08-04）も**門の前**（2026-09-28 (85)）＝反射が縮めた税の目標も同じ GateTax で「いま通る1段」へ整形される
+        //   ＝AI とプレイヤーが同じ門を通る（旧は DecideQuarter で Apply の後＝門の後に倍率を掛け、門が拒む段を置けた＝幽霊戦線）。
+        //   危機の要求より前＝要求が最後の言葉のまま。Apply の後に走っていた処理（借入の予約・通貨改革の予約）は国庫も潤沢線も動かさない＝判定は同じ。
+        RelieveOpulence(w);
         Parliament.TargetCrisisDemands(w);
         if (w.Coef.AiLawGateUnified > 0) GateAllLawTargets(w, p);
     }
