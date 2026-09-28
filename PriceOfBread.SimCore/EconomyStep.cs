@@ -97,20 +97,23 @@ public static class EconomyStep
     /// ⚠基本段だけを必要額とすると `remaining = MilitaryBudget − estCost×afford` が**厳密に0**になり
     ///（budget=estCost なら afford=1 で差が消える）、機関銃・装甲艦以降の3段が全世界で調達不能になる＝死蔵財を増やす。
     /// 段のゲートは調達ブロックの入れ子と揃える（上位段の財が無い小シナリオでは、その先の段も数えない）。
-    /// ⚠燃料（空軍/輜重）と艦隊修理は含めない。</summary>
+    /// ⚠燃料（空軍/輜重）と艦隊修理は含めない。
+    /// ★陸海の再配分（<see cref="ProcureMul"/>）も発注と同じに通す（2026-09-29 処理の一元化 段3 F＝旧は上位段・tier3 の見積に掛けず、発注にだけ掛けた）。</summary>
     internal static double MilitaryProcurementNeed(Region region, Coefficients coef)
     {
         int ng = region.Markets.Length;
         if (region.MilitaryScale <= 0 || !AllPresent(coef.MilitaryGoods, ng)) return 0;
-        double need = TierCost(region, coef, coef.MilitaryGoods, DiscoveredRates(region, coef, coef.MilitaryGoods, coef.MilitaryRates), false);
+        double[] milRates = DiscoveredRates(region, coef, coef.MilitaryGoods, coef.MilitaryRates);
+        var (naval, land) = ProcureMul(region, coef, milRates);
+        double need = TierCost(region, coef, coef.MilitaryGoods, milRates, false, naval, land);
         if (AllPresent(coef.MilitaryQualityGoods, ng))
         {
-            need += TierCost(region, coef, coef.MilitaryQualityGoods, DiscoveredRates(region, coef, coef.MilitaryQualityGoods, coef.MilitaryQualityRates), true);   // 段2a：耐久品
+            need += TierCost(region, coef, coef.MilitaryQualityGoods, DiscoveredRates(region, coef, coef.MilitaryQualityGoods, coef.MilitaryQualityRates), true, naval, land);   // 段2a：耐久品
             if (AllPresent(coef.MilitaryTier3Goods, ng))
             {
-                need += TierCost(region, coef, coef.MilitaryTier3Goods, DiscoveredRates(region, coef, coef.MilitaryTier3Goods, coef.MilitaryTier3Rates), true);   // 段2a：耐久品
+                need += TierCost(region, coef, coef.MilitaryTier3Goods, DiscoveredRates(region, coef, coef.MilitaryTier3Goods, coef.MilitaryTier3Rates), true, naval, land);   // 段2a：耐久品
                 if (AllPresent(coef.MilitaryAirGoods, ng))
-                    need += TierCost(region, coef, coef.MilitaryAirGoods, DiscoveredRates(region, coef, coef.MilitaryAirGoods, coef.MilitaryAirRates), false);
+                    need += TierCost(region, coef, coef.MilitaryAirGoods, DiscoveredRates(region, coef, coef.MilitaryAirGoods, coef.MilitaryAirRates), false, 1.0, 1.0);   // 空軍は陸海の再配分を掛けない（意図＝作者裁定 2026-09-28 §13-5）
             }
         }
         return need;
@@ -158,7 +161,8 @@ public static class EconomyStep
     ///   0から始めると開幕1ヶ月目に全世界の軍が丸腰になり、即応度0→Military0→脅威比の発散という
     ///   いま直そうとしている病そのものを新たに作ってしまう。
     /// ★目標は発見の解禁度を通した表（<see cref="DiscoveredRates"/>）から出る＝未発見の装備は目標0＝在庫0で始まる（満額で持って始まらない・2026-09-27 回2-1）。
-    /// ⚠反乱勢力の武器庫（FactionState.ArmsStock・2026-09-11）は**この規則を当てない**＝呼び手が全財を0で TryAdd してから渡す（新しい運動は丸腰から）。</summary>
+    /// ⚠反乱勢力の武器庫（FactionState.ArmsStock・2026-09-11）は**この規則を当てない**＝呼び手が全財を0で TryAdd してから渡す（新しい運動は丸腰から）。
+    /// ★上位段・tier3 も同じ規則（2026-09-29 処理の一元化 段3 F＝旧は未初期化を0と読んだ＝同じ武器庫に2つの規則）。</summary>
     private static double ArmsHeld(Dictionary<int, double> stock, int gid, double target)
         => stock.TryGetValue(gid, out double v) ? v : target;
 
@@ -188,10 +192,16 @@ public static class EconomyStep
     /// 耐久品：納入を武器庫へ積み、摩耗で減らす（★発注量は1ビットも変えていない＝変わるのは**測り方だけ**）。
     ///   定常で 在庫 = 納入/摩耗、目標 = want/摩耗 なので **充足 = 納入/want ＝ フローの充足と厳密に同じ値**へ収束する。
     ///   違いは時定数（1/摩耗 ≒ 50ヶ月）だけ＝「1ヶ月の調達失敗で全軍が消える」が「数年かけて劣化する」になる（新しい運動は逆に数年かけて武装する）。
-    /// 戦時は摩耗が (warMult−1)×ArmsWarWearScale だけ増す（その州の戦時倍率＝国軍も運動も同じ州の同じ値）。1期で全損はしない＝上限0.9。</summary>
-    private static double ArmsFillContribution(Region region, Coefficients coef, int b, int gid, double want, double got, double rate, double scalePeace, double milMul, Dictionary<int, double>? stock)
+    /// 戦時は摩耗が (warMult−1)×ArmsWarWearScale だけ増す（その州の戦時倍率＝国軍も運動も同じ州の同じ値）。1期で全損はしない＝上限0.9。
+    /// ★基本段・上位段・tier3 が**同じ1本**（2026-09-29 処理の一元化 段3 F）＝旧は上位段と tier3 が別の写し（未初期化を0・目標に陸海の再配分なし・
+    ///   充足＝Σmin(在庫,目標)÷Σ目標）だった。摩耗率は段の表が持つ＝基本段は財ごとの表（<see cref="Coefficients.MilitaryWearRates"/>・消耗品1.0＝フロー）、
+    ///   上位段と tier3 は全て耐久品で一律（<see cref="Coefficients.ArmsWearRate"/>）。</summary>
+    private static double ArmsFillContribution(Region region, Coefficients coef, int[] goods, int b, double want, double got, double rate, double scalePeace, double milMul, Dictionary<int, double>? stock)
     {
-        double wear = stock is not null && b < coef.MilitaryWearRates.Length ? coef.MilitaryWearRates[b] : 1.0;
+        int gid = goods[b];
+        double wear = stock is null ? 1.0
+            : ReferenceEquals(goods, coef.MilitaryGoods) ? (b < coef.MilitaryWearRates.Length ? coef.MilitaryWearRates[b] : 1.0)
+            : coef.ArmsWearRate;
         if (stock is null || !(wear < 1.0)) return got;
         double target = BaseArmsTarget(scalePeace, rate, wear, milMul);
         double a = ArmsHeld(stock, gid, target);
@@ -211,12 +221,13 @@ public static class EconomyStep
     /// **在庫を積み上げる原資が構造的に足りない**（実測：ストック版の方が装備が少なくなった）。
     /// 消耗品の段（基本・空軍）は false で呼ぶ＝従来どおりフロー。</param>
     /// <param name="rates">★発見の解禁度を掛けた後の原単位表（<see cref="DiscoveredRates"/>）。</param>
-    private static double TierCost(Region region, Coefficients coef, int[] goods, double[] rates, bool durable)
+    /// <param name="naval">陸海の再配分（<see cref="ProcureMul"/>）の海の乗数・<paramref name="land"/>＝陸の乗数（空軍は 1,1＝掛けない）。</param>
+    private static double TierCost(Region region, Coefficients coef, int[] goods, double[] rates, bool durable, double naval, double land)
     {
         double cost = 0;
         bool stock = durable && coef.ArmsStockEnabled > 0;
         for (int b = 0; b < goods.Length; b++)
-            cost += TierQty(region, coef, goods[b], rates[b], stock) * region.Markets[goods[b]].Price;
+            cost += TierQty(region, coef, goods[b], rates[b], stock, System.Array.IndexOf(coef.FleetGoodIds, goods[b]) >= 0 ? naval : land) * region.Markets[goods[b]].Price;
         return cost;
     }
 
@@ -226,13 +237,48 @@ public static class EconomyStep
     ///   目標 A* ＝ **平時基準**の規模 × 原単位 ÷ 摩耗率（定常で 摩耗×A* ＝ 現行の平時フロー消費に一致するよう逆算
     ///   ＝新しい数を作らない）。戦時倍率は目標に掛けない＝**機関銃は戦争が始まっても9倍要らない**。
     ///   発注 ＝ (A* − 在庫)⁺ ＝ 負の小銃は発注できないという物理。戦時は在庫が摩耗で減るぶんだけ発注が増える。
-    ///   ArmsStockEnabled=0 では stock=false＝厳密恒等。</summary>
-    private static double TierQty(Region region, Coefficients coef, int gid, double rate, bool stock)
+    ///   ArmsStockEnabled=0 では stock=false。
+    /// ★陸海の再配分 <paramref name="mul"/> は**目標に**掛ける（2026-09-29 処理の一元化 段3 F）＝決済の充足の分母（<see cref="ArmsFillContribution"/> の目標）と同じ量
+    ///   ＝基本段の <see cref="BaseArmsTarget"/> と同じ式。⚠旧＝(A*−在庫)⁺ の**発注にだけ**掛け、充足の分母には掛けなかった＝港の無い国の装甲艦・弩級戦艦は
+    ///   発注0なのに分母に残り、理想の形が海を望む国は在庫が目標で止まって満たされなかった（E1 で基本段を是正したのと同型の非対称）。
+    ///   在庫の読みも基本段と同じ（<see cref="ArmsHeld"/>＝未初期化は目標）。</summary>
+    private static double TierQty(Region region, Coefficients coef, int gid, double rate, bool stock, double mul)
     {
-        if (!stock) return region.MilitaryScale * rate;
-        double target = region.MilitaryScalePeace * rate / Math.Max(1e-6, coef.ArmsWearRate);
-        double have = region.ArmsStock?.GetValueOrDefault(gid) ?? 0.0;
+        if (!stock) return region.MilitaryScale * rate * mul;
+        double target = BaseArmsTarget(region.MilitaryScalePeace, rate, coef.ArmsWearRate, mul);
+        double have = region.ArmsStock is { } held ? ArmsHeld(held, gid, target) : target;
         return Math.Max(0, target - have);
+    }
+
+    /// <summary>★軍需の陸海の再配分の1本（2026-09-29 処理の一元化 段3 F＝旧 Run の局所の計算を移した）＝見積（<see cref="MilitaryProcurementNeed"/>）・
+    /// 発注・決済（Run の軍需調達）が同じ乗数を読む。基本段の原単位表が含意する海のコストシェア（<see cref="FleetCostShare"/>）から作る＝基本段の総額は保存。
+    /// 上位段と tier3 も同じ乗数（財が海か陸かで分ける＝<see cref="Coefficients.FleetGoodIds"/>）。空軍は掛けない（意図＝作者裁定 2026-09-28 §13-5）。
+    /// ★段2（2026-08-01）：軍需の内訳を理想の陸海比へ再配分する係数（総額は保存）。
+    /// NavalProcurementFromShape=0 または理想が未算出（ShapeNavalShare&lt;0）なら両方1.0＝**厳密恒等**。
+    /// ★港のない州は軍艦を買わない（2026-08-01）。
+    /// ── なぜ要るか（実測で見つかった構造バグ）──────────────────────────────
+    /// 段Aの計器で1914年の艦隊ストックを並べたら **1位 清・2位 広州王国・3位 西山朝**、海軍力の順位は
+    /// **1位 西安王国（内陸）・2位 成都共和国（内陸）** だった。内陸の分離国家が世界最強の海軍を持っていた。
+    /// ⚠これは倍率で直す話ではない——**軍艦は港でしか造れず係留もできない**という地理が抜けていただけである。
+    /// ★総額は保存する＝海に回すはずだった予算は陸へ回る（内陸国は大砲を多く買う）。
+    /// ⚠★重大な自己バグの是正（2026-08-01・敵対レビューで確定）：旧は `!region.IsPort` を見ていたが、
+    ///   **軍需調達は首都州（Id==0）でしか走らない**（Simulation の MilitaryScale が首都以外0）。
+    ///   つまり「内陸に首都がある国」＝仏（パリ）露（モスクワ）普（ベルリン）墺（ウィーン）西（マドリード）
+    ///   サルデーニャ（トリノ）等は、**他州に港をいくつ持っていても軍艦を1隻も造れなくなる**。
+    ///   仏海軍もバルチック艦隊も独海軍も構造的に消える＝帯の直撃だった。
+    /// ★正しい問いは「**この国に港州があるか**」である（造船するのは港、発注するのは国）。</summary>
+    private static (double Naval, double Land) ProcureMul(Region region, Coefficients coef, double[] milRates)
+    {
+        double flatShare = FleetCostShare(region, coef, milRates);   // 一律レートが含意する海のコストシェア（＝いま実際に買っている比・発見の解禁度を通した後）＝反乱勢力の武器購入と同じ1本
+        if (coef.NavalProcurementNeedsPort > 0 && !region.NationHasPort)
+            return (0.0, flatShare < 1 - Eps ? 1.0 / (1.0 - flatShare) : 1.0);
+        if (coef.NavalProcurementFromShape > 0 && region.ShapeNavalShare >= 0 && flatShare > Eps && flatShare < 1 - Eps)
+        {
+            double want = PoliticalQuantities.Clamp01(region.ShapeNavalShare);
+            double k = coef.NavalProcurementFromShape;
+            return (Math.Max(0, 1.0 + k * (want / flatShare - 1.0)), Math.Max(0, 1.0 + k * ((1 - want) / (1 - flatShare) - 1.0)));
+        }
+        return (1.0, 1.0);
     }
 
     /// <summary>★特権 段4（同業組合・2026-09-07）：職人の自営レシピ（OwnerPopIndex==LaborPopIndex==ArtisanPopIndex）の財ごとの供給シェア（産出÷州の総産出）と法の度合。
@@ -884,49 +930,20 @@ public static class EconomyStep
         }
         if (milProc)
         {
-            double estCost = TierCost(region, coef, coef.MilitaryGoods, milRates, false);
+            // ★段2（2026-08-01）：軍需の内訳を理想の陸海比へ再配分する係数（総額は保存）＝見積と同じ1本（ProcureMul・港のない国は軍艦を買わない）。
+            (navalMul, landMul) = ProcureMul(region, coef, milRates);
+            double MilMul(int gid) => System.Array.IndexOf(coef.FleetGoodIds, gid) >= 0 ? navalMul : landMul;
+            double estCost = TierCost(region, coef, coef.MilitaryGoods, milRates, false, navalMul, landMul);   // 基本段は陸海の再配分で総額が変わらない（ProcureMul は基本段の海のコストシェアから作る）
             // ★1で切らない生の比（軍の恒常性の信号）。分子は**上限**（必要額で切る前）＝S3a で実支出を必要額に切っても「まだ払える余裕」が残る。
             // Budget ≤ Ceiling は Simulation の書き手（Ceiling → Min(必要額) → Budget）で単調に成立＝旧 Math.Max(Ceiling, Budget) と同値（必要額が NaN のときだけ旧は NaN 伝播・現行は Ceiling＝fail-safe 側。2026-09-11）。
             double signalBudget = region.MilitaryBudgetCeiling;
-            // ★段2（2026-08-01）：軍需の内訳を理想の陸海比へ再配分する係数を作る（総額は保存）。
-            // NavalProcurementFromShape=0 または理想が未算出（ShapeNavalShare<0）なら両方1.0＝**厳密恒等**。
-            double flatShare = FleetCostShare(region, coef, milRates);   // 一律レートが含意する海のコストシェア（＝いま実際に買っている比・発見の解禁度を通した後）＝反乱勢力の武器購入と同じ1本
-            // ★港のない州は軍艦を買わない（2026-08-01）。
-            // ── なぜ要るか（実測で見つかった構造バグ）──────────────────────────────
-            // 段Aの計器で1914年の艦隊ストックを並べたら **1位 清・2位 広州王国・3位 西山朝**、海軍力の順位は
-            // **1位 西安王国（内陸）・2位 成都共和国（内陸）** だった。内陸の分離国家が世界最強の海軍を持っていた。
-            // ⚠これは倍率で直す話ではない——**軍艦は港でしか造れず係留もできない**という地理が抜けていただけである。
-            // ★総額は保存する＝海に回すはずだった予算は陸へ回る（内陸国は大砲を多く買う）。
-            // ⚠★重大な自己バグの是正（2026-08-01・敵対レビューで確定）：旧は `!region.IsPort` を見ていたが、
-            //   **軍需調達は首都州（Id==0）でしか走らない**（Simulation の MilitaryScale が首都以外0）。
-            //   つまり「内陸に首都がある国」＝仏（パリ）露（モスクワ）普（ベルリン）墺（ウィーン）西（マドリード）
-            //   サルデーニャ（トリノ）等は、**他州に港をいくつ持っていても軍艦を1隻も造れなくなる**。
-            //   仏海軍もバルチック艦隊も独海軍も構造的に消える＝帯の直撃だった。
-            // ★正しい問いは「**この国に港州があるか**」である（造船するのは港、発注するのは国）。
-            if (coef.NavalProcurementNeedsPort > 0 && !region.NationHasPort)
-            {
-                navalMul = 0.0;
-                landMul = flatShare < 1 - Eps ? 1.0 / (1.0 - flatShare) : 1.0;
-            }
-            else if (coef.NavalProcurementFromShape > 0 && region.ShapeNavalShare >= 0)
-            {
-                double want = PoliticalQuantities.Clamp01(region.ShapeNavalShare);
-                double k = coef.NavalProcurementFromShape;
-                if (flatShare > Eps && flatShare < 1 - Eps)
-                {
-                    navalMul = 1.0 + k * (want / flatShare - 1.0);
-                    landMul = 1.0 + k * ((1 - want) / (1 - flatShare) - 1.0);
-                    navalMul = Math.Max(0, navalMul); landMul = Math.Max(0, landMul);
-                }
-            }
-            double MilMul(int gid) => System.Array.IndexOf(coef.FleetGoodIds, gid) >= 0 ? navalMul : landMul;
             double affordRaw = estCost > Eps ? signalBudget / estCost : 1.0;
             region.MilitaryAffordRaw = affordRaw;
             // 残余カスケード＝基本段→上位段→tier3→空軍の入れ子で**残余**が流れる（予算が基本段に届かない国は上位以上が0）。
             //   4段を一律比例で削る器 MilitaryProcureProRata（2026-08-13）は実測で差し戻し（破綻1/10）＝2026-09-26 に削除（棚卸し mil-21・dorm-36）。
             double afford = estCost > Eps ? Math.Min(1.0, affordRaw) : 0.0;
             for (int b = 0; b < coef.MilitaryGoods.Length; b++)
-                militaryDemand[coef.MilitaryGoods[b]] += region.MilitaryScale * milRates[b] * afford * MilMul(coef.MilitaryGoods[b]) * PriceAfford(coef.MilitaryGoods[b]);
+                militaryDemand[coef.MilitaryGoods[b]] += TierQty(region, coef, coef.MilitaryGoods[b], milRates[b], false, MilMul(coef.MilitaryGoods[b])) * afford * PriceAfford(coef.MilitaryGoods[b]);
             // 運用コスト監査2026-08-16 #4b（輜重自動車の燃料・休眠）：自動車（MilitaryGoodsの132）は買うのに走らせる原油を買っていなかった。
             // 供給実在ガード＝原油の継続生産があるときだけ需要を立てる（掘削解禁1859前の紙需要で価格シグナルを汚さない＝Colonial B6と同じ規律）。
             // ⚠LastProduced はこの Run の冒頭（市場のゼロ化）でリセット済み＝ここでは読めない。produced[]（今月の実産出・生産者ループで集計済み）を読む。
@@ -948,17 +965,18 @@ public static class EconomyStep
                 region.NavalRepairUnits = 0;
             }
 
-            // 上位段・tier3 の発注（同じ1本・2026-09-28 処理の一元化 段1＝旧は段ごとの写し）：見積＝TierCost・予算の充足率・需要＝発注量×充足率×陸海の再配分×価格の門。
+            // 上位段・tier3 の発注（同じ1本・2026-09-28 処理の一元化 段1＝旧は段ごとの写し）：見積＝TierCost・予算の充足率・需要＝発注量×充足率×価格の門。
+            //   ★陸海の再配分は発注量（TierQty の目標）の中＝見積・発注・充足の分母が同じ量（2026-09-29 段3 F＝旧は不足分の後から掛けた）。
             //   ★段2a：見積もりは**実際に発注する量**（不足分）で立てる。フローの費用で見積もると、
             //   発注は不足分（最大で月次の50倍）なのに予算充足率は月次基準になり、買える量を大きく超えて発注して
             //   配給率が落ち、かえって納入が減る（実測：ストック版の方が装備が少なくなった）。返り値＝使った額（次の段の残余の元）。
             double OrderTier(int[] goods, double[] rates, double remainingBudget)
             {
-                double cost = TierCost(region, coef, goods, rates, true);
+                double cost = TierCost(region, coef, goods, rates, true, navalMul, landMul);
                 double tAfford = cost > Eps ? Math.Min(1.0, remainingBudget / cost) : 0.0;
                 bool stock = coef.ArmsStockEnabled > 0;   // ★段2a（2026-08-13）：耐久品は**不足分だけ**発注する（現行は毎期フロー全量）。0で従来式＝厳密恒等。
                 for (int b = 0; b < goods.Length; b++)
-                    militaryDemand[goods[b]] += TierQty(region, coef, goods[b], rates[b], stock) * tAfford * MilMul(goods[b]) * PriceAfford(goods[b]);
+                    militaryDemand[goods[b]] += TierQty(region, coef, goods[b], rates[b], stock, MilMul(goods[b])) * tAfford * PriceAfford(goods[b]);
                 return cost * tAfford;
             }
 
@@ -977,7 +995,7 @@ public static class EconomyStep
                     // 財の解禁（onset1.0=1910s）前は生産ゼロ→Fill 0＝制空も厭戦も不走行＝厳密恒等。
                     if (AllPresent(coef.MilitaryAirGoods, ng))
                     {
-                        double aCost = TierCost(region, coef, coef.MilitaryAirGoods, airRates, false);
+                        double aCost = TierCost(region, coef, coef.MilitaryAirGoods, airRates, false, 1.0, 1.0);   // 空軍は陸海の再配分を掛けない（意図＝作者裁定 2026-09-28 §13-5：空は陸海のどちらの取り分でもない別枠）
                         // 運用コスト監査2026-08-16 #4（空軍の燃料・休眠）：飛行機は製造時に原油が要るだけで飛ばすときに何も要らなかった欠落の是正。
                         // 供給実在ガード＝原油の継続生産があるときだけ（#4bと同じ規律・produced[]を読む＝LastProducedはRun冒頭でリセット済み）。
                         // 見積（aCost）に含める＝空軍予算が燃料も担う。AirFuelRate=0なら airFuelNeed=0＝aCost不変・需要不加算（★2026-08-29点火＝既定0.045。MilitaryAirFill の分母 aWant には一切触れない）。
@@ -2007,7 +2025,7 @@ public static class EconomyStep
                     region.StateSpent[(int)TreasuryCat.Army] += pay;
                 }
                 // 耐久品は在庫へ積み摩耗で減らす（質の関数＝反乱勢力の武器購入と同じ1本 ArmsFillContribution・2026-09-11。baseStock=false では got そのもの＝フロー）
-                equipGot += ArmsFillContribution(region, coef, b, gi, want, got, milRates[b], region.MilitaryScalePeace, mul, baseStock ? region.ArmsStock : null);
+                equipGot += ArmsFillContribution(region, coef, coef.MilitaryGoods, b, want, got, milRates[b], region.MilitaryScalePeace, mul, baseStock ? region.ArmsStock : null);
             }
             region.MilitaryEquipFill = EquipFill(equipWant, equipGot);
             // 運用コスト監査2026-08-16 #4b：輜重燃料の決済＝自分の発注量×配給率（militaryDemand[原油]の他の書き手＝空軍燃料と混ざらない）。
@@ -2021,50 +2039,33 @@ public static class EconomyStep
             }
 
             // 上位段・tier3 の決済と充足（同じ1本・2026-09-28 処理の一元化 段1＝旧は段ごとの写し）。返り値＝(充足, 陸の充足)。
+            // ★充足は基本段と**同じ1本**（ArmsFillContribution・2026-09-29 段3 F）＝必要量（陸海の再配分を通した want）で重みを付けた「在庫÷目標」。
+            //   納入分をストックへ積み、摩耗で減らす（段2a）＝**戦時の9倍はここへ来る**（需要でなく摩耗）。Fill は装備が行き渡っているかであって、その月に何を買えたかではない。
+            //   ⚠旧＝Σmin(在庫,目標)÷Σ目標・目標に陸海の再配分なし・未初期化は0（基本段と3点で別の規則）。重みは段の中で同じ比（摩耗率が段の中で一律）＝式の形の違いは再配分の有無だけだった。
+            //   1本も要らない段（未発見）は0＝質の乗数を立てない（基本段の「要らなければ1」とは逆＝上位段の充足は乗数の上乗せの量）。
             (double Fill, double LandFill) SettleTier(int[] goods, double[] rates)
             {
-                double tWant = 0, tGot = 0, tWantLand = 0, tGotLand = 0;   // ★陸分は別アキュムレータ（既存2本には1演算も足さない）
+                var stock = coef.ArmsStockEnabled > 0 ? (region.ArmsStock ??= new Dictionary<int, double>()) : null;
+                double tWant = 0, tGot = 0, tWantLand = 0, tGotLand = 0;
                 for (int b = 0; b < goods.Length; b++)
                 {
                     int gi = goods[b];
-                    tWant += region.MilitaryScale * rates[b];
                     bool tSea = System.Array.IndexOf(coef.FleetGoodIds, gi) >= 0;   // 調達側 MilMul と同一の判定＝新しい分類表を作らない
-                    if (!tSea) tWantLand += region.MilitaryScale * rates[b];
-                    if (militaryDemand[gi] <= 0) continue;
-                    double got = militaryDemand[gi] * ration[gi];
-                    tGot += got;
-                    if (!tSea) tGotLand += got;
-                    double pay = got * clearPrice[gi];
-                    revenue[gi] += pay;
-                    region.StateSpent[(int)TreasuryCat.Army] += pay;
-                }
-                double tFill;
-                // ★段2a：納入分をストックへ積み、摩耗で減らす。**戦時の9倍はここへ来る**（需要でなく摩耗）。
-                //   Fill は「在庫 ÷ 実軍が要る量」＝装備が行き渡っているかであって、その月に何を買えたかではない。
-                if (coef.ArmsStockEnabled > 0)
-                {
-                    region.ArmsStock ??= new Dictionary<int, double>();
-                    double wear = Math.Max(1e-6, coef.ArmsWearRate);
-                    double warWear = wear * (1.0 + coef.ArmsWarWearScale * Math.Max(0, region.MilitaryWarMultLast - 1.0));
-                    double sWant = 0, sHave = 0;   // 陸分はフロー側の累積を捨て在庫基準で積み直す
-                    tWantLand = 0; tGotLand = 0;   // ★捨てる＝ここで一度だけリセット（下のループは在庫基準で複数の陸財を積み直す＝+=）
-                    for (int b = 0; b < goods.Length; b++)
+                    double mul = tSea ? navalMul : landMul;
+                    double want = TierQty(region, coef, gi, rates[b], false, mul);
+                    double got = 0;
+                    if (militaryDemand[gi] > 0)
                     {
-                        int gs = goods[b];
-                        double a = region.ArmsStock.GetValueOrDefault(gs);
-                        a = Math.Max(0, a * (1.0 - Math.Min(0.9, warWear)));           // 摩耗（1期で全損はしない＝上限0.9）
-                        if (militaryDemand[gs] > 0) a += militaryDemand[gs] * ration[gs];   // 納入
-                        region.ArmsStock[gs] = a;
-                        double need = region.MilitaryScalePeace * rates[b] / wear;   // 実軍が要る在庫
-                        sWant += need; sHave += Math.Min(a, need);
-                        bool seaG = System.Array.IndexOf(coef.FleetGoodIds, gs) >= 0;
-                        if (!seaG) { tWantLand += need; tGotLand += Math.Min(a, need); }
+                        got = militaryDemand[gi] * ration[gi];
+                        double pay = got * clearPrice[gi];
+                        revenue[gi] += pay;
+                        region.StateSpent[(int)TreasuryCat.Army] += pay;
                     }
-                    tFill = sWant > Eps ? PoliticalQuantities.Clamp01(sHave / sWant) : 0.0;
+                    double held = ArmsFillContribution(region, coef, goods, b, want, got, rates[b], region.MilitaryScalePeace, mul, stock);
+                    tWant += want; tGot += held;
+                    if (!tSea) { tWantLand += want; tGotLand += held; }
                 }
-                else
-                tFill = tWant > Eps ? PoliticalQuantities.Clamp01(tGot / tWant) : 0.0;
-                return (tFill, tWantLand > Eps ? PoliticalQuantities.Clamp01(tGotLand / tWantLand) : 0.0);   // 分子分母とも MilitaryScale 比例＝痩せても比は跳ねない
+                return (tWant > Eps ? PoliticalQuantities.Clamp01(tGot / tWant) : 0.0, tWantLand > Eps ? PoliticalQuantities.Clamp01(tGotLand / tWantLand) : 0.0);   // 分子分母とも MilitaryScale 比例＝痩せても比は跳ねない
             }
 
             // 上位軍需の充足率＝戦力の質的乗数（Diplomacy が Power.Military を 1+Bonus×これ で増幅）
@@ -2141,7 +2142,7 @@ public static class EconomyStep
                     revenue[g] += payB;
                     pay += payB;
                     double mul = System.Array.IndexOf(coef.FleetGoodIds, g) >= 0 ? navalMulR : landMulR;
-                    equipGot += ArmsFillContribution(region, coef, b, g, want[b], got, rates[b], scale, mul, rebelStock ? f.ArmsStock : null);
+                    equipGot += ArmsFillContribution(region, coef, coef.MilitaryGoods, b, want[b], got, rates[b], scale, mul, rebelStock ? f.ArmsStock : null);
                 }
                 f.EquipFill = EquipFill(equipWant, equipGot);
                 double charged = 0;

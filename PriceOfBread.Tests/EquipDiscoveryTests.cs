@@ -176,4 +176,33 @@ public class EquipDiscoveryTests
         Assert.True(needLow < needHigh, $"未発見の装備が見積から抜けていない（1783年 {needLow:F1} / 全解禁 {needHigh:F1}）");
         Assert.Equal(needHighWithoutUndiscovered, needLow);   // 減ったのは未発見の装備の分だけ（上の段を含む4段とも）
     }
+
+    /// <summary>★処理の一元化 段3 F（2026-09-29）＝上位段・tier3 の充足は基本段と同じ1本（ArmsFillContribution）＝陸海の再配分を分母（目標）にも通す。
+    /// 旧＝発注にだけ再配分を掛け、充足の分母には掛けなかった＝港の無い国の装甲艦・弩級戦艦は発注0なのに分母に残り、陸の装備が満ちても充足が1に届かなかった
+    /// （E1 で基本段を是正したのと同型の非対称）。港の無い国の充足は陸の装備の充足と**ビット一致**する（海の装備は要らない＝分母にも分子にも入らない）。</summary>
+    [Fact]
+    public void 上位段の充足は陸海の再配分を分母にも通す_港の無い国は海の装備を分母に入れない()
+    {
+        var sim = Board();
+        int i = -1;
+        for (int k = 0; k < sim.Nations.Count && i < 0; k++)
+        {
+            var rk = sim.Nations[k].World.Region;
+            if (!rk.NationHasPort && rk.MilitaryScale > 0 && rk.ArmsStock is not null) i = k;
+        }
+        Assert.True(i >= 0, "前提が崩れた：港の無い国で軍需調達が走っていない");
+        var w = sim.Nations[i].World; var r = w.Region; var c = w.Coef;
+        Assert.True(c.NavalProcurementNeedsPort > 0, "前提が崩れた：港の無い国も軍艦を買う");
+        r.TechLevel = 10.0;   // 上位段・tier3 を解禁
+        foreach (var tier in new[] { c.MilitaryQualityGoods, c.MilitaryTier3Goods })
+            foreach (int g in tier)
+                if (System.Array.IndexOf(c.FleetGoodIds, g) < 0) r.ArmsStock![g] = 1e9;   // 陸の装備（機関銃・戦車）は満ちている
+
+        EconomyStep.Run(r, c, 1.0, w.Bank, w);
+
+        Assert.Equal(1.0, r.MilitaryQualityLandFill);   // 前提＝陸は満ちている
+        Assert.Equal(1.0, r.MilitaryTier3LandFill);
+        Assert.Equal(r.MilitaryQualityLandFill, r.MilitaryQualityFill);   // 港の無い国の海の装備（装甲艦）は分母に入らない
+        Assert.Equal(r.MilitaryTier3LandFill, r.MilitaryTier3Fill);       // 同じ（弩級戦艦）
+    }
 }

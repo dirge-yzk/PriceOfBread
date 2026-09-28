@@ -415,6 +415,54 @@ public class WarThemeTests
         Assert.True(dip.IsAtWar(ally, attacker), "宗主の同盟国が連鎖参戦しない（AI の同盟国の参戦と非対称）");
     }
 
+    [Fact]
+    public void 敵の同盟国も参戦した国に対して連鎖参戦する()
+    {
+        // 旧＝同盟の連鎖参戦の訪問済みの鍵が順序なしの Key(a,b)＝参戦国 C の同盟へ（C→敵）問うた直後、同じ段で敵の同盟へ（敵→C）問う鍵が既に「訪問済み」になり、
+        //   敵の同盟国が参戦国に対して連鎖したことが一度も無かった（2026-09-29 処理の一元化 段3＝鍵を向き付きの DirKey へ）。
+        var sim = Board("フランス", "イギリス", "スペイン", "ロシア");
+        sim.StepQuarter();
+        var dip = sim.Diplomacy;
+        var x = sim.Nations[0].World.SelfPower!; var cx = sim.Nations[1].World.SelfPower!;
+        var y = sim.Nations[2].World.SelfPower!; var dy = sim.Nations[3].World.SelfPower!;
+        var c = OpenChain();
+        Ally(dip, x, cx);   // 攻め手の同盟国
+        Ally(dip, y, dy);   // 守り手の同盟国
+        dip.SeedTension(cx, y, 100);    // 攻め手の同盟国は守り手と戦いたい
+        dip.SeedTension(dy, cx, 100);   // 守り手の同盟国は攻め手の同盟国と戦いたい（攻め手とは緊張0＝段0 では参戦しない）
+        cx.Military = 1e9; dy.Military = 1e9;   // 勝ち目の門を開ける
+
+        Assert.True(dip.DeclareWar(x, y, c), "前提が崩れた：宣戦できない");
+
+        Assert.True(dip.IsAtWar(cx, y), "前提が崩れた：攻め手の同盟国が参戦していない");
+        Assert.False(dip.IsAtWar(dy, x), "前提が崩れた：守り手の同盟国が緊張0の攻め手に参戦した");
+        Assert.True(dip.IsAtWar(dy, cx), "守り手の同盟国が、参戦した国に対して連鎖参戦しない（逆向きの連鎖が塞がれている）");
+    }
+
+    [Fact]
+    public void 見通しとAIの脅威は戦線と同じ押しの式で測る()
+    {
+        // 旧＝画面の見通しは陸軍力×投射（上陸・制空なし）・AI の生存効用は陸海合計の Military×投射÷自国の Military＝
+        //   実際の戦線（陸軍力÷戦線数×戦費×投射×上陸×制空）と物差しが3つ（2026-09-29 処理の一元化 段3 G＝押しの1本 FrontPush）。
+        var sim = Board("イギリス", "フランス", "スペイン");
+        sim.StepQuarter();
+        var dip = sim.Diplomacy;
+        var uk = sim.Nations[0].World; var ukP = uk.SelfPower!; var frP = sim.Nations[1].World.SelfPower!;
+        var c = uk.Coef;
+        Assert.True(c.SeaInvasionControlMin > 0 && dip.IsSeaCrossing(frP, ukP, c), "前提が崩れた：英仏の間が海越えでない");
+        ukP.NavalShare = 0; frP.NavalShare = 0;   // どちらの海軍も0＝どちらも上陸できない＝陸戦は起きない
+        Assert.False(dip.LandBattleHappens(ukP, frP, c), "前提が崩れた：海軍0でも上陸できる");
+        Assert.True(frP.LandPower > 0 && ukP.LandPower > 0, "前提が崩れた：陸軍が無い");
+
+        Assert.Equal(0.0, dip.FrontPush(frP, ukP, c));
+        Assert.Equal(0.5, dip.WarOutlook(ukP, frP, c).WinShare);   // 見通しも上陸を見る（旧＝陸軍力×投射の比）
+
+        UtilityAgent.ChooseStance(uk, out var bd);
+        double reach = 0;
+        foreach (var q in dip.Powers) if (q != ukP && q.Nation is not null) reach = Math.Max(reach, dip.FrontPush(q, ukP, c));
+        Assert.Equal(reach / Math.Max(1e-9, ukP.LandPower), bd.ThreatRatio);   // AI の脅威＝届く押し÷自国の陸軍力（画面・戦線と同じ物差し）
+    }
+
     // ============================================================================================
     // ★戦後処理の1本（2026-09-28 処理の一元化 段2 束2・作者「対外戦争・内戦・分離独立の戦後処理を全て1本に」）の番人。
     //   講和（Diplomacy.ResolvePeace）と再併合（MultiNationSim.ReabsorbNations）は稀な枝＝盤面へ内戦を直に立て、決着の1段だけを踏む

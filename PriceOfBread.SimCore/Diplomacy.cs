@@ -1512,7 +1512,11 @@ public sealed class Diplomacy
     private void JoinAllies(Power belligerent, Power enemy, Coefficients c, int depth = 0, HashSet<(long, int)>? visited = null)
     {
         visited ??= [];
-        if (!visited.Add((Key(belligerent, enemy), depth))) return;   // 同一(ペア,段)の再訪を遮断（旧 XOR 合成は Id≥256 で段ビットと衝突しうる）
+        // 同一(向き,段)の再訪を遮断（旧 XOR 合成は Id≥256 で段ビットと衝突しうる）。
+        // ★鍵は**向き付き**（DirKey＝誰の同盟へ・誰に対して問うか・2026-09-29 処理の一元化 段3）。⚠旧＝順序なしの Key(a,b)＝交戦の入口（AddBelligerent）が
+        //   参戦国 X の同盟へ（X→敵）問うた直後に、同じ段で敵の同盟へ（敵→X）問う鍵が既に「訪問済み」になっていた＝敵の同盟国が参戦国に対して連鎖したことが一度も無かった
+        //   （開戦の当事者の段0 だけは両陣営が別々の集合を持つので問えた）。
+        if (!visited.Add((DirKey(belligerent, enemy), depth))) return;
         double joinThreshold = AllyJoinThreshold(enemy, c) * Math.Pow(Math.Max(1.0, c.WarChainDepthPenalty), depth);   // 機能5-④-2：段数減衰（depth=0で恒等）
         foreach (var ally in Powers)
         {
@@ -1915,14 +1919,22 @@ public sealed class Diplomacy
         }
     }
 
-    /// <summary>#106 戦争見通し（UI表示・副作用なし）。双方の陸/海/空戦力と、投射（距離/制海権）込みの勝勢シェア（0..1）を返す。UIが予想戦果の文言を組む。</summary>
+    /// <summary>#106 戦争見通し（UI表示・副作用なし）。双方の陸/海/空戦力と、勝勢シェア（0..1）を返す。UIが予想戦果の文言を組む。
+    /// ★勝勢は実際の戦線と**同じ押しの式**（<see cref="FrontPush"/>・戦線1・戦費満額＝開戦前の問い）＝旧は陸軍力×投射だけで上陸と制空が抜けていた（2026-09-29 処理の一元化 段3 G）。</summary>
     public (double MyLand, double MyNaval, double MyAir, double EnLand, double EnNaval, double EnAir, double WinShare) WarOutlook(Power me, Power enemy, Coefficients c)
     {
-        double myPush = me.LandPower * Projection(me, enemy, c);
-        double enPush = enemy.LandPower * Projection(enemy, me, c);
+        double myPush = FrontPush(me, enemy, c);
+        double enPush = FrontPush(enemy, me, c);
         double win = myPush + enPush > 1e-9 ? myPush / (myPush + enPush) : 0.5;
         return (me.LandPower, me.NavalPower, me.AirPower, enemy.LandPower, enemy.NavalPower, enemy.AirPower, win);
     }
+
+    /// <summary>★戦線の押しの1本（2026-09-29 処理の一元化 段3 G）＝陸軍力÷戦線数×戦費充足×投射×上陸×制空。
+    /// 実際の戦線（<see cref="StepWars"/>）・画面の戦争見通し（<see cref="WarOutlook"/>）・AI の生存効用の脅威（UtilityAgent.ChooseStance）が同じ1本を読む
+    /// ＝AI とプレイヤーが同じ物差しで相手を見る（⚠旧＝AI は陸海合計の Military×投射、画面は陸軍力×投射、戦線はその上に上陸と制空）。
+    /// 上陸は <see cref="LandBattleHappens"/>（どちらか一方でも上陸できれば陸戦は起きる＝両側に同じ値）。見通しと AI は開戦前の問い＝戦線1・戦費満額。</summary>
+    public double FrontPush(Power x, Power y, Coefficients c, int fronts = 1, double fund = 1.0)
+        => x.LandPower / Math.Max(1, fronts) * fund * Projection(x, y, c) * (LandBattleHappens(x, y, c) ? 1.0 : 0.0) * (1.0 + c.AirControlPushWeight * (AirCtl(x, y) - 0.5));
 
     // 禁輸ボタンの廃止（禁制品doc C1・2026-07-30）：旧 Embargo()/LiftEmbargo() は**プレイヤーのボタン専用**の動詞だった
     // （唯一の呼び出しが GameViewModel の DiploEmbargo）。50カ国分を手動で管理するマイクロマネジメントを畳み、禁輸は
@@ -2203,15 +2215,14 @@ public sealed class Diplomacy
         for (int wi = 0; wi < nWars; wi++)
         {
             var war = Wars[wi];
-            double acC = AirCtl(war.A, war.B);   // 1934拡張E2：制空の押し合い補正（偵察・着弾観測＝制空側の砲兵が当たる）。空軍0の時代＝0.5＝×1.0恒等
+            // 押し合い＝陸軍力×戦費充足×投射×上陸×制空（B-1）＝押しの1本 FrontPush（見通しと AI の脅威も同じ1本・2026-09-29 段3 G）。
+            //   **戦力は戦線数で割る**＝多正面の国は各戦線で弱くなり連合が勝つ（弱い側が崩壊＝決定的）。
             // ★上陸ゲート（2026-08-01・作者裁定）：海越え戦線では**制海権を取った側だけが陸で押せる**＝海軍で勝たないとブリテン島に乗れない
             //   （SeaInvasionControlMin=0 で常に1.0＝恒等）。★どちらか一方でも上陸できれば陸戦は起きる（起きたら双方が全力で戦う）。
-            //   ⚠片側だけを0にすると守る側が自国土で押し返せなくなる。
-            double landC = LandBattleHappens(war.A, war.B, c) ? 1.0 : 0.0;
-            // 押し合い＝陸軍力×戦費充足×投射係数の差（B-1）。**戦力は戦線数で割る**＝多正面の国は各戦線で弱くなり連合が勝つ（弱い側が崩壊＝決定的）。
-            double aPush = war.A.LandPower / Math.Max(1, fronts[war.A]) * fundRatio[war.A] * Projection(war.A, war.B, c) * landC * (1.0 + c.AirControlPushWeight * (acC - 0.5));
-            double bPush = war.B.LandPower / Math.Max(1, fronts[war.B]) * fundRatio[war.B] * Projection(war.B, war.A, c) * landC * (1.0 + c.AirControlPushWeight * (0.5 - acC));
-            pushA[wi] = aPush; pushB[wi] = bPush; landFront[wi] = landC > 0;
+            //   ⚠片側だけを0にすると守る側が自国土で押し返せなくなる。制空（1934拡張E2）＝偵察・着弾観測（空軍0の時代＝0.5＝×1.0恒等）。
+            double aPush = FrontPush(war.A, war.B, c, fronts[war.A], fundRatio[war.A]);
+            double bPush = FrontPush(war.B, war.A, c, fronts[war.B], fundRatio[war.B]);
+            pushA[wi] = aPush; pushB[wi] = bPush; landFront[wi] = LandBattleHappens(war.A, war.B, c);
             double contactStrength = Math.Min(aPush, bPush);   // 前線の実接触＝弱い側の押し（片側が届かなければ小）
             contact[war.A] = contact.GetValueOrDefault(war.A) + contactStrength;
             contact[war.B] = contact.GetValueOrDefault(war.B) + contactStrength;

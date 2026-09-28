@@ -451,6 +451,9 @@ public sealed class UtilityAgent : INationAgent
         // 監査2026-07-11（リ3）：旧＝全球最強との単純比較＝53カ国中39カ国が開始時点で飽和値4.5を抱え、Welfare/Fiscalスタンスが
         // 数学的に選ばれ得ず、飢饉反射・緊縮反射が大半の国で発火不能だった（破産中の小国が軍拡を選び続ける）。
         // 「脅威は近接から来る」＝相手の軍×投射（距離減衰）＝実際に自国へ届く力との比較へ置換（近代化法ゲート側の全球比較撤去と同じ処方）。
+        // ★届く力は実際の戦線と同じ押しの1本（Diplomacy.FrontPush＝陸軍力×投射×上陸×制空・戦線1・戦費満額）で測り、自国も同じ陸軍力で比べる
+        //   （2026-09-29 処理の一元化 段3 G）。⚠旧＝陸海合計の Military×投射 ÷ 自国の Military＝画面の戦争見通しと戦線（陸軍力）と物差しが違った
+        //   ＝AI とプレイヤーが別の物差しで相手を見ていた（設計思想⑤）。自国の側は本土で守る＝投射を掛けない（旧と同じ）。
         double survival = 0;
         string threatFrom = "-"; double threatRatio = 0;   // ★診断のみ（値の生成には一切関与しない）
         if (w.Diplomacy is { } dipS && w.SelfPower is { } spS)
@@ -459,11 +462,11 @@ public sealed class UtilityAgent : INationAgent
             foreach (var q in dipS.Powers)
                 if (q != spS && q.Nation is not null)
                 {
-                    double nextMax = Math.Max(maxReach, q.Military * dipS.Projection(q, spS, w.Coef));   // ★式は不変（NaNの扱いも不変）
+                    double nextMax = Math.Max(maxReach, dipS.FrontPush(q, spS, w.Coef));
                     if (nextMax != maxReach) threatFrom = q.Name;                                        // ★診断＝更新した相手を覚えるだけ
                     maxReach = nextMax;
                 }
-            double ratio = maxReach / Math.Max(1e-9, spS.Military);
+            double ratio = maxReach / Math.Max(1e-9, spS.LandPower);
             threatRatio = ratio;
             if (ratio > w.Coef.SurvivalThreatRatio)
             {

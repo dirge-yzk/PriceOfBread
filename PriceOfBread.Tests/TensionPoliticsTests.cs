@@ -261,6 +261,7 @@ public class TensionPoliticsTests(ITestOutputHelper output)
         // ③ 開戦の線の手前（あと1回で越える）：勝勢シェアが半分を超える側だけが押す・もう一方は押さない
         {
             var (sim, c, dip, p, q) = Board();
+            c.SeaInvasionControlMin = 0;   // 上陸の門を外す＝測るのは勝勢の門（2026-09-29 段3 G から見通しは戦線と同じ押しの1本＝上陸を見る。仏英は海越え＝どちらも上陸できない盤面では勝勢が半々になり、どちらも押さない）
             SetTension(dip, p, q, c.WarDeclareTension - c.ActionTensionStep + 5);   // 初期の係争（目標）で積む＝目標は線を超えている
             Assert.True(Goal(dip, p, q) > c.RivalTensionThreshold, $"前提が崩れた：目標の内訳 {Goal(dip, p, q):G6}");
             var strong = dip.WarOutlook(p, q, c).WinShare > 0.5 ? p : q; var weak = strong == p ? q : p;

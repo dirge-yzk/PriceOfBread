@@ -1897,7 +1897,6 @@ public sealed class World
     }
 
     private double InvShipStock() => (InvSailId < Region.Markets.Length ? Region.Markets[InvSailId].Stock : 0) + (InvSteamId < Region.Markets.Length ? Region.Markets[InvSteamId].Stock : 0);
-    private double InvQuinineStock() => InvQuinineId < Region.Markets.Length ? Region.Markets[InvQuinineId].Stock : 0;
     private double InvCannedStock() => InvCannedId < Region.Markets.Length ? Region.Markets[InvCannedId].Stock : 0;
     private double InvadeCannedReq(Power t) => Coef.InvadeCannedBase + Coef.InvadeCannedPerMilitary * t.Military;
     // 侵略に要る余剰戦力＝**国力比の単一式**（Diplomacy.ColonizeWillCost・作者裁定2026-08-23）。
@@ -1928,7 +1927,8 @@ public sealed class World
         if (Diplomacy.IsAtWar(SelfPower, target)) { reason = "交戦中"; return false; }
         if (Diplomacy.DependentCount(SelfPower) >= Coef.MaxDependents) { reason = "属国が上限"; return false; }   // 過伸展の上限＝AI側の呼び出しにしか無かった条件をゲートへ移設（対称）
         if (ExpansionWill < InvadeWillCost(target)) { reason = "余剰戦力が不足"; return false; }
-        if (SelfPower.Military * MilitaryReadiness < Coef.InvadeMilitaryFactor * target.Military) { reason = "兵力が不足"; return false; }
+        // ★即応度は Power.Military に既に入っている（Diplomacy の戦力合成）＝ここでもう一度掛けない（2026-09-29 処理の一元化 段3 G・旧＝即応度の二乗で比べた）。
+        if (SelfPower.Military < Coef.InvadeMilitaryFactor * target.Military) { reason = "兵力が不足"; return false; }
         // 海越え標的のみ船と制海権を要する（B-1）。陸続き標的（南独・満州・朝鮮など近接陸軍国の陸路侵攻）は船・制海権を免除＝距離減衰のみで律速。
         bool seaCrossing = Diplomacy.IsSeaCrossing(SelfPower, target, Coef);
         if (seaCrossing)
@@ -1943,6 +1943,8 @@ public sealed class World
 
     /// <summary>侵略の実行＝**唯一の動詞**（旧「植民地化」と1本化・作者裁定2026-08-23）。プレイヤー（UI）とAI（Diplomacy の標的選択）が同じここを通る。
     /// 余剰戦力・船・糧食(缶詰)・キニーネを消費し、結果は <see cref="Diplomacy.Subjugate"/> が決める＝
+    /// ★物資は国家の調達の1本（<see cref="Colonial.BuyUpkeepGood"/>＝需要の計上・価格の門・支払い率・国庫から生産者へ・財の出入りの台帳）で買って消費する
+    /// （2026-09-29 処理の一元化 段3 K・区分＝戦費）。⚠旧＝首都の市場の在庫を直に `*=`・`-=` で消した＝代金も台帳も無く缶詰・キニーネ・船が痕跡なく消えた。
     /// 実効戦力が屈服線を超えれば屈服（抽象標的＝植民地を接収／実在の弱小国＝属国化）、超えなければ拒否＝開戦。
     /// 戦争自体は他国戦争と同一処理（StepWars/ResolvePeace）。</summary>
     public bool Invade(Power target, Colony? interest = null)
@@ -1952,22 +1954,19 @@ public sealed class World
         ExpansionWill -= InvadeWillCost(target);
         if (Diplomacy!.IsSeaCrossing(SelfPower!, target, Coef))   // 海越えのみ輸送船を消費（陸続きの陸路侵攻は船を使わない・B-1）
         {
-            double need = InvadeShipReq(target), have = InvShipStock();   // 船は遠征で使い減り（在庫比で按分して need ぶん減らす）
+            double need = InvadeShipReq(target), have = InvShipStock();   // 船は遠征で使い減り（在庫比で按分して need ぶん買う）
             if (have > 1e-9)
             {
                 double frac = Math.Min(1, need / have);
-                if (InvSailId < Region.Markets.Length) Region.Markets[InvSailId].Stock *= (1 - frac);
-                if (InvSteamId < Region.Markets.Length) Region.Markets[InvSteamId].Stock *= (1 - frac);
+                if (InvSailId < Region.Markets.Length) Colonial.BuyUpkeepGood(this, Region, InvSailId, Region.Markets[InvSailId].Stock * frac, TreasuryCat.WarCost);
+                if (InvSteamId < Region.Markets.Length) Colonial.BuyUpkeepGood(this, Region, InvSteamId, Region.Markets[InvSteamId].Stock * frac, TreasuryCat.WarCost);
             }
         }
-        if (InvCannedId < Region.Markets.Length)
-            Region.Markets[InvCannedId].Stock = Math.Max(0, Region.Markets[InvCannedId].Stock - InvadeCannedReq(target));   // 遠征軍が携行糧食を食う（全侵略）
+        Colonial.BuyUpkeepGood(this, Region, InvCannedId, InvadeCannedReq(target), TreasuryCat.WarCost);   // 遠征軍が携行糧食を食う（全侵略）
         if (target.RequiresQuinine)   // 熱帯（マラリア）標的：防護に要るキニーネは「養う遠征軍と同規模」＝缶詰要求量を流用（曝露＝物理）。未防護の兵が既存の疫病致死率で死ぬ＝マラリア専用倍率を置かない
         {
-            double need = InvadeCannedReq(target), have = InvQuinineStock();
-            double fill = PoliticalQuantities.Clamp01(have / Math.Max(1e-9, need));
-            if (InvQuinineId < Region.Markets.Length)
-                Region.Markets[InvQuinineId].Stock = Math.Max(0, Region.Markets[InvQuinineId].Stock - Math.Min(have, need));   // 持っている分だけ消費（防護に充てる）
+            double need = InvadeCannedReq(target);
+            double fill = PoliticalQuantities.Clamp01(Colonial.BuyUpkeepGood(this, Region, InvQuinineId, need, TreasuryCat.WarCost) / Math.Max(1e-9, need));   // 買えた分だけ防護に充てる（植民地の駐留のマラリアの鎮静と同じ形）
             double exposed = 1.0 - fill;
             if (exposed > 1e-9)   // （未防護割合×兵士数）が EpidemicSeverity（既存の疫病致死率）で死ぬ。疫病と同型に PopulationDelta で人口台帳追跡＝保存
             {

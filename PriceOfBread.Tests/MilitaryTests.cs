@@ -263,4 +263,85 @@ public class MilitaryTests
         Assert.Equal(off.before, on.before);
         Assert.True(on.after < off.after, $"母数が半分なのに兵数が縮まない（対照 {off.before:F1}→{off.after:F1}／本腕 {on.before:F1}→{on.after:F1}）");
     }
+
+    // ===== 処理の一元化 段3（軍の不具合・2026-09-29）の番人 =====
+
+    private static MultiNationSim TwoNations()
+    {
+        var sim = new MultiNationSim([WorldData.ByName("イギリス"), WorldData.ByName("フランス")], seed: 1789, coef: new Coefficients()) { DiplomacyFrozen = true };
+        sim.StepQuarter();
+        return sim;
+    }
+
+    /// <summary>侵攻の標的＝奪う植民地を持つ弱小の抽象標的（従属していない）。</summary>
+    private static Power InvasionTarget(MultiNationSim sim)
+        => sim.Diplomacy.Powers.Find(p => p.Nation is null && p.ColonyList.Count > 0 && sim.Diplomacy.RankOf(p) == PowerRank.Minor && sim.Diplomacy.Suzerain(p) is null)!;
+
+    [Fact]
+    public void 即応度はMilitaryに一度だけ掛かる_侵攻の門と植民地の抑え()
+    {
+        // 旧＝Power.Military は既に即応度を含む（Diplomacy の戦力合成）のに、侵攻の門（World.CanInvade）と植民地の抑え（Colonial.Step）がもう一度掛けた
+        //   ＝即応度の二乗で比べた（2026-09-29 処理の一元化 段3 G）。
+        var sim = TwoNations();
+        var w = sim.Nations[0].World; var me = w.SelfPower!; var c = w.Coef;
+        var target = InvasionTarget(sim);
+        Assert.NotNull(target);
+        w.ExpansionWill = 1e12;
+        w.MilitaryReadiness = 0.5;
+        target.Military = 1.0;
+        me.Military = 1.01 * c.InvadeMilitaryFactor;
+        w.CanInvade(target, out string reason);
+        Assert.NotEqual("兵力が不足", reason);   // 即応度 0.5 でも Military が要求を1%超えていれば兵力は足りる
+        me.Military = 0.99 * c.InvadeMilitaryFactor;
+        Assert.False(w.CanInvade(target, out reason));
+        Assert.Equal("兵力が不足", reason);      // 前提＝門まで届いている（手前の門で落ちていない）
+
+        // 植民地の抑え：同じ軍・同じ圧力で、即応度だけ違う双子が同じ結果（抑え＝軍×係数・圧力は抑えの7割）
+        static bool Freed(double readiness)
+        {
+            var s = TwoNations();
+            var ww = s.Nations[0].World; var pp = ww.SelfPower!;
+            pp.ColonyList.Clear();
+            ww.Region.ColonialResources ??= [];
+            pp.Military = 0.01; ww.MilitaryReadiness = readiness;
+            var col = new Colony { Name = "試験の植民地", Population = 1.0, Militancy = 0.95, PopSize = 0.7 * pp.Military * ww.Coef.ColonialHoldScale / 0.95 };
+            pp.ColonyList.Add(col);
+            Colonial.Step(ww, ww.Coef);
+            return !pp.ColonyList.Contains(col);
+        }
+        Assert.False(Freed(1.0), "前提が崩れた：抑えが圧力を上回るのに独立した");
+        Assert.False(Freed(0.2), "即応度が植民地の抑えにもう一度掛かっている（Military は既に即応度を含む）");
+    }
+
+    [Fact]
+    public void 侵攻の物資は国家の調達で買って消費する_財と代金の台帳に残る()
+    {
+        // 旧＝World.Invade が首都の市場の在庫を直に *=・-= で消した＝缶詰・キニーネ・船が代金も財の出入りの台帳も無く消えた
+        //   （2026-09-29 処理の一元化 段3 K＝国家の調達の1本 Colonial.BuyUpkeepGood・区分＝戦費）。
+        var sim = TwoNations();
+        var w = sim.Nations[0].World; var me = w.SelfPower!;
+        var target = InvasionTarget(sim);
+        Assert.NotNull(target);
+        w.ExpansionWill = 1e12; me.Military = 1e9; target.Military = 1.0;
+        w.FiscalFundingRatio = 1.0;
+        int[] goods = [Catalog.SailingShipId, Catalog.SteamshipId, Catalog.CannedFoodId, Catalog.QuinineId];
+        var m = w.Region.Markets;
+        foreach (int g in goods) m[g].Stock = 1e6;
+        var st0 = new double[goods.Length]; var ex0 = new double[goods.Length]; var px = new double[goods.Length];
+        for (int k = 0; k < goods.Length; k++) { st0[k] = m[goods[k]].Stock; ex0[k] = m[goods[k]].LastExport; px[k] = System.Math.Max(m[goods[k]].Price, 1e-9); }
+        double led0 = w.TreasuryLedger[(int)TreasuryCat.WarCost];
+        Assert.True(w.CanInvade(target, out string why), $"前提が崩れた：侵攻できない（{why}）");
+
+        w.Invade(target);
+
+        double used = 0, paid = 0;
+        for (int k = 0; k < goods.Length; k++)
+        {
+            double u = st0[k] - m[goods[k]].Stock;
+            Assert.Equal(u, m[goods[k]].LastExport - ex0[k], 6);   // 市場から出た量＝財の出入りの台帳に載った量
+            used += u; paid += u * px[k];
+        }
+        Assert.True(used > 0, "前提が崩れた：物資を1つも消費していない");
+        Assert.Equal(-paid, w.TreasuryLedger[(int)TreasuryCat.WarCost] - led0, 6);   // 国庫が代金を払った（戦費）＝生産者の手に渡る
+    }
 }

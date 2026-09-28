@@ -11,7 +11,6 @@ public static class Colonial
     internal const double OilViableProductionFrac = 0.25;       // 石油を燃料二択に載せる継続生産の下限（必要量比）。海軍運用燃料・民間汽船燃料（運用コスト監査2026-08-16）と共有
     private const double ColonyLiteracyCap = 0.9;               // 植民地識字の上限
     private const double ColonyMilitancyLiteracyBase = 0.3;     // 不満成長の識字ベース項（教育された植民地ほど独立志向）
-    private const double ColonyHoldReadinessFloor = 0.2;        // 独立抑えに効く即応度の下限（軍が完全に弱っても残る抑え）
     private const double FreedColonyMilitancy = 0.2;            // 独立達成後にリセットする不満値
     private const double SettlerMonthlyOutflowCap = 0.01;       // 入植の安全上限＝1植民地あたり月に本国大衆の1%まで（係数の誤設定で本国が空になる事故の物理停止）
 
@@ -282,12 +281,14 @@ public static class Colonial
             w.CumulativeTradeFlow += revenue;              // 外部マネーの流入（保存）
         }
 
-        // 4. 独立：圧力（人口×不満）が本国の抑え（軍×即応度）を超えた大植民地は離反する＝帝国は軍で保たれる。
+        // 4. 独立：圧力（人口×不満）が本国の抑え（軍）を超えた大植民地は離反する＝帝国は軍で保たれる。
         //    本国が戦争で疲弊（即応度低下）した隙に大植民地が独立する＝アメリカ独立戦争の構図。離反した植民地は戻らない。
+        //    ★即応度は Power.Military に既に入っている（Diplomacy の戦力合成）＝ここでもう一度掛けない（2026-09-29 処理の一元化 段3 G・
+        //    旧＝軍×max(0.2, 即応度)＝即応度の二乗・下限の定数 ColonyHoldReadinessFloor ごと削除）。
         if (w.SelfPower.ColonyList.Count > 0)
         {
             // 恐慌のgrip割引（旧DepressionColonyGrip）はC裁定2026-07-09で撤去（ColonialCrisisMilitancyとペアで逆効果を実証済み）
-            double baseHold = w.SelfPower.Military * Math.Max(ColonyHoldReadinessFloor, w.MilitaryReadiness) * c.ColonialHoldScale;
+            double baseHold = w.SelfPower.Military * c.ColonialHoldScale;
             // 外5：同時多発の按分（ColonialHoldSharedArmy 既定0.5・0で各植民地が全軍と対峙）。>0で不穏植民地数（独立閾値超）に軍を割り、10植民地同時不穏なら各々に届く抑えが薄まる（戦争が戦線数で戦力を割るのと同型）。
             // 分母＝1+ColonialHoldSharedArmy×(不穏数−1)。0で分母1・1で不穏数ぶんに全軍を按分。
             int unrestCount = 0;
