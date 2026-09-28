@@ -204,59 +204,19 @@ public static class FactionSnapshot
     /// マニフェストの達成判定（Parliament）が読む**唯一の物差し**＝要求の可動域と公約の進捗が同じ座標で測られる。</summary>
     internal static double AxisPosition(World w, PolicyAxis a)
     {
-        // ★税・支出の段（作者裁定2026-09-12 R1）：段になった軸は**段の序数/3**で測る（`EducationLaw => (int)w.EducationLaw / 3.0` と同形）。
-        //   ⚠Government.Move は目標へ指数接近するだけで到達しないので、実効値のままだと最上段を与えきっても v<1 が残り
-        //     「法を与えきっても要求が消えない／不満（LawGap）が満額のまま」になる＝2026-08-01 の no-op 要求と同型の力学バグ。
-        // ★錨2026-09-18：**Q4（率）ではなく段序数/段数**を読む。錨が1.0だった間だけ両者は数値的に同一で、軸ごとの錨（所得税0.35等）を
-        //   入れた瞬間に Q4 は率を返す＝最上段を与えきっても v=0.35 で Headroom が0.65 残り、要求も不満（LawGap）も永久に消えない
-        //   ＝上のコメントが警告している 2026-08-01 の no-op 要求と同型の力学バグそのもの。ここは「正規化位置」を測る場所なので段で測る。
-        double Stage(double v0) => Government.TaxStage(a, v0) / (double)Government.TaxLawStages;
+        // ★税・支出の段と段の法の位置は Government.LevelPosition の1本（段の序数/段数・min(段,最上段)/最上段＝2026-09-28 処理の一元化 段1。錨2026-09-18 の注記も同所）。
         double v = a switch   // 現行値の正規化位置 [0,1]
         {
-            PolicyAxis.IncomeTax => Stage(w.TaxRate),
             PolicyAxis.SocialSecurity => w.SocialSecurity,
             PolicyAxis.Coercion => PoliticalQuantities.Clamp01(w.BaseCoercion / System.Math.Max(1e-9, w.Coef.CoercionMax)),
             PolicyAxis.Tariff => PoliticalQuantities.Clamp01(w.Tariff),
-            PolicyAxis.EducationSpending => Stage(w.EducationSpending),
-            PolicyAxis.PollTax => Stage(w.PollTax),
-            PolicyAxis.LandTax => Stage(w.LandTax),
-            PolicyAxis.ProgressiveTax => Stage(w.ProgressiveTax),
-            PolicyAxis.EducationLaw => (int)w.EducationLaw / 3.0,
-            PolicyAxis.Suffrage => (int)w.Suffrage / 3.0,
-            PolicyAxis.Censorship => (int)w.Censorship / 2.0,
-            PolicyAxis.LaborUnion => (int)w.LaborUnion / 2.0,
-            PolicyAxis.ShorterHours => (int)w.WorkHours / 3.0,   // 軸の「進める向き」＝enum増＝長時間化（PolicyPreferences と同規約）
-            PolicyAxis.ChildLabor => w.ChildLaborAllowed ? 1.0 : 0.0,   // 児童労働法（02断線走査2026-07-28）：軸の増＝合法化
-            PolicyAxis.WomenRights => (int)w.WomenRights / 3.0,   // ★統合法（2026-08-10）：なし0／財産権1/3／教育権2/3／選挙権1.0＝段を与えきれば要求が消える
-            PolicyAxis.CornLaws => (int)w.CornLaws / 2.0,
-            PolicyAxis.LandReform => (int)w.LandReform / 2.0,
-            PolicyAxis.SerfEmancipation => (int)w.SerfEmancipation / 2.0,
-            // 02断線走査（2026-07-28）：E5/E6の8軸＝旧・既定0.5の固定headroomで「法を完全に与えても要求が消えない／
-            // 動かせない要求がtop-3を占拠する」の両向きが壊れていた（繋ぐべき筆頭群）。
-            PolicyAxis.ConscriptionLaw => (int)w.ConscriptionLaw / 2.0,   // ★3値化2026-08-01
-            PolicyAxis.SecretBallot => (int)w.SecretBallot / 1.0,
-            PolicyAxis.Bureaucracy => (int)w.Bureaucracy / 2.0,
-            PolicyAxis.StateReligion => System.Math.Min((int)w.StateReligion, 2) / 2.0,   // 法の到達上限=信仰の自由（StateAtheismは政体の属性でクランプして1.0扱い）。/3.0だと施行上限2/3で要求が消えないno-op化バグ（2026-09 wave2b）
-            PolicyAxis.Antitrust => (int)w.Antitrust / 2.0,
-            PolicyAxis.Guild => (int)w.Guild / 2.0,   // ★特権 段4
-            PolicyAxis.WartimeRationing => w.WartimeRationing ? 1.0 : 0.0,
-            PolicyAxis.MilitaryExport => w.MilitaryExportBan ? 1.0 : 0.0,   // 軍需輸出の法（禁制品doc C5・2026-07-30）：軸の増＝禁止
-            PolicyAxis.CivilianArms => w.CivilianArmsBan ? 1.0 : 0.0,       // ★民間の武器購入の法（2026-09-11）：軸の増＝禁止（休眠中は Pref=0＝要求に載らないが、器2026-08-01の「余地0.5固定」の罠を先に封じる）
-            PolicyAxis.OpiumPossession => (int)w.OpiumPossession / 2.0,     // 阿片の保有法（C3・2026-07-30）：軸の増＝許可→輸入禁止→禁止
-            PolicyAxis.OpiumExport => w.OpiumExportBan ? 1.0 : 0.0,         // 阿片の輸出法（同）
             PolicyAxis.NavyUpkeep => w.NavyUpkeep,   // ★海軍維持費（2026-08-10 作者裁定＝旧「海軍偏重」の振り替え先）：0..1 の維持費そのものが現行値＝軸の増＝艦隊に払う金を増やす。
                                                      // 満額（1.0）まで払えば「海軍の増強」の要求が消える。落ちていると _ => 0.5 に吸われ**余地が0.5固定＝与えても要求が消えない**
-            // ★器2026-08-01：新軸は必ず Headroom にも入れる（落ちると _ => 0.5 に吸われ「法を完全に与えても要求が消えない」力学バグ＝旧 NavalEmphasis の前例）。
-            // 器の段では対応する状態がまだ無いので 0.5（中庸）を明示的に返す。⚠選好が常に0なので要求リストには載らない＝厳密恒等。
-            PolicyAxis.ImmigrationRestriction => (int)w.ImmigrationRestriction / 2.0,   // ★点火2026-08-01：開放0／選別0.5／閉鎖1.0＝法を与えきれば要求が消える
-            PolicyAxis.SpecialistExitBan => (int)w.SpecialistExitLaw / 2.0,   // ★段⑤：自由0／制限0.5／禁止1.0
-            PolicyAxis.MonetaryStandard => (int)w.MonetaryLaw / 2.0,   // ★点火2026-08-01／★3値化2026-08-13（銀の段live=2026-08-21）：不換0／銀0.5／金1.0（gate=0に戻せば両端しか取らず旧と一致）
-            PolicyAxis.CapitalMobility => w.CapitalControlLaw ? 1.0 : 0.0,   // ★資本移動の法（2026-08-13）：自由0／規制1.0
-            // 参政権の範囲2法（2026-08-16）：段を与えきれば要求が消える（落とすと _ => 0.5 に吸われる器2026-08-01の力学バグの罠）。休眠中は選好0＝要求に載らない＝厳密恒等。
-            PolicyAxis.ColonialSuffrage => (int)w.ColonialSuffrage / 2.0,           // なし0／自国民のみ0.5／全面1.0
-            PolicyAxis.MigrantNativeSuffrage => (int)w.MigrantNativeSuffrage / 1.0, // なし0／あり1.0
+            PolicyAxis.NationalizationAll => 0.5,   // 『全て』国有化は位置を持たない（要求の軸から除く ComputeDemands と同じ・旧の既定 0.5 のまま）
+            // ★段の法（enum と bool）＝表 Government.LevelLaws の min(段,最上段)/最上段（2026-09-28 処理の一元化 段1＝旧は軸ごとの1行＝施行・戦線・段と手で対応させていた）。
+            //   各軸の注記（軸の増の向き・最上段・02断線走査2026-07-28 の「余地0.5固定」の罠）は表の行へ。⚠新しい軸は必ず表に入れる（落ちると 0.5＝法を与えきっても要求が消えない）。
             PolicyAxis.Nationalization => NationalizationLitRate(w),
-            _ => 0.5,
+            _ => Government.LevelPosition(w, a),   // 表に無い軸は 0.5（中庸）
         };
         return PoliticalQuantities.Clamp01(v);   // ⚠端の外（税率>1等）を先に畳む＝Headroom 側の 1−v も [0,1] に収まる（旧＝反転後に Clamp・同値）
     }

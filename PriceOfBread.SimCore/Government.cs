@@ -58,6 +58,159 @@ public static class Government
             ? force / (1.0 + force / Math.Max(1e-9, c.CoercionMax))
             : Math.Min(force, c.CoercionMax);
 
+    /// <summary>★段の法（enum の法と bool の法）の軸の1行（2026-09-28 処理の一元化 段1）。値は段の序数（bool は 0/1）。
+    /// 施行（<see cref="Step"/>）・戦線の数え（<see cref="CountOpenFronts"/>）・段（<see cref="StagedAxis"/>／<see cref="CurrentStage"/>）・
+    /// 位置（<see cref="FactionSnapshot.AxisPosition"/>）が**同じ1行**を読む＝軸を足すときに書く所が1行になる（旧＝軸ごとに4か所を手で対応させていた）。
+    /// <paramref name="Target"/>＝施行と戦線の目標／<paramref name="Top"/>＝最上段（位置＝min(段,Top)/Top）／
+    /// <paramref name="Stage"/>＝2：段飛ばし禁止（StagedAxis）で現在段を持つ・1：現在段だけ（NextStage が読む）・0：段なし／
+    /// <paramref name="Open"/>＝施行と戦線の両方の門（null＝常に）／<paramref name="Enact"/>＝施行の特例（null＝<see cref="StepLevel"/> で目標へ1段・第3引数は Target の値）／
+    /// <paramref name="FrontOpen"/>＝戦線の数えだけの門（null＝Open）。
+    /// ⚠施行と戦線がずれている軸は2本（通貨＝FrontsCountMonetary の既定0・『全て』国有化＝施行は政体で丸めた目標）＝この表の行に見える形で残す（直すのは段2＝挙動が変わる）。</summary>
+    internal sealed record LevelLaw(PolicyAxis Axis, Func<World, int> Get, Action<World, int> Set, Func<World, NationPolicy, int> Target, int Top, int Stage = 0,
+        Func<World, bool>? Open = null, Action<World, NationPolicy, int>? Enact = null, Func<World, bool>? FrontOpen = null);
+
+    /// <summary>段の法の表＝**施行の順**（純支持が負の一歩は政治資本の在庫を先着で使う＝並びは挙動）。</summary>
+    internal static readonly LevelLaw[] LevelLaws =
+    [
+        new(PolicyAxis.EducationLaw, w => (int)w.EducationLaw, (w, v) => w.EducationLaw = (EducationLaw)v, (w, p) => (int)p.EducationLaw, 3, Stage: 2),
+        // 女性参政権（男女普通選挙 Universal）の前提＝女性の権利の梯子が最上段（選挙権）まで登っていること。
+        // 第3段3-6（2026-07-27）で財産権前提の到達不能枝を削除・2026-08-10 で梯子へ統合＝分離（財産権1870/82と参政権1918）は段の並びが恒久的に保証する。
+        // ★裁定2026-09-12（FIX3-1）：ここで目標を AdultMale へ書き換えていた行を削除＝**天井型の前提は登る側にしか掛けない**（同日の反証と同文・3例目）。
+        //   登る側は StepLevel が LawPrereq（case Suffrage＝「女性の権利（選挙権）が前提」）を照会して既に塞いでいる＝完全な重複だった。
+        //   固有の産物は降りる側だけ＝{現行=Universal かつ 目標=Universal かつ !WomenSuffrage}（女性の権利が断裂の窓/内戦譲歩で剥がれた国）で
+        //   誰も選んでいない男女普通選挙→男性普通選挙の降格目標が黙って立ち、以後 w≠p が恒久的な幽霊戦線になっていた。
+        new(PolicyAxis.Suffrage, w => (int)w.Suffrage, (w, v) => w.Suffrage = (Suffrage)v, (w, p) => (int)p.Suffrage, 3, Stage: 2),
+        // ★女性の権利（統合法・2026-08-10）：旧・3本の StepBool（財産権/参政権/教育権）を**1本の段の法**へ（家父長制の難改革＝旧支配層−2）。
+        //   なし→財産権→教育権→選挙権を1期1段ずつ登る＝史実の順序（英1870/82→女子教育→1918）を前提条件を書かずに段の並びで保証する。
+        //   旧・財産権/参政権/教育権の3戦線は1戦線に畳まれる（政治予算 (1/N)^Gate の N が減る＝他軸の押しが強まる）。位置＝なし0／財産権1/3／教育権2/3／選挙権1.0。
+        new(PolicyAxis.WomenRights, w => (int)w.WomenRights, (w, v) => w.WomenRights = (WomenRightsLaw)v, (w, p) => (int)p.WomenRights, 3, Stage: 2),
+        // ★親軍法の施行行は2026-08-18に撤去（作者裁定「厳密には法ではなく政治機構だ」）。軍国主義は単一の法でも単一のスカラーでもなく
+        //   **4つの別々の実体**へ分解された（PoliticalQuantities の①練度／②政治的優位／③好戦世論／④任免権＝いずれも既存量からの導出）。
+        //   よってここで押す3本目の戦線は存在しない（CountOpenFronts の N も1本減る＝他軸の押しが厚くなる）。
+        // ⚠**法で表現してはいけない**ことは史実が独立に示す＝日本の軍部大臣現役武官制は1913-06-13に**緩和されたが、その後23年間で一度も行使されなかった**
+        //   （予備役・退役の陸軍大臣は一人も任命されていない）。なのに海軍は1914年4月に建艦予算のためだけに内閣の成立を潰した
+        //   ＝**拒否権は制度的であって法定ではなく、法を緩めても何も変わらなかった**。
+        // ★通貨制度＝債務者と債権者の政治。3値化（銀本位doc G4・2026-08-13）：不換→銀→金を1期1段。位置＝不換0／銀0.5／金1.0。
+        // ⚠SilverStandardGate=0（旧既定・点火1.0=2026-08-21銀本位ラウンド）では中段へ入らず、旧 StepBool と同じ 0/1 の一歩＝旧挙動と厳密恒等（数値中立）。
+        // ★B16（実バグ21件・2026-09-07）：通貨の梯子は政治ゲートを通るのに戦線に数えられていなかった＝到達不能な通貨目標を持つAIの
+        //   開きっぱなしの戦線が診断にも現れない（当時の徴候＝毎四半期 BlockedGrievance が発火し続けること。その発火は裁定C2で止まり 2026-09-20 に削除したが、
+        //   幽霊戦線そのもの＝PoliticalPushBudget を毎期薄める害は残るので、この数え上げは無関係に要る）。
+        //   FrontsCountMonetary>0 で同じ目標の写像（SilverStandardGate の有無）を1戦線に数える。0＝旧＝厳密恒等（⚠既定0＝施行と戦線のずれ・段2）。
+        new(PolicyAxis.MonetaryStandard, w => (int)w.MonetaryLaw, (w, v) => w.MonetaryLaw = (MonetaryStandardLaw)v,
+            (w, p) => w.Coef.SilverStandardGate > 0 ? Math.Clamp(p.MonetaryTarget, 0, 2) : (p.MonetaryTarget >= 2 ? (int)MonetaryStandardLaw.Gold : (int)MonetaryStandardLaw.Fiat), 2,
+            Enact: (w, p, t) => w.MonetaryLaw = w.Coef.SilverStandardGate > 0
+                ? (MonetaryStandardLaw)StepLevel((int)w.MonetaryLaw, t, w, PolicyAxis.MonetaryStandard)
+                : StepLevel(w.MonetaryLaw == MonetaryStandardLaw.Gold ? 1 : 0, p.MonetaryTarget >= 2 ? 1 : 0, w, PolicyAxis.MonetaryStandard) == 1 ? MonetaryStandardLaw.Gold : MonetaryStandardLaw.Fiat,
+            FrontOpen: w => w.Coef.FrontsCountMonetary > 0),
+        // ★資本移動＝海外へ投資する資本と国内に雇用を求める側の政治（トリレンマdoc・2026-08-13）。位置＝自由0／規制1.0。
+        new(PolicyAxis.CapitalMobility, w => w.CapitalControlLaw ? 1 : 0, (w, v) => w.CapitalControlLaw = v == 1, (w, p) => p.CapitalControlTarget ? 1 : 0, 1),
+        new(PolicyAxis.Censorship, w => (int)w.Censorship, (w, v) => w.Censorship = (CensorshipLaw)v, (w, p) => (int)p.Censorship, 2, Stage: 2),   // 報道の自由化（旧支配層が抵抗）
+        new(PolicyAxis.LaborUnion, w => (int)w.LaborUnion, (w, v) => w.LaborUnion = (LaborUnionLaw)v, (w, p) => (int)p.LaborUnion, 2, Stage: 2),   // 労働組合の容認（資本・旧支配層が抵抗）
+        // 労働時間（A-1#2修正2026-06-24）：短縮＝enum減（Unlimited→Twelve→Ten→Eight）。資本（近代エリート）が抵抗するので政治ロック越しに1段ずつ＝社会党勝利でも即8時間にはならない（旧：Policyを生で施行＝抵抗ゼロのバグ）。
+        //   位置も軸の「進める向き」＝enum増＝長時間化（PolicyPreferences と同規約）。
+        new(PolicyAxis.ShorterHours, w => (int)w.WorkHours, (w, v) => w.WorkHours = (WorkHours)v, (w, p) => (int)p.WorkHours, 3, Stage: 2),
+        // 児童労働法（02断線走査2026-07-28）：禁止＝資本の抵抗を通す（英1833工場法）。軸の増＝合法化。
+        new(PolicyAxis.ChildLabor, w => w.ChildLaborAllowed ? 1 : 0, (w, v) => w.ChildLaborAllowed = v == 1, (w, p) => p.ChildLaborAllowed ? 1 : 0, 1),
+        // 議会の法案（段5・第4増分）：力の均衡（＋議席）が許せば一歩。穀物法は地主が保護を望む（撤廃は自由/大衆）。土地改革・農奴解放は地主が強く抵抗。
+        new(PolicyAxis.CornLaws, w => (int)w.CornLaws, (w, v) => w.CornLaws = (ReformLevel)v, (w, p) => (int)p.CornLaws, 2, Stage: 2),   // なし→限定的→全面 を1段ずつ（1期での総反転を防ぐ）
+        // 土地改革は検地台帳（LandTaxUnlocked＝土地税と同じ前提）が要る＝測量・登記なしに土地は再分配できない（史実：地租改正1873）。
+        // 土地税とは課税ベースでも自動連動（改革で地代が縮む→LandRent↓→土地税の税収↓＝両者は税源を取り合う）。
+        new(PolicyAxis.LandReform, w => (int)w.LandReform, (w, v) => w.LandReform = (ReformLevel)v, (w, p) => (int)p.LandReform, 2, Stage: 2, Open: w => w.LandTaxUnlocked),
+        new(PolicyAxis.SerfEmancipation, w => (int)w.SerfEmancipation, (w, v) => w.SerfEmancipation = (ReformLevel)v, (w, p) => (int)p.SerfEmancipation, 2, Stage: 2),   // なし→限定的→全面。農奴解放は布告＝検地台帳不要（露1861）
+        // 社会保障法（1934拡張E5）：4段の法が福祉水準と年金を駆動（旧スライダー廃止・年金を第4段に吸収）。
+        // 第3段3-6（2026-07-27）：SocialSecurityLawGate=1.0（E9点火）を焼き込み＝旧・別年金法else枝（到達不能）を削除。
+        // AIの福祉意図(SocialSecurityTarget 0..1)を法の段階へ写像＝別AI規則を書かずスライダー廃止と等価（AI/議会は従来どおり目標を出す）。
+        // 救貧0/労災0.33/失業0.67/年金1.0＝段階が福祉水準を駆動（救貧法=福祉水準0で旧「なし」相当・較正中立）。
+        // ⚠緊縮は福祉水準を削らない（裁定B・2026-09-12・旧の Min クランプは 2026-09-20 の段の点火で削除）：法の段がそのまま福祉水準＝
+        //   緊縮は LawPrereq の「緊縮の上限」で**登れなくする**だけで既に制定された法は剥がさない。位置は福祉水準 w.SocialSecurity（AxisPosition）。
+        new(PolicyAxis.SocialSecurity, w => (int)w.SocialSecurityLaw, (w, v) => w.SocialSecurityLaw = (SocialSecurityLaw)v,
+            (w, p) => Math.Clamp((int)Math.Round(Q5(p.SocialSecurityTarget) * SocialSecurityMaxLevel), 0, SocialSecurityMaxLevel), SocialSecurityMaxLevel, Stage: 2,
+            Enact: (w, p, t) =>
+            {
+                p.SocialSecurityLaw = (SocialSecurityLaw)t;
+                w.SocialSecurityLaw = (SocialSecurityLaw)StepLevel((int)w.SocialSecurityLaw, t, w, PolicyAxis.SocialSecurity);
+                w.SocialSecurity = (int)w.SocialSecurityLaw / (double)SocialSecurityMaxLevel;
+                w.Pension = w.SocialSecurityLaw == SocialSecurityLaw.Pension ? ReformLevel.Full : ReformLevel.None;   // 年金を第4段に吸収（別年金法は廃止）
+            }),
+        new(PolicyAxis.ConscriptionLaw, w => (int)w.ConscriptionLaw, (w, v) => w.ConscriptionLaw = (ConscriptionLaw)v, (w, p) => (int)p.ConscriptionLaw, 2, Stage: 2),   // 徴兵法（E5）：志願兵→徴兵制（旧支配層/軍が推進・大衆が抵抗）
+        new(PolicyAxis.SecretBallot, w => (int)w.SecretBallot, (w, v) => w.SecretBallot = (SecretBallotLaw)v, (w, p) => (int)p.SecretBallot, 1),   // 秘密投票法（E5）：公開→秘密（旧支配層が抵抗・近代/大衆が推進）
+        new(PolicyAxis.Bureaucracy, w => (int)w.Bureaucracy, (w, v) => w.Bureaucracy = (BureaucracyLaw)v, (w, p) => (int)p.Bureaucracy, 2, Stage: 2),   // 官僚制度（E5）：猟官→資格任用→専門（旧支配層が抵抗・近代/大衆が推進）
+        new(PolicyAxis.ImmigrationRestriction, w => (int)w.ImmigrationRestriction, (w, v) => w.ImmigrationRestriction = (ImmigrationLaw)v, (w, p) => (int)p.ImmigrationRestriction, 2, Stage: 2),   // ★移民制限法（2026-08-01）：開放→選別→閉鎖
+        new(PolicyAxis.SpecialistExitBan, w => (int)w.SpecialistExitLaw, (w, v) => w.SpecialistExitLaw = (SpecialistExitLaw)v, (w, p) => (int)p.SpecialistExitLaw, 2, Stage: 2),   // ★技術者流出禁止法（段⑤・2026-08-17）：自由→制限→禁止（いきなり全面禁止にはできない）
+        // 国教法（E6）：国教のみ→内心の自由→信仰の自由（教会が抵抗）。位置の上限は信仰の自由（国家無神論は政体の属性＝1.0扱い・2026-09 wave2b）。
+        // 例外①（2026-07-28）：プロレタリア独裁＝国家無神論を毎期強制（§13-7＝法が戻るのではなく政体が無効化する。ソ連1918政教分離令）。
+        // 政体を離れると現在値StateAtheismから通常の梯子（Government）で目標へ緩やかに復帰＝教会の再建は漸進（史実：ロシア正教の復権）。
+        new(PolicyAxis.StateReligion, w => (int)w.StateReligion, (w, v) => w.StateReligion = (StateReligionLaw)v, (w, p) => (int)p.StateReligion, 2, Stage: 2,
+            Enact: (w, p, t) => w.StateReligion = w.Polity == Polity.ProletarianDictatorship
+                ? StateReligionLaw.StateAtheism
+                : (StateReligionLaw)StepLevel((int)w.StateReligion, t, w, PolicyAxis.StateReligion),
+            FrontOpen: w => w.Polity != Polity.ProletarianDictatorship),
+        new(PolicyAxis.Antitrust, w => (int)w.Antitrust, (w, v) => w.Antitrust = (AntitrustLaw)v, (w, p) => (int)p.Antitrust, 2, Stage: 2),   // 独占禁止法（E6）：規制なし→談合禁止→独占の解体（独占レント保有層が抵抗）
+        new(PolicyAxis.Guild, w => (int)w.Guild, (w, v) => w.Guild = (GuildLaw)v, (w, p) => (int)p.Guild, 2, Stage: 2, Open: w => w.Coef.GuildLawGate > 0),   // ★同業組合法（特権 段4・2026-09-07）：保護→制限→廃止（職人が抵抗）。ゲート0＝法が動かない＝恒等
+        new(PolicyAxis.WartimeRationing, w => w.WartimeRationing ? 1 : 0, (w, v) => w.WartimeRationing = v == 1, (w, p) => p.WartimeRationing ? 1 : 0, 1),   // 戦時配給法（E6・あり/なし）：戦時のみ発火（資本が反対）
+        new(PolicyAxis.MilitaryExport, w => w.MilitaryExportBan ? 1 : 0, (w, v) => w.MilitaryExportBan = v == 1, (w, p) => p.MilitaryExportBan ? 1 : 0, 1),   // 軍需輸出の法（禁制品doc C5・2026-07-30）：武器で稼ぐ資本が禁止に反対＝軍需産業の大きい国ほど通らない・軸の増＝禁止
+        // ★民間の武器購入の法（設計メモ§7 (a)・2026-09-11）：旧支配層が禁止を推し近代/大衆が抵抗。ゲート0＝法が動かない＝恒等。軸の増＝禁止。
+        //   計器（MechanismProbe）＝試行は「目標≠現在で政治ゲートに掛けた」・成立は「法が動いた」（ゲート緑≠機構が働いた）。
+        new(PolicyAxis.CivilianArms, w => w.CivilianArmsBan ? 1 : 0, (w, v) => w.CivilianArmsBan = v == 1, (w, p) => p.CivilianArmsBan ? 1 : 0, 1, Open: w => w.Coef.RebelArmsMarketEnabled > 0,
+            Enact: (w, p, t) =>
+            {
+                int before = w.CivilianArmsBan ? 1 : 0;
+                if (before != t) MechanismProbe.Eval(MechanismProbe.Site.CivilianArmsLaw);
+                int after = StepLevel(before, t, w, PolicyAxis.CivilianArms);
+                w.CivilianArmsBan = after == 1;
+                if (after != before) MechanismProbe.Hit(MechanismProbe.Site.CivilianArmsLaw);
+            }),
+        new(PolicyAxis.OpiumPossession, w => (int)w.OpiumPossession, (w, v) => w.OpiumPossession = (ReformLevel)v, (w, p) => (int)p.OpiumPossession, 2, Stage: 2),   // 阿片の保有法（禁制品doc C3・2026-07-30）：許可→輸入禁止→禁止の単調な梯子（1段ずつ＝史実の順序をルールを書かずに保証）
+        new(PolicyAxis.OpiumExport, w => w.OpiumExportBan ? 1 : 0, (w, v) => w.OpiumExportBan = v == 1, (w, p) => p.OpiumExportBan ? 1 : 0, 1),   // 阿片の輸出法（同）：植民地の阿片で稼ぐ資本が禁止に反対
+        // 国有化法（E6・5部門＋『全て』）：各部門を独立にトグル。全て同じ政治価数（資本が反対・大衆が賛成）。位置は6行の点灯率（FactionSnapshot.AxisPosition）。
+        new(PolicyAxis.Nationalization, w => w.NationalizeRailways ? 1 : 0, (w, v) => w.NationalizeRailways = v == 1, (w, p) => p.NationalizeRailways ? 1 : 0, 1),
+        new(PolicyAxis.Nationalization, w => w.NationalizeMines ? 1 : 0, (w, v) => w.NationalizeMines = v == 1, (w, p) => p.NationalizeMines ? 1 : 0, 1),
+        new(PolicyAxis.Nationalization, w => w.NationalizeMilitary ? 1 : 0, (w, v) => w.NationalizeMilitary = v == 1, (w, p) => p.NationalizeMilitary ? 1 : 0, 1),
+        new(PolicyAxis.Nationalization, w => w.NationalizeOil ? 1 : 0, (w, v) => w.NationalizeOil = v == 1, (w, p) => p.NationalizeOil ? 1 : 0, 1),
+        new(PolicyAxis.Nationalization, w => w.NationalizeElectricity ? 1 : 0, (w, v) => w.NationalizeElectricity = v == 1, (w, p) => p.NationalizeElectricity ? 1 : 0, 1),
+        // ★『全て』（作者裁定2026-08-14 §11-6d）＝旧 Telecom/Manufacturing/Agriculture/Retail の統合。専用軸 NationalizationAll ＝
+        //   賛否は Nationalization と同一で、前提DAG（プロレタリア独裁のみ＋官僚制度）だけが加わる（StepLevel 内の LawPrereq が読む）。
+        //   政体を離れて残った制定目標は現状へ丸める。撤回（false向き）は常に目標どおり＝ポスト・ソ連の民営化。
+        //   ⚠2026-09-18 点検：旧注記の「参政権 sufTarget と同じ作法」の sufTarget は 2026-09-12 FIX3-1 で削除済み。この丸めも施行上は LawPrereq（プロレタリア独裁のみ）と重複し、
+        //     戦線の数え上げ（Target＝p.NationalizeAll）は丸めない p を読むので「戦線を数え続けない」効果も持たない（⚠施行と戦線のずれ・段2）。
+        //   位置は表に出さない（FactionSnapshot.AxisPosition＝0.5・要求の軸から除く ComputeDemands と同じ）。旧4部門の4戦線が1戦線に畳まれる（§11-6d）。
+        new(PolicyAxis.NationalizationAll, w => w.NationalizeAll ? 1 : 0, (w, v) => w.NationalizeAll = v == 1, (w, p) => p.NationalizeAll ? 1 : 0, 1,
+            Enact: (w, p, t) => w.NationalizeAll = StepLevel(w.NationalizeAll ? 1 : 0, w.Polity == Polity.ProletarianDictatorship ? t : (t == 1 && w.NationalizeAll ? 1 : 0), w, PolicyAxis.NationalizationAll) == 1),
+        // 参政権の範囲2法（作者裁定2026-08-16・SuffrageScopeGate=1.0＝点火2026-09-06）：植民地参政権（3段）・移民原住民参政権（2段）。
+        // gate=0 へ戻すと目標＝現在（既定 None・AI/議会/勢力が目標を置かない）＝StepLevel が即 return＝厳密恒等。
+        new(PolicyAxis.ColonialSuffrage, w => (int)w.ColonialSuffrage, (w, v) => w.ColonialSuffrage = (ColonialSuffrageLaw)v, (w, p) => (int)p.ColonialSuffrage, 2, Stage: 2),   // なし→自国民のみ→全面を1段ずつ
+        new(PolicyAxis.MigrantNativeSuffrage, w => (int)w.MigrantNativeSuffrage, (w, v) => w.MigrantNativeSuffrage = (MigrantNativeSuffrageLaw)v, (w, p) => (int)p.MigrantNativeSuffrage, 1, Stage: 1),   // なし0／あり1（2段＝段の飛び越しが存在しない）
+    ];
+
+    /// <summary>軸→表の行（同じ軸の行が複数あるのは国有化の5部門だけ＝先頭の行・段も位置も表を読まない軸）。</summary>
+    private static readonly Dictionary<PolicyAxis, LevelLaw> LevelLawByAxis = LevelLaws.GroupBy(l => l.Axis).ToDictionary(g => g.Key, g => g.First());
+
+    /// <summary>★税・支出の段の軸（作者裁定2026-09-12 R1・2026-09-20 点火）の1行（2026-09-28 処理の一元化 段1）＝施行（<see cref="Move"/> の目標は <see cref="Q4"/>）・
+    /// 戦線の数え・段（<see cref="TaxStage"/>）・位置・施行中の述語（<see cref="EnactingStage"/>）が同じ1行を読む。値は実効の率・目標は政策の目標（0..1）。</summary>
+    internal sealed record RateLaw(PolicyAxis Axis, Func<World, double> Get, Action<World, double> Set, Func<NationPolicy, double> Target);
+
+    /// <summary>税・支出の段の軸の表＝**施行の順**（Move は政治資本を燃やす＝並びは挙動）。</summary>
+    internal static readonly RateLaw[] RateLaws =
+    [
+        new(PolicyAxis.IncomeTax, w => w.TaxRate, (w, v) => w.TaxRate = v, p => p.IncomeTaxTarget),
+        new(PolicyAxis.ProgressiveTax, w => w.ProgressiveTax, (w, v) => w.ProgressiveTax = v, p => p.ProgressiveTaxTarget),   // 累進課税（A-1#3配線）＝富裕の政治抵抗で律速（査定の弱さは徴収側の漏れ）
+        new(PolicyAxis.PollTax, w => w.PollTax, (w, v) => w.PollTax = v, p => p.PollTaxTarget),
+        new(PolicyAxis.LandTax, w => w.LandTax, (w, v) => w.LandTax = v, p => p.LandTaxTarget),
+        new(PolicyAxis.EducationSpending, w => w.EducationSpending, (w, v) => w.EducationSpending = v, p => p.EducationSpendingTarget),   // ★R1：社会保障（法）と同じ4段
+    ];
+
+    private static readonly Dictionary<PolicyAxis, RateLaw> RateLawByAxis = RateLaws.ToDictionary(l => l.Axis);
+
+    /// <summary>法の位置∈[0,1]（<see cref="FactionSnapshot.AxisPosition"/> の表の分）。段の法＝min(段,最上段)/最上段・税と支出の段＝段の序数/段数・表に無い軸は 0.5（中庸）。
+    /// ★税・支出の段（作者裁定2026-09-12 R1）：段になった軸は**段の序数/3**で測る（段の法の `段/最上段` と同形）。
+    ///   ⚠Move は目標へ指数接近するだけで到達しないので、実効値のままだと最上段を与えきっても v&lt;1 が残り
+    ///     「法を与えきっても要求が消えない／不満（LawGap）が満額のまま」になる＝2026-08-01 の no-op 要求と同型の力学バグ。
+    /// ★錨2026-09-18：**Q4（率）ではなく段序数/段数**を読む。錨が1.0だった間だけ両者は数値的に同一で、軸ごとの錨（所得税0.35等）を
+    ///   入れた瞬間に Q4 は率を返す＝最上段を与えきっても v=0.35 で Headroom が0.65 残り、要求も不満（LawGap）も永久に消えない。ここは「正規化位置」を測る場所なので段で測る。</summary>
+    internal static double LevelPosition(World w, PolicyAxis a)
+        => RateLawByAxis.TryGetValue(a, out var rate) ? TaxStage(a, rate.Get(w)) / (double)TaxLawStages
+         : LevelLawByAxis.TryGetValue(a, out var law) ? Math.Min(law.Get(w), law.Top) / (double)law.Top : 0.5;
+
     public static void Step(World w, Coefficients c)
     {
         var p = w.Policy;
@@ -78,94 +231,14 @@ public static class Government
         w.PoliticalCapitalMax = PoliticalQuantities.PoliticalCapitalMax(w);
 
         // 法整備（離散）：力の均衡が許す向きに一歩ずつ。教育法・参政権・徴兵法は World が現在値を持ち効果に効く。
-        w.EducationLaw = StepEnum(w.EducationLaw, p.EducationLaw, w, PolicyAxis.EducationLaw);
-        // 女性参政権（男女普通選挙 Universal）の前提＝女性の権利の梯子が最上段（選挙権）まで登っていること。
-        // 第3段3-6（2026-07-27）で財産権前提の到達不能枝を削除・2026-08-10 で梯子へ統合＝分離（財産権1870/82と参政権1918）は段の並びが恒久的に保証する。
-        // ★裁定2026-09-12（FIX3-1）：ここで目標を AdultMale へ書き換えていた行を削除＝**天井型の前提は登る側にしか掛けない**（同日の反証と同文・3例目）。
-        //   登る側は StepEnum が LawPrereq（case Suffrage＝「女性の権利（選挙権）が前提」）を照会して既に塞いでいる＝完全な重複だった。
-        //   固有の産物は降りる側だけ＝{現行=Universal かつ 目標=Universal かつ !WomenSuffrage}（女性の権利が断裂の窓/内戦譲歩で剥がれた国）で
-        //   誰も選んでいない男女普通選挙→男性普通選挙の降格目標が黙って立ち、以後 w≠p が恒久的な幽霊戦線になっていた。
-        w.Suffrage     = StepEnum(w.Suffrage,     p.Suffrage,     w, PolicyAxis.Suffrage);
-        // ★女性の権利（統合法・2026-08-10）：旧・3本の StepBool（財産権/参政権/教育権）を**1本の StepEnum** へ。
-        //   なし→財産権→教育権→選挙権を1期1段ずつ登る＝史実の順序（英1870/82→女子教育→1918）を前提条件を書かずに段の並びで保証する。
-        w.WomenRights = StepEnum(w.WomenRights, p.WomenRights, w, PolicyAxis.WomenRights);   // 家父長制の難改革（旧支配層−2）
-        // ★親軍法の施行行は2026-08-18に撤去（作者裁定「厳密には法ではなく政治機構だ」）。軍国主義は単一の法でも単一のスカラーでもなく
-        //   **4つの別々の実体**へ分解された（PoliticalQuantities の①練度／②政治的優位／③好戦世論／④任免権＝いずれも既存量からの導出）。
-        //   よってここで押す3本目の戦線は存在しない（CountOpenFronts の N も1本減る＝他軸の押しが厚くなる）。
-        // ⚠**法で表現してはいけない**ことは史実が独立に示す＝日本の軍部大臣現役武官制は1913-06-13に**緩和されたが、その後23年間で一度も行使されなかった**
-        //   （予備役・退役の陸軍大臣は一人も任命されていない）。なのに海軍は1914年4月に建艦予算のためだけに内閣の成立を潰した
-        //   ＝**拒否権は制度的であって法定ではなく、法を緩めても何も変わらなかった**。
-        // ★通貨制度＝債務者と債権者の政治。3値化（銀本位doc G4・2026-08-13）：不換→銀→金を1期1段。
-        // ⚠SilverStandardGate=0（旧既定・点火1.0=2026-08-21銀本位ラウンド）では中段へ入らず、旧 StepBool を同じ引数で呼ぶ＝旧挙動と厳密恒等（数値中立）。
-        if (c.SilverStandardGate > 0)
-            w.MonetaryLaw = StepEnum(w.MonetaryLaw, (MonetaryStandardLaw)Math.Clamp(p.MonetaryTarget, 0, 2), w, PolicyAxis.MonetaryStandard);
-        else
-            w.MonetaryLaw = StepBool(w.MonetaryLaw == MonetaryStandardLaw.Gold, p.MonetaryTarget >= 2, w, PolicyAxis.MonetaryStandard)
-                          ? MonetaryStandardLaw.Gold : MonetaryStandardLaw.Fiat;
-        w.CapitalControlLaw = StepBool(w.CapitalControlLaw, p.CapitalControlTarget, w, PolicyAxis.CapitalMobility);   // ★資本移動＝海外へ投資する資本と国内に雇用を求める側の政治
-        w.Censorship   = StepEnum(w.Censorship,   p.Censorship,   w, PolicyAxis.Censorship);   // 報道の自由化（旧支配層が抵抗）
-        w.LaborUnion   = StepEnum(w.LaborUnion,   p.LaborUnion,   w, PolicyAxis.LaborUnion);   // 労働組合の容認（資本・旧支配層が抵抗）
-        // 労働時間（A-1#2修正2026-06-24）：短縮＝enum減（Unlimited→Twelve→Ten→Eight）。資本（近代エリート）が抵抗するので政治ロック越しに1段ずつ＝社会党勝利でも即8時間にはならない（旧：Policyを生で施行＝抵抗ゼロのバグ）。
-        w.WorkHours    = StepEnum(w.WorkHours,    p.WorkHours,    w, PolicyAxis.ShorterHours);
-        w.ChildLaborAllowed = StepBool(w.ChildLaborAllowed, p.ChildLaborAllowed, w, PolicyAxis.ChildLabor);   // 児童労働法（02断線走査2026-07-28）：禁止＝資本の抵抗を通す（英1833工場法）
-        // 議会の法案（段5・第4増分）：力の均衡（＋議席）が許せば一歩。穀物法は地主が保護を望む（撤廃は自由/大衆）。土地改革・農奴解放は地主が強く抵抗。
-        w.CornLaws         = StepEnum(w.CornLaws,         p.CornLaws,         w, PolicyAxis.CornLaws);   // なし→限定的→全面 を1段ずつ（1期での総反転を防ぐ）
-        // 土地改革は検地台帳（LandTaxUnlocked＝土地税と同じ前提）が要る＝測量・登記なしに土地は再分配できない（史実：地租改正1873）。
-        // 土地税とは課税ベースでも自動連動（改革で地代が縮む→LandRent↓→土地税の税収↓＝両者は税源を取り合う）。
-        if (w.LandTaxUnlocked) w.LandReform = StepEnum(w.LandReform, p.LandReform, w, PolicyAxis.LandReform);   // なし→限定的→全面（検地台帳が要る）
-        w.SerfEmancipation = StepEnum(w.SerfEmancipation, p.SerfEmancipation, w, PolicyAxis.SerfEmancipation);   // なし→限定的→全面。農奴解放は布告＝検地台帳不要（露1861）
-        // 社会保障法（1934拡張E5）：4段の法が福祉水準と年金を駆動（旧スライダー廃止・年金を第4段に吸収）。
-        // 第3段3-6（2026-07-27）：SocialSecurityLawGate=1.0（E9点火）を焼き込み＝旧・別年金法else枝（到達不能）を削除。
-        // AIの福祉意図(SocialSecurityTarget 0..1)を法の段階へ写像＝別AI規則を書かずスライダー廃止と等価（AI/議会は従来どおり目標を出す）。
-        p.SocialSecurityLaw = (SocialSecurityLaw)Math.Clamp((int)Math.Round(Q5(p.SocialSecurityTarget) * SocialSecurityMaxLevel), 0, SocialSecurityMaxLevel);
-        w.SocialSecurityLaw = StepEnum(w.SocialSecurityLaw, p.SocialSecurityLaw, w, PolicyAxis.SocialSecurity);
-        w.SocialSecurity = (int)w.SocialSecurityLaw / (double)SocialSecurityMaxLevel;   // 救貧0/労災0.33/失業0.67/年金1.0＝段階が福祉水準を駆動（救貧法=福祉水準0で旧「なし」相当・較正中立）
-        // ⚠緊縮は福祉水準を削らない（裁定B・2026-09-12・旧の Min クランプは 2026-09-20 の段の点火で削除）：法の段がそのまま福祉水準＝
-        //   緊縮は LawPrereq の「緊縮の上限」で**登れなくする**だけで既に制定された法は剥がさない。
-        w.Pension = w.SocialSecurityLaw == SocialSecurityLaw.Pension ? ReformLevel.Full : ReformLevel.None;   // 年金を第4段に吸収（別年金法は廃止）
-        w.ConscriptionLaw = StepEnum(w.ConscriptionLaw, p.ConscriptionLaw, w, PolicyAxis.ConscriptionLaw);   // 徴兵法（E5）：志願兵→徴兵制（旧支配層/軍が推進・大衆が抵抗）
-        w.SecretBallot = StepEnum(w.SecretBallot, p.SecretBallot, w, PolicyAxis.SecretBallot);   // 秘密投票法（E5）：公開→秘密（旧支配層が抵抗・近代/大衆が推進）
-        w.Bureaucracy = StepEnum(w.Bureaucracy, p.Bureaucracy, w, PolicyAxis.Bureaucracy);   // 官僚制度（E5）：猟官→資格任用→専門（旧支配層が抵抗・近代/大衆が推進）
-        w.ImmigrationRestriction = StepEnum(w.ImmigrationRestriction, p.ImmigrationRestriction, w, PolicyAxis.ImmigrationRestriction);   // ★移民制限法（2026-08-01）：開放→選別→閉鎖。既定 Open で据え置き＝厳密恒等
-        w.SpecialistExitLaw = StepEnum(w.SpecialistExitLaw, p.SpecialistExitLaw, w, PolicyAxis.SpecialistExitBan);   // ★技術者流出禁止法（段⑤・2026-08-17）：自由→制限→禁止。既定 Free で据え置き＝厳密恒等
-        // 例外①（2026-07-28）：プロレタリア独裁＝国家無神論を毎期強制（§13-7＝法が戻るのではなく政体が無効化する。ソ連1918政教分離令）。
-        // 政体を離れると現在値StateAtheismから通常の梯子（Government）で目標へ緩やかに復帰＝教会の再建は漸進（史実：ロシア正教の復権）。
-        if (w.Polity == Polity.ProletarianDictatorship)
-            w.StateReligion = StateReligionLaw.StateAtheism;
-        else
-            w.StateReligion = StepEnum(w.StateReligion, p.StateReligion, w, PolicyAxis.StateReligion);   // 国教法（E6）：国教のみ→内心の自由→信仰の自由（教会が抵抗）
-        w.Antitrust = StepEnum(w.Antitrust, p.Antitrust, w, PolicyAxis.Antitrust);   // 独占禁止法（E6）：規制なし→談合禁止→独占の解体（独占レント保有層が抵抗）
-        if (w.Coef.GuildLawGate > 0) w.Guild = StepEnum(w.Guild, p.Guild, w, PolicyAxis.Guild);   // ★同業組合法（特権 段4・2026-09-07）：保護→制限→廃止（職人が抵抗）。ゲート0＝法が動かない＝恒等
-        w.WartimeRationing = StepBool(w.WartimeRationing, p.WartimeRationing, w, PolicyAxis.WartimeRationing);   // 戦時配給法（E6・あり/なし）：戦時のみ発火（資本が反対）
-        w.MilitaryExportBan = StepBool(w.MilitaryExportBan, p.MilitaryExportBan, w, PolicyAxis.MilitaryExport);   // 軍需輸出の法（禁制品doc C5・2026-07-30）：武器で稼ぐ資本が禁止に反対＝軍需産業の大きい国ほど通らない
-        // ★民間の武器購入の法（設計メモ§7 (a)・2026-09-11）：旧支配層が禁止を推し近代/大衆が抵抗。ゲート0＝法が動かない＝恒等。
-        //   計器（MechanismProbe）＝試行は「目標≠現在で政治ゲートに掛けた」・成立は「法が動いた」（ゲート緑≠機構が働いた・PolicyAxis の7箇所配線の番人）。
-        if (w.Coef.RebelArmsMarketEnabled > 0)
+        // ★段の法は表 <see cref="LevelLaws"/> を施行の順に1本のループで回す（2026-09-28 処理の一元化 段1＝旧は軸ごとに StepEnum/StepBool の1行・各軸の注記は表の行へ移した）。
+        foreach (var law in LevelLaws)
         {
-            bool armsBefore = w.CivilianArmsBan;
-            if (armsBefore != p.CivilianArmsBan) MechanismProbe.Eval(MechanismProbe.Site.CivilianArmsLaw);
-            w.CivilianArmsBan = StepBool(armsBefore, p.CivilianArmsBan, w, PolicyAxis.CivilianArms);
-            if (w.CivilianArmsBan != armsBefore) MechanismProbe.Hit(MechanismProbe.Site.CivilianArmsLaw);
+            if (law.Open != null && !law.Open(w)) continue;
+            int target = law.Target(w, p);
+            if (law.Enact != null) law.Enact(w, p, target);
+            else law.Set(w, StepLevel(law.Get(w), target, w, law.Axis));
         }
-        w.OpiumPossession = StepEnum(w.OpiumPossession, p.OpiumPossession, w, PolicyAxis.OpiumPossession);   // 阿片の保有法（禁制品doc C3・2026-07-30）：許可→輸入禁止→禁止の単調な梯子（1段ずつ＝史実の順序をルールを書かずに保証）
-        w.OpiumExportBan = StepBool(w.OpiumExportBan, p.OpiumExportBan, w, PolicyAxis.OpiumExport);           // 阿片の輸出法（同）：植民地の阿片で稼ぐ資本が禁止に反対
-        // 国有化法（E6・5部門＋『全て』）：各部門を独立にトグル。全て同じ政治価数（資本が反対・大衆が賛成）。
-        w.NationalizeRailways = StepBool(w.NationalizeRailways, p.NationalizeRailways, w, PolicyAxis.Nationalization);
-        w.NationalizeMines = StepBool(w.NationalizeMines, p.NationalizeMines, w, PolicyAxis.Nationalization);
-        w.NationalizeMilitary = StepBool(w.NationalizeMilitary, p.NationalizeMilitary, w, PolicyAxis.Nationalization);
-        w.NationalizeOil = StepBool(w.NationalizeOil, p.NationalizeOil, w, PolicyAxis.Nationalization);
-        w.NationalizeElectricity = StepBool(w.NationalizeElectricity, p.NationalizeElectricity, w, PolicyAxis.Nationalization);
-        // ★『全て』（作者裁定2026-08-14 §11-6d）＝旧 Telecom/Manufacturing/Agriculture/Retail の統合。専用軸 NationalizationAll ＝
-        //   賛否は Nationalization と同一で、前提DAG（プロレタリア独裁のみ＋官僚制度）だけが加わる（StepBool 内の LawPrereq が読む）。
-        //   政体を離れて残った制定目標は現状へ丸める。撤回（false向き）は常に目標どおり＝ポスト・ソ連の民営化。
-        //   ⚠2026-09-18 点検：旧注記の「参政権 sufTarget と同じ作法」の sufTarget は 2026-09-12 FIX3-1 で削除済み。この丸めも施行上は LawPrereq（プロレタリア独裁のみ）と重複し、
-        //     戦線の数え上げ（CountOpenFronts の w.NationalizeAll != p.NationalizeAll）は p を読むので「戦線を数え続けない」効果も持たない。
-        bool natAllTarget = w.Polity == Polity.ProletarianDictatorship ? p.NationalizeAll : p.NationalizeAll && w.NationalizeAll;
-        w.NationalizeAll = StepBool(w.NationalizeAll, natAllTarget, w, PolicyAxis.NationalizationAll);
-        // 参政権の範囲2法（作者裁定2026-08-16・SuffrageScopeGate=1.0＝点火2026-09-06）：植民地参政権（3段）・移民原住民参政権（2段）。
-        // gate=0 へ戻すと目標＝現在（既定 None・AI/議会/勢力が目標を置かない）＝ StepEnum が即 return＝厳密恒等。
-        w.ColonialSuffrage = StepEnum(w.ColonialSuffrage, p.ColonialSuffrage, w, PolicyAxis.ColonialSuffrage);
-        w.MigrantNativeSuffrage = StepEnum(w.MigrantNativeSuffrage, p.MigrantNativeSuffrage, w, PolicyAxis.MigrantNativeSuffrage);
 
         // スライダー（連続）：変更方向に反対する集団の力で律速
         // 税制：人頭税・関税は常時。土地税は検地台帳（LawPrereq）が前提。⚠専売は税ではなく生産の決断＝2026-09-20に政策軸ごと撤去。
@@ -178,17 +251,14 @@ public static class Government
         // 治安維持力(BaseCoercion)は200〜4000スケールで武力スライダーに従属（CoercionTarget は軍事費から導出）＝0.05丸めの対象外。
         // ★税・支出の段（作者裁定2026-09-12 R1「税に関するスライダーを廃止し『なし/低/中/高』の4段階のボタンにする。税の挙動は今までと同じ」・2026-09-20 点火）：
         //   <see cref="Q4"/>＝**目標だけ**が4段の格子に乗る（Move は1命令も変えない＝漸進・抵抗・議会の予算協賛はそのまま）。関税は R3 で対象外（下の Tariff は Q5 のまま）。
-        w.TaxRate           = Move(w.TaxRate,           Q4(PolicyAxis.IncomeTax, p.IncomeTaxTarget),         c, w, PolicyAxis.IncomeTax);
-        w.ProgressiveTax    = Move(w.ProgressiveTax,    Q4(PolicyAxis.ProgressiveTax, p.ProgressiveTaxTarget),    c, w, PolicyAxis.ProgressiveTax);   // 累進課税（A-1#3配線）＝富裕の政治抵抗で律速（査定の弱さは徴収側の漏れ）
-        w.PollTax           = Move(w.PollTax,           Q4(PolicyAxis.PollTax, p.PollTaxTarget),           c, w, PolicyAxis.PollTax);
         // ★作者裁定2026-09-20「専売の率を法律から完全に消す。材を選ぶのみにする」：ここに専売の施行は**無い**。
         //   専売は材ごとの ON/OFF（World.SetStateMonopolyOn）だけで、国ごとの率という状態が存在しない＝Move する連続値が無い。
         //   政治の門は同じ1本（GateInfo の純支持＋政治資本の在庫）を**そのセッターが**引く＝「議会の同意なしに歳入構成は動かない」は保たれる。
         // ★裁定B（2026-09-12「今までの『上限/下限を削る』挙動は全て廃止する」）：未解禁の土地税を実効値0へ叩き落とす三項は 2026-09-20 に削除。
         //   「検地台帳が無い」は Move の後で値を書き潰すことではなく、LawPrereq（case LandTax＝「検地台帳が前提」）が**その段を押させない**こと。
-        w.LandTax           = Move(w.LandTax,           Q4(PolicyAxis.LandTax, p.LandTaxTarget),           c, w, PolicyAxis.LandTax);
         // 社会保障の旧スライダー枝は第3段3-6で削除（SocialSecurityLawGate=1.0焼き込み＝上の法駆動が正）。
-        w.EducationSpending = Move(w.EducationSpending, Q4(PolicyAxis.EducationSpending, p.EducationSpendingTarget), c, w, PolicyAxis.EducationSpending);   // ★R1：社会保障（法）と同じ4段
+        // ★税・支出の段は表 RateLaws を施行の順に回す（2026-09-28 処理の一元化 段1＝旧は軸ごとの Move の1行）。
+        foreach (var law in RateLaws) law.Set(w, Move(law.Get(w), Q4(law.Axis, law.Target(p)), c, w, law.Axis));
         // 武力統合：治安維持力＝**装備された軍の効果**＝兵数×即応度×係数（治安維持力=軍の一本化 2026-06-23）。武器を買えぬ軍（即応度0）は治安維持力も0→革命。較正/単体は false で CoercionTarget を独立保持（単一国較正セル不変）。
         if (w.CoercionFollowsForce)
             p.CoercionTarget = CoercionTargetFromForce(w.SoldierSize() * w.MilitaryReadiness * c.CoercionPerSoldier, c);
@@ -317,9 +387,7 @@ public static class Government
     /// <summary>★段になった財政の軸（作者裁定2026-09-12 R1/R2・2026-09-20 点火）。
     /// 関税は対象外（R3「関税はスライダーを維持してよい」）・行政費/金利は利益集団の抵抗を受けない内部事項なので元から軸を持たない。
     /// 軍事費は <see cref="PolicyAxis.Coercion"/>（武力スライダー＝軍事費の合計）。</summary>
-    private static bool FiscalStagedAxis(PolicyAxis a) => a is
-        PolicyAxis.IncomeTax or PolicyAxis.ProgressiveTax or PolicyAxis.PollTax
-        or PolicyAxis.LandTax or PolicyAxis.EducationSpending or PolicyAxis.Coercion;   // ★専売は 2026-09-20 に率ごと廃した（材の ON/OFF だけ＝段に乗る率が無い）
+    private static bool FiscalStagedAxis(PolicyAxis a) => RateLawByAxis.ContainsKey(a) || a == PolicyAxis.Coercion;   // 税・支出（表 RateLaws）と軍事費。★専売は 2026-09-20 に率ごと廃した（材の ON/OFF だけ＝段に乗る率が無い）
 
     // 押し切りの可否（名前は旧のまま＝マンデート余白 θ）。★2026-09-21 裁定S1で θ の算術は退役し、㉖の焼き込みで削除した＝戻り値は 0 か +∞ だけ。
     //   旧＝θ=MandateWeight×(Legitimacy−0.5)（2026-07-09〜09-21）：正統性の高い政権は純支持がやや負でも押し切れ（明治維新型）、正統性<0.5 では
@@ -383,57 +451,14 @@ public static class Government
         //   「施行は段・戦線の数え上げは0.05刻み」の食い違いが恒久的に開いた幽霊戦線を作るのを構造で封じる
         //   （旧＝この関数の中で Q5 を掛けていたので、呼び手が段を渡しても 1/3 が 0.35 へ丸め直されていた）。
         void Front(double cur, double target) { if (Math.Abs(target - cur) > 0.026) n++; }
-        if (w.EducationLaw != p.EducationLaw) n++;
-        if (w.Suffrage != p.Suffrage) n++;
-        if (w.WomenRights != p.WomenRights) n++;   // ★統合法（2026-08-10）：旧・財産権/参政権/教育権の3戦線が1戦線に畳まれる（政治予算 (1/N)^Gate の N が減る＝他軸の押しが強まる）
-        if (w.Censorship != p.Censorship) n++;
-        if (w.LaborUnion != p.LaborUnion) n++;
-        if (w.WorkHours != p.WorkHours) n++;
-        if (w.CornLaws != p.CornLaws) n++;
-        if (w.LandTaxUnlocked && w.LandReform != p.LandReform) n++;
-        if (w.SerfEmancipation != p.SerfEmancipation) n++;
-        if (w.SocialSecurityLaw != (SocialSecurityLaw)Math.Clamp((int)Math.Round(Q5(p.SocialSecurityTarget) * SocialSecurityMaxLevel), 0, SocialSecurityMaxLevel)) n++;
-        if (w.ChildLaborAllowed != p.ChildLaborAllowed) n++;
-        if (w.ConscriptionLaw != p.ConscriptionLaw) n++;
-        if (w.SecretBallot != p.SecretBallot) n++;
-        if (w.Bureaucracy != p.Bureaucracy) n++;
-        if (w.ImmigrationRestriction != p.ImmigrationRestriction) n++;
-        if (w.SpecialistExitLaw != p.SpecialistExitLaw) n++;   // ★段⑤
-        if (w.Polity != Polity.ProletarianDictatorship && w.StateReligion != p.StateReligion) n++;
-        if (w.Antitrust != p.Antitrust) n++;
-        if (w.Coef.GuildLawGate > 0 && w.Guild != p.Guild) n++;   // ★同業組合法（特権 段4）
-        if (w.WartimeRationing != p.WartimeRationing) n++;
-        if (w.MilitaryExportBan != p.MilitaryExportBan) n++;   // 軍需輸出の法（C5・2026-07-30）
-        if (w.Coef.RebelArmsMarketEnabled > 0 && w.CivilianArmsBan != p.CivilianArmsBan) n++;   // ★民間の武器購入の法（2026-09-11）＝政治ゲートを通る軸は戦線に数える（B16 の教訓＝幽霊戦線を作らない）
-        if (w.CapitalControlLaw != p.CapitalControlTarget) n++;   // 資本移動の法（トリレンマdoc・2026-08-13）
-        // ★B16（実バグ21件・2026-09-07）：通貨の梯子は政治ゲートを通る（上の StepEnum/StepBool）のに戦線に数えられていなかった＝到達不能な通貨目標を持つAIの
-        //   開きっぱなしの戦線が診断にも現れない（当時の徴候＝毎四半期 BlockedGrievance が発火し続けること。その発火は裁定C2で止まり 2026-09-20 に削除したが、
-        //   幽霊戦線そのもの＝PoliticalPushBudget を毎期薄める害は残るので、この数え上げは無関係に要る）。
-        //   FrontsCountMonetary>0 で同じ目標の写像（SilverStandardGate の有無）を1戦線に数える。0＝旧＝厳密恒等。
-        if (w.Coef.FrontsCountMonetary > 0)
-        {
-            var monetaryTarget = w.Coef.SilverStandardGate > 0 ? (MonetaryStandardLaw)Math.Clamp(p.MonetaryTarget, 0, 2)
-                               : (p.MonetaryTarget >= 2 ? MonetaryStandardLaw.Gold : MonetaryStandardLaw.Fiat);
-            if (w.MonetaryLaw != monetaryTarget) n++;
-        }
-        if (w.OpiumPossession != p.OpiumPossession) n++;       // 阿片の保有法（C3・2026-07-30）
-        if (w.OpiumExportBan != p.OpiumExportBan) n++;         // 阿片の輸出法（C3・2026-07-30）
-        if (w.NationalizeRailways != p.NationalizeRailways) n++;
-        if (w.NationalizeMines != p.NationalizeMines) n++;
-        if (w.NationalizeMilitary != p.NationalizeMilitary) n++;
-        if (w.NationalizeOil != p.NationalizeOil) n++;
-        if (w.NationalizeElectricity != p.NationalizeElectricity) n++;
-        if (w.NationalizeAll != p.NationalizeAll) n++;   // ★『全て』（§11-6d統合＝旧4部門の4戦線が1戦線に畳まれる）
-        if (w.ColonialSuffrage != p.ColonialSuffrage) n++;             // 参政権の範囲2法（2026-08-16。休眠中は目標＝現在＝戦線0）
-        if (w.MigrantNativeSuffrage != p.MigrantNativeSuffrage) n++;
+        // ★段の法＝表 LevelLaws の1本（施行と同じ行の目標と門を読む＝2026-09-28 処理の一元化 段1。旧は軸ごとの1行＝施行と手で対応させていた）。
+        //   ⚠戦線だけの門（FrontOpen）＝通貨（FrontsCountMonetary・B16）と国教（プロレタリア独裁では国家無神論の強制＝戦線にしない）。
+        foreach (var law in LevelLaws)
+            if ((law.FrontOpen ?? law.Open)?.Invoke(w) != false && law.Get(w) != law.Target(w, p)) n++;
         // ★天井の廃止（2026-09-12 FIX1）以後、所得税/累進は他の税と**同じ Q4 1本**＝施行（Step:145-146）と同一式（幽霊戦線が立たない）。
-        Front(w.TaxRate, Q4(PolicyAxis.IncomeTax, p.IncomeTaxTarget));
-        Front(w.PollTax, Q4(PolicyAxis.PollTax, p.PollTaxTarget));
-        Front(w.LandTax, Q4(PolicyAxis.LandTax, p.LandTaxTarget));
-        Front(w.ProgressiveTax, Q4(PolicyAxis.ProgressiveTax, p.ProgressiveTaxTarget));
+        foreach (var law in RateLaws) Front(law.Get(w), Q4(law.Axis, law.Target(p)));   // ★税・支出の段＝表 RateLaws（施行と同じ Q4）
         // ★専売の戦線は無い（作者裁定2026-09-20）＝施行する連続値が無いので「目標≠現在」が定義できない。
         //   ⚠意図した副作用＝軸が1本減り PoliticalPushBudget=(1/N)^Gate が他軸を薄めなくなる（旧 NavalEmphasis の撤去と同文）。
-        Front(w.EducationSpending, Q4(PolicyAxis.EducationSpending, p.EducationSpendingTarget));
         // ★段（R2・2026-09-12）：施行と同じ MilitaryTotalTarget を渡す（wave2b の教訓＝施行と戦線判定は同じ式）
         Front(w.MilitarySpending, MilitaryTotalTarget(w, p));
         // ★旧「海軍偏重」の戦線は撤去（2026-08-10 作者裁定）＝陸海の内訳は独立の政治戦線を持たない（軍事費の合計だけが戦線）。
@@ -617,48 +642,17 @@ public static class Government
     /// <summary>段階の前提を課す軸（2026-08-04）＝多段で、1段ずつ積み上がるべき制度。
     /// bool法（女性財産権など）と、段を持たない連続スライダー（関税・行政費・金利）は対象外＝段の概念がない。</summary>
     /// <remarks>★段（R1/R2・2026-09-12・2026-09-20 点火）：税・支出・軍事費も段を持つ（<see cref="FiscalStagedAxis"/>）。</remarks>
-    private static bool StagedAxis(PolicyAxis a) => a is
-        PolicyAxis.Suffrage or PolicyAxis.EducationLaw or PolicyAxis.Censorship or PolicyAxis.LaborUnion
-        or PolicyAxis.ShorterHours or PolicyAxis.CornLaws or PolicyAxis.LandReform or PolicyAxis.SerfEmancipation
-        or PolicyAxis.ConscriptionLaw or PolicyAxis.Bureaucracy or PolicyAxis.ImmigrationRestriction
-        or PolicyAxis.StateReligion or PolicyAxis.Antitrust or PolicyAxis.SocialSecurity or PolicyAxis.OpiumPossession
-        or PolicyAxis.WomenRights   // ★統合法（2026-08-10）：財産権→教育権→選挙権は飛び越せない＝この1行が史実の順序を保証する
-        or PolicyAxis.ColonialSuffrage   // 参政権の範囲2法（2026-08-16）：なし→自国民のみ→全面を1段ずつ（移民原住民は2段＝段の飛び越しが存在しない）
-        or PolicyAxis.SpecialistExitBan   // ★段⑤（2026-08-17）：自由→制限→禁止を1段ずつ（いきなり全面禁止にはできない）
-        or PolicyAxis.Guild   // ★特権 段4：保護→制限→廃止を1段ずつ
+    private static bool StagedAxis(PolicyAxis a)   // ★段の法は表 LevelLaws の Stage=2（2026-09-28 処理の一元化 段1）
+        => LevelLawByAxis.TryGetValue(a, out var law) && law.Stage == 2
         || FiscalStagedAxis(a);   // ★R1/R2（2026-09-12）：税・支出・軍事費も段＝遠い段を目標に置けない（各段を別々の決断として払う）
 
     /// <summary>その軸の現在段（段階の前提の判定用・2026-08-04）。段を持たない軸は int.MaxValue を返して前提を不発にする。</summary>
     private static int CurrentStage(World w, PolicyAxis a) => a switch
     {
-        PolicyAxis.Suffrage => (int)w.Suffrage,
-        PolicyAxis.EducationLaw => (int)w.EducationLaw,
-        PolicyAxis.Censorship => (int)w.Censorship,
-        PolicyAxis.LaborUnion => (int)w.LaborUnion,
-        PolicyAxis.ShorterHours => (int)w.WorkHours,
-        PolicyAxis.CornLaws => (int)w.CornLaws,
-        PolicyAxis.LandReform => (int)w.LandReform,
-        PolicyAxis.SerfEmancipation => (int)w.SerfEmancipation,
-        PolicyAxis.ConscriptionLaw => (int)w.ConscriptionLaw,
-        PolicyAxis.Bureaucracy => (int)w.Bureaucracy,
-        PolicyAxis.ImmigrationRestriction => (int)w.ImmigrationRestriction,
-        PolicyAxis.SpecialistExitBan => (int)w.SpecialistExitLaw,   // ★段⑤
-        PolicyAxis.StateReligion => (int)w.StateReligion,
-        PolicyAxis.Antitrust => (int)w.Antitrust,
-        PolicyAxis.Guild => (int)w.Guild,   // ★特権 段4
-        PolicyAxis.SocialSecurity => (int)w.SocialSecurityLaw,
-        PolicyAxis.OpiumPossession => (int)w.OpiumPossession,
-        PolicyAxis.WomenRights => (int)w.WomenRights,   // ★統合法（2026-08-10）：なし0／財産権1／教育権2／選挙権3
-        PolicyAxis.ColonialSuffrage => (int)w.ColonialSuffrage,             // 参政権の範囲2法（2026-08-16）：なし0／自国民のみ1／全面2
-        PolicyAxis.MigrantNativeSuffrage => (int)w.MigrantNativeSuffrage,   // なし0／あり1
         // ★税・支出・軍事費の段（R1/R2・2026-09-12）＝**実効値の段**を返す（目標ではない＝他の軸と同じ「今どこに立っているか」）。
-        PolicyAxis.IncomeTax => TaxStage(a, w.TaxRate),
-        PolicyAxis.ProgressiveTax => TaxStage(a, w.ProgressiveTax),
-        PolicyAxis.PollTax => TaxStage(a, w.PollTax),
-        PolicyAxis.LandTax => TaxStage(a, w.LandTax),
-        PolicyAxis.EducationSpending => TaxStage(a, w.EducationSpending),
         PolicyAxis.Coercion => MilitaryStage(w.MilitarySpending),   // 武力スライダー＝軍事費の合計（1..4）
-        _ => int.MaxValue,
+        _ => RateLawByAxis.TryGetValue(a, out var rate) ? TaxStage(a, rate.Get(w))   // ★税・支出の段＝表 RateLaws の実効値の段
+           : LevelLawByAxis.TryGetValue(a, out var law) && law.Stage > 0 ? law.Get(w) : int.MaxValue,   // ★段の法＝表 LevelLaws の現在段（Stage>0 の行・2026-09-28 処理の一元化 段1）
     };
 
     /// <summary>★段になった税の軸を「政府が今その向きの段を目標に置いている」か＝**施行中**の述語（作者裁定2026-09-12 C1の判定座標）。
@@ -675,15 +669,7 @@ public static class Government
     internal static bool EnactingStage(World w, PolicyAxis a, bool increasing)
     {
         var p = w.Policy;
-        int t = a switch
-        {
-            PolicyAxis.IncomeTax => TaxStage(a, p.IncomeTaxTarget),
-            PolicyAxis.ProgressiveTax => TaxStage(a, p.ProgressiveTaxTarget),
-            PolicyAxis.PollTax => TaxStage(a, p.PollTaxTarget),
-            PolicyAxis.LandTax => TaxStage(a, p.LandTaxTarget),
-            PolicyAxis.EducationSpending => TaxStage(a, p.EducationSpendingTarget),
-            _ => -1,   // 段を持たない軸＝述語を持たない（enum法は1期1段で動くので段の差分がそのまま読める）
-        };
+        int t = RateLawByAxis.TryGetValue(a, out var rate) ? TaxStage(a, rate.Target(p)) : -1;   // 段を持たない軸（表 RateLaws の外）＝述語を持たない（enum法は1期1段で動くので段の差分がそのまま読める）
         if (t < 0) return false;
         int cur = CurrentStage(w, a);
         if (increasing ? t <= cur : t >= cur) return false;
@@ -848,32 +834,20 @@ public static class Government
     }
 
     // 順序付き法整備：目標へ一歩だけ。MandateGate（純支持≥0 は無償・負は政治資本の在庫で払える時だけ・憲法級は純支持＞0）が許すときのみ進む。
-    private static T StepEnum<T>(T cur, T target, World w, PolicyAxis a) where T : struct, Enum
+    // ★段の序数で1本（2026-09-28 処理の一元化 段1＝旧 StepEnum と StepBool の2本。bool の法は 0/1 の段＝cur≠target なら target が増加の向き・前提は1段目・門は 1/0＝旧 StepBool と同じ引数）。
+    private static int StepLevel(int ci, int ti, World w, PolicyAxis a)
     {
-        int ci = Convert.ToInt32(cur), ti = Convert.ToInt32(target);
-        if (ci == ti) return cur;
+        if (ci == ti) return ci;
         bool increasing = ti > ci;
         // 第6段6-7：不可逆判定を BlockedByIrreversibility へ一元化。軸の「後退の向き」＝Regressive 1本（2026-09-18に4箇所の写経を畳んだ）。
+        //   bool の法の後退（true→false＝制度の撤回）も同じ判定（撤回例は史実に存在しない制度が対象・ChildLabor だけ軸の増＝合法化が後退向き＝Regressive が持つ規約）。
         bool regressive = Regressive(a, increasing);
-        if (BlockedByIrreversibility(w, a, regressive)) return cur;
-        // 前提法DAG（E4）：一段上げる先(ci+1)の前提が未達なら据え置き（段階スキップ禁止＝StepEnumは1段ずつ・前提の連鎖を一歩ごと再確認）。
-        if (increasing && !LawPrereq(w, a, ci + 1, w.Coef).Ok) return cur;
+        if (BlockedByIrreversibility(w, a, regressive)) return ci;
+        // 前提法DAG（E4）：一段上げる先(ci+1)の前提が未達なら据え置き（段階スキップ禁止＝1段ずつ・前提の連鎖を一歩ごと再確認）。
+        //   bool の法も同じ（E4/レビュー2026-07-20＝旧 StepBool が LawPrereq を読まず、GateInfo 経由の人間プレイヤーにだけ前提が効いた非対称の是正）。
+        if (increasing && !LawPrereq(w, a, ci + 1, w.Coef).Ok) return ci;
         if (MandateGate(w, a, increasing, ci + (increasing ? 1 : -1), ReversalCostMul(w, a, regressive)))
-            return (T)Enum.ToObject(typeof(T), ci + (increasing ? 1 : -1));
-        return cur;   // 力の均衡（＋余白）が許さない＝据え置き（例：参政権はブルジョワが制限選挙で止める）
-    }
-
-    private static bool StepBool(bool cur, bool target, World w, PolicyAxis a)
-    {
-        if (cur == target) return cur;
-        // 第6段6-7：bool法の後退（true→false＝制度の撤回）も不可逆判定へ（撤回例は史実に存在しない制度が対象）。
-        // bool法は cur≠target が保証済み＝「増加」＝target（ChildLabor だけ軸の増＝合法化が後退向き＝Regressive が持つ規約）。
-        bool regressive = Regressive(a, target);
-        if (BlockedByIrreversibility(w, a, regressive)) return cur;
-        // 前提法DAG（E4/レビュー2026-07-20）：StepEnum と対称に、false→true（制定）方向は前提未達なら据え置く。
-        // 旧＝StepBoolはLawPrereqを読まず、GateInfo経由の人間プレイヤーにだけ前提が効きAI/施行では素通り＝非対称（女性参政権←女性教育権の唯一のbool前提が骨抜き）だった。
-        if (target && !cur && !LawPrereq(w, a, 1, w.Coef).Ok) return cur;
-        if (!MandateGate(w, a, target, target ? 1 : 0, ReversalCostMul(w, a, regressive))) return cur;
-        return target;
+            return ci + (increasing ? 1 : -1);
+        return ci;   // 力の均衡（＋余白）が許さない＝据え置き（例：参政権はブルジョワが制限選挙で止める）
     }
 }
