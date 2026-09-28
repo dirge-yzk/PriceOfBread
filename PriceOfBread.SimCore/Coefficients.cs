@@ -2224,7 +2224,7 @@ public sealed class Coefficients
     public double InvadeSeaControlMin = 0.45;     // 海越え侵略に要る最低制海権（弱海軍の内陸国は海外植民地を取れない＝英の海上覇権が意味を持つ）
     public double LandReachKm = 4000;             // 旧・陸続き判定（同一海盆かつこの距離内）。ContinentalLandReach=0のフォールバック時のみ読む
     public double ContinentalLandReach = 1.0;     // 第4段4-4点火（2026-07-27）→03地理 手順0（2026-07-28）：陸続き＝**陸塊一致**（Landmass.Of＝landmass.json・距離制限なし）。旧・矩形大陸一致は島の概念が無く85.6%の国対が陸続きだった。0=最旧の海盆×LandReachKm判定へ戻す
-    public double ColonyUpkeepMilitancyScale = 0.2;  // 植民地維持費の不満項（人口ウェイト×不満×基礎維持費×これ）。高不満の大植民地ほど駐留が高くつく＝インド大反乱型（満額で維持費≒2〜3倍）
+    public double ColonyUpkeepMilitancyScale = 30.0;  // 植民地維持費の不満項＝月の俸給＝これ×人口ウェイト×不満。高不満の大植民地ほど駐留・鎮圧が高くつく＝インド大反乱型。★2026-09-28（c2）：平場 ColonyUpkeepBase（150）を撤去して畳んだ＝旧 0.2×150 と同じ値（Fiscal の行政費にも治安維持費にも無い上乗せだけを残す）
     // B-4 移民プッシュ・独立ショック
     public double PushUnrestWeight = 0.5;            // 移民のプッシュ要因：地域の不満（迫害・治安悪化）が土地機会を下げ流出を促す（ポグロム型）。単一地域較正は移民非走行で無影響
     public int IndependenceShockYears = 6;           // 独立植民地の供給がショックから回復するまでの年数（ハイチ1804型＝独立直後は産出崩壊、数年かけて自由な供給者へ）
@@ -2403,13 +2403,13 @@ public sealed class Coefficients
     public double ColonialInfraDepreciation = 0.004; // 植民地開発度の月次減衰（維持しないと衰える）
     public double ColonialInfraPerColony = 1.0;      // 【R13点火2026-07-15＝1.0】植民地開発度の州単位化：0=国家一律の開発度w.ColonialInfraで全植民地の産出（現行と厳密一致）・>0.5で植民地ごとのcol.Infra（所有国水準へ収束するが征服/独立で移動＝奪った開発済み植民地は産出を引き継ぎ・独立後も凍結せず新所有国水準へ調整）。投資決定は国家プールのまま＝影響は移転植民地の産出に局所化
     public double ColonialInfraConverge = 0.01;      // R13：col.Infra が所有国の国家開発度へ収束する月次率（0.01≒半減期6年）。低いほど征服/独立後の開発が長く保持され、高いほど速く新所有国水準へ均される。ColonialInfraPerColony=0では未使用
-    public double ColonyUpkeepBase = 150.0;          // 植民地1つの月次維持費（海軍・駐留・行政）の基本額。国庫から払い本国popへ（保存）
+    // 【墓標2026-09-28（c2）】ColonyUpkeepBase（植民地1つの月次維持費の平場150）＝Fiscal の行政費×距離（UpkeepDistanceGeneral）と二重＝撤去。不満の上乗せは ColonyUpkeepMilitancyScale へ畳んだ
     // 帝国の過伸展は距離の金銭倍率でなく**物理消費**から創発：遠方植民地ほど補給線が長く、汽船が石炭(good1)を焚き駐留が缶詰糧食(good65)を食う。
     // 国庫が本国市場から買う＝石炭が産業と競合し価格律速（LastDemand）＝遠方帝国ほど石炭・糧食が逼迫（イギリスの過伸展が物理コストに）。
-    public double ColonyUpkeepCoalPerDist = 400.0;   // 植民地1つ・距離1万kmあたり汽船補給線が焚く石炭量（物理消費）。balance：仏英二強の安価な帝国を実コスト化（200→400）＝過伸展が石炭価格・国庫を圧迫
+    public double ColonyUpkeepCoalPerDist = 400.0;   // 植民地の質量1個数単位・距離1万kmあたり汽船補給線が焚く石炭量（物理消費）。×汽船の割合（帆走は0）×機関の時代係数（EraColonyCoal）＝民間の汽船と同じ状態と物理（2026-09-28 c1・R2）。balance：仏英二強の安価な帝国を実コスト化（200→400）＝過伸展が石炭価格・国庫を圧迫
     public double ColonyFuelOilEnergyRatio = 1.5;    // B6重油二択（2026-07-19）：補給線燃料の石炭→石油転換。原油のエネルギー密度＝同熱量の必要量が石炭の1/これ。実効単価が安い方を焚く（原油は1859解禁まで供給ゼロ＝転換は価格から創発）。0で旧（石炭固定）
-    public double ColonyUpkeepFoodPerDist = 180.0;   // 植民地1つ・距離1万kmあたり駐留が食う缶詰糧食量（物理消費）。同上（90→180）
-    public double ColonyShipOccupyPerDist = 0.12;    // 植民地1つ・距離1万kmあたり海運に課す混雑（ShipCapacity/(1+Σ)＝補給航路が交易船を占有・スケールフリー）。同上（0.06→0.12）＝遠方帝国の交易収入を削る
+    public double ColonyUpkeepFoodPerDist = 180.0;   // 植民地の質量1個数単位・距離1万kmあたり駐留が食う缶詰糧食量（物理消費）。×缶詰の解禁度（2026-09-28 c1）。同上（90→180）
+    public double ColonyShipOccupyPerDist = 0.12;    // 植民地の質量1個数単位・距離1万kmあたり海運に課す混雑（ShipCapacity/(1+Σ)＝補給航路が交易船を占有・スケールフリー・2026-09-28 R2＝行の数でなく質量）。同上（0.06→0.12）＝遠方帝国の交易収入を削る
     public double ColonialReturnScale = 0.01;        // 限界資源価値の換算係数（限界産出×固有資源価値×これ > 投資コスト で私的投資家が投資）
     public double ColonialDevStep = 0.02;            // 採算が合う時に1期で進める開発度の刻み
     public double ColonialInvestFrac = 0.03;         // 私的投資家が貯蓄からこの割合まで植民地開発に充てる（affordability 上限）
@@ -2627,7 +2627,7 @@ public sealed class Coefficients
     // ⚠撤去2026-09-11（要求は法の経路の点火）：プレイヤーの危機ダイアログの受諾禁止（体制転覆の相手）の係数は決着関数ごと物理削除＝受諾のボタンそのものが無い。
     public double CultureDistanceFromEthnic = 1.0;   /* ★点火2026-09-05 B群(G1 E-05)＝0.0→1.0・batch10連鎖の実測（凍結木）で硬性ゲート緑 */  // ★E-05段5（2026-09-03）：分離の文化距離を**民族の実体**（1−州の平均中核度）へ寄せる混合比。⚠現行は文字列比較で、昇格した植民地は宗主国の首都と同じ文化・宗教を代入されるため**インドの文化距離がロンドンと0**＝文化/民族の分離圧力が植民地で恒等的に0（プロイセン領ポーランドの方がインドより離反圧力が高い）。⚠寄せ切ると SecessionCultureAdditive と合わせて2乗になるので中間値から掃く。0で厳密恒等
     // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】SuffrageScopeUnified＝参政権の範囲を1本の算入率へ畳む（E-05段3・2026-09-05 点火）
-    public double UpkeepDistanceGeneral = 1.0;   /* ★点火2026-09-05 B群(G1 E-05)＝0.0→1.0・batch10連鎖の実測（凍結木）で硬性ゲート緑 */      // ★E-05段4（作者裁定2026-09-03「維持費は本国州にも必要なはず。植民地は遠く、それが高額なだけ」）：行政費（AdminCostPerPop＝既に全州のPOPに掛かっている）に**首都からの距離**の割増を掛ける。⚠植民地専用の平場（ColonyUpkeepBase）は二重計上なので点火時に外す。0で厳密恒等
+    public double UpkeepDistanceGeneral = 1.0;   /* ★点火2026-09-05 B群(G1 E-05)＝0.0→1.0・batch10連鎖の実測（凍結木）で硬性ゲート緑 */      // ★E-05段4（作者裁定2026-09-03「維持費は本国州にも必要なはず。植民地は遠く、それが高額なだけ」）：行政費（AdminCostPerPop＝既に全州のPOPに掛かっている）に**首都からの距離**の割増を掛ける。⚠植民地専用の平場（ColonyUpkeepBase）は二重計上なので点火時に外す（★2026-09-28 に外した＝c2・Colonial.Step）。0で厳密恒等
     public double SecessionHoldSharedArmy = 1.0;   /* ★点火2026-09-05 B群(G1 E-05)＝0.0→1.0・batch10連鎖の実測（凍結木）で硬性ゲート緑 */    // ★E-05段2（作者裁定2026-09-03「同じフォルダに入る→反乱鎮圧コストが合計になる」）：同時に閾値を越えている運動の数で保持力を割る（分母 `1+これ×(件数−1)`）。⚠実体は統合せず**国家の側の分母だけ**が割れる＝これが「フォルダ」。★形は既存の `ColonialHoldSharedArmy` の一般化＝新しい写像を作らない。⚠数える対象に**格を見ない**（植民地格の州・本国の州・組織運動の蜂起がすべて同じ1件）。0で分母1＝厳密恒等
     public double SecessionHoldProjection = 1.0;   /* ★点火2026-09-05 B群(G1 E-05)＝0.0→1.0・batch10連鎖の実測（凍結木）で硬性ゲート緑 */    // ★E-05段1（作者裁定2026-09-03「あらゆる反乱は1つの経路で発生し、1つの方法で対処する。植民地と国内でルールが異なるのはダメ」）：分離の保持力に**投射**（首都→州の距離減衰・`Diplomacy.Projection` と同じ形・同じ係数）を掛ける適用率。⚠「植民地なら」という条件を1つも書かずに「遠い領土は保ちにくい」を出す＝国内の辺境にも同じ規則が効く。0で厳密恒等
     // ★E-06 支配度＝ストック（作者裁定2026-09-05「C群すべてやる」・設計＝20260903_支配度はストックにする_再裁定 §4／実装計画 20260905_支配度ストック_E06）。
@@ -3391,8 +3391,8 @@ public sealed class Coefficients
     public double EraTensionRange = 1.0;         // 近接の緊張が届く距離（★電信1870s＝遠方の危機が即座に本国へ届く）
     // 【墓標2026-08-29】EraRegionalHalf＝読み手ゼロ（力学読み手 RegionalDistanceWeight は2026-08-12撤去済み・残るはUI地図表示のみ）で撤去
     public double EraMigrationScale = 1.0;       // 移民の距離減衰（★大西洋横断が6週間→6日）
-    public double EraColonyCoal = -0.5;           // 植民地維持の距離あたり石炭（⚠負を入れる＝複式→三段膨張機関で燃費が改善し続けた）。★2026-09-27（回4-3 の再挑戦）：汽船の機関の時代係数の1本＝民間の汽船（Transport）も読む（容量あたりの燃料×era・1単位の容量÷era）
-    public double EraColonyFood = -0.5;           // 植民地維持の距離あたり糧食（⚠負を入れる＝缶詰・冷蔵）
+    public double EraColonyCoal = -0.5;           // 植民地維持の距離あたり石炭（⚠負を入れる＝複式→三段膨張機関で燃費が改善し続けた）。★2026-09-27（回4-3 の再挑戦）：汽船の機関の時代係数の1本＝民間の汽船（Transport）も読む（容量あたりの燃料×era・1単位の容量÷era）。★2026-09-28（c1）：補給線は×汽船の割合も掛ける＝民間の汽船と同じ形
+    // 【墓標2026-09-28（c1）】EraColonyFood（植民地維持の距離あたり糧食を缶詰・冷蔵で下げる時代係数）＝缶詰の財の解禁度（EquipUnlock）が置き換えた＝削除
 
     /// <summary>★距離定数の時代係数（掃討doc 第2波・2026-08-13）。前線技術のランプに沿って距離定数を伸縮させる。
     /// k=0（既定）で 1.0＝**厳密恒等**（呼び出し側は掛けても1倍）。正で伸び、負で縮む。0以下には落とさない（距離が消えると幾何が壊れる）。</summary>

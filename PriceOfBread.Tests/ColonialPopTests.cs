@@ -46,4 +46,34 @@ public class ColonialPopTests
         sim.Run(40);   // 10年＝不満はまだ独立線（0.7）に届かない
         Assert.DoesNotContain(sim.Diplomacy.Log, l => l.Contains("独立"));
     }
+
+    /// <summary>★2026-09-28（植民地の費用の側・R2）：植民地の維持費（距離の物理消費）と海運占有は、行（州）の数でなく質量（人口ウェイト）で数える。
+    /// 資源の無い遠い前哨（英の前哨の中で最も遠い州）は、それより近い最大の植民地より維持費も海運占有も小さい
+    /// （旧＝行ごとに同じ重み＝遠い前哨の方が大きかった・英1783 の距離の71%が資源の無い前哨16州）。
+    /// ⚠この番人は構築時の一括昇格（既定 ColoniesAreRegions=1）の盤面で測る＝植民地格の州。</summary>
+    [Fact]
+    public void 維持費と海運占有は行の数でなく質量で数える_資源の無い遠い前哨は近い大植民地より小さい()
+    {
+        var sim = new MultiNationSim([NationConfig.Britain(), NationConfig.France()], seed: 83) { DiplomacyFrozen = true };
+        var w = sim.Nations[0].World;
+        w.ShipSteamShareEma = 1.0;   // 補給線が石炭を焚く状態（帆走の時代は距離の物理消費が0＝比べられない）
+        double Km(Region r) { var cc = Places.Coord(r.Name); return Geo.SeaDistanceKm(w.Latitude, w.Longitude, cc.Lat, cc.Lon, false, false); }
+        var cols = w.Regions.Where(r => r.State == RegionState.Active && r.Tier == RegionTier.Colonial).ToList();
+        var outpost = cols.Where(r => r.Resources.Length == 0).OrderByDescending(Km).First();
+        var big = cols.Where(r => Km(r) < Km(outpost)).OrderByDescending(r => r.SumPopulation()).First();
+        Assert.True(Km(outpost) > Km(big) && outpost.SumPopulation() < big.SumPopulation(),
+            $"前提が崩れている（前哨 {outpost.Name} {Km(outpost):F0}km・{outpost.SumPopulation():F0}／大植民地 {big.Name} {Km(big):F0}km・{big.SumPopulation():F0}）");
+        (double Upkeep, double Burden) Only(Region keep)
+        {
+            foreach (var r in cols) r.Tier = r == keep ? RegionTier.Colonial : RegionTier.Integrated;
+            Colonial.Step(w, w.Coef);
+            foreach (var r in cols) r.Tier = RegionTier.Colonial;
+            return (w.LastColonialUpkeep, w.ColonialShipBurden);
+        }
+        var o = Only(outpost);
+        var b = Only(big);
+        Assert.True(o.Burden > 0 && o.Upkeep > 0, $"前哨の維持費か海運占有が0（{o}）＝比べられない");
+        Assert.True(o.Burden < b.Burden, $"遠い前哨 {outpost.Name} の海運占有 {o.Burden:G4} が近い大植民地 {big.Name} の {b.Burden:G4} 以上＝行の数で数えている");
+        Assert.True(o.Upkeep < b.Upkeep, $"遠い前哨 {outpost.Name} の維持費の請求 {o.Upkeep:G4} が近い大植民地 {big.Name} の {b.Upkeep:G4} 以上＝行の数で数えている");
+    }
 }

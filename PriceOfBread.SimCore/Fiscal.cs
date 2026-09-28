@@ -190,7 +190,7 @@ public static class Fiscal
         double coercionScale = popSizeAll / Math.Max(1.0, c.PoliticalReferencePop);
         // ★E-05段4（作者裁定2026-09-03「維持費は本国州にも必要なはずだ。植民地は遠く、それが高額なだけ、という形が正しい」）。
         //   ★実測＝**本国州は既に維持費を払っている**（この行の AdminCostPerPop×全州POP。⚠植民地格の州のPOPもここに入っている）。
-        //     つまり植民地は「行政費」と「植民地維持費（ColonyUpkeepBase）」を**二重に**払っていた＝植民地専用の平場は要らない。
+        //     つまり植民地は「行政費」と「植民地維持費（ColonyUpkeepBase）」を**二重に**払っていた＝植民地専用の平場は要らない（★2026-09-28 に平場を撤去＝c2・Colonial.Step は不満の上乗せだけ）。
         //   ⇒ 足りないのは**距離**だけ。同じ行政費に首都からの距離の割増を掛ければ、格を見ずに作者裁定の形になる。
         //   ⚠形と係数は `Diplomacy.Projection`／E-05段1の分離判定と共有（DistanceWarDecay / DistanceNormKm）＝新しい数字を作らない。
         //   ⚠座標未登録(0,0)の州は割増なし＝中立（幻の遠距離を作らない）。UpkeepDistanceGeneral=0 で州別ループに入らない＝厳密恒等。

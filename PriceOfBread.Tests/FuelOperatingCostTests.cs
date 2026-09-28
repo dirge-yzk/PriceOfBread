@@ -376,6 +376,27 @@ public class FuelOperatingCostTests
         Assert.Equal(st0, st1);
     }
 
+    /// <summary>★2026-09-28（植民地の費用の側・c1）：植民地の補給線は民間の汽船と同じ状態（汽船の割合）で石炭を焚く。
+    /// 帆走の時代（割合0）は補給線が石炭（と原油）を買わない・割合が上がれば同じ補給線が焚く（旧＝汽船の発明の前から焚いた）。</summary>
+    [Fact]
+    public void 植民地の補給線_帆走の時代は石炭を買わず汽船の割合で焚く()
+    {
+        var sim = new MultiNationSim([NationConfig.Britain(), NationConfig.France()], seed: 61) { DiplomacyFrozen = true };
+        var w = sim.Nations[0].World;
+        Assert.True(w.SelfPower!.ColonialRegions > 0, "前提が崩れている（英に植民地格の州が無い）");
+        var r = w.Region;
+        double Fuel() => r.Markets[Catalog.CoalId].LastDemand + r.Markets[Catalog.CrudeOilId].LastDemand;
+        w.ShipSteamShareEma = 0;   // 帆走だけ（1783年の盤面そのまま）
+        double d0 = Fuel(), st0 = r.Markets[Catalog.CoalId].Stock;
+        Colonial.Step(w, w.Coef);
+        Assert.Equal(d0, Fuel());
+        Assert.Equal(st0, r.Markets[Catalog.CoalId].Stock);
+        w.ShipSteamShareEma = 1.0; // 同じ補給線を汽船で
+        double d1 = Fuel();
+        Colonial.Step(w, w.Coef);
+        Assert.True(Fuel() > d1, $"汽船の割合1でも補給線が燃料の需要を立てない（{d1} → {Fuel()}）");
+    }
+
     [Fact]
     public void 空軍燃料ON_原油需要が立ち国家が支払う()
     {

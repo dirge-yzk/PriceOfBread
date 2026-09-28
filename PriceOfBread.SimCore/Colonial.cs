@@ -30,26 +30,40 @@ public static class Colonial
         // 全喪失後に旧値が残らない（接1診断）。★回1-1（col-08）：海運の占有も0へ戻す（旧＝最後の月の占有が永久に残り、交易の海運を細らせた）。
         if (colonies <= 0 || r.State != RegionState.Active || r.ColonialResources is null) { w.ColonialPop = 0; w.LastColonialUpkeep = 0; w.ColonialShipBurden = 0; return; }
 
-        // 0. 維持費（帝国の過伸展）：基礎＋不満は俸給（金銭）、距離は**物理消費**（汽船の石炭＋駐留の缶詰糧食）＋海運の混雑から創発。
+        // 0. 維持費（帝国の過伸展）：不満は俸給（金銭）、距離は**物理消費**（汽船の石炭＋駐留の缶詰糧食）＋海運の混雑から創発。
         //    遠方植民地が多い国（イギリス）ほど石炭・糧食が逼迫し交易船が補給に取られる＝一強の是正を物理コストで律する（固定倍率2.0を排除）。
+        // ★2026-09-28（植民地の費用の側・c1・c2・R2）：
+        //   c1＝補給線の石炭は民間の汽船と**同じ状態**（汽船の割合 ShipSteamShareEma＝帆走なら0）と**同じ物理**（機関の時代係数 EraColonyCoal＝容量あたりの燃料・Transport と共有）で焚く。
+        //       旧＝汽船の発明の前から焚いた（英1783-1802 の植民地維持費の実払いの62%）。缶詰糧食は缶詰の財の解禁度（EquipUnlock＝装備の解禁の唯一の読み口）で食う
+        //       ＝アペール法の前の駐留は缶詰を食わない。旧の EraColonyFood（缶詰・冷蔵で距離あたりの糧食が下がる）はこの解禁度が置き換えた＝係数ごと削除。
+        //   c2＝平場（旧 ColonyUpkeepBase＝1行150/月）を撤去＝同じ俸給は Fiscal の行政費（AdminCostPerPop×州のPOP×首都からの距離の割増＝UpkeepDistanceGeneral）が植民地格の州にも払っている
+        //       （Fiscal.cs と Coefficients の注記「平場は二重・点火時に外す」の約束）。不満の上乗せ（駐留・鎮圧）は Fiscal の行政費にも治安維持費（CoercionUpkeepRate×BaseCoercion×人口）にも無い＝残す。
+        //   R2＝距離の費用と海運占有は行（州）の数でなく**質量**（ColonyMassUnits の加数＝人口ウェイト）で数える＝行を分けただけで増えない（2026-08-28「行の数でなく中身」）。
+        //       個数単位への換算は既存の錨（初期の 個数/質量＝NationalScore.Wealth・SelfPlay の植民地防衛と同じ）＝抽象標的を含む世界の全植民地の初期の総量は旧の行の数と同じ目盛り
+        //       （実在国の植民地は平均より重い＝実在国の合計は旧の約1.19倍）・資源の無い前哨は小さく・大植民地は大きく。
         const int foodG = Catalog.CannedFoodId;   // 缶詰糧食（駐留の携行食）。燃料（石炭/原油）は ChooseFuelGood が選ぶ
         // 海路距離：欧州→印/太平洋の補給線はアフリカ（喜望峰）を回る＝大圏直線の約2倍。スエズ(1869)/パナマ(1914)開通で短絡（史実の通商革命が維持費に効く）。
         bool suezOpen = w.Diplomacy?.ChokeOpenFor(Diplomacy.SuezId, w.SelfPower) ?? false;   // 2026-07-28：生文字列リテラルを廃止（表示名を変えると静かに false 固定＝維持費が永久にケープ迂回になる罠だった）
         bool panamaOpen = w.Diplomacy?.ChokeOpenFor(Diplomacy.PanamaId, w.SelfPower) ?? false;
         double totalUpkeep = 0, coalWant = 0, foodWant = 0, shipBurden = 0, quinineWant = 0;
+        double coalPerMassDist = c.ColonyUpkeepCoalPerDist * w.ShipSteamShareEma * c.EraFactor(w.WorldTechLevel, c.EraColonyCoal);   // c1：帆走（割合0）の補給線は石炭を焚かない
+        double foodPerMassDist = c.ColonyUpkeepFoodPerDist * EconomyStep.EquipUnlock(r, c, foodG);                                    // c1：缶詰の未発見の間は缶詰を食わない
+        double countPerMass = w.Diplomacy is { } dipM && dipM.InitialColonyMass > 1e-9 ? dipM.InitialColonyCount / dipM.InitialColonyMass : 1.0;   // R2：質量→個数単位の錨
         // ★植民地の州昇格（2026-08-26・ColoniesAreRegions）：昇格した植民地は ColonyList に居ないので、
         //   **同じ式**を植民地格の州にも当てる＝帝国の過伸展のコストが昇格で消えない。
         //   ⚠単位を揃える：人口ウェイトは col.Population と同じ物差しへ戻す（PopSize = Population × ColonialPopScale の逆）。
         //   ⚠二重計上は起きない＝昇格の瞬間に ColonyList から Remove されるので、どちらか一方にしか居ない。
+        //   座標未設定(0,0)の抽象植民地は距離項を中立に＝幻の遠距離コストを防ぐ（A-2#5。例：仏首都→(0,0)＝ギニア湾沖の幻の5400km）。
         void AccumUpkeep(double clat, double clon, double popWeight, double militancy, bool malarial)
         {
             double km = (Math.Abs(clat) < 1e-9 && Math.Abs(clon) < 1e-9) ? 0 : Geo.SeaDistanceKm(w.Latitude, w.Longitude, clat, clon, suezOpen, panamaOpen);
-            double distF = km / Diplomacy.DistanceNormKm;
-            totalUpkeep += c.ColonyUpkeepBase * (1 + c.ColonyUpkeepMilitancyScale * popWeight * militancy);
-            coalWant += c.ColonyUpkeepCoalPerDist * c.EraFactor(w.WorldTechLevel, c.EraColonyCoal) * distF;
-            foodWant += c.ColonyUpkeepFoodPerDist * c.EraFactor(w.WorldTechLevel, c.EraColonyFood) * distF;
-            shipBurden += c.ColonyShipOccupyPerDist * distF;
-            if (malarial) quinineWant += c.MalariaQuininePerColony;
+            double massDist = km / Diplomacy.DistanceNormKm * Math.Max(0, popWeight) * countPerMass;   // R2：距離×質量（個数単位）
+            // 俸給（金銭）＝不満の上乗せだけ（c2）。人口ウェイト×不満（B-1：高不満の大植民地ほど駐留・鎮圧が高くつく＝インド大反乱型）。
+            totalUpkeep += c.ColonyUpkeepMilitancyScale * popWeight * militancy;
+            coalWant += coalPerMassDist * massDist;         // 距離×質量に比例の石炭（汽船補給線）
+            foodWant += foodPerMassDist * massDist;         // 距離×質量に比例の缶詰糧食（駐留）
+            shipBurden += c.ColonyShipOccupyPerDist * massDist;   // 距離×質量に比例の海運占有
+            if (malarial) quinineWant += c.MalariaQuininePerColony;   // マラリア地は風土病鎮静にキニーネを要する（供給が実コスト）
         }
         if (c.ColoniesAreRegions > 0)
             foreach (var cr in w.Regions)
@@ -61,20 +75,7 @@ public static class Colonial
                 foreach (var cp2 in cr.Pops) { mn += cp2.Militancy * cp2.Size; md += cp2.Size; }
                 AccumUpkeep(ccr.Lat, ccr.Lon, pw, md > 1e-9 ? mn / md : 0, cr.Malarial);
             }
-        foreach (var col in w.SelfPower!.ColonyList)
-        {
-            // 座標未設定(0,0)の抽象植民地は距離項を中立に＝幻の遠距離コストを防ぐ（A-2#5。例：仏首都→(0,0)＝ギニア湾沖の幻の5400km）。基礎維持費のみ課す。
-            double km = (Math.Abs(col.Latitude) < 1e-9 && Math.Abs(col.Longitude) < 1e-9) ? 0 : Geo.SeaDistanceKm(w.Latitude, w.Longitude, col.Latitude, col.Longitude, suezOpen, panamaOpen);
-            double distF = km / Diplomacy.DistanceNormKm;
-            // 俸給（金銭）＝基礎×(1＋不満項)。不満項＝人口ウェイト×不満（B-1：高不満の大植民地ほど駐留・鎮圧が高くつく＝インド大反乱型）。
-            totalUpkeep += c.ColonyUpkeepBase * (1 + c.ColonyUpkeepMilitancyScale * col.Population * col.Militancy);
-            // ★時代関数化（掃討第2波2026-08-13）：汽船の燃費は改善し続け（複式→三段膨張機関）、糧食は缶詰・冷蔵で変わった
-            //   ＝**距離あたりの費用が下がる**（EraColonyCoal/EraColonyFood 既定−0.5・0で×1）。
-            coalWant += c.ColonyUpkeepCoalPerDist * c.EraFactor(w.WorldTechLevel, c.EraColonyCoal) * distF;   // 距離比例の石炭（汽船補給線）
-            foodWant += c.ColonyUpkeepFoodPerDist * c.EraFactor(w.WorldTechLevel, c.EraColonyFood) * distF;   // 距離比例の缶詰糧食（駐留）
-            shipBurden += c.ColonyShipOccupyPerDist * distF; // 距離比例の海運占有
-            if (col.Malarial) quinineWant += c.MalariaQuininePerColony;   // マラリア地は風土病鎮静にキニーネを要する（供給が実コスト）
-        }
+        foreach (var col in w.SelfPower!.ColonyList) AccumUpkeep(col.Latitude, col.Longitude, col.Population, col.Militancy, col.Malarial);
         w.ColonialShipBurden = shipBurden;   // 交易の実効海運を絞る（InternationalMarket/Trade が ShipCapacity/(1+これ) で参照）
         w.LastColonialUpkeep = totalUpkeep;   // 請求（r を掛ける前・2026-09-28 から＝旧は実支払い）＝翌月の月初の請求の見込み（Simulation）と予算表が読む。下の補給財の請求も BuyUpkeepGood が足す
         if (totalUpkeep > 1e-9)
