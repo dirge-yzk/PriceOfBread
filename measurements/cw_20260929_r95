@@ -1,0 +1,1999 @@
+# 内戦・政変・終戦の計器（読むだけ・u2m/inj_cw.py〔腕B 用〕）の読みと生の行＝(95) 合流の全長 r95（git archive ae2a4b8＋計器6本＋inj_cw・SOURCE-HASH d7033998d5762de7）。読み手＝u2m/an_cw.py・m95/an_cw2.py（国別・勝敗の割合・分断の国名・大国の政変）。比べる相手＝段2 だけの帯 u2（u2m/cwB・measurements/cw_20260928_u2）。
+# 行＝SUM（政変・うち内戦の終わりの四半期・旧経路の内戦・SecedingRegion null→非null・消えた戦争・うち終戦の記録なし・終戦の記録の増分・最後の国の数）／START・END（内戦＝種類 0首都発 1地方発 2分離）／POST（首都州の終わりの8四半期後）／COUP（政変）。
+######## 読み（an_cw.py・u2＝u2m/cwB・r95＝m95/cw）
+=== u2m/cwB（10 種）
+  政変: 計 1471・1種 147.1（最小 126・最大 184）
+  うち内戦の終わりと同じ四半期: 計 166・1種 16.6（最小 10・最大 30）
+  旧経路の内戦: 計 0・1種 0.0（最小 0・最大 0）
+  SecedingRegion null→非null: 計 173・1種 17.3（最小 10・最大 31）
+  消えた戦争: 計 6838・1種 683.8（最小 457・最大 878）
+  うち終戦の記録なし: 計 0・1種 0.0（最小 0・最大 0）
+  終戦の記録の増分: 計 7347・1種 734.7（最小 487・最大 932）
+  最後の国の数: 計 643・1種 64.3（最小 62・最大 68）
+  内戦の開始 計 295（1種 29.5）：首都発 173・地方発 0・分離 122（うち要求戦 首都発 0・地方発 0）
+  首都発：終わり 173・月数 平均 8.4・中央 7・最大 27・記録なし 0：反乱の勝ち（政体変更） 165・政府の勝ち 4・反乱国が残る（分断・独立） 4
+  地方発：終わり 0
+  分離：終わり 122・月数 平均 15.4・中央 14・最大 28・記録なし 0：反乱国が残る（分断・独立） 111・政府の勝ち 11
+  首都州（173 件）：人口 最小/前 中央 0.982・終わり/前 中央 0.982（平均 0.976）／産出 最小/前 中央 0.882・終わり/前 中央 0.963（平均 0.988）／親の国の人口 終わり/前 中央 0.995
+  首都州の終わりの8四半期後（173 件）：人口/前 中央 0.973・産出/前 中央 1.151・親の国の人口/前 中央 0.980
+  首都発の戦死（両側・千人）中央 1.4・平均 3.8
+  政変 1471（1種 147.1）・内戦の終わりの四半期 166・多い遷移: Absolutist→ConstitutionalMonarchy 481・ConstitutionalMonarchy→Absolutist 258・ConstitutionalMonarchy→BourgeoisDictatorship 179・Despotic→Absolutist 135・BourgeoisDictatorship→ConstitutionalMonarchy 131・Republic→Absolutist 71
+    国名の見本：首都発 1785年 Absolutist→ConstitutionalMonarchy（要求 0）：政府側「王政オヨ」 対 反乱側「立憲王政オヨ」（親 オヨ帝国）
+    国名の見本：首都発 1786年 Absolutist→ConstitutionalMonarchy（要求 0）：政府側「王政ダホメ」 対 反乱側「立憲王政ダホメ」（親 ダホメ王国）
+    国名の見本：首都発 1787年 ConstitutionalMonarchy→BourgeoisDictatorship（要求 0）：政府側「立憲王政コンゴ」 対 反乱側「統領制コンゴ」（親 コンゴ王国）
+    国名の見本：首都発 1787年 Absolutist→ConstitutionalMonarchy（要求 0）：政府側「王政オヨ」 対 反乱側「立憲王政オヨ」（親 オヨ帝国）
+    国名の見本：首都発 1788年 ConstitutionalMonarchy→BourgeoisDictatorship（要求 0）：政府側「立憲王政イギリス」 対 反乱側「統領制イギリス」（親 イギリス）
+    国名の見本：首都発 1789年 ConstitutionalMonarchy→BourgeoisDictatorship（要求 0）：政府側「立憲王政ダホメ」 対 反乱側「統領制ダホメ」（親 ダホメ王国）
+    国名の見本：首都発 1791年 ConstitutionalMonarchy→BourgeoisDictatorship（要求 0）：政府側「立憲王政オヨ」 対 反乱側「統領制オヨ」（親 オヨ帝国）
+    国名の見本：首都発 1793年 ConstitutionalMonarchy→BourgeoisDictatorship（要求 0）：政府側「立憲王政オヨ」 対 反乱側「統領制オヨ」（親 オヨ帝国）
+    終わりの国名：1786年 反乱国「立憲王政オヨ」残る=0・親「オヨ帝国」・首都州の持ち主「オヨ帝国」
+    終わりの国名：1787年 反乱国「立憲王政ダホメ」残る=0・親「ダホメ王国」・首都州の持ち主「ダホメ王国」
+    終わりの国名：1788年 反乱国「統領制コンゴ」残る=0・親「コンゴ王国」・首都州の持ち主「コンゴ王国」
+    終わりの国名：1789年 反乱国「立憲王政オヨ」残る=0・親「オヨ帝国」・首都州の持ち主「オヨ帝国」
+    終わりの国名：1790年 反乱国「統領制イギリス」残る=0・親「イギリス」・首都州の持ち主「イギリス」
+    終わりの国名：1791年 反乱国「統領制ダホメ」残る=0・親「ダホメ王国」・首都州の持ち主「ダホメ王国」
+=== m95/cw（10 種）
+  政変: 計 1292・1種 129.2（最小 94・最大 167）
+  うち内戦の終わりと同じ四半期: 計 138・1種 13.8（最小 5・最大 22）
+  旧経路の内戦: 計 0・1種 0.0（最小 0・最大 0）
+  SecedingRegion null→非null: 計 148・1種 14.8（最小 7・最大 22）
+  消えた戦争: 計 6662・1種 666.2（最小 489・最大 908）
+  うち終戦の記録なし: 計 0・1種 0.0（最小 0・最大 0）
+  終戦の記録の増分: 計 7332・1種 733.2（最小 538・最大 995）
+  最後の国の数: 計 635・1種 63.5（最小 61・最大 67）
+  内戦の開始 計 219（1種 21.9）：首都発 148・地方発 0・分離 71（うち要求戦 首都発 0・地方発 0）
+  首都発：終わり 148・月数 平均 9.4・中央 9・最大 26・記録なし 0：反乱の勝ち（政体変更） 140・政府の勝ち 4・反乱国が残る（分断・独立） 4
+  地方発：終わり 0
+  分離：終わり 71・月数 平均 17.4・中央 17・最大 29・記録なし 0：反乱国が残る（分断・独立） 60・政府の勝ち 11
+  首都州（148 件）：人口 最小/前 中央 0.979・終わり/前 中央 0.982（平均 0.974）／産出 最小/前 中央 0.890・終わり/前 中央 0.955（平均 0.977）／親の国の人口 終わり/前 中央 0.994
+  首都州の終わりの8四半期後（148 件）：人口/前 中央 0.967・産出/前 中央 1.117・親の国の人口/前 中央 0.977
+  首都発の戦死（両側・千人）中央 1.5・平均 6.3
+  政変 1292（1種 129.2）・内戦の終わりの四半期 138・多い遷移: Absolutist→ConstitutionalMonarchy 588・ConstitutionalMonarchy→Absolutist 154・ConstitutionalMonarchy→BourgeoisDictatorship 151・Despotic→Absolutist 121・BourgeoisDictatorship→ConstitutionalMonarchy 100・Republic→Absolutist 51
+    国名の見本：首都発 1785年 Absolutist→ConstitutionalMonarchy（要求 0）：政府側「王政オヨ」 対 反乱側「立憲王政オヨ」（親 オヨ帝国）
+    国名の見本：首都発 1786年 Absolutist→ConstitutionalMonarchy（要求 0）：政府側「王政ダホメ」 対 反乱側「立憲王政ダホメ」（親 ダホメ王国）
+    国名の見本：首都発 1787年 ConstitutionalMonarchy→BourgeoisDictatorship（要求 0）：政府側「立憲王政コンゴ」 対 反乱側「統領制コンゴ」（親 コンゴ王国）
+    国名の見本：首都発 1787年 Absolutist→ConstitutionalMonarchy（要求 0）：政府側「王政オヨ」 対 反乱側「立憲王政オヨ」（親 オヨ帝国）
+    国名の見本：首都発 1788年 ConstitutionalMonarchy→BourgeoisDictatorship（要求 0）：政府側「立憲王政イギリス」 対 反乱側「統領制イギリス」（親 イギリス）
+    国名の見本：首都発 1789年 ConstitutionalMonarchy→BourgeoisDictatorship（要求 0）：政府側「立憲王政ダホメ」 対 反乱側「統領制ダホメ」（親 ダホメ王国）
+    国名の見本：首都発 1791年 ConstitutionalMonarchy→BourgeoisDictatorship（要求 0）：政府側「立憲王政オヨ」 対 反乱側「統領制オヨ」（親 オヨ帝国）
+    国名の見本：首都発 1793年 ConstitutionalMonarchy→BourgeoisDictatorship（要求 0）：政府側「立憲王政オヨ」 対 反乱側「統領制オヨ」（親 オヨ帝国）
+    終わりの国名：1786年 反乱国「立憲王政オヨ」残る=0・親「オヨ帝国」・首都州の持ち主「オヨ帝国」
+    終わりの国名：1787年 反乱国「立憲王政ダホメ」残る=0・親「ダホメ王国」・首都州の持ち主「ダホメ王国」
+    終わりの国名：1788年 反乱国「統領制コンゴ」残る=0・親「コンゴ王国」・首都州の持ち主「コンゴ王国」
+    終わりの国名：1789年 反乱国「立憲王政オヨ」残る=0・親「オヨ帝国」・首都州の持ち主「オヨ帝国」
+    終わりの国名：1790年 反乱国「統領制イギリス」残る=0・親「イギリス」・首都州の持ち主「イギリス」
+    終わりの国名：1791年 反乱国「統領制ダホメ」残る=0・親「ダホメ王国」・首都州の持ち主「ダホメ王国」
+######## 読み（an_cw2.py）
+=== u2（10 種）
+  首都発の開始 国別（10種の和）: プロイセン 35・アシャンティ王国 27・イギリス 24・スペイン 21・オヨ帝国 19・エチオピア 10・ダホメ王国 6・コンゴ王国 4・アメリカ 4・ソコト 3・ハイデラバード 2・サルデーニャ＝ピエモンテ 2
+  首都発の開始 1850年以前 153／173・1851-1913 13・1914- 7
+  目指す政体: ConstitutionalMonarchy→BourgeoisDictatorship 69・Absolutist→ConstitutionalMonarchy 57・BourgeoisDictatorship→ConstitutionalMonarchy 43・Despotic→ConstitutionalMonarchy 2・Republic→BourgeoisDictatorship 1・Despotic→Republic 1
+  首都発の終わり 173：反乱の勝ち 165（95.4%）・政府の勝ち 4（2.3%）・分断 4・その他 0
+    分断：s1.txt 1875年 反乱国「立憲王政サルデーニャ＝ピエモンテ」・親「サルデーニャ＝ピエモンテ」・首都州の持ち主「立憲王政サルデーニャ＝ピエモンテ」
+    分断：s4.txt 1937年 反乱国「立憲王政デンマーク」・親「デンマーク」・首都州の持ち主「立憲王政デンマーク」
+    分断：s5.txt 1893年 反乱国「立憲王政アラビア」・親「アラビア」・首都州の持ち主「立憲王政アラビア」
+    分断：s9.txt 1881年 反乱国「立憲王政アラビア」・親「アラビア」・首都州の持ち主「立憲王政アラビア」
+  大国の政変（10種の和）: イギリス 54・フランス 22・プロイセン 63・ロシア 10・オーストリア 7・清 36・日本 20・アメリカ 33・スペイン 125・オスマン 28
+  分離の終わり 122：独立 111・政府の勝ち 11
+    国名：s1.txt 1785年 政府側「王政オヨ」 対 反乱側「立憲王政オヨ」（親 オヨ帝国・Absolutist→ConstitutionalMonarchy）
+    国名：s1.txt 1786年 政府側「王政ダホメ」 対 反乱側「立憲王政ダホメ」（親 ダホメ王国・Absolutist→ConstitutionalMonarchy）
+    国名：s10.txt 1786年 政府側「立憲王政イギリス」 対 反乱側「統領制イギリス」（親 イギリス・ConstitutionalMonarchy→BourgeoisDictatorship）
+    国名：s10.txt 1786年 政府側「王政ダホメ」 対 反乱側「立憲王政ダホメ」（親 ダホメ王国・Absolutist→ConstitutionalMonarchy）
+    国名：s2.txt 1788年 政府側「立憲王政イギリス」 対 反乱側「統領制イギリス」（親 イギリス・ConstitutionalMonarchy→BourgeoisDictatorship）
+    国名：s2.txt 1790年 政府側「王政ダホメ」 対 反乱側「立憲王政ダホメ」（親 ダホメ王国・Absolutist→ConstitutionalMonarchy）
+=== r95（10 種）
+  首都発の開始 国別（10種の和）: イギリス 26・アシャンティ王国 23・オヨ帝国 22・プロイセン 20・エチオピア 9・スペイン 9・ダホメ王国 6・コンゴ王国 5・ロシア 4・アフガニスタン 3・ソコト 3・教皇領 2
+  首都発の開始 1850年以前 139／148・1851-1913 6・1914- 3
+  目指す政体: ConstitutionalMonarchy→BourgeoisDictatorship 64・Absolutist→ConstitutionalMonarchy 52・BourgeoisDictatorship→ConstitutionalMonarchy 27・Despotic→ConstitutionalMonarchy 3・Republic→BourgeoisDictatorship 1・Despotic→Republic 1
+  首都発の終わり 148：反乱の勝ち 140（94.6%）・政府の勝ち 4（2.7%）・分断 4・その他 0
+    分断：s1.txt 1841年 反乱国「立憲王政デンマーク」・親「デンマーク」・首都州の持ち主「立憲王政デンマーク」
+    分断：s10.txt 1820年 反乱国「統領制清」・親「清」・首都州の持ち主「統領制清」
+    分断：s9.txt 1881年 反乱国「立憲王政アフガニスタン」・親「アフガニスタン」・首都州の持ち主「立憲王政アフガニスタン」
+    分断：s9.txt 1883年 反乱国「立憲王政スペイン」・親「スペイン」・首都州の持ち主「立憲王政スペイン」
+  大国の政変（10種の和）: イギリス 33・フランス 9・プロイセン 42・ロシア 18・オーストリア 9・清 35・日本 22・アメリカ 20・スペイン 80・オスマン 9
+  分離の終わり 71：独立 60・政府の勝ち 11
+    国名：s1.txt 1785年 政府側「王政オヨ」 対 反乱側「立憲王政オヨ」（親 オヨ帝国・Absolutist→ConstitutionalMonarchy）
+    国名：s1.txt 1786年 政府側「王政ダホメ」 対 反乱側「立憲王政ダホメ」（親 ダホメ王国・Absolutist→ConstitutionalMonarchy）
+    国名：s10.txt 1786年 政府側「立憲王政イギリス」 対 反乱側「統領制イギリス」（親 イギリス・ConstitutionalMonarchy→BourgeoisDictatorship）
+    国名：s10.txt 1786年 政府側「王政ダホメ」 対 反乱側「立憲王政ダホメ」（親 ダホメ王国・Absolutist→ConstitutionalMonarchy）
+    国名：s2.txt 1788年 政府側「立憲王政イギリス」 対 反乱側「統領制イギリス」（親 イギリス・ConstitutionalMonarchy→BourgeoisDictatorship）
+    国名：s2.txt 1790年 政府側「王政ダホメ」 対 反乱側「立憲王政ダホメ」（親 ダホメ王国・Absolutist→ConstitutionalMonarchy）
+######## 生の行（r95）
+SEED	1
+SUM	129	15	0	19	684	0	742	62
+COUP	6	1784	コンゴ王国	Absolutist	ConstitutionalMonarchy	0
+START	7	1785	0	1	0	Absolutist	ConstitutionalMonarchy	オヨ帝国	王政オヨ	立憲王政オヨ	1	1
+COUP	10	1785	コンゴ王国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+END	11	1786	10	0	1	0	0	1	Absolutist	Absolutist	ConstitutionalMonarchy	1.067	1	1537	667	1370	470	1370	695	2176	2032	0.0	1.5	立憲王政オヨ	オヨ帝国	オヨ帝国	オヨ帝国	王政オヨ	立憲王政オヨ	1	1
+COUP	11	1786	コンゴ王国	BourgeoisDictatorship	ConstitutionalMonarchy	0
+START	13	1786	0	1	0	Absolutist	ConstitutionalMonarchy	ダホメ王国	王政ダホメ	立憲王政ダホメ	1	1
+END	15	1787	6	0	1	0	0	1	Absolutist	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.500	1	211	125	190	109	190	109	356	340	0.0	0.1	立憲王政ダホメ	ダホメ王国	ダホメ王国	ダホメ王国	王政ダホメ	立憲王政ダホメ	1	1
+START	15	1787	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	コンゴ王国	立憲王政コンゴ	統領制コンゴ	1	1
+COUP	15	1787	日本	Shogunate	ConstitutionalMonarchy	0
+COUP	15	1787	ダホメ王国	Absolutist	ConstitutionalMonarchy	1
+START	17	1787	0	1	0	Absolutist	ConstitutionalMonarchy	オヨ帝国	王政オヨ	立憲王政オヨ	1	1
+COUP	18	1787	統領制コンゴ	BourgeoisDictatorship	ConstitutionalMonarchy	0
+START	19	1788	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	イギリス	立憲王政イギリス	統領制イギリス	1	30
+POST	7	8	1311	428	665	1537	667	2176	オヨ帝国
+END	21	1788	18	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-0.645	1	389	290	378	325	378	376	736	738	0.1	1.2	統領制コンゴ	コンゴ王国	コンゴ王国	コンゴ王国	立憲王政コンゴ	統領制コンゴ	1	1
+COUP	21	1788	コンゴ王国	ConstitutionalMonarchy	BourgeoisDictatorship	1
+POST	13	8	163	149	338	211	125	356	ダホメ王国
+END	25	1789	24	0	1	0	0	1	Absolutist	ConstitutionalMonarchy	ConstitutionalMonarchy	-0.727	1	1344	598	1297	428	1297	521	2000	1993	1.0	4.4	立憲王政オヨ	オヨ帝国	オヨ帝国	オヨ帝国	王政オヨ	立憲王政オヨ	1	1
+START	25	1789	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	ダホメ王国	立憲王政ダホメ	統領制ダホメ	1	1
+COUP	25	1789	オヨ帝国	Absolutist	ConstitutionalMonarchy	1
+END	27	1790	24	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-0.768	1	4328	13180	3953	12937	3953	13760	26424	25518	3.7	0.9	統領制イギリス	イギリス	イギリス	イギリス	立憲王政イギリス	統領制イギリス	1	30
+COUP	27	1790	イギリス	ConstitutionalMonarchy	BourgeoisDictatorship	1
+POST	15	8	366	472	722	389	290	736	コンゴ王国
+END	32	1791	21	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-0.510	1	163	182	162	171	164	192	338	344	0.2	0.5	統領制ダホメ	ダホメ王国	ダホメ王国	ダホメ王国	立憲王政ダホメ	統領制ダホメ	1	1
+COUP	32	1791	ダホメ王国	ConstitutionalMonarchy	BourgeoisDictatorship	1
+POST	17	8	1276	1028	1960	1344	598	2000	オヨ帝国
+START	34	1791	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	オヨ帝国	立憲王政オヨ	統領制オヨ	1	1
+END	35	1792	3	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-1.500	1	1276	1028	1186	917	1186	917	1960	1842	0.1	0.1	統領制オヨ	オヨ帝国	オヨ帝国	オヨ帝国	立憲王政オヨ	統領制オヨ	1	1
+POST	19	8	4442	15196	24551	4328	13180	26424	イギリス
+COUP	35	1792	オヨ帝国	ConstitutionalMonarchy	BourgeoisDictatorship	1
+COUP	38	1792	オヨ帝国	BourgeoisDictatorship	ConstitutionalMonarchy	0
+COUP	39	1793	オヨ帝国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+POST	25	8	160	236	330	163	182	338	ダホメ王国
+COUP	40	1793	オヨ帝国	BourgeoisDictatorship	ConstitutionalMonarchy	0
+START	41	1793	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	オヨ帝国	立憲王政オヨ	統領制オヨ	1	1
+END	43	1794	5	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-1.500	1	1147	1143	1064	1180	1064	1293	1770	1698	0.2	0.3	統領制オヨ	オヨ帝国	オヨ帝国	オヨ帝国	立憲王政オヨ	統領制オヨ	1	1
+POST	34	8	1064	1293	1698	1276	1028	1960	オヨ帝国
+COUP	43	1794	阮氏	Despotic	Absolutist	0
+COUP	43	1794	オヨ帝国	ConstitutionalMonarchy	BourgeoisDictatorship	1
+COUP	44	1794	オヨ帝国	BourgeoisDictatorship	ConstitutionalMonarchy	0
+START	45	1794	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	オヨ帝国	立憲王政オヨ	統領制オヨ	1	1
+COUP	45	1794	西山朝	Despotic	Absolutist	0
+END	46	1794	3	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-1.500	1	1065	1378	1058	1333	1058	1951	1699	1699	0.2	0.1	統領制オヨ	オヨ帝国	オヨ帝国	オヨ帝国	立憲王政オヨ	統領制オヨ	1	1
+COUP	46	1794	ペルシャ	Despotic	Absolutist	0
+COUP	46	1794	オヨ帝国	ConstitutionalMonarchy	BourgeoisDictatorship	1
+COUP	47	1795	ビルマ	Despotic	Absolutist	0
+COUP	47	1795	オヨ帝国	BourgeoisDictatorship	ConstitutionalMonarchy	0
+START	48	1795	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	オヨ帝国	立憲王政オヨ	統領制オヨ	1	1
+END	49	1795	3	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-1.500	1	1059	1659	1054	1477	1054	1759	1700	1702	0.1	0.2	統領制オヨ	オヨ帝国	オヨ帝国	オヨ帝国	立憲王政オヨ	統領制オヨ	1	1
+COUP	49	1795	オヨ帝国	ConstitutionalMonarchy	BourgeoisDictatorship	1
+COUP	50	1795	オヨ帝国	BourgeoisDictatorship	ConstitutionalMonarchy	0
+COUP	50	1795	ハワイ王国	Absolutist	ConstitutionalMonarchy	0
+START	51	1796	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	オヨ帝国	立憲王政オヨ	統領制オヨ	1	1
+POST	41	8	1053	1566	650	1147	1143	1770	オヨ帝国
+END	52	1796	2	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-1.500	1	1053	1579	1046	1566	1046	1899	1702	1702	0.1	0.1	統領制オヨ	オヨ帝国	オヨ帝国	オヨ帝国	立憲王政オヨ	統領制オヨ	1	1
+COUP	52	1796	オヨ帝国	ConstitutionalMonarchy	BourgeoisDictatorship	1
+COUP	53	1796	オヨ帝国	BourgeoisDictatorship	ConstitutionalMonarchy	0
+POST	45	8	1045	1568	1703	1065	1378	1699	オヨ帝国
+COUP	54	1796	ハイデラバード	Despotic	Absolutist	0
+COUP	54	1796	オヨ帝国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	54	1796	ハワイ王国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	55	1797	デリー	Despotic	ConstitutionalMonarchy	0
+START	56	1797	2	0	0	BourgeoisDictatorship	BourgeoisDictatorship	イギリス	イギリス	オーストラリア共和国	1	30
+POST	48	8	1046	1412	1706	1059	1659	1700	オヨ帝国
+COUP	58	1797	ロシア	Despotic	ConstitutionalMonarchy	0
+END	60	1798	11	2	0	0	0	1	BourgeoisDictatorship	BourgeoisDictatorship	BourgeoisDictatorship	1.175	1	4934	17881	0	0	-1	-1	22767	22462	0.4	0.0	オーストラリア共和国	イギリス		イギリス	イギリス	オーストラリア共和国	1	30
+POST	51	8	1049	1442	1712	1053	1579	1702	オヨ帝国
+COUP	60	1798	マイソール	Despotic	Absolutist	0
+COUP	61	1798	エチオピア	Despotic	Absolutist	0
+START	66	1799	0	1	0	Absolutist	ConstitutionalMonarchy	アシャンティ王国	王政アシャンティ	立憲王政アシャンティ	1	1
+COUP	67	1800	アワド	Despotic	Absolutist	0
+END	70	1800	11	0	1	0	0	1	Absolutist	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.257	1	2269	1850	2223	1253	2223	1253	3461	3458	0.3	2.8	立憲王政アシャンティ	アシャンティ王国	アシャンティ王国	アシャンティ王国	王政アシャンティ	立憲王政アシャンティ	1	1
+COUP	70	1800	アシャンティ王国	Absolutist	ConstitutionalMonarchy	1
+START	74	1801	2	0	0	BourgeoisDictatorship	BourgeoisDictatorship	イギリス	イギリス	オーストラリア共和国	1	30
+START	76	1802	0	1	0	Absolutist	ConstitutionalMonarchy	エチオピア	王政エチオピア	立憲王政エチオピア	1	1
+POST	66	8	2103	1967	3393	2269	1850	3461	アシャンティ王国
+END	80	1803	11	0	1	0	0	1	Absolutist	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.500	1	3395	4659	3335	3928	3335	4835	4362	4343	1.0	2.9	立憲王政エチオピア	エチオピア	エチオピア	エチオピア	王政エチオピア	立憲王政エチオピア	1	1
+START	80	1803	2	0	0	BourgeoisDictatorship	BourgeoisDictatorship	イギリス	イギリス	ブリスベン共和国	1	28
+COUP	80	1803	エチオピア	Absolutist	ConstitutionalMonarchy	1
+COUP	82	1803	ボルヌ帝国	Absolutist	ConstitutionalMonarchy	0
+END	84	1804	29	2	0	0	1	1	BourgeoisDictatorship	BourgeoisDictatorship	BourgeoisDictatorship	-0.000	1	5894	22398	0	0	-1	-1	21982	21274	0.1	0.0	オーストラリア共和国	イギリス		イギリス	イギリス	オーストラリア共和国	1	30
+COUP	86	1804	ハワイ王国	BourgeoisDictatorship	ConstitutionalMonarchy	0
+POST	76	8	3325	5657	4314	3395	4659	4362	エチオピア
+END	90	1805	28	2	0	0	1	1	BourgeoisDictatorship	BourgeoisDictatorship	BourgeoisDictatorship	-0.000	1	6362	30556	0	0	-1	-1	21391	20780	0.0	0.0	ブリスベン共和国	イギリス		イギリス	イギリス	ブリスベン共和国	1	28
+START	90	1805	0	1	0	Despotic	ConstitutionalMonarchy	アラビア	帝政アラビア	立憲王政アラビア	1	1
+COUP	90	1805	日本	ConstitutionalMonarchy	Absolutist	0
+COUP	90	1805	ボルヌ帝国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	93	1806	清	Despotic	Absolutist	0
+END	94	1806	12	0	1	0	0	1	Despotic	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.038	1	545	334	526	327	526	372	751	729	0.1	0.6	立憲王政アラビア	アラビア	アラビア	アラビア	帝政アラビア	立憲王政アラビア	1	1
+COUP	94	1806	アラビア	Despotic	ConstitutionalMonarchy	1
+COUP	95	1807	清	Absolutist	ConstitutionalMonarchy	0
+COUP	96	1807	ネーデルラント	Republic	Absolutist	0
+COUP	97	1807	ネーデルラント	Absolutist	ConstitutionalMonarchy	0
+COUP	98	1807	マラータ同盟	Despotic	Absolutist	0
+COUP	98	1807	アフガニスタン	Despotic	Absolutist	0
+POST	90	8	508	535	703	545	334	751	アラビア
+COUP	107	1810	清	ConstitutionalMonarchy	Absolutist	0
+COUP	109	1810	ザクセン	Absolutist	ConstitutionalMonarchy	0
+COUP	111	1811	阮氏	Absolutist	ConstitutionalMonarchy	0
+START	113	1811	0	1	0	Absolutist	ConstitutionalMonarchy	ハイデラバード	王政ハイデラバード	立憲王政ハイデラバード	1	2
+COUP	114	1811	ザクセン	ConstitutionalMonarchy	BourgeoisDictatorship	0
+END	115	1812	4	0	1	0	0	1	Absolutist	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.422	1	5468	9125	5289	8117	5289	8846	14127	14039	2.7	2.0	立憲王政ハイデラバード	ハイデラバード	ハイデラバード	ハイデラバード	王政ハイデラバード	立憲王政ハイデラバード	1	2
+COUP	115	1812	ハイデラバード	Absolutist	ConstitutionalMonarchy	1
+POST	113	8	5045	7916	13859	5468	9125	14127	ハイデラバード
+COUP	124	1814	清	Absolutist	ConstitutionalMonarchy	0
+COUP	139	1818	スペイン	Absolutist	ConstitutionalMonarchy	0
+COUP	151	1821	ザクセン	BourgeoisDictatorship	ConstitutionalMonarchy	0
+COUP	152	1821	清	ConstitutionalMonarchy	Absolutist	0
+COUP	153	1821	清	Absolutist	ConstitutionalMonarchy	0
+COUP	155	1822	フランス	Absolutist	Republic	0
+COUP	155	1822	シャム	Absolutist	ConstitutionalMonarchy	0
+COUP	156	1822	スペイン	ConstitutionalMonarchy	Absolutist	0
+COUP	157	1822	日本	Absolutist	ConstitutionalMonarchy	0
+COUP	157	1822	スペイン	Absolutist	ConstitutionalMonarchy	0
+COUP	158	1822	オマーン	Absolutist	ConstitutionalMonarchy	0
+COUP	161	1823	スペイン	ConstitutionalMonarchy	Absolutist	0
+COUP	162	1823	スペイン	Absolutist	ConstitutionalMonarchy	0
+COUP	163	1824	サルデーニャ＝ピエモンテ	Absolutist	ConstitutionalMonarchy	0
+COUP	168	1825	シャム	ConstitutionalMonarchy	Absolutist	0
+COUP	172	1826	スペイン	ConstitutionalMonarchy	Absolutist	0
+COUP	173	1826	スペイン	Absolutist	ConstitutionalMonarchy	0
+COUP	184	1829	シク連邦	Republic	Absolutist	0
+COUP	185	1829	シク連邦	Absolutist	ConstitutionalMonarchy	0
+COUP	191	1831	アラビア	ConstitutionalMonarchy	Absolutist	0
+COUP	192	1831	アラビア	Absolutist	ConstitutionalMonarchy	0
+COUP	194	1831	ヒヴァ	Absolutist	ConstitutionalMonarchy	0
+COUP	198	1832	スペイン	ConstitutionalMonarchy	Absolutist	0
+COUP	206	1834	清	ConstitutionalMonarchy	Absolutist	0
+COUP	206	1834	シク連邦	ConstitutionalMonarchy	Absolutist	0
+COUP	206	1834	ハノーファー	Absolutist	ConstitutionalMonarchy	0
+COUP	207	1835	シク連邦	Absolutist	ConstitutionalMonarchy	0
+COUP	208	1835	イギリス	BourgeoisDictatorship	ConstitutionalMonarchy	0
+COUP	211	1836	ヴェネツィア	Republic	Absolutist	0
+COUP	212	1836	ヴェネツィア	Absolutist	ConstitutionalMonarchy	0
+COUP	213	1836	プロイセン	Absolutist	Republic	0
+COUP	215	1837	オーストリア	Absolutist	Republic	0
+COUP	216	1837	ネーデルラント	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	218	1837	アフガニスタン	Absolutist	ConstitutionalMonarchy	0
+COUP	219	1838	スペイン	Absolutist	ConstitutionalMonarchy	0
+COUP	219	1838	ポルトガル	Absolutist	ConstitutionalMonarchy	0
+COUP	221	1838	スイス	Republic	Absolutist	0
+START	222	1838	0	1	0	Absolutist	ConstitutionalMonarchy	教皇領	教皇領	立憲王政教皇領	1	3
+COUP	222	1838	スイス	Absolutist	ConstitutionalMonarchy	0
+COUP	222	1838	教皇領	Absolutist	ConstitutionalMonarchy	0
+COUP	222	1838	ザクセン	ConstitutionalMonarchy	Absolutist	0
+END	223	1839	1	0	1	0	0	1	Absolutist	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.312	1	1102	3948	1111	4292	1111	4292	5252	3020	0.4	0.2	立憲王政教皇領	教皇領	教皇領	教皇領	教皇領	立憲王政教皇領	1	3
+START	223	1839	0	1	0	Absolutist	ConstitutionalMonarchy	デンマーク	王政デンマーク	立憲王政デンマーク	1	4
+COUP	223	1839	ザクセン	Absolutist	ConstitutionalMonarchy	0
+COUP	225	1839	スイス	ConstitutionalMonarchy	Absolutist	0
+COUP	226	1839	ラオス	Absolutist	ConstitutionalMonarchy	0
+COUP	226	1839	スイス	Absolutist	ConstitutionalMonarchy	0
+START	227	1840	2	0	0	ConstitutionalMonarchy	ConstitutionalMonarchy	イギリス	イギリス	ペルー王国	1	28
+END	231	1841	11	2	0	0	1	1	ConstitutionalMonarchy	ConstitutionalMonarchy	ConstitutionalMonarchy	-0.000	1	4103	21953	0	0	-1	-1	24832	23794	0.0	0.0	ペルー王国	イギリス		イギリス	イギリス	ペルー王国	1	28
+POST	222	8	1048	2829	2970	1102	3948	5252	教皇領
+COUP	231	1841	スペイン	ConstitutionalMonarchy	Absolutist	0
+COUP	231	1841	清	Absolutist	ConstitutionalMonarchy	0
+END	232	1841	25	0	1	0	1	1	Absolutist	Absolutist	ConstitutionalMonarchy	-0.109	1	166	337	174	296	187	469	4232	3882	0.4	0.1	立憲王政デンマーク	デンマーク	立憲王政デンマーク	デンマーク	王政デンマーク	立憲王政デンマーク	1	4
+COUP	232	1841	スペイン	Absolutist	ConstitutionalMonarchy	0
+START	233	1841	0	1	0	Absolutist	ConstitutionalMonarchy	デンマーク	デンマーク	第2立憲王政デンマーク	1	3
+COUP	233	1841	デンマーク	Absolutist	ConstitutionalMonarchy	0
+END	234	1841	1	0	1	0	0	1	Absolutist	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.500	1	2010	8997	2024	9336	2024	9569	3882	3851	0.2	0.2	第2立憲王政デンマーク	デンマーク	デンマーク	デンマーク	デンマーク	第2立憲王政デンマーク	1	3
+POST	223	8	205	747	3717	166	337	4232	デンマーク
+POST	233	8	2102	8060	3703	2010	8997	3882	デンマーク
+COUP	249	1845	トスカーナ	Absolutist	ConstitutionalMonarchy	0
+COUP	254	1846	アワド	Absolutist	ConstitutionalMonarchy	0
+COUP	278	1852	ラヘジ	Absolutist	ConstitutionalMonarchy	0
+START	287	1855	0	1	0	Absolutist	ConstitutionalMonarchy	イエメン	王政イエメン	立憲王政イエメン	1	1
+COUP	289	1855	ネパール	Absolutist	ConstitutionalMonarchy	0
+START	290	1855	2	0	0	ConstitutionalMonarchy	ConstitutionalMonarchy	日本	日本	ポートモレスビー王国	1	13
+START	290	1855	2	0	0	ConstitutionalMonarchy	ConstitutionalMonarchy	日本	日本	マノクワリ王国	1	13
+END	294	1856	10	2	0	0	0	1	ConstitutionalMonarchy	ConstitutionalMonarchy	ConstitutionalMonarchy	1.160	1	17014	85508	0	0	-1	-1	143121	144094	0.9	0.0	マノクワリ王国	日本		日本	日本	マノクワリ王国	1	13
+END	294	1856	11	2	0	0	0	1	ConstitutionalMonarchy	ConstitutionalMonarchy	ConstitutionalMonarchy	1.075	1	17014	85508	0	0	-1	-1	143121	144094	2.5	0.0	ポートモレスビー王国	日本		日本	日本	ポートモレスビー王国	1	13
+END	295	1857	22	0	1	0	0	1	Absolutist	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.007	1	726	2337	711	1831	750	3383	1830	1881	2.3	1.6	立憲王政イエメン	イエメン	イエメン	イエメン	王政イエメン	立憲王政イエメン	1	1
+COUP	295	1857	イエメン	Absolutist	ConstitutionalMonarchy	1
+POST	287	8	783	2525	1916	726	2337	1830	イエメン
+START	305	1859	2	0	0	ConstitutionalMonarchy	ConstitutionalMonarchy	日本	日本	ボルネオ王国	1	17
+START	309	1860	2	0	0	ConstitutionalMonarchy	ConstitutionalMonarchy	日本	日本	ポートモレスビー王国	1	16
+END	311	1861	18	2	0	0	1	1	ConstitutionalMonarchy	ConstitutionalMonarchy	ConstitutionalMonarchy	-0.000	1	20997	203977	0	0	-1	-1	153394	153307	0.0	0.0	ボルネオ王国	日本		日本	日本	ボルネオ王国	1	17
+START	311	1861	2	0	0	ConstitutionalMonarchy	ConstitutionalMonarchy	日本	日本	マノクワリ王国	1	15
+END	318	1862	21	2	0	0	1	1	ConstitutionalMonarchy	ConstitutionalMonarchy	ConstitutionalMonarchy	-0.000	1	18549	272235	0	0	-1	-1	153336	153256	0.0	0.0	マノクワリ王国	日本		日本	日本	マノクワリ王国	1	15
+END	318	1862	26	2	0	0	1	1	ConstitutionalMonarchy	ConstitutionalMonarchy	ConstitutionalMonarchy	-0.000	1	19253	247494	0	0	-1	-1	153193	153256	0.0	0.0	ポートモレスビー王国	日本		日本	日本	ポートモレスビー王国	1	16
+COUP	343	1869	朝鮮	Absolutist	ConstitutionalMonarchy	0
+START	356	1872	2	0	0	ConstitutionalMonarchy	ConstitutionalMonarchy	日本	日本	バンダアチェ王国	1	17
+END	363	1874	19	2	0	0	1	1	ConstitutionalMonarchy	ConstitutionalMonarchy	ConstitutionalMonarchy	-0.000	1	22263	212081	0	0	-1	-1	139340	141814	0.0	0.0	バンダアチェ王国	日本		日本	日本	バンダアチェ王国	1	17
+COUP	378	1877	バンダアチェ王国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	379	1878	バンダアチェ王国	BourgeoisDictatorship	ConstitutionalMonarchy	0
+COUP	380	1878	バンダアチェ王国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	388	1880	ハイデラバード	ConstitutionalMonarchy	Absolutist	0
+START	399	1883	2	0	0	ConstitutionalMonarchy	ConstitutionalMonarchy	日本	日本	オークランド王国	1	19
+START	399	1883	2	0	0	ConstitutionalMonarchy	ConstitutionalMonarchy	日本	日本	ダニーデン王国	1	19
+END	405	1884	18	2	0	0	1	1	ConstitutionalMonarchy	ConstitutionalMonarchy	ConstitutionalMonarchy	-0.000	1	23319	290453	0	0	-1	-1	119965	120588	0.2	0.0	オークランド王国	日本		日本	日本	オークランド王国	1	19
+END	406	1884	19	2	0	0	1	1	ConstitutionalMonarchy	ConstitutionalMonarchy	ConstitutionalMonarchy	-0.000	1	23319	290453	0	0	-1	-1	119965	120711	0.2	0.0	ダニーデン王国	日本		日本	日本	ダニーデン王国	1	19
+COUP	424	1889	ダニーデン王国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	441	1893	アラビア	ConstitutionalMonarchy	Absolutist	0
+COUP	442	1893	デンマーク	ConstitutionalMonarchy	Absolutist	0
+COUP	443	1894	アラビア	Absolutist	ConstitutionalMonarchy	0
+COUP	445	1894	デンマーク	Absolutist	ConstitutionalMonarchy	0
+COUP	478	1902	デリー	ConstitutionalMonarchy	Absolutist	0
+COUP	500	1908	マラータ同盟	Absolutist	ConstitutionalMonarchy	0
+COUP	518	1912	カンボジア	Absolutist	ConstitutionalMonarchy	0
+COUP	549	1920	エチオピア	ConstitutionalMonarchy	Absolutist	0
+COUP	564	1924	ハイデラバード	Absolutist	ConstitutionalMonarchy	0
+COUP	570	1925	オスマン	Absolutist	ConstitutionalMonarchy	0
+COUP	589	1930	アワド	ConstitutionalMonarchy	Absolutist	0
+COUP	616	1937	アワド	Absolutist	ConstitutionalMonarchy	0
+COUP	619	1938	両シチリア	Absolutist	ConstitutionalMonarchy	0
+COUP	633	1941	西山朝	Absolutist	ConstitutionalMonarchy	0
+COUP	634	1941	アルジェ摂政国	Absolutist	ConstitutionalMonarchy	0
+COUP	652	1946	バイエルン	Absolutist	ConstitutionalMonarchy	0
+COUP	660	1948	コーカンド	Absolutist	ConstitutionalMonarchy	0
+SEED	2
+SUM	129	8	0	8	579	0	621	65
+COUP	8	1785	日本	Shogunate	Absolutist	0
+START	21	1788	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	イギリス	立憲王政イギリス	統領制イギリス	1	31
+END	29	1790	22	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-1.083	1	4326	13673	4126	12903	4126	16409	28617	27570	5.8	1.0	統領制イギリス	イギリス	イギリス	イギリス	立憲王政イギリス	統領制イギリス	1	31
+COUP	29	1790	イギリス	ConstitutionalMonarchy	BourgeoisDictatorship	1
+START	30	1790	0	1	0	Absolutist	ConstitutionalMonarchy	ダホメ王国	王政ダホメ	立憲王政ダホメ	1	1
+END	34	1791	10	0	1	0	0	1	Absolutist	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.031	1	212	217	208	199	208	199	383	382	0.0	0.2	立憲王政ダホメ	ダホメ王国	ダホメ王国	ダホメ王国	王政ダホメ	立憲王政ダホメ	1	1
+COUP	34	1791	ダホメ王国	Absolutist	ConstitutionalMonarchy	1
+POST	21	8	5155	18241	26353	4326	13673	28617	イギリス
+START	38	1792	0	1	0	Absolutist	ConstitutionalMonarchy	アシャンティ王国	王政アシャンティ	立憲王政アシャンティ	1	1
+COUP	38	1792	阮氏	Despotic	Absolutist	0
+COUP	39	1793	西山朝	Despotic	Absolutist	0
+POST	30	8	194	328	341	212	217	383	ダホメ王国
+COUP	43	1794	ビルマ	Despotic	Absolutist	0
+END	45	1794	19	0	1	0	0	1	Absolutist	ConstitutionalMonarchy	ConstitutionalMonarchy	-0.859	1	2323	1572	2255	1193	2255	1279	3563	3554	1.4	5.8	立憲王政アシャンティ	アシャンティ王国	アシャンティ王国	アシャンティ王国	王政アシャンティ	立憲王政アシャンティ	1	1
+COUP	45	1794	アシャンティ王国	Absolutist	ConstitutionalMonarchy	1
+COUP	47	1795	ペルシャ	Despotic	Absolutist	0
+COUP	49	1795	ハワイ王国	Absolutist	ConstitutionalMonarchy	0
+START	50	1795	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	アシャンティ王国	立憲王政アシャンティ	統領制アシャンティ	1	1
+COUP	50	1795	ハイデラバード	Despotic	Absolutist	0
+END	51	1796	1	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-1.500	1	2242	1629	2205	1602	2205	2624	3520	3443	0.1	0.1	統領制アシャンティ	アシャンティ王国	アシャンティ王国	アシャンティ王国	立憲王政アシャンティ	統領制アシャンティ	1	1
+COUP	51	1796	アシャンティ王国	ConstitutionalMonarchy	BourgeoisDictatorship	1
+COUP	52	1796	アシャンティ王国	BourgeoisDictatorship	ConstitutionalMonarchy	0
+POST	38	8	2193	2387	3427	2323	1572	3563	アシャンティ王国
+COUP	53	1796	ボルヌ帝国	Absolutist	ConstitutionalMonarchy	0
+COUP	53	1796	ハワイ王国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+START	56	1797	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	アシャンティ王国	立憲王政アシャンティ	統領制アシャンティ	1	1
+COUP	57	1797	アワド	Despotic	Absolutist	0
+END	58	1797	5	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-1.500	1	2185	2331	2152	2102	2152	2779	3415	3400	0.4	1.3	統領制アシャンティ	アシャンティ王国	アシャンティ王国	アシャンティ王国	立憲王政アシャンティ	統領制アシャンティ	1	1
+COUP	58	1797	アシャンティ王国	ConstitutionalMonarchy	BourgeoisDictatorship	1
+POST	50	8	2149	2666	3395	2242	1629	3520	アシャンティ王国
+COUP	59	1798	デリー	Despotic	Absolutist	0
+COUP	60	1798	エチオピア	Despotic	Absolutist	0
+COUP	64	1799	ボルヌ帝国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	65	1799	マイソール	Despotic	Absolutist	0
+POST	56	8	2132	2800	3352	2185	2331	3415	アシャンティ王国
+COUP	67	1800	ロシア	Despotic	ConstitutionalMonarchy	0
+COUP	68	1800	コンゴ王国	Absolutist	ConstitutionalMonarchy	0
+COUP	68	1800	ハワイ王国	BourgeoisDictatorship	ConstitutionalMonarchy	0
+COUP	69	1800	ハワイ王国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	70	1800	ハワイ王国	BourgeoisDictatorship	Republic	0
+COUP	74	1801	マラータ同盟	Despotic	Absolutist	0
+START	76	1802	0	1	0	BourgeoisDictatorship	ConstitutionalMonarchy	イギリス	統領制イギリス	立憲王政イギリス	1	31
+END	77	1802	1	0	1	0	0	1	BourgeoisDictatorship	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.500	1	6868	42085	6898	37482	6898	37482	25158	25066	1.4	0.1	立憲王政イギリス	イギリス	イギリス	イギリス	統領制イギリス	立憲王政イギリス	1	31
+COUP	77	1802	イギリス	BourgeoisDictatorship	ConstitutionalMonarchy	1
+COUP	78	1802	アフガニスタン	Despotic	Absolutist	0
+POST	76	8	7201	26846	25133	6868	42085	25158	イギリス
+COUP	87	1805	イギリス	ConstitutionalMonarchy	Absolutist	0
+COUP	88	1805	イギリス	Absolutist	ConstitutionalMonarchy	0
+COUP	94	1806	清	Despotic	Absolutist	0
+COUP	98	1807	スペイン	Absolutist	Republic	0
+COUP	99	1808	デリー	Absolutist	ConstitutionalMonarchy	0
+COUP	107	1810	アメリカ	Republic	Absolutist	0
+COUP	108	1810	アメリカ	Absolutist	ConstitutionalMonarchy	0
+COUP	109	1810	アラビア	Despotic	Absolutist	0
+COUP	110	1810	ザクセン	Absolutist	ConstitutionalMonarchy	0
+COUP	115	1812	ザクセン	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	124	1814	アメリカ	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	129	1815	スペイン	Republic	Absolutist	0
+COUP	129	1815	オマーン	Absolutist	ConstitutionalMonarchy	0
+START	130	1815	0	1	0	Absolutist	ConstitutionalMonarchy	オヨ帝国	王政オヨ	立憲王政オヨ	1	1
+COUP	130	1815	スペイン	Absolutist	ConstitutionalMonarchy	0
+END	135	1817	13	0	1	0	0	1	Absolutist	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.500	1	1292	512	1260	573	1261	598	1960	1961	0.3	1.3	立憲王政オヨ	オヨ帝国	オヨ帝国	オヨ帝国	王政オヨ	立憲王政オヨ	1	1
+COUP	135	1817	オヨ帝国	Absolutist	ConstitutionalMonarchy	1
+COUP	137	1817	スイス	Republic	Absolutist	0
+COUP	138	1817	スイス	Absolutist	ConstitutionalMonarchy	0
+COUP	139	1818	カンボジア	Absolutist	ConstitutionalMonarchy	0
+COUP	139	1818	ライン諸邦	Absolutist	Republic	0
+POST	130	8	1267	767	1937	1292	512	1960	オヨ帝国
+COUP	143	1819	スペイン	ConstitutionalMonarchy	Absolutist	0
+COUP	144	1819	スペイン	Absolutist	ConstitutionalMonarchy	0
+COUP	147	1820	シャム	Absolutist	ConstitutionalMonarchy	0
+COUP	151	1821	プロイセン	Absolutist	ConstitutionalMonarchy	0
+COUP	165	1824	清	Absolutist	ConstitutionalMonarchy	0
+START	167	1825	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	プロイセン	立憲王政プロイセン	統領制プロイセン	1	3
+COUP	169	1825	スペイン	ConstitutionalMonarchy	Absolutist	0
+END	170	1825	7	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-1.500	1	3364	17489	3384	17451	3411	17741	7317	7558	4.1	2.2	統領制プロイセン	プロイセン	プロイセン	プロイセン	立憲王政プロイセン	統領制プロイセン	1	3
+COUP	170	1825	プロイセン	ConstitutionalMonarchy	BourgeoisDictatorship	1
+COUP	170	1825	スペイン	Absolutist	ConstitutionalMonarchy	0
+POST	167	8	3477	24179	7831	3364	17489	7317	プロイセン
+COUP	183	1829	スイス	ConstitutionalMonarchy	Absolutist	0
+COUP	184	1829	スイス	Absolutist	ConstitutionalMonarchy	0
+COUP	184	1829	ヴェネツィア	Republic	Absolutist	0
+COUP	185	1829	ヴェネツィア	Absolutist	ConstitutionalMonarchy	0
+COUP	187	1830	スペイン	ConstitutionalMonarchy	Absolutist	0
+COUP	188	1830	スペイン	Absolutist	ConstitutionalMonarchy	0
+COUP	196	1832	コンゴ王国	ConstitutionalMonarchy	Absolutist	0
+COUP	198	1832	ネーデルラント	Republic	Absolutist	0
+COUP	198	1832	オヨ帝国	ConstitutionalMonarchy	Absolutist	0
+COUP	199	1833	ネーデルラント	Absolutist	ConstitutionalMonarchy	0
+COUP	199	1833	コンゴ王国	Absolutist	ConstitutionalMonarchy	0
+COUP	199	1833	オヨ帝国	Absolutist	ConstitutionalMonarchy	0
+COUP	200	1833	スイス	ConstitutionalMonarchy	Absolutist	0
+COUP	200	1833	ヴェネツィア	ConstitutionalMonarchy	Republic	0
+COUP	200	1833	コンゴ王国	ConstitutionalMonarchy	Absolutist	0
+COUP	201	1833	スイス	Absolutist	ConstitutionalMonarchy	0
+COUP	201	1833	コンゴ王国	Absolutist	ConstitutionalMonarchy	0
+COUP	203	1834	日本	Absolutist	ConstitutionalMonarchy	0
+COUP	204	1834	プロイセン	BourgeoisDictatorship	ConstitutionalMonarchy	0
+COUP	211	1836	エチオピア	Absolutist	ConstitutionalMonarchy	0
+COUP	211	1836	トスカーナ	Absolutist	ConstitutionalMonarchy	0
+COUP	216	1837	ヴェネツィア	Republic	Absolutist	0
+COUP	217	1837	ヴェネツィア	Absolutist	ConstitutionalMonarchy	0
+COUP	229	1840	ネーデルラント	ConstitutionalMonarchy	Absolutist	0
+COUP	230	1840	ネーデルラント	Absolutist	ConstitutionalMonarchy	0
+COUP	231	1841	プロイセン	ConstitutionalMonarchy	Absolutist	0
+COUP	232	1841	プロイセン	Absolutist	ConstitutionalMonarchy	0
+COUP	238	1842	オスマン	Absolutist	Republic	0
+COUP	250	1845	シク連邦	Republic	ConstitutionalMonarchy	0
+COUP	250	1845	ネパール	Absolutist	ConstitutionalMonarchy	0
+COUP	262	1848	ジェノヴァ	Republic	Absolutist	0
+COUP	263	1849	ジェノヴァ	Absolutist	ConstitutionalMonarchy	0
+COUP	273	1851	スペイン	ConstitutionalMonarchy	Republic	0
+COUP	274	1851	ラヘジ	Absolutist	ConstitutionalMonarchy	0
+COUP	277	1852	バイエルン	Absolutist	ConstitutionalMonarchy	0
+COUP	286	1854	アラビア	Absolutist	ConstitutionalMonarchy	0
+COUP	298	1857	イエメン	Absolutist	ConstitutionalMonarchy	0
+COUP	301	1858	デンマーク	Absolutist	ConstitutionalMonarchy	0
+START	305	1859	2	0	0	ConstitutionalMonarchy	ConstitutionalMonarchy	イギリス	イギリス	クルマン王国	1	35
+END	311	1861	16	2	0	0	1	1	ConstitutionalMonarchy	ConstitutionalMonarchy	ConstitutionalMonarchy	-0.000	1	2627	44716	0	0	-1	-1	39929	38885	0.0	0.0	クルマン王国	イギリス		イギリス	イギリス	クルマン王国	1	35
+START	317	1862	2	0	0	BourgeoisDictatorship	BourgeoisDictatorship	アメリカ	アメリカ	ブラワヨ共和国	1	26
+END	324	1864	19	2	0	0	1	1	BourgeoisDictatorship	BourgeoisDictatorship	BourgeoisDictatorship	-0.000	1	5442	60363	0	0	-1	-1	54993	56941	0.0	0.0	ブラワヨ共和国	アメリカ		アメリカ	アメリカ	ブラワヨ共和国	1	26
+COUP	326	1864	エチオピア	ConstitutionalMonarchy	Absolutist	0
+COUP	329	1865	エチオピア	Absolutist	ConstitutionalMonarchy	0
+COUP	334	1866	オマーン	ConstitutionalMonarchy	Absolutist	0
+COUP	336	1867	オマーン	Absolutist	ConstitutionalMonarchy	0
+COUP	339	1868	シャム	ConstitutionalMonarchy	Absolutist	0
+COUP	340	1868	シャム	Absolutist	ConstitutionalMonarchy	0
+COUP	363	1874	オヨ帝国	ConstitutionalMonarchy	Absolutist	0
+COUP	365	1874	オヨ帝国	Absolutist	ConstitutionalMonarchy	0
+START	375	1877	2	0	0	BourgeoisDictatorship	BourgeoisDictatorship	アメリカ	イベリア	キサンガニ共和国	1	29
+START	379	1878	2	0	0	BourgeoisDictatorship	BourgeoisDictatorship	アメリカ	イベリア	フィリピン共和国	1	28
+END	380	1878	13	2	0	0	1	1	BourgeoisDictatorship	BourgeoisDictatorship	BourgeoisDictatorship	-0.000	1	5112	62331	0	0	-1	-1	61469	61251	0.0	0.0	キサンガニ共和国	イベリア		アメリカ	イベリア	キサンガニ共和国	1	29
+START	381	1878	2	0	0	BourgeoisDictatorship	BourgeoisDictatorship	アメリカ	イベリア	トゥクマン共和国	1	27
+END	385	1879	16	2	0	0	1	1	BourgeoisDictatorship	BourgeoisDictatorship	BourgeoisDictatorship	-0.000	1	5358	83262	0	0	-1	-1	61326	60795	0.0	0.0	フィリピン共和国	イベリア		アメリカ	イベリア	フィリピン共和国	1	28
+END	386	1879	13	2	0	0	1	1	BourgeoisDictatorship	BourgeoisDictatorship	BourgeoisDictatorship	-0.000	1	5363	79814	0	0	-1	-1	61251	60715	0.0	0.0	トゥクマン共和国	イベリア		アメリカ	イベリア	トゥクマン共和国	1	27
+START	387	1880	2	0	0	BourgeoisDictatorship	BourgeoisDictatorship	アメリカ	イベリア	エルパソ共和国	1	26
+END	393	1881	17	2	0	0	1	1	BourgeoisDictatorship	BourgeoisDictatorship	BourgeoisDictatorship	-0.003	1	6144	81671	0	0	-1	-1	60715	58626	0.0	0.0	エルパソ共和国	イベリア		アメリカ	イベリア	エルパソ共和国	1	26
+COUP	396	1882	デリー	ConstitutionalMonarchy	Absolutist	0
+COUP	397	1882	デリー	Absolutist	ConstitutionalMonarchy	0
+COUP	432	1891	エチオピア	ConstitutionalMonarchy	Absolutist	0
+COUP	435	1892	エチオピア	Absolutist	ConstitutionalMonarchy	0
+START	442	1893	2	0	0	ConstitutionalMonarchy	ConstitutionalMonarchy	清	清	パナマ王国	1	54
+COUP	442	1893	マラータ同盟	Absolutist	ConstitutionalMonarchy	0
+END	447	1895	13	2	0	0	1	1	ConstitutionalMonarchy	ConstitutionalMonarchy	ConstitutionalMonarchy	-0.000	1	74728	529560	0	0	-1	-1	626644	626118	13.3	0.0	パナマ王国	清		清	清	パナマ王国	1	54
+COUP	458	1897	コンゴ王国	ConstitutionalMonarchy	Absolutist	0
+COUP	459	1898	ラオス	Absolutist	ConstitutionalMonarchy	0
+COUP	459	1898	コンゴ王国	Absolutist	Republic	0
+COUP	479	1903	サルデーニャ＝ピエモンテ	Absolutist	ConstitutionalMonarchy	0
+COUP	488	1905	ハノーファー	Absolutist	ConstitutionalMonarchy	0
+COUP	495	1907	フランス	Absolutist	ConstitutionalMonarchy	0
+COUP	496	1907	朝鮮	Absolutist	ConstitutionalMonarchy	0
+COUP	498	1907	ハイデラバード	Absolutist	ConstitutionalMonarchy	0
+COUP	511	1911	両シチリア	Absolutist	ConstitutionalMonarchy	0
+COUP	529	1915	オーストリア	Absolutist	ConstitutionalMonarchy	0
+COUP	546	1919	西山朝	Absolutist	ConstitutionalMonarchy	0
+COUP	547	1920	教皇領	Absolutist	ConstitutionalMonarchy	0
+COUP	554	1921	ヴュルテンベルク	Absolutist	ConstitutionalMonarchy	0
+COUP	556	1922	エチオピア	ConstitutionalMonarchy	Absolutist	0
+COUP	559	1923	エチオピア	Absolutist	ConstitutionalMonarchy	0
+COUP	564	1924	スウェーデン	Absolutist	ConstitutionalMonarchy	0
+COUP	568	1925	アルジェ摂政国	Absolutist	ConstitutionalMonarchy	0
+COUP	571	1926	デリー	ConstitutionalMonarchy	Absolutist	0
+COUP	573	1926	アワド	Absolutist	ConstitutionalMonarchy	0
+COUP	583	1929	ヒヴァ	Absolutist	ConstitutionalMonarchy	0
+COUP	608	1935	モロッコ	Absolutist	ConstitutionalMonarchy	0
+COUP	614	1936	コーカンド	Absolutist	ConstitutionalMonarchy	0
+COUP	638	1942	ポルトガル	Absolutist	ConstitutionalMonarchy	0
+SEED	3
+SUM	138	8	0	8	908	0	995	67
+START	7	1785	0	1	0	Absolutist	ConstitutionalMonarchy	オヨ帝国	王政オヨ	立憲王政オヨ	1	1
+COUP	8	1785	日本	Shogunate	Absolutist	0
+END	14	1786	21	0	1	0	0	1	Absolutist	ConstitutionalMonarchy	ConstitutionalMonarchy	-0.508	1	1494	655	1422	413	1422	504	2098	2063	0.1	3.9	立憲王政オヨ	オヨ帝国	オヨ帝国	オヨ帝国	王政オヨ	立憲王政オヨ	1	1
+START	14	1786	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	イギリス	立憲王政イギリス	統領制イギリス	1	30
+COUP	14	1786	オヨ帝国	Absolutist	ConstitutionalMonarchy	1
+END	22	1788	23	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-0.455	1	4109	12095	3853	10320	3853	10883	28862	27896	11.0	1.6	統領制イギリス	イギリス	イギリス	イギリス	立憲王政イギリス	統領制イギリス	1	30
+POST	7	8	1398	930	2029	1494	655	2098	オヨ帝国
+COUP	22	1788	イギリス	ConstitutionalMonarchy	BourgeoisDictatorship	1
+START	25	1789	2	0	0	BourgeoisDictatorship	BourgeoisDictatorship	イギリス	イギリス	オーストラリア共和国	1	30
+START	26	1789	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	オヨ帝国	立憲王政オヨ	統領制オヨ	1	1
+END	28	1790	5	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-1.500	1	1366	947	1343	1406	1343	1406	1971	1960	0.2	0.4	統領制オヨ	オヨ帝国	オヨ帝国	オヨ帝国	立憲王政オヨ	統領制オヨ	1	1
+COUP	28	1790	オヨ帝国	ConstitutionalMonarchy	BourgeoisDictatorship	1
+START	30	1790	2	0	0	BourgeoisDictatorship	BourgeoisDictatorship	イギリス	イギリス	アデレード共和国	1	29
+POST	14	8	3874	15365	26540	4109	12095	28862	イギリス
+START	32	1791	2	0	0	BourgeoisDictatorship	BourgeoisDictatorship	イギリス	イギリス	ホバート共和国	1	28
+END	35	1792	28	2	0	0	1	1	BourgeoisDictatorship	BourgeoisDictatorship	BourgeoisDictatorship	-0.000	1	3842	13962	0	0	-1	-1	27613	25811	0.0	0.0	オーストラリア共和国	イギリス		イギリス	イギリス	オーストラリア共和国	1	30
+START	35	1792	2	0	0	BourgeoisDictatorship	BourgeoisDictatorship	イギリス	イギリス	ブリスベン共和国	1	27
+END	36	1792	18	2	0	0	1	1	BourgeoisDictatorship	BourgeoisDictatorship	BourgeoisDictatorship	-0.000	1	3896	14020	0	0	-1	-1	26724	25718	0.0	0.0	アデレード共和国	イギリス		イギリス	イギリス	アデレード共和国	1	29
+POST	26	8	1331	1561	1947	1366	947	1971	オヨ帝国
+COUP	36	1792	西山朝	Despotic	Absolutist	0
+COUP	36	1792	阮氏	Despotic	Absolutist	0
+START	40	1793	2	0	0	BourgeoisDictatorship	BourgeoisDictatorship	イギリス	イギリス	パース共和国	1	26
+END	41	1793	26	2	0	0	1	1	BourgeoisDictatorship	BourgeoisDictatorship	BourgeoisDictatorship	-0.000	1	3847	16510	0	0	-1	-1	26370	25290	0.0	0.0	ホバート共和国	イギリス		イギリス	イギリス	ホバート共和国	1	28
+END	44	1794	26	2	0	0	1	1	BourgeoisDictatorship	BourgeoisDictatorship	BourgeoisDictatorship	-0.000	1	3782	16730	0	0	-1	-1	25957	25102	0.0	0.0	ブリスベン共和国	イギリス		イギリス	イギリス	ブリスベン共和国	1	27
+COUP	45	1794	ペルシャ	Despotic	Absolutist	0
+COUP	45	1794	アデレード共和国	BourgeoisDictatorship	ConstitutionalMonarchy	0
+COUP	46	1794	アデレード共和国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+END	48	1795	22	2	0	0	1	1	BourgeoisDictatorship	BourgeoisDictatorship	BourgeoisDictatorship	-0.000	1	3740	15929	0	0	-1	-1	25460	24812	0.0	0.0	パース共和国	イギリス		イギリス	イギリス	パース共和国	1	26
+COUP	49	1795	ビルマ	Despotic	Absolutist	0
+COUP	50	1795	ハイデラバード	Despotic	Absolutist	0
+COUP	50	1795	ハワイ王国	Absolutist	ConstitutionalMonarchy	0
+COUP	50	1795	アデレード共和国	BourgeoisDictatorship	ConstitutionalMonarchy	0
+COUP	50	1795	ホバート共和国	BourgeoisDictatorship	ConstitutionalMonarchy	0
+COUP	51	1796	アデレード共和国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	52	1796	オーストラリア共和国	BourgeoisDictatorship	Republic	0
+COUP	54	1796	ハワイ王国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	55	1797	マイソール	Despotic	Absolutist	0
+COUP	55	1797	ボルヌ帝国	Absolutist	ConstitutionalMonarchy	0
+COUP	56	1797	アワド	Despotic	Absolutist	0
+COUP	57	1797	エチオピア	Despotic	Absolutist	0
+COUP	60	1798	ブリスベン共和国	BourgeoisDictatorship	ConstitutionalMonarchy	0
+COUP	62	1798	パース共和国	BourgeoisDictatorship	ConstitutionalMonarchy	0
+COUP	63	1799	デリー	Despotic	ConstitutionalMonarchy	0
+COUP	63	1799	オヨ帝国	BourgeoisDictatorship	ConstitutionalMonarchy	0
+COUP	64	1799	オヨ帝国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	66	1799	ボルヌ帝国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	68	1800	コンゴ王国	Absolutist	ConstitutionalMonarchy	0
+START	72	1801	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	コンゴ王国	立憲王政コンゴ	統領制コンゴ	1	1
+END	77	1802	13	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-1.013	1	406	330	402	291	402	291	730	739	0.3	0.5	統領制コンゴ	コンゴ王国	コンゴ王国	コンゴ王国	立憲王政コンゴ	統領制コンゴ	1	1
+COUP	77	1802	コンゴ王国	ConstitutionalMonarchy	BourgeoisDictatorship	1
+COUP	78	1802	コンゴ王国	BourgeoisDictatorship	ConstitutionalMonarchy	0
+COUP	79	1803	コンゴ王国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	80	1803	コンゴ王国	BourgeoisDictatorship	ConstitutionalMonarchy	0
+COUP	82	1803	プロイセン	Absolutist	Despotic	0
+COUP	83	1804	プロイセン	Despotic	ConstitutionalMonarchy	0
+POST	72	8	409	482	729	406	330	730	コンゴ王国
+COUP	88	1805	マラータ同盟	Despotic	Absolutist	0
+COUP	89	1805	プロイセン	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	89	1805	ハワイ王国	BourgeoisDictatorship	ConstitutionalMonarchy	0
+COUP	90	1805	清	Despotic	Absolutist	0
+COUP	91	1806	ダホメ王国	Absolutist	ConstitutionalMonarchy	0
+COUP	99	1808	アフガニスタン	Despotic	Absolutist	0
+COUP	104	1809	スペイン	Absolutist	ConstitutionalMonarchy	0
+COUP	104	1809	ザクセン	Absolutist	ConstitutionalMonarchy	0
+COUP	107	1810	オマーン	Absolutist	ConstitutionalMonarchy	0
+COUP	111	1811	アシャンティ王国	Absolutist	ConstitutionalMonarchy	0
+COUP	112	1811	スペイン	ConstitutionalMonarchy	Absolutist	0
+COUP	112	1811	アラビア	Despotic	Absolutist	0
+COUP	113	1811	スペイン	Absolutist	ConstitutionalMonarchy	0
+COUP	115	1812	トスカーナ	Absolutist	Republic	0
+COUP	132	1816	スペイン	ConstitutionalMonarchy	Absolutist	0
+COUP	133	1816	スペイン	Absolutist	ConstitutionalMonarchy	0
+START	143	1819	0	1	0	Absolutist	ConstitutionalMonarchy	シャム	王政中華	立憲王政中華	1	1
+END	149	1820	17	0	1	0	0	1	Absolutist	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.009	1	4530	8984	4433	5249	4581	6477	23140	22348	29.6	7.5	立憲王政中華	中華	中華	シャム	王政中華	立憲王政中華	1	1
+COUP	149	1820	スペイン	ConstitutionalMonarchy	Absolutist	0
+COUP	149	1820	シャム	Absolutist	ConstitutionalMonarchy	1
+START	150	1820	0	1	0	Absolutist	ConstitutionalMonarchy	エチオピア	王政エチオピア	立憲王政エチオピア	1	1
+COUP	150	1820	スペイン	Absolutist	ConstitutionalMonarchy	0
+END	156	1822	16	0	1	0	0	1	Absolutist	ConstitutionalMonarchy	ConstitutionalMonarchy	-0.789	1	2633	4314	2596	3437	2604	3735	4486	4511	0.6	4.9	立憲王政エチオピア	エチオピア	エチオピア	エチオピア	王政エチオピア	立憲王政エチオピア	1	1
+COUP	156	1822	エチオピア	Absolutist	ConstitutionalMonarchy	1
+POST	143	8	3902	9976	22418	4530	8984	23140	シャム
+COUP	157	1822	オマーン	ConstitutionalMonarchy	Absolutist	0
+COUP	158	1822	オマーン	Absolutist	ConstitutionalMonarchy	0
+COUP	160	1823	スイス	Republic	Absolutist	0
+COUP	161	1823	スペイン	ConstitutionalMonarchy	Absolutist	0
+COUP	161	1823	スイス	Absolutist	ConstitutionalMonarchy	0
+COUP	161	1823	ザクセン	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	162	1823	スペイン	Absolutist	ConstitutionalMonarchy	0
+COUP	162	1823	ザクセン	BourgeoisDictatorship	ConstitutionalMonarchy	0
+POST	150	8	2409	5255	4476	2633	4314	4486	エチオピア
+COUP	165	1824	ネーデルラント	Republic	Absolutist	0
+COUP	166	1824	ネーデルラント	Absolutist	ConstitutionalMonarchy	0
+COUP	177	1827	スペイン	ConstitutionalMonarchy	Absolutist	0
+COUP	177	1827	シク連邦	Republic	Absolutist	0
+COUP	178	1827	スペイン	Absolutist	ConstitutionalMonarchy	0
+COUP	178	1827	シク連邦	Absolutist	ConstitutionalMonarchy	0
+COUP	179	1828	ポーランド	Republic	Absolutist	0
+COUP	180	1828	ポーランド	Absolutist	ConstitutionalMonarchy	0
+COUP	183	1829	スペイン	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	189	1830	ライン諸邦	Absolutist	ConstitutionalMonarchy	0
+COUP	198	1832	アシャンティ王国	ConstitutionalMonarchy	Absolutist	0
+COUP	199	1833	アシャンティ王国	Absolutist	ConstitutionalMonarchy	0
+COUP	202	1833	ロシア	Despotic	ConstitutionalMonarchy	0
+COUP	203	1834	ポーランド	ConstitutionalMonarchy	Absolutist	0
+COUP	203	1834	ヴェネツィア	Republic	Absolutist	0
+COUP	204	1834	ポーランド	Absolutist	ConstitutionalMonarchy	0
+COUP	204	1834	ヴェネツィア	Absolutist	ConstitutionalMonarchy	0
+START	209	1835	0	1	0	BourgeoisDictatorship	ConstitutionalMonarchy	プロイセン	統領制プロイセン	立憲王政プロイセン	1	1
+END	210	1835	1	0	1	0	0	1	BourgeoisDictatorship	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.500	1	1801	8458	1802	7690	1802	7690	2806	2840	0.2	0.1	立憲王政プロイセン	プロイセン	プロイセン	プロイセン	統領制プロイセン	立憲王政プロイセン	1	1
+COUP	210	1835	アメリカ	Republic	Absolutist	0
+COUP	210	1835	プロイセン	BourgeoisDictatorship	ConstitutionalMonarchy	1
+COUP	211	1836	アメリカ	Absolutist	ConstitutionalMonarchy	0
+COUP	211	1836	ネーデルラント	ConstitutionalMonarchy	Absolutist	0
+COUP	212	1836	ネーデルラント	Absolutist	ConstitutionalMonarchy	0
+POST	209	8	1836	10537	2942	1801	8458	2806	プロイセン
+COUP	221	1838	ダホメ王国	ConstitutionalMonarchy	Absolutist	0
+COUP	222	1838	ロシア	ConstitutionalMonarchy	Absolutist	0
+COUP	223	1839	ロシア	Absolutist	ConstitutionalMonarchy	0
+COUP	223	1839	サルデーニャ＝ピエモンテ	Absolutist	ConstitutionalMonarchy	0
+COUP	224	1839	ダホメ王国	Absolutist	ConstitutionalMonarchy	0
+COUP	225	1839	ラオス	Absolutist	ConstitutionalMonarchy	0
+COUP	226	1839	清	Absolutist	ConstitutionalMonarchy	0
+COUP	230	1840	マラータ同盟	Absolutist	ConstitutionalMonarchy	0
+COUP	231	1841	プロイセン	ConstitutionalMonarchy	Absolutist	0
+COUP	232	1841	プロイセン	Absolutist	ConstitutionalMonarchy	0
+COUP	234	1841	日本	Absolutist	ConstitutionalMonarchy	0
+COUP	248	1845	ジェノヴァ	Republic	Absolutist	0
+COUP	249	1845	ジェノヴァ	Absolutist	ConstitutionalMonarchy	0
+COUP	253	1846	アシャンティ王国	ConstitutionalMonarchy	Absolutist	0
+COUP	254	1846	アシャンティ王国	Absolutist	ConstitutionalMonarchy	0
+COUP	261	1848	デンマーク	Absolutist	ConstitutionalMonarchy	0
+START	265	1849	0	1	0	BourgeoisDictatorship	ConstitutionalMonarchy	イギリス	統領制イギリス	立憲王政イギリス	1	31
+END	266	1849	1	0	1	0	0	1	BourgeoisDictatorship	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.015	1	5640	57737	5634	50794	5634	50794	32169	31949	0.3	0.1	立憲王政イギリス	イギリス	イギリス	イギリス	統領制イギリス	立憲王政イギリス	1	31
+COUP	266	1849	イギリス	BourgeoisDictatorship	ConstitutionalMonarchy	1
+COUP	270	1850	朝鮮	Absolutist	ConstitutionalMonarchy	0
+START	271	1851	2	0	0	ConstitutionalMonarchy	ConstitutionalMonarchy	イギリス	イギリス	マカッサル王国	1	31
+POST	265	8	4849	47964	31160	5640	57737	32169	イギリス
+COUP	274	1851	ラヘジ	Absolutist	ConstitutionalMonarchy	0
+END	279	1853	22	2	0	0	1	1	ConstitutionalMonarchy	ConstitutionalMonarchy	ConstitutionalMonarchy	-0.001	1	5074	46725	0	0	-1	-1	31690	29970	0.0	0.0	マカッサル王国	イギリス		イギリス	イギリス	マカッサル王国	1	31
+START	279	1853	2	0	0	ConstitutionalMonarchy	ConstitutionalMonarchy	イギリス	イギリス	スリナム王国	1	30
+END	287	1855	22	2	0	0	1	1	ConstitutionalMonarchy	ConstitutionalMonarchy	ConstitutionalMonarchy	-0.009	1	5399	48118	0	0	-1	-1	31226	29605	0.1	0.1	スリナム王国	イギリス		イギリス	イギリス	スリナム王国	1	30
+COUP	287	1855	アラビア	Absolutist	ConstitutionalMonarchy	0
+COUP	291	1856	ソコト	Absolutist	ConstitutionalMonarchy	0
+COUP	299	1858	アワド	Absolutist	ConstitutionalMonarchy	0
+COUP	322	1863	ネパール	Absolutist	ConstitutionalMonarchy	0
+START	323	1864	2	0	0	Absolutist	Absolutist	オーストリア	オーストリア	ガリツィア	1	13
+START	323	1864	2	0	0	Absolutist	Absolutist	オーストリア	オーストリア	トランシルヴァニア	1	13
+START	325	1864	2	0	0	Absolutist	Absolutist	オーストリア	オーストリア	スロバキア	1	12
+COUP	325	1864	コーカンド	Absolutist	ConstitutionalMonarchy	0
+START	326	1864	2	0	0	Absolutist	Absolutist	オーストリア	オーストリア	ロンバルディア	1	11
+COUP	326	1864	サルデーニャ＝ピエモンテ	ConstitutionalMonarchy	Absolutist	0
+END	327	1865	10	2	0	0	0	1	Absolutist	Absolutist	Absolutist	1.030	1	10742	26515	0	0	-1	-1	26034	26069	0.0	0.0	ガリツィア	オーストリア		オーストリア	オーストリア	ガリツィア	1	13
+END	327	1865	12	2	0	0	0	1	Absolutist	Absolutist	Absolutist	1.047	1	10742	26515	0	0	-1	-1	26034	26069	0.0	0.0	トランシルヴァニア	オーストリア		オーストリア	オーストリア	トランシルヴァニア	1	13
+START	327	1865	2	0	0	Absolutist	Absolutist	オーストリア	オーストリア	ハンガリー	1	12
+END	329	1865	11	2	0	0	0	1	Absolutist	Absolutist	Absolutist	1.500	1	10915	30081	0	0	-1	-1	26142	25899	0.1	0.0	スロバキア	オーストリア		オーストリア	オーストリア	スロバキア	1	12
+END	329	1865	9	2	0	0	0	1	Absolutist	Absolutist	Absolutist	1.012	1	11061	33067	0	0	-1	-1	26152	25899	0.1	0.0	ロンバルディア	オーストリア		オーストリア	オーストリア	ロンバルディア	1	11
+START	329	1865	2	0	0	Absolutist	Absolutist	オーストリア	オーストリア	ガリツィア	1	12
+START	329	1865	2	0	0	Absolutist	Absolutist	オーストリア	オーストリア	トランシルヴァニア	1	12
+START	330	1865	2	0	0	Absolutist	Absolutist	オーストリア	オーストリア	スロバキア	1	10
+START	330	1865	2	0	0	Absolutist	Absolutist	オーストリア	オーストリア	ロンバルディア	1	10
+COUP	330	1865	ヒヴァ	Absolutist	ConstitutionalMonarchy	0
+END	331	1866	10	2	0	0	0	1	Absolutist	Absolutist	Absolutist	1.076	1	10840	28151	0	0	-1	-1	26127	25797	0.2	0.0	ハンガリー	オーストリア		オーストリア	オーストリア	ハンガリー	1	12
+END	332	1866	7	2	0	0	0	1	Absolutist	Absolutist	Absolutist	1.131	1	10320	23546	0	0	-1	-1	25988	25740	0.1	0.0	ガリツィア	オーストリア		オーストリア	オーストリア	ガリツィア	1	12
+START	332	1866	2	0	0	Absolutist	Absolutist	オーストリア	オーストリア	ハンガリー	1	11
+START	333	1866	2	0	0	Absolutist	Absolutist	オーストリア	オーストリア	ガリツィア	1	10
+END	334	1866	13	2	0	0	1	1	Absolutist	Absolutist	Absolutist	-0.021	1	10320	23546	0	0	-1	-1	25988	25595	0.2	0.0	トランシルヴァニア	オーストリア		オーストリア	オーストリア	トランシルヴァニア	1	12
+END	335	1867	13	2	0	0	1	1	Absolutist	Absolutist	Absolutist	-0.024	1	10238	26480	0	0	-1	-1	25899	25088	0.2	0.0	スロバキア	オーストリア		オーストリア	オーストリア	スロバキア	1	10
+START	335	1867	2	0	0	Absolutist	Absolutist	オーストリア	オーストリア	モラヴィア	1	9
+END	338	1867	22	2	0	0	1	1	Absolutist	Absolutist	Absolutist	-0.039	1	10238	26480	0	0	-1	-1	25899	24970	0.5	0.0	ロンバルディア	オーストリア		オーストリア	オーストリア	ロンバルディア	1	10
+END	339	1868	19	2	0	0	1	1	Absolutist	Absolutist	Absolutist	-0.077	1	10194	28906	0	0	-1	-1	25797	24916	0.6	0.0	ハンガリー	オーストリア		オーストリア	オーストリア	ハンガリー	1	11
+END	340	1868	13	2	0	0	1	1	Absolutist	Absolutist	Absolutist	-0.048	1	10175	28679	0	0	-1	-1	25595	24845	0.5	0.0	モラヴィア	オーストリア		オーストリア	オーストリア	モラヴィア	1	9
+END	341	1868	22	2	0	0	1	1	Absolutist	Absolutist	Absolutist	-0.015	1	10191	26548	0	0	-1	-1	25740	24786	0.6	0.0	ガリツィア	オーストリア		オーストリア	オーストリア	ガリツィア	1	10
+COUP	353	1871	ビルマ	Absolutist	ConstitutionalMonarchy	0
+COUP	356	1872	トランシルヴァニア	Absolutist	ConstitutionalMonarchy	0
+COUP	357	1872	オスマン	Absolutist	ConstitutionalMonarchy	0
+COUP	357	1872	スロバキア	Absolutist	ConstitutionalMonarchy	0
+COUP	358	1872	ハイデラバード	Absolutist	ConstitutionalMonarchy	0
+COUP	361	1873	モロッコ	Absolutist	ConstitutionalMonarchy	0
+COUP	361	1873	ガリツィア	Absolutist	ConstitutionalMonarchy	0
+COUP	362	1873	モラヴィア	Absolutist	ConstitutionalMonarchy	0
+COUP	373	1876	両シチリア	Absolutist	ConstitutionalMonarchy	0
+START	461	1898	2	0	0	ConstitutionalMonarchy	ConstitutionalMonarchy	ロシア	ロシア	キサンガニ王国	1	51
+COUP	461	1898	サルデーニャ＝ピエモンテ	Absolutist	ConstitutionalMonarchy	0
+COUP	463	1899	デリー	ConstitutionalMonarchy	Absolutist	0
+END	466	1899	13	2	0	0	1	1	ConstitutionalMonarchy	ConstitutionalMonarchy	ConstitutionalMonarchy	-0.000	1	16883	148861	0	0	-1	-1	117115	104459	1.1	0.0	キサンガニ王国	ロシア		ロシア	ロシア	キサンガニ王国	1	51
+COUP	485	1904	エチオピア	ConstitutionalMonarchy	Absolutist	0
+COUP	500	1908	エチオピア	Absolutist	ConstitutionalMonarchy	0
+COUP	507	1910	デリー	Absolutist	ConstitutionalMonarchy	0
+COUP	526	1914	ジェノヴァ	ConstitutionalMonarchy	Absolutist	0
+COUP	528	1915	ジェノヴァ	Absolutist	ConstitutionalMonarchy	0
+COUP	540	1918	両シチリア	ConstitutionalMonarchy	Absolutist	0
+COUP	570	1925	スウェーデン	Absolutist	ConstitutionalMonarchy	0
+COUP	571	1926	オーストリア	Absolutist	ConstitutionalMonarchy	0
+COUP	576	1927	ハノーファー	Absolutist	ConstitutionalMonarchy	0
+COUP	577	1927	教皇領	Absolutist	ConstitutionalMonarchy	0
+COUP	580	1928	ヴュルテンベルク	Absolutist	ConstitutionalMonarchy	0
+COUP	601	1933	アルジェ摂政国	Absolutist	ConstitutionalMonarchy	0
+COUP	614	1936	両シチリア	Absolutist	ConstitutionalMonarchy	0
+COUP	642	1943	阮氏	Absolutist	ConstitutionalMonarchy	0
+COUP	643	1944	ネパール	ConstitutionalMonarchy	Absolutist	0
+COUP	646	1944	ネパール	Absolutist	ConstitutionalMonarchy	0
+COUP	662	1948	モロッコ	ConstitutionalMonarchy	Absolutist	0
+SEED	4
+SUM	129	17	0	17	569	0	652	64
+COUP	7	1785	デリー	Despotic	ConstitutionalMonarchy	0
+START	10	1785	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	イギリス	立憲王政イギリス	統領制イギリス	1	30
+COUP	12	1786	日本	Shogunate	Absolutist	0
+START	15	1787	2	0	0	ConstitutionalMonarchy	ConstitutionalMonarchy	イギリス	立憲王政イギリス	オーストラリア王国	1	28
+END	16	1787	18	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-0.870	1	4262	12365	3986	9562	3986	9562	29189	26322	1.3	0.5	統領制イギリス	イギリス	イギリス	イギリス	立憲王政イギリス	統領制イギリス	1	30
+START	16	1787	2	0	0	ConstitutionalMonarchy	BourgeoisDictatorship	イギリス	イギリス	アデレード共和国	1	27
+START	16	1787	2	0	0	ConstitutionalMonarchy	BourgeoisDictatorship	イギリス	イギリス	ホバート共和国	1	27
+COUP	16	1787	イギリス	ConstitutionalMonarchy	BourgeoisDictatorship	1
+COUP	18	1787	デリー	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	20	1788	デリー	BourgeoisDictatorship	ConstitutionalMonarchy	0
+END	21	1788	18	2	0	0	1	1	ConstitutionalMonarchy	BourgeoisDictatorship	ConstitutionalMonarchy	-0.000	1	4797	9588	0	0	-1	-1	22750	25472	0.0	0.0	オーストラリア王国	イギリス		イギリス	立憲王政イギリス	オーストラリア王国	1	28
+END	22	1788	18	2	0	0	1	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-0.000	1	4781	9477	0	0	-1	-1	22483	25330	0.0	0.0	アデレード共和国	イギリス		イギリス	イギリス	アデレード共和国	1	27
+COUP	22	1788	デリー	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	22	1788	ハワイ王国	Absolutist	ConstitutionalMonarchy	0
+COUP	23	1789	デリー	BourgeoisDictatorship	ConstitutionalMonarchy	0
+POST	10	8	3875	14215	25042	4262	12365	29189	イギリス
+END	25	1789	27	2	0	0	1	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-0.000	1	4781	9477	0	0	-1	-1	22483	24915	0.0	0.0	ホバート共和国	イギリス		イギリス	イギリス	ホバート共和国	1	27
+COUP	28	1790	ハワイ王国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+START	31	1791	0	1	0	Despotic	ConstitutionalMonarchy	エチオピア	帝政エチオピア	立憲王政エチオピア	1	1
+COUP	33	1791	ボルヌ帝国	Absolutist	ConstitutionalMonarchy	0
+START	34	1791	0	1	0	Absolutist	ConstitutionalMonarchy	アシャンティ王国	王政アシャンティ	立憲王政アシャンティ	1	1
+END	36	1792	13	0	1	0	0	1	Despotic	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.379	1	3431	3078	3349	2415	3349	2415	4523	4495	0.9	4.1	立憲王政エチオピア	エチオピア	エチオピア	エチオピア	帝政エチオピア	立憲王政エチオピア	1	1
+COUP	36	1792	エチオピア	Despotic	ConstitutionalMonarchy	1
+COUP	36	1792	阮氏	Despotic	Absolutist	0
+COUP	38	1792	デリー	ConstitutionalMonarchy	BourgeoisDictatorship	0
+END	40	1793	16	0	1	0	0	1	Absolutist	ConstitutionalMonarchy	ConstitutionalMonarchy	-0.595	1	2304	1570	2124	1245	2125	1326	3575	3454	0.4	4.6	立憲王政アシャンティ	アシャンティ王国	アシャンティ王国	アシャンティ王国	王政アシャンティ	立憲王政アシャンティ	1	1
+COUP	40	1793	アシャンティ王国	Absolutist	ConstitutionalMonarchy	1
+COUP	41	1793	デリー	BourgeoisDictatorship	ConstitutionalMonarchy	0
+COUP	43	1794	ビルマ	Despotic	Absolutist	0
+COUP	43	1794	西山朝	Despotic	Absolutist	0
+COUP	43	1794	ペルシャ	Despotic	Absolutist	0
+COUP	43	1794	デリー	ConstitutionalMonarchy	BourgeoisDictatorship	0
+POST	31	8	3263	2677	4292	3431	3078	4523	エチオピア
+COUP	44	1794	ボルヌ帝国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	45	1794	アシャンティ王国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+START	46	1794	0	1	0	Absolutist	ConstitutionalMonarchy	ソコト	王政ソコト	立憲王政ソコト	1	2
+COUP	46	1794	アシャンティ王国	BourgeoisDictatorship	ConstitutionalMonarchy	0
+START	47	1795	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	アシャンティ王国	立憲王政アシャンティ	統領制アシャンティ	1	1
+END	48	1795	3	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-1.500	1	2098	1922	2066	1693	2066	1929	3413	3388	0.2	0.5	統領制アシャンティ	アシャンティ王国	アシャンティ王国	アシャンティ王国	立憲王政アシャンティ	統領制アシャンティ	1	1
+POST	34	8	2066	1929	3388	2304	1570	3575	アシャンティ王国
+COUP	48	1795	アシャンティ王国	ConstitutionalMonarchy	BourgeoisDictatorship	1
+COUP	49	1795	アシャンティ王国	BourgeoisDictatorship	ConstitutionalMonarchy	0
+START	52	1796	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	アシャンティ王国	立憲王政アシャンティ	統領制アシャンティ	1	1
+END	53	1796	19	0	1	0	0	1	Absolutist	ConstitutionalMonarchy	ConstitutionalMonarchy	-0.982	1	3755	3669	3616	2322	3616	2636	11337	11245	6.6	7.7	立憲王政ソコト	ソコト	ソコト	ソコト	王政ソコト	立憲王政ソコト	1	2
+COUP	53	1796	ソコト	Absolutist	ConstitutionalMonarchy	1
+END	54	1796	4	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-1.500	1	2051	2783	2027	2429	2027	2906	3369	3363	0.3	0.9	統領制アシャンティ	アシャンティ王国	アシャンティ王国	アシャンティ王国	立憲王政アシャンティ	統領制アシャンティ	1	1
+COUP	54	1796	アシャンティ王国	ConstitutionalMonarchy	BourgeoisDictatorship	1
+START	55	1797	0	1	0	BourgeoisDictatorship	ConstitutionalMonarchy	アシャンティ王国	統領制アシャンティ	立憲王政アシャンティ	1	1
+END	56	1797	2	0	1	0	0	1	BourgeoisDictatorship	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.500	1	2027	2906	2014	2960	2014	3256	3363	3353	0.2	0.2	立憲王政アシャンティ	アシャンティ王国	アシャンティ王国	アシャンティ王国	統領制アシャンティ	立憲王政アシャンティ	1	1
+POST	47	8	2014	3256	3353	2098	1922	3413	アシャンティ王国
+COUP	56	1797	アシャンティ王国	BourgeoisDictatorship	ConstitutionalMonarchy	1
+START	57	1797	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	アシャンティ王国	立憲王政アシャンティ	統領制アシャンティ	1	1
+END	58	1797	1	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-1.500	1	2014	3256	2007	2975	2007	3660	3353	3345	0.1	0.3	統領制アシャンティ	アシャンティ王国	アシャンティ王国	アシャンティ王国	立憲王政アシャンティ	統領制アシャンティ	1	1
+COUP	58	1797	アシャンティ王国	ConstitutionalMonarchy	BourgeoisDictatorship	1
+COUP	60	1798	アシャンティ王国	BourgeoisDictatorship	ConstitutionalMonarchy	0
+START	61	1798	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	アシャンティ王国	立憲王政アシャンティ	統領制アシャンティ	1	1
+POST	46	8	3569	4601	11074	3755	3669	11337	ソコト
+COUP	61	1798	マイソール	Despotic	Absolutist	0
+POST	52	8	1986	3458	1323	2051	2783	3369	アシャンティ王国
+COUP	62	1798	エチオピア	ConstitutionalMonarchy	BourgeoisDictatorship	0
+END	63	1799	4	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-1.500	1	2009	2982	1979	2615	1979	3138	3330	3309	0.4	1.2	統領制アシャンティ	アシャンティ王国	アシャンティ王国	アシャンティ王国	立憲王政アシャンティ	統領制アシャンティ	1	1
+COUP	63	1799	アシャンティ王国	ConstitutionalMonarchy	BourgeoisDictatorship	1
+POST	55	8	1977	2703	3300	2027	2906	3363	アシャンティ王国
+COUP	64	1799	エチオピア	BourgeoisDictatorship	ConstitutionalMonarchy	0
+COUP	64	1799	アシャンティ王国	BourgeoisDictatorship	ConstitutionalMonarchy	0
+START	65	1799	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	アシャンティ王国	立憲王政アシャンティ	統領制アシャンティ	1	1
+COUP	65	1799	ハイデラバード	Despotic	Absolutist	0
+END	66	1799	3	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-1.500	1	1977	2703	1955	2581	1955	2947	3300	3282	0.4	0.7	統領制アシャンティ	アシャンティ王国	アシャンティ王国	アシャンティ王国	立憲王政アシャンティ	統領制アシャンティ	1	1
+POST	57	8	1955	2947	3282	2014	3256	3353	アシャンティ王国
+COUP	66	1799	アシャンティ王国	ConstitutionalMonarchy	BourgeoisDictatorship	1
+COUP	67	1800	アシャンティ王国	BourgeoisDictatorship	ConstitutionalMonarchy	0
+START	68	1800	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	アシャンティ王国	立憲王政アシャンティ	統領制アシャンティ	1	1
+END	69	1800	3	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-1.500	1	1954	3491	1933	3619	1933	3726	3275	3260	0.3	0.2	統領制アシャンティ	アシャンティ王国	アシャンティ王国	アシャンティ王国	立憲王政アシャンティ	統領制アシャンティ	1	1
+COUP	69	1800	アシャンティ王国	ConstitutionalMonarchy	BourgeoisDictatorship	1
+COUP	70	1800	アシャンティ王国	BourgeoisDictatorship	ConstitutionalMonarchy	0
+COUP	70	1800	コンゴ王国	Absolutist	ConstitutionalMonarchy	0
+START	71	1801	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	アシャンティ王国	立憲王政アシャンティ	統領制アシャンティ	1	1
+POST	61	8	1928	3670	1322	2009	2982	3330	アシャンティ王国
+END	72	1801	2	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-1.500	1	1931	3442	1914	3670	1914	4757	3255	3245	0.2	0.3	統領制アシャンティ	アシャンティ王国	アシャンティ王国	アシャンティ王国	立憲王政アシャンティ	統領制アシャンティ	1	1
+COUP	72	1801	アシャンティ王国	ConstitutionalMonarchy	BourgeoisDictatorship	1
+POST	65	8	1919	3655	3239	1977	2703	3300	アシャンティ王国
+COUP	75	1802	アワド	Despotic	Absolutist	0
+POST	68	8	1919	3102	3233	1954	3491	3275	アシャンティ王国
+POST	71	8	1924	3234	3233	1931	3442	3255	アシャンティ王国
+COUP	85	1804	アフガニスタン	Despotic	Absolutist	0
+COUP	87	1805	清	Despotic	Absolutist	0
+COUP	89	1805	マラータ同盟	Despotic	Absolutist	0
+COUP	91	1806	ダホメ王国	Absolutist	ConstitutionalMonarchy	0
+COUP	95	1807	ザクセン	Absolutist	ConstitutionalMonarchy	0
+COUP	99	1808	ザクセン	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	122	1813	アラビア	Despotic	Absolutist	0
+COUP	123	1814	アメリカ	Republic	Absolutist	0
+COUP	124	1814	アメリカ	Absolutist	ConstitutionalMonarchy	0
+COUP	126	1814	ポーランド	Republic	Absolutist	0
+COUP	127	1815	ポーランド	Absolutist	ConstitutionalMonarchy	0
+COUP	132	1816	オマーン	Absolutist	ConstitutionalMonarchy	0
+COUP	140	1818	ポルトガル	Absolutist	Republic	0
+START	142	1818	0	1	0	Absolutist	ConstitutionalMonarchy	オヨ帝国	王政オヨ	立憲王政オヨ	1	1
+END	146	1819	12	0	1	0	0	1	Absolutist	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.474	1	1313	768	1280	613	1280	613	1975	1965	0.4	1.4	立憲王政オヨ	オヨ帝国	オヨ帝国	オヨ帝国	王政オヨ	立憲王政オヨ	1	1
+START	146	1819	0	1	0	BourgeoisDictatorship	ConstitutionalMonarchy	イギリス	統領制イギリス	立憲王政イギリス	1	29
+COUP	146	1819	オヨ帝国	Absolutist	ConstitutionalMonarchy	1
+END	148	1820	4	0	1	0	0	1	BourgeoisDictatorship	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.500	1	7450	46632	7369	34362	7369	34362	24654	24873	1.1	0.2	立憲王政イギリス	イギリス	イギリス	イギリス	統領制イギリス	立憲王政イギリス	1	29
+COUP	148	1820	イギリス	BourgeoisDictatorship	ConstitutionalMonarchy	1
+POST	142	8	1305	777	1941	1313	768	1975	オヨ帝国
+POST	146	8	7130	16401	25500	7450	46632	24654	イギリス
+COUP	168	1825	スペイン	Absolutist	ConstitutionalMonarchy	0
+COUP	168	1825	ポーランド	ConstitutionalMonarchy	Absolutist	0
+COUP	169	1825	ポーランド	Absolutist	ConstitutionalMonarchy	0
+COUP	178	1827	スペイン	ConstitutionalMonarchy	Absolutist	0
+COUP	178	1827	清	Absolutist	ConstitutionalMonarchy	0
+COUP	179	1828	スペイン	Absolutist	ConstitutionalMonarchy	0
+COUP	180	1828	プロイセン	Absolutist	ConstitutionalMonarchy	0
+COUP	185	1829	ザクセン	BourgeoisDictatorship	ConstitutionalMonarchy	0
+COUP	187	1830	スイス	Republic	Absolutist	0
+COUP	187	1830	ヴェネツィア	Republic	Absolutist	0
+COUP	188	1830	スペイン	ConstitutionalMonarchy	Absolutist	0
+COUP	188	1830	スイス	Absolutist	ConstitutionalMonarchy	0
+COUP	188	1830	ヴェネツィア	Absolutist	ConstitutionalMonarchy	0
+COUP	189	1830	スペイン	Absolutist	ConstitutionalMonarchy	0
+COUP	193	1831	エチオピア	ConstitutionalMonarchy	Absolutist	0
+COUP	193	1831	ポーランド	ConstitutionalMonarchy	Absolutist	0
+START	194	1831	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	プロイセン	立憲王政プロイセン	統領制プロイセン	1	5
+COUP	194	1831	エチオピア	Absolutist	ConstitutionalMonarchy	0
+COUP	194	1831	ポーランド	Absolutist	ConstitutionalMonarchy	0
+END	198	1832	12	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-1.460	1	3138	17054	3197	15203	3225	15203	11592	6780	7.2	4.3	統領制プロイセン	プロイセン	プロイセン	プロイセン	立憲王政プロイセン	統領制プロイセン	1	5
+COUP	198	1832	プロイセン	ConstitutionalMonarchy	BourgeoisDictatorship	1
+POST	194	8	3069	19440	4045	3138	17054	11592	プロイセン
+COUP	208	1835	スウェーデン	Absolutist	Republic	0
+COUP	209	1835	ネーデルラント	Republic	Absolutist	0
+COUP	210	1835	ネーデルラント	Absolutist	ConstitutionalMonarchy	0
+COUP	213	1836	スイス	ConstitutionalMonarchy	Absolutist	0
+COUP	214	1836	スイス	Absolutist	ConstitutionalMonarchy	0
+COUP	218	1837	フランス	Absolutist	ConstitutionalMonarchy	0
+COUP	220	1838	ネーデルラント	ConstitutionalMonarchy	Absolutist	0
+COUP	221	1838	ネーデルラント	Absolutist	ConstitutionalMonarchy	0
+COUP	230	1840	ヴェネツィア	ConstitutionalMonarchy	Absolutist	0
+COUP	231	1841	ヴェネツィア	Absolutist	ConstitutionalMonarchy	0
+COUP	234	1841	フランス	ConstitutionalMonarchy	Republic	0
+COUP	237	1842	ロシア	Despotic	ConstitutionalMonarchy	0
+START	253	1846	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	ロシア	立憲王政ロシア	統領制ロシア	1	29
+COUP	253	1846	プロイセン	BourgeoisDictatorship	ConstitutionalMonarchy	0
+COUP	254	1846	コンゴ王国	ConstitutionalMonarchy	Absolutist	0
+COUP	255	1847	西山朝	Absolutist	Republic	0
+END	256	1847	9	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-1.133	1	22185	60077	21011	55497	21011	57770	48340	48299	16.3	24.9	統領制ロシア	ロシア	ロシア	ロシア	立憲王政ロシア	統領制ロシア	1	29
+COUP	256	1847	ロシア	ConstitutionalMonarchy	BourgeoisDictatorship	1
+COUP	256	1847	コンゴ王国	Absolutist	ConstitutionalMonarchy	0
+COUP	262	1848	ハノーファー	Absolutist	ConstitutionalMonarchy	0
+COUP	263	1849	デンマーク	Absolutist	ConstitutionalMonarchy	0
+POST	253	8	19798	92112	48322	22185	60077	48340	ロシア
+COUP	278	1852	ネーデルラント	ConstitutionalMonarchy	Republic	0
+COUP	291	1856	ラヘジ	Absolutist	ConstitutionalMonarchy	0
+COUP	306	1859	アラビア	Absolutist	ConstitutionalMonarchy	0
+COUP	310	1860	日本	Absolutist	ConstitutionalMonarchy	0
+COUP	315	1862	ラオス	Absolutist	ConstitutionalMonarchy	0
+COUP	326	1864	ハノーファー	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	336	1867	オマーン	ConstitutionalMonarchy	Absolutist	0
+COUP	338	1867	オマーン	Absolutist	ConstitutionalMonarchy	0
+START	341	1868	2	0	0	Absolutist	Absolutist	オーストリア	オーストリア	ハンガリー	1	17
+END	345	1869	12	2	0	0	0	1	Absolutist	Absolutist	Absolutist	1.006	1	13758	44392	0	0	-1	-1	33444	33054	0.0	0.0	ハンガリー	オーストリア		オーストリア	オーストリア	ハンガリー	1	17
+COUP	356	1872	エチオピア	ConstitutionalMonarchy	Absolutist	0
+START	357	1872	2	0	0	Absolutist	Absolutist	オーストリア	オーストリア	ハンガリー	1	17
+COUP	359	1873	エチオピア	Absolutist	ConstitutionalMonarchy	0
+START	361	1873	2	0	0	Absolutist	Absolutist	オーストリア	オーストリア	リトアニア	1	16
+COUP	361	1873	オスマン	Absolutist	ConstitutionalMonarchy	0
+END	362	1873	13	2	0	0	1	1	Absolutist	Absolutist	Absolutist	-0.000	1	13393	41474	0	0	-1	-1	32227	31624	0.0	0.0	ハンガリー	オーストリア		オーストリア	オーストリア	ハンガリー	1	17
+END	366	1874	13	2	0	0	1	1	Absolutist	Absolutist	Absolutist	-0.001	1	13062	35919	0	0	-1	-1	31923	31092	0.0	0.0	リトアニア	オーストリア		オーストリア	オーストリア	リトアニア	1	16
+START	385	1879	0	1	0	Absolutist	ConstitutionalMonarchy	トスカーナ	王政トスカーナ	立憲王政トスカーナ	1	1
+END	389	1880	11	0	1	0	0	1	Absolutist	ConstitutionalMonarchy	ConstitutionalMonarchy	-0.283	1	453	918	436	885	437	885	1065	1064	0.1	0.2	立憲王政トスカーナ	トスカーナ	トスカーナ	トスカーナ	王政トスカーナ	立憲王政トスカーナ	1	1
+COUP	389	1880	トスカーナ	Absolutist	ConstitutionalMonarchy	1
+POST	385	8	417	1265	980	453	918	1065	トスカーナ
+START	400	1883	2	0	0	Republic	Republic	ポルトガル	ポルトガル	南アフリカ共和国	1	16
+COUP	401	1883	ハンガリー	Absolutist	ConstitutionalMonarchy	0
+END	406	1884	16	2	0	0	1	1	Republic	Republic	Republic	-0.000	1	5710	81364	0	0	-1	-1	22265	21635	0.0	0.0	南アフリカ共和国	ポルトガル		ポルトガル	ポルトガル	南アフリカ共和国	1	16
+COUP	411	1886	リトアニア	Absolutist	ConstitutionalMonarchy	0
+START	415	1887	2	0	0	BourgeoisDictatorship	BourgeoisDictatorship	ロシア	ロシア	キサンガニ共和国	1	34
+END	419	1888	12	2	0	0	1	1	BourgeoisDictatorship	BourgeoisDictatorship	BourgeoisDictatorship	-0.000	1	22877	171711	0	0	-1	-1	73331	74700	0.0	0.0	キサンガニ共和国	ロシア		ロシア	ロシア	キサンガニ共和国	1	34
+COUP	420	1888	マラータ同盟	Absolutist	ConstitutionalMonarchy	0
+COUP	420	1888	阮氏	Absolutist	Republic	0
+COUP	440	1893	ソコト	ConstitutionalMonarchy	Absolutist	0
+START	463	1899	2	0	0	ConstitutionalMonarchy	ConstitutionalMonarchy	アメリカ	アメリカ	ラ・プラタ王国	1	7
+END	469	1900	18	2	0	0	1	1	ConstitutionalMonarchy	ConstitutionalMonarchy	ConstitutionalMonarchy	-0.012	1	4439	28062	0	0	-1	-1	36248	33903	0.2	0.0	ラ・プラタ王国	アメリカ		アメリカ	アメリカ	ラ・プラタ王国	1	7
+COUP	491	1906	コンゴ王国	ConstitutionalMonarchy	Absolutist	0
+COUP	493	1906	コンゴ王国	Absolutist	ConstitutionalMonarchy	0
+COUP	506	1909	ライン諸邦	Absolutist	ConstitutionalMonarchy	0
+COUP	527	1915	両シチリア	Absolutist	ConstitutionalMonarchy	0
+COUP	537	1917	サルデーニャ＝ピエモンテ	Absolutist	ConstitutionalMonarchy	0
+COUP	549	1920	エチオピア	ConstitutionalMonarchy	Absolutist	0
+COUP	555	1922	アルジェ摂政国	Absolutist	ConstitutionalMonarchy	0
+COUP	576	1927	ソコト	Absolutist	ConstitutionalMonarchy	0
+COUP	581	1928	オーストリア	Absolutist	ConstitutionalMonarchy	0
+COUP	586	1929	ヴュルテンベルク	Absolutist	ConstitutionalMonarchy	0
+COUP	587	1930	ザクセン	ConstitutionalMonarchy	Absolutist	0
+COUP	600	1933	ペルシャ	Absolutist	ConstitutionalMonarchy	0
+COUP	610	1935	カンボジア	Absolutist	ConstitutionalMonarchy	0
+COUP	610	1935	ヒヴァ	Absolutist	ConstitutionalMonarchy	0
+COUP	637	1942	コーカンド	Absolutist	ConstitutionalMonarchy	0
+COUP	663	1949	朝鮮	Absolutist	ConstitutionalMonarchy	0
+COUP	666	1949	バイエルン	Absolutist	ConstitutionalMonarchy	0
+SEED	5
+SUM	120	21	0	21	660	0	738	62
+COUP	12	1786	日本	Shogunate	Absolutist	0
+START	28	1790	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	イギリス	立憲王政イギリス	統領制イギリス	1	31
+START	30	1790	0	1	0	Absolutist	ConstitutionalMonarchy	アシャンティ王国	王政アシャンティ	立憲王政アシャンティ	1	1
+END	33	1791	15	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-1.014	1	4174	14174	3746	12223	3746	15580	28037	27362	3.2	0.7	統領制イギリス	イギリス	イギリス	イギリス	立憲王政イギリス	統領制イギリス	1	31
+COUP	33	1791	イギリス	ConstitutionalMonarchy	BourgeoisDictatorship	1
+COUP	34	1791	阮氏	Despotic	Absolutist	0
+COUP	37	1792	西山朝	Despotic	Absolutist	0
+END	38	1792	22	0	1	0	0	1	Absolutist	ConstitutionalMonarchy	ConstitutionalMonarchy	-0.869	1	2236	1613	2192	1287	2193	1354	3482	3501	1.3	6.7	立憲王政アシャンティ	アシャンティ王国	アシャンティ王国	アシャンティ王国	王政アシャンティ	立憲王政アシャンティ	1	1
+COUP	38	1792	アシャンティ王国	Absolutist	ConstitutionalMonarchy	1
+POST	28	8	4622	18495	26993	4174	14174	28037	イギリス
+START	46	1794	0	1	0	Absolutist	ConstitutionalMonarchy	コンゴ王国	王政コンゴ	立憲王政コンゴ	1	1
+POST	30	8	2179	2087	3442	2236	1613	3482	アシャンティ王国
+START	47	1795	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	アシャンティ王国	立憲王政アシャンティ	統領制アシャンティ	1	1
+END	49	1795	4	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-1.500	1	2179	2087	2143	2033	2143	2445	3442	3343	0.3	0.6	統領制アシャンティ	アシャンティ王国	アシャンティ王国	アシャンティ王国	立憲王政アシャンティ	統領制アシャンティ	1	1
+COUP	49	1795	ビルマ	Despotic	Absolutist	0
+COUP	49	1795	アシャンティ王国	ConstitutionalMonarchy	BourgeoisDictatorship	1
+COUP	50	1795	アシャンティ王国	BourgeoisDictatorship	ConstitutionalMonarchy	0
+COUP	50	1795	ハワイ王国	Absolutist	ConstitutionalMonarchy	0
+END	51	1796	15	0	1	0	0	1	Absolutist	ConstitutionalMonarchy	ConstitutionalMonarchy	-0.431	1	399	232	370	196	370	213	712	694	0.1	0.7	立憲王政コンゴ	コンゴ王国	コンゴ王国	コンゴ王国	王政コンゴ	立憲王政コンゴ	1	1
+COUP	51	1796	アシャンティ王国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	51	1796	コンゴ王国	Absolutist	ConstitutionalMonarchy	1
+COUP	52	1796	アシャンティ王国	BourgeoisDictatorship	ConstitutionalMonarchy	0
+START	53	1796	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	アシャンティ王国	立憲王政アシャンティ	統領制アシャンティ	1	1
+COUP	53	1796	ハイデラバード	Despotic	Absolutist	0
+COUP	54	1796	アワド	Despotic	Absolutist	0
+COUP	54	1796	ハワイ王国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+END	55	1797	5	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-1.500	1	2132	3172	1988	2752	1988	2832	3319	3182	0.4	1.5	統領制アシャンティ	アシャンティ王国	アシャンティ王国	アシャンティ王国	立憲王政アシャンティ	統領制アシャンティ	1	1
+COUP	55	1797	デリー	Despotic	ConstitutionalMonarchy	0
+COUP	55	1797	アシャンティ王国	ConstitutionalMonarchy	BourgeoisDictatorship	1
+COUP	55	1797	ハワイ王国	BourgeoisDictatorship	ConstitutionalMonarchy	0
+COUP	56	1797	アシャンティ王国	BourgeoisDictatorship	ConstitutionalMonarchy	0
+COUP	56	1797	ハワイ王国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+START	57	1797	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	アシャンティ王国	立憲王政アシャンティ	統領制アシャンティ	1	1
+POST	47	8	1989	2731	1184	2179	2087	3442	アシャンティ王国
+COUP	57	1797	ハワイ王国	BourgeoisDictatorship	Republic	0
+END	58	1797	3	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-1.500	1	1990	3043	1978	2731	1978	3275	3176	3171	0.2	0.9	統領制アシャンティ	アシャンティ王国	アシャンティ王国	アシャンティ王国	立憲王政アシャンティ	統領制アシャンティ	1	1
+COUP	58	1797	アシャンティ王国	ConstitutionalMonarchy	BourgeoisDictatorship	1
+COUP	58	1797	ハワイ王国	Republic	BourgeoisDictatorship	0
+POST	46	8	356	297	648	399	232	712	コンゴ王国
+COUP	59	1798	マイソール	Despotic	Absolutist	0
+COUP	59	1798	アシャンティ王国	BourgeoisDictatorship	ConstitutionalMonarchy	0
+COUP	59	1798	ハワイ王国	BourgeoisDictatorship	Republic	0
+START	60	1798	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	アシャンティ王国	立憲王政アシャンティ	統領制アシャンティ	1	1
+END	61	1798	2	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-1.500	1	1981	3578	1930	3319	1930	3519	3170	3078	0.2	0.5	統領制アシャンティ	アシャンティ王国	アシャンティ王国	アシャンティ王国	立憲王政アシャンティ	統領制アシャンティ	1	1
+COUP	61	1798	アシャンティ王国	ConstitutionalMonarchy	BourgeoisDictatorship	1
+POST	53	8	1939	3172	3081	2132	3172	3319	アシャンティ王国
+COUP	64	1799	ロシア	Despotic	ConstitutionalMonarchy	0
+POST	57	8	1940	3141	3082	1990	3043	3176	アシャンティ王国
+COUP	67	1800	エチオピア	Despotic	Absolutist	0
+POST	60	8	1944	2891	3085	1981	3578	3170	アシャンティ王国
+COUP	69	1800	コンゴ王国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	69	1800	ボルヌ帝国	Absolutist	ConstitutionalMonarchy	0
+START	70	1800	0	1	0	Absolutist	ConstitutionalMonarchy	オヨ帝国	王政オヨ	立憲王政オヨ	1	1
+COUP	73	1801	ペルシャ	Despotic	Absolutist	0
+END	76	1802	18	0	1	0	0	1	Absolutist	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.007	1	1466	1013	1347	552	1347	629	2062	1977	1.0	2.9	立憲王政オヨ	オヨ帝国	オヨ帝国	オヨ帝国	王政オヨ	立憲王政オヨ	1	1
+COUP	76	1802	オヨ帝国	Absolutist	ConstitutionalMonarchy	1
+COUP	77	1802	ボルヌ帝国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+START	78	1802	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	ロシア	立憲王政ロシア	統領制ロシア	1	25
+POST	70	8	1352	916	1951	1466	1013	2062	オヨ帝国
+COUP	85	1804	アラビア	Despotic	Absolutist	0
+END	86	1804	24	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-0.714	1	9062	16153	8575	9202	8578	12011	41293	41969	27.0	17.5	統領制ロシア	ロシア	ロシア	ロシア	立憲王政ロシア	統領制ロシア	1	25
+COUP	86	1804	ロシア	ConstitutionalMonarchy	BourgeoisDictatorship	1
+COUP	86	1804	マラータ同盟	Despotic	Absolutist	0
+START	87	1805	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	オヨ帝国	立憲王政オヨ	統領制オヨ	1	1
+COUP	88	1805	清	Despotic	Absolutist	0
+END	89	1805	6	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-1.500	1	1346	1195	1318	1222	1318	1499	1945	1928	0.3	0.3	統領制オヨ	オヨ帝国	オヨ帝国	オヨ帝国	立憲王政オヨ	統領制オヨ	1	1
+START	89	1805	2	0	0	BourgeoisDictatorship	BourgeoisDictatorship	イギリス	イギリス	マカッサル共和国	1	35
+COUP	89	1805	ダホメ王国	Absolutist	ConstitutionalMonarchy	0
+COUP	89	1805	オヨ帝国	ConstitutionalMonarchy	BourgeoisDictatorship	1
+START	91	1806	0	1	0	Absolutist	ConstitutionalMonarchy	ソコト	王政ソコト	立憲王政ソコト	1	2
+POST	78	8	9627	11153	42691	9062	16153	41293	ロシア
+START	95	1807	2	0	0	BourgeoisDictatorship	BourgeoisDictatorship	イギリス	イギリス	セイロン共和国	1	34
+START	95	1807	0	1	0	Absolutist	ConstitutionalMonarchy	朝鮮	王政朝鮮	立憲王政朝鮮	1	4
+END	97	1807	16	0	1	0	0	1	Absolutist	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.184	1	3818	3787	3691	2745	3691	2921	11147	11086	5.2	6.6	立憲王政ソコト	ソコト	ソコト	ソコト	王政ソコト	立憲王政ソコト	1	2
+POST	87	8	1305	1684	1909	1346	1195	1945	オヨ帝国
+COUP	97	1807	ソコト	Absolutist	ConstitutionalMonarchy	1
+START	98	1807	2	0	0	BourgeoisDictatorship	BourgeoisDictatorship	イギリス	イギリス	オーストラリア共和国	1	33
+END	99	1808	11	0	1	0	0	1	Absolutist	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.002	1	5866	9394	5700	6894	5700	6894	15024	14923	6.6	8.2	立憲王政朝鮮	朝鮮	朝鮮	朝鮮	王政朝鮮	立憲王政朝鮮	1	4
+END	99	1808	29	2	0	0	1	1	BourgeoisDictatorship	BourgeoisDictatorship	BourgeoisDictatorship	-0.000	1	5112	18676	0	0	-1	-1	26523	25890	0.2	0.0	マカッサル共和国	イギリス		イギリス	イギリス	マカッサル共和国	1	35
+COUP	99	1808	朝鮮	Absolutist	ConstitutionalMonarchy	1
+COUP	99	1808	ザクセン	Absolutist	ConstitutionalMonarchy	0
+COUP	103	1809	ザクセン	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	104	1809	ザクセン	BourgeoisDictatorship	ConstitutionalMonarchy	0
+END	105	1809	28	2	0	0	1	1	BourgeoisDictatorship	BourgeoisDictatorship	BourgeoisDictatorship	-0.000	1	5018	25852	0	0	-1	-1	26374	25737	0.0	0.0	セイロン共和国	イギリス		イギリス	イギリス	セイロン共和国	1	34
+POST	91	8	3695	5787	11125	3818	3787	11147	ソコト
+POST	95	8	5647	8492	15078	5866	9394	15024	朝鮮
+END	108	1810	29	2	0	0	1	1	BourgeoisDictatorship	BourgeoisDictatorship	BourgeoisDictatorship	-0.000	1	4958	26801	0	0	-1	-1	25943	25653	0.0	0.0	オーストラリア共和国	イギリス		イギリス	イギリス	オーストラリア共和国	1	33
+COUP	110	1810	ザクセン	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	125	1814	アフガニスタン	Despotic	Absolutist	0
+COUP	127	1815	プロイセン	Absolutist	ConstitutionalMonarchy	0
+START	131	1816	0	1	0	Absolutist	ConstitutionalMonarchy	エチオピア	王政エチオピア	立憲王政エチオピア	1	1
+START	132	1816	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	プロイセン	立憲王政プロイセン	統領制プロイセン	1	4
+END	135	1817	8	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-1.500	1	2732	12564	2768	7981	2811	7981	7069	7231	4.8	2.4	統領制プロイセン	プロイセン	プロイセン	プロイセン	立憲王政プロイセン	統領制プロイセン	1	4
+END	135	1817	12	0	1	0	0	1	Absolutist	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.500	1	3101	6032	2916	4428	2916	5459	4401	4275	1.3	3.8	立憲王政エチオピア	エチオピア	エチオピア	エチオピア	王政エチオピア	立憲王政エチオピア	1	1
+COUP	135	1817	プロイセン	ConstitutionalMonarchy	BourgeoisDictatorship	1
+COUP	135	1817	エチオピア	Absolutist	ConstitutionalMonarchy	1
+START	136	1817	0	1	0	BourgeoisDictatorship	ConstitutionalMonarchy	プロイセン	統領制プロイセン	立憲王政プロイセン	1	4
+END	137	1817	1	0	1	0	0	1	BourgeoisDictatorship	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.500	1	2811	7981	2767	9422	2767	9422	7231	7216	0.7	0.5	立憲王政プロイセン	プロイセン	プロイセン	プロイセン	統領制プロイセン	立憲王政プロイセン	1	4
+COUP	137	1817	プロイセン	BourgeoisDictatorship	ConstitutionalMonarchy	1
+START	138	1817	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	プロイセン	立憲王政プロイセン	統領制プロイセン	1	4
+END	139	1818	2	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-1.500	1	2767	9422	2640	11129	2640	11129	7216	7054	1.1	0.7	統領制プロイセン	プロイセン	プロイセン	プロイセン	立憲王政プロイセン	統領制プロイセン	1	4
+COUP	139	1818	プロイセン	ConstitutionalMonarchy	BourgeoisDictatorship	1
+START	140	1818	0	1	0	BourgeoisDictatorship	ConstitutionalMonarchy	プロイセン	統領制プロイセン	立憲王政プロイセン	1	4
+END	141	1818	1	0	1	0	0	1	BourgeoisDictatorship	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.500	1	2640	11129	2635	13516	2635	13865	7054	7055	0.5	0.3	立憲王政プロイセン	プロイセン	プロイセン	プロイセン	統領制プロイセン	立憲王政プロイセン	1	4
+COUP	141	1818	プロイセン	BourgeoisDictatorship	ConstitutionalMonarchy	1
+POST	131	8	2762	5225	4065	3101	6032	4401	エチオピア
+POST	132	8	2520	13394	7042	2732	12564	7069	プロイセン
+POST	136	8	2503	12048	7064	2811	7981	7231	プロイセン
+COUP	146	1819	スペイン	Absolutist	Republic	0
+COUP	146	1819	ヴェネツィア	Republic	Absolutist	0
+COUP	146	1819	ボルヌ帝国	BourgeoisDictatorship	ConstitutionalMonarchy	0
+POST	138	8	2675	14669	7127	2767	9422	7216	プロイセン
+COUP	147	1820	ヴェネツィア	Absolutist	ConstitutionalMonarchy	0
+POST	140	8	2841	11022	7221	2640	11129	7054	プロイセン
+COUP	150	1820	ジェノヴァ	Republic	Absolutist	0
+COUP	151	1821	ジェノヴァ	Absolutist	ConstitutionalMonarchy	0
+START	157	1822	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	プロイセン	立憲王政プロイセン	統領制プロイセン	1	4
+END	158	1822	3	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-1.500	1	2994	16250	2989	15188	2996	15188	7491	7581	2.4	0.9	統領制プロイセン	プロイセン	プロイセン	プロイセン	立憲王政プロイセン	統領制プロイセン	1	4
+COUP	158	1822	プロイセン	ConstitutionalMonarchy	BourgeoisDictatorship	1
+POST	157	8	3028	15741	7722	2994	16250	7491	プロイセン
+COUP	171	1826	ポルトガル	Absolutist	Republic	0
+COUP	176	1827	トスカーナ	Absolutist	ConstitutionalMonarchy	0
+COUP	177	1827	ジェノヴァ	ConstitutionalMonarchy	Absolutist	0
+COUP	178	1827	ジェノヴァ	Absolutist	ConstitutionalMonarchy	0
+COUP	192	1831	清	Absolutist	ConstitutionalMonarchy	0
+COUP	193	1831	ヒヴァ	Absolutist	ConstitutionalMonarchy	0
+START	194	1831	0	1	0	Absolutist	ConstitutionalMonarchy	ペルシャ	王政ペルシャ	立憲王政ペルシャ	1	5
+COUP	195	1832	スイス	Republic	ConstitutionalMonarchy	0
+END	202	1833	22	0	1	0	0	1	Absolutist	ConstitutionalMonarchy	ConstitutionalMonarchy	-0.556	1	245	454	225	265	243	429	4473	4469	7.6	0.5	立憲王政ペルシャ	ペルシャ	ペルシャ	ペルシャ	王政ペルシャ	立憲王政ペルシャ	1	5
+COUP	202	1833	ペルシャ	Absolutist	ConstitutionalMonarchy	1
+POST	194	8	176	305	4460	245	454	4473	ペルシャ
+COUP	213	1836	ダホメ王国	ConstitutionalMonarchy	Absolutist	0
+COUP	216	1837	ダホメ王国	Absolutist	ConstitutionalMonarchy	0
+COUP	221	1838	ジェノヴァ	ConstitutionalMonarchy	Absolutist	0
+COUP	222	1838	ジェノヴァ	Absolutist	ConstitutionalMonarchy	0
+COUP	223	1839	スイス	ConstitutionalMonarchy	Absolutist	0
+COUP	224	1839	スイス	Absolutist	ConstitutionalMonarchy	0
+COUP	227	1840	ネーデルラント	Republic	Absolutist	0
+COUP	227	1840	ラヘジ	Absolutist	ConstitutionalMonarchy	0
+COUP	228	1840	日本	Absolutist	ConstitutionalMonarchy	0
+COUP	228	1840	ネーデルラント	Absolutist	ConstitutionalMonarchy	0
+COUP	229	1840	シャム	Absolutist	Republic	0
+COUP	230	1840	オマーン	Absolutist	ConstitutionalMonarchy	0
+COUP	238	1842	オスマン	Absolutist	ConstitutionalMonarchy	0
+COUP	240	1843	ジェノヴァ	ConstitutionalMonarchy	Republic	0
+COUP	243	1844	フランス	Absolutist	Republic	0
+COUP	254	1846	サルデーニャ＝ピエモンテ	Absolutist	Republic	0
+COUP	256	1847	シャム	Republic	Absolutist	0
+COUP	260	1848	デンマーク	Absolutist	ConstitutionalMonarchy	0
+COUP	261	1848	バイエルン	Absolutist	ConstitutionalMonarchy	0
+COUP	261	1848	アルジェ摂政国	Absolutist	ConstitutionalMonarchy	0
+COUP	268	1850	シャム	Absolutist	ConstitutionalMonarchy	0
+START	270	1850	2	0	0	ConstitutionalMonarchy	ConstitutionalMonarchy	日本	日本	ドンゴラ王国	1	8
+COUP	271	1851	スペイン	Republic	ConstitutionalMonarchy	0
+END	273	1851	8	2	0	0	0	1	ConstitutionalMonarchy	ConstitutionalMonarchy	ConstitutionalMonarchy	1.087	1	16576	86561	0	0	-1	-1	48476	48887	0.0	0.0	ドンゴラ王国	日本		日本	日本	ドンゴラ王国	1	8
+COUP	290	1855	アラビア	Absolutist	ConstitutionalMonarchy	0
+COUP	295	1857	朝鮮	ConstitutionalMonarchy	Absolutist	0
+START	304	1859	0	1	0	BourgeoisDictatorship	ConstitutionalMonarchy	イギリス	統領制イギリス	立憲王政イギリス	1	29
+END	308	1860	11	0	1	0	0	1	BourgeoisDictatorship	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.045	1	4955	55164	4823	40280	4839	40280	24584	24466	6.6	1.1	立憲王政イギリス	イギリス	イギリス	イギリス	統領制イギリス	立憲王政イギリス	1	29
+COUP	308	1860	イギリス	BourgeoisDictatorship	ConstitutionalMonarchy	1
+POST	304	8	4865	45553	24581	4955	55164	24584	イギリス
+COUP	340	1868	ハイデラバード	Absolutist	ConstitutionalMonarchy	0
+COUP	363	1874	スペイン	ConstitutionalMonarchy	Republic	0
+COUP	371	1876	ライン諸邦	Absolutist	Republic	0
+START	372	1876	0	1	0	BourgeoisDictatorship	ConstitutionalMonarchy	プロイセン	統領制プロイセン	立憲王政プロイセン	1	5
+END	373	1876	1	0	1	0	0	1	BourgeoisDictatorship	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.500	1	3247	47692	3133	47220	3141	47220	16523	16297	1.0	0.1	立憲王政プロイセン	プロイセン	プロイセン	プロイセン	統領制プロイセン	立憲王政プロイセン	1	5
+COUP	373	1876	プロイセン	BourgeoisDictatorship	ConstitutionalMonarchy	1
+START	374	1876	2	0	0	ConstitutionalMonarchy	ConstitutionalMonarchy	清	清	アルタ=カリフォルニア王国	1	40
+END	380	1878	16	2	0	0	1	1	ConstitutionalMonarchy	ConstitutionalMonarchy	ConstitutionalMonarchy	-0.000	1	141170	1505528	0	0	-1	-1	546685	543961	0.0	0.0	アルタ=カリフォルニア王国	清		清	清	アルタ=カリフォルニア王国	1	40
+POST	372	8	4073	38146	15877	3247	47692	16523	プロイセン
+COUP	388	1880	アルタ=カリフォルニア王国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	392	1881	オーストリア	Absolutist	ConstitutionalMonarchy	0
+COUP	393	1881	朝鮮	Absolutist	ConstitutionalMonarchy	0
+COUP	407	1885	コーカンド	Absolutist	ConstitutionalMonarchy	0
+COUP	423	1889	アルタ=カリフォルニア王国	BourgeoisDictatorship	Republic	0
+COUP	424	1889	エチオピア	ConstitutionalMonarchy	Absolutist	0
+COUP	424	1889	アルタ=カリフォルニア王国	Republic	BourgeoisDictatorship	0
+COUP	427	1890	エチオピア	Absolutist	ConstitutionalMonarchy	0
+COUP	450	1895	アワド	Absolutist	ConstitutionalMonarchy	0
+COUP	494	1906	マラータ同盟	Absolutist	ConstitutionalMonarchy	0
+COUP	519	1913	ハノーファー	Absolutist	ConstitutionalMonarchy	0
+COUP	551	1921	ビルマ	Absolutist	ConstitutionalMonarchy	0
+COUP	553	1921	教皇領	Absolutist	ConstitutionalMonarchy	0
+COUP	564	1924	ヴュルテンベルク	Absolutist	ConstitutionalMonarchy	0
+COUP	615	1937	ネパール	Absolutist	ConstitutionalMonarchy	0
+COUP	624	1939	ラオス	Absolutist	ConstitutionalMonarchy	0
+COUP	626	1939	両シチリア	Absolutist	ConstitutionalMonarchy	0
+COUP	627	1940	阮氏	Absolutist	ConstitutionalMonarchy	0
+COUP	628	1940	モロッコ	Absolutist	ConstitutionalMonarchy	0
+COUP	634	1941	ブハラ	Absolutist	ConstitutionalMonarchy	0
+COUP	653	1946	エチオピア	ConstitutionalMonarchy	Absolutist	0
+COUP	656	1947	エチオピア	Absolutist	ConstitutionalMonarchy	0
+COUP	664	1949	ハイデラバード	ConstitutionalMonarchy	Absolutist	0
+SEED	6
+SUM	143	22	0	22	691	0	770	62
+COUP	6	1784	ハワイ王国	Absolutist	ConstitutionalMonarchy	0
+START	10	1785	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	イギリス	立憲王政イギリス	統領制イギリス	1	30
+COUP	10	1785	ハワイ王国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	11	1786	ハワイ王国	BourgeoisDictatorship	ConstitutionalMonarchy	0
+END	12	1786	4	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-1.102	1	4318	10792	4160	10800	4160	10857	29242	28616	0.6	0.2	統領制イギリス	イギリス	イギリス	イギリス	立憲王政イギリス	統領制イギリス	1	30
+COUP	12	1786	イギリス	ConstitutionalMonarchy	BourgeoisDictatorship	1
+COUP	12	1786	ハワイ王国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	13	1786	ハワイ王国	BourgeoisDictatorship	ConstitutionalMonarchy	0
+COUP	14	1786	ハワイ王国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+START	17	1787	0	1	0	BourgeoisDictatorship	ConstitutionalMonarchy	イギリス	統領制イギリス	立憲王政イギリス	1	30
+COUP	17	1787	ハワイ王国	BourgeoisDictatorship	ConstitutionalMonarchy	0
+END	18	1787	1	0	1	0	0	1	BourgeoisDictatorship	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.500	1	4099	12725	4035	10543	4035	10543	28130	27918	1.0	0.1	立憲王政イギリス	イギリス	イギリス	イギリス	統領制イギリス	立憲王政イギリス	1	30
+COUP	18	1787	日本	Shogunate	Absolutist	0
+COUP	18	1787	イギリス	BourgeoisDictatorship	ConstitutionalMonarchy	1
+COUP	18	1787	ハワイ王国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	19	1788	ハワイ王国	BourgeoisDictatorship	Republic	0
+POST	10	8	4010	12059	27679	4318	10792	29242	イギリス
+COUP	20	1788	ハワイ王国	Republic	BourgeoisDictatorship	0
+START	21	1788	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	イギリス	立憲王政イギリス	統領制イギリス	1	30
+END	22	1788	1	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-1.500	1	4010	12059	3937	11882	3937	11882	27679	27441	0.7	0.1	統領制イギリス	イギリス	イギリス	イギリス	立憲王政イギリス	統領制イギリス	1	30
+COUP	22	1788	イギリス	ConstitutionalMonarchy	BourgeoisDictatorship	1
+START	23	1789	0	1	0	BourgeoisDictatorship	ConstitutionalMonarchy	イギリス	統領制イギリス	立憲王政イギリス	1	30
+COUP	23	1789	ラオス	Absolutist	ConstitutionalMonarchy	0
+POST	17	8	3873	12428	23214	4099	12725	28130	イギリス
+END	29	1790	18	0	1	0	0	1	BourgeoisDictatorship	ConstitutionalMonarchy	ConstitutionalMonarchy	-0.791	1	3937	11882	3873	11187	3873	13512	27441	26887	12.3	2.4	立憲王政イギリス	イギリス	イギリス	イギリス	統領制イギリス	立憲王政イギリス	1	30
+COUP	29	1790	イギリス	BourgeoisDictatorship	ConstitutionalMonarchy	1
+POST	21	8	3872	14316	26780	4010	12059	27679	イギリス
+COUP	34	1791	阮氏	Despotic	Absolutist	0
+COUP	35	1792	ハワイ王国	BourgeoisDictatorship	ConstitutionalMonarchy	0
+START	36	1792	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	イギリス	立憲王政イギリス	統領制イギリス	1	30
+COUP	36	1792	西山朝	Despotic	Absolutist	0
+COUP	36	1792	ハワイ王国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+POST	23	8	3987	15176	21953	3937	11882	27441	イギリス
+END	39	1793	7	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-1.036	1	4062	13844	3949	14386	3949	14386	26195	25744	5.6	0.7	統領制イギリス	イギリス	イギリス	イギリス	立憲王政イギリス	統領制イギリス	1	30
+COUP	39	1793	イギリス	ConstitutionalMonarchy	BourgeoisDictatorship	1
+COUP	39	1793	ビルマ	Despotic	Absolutist	0
+POST	36	8	4940	18228	25223	4062	13844	26195	イギリス
+COUP	50	1795	コンゴ王国	Absolutist	ConstitutionalMonarchy	0
+START	54	1796	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	コンゴ王国	立憲王政コンゴ	統領制コンゴ	1	1
+START	54	1796	0	1	0	Absolutist	ConstitutionalMonarchy	オヨ帝国	王政オヨ	立憲王政オヨ	1	1
+COUP	54	1796	マイソール	Despotic	Absolutist	0
+COUP	57	1797	ペルシャ	Despotic	Absolutist	0
+END	58	1797	11	0	1	0	0	1	Absolutist	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.228	1	1460	735	1306	656	1306	715	2035	1904	0.1	1.7	立憲王政オヨ	オヨ帝国	オヨ帝国	オヨ帝国	王政オヨ	立憲王政オヨ	1	1
+COUP	58	1797	エチオピア	Despotic	Absolutist	0
+COUP	58	1797	オヨ帝国	Absolutist	ConstitutionalMonarchy	1
+END	60	1798	18	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-0.769	1	391	237	384	252	384	375	708	691	0.3	1.1	統領制コンゴ	コンゴ王国	コンゴ王国	コンゴ王国	立憲王政コンゴ	統領制コンゴ	1	1
+COUP	60	1798	アワド	Despotic	Absolutist	0
+COUP	60	1798	コンゴ王国	ConstitutionalMonarchy	BourgeoisDictatorship	1
+COUP	61	1798	コンゴ王国	BourgeoisDictatorship	ConstitutionalMonarchy	0
+COUP	62	1798	コンゴ王国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	63	1799	ハイデラバード	Despotic	Absolutist	0
+COUP	63	1799	コンゴ王国	BourgeoisDictatorship	ConstitutionalMonarchy	0
+COUP	64	1799	コンゴ王国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	65	1799	デリー	Despotic	Absolutist	0
+COUP	65	1799	コンゴ王国	BourgeoisDictatorship	ConstitutionalMonarchy	0
+POST	54	8	1317	1091	1892	1460	735	2035	オヨ帝国
+COUP	66	1799	ボルヌ帝国	Absolutist	ConstitutionalMonarchy	0
+COUP	67	1800	デリー	Absolutist	ConstitutionalMonarchy	0
+POST	54	8	378	502	683	391	237	708	コンゴ王国
+COUP	69	1800	ダホメ王国	Absolutist	ConstitutionalMonarchy	0
+START	70	1800	0	1	0	Absolutist	ConstitutionalMonarchy	アシャンティ王国	王政アシャンティ	立憲王政アシャンティ	1	1
+COUP	72	1801	アフガニスタン	Despotic	Absolutist	0
+START	74	1801	0	1	0	Absolutist	ConstitutionalMonarchy	エチオピア	王政エチオピア	立憲王政エチオピア	1	1
+END	75	1802	14	0	1	0	0	1	Absolutist	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.348	1	2370	1864	2314	1507	2314	1523	3567	3565	0.6	3.0	立憲王政アシャンティ	アシャンティ王国	アシャンティ王国	アシャンティ王国	王政アシャンティ	立憲王政アシャンティ	1	1
+COUP	75	1802	スペイン	Absolutist	ConstitutionalMonarchy	0
+COUP	75	1802	アシャンティ王国	Absolutist	ConstitutionalMonarchy	1
+COUP	75	1802	ボルヌ帝国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+END	78	1802	11	0	1	0	0	1	Absolutist	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.500	1	3476	4782	3182	3985	3183	3985	4491	4241	0.8	3.4	立憲王政エチオピア	エチオピア	エチオピア	エチオピア	王政エチオピア	立憲王政エチオピア	1	1
+COUP	78	1802	エチオピア	Absolutist	ConstitutionalMonarchy	1
+COUP	79	1803	ボルヌ帝国	BourgeoisDictatorship	ConstitutionalMonarchy	0
+COUP	80	1803	ボルヌ帝国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	82	1803	清	Despotic	Absolutist	0
+POST	70	8	2239	2969	3522	2370	1864	3567	アシャンティ王国
+COUP	83	1804	オヨ帝国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+POST	74	8	3197	4496	4206	3476	4782	4491	エチオピア
+COUP	89	1805	マラータ同盟	Despotic	Absolutist	0
+START	91	1806	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	アシャンティ王国	立憲王政アシャンティ	統領制アシャンティ	1	1
+END	94	1806	9	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-1.500	1	2241	3825	2068	3756	2073	4359	3500	3306	0.9	0.3	統領制アシャンティ	アシャンティ王国	アシャンティ王国	アシャンティ王国	立憲王政アシャンティ	統領制アシャンティ	1	1
+COUP	94	1806	アシャンティ王国	ConstitutionalMonarchy	BourgeoisDictatorship	1
+COUP	100	1808	ザクセン	Absolutist	ConstitutionalMonarchy	0
+POST	91	8	2065	3751	3291	2241	3825	3500	アシャンティ王国
+COUP	102	1808	アシャンティ王国	BourgeoisDictatorship	ConstitutionalMonarchy	0
+COUP	103	1809	ロシア	Despotic	ConstitutionalMonarchy	0
+START	105	1809	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	スペイン	王政スペイン	統領制スペイン	1	28
+COUP	105	1809	スペイン	ConstitutionalMonarchy	Absolutist	0
+COUP	105	1809	ザクセン	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	106	1809	アラビア	Despotic	Absolutist	0
+START	107	1810	0	1	0	Absolutist	ConstitutionalMonarchy	ソコト	王政ソコト	立憲王政ソコト	1	2
+END	112	1811	14	0	1	0	0	1	Absolutist	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.314	1	4063	4469	3660	3503	3660	3503	11042	10685	5.2	5.7	立憲王政ソコト	ソコト	ソコト	ソコト	王政ソコト	立憲王政ソコト	1	2
+COUP	112	1811	ソコト	Absolutist	ConstitutionalMonarchy	1
+END	113	1811	24	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-0.893	1	5820	18423	5596	11439	5596	17458	30285	24798	17.1	29.0	統領制スペイン	スペイン	スペイン	スペイン	王政スペイン	統領制スペイン	1	28
+COUP	113	1811	スペイン	Absolutist	BourgeoisDictatorship	1
+COUP	117	1812	シャム	Absolutist	ConstitutionalMonarchy	0
+POST	107	8	3491	6891	10666	4063	4469	11042	ソコト
+POST	105	8	6746	17867	25269	5820	18423	30285	スペイン
+COUP	125	1814	スイス	Republic	Absolutist	0
+COUP	126	1814	スイス	Absolutist	ConstitutionalMonarchy	0
+COUP	132	1816	トスカーナ	Absolutist	Republic	0
+COUP	139	1818	ブハラ	Absolutist	ConstitutionalMonarchy	0
+START	142	1818	0	1	0	BourgeoisDictatorship	ConstitutionalMonarchy	ザクセン	統領制ザクセン	立憲王政ザクセン	1	1
+END	143	1819	1	0	1	0	0	1	BourgeoisDictatorship	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.500	1	3614	17484	3619	16584	3619	16584	5405	5401	0.1	0.1	立憲王政ザクセン	ザクセン	ザクセン	ザクセン	統領制ザクセン	立憲王政ザクセン	1	1
+COUP	143	1819	プロイセン	Absolutist	ConstitutionalMonarchy	0
+COUP	143	1819	ザクセン	BourgeoisDictatorship	ConstitutionalMonarchy	1
+START	144	1819	0	1	0	BourgeoisDictatorship	ConstitutionalMonarchy	イギリス	統領制イギリス	立憲王政イギリス	1	28
+END	145	1819	1	0	1	0	0	1	BourgeoisDictatorship	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.500	1	8210	52218	8145	43820	8145	43820	27314	27424	0.1	0.1	立憲王政イギリス	イギリス	イギリス	イギリス	統領制イギリス	立憲王政イギリス	1	28
+COUP	145	1819	イギリス	BourgeoisDictatorship	ConstitutionalMonarchy	1
+COUP	146	1819	スウェーデン	Absolutist	Republic	0
+START	148	1820	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	プロイセン	立憲王政プロイセン	統領制プロイセン	1	3
+END	149	1820	1	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-1.500	1	2844	14356	2855	14019	2855	14019	6555	6614	0.3	0.4	統領制プロイセン	プロイセン	プロイセン	プロイセン	立憲王政プロイセン	統領制プロイセン	1	3
+COUP	149	1820	プロイセン	ConstitutionalMonarchy	BourgeoisDictatorship	1
+START	150	1820	0	1	0	BourgeoisDictatorship	ConstitutionalMonarchy	プロイセン	統領制プロイセン	立憲王政プロイセン	1	3
+END	151	1821	1	0	1	0	0	1	BourgeoisDictatorship	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.500	1	2855	14019	2832	12631	2832	12631	6614	6562	0.8	0.3	立憲王政プロイセン	プロイセン	プロイセン	プロイセン	統領制プロイセン	立憲王政プロイセン	1	3
+POST	142	8	3681	17358	5384	3614	17484	5405	ザクセン
+COUP	151	1821	プロイセン	BourgeoisDictatorship	ConstitutionalMonarchy	1
+START	152	1821	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	プロイセン	立憲王政プロイセン	統領制プロイセン	1	3
+END	153	1821	1	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-1.500	1	2832	12631	2808	12806	2808	12806	6562	6614	0.6	0.2	統領制プロイセン	プロイセン	プロイセン	プロイセン	立憲王政プロイセン	統領制プロイセン	1	3
+POST	144	8	8048	22381	28390	8210	52218	27314	イギリス
+COUP	153	1821	プロイセン	ConstitutionalMonarchy	BourgeoisDictatorship	1
+START	154	1821	0	1	0	BourgeoisDictatorship	ConstitutionalMonarchy	プロイセン	統領制プロイセン	立憲王政プロイセン	1	3
+END	155	1822	1	0	1	0	0	1	BourgeoisDictatorship	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.500	1	2808	12806	2800	15822	2800	15822	6614	6644	0.5	0.2	立憲王政プロイセン	プロイセン	プロイセン	プロイセン	統領制プロイセン	立憲王政プロイセン	1	3
+COUP	155	1822	プロイセン	BourgeoisDictatorship	ConstitutionalMonarchy	1
+START	156	1822	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	プロイセン	立憲王政プロイセン	統領制プロイセン	1	3
+COUP	156	1822	ヴェネツィア	Republic	Absolutist	0
+END	157	1822	1	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-1.500	1	2800	15822	2778	14373	2778	14373	6644	6688	0.5	0.4	統領制プロイセン	プロイセン	プロイセン	プロイセン	立憲王政プロイセン	統領制プロイセン	1	3
+POST	148	8	2778	14373	6688	2844	14356	6555	プロイセン
+COUP	157	1822	プロイセン	ConstitutionalMonarchy	BourgeoisDictatorship	1
+COUP	157	1822	ヴェネツィア	Absolutist	ConstitutionalMonarchy	0
+POST	150	8	2805	14955	6712	2855	14019	6614	プロイセン
+POST	152	8	2907	15498	6785	2832	12631	6562	プロイセン
+POST	154	8	2925	14691	6848	2808	12806	6614	プロイセン
+POST	156	8	2916	14445	6891	2800	15822	6644	プロイセン
+COUP	168	1825	スイス	ConstitutionalMonarchy	Absolutist	0
+COUP	169	1825	スイス	Absolutist	ConstitutionalMonarchy	0
+COUP	170	1825	アメリカ	Republic	Absolutist	0
+COUP	171	1826	アメリカ	Absolutist	ConstitutionalMonarchy	0
+START	177	1827	0	1	0	BourgeoisDictatorship	ConstitutionalMonarchy	スペイン	統領制スペイン	立憲王政スペイン	1	24
+END	178	1827	1	0	1	0	0	1	BourgeoisDictatorship	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.500	1	4768	20578	4743	17108	4743	17108	10266	10410	0.0	0.0	立憲王政スペイン	スペイン	スペイン	スペイン	統領制スペイン	立憲王政スペイン	1	24
+COUP	178	1827	スペイン	BourgeoisDictatorship	ConstitutionalMonarchy	1
+COUP	182	1828	スイス	ConstitutionalMonarchy	Absolutist	0
+COUP	183	1829	スイス	Absolutist	ConstitutionalMonarchy	0
+COUP	184	1829	清	Absolutist	ConstitutionalMonarchy	0
+POST	177	8	4699	19902	11184	4768	20578	10266	スペイン
+COUP	187	1830	コーカンド	Absolutist	ConstitutionalMonarchy	0
+COUP	190	1830	ヴェネツィア	ConstitutionalMonarchy	Absolutist	0
+COUP	191	1831	ヴェネツィア	Absolutist	ConstitutionalMonarchy	0
+COUP	201	1833	ヴェネツィア	ConstitutionalMonarchy	Absolutist	0
+COUP	202	1833	スペイン	ConstitutionalMonarchy	Absolutist	0
+COUP	202	1833	ヴェネツィア	Absolutist	ConstitutionalMonarchy	0
+COUP	203	1834	スペイン	Absolutist	ConstitutionalMonarchy	0
+START	211	1836	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	ロシア	立憲王政ロシア	統領制ロシア	1	26
+COUP	211	1836	ヒヴァ	Absolutist	Republic	0
+COUP	214	1836	スペイン	ConstitutionalMonarchy	Absolutist	0
+END	215	1837	11	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-1.262	1	22580	132867	21469	113533	21594	116404	50980	53073	17.3	6.2	統領制ロシア	ロシア	ロシア	ロシア	立憲王政ロシア	統領制ロシア	1	26
+COUP	215	1837	ロシア	ConstitutionalMonarchy	BourgeoisDictatorship	1
+COUP	215	1837	スペイン	Absolutist	ConstitutionalMonarchy	0
+COUP	215	1837	スイス	ConstitutionalMonarchy	Absolutist	0
+COUP	216	1837	スイス	Absolutist	ConstitutionalMonarchy	0
+COUP	216	1837	ラヘジ	Absolutist	ConstitutionalMonarchy	0
+COUP	219	1838	オマーン	Absolutist	ConstitutionalMonarchy	0
+POST	211	8	17498	126032	54986	22580	132867	50980	ロシア
+COUP	227	1840	ポーランド	Republic	Absolutist	0
+COUP	228	1840	ポーランド	Absolutist	ConstitutionalMonarchy	0
+COUP	232	1841	スイス	ConstitutionalMonarchy	Absolutist	0
+COUP	233	1841	サルデーニャ＝ピエモンテ	Absolutist	Republic	0
+COUP	233	1841	スイス	Absolutist	ConstitutionalMonarchy	0
+COUP	237	1842	バイエルン	Absolutist	ConstitutionalMonarchy	0
+COUP	255	1847	ダホメ王国	ConstitutionalMonarchy	Absolutist	0
+COUP	257	1847	ダホメ王国	Absolutist	ConstitutionalMonarchy	0
+COUP	265	1849	アワド	Absolutist	Republic	0
+COUP	274	1851	西山朝	Absolutist	ConstitutionalMonarchy	0
+COUP	275	1852	アラビア	Absolutist	ConstitutionalMonarchy	0
+COUP	277	1852	阮氏	Absolutist	Republic	0
+COUP	278	1852	ブハラ	ConstitutionalMonarchy	Absolutist	0
+COUP	281	1853	ブハラ	Absolutist	ConstitutionalMonarchy	0
+COUP	296	1857	日本	Absolutist	ConstitutionalMonarchy	0
+COUP	317	1862	カンボジア	Absolutist	ConstitutionalMonarchy	0
+COUP	326	1864	朝鮮	Absolutist	ConstitutionalMonarchy	0
+COUP	350	1870	スペイン	ConstitutionalMonarchy	Absolutist	0
+COUP	351	1871	スペイン	Absolutist	ConstitutionalMonarchy	0
+COUP	376	1877	スペイン	ConstitutionalMonarchy	Absolutist	0
+COUP	376	1877	シャム	ConstitutionalMonarchy	Absolutist	0
+COUP	377	1877	スペイン	Absolutist	ConstitutionalMonarchy	0
+COUP	377	1877	シャム	Absolutist	ConstitutionalMonarchy	0
+COUP	386	1879	マラータ同盟	Absolutist	ConstitutionalMonarchy	0
+COUP	460	1898	デンマーク	Absolutist	ConstitutionalMonarchy	0
+COUP	467	1900	オスマン	Absolutist	ConstitutionalMonarchy	0
+START	475	1902	2	0	0	ConstitutionalMonarchy	ConstitutionalMonarchy	アメリカ	アメリカ	オークランド王国	1	19
+COUP	480	1903	マラータ同盟	ConstitutionalMonarchy	Absolutist	0
+END	481	1903	18	2	0	0	1	1	ConstitutionalMonarchy	ConstitutionalMonarchy	ConstitutionalMonarchy	-0.000	1	4127	93935	0	0	-1	-1	56332	57182	0.0	0.0	オークランド王国	アメリカ		アメリカ	アメリカ	オークランド王国	1	19
+COUP	481	1903	ハノーファー	Absolutist	ConstitutionalMonarchy	0
+COUP	483	1904	両シチリア	Absolutist	ConstitutionalMonarchy	0
+COUP	488	1905	教皇領	Absolutist	ConstitutionalMonarchy	0
+COUP	505	1909	ヴュルテンベルク	Absolutist	ConstitutionalMonarchy	0
+COUP	506	1909	ポルトガル	Absolutist	ConstitutionalMonarchy	0
+COUP	506	1909	アルジェ摂政国	Absolutist	ConstitutionalMonarchy	0
+COUP	520	1913	オーストリア	Absolutist	ConstitutionalMonarchy	0
+COUP	524	1914	エチオピア	ConstitutionalMonarchy	Absolutist	0
+COUP	527	1915	エチオピア	Absolutist	ConstitutionalMonarchy	0
+COUP	546	1919	ビルマ	Absolutist	ConstitutionalMonarchy	0
+START	553	1921	2	0	0	ConstitutionalMonarchy	ConstitutionalMonarchy	アメリカ	アメリカ	ダニーデン王国	1	11
+COUP	554	1921	ライン諸邦	Absolutist	ConstitutionalMonarchy	0
+COUP	555	1922	カンボジア	ConstitutionalMonarchy	Absolutist	0
+END	558	1922	13	2	0	0	1	1	ConstitutionalMonarchy	ConstitutionalMonarchy	ConstitutionalMonarchy	-0.000	1	2511	29474	0	0	-1	-1	45590	46312	0.0	0.0	ダニーデン王国	アメリカ		アメリカ	アメリカ	ダニーデン王国	1	11
+START	581	1928	0	1	0	Absolutist	ConstitutionalMonarchy	アフガニスタン	王政アフガニスタン	立憲王政アフガニスタン	1	3
+COUP	582	1928	ハイデラバード	Absolutist	ConstitutionalMonarchy	0
+COUP	582	1928	モロッコ	Absolutist	ConstitutionalMonarchy	0
+COUP	584	1929	ペルシャ	Absolutist	ConstitutionalMonarchy	0
+END	590	1930	26	0	1	0	0	1	Absolutist	ConstitutionalMonarchy	ConstitutionalMonarchy	-0.713	1	717	2065	682	1834	729	2109	8609	8364	15.4	1.8	立憲王政アフガニスタン	アフガニスタン	アフガニスタン	アフガニスタン	王政アフガニスタン	立憲王政アフガニスタン	1	3
+COUP	590	1930	アフガニスタン	Absolutist	ConstitutionalMonarchy	1
+COUP	594	1931	ネパール	Absolutist	ConstitutionalMonarchy	0
+POST	581	8	734	2158	8274	717	2065	8609	アフガニスタン
+COUP	608	1935	マラータ同盟	Absolutist	ConstitutionalMonarchy	0
+COUP	657	1947	ダニーデン王国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+SEED	7
+SUM	167	11	0	11	787	0	865	64
+COUP	12	1786	日本	Shogunate	Absolutist	0
+START	17	1787	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	イギリス	立憲王政イギリス	統領制イギリス	1	30
+COUP	22	1788	ハワイ王国	Absolutist	ConstitutionalMonarchy	0
+END	23	1789	18	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-0.821	1	4073	12488	3836	10795	3836	12350	28441	27754	4.1	0.8	統領制イギリス	イギリス	イギリス	イギリス	立憲王政イギリス	統領制イギリス	1	30
+COUP	23	1789	イギリス	ConstitutionalMonarchy	BourgeoisDictatorship	1
+COUP	27	1790	ハワイ王国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	28	1790	ハワイ王国	BourgeoisDictatorship	ConstitutionalMonarchy	0
+COUP	29	1790	ハワイ王国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	30	1790	ハワイ王国	BourgeoisDictatorship	ConstitutionalMonarchy	0
+POST	17	8	4130	14550	26793	4073	12488	28441	イギリス
+COUP	31	1791	ハワイ王国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	32	1791	ハワイ王国	BourgeoisDictatorship	Republic	0
+COUP	33	1791	ハワイ王国	Republic	BourgeoisDictatorship	0
+COUP	34	1791	ボルヌ帝国	Absolutist	ConstitutionalMonarchy	0
+START	37	1792	0	1	0	BourgeoisDictatorship	ConstitutionalMonarchy	イギリス	統領制イギリス	立憲王政イギリス	1	29
+COUP	37	1792	阮氏	Despotic	Absolutist	0
+END	38	1792	1	0	1	0	0	1	BourgeoisDictatorship	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.500	1	4120	16134	4041	16296	4041	16296	26175	25916	0.5	0.1	立憲王政イギリス	イギリス	イギリス	イギリス	統領制イギリス	立憲王政イギリス	1	29
+START	38	1792	0	1	0	Despotic	Republic	ペルシャ	帝政ペルシャ	共和制ペルシャ	1	5
+COUP	38	1792	イギリス	BourgeoisDictatorship	ConstitutionalMonarchy	1
+COUP	38	1792	ボルヌ帝国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+START	39	1793	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	イギリス	立憲王政イギリス	統領制イギリス	1	29
+COUP	39	1793	西山朝	Despotic	Absolutist	0
+COUP	39	1793	ボルヌ帝国	BourgeoisDictatorship	ConstitutionalMonarchy	0
+END	41	1793	4	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-1.500	1	4041	16296	3914	15989	3914	15989	25916	25439	2.4	0.2	統領制イギリス	イギリス	イギリス	イギリス	立憲王政イギリス	統領制イギリス	1	29
+COUP	41	1793	イギリス	ConstitutionalMonarchy	BourgeoisDictatorship	1
+COUP	42	1793	ハワイ王国	BourgeoisDictatorship	Republic	0
+COUP	43	1794	ハワイ王国	Republic	BourgeoisDictatorship	0
+COUP	44	1794	ボルヌ帝国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+END	45	1794	20	0	1	0	0	1	Despotic	Republic	Republic	-1.014	1	1043	525	952	493	952	537	4361	4103	3.5	1.6	共和制ペルシャ	ペルシャ	ペルシャ	ペルシャ	帝政ペルシャ	共和制ペルシャ	1	5
+COUP	45	1794	ビルマ	Despotic	Absolutist	0
+COUP	45	1794	ペルシャ	Despotic	Republic	1
+POST	37	8	4075	16065	25102	4120	16134	26175	イギリス
+POST	39	8	4197	15337	24985	4041	16296	25916	イギリス
+POST	38	8	893	996	3948	1043	525	4361	ペルシャ
+COUP	53	1796	ハイデラバード	Despotic	Absolutist	0
+COUP	57	1797	マイソール	Despotic	Absolutist	0
+COUP	60	1798	エチオピア	Despotic	Absolutist	0
+COUP	60	1798	デリー	Despotic	Absolutist	0
+COUP	66	1799	コンゴ王国	Absolutist	ConstitutionalMonarchy	0
+COUP	71	1801	アワド	Despotic	Absolutist	0
+COUP	72	1801	ロシア	Despotic	ConstitutionalMonarchy	0
+COUP	72	1801	アフガニスタン	Despotic	Absolutist	0
+COUP	82	1803	デリー	Absolutist	ConstitutionalMonarchy	0
+START	83	1804	0	1	0	Absolutist	ConstitutionalMonarchy	アシャンティ王国	王政アシャンティ	立憲王政アシャンティ	1	1
+COUP	85	1804	マラータ同盟	Despotic	Absolutist	0
+COUP	87	1805	朝鮮	Absolutist	Republic	0
+END	88	1805	13	0	1	0	0	1	Absolutist	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.071	1	2176	2005	2142	1559	2142	1652	3394	3415	0.2	3.4	立憲王政アシャンティ	アシャンティ王国	アシャンティ王国	アシャンティ王国	王政アシャンティ	立憲王政アシャンティ	1	1
+COUP	88	1805	アシャンティ王国	Absolutist	ConstitutionalMonarchy	1
+COUP	90	1805	ハワイ王国	BourgeoisDictatorship	ConstitutionalMonarchy	0
+COUP	92	1806	清	Despotic	Absolutist	0
+COUP	93	1806	アラビア	Despotic	Absolutist	0
+COUP	93	1806	ダホメ王国	Absolutist	ConstitutionalMonarchy	0
+POST	83	8	2133	1942	3415	2176	2005	3394	アシャンティ王国
+COUP	111	1811	ザクセン	Absolutist	ConstitutionalMonarchy	0
+COUP	116	1812	ザクセン	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	118	1812	スペイン	Absolutist	ConstitutionalMonarchy	0
+START	119	1813	0	1	0	Absolutist	ConstitutionalMonarchy	エチオピア	王政エチオピア	立憲王政エチオピア	1	1
+END	123	1814	11	0	1	0	0	1	Absolutist	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.107	1	3087	4594	3045	4048	3045	4436	4232	4247	0.7	3.7	立憲王政エチオピア	エチオピア	エチオピア	エチオピア	王政エチオピア	立憲王政エチオピア	1	1
+COUP	123	1814	エチオピア	Absolutist	ConstitutionalMonarchy	1
+COUP	130	1815	スペイン	ConstitutionalMonarchy	Absolutist	0
+POST	119	8	2920	4067	4167	3087	4594	4232	エチオピア
+COUP	131	1816	スペイン	Absolutist	ConstitutionalMonarchy	0
+COUP	132	1816	アメリカ	Republic	Absolutist	0
+COUP	132	1816	プロイセン	Absolutist	ConstitutionalMonarchy	0
+COUP	133	1816	アメリカ	Absolutist	ConstitutionalMonarchy	0
+START	135	1817	0	1	0	BourgeoisDictatorship	ConstitutionalMonarchy	イギリス	統領制イギリス	立憲王政イギリス	1	30
+END	136	1817	1	0	1	0	0	1	BourgeoisDictatorship	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.500	1	7106	44328	7263	39899	7263	39899	30775	31014	0.5	0.1	立憲王政イギリス	イギリス	イギリス	イギリス	統領制イギリス	立憲王政イギリス	1	30
+COUP	136	1817	イギリス	BourgeoisDictatorship	ConstitutionalMonarchy	1
+START	138	1817	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	プロイセン	立憲王政プロイセン	統領制プロイセン	1	4
+END	141	1818	7	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-1.500	1	2698	14005	2678	10333	2686	10333	8388	8375	5.9	1.9	統領制プロイセン	プロイセン	プロイセン	プロイセン	立憲王政プロイセン	統領制プロイセン	1	4
+COUP	141	1818	プロイセン	ConstitutionalMonarchy	BourgeoisDictatorship	1
+COUP	141	1818	スペイン	ConstitutionalMonarchy	Republic	0
+START	142	1818	0	1	0	BourgeoisDictatorship	ConstitutionalMonarchy	プロイセン	統領制プロイセン	立憲王政プロイセン	1	4
+COUP	142	1818	オヨ帝国	Absolutist	ConstitutionalMonarchy	0
+END	143	1819	2	0	1	0	0	1	BourgeoisDictatorship	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.500	1	2686	10333	2601	10874	2601	10874	8375	8351	1.8	0.7	立憲王政プロイセン	プロイセン	プロイセン	プロイセン	統領制プロイセン	立憲王政プロイセン	1	4
+COUP	143	1819	プロイセン	BourgeoisDictatorship	ConstitutionalMonarchy	1
+START	144	1819	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	プロイセン	立憲王政プロイセン	統領制プロイセン	1	4
+POST	135	8	7690	22655	31939	7106	44328	30775	イギリス
+END	145	1819	1	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-1.500	1	2601	10874	2586	14256	2598	14256	8351	8388	0.8	0.4	統領制プロイセン	プロイセン	プロイセン	プロイセン	立憲王政プロイセン	統領制プロイセン	1	4
+COUP	145	1819	プロイセン	ConstitutionalMonarchy	BourgeoisDictatorship	1
+COUP	146	1819	清	Absolutist	Republic	0
+START	147	1820	0	1	0	Absolutist	ConstitutionalMonarchy	オマーン	王政オマーン	立憲王政オマーン	1	3
+POST	138	8	2556	13269	8418	2698	14005	8388	プロイセン
+END	151	1821	12	0	1	0	0	1	Absolutist	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.500	1	660	910	651	829	652	829	1463	1473	0.1	0.0	立憲王政オマーン	オマーン	オマーン	オマーン	王政オマーン	立憲王政オマーン	1	3
+POST	142	8	2595	13014	8481	2686	10333	8375	プロイセン
+COUP	151	1821	オマーン	Absolutist	ConstitutionalMonarchy	1
+POST	144	8	2687	11859	8583	2601	10874	8351	プロイセン
+COUP	158	1822	清	Republic	ConstitutionalMonarchy	0
+POST	147	8	625	1125	1448	660	910	1463	オマーン
+COUP	170	1825	ネーデルラント	Republic	Absolutist	0
+COUP	171	1826	ネーデルラント	Absolutist	ConstitutionalMonarchy	0
+COUP	178	1827	清	ConstitutionalMonarchy	Absolutist	0
+COUP	187	1830	スイス	Republic	Absolutist	0
+COUP	188	1830	スイス	Absolutist	ConstitutionalMonarchy	0
+COUP	188	1830	ダホメ王国	ConstitutionalMonarchy	Absolutist	0
+COUP	190	1830	ネーデルラント	ConstitutionalMonarchy	Absolutist	0
+COUP	191	1831	ネーデルラント	Absolutist	ConstitutionalMonarchy	0
+COUP	191	1831	ダホメ王国	Absolutist	ConstitutionalMonarchy	0
+COUP	195	1832	ザクセン	BourgeoisDictatorship	ConstitutionalMonarchy	0
+COUP	202	1833	サルデーニャ＝ピエモンテ	Absolutist	Republic	0
+COUP	207	1835	ネーデルラント	ConstitutionalMonarchy	Absolutist	0
+COUP	208	1835	フランス	Absolutist	ConstitutionalMonarchy	0
+COUP	208	1835	ネーデルラント	Absolutist	ConstitutionalMonarchy	0
+COUP	213	1836	清	Absolutist	ConstitutionalMonarchy	0
+COUP	214	1836	オーストリア	Absolutist	ConstitutionalMonarchy	0
+COUP	217	1837	スイス	ConstitutionalMonarchy	Absolutist	0
+COUP	218	1837	スイス	Absolutist	ConstitutionalMonarchy	0
+COUP	219	1838	日本	Absolutist	ConstitutionalMonarchy	0
+COUP	223	1839	スペイン	Republic	Absolutist	0
+COUP	224	1839	スペイン	Absolutist	ConstitutionalMonarchy	0
+COUP	231	1841	清	ConstitutionalMonarchy	Absolutist	0
+COUP	231	1841	トスカーナ	Absolutist	ConstitutionalMonarchy	0
+COUP	237	1842	プロイセン	BourgeoisDictatorship	ConstitutionalMonarchy	0
+COUP	242	1843	清	Absolutist	ConstitutionalMonarchy	0
+COUP	245	1844	西山朝	Absolutist	ConstitutionalMonarchy	0
+COUP	246	1844	ヴェネツィア	Republic	Absolutist	0
+COUP	247	1845	ヴェネツィア	Absolutist	ConstitutionalMonarchy	0
+COUP	254	1846	ネーデルラント	ConstitutionalMonarchy	Absolutist	0
+COUP	255	1847	ネーデルラント	Absolutist	ConstitutionalMonarchy	0
+COUP	257	1847	コンゴ王国	ConstitutionalMonarchy	Absolutist	0
+START	260	1848	2	0	0	ConstitutionalMonarchy	ConstitutionalMonarchy	イギリス	イギリス	タマンラセット王国	1	35
+COUP	260	1848	ハイデラバード	Absolutist	ConstitutionalMonarchy	0
+COUP	260	1848	コンゴ王国	Absolutist	ConstitutionalMonarchy	0
+START	261	1848	2	0	0	ConstitutionalMonarchy	ConstitutionalMonarchy	イギリス	イギリス	アベシェ王国	1	33
+START	261	1848	2	0	0	ConstitutionalMonarchy	ConstitutionalMonarchy	イギリス	イギリス	ムルズク王国	1	33
+START	262	1848	2	0	0	ConstitutionalMonarchy	ConstitutionalMonarchy	イギリス	イギリス	トンブクトゥ王国	1	32
+END	265	1849	13	2	0	0	1	1	ConstitutionalMonarchy	ConstitutionalMonarchy	ConstitutionalMonarchy	-0.000	1	3993	59500	0	0	-1	-1	44381	43782	0.2	0.0	タマンラセット王国	イギリス		イギリス	イギリス	タマンラセット王国	1	35
+END	265	1849	10	2	0	0	1	1	ConstitutionalMonarchy	ConstitutionalMonarchy	ConstitutionalMonarchy	-0.000	1	4052	61867	0	0	-1	-1	44429	43782	0.0	0.0	アベシェ王国	イギリス		イギリス	イギリス	アベシェ王国	1	33
+END	267	1850	13	2	0	0	1	1	ConstitutionalMonarchy	ConstitutionalMonarchy	ConstitutionalMonarchy	-0.000	1	3993	60703	0	0	-1	-1	44377	43308	0.0	0.0	トンブクトゥ王国	イギリス		イギリス	イギリス	トンブクトゥ王国	1	32
+END	271	1851	28	2	0	0	1	1	ConstitutionalMonarchy	ConstitutionalMonarchy	ConstitutionalMonarchy	-0.000	1	4052	61867	0	0	-1	-1	44429	42851	0.0	0.0	ムルズク王国	イギリス		イギリス	イギリス	ムルズク王国	1	33
+START	271	1851	2	0	0	Republic	Republic	朝鮮	朝鮮	ポートモレスビー共和国	1	9
+COUP	271	1851	清	ConstitutionalMonarchy	Absolutist	0
+COUP	271	1851	ラヘジ	Absolutist	ConstitutionalMonarchy	0
+START	272	1851	2	0	0	Republic	Republic	朝鮮	朝鮮	マノクワリ共和国	1	8
+COUP	272	1851	清	Absolutist	ConstitutionalMonarchy	0
+COUP	274	1851	アベシェ王国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	275	1852	スペイン	ConstitutionalMonarchy	Absolutist	0
+COUP	276	1852	スペイン	Absolutist	ConstitutionalMonarchy	0
+END	279	1853	19	2	0	0	1	1	Republic	Republic	Republic	-0.000	1	7987	51386	0	0	-1	-1	62496	62437	0.0	0.0	マノクワリ共和国	朝鮮		朝鮮	朝鮮	マノクワリ共和国	1	8
+COUP	279	1853	アラビア	Absolutist	ConstitutionalMonarchy	0
+END	280	1853	25	2	0	0	1	1	Republic	Republic	Republic	-0.000	1	7735	50414	0	0	-1	-1	62504	62414	0.0	0.0	ポートモレスビー共和国	朝鮮		朝鮮	朝鮮	ポートモレスビー共和国	1	9
+COUP	282	1853	ポートモレスビー共和国	Republic	BourgeoisDictatorship	0
+COUP	284	1854	ポートモレスビー共和国	BourgeoisDictatorship	Republic	0
+COUP	285	1854	ポートモレスビー共和国	Republic	BourgeoisDictatorship	0
+COUP	286	1854	ポートモレスビー共和国	BourgeoisDictatorship	Republic	0
+COUP	288	1855	マノクワリ共和国	Republic	BourgeoisDictatorship	0
+COUP	289	1855	ポートモレスビー共和国	Republic	BourgeoisDictatorship	0
+COUP	291	1856	ポートモレスビー共和国	BourgeoisDictatorship	Republic	0
+COUP	291	1856	マノクワリ共和国	BourgeoisDictatorship	Republic	0
+COUP	294	1856	ヴェネツィア	ConstitutionalMonarchy	Absolutist	0
+COUP	294	1856	トンブクトゥ王国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	295	1857	ヴェネツィア	Absolutist	ConstitutionalMonarchy	0
+COUP	297	1857	マノクワリ共和国	Republic	BourgeoisDictatorship	0
+COUP	298	1857	トンブクトゥ王国	BourgeoisDictatorship	Republic	0
+COUP	299	1858	トンブクトゥ王国	Republic	BourgeoisDictatorship	0
+COUP	301	1858	トンブクトゥ王国	BourgeoisDictatorship	Republic	0
+COUP	302	1858	トンブクトゥ王国	Republic	BourgeoisDictatorship	0
+COUP	303	1859	トンブクトゥ王国	BourgeoisDictatorship	Republic	0
+COUP	304	1859	トンブクトゥ王国	Republic	BourgeoisDictatorship	0
+COUP	305	1859	トンブクトゥ王国	BourgeoisDictatorship	Republic	0
+COUP	306	1859	トンブクトゥ王国	Republic	BourgeoisDictatorship	0
+COUP	306	1859	マノクワリ共和国	BourgeoisDictatorship	Republic	0
+COUP	307	1860	トンブクトゥ王国	BourgeoisDictatorship	Republic	0
+COUP	307	1860	マノクワリ共和国	Republic	BourgeoisDictatorship	0
+COUP	308	1860	トンブクトゥ王国	Republic	BourgeoisDictatorship	0
+COUP	309	1860	トンブクトゥ王国	BourgeoisDictatorship	Republic	0
+COUP	310	1860	トンブクトゥ王国	Republic	BourgeoisDictatorship	0
+COUP	316	1862	ポルトガル	Absolutist	ConstitutionalMonarchy	0
+COUP	317	1862	阮氏	Absolutist	ConstitutionalMonarchy	0
+COUP	332	1866	オヨ帝国	ConstitutionalMonarchy	Absolutist	0
+COUP	334	1866	オヨ帝国	Absolutist	ConstitutionalMonarchy	0
+START	335	1867	2	0	0	ConstitutionalMonarchy	ConstitutionalMonarchy	イギリス	イギリス	南アフリカ王国	1	30
+COUP	339	1868	カンボジア	Absolutist	ConstitutionalMonarchy	0
+COUP	341	1868	アフガニスタン	Absolutist	ConstitutionalMonarchy	0
+END	344	1869	26	2	0	0	1	1	ConstitutionalMonarchy	ConstitutionalMonarchy	ConstitutionalMonarchy	-0.000	1	2746	43801	0	0	-1	-1	27165	25342	1.0	0.0	南アフリカ王国	イギリス		イギリス	イギリス	南アフリカ王国	1	30
+COUP	346	1869	トンブクトゥ王国	BourgeoisDictatorship	Republic	0
+COUP	347	1870	トンブクトゥ王国	Republic	BourgeoisDictatorship	0
+COUP	364	1874	シャム	Absolutist	ConstitutionalMonarchy	0
+COUP	369	1875	アメリカ	ConstitutionalMonarchy	Absolutist	0
+COUP	391	1881	スペイン	ConstitutionalMonarchy	Republic	0
+COUP	392	1881	ロシア	ConstitutionalMonarchy	Absolutist	0
+COUP	393	1881	ロシア	Absolutist	ConstitutionalMonarchy	0
+COUP	394	1881	ブハラ	Absolutist	ConstitutionalMonarchy	0
+COUP	405	1884	アメリカ	Absolutist	ConstitutionalMonarchy	0
+COUP	429	1890	マラータ同盟	Absolutist	ConstitutionalMonarchy	0
+COUP	441	1893	ダホメ王国	ConstitutionalMonarchy	Absolutist	0
+COUP	444	1894	ダホメ王国	Absolutist	ConstitutionalMonarchy	0
+COUP	461	1898	エチオピア	ConstitutionalMonarchy	Absolutist	0
+COUP	477	1902	ハノーファー	Absolutist	ConstitutionalMonarchy	0
+COUP	477	1902	アシャンティ王国	ConstitutionalMonarchy	Absolutist	0
+COUP	479	1903	アシャンティ王国	Absolutist	ConstitutionalMonarchy	0
+COUP	482	1903	エチオピア	Absolutist	ConstitutionalMonarchy	0
+COUP	490	1905	デンマーク	Absolutist	ConstitutionalMonarchy	0
+COUP	519	1913	アワド	Absolutist	ConstitutionalMonarchy	0
+COUP	536	1917	教皇領	Absolutist	ConstitutionalMonarchy	0
+COUP	537	1917	アルジェ摂政国	Absolutist	ConstitutionalMonarchy	0
+COUP	543	1919	ヴュルテンベルク	Absolutist	ConstitutionalMonarchy	0
+COUP	550	1920	両シチリア	Absolutist	ConstitutionalMonarchy	0
+COUP	556	1922	バイエルン	Absolutist	ConstitutionalMonarchy	0
+COUP	560	1923	デリー	ConstitutionalMonarchy	Absolutist	0
+COUP	571	1926	マラータ同盟	ConstitutionalMonarchy	Absolutist	0
+COUP	576	1927	ヒヴァ	Absolutist	ConstitutionalMonarchy	0
+COUP	580	1928	ネパール	Absolutist	ConstitutionalMonarchy	0
+COUP	587	1930	ソコト	Absolutist	ConstitutionalMonarchy	0
+COUP	591	1931	コーカンド	Absolutist	ConstitutionalMonarchy	0
+COUP	596	1932	スウェーデン	Absolutist	ConstitutionalMonarchy	0
+COUP	605	1934	ビルマ	Absolutist	ConstitutionalMonarchy	0
+COUP	606	1934	ブハラ	ConstitutionalMonarchy	Absolutist	0
+COUP	609	1935	ブハラ	Absolutist	ConstitutionalMonarchy	0
+COUP	613	1936	マラータ同盟	Absolutist	ConstitutionalMonarchy	0
+COUP	615	1937	ラオス	Absolutist	ConstitutionalMonarchy	0
+COUP	616	1937	マイソール	Absolutist	ConstitutionalMonarchy	0
+COUP	622	1938	モロッコ	Absolutist	ConstitutionalMonarchy	0
+COUP	656	1947	アフガニスタン	ConstitutionalMonarchy	Absolutist	0
+SEED	8
+SUM	94	5	0	7	489	0	538	61
+COUP	10	1785	日本	Shogunate	Absolutist	0
+COUP	10	1785	ハワイ王国	Absolutist	ConstitutionalMonarchy	0
+START	14	1786	0	1	0	Absolutist	ConstitutionalMonarchy	オヨ帝国	王政オヨ	立憲王政オヨ	1	1
+START	15	1787	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	イギリス	立憲王政イギリス	統領制イギリス	1	30
+END	17	1787	4	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-1.003	1	4118	11998	3972	11063	3972	11354	27472	27086	3.1	1.7	統領制イギリス	イギリス	イギリス	イギリス	立憲王政イギリス	統領制イギリス	1	30
+COUP	17	1787	イギリス	ConstitutionalMonarchy	BourgeoisDictatorship	1
+END	18	1787	10	0	1	0	0	1	Absolutist	Absolutist	ConstitutionalMonarchy	1.007	1	1537	663	1464	559	1464	588	2199	2148	0.0	1.6	立憲王政オヨ	オヨ帝国	オヨ帝国	オヨ帝国	王政オヨ	立憲王政オヨ	1	1
+COUP	19	1788	ハワイ王国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+POST	15	8	4029	11713	26320	4118	11998	27472	イギリス
+POST	14	8	1391	926	2031	1537	663	2199	オヨ帝国
+COUP	36	1792	阮氏	Despotic	Absolutist	0
+COUP	42	1793	西山朝	Despotic	Absolutist	0
+COUP	44	1794	ペルシャ	Despotic	Absolutist	0
+COUP	45	1794	ビルマ	Despotic	Absolutist	0
+COUP	50	1795	ハイデラバード	Despotic	Absolutist	0
+COUP	55	1797	マイソール	Despotic	Absolutist	0
+COUP	56	1797	デリー	Despotic	Absolutist	0
+COUP	67	1800	デリー	Absolutist	ConstitutionalMonarchy	0
+COUP	68	1800	コンゴ王国	Absolutist	ConstitutionalMonarchy	0
+COUP	72	1801	ロシア	Despotic	ConstitutionalMonarchy	0
+COUP	72	1801	エチオピア	Despotic	Absolutist	0
+COUP	76	1802	ダホメ王国	Absolutist	ConstitutionalMonarchy	0
+COUP	80	1803	アワド	Despotic	Absolutist	0
+COUP	82	1803	アラビア	Despotic	Absolutist	0
+COUP	87	1805	スペイン	Absolutist	ConstitutionalMonarchy	0
+COUP	88	1805	清	Despotic	Absolutist	0
+COUP	92	1806	マラータ同盟	Despotic	Absolutist	0
+START	94	1806	0	1	0	Absolutist	ConstitutionalMonarchy	アシャンティ王国	王政アシャンティ	立憲王政アシャンティ	1	1
+COUP	97	1807	アメリカ	Republic	Absolutist	0
+END	98	1807	12	0	1	0	0	1	Absolutist	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.498	1	2377	2454	2328	1795	2328	1894	3603	3594	1.2	2.8	立憲王政アシャンティ	アシャンティ王国	アシャンティ王国	アシャンティ王国	王政アシャンティ	立憲王政アシャンティ	1	1
+COUP	98	1807	アメリカ	Absolutist	ConstitutionalMonarchy	0
+COUP	98	1807	アシャンティ王国	Absolutist	ConstitutionalMonarchy	1
+COUP	98	1807	コンゴ王国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	99	1808	アラビア	Absolutist	ConstitutionalMonarchy	0
+COUP	99	1808	コンゴ王国	BourgeoisDictatorship	ConstitutionalMonarchy	0
+START	101	1808	0	1	0	Absolutist	ConstitutionalMonarchy	オヨ帝国	王政オヨ	立憲王政オヨ	1	1
+COUP	103	1809	スペイン	ConstitutionalMonarchy	BourgeoisDictatorship	0
+END	105	1809	11	0	1	0	0	1	Absolutist	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.500	1	1439	945	1402	787	1402	839	1983	1967	0.4	1.5	立憲王政オヨ	オヨ帝国	オヨ帝国	オヨ帝国	王政オヨ	立憲王政オヨ	1	1
+COUP	105	1809	オヨ帝国	Absolutist	ConstitutionalMonarchy	1
+POST	94	8	2242	2228	3528	2377	2454	3603	アシャンティ王国
+COUP	110	1810	アメリカ	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	110	1810	ザクセン	Absolutist	ConstitutionalMonarchy	0
+POST	101	8	1404	1110	1946	1439	945	1983	オヨ帝国
+COUP	114	1811	ザクセン	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	119	1813	アフガニスタン	Despotic	Absolutist	0
+COUP	124	1814	ネーデルラント	Republic	Absolutist	0
+COUP	125	1814	ネーデルラント	Absolutist	ConstitutionalMonarchy	0
+COUP	125	1814	サルデーニャ＝ピエモンテ	Absolutist	Republic	0
+COUP	128	1815	ボルヌ帝国	Absolutist	ConstitutionalMonarchy	0
+COUP	130	1815	ネーデルラント	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	164	1824	清	Absolutist	ConstitutionalMonarchy	0
+START	179	1828	0	1	0	Absolutist	ConstitutionalMonarchy	エチオピア	王政エチオピア	立憲王政エチオピア	1	1
+END	184	1829	13	0	1	0	0	1	Absolutist	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.232	1	2677	6018	2652	4470	2664	5322	4522	4591	0.8	3.8	立憲王政エチオピア	エチオピア	エチオピア	エチオピア	王政エチオピア	立憲王政エチオピア	1	1
+COUP	184	1829	エチオピア	Absolutist	ConstitutionalMonarchy	1
+COUP	188	1830	アラビア	ConstitutionalMonarchy	Absolutist	0
+COUP	189	1830	アラビア	Absolutist	ConstitutionalMonarchy	0
+POST	179	8	2467	5838	4521	2677	6018	4522	エチオピア
+COUP	198	1832	スイス	Republic	Absolutist	0
+COUP	199	1833	スイス	Absolutist	ConstitutionalMonarchy	0
+COUP	209	1835	日本	Absolutist	ConstitutionalMonarchy	0
+START	221	1838	0	1	0	BourgeoisDictatorship	ConstitutionalMonarchy	スペイン	統領制スペイン	立憲王政スペイン	1	16
+END	222	1838	1	0	1	0	0	1	BourgeoisDictatorship	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.500	1	6162	21973	6094	19828	6094	19828	13661	8314	0.0	0.0	立憲王政スペイン	スペイン	スペイン	スペイン	統領制スペイン	立憲王政スペイン	1	16
+COUP	222	1838	スペイン	BourgeoisDictatorship	ConstitutionalMonarchy	1
+COUP	228	1840	ジェノヴァ	Republic	Absolutist	0
+COUP	229	1840	ジェノヴァ	Absolutist	ConstitutionalMonarchy	0
+POST	221	8	6482	25043	8714	6162	21973	13661	スペイン
+COUP	233	1841	プロイセン	Absolutist	ConstitutionalMonarchy	0
+COUP	245	1844	イギリス	BourgeoisDictatorship	ConstitutionalMonarchy	0
+COUP	260	1848	アワド	Absolutist	ConstitutionalMonarchy	0
+COUP	279	1853	スイス	ConstitutionalMonarchy	Absolutist	0
+COUP	280	1853	スイス	Absolutist	ConstitutionalMonarchy	0
+COUP	288	1855	ボルヌ帝国	ConstitutionalMonarchy	Absolutist	0
+COUP	291	1856	ボルヌ帝国	Absolutist	ConstitutionalMonarchy	0
+COUP	292	1856	ソコト	Absolutist	ConstitutionalMonarchy	0
+COUP	293	1856	オマーン	Absolutist	ConstitutionalMonarchy	0
+COUP	302	1858	ダホメ王国	ConstitutionalMonarchy	Absolutist	0
+COUP	304	1859	ラヘジ	Absolutist	ConstitutionalMonarchy	0
+COUP	304	1859	ダホメ王国	Absolutist	ConstitutionalMonarchy	0
+COUP	322	1863	ネパール	Absolutist	ConstitutionalMonarchy	0
+COUP	327	1865	阮氏	Absolutist	Republic	0
+COUP	356	1872	シャム	Absolutist	ConstitutionalMonarchy	0
+COUP	360	1873	マラータ同盟	Absolutist	ConstitutionalMonarchy	0
+COUP	384	1879	プロイセン	ConstitutionalMonarchy	Absolutist	0
+COUP	387	1880	プロイセン	Absolutist	ConstitutionalMonarchy	0
+COUP	408	1885	ソコト	ConstitutionalMonarchy	Absolutist	0
+COUP	409	1885	ソコト	Absolutist	ConstitutionalMonarchy	0
+COUP	455	1897	アラビア	ConstitutionalMonarchy	Absolutist	0
+COUP	457	1897	アラビア	Absolutist	ConstitutionalMonarchy	0
+COUP	486	1904	デリー	ConstitutionalMonarchy	Absolutist	0
+COUP	487	1905	デリー	Absolutist	ConstitutionalMonarchy	0
+COUP	492	1906	エチオピア	ConstitutionalMonarchy	Absolutist	0
+COUP	499	1908	ライン諸邦	Absolutist	ConstitutionalMonarchy	0
+COUP	504	1909	ポルトガル	Absolutist	ConstitutionalMonarchy	0
+COUP	515	1912	エチオピア	Absolutist	ConstitutionalMonarchy	0
+COUP	520	1913	デンマーク	Absolutist	ConstitutionalMonarchy	0
+COUP	528	1915	オーストリア	Absolutist	ConstitutionalMonarchy	0
+COUP	530	1915	ハノーファー	Absolutist	ConstitutionalMonarchy	0
+COUP	547	1920	両シチリア	Absolutist	ConstitutionalMonarchy	0
+COUP	556	1922	スウェーデン	Absolutist	ConstitutionalMonarchy	0
+COUP	558	1922	ヴュルテンベルク	Absolutist	ConstitutionalMonarchy	0
+COUP	562	1923	ソコト	ConstitutionalMonarchy	Absolutist	0
+COUP	564	1924	朝鮮	Absolutist	ConstitutionalMonarchy	0
+COUP	564	1924	トスカーナ	Absolutist	ConstitutionalMonarchy	0
+COUP	584	1929	教皇領	Absolutist	ConstitutionalMonarchy	0
+COUP	589	1930	バイエルン	Absolutist	ConstitutionalMonarchy	0
+COUP	603	1934	ブハラ	Absolutist	ConstitutionalMonarchy	0
+COUP	605	1934	シャム	ConstitutionalMonarchy	Absolutist	0
+COUP	606	1934	オスマン	Absolutist	ConstitutionalMonarchy	0
+COUP	607	1935	ヒヴァ	Absolutist	ConstitutionalMonarchy	0
+START	610	1935	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	教皇領	立憲王政教皇領	統領制教皇領	1	2
+END	614	1936	10	0	1	0	0	1	ConstitutionalMonarchy	ConstitutionalMonarchy	BourgeoisDictatorship	1.137	1	127	173	124	146	129	158	3028	3030	0.3	0.1	統領制教皇領	教皇領	教皇領	教皇領	立憲王政教皇領	統領制教皇領	1	2
+POST	610	8	102	122	2909	127	173	3028	教皇領
+COUP	623	1939	コーカンド	Absolutist	ConstitutionalMonarchy	0
+COUP	655	1947	フランス	Absolutist	ConstitutionalMonarchy	0
+COUP	667	1950	ハイデラバード	Absolutist	ConstitutionalMonarchy	0
+SEED	9
+SUM	134	18	0	20	777	0	854	65
+COUP	6	1784	ハワイ王国	Absolutist	ConstitutionalMonarchy	0
+COUP	10	1785	ハワイ王国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	11	1786	ハワイ王国	BourgeoisDictatorship	ConstitutionalMonarchy	0
+COUP	12	1786	ハワイ王国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	13	1786	ハワイ王国	BourgeoisDictatorship	ConstitutionalMonarchy	0
+COUP	14	1786	ハワイ王国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	15	1787	デリー	Despotic	ConstitutionalMonarchy	0
+COUP	15	1787	ハワイ王国	BourgeoisDictatorship	ConstitutionalMonarchy	0
+COUP	16	1787	日本	Shogunate	Absolutist	0
+COUP	16	1787	ハワイ王国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	17	1787	ハワイ王国	BourgeoisDictatorship	Republic	0
+COUP	18	1787	ボルヌ帝国	Absolutist	ConstitutionalMonarchy	0
+COUP	18	1787	ハワイ王国	Republic	BourgeoisDictatorship	0
+COUP	19	1788	ハワイ王国	BourgeoisDictatorship	Republic	0
+COUP	20	1788	ハワイ王国	Republic	BourgeoisDictatorship	0
+START	21	1788	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	イギリス	立憲王政イギリス	統領制イギリス	1	31
+END	26	1789	15	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-1.017	1	4246	13461	3882	12989	3882	13559	28641	27793	4.9	1.1	統領制イギリス	イギリス	イギリス	イギリス	立憲王政イギリス	統領制イギリス	1	31
+START	26	1789	0	1	0	Absolutist	ConstitutionalMonarchy	オヨ帝国	王政オヨ	立憲王政オヨ	1	1
+COUP	26	1789	イギリス	ConstitutionalMonarchy	BourgeoisDictatorship	1
+COUP	26	1789	ボルヌ帝国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	30	1790	コンゴ王国	Absolutist	ConstitutionalMonarchy	0
+COUP	31	1791	ハワイ王国	BourgeoisDictatorship	Republic	0
+COUP	32	1791	ハワイ王国	Republic	BourgeoisDictatorship	0
+POST	21	8	3959	13754	26460	4246	13461	28641	イギリス
+END	35	1792	26	0	1	0	0	1	Absolutist	ConstitutionalMonarchy	ConstitutionalMonarchy	-0.815	1	1526	664	1362	530	1362	600	2140	2024	0.7	5.4	立憲王政オヨ	オヨ帝国	オヨ帝国	オヨ帝国	王政オヨ	立憲王政オヨ	1	1
+COUP	35	1792	オヨ帝国	Absolutist	ConstitutionalMonarchy	1
+START	38	1792	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	コンゴ王国	立憲王政コンゴ	統領制コンゴ	1	1
+COUP	39	1793	阮氏	Despotic	Absolutist	0
+COUP	42	1793	統領制コンゴ	BourgeoisDictatorship	ConstitutionalMonarchy	0
+POST	26	8	1363	1007	1990	1526	664	2140	オヨ帝国
+END	44	1794	18	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-0.557	1	413	319	381	330	381	457	700	683	0.2	1.1	統領制コンゴ	コンゴ王国	コンゴ王国	コンゴ王国	立憲王政コンゴ	統領制コンゴ	1	1
+COUP	44	1794	デリー	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	44	1794	コンゴ王国	ConstitutionalMonarchy	BourgeoisDictatorship	1
+COUP	45	1794	西山朝	Despotic	Absolutist	0
+START	47	1795	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	オヨ帝国	立憲王政オヨ	統領制オヨ	1	1
+COUP	48	1795	ビルマ	Despotic	Absolutist	0
+COUP	48	1795	コンゴ王国	BourgeoisDictatorship	ConstitutionalMonarchy	0
+END	49	1795	6	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-1.500	1	1355	1010	1332	1017	1332	1501	1980	1968	0.3	0.7	統領制オヨ	オヨ帝国	オヨ帝国	オヨ帝国	立憲王政オヨ	統領制オヨ	1	1
+COUP	49	1795	ペルシャ	Despotic	Absolutist	0
+COUP	49	1795	コンゴ王国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	49	1795	オヨ帝国	ConstitutionalMonarchy	BourgeoisDictatorship	1
+COUP	50	1795	コンゴ王国	BourgeoisDictatorship	ConstitutionalMonarchy	0
+COUP	51	1796	コンゴ王国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+POST	38	8	375	510	674	413	319	700	コンゴ王国
+COUP	53	1796	コンゴ王国	BourgeoisDictatorship	ConstitutionalMonarchy	0
+COUP	54	1796	コンゴ王国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	55	1797	コンゴ王国	BourgeoisDictatorship	ConstitutionalMonarchy	0
+COUP	56	1797	コンゴ王国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+POST	47	8	1304	1299	1939	1355	1010	1980	オヨ帝国
+COUP	60	1798	プロイセン	Absolutist	ConstitutionalMonarchy	0
+COUP	60	1798	エチオピア	Despotic	Absolutist	0
+START	61	1798	0	1	0	Absolutist	ConstitutionalMonarchy	スペイン	王政スペイン	立憲王政スペイン	1	28
+COUP	61	1798	マイソール	Despotic	Absolutist	0
+COUP	63	1799	ロシア	Despotic	ConstitutionalMonarchy	0
+END	65	1799	12	0	1	0	0	1	Absolutist	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.012	1	5895	14896	5572	11921	5572	12627	28735	23627	15.7	13.2	立憲王政スペイン	スペイン	スペイン	スペイン	王政スペイン	立憲王政スペイン	1	28
+COUP	65	1799	スペイン	Absolutist	ConstitutionalMonarchy	1
+START	66	1799	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	プロイセン	立憲王政プロイセン	統領制プロイセン	1	4
+START	67	1800	0	1	0	Absolutist	ConstitutionalMonarchy	アシャンティ王国	王政アシャンティ	立憲王政アシャンティ	1	1
+COUP	67	1800	ハイデラバード	Despotic	Absolutist	0
+COUP	67	1800	オヨ帝国	BourgeoisDictatorship	ConstitutionalMonarchy	0
+START	68	1800	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	オヨ帝国	立憲王政オヨ	統領制オヨ	1	1
+END	69	1800	9	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-1.456	1	1348	4700	1333	4801	1349	4801	6413	6529	3.2	1.4	統領制プロイセン	プロイセン	プロイセン	プロイセン	立憲王政プロイセン	統領制プロイセン	1	4
+COUP	69	1800	プロイセン	ConstitutionalMonarchy	BourgeoisDictatorship	1
+END	72	1801	10	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-1.500	1	1285	1726	1213	1433	1213	1433	1918	1764	0.6	0.3	統領制オヨ	オヨ帝国	オヨ帝国	オヨ帝国	立憲王政オヨ	統領制オヨ	1	1
+END	72	1801	14	0	1	0	0	1	Absolutist	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.314	1	2368	1593	2313	1436	2313	1538	3545	3547	0.8	3.5	立憲王政アシャンティ	アシャンティ王国	アシャンティ王国	アシャンティ王国	王政アシャンティ	立憲王政アシャンティ	1	1
+COUP	72	1801	アシャンティ王国	Absolutist	ConstitutionalMonarchy	1
+COUP	72	1801	オヨ帝国	ConstitutionalMonarchy	BourgeoisDictatorship	1
+POST	61	8	6446	16634	24238	5895	14896	28735	スペイン
+COUP	73	1801	オヨ帝国	BourgeoisDictatorship	ConstitutionalMonarchy	0
+START	74	1801	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	オヨ帝国	立憲王政オヨ	統領制オヨ	1	1
+END	75	1802	2	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-1.500	1	1213	1595	1205	2180	1205	2180	1765	1762	0.1	0.2	統領制オヨ	オヨ帝国	オヨ帝国	オヨ帝国	立憲王政オヨ	統領制オヨ	1	1
+COUP	75	1802	アワド	Despotic	Absolutist	0
+COUP	75	1802	オヨ帝国	ConstitutionalMonarchy	BourgeoisDictatorship	1
+START	77	1802	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	スペイン	立憲王政スペイン	統領制スペイン	1	26
+POST	66	8	1760	6903	6927	1348	4700	6413	プロイセン
+END	78	1802	1	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-1.500	1	6528	17881	6522	20443	6522	20443	24482	14866	0.9	0.8	統領制スペイン	スペイン	スペイン	スペイン	立憲王政スペイン	統領制スペイン	1	26
+START	78	1802	0	1	0	Absolutist	ConstitutionalMonarchy	ダホメ王国	王政ダホメ	立憲王政ダホメ	1	1
+COUP	78	1802	スペイン	ConstitutionalMonarchy	BourgeoisDictatorship	1
+POST	67	8	2244	2564	3503	2368	1593	3545	アシャンティ王国
+POST	68	8	1208	2049	1766	1285	1726	1918	オヨ帝国
+COUP	81	1803	コンゴ王国	BourgeoisDictatorship	ConstitutionalMonarchy	0
+END	82	1803	12	0	1	0	0	1	Absolutist	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.086	1	237	329	228	263	228	263	412	410	0.0	0.3	立憲王政ダホメ	ダホメ王国	ダホメ王国	ダホメ王国	王政ダホメ	立憲王政ダホメ	1	1
+COUP	82	1803	ダホメ王国	Absolutist	ConstitutionalMonarchy	1
+POST	74	8	1207	2018	1767	1213	1595	1765	オヨ帝国
+COUP	83	1804	マラータ同盟	Despotic	Absolutist	0
+COUP	83	1804	アラビア	Despotic	Absolutist	0
+COUP	84	1804	清	Despotic	Absolutist	0
+POST	77	8	6857	19582	12246	6528	17881	24482	スペイン
+START	89	1805	0	1	0	Absolutist	ConstitutionalMonarchy	朝鮮	王政朝鮮	立憲王政朝鮮	1	4
+POST	78	8	219	426	401	237	329	412	ダホメ王国
+COUP	91	1806	アフガニスタン	Despotic	Absolutist	0
+END	93	1806	11	0	1	0	0	1	Absolutist	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.012	1	6198	7981	6048	7471	6048	8182	14859	14700	9.6	7.9	立憲王政朝鮮	朝鮮	朝鮮	朝鮮	王政朝鮮	立憲王政朝鮮	1	4
+COUP	93	1806	朝鮮	Absolutist	ConstitutionalMonarchy	1
+POST	89	8	6534	11793	14895	6198	7981	14859	朝鮮
+COUP	101	1808	サルデーニャ＝ピエモンテ	Absolutist	ConstitutionalMonarchy	0
+START	106	1809	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	ロシア	立憲王政ロシア	統領制ロシア	1	29
+COUP	112	1811	ザクセン	Absolutist	ConstitutionalMonarchy	0
+END	113	1811	20	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-0.529	1	11621	24590	10232	9910	10232	13676	51112	49628	79.0	45.3	統領制ロシア	ロシア	ロシア	ロシア	立憲王政ロシア	統領制ロシア	1	29
+COUP	113	1811	ロシア	ConstitutionalMonarchy	BourgeoisDictatorship	1
+COUP	116	1812	ザクセン	ConstitutionalMonarchy	BourgeoisDictatorship	0
+POST	106	8	10492	25440	49345	11621	24590	51112	ロシア
+START	126	1814	0	1	0	Absolutist	ConstitutionalMonarchy	エチオピア	王政エチオピア	立憲王政エチオピア	1	1
+END	130	1815	12	0	1	0	0	1	Absolutist	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.500	1	3063	5516	3034	5150	3036	5535	4382	4344	1.8	3.0	立憲王政エチオピア	エチオピア	エチオピア	エチオピア	王政エチオピア	立憲王政エチオピア	1	1
+COUP	130	1815	エチオピア	Absolutist	ConstitutionalMonarchy	1
+POST	126	8	2933	5838	4307	3063	5516	4382	エチオピア
+COUP	140	1818	カンボジア	Absolutist	ConstitutionalMonarchy	0
+START	146	1819	0	1	0	BourgeoisDictatorship	ConstitutionalMonarchy	イギリス	統領制イギリス	立憲王政イギリス	1	32
+END	149	1820	9	0	1	0	0	1	BourgeoisDictatorship	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.500	1	7077	26769	6996	32920	6996	32920	28423	25561	0.5	0.0	立憲王政イギリス	イギリス	イギリス	イギリス	統領制イギリス	立憲王政イギリス	1	32
+COUP	149	1820	イギリス	BourgeoisDictatorship	ConstitutionalMonarchy	1
+POST	146	8	6929	25258	26316	7077	26769	28423	イギリス
+COUP	161	1823	ネーデルラント	Republic	Absolutist	0
+COUP	162	1823	ネーデルラント	Absolutist	ConstitutionalMonarchy	0
+COUP	163	1824	スイス	Republic	Absolutist	0
+COUP	164	1824	スイス	Absolutist	ConstitutionalMonarchy	0
+COUP	169	1825	スイス	ConstitutionalMonarchy	Absolutist	0
+COUP	170	1825	アメリカ	Republic	Absolutist	0
+COUP	170	1825	スイス	Absolutist	ConstitutionalMonarchy	0
+COUP	171	1826	アメリカ	Absolutist	ConstitutionalMonarchy	0
+COUP	172	1826	清	Absolutist	ConstitutionalMonarchy	0
+COUP	177	1827	オマーン	Absolutist	Republic	0
+COUP	187	1830	スイス	ConstitutionalMonarchy	Absolutist	0
+COUP	188	1830	スイス	Absolutist	ConstitutionalMonarchy	0
+START	199	1833	0	1	0	BourgeoisDictatorship	ConstitutionalMonarchy	プロイセン	統領制ドイツ	立憲王政ドイツ	1	5
+END	200	1833	2	0	1	0	0	1	BourgeoisDictatorship	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.500	1	2984	21048	2936	16260	2936	16260	8634	8622	1.9	0.3	立憲王政ドイツ	ドイツ帝国	ドイツ帝国	プロイセン	統領制ドイツ	立憲王政ドイツ	1	5
+COUP	200	1833	プロイセン	BourgeoisDictatorship	ConstitutionalMonarchy	1
+COUP	203	1834	オスマン	Absolutist	Republic	0
+COUP	207	1835	清	ConstitutionalMonarchy	Absolutist	0
+POST	199	8	3047	15781	8819	2984	21048	8634	プロイセン
+COUP	208	1835	清	Absolutist	ConstitutionalMonarchy	0
+COUP	223	1839	日本	Absolutist	ConstitutionalMonarchy	0
+COUP	225	1839	スイス	ConstitutionalMonarchy	Republic	0
+START	229	1840	0	1	0	BourgeoisDictatorship	ConstitutionalMonarchy	スペイン	統領制スペイン	立憲王政スペイン	1	24
+END	230	1840	1	0	1	0	0	1	BourgeoisDictatorship	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.500	1	12392	67173	12197	58549	12197	58549	19422	19385	0.0	0.0	立憲王政スペイン	スペイン	スペイン	スペイン	統領制スペイン	立憲王政スペイン	1	24
+COUP	230	1840	スペイン	BourgeoisDictatorship	ConstitutionalMonarchy	1
+COUP	233	1841	スペイン	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	237	1842	ネーデルラント	ConstitutionalMonarchy	Absolutist	0
+POST	229	8	11951	73452	19756	12392	67173	19422	スペイン
+COUP	238	1842	ネーデルラント	Absolutist	ConstitutionalMonarchy	0
+COUP	243	1844	スイス	Republic	Absolutist	0
+COUP	243	1844	ヴェネツィア	Republic	Absolutist	0
+COUP	243	1844	阮氏	Absolutist	ConstitutionalMonarchy	0
+COUP	244	1844	スイス	Absolutist	ConstitutionalMonarchy	0
+COUP	244	1844	ヴェネツィア	Absolutist	ConstitutionalMonarchy	0
+COUP	255	1847	西山朝	Absolutist	ConstitutionalMonarchy	0
+COUP	266	1849	ソコト	Absolutist	ConstitutionalMonarchy	0
+COUP	276	1852	ラオス	Absolutist	ConstitutionalMonarchy	0
+COUP	279	1853	ラヘジ	Absolutist	ConstitutionalMonarchy	0
+COUP	280	1853	ハイデラバード	Absolutist	ConstitutionalMonarchy	0
+START	281	1853	2	0	0	ConstitutionalMonarchy	ConstitutionalMonarchy	イギリス	イギリス	琉球王国	1	32
+END	285	1854	12	2	0	0	1	1	ConstitutionalMonarchy	ConstitutionalMonarchy	ConstitutionalMonarchy	-0.000	1	3523	52412	0	0	-1	-1	38279	38420	0.0	0.0	琉球王国	イギリス		イギリス	イギリス	琉球王国	1	32
+COUP	287	1855	アラビア	Absolutist	ConstitutionalMonarchy	0
+COUP	301	1858	バイエルン	Absolutist	ConstitutionalMonarchy	0
+COUP	302	1858	シャム	Absolutist	ConstitutionalMonarchy	0
+COUP	302	1858	琉球王国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	303	1859	琉球王国	BourgeoisDictatorship	Republic	0
+COUP	326	1864	ネパール	Absolutist	ConstitutionalMonarchy	0
+START	344	1869	2	0	0	BourgeoisDictatorship	BourgeoisDictatorship	ロシア	ロシア	ウォルビスベイ共和国	1	28
+COUP	345	1869	ブハラ	Absolutist	ConstitutionalMonarchy	0
+END	350	1870	17	2	0	0	1	1	BourgeoisDictatorship	BourgeoisDictatorship	BourgeoisDictatorship	-0.000	1	7209	70694	0	0	-1	-1	74592	73769	4.5	0.0	ウォルビスベイ共和国	ロシア		ロシア	ロシア	ウォルビスベイ共和国	1	28
+COUP	359	1873	サルデーニャ＝ピエモンテ	ConstitutionalMonarchy	Republic	0
+START	362	1873	2	0	0	BourgeoisDictatorship	BourgeoisDictatorship	ロシア	ロシア	南アフリカ共和国	1	28
+END	367	1875	13	2	0	0	1	1	BourgeoisDictatorship	BourgeoisDictatorship	BourgeoisDictatorship	-0.000	1	12113	57306	0	0	-1	-1	77515	78546	0.0	0.0	南アフリカ共和国	ロシア		ロシア	ロシア	南アフリカ共和国	1	28
+COUP	368	1875	カンボジア	ConstitutionalMonarchy	Absolutist	0
+COUP	371	1876	カンボジア	Absolutist	ConstitutionalMonarchy	0
+START	376	1877	2	0	0	ConstitutionalMonarchy	ConstitutionalMonarchy	アメリカ	アメリカ	ダーバン王国	1	5
+END	383	1879	20	2	0	0	1	1	ConstitutionalMonarchy	ConstitutionalMonarchy	ConstitutionalMonarchy	-0.000	1	5464	38162	0	0	-1	-1	37379	35958	0.0	0.0	ダーバン王国	アメリカ		アメリカ	アメリカ	ダーバン王国	1	5
+START	385	1879	0	1	0	Absolutist	ConstitutionalMonarchy	アフガニスタン	王政アフガニスタン	立憲王政アフガニスタン	1	3
+END	391	1881	18	0	1	0	1	1	Absolutist	Absolutist	ConstitutionalMonarchy	-0.057	1	79	225	76	92	81	102	7566	7485	0.5	0.2	立憲王政アフガニスタン	アフガニスタン	立憲王政アフガニスタン	アフガニスタン	王政アフガニスタン	立憲王政アフガニスタン	1	3
+START	399	1883	0	1	0	BourgeoisDictatorship	ConstitutionalMonarchy	スペイン	統領制スペイン	立憲王政スペイン	1	20
+POST	385	8	94	191	7669	79	225	7566	アフガニスタン
+END	402	1883	7	0	1	0	1	1	BourgeoisDictatorship	BourgeoisDictatorship	ConstitutionalMonarchy	-0.000	1	3	20	3	6	3	6	17576	17982	0.0	0.0	立憲王政スペイン	スペイン	立憲王政スペイン	スペイン	統領制スペイン	立憲王政スペイン	1	20
+START	409	1885	2	0	0	ConstitutionalMonarchy	ConstitutionalMonarchy	清	清	オークランド王国	1	28
+START	410	1885	2	0	0	ConstitutionalMonarchy	ConstitutionalMonarchy	清	清	ダニーデン王国	1	27
+POST	399	8	3	6	19062	3	20	17576	スペイン
+START	412	1886	2	0	0	ConstitutionalMonarchy	ConstitutionalMonarchy	清	清	アルタ=カリフォルニア王国	1	27
+END	414	1886	13	2	0	0	1	1	ConstitutionalMonarchy	ConstitutionalMonarchy	ConstitutionalMonarchy	-0.000	1	53128	374082	0	0	-1	-1	456011	454394	3.1	0.0	オークランド王国	清		清	清	オークランド王国	1	28
+END	418	1887	16	2	0	0	1	1	ConstitutionalMonarchy	ConstitutionalMonarchy	ConstitutionalMonarchy	-0.000	1	54144	379471	0	0	-1	-1	455541	452775	0.0	0.0	アルタ=カリフォルニア王国	清		清	清	アルタ=カリフォルニア王国	1	27
+END	419	1888	27	2	0	0	1	1	ConstitutionalMonarchy	ConstitutionalMonarchy	ConstitutionalMonarchy	-0.000	1	53133	354958	0	0	-1	-1	455493	452367	1.7	0.0	ダニーデン王国	清		清	清	ダニーデン王国	1	27
+COUP	423	1889	ダーバン王国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	425	1889	アルタ=カリフォルニア王国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	432	1891	アルタ=カリフォルニア王国	BourgeoisDictatorship	ConstitutionalMonarchy	0
+COUP	433	1891	アルタ=カリフォルニア王国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	456	1897	エチオピア	ConstitutionalMonarchy	Absolutist	0
+COUP	470	1900	アワド	Absolutist	ConstitutionalMonarchy	0
+COUP	480	1903	ライン諸邦	Absolutist	ConstitutionalMonarchy	0
+COUP	488	1905	マラータ同盟	Absolutist	ConstitutionalMonarchy	0
+COUP	492	1906	デンマーク	Absolutist	ConstitutionalMonarchy	0
+COUP	495	1907	トスカーナ	Absolutist	ConstitutionalMonarchy	0
+COUP	506	1909	教皇領	Absolutist	ConstitutionalMonarchy	0
+COUP	520	1913	ハノーファー	Absolutist	ConstitutionalMonarchy	0
+COUP	526	1914	両シチリア	Absolutist	ConstitutionalMonarchy	0
+COUP	527	1915	オーストリア	Absolutist	ConstitutionalMonarchy	0
+COUP	534	1916	アワド	ConstitutionalMonarchy	Absolutist	0
+START	536	1917	0	1	0	BourgeoisDictatorship	ConstitutionalMonarchy	スペイン	統領制スペイン	立憲王政スペイン	1	19
+END	537	1917	2	0	1	0	0	1	BourgeoisDictatorship	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.500	1	1551	16597	1461	15203	1461	15203	28785	28619	0.0	0.0	立憲王政スペイン	スペイン	スペイン	スペイン	統領制スペイン	立憲王政スペイン	1	19
+COUP	537	1917	スペイン	BourgeoisDictatorship	ConstitutionalMonarchy	1
+COUP	543	1919	スウェーデン	Absolutist	ConstitutionalMonarchy	0
+POST	536	8	1458	6946	20033	1551	16597	28785	スペイン
+COUP	545	1919	スペイン	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	551	1921	アルジェ摂政国	Absolutist	ConstitutionalMonarchy	0
+COUP	607	1935	ビルマ	Absolutist	ConstitutionalMonarchy	0
+COUP	612	1936	コーカンド	Absolutist	ConstitutionalMonarchy	0
+COUP	626	1939	モロッコ	Absolutist	ConstitutionalMonarchy	0
+COUP	638	1942	アフガニスタン	Absolutist	ConstitutionalMonarchy	0
+COUP	640	1943	ヴュルテンベルク	Absolutist	ConstitutionalMonarchy	0
+COUP	643	1944	マイソール	Absolutist	ConstitutionalMonarchy	0
+COUP	643	1944	ヒヴァ	Absolutist	ConstitutionalMonarchy	0
+COUP	652	1946	フランス	Absolutist	ConstitutionalMonarchy	0
+SEED	10
+SUM	109	13	0	15	518	0	557	63
+COUP	6	1784	日本	Shogunate	ConstitutionalMonarchy	0
+START	14	1786	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	イギリス	立憲王政イギリス	統領制イギリス	1	30
+START	14	1786	0	1	0	Absolutist	ConstitutionalMonarchy	ダホメ王国	王政ダホメ	立憲王政ダホメ	1	1
+END	17	1787	9	0	1	0	0	1	Absolutist	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.326	1	217	139	209	137	209	141	384	380	0.0	0.2	立憲王政ダホメ	ダホメ王国	ダホメ王国	ダホメ王国	王政ダホメ	立憲王政ダホメ	1	1
+COUP	17	1787	ダホメ王国	Absolutist	ConstitutionalMonarchy	1
+END	22	1788	22	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-0.696	1	4191	13813	3915	10331	3915	11107	28648	27605	11.4	1.5	統領制イギリス	イギリス	イギリス	イギリス	立憲王政イギリス	統領制イギリス	1	30
+COUP	22	1788	イギリス	ConstitutionalMonarchy	BourgeoisDictatorship	1
+POST	14	8	193	260	371	217	139	384	ダホメ王国
+START	29	1790	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	ダホメ王国	立憲王政ダホメ	統領制ダホメ	1	1
+POST	14	8	4288	13507	26965	4191	13813	28648	イギリス
+END	35	1792	17	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-1.002	1	194	281	192	287	193	302	370	372	0.2	0.5	統領制ダホメ	ダホメ王国	ダホメ王国	ダホメ王国	立憲王政ダホメ	統領制ダホメ	1	1
+COUP	35	1792	ダホメ王国	ConstitutionalMonarchy	BourgeoisDictatorship	1
+COUP	36	1792	西山朝	Despotic	Absolutist	0
+START	39	1793	0	1	0	Despotic	ConstitutionalMonarchy	エチオピア	帝政エチオピア	立憲王政エチオピア	1	1
+COUP	41	1793	阮氏	Despotic	Absolutist	0
+COUP	42	1793	ボルヌ帝国	Absolutist	ConstitutionalMonarchy	0
+POST	29	8	196	336	363	194	281	370	ダホメ王国
+END	44	1794	13	0	1	0	0	1	Despotic	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.336	1	3195	3093	3118	2316	3119	2430	4109	4089	0.4	4.5	立憲王政エチオピア	エチオピア	エチオピア	エチオピア	帝政エチオピア	立憲王政エチオピア	1	1
+COUP	44	1794	エチオピア	Despotic	ConstitutionalMonarchy	1
+COUP	47	1795	ビルマ	Despotic	Absolutist	0
+COUP	47	1795	ペルシャ	Despotic	Absolutist	0
+COUP	49	1795	ハワイ王国	Absolutist	ConstitutionalMonarchy	0
+START	51	1796	0	1	0	Absolutist	ConstitutionalMonarchy	オヨ帝国	王政オヨ	立憲王政オヨ	1	1
+POST	39	8	3095	2661	4063	3195	3093	4109	エチオピア
+COUP	52	1796	ハイデラバード	Despotic	Absolutist	0
+COUP	53	1796	ハワイ王国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	54	1796	アワド	Despotic	Absolutist	0
+COUP	54	1796	ボルヌ帝国	ConstitutionalMonarchy	BourgeoisDictatorship	0
+END	56	1797	15	0	1	0	0	1	Absolutist	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.024	1	1471	649	1419	462	1419	988	2066	2042	0.3	2.0	立憲王政オヨ	オヨ帝国	オヨ帝国	オヨ帝国	王政オヨ	立憲王政オヨ	1	1
+COUP	56	1797	オヨ帝国	Absolutist	ConstitutionalMonarchy	1
+COUP	63	1799	デリー	Despotic	Absolutist	0
+POST	51	8	1424	1132	2015	1471	649	2066	オヨ帝国
+COUP	68	1800	ロシア	Despotic	ConstitutionalMonarchy	0
+COUP	68	1800	コンゴ王国	Absolutist	ConstitutionalMonarchy	0
+START	70	1800	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	オヨ帝国	立憲王政オヨ	統領制オヨ	1	1
+START	71	1801	0	1	0	BourgeoisDictatorship	ConstitutionalMonarchy	イギリス	統領制イギリス	立憲王政イギリス	1	29
+END	72	1801	1	0	1	0	0	1	BourgeoisDictatorship	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.500	1	4565	24208	4484	18386	4484	18386	24150	24008	0.1	0.0	立憲王政イギリス	イギリス	イギリス	イギリス	統領制イギリス	立憲王政イギリス	1	29
+COUP	72	1801	イギリス	BourgeoisDictatorship	ConstitutionalMonarchy	1
+COUP	72	1801	マラータ同盟	Despotic	Absolutist	0
+COUP	72	1801	マイソール	Despotic	Absolutist	0
+END	73	1801	7	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-1.500	1	1354	1310	1336	1341	1336	1811	1913	1914	0.3	0.3	統領制オヨ	オヨ帝国	オヨ帝国	オヨ帝国	立憲王政オヨ	統領制オヨ	1	1
+COUP	73	1801	オヨ帝国	ConstitutionalMonarchy	BourgeoisDictatorship	1
+START	78	1802	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	イギリス	立憲王政イギリス	統領制イギリス	1	29
+END	79	1803	1	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-1.500	1	4420	18369	4326	13657	4326	13657	23837	23809	0.9	0.0	統領制イギリス	イギリス	イギリス	イギリス	立憲王政イギリス	統領制イギリス	1	29
+COUP	79	1803	イギリス	ConstitutionalMonarchy	BourgeoisDictatorship	1
+POST	71	8	4323	14378	23824	4565	24208	24150	イギリス
+POST	70	8	1329	1571	1910	1354	1310	1913	オヨ帝国
+COUP	81	1803	アラビア	Despotic	Absolutist	0
+POST	78	8	4220	15728	23982	4420	18369	23837	イギリス
+COUP	89	1805	清	Despotic	Absolutist	0
+COUP	92	1806	デリー	Absolutist	ConstitutionalMonarchy	0
+COUP	95	1807	アフガニスタン	Despotic	Absolutist	0
+COUP	97	1807	スペイン	Absolutist	ConstitutionalMonarchy	0
+COUP	98	1807	清	Absolutist	Republic	0
+START	99	1808	0	1	0	Absolutist	ConstitutionalMonarchy	オマーン	王政オマーン	立憲王政オマーン	1	3
+END	104	1809	13	0	1	0	0	1	Absolutist	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.500	1	896	1032	865	1011	865	1011	1568	1558	0.1	0.0	立憲王政オマーン	オマーン	オマーン	オマーン	王政オマーン	立憲王政オマーン	1	3
+COUP	104	1809	オマーン	Absolutist	ConstitutionalMonarchy	1
+COUP	105	1809	ザクセン	Absolutist	ConstitutionalMonarchy	0
+COUP	109	1810	日本	ConstitutionalMonarchy	Absolutist	0
+COUP	110	1810	ザクセン	ConstitutionalMonarchy	BourgeoisDictatorship	0
+POST	99	8	875	1778	1561	896	1032	1568	オマーン
+COUP	115	1812	スペイン	ConstitutionalMonarchy	Absolutist	0
+COUP	116	1812	スペイン	Absolutist	ConstitutionalMonarchy	0
+COUP	122	1813	アシャンティ王国	Absolutist	ConstitutionalMonarchy	0
+START	142	1818	0	1	0	Republic	BourgeoisDictatorship	清	共和制清	統領制清	1	24
+COUP	145	1819	オスマン	Absolutist	Republic	0
+END	150	1820	22	0	1	0	1	1	Republic	Republic	BourgeoisDictatorship	-0.111	1	20824	41810	20872	23398	22437	37828	438637	417659	95.5	73.4	統領制清	清	統領制清	清	共和制清	統領制清	1	24
+COUP	156	1822	スペイン	ConstitutionalMonarchy	Republic	0
+POST	142	8	23778	41912	418034	20824	41810	438637	清
+COUP	177	1827	スイス	Republic	Absolutist	0
+COUP	178	1827	スイス	Absolutist	ConstitutionalMonarchy	0
+COUP	183	1829	ジェノヴァ	Republic	Absolutist	0
+COUP	184	1829	ジェノヴァ	Absolutist	ConstitutionalMonarchy	0
+START	187	1830	0	1	0	Absolutist	ConstitutionalMonarchy	ライン諸邦	王政ライン諸邦	立憲王政ライン諸邦	1	1
+COUP	187	1830	スペイン	Republic	Absolutist	0
+END	188	1830	2	0	1	0	0	1	Absolutist	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.500	1	4594	16955	4544	14527	4544	14527	5769	5700	0.2	0.3	立憲王政ライン諸邦	ライン諸邦	ライン諸邦	ライン諸邦	王政ライン諸邦	立憲王政ライン諸邦	1	1
+COUP	188	1830	スペイン	Absolutist	ConstitutionalMonarchy	0
+COUP	188	1830	ライン諸邦	Absolutist	ConstitutionalMonarchy	1
+POST	187	8	4324	19053	5339	4594	16955	5769	ライン諸邦
+COUP	196	1832	スペイン	ConstitutionalMonarchy	Absolutist	0
+COUP	197	1832	スペイン	Absolutist	ConstitutionalMonarchy	0
+START	199	1833	0	1	0	Absolutist	ConstitutionalMonarchy	プロイセン	王政ドイツ	立憲王政ドイツ	1	4
+END	200	1833	2	0	1	0	0	1	Absolutist	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.282	1	3248	20464	3211	17834	3211	17834	9369	9358	1.7	1.2	立憲王政ドイツ	ドイツ帝国	ドイツ帝国	プロイセン	王政ドイツ	立憲王政ドイツ	1	4
+COUP	200	1833	プロイセン	Absolutist	ConstitutionalMonarchy	1
+START	204	1834	0	1	0	ConstitutionalMonarchy	BourgeoisDictatorship	スペイン	立憲王政スペイン	統領制スペイン	1	24
+END	206	1834	4	0	1	0	0	1	ConstitutionalMonarchy	BourgeoisDictatorship	BourgeoisDictatorship	-1.500	1	8648	32817	8447	29313	8447	32679	14969	13932	0.1	0.1	統領制スペイン	スペイン	スペイン	スペイン	立憲王政スペイン	統領制スペイン	1	24
+COUP	206	1834	ネーデルラント	Republic	Absolutist	0
+COUP	206	1834	スペイン	ConstitutionalMonarchy	BourgeoisDictatorship	1
+COUP	207	1835	ネーデルラント	Absolutist	ConstitutionalMonarchy	0
+POST	199	8	3057	20236	7136	3248	20464	9369	プロイセン
+COUP	209	1835	トスカーナ	Absolutist	Republic	0
+COUP	213	1836	ヴェネツィア	Republic	Absolutist	0
+POST	204	8	8543	33653	14397	8648	32817	14969	スペイン
+COUP	214	1836	ヴェネツィア	Absolutist	ConstitutionalMonarchy	0
+COUP	214	1836	ハノーファー	Absolutist	ConstitutionalMonarchy	0
+COUP	214	1836	コンゴ王国	ConstitutionalMonarchy	Absolutist	0
+START	215	1837	0	1	0	BourgeoisDictatorship	ConstitutionalMonarchy	イギリス	統領制イギリス	立憲王政イギリス	1	29
+END	217	1837	4	0	1	0	0	1	BourgeoisDictatorship	ConstitutionalMonarchy	ConstitutionalMonarchy	-1.500	1	7150	56914	6427	40835	6427	43546	32124	31897	0.6	0.1	立憲王政イギリス	イギリス	イギリス	イギリス	統領制イギリス	立憲王政イギリス	1	29
+COUP	217	1837	イギリス	BourgeoisDictatorship	ConstitutionalMonarchy	1
+COUP	217	1837	プロイセン	ConstitutionalMonarchy	BourgeoisDictatorship	0
+COUP	217	1837	コンゴ王国	Absolutist	ConstitutionalMonarchy	0
+COUP	218	1837	スイス	ConstitutionalMonarchy	Absolutist	0
+COUP	219	1838	スイス	Absolutist	ConstitutionalMonarchy	0
+COUP	220	1838	ラオス	Absolutist	ConstitutionalMonarchy	0
+COUP	220	1838	アルジェ摂政国	Absolutist	ConstitutionalMonarchy	0
+POST	215	8	5288	50672	29088	7150	56914	32124	イギリス
+COUP	232	1841	スイス	ConstitutionalMonarchy	Absolutist	0
+COUP	233	1841	スイス	Absolutist	ConstitutionalMonarchy	0
+COUP	237	1842	ジェノヴァ	ConstitutionalMonarchy	Absolutist	0
+COUP	238	1842	ジェノヴァ	Absolutist	ConstitutionalMonarchy	0
+COUP	240	1843	ヴェネツィア	ConstitutionalMonarchy	Absolutist	0
+COUP	241	1843	ヴェネツィア	Absolutist	ConstitutionalMonarchy	0
+COUP	242	1843	ネーデルラント	ConstitutionalMonarchy	Absolutist	0
+COUP	243	1844	ネーデルラント	Absolutist	ConstitutionalMonarchy	0
+COUP	246	1844	教皇領	Absolutist	ConstitutionalMonarchy	0
+COUP	251	1846	イギリス	ConstitutionalMonarchy	Absolutist	0
+COUP	252	1846	イギリス	Absolutist	ConstitutionalMonarchy	0
+COUP	253	1846	ラヘジ	Absolutist	ConstitutionalMonarchy	0
+START	258	1847	0	1	0	Absolutist	ConstitutionalMonarchy	アフガニスタン	王政アフガニスタン	立憲王政アフガニスタン	1	3
+COUP	261	1848	アシャンティ王国	ConstitutionalMonarchy	Absolutist	0
+END	262	1848	10	0	1	0	0	1	Absolutist	Absolutist	ConstitutionalMonarchy	1.039	1	37	26	36	16	37	16	6583	6171	0.3	0.0	立憲王政アフガニスタン	アフガニスタン	アフガニスタン	アフガニスタン	王政アフガニスタン	立憲王政アフガニスタン	1	3
+COUP	264	1849	プロイセン	BourgeoisDictatorship	ConstitutionalMonarchy	0
+COUP	264	1849	アシャンティ王国	Absolutist	ConstitutionalMonarchy	0
+POST	258	8	28	11	6211	37	26	6583	アフガニスタン
+COUP	287	1855	アメリカ	Republic	Absolutist	0
+COUP	287	1855	ヴェネツィア	ConstitutionalMonarchy	Absolutist	0
+COUP	287	1855	アワド	Absolutist	ConstitutionalMonarchy	0
+COUP	288	1855	アメリカ	Absolutist	ConstitutionalMonarchy	0
+COUP	288	1855	ヴェネツィア	Absolutist	ConstitutionalMonarchy	0
+COUP	298	1857	ソコト	Absolutist	ConstitutionalMonarchy	0
+COUP	303	1859	アラビア	Absolutist	ConstitutionalMonarchy	0
+COUP	308	1860	コーカンド	Absolutist	ConstitutionalMonarchy	0
+COUP	310	1860	日本	Absolutist	ConstitutionalMonarchy	0
+COUP	316	1862	ハイデラバード	Absolutist	ConstitutionalMonarchy	0
+COUP	357	1872	ブハラ	Absolutist	ConstitutionalMonarchy	0
+START	359	1873	2	0	0	ConstitutionalMonarchy	ConstitutionalMonarchy	ロシア	ロシア	クルマン王国	1	25
+END	364	1874	13	2	0	0	1	1	ConstitutionalMonarchy	ConstitutionalMonarchy	ConstitutionalMonarchy	-0.000	1	14015	222503	0	0	-1	-1	70357	63594	0.3	0.0	クルマン王国	ロシア		ロシア	ロシア	クルマン王国	1	25
+COUP	391	1881	バイエルン	Absolutist	ConstitutionalMonarchy	0
+COUP	463	1899	マラータ同盟	Absolutist	ConstitutionalMonarchy	0
+COUP	470	1900	カンボジア	Absolutist	ConstitutionalMonarchy	0
+START	479	1903	2	0	0	ConstitutionalMonarchy	ConstitutionalMonarchy	日本	日本	ソルトレークシティ王国	1	27
+END	485	1904	17	2	0	0	1	1	ConstitutionalMonarchy	ConstitutionalMonarchy	ConstitutionalMonarchy	-0.000	1	12981	139547	0	0	-1	-1	80158	79224	0.0	0.0	ソルトレークシティ王国	日本		日本	日本	ソルトレークシティ王国	1	27
+COUP	486	1904	ポルトガル	Absolutist	ConstitutionalMonarchy	0
+COUP	504	1909	サルデーニャ＝ピエモンテ	Absolutist	ConstitutionalMonarchy	0
+COUP	508	1910	デンマーク	Absolutist	ConstitutionalMonarchy	0
+COUP	520	1913	フランス	Absolutist	ConstitutionalMonarchy	0
+COUP	523	1914	朝鮮	Absolutist	ConstitutionalMonarchy	0
+COUP	537	1917	スウェーデン	Absolutist	ConstitutionalMonarchy	0
+COUP	555	1922	ヴュルテンベルク	Absolutist	ConstitutionalMonarchy	0
+COUP	561	1923	両シチリア	Absolutist	ConstitutionalMonarchy	0
+COUP	569	1925	エチオピア	ConstitutionalMonarchy	Absolutist	0
+COUP	588	1930	ヒヴァ	Absolutist	ConstitutionalMonarchy	0
+COUP	591	1931	エチオピア	Absolutist	ConstitutionalMonarchy	0
+COUP	641	1943	モロッコ	Absolutist	ConstitutionalMonarchy	0
+COUP	646	1944	イギリス	ConstitutionalMonarchy	Republic	0
+COUP	647	1945	ハイデラバード	ConstitutionalMonarchy	Absolutist	0
+COUP	658	1947	ネパール	Absolutist	ConstitutionalMonarchy	0
+COUP	665	1949	ペルシャ	Absolutist	ConstitutionalMonarchy	0
