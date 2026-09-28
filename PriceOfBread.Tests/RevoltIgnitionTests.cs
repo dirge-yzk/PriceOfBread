@@ -730,17 +730,19 @@ public class RevoltIgnitionTests
             $"民兵が労働から抜けていない（民兵0.5 {armed.HomeLabor:F2} ≥ 民兵0 {none.HomeLabor:F2}）＝札が労働供給へ届いていない");
     }
 
-    // ★段5＝守備兵の寝返りと武器庫（2026-09-29 処理の一元化 段3＝点火・旧係数 SoldierDefectionByMilitancy を1で焼き込んで削除）。
+    // ★段5＝守備兵の寝返りと武器庫（2026-09-29 処理の一元化 段3＝点火・旧係数 SoldierDefectionByMilitancy を1で焼き込んで削除）
+    //   ＋忠誠の兵と武器庫は政府について行く・建国した国は親の厭戦を継ぐ（2026-09-29 首都の分離独立の続き）。
     //   首都の分離独立（首都州が反乱国へ・政府は残る州へ遷都）で、首都の守備兵（兵士POP）は**闘争度の割合**だけ寝返り、
-    //   残りは親の最初の残る州の兵士POPへ移る。首都の武器庫（Region.ArmsStock＝全国軍の耐久装備）も**同じ割合**で割れ、
-    //   寝返らなかった分は忠誠の兵と同じ州の武器庫へ移る（分子と分母の対称＝旧は兵が割合でも武器庫は全部が反乱国へ渡った）。
+    //   残りは**政府の遷都先**（選び方の1本 Territory.NextCapital＝段2 の遷都と同じ州）の兵士POPへ移る。首都の武器庫（Region.ArmsStock＝全国軍の耐久装備）も
+    //   **同じ割合**で割れ、寝返らなかった分は遷都先の武器庫へ（旧＝親の最初の残る州＝遷都先と違う州になり、調達が首都の1州だけなので移した武器庫は読まれなかった）。
+    //   遷都先の武器庫は開いている（寝返りが全員でも＝未初期化の財を目標と読まない）。反乱国の厭戦＝親の厭戦（旧＝0から）。
     //   建国路の1段（MultiNationSim.SpawnSecededNations）だけを踏む＝四半期の他の流れを挟まない＝闘争度が動かない＝割合を厳密に測れる。
     //   保存＝全ての国の人口の和と、全ての州の武器庫の和が1段の前後で変わらない（財も人も湧かず消えず、移るだけ）。
     [Theory]
     [InlineData(0.0)]   // 誰も寝返らない＝兵も武器庫も全部が政府に残る
     [InlineData(0.5)]   // 半分ずつ
     [InlineData(1.0)]   // 全員が寝返る＝兵も武器庫も全部が反乱国へ
-    public void 段5_首都の守備兵と武器庫は闘争度の割合で寝返り残りは忠誠の兵と同じ州へ(double militancy)
+    public void 段5_首都の守備兵と武器庫は闘争度の割合で寝返り残りは政府の遷都先へ_反乱国は親の厭戦を継ぐ(double militancy)
     {
         var sim = new MultiNationSim([WorldData.ByName("イギリス"), WorldData.ByName("フランス")], seed: 1789) { DiplomacyFrozen = true };
         sim.StepQuarter();   // 首都の武器庫が立つ（軍需の調達は首都の1州）
@@ -749,13 +751,18 @@ public class RevoltIgnitionTests
         var garrison = capital.Pops.Find(p => p.IsSoldier);
         Assert.True(garrison is not null && garrison.Size > 1e-9, "前提が崩れた：首都に守備兵がいない");
         Assert.True(capital.ArmsStock is { Count: > 0 }, "前提が崩れた：首都に武器庫がない");
-        var loyal = pw.Regions.Find(r => !ReferenceEquals(r, capital) && r.State == RegionState.Active && r.Pops.Exists(p => p.IsSoldier));
-        Assert.True(loyal is not null, "前提が崩れた：親に兵士POPのいる残る州がない");
-        var loyalSoldier = loyal!.Pops.Find(p => p.IsSoldier)!;
+        var seat = Territory.NextCapital(pw, [capital]);
+        Assert.True(seat is not null, "前提が崩れた：首都を出た後に政府の移れる州がない");
+        var first = pw.Regions.Find(r => !ReferenceEquals(r, capital) && r.State == RegionState.Active);
+        Assert.False(ReferenceEquals(first, seat), "前提が崩れた：遷都先が親の最初の残る州と同じ＝旧の行き先と区別できない");
+        var seatSoldier = seat!.Pops.Find(p => p.IsSoldier);
+        Assert.True(seatSoldier is not null, "前提が崩れた：遷都先に兵士POPの器がない");
         garrison!.Militancy = militancy;
-        double g0 = garrison.Size, l0 = loyalSoldier.Size;
+        const double exhaustion = 0.37;
+        pw.SelfPower!.WarExhaustion = exhaustion;
+        double g0 = garrison.Size, l0 = seatSoldier!.Size;
         var arms0 = new Dictionary<int, double>(capital.ArmsStock!);
-        var loyalArms0 = loyal.ArmsStock is { } la ? new Dictionary<int, double>(la) : new Dictionary<int, double>();
+        var seatArms0 = seat.ArmsStock is { } sa ? new Dictionary<int, double>(sa) : new Dictionary<int, double>();
         double armsTotal0 = 0, pop0 = 0;
         foreach (var n in sim.Nations) { pop0 += n.World.TotalPopulation; foreach (var r in n.World.Regions) if (r.ArmsStock is { } a) foreach (var kv in a) armsTotal0 += kv.Value; }
         Assert.True(armsTotal0 > 0, "前提が崩れた：武器庫が空");
@@ -768,22 +775,83 @@ public class RevoltIgnitionTests
         var rw = sim.Nations[^1].World;
         Assert.Contains(capital, rw.Regions);
         Assert.DoesNotContain(capital, pw.Regions);
+        Assert.Same(seat, pw.Regions[0]);   // 政府は選び方の1本が先に決めた州へ遷都した＝忠誠の兵と武器庫の行き先と同じ州
 
-        // 兵：寝返った割合＝闘争度・残りは忠誠の兵の州へ
+        // 厭戦：建国した国は親の厭戦を継ぐ（親は変わらない）
+        Assert.Equal(exhaustion, rw.SelfPower!.WarExhaustion);
+        Assert.Equal(exhaustion, pw.SelfPower!.WarExhaustion);
+        // 兵：寝返った割合＝闘争度・残りは遷都先の兵士POPへ
         Assert.Equal(g0 * militancy, garrison.Size, 9);
-        Assert.Equal(l0 + g0 * (1.0 - militancy), loyalSoldier.Size, 9);
-        // 武器庫：同じ割合で割れ、寝返らなかった分は忠誠の兵と同じ州の武器庫へ
-        var loyalArms = loyal.ArmsStock ?? new Dictionary<int, double>();
+        Assert.Equal(l0 + g0 * (1.0 - militancy), seatSoldier.Size, 9);
+        // 武器庫：同じ割合で割れ、寝返らなかった分は遷都先の武器庫へ・遷都先の武器庫は開いている（全員が寝返っても）
+        Assert.True(seat.ArmsStock is not null, "遷都先の武器庫が開いていない＝未初期化の財が目標と読まれる");
         foreach (var (g, a0) in arms0)
         {
             Assert.Equal(a0 * militancy, capital.ArmsStock!.GetValueOrDefault(g), 9);
-            Assert.Equal(loyalArms0.GetValueOrDefault(g) + a0 * (1.0 - militancy), loyalArms.GetValueOrDefault(g), 9);
+            Assert.Equal(seatArms0.GetValueOrDefault(g) + a0 * (1.0 - militancy), seat.ArmsStock!.GetValueOrDefault(g), 9);
         }
         // 保存：人も財も湧かず消えない
         double armsTotal1 = 0, pop1 = 0;
         foreach (var n in sim.Nations) { pop1 += n.World.TotalPopulation; foreach (var r in n.World.Regions) if (r.ArmsStock is { } a) foreach (var kv in a) armsTotal1 += kv.Value; }
         Assert.True(Math.Abs(armsTotal1 - armsTotal0) <= 1e-12 * armsTotal0, $"武器庫の和が動いた（{armsTotal0:R} → {armsTotal1:R}）");
         Assert.True(Math.Abs(pop1 - pop0) <= 1e-12 * pop0, $"人口の和が動いた（{pop0:R} → {pop1:R}）");
+    }
+
+    // ★武器庫は政府について行き、新しい首都に財は湧かない（2026-09-29 首都の分離独立の続き）＝「未初期化は目標」は一度も開いていない1783年の開幕の武器庫だけ
+    //   （EconomyStep.ArmsHeld）。遷都（World.SetCapital）と建国（MultiNationSim.SpawnNation）の新しい首都は開いた空の武器庫で来る。
+    //   ①遷都（割譲で首都州を失う＝旧首都の武器庫は州と一緒に去った）：遷都先の武器庫は開いた空。1四半期の調達の後の小銃（耐久品・月の摩耗 2%）の在庫は
+    //     兵1人あたりで、首都を失わなかった双子（同じ種・開幕の武器庫を目標から持つ首都）の2割に届かない（1四半期の納入＝目標の約6%）。
+    //     旧＝最初の月に目標の満額が湧き、双子と同じ水準に並んだ。開幕の武器庫が目標から始まらなければ双子も納入だけ＝比が2割を超える（開幕の規則の番人も兼ねる）。
+    //   ②国家形成型の遷都（旧首都がまだ国に居る）：旧首都の武器庫は新首都へ移る（財ごとに和が不変・旧首都は空）。
+    //   ③建国（分離独立の州）：新しい国の首都の武器庫は開いた空。
+    [Fact]
+    public void 遷都と建国の新しい首都では未初期化の武器庫が湧かず旧首都の武器庫は政府について行く()
+    {
+        static (MultiNationSim sim, World br) Make()
+        {
+            var s = new MultiNationSim([WorldData.ByName("イギリス"), WorldData.ByName("フランス")], seed: 1789) { DiplomacyFrozen = true };
+            s.StepQuarter();   // 開幕の武器庫が立つ（首都の1州）
+            return (s, s.Nations[0].World);
+        }
+        // ①
+        var (simA, brA) = Make();
+        var (simB, brB) = Make();
+        var c = simA.Coef;
+        int rifle = c.MilitaryGoods[0];
+        Assert.True(c.MilitaryWearRates[0] < 1.0, "前提が崩れた：小銃が耐久品でない");
+        Territory.TransferRegion(brB, simB.Nations[1].World, brB.Regions[0], Territory.Rehoming.Ceded);
+        var seatB = brB.Regions[0];
+        Assert.True(seatB.ArmsStock is { Count: 0 }, "遷都先の武器庫が開いた空で来ていない");
+        simA.StepQuarter();
+        simB.StepQuarter();
+        Assert.Same(seatB, brB.Regions[0]);
+        double perA = brA.Regions[0].ArmsStock!.GetValueOrDefault(rifle) / brA.SoldierSize();
+        double perB = seatB.ArmsStock!.GetValueOrDefault(rifle) / brB.SoldierSize();
+        Assert.True(perA > 0, $"前提が崩れた：双子の首都に小銃がない（{perA:G6}）");
+        Assert.True(perB < 0.2 * perA, $"遷都先に武器庫が湧いたか、開幕の武器庫が目標から始まっていない（兵1人あたりの小銃 遷都先 {perB:G6}・双子の首都 {perA:G6}＝比 {perB / perA:F3} ≧ 0.2）");
+
+        // ②
+        var (simC, brC) = Make();
+        var capC = brC.Regions[0];
+        var toC = brC.Regions.Find(r => r.Id != 0 && r.State == RegionState.Active)!;
+        var armsCap0 = new Dictionary<int, double>(capC.ArmsStock!);
+        var armsTo0 = toC.ArmsStock is { } t0 ? new Dictionary<int, double>(t0) : new Dictionary<int, double>();
+        Assert.True(armsCap0.Count > 0, "前提が崩れた：首都に武器庫がない");
+        brC.SetCapital(toC);
+        Assert.Same(toC, brC.Regions[0]);
+        foreach (var (g, a0) in armsCap0) Assert.Equal(armsTo0.GetValueOrDefault(g) + a0, toC.ArmsStock!.GetValueOrDefault(g), 12);
+        Assert.True(capC.ArmsStock is { Count: 0 }, "旧首都に武器庫が残った＝政府について行かない");
+
+        // ③
+        var (simD, brD) = Make();
+        var sec = brD.Regions.Find(r => r.Id != 0 && r.State == RegionState.Active && r.ArmsStock is null);
+        Assert.True(sec is not null, "前提が崩れた：武器庫の開いていない非首都州がない");
+        brD.PendingSecessionWars = [sec!];
+        int nD = simD.Nations.Count;
+        simD.SpawnSecededNations();
+        Assert.True(simD.Nations.Count == nD + 1, "前提が崩れた：分離独立の国が建っていない");
+        Assert.Same(sec, simD.Nations[^1].World.Regions[0]);
+        Assert.True(sec!.ArmsStock is { Count: 0 }, "建国の首都の武器庫が開いた空で来ていない");
     }
 
     [Fact]

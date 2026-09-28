@@ -156,15 +156,17 @@ public static class EconomyStep
         return res;
     }
 
-    /// <summary>★①基本段の耐久品ストック（2026-08-26）。在庫の読み＝**未初期化は目標**とみなす。
+    /// <summary>★①基本段の耐久品ストック（2026-08-26）。在庫の読み＝**開幕の武器庫の未初期化は目標**とみなす。
     /// ⚠これは初期化の手抜きではなく物理である＝1783年に既に存在する軍は既に装備を持っている。
     ///   0から始めると開幕1ヶ月目に全世界の軍が丸腰になり、即応度0→Military0→脅威比の発散という
     ///   いま直そうとしている病そのものを新たに作ってしまう。
     /// ★目標は発見の解禁度を通した表（<see cref="DiscoveredRates"/>）から出る＝未発見の装備は目標0＝在庫0で始まる（満額で持って始まらない・2026-09-27 回2-1）。
-    /// ⚠反乱勢力の武器庫（FactionState.ArmsStock・2026-09-11）は**この規則を当てない**＝呼び手が全財を0で TryAdd してから渡す（新しい運動は丸腰から）。
-    /// ★上位段・tier3 も同じ規則（2026-09-29 処理の一元化 段3 F＝旧は未初期化を0と読んだ＝同じ武器庫に2つの規則）。</summary>
-    private static double ArmsHeld(Dictionary<int, double> stock, int gid, double target)
-        => stock.TryGetValue(gid, out double v) ? v : target;
+    /// ★上位段・tier3 も同じ規則（2026-09-29 処理の一元化 段3 F＝旧は未初期化を0と読んだ＝同じ武器庫に2つの規則）。
+    /// ★目標と読むのは**開幕の武器庫だけ**（<paramref name="opening"/>＝その州の武器庫が一度も開いていない＝Region.ArmsStock が null のまま最初の調達を迎えた
+    ///   ＝1783年の軍・2026-09-29）。開いた武器庫で無い財は0＝遷都先（World.SetCapital）と建国の首都（MultiNationSim.SpawnNation）は開いた空の武器庫で来る
+    ///   ＝財は湧かない（旧＝どの新しい首都でも最初の月に満額の在庫が立った）。反乱勢力の武器庫（FactionState.ArmsStock・2026-09-11）も開いた武器庫（新しい運動は丸腰から）。</summary>
+    private static double ArmsHeld(Dictionary<int, double> stock, int gid, double target, bool opening)
+        => stock.TryGetValue(gid, out double v) ? v : opening ? target : 0.0;
 
     /// <summary>★①基本段の耐久品の目標在庫（2026-08-26）。定常で **摩耗×目標 ＝ 従来の発注量**になるよう逆算した量
     /// （<c>warWear × target ＝ 平時規模 × レート × 陸海の再配分</c>）＝新しい数を作らない。
@@ -196,7 +198,7 @@ public static class EconomyStep
     /// ★基本段・上位段・tier3 が**同じ1本**（2026-09-29 処理の一元化 段3 F）＝旧は上位段と tier3 が別の写し（未初期化を0・目標に陸海の再配分なし・
     ///   充足＝Σmin(在庫,目標)÷Σ目標）だった。摩耗率は段の表が持つ＝基本段は財ごとの表（<see cref="Coefficients.MilitaryWearRates"/>・消耗品1.0＝フロー）、
     ///   上位段と tier3 は全て耐久品で一律（<see cref="Coefficients.ArmsWearRate"/>）。</summary>
-    private static double ArmsFillContribution(Region region, Coefficients coef, int[] goods, int b, double want, double got, double rate, double scalePeace, double milMul, Dictionary<int, double>? stock)
+    private static double ArmsFillContribution(Region region, Coefficients coef, int[] goods, int b, double want, double got, double rate, double scalePeace, double milMul, Dictionary<int, double>? stock, bool opening)
     {
         int gid = goods[b];
         double wear = stock is null ? 1.0
@@ -204,7 +206,7 @@ public static class EconomyStep
             : coef.ArmsWearRate;
         if (stock is null || !(wear < 1.0)) return got;
         double target = BaseArmsTarget(scalePeace, rate, wear, milMul);
-        double a = ArmsHeld(stock, gid, target);
+        double a = ArmsHeld(stock, gid, target, opening);
         double warWear = wear * (1.0 + coef.ArmsWarWearScale * Math.Max(0, region.MilitaryWarMultLast - 1.0));
         a = Math.Max(0, a * (1.0 - Math.Min(0.9, warWear)));   // 1期で全損はしない＝上限0.9
         a += got;
@@ -241,12 +243,12 @@ public static class EconomyStep
     /// ★陸海の再配分 <paramref name="mul"/> は**目標に**掛ける（2026-09-29 処理の一元化 段3 F）＝決済の充足の分母（<see cref="ArmsFillContribution"/> の目標）と同じ量
     ///   ＝基本段の <see cref="BaseArmsTarget"/> と同じ式。⚠旧＝(A*−在庫)⁺ の**発注にだけ**掛け、充足の分母には掛けなかった＝港の無い国の装甲艦・弩級戦艦は
     ///   発注0なのに分母に残り、理想の形が海を望む国は在庫が目標で止まって満たされなかった（E1 で基本段を是正したのと同型の非対称）。
-    ///   在庫の読みも基本段と同じ（<see cref="ArmsHeld"/>＝未初期化は目標）。</summary>
+    ///   在庫の読みも基本段と同じ（<see cref="ArmsHeld"/>＝開幕の武器庫の未初期化は目標・開いた武器庫の無い財は0）。</summary>
     private static double TierQty(Region region, Coefficients coef, int gid, double rate, bool stock, double mul)
     {
         if (!stock) return region.MilitaryScale * rate * mul;
         double target = BaseArmsTarget(region.MilitaryScalePeace, rate, coef.ArmsWearRate, mul);
-        double have = region.ArmsStock is { } held ? ArmsHeld(held, gid, target) : target;
+        double have = region.ArmsStock is { } held ? ArmsHeld(held, gid, target, false) : target;   // 武器庫が一度も開いていない＝開幕の軍（ArmsHeld）
         return Math.Max(0, target - have);
     }
 
@@ -2008,6 +2010,7 @@ public static class EconomyStep
             // ⚠重み付けを変えない＝各財の寄与は従来と同じ want（フロー量）で測り、耐久品はその want に
             //   「在庫充足率」を掛けて足す。**在庫量と流量を1つの比の中で混ぜない**（分子と分母の非対称を作らない）。
             bool baseStock = coef.BaseArmsStockEnabled > 0;
+            bool opening = region.ArmsStock is null;   // 武器庫が一度も開いていない＝1783年の開幕の軍（ArmsHeld＝この月だけ未初期化を目標と読む・上位段と tier3 も同じ月の同じ値）
             if (baseStock) region.ArmsStock ??= new Dictionary<int, double>();
             for (int b = 0; b < coef.MilitaryGoods.Length; b++)
             {
@@ -2025,7 +2028,7 @@ public static class EconomyStep
                     region.StateSpent[(int)TreasuryCat.Army] += pay;
                 }
                 // 耐久品は在庫へ積み摩耗で減らす（質の関数＝反乱勢力の武器購入と同じ1本 ArmsFillContribution・2026-09-11。baseStock=false では got そのもの＝フロー）
-                equipGot += ArmsFillContribution(region, coef, coef.MilitaryGoods, b, want, got, milRates[b], region.MilitaryScalePeace, mul, baseStock ? region.ArmsStock : null);
+                equipGot += ArmsFillContribution(region, coef, coef.MilitaryGoods, b, want, got, milRates[b], region.MilitaryScalePeace, mul, baseStock ? region.ArmsStock : null, opening);
             }
             region.MilitaryEquipFill = EquipFill(equipWant, equipGot);
             // 運用コスト監査2026-08-16 #4b：輜重燃料の決済＝自分の発注量×配給率（militaryDemand[原油]の他の書き手＝空軍燃料と混ざらない）。
@@ -2061,7 +2064,7 @@ public static class EconomyStep
                         revenue[gi] += pay;
                         region.StateSpent[(int)TreasuryCat.Army] += pay;
                     }
-                    double held = ArmsFillContribution(region, coef, goods, b, want, got, rates[b], region.MilitaryScalePeace, mul, stock);
+                    double held = ArmsFillContribution(region, coef, goods, b, want, got, rates[b], region.MilitaryScalePeace, mul, stock, opening);
                     tWant += want; tGot += held;
                     if (!tSea) { tWantLand += want; tGotLand += held; }
                 }
@@ -2120,18 +2123,14 @@ public static class EconomyStep
 
         // ★武器の市場購入の決済（2026-09-11）：買えた分（発注×配給率）を参加POPが払い（Paid→月末に貯蓄から減る）売り手の revenue へ＝普通の市場経路（保存）。
         //   質＝国軍と**同じ関数**（ArmsFillContribution／EquipFill）＝耐久品は運動の武器庫に積み、同じ摩耗（戦時は同じ増し）で減る。
-        //   ⚠新しい運動の武器庫は0から（国軍の ArmsHeld「未初期化は目標＝1783年の軍は既に武装している」は運動には当てない＝TryAdd(0) で明示）。
+        //   ⚠新しい運動の武器庫は0から（国軍の ArmsHeld「未初期化は目標＝1783年の軍は既に武装している」は開幕の武器庫だけ＝運動の武器庫は開いた武器庫）。
         //   ⚠払い手の端数は最後の参加者に寄せる＝Σ Paid ＝ 売り手の受取 と**厳密に**一致（比の和の丸めで1銭も湧かせない）。
         if (rebelOrders is not null && world is not null)
         {
             bool rebelStock = coef.BaseArmsStockEnabled > 0;
             foreach (var (f, scale, rates, want, order, navalMulR, landMulR, payers) in rebelOrders)
             {
-                if (rebelStock)
-                {
-                    f.ArmsStock ??= new Dictionary<int, double>();
-                    foreach (int g0 in coef.MilitaryGoods) f.ArmsStock.TryAdd(g0, 0.0);
-                }
+                if (rebelStock) f.ArmsStock ??= new Dictionary<int, double>();
                 double equipWant = 0, equipGot = 0, pay = 0;
                 for (int b = 0; b < coef.MilitaryGoods.Length; b++)
                 {
@@ -2142,7 +2141,7 @@ public static class EconomyStep
                     revenue[g] += payB;
                     pay += payB;
                     double mul = System.Array.IndexOf(coef.FleetGoodIds, g) >= 0 ? navalMulR : landMulR;
-                    equipGot += ArmsFillContribution(region, coef, coef.MilitaryGoods, b, want[b], got, rates[b], scale, mul, rebelStock ? f.ArmsStock : null);
+                    equipGot += ArmsFillContribution(region, coef, coef.MilitaryGoods, b, want[b], got, rates[b], scale, mul, rebelStock ? f.ArmsStock : null, false);
                 }
                 f.EquipFill = EquipFill(equipWant, equipGot);
                 double charged = 0;

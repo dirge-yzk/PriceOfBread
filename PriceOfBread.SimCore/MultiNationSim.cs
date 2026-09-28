@@ -335,26 +335,21 @@ public sealed class MultiNationSim
         //   史実の寝返りは最大の機序（セポイ1857・ペトログラード守備隊1917・キール軍港1918）だが常時ではない
         //   （鎮圧＝パリ1848年6月・ウィーン1848年10月・コミューン1871・ダブリン1916）＝**寝返る割合は守備兵（兵士POP）の闘争度そのもの**
         //   （二値にしない・つまみを持たない＝旧係数 SoldierDefectionByMilitancy は1で焼き込んで削除）。
-        // ⚠寝返らなかった分は親の残る州の兵士POPへ移す＝親に留まる（「離脱州の守備隊のうち忠誠を守った部隊は本国軍へ復帰した」）。
+        // ⚠寝返らなかった分は親の政府の座の兵士POPへ移す＝親に留まる（「離脱州の守備隊のうち忠誠を守った部隊は本国軍へ復帰した」）。
         // ★武器も兵と一緒に（2026-09-29 段3・分子と分母の対称）：出ていく州の武器庫（Region.ArmsStock＝耐久装備の在庫）のうち、
         //   寝返らなかった兵と**同じ割合**を忠誠の兵と同じ州の武器庫へ移す（旧＝兵は割合でも武器庫は州ごと全部が反乱国へ渡った＝
         //   首都の武器庫は全国軍の分〔GarrisonProcurement=0＝調達は首都の1州〕）。移すのは財の量そのもの（出る側から引いた量を受ける側へ足す＝財は湧かず消えない）。
-        //   ⚠読むのは在庫にある財だけ＝未初期化の財（EconomyStep.ArmsHeld の「未初期化は目標」）は量を持たないので運ばない。
+        //   ⚠読むのは在庫にある財だけ（未初期化の財を目標と読むのは一度も開いていない1783年の開幕の武器庫だけ＝EconomyStep.ArmsHeld）。
         //   守備兵がいない州は割合が定まらない＝武器庫は州ごと反乱国へ（兵のいない武器庫は蜂起した側の手に落ちる）。
+        // ★忠誠の兵と武器庫は政府について行く（2026-09-29）＝行き先は**政府の座**：首都が出ていくなら遷都先（下の段2 の Territory.TransferRegion が
+        //   遷都する州＝選び方の1本 Territory.NextCapital を先に読む）・首都が残るなら首都。
+        //   ⚠旧＝親の Regions の順で最初の残る活動州＝首都の分離独立では遷都先と違う州になりえた（英＝マンチェスターへ遷都・兵と武器庫はダブリンへ）＝
+        //   軍需の調達は首都の1州だけ＝移した武器庫は読まれず、遷都先は「未初期化は目標」で満額の在庫が湧いた。
         // ⚠**人口台帳の順序に手を入れない**＝下の 1) S/P 確定より前・親の内側だけで動かす。親の総人口も総貨幣も不変で、
         //   確定される移転量 P が「寝返った分だけ」になる（S/P 確定と PopulationDelta -= P の間には1命令も入れない＝Invariants の帯）。
         // ⚠移す動詞は既存の Military.MoveCohort（規模・貯蓄・債務・結晶資産・年齢/男女コホートを既存の作法で運ぶ）＝新しい経路を作らない。
-        Pop? loyalPop = null;
-        Region? loyalRegion = null;
-        foreach (var rr in pw.Regions)   // 親が保持する最初の活動州の兵士POP（出ていかない州＝首都の分離独立では遷都先の候補の州）＝決定論
-        {
-            if (rr.State != RegionState.Active) continue;
-            bool leaving = false;
-            foreach (var q in regs) if (ReferenceEquals(q, rr)) { leaving = true; break; }
-            if (leaving) continue;
-            loyalPop = rr.Pops.Find(x => x.IsSoldier);
-            if (loyalPop is not null) { loyalRegion = rr; break; }
-        }
+        Region? loyalRegion = regs.Contains(pw.Regions[0]) ? Territory.NextCapital(pw, regs) : pw.Regions[0];
+        Pop? loyalPop = loyalRegion?.Pops.Find(x => x.IsSoldier);
         if (loyalPop is not null && loyalRegion is not null)
             foreach (var rr in regs)
             {
@@ -394,6 +389,9 @@ public sealed class MultiNationSim
 
         // --- 3) 新世界の州Id＝0が首都（World.Region=Regions[0] 規約）---
         for (int k = 0; k < regs.Count; k++) regs[k].Id = k;
+        // ★建国の新しい首都の武器庫は開いた空で来る＝無い財は0（2026-09-29・遷都の World.SetCapital と同じ規則）＝未初期化を目標と読むのは
+        //   一度も開いていない1783年の開幕の武器庫だけ（EconomyStep.ArmsHeld）。首都の蜂起は寝返った分の武器庫（段0）だけを持って立ち、分離独立の州は丸腰から買う。
+        reg.ArmsStock ??= new System.Collections.Generic.Dictionary<int, double>();
 
         // --- 4) 名前・設定（親の現行法・税を継承した NationConfig 経由＝ToScenario と同形の手組み）---
         //   名前（作者承認 2026-09-28）＝分離独立（polity=null）は史実の国名（SecessionNames の対応表）／政体をめぐる内戦は目指す政体の頭書き＋親の国名
@@ -461,6 +459,10 @@ public sealed class MultiNationSim
             Military = parentPower.Military * (parentPop > 1e-9 ? P / parentPop : 0),   // 初期表示値のみ（次の Diplomacy.Step が兵士POPから再導出＝実体は移転した兵士）
             Gdp = nw.Gdp, TradeWeight = DefaultTradeWeightBase,
             Culture = reg.Culture, Religion = reg.Religion,   // 次の毎月同期まで州ラベルで代用
+            // ★厭戦の継承（2026-09-29）：建国した国は親の厭戦を継ぐ＝技術・法・制度疲労と同じ「独立は社会を入れ替えない」の継承
+            //   （厭戦は前の戦争の疲れが住民に残った量＝首都の蜂起は同じ社会の、いちばん疲れた首都の住民が立てる）。
+            //   ⚠旧＝新しい国は厭戦0から＝首都発の内戦で政府（持ち越しの厭戦 中央0.52）だけが先に崩壊の線に届いた（反乱の勝ち 93.8%・(97) §8）。
+            WarExhaustion = parentPower.WarExhaustion,
         };
         power.SpawnedDuringPlay = true;   // ★プレイ中に生まれた国＝ハーネスの「満足度・最小国」の対象外（Validation.WorstSat）
         nw.Diplomacy = Diplomacy; nw.SelfPower = power;

@@ -2250,7 +2250,10 @@ public sealed class Diplomacy
             double airCtl = p.AirPower + eAir > 1e-9 ? p.AirPower / (p.AirPower + eAir) : 0.5;
             double airRaid = eAir > 1e-9 ? c.WarExhaustionAirRaid * (1.0 - airCtl) : 0.0;
             double chem = c.ChemExhaustionWeight * Math.Min(p.Nation?.Region.MilitaryAirFill ?? 0, enemyAirFill.GetValueOrDefault(p));
-            double exBefore = p.WarExhaustion, econEx = c.WarExhaustionEcon * (p.Nation?.GdpDrawdown ?? 0);
+            // ★経済悪化は**1人あたり**の落ち込み（World.GdpPcDrawdown・2026-09-29）＝領土を失って総額が落ちただけの国は不況ではない（分子と分母を同じ規則で＝
+            //   GDP と人口が一緒に去った）。首都の分離独立・割譲・分離独立の全ての戦争に同じ1本。⚠旧＝総額の GdpDrawdown＝首都を失った政府は
+            //   首都州の GDP の分だけ「不況」と数えられ、厭戦が四半期に最大 +0.67 積まれて兵が5〜15倍でも先に崩れた（(97) §8）。
+            double exBefore = p.WarExhaustion, econEx = c.WarExhaustionEcon * (p.Nation?.GdpPcDrawdown ?? 0);
             p.WarExhaustion = Math.Min(1, p.WarExhaustion + c.WarExhaustionRate + econEx + blockade + fiscal + airRaid + chem);   // 厭戦も1回
             // 説明API（#63）：厭戦の内訳＝前期＋基礎＋経済悪化＋封鎖＋財政＋空襲＋化学兵器−上限クランプ。Explain=nullでゼロコスト（player国のみ非null）。
             if (p.Nation?.Explain is { } exl)
