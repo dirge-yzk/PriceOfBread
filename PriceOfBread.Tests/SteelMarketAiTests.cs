@@ -136,26 +136,26 @@ public class SteelMarketAiTests
 
     // ============ (d) #3 AiBuildGuardRelax＝三重ガードの緩和 ============
 
-    /// <summary>(b)財政ガード：旧は「国庫がバッファ**満額**でないと建てない」（逼迫>0で即return）。
-    /// 緩和後は借金ボタンと同じ規律＝強制義務（維持費＋利払い）を国庫で賄える限り建てる。</summary>
+    /// <summary>(b)財政ガード＝借金ボタンと同じ1行（国家の支払い率 r＜1 で止まる・2026-09-28 段2-1）。
+    /// 旧＝緩和なしは「国庫がバッファ満額でないと建てない」・緩和ありは「維持費＋利払いを国庫で賄える限り」＝どちらも r の1本になり、財政の門では緩和の旗が効かない
+    /// （旗は並行着工の側＝下の番人に残る）。国庫がバッファの半分でも r＝1 なら建ち、r＜1 なら国中どこにも1件も立たない。</summary>
     [Fact]
-    public void ガード緩和ONなら財政バッファ半分でも着工する()
+    public void 財政ガードは国家の支払い率が1未満の月だけ着工を止める()
     {
-        foreach (bool on in new[] { false, true })
+        foreach (double r in new[] { 0.9, 1.0 })
         {
             var w = FourNations().Nations[0].World;
-            GiveBuildRoom(w, 0.5);   // 逼迫0.5＝旧ガードは止める／強制義務(0)は賄えるので緩和後は通る（投げ売り線0.7も踏まない）
-            Assert.True(UtilityAgent.FiscalStressOf(w) > 0, "テスト前提が崩れた：逼迫が0のままでは旧ガードを踏まない");
+            GiveBuildRoom(w, 0.5);   // 国庫＝バッファの半分（旧の緩和なしのガードなら止まる額）
+            w.FiscalFundingRatio = r;
             var rg = w.Regions[0];
             var pr = PickBuildable(rg);
             rg.Markets[pr.GoodId].Price = 2.0 * RefAnchor(rg, pr.GoodId);   // relExcess=1.0＝不足の深い財
             pr.SmoothedMargin = 0.5;                                        // 採算も黒字＝#2に頼らず旧判断だけで建つ候補
-            w.Coef.AiBuildGuardRelax = on ? 1.0 : 0.0;
 
             new UtilityAgent().DecideQuarter(w);
 
-            if (on) Assert.Equal(1, pr.StateTarget);
-            else Assert.Equal(0, WilledCount(w));   // 旧＝逼迫>0なら国中どこにも1件も立たない
+            if (r >= 1) Assert.Equal(1, pr.StateTarget);
+            else Assert.Equal(0, WilledCount(w));   // r＜1＝国中どこにも1件も立たない
         }
     }
 

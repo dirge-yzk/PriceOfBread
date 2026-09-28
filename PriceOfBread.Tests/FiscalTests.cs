@@ -24,7 +24,7 @@ public class FiscalTests
     // ★主張の書き直し（作者裁定B・2026-09-12「今までの『上限/下限を削る』挙動は全て廃止する」＝2026-09-20 の段の点火で実装）：
     //   旧主張「低税では緊縮が逆進課税を**上げて**連合を養う」＝緊縮が人頭税・専売の実効値を Max で持ち上げる挙動（選んだ値を黙って書き換える＝P8違反）。
     //   新主張＝緊縮は**選ばせない**（Government.LawPrereq の「緊縮の下限」＝その段より下は選べない）だけで、上げる力は持たない。
-    //   赤字は増税でなく未払い（Fiscal の利払い・維持費の Min）→FiscalFundingRatio の劣化→デフォルト（DefaultTriggerQuarters）で閉じる。
+    //   赤字は増税でなく国家の支払い率 r の低下（全ての行に同じ r・2026-09-28）→借入→デフォルト（DefaultTriggerQuarters）で閉じる。
     [Fact]
     public void 低税では緊縮が発火し逆進課税の下限の門になる()   // §6.2（赤字→借金ボタン→債務→緊縮：債権者が奪うのは法を選ぶ自由であって値ではない）
     {
@@ -34,7 +34,7 @@ public class FiscalTests
         bool floorSeen = false;
         for (int q = 0; q < 400; q++)
         {
-            if (sim.World.Treasury < sim.World.LastUpkeep + sim.World.LastInterest && sim.World.BorrowStacks < sim.World.Coef.MaxBorrowStacks)
+            if (sim.World.FiscalFundingRatio < 1 && sim.World.BorrowStacks < sim.World.Coef.MaxBorrowStacks && sim.World.BorrowCooldown <= 0)   // AI・プレイヤーと同じ1行（2026-09-28）
                 sim.World.RequestBorrow();
             sim.StepQuarter();
             maxAusterity = Math.Max(maxAusterity, sim.World.AusterityIntensity);
@@ -90,6 +90,10 @@ public class FiscalTests
     // =====================================================================================================
 
     private static List<Pop> AllPopsOf(World w) { var l = new List<Pop>(); foreach (var r in w.Regions) l.AddRange(r.Pops); return l; }
+    // ★借入は国家の支払い率 r＜1 の月だけ・減債は r＝1 の月の余剰（spare）から（作者裁定 F3・2026-09-28 段2-1）。月初に r を決める Simulation を通らない
+    //   単体の Fiscal.Step で盤面を作る番人は、起債の月は r＜1（Short）、減債の月は r＝1 と余剰を渡して踏む。
+    private const double Short = 0.5, Ample = 1e18;
+    private static void FiscalMonth(World w, double r, double spare = 0) { w.FiscalFundingRatio = r; Fiscal.Step(w, w.Coef, spare); }
     private static double HeldOf(World w) { double h = 0; foreach (var r in w.Regions) foreach (var p in r.Pops) h += p.BondHoldings; return h; }
 
     /// <summary>英を1四半期温め、財政の国債以外の流れ（税・汚職の漏れ・維持費の頭数分配・福祉・年金・外債）を止めた盤面。
@@ -113,7 +117,7 @@ public class FiscalTests
         Assert.Equal(0.0, b.GovDebt);
         t.Coef.BondRepayFrac = 0; b.Coef.BondRepayFrac = 0;   // 1か月目は買うだけ
         b.RequestBorrow();
-        Fiscal.Step(t, t.Coef); Fiscal.Step(b, b.Coef);
+        FiscalMonth(t, Short); FiscalMonth(b, Short);
         var tp = AllPopsOf(t); var bp = AllPopsOf(b);
         double domestic = b.GovDebt - b.ForeignDebt;
         Assert.True(domestic > 0, "前提が崩れた：起債が立っていない");
@@ -134,7 +138,7 @@ public class FiscalTests
 
         // 2か月目：全額を償還（減債率1）＋その月の利払い。受け取りは保有比例＝各持ち手の純益÷払った額が全員同じ（＝利回り）。
         t.Coef.BondRepayFrac = 1.0; b.Coef.BondRepayFrac = 1.0;
-        Fiscal.Step(t, t.Coef); Fiscal.Step(b, b.Coef);
+        FiscalMonth(t, 1, Ample); FiscalMonth(b, 1, Ample);
         Assert.True(b.GovDebt <= tol, $"前提が崩れた：全額償還できていない（残 {b.GovDebt}）");
         double gain = 0, paidSum = 0;
         for (int i = 0; i < bp.Count; i++) { gain += bp[i].Savings - tp[i].Savings; paidSum += paid[i]; }
@@ -155,7 +159,7 @@ public class FiscalTests
         var t = QuietBritain(); var b = QuietBritain();
         t.Coef.BondRepayFrac = 0; b.Coef.BondRepayFrac = 0;
         b.RequestBorrow();
-        Fiscal.Step(t, t.Coef); Fiscal.Step(b, b.Coef);
+        FiscalMonth(t, Short); FiscalMonth(b, Short);
         // 双子に同じ徴兵を1回＝最大の持ち手の一部が兵士POPへ（保有は貯蓄と同じ1人あたりで運ばれる＝兵士は買い手でないのに持ち手になる）
         var r0t = t.Regions[0]; var r0b = b.Regions[0];
         int k = -1; for (int i = 0; i < r0b.Pops.Count; i++) if (!r0b.Pops[i].IsSoldier && (k < 0 || r0b.Pops[i].BondHoldings > r0b.Pops[k].BondHoldings)) k = i;
@@ -176,7 +180,7 @@ public class FiscalTests
         var tp = AllPopsOf(t); var bp = AllPopsOf(b);
         var h = new double[bp.Count]; var diff0 = new double[bp.Count]; double H = 0;
         for (int i = 0; i < bp.Count; i++) { h[i] = bp[i].BondHoldings; diff0[i] = bp[i].Savings - tp[i].Savings; H += h[i]; }
-        Fiscal.Step(t, t.Coef); Fiscal.Step(b, b.Coef);
+        FiscalMonth(t, 1, Ample); FiscalMonth(b, 1, Ample);
         double cash = 0, Hafter = 0;
         for (int i = 0; i < bp.Count; i++) { cash += (bp[i].Savings - tp[i].Savings) - diff0[i]; Hafter += bp[i].BondHoldings; }
         Assert.True(cash > 0 && Hafter < H, "前提が崩れた：利払い・償還が起きていない");
@@ -198,13 +202,13 @@ public class FiscalTests
         var w = QuietBritain();
         w.Coef.BondRepayFrac = 0;
         w.RequestBorrow();
-        Fiscal.Step(w, w.Coef);
+        FiscalMonth(w, Short);
         double H = HeldOf(w);
         Assert.True(H > 0, "前提が崩れた：持ち手がいない");
         double treasury0 = w.Treasury, base0 = w.BaseMoney;
         w.BorrowStacks = w.Coef.MaxBorrowStacks;             // 借入上限に張り付き
         w.InsolvencyQuarters = w.Coef.DefaultTriggerQuarters; // 返せない期間が尽きた＝この月にデフォルト
-        Fiscal.Step(w, w.Coef);
+        FiscalMonth(w, 1);
         Assert.True(w.HadSovereignDefault, "前提が崩れた：デフォルトが起きていない");
         Assert.Equal(0.0, w.GovDebt);
         foreach (var p in AllPopsOf(w)) Assert.Equal(0.0, p.BondHoldings);   // 損は持ち手＝保有は消える
@@ -219,7 +223,7 @@ public class FiscalTests
     {
         // 3つの双子：x＝そのまま／y＝保有を買い手でない1つのPOPへ寄せる（和は同じ）／z＝台帳を空にする（誰も読まれない＝払いは国庫に残る）
         var x = QuietBritain(); var y = QuietBritain(); var z = QuietBritain();
-        foreach (var w in new[] { x, y, z }) { w.Coef.BondRepayFrac = 0; w.RequestBorrow(); Fiscal.Step(w, w.Coef); }
+        foreach (var w in new[] { x, y, z }) { w.Coef.BondRepayFrac = 0; w.RequestBorrow(); FiscalMonth(w, Short); }
         double H = HeldOf(y);
         Assert.True(H > 0, "前提が崩れた：持ち手がいない");
         var ypops = AllPopsOf(y); var xpops = AllPopsOf(x);
@@ -228,7 +232,7 @@ public class FiscalTests
         ypops[j].BondHoldings = H;
         foreach (var p in AllPopsOf(z)) p.BondHoldings = 0;
         double repayFrac = new Coefficients().BondRepayFrac;
-        foreach (var w in new[] { x, y, z }) { w.Coef.BondRepayFrac = repayFrac; Fiscal.Step(w, w.Coef); }
+        foreach (var w in new[] { x, y, z }) { w.Coef.BondRepayFrac = repayFrac; FiscalMonth(w, 1, Ample); }
         Assert.Equal(x.GovDebt, y.GovDebt);    // 元本の動きは台帳を読まない
         Assert.Equal(x.GovDebt, z.GovDebt);
         Assert.Equal(x.Treasury, y.Treasury);  // 国庫の出入りも同じ（持ち手がいる限り）
@@ -240,38 +244,9 @@ public class FiscalTests
         new BondLedger().Check(x); new BondLedger().Check(y);
     }
 
-    /// <summary>★減債の線＝借入の線（2026-09-27・線2）。借金ボタンは「国庫＜維持費＋利払い（LastUpkeep＋LastInterest）」で押される（SelfPlay）。
-    /// 減債も同じ線＝(1) 国庫がその帯（維持費＜国庫＜維持費＋利払い）にある月は返さない (2) 返した後の国庫は借入の線を割らない。
-    /// 旧＝維持費だけの線＝帯の中で借りながら返していた（借入のある国×四半期の81%）。双子：p＝今月の義務を読むだけ・t＝減債なし・b＝減債あり。</summary>
-    [Fact]
-    public void 減債の線は借入の線と同じ()
-    {
-        World Board() { var x = QuietBritain(); x.Coef.BondRepayFrac = 0; x.RequestBorrow(); Fiscal.Step(x, x.Coef); return x; }
-        void SetTreasury(World x, double v) => x.Pay(TreasuryCat.OtherIn, v - x.Treasury);
-        var p = Board();
-        double debt = p.GovDebt;
-        Assert.True(debt > 0, "前提が崩れた：起債が立っていない");
-        Fiscal.Step(p, p.Coef);                           // 今月の義務（維持費・利払い）は国庫に依らない＝双子の同じ月の値
-        double u = p.LastUpkeep, i = p.LastInterest;
-        Assert.True(i > 0, "前提が崩れた：利払いが0");
-        // (1) 帯の中＝返さない
-        var t = Board(); var b = Board();
-        foreach (var x in new[] { t, b }) SetTreasury(x, 2 * u + 1.5 * i);   // 利払いと維持費を払った後に「維持費＋利払いの半分」が残る
-        t.Coef.BondRepayFrac = 0; b.Coef.BondRepayFrac = 1.0;
-        Fiscal.Step(t, t.Coef); Fiscal.Step(b, b.Coef);
-        Assert.Equal(i, t.LastInterest); Assert.Equal(u, t.LastUpkeep);
-        Assert.True(t.Treasury > u && t.Treasury < u + i, $"前提が崩れた：国庫 {t.Treasury} が帯（{u}〜{u + i}）にない");
-        Assert.Equal(t.GovDebt, b.GovDebt);               // 借入の線を割る国庫からは返さない
-        Assert.Equal(t.Treasury, b.Treasury);
-        // (2) 帯の上＝返すが、返した後の国庫は借入の線に止まる
-        var t2 = Board(); var b2 = Board();
-        foreach (var x in new[] { t2, b2 }) SetTreasury(x, 2 * (u + i) + 0.5 * debt);
-        t2.Coef.BondRepayFrac = 0; b2.Coef.BondRepayFrac = 1.0;
-        Fiscal.Step(t2, t2.Coef); Fiscal.Step(b2, b2.Coef);
-        Assert.True(b2.GovDebt < t2.GovDebt - 1e-9 * debt, "前提が崩れた：帯の上で減債が起きていない");
-        Assert.True(b2.Treasury >= b2.LastUpkeep + b2.LastInterest - 1e-9 * debt,
-            $"返した後の国庫 {b2.Treasury} が借入の線 {b2.LastUpkeep + b2.LastInterest} を割った＝次の四半期に借りる");
-    }
+    // 【墓標2026-09-28・支払いの一元化 段2-1】「減債の線は借入の線と同じ」（2026-09-27）＝旧の線（国庫＜維持費＋利払い）が消えた。
+    //   借入は国家の支払い率 r＜1 の月だけ・減債は r＝1 の月の余剰（spare）から＝同じ月に借りながら返すことは構造的に起きない
+    //   ＝番人は TreasuryLedgerTests.借入はrが1未満の月だけ減債はrが1の月の余剰からだけ。
 
     [Fact]
     public void 国債台帳_階級移動と州間移動と長い走で不変条件が保たれる()
@@ -279,7 +254,7 @@ public class FiscalTests
         var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
         // 4四半期ごとに起債を積んで40四半期＝転落・昇格（Meritocracy）・徴兵と復員（Military）・州内/州間の移住（PopDecision/Territory）の全経路を
         // 持ち手のいる世界で回す（エンジンの月次検査に BondLedger が入っている＝運び忘れがあれば例外で落ちる）
-        for (int q = 0; q < 40; q++) { if (q % 4 == 0) sim.World.RequestBorrow(); sim.StepQuarter(); }
+        for (int q = 0; q < 40; q++) { if (q % 4 == 0) { sim.World.RequestBorrow(); FiscalMonth(sim.World, Short); } sim.StepQuarter(); }   // 起債は r＜1 の月（2026-09-28）
         var w = sim.World;
         Assert.True(HeldOf(w) > 0, "前提が崩れた：国内債の持ち手がいない");
         new BondLedger().Check(w);
@@ -366,7 +341,7 @@ public class FiscalTests
         var sim = new MultiNationSim([WorldData.ByName("イギリス"), WorldData.ByName("フランス")], seed: 1789, coef: coef) { DiplomacyFrozen = true };
         var pw = sim.Nations[0].World;
         pw.Coef.ForeignBondCapacity = 0;   // ⚠国の係数は国ごと別インスタンス（共有層の coef ではない）＝起債は全額国内（反乱国は親の係数を共有する）
-        pw.RequestBorrow();
+        pw.RequestBorrow(); FiscalMonth(pw, Short);   // 起債は r＜1 の月（2026-09-28）
         sim.StepQuarter();   // 英が国内で起債＝各州の投資家が持ち手になる（月次の BondLedger 検査はエンジン内で走る）
         double hRebel = 0; foreach (var p in pw.Regions[1].Pops) hRebel += p.BondHoldings;
         Assert.True(hRebel > 0, "前提が崩れた：離脱する州に持ち手がいない");
@@ -395,7 +370,7 @@ public class FiscalTests
         Assert.True(Math.Abs(rw.ForeignBondClaims - cl0 - exported) <= 1e-9 * pw.ForeignDebt, "割譲州の保有が勝者の対外債権になっていない");
         new BondLedger().Check(pw); new BondLedger().Check(rw);
         // (3) 再併合：反乱国の国債は誰にも継承されない（既存どおり反乱国の GovDebt ごと消える）＝持ち手の保有も消える
-        rw.RequestBorrow();
+        rw.RequestBorrow(); FiscalMonth(rw, Short);   // 起債は r＜1 の月（2026-09-28）
         sim.StepQuarter();   // 反乱国が自国の投資家から借りる
         Assert.True(HeldOf(rw) > 0 && rw.GovDebt > 0, "前提が崩れた：反乱国の国債の持ち手がいない");
         var returning = new List<Region>(rw.Regions);
@@ -471,7 +446,7 @@ public class FiscalTests
         double world0 = WorldBase(all), mint0 = MintedAndFiat(all);
         double cBr0 = br.ForeignBondClaims, cPr0 = pr.ForeignBondClaims, fd0 = fr.ForeignDebt;
 
-        Fiscal.Step(fr, fr.Coef);                  // 仏が減債する（国内分は保有比で国内の持ち手へ・対外分は国外へ）
+        FiscalMonth(fr, 1, fr.Treasury);           // 仏が減債する（r＝1・余剰＝国庫＝維持費も利子も0の盤面・国内分は保有比で国内の持ち手へ・対外分は国外へ）
         double principal = fd0 - fr.ForeignDebt;
         Assert.True(principal > 0, $"前提が崩れた：対外の元本が償還されていない（国庫 {fr.Treasury}）");
         CapitalMarket.Step(sim.Nations, coef);     // 四半期末の国際金融＝債権の繰上げと元利の配当
@@ -669,7 +644,7 @@ public class FiscalTests
         sim.StepQuarter();
         Assert.True(sim.Nations.Count > n0, "前提が崩れた：反乱国家が建っていない");
         var rw = sim.Nations[^1].World;
-        rw.RequestBorrow();
+        rw.RequestBorrow(); FiscalMonth(rw, Short);   // 起債は r＜1 の月（2026-09-28）
         sim.StepQuarter();   // 反乱国が自国の投資家から借りる＝国債の持ち手が立つ
         Assert.True(HeldOf(rw) > 0, "前提が崩れた：反乱国の国債の持ち手がいない");
         // 反乱国の貸借を、基礎貨幣を動かさない操作で立てる：信用創造（与信と預金の対）・国庫の当座借越での支出・家計の借入（Pop.Debt と HouseholdLoans の対）

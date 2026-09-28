@@ -672,12 +672,11 @@ public sealed partial class InternationalMarket
                 if (owed.TryGetValue(k, out double cur)) owed[k] = cur + amt; else { owed[k] = amt; order.Add(k); }
                 totalByUser[u] += amt;
             }
-            var payScale = new double[nn];
-            for (int u = 0; u < nn; u++)
-                payScale[u] = totalByUser[u] > 1e-9 ? Math.Min(totalByUser[u], Math.Max(0.0, nations[u].World.Treasury)) / totalByUser[u] : 0.0;
+            // 利用国の国家の支払い率 r の分だけ払う（2026-09-28 段2-1＝旧は利用国ごとに国庫の残り÷請求の合計＝この場所だけの率）。
+            //   払えない分だけ通過を止める（作者裁定 Q6）は段3。
             foreach (var k in order)
             {
-                double toll = owed[k] * payScale[k.U];
+                double toll = owed[k] * nations[k.U].World.FiscalFundingRatio;
                 if (toll <= 1e-12) continue;
                 var uw = nations[k.U].World; var ow = nations[k.O].World;
                 uw.Pay(TreasuryCat.OtherOut, -toll); uw.CumulativeTradeFlow -= toll;

@@ -61,7 +61,7 @@ public class ServiceEconomyTests
         var comp = EduRegion(workerSavings: 0, compulsoryFunding: 1.0, supplyPerTeacher: 5.0);
         for (int m = 0; m < 3; m++) EconomyStep.Run(comp.r, new Coefficients());
         Assert.True(comp.worker.EducationFill > 0.3, $"義務教育なのに貧しい労働者に教育が届かない（{comp.worker.EducationFill:F2}）");
-        Assert.True(comp.r.StateSpent > 0, "義務教育の購入が国庫の支出（StateSpent）に計上されていない");
+        Assert.True(comp.r.StateSpent[(int)TreasuryCat.Education] > 0, "義務教育の購入が国庫の支出（StateSpent の教育の区分）に計上されていない");
     }
 
     // ★特権 段1（作者裁定2026-09-08）＝国家の教育給付は行政（＝官僚）を通る。以下2本は**機構**の番人。

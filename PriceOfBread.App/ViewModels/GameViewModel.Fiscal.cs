@@ -339,7 +339,7 @@ public partial class GameViewModel
         //   旧は生の陸海の和（Policy.MilitarySpendingTarget）で、段（R2）では段へ丸められる前の値＝開幕0.30に対し施行は段1の0.25＝予測が**2割過大**だった。
         double mil = Government.MilitaryTotalTarget(_player, _player.Policy) * c.MilitaryRevenueShare * net;
         double admin = c.AdminBudgetFrac * _player.Policy.AdminSpendingTarget * net;
-        double welCap = c.WelfareRevenueShare * _player.FiscalCapacity * _player.SpendingCapFactor;   // 裁量余剰の上限（借入スタックのペナルティ込み）
+        double welCap = c.WelfareRevenueShare * _player.FiscalCapacity;   // 裁量余剰の上限（請求の上限＝エンジンの Fiscal と同じ式・借入スタックの出費上限は 2026-09-28 に撤去）
         double wel = System.Math.Min(c.WelfareCostRate * _player.Policy.SocialSecurityTarget * massSize, welCap);
         double penLevel = _player.Pension switch { ReformLevel.Full => 1.0, ReformLevel.Limited => 0.5, _ => 0.0 };
         double pen = System.Math.Min(c.PensionCostRate * penLevel * oldSize, welCap);
@@ -359,8 +359,8 @@ public partial class GameViewModel
         double netA = aIncome + aProg + aPoll + aLand;
         double aMil = _player.LastMilitaryClaim + milUpkeep;
         double aAdmin = _player.LastAdminClaim + adminUpkeep;
-        double aWel = _player.LastWelfareCost;
-        double aPen = _player.LastPensionCost;
+        double aWel = _player.LastWelfareCost * _player.FiscalFundingRatio;   // 実効＝請求×国家の支払い率 r（エンジンの Fiscal と同じ・2026-09-28）
+        double aPen = _player.LastPensionCost * _player.FiscalFundingRatio;
         double aInterest = _player.LastInterest;   // R9満期構造の実クーポン込み（UI近似はGovBondRate直＝乖離しうる）
 
         InterestLine = "利払い"; InterestAct = Money(aInterest); InterestAmt = Money(interest);
@@ -379,8 +379,8 @@ public partial class GameViewModel
         WelLine = $"社会保障 {_player.Policy.SocialSecurityTarget:P0}　実効 {_player.SocialSecurity:P0}"; WelAct = Money(aWel); WelAmt = Money(wel);   // 02断線走査（2026-07-28）：「約束した福祉の何割が払えたか」の可視化（ビスマルク年金の財源問題）
         PensionLine = "年金"; PensionAct = Money(aPen); PensionAmt = Money(pen);
         // 見えない出費の可視化（監査2026-07-11 接1）：国庫を実際に動かすのに予算表に現れず「黒字表示なのに国庫が減る」原因だった3項目。
-        double colonialUp = _player.LastColonialUpkeep;                 // 植民地維持費（俸給の現金分・月次実績。石炭/糧食の現物調達は市場経由）
-        double tribOut = _player.LastTributeOut / (double)Calendar.MonthsPerQuarter;                  // 属国貢納（支払・四半期→月割）
+        double colonialUp = _player.LastColonialUpkeep * _player.FiscalFundingRatio;   // 植民地維持費（俸給＋補給財〔石炭/糧食/キニーネ〕の請求×国家の支払い率 r・2026-09-28）
+        double tribOut = _player.LastTributeOut * _player.FiscalFundingRatio / (double)Calendar.MonthsPerQuarter;   // 属国貢納（支払＝請求×r・四半期→月割）
         double tribIn = _player.LastTributeIn / (double)Calendar.MonthsPerQuarter;                    // 属国貢納（受取・同）
         ColonialRowVisible = colonialUp > 1e-9;
         ColonialLine = "植民地維持費"; ColonialAmt = Money(colonialUp);
@@ -442,7 +442,7 @@ public partial class GameViewModel
                        + (_player.BorrowQueue > 0 ? $"\n起債予約 {_player.BorrowQueue}" : "")
                        + (_player.AusterityIntensity > 0 ? $"\n緊縮 {_player.AusterityIntensity:P0}" : "")
                        + (_player.CumulativeDevaluation > 1 ? $"\n切下げ累計 {Money(_player.CumulativeDevaluation)}" : "")
-                       + (_player.SpendingCapFactor < 1 ? $"\n支出上限 {_player.SpendingCapFactor:P0}" : "");
+                       + (_player.FiscalFundingRatio < 1 ? $"\n支払い率 {_player.FiscalFundingRatio:P0}" : "");
         DebtHeaderBrush = _player.InsolvencyQuarters > 0 ? NewsRed : TermNeutral;
 
         // ⚠撤去2026-08-23（読み手ゼロ）: GoldJoinEnabled（旧・金本位ボタンのグレーアウト判定）＝ボタン自体が通貨制度の3ボタンへ移行して消えていた。

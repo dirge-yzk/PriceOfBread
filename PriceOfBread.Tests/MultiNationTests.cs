@@ -143,7 +143,10 @@ public class MultiNationTests
     [Fact]
     public void 各国は独立した経済として産出を持つ()
     {
-        var sim = new MultiNationSim(FourNations(), seed: 1789);
+        // ★借りる主体のある世界で測る（2026-09-28 支払いの一元化 段2-1）：借入は AI（SelfPlay）とプレイヤー（画面）が国家の支払い率 r＜1 の月に行う。
+        //   エージェントの無い国（NullAgent）は借りない＝払えない利子が元本へ繰り入れられ続け（作者裁定 Q3）、借入の上限→不履行の出口に届かない
+        //   ＝開幕の国債の重い仏が複利と切り下げで空洞化する（実測＝200四半期で債務 43万→6,100万・パリの産出財 4）。機能する独立経済の番人は、実ゲームと同じく借りる主体を置く。
+        var sim = new MultiNationSim(FourNations(), seed: 1789, _ => new UtilityAgent());
         sim.Run(200);
         foreach (var n in sim.Nations)
         {

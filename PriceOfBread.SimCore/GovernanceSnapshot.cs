@@ -23,7 +23,7 @@ public sealed class GovernanceSnapshot
     // 財政（現在値）
     private double _navalUpkeepShare;   // ★陸海の維持費の按分（2026-08-04）＝軍事費だけ戻すと海軍が消える
     private double _social, _admin, _pollTax, _landTax, _military, _tariff,
-                   _interestRate, _eduSpending, _taxRate, _welfareFunding, _fiscalFunding, _progressiveTax;
+                   _interestRate, _eduSpending, _taxRate, _fiscalFunding, _progressiveTax;
     // 税制の解禁・行政力
     private bool _landTaxUnlocked; private double _adminPowerSmoothed;
     // 国庫
@@ -43,7 +43,7 @@ public sealed class GovernanceSnapshot
             _crown = w.Crown, _seizure = w.Seizure, _parliamentControl = w.ParliamentControl,
             _social = w.SocialSecurity, _admin = w.AdminSpending, _pollTax = w.PollTax, _landTax = w.LandTax, _progressiveTax = w.ProgressiveTax,
             _military = w.MilitarySpending, _navalUpkeepShare = w.NavalSpendShare, _tariff = w.Tariff, _interestRate = w.InterestRate,
-            _eduSpending = w.EducationSpending, _taxRate = w.TaxRate, _welfareFunding = w.WelfareFunding, _fiscalFunding = w.FiscalFundingRatio,
+            _eduSpending = w.EducationSpending, _taxRate = w.TaxRate, _fiscalFunding = w.FiscalFundingRatio,
             _landTaxUnlocked = w.LandTaxUnlocked, _adminPowerSmoothed = w.AdminPowerSmoothed,
             _treasury = w.Treasury,
             _policy = w.Policy.Clone(),
@@ -63,7 +63,7 @@ public sealed class GovernanceSnapshot
         w.Crown = _crown; w.Seizure = _seizure; w.ParliamentControl = _parliamentControl;
         w.SocialSecurity = _social; w.AdminSpending = _admin; w.PollTax = _pollTax; w.LandTax = _landTax; w.ProgressiveTax = _progressiveTax;
         w.SetMilitarySpending(_military, _navalUpkeepShare); w.Tariff = _tariff; w.InterestRate = _interestRate;
-        w.EducationSpending = _eduSpending; w.TaxRate = _taxRate; w.WelfareFunding = _welfareFunding; w.FiscalFundingRatio = _fiscalFunding;
+        w.EducationSpending = _eduSpending; w.TaxRate = _taxRate; w.FiscalFundingRatio = _fiscalFunding;
         w.LandTaxUnlocked = _landTaxUnlocked; w.AdminPowerSmoothed = _adminPowerSmoothed;
         w.RebaseTreasury(_treasury);   // 助走で動いた分は台帳ごと捨てる（暦の外＝歴史に属さない）
         w.Policy.CopyFrom(_policy);

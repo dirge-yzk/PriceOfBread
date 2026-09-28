@@ -1506,7 +1506,7 @@ public sealed class Simulation
                 r.FarmRentCap = System.Math.Min(RentCap(World.LandReform, World.Coef.LandReformRentCap), RentCap(World.SerfEmancipation, World.Coef.SerfEmancipationRentCap));   // 地代上限＝土地改革/農奴解放の段階で（限定的＝なしと全面の中間）。元の地代がこれ未満なら効かない
                 r.CrowdingPremium = System.Math.Max(0, World.GovBondRate - World.Coef.BondBaseRate);   // 政府借入の金利プレミアム→民間投資ハードルへ（クラウディングアウト。金本位の信用国は GovBondRate が低く弱い＝条件付き）
                 r.FinancialHeat = World.FinancialHeat;   // 与信過熱を州へ複製（改修2026-06-28・投資ハードルのバブル項へ）
-                r.SpendingCapFactor = World.SpendingCapFactor;   // 借入スタックの出費上限を州へ複製（産業政策レバー2＝補助金の国庫肩代わりに乗せる。SubsidyRespectsSpendingCap=0で不読＝恒等）
+                //（借入スタックの出費上限 SpendingCapFactor の州への複製は 2026-09-28 に撤去＝作者裁定 Q9・補助は国家の支払い率 r を World から読む）
                 r.CivilWarActive = World.InCivilWar;   // ★B3：述語1本（CivilWarPredicateUnified=1.0＝2026-09-08点火＝War で戦う内戦もここへ届く）      // 内戦中を州へ複製（#136 内戦の経済麻痺の読み口。CivilWarEconomyDisruption=0で不読＝恒等）
                 if (priceDay) MarketFlow.StepDay(r, World.Coef, hFlow);   // 物価水準を複製し需給を読み、旬の h 日ぶん価格を少しずつ動かす
             }
@@ -1917,10 +1917,10 @@ public sealed class Simulation
                 r.NationHasPort = navalYard;   // ★2026-08-01：軍艦の発注ゲート（EconomyStep）が読む。国に港が1つでもあれば艦を発注できる   // 軍需調達は首都州のみ（多州で全国軍を二重調達しない）
                 // Region.AtWar（戦時の建設抑制）は倍率排除バッチ2で機構ごと撤去済み（軍需の価格競合による自然縮小に代替）＝書き込みも削除（監査2026-07-12 死37）
                 // 軍需装備の財源：**軍事費×シェア×粗歳入**（兵士給与と同様に確実に＝裁量余剰でなく粗歳入から）。これにより**軍国（余剰0でも）が装備できる**＝武器を買えた軍だけが治安維持力＋対外武力を持つ（買えねば即応度0→治安維持力0→革命）。
-                // **借入スタックの出費上限（SpendingCapFactor）は軍需に掛けない**：治安維持力＝軍なので、債務austerityで軍を削ると即応度0→治安維持力0→革命という自滅を招く。窮迫した政権は軍・警察を最後まで維持する（削るのは福祉/インフラ等の裁量サービスのみ）。
-                double milCap = World.MilitarySpending * World.Coef.MilitaryRevenueShare * World.SpendableRevenue() * StateBudgetCashScale();   // 支出反射（OpulenceSpendRate>0で国庫超過分も装備へ＝戦争準備金。0（対照腕）でLastRevenueと同値・既定0.6でlive）
+                // ⚠旧＝借入スタックの出費上限（SpendingCapFactor）を軍需にだけ掛けなかった（軍を最後まで維持する）。2026-09-28 に出費上限ごと撤去し、全ての行が同じ国家の支払い率 r（優先順位なし＝作者裁定 F3・Q9）。
+                double milCap = World.MilitarySpending * World.Coef.MilitaryRevenueShare * World.SpendableRevenue();   // 請求（r を掛ける前）。支出反射（OpulenceSpendRate>0で国庫超過分も装備へ＝戦争準備金。0（対照腕）でLastRevenueと同値・既定0.6でlive）
                 // 課題5（2026-08-08）：戦時は必要額（MilitaryScale×warMult）に予算も追随＝赤字戦費。国庫が尽きれば
-                // StateBudgetCashScale が自然に絞る。⚠既定0＝乗算ごとスキップ＝厳密恒等。倍率は需要側と同一のwarMult＝afford戦時不変。
+                // 国家の支払い率 r が自然に絞る（下の州ループの手前）。⚠既定0＝乗算ごとスキップ＝厳密恒等。倍率は需要側と同一のwarMult＝afford戦時不変。
                 if (World.Coef.WartimeBudgetFollowsNeed > 0 && warMult > 1.0)
                     milCap *= 1.0 + World.Coef.WartimeBudgetFollowsNeed * (warMult - 1.0);
                 // ★段2（2026-08-01）：理想の形の陸海比を州へ写す（軍需の内訳の再配分に使う）。ArmyShapeEnabled=0 では Need* が全て0＝-1のまま＝再配分しない＝厳密恒等。
@@ -1934,9 +1934,9 @@ public sealed class Simulation
                 // ⚠必要額は**全4段**（基本・上位・tier3・空軍）。基本段だけで打ち切ると残余が厳密0になり上位装備が全滅する（EconomyStep.MilitaryProcurementNeed の注記）。
                 if (World.Coef.MilitaryBudgetNeedCapped > 0 && r.Id == 0)
                     milCap = Math.Min(milCap, EconomyStep.MilitaryProcurementNeed(r, World.Coef));
-                r.MilitaryBudget = World.Coef.GarrisonProcurement > 0 ? milCap * r.GarrisonShare : (r.Id == 0 ? milCap : 0);   // 駐屯州調達＝予算も配分（他12：国庫現金クランプは milCap 側で適用済み）
+                r.MilitaryBudget = World.Coef.GarrisonProcurement > 0 ? milCap * r.GarrisonShare : (r.Id == 0 ? milCap : 0);   // 駐屯州調達＝予算も配分（r は下で全ての予算に同じく掛ける）
                 r.SocialSecurity = World.SocialSecurity;                 // 公共医療＝医薬品消費に使う（EconomyStep）
-                r.InsuranceCoverage = World.Coef.InsuranceCoverageMax * World.SocialSecurity * World.WelfareFunding;   // 健康保険(#3)：医薬品購入費の国家負担割合（福祉が funded な国ほど高い＝funding修正と連動）
+                r.InsuranceCoverage = World.Coef.InsuranceCoverageMax * World.SocialSecurity;   // 健康保険(#3)：医薬品購入費の国家負担割合（r は下で掛ける＝旧 WelfareFunding は国家の支払い率へ畳んだ・2026-09-28）
                 r.StateMonopolyMargins = World.StateMonopolyMargins;       // 材ごとの専売の上乗せ率への参照（★2026-09-20＝これが専売の唯一の実体）
                 // 戦時備蓄（07_再設計 §5(a)・2026-07-31）：国の最大緊張を州へ複製＝日次の在庫目標（MarketFlow）が読む。
                 // 外交層のない世界（単一国テスト・較正）は0＝在庫目標は従来どおり＝厳密恒等。
@@ -1964,7 +1964,6 @@ public sealed class Simulation
                 // 史実の公教育は共同体が教師俸給を払い親も一部払う混合財政（プロイセン無償化1888・仏1881・英1891）＝定義的特徴は歳出項目化。PublicEduFundingShare=0 で旧挙動と厳密一致。
                 r.CompulsoryEduFunding = (World.EducationLaw == EducationLaw.Compulsory ? World.EducationSpending
                     : World.EducationLaw == EducationLaw.Public ? World.Coef.PublicEduFundingShare * World.EducationSpending : 0)
-                    * StateBudgetCashScale()   // ★段7（知識doc §3-3）：軍事費・行政費と同じ国庫現金クランプ（抜けていた実バグ・2026-09-27 に旗 EduFundingCashClamp を焼き込み）
                     * Politics.RuleReach(r, World.Coef);   // ★支配度 段4（2026-09-07）：公共財の到達＝国家区分に比例（RuleSharesReach=0 で ×1＝恒等）。0 で従来
                 if (r.EducationProducerIndex >= 0)
                 {
@@ -2018,20 +2017,82 @@ public sealed class Simulation
                 // 行政だけは別格：行政＝徴税の費用＝「税収を生むサービス」。余剰から支弁すると貧国は余剰0→行政0→税収0の永久デッドロックに陥る（funding修正の盲点）。
                 // → 行政は**粗歳入(LastRevenue)を第一請求権として支弁**（税吏を雇わねば税は集まらない）＝余剰0でもブートストラップできる（2026-06-22）。
                 r.AdminBudget = r.BureaucratPopIndex >= 0 && nationPop > 1e-9
-                    ? World.AdminSpending * World.Coef.AdminBudgetFrac * World.SpendableRevenue() * (r.SumPopulation() / nationPop) * StateBudgetCashScale() : 0;   // 他12：国庫現金クランプ（既定1.0＝恒等）
+                    ? World.AdminSpending * World.Coef.AdminBudgetFrac * World.SpendableRevenue() * (r.SumPopulation() / nationPop) : 0;   // 請求（r を掛ける前）
                 r.InfraBudget = nationPop > 1e-9
-                    ? World.AdminSpending * World.Coef.InfraBudgetScale * World.FiscalCapacity * World.SpendingCapFactor * (r.SumPopulation() / nationPop) * HoardSpendScale() : 0;
+                    ? World.AdminSpending * World.Coef.InfraBudgetScale * World.FiscalCapacity * (r.SumPopulation() / nationPop) * HoardSpendScale() : 0;
                 r.ElecInfraBudget = nationPop > 1e-9
-                    ? World.AdminSpending * World.Coef.ElecInfraBudgetScale * World.FiscalCapacity * World.SpendingCapFactor * (r.SumPopulation() / nationPop) * HoardSpendScale() : 0;
+                    ? World.AdminSpending * World.Coef.ElecInfraBudgetScale * World.FiscalCapacity * (r.SumPopulation() / nationPop) * HoardSpendScale() : 0;
                 // 兵力（兵士の給与）の予算：民間賃金（前月の農民＋労働者の1人あたり所得）に揃える。軍事費スライダーは兵数（徴募目標）を駆動し、総給与＝兵数×賃金。
                 if (r.SoldierPopIndex >= 0)
                 {
                     double pe = 0, ps = 0;
                     foreach (var p in r.Pops) if (Politics.IsMassPop(p)) { pe += p.Earned; ps += p.Size; }
                     double civWage = ps > 1e-9 ? Math.Max(0, pe / ps) : 0;
-                    r.SoldierPayBudget = Math.Min(Math.Max(0, World.Treasury), r.Pops[r.SoldierPopIndex].Size * civWage * World.Coef.SoldierPayMult);
-                    World.LastSoldierPay += r.Pops[r.SoldierPopIndex].Size * civWage * World.Coef.SoldierPayMult;   // 請求書＝国庫minで切る前の真の額（形が先・金が後 段0・読み手は既定0の配線Dのみ）
+                    r.SoldierPayBudget = r.Pops[r.SoldierPopIndex].Size * civWage * World.Coef.SoldierPayMult;   // 請求（r を掛ける前）。旧＝州ごとの min(国庫)＝先着（B2）
+                    World.LastSoldierPay += r.SoldierPayBudget;   // 請求書（形が先・金が後 段0）
                 }
+            }
+        // ★国家の支払い率 r（作者裁定 F3・Q1〜Q3・2026-09-28 支払いの一元化 段2-1＝計画 §10-12-3-3）。
+        //   その月の**全ての国家の支払いの請求**を月初（ここ＝予算が立った直後・買う前）に集め、払える額と比べて1本の率を決め、
+        //   全ての行（予算・工賃・材料・国営持分の赤字・補助・保険・福祉・年金・維持費・利子・戦費・貢納・選挙・通行料…）に同じ r を掛ける＝優先順位を作らない。
+        //   払える額（Q1）＝max(0, 国庫)＋当月の歳入の見込み（LastRevenue）。請求（Q2）＝今月の予算（上の州ループで立った額）＋予約＋
+        //   月中に決まるものは既存の量で見込む（先月の請求 Last*・先月の区分つき StateSpent・生産者の先月の損益・工事中の棟の工賃）。
+        //   元本の返済（減債）だけは請求の外＝ r＝1 の月の余剰（spare＞0）から・借入は r＜1 の月だけ（どちらも Fiscal）。
+        //   置き場所＝既存の FiscalFundingRatio（旧＝維持費の充足率）。逼迫度＝1−r（UtilityAgent.FiscalStressOf）。
+        //   撤去したもの＝国庫の現金クランプ StateBudgetCashScale（係数 StateSpendTreasuryClamp）・兵士の給与の州ごとの min(国庫)・日次の工賃の丸休みの門・
+        //   材料の門・Fiscal の滝（利払い→維持費→福祉/年金→減債）・WelfarePensionClampToTreasury・SpendingCapFactor（Q9）・手書きの Min(Max(0,国庫)) の門。
+        //   ⚠出来事（選挙資金・賠償・拿捕・武力解錠・通行料・港・売買方針の代金・外資の拠出・燃料）は月初に額が分からない＝請求の見込みに入らず、起きた時点の r で払う。
+        //   ⚠四半期の支払い（貢納・招聘の支度金・外資の利回り・戦費）は四半期末の外交と共有層がまとめて払う＝四半期の締め月の請求に入れる（戦費は外交の月次3回ぶん）。
+        double claims = World.LastUpkeep + World.LastInterest + World.LastWelfareCost + World.LastPensionCost + World.LastColonialUpkeep;
+        bool payQuarter = World.IsQuarterEndMonth;
+        if (payQuarter) claims += World.LastTributeOut + World.RecruitBudget;   // 四半期の請求（貢納・招聘の支度金）
+        if (payQuarter && World.SelfPower is { } paySelf && World.Diplomacy is { } payDip)
+        {
+            if (atWarNation) claims += Calendar.MonthsPerQuarter * World.Coef.WarCostPerMilitary * paySelf.Military;   // 戦費（Diplomacy.Fund と同じ式＝四半期末に月次3回）
+            if (World.Coef.MegaprojectForeignYield > 0)
+                foreach (var mp in payDip.Megaprojects)
+                    if (mp.IsComplete && mp.ForeignPartnerId >= 0 && mp.ForeignPrincipal > 1e-9
+                        && World.Regions.Exists(hr => hr.State == RegionState.Active && hr.Name == mp.Host))
+                        claims += World.Coef.MegaprojectForeignYield * mp.ForeignPrincipal;   // 外資の利回り（四半期）
+        }
+        // 売買方針の代金とダンピング補助（清算ごと・InternationalMarket.PaySubsidy）＝直近の清算の越境の輸入額・輸出額で見込む（同国の州どうしの買い付けの分は見込みの外）
+        double tradeClaim = World.Tariff < 0 ? World.LastExportValue * -World.Tariff * World.Coef.TariffRevenueRate : 0;
+        if (World.ImportsByGood is { } payImp)
+            for (int g = 0; g < payImp.Length; g++) if (World.TradeBiasOf(g) > 0) tradeClaim += World.Coef.TradeBiasStrength * payImp[g];
+        claims += tradeClaim / World.Coef.MonthsPerClearing;
+        // 先月の区分つき StateSpent で見込む行（義務教育・健康保険・工場の材料・民営の補助）は先月の r で払った額＝請求へ戻すには先月の r で割る
+        //   （この時点の FiscalFundingRatio＝先月の r。先月 0 なら先月は払っていない＝見込みも 0）。
+        double lastRate = World.FiscalFundingRatio;
+        double regrow = lastRate > 0 ? 1.0 / lastRate : 0.0;
+        foreach (var r in World.Regions)
+            if (r.State == RegionState.Active)
+            {
+                claims += r.MilitaryBudget + r.AdminBudget + r.InfraBudget + r.ElecInfraBudget + r.SoldierPayBudget
+                        + r.StateBuildQueue + r.MonumentBuildQueue + r.HigherEduFunding
+                        + regrow * (Math.Max(0, r.StateSpent[(int)TreasuryCat.Education]) + Math.Max(0, r.StateSpent[(int)TreasuryCat.Welfare])       // 先月の義務教育・健康保険
+                                  + Math.Max(0, r.StateSpent[(int)TreasuryCat.FactoryBuild]) + Math.Max(0, r.StateSpent[(int)TreasuryCat.Subsidy]));   // 先月の工場の材料・民営の補助
+                foreach (var pr in r.Producers)
+                {
+                    if (pr.ConstructionLeft > 0) claims += pr.ConstructionPayPerDay * Calendar.DaysPerMonth;   // 工事の工賃の1か月分（World.StepConstruction）
+                    double loss = pr.LastCost - pr.LastRevenue;
+                    if (loss > 0) claims += World.StateProfitShare(pr, r, World.Coef) * loss;   // 国営持分の赤字の見込み（先月の損益）
+                }
+            }
+        double payable = Math.Max(0, World.Treasury) + World.LastRevenue;
+        double payRate = claims > 0 ? payable / claims : 1.0;
+        if (!(payRate >= 0)) payRate = 0; else if (payRate > 1) payRate = 1;   // 否定形＝NaN は払わない側
+        World.FiscalFundingRatio = payRate;
+        // ＞0＝ r＝1 の月の余剰（減債の原資）・＜0＝払えない請求（切り下げの原資）＝Fiscal。負の国庫（記録されない当座借越）は余剰から先に埋める
+        //   ＝借越のまま国債を返さない・埋められない借越は赤字（r は Q1 のとおり max(0,国庫) で決める＝国庫0の国の率0→行政0→税収0の行き詰まりを作らない）。
+        double spare = payable - claims + Math.Min(0, World.Treasury);
+        foreach (var r in World.Regions)
+            if (r.State == RegionState.Active)
+            {
+                // 全ての予算と予約に同じ r（予算は量の上限＝買えた分だけ払う＝払えない分は量が減る）
+                r.MilitaryBudget *= payRate; r.MilitaryBudgetCeiling *= payRate;
+                r.AdminBudget *= payRate; r.InfraBudget *= payRate; r.ElecInfraBudget *= payRate; r.SoldierPayBudget *= payRate;
+                r.CompulsoryEduFunding *= payRate; r.InsuranceCoverage *= payRate;
+                r.StateBuildQueue *= payRate; r.MonumentBuildQueue *= payRate; r.HigherEduFunding *= payRate;
                 // 技術→工場生産性。技術2まではそのまま（較正域）、それ超は逓減（高技術でも生産性7倍等にならず経済を壊さない）
                 // 労働時間→工場出力（連続・倍率排除②）：労働供給は労働時間に比例しつつ疲労で逓減（h=14で1.0、短いほど産出↓）。死亡率↓は人口動態で別途。
                 double whOut = Math.Pow(World.WorkHoursValue / WorkHours.Unlimited.Hours(), World.Coef.LaborFatigueExp)
@@ -2075,13 +2136,10 @@ public sealed class Simulation
                             if (!fp.IsRgo && fp.BuiltScale > 1e-9 && fp.MothballFrac > 1e-9)
                                 fp.BuiltScale *= scrapKeep * fp.MothballFrac + (1.0 - fp.MothballFrac);   // 〔7-1〕第2版（2026-09-06）：**休止中の分だけ**解体（第1版＝採算割れ全部は batch10 硬性赤＝バイエルン最下位固定＝小国の工場が戻らない）。休止率0＝不変
                 }
-                // ★2026-09-20：国庫の区分「専売益」を実際に立てる。旧は StateSpent を丸ごと OtherOut へ呑ませていたので
-                //   TreasuryCat.StateMonopoly は書き手ゼロの死蔵区分で、財政タブに一度も行が出たことが無かった。
-                //   ⚠国庫の合計は厳密に不変（下の2本の和＝−StateSpent）＝台帳の**内訳だけ**が割れる。
-                //   ⚠同じ月の同じ行で積まれた2つ（EconomyStep の StateSpent -= qty*price*margin と LastStateMonopolyRevenue += 同額）を割るだけ＝
-                //     二重計上にならない（思想⑨）。どちらも EconomyStep の同一走行でゼロ化され、この loop は同じ Active 州だけを回る。
-                World.Pay(TreasuryCat.StateMonopoly, r.LastStateMonopolyRevenue);
-                World.Pay(TreasuryCat.OtherOut, -(r.StateSpent + r.LastStateMonopolyRevenue));   // 軍需調達の支払い（国庫→生産者で保存）
+                // 国家の調達・国営の損益・専売の精算を**区分ごとに**（2026-09-28 段2-1 D1〜D3）。旧＝1本の StateSpent を OtherOut へ呑ませ、
+                //   専売益だけを別の欄 LastStateMonopolyRevenue に二重に積んで割り戻していた＝財政タブで軍需・行政・教育・建設・補助・国営の損益の区分が出なかった。
+                for (int k = 0; k < r.StateSpent.Length; k++)
+                    if (r.StateSpent[k] != 0) World.Pay((TreasuryCat)k, -r.StateSpent[k]);   // 国庫→生産者（支出）／生産者・消費者→国庫（専売益・国営持分の利潤）で保存
                 // （植民地の採取費の対外流出と、その一部を植民地の蓄えへ渡す枝は 2026-09-28 に削除＝旗 TradeColonialGoods=1 で常に0だった）
             }
         ProbeCheck("月次経済");
@@ -2097,7 +2155,7 @@ public sealed class Simulation
         StepMineralDeposits();   // ★鉱脈在庫（2026-08-14）：掘った分だけ減る・減れば品位が落ちる。ゲート0＝即return＝恒等
         MintGold();                                                      // 鋳造（金鉱→正貨）：金産出の一部が基礎貨幣に（ゴールドラッシュ＝マネー膨張）。GoldMintFraction=0で無効＝較正中立
         ProbeCheck("月次鋳造");
-        Fiscal.Step(World, World.Coef);                                  // §9-F/§6.2（全 pop に課税）
+        Fiscal.Step(World, World.Coef, spare);                           // §9-F/§6.2（全 pop に課税）。spare＝月初の払える額−請求（減債と切り下げの原資）
         ProbeCheck("月次財政");
         // 国営工場カウンター（作者裁定2026-08-10）：目標と現在の差を1歩ずつ埋める（着工の再挑戦・1棟ずつの払い下げ）＋
         // 国有化法の接収。★財政の**後**に置く＝払い下げ代金と国庫の残高が同じ月の中で前後しない
@@ -2184,7 +2242,7 @@ public sealed class Simulation
         if (baseline < 1e-9) return;
         double litSum = 0, healthSum = 0, foodMet = 0, foodNeed = 0;
         foreach (var p in World.AllPops()) { litSum += p.Literacy * p.Size; healthSum += p.HealthFill * p.Size; foodMet += p.FoodMet; foodNeed += p.FoodNeed; }
-        double healthcare = Math.Min(World.SocialSecurity * World.WelfareFunding, (litSum / pop) / c.HealthcareEducationGate);   // 社会保障(充足率で減衰)と識字(医者)の小さい方で律速＝財政不足で医療→人口増が鈍る
+        double healthcare = Math.Min(World.SocialSecurity * World.FiscalFundingRatio, (litSum / pop) / c.HealthcareEducationGate);   // 社会保障(充足率で減衰)と識字(医者)の小さい方で律速＝財政不足で医療→人口増が鈍る
         double doctorCare = healthSum / pop;   // 医者の役務（医療財）の消費＝乳児死亡の低下。医者が居ない/買えない社会は人口が伸びにくい
         // 接13（監査2026-07-11・2026-07-25休眠配線）：主医療チャネル（重み1.2）が社会保障×識字の抽象値のみ＝医者が1人も居ない国でも
         // 満額が出て、実装済みの医療サービス経済（医者pop・医薬品・重み0.05）が人口にほぼ報いない。これ>0で実医療財の消費(HealthFill)を
@@ -2488,10 +2546,6 @@ public sealed class Simulation
         World.DiagDeaths += deadTotal;         // ★計器（2026-09-26）：粗死亡の累積（力学は読まない）
     }
 
-    /// <summary>他12（監査2026-07-11・2026-07-25休眠配線）：StateSpent精算（軍需調達・行政購買）が国庫残高で律速されず、Treasuryが負に落ちても
-    /// 債務計上も利払いもなく翌月税収で黙って埋まる当座借越＝借入・切下げ・デフォルトという財政規律機構の静かな迂回。1で軍需・行政（と教育＝2026-09-27 に EduFundingCashClamp を焼き込み）の予算を
-    /// 「いま国庫にある現金」で比例縮小（財1の福祉クランプと同じ規律を第一請求権側にも・購入が立たない分は市場に残る＝保存非接触）。既定0＝縮小なし＝現行と厳密一致。</summary>
-
     /// <summary>支出反射のインフラ拡張（2026-08-08）：行政・軍需の実支出は**需要でキャップ**され国庫が減らない
     /// （行政需要∝人口・軍需はS3aで必要額min＝fisprobe実測で普が0.6点火後も×0.25ロック継続）。
     /// 弾力的に吸収できる唯一の国家支出＝**インフラ建設**（プロイセン国有鉄道・明治の官営事業＝退蔵の史実の使い道）を
@@ -2506,18 +2560,6 @@ public sealed class Simulation
         return World.SpendableRevenue() / baseRev;   // 潤沢超過ぶんだけ >1（普≈18倍＝鉄道国家の建設ブーム）
     }
 
-
-    private double StateBudgetCashScale()
-    {
-        var sc = World.Coef;
-        if (sc.StateSpendTreasuryClamp <= 0) return 1.0;
-        double planned = (World.MilitarySpending * sc.MilitaryRevenueShare + World.AdminSpending * sc.AdminBudgetFrac) * World.LastRevenue;
-        if (planned <= 1e-9) return 1.0;
-        // 02断線走査2026-07-28：連続ブレンド化＝係数を式に乗せる（旧・符号判定のみで0.3も1.0も同一だった）。0=無制限／1=完全クランプ（旧点火状態と厳密一致）／
-        // 中間＝部分的な当座借越の許容（大蔵省証券・御用金＝完全な現金主義でも無制限でもない）＝#17較正で刻める
-        double r = Math.Clamp(Math.Max(0, World.Treasury) / planned, 0, 1);
-        return 1.0 - sc.StateSpendTreasuryClamp * (1.0 - r);
-    }
 
     /// <summary>改革法の地代上限：全面＝設定値／限定的＝なし(1.0)と全面の中間／なし＝1.0(無制限)。＝段階的な土地改革/農奴解放。</summary>
     private static double RentCap(ReformLevel lv, double full) => lv switch

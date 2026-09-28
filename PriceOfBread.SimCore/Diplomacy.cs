@@ -755,7 +755,7 @@ public sealed class Diplomacy
             }
         }
         double prizeRaw = c.PrizeMoneyRate * advantage * ((1.0 - c.PrizeCargoShare) * Math.Max(0, vw.Gdp) + c.PrizeCargoShare * cargoBase);
-        double prize = Math.Min(prizeRaw, Math.Max(0, vw.Treasury));   // 払える範囲（国庫）。PrizeCargoShare=0で旧式 PrizeMoneyRate×GDP×advantage に厳密一致
+        double prize = prizeRaw * vw.FiscalFundingRatio;   // 払い手の国家の支払い率 r の分だけ（2026-09-28 段2-1＝旧は国庫の残りで切る門）。PrizeCargoShare=0で旧式 PrizeMoneyRate×GDP×advantage
         if (prize <= 1e-9) return;
         vw.Pay(TreasuryCat.WarCost, -prize); vw.CumulativeTradeFlow -= prize;   // 敵＝拿捕で対外流出（区分＝戦費・作者裁定 Q14）
         rw.Pay(TreasuryCat.WarCost, prize); rw.CumulativeTradeFlow += prize;   // 制海国＝拿捕賞金の対外流入（保存・区分＝戦費）
@@ -1215,12 +1215,14 @@ public sealed class Diplomacy
             // 貢納（属国→宗主・四半期）。運河通行料と同じ両建てで保存。
             if (month % Calendar.MonthsPerQuarter == 0)
             {
-                double tribute = Math.Min(c.VassalTributeRate * Math.Max(0, d.Gdp), Math.Max(0, d.Nation.Treasury));
+                double tributeClaim = c.VassalTributeRate * Math.Max(0, d.Gdp);
+                double tribute = tributeClaim * d.Nation.FiscalFundingRatio;   // 属国の国家の支払い率 r の分だけ（2026-09-28 段2-1＝旧は国庫の残りで切る門）
+                d.Nation.LastTributeOut = tributeClaim;   // 請求（r を掛ける前）＝翌月以降の月初の請求の見込み（Simulation）と予算表が読む
                 if (tribute > 1e-9)
                 {
                     d.Nation.Pay(TreasuryCat.TributeOut, -tribute); d.Nation.CumulativeTradeFlow -= tribute;   // 従属＝対外流出
                     s.Nation.Pay(TreasuryCat.TributeIn, tribute); s.Nation.CumulativeTradeFlow += tribute;   // 宗主＝対外流入（保存）
-                    d.Nation.LastTributeOut = tribute; s.Nation.LastTributeIn += tribute;   // 診断（予算表・接1）
+                    s.Nation.LastTributeIn += tribute;   // 診断（予算表・接1）
                 }
             }
 
@@ -2684,7 +2686,7 @@ public sealed class Diplomacy
         double rep = 0.0;
         if (loser.Nation is { } lw && winner.Nation is { } ww)
         {
-            rep = Math.Min(repBase, Math.Max(0, lw.Treasury));   // 払える範囲（国庫の現在値）
+            rep = repBase * lw.FiscalFundingRatio;   // 敗者の国家の支払い率 r の分だけ（2026-09-28 段2-1＝旧は国庫の残りで切る門）。払えない分の対外債への記録は段3-3（作者裁定 Q6）
             lw.Pay(TreasuryCat.WarCost, -rep); ww.Pay(TreasuryCat.WarCost, rep);   // 区分＝戦費（作者裁定 Q14）
             // 賠償＝国家間の対外移転。両国の貿易収支に計上（保存則の基準）
             lw.CumulativeTradeFlow -= rep;
@@ -2989,7 +2991,9 @@ public sealed class Diplomacy
     private static double Fund(Power p, Coefficients c, out double payRatio)
     {
         double cost = c.WarCostPerMilitary * p.Military;
-        double pay = Math.Min(Math.Max(0, p.Nation?.Treasury ?? p.Treasury), cost);   // 国を持つ Power は World の国庫・抽象標的は世界の外の財布（見積もり）
+        // ★国を持つ Power は国家の支払い率 r の分だけ払う（作者裁定 F3・2026-09-28 段2-1＝旧は独自の payRatio＝国庫の残り/費用）＝支払い能力の比は r そのもの。
+        //   抽象標的は世界の外の財布（見積もり・作者裁定 Q10＝据え置き）。戦費そのものの削除（二重計上・Q8）は段3-2。
+        double pay = p.Nation is { } fw ? cost * fw.FiscalFundingRatio : Math.Min(Math.Max(0, p.Treasury), cost);
         // ★是正（監査2026-09-02 #27）：抽象標的（Nation==null）はWorld外の財布＝pay分の受け手が無いまま黙って蒸発していた
         //（当時は貢納・戦利品で増えるTreasuryが開戦の価値の判定 SpoilsWorthThreshold に使われていた＝回1-1で判定ごと削除）。実在国のみ実際に引く＝抽象標的は支払い能力だけ評価。
         if (p.Nation is { } w)

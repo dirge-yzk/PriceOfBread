@@ -348,7 +348,7 @@ public sealed class Market
     //   『用途』先頭行＝ProductionDiag.ExplainPopConsumption だけが読む」）。
     //   ①World.StateMonopolyBreadth＝専売の軸の正規化位置（課税している財が**課税ベース**に占める割合）
     //   ②PolicyPreferences.EffectiveStateMonopoly＝小営業の反対の強さ（実効平均率）
-    //   理由＝専売は pop の消費ループでしか徴収されない（EconomyStep のこの記帳の直後に LastStateMonopolyRevenue を積む同じ qty）ので、
+    //   理由＝専売は pop の消費ループでしか徴収されない（EconomyStep のこの記帳の直後に StateSpent[StateMonopoly] へ積む同じ qty）ので、
     //   「誰がいくら負担しているか」を持つ台帳はこれしかない。⚠だからこの配列は**消すと政治が壊れる**（表示専用の器ではない）。
     // ⚠これを置く理由＝**popの購入量はどこにも残っていなかった**：Pop.GoodDemand は「現在処理中の財」の作業用フィールドで
     //   財ごとに上書きされる（月末に残るのは最後に処理した財の値だけ）。Market.LastSold は工場投入・投資・軍需を含む合算。
@@ -445,7 +445,6 @@ public sealed class Region
     // ★純テレメトリ（2026-08-26・作者指摘「輸送力が州割りになっている」の定量化）＝その州に配られた輸送容量の実値。
     //   BilateralMarket が cap を組み立てた場所で書くだけ＝**計器が式を二重定義しない**。力学は一切読まない。
     public double LastTransportCap;
-    public double SpendingCapFactor = 1.0;            // 借入スタックの出費上限（World から複製）。産業政策レバー2＝補助金の国庫肩代わりに乗せる。1.0＝無制約（中立）
     public bool CivilWarActive;                       // 内戦中か（World.CivilWarYears>0 の複製・#136）。内戦の経済麻痺（CivilWarEconomyDisruption）の読み口。false＝中立
     // 弧3-1（2026-07-24）：成長の出所内訳＝工業化増分の累積を建て手別に分離（国家建設 vs 資本家投資）。純カウンタ・力学は読まない。
     // 「エンジンが国家から民間へ移る瞬間」を数字で見る＝発展段階の可視化の本体
@@ -594,10 +593,12 @@ public sealed class Region
                                                       // Diplomacy の艦隊ゲージ（FleetGauge→Power.NavalPower）の源＝「海軍は戦艦ありき」
     public double MilitaryTier3Fill = 0.0;            // #16 tier3軍需(戦車・弩級戦艦)の充足率＝戦力の最上位乗数(Power.Military を +MilitaryTier3Bonus×これ)。更なる残余予算で届く＝富裕/軍国/晩期のみ
     public double MilitaryAirFill = 0.0;              // 1934拡張E2：空軍装備（飛行機・戦闘機・化学兵器）の充足率＝Power.AirPower=Military×これ。財の解禁(1910s)前は0＝空の概念ごと不走行
-    public double StateSpent;                         // 今期の軍需調達＋国家建設の支払い（国庫→生産者。Simulation が国庫から引く）
+    // ★今月の未精算の国家の支払いを**区分ごと**に（添字＝TreasuryCat・正＝支出・負＝収入＝専売益・国営持分の利潤）。Simulation が月次に区分ごとに国庫へ精算する
+    //   （2026-09-28 支払いの一元化 段2-1 D1〜D3＝旧は1本の double で精算の区分が全て OtherOut に潰れ、専売益だけを別の欄 LastStateMonopolyRevenue に二重に積んで割り戻していた）。
+    //   精算の後も次の EconomyStep の冒頭（Array.Clear）までは先月の値として残る＝月初の国家の支払いの請求の見込み（Simulation）と Fiscal の予算基数（専売益）が読む。
+    public double[] StateSpent = new double[(int)TreasuryCat.Count];
     public double CumEducationCost;                   // 義務教育の国庫負担の累積（診断・UI予算表示用。リセットせず差分で期間値）
     public double CumStateMonopolyRevenue;                  // 専売益の累積（診断・UI予算表示用。同上）
-    public double LastStateMonopolyRevenue;                 // 当月の専売益（EconomyStep冒頭でリセット→購入時に累積）。Fiscalの予算基数が読む（監査2026-07-11 接2。累積カウンタの差分方式だと州割譲で跳ねるため月次値を別持ち）
     public bool Seceded;                              // 分離独立で失った州（Locked＋この印）＝辺境開発（懐柔）の対象外。武力（ForceUnlock）による再征服のみで復帰（監査2026-07-11 他2：無償の自動開発による自動復帰の遮断）
     public bool JointStockApplied;                    // 株式会社の州ブースト（IndustrializationBoost×1.6）適用済みか＝所有国のフラグと毎期整合（監査2026-07-11 二2：割譲との干渉＝二重適用/恒久未適用の是正。Institutions.Step が管理）
     public double JointStockMulApplied = 1.0;         // ★研究・段2（2026-08-31）：株式会社ブーストの連続適用倍率（DiscoveryInstitutions>0でのみ書かれる。1.0＝未適用＝ゲート0で不読＝恒等）

@@ -317,13 +317,11 @@ public class ElectionAiTests
         w.Coef.NoConfidenceThreshold = 1.0;   // どの得票でも「線に触れている」＝danger=1
     }
 
-    /// <summary>「他の支出は逼迫していない」状態＝AIの機会費用の物差し（FiscalStressOf）をテスト内で開く。
-    /// ⚠国庫に金を注いで作ってはいけない（貨幣保存の不変量が即座に落ちる＝実測で踏んだ）＝**物差しのほう**を動かす。
-    /// バッファ月数0 ⇒ buffer=max(1,0)=1 ⇒ 国庫≥1 で逼迫0。</summary>
+    /// <summary>「他の支出は逼迫していない」状態＝AIの機会費用の物差し（FiscalStressOf＝1−国家の支払い率 r・2026-09-28）をテスト内で開く。
+    /// ⚠国庫に金を注いで作ってはいけない（貨幣保存の不変量が即座に落ちる＝実測で踏んだ）＝**物差しのほう**を動かす＝r＝1。</summary>
     private static void ClearFiscalStress(World w)
     {
-        w.Coef.FiscalStressBufferMonths = 0;
-        Assert.True(w.Treasury >= 1.0, "テスト前提の破れ：国庫が1未満＝逼迫0を作れない盤面");
+        w.FiscalFundingRatio = 1.0;
         Assert.Equal(0.0, UtilityAgent.FiscalStressOf(w), 12);
     }
 
@@ -464,8 +462,8 @@ public class ElectionAiTests
 
         // ③ 同じ危機でも**他の支出が逼迫**していれば注げない（機会費用＝軍も行政も払えていない国は選挙を買わない）
         w.Legitimacy = 1.0; w.ElectionPushIdeology = -1; w.ElectionPushStrength = 0; w.ElectionLastSpend = 0;
-        w.Coef.FiscalStressBufferMonths = 1e6;   // 物差しを極端に厳しく＝月次義務の百万か月分に対して国庫が空同然
-        Assert.True(UtilityAgent.FiscalStressOf(w) > 0.9, "テスト前提の破れ：逼迫を作れていない（月次義務の請求が0の盤面）");
+        w.FiscalFundingRatio = 0.0;    // 国家の支払いの請求を1銭も払えない月（逼迫＝1−r＝1）
+        Assert.True(UtilityAgent.FiscalStressOf(w) > 0.9, "テスト前提の破れ：逼迫を作れていない");
         double t2 = w.Treasury;
         w.PendingElection = Agenda(0, axis, inc);
         UtilityAgent.DecideElection(w);

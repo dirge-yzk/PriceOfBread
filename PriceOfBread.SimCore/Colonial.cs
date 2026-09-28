@@ -77,13 +77,12 @@ public static class Colonial
             if (col.Malarial) quinineWant += c.MalariaQuininePerColony;   // マラリア地は風土病鎮静にキニーネを要する（供給が実コスト）
         }
         w.ColonialShipBurden = shipBurden;   // 交易の実効海運を絞る（InternationalMarket/Trade が ShipCapacity/(1+これ) で参照）
-        w.LastColonialUpkeep = 0;   // 診断（予算表・接1）：今月の実支払いへ更新
+        w.LastColonialUpkeep = totalUpkeep;   // 請求（r を掛ける前・2026-09-28 から＝旧は実支払い）＝翌月の月初の請求の見込み（Simulation）と予算表が読む。下の補給財の請求も BuyUpkeepGood が足す
         if (totalUpkeep > 1e-9)
         {
-            double paid = Math.Min(Math.Max(0, w.Treasury), totalUpkeep);
+            double paid = totalUpkeep * w.FiscalFundingRatio;   // 国家の支払い率 r の分だけ（2026-09-28 段2-1＝旧は国庫の残りで切る門）
             w.Pay(TreasuryCat.ColonialUpkeep, -paid);
             w.Pay(TreasuryCat.ColonialUpkeep, World.Distribute(new List<Pop>(w.AllPops()), paid));   // 海軍・駐留の俸給＝本国popへ（保存）。受け手不在＝国庫残置
-            w.LastColonialUpkeep = paid;
         }
         // 距離維持費の物理消費：国庫が本国市場から燃料・缶詰糧食を買う（在庫律速・需要計上で価格律速・産業と競合）。支払いは生産者へ（保存）。
         var (fuelG, fuelWant) = ChooseFuelGood(r, c, coalWant);   // 石炭/原油の二択（海軍・民間汽船と同じ1本）
@@ -431,11 +430,15 @@ public static class Colonial
             if (a > 0 && a <= 1) want *= 1.0 - w.Coef.StateProcurePriceGate * (1.0 - a);
             if (!(want > 1e-9)) return 0;
         }
+        // 植民地の補給財の請求（r を掛ける前）を植民地維持費の請求へ積む＝翌月の月初の国家の支払いの請求に入る（例外なし・作者裁定 Q2）。
+        //   ⚠旧は国庫の残りで買える分だけ買った（月の最後の残りを取る＝暗黙の最下位の優先順位）＝英・西・蘭・葡・オマーンでは補給財の請求が歳入を超える（2026-09-28 canary）。
+        if (cat == TreasuryCat.ColonialUpkeep) w.LastColonialUpkeep += want * Math.Max(r.Markets[goodId].Price, 1e-9);
+        want *= w.FiscalFundingRatio;                                      // ★国家の支払い率 r の分だけ買う＝量を減らす（2026-09-28 段2-1＝旧は国庫で買える上限の門）
+        if (!(want > 1e-9)) return 0;
         var m = r.Markets[goodId];
         m.LastDemand += want;                                              // 需要を計上＝価格上昇＆増産を駆動（在庫が無くても＝補給の引きが産業を圧迫）
         double price = Math.Max(m.Price, 1e-9);
-        double afford = Math.Max(0, w.Treasury) / price;                   // 国庫で買える上限
-        double got = Math.Min(Math.Min(want, m.Stock), afford);           // 在庫超・予算超は買えない（物理＋財政の二重律速）
+        double got = Math.Min(want, m.Stock);                              // 在庫超は買えない（物理の律速・財政は上の r）
         if (got <= 1e-9) return 0;
         double cost = got * price;
         m.Stock -= got; m.LastExport += got;                              // 物理消費（汽船が焚く・駐留が食う＝本国市場から域外圏へ出る。財収支台帳に計上）

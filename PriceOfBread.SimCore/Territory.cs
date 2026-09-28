@@ -17,14 +17,15 @@ public static class Territory
         foreach (var r in w.Regions)
             if (r.State == RegionState.Locked)
             {
-                if (w.ForceUnlock && w.Treasury >= c.ForceUnlockTreasuryCost)
+                if (w.ForceUnlock)
                 {
-                    // 武力（強硬）：速いが国庫出血・闘争度↑（§A-8／§6.1 兵力×経済）
-                    r.Infra += c.ForceUnlockRate;
-                    w.Pay(TreasuryCat.Army, -c.ForceUnlockTreasuryCost);   // 区分＝陸軍（作者裁定 Q14）
-                    w.Pay(TreasuryCat.Army, World.Distribute(new List<Pop>(w.AllPops()), c.ForceUnlockTreasuryCost));   // 軍事調達→pop へ還流（保存）。受け手不在＝国庫残置。★是正（監査G10#3）：Colonial/Diplomacyと同じAllPops基準の1本を共用（旧はSeceded凍結popも受け手に含めていた）
+                    // 武力（強硬）：速いが国庫出血・闘争度↑（§A-8／§6.1 兵力×経済）。国家の支払い率 r の分だけ払い、進み方も r（2026-09-28 段2-1＝旧は国庫が月の費用に満たなければ丸休み）
+                    double unlockPay = c.ForceUnlockTreasuryCost * w.FiscalFundingRatio;
+                    r.Infra += c.ForceUnlockRate * w.FiscalFundingRatio;
+                    w.Pay(TreasuryCat.Army, -unlockPay);   // 区分＝陸軍（作者裁定 Q14）
+                    w.Pay(TreasuryCat.Army, World.Distribute(new List<Pop>(w.AllPops()), unlockPay));   // 軍事調達→pop へ還流（保存）。受け手不在＝国庫残置。★是正（監査G10#3）：Colonial/Diplomacyと同じAllPops基準の1本を共用（旧はSeceded凍結popも受け手に含めていた）
                     foreach (var p in w.AllPops())
-                        p.Militancy = Math.Clamp(p.Militancy + c.ForceUnlockMilitancy, 0, 1);   // 制圧の不満（戦争疲弊）
+                        p.Militancy = Math.Clamp(p.Militancy + c.ForceUnlockMilitancy * w.FiscalFundingRatio, 0, 1);   // 制圧の不満（戦争疲弊）＝制圧の進み方（r）に比例
                 }
                 else if (!r.Seceded)
                 {

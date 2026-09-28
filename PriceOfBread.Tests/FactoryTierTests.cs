@@ -68,7 +68,8 @@ public class FactoryTierTests
         sA.World.Coef.FactoryTierMachinePerDepth = 0.0;             // OFF側を明示（既定は点火済み0.05＝2026-08-09。既定非依存の対照実験）
         sC.World.Coef.FactoryTierMachinePerDepth = 0.0;
         sB.World.Coef.FactoryTierMachinePerDepth = 0.05;            // ON側
-        double spentA0 = rA.StateSpent, spentB0 = rB.StateSpent;
+        int fb = (int)TreasuryCat.FactoryBuild;   // 工場の材料の区分（2026-09-28 段2-1＝StateSpent は区分つき）
+        double spentA0 = rA.StateSpent[fb], spentB0 = rB.StateSpent[fb];
         double machinePrice = rA.Markets[mg].Price;                 // 決済価格（EconomyStep 内で価格は不変＝clearPrice と同値。価格更新は MarketFlow）
         EconomyStep.Run(rA, sA.World.Coef);
         EconomyStep.Run(rB, sB.World.Coef);
@@ -81,7 +82,7 @@ public class FactoryTierTests
         Assert.Equal(rA.Markets[cg].LastDemand, rB.Markets[cg].LastDemand);
         Assert.Equal(rA.Markets[lg].LastDemand, rB.Markets[lg].LastDemand);
         // 決済＝got×clearPrice（ration[機械]=1）：国庫負担の増分が +α束×市場価格に一致（StateSpent へ記帳・revenue[機械] は保存テストが番人）
-        Assert.Equal(expected * machinePrice, (rB.StateSpent - spentB0) - (rA.StateSpent - spentA0), 6);
+        Assert.Equal(expected * machinePrice, (rB.StateSpent[fb] - spentB0) - (rA.StateSpent[fb] - spentA0), 6);
     }
 
     [Fact]
@@ -166,7 +167,7 @@ public class FactoryTierTests
         EconomyStep.Run(rC, sC.World.Coef);
         double dSteel = rA.Markets[sg].LastDemand - rC.Markets[sg].LastDemand;
         Assert.True(dSteel > 1e-9, "cap無効州で建設材料の需要が立っていない＝穴が再発");
-        Assert.True(rA.StateSpent > rC.StateSpent + 1e-9, "材料費が国庫負担（StateSpent）になっていない");
+        Assert.True(rA.StateSpent[(int)TreasuryCat.FactoryBuild] > rC.StateSpent[(int)TreasuryCat.FactoryBuild] + 1e-9, "材料費が国庫負担（StateSpent の工場建設の区分）になっていない");
     }
 
     /// <summary>★施設の建設仕様の明示登録（LIST §0-9-C 段1・2026-09-12）：学校94＝軽工業／病院95＝重工業／大学136＝先端。
@@ -188,11 +189,11 @@ public class FactoryTierTests
         }
     }
 
-    /// <summary>★国庫の門（2026-09-27・線2）：材料は工事が進むときだけ買う＝工賃の日次の門（World.StepConstruction）と同じ述語。
-    /// 3世界の単月切り分け：C＝建設なし・A＝建設中で国庫が負・B＝建設中で国庫が正。A は C と1ビットも違わない（材料の需要も国庫負担も立たない）。
-    /// B は材料が立つ＝門が「いつも閉じている」空の番人でないことの対照。旧＝国庫を見ずに毎月買った＝止まった工事が材料だけを買い続けた。</summary>
+    /// <summary>★材料は工賃と同じ国家の支払い率 r で買う（2026-09-28 段2-1＝旧は国庫が1日分の工賃に満たない月は買わない門・2026-09-27）。
+    /// 3世界の単月切り分け：C＝建設なし・A＝建設中で r＝0・B＝建設中で r＝1。A は C と1ビットも違わない（材料の需要も国庫負担も立たない＝工事も進まない）。
+    /// B は材料が立つ＝「いつも閉じている」空の番人でないことの対照。</summary>
     [Fact]
-    public void 国庫が負のとき着工中の工場は材料を買わない()
+    public void 国家の支払い率が0の月は着工中の工場は材料を買わない()
     {
         var sA = new Simulation(Fr(11), new NullAgent());
         var sB = new Simulation(Fr(11), new NullAgent());
@@ -209,15 +210,13 @@ public class FactoryTierTests
             Assert.NotNull(p);
             p!.ConstructionLeft = days; p.ConstructionPayPerDay = payPerDay;
         }
-        foreach (var s in new[] { sA, sC }) s.World.Pay(TreasuryCat.OtherOut, -(s.World.Treasury + 1000.0));   // 国庫＝−1000（A と C は同じ）
-        Assert.True(sA.World.Treasury < 0 && sC.World.Treasury == sA.World.Treasury, "前提が崩れた：A と C の国庫が同じ負の値でない");
-        Assert.True(sB.World.Treasury >= payPerDay, "前提が崩れた：B の国庫が1日分の工賃に届かない");
+        sA.World.FiscalFundingRatio = 0; sC.World.FiscalFundingRatio = 0; sB.World.FiscalFundingRatio = 1.0;   // A と C＝払えない月・B＝満額
         EconomyStep.Run(rA, sA.World.Coef, 1.0, null, sA.World);
         EconomyStep.Run(rB, sB.World.Coef, 1.0, null, sB.World);
         EconomyStep.Run(rC, sC.World.Coef, 1.0, null, sC.World);
         Assert.True(rB.Markets[sg].LastDemand > rC.Markets[sg].LastDemand + 1e-9, "前提が崩れた：国庫が正でも建設材料の需要が立たない");
         foreach (int g in new[] { sg, sA.World.Coef.MachineGoodId, sA.World.Coef.CementGoodId, sA.World.Coef.LumberGoodId })
-            Assert.Equal(rC.Markets[g].LastDemand, rA.Markets[g].LastDemand);   // 国庫が負＝材料の需要は建設なしとビット一致
+            Assert.Equal(rC.Markets[g].LastDemand, rA.Markets[g].LastDemand);   // r＝0＝材料の需要は建設なしとビット一致
         Assert.Equal(rC.StateSpent, rA.StateSpent);                             // 国庫負担（材料の決済）も立たない
     }
 

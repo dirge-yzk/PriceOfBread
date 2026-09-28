@@ -1000,7 +1000,7 @@ public class RevoltIgnitionTests
         Assert.True(w.RebelArmsSpent > 0, "武器が1単位も買えていない");
         // 州の帳簿：Σ貯蓄の増減 ＝ 国家の支払い（国庫→売り手＝外からの流入）− 専売（月末に国庫へ）。
         // 反乱勢力の支払いは参加者→売り手＝州の**内側**で閉じる＝この恒等式に新しい項を足さない（足したら金が湧いたか消えたかのどちらか）。
-        double external = r.StateSpent - r.LastStateMonopolyRevenue;
+        double external = r.StateSpent.Sum() + r.StateSpent[(int)TreasuryCat.StateMonopoly];   // 旧 StateSpent−LastStateMonopolyRevenue と同じ量（専売益は区分 StateMonopoly に負で積まれる・2026-09-28）
         Assert.True(Math.Abs((s1 - s0) - external) <= 1e-6 * Math.Max(1.0, Math.Abs(s0)), $"貨幣が湧いたか消えた：Δ貯蓄 {s1 - s0:F6} ≠ 外部 {external:F6}");
         Assert.True(payer.Paid >= w.RebelArmsSpent * (1 - 1e-9), $"参加者の支払い {payer.Paid:F3} に武器代 {w.RebelArmsSpent:F3} が載っていない");
         Assert.True(r.Markets[rifle].LastSold > 0, "小銃が売れていない（売り手に届いていない）");

@@ -318,7 +318,6 @@ public static class EconomyStep
         //   ⚠旧はこの2つが p.Satisfaction（前月の値が月末まで残る）を読んでいた＝同じ「前月」の時点をそのまま保つ。
         var lastSupply = scratch.LastSupply;
         for (int pi0 = 0; pi0 < region.Pops.Count; pi0++) lastSupply[pi0] = region.Pops[pi0].SupplyFill;
-        region.LastStateMonopolyRevenue = 0;      // 接2：当月の専売益（月次リセット→購入時に累積。Fiscalの予算基数）
         foreach (var p in region.Pops)
         {
             // ★ゼロ化の直前に前期の所得を退避（私的投資の原資が読む・2026-08-04）。⚠この行は複数文が並ぶ＝行途中にコメントを挿すと以降が全部コメントアウトされる（実際に踏んで平均充足0＝31テスト赤）
@@ -864,7 +863,7 @@ public static class EconomyStep
         }
 
         // 軍需調達：国家が軍需財を消費（平時の維持＋戦時増）。財源＝国庫（予算内に収める）。消費が入力へ波及（火薬/鉛/帆船…）。
-        region.StateSpent = 0;
+        System.Array.Clear(region.StateSpent);   // 区分つき（TreasuryCat）の今月の未精算＝精算の後も次のこの行までは先月の値として残る（月初の請求の見込みが読む・Simulation）
         bool milProc = region.MilitaryScale > 0 && AllPresent(coef.MilitaryGoods, ng);   // 小シナリオ（軍需財を持たない）は対象外
         // ★E1（作者裁定2026-08-26）：陸海の再配分は**装備充足率の分母でも使う**ので、宣言をこの高さへ出す（値の決まり方は下の調達ブロックのまま）。
         //   ⚠旧＝分子（実発注）にだけ MilMul が掛かり、分母（equipWant）は一律レート＝比が MilMul 倍に膨らむ（「軍艦1083%」と同型の非対称）。
@@ -1544,7 +1543,7 @@ public static class EconomyStep
                             if (qty <= 0) continue;
                             double pay = qty * m.Price;
                             revenue[gi] += pay;
-                            region.StateSpent += pay;     // 国庫→教師（国家が授業料を肩代わり＝保存）
+                            region.StateSpent[(int)TreasuryCat.Education] += pay;     // 国庫→教師（国家が授業料を肩代わり＝保存）
                             region.CumEducationCost += pay;   // 診断：義務教育費の累積（UI予算表示）
                             p.EducationFill = Math.Min(1.0, p.EducationFill + qty / p.GoodNeed);
                         }
@@ -1570,7 +1569,7 @@ public static class EconomyStep
                             if (qty <= 0) continue;
                             double pay = qty * m.Price;
                             revenue[gi] += pay;               // 学費 → 研究者（大学）の売上（保存）
-                            region.StateSpent += pay;         // 国庫→大学（保存）
+                            region.StateSpent[(int)TreasuryCat.Modernization] += pay;         // 国庫→大学（保存）
                             p.HigherEduFill = Math.Min(1.0, p.HigherEduFill + qty / p.GoodNeed);
                         }
                         sold += take;
@@ -1612,10 +1611,9 @@ public static class EconomyStep
                         if (unfilled > 0) p.RemainingBudget -= unfilled * m.Price * (1 + stateMonop + distM + monRent + guildRent) - unfilled * insureBase * insure;
                     }
                     revenue[gi] += qty * m.Price;             // 消費者の支払い（税・マージン抜き）を売上へ（実支払いベース＝保存の要）
-                    region.StateSpent += subsidy;             // 国家の医療費負担（国庫→生産者＝保存。pop が払わない分を国庫が補填）
-                    region.StateSpent -= qty * m.Price * stateMonop;   // 専売は国庫へ（StateSpentの負値＝国庫収入。Treasury-=StateSpent で精算＝保存）
+                    region.StateSpent[(int)TreasuryCat.Welfare] += subsidy;             // 国家の医療費負担（国庫→生産者＝保存。pop が払わない分を国庫が補填）
+                    region.StateSpent[(int)TreasuryCat.StateMonopoly] -= qty * m.Price * stateMonop;   // 専売は国庫へ（StateSpentの負値＝国庫収入。Treasury-=StateSpent で精算＝保存）
                     region.CumStateMonopolyRevenue += qty * m.Price * stateMonop;   // 診断：専売益の累積（UI予算表示）
-                    region.LastStateMonopolyRevenue += qty * m.Price * stateMonop;  // 接2：当月の専売益（Fiscalの予算基数へ）
                     if (distM > 0) region.Pops[region.MerchantPopIndex].Earned += qty * m.Price * distM;   // 流通マージン＝商人の収入（消費者→商人で保存）
                     if (guildRent > 0)   // ★特権 段4：同業組合の上乗せ＝職人へ（消費者→職人で保存）。台帳＝取り分（PrivilegeLedgerEnabled>0）
                     {
@@ -1633,7 +1631,7 @@ public static class EconomyStep
                             //   PrivilegeMonopolyInLedger=0 で記帳なし＝priv3/priv6 の計測（P1〜P4）を汚さない。
                             if (world is not null && coef.PrivilegeLedgerEnabled > 0 && coef.PrivilegeMonopolyInLedger > 0) Privileges.Record(world, Privileges.Monopoly, monPay);
                         }
-                        else region.StateSpent -= monPay;
+                        else region.StateSpent[(int)TreasuryCat.StateMonopoly] -= monPay;
                         // （独占への恨み＝闘争度への直接の加算 MonopolyResentmentMilitancy は差し戻しの休眠・思想⑨の型＝2026-09-26 に削除・dorm-23）
                     }
                     if (p.GoodNeed > Eps)
@@ -1870,13 +1868,13 @@ public static class EconomyStep
             if (stateConLaborUnits > 0 && Catalog.LaborId < ng)
                 built = Math.Min(built, stateConstruction * ration[Catalog.LaborId]);
             double cost = sGot * clearPrice[sg] + mGot * clearPrice[mg] + cGot * clearPrice[cg] + lGot * clearPrice[lg];
-            region.StateSpent += cost;   // 国庫が負担（Simulation が国庫から引く＝国庫→生産者で保存）
+            region.StateSpent[(int)TreasuryCat.Modernization] += cost;   // 国庫が負担（Simulation が国庫から引く＝国庫→生産者で保存）
             // 経5：国家建設の工賃決済＝労働力財市場から工賃分を買い、支払い主体は国庫（StateSpent）＝行政・軍需と同じ国庫→労働pop経路で保存（旧経路は 2026-09-28 に削除＝上の資本家経路と同じ）。
             if (stateConLaborUnits > 0 && Catalog.LaborId < ng)
             {
                 double labQ = stateConLaborUnits * ration[Catalog.LaborId];
                 double labPay = labQ * clearPrice[Catalog.LaborId];
-                region.StateSpent += labPay;
+                region.StateSpent[(int)TreasuryCat.Modernization] += labPay;
                 revenue[Catalog.LaborId] += labPay;
             }
             revenue[sg] += sGot * clearPrice[sg];
@@ -1920,12 +1918,12 @@ public static class EconomyStep
             if (monumentLaborUnits > 0 && Catalog.LaborId < ng)
                 built = Math.Min(built, monumentConstruction * ration[Catalog.LaborId]);
             double cost = sGot * clearPrice[sg] + mGot * clearPrice[mg] + cGot * clearPrice[cg] + lGot * clearPrice[lg];
-            region.StateSpent += cost;
+            region.StateSpent[(int)TreasuryCat.Megaproject] += cost;
             if (monumentLaborUnits > 0 && Catalog.LaborId < ng)
             {
                 double labQ = monumentLaborUnits * ration[Catalog.LaborId];
                 double labPay = labQ * clearPrice[Catalog.LaborId];
-                region.StateSpent += labPay;
+                region.StateSpent[(int)TreasuryCat.Megaproject] += labPay;
                 revenue[Catalog.LaborId] += labPay;
             }
             revenue[sg] += sGot * clearPrice[sg];
@@ -1951,7 +1949,7 @@ public static class EconomyStep
             double cGot = coef.ConsCement * factoryBuildUnits * ration[cg];
             double lGot = coef.ConsLumber * factoryBuildUnits * ration[lg];
             double cost = sGot * clearPrice[sg] + mGot * clearPrice[mg] + cGot * clearPrice[cg] + lGot * clearPrice[lg];
-            region.StateSpent += cost;   // 材料費は国庫が負担（国庫→生産者で保存）
+            region.StateSpent[(int)TreasuryCat.FactoryBuild] += cost;   // 材料費は国庫が負担（国庫→生産者で保存）
             revenue[sg] += sGot * clearPrice[sg];
             revenue[mg] += mGot * clearPrice[mg];
             revenue[cg] += cGot * clearPrice[cg];
@@ -1962,7 +1960,7 @@ public static class EconomyStep
             {
                 double tGot = factoryTierUnits * ration[mg];
                 double tPay = tGot * clearPrice[mg];
-                region.StateSpent += tPay;
+                region.StateSpent[(int)TreasuryCat.FactoryBuild] += tPay;
                 revenue[mg] += tPay;
             }
         }
@@ -2035,7 +2033,7 @@ public static class EconomyStep
                     got = militaryDemand[gi] * ration[gi];
                     double pay = got * clearPrice[gi];
                     revenue[gi] += pay;
-                    region.StateSpent += pay;
+                    region.StateSpent[(int)TreasuryCat.Army] += pay;
                 }
                 // 耐久品は在庫へ積み摩耗で減らす（質の関数＝反乱勢力の武器購入と同じ1本 ArmsFillContribution・2026-09-11。baseStock=false では got そのもの＝フロー）
                 equipGot += ArmsFillContribution(region, coef, b, gi, want, got, milRates[b], region.MilitaryScalePeace, mul, baseStock ? region.ArmsStock : null);
@@ -2048,7 +2046,7 @@ public static class EconomyStep
                 double mfGot = motorFuelWant * ration[Catalog.CrudeOilId];
                 double mfPay = mfGot * clearPrice[Catalog.CrudeOilId];
                 revenue[Catalog.CrudeOilId] += mfPay;
-                region.StateSpent += mfPay;
+                region.StateSpent[(int)TreasuryCat.Army] += mfPay;
             }
 
             // 上位軍需の充足率＝戦力の質的乗数（Diplomacy が Power.Military を 1+Bonus×これ で増幅）
@@ -2067,7 +2065,7 @@ public static class EconomyStep
                     if (!qSea) qGotLand += got;
                     double pay = got * clearPrice[gi];
                     revenue[gi] += pay;
-                    region.StateSpent += pay;
+                    region.StateSpent[(int)TreasuryCat.Army] += pay;
                 }
                 // ★段2a：納入分をストックへ積み、摩耗で減らす。**戦時の9倍はここへ来る**（需要でなく摩耗）。
                 //   Fill は「在庫 ÷ 実軍が要る量」＝装備が行き渡っているかであって、その月に何を買えたかではない。
@@ -2113,7 +2111,7 @@ public static class EconomyStep
                     if (!t3Sea) t3GotLand += got;
                     double pay = got * clearPrice[gi];
                     revenue[gi] += pay;
-                    region.StateSpent += pay;
+                    region.StateSpent[(int)TreasuryCat.Army] += pay;
                 }
                 if (coef.ArmsStockEnabled > 0)
                 {
@@ -2154,7 +2152,7 @@ public static class EconomyStep
                     aGot += got;
                     double pay = got * clearPrice[gi];
                     revenue[gi] += pay;
-                    region.StateSpent += pay;
+                    region.StateSpent[(int)TreasuryCat.Army] += pay;
                 }
                 region.MilitaryAirFill = aWant > Eps ? Math.Clamp(aGot / aWant, 0, 1) : 0.0;
                 // 運用コスト監査2026-08-16 #4：空軍燃料の決済＋充足の乗算合成（新フィールドを増やさない＝AirPower=Military×MilitaryAirFill の既存経路に燃料が噛む）。
@@ -2164,7 +2162,7 @@ public static class EconomyStep
                     double afGot = airFuelWant * ration[Catalog.CrudeOilId];
                     double afPay = afGot * clearPrice[Catalog.CrudeOilId];
                     revenue[Catalog.CrudeOilId] += afPay;
-                    region.StateSpent += afPay;
+                    region.StateSpent[(int)TreasuryCat.Army] += afPay;
                     double fuelFill = Math.Clamp(afGot / airFuelNeed, 0, 1);
                     if (!(fuelFill >= 0 && fuelFill <= 1)) fuelFill = 0;   // 否定形＝NaNは飛べない側へ（Clampは NaN を消さない）
                     region.MilitaryAirFill *= fuelFill;
@@ -2229,7 +2227,7 @@ public static class EconomyStep
             double got = adminWant * ration[Catalog.AdminId];
             double pay = got * clearPrice[Catalog.AdminId];
             revenue[Catalog.AdminId] += pay;
-            region.StateSpent += pay;
+            region.StateSpent[(int)TreasuryCat.Admin] += pay;
             region.AdminFill = adminNeed > Eps ? Math.Clamp(got / adminNeed, 0, 1) : 1.0;
         }
 
@@ -2239,7 +2237,7 @@ public static class EconomyStep
             double got = infraWant * ration[Catalog.InfrastructureId];
             double pay = got * clearPrice[Catalog.InfrastructureId];
             revenue[Catalog.InfrastructureId] += pay;
-            region.StateSpent += pay;
+            region.StateSpent[(int)TreasuryCat.Admin] += pay;
             region.InfraFill = infraNeed > Eps ? Math.Clamp(got / infraNeed, 0, 1) : 1.0;
         }
 
@@ -2249,7 +2247,7 @@ public static class EconomyStep
             double got = elecInfraWant * ration[Catalog.ElecInfraId];
             double pay = got * clearPrice[Catalog.ElecInfraId];
             revenue[Catalog.ElecInfraId] += pay;
-            region.StateSpent += pay;
+            region.StateSpent[(int)TreasuryCat.Admin] += pay;
             region.ElecInfraFill = elecInfraNeed > Eps ? Math.Clamp(got / elecInfraNeed, 0, 1) : 0.0;
         }
 
@@ -2259,7 +2257,7 @@ public static class EconomyStep
             double got = mpWant * ration[Catalog.MilitaryPowerId];
             double pay = got * clearPrice[Catalog.MilitaryPowerId];
             revenue[Catalog.MilitaryPowerId] += pay;
-            region.StateSpent += pay;
+            region.StateSpent[(int)TreasuryCat.Army] += pay;
         }
 
         // 投入充足率を更新（次期の産出を制約。最も不足する投入が律速＝リービッヒ・§9-A 注2）。
@@ -2303,6 +2301,9 @@ public static class EconomyStep
             }
 
         // === ④ 所得（§9-C）：付加価値＝（売上の取り分）−投入費 → 地代/賃金 ===
+        // ★国家の支払い率 r（作者裁定 F3・R3・2026-09-28 支払いの一元化 段2-1）＝国営持分の赤字の肩代わりと民営の補助は r の分だけ（全ての国家の支払いと同じ1本の率）。
+        //   世界の無い試験（world=null）は 1＝満額。
+        double payRate = world?.FiscalFundingRatio ?? 1.0;
         for (int pi = 0; pi < np; pi++)
         {
             var s = region.Producers[pi];
@@ -2317,12 +2318,9 @@ public static class EconomyStep
             //   NationalizationSeizureRate>0 では下限をやめ、接収が動かす BuiltScale/Scale の一本道になる（所有の二重表現を潰す・作者裁定2026-08-10）。
             double stateFrac = World.StateProfitShare(s, region, coef);
             double rent, wages;
-            // 産業政策 レバー2（2026-07-24）：財政規律＝補助金の国庫肩代わりへ借入スタックの出費上限（SpendingCapFactor・福祉/インフラと同じ扱い）を適用＝
-            // 借金漬けの国は補助を維持できない（1880年代の官営払い下げの財政的動機）。国営持分の赤字（外せない計画経済の代償）は対象外のまま。
-            // SubsidyRespectsSpendingCap=1.0（点火2026-07-24）。0で subRate==s.SubsidyRate＝旧恒等。
-            double subRate = s.SubsidyRate;
-            if (coef.SubsidyRespectsSpendingCap > 0)
-                subRate *= 1.0 - coef.SubsidyRespectsSpendingCap * (1.0 - region.SpendingCapFactor);
+            // 補助率×r（作者裁定 Q9・2026-09-28）：旧＝借入スタックの出費上限（SpendingCapFactor・係数 SubsidyRespectsSpendingCap）を掛けた＝債務の重さは
+            //   利子の請求が大きくなることで r に出る＝二重計上なので撤去し、国庫の払える割合 r の1本へ（借金漬けの国は補助を維持できない＝同じ向き）。
+            double subRate = s.SubsidyRate * payRate;
             // ★国営持分は補助金の対象外（作者裁定2026-08-10「国営工場は常に補助金を出しているようなもの」）。
             //   国営持分は**損失を国庫が全額負う**（下の StateSpent += -valueAdded*stateFrac）ので、そこへ補助金を重ねるのは
             //   同じ支援の二重計上。会計側は元から民営持分（privLoss）にしか乗っていなかったが、**採算の底上げ**（下の margin 緩和）
@@ -2331,6 +2329,8 @@ public static class EconomyStep
             //   stateFrac=0（民営100%）では subEff==subRate＝ビット恒等／stateFrac=1（国営100%）では効果ゼロ＝ボタンも無効（World.CanSubsidize）。
             double privFrac = 1.0 - stateFrac;
             double subEff = subRate * privFrac;
+            // 国庫が肩代わりできる国営持分（R3）＝持分×r。払えない分（持分×(1−r)）は民営と同じ＝赤字は持ち主が負い（負の貯蓄→与信）、休止の対象になる。
+            double stateCover = stateFrac * payRate;
             if (valueAdded >= 0)
             {
                 // RGOの地代（封建貢租）は土地改革・農奴解放で上限が下がる＝地主の取り分↓・残りは農民の賃金へ（保存＝rent+wages=valueAdded）。
@@ -2344,19 +2344,20 @@ public static class EconomyStep
                 if (coef.RentScarcityElasticity > 0 && s.IsRgo)
                     rentShare = System.Math.Min(s.RentShare * (1.0 + coef.RentScarcityElasticity * landScarcity), region.FarmRentCap);
                 rent = rentShare * valueAdded; wages = valueAdded - rent;
-                if (stateFrac > 0) { region.StateSpent -= rent * stateFrac; rent *= 1.0 - stateFrac; }   // 国営持分の利潤は国庫へ（StateSpentの負値＝国庫収入。Treasury-=StateSpent がそのまま精算＝保存）
+                if (stateFrac > 0) { region.StateSpent[(int)TreasuryCat.StateFactory] -= rent * stateFrac; rent *= 1.0 - stateFrac; }   // 国営持分の利潤は国庫へ（StateSpentの負値＝国庫収入。Treasury-=StateSpent がそのまま精算＝保存）
             }
             else
             {
                 wages = 0;
-                region.StateSpent += -valueAdded * stateFrac;            // 国営持分の赤字＝永続補助金（外せない）
+                region.StateSpent[(int)TreasuryCat.StateFactory] += -valueAdded * stateCover;   // 国営持分の赤字＝国庫が r の分だけ肩代わり（R3）
                 double privLoss = valueAdded * privFrac;                 // 民間持分の赤字＝補助金が効く唯一の持分
-                if (subEff > Eps) { region.StateSpent += -privLoss * subRate; rent = privLoss * (1.0 - subRate); }   // 補助金：民間赤字の率ぶんを国庫が肩代わり（満額=旧ONと同値・国庫→所有者で保存）
-                else rent = privLoss;
+                double unpaidState = valueAdded * (stateFrac - stateCover);   // 国庫が払えなかった国営持分の赤字（≤0）＝持ち主が負う
+                if (subEff > Eps) { region.StateSpent[(int)TreasuryCat.Subsidy] += -privLoss * subRate; rent = privLoss * (1.0 - subRate) + unpaidState; }   // 補助金：民間赤字の率×r ぶんを国庫が肩代わり（国庫→所有者で保存）
+                else rent = privLoss + unpaidState;
             }
             // 産業政策 レバー1（2026-07-24）：補助依存ストックの月次更新＝国庫が赤字を埋めて操業した月に漸増・自立（黒字 or 支え手なし）で同率漸減。
             // 読み手は供給①の SubsidySoftBudgetDecay（0.4 で live＝実効生産性を蝕む）。
-            bool propped = valueAdded < 0 && (stateFrac > Eps || subRate > Eps);
+            bool propped = valueAdded < 0 && (stateCover > Eps || subRate > Eps);
             s.SubsidyDependence = Math.Clamp(s.SubsidyDependence + (propped ? coef.SubsidyDependenceRate : -coef.SubsidyDependenceRate), 0, 1);
             region.Pops[s.OwnerPopIndex].Earned += rent;
             region.Pops[s.LaborPopIndex].Earned += wages;
@@ -2389,13 +2390,14 @@ public static class EconomyStep
             // ★休止（mothball・AI審査2-6・2026-08-31・★live同日点火 Rate=0.05）：建てた工場（BuiltScale>0）は倒産免除＋床の全稼働強制で
             //   慢性赤字を垂れ流す。深い慢性赤字（SmoothedMargin<−FactoryMothballMarginIn）で床のうち FactoryMothballRate/月 ずつ
             //   休止し、採算が戻れば（SmoothedMargin>0）同率で再開＝設備（BuiltScale）は不変・操業と維持労働だけ縮む。
-            //   上限＝FactoryMothballCap×民営持分（国営持分は休止しない＝「国庫が支える」既存設計＝倒産免除の維持）。
+            //   上限＝FactoryMothballCap×（国庫が支えない持分＝1−国営持分×r）（国営持分は国庫が支える分だけ休止しない＝倒産免除の維持・
+            //   国庫が払えない分は休止する＝作者裁定 R3「払えない分は休止」・2026-09-28 段2-1。r=1 で旧＝民営持分）。
             //   margin は補助金で緩和済み（subEff）＝補助されている工場は休止しない（会計と同じ率を読む）。
             //   ⚠FactoryMothballRate を0へ戻せば frac が0のまま＝×1.0＝床はビット恒等。
             if (coef.FactoryMothballRate > 0 && s.BuiltScale > Eps && !s.IsRgo && Catalog.Goods[gi].Tier != GoodTier.Service)
             {
                 double mbDir = s.SmoothedMargin < -coef.FactoryMothballMarginIn ? 1.0 : s.SmoothedMargin > 0 ? -1.0 : 0.0;
-                if (mbDir != 0) s.MothballFrac = Math.Clamp(s.MothballFrac + mbDir * coef.FactoryMothballRate, 0, coef.FactoryMothballCap * privFrac);
+                if (mbDir != 0) s.MothballFrac = Math.Clamp(s.MothballFrac + mbDir * coef.FactoryMothballRate, 0, coef.FactoryMothballCap * (1.0 - stateCover));
             }
             double floor = Math.Min(Math.Max(coef.ScaleFloor, s.BuiltScale * (1.0 - s.MothballFrac)), catMax);   // 建設した工場容量＝Scaleの下限（建てた工場は操業を続ける・休止分は除く）。⚠catMaxで抑える＝経3のmin>max例外を防ぐ
             // 05-B2（2026-07-29）：外挿的期待＝採算の勢い（margin−平滑margin）を投資判断に加算。「上がったから更に上がる」と確信して拡張し、
@@ -2528,7 +2530,9 @@ public static class EconomyStep
     /// 工事はそのまま待ち、国庫が戻れば材料も工賃も再開する。world=null（較正・単体テスト）は国庫が無い＝門なし＝恒等。</summary>
     private static void AccumulateFactoryBuild(Region region, Coefficients coef, double[] investDemand, ref double factoryBuildUnits, ref double factoryTierUnits, World? world)
     {
-        double treasury = world?.Treasury ?? double.PositiveInfinity;
+        // ★材料は工賃と同じ国家の支払い率 r で買う（作者裁定 F3・2026-09-28 段2-1）＝旧の門（国庫が1日分の工賃に満たない月は材料を買わない）を撤去。
+        //   工事は r の分だけ進む（World.StepConstruction）＝材料も r の分だけ＝同じ1本の率。世界の無い試験（world=null）は 1。
+        double payRate = world?.FiscalFundingRatio ?? 1.0;
         double sP = Math.Max(region.Markets[coef.SteelGoodId].Price, Eps);
         double mP = Math.Max(region.Markets[coef.MachineGoodId].Price, Eps);
         double cP = Math.Max(region.Markets[coef.CementGoodId].Price, Eps);
@@ -2543,11 +2547,10 @@ public static class EconomyStep
         foreach (var cs in region.Producers)
             if (cs.ConstructionLeft > 0)
             {
-                if (!(treasury >= cs.ConstructionPayPerDay * buildAfford)) continue;   // 工事が進まない月は材料を買わない（否定形＝NaN は買わない側）
                 var fs = Catalog.FactorySpec(cs.GoodId);
                 double conMonths = Math.Max(1.0, fs.Quarters * (double)Calendar.MonthsPerQuarter);                              // 建設の月数（四半期×3）
-                double u = coef.FactoryMaterialFrac * fs.Cost / conMonths / Math.Max(Eps, costPerUnitRef) * buildAfford;   // 素材の必要量×採算率＝支払いは量×現在価格＝真の価格依存
-                if (u <= Eps) continue;
+                double u = coef.FactoryMaterialFrac * fs.Cost / conMonths / Math.Max(Eps, costPerUnitRef) * buildAfford * payRate;   // 素材の必要量×採算率×r＝支払いは量×現在価格＝真の価格依存
+                if (!(u > Eps)) continue;   // 否定形＝NaN は買わない側
                 factoryBuildUnits += u;
                 investDemand[coef.SteelGoodId] += coef.ConsSteel * u;
                 investDemand[coef.MachineGoodId] += coef.ConsMachine * u;

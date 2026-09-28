@@ -151,7 +151,6 @@ public sealed class World
     public double ChildLaborLegal { get; internal set; } = 1.0;   // 児童労働の合法度（0..1・連続・倍率排除④）。児童労働法（Policy.ChildLaborAllowed?1:0）へ毎月収束＝禁止は取締りで徐々に浸透。子供の労働/就学の時間配分を律する
     public double Freedom { get; internal set; }
     public double EducationSpending { get; internal set; }   // 教育費（0..1・現在値）。義務教育の財源率＝popが買えない教育を国庫が買う割合（それ以外の法では効果なし）
-    public double WelfareFunding { get; internal set; } = 1.0;     // 社会保障の充足率。財政不足で効果（不満緩和・医療による人口増）が減衰
     public double TechLevel { get; internal set; }
     public double WorldTechLevel { get; internal set; } // 世界の技術先端（多国・§5.1）。後発はここへ収束（後発の優位）。単独＝0
     // ★知識と人的資本（作者採用2026-09-06）：厚み＝専門人材率（近代エリート層の高等教育充足×人数÷全人口・毎四半期の導出量＝保存しない）・世界の先端・接触度
@@ -255,7 +254,7 @@ public sealed class World
     /// <summary>梯子の**家計の購入額**（＝pop が実際に買った量×参照価格）を1回の走査で集計する唯一の場所。
     /// 戻り値＝(専売中の財の合計, 梯子の全体, 専売中の財数, 梯子の財数)。
     /// ★ベース＝<see cref="Market.PopBought"/>＝EconomyStep が**専売を取るのと同じ行・同じ数量**で記帳している既存の台帳
-    ///   （EconomyStep.cs の pop 消費ループ：<c>popBought[...] += qty</c> と <c>LastStateMonopolyRevenue += qty*price*stateMonop</c> が隣り合う）。
+    ///   （EconomyStep.cs の pop 消費ループ：<c>popBought[...] += qty</c> と <c>StateSpent[StateMonopoly] -= qty*price*stateMonop</c> が隣り合う）。
     ///   ⚠<see cref="Market.LastSold"/> を使ってはいけない＝工場投入・投資・軍需を含む合算で、それらは専売を1ポンドも払わない
     ///     ＝課税されない量を分母に入れることになる（この改修が潰している非対称そのもの）。梯子に入っているのに pop が一度も買わない
     ///     8財（労働力・行政・兵力・高度労働力・農業労働力・上下水道・電化インフラ・高等教育＝baseNeed=0 の役務）は自動的に重み0
@@ -545,7 +544,7 @@ public sealed class World
         if (!(s > 0)) return 0;              // NaNガードは否定形（Clamp は NaN を消さない）
         double fc = FiscalCapacity;
         if (!(fc > 0)) return 0;             // 裁量余剰が無い国は1銭も注げない（借金してまでは買わない＝福祉と同じ財源）
-        return fc * s;
+        return fc * s * FiscalFundingRatio;  // ★国家の支払い率 r の分だけ注げる（全ての国家の支払いと同じ1本の率・2026-09-28 段2-1）＝払う額も効きもこの1本を読む
     }
 
     /// <summary>★E3''：効きの逓減の**半減点**（<see cref="Coefficients.ElectionPushHalfPerVoter"/>×有権者数×一人あたり名目所得）。
@@ -882,16 +881,20 @@ public sealed class World
         Treasury = v;
         System.Array.Clear(TreasuryLedger);
     }
+    /// <summary>★国家の支払い率 r∈[0,1]（作者裁定 F3・2026-09-28 支払いの一元化 段2-1）＝その月の全ての国家の支払いの請求に対して払える額（max(0,国庫)＋当月の歳入の見込み）の割合。
+    /// 書き手は月初の1か所（Simulation の月次決算で予算を立てた直後）。全ての国家の支払いの行がこの同じ r を掛けて払う（優先順位を作らない）。
+    /// 借入は r＜1 の月だけ・減債は r＝1 の月の余剰から（Fiscal）。AI の逼迫度＝1−r（UtilityAgent.FiscalStressOf）。
+    /// 旧＝維持費を払えた割合（Fiscal の滝の2番目）＝治安維持力・兌換の門・最後の貸し手・同盟参戦は今は支払い全般の不足に反応する。</summary>
     public double FiscalFundingRatio { get; internal set; } = 1.0;
     public double FiscalCapacity { get; internal set; }   // 直近の税収フロー（EMA）。公共サービス予算（行政/福祉/インフラ/軍需）の基準＝国庫ストックでなく歳入から支弁＝国庫0でも機能（funding修正2026-06-18）
     public double LastRevenue { get; internal set; }       // 診断：直近四半期の純税収（汚職漏れ控除後）
     public double LastUpkeep { get; internal set; }        // 診断：直近四半期の強制義務（連合維持費＋行政コスト）
     public double LastInterest { get; internal set; }      // 診断：直近四半期の利払い
-    public double LastWelfareCost { get; internal set; }   // 診断：直近四半期の社会保障給付の実支出
+    public double LastWelfareCost { get; internal set; }   // 社会保障の給付の請求（r を掛ける前・2026-09-28 から＝旧は実支出）。翌月の月初の請求の見込み（Simulation）と予算表が読む
     public double LastMilitaryClaim { get; internal set; } // 診断：直近四半期の軍需調達予算（軍事費×歳入シェア）
     public double LastSoldierPay { get; internal set; }     // 兵士給与の月次請求書（Σ兵数×民間賃金×SoldierPayMult・全州）。形が先・金が後 段0＝FiscalBufferOf の義務算入（FiscalBufferSoldierPayWeight）と armyneed プローブが読む
     public double LastAdminClaim { get; internal set; }    // 診断：直近四半期の行政調達予算（行政費×歳入シェア）
-    public double LastPensionCost { get; internal set; }   // 診断：直近四半期の年金給付の実支出
+    public double LastPensionCost { get; internal set; }   // 年金の給付の請求（r を掛ける前・2026-09-28 から＝旧は実支出）。翌月の月初の請求の見込み（Simulation）と予算表が読む
     public double LastTariffRevenue { get; internal set; } // 診断：直近四半期の関税収入（国庫へ実収）
 
     /// <summary>支出反射（露普歳入是正・2026-08-08）＝月次予算の基数。OpulenceSpendRate>0 のとき、潤沢線
@@ -961,7 +964,6 @@ public sealed class World
     // 借金ボタン（自動国債発行を置換）：プレイヤー/AIが能動的に借入。1回=GDP×割合＋1スタック。スタックは公共サービス支出に上限ペナルティ。
     public int BorrowQueue { get; internal set; }                 // 起債の予約数（Fiscal が毎月1件ずつ処理＝連続起債が可能）。AIは国庫逼迫時に自動で積む／プレイヤーUIはボタンで RequestBorrow()
     public double BorrowStacks { get; internal set; }             // 未返済の借入スタック数（1回押す＝+1。返済で減・返せねば のべくり）。出費上限ペナルティの源
-    public double SpendingCapFactor { get; internal set; } = 1.0; // 公共サービス支出の上限係数＝max(0,1−BorrowStacks/MaxBorrowStacks)。20スタックで0%。Fiscal が更新、軍需/福祉/インフラ予算に乗る（行政＝徴税費は対象外＝デッドロック防止）
     public void RequestBorrow() { if (BorrowStacks + BorrowQueue < Coef.MaxBorrowStacks) BorrowQueue++; }   // 起債の予約（連打でスタック＝毎月1件処理）。既存スタック＋予約が上限を超えては積めない
 
     // ==== 通貨改革（2026-08-13・作者採用）====
@@ -1591,11 +1593,14 @@ public sealed class World
             foreach (var p in r.Producers)
             {
                 if (p.ConstructionLeft <= 0) continue;
-                double pay = p.ConstructionPayPerDay * buildAfford;        // 進捗が遅い日は工賃も比例（採算率ぶんだけ工事）
-                if (Treasury < pay) continue;                             // 資金不足＝停滞（無駄遣いしない）
+                // ★工賃は国家の支払い率 r の分だけ払い、工事も r の分だけ進む（作者裁定 F3・2026-09-28 段2-1）＝旧の門（国庫が1日分に満たない日は丸休み）を撤去。
+                //   材料（EconomyStep.AccumulateFactoryBuild）も同じ r ＝工賃と材料が同じ1本の率で細る。
+                double step = buildAfford * FiscalFundingRatio;
+                if (!(step > 1e-9)) continue;                             // 否定形＝NaN は進めない
+                double pay = p.ConstructionPayPerDay * step;              // 進捗が遅い日は工賃も比例（採算率×r ぶんだけ工事）
                 Pay(TreasuryCat.FactoryBuild, -pay);
                 r.Pops[p.LaborPopIndex].Savings += pay;                   // 労務費＝工員へ（保存）
-                p.ConstructionLeft -= buildAfford;                        // 採算率に比例した進捗（崖でなく漸減）
+                p.ConstructionLeft -= step;                               // 採算率×r に比例した進捗（崖でなく漸減）
                 // 完成＝1棟ぶん操業開始。カウンター（国営工場の目標）も現在値まで引き上げる＝**外から増えた棟を月次駆動が売り戻さない**
                 // （BuildFactory を直に呼ぶ経路＝テスト/Runner も同じ扱いになる＝1箇所で閉じる）。
                 if (p.ConstructionLeft <= 1e-9)

@@ -1218,7 +1218,7 @@ public sealed class MultiNationSim
                 if (dWithout - dWith < 1.0) continue;   // この運河で海路が縮まない国＝通らない＝課金しない（英仏の対印交易はスエズで縮む＝払う）
                 double traffic = 0; foreach (var r in uw.Regions) if (r.State == RegionState.Active) traffic += r.LastPortThroughput;
                 double tollBase = _coef.CanalTollTrafficRate * traffic;   // 通航トン数課金（取扱高の代理・前四半期値）
-                double toll = Math.Min(tollBase, Math.Max(0, uw.Treasury));
+                double toll = tollBase * uw.FiscalFundingRatio;   // 使用国の国家の支払い率 r の分だけ（2026-09-28 段2-1＝旧は国庫の残りで切る門）
                 if (toll <= 1e-9) continue;
                 uw.Pay(TreasuryCat.OtherOut, -toll); uw.CumulativeTradeFlow -= toll;   // 使用国＝対外流出
                 // 外7：CanalInvestReturns>0 なら通行料の一部を建設拠出国へ持分（累計拠出額）比で配当し、残りを扼者へ。既定0.5＝配当あり。0＝全額扼者。
@@ -1277,7 +1277,7 @@ public sealed class MultiNationSim
                 if (r.InvestorPopIndex < 0 || r.InvestorPopIndex >= r.Pops.Count) continue;
                 var ip = r.Pops[r.InvestorPopIndex];
                 double cCap = _coef.PortInvestFrac * Math.Max(0, ip.Savings);          // 資本家ルート
-                double cState = Math.Min(_coef.PortStateFrac * cCap, Math.Max(0, w.Treasury));   // 国家ルート＝資本家投資に上乗せ（公共インフラ＝国家プロジェクト）
+                double cState = _coef.PortStateFrac * cCap * w.FiscalFundingRatio;   // 国家ルート＝資本家投資に上乗せ（公共インフラ＝国家プロジェクト）×国家の支払い率 r（2026-09-28 段2-1）
                 double invest = cCap + cState;
                 if (invest <= 1e-9) continue;   // ★判定→引落の順（wave2b是正）：引落してから捨てると微小額が pop へ還流されず消える片側記帳になる
                 ip.Savings -= cCap;
@@ -1788,7 +1788,7 @@ public sealed class MultiNationSim
         }
         if (!(moved > 0)) return;
         // ★支度金＝国庫→呼ばれた本人（⚠受入国の内側で保存する。国庫が減り、その分だけ技師の貯蓄が増える）
-        double cost = System.Math.Min(perHead * moved, dst.RecruitBudget);
+        double cost = System.Math.Min(perHead * moved, dst.RecruitBudget) * dst.FiscalFundingRatio;   // 予約の範囲×国家の支払い率 r（2026-09-28 段2-1）
         if (cost > 0)
         {
             dst.Pay(TreasuryCat.Modernization, -cost);

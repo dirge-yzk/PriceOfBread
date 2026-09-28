@@ -401,7 +401,7 @@ public class FuelOperatingCostTests
         double dOff = off.World.Region.Markets[Catalog.CrudeOilId].LastDemand;
         double dOn = on.World.Region.Markets[Catalog.CrudeOilId].LastDemand;
         Assert.True(dOn > dOff + 1.0, $"空軍燃料の原油需要が立っていない（ON {dOn:F2} vs OFF {dOff:F2}）");
-        Assert.True(on.World.Region.StateSpent > off.World.Region.StateSpent, "燃料代が国家支出（StateSpent）に載っていない");
+        Assert.True(on.World.Region.StateSpent[(int)TreasuryCat.Army] > off.World.Region.StateSpent[(int)TreasuryCat.Army], "燃料代が国家支出（StateSpent の陸軍の区分）に載っていない");
     }
 
     [Fact]

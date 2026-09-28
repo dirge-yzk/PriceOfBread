@@ -143,7 +143,7 @@ public static class Megaprojects
                     var fw = sim2.World;
                     if (fw.SelfPower is not { } fp || fp.Id != mp.ForeignPartnerId) continue;
                     // 1件が1四半期に引ける額を国庫の一定比で頭打ち＝1国が全世界の事業を同時に賄えない（資本の希少性）。
-                    double give = Math.Min(want, Math.Min(coef.MegaprojectForeignDrawFrac * Math.Max(0, fw.Treasury), Math.Max(0, fw.Treasury)));
+                    double give = Math.Min(want, coef.MegaprojectForeignDrawFrac * Math.Max(0, fw.Treasury)) * fw.FiscalFundingRatio;   // 拠出の請求（国庫の一定比で頭打ち）×外資国の r（2026-09-28 段2-1）
                     if (give <= 1e-9) break;
                     fw.Pay(TreasuryCat.Megaproject, -give); fw.CumulativeTradeFlow -= give;   // 外資国＝対外流出
                     hw.Pay(TreasuryCat.OtherIn, give); hw.CumulativeTradeFlow += give;   // 保有国＝対外流入（保存）
@@ -199,7 +199,7 @@ public static class Megaprojects
     private static void PayForeignYield(Diplomacy dip, IReadOnlyList<Simulation> nations, Megaproject mp, World hw, Coefficients coef)
     {
         if (mp.ForeignPartnerId < 0 || mp.ForeignPrincipal <= 1e-9 || coef.MegaprojectForeignYield <= 0) return;
-        double pay = Math.Min(coef.MegaprojectForeignYield * mp.ForeignPrincipal, Math.Max(0, hw.Treasury));
+        double pay = coef.MegaprojectForeignYield * mp.ForeignPrincipal * hw.FiscalFundingRatio;   // 保有国の r の分だけ（2026-09-28 段2-1＝旧は国庫の残りで切る門）。払えない分の繰り入れ（Q6）は段3-3
         if (pay <= 1e-9) return;
         foreach (var sim in nations)
         {

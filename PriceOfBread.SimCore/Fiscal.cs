@@ -2,8 +2,10 @@
 
 /// <summary>
 /// 国庫・財政（§9-F／§6.2）。所得税で国庫を満たし、連合（軍・官僚）の維持費を払う。
-/// 税は可処分所得を削る＝中心ジレンマ（§3.1）。国庫が維持費を払えないと funding ratio が下がり、
+/// 税は可処分所得を削る＝中心ジレンマ（§3.1）。国庫が国家の支払いの請求を払えないと国家の支払い率（FiscalFundingRatio）が下がり、
 /// 治安維持力が崩壊して革命の扉が開く（§6.2）。税（pop→国庫）と俸給（国庫→pop）は移転で基礎貨幣保存。
+/// ★支払いの規則は1本（作者裁定 F3・2026-09-28 段2-1）：率 r は月初に Simulation が決め（全ての国家の支払いの請求÷払える額）、
+///   ここの利子・維持費・福祉・年金にも同じ r を掛ける（旧＝利払い→維持費→福祉/年金→減債の順に国庫の残りで切る滝）。
 /// 国家レベル＝全地域の pop を集計する。
 /// </summary>
 public static class Fiscal
@@ -15,9 +17,12 @@ public static class Fiscal
     private const double FranchiseCensus = 0.25;             // 参政権レベル→市民運動基盤の重み（制限選挙）
     private const double DebtRatioUnbounded = 1e9;            // NominalGdp≈0 かつ債務ありのときの代替（極大）債務/GDP比
 
-    public static void Step(World w, Coefficients c)
+    /// <param name="spare">月初の払える額−国家の支払いの請求（Simulation が r と同時に求める）。＞0＝ r＝1 の月の余剰＝減債の原資・＜0＝払えない請求＝切り下げの原資。
+    /// 単体で呼ぶ試験の既定0＝減債も切り下げもしない。</param>
+    public static void Step(World w, Coefficients c, double spare = 0)
     {
         if (!w.FiscalEnabled) return;
+        double payRate = w.FiscalFundingRatio;   // 国家の支払い率 r（月初に Simulation が決めた1本）
         // ★A2-2（2026-09-26）：GDP（州×生産者の全件走査）はこの1回だけ（旧＝実質3か所・名目4か所で呼ぶたびに走査）。
         //   この関数が書くのは国庫・貯蓄・国債と台帳だけ＝産出・州・物価水準は動かない＝下の読み手は getter とビット単位で同じ値を読む。
         double gdp = w.Gdp, nominalGdp = w.NominalOf(gdp);
@@ -245,7 +250,7 @@ public static class Fiscal
         //（保存非接触＝計上の変更のみ）。輸出補助金（負の関税収入）は基数に入れない。
         // 有効化で高関税国（保守綱領の専制等）の行政予算が実勢どおり立つ＝回帰番人「教育で技術が分かれる」は前改革期（300Q）判定へ変更（露の遅い近代化は史実）。
         double indirectRevenue = Math.Max(0, w.LastTariffRevenue) / w.Coef.MonthsPerClearing;   // 国際市場は清算単位（四半期 or 月次清算）→月次換算（単位ヘルパー・2026-08-22）
-        foreach (var r in w.Regions) if (r.State == RegionState.Active) indirectRevenue += r.LastStateMonopolyRevenue;
+        foreach (var r in w.Regions) if (r.State == RegionState.Active) indirectRevenue -= r.StateSpent[(int)TreasuryCat.StateMonopoly];   // 当月の専売益（負の支出＝収入。2026-09-28 に旧の別持ち LastStateMonopolyRevenue を畳んだ＝塩などの独占レントの国庫の取り分も同じ区分）
         double budgetBase = revenue + c.IndirectTaxInBudgetBase * indirectRevenue;
         double adminClaim = c.AdminBudgetFrac * w.AdminSpending * budgetBase;
         double militaryClaim = w.MilitarySpending * c.MilitaryRevenueShare * budgetBase;   // 軍需装備も粗歳入の第一請求権（Simulation の MilitaryBudget と対）＝軍を装備する費用。余剰（福祉/インフラ）はこの後の残り＝guns-vs-butter
@@ -269,7 +274,8 @@ public static class Fiscal
         // === 借金ボタン（2026-06-22・自動国債発行を置換）：能動的借入のみ。1回押す＝GDP×割合を借入＋1スタック ===
         // 調達＝資本家の余剰貯蓄（クラウディングアウト）＋外資（開放度）＝旧・自動国債と同じ保存経路（国内は純移転・海外は CumulativeTradeFlow）。
         // プールを超えては借りられない（保存）。20スタックで頭打ち（もう借りても公共サービスが0%＝国が回らない）。返済でスタック減・返せねば のべくり。
-        if (w.BorrowQueue > 0 && w.BorrowStacks < c.MaxBorrowStacks && w.BorrowCooldown <= 0)   // 予約キューを毎月1件処理（連続起債）。デフォルト後のクールダウン中は借りられない（信用喪失）
+        // ★借入は国家の支払い率 r＜1 の月だけ（作者裁定 F3・2026-09-28）＝予約（AI とプレイヤーが同じ1行の条件で積む）も r＜1 の月にしか実行しない。
+        if (w.BorrowQueue > 0 && payRate < 1 && w.BorrowStacks < c.MaxBorrowStacks && w.BorrowCooldown <= 0)   // 予約キューを毎月1件処理（連続起債）。デフォルト後のクールダウン中は借りられない（信用喪失）
         {
             double borrowWant = Math.Max(0, gdp) * c.BorrowFractionOfGdp;
             double capSavings = 0; foreach (var p in capitalists) capSavings += Math.Max(0, p.Savings);
@@ -316,7 +322,8 @@ public static class Fiscal
         // === 不随意の赤字（維持費＋利払いを国庫で賄えない）→ 通貨切り下げ（インフレ税）/薄給で劣化 ===
         // 自動国債発行は廃止＝借入はボタンのみ。借りない国は赤字を切り下げ（全popの貯蓄を比例希薄化→国庫＝pop→国庫の純移転・通貨は刷らない）で埋める。
         // 金本位中は切り下げ封印＝underfunding（連合の薄給→funding↓→治安維持力↓→政情不安）で優雅に劣化＝規律の代償。緊縮（弱者救済削減＋逆進課税）が一般機構で帰結を出す。
-        double deficit = Math.Max(0, upkeep + interest - Math.Max(0, w.Treasury));
+        // ★赤字＝月初に払えなかった国家の支払いの請求（spare＜0 の分・2026-09-28 段2-1）。旧＝維持費＋利払いだけを今の国庫と比べた（滝の先頭2行だけ）。否定形＝NaN は0。
+        double deficit = spare < 0 ? -spare : 0;
         // 兌換可能性で切り下げ可能量を連続スケール（倍率排除②）：完全兌換(Conv=1)＝切り下げ封印（金の規律）／不換(Conv=0)＝赤字全額を切り下げ可。部分兌換は中間。
         double devalueRoom = deficit * (1.0 - w.Convertibility);
         // ★銀の段の軽い規律（SilverLightDiscipline・2026-08-21）：銀正貨国の切り下げ＝**改鋳（debasement）**は史実で日常だった
@@ -405,8 +412,8 @@ public static class Fiscal
             }
         }
 
-        // 利払い（国庫→債権者。国内＝資本家へ分配／海外＝対外流出。切り下げで国庫は満たされている）
-        double interestPaid = Math.Min(Math.Max(0, w.Treasury), interest);
+        // 利払い（国庫→債権者。国内＝資本家へ分配／海外＝対外流出）＝請求×r（旧＝国庫の残りで切る滝の先頭）。
+        double interestPaid = interest * payRate;
         // ★G8（2026-08-13）：金建て負担で膨らんだ利払いのうち海外へ行く割合。国内分は膨らまないので、分子だけに倍率が乗る
         //   ＝domInt + foreignInt が恒等的に interestPaid に閉じる（保存）。burden=1（既定）では旧式と厳密一致。
         double ForeignFrac(double share) => goldDebtBurden > 1.0
@@ -422,9 +429,26 @@ public static class Fiscal
         if (domInt > 1e-12) { double back = PayBondHolders(pops, domInt, 0); if (back > 0) w.Pay(TreasuryCat.Interest, back); }
         w.CumulativeTradeFlow -= foreignInt;   // 対外流出（保存）
         w.ForeignIntPaidThisQuarter += foreignInt;   // 02断線走査（2026-07-28）：CapitalMarketが債権国投資家へ配当（旧＝世界から消えるだけの片側記帳）
+        // ★利子の未払いは元本へ繰り入れる（作者裁定 Q3・2026-09-28）＝お金は動かない・請求権だけが増える。国内分は持ち手の保有へ（保有に比例＝台帳の不変条件
+        //   Σ保有＝GovDebt−ForeignDebt を保つ）・対外分は対外債へ（CapitalMarket が新しい対外債として債権国へ付ける）。持ち手のいない国内分は債権者がいない＝繰り入れない。
+        //   不履行は既存の計数（借入の上限に張り付いたまま＝InsolvencyQuarters）のまま。
+        double unpaidInt = interest - interestPaid;
+        if (unpaidInt > 1e-12)
+        {
+            double unpaidForeign = unpaidInt * foreignDebtFrac;
+            double unpaidDom = unpaidInt - unpaidForeign;
+            w.GovDebt += unpaidForeign; w.ForeignDebt += unpaidForeign;
+            double held = 0; foreach (var p in pops) if (p.BondHoldings > 0) held += p.BondHoldings;
+            if (held > 0 && unpaidDom > 0)
+            {
+                double grow = 1.0 + unpaidDom / held;
+                foreach (var p in pops) if (p.BondHoldings > 0) p.BondHoldings *= grow;
+                w.GovDebt += unpaidDom;
+            }
+        }
 
-        // 維持費の支払い（国債で補充された国庫から）。
-        double pay = Math.Min(Math.Max(0, w.Treasury), upkeep);
+        // 維持費の支払い＝請求×r（旧＝国庫の残りで切る滝の2番目）。
+        double pay = upkeep * payRate;
         w.Pay(TreasuryCat.Admin, -pay);
         // 財14（抑圧装置の維持費の帰属）：連合維持費（軍・警察・官僚の俸給）を CoercionUpkeepToSoldiers で分配先を傾斜。
         // 既定0＝全popへ頭数比例（現行）＝抑圧装置の維持費が全国民へヘリコプター移転され「重い常備軍が民を貧しくする」経路が名目税負担だけに希薄化。
@@ -441,18 +465,16 @@ public static class Fiscal
         }
         else
             w.Pay(TreasuryCat.Admin, World.Distribute(pops, pay));   // 既定＝全popへ頭数比例（現行と厳密一致）。受け手不在＝国庫残置（保存）
-        w.FiscalFundingRatio = upkeep > 1e-9 ? pay / upkeep : 1.0;
+        //（旧 FiscalFundingRatio＝維持費を払えた割合 pay/upkeep は、2026-09-28 から月初の国家の支払い率 r＝Simulation の1か所だけが書く）
 
         // ★撤去2026-08-16（C2-C5）：汚職根絶費の実支払い（acPay→官僚popへ俸給分配・TreasuryCat.AntiCorruption 記帳・LastAntiCorruptionCost 診断）を物理削除。
         //   V2点火2026-08-15で請求が恒等0＝この支払いは一度も走らない死骸だった。TreasuryCat.AntiCorruption の enum 値自体は台帳の添字互換のため残置（払い手ゼロ＝表示は0行フィルタで出ない）。
 
-        // 減債：強制義務（維持費＋利払い）の上に余剰があれば返済（健全国は減債＝スパイラル回避）。金利＝基礎＋×(債務/GDP)。
-        // ★2026-09-27（線2）：線を借入の線（SelfPlay の借金ボタン＝国庫＜LastUpkeep＋LastInterest で借りる）にそろえる。
-        //   旧＝維持費だけの線＝国庫が「維持費＜国庫＜維持費＋利払い」の帯では同じ四半期に借りながら返していた（借入のある国×四半期の81%）。
-        //   条件と返済額の両方を同じ基準へ＝返した後の国庫が借入の線を割らない。
-        if (w.GovDebt > 1e-9 && w.Treasury > upkeep + interest)
+        // 減債：r＝1 の月の余剰（月初の払える額−全ての国家の支払いの請求＝spare）から返済（作者裁定 F3・Q2・2026-09-28）。金利＝基礎＋×(債務/GDP)。
+        //   借入は r＜1 の月だけ（上）＝同じ月に借りながら返すことが構造的に起きない（旧＝借入の線 国庫＜LastUpkeep＋LastInterest に揃えた2026-09-27 の形の一般形）。
+        if (w.GovDebt > 1e-9 && payRate >= 1 && spare > 0)
         {
-            double repay = Math.Min(w.GovDebt * c.BondRepayFrac, w.Treasury - (upkeep + interest));
+            double repay = Math.Min(w.GovDebt * c.BondRepayFrac, spare);
             // ★AUD-09（監査2026-09-02 low・2026-09-03投入）：⚠ここは**元本**の按分なのに、上で作った**利払い**の按分
             //   （foreignDebtFrac＝金建て負担 goldDebtBurden で分子だけ膨らませた比）を流用していた＝分子と分母が別規則。
             //   元本の台帳 `ForeignDebt` は自国通貨建てなので、正しい按分は膨らませていない `foreignShare`。
@@ -483,7 +505,7 @@ public static class Fiscal
             w.BorrowStacks = Math.Max(0, w.BorrowStacks - repay / loanUnit);
         }
         if (w.GovDebt <= 1e-9) w.BorrowStacks = 0;   // 完済＝スタック消滅
-        w.SpendingCapFactor = Math.Max(0, 1.0 - w.BorrowStacks / Math.Max(1e-9, c.MaxBorrowStacks));   // 借入スタックの出費上限ペナルティ（福祉/インフラ予算に乗る・行政=徴税費/軍需は対象外）
+        //（借入スタックの出費上限 SpendingCapFactor は 2026-09-28 に撤去＝作者裁定 Q9・債務の重さは利子の請求が大きくなることで r に出る＝二重計上を避ける）
 
         // === ソブリン・デフォルト：借入上限に張り付き返済できない＝信用が尽き支払不能→**債務不履行（致命的）** ===
         // 借金ボタンの逃げ道（革命による債務帳消し）が無くなった分、過剰債務は「破滅的なデフォルト」で決着する＝借りすぎた覇権/軍国が崩れて上位が入れ替わる。
@@ -496,7 +518,7 @@ public static class Fiscal
         {
             // 債務消滅（請求権＝保存無影響）。致命的な代償＝兌換崩壊・**信用凍結（貸付消滅→工場が資本を得られず投資/工業化が崩落＝恐慌）**・正統性崩壊（革命リスク）・大衆の暴動・当面 借入不能。
             RepudiateDebt(w, c);   // 債務・保有・兌換・借入の停止＝急進革命の否認と同じ中身（1か所）。以下はデフォルトだけの代償
-            w.BorrowStacks = 0; w.SpendingCapFactor = 1.0;
+            w.BorrowStacks = 0;
             w.InsolvencyQuarters = 0; w.HadSovereignDefault = true; w.SovereignDefaultCount++;   // C-中9（2026-07-22）：回数も数える（恒久boolでは2度目以降の破産が制度疲労の窓を開けない）
             if (w.Bank is { } dbank) { dbank.Confidence = 0; dbank.Heat = 0; }   // 信用凍結＝Confidence0で次期以降 与信が自然収縮（恐慌）。**Loansは直接0にしない**（基礎貨幣=広義−与信 の保存を破るため）
             double legBeforeDefault = w.Legitimacy;
@@ -595,20 +617,16 @@ public static class Fiscal
             foreach (var p in pops) if (!p.Closed && !p.IsModernElite) masses.Add(p);
             double massSize = 0; foreach (var p in masses) massSize += p.Size;
             double welfareReq = c.WelfareCostRate * w.SocialSecurity * massSize;
-            // funding修正：給付の上限を**裁量余剰(FiscalCapacity)**から（国庫は基礎義務に食われ常時0で福祉が餓死していた）。余剰の無い国は福祉も出せず赤字を作らない。
-            double welfareCost = Math.Min(welfareReq, c.WelfareRevenueShare * w.FiscalCapacity * w.SpendingCapFactor);   // 借入スタックの出費上限ペナルティ（公共サービス）
-            // 財1：福祉支出を国庫残高でクランプ（無記録の当座借越の防止）。利払い/維持費は Max(0,Treasury) で守られているが福祉/年金だけ守られておらず、残高が負に落ちても債務計上も利払いもなく翌月税収で黙って埋まっていた（記録されない政府短期紙幣の発行）。WelfarePensionClampToTreasury=0＝無制限（旧）／1＝残高までクランプ（財政規律）（⚠既定は点火済みの1.0・x-02 で注記を是正）。
-            // B4裁定（2026-07-31）：白黒スイッチの連続化＝0で無制限／1で残高まで完全クランプ／中間は当座借越を部分的に許す
-            // （StateSpendTreasuryClamp と同型のブレンド。0.5超で発火という崖を廃止＝「途中の度合いも取れる」）。
-            if (c.WelfarePensionClampToTreasury > 0)
-                welfareCost = welfareCost * (1.0 - c.WelfarePensionClampToTreasury)
-                            + Math.Min(welfareCost, Math.Max(0, w.Treasury)) * c.WelfarePensionClampToTreasury;
-            w.LastWelfareCost = welfareCost;   // 診断
-            w.WelfareFunding = welfareReq > 1e-9 ? welfareCost / welfareReq : 1.0;   // 充足率。約束した福祉が歳入を超えると減衰（財源不足）
-            w.Pay(TreasuryCat.Welfare, -welfareCost);   // 国庫から支払い（不足分は赤字→国債→緊縮の既存フィードバックが SocialSecurity を抑える）
+            // funding修正：給付の請求の上限を**裁量余剰(FiscalCapacity)**から（余剰の無い国は福祉を約束しない）。
+            double welfareClaim = Math.Min(welfareReq, c.WelfareRevenueShare * w.FiscalCapacity);
+            // ★払うのは請求×r（作者裁定 F3・2026-09-28 段2-1）。撤去＝借入スタックの出費上限 SpendingCapFactor（Q9）と国庫残高のクランプ WelfarePensionClampToTreasury
+            //   （旧＝滝の後段で国庫の残りまで）。充足率 WelfareFunding は r と同じ量になるので畳んだ（保険・医療は FiscalFundingRatio を読む）。
+            double welfareCost = welfareClaim * payRate;
+            w.LastWelfareCost = welfareClaim;   // 請求（r を掛ける前）＝翌月の月初の請求の見込み（Simulation）と予算表が読む
+            w.Pay(TreasuryCat.Welfare, -welfareCost);
             w.Pay(TreasuryCat.Welfare, World.Distribute(masses, welfareCost));   // 受け手不在＝国庫残置（保存）
         }
-        else w.WelfareFunding = 1.0;
+        else w.LastWelfareCost = 0;
 
         // 年金の給付（①年齢コホート Phase2）：国庫→老年人口（保存）。老年人口に比例＝高齢化が進むほど財政負担（ビスマルク年金1889〜）。年金なし（既定）＝level0で無効＝較正中立。
         double pensionLevel = w.Pension switch { ReformLevel.Full => 1.0, ReformLevel.Limited => 0.5, _ => 0.0 };
@@ -616,12 +634,9 @@ public static class Fiscal
         {
             double oldSize = 0; foreach (var p in pops) if (!p.IsSoldier) oldSize += p.Size * p.OldShare;
             double pensionReq = c.PensionCostRate * pensionLevel * oldSize;
-            double pensionCost = Math.Min(pensionReq, c.WelfareRevenueShare * w.FiscalCapacity * w.SpendingCapFactor);   // 福祉と同じ裁量余剰から（借入スタックの出費上限ペナルティ込み）
-            // 財1：年金支出も国庫残高でクランプ（福祉と同型・無記録の当座借越の防止）。WelfarePensionClampToTreasury=0＝無制限（旧）／1＝残高までクランプ（⚠既定は点火済みの1.0・x-02 で注記を是正）。
-            if (c.WelfarePensionClampToTreasury > 0)   // B4裁定（2026-07-31）：福祉と同型の連続ブレンド
-                pensionCost = pensionCost * (1.0 - c.WelfarePensionClampToTreasury)
-                            + Math.Min(pensionCost, Math.Max(0, w.Treasury)) * c.WelfarePensionClampToTreasury;
-            w.LastPensionCost = pensionCost;   // 診断
+            double pensionClaim = Math.Min(pensionReq, c.WelfareRevenueShare * w.FiscalCapacity);   // 福祉と同じ裁量余剰から（請求）
+            double pensionCost = pensionClaim * payRate;   // 払うのは請求×r（福祉と同じ・2026-09-28 段2-1＝SpendingCapFactor と国庫残高のクランプを撤去）
+            w.LastPensionCost = pensionClaim;   // 請求（r を掛ける前）＝翌月の月初の請求の見込みと予算表が読む
             w.Pay(TreasuryCat.Pension, -pensionCost);
             if (pensionCost > 0)   // 老年人口に比例して配分（年金は老人の所得＝消費に回る）。wave2b：分母を受け手と同じフィルタで作り直し（旧oldSizeはOldShare≤1e-9の pop も算入したまま
             {                       // 給付側だけ除外していた＝分子分母の非対称）、Distribute作法どおり端数は最後の受け手へ・受け手不在は国庫残置（保存）。

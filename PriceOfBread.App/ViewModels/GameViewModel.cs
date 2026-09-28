@@ -463,7 +463,8 @@ public partial class GameViewModel : ViewModelBase
             {
                 // 借金ボタン廃止（2026-07-21ユーザー指示）＝国庫が月次義務（維持費＋利払い）を賄えない時に自動起債。AIの SelfPlay.DecideQuarter と**同じ四半期の周期・同条件**で判定する（プレイヤー/AI対称）。
                 //   ★是正2026-09-02：旧は月次判定＝プレイヤーだけが最大2ヶ月早く借りられていた（下のAiCrisisBorrowはE3で既に是正済み・この基本起債だけ取り残されていた）。
-                if (_player.Treasury < _player.LastUpkeep + _player.LastInterest && _player.BorrowStacks < _player.Coef.MaxBorrowStacks)
+                //   ★2026-09-28（作者裁定 F3）：条件は国家の支払い率 r＜1（AI の SelfPlay.DecideQuarter と**同じ1行**・旧は国庫＜維持費＋利払い・冷却中の判定がプレイヤーだけ抜けていた）。
+                if (_player.FiscalFundingRatio < 1 && _player.BorrowStacks < _player.Coef.MaxBorrowStacks && _player.BorrowCooldown <= 0)
                     _player.RequestBorrow();
                 // ★恐慌の谷での前倒し起債（AiCrisisBorrow）＝AI（SelfPlay.DecideQuarter）と**同じ四半期の周期・同じ閾値**で判定する。
                 //   ★E3（作者裁定2026-08-26）：旧は月次判定＋閾値0.08の直書き＝プレイヤーだけが最大2ヶ月早く借りられ、閾値も二重定義だった。

@@ -1923,9 +1923,8 @@ public sealed class Coefficients
     // 実効生産性 ×(1−これ×依存)。恒久補助＝実質コスト逓増＝「時限補助→黒字化 or 払い下げ(SoeSale)」だけが割に合う（明治の払い下げが最適解として創発）。
     public double SubsidySoftBudgetDecay = 0.4;        // **2026-07-24点火試験**（レバー1＝恒久依存で最大4割の非効率）。0で乗算×1.0＝厳密恒等
     public double SubsidyDependenceRate = 0.007;       // 依存ストックの月次増分（+0.02/四半期相当）。補助が外れ黒字なら同率で漸減
-    // レバー2 財政規律：補助金の国庫負担へ SpendingCapFactor（借入スタックの支出上限）を適用＝借金漬けの国は補助を維持できない（1880年代の払い下げ）。
-    // 国営持分の赤字（外せない計画経済の代償）は対象外のまま。0で不読＝厳密恒等。
-    public double SubsidyRespectsSpendingCap = 1.0;    // **2026-07-24点火試験**（レバー2＝借金漬けの国は補助を維持できない）
+    // 【墓標2026-09-28・支払いの一元化 段2-1（作者裁定 Q9）】SubsidyRespectsSpendingCap（レバー2＝補助の国庫負担へ借入スタックの出費上限を掛けた）を削除。
+    //   債務の重さは利子の請求が大きくなることで国家の支払い率 r に出る＝補助は補助率×r の1本（EconomyStep の④）。
     // レバー3 AI対称化：Industrialist教義の開発国家プレイ（平時の民生上流Intermediate/Producer赤字工場へ補助・黒字N期で解除）。
     // ⚠順序不可逆＝レバー1・2の点火より先に入れない（コストなしの補助金ファームを44カ国へ配ることになる）。
     public double AiDevelopmentalSubsidy = 0.0;
@@ -1973,7 +1972,7 @@ public sealed class Coefficients
                                            // 0.3 では押し出し上限 0.0048＝同式の PushUnrestWeight(上限0.5) の約1/100＝ノイズ級で機構が事実上死んでいた。6.0 で上限 0.096＝不満項の約2割＝副次要因として意味を持つ水準。             // 接16：州別犯罪率を移民の押し出し（pushPenalty）へ加重＝治安悪化からの逃避。0=不読
     public double SteamTransportOnset = 1.0;   // **点火2026-07-27（機能優先ラウンド第1群）**         // リ5：1で汽船(85)onset0.5・機関車(88)onset0.6を既定レシピへ＝フルトン以前の汽船流通を止める（州の構築経路 Simulation.AddAlternateRecipes・CrucibleSteelと同型＝2026-09-27 に起動時の走査から移した＝植民地格の州にも焼く）。0=無ゲート
     public double DisasterAgeMortalityExcess = 0.4;   // **点火2026-07-27（機能優先ラウンド第2群）**  // リ10：災害死（疫病・局地飢饉）の子供/老年の超過死亡倍率＝ChildShare/OldShareへ運搬しコホートの穴を残す。0=均等死＝比率不変（現行）
-    public double StateSpendTreasuryClamp = 1.0;   // **点火2026-07-27（機能優先ラウンド第1群）**     // 他12：軍需/行政の予算を「いま国庫にある現金」で比例縮小＝StateSpent精算の無利子当座借越（財政規律の迂回）を封じる。0=現行
+    // 【墓標2026-09-28・段2-1】StateSpendTreasuryClamp（他12＝軍需・行政・教育の予算を「いま国庫にある現金」で比例縮小）を削除＝全ての国家の支払いは月初の1本の率 r（Simulation）。
     public double ConscriptExcludeOldMales = 1.0;   // **点火2026-07-27（機能優先ラウンド第3群）**    // 他13：徴兵上限を働き盛り男性（成人−老年）へ＝総動員時の老年男性二重計上（OldShare水増し）を解消。0=現行
     public double ExternalPressureDerived = 1.0;   // **点火2026-07-27（機能優先ラウンド第2群）**     // 接7：外圧を創建時定数0.3から「世界の技術水準格差×海の接触」の四半期導出へ（1で有効）。0=定数据え置き（現行）
     public double ExternalPressureGapScale = 1.5;    // 接7：外圧が満額になる技術格差（世界の技術水準−自国がこれで外圧1.0）。ExternalPressureDerived=0では不読
@@ -2332,7 +2331,7 @@ public sealed class Coefficients
     public double FiscalBufferSoldierPayWeight = 0.5;  // 【1.0は人口−10/列強−8.7/領土植−9.2＝衝撃過大→0.5測定中2026-08-08・作者裁定「安定するように」】兵士給与を**潤沢判定（OpulenceLineOf）にのみ**算入（緊縮反射FiscalBufferOfは不変＝旧全面算入の緊縮暴発を回避）
     public double WartimeBudgetFollowsNeed = 0.35; // 【1.0は硬性赤（各国独立経済テスト＝戦費が経済を焼き尽くす国）→0.35を測定中2026-08-08】課題5（戦時afford崩落）：戦時は装備必要額がMilitaryWarMult(9.0)倍になるのに
     // 予算milCapは平時のまま＝開戦で afford が9分の1へ崩落していた。1.0で予算も同じ戦時倍率へ追随＝**戦費の赤字財政**
-    // （国庫が流出し、尽きれば StateBudgetCashScale の現金クランプが自然に止める＝戦時国債の物理・台本なし）。0=恒等
+    // （国庫が流出し、尽きれば国家の支払い率 r が自然に絞る＝戦時国債の物理・台本なし・2026-09-28 から＝旧は現金クランプ StateBudgetCashScale）。0=恒等
     // ⚠撤去2026-08-12（任意R5未実装（読み手ゼロ））: MilEquipTreasuryDraw  任意R5：装備予算への国庫超過分ドロー率/月（R2-R4後も afford<0.5 の退蔵国が残る場合のみ。不要なら恒久0）
     // ── 扶養限界方式（作者設計2026-08-08）：軍拡・建艦競争を**扶養限界の比較**で駆動する ──
     //   扶養限界 SustainLimit = min(経済側, 人口側)。経済側＝持続可能な軍事支出（歳入×シェア）÷兵1人あたりコスト
@@ -2445,7 +2444,7 @@ public sealed class Coefficients
     // 資金逃避（07_再設計 §5(b)・2026-07-31点火）：国債への不信が閾値を超えると自国の資本家も対外資産へ逃げる。保存＝金は受け皿の国の投資家へ・請求権は逃げた側の CapitalAbroad と受け皿の ForeignCapitalIn の対（2026-09-22）
     public double CapitalDomesticFlightRate = 0.05;      // 不信1.0あたり四半期に逃げる投資家貯蓄の割合
     public double CapitalFlightDistrustThreshold = 0.02; // 逃避が始まる不信（累積切り下げ／名目GDP）＝切り下げ常習国だけが対象
-    public double WelfarePensionClampToTreasury = 1.0;   // 財1（財政規律）：福祉・年金の支出を国庫残高で律速するか。0=現行の無制限（無記録の当座借越を許す・数値中立）／1=Min(cost,Max(0,Treasury))でクランプ。>0.5で発火
+    // 【墓標2026-09-28・段2-1】WelfarePensionClampToTreasury（財1＝福祉・年金を国庫残高で律速）を削除＝福祉・年金は請求×r（Fiscal）。
     public double FisherDeflationFloor = -0.02;   // 財4：Fisher期待インフレ項の下限。0.0=旧Max(0,·)と同値でデフレ遮断（数値中立）／負値-0.02程度でデフレ側を軽く通し「デフレ→低名目金利」を成立
     public double PrizeLossProrated = 1.0;   // 外4（拿捕賞金の連合按分）：victimの総海運損失(raidLoss)を制海権を握る全交戦raiderの海軍力比で按分。0=按分なし（各raiderが総額基準＝現行の二重取り恒等）/1=完全按分（合計が総損失を超えない）。PrizeCargoShare>0のときのみ作用
     public double FertileShareFloor = 0.05;   // 人6：出産可能女性プール（FertileWomenBirths）の相対基準の下限フロア。**0.05で有効化済み**（台帳訂正2026-07-12・旧注記「既定1e-6＝中立」は誤り）。捕捉時fertile≈0のpopで重みが桁違いに膨張し出生が集中するのを防ぐ（FertileWomenBirths=trueの経路でのみ作用）

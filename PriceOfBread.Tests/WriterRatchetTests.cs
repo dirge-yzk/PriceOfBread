@@ -29,7 +29,8 @@ public class WriterRatchetTests
     private static int CountWriters(string member)
     {
         // 代入・複合代入のみ（`==` は除外）。`=>`（ラムダ/式形メンバ）も除外。
-        var rx = new Regex($@"\.{member}\s*(\+=|-=|\*=|/=|=(?![=>]))");
+        // ★添字つきの書き込み（`.StateSpent[(int)TreasuryCat.Army] += …`）も数える（2026-09-28 段2-1＝StateSpent を区分の配列にした＝数え落とさない）。
+        var rx = new Regex($@"\.{member}(\[[^\]]*\])?\s*(\+=|-=|\*=|/=|=(?![=>]))");
         int n = 0;
         foreach (var f in Directory.EnumerateFiles(SimCoreDir(), "*.cs"))
             foreach (var line in File.ReadLines(f))
@@ -86,7 +87,10 @@ public class WriterRatchetTests
     //   Simulation.BackstopNegativeSavings の末尾の1行（銀行の無い世界の③と同じ行）。Loans 6 のまま＝償却の1行（+1）と、
     //   Credit.Step の与信の増減（投資家の枝と全POPへ注入する枝の同じ2行）を1行へ（−1）。
     [InlineData("Savings", 79)]               // POP の貯蓄（段3の終わりに Pop の中の3つへ閉じる）
-    [InlineData("StateSpent", 25)]            // 州の未精算の国家支出（段2-1で区分つきへ）
+    // ★2026-09-28 段2-1（国家の支払い率）：StateSpent 25→24＝区分つきの配列へ（添字つきの書き込みを数える）・月次のゼロ化は Array.Clear（代入でない）。
+    //   FiscalFundingRatio（国家の支払い率 r）を足した＝書き手は月初の1か所（Simulation）＋ランナーの盤面の復元（GovernanceSnapshot）の2つ＝増やさない。
+    [InlineData("StateSpent", 24)]            // 州の未精算の国家支出（区分つき＝TreasuryCat の配列）
+    [InlineData("FiscalFundingRatio", 2)]     // 国家の支払い率 r（月初の1か所＋盤面の復元）
     [InlineData("CumulativeTradeFlow", 33)]   // 世界の台帳・国境をまたいだ出入り（移し方の中の1か所へ畳む）
     [InlineData("CumulativeFiatIssued", 3)]   // 不換の発行と回収（2）＋非常発行（1＝負の国の与信の償却と銀行なしの底打ち・後者は段2-2で消える）
     [InlineData("CumulativeGoldMinted", 2)]   // 鋳造と準備の売却

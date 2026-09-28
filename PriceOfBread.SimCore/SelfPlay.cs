@@ -402,13 +402,13 @@ public sealed class UtilityAgent : INationAgent
     public static double OpulenceLineOf(World w)
         => (FiscalBufferOf(w) + w.Coef.FiscalBufferSoldierPayWeight * w.Coef.FiscalStressBufferMonths * w.LastSoldierPay) * OpulenceBufferQuarters;
 
-    /// <summary>財政逼迫度∈[0,1]＝国庫が財政バッファを下回るほど1へ（0=十分・1=破産）。「あと何か月持つか」＝規模中立。
-    /// 公開＝Simulation.QuarterStart（AutoModernizationFrac）とテストが同じ物差しを読む。NaN（国庫/請求権が非有限）は逼迫側＝fail-closed。</summary>
+    /// <summary>財政逼迫度∈[0,1]＝1−国家の支払い率 r（作者裁定 R4・2026-09-28 支払いの一元化 段2-1）＝全ての国家の支払いの請求のうち払えない割合（0=十分・1=1銭も払えない）。
+    /// 旧＝国庫が財政バッファ（月次義務の何か月分か）を下回る度合い＝r と別の物差しで、請求の一部（維持費・利払い・行政・軍装備）しか見なかった。
+    /// 公開＝Simulation.QuarterStart（AutoModernizationFrac）とテストが同じ物差しを読む。NaN は逼迫側＝fail-closed。</summary>
     public static double FiscalStressOf(World w)
     {
-        double buffer = FiscalBufferOf(w);
-        double s = Math.Clamp((buffer - w.Treasury) / buffer, 0, 1);
-        return s >= 0 ? s : 1.0;   // 否定形ガード（Clamp は NaN を消さない）＝有限値では厳密同値
+        double s = 1.0 - w.FiscalFundingRatio;
+        return s >= 0 ? (s <= 1 ? s : 1.0) : (s < 0 ? 0 : 1.0);   // 否定形ガード＝NaN は逼迫側（1）
     }
 
     // スタンス選択（DecideQuarter から抽出＝挙動同一）：状況（技術差・工業化余地・不満・国庫・脅威）への効用で最良の政策姿勢を選ぶ。
@@ -734,11 +734,10 @@ public sealed class UtilityAgent : INationAgent
             else if (mOutmatched || mLosing > MobilizeLosingScore) w.Mobilized = true; // 劣勢/存亡＝総動員（levée en masse 1793・独ソの総力戦動員の型）
         }
         Apply(w, ChooseStance(w));
-        // 借金ボタン（AIは国庫逼迫時に自動で押す＝プレイヤーと同ルール）：国庫が直近の強制義務（維持費＋利払い）を賄えない時に1回借りる。
-        // 借入は公共サービスにスタックペナルティ（20で0%）が付くため平時黒字の国は押さない＝自然に規律的。返済でスタックは戻る。
-        // ★可否判定の不一致（wave2b G06#3）：Fiscal.Step の実処理（:222）は BorrowCooldown<=0 を見て予約消化を止めるが、
-        //   ここは見ずに RequestBorrow で予約を積み続けていた＝冷却明けに予約が溜まって連続起債。下の恐慌反射と同じ条件に揃える。
-        if (w.Treasury < w.LastUpkeep + w.LastInterest && w.BorrowStacks < w.Coef.MaxBorrowStacks && w.BorrowCooldown <= 0)
+        // 借金ボタン（AIは自動で押す＝プレイヤーと同ルール）：国家の支払い率 r＜1（全ての国家の支払いの請求を払えない）の時に1回借りる
+        //   （作者裁定 F3・2026-09-28＝旧は国庫＜直近の維持費＋利払い）。★条件はプレイヤー（GameViewModel の自動起債）と**同じ1行**。
+        //   返済でスタックは戻る。★可否判定の不一致（wave2b G06#3）：Fiscal.Step の実処理は BorrowCooldown<=0 を見て予約消化を止める＝ここも見る。
+        if (w.FiscalFundingRatio < 1 && w.BorrowStacks < w.Coef.MaxBorrowStacks && w.BorrowCooldown <= 0)
             w.RequestBorrow();
         // ★恐慌の谷では「借りられるうちは自傷しない」（AiCrisisBorrow・2026-08-22・恐慌対策＝賢いAI）：不況（GdpDrawdown>RecessionDrawdownThreshold）で
         //   債権者の緊縮がまだ立っておらず（AusterityIntensity=0）・借入枠があるなら、国庫が**財政バッファ**（FiscalBufferOf＝月次義務×月数＝財政タブが見せる同じ物差し）を
@@ -982,11 +981,11 @@ public sealed class UtilityAgent : INationAgent
     {
         if (w.SelfPower is null) return;   // 単一国（テスト・較正）では走らせない＝較正に無影響
         // ★鋼市場診断#3(b)（2026-08-16・AiBuildGuardRelax>0のみ）：財政ガードの緩和＝旧「FiscalStress>0.0で即return」（国庫がバッファ満額でないと建てない）を
-        //   **借金ボタンと同じ規律**（DecideQuarter の RequestBorrow 条件＝強制義務（維持費＋利払い）を国庫で賄えない時だけ止まる）へ。否定形＝NaNは建てない側。
+        //   **借金ボタンと同じ規律**（DecideQuarter の RequestBorrow 条件＝国家の支払い率 r＜1 の時だけ止まる・2026-09-28＝旧は維持費＋利払いを国庫で賄えない時）へ。否定形＝NaNは建てない側。
         //   ⚠2026-08-04の前科（0.5緩和→工事の日次出費が国庫を吸い軍事独裁5%→34%＝FacilityBuildStressCeiling の注記）＝当時は月次出費の律速が未実装だった。
         //   いまは下の FacilityBuildOutlayShare が本命の予算制約として残る。緩和は必ずこのフラグ経由・**点火A/Bで軍事独裁の頻度（PolityDistribution）を必ず見る**。
         bool relax = w.Coef.AiBuildGuardRelax > 0;
-        if (relax ? !(w.Treasury >= w.LastUpkeep + w.LastInterest) : FiscalStressOf(w) > FacilityBuildStressCeiling) return;
+        if (relax ? !(w.FiscalFundingRatio >= 1) : FiscalStressOf(w) > FacilityBuildStressCeiling) return;
         // ★工事の未払残高で律速する（2026-08-04の是正）。★初版は「1四半期に1件」を無条件に積み、
         //   BuildFactory 側のガードが**初日の労務費だけ**だったため、工期4〜28四半期の工事が際限なく重なり
         //   国庫が日次で流出し続けた。実測（R16）＝軍事独裁が 5.0%→53.4%＝**世界中で国家が財政破綻して軍が政権を取った**。

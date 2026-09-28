@@ -27,7 +27,7 @@ public class MoneyThemeTests
         Assert.Equal(0.25, c.GoldCoverMin);         // 第(iv)段有効化2026-07-10（キュー1）：実測レンジ（健全帯中央0.52/p1 0.43・危機の谷≦0.21）→0.25＝下回り≈0.1%＝稀な兌換停止クライシス
         Assert.Equal(0.2, c.FiatIssueFrac);         // リアリティ群採用2026-07-18＝不換シニョリッジ
         Assert.Equal(-0.02, c.FisherDeflationFloor);          // 第(iii)段有効化（デフレ→低名目金利）
-        Assert.Equal(1.0, c.WelfarePensionClampToTreasury);   // 第(iii)段有効化（破産国は福祉を払えない）
+        // WelfarePensionClampToTreasury（破産国は福祉を払えない）は 2026-09-28 に削除＝福祉・年金は請求×国家の支払い率 r（支払いの一元化 段2-1）
     }
 
     [Fact]

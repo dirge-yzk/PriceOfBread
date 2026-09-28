@@ -55,10 +55,10 @@ public sealed partial class InternationalMarket
     }
 
     // ダンピング（負の関税）の輸出補助金：国庫→輸出の担い手（商人pop）へ。関税徴収(CollectTariff)の逆＝国内移転で保存（金は湧かない）。
-    // 国庫残高を超える分は払えない（部分補助）。商人不在なら支払わず戻す。
+    // 国家の支払い率 r の分だけ払う（2026-09-28 段2-1＝旧は国庫残高で切る門）。商人不在なら支払わず戻す。
     private static void PaySubsidy(World w, double amount, bool tradeBias = false)
     {
-        double pay = Math.Min(amount, Math.Max(0, w.Treasury));
+        double pay = amount * w.FiscalFundingRatio;
         if (pay <= 1e-12) return;
         var merchants = new List<Pop>();
         foreach (var r in w.Regions) if (r.MerchantPopIndex >= 0 && r.MerchantPopIndex < r.Pops.Count) merchants.Add(r.Pops[r.MerchantPopIndex]);
