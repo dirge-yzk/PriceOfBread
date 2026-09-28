@@ -17,8 +17,9 @@ public static class Fiscal
     private const double FranchiseCensus = 0.25;             // 参政権レベル→市民運動基盤の重み（制限選挙）
     private const double DebtRatioUnbounded = 1e9;            // NominalGdp≈0 かつ債務ありのときの代替（極大）債務/GDP比
 
-    /// <param name="spare">月初の払える額（切り下げの後）−国家の支払いの請求（Simulation が r と同時に求める）。＞0＝ r＝1 の月の余剰＝減債の原資。
-    /// 切り下げは月初に Simulation が払える額の側へ入れて取る（2026-09-28）＝ここでは取らない。単体で呼ぶ試験の既定0＝減債しない。</param>
+    /// <param name="spare">月初の払える額（切り下げの後）−国家の支払いの請求（Simulation が r と同時に求める）。＞0＝ r＝1 の月の余剰＝減債の原資・
+    /// ＜0＝払えない額＝r＜1 の月の借入の額（1件の額まで・2026-09-28）。
+    /// 切り下げは月初に Simulation が払える額の側へ入れて取る（2026-09-28）＝ここでは取らない。単体で呼ぶ試験の既定0＝減債も借入もしない。</param>
     public static void Step(World w, Coefficients c, double spare = 0)
     {
         if (!w.FiscalEnabled) return;
@@ -271,15 +272,21 @@ public static class Fiscal
         w.LastRevenue = budgetBase; w.LastUpkeep = upkeep; w.LastInterest = interest;   // 診断（LastRevenue は Simulation の AdminBudget/MilitaryBudget の基数＝間接税込みへ）
         w.LastMilitaryClaim = militaryClaim; w.LastAdminClaim = adminClaim;          // 診断（予算表の支出内訳）
         w.FiscalCapacity = w.FiscalCapacity < 1e-9 ? surplus : w.FiscalCapacity + c.FiscalCapacitySmoothing * (surplus - w.FiscalCapacity);
-        // === 借入（エンジンが自動で借りる・作者裁定 2026-09-28「借入は自動化・借金ボタンは不要」）：1回＝GDP×割合を借入＋1スタック ===
+        // === 借入（エンジンが自動で借りる・作者裁定 2026-09-28「借入は自動化・借金ボタンは不要」）：借入額＝min(1件の額, 月初の払えない額)・スタック＝借入額÷1件の額 ===
         // 調達＝資本家の余剰貯蓄（クラウディングアウト）＋外資（開放度）＝旧・自動国債と同じ保存経路（国内は純移転・海外は CumulativeTradeFlow）。
         // プールを超えては借りられない（保存）。20スタックで頭打ち→張り付いたまま続けば不履行（下）。返済でスタック減。
         // ★条件は1行だけ＝国家の支払い率 r＜1 の月（作者裁定 F3）・借入の上限の下・冷却中でない。旧＝AI（SelfPlay）と画面（GameViewModel）が同じ条件で
         //   四半期ごとに予約の列（BorrowQueue）へ積み、ここが月に1件ずつ実行した＝予約の列と2行を削除した（AI とプレイヤーの経路は無い＝等価）。
         //   借りる主体のいない世界（試験の NullAgent）も同じ1行で借りる＝利子の未払いが元本へ複利で積もり続け、上限→不履行の出口に届かない形が閉じる。
+        // ★借りる額は払えない額だけ（作者裁定 2026-09-28）：旧＝r＜1 なら不足の大きさに関係なく1件＝1件の額（月次GDP×割合）を満額借りて1スタック
+        //   ＝切り下げでほぼ埋まった r＝1−ε の月（r＜1 の四半期の77% が r≧0.99）も満額→上限→不履行→借入禁止を繰り返した。
+        //   払えない額＝月初の −spare（Simulation が r と同時に求める＝請求−払える額〔切り下げの後〕＋借越）＝切り下げの余地と同じ量・減債の余剰（spare＞0）の裏側。
+        //   スタックは借入額÷1件の額＝減債（返済額÷1件の額）と同じ単位＝上限・不履行の判定が読む量が借りた額と返した額で対称に動く。
+        double loanUnit = Math.Max(1e-9, Math.Max(0, gdp) * c.BorrowFractionOfGdp);   // 1件の額（借入と減債のスタックの物差し）
         if (payRate < 1 && w.BorrowStacks < c.MaxBorrowStacks && w.BorrowCooldown <= 0)   // 月に1件。デフォルト後のクールダウン中は借りられない（信用喪失）
         {
-            double borrowWant = Math.Max(0, gdp) * c.BorrowFractionOfGdp;
+            double shortfall = spare < 0 ? -spare : 0;   // 否定形＝NaN は借りない
+            double borrowWant = Math.Min(Math.Max(0, gdp) * c.BorrowFractionOfGdp, shortfall);
             double capSavings = 0; foreach (var p in capitalists) capSavings += Math.Max(0, p.Savings);
             // 財6（資本開放度の脱・関税連動）：openness の関税連動を CapitalOpennessTariffWeight で連続化。既定1.0＝openness=Clamp(1−1.0×Tariff,0,1)＝旧 Clamp(1−Tariff,0,1) と代数的に厳密一致（数値中立）。
             // 0で関税と独立（19世紀の資本移動は関税と別＝高関税の米/露も外債を発行）→兌換性/信認ベースの開放度へ。中間で部分連動。
@@ -316,7 +323,7 @@ public static class Fiscal
                 w.Pay(TreasuryCat.Borrow, borrowed); w.GovDebt += borrowed; w.ForeignDebt += foreignPortion;
                 // R9：新発債を現行市場金利で既往クーポンへ加重平均で混ぜる（BondRolloverFrac<1の時のみ意味を持つ。既定1.0では翌月頭のrolloverでGovBondRateに上書きされ未読＝ビット一致）。残高0からの借入はdebtBefore=0で現行金利へ自然収束
                 { double debtBefore = w.GovDebt - borrowed; w.GovAvgCoupon = (debtBefore * w.GovAvgCoupon + borrowed * w.GovBondRate) / System.Math.Max(1e-9, w.GovDebt); }
-                w.BorrowStacks += 1.0;   // 1件＝1スタック（借入の上限の物差し）
+                w.BorrowStacks += borrowed / loanUnit;   // スタック＝借入額÷1件の額（減債と同じ単位・旧＝1件＝1スタック）
             }
         }
 
@@ -465,8 +472,7 @@ public static class Fiscal
             //   CapitalMarket が四半期末に、減らした債権と同じ比（＝債権の比）で債権国の投資家へ GiveGold する。
             w.CumulativeTradeFlow -= frForeign;
             w.ForeignIntPaidThisQuarter += frForeign;
-            // 借入のスタックを返済分だけ減らす（1スタック＝GDP×割合相当）。返せた分だけ借入の上限から離れる。
-            double loanUnit = Math.Max(1e-9, Math.Max(0, gdp) * c.BorrowFractionOfGdp);
+            // 借入のスタックを返済分だけ減らす（1スタック＝1件の額＝借入と同じ loanUnit）。返せた分だけ借入の上限から離れる。
             w.BorrowStacks = Math.Max(0, w.BorrowStacks - repay / loanUnit);
         }
         if (w.GovDebt <= 1e-9) w.BorrowStacks = 0;   // 完済＝スタック消滅

@@ -94,8 +94,9 @@ public class FiscalTests
     // ★借入は国家の支払い率 r＜1 の月だけ・減債は r＝1 の月の余剰（spare）から（作者裁定 F3・2026-09-28 段2-1）。月初に r を決める Simulation を通らない
     //   単体の Fiscal.Step で盤面を作る番人は、起債の月は r＜1（Short）、減債の月は r＝1 と余剰を渡して踏む。借入は予約なしでエンジンが r＜1 の月に1件（2026-09-28）
     //   ＝双子の片方だけ起債させるときは、借りない側を借入の冷却中（BorrowCooldown＝1 か月）にして同じ r で踏む（冷却は Fiscal の借入の門と月末の減算しか読まない）。
+    //   借りる額は払えない額（−spare）だけ・1件の額まで（2026-09-28）＝r＜1 の月に spare を省くと、払えない額が1件の額より大きい月（−Ample）として踏む＝満額の1件。
     private const double Short = 0.5, Ample = 1e18;
-    private static void FiscalMonth(World w, double r, double spare = 0) { w.FiscalFundingRatio = r; Fiscal.Step(w, w.Coef, spare); }
+    private static void FiscalMonth(World w, double r, double? spare = null) { w.FiscalFundingRatio = r; Fiscal.Step(w, w.Coef, spare ?? (r < 1 ? -Ample : 0)); }
     private static double HeldOf(World w) { double h = 0; foreach (var r in w.Regions) foreach (var p in r.Pops) h += p.BondHoldings; return h; }
 
     /// <summary>英を1四半期温め、財政の国債以外の流れ（税・汚職の漏れ・維持費の頭数分配・福祉・年金・外債）を止めた盤面。

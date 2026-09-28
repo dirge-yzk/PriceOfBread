@@ -467,9 +467,9 @@ public sealed class Coefficients
     // 国債二次流通（改修2026-06-28・金融改革①）：信認シグナルの内生化。BondPrice=BondBaseRate/GovBondRate（永久債＝利回り上昇で価格暴落）。切り下げ常習＝信認喪失で利回り高止まり、外資逃避と連動。
     public double BondRateDistrustScale = 0.06;  // 累積切り下げ/名目GDP比 が国債金利に上乗せ（信認の喪失＝切り下げ常習国は構造的に高金利・債券価格低迷）。0で旧挙動
     public double BondYieldFlightWeight = 1.5;   // 国債の利回りスプレッド(GovBondRate−BondBaseRate)が対外信用(CapitalMarket)を下げる強さ＝国債暴落→資本逃避→為替減価→さらに金利↑のバーリング危機ループ。0で旧挙動
-    // === 借入（Fiscal の1行＝r＜1 の月にエンジンが自動で借りる・2026-09-28）：1回＝GDP×これ を借入＋1スタック ===
-    public double BorrowFractionOfGdp = 0.10;    // 借入1回でGDPのこの割合を借入（資本家貯蓄＋外資から調達＝保存）。1回=1スタック
-    public double MaxBorrowStacks = 20.0;        // スタック上限。出費上限＝公共サービス支出 ×max(0,1−stacks/これ)。20スタックでサービス0%（＝もう借りても国が回らない）。返済でスタック減・返せねば のべくり
+    // === 借入（Fiscal の1行＝r＜1 の月にエンジンが自動で借りる・2026-09-28）：1件の額＝GDP×これ・借入額＝min(1件の額, 月初の払えない額)・スタック＝借入額÷1件の額 ===
+    public double BorrowFractionOfGdp = 0.10;    // 1件の額＝月次GDPのこの割合（資本家貯蓄＋外資から調達＝保存）。借りるのは払えない額だけで1件の額まで・1件の額＝1スタック（減債も同じ単位）
+    public double MaxBorrowStacks = 20.0;        // スタック上限（借入の門と不履行の判定が読む）。返済でスタック減・張り付いたまま続けば不履行（旧の出費上限 SpendingCapFactor は 2026-09-28 に撤去＝Q9）
     // ソブリン・デフォルト（2026-06-23）：借入上限に張り付き返済できない国は信用が尽き**債務不履行**＝致命的ペナルティ（安易な逃げ道でない＝破滅）。
     public int DefaultTriggerQuarters = 8;       // 借入上限(MaxBorrowStacks)に連続でこの**月数** 張り付くとデフォルト（8か月の支払不能で破綻宣言）。⚠名前は Quarters だがカウンタは月次で進む（2026-09-26 に書き方を是正・dorm-29）
     public double DefaultLegitimacyHit = 0.5;    // デフォルト時の正統性崩壊（→闘争度↑・革命リスク）。信用と威信の喪失

@@ -2196,7 +2196,7 @@ public sealed class Simulation
         StepMineralDeposits();   // ★鉱脈在庫（2026-08-14）：掘った分だけ減る・減れば品位が落ちる。ゲート0＝即return＝恒等
         MintGold();                                                      // 鋳造（金鉱→正貨）：金産出の一部が基礎貨幣に（ゴールドラッシュ＝マネー膨張）。GoldMintFraction=0で無効＝較正中立
         ProbeCheck("月次鋳造");
-        Fiscal.Step(World, World.Coef, spare);                           // §9-F/§6.2（全 pop に課税）。spare＝月初の払える額−請求（減債と切り下げの原資）
+        Fiscal.Step(World, World.Coef, spare);                           // §9-F/§6.2（全 pop に課税）。spare＝月初の払える額−請求（＞0＝減債の原資・＜0＝借入の額〔1件の額まで〕）
         ProbeCheck("月次財政");
         // 国営工場カウンター（作者裁定2026-08-10）：目標と現在の差を1歩ずつ埋める（着工の再挑戦・1棟ずつの払い下げ）＋
         // 国有化法の接収。★財政の**後**に置く＝払い下げ代金と国庫の残高が同じ月の中で前後しない

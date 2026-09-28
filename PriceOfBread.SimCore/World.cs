@@ -960,8 +960,8 @@ public sealed class World
     public double ForeignDebt { get; internal set; }   // うち海外保有分（対外債務＝利払い/不履行が対外）
     public double CumulativeDevaluation { get; internal set; }   // 累積の通貨切り下げ額（債務不履行で全popの貯蓄を希薄化＝インフレ税）。**挙動の被乗数**＝Fiscal の distrust（国債金利BondRateDistrustScale）→CrowdingPremium→民間投資と対外信用に直接効く（02断線走査2026-07-28：旧「診断・歴史」注記は削除リファクタで壊す危険があった）
     public double CumulativeFiatIssued { get; internal set; }    // 累積の不換新規発行（fiat-expansion-as-haircut-not-issue）。基礎貨幣の正当な増加源＝貨幣保存の基準に算入（鋳造CumulativeGoldMintedと同型）。FiatIssueFrac=0で常に0＝較正中立
-    // 借入（Fiscal の1行＝国家の支払い率 r＜1 の月にエンジンが自動で借りる・2026-09-28 作者裁定「借入は自動化・借金ボタンは不要」＝予約の列 BorrowQueue と RequestBorrow を削除）。1回=GDP×割合＋1スタック。
-    public double BorrowStacks { get; internal set; }             // 未返済の借入スタック数（1回借りる＝+1。返済で減）。上限に張り付いたまま続けば不履行
+    // 借入（Fiscal の1行＝国家の支払い率 r＜1 の月にエンジンが自動で借りる・2026-09-28 作者裁定「借入は自動化・借金ボタンは不要」＝予約の列 BorrowQueue と RequestBorrow を削除）。借入額＝min(1件の額, 月初の払えない額)・スタック＝借入額÷1件の額（2026-09-28・減債と同じ単位）。
+    public double BorrowStacks { get; internal set; }             // 未返済の借入スタック数（借入額÷1件の額で増え、返済額÷1件の額で減る）。上限に張り付いたまま続けば不履行
 
     // ==== 通貨改革（2026-08-13・作者採用）====
     // なぜ要るか：CumulativeDevaluation は**単調増加で減る経路が1つも無かった**（国家破産でも消えない・セーブにも残る）。
