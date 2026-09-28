@@ -1,0 +1,4 @@
+# 合流 (103)＝main 1c188cc の全長の国庫の計器 inj_treas3d（scratchpad/cs/inj_treas3d.py）の読み（scratchpad/merge4/an/an_treas_min.py）。生の T 行（約160MB）は置かない（D:/PoB_work/merge4/an/tr_M＝回の終わりに消す）。SOURCE-HASH 2986a9c7e6dd69de
+# 比べる相手＝u3b（(100) の腕A の同じ読み）：国庫<0 の生存国×四半期 29,865・不履行（国ごとの最後の値の和）509
+######## M
+T 行 423674・国庫<0 の生存国×四半期 20293・不履行（国ごとの最後の値の和）436
