@@ -432,14 +432,13 @@ public partial class GameViewModel
         double bal = revTotal - spendTotal;
         BudgetBalanceText = (bal >= 0 ? "+" : "-") + Money(Math.Abs(bal));
 
-        // 国債（借入）＝ヘッダーへ移動（借金ボタン廃止・国庫マイナスで自動起債・2026-07-21ユーザー指示）。中核データ（残高・対GDP・借入数・信認）＋デフォルト予兆。ホバーで内訳。
+        // 国債（借入）＝ヘッダーへ移動（借金ボタン廃止・2026-07-21ユーザー指示／借入はエンジンが r＜1 の月に自動・2026-09-28）。中核データ（残高・対GDP・借入数・信認）＋デフォルト予兆。ホバーで内訳。
         DebtHeaderText = $"国債:{Money(_player.GovDebt)}"   /* ★2026-08-02：借入数は非表示（ホバーの内訳で足りる） */
                        + (_player.InsolvencyQuarters > 0 ? $"　デフォルトまで{Math.Max(0, c.DefaultTriggerQuarters - _player.InsolvencyQuarters)}か月" : "");   /* ★2026-09-26：カウンタは月次で進む（dorm-29）＝旧「四半期」は3倍ずれていた */
         // 財7単位フリップ（2026-07-26）：エンジンの金本位資格/金利プレミアムが年換算GDP基準になったのに合わせ、表示も対年GDP（史実の債務比率と直接比較できる単位）
         // 分母＝**年次名目**（月次 NominalGdp×12）＝エンジン Fiscal.cs の兌換停止/国債金利の閾値と同じ単位（旧＝年次実質 Gdp×12 で表示だけ別物差し・2026-09-11 #10）
         DebtHeaderTip = $"国債 {Money(_player.GovDebt)}　対年GDP {(_player.NominalGdp > 1e-9 ? System.Math.Min(9.99, _player.GovDebt / (_player.NominalGdp * (double)Calendar.MonthsPerYear)) : 0):P0}　金利 {_player.GovBondRate:P0}　債券価格 {_player.BondPrice:P0}"
                        + (_player.ForeignDebt > 1 ? $"\nうち対外 {Money(_player.ForeignDebt)}" : "")
-                       + (_player.BorrowQueue > 0 ? $"\n起債予約 {_player.BorrowQueue}" : "")
                        + (_player.AusterityIntensity > 0 ? $"\n緊縮 {_player.AusterityIntensity:P0}" : "")
                        + (_player.CumulativeDevaluation > 1 ? $"\n切下げ累計 {Money(_player.CumulativeDevaluation)}" : "")
                        + (_player.FiscalFundingRatio < 1 ? $"\n支払い率 {_player.FiscalFundingRatio:P0}" : "");

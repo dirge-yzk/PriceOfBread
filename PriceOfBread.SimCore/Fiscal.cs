@@ -17,8 +17,8 @@ public static class Fiscal
     private const double FranchiseCensus = 0.25;             // 参政権レベル→市民運動基盤の重み（制限選挙）
     private const double DebtRatioUnbounded = 1e9;            // NominalGdp≈0 かつ債務ありのときの代替（極大）債務/GDP比
 
-    /// <param name="spare">月初の払える額−国家の支払いの請求（Simulation が r と同時に求める）。＞0＝ r＝1 の月の余剰＝減債の原資・＜0＝払えない請求＝切り下げの原資。
-    /// 単体で呼ぶ試験の既定0＝減債も切り下げもしない。</param>
+    /// <param name="spare">月初の払える額（切り下げの後）−国家の支払いの請求（Simulation が r と同時に求める）。＞0＝ r＝1 の月の余剰＝減債の原資。
+    /// 切り下げは月初に Simulation が払える額の側へ入れて取る（2026-09-28）＝ここでは取らない。単体で呼ぶ試験の既定0＝減債しない。</param>
     public static void Step(World w, Coefficients c, double spare = 0)
     {
         if (!w.FiscalEnabled) return;
@@ -271,11 +271,13 @@ public static class Fiscal
         w.LastRevenue = budgetBase; w.LastUpkeep = upkeep; w.LastInterest = interest;   // 診断（LastRevenue は Simulation の AdminBudget/MilitaryBudget の基数＝間接税込みへ）
         w.LastMilitaryClaim = militaryClaim; w.LastAdminClaim = adminClaim;          // 診断（予算表の支出内訳）
         w.FiscalCapacity = w.FiscalCapacity < 1e-9 ? surplus : w.FiscalCapacity + c.FiscalCapacitySmoothing * (surplus - w.FiscalCapacity);
-        // === 借金ボタン（2026-06-22・自動国債発行を置換）：能動的借入のみ。1回押す＝GDP×割合を借入＋1スタック ===
+        // === 借入（エンジンが自動で借りる・作者裁定 2026-09-28「借入は自動化・借金ボタンは不要」）：1回＝GDP×割合を借入＋1スタック ===
         // 調達＝資本家の余剰貯蓄（クラウディングアウト）＋外資（開放度）＝旧・自動国債と同じ保存経路（国内は純移転・海外は CumulativeTradeFlow）。
-        // プールを超えては借りられない（保存）。20スタックで頭打ち（もう借りても公共サービスが0%＝国が回らない）。返済でスタック減・返せねば のべくり。
-        // ★借入は国家の支払い率 r＜1 の月だけ（作者裁定 F3・2026-09-28）＝予約（AI とプレイヤーが同じ1行の条件で積む）も r＜1 の月にしか実行しない。
-        if (w.BorrowQueue > 0 && payRate < 1 && w.BorrowStacks < c.MaxBorrowStacks && w.BorrowCooldown <= 0)   // 予約キューを毎月1件処理（連続起債）。デフォルト後のクールダウン中は借りられない（信用喪失）
+        // プールを超えては借りられない（保存）。20スタックで頭打ち→張り付いたまま続けば不履行（下）。返済でスタック減。
+        // ★条件は1行だけ＝国家の支払い率 r＜1 の月（作者裁定 F3）・借入の上限の下・冷却中でない。旧＝AI（SelfPlay）と画面（GameViewModel）が同じ条件で
+        //   四半期ごとに予約の列（BorrowQueue）へ積み、ここが月に1件ずつ実行した＝予約の列と2行を削除した（AI とプレイヤーの経路は無い＝等価）。
+        //   借りる主体のいない世界（試験の NullAgent）も同じ1行で借りる＝利子の未払いが元本へ複利で積もり続け、上限→不履行の出口に届かない形が閉じる。
+        if (payRate < 1 && w.BorrowStacks < c.MaxBorrowStacks && w.BorrowCooldown <= 0)   // 月に1件。デフォルト後のクールダウン中は借りられない（信用喪失）
         {
             double borrowWant = Math.Max(0, gdp) * c.BorrowFractionOfGdp;
             double capSavings = 0; foreach (var p in capitalists) capSavings += Math.Max(0, p.Savings);
@@ -314,49 +316,12 @@ public static class Fiscal
                 w.Pay(TreasuryCat.Borrow, borrowed); w.GovDebt += borrowed; w.ForeignDebt += foreignPortion;
                 // R9：新発債を現行市場金利で既往クーポンへ加重平均で混ぜる（BondRolloverFrac<1の時のみ意味を持つ。既定1.0では翌月頭のrolloverでGovBondRateに上書きされ未読＝ビット一致）。残高0からの借入はdebtBefore=0で現行金利へ自然収束
                 { double debtBefore = w.GovDebt - borrowed; w.GovAvgCoupon = (debtBefore * w.GovAvgCoupon + borrowed * w.GovBondRate) / System.Math.Max(1e-9, w.GovDebt); }
-                w.BorrowStacks += 1.0;   // 1件＝1スタック（出費上限ペナルティ）
-                w.BorrowQueue--;         // 実際に借りられた時だけ予約を消費（残りは翌月以降に順次処理＝連続起債。プール枯渇/上限/冷却中は保留）
+                w.BorrowStacks += 1.0;   // 1件＝1スタック（借入の上限の物差し）
             }
         }
 
-        // === 不随意の赤字（維持費＋利払いを国庫で賄えない）→ 通貨切り下げ（インフレ税）/薄給で劣化 ===
-        // 自動国債発行は廃止＝借入はボタンのみ。借りない国は赤字を切り下げ（全popの貯蓄を比例希薄化→国庫＝pop→国庫の純移転・通貨は刷らない）で埋める。
-        // 金本位中は切り下げ封印＝underfunding（連合の薄給→funding↓→治安維持力↓→政情不安）で優雅に劣化＝規律の代償。緊縮（弱者救済削減＋逆進課税）が一般機構で帰結を出す。
-        // ★赤字＝月初に払えなかった国家の支払いの請求（spare＜0 の分・2026-09-28 段2-1）。旧＝維持費＋利払いだけを今の国庫と比べた（滝の先頭2行だけ）。否定形＝NaN は0。
-        double deficit = spare < 0 ? -spare : 0;
-        // 兌換可能性で切り下げ可能量を連続スケール（倍率排除②）：完全兌換(Conv=1)＝切り下げ封印（金の規律）／不換(Conv=0)＝赤字全額を切り下げ可。部分兌換は中間。
-        double devalueRoom = deficit * (1.0 - w.Convertibility);
-        // ★銀の段の軽い規律（SilverLightDiscipline・2026-08-21）：銀正貨国の切り下げ＝**改鋳（debasement）**は史実で日常だった
-        //   （清の咸豊大銭・ムガル以来の含有量操作）。封印されるのは**銀行券の発行**の側＝正貨比率（BaseMoney/BroadMoney）ぶんは
-        //   兌換中でも改鋳の窓が開く：room = deficit×(1 − Conv×(1−正貨比率))。純正貨経済（比率≈1）はほぼ全開・銀行券経済ほど封印が効く。
-        //   ⚠新しい定数ゼロ（19-10差し戻しの根③＝切下げ封印の全世界閉鎖、の是正）。**live=1（2026-08-21点火）**・0に戻せば旧式と厳密恒等。金の段は従来どおり封印。
-        if (c.SilverLightDiscipline > 0 && w.MonetaryLaw == MonetaryStandardLaw.Silver)
-        {
-            double specie = w.BroadMoney > 1e-9 ? w.BaseMoney / w.BroadMoney : 1.0;
-            if (!(specie >= 0)) specie = 0; else if (specie > 1) specie = 1;   // NaNは0へ倒す（否定形＝ClampはNaNを消さない）
-            devalueRoom = deficit * (1.0 - w.Convertibility * (1.0 - specie));
-        }
-        bool devalued = false;   // 通貨改革の発動ゲート（切下げゼロの連続月数）が読む
-        if (devalueRoom > 1e-9)
-        {
-            double totalSav = 0; foreach (var p in pops) totalSav += Math.Max(0, p.Savings);
-            // 財3（cadence整合・切り下げ上限）：DevaluationCapFrac は**月あたり**の上限（Fiscal.Step は月次実行）。
-            // ★2026-09-26（dorm-29）：旧の注釈は「四半期あたり」と書き、四半期へ割る休眠の器 FiscalQuarterlyGating（既定0＝÷1）を持っていた＝
-            //   較正は月次で進む値に乗っているので、器を削除し単位の書き方を月へ直した（挙動は1ビットも変わらない）。
-            double devalue = Math.Min(devalueRoom, totalSav * c.DevaluationCapFrac);   // 月あたり有界（インフレ税の上限）。超過は underfunding で劣化
-            if (devalue > 1e-9)
-            {
-                // 不換シニョリッジ（fiat-expansion-as-haircut-not-issue）：切り下げのうち FiatIssueFrac は pop から取らず新規発行＝マネーストック膨張(M↑)。
-                // FiatIssueFrac=0 で issue=0＝全額ヘアカット(pop→国庫の純移転)（⚠既定は点火済みの0.2＝2026-07-18・x-02 で注記を是正）。発行ぶんは CumulativeFiatIssued に積み Invariants の expected に算入(鋳造と同型)。M↑→P↑は下の FiatInflationPressure が表現＝二重取りなし。
-                double issue = devalue * c.FiatIssueFrac;
-                double haircut = devalue - issue;
-                if (haircut > 1e-12) foreach (var p in pops) p.Savings -= haircut * (Math.Max(0, p.Savings) / totalSav);
-                w.Pay(TreasuryCat.Devalue, devalue); w.CumulativeDevaluation += devalue; devalued = true;
-                w.CumulativeFiatIssued += issue;   // BaseMoney の正当な増加源（Invariants 算入）
-                double broad = Math.Max(1.0, w.BroadMoney);
-                w.FiatInflationPressure += devalue / broad;   // 紙幣増発＝インフレ圧（名目GDP↑→実質債務減）
-            }
-        }
+        // （切り下げ＝インフレ税は 2026-09-28 に月初の Simulation の国家の支払い率へ移した＝払える額の側。旧＝2-1 でここの原資が「その月に払えなかった請求の全額」になり、
+        //   請求を r で切って払った上に同じ額を全POPから国庫へ移していた＝不足を量で減らした上で他人からも取る二重（作者裁定 F4・思想⑨）。）
 
         // ==== 通貨改革（2026-08-13・作者採用）====
         // 旧通貨を清算し、実力に合った新平価で建て直す。過去の切下げの記憶（CumulativeDevaluation）を消す代わりに、
@@ -365,7 +330,7 @@ public static class Fiscal
         // ⚠焼却は pop→消滅（国庫へは渡さない）＝切下げ（pop→国庫の純移転）との本質的な違い。帳尻は
         //   CumulativeFiatIssued の**負方向**（＝不換の回収）で閉じ、意図額と実測の一致を先に検査する。
         // ⚠新平価は Convertibility>0 でしか効かない（World の rateTarget）＝「金本位に戻った日に履行される約束」。
-        w.NoDevaluationMonths = devalued ? 0 : w.NoDevaluationMonths + 1;
+        // （発動の門が読む切下げゼロの連続月数 NoDevaluationMonths は、切り下げと同じ月初の1か所＝Simulation が数える＝この月の値）
         if (w.CurrencyReformCooldown > 0) w.CurrencyReformCooldown--;
         // ★切下げの記憶が壊れている（不信＝累積切下げ／名目GDP が閾値超）。読み手は2つ＝改革の発動と、下の金本位への再加入（2026-09-27）。
         //   改革した月は改革の前の値のまま＝再加入はその翌月から（改革→兌換の回復の順）。
@@ -500,7 +465,7 @@ public static class Fiscal
             //   CapitalMarket が四半期末に、減らした債権と同じ比（＝債権の比）で債権国の投資家へ GiveGold する。
             w.CumulativeTradeFlow -= frForeign;
             w.ForeignIntPaidThisQuarter += frForeign;
-            // 借金ボタンのスタックを返済分だけ減らす（1スタック＝GDP×割合相当）。返せた分だけ出費上限が回復＝のべくりの解除。
+            // 借入のスタックを返済分だけ減らす（1スタック＝GDP×割合相当）。返せた分だけ借入の上限から離れる。
             double loanUnit = Math.Max(1e-9, Math.Max(0, gdp) * c.BorrowFractionOfGdp);
             w.BorrowStacks = Math.Max(0, w.BorrowStacks - repay / loanUnit);
         }
@@ -508,7 +473,7 @@ public static class Fiscal
         //（借入スタックの出費上限 SpendingCapFactor は 2026-09-28 に撤去＝作者裁定 Q9・債務の重さは利子の請求が大きくなることで r に出る＝二重計上を避ける）
 
         // === ソブリン・デフォルト：借入上限に張り付き返済できない＝信用が尽き支払不能→**債務不履行（致命的）** ===
-        // 借金ボタンの逃げ道（革命による債務帳消し）が無くなった分、過剰債務は「破滅的なデフォルト」で決着する＝借りすぎた覇権/軍国が崩れて上位が入れ替わる。
+        // 借入の逃げ道（革命による債務帳消し）が無くなった分、過剰債務は「破滅的なデフォルト」で決着する＝借りすぎた覇権/軍国が崩れて上位が入れ替わる。
         // 財3（cadence）：BorrowCooldown（減算）・InsolvencyQuarters（加算）は**月**で進むカウンタ（Fiscal.Step は月次実行）。
         //   ⚠名前は「Quarters」だが単位は月＝DefaultTriggerQuarters=8 は8か月の支払不能・DefaultCooldownQuarters=24 は2年の借入禁止。
         //   ★2026-09-26（dorm-29）：四半期の締め月だけ進める休眠の器 FiscalQuarterlyGating（既定0＝毎月）を削除し、単位の書き方を月へ直した（挙動は1ビットも変わらない）。

@@ -461,16 +461,7 @@ public partial class GameViewModel : ViewModelBase
             // 戦費の按分累計は Refresh 内（月スタンプで1回/月・戦線数で均等按分）＝レビュー2026-07-19で移設
             if (quarterCrossed)
             {
-                // 借金ボタン廃止（2026-07-21ユーザー指示）＝国庫が月次義務（維持費＋利払い）を賄えない時に自動起債。AIの SelfPlay.DecideQuarter と**同じ四半期の周期・同条件**で判定する（プレイヤー/AI対称）。
-                //   ★是正2026-09-02：旧は月次判定＝プレイヤーだけが最大2ヶ月早く借りられていた（下のAiCrisisBorrowはE3で既に是正済み・この基本起債だけ取り残されていた）。
-                //   ★2026-09-28（作者裁定 F3）：条件は国家の支払い率 r＜1（AI の SelfPlay.DecideQuarter と**同じ1行**・旧は国庫＜維持費＋利払い・冷却中の判定がプレイヤーだけ抜けていた）。
-                if (_player.FiscalFundingRatio < 1 && _player.BorrowStacks < _player.Coef.MaxBorrowStacks && _player.BorrowCooldown <= 0)
-                    _player.RequestBorrow();
-                // ★恐慌の谷での前倒し起債（AiCrisisBorrow）＝AI（SelfPlay.DecideQuarter）と**同じ四半期の周期・同じ閾値**で判定する。
-                //   ★E3（作者裁定2026-08-26）：旧は月次判定＋閾値0.08の直書き＝プレイヤーだけが最大2ヶ月早く借りられ、閾値も二重定義だった。
-                if (_player.Coef.AiCrisisBorrow > 0 && _player.GdpDrawdown > UtilityAgent.RecessionDrawdownThreshold && !(_player.AusterityIntensity > 0)
-                    && _player.BorrowStacks < _player.Coef.MaxBorrowStacks && _player.BorrowCooldown <= 0 && _player.Treasury < UtilityAgent.FiscalBufferOf(_player))
-                    _player.RequestBorrow();
+                // （借入はエンジンが自動で借りる＝Fiscal の1行・国家の支払い率 r＜1 の月・2026-09-28 作者裁定「借入は自動化・借金ボタンは不要」＝画面の自動起債の予約2行を削除）
                 // 法律の自動決定（UtilityAgent.DecideLaws の四半期呼び出し）は廃止＝プレイヤーが政治タブで目標を置く（AIボタンで随時助言）。
                 DetectEvents();
                 // _satHistory（四半期満足度＝旧SatBars用）は読者消滅につき削除（監査2026-07-12 死16/他20。年次の満足度グラフ_histSatが現役）

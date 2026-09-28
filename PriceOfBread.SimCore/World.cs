@@ -960,10 +960,8 @@ public sealed class World
     public double ForeignDebt { get; internal set; }   // うち海外保有分（対外債務＝利払い/不履行が対外）
     public double CumulativeDevaluation { get; internal set; }   // 累積の通貨切り下げ額（債務不履行で全popの貯蓄を希薄化＝インフレ税）。**挙動の被乗数**＝Fiscal の distrust（国債金利BondRateDistrustScale）→CrowdingPremium→民間投資と対外信用に直接効く（02断線走査2026-07-28：旧「診断・歴史」注記は削除リファクタで壊す危険があった）
     public double CumulativeFiatIssued { get; internal set; }    // 累積の不換新規発行（fiat-expansion-as-haircut-not-issue）。基礎貨幣の正当な増加源＝貨幣保存の基準に算入（鋳造CumulativeGoldMintedと同型）。FiatIssueFrac=0で常に0＝較正中立
-    // 借金ボタン（自動国債発行を置換）：プレイヤー/AIが能動的に借入。1回=GDP×割合＋1スタック。スタックは公共サービス支出に上限ペナルティ。
-    public int BorrowQueue { get; internal set; }                 // 起債の予約数（Fiscal が毎月1件ずつ処理＝連続起債が可能）。AIは国庫逼迫時に自動で積む／プレイヤーUIはボタンで RequestBorrow()
-    public double BorrowStacks { get; internal set; }             // 未返済の借入スタック数（1回押す＝+1。返済で減・返せねば のべくり）。出費上限ペナルティの源
-    public void RequestBorrow() { if (BorrowStacks + BorrowQueue < Coef.MaxBorrowStacks) BorrowQueue++; }   // 起債の予約（連打でスタック＝毎月1件処理）。既存スタック＋予約が上限を超えては積めない
+    // 借入（Fiscal の1行＝国家の支払い率 r＜1 の月にエンジンが自動で借りる・2026-09-28 作者裁定「借入は自動化・借金ボタンは不要」＝予約の列 BorrowQueue と RequestBorrow を削除）。1回=GDP×割合＋1スタック。
+    public double BorrowStacks { get; internal set; }             // 未返済の借入スタック数（1回借りる＝+1。返済で減）。上限に張り付いたまま続けば不履行
 
     // ==== 通貨改革（2026-08-13・作者採用）====
     // なぜ要るか：CumulativeDevaluation は**単調増加で減る経路が1つも無かった**（国家破産でも消えない・セーブにも残る）。

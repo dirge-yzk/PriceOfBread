@@ -467,8 +467,8 @@ public sealed class Coefficients
     // 国債二次流通（改修2026-06-28・金融改革①）：信認シグナルの内生化。BondPrice=BondBaseRate/GovBondRate（永久債＝利回り上昇で価格暴落）。切り下げ常習＝信認喪失で利回り高止まり、外資逃避と連動。
     public double BondRateDistrustScale = 0.06;  // 累積切り下げ/名目GDP比 が国債金利に上乗せ（信認の喪失＝切り下げ常習国は構造的に高金利・債券価格低迷）。0で旧挙動
     public double BondYieldFlightWeight = 1.5;   // 国債の利回りスプレッド(GovBondRate−BondBaseRate)が対外信用(CapitalMarket)を下げる強さ＝国債暴落→資本逃避→為替減価→さらに金利↑のバーリング危機ループ。0で旧挙動
-    // === 借金ボタン（2026-06-22・自動国債発行を置換）：1回押す＝GDP×これ を借入＋1スタック。スタックは公共サービス支出に上限ペナルティ ===
-    public double BorrowFractionOfGdp = 0.10;    // 借金ボタン1回でGDPのこの割合を借入（資本家貯蓄＋外資から調達＝保存）。1回=1スタック
+    // === 借入（Fiscal の1行＝r＜1 の月にエンジンが自動で借りる・2026-09-28）：1回＝GDP×これ を借入＋1スタック ===
+    public double BorrowFractionOfGdp = 0.10;    // 借入1回でGDPのこの割合を借入（資本家貯蓄＋外資から調達＝保存）。1回=1スタック
     public double MaxBorrowStacks = 20.0;        // スタック上限。出費上限＝公共サービス支出 ×max(0,1−stacks/これ)。20スタックでサービス0%（＝もう借りても国が回らない）。返済でスタック減・返せねば のべくり
     // ソブリン・デフォルト（2026-06-23）：借入上限に張り付き返済できない国は信用が尽き**債務不履行**＝致命的ペナルティ（安易な逃げ道でない＝破滅）。
     public int DefaultTriggerQuarters = 8;       // 借入上限(MaxBorrowStacks)に連続でこの**月数** 張り付くとデフォルト（8か月の支払不能で破綻宣言）。⚠名前は Quarters だがカウンタは月次で進む（2026-09-26 に書き方を是正・dorm-29）
@@ -903,7 +903,7 @@ public sealed class Coefficients
     public double LolrStrength = 0.7;         // 危機時に取り付け(run)を打ち消す割合＝流動性供給で恐慌を和らげる（高利＝根治はせず底打ちのみ）
     // ★恐慌AIの座標化（2026-08-22・二段構え較正＝作者裁定「まず裸の資本主義の帯・次にAIの対策で史実へ」）。旧 SelfPlay の private const を昇格＝既定値不変＝ビット恒等。
     //   裸の測定腕＝POB_COEF "LolrStrength=0;LolrReserveBoost=0;PreTightenHeatFrac=1.0;CrisisAusterityRelief=1.0"（測定専用・恒久ONの裁定2026-07-25は不変）。
-    public double AiCrisisBorrow = 0.0;           // ★恐慌の谷での前倒し起債（2026-08-22・恐慌対策＝賢いAI・プレイヤー同条件）：不況かつ債権者緊縮前かつ枠ありなら国庫が財政バッファを割った時点で借りる＝逼迫反射の連鎖を立たせない。0＝恒等
+    // 【墓標2026-09-28】AiCrisisBorrow（恐慌の谷での前倒し起債の予約・休眠0）＝借入が Fiscal の1行（r＜1 の月）へ自動化され、予約の列ごと消えた＝r＝1 の月には借りない（作者裁定 F3）ので器の働く月が無い。
     public double PreTightenHeatFrac = 0.75;      // 予防的引締めの発動＝過熱閾値のこの割合から（1.0＝予防なし＝素の過熱閾値のみ）
     public double CrisisAusterityRelief = 0.5;    // 恐慌の谷での緊縮反射の緩和（1.0＝緩和なし＝1930年代の緊縮の罠を素通し）
     // === テーマD 貨幣金融（価格・バランスシート層）===

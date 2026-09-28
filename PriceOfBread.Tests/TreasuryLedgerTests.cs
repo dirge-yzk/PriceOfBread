@@ -96,11 +96,12 @@ public class TreasuryLedgerTests
         double drain = w.Treasury + 3 * System.Math.Max(1.0, w.LastRevenue);
         w.Pay(TreasuryCat.OtherOut, -drain); w.Regions[0].Pops[0].Savings += drain;
         w.AdminSpending = 3.0;
+        w.Coef.DevaluationCapFrac = 0;   // 切り下げの余地を閉じる（2026-09-28 から切り下げは払える額の側＝仏は不換で、余地が払えない分を埋めて r＝1 になる・切り下げは下の番人が見る）
         for (int d = 0; d < 28; d++) sim.StepDay();
         sim.StepDayOpen(); sim.StepDayDaily();   // 日29の日次まで＝次の締め（月次決算）の直前＝r を決める時点と同じ国庫と見込み
         double payable = System.Math.Max(0, w.Treasury) + w.LastRevenue;
         double spent0 = SpentOf(w);
-        double intL0 = w.TreasuryLedger[(int)TreasuryCat.Interest], admL0 = w.TreasuryLedger[(int)TreasuryCat.Admin], debt0 = w.GovDebt;
+        double intL0 = w.TreasuryLedger[(int)TreasuryCat.Interest], admL0 = w.TreasuryLedger[(int)TreasuryCat.Admin], debt0 = w.GovDebt, bor0 = w.TreasuryLedger[(int)TreasuryCat.Borrow];
         sim.StepDayClose(); w.FlushLog();        // 月次決算（r を決める→予算→精算→財政）
         double r = w.FiscalFundingRatio;
         Assert.True(r > 0 && r < 1, $"前提：r が (0,1) に無い（{r:F4}）＝この盤面では規則を測れない");
@@ -109,7 +110,8 @@ public class TreasuryLedgerTests
         double intPaid = intL0 - w.TreasuryLedger[(int)TreasuryCat.Interest];
         Assert.True(w.LastInterest > 0, "前提：利子の請求が0");
         Assert.True(System.Math.Abs(intPaid - r * w.LastInterest) <= 1e-9 * w.LastInterest, $"利子の支払い {intPaid:F6} ≠ r×請求 {r * w.LastInterest:F6}（r={r:F4}）");
-        Assert.True(System.Math.Abs((w.GovDebt - debt0) - (1 - r) * w.LastInterest) <= 1e-9 * System.Math.Max(1.0, w.GovDebt), $"元本の増分 {w.GovDebt - debt0:F6} ≠ 利子の未払い {(1 - r) * w.LastInterest:F6}");
+        double borrowed = w.TreasuryLedger[(int)TreasuryCat.Borrow] - bor0;   // r＜1 の月はエンジンが借りる（2026-09-28）＝元本の増分から除く
+        Assert.True(System.Math.Abs((w.GovDebt - debt0 - borrowed) - (1 - r) * w.LastInterest) <= 1e-9 * System.Math.Max(1.0, w.GovDebt), $"元本の増分（借入を除く）{w.GovDebt - debt0 - borrowed:F6} ≠ 利子の未払い {(1 - r) * w.LastInterest:F6}");
         Assert.True(BondLedger.Balanced(w, HeldSum(w)), "繰り入れの後に保有台帳（Σ保有＝国内元本）が割れた");
         // 維持費：区分 Admin の減り＝維持費×r＋行政の調達（StateSpent の Admin）
         double stateAdmin = 0; foreach (var rg in w.Regions) if (rg.State == RegionState.Active) stateAdmin += rg.StateSpent[(int)TreasuryCat.Admin];
@@ -143,7 +145,8 @@ public class TreasuryLedgerTests
         return s;
     }
 
-    /// <summary>借入は r＜1 の月だけ・減債は r＝1 の月の余剰（spare＞0）からだけ（Fiscal の2つの門）。</summary>
+    /// <summary>借入は r＜1 の月だけ・減債は r＝1 の月の余剰（spare＞0）からだけ（Fiscal の2つの門）。
+    /// 借入は予約なしでエンジンが月に1件（2026-09-28 作者裁定「借入は自動化・借金ボタンは不要」）＝r＜1 の月が続けば毎月1件ずつ借りる。</summary>
     [Fact]
     public void 借入はrが1未満の月だけ減債はrが1の月の余剰からだけ()
     {
@@ -151,20 +154,25 @@ public class TreasuryLedgerTests
         sim.Run(4);
         var w = sim.World; var c = w.Coef;
         int bo = (int)TreasuryCat.Borrow, rp = (int)TreasuryCat.DebtRepay;
-        // (a) r＝1：予約があっても借りない
-        w.RequestBorrow(); Assert.Equal(1, w.BorrowQueue);
+        // (a) r＝1：借りない
         w.FiscalFundingRatio = 1.0;
-        double b0 = w.TreasuryLedger[bo];
+        double b0 = w.TreasuryLedger[bo], st0 = w.BorrowStacks;
         Fiscal.Step(w, c, 0);
         Assert.Equal(b0, w.TreasuryLedger[bo]);
-        Assert.Equal(1, w.BorrowQueue);
-        // (b) r＜1：同じ予約が実行される
+        Assert.Equal(st0, w.BorrowStacks);
+        // (b) r＜1：誰も予約しないのにエンジンが借りる（月に1件＝1スタック）
         w.FiscalFundingRatio = 0.9;
         Fiscal.Step(w, c, 0);
-        Assert.True(w.TreasuryLedger[bo] > b0, "r＜1 の月に予約された借入が実行されない");
-        Assert.Equal(0, w.BorrowQueue);
+        Assert.True(w.TreasuryLedger[bo] > b0, "r＜1 の月にエンジンが借りない");
+        Assert.Equal(st0 + 1.0, w.BorrowStacks, 12);
+        // (b') 次の r＜1 の月も同じ1行でまた1件
+        double b1 = w.TreasuryLedger[bo];
+        w.FiscalFundingRatio = 0.9;
+        Fiscal.Step(w, c, 0);
+        Assert.True(w.TreasuryLedger[bo] > b1, "続く r＜1 の月に借りない");
+        Assert.Equal(st0 + 2.0, w.BorrowStacks, 12);
         // (c) r＜1：余剰を渡しても返さない
-        double d0 = w.TreasuryLedger[rp], g0 = w.GovDebt;
+        double d0 = w.TreasuryLedger[rp];
         w.FiscalFundingRatio = 0.9;
         Fiscal.Step(w, c, 1e12);
         Assert.Equal(d0, w.TreasuryLedger[rp]);
@@ -180,5 +188,96 @@ public class TreasuryLedgerTests
         double d2 = w.TreasuryLedger[rp];
         Fiscal.Step(w, c, -1.0);
         Assert.Equal(d2, w.TreasuryLedger[rp]);
+    }
+
+    /// <summary>★借入はエンジンの1行だけ（2026-09-28 作者裁定「借入は自動化・借金ボタンは不要」）＝AI とプレイヤーの経路が無い。
+    /// ①借りる主体のいない世界（NullAgent）でも、r＜1 の月の月次決算の中で借りる　②借入の書き手（国庫の台帳の区分 Borrow への Pay）は SimCore の Fiscal.cs の1か所だけ
+    /// ＝SelfPlay（AI）と App（画面）には無い・Fiscal.Step を呼ぶのは月次決算（Simulation.cs）だけ。
+    /// 突然変異：予約の門を戻す（エンジンが自分では借りない）→①が赤／AI か画面に借りる口を足す→②が赤。</summary>
+    [Fact]
+    public void 借入はエンジンの1行だけでAIとプレイヤーの経路が無い()
+    {
+        // ① 借りる主体のいない世界の月次決算で借りる（盤面は上の「国家の支払い率は全ての行に同じrで…」と同じ＝r＜1 の月を作る）
+        var sim = new Simulation(NationConfig.France().ToScenario(19), new NullAgent());
+        sim.Run(4);
+        sim.StepDay();
+        var w = sim.World;
+        double drain = w.Treasury + 3 * System.Math.Max(1.0, w.LastRevenue);
+        w.Pay(TreasuryCat.OtherOut, -drain); w.Regions[0].Pops[0].Savings += drain;
+        w.AdminSpending = 3.0;
+        w.Coef.DevaluationCapFrac = 0;   // 切り下げの余地を閉じる（仏は不換＝余地が払えない分を埋めて r＝1 になる・切り下げは下の番人が見る）
+        double b0 = w.TreasuryLedger[(int)TreasuryCat.Borrow], st0 = w.BorrowStacks;
+        Assert.True(st0 < w.Coef.MaxBorrowStacks && w.BorrowCooldown <= 0, "前提：借入の上限か冷却中");
+        for (int d = 0; d < 29; d++) sim.StepDay();   // 月次決算を1回（r を決める→…→財政）
+        Assert.True(w.FiscalFundingRatio < 1, $"前提：r＜1 の月になっていない（{w.FiscalFundingRatio:F4}）");
+        Assert.True(w.TreasuryLedger[(int)TreasuryCat.Borrow] > b0, "借りる主体のいない世界で r＜1 の月にエンジンが借りない");
+        Assert.Equal(st0 + 1.0, w.BorrowStacks, 12);
+
+        // ② 借入の書き手は Fiscal.cs の1か所だけ・Fiscal.Step を呼ぶのは Simulation.cs だけ（SimCore と App を走査・コメントは数えない）
+        string root = System.IO.Path.GetDirectoryName(System.IO.Path.GetDirectoryName(ThisFile()))!;
+        var borrowSites = new System.Collections.Generic.List<string>();
+        var stepCallers = new System.Collections.Generic.List<string>();
+        char sep = System.IO.Path.DirectorySeparatorChar;
+        foreach (var dir in new[] { "PriceOfBread.SimCore", "PriceOfBread.App" })
+            foreach (var f in System.IO.Directory.EnumerateFiles(System.IO.Path.Combine(root, dir), "*.cs", System.IO.SearchOption.AllDirectories))
+            {
+                if (f.Contains($"{sep}obj{sep}") || f.Contains($"{sep}bin{sep}")) continue;
+                foreach (var line in System.IO.File.ReadLines(f))
+                {
+                    var code = line; int k = code.IndexOf("//", System.StringComparison.Ordinal); if (k >= 0) code = code[..k];
+                    if (code.Contains("Pay(TreasuryCat.Borrow")) borrowSites.Add(System.IO.Path.GetFileName(f));   // 国庫へ起債の金を入れる口（読み手＝台帳の検査や表示の名前は数えない）
+                    if (code.Contains("Fiscal.Step(")) stepCallers.Add(System.IO.Path.GetFileName(f));
+                }
+            }
+        Assert.Equal(new[] { "Fiscal.cs" }, borrowSites.ToArray());
+        Assert.Equal(new[] { "Simulation.cs" }, stepCallers.ToArray());
+    }
+
+    private static string ThisFile([System.Runtime.CompilerServices.CallerFilePath] string self = "") => self;
+
+    /// <summary>★切り下げ（インフレ税）は払える額の側（2026-09-28・(87) の申し送り iii・作者裁定 F4「不足は量を減らすか未払いの記録＝他人から取らない」・思想⑨）。
+    /// 双子＝同じ盤面の r＜1 の月（兌換 0.5）で、F は切り下げの余地あり・G は切り下げの上限0（DevaluationCapFrac＝0）。
+    /// ①F の r ＝ (払える額＋切り下げ) ÷ 請求＝取った金はその月の支払いに使われる（請求は G の r ＝ 払える額 ÷ 請求 から戻す）
+    /// ②切り下げの額＝余地の規則 (1−兌換)×（請求−払える額−min(0,国庫)）そのもの＝払えなかった請求と同じ額を別に取らない。
+    /// 突然変異：切り下げを r の後へ戻す（段2-1 の形＝F の r が G と同じ）→①が赤／r に入れた上に月末でも取る（二重）→②が赤。</summary>
+    [Fact]
+    public void 切り下げは払える額に入り同じ月の支払いに使われ払えなかった請求と同じ額を別に取らない()
+    {
+        const double conv = 0.5;
+        (World w, double payable, double overdraft, double dev) Month(bool capZero)
+        {
+            var sim = new Simulation(NationConfig.France().ToScenario(19), new NullAgent());
+            sim.Run(4);
+            sim.StepDay();
+            var w = sim.World;
+            double t0 = w.Treasury;
+            w.Pay(TreasuryCat.OtherOut, -t0); w.Regions[0].Pops[0].Savings += t0;   // 国庫を0へ（現金は1つの POP へ移す＝保存則を割らない）
+            w.AdminSpending = 3.0;                                                    // 行政の予算が歳入を超える＝r＜1 の月を作る
+            if (capZero) w.Coef.DevaluationCapFrac = 0;
+            for (int d = 0; d < 28; d++) sim.StepDay();
+            sim.StepDayOpen(); sim.StepDayDaily();   // 締めの直前＝r を決める時点と同じ国庫と見込み
+            w.Convertibility = conv;                 // 部分兌換＝余地は払えない分の半分（月の上限 DevaluationCapFrac の手前）
+            double payable = System.Math.Max(0, w.Treasury) + w.LastRevenue, overdraft = System.Math.Min(0, w.Treasury);
+            double dv0 = w.TreasuryLedger[(int)TreasuryCat.Devalue];
+            sim.StepDayClose(); w.FlushLog();        // 月次決算（切り下げ→r→予算→精算→財政）
+            return (w, payable, overdraft, w.TreasuryLedger[(int)TreasuryCat.Devalue] - dv0);
+        }
+        var (wf, pf, of, dev) = Month(false);
+        var (wg, pg, og, devG) = Month(true);
+        Assert.NotSame(wf.Coef, wg.Coef);
+        Assert.NotEqual(MonetaryStandardLaw.Silver, wf.MonetaryLaw);   // 前提：銀の段なら余地の式が改鋳の窓になる（仏の開幕は不換・NullAgent は銀へ上げない）
+        Assert.Equal(pg, pf); Assert.Equal(og, of);   // 双子＝締めの直前まで同じ
+        double rG = wg.FiscalFundingRatio, rF = wf.FiscalFundingRatio;
+        Assert.True(rG > 0 && rG < 1, $"前提：G の r が (0,1) に無い（{rG:F4}）");
+        Assert.Equal(0.0, devG);
+        Assert.True(dev > 0, "前提：F が切り下げていない");
+        double claims = pg / rG;   // G は切り下げなし＝r＝払える額÷請求
+        // ② 額＝余地の規則そのもの（月の上限が効いていない盤面）
+        double room = (1.0 - conv) * System.Math.Max(0, claims - pf - of);
+        Assert.True(System.Math.Abs(dev - room) <= 1e-6 * room, $"切り下げ {dev:F4} ≠ 余地 {room:F4}（(1−兌換)×払えない請求）");
+        // ① r は切り下げを払える額に入れて決まる
+        double expect = System.Math.Min(1.0, (pf + dev) / claims);
+        Assert.True(System.Math.Abs(rF - expect) <= 1e-9, $"r {rF:F6} ≠ (払える額＋切り下げ)÷請求 {expect:F6}（G の r {rG:F6}）");
+        Assert.True(rF > rG, "切り下げた金がその月の支払いに使われていない");
     }
 }

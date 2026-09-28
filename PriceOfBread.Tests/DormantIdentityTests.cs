@@ -166,7 +166,7 @@ public class DormantIdentityTests
         "PopDebtLossShare", "DebtRepayFrac", "DebtRuinRatio",
         "HouseholdCreditMonths",
         "AbsorptionIncomeRef", "AbsorptionIncomeWeight",
-        "AiCrisisBorrow", "AiDevelopmentalSubsidy",   // AiMobilization は 2026-09-20 に係数ごと削除（段の点火で総動員のAI分岐が常時 live）
+        "AiDevelopmentalSubsidy",   // AiMobilization は 2026-09-20 に係数ごと削除（段の点火で総動員のAI分岐が常時 live）・AiCrisisBorrow は 2026-09-28 に係数ごと削除（借入の自動化で予約の列が消えた）
         "ArmyShapeGauge", "BondRateDebtQuad",
         "CoercionUpkeepToSoldiers", "CohortGateK",
         "CorruptionPoorOfficialWeight",

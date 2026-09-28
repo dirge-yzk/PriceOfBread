@@ -121,7 +121,7 @@ public sealed class UtilityAgent : INationAgent
     private const double UnrestSSPressure = 1.0;
     private const double UFisWeight = 1.2;                      // 緊縮効用：国庫逼迫の重み
     private const double ColonyDefenseWeight = 0.3;             // 植民地防衛の軍拡効用
-    // 工場/プランテーションの着工（2026-08-04）。平時の規律＝借金ボタンと同じ財政逼迫の上限。
+    // 工場/プランテーションの着工（2026-08-04）。平時の規律＝借入と同じ財政逼迫の上限。
     // ★2026-08-04の再是正：0.5（＝バッファの半分まで減っていても着工）では、工事の日次出費が国庫を吸い上げ、
     //   福祉・行政に回る金が細って満足度が落ち、政党支配×低満足の経路で**軍事独裁が5%→34%**まで増えた（実測R16/R17）。
     //   工場は「余裕のある国が建てるもの」＝国庫が財政バッファを**満たしている**時だけに絞る（0＝逼迫ゼロ）。
@@ -308,7 +308,7 @@ public sealed class UtilityAgent : INationAgent
     }
     private const double DumpingExportRatio = 1.3;         // ダンピング発動の輸出超過比
     private const double DumpingTariff = -0.10;            // ダンピング（負関税）
-    internal const double RecessionDrawdownThreshold = 0.08;// 後退＝緩和のドローダウン閾値。★2026-08-26：UI（プレイヤーの前倒し起債）が同じ1本を読む＝二重定義の解消
+    internal const double RecessionDrawdownThreshold = 0.08;// 後退＝緩和のドローダウン閾値（★2026-08-26 に UI の前倒し起債と1本化・その起債は 2026-09-28 に借入の自動化で削除）
     // 恐慌AI対処（2026-07-25 #124・ユーザー裁定＝機構の振幅は触らずAIを賢く。プレイヤーも同じ手を打てる＝対称）：
     private const double PreTighteningInterestRate = 0.32; // 予防的引締め（過熱の兆候で早めに締めバブルを小さく＝恐慌原因の41%が信用過熱先行）
     // ★係数へ昇格（2026-08-22・恐慌較正の二段構え＝作者裁定「まず裸の資本主義の値を予想し、素の経済をそこへ合わせ、AIの対策で史実へ」）。
@@ -734,18 +734,7 @@ public sealed class UtilityAgent : INationAgent
             else if (mOutmatched || mLosing > MobilizeLosingScore) w.Mobilized = true; // 劣勢/存亡＝総動員（levée en masse 1793・独ソの総力戦動員の型）
         }
         Apply(w, ChooseStance(w));
-        // 借金ボタン（AIは自動で押す＝プレイヤーと同ルール）：国家の支払い率 r＜1（全ての国家の支払いの請求を払えない）の時に1回借りる
-        //   （作者裁定 F3・2026-09-28＝旧は国庫＜直近の維持費＋利払い）。★条件はプレイヤー（GameViewModel の自動起債）と**同じ1行**。
-        //   返済でスタックは戻る。★可否判定の不一致（wave2b G06#3）：Fiscal.Step の実処理は BorrowCooldown<=0 を見て予約消化を止める＝ここも見る。
-        if (w.FiscalFundingRatio < 1 && w.BorrowStacks < w.Coef.MaxBorrowStacks && w.BorrowCooldown <= 0)
-            w.RequestBorrow();
-        // ★恐慌の谷では「借りられるうちは自傷しない」（AiCrisisBorrow・2026-08-22・恐慌対策＝賢いAI）：不況（GdpDrawdown>RecessionDrawdownThreshold）で
-        //   債権者の緊縮がまだ立っておらず（AusterityIntensity=0）・借入枠があるなら、国庫が**財政バッファ**（FiscalBufferOf＝月次義務×月数＝財政タブが見せる同じ物差し）を
-        //   割った時点で借りる＝逼迫反射（投資停止・投げ売り・補助金停止・LOLR失格）の連鎖が立つ前に埋める。動詞は既存の RequestBorrow 1本・費用は既存物理
-        //   （利払い・スタック・債務/GDP→緊縮）。プレイヤーも同条件で自動（GameViewModel）＝対称。0＝旧経路のみ＝恒等。否定形＝NaN は借りない側へ。
-        if (w.Coef.AiCrisisBorrow > 0 && w.GdpDrawdown > RecessionDrawdownThreshold && !(w.AusterityIntensity > 0)
-            && w.BorrowStacks < w.Coef.MaxBorrowStacks && w.BorrowCooldown <= 0 && w.Treasury < FiscalBufferOf(w))
-            w.RequestBorrow();
+        // （借入は 2026-09-28 に Fiscal の1行＝国家の支払い率 r＜1 の月にエンジンが自動で借りる形へ＝ここの予約の2行〔r＜1 と恐慌の谷の前倒し AiCrisisBorrow〕を削除。作者裁定「借入は自動化・借金ボタンは不要」）
         // 通貨改革（2026-08-13）：**プレイヤーのボタンと同じ口**（World.RequestCurrencyReform）を押す。
         // AIは実力どおりの新平価を選ぶ（ポワンカレ型）＝旧平価に戻すという自傷は**プレイヤーだけが選べる選択肢**。
         // 機構は対称で、判断だけが違う（巨大建造物と同じ作法）。ゲートは Fiscal が持つので、ここは意思だけ。
@@ -976,12 +965,12 @@ public sealed class UtilityAgent : INationAgent
     ///   **プレイヤーだけが持つ動詞**だった（AI=プレイヤー対称の破れ）。カウンター化でUIの動詞も1本に畳まれた。
     /// 判断は既存の物質量だけ＝(1)その財が儲かっているか（SmoothedMargin＝採算の平滑値・生産者自身が持つ）
     ///   (2)その州にその財の働き手が余っているか（失業＝建てても人が集まる＝プレイヤーがUIで見ているのと同じ材料）。
-    /// 1四半期に1件・決定論（同点は州順→財id順）。財政逼迫時は建てない（借金ボタンと同じ規律）。</summary>
+    /// 1四半期に1件・決定論（同点は州順→財id順）。財政逼迫時は建てない（借入と同じ規律）。</summary>
     private static void TryBuildFacility(World w)
     {
         if (w.SelfPower is null) return;   // 単一国（テスト・較正）では走らせない＝較正に無影響
         // ★鋼市場診断#3(b)（2026-08-16・AiBuildGuardRelax>0のみ）：財政ガードの緩和＝旧「FiscalStress>0.0で即return」（国庫がバッファ満額でないと建てない）を
-        //   **借金ボタンと同じ規律**（DecideQuarter の RequestBorrow 条件＝国家の支払い率 r＜1 の時だけ止まる・2026-09-28＝旧は維持費＋利払いを国庫で賄えない時）へ。否定形＝NaNは建てない側。
+        //   **借入と同じ規律**（Fiscal の借入の条件＝国家の支払い率 r＜1 の時だけ止まる・2026-09-28＝旧は維持費＋利払いを国庫で賄えない時）へ。否定形＝NaNは建てない側。
         //   ⚠2026-08-04の前科（0.5緩和→工事の日次出費が国庫を吸い軍事独裁5%→34%＝FacilityBuildStressCeiling の注記）＝当時は月次出費の律速が未実装だった。
         //   いまは下の FacilityBuildOutlayShare が本命の予算制約として残る。緩和は必ずこのフラグ経由・**点火A/Bで軍事独裁の頻度（PolityDistribution）を必ず見る**。
         bool relax = w.Coef.AiBuildGuardRelax > 0;

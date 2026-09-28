@@ -2079,12 +2079,53 @@ public sealed class Simulation
                 }
             }
         double payable = Math.Max(0, World.Treasury) + World.LastRevenue;
+        // ＞0＝ r＝1 の月の余剰（減債の原資＝Fiscal）・＜0＝払えない請求（＋借越）。負の国庫（記録されない当座借越）は余剰から先に埋める
+        //   ＝借越のまま国債を返さない・埋められない借越は赤字（r は Q1 のとおり max(0,国庫) で決める＝国庫0の国の率0→行政0→税収0の行き詰まりを作らない）。
+        double spare = payable - claims + Math.Min(0, World.Treasury);
+        // ★切り下げ（インフレ税）は**払える額の側**（2026-09-28・(87) の申し送り iii・作者裁定 F4「不足は量を減らすか未払いの記録＝他人から取らない」・思想⑨）。
+        //   旧（段2-1）＝ここで r を決めて請求を r で切って払い、月末の Fiscal が「払えなかった請求の全額」（spare＜0）を全POPから国庫へ移した
+        //   ＝不足を量で減らした上に同じ額を他人からも取る二重（切り下げの収入が税収の 0.1%→22〜41%・取った金は翌月の余剰＝減債へ回った）。
+        //   ⇒ 切り下げの余地を月初に払える額へ入れて r を決め、取った金はその月の支払いに使う。余地は既存の不換の国の発行の規則のまま
+        //   （払えない分×(1−兌換)・銀正貨国は改鋳の窓・月に総貯蓄の DevaluationCapFrac まで・うち FiatIssueFrac は新規発行）＝規則は1本。
+        if (World.FiscalEnabled)
+        {
+            double deficit = spare < 0 ? -spare : 0;   // 否定形＝NaN は0
+            // 兌換可能性で切り下げ可能量を連続スケール（倍率排除②）：完全兌換(Conv=1)＝切り下げ封印（金の規律）／不換(Conv=0)＝赤字全額を切り下げ可。部分兌換は中間。
+            double devalueRoom = deficit * (1.0 - World.Convertibility);
+            // ★銀の段の軽い規律（SilverLightDiscipline・2026-08-21）：銀正貨国の切り下げ＝**改鋳（debasement）**は史実で日常だった
+            //   （清の咸豊大銭・ムガル以来の含有量操作）。封印されるのは**銀行券の発行**の側＝正貨比率（BaseMoney/BroadMoney）ぶんは
+            //   兌換中でも改鋳の窓が開く：room = deficit×(1 − Conv×(1−正貨比率))。純正貨経済（比率≈1）はほぼ全開・銀行券経済ほど封印が効く。
+            //   ⚠新しい定数ゼロ（19-10差し戻しの根③＝切下げ封印の全世界閉鎖、の是正）。**live=1（2026-08-21点火）**・0に戻せば旧式と厳密恒等。金の段は従来どおり封印。
+            if (World.Coef.SilverLightDiscipline > 0 && World.MonetaryLaw == MonetaryStandardLaw.Silver)
+            {
+                double specie = World.BroadMoney > 1e-9 ? World.BaseMoney / World.BroadMoney : 1.0;
+                if (!(specie >= 0)) specie = 0; else if (specie > 1) specie = 1;   // NaNは0へ倒す（否定形＝ClampはNaNを消さない）
+                devalueRoom = deficit * (1.0 - World.Convertibility * (1.0 - specie));
+            }
+            bool devalued = false;   // 通貨改革の発動ゲート（切下げゼロの連続月数）が読む
+            if (devalueRoom > 1e-9)
+            {
+                double totalSav = 0; foreach (var dr in World.Regions) foreach (var dp in dr.Pops) totalSav += Math.Max(0, dp.Savings);
+                // DevaluationCapFrac は**月あたり**の上限（月次決算＝月に1回）。超過は r＜1＝量の減少で劣化（連合の薄給→治安維持力↓）
+                double devalue = Math.Min(devalueRoom, totalSav * World.Coef.DevaluationCapFrac);
+                if (devalue > 1e-9)
+                {
+                    // 不換シニョリッジ（fiat-expansion-as-haircut-not-issue）：切り下げのうち FiatIssueFrac は pop から取らず新規発行＝マネーストック膨張(M↑)。
+                    // 発行ぶんは CumulativeFiatIssued に積み Invariants の expected に算入(鋳造と同型)。M↑→P↑は FiatInflationPressure が表現＝二重取りなし。
+                    double issue = devalue * World.Coef.FiatIssueFrac;
+                    double haircut = devalue - issue;
+                    if (haircut > 1e-12) foreach (var dr in World.Regions) foreach (var dp in dr.Pops) dp.Savings -= haircut * (Math.Max(0, dp.Savings) / totalSav);
+                    World.Pay(TreasuryCat.Devalue, devalue); World.CumulativeDevaluation += devalue; devalued = true;
+                    World.CumulativeFiatIssued += issue;   // BaseMoney の正当な増加源（Invariants 算入）
+                    World.FiatInflationPressure += devalue / Math.Max(1.0, World.BroadMoney);   // 紙幣増発＝インフレ圧（名目GDP↑→実質債務減）
+                    payable += devalue; spare += devalue;   // 取った金はこの月の払える額＝r に入る（請求を切った上で別に取らない）
+                }
+            }
+            World.NoDevaluationMonths = devalued ? 0 : World.NoDevaluationMonths + 1;
+        }
         double payRate = claims > 0 ? payable / claims : 1.0;
         if (!(payRate >= 0)) payRate = 0; else if (payRate > 1) payRate = 1;   // 否定形＝NaN は払わない側
         World.FiscalFundingRatio = payRate;
-        // ＞0＝ r＝1 の月の余剰（減債の原資）・＜0＝払えない請求（切り下げの原資）＝Fiscal。負の国庫（記録されない当座借越）は余剰から先に埋める
-        //   ＝借越のまま国債を返さない・埋められない借越は赤字（r は Q1 のとおり max(0,国庫) で決める＝国庫0の国の率0→行政0→税収0の行き詰まりを作らない）。
-        double spare = payable - claims + Math.Min(0, World.Treasury);
         foreach (var r in World.Regions)
             if (r.State == RegionState.Active)
             {
