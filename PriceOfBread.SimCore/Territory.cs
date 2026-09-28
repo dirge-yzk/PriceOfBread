@@ -233,4 +233,56 @@ public static class Territory
                 break;
         }
     }
+
+    /// <summary>★州の移し替えの1本（2026-09-28 処理の一元化 段2 B）＝割譲（講和の割譲・植民地格の州の複数割譲・反乱国の膨張）・
+    /// 建国（新しい国の器は呼び手が州から組む＝<paramref name="to"/> が null）・再併合が必ず通る。種類の差は <see cref="Rehome"/> の引数だけ。
+    /// ⚠旧＝割譲（Diplomacy.TransferRegion）・建国（MultiNationSim.SpawnNation）・再併合（ReabsorbNations）が州を外し・Id を振り・台帳を付ける手順を
+    ///   それぞれ書いていた＝再併合だけ返還州の Id を「親の州の数」で振り、建国で親の州が抜けて Id が歯抜けのとき既存の州と同じ Id が付いた
+    ///   （0..9 から 4 が抜けて数が9 → 返還州に 9）。Id で州を引く所と割譲先の同点決着が崩れる。
+    /// 手順＝①保存量（同一値を両辺に使う）②外す＋送り手の台帳 ③受け手へ（<see cref="Adopt"/>＝Id は最大＋1・併合の荷物・国債の保有は送り手の対外債へ振替・受け手の台帳）
+    ///   ④首都だったら残る州のうち最大GDPの州へ遷都（<see cref="World.SetCapital"/>）⑤付け直し（<see cref="Rehome"/>）。
+    /// 講和の帰結（被征服の不満・失地の累計・年代記）は割譲の呼び手（Diplomacy.CedeRegion）だけが足す。状態も係数も増やさない。</summary>
+    internal static void TransferRegion(World from, World? to, Region r, Rehoming how, bool sameCore = false)
+    {
+        bool wasCapital = r.Id == 0;
+        // 保存量＝移転州の貯蓄総額・人口（同一値を両辺に使い浮動小数ズレ回避＝TotalMoney/TotalPopulation の実減と CumulativeTradeFlow/PopulationDelta の調整をビット一致させる）。
+        double S = r.SumSavings(), P = r.SumPopulation();
+        from.Regions.Remove(r);
+        from.CumulativeTradeFlow -= S; from.PopulationDelta -= P;
+        r.Seceded = false;
+        if (to is not null)
+        {
+            Adopt(to, r);
+            // 案Y（人口物差しの脱汚染・2026-08-21）：併合の持ち込み人口を記帳＝受け手の PopGrowth（1783年比・領土不変な定義）の分子から除く。
+            // 故地への復帰（1783年の所有国が取り返した＝OriginPowerId 一致）は0＝再征服・回復は帯へ戻る。**観測専用**＝力学は読まない。建国の付け直しは0へ戻す（下の Rehome）。
+            r.AnnexBaggage = to.SelfPower is { } tp && tp.Id == r.OriginPowerId ? 0.0 : P;
+            // ★国債の保有台帳（2026-09-21）：移る州のPOPが持つ送り手の国債は**送り手の対外債へ振替**＝受け手の対外債権になる（金は動かない）。
+            //   ★史実：フランクフルト条約1871＝ドイツはフランス国債を一切継承せず、アルザス＝ロレーヌの住民が持つフランス国債はフランスへの請求権のまま残った。
+            //   ⚠勝者の按分継承（ツューリヒ1859・ヴェルサイユ254条）は国家間の債務分担の取り決めで、持ち手の請求権の債務者は変わらない。
+            //   帳消しにする形は、失地で送り手の債務が軽くなり持ち手だけが損をする（負けるほど財政が楽になる）。再併合は反乱国の国債を先に消している＝0 は素通り。
+            foreach (var p in r.Pops) Fiscal.ExportBondHoldings(p, p.BondHoldings, from, to);
+            to.CumulativeTradeFlow += S; to.PopulationDelta += P;
+        }
+        if (wasCapital)
+        {
+            // 首都を失った：残る active 州のうち最大GDPを新首都へ（同値は Id の小さい方）＝「首都を持つ」不変条件を維持。
+            Region? cap = null; double capBest = double.MinValue;
+            foreach (var q in from.Regions)
+            {
+                if (q.State != RegionState.Active) continue;
+                double g = 0; foreach (var s in q.Producers) { var good = q.GoodOf(s.GoodId); if (good is null || good.Tier == GoodTier.Service) continue; g += s.Output * good.RefPrice; }
+                if (g > capBest || (g == capBest && (cap is null || q.Id < cap.Id))) { capBest = g; cap = q; }
+            }
+            if (cap is not null) from.SetCapital(cap);
+        }
+        Rehome(r, how, sameCore);
+    }
+
+    /// <summary>州を国へ迎える＝Id は国の中で最大＋1（Id0＝首都は不変）。移し替え（<see cref="TransferRegion"/>）と植民地の州化（Simulation.PromoteColonyToRegion）の1本。</summary>
+    internal static void Adopt(World to, Region r)
+    {
+        int id = 1; foreach (var q in to.Regions) if (q.Id >= id) id = q.Id + 1;
+        r.Id = id;
+        to.Regions.Add(r);
+    }
 }

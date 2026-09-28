@@ -291,7 +291,7 @@ public sealed class Diplomacy
     /// ⚠インスタンスのフィールド＝この世界の戦争だけが届く（並列の別世界と混ざらない）。デリゲートなので SaveGame は保存しない（ロード後 null）。</summary>
     public Action<double, double>? CasualtyProbe;
     public List<War> Wars = [];
-    public List<EndedWarRecord> EndedWars = [];   // 終戦の記録（UI用の純記帳・2026-07-19）。StepWars が講和時に追記・256件リング
+    public List<EndedWarRecord> EndedWars = [];   // 終戦の記録（UI用の純記帳・2026-07-19）。終戦の1本 EndWar が追記（講和と国の除去）・256件リング
     public EventLog Log = new();
     public int WarsStarted;   // 開戦回数のスカラーカウンタ（Validationの開戦数＝旧・Log文字列走査の置換。Log.Enabled=falseでも数える）
     private readonly Dictionary<long, int> _warCount = [];   // ★診断（2026-08-01）：ペアごとの開戦回数。挙動非依存＝書くだけ
@@ -396,10 +396,13 @@ public sealed class Diplomacy
 
     // === 従属関係のアクセサ（属国・一本化） ===
     /// <summary>★内戦一元化（2026-08-30）：国家の除去（再統合の外交側）。戦争・同盟・従属・禁輸のうち**この国が当事者のもの**を掃除して
-    /// Powers から外す。緊張等の long キー辞書は掃除しない（Key はもう引かれない＝到達不能な残骸で挙動に読み手なし）。</summary>
-    public void RemovePower(Power p)
+    /// Powers から外す。緊張等の long キー辞書は掃除しない（Key はもう引かれない＝到達不能な残骸で挙動に読み手なし）。
+    /// ★戦争は終戦の1本（<see cref="EndWar"/>）を通して閉じる（2026-09-28 処理の一元化 段2 C）＝終戦の記録が残る。
+    /// ⚠旧＝`Wars.RemoveAll` で消すだけ＝反乱国が巻き込まれていた第三国との戦争は記録なしで消えた（画面の終わった戦争・trenchprobe の長さに出ない）。</summary>
+    public void RemovePower(Power p, Coefficients c)
     {
-        Wars.RemoveAll(w => w.A == p || w.B == p);
+        for (int i = Wars.Count - 1; i >= 0; i--)
+            if (Wars[i].A == p || Wars[i].B == p) EndWar(Wars[i], i, c);
         foreach (var q in Powers)
         {
             if (q == p) continue;
@@ -1416,7 +1419,6 @@ public sealed class Diplomacy
     private void StartWar(Power a, Power b, Coefficients c, Power? soleInitiator = null)
     {
         if (AtWar(a, b)) return;   // 監査2026-07-05：同一ペアの二重 War 登録を遮断（呼び出し3経路は全て上流で検査済み＝防御的二重化。二重登録は Score/講和が分裂する）
-        Wars.Add(new War { A = a, B = b });
         WarsStarted++;
         // ★開戦の政治的帰結（2026-08-10 作者FB③）＝挑発と同じ向き（タカ派が喝采・ハト派が反発）を、開戦を**選んだ側**の国内世論へ。
         // ⚠強度は別係数 WarStartPoliticsScale（既定0＝ガードで即returnする厳密恒等の休眠。点火はバッチ測定で）。
@@ -1432,12 +1434,27 @@ public sealed class Diplomacy
         // 挙動には一切影響しない（書くだけ）。バッチ末尾に「最多再戦ペア」と「3回以上戦ったペアの数」が出る。
         _warCount[Key(a, b)] = _warCount.GetValueOrDefault(Key(a, b)) + 1;
         Log.Add($"{_year} {a.Name}×{b.Name} 開戦（緊張{Tension(a, b):F0}）");
-        _embargo.Add(Key(a, b));   // 戦争中は強制禁輸
-        // 同盟国は「参加義務なし」＝敵への緊張が高い同盟国だけ参戦（別の1v1戦争として）
-        JoinAllies(a, b, c);
-        JoinAllies(b, a, c);
+        // 交戦の入口の1本（強制禁輸・同盟は「参加義務なし」＝敵への緊張が高い同盟国だけ参戦＝別の1v1戦争として・両陣営の同盟へ問う）
+        AddBelligerent(new War { A = a, B = b }, c, depth: 0);
         // 従属の防衛＝宗主のみ参戦義務（ユーザー指示）。攻守どちらでも従属の宗主は無条件で従属側に参戦。
         if (c.EnableDependency) { DefendDependent(a, b, c); DefendDependent(b, a, c); }
+    }
+
+    /// <summary>★交戦の入口の1本（2026-09-28 処理の一元化 段2 D）＝戦争を立て（強制禁輸つき）、同盟の連鎖参戦を問う。
+    /// 開戦（<see cref="StartWar"/>）・内戦（<see cref="DeclareCivilWar"/>）・宗主の参戦（<see cref="DefendDependent"/>）・同盟の参戦（<see cref="JoinAllies"/>）・
+    /// プレイヤーの参戦の受諾（<see cref="ResolveCallToArms"/>）が必ず通る＝`Wars.Add` はここだけ。
+    /// <paramref name="depth"/>＝この戦争の当事者の同盟へ問う段（0＝開戦の当事者・1以上＝参戦した国の同盟）。WarChainMaxDepth を超えたら問わない。
+    /// 内戦（CivilWarParent）は親側の同盟だけに問う（反乱側の外援は機会主義戦争が担う）。
+    /// ⚠旧＝宗主の参戦とプレイヤーの参戦の受諾だけが `Wars.Add` を直に書き、その国の同盟に問わなかった＝AI の同盟国が参戦すれば
+    ///   その同盟が連鎖するのに、プレイヤーと宗主が参戦しても連鎖しなかった（設計思想⑤ プレイヤーと AI は完全対等に反する）。
+    ///   参戦した国（AI の同盟国・宗主・プレイヤー）は訪問済みの集合を両陣営で共有する＝3つとも同じ連鎖になる。</summary>
+    private void AddBelligerent(War war, Coefficients c, int depth, HashSet<(long, int)>? visited = null)
+    {
+        Wars.Add(war);
+        _embargo.Add(Key(war.A, war.B));   // 戦争中は強制禁輸
+        if (depth > (int)c.WarChainMaxDepth) return;
+        JoinAllies(war.A, war.B, c, depth, visited);
+        if (war.CivilWarParent is null) JoinAllies(war.B, war.A, c, depth, visited);
     }
 
     /// <summary>従属が交戦に入ったら、その宗主を無条件で（緊張閾値を無視して）従属側に参戦させる＝宗主のみの参戦義務。</summary>
@@ -1447,9 +1464,8 @@ public sealed class Diplomacy
         if (suz is null || suz == enemy || suz.Nation is null || AtWar(suz, enemy) || InDependency(suz, enemy)) return;
         // A6（改修2026-06-28）：宗主の防衛参戦は無条件でなく、厭戦が高くない・**到達できる**（投射力）ことを要する。届かない/疲弊した宗主は属国を見殺しにする（A1の離反へ繋がる）。
         if (suz.WarExhaustion > c.WarWearyThreshold || Projection(suz, enemy, c) < c.DefendProjectionMin) return;
-        Wars.Add(new War { A = suz, B = enemy });
-        _embargo.Add(Key(suz, enemy));
         Log.Add($"{_year} {suz.Name}が宗主として参戦→{enemy.Name}（{dependent.Name}を防衛）");
+        AddBelligerent(new War { A = suz, B = enemy }, c, depth: 1, visited: []);   // ★宗主の同盟も連鎖する（AI の同盟国の参戦と同じ段＝2026-09-28 処理の一元化 段2 D）
     }
 
     /// <summary>★内戦一元化（CivilWarAsWar・2026-08-30）：内戦の開戦。通常の宣戦ゲート（従属・ランク）は通らない＝
@@ -1458,12 +1474,11 @@ public sealed class Diplomacy
     public void DeclareCivilWar(Power parent, Power rebel, Polity rebelPolity, Coefficients c, bool secession = false)
     {
         if (AtWar(parent, rebel)) return;
-        Wars.Add(new War { A = parent, B = rebel, CivilWarParent = parent, CivilWarPolity = rebelPolity, CivilWarSecession = secession });
         WarsStarted++;
         _warCount[Key(parent, rebel)] = _warCount.GetValueOrDefault(Key(parent, rebel)) + 1;
         Log.Add(secession ? $"{_year} {rebel.Name}が{parent.Name}からの独立を宣言＝分離独立戦争" : $"{_year} {parent.Name}で内戦＝{rebel.Name}が地図の上に立った");
-        _embargo.Add(Key(parent, rebel));   // 内戦中は敵対州間の交易が禁輸/密輸の既存機構に乗る（doc §3＝④が自動になる）
-        JoinAllies(parent, rebel, c);
+        // 交戦の入口の1本（内戦中は敵対州間の交易が禁輸/密輸の既存機構に乗る＝doc §3 の④が自動になる・同盟は親側だけに問う）
+        AddBelligerent(new War { A = parent, B = rebel, CivilWarParent = parent, CivilWarPolity = rebelPolity, CivilWarSecession = secession }, c, depth: 0);
         if (c.EnableDependency) DefendDependent(parent, rebel, c);
     }
 
@@ -1538,14 +1553,8 @@ public sealed class Diplomacy
                 if (ally.PendingCallToArms is null) ally.PendingCallToArms = (belligerent, enemy);
                 continue;
             }
-            Wars.Add(new War { A = ally, B = enemy });
-            _embargo.Add(Key(ally, enemy));
             Log.Add($"{_year} {ally.Name}が同盟により参戦→{enemy.Name}" + (depth > 0 ? $"（連鎖{depth + 1}段目）" : ""));
-            if (depth < (int)c.WarChainMaxDepth)   // 機能5-④-1：参戦国の同盟へさらに伝播（既定2段・0で1段のみ＝旧）
-            {
-                JoinAllies(ally, enemy, c, depth + 1, visited);
-                JoinAllies(enemy, ally, c, depth + 1, visited);
-            }
+            AddBelligerent(new War { A = ally, B = enemy }, c, depth + 1, visited);   // 機能5-④-1：参戦国の同盟へさらに伝播（既定2段・0で1段のみ＝旧）
         }
     }
 
@@ -1556,9 +1565,8 @@ public sealed class Diplomacy
         player.PendingCallToArms = null;
         if (join && !AtWar(player, call.Enemy))
         {
-            Wars.Add(new War { A = player, B = call.Enemy });
-            _embargo.Add(Key(player, call.Enemy));
             Log.Add($"{_year} {player.Name}が同盟により参戦→{call.Enemy.Name}");
+            AddBelligerent(new War { A = player, B = call.Enemy }, c, depth: 1, visited: []);   // ★プレイヤーの同盟も連鎖する（AI の同盟国の参戦と同じ段＝2026-09-28 処理の一元化 段2 D）
         }
         else if (!join && c.AllyRefusalTension > 0)
         {
@@ -1933,24 +1941,9 @@ public sealed class Diplomacy
             {
                 int n = target.ColonyList.Count;
                 foreach (var col in target.ColonyList) col.Militancy = Math.Max(col.Militancy, c.ColonizeAnnexMilitancy);   // A5：無血併合にも被支配の不満＝後に植民地独立判定(Colonial)で離反しうる（抵抗の実体化）
-                // ★従属の一般化・第一切片（2026-08-31・2026-09-28 に旗 CapturedColoniesAreRegions ごと焼き込み）：接収した Colony をその場で植民地格の州へ実体化
-                //   （不満は上で col.Militancy に置いた後＝Promote が現地農民の Militancy へ写す）。
-                if (n > 0 && great.Nation is { } greatW)
-                {
-                    foreach (var col in target.ColonyList)
-                    {
-                        // ★J-006「止める」（作者裁定2026-09-05）：同名の州を既に持つ＝**同じ領土を既に州として保有**している＝Colony オブジェクトは消える
-                        //   （旧＝great.ColonyList へ持ち越し＝州⇔Colony の往復＝二重の実体）。★回1-2（2026-09-27）：住民は PromoteColonyToRegion がその州へ運ぶ
-                        //   （旧＝住民ごと捨てた＝作者裁定 2026-09-26「住民が消えるのは好ましくない」）。保存検査の台帳は AbsorbedColonies（第4の出口）。
-                        if (greatW.Regions.Exists(r => r.Name == col.Name)) { AbsorbedColonies++; Log.Add($"{_year} {col.Name}は{great.Name}が既に州として保有＝住民は州へ"); }
-                        // ⚠PromotedColonies は増やさない（実測2026-08-31＝保存検査が8/10赤）：Colonial tier の州は
-                        //   Power.Colonies（=ColonyList+ColonialRegions）に数えられ続ける＝リスト−1と州+1で総数不変。
-                        //   カウンタも足すと二重計上（構築時の一括昇格 PromoteAllColonies が数えないのと同じ規約）。
-                        Simulation.PromoteColonyToRegion(greatW, c, col, RegionTier.Colonial);
-                    }
-                    target.ColonyList.Clear();
-                }
-                else if (n > 0) { great.ColonyList.AddRange(target.ColonyList); target.ColonyList.Clear(); }   // 抽象弱小＝植民地を接収
+                // 接収した Colony は受け取りの1本（AcquireColony＝国を持つ受け手はその場で植民地格の州へ・不満は上で col.Militancy に置いた後＝Promote が現地農民の Militancy へ写す）。
+                foreach (var col in target.ColonyList) AcquireColony(great, col, c);
+                target.ColonyList.Clear();
                 Log.Add($"{_year} {great.Name}が{target.Name}を侵略（併合・植民地+{n}）");
             }
             else
@@ -1964,6 +1957,25 @@ public sealed class Diplomacy
         StartWar(great, target, c, great);   // 拒否＝戦争（既存の戦争解決に乗る。勝てば講和で植民地/属国を得る）。WarsStarted は StartWar 内で加算済み（監査2026-07-11 二7：呼び出し側の二重加算を削除）
         Log.Add($"{_year} {target.Name}が{great.Name}の侵略に抗して開戦");
         return true;
+    }
+
+    /// <summary>★植民地の受け取りの1本（2026-09-28 処理の一元化 段2 B）＝講和の奪取・無血併合（侵略の屈服）・反乱国の再併合が通る
+    /// （旧＝講和と無血併合がほぼ同じ文面を2か所に書き、再併合は一覧へ足すだけだった）。不満の置き方は呼び手ごとに違う（意図どおり）。
+    /// ★従属の一般化・第一切片（2026-08-31・2026-09-28 に旗 CapturedColoniesAreRegions ごと焼き込み）：国を持つ受け手はその場で植民地格の州へ実体化。
+    /// ★J-006「止める」（作者裁定2026-09-05）：同名の州を既に持つ＝**同じ領土を既に州として保有**している＝Colony オブジェクトは消える
+    ///   （旧＝受け手の ColonyList へ持ち越し＝州⇔Colony の往復＝二重の実体）。★回1-2（2026-09-27）：住民は PromoteColonyToRegion がその州へ運ぶ
+    ///   （旧＝住民ごと捨てた＝作者裁定 2026-09-26「住民が消えるのは好ましくない」）。保存検査の台帳は AbsorbedColonies（第4の出口）。
+    /// ⚠PromotedColonies は増やさない（実測2026-08-31＝保存検査が8/10赤）：Colonial tier の州は Power.Colonies（=ColonyList+ColonialRegions）に
+    ///   数えられ続ける＝リスト−1と州+1で総数不変。カウンタも足すと二重計上（構築時の一括昇格 PromoteAllColonies が数えないのと同じ規約）。
+    /// 国を持たない受け手（抽象標的）は一覧で持つ（旗0の旧経路＝Colony ごと消える枝は 2026-09-28 に削除）。</summary>
+    internal void AcquireColony(Power receiver, Colony col, Coefficients c)
+    {
+        if (receiver.Nation is { } rw)
+        {
+            if (rw.Regions.Exists(r => r.Name == col.Name)) { AbsorbedColonies++; Log.Add($"{_year} {col.Name}は{receiver.Name}が既に州として保有＝住民は州へ"); }
+            Simulation.PromoteColonyToRegion(rw, c, col, RegionTier.Colonial);
+        }
+        else receiver.ColonyList.Add(col);
     }
 
     /// <summary>遠征技術ゲート（宗主の地理2026-07-12）：**海越えの植民地化遠征**は蒸気補給・兵站・医療の技術がないと成立しない
@@ -2410,10 +2422,7 @@ public sealed class Diplomacy
             bool weary = !(war.A.WarExhaustion <= c.WarPeaceExhaustion * aCut) && !(war.B.WarExhaustion <= c.WarPeaceExhaustion * bCut);
             if (decisive || weary || war.ForcedPeace)   // ForcedPeace＝列強の調停（Score は0に置かれている）
             {
-                // 終戦記録（UI用の純記帳・2026-07-19）：削除前の最終値を保存。リングは256件で頭打ち（決定論の丸め）
-                EndedWars.Add(new EndedWarRecord { AId = war.A.Id, BId = war.B.Id, Score = war.Score, Months = war.Months, EndYear = _year, DeadA = war.DeadA, DeadB = war.DeadB, CivDeadA = war.CivDeadA, CivDeadB = war.CivDeadB });
-                if (EndedWars.Count > EndedWarRingCapacity) EndedWars.RemoveAt(0);
-                ResolvePeace(c, war); EndWar(war, i, c);
+                ResolvePeace(c, war); EndWar(war, i, c);   // 終戦の記録は EndWar の中（国の除去 RemovePower と同じ1本）
                 // 監査2026-07-11（他3）：復讐心は EndWar の緊張リセット（_tension[k]=PostWarTension）より後に積む。
                 // 旧＝ResolvePeace 内で AddTension → 直後の EndWar が同ペアキーへ代入し同ティック内で必ず消えていた（失地回復戦が一度も発火しない死蔵）。
                 if (_pendingRevanch is { } pr)
@@ -2503,7 +2512,7 @@ public sealed class Diplomacy
                 //   （合流も機能していない＝どの経路も既存の反乱国へ州を足さない）。史実の大反乱の規模は合流ではなく**移動と吸収**から来た。
                 //   >0 で「押していた分だけ親の州を取る」＝**既存の戦勝点を予算**（1州の値段＝係数）にし、**既存の割譲経路**
                 //   （CedeTerritory の境界改定＝反乱国の首都に最も近い親の非首都州。投射圏・上陸ゲート・最後の1州ガード・
-                //   人口/貨幣の両建て記帳〔TransferRegion〕ごと再利用）で払う。第二の実装も新しい状態も作らない。
+                //   人口/貨幣の両建て記帳〔Territory.TransferRegion〕ごと再利用）で払う。第二の実装も新しい状態も作らない。
                 //   ⚠この枝**だけ**に置く：再併合の枝は反乱国の**全州**を親へ返す（ApplyReintegrations の moving＝rw.Regions 全部）ので
                 //     膨張しても消える／分離戦の勝利（独立確定）へ広げるかは別の裁定＝別に測る。
                 //   ⚠代償（作者了承済み）：膨張したまま膠着＝**大きな永久の分割**が残る（この枝は |戦勝点|<0.25 で終わった戦争そのもの）。
@@ -2614,17 +2623,8 @@ public sealed class Diplomacy
                     //   同名の二重在籍は Colonial.cs の昇格ガード（同名州が居る国では昇格しない）が引き続き防ぐ。
                     // 外15：武力奪取した植民地に被征服の不満を付す（無血併合 Subjugate・州割譲:CededColonyMilitancy は+0.3 を課すのに、戦争で奪った植民地だけ据え置き＝最も従順という逆転を是正）。
                     if (c.ConquestColonyMilitancy > 0) col.Militancy = Math.Min(1.0, Math.Max(col.Militancy, c.ConquestColonyMilitancy * c.ColonizeAnnexMilitancy));   // 02断線走査2026-07-28：係数を式に乗せる＝武力奪取の不満＞無血併合（被征服の序列が独立圧に効く）
-                    // ★従属の一般化・第一切片（2026-08-31・2026-09-28 に旗 CapturedColoniesAreRegions ごと焼き込み）：奪取した Colony をその場で州へ実体化
-                    if (winner.Nation is { } winWr)
-                    {
-                        loser.ColonyList.RemoveAt(k); captured++;
-                        // ★J-006（2026-09-05）：同名州を持つ勝者へは Colony を渡さない（往復の禁止）。★回1-2（2026-09-27）：住民は PromoteColonyToRegion がその州へ運ぶ
-                        //   （旧＝Colony ごと住民を捨てた＝作者裁定 2026-09-26「住民が消えるのは好ましくない」）。保存検査の台帳は AbsorbedColonies（第4の出口）。
-                        if (winWr.Regions.Exists(r => r.Name == col.Name)) { AbsorbedColonies++; Log.Add($"{_year} {col.Name}は{winner.Name}が既に州として保有＝住民は州へ"); }
-                        // ⚠PromotedColonies は増やさない（同上＝Colonial tier は Colonies に数えられ続ける＝二重計上になる）
-                        Simulation.PromoteColonyToRegion(winWr, c, col, RegionTier.Colonial);
-                    }
-                    else { loser.ColonyList.RemoveAt(k); captured++; winner.ColonyList.Add(col); }   // 抽象標的（Nation==null）の勝者＝旧どおりリストで持つ（旗0の旧経路＝Colony ごと消える枝は 2026-09-28 に削除）
+                    loser.ColonyList.RemoveAt(k); captured++;
+                    AcquireColony(winner, col, c);   // 受け取りの1本（国を持つ勝者はその場で植民地格の州へ・抽象標的の勝者は一覧で持つ）
                     // ★回1-1（col-04・mil-18・2026-09-26）：旧＝ここで勝者の**全POP**の中核民族割合を homePop/(homePop+植民地人口) で縮めていた＝二重の希釈。
                     //   州になった植民地の住民は core=0 で作られる（PromoteColonyToRegion）ので、民族統一度（加重平均）は住民が加わるだけで既に下がる。
                     //   本国の住民の民族は征服で変わらない（思想⑨）＝縮める式と係数 ConquestForeignWeight を削除した。
@@ -2663,7 +2663,7 @@ public sealed class Diplomacy
                 if (pick is null) break;
                 budget -= pickCost; ctaken++; captured++;
                 captNames.Add(pick.Name);
-                TransferRegion(c, lcw, winner, wcw, pick, loser.Name);
+                CedeRegion(c, lcw, winner, wcw, pick, loser.Name);
             }
         }
         // 賠償＝ReparationGdpFraction×敗者GDP×|戦勝点|（条約港講和は TreatyPortReparationMult 倍）。払える範囲（国庫上限）。
@@ -2836,7 +2836,7 @@ public sealed class Diplomacy
         // 首都座標未登録（テスト小世界）・係数0以下は無制約（従来挙動）。圏内に候補が無ければ割譲なし＝賠償のみ。決定論：距離→GDP→Id の決定的tiebreak・RNGなし。
         (double Lat, double Lon) capBase = (0, 0);
         if (c.CessionMaxDistanceKm > 0 && ww.Regions.Count > 0)
-            capBase = Climate.CityCoord(ww.Regions[0].Name);   // Regions[0]＝首都（Id0。遷都でも先頭を維持＝CedeTerritory の首都昇格処理と整合）
+            capBase = Climate.CityCoord(ww.Regions[0].Name);   // Regions[0]＝首都（Id0。遷都でも先頭を維持＝遷都の1本 World.SetCapital と整合）
         bool constrained = c.CessionMaxDistanceKm > 0 && (capBase.Lat != 0 || capBase.Lon != 0);
         // ⚠固定4000kmには根拠がない（ユーザー指摘07-31）。技術で伸ばす器 CessionRangeTechKm（休眠0）は、根拠のない定数に倍率を足す形＝2026-09-26 に削除（棚卸し mil-21・dorm-41）。
         //   直すなら割譲の可否を既存の Projection（距離の減衰×制海権）の閾値で決める形へ（新しい定数を作らない）。
@@ -2886,54 +2886,18 @@ public sealed class Diplomacy
             if (better) { best = g; cede = r; bestDist = dist; }
         }
         if (cede is null) return false;   // 移転できる州がない（投射圏内に候補なし＝賠償のみ）
-        TransferRegion(c, loser, winner, ww, cede, loserName, how);
+        CedeRegion(c, loser, winner, ww, cede, loserName, how);
         return true;   // ★是正（監査2026-09-02 #23）：戻り値＝実際に移転したか。_pendingRevanchの予約可否に使う（下）
     }
 
-    /// <summary>州の物理移転（★2026-08-31にCedeTerritoryから抽出＝ビット同一・従属の一般化V2の複数割譲と共用）。
-    /// 首都喪失の遷都・保存調整・被征服不満・GoodsBalance維持を一括で行う。</summary>
-    private void TransferRegion(Coefficients c, World loser, Power winner, World ww, Region cede, string loserName, Territory.Rehoming how = Territory.Rehoming.Ceded)
+    /// <summary>割譲の1州（講和の割譲・植民地格の州の複数割譲・反乱国の膨張）＝**講和の帰結だけ**を足す。
+    /// 州の物理の移し替え（外す・Id・首都の補修＝遷都・台帳・国債の振替・付け直し）は <see cref="Territory.TransferRegion"/> の1本
+    /// （2026-09-28 処理の一元化 段2 B＝旧はここに本体があり、建国と再併合が別の写しを持っていた）。</summary>
+    private void CedeRegion(Coefficients c, World loser, Power winner, World ww, Region cede, string loserName, Territory.Rehoming how = Territory.Rehoming.Ceded)
     {
-        bool wasCapital = cede.Id == 0;
-        // 保存量＝移転州の貯蓄総額・人口（**同一値を両辺に使い浮動小数ズレ回避**＝TotalMoney/TotalPopulation の実減と CumulativeTradeFlow/PopulationDelta の調整をビット一致させる）。
-        double S = cede.SumSavings(); double P = cede.SumPopulation();
-        // 物理移動：敗者から外し勝者へ。勝者内で一意の非ゼロ Id を再付与（Id0=勝者の首都は不変＝r.Id==0 判定を保つ）。
-        loser.Regions.Remove(cede);
-        int newId = 1; foreach (var r in ww.Regions) if (r.Id >= newId) newId = r.Id + 1;
-        cede.Id = newId;
-        ww.Regions.Add(cede);
-        // 案Y（人口物差しの脱汚染・2026-08-21）：併合の持ち込み人口を記帳＝勝者の PopGrowth（1783年比・領土不変な定義）の分子から除く。
-        // 故地への復帰（1783年の所有国が取り返した＝OriginPowerId 一致）は0＝再征服・回復は帯へ戻る（清の太平天国回復型）。
-        // **観測専用**＝この値を力学は読まない（読者は SelfPlay の standings のみ）。P は上の保存量と同一値＝二重計算なし。
-        cede.AnnexBaggage = winner.Id == cede.OriginPowerId ? 0.0 : P;
-        // 敗者の首都を奪った場合：残active州のうち最大GDPを新首都(Id0)へ昇格（首都不変条件を維持）。奪われた首都が抜けた今、Id0は空き。
-        if (wasCapital)
-        {
-            Region? newCap = null; double capBest = double.MinValue;
-            foreach (var r in loser.Regions)
-            {
-                if (r.State != RegionState.Active) continue;
-                double g = 0; foreach (var s in r.Producers) { var good = r.GoodOf(s.GoodId); if (good is null || good.Tier == GoodTier.Service) continue; g += s.Output * good.RefPrice; }
-                if (g > capBest || (g == capBest && (newCap is null || r.Id < newCap.Id))) { capBest = g; newCap = r; }
-            }
-            if (newCap is not null)
-            {
-                newCap.Id = 0;   // 遷都＝最大都市が新首都
-                loser.Regions.Remove(newCap); loser.Regions.Insert(0, newCap);   // 外9：World.Region(=Regions[0]) が本国市場/賃金/軍需/移民指標を参照するため、新首都をリスト先頭へ並べ替え＝Id0 と Regions[0] の乖離（首都の二重化）を防ぐ
-            }
-        }
-        // 格・民族・市場の台帳・植民地財を新しい持ち主から見た関係で付け直す（回1-1＝割譲・建国・再併合の1本・支配度は割譲では動かさない）。
         //   民族の一致＝両国の主流文化が同じか（違えば割譲州の住民は勝者の中核民族ではない＝col-04）。
-        Territory.Rehome(cede, how, sameCore: loser.SelfPower is { } lsp0 && lsp0.Culture == winner.Culture);
+        Territory.TransferRegion(loser, ww, cede, how, sameCore: loser.SelfPower is { } lsp0 && lsp0.Culture == winner.Culture);
         foreach (var p in cede.Pops) p.Militancy = Math.Min(1, p.Militancy + c.CededColonyMilitancy);   // 被征服の不満
-        // ★国債の保有台帳（2026-09-21）：割譲州のPOPが持つ敗者の国債は**敗者の対外債へ振替**＝勝者の対外債権になる（金は動かない）。
-        //   ★史実：フランクフルト条約1871＝ドイツはフランス国債を一切継承せず、アルザス＝ロレーヌの住民が持つフランス国債はフランスへの請求権のまま残った。
-        //   ⚠勝者の按分継承（ツューリヒ1859・ヴェルサイユ254条）は国家間の債務分担の取り決めで、持ち手の請求権の債務者は変わらない。
-        //   帳消しにする形は、失地で敗者の債務が軽くなり持ち手だけが損をする（負けるほど財政が楽になる）。
-        foreach (var p in cede.Pops) Fiscal.ExportBondHoldings(p, p.BondHoldings, loser, ww);
-        // 保存調整（賠償/越境移民と同型・両国相殺で世界保存）。
-        loser.CumulativeTradeFlow -= S; loser.PopulationDelta -= P;
-        ww.CumulativeTradeFlow += S; ww.PopulationDelta += P;
         loser.LostRegionsCumulative += 1.0;   // 機能7-2（2026-07-28）：失地の長期ストック（Politics.Stepが半減期20年で減衰・r[4]の長期項）
         Log.Add($"{_year} {winner.Name}が{loserName}から{cede.Name}を州移転（領土再編）");
     }
@@ -2979,8 +2943,13 @@ public sealed class Diplomacy
         }
     }
 
+    /// <summary>終戦の1本（講和 StepWars と国の除去 RemovePower が通る）＝記録・禁輸の解除・緊張の置き直し・戦争の削除。</summary>
     private void EndWar(War war, int i, Coefficients c)
     {
+        // 終戦記録（UI用の純記帳・2026-07-19）：削除前の最終値を保存。リングは256件で頭打ち（決定論の丸め）。
+        //   ★2026-09-28（処理の一元化 段2 C）：StepWars からここへ移した＝国の除去で閉じた戦争にも記録が残る。講和（ResolvePeace）は戦争の欄を書かない＝講和の前後で同じ値。
+        EndedWars.Add(new EndedWarRecord { AId = war.A.Id, BId = war.B.Id, Score = war.Score, Months = war.Months, EndYear = _year, DeadA = war.DeadA, DeadB = war.DeadB, CivDeadA = war.CivDeadA, CivDeadB = war.CivDeadB });
+        if (EndedWars.Count > EndedWarRingCapacity) EndedWars.RemoveAt(0);
         long k = Key(war.A, war.B);
         _embargo.Remove(k);                            // 戦争終結で強制禁輸も解除
         ResetTensionTo(k, c.PostWarTension, TensionReason.WarResidue);   // 講和で緊張がリセット（やがて再び煽られて再燃＝周期的）。内訳も戦争の遺恨1本へ＝開戦前の理由は戦争で清算された

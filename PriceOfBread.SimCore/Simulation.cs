@@ -136,11 +136,8 @@ public sealed class Simulation
         //   ⚠史実の首都の写し（表示専用の DisplayCapitalLat/Lon）は画面も年代記も読んでいなかった＝2026-09-26 に削除（x-03）。
         //   ⚠差が出るのは実測3カ国だけ（露634km・コーカンド167km・モロッコ166km）＝他は200km以内で一致。
         //   ⚠CenterIsFirstProvince=0 で1命令も走らない＝厳密恒等（休眠だった＝2026-09-05 B群で点火・0は従来の腕）。
-        if (scenario.Coef.CenterIsFirstProvince > 0 && World.Regions.Count > 0)
-        {
-            var c0 = Places.Coord(World.Regions[0].Name);
-            if (!(c0.Lat == 0 && c0.Lon == 0)) { World.Latitude = c0.Lat; World.Longitude = c0.Lon; }   // 未登録の州名は据え置き（幻の座標を作らない）
-        }
+        //   ★座標の規則は遷都と同じ1本（World.SetCapital・2026-09-28 処理の一元化 段2 B）＝未登録の州名は据え置き（幻の座標を作らない）。
+        if (scenario.Coef.CenterIsFirstProvince > 0 && World.Regions.Count > 0) World.SetCapital(World.Regions[0]);
         World.SetTreasuryRaw(scenario.InitialTreasury);   // 初期国庫＝フローでない（台帳に載せない）
         if (scenario.NationConfig is not null) World.FactionRng = new DeterministicRng(scenario.Seed ^ 0xFAC7_1035_EED5UL);   // F3変異の独立系列（実在国のみ＝較正/最小世界は null＝不発）
         foreach (var r0 in regions) if (r0.State == RegionState.Active) World.FoundingActiveProvinces++;   // 建国時のActive州数（2026-08-04・残余国判定の分母）
@@ -1406,14 +1403,13 @@ public sealed class Simulation
         producers.Add(new Producer { GoodId = Catalog.DomesticServiceId, Productivity = 1.0, Output = 0, MarginalCost = 0.3, LaborPopIndex = 11, OwnerPopIndex = 11, RentShare = 0.0 });
         producers.Add(new Producer { GoodId = Catalog.MilitaryPowerId, Productivity = 1.0, Output = 0, MarginalCost = 0.3, LaborPopIndex = 12, OwnerPopIndex = 12, RentShare = 0.0 });
         AddAlternateRecipes(producers, coef);   // ★代替レシピ（2026-09-06）：全ての州の構築経路で同じ1回
-        int newId = 1; foreach (var r in w.Regions) if (r.Id >= newId) newId = r.Id + 1;   // 勝者内で一意の非ゼロId（CedeTerritory と同じ作法＝Id0=首都は不変）
         var region = new Region
         {
             // ⚠是正2026-08-28：旧＝無条件 IsPort=true＝**内陸の植民地（内陸ベンガル・ボゴタ等）も海港になっていた**。
             //   沿岸かどうかは landmass.json の coastal（一次データ）から引く。
             // ⚠是正2026-09-02（G03監査#2）：未登録名を旧挙動どおり true（港）へ倒すのは fail-open で同じ穴が再発する
             //   （内陸植民地が landmass.json 未登録なら再び海港になる）＝fail-closed（false）へ倒し、ログで沈黙を避ける。
-            Id = newId, Name = col.Name, IsPort = Landmass.CoastalOf(col.Name, fallback: false),
+            Name = col.Name, IsPort = Landmass.CoastalOf(col.Name, fallback: false),
             Tier = tier, Dominance = 0.0, Malarial = col.Malarial,   // 支配度0＝取った年から数える
             Rule = [0.0, 1.0, 0.0, 0.0],   // ★支配度の一般化 段1：昇格した植民地＝間接統治（在地1.0）から始める（段2で支配度と同じ物理で国家区分が育つ）
             RuleInit = [0.0, 1.0, 0.0, 0.0],   // ★E-06 昇格した植民地＝支配度0から積み上げる（引き留め>圧力で育つ）   // ★格は呼び手が決める（入植者昇格＝Integrated／開始時の一括昇格＝Colonial）
@@ -1431,7 +1427,7 @@ public sealed class Simulation
         region.SeaBasin = SeaGraph.BasinAt(clat, clon);   // 港州＝海盆を積出港座標から（WirePortDistances の港側と同じ規則）
         if (!Landmass.IsRegistered(col.Name)) w.LogAdd($"{w.Year} {col.Name}州はlandmass.json未登録＝IsPort=falseへ倒した（沈黙回避）");   // fail-closed の可視化
         foreach (var m in region.Markets) { m.Stock = 0; m.PrevStock = 0; }   // 在庫0で開始（上記の設計判断）。Last*=0 は初期値どおり＝財収支恒等式（GoodsBalance）が最初から閉じる
-        w.Regions.Add(region);
+        Territory.Adopt(w, region);   // Id＝国の中で最大＋1（移し替えと同じ1本・2026-09-28 処理の一元化 段2 B）
         // 保存の記帳（同一値を両辺に使う＝CedeTerritory の作法）
         double S = region.SumSavings(), P = region.SumPopulation();
         w.CumulativeTradeFlow += S;   // 蓄え＋持参金＝台帳の外から国家台帳へ（外部マネー流入）

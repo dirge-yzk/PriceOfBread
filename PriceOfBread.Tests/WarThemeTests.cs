@@ -330,4 +330,88 @@ public class WarThemeTests
         Assert.Equal(0.0, w3.Score);
     }
 
+    // ===== 開戦の入口と終戦の1本（2026-09-28 処理の一元化 段2 C・D）の番人 =====
+
+    private static MultiNationSim Board(params string[] names)
+        => new(System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(names, WorldData.ByName)), seed: 1789, coef: new Coefficients()) { DiplomacyFrozen = true };
+
+    /// <summary>同盟を張る（本体の締結は AI の確率の枝だけ＝番人は盤面へ直に置く）。</summary>
+    private static void Ally(Diplomacy d, Power a, Power b)
+    {
+        var set = (System.Collections.Generic.HashSet<long>)typeof(Diplomacy).GetField("_alliance", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!.GetValue(d)!;
+        set.Add((long)typeof(Diplomacy).GetMethod("Key", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!.Invoke(null, [a, b])!);
+    }
+
+    /// <summary>連鎖参戦の門を全て開けた係数（勝ち目・国難・投射・緊張の閾値）＝「連鎖が配線されているか」だけを見る。</summary>
+    private static Coefficients OpenChain() => new()
+    {
+        DefendProjectionMin = 0, AllyJoinTension = 1,
+        AllyJoinFoodMin = double.NegativeInfinity, AllyJoinFundingMin = double.NegativeInfinity, AllyJoinLegitimacyMin = double.NegativeInfinity,
+    };
+
+    [Fact]
+    public void 除かれた国の第三国との戦争は終戦の記録に残る()
+    {
+        // 旧＝RemovePower が戦争を RemoveAll で消した＝再併合で消えた反乱国が巻き込まれていた戦争は終戦の記録（画面・trenchprobe）に出なかった。
+        var sim = Board("フランス", "イギリス", "スペイン");
+        var fr = sim.Nations[0].World; var es = sim.Nations[2].World;
+        fr.PendingRebelRegions = [fr.Regions[1]]; fr.PendingRebelPolity = Polity.Republic;
+        sim.StepQuarter();
+        var rebel = sim.Nations[^1].World.SelfPower!;
+        Assert.NotSame(fr.SelfPower, rebel);
+        sim.Diplomacy.Wars.Add(new War { A = es.SelfPower!, B = rebel, Score = 0.3, Months = 7 });   // 反乱国が巻き込まれた第三国との戦争
+        int ended0 = sim.Diplomacy.EndedWars.Count;
+
+        sim.Diplomacy.PendingReintegrations.Add((fr.SelfPower!, rebel, false, fr.Polity));
+        sim.ReabsorbNations();
+
+        Assert.DoesNotContain(sim.Diplomacy.Wars, w => w.A == rebel || w.B == rebel);
+        var rec = Assert.Single(System.Linq.Enumerable.Skip(sim.Diplomacy.EndedWars, ended0), r => r.AId == es.SelfPower!.Id && r.BId == rebel.Id);
+        Assert.Equal(0.3, rec.Score);
+        Assert.Equal(7, rec.Months);
+    }
+
+    [Fact]
+    public void プレイヤーが参戦を受けるとその同盟国も連鎖参戦する()
+    {
+        // 旧＝プレイヤーの参戦の受諾は Wars.Add を直に書き、プレイヤーの同盟に問わなかった＝AI の同盟国なら連鎖するのに（設計思想⑤）。
+        var sim = Board("フランス", "イギリス", "スペイン", "ロシア");
+        sim.StepQuarter();   // 食料・財政・正統性の実値を立てる（参戦の国難の判定が読む）
+        var dip = sim.Diplomacy;
+        var caller = sim.Nations[0].World.SelfPower!; var player = sim.Nations[1].World.SelfPower!;
+        var enemy = sim.Nations[2].World.SelfPower!; var ally = sim.Nations[3].World.SelfPower!;
+        player.IsPlayer = true;
+        Ally(dip, player, ally);
+        dip.SeedTension(ally, enemy, 100);
+        ally.Military = 1e9; enemy.Military = 1;   // 勝ち目の門を開ける
+        dip.Wars.Add(new War { A = caller, B = enemy });
+        player.PendingCallToArms = (caller, enemy);
+
+        dip.ResolveCallToArms(player, join: true, OpenChain());
+
+        Assert.True(dip.IsAtWar(player, enemy), "前提が崩れた：プレイヤーが参戦していない");
+        Assert.True(dip.IsAtWar(ally, enemy), "プレイヤーの同盟国が連鎖参戦しない（AI の同盟国の参戦と非対称）");
+    }
+
+    [Fact]
+    public void 宗主の参戦でも同盟国が連鎖参戦する()
+    {
+        // 旧＝宗主の防衛参戦も Wars.Add を直に書き、宗主の同盟に問わなかった。
+        var sim = Board("フランス", "イギリス", "スペイン", "ロシア");
+        sim.StepQuarter();
+        var dip = sim.Diplomacy;
+        var attacker = sim.Nations[0].World.SelfPower!; var suz = sim.Nations[1].World.SelfPower!;
+        var dep = sim.Nations[2].World.SelfPower!; var ally = sim.Nations[3].World.SelfPower!;
+        var c = OpenChain();
+        Assert.True(c.EnableDependency, "前提が崩れた：属国が無効");
+        dip.SetDependency(suz, dep);
+        Ally(dip, suz, ally);
+        dip.SeedTension(ally, attacker, 100);
+        ally.Military = 1e9; attacker.Military = 1;
+
+        Assert.True(dip.DeclareWar(attacker, dep, c), "前提が崩れた：宣戦できない");
+
+        Assert.True(dip.IsAtWar(suz, attacker), "前提が崩れた：宗主が参戦していない");
+        Assert.True(dip.IsAtWar(ally, attacker), "宗主の同盟国が連鎖参戦しない（AI の同盟国の参戦と非対称）");
+    }
 }

@@ -28,7 +28,6 @@ public sealed class MultiNationSim
     // マジックナンバー命名（挙動不変・値は据え置き）。中央 Coefficients には入れない当ファイル固有のハードコード値。
     private const double DefaultTradeWeightBase = 0.15;              // 交易比重の基準値（初期国の基数・分離独立国の既定）
     private const double TradeWeightIndustrializationSlope = 0.10;   // 工業化度あたりの交易比重の増分（初期国のみ）
-    private const double SocialSecurityLawMaxLevel = 3.0;            // 社会保障法の最上位段（年金=3）＝法段を目標[0,1]へ正規化する除数（2026-07-21「なし」廃止・4段）
     private const double MigrationFareDistanceUnitKm = 1000.0;       // 渡航運賃の距離単位（MigrationFarePerkKm＝この距離あたりの運賃）
     private const double RumpGdpFractionOfParent = 0.01;             // 残骸国家判定＝親GDP比のこの割合未満が続いたら再併合対象
     private const double EpidemicTransmitSeverityFloor = 0.5;        // 国家間伝播で発症した疫病の重症度の下限（上限は+NextDouble()で1.5まで）
@@ -276,10 +275,8 @@ public sealed class MultiNationSim
                 pw.PendingRebelRegions = null;
                 if (_coef.CivilWarAsWar > 0 && pw.SelfPower is { } parentPw)
                 {
-                    var aliveR = new System.Collections.Generic.List<Region>();
-                    foreach (var r in rebelRegs)
-                        if (r.State == RegionState.Active && r.Id != 0 && pw.Regions.Contains(r)) aliveR.Add(r);
-                    if (aliveR.Count > 0 && aliveR.Count < pw.Regions.Count)
+                    var aliveR = pw.LeavableRegions(rebelRegs);
+                    if (aliveR.Count > 0)
                     {
                         int beforeN = Nations.Count;
                         SpawnNation(Nations[i], aliveR, rebelPolity, civilWar: true);
@@ -295,10 +292,8 @@ public sealed class MultiNationSim
             {
                 var polity = pw.PendingSplitPolity;
                 pw.PendingSplitRegions = null; pw.PendingSplitPolity = null;
-                var alive = new System.Collections.Generic.List<Region>();
-                foreach (var r in split)   // 二重防御：同四半期の割譲等で不在／首都へ昇格していたら除く
-                    if (r.State == RegionState.Active && r.Id != 0 && pw.Regions.Contains(r)) alive.Add(r);
-                if (alive.Count > 0 && alive.Count < pw.Regions.Count) SpawnNation(Nations[i], alive, polity);
+                var alive = pw.LeavableRegions(split);   // 二重防御：同四半期の割譲等で不在／首都へ昇格していたら除く
+                if (alive.Count > 0) SpawnNation(Nations[i], alive, polity);
                 // ⚠コメント是正2026-09-08：旧コメントは「分離独立の要求は次の四半期へ持ち越さず捨てる」と書いていたが**嘘**だった。
                 //   この continue が捨てるのは今期の**処理順**だけで、他レーンの予約（PendingSecessionWars／PendingSecessionRegion）は
                 //   null 化されないまま残り、翌期の同じ走査で処理される＝持ち越される。null にしているのは自レーン（PendingSplitRegions）のみ。
@@ -310,9 +305,8 @@ public sealed class MultiNationSim
             {
                 pw.PendingSecessionWars = null;
                 if (pw.SelfPower is { } parentSec)
-                    foreach (var r in secWars)
+                    foreach (var r in pw.LeavableRegions(secWars))
                     {
-                        if (r.State != RegionState.Active || r.Id == 0 || !pw.Regions.Contains(r) || pw.Regions.Count <= 1) continue;
                         int beforeN = Nations.Count;
                         SpawnNation(Nations[i], [r], null, civilWar: true);
                         if (Nations.Count > beforeN && Nations[^1].World.SelfPower is { } secPw)
@@ -323,7 +317,7 @@ public sealed class MultiNationSim
             if (pw.PendingSecessionRegion is not { } reg) continue;
             pw.PendingSecessionRegion = null;
             // 二重防御：同四半期の割譲等で不在／内戦中の遷都で首都（Id0）へ昇格していたら建国不成立（首都不変条件＝Regions[0]の全読者を守る）
-            if (reg.State != RegionState.Active || reg.Id == 0 || !pw.Regions.Contains(reg)) continue;
+            if (pw.LeavableRegions([reg]).Count == 0) continue;
             SpawnNation(Nations[i], reg);
         }
     }
@@ -370,29 +364,24 @@ public sealed class MultiNationSim
                 }
         }
 
-        // --- 1) 保存量の確定（割譲と同じ「同一値を両辺に使う」作法）---
-        double S = 0, P = 0;
-        foreach (var rr in regs) { S += rr.SumSavings(); P += rr.SumPopulation(); }
+        // --- 1) 国庫の分与（新国家の運転資金＝移転前の人口比）---
+        double P = 0;
+        foreach (var rr in regs) P += rr.SumPopulation();
         double parentPop = pw.TotalPopulation;   // 移転前（reg込み）
         double T = Math.Max(0, pw.Treasury) * (parentPop > 1e-9 ? P / parentPop : 0);   // 国庫の人口比分与（新国家の運転資金）
 
-        // --- 2) 親からの物理除去＋台帳（割譲のloser側と同型。国庫分与も同じ対外移転台帳）＋金準備の対称移転 ---
-        foreach (var rr in regs) pw.Regions.Remove(rr);
-        pw.Pay(TreasuryCat.OtherOut, -T);
-        pw.CumulativeTradeFlow -= S + T;
-        pw.PopulationDelta -= P;
-        // （Bank.Gold の親⇄新国家の移し替え2行は 2026-09-28 に削除＝Bank.Gold は導出量で、翌日の Credit.Step が BaseMoney から上書きするまで読み手が無い）
-
-        // --- 3) 州を新国家の首都に整形＋付け直し（回1-1＝割譲・建国・再併合の1本 Territory.Rehome の建国）---
-        //   民族＝旧少数派がこの国の中核になる（CoreEthnicShare の意味は「所属国の中核民族に属する割合」＝反転が要る・敵対検証2026-07-12）。
+        // --- 2) 親から外す＋付け直し（州の移し替えの1本 Territory.TransferRegion の建国＝新しい国の器は下で州から組む・2026-09-28 処理の一元化 段2 B）---
+        //   親の台帳（割譲の送り手と同じ「同一値を両辺に使う」作法）・首都を失えば遷都（今は首都は出ない＝首都の分離独立の備え）・
+        //   民族＝旧少数派がこの国の中核になる（CoreEthnicShare の意味は「所属国の中核民族に属する割合」＝反転が要る・敵対検証2026-07-12）・
         //   併合の荷物0（案Y・2026-08-21：分離建国の創設州は新国家の「生まれの人口」）・市場の台帳のリセット・植民地財の空化。
         //   ⚠格と支配度は独立が確定するまで動かさない（RegisterIndependence／内戦の白紙講和で本土へ）＝親が勝てば元の格のまま戻る。
-        for (int k = 0; k < regs.Count; k++)
-        {
-            var rr = regs[k];
-            rr.Id = k; rr.Seceded = false;   // 新世界の州Id＝0が首都（World.Region=Regions[0] 規約）
-            Territory.Rehome(rr, Territory.Rehoming.Seceded);
-        }
+        foreach (var rr in regs) Territory.TransferRegion(pw, null, rr, Territory.Rehoming.Seceded);
+        pw.Pay(TreasuryCat.OtherOut, -T);
+        pw.CumulativeTradeFlow -= T;   // 国庫の分与も同じ対外移転台帳
+        // （Bank.Gold の親⇄新国家の移し替え2行は 2026-09-28 に削除＝Bank.Gold は導出量で、翌日の Credit.Step が BaseMoney から上書きするまで読み手が無い）
+
+        // --- 3) 新世界の州Id＝0が首都（World.Region=Regions[0] 規約）---
+        for (int k = 0; k < regs.Count; k++) regs[k].Id = k;
 
         // --- 4) 名前・設定（親の現行法・税を継承した NationConfig 経由＝ToScenario と同形の手組み）---
         string name = SecessionNames.Resolve(reg.Name, polity ?? pw.Polity, Diplomacy.Powers);
@@ -412,7 +401,7 @@ public sealed class MultiNationSim
             Seed = MixSeed(_seed, (ulong)Nations.Count), StartYear = pw.Year, Kind = ScenarioKind.Nation,
             NationConfig = cfg, PrebuiltRegions = [.. regs], Coef = pw.Coef,   // 係数は親インスタンスを共有（テスト/実験の書き込みが分裂しない）
             PoliticsEnabled = true, InitialPolity = polity ?? pw.Polity, FiscalEnabled = true, CreditEnabled = true,
-            TaxRate = pw.TaxRate, InitialPollTax = pw.PollTax, InitialLandTax = Math.Max(pw.LandTax, pw.Coef.InitialLandTaxScale),   // 1783年の地租台帳（全53カ国一律・既定0=恒等）
+            TaxRate = pw.TaxRate, InitialPollTax = pw.PollTax, InitialLandTax = pw.LandTax,   // ⚠1783年の地租台帳の床（InitialLandTaxScale）は建国に掛けない＝親の率のまま（法の継承 World.CopyLawsFrom と同じ値）
             InitialTreasury = T, BaseCoercion = pw.BaseCoercion, EducationLaw = pw.EducationLaw,
             EducationSpending = pw.EducationSpending, ExternalPressure = pw.ExternalPressure,
             InitialInterestRate = pw.InterestRate, InitialTariff = pw.Tariff,
@@ -434,33 +423,11 @@ public sealed class MultiNationSim
         // 新国家を birth BaseMoney(=S+T) で再基線化するため、子は baseline=S+T・TradeFlow=0 で保存が閉じる（親は −(S+T) を BaseMoney/TradeFlow 両方に記帳）。
         // ここに +S+T を足すと二重計上でプローブが即例外（検証済み）。MultiNationTestの世界合計式がspawnの子baselineを勘定しない側の非対応でありコードは正しい。
         nw.TechLevel = pw.TechLevel; nw.Elite = pw.Elite;
-        nw.PatentLaw = pw.PatentLaw; nw.JointStock = pw.JointStock; nw.Railways = pw.Railways;
-        nw.LaborUnion = pw.LaborUnion; nw.Pension = pw.Pension; nw.LandReform = pw.LandReform;
-        nw.ConscriptionLaw = pw.ConscriptionLaw; nw.Policy.ConscriptionLaw = pw.ConscriptionLaw;   // 徴兵法の継承（E5・独立は制度を巻き戻さない）
-        nw.SecretBallot = pw.SecretBallot; nw.Policy.SecretBallot = pw.SecretBallot;   // 秘密投票法の継承（E5）
-        nw.Bureaucracy = pw.Bureaucracy; nw.Policy.Bureaucracy = pw.Bureaucracy;   // 官僚制度の継承（E5）
-        nw.SocialSecurityLaw = pw.SocialSecurityLaw; nw.Policy.SocialSecurityLaw = pw.SocialSecurityLaw;   // 社会保障法の継承（E5）
-        nw.StateReligion = pw.StateReligion; nw.Policy.StateReligion = pw.StateReligion;   // 国教法の継承（E6）
-        nw.Antitrust = pw.Antitrust; nw.Policy.Antitrust = pw.Antitrust;   // 独占禁止法の継承（E6）
-        nw.Guild = pw.Guild; nw.Policy.Guild = pw.Guild;   // ★同業組合法の継承（特権 段4）
-        nw.WartimeRationing = pw.WartimeRationing; nw.Policy.WartimeRationing = pw.WartimeRationing;   // 戦時配給法の継承（E6）
-        nw.CapitalControlLaw = pw.CapitalControlLaw; nw.Policy.CapitalControlTarget = pw.CapitalControlLaw;   // 資本移動の法の継承（トリレンマdoc・2026-08-13）
-        nw.ChildLaborAllowed = pw.ChildLaborAllowed; nw.Policy.ChildLaborAllowed = pw.ChildLaborAllowed;   // 児童労働法の継承（02断線走査2026-07-28・独立は制度を巻き戻さない）
-        nw.MilitaryExportBan = pw.MilitaryExportBan; nw.Policy.MilitaryExportBan = pw.MilitaryExportBan;   // 軍需輸出の法の継承（禁制品doc C5・2026-07-30）
-        nw.CivilianArmsBan = pw.CivilianArmsBan; nw.Policy.CivilianArmsBan = pw.CivilianArmsBan;           // ★民間の武器購入の法の継承（2026-09-11・独立は制度を巻き戻さない）
-        nw.OpiumPossession = pw.OpiumPossession; nw.Policy.OpiumPossession = pw.OpiumPossession;           // 阿片の保有法の継承（禁制品doc C3・2026-07-30）
-        nw.OpiumExportBan = pw.OpiumExportBan; nw.Policy.OpiumExportBan = pw.OpiumExportBan;               // 阿片の輸出法の継承（同）
-        nw.NationalizeRailways = pw.NationalizeRailways; nw.Policy.NationalizeRailways = pw.NationalizeRailways;   // 国有化（5部門＋『全て』）の継承（E6）
-        nw.NationalizeMines = pw.NationalizeMines; nw.Policy.NationalizeMines = pw.NationalizeMines;
-        nw.NationalizeMilitary = pw.NationalizeMilitary; nw.Policy.NationalizeMilitary = pw.NationalizeMilitary;
-        nw.NationalizeOil = pw.NationalizeOil; nw.Policy.NationalizeOil = pw.NationalizeOil;
-        nw.NationalizeElectricity = pw.NationalizeElectricity; nw.Policy.NationalizeElectricity = pw.NationalizeElectricity;
-        nw.NationalizeAll = pw.NationalizeAll; nw.Policy.NationalizeAll = pw.NationalizeAll;   // ★『全て』（§11-6d統合）。新国がソ連型でなければ Government が制定目標を現状へ丸める（撤回＝民営化は可）
-        nw.WorkHours = pw.WorkHours; nw.WorkHoursValue = pw.WorkHoursValue;
-        // ★女性の権利の継承（統合法・2026-08-10）：旧は財産権/参政権を World にだけ写し **Policy を写していなかった**（教育権だけが両方写す非対称）
-        //   ＝分離独立の翌期に Government が目標なし側へ引き戻そうとして幽霊戦線になり得た。統合ついでに他法と同じ流儀（World＋Policy）へ揃える。
-        nw.WomenRights = pw.WomenRights; nw.Policy.WomenRights = pw.WomenRights;
-        nw.LandTaxUnlocked = pw.LandTaxUnlocked;
+        // ★法の継承は1本（World.CopyLawsFrom＝段の法と税・支出の段は法の軸の表のまま・政策の目標は丸ごと・2026-09-28 処理の一元化 段2 C）。
+        //   旧＝ここに World と Policy の対を軸ごとに約40行＝女性の権利は Policy だけ写し漏れた前歴・累進課税／植民地参政権／移民原住民参政権／
+        //   技術者流出禁止法／行政費は漏れたままだった。政体の含意する参政権・報道の床は構築時と同じ規則で畳み直す（写した親の値が床を下回らないように）。
+        nw.CopyLawsFrom(pw);
+        Politics.RaiseFoundingInstitutions(nw);
         nw.AdminPowerSmoothed = pw.AdminPowerSmoothed;
         // #126 制度疲労の継承（2026-07-25・ユーザー裁定「清の近代化が簡単すぎる」）：独立は文明を巻き戻さない（技術・法の継承）が、**制度の病も引き継ぐ**。
         // 旧＝新国家は decay=0 で生まれ、親が清（decay≈0.8）でも技術採用×0.6・改革抵抗×1.4・軍質ペナルティが全て消滅＝
@@ -468,12 +435,6 @@ public sealed class MultiNationSim
         nw.InstitutionalDecay = pw.InstitutionalDecay;
         nw.InstitutionalDecayCeiling = pw.InstitutionalDecayCeiling;
         nw.BornOfSecession = true;   // P9：独立戦争の危機乗数（レヴェ・アン・マス）の判定用（分離で生まれた国＋交戦中）
-        nw.SetMilitarySpending(pw.MilitarySpending, pw.NavalSpendShare);   // 陸海の維持費ごと継承（2026-08-04）
-        nw.Policy.LaborUnion = pw.LaborUnion; nw.Policy.Pension = pw.Pension; nw.Policy.LandReform = pw.LandReform; nw.Policy.WorkHours = pw.WorkHours;   // 目標=現在値（Government が翌期に引き戻さない）
-        nw.Policy.MilitarySpendingTarget = pw.Policy.MilitarySpendingTarget;
-        // 社会保障の目標=継承した法段（レビュー2026-07-20）：SocialSecurityLawGate>0 では Government が Policy.SocialSecurityTarget から法段を毎期導出するため、
-        // 目標を継承しないと既定0（救貧法）へ毎期引き戻され「独立は制度を巻き戻さない」に反して福祉が浸食される。継承法段（救貧0/労災0.33/失業0.67/年金1.0）を目標に写す。
-        nw.Policy.SocialSecurityTarget = (int)pw.SocialSecurityLaw / SocialSecurityLawMaxLevel;
         nw.Quarter = pw.Quarter;
 
         // --- 6) Power 生成（コンストラクタと同型）＋共有外交への接続 ---
@@ -693,7 +654,6 @@ public sealed class MultiNationSim
             //   「年月をかけて建つ」もの＝暦の進まない助走で建ててはいけない。1783年は技術ゲートでほぼ全件が未解禁＝需要への影響も無い。
             if (!_calendarFrozen) { Megaprojects.Step(Diplomacy, Nations, _coef); ProbeDiff("巨大建造物"); }   // 巨大建造物：保有国を解決し国庫から資材＋労働を買って建て、完成したら州へ恒久効果を貼る（2026-07-28）
             { long t2 = TimeOn ? System.Diagnostics.Stopwatch.GetTimestamp() : 0; Market.Step(Nations, _coef, firstClearingOfQuarter: !(_coef.TradeMonthlyClearing > 0)); if (TimeOn) System.Threading.Interlocked.Add(ref TicksMarket, System.Diagnostics.Stopwatch.GetTimestamp() - t2); } ProbeDiff("国際市場");          // 国際市場：州と州の二国間清算（実経路・比較優位）。月次清算ONでは四半期の第3清算＝累計を続ける（リセットしない）
-            RewirePorts();   // ★港の配線を盤面から張り直す（毎四半期・無状態＝2026-09-21 案1。旧＝署名で条件付き・2026-08-13）
             StepPorts(); ProbeDiff("港湾");                             // 港湾容量：混雑する港州を国家＋資本家が拡張（Market.Step の取扱高/律速を見て投資。改修2026-06-28）
             StepMarineInsurance(); ProbeDiff("海上保険");                // 海上保険：商人pop基金で通商破壊損失を分散（平時=保険料・封鎖時=保険金。改修2026-06-28・金融改革③）
             // 移民は助走では動かさない（2026-08-10）。移民は総量保存だが時間の流れ（暦を止めた助走で人を動かさない）。
@@ -887,6 +847,11 @@ public sealed class MultiNationSim
             }
             ReabsorbNations();       // ★内戦一元化：内戦決着の再統合（州の返還・国家除去）。SpawnSecededNations の前＝同四半期の建国と衝突しない
             SpawnSecededNations();   // 建国キューの回収（分離戦勝利の州→新国家）。Nations走査の外＝リスト追記が安全・新国家は次の四半期から鼓動
+            // ★港の配線を盤面から張り直す（毎四半期・無状態＝2026-09-21 案1。旧＝署名で条件付き・2026-08-13）。
+            //   ★置き場所＝その四半期の領土の動き（講和の割譲・再併合・建国）が全て済んだ後（2026-09-28 処理の一元化 段2 B）。
+            //   ⚠旧＝国際市場の直後（再併合と建国の前）＝返った州と建った国の配線が1四半期遅れた。配線を読むのは国際市場の清算（BilateralMarket）だけ
+            //   ＝旧の位置からここまでの間（港湾・海上保険・移民・国際金融・疫病・天候・伝播）に読み手は無い＝動いたのは再併合と建国の四半期だけ。
+            RewirePorts();
             StepDiffusion();         // ★発見・段7：思想の伝播（貿易路×メディア・前四半期読み＝閉路なし）。DiffusionWeight=0で即return＝恒等
             // 助走中は共有層の四半期カウンタも止める（2026-08-10）＝本編は必ず _quarter=0（外交の月次索引 _quarter*3+m の起点）から始まる。
             // 助走では DiplomacyFrozen＝Diplomacy.Step を1度も呼ばないので、止めても飛ばした索引は存在しない。
@@ -1018,30 +983,24 @@ public sealed class MultiNationSim
             //   消える：反乱国の国債＝国内の保有（下の BondHoldings）と対外債（ForeignDebt）の両方。対外債は債権国の ForeignBondClaims を債権の比で落とす
             //         （損は持ち手。落とさないと相手のいない債権が元利の配当を吸う）。
             //   Bank.Gold は導出量（Credit.Step が毎日 BaseMoney から上書き）＝貨幣の行ではない（返還の1行も 2026-09-28 に削除）。
-            double S = 0, P = 0;
-            foreach (var rr in rw.Regions) { S += rr.SumSavings(); P += rr.SumPopulation(); }
             double T = rw.Treasury;
             var moving = new System.Collections.Generic.List<Region>(rw.Regions);
             // ★国債の保有台帳（2026-09-21）：反乱国は国家ごと消え、その国債（GovDebt）も既存どおり誰にも継承されない＝国が払うのを止めた割合（全額）だけ
             //   保有を消す＝損は持ち手（金は動かない）。★史実：合衆国憲法修正14条4節（1868）は南部連合の債務の継承・支払いを明文で禁じた。
             //   rw.GovDebt も同額下げる＝消える直前まで反乱国側の不変条件も厳密。
             foreach (var rr in moving) foreach (var pp in rr.Pops) { rw.GovDebt -= pp.BondHoldings; pp.BondHoldings = 0; }
-            foreach (var rr in moving)
-            {
-                rw.Regions.Remove(rr);
-                rr.Id = pw.Regions.Count;   // 親は必ず首都（Id0）を持つ＝返還州は末尾へ連番
-                rr.Seceded = false;
-                Territory.Rehome(rr, Territory.Rehoming.Returned);   // 回1-1：建国時の反転を戻す（親の中核定義へ復帰）・市場の台帳のリセット・植民地財の空化（null にしない＝col-02）
-                pw.Regions.Add(rr);
-            }
+            // 州は移し替えの1本（Territory.TransferRegion の再併合・2026-09-28 処理の一元化 段2 B）＝貯蓄と人口は州ごとに両国の台帳へ（同一値を両辺）・
+            //   建国時の反転を戻す（親の中核定義へ復帰）・市場の台帳のリセット・植民地財の空化（null にしない＝col-02）。
+            //   ★返還州の Id は親の中で最大＋1（Territory.Adopt）。⚠旧＝`親の州の数` で振った＝建国で親の州が抜けて Id が歯抜けのとき
+            //   既存の州と同じ Id が付いた（0..9 から 4 が抜けて数が9 → 返還州に 9）。Id で州を引く所（Politics の州の索引）と割譲先の同点決着が崩れていた。
+            foreach (var rr in moving) Territory.TransferRegion(rw, pw, rr, Territory.Rehoming.Returned);
             pw.Pay(T >= 0 ? TreasuryCat.OtherIn : TreasuryCat.OtherOut, T);
             double L = 0;
             if (pw.Bank is { } pb && rw.Bank is { } rb)
             {
                 pb.Loans += rb.Loans; pb.HouseholdLoans += rb.HouseholdLoans; L = rb.Loans + rb.HouseholdLoans;
             }
-            pw.CumulativeTradeFlow += S + T - L;   // ＝反乱国の基礎貨幣＝親の per-nation 保存が閉じ、世界の和も動かない（建国時の −(S+T) の鏡映＋反乱国として積んだ分）
-            pw.PopulationDelta += P;
+            pw.CumulativeTradeFlow += T - L;   // 貯蓄 S は州ごとに上で記帳済み＝合わせて反乱国の基礎貨幣（S＋T−L）＝親の per-nation 保存が閉じ、世界の和も動かない（建国時の −(S+T) の鏡映＋反乱国として積んだ分）
             pw.ForeignCapitalIn += rw.ForeignCapitalIn; pw.CapitalAbroad += rw.CapitalAbroad;
             // 反乱国の対外債の否認：債権へ繰り上げ済みの額（PrevForeignDebt）を、反乱国以外の債権の比で落とす（反乱国自身の債権は次の行で親へ）
             double repudiated = rw.PrevForeignDebt, held = 0;
@@ -1055,7 +1014,8 @@ public sealed class MultiNationSim
             pw.ForeignIntPaidThisQuarter += rw.ForeignIntPaidThisQuarter; pw.PendingForeignBorrow += rw.PendingForeignBorrow;
             pw.SilverReserveQty += rw.SilverReserveQty; pw.GoldReserveQty += rw.GoldReserveQty;
             // 反乱国の植民地（戦中に得た場合の防御）＝親へ移す（無主化して消さない）
-            if (rebelP.ColonyList.Count > 0) { parentP.ColonyList.AddRange(rebelP.ColonyList); rebelP.ColonyList.Clear(); }
+            foreach (var col in rebelP.ColonyList) Diplomacy.AcquireColony(parentP, col, _coef);   // 植民地の受け取りの1本（講和の奪取・無血併合と同じ＝国を持つ受け手は植民地格の州へ）
+            rebelP.ColonyList.Clear();
             // ★計器の是正2026-09-08（F3b蜂起doc §5 段1・純記帳）：F3bの「蜂起を武力で鎮圧」ログ（Politics.CheckFactionRevolt の無血鎮圧枝）は
             //   到達不能になり（枝そのものは2026-09-08の段6で物理削除）、鎮圧が年代記から消えていた。鎮圧の実体は「親が内戦に勝って再併合する」
             //   この経路なので、決着した運動の名をここで出す＝計器を実経路へ移す（力学は1ビットも読まない）。
@@ -1080,8 +1040,13 @@ public sealed class MultiNationSim
                 }
             }
             pw.RevoltingFaction = null;   // 運動の主体はここで軍事的に決着した（参照の解放のみ）
-            Diplomacy.RemovePower(rebelP);
+            Diplomacy.RemovePower(rebelP, _coef);   // 反乱国が巻き込まれていた第三国との戦争も EndWar を通して終わる＝終戦の記録が残る
             Nations.RemoveAt(ri);
+            // ★国の番号のずれ（2026-09-28 処理の一元化 段2 B）：四半期のペア貿易額 PairFlowQ は国の番号（Nations の添字）で引く＝除いた国の行と列を落とす。
+            //   ⚠旧＝そのまま残った＝この後の StepDiffusion（思想の伝播・交易の接触度）が ri より後ろの国に1つ前の国の行を読ませた
+            //   （除いた国の番号より後ろの全ての国が、隣の国の貿易で接触度と思想の到達を受け取った）。
+            if (Market.PairFlowQ is { } pfq && ri < pfq.Length)
+                Market.PairFlowQ = pfq.Where((_, a) => a != ri).Select(row => row.Where((_, b) => b != ri).ToArray()).ToArray();
             Diplomacy.Log.Add(rebelWon
                 ? $"{pw.Year} {rebelP.Name}が{parentP.Name}を制した＝{rebelPolity}の下で再統一"
                 : $"{pw.Year} {parentP.Name}が{rebelP.Name}を再併合＝内戦の傷跡だけが残った{spentName}");

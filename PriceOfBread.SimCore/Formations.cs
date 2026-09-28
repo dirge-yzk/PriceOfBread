@@ -393,16 +393,13 @@ public static class Formations
                 w.Explain?.Add("Legitimacy", "国家統一の威信（イタリア/ドイツ型の建国）", w.Legitimacy - legBeforeForm);   // 説明API（#63）
             }
             // 第4段4-1（2026-07-27）：成立時の遷都＝NewCapital の州が自国 active 州にあれば首都(Id0)へ昇格（伊統一→ローマ等の死蔵データ約35規則を点火）。
-            // 手順は割譲の遷都（Diplomacy.CedeTerritory）と同型＝Idスワップで一意性維持・Regions[0]=World.Region の首都不変条件を Insert(0) で保つ。
+            // 手順は割譲の遷都と同じ1本（World.SetCapital・2026-09-28 処理の一元化 段2 B＝Idスワップ・Regions[0] の首都不変条件・座標・旧首都の植民地財）。
             if (c.FormationCapitalMove > 0 && best.NewCapital is { } capName)
             {
                 var newCap = w.Regions.Find(r => r.Name == capName && r.State == RegionState.Active);
                 if (newCap is not null && newCap.Id != 0)
                 {
-                    var oldCap = w.Regions.Find(r => r.Id == 0);
-                    if (oldCap is not null) oldCap.Id = newCap.Id;   // Idスワップ＝州Idの一意性を維持（旧首都は新首都の旧Idへ）
-                    newCap.Id = 0;
-                    w.Regions.Remove(newCap); w.Regions.Insert(0, newCap);
+                    w.SetCapital(newCap);
                     d.Log.Add($"{w.Year} {power.Name}が{capName}へ遷都");
                 }
             }

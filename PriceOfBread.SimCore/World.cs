@@ -22,7 +22,7 @@ public sealed class World
     /// <summary>本拠地（単一地域コード・テレメトリの便宜）。</summary>
     public Region Region => Regions[0];
     // ★建国時の Active 州数（2026-08-04）。「戦争で解体された残余国」の判定に使う（Validation の最小満足度検査の除外）。
-    //   ⚠首都では判定できない＝割譲/建国の遷都機構（Diplomacy.CedeTerritory 外9・Formations）が **Id を0へスワップして
+    //   ⚠首都では判定できない＝割譲/建国の遷都機構（遷都の1本 World.SetCapital＝割譲の首都の補修・Formations）が **Id を0へスワップして
     //     首都のロールを引き継がせる**ので、「建国首都を失った」という同一性はエンジンに存在しない（2度実測で外して確定）。
     //   州の頭数は遷都に影響されない＝素朴で頑健。0＝旧セーブ/最小世界（判定側は0なら除外しない＝fail-closed）。
     public int FoundingActiveProvinces { get; internal set; }
@@ -445,6 +445,25 @@ public sealed class World
         double n = PoliticalQuantities.Clamp01(navy), a = PoliticalQuantities.Clamp01(army);
         if (a + n > 1) a = 1 - n;
         ArmyUpkeep = a; NavyUpkeep = n;
+    }
+
+    /// <summary>★法の継承の1本（2026-09-28 処理の一元化 段2 C）＝建国した国が親の法をそのまま受け継ぐ（独立は制度を巻き戻さない）。
+    /// 現在値＝段の法（表 <see cref="Government.LevelLaws"/>）と税・支出の段（表 <see cref="Government.RateLaws"/>）を**表のまま**写し、
+    /// 表の外の制度（関税・金利・行政費・陸海の維持費・特許・株式会社・鉄道・検地台帳・年金・福祉水準・実労働時間）を足す。
+    /// 目標＝政策を丸ごと写す（<see cref="NationPolicy.CopyFrom"/>＝開始盤面の退避と同じ1本）。
+    /// ⚠旧＝建国（MultiNationSim.SpawnNation）が World と Policy の対を軸ごとに手で約40行書いた＝軸を足すたびに写し漏れた
+    ///   （女性の権利は Policy だけ漏れた前歴。累進課税・植民地参政権・移民原住民参政権・技術者流出禁止法・行政費は漏れたままだった）。
+    /// ⚠目標は親の**目標**（旧は多くの軸で親の現在値）＝審議中の法案も国と一緒に引き継ぐ。新しい国の AI と議会は翌期から自分の目標を置き直す。
+    /// ⚠政体が含意する参政権・報道の床は呼び手が写した後に畳み直す（Politics.RaiseFoundingInstitutions の初期化＝構築時と同じ1回）。</summary>
+    internal void CopyLawsFrom(World src)
+    {
+        foreach (var law in Government.LevelLaws) law.Set(this, law.Get(src));
+        foreach (var law in Government.RateLaws) law.Set(this, law.Get(src));
+        Tariff = src.Tariff; InterestRate = src.InterestRate; AdminSpending = src.AdminSpending;
+        SetMilitarySpending(src.MilitarySpending, src.NavalSpendShare);   // 陸海の維持費ごと（2026-08-04）
+        PatentLaw = src.PatentLaw; JointStock = src.JointStock; Railways = src.Railways; LandTaxUnlocked = src.LandTaxUnlocked;
+        Pension = src.Pension; SocialSecurity = src.SocialSecurity; WorkHoursValue = src.WorkHoursValue;
+        Policy.CopyFrom(src.Policy);
     }
     // 運用コスト監査2026-08-16（#1 海軍の運用燃料・休眠）：燃料充足のEMA（1.0=制約なし）。
     // 書き手＝Military.NavalFuelStep・読み手＝Diplomacy の同期（Power.NavalFuelMul）。どちらも NavalFuelPerGauge>0 のときだけ＝既定0では読み書きゼロ（セーブ往復に載るのみ）＝厳密恒等。
@@ -1174,6 +1193,41 @@ public sealed class World
 
     public double Latitude { get; internal set; }    // ★**経済中心地**の緯度（度）＝エンジンの距離計算はすべてこれを読む。⚠CenterIsFirstProvince>0 では1番目の州の座標へ差し替わる（J-003）
     public double Longitude { get; internal set; }   // 首都の経度（度）。日本の遠さ＝交易の天然の障壁
+
+    /// <summary>★遷都の1本（2026-09-28 処理の一元化 段2 B）＝首都（Id0・Regions[0]）を <paramref name="capital"/> へ移し、距離の基準の座標も同じ州へ。
+    /// ⚠旧＝割譲で首都を失ったときの補修（Diplomacy）と国家形成の遷都（Formations）の2か所が同じ手順を別々に書き、どちらも
+    ///   座標（<see cref="Latitude"/>／<see cref="Longitude"/>）を構築時のまま残した＝植民地の距離・条約港・投射が失った首都から測られ、
+    ///   割譲の射程（Regions[0] の座標を読む）とだけ物差しが割れていた。Formations 側は旧首都の植民地財も空にしなかった
+    ///   （植民地財の産出は首都州だけが担う＝旧首都が産出を続けると二重になる。移転の付け直し Territory.Rehome と同じ扱いへ）。
+    /// 旧首都がまだこの国に居れば新首都の旧 Id を渡す（州 Id の一意性）。座標は構築時と同じ規則（州の座標表・未登録の州名は据え置き＝幻の座標を作らない）。</summary>
+    internal void SetCapital(Region capital)
+    {
+        if (!ReferenceEquals(Regions[0], capital) || capital.Id != 0)
+        {
+            var old = Regions.Find(r => r.Id == 0 && !ReferenceEquals(r, capital));
+            if (old is not null)
+            {
+                old.Id = capital.Id;   // Idスワップ＝州Idの一意性を維持（旧首都は新首都の旧Idへ）
+                if (old.ColonialResources is not null) old.ColonialResources = [];   // 植民地財は首都州だけ（null は単一国テストの旧経路＝触らない）
+            }
+            capital.Id = 0;
+            Regions.Remove(capital); Regions.Insert(0, capital);   // World.Region(=Regions[0]) が首都＝Id0 と Regions[0] の乖離（首都の二重化）を防ぐ
+        }
+        var cc = Places.Coord(capital.Name);
+        if (!(cc.Lat == 0 && cc.Lon == 0)) { Latitude = cc.Lat; Longitude = cc.Lon; }
+    }
+
+    /// <summary>★建国で出ていける州の選び方の1本（2026-09-28 処理の一元化 段2 C）＝望まれた州のうち、今もこの国にある active の非首都州（重複は1つ）。
+    /// ⚠旧＝建国の4経路（開戦時の建国・分裂・同時独立・単一州の分離）が同じ判定を別々に書き、親に残る州の数の条件が
+    ///   「出る州の数 &lt; 州の数」・「州の数 &gt; 1」・なし、とばらばらだった。首都（Id0）は出ない＝親には必ず首都が残る＝3つとも同じ意味だった。
+    ///   重複を落とす＝同時独立の予約は同じ州が2度並びうる（旧はループの中で「まだ親にあるか」を確かめて2度目を落としていた）。</summary>
+    internal List<Region> LeavableRegions(IEnumerable<Region> wanted)
+    {
+        var list = new List<Region>();
+        foreach (var r in wanted)
+            if (r.State == RegionState.Active && r.Id != 0 && Regions.Contains(r) && !list.Contains(r)) list.Add(r);
+        return list;
+    }
 
     /// <summary>対外交易アクセス（禁輸・交戦で縮む）。単独＝Player、多国＝SelfPower で判定。</summary>
     public double ExternalTradeAccess()

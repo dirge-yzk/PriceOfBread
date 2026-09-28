@@ -32,20 +32,12 @@ public class PortRewireTests
     // トスカーナは港州0＝S1（敵に渡した港からそのまま輸出）と doc §1-4（落ちる先が無い）の最小再現になる。
     private static NationConfig[] World2() => [WorldData.ByName("トスカーナ"), WorldData.ByName("ジェノヴァ")];
 
-    // Diplomacy.CedeTerritory と同じ物理移転＋保存記帳の最小再現（本体は private・投射圏や講和の前提条件を剥がした裸の州移転）。RNG不使用＝決定論。
+    // 講和の割譲と同じ物理移転＝州の移し替えの1本 Territory.TransferRegion（投射圏や講和の前提条件を剥がした裸の州移転）。RNG不使用＝決定論。
+    // ★2026-09-28（処理の一元化 段2 B）：旧はここに移転の写し（外す・Id・市場の台帳・保存記帳）を持っていた＝本体を直接呼ぶ。
     private static void CedeLivornoToGenoa(MultiNationSim sim)
     {
         var tw = sim.Nations[0].World; var gw = sim.Nations[1].World;
-        var livorno = tw.Regions.First(r => r.Name == "リヴォルノ");
-        double S = livorno.SumSavings(), P = livorno.SumPopulation();
-        tw.Regions.Remove(livorno);
-        int newId = 1; foreach (var r in gw.Regions) if (r.Id >= newId) newId = r.Id + 1;
-        livorno.Id = newId;
-        gw.Regions.Add(livorno);
-        foreach (var m in livorno.Markets) { m.PrevStock = m.Stock; m.LastProduced = m.LastSold = m.LastImport = m.LastExport = m.LastShortage = 0; m.PopBought = null; }
-        livorno.ColonialResources = [];   // 本体（Territory.Rehome）と同じ＝null は単一国テストの旧経路（植民地財が代金なしに湧く・col-02）
-        tw.CumulativeTradeFlow -= S; tw.PopulationDelta -= P;
-        gw.CumulativeTradeFlow += S; gw.PopulationDelta += P;
+        Territory.TransferRegion(tw, gw, tw.Regions.First(r => r.Name == "リヴォルノ"), Territory.Rehoming.Ceded);
     }
 
     [Fact]
