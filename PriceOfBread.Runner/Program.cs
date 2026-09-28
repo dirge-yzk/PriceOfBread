@@ -7460,7 +7460,7 @@ if (args.Length > 0 && args[0] == "hangtest")
     int civilWars = hs.Nations.Count(n => n.World.HadCivilWar);
     int defaults = hs.Nations.Count(n => n.World.HadSovereignDefault);
     Console.WriteLine($"seed {sd}: 開戦{wars}回 内戦経験{civilWars}国 デフォルト経験{defaults}国");
-    foreach (var n in hs.Nations) { var w = n.World; if (w.HadSovereignDefault || w.BorrowStacks > 5) Console.WriteLine($"  {w.Region.Name,-10} stacks{w.BorrowStacks,4:F0} 債務/GDP{(w.NominalGdp > 1 ? w.GovDebt / w.NominalGdp : 0),5:F2} default={w.HadSovereignDefault} cooldown{w.BorrowCooldown}"); }
+    foreach (var n in hs.Nations) { var w = n.World; double ir = w.LastRevenue > 0 ? w.LastInterest / w.LastRevenue : 0; if (w.HadSovereignDefault || ir > 0.25 * w.Coef.MaxInterestShareOfRevenue) Console.WriteLine($"  {w.Region.Name,-10} 利払い/歳入{ir,5:F2} 債務/GDP{(w.NominalGdp > 1 ? w.GovDebt / w.NominalGdp : 0),5:F2} default={w.HadSovereignDefault} cooldown{w.BorrowCooldown}"); }
     if (args.Length > 2 && args[2] == "log")
         foreach (var l in hs.Diplomacy.Log.Where(l => l.Contains("開戦") || l.Contains("講和") || l.Contains("独立"))) Console.WriteLine("  " + l);
     return;

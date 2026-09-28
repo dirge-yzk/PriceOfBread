@@ -110,6 +110,9 @@ public class FiscalTests
         w.BaseCoercion = 0; w.Coef.AdminCostPerPop = 0;                        // 維持費0＝頭数比の俸給分配が0
         w.SocialSecurity = 0; w.Pension = ReformLevel.None;                    // 福祉・年金（借入スタックの出費上限に依存＝双子で食い違う）を止める
         w.Coef.ForeignBondCapacity = 0;                                        // 全額を国内の投資家が引き受ける
+        // 歳入の基数だけを立てる（関税の実収の診断値＝Fiscal.Step の中では予算の基数にだけ入り金を動かさない＝双子の差は国債の流れのまま）。
+        //   借入の上限＝利払い÷歳入（2026-09-28）＝歳入0の国は借りられない＝税を止めたこの盤面でも借入の門を開けるため。
+        w.LastTariffRevenue = w.Coef.MonthsPerClearing * w.NominalGdp;
         return w;
     }
 
@@ -240,9 +243,9 @@ public class FiscalTests
         double H = HeldOf(w);
         Assert.True(H > 0, "前提が崩れた：持ち手がいない");
         double treasury0 = w.Treasury, base0 = w.BaseMoney;
-        w.BorrowStacks = w.Coef.MaxBorrowStacks;             // 借入上限に張り付き
+        w.Coef.MaxInterestShareOfRevenue = 0;                 // 借入上限に張り付き（利払い÷歳入≧限界＝借りられない）
         w.InsolvencyQuarters = w.Coef.DefaultTriggerQuarters; // 返せない期間が尽きた＝この月にデフォルト
-        FiscalMonth(w, 1);
+        FiscalMonth(w, Short);                                // 払えない月（r＜1）＝借りられずに払えない月が続いた
         Assert.True(w.HadSovereignDefault, "前提が崩れた：デフォルトが起きていない");
         Assert.Equal(0.0, w.GovDebt);
         foreach (var p in AllPopsOf(w)) Assert.Equal(0.0, p.BondHoldings);   // 損は持ち手＝保有は消える

@@ -147,7 +147,7 @@ public class TreasuryLedgerTests
 
     /// <summary>借入は r＜1 の月だけ・減債は r＝1 の月の余剰（spare＞0）からだけ（Fiscal の2つの門）。
     /// 借入は予約なしでエンジンが月に1件（2026-09-28 作者裁定「借入は自動化・借金ボタンは不要」）＝r＜1 の月が続けば毎月1件ずつ借りる。
-    /// ここの r＜1 の月は払えない額が1件の額より大きい月（spare＝−Big）＝満額の1件＝1スタック（額の規則は下の番人）。</summary>
+    /// ここの r＜1 の月は払えない額が1件の額より大きい月（spare＝−Big）＝満額の1件（額の規則と上限は下の番人）。</summary>
     [Fact]
     public void 借入はrが1未満の月だけ減債はrが1の月の余剰からだけ()
     {
@@ -158,21 +158,18 @@ public class TreasuryLedgerTests
         const double Big = 1e18;
         // (a) r＝1：借りない（払えない額を渡しても r＝1 の月は借りない）
         w.FiscalFundingRatio = 1.0;
-        double b0 = w.TreasuryLedger[bo], st0 = w.BorrowStacks;
+        double b0 = w.TreasuryLedger[bo];
         Fiscal.Step(w, c, -Big);
         Assert.Equal(b0, w.TreasuryLedger[bo]);
-        Assert.Equal(st0, w.BorrowStacks);
-        // (b) r＜1：誰も予約しないのにエンジンが借りる（月に1件＝満額なら1スタック）
+        // (b) r＜1：誰も予約しないのにエンジンが借りる（月に1件）
         w.FiscalFundingRatio = 0.9;
         Fiscal.Step(w, c, -Big);
-        Assert.True(w.TreasuryLedger[bo] > b0, "r＜1 の月にエンジンが借りない");
-        Assert.Equal(st0 + 1.0, w.BorrowStacks, 12);
+        Assert.True(w.TreasuryLedger[bo] > b0, $"r＜1 の月にエンジンが借りない（利払い÷歳入 {w.LastInterest / System.Math.Max(1e-9, w.LastRevenue):F3}）");
         // (b') 次の r＜1 の月も同じ1行でまた1件
         double b1 = w.TreasuryLedger[bo];
         w.FiscalFundingRatio = 0.9;
         Fiscal.Step(w, c, -Big);
         Assert.True(w.TreasuryLedger[bo] > b1, "続く r＜1 の月に借りない");
-        Assert.Equal(st0 + 2.0, w.BorrowStacks, 12);
         // (c) r＜1：余剰を渡しても返さない
         double d0 = w.TreasuryLedger[rp];
         w.FiscalFundingRatio = 0.9;
@@ -192,46 +189,105 @@ public class TreasuryLedgerTests
         Assert.Equal(d2, w.TreasuryLedger[rp]);
     }
 
-    /// <summary>★借りる額は払えない額だけ（作者裁定 2026-09-28）＝借入額＝min(1件の額, 月初の払えない額＝−spare)・スタック＝借入額÷1件の額（減債と同じ単位）。
-    /// 旧＝r＜1 なら不足の大きさに関係なく満額（1件の額＝月次GDP×割合）を借りて1スタック＝r が1のすぐ下の月（r＜1 の四半期の77%）も満額→上限→不履行を繰り返した。
-    /// ①少しの不足（1件の額の1/4）＝その額だけ借り、スタックは借入額÷1件の額だけ増える ②大きな不足（1件の額の10倍）＝1件の額で止まり、スタックは1だけ増える
-    /// ③減債と同じ単位＝①で借りた額を返すと、スタックは返済額÷1件の額だけ戻る。
-    /// 突然変異：満額に戻す→①が赤／1件の額で止めない→②が赤／1件＝1スタックに戻す→①のスタックが赤／借入と減債で物差しを違える→①か③が赤。</summary>
+    /// <summary>★借りる額は払えない額だけ（作者裁定 2026-09-28）＝借入額＝min(1件の額, 月初の払えない額＝−spare)。1件の額＝月次**名目**GDP×割合（2026-09-28・単位の対称）。
+    /// 旧＝r＜1 なら不足の大きさに関係なく満額（1件の額）を借りた＝r が1のすぐ下の月（r＜1 の四半期の77%）も満額→上限→不履行を繰り返した。
+    /// ①少しの不足（1件の額の1/4）＝その額だけ借りる ②大きな不足（1件の額の10倍）＝1件の額で止まる。
+    /// 突然変異：満額に戻す→①が赤／1件の額で止めない→②が赤（2026-09-28 の借入スタックの削除で旧の③〔スタックは額の比・減債と同じ単位〕は消えた）。</summary>
     [Fact]
-    public void 借入は払えない額だけで不足が大きいと1件の額で止まりスタックは額の比で減債と同じ単位()
+    public void 借入は払えない額だけで不足が大きいと1件の額で止まる()
     {
         var sim = new Simulation(NationConfig.France().ToScenario(19), new NullAgent());
         sim.Run(4);
         var w = sim.World; var c = w.Coef;
         int bo = (int)TreasuryCat.Borrow;
-        double Unit() => System.Math.Max(0, w.Gdp) * c.BorrowFractionOfGdp;   // 1件の額（Fiscal と同じ式・月ごとに読み直す）
+        double Unit() => System.Math.Max(0, w.NominalGdp) * c.BorrowFractionOfGdp;   // 1件の額（Fiscal と同じ式・月ごとに読み直す）
         Assert.True(Unit() > 1, $"前提：1件の額が立っていない（{Unit()}）");
-        Assert.True(w.BorrowStacks + 2 < c.MaxBorrowStacks && w.BorrowCooldown <= 0, "前提：借入の上限か冷却中");
+        Assert.True(w.LastInterest < c.MaxInterestShareOfRevenue * w.LastRevenue && w.BorrowCooldown <= 0, "前提：借入の上限か冷却中");
         // ① 少しの不足＝その額だけ借りる
         double u1 = Unit(), small = 0.25 * u1;
-        double b0 = w.TreasuryLedger[bo], st0 = w.BorrowStacks;
+        double b0 = w.TreasuryLedger[bo];
         w.FiscalFundingRatio = 0.99;
         Fiscal.Step(w, c, -small);
         double got1 = w.TreasuryLedger[bo] - b0;
         Assert.True(System.Math.Abs(got1 - small) <= 1e-9 * u1, $"少しの不足 {small:F3} に {got1:F3} を借りた（払えない額だけ借りていない）");
-        Assert.True(System.Math.Abs(w.BorrowStacks - st0 - got1 / u1) <= 1e-9, $"スタックが額の比で増えていない（+{w.BorrowStacks - st0:F6}・額の比 {got1 / u1:F6}）");
         // ② 大きな不足＝1件の額で止まる
-        double u2 = Unit(), b1 = w.TreasuryLedger[bo], st1 = w.BorrowStacks;
+        double u2 = Unit(), b1 = w.TreasuryLedger[bo];
         w.FiscalFundingRatio = 0.5;
         Fiscal.Step(w, c, -10 * u2);
         double got2 = w.TreasuryLedger[bo] - b1;
         Assert.True(System.Math.Abs(got2 - u2) <= 1e-9 * u2, $"大きな不足で {got2:F3} を借りた（1件の額 {u2:F3} で止まっていない）");
-        Assert.True(System.Math.Abs(w.BorrowStacks - st1 - 1.0) <= 1e-9, $"満額の1件でスタックが1だけ増えていない（+{w.BorrowStacks - st1:F6}）");
-        // ③ 減債と同じ単位＝①で借りた額を返す
-        c.BondRepayFrac = 1.0;
-        double u3 = Unit(), st2 = w.BorrowStacks, debt2 = w.GovDebt;
-        w.FiscalFundingRatio = 1.0;
-        Fiscal.Step(w, c, got1);
-        double repaid = debt2 - w.GovDebt;
-        Assert.True(System.Math.Abs(repaid - got1) <= 1e-9 * u3, $"前提：①の額 {got1:F3} を返していない（{repaid:F3}）");
-        Assert.True(System.Math.Abs(st2 - w.BorrowStacks - repaid / u3) <= 1e-9, $"返済でスタックが返済額÷1件の額だけ戻らない（−{st2 - w.BorrowStacks:F6}・額の比 {repaid / u3:F6}）");
-        Assert.True(System.Math.Abs(u3 - u1) <= 1e-12 * u1, $"前提：1件の額が試験の間に変わった（{u1}→{u3}）");
-        Assert.True(System.Math.Abs(w.BorrowStacks - (st0 + 1.0)) <= 1e-9, $"①で借りた額を返しても、スタックが①の前＋②の1件（{st0 + 1.0:F6}）へ戻らない（{w.BorrowStacks:F6}＝借入と減債の物差しが違う）");
+    }
+
+    /// <summary>★借入の上限＝今月の利払い÷今月の歳入が限界（MaxInterestShareOfRevenue）に届く所（作者裁定 2026-09-28・棚卸し fis-01＝旧の借入スタック20を置き換えた）＋単位の対称。
+    /// ①利払い÷歳入が限界の下なら借りる ②限界に届いたら借りない・払えない（r＜1）なら不履行の計数が進み、払えている（r＝1）なら進まない
+    /// ③同じ実体の国で物価水準が2倍（名目の量を全て2倍）でも、門の判定は同じで借りる額はちょうど2倍＝上限の比は物価水準に依らない（1件の額は名目GDP・門は名目÷名目）。
+    /// 盤面＝同じ種の双子（ビット単位で同じ）。門が読む利払いと歳入は、同じ盤面で1回踏んだ探り（LastInterest・LastRevenue）から取る（門の前の量＝r と spare に依らない）。
+    /// 突然変異：1件の額を実質GDPへ戻す→③が赤／門を外す→②が赤／不履行の計数で r を見ない→②が赤／門の歳入を実質で測る（÷物価水準）→③が赤。</summary>
+    [Fact]
+    public void 借入の上限は利払いが歳入の限界に届く所で物価水準が2倍でも比は変わらない()
+    {
+        static World Twin()
+        {
+            var sim = new Simulation(NationConfig.France().ToScenario(19), new NullAgent());
+            sim.Run(4);
+            var w = sim.World;
+            w.PollTax = 0;   // 人頭税の率は頭数あたりの実額（物価水準で伸びない）＝双子の名目を2倍にしても2倍にならない＝止める
+            return w;
+        }
+        // 名目の量を全て2倍にする（2倍は浮動小数で厳密＝和も積もちょうど2倍）＝同じ実体・物価水準2倍
+        static void DoubleNominal(World w)
+        {
+            w.PriceLevel *= 2; w.GovDebt *= 2; w.ForeignDebt *= 2; w.LastTariffRevenue *= 2; w.ForeignBondInvestorPool *= 2;
+            foreach (var r in w.Regions)
+            {
+                r.StateSpent[(int)TreasuryCat.StateMonopoly] *= 2;
+                foreach (var p in r.Pops) { p.Savings *= 2; p.Earned *= 2; p.LandRent *= 2; p.BondHoldings *= 2; }
+            }
+        }
+        int bo = (int)TreasuryCat.Borrow;
+        const double Big = 1e18;
+        double Borrow(World w, double limit, double r)
+        {
+            w.Coef.MaxInterestShareOfRevenue = limit;
+            double b = w.TreasuryLedger[bo];
+            w.FiscalFundingRatio = r;
+            Fiscal.Step(w, w.Coef, r < 1 ? -Big : 0);
+            return w.TreasuryLedger[bo] - b;
+        }
+        // 探り：門が読む利払いと歳入（r＝1・余剰0＝借りも返しもしない）
+        var probe = Twin();
+        Fiscal.Step(probe, probe.Coef, 0);
+        double share = probe.LastInterest / probe.LastRevenue;
+        Assert.True(probe.LastInterest > 0 && probe.LastRevenue > 0 && share > 0, $"前提：利払いと歳入が立っていない（{probe.LastInterest}／{probe.LastRevenue}）");
+        double below = share * 1.001, above = share * 0.999;
+
+        // ① 限界の下＝借りる
+        var a = Twin();
+        double unitA = a.NominalGdp * a.Coef.BorrowFractionOfGdp;
+        double gotA = Borrow(a, below, 0.5);
+        Assert.True(gotA > 0, $"利払い÷歳入 {share:F4} が限界 {below:F4} の下なのに借りない");
+        Assert.True(System.Math.Abs(gotA - unitA) <= 1e-9 * unitA, $"大きな不足で1件の額（名目GDP×割合）{unitA:F3} で止まっていない（{gotA:F3}＝1件の額の物差しが名目でないか、プールが先に尽きた）");
+        Assert.Equal(share, a.LastInterest / a.LastRevenue, 12);   // 門が読んだ量は探りと同じ
+
+        // ② 限界に届いた＝借りない・払えない月は不履行の計数が進む・払えている月は進まない
+        var x = Twin();
+        Assert.Equal(0.0, Borrow(x, above, 0.5));
+        Assert.Equal(1, x.InsolvencyQuarters);
+        var y = Twin();
+        Assert.Equal(0.0, Borrow(y, above, 1.0));
+        Assert.Equal(0, y.InsolvencyQuarters);
+
+        // ③ 物価水準2倍の双子：門の判定は同じ・借りる額はちょうど2倍
+        var b2 = Twin();
+        double n0 = b2.NominalGdp;
+        DoubleNominal(b2);
+        Assert.True(System.Math.Abs(b2.NominalGdp - 2 * n0) <= 1e-12 * n0, $"前提：名目GDPが2倍にならない（{n0}→{b2.NominalGdp}）");
+        double gotB = Borrow(b2, below, 0.5);
+        Assert.True(System.Math.Abs(gotB - 2 * gotA) <= 1e-12 * gotA, $"物価水準2倍の双子の借入 {gotB:F3} が {2 * gotA:F3}（2倍）でない＝1件の額か門が実質の物差し");
+        var z2 = Twin();
+        DoubleNominal(z2);
+        Assert.Equal(0.0, Borrow(z2, above, 0.5));
+        Assert.Equal(1, z2.InsolvencyQuarters);
     }
 
     /// <summary>★借入はエンジンの1行だけ（2026-09-28 作者裁定「借入は自動化・借金ボタンは不要」）＝AI とプレイヤーの経路が無い。
@@ -250,12 +306,11 @@ public class TreasuryLedgerTests
         w.Pay(TreasuryCat.OtherOut, -drain); w.Regions[0].Pops[0].Savings += drain;
         w.AdminSpending = 3.0;
         w.Coef.DevaluationCapFrac = 0;   // 切り下げの余地を閉じる（仏は不換＝余地が払えない分を埋めて r＝1 になる・切り下げは下の番人が見る）
-        double b0 = w.TreasuryLedger[(int)TreasuryCat.Borrow], st0 = w.BorrowStacks;
-        Assert.True(st0 < w.Coef.MaxBorrowStacks && w.BorrowCooldown <= 0, "前提：借入の上限か冷却中");
+        double b0 = w.TreasuryLedger[(int)TreasuryCat.Borrow];
+        Assert.True(w.LastInterest < w.Coef.MaxInterestShareOfRevenue * w.LastRevenue && w.BorrowCooldown <= 0, "前提：借入の上限か冷却中");
         for (int d = 0; d < 29; d++) sim.StepDay();   // 月次決算を1回（r を決める→…→財政）
         Assert.True(w.FiscalFundingRatio < 1, $"前提：r＜1 の月になっていない（{w.FiscalFundingRatio:F4}）");
         Assert.True(w.TreasuryLedger[(int)TreasuryCat.Borrow] > b0, "借りる主体のいない世界で r＜1 の月にエンジンが借りない");
-        Assert.Equal(st0 + 1.0, w.BorrowStacks, 12);
 
         // ② 借入の書き手は Fiscal.cs の1か所だけ・Fiscal.Step を呼ぶのは Simulation.cs だけ（SimCore と App を走査・コメントは数えない）
         string root = System.IO.Path.GetDirectoryName(System.IO.Path.GetDirectoryName(ThisFile()))!;

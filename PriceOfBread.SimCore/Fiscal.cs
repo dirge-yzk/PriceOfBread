@@ -272,21 +272,30 @@ public static class Fiscal
         w.LastRevenue = budgetBase; w.LastUpkeep = upkeep; w.LastInterest = interest;   // 診断（LastRevenue は Simulation の AdminBudget/MilitaryBudget の基数＝間接税込みへ）
         w.LastMilitaryClaim = militaryClaim; w.LastAdminClaim = adminClaim;          // 診断（予算表の支出内訳）
         w.FiscalCapacity = w.FiscalCapacity < 1e-9 ? surplus : w.FiscalCapacity + c.FiscalCapacitySmoothing * (surplus - w.FiscalCapacity);
-        // === 借入（エンジンが自動で借りる・作者裁定 2026-09-28「借入は自動化・借金ボタンは不要」）：借入額＝min(1件の額, 月初の払えない額)・スタック＝借入額÷1件の額 ===
+        // === 借入（エンジンが自動で借りる・作者裁定 2026-09-28「借入は自動化・借金ボタンは不要」）：借入額＝min(1件の額, 月初の払えない額) ===
         // 調達＝資本家の余剰貯蓄（クラウディングアウト）＋外資（開放度）＝旧・自動国債と同じ保存経路（国内は純移転・海外は CumulativeTradeFlow）。
-        // プールを超えては借りられない（保存）。20スタックで頭打ち→張り付いたまま続けば不履行（下）。返済でスタック減。
+        // プールを超えては借りられない（保存）。利払いが歳入の限界に届いたら頭打ち→払えない（r＜1）まま続けば不履行（下）。
         // ★条件は1行だけ＝国家の支払い率 r＜1 の月（作者裁定 F3）・借入の上限の下・冷却中でない。旧＝AI（SelfPlay）と画面（GameViewModel）が同じ条件で
         //   四半期ごとに予約の列（BorrowQueue）へ積み、ここが月に1件ずつ実行した＝予約の列と2行を削除した（AI とプレイヤーの経路は無い＝等価）。
         //   借りる主体のいない世界（試験の NullAgent）も同じ1行で借りる＝利子の未払いが元本へ複利で積もり続け、上限→不履行の出口に届かない形が閉じる。
-        // ★借りる額は払えない額だけ（作者裁定 2026-09-28）：旧＝r＜1 なら不足の大きさに関係なく1件＝1件の額（月次GDP×割合）を満額借りて1スタック
+        // ★借りる額は払えない額だけ（作者裁定 2026-09-28）：旧＝r＜1 なら不足の大きさに関係なく1件＝1件の額（月次GDP×割合）を満額借りた
         //   ＝切り下げでほぼ埋まった r＝1−ε の月（r＜1 の四半期の77% が r≧0.99）も満額→上限→不履行→借入禁止を繰り返した。
         //   払えない額＝月初の −spare（Simulation が r と同時に求める＝請求−払える額〔切り下げの後〕＋借越）＝切り下げの余地と同じ量・減債の余剰（spare＞0）の裏側。
-        //   スタックは借入額÷1件の額＝減債（返済額÷1件の額）と同じ単位＝上限・不履行の判定が読む量が借りた額と返した額で対称に動く。
-        double loanUnit = Math.Max(1e-9, Math.Max(0, gdp) * c.BorrowFractionOfGdp);   // 1件の額（借入と減債のスタックの物差し）
-        if (payRate < 1 && w.BorrowStacks < c.MaxBorrowStacks && w.BorrowCooldown <= 0)   // 月に1件。デフォルト後のクールダウン中は借りられない（信用喪失）
+        // ★借入の上限＝利払いが歳入の限界（MaxInterestShareOfRevenue）に届く所（作者裁定 2026-09-28・棚卸し fis-01）。旧＝借入スタック20（1スタック＝月次**実質**GDP の10%
+        //   ＝年GDP の約17%で全ての国が同じ天井・1815年の英の250%は原理的に出ない）。史実で借りられなくなったのは水準そのものでなく、利払いが歳入を食う割合と市場の信認
+        //   （英1818-22 利払い約3,100万ポンド÷歳入約5,600万≒0.55 で借りずに持ちこたえ・仏1788 3.18億÷4.72億リーヴル≒0.67 で支払停止）＝同じ限界でも、
+        //   歳入の厚い国（英）と金利の安い国（金本位・議会の信認割引）ほど深く借りられ、信認を失った国（切り下げ歴・高債務の金利）は浅い所で止まる。
+        //   ⚠門は今月の利払いの請求（下の interest＝国債×平均クーポン＝LastInterest）と今月の歳入（budgetBase＝LastRevenue）＝どちらも名目の今の量
+        //   ＝物価水準が変わっても比は変わらない。旧のスタック（過去の1件の額で数えた借入の累計）は分子と分母が別の時点・別の物差しだった
+        //   （インフレや成長の後も昔の1件が同じ重さで残る・利子の元本への繰り入れを数えない）＝上限が読まなくなったので削除した（思想⑩・棚卸し fis-01「スタック数は残高から導ける」）。
+        //   否定形＝NaN は借りない。歳入0の国は利払い0でも借りられない（返す財源の無い国に貸し手はいない）。
+        bool underLimit = interest < c.MaxInterestShareOfRevenue * budgetBase;
+        if (payRate < 1 && underLimit && w.BorrowCooldown <= 0)   // 月に1件。デフォルト後のクールダウン中は借りられない（信用喪失）
         {
             double shortfall = spare < 0 ? -spare : 0;   // 否定形＝NaN は借りない
-            double borrowWant = Math.Min(Math.Max(0, gdp) * c.BorrowFractionOfGdp, shortfall);
+            // 1件の額＝月次**名目**GDP×割合（2026-09-28・単位の対称）。旧＝実質GDP（参照価格の産出）＝払えない額・国債・プールは名目なので、
+            //   物価水準が1から離れる国ほど1件の物差しがずれた（分子と分母の非対称）。下の外資のプールも同じ理由で名目。
+            double borrowWant = Math.Min(Math.Max(0, nominalGdp) * c.BorrowFractionOfGdp, shortfall);
             double capSavings = 0; foreach (var p in capitalists) capSavings += Math.Max(0, p.Savings);
             // 財6（資本開放度の脱・関税連動）：openness の関税連動を CapitalOpennessTariffWeight で連続化。既定1.0＝openness=Clamp(1−1.0×Tariff,0,1)＝旧 Clamp(1−Tariff,0,1) と代数的に厳密一致（数値中立）。
             // 0で関税と独立（19世紀の資本移動は関税と別＝高関税の米/露も外債を発行）→兌換性/信認ベースの開放度へ。中間で部分連動。
@@ -297,7 +306,7 @@ public static class Fiscal
                 ? (w.CapitalControlLaw ? PoliticalQuantities.Clamp01(c.CapitalControlOpenness) : 1.0)
                 : PoliticalQuantities.Clamp01(1.0 - c.CapitalOpennessTariffWeight * w.Tariff);
             double domesticPool = capSavings * c.BondAppetite;
-            double foreignPool = openness * c.ForeignBondCapacity * Math.Max(0, gdp) * Math.Clamp(w.GovBondRate / Math.Max(1e-9, c.BondBaseRate), 0, ForeignBondYieldRatioCap);
+            double foreignPool = openness * c.ForeignBondCapacity * Math.Max(0, nominalGdp) * Math.Clamp(w.GovBondRate / Math.Max(1e-9, c.BondBaseRate), 0, ForeignBondYieldRatioCap);
             // 財5（対外国債をモデル外の無限プールから閉鎖系へ）：foreignPool を他モデル国の資本家貯蓄から実引き当て。
             // 注入（MultiNationSim→World.ForeignBondInvestorPool）と保有国配分（CapitalMarket の外債レグ＝ForeignBondClaims 繰上げ＋利払い配当）は実装済み。
             // ★2026-09-26：旗 ForeignBondFromInvestors（既定1.0）を焼き込み（x-01）。
@@ -323,7 +332,6 @@ public static class Fiscal
                 w.Pay(TreasuryCat.Borrow, borrowed); w.GovDebt += borrowed; w.ForeignDebt += foreignPortion;
                 // R9：新発債を現行市場金利で既往クーポンへ加重平均で混ぜる（BondRolloverFrac<1の時のみ意味を持つ。既定1.0では翌月頭のrolloverでGovBondRateに上書きされ未読＝ビット一致）。残高0からの借入はdebtBefore=0で現行金利へ自然収束
                 { double debtBefore = w.GovDebt - borrowed; w.GovAvgCoupon = (debtBefore * w.GovAvgCoupon + borrowed * w.GovBondRate) / System.Math.Max(1e-9, w.GovDebt); }
-                w.BorrowStacks += borrowed / loanUnit;   // スタック＝借入額÷1件の額（減債と同じ単位・旧＝1件＝1スタック）
             }
         }
 
@@ -472,10 +480,8 @@ public static class Fiscal
             //   CapitalMarket が四半期末に、減らした債権と同じ比（＝債権の比）で債権国の投資家へ GiveGold する。
             w.CumulativeTradeFlow -= frForeign;
             w.ForeignIntPaidThisQuarter += frForeign;
-            // 借入のスタックを返済分だけ減らす（1スタック＝1件の額＝借入と同じ loanUnit）。返せた分だけ借入の上限から離れる。
-            w.BorrowStacks = Math.Max(0, w.BorrowStacks - repay / loanUnit);
+            // （返せた分だけ国債と翌月の利払いが減る＝借入の上限〔利払い÷歳入〕から離れる。旧のスタックの減算は 2026-09-28 にスタックごと削除）
         }
-        if (w.GovDebt <= 1e-9) w.BorrowStacks = 0;   // 完済＝スタック消滅
         //（借入スタックの出費上限 SpendingCapFactor は 2026-09-28 に撤去＝作者裁定 Q9・債務の重さは利子の請求が大きくなることで r に出る＝二重計上を避ける）
 
         // === ソブリン・デフォルト：借入上限に張り付き返済できない＝信用が尽き支払不能→**債務不履行（致命的）** ===
@@ -484,12 +490,14 @@ public static class Fiscal
         //   ⚠名前は「Quarters」だが単位は月＝DefaultTriggerQuarters=8 は8か月の支払不能・DefaultCooldownQuarters=24 は2年の借入禁止。
         //   ★2026-09-26（dorm-29）：四半期の締め月だけ進める休眠の器 FiscalQuarterlyGating（既定0＝毎月）を削除し、単位の書き方を月へ直した（挙動は1ビットも変わらない）。
         if (w.BorrowCooldown > 0) w.BorrowCooldown--;
-        if (w.BorrowStacks >= c.MaxBorrowStacks - 1e-9) w.InsolvencyQuarters++; else w.InsolvencyQuarters = 0;
+        // ★張り付き＝借入の門と同じ量（今月の利払い≧限界×今月の歳入＝上の underLimit の外）で借りられず、払えない（r＜1）月（2026-09-28）。
+        //   旧＝スタックが上限20に張り付いた月（r は見ない）。旧のスタックは r＜1 の月の借入でだけ積もり r＝1 の月の減債で離れた＝張り付きは「払えずに借り尽くした」だった。
+        //   利払い÷歳入は借りなくても歳入の落ち込みや金利の上昇で限界を越える＝r＝1 で全ての請求を払えている国（国庫の蓄え）は数えない＝払えている国を不履行にしない。
+        if (payRate < 1 && w.GovDebt > 1e-9 && !underLimit) w.InsolvencyQuarters++; else w.InsolvencyQuarters = 0;
         if (w.InsolvencyQuarters >= c.DefaultTriggerQuarters)
         {
             // 債務消滅（請求権＝保存無影響）。致命的な代償＝兌換崩壊・**信用凍結（貸付消滅→工場が資本を得られず投資/工業化が崩落＝恐慌）**・正統性崩壊（革命リスク）・大衆の暴動・当面 借入不能。
             RepudiateDebt(w, c);   // 債務・保有・兌換・借入の停止＝急進革命の否認と同じ中身（1か所）。以下はデフォルトだけの代償
-            w.BorrowStacks = 0;
             w.InsolvencyQuarters = 0; w.HadSovereignDefault = true; w.SovereignDefaultCount++;   // C-中9（2026-07-22）：回数も数える（恒久boolでは2度目以降の破産が制度疲労の窓を開けない）
             if (w.Bank is { } dbank) { dbank.Confidence = 0; dbank.Heat = 0; }   // 信用凍結＝Confidence0で次期以降 与信が自然収縮（恐慌）。**Loansは直接0にしない**（基礎貨幣=広義−与信 の保存を破るため）
             double legBeforeDefault = w.Legitimacy;

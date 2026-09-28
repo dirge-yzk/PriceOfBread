@@ -960,8 +960,8 @@ public sealed class World
     public double ForeignDebt { get; internal set; }   // うち海外保有分（対外債務＝利払い/不履行が対外）
     public double CumulativeDevaluation { get; internal set; }   // 累積の通貨切り下げ額（債務不履行で全popの貯蓄を希薄化＝インフレ税）。**挙動の被乗数**＝Fiscal の distrust（国債金利BondRateDistrustScale）→CrowdingPremium→民間投資と対外信用に直接効く（02断線走査2026-07-28：旧「診断・歴史」注記は削除リファクタで壊す危険があった）
     public double CumulativeFiatIssued { get; internal set; }    // 累積の不換新規発行（fiat-expansion-as-haircut-not-issue）。基礎貨幣の正当な増加源＝貨幣保存の基準に算入（鋳造CumulativeGoldMintedと同型）。FiatIssueFrac=0で常に0＝較正中立
-    // 借入（Fiscal の1行＝国家の支払い率 r＜1 の月にエンジンが自動で借りる・2026-09-28 作者裁定「借入は自動化・借金ボタンは不要」＝予約の列 BorrowQueue と RequestBorrow を削除）。借入額＝min(1件の額, 月初の払えない額)・スタック＝借入額÷1件の額（2026-09-28・減債と同じ単位）。
-    public double BorrowStacks { get; internal set; }             // 未返済の借入スタック数（借入額÷1件の額で増え、返済額÷1件の額で減る）。上限に張り付いたまま続けば不履行
+    // 借入（Fiscal の1行＝国家の支払い率 r＜1 の月にエンジンが自動で借りる・2026-09-28 作者裁定「借入は自動化・借金ボタンは不要」＝予約の列 BorrowQueue と RequestBorrow を削除）。借入額＝min(1件の額, 月初の払えない額)。
+    //   上限＝利払い÷歳入（Coefficients.MaxInterestShareOfRevenue・2026-09-28）＝旧の借入スタック BorrowStacks（過去の1件の額で数えた借入の累計）は上限が読まなくなり削除（思想⑩・棚卸し fis-01）。
 
     // ==== 通貨改革（2026-08-13・作者採用）====
     // なぜ要るか：CumulativeDevaluation は**単調増加で減る経路が1つも無かった**（国家破産でも消えない・セーブにも残る）。
@@ -977,7 +977,7 @@ public sealed class World
 
     /// <summary>通貨改革の予約（プレイヤーのボタンもAIも**この同じ口**を通る）。parity＝新平価。</summary>
     public void RequestCurrencyReform(double parity) => PendingCurrencyReform = Math.Clamp(parity, Coef.ExchangeRateFloor, 1.0);   // 新平価を [ExchangeRateFloor,1.0] にクランプして予約（月次で消化・CurrencyReformCooldown）
-    public int InsolvencyQuarters { get; internal set; }          // 借入上限(MaxBorrowStacks)に張り付いて返済できない連続**月数**（⚠名前は Quarters だが Fiscal.Step が月次で進める）。閾値超で**ソブリン・デフォルト**（致命的）
+    public int InsolvencyQuarters { get; internal set; }          // 借りられない（利払い÷歳入≧MaxInterestShareOfRevenue）まま払えない（r＜1）連続**月数**（⚠名前は Quarters だが Fiscal.Step が月次で進める）。閾値超で**ソブリン・デフォルト**（致命的）
     public int BorrowCooldown { get; internal set; }              // デフォルト後の借入禁止の残り**月数**（信用喪失）。0になるまで借りられない
     public bool HadSovereignDefault { get; internal set; }        // 過去にデフォルトしたか（年表・診断）
 
