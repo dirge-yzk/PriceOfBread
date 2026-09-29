@@ -101,6 +101,8 @@ RC=$?
 [ "$SNAP_OWNED" = "1" ] && rm -rf "$SNAP"   # 既定の隔離先だけ片付ける（SNAP_DIR を渡した腕は呼び手のもの＝残す）
 echo "      終了コード=$RC　テスト=$TEST_RC　出力=$OUT$RUN_NOTE　マニフェスト=$OUT.manifest（SOURCE-HASH=$HASH）"
 [ -n "${POB_COST_OUT:-}" ] && [ -f "$POB_COST_OUT" ] && echo "      計算量＝$POB_COST_OUT　$(grep -E '^判定:' "$POB_COST_OUT")"
+# ★2026-09-30（止める規則＝作者裁定「計算量の予算」の6・README §1-2）：種ごとの exact／near の平均と標準誤差（<出力>.cost の「揺れ:」の1行）。
+[ -n "${POB_COST_OUT:-}" ] && [ -f "$POB_COST_OUT" ] && grep -E '^揺れ:' "$POB_COST_OUT" | sed 's/^/      /'
 # ★★終了コードは3値（裁定①・2026-08-01）。裁定順序「破綻しない ＞ 正しい挙動 ＞ バランス」を大小へ写す。
 #   0 ＝ 硬性ゲート全緑・テスト緑・6次元も到達
 #   1 ＝ 硬性ゲートが赤 **または テストが赤** ← 差し戻しの理由になる唯一の値

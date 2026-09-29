@@ -386,6 +386,15 @@ public sealed class Market
     internal const double DeadEps = 1e-9;
     /// <summary>作業領域（[NonSerialized]・セーブに載らない）：この市場を死んでいない財の一覧に載せた州＝印の宛先。</summary>
     [System.NonSerialized] internal Region? _liveRegion;
+    /// <summary>★月の残りを眠る国内の市場（2026-09-30 計算量の予算 第2回・近似）＝作業領域（[NonSerialized]・セーブに載らない）。
+    /// 書くのは <see cref="MarketFlow.StepDay"/> だけ：月の最初の旬に作り直し、供給も在庫も無く参照より上に張り付いた財が不動点に着いた
+    /// （1日の動きが相対 1e-8 を切った・ビットで止まった）旬に立てる。立っている財は月の2旬目以降を回さない（入力は月の中で変わらない＝境界相だけが書く）。
+    /// 眠っている間の値段は不動点から相対 約2.5e-8 の内（S3b の打ち切りの上界）＝読まれても追いつく分はこの上界の内。</summary>
+    [System.NonSerialized] internal bool FlowAsleep;
+    /// <summary>★清算で成約しなかった行の印（2026-09-30 計算量の予算 第2回・近似）＝作業領域（[NonSerialized]・セーブに載らない）。
+    /// 前にこの行（州×財の買い手）を走査して成約しなかったときの自州価格（金建て）。0＝印なし（成約した・門で飛ばした・四半期の最初の清算で消す）。
+    /// 読むのは月の清算（四半期の2・3回目）の間引きだけ＝不足だけで起きた行は、自州価格がこの値を超えて上がるまで眠る（<see cref="InternationalMarket"/>）。</summary>
+    [System.NonSerialized] internal double ClearFailLp;
     public double ReservationWage;  // 留保賃金＝労働者が慣れた賃金の下限（労働財のみ使用）。賃上げに速く・賃下げに遅く追従＝下方硬直の創発源
     // 配給率の記帳（作者指示2026-08-10「生産コスト欄の各材に供給率を出す」）＝EconomyStep のクリアリングが決めた
     // その月のこの財の配給率 ration[gi]（買い手が欲しかった量のうち実際に渡った比）。Producer.LastMaterialFill は

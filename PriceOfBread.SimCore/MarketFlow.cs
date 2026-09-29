@@ -15,7 +15,8 @@
 ///   ・帯の端・休眠の上乗せ・退化した帯（L≦Eps）・労働（初回は閉じた式を使わない）＝日次の写像を h 回まわし、
 ///     値がビットで止まったら残りを打ち切る（入力が定数なので以後も同じ値＝厳密に同じ結果）。局所変数だけで回す＝状態を持たない。
 ///     ⚠例外＝供給も在庫も無く参照より上に張り付いた財（2026-09-29 S3b・近似）は、1日の動きが <see cref="PinnedTol"/>（相対）を切ったら打ち切る。
-///   h=1 なら旧来の日次と1ビットも変わらない。
+///     ★その財が不動点に着いた旬からは、月の残りの旬を回さない（2026-09-30 計算量の予算 第2回・近似＝<see cref="Market.FlowAsleep"/>・月の最初の旬に作り直す）。
+///   h=1 なら旧来の日次と1ビットも変わらない（眠りは呼び手が月の2旬目以降と言ったときだけ＝既定は使わない）。
 /// 金の移動は伴わない（価格を置くだけ）＝保存則に無関係。クリアリング・所得決済は月次のまま。
 /// </summary>
 public static class MarketFlow
@@ -47,7 +48,13 @@ public static class MarketFlow
 
     /// <param name="days">この1歩で進める日数 h（旬の長さ）。1＝旧来の日次。</param>
     /// <param name="cost">計算量の台帳（<see cref="CostLedger"/>・呼び手の国の台帳＝並列の日次相でも国ごと）。null＝数えない（テストの直呼び）。診断＝値を読まない。</param>
-    public static void StepDay(Region region, Coefficients coef, int days = 1, long[]? cost = null)
+    /// <param name="monthStart">この歩が月の最初の旬か（既定 true＝眠りを使わない＝テストの直呼びと旧来の形）。false＝月の2旬目以降＝<see cref="Market.FlowAsleep"/> の立った財を回さない。</param>
+    /// <remarks>★月の残りを眠る市場（2026-09-30 計算量の予算 第2回・近似・作者裁定「起きている物だけ回す」）：供給も在庫も無く参照より上に張り付いた財
+    /// （下の pinned）が不動点に着いた旬（日次の写像が PinnedTol の打ち切りかビットで止まった）に <see cref="Market.FlowAsleep"/> を立て、月の残りの旬は回さない。
+    /// 起こす理由＝月の境（月次決算・清算が需給・在庫・輸入を書き直す＝次の月の最初の旬は全ての財を回して印を作り直す）。タイマーではない
+    /// （入力の書き手が境界相だけ＝月の中では変わらない・census）。眠っている間の値段は不動点から相対 約2.5e-8 の内（打ち切りの上界）＝月次決算と建設が読む値の誤差もこの内。
+    /// ⚠印は作業領域＝セーブに載らない。四半期の境でセーブしたとき、次の歩は月の最初の旬＝印を作り直す（往復は一致）。月の途中でロードすると、その月の残りは起きたまま回る（差は上界の内）。</remarks>
+    public static void StepDay(Region region, Coefficients coef, int days = 1, long[]? cost = null, bool monthStart = true)
     {
         int h = days;
         double div = coef.PriceFlowDailyDiv;
@@ -73,11 +80,13 @@ public static class MarketFlow
         //   一覧＝Region.EnsureLiveGoods（Goods の順のうち死んでいない財・LastDemand／LastProduced の書き込みで「死んだ財か」が変わると印が立ち作り直す）。
         //   書き手は全て境界相（月次決算・清算・四半期）とテストの直書き＝日次相の中で変わらない（census）。下の continue は残す（一覧の外の財は旧でも必ず continue した）。
         var live = region.EnsureLiveGoods();
-        if (cost is not null) cost[CostLedger.PriceGoods] += live.Length;   // 計算量の台帳（診断）：この州で見る財（死んでいない財）
+        long nAsleep = 0;
         foreach (var good in live)
         {
             int gi = good.Id;
             var m = region.Markets[gi];
+            if (!monthStart && m.FlowAsleep) { nAsleep++; continue; }   // ★月の残りを眠る市場（上の remarks・近似）＝回さない（値段・在庫目標はこの月の不動点のまま）
+            m.FlowAsleep = false;
             double totalDemand = m.LastDemand;
             if (totalDemand < Eps && m.LastProduced < Eps) continue;   // まだ決算が無い／死んだ財は動かさない
             nSteps++;
@@ -243,12 +252,13 @@ public static class MarketFlow
                     p1 = SoftBandLn(p1, rp, lnFloorGoods, lnCeilGoods, k);   // ハードクランプ→対数空間の滑らかな飽和（内部は恒等≒・境界に漸近＝角を除去）
                     bool still = Same(p1, P) || (pinned && System.Math.Abs(p1 - P) <= PinnedTol * P);
                     P = p1;
-                    if (still) break;
+                    if (still) { if (pinned) m.FlowAsleep = true; break; }   // ★張り付いた財が不動点に着いた＝月の残りの旬は眠る（上の remarks）
                 }
                 m.Price = P;
                 nRun += run; nSkip += h - run;
             }
         }
+        if (cost is not null) cost[CostLedger.PriceGoods] += live.Length - nAsleep;   // 計算量の台帳（診断）：この州で回した財（死んでいない財のうち眠っていない財）
         if (cost is not null) cost[CostLedger.PriceDailyRuns] += nRun;   // 計算量の台帳（診断）：日次の写像をまわした回（役務・労働・帯の端の財）
         if (MultiNationSim.TimeOn)
         {

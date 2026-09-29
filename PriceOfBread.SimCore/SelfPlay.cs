@@ -1573,7 +1573,8 @@ public sealed record BatchSummary(
     //   史実参照（実質GDP・1783-1934）＝大国8で計**5〜7回**・ほぼ全て1914-34の大戦/大恐慌型（露WWI+内戦≈40%・仏墺≈30%・米29-33≈27%）・
     //   **1783-1913の平時はほぼ0**（長い19世紀のパニックは実質−5〜10%の不況＝−20%崩落ではない）。
     double AvgMajorDepressionEpisodes = 0, double MaxMajorDrawdown = 0, string MaxMajorDdNote = "",
-    long[]? CostTotals = null);   // ★計算量の台帳（2026-09-30）＝全試合の見た件数の和（CostLedger の添字）。報告専用＝帯の報告には書かない（Runner が別のファイルへ）
+    long[]? CostTotals = null,   // ★計算量の台帳（2026-09-30）＝全試合の見た件数の和（CostLedger の添字）。報告専用＝帯の報告には書かない（Runner が別のファイルへ）
+    IReadOnlyList<(ulong Seed, double Exact, double Near)>? SeedFidelity = null);   // ★止める規則（2026-09-30 計算量の予算 第2回）＝種ごとの政体 exact／near（その試合だけで照合した国の平均）＝標準誤差の材料。報告専用＝帯の報告には書かない（Runner が <出力>.cost へ）
 
 /// <summary>各国に効用AIを差し、1試合を最後まで自動進行して構造化結果を返す。seed 固定で再現可能。</summary>
 public static class SelfPlayMatch
@@ -2091,6 +2092,13 @@ public static class SelfPlayMatch
 
         // 史実忠実度（新較正基準2026-07-09）：1914参照表（HistoricalReference.Table）と完走試合の最終政体・法を国別に照合。
         var fidelity = HistoricalReference.Evaluate(completed);
+        // ★止める規則（2026-09-30 作者裁定「計算量の予算」の6）：種ごとの exact／near＝同じ照合（Evaluate）を1試合ずつ＝照合できた国の平均（NaN＝未定義の国は除く）。
+        var seedFid = completed.Select(r =>
+        {
+            var f1 = HistoricalReference.Evaluate([r]);
+            return (r.Seed, f1.Select(x => x.Exact).Where(v => !double.IsNaN(v)).DefaultIfEmpty(double.NaN).Average(),
+                    f1.Select(x => x.Near).Where(v => !double.IsNaN(v)).DefaultIfEmpty(double.NaN).Average());
+        }).ToList();
 
         // GoldCoverMin有効化2026-07-10：金本位の強制離脱（兌換停止）頻度＝「実在するが常態でない危機」の帯を確認する集計。
         int goldSusp = completed.Sum(r => r.GoldSuspensions);
@@ -2127,7 +2135,8 @@ public static class SelfPlayMatch
             completed.Count > 0 ? completed.Average(r => r.MajorDepressionEpisodes) : 0,
             completed.Count > 0 ? completed.Max(r => r.MajorMaxDrawdown) : 0,
             completed.OrderByDescending(r => r.MajorMaxDrawdown).FirstOrDefault() is { } mdd ? $"{mdd.MajorDdNote}・seed{mdd.Seed}" : "",
-            CostTotals: SumCost(results));   // ★計算量の台帳（2026-09-30）＝全試合の和（報告専用）
+            CostTotals: SumCost(results),   // ★計算量の台帳（2026-09-30）＝全試合の和（報告専用）
+            SeedFidelity: seedFid);         // ★止める規則（2026-09-30 第2回）＝種ごとの exact／near（報告専用）
     }
 
     /// <summary>計算量の台帳の全試合の和（<see cref="CostLedger"/> の添字・中断した試合もそこまでの件数を足す）。</summary>

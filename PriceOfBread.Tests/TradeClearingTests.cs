@@ -339,6 +339,44 @@ public class TradeClearingTests
         Assert.True(Imported(c, gc) > 1e-9, "四半期の最初の清算で眠っている行が起きなかった");
     }
 
+    /// <summary>★不足で起きたが成約しない行を眠らせる（2026-09-30 計算量の予算 第2回・近似）：月の清算（四半期の2・3回目）で、不足だけで起きた行
+    /// （前の月に輸入が無い）が前の走査で成約しなかったなら、自州価格がその時の値（Market.ClearFailLp）を超えて上がるまで眠る＝売り手が安くなっても月の途中では起きない
+    /// （売り手の側は四半期の最初の清算が拾う）。自州価格が上がれば起きて買う。四半期の最初の清算は、買い手の行に入らない州の印も消す。
+    /// ⚠突然変異「印を読まない」「印を立てない」「最初の清算で消さない」で赤。</summary>
+    [Fact]
+    public void 不足で起きたが成約しない行は自州価格が上がるまで眠る()
+    {
+        static double Imported(MultiNationSim sim, int g) { double s = 0; foreach (var n in sim.Nations) foreach (var r in n.World.Regions) if (r.State == RegionState.Active) s += r.Markets[g].LastImport; return s; }
+        var (sim, g, seller, seller2, _) = Make(WorldData.ByName("イギリス"));   // 州の多い1国（買い手の州が2つ以上）
+        double wp = sim.Market.Price[g];
+        Region? hungry = null, idle = null;
+        foreach (var n in sim.Nations)
+            foreach (var r in n.World.Regions)
+            {
+                if (r.State != RegionState.Active || ReferenceEquals(r, seller) || ReferenceEquals(r, seller2)) continue;
+                r.Markets[g].PrevImport = 0; r.Markets[g].LastShortage = 0;
+                if (hungry is null && r.Markets[g].LastDemand >= 500) hungry = r;
+                else if (idle is null) idle = r;
+            }
+        Assert.True(hungry is not null && idle is not null, "買い手の州が2つ無い（テスト前提の破れ）");
+        foreach (var sr in new[] { seller, seller2 }) sr.Markets[g].Price = 5.0 * wp;   // 売り手は買い手（2倍）より高い＝着値≧自州価格＝成約しない
+        hungry!.Markets[g].LastShortage = 100;   // 不足だけで起きる行（前の月に輸入が無い）
+        idle!.Markets[g].Price = 0; idle.Markets[g].ClearFailLp = 123;   // 買い手の行に入らない州（値段0）に古い印
+        sim.Market.Step(sim.Nations, sim.Coef, firstClearingOfQuarter: true);
+        Assert.Equal(0.0, Imported(sim, g));   // 盤面の前提＝成約しない
+        Assert.Equal(0.0, idle.Markets[g].ClearFailLp);   // 四半期の最初の清算は古い印を消す
+        double failLp = hungry.Markets[g].ClearFailLp;
+        Assert.True(failLp > 0, "走査して成約しなかった行に印が立たない");
+        seller2.Markets[g].Price = 0.6 * wp;   // 売り手が安くなった（売り手の側の変化）
+        double before = Imported(sim, g);
+        sim.Market.Step(sim.Nations, sim.Coef, firstClearingOfQuarter: false);
+        Assert.Equal(before, Imported(sim, g));   // 自州価格が上がっていない＝眠る（月の途中では起きない）
+        hungry.Markets[g].Price *= 1.01;   // 自州価格が印の値を超えて上がる＝起きる
+        sim.Market.Step(sim.Nations, sim.Coef, firstClearingOfQuarter: false);
+        Assert.True(hungry.Markets[g].LastImport > 1e-9, "自州価格が上がった行が月の清算で起きなかった");
+        Assert.Equal(0.0, hungry.Markets[g].ClearFailLp);   // 成約した行は印なし
+    }
+
     /// <summary>金建ての成約を各国の通貨へ換算する（A7）。国ごとに基礎貨幣の動き＝世界の台帳の動き（D が閉じる）、
     /// 世界では金建てで閉じ（Σ 台帳の動き×為替＝0）、名目の差は為替の換算の台帳（清算所）に入る。</summary>
     [Fact]

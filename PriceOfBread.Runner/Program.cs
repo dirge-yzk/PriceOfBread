@@ -8294,6 +8294,24 @@ static class CostSys
                 ? (est <= tgtEst ? $"予算の内（目標にも届いた＝推定 {est:F1} ≦ 目標 {tgtEst:F1} 秒・余りは機能が使ってよい）" : $"予算の内（推定 {est:F1} ≦ 上限 {lim:F1}×{1 + CostLedger.BudgetSlack:F2} 秒・目標 {tgtEst:F1} 秒まであと {est - tgtEst:F1} 秒）")
                 : $"★予算の超過（推定 {est:F1} ＞ 上限 {lim:F1}×{1 + CostLedger.BudgetSlack:F2} 秒）＝どこで払ったかを実装ログとコミットに書く";
         o.AppendLine($"判定: {verdict}");
+        // ★止める規則（2026-09-30 作者裁定「計算量の予算」の6・README §1-2）＝種ごとの政体 exact／near と、その平均の標準誤差（標準偏差÷√種の数）。
+        //   5種の腕は、判定の量（exact・near）が線から標準誤差の2倍以上離れていれば、10種を回さずに採否を決めてよい。
+        //   ⚠種ごとの値は照合できた国の平均＝帯の報告の「忠実度の生値」（国ごとの率の平均）と国の欠けの分だけ違う＝両方を書く。
+        if (b.SeedFidelity is { Count: > 0 } sf)
+        {
+            o.AppendLine("忠実度の種ごとの値（止める規則＝README §1-2）:");
+            foreach (var (seed, ex, nr) in sf) o.AppendLine($"  seed{seed}\texact {ex * 100:F1}\tnear {nr * 100:F1}");
+            (double Mean, double Se) Ms(IEnumerable<double> v)
+            {
+                var l = v.Where(x => !double.IsNaN(x)).ToList();
+                if (l.Count == 0) return (double.NaN, double.NaN);
+                double m = l.Average();
+                double sd = l.Count > 1 ? Math.Sqrt(l.Sum(x => (x - m) * (x - m)) / (l.Count - 1)) : double.NaN;
+                return (m, sd / Math.Sqrt(l.Count));
+            }
+            var (me, se) = Ms(sf.Select(x => x.Exact)); var (mn, sn) = Ms(sf.Select(x => x.Near));
+            o.AppendLine($"揺れ: {sf.Count}種の平均 exact {me * 100:F1}（標準誤差 {se * 100:F1}pt）・near {mn * 100:F1}（標準誤差 {sn * 100:F1}pt）＝線から標準誤差の2倍（exact {2 * se * 100:F1}・near {2 * sn * 100:F1}pt）以上離れていれば10種を回さずに決めてよい");
+        }
         return o.ToString();
     }
 }

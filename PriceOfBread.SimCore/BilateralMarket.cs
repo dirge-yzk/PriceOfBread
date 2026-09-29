@@ -472,7 +472,16 @@ public sealed partial class InternationalMarket
         //   起こす理由＝①四半期の最初の清算で値段の差が運賃を超えているか軽く確かめる（下の 1b の打ち切り＝最良の売り手の着値の下界 ≧ 自州価格なら O(1) で終わる）
         //   ②この月にその財が足りなかった（Market.LastShortage＞0＝飢饉の輸入を遅らせない）。前の清算で成約したか＝Market.PrevImport（EconomyStep が月初に写す前の月の輸入）
         //   ＝新しい状態を持たない。⚠四半期に1回の清算（TradeMonthlyClearing=0）は毎回が四半期の最初＝間引かない。
+        // ★不足で起きたが成約しない行を眠らせる（2026-09-30 計算量の予算 第2回・近似・作者裁定「起きている物だけ回す」）：②で起きた行（前の月に輸入が無く不足だけ）が
+        //   前の走査で成約しなかった（Market.ClearFailLp＝その時の自州価格）なら、自州価格がその値を超えて上がるまで眠る＝起こす理由は「自州価格と着値の差が買い手の側から開いた」。
+        //   売り手の側（在庫の出現・積出し価格・関税・運賃）で差が開いた分は①の四半期の最初の清算が拾う（印はそこで全て消す）＝遅れは (108) の間引きと同じく最長2か月。
+        //   census（2026-09-30・種1全長）＝この形の行は清算の着値の充填の約1割（不足だけで起きた行の成約の額の 6.7%＝貿易額の全体の 0.66% が四半期の最初まで遅れる）。
+        //   ⚠印は作業領域（[NonSerialized]・セーブに載らない）。四半期の境のセーブは次の清算が①＝印を作り直す（往復は一致）。
         bool thin = c.TradeMonthlyClearing > 0 && !firstClearingOfQuarter;
+        if (!thin)
+            for (int i = 0; i < nn; i++)
+                foreach (var rC in nations[i].World.Regions)
+                    foreach (var mC in rC.Markets) mC.ClearFailLp = 0;   // ①＝全ての行を確かめ直す（前の四半期の印を残さない）
 
         var sellers = new List<Seller>(tc);
         var buyers = new List<(int Node, double Price)>(tc);
@@ -563,6 +572,8 @@ public sealed partial class InternationalMarket
             {
                 var m = tr[t].r.Markets[g];
                 if (thin && !(m.PrevImport > 0) && !(m.LastShortage > 0)) continue;   // ★間引き：眠っている行（上の thin の注記）
+                if (thin && !(m.PrevImport > 0) && m.ClearFailLp > 0 && !(lp > m.ClearFailLp)) continue;   // ★不足で起きたが前に成約しなかった行＝自州価格が上がるまで眠る（上の注記・近似）
+                m.ClearFailLp = 0;   // 印は走査して成約しなかったときだけ（下の行の終わり）＝門で飛ばした行・成約した行は印なし
                 int ni = tr[t].nation;
                 int bias = nations[ni].World.TradeBiasOf(g);
                 double buyDear = bias > 0 ? c.TradeBiasStrength : 0;
@@ -607,6 +618,7 @@ public sealed partial class InternationalMarket
                 int candN = 0, resS = headS, resPrev = -1;   // 候補の数／次に調べる売り手（打ち切り位置）とその手前の生存売り手
                 int bestA = -1, bestPos = -1; double bestDelA = double.MaxValue, secondDelA = double.MaxValue, bestKmA = 0;
                 bool keepBest = false;   // (a)：前回の best/second をそのまま使う
+                bool dealtRow = false;   // この行で1件でも成約したか（成約しなかった行に印＝ClearFailLp）
                 int guard = 0;
                 while (true)
                 {
@@ -730,6 +742,7 @@ public sealed partial class InternationalMarket
                     }
                     // ---- 記帳（払い手が清算所へ払い、売り手は財の清算の終わりに④で受け取る。運賃は船の持ち主へ・関税は国庫へ）----
                     if (MultiNationSim.TimeOn) CntDeals++;   // ★計器
+                    dealtRow = true;
                     double vA = qA * sA;              // 積出し価格の額（金建て）
                     double frG = vA * frA;            // 運賃（金建て）
                     if (TradeReachDiag.On) { TradeReachDiag.Deal(siA, ni, vA, bestKmA); TradeReachDiag.DealRef(siA, ni, qA * gd.RefPrice); }
@@ -771,6 +784,7 @@ public sealed partial class InternationalMarket
                     if (!(left[bestA] <= 1e-12) && !(capLeft[snA] <= 1e-12)) keepBest = true;
                     else { candN--; candS[bestPos] = candS[candN]; candD![bestPos] = candD[candN]; candK![bestPos] = candK[candN]; candF![bestPos] = candF[candN]; }
                 }
+                if (!dealtRow) m.ClearFailLp = lp;   // ★走査して成約しなかった＝この自州価格を印に（月の清算で、これを超えて上がるまで眠る＝上の thin の注記）
             }
             costC[CostLedger.ClearingFills] += nFill;   // 計算量の台帳（診断）：この財の着値の充填
             // ---- 財の清算の終わり：売り手の受取を④の持分で分ける（段3-1・C4）----

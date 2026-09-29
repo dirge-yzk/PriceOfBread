@@ -40,6 +40,23 @@ public class SaveRoundTripTests
                 $"{a.SelfPower?.Name}：継続系列と復元系列が食い違う（基礎貨幣 {a.BaseMoney:F2}⇔{b.BaseMoney:F2}／人口 {a.TotalPopulation:F0}⇔{b.TotalPopulation:F0}）");
         }
     }
+
+    /// <summary>★眠りの印は作業領域（2026-09-30 計算量の予算 第2回）：国内価格の月の残りの眠り（Market.FlowAsleep）と清算の成約しなかった行の印
+    /// （Market.ClearFailLp）はセーブに載らない＝ロードした盤面は印なしから作り直す（四半期の境のセーブでは次の歩が月の最初の旬と四半期の最初の清算＝往復は一致）。
+    /// ⚠突然変異「[NonSerialized] を外す」で赤。</summary>
+    [Fact]
+    public void 眠りの印はセーブに載らない()
+    {
+        var sim1 = new MultiNationSim([NationConfig.Britain(), NationConfig.France()], 1789, _ => new NullAgent());
+        var m1 = sim1.Nations[0].World.Regions[0].Markets[0];
+        m1.FlowAsleep = true; m1.ClearFailLp = 5.0;
+        using var ms = new System.IO.MemoryStream();
+        SaveGame.Save(sim1, ms);
+        ms.Position = 0;
+        var m2 = SaveGame.Load(ms).Nations[0].World.Regions[0].Markets[0];
+        Assert.False(m2.FlowAsleep);
+        Assert.Equal(0.0, m2.ClearFailLp);
+    }
     /// <summary>★要求は法の経路（2026-09-11）：FactionState に足した2配列（CrisisDemands=int[]／CrisisDemandPos=double[]）と
     /// 通知の札（World.PendingFactionCrisis＝運動への参照）が往復で残る＝「新フィールド型を足したら往復で確かめる」の番人（sbyte 事故の型）。</summary>
     [Fact]

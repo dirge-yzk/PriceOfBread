@@ -144,18 +144,22 @@ public class WriterRatchetTests
     //   価格の財の歩 22,505,040→15,536,007（死んだ財を一覧で回さない＝Region.LiveGoods）・建設 19,761,052→28,231（工事中の一覧＝Region.BuildSites）・
     //   消費 97,521,840→29,300,830（必要の無い財の POP のループを飛ばす）・請求 9,037,980→9,688（国営持分の請求の一覧＝Region.StateSites）・
     //   覇権の判定 7,460,493→1,706,531（陣営戦力の閾値は同盟の候補が居るときだけ・従属の離反は安い条件から）。他の10本は1件も変わらない（軌道が同じ）。
-    [InlineData(CostLedger.PriceGoods, 15536007L)]
-    [InlineData(CostLedger.PriceDailyRuns, 40223878L)]
-    [InlineData(CostLedger.ConstructionSeen, 28231L)]
+    // ★2026-09-30 表の更新（＝改善の宣言・計算量の予算 第2回＝近似の手）：軌道が変わる（近似）＝15本とも今の件数へ置き直した。
+    //   清算の着値の充填 44,882,844→35,263,928（−21.4%＝月の清算で不足だけで起きた行のうち、前の走査で成約せず自州価格が上がっていない行を眠らせる）・
+    //   価格の財の歩 15,536,007→14,629,209（−5.8%＝供給も在庫も無く張り付いた財は不動点に着いた旬から月の残りを眠る）・日次の写像の回 40,223,878→39,615,736（−1.5%）。
+    //   ほかは軌道の違いの揺れ（建設 +0.6%・清算の買い手行 −0.6%・覇権の判定 −2.9%・請求 −0.1%・消費 −0.01%・残り7本は同じ）。
+    [InlineData(CostLedger.PriceGoods, 14629209L)]
+    [InlineData(CostLedger.PriceDailyRuns, 39615736L)]
+    [InlineData(CostLedger.ConstructionSeen, 28392L)]
     [InlineData(CostLedger.CreditSpans, 33138L)]
-    [InlineData(CostLedger.ConsumePopGoods, 29300830L)]
+    [InlineData(CostLedger.ConsumePopGoods, 29298230L)]
     [InlineData(CostLedger.ProducerMonths, 9037980L)]
-    [InlineData(CostLedger.ClaimProducers, 9688L)]
+    [InlineData(CostLedger.ClaimProducers, 9682L)]
     [InlineData(CostLedger.MonthlyPops, 706680L)]
-    [InlineData(CostLedger.ClearingRows, 5613576L)]
-    [InlineData(CostLedger.ClearingFills, 44882844L)]
+    [InlineData(CostLedger.ClearingRows, 5577638L)]
+    [InlineData(CostLedger.ClearingFills, 35263928L)]
     [InlineData(CostLedger.DiploPowerMonths, 9906L)]
-    [InlineData(CostLedger.DiploHegemonScans, 1706531L)]
+    [InlineData(CostLedger.DiploHegemonScans, 1657020L)]
     [InlineData(CostLedger.QuarterStartPops, 235560L)]
     [InlineData(CostLedger.QuarterEndPops, 235560L)]
     [InlineData(CostLedger.SharedNationQuarters, 3682L)]

@@ -112,6 +112,40 @@ public class EconomyTests
         Assert.DoesNotContain(g, rA.EnsureLiveGoods());
     }
 
+    /// <summary>★月の残りを眠る市場（2026-09-30 計算量の予算 第2回・近似）：供給も在庫も無く参照より上に張り付いた財は、不動点に着いた旬に
+    /// 印（Market.FlowAsleep）が立ち、月の2旬目以降（monthStart=false）は回さない＝値段も在庫目標も1ビットも動かず、計算量の台帳の「価格：財の歩」に数えない。
+    /// 月の最初の旬（monthStart=true）は印を作り直して回す＝境界相で供給が立てば起きて動く。供給の立った財は眠らない。
+    /// ⚠突然変異「印を読まない」「印を立てない」で赤。</summary>
+    [Fact]
+    public void 張り付いた市場は不動点に着いたら月の残りを眠る()
+    {
+        var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+        var r = sim.World.Region; var c = sim.World.Coef;
+        Assert.True(c.DomesticMarkupMax <= 0, "前提が崩れた：国内の寡占マークアップが点いている（日次の経路の別の枝）");
+        var goods = r.Goods.Where(g => g.Tier != GoodTier.Service && g.RefPrice > 0).Take(2).ToArray();
+        Assert.True(goods.Length == 2, "前提が崩れた：財が2つ無い");
+        var mS = r.Markets[goods[0].Id]; var mG = r.Markets[goods[1].Id];
+        double rpS = goods[0].RefPrice * r.PriceLevel, rpG = goods[1].RefPrice * r.PriceLevel;
+        mS.LastDemand = 10; mS.LastProduced = 0; mS.LastImport = 0; mS.LastExport = 0; mS.Stock = 0; mS.Price = 49 * rpS;         // 供給も在庫も無い（上に張り付く）
+        mG.LastDemand = 10; mG.LastProduced = 1000; mG.LastImport = 0; mG.LastExport = 0; mG.Stock = 5000; mG.Price = 0.05 * rpG;   // 供給過剰（帯の下の端）
+        for (int i = 0; i < 400; i++) MarketFlow.StepDay(r, c, 1);   // 不動点へ（既定＝月の最初の旬の扱い＝眠らない）
+        Assert.True(mS.Price > 20 * rpS, $"前提が崩れた：供給の無い財が上に張り付いていない（{mS.Price / rpS} 倍）");
+        MarketFlow.StepDay(r, c, 10, null, monthStart: true);   // 月の最初の旬＝不動点に着いている＝印が立つ
+        Assert.True(mS.FlowAsleep, "不動点に着いた張り付いた財に眠りの印が立たない");
+        Assert.False(mG.FlowAsleep, "供給の立った財が眠った");
+        double pS = mS.Price, tS = mS.TargetStock;
+        int awake = r.EnsureLiveGoods().Count(g => !r.Markets[g.Id].FlowAsleep);
+        var cost = new long[CostLedger.Count];
+        MarketFlow.StepDay(r, c, 10, cost, monthStart: false);   // 月の2旬目＝眠る
+        Assert.Equal(pS, mS.Price);
+        Assert.Equal(tS, mS.TargetStock);
+        Assert.Equal(awake, cost[CostLedger.PriceGoods]);   // 眠った財は回さない（台帳にも数えない）
+        mS.LastProduced = 100; mS.Stock = 100;   // 月の境で供給が立つ（境界相の書き込み）
+        MarketFlow.StepDay(r, c, 10, null, monthStart: true);   // 次の月の最初の旬＝印を作り直して回す
+        Assert.False(mS.FlowAsleep, "供給の立った財が眠ったまま");
+        Assert.True(mS.Price < pS, $"月の最初の旬に起きて動いていない（{mS.Price} ≧ {pS}）");
+    }
+
     [Fact]
     public void 放置で食料価格は限界費用以上に収束し暴騰もしない()
     {
