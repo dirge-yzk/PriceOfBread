@@ -15,6 +15,7 @@
 #   例: bash measure.sh /tmp/batch.txt selfplay-batch 10
 #       RUN_TESTS=1 bash measure.sh /tmp/batch.txt selfplay-batch 10   ← テストも隔離側で回す（作業ツリーをロックしない）
 #       bash measure.sh /tmp/chron.txt chronicle 1
+#       SEEDS=5 bash measure.sh /tmp/b5.txt selfplay-batch     ← 探索の腕（5種）。採否を決める1本は種の数を書かない＝既定の10種
 # 出力パスの隣に <出力パス>.manifest（ソースのハッシュ一覧と要約）も書く。
 # 2つの測定が同じソースかは manifest 冒頭の SOURCE-HASH 行を比べれば分かる。
 
@@ -24,6 +25,16 @@ export PYTHONUTF8=1                 # このハーネスから呼ぶ補助スク
 export DOTNET_CLI_UI_LANGUAGE=ja    # dotnet の診断メッセージを固定（環境差でログの語が変わらない）
 SRC_DIR="$(cd "$(dirname "$0")" && pwd)"
 OUT="${1:?出力パスを指定してください}"; shift
+# ★2026-09-30（高速化の段 S4）：探索の腕は5種・採否を決める1本は10種。selfplay-batch の種の数は Runner の引数か SEEDS（既定10）で渡す
+#   （旧＝種の数を書かないと Runner の既定の30種）。⚠ 引数と SEEDS が食い違えば止める＝10種と5種の帯を取り違えない。
+#   種の数は報告の名乗り行（先頭行の seeds 1..N・史実忠実度の「完走N試合」）とマニフェストの RUN 行に出る。
+RUN_NOTE=""
+if [ "${1:-}" = "selfplay-batch" ]; then
+  if [ -z "${2:-}" ]; then set -- selfplay-batch "${SEEDS:-10}"
+  elif [ -n "${SEEDS:-}" ] && [ "$2" != "$SEEDS" ]; then echo "!! 種の数が食い違う（引数 $2・SEEDS=$SEEDS）＝測定を中止"; exit 1
+  fi
+  case "$2" in 10) RUN_NOTE="（10種＝採否）" ;; 5) RUN_NOTE="（5種＝探索）" ;; *) RUN_NOTE="（${2}種）" ;; esac
+fi
 # dotnet と隔離先は環境ごとに違う（機体を跨ぐと旧既定は存在しない）。明示指定＞既定パス＞PATH の順で解決する。
 DOTNET="${DOTNET:-}"
 if [ -z "$DOTNET" ] || [ ! -x "$DOTNET" ]; then
@@ -49,7 +60,7 @@ echo "[2/4] ソースのマニフェストを作成"
 ( cd "$SNAP" && find . -type f \( -name '*.cs' -o -name '*.json' -o -name '*.axaml' -o -name '*.csproj' -o -name '*.slnx' \) \
     -not -path './obj/*' -not -path './bin/*' | sort | xargs sha256sum ) > "$OUT.manifest.tmp" || exit 1
 HASH=$(sha256sum < "$OUT.manifest.tmp" | cut -c1-16)
-{ echo "SOURCE-HASH: $HASH"; echo "FILES: $(wc -l < "$OUT.manifest.tmp")"; echo "---"; cat "$OUT.manifest.tmp"; } > "$OUT.manifest"
+{ echo "SOURCE-HASH: $HASH"; echo "FILES: $(wc -l < "$OUT.manifest.tmp")"; echo "RUN: $*$RUN_NOTE"; echo "---"; cat "$OUT.manifest.tmp"; } > "$OUT.manifest"
 rm -f "$OUT.manifest.tmp"
 echo "      SOURCE-HASH=$HASH"
 
@@ -75,7 +86,7 @@ if [ "${RUN_TESTS:-0}" = "1" ]; then
   [ "$TEST_RC" = "0" ] || echo "  ★赤：テストが失敗している（詳細＝$OUT.tests）"
 fi
 
-echo "[4/4] 測定: $*"
+echo "[4/4] 測定: $*$RUN_NOTE"
 # ★忠実度の基線（裁定①の条件2＝前回値との差分を必ず併記）は**作業ツリー直下**に置く。
 # 隔離スナップショットは毎回作り直されるので、そこに置くと「前回」が常に存在しない。
 export POB_FIDELITY_BASELINE="${POB_FIDELITY_BASELINE:-$SRC_DIR/.pob-fidelity-baseline.tsv}"
@@ -85,7 +96,7 @@ export POB_SOURCE_HASH="$HASH"
 "$DOTNET" "$SNAP/PriceOfBread.Runner/bin/Release/net10.0/PriceOfBread.Runner.dll" "$@" > "$OUT" 2>&1
 RC=$?
 [ "$SNAP_OWNED" = "1" ] && rm -rf "$SNAP"   # 既定の隔離先だけ片付ける（SNAP_DIR を渡した腕は呼び手のもの＝残す）
-echo "      終了コード=$RC　テスト=$TEST_RC　出力=$OUT　マニフェスト=$OUT.manifest（SOURCE-HASH=$HASH）"
+echo "      終了コード=$RC　テスト=$TEST_RC　出力=$OUT$RUN_NOTE　マニフェスト=$OUT.manifest（SOURCE-HASH=$HASH）"
 # ★★終了コードは3値（裁定①・2026-08-01）。裁定順序「破綻しない ＞ 正しい挙動 ＞ バランス」を大小へ写す。
 #   0 ＝ 硬性ゲート全緑・テスト緑・6次元も到達
 #   1 ＝ 硬性ゲートが赤 **または テストが赤** ← 差し戻しの理由になる唯一の値
