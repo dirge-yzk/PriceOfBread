@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
+using PriceOfBread.SimCore;
 using Xunit;
 
 namespace PriceOfBread.Tests;
@@ -125,5 +126,64 @@ public class WriterRatchetTests
             $"{member} への書き手が {n} 箇所（基準 {baseline}）＝**増えている**。" +
             "支払いは1本の移し方を通すこと（計画 §10-12）。" +
             "どうしても必要なら基準値を上げて理由をこのファイルに書く（＝宣言）。");
+    }
+
+    // ★2026-09-30（作者裁定「計算量の予算」＝推奨で採択）：**計算量の番人**＝1種（seed 1）・40四半期（助走を含む＝バッチと同じ道
+    //   SelfPlayMatch.Run(lean)）の処理ごとの「見た件数」（CostLedger）が宣言した表を超えないこと。書き手の数の番人と同じく、
+    //   **件数が増えるコミットは表を上げて理由をここに書く（＝宣言）**＝予算の超過はどこで払ったかを実装ログとコミットに書く。
+    //   ・許しの幅 +2%＝軌道の小さな揺れ（係数・式の変更で軌道が動くと件数も少し動く）で毎回表を書き換えずに済む幅。
+    //   ・表より 10% を超えて下がったら落ちる＝表を下げる（＝改善の宣言）。緩んだ表を残すと、後で同じだけ増えても番人が鳴らない。
+    //   ⚠40四半期では時代とともに育つ費用（従属10倍・成約2.5倍・工事中2倍）が見えない＝全長の件数はバッチの測り（measure.sh の <出力>.cost）で見る。
+    //   ⚠件数は診断（セーブに載らない・軌道を変えない）＝下の「セーブに載らない」の番人と対。
+    private const double CostSlackUp = 0.02, CostSlackDown = 0.10;
+    private static readonly Lazy<long[]> Cost40 = new(() => SelfPlayMatch.Run(1, 40, null, lean: true).Cost ?? new long[CostLedger.Count]);
+
+    [Theory]
+    // 表＝2026-09-30 の実測（宣言）。
+    [InlineData(CostLedger.PriceGoods, 22505040L)]
+    [InlineData(CostLedger.PriceDailyRuns, 40223878L)]
+    [InlineData(CostLedger.ConstructionSeen, 19761052L)]
+    [InlineData(CostLedger.CreditSpans, 33138L)]
+    [InlineData(CostLedger.ConsumePopGoods, 97521840L)]
+    [InlineData(CostLedger.ProducerMonths, 9037980L)]
+    [InlineData(CostLedger.ClaimProducers, 9037980L)]
+    [InlineData(CostLedger.MonthlyPops, 706680L)]
+    [InlineData(CostLedger.ClearingRows, 5613576L)]
+    [InlineData(CostLedger.ClearingFills, 44882844L)]
+    [InlineData(CostLedger.DiploPowerMonths, 9906L)]
+    [InlineData(CostLedger.DiploHegemonScans, 7460493L)]
+    [InlineData(CostLedger.QuarterStartPops, 235560L)]
+    [InlineData(CostLedger.QuarterEndPops, 235560L)]
+    [InlineData(CostLedger.SharedNationQuarters, 3682L)]
+    public void 計算量の見た件数は宣言した表を超えない(int item, long declared)
+    {
+        long n = Cost40.Value[item];
+        string name = CostLedger.Names[item];
+        Assert.True(n <= declared * (1 + CostSlackUp),
+            $"計算量「{name}」が {n} 件（宣言 {declared}・許し +{CostSlackUp:P0}）＝**増えている**。" +
+            "増やすなら表を上げ、どこで払ったか（他の処理を削った分）をこのファイル・実装ログ・コミットに書く（＝宣言）。" +
+            "新しい処理なら docs の「処理の刻みの表」に行を足し、刻みの根拠を書く。");
+        Assert.True(n >= declared * (1 - CostSlackDown),
+            $"計算量「{name}」が {n} 件（宣言 {declared}）＝{CostSlackDown:P0} を超えて**下がった**＝表を {n} へ下げて理由を書く（＝改善の宣言）。");
+    }
+
+    [Fact]
+    public void 計算量の台帳はセーブに載らない()
+    {
+        // 台帳は作業領域（[NonSerialized]）＝SaveGame が辿らない。ロードした盤面の台帳は空（null）から数え直す＝件数がセーブの中身と往復の一致に触れない。
+        var sim = new MultiNationSim(WorldData.Nations(), 7, _ => new UtilityAgent());
+        foreach (var n in sim.Nations) n.TelemetryEnabled = false;
+        sim.Diplomacy.Log.Enabled = false;
+        sim.StepQuarter();
+        Assert.Contains(sim.Nations, n => n.World.CostOrNull is { } c && c.Any(v => v > 0));   // 前提＝数えている
+        Assert.True(sim.CostTotals().Sum() > 0);
+        using var ms = new MemoryStream();
+        SaveGame.Save(sim, ms);
+        ms.Position = 0;
+        var sim2 = SaveGame.Load(ms);
+        Assert.All(sim2.Nations, n => Assert.Null(n.World.CostOrNull));
+        Assert.Null(sim2.Diplomacy.CostOrNull);
+        Assert.Null(sim2.Market.CostOrNull);
+        Assert.Equal(0L, sim2.CostTotals().Sum());
     }
 }

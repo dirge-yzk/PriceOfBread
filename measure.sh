@@ -93,10 +93,14 @@ export POB_FIDELITY_BASELINE="${POB_FIDELITY_BASELINE:-$SRC_DIR/.pob-fidelity-ba
 # ★2026-09-26（fis-23）：Runner は基線の1行目に走行条件（シード・長さ・係数の上書き・このソースの SOURCE-HASH）を書き、次の走行で突き合わせる
 #   ＝長さや上書きの違う腕の値と黙って差を取らない（条件が違えば「前回値なし（条件違い）」）。
 export POB_SOURCE_HASH="$HASH"
+# ★2026-09-30（作者裁定「計算量の予算」）：selfplay-batch は計算量の測り（1試合あたりの CPU 秒・全長の件数の1試合の平均・推定の計算量・覆う割合・
+#   予算の上限と目標・「予算の内／超過」の1行）を帯の報告とは**別のファイル** <出力>.cost へ書く（報告は恒等の検証で全行バイト一致を見る＝揺れる値を入れない）。
+if [ "${1:-}" = "selfplay-batch" ]; then export POB_COST_OUT="$OUT.cost"; rm -f "$POB_COST_OUT"; fi
 "$DOTNET" "$SNAP/PriceOfBread.Runner/bin/Release/net10.0/PriceOfBread.Runner.dll" "$@" > "$OUT" 2>&1
 RC=$?
 [ "$SNAP_OWNED" = "1" ] && rm -rf "$SNAP"   # 既定の隔離先だけ片付ける（SNAP_DIR を渡した腕は呼び手のもの＝残す）
 echo "      終了コード=$RC　テスト=$TEST_RC　出力=$OUT$RUN_NOTE　マニフェスト=$OUT.manifest（SOURCE-HASH=$HASH）"
+[ -n "${POB_COST_OUT:-}" ] && [ -f "$POB_COST_OUT" ] && echo "      計算量＝$POB_COST_OUT　$(grep -E '^判定:' "$POB_COST_OUT")"
 # ★★終了コードは3値（裁定①・2026-08-01）。裁定順序「破綻しない ＞ 正しい挙動 ＞ バランス」を大小へ写す。
 #   0 ＝ 硬性ゲート全緑・テスト緑・6次元も到達
 #   1 ＝ 硬性ゲートが赤 **または テストが赤** ← 差し戻しの理由になる唯一の値

@@ -363,6 +363,9 @@ public static class EconomyStep
     {
         int ng = region.Markets.Length;
         int np = region.Producers.Count;
+        // 計算量の台帳（診断・この国の台帳）：生産者×月・POP×月（月次決算の残り＝財政・犯罪・軍事・人口ほかは POP に比例）。world＝null（単国の直呼び）は数えない。
+        long[]? costL = world?.Cost;
+        if (costL is not null) { costL[CostLedger.ProducerMonths] += np; costL[CostLedger.MonthlyPops] += region.Pops.Count; }
         bool cap = region.CapitalEnabled && coef.MachineGoodId < ng && coef.CementGoodId < ng;
         // ★開始前の助走の資本形成の凍結（作者裁定2026-08-10 追加分「価格のみ試走することはできない？　問題は開始時の振動なので」）。
         //   助走の目的は**価格が1783年の生産能力のまま均衡へ寄ること**。よってこの間は「能力が育つ経路」を全部止める。
@@ -1347,6 +1350,7 @@ public static class EconomyStep
         foreach (var p in region.Pops) if (p.ClassId >= popClassLen) popClassLen = p.ClassId + 1;
         // ★特権 段4（同業組合・2026-09-07）：職人の自営レシピの財ごとの供給シェア。唯一定義＝GuildShares（ProductionDiag も同じものを呼ぶ）
         double[]? guildShare = GuildShares(region, coef, world, out double guildDeg);
+        if (costL is not null) costL[CostLedger.ConsumePopGoods] += (long)ngoods * region.Pops.Count;   // 計算量の台帳（診断）：消費で見る POP×財
         for (int coi = 0; coi < ngoods; coi++)
         {
             var good = consumeOrder[coi];

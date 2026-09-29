@@ -290,6 +290,10 @@ public sealed class Diplomacy
     /// ⚠既定 null＝力学は一度も読まない＝厳密恒等（null 条件の呼び出しは引数ごと評価しない）。
     /// ⚠インスタンスのフィールド＝この世界の戦争だけが届く（並列の別世界と混ざらない）。デリゲートなので SaveGame は保存しない（ロード後 null）。</summary>
     public Action<double, double>? CasualtyProbe;
+    // ★計算量の台帳（2026-09-30・<see cref="CostLedger"/>）＝外交の層が見た件数。⚠作業領域＝セーブに載らない（[NonSerialized]）・シミュの値はこれを1つも読まない。
+    [System.NonSerialized] private long[]? _cost;
+    internal long[] Cost => _cost ??= new long[CostLedger.Count];
+    internal long[]? CostOrNull => _cost;
     public List<War> Wars = [];
     public List<EndedWarRecord> EndedWars = [];   // 終戦の記録（UI用の純記帳・2026-07-19）。終戦の1本 EndWar が追記（講和と国の除去）・256件リング
     public EventLog Log = new();
@@ -769,6 +773,7 @@ public sealed class Diplomacy
 
     public void Step(Coefficients c, DeterministicRng rng, int month)
     {
+        Cost[CostLedger.DiploPowerMonths] += Powers.Count;   // 計算量の台帳（診断）：外交の月の歩は国×月に比例
         // 経済を持つ国は軍/GDP/財庫を毎月同期（抽象的な外国は静的値のまま）
         foreach (var p in Powers)
         {
@@ -1011,6 +1016,7 @@ public sealed class Diplomacy
     private Power? Hegemon(Coefficients c)
     {
         Power? best = null; double bestT = c.HegemonThreatMin;
+        Cost[CostLedger.DiploHegemonScans] += (long)Powers.Count * Powers.Count;   // 計算量の台帳（診断）：覇権の判定は国×国（従属の加重を国ごとに数え直す）
         if (!ThreatAverages(c, out double avgG, out double avgC, out double avgM)) return best;   // 平均は1回（旧＝国ごとに ThreatScore が再計算＝O(n²)。同じ値・同じ順序）
         foreach (var p in Powers) { if (p.Nation is null) continue; double t = ThreatExcess(p, c, avgG, avgC, avgM); if (t > bestT) { bestT = t; best = p; } }
         return best;

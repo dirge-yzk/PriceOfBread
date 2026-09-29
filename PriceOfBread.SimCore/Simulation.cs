@@ -1505,6 +1505,7 @@ public sealed class Simulation
             throw new System.InvalidOperationException($"PriceFlowStepDays={hFlow} は {Calendar.DaysPerMonth} の約数でない（旬は月をまたげない）");
         bool priceDay = (_dayInQuarter + 1) % hFlow == 0;
         bool spanStart = _dayInQuarter % hFlow == 0;   // 旬の初日（建設と信用＝S3c）
+        long[]? cost = priceDay || spanStart ? World.Cost : null;   // 計算量の台帳（診断・この国の台帳＝並列の日次相でも国ごと）
         foreach (var r in World.Regions)
             if (r.State == RegionState.Active)
             {
@@ -1514,7 +1515,7 @@ public sealed class Simulation
                 r.FinancialHeat = World.FinancialHeat;   // 与信過熱を州へ複製（改修2026-06-28・投資ハードルのバブル項へ）
                 //（借入スタックの出費上限 SpendingCapFactor の州への複製は 2026-09-28 に撤去＝作者裁定 Q9・補助は国家の支払い率 r を World から読む）
                 r.CivilWarActive = World.InCivilWar;   // ★B3：述語1本（CivilWarPredicateUnified=1.0＝2026-09-08点火＝War で戦う内戦もここへ届く）      // 内戦中を州へ複製（#136 内戦の経済麻痺の読み口。CivilWarEconomyDisruption=0で不読＝恒等）
-                if (priceDay) MarketFlow.StepDay(r, World.Coef, hFlow);   // 物価水準を複製し需給を読み、旬の h 日ぶん価格を少しずつ動かす
+                if (priceDay) MarketFlow.StepDay(r, World.Coef, hFlow, cost);   // 物価水準を複製し需給を読み、旬の h 日ぶん価格を少しずつ動かす
             }
         ProbeCheck("日次価格");
         if (spanStart) World.StepConstruction(hFlow);                               // 工場建設の進捗（旬の初日に h 日ぶん・労務費を働いた日数ぶん払って進む）
@@ -1531,6 +1532,7 @@ public sealed class Simulation
                 creditMonth = box.Value;
             }
             Credit.Step(World, World.Coef, creditMonth, hFlow);                     // 信用（与信・信頼）も旬次（旬の初日に h 日ぶん・速度は日数配分）
+            cost![CostLedger.CreditSpans]++;                                         // 計算量の台帳（診断）：信用は国×旬
         }
         ProbeCheck("日次信用");
         // 助走中は暦を進めない（World.WarmupFrozen・2026-08-10）。Tick は「開始からの経過日数」＝年境界の唯一の読み手が
@@ -1566,6 +1568,7 @@ public sealed class Simulation
     // 四半期の戦略前段：金融ショック・AIの政策決定・政府の政策反映・建設の進行。
     private void QuarterStart()
     {
+        World.Cost[CostLedger.QuarterStartPops] += ActivePopCount();   // 計算量の台帳（診断）：四半期首（AI・議会・政府の反映）は POP×国に比例
         // 仕込みの金融ショックは「暦のn四半期目に起きる事件」＝助走では起こさない（2026-08-10）。
         // ⚠助走は _quarterIndex を進めないので、ガードが無いと ShockQuarterIndex=0 のシナリオで**助走の全四半期**に発火する。
         // 実ゲーム/自己対戦は ShockQuarterIndex=-1（なし）＝この行は現状どちらの経路でも不発だが、罠を残さない。
@@ -1640,9 +1643,18 @@ public sealed class Simulation
         }
     }
 
+    /// <summary>稼働中の州の POP の件数（計算量の台帳の四半期の計数だけが読む＝診断）。</summary>
+    private int ActivePopCount()
+    {
+        int n = 0;
+        foreach (var r in World.Regions) if (r.State == RegionState.Active) n += r.Pops.Count;
+        return n;
+    }
+
     // 四半期の戦略後段：技術・制度・政治・社会移動・景気循環トラッカー（90日目）。
     private void QuarterEnd()
     {
+        World.Cost[CostLedger.QuarterEndPops] += ActivePopCount();   // 計算量の台帳（診断）：四半期末（技術・制度・政治・社会移動ほか）は POP×国に比例
         // 開始前の助走（World.WarmupFrozen・2026-08-10）＝**時間が経たない**四半期。
         // 止める＝技術の前進・膨張意欲の累積・四半期スナップショット・暦（Quarter/Year/_quarterIndex）。
         // 回す＝制度の施行・社会移動・景気循環・物価水準＝価格と生産が実勢へ落ち着くための経済側。
@@ -2082,6 +2094,7 @@ public sealed class Simulation
                         + r.StateBuildQueue + r.MonumentBuildQueue + r.HigherEduFunding
                         + regrow * (Math.Max(0, r.StateSpent[(int)TreasuryCat.Education]) + Math.Max(0, r.StateSpent[(int)TreasuryCat.Welfare])       // 先月の義務教育・健康保険
                                   + Math.Max(0, r.StateSpent[(int)TreasuryCat.FactoryBuild]) + Math.Max(0, r.StateSpent[(int)TreasuryCat.Subsidy]));   // 先月の工場の材料・民営の補助
+                World.Cost[CostLedger.ClaimProducers] += r.Producers.Count;   // 計算量の台帳（診断）：請求で見る生産者
                 foreach (var pr in r.Producers)
                 {
                     if (pr.ConstructionLeft > 0) claims += pr.ConstructionPayPerDay * Calendar.DaysPerMonth;   // 工事の工賃の1か月分（World.StepConstruction）

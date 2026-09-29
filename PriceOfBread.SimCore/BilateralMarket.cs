@@ -18,6 +18,11 @@ public sealed partial class InternationalMarket
     internal static long CntGoods, CntBuyers, CntRollIters, CntScanSteps, CntSkips, CntFills, CntDeals;
     // ★無効な売り手を訪ねない（2026-09-26・高速化・厳密恒等）の計器：1a＝行ごと飛ばした買い手行（条件別）／1b＝自州価格 lp で打ち切った回数／1c＝国境の楔の下界で飛ばした売り手
     internal static long CntRowSkipNeed, CntRowSkipRef, CntRowSkipDead, CntRowSkipBudget, CntCutLp, CntWedgeSkips;
+    // ★計算量の台帳（2026-09-30・<see cref="CostLedger"/>）＝清算が見た件数（買い手行・着値の充填）。⚠作業領域＝セーブに載らない（[NonSerialized]）・シミュの値はこれを1つも読まない。
+    //   インスタンスのフィールド＝バッチで並列に回る別の試合と混ざらない（上の static の計器は POB_TIME の単独実行専用）。
+    [System.NonSerialized] private long[]? _cost;
+    internal long[] Cost => _cost ??= new long[CostLedger.Count];
+    internal long[]? CostOrNull => _cost;
     private const int RolloverGuardMax = 400;   // ロールオーバー反復の停止保証（X は成約ごとに厳密に減る＝通常は数回で終わる。届いたら諦めるだけ＝破綻しない）
     public double[][]? PairFlowQ;
     public double[][]? LastPairFlow;   // ★段7：直近に消費した四半期のペア行列（純テレメトリ＝pairprobe/診断が読む。StepDiffusion がスワップ退避）
@@ -552,6 +557,8 @@ public sealed partial class InternationalMarket
             if (buyers.Count == 0) continue;
             buyers.Sort((x, y) => x.Price != y.Price ? y.Price.CompareTo(x.Price) : string.CompareOrdinal(tr[x.Node].r.Name, tr[y.Node].r.Name));
             if (swSec is not null) { TimeListsTicks += swSec.ElapsedTicks; swSec.Restart(); CntGoods++; CntBuyers += buyers.Count; }   // ★計器
+            var costC = Cost; costC[CostLedger.ClearingRows] += buyers.Count;   // 計算量の台帳（診断）：この財で見る買い手行（眠った行・飛ばした行も1件）
+            long nFill = 0;   // 着値の充填の局所の数（財の終わりに台帳へまとめて足す）
             foreach (var (t, lp) in buyers)
             {
                 var m = tr[t].r.Markets[g];
@@ -647,6 +654,7 @@ public sealed partial class InternationalMarket
                             //   ⚠生きている売り手なので prevS を進める（進めないと上の連結リストの付け替えが壊れる）。打ち切りの位置は min(bestDelA, lp) で旧と同じ。
                             if (sellers[s2].Price * (baseMul + wS2) >= lp) { if (MultiNationSim.TimeOn) CntWedgeSkips++; prevS = s2; s2 = nextS![s2]; continue; }
                             if (MultiNationSim.TimeOn) CntFills++;   // ★計器（着値の計算）
+                            nFill++;
                             double km2 = KmOf(sellers[s2].Node, t);
                             double risk2 = PairRisk(sellers[s2].Node, t);
                             double bb2 = gd.Tier == GoodTier.Staple ? c.BlockadeStapleBias * risk2 : 0.0;
@@ -764,6 +772,7 @@ public sealed partial class InternationalMarket
                     else { candN--; candS[bestPos] = candS[candN]; candD![bestPos] = candD[candN]; candK![bestPos] = candK[candN]; candF![bestPos] = candF[candN]; }
                 }
             }
+            costC[CostLedger.ClearingFills] += nFill;   // 計算量の台帳（診断）：この財の着値の充填
             // ---- 財の清算の終わり：売り手の受取を④の持分で分ける（段3-1・C4）----
             //   旧＝成約ごとに受取の半分（係数 ExportRevenueToProducers）を生産者の持ち主の貯蓄へ直接・残りは国の全POP の貯蓄比（Apply）＝賃金分が無く Earned を通らなかった。
             //   新＝州×財ごとに1回（成約あたりは O(1) の足し算だけ）：越境の分の仲介料（MerchantTradeMargin）を州の商人へ・残りを④の持分

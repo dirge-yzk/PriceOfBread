@@ -9,6 +9,7 @@ namespace PriceOfBread.SimCore;
 /// - 参照同一性を保存（同じ Region/Power/Coefficients を指す参照はロード後も同一インスタンスを指す）
 /// - List/Dictionary/HashSet は要素列として書く（BCL内部レイアウト非依存）
 /// - デリゲート型フィールドは書かない（ロード後 null）。static フィールドは対象外（Catalog等は起動時に同一内容で再構築される）
+/// - [NonSerialized] の印のフィールド（作業領域＝計算量の台帳・工事中の一覧など・2026-09-30）も書かない（ロード後は既定値＝使う側が作り直す）
 /// - 決定論：RNG（DeterministicRng＝ulong×4）も他の状態と同様に保存＝ロード後の進行はセーブ時点の続きとビット一致
 ///   ⚠前提＝Dictionary/HashSet は要素列から Add で再構築され内部の空きスロットは復元されない＝ロード後に削除→追加を挟むと列挙順が元の走と分岐しうる
 ///   ので、シム論理は Dictionary/HashSet の列挙順に依存しないこと（規律⑥）
@@ -64,6 +65,9 @@ public static class SaveGame
                 foreach (var f in cur.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly))
                 {
                     if (typeof(Delegate).IsAssignableFrom(f.FieldType)) continue;   // イベント/コールバックは保存しない（ロード後null）
+                    // ★作業領域（[NonSerialized]・2026-09-30 計算量の予算）＝計算量の台帳・工事中の一覧・死んでいない財の一覧などは状態ではない
+                    //   ＝保存しない（ロード後は null・false・0＝使う側が盤面から作り直す）。この印を付けたフィールドだけが対象＝既存の全フィールドは従来どおり。
+                    if (f.IsDefined(typeof(NonSerializedAttribute), false)) continue;
                     list.Add(f);
                 }
             list.Sort((a, b) => string.CompareOrdinal($"{a.DeclaringType!.FullName}.{a.Name}", $"{b.DeclaringType!.FullName}.{b.Name}"));

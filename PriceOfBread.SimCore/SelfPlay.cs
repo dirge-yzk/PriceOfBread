@@ -1544,7 +1544,8 @@ public sealed record MatchResult(
     // ★E-08 多断面（2026-09-05）：1820/1870年12月の断面（延長走行のみ非null）。主指標は StandingsAt1914 のまま・これらは併記の物差し
     IReadOnlyList<NationStanding>? StandingsAt1820 = null, IReadOnlyList<NationStanding>? StandingsAt1870 = null,
     IReadOnlyList<NationStanding>? StandingsAt1920 = null,    // ★E-09 WW1の帰結（1920年12月・政体のみ採点）
-    IReadOnlyList<NationStanding>? StandingsAt1950 = null);   // ★1950断面（2026-09-21・Q668＝1950年1月1日・政体と従属を採点）。全長がQ668未満の走行はnull
+    IReadOnlyList<NationStanding>? StandingsAt1950 = null,   // ★1950断面（2026-09-21・Q668＝1950年1月1日・政体と従属を採点）。全長がQ668未満の走行はnull
+    long[]? Cost = null);   // ★計算量の台帳（2026-09-30・CostLedger の添字＝この試合の見た件数・助走を含む）。報告専用＝帯の報告には書かない（Runner が別のファイルへ）
 
 /// <summary>バッチ（複数seed）の集計。</summary>
 public sealed record BatchSummary(
@@ -1571,7 +1572,8 @@ public sealed record BatchSummary(
     //   大国8（GdpRank1913 参照国＝経済規模次元と同じ集合）の−20%級エピソード数（試合平均）と最大DD（全seed最大）＝Maddison系の史実と直接比較できる唯一の切り口。
     //   史実参照（実質GDP・1783-1934）＝大国8で計**5〜7回**・ほぼ全て1914-34の大戦/大恐慌型（露WWI+内戦≈40%・仏墺≈30%・米29-33≈27%）・
     //   **1783-1913の平時はほぼ0**（長い19世紀のパニックは実質−5〜10%の不況＝−20%崩落ではない）。
-    double AvgMajorDepressionEpisodes = 0, double MaxMajorDrawdown = 0, string MaxMajorDdNote = "");
+    double AvgMajorDepressionEpisodes = 0, double MaxMajorDrawdown = 0, string MaxMajorDdNote = "",
+    long[]? CostTotals = null);   // ★計算量の台帳（2026-09-30）＝全試合の見た件数の和（CostLedger の添字）。報告専用＝帯の報告には書かない（Runner が別のファイルへ）
 
 /// <summary>各国に効用AIを差し、1試合を最後まで自動進行して構造化結果を返す。seed 固定で再現可能。</summary>
 public static class SelfPlayMatch
@@ -1890,7 +1892,7 @@ public static class SelfPlayMatch
         catch (Exception ex)
         {
             anomalies.Add($"例外/保存則違反: {ex.GetType().Name}: {ex.Message}");
-            return new MatchResult(seed, quarters, "(中断)", 0, -1, [], [.. sim.Diplomacy.Log], anomalies, false, 0, 0, 0, 0, [], worstDrawdown, depressionEpisodes, overheatDepressions, harvestDepressions);
+            return new MatchResult(seed, quarters, "(中断)", 0, -1, [], [.. sim.Diplomacy.Log], anomalies, false, 0, 0, 0, 0, [], worstDrawdown, depressionEpisodes, overheatDepressions, harvestDepressions, Cost: sim.CostTotals());
         }
 
         bool deadlocked = frozen > DeadlockFrozenQuarters;   // ★構造フィールドへ（文字列一致をやめる）
@@ -1937,7 +1939,8 @@ public static class SelfPlayMatch
             sim.Nations.Sum(n => n.World.ElectionsHeld), sim.Nations.Sum(n => n.World.QuartersWithElections),   // ★E0計器（2026-08-15）
             MajorsTradeGdp(sim),   // ★貿易復活計器（2026-08-15）
             MajorDepressionEpisodes: majorDepressionEpisodes, MajorMaxDrawdown: majorMaxDrawdown, MajorDdNote: majorDdNote,
-            Jumps: [.. jumps], StandingsAt1820: standings1820, StandingsAt1870: standings1870, StandingsAt1920: standings1920, StandingsAt1950: standings1950);   // ★A-05：跳躍ダイジェスト（報告専用）
+            Jumps: [.. jumps], StandingsAt1820: standings1820, StandingsAt1870: standings1870, StandingsAt1920: standings1920, StandingsAt1950: standings1950,   // ★A-05：跳躍ダイジェスト（報告専用）
+            Cost: sim.CostTotals());   // ★計算量の台帳（2026-09-30・報告専用＝読むのは Runner の測りのファイルと番人だけ）
     }
 
     private static readonly string[] TradeGdpMajorNames = ["イギリス", "フランス", "ロシア", "プロイセン", "清", "アメリカ"];
@@ -2123,6 +2126,15 @@ public static class SelfPlayMatch
             // ★史実基準の恐慌計器（2026-08-22）：大国8の−20%級エピソード（試合平均）と最大DD（全seed最大＝最悪ケースの物差し）
             completed.Count > 0 ? completed.Average(r => r.MajorDepressionEpisodes) : 0,
             completed.Count > 0 ? completed.Max(r => r.MajorMaxDrawdown) : 0,
-            completed.OrderByDescending(r => r.MajorMaxDrawdown).FirstOrDefault() is { } mdd ? $"{mdd.MajorDdNote}・seed{mdd.Seed}" : "");
+            completed.OrderByDescending(r => r.MajorMaxDrawdown).FirstOrDefault() is { } mdd ? $"{mdd.MajorDdNote}・seed{mdd.Seed}" : "",
+            CostTotals: SumCost(results));   // ★計算量の台帳（2026-09-30）＝全試合の和（報告専用）
+    }
+
+    /// <summary>計算量の台帳の全試合の和（<see cref="CostLedger"/> の添字・中断した試合もそこまでの件数を足す）。</summary>
+    private static long[] SumCost(IEnumerable<MatchResult> results)
+    {
+        var t = new long[CostLedger.Count];
+        foreach (var r in results) CostLedger.AddInto(t, r.Cost);
+        return t;
     }
 }

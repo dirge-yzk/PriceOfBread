@@ -46,7 +46,8 @@ public static class MarketFlow
         CntDailyDaysRun, CntDailyDaysSkipped;
 
     /// <param name="days">この1歩で進める日数 h（旬の長さ）。1＝旧来の日次。</param>
-    public static void StepDay(Region region, Coefficients coef, int days = 1)
+    /// <param name="cost">計算量の台帳（<see cref="CostLedger"/>・呼び手の国の台帳＝並列の日次相でも国ごと）。null＝数えない（テストの直呼び）。診断＝値を読まない。</param>
+    public static void StepDay(Region region, Coefficients coef, int days = 1, long[]? cost = null)
     {
         int h = days;
         double div = coef.PriceFlowDailyDiv;
@@ -68,6 +69,7 @@ public static class MarketFlow
         //   coef と region.LaborWellbeing（月次）だけで決まる＝財ループ不変＝州1回へ巻き上げ（同じ double＝ビット恒等）。
         double unionRise = coef.ReservationWageRise * (1.0 + coef.UnionWageRiseBoost * region.LaborWellbeing);
         long nSteps = 0, nClosedG = 0, nClosedS = 0, nStart = 0, nStartHi = 0, nStartSvc = 0, nPred = 0, nLabor = 0, nMarkup = 0, nHard = 0, nNaN = 0, nStep1 = 0, nRun = 0, nSkip = 0;
+        if (cost is not null) cost[CostLedger.PriceGoods] += region.Goods.Count;   // 計算量の台帳（診断）：この州で見る財（死んだ財も1件）
         foreach (var good in region.Goods)
         {
             int gi = good.Id;
@@ -243,6 +245,7 @@ public static class MarketFlow
                 nRun += run; nSkip += h - run;
             }
         }
+        if (cost is not null) cost[CostLedger.PriceDailyRuns] += nRun;   // 計算量の台帳（診断）：日次の写像をまわした回（役務・労働・帯の端の財）
         if (MultiNationSim.TimeOn)
         {
             System.Threading.Interlocked.Add(ref CntGoodSteps, nSteps);

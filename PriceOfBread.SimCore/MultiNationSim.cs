@@ -673,6 +673,7 @@ public sealed class MultiNationSim
         if (quarterDone)
         {
             ProbeSnap();                                              // 保存量プローブ（leakhunt・既定OFF＝実行ゼロ）
+            Cost[CostLedger.SharedNationQuarters] += Nations.Count;   // 計算量の台帳（診断）：四半期末の共有層は国×四半期に比例（国力・脅威・移民・国際金融ほか）
             foreach (var n in Nations) NationalScore.StepStanding(n.World);   // 国力の在庫を1期ぶん寄せる（2026-08-02）＝序列は在庫で決まる。外交(ComputeRanks)より前
             if (_coef.ThreatRailTargetWeight > 0) StepSecurityThreat();   // ★安保手順3（2026-08-30点火＝既定1）：脅威の観測（=0なら1命令も走らない。threatprobe と同式）
             UpdateTradeWeights(); ProbeDiff("交易比重");                // 外1：交易比重を貿易取扱高のシェア（LastExportValue+LastImportValue の EMA）から四半期同期（TradeWeightDynamic=0 で1789固定値を維持＝恒等）
@@ -1081,6 +1082,7 @@ public sealed class MultiNationSim
                 Diplomacy.Log.Add($"{pw.Year} {rebelP.Name}は{parentP.Name}へ再併合された＝操作国は{parentP.Name}");
             }
             Diplomacy.RemovePower(rebelP, _coef);   // 反乱国が巻き込まれていた第三国との戦争も EndWar を通して終わる＝終戦の記録が残る
+            CostLedger.AddInto(_costDeparted ??= new long[CostLedger.Count], Nations[ri].World.CostOrNull);   // 計算量の台帳：消える国の件数を受け皿へ（診断・軌道に触れない）
             Nations.RemoveAt(ri);
             // ★国の番号のずれ（2026-09-28 処理の一元化 段2 B）：四半期のペア貿易額 PairFlowQ は国の番号（Nations の添字）で引く＝除いた国の行と列を落とす。
             //   ⚠旧＝そのまま残った＝この後の StepDiffusion（思想の伝播・交易の接触度）が ri より後ろの国に1つ前の国の行を読ませた
@@ -1804,4 +1806,91 @@ public sealed class MultiNationSim
     }
 
     public int Year => Nations.Count > 0 ? Nations[0].World.Year : 0;
+
+    // ★計算量の台帳（2026-09-30 作者裁定「計算量の予算」）＝共有層の台帳（四半期末の共有層）と、消えた国の台帳の受け皿。
+    //   ⚠作業領域＝セーブに載らない（[NonSerialized]＝SaveGame が辿らない）・シミュの値はどれも読まない。
+    [System.NonSerialized] private long[]? _cost;
+    [System.NonSerialized] private long[]? _costDeparted;
+    internal long[] Cost => _cost ??= new long[CostLedger.Count];
+
+    /// <summary>★この試合の計算量の台帳の合計（<see cref="CostLedger"/> の添字）＝共有層（この層・外交・国際市場）＋今の全ての国＋再併合で消えた国。
+    /// 読むだけ＝軌道に触れない。ロードした盤面はロードした時点から数え直す（台帳はセーブに載らない）。</summary>
+    public long[] CostTotals()
+    {
+        var t = new long[CostLedger.Count];
+        CostLedger.AddInto(t, _cost); CostLedger.AddInto(t, _costDeparted);
+        CostLedger.AddInto(t, Diplomacy.CostOrNull); CostLedger.AddInto(t, Market.CostOrNull);
+        foreach (var n in Nations) CostLedger.AddInto(t, n.World.CostOrNull);
+        return t;
+    }
+}
+
+/// <summary>★計算量の台帳（2026-09-30 作者裁定「計算量の予算」＝推奨で採択）。処理ごとの「見た件数」を数える**診断**であって、シミュの状態ではない。
+/// ── 規律 ──────────────────────────────────────────────────────────────
+/// ・セーブに載らない＝置き場は <c>[NonSerialized]</c> の作業領域（World・Diplomacy・InternationalMarket・MultiNationSim の <c>_cost</c>）＝SaveGame はこの印のフィールドを辿らない。
+/// ・軌道を1ビットも変えない＝件数を読む処理はシミュの中に1つも無い（読むのは <see cref="MultiNationSim.CostTotals"/> を呼ぶ Runner とテストだけ）。
+/// ・並列の日次相（国内価格・建設・信用）は国ごとの World の台帳へ＝共有の変数を取り合わない。共有層（清算・外交・四半期末）はその層の台帳へ。
+/// ・熱いループの中で1件ずつ台帳へ足さない＝ループの前（件数が分かるとき）か、局所の数をループの後にまとめて足す。
+/// ── 推定の計算量 ──────────────────────────────────────────────────────
+/// 推定（秒）＝Σ 件数×単価。単価は census（2026-09-30・S3b の木 61b751e・1種全長・計器つき）の処理ごとの秒÷件数を、計器の重さ（計器なし 472.4 秒÷計器つき 515.55 秒）で割り戻した値。
+/// 覆う割合＝推定÷実測の CPU。★下がったら数えていない重い処理が増えた合図（新しい処理はこの台帳に行を足し、docs の「処理の刻みの表」に刻みの根拠を書く）。
+/// ⚠ 外交の覇権の判定の単価だけは census に内訳が無い＝この回の計器（S3c の木・全長1試合で覇権の判定 11.17 秒）から。
+/// ⚠ 判定は推定（決定的）を主にし、実測の CPU は記録（時刻と負荷で揺れる＝約7%）。</summary>
+public static class CostLedger
+{
+    public const int PriceGoods = 0, PriceDailyRuns = 1, ConstructionSeen = 2, CreditSpans = 3, ConsumePopGoods = 4, ProducerMonths = 5,
+        ClaimProducers = 6, MonthlyPops = 7, ClearingRows = 8, ClearingFills = 9, DiploPowerMonths = 10, DiploHegemonScans = 11,
+        QuarterStartPops = 12, QuarterEndPops = 13, SharedNationQuarters = 14, Count = 15;
+
+    /// <summary>計数の名前（番人の表・測りのファイル・docs の「処理の刻みの表」の列が同じ名前を使う）。</summary>
+    public static readonly string[] Names =
+    [
+        "価格：財の歩（州×財×旬）", "価格：日次の写像の回", "建設：見た生産者（旬）", "信用：国×旬", "消費：POP×財（月）", "生産：生産者×月",
+        "請求：見た生産者（月）", "月次：POP×月（決算の残り）", "清算：見た買い手行", "清算：着値の充填", "外交：国×月", "外交：覇権の判定の国×国",
+        "四半期首：POP×国（AI・議会・政府）", "四半期末：POP×国", "共有層：国×四半期（国力・移民・国際金融ほか）",
+    ];
+
+    /// <summary>単価（マイクロ秒/件）。census の処理の秒÷件数×計器の重さの割り戻し（0.9163）。算出の式は docs の「処理の刻みの表」。</summary>
+    public static readonly double[] UnitMicros =
+    [
+        0.24025,   // 価格：財の歩＝（価格の秒 170.688−日次の経路 50.936−死んだ財 13.511）÷死んでいない財の歩 4.052億（死んだ財の歩は安い＝この単価は死んだ財を回す木では推定を過大にする）
+        0.14406,   // 価格：日次の写像の回＝日次の経路 50.936 秒÷3.240億回
+        0.01300,   // 建設：見た生産者＝48.618 秒÷（走査 25.45億＋工事のある州の生産者 530.9万州×166）
+        2.58278,   // 信用：国×呼び出し＝11.040 秒÷391.7万
+        0.03012,   // 消費：POP×財＝消費の段 38.445 秒÷11.70億
+        0.45650,   // 生産：生産者×月＝EconomyStep.Run の残り（92.455−38.445 秒）÷1.084億
+        0.03490,   // 請求：見た生産者＝4.129 秒÷1.084億
+        1.99345,   // 月次：POP×月＝月次決算の EconomyStep と請求の外 18.438 秒÷847.5万（州×月の POP）
+        0.19264,   // 清算：見た買い手行＝準備・リスト・財の終わり 16.086 秒÷7,651万行
+        0.11034,   // 清算：着値の充填＝買い手行の段 62.746 秒÷5.211億
+        113.26019, // 外交：国×月＝（外交 32.057−覇権の判定 11.17 秒）÷16.9万
+        0.01035,   // 外交：覇権の判定の国×国＝11.17 秒÷（13.56万回×85.4²）＝この回の計器（inj_dp・S3c の木）
+        6.51065,   // 四半期首：POP×国＝20.073 秒÷282.5万
+        1.30907,   // 四半期末：POP×国＝4.036 秒÷282.5万
+        256.74759, // 共有層：国×四半期＝12.194 秒÷4.35万
+    ];
+
+    /// <summary>★予算の目標（1試合の CPU 秒・バッチの条件）＝10種の全長を5分で＝300 秒×働くコア 約12.9÷10（2026-09-30 作者裁定・推奨で決めた）。</summary>
+    public const double BudgetTargetCpuSeconds = 387.0;
+    /// <summary>★予算の上限（推定の計算量・1試合の秒）＝今の値（速くなるたびに下げるだけ＝目標に届くまで）。⚠超えるコミットは、どこで払ったかを実装ログとコミットに書く。
+    /// 0＝未設定。判定は <see cref="BudgetSlack"/> の許し（軌道の小さな揺れ）つき。</summary>
+    public const double BudgetLimitEstSeconds = 0;
+    /// <summary>上限を置いたときの覆う割合（推定÷実測の CPU・バッチの条件）＝目標を推定の単位へ写す（目標の推定＝目標の CPU×これ）。0＝未設定。</summary>
+    public const double BudgetCoverageAtLimit = 0;
+    /// <summary>予算の判定の許し（軌道の小さな揺れ＝番人と同じ +2%）。</summary>
+    public const double BudgetSlack = 0.02;
+
+    public static void AddInto(long[] total, long[]? part)
+    {
+        if (part is null) return;
+        for (int i = 0; i < total.Length && i < part.Length; i++) total[i] += part[i];
+    }
+
+    /// <summary>推定の計算量（秒）＝Σ 件数×単価。</summary>
+    public static double EstimatedSeconds(long[] n)
+    {
+        double s = 0;
+        for (int i = 0; i < Count && i < n.Length; i++) s += n[i] * UnitMicros[i] * 1e-6;
+        return s;
+    }
 }

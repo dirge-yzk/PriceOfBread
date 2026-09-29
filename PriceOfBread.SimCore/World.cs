@@ -18,6 +18,12 @@ public sealed class World
     // シム論理からは呼ばれない＝Regions/Coef は null のまま）。
     private World() { Regions = null!; Coef = null!; }
 
+    // ★計算量の台帳（2026-09-30 作者裁定「計算量の予算」・<see cref="CostLedger"/>）＝この国の処理が見た件数。並列の日次相（国内価格・建設・信用）も
+    //   国ごとに数える（共有の変数を取り合わない）。⚠作業領域＝セーブに載らない（[NonSerialized]）・シミュの値はこれを1つも読まない。
+    [System.NonSerialized] private long[]? _cost;
+    internal long[] Cost => _cost ??= new long[CostLedger.Count];
+    internal long[]? CostOrNull => _cost;
+
     public List<Region> Regions { get; }
     /// <summary>本拠地（単一地域コード・テレメトリの便宜）。</summary>
     public Region Region => Regions[0];
@@ -1680,9 +1686,12 @@ public sealed class World
             ? Coef.ConsSteel * Catalog.RefPrices[Coef.SteelGoodId] + Coef.ConsMachine * Catalog.RefPrices[Coef.MachineGoodId]
               + Coef.ConsCement * Catalog.RefPrices[Coef.CementGoodId] + Coef.ConsLumber * Catalog.RefPrices[Coef.LumberGoodId]
             : 0;
+        var cost = Cost;   // 計算量の台帳（診断・この国の台帳＝並列の日次相でも国ごと）
         foreach (var r in Regions)
         {
-            bool building = false; foreach (var p in r.Producers) if (p.ConstructionLeft > 0) { building = true; break; }
+            int scan = 0; while (scan < r.Producers.Count && !(r.Producers[scan].ConstructionLeft > 0)) scan++;
+            bool building = scan < r.Producers.Count;
+            cost[CostLedger.ConstructionSeen] += building ? scan + 1 : scan;   // 工事中の棟を探して見た生産者
             if (!building) continue;   // 工事中の棟が無い州は採算率（Math.Pow）を評価しない
             // 素材束（鋼・機械・セメント・製材）の高騰では建設を**崖でなく連続に絞る**（採算の連続判断）。進捗は採算率に比例した日数で進む
             // ＝材料が半減点を超えるほど工事がゆっくりになり、需要減→価格低下で自然に律速（停止/再開のオン・オフ振動を排除）。
@@ -1697,6 +1706,7 @@ public sealed class World
                 buildAfford = Coef.FactoryBuildProgress(cpuNow, cpuRef, r.PriceLevel);   // ★裁定②＝FactoryBuildPriceGateScale で混合（1＝恒等・0＝価格を見ずに進む）
             }
             if (buildAfford <= 1e-9) continue;
+            cost[CostLedger.ConstructionSeen] += r.Producers.Count;   // 工事を進めるために見た生産者（州の全て）
             foreach (var p in r.Producers)
             {
                 if (p.ConstructionLeft <= 0) continue;

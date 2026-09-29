@@ -7666,7 +7666,12 @@ if (args.Length > 0 && args[0] == "selfplay-batch")
     int gqArg = ArgInt(args, 5, 0);          // ★任意（2026-08-30・測定高速化）：四半期数の上書き。探索は 300（1858年まで＝半分の時間）・受け入れは既定 GameQuarters。
                                              //   ⚠300Q の帯は全長の帯と別の物差し（後期次元＝航空/WWI が無測定・断面数も減る）＝同じ長さの腕同士でだけ比較する
     int gq = gqArg > 0 ? gqArg : PriceOfBread.SimCore.Coefficients.GameQuarters;
+    var costSys0 = CostSys.Snap();   // ★計算量の測り（2026-09-30）：系の稼働（負荷の記録）の始点
     var b = SelfPlayMatch.RunBatch(n, gq, ir, par > 0 ? par : null, seedBase);
+    // ★計算量の測り（2026-09-30 作者裁定「計算量の予算」）＝帯の報告とは**別のファイル**（POB_COST_OUT・measure.sh が <出力>.cost を渡す）。
+    //   ⚠報告の本体には1文字も足さない＝恒等の検証（報告の全行バイト一致）を壊さない（CPU 秒は時刻と負荷で揺れる・件数は軌道で動く）。
+    if (Environment.GetEnvironmentVariable("POB_COST_OUT") is { Length: > 0 } costOut)
+        File.WriteAllText(costOut, CostSys.Report(b, costSys0, seedBase, gq));
     Console.WriteLine($"=== バッチ自己対戦 seeds {seedBase}..{seedBase + (ulong)b.N - 1}（各{gq}四半期{(ir is { } v ? $"・金利{v:F2}" : "")}）===");
     if (PriceOfBread.SimCore.Coefficients.OverrideSummary() is { Length: > 0 } ov)
         Console.WriteLine($"★係数の上書き（POB_COEF）: {ov}");   // 走行条件の名乗り＝ヘッダーを突き合わせてから数字を読む
@@ -8231,3 +8236,64 @@ if (met.DeadEndGoods > 0)
 // --- 過剰供給の時系列（行き過ぎ→固着 か 恒常的過剰 か の判定）---
 Console.WriteLine("\n=== 過剰供給の時系列（イギリス・20四半期ごと）===");
 foreach (var t in trace) Console.WriteLine("  " + t);
+
+/// <summary>★計算量の測り（2026-09-30 作者裁定「計算量の予算」）＝selfplay-batch が帯の報告とは別のファイル（POB_COST_OUT）へ書く1枚。
+/// 1試合あたりの CPU 秒（プロセスの CPU÷種の数）・全長の件数の1試合の平均・推定の計算量・覆う割合・予算の上限と目標・「予算の内／超過」の1行。
+/// ⚠判定は推定の計算量（決定的）で行い、実測の CPU は負荷（系の稼働・他のプロセスが使ったコア）と一緒に記録だけ（時刻と負荷で約7%揺れる）。</summary>
+static class CostSys
+{
+    [System.Runtime.InteropServices.DllImport("kernel32.dll")]
+    private static extern bool GetSystemTimes(out long idle, out long kernel, out long user);
+
+    public readonly record struct Snap0(long Ticks, double Cpu, long Idle, long Kernel, long User, bool HasSys);
+
+    public static Snap0 Snap()
+    {
+        long idle = 0, kernel = 0, user = 0;
+        bool ok = OperatingSystem.IsWindows() && GetSystemTimes(out idle, out kernel, out user);
+        return new Snap0(System.Diagnostics.Stopwatch.GetTimestamp(), System.Diagnostics.Process.GetCurrentProcess().TotalProcessorTime.TotalSeconds, idle, kernel, user, ok);
+    }
+
+    public static string Report(BatchSummary b, Snap0 s0, ulong seedBase, int gq)
+    {
+        var s1 = Snap();
+        var proc = System.Diagnostics.Process.GetCurrentProcess();
+        double cpuAll = proc.TotalProcessorTime.TotalSeconds;                         // プロセスの CPU（起動・構築・助走・報告の前まで＝全部）
+        double wallBatch = (s1.Ticks - s0.Ticks) / (double)System.Diagnostics.Stopwatch.Frequency;
+        double cpuBatch = s1.Cpu - s0.Cpu;
+        int N = Math.Max(1, b.N);
+        double cpuPerMatch = cpuAll / N;
+        var o = new System.Text.StringBuilder();
+        o.AppendLine("# 計算量の測り（selfplay-batch）＝帯の報告とは別のファイル（件数と CPU 秒は揺れる・報告の全行バイト一致の検証を壊さないためここだけに書く）");
+        o.AppendLine($"条件: seeds {seedBase}..{seedBase + (ulong)b.N - 1}（{b.N}種）・各{gq}四半期（助走を含む）・SOURCE-HASH {Environment.GetEnvironmentVariable("POB_SOURCE_HASH") ?? "（measure.sh の外）"}・論理コア {Environment.ProcessorCount}・サーバーGC {System.Runtime.GCSettings.IsServerGC}");
+        o.AppendLine($"実測: 1試合あたりの CPU {cpuPerMatch:F1} 秒（プロセスの CPU {cpuAll:F1} 秒÷{b.N}種）・バッチの壁 {wallBatch:F1} 秒・バッチの CPU {cpuBatch:F1} 秒（平均 {cpuBatch / Math.Max(1e-9, wallBatch):F2} コア）");
+        if (s0.HasSys && s1.HasSys)
+        {
+            long tot = (s1.Kernel - s0.Kernel) + (s1.User - s0.User), idle = s1.Idle - s0.Idle;
+            double busy = tot > 0 ? 1.0 - (double)idle / tot : 0;
+            double other = busy * Environment.ProcessorCount - cpuBatch / Math.Max(1e-9, wallBatch);
+            o.AppendLine($"負荷: 系の稼働（平均）{busy:P1}・他のプロセスが使ったコア（平均）{other:F2}（⚠他の測りと重なると1試合の CPU 秒は膨らむ＝記録だけ）");
+        }
+        var tot2 = b.CostTotals ?? new long[CostLedger.Count];
+        var avg = new long[CostLedger.Count];
+        for (int i = 0; i < avg.Length; i++) avg[i] = (tot2[i] + N / 2) / N;
+        o.AppendLine("計数（1試合の平均・助走を含む）:");
+        o.AppendLine("  名前\t件数\t単価（µs）\t推定（秒）");
+        for (int i = 0; i < CostLedger.Count; i++)
+            o.AppendLine($"  {CostLedger.Names[i]}\t{avg[i]}\t{CostLedger.UnitMicros[i]:F5}\t{avg[i] * CostLedger.UnitMicros[i] * 1e-6:F2}");
+        double est = CostLedger.EstimatedSeconds(avg);
+        double cover = cpuPerMatch > 0 ? est / cpuPerMatch : 0;
+        o.AppendLine($"推定の計算量（1試合）: {est:F1} 秒　覆う割合（推定÷実測の CPU）: {cover:P1}（★下がったら数えていない重い処理が増えた合図）");
+        double lim = CostLedger.BudgetLimitEstSeconds, cov0 = CostLedger.BudgetCoverageAtLimit;
+        double tgtEst = CostLedger.BudgetTargetCpuSeconds * cov0;
+        o.AppendLine(lim > 0
+            ? $"予算: 上限（推定）{lim:F1} 秒（許し +{CostLedger.BudgetSlack:P0}＝{lim * (1 + CostLedger.BudgetSlack):F1} 秒）・目標 1試合の CPU {CostLedger.BudgetTargetCpuSeconds:F0} 秒（バッチの条件）＝推定の単位で {tgtEst:F1} 秒（上限を置いたときの覆う割合 {cov0:P1}）"
+            : $"予算: 上限（推定）未設定・目標 1試合の CPU {CostLedger.BudgetTargetCpuSeconds:F0} 秒（バッチの条件）");
+        string verdict = lim <= 0 ? "上限が未設定"
+            : est <= lim * (1 + CostLedger.BudgetSlack)
+                ? (est <= tgtEst ? $"予算の内（目標にも届いた＝推定 {est:F1} ≦ 目標 {tgtEst:F1} 秒・余りは機能が使ってよい）" : $"予算の内（推定 {est:F1} ≦ 上限 {lim:F1}×{1 + CostLedger.BudgetSlack:F2} 秒・目標 {tgtEst:F1} 秒まであと {est - tgtEst:F1} 秒）")
+                : $"★予算の超過（推定 {est:F1} ＞ 上限 {lim:F1}×{1 + CostLedger.BudgetSlack:F2} 秒）＝どこで払ったかを実装ログとコミットに書く";
+        o.AppendLine($"判定: {verdict}");
+        return o.ToString();
+    }
+}
