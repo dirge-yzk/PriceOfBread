@@ -955,7 +955,9 @@ public class WarThemeTests
         Assert.True(zero.ft == arm.ft && zero.bt == arm.bt, $"国庫が動いた（仏 {arm.ft - zero.ft}・英 {arm.bt - zero.bt}）＝私人の積荷の損得を国庫どうしで払っている");
         Assert.True(paid > 0, "前提が崩れた：拿捕が立っていない（制海権・危険・取扱高）");
         double tol = 1e-9 * Math.Max(1.0, paid);
-        Assert.True(Math.Abs(got - paid) <= tol, $"英の兵士の受け取り {got} ≠ 仏の商人の払い {paid}");
-        Assert.True(Math.Abs(zero.ff - arm.ff - paid) <= tol && Math.Abs(arm.bf - zero.bf - paid) <= tol, "両国の台帳が動いた額で対になっていない");
+        // ★段3-3（2026-09-30）：国境をまたぐ払いは為替で換算（移し方の1本）＝英の兵士は仏の商人の払いの金の値打ちを英の通貨で受け取る・各国の台帳は各自の通貨
+        double conv = arm.fr.FxRate / arm.br.FxRate;
+        Assert.True(Math.Abs(got - paid * conv) <= tol, $"英の兵士の受け取り {got} ≠ 仏の商人の払いの金の値打ち {paid * conv}");
+        Assert.True(Math.Abs(zero.ff - arm.ff - paid) <= tol && Math.Abs(arm.bf - zero.bf - got) <= tol, "両国の台帳が動いた額で対になっていない");
     }
 }

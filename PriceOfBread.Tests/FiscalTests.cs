@@ -518,8 +518,8 @@ public class FiscalTests
         foreach (var r in fr.Regions) foreach (var p in r.Pops) if (p.BondHoldings > cap.BondHoldings) cap = p;
         double h = cap.BondHoldings;
         Assert.True(h > 0, "前提が崩れた：仏の国債に持ち手がいない");
-        Fiscal.ExportBondHoldings(cap, 0.6 * h, fr, br);
-        Fiscal.ExportBondHoldings(cap, 0.2 * h, fr, pr);
+        Fiscal.BookForeignDebt(cap, 0.6 * h, fr, br);
+        Fiscal.BookForeignDebt(cap, 0.2 * h, fr, pr);
         new BondLedger().Check(fr);
         // 仏の財政を静める（歳入・維持費・福祉が0＝国庫の出入りは減債だけ）＋利子0（元本だけを見る）＋余剰の全額で減債
         fr.TaxRate = 0; fr.PollTax = 0; fr.LandTax = 0; fr.ProgressiveTax = 0;
@@ -1001,7 +1001,7 @@ public class FiscalTests
         // 請求権：反乱国の対外債（仏と英が3:1で持つ・国内元本は不変＝保有台帳は割れない）と、外資の負債・対外資産
         double fd = 0.1 * scale;
         rw.ForeignDebt += fd; rw.GovDebt += fd; rw.PrevForeignDebt += fd;
-        fw.ForeignBondClaims += 0.75 * fd; pw.ForeignBondClaims += 0.25 * fd;
+        fw.ForeignBondClaims += 0.75 * fd * rw.FxRate / fw.FxRate; pw.ForeignBondClaims += 0.25 * fd * rw.FxRate / pw.FxRate;   // 債権は持ち手の国の通貨（金の値打ちで 3:1）
         rw.ForeignCapitalIn += 0.07 * scale; rw.CapitalAbroad += 0.04 * scale;
         new BondLedger().Check(rw);
         Assert.True(rw.Treasury < 0 && rb.Loans > 0 && rb.HouseholdLoans > 0, $"前提が崩れた：国庫 {rw.Treasury}・与信 {rb.Loans}・家計の与信 {rb.HouseholdLoans}");
@@ -1009,8 +1009,10 @@ public class FiscalTests
         var all0 = sim.Nations.ConvertAll(n => n.World).ToArray();
         double world0 = WorldBase(all0), rebelBase = rw.BaseMoney, parentBase0 = pw.BaseMoney;
         double Sum(World[] ws, Func<World, double> f) { double s = 0; foreach (var w in ws) s += f(w); return s; }
-        double ca0 = Sum(all0, w => w.CapitalAbroad), fci0 = Sum(all0, w => w.ForeignCapitalIn), claims0 = Sum(all0, w => w.ForeignBondClaims);
-        double heldOthers = fw.ForeignBondClaims + pw.ForeignBondClaims, repudiated = rw.PrevForeignDebt, fwClaims0 = fw.ForeignBondClaims;
+        double ca0 = Sum(all0, w => w.CapitalAbroad), fci0 = Sum(all0, w => w.ForeignCapitalIn);
+        // ★段3-3（2026-09-30）：債権は持ち手の国の通貨＝否認は金建ての債権の比で落ちる（債権の増減の1本 CapitalMarket.AdjustClaims）。反乱国自身の債権は名目のまま親へ（貯蓄と同じ）
+        double heldOthers = fw.ForeignBondClaims * fw.FxRate + pw.ForeignBondClaims * pw.FxRate, repudiated = rw.PrevForeignDebt * rw.FxRate;
+        double fwClaims0 = fw.ForeignBondClaims, pwClaims0 = pw.ForeignBondClaims, rwClaims0 = rw.ForeignBondClaims;
         Assert.True(heldOthers >= repudiated, $"前提が崩れた：反乱国以外の債権 {heldOthers} が否認する対外債 {repudiated} に届かない");
         double loans0 = pb.Loans, hh0 = pb.HouseholdLoans, tr0 = pw.Treasury, rT = rw.Treasury, rL = rb.Loans, rHH = rb.HouseholdLoans;
         var guard = new MoneyConservation(pw);
@@ -1035,7 +1037,7 @@ public class FiscalTests
         double tolC = 1e-9 * Math.Max(1.0, scale);
         Assert.True(Math.Abs(Sum(all1, w => w.CapitalAbroad) - ca0) <= tolC, "再併合で世界の対外資産の和が動いた");
         Assert.True(Math.Abs(Sum(all1, w => w.ForeignCapitalIn) - fci0) <= tolC, "再併合で世界の外資負債の和が動いた");
-        Assert.True(Math.Abs(Sum(all1, w => w.ForeignBondClaims) - (claims0 - repudiated)) <= tolC, $"債権の和の減り {claims0 - Sum(all1, w => w.ForeignBondClaims)} ≠ 否認した対外債 {repudiated}");
+        Assert.True(Math.Abs(pw.ForeignBondClaims - (pwClaims0 * (1 - repudiated / heldOthers) + rwClaims0)) <= tolC, $"親の債権 {pw.ForeignBondClaims} ≠ 否認で落ちた親の債権＋反乱国の債権");
         Assert.True(Math.Abs(fw.ForeignBondClaims - fwClaims0 * (1 - repudiated / heldOthers)) <= tolC, "否認が債権の比で落ちていない");
         // (c) 反乱国の国債の保有は消える（持ち手の損・親は継承しない）
         foreach (var r in returning) foreach (var p in r.Pops) Assert.Equal(0.0, p.BondHoldings);
@@ -1106,6 +1108,286 @@ public class FiscalTests
         double tol = 1e-9 * Math.Max(1.0, inv0);
         Assert.True(Math.Abs(tf1 - tf0) <= tol, $"国際金融の段で世界の台帳の和が動いた（{tf1 - tf0}）＝受け手が送り手の払いより多く受け取った");
         Assert.True(Math.Abs(bm1 - bm0) <= tol, $"国際金融の段で世界の基礎貨幣が動いた（{bm1 - bm0}）");
+    }
+
+    // =====================================================================================================
+    // ★段3-3（2026-09-30・対外の民間請求＝処理の一元化 段4c-2）の番人：国境をまたぐ払いの換算（A7 と同じ規則）・投資家の述語の1本（C13）・
+    //   受け手と払い手の対称と債権の増減の対称（C14）・運河の配当と巨大建造物の外資を投資家へ（C9・C12）・国家間の移転の未払いを対外債へ（B5・Q6）・
+    //   内戦の国債は勝者が引き継ぐ（作者裁定 2026-09-29）。
+    // =====================================================================================================
+
+    private static MultiNationSim FrozenWorld(params string[] names)
+    {
+        var sim = new MultiNationSim(names.Select(WorldData.ByName).ToArray(), seed: 1789, coef: new Coefficients()) { DiplomacyFrozen = true };
+        foreach (var n in sim.Nations) n.TelemetryEnabled = false;
+        sim.Diplomacy.Log.Enabled = false;
+        return sim;
+    }
+    private static double NonInvestorSavings(World w) { double s = 0; foreach (var r in w.Regions) foreach (var p in r.Pops) if (!CapitalMarket.IsInvestor(p, w.Coef)) s += p.Savings; return s; }
+
+    /// <summary>★国境をまたぐ払いは為替で換算する（移し方の1本 World.Transfer・段3-3）：払い手は自国の通貨で X、受け手はその金の値打ちを自国の通貨で受け取る
+    /// （×払い手の為替÷受け手の為替）。差は為替の換算の台帳（Diplomacy.CumulativeFxResidual）へ＝世界の名目の動き＝台帳の動き・国ごとの保存は各自の通貨で閉じる。
+    /// 受け手の国庫の区分は toCat（貢納の出と入り）。⚠突然変異「換算しない（名目 1:1）」で赤。</summary>
+    [Fact]
+    public void 国境をまたぐ払いは為替で換算され差は換算の台帳へ入る()
+    {
+        var sim = FrozenWorld("イギリス", "フランス");
+        var uk = sim.Nations[0].World; var fr = sim.Nations[1].World;
+        uk.ExchangeRate = 1.0; fr.ExchangeRate = 0.5;
+        var gu = new MoneyConservation(uk); var gf = new MoneyConservation(fr);
+        double tu = uk.Treasury, tf = fr.Treasury, fx0 = sim.Diplomacy.CumulativeFxResidual, bm0 = uk.BaseMoney + fr.BaseMoney;
+        double outU = uk.TreasuryLedger[(int)TreasuryCat.TributeOut], inF = fr.TreasuryLedger[(int)TreasuryCat.TributeIn];
+        const double X = 1000;
+        Assert.Equal(X, World.Transfer((uk, null), (fr, null, null), X, TreasuryCat.TributeOut, toCat: TreasuryCat.TributeIn));   // 戻り値＝払い手の通貨の額
+        Assert.Equal(tu - X, uk.Treasury, 6);
+        Assert.Equal(tf + 2 * X, fr.Treasury, 6);   // 金の値打ち X（英の通貨・為替1）＝仏の通貨で 2X（為替0.5）
+        Assert.Equal(-X, uk.TreasuryLedger[(int)TreasuryCat.TributeOut] - outU, 6);
+        Assert.Equal(2 * X, fr.TreasuryLedger[(int)TreasuryCat.TributeIn] - inF, 6);
+        Assert.Equal(X, sim.Diplomacy.CumulativeFxResidual - fx0, 6);
+        Assert.Equal(sim.Diplomacy.CumulativeFxResidual - fx0, uk.BaseMoney + fr.BaseMoney - bm0, 6);   // 世界の名目の動き＝換算の台帳
+        gu.Check(uk); gf.Check(fr);   // 国ごとの台帳（CumulativeTradeFlow）は各自の通貨の実額
+        // 逆向き（仏→英・POP の払い手）＝半分
+        var frPops = new List<Pop>(fr.AllPops());
+        double moved = World.Transfer((fr, frPops), (uk, null, null), X, TreasuryCat.OtherIn);
+        Assert.Equal(X, moved, 6);
+        Assert.Equal(tu - X + 0.5 * X, uk.Treasury, 6);
+        gu.Check(uk); gf.Check(fr);
+    }
+
+    /// <summary>★外資の配当は金の値打ちで動く（国際金融 CapitalMarket・段3-3）：受け入れ国（仏・為替0.5）の投資家が自国の通貨で払い、持ち主の国（英・為替1）の投資家が
+    /// 金の値打ちを自国の通貨で受け取る（配当＝外資の負債×率）。投資家でない POP は1ビットも動かない・世界の名目の動き＝換算の台帳。
+    /// ⚠突然変異「還流を換算しない（名目 1:1）」で赤。</summary>
+    [Fact]
+    public void 外資の配当は金の値打ちで換算して持ち主の国の投資家へ届く()
+    {
+        var coef = new Coefficients { CapitalFlightRate = 0, CapitalDemandScale = 0, CapitalDomesticFlightRate = 0 };   // 配当だけ
+        var sim = new MultiNationSim([NationConfig.Britain(), NationConfig.France()], 1789, _ => new NullAgent(), coef) { DiplomacyFrozen = true };
+        CapitalMarket.Step(sim.Nations, coef);   // 開始盤面の繰上げを1回
+        var uk = sim.Nations[0].World; var fr = sim.Nations[1].World;
+        uk.ExchangeRate = 1.0; fr.ExchangeRate = 0.5;
+        foreach (var w in new[] { uk, fr }) { w.ForeignIntPaidThisQuarter = 0; w.ForeignCapitalIn = 0; w.CapitalAbroad = 0; }
+        const double F = 1e7;
+        fr.ForeignCapitalIn = F; uk.CapitalAbroad = 0.5 * F;   // 英の投資家が仏に持つ外資（金の値打ちで同じ）
+        double invF0 = CapitalMarket.InvestorSavings(fr), invU0 = CapitalMarket.InvestorSavings(uk), othF0 = NonInvestorSavings(fr), othU0 = NonInvestorSavings(uk);
+        double fx0 = sim.Diplomacy.CumulativeFxResidual, bm0 = uk.BaseMoney + fr.BaseMoney;
+        Assert.True(invF0 > coef.CapitalDividendRate * F, "前提が崩れた：仏の投資家が配当を払い切れない");
+        CapitalMarket.Step(sim.Nations, coef);
+        double paid = invF0 - CapitalMarket.InvestorSavings(fr), got = CapitalMarket.InvestorSavings(uk) - invU0;
+        double tol = 1e-9 * Math.Max(1.0, invF0 + invU0);
+        Assert.True(Math.Abs(paid - coef.CapitalDividendRate * F) <= tol, $"仏の投資家の払い {paid} ≠ 配当 {coef.CapitalDividendRate * F}");
+        Assert.True(Math.Abs(got - 0.5 * paid) <= tol, $"英の投資家の受け取り {got} ≠ 金の値打ち（払いの半分）{0.5 * paid}");
+        Assert.True(Math.Abs(NonInvestorSavings(fr) - othF0) <= tol && Math.Abs(NonInvestorSavings(uk) - othU0) <= tol, "投資家でない POP の貯蓄が動いた");
+        Assert.True(Math.Abs(sim.Diplomacy.CumulativeFxResidual - fx0 - (got - paid)) <= tol, "換算の差が換算の台帳に入っていない");
+        Assert.True(Math.Abs(uk.BaseMoney + fr.BaseMoney - bm0 - (sim.Diplomacy.CumulativeFxResidual - fx0)) <= tol, "世界の名目の動き ≠ 換算の台帳の動き");
+    }
+
+    /// <summary>★債権の増減の1本（CapitalMarket.AdjustClaims・C14・段3-3）：債務国の対外債の変化は**債務国以外**の国の債権へ、金建ての債権の比で配る＝
+    /// 増えも減りも同じ集合・同じ規則。債務国が他国に持つ債権は動かない（旧＝減りは自国の債権も含む全ての債権の比・増えは自国を除く投資家の貯蓄の比）。
+    /// ⚠突然変異「債務国自身の債権も含める」で赤。</summary>
+    [Fact]
+    public void 債権の増減は債務国自身の債権を含まず金建ての同じ比で動く()
+    {
+        var (sim, _) = QuietBondWorld();   // 英仏普
+        var br = sim.Nations[0].World; var fr = sim.Nations[1].World; var pr = sim.Nations[2].World;
+        br.ExchangeRate = 1.0; fr.ExchangeRate = 0.5; pr.ExchangeRate = 0.8;
+        br.ForeignBondClaims = 300; pr.ForeignBondClaims = 100; fr.ForeignBondClaims = 200;   // 仏も他国の外債を持つ
+        void Check(double delta)
+        {
+            double b0 = br.ForeignBondClaims, p0 = pr.ForeignBondClaims;
+            CapitalMarket.AdjustClaims(sim.Nations, 1, delta);   // 仏の対外債が delta（仏の通貨）動いた
+            Assert.Equal(200.0, fr.ForeignBondClaims);   // 債務国自身の債権は動かない
+            double dB = br.ForeignBondClaims - b0, dP = pr.ForeignBondClaims - p0;
+            Assert.Equal(delta * 0.5, dB * 1.0 + dP * 0.8, 9);   // 債権国の増減の金の値打ちの和＝対外債の変化の金の値打ち
+            Assert.Equal(b0 * 1.0 / (p0 * 0.8), (dB * 1.0) / (dP * 0.8), 9);   // 比は金建ての債権の比
+        }
+        Check(-100);   // 償還・否認
+        Check(+60);    // 利子の繰り入れ
+    }
+
+    /// <summary>★対外借入の債権は貸し手が**払った額そのもの**（C13・段3-3）：借入の月に繰上げ済みの印（PrevForeignDebt）も上がり（Fiscal.Borrow）、
+    /// 四半期末の貸し手の引き落とし（MultiNationSim）が払った額を貸し手の国の債権にする＝翌四半期の繰上げで数え直さない。借りた額は金の値打ちで貸し手の通貨へ換算。
+    /// 盤面＝普英2国・債権国は英だけ＝英の債権の動き（英の通貨）＝普の対外債の動き（普の通貨）×普の為替÷英の為替。
+    /// ⚠突然変異「借入の月に繰上げ済みの印を上げない（数え直しで二重）」「貸し手の払いを換算しない」で赤。</summary>
+    [Fact]
+    public void 対外借入の債権は貸し手が払った額で換算され翌四半期に数え直さない()
+    {
+        var sim = FrozenWorld("プロイセン", "イギリス");   // 借り手＝普（開幕の国債が小さく借入の上限に届いていない）・貸し手＝英
+        sim.StepQuarter();   // 共有層が外資の引き受け余力を注入
+        var bw = sim.Nations[0].World; var lw = sim.Nations[1].World;
+        lw.Coef.ForeignBondCapacity = 0;   // 英は外資で借りない（普の債権が動かない）
+        Assert.True(bw.ForeignBondInvestorPool > 0, "前提が崩れた：外資の引き受け余力が注入されていない");
+        double fd0 = bw.ForeignDebt, prev0 = bw.PrevForeignDebt, cl0 = lw.ForeignBondClaims, gd0 = bw.GovDebt;
+        FiscalMonth(bw, Short);   // 払えない月＝借入の1本（Fiscal.Borrow）
+        double f = bw.PendingForeignBorrow;
+        Assert.True(f > 0, $"前提が崩れた：普が外資で借りていない（国債 {gd0}→{bw.GovDebt}・利払い {bw.LastInterest}・歳入 {bw.LastRevenue}・冷却 {bw.BorrowCooldown}）");
+        Assert.Equal(prev0 + f, bw.PrevForeignDebt, 6);   // 借入の月に繰上げ済みの印も上がる
+        bw.Coef.ForeignBondCapacity = 0;   // 残りの月は借りない
+        sim.StepQuarter();
+        Assert.True(Math.Abs(bw.FxRate - lw.FxRate) > 0.01, $"前提が崩れた：普と英の為替が同じ（{bw.FxRate}・{lw.FxRate}）");
+        Assert.True(bw.ForeignDebt - fd0 > 0.5 * f, "前提が崩れた：貸し手が払えなかった");
+        double expect = (bw.ForeignDebt - fd0) * bw.FxRate / lw.FxRate;   // 債権国は英だけ＝英の債権の動き＝普の対外債の動きの金の値打ち
+        Assert.True(Math.Abs(lw.ForeignBondClaims - cl0 - expect) <= 1e-9 * Math.Max(1.0, expect), $"英の債権の動き {lw.ForeignBondClaims - cl0} ≠ 普の対外債の動きの金の値打ち {expect}");
+        double cl1 = lw.ForeignBondClaims;
+        CapitalMarket.Step(sim.Nations, sim.Coef);   // 翌四半期の繰上げ＝数え直さない
+        Assert.Equal(cl1, lw.ForeignBondClaims, 9);
+    }
+
+    /// <summary>★外資の受け手は投資家だけ（CapitalMarket.GiveGold・C14・段3-3）＝払い手（TakeGold＝投資家だけ）と対称。投資家のいない国（残骸国家の形）は国庫が受け取る
+    /// （旧＝投資家→全POP→国庫＝外資の配当や流入が農民の貯蓄へ落ちた）。⚠突然変異「投資家不在なら全POP へ」で赤。</summary>
+    [Fact]
+    public void 外資の受け手は投資家だけで投資家のいない国は国庫が受け取る()
+    {
+        var sim = FrozenWorld("イギリス", "フランス");
+        var fr = sim.Nations[1].World;
+        double inv0 = CapitalMarket.InvestorSavings(fr), oth0 = NonInvestorSavings(fr), t0 = fr.Treasury;
+        Assert.Equal(1000, CapitalMarket.GiveGold(fr, 1000), 6);
+        Assert.Equal(inv0 + 1000, CapitalMarket.InvestorSavings(fr), 6);
+        Assert.Equal(oth0, NonInvestorSavings(fr), 6);
+        Assert.Equal(t0, fr.Treasury);
+        foreach (var p in fr.AllPops()) p.IsModernElite = false;   // 投資家のいない国
+        Assert.Empty(CapitalMarket.Investors(fr));
+        var sav = fr.AllPops().Select(p => p.Savings).ToArray();
+        CapitalMarket.GiveGold(fr, 1000);
+        Assert.Equal(sav, fr.AllPops().Select(p => p.Savings).ToArray());   // POP は1ビットも動かない
+        Assert.Equal(t0 + 1000, fr.Treasury, 6);
+    }
+
+    /// <summary>★運河の配当は出資した国の**投資家**へ（C9・段3-3）：使用国の国庫から持分（金建て）の比で、出資国の投資家へ直接・国境をまたげば為替で換算。
+    /// 出資国の国庫は動かない（旧＝拠出国の国庫へ）。⚠突然変異「配当を出資国の国庫へ」で赤。</summary>
+    [Fact]
+    public void 運河の配当は出資した国の投資家へ届き国庫へは入らない()
+    {
+        var sim = FrozenWorld("イギリス", "フランス", "プロイセン");
+        var uk = sim.Nations[0].World; var fr = sim.Nations[1].World; var pr = sim.Nations[2].World;
+        uk.ExchangeRate = 1.0; fr.ExchangeRate = 0.5; pr.ExchangeRate = 0.8;
+        var cp = new Chokepoint { Id = "番人の運河", Name = "番人の運河", IsCanal = true, IsOpen = true };
+        cp.InvestorShares[uk.SelfPower!.Id] = 3; cp.InvestorShares[pr.SelfPower!.Id] = 1;   // 金建ての持分 3:1
+        double tU = uk.Treasury, tF = fr.Treasury, tP = pr.Treasury;
+        double iU = CapitalMarket.InvestorSavings(uk), iP = CapitalMarket.InvestorSavings(pr), oU = NonInvestorSavings(uk), oP = NonInvestorSavings(pr);
+        Assert.Equal(800, sim.DistributeCanalDividend(cp, 800, fr), 6);   // 使用国＝仏（仏の通貨で 800）
+        Assert.Equal(tF - 800, fr.Treasury, 6);
+        Assert.Equal(tU, uk.Treasury); Assert.Equal(tP, pr.Treasury);   // 出資国の国庫は動かない
+        Assert.Equal(iU + 600 * 0.5 / 1.0, CapitalMarket.InvestorSavings(uk), 6);   // 3/4×800（仏の通貨）＝金 300＝英の通貨 300
+        Assert.Equal(iP + 200 * 0.5 / 0.8, CapitalMarket.InvestorSavings(pr), 6);   // 1/4×800＝金 100＝普の通貨 125
+        Assert.Equal(oU, NonInvestorSavings(uk), 6); Assert.Equal(oP, NonInvestorSavings(pr), 6);
+    }
+
+    /// <summary>★巨大建造物の外資（C12・段3-3）：出し手は外資国の**投資家**（国庫は動かない）・保有国の国庫が為替で換算して受け取る・元本は金建て。
+    /// 完成後の利回りは保有国の国庫から外資国の**投資家**へ（×保有国の r）・払えない分は元本へ繰り入れる（作者裁定 Q6）。
+    /// ⚠突然変異「外資国の国庫が払う」「利回りを外資国の国庫へ」「払えない利回りを繰り入れない」で赤。</summary>
+    [Fact]
+    public void 巨大建造物の外資は相手の投資家が出し利回りも投資家へ届き払えない利回りは元本へ繰り入れる()
+    {
+        var sim = FrozenWorld("イギリス", "フランス");
+        var coef = new Coefficients { MegaprojectForeignMinRank = 0 };
+        var uk = sim.Nations[0].World; var fr = sim.Nations[1].World;
+        uk.ExchangeRate = 1.0; fr.ExchangeRate = 0.5;
+        // (1) 拠出：着工済み・未完成・外資の相手は仏（持分 0.5）
+        var mp = new Megaproject { Id = "番人1", Name = "番人1", Host = uk.Regions[0].Name, BuildUnits = 1e12, TechGate = 0, Started = true, ForeignPartnerId = fr.SelfPower!.Id, ForeignShare = 0.5 };
+        sim.Diplomacy.Megaprojects.Clear(); sim.Diplomacy.Megaprojects.Add(mp);
+        double tU = uk.Treasury, tF = fr.Treasury, iF = CapitalMarket.InvestorSavings(fr);
+        Assert.True(tU > 0, "前提が崩れた：英の国庫が空");
+        Megaprojects.Step(sim.Diplomacy, sim.Nations, coef);
+        Assert.True(mp.ForeignPrincipal > 0, "前提が崩れた：外資が拠出されていない");
+        Assert.Equal(tF, fr.Treasury);   // 外資国の国庫は動かない
+        double give = iF - CapitalMarket.InvestorSavings(fr);   // 外資国の投資家が出した額（仏の通貨）
+        Assert.Equal(give * 0.5, mp.ForeignPrincipal, 6);   // 元本は金建て
+        Assert.Equal(tU + give * 0.5, uk.Treasury, 6);   // 保有国は金の値打ちを自国の通貨で
+        // (2) 利回り：完成済み・保有国の r＝0.6
+        var done = new Megaproject { Id = "番人2", Name = "番人2", Host = uk.Regions[0].Name, BuildUnits = 1, IsComplete = true, ForeignPartnerId = fr.SelfPower!.Id, ForeignPrincipal = 1e6 };
+        uk.FiscalFundingRatio = 0.6;
+        tU = uk.Treasury; tF = fr.Treasury; iF = CapitalMarket.InvestorSavings(fr);
+        Megaprojects.PayForeignYield(sim.Diplomacy, sim.Nations, done, uk, coef);
+        double due = coef.MegaprojectForeignYield * 1e6 / uk.FxRate;
+        Assert.Equal(tU - 0.6 * due, uk.Treasury, 6);
+        Assert.Equal(tF, fr.Treasury);
+        Assert.Equal(iF + 0.6 * due * 1.0 / 0.5, CapitalMarket.InvestorSavings(fr), 6);
+        Assert.Equal(1e6 + 0.4 * due * uk.FxRate, done.ForeignPrincipal, 6);   // 払えない利回りは元本へ（金建て）
+    }
+
+    /// <summary>★国家間の移転の未払いは対外債（作者裁定 Q6・B5・段3-3）：貢納と賠償の払えない分（1−r）は払い手の国債（対外）になり、受け手の国の対外債権になる
+    /// （為替で換算）。国内の保有の台帳は割れない（国内元本は動かない）。払った分は移し方の1本（為替で換算）。
+    /// ⚠突然変異「未払いを記録しない」（貢納・賠償それぞれ）で赤。</summary>
+    [Fact]
+    public void 貢納と賠償の払えない分は払い手の対外債と受け手の国の債権になる()
+    {
+        var sim = FrozenWorld("イギリス", "フランス");
+        var coef = new Coefficients { ColonyCaptureBudget = 0 };   // 講和で植民地を動かさない（割譲州の保有の振替を混ぜない）
+        var uk = sim.Nations[0].World; var fr = sim.Nations[1].World;
+        uk.ExchangeRate = 1.0; fr.ExchangeRate = 0.5;
+        // (1) 貢納：仏が英の属国・仏の r＝0.25
+        sim.Diplomacy.SetDependency(uk.SelfPower!, fr.SelfPower!);
+        fr.FiscalFundingRatio = 0.25;
+        double tU = uk.Treasury, tF = fr.Treasury, fd = fr.ForeignDebt, gd = fr.GovDebt, pv = fr.PrevForeignDebt, cl = uk.ForeignBondClaims;
+        sim.Diplomacy.StepDependency(coef, 0);
+        double claim = fr.LastTributeOut;
+        Assert.True(claim > 0, "前提が崩れた：貢納の請求が立たない");
+        Assert.Equal(tF - 0.25 * claim, fr.Treasury, 6);
+        Assert.Equal(tU + 0.25 * claim * 0.5, uk.Treasury, 6);
+        Assert.Equal(fd + 0.75 * claim, fr.ForeignDebt, 6);
+        Assert.Equal(gd + 0.75 * claim, fr.GovDebt, 6);
+        Assert.Equal(pv + 0.75 * claim, fr.PrevForeignDebt, 6);   // 受け手へ直接付けた＝繰上げで数え直さない
+        Assert.Equal(cl + 0.75 * claim * 0.5, uk.ForeignBondClaims, 6);
+        new BondLedger().Check(fr);
+        sim.Diplomacy.RemoveDependency(uk.SelfPower!, fr.SelfPower!);
+        // (2) 賠償：英が仏に勝つ（割譲の線の下）・仏の r＝0.4
+        fr.FiscalFundingRatio = 0.4;
+        tU = uk.Treasury; tF = fr.Treasury; fd = fr.ForeignDebt; cl = uk.ForeignBondClaims;
+        sim.Diplomacy.ResolvePeace(coef, new War { A = uk.SelfPower!, B = fr.SelfPower!, Score = 0.5 });
+        double rep = tF - fr.Treasury;
+        Assert.True(rep > 0, "前提が崩れた：賠償が払われていない");
+        Assert.Equal(tU + rep * 0.5, uk.Treasury, 6);
+        double unpaid = rep / 0.4 * 0.6;
+        Assert.True(Math.Abs(fr.ForeignDebt - fd - unpaid) <= 1e-9 * Math.Max(1.0, unpaid), $"仏の対外債の増え {fr.ForeignDebt - fd} ≠ 賠償の未払い {unpaid}");
+        Assert.True(Math.Abs(uk.ForeignBondClaims - cl - unpaid * 0.5) <= 1e-9 * Math.Max(1.0, unpaid), "英の債権が賠償の未払いの金の値打ちだけ増えていない");
+        new BondLedger().Check(fr);
+    }
+
+    /// <summary>★内戦の国債は勝者が引き継ぐ（作者裁定 2026-09-29・段3-3）：反乱が勝って再統一したら、反乱国の国債（国内の保有と対外債）を統一後の国が引き継ぐ。
+    /// 旧政府の国債は既存の規則（急進革命だけ否認）＝急進革命の勝ちでは旧政府の国債だけが消え、反乱国の国債と持ち手は残る。政府の勝ちは既存どおり反乱国の国債が消える
+    /// （国債台帳_建国と割譲は対外債へ振替_再併合は反乱国の債務ごと消える）。⚠突然変異「反乱の勝ちでも反乱国の国債を消す」で赤。</summary>
+    [Theory]
+    [InlineData(Polity.Republic)]
+    [InlineData(Polity.ProletarianDictatorship)]
+    public void 内戦の国債は勝った反乱側を統一後の国が引き継ぎ旧政府の国債は既存の規則(Polity target)
+    {
+        var sim = FrozenWorld("イギリス", "フランス");
+        var pw = sim.Nations[0].World; var fw = sim.Nations[1].World;
+        pw.Coef.ForeignBondCapacity = 0;   // 起債は全額国内（反乱国は親の係数を共有する）
+        FiscalMonth(pw, Short);
+        sim.StepQuarter();   // 英が国内で起債＝各州の投資家が持ち手
+        pw.PendingRebelRegions = [pw.Regions[1]]; pw.PendingRebelPolity = target;
+        int n0 = sim.Nations.Count;
+        sim.StepQuarter();
+        Assert.True(sim.Nations.Count > n0, "前提が崩れた：反乱国家が建っていない");
+        var rw = sim.Nations[^1].World;
+        FiscalMonth(rw, Short);
+        sim.StepQuarter();   // 反乱国が自国の投資家から借りる
+        double fd = 0.05 * Math.Max(1.0, rw.TotalMoney);   // 反乱国の対外債（仏が持つ）
+        rw.ForeignDebt += fd; rw.GovDebt += fd; rw.PrevForeignDebt += fd; fw.ForeignBondClaims += fd;
+        new BondLedger().Check(rw);
+        var moving = new HashSet<Pop>(rw.AllPops());
+        var held = rw.AllPops().ToDictionary(p => p, p => p.BondHoldings);
+        Assert.True(HeldOf(rw) > 0, "前提が崩れた：反乱国の国債の持ち手がいない");
+        double pwGov = pw.GovDebt, pwFd = pw.ForeignDebt, pwPrev = pw.PrevForeignDebt, rwGov = rw.GovDebt, rwFd = rw.ForeignDebt, rwPrev = rw.PrevForeignDebt, cl = fw.ForeignBondClaims;
+        Assert.True(pwGov - pwFd > 0, "前提が崩れた：旧政府の国内債が無い");
+        sim.Diplomacy.PendingReintegrations.Add((pw.SelfPower!, rw.SelfPower!, true, target));
+        sim.ReabsorbNations();
+        Assert.DoesNotContain(sim.Nations, n => ReferenceEquals(n.World, rw));
+        bool radical = target is Polity.ProletarianDictatorship or Polity.Anarchy;
+        double tol = 1e-9 * Math.Max(1.0, pwGov + rwGov);
+        // 反乱国の国債＝引き継ぐ（持ち手の保有は残る・対外債の債権は動かない）
+        foreach (var (p, h) in held) Assert.True(Math.Abs(p.BondHoldings - h) <= tol, $"反乱国の国債の持ち手 {p.ClassName} の保有が {h} → {p.BondHoldings}");
+        Assert.Equal(cl, fw.ForeignBondClaims);
+        // 旧政府の国債＝急進革命なら否認（旧政府の州の持ち手の保有は0）・それ以外は継承
+        double oldGov = radical ? 0 : pwGov, oldFd = radical ? 0 : pwFd;
+        Assert.True(Math.Abs(pw.GovDebt - (oldGov + rwGov)) <= tol, $"統一後の国債 {pw.GovDebt} ≠ 旧政府 {oldGov}＋反乱国 {rwGov}");
+        Assert.True(Math.Abs(pw.ForeignDebt - (oldFd + rwFd)) <= tol, $"統一後の対外債 {pw.ForeignDebt} ≠ 旧政府 {oldFd}＋反乱国 {rwFd}");
+        Assert.True(Math.Abs(pw.PrevForeignDebt - (pwPrev + rwPrev)) <= tol, "繰上げ済みの印が足されていない");
+        if (radical) foreach (var p in pw.AllPops()) if (!moving.Contains(p)) Assert.Equal(0.0, p.BondHoldings);
+        new BondLedger().Check(pw);
+        sim.StepQuarter();   // 返った州を含めて1四半期（エンジンの月次検査）
+        new BondLedger().Check(pw);
     }
 
     /// <summary>★段3-2（2026-09-30・作者裁定 Q8 (a)・C7）：連合維持費は治安と行政の役務の給与＝治安維持の分は兵士の兵力の生産者の④（兵士の賃金）、

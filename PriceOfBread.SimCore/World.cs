@@ -731,8 +731,11 @@ public sealed class World
     ///   国庫と世界の外＝上限なし（国庫は呼び手が国家の支払い率 r を掛けた額を渡す＝§10-12-3-3）。
     /// 受け手：POP＝<see cref="Distribute"/> の本体（重み null＝頭数）／国庫＝<see cref="Pay"/>。**受け手不在（空・重みの合計≈0）なら動かさない**＝払い手に残る。
     /// 世界の台帳：両側の国が違えば払い手の国の CumulativeTradeFlow を減らし受け手の国を増やす（片側が世界の外なら世界の中の側だけ）＝台帳を書くのはここの1か所。
-    /// ⚠払い手と受け手の集合が重なってもよい（先に取り、後で配る＝両建てで純保存）。否定形のガード＝NaN と負の額は動かさない（負の額の按分は Distribute）。</summary>
-    internal static double Transfer((World? W, List<Pop>? Pops) from, (World? W, List<Pop>? Pops, List<double>? Weights) to, double amount, TreasuryCat cat = TreasuryCat.OtherOut, bool income = false)
+    /// ⚠払い手と受け手の集合が重なってもよい（先に取り、後で配る＝両建てで純保存）。否定形のガード＝NaN と負の額は動かさない（負の額の按分は Distribute）。
+    /// ★段3-3（2026-09-30）：**国境をまたぐ払いは為替で換算**（貿易の清算〔段3-1・A7〕と同じ規則）＝払い手は自国の通貨で <paramref name="amount"/>、受け手はその金の値打ちを
+    ///   自国の通貨で受け取る（×払い手の為替÷受け手の為替）。差は為替の換算の台帳（<see cref="Diplomacy.CumulativeFxResidual"/>）へ。戻り値は払い手の通貨の額。
+    ///   受け手が国庫のとき、区分は <paramref name="toCat"/>（省略時は <paramref name="cat"/>＝払い手と受け手で名目が違う国家間の移転＝貢納の出と入り・通行料）。</summary>
+    internal static double Transfer((World? W, List<Pop>? Pops) from, (World? W, List<Pop>? Pops, List<double>? Weights) to, double amount, TreasuryCat cat = TreasuryCat.OtherOut, bool income = false, TreasuryCat? toCat = null)
     {
         if (!(amount > 0)) return 0;
         if (to.Pops is { } tp)
@@ -757,12 +760,18 @@ public sealed class World
             moved = amount;
             from.W?.Pay(cat, -moved);   // 国庫（世界の外なら引く相手が無い）
         }
-        if (to.Pops is { } rp) Distribute(rp, moved, to.Weights, income);   // 受け手が居ることは上で確かめた＝配り切る（income＝所得にも書く）
-        else to.W?.Pay(cat, moved);
+        double got = moved;   // 受け手の通貨の額
+        if (from.W is { } xw && to.W is { } yw && !ReferenceEquals(xw, yw))
+        {
+            got = moved * xw.FxRate / yw.FxRate;
+            if (xw.Diplomacy is { } dip) dip.CumulativeFxResidual += got - moved;
+        }
+        if (to.Pops is { } rp) Distribute(rp, got, to.Weights, income);   // 受け手が居ることは上で確かめた＝配り切る（income＝所得にも書く）
+        else to.W?.Pay(toCat ?? cat, got);
         if (!ReferenceEquals(from.W, to.W))
         {
             if (from.W is { } fw) fw.CumulativeTradeFlow -= moved;
-            if (to.W is { } rw) rw.CumulativeTradeFlow += moved;
+            if (to.W is { } rw) rw.CumulativeTradeFlow += got;
         }
         return moved;
     }
@@ -1452,6 +1461,9 @@ public sealed class World
     // 為替レート（通貨の金価値・1.0=平価。段4-貨幣 第3a段）。金本位中は1.0固定（兌換が平価を守る）／不換は PPP(1/P)＋貿易収支で変動（インフレで対外減価）。
     // 国際市場は「局所価格×ExchangeRate＝金建て」で輸出入を判定＝不換の減価が国内インフレを相殺し貿易を絶縁（金枯渇を防ぐ）。決済は世界価格×数量の金＝保存不変。
     public double ExchangeRate { get; internal set; } = 1.0;
+    /// <summary>国境をまたぐ払いの換算に使う為替（金建て÷自国の通貨）。清算と同じ守り＝1e-9 以下と NaN は平価1（否定形）。
+    /// 読み手＝貿易の清算（BilateralMarket）・移し方の1本（<see cref="Transfer"/>）・国際金融（CapitalMarket）・財政の請求の見込み（Simulation）。</summary>
+    internal double FxRate => ExchangeRate > 1e-9 ? ExchangeRate : 1.0;
     private double _prevTradeFlow;
     // 国際金融（第3b段・民間外資＝A案）。資本は材の清算型で高収益国へ流れ、工業化を支え、配当を本国へ送り、信用崩壊で逃避する。
     // ForeignCapitalIn＝この国にある外資（負債・配当を払う）／CapitalAbroad＝この国が他国に持つ資本（資産・配当を受ける）。世界で Σ流入＝Σ対外保有＝保存。

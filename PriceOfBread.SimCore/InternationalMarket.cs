@@ -4,7 +4,7 @@
 /// 国際市場（§5.1 多国版）＝**二国間交易**（作者裁定2026-08-11・docs/202608/二国間交易への置換_設計_完了.md【完了】.md）。
 /// 各国の**全active州**を、州と州の**実経路**（陸→最寄り港→海盆→港→陸）で結ぶ清算。
 /// 買い手は「自分のところまで最も安く着く売り手」を選ぶ＝**世界にひとつの価格は存在しない**（同じ財でも産地と距離で着値が違う）。
-/// **輸入の支払い＝輸出の受取**（金建て）で地球規模では金が保存（各国の貿易収支は CumulativeTradeFlow で黒字/赤字を追跡・★段3-1 から各国の通貨へ為替で換算＝名目の差は CumulativeFxResidual）。
+/// **輸入の支払い＝輸出の受取**（金建て）で地球規模では金が保存（各国の貿易収支は CumulativeTradeFlow で黒字/赤字を追跡・★段3-1 から各国の通貨へ為替で換算＝名目の差は Diplomacy.CumulativeFxResidual）。
 /// 輸送ゲート：各州のアクセスを鉄道/船容量で律速。**港州＝船のみ・内陸州＝鉄道＋船(min)**＝港ハブ効果
 /// （内陸は鉄道がボトルネック＝港経由の含意）。国の容量は前期に各州が運びたかった量に比例して配る（TransportShareByPotential・実績の無い開幕は均等割り）。
 /// 禁輸・交戦の国は交易が縮む（§6.1）。植民地財も同じ二国間清算に載る（TradeColonialGoods・2026-08-26 点火）。
@@ -22,11 +22,7 @@ public sealed partial class InternationalMarket
 
     public IReadOnlyList<double> Price => _price;
     public IReadOnlyList<double> Volume => _volume;
-    /// <summary>★為替の換算の台帳（支払いの一元化 段3-1・A7・2026-09-29）＝清算所（世界の外）の名目の出入りの差の累計
-    /// （売り手と船の持ち主が受け取った額〔各自の通貨〕−払い手が払った額〔各自の通貨〕）。金建ての成約を各国の通貨へ換算すると、
-    /// 通貨の違う国どうしでは世界の名目の基礎貨幣が動く（為替 1 の国どうしでは0）。世界の合計の番人（ConservationTests・leakhunt）が
-    /// 鋳造・不換発行と並ぶ正当な湧き口と消え口として読む＝国ごとの台帳（CumulativeTradeFlow）は各自の通貨の実額のまま。</summary>
-    public double CumulativeFxResidual;
+    // ★為替の換算の台帳は 2026-09-30（段3-3）に共有層の Diplomacy.CumulativeFxResidual へ移した（国境をまたぐ全ての払いが同じ1本に書く）。
 
     private const double PriceBandFloorMul = 0.1;       // 平均価格の対RefPrice下限倍率
     private const double PriceBandCeilMul = 10.0;       // 平均価格の対RefPrice上限倍率

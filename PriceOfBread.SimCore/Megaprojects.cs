@@ -134,21 +134,26 @@ public static class Megaprojects
             if (coef.MegaprojectForeignShare > 0 && mp.ForeignPartnerId < 0 && mp.Owner is { } own)
                 ChooseForeignPartner(dip, nations, mp, own, coef);
             // 外資が入っていれば、その持分ぶん**追加で**拠出される＝建設が速くなる（自前は遅いが果実は全部自国＝トレードオフ）。
-            // 拠出は外資国の国庫→保有国の国庫の実移転（Treasury⇄Treasury＋CumulativeTradeFlow 両建て＝運河の通行料と同じ保存パターン）。
+            // ★段3-3（C12・2026-09-30）：出し手は外資国の**投資家**（CapitalMarket.Investors＝相手を選ぶ物差しと同じ集合・貯蓄の比・貯蓄まで）→保有国の国庫
+            //   （国が建てる事業へ外国の資本家が出資する＝スエズ会社の株主・鉄道の外債）。旧＝外資国の国庫が払った（相手は投資家の貯蓄で選ぶのに国庫が払い国庫が受ける）。
+            //   額は外資国の通貨・保有国は為替で換算して受け取る（移し方の1本）。元本 ForeignPrincipal は**金建て**（利回りの請求と相手選びの控除を1つの物差しで）。
+            //   外資国の国家の支払い率 r は掛けない（民間の出資＝国家の支払いではない）。
             if (mp.ForeignPartnerId >= 0 && mp.ForeignShare > 0 && mp.ForeignShare < 0.95)
             {
-                double want = claim * mp.ForeignShare / (1.0 - mp.ForeignShare);
+                double want = claim * mp.ForeignShare / (1.0 - mp.ForeignShare);   // 保有国の通貨
                 foreach (var sim2 in nations)
                 {
                     var fw = sim2.World;
                     if (fw.SelfPower is not { } fp || fp.Id != mp.ForeignPartnerId) continue;
-                    // 1件が1四半期に引ける額を国庫の一定比で頭打ち＝1国が全世界の事業を同時に賄えない（資本の希少性）。
-                    double give = Math.Min(want, coef.MegaprojectForeignDrawFrac * Math.Max(0, fw.Treasury)) * fw.FiscalFundingRatio;   // 拠出の請求（国庫の一定比で頭打ち）×外資国の r（2026-09-28 段2-1）
-                    if (give <= 1e-9) break;
-                    fw.Pay(TreasuryCat.Megaproject, -give); fw.CumulativeTradeFlow -= give;   // 外資国＝対外流出
-                    hw.Pay(TreasuryCat.OtherIn, give); hw.CumulativeTradeFlow += give;   // 保有国＝対外流入（保存）
-                    mp.ForeignPrincipal += give;
-                    claim += give;
+                    // 1件が1四半期に引ける額を投資家の貯蓄の一定比で頭打ち＝1国が全世界の事業を同時に賄えない（資本の希少性）。
+                    var investors = CapitalMarket.Investors(fw);
+                    double cap = 0; foreach (var ip in investors) cap += Math.Max(0, ip.Savings);
+                    double ask = Math.Min(want * hw.FxRate / fw.FxRate, coef.MegaprojectForeignDrawFrac * cap);   // 外資国の通貨
+                    if (!(ask > 1e-9)) break;
+                    double give = World.Transfer((fw, investors), (hw, null, null), ask, TreasuryCat.OtherIn);   // 外資国＝対外流出・保有国＝対外流入（保存・為替で換算）
+                    if (!(give > 0)) break;
+                    mp.ForeignPrincipal += give * fw.FxRate;   // 金建て
+                    claim += give * fw.FxRate / hw.FxRate;       // 保有国が受け取った額（移し方の1本と同じ式）
                     break;
                 }
             }
@@ -169,9 +174,7 @@ public static class Megaprojects
             if (w.SelfPower is not { } p || ReferenceEquals(p, owner)) continue;
             if (coef.MegaprojectForeignMinRank > 0 && !dip.IsGreatPower(p)) continue;   // 資本輸出国＝列強
             if (dip.IsAtWar(p, owner)) continue;                                        // 交戦国の事業には投じない（資本の論理）
-            double pool = 0;
-            foreach (var r in w.Regions)
-                if (r.State == RegionState.Active && r.InvestorPopIndex >= 0) pool += Math.Max(0, r.Pops[r.InvestorPopIndex].Savings);
+            double pool = CapitalMarket.InvestorSavings(w) * w.FxRate;   // ★段3-3（C12・C13・2026-09-30）：投資家の述語の1本・金建て（旧＝各州の資本家1人の貯蓄を名目で）
             // ★資本の希少性（2026-07-28）：**すでに他の建造物へ拠出した元本を余剰から差し引く**。完成済みも含めて差し引く＝
             // 元本は外国資産に固定され利回りを生み続けており、もう自由に使えないため（会計として正しい）。
             // ⚠当初は !IsComplete（進行中のみ）で控除したが**効かなかった**：建造物どうしは時期的にほとんど重ならず
@@ -194,19 +197,23 @@ public static class Megaprojects
         dip.Log.Add($"{owner.Nation?.Year ?? 0} {mp.Name}に{best.Name}の資本が入った（持分{mp.ForeignShare:P0}）");
     }
 
-    /// <summary>完成後の恒久的な対外流出＝外資が拠出した元本への利回り。保有国の国庫→外資国の国庫（保存は両建て）。
-    /// これが「速いが果実の一部が恒久的に外へ流れる」の実体で、財政難のときに払えず**外国の介入口**になる。</summary>
-    private static void PayForeignYield(Diplomacy dip, IReadOnlyList<Simulation> nations, Megaproject mp, World hw, Coefficients coef)
+    /// <summary>完成後の恒久的な対外流出＝外資が拠出した元本への利回り。保有国の国庫→外資国の**投資家**（★段3-3・C12・2026-09-30＝出資した投資家へ・旧＝外資国の国庫）。
+    /// これが「速いが果実の一部が恒久的に外へ流れる」の実体で、財政難のときに払えず**外国の介入口**になる。
+    /// 請求＝利回り×元本（金建て）を保有国の通貨へ（財政の請求の見込み Simulation と同じ式）×保有国の r。★払えない分は元本へ繰り入れる（作者裁定 Q6＝外資の利回りは ForeignPrincipal へ）。
+    /// 外資国が消えていれば払わず繰り入れもしない（受け手がいない）。</summary>
+    internal static void PayForeignYield(Diplomacy dip, IReadOnlyList<Simulation> nations, Megaproject mp, World hw, Coefficients coef)
     {
         if (mp.ForeignPartnerId < 0 || mp.ForeignPrincipal <= 1e-9 || coef.MegaprojectForeignYield <= 0) return;
-        double pay = coef.MegaprojectForeignYield * mp.ForeignPrincipal * hw.FiscalFundingRatio;   // 保有国の r の分だけ（2026-09-28 段2-1＝旧は国庫の残りで切る門）。払えない分の繰り入れ（Q6）は段3-3
-        if (pay <= 1e-9) return;
         foreach (var sim in nations)
         {
             var fw = sim.World;
             if (fw.SelfPower is not { } fp || fp.Id != mp.ForeignPartnerId) continue;
-            hw.Pay(TreasuryCat.Megaproject, -pay); hw.CumulativeTradeFlow -= pay;   // 保有国＝対外流出
-            fw.Pay(TreasuryCat.OtherIn, pay); fw.CumulativeTradeFlow += pay;   // 外資国＝対外流入（保存）
+            double due = coef.MegaprojectForeignYield * mp.ForeignPrincipal / hw.FxRate;   // 保有国の通貨
+            double pay = due * hw.FiscalFundingRatio;   // 保有国の r の分だけ（2026-09-28 段2-1＝旧は国庫の残りで切る門）
+            if (pay > 1e-9) CapitalMarket.GiveGold(fw, pay, (hw, null), TreasuryCat.Megaproject);   // 保有国＝対外流出・外資国の投資家＝対外流入（為替で換算）
+            else pay = 0;
+            double unpaid = due - pay;
+            if (unpaid > 1e-12) mp.ForeignPrincipal += unpaid * hw.FxRate;   // 未払いは元本へ（金建て）
             return;
         }
     }

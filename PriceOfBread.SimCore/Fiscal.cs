@@ -688,6 +688,9 @@ public static class Fiscal
         w.CumulativeTradeFlow += foreignPortion;   // 海外＝対外資本流入（BaseMoney+CumulativeTradeFlow同時＝保存）
         w.PendingForeignBorrow += foreignPortion;   // ★§1-4：貸し手側の引き落とし予約（四半期末に MultiNationSim が他国資本家から対称に控除＝両建て）。旗 ForeignLendingDebits は2026-09-26に焼き込み（x-01）
         w.Pay(TreasuryCat.Borrow, borrowed); w.GovDebt += borrowed; w.ForeignDebt += foreignPortion;
+        // ★段3-3（C13・2026-09-30）：対外分の債権は四半期末の貸し手の引き落とし（MultiNationSim）が**払った額そのもの**で貸し手の国へ付ける＝
+        //   CapitalMarket の繰上げ（ForeignDebt−PrevForeignDebt）で数え直さない（払えなかった分は引き落としが両方から戻す）。
+        w.PrevForeignDebt += foreignPortion;
         // R9：新発債を現行市場金利で既往クーポンへ加重平均で混ぜる（BondRolloverFrac<1の時のみ意味を持つ。既定1.0では月末の Step の rollover で GovBondRate に上書き＝ビット一致）。残高0からの借入はdebtBefore=0で現行金利へ自然収束
         { double debtBefore = w.GovDebt - borrowed; w.GovAvgCoupon = (debtBefore * w.GovAvgCoupon + borrowed * w.GovBondRate) / System.Math.Max(1e-9, w.GovDebt); }
         return borrowed;
@@ -709,19 +712,23 @@ public static class Fiscal
         return back;
     }
 
-    /// <summary>★保有台帳の国外振替（2026-09-21）：持ち手が**発行国の外へ出る**（割譲・分離建国・越境移民・招聘）とき、その保有 h を
-    /// 発行国の**対外債**へ振り替える＝請求権は発行国に対するまま残り、持ち手の国の対外債権（ForeignBondClaims）になる。
-    /// ★史実：国債は発行国との契約で、持ち手の主権が変わっても債務者は変わらない（フランクフルト条約1871＝ドイツはフランス国債を
-    ///   一切継承せず、アルザス＝ロレーヌの住民が持つフランス国債はフランスへの請求権のまま国外保有になった）。
-    /// ⚠金は動かない・GovDebt も不変＝国内元本 GovDebt−ForeignDebt が h 減り、台帳も h 減る＝不変条件が厳密に保たれる
-    ///   ＝POPに「どの国の国債か」の次元を持たせずに済む（1本のスカラーは持ち手が発行国の中にいる間だけ有効）。
-    /// ⚠PrevForeignDebt も同額上げる＝CapitalMarket の外債レグがこの増分を「新規の対外借入」として全債権国へ按分し直さない（持ち手の国へ直接付け替え済み）。</summary>
-    internal static void ExportBondHoldings(Pop p, double h, World issuer, World holderNation)
+    /// <summary>★対外債の起票の1本（2026-09-21 保有台帳の国外振替・2026-09-30 段3-3 で国家間の移転の未払いへ広げた）：請求権 h（発行国の通貨）を
+    /// 発行国の**対外債**にし、持ち手の国の対外債権（ForeignBondClaims・持ち手の国の通貨＝為替で換算）にする。
+    /// <list type="bullet">
+    /// <item><paramref name="p"/>≠null＝持ち手が**発行国の外へ出る**（割譲・分離建国・越境移民・招聘）ときの保有の振替＝国内元本 GovDebt−ForeignDebt が h 減り、台帳も h 減る（GovDebt は不変・金は動かない）。
+    ///   ★史実：国債は発行国との契約で、持ち手の主権が変わっても債務者は変わらない（フランクフルト条約1871＝ドイツはフランス国債を
+    ///   一切継承せず、アルザス＝ロレーヌの住民が持つフランス国債はフランスへの請求権のまま国外保有になった）＝POPに「どの国の国債か」の次元を持たせずに済む。</item>
+    /// <item><paramref name="p"/>=null＝**国家間の移転の未払い**（貢納・賠償＝作者裁定 Q6・計画 §10-12-3-2）＝払えなかった額が払い手の国債（対外）になり、受け手の国の債権になる
+    ///   （以後の利子は受け手の国の投資家へ＝国の債権を持つ量が他に無い＝Q6 の推奨どおり）。GovDebt も h 増える（金は動かない）。
+    ///   ★史実：エジプトの貢納と外債（1870年代）・オスマンの戦費の外債化・仏の1871年の賠償は国債（ティエールの公債）で払われた。</item>
+    /// </list>
+    /// ⚠PrevForeignDebt も同額上げる＝CapitalMarket の外債レグがこの増分を「新しい対外借入」として全債権国へ按分し直さない（持ち手の国へ直接付け替え済み）。</summary>
+    internal static void BookForeignDebt(Pop? p, double h, World issuer, World holderNation)
     {
         if (!(h > 0)) return;
-        p.BondHoldings -= h;
+        if (p is null) issuer.GovDebt += h; else p.BondHoldings -= h;
         issuer.ForeignDebt += h; issuer.PrevForeignDebt += h;
-        holderNation.ForeignBondClaims += h;
+        holderNation.ForeignBondClaims += h * issuer.FxRate / holderNation.FxRate;
     }
 
     /// <summary>国債の消滅（急進革命の否認と、ソブリン・デフォルトの共通の中身＝1か所・支払いの一元化 段1-5・2026-09-28＝旧 Politics.RepudiateDebt と Fiscal のデフォルトの同じ文）。

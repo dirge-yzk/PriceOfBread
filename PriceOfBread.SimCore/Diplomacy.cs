@@ -289,6 +289,12 @@ public sealed class Diplomacy
     public List<Power> Powers = [];
     public List<Chokepoint> Chokepoints = [];   // 海峡・運河（§B）
     public List<Megaproject> Megaprojects = [];   // 巨大建造物（2026-07-28）。MegaprojectEnabled=0 では生成されず空＝厳密恒等
+    /// <summary>★為替の換算の台帳（支払いの一元化 段3-1・A7・2026-09-29＝旧 InternationalMarket に置いた・段3-3 の 2026-09-30 に共有層のここへ移した）＝
+    /// 国境をまたぐ全ての払い（貿易の清算・資本移動・配当・国債の元利・国家間の移転・拿捕）の名目の差の累計（受け手が受け取った額〔各自の通貨〕−払い手が払った額〔各自の通貨〕）。
+    /// 金建ての値打ちを各国の通貨へ換算すると、通貨の違う国どうしでは世界の名目の基礎貨幣が動く（為替 1 の国どうしでは0）。世界の合計の番人（ConservationTests・leakhunt・
+    /// [PROBE世界]）が鋳造・不換発行と並ぶ正当な湧き口と消え口として読む＝国ごとの台帳（CumulativeTradeFlow）は各自の通貨の実額のまま。
+    /// ⚠置き場所＝全ての国の World から届く共有層（World は国際市場を見ない＝層の分離）＝移し方の1本（World.Transfer）が換算の差をここへ書く。</summary>
+    public double CumulativeFxResidual;
     /// <summary>★戦死の計器（2026-09-24・casprobe 専用の観測フック）：WarCasualties の上限前の戦死（casForce）と兵士POP（どちらも千人）を国×月ごとに渡す。
     /// ⚠既定 null＝力学は一度も読まない＝厳密恒等（null 条件の呼び出しは引数ごと評価しない）。
     /// ⚠インスタンスのフィールド＝この世界の戦争だけが届く（並列の別世界と混ざらない）。デリゲートなので SaveGame は保存しない（ロード後 null）。</summary>
@@ -1229,7 +1235,7 @@ public sealed class Diplomacy
     private static double GovCost(Power w, Power l, Coefficients c) => 0.5 * EthnicDistance(w, l) + 0.5 * ReligionDistance(w, l, c);
 
     // === 従属関係の毎月処理：整列(緊張抑制)・貢納(属国→宗主・四半期)・離反独立 ===
-    private void StepDependency(Coefficients c, int month)
+    internal void StepDependency(Coefficients c, int month)   // internal＝番人（FiscalTests の貢納の未払い）がこの1段だけを踏む
     {
         // 関係を列挙（列挙中に解除するため一旦コピー）。属国一本化＝種別なし。
         var pairs = new List<(Power s, Power d)>();
@@ -1256,12 +1262,14 @@ public sealed class Diplomacy
                 double tributeClaim = c.VassalTributeRate * Math.Max(0, d.Gdp);
                 double tribute = tributeClaim * d.Nation.FiscalFundingRatio;   // 属国の国家の支払い率 r の分だけ（2026-09-28 段2-1＝旧は国庫の残りで切る門）
                 d.Nation.LastTributeOut = tributeClaim;   // 請求（r を掛ける前）＝翌月以降の月初の請求の見込み（Simulation）と予算表が読む
+                // ★段3-3（2026-09-30）：払いは移し方の1本（属国の国庫→宗主の国庫・国境をまたぐ＝為替で換算・台帳も移し方が書く）。
+                //   払えない分（1−r）は属国の対外債＝宗主の国の対外債権（作者裁定 Q6・計画 §10-12-3-2＝未払いを記録する・旧は消えた＝B5）。
                 if (tribute > 1e-9)
                 {
-                    d.Nation.Pay(TreasuryCat.TributeOut, -tribute); d.Nation.CumulativeTradeFlow -= tribute;   // 従属＝対外流出
-                    s.Nation.Pay(TreasuryCat.TributeIn, tribute); s.Nation.CumulativeTradeFlow += tribute;   // 宗主＝対外流入（保存）
-                    s.Nation.LastTributeIn += tribute;   // 診断（予算表・接1）
+                    World.Transfer((d.Nation, null), (s.Nation, null, null), tribute, TreasuryCat.TributeOut, toCat: TreasuryCat.TributeIn);   // 従属＝対外流出・宗主＝対外流入（保存）
+                    s.Nation.LastTributeIn += tribute * d.Nation.FxRate / s.Nation.FxRate;   // 診断（予算表・接1）＝宗主が受け取った額（移し方の1本と同じ式）
                 }
+                Fiscal.BookForeignDebt(null, tributeClaim - tribute, d.Nation, s.Nation);
             }
 
             // 離反独立：属国の軍が**宗主の投射陸軍力**を上回り、かつ属国民の闘争度が高いと従属を脱する（植民地の独立判定 Colonial と同型）。
@@ -2783,11 +2791,11 @@ public sealed class Diplomacy
         double rep = 0.0;
         if (loser.Nation is { } lw && winner.Nation is { } ww)
         {
-            rep = repBase * lw.FiscalFundingRatio;   // 敗者の国家の支払い率 r の分だけ（2026-09-28 段2-1＝旧は国庫の残りで切る門）。払えない分の対外債への記録は段3-3（作者裁定 Q6）
-            lw.Pay(TreasuryCat.WarCost, -rep); ww.Pay(TreasuryCat.WarCost, rep);   // 区分＝戦費（作者裁定 Q14）
-            // 賠償＝国家間の対外移転。両国の貿易収支に計上（保存則の基準）
-            lw.CumulativeTradeFlow -= rep;
-            ww.CumulativeTradeFlow += rep;
+            rep = repBase * lw.FiscalFundingRatio;   // 敗者の国家の支払い率 r の分だけ（2026-09-28 段2-1＝旧は国庫の残りで切る門）
+            // 賠償＝国家間の対外移転（区分＝戦費＝作者裁定 Q14）。★段3-3（2026-09-30）：移し方の1本（国境をまたぐ＝為替で換算・両国の台帳も移し方が書く）。
+            //   払えない分（1−r）は敗者の対外債＝勝者の国の対外債権（作者裁定 Q6・旧は消えた＝B5）。★史実＝仏の1871年の賠償50億フランは国債（ティエールの公債）で払われた。
+            World.Transfer((lw, null), (ww, null, null), rep, TreasuryCat.WarCost);
+            Fiscal.BookForeignDebt(null, repBase - rep, lw, ww);
         }
         Log.Add($"{_year} {winner.Name}が{loser.Name}に勝利（戦勝点{sa:0.00}）:{(captured > 0 ? $"植民地+{captured}[{string.Join("/", captNames)}]・" : "")}賠償{rep:F0}");   // 3桁区切りは全廃（作者裁定2026-08-10・外交ログはUIの出来事へそのまま出る）
 

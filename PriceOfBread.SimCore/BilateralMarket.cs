@@ -86,7 +86,7 @@ public sealed partial class InternationalMarket
         for (int i = 0; i < nn; i++)
         {
             var w0 = nations[i].World;
-            double er = w0.ExchangeRate; exRate[i] = er > 1e-9 ? er : 1.0;
+            exRate[i] = w0.FxRate;
             tar[i] = Math.Clamp(w0.Tariff * TreatyPortTariffScale(w0, c), c.TariffFloor, 1);
             corn[i] = CornFactor(w0.CornLaws);
             oban[i] = c.OpiumAddictionGrowth > 0 && w0.OpiumPossession != ReformLevel.None;
@@ -835,7 +835,7 @@ public sealed partial class InternationalMarket
             if (payTariff[t] > 0 && payerOf[t] is { } pt) w0.LastTariffRevenue += World.Transfer((w0, pt), (w0, null, null), payTariff[t], TreasuryCat.Tariff);   // 関税と穀物法＝輸入者から通関の時点で（econ-07）
             if (payHouse[t] > 0 && payerOf[t] is { } pp) World.Transfer((w0, pp), (null, null, null), payHouse[t]);   // 輸入代金と運賃＝清算所へ（国境をまたげば世界の台帳へ・同じ国の州どうしは台帳で打ち消す）
         }
-        CumulativeFxResidual += fxIntended;
+        if (dip is not null) dip.CumulativeFxResidual += fxIntended;   // 為替の換算の台帳（共有層＝移し方の1本が書く国境をまたぐ払いと同じ1本・段3-3）
         for (int i = 0; i < nn; i++)
         {
             var w0 = nations[i].World;
@@ -867,14 +867,14 @@ public sealed partial class InternationalMarket
                 totalByUser[u] += amt;
             }
             // 利用国の国家の支払い率 r の分だけ払う（2026-09-28 段2-1＝旧は利用国ごとに国庫の残り÷請求の合計＝この場所だけの率）。
-            //   払えない分だけ通過を止める（作者裁定 Q6）は段3。
+            //   払えない分だけ通過を止める（作者裁定 Q6）は未実施（量を減らす側＝清算の経路の変更）。
+            // ★段3-3（2026-09-30）：取扱高は金建て（積出し価格）＝利用国の通貨へ換算して払い、港の国は自国の通貨で受け取る（移し方の1本＝為替の換算の台帳へ）。
+            //   旧＝金建ての額を両国の通貨で同じ額（名目 1:1）。国庫の出入りと台帳は移し方の1本が書く（区分は払いが その他の支出・受け取りが その他の収入）。
             foreach (var k in order)
             {
-                double toll = owed[k] * nations[k.U].World.FiscalFundingRatio;
+                double toll = owed[k] / exRate[k.U] * nations[k.U].World.FiscalFundingRatio;
                 if (toll <= 1e-12) continue;
-                var uw = nations[k.U].World; var ow = nations[k.O].World;
-                uw.Pay(TreasuryCat.OtherOut, -toll); uw.CumulativeTradeFlow -= toll;
-                ow.Pay(TreasuryCat.OtherIn, toll); ow.CumulativeTradeFlow += toll;
+                World.Transfer((nations[k.U].World, null), (nations[k.O].World, null, null), toll, TreasuryCat.OtherOut, toCat: TreasuryCat.OtherIn);
             }
         }
     }

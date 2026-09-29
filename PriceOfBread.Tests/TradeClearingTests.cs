@@ -385,14 +385,14 @@ public class TradeClearingTests
         var (sim, g, _, _, _) = Make();
         var gen = sim.Nations[0].World; var tus = sim.Nations[1].World;
         gen.ExchangeRate = 0.5;   // ジェノヴァの通貨は金の半分の値打ち
-        double bm0 = gen.BaseMoney + tus.BaseMoney, tfg0 = gen.CumulativeTradeFlow, tft0 = tus.CumulativeTradeFlow, bmg0 = gen.BaseMoney, bmt0 = tus.BaseMoney, fx0 = sim.Market.CumulativeFxResidual;
+        double bm0 = gen.BaseMoney + tus.BaseMoney, tfg0 = gen.CumulativeTradeFlow, tft0 = tus.CumulativeTradeFlow, bmg0 = gen.BaseMoney, bmt0 = tus.BaseMoney, fx0 = sim.Diplomacy.CumulativeFxResidual;
         sim.Market.Step(sim.Nations, sim.Coef);
         double dg = gen.CumulativeTradeFlow - tfg0, dt = tus.CumulativeTradeFlow - tft0;
         Assert.True(Math.Abs(dg) > 1e-9 && gen.LastExportValue > 1e-9, "越境の取引が立っていない（テスト前提の破れ）");
         Assert.Equal(dg, gen.BaseMoney - bmg0, 6);   // 国ごとの D が閉じる
         Assert.Equal(dt, tus.BaseMoney - bmt0, 6);
         Assert.True(Math.Abs(dg * 0.5 + dt * 1.0) <= 1e-9 * Math.Max(1.0, Math.Abs(dt)), $"金建てで世界が閉じない（{dg * 0.5 + dt}）＝換算していない");
-        Assert.True(Math.Abs(sim.Market.CumulativeFxResidual - fx0) > 1e-9, "為替が違うのに換算の台帳が動かない");
-        Assert.Equal(sim.Market.CumulativeFxResidual - fx0, (gen.BaseMoney + tus.BaseMoney) - bm0, 6);   // 世界の名目の動き＝換算の台帳
+        Assert.True(Math.Abs(sim.Diplomacy.CumulativeFxResidual - fx0) > 1e-9, "為替が違うのに換算の台帳が動かない");
+        Assert.Equal(sim.Diplomacy.CumulativeFxResidual - fx0, (gen.BaseMoney + tus.BaseMoney) - bm0, 6);   // 世界の名目の動き＝換算の台帳
     }
 }

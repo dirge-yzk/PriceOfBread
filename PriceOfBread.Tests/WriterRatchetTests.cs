@@ -109,12 +109,14 @@ public class WriterRatchetTests
     // ★2026-09-30 段3-2（財を買わない国家支出）：Savings 42→**38**・CumulativeTradeFlow 30→**27**（＝宣言）。植民地投資・捕囚市場・港の建設の代金と拿捕を
     //   ④の持分（InternationalMarket.PaySales＝移し方の1本）へ＝投資家の貯蓄の直の引き落とし（植民地投資の2行・港の1行）・捕囚市場の投資家への直の払い・
     //   捕囚市場と拿捕の台帳の手書き（3行）が消えた。Power.Treasury（抽象標的の財布）は欄ごと削除（代入0のまま）。
+    // ★2026-09-30 段3-3（対外の民間請求）：CumulativeTradeFlow 27→**14**・StateSpent 24→**23**（＝宣言・StateSpent は着手前の実数が23＝基準が緩かった）。
+    //   国家間の移転の手書きの台帳（貢納・賠償・通過港と運河の通行料・運河の配当・巨大建造物の外資の拠出と利回り＝13行）を移し方の1本（World.Transfer＝国境をまたげば為替で換算）へ。
     [InlineData("Savings", 38)]               // POP の貯蓄（段3の終わりに Pop の中の3つへ閉じる）
     // ★2026-09-28 段2-1（国家の支払い率）：StateSpent 25→24＝区分つきの配列へ（添字つきの書き込みを数える）・月次のゼロ化は Array.Clear（代入でない）。
     //   FiscalFundingRatio（国家の支払い率 r）を足した＝書き手は月初の1か所（Simulation）＋ランナーの盤面の復元（GovernanceSnapshot）の2つ＝増やさない。
-    [InlineData("StateSpent", 24)]            // 州の未精算の国家支出（区分つき＝TreasuryCat の配列）
+    [InlineData("StateSpent", 23)]            // 州の未精算の国家支出（区分つき＝TreasuryCat の配列）
     [InlineData("FiscalFundingRatio", 2)]     // 国家の支払い率 r（月初の1か所＋盤面の復元）
-    [InlineData("CumulativeTradeFlow", 27)]   // 世界の台帳・国境をまたいだ出入り（移し方の中の1か所へ畳む）
+    [InlineData("CumulativeTradeFlow", 14)]   // 世界の台帳・国境をまたいだ出入り（移し方の中の1か所へ畳む）
     [InlineData("CumulativeFiatIssued", 3)]   // 不換の発行と回収（2）＋非常発行（1＝負の国の与信の償却だけ・銀行なしの底打ちは 2026-09-29 段2-2 で撤去）
     [InlineData("CumulativeGoldMinted", 2)]   // 鋳造と準備の売却
     [InlineData("Loans", 6)]                  // 銀行の与信（企業・損失の負債化・負の国の償却）

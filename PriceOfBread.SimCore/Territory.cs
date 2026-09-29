@@ -284,7 +284,7 @@ public static class Territory
             //   ★史実：フランクフルト条約1871＝ドイツはフランス国債を一切継承せず、アルザス＝ロレーヌの住民が持つフランス国債はフランスへの請求権のまま残った。
             //   ⚠勝者の按分継承（ツューリヒ1859・ヴェルサイユ254条）は国家間の債務分担の取り決めで、持ち手の請求権の債務者は変わらない。
             //   帳消しにする形は、失地で送り手の債務が軽くなり持ち手だけが損をする（負けるほど財政が楽になる）。再併合は反乱国の国債を先に消している＝0 は素通り。
-            foreach (var p in r.Pops) Fiscal.ExportBondHoldings(p, p.BondHoldings, from, to);
+            foreach (var p in r.Pops) Fiscal.BookForeignDebt(p, p.BondHoldings, from, to);
             to.CumulativeTradeFlow += B; to.PopulationDelta += P;
             Transport.Receive(to, rail, ship, from.ShipSteamShareEma);
         }

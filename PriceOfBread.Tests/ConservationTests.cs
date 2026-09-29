@@ -152,7 +152,7 @@ public class ConservationTests
                 }
                 foreach (var ap in sim.Diplomacy.Powers)   // 抽象標的（Nation の無い勢力）の植民地の住民
                     if (ap.Nation is null) foreach (var col in ap.ColonyList) pop += System.Math.Max(0, col.PopSize) + col.SettlerSize;
-                minted += sim.Market.CumulativeFxResidual;   // ★段3-1（A7）：為替の換算で世界の名目の基礎貨幣が動く分（清算所の台帳）＝鋳造・不換発行と並ぶ正当な湧き口と消え口
+                minted += sim.Diplomacy.CumulativeFxResidual;   // ★段3-1（A7）：為替の換算で世界の名目の基礎貨幣が動く分（清算所の台帳）＝鋳造・不換発行と並ぶ正当な湧き口と消え口
                 return (pop, created, money, minted);
             }
             // 国ごと：人口と基礎貨幣は現存国だけ（消えた国の州と金は親へ移っている）／出生・死亡・戦死・鋳造・不換発行の累積は一度でも居た国の全部
@@ -642,8 +642,7 @@ public class ConservationTests
         }
         var c0 = Canal(0); var c1 = Canal(new Coefficients().CanalInvestFrac);
         var labor = Labor(c1.w.Regions.Where(r => r.State == RegionState.Active));
-        var investors = new HashSet<Pop>();
-        foreach (var r in c1.w.Regions) if (r.State == RegionState.Active && r.InvestorPopIndex >= 0) investors.Add(r.Pops[r.InvestorPopIndex]);
+        var investors = new HashSet<Pop>(CapitalMarket.Investors(c1.w));   // ★段3-3（C13・2026-09-30）：運河の出資者＝投資家の述語の1本（配当の受け手と同じ集合・旧＝各州の資本家1人）
         Assert.NotEmpty(labor);
         double gotC = 0, paidC = 0;
         for (int i = 0; i < c1.pops.Count; i++)

@@ -43,9 +43,16 @@ public static class CapitalMarket
         var ret = new double[n];    // 投資収益率（＝資本価格）：工業化の伸びしろ×信用。高い国が外資を呼ぶ
         var cred = new double[n];   // 信用：低債務×金本位×通貨安定。低いと外資が逃げる
         var ngdp = new double[n];   // 名目GDP（下の1周目で国ごとに1回だけ求める）
+        // ★段3-3（2026-09-30・A7 と同じ規則）：国境をまたぐ資本移動・配当・逃避・国債の元利は**金の値打ち**で動く＝払い手は自国の通貨の額を為替で金へ、
+        //   受け手は金を自国の通貨へ（貿易の清算と同じ為替 World.FxRate）。量の比べ（外資の需要と供給・受け皿の按分・債権の比）も金建て。
+        //   旧＝名目 1:1（貿易だけが換算＝経路ごとに物差しが違った・(108) の申し送り2）。差は為替の換算の台帳（Diplomacy.CumulativeFxResidual）へ＝fx に積んで最後に1回。
+        //   ストックの単位＝各自の通貨（ForeignCapitalIn＝受けた国の通貨・CapitalAbroad と ForeignBondClaims＝持ち手の国の通貨）。
+        var e = new double[n];
+        double fx = 0;   // 受け手が受け取った額−払い手が払った額（各自の通貨）
         for (int i = 0; i < n; i++)
         {
             w[i] = nations[i].World;
+            e[i] = w[i].FxRate;
             ngdp[i] = w[i].NominalGdp;   // ★A2-2（2026-09-26）：名目GDP（州×生産者の全件走査）は国ごとにこの1回だけ。この関数が書くのは貯蓄・対外資産・外資・信用の記帳だけ＝産出・州・物価水準は動かない＝下の読み手はビット単位で同じ値を読む
             // [単位・B13] 債務/GDP＝**年次名目**（GovDebt÷(月次NominalGdp×12)）＝Fiscal の国債の金利の dGdp と同じ物差し（2026-09-29・棚卸し fis-02）。
             //   旧＝月次名目（GovDebt÷月次NominalGdp）＝閾値 DebtDistressRatio 2.0 は年に直すと約0.17＝国債÷年GDP が史実の水準（英1815 約2.5・仏1789 0.6〜0.8）へ
@@ -120,7 +127,7 @@ public static class CapitalMarket
         //   下の還流で owner の CapitalAbroad も同じ額だけ減る（請求権の両側を同時に消す・貨幣は払えた額しか動かない）。
         //   旧＝負債は払えた額しか減らず、払えなかった元本が債権のまま残って毎四半期もう一度の逃避と配当を請求された（戻らない輪）。
         //   払えない配当も同じ規則＝未払いを積まない（host に延滞の負債も、owner に未収の債権も立たない）。
-        double flightTotal = 0;   // 逃避で消えた請求権の総額（払えた額でなく逃避の額）
+        double flightTotal = 0;   // 逃避で消えた請求権の総額（払えた額でなく逃避の額・金建て）
         var taken = new double[n];   // host 別に実際に抜いた額（逃避＋配当）＝owner へ戻る金。保有者が居ない場合は抜いた host へ返金＝金を捨てない（保存）
         ProbeSnap();
         for (int i = 0; i < n; i++)
@@ -140,40 +147,48 @@ public static class CapitalMarket
                 //   （ForeignCapitalIn）を記帳する＝逃げた側の CapitalAbroad に相手が立つ（新規の資本移動 (3) の流入と同じ2行）。
                 //   旧＝CapitalAbroad だけが増え、相手のいない請求権が還流（CapitalAbroad 比の按分）で他国の実物FDIの配当プールを吸っていた
                 //   （2026-08-14 の外交観測：清の幻の対外資産79×GDP）。今は受け皿がその負債に配当を払い、逃避の対象にもなる。
-                double credSum = 0;
+                double credSum = 0;   // 受け皿の重み＝信用×名目GDP（金建て）
                 if (distrust > 0)
-                    for (int h = 0; h < n; h++) if (h != i) credSum += cred[h] * System.Math.Max(0, ngdp[h]);
+                    for (int h = 0; h < n; h++) if (h != i) credSum += cred[h] * System.Math.Max(0, ngdp[h]) * e[h];
                 if (credSum > 1e-9)
                 {
                     double want = c.CapitalDomesticFlightRate * distrust * InvestorSavings(w[i]);
                     double got = TakeGold(w[i], want);
                     w[i].CapitalAbroad += got;   // 逃げた金は対外資産＝還流ループ（配当・逃避の按分）に乗る
+                    fx -= got;
                     for (int h = 0; h < n; h++)
                     {
                         if (h == i) continue;
-                        double k = got * (cred[h] * System.Math.Max(0, ngdp[h]) / credSum);
+                        double k = got * e[i] * (cred[h] * System.Math.Max(0, ngdp[h]) * e[h] / credSum) / e[h];   // 金建ての取り分を受け皿の通貨へ
                         GiveGold(w[h], k);
                         w[h].ForeignCapitalIn += k;
+                        fx += k;
                     }
                 }
             }
             double flight = System.Math.Min(w[i].ForeignCapitalIn, w[i].ForeignCapitalIn * c.CapitalFlightRate * (1.0 - cred[i]));
-            if (flight > 1e-9) { taken[i] += TakeGold(w[i], flight); w[i].ForeignCapitalIn -= flight; flightTotal += flight; }   // 払えない分も債権ごと消える（C）＝下の還流で owner も同額減る＝Σ流入＝Σ対外保有の台帳整合
+            if (flight > 1e-9) { taken[i] += TakeGold(w[i], flight); w[i].ForeignCapitalIn -= flight; flightTotal += flight * e[i]; }   // 払えない分も債権ごと消える（C）＝下の還流で owner も同額減る＝Σ流入＝Σ対外保有の台帳整合（消えた請求権は金建てで数える）
             double div = w[i].ForeignCapitalIn * c.CapitalDividendRate;
             if (div > 1e-9) taken[i] += TakeGold(w[i], div);   // 払えない配当は積まない（未払いの負債も未収の債権も立たない）
         }
         ProbeDiff("逃避配当");
-        double abroadSum = 0, backTotal = 0; for (int i = 0; i < n; i++) { abroadSum += w[i].CapitalAbroad; backTotal += taken[i]; }
+        // 按分は金建て（対外資産×為替の比）＝逃避の請求権と戻る金を金建てで配り、各国の通貨へ戻す。
+        double abroadSum = 0, backTotal = 0, takenSum = 0; for (int i = 0; i < n; i++) { abroadSum += w[i].CapitalAbroad * e[i]; backTotal += taken[i] * e[i]; takenSum += taken[i]; }
         if (abroadSum > 1e-9 && backTotal + flightTotal > 1e-9)
+        {
+            fx -= takenSum;
             for (int i = 0; i < n; i++)
             {
-                double share = w[i].CapitalAbroad / abroadSum;
-                w[i].CapitalAbroad = System.Math.Max(0, w[i].CapitalAbroad - flightTotal * share);   // 消えた元本ぶん資産が減る（払えなかった分も＝債権者が損をかぶる）
-                GiveGold(w[i], backTotal * share);
+                double share = w[i].CapitalAbroad * e[i] / abroadSum;
+                w[i].CapitalAbroad = System.Math.Max(0, w[i].CapitalAbroad - flightTotal * share / e[i]);   // 消えた元本ぶん資産が減る（払えなかった分も＝債権者が損をかぶる）
+                double k = backTotal * share / e[i];
+                GiveGold(w[i], k);
+                fx += k;
             }
-        else if (backTotal > 1e-9)   // ★A-2#4修正：対外保有が無い（台帳のズレ）期に抜いた配当/逃避がどの pop にも戻らず蒸発するのを防ぐ＝抜いた host へ返金（金を捨てない）
+        }
+        else if (takenSum > 1e-9)   // ★A-2#4修正：対外保有が無い（台帳のズレ）期に抜いた配当/逃避がどの pop にも戻らず蒸発するのを防ぐ＝抜いた host へ返金（金を捨てない）
             for (int i = 0; i < n; i++)
-                if (taken[i] > 1e-9) GiveGold(w[i], taken[i]);
+                if (taken[i] > 0) GiveGold(w[i], taken[i]);   // 同じ国へ戻す＝換算なし
         ProbeDiff("還流");
 
         // (3) 新規フロー：収益率＞worldRate の国が呼び込み（流入）、＜の国が送り出す（流出）。材の清算（min(需要,供給)）と同型。
@@ -183,13 +198,13 @@ public static class CapitalMarket
         {
             if (ret[i] > worldRate)
             {
-                demand[i] = (ret[i] - worldRate) * System.Math.Max(0, ngdp[i]) * c.CapitalDemandScale;
+                demand[i] = (ret[i] - worldRate) * System.Math.Max(0, ngdp[i]) * e[i] * c.CapitalDemandScale;   // 金建て
                 totalDemand += demand[i];
             }
             else
             {
                 double exportable = InvestorSavings(w[i]) * c.CapitalExportFrac;
-                supply[i] = (worldRate - ret[i]) * exportable;
+                supply[i] = (worldRate - ret[i]) * exportable * e[i];   // 金建て
                 totalSupply += supply[i];
             }
         }
@@ -199,21 +214,22 @@ public static class CapitalMarket
             // ★支払いの一元化 段2-2（A6・2026-09-29）：受け手は**実際に動いた額**だけ受け取る＝先に送り手から引き（送り手の投資家の貯蓄まで）、
             //   引けた額の合計を需要の比で受け手へ配る（端数は最後の受け手）。旧＝受け手は traded を満額受け取り、送り手だけ貯蓄で切った
             //   （切られた分だけ世界に湧いた・TakeGold が引けなかった分も対外資産 CapitalAbroad に積んだ）。
-            double sFill = traded / totalSupply, sent = 0;
+            double sFill = traded / totalSupply, sent = 0;   // sent＝送り出せた金（金建て）
             for (int i = 0; i < n; i++)
                 if (!(demand[i] > 0) && supply[i] > 0)
                 {
-                    double k = TakeGold(w[i], supply[i] * sFill);   // 送り出し→対外資産（引けた額だけ）
-                    w[i].CapitalAbroad += k; sent += k;
+                    double k = TakeGold(w[i], supply[i] * sFill / e[i]);   // 送り出し→対外資産（引けた額だけ・自国の通貨）
+                    w[i].CapitalAbroad += k; sent += k * e[i]; fx -= k;
                 }
             int lastD = -1; for (int i = 0; i < n; i++) if (demand[i] > 0) lastD = i;
             double given = 0;
             for (int i = 0; i < n; i++)
                 if (demand[i] > 0)
                 {
-                    double k = i == lastD ? sent - given : sent * (demand[i] / totalDemand);
-                    given += k;
-                    w[i].ForeignCapitalIn += k; GiveGold(w[i], k);   // 流入→投資家貯蓄（工業化を支える）
+                    double kg = i == lastD ? sent - given : sent * (demand[i] / totalDemand);
+                    given += kg;
+                    double k = kg / e[i];
+                    w[i].ForeignCapitalIn += k; GiveGold(w[i], k); fx += k;   // 流入→投資家貯蓄（工業化を支える・受け手の通貨）
                 }
         }
         ProbeDiff("新規フロー");
@@ -221,43 +237,42 @@ public static class CapitalMarket
         // === 02断線走査（2026-07-28）繋ぐべき筆頭＝対外国債の相手方（レンティア帝国の成立）===
         // 旧＝外債の利子は債務国のCumulativeTradeFlowから一方向に消えるだけ（片側記帳）＝「債務国は痛むが債権国は儲からない」
         // ＝19世紀金融の主役（シティのアルゼンチン債・パリのロシア債）が不在だった（2026-09-28 に旗 ForeignBondCounterparty ごと焼き込み）。
-        double intPool = 0; for (int i = 0; i < n; i++) { intPool += w[i].ForeignIntPaidThisQuarter; w[i].ForeignIntPaidThisQuarter = 0; }
-        // (1) 債権ストックの繰上げ：各債務国のΔForeignDebt（新規>0/償還<0）を債権国（自国以外）の投資家貯蓄比で按分してForeignBondClaimsへ。
-        //     償還は各債権国の債権シェア比で減額（二国間台帳は持たない＝按分近似・決定論）。
-        double worldClaims = 0; for (int i = 0; i < n; i++) worldClaims += w[i].ForeignBondClaims;
+        // ★段3-3（2026-09-30）：元利の管は各国の通貨で積まれる＝金建てへ換算して集め、金建ての債権の比で配り、受け手の通貨へ戻す。
+        double intPool = 0, intPaid = 0;
+        for (int i = 0; i < n; i++) { intPool += w[i].ForeignIntPaidThisQuarter * e[i]; intPaid += w[i].ForeignIntPaidThisQuarter; w[i].ForeignIntPaidThisQuarter = 0; }
+        // (1) 債権ストックの繰上げ：各債務国のΔForeignDebt を債権国（自国以外）の債権へ（AdjustClaims＝増えも減りも同じ規則・二国間台帳は持たない＝按分近似・決定論）。
+        //     ★段3-3（C13・2026-09-30）：新しい対外借入は**貸し手が払った額そのもの**を貸し手の国の債権にする（MultiNationSim の貸し手の引き落とし＝払った比＝債権の比）。
+        //       借入の月に PrevForeignDebt も上げる（Fiscal.Borrow）＝ここで数え直さない。ここへ来るのは利子の繰り入れ（増え）と償還・否認・不履行（減り）だけ。
+        //     旧＝新規の借入を翌四半期の投資家の貯蓄の比で配った（払った比と債権の比が一致しない）・減りは自国の債権も含む全ての債権の比（増えは自国を除く＝C14）。
         for (int i = 0; i < n; i++)
         {
             double delta = w[i].ForeignDebt - w[i].PrevForeignDebt;
             w[i].PrevForeignDebt = w[i].ForeignDebt;
             if (System.Math.Abs(delta) < 1e-9) continue;
-            if (delta > 0)
-            {
-                double lenders = 0; for (int j = 0; j < n; j++) if (j != i) lenders += InvestorSavings(w[j]);
-                if (lenders > 1e-9)
-                    for (int j = 0; j < n; j++) if (j != i) w[j].ForeignBondClaims += delta * (InvestorSavings(w[j]) / lenders);
-            }
-            else if (worldClaims > 1e-9)
-            {
-                for (int j = 0; j < n; j++)
-                    w[j].ForeignBondClaims = System.Math.Max(0, w[j].ForeignBondClaims + delta * (w[j].ForeignBondClaims / worldClaims));
-            }
+            AdjustClaims(nations, i, delta);
         }
         // (2) 元利の配当：債務国が今四半期に払った対外の利子と**元本**（Fiscalで既に対外流出として記帳済み）を、
         //     債権シェア比で債権国の投資家へGiveGold＝世界で金が閉じる（債権ゼロの初期は投資家貯蓄比で退避＝当期から閉鎖）。
         //     ★元本（2026-09-22）：旧＝(1) で債権を減らすだけで元本の金はどこにも届かなかった。(1) の減額は各国の債権に比例する＝
         //       減額後の債権の比は減らした債権の比と同じ＝元本は「減らした債権の比」で返る（同じ四半期の新規引受の按分近似は利子と共通）。
+        //     ★段3-3：比は金建て（債権×為替）・取り分の閾値（旧 1e-12）を外した＝配り切る（配り残しが換算の台帳に紛れない）。
         if (intPool > 1e-9)
         {
-            double claims = 0; for (int i = 0; i < n; i++) claims += w[i].ForeignBondClaims;
+            double claims = 0; for (int i = 0; i < n; i++) claims += w[i].ForeignBondClaims * e[i];
             double basis = claims;
-            if (basis <= 1e-9) { for (int i = 0; i < n; i++) basis += InvestorSavings(w[i]); }
+            if (basis <= 1e-9) { for (int i = 0; i < n; i++) basis += InvestorSavings(w[i]) * e[i]; }
             if (basis > 1e-9)
+            {
+                fx -= intPaid;
                 for (int i = 0; i < n; i++)
                 {
-                    double share = claims > 1e-9 ? w[i].ForeignBondClaims / claims : InvestorSavings(w[i]) / basis;
-                    if (share > 1e-12) GiveGold(w[i], intPool * share);
+                    double share = claims > 1e-9 ? w[i].ForeignBondClaims * e[i] / claims : InvestorSavings(w[i]) * e[i] / basis;
+                    double k = intPool * share / e[i];
+                    if (k > 0) { GiveGold(w[i], k); fx += k; }
                 }
+            }
         }
+        if (w[0].Diplomacy is { } dip) dip.CumulativeFxResidual += fx;   // 為替の換算の台帳（移し方の1本と同じ台帳）
         ProbeDiff("外債利払い");
     }
 
@@ -269,8 +284,17 @@ public static class CapitalMarket
     internal static bool IsInvestor(Pop p, Coefficients c)
         => !p.IsSoldier && (p.IsModernElite || (c.NobleInvests > 0 && p.Closed));
 
+    /// <summary>★投資家の集合（段3-3・C13・2026-09-30＝述語 <see cref="IsInvestor"/> の1本・国の全ての州）。外資の払い手と受け手・対外債の貸し手・
+    /// 運河の出資者と配当の受け手・巨大建造物の外資の出し手と利回りの受け手が同じ集合を読む（旧＝近代エリート〔活きた州だけ〕・IsInvestor・州の資本家1人〔InvestorPopIndex〕の3通り）。</summary>
+    internal static List<Pop> Investors(World w)
+    {
+        var pops = new List<Pop>();
+        foreach (var r in w.Regions) foreach (var p in r.Pops) if (IsInvestor(p, w.Coef)) pops.Add(p);   // ★NobleInvests（既定0＝旧述語と恒等）
+        return pops;
+    }
+
     // 投資家（資本家＝近代エリート）の貯蓄合計（送り出しの原資・流入の受け皿）。
-    private static double InvestorSavings(World w)
+    internal static double InvestorSavings(World w)
     {
         double s = 0;
         foreach (var r in w.Regions) foreach (var p in r.Pops) if (IsInvestor(p, w.Coef)) s += System.Math.Max(0, p.Savings);   // ★NobleInvests（既定0＝旧述語と恒等）
@@ -278,26 +302,44 @@ public static class CapitalMarket
     }
 
     // 金を国外へ出す（投資家(近代エリート)の貯蓄から貯蓄比例で引く＋CumulativeTradeFlow に流出計上）。実際に引けた額を返す（残高不足は部分＝部分的な不履行）。
-    // ★2026-09-27：原資は投資家だけ＝流入（GiveGold の toInvestors）と対称。旧＝fallbackToAll で投資家の不足分を全popから追加徴収していた
-    //   （その撤去で呼び手が全て投資家原資になり、旧 TakeGoldFrom の fromInvestors/excludeInvestors は読み手が無くなった＝ここへ畳んだ）。
+    // ★2026-09-27：原資は投資家だけ＝流入（GiveGold）と対称。旧＝fallbackToAll で投資家の不足分を全popから追加徴収していた。
     // ★支払いの一元化 段2-3（E2・2026-09-29）：引く・台帳へ書くは移し方の1本（World.Transfer＝払い手は投資家・受け手は世界の外）。ここに残るのは払い手の集合を選ぶことだけ。
-    private static double TakeGold(World w, double amount)
-    {
-        var pops = new List<Pop>();
-        foreach (var r in w.Regions) foreach (var p in r.Pops) if (IsInvestor(p, w.Coef)) pops.Add(p);   // ★NobleInvests（既定0＝旧述語と恒等）
-        return World.Transfer((w, pops), (null, null, null), amount);   // 残高超は引けない（払えない＝部分的不履行）・引けた額を返す
-    }
+    private static double TakeGold(World w, double amount) => World.Transfer((w, Investors(w)), (null, null, null), amount);   // 残高超は引けない（払えない＝部分的不履行）・引けた額を返す
 
-    // 金を国外から受ける（投資家へ＝流入は工業化を支える・重みは貨幣の保有）。★段2-3（2026-09-29）：配る・台帳へ書くは移し方の1本（World.Transfer）。
-    //   旧の引数 toInvestors は呼び手が全て true だった＝削除。縮退は「投資家→全POP→国庫」の順（旧＝保有の合計≈0 なら最後のPOPへ全額・今＝頭数で配る）。
-    private static void GiveGold(World w, double amount)
+    /// <summary>投資家へ払う（受け取りの1本・重みは貨幣の保有）。★段2-3（2026-09-29）：配る・台帳へ書くは移し方の1本（World.Transfer）。
+    /// ★段3-3（C14・2026-09-30）：受け手は**投資家だけ**＝払い手（<see cref="TakeGold"/>＝投資家だけ）と対称。投資家のいない国（併合国の残骸等）は国庫へ
+    ///   （旧＝投資家→全POP→国庫＝外資の配当や流入が農民の貯蓄へ落ちた）。<paramref name="from"/> 省略＝世界の外（国際金融の清算）／
+    ///   国庫（国, null）＝運河の配当・巨大建造物の外資の利回り（区分 <paramref name="cat"/>・国境をまたげば移し方の1本が為替で換算）。戻り値＝払い手の通貨で動いた額。</summary>
+    internal static double GiveGold(World w, double amount, (World? W, List<Pop>? Pops) from = default, TreasuryCat cat = TreasuryCat.OtherIn)
     {
-        var pops = new List<Pop>();
-        foreach (var r in w.Regions) foreach (var p in r.Pops) if (IsInvestor(p, w.Coef)) pops.Add(p);
-        if (pops.Count == 0) foreach (var r in w.Regions) pops.AddRange(r.Pops);   // 投資家不在なら全popへ
+        var pops = Investors(w);
         var held = new List<double>(pops.Count); double heldSum = 0;
         foreach (var p in pops) { double h = System.Math.Max(0, p.Savings); held.Add(h); heldSum += h; }   // 重み＝貨幣の保有（貯蓄比）
-        double moved = World.Transfer((null, null), (w, pops, heldSum > 1e-9 ? held : null), amount, TreasuryCat.OtherIn);
-        if (moved < amount) World.Transfer((null, null), (w, null, null), amount - moved, TreasuryCat.OtherIn);   // POP 不在（併合国の残骸等）＝国庫残置
+        double moved = World.Transfer(from, (w, pops, heldSum > 1e-9 ? held : null), amount, cat);
+        if (moved < amount) moved += World.Transfer(from, (w, null, null), amount - moved, cat, toCat: TreasuryCat.OtherIn);   // 投資家不在＝国庫
+        return moved;
+    }
+
+    /// <summary>★債権の増減の1本（段3-3・C14・2026-09-30）：債務国 <paramref name="i"/> の対外債の変化 <paramref name="delta"/>（i の通貨）を、
+    /// **i 以外**の国の債権（ForeignBondClaims・各自の通貨）へ金建ての債権の比で配る＝増えも減りも同じ集合・同じ規則（減りは0で止める＝損は持ち手）。
+    /// 債権の無い世界の増え（利子の繰り入れ）は i 以外の投資家の貯蓄の比（金建て）。読み手＝四半期の繰上げ（<see cref="Step"/>）と再併合の否認（MultiNationSim.ReabsorbNations）。
+    /// 旧＝減りは自国の債権も含む全ての債権の比（増えは自国を除く）・再併合の否認は別の複製。</summary>
+    internal static void AdjustClaims(IReadOnlyList<Simulation> nations, int i, double delta)
+    {
+        int n = nations.Count;
+        double g = delta * nations[i].World.FxRate, basis = 0;
+        for (int j = 0; j < n; j++) if (j != i) basis += nations[j].World.ForeignBondClaims * nations[j].World.FxRate;
+        if (basis > 1e-9)
+        {
+            for (int j = 0; j < n; j++)
+                if (j != i) { var wj = nations[j].World; wj.ForeignBondClaims = System.Math.Max(0, wj.ForeignBondClaims * (1.0 + g / basis)); }
+            return;
+        }
+        if (!(g > 0)) return;
+        double inv = 0;
+        for (int j = 0; j < n; j++) if (j != i) inv += InvestorSavings(nations[j].World) * nations[j].World.FxRate;
+        if (inv > 1e-9)
+            for (int j = 0; j < n; j++)
+                if (j != i) { var wj = nations[j].World; wj.ForeignBondClaims += g * (InvestorSavings(wj) * wj.FxRate / inv) / wj.FxRate; }
     }
 }
