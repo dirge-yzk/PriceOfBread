@@ -1600,7 +1600,7 @@ public sealed class MultiNationSim
     // 保存＝人口/貨幣台帳が両国で閉じる。internal＝P12残渣②のON経路/保存則テスト用（InternalsVisibleTo・Coef と同じ流儀）。
     internal void MoveMigrants(World src, World dst, Region srcR, Region dstR, int cls, double flow)
     {
-        double moved = 0, money = 0;
+        double moved = 0, money = 0, debt = 0;
         // R3 渡航コスト：距離比例の運賃（1人あたり）。MigrationFarePerkKm=0 で fare=0＝以下の運賃ロジックを一切通らず厳密恒等（距離計算もしない）。
         // 払える割合（貧困の罠）は流量を決める側（MigrateBetweenNations の段4）が掛ける。ここは持参金から運賃を引くだけ。
         double fare = 0;
@@ -1643,12 +1643,13 @@ public sealed class MultiNationSim
             if (sp.Size > 1e-9) Fiscal.ExportBondHoldings(sp, sp.BondHoldings * (flow / sp.Size), src, dst);
             sp.Size -= flow; sp.Savings -= savArriving; sp.Debt -= debtMove;
             dp.Size += flow; dp.Savings += savArriving; dp.Debt += debtMove;
-            moved += flow; money += savArriving;
+            moved += flow; money += savArriving - debtMove; debt += debtMove;   // 運ぶ基礎貨幣＝持参金−債務（債務は債務者について行く＝S3b）
         }
         if (!(moved > 0)) return;
         src.LastEmigration += moved; dst.LastImmigration += moved;           // 診断（UI）：越境の流出/流入
         src.PopulationDelta -= moved; dst.PopulationDelta += moved;          // 人口台帳（両国で相殺）
         src.CumulativeTradeFlow -= money; dst.CumulativeTradeFlow += money;  // 持参金＝対外移転（基礎貨幣の台帳が閉じる）
+        src.Bank!.Carry(dst.Bank, debt);                                     // 家計の与信も債務について行く（S3b）
     }
 
     private static readonly int[] MigrantClasses = [PopClass.Peasant, PopClass.Worker];   // 農民・労働者
@@ -1748,7 +1749,7 @@ public sealed class MultiNationSim
         foreach (var cls in SpecialistClasses)
         { var q = srcR.Pops.Find(x => x.ClassId == cls && !x.IsSoldier); if (q is not null && q.Size > 0) pool += q.Size; }
         if (!(pool > 1e-9)) return;
-        double moved = 0, money = 0;
+        double moved = 0, money = 0, debt = 0;
         var arrived = new List<Pop>(); var arrivedFlow = new List<double>();   // 支度金の受け手＝呼ばれた本人が入った受入州の POP と、その人数（C16）
         foreach (var cls in SpecialistClasses)
         {
@@ -1778,7 +1779,7 @@ public sealed class MultiNationSim
             if (dst.EthnicEnabled) dp.CoreEthnicShare = dp.CoreEthnicShare * dp.Size / newSize;
             sp.Size -= flow; sp.Savings -= sav; sp.Debt -= debtMove;
             dp.Size += flow; dp.Savings += sav; dp.Debt += debtMove;
-            moved += flow; money += sav;
+            moved += flow; money += sav - debtMove; debt += debtMove;   // 運ぶ基礎貨幣＝持参金−債務（S3b）
         }
         if (!(moved > 0)) return;
         // ★支度金＝国庫→呼ばれた本人（⚠受入国の内側で保存する。国庫が減り、その分だけ呼ばれた人の貯蓄が増える）。
@@ -1790,6 +1791,7 @@ public sealed class MultiNationSim
         src.LastSpecialistExit += moved;                                     // ★段⑤：抜かれた側の実測＝流出禁止法の選好の入力（抜かれていない国では法が争点にならない）
         src.PopulationDelta -= moved; dst.PopulationDelta += moved;          // 人口台帳（両国で相殺）
         src.CumulativeTradeFlow -= money; dst.CumulativeTradeFlow += money;  // 持参金＝対外移転（基礎貨幣の台帳が閉じる）
+        src.Bank!.Carry(dst.Bank, debt);                                     // 家計の与信も債務について行く（S3b）
     }
 
     // P12残渣②：国の実効国民意識（未捕捉は world.json 初期値→係数既定へフォールバック＝CrownParliament:194-195 の初期化と同じ規約）。

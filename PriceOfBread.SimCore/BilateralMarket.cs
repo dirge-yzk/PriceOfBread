@@ -433,14 +433,27 @@ public sealed partial class InternationalMarket
         int[]? candS = null; double[]? candD = null; double[]? candK = null; double[]? candF = null;   // candF＝着値の倍率（1＋運賃＋楔＋封鎖）＝売り手の受取を割り戻す分母
         // ★段3-1：支払能力＝輸入の捌き手（州の商人POP・商人の居ない州は州の全POP）の貯蓄（自国通貨・清算の始めの値）。旧＝国の全POP の貯蓄の和（Apply と同一集合）。
         //   この清算の受け取り（商人の仲介料・生産者のいない在庫の代金）は清算の終わりに入る＝この清算の支払能力に足さない（先に使えない）。
+        // ★為替手形（2026-09-29 高速化の段 S3b・補給の鎖の緩衝＝緊急の輸入の財布）：捌き手の商人は積荷を担保に自国の銀行で手形を割り引いて払い、
+        //   その在庫を国内で売った代金（EconomyStep の商人の取り分）で次の清算の始めに返す（Bank.Lend の1本＝債務の記録・預金・家計の与信を同じ額で）。
+        //   旧＝支払能力は商人の貯蓄だけ（(108) Q7 の b）＝商人の貯蓄が尽きた州（人口の抜けた州・建国直後の国）は、日用品が参照の約49倍に張り付き
+        //   配給0のまま何十年も輸入できなかった（S3a＝補給崩壊の国×四半期の95%）。史実：輸入は為替手形（ロンドン宛て手形）の引受と割引で賄われた。
+        //   ①清算の始めに、前の清算の手形を貯蓄から返す（州の全POP＝社会移動で債務を運んだ POP も同じ規則）
+        //   ②返し切れない手形の残る商人は新しい手形を振り出せない（不渡りの商人は引き受けてもらえない）＝支払能力は貯蓄だけ
+        //   ③手形を振り出せる商人の支払能力は積荷が担保＝上限は量（X＝物理の不足と価格の量）だけ＝∞。払う時に貯蓄で足りない分だけ借りる。
+        //   ⚠天井でもタイマーでもない（返す理由＝売った代金が入った・貸さない理由＝前の手形が返っていない）。商人の居ない州（試験世界）は借りない。
         var payerOf = new List<Pop>?[tc];   // 輸入の払い手（null＝払い手なし＝輸入しない）
         var budget = new double[tc];
+        var bill = new bool[tc];            // 手形を振り出せる（商人の払い手・返し切れない手形が無い）
         for (int t2 = 0; t2 < tc; t2++)
         {
             var r2 = tr[t2].r;
-            if (r2.MerchantPopIndex >= 0 && r2.MerchantPopIndex < r2.Pops.Count) payerOf[t2] = [r2.Pops[r2.MerchantPopIndex]];
+            var bank2 = nations[tr[t2].nation].World.Bank!;   // 全ての世界に銀行（段2-2）
+            foreach (var p2 in r2.Pops)
+                if (p2.Debt > 0) { double back = Math.Min(p2.Debt, Math.Max(0, p2.Savings)); if (back > 0) bank2.Lend(p2, -back); }   // ①手形の決済（否定形の門＝NaN は返さない）
+            if (r2.MerchantPopIndex >= 0 && r2.MerchantPopIndex < r2.Pops.Count) { payerOf[t2] = [r2.Pops[r2.MerchantPopIndex]]; bill[t2] = !(r2.Pops[r2.MerchantPopIndex].Debt > 0); }
             else if (r2.Pops.Count > 0) payerOf[t2] = r2.Pops;
             if (payerOf[t2] is { } pl) foreach (var p2 in pl) budget[t2] += Math.Max(0, p2.Savings);
+            if (bill[t2]) budget[t2] = double.PositiveInfinity;   // ③積荷が担保（量は X が決める）
         }
         var payHouse = new double[tc];   // 払い手が清算所へ払う額（輸入代金＋運賃・自国通貨）
         var payTariff = new double[tc];  // 払い手が自国の国庫へ払う関税と穀物法の分（自国通貨）
@@ -796,6 +809,11 @@ public sealed partial class InternationalMarket
         {
             var w0 = nations[tr[t].nation].World;
             if (paySub[t] > 0 && payerOf[t] is { } ps) World.Transfer((w0, null), (w0, ps, null), paySub[t] * w0.FiscalFundingRatio, TreasuryCat.Subsidy);   // 売買方針の補助＝国家の支払い率 r の分だけ（区分 Subsidy・作者裁定 Q14）
+            if (bill[t] && payerOf[t] is [var mer])
+            {   // ③手形の振り出し＝貯蓄（補助の後）で足りない分だけ自国の銀行で割り引く（払いの前＝関税と代金を満額払える）
+                double due = payTariff[t] + payHouse[t], have = Math.Max(0, mer.Savings);
+                if (due > have) w0.Bank!.Lend(mer, due - have);
+            }
             if (payTariff[t] > 0 && payerOf[t] is { } pt) w0.LastTariffRevenue += World.Transfer((w0, pt), (w0, null, null), payTariff[t], TreasuryCat.Tariff);   // 関税と穀物法＝輸入者から通関の時点で（econ-07）
             if (payHouse[t] > 0 && payerOf[t] is { } pp) World.Transfer((w0, pp), (null, null, null), payHouse[t]);   // 輸入代金と運賃＝清算所へ（国境をまたげば世界の台帳へ・同じ国の州どうしは台帳で打ち消す）
         }

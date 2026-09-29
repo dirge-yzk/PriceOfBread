@@ -92,8 +92,8 @@ public class ConservationTests
 
     private sealed class WorldLedgerRun
     {
-        public readonly List<string> PopBreaks = [], MoneyBreaks = [];
-        public double PopMoved, MoneyMoved, PopUnexplained, MoneyUnexplained;
+        public readonly List<string> PopBreaks = [], MoneyBreaks = [], DebtBreaks = [];
+        public double PopMoved, MoneyMoved, PopUnexplained, MoneyUnexplained, DebtMax;
         public const int ShortQuarters = 40;   // 常設の長さ（約40秒）。全長（668四半期・約7分）は下の番人＝保存則に触る回でだけ回す（Category=FullLength）
         public readonly int Quarters;
 
@@ -130,6 +130,16 @@ public class ConservationTests
                 }
                 PopMoved += System.Math.Abs(t.Pop - t0.Pop); MoneyMoved += System.Math.Abs(t.Money - t0.Money);
                 gPop = nPop; gMoney = nMoney;   // 差分で見る＝1回の跳びを最初の四半期で捕まえる（累積させない）
+                // ★債務は債務者について行く（2026-09-29 S3b＝輸入の為替手形）：現存国ごとに 家計の与信＝その国の POP の債務の和（割譲・建国・再併合・越境移民の後も）
+                foreach (var n in sim.Nations)
+                {
+                    var w = n.World; double debt = 0;
+                    foreach (var r in w.Regions) foreach (var p in r.Pops) debt += p.Debt;
+                    double hh = w.Bank!.HouseholdLoans;
+                    if (hh > DebtMax) DebtMax = hh;
+                    if (System.Math.Abs(hh - debt) > 1e-6 * System.Math.Max(1.0, System.Math.Abs(hh) + debt))
+                        DebtBreaks.Add($"Q{q + 1}（{sim.Year}年）：{w.SelfPower?.Name}：家計の与信 {hh:F3} ≠ POP の債務の和 {debt:F3}");
+                }
             }
 
             (double Pop, double Created, double Money, double Minted) Totals()
@@ -173,6 +183,51 @@ public class ConservationTests
     }
     private static readonly System.Lazy<WorldLedgerRun> WorldRun = new(() => new WorldLedgerRun(WorldLedgerRun.ShortQuarters));
     private static readonly System.Lazy<WorldLedgerRun> WorldRunFull = new(() => new WorldLedgerRun(Coefficients.GameQuarters));
+
+    /// <summary>★家計の与信は国ごとに POP の債務の和（2026-09-29 S3b）＝輸入の為替手形の債務の記録（Pop.Debt）と貨幣（Bank.HouseholdLoans）は
+    /// 同じ額で書き（Bank.Lend の1本）、POP が国をまたぐと与信も受け入れ国の銀行へ移る（Bank.Carry）。⚠突然変異「割譲で与信を移さない」で赤（全長）。</summary>
+    [Fact]
+    public void 家計の与信は国ごとにPOPの債務の和に等しい()
+    {
+        var run = WorldRun.Value;
+        Assert.True(run.DebtMax > 0, "手形が一度も振り出されていない＝番人が何も検査していない");
+        Assert.True(run.DebtBreaks.Count == 0, $"{run.DebtBreaks.Count} 件：\n" + string.Join("\n", run.DebtBreaks.Take(8)));
+    }
+
+    [Fact]
+    [Trait("Category", "FullLength")]
+    public void 家計の与信は全長でも国ごとにPOPの債務の和に等しい()
+    {
+        var run = WorldRunFull.Value;
+        Assert.True(run.DebtMax > 0, "手形が一度も振り出されていない＝番人が何も検査していない");
+        Assert.True(run.DebtBreaks.Count == 0, $"{run.DebtBreaks.Count} 件：\n" + string.Join("\n", run.DebtBreaks.Take(8)));
+    }
+
+    /// <summary>★債務は債務者について行く（2026-09-29 S3b）：州の割譲（Territory.TransferRegion）と越境移民（MoveMigrants）で、POP の債務の分の
+    /// 家計の与信が受け入れ国の銀行へ移り、運ぶ基礎貨幣＝貯蓄−債務＝両国の D が閉じる。⚠突然変異「与信を移さない」で赤。</summary>
+    [Fact]
+    public void 債務は割譲と越境移民で債務者について行く()
+    {
+        var sim = new MultiNationSim([WorldData.ByName("イギリス"), WorldData.ByName("フランス")], seed: 1789, coef: new Coefficients()) { DiplomacyFrozen = true };
+        var uk = sim.Nations[0].World; var fr = sim.Nations[1].World;
+        var r = uk.Regions[1];
+        Assert.True(r.MerchantPopIndex >= 0, "前提が崩れた：割譲する州に商人が居ない");
+        var mer = r.Pops[r.MerchantPopIndex];
+        uk.Bank!.Lend(mer, 50);   // 手形の債務（貸しの1本）
+        double dUk = D(uk), dFr = D(fr), hUk = uk.Bank.HouseholdLoans, hFr = fr.Bank!.HouseholdLoans;
+        double tol = 1e-9 * System.Math.Max(1.0, System.Math.Abs(uk.BaseMoney) + System.Math.Abs(fr.BaseMoney));
+        Territory.TransferRegion(uk, fr, r, Territory.Rehoming.Ceded);
+        Assert.Equal(hUk - 50, uk.Bank.HouseholdLoans, 9); Assert.Equal(hFr + 50, fr.Bank.HouseholdLoans, 9);
+        Assert.True(System.Math.Abs(D(uk) - dUk) <= tol && System.Math.Abs(D(fr) - dFr) <= tol, "割譲で国ごとの D が閉じない");
+        var sp = uk.Regions[0].Pops.Find(p => p.ClassId == PopClass.Worker && !p.IsSoldier)!;
+        var dp = fr.Regions[0].Pops.Find(p => p.ClassId == PopClass.Worker && !p.IsSoldier)!;
+        uk.Bank.Lend(sp, 30);
+        double flow = 0.1 * sp.Size, carried = sp.Debt * (flow / sp.Size);
+        dUk = D(uk); dFr = D(fr); hUk = uk.Bank.HouseholdLoans; hFr = fr.Bank.HouseholdLoans;
+        sim.MoveMigrants(uk, fr, uk.Regions[0], fr.Regions[0], PopClass.Worker, flow);
+        Assert.True(carried > 0 && System.Math.Abs(uk.Bank.HouseholdLoans - (hUk - carried)) <= 1e-9 && System.Math.Abs(fr.Bank.HouseholdLoans - (hFr + carried)) <= 1e-9, "越境移民で家計の与信が債務について行かない");
+        Assert.True(System.Math.Abs(D(uk) - dUk) <= tol && System.Math.Abs(D(fr) - dFr) <= tol, "越境移民で国ごとの D が閉じない");
+    }
 
     [Fact]
     public void 世界の総人口は出生と死亡と戦死でしか動かない()

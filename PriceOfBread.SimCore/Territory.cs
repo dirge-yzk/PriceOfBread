@@ -241,9 +241,14 @@ public static class Territory
     {
         bool wasCapital = r.Id == 0;
         // 保存量＝移転州の貯蓄総額・人口（同一値を両辺に使い浮動小数ズレ回避＝TotalMoney/TotalPopulation の実減と CumulativeTradeFlow/PopulationDelta の調整をビット一致させる）。
-        double S = r.SumSavings(), P = r.SumPopulation();
+        // ★債務は債務者について行く（2026-09-29 S3b）＝州の POP の債務 D（輸入の為替手形）の分の家計の与信を受け手の銀行へ（建国＝新しい国の銀行は構築で POP の債務から始まる）。
+        //   運ぶ基礎貨幣＝貯蓄−債務（同一値を両辺）＝両国の保存が閉じる。債務の無い州は D＝0＝旧と同じ。
+        double S = r.SumSavings(), P = r.SumPopulation(), D = 0;
+        foreach (var p in r.Pops) D += p.Debt;
+        double B = S - D;
         from.Regions.Remove(r);
-        from.CumulativeTradeFlow -= S; from.PopulationDelta -= P;
+        from.CumulativeTradeFlow -= B; from.PopulationDelta -= P;
+        from.Bank!.Carry(to?.Bank, D);
         if (to is not null)
         {
             Adopt(to, r);
@@ -255,7 +260,7 @@ public static class Territory
             //   ⚠勝者の按分継承（ツューリヒ1859・ヴェルサイユ254条）は国家間の債務分担の取り決めで、持ち手の請求権の債務者は変わらない。
             //   帳消しにする形は、失地で送り手の債務が軽くなり持ち手だけが損をする（負けるほど財政が楽になる）。再併合は反乱国の国債を先に消している＝0 は素通り。
             foreach (var p in r.Pops) Fiscal.ExportBondHoldings(p, p.BondHoldings, from, to);
-            to.CumulativeTradeFlow += S; to.PopulationDelta += P;
+            to.CumulativeTradeFlow += B; to.PopulationDelta += P;
         }
         if (wasCapital && NextCapital(from) is { } cap) from.SetCapital(cap);   // 首都を失った＝「首都を持つ」不変条件を維持
         Rehome(r, how, sameCore);

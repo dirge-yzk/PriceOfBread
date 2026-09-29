@@ -1459,8 +1459,7 @@ public static class EconomyStep
                             double borrow = Math.Min(shortfall, Math.Max(0, creditCap));
                             if (borrow > 0)
                             {
-                                p.Savings += borrow; p.RemainingBudget += borrow; p.Debt += borrow;
-                                bank.HouseholdLoans += borrow;
+                                bank.Lend(p, borrow); p.RemainingBudget += borrow;   // 債務の記録・預金・家計の与信を同じ額で（Bank.Lend の1本）
                                 if (world is not null) world.HouseholdCreditIssued += borrow;
                             }
                         }

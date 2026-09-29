@@ -23,6 +23,39 @@ public class EconomyTests
         Assert.True(max - min < 0.01, $"後半100四半期の価格レンジ {max - min} が大きい（収束していない）");
     }
 
+    /// <summary>★張り付いた市場の打ち切り（2026-09-29 高速化の段 S3b・近似）：供給も在庫も無い財が参照より上の不動点の近くにいると、
+    /// 旬の1歩（h 日）は1日の動きが相対 1e-8 を切った日で打ち切る＝結果は1日の写像と同じで、h 日の写像との差は許しの2.5倍以内。
+    /// 供給の立った財（帯の下の端にいる財）は打ち切らない＝h 日の写像と1ビットも違わない。⚠突然変異「打ち切らない」で赤。</summary>
+    [Fact]
+    public void 張り付いた市場は不動点の近くで旬の1歩を打ち切る()
+    {
+        var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+        var r = sim.World.Region; var c = sim.World.Coef;
+        Assert.True(c.DomesticMarkupMax <= 0, "前提が崩れた：国内の寡占マークアップが点いている（日次の経路の別の枝）");
+        var goods = r.Goods.Where(g => g.Tier != GoodTier.Service && g.RefPrice > 0).Take(2).ToArray();
+        Assert.True(goods.Length == 2, "前提が崩れた：財が2つ無い");
+        var mS = r.Markets[goods[0].Id]; var mG = r.Markets[goods[1].Id];
+        double rpS = goods[0].RefPrice * r.PriceLevel, rpG = goods[1].RefPrice * r.PriceLevel;
+        mS.LastDemand = 10; mS.LastProduced = 0; mS.LastImport = 0; mS.LastExport = 0; mS.Stock = 0; mS.Price = 49 * rpS;         // 供給も在庫も無い（上に張り付く）
+        mG.LastDemand = 10; mG.LastProduced = 1000; mG.LastImport = 0; mG.LastExport = 0; mG.Stock = 5000; mG.Price = 0.05 * rpG;   // 供給過剰（帯の下の端＝日次の経路）
+        for (int i = 0; i < 400; i++) MarketFlow.StepDay(r, c, 1);   // 不動点へ（1日ずつ）
+        double fp = mS.Price;
+        Assert.True(fp > 20 * rpS, $"前提が崩れた：供給の無い財が上に張り付いていない（{fp / rpS} 倍）");
+        double s0 = fp * (1 + 1e-9), g0 = 0.05 * rpG;   // 張り付いた財は不動点から少しだけずらす（1日の動き≈0.29e-9＜許し）・供給過剰の財は帯の下の端の手前から動かす
+        double[] Run(int days, int times)
+        {
+            mS.Price = s0; mG.Price = g0;
+            for (int i = 0; i < times; i++) MarketFlow.StepDay(r, c, days);
+            return [mS.Price, mG.Price];
+        }
+        var one = Run(1, 1); var daily5 = Run(1, 5); var step5 = Run(5, 1);
+        Assert.NotEqual(one[0], daily5[0]);   // 盤面の前提＝5日の写像は1日目の後も動く
+        Assert.Equal(one[0], step5[0]);       // 1日目で打ち切った
+        Assert.True(System.Math.Abs(step5[0] - daily5[0]) <= 2.5e-8 * daily5[0], $"打ち切りの誤差 {(step5[0] - daily5[0]) / daily5[0]} が許しの2.5倍を超えた");
+        Assert.NotEqual(g0, daily5[1]);       // 盤面の前提＝供給過剰の財は動いている
+        Assert.Equal(daily5[1], step5[1]);    // 供給の立った財は打ち切らない（1ビットも違わない）
+    }
+
     [Fact]
     public void 放置で食料価格は限界費用以上に収束し暴騰もしない()
     {

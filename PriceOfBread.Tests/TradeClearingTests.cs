@@ -200,6 +200,84 @@ public class TradeClearingTests
         Assert.True(checkedRegions > 0, "輸入した買い手の州が無い（テスト前提の破れ）");
     }
 
+    /// <summary>★為替手形（2026-09-29 S3b・補給の鎖の緩衝）：貯蓄の無い捌き手の商人も、積荷を担保に自国の銀行で手形を割り引いて輸入し
+    /// （債務の記録・預金・家計の与信が同じ額＝国ごとの D が閉じる）、国内で売った代金で次の清算の始めに返す。
+    /// 旧＝支払能力は商人の貯蓄だけ＝貯蓄の尽きた州は何十年も輸入できなかった（S3a）。⚠突然変異「手形なし（貯蓄だけ）」「返さない」で赤。</summary>
+    [Fact]
+    public void 貯蓄の無い商人も手形で輸入し売った代金で次の清算に返す()
+    {
+        var (sim, g, seller, seller2, _) = Make();
+        foreach (var n in sim.Nations) foreach (var r in n.World.Regions) foreach (var m in r.Markets)   // ほかの財は欲しがらない（手形を財 g だけにする）
+            if (!ReferenceEquals(m, r.Markets[g])) { m.LastDemand = 0; m.TargetStock = 0; m.LastProduced = 0; }
+        var buyers = new List<Region>();
+        foreach (var n in sim.Nations)
+            foreach (var r in n.World.Regions)
+                if (r.State == RegionState.Active && !ReferenceEquals(r, seller) && !ReferenceEquals(r, seller2) && r.MerchantPopIndex >= 0)
+                { r.Pops[r.MerchantPopIndex].Savings = 0; buyers.Add(r); }
+        Assert.True(buyers.Count > 0, "前提が崩れた：買い手の州に商人が居ない");
+        var before = new Dictionary<Pop, double>();
+        foreach (var r in buyers) foreach (var p in r.Pops) before[p] = p.Savings;
+        var bm0 = sim.Nations.ConvertAll(n => n.World.BaseMoney); var tf0 = sim.Nations.ConvertAll(n => n.World.CumulativeTradeFlow);
+        sim.Market.Step(sim.Nations, sim.Coef);
+        var drew = new List<Region>();
+        foreach (var r in buyers)
+        {
+            var mer = r.Pops[r.MerchantPopIndex];
+            for (int i = 0; i < r.Pops.Count; i++) if (i != r.MerchantPopIndex) Assert.Equal(before[r.Pops[i]], r.Pops[i].Savings);   // 払うのは商人だけ
+            if (r.Markets[g].LastImport > 1e-9) { Assert.True(mer.Debt > 0, $"{r.Name}：輸入したのに手形の債務が立っていない"); drew.Add(r); }
+        }
+        Assert.True(drew.Count > 0, "貯蓄の無い商人の州が1つも輸入していない（手形を割り引けていない）");
+        for (int i = 0; i < sim.Nations.Count; i++)
+        {
+            var w = sim.Nations[i].World; double debt = 0;
+            foreach (var r in w.Regions) foreach (var p in r.Pops) debt += p.Debt;
+            double tol = 1e-9 * Math.Max(1.0, Math.Abs(bm0[i]) + debt);
+            Assert.True(Math.Abs(w.Bank!.HouseholdLoans - debt) <= tol, $"{w.SelfPower?.Name}：家計の与信 {w.Bank.HouseholdLoans} ≠ POP の債務の和 {debt}");
+            Assert.True(Math.Abs((w.BaseMoney - bm0[i]) - (w.CumulativeTradeFlow - tf0[i])) <= tol, $"{w.SelfPower?.Name}：国ごとの D が閉じない（手形の貸しが基礎貨幣を動かした）");
+        }
+        // 売った代金が入った（同じ州の豊かな POP から商人へ＝貨幣は州の中で移るだけ）・買い手の在庫は満ちた（もう買わない）→ 次の清算の始めに返す
+        var debts = new Dictionary<Pop, double>();
+        foreach (var r in drew)
+        {
+            var mer = r.Pops[r.MerchantPopIndex]; debts[mer] = mer.Debt;
+            Pop rich = r.Pops[0]; foreach (var p in r.Pops) if (p.Savings > rich.Savings) rich = p;
+            double proceeds = 2 * mer.Debt; rich.Savings -= proceeds; mer.Savings += proceeds;
+        }
+        foreach (var r in buyers) r.Markets[g].Stock = 1e6;
+        sim.Market.Step(sim.Nations, sim.Coef);
+        foreach (var r in drew)
+        {
+            var mer = r.Pops[r.MerchantPopIndex];
+            Assert.True(mer.Debt == 0, $"{r.Name}：売った代金が入ったのに手形を返していない（債務 {mer.Debt}）");
+            Assert.True(Math.Abs(mer.Savings - debts[mer]) <= 1e-9 * Math.Max(1.0, debts[mer]), $"{r.Name}：返した後の貯蓄 {mer.Savings} ≠ 代金−手形 {debts[mer]}");
+        }
+        foreach (var n in sim.Nations) Assert.True(Math.Abs(n.World.Bank!.HouseholdLoans) <= 1e-9 * Math.Max(1.0, debts.Values.Sum()), $"{n.World.SelfPower?.Name}：返した後も家計の与信が残る（{n.World.Bank.HouseholdLoans}）");
+    }
+
+    /// <summary>★為替手形の引受（2026-09-29 S3b）：前の手形を返し切れない商人は新しい手形を振り出せない（不渡りの商人は引き受けてもらえない）
+    /// ＝支払能力は貯蓄だけ（0なら輸入しない）。天井でもタイマーでもない＝貸さない理由は返っていない手形。⚠突然変異「返していなくても振り出す」で赤。</summary>
+    [Fact]
+    public void 手形を返し切れない商人は新しい手形を振り出せない()
+    {
+        var (sim, g, seller, seller2, _) = Make();
+        var buyers = new List<Region>();
+        foreach (var n in sim.Nations)
+            foreach (var r in n.World.Regions)
+                if (r.State == RegionState.Active && !ReferenceEquals(r, seller) && !ReferenceEquals(r, seller2) && r.MerchantPopIndex >= 0)
+                {
+                    var mer = r.Pops[r.MerchantPopIndex];
+                    mer.Savings = 0; mer.Debt = 100; n.World.Bank!.HouseholdLoans += 100;   // 前の清算の手形が返っていない（貯蓄0＝返せない）
+                    buyers.Add(r);
+                }
+        Assert.True(buyers.Count > 0, "前提が崩れた：買い手の州に商人が居ない");
+        sim.Market.Step(sim.Nations, sim.Coef);
+        foreach (var r in buyers)
+        {
+            Assert.Equal(0.0, r.Markets[g].LastImport);
+            Assert.Equal(100.0, r.Pops[r.MerchantPopIndex].Debt);
+        }
+    }
+
     /// <summary>潜在量は組ごとに1回：買い手の容量が尽きた行でも、同じ不足を次善の売り手ごとに数え直さない（作者裁定 2026-09-29 の2）＝行の潜在量は不足（X）を超えない。</summary>
     [Fact]
     public void 潜在量は同じ不足を売り手の数だけ重ねない()

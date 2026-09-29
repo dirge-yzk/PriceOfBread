@@ -18,4 +18,21 @@ public sealed class Bank
     public double HouseholdLoans;
     public double Confidence = 1.0;  // 貸す意欲（好況で↑・ショックで↓）。ブーム/バストの駆動
     public double Heat;              // 金融過熱度＝与信使用率（Loans÷上限・0..1）。高いほどバスト前夜＝恐慌の予兆ゲージ（ガラス箱）
+
+    /// <summary>★家計の与信の貸しと返しの1本（2026-09-29 S3b）＝POP の債務の記録（<see cref="Pop.Debt"/>）・預金（Savings）・貨幣（<see cref="HouseholdLoans"/>）を
+    /// 同じ額で書く＝ΔBaseMoney＝0。呼び手＝輸入の為替手形（BilateralMarket＝清算の始めの決済と振り出し）・消費者信用と返済規律（休眠 PopDebtDriven）。
+    /// <paramref name="amount"/> は正（貸し）か負（返し）。</summary>
+    internal void Lend(Pop p, double amount)
+    {
+        p.Savings += amount; p.Debt += amount; HouseholdLoans += amount;
+    }
+
+    /// <summary>★債務は債務者について行く（2026-09-29 S3b）＝POP が国をまたいで移る（割譲・建国・再併合・越境移民・招聘）とき、
+    /// 運ぶ債務 <paramref name="debt"/> の分の家計の与信を受け入れ国の銀行へ移す（null＝建国：新しい国の銀行は構築で自国の POP の債務から始まる）。
+    /// ⚠呼び手は同じ額を持参金の台帳から引く（運ぶ基礎貨幣＝貯蓄−債務）＝国ごとの保存が閉じる。</summary>
+    internal void Carry(Bank? to, double debt)
+    {
+        HouseholdLoans -= debt;
+        if (to is not null) to.HouseholdLoans += debt;
+    }
 }

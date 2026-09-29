@@ -247,7 +247,9 @@ public class TreasuryLedgerTests
             sim.Run(4);
             var w = sim.World;
             w.PollTax = 0;   // 人頭税の率は頭数あたりの実額（物価水準で伸びない）＝双子の名目を2倍にしても2倍にならない＝止める
-            Assert.Equal(0, w.InsolvencyQuarters);
+            // 盤面：不履行の計数は0から数える（2026-09-29 S3b の盤面の直し＝この盤面の4四半期目は払える額と請求がちょうど釣り合う刃の上
+            //   〔r＝1 と r＝1−1ulp が張り付いた市場の打ち切り〔相対1e-8〕の差で入れ替わる〕＝旧は「0 のはず」を前提に置いていた）。
+            w.InsolvencyQuarters = 0;
             return w;
         }
         // 名目の量を全て2倍にする（2倍は浮動小数で厳密＝和も積もちょうど2倍）＝同じ実体・物価水準2倍

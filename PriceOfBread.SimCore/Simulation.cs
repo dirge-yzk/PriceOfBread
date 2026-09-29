@@ -220,7 +220,10 @@ public sealed class Simulation
         if (scenario.InitialMassMilitancy > 0)
             foreach (var rg in World.Regions) foreach (var p in rg.Pops)
                 if (Politics.IsMassPop(p)) p.Militancy = scenario.InitialMassMilitancy;
-        World.Bank = new Bank { Gold = World.TotalMoney, Loans = 0, Confidence = 1.0 };   // ★全ての世界に銀行（2026-09-29 段2-2・作者裁定 Q11＝旧 Scenario.CreditEnabled を削除）
+        // ★全ての世界に銀行（2026-09-29 段2-2・作者裁定 Q11＝旧 Scenario.CreditEnabled を削除）。家計の与信は POP の債務の和から始まる
+        //   （建国＝親から運んだ州の POP の輸入の為替手形・Territory.TransferRegion が親の銀行から外した分＝2026-09-29 S3b。開幕は0）。
+        double popDebt = 0; foreach (var rg in World.Regions) foreach (var p in rg.Pops) popDebt += p.Debt;
+        World.Bank = new Bank { Gold = World.TotalMoney, Loans = 0, Confidence = 1.0, HouseholdLoans = popDebt };
 
         Fiscal.SeedBondHoldings(World);   // ★国債の保有台帳（2026-09-21）：初期国債（仏）の持ち主を購入と同じ規則で起票（金は動かない・国内債0の国は何もしない）
         _invariants = [];
@@ -2846,7 +2849,7 @@ public sealed class Simulation
             if (!(p.Debt > 0)) continue;   // ⚠否定形＝NaN も飛ばす
             double pay = Math.Min(p.Debt, Math.Max(0, p.Savings) * World.Coef.DebtRepayFrac);
             if (!(pay > 0)) continue;
-            p.Savings -= pay; p.Debt -= pay; bank.HouseholdLoans -= pay;
+            bank.Lend(p, -pay);   // 返済＝貸しの逆（Bank.Lend の1本）
             World.HouseholdDebtRepaid += pay;   // 診断。⚠LossFinanced とは**別カウンタ**（硬性ゲートの分子を汚さない・設計§6-1）
         }
     }
