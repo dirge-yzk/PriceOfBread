@@ -92,13 +92,19 @@ public class WriterRatchetTests
     // ★2026-09-28 E6 の2歩目（基礎貨幣が負の国の返せない与信の償却）：数は変えない。CumulativeFiatIssued 3 のまま＝償却の非常発行は
     //   Simulation.BackstopNegativeSavings の末尾の1行（銀行の無い世界の③と同じ行）。Loans 6 のまま＝償却の1行（+1）と、
     //   Credit.Step の与信の増減（投資家の枝と全POPへ注入する枝の同じ2行）を1行へ（−1）。
-    [InlineData("Savings", 79)]               // POP の貯蓄（段3の終わりに Pop の中の3つへ閉じる）
+    // ★2026-09-29 段2-2・2-3（保存の穴と他人から取る・端数と式の結合順＝処理の一元化 段4a）：Savings 79→**47**・CumulativeTradeFlow 33→**31**（＝宣言）。
+    //   移し方の1本 World.Transfer（旧 MultiNationSim.TransferToPops を World へ移して一般化・+1）へ畳んだ＝CapitalMarket.TakeGold／GiveGold の本体・関税と補助
+    //   （旧 InternationalMarket.CollectTariff／PaySubsidy を削除）・港湾料（旧 CollectPortFee を削除）・運河の出資・招聘の支度金・対外借入の貸し手の引き落とし。
+    //   按分の本体 World.Distribute（符号つき・微小な額も配る）へ畳んだ＝与信の注入と回収（旧 Credit.InjectMoney を削除）・貿易の仲介料と残余・国債の持ち手・
+    //   窃盗・年金・恐怖政治・十分の一税・港の建設労務・生産者のいない在庫の代金（輸送の買い付け）。再点火の代金は月内の仮勘定（Paid）へ（建設の材料と工賃の Paid の2行を1行へ＝Paid は 9 のまま）。
+    //   銀行の無い世界の底打ち（最富裕→全員から取る・作者裁定 Q11 で撤去）。CumulativeFiatIssued は3のまま（非常発行の行＝負の国の与信の償却だけになった）。
+    [InlineData("Savings", 47)]               // POP の貯蓄（段3の終わりに Pop の中の3つへ閉じる）
     // ★2026-09-28 段2-1（国家の支払い率）：StateSpent 25→24＝区分つきの配列へ（添字つきの書き込みを数える）・月次のゼロ化は Array.Clear（代入でない）。
     //   FiscalFundingRatio（国家の支払い率 r）を足した＝書き手は月初の1か所（Simulation）＋ランナーの盤面の復元（GovernanceSnapshot）の2つ＝増やさない。
     [InlineData("StateSpent", 24)]            // 州の未精算の国家支出（区分つき＝TreasuryCat の配列）
     [InlineData("FiscalFundingRatio", 2)]     // 国家の支払い率 r（月初の1か所＋盤面の復元）
-    [InlineData("CumulativeTradeFlow", 33)]   // 世界の台帳・国境をまたいだ出入り（移し方の中の1か所へ畳む）
-    [InlineData("CumulativeFiatIssued", 3)]   // 不換の発行と回収（2）＋非常発行（1＝負の国の与信の償却と銀行なしの底打ち・後者は段2-2で消える）
+    [InlineData("CumulativeTradeFlow", 31)]   // 世界の台帳・国境をまたいだ出入り（移し方の中の1か所へ畳む）
+    [InlineData("CumulativeFiatIssued", 3)]   // 不換の発行と回収（2）＋非常発行（1＝負の国の与信の償却だけ・銀行なしの底打ちは 2026-09-29 段2-2 で撤去）
     [InlineData("CumulativeGoldMinted", 2)]   // 鋳造と準備の売却
     [InlineData("Loans", 6)]                  // 銀行の与信（企業・損失の負債化・負の国の償却）
     [InlineData("HouseholdLoans", 4)]         // 銀行の与信（家計）

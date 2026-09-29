@@ -416,7 +416,7 @@ public sealed class MultiNationSim
             SharedWorld = true,   // ★建国された国も共有世界＝産地ゲートが効く（2026-09-06）
             Seed = MixSeed(_seed, (ulong)Nations.Count), StartYear = pw.Year, Kind = ScenarioKind.Nation,
             NationConfig = cfg, PrebuiltRegions = [.. regs], Coef = pw.Coef,   // 係数は親インスタンスを共有（テスト/実験の書き込みが分裂しない）
-            PoliticsEnabled = true, InitialPolity = polity ?? pw.Polity, FiscalEnabled = true, CreditEnabled = true,
+            PoliticsEnabled = true, InitialPolity = polity ?? pw.Polity, FiscalEnabled = true,
             TaxRate = pw.TaxRate, InitialPollTax = pw.PollTax, InitialLandTax = pw.LandTax,   // ⚠1783年の地租台帳の床（InitialLandTaxScale）は建国に掛けない＝親の率のまま（法の継承 World.CopyLawsFrom と同じ値）
             InitialTreasury = T, BaseCoercion = pw.BaseCoercion, EducationLaw = pw.EducationLaw,
             EducationSpending = pw.EducationSpending, ExternalPressure = pw.ExternalPressure,
@@ -844,33 +844,44 @@ public sealed class MultiNationSim
             // ★§1-4（ForeignLendingDebits・2026-08-30）：対外借入元本の貸し手側引き落とし。借り手は Fiscal で +CumulativeTradeFlow 済み＝
             //   ここで他国資本家の貯蓄から比例控除し、貸し手国の CumulativeTradeFlow を同額 − する＝両建てで世界の貨幣創造を閉じる。
             //   比例の物差し＝国内債と同じ max(0,Savings) 比（Fiscal の domestic 枝と同型）。★2026-09-26：旗 ForeignLendingDebits を焼き込み（x-01）。
+            //   ★支払いの一元化 段2-2（A5・2026-09-29）：貸し手の払いは**貸し手の貯蓄まで**（移し方の1本 World.Transfer＝払い手は他国の資本家・受け手は世界の外）。
+            //   払えなかった分（貸し手不在・月初のプールが四半期末までに痩せた）は**その借入が立たなかった**＝借り手の国債・対外債を同じ額だけ減らし、
+            //   受け取った額を国庫から世界の外へ戻す（Fiscal の借入の入金の逆＝量を減らす）。旧＝貸し手不在なら控除なし（借り手の受領だけが残る湧き口）・
+            //   貸し手の貯蓄を負へ押した（他人から取る）。対外債の減りは翌四半期の外債レグが償還と同じ規則で債権を減らす（CapitalMarket.Step は この前に済んでいる）。
             {
+                List<Pop>[]? lenders = null;   // 各国の貸し手（近代エリート・Active 州）＝四半期に1回だけ組む（POP の顔ぶれはこのループで変わらない）
                 for (int bi = 0; bi < Nations.Count; bi++)
                 {
                     var bw = Nations[bi].World;
                     double owe = bw.PendingForeignBorrow;
                     if (!(owe > 1e-9)) { bw.PendingForeignBorrow = 0; continue; }
                     bw.PendingForeignBorrow = 0;
-                    double lendTotal = 0;
-                    for (int li = 0; li < Nations.Count; li++)
+                    if (lenders is null)
                     {
-                        if (li == bi) continue;
-                        foreach (var r2 in Nations[li].World.Regions) if (r2.State == RegionState.Active)
-                            foreach (var p2 in r2.Pops) if (p2.IsModernElite && !p2.IsSoldier) lendTotal += Math.Max(0, p2.Savings);
+                        lenders = new List<Pop>[Nations.Count];
+                        for (int li = 0; li < Nations.Count; li++)
+                        {
+                            lenders[li] = new List<Pop>();
+                            foreach (var r2 in Nations[li].World.Regions) if (r2.State == RegionState.Active)
+                                foreach (var p2 in r2.Pops) if (p2.IsModernElite && !p2.IsSoldier) lenders[li].Add(p2);
+                        }
                     }
-                    if (!(lendTotal > 1e-9)) continue;   // 貸し手不在（合成テスト世界）＝控除なし（借入は既に成立済み＝旧挙動へ倒す）
+                    var heldBy = new double[Nations.Count]; double lendTotal = 0;
                     for (int li = 0; li < Nations.Count; li++)
                     {
                         if (li == bi) continue;
-                        var lw = Nations[li].World;
-                        double debited = 0;
-                        foreach (var r2 in lw.Regions) if (r2.State == RegionState.Active)
-                            foreach (var p2 in r2.Pops) if (p2.IsModernElite && !p2.IsSoldier)
-                            {
-                                double d2 = owe * (Math.Max(0, p2.Savings) / lendTotal);
-                                p2.Savings -= d2; debited += d2;
-                            }
-                        if (debited > 1e-12) lw.CumulativeTradeFlow -= debited;   // 貸し手側の台帳＝流出（借り手の +流入 と対）
+                        foreach (var p2 in lenders[li]) heldBy[li] += Math.Max(0, p2.Savings);
+                        lendTotal += heldBy[li];
+                    }
+                    double lent = 0;
+                    if (lendTotal > 1e-9)
+                        for (int li = 0; li < Nations.Count; li++)
+                            if (li != bi && heldBy[li] > 0) lent += World.Transfer((Nations[li].World, lenders[li]), (null, null, null), owe * (heldBy[li] / lendTotal));   // 貸し手国の台帳＝流出（借り手の +流入 と対）
+                    double unmet = owe - lent;
+                    if (unmet > 1e-9)
+                    {
+                        bw.GovDebt -= unmet; bw.ForeignDebt -= unmet;
+                        World.Transfer((bw, null), (null, null, null), unmet, TreasuryCat.Borrow);
                     }
                 }
             }
@@ -1163,12 +1174,18 @@ public sealed class MultiNationSim
                 // 外7：CanalInvestReturns>0 のとき host（扼者）と交戦中の国は拠出停止（敵の運河には投資しない＝資本の論理）。既定0.5＝停止が効く。0で無条件拠出。
                 if (_coef.CanalInvestReturns > 0 && cp.Owner is { Nation: not null } cpo && w.SelfPower is { } wsp && Diplomacy.IsAtWar(wsp, cpo)) continue;
                 double pool = 0;
-                foreach (var r in w.Regions) if (r.State == RegionState.Active && r.InvestorPopIndex >= 0) pool += Math.Max(0, r.Pops[r.InvestorPopIndex].Savings);
+                var investors = new List<Pop>(); var workers = new List<Pop>();
+                foreach (var r in w.Regions)
+                {
+                    if (r.State != RegionState.Active) continue;
+                    workers.AddRange(r.Pops);
+                    if (r.InvestorPopIndex >= 0) { var ip = r.Pops[r.InvestorPopIndex]; investors.Add(ip); pool += Math.Max(0, ip.Savings); }
+                }
                 if (pool <= 1e-6) continue;
-                double inv = _coef.CanalInvestFrac * pool;
-                foreach (var r in w.Regions) if (r.State == RegionState.Active && r.InvestorPopIndex >= 0) { var ip = r.Pops[r.InvestorPopIndex]; ip.Savings -= inv * (Math.Max(0, ip.Savings) / pool); }   // 投資家から引く（pool と同一フィルタ＝総額=inv）
-                double tot = 0; foreach (var r in w.Regions) if (r.State == RegionState.Active) foreach (var p in r.Pops) tot += p.Size;
-                if (tot > 1e-9) foreach (var r in w.Regions) if (r.State == RegionState.Active) foreach (var p in r.Pops) p.Savings += inv * (p.Size / tot);   // 自国pop（建設労務）へ＝保存
+                // ★支払いの一元化 段2-3（E1・2026-09-29）：投資家（貯蓄の比）→自国pop（建設労務・頭数）を移し方の1本で＝動いた額が進捗と持分になる。
+                //   旧＝引いた額と配った額が別の式（配る側は端数を寄せない）・自国pop が居ないと引いた額が消えた。
+                double inv = World.Transfer((w, investors), (w, workers, null), _coef.CanalInvestFrac * pool);
+                if (!(inv > 0)) continue;
                 cp.BuildProgress += inv;
                 // 外7：拠出国の持分（累計拠出額）を記録＝後で通行料を持分比で分配（配当）。既定0.5＝この持分が配当に効く。0では通行料が扼者総取りのままなので持分は参照されず無影響。
                 if (_coef.CanalInvestReturns > 0 && w.SelfPower is { } shp)
@@ -1256,18 +1273,17 @@ public sealed class MultiNationSim
             double natPop = 0; foreach (var r in w.Regions) if (r.State == RegionState.Active) foreach (var p in r.Pops) natPop += p.Size;
             if (natPop <= 1e-9) continue;
             bool techOk = w.TechLevel >= _coef.PortTechOnset;
-            List<Pop>? pops = null;   // 港料徴収の母集団（国ごとに高々1回だけ構築＝複数港での重複確保を避ける）
+            List<Pop>? pops = null;   // 港料徴収と建設労務の母集団（国ごとに高々1回だけ構築＝複数港での重複確保を避ける）
             foreach (var r in w.Regions)
             {
                 if (r.State != RegionState.Active || !r.IsPort) continue;
                 if (!_calendarFrozen) r.PortCapacity = Math.Max(0, r.PortCapacity * (1 - _coef.PortDecay));   // 減耗（維持に再投資）。★助走中は減耗も拡張も止める＝港湾容量は1783年のまま
                 // 港料：取扱高×率を地元投資家へ（荷主popから薄く徴収＝関税同型の国内移転で保存）。港を持つ意味＝施設使用料収入。
                 // ★港料は助走中も徴収する＝所得と価格の均衡の一部（止めるのは「能力が育つこと」だけ）。
+                // ★支払いの一元化 段2-3（E2・A4・2026-09-29）：旧 CollectPortFee（貯蓄比で取って残高で切る複製）を移し方の1本へ＝持ち主へ渡すのは引けた額そのもの。
+                if (pops is null) { pops = new List<Pop>(); foreach (var r2 in w.Regions) if (r2.State == RegionState.Active) pops.AddRange(r2.Pops); }
                 if (r.LastPortThroughput > 1e-9 && r.InvestorPopIndex >= 0 && r.InvestorPopIndex < r.Pops.Count)
-                {
-                    if (pops is null) { pops = new List<Pop>(); foreach (var r2 in w.Regions) if (r2.State == RegionState.Active) pops.AddRange(r2.Pops); }
-                    CollectPortFee(pops, r.LastPortThroughput * _coef.PortFeeRate, r.Pops[r.InvestorPopIndex]);
-                }
+                    World.Transfer((w, pops), (w, [r.Pops[r.InvestorPopIndex]], [1.0]), r.LastPortThroughput * _coef.PortFeeRate);
                 // 拡張は混雑時のみ（律速率<目標＝容量が交易を絞っている）＝採算ゲートで過剰投資しない。技術ゲート（近代港湾）。
                 if (_calendarFrozen || !techOk || r.LastTradeThrottle >= _coef.PortCongestionTarget) continue;   // ★助走：港湾も「年月をかけて広がる」能力＝凍結
                 if (r.InvestorPopIndex < 0 || r.InvestorPopIndex >= r.Pops.Count) continue;
@@ -1278,7 +1294,7 @@ public sealed class MultiNationSim
                 if (invest <= 1e-9) continue;   // ★判定→引落の順（wave2b是正）：引落してから捨てると微小額が pop へ還流されず消える片側記帳になる
                 ip.Savings -= cCap;
                 w.Pay(TreasuryCat.OtherOut, -cState);
-                foreach (var rr in w.Regions) if (rr.State == RegionState.Active) foreach (var p in rr.Pops) p.Savings += invest * (p.Size / natPop);   // 建設労務で自国popへ＝保存
+                World.Distribute(pops, invest);   // 建設労務で自国popへ（頭数・端数は最後の受け手＝按分の本体・段2-3 E1）＝保存
                 r.PortCapacity += invest / _coef.PortBuildCostPerUnit;
             }
         }
@@ -1303,34 +1319,12 @@ public sealed class MultiNationSim
                 if (r.MerchantPopIndex >= 0 && r.MerchantPopIndex < r.Pops.Count) merchants.Add(r.Pops[r.MerchantPopIndex]);
             }
             if (merchants.Count == 0) continue;   // 引受手(商人)が居ない国は保険市場が立たない
-            TransferToPops(allPops, merchants, _coef.MarinePremiumRate * throughput);   // 保険料：荷主→商人（平時の収入＝基金の積み増し）
+            // ★支払いの一元化 段2-3（2026-09-29）：旧 TransferToPops は World.Transfer（移し方の1本）へ移して一般化した＝受け手へ渡すのは引けた額そのもの（A4）・受け手不在なら動かさない。
+            World.Transfer((w, allPops), (w, merchants, null), _coef.MarinePremiumRate * throughput);   // 保険料：荷主→商人（平時の収入＝基金の積み増し）
             double risk = w.LastBlockadeRisk;   // 03手順7：旧CommerceRaidFactorの置換＝リスク線積分（取扱高加重平均）
             if (risk > 1e-9)
-                TransferToPops(merchants, allPops, _coef.InsurancePayoutFrac * throughput * risk);   // 保険金：商人基金→荷主（基金の範囲で部分払い＝TransferToPopsが from の貯蓄でクランプ）
+                World.Transfer((w, merchants), (w, allPops, null), _coef.InsurancePayoutFrac * throughput * risk);   // 保険金：商人基金→荷主（基金の範囲で部分払い＝払い手の貯蓄でクランプ）
         }
-    }
-
-    // amount を from の各pop（貯蓄比例）から集め、to の各pop（規模比例）へ配る。from の貯蓄で上限クランプ（部分実行）。pop⇄pop＝保存。from/to が重複しても両建てで純保存。
-    private static void TransferToPops(List<Pop> from, List<Pop> to, double amount)
-    {
-        if (amount <= 1e-12 || from.Count == 0 || to.Count == 0) return;
-        double fromTotal = 0; foreach (var p in from) fromTotal += Math.Max(0, p.Savings);
-        double take = Math.Min(amount, fromTotal);
-        if (take <= 1e-12 || fromTotal <= 1e-9) return;
-        foreach (var p in from) p.Savings -= take * (Math.Max(0, p.Savings) / fromTotal);
-        double back = World.Distribute(to, take);   // 規模比例・端数は最後のpopへ＝厳密保存
-        if (back > 0) to[0].Savings += back;   // 規模0の縮退＝先頭へ寄せ保存
-    }
-
-    // 港湾料を全pop（荷主）から薄く徴収し港所有者（地元投資家）へ。関税(CollectTariff)と同型＝pop間の国内移転で保存（owner も徴収対象に含むが両建てで純0）。
-    // pops＝呼び手（StepPorts）が国ごとに1回だけ構築した active州の全pop（複数港を持つ国での重複確保を避ける）。
-    private static void CollectPortFee(List<Pop> pops, double amount, Pop owner)
-    {
-        double total = 0; foreach (var p in pops) total += Math.Max(0, p.Savings);
-        double take = Math.Min(amount, total);
-        if (take <= 1e-12 || total <= 1e-9) return;
-        foreach (var p in pops) p.Savings -= take * (Math.Max(0, p.Savings) / total);
-        owner.Savings += take;
     }
 
     private Power? ResolveOwner(string host)
@@ -1618,8 +1612,10 @@ public sealed class MultiNationSim
             if (sp is null || dp is null || !(sp.Size >= 1e-9)) return;   // ★否定形＝NaN の Size も弾く
             if (!(flow > 1e-9)) return;   // ★否定形＝NaN の流量を弾く（旧は NaN 素通しで Size/Savings を直接汚染した）
             double sav = sp.Savings * (flow / sp.Size);   // 持参金＝1人あたり貯蓄ぶん
-            // R3 運賃控除：越境するのは運賃を引いた持参金だけ（運賃分は送出経済に残る＝保存則を閉じる）。fare=0 では savArriving=sav で厳密恒等（Math.Max に触れない）。非有限fareは運賃控除せず（安全弁）。
-            double savArriving = fare > 1e-9 && double.IsFinite(fare) ? Math.Max(0, sav - fare * flow) : sav;
+            // R3 運賃控除：越境するのは運賃を引いた持参金だけ（運賃分は送出経済に残る＝保存則を閉じる）。fare=0 では savArriving=sav で厳密恒等。非有限fareは運賃控除せず（安全弁）。
+            // ★支払いの一元化 段2-3（C17・2026-09-29）：運賃は**持っている正の持参金から**だけ払う（min(max(0,持参金), 運賃×人数)）＝負の貯蓄（借越）は運賃の有無に関わらず移民に付いて行く。
+            //   旧＝運賃があると max(0, 持参金−運賃) で負の持参金を送出 POP に残し、運賃0では負の持参金も運んだ（運賃の有無で負の貯蓄の扱いが変わった）。運賃の受け手（船の持ち主）は段3-1。
+            double savArriving = fare > 1e-9 && double.IsFinite(fare) ? sav - Math.Min(Math.Max(0, sav), fare * flow) : sav;
             double newSize = dp.Size + flow;
             // 移民は家族で動く＝識字・男女比・子供比を携えて受け入れ国に混ざる
             dp.Literacy = (dp.Literacy * dp.Size + sp.Literacy * flow) / newSize;
@@ -1753,6 +1749,7 @@ public sealed class MultiNationSim
         { var q = srcR.Pops.Find(x => x.ClassId == cls && !x.IsSoldier); if (q is not null && q.Size > 0) pool += q.Size; }
         if (!(pool > 1e-9)) return;
         double moved = 0, money = 0;
+        var arrived = new List<Pop>(); var arrivedFlow = new List<double>();   // 支度金の受け手＝呼ばれた本人が入った受入州の POP と、その人数（C16）
         foreach (var cls in SpecialistClasses)
         {
             var sp = srcR.Pops.Find(x => x.ClassId == cls && !x.IsSoldier);
@@ -1760,6 +1757,7 @@ public sealed class MultiNationSim
             if (sp is null || dp is null || !(sp.Size > 1e-9)) continue;   // ⚠受け皿が無ければ呼べない（研究者を持たない世界）
             double flow = System.Math.Min(heads * (sp.Size / pool), sp.Size);
             if (!(flow > 1e-9)) continue;
+            arrived.Add(dp); arrivedFlow.Add(flow);
             double sav = sp.Savings * (flow / sp.Size);          // ★持参金（大衆移民と同じ＝自分の貯蓄を持って来る）
             double debtMove = sp.Debt * (flow / sp.Size);
             Fiscal.ExportBondHoldings(sp, sp.BondHoldings * (flow / sp.Size), src, dst);   // ★国債の保有台帳（2026-09-21）：大衆移民と同じ＝発行国の対外債へ振替
@@ -1783,16 +1781,11 @@ public sealed class MultiNationSim
             moved += flow; money += sav;
         }
         if (!(moved > 0)) return;
-        // ★支度金＝国庫→呼ばれた本人（⚠受入国の内側で保存する。国庫が減り、その分だけ技師の貯蓄が増える）
+        // ★支度金＝国庫→呼ばれた本人（⚠受入国の内側で保存する。国庫が減り、その分だけ呼ばれた人の貯蓄が増える）。
+        //   ★支払いの一元化 段2-3（C16・2026-09-29）：受け手＝呼ばれた本人が入った POP へ人数の比（旧＝研究者の分も含めて受入州の技師 POP へ全額）。
+        //   移し方の1本（World.Transfer）＝受け手不在なら払わない（国庫に残る）。
         double cost = System.Math.Min(perHead * moved, dst.RecruitBudget) * dst.FiscalFundingRatio;   // 予約の範囲×国家の支払い率 r（2026-09-28 段2-1）
-        if (cost > 0)
-        {
-            dst.Pay(TreasuryCat.Modernization, -cost);
-            dst.RecruitBudget -= cost;
-            var paid = dstR.Pops.Find(x => x.ClassId == SpecialistClasses[0] && !x.IsSoldier);
-            if (paid is not null) paid.Savings += cost;
-            else dst.Pay(TreasuryCat.Modernization, cost);   // ⚠受け手が居なければ払わない（保存＝取り消す）
-        }
+        dst.RecruitBudget -= World.Transfer((dst, null), (dst, arrived, arrivedFlow), cost, TreasuryCat.Modernization);
         src.LastEmigration += moved; dst.LastImmigration += moved;           // 診断（UI）
         src.LastSpecialistExit += moved;                                     // ★段⑤：抜かれた側の実測＝流出禁止法の選好の入力（抜かれていない国では法が争点にならない）
         src.PopulationDelta -= moved; dst.PopulationDelta += moved;          // 人口台帳（両国で相殺）

@@ -67,10 +67,11 @@ public static class PopDecision
     {
         if (amount <= 0 || src.Size <= Eps) return;
         amount = Math.Min(amount, src.Size);
-        double perCapitaSavings = src.Savings / src.Size;
-        double moveSavings = perCapitaSavings * amount;
-        double moveDebt = src.Debt / src.Size * amount;   // 個人債務も按分して運ぶ（2026-08-02・既定0で恒等）
-        double moveBond = src.BondHoldings / src.Size * amount;   // ★国債の保有台帳（2026-09-21）も貯蓄と同じ按分（州内の移動＝発行国は同じ）
+        // ★支払いの一元化 段2-3（E3・2026-09-29）：お金の運搬の式を1つに＝ストック×(運ぶ人数÷規模)（旧＝(ストック÷規模)×人数・Territory.MoveBetweenRegions と同じ直し）。
+        double frac = amount / src.Size;
+        double moveSavings = src.Savings * frac;
+        double moveDebt = src.Debt * frac;   // 個人債務も按分して運ぶ（2026-08-02・既定0で恒等）
+        double moveBond = src.BondHoldings * frac;   // ★国債の保有台帳（2026-09-21）も貯蓄と同じ按分（州内の移動＝発行国は同じ）
 
         double newSize = dst.Size + amount;
         if (newSize > Eps)

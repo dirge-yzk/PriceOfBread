@@ -108,7 +108,9 @@ public static class Privileges
                 double t = System.Math.Min(titheRate * p.Earned, System.Math.Max(0, p.Savings));
                 p.Savings -= t; collected += t;
             }
-        foreach (var p in clergy) { double sh = collected * (p.Size / clergySize); p.Savings += sh; p.Earned += sh; }   // 貯蓄＋所得に計上（UIの所得に反映）
+        // ★支払いの一元化 段2-3（E1・2026-09-29）：貯蓄は按分の本体 World.Distribute（頭数・端数は最後の聖職）＝旧は端数を寄せなかった。所得（UIの所得に反映）は同じ比で記帳。
+        World.Distribute(clergy, collected);
+        foreach (var p in clergy) p.Earned += collected * (p.Size / clergySize);
         return collected;
     }
 

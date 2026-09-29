@@ -1958,11 +1958,14 @@ public static class Politics
         }
         // 没収資産を大衆pop（非特権・非エリート・非兵士）へSize按分で再分配＝革命の余剰再分配（保存＝pop→pop純移転・貨幣不変）。受け手不在は全popへ按分。
         // ★保有台帳（2026-09-21）：没収した国債も**同じ受け手・同じ按分**で渡す（国の保有の和は不変＝不変条件を保つ）。没収が0の側は +0.0＝貯蓄の分配はビット不変。
+        // ★支払いの一元化 段2-3（E1・2026-09-29）：貯蓄は按分の本体 World.Distribute（頭数・端数は最後の受け手）＝旧は端数を寄せず、全popの頭数も0なら没収額が消えた（配れなければ国庫へ）。
         if (confiscated > 0 || confiscatedBonds > 0)
         {
-            double ms = 0; foreach (var p in w.AllPops()) if (IsMassPop(p)) ms += p.Size;
-            if (ms > 1e-9) { foreach (var p in w.AllPops()) if (IsMassPop(p)) { p.Savings += confiscated * (p.Size / ms); p.BondHoldings += confiscatedBonds * (p.Size / ms); } }
-            else { double t = 0; foreach (var p in w.AllPops()) t += p.Size; if (t > 1e-9) foreach (var p in w.AllPops()) { p.Savings += confiscated * (p.Size / t); p.BondHoldings += confiscatedBonds * (p.Size / t); } }
+            var masses = new List<Pop>(); double ms = 0;
+            foreach (var p in w.AllPops()) if (IsMassPop(p)) { masses.Add(p); ms += p.Size; }
+            if (!(ms > 1e-9)) { masses = new List<Pop>(w.AllPops()); ms = 0; foreach (var p in masses) ms += p.Size; }   // 受け手不在は全popへ按分
+            w.Pay(TreasuryCat.OtherIn, World.Distribute(masses, confiscated));
+            if (ms > 1e-9) foreach (var p in masses) p.BondHoldings += confiscatedBonds * (p.Size / ms);
         }
     }
 }

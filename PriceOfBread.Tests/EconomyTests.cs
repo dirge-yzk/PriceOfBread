@@ -348,4 +348,33 @@ public class EconomyTests
         var market = new Market { Price = 1.0, Stock = 1200, TargetStock = 1200 };
         return new Region { Id = 0, Goods = [food], Pops = [laborer, landlord], Producers = [rgo], Markets = [market] };
     }
+
+    /// <summary>★再点火の発注は持ち主の予算を通り、月内の仮勘定（Paid）で払う（支払いの一元化 段2-2・A3・2026-09-29）。
+    /// 旧＝止まった工場の持ち主は期首の貯蓄から直接払った（Paid と予算 RemainingBudget を通らない）＝同じ貯蓄を消費と再点火で2度使え、月末の貯蓄が負になった。
+    /// 盤面＝仏（全財の経済）を6か月温め、首都州の投入を持つ工場を1つ止め、再点火の発注の割合を2へ上げて（全ての生産者に発注が立つ）EconomyStep.Run を1回。
+    /// 月内に貯蓄を書くのは月末の精算の1行だけ＝全ての POP で「月末の貯蓄＝期首の貯蓄＋(受け取り−払い)」がビット単位で成り立つ。
+    /// ⚠突然変異「再点火の代金を期首の貯蓄から直接引く（旧）」で赤。</summary>
+    [Fact]
+    public void 再点火の発注は持ち主の予算を通り月内の仮勘定で払う()
+    {
+        var sim = new Simulation(new Scenario { Seed = 3, Kind = ScenarioKind.France }, new NullAgent());
+        sim.Run(6);
+        var w = sim.World; var region = w.Region;
+        var stopped = region.Producers.FirstOrDefault(p => p.Inputs.Count > 0 && !p.IsRgo && p.OwnerPopIndex >= 0 && p.OwnerPopIndex < region.Pops.Count
+                                                         && region.Pops[p.OwnerPopIndex].Savings > 0 && p.DesiredOutput > 0);
+        Assert.True(stopped is not null, "前提が崩れた：止められる工場（投入あり・持ち主の貯蓄が正・採算あり）が無い");
+        stopped!.Output = 0;   // 止まった工場＝再点火の発注（ReignitionDemandFrac×DesiredOutput−Output）が立つ
+        w.Coef.ReignitionDemandFrac = 2.0;   // 盤面の係数（この国の係数だけ）＝産出が採算の量の2倍に届かない全ての生産者に発注が立つ（月初に産出が引き直されても請求が立つ）
+        var owner = region.Pops[stopped.OwnerPopIndex];
+        owner.Savings = Math.Max(owner.Savings, 1e9);   // 持ち主の予算が発注を満たす（充足率1）
+        foreach (var inp in stopped.Inputs) region.Markets[inp.GoodId].Stock = Math.Max(region.Markets[inp.GoodId].Stock, 1e6);   // 投入の在庫＝配給率が正＝請求が立つ
+        var s0 = region.Pops.Select(p => p.Savings).ToArray();
+        EconomyStep.Run(region, w.Coef, 1.0, w.Bank, w);
+        Assert.True(w.Coef.ReignitionDemandFrac * stopped.DesiredOutput > 0, "前提が崩れた：止めた工場に再点火の発注が立たない");
+        for (int i = 0; i < region.Pops.Count; i++)
+        {
+            var p = region.Pops[i];
+            Assert.Equal(s0[i] + (p.Earned - p.Paid), p.Savings);   // 月内に貯蓄を書くのは月末の精算だけ
+        }
+    }
 }

@@ -374,4 +374,110 @@ public class ConservationTests
         Assert.True(System.Math.Abs(region.SumPopulation() - pop0 - people) <= tol, $"蝦夷地の州の人口 {pop0:F1}→{region.SumPopulation():F1}（住民 {people:F1} が入っていない）");
         Assert.True(System.Math.Abs(jp.PopulationDelta - delta0 - people) <= tol, "人口の台帳（PopulationDelta）に住民が記帳されていない");
     }
+
+    // ── 支払いの一元化 段2-2・2-3 の番人（2026-09-29・計画 docs/202609/20260926/20260926_外部レビューの検討.md §10-12）──
+
+    /// <summary>★按分の本体（World.Distribute）は**符号つき**で**微小な額も配り切る**（段2-3 E1）。旧＝1e-12 以下の額は配らずに0を返した（呼び手は配ったものとして扱い、その分が消えた）・
+    /// 負の額（与信の回収・貿易の赤字）は同じ式の手書きの複製が配っていた。額が0か NaN なら何もしない。
+    /// ⚠突然変異「旧の門 !(amount > 1e-12)」で赤（微小な額が消え、負の額が配られない）。</summary>
+    [Fact]
+    public void 按分の本体は符号つきで微小な額も配り切る()
+    {
+        var a = new Pop { Size = 1, Savings = 0 }; var b = new Pop { Size = 3, Savings = 0 };
+        Assert.Equal(0.0, World.Distribute([a, b], 4e-13));
+        Assert.True(System.Math.Abs(a.Savings + b.Savings - 4e-13) <= 1e-27 && a.Savings > 0, $"微小な額が配られていない（{a.Savings}＋{b.Savings}）");
+        var c = new Pop { Size = 1, Savings = 10 }; var d = new Pop { Size = 1, Savings = 30 };
+        Assert.Equal(0.0, World.Distribute([c, d], -8.0, [10.0, 30.0]));   // 負の額＝重みの比で取る（与信の回収・貿易の赤字）
+        Assert.Equal(8.0, c.Savings); Assert.Equal(24.0, d.Savings);
+        Assert.Equal(0.0, World.Distribute([c, d], double.NaN)); Assert.Equal(8.0, c.Savings);   // NaN は配らない
+        Assert.Equal(-5.0, World.Distribute([], -5.0));                                        // 受け手不在＝配れなかった額を返す（符号つき）
+    }
+
+    /// <summary>★お金の移し方の1本（World.Transfer・段2-3 E2・A4＝旧 MultiNationSim.TransferToPops を移して一般化）：払い手（POP＝貯蓄の保有の比・貯蓄まで・負の貯蓄からは取らない）から
+    /// 受け手へ**動いた額**を両側に書く。両側の国が違えば台帳（CumulativeTradeFlow）は払い手の国で減り受け手の国で同じ額だけ増える。受け手不在（空・重みの合計≈0）なら動かさない。
+    /// ⚠突然変異「受け手不在でも取る」「台帳の片側だけ」「払い手の貯蓄で切らない」で赤。</summary>
+    [Fact]
+    public void 移し方の1本は動いた額を両側に書き受け手不在なら動かさない()
+    {
+        var sim = new MultiNationSim([WorldData.ByName("イギリス"), WorldData.ByName("フランス")], seed: 1789, coef: new Coefficients()) { DiplomacyFrozen = true };
+        var uk = sim.Nations[0].World; var fr = sim.Nations[1].World;
+        var payers = new List<Pop> { new() { Size = 1, Savings = 70 }, new() { Size = 1, Savings = 30 }, new() { Size = 1, Savings = -5 } };
+        double t0 = fr.Treasury, uf0 = uk.CumulativeTradeFlow, ff0 = fr.CumulativeTradeFlow;
+        double moved = World.Transfer((uk, payers), (fr, null, null), 250, TreasuryCat.OtherIn);   // 請求（250）は払い手の保有（100）を超える
+        Assert.Equal(100.0, moved);
+        Assert.Equal(0.0, payers[0].Savings); Assert.Equal(0.0, payers[1].Savings); Assert.Equal(-5.0, payers[2].Savings);
+        double tol = 1e-9 * System.Math.Max(1.0, System.Math.Abs(t0) + System.Math.Abs(uf0) + System.Math.Abs(ff0));
+        Assert.True(System.Math.Abs(fr.Treasury - t0 - moved) <= tol, $"受け手の国庫の増分 {fr.Treasury - t0} ≠ 動いた額 {moved}");
+        Assert.True(System.Math.Abs(uf0 - uk.CumulativeTradeFlow - moved) <= tol && System.Math.Abs(fr.CumulativeTradeFlow - ff0 - moved) <= tol, "台帳が両側の国で動いた額と一致しない");
+        var rich = new List<Pop> { new() { Size = 1, Savings = 50 } };
+        Assert.Equal(0.0, World.Transfer((uk, rich), (uk, [], null), 10));                                  // 受け手の集合が空
+        Assert.Equal(0.0, World.Transfer((uk, rich), (uk, [new Pop { Size = 0 }], null), 10));              // 受け手の頭数≈0
+        Assert.Equal(50.0, rich[0].Savings);                                                               // 払い手に残る
+        var poor = new Pop { Size = 2, Savings = 0 };
+        double uf1 = uk.CumulativeTradeFlow;
+        Assert.Equal(10.0, World.Transfer((uk, rich), (uk, [poor], null), 10));
+        Assert.Equal(40.0, rich[0].Savings); Assert.Equal(10.0, poor.Savings);
+        Assert.Equal(uf1, uk.CumulativeTradeFlow);                                                         // 同じ国の中＝台帳は動かない
+    }
+
+    /// <summary>★移民の運賃（段2-3 C17）：運賃は**持っている正の持参金から**だけ払う＝負の貯蓄（借越）は運賃の有無に関わらず移民に付いて行く。
+    /// 旧＝運賃があると max(0, 持参金−運賃) で負の持参金を送出 POP に残し、運賃0では負の持参金も運んだ。⚠突然変異「旧の max(0,…)」で赤。</summary>
+    [Fact]
+    public void 移民の負の持参金は運賃の有無に関わらず移民に付いて行く()
+    {
+        foreach (double fare in new[] { 0.0, 0.1 })
+        {
+            var sim = MigrationBoard(new Coefficients { MigrationFarePerkKm = fare });
+            var src = sim.Nations[0].World; var dst = sim.Nations[2].World;   // 英→米（遠い＝運賃が立つ）
+            var sp = src.Regions[0].Pops.Find(p => p.ClassId == PopClass.Worker && !p.IsSoldier)!;
+            var dp = dst.Regions[0].Pops.Find(p => p.ClassId == PopClass.Worker && !p.IsSoldier)!;
+            sp.Savings = -0.5 * sp.Size;   // 借越
+            double flow = 0.01 * sp.Size, carried = sp.Savings * (flow / sp.Size), dp0 = dp.Savings, sp0 = sp.Savings;
+            sim.MoveMigrants(src, dst, src.Regions[0], dst.Regions[0], PopClass.Worker, flow);
+            double tol = 1e-9 * System.Math.Max(1.0, System.Math.Abs(dp0) + System.Math.Abs(sp0));
+            Assert.True(System.Math.Abs(dp.Savings - dp0 - carried) <= tol, $"運賃 {fare}：受入 POP へ負の持参金 {carried} が運ばれていない（増分 {dp.Savings - dp0}）");
+            Assert.True(System.Math.Abs(sp.Savings - sp0 + carried) <= tol, $"運賃 {fare}：送出 POP に負の持参金が残った");
+        }
+    }
+
+    /// <summary>★招聘の支度金（段2-3 C16）：受け手＝呼ばれた本人が入った受入州の POP へ人数の比（研究者の分は研究者へ）。
+    /// 旧＝研究者の分も含めて受入州の技師 POP へ全額。盤面＝6か国を1四半期温め、両国の首都州に研究者の POP を置いて（研究者の居る世界＝ResearcherFrac＞0 の形・貯蓄0＝貨幣は動かない）
+    /// MoveSpecialists を直接呼ぶ。⚠突然変異「技師へ全額」で赤。</summary>
+    [Fact]
+    public void 招聘の支度金は呼ばれた本人へ人数の比で渡る()
+    {
+        var sim = MigrationBoard();
+        var src = sim.Nations[0].World; var dst = sim.Nations[1].World;   // 英→仏
+        Region sR = src.Regions[0], dR = dst.Regions[0];
+        Pop? Of(Region r, int cls) => r.Pops.Find(x => x.ClassId == cls && !x.IsSoldier);
+        foreach (var r in new[] { sR, dR })
+            if (Of(r, PopClass.Researcher) is null) r.Pops.Add(new Pop { ClassId = PopClass.Researcher, ClassName = "研究者", IsUrban = true, Size = 20, Savings = 0, Satisfaction = 1.0, IsModernElite = true });
+        Pop? se = Of(sR, PopClass.Engineer), sr = Of(sR, PopClass.Researcher), de = Of(dR, PopClass.Engineer), dr = Of(dR, PopClass.Researcher);
+        Assert.True(se is { Size: > 0 } && sr is { Size: > 0 } && de is not null && dr is not null, "前提が崩れた：技師と研究者の POP が両方の州に居ない");
+        double pool = se!.Size + sr!.Size, heads = 0.1 * pool, perHead = 7.0;
+        dst.RecruitBudget = 1e12; dst.FiscalFundingRatio = 1.0;
+        double fE = System.Math.Min(heads * (se.Size / pool), se.Size), fR = System.Math.Min(heads * (sr.Size / pool), sr.Size);
+        double dowE = se.Savings * (fE / se.Size), dowR = sr.Savings * (fR / sr.Size), cost = perHead * (fE + fR);
+        double de0 = de!.Savings, dr0 = dr!.Savings, t0 = dst.Treasury;
+        typeof(MultiNationSim).GetMethod("MoveSpecialists", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!
+            .Invoke(sim, [src, dst, sR, dR, heads, perHead]);
+        double tol = 1e-9 * System.Math.Max(1.0, cost + System.Math.Abs(de0) + System.Math.Abs(dr0) + System.Math.Abs(dowE) + System.Math.Abs(dowR));
+        Assert.True(System.Math.Abs(dr.Savings - dr0 - dowR - cost * fR / (fE + fR)) <= tol, $"研究者の支度金 {dr.Savings - dr0 - dowR} ≠ {cost * fR / (fE + fR)}");
+        Assert.True(System.Math.Abs(de.Savings - de0 - dowE - cost * fE / (fE + fR)) <= tol, $"技師の支度金 {de.Savings - de0 - dowE} ≠ {cost * fE / (fE + fR)}");
+        Assert.True(System.Math.Abs(t0 - dst.Treasury - cost) <= 1e-9 * System.Math.Max(1.0, System.Math.Abs(t0) + cost), "国庫の減りが支度金と一致しない");
+    }
+
+    /// <summary>★お金の運搬の式は1つ（段2-3 E3）＝ストック×(運ぶ人数÷規模)（社会移動・徴兵・越境移民・招聘と同じ結合順）。
+    /// 州間の移住（Territory.MoveBetweenRegions）で、貯蓄・債務・国債の保有が同じ式で運ばれる（旧＝(ストック÷規模)×人数＝浮動小数の端数が他の運搬と違った）。
+    /// 値＝100÷7×3 と 100×(3÷7) が倍精度で違う組。⚠突然変異「旧の結合順」で赤。</summary>
+    [Fact]
+    public void 州間の移住のお金の運搬はストック掛ける人数の比()
+    {
+        var sp = new Pop { Size = 7, Savings = 100, Debt = 100, BondHoldings = 100 };
+        var dp = new Pop { Size = 1, Savings = 0, Debt = 0, BondHoldings = 0 };
+        Territory.MoveBetweenRegions(sp, dp, 3, new Coefficients());
+        double want = 100.0 * (3.0 / 7.0);
+        Assert.NotEqual(100.0 / 7.0 * 3.0, want);   // 盤面の前提＝2つの結合順が倍精度で違う
+        Assert.Equal(want, dp.Savings); Assert.Equal(want, dp.Debt); Assert.Equal(want, dp.BondHoldings);
+    }
 }

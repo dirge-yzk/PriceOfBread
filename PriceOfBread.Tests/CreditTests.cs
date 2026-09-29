@@ -12,7 +12,6 @@ public class CreditTests
         EducationLaw = EducationLaw.Public,
         Freedom = 0.9,
         EducationSpending = 1.0,
-        CreditEnabled = true,
         ShockQuarterIndex = shockQ,
         ShockMagnitude = shockMag,
     };
@@ -158,7 +157,7 @@ public class CreditTests
     }
 
     /// <summary>★基礎貨幣が負の国の返せない与信の償却（作者裁定 E6 の2歩目・2026-09-28）。月末の損失の負債化（<c>Simulation.BackstopNegativeSavings</c>）の後、
-    /// 基礎貨幣が負の国は負の分だけ銀行の与信を償却し、同じ額を非常発行として台帳に積む（銀行の無い世界の非常発行と同じ型＝貨幣を作る）。
+    /// 基礎貨幣が負の国は負の分だけ銀行の与信を償却し、同じ額を非常発行として台帳に積む（貨幣を作る・2026-09-29 段2-2 から非常発行の行はこの償却だけ）。
     /// 盤面＝英を1四半期温めた世界。与信 L を信用創造の対（与信と預金）で置き、国庫と国内の貨幣（貯蓄の和）を置き、1つの POP に今月の損失を置く。
     /// (1) 負の国（基礎貨幣＝0.5L−0.1L−L＝−0.6L）：償却の後、基礎貨幣は0・貯蓄は全て非負・与信＝L＋損失−償却・非常発行の増分＝償却＝負の分・保存量の検査（MoneyConservation）が通る
     /// (2) 対照＝正の国（2L−0.1L−L＝0.9L）：損失は与信になるだけ（非常発行は動かない・基礎貨幣も動かない）
@@ -231,5 +230,69 @@ public class CreditTests
         b.Run(300);
         Assert.Equal(a.World.BroadMoney, b.World.BroadMoney);
         Assert.Equal(a.World.OutstandingLoans, b.World.OutstandingLoans);
+    }
+
+    /// <summary>★投資家のいない首都の与信（支払いの一元化 段2-2・A1＋E1・2026-09-29）：全POPへ預金の比で注入・回収する枝（旧 InjectMoney＝按分の本体 World.Distribute へ畳んだ）。
+    /// (1) 預金者不在（全POPの貯蓄≦0）なら、与信を広げたい（目標＞残高）ときでも与信は立たない＝基礎貨幣は動かない
+    ///     （旧＝与信の残高を先に動かし、InjectMoney が早期 return しても戻さなかった＝基礎貨幣が delta だけ動いた湧き口）。
+    /// (2) 回収は預金の合計まで（投資家の枝と同じ）＝負の貯蓄を作らない・与信は回収した額だけ減る・基礎貨幣は動かない。
+    /// 盤面＝英を1四半期温めた世界の首都から投資家の添字を外す。⚠突然変異「配れなかった額も与信に積む」「回収を預金で切らない」で赤。</summary>
+    [Fact]
+    public void 投資家のいない首都では受け手がいるときだけ与信し回収は預金まで()
+    {
+        static World Board()
+        {
+            var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+            sim.Run(1);
+            var w = sim.World;
+            w.Region.InvestorPopIndex = -1;   // 投資家のいない首都（全POPへ注入・回収する枝）
+            return w;
+        }
+        // (1) 預金者不在
+        {
+            var w = Board(); var bank = w.Bank!;
+            foreach (var p in w.AllPops()) p.Savings = 0;
+            bank.Loans = 0; bank.Confidence = 1.0;
+            w.SetTreasuryRaw(1e6);   // 準備（基礎貨幣＝国庫）＞0＝与信の目標＞0
+            double base0 = w.BaseMoney;
+            PriceOfBread.SimCore.Credit.Step(w, w.Coef);
+            Assert.Equal(0.0, bank.Loans);
+            Assert.Equal(base0, w.BaseMoney);
+        }
+        // (2) 回収は預金の合計まで
+        {
+            var w = Board(); var bank = w.Bank!;
+            double held = 0; foreach (var p in w.AllPops()) { p.Savings = 1.0; held += 1.0; }
+            bank.Loans = 1e9; bank.Confidence = 0;   // 目標≪残高＝大きく回収したい
+            double base0 = w.BaseMoney;
+            PriceOfBread.SimCore.Credit.Step(w, w.Coef);
+            foreach (var p in w.AllPops()) Assert.True(p.Savings >= -1e-12, $"回収で負の貯蓄を作った（{p.Savings}）");
+            Assert.True(Math.Abs(1e9 - bank.Loans - held) <= 1e-6, $"与信の減り {1e9 - bank.Loans} ≠ 預金の合計 {held}");
+            Assert.True(Math.Abs(w.BaseMoney - base0) <= 1e-6, $"回収で基礎貨幣が動いた（{base0} → {w.BaseMoney}）");
+        }
+    }
+
+    /// <summary>★全ての世界に銀行がある（支払いの一元化 段2-2・B7＋A8・作者裁定 Q11・2026-09-29）＝損失の受け皿は与信の1本。
+    /// 旧＝銀行の無い試験世界では州の最富裕POP→正の貯蓄の全員から取って埋め（他人から取る）、残りを非常発行の名目で台帳に積んだ（漏れを保存の検査から隠した）。
+    /// 盤面＝最小の試験世界（旧＝銀行なし）で1つの POP に損失を置き、月末の底打ちを1回。⚠突然変異「銀行の無い世界の底打ちへ戻す」で赤。</summary>
+    [Fact]
+    public void 全ての世界に銀行があり損失は与信だけが受け皿()
+    {
+        var sim = new Simulation(new Scenario { Seed = 7, Kind = ScenarioKind.AgrarianToUrban }, new NullAgent());
+        var w = sim.World;
+        Assert.NotNull(w.Bank);
+        var pops = w.Region.Pops;
+        Assert.True(pops.Count >= 2, "前提が崩れた：POP が1つしかない");
+        pops[0].Savings = -100;
+        var others = new double[pops.Count]; for (int i = 1; i < pops.Count; i++) others[i] = pops[i].Savings;
+        double loans0 = w.Bank!.Loans, fiat0 = w.CumulativeFiatIssued, base0 = w.BaseMoney + 100;   // 損失を置く前の基礎貨幣
+        var mc = new MoneyConservation(w);
+        sim.BackstopNegativeSavings();
+        Assert.Equal(0.0, pops[0].Savings);
+        for (int i = 1; i < pops.Count; i++) Assert.Equal(others[i], pops[i].Savings);   // 他人から取らない
+        Assert.Equal(loans0 + 100, w.Bank.Loans);
+        Assert.Equal(fiat0, w.CumulativeFiatIssued);                                     // 基礎貨幣が正の国は非常発行しない
+        Assert.True(base0 > 0, "前提が崩れた：基礎貨幣が正でない");
+        mc.Check(w);
     }
 }

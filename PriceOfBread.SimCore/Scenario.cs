@@ -44,7 +44,8 @@ public sealed class Scenario
     public double BaseCoercion { get; init; } = 0.0;        // 治安維持力の基礎（連合維持で養う・段3はスカラー）
 
     // --- 信用・銀行（§2.5.1・段4）---
-    public bool CreditEnabled { get; init; } = false;
+    // 【墓標2026-09-29・支払いの一元化 段2-2（作者裁定 Q11）】CreditEnabled（既定 false＝試験世界は銀行なし）を削除＝全ての世界に銀行がある（Simulation の構築で必ず Bank を作る）。
+    //   銀行の無い世界の底打ち（最富裕→全員から取る・非常発行で隠す）が他人から取る唯一の場所だった＝受け皿を与信の1本へ。
     public int ShockQuarterIndex { get; init; } = -1;      // 金融ショックを起こす四半期（-1=なし）
     public double ShockMagnitude { get; init; } = 0.0;     // ショック時の信用意欲の低下幅
 

@@ -577,34 +577,19 @@ public static class Fiscal
             if (pensionCost > 0)   // 老年人口に比例して配分（年金は老人の所得＝消費に回る）。wave2b：分母を受け手と同じフィルタで作り直し（旧oldSizeはOldShare≤1e-9の pop も算入したまま
             {                       // 給付側だけ除外していた＝分子分母の非対称）、Distribute作法どおり端数は最後の受け手へ・受け手不在は国庫残置（保存）。
                 var elderly = new List<Pop>(); var elderW = new List<double>();
-                double elderSize = 0;
-                // ★支配度 段4（2026-09-07）：給付の到達＝州の国家区分（RuleReach）。g=0 で重み1＝旧と同じ受け手・同じ順序（AllPops＝州順→pop順）＝ビット恒等。
+                double elderSize = 0, reachW = 0;
+                // ★支配度 段4（2026-09-07）：給付の到達＝州の国家区分（RuleReach）。g=0 で重み1＝旧と同じ受け手・同じ順序（AllPops＝州順→pop順）。
                 //   届かない分は国庫残置（受け手不在と同じ作法＝保存）。
                 bool reachOn = c.RuleSharesReach > 0;
                 foreach (var rg in w.Regions)
                 {
                     double reach = reachOn ? Politics.RuleReach(rg, c) : 1.0;
-                    foreach (var p in rg.Pops) if (!p.IsSoldier && p.OldShare > 1e-9) { elderly.Add(p); elderW.Add(p.Size * p.OldShare * reach); elderSize += p.Size * p.OldShare; }
+                    foreach (var p in rg.Pops) if (!p.IsSoldier && p.OldShare > 1e-9) { elderly.Add(p); elderW.Add(p.Size * p.OldShare * reach); elderSize += p.Size * p.OldShare; reachW += p.Size * p.OldShare * reach; }
                 }
-                if (elderSize > 1e-9)
-                {
-                    double done = 0;
-                    if (!reachOn)
-                    {
-                        for (int i = 0; i < elderly.Count - 1; i++)
-                        {
-                            double share = pensionCost * (elderly[i].Size * elderly[i].OldShare) / elderSize;
-                            elderly[i].Savings += share; done += share;
-                        }
-                        elderly[^1].Savings += pensionCost - done;
-                    }
-                    else
-                    {
-                        for (int i = 0; i < elderly.Count; i++) { double share = pensionCost * elderW[i] / elderSize; elderly[i].Savings += share; done += share; }
-                        if (pensionCost - done > 1e-12) w.Pay(TreasuryCat.Pension, pensionCost - done);   // 届かなかった給付＝国庫残置
-                    }
-                }
-                else w.Pay(TreasuryCat.Pension, pensionCost);   // 受け手不在＝国庫残置
+                // ★支払いの一元化 段2-3（E1・2026-09-29）：按分の本体 World.Distribute へ畳んだ（旧＝式 pensionCost×w/Σ の結合順が本体と違い、到達の枝は端数を寄せなかった＝同じ支払いに端数規則が2つ）。
+                //   届く額＝給付×(届く重み÷老年人口)を届く重みで配る＝各人の額は旧と同じ量。届かない分・受け手不在・配れなかった額は国庫残置。
+                double reached = elderSize > 1e-9 ? pensionCost * (reachW / elderSize) : 0;
+                w.Pay(TreasuryCat.Pension, pensionCost - reached + World.Distribute(elderly, reached, elderW));
             }
         }
         else w.LastPensionCost = 0;
@@ -688,8 +673,9 @@ public static class Fiscal
         // 財5（対外国債をモデル外の無限プールから閉鎖系へ）：foreignPool を他モデル国の資本家貯蓄から実引き当て。
         // 注入（MultiNationSim→World.ForeignBondInvestorPool）と保有国配分（CapitalMarket の外債レグ＝ForeignBondClaims 繰上げ＋利払い配当）は実装済み。
         // ★2026-09-26：旗 ForeignBondFromInvestors（既定1.0）を焼き込み（x-01）。
-        if (w.ForeignBondInvestorPool >= 0.0)
-            foreignPool = Math.Min(foreignPool, Math.Max(0.0, w.ForeignBondInvestorPool));   // 実引き当て：他国投資家プールを超えて対外債を発行できない（保存）
+        // ★支払いの一元化 段2-2（A5・2026-09-29）：貸し手のいない対外借入は立たない＝プールが未注入（既定 −1＝単一国の世界・共有層の最初の四半期の前）なら外資は0。
+        //   旧＝未注入ならモデル外の無限プール＝世界の外から湧いた（四半期末の貸し手の引き落としが無い）。
+        foreignPool = Math.Min(foreignPool, Math.Max(0.0, w.ForeignBondInvestorPool));   // 実引き当て：他国投資家プールを超えて対外債を発行できない（保存）
         double pool = domesticPool + foreignPool;
         double borrowed = Math.Min(borrowWant, pool);
         if (!(borrowed > 1e-9)) return 0;
@@ -713,27 +699,19 @@ public static class Fiscal
     }
 
     /// <summary>★国債の保有台帳（2026-09-21裁定）：cash を**保有に比例**して配り、principal ぶん保有を同じ比で減らす。
-    /// 台帳は金を動かさない＝配る金は呼び手が国庫から出した cash だけ。端数は最後の持ち手へ（<see cref="Distribute"/> と同じ作法＝配った額の和が cash に厳密一致）。
-    /// 持ち手不在（保有の和が0）なら cash をそのまま返す＝呼び手が国庫残置して保存則を守る。</summary>
+    /// 台帳は金を動かさない＝配る金は呼び手が国庫から出した cash だけ。★支払いの一元化 段2-3（E1・2026-09-29）：配るのは按分の本体 World.Distribute
+    /// （持ち手＝保有が正の POP・重み＝保有・端数は最後の持ち手＝旧と同じ式）。持ち手不在（保有の和≈0）なら cash をそのまま返す＝呼び手が国庫残置して保存則を守る。</summary>
     private static double PayBondHolders(List<Pop> pops, double cash, double principal)
     {
-        double total = 0; Pop? last = null;
-        foreach (var p in pops) if (p.BondHoldings > 0) { total += p.BondHoldings; last = p; }
-        if (last is null) return cash;
-        double done = 0;
-        foreach (var p in pops)
-        {
-            if (!(p.BondHoldings > 0) || ReferenceEquals(p, last)) continue;
-            double share = cash * (p.BondHoldings / total);
-            p.Savings += share; done += share;
-        }
-        last.Savings += cash - done;
-        if (principal > 0)
+        var holders = new List<Pop>(); var held = new List<double>(); double total = 0;
+        foreach (var p in pops) if (p.BondHoldings > 0) { holders.Add(p); held.Add(p.BondHoldings); total += p.BondHoldings; }
+        double back = World.Distribute(holders, cash, held);
+        if (principal > 0 && total > 0)
         {
             double keep = principal < total ? 1.0 - principal / total : 0.0;   // 同じ比で減らす＝和は total−principal（負にしない）
             foreach (var p in pops) p.BondHoldings *= keep;
         }
-        return 0;
+        return back;
     }
 
     /// <summary>★保有台帳の国外振替（2026-09-21）：持ち手が**発行国の外へ出る**（割譲・分離建国・越境移民・招聘）とき、その保有 h を

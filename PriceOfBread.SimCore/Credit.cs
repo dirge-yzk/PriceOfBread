@@ -153,7 +153,17 @@ public static class Credit
             lent = Math.Max(delta, -Math.Max(0, inv.Savings));   // 回収は投資家の貯蓄まで（負債で保存）
             inv.Savings += lent;
         }
-        else InjectMoney(Pops(), delta);
+        else
+        {
+            // ★支払いの一元化 段2-2（A1・2026-09-29）：投資家のいない首都では全POPへ預金の比で注入・回収する（旧 InjectMoney＝按分の本体 World.Distribute へ畳んだ・E1）。
+            //   旧＝与信の残高を先に動かし、InjectMoney が早期 return（預金の合計≈0・POP 不在）しても戻さなかった＝基礎貨幣が delta だけ動いた（湧き口）。
+            //   今＝**受け手がいるときだけ与信**（配れなかった額は与信に積まない）・回収は投資家の枝と同じく預金の合計まで（負の貯蓄を作らない）。
+            var pops = Pops();
+            var held = new List<double>(pops.Count); double heldSum = 0;
+            foreach (var p in pops) { double h = Math.Max(0, p.Savings); held.Add(h); heldSum += h; }
+            lent = Math.Max(delta, -heldSum);
+            lent -= World.Distribute(pops, lent, held);
+        }
         bank.Loans += lent;
 
         // 民間貸出の金利キャッシュフロー（no-loan-interest-cashflow）：借り手(投資家)が利息を払い、銀行利潤として預金者(全pop)へ分配＝pop→pop純移転でBaseMoney保存。
@@ -212,28 +222,11 @@ public static class Credit
                 // 利潤は預金者への配当ゆえ Size(人頭) でなく預金額比例が正しい（人頭だと無貯蓄の貧農も同額/人＝資本家→大衆の意図せぬ恒常移転）。
                 // 徴収側（上の tot）と同形の Math.Max(0, Savings) 重み。LoanSpread 既定0でdormant＝現行挙動に影響なし。
                 var pops = Pops();
-                var held = new List<double>(pops.Count); foreach (var p in pops) held.Add(Math.Max(0, p.Savings));
-                World.Distribute(pops, paid, held);   // ⚠預金の合計≈0 なら配らない（旧と同じ＝戻り値を捨てる。受け手不在の保存の穴は段2-2）
+                var held = new List<double>(pops.Count); double heldSum = 0;
+                foreach (var p in pops) { double h = Math.Max(0, p.Savings); held.Add(h); heldSum += h; }
+                // ★段2-2（2026-09-29）：預金の合計≈0（預金者不在）なら頭数で配る＝旧は戻り値を捨てて、払った利息が消えた（受け手不在の保存の穴）。
+                World.Distribute(pops, paid, heldSum > 1e-9 ? held : null);
             }
         }
-    }
-
-    private static void InjectMoney(List<Pop> pops, double delta)
-    {
-        if (Math.Abs(delta) < 1e-12 || pops.Count == 0) return;
-        // 負貯蓄ガード（経20）：按分基準に負の貯蓄が混ざると share が負になり信用注入の符号が逆転する（負債pop から金を抜く）。
-        // 利息の徴収/分配側と揃えて Math.Max(0, ·) で防御し、正の貯蓄だけを按分基準にする。
-        double total = 0;
-        foreach (var p in pops) total += Math.Max(0, p.Savings);
-        if (total <= 1e-9) return;
-
-        double done = 0;
-        for (int i = 0; i < pops.Count - 1; i++)
-        {
-            double share = delta * (Math.Max(0, pops[i].Savings) / total);
-            pops[i].Savings += share;
-            done += share;
-        }
-        pops[^1].Savings += delta - done;
     }
 }

@@ -37,6 +37,9 @@ public class FiscalTests
         //   国債が年GDP の約5% までしか積めない（貸し手は歳入の小さい国に貸さない＝史実どおり）＝鎖（赤字→借入→債務→緊縮の門）を測るため、開始だけをこの世界の債務の桁へ下げる
         //   （物差しと史実の値の番人は 緊縮と歳入要求と銀行の評価損は年の名目GDPで測る）。
         sim.World.Coef.AusterityStartDebt = 0.01;
+        // ★2026-09-29（支払いの一元化 段2-2・A5）：貸し手のいない対外借入は立たない＝単一国の世界は既定で外資0（国内の貸し手＝近代エリートの居ないこの世界では借りられない）。
+        //   借入→債務→緊縮の門を測るため、外国の貸し手が居る盤面にする（共有層が四半期末に注入する引き受け余力の代わり＝この番人は国債の相手を測らない）。
+        sim.World.ForeignBondInvestorPool = 1e30;
         double maxAusterity = 0, maxPollTax = 0, maxMonopolyBreadth = 0;
         bool floorSeen = false;
         for (int q = 0; q < 400; q++)
@@ -931,6 +934,7 @@ public class FiscalTests
             w.Coef.BorrowFractionOfGdp = 10;         // 1件の額＞外資のプール
             w.LastInterest = 0; w.LastRevenue = w.NominalGdp;   // 借入の上限の下
             w.GovBondRate = rate;
+            w.ForeignBondInvestorPool = 1e30;       // 外国の貸し手が居る盤面（2026-09-29 A5＝未注入は外資0・共有層の注入の代わり）
             return Fiscal.Borrow(w, w.Coef, -1e18);
         }
         double r1 = Lend(0.01), r2 = Lend(0.02), r4 = Lend(0.04), r8 = Lend(0.08);
@@ -1009,5 +1013,69 @@ public class FiscalTests
         new BondLedger().Check(pw);
         sim.StepQuarter();   // 返った州と与信を含めて1四半期（エンジンの月次検査）
         new BondLedger().Check(pw);
+    }
+
+    /// <summary>★対外借入の貸し手の払いは貸し手の貯蓄まで・払えなかった分の借入は立たない（支払いの一元化 段2-2・A5・2026-09-29）。
+    /// 盤面＝英仏2国（外交を止めた共有層）を1四半期温め、仏の貸し手（近代エリート）の貯蓄を小さくして、英が外資を大きく借りた形（Fiscal.Borrow の入金と同じ5行）を置く。
+    /// 四半期末の引き落とし（MultiNationSim）の後：仏の貸し手の貯蓄は負にならない（旧＝貯蓄の比で請求額を引き、負へ押した＝他人から取る）・
+    /// 英の対外債は貸し手が払えなかった分だけ減る（旧＝貸し手不在なら控除なし＝借り手の受領だけが残る湧き口）。
+    /// ⚠突然変異「貸し手の貯蓄で切らない」「払えなかった分を戻さない」で赤。</summary>
+    [Fact]
+    public void 対外借入は貸し手の貯蓄までで払えなかった分は立たない()
+    {
+        var sim = new MultiNationSim([WorldData.ByName("イギリス"), WorldData.ByName("フランス")], seed: 1789, coef: new Coefficients()) { DiplomacyFrozen = true };
+        foreach (var n in sim.Nations) n.TelemetryEnabled = false;
+        sim.Diplomacy.Log.Enabled = false;
+        sim.StepQuarter();
+        var uk = sim.Nations[0].World; var fr = sim.Nations[1].World;
+        uk.Coef.ForeignBondCapacity = 0;   // この四半期に英が自分で外資を借りない（盤面の借入だけを測る）
+        var lenders = new List<Pop>();
+        foreach (var r in fr.Regions)
+        {
+            if (r.State != RegionState.Active) continue;
+            var sink = r.Pops.Find(p => !p.IsModernElite && !p.IsSoldier)!;   // 貸し手の貯蓄の余りを同じ州の大衆へ移す＝仏の基礎貨幣は動かない（保存量の検査を通る盤面）
+            foreach (var p in r.Pops) if (p.IsModernElite && !p.IsSoldier) { double ex = p.Savings - 10; p.Savings = 10; sink.Savings += ex; lenders.Add(p); }
+        }
+        Assert.NotEmpty(lenders);
+        const double X = 1e9;
+        uk.Pay(TreasuryCat.Borrow, X); uk.CumulativeTradeFlow += X; uk.GovDebt += X; uk.ForeignDebt += X; uk.PendingForeignBorrow += X;
+        double fd0 = uk.ForeignDebt;
+        sim.StepQuarter();
+        foreach (var p in lenders) Assert.True(p.Savings >= -1e-9, $"貸し手の貯蓄が負になった（{p.Savings}）＝他人から取った");
+        Assert.True(uk.ForeignDebt < fd0 - 0.9 * X, $"貸し手が払えなかった借入が対外債に残った（{fd0} → {uk.ForeignDebt}）");
+    }
+
+    /// <summary>★新規の資本移動の受け手は、送り手から**実際に動いた額**だけ受け取る（支払いの一元化 段2-2・A6・2026-09-29）。
+    /// 旧＝受け手は traded を満額受け取り、送り手だけ投資家の貯蓄で切った＝切られた分だけ世界に湧いた。盤面＝英仏米の3国を1四半期温め、
+    /// 送り手の供給と受け手の需要を大きくして（CapitalExportFrac・CapitalDemandScale）送り手の貯蓄で切られる形にし、国際金融の段を1回。
+    /// 対外の利子の管（ForeignIntPaidThisQuarter＝月次の段で払い手の側を記帳済みの片側）を空にすれば、段の中の流れは全て両建て＝世界の台帳の和は動かない。
+    /// ⚠突然変異「受け手へ traded の比で満額を渡す」で赤。</summary>
+    [Fact]
+    public void 資本移動の受け手は送り手から動いた額だけ受け取る()
+    {
+        var sim = new MultiNationSim([WorldData.ByName("イギリス"), WorldData.ByName("フランス"), WorldData.ByName("アメリカ")], seed: 1789, coef: new Coefficients()) { DiplomacyFrozen = true };
+        foreach (var n in sim.Nations) n.TelemetryEnabled = false;
+        sim.Diplomacy.Log.Enabled = false;
+        sim.StepQuarter();
+        var c = new Coefficients { CapitalExportFrac = 1e6, CapitalDemandScale = 1e6 };   // 送り手の供給も受け手の需要も投資家の貯蓄より桁違いに大きい＝送り手の貯蓄で切られる
+        static double Held(World w) { double s = 0; foreach (var r in w.Regions) foreach (var p in r.Pops) if (CapitalMarket.IsInvestor(p, w.Coef)) s += Math.Max(0, p.Savings); return s; }
+        double tf0 = 0, bm0 = 0, inv0 = 0;
+        var held0 = new double[sim.Nations.Count];
+        for (int i = 0; i < sim.Nations.Count; i++)
+        {
+            var w = sim.Nations[i].World; w.ForeignIntPaidThisQuarter = 0; tf0 += w.CumulativeTradeFlow; bm0 += w.BaseMoney;
+            held0[i] = Held(w); inv0 += held0[i];
+        }
+        CapitalMarket.Step(sim.Nations, c);
+        double tf1 = 0, bm1 = 0; bool drained = false;
+        for (int i = 0; i < sim.Nations.Count; i++)
+        {
+            var w = sim.Nations[i].World; tf1 += w.CumulativeTradeFlow; bm1 += w.BaseMoney;
+            if (held0[i] > 0 && Held(w) <= 1e-6 * held0[i]) drained = true;
+        }
+        Assert.True(drained, "前提が崩れた：どの送り手も投資家の貯蓄で切られていない");
+        double tol = 1e-9 * Math.Max(1.0, inv0);
+        Assert.True(Math.Abs(tf1 - tf0) <= tol, $"国際金融の段で世界の台帳の和が動いた（{tf1 - tf0}）＝受け手が送り手の払いより多く受け取った");
+        Assert.True(Math.Abs(bm1 - bm0) <= tol, $"国際金融の段で世界の基礎貨幣が動いた（{bm1 - bm0}）");
     }
 }

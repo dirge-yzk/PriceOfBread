@@ -17,13 +17,14 @@ public class InvariantTests
     }
 
     [Fact]
-    public void 自作農シナリオでは総マネーがビット単位で一定()
+    public void 自作農シナリオでは基礎貨幣が一定()
     {
+        // ★2026-09-29（支払いの一元化 段2-2・作者裁定 Q11）：全ての世界に銀行がある＝与信が預金を作る（総マネー＝預金は与信の分だけ動く）。
+        //   保存されるのは基礎貨幣（預金＋国庫−与信）。旧＝銀行の無い世界の総マネーがビット単位で一定（自営＝全取りで net=0）。
         var sim = new Simulation(new Scenario { Seed = 5 }, new NullAgent());
-        double before = sim.World.TotalMoney;
+        double before = sim.World.BaseMoney;
         sim.Run(400);
-        // 自営＝全取りで net=0 のため厳密に一定
-        Assert.Equal(before, sim.World.TotalMoney);
+        Assert.True(Math.Abs(sim.World.BaseMoney - before) <= 1e-9 * before, $"基礎貨幣が動いた（{before} → {sim.World.BaseMoney}）");
         Assert.True(Math.Abs(sim.World.TotalPopulation - (1000d + sim.World.PopulationDelta)) < 1e-3, "人口保存の破れ（基準＋出生死亡）");
     }
 

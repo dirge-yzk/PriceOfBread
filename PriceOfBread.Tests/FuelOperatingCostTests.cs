@@ -450,4 +450,42 @@ public class FuelOperatingCostTests
         double dOn = on.World.Region.Markets[Catalog.CrudeOilId].LastDemand;
         Assert.True(dOn > dOff + 1.0, $"輜重燃料の原油需要が立っていない（ON {dOn:F2} vs OFF {dOff:F2}）");
     }
+
+    /// <summary>★生産者のいない在庫を輸送の買い付けで買うと、在庫の持ち主（捌き手の商人）へ払う（支払いの一元化 段2-2・A2・2026-09-29）＝EconomyStep の「生産者のいない財の売上」と同じ規則。
+    /// 旧＝PayExportToProducers が0を返すと買い手は払わずに在庫を持ち去った（物が無償で消えた）。盤面＝仏を8か月温め、全ての活動州で線路と機関車の生産者の産出を0にし
+    /// （在庫は輸入の在庫）、投資家（鉄道の買い手）の財布を潤沢にして Transport.Step を1回（船は目標の上・汽船の燃料は0＝鉄道の買い付けだけ）。
+    /// ⚠突然変異「生産者のいない在庫は払わない（旧）」で赤。</summary>
+    [Fact]
+    public void 生産者のいない在庫を買うと在庫の持ち主の商人へ払う()
+    {
+        var coef = new Coefficients();
+        var sim = new Simulation(new Scenario { Seed = 61, Kind = ScenarioKind.France, Coef = coef }, new NullAgent());
+        sim.Run(8);
+        var w = sim.World;
+        w.TechLevel = 10; w.RailCapacity = 0; w.ShipCapacity = 1e18; w.ShipSteamShareEma = 0;   // 鉄道は満額の解禁・船は買わない・燃料も買わない
+        var regs = new List<Region>();
+        foreach (var r in w.Regions)
+        {
+            if (r.State != RegionState.Active || r.InvestorPopIndex < 0 || r.MerchantPopIndex < 0 || r.InvestorPopIndex == r.MerchantPopIndex) continue;
+            regs.Add(r);
+            foreach (int g in new[] { coef.RailGoodId, coef.LocoGoodId }) { r.Markets[g].Price = 1.0; r.Markets[g].Stock = 1e6; }
+            foreach (var pr in r.Producers) if (pr.GoodId == coef.RailGoodId || pr.GoodId == coef.LocoGoodId) pr.Output = 0;
+            r.Pops[r.InvestorPopIndex].Savings = 1e9;
+        }
+        Assert.NotEmpty(regs);
+        var inv0 = regs.Select(r => r.Pops[r.InvestorPopIndex].Savings).ToArray();
+        var mer0 = regs.Select(r => r.Pops[r.MerchantPopIndex].Savings).ToArray();
+        var stock0 = regs.Select(r => r.Markets[coef.RailGoodId].Stock).ToArray();
+        Transport.Step(w, coef);
+        double paidSum = 0;
+        for (int i = 0; i < regs.Count; i++)
+        {
+            var r = regs[i];
+            double paid = inv0[i] - r.Pops[r.InvestorPopIndex].Savings, got = r.Pops[r.MerchantPopIndex].Savings - mer0[i];
+            Assert.True(Math.Abs(paid - got) <= 1e-9 * Math.Max(1.0, inv0[i]), $"{r.Name}：投資家の払い {paid} ≠ 商人の受け取り {got}");
+            if (r.Markets[coef.RailGoodId].Stock < stock0[i]) Assert.True(paid > 0, $"{r.Name}：線路を持ち去ったのに投資家が払っていない");
+            paidSum += paid;
+        }
+        Assert.True(paidSum > 0, "前提が崩れた：どの州でも鉄道を買っていない");
+    }
 }

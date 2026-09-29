@@ -149,11 +149,11 @@ public static class Territory
     /// MoveRegion（地域間移民）と Colonial.Step の入植（本国→植民地格の州）が**同じ1本**を呼ぶ＝運搬漏れの再発を防ぐ（抽出＝ビット恒等）。</summary>
     internal static void MoveBetweenRegions(Pop sp, Pop dp, double moveSize, Coefficients c)
     {
-        double perCapita = sp.Size > 1e-9 ? sp.Savings / sp.Size : 0;
-        double moveSavings = perCapita * moveSize;
-        double moveDebt = sp.Size > 1e-9 ? sp.Debt / sp.Size * moveSize : 0;   // 個人債務も按分して運ぶ（2026-08-02・既定0で恒等）
-        double moveBond = sp.Size > 1e-9 ? sp.BondHoldings / sp.Size * moveSize : 0;   // ★国債の保有台帳（2026-09-21）も按分（州間移動・入植は同じ国の中＝発行国は同じ）
-
+        // ★支払いの一元化 段2-3（E3・2026-09-29）：お金の運搬の式を1つに＝ストック×(運ぶ人数÷規模)（社会移動・徴兵・越境移民・招聘と同じ結合順。旧＝(ストック÷規模)×人数）。
+        double frac = sp.Size > 1e-9 ? moveSize / sp.Size : 0;
+        double moveSavings = sp.Savings * frac;
+        double moveDebt = sp.Debt * frac;   // 個人債務も按分して運ぶ（2026-08-02・既定0で恒等）
+        double moveBond = sp.BondHoldings * frac;   // ★国債の保有台帳（2026-09-21）も按分（州間移動・入植は同じ国の中＝発行国は同じ）
 
         sp.Size -= moveSize; sp.Savings -= moveSavings; sp.Debt -= moveDebt; sp.BondHoldings -= moveBond;
         // 入植者は人口構成（民族・男女・子供・識字）を携えて移動先へ混ざる＝他の全移動サイト（PopDecision/Meritocracy/Military/越境移民）と同型。

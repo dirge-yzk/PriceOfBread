@@ -220,8 +220,7 @@ public sealed class Simulation
         if (scenario.InitialMassMilitancy > 0)
             foreach (var rg in World.Regions) foreach (var p in rg.Pops)
                 if (Politics.IsMassPop(p)) p.Militancy = scenario.InitialMassMilitancy;
-        if (scenario.CreditEnabled)
-            World.Bank = new Bank { Gold = World.TotalMoney, Loans = 0, Confidence = 1.0 };
+        World.Bank = new Bank { Gold = World.TotalMoney, Loans = 0, Confidence = 1.0 };   // ★全ての世界に銀行（2026-09-29 段2-2・作者裁定 Q11＝旧 Scenario.CreditEnabled を削除）
 
         Fiscal.SeedBondHoldings(World);   // ★国債の保有台帳（2026-09-21）：初期国債（仏）の持ち主を購入と同じ規則で起票（金は動かない・国内債0の国は何もしない）
         _invariants = [];
@@ -1386,6 +1385,8 @@ public sealed class Simulation
         if (w.Regions.Find(x => x.Name == col.Name) is { } same)
         {
             double pop0 = same.SumPopulation(), sav0 = same.SumSavings();
+            // （支払いの一元化 段2-2 の A12「受け手の階級が無いと蓄えが運ばれず消える」【推】は確かめて外した＝2026-09-29：実国の州を作る経路〔BuildProvince・辺境・
+            //   植民地の州昇格〕は全て農民と労働者の階級を持つ＝同名の州の吸収で受け手が欠けることは無い）
             foreach (var mp in new[] { peasant, worker })
                 if (mp.Size > 1e-9 && same.Pops.Find(x => x.ClassId == mp.ClassId && !x.IsSoldier) is { } dp) Territory.MoveBetweenRegions(mp, dp, mp.Size, coef);
             double inP = same.SumPopulation() - pop0, inS = same.SumSavings() - sav0;
@@ -1510,7 +1511,7 @@ public sealed class Simulation
         World.StepConstruction();                                                   // 工場建設の進捗（日次・労務費を毎日払って進む）
         ProbeCheck("日次建設");
         (double NominalGdp, double AvgSat, double MeanInd)? creditMonth = null;
-        if (World.Bank is not null)   // 銀行の無い世界では Credit.Step が何もしない＝求めない
+        if (World.Bank is not null)   // （2026-09-29 段2-2 から全ての世界に銀行がある＝常に真・盤面の直書きで外したときだけ偽）
         {
             bool fresh = !CreditMonth.TryGetValue(World, out var box);
             if (box is null) { box = new(); CreditMonth.Add(World, box); }
@@ -2051,7 +2052,7 @@ public sealed class Simulation
                         && World.Regions.Exists(hr => hr.State == RegionState.Active && hr.Name == mp.Host))
                         claims += World.Coef.MegaprojectForeignYield * mp.ForeignPrincipal;   // 外資の利回り（四半期）
         }
-        // 売買方針の代金とダンピング補助（清算ごと・InternationalMarket.PaySubsidy）＝直近の清算の越境の輸入額・輸出額で見込む（同国の州どうしの買い付けの分は見込みの外）
+        // 売買方針の代金とダンピング補助（清算ごと・清算の末尾の World.Transfer＝旧 InternationalMarket.PaySubsidy）＝直近の清算の越境の輸入額・輸出額で見込む（同国の州どうしの買い付けの分は見込みの外）
         double tradeClaim = World.Tariff < 0 ? World.LastExportValue * -World.Tariff * World.Coef.TariffRevenueRate : 0;
         if (World.ImportsByGood is { } payImp)
             for (int g = 0; g < payImp.Length; g++) if (World.TradeBiasOf(g) > 0) tradeClaim += World.Coef.TradeBiasStrength * payImp[g];
@@ -2851,9 +2852,12 @@ public sealed class Simulation
     /// <summary>
     /// 損失吸収の脆さの会計（§9-C 拡張）：月次の全フロー後、損失で貯蓄が負になった pop の不足を信用（借入）で埋める。
     /// 貯蓄→0・Bank.Loans＋不足 ＝ BaseMoney(=TotalMoney+Treasury−Loans) を不変に保つ（保存則厳守）。資本家は損失を負債として抱え、
-    /// 貯蓄は0で下げ止まる＝有限責任。慢性赤字は負債(OutstandingLoans)の増加として可視化される（隠蔽しない）。Bank が無い構成では何もしない。
+    /// 貯蓄は0で下げ止まる＝有限責任。慢性赤字は負債(OutstandingLoans)の増加として可視化される（隠蔽しない）。
+    /// ★支払いの一元化 段2-2（B7＋A8・作者裁定 Q11・2026-09-29）：**全ての世界に銀行がある**（Scenario の CreditEnabled を削除＝構築で必ず Bank を作る）＝受け皿は与信の1本。
+    /// 旧＝銀行の無い世界（試験世界）では ①州の最富裕POP ②ほかの正の貯蓄の全員 から取って埋め（他人から取る＝規則(2)の唯一の違反）、
+    /// ③それでも残る不足を非常発行として CumulativeFiatIssued に積んだ（消えた不足を不換の発行の名目で隠す＝保存の検査 ProbeCheck が漏れを正当と見なした）。
     /// <para>★返せない与信の償却（作者裁定 E6 の2歩目・2026-09-28）：埋めた後も基礎貨幣が負の国は、負の分だけ銀行の与信（<see cref="Bank.Loans"/>）を
-    /// 償却し、同じ額を非常発行として台帳（<see cref="World.CumulativeFiatIssued"/>）に積む＝下の銀行の無い世界の③と同じ型（貨幣を作る）。
+    /// 償却し、同じ額を非常発行として台帳（<see cref="World.CumulativeFiatIssued"/>）に積む（貨幣を作る）。
     /// 基礎貨幣が負＝与信が国内の貨幣の全部（貯蓄＋国庫）を越えた＝越えた分は国の中のどのお金でも返せない。回収は基礎貨幣を動かさない
     /// （預金と与信が同じ額だけ減る）ので、負の国は回収では戻らない（(82) の §2）。償却は与信の残高まで（国庫の負の分は与信でない＝残る）。
     /// ⚠この月に上で積んだ損失の負債化も同じ残高に入る＝負の国では、上限（A16）の外で積む与信も同じ規則で閉じる。
@@ -2862,60 +2866,23 @@ public sealed class Simulation
     /// </summary>
     internal void BackstopNegativeSavings()
     {
-        double fiat = 0;   // 非常発行（シニョリッジ）＝台帳へ積むのは末尾の1行だけ（銀行の償却と、銀行の無い世界の③で同じ行）
-        if (World.Bank is { } bank)
-        {
-            foreach (var r in World.Regions)
-                foreach (var p in r.Pops)
-                    if (p.Savings < 0)
-                    {
-                        bank.Loans += -p.Savings;   // 不足を借入（負債↑）
-                        World.LossFinanced += -p.Savings; // 可視化：損失の負債化を累積記録
-                        // ★入口A（損失の記憶・2026-08-02）：**記録を併記するだけ**＝貸し手側（Bank.Loans）は1ビットも変えない。
-                        //   PopDebtLossShare は「消えた赤字のうち個人が背負う割合」＝有限責任の度合い（1.0で無限責任）。
-                        //   ⚠これが無いと、赤字は毎月0へ均されて**誰の記憶にも残らず**、デレバレッジが起きない。
-                        if (World.Coef.PopDebtDriven > 0) p.Debt += -p.Savings * World.Coef.PopDebtLossShare;
-                        p.Savings = 0;                    // 下げ止まり（TotalMoney＋不足, Loans＋不足 で相殺＝保存）
-                    }
-            // ★E6：負の分だけ与信を償却（基礎貨幣は償却の額だけ上がり、非常発行が同じ額だけ台帳に積まれる＝保存量は動かない）。
-            //   ⚠NaN は比較が偽＝何もしない（否定形の門）。償却の後の基礎貨幣＝0（与信が足りれば）か国庫の負の分（与信を全部消しても残る分）。
-            double writeOff = Math.Min(-World.BaseMoney, bank.Loans);
-            if (writeOff > 0) { bank.Loans -= writeOff; fiat = writeOff; }
-        }
-        else
-        // 銀行の無い世界（前近代・試験世界）：質屋・施し＝地域の最富裕層が貧者の不足を底打ちする（非公式信用）。
-        // 純移転（富裕→貧者）なので保存則は不変。額は微小（自営の連続赤字の端数）＝富裕層には誤差。
+        var bank = World.Bank!;   // 構築で必ず作る（Simulation のコンストラクタ）
         foreach (var r in World.Regions)
-        {
-            if (r.State != RegionState.Active) continue;
             foreach (var p in r.Pops)
-            {
-                if (p.Savings >= 0) continue;
-                // ①まず従来どおり最富裕popで底打ち（十分な場合はここで完結＝現行と厳密一致＝較正中立。旧挙動を保存）。
-                Pop? rich = null;
-                foreach (var q in r.Pops) if (q != p && (rich is null || q.Savings > rich.Savings)) rich = q;
-                if (rich is not null && rich.Savings > 0)
-                {
-                    double cover = Math.Min(-p.Savings, rich.Savings);
-                    rich.Savings -= cover; p.Savings += cover;
-                }
-                // ②最富裕1popでは足りず残る不足は、他の全「正貯蓄pop」から比例徴収で埋める（旧実装はここで負を残し NonNegativeBounds でクラッシュした）。純移転＝保存不変・各qの拠出はq.Savings以下で新たな負を生まない。
                 if (p.Savings < 0)
                 {
-                    double pool = 0;
-                    foreach (var q in r.Pops) if (q != p && q.Savings > 0) pool += q.Savings;
-                    if (pool > 1e-12)
-                    {
-                        double draw = Math.Min(-p.Savings, pool);
-                        foreach (var q in r.Pops) if (q != p && q.Savings > 0) q.Savings -= draw * (q.Savings / pool);
-                        p.Savings += draw;
-                    }
+                    bank.Loans += -p.Savings;   // 不足を借入（負債↑）
+                    World.LossFinanced += -p.Savings; // 可視化：損失の負債化を累積記録
+                    // ★入口A（損失の記憶・2026-08-02）：**記録を併記するだけ**＝貸し手側（Bank.Loans）は1ビットも変えない。
+                    //   PopDebtLossShare は「消えた赤字のうち個人が背負う割合」＝有限責任の度合い（1.0で無限責任）。
+                    //   ⚠これが無いと、赤字は毎月0へ均されて**誰の記憶にも残らず**、デレバレッジが起きない。
+                    if (World.Coef.PopDebtDriven > 0) p.Debt += -p.Savings * World.Coef.PopDebtLossShare;
+                    p.Savings = 0;                    // 下げ止まり（TotalMoney＋不足, Loans＋不足 で相殺＝保存）
                 }
-                // ③地域全体が債務超過で埋めきれない極端な残余のみ、最後の手段として非常発行(シニョリッジ)を台帳へ計上し0で下げ止め＝保存則を保ちつつクラッシュを回避。
-                if (p.Savings < 0) { fiat += -p.Savings; p.Savings = 0; }
-            }
-        }
-        World.CumulativeFiatIssued += fiat;   // 非常発行の台帳（銀行の償却・銀行の無い世界の③）
+        // ★E6：負の分だけ与信を償却（基礎貨幣は償却の額だけ上がり、非常発行が同じ額だけ台帳に積まれる＝保存量は動かない）。
+        //   ⚠NaN は比較が偽＝何もしない（否定形の門）。償却の後の基礎貨幣＝0（与信が足りれば）か国庫の負の分（与信を全部消しても残る分）。
+        double writeOff = Math.Min(-World.BaseMoney, bank.Loans);
+        if (writeOff > 0) { bank.Loans -= writeOff; World.CumulativeFiatIssued += writeOff; }   // 非常発行の台帳（負の国の与信の償却だけ）
     }
 
 

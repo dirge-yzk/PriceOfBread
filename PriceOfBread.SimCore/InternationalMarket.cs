@@ -53,22 +53,9 @@ public sealed partial class InternationalMarket
         StepBilateral(nations, c, firstClearingOfQuarter);
     }
 
-    // ダンピング（負の関税）の輸出補助金：国庫→輸出の担い手（商人pop）へ。関税徴収(CollectTariff)の逆＝国内移転で保存（金は湧かない）。
-    // 国家の支払い率 r の分だけ払う（2026-09-28 段2-1＝旧は国庫残高で切る門）。商人不在なら支払わず戻す。
-    private static void PaySubsidy(World w, double amount, bool tradeBias = false)
-    {
-        double pay = amount * w.FiscalFundingRatio;
-        if (pay <= 1e-12) return;
-        var merchants = new List<Pop>();
-        foreach (var r in w.Regions) if (r.MerchantPopIndex >= 0 && r.MerchantPopIndex < r.Pops.Count) merchants.Add(r.Pops[r.MerchantPopIndex]);
-        if (merchants.Count == 0) return;
-        w.Pay(tradeBias ? TreasuryCat.Subsidy : TreasuryCat.Tariff, -pay);   // 売買方針の代金＝補助金・ダンピング＝負の関税（作者裁定 Q14）
-        double each = pay / merchants.Count;
-        foreach (var p in merchants) p.Savings += each;
-        // 関税会計の分離（2026-08-08）：売買方針の代金は関税の実収に混ぜない・ダンピング補助金は関税の純額から減算。
-        // 旧＝両方が LastTariffRevenue を**負値で上書き**し、CollectTariff の正値を消していた（関税収入が全世界で実質0の根）。
-        if (!tradeBias) w.LastTariffRevenue -= pay;
-    }
+    // 【墓標2026-09-29・支払いの一元化 段2-3（E2）】PaySubsidy（ダンピングの輸出補助金と売買方針の代金＝国庫→商人POP の頭数で等分）と
+    //   CollectTariff（関税＝全州の商人POP の貯蓄比で取って残高で切る）は、清算の末尾（BilateralMarket.StepBilateral）で移し方の1本 World.Transfer を直接呼ぶ形へ畳んだ
+    //   （受け手・重み・区分・関税の実収の記帳は同じ。受け手へ渡すのは引けた額そのもの＝A4）。
 
     // 財15：輸出代金の一部を当該財の生産者の所有者popへ直接支払う（生産量シェアで按分）。所得は所有者popのSavingsへ入る＝利潤シグナル。
     // ※LastSold には積まない：LastSold は財収支恒等式(GoodsBalance)の販売量であり、輸出は LastExport で既に計上済み。ここで足すと同一数量の二重計上→在庫恒等式が破れて InvariantViolationException。採算(SmoothedMargin)は価格vs限界費用ベースで別経路（LastSold非依存）。
@@ -115,55 +102,26 @@ public sealed partial class InternationalMarket
 
     internal static double CornFactor(ReformLevel lv) => lv switch { ReformLevel.Full => 1.0, ReformLevel.Limited => 0.5, _ => 0.0 };   // internal＝ProductionDiag が穀物法の楔を同式で読む
 
-    // 関税収入を**輸入の捌き手（商人pop）の輸入差益**から国庫へ（④貨幣金融）。
-    // 関税の消費者帰着は①価格チャネル（保護で国内価格↑＝EconomyStepの buyerPrice）が既に担う＝消費者は割増を払済み（∝消費・逆進）。
-    // ②歳入は別途pop頭割りでなく、その割増が溜まる先＝商人pop（EconomyStep #6 B-A2で輸入差益は生産者でなく商人へ）から国庫へ「付け替え」る＝消費者への二重徴収なし・史実の輸入業者の納税・倍率排除に忠実。
-    // 残高超は取り切れない（ラッファー的に部分）。輸入0/較正（交易なし＝amount=0）では何も起きず中立。
-    private static void CollectTariff(World w, double amount)
-    {
-        if (amount <= 1e-12) return;
-        var merchants = new List<Pop>();
-        foreach (var r in w.Regions) if (r.MerchantPopIndex >= 0 && r.MerchantPopIndex < r.Pops.Count) merchants.Add(r.Pops[r.MerchantPopIndex]);
-        double total = 0; foreach (var p in merchants) total += Math.Max(0, p.Savings);
-        double take = Math.Min(amount, total);
-        if (take <= 1e-12 || total <= 1e-9) return;
-        foreach (var p in merchants) p.Savings -= take * (Math.Max(0, p.Savings) / total);
-        w.Pay(TreasuryCat.Tariff, take);
-        w.LastTariffRevenue += take;   // 診断：関税の実収の**累積**（旧＝代入で財ごとに上書き＝最後の1財分しか残らなかった。会計分離2026-08-08）
-    }
-
     // 純貿易流入を pop 貯蓄へ配分＋貿易収支へ計上（保存の追跡）。各国個別は黒字/赤字でよい（世界合計は0）。
     // 黒字（流入）から商人が仲介料を先取り（取扱高＝捌いた量に比例＝交易の担い手）、残りは貯蓄比例。赤字（流出）は貯蓄比例で負担。
+    // ★支払いの一元化 段2-3（E1・2026-09-29）：仲介料（商人の頭数の比）と残余（貯蓄の比・負の額＝赤字も同じ式）は按分の本体 World.Distribute へ畳んだ
+    //   ＝端数は最後の受け手（旧＝仲介料は端数を寄せなかった）。配れなかった額（商人の頭数≈0／POP 不在・総貯蓄≈0）は、仲介料なら残余へ、残余なら国庫へ（旧と同じ行き先）。
     private static void Apply(World w, double netFlow, double turnover, Coefficients c, double directLedger = 0)
     {
         double remaining = netFlow;
         if (netFlow > 0 && turnover > 1e-9)
         {
-            double mSize = 0;
-            foreach (var r in w.Regions) if (r.MerchantPopIndex >= 0 && r.MerchantPopIndex < r.Pops.Count) mSize += r.Pops[r.MerchantPopIndex].Size;
-            if (mSize > 1e-9)
-            {
-                // 仲介料＝取扱高×料率（黒字の固定割合でなく捌いた量に比例）。流入を上限にクランプ（手数料が黒字を超えない）。
-                double mShare = Math.Min(netFlow, turnover * c.MerchantTradeMargin);
-                foreach (var r in w.Regions)
-                    if (r.MerchantPopIndex >= 0 && r.MerchantPopIndex < r.Pops.Count)
-                    {
-                        var mp = r.Pops[r.MerchantPopIndex];
-                        mp.Savings += mShare * (mp.Size / mSize);
-                    }
-                remaining -= mShare;
-            }
+            var merchants = new List<Pop>();
+            foreach (var r in w.Regions) if (r.MerchantPopIndex >= 0 && r.MerchantPopIndex < r.Pops.Count) merchants.Add(r.Pops[r.MerchantPopIndex]);
+            // 仲介料＝取扱高×料率（黒字の固定割合でなく捌いた量に比例）。流入を上限にクランプ（手数料が黒字を超えない）。
+            double mShare = Math.Min(netFlow, turnover * c.MerchantTradeMargin);
+            remaining -= mShare - World.Distribute(merchants, mShare);
         }
         var pops = new List<Pop>();
         foreach (var r in w.Regions) pops.AddRange(r.Pops);
-        double total = 0; foreach (var p in pops) total += Math.Max(0, p.Savings);   // 分母は Max(0,·)（負貯蓄popで逆符号配分になるのを防ぐ）
-        if (pops.Count > 0 && total > 1e-9)
-        {
-            double done = 0;
-            for (int i = 0; i < pops.Count - 1; i++) { double s = remaining * (Math.Max(0, pops[i].Savings) / total); pops[i].Savings += s; done += s; }
-            pops[^1].Savings += remaining - done;
-        }
-        else w.Pay(TreasuryCat.OtherIn, remaining);   // 分配不能（pop不在・総貯蓄≈0の貯蓄枯渇国）なら残余を国庫へ落とす（財2）＝実マネーが必ず remaining ぶん動く
+        var held = new List<double>(pops.Count);
+        foreach (var p in pops) held.Add(Math.Max(0, p.Savings));   // 重みは Max(0,·)（負貯蓄popで逆符号配分になるのを防ぐ）
+        w.Pay(TreasuryCat.OtherIn, World.Distribute(pops, remaining, held));   // 分配不能（pop不在・総貯蓄≈0の貯蓄枯渇国）なら残余を国庫へ落とす（財2）＝実マネーが必ず remaining ぶん動く
         // ＝仲介料(pop)＋残余(pop or 国庫)の合計は常に netFlow。財15の生産者直接分(directLedger)は PayExportToProducers で既に pop へ入れ済みなので、ここでは台帳にのみ加算（二重配分しない）。
         w.CumulativeTradeFlow += netFlow + directLedger;   // Δ基礎貨幣 = netFlow(Apply配分) + directLedger(生産者直接) と厳密一致＝MoneyConservation維持。既定0で directLedger=0＝現行不変
     }

@@ -418,8 +418,8 @@ public sealed class World
     public bool LandTaxUnlocked { get; internal set; }     // 検地台帳の完成（行政力が閾値に達した実績＝一方向）
     public bool IsQuarterEndMonth { get; internal set; }   // 四半期の締め月の月次決算で true（Simulation の月次決算が書く）。読み手＝製法の通知・軍の熟練度（旧読み手の財政の器 FiscalQuarterlyGating は 2026-09-26 に削除）
     // 財5（対外国債の閉鎖系化）：他モデル国の資本家貯蓄の合計（対外国債の引き受け余力）。注入は MultiNationSim（ForeignBondFromInvestors>0.5 のときだけ）。
-    // ★**初期値は −1＝「未注入」**（2026-07-31 点火時の是正）：0で初期化すると、外交層のない単一国世界（較正・テスト）でも「引き受け手ゼロ」と判定され
-    //   起債が丸ごと死ぬ（実測＝FiscalTests の緊縮が発火しなくなった）。Fiscal 側は `>= 0` を注入済みの印として読む。
+    // ★初期値は −1＝「未注入」（2026-07-31 点火時の是正）。⚠2026-09-29（支払いの一元化 段2-2・A5）：未注入も外資0として読む（Fiscal.Borrow）
+    //   ＝外交層のない単一国世界（較正・テスト）は国内の貸し手（資本家の貯蓄）からだけ借りる。旧＝未注入ならモデル外の無限プール＝世界の外から湧いた。
     public double ForeignBondInvestorPool { get; internal set; } = -1.0;
     // ★陸海の維持費を分ける（2026-08-04・作者仕様(5)「陸海の割り振りは廃止し『陸軍維持費』『海軍維持費』とする」）。
     //   ── 設計 ────────────────────────────────────────────────────────────────
@@ -694,11 +694,13 @@ public sealed class World
     /// 受け手不在（空リスト・重みの合計≈0）なら配れなかった額を返す＝呼び手が出所へ戻して保存則を守る
     /// （貨幣保存リーク修正 2026-07-07：国内債権者が州割譲で転出し capitalists が空になると、利払い/減債の国内分が国庫から引かれたまま無配分で消えていた）。
     /// ⚠否定形のガード＝NaN の額・合計は配らない。旧の複製（Colonial.DistributeToPops・World.DistributeToVoters・GiveGold と信用の利息の配当・
-    ///   保険の受け手側）は式・足し順・端数の行き先・縮退の枝が同じだったのでここへ畳んだ。縮退の枝が違う複製（符号つきの与信の注入・
-    ///   貿易の残余・国債の持ち手・窃盗・年金）は段2-3（計画 §10-12）。</summary>
+    ///   保険の受け手側）は式・足し順・端数の行き先・縮退の枝が同じだったのでここへ畳んだ。
+    /// ★段2-3（2026-09-29）：縮退の枝が違った複製（符号つきの与信の注入と回収・貿易の残余・国債の持ち手・窃盗・年金・恐怖政治・十分の一税・運河と港・招聘の支度金）も
+    ///   ここへ畳んだ＝**額は符号つき**（負の額＝重みの比で取る・与信の回収と貿易の赤字）・**微小な額も配る**（旧＝1e-12 以下は配らずに 0 を返した＝呼び手が
+    ///   配ったものとして扱い、その分が消えた）。額が0か NaN なら何もせず 0 を返す。</summary>
     internal static double Distribute(List<Pop> pops, double amount, List<double>? weights = null)
     {
-        if (!(amount > 1e-12)) return 0;
+        if (!(Math.Abs(amount) > 0)) return 0;
         if (pops.Count == 0) return amount;
         double total = 0;
         if (weights is null) foreach (var p in pops) total += p.Size;
@@ -713,6 +715,49 @@ public sealed class World
         }
         pops[^1].Savings += amount - done;
         return 0;
+    }
+
+    /// <summary>★お金の移し方の1本（支払いの一元化 段2-3・2026-09-29＝旧 MultiNationSim.TransferToPops を World へ移して一般化・計画 §10-12-2）。
+    /// 払い手から受け手へ、1回の呼び出しで**両側**を書く。戻り値＝動いた額（払い手から引いた額と受け手へ渡した額は同じ＝旧の「払い手からは Σ(take×w/Σ)・受け手へは take」の端数の不一致〔A4〕が構造的に消える）。
+    /// 側＝(国, null)＝その国の国庫（区分 <paramref name="cat"/>）／(国, POP の集合)＝POP／(null, null)＝世界の外（鋳造・与信・対外の相手が四半期末に決まる出入り）。
+    /// 払える額：POP＝Σmax(0,貯蓄)＝**貯蓄の保有の比で取る**（この段の払い手は全て貨幣の保有に掛かる名目＝d5。払い手を実際の当事者へ替えるのは段3）／
+    ///   国庫と世界の外＝上限なし（国庫は呼び手が国家の支払い率 r を掛けた額を渡す＝§10-12-3-3）。
+    /// 受け手：POP＝<see cref="Distribute"/> の本体（重み null＝頭数）／国庫＝<see cref="Pay"/>。**受け手不在（空・重みの合計≈0）なら動かさない**＝払い手に残る。
+    /// 世界の台帳：両側の国が違えば払い手の国の CumulativeTradeFlow を減らし受け手の国を増やす（片側が世界の外なら世界の中の側だけ）＝台帳を書くのはここの1か所。
+    /// ⚠払い手と受け手の集合が重なってもよい（先に取り、後で配る＝両建てで純保存）。否定形のガード＝NaN と負の額は動かさない（負の額の按分は Distribute）。</summary>
+    internal static double Transfer((World? W, List<Pop>? Pops) from, (World? W, List<Pop>? Pops, List<double>? Weights) to, double amount, TreasuryCat cat = TreasuryCat.OtherOut)
+    {
+        if (!(amount > 0)) return 0;
+        if (to.Pops is { } tp)
+        {
+            double tw = 0;
+            if (to.Weights is null) foreach (var p in tp) tw += p.Size;
+            else foreach (var x in to.Weights) tw += x;
+            if (tp.Count == 0 || !(tw > 1e-9)) return 0;   // 受け手不在＝動かさない（払い手に残る）
+        }
+        double moved;
+        if (from.Pops is { } fp)
+        {
+            double held = 0;
+            foreach (var p in fp) held += Math.Max(0, p.Savings);
+            double take = Math.Min(amount, held);
+            if (!(take > 1e-12) || !(held > 1e-9)) return 0;
+            moved = 0;
+            foreach (var p in fp) { double s = take * (Math.Max(0, p.Savings) / held); p.Savings -= s; moved += s; }   // 動いた額＝引いた額の和（受け手へは同じ額）
+        }
+        else
+        {
+            moved = amount;
+            from.W?.Pay(cat, -moved);   // 国庫（世界の外なら引く相手が無い）
+        }
+        if (to.Pops is { } rp) Distribute(rp, moved, to.Weights);   // 受け手が居ることは上で確かめた＝配り切る
+        else to.W?.Pay(cat, moved);
+        if (!ReferenceEquals(from.W, to.W))
+        {
+            if (from.W is { } fw) fw.CumulativeTradeFlow -= moved;
+            if (to.W is { } rw) rw.CumulativeTradeFlow += moved;
+        }
+        return moved;
     }
     public double ExternalPressure { get; internal set; }
     public int ReformGrantCount { get; internal set; }   // C-高1完成検証（2026-07-25）：下賜（欽定憲法＝上からの改革でPC床を与えた回数）の診断カウンタ（書くだけ・挙動非依存）

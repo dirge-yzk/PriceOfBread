@@ -74,7 +74,6 @@ public sealed class NationConfig
         PoliticsEnabled = true, InitialPolity = Polity, FiscalEnabled = true,
         TaxRate = 0.10, InitialPollTax = Government.PollTaxTop, InitialTreasury = Treasury, InitialGovDebt = GovDebt, InitialInstitutionalDecay = InstitutionalDecay, InitialBureaucracy = Bureaucracy, InitialNationalConsciousness = NationalConsciousness0, InitialMassMilitancy = InitialMassMilitancy, BaseCoercion = Coercion,   // 所得税は19世紀まで実効ロック＝序盤は人頭税が国庫を支える（近世財政・土地税は行政力で解禁）
         EducationLaw = Education, ExternalPressure = 0.3,
-        CreditEnabled = true,        // 銀行＝信用（内生的貨幣）。好況/恐慌の循環を起動（§2.5.1・段4）
         InitialInterestRate = InitialInterestRate,  // 中庸の金利＝信用の過剰変動を抑える初期設定（プレイヤーが上下で金融政策）
         InitialTariff = InitialTariff,  // 関税の初期値（日本＝鎖国）
         InitialSuffrage = InitialSuffrage, InitialCensorship = InitialCensorship,

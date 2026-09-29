@@ -654,9 +654,16 @@ public sealed partial class InternationalMarket
             w0.LastTariffRevenue = 0;
             w0.LastImportValue = importVal[i];
             w0.LastExportValue = exportVal[i];   // ＝ExportsByGood の和（同じ成約を同じ条件で積む）
-            if (tar[i] >= 0) CollectTariff(w0, importVal[i] * tar[i] * c.TariffRevenueRate);
-            else PaySubsidy(w0, w0.LastExportValue * Math.Abs(tar[i]) * c.TariffRevenueRate, tradeBias: false);
-            if (biasCost[i] > 1e-12) PaySubsidy(w0, biasCost[i], tradeBias: true);
+            // ★支払いの一元化 段2-3（E2・2026-09-29）：関税・ダンピング補助・売買方針の代金＝商人POP ⇄ 国庫を移し方の1本（World.Transfer）で（旧 CollectTariff・PaySubsidy）。
+            //   関税＝輸入の捌き手（商人pop）の輸入差益から国庫へ（④貨幣金融）。消費者帰着は①価格チャネル（保護で国内価格↑＝EconomyStepの buyerPrice）が既に担う
+            //   ＝割増が溜まる先の商人から国庫へ「付け替え」る（消費者への二重徴収なし）。商人の貯蓄の比・残高超は取り切れない（ラッファー的に部分）。
+            //   補助＝国庫→商人（頭数で等分＝重み1・国家の支払い率 r の分だけ）。ダンピング補助は関税の純額から減算・売買方針の代金は関税の実収に混ぜない（区分 Subsidy・作者裁定 Q14）。
+            //   関税の実収（LastTariffRevenue）は動いた額（旧＝関税は引けた額・補助は払う予定の額）。受け手の重みを払い手（実際の輸入者）へ替えるのは段3-1。
+            var merchants = new List<Pop>(); var perHead = new List<double>();
+            foreach (var r in w0.Regions) if (r.MerchantPopIndex >= 0 && r.MerchantPopIndex < r.Pops.Count) { merchants.Add(r.Pops[r.MerchantPopIndex]); perHead.Add(1.0); }
+            if (tar[i] >= 0) w0.LastTariffRevenue += World.Transfer((w0, merchants), (w0, null, null), importVal[i] * tar[i] * c.TariffRevenueRate, TreasuryCat.Tariff);
+            else w0.LastTariffRevenue -= World.Transfer((w0, null), (w0, merchants, perHead), w0.LastExportValue * Math.Abs(tar[i]) * c.TariffRevenueRate * w0.FiscalFundingRatio, TreasuryCat.Tariff);
+            if (biasCost[i] > 1e-12) World.Transfer((w0, null), (w0, merchants, perHead), biasCost[i] * w0.FiscalFundingRatio, TreasuryCat.Subsidy);
         }
         // Stage C：トランジット通行料＝利用国の国庫から港所有国の国庫へ（運河通行料と同じ台帳作法・両建てで保存）。
         if (transitUses is { Count: > 0 } && c.TransitTollShare > 1e-12)

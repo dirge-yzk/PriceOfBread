@@ -24,8 +24,10 @@ public static class EconomyStep
                         Ration = [], EffDemand = [], EffRation = [], ClearPrice = [], Revenue = [];
         public int[] ProducerCount = [];
         public double[] InputCost = [], ProdW = [], ElecNeed = [], SteamNeed = [], EffNeed = [];
+        public double[] TrickleFill = [];   // ★再点火の発注の充足率（生産者ごと・2026-09-29 段2-2 A3）＝需要の段で持ち主の予算から決め、決済が読む
         public int[] EffChosen = [];
         public double[] LaborTotalW = [];
+        public double[] TrickleOwner = [];  // 同上の作業配列（持ち主POPごとの発注額の和→充足率）
         public int[] LaborCount = [];
         public double[] LastSupply = [];   // ★前月の補給の充足（Pop.SupplyFill）＝月頭のゼロ化の前に撮る作業配列（状態ではない・2026-09-22）
         public bool[] IsStaple = [], IsService = [], AnyProducer = [], AnyUnlocked = [];
@@ -54,15 +56,15 @@ public static class EconomyStep
         if (s.InputCost.Length < np)
         {
             s.InputCost = new double[np]; s.ProdW = new double[np]; s.ElecNeed = new double[np];
-            s.SteamNeed = new double[np]; s.EffNeed = new double[np]; s.EffChosen = new int[np];
+            s.SteamNeed = new double[np]; s.EffNeed = new double[np]; s.EffChosen = new int[np]; s.TrickleFill = new double[np];
         }
         else
         {
             System.Array.Clear(s.InputCost); System.Array.Clear(s.ProdW); System.Array.Clear(s.ElecNeed);
-            System.Array.Clear(s.SteamNeed); System.Array.Clear(s.EffNeed); System.Array.Clear(s.EffChosen);
+            System.Array.Clear(s.SteamNeed); System.Array.Clear(s.EffNeed); System.Array.Clear(s.EffChosen); System.Array.Clear(s.TrickleFill);
         }
-        if (s.LaborTotalW.Length < npops) { s.LaborTotalW = new double[npops]; s.LaborCount = new int[npops]; s.LastSupply = new double[npops]; }
-        else { System.Array.Clear(s.LaborTotalW); System.Array.Clear(s.LaborCount); }   // LastSupply は Run が月頭に全要素を上書きする
+        if (s.LaborTotalW.Length < npops) { s.LaborTotalW = new double[npops]; s.LaborCount = new int[npops]; s.LastSupply = new double[npops]; s.TrickleOwner = new double[npops]; }
+        else { System.Array.Clear(s.LaborTotalW); System.Array.Clear(s.LaborCount); System.Array.Clear(s.TrickleOwner); }   // LastSupply は Run が月頭に全要素を上書きする
         return s;
     }
 
@@ -354,6 +356,8 @@ public static class EconomyStep
         var produced = scratch.Produced;
         var inputNeed = scratch.InputNeed;
         var inputTrickle = scratch.InputTrickle;   // 経1：再点火トリクルの超過分（Output超え＝止まった工場の再開発注）。コア需要に入る＝実際に在庫を食う（作者裁定2026-08-01）
+        var trickleFill = scratch.TrickleFill;     // 再点火の発注の充足率（生産者ごと・A3＝持ち主の予算を通す）
+        var trickleOwner = scratch.TrickleOwner;   // 同上の作業配列（持ち主POPごと）
         var investDemand = scratch.InvestDemand;   // 投資による機械・セメントの需要（資本建設）
         var militaryDemand = scratch.MilitaryDemand;   // 国家の軍需調達（小銃・弾薬等。財源は国庫＝StateSpent で保存）
         var rebelDemand = scratch.RebelDemand;         // ★反乱勢力の武器購入（2026-09-11・休眠 RebelArmsMarketEnabled=0 では全要素0のまま）。財源＝参加POPの貯蓄（Paid で保存）
@@ -1212,11 +1216,10 @@ public static class EconomyStep
                 //   幽霊だったのは物量ではなく**代金**の方だった。それを下の決済で正す。
                 inputNeed[inp.GoodId] += s.Output * eq;
                 double trickle = Math.Max(0, coef.ReignitionDemandFrac * s.DesiredOutput - s.Output) * eq;   // 供給ベースを超える再点火分＝止まった工場の再開発注
-                inputTrickle[inp.GoodId] += trickle;
+                trickleFill[pi] += trickle * region.Markets[inp.GoodId].Price;   // 発注額（下で持ち主の予算を通してから需要へ入れる＝A3）
                 // ★再点火発注に代金を付ける（点火2026-08-01・作者指摘「実装の形としては正だが、実装方法としてスマートでない」への差し替え）。
-                // ⚠**挙動は変えない**——発注の量も配給も物量の消費もこれまで通り。**変えるのは金の流れ**だけ。
                 // 旧＝止まった工場が現物を受け取るのに誰も払わず、売った側も1銭も受け取らなかった（＝物が消え、所得が消えた）。
-                // 新＝**止まった工場の持ち主が自分の貯蓄から払い、売った側がその金を受け取る**。
+                // 新＝**止まった工場の持ち主が払い、売った側がその金を受け取る**。
                 // ★これが現実の姿＝止まっている工場も、いつでも再開できるように少量を買い続け、それは持ち主の持ち出しである
                 //   （ボイラーを温め、原料庫を空にしない費用）。だから**持ち主が無一文なら再開の準備もできない**＝新しい制約が1つ増える。
             }
@@ -1253,6 +1256,34 @@ public static class EconomyStep
                 effChosen[pi] = chosen;
                 effDemand[chosen] += effNeed[pi];   // コア需要と別建て＝残余だけ配給（最低優先）
             }
+        }
+        // ★再点火の発注を持ち主の予算に通す（支払いの一元化 段2-2・A3・2026-09-29）。
+        //   旧＝発注は無条件に需要へ入り、決済で期首の貯蓄から直接引いた（仮勘定 Paid と予算 RemainingBudget を通らない）＝同じ貯蓄を消費と再点火で2度使え、
+        //   月末の貯蓄が負になり、払えない分は現物だけが動いた。今＝発注額（今の価格＝決済の値段と同じ・この Run の中で値段は動かない）を持ち主POPごとに足し、
+        //   持ち主の1本の率＝min(1, 残りの予算÷発注額の和)で**量を減らし**（持ち主の全ての発注に同じ率＝優先順位を作らない）、その額を予算から先に控える
+        //   （反乱勢力の武器・投資家の IndInvestmentFrac と同じ作法）。実支払いは決済で Paid へ。持ち主の居ない生産者は発注しない（払い手が居ない）。
+        for (int pi = 0; pi < np; pi++)
+        {
+            int oi = region.Producers[pi].OwnerPopIndex;
+            if (trickleFill[pi] > 0 && oi >= 0 && oi < region.Pops.Count) trickleOwner[oi] += trickleFill[pi];
+        }
+        for (int k = 0; k < region.Pops.Count; k++)
+        {
+            if (!(trickleOwner[k] > 0)) continue;
+            var o = region.Pops[k];
+            double fill = Math.Min(1.0, Math.Max(0, o.RemainingBudget) / trickleOwner[k]);
+            o.RemainingBudget -= trickleOwner[k] * fill;
+            trickleOwner[k] = fill;   // 以後は持ち主ごとの充足率
+        }
+        for (int pi = 0; pi < np; pi++)
+        {
+            var s = region.Producers[pi];
+            int oi = s.OwnerPopIndex;
+            double fill = trickleFill[pi] > 0 && oi >= 0 && oi < region.Pops.Count ? trickleOwner[oi] : 0;
+            trickleFill[pi] = fill;   // 以後は生産者ごとの充足率（決済が同じ量を再現して請求する）
+            if (!(fill > 0)) continue;
+            foreach (var inp in s.Inputs)
+                inputTrickle[inp.GoodId] += Math.Max(0, coef.ReignitionDemandFrac * s.DesiredOutput - s.Output) * EffectiveQty(s, region, inp, coef) * fill;
         }
         // 蒸気動力（石炭）需要を加算（電化分は上で電力に置換済み＝石炭需要が自然に減る）。energyOn かつ steamGate>0 でのみ非ゼロ＝従来/最小経済/未発明期は無効。
         if (energyOn)
@@ -1678,25 +1709,15 @@ public static class EconomyStep
                 double pay = clearPrice[inp.GoodId] * s.Output * eq * ration[inp.GoodId];
                 ic += pay;
                 revenue[inp.GoodId] += pay;
-                // 再点火発注の代金（2026-09-28 に旗 ReignitionOrderSettles ごと焼き込み）：需要フェーズと**同じ式**（s.Output はこの2フェーズ間で動かない）＝発注量を再現し、配給された分だけ請求する。
-                double tq = Math.Max(0, coef.ReignitionDemandFrac * s.DesiredOutput - s.Output) * eq;
-                trickleBill += clearPrice[inp.GoodId] * tq * ration[inp.GoodId];
+                // 再点火発注の代金（2026-09-28 に旗 ReignitionOrderSettles ごと焼き込み）：需要フェーズと**同じ式**（s.Output はこの2フェーズ間で動かない・充足率は需要の段で決めた持ち主の率）
+                //   ＝発注量を再現し、配給された分だけ請求する。売った側の売上へそのまま入れる（請求と受け取りが同じ額＝厳密保存）。
+                double tb = clearPrice[inp.GoodId] * Math.Max(0, coef.ReignitionDemandFrac * s.DesiredOutput - s.Output) * eq * trickleFill[pi] * ration[inp.GoodId];
+                trickleBill += tb;
+                revenue[inp.GoodId] += tb;
             }
-            // ★止まった工場の持ち主が再開準備の代金を払う（点火2026-08-01）。払えるのは貯蓄の範囲まで＝**無一文なら準備もできない**。
-            // ⚠払い切れなかった分は現物だけが動いた状態が残る（旧＝全額がその状態だった）。
-            if (trickleBill > 0 && s.OwnerPopIndex >= 0 && s.OwnerPopIndex < region.Pops.Count)
-            {
-                var owner = region.Pops[s.OwnerPopIndex];
-                double paid = Math.Min(trickleBill, Math.Max(0, owner.Savings));
-                owner.Savings -= paid;
-                foreach (var inp in s.Inputs)   // 受け取り側へ按分（請求と同じ按分＝合計が一致＝厳密保存）
-                {
-                    double eq2 = EffectiveQty(s, region, inp, coef);
-                    double tq2 = Math.Max(0, coef.ReignitionDemandFrac * s.DesiredOutput - s.Output) * eq2;
-                    double share = clearPrice[inp.GoodId] * tq2 * ration[inp.GoodId];
-                    if (share > 0) revenue[inp.GoodId] += paid * (share / trickleBill);
-                }
-            }
+            // ★止まった工場の持ち主が再開準備の代金を払う（点火2026-08-01）。★段2-2（A3・2026-09-29）：月内の仮勘定 Paid で払う（旧＝期首の貯蓄を直接引いた）。
+            //   発注は需要の段で持ち主の予算を通して控えてある＝請求は控えた額以下（値段は同じ・配給率≦1）＝払い切れる。持ち主の居ない生産者は充足率0＝請求0。
+            if (trickleBill > 0) region.Pops[s.OwnerPopIndex].Paid += trickleBill;
             // 電力の決済（任意の増強材＝リービッヒの必須投入ではない＝買えなくても操業は止まらない）。買えた率が電化率に積もる。
             if (elecNeed[pi] > 0)
             {
@@ -1755,7 +1776,6 @@ public static class EconomyStep
             if (conLaborUnits > 0 && Catalog.LaborId < ng)
                 built = Math.Min(built, construction * ration[Catalog.LaborId]);
             double cost = sGot * clearPrice[sg] + mGot * clearPrice[mg] + cGot * clearPrice[cg] + lGot * clearPrice[lg];   // 支払いは新規購入(*Got)のみ＝充当した繰越は先月支払い済み（保存）
-            region.Pops[region.InvestorPopIndex].Paid += cost;   // 投資家（資本家）が建設を負担
             // 経5：建設工賃の決済＝労働力財市場から工賃分の労働（conLaborUnits）を買う一本化＝インフラ保守の決済と同型
             // （投資家が支払い・revenue[Labor] へ計上→income で労働pop の賃金に変換＝支払い総額＝労働pop受取で保存）。二重雇用（工場へ全量売りつつ建設賃金も別途受領）を解消。
             // ★2026-09-28（支払い 段1-1）：旗 ConstructionLaborViaMarket（既定1）の旧経路＝材料費比例の工賃を工員の Savings へ直書き（月内の仮勘定を通らない）を削除。
@@ -1763,9 +1783,10 @@ public static class EconomyStep
             {
                 double labQ = conLaborUnits * ration[Catalog.LaborId];
                 double labPay = labQ * clearPrice[Catalog.LaborId];
-                region.Pops[region.InvestorPopIndex].Paid += labPay;
+                cost += labPay;   // ★段2-2（2026-09-29）：材料と工賃を1回の書き込みで払う（同じ払い手の Paid への2行を1行へ）
                 revenue[Catalog.LaborId] += labPay;
             }
+            region.Pops[region.InvestorPopIndex].Paid += cost;   // 投資家（資本家）が建設を負担（材料＋工賃）
             revenue[sg] += sGot * clearPrice[sg];
             revenue[mg] += mGot * clearPrice[mg];
             revenue[cg] += cGot * clearPrice[cg];

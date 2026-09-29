@@ -3048,7 +3048,7 @@ public sealed class Diplomacy
         if (p.Nation is { } w)
         {
             w.Pay(TreasuryCat.WarCost, -pay);
-            if (pay > 0) w.Pay(TreasuryCat.WarCost, World.Distribute(new List<Pop>(w.AllPops()), pay));   // 戦費は自国 pop へ還流（金は消えない）。按分は World.Distribute の1本（2026-09-11 M7・旧の同文複製を削除。差＝0<pay≤1e-12 だけ配らず 0 を返す＝Invariants の許容 1e-8×scale 未満）
+            if (pay > 0) w.Pay(TreasuryCat.WarCost, World.Distribute(new List<Pop>(w.AllPops()), pay));   // 戦費は自国 pop へ還流（金は消えない）。按分は World.Distribute の1本（2026-09-11 M7・旧の同文複製を削除。2026-09-29 段2-3 から微小な額も配る＝旧の差 0<pay≤1e-12 も消えた）
         }
         payRatio = cost > 1e-9 ? pay / cost : 1.0;   // 外13：支払い能力（0..1）。国庫枯渇＝0＝厭戦加算に使う
         return cost > 1e-9 ? WarFundFloor + WarFundPayWeight * payRatio : 1.0;   // 戦力充足＝払えなくても 0.3（現物徴発）

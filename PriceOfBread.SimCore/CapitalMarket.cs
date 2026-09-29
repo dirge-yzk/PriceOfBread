@@ -152,7 +152,7 @@ public static class CapitalMarket
                     {
                         if (h == i) continue;
                         double k = got * (cred[h] * System.Math.Max(0, ngdp[h]) / credSum);
-                        GiveGold(w[h], k, toInvestors: true);
+                        GiveGold(w[h], k);
                         w[h].ForeignCapitalIn += k;
                     }
                 }
@@ -169,11 +169,11 @@ public static class CapitalMarket
             {
                 double share = w[i].CapitalAbroad / abroadSum;
                 w[i].CapitalAbroad = System.Math.Max(0, w[i].CapitalAbroad - flightTotal * share);   // 消えた元本ぶん資産が減る（払えなかった分も＝債権者が損をかぶる）
-                GiveGold(w[i], backTotal * share, toInvestors: true);
+                GiveGold(w[i], backTotal * share);
             }
         else if (backTotal > 1e-9)   // ★A-2#4修正：対外保有が無い（台帳のズレ）期に抜いた配当/逃避がどの pop にも戻らず蒸発するのを防ぐ＝抜いた host へ返金（金を捨てない）
             for (int i = 0; i < n; i++)
-                if (taken[i] > 1e-9) GiveGold(w[i], taken[i], toInvestors: true);
+                if (taken[i] > 1e-9) GiveGold(w[i], taken[i]);
         ProbeDiff("還流");
 
         // (3) 新規フロー：収益率＞worldRate の国が呼び込み（流入）、＜の国が送り出す（流出）。材の清算（min(需要,供給)）と同型。
@@ -196,12 +196,25 @@ public static class CapitalMarket
         double traded = System.Math.Min(totalDemand, totalSupply) * riskAppetite;
         if (traded > 1e-9)
         {
-            double dFill = traded / totalDemand, sFill = traded / totalSupply;
+            // ★支払いの一元化 段2-2（A6・2026-09-29）：受け手は**実際に動いた額**だけ受け取る＝先に送り手から引き（送り手の投資家の貯蓄まで）、
+            //   引けた額の合計を需要の比で受け手へ配る（端数は最後の受け手）。旧＝受け手は traded を満額受け取り、送り手だけ貯蓄で切った
+            //   （切られた分だけ世界に湧いた・TakeGold が引けなかった分も対外資産 CapitalAbroad に積んだ）。
+            double sFill = traded / totalSupply, sent = 0;
             for (int i = 0; i < n; i++)
-            {
-                if (demand[i] > 0) { double k = demand[i] * dFill; w[i].ForeignCapitalIn += k; GiveGold(w[i], k, toInvestors: true); }   // 流入→投資家貯蓄（工業化を支える）
-                else if (supply[i] > 0) { double k = System.Math.Min(supply[i] * sFill, InvestorSavings(w[i])); w[i].CapitalAbroad += k; TakeGold(w[i], k); }   // 送り出し→対外資産
-            }
+                if (!(demand[i] > 0) && supply[i] > 0)
+                {
+                    double k = TakeGold(w[i], supply[i] * sFill);   // 送り出し→対外資産（引けた額だけ）
+                    w[i].CapitalAbroad += k; sent += k;
+                }
+            int lastD = -1; for (int i = 0; i < n; i++) if (demand[i] > 0) lastD = i;
+            double given = 0;
+            for (int i = 0; i < n; i++)
+                if (demand[i] > 0)
+                {
+                    double k = i == lastD ? sent - given : sent * (demand[i] / totalDemand);
+                    given += k;
+                    w[i].ForeignCapitalIn += k; GiveGold(w[i], k);   // 流入→投資家貯蓄（工業化を支える）
+                }
         }
         ProbeDiff("新規フロー");
 
@@ -242,7 +255,7 @@ public static class CapitalMarket
                 for (int i = 0; i < n; i++)
                 {
                     double share = claims > 1e-9 ? w[i].ForeignBondClaims / claims : InvestorSavings(w[i]) / basis;
-                    if (share > 1e-12) GiveGold(w[i], intPool * share, toInvestors: true);
+                    if (share > 1e-12) GiveGold(w[i], intPool * share);
                 }
         }
         ProbeDiff("外債利払い");
@@ -267,34 +280,24 @@ public static class CapitalMarket
     // 金を国外へ出す（投資家(近代エリート)の貯蓄から貯蓄比例で引く＋CumulativeTradeFlow に流出計上）。実際に引けた額を返す（残高不足は部分＝部分的な不履行）。
     // ★2026-09-27：原資は投資家だけ＝流入（GiveGold の toInvestors）と対称。旧＝fallbackToAll で投資家の不足分を全popから追加徴収していた
     //   （その撤去で呼び手が全て投資家原資になり、旧 TakeGoldFrom の fromInvestors/excludeInvestors は読み手が無くなった＝ここへ畳んだ）。
+    // ★支払いの一元化 段2-3（E2・2026-09-29）：引く・台帳へ書くは移し方の1本（World.Transfer＝払い手は投資家・受け手は世界の外）。ここに残るのは払い手の集合を選ぶことだけ。
     private static double TakeGold(World w, double amount)
     {
         var pops = new List<Pop>();
         foreach (var r in w.Regions) foreach (var p in r.Pops) if (IsInvestor(p, w.Coef)) pops.Add(p);   // ★NobleInvests（既定0＝旧述語と恒等）
-        double total = 0; foreach (var p in pops) total += System.Math.Max(0, p.Savings);
-        double take = System.Math.Min(amount, total);   // 残高超は引けない（払えない＝部分的不履行）
-        if (take <= 1e-12 || total <= 1e-9) return 0;
-        double done = 0;
-        for (int i = 0; i < pops.Count; i++)
-        {
-            double s = take * (System.Math.Max(0, pops[i].Savings) / total);
-            pops[i].Savings -= s; done += s;
-        }
-        w.CumulativeTradeFlow -= done;   // 対外流出（保存：金が国外へ）
-        return done;
+        return World.Transfer((w, pops), (null, null, null), amount);   // 残高超は引けない（払えない＝部分的不履行）・引けた額を返す
     }
 
-    // 金を国外から受ける（pop へ足す＋CumulativeTradeFlow に流入計上）。toInvestors＝投資家へ（流入は工業化を支える）。
-    private static void GiveGold(World w, double amount, bool toInvestors = false)
+    // 金を国外から受ける（投資家へ＝流入は工業化を支える・重みは貨幣の保有）。★段2-3（2026-09-29）：配る・台帳へ書くは移し方の1本（World.Transfer）。
+    //   旧の引数 toInvestors は呼び手が全て true だった＝削除。縮退は「投資家→全POP→国庫」の順（旧＝保有の合計≈0 なら最後のPOPへ全額・今＝頭数で配る）。
+    private static void GiveGold(World w, double amount)
     {
-        if (amount <= 1e-12) return;
         var pops = new List<Pop>();
-        foreach (var r in w.Regions) foreach (var p in r.Pops) if (!toInvestors || IsInvestor(p, w.Coef)) pops.Add(p);
-        if (pops.Count == 0) foreach (var r in w.Regions) foreach (var p in r.Pops) pops.Add(p);   // 投資家不在なら全popへ
-        if (pops.Count == 0) { w.Pay(TreasuryCat.OtherIn, amount); w.CumulativeTradeFlow += amount; return; }   // pop不在の World（併合国の残骸等）＝国庫残置（wave2b：pops[^1]のIndexOutOfRange回避。TakeGoldは同条件で0返しなのに片側だけ守られていなかった）
-        var held = new List<double>(pops.Count); foreach (var p in pops) held.Add(System.Math.Max(0, p.Savings));   // 重み＝貨幣の保有（貯蓄比）
-        double left = World.Distribute(pops, amount, held);
-        if (left > 0) pops[^1].Savings += left;   // 保有の合計≈0 の縮退＝最後のpopへ全額（残高ゼロでも受け取れる）
-        w.CumulativeTradeFlow += amount;   // 対外流入（保存：金が国内へ）
+        foreach (var r in w.Regions) foreach (var p in r.Pops) if (IsInvestor(p, w.Coef)) pops.Add(p);
+        if (pops.Count == 0) foreach (var r in w.Regions) pops.AddRange(r.Pops);   // 投資家不在なら全popへ
+        var held = new List<double>(pops.Count); double heldSum = 0;
+        foreach (var p in pops) { double h = System.Math.Max(0, p.Savings); held.Add(h); heldSum += h; }   // 重み＝貨幣の保有（貯蓄比）
+        double moved = World.Transfer((null, null), (w, pops, heldSum > 1e-9 ? held : null), amount, TreasuryCat.OtherIn);
+        if (moved < amount) World.Transfer((null, null), (w, null, null), amount - moved, TreasuryCat.OtherIn);   // POP 不在（併合国の残骸等）＝国庫残置
     }
 }
