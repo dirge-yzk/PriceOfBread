@@ -158,7 +158,10 @@ public class WarThemeTests
         for (int i = 0; i < 8; i++) { fr.UpdateGdpCycle(); twin.UpdateGdpCycle(); }
         double pc0 = twin.GdpPcDrawdown;
         Assert.True(fr.GdpPcDrawdown <= pc0 + 1e-12, $"前提が崩れた：割譲で1人あたりが落ちた（双子 {pc0:G6} → {fr.GdpPcDrawdown:G6}）");
-        Assert.True(fr.GdpDrawdown > twin.GdpDrawdown + 0.01, $"前提が崩れた：割譲で総額の落ち込みが立っていない（総額 {fr.GdpDrawdown:G6}・双子 {twin.GdpDrawdown:G6}）");
+        // ★盤面の直し（2026-09-30 (114) 高速化の段 S3c）：前提の差 0.01→0.005＝旬10日の木では仏の平均以下の州の産出の割合が下がり、8四半期後の総額の落ち込みの差が 0.0095
+        //   （割譲した産出は国の約1.4%・トレンドの EMA とピークの忘却で8四半期後に約7割が残る）。主張（下の2本＝経済悪化は1人あたりで測る）は変えない
+        //   ＝突然変異（経済悪化を総額の落ち込み GdpDrawdown で測る）で赤を確かめた。
+        Assert.True(fr.GdpDrawdown > twin.GdpDrawdown + 0.005, $"前提が崩れた：割譲で総額の落ち込みが立っていない（総額 {fr.GdpDrawdown:G6}・双子 {twin.GdpDrawdown:G6}）");
         fr.Explain = new ExplainLedger();
         sim.Diplomacy.Step(sim.Coef, sim.Rng, month: 60);
         double econ = double.NaN;

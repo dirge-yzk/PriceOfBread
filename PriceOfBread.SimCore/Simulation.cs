@@ -1493,12 +1493,18 @@ public sealed class Simulation
         // 日次（鼓動）：価格形成・建設の進捗・信用。毎日わずかに動く層。
         // ★価格形成は旬次（2026-09-26 A3）：旬の最終日（(日＋1)%h==0＝h=PriceFlowStepDays）にだけ MarketFlow を呼び、h 日ぶんを1歩で進める。
         //   h は30の約数だけ＝旬は月をまたがない＝月次決算（日29/59/89 の締め）と四半期首の AI が読む価格は、今と同じ「その月の30日ぶん寄せた価格」。
-        //   助走も同じ判定（助走は StepQuarter＝この日次を通る）。州への写し・建設・信用は毎日のまま。新しい状態は持たない（_dayInQuarter は既にセーブに載る）。
+        //   助走も同じ判定（助走は StepQuarter＝この日次を通る）。州への写しは毎日のまま。新しい状態は持たない（_dayInQuarter は既にセーブに載る）。
         //   ⚠ 旬の0〜(h−2)日目に価格を読むもの（建設の建材4財・画面）は、前の旬の価格を読む（遅れは最大 h−1 日）。
+        // ★建設と信用も旬次（2026-09-30 高速化の段 S3c・近似）：旬の初日（日%h==0）に h 日ぶんをまとめて進める。
+        //   根拠＝どちらの入力も境界相（月次決算の支払い率・月の定数）か旬の中で動かない価格（建材4財）で、旬は月をまたがない
+        //   ＝旬の中で変わるのは自分の状態（工事の残り日数・信頼・与信の残高）だけ。建設＝働く日数 n＝min(h, 完成までの日数)ぶんの工賃と進捗を1回で
+        //   （旬の最終日だけ価格が1旬古い＝建材の採算率の遅れは旧の h−1 日から h 日へ）。信用＝信頼と与信の緩和を h 日ぶん閉じた形で（1日の縮み 1/150〜1/1500＝h≪時定数）。
+        //   月次決算が読む月末の値は旧と同じ日数ぶん（完成・工賃・与信）。h=1 なら旧来の日次と1ビットも変わらない。
         int hFlow = World.Coef.PriceFlowStepDays;
         if (hFlow < 1 || Calendar.DaysPerMonth % hFlow != 0)
             throw new System.InvalidOperationException($"PriceFlowStepDays={hFlow} は {Calendar.DaysPerMonth} の約数でない（旬は月をまたげない）");
         bool priceDay = (_dayInQuarter + 1) % hFlow == 0;
+        bool spanStart = _dayInQuarter % hFlow == 0;   // 旬の初日（建設と信用＝S3c）
         foreach (var r in World.Regions)
             if (r.State == RegionState.Active)
             {
@@ -1511,18 +1517,21 @@ public sealed class Simulation
                 if (priceDay) MarketFlow.StepDay(r, World.Coef, hFlow);   // 物価水準を複製し需給を読み、旬の h 日ぶん価格を少しずつ動かす
             }
         ProbeCheck("日次価格");
-        World.StepConstruction();                                                   // 工場建設の進捗（日次・労務費を毎日払って進む）
+        if (spanStart) World.StepConstruction(hFlow);                               // 工場建設の進捗（旬の初日に h 日ぶん・労務費を働いた日数ぶん払って進む）
         ProbeCheck("日次建設");
-        (double NominalGdp, double AvgSat, double MeanInd)? creditMonth = null;
-        if (World.Bank is not null)   // （2026-09-29 段2-2 から全ての世界に銀行がある＝常に真・盤面の直書きで外したときだけ偽）
+        if (spanStart)
         {
-            bool fresh = !CreditMonth.TryGetValue(World, out var box);
-            if (box is null) { box = new(); CreditMonth.Add(World, box); }
-            if (fresh || _dayInQuarter % Calendar.DaysPerMonth == 0)
-                box.Value = (World.NominalGdp, NationalScore.MeanSatisfaction(World), World.MeanIndustrialization);
-            creditMonth = box.Value;
+            (double NominalGdp, double AvgSat, double MeanInd)? creditMonth = null;
+            if (World.Bank is not null)   // （2026-09-29 段2-2 から全ての世界に銀行がある＝常に真・盤面の直書きで外したときだけ偽）
+            {
+                bool fresh = !CreditMonth.TryGetValue(World, out var box);
+                if (box is null) { box = new(); CreditMonth.Add(World, box); }
+                if (fresh || _dayInQuarter % Calendar.DaysPerMonth == 0)   // 月の初日は旬の初日（h は30の約数）
+                    box.Value = (World.NominalGdp, NationalScore.MeanSatisfaction(World), World.MeanIndustrialization);
+                creditMonth = box.Value;
+            }
+            Credit.Step(World, World.Coef, creditMonth, hFlow);                     // 信用（与信・信頼）も旬次（旬の初日に h 日ぶん・速度は日数配分）
         }
-        Credit.Step(World, World.Coef, creditMonth);                                // 信用（与信・信頼）も日次で動く（速度は日数配分）
         ProbeCheck("日次信用");
         // 助走中は暦を進めない（World.WarmupFrozen・2026-08-10）。Tick は「開始からの経過日数」＝年境界の唯一の読み手が
         // 豊凶ロール（MonthSettle の harvestYear）なので、止めれば助走が何年ぶんでも天候は1783年の1回きり＝時間が経たない。

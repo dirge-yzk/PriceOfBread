@@ -220,4 +220,39 @@ public class FactoryTierTests
         Assert.Equal(rC.StateSpent, rA.StateSpent);                             // 国庫負担（材料の決済）も立たない
     }
 
+    /// <summary>★建設の旬次（2026-09-30 高速化の段 S3c・近似）：<see cref="World.StepConstruction"/>(h) は棟ごとに働く日数 n＝min(h, 完成までの日数) ぶんの
+    /// 工賃と進捗を1回で払う＝採算率と支払い率が旬の中で動かない盤面（価格を動かさない）では、日次を h 回まわした工事の残り・棟・国庫・工員の貯蓄と一致する
+    /// （丸めの差だけ）。完成の旬（n＜h）は働かない日の工賃を払わない＝旧の日次も完成の翌日から払わない。</summary>
+    [Fact]
+    public void 建設の旬次は働いた日数ぶんの工賃と進捗を払い日次をh回まわした結果と一致する()
+    {
+        var sA = new Simulation(Fr(11), new NullAgent());   // 旬次（h 日ぶんを1回）
+        var sB = new Simulation(Fr(11), new NullAgent());   // 日次を h 回（同じ種＝同じ盤面）
+        sA.Run(40); sB.Run(40);
+        int sg = sA.World.Coef.SteelGoodId;
+        var pA = World.FindFactory(sA.World.Regions[0], sg); var pB = World.FindFactory(sB.World.Regions[0], sg);
+        Assert.NotNull(pA); Assert.NotNull(pB);
+        // 採算率＝1（建材の価格を見ない）・支払い率＝1 ⇒ 1日の進捗＝1日。残り 23.5日＝旬10日の3回目に4日働いて完成する（n＜h の枝）。
+        foreach (var (s, p) in new[] { (sA, pA!), (sB, pB!) }) { p.ConstructionLeft = 23.5; p.ConstructionPayPerDay = 100.0; s.World.FiscalFundingRatio = 1.0; s.World.Coef.FactoryBuildPriceGateScale = 0; }
+        var labA = sA.World.Regions[0].Pops[pA!.LaborPopIndex]; var labB = sB.World.Regions[0].Pops[pB!.LaborPopIndex];
+        double built0 = pA.BuiltScale, tre0 = sA.World.Treasury;
+        const int h = 10;
+        bool partialSpan = false;
+        for (int span = 0; span < 12 && pA.ConstructionLeft > 0; span++)
+        {
+            double leftBefore = pB.ConstructionLeft;
+            sA.World.StepConstruction(h);
+            for (int d = 0; d < h; d++) sB.World.StepConstruction(1);
+            if (pB.ConstructionLeft == 0 && leftBefore <= h - 1) partialSpan = true;   // 完成の旬で働いたのは h 日より少ない
+            Assert.True(Math.Abs(pA.ConstructionLeft - pB.ConstructionLeft) <= 1e-9, $"工事の残りが日次と違う（旬 {span}：{pA.ConstructionLeft} 対 {pB.ConstructionLeft}）");
+            Assert.Equal(pB.BuiltScale, pA.BuiltScale);
+            Assert.True(Math.Abs(sA.World.Treasury - sB.World.Treasury) <= 1e-9 * Math.Abs(sB.World.Treasury), $"国庫が日次と違う（旬 {span}：{sA.World.Treasury} 対 {sB.World.Treasury}）");
+            Assert.True(Math.Abs(labA.Savings - labB.Savings) <= 1e-9 * Math.Abs(labB.Savings), $"工員の貯蓄が日次と違う（旬 {span}：{labA.Savings} 対 {labB.Savings}）");
+        }
+        Assert.Equal(0.0, pA.ConstructionLeft);                     // 盤面の前提＝工事は完成した
+        Assert.True(pA.BuiltScale > built0, "前提が崩れた：完成で棟が増えていない");
+        Assert.True(partialSpan, "前提が崩れた：完成の旬が h 日ぶんちょうどで終わった（働く日数 n＜h の枝を通っていない）");
+        Assert.True(sA.World.Treasury < tre0, "前提が崩れた：工賃が払われていない");
+    }
+
 }

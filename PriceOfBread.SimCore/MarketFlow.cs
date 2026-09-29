@@ -10,6 +10,7 @@
 ///   根拠＝ここが読む入力（需給・在庫・在庫目標の倍率・物価水準・工業化・組合厚生・EffFirms）の書き手はすべて境界相
 ///   （月次決算・月末の清算・四半期の首と末）にあり、旬は月をまたがない＝旬の中では入力が定数で、同じ写像を h 回まわしているだけ。
 ///   ・内側（|t|&lt;<see cref="InnerT"/>）の財と役務＝閉じた式 P′＝SB_h(P0·(1＋y0)^h)。SB_h は SoftBand を h 回重ねた厳密な形。
+///     財は刻みが時定数の1/10 を超えるとき h の約数の小刻みで同じ式を重ねる（2026-09-30 S3c・<see cref="SubStep"/>＝役務は需給差が価格に依らない＝1歩で厳密）。
 ///     ⚠ 1＋h·y の形は使わない（端では y≈−0.163＝h=10 で価格が負になる）。(1＋y)^h なら常に正。
 ///   ・帯の端・休眠の上乗せ・退化した帯（L≦Eps）・労働（初回は閉じた式を使わない）＝日次の写像を h 回まわし、
 ///     値がビットで止まったら残りを打ち切る（入力が定数なので以後も同じ値＝厳密に同じ結果）。局所変数だけで回す＝状態を持たない。
@@ -31,6 +32,11 @@ public static class MarketFlow
     /// 供給も在庫も無い財の日次の写像は帯の不動点（参照の約49倍＝需給の飽和と SoftBand が決める）への強い縮小（1日で距離が約0.71倍＝S3a）
     /// ⇒ 打ち切った値の不動点からの距離 ≦ 動き×ρ/(1−ρ) ≈ 2.5×1e-8（相対）。月の境で需要が変わって不動点が動いた日は動きが大きく出て打ち切らない＝理由で起きる。</summary>
     private const double PinnedTol = 1e-8;
+
+    /// <summary>★閉じた式の小刻み（2026-09-30 高速化の段 S3c・近似）の物差し＝1歩の刻み×1日の縮み g の上限（刻み≦時定数/10＝作者の局所の線の目安）。
+    /// g＝平衡まわりの1日の縮み＝FlowAdjustSpeed·ε/div·amp（需給差の項の価格微分・在庫ギャップの項は価格に依らない）＝参照付近（amp 0.7）で時定数 約180日・
+    /// 内側の端（|t|＝0.5・amp 4.02）で 約31日 ⇒ h=10 なら参照の約3.5倍（と1/3.5）の内側は1歩・約6.5倍までは 5日×2・その外（内側の端＝10倍まで）は 2日×5（<see cref="SubStep"/>）。</summary>
+    private const double StepPerTau = 0.1;
 
     // ★旬次の計器（2026-09-26 A3）：POB_TIME=1 のときだけ、州ごとの局所の数を出口で足す（既定は足さない）。timeprobe が読む。
     //   財の歩＝この関数が動かした（死んでいない）財の数。閉じた式／日次に落ちた理由別の内訳の和は、財の歩の数に一致する。
@@ -190,11 +196,21 @@ public static class MarketFlow
                         // y0 は歩の始めの価格で1回だけ（日次の式と同じ式・同じ順）。1＋y0≧0.837（|y|≦0.61·8/30）＝(1＋y0)^h は常に正。
                         // ★2026-09-29（高速化の段 S2・厳密恒等）：y0 の ln(P0/rp) は BandT の ln(max(P0,Eps)/rp) と同じ double（P0≧Eps なら max は P0 そのもの）＝対数を2度取らない。
                         //   P0<Eps と NaN（否定形）は従来どおり ln(P0/rp) を取る。
-                        double g1 = 1 + GoodsY(P0, rp, demandRaw, supply, gap, coef, div, P0 >= Eps ? u0 : System.Math.Log(P0 / rp));
-                        double tp = BandT(P0 * System.Math.Pow(g1, h), rp, lnFloorGoods, lnCeilGoods, out double lp, out _);
-                        if (g1 > 0 && System.Math.Abs(tp) < InnerT)
+                        // ★小刻み（2026-09-30 高速化の段 S3c・近似）：1歩の刻み hs は時定数の1/10 まで（<see cref="SubStep"/>）＝h を hs 日ずつ同じ閉じた式で進める
+                        //   （y は小刻みの始めの価格で1回）。hs＝h なら旧の1歩と1ビットも同じ。小刻みの途中で内側を外れたら歩の始めから日次の経路へ（旧の予測の帯と同じ扱い）。
+                        int hs = SubStep(h, u0, coef, div);
+                        double Ps = P0, us = u0; bool inner = true;
+                        for (int dn = 0; dn < h; dn += hs)
                         {
-                            m.Price = rp * System.Math.Exp(lp * SoftT(tp, k, h));   // P′＝SB_h(P0·(1＋y0)^h)
+                            if (dn > 0 && !(System.Math.Abs(BandT(Ps, rp, lnFloorGoods, lnCeilGoods, out _, out us)) < InnerT)) { inner = false; break; }
+                            double g1 = 1 + GoodsY(Ps, rp, demandRaw, supply, gap, coef, div, Ps >= Eps ? us : System.Math.Log(Ps / rp));
+                            double tp = BandT(Ps * System.Math.Pow(g1, hs), rp, lnFloorGoods, lnCeilGoods, out double lp, out _);
+                            if (!(g1 > 0 && System.Math.Abs(tp) < InnerT)) { inner = false; break; }
+                            Ps = rp * System.Math.Exp(lp * SoftT(tp, k, hs));   // P′＝SB_hs(P·(1＋y)^hs)
+                        }
+                        if (inner)
+                        {
+                            m.Price = Ps;
                             nClosedG++;
                             continue;
                         }
@@ -275,6 +291,18 @@ public static class MarketFlow
         u = System.Math.Log(System.Math.Max(price, Eps) / rp);
         L = u >= 0 ? lnCeilPos : lnFloorPos;
         return u / L;
+    }
+
+    /// <summary>★閉じた式の小刻み（2026-09-30 S3c）：h の約数のうち hs×g≦<see cref="StepPerTau"/> を満たす最大（最小1）。g＝FlowAdjustSpeed·ε/div·amp(lnDev)
+    /// （amp は <see cref="GoodsY"/> と同じ式）。NaN は h のまま＝旧の1歩の経路（予測の帯の判定で日次へ落ちる）。</summary>
+    private static int SubStep(int h, double lnDev, Coefficients coef, double div)
+    {
+        double ndist = System.Math.Min(1.0, System.Math.Abs(lnDev) / coef.PriceAmpLnScale);
+        double amp = coef.PriceAmpCenter + (coef.PriceAmpEdge - coef.PriceAmpCenter) * System.Math.Pow(ndist, coef.PriceAmpPower);
+        double g = coef.FlowAdjustSpeed * coef.PriceElasticity / div * amp;
+        int hs = h;
+        while (hs > 1 && hs * g > StepPerTau) { hs--; while (hs > 1 && h % hs != 0) hs--; }
+        return hs;
     }
 
     /// <summary>SoftBand を h 回重ねた正規化距離：s＝t／(1＋h·|t|^k)^(1/k)。

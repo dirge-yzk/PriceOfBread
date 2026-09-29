@@ -1669,7 +1669,9 @@ public sealed class World
         }
         return material;
     }
-    public void StepConstruction()
+    /// <param name="days">★旬次（2026-09-30 高速化の段 S3c・近似）：この1回で進める日数 h（旬の初日に呼ぶ）。棟ごとに働く日数 n＝min(h, 完成までの日数)
+    /// ＝日次の写像を n 回まわした工賃と進捗を1回で（採算率と支払い率は旬の中で定数）。1＝旧来の日次と1ビットも変わらない。</param>
+    public void StepConstruction(int days = 1)
     {
         if (WarmupFrozen) return;   // ★助走は暦が進まない＝工事も進まない（着工も BuildFactory 側で止めてあるので、通常は工事中の棟が無い＝空回り防止と、ロード済み盤面で助走した場合の保険）
         int ng = Catalog.Goods.Length;
@@ -1702,10 +1704,17 @@ public sealed class World
                 //   材料（EconomyStep.AccumulateFactoryBuild）も同じ r ＝工賃と材料が同じ1本の率で細る。
                 double step = buildAfford * FiscalFundingRatio;
                 if (!(step > 1e-9)) continue;                             // 否定形＝NaN は進めない
-                double pay = p.ConstructionPayPerDay * step;              // 進捗が遅い日は工賃も比例（採算率×r ぶんだけ工事）
+                // ★旬次（S3c）：働く日数 n＝日次の写像（1日に step 進み、残りが 1e-9 以下で完成）が完成までに回る日数と h の小さい方（h=1 なら1＝旧来）。
+                int n = 1;
+                if (days > 1)
+                {
+                    double need = Math.Ceiling((p.ConstructionLeft - 1e-9) / step);
+                    n = need < days ? Math.Max(1, (int)need) : days;       // 否定形でない比較＝NaN は h 日ぶん（旧の日次も NaN の残りを毎日進めた）
+                }
+                double pay = p.ConstructionPayPerDay * step * n;          // 進捗が遅い日は工賃も比例（採算率×r ぶんだけ工事）×働いた日数
                 Pay(TreasuryCat.FactoryBuild, -pay);
                 r.Pops[p.LaborPopIndex].Savings += pay;                   // 労務費＝工員へ（保存）
-                p.ConstructionLeft -= step;                               // 採算率×r に比例した進捗（崖でなく漸減）
+                p.ConstructionLeft -= step * n;                           // 採算率×r に比例した進捗（崖でなく漸減）
                 // 完成＝1棟ぶん操業開始。カウンター（国営工場の目標）も現在値まで引き上げる＝**外から増えた棟を月次駆動が売り戻さない**
                 // （BuildFactory を直に呼ぶ経路＝テスト/Runner も同じ扱いになる＝1箇所で閉じる）。
                 if (p.ConstructionLeft <= 1e-9)

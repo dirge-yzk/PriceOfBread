@@ -56,6 +56,33 @@ public class EconomyTests
         Assert.Equal(daily5[1], step5[1]);    // 供給の立った財は打ち切らない（1ビットも違わない）
     }
 
+    /// <summary>★閉じた式の小刻み（2026-09-30 高速化の段 S3c・近似）：国内価格の旬の1歩（h 日）は、刻みが時定数の1/10 を超える財を h の約数の小刻みで進める。
+    /// 参照から遠い財（参照の5倍・1日の縮み g≈0.015＝時定数 約70日）の10日の1歩は、5日の1歩を2回と1ビットも違わない（5日×g≦0.1・割高で参照へ寄る向き）。
+    /// 参照の近くの財（1.2倍・時定数 約180日）は10日を1歩で進める＝5日を2回とは違う値（小刻みは要る財にだけ）。⚠突然変異「小刻みしない」で前者が赤。</summary>
+    [Fact]
+    public void 閉じた式は刻みが時定数の10分の1を超える財を小刻みで進める()
+    {
+        var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+        var r = sim.World.Region; var c = sim.World.Coef;
+        Assert.True(c.DomesticMarkupMax <= 0, "前提が崩れた：国内の寡占マークアップが点いている（日次の経路の別の枝）");
+        var goods = r.Goods.Where(g => g.Tier != GoodTier.Service && g.RefPrice > 0).Take(2).ToArray();
+        Assert.True(goods.Length == 2, "前提が崩れた：財が2つ無い");
+        var mF = r.Markets[goods[0].Id]; var mN = r.Markets[goods[1].Id];
+        double rpF = goods[0].RefPrice * r.PriceLevel, rpN = goods[1].RefPrice * r.PriceLevel;
+        foreach (var m in new[] { mF, mN }) { m.LastDemand = 100; m.LastProduced = 100; m.LastImport = 0; m.LastExport = 0; m.Stock = 100; }   // 需要＝供給＝価格だけが参照から離れている
+        double[] Run(int days, int times)
+        {
+            mF.Price = 5 * rpF; mN.Price = 1.2 * rpN;
+            for (int i = 0; i < times; i++) MarketFlow.StepDay(r, c, days);
+            return [mF.Price, mN.Price];
+        }
+        var one10 = Run(10, 1); var two5 = Run(5, 2);
+        Assert.True(one10[0] < 5 * rpF && one10[0] > 1.2 * rpF, $"前提が崩れた：割高な財が内側で参照へ寄っていない（{one10[0] / rpF} 倍）");
+        Assert.Equal(two5[0], one10[0]);        // 遠い財＝10日の1歩は5日の小刻み2回
+        Assert.NotEqual(two5[1], one10[1]);     // 近い財＝10日を1歩（5日を2回とは違う）
+        Assert.True(System.Math.Abs(one10[1] - two5[1]) <= 1e-3 * two5[1], $"近い財の1歩と2歩の差 {(one10[1] - two5[1]) / two5[1]} が大きすぎる");
+    }
+
     [Fact]
     public void 放置で食料価格は限界費用以上に収束し暴騰もしない()
     {

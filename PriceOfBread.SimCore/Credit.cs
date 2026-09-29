@@ -13,7 +13,10 @@ public static class Credit
 
     /// <param name="month">★月の中の定数（2026-09-26 A2-1）＝名目GDP・大衆の平均満足・平均工業化。日次の呼び手（<see cref="Simulation.StepDayDaily"/>）が
     /// 月の初日に1回だけ求めて渡す（結果が変わらない根拠は <see cref="Simulation.CreditMonth"/>）。null＝ここで求める（テストの直呼び＝旧と同じ）。</param>
-    public static void Step(World w, Coefficients c, (double NominalGdp, double AvgSat, double MeanInd)? month = null)
+    /// <param name="days">★旬次（2026-09-30 高速化の段 S3c・近似）：この1回で進める日数 h（旬の初日に呼ぶ）。信頼と与信の残高は目標を旬の中で据え置いて
+    /// h 日ぶんの緩和を閉じた形 1−(1−速さ)^h で寄せ（与信の目標が読む信頼は旬の始めと終わりの台形）、利息は h 日ぶん。
+    /// 1＝旧来の日次と1ビットも変わらない（1−(1−s)^1 と s は丸めが違う＝1 は旧の式のまま）。</param>
+    public static void Step(World w, Coefficients c, (double NominalGdp, double AvgSat, double MeanInd)? month = null, int days = 1)
     {
         var bank = w.Bank;
         if (bank is null) return;
@@ -68,7 +71,11 @@ public static class Credit
         // パニック/平時の非対称（速い崩落・遅い醸成）も貸し剥がし倍率も比なので、一律に割っても保たれる。
         double div = c.PriceFlowDailyDiv;
         double spd = (targetConf < bank.Confidence ? c.PanicSpeed : c.ConfidenceSpeed) / div;
+        if (days > 1) spd = 1.0 - Math.Pow(1.0 - spd, days);   // ★旬次（S3c）：h 日ぶんの緩和（目標は据え置き）
+        double confStart = bank.Confidence;
         bank.Confidence = PoliticalQuantities.Clamp01(bank.Confidence + spd * (targetConf - bank.Confidence));
+        // ★旬次（S3c）：与信の目標が読む信頼＝旬の中の平均（始めと終わりの台形）＝日次は毎日その日の信頼で目標を引き直す（終わりの値だけでは与信が旬の分だけ先回りする）。h=1 は旧のまま。
+        double confL = days > 1 ? 0.5 * (confStart + bank.Confidence) : bank.Confidence;
 
         // 金融政策：低金利ほど銀行は貸す（信用ブーム→投資加速）、高金利は引締（安定）。＝中央銀行のレバー
         double appetite = PoliticalQuantities.Clamp01(1.0 - c.InterestRateEffect * w.InterestRate);
@@ -121,7 +128,7 @@ public static class Credit
         // EuphoriaUsesStableReserve=0 で旧・縮小後 effMaxLoans 基準。既定1.0＝安定準備基準（#17較正で有効化）。
         double heatDenom = effMaxLoans * (1.0 - c.EuphoriaUsesStableReserve) + maxLoans * c.EuphoriaUsesStableReserve;
         bank.Heat = heatDenom > 1e-9 ? Math.Clamp(bank.Loans / heatDenom, 0, HeatClampMax) : 0;   // 与信使用率＝過熱度（既定は取り付けで準備が縮むと過熱度↑・stable基準では準備縮小に不感）
-        double targetLoans = effMaxLoans * bank.Confidence * appetite;
+        double targetLoans = effMaxLoans * confL * appetite;
         // 説明API（金利doc B2・2026-07-30）：与信目標の加法分解＝「金利を動かしたとき何がどれだけ動いたか」を測れる状態にする。
         // 乗算連鎖 maxLoans×(1−run)×(1+lolr)×Confidence×appetite を before/after 差分で分解（AdminEfficiency と同型）。
         // Explain=null（既定）なら丸ごと短絡＝ゼロコスト・ビット恒等。
@@ -130,12 +137,13 @@ public static class Credit
             exCredit.Reset("CreditTarget");
             exCredit.Add("CreditTarget", "与信の上限（準備×信用乗数と返せる額の小さい方）", maxLoans);
             exCredit.Add("CreditTarget", "銀行取り付けと最後の貸し手", effMaxLoans - maxLoans);
-            exCredit.Add("CreditTarget", "銀行の信頼（ミンスキー）", effMaxLoans * bank.Confidence - effMaxLoans);
-            exCredit.Add("CreditTarget", "政策金利（貸出意欲）", targetLoans - effMaxLoans * bank.Confidence);
+            exCredit.Add("CreditTarget", "銀行の信頼（ミンスキー）", effMaxLoans * confL - effMaxLoans);
+            exCredit.Add("CreditTarget", "政策金利（貸出意欲）", targetLoans - effMaxLoans * confL);
         }
         // 貸し剥がしの非対称（倍率排除）：独立した RecallMultiple 倍率を撤去し、非対称は**信頼の崩落速度**（PanicSpeed≫ConfidenceSpeed）に一本化。
         // Confidence が一夜で崩れると targetLoans=maxLoans×Confidence×appetite も急落するため、対称な CreditAdjustSpeed でも回収が速くなる＝「剥がしは一夜」は信頼の非対称から創発。
         double adjSpd = c.CreditAdjustSpeed / div;
+        if (days > 1) adjSpd = 1.0 - Math.Pow(1.0 - adjSpd, days);   // ★旬次（S3c）：h 日ぶんの緩和（目標は据え置き）
         double delta = adjSpd * (targetLoans - bank.Loans);
         if (bank.Loans + delta < 0) delta = -bank.Loans;
 
@@ -181,19 +189,19 @@ public static class Credit
         double loanRate = w.LoanRateAnnual;   // 換算はWorld側の唯一の地点へ集約（UIと同じ値を見る＝表示と挙動が乖離しない）。式・順序は従来と同一＝ビット恒等
         if (loanRate > 1e-12 && bank.Loans > 1e-9)
         {
-            double interestDue = bank.Loans * loanRate / (double)Calendar.DaysPerYear;
+            double interestDue = bank.Loans * loanRate / (double)Calendar.DaysPerYear * days;   // ★旬次（S3c）：h 日ぶん（×1 は丸めを変えない）
             double paid;
             // B4 利息の支払い方（2026-07-31 裁定＝案A+案Bの合成）。
             // 【案A】当期の利潤（フロー）から払う。旧実装は min(利息, Savings) ＝**ストックで頭打ち**で、与信を工場に変えた
             //   借り手は手元現金が薄いためクランプが恒常的に binding し、不足分は**捨てられて**いた（＝儲からなければ借金がタダ）。
             //   利潤は Pop.Earned−Pop.Paid（どちらも実在するフロー量）で取れる。Savings の増分で近似する必要はない。
             //   ★単位：Earned/Paid は EconomyStep.Run で**月次**リセット、Credit.Step は**日次**（Simulation.StepDayDaily）。
-            //   月次の利潤で日次の利息を頭打ちにすると1ヶ月で最大30回ぶん払えるので、日割り（/DaysPerMonth）で揃える。
+            //   月次の利潤で日次の利息を頭打ちにすると1ヶ月で最大30回ぶん払えるので、日割り（/DaysPerMonth）で揃える（2026-09-30 S3c から旬次＝h 日ぶん×days）。
             //   現金（Savings）も同時に上限＝持っていない金は払えない（両方の min）。
             if (home.InvestorPopIndex >= 0 && home.InvestorPopIndex < home.Pops.Count)
             {
                 var borrower = home.Pops[home.InvestorPopIndex];
-                double profitDaily = Math.Max(0, borrower.Earned - borrower.Paid) / (double)Calendar.DaysPerMonth;
+                double profitDaily = Math.Max(0, borrower.Earned - borrower.Paid) / (double)Calendar.DaysPerMonth * days;   // h 日ぶんの利潤（旬次）
                 paid = Math.Min(interestDue, Math.Min(profitDaily, Math.Max(0, borrower.Savings)));
                 borrower.Savings -= paid;
             }
@@ -202,7 +210,7 @@ public static class Credit
                 var pops = Pops();
                 double tot = 0, profitTot = 0;
                 foreach (var p in pops) { tot += Math.Max(0, p.Savings); profitTot += Math.Max(0, p.Earned - p.Paid); }
-                paid = Math.Min(interestDue, Math.Min(profitTot / (double)Calendar.DaysPerMonth, tot));
+                paid = Math.Min(interestDue, Math.Min(profitTot / (double)Calendar.DaysPerMonth * days, tot));
                 if (tot > 1e-9) foreach (var p in pops) p.Savings -= paid * (Math.Max(0, p.Savings) / tot);
             }
             // 【案B】払えなかった分は**消えない**＝残高へ繰り入れる（複利化）。

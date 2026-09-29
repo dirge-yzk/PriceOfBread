@@ -295,4 +295,35 @@ public class CreditTests
         Assert.True(base0 > 0, "前提が崩れた：基礎貨幣が正でない");
         mc.Check(w);
     }
+
+    /// <summary>★信用の旬次（2026-09-30 高速化の段 S3c・近似）：Credit.Step(…, days: h) は信頼を h 日ぶんの緩和の閉じた形 1−(1−速さ)^h で目標へ寄せる
+    /// ＝信頼の目標が旬の中で動かない盤面（過熱の脆さ・退蔵のパニック・負債デフレを切る＝目標が与信の残高と信頼そのものに依らない）では、日次を h 回まわした信頼と
+    /// 丸めの差だけで一致する（目標より上＝崩れる速さ・下＝育つ速さの両方）。与信の残高は目標（信頼×上限）が日ごとに動くので一致しない＝近いことだけを見る。
+    /// ⚠突然変異「h 日ぶんを1歩の外挿 h×速さで寄せる」で赤（差は h(h−1)/2×速さ²×隔たり）。</summary>
+    [Fact]
+    public void 信用の旬次は目標が動かない盤面で日次をh回まわした信頼と一致する()
+    {
+        const int h = 10;
+        int down = 0, up = 0;
+        foreach (double conf0 in new[] { 1.0, 0.05 })
+        {
+            World Mk()
+            {
+                var w = Board(Rich, 0);
+                w.Explain = null;
+                w.Coef.OverheatFragility = 0; w.Coef.HoardPanicWeight = 0; w.Coef.DebtDeflationWeight = 0;
+                w.Coef.ConfidencePivot = 2.0; w.Coef.PanicSensitivity = 0.25;   // 目標＝1−0.25×(2−充足)∈[0.5, 0.75]＝1.0 は崩れる側・0.05 は育つ側
+                w.Bank!.Confidence = conf0;
+                return w;
+            }
+            var a = Mk(); var b = Mk();
+            PriceOfBread.SimCore.Credit.Step(a, a.Coef, null, h);
+            for (int i = 0; i < h; i++) PriceOfBread.SimCore.Credit.Step(b, b.Coef, null, 1);
+            double ca = a.Bank!.Confidence, cb = b.Bank!.Confidence;
+            if (cb < conf0) down++; else if (cb > conf0) up++;
+            Assert.True(Math.Abs(ca - cb) <= 1e-12, $"信頼が日次を h 回まわした値と違う（始め {conf0}：旬次 {ca} 対 日次 {cb}）");
+            Assert.True(Math.Abs(a.Bank.Loans - b.Bank.Loans) <= 1e-2 * Math.Max(1.0, Math.Abs(b.Bank.Loans)), $"与信の残高が日次から離れすぎた（{a.Bank.Loans} 対 {b.Bank.Loans}）");   // 目標の信頼は旬の台形（終わりの値だけなら 1.7%・台形で 0.2%）
+        }
+        Assert.True(down == 1 && up == 1, $"前提が崩れた：崩れる側と育つ側の両方を通っていない（下 {down}・上 {up}）");
+    }
 }

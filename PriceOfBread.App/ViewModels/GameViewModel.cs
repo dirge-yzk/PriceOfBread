@@ -417,7 +417,8 @@ public partial class GameViewModel : ViewModelBase
     private int _dayInQuarterUI;        // 0..89（月/四半期境界の検出）
 
     // 三層時計に合わせた描写：日次＝価格（物価/国庫/生産詳細）、月次＝生産グラフ/POP/外交/州、四半期＝地図/法律。
-    // ⚠2026-09-26 ㊽ から国内価格は旬の最終日（PriceFlowStepDays＝5日ごと）にだけ動く＝その間の日は同じ価格を描き直す（描写は日次のまま）。
+    // ⚠2026-09-26 ㊽ から国内価格は旬の最終日（PriceFlowStepDays 日ごと＝2026-09-30 (114) から10日）にだけ動く＝その間の日は同じ価格を描き直す（描写は日次のまま）。
+    //   建設の進捗と信用（与信・信頼）も (114) から旬の初日にまとめて動く。
     // ＝それぞれの表示頻度をその計算頻度に一致させる（シム計算は軽く、重いのはUI再構築＝各層のcadenceで最小限に描く）。
     private void OnTick(object? sender, EventArgs e)
     {
