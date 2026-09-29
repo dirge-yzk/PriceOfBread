@@ -156,21 +156,25 @@ public class WriterRatchetTests
     // ★2026-09-30 表の更新（(122) 合流の前段＝線2〔(118) 幽霊の国の根・(119) 助走は法を動かさない〕を載せた木＝軌道が動いた分の宣言・新しい処理は無い）：
     //   建設 28,392→13,571・請求 9,682→4,710（下がった＝表を下げる）・覇権の判定 1,657,020→2,300,741（+39%＝開幕の法と同盟の軌道が変わり、
     //   同盟の候補が居る月が増えた＝処理の形は同じ）。推定の単位では 40四半期で +6.7ms（単価 0.01035µs）＝全長の予算の内／超過は合わせた main の10種の .cost で見る（実装ログ (122)）。
-    [InlineData(CostLedger.PriceGoods, 14629209L)]
-    [InlineData(CostLedger.PriceDailyRuns, 39615736L)]
-    [InlineData(CostLedger.ConstructionSeen, 13571L)]
-    [InlineData(CostLedger.CreditSpans, 33138L)]
-    [InlineData(CostLedger.ConsumePopGoods, 29298230L)]
+    // ★2026-09-30 表の更新（(122) 合流＝線1〔(117)(120) 支払いの段3-2・3-3〕を線2〔(118)(119)〕と計算量の予算 第2回〔(121)〕の載った main へ＝軌道が動いた分の宣言・
+    //   新しい処理は無い＝15本とも合わせた木の件数へ置き直した）：建設 13,571→22,986・請求 4,710→7,908（国営持分の工事と植民地・港・運河の代金の軌道）・
+    //   清算の着値の充填 35,263,928→36,674,517（+4.0%）・覇権の判定 2,300,741→2,459,718（+6.9%）・価格の財の歩 14,629,209→14,830,130・日次の写像の回 39,615,736→39,322,063・
+    //   信用 33,138→33,237・外交：国×月 9,906→9,939・共有層 3,682→3,693（40四半期で国が1つ多い）・ほかは揺れ。全長の推定と予算の上限は合わせた main の10種の .cost（実装ログ (122)）。
+    [InlineData(CostLedger.PriceGoods, 14830130L)]
+    [InlineData(CostLedger.PriceDailyRuns, 39322063L)]
+    [InlineData(CostLedger.ConstructionSeen, 22986L)]
+    [InlineData(CostLedger.CreditSpans, 33237L)]
+    [InlineData(CostLedger.ConsumePopGoods, 29299010L)]
     [InlineData(CostLedger.ProducerMonths, 9037980L)]
-    [InlineData(CostLedger.ClaimProducers, 4710L)]
+    [InlineData(CostLedger.ClaimProducers, 7908L)]
     [InlineData(CostLedger.MonthlyPops, 706680L)]
-    [InlineData(CostLedger.ClearingRows, 5577638L)]
-    [InlineData(CostLedger.ClearingFills, 35263928L)]
-    [InlineData(CostLedger.DiploPowerMonths, 9906L)]
-    [InlineData(CostLedger.DiploHegemonScans, 2300741L)]
+    [InlineData(CostLedger.ClearingRows, 5618106L)]
+    [InlineData(CostLedger.ClearingFills, 36674517L)]
+    [InlineData(CostLedger.DiploPowerMonths, 9939L)]
+    [InlineData(CostLedger.DiploHegemonScans, 2459718L)]
     [InlineData(CostLedger.QuarterStartPops, 235560L)]
     [InlineData(CostLedger.QuarterEndPops, 235560L)]
-    [InlineData(CostLedger.SharedNationQuarters, 3682L)]
+    [InlineData(CostLedger.SharedNationQuarters, 3693L)]
     public void 計算量の見た件数は宣言した表を超えない(int item, long declared)
     {
         long n = Cost40.Value[item];

@@ -52,8 +52,11 @@ public class TaxTests
     [Fact]
     public void 人頭税は閉鎖階級を免除し大衆に重い()   // 特権＝貴族・聖職者は払わない（逆進性の設計）
     {
-        var baseline = new Simulation(NationConfig.France().ToScenario(17), new NullAgent());
-        var taxed = new Simulation(NationConfig.France().ToScenario(17), new NullAgent());
+        // ★2026-09-30 (122) 盤面の直し：開幕の通貨は旧の不換（(119) で実国家の開幕は銀になった）。銀の盤面では、(117)(120)（支払いの段3-2・3-3）と
+        //   合わせた木で無税の側の赤字の埋め方（借入と改鋳）が変わり、直接負担の対比が 6.9%→4.0% に縮む＝この番人が測る逆進性（直接負担）とは別の経路。
+        Scenario FranceFiat() { var c = NationConfig.France().ShallowClone(); c.InitialMonetaryLaw = MonetaryStandardLaw.Fiat; return c.ToScenario(17); }
+        var baseline = new Simulation(FranceFiat(), new NullAgent());
+        var taxed = new Simulation(FranceFiat(), new NullAgent());
         baseline.World.GovDebt = taxed.World.GovDebt = 0;   // P5：仏は重債務開始＝切り下げが両系の貯蓄を毎月削り逆進性の対比が埋もれるため中立財政で隔離
         foreach (var w0 in new[] { baseline.World, taxed.World }) foreach (var rg in w0.Regions) foreach (var pp in rg.Pops) pp.BondHoldings = 0;   // ★2026-09-21：国債を手で消すなら持ち手の記録（保有台帳）も消す＝Σ保有＝国内元本の不変条件
         baseline.World.Policy.PollTaxTarget = 0;     // 既定で人頭税0.5が入る（近世財政）ため、清浄な対比（無税 vs 最大）にして逆進性の直接効果を測る
