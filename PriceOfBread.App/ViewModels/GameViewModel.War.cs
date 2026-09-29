@@ -55,9 +55,8 @@ public partial class GameViewModel
     private const int PastWarKeepYears = 5;              // 終わった戦争をタブに残す年数
     // 戦争ごとのUI追跡（レビュー2026-07-19で全面改構）：戦死＝エンジンの戦争別台帳 War.DeadA/DeadB（兵士＋将校）、
     // 民間人の死＝War.CivDeadA/CivDeadB（★2026-09-23で追加）＝どちらも内戦・粛清の混入なし・多正面は戦線数で按分済み。
-    // ★戦費＝**エンジンが実際に払った額**（TreasuryLedger[WarCost] の月次差分＝_monthWarCost）をその月の戦線数で均等按分した累計。
-    //   ⚠旧コメントは「WarCostPerMilitary×Military を按分」と書いていたが、それは払う前の請求額 cost で、
-    //     国庫が空なら払えない（Diplomacy.cs:2971 の pay=Min(Treasury,cost)）＝実払いと食い違う。読む先は Refresh.cs:294 の記述が正しい。
+    // ★戦費＝**エンジンが実際に払った軍の支出**（TreasuryLedger の陸軍・海軍・戦費の月次差分の和＝_monthWarCost）をその月の戦線数で均等按分した累計。
+    //   2026-09-30（支払いの一元化 段3-2）から戦費の独自の支払い（旧 Diplomacy.Fund）は無い＝戦争の費用は軍需の調達と兵士の給与と賠償。
     // 開戦日＝war.Months から導出（ロードしても正しい）。
     // 鍵＝敵Power.Id（変名しても同一の戦争）。Last* は講和で War が消えた後の残置表示用スナップショット。
     private sealed class WarTrack

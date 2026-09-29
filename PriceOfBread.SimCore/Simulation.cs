@@ -2072,14 +2072,14 @@ public sealed class Simulation
         //   置き場所＝既存の FiscalFundingRatio（旧＝維持費の充足率）。逼迫度＝1−r（UtilityAgent.FiscalStressOf）。
         //   撤去したもの＝国庫の現金クランプ StateBudgetCashScale（係数 StateSpendTreasuryClamp）・兵士の給与の州ごとの min(国庫)・日次の工賃の丸休みの門・
         //   材料の門・Fiscal の滝（利払い→維持費→福祉/年金→減債）・WelfarePensionClampToTreasury・SpendingCapFactor（Q9）・手書きの Min(Max(0,国庫)) の門。
-        //   ⚠出来事（選挙資金・賠償・拿捕・武力解錠・通行料・港・売買方針の代金・外資の拠出・燃料）は月初に額が分からない＝請求の見込みに入らず、起きた時点の r で払う。
-        //   ⚠四半期の支払い（貢納・招聘の支度金・外資の利回り・戦費）は四半期末の外交と共有層がまとめて払う＝四半期の締め月の請求に入れる（戦費は外交の月次3回ぶん）。
+        //   ⚠出来事（選挙資金・賠償・武力解錠の軍需・通行料・港・売買方針の代金・外資の拠出・燃料）は月初に額が分からない＝請求の見込みに入らず、起きた時点の r で払う（拿捕は 2026-09-30 から私人の間＝国庫を通らない）。
+        //   ⚠四半期の支払い（貢納・招聘の支度金・外資の利回り）は四半期末の外交と共有層がまとめて払う＝四半期の締め月の請求に入れる。
+        //   （戦費 Fund の請求の見込みは 2026-09-30 に Fund ごと削除＝支払いの段3-2・戦争の費用の実体は上の軍需の予算と兵士の給与）
         double claims = World.LastUpkeep + World.LastInterest + World.LastWelfareCost + World.LastPensionCost + World.LastColonialUpkeep;
         bool payQuarter = World.IsQuarterEndMonth;
         if (payQuarter) claims += World.LastTributeOut + World.RecruitBudget;   // 四半期の請求（貢納・招聘の支度金）
-        if (payQuarter && World.SelfPower is { } paySelf && World.Diplomacy is { } payDip)
+        if (payQuarter && World.SelfPower is not null && World.Diplomacy is { } payDip)
         {
-            if (atWarNation) claims += Calendar.MonthsPerQuarter * World.Coef.WarCostPerMilitary * paySelf.Military;   // 戦費（Diplomacy.Fund と同じ式＝四半期末に月次3回）
             if (World.Coef.MegaprojectForeignYield > 0)
                 foreach (var mp in payDip.Megaprojects)
                     if (mp.IsComplete && mp.ForeignPartnerId >= 0 && mp.ForeignPrincipal > 1e-9

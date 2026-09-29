@@ -94,7 +94,7 @@ public sealed class MultiNationSim
         var setup = WorldData.Setup();
         foreach (var t in setup.Targets)
         {
-            var p = new Power { Id = Diplomacy.Powers.Count, Name = t.Name, BaseName = t.Name, Military = t.Military, Gdp = 0, Treasury = t.Treasury, TradeWeight = 0.0, RequiresQuinine = t.Quinine };
+            var p = new Power { Id = Diplomacy.Powers.Count, Name = t.Name, BaseName = t.Name, Military = t.Military, Gdp = 0, TradeWeight = 0.0, RequiresQuinine = t.Quinine };
             foreach (var c in t.Colonies) { var cc = Geo.ColonyCoord(c.Name); p.ColonyList.Add(new Colony { Name = c.Name, Resources = [.. c.Resources], Population = c.Population, PopSize = c.Population * _coef.ColonialPopScale, Latitude = cc.Lat, Longitude = cc.Lon, Malarial = t.Quinine }); }   // ★回1-1（col-01）：住民数も作成時に置く（旧＝未設定のまま侵略で州化され、住民0・耕地1.8の州になった＝約650万人分が消えた）。熱帯(Quinine)標的の州はマラリア地＝征服で本国へ風土病が付いて回る。Resourcesは試合ごとに複製（キャッシュ共有回避）
             Diplomacy.Powers.Add(p);
         }
@@ -1164,7 +1164,7 @@ public sealed class MultiNationSim
         }
     }
 
-    // 海峡・運河（§B）：扼者を host 領土から解決し、運河は host 保有の経済国の資本家が自腹で建設（投資家→自国pop＝労務で保存）。富裕な工業国ほど速く開通。
+    // 海峡・運河（§B）：扼者を host 領土から解決し、運河は host 保有の経済国の資本家が自腹で建設（投資家→自国の労働の④＝工賃で保存）。富裕な工業国ほど速く開通。
     private void StepCanals()
     {
         foreach (var cp in Diplomacy.Chokepoints)
@@ -1182,17 +1182,17 @@ public sealed class MultiNationSim
                 // 外7：CanalInvestReturns>0 のとき host（扼者）と交戦中の国は拠出停止（敵の運河には投資しない＝資本の論理）。既定0.5＝停止が効く。0で無条件拠出。
                 if (_coef.CanalInvestReturns > 0 && cp.Owner is { Nation: not null } cpo && w.SelfPower is { } wsp && Diplomacy.IsAtWar(wsp, cpo)) continue;
                 double pool = 0;
-                var investors = new List<Pop>(); var workers = new List<Pop>();
+                var investors = new List<Pop>();
                 foreach (var r in w.Regions)
                 {
                     if (r.State != RegionState.Active) continue;
-                    workers.AddRange(r.Pops);
                     if (r.InvestorPopIndex >= 0) { var ip = r.Pops[r.InvestorPopIndex]; investors.Add(ip); pool += Math.Max(0, ip.Savings); }
                 }
                 if (pool <= 1e-6) continue;
-                // ★支払いの一元化 段2-3（E1・2026-09-29）：投資家（貯蓄の比）→自国pop（建設労務・頭数）を移し方の1本で＝動いた額が進捗と持分になる。
-                //   旧＝引いた額と配った額が別の式（配る側は端数を寄せない）・自国pop が居ないと引いた額が消えた。
-                double inv = World.Transfer((w, investors), (w, workers, null), _coef.CanalInvestFrac * pool);
+                // ★支払いの一元化 段2-3（E1・2026-09-29）：投資家（貯蓄の比）→建設の工賃を移し方の1本で＝動いた額が進捗と持分になる。
+                // ★段3-2（2026-09-30・C9）：工賃は**自国の労働の④の持分**（全ての活きた州の労働力の生産者の産出の比・賃金は労働者・Earned を通す＝InternationalMarket.PaySales の国の枝）。
+                //   旧＝自国の全POP へ頭数（財を買わない＝建設の工賃なのに農民・貴族・兵士まで受け取った）。労働の担い手がいなければ動かない（進捗も持分も立たない）。
+                double inv = InternationalMarket.PaySales((w, investors), null, Catalog.LaborId, _coef.CanalInvestFrac * pool, w);
                 if (!(inv > 0)) continue;
                 cp.BuildProgress += inv;
                 // 外7：拠出国の持分（累計拠出額）を記録＝後で通行料を持分比で分配（配当）。既定0.5＝この持分が配当に効く。0では通行料が扼者総取りのままなので持分は参照されず無影響。
@@ -1272,7 +1272,7 @@ public sealed class MultiNationSim
     }
 
     // 港湾の建設（改修2026-06-28）：StepCanals の雛形を Region に移植＝各国の港州を、交易が容量で律速（混雑）している時に**資本家が主導・国家が上乗せ**して拡張する。
-    // 保存：投資（資本家貯蓄＋国庫）→ 自国pop へ Size 按分で還流（建設労務＝StepCanals同型・BaseMoney不変）。港料：取扱高×率を地元投資家へ（関税同型の国内移転）。
+    // 保存：投資（資本家貯蓄＋国庫）→ 港の州の労働の④（建設の工賃＝StepCanals と同じ・BaseMoney不変）。港料：取扱高×率を地元投資家へ（関税同型の国内移転）。
     private void StepPorts()
     {
         foreach (var sim in Nations)
@@ -1281,7 +1281,7 @@ public sealed class MultiNationSim
             double natPop = 0; foreach (var r in w.Regions) if (r.State == RegionState.Active) foreach (var p in r.Pops) natPop += p.Size;
             if (natPop <= 1e-9) continue;
             bool techOk = w.TechLevel >= _coef.PortTechOnset;
-            List<Pop>? pops = null;   // 港料徴収と建設労務の母集団（国ごとに高々1回だけ構築＝複数港での重複確保を避ける）
+            List<Pop>? pops = null;   // 港料徴収の母集団（国ごとに高々1回だけ構築＝複数港での重複確保を避ける）
             foreach (var r in w.Regions)
             {
                 if (r.State != RegionState.Active || !r.IsPort) continue;
@@ -1300,9 +1300,10 @@ public sealed class MultiNationSim
                 double cState = _coef.PortStateFrac * cCap * w.FiscalFundingRatio;   // 国家ルート＝資本家投資に上乗せ（公共インフラ＝国家プロジェクト）×国家の支払い率 r（2026-09-28 段2-1）
                 double invest = cCap + cState;
                 if (invest <= 1e-9) continue;   // ★判定→引落の順（wave2b是正）：引落してから捨てると微小額が pop へ還流されず消える片側記帳になる
-                ip.Savings -= cCap;
-                w.Pay(TreasuryCat.OtherOut, -cState);
-                World.Distribute(pops, invest);   // 建設労務で自国popへ（頭数・端数は最後の受け手＝按分の本体・段2-3 E1）＝保存
+                // ★支払いの一元化 段3-2（2026-09-30・C9）：建設の工賃は**港の州の労働の④の持分**（労働力の生産者の産出の比・賃金は労働者・Earned を通す＝InternationalMarket.PaySales）。
+                //   旧＝自国の全POP へ頭数（財を買わない）。進捗は動いた額（資本家の分＋国庫の分）。
+                invest = InternationalMarket.PaySales((w, [ip]), r, Catalog.LaborId, cCap, w)
+                       + InternationalMarket.PaySales((w, null), r, Catalog.LaborId, cState, w, TreasuryCat.OtherOut);
                 r.PortCapacity += invest / _coef.PortBuildCostPerUnit;
             }
         }

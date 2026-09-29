@@ -68,44 +68,62 @@ public sealed partial class InternationalMarket
     /// （所得・信用枠・票・課税の基数＝月次の精算の後の受け取りなので貯蓄と所得を同じ額で書く＝Fiscal の領主の取り分と同じ作法）。
     /// 生産者のいない在庫（輸入の在庫）は捌き手の商人へ（EconomyStep の「生産者のいない財の売上」と同じ規則・商人不在は州の頭数）。
     /// 旧＝PayExportToProducers（輸出代金の半分〔係数 ExportRevenueToProducers〕を持ち主の貯蓄へ直接・賃金分なし・残りは国の全POP の貯蓄比）。
-    /// 払い手＝from（清算所＝(null, null)・輸送財の買い手＝(国, [POP])）。戻り値＝動いた額。</summary>
-    internal static double PaySales((World? W, List<Pop>? Pops) from, Region r, int goodId, double amount, World w)
+    /// 払い手＝from（清算所＝(null, null)・輸送財の買い手＝(国, [POP])・国庫＝(国, null)＝区分 <paramref name="cat"/>）。戻り値＝動いた額。
+    /// ★段3-2（2026-09-30）：<paramref name="r"/>＝null は**国の全ての活きた州**の生産者の産出の比（役務＝兵士の兵力・官僚の行政・労働の工賃を国として買う＝連合と植民地の維持費・運河の工賃）。
+    ///   生産者が1人もいなければ動かさない（受け手不在＝払い手に残る）。国庫が自国の国営持分から買う分は区分だけ動く（払い手の区分から StateFactory へ＝EconomyStep の④と同じ記帳）。</summary>
+    internal static double PaySales((World? W, List<Pop>? Pops) from, Region? r, int goodId, double amount, World w, TreasuryCat cat = TreasuryCat.OtherIn)
     {
         if (!(amount > 0)) return 0;
         var coef = w.Coef;
+        int nr = r is null ? w.Regions.Count : 1;
+        static bool Sells(Producer pr, Region rr, int g) => pr.GoodId == g && pr.OwnerPopIndex >= 0 && pr.OwnerPopIndex < rr.Pops.Count && pr.LaborPopIndex >= 0 && pr.LaborPopIndex < rr.Pops.Count;
         double totalOut = 0;
-        foreach (var pr in r.Producers)
-            if (pr.GoodId == goodId && pr.OwnerPopIndex >= 0 && pr.OwnerPopIndex < r.Pops.Count && pr.LaborPopIndex >= 0 && pr.LaborPopIndex < r.Pops.Count)
-                totalOut += Math.Max(0, pr.Output);
+        for (int ri = 0; ri < nr; ri++)
+        {
+            var rr = r ?? w.Regions[ri];
+            if (r is null && rr.State != RegionState.Active) continue;
+            foreach (var pr in rr.Producers)
+                if (Sells(pr, rr, goodId)) totalOut += Math.Max(0, pr.Output);
+        }
         var to = new List<Pop>(); List<double>? wt = null;
         double stateCut = 0;
         if (totalOut > 1e-9)
         {
             wt = [];
-            double ruralPop = 0;
-            foreach (var p in r.Pops) if (!p.IsUrban) ruralPop += p.Size;
-            foreach (var pr in r.Producers)
+            for (int ri = 0; ri < nr; ri++)
             {
-                if (pr.GoodId != goodId || pr.OwnerPopIndex < 0 || pr.OwnerPopIndex >= r.Pops.Count || pr.LaborPopIndex < 0 || pr.LaborPopIndex >= r.Pops.Count) continue;
-                double amt = amount * (Math.Max(0, pr.Output) / totalOut);
-                if (!(amt > 0)) continue;
-                double rent = EconomyStep.RentShareOf(pr, r, coef, ruralPop) * amt;
-                double wages = amt - rent;
-                double sc = rent * World.StateProfitShare(pr, r, coef);
-                if (sc > 0) { stateCut += sc; rent -= sc; }
-                if (rent > 0) { to.Add(r.Pops[pr.OwnerPopIndex]); wt.Add(rent); }
-                if (wages > 0) { to.Add(r.Pops[pr.LaborPopIndex]); wt.Add(wages); }
+                var rr = r ?? w.Regions[ri];
+                if (r is null && rr.State != RegionState.Active) continue;
+                double ruralPop = 0;
+                foreach (var p in rr.Pops) if (!p.IsUrban) ruralPop += p.Size;
+                foreach (var pr in rr.Producers)
+                {
+                    if (!Sells(pr, rr, goodId)) continue;
+                    double amt = amount * (Math.Max(0, pr.Output) / totalOut);
+                    if (!(amt > 0)) continue;
+                    double rent = EconomyStep.RentShareOf(pr, rr, coef, ruralPop) * amt;
+                    double wages = amt - rent;
+                    double sc = rent * World.StateProfitShare(pr, rr, coef);
+                    if (sc > 0) { stateCut += sc; rent -= sc; }
+                    if (rent > 0) { to.Add(rr.Pops[pr.OwnerPopIndex]); wt.Add(rent); }
+                    if (wages > 0) { to.Add(rr.Pops[pr.LaborPopIndex]); wt.Add(wages); }
+                }
             }
         }
         if (to.Count == 0)
         {
+            if (r is null) return 0;   // 国として買う役務の担い手がいない＝動かさない（払い手に残る）
             stateCut = 0; wt = null;
             if (r.MerchantPopIndex >= 0 && r.MerchantPopIndex < r.Pops.Count) to.Add(r.Pops[r.MerchantPopIndex]);
             else to.AddRange(r.Pops);   // 重み null＝頭数
         }
         double moved = 0;
-        if (stateCut > 0) moved += World.Transfer(from, (w, null, null), stateCut, TreasuryCat.StateFactory);
-        moved += World.Transfer(from, (w, to, wt), amount - stateCut, TreasuryCat.OtherIn, income: true);
+        if (stateCut > 0)
+        {
+            if (from.Pops is null && ReferenceEquals(from.W, w)) { w.Pay(cat, -stateCut); w.Pay(TreasuryCat.StateFactory, stateCut); moved += stateCut; }   // 国庫が自国の国営持分から買う＝区分だけ動く
+            else moved += World.Transfer(from, (w, null, null), stateCut, TreasuryCat.StateFactory);
+        }
+        moved += World.Transfer(from, (w, to, wt), amount - stateCut, cat, income: true);
         return moved;
     }
 

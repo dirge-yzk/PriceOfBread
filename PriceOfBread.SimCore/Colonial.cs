@@ -80,8 +80,9 @@ public static class Colonial
         if (totalUpkeep > 1e-9)
         {
             double paid = totalUpkeep * w.FiscalFundingRatio;   // 国家の支払い率 r の分だけ（2026-09-28 段2-1＝旧は国庫の残りで切る門）
-            w.Pay(TreasuryCat.ColonialUpkeep, -paid);
-            w.Pay(TreasuryCat.ColonialUpkeep, World.Distribute(new List<Pop>(w.AllPops()), paid));   // 海軍・駐留の俸給＝本国popへ（保存）。受け手不在＝国庫残置
+            // ★支払いの一元化 段3-2（2026-09-30・作者裁定 Q8 (a)・C7）：駐留と鎮圧の俸給＝国として兵士の兵力を買う代金を、兵力の生産者の④の持分（兵士の賃金・Earned を通す）で。
+            //   旧＝本国の全POP へ頭数で配った（名目は駐留の俸給なのに受け手は全国民）。兵士がいなければ国庫に残る。
+            InternationalMarket.PaySales((w, null), null, Catalog.MilitaryPowerId, paid, w, TreasuryCat.ColonialUpkeep);
         }
         // 距離維持費の物理消費：国庫が本国市場から燃料・缶詰糧食を買う（在庫律速・需要計上で価格律速・産業と競合）。支払いは生産者へ（保存）。
         var (fuelG, fuelWant) = ChooseFuelGood(r, c, coalWant);   // 石炭/原油の二択（海軍・民間汽船と同じ1本）
@@ -117,12 +118,12 @@ public static class Colonial
                 {
                     double shipUse = Math.Min(dev * c.ColonialShipPerInfra, r.Markets[ship].Stock);   // 丸めで在庫を超えない（非負保証）
                     double railUse = Math.Min(dev * c.ColonialRailPerInfra, r.Markets[rail].Stock);
-                    double cost = shipUse * shipP + railUse * railP;
                     r.Markets[ship].Stock -= shipUse; r.Markets[ship].LastExport += shipUse;   // 植民地へ輸出（在庫減＝財収支は Export に計上）
                     r.Markets[rail].Stock -= railUse; r.Markets[rail].LastExport += railUse;
-                    inv.Savings -= cost;                       // 私的投資家が自腹で（保存：投資家→生産者）
-                    double undelivered = World.Distribute(new List<Pop>(w.AllPops()), cost);   // ※投資家自身も受け手＝複合代入（+=）だと配分前の読取値で上書きし按分が消える。2文で分ける
-                    inv.Savings += undelivered;                // 受け手不在＝投資家へ差し戻し（保存）
+                    // ★支払いの一元化 段3-2（2026-09-30・C6）：私的投資家が自腹で、汽船と線路の代金をその財の生産者の④の持分へ（輸送財の買い付けと同じ1本＝InternationalMarket.PaySales）。
+                    //   旧＝本国の全POP へ頭数で配った（市場の在庫を取るのに、その財を作った者でなく全国民が代金を受け取った）。
+                    InternationalMarket.PaySales((w, [inv]), r, ship, shipUse * shipP, w);
+                    InternationalMarket.PaySales((w, [inv]), r, rail, railUse * railP, w);
                     if (!w.WarmupFrozen) w.ColonialInfra += dev;   // ★助走：汽船・線路は買って払うが**開発度は上げない**（能力の凍結・本国の建設と同じ扱い）
                 }
             }
@@ -267,18 +268,16 @@ public static class Colonial
                 double got = Math.Min(want, m.Stock);   // 在庫超は買えない（物理制約のみ）
                 if (got <= 1e-9) continue;
                 m.Stock -= got; m.LastExport += got;
-                revenue += got * price;
+                // ★支払いの一元化 段3-2（2026-09-30・C6）：代金はその財の生産者の④の持分へ（払い手＝植民地の蓄え＝世界の外・流入は移し方の1本が台帳に書く）。
+                //   旧＝本国の投資家1人へ全額（投資家不在なら全POP へ頭数）＋台帳を手で書いた。
+                revenue += InternationalMarket.PaySales((null, null), r, gid, got * price, w);
             }
         }
         if (revenue > 1e-9)
         {
-            // 植民地の蓄えから支払い（按分）→ 本国のブルジョワへ（植民地交易の担い手）。外部マネーの流入として台帳に計上。
+            // 植民地の蓄えから支払い（按分）＝受け取った額と同じ（外部マネーの流入の台帳は上の移し方の1本が書いた）。
             double bs = 0; foreach (var col in w.SelfPower.ColonyList) bs += col.Savings;
             if (bs > 1e-9) foreach (var col in w.SelfPower.ColonyList) col.Savings -= revenue * (col.Savings / bs);
-            int ip = r.InvestorPopIndex;
-            if (ip >= 0 && ip < r.Pops.Count) r.Pops[ip].Savings += revenue;
-            else revenue -= World.Distribute(new List<Pop>(w.AllPops()), revenue);   // 受け手不在＝届かなかった分は流入させない（台帳と実額の一致＝保存）
-            w.CumulativeTradeFlow += revenue;              // 外部マネーの流入（保存）
         }
 
         // 4. 独立：圧力（人口×不満）が本国の抑え（軍）を超えた大植民地は離反する＝帝国は軍で保たれる。
@@ -443,8 +442,9 @@ public static class Colonial
         if (got <= 1e-9) return 0;
         double cost = got * price;
         m.Stock -= got; m.LastExport += got;                              // 物理消費（汽船が焚く・駐留が食う＝本国市場から域外圏へ出る。財収支台帳に計上）
-        w.Pay(cat, -cost);
-        w.Pay(cat, World.Distribute(new List<Pop>(w.AllPops()), cost));   // 代金は本国pop（生産者）へ＝保存。受け手不在＝国庫残置
+        // ★支払いの一元化 段3-2（2026-09-30・C6）：代金はその財の生産者の④の持分へ（国庫→地代・国営持分・賃金＝輸送財の買い付けと同じ1本 InternationalMarket.PaySales）。
+        //   旧＝本国の全POP へ頭数で配った（補給の石炭・缶詰・キニーネ・侵攻の物資・海軍の燃料の代金を、作った者でなく全国民が受け取った）。
+        InternationalMarket.PaySales((w, null), r, goodId, cost, w, cat);
         return got;                                                        // 買えた量（マラリア鎮静の充足率の算出に使う）
     }
 }

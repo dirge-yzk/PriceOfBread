@@ -40,6 +40,12 @@ public class FiscalTests
         // ★2026-09-29（支払いの一元化 段2-2・A5）：貸し手のいない対外借入は立たない＝単一国の世界は既定で外資0（国内の貸し手＝近代エリートの居ないこの世界では借りられない）。
         //   借入→債務→緊縮の門を測るため、外国の貸し手が居る盤面にする（共有層が四半期末に注入する引き受け余力の代わり＝この番人は国債の相手を測らない）。
         sim.World.ForeignBondInvestorPool = 1e30;
+        // ★盤面の直し（2026-09-30 段3-2）：連合維持費は治安と行政の役務の給与（兵士の兵力・官僚の行政の④）になった＝この較正の世界には兵士も官僚もいない
+        //   ＝維持費の受け手が無く国庫に残る＝低税でも赤字が立たない。赤字の源を開始の国債の利払いに置く（年GDP の5割・金利は国債の式のまま）
+        //   ＝r＜1 の月にエンジンが借りて債務が積もる鎖はそのまま（主張＝緊縮は下限の門で上げる力を持たない、は変えない）。
+        //   対外の債務として置く（国内の持ち手の台帳 Σ保有＝国内元本 を0のまま閉じる）・名目GDP が立つ1四半期の後に置く。
+        sim.StepQuarter();
+        sim.World.GovDebt = sim.World.ForeignDebt = 0.5 * sim.World.NominalGdp * Calendar.MonthsPerYear;
         double maxAusterity = 0, maxPollTax = 0, maxMonopolyBreadth = 0;
         bool floorSeen = false;
         for (int q = 0; q < 400; q++)
@@ -1100,5 +1106,51 @@ public class FiscalTests
         double tol = 1e-9 * Math.Max(1.0, inv0);
         Assert.True(Math.Abs(tf1 - tf0) <= tol, $"国際金融の段で世界の台帳の和が動いた（{tf1 - tf0}）＝受け手が送り手の払いより多く受け取った");
         Assert.True(Math.Abs(bm1 - bm0) <= tol, $"国際金融の段で世界の基礎貨幣が動いた（{bm1 - bm0}）");
+    }
+
+    /// <summary>★段3-2（2026-09-30・作者裁定 Q8 (a)・C7）：連合維持費は治安と行政の役務の給与＝治安維持の分は兵士の兵力の生産者の④（兵士の賃金）、
+    /// 行政費の分は官僚の行政の生産者の④（官僚の賃金）へ・Earned を通す・国家の支払い率 r の分だけ。旧＝全POP へ頭数（名目は俸給なのに受け手は全国民）。
+    /// 盤面＝英の静かな盤面の双子＝維持費だけが違う（治安維持だけ・行政費だけの2組と維持費0）。双子の貯蓄の差が維持費の流れそのもの。
+    /// ⚠突然変異「全POP へ頭数で配る」で赤（担い手でない POP の貯蓄が動く）。</summary>
+    [Fact]
+    public void 連合維持費は兵士と官僚の役務の賃金へ届き全POPへ頭数で配らない()
+    {
+        const double r = 0.6;
+        (World w, List<Pop> pops, double[] sav, double[] earned) Board(double coercion, double adminPerPop)
+        {
+            var w = QuietBritain();
+            w.Coef.TitheRate = 0;
+            w.BaseCoercion = coercion; w.Coef.AdminCostPerPop = adminPerPop;
+            FiscalMonth(w, r, spare: 0);
+            var pops = AllPopsOf(w);
+            return (w, pops, pops.ConvertAll(p => p.Savings).ToArray(), pops.ConvertAll(p => p.Earned).ToArray());
+        }
+        var zero = Board(0, 0);
+        Assert.Equal(0.0, zero.w.LastUpkeep);
+        foreach (var (coercion, admin, good) in new[] { (3000.0, 0.0, Catalog.MilitaryPowerId), (0.0, 0.03, Catalog.AdminId) })
+        {
+            var arm = Board(coercion, admin);
+            double pay = arm.w.LastUpkeep * r;
+            Assert.True(pay > 0, "前提が崩れた：維持費の請求が立っていない");
+            var sellers = new HashSet<Pop>();
+            foreach (var reg in arm.w.Regions)
+                if (reg.State == RegionState.Active)
+                    foreach (var pr in reg.Producers) if (pr.GoodId == good && pr.Output > 0) sellers.Add(reg.Pops[pr.LaborPopIndex]);
+            Assert.NotEmpty(sellers);
+            double got = 0;
+            for (int i = 0; i < arm.pops.Count; i++)
+            {
+                double d = arm.sav[i] - zero.sav[i];
+                if (sellers.Contains(arm.pops[i]))
+                {
+                    got += d;
+                    double de = arm.earned[i] - zero.earned[i];
+                    Assert.True(Math.Abs(d - de) <= 1e-9 * Math.Max(1.0, Math.Abs(arm.sav[i]) + Math.Abs(arm.earned[i])), $"担い手の所得（Earned）が貯蓄と同じ額で書かれていない（{d} vs {de}）");
+                }
+                else Assert.True(d == 0, $"担い手でない POP（階級 {arm.pops[i].ClassId}）の貯蓄が {d} 動いた＝全POP へ配っている");
+            }
+            Assert.True(Math.Abs(got - pay) <= 1e-9 * pay, $"担い手の受け取り {got} ≠ 維持費×r {pay}");
+            Assert.True(Math.Abs(zero.w.Treasury - arm.w.Treasury - pay) <= 1e-9 * Math.Max(1.0, Math.Abs(arm.w.Treasury)), "国庫の減りが維持費×r と一致しない");
+        }
     }
 }

@@ -454,7 +454,7 @@ public class ConservationTests
         var coef = new Coefficients { ColonizeSubmitRatio = 0 };   // 屈服線0＝必ず屈服（戦争にしない）
         var sim = new MultiNationSim([WorldData.ByName("日本")], seed: 1789, coef: coef);
         var jp = sim.Nations[0].World;
-        var ezo = new Power { Id = sim.Diplomacy.Powers.Max(p => p.Id) + 1, Name = "蝦夷地", BaseName = "蝦夷地", Military = 0.2, Gdp = 0, Treasury = 800, TradeWeight = 0.0 };
+        var ezo = new Power { Id = sim.Diplomacy.Powers.Max(p => p.Id) + 1, Name = "蝦夷地", BaseName = "蝦夷地", Military = 0.2, Gdp = 0, TradeWeight = 0.0 };
         var cc = Geo.ColonyCoord("蝦夷地");
         var col = new Colony { Name = "蝦夷地", Resources = [20, 11], Population = 0.05, PopSize = 0.05 * coef.ColonialPopScale, Latitude = cc.Lat, Longitude = cc.Lon };
         ezo.ColonyList.Add(col);
@@ -577,5 +577,85 @@ public class ConservationTests
         double want = 100.0 * (3.0 / 7.0);
         Assert.NotEqual(100.0 / 7.0 * 3.0, want);   // 盤面の前提＝2つの結合順が倍精度で違う
         Assert.Equal(want, dp.Savings); Assert.Equal(want, dp.Debt); Assert.Equal(want, dp.BondHoldings);
+    }
+
+    // ── 支払いの一元化 段3-2 の番人（2026-09-30・C9）──
+
+    /// <summary>★港と運河の建設の工賃は労働の④の持分（労働力の生産者の産出の比・賃金は労働者）へ＝旧は自国の全POP へ頭数（財を買わない）。
+    /// 港＝港の州の労働・払い手は地元の投資家（資本家ルート）と国庫（国家ルート×r）・進捗は動いた額。運河＝自国の全ての活きた州の労働・払い手は投資家（貯蓄の比）・進捗は動いた額。
+    /// 盤面＝英の1国の双子＝投資の割合だけが違う（港 PortInvestFrac・運河 CanalInvestFrac）＝双子の貯蓄の差が建設の流れそのもの（非公開の段を反射で1回だけ回す）。
+    /// ⚠突然変異「全POP へ頭数で配る」で赤（労働者でない POP の貯蓄が動く）。</summary>
+    [Fact]
+    public void 港と運河の建設の工賃は労働の持分へ届く()
+    {
+        static MultiNationSim Uk()
+        {
+            var sim = new MultiNationSim([WorldData.ByName("イギリス")], seed: 1789, coef: new Coefficients()) { DiplomacyFrozen = true };
+            foreach (var n in sim.Nations) n.TelemetryEnabled = false;
+            sim.Diplomacy.Log.Enabled = false;
+            sim.StepQuarter();
+            return sim;
+        }
+        static (List<Pop> pops, double[] sav) Sav(World w) { var l = new List<Pop>(); foreach (var r in w.Regions) l.AddRange(r.Pops); return (l, l.ConvertAll(p => p.Savings).ToArray()); }
+        static void Invoke(MultiNationSim sim, string name) => typeof(MultiNationSim).GetMethod(name, System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!.Invoke(sim, null);
+        static HashSet<Pop> Labor(IEnumerable<Region> regs) { var s = new HashSet<Pop>(); foreach (var r in regs) foreach (var pr in r.Producers) if (pr.GoodId == Catalog.LaborId && pr.Output > 0) s.Add(r.Pops[pr.LaborPopIndex]); return s; }
+
+        // 港：最初の港の州を混雑させる（律速率0）・技術の門を開く
+        (World w, Region port, List<Pop> pops, double[] sav, double treas, double cap) Port(double frac)
+        {
+            var sim = Uk(); var w = sim.Nations[0].World;
+            sim.Coef.PortInvestFrac = frac; sim.Coef.PortTechOnset = 0;
+            sim.Coef.PortFeeRate = 0;   // 港料を止める（後の港の州の港料は全POP の貯蓄の比で取る＝前の州の工賃で比が動き、双子の差に混ざる）
+            var port = w.Regions.Find(r => r.State == RegionState.Active && r.IsPort && r.InvestorPopIndex >= 0)!;
+            foreach (var r in w.Regions) r.LastTradeThrottle = 1.0;   // 他の港は混雑していない＝建設は1つの港だけ
+            port.LastTradeThrottle = 0; w.FiscalFundingRatio = 1.0;
+            Invoke(sim, "StepPorts");
+            var (pops, sav) = Sav(w);
+            return (w, port, pops, sav, w.Treasury, port.PortCapacity);
+        }
+        var p0 = Port(0); var p1 = Port(new Coefficients().PortInvestFrac);
+        var portLabor = Labor([p1.port]);
+        var investor = p1.port.Pops[p1.port.InvestorPopIndex];
+        Assert.NotEmpty(portLabor);
+        double gotP = 0, paidP = p0.treas - p1.treas;
+        for (int i = 0; i < p1.pops.Count; i++)
+        {
+            double d = p1.sav[i] - p0.sav[i];
+            if (ReferenceEquals(p1.pops[i], investor)) paidP -= d;
+            else if (portLabor.Contains(p1.pops[i])) gotP += d;
+            else Assert.True(d == 0, $"港：労働者でも投資家でもない POP（階級 {p1.pops[i].ClassId}）の貯蓄が {d} 動いた");
+        }
+        Assert.True(gotP > 0, "前提が崩れた：港の建設が立っていない");
+        Assert.True(Math.Abs(gotP - paidP) <= 1e-9 * Math.Max(1.0, Math.Abs(p1.treas)), $"港：労働者の受け取り {gotP} ≠ 投資家と国庫の払い {paidP}");
+        Assert.True(Math.Abs((p1.cap - p0.cap) * new Coefficients().PortBuildCostPerUnit - gotP) <= 1e-9 * Math.Max(1.0, gotP), "港：容量の伸びが動いた額でない");
+
+        // 運河：スエズの技術の門を開き・開通しない建設費にする
+        (World w, List<Pop> pops, double[] sav, double progress) Canal(double frac)
+        {
+            var sim = Uk(); var w = sim.Nations[0].World;
+            sim.Coef.CanalInvestFrac = frac;
+            var cp = sim.Diplomacy.Chokepoints.Find(k => k.IsCanal && !k.IsOpen)!;
+            cp.TechGate = 0; cp.BuildCost = 1e18;
+            Invoke(sim, "StepCanals");
+            var (pops, sav) = Sav(w);
+            return (w, pops, sav, cp.BuildProgress);
+        }
+        var c0 = Canal(0); var c1 = Canal(new Coefficients().CanalInvestFrac);
+        var labor = Labor(c1.w.Regions.Where(r => r.State == RegionState.Active));
+        var investors = new HashSet<Pop>();
+        foreach (var r in c1.w.Regions) if (r.State == RegionState.Active && r.InvestorPopIndex >= 0) investors.Add(r.Pops[r.InvestorPopIndex]);
+        Assert.NotEmpty(labor);
+        double gotC = 0, paidC = 0;
+        for (int i = 0; i < c1.pops.Count; i++)
+        {
+            double d = c1.sav[i] - c0.sav[i];
+            bool inv = investors.Contains(c1.pops[i]), lab = labor.Contains(c1.pops[i]);
+            if (inv && !lab) paidC -= d;
+            else if (lab && !inv) gotC += d;
+            else if (!inv && !lab) Assert.True(d == 0, $"運河：労働者でも投資家でもない POP（階級 {c1.pops[i].ClassId}）の貯蓄が {d} 動いた");
+        }
+        double moved = c1.progress - c0.progress;
+        Assert.True(moved > 0 && gotC > 0, "前提が崩れた：運河の建設が立っていない");
+        Assert.True(Math.Abs(gotC - moved) <= 1e-9 * moved && Math.Abs(paidC - moved) <= 1e-9 * moved, $"運河：労働者の受け取り {gotC}・投資家の払い {paidC}・進捗 {moved} が一致しない");
     }
 }

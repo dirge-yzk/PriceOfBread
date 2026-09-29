@@ -27,7 +27,7 @@ public static class WorldData
     }
 
     // === 国際層の初期条件（§6.1）＝データ化（旧 MultiNationSim コンストラクタのハードコード表）。world.json に本節があればそれが真実源、無ければ BootstrapSetup（コード）へフォールバック＝常に動作。===
-    internal sealed record TargetDto(string Name, double Military, double Treasury, bool Quinine, ColonyDto[] Colonies);   // 能動侵略の抽象標的（Nation=null・Gdp=0）
+    internal sealed record TargetDto(string Name, double Military, bool Quinine, ColonyDto[] Colonies);   // 能動侵略の抽象標的（Nation=null・Gdp=0）。★2026-09-30：財布 Treasury を削除（戦費の Fund ごと読み手0・支払いの段3-2）
     internal sealed record RivalryDto(string A, string B, double Tension);          // 初期史実ライバルの緊張（BaseName 対）
     internal sealed record DependencyDto(string Suzerain, string Dependent);        // 初期史実従属（宗主→従属）
     // 巨大建造物§4-1（2026-07-28 裁定）：CanalKey enum を廃止し BuildCost/TechGate を**データ側**へ移した。
@@ -118,16 +118,16 @@ public static class WorldData
     /// <summary>国際層初期条件のコード定義（真実源の種＝dumpworld で world.json に書き出す。旧 MultiNationSim コンストラクタのリテラルを値据え置きで移設）。順序厳守＝Power.Id は Powers.Count で連番付与されるため配列順が挙動を決める。</summary>
     internal static WorldSetup BootstrapSetup() => new(
         [   // 抽象標的（AddTarget 順）：目玉資源は被りを避ける（史実＋やや誇張）
-            new TargetDto("琉球", 0.1, 500, false, [new ColonyDto("琉球", [25, 17, 20], 0.5)]),
-            new TargetDto("アルタ=カリフォルニア", 0.4, 3_000, false, [new ColonyDto("アルタ=カリフォルニア", [4, 15, 19, 11], 1.5)]),
-            new TargetDto("ボルネオ", 0.5, 3_000, false, [new ColonyDto("ボルネオ", [21, 10, 29, 11], 2)]),
-            new TargetDto("マレー", 0.4, 2_500, false, [new ColonyDto("マレー", [29, 21], 1.5)]),
-            new TargetDto("バルバリ", 0.6, 4_000, false, [new ColonyDto("アルジェ", [15, 16, 19], 3)]),
-            new TargetDto("アシャンティ", 0.6, 4_000, true, [new ColonyDto("アシャンティ", [4, 26, 23], 2)]),
-            new TargetDto("ソコト", 0.6, 3_500, true, [new ColonyDto("ソコト", [17, 19, 24], 3)]),
-            new TargetDto("コンゴ", 0.6, 4_000, true, [new ColonyDto("コンゴ", [21, 24, 2, 23], 3)]),
-            new TargetDto("南アフリカ", 0.5, 4_000, false, [new ColonyDto("南アフリカ", [4, 2, 19], 2)]),
-            new TargetDto("パナマ", 0.4, 2_000, false, [new ColonyDto("パナマ", [11], 1)]),
+            new TargetDto("琉球", 0.1, false, [new ColonyDto("琉球", [25, 17, 20], 0.5)]),
+            new TargetDto("アルタ=カリフォルニア", 0.4, false, [new ColonyDto("アルタ=カリフォルニア", [4, 15, 19, 11], 1.5)]),
+            new TargetDto("ボルネオ", 0.5, false, [new ColonyDto("ボルネオ", [21, 10, 29, 11], 2)]),
+            new TargetDto("マレー", 0.4, false, [new ColonyDto("マレー", [29, 21], 1.5)]),
+            new TargetDto("バルバリ", 0.6, false, [new ColonyDto("アルジェ", [15, 16, 19], 3)]),
+            new TargetDto("アシャンティ", 0.6, true, [new ColonyDto("アシャンティ", [4, 26, 23], 2)]),
+            new TargetDto("ソコト", 0.6, true, [new ColonyDto("ソコト", [17, 19, 24], 3)]),
+            new TargetDto("コンゴ", 0.6, true, [new ColonyDto("コンゴ", [21, 24, 2, 23], 3)]),
+            new TargetDto("南アフリカ", 0.5, false, [new ColonyDto("南アフリカ", [4, 2, 19], 2)]),
+            new TargetDto("パナマ", 0.4, false, [new ColonyDto("パナマ", [11], 1)]),
         ],
         [   // 初期史実ライバルの緊張（SeedRivalries 順）
             new RivalryDto("フランス", "イギリス", 50),

@@ -301,7 +301,7 @@ public partial class GameViewModel
         SyncRows(HeaderStats, stats, h => h.Key, (t, s) => t.CopyFrom(s));   // 据え置き同期＝ヘッダー2行目が点滅しない（キーは GraphTitle でなく Key＝空にならない）
 
         // 戦争タブ（レビュー2026-07-19で改構）：犠牲者＝エンジンの戦争別台帳 War.DeadA/DeadB（兵士＋将校）と CivDeadA/CivDeadB（民間人）＝内戦・粛清の混入なし、
-        // 戦費＝エンジンが実際に払った月次額（_monthWarCost＝Diplomacy.Fund の記帳・GameViewModel.cs の OnTick が取る）を戦線数で均等按分した累計、
+        // 戦費＝エンジンが実際に払った軍の月次の支出（_monthWarCost＝台帳の陸軍・海軍・戦費・GameViewModel.cs の OnTick が取る）を戦線数で均等按分した累計、
         // 開戦日＝war.Months から導出、勝敗＝講和ログを一次判定。
         var wrows = new List<WarRow>();
         var nowEnemies = new HashSet<long>();
@@ -310,7 +310,7 @@ public partial class GameViewModel
         int monthStamp = (int)(_simDays / (double)Calendar.DaysPerMonth + 1e-9);
         // ★2026-09-23 戦費按分の分母を「その月に抱えていた戦線数」で固定する。旧＝継続中は myWars.Count、終戦した戦争は
         //   myWars.Count+1 を各自が使っていたので、**同じ月にN件が終戦すると分母が 0+1=1 になり、N件それぞれが
-        //   その月の国全体の戦費を丸ごと受け取っていた**（思想⑨の二重計上）。終戦月も Fund は走る＝継続分＋終戦分＝その月の全戦線。
+        //   その月の国全体の戦費を丸ごと受け取っていた**（思想⑨の二重計上）。終戦月も軍の支出は立つ＝継続分＋終戦分＝その月の全戦線。
         foreach (var w0 in myWars) nowEnemies.Add((w0.A == me ? w0.B : w0.A).Id);
         int endedThisRefresh = 0;
         foreach (var kv in _warTracks) if (!nowEnemies.Contains(kv.Key)) endedThisRefresh++;
@@ -376,7 +376,7 @@ public partial class GameViewModel
                 ? (Math.Abs(rec.Score) < _player.Coef.WhitePeaceScore ? "白紙講和" : scEnd > 0 ? "勝利" : "敗北")
                 : me.WarsWon > tr.Won0 && me.WarsLost == tr.Lost0 ? "勝利"
                 : me.WarsLost > tr.Lost0 && me.WarsWon == tr.Won0 ? "敗北" : "白紙講和";
-            tr.CostShare += costShareMonth;   // 終戦月の戦費（Fund は終戦月も走る＝取りこぼし補填）。分母は継続分＋終戦分＝その月の全戦線
+            tr.CostShare += costShareMonth;   // 終戦月の戦費（軍の支出は終戦月も立つ＝取りこぼし補填）。分母は継続分＋終戦分＝その月の全戦線
             PastWarRows.Insert(0, new PastWarRow
             {
                 Key = $"{id}@{(int)_simDays}",

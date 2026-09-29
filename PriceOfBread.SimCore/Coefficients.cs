@@ -1447,7 +1447,7 @@ public sealed class Coefficients
     //   通知は必ず「100%」と出て**数字が情報を持たなかった**（GameViewModel.TensionPct を見よ）。
     //   半分に置けば、宣戦までの折り返し地点で一度だけ知らせる＝まだ増減の操作が効く時点で選べる。
     //   ⚠一度出した相手は TensionRepromptDrop ぶん下がるまで再通知しない＝頻繁には出ない。
-    public double WarCostPerMilitary = 400.0;     // 軍ゲージ1あたりの月次戦費（とにかく金食い虫）
+    // 【墓標2026-09-30・支払いの一元化 段3-2】WarCostPerMilitary（400＝軍ゲージ1あたりの月次戦費・国庫から全POP へ頭数で配った）を Diplomacy.Fund ごと削除（作者裁定 Q8 (a)＝軍需の調達と兵士の給与が実体・思想⑨）。
     public double WarExhaustionRate = 0.03;       // 戦争疲弊（厭戦%）の蓄積：戦争の持続（月あたり基礎）
     public double WarExhaustionEcon = 0.10;       // ＋経済悪化（1人あたりの落ち込み GdpPcDrawdown・2026-09-29＝領土を失った総額の落ち込みは数えない）に比例して厭戦が増す（月）
     public double WarExhaustionBlockade = 0.07;   // ＋通商破壊（海上封鎖）の度合い(1−CommerceRaidFactor)に比例して厭戦が増す（月）。改修2026-06-28：封鎖の即時の痛みを厭戦へ直結（兵糧攻め＝海軍劣勢国の士気を削る）
@@ -1814,7 +1814,7 @@ public sealed class Coefficients
     public double AppeaseMilitaryRatio = 2.5;      // 相手の軍が自軍のこれ倍超＝勝てない相手＝挑発せず宥和（緊張を下げる）
     public double HegemonRestraintFloor = 0.25;    // 突出自制の下限＝覇権国でも植民地化意欲はこの割合までしか落ちない（完全停止はしない）
     // リアリティ補強（改修2026-06-28・第4弾）。
-    public double PrizeMoneyRate = 0.004;          // A2拿捕賞金＝敵GDP×これ×制海優位を毎月 制海国の国庫へ（両建て保存）。海軍を持つ交易上の意味
+    public double PrizeMoneyRate = 0.004;          // A2拿捕賞金＝敵GDP×これ×制海優位を毎月 敵の商人から制海国の兵士へ（両建て保存・2026-09-30 支払いの段3-2＝旧は国庫から国庫へ）。海軍を持つ交易上の意味
     public double PrizeCargoShare = 1.0;           // 拿捕賞金原資をGDP比例から『敵が通商破壊で失った海上取扱高(LastPortThroughput×(1-CommerceRaidFactor))』比例へ移すブレンド（prize-money-gdp-based-no-cargo）。1=完全に積荷連動（内陸大国を封鎖しても賞金0）/0=現行のGDP比例（恒等）
     public double ColonizeAnnexMilitancy = 0.3;    // A5無血植民地化の被支配不満（接収植民地のMilitancy/属国pop闘争度の初期値＝抵抗の実体化）
     public double DefendProjectionMin = 0.2;       // A6宗主防衛参戦の最低投射力（これ未満＝届かない属国を見殺し＝離反へ）
@@ -2409,7 +2409,7 @@ public sealed class Coefficients
 
     // --- 軍事／武力解錠（§6.1／§A-8・段4e）---
     public double ForceUnlockRate = 0.10;          // 武力解錠時のインフラ進捗（開発の約10倍速）
-    public double ForceUnlockTreasuryCost = 1000;  // 制圧の月あたり国庫出血（軍事調達→pop へ還流）
+    public double ForceUnlockTreasuryCost = 1000;  // 制圧の月あたりの軍需の予算（首都の市場から陸の軍需を買って消費する・2026-09-30 支払いの段3-2＝旧は国庫から全POP へ頭数で配った）
     public double ForceUnlockMilitancy = 0.03;     // 制圧が pop に与える闘争度（戦争疲弊・§6.1）
 
     // --- 植民地の整備（§6.1 拡張：固有資源＋人口プール＋収益駆動の開発）---
@@ -2505,7 +2505,7 @@ public sealed class Coefficients
     public double CapitalOpennessTariffWeight = 1.0;   // 財6（資本開放度の脱・関税連動）：openness=Clamp(1−これ×Tariff,0,1)の関税連動の強さ。1.0=現行の完全連動(1−Tariff)＝厳密一致。0で関税と独立（高関税の米/露も外債発行）＝兌換性/信認ベースへ
     // 【墓標2026-09-29・旗の焼き込み】DebtGdpAnnualized（財7・2026-07-26 点火＝既定1.0）＝国債金利の債務比の分母を年換算GDPへ＝Fiscal は常に年（月次×12）。
     //   史実レンジへの再較正（BondRateDebtScale 1.44→0.018・信認の喪失を直近の切り下げの速さ÷年GDP へ）を同じ日に行い、旧の月次の枝（0）は較正の意味を失った
-    public double CoercionUpkeepToSoldiers = 0.0;   // 財14（抑圧装置の維持費の帰属）：連合維持費（軍・警察・官僚の俸給）を兵士pop・官僚(ClassId8)popへ傾斜させる割合。0=現行の全popへ頭数比例＝厳密一致。1で全額を兵士＋官僚へ・残りを全popへ。受け手不在時は国庫残置
+    // 【墓標2026-09-30・支払いの一元化 段3-2】CoercionUpkeepToSoldiers（財14・休眠0＝連合維持費を兵士と官僚へ頭数で傾斜）を削除＝連合維持費は治安と行政の役務の給与として兵士の兵力と官僚の行政の④の持分へ全額（Fiscal.Step・InternationalMarket.PaySales の国の枝）。
     public double WarFarmOutputDamage = 0.3;      // 05-A（2026-07-29）：戦場強度1.0で主食RGO産出−30%（劣勢側のみ・終戦で即回復）。戦争→飢饉→政変の連鎖
     public double WarLivestockRequisition = 0.03; // ★点火2026-08-31（ラウンドB）＝戦争被害のストック化（AI審査3-11）：戦場強度1.0で家畜RGOの操業規模を3%/月で徴発（軍馬・輓獣・食肉＝flowでなくstock）。回復は既存のRGO供給弾力（年単位）から自然に出る＝回復コードなし（鉱脈在庫と同じ思想）。0で徴発なし
     public double WarLivestockOutputDamage = 0.5; // 05-A：畜産(19)は重め＝役畜・軍馬の徴発が市場価格経由で農業を締める。缶詰→軍需の自己制限も創発

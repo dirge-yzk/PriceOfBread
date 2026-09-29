@@ -738,7 +738,14 @@ public class PolicyPoliticsTests
             }
             sim.StepQuarter();
             var t = new int[sim.Nations.Count]; var inc = new double[sim.Nations.Count];
-            for (int i = 0; i < sim.Nations.Count; i++) { t[i] = sim.Nations[i].World.StateMonopolyTier; inc[i] = sim.Nations[i].World.Policy.IncomeTaxTarget; }
+            // ★盤面の直し（2026-09-30 段3-2）：反射が走ったかは税の目標5本（所得・人頭・土地・累進・関税＝RelieveOpulence が掛ける全て）の和で見る
+            //   （旧＝所得税の目標だけ＝1783年の所得税は全ての国で0（(109)）で、潤沢な国の所得税の目標が0の軌道では反射が走っても下がらない）。
+            for (int i = 0; i < sim.Nations.Count; i++)
+            {
+                var pol = sim.Nations[i].World.Policy;
+                t[i] = sim.Nations[i].World.StateMonopolyTier;
+                inc[i] = pol.IncomeTaxTarget + pol.PollTaxTarget + pol.LandTaxTarget + pol.ProgressiveTaxTarget + pol.TariffTarget;
+            }
             return (t, inc, opulent);
         }
         var off = Arm(relief: false);
@@ -746,7 +753,7 @@ public class PolicyPoliticsTests
         Assert.True(on.Opulent > 0, "国庫が潤沢な国が1つも無い＝減税反射の定義域の外で測っている（番人が空回り）");
         bool relieved = false;
         for (int i = 0; i < on.Income.Length; i++) if (on.Income[i] < off.Income[i] - 1e-9) relieved = true;
-        Assert.True(relieved, "潤沢なのに所得税の目標が1国も下がらない＝減税反射そのものが走っていない（番人が空回り）");
+        Assert.True(relieved, "潤沢なのに税の目標が1国も下がらない＝減税反射そのものが走っていない（番人が空回り）");
         for (int i = 0; i < on.Tiers.Length; i++)
             Assert.True(on.Tiers[i] == off.Tiers[i],
                 $"減税反射が専売の対象を動かした（国{i}：反射あり 段{on.Tiers[i]} vs 反射なし 段{off.Tiers[i]}）＝率の割引と段の翻訳が等価でない");

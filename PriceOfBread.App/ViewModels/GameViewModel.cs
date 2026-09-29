@@ -412,7 +412,7 @@ public partial class GameViewModel : ViewModelBase
     public static string PopFmtK(double thousands) => thousands.ToString("N0") + "K";
 
     private double[] _ledgerPrev = new double[(int)TreasuryCat.Count];   // 台帳の前月値（月次差分の基準）
-    private double _monthWarCost;      // 今月ぶんの戦費の実払い額（TreasuryLedger[WarCost]の月次差分・符号反転）＝戦争タブが読む（GameViewModel.Refresh.cs）。SampleTreasuryLedgerが_ledgerPrevを上書きする前にOnTickで1回だけ取る
+    private double _monthWarCost;      // 今月ぶんの戦費の実払い額（TreasuryLedger の陸軍・海軍・戦費の月次差分の和・符号反転）＝戦争タブが読む（GameViewModel.Refresh.cs）。SampleTreasuryLedgerが_ledgerPrevを上書きする前にOnTickで1回だけ取る
     private double _treasuryMStart;    // 月初の国庫（月次収支の基準・InitAfterSimReady で初期化）
     private int _dayInQuarterUI;        // 0..89（月/四半期境界の検出）
 
@@ -452,12 +452,17 @@ public partial class GameViewModel : ViewModelBase
             if (monthCrossed)
             {
                 _monthDelta = _player.Treasury - _treasuryMStart; _treasuryMStart = _player.Treasury;
-                // ★戦争タブの「戦費」はエンジンが実際に払った額（Diplomacy.Fund の Min(国庫,cost)）を読む＝UIで係数から再計算しない。
+                // ★戦争タブの「戦費」はエンジンが実際に払った軍の支出を読む＝UIで係数から再計算しない。
+                //   2026-09-30（支払いの一元化 段3-2）から戦費の独自の支払い（旧 Diplomacy.Fund）は無い＝戦争の費用は軍需の調達と兵士の給与（区分 陸軍・海軍）＋賠償（区分 戦費）。
                 //   SampleTreasuryLedger が _ledgerPrev を「今」へ上書きする前に、その直前の月次差分を取る（符号は支出が負＝反転）。
                 {
-                    int wcIdx = (int)TreasuryCat.WarCost;
-                    _monthWarCost = wcIdx < _player.TreasuryLedger.Length && wcIdx < _ledgerPrev.Length
-                        ? Math.Max(0, _ledgerPrev[wcIdx] - _player.TreasuryLedger[wcIdx]) : 0;
+                    double warOut = 0;
+                    foreach (var wc in new[] { TreasuryCat.Army, TreasuryCat.Navy, TreasuryCat.WarCost })
+                    {
+                        int wcIdx = (int)wc;
+                        if (wcIdx < _player.TreasuryLedger.Length && wcIdx < _ledgerPrev.Length) warOut += _ledgerPrev[wcIdx] - _player.TreasuryLedger[wcIdx];
+                    }
+                    _monthWarCost = Math.Max(0, warOut);
                 }
                 SampleTreasuryLedger();   // ★台帳の月次差分を**ヘッダーの収支と同じ瞬間に**取る（2026-08-13）＝両者が構成上一致する   // 月次収支（先月の国庫増減・四半期境界も月境界）
             }

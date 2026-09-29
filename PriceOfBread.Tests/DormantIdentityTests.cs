@@ -166,7 +166,7 @@ public class DormantIdentityTests
         "AbsorptionIncomeRef", "AbsorptionIncomeWeight",
         "AiDevelopmentalSubsidy",   // AiMobilization は 2026-09-20 に係数ごと削除（段の点火で総動員のAI分岐が常時 live）・AiCrisisBorrow は 2026-09-28 に係数ごと削除（借入の自動化で予約の列が消えた）
         "ArmyShapeGauge",   // BondRateDebtQuad は 2026-09-29 に係数ごと削除（国債の金利を史実から出し直した＝債務の二次項は英の債務比2.5 の史実と合わない）
-        "CoercionUpkeepToSoldiers", "CohortGateK",
+        "CohortGateK",   // CoercionUpkeepToSoldiers は 2026-09-30 に係数ごと削除（連合維持費は兵士と官僚の役務の④へ全額＝支払いの段3-2）
         "CorruptionPoorOfficialWeight",
         "DomesticMarkupMax", "EducationGateUsesEma",
         "ElectionBribePovertyWeight", "EnclosureRate", "EraNavalFuel",

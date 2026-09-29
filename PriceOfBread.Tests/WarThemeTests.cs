@@ -201,23 +201,8 @@ public class WarThemeTests
         Assert.Equal(w0.DeadB, w1.DeadB, 12);
     }
 
-    [Fact]
-    public void 戦費の区分は支出と還流で相殺せず出た額がPOPへ届く()
-    {
-        var (sim, _, fr, _) = OneFront(new Coefficients().WarCivilianToll);
-        int wc = (int)TreasuryCat.WarCost;
-        double led0 = fr.TreasuryLedger[wc], sav0 = 0;
-        foreach (var p in fr.AllPops()) sav0 += p.Savings;
-        sim.Diplomacy.Step(sim.Coef, sim.Rng, month: 60);
-        double spent = led0 - fr.TreasuryLedger[wc];   // UI（GameViewModel の _monthWarCost）が読むのと同じ向き＝支出が正
-        double sav1 = 0;
-        foreach (var p in fr.AllPops()) sav1 += p.Savings;
-        Assert.True(spent > 0, $"戦費の区分が動かない（月次差分 {spent:F9}）＝支出と還流が同じ区分で相殺している");
-        // 区分から出た額がそのまま自国POPの貯蓄へ（金は消えないし湧かない）。許容は相対＝全POPの貯蓄を足し合わせる桁落ちだけ
-        //（TreasuryLedgerTests と同じ作法。実測の乖離は 27.536442692 対 27.536442693＝相対 1.2e-10）。
-        Assert.True(Math.Abs((sav1 - sav0) - spent) / spent < 1e-6,
-            $"戦費の実払い {spent:F9} と POP へ届いた額 {sav1 - sav0:F9} が一致しない");
-    }
+    // 【墓標2026-09-30・支払いの一元化 段3-2】旧の番人「戦費の区分は支出と還流で相殺せず出た額がPOPへ届く」（Diplomacy.Fund の記帳）を Fund ごと削除
+    //   ＝戦争は独自の戦費を払わない（下の「戦争は独自の戦費を払わず押しは支払い率で割り引かず財政の厭戦は支払い率そのもの」が番人）。
 
     [Fact]
     public void 民間人の死を数えても保存則は保たれる()
@@ -902,5 +887,75 @@ public class WarThemeTests
         Assert.Equal("第2共和制フランス", SecessionNames.CivilWarName("フランス", Polity.Republic, Polity.Absolutist, null, existing));
         Assert.Equal("帝政フランス", SecessionNames.CivilWarName("共和制フランス", Polity.Despotic, Polity.Republic, null, existing));   // 頭書きを重ねない
         Assert.Equal("共和制ハワイ", SecessionNames.CivilWarName("ハワイ王国", Polity.Republic, Polity.Absolutist, null, existing));   // 国号は剥がす
+    }
+
+    // ===== 支払いの一元化 段3-2（2026-09-30・作者裁定 Q8 (a)・C11）の番人 =====
+
+    /// <summary>★戦費 Fund の削除：戦争は国庫から独自の戦費を払わない（区分の戦費が動かない）・押しは国家の支払い率 r で割り引かない（払えない弱さは即応度の中）・
+    /// 財政の厭戦は r そのもの（FiscalExhaustionWarWeariness×(1−r)）。盤面＝仏英の1戦線の双子＝仏の r だけが違う（1 と 0.25）。
+    /// ⚠突然変異「戦費を払う」「押しに 0.3＋0.7×r を掛ける」「財政の厭戦で r を読まない」で赤。</summary>
+    [Fact]
+    public void 戦争は独自の戦費を払わず押しは支払い率で割り引かず財政の厭戦は支払い率そのもの()
+    {
+        (War war, double led, double exh) Arm(double r)
+        {
+            var (s, w, fr, _) = OneFront(new Coefficients().WarCivilianToll);
+            s.Coef.WarLuck = 0;
+            fr.FiscalFundingRatio = r;
+            double led0 = fr.TreasuryLedger[(int)TreasuryCat.WarCost], ex0 = w.A.WarExhaustion;
+            s.Diplomacy.Step(s.Coef, s.Rng, month: 61);   // 四半期の AI・調停が走らない月
+            Assert.Single(s.Diplomacy.Wars);   // 前提が崩れた：戦線が講和で消えた
+            return (w, fr.TreasuryLedger[(int)TreasuryCat.WarCost] - led0, w.A.WarExhaustion - ex0);
+        }
+        var full = Arm(1.0); var poor = Arm(0.25);
+        Assert.True(full.war.PushA > 0, "前提が崩れた：押しが立っていない");
+        Assert.Equal(0.0, full.led); Assert.Equal(0.0, poor.led);   // 独自の戦費の支払いは無い（区分の戦費は賠償だけ）
+        Assert.Equal(full.war.PushA, poor.war.PushA);                // 押しは r で割り引かない
+        double want = new Coefficients().FiscalExhaustionWarWeariness * (1.0 - 0.25);
+        Assert.True(want > 0, "前提が崩れた：財政の厭戦の係数が0");
+        Assert.True(poor.exh < 1 - 1e-9, "前提が崩れた：厭戦が上限に張り付いた");
+        Assert.True(Math.Abs(poor.exh - full.exh - want) <= 1e-12, $"財政の厭戦の差 {poor.exh - full.exh:G17} ≠ 係数×(1−r) {want:G17}");
+    }
+
+    /// <summary>★拿捕（C11）：私人の積荷の損得は私人の間で＝敵の商人（積荷と船の持ち主）が払い、拿捕した側の兵士（兵力の生産者の④の賃金）が受け取る。
+    /// 両国の国庫は動かず、両国の台帳（CumulativeTradeFlow）は動いた額で対になる。盤面＝仏英の1戦線の双子（拿捕の率 0.004 と 0）＝英が制海権を握り仏の海運が危険に晒された盤面。
+    /// ⚠突然変異「国庫から国庫へ（旧）」で赤。</summary>
+    [Fact]
+    public void 拿捕は敵の商人が払い拿捕した兵士が受け取る()
+    {
+        (World fr, World br, double[] fs, double[] bs, double ft, double bt, double ff, double bf) Arm(double rate)
+        {
+            var (s, _, fr, br) = OneFront(new Coefficients().WarCivilianToll);
+            s.Coef.PrizeMoneyRate = rate;
+            fr.LastBlockadeRisk = 0.5;
+            fr.SelfPower!.Military = 0; fr.SelfPower!.FleetGauge = 0;   // 仏の海軍0＝英が制海権を握る（拿捕の門＝制海権＞0.5）
+            typeof(Diplomacy).GetMethod("CollectPrize", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!
+                .Invoke(s.Diplomacy, [br.SelfPower!, fr.SelfPower!, s.Coef]);
+            static double[] Sav(World w) { var l = new System.Collections.Generic.List<double>(); foreach (var r in w.Regions) foreach (var p in r.Pops) l.Add(p.Savings); return [.. l]; }
+            return (fr, br, Sav(fr), Sav(br), fr.Treasury, br.Treasury, fr.CumulativeTradeFlow, br.CumulativeTradeFlow);
+        }
+        var zero = Arm(0.0); var arm = Arm(new Coefficients().PrizeMoneyRate);
+        var merchants = new System.Collections.Generic.HashSet<Pop>();
+        foreach (var r in arm.fr.Regions) if (r.State == RegionState.Active && r.MerchantPopIndex >= 0) merchants.Add(r.Pops[r.MerchantPopIndex]);
+        var soldiers = new System.Collections.Generic.HashSet<Pop>();
+        foreach (var r in arm.br.Regions) if (r.State == RegionState.Active) foreach (var pr in r.Producers) if (pr.GoodId == Catalog.MilitaryPowerId && pr.Output > 0) soldiers.Add(r.Pops[pr.LaborPopIndex]);
+        Assert.NotEmpty(soldiers);
+        double paid = 0, got = 0; int i = 0;
+        foreach (var r in arm.fr.Regions) foreach (var p in r.Pops)
+        {
+            double d = arm.fs[i] - zero.fs[i++];
+            if (merchants.Contains(p)) paid -= d; else Assert.True(d == 0, $"仏の商人でない POP の貯蓄が {d} 動いた");
+        }
+        i = 0;
+        foreach (var r in arm.br.Regions) foreach (var p in r.Pops)
+        {
+            double d = arm.bs[i] - zero.bs[i++];
+            if (soldiers.Contains(p)) got += d; else Assert.True(d == 0, $"英の兵士でない POP の貯蓄が {d} 動いた");
+        }
+        Assert.True(zero.ft == arm.ft && zero.bt == arm.bt, $"国庫が動いた（仏 {arm.ft - zero.ft}・英 {arm.bt - zero.bt}）＝私人の積荷の損得を国庫どうしで払っている");
+        Assert.True(paid > 0, "前提が崩れた：拿捕が立っていない（制海権・危険・取扱高）");
+        double tol = 1e-9 * Math.Max(1.0, paid);
+        Assert.True(Math.Abs(got - paid) <= tol, $"英の兵士の受け取り {got} ≠ 仏の商人の払い {paid}");
+        Assert.True(Math.Abs(zero.ff - arm.ff - paid) <= tol && Math.Abs(arm.bf - zero.bf - paid) <= tol, "両国の台帳が動いた額で対になっていない");
     }
 }

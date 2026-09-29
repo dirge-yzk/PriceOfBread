@@ -5,8 +5,6 @@ namespace PriceOfBread.Tests;
 
 public class MilitaryTests
 {
-    private static Scenario Dev(ulong s) => new() { Seed = s, Kind = ScenarioKind.FrontierDevelopment };
-
     private static Scenario Force(ulong s) => new()
     {
         Seed = s,
@@ -19,38 +17,48 @@ public class MilitaryTests
         BaseCoercion = 3000,
     };
 
-    [Fact]
-    public void 武力解錠は開発より速いが国庫出血と闘争度を伴う()   // §A-8 強硬 path
+    // ★2026-09-30（支払いの一元化 段3-2・作者裁定 Q8・C7）：武力解錠は**軍需の購買**（首都の市場から陸の軍需を買って消費する）になった
+    //   ＝軍需の財を持たない較正の盤面（FrontierDevelopment＝食料1財）では制圧は進まない（軍需が無ければ制圧できない）。
+    //   ⇒ 速さ・出血・闘争度・保存の番人は実国（英）の盤面の州を1つ閉じて測る（実国の世界に閉じた州は無い＝番人の中でだけ作る）。
+    //   ⚠旧の「解錠が終わると闘争度が鎮まる」（σ の減衰）は較正の盤面の軌道に乗っていた＝実国の盤面では他の力学が混ざる＝この番人からは外した。
+    private static (Simulation sim, Region locked) LockedBritain(ulong seed, bool force)
     {
-        var dev = new Simulation(Dev(1), new NullAgent());
-        var force = new Simulation(Force(1), new NullAgent());
-        dev.Run(20);
-        force.Run(20);   // 早期：武力は解錠済、開発はまだ locked
+        var sim = new Simulation(NationConfig.Britain().ToScenario(seed), new NullAgent());
+        sim.Run(1);
+        var w = sim.World;
+        var locked = w.Regions.FindLast(r => r.State == RegionState.Active && !ReferenceEquals(r, w.Region))!;
+        locked.State = RegionState.Locked; locked.Infra = 0;
+        foreach (var m in locked.Markets) { m.PrevStock = m.Stock; m.LastProduced = 0; m.LastSold = 0; m.LastImport = 0; m.LastExport = 0; }   // 一度も開いていない州の市場（解錠の月の財収支の恒等式が閉じる）
+        w.ForceUnlock = force;
+        return (sim, locked);
+    }
 
-        Assert.True(force.World.Regions[1].SumPopulation() > dev.World.Regions[1].SumPopulation() + 200,
-            $"武力が速くない（武力 {force.World.Regions[1].SumPopulation():F0} vs 開発 {dev.World.Regions[1].SumPopulation():F0}）");
-        Assert.True(force.World.Treasury < 100_000, "国庫が出血していない");
-        // ★段2（2026-09-09）で物差しを**制圧の最中**へ移した。旧は Telemetry[^1]（20四半期後＝制圧が終わって4年後）を見ていたが、
-        //   それが通っていたのは σ=0.03（半減期5.8年）で衝撃が事実上永続していたからで、σ=0.30（半減期5.8か月・作者裁定）では
-        //   **解錠が終われば数四半期で鎮まる**＝それが正しい挙動である。機構（制圧は闘争度を伴う）は衝撃が加わっている間に測る。
-        //   Territory.Step が月ごとに +ForceUnlockMilitancy を全popへ書き、ForceUnlockRate=0.10 なので解錠は約10か月＝Telemetry[1] は制圧中。
-        Assert.True(force.Telemetry[1].AvgMilitancy > dev.Telemetry[1].AvgMilitancy,
-            $"制圧の最中でも開発より闘争度が高くない（武力 {force.Telemetry[1].AvgMilitancy:F3} vs 開発 {dev.Telemetry[1].AvgMilitancy:F3}）");
-        Assert.True(force.Telemetry[1].AvgMilitancy > 0.05, $"制圧の闘争度が立っていない（{force.Telemetry[1].AvgMilitancy:F3}）");
-        Assert.True(force.Telemetry[^1].AvgMilitancy < force.Telemetry[1].AvgMilitancy,
-            $"解錠が終わっても闘争度が鎮まらない（制圧中 {force.Telemetry[1].AvgMilitancy:F3} → 20四半期後 {force.Telemetry[^1].AvgMilitancy:F3}）＝σが積分の側で効いていない");
+    [Fact]
+    public void 武力解錠は開発より速いが軍需の出血と闘争度を伴う()   // §A-8 強硬 path
+    {
+        var (dev, dl) = LockedBritain(1, force: false);
+        var (force, fl) = LockedBritain(1, force: true);
+        double devLed0 = dev.World.TreasuryLedger[(int)TreasuryCat.Army], forceLed0 = force.World.TreasuryLedger[(int)TreasuryCat.Army];
+        dev.Run(1); force.Run(1);   // 制圧の最中（ForceUnlockRate＝0.10/月×買えた割合）
+        Assert.True(fl.Infra > dl.Infra + 0.05, $"武力が速くない（武力 {fl.Infra:F3} vs 開発 {dl.Infra:F3}）");
+        double devArmy = devLed0 - dev.World.TreasuryLedger[(int)TreasuryCat.Army], forceArmy = forceLed0 - force.World.TreasuryLedger[(int)TreasuryCat.Army];
+        Assert.True(forceArmy > devArmy, $"軍需の出血が立っていない（陸軍の区分の払い 武力 {forceArmy:F1} vs 開発 {devArmy:F1}）");
+        Assert.True(force.Telemetry[^1].AvgMilitancy > dev.Telemetry[^1].AvgMilitancy,
+            $"制圧の最中でも開発より闘争度が高くない（武力 {force.Telemetry[^1].AvgMilitancy:F4} vs 開発 {dev.Telemetry[^1].AvgMilitancy:F4}）");
     }
 
     [Fact]
     public void 武力解錠でも人口と基礎貨幣は保存される()
     {
-        var sim = new Simulation(Force(2), new NullAgent());
-        double p0 = sim.World.TotalPopulation, base0 = sim.World.BaseMoney;
-
-        var ex = Record.Exception(() => sim.Run(400));
+        var (sim, locked) = LockedBritain(2, force: true);
+        var w = sim.World;
+        static double D(World w) => w.BaseMoney - w.CumulativeTradeFlow - w.CumulativeGoldMinted - w.CumulativeFiatIssued;
+        double p0 = w.TotalPopulation - w.PopulationDelta, d0 = D(w);
+        var ex = Record.Exception(() => sim.Run(6));
         Assert.Null(ex);
-        Assert.True(Math.Abs(sim.World.TotalPopulation - (p0 + sim.World.PopulationDelta)) < 1e-6 * p0, "人口保存の破れ");
-        Assert.True(Math.Abs(sim.World.BaseMoney - base0) < 1e-3 * base0, "基礎貨幣保存の破れ（交易なしでは一定）");
+        Assert.True(locked.State == RegionState.Active, $"前提が崩れた：6四半期で解錠していない（進み {locked.Infra:F3}）");
+        Assert.True(Math.Abs(w.TotalPopulation - w.PopulationDelta - p0) < 1e-6 * p0, "人口保存の破れ");
+        Assert.True(Math.Abs(D(w) - d0) <= 1e-9 * Math.Max(1.0, Math.Abs(d0)), $"保存量 D の破れ（{d0} → {D(w)}）");
     }
 
     // ★番人の主張の書き直し（作者裁定2026-09-19 M1）：**総動員は徴兵法を迂回しない**。
@@ -343,5 +351,117 @@ public class MilitaryTests
         }
         Assert.True(used > 0, "前提が崩れた：物資を1つも消費していない");
         Assert.Equal(-paid, w.TreasuryLedger[(int)TreasuryCat.WarCost] - led0, 6);   // 国庫が代金を払った（戦費）＝生産者の手に渡る
+    }
+
+    // ===== 支払いの一元化 段3-2（2026-09-30・作者裁定 Q8・C6・C7）の番人 =====
+
+    private static (List<Pop> pops, double[] sav) SavingsOf(World w)
+    {
+        var l = new List<Pop>();
+        foreach (var r in w.Regions) l.AddRange(r.Pops);
+        return (l, l.ConvertAll(p => p.Savings).ToArray());
+    }
+
+    /// <summary>★植民地の駐留と鎮圧の俸給は兵士の兵力の生産者の④（兵士の賃金）へ・国家の支払い率 r の分だけ。旧＝本国の全POP へ頭数。
+    /// 盤面＝英仏の英の双子（植民地格の州の不満 0.5）＝不満の維持費の係数だけが違う（30 と 0）＝双子の貯蓄の差が俸給の流れそのもの。
+    /// ⚠突然変異「全POP へ頭数で配る」で赤。</summary>
+    [Fact]
+    public void 植民地の駐留の俸給は兵士の兵力の賃金へ届く()
+    {
+        (World w, List<Pop> pops, double[] sav, double led) Arm(double scale)
+        {
+            var sim = TwoNations();
+            var w = sim.Nations[0].World;
+            w.Coef.ColonyUpkeepMilitancyScale = scale;
+            foreach (var r in w.Regions) if (r.State == RegionState.Active && r.Tier == RegionTier.Colonial) foreach (var p in r.Pops) p.Militancy = 0.5;
+            w.FiscalFundingRatio = 0.7;
+            double led0 = w.TreasuryLedger[(int)TreasuryCat.ColonialUpkeep];
+            Colonial.Step(w, w.Coef);
+            var (pops, sav) = SavingsOf(w);
+            return (w, pops, sav, w.TreasuryLedger[(int)TreasuryCat.ColonialUpkeep] - led0);
+        }
+        var zero = Arm(0); var arm = Arm(new Coefficients().ColonyUpkeepMilitancyScale);
+        double paid = zero.led - arm.led;
+        Assert.True(paid > 0, "前提が崩れた：駐留の俸給が立っていない（植民地格の州の不満）");
+        var soldiers = new HashSet<Pop>();
+        foreach (var r in arm.w.Regions) if (r.State == RegionState.Active) foreach (var pr in r.Producers) if (pr.GoodId == Catalog.MilitaryPowerId && pr.Output > 0) soldiers.Add(r.Pops[pr.LaborPopIndex]);
+        Assert.NotEmpty(soldiers);
+        double got = 0;
+        for (int i = 0; i < arm.pops.Count; i++)
+        {
+            double d = arm.sav[i] - zero.sav[i];
+            if (soldiers.Contains(arm.pops[i])) got += d; else Assert.True(d == 0, $"兵士でない POP（階級 {arm.pops[i].ClassId}）の貯蓄が {d} 動いた＝全POP へ配っている");
+        }
+        Assert.True(Math.Abs(got - paid) <= 1e-9 * paid, $"兵士の受け取り {got} ≠ 国庫の払い {paid}");
+    }
+
+    /// <summary>★国家の調達（補給財・侵攻の物資・海軍の燃料＝Colonial.BuyUpkeepGood）の代金は、その財の生産者の④の持分（地代・国営持分・賃金）へ。旧＝本国の全POP へ頭数。
+    /// 盤面＝英仏の英の双子＝首都で最も多く作られている財を買う量だけが違う。⚠突然変異「全POP へ頭数で配る」で赤。</summary>
+    [Fact]
+    public void 国家の調達の代金はその財の生産者の持分へ届く()
+    {
+        (World w, List<Pop> pops, double[] sav, double treas, int good) Arm(double scale)
+        {
+            var sim = TwoNations();
+            var w = sim.Nations[0].World; var cap = w.Region;
+            int good = -1; double best = 0;
+            foreach (var pr in cap.Producers)
+                if (pr.GoodId >= 0 && pr.GoodId < cap.Markets.Length && Catalog.Goods[pr.GoodId].Tier != GoodTier.Service && pr.Output > best) { best = pr.Output; good = pr.GoodId; }
+            Assert.True(good >= 0, "前提が崩れた：首都に財の生産者がいない");
+            w.FiscalFundingRatio = 1.0;
+            cap.Markets[good].Stock = 1e9;
+            Colonial.BuyUpkeepGood(w, cap, good, scale * best, TreasuryCat.ColonialUpkeep);
+            var (pops, sav) = SavingsOf(w);
+            return (w, pops, sav, w.Treasury, good);
+        }
+        var zero = Arm(0); var arm = Arm(1.0);
+        var sellers = new HashSet<Pop>();
+        foreach (var pr in arm.w.Region.Producers) if (pr.GoodId == arm.good && pr.Output > 0) { sellers.Add(arm.w.Region.Pops[pr.OwnerPopIndex]); sellers.Add(arm.w.Region.Pops[pr.LaborPopIndex]); }
+        double got = 0;
+        for (int i = 0; i < arm.pops.Count; i++)
+        {
+            double d = arm.sav[i] - zero.sav[i];
+            if (sellers.Contains(arm.pops[i])) got += d; else Assert.True(d == 0, $"生産者の持分でない POP（階級 {arm.pops[i].ClassId}）の貯蓄が {d} 動いた＝全POP へ配っている");
+        }
+        double paid = zero.treas - arm.treas;
+        Assert.True(got > 0, "前提が崩れた：調達の代金が生産者に届いていない");
+        Assert.True(Math.Abs(got - paid) <= 1e-9 * Math.Max(1.0, Math.Abs(arm.treas)), $"生産者の受け取り {got} ≠ 国庫の払い {paid}");
+    }
+
+    /// <summary>★武力解錠は軍需の購買（C7）＝首都の市場から陸の軍需（艦隊の財を除く基本段・発見の解禁度を通した比）を月の予算ぶん買って消費し、
+    /// 代金は陸軍の区分で国庫から・進み方は買えた割合（代金÷予算）。旧＝国庫から全POP へ頭数で配り（財を買わない）、進み方は r だけ。
+    /// ⚠突然変異「全POP へ頭数で配る（財を買わない）」で赤（軍需の在庫が減らない）。</summary>
+    [Fact]
+    public void 武力解錠は首都の市場から陸の軍需を買って消費し進み方は買えた割合()
+    {
+        var (sim, locked) = LockedBritain(3, force: true);
+        var w = sim.World; var c = w.Coef; var cap = w.Region;
+        w.FiscalFundingRatio = 1.0;
+        var rates = EconomyStep.DiscoveredRates(cap, c, c.MilitaryGoods, c.MilitaryRates);
+        var land = new List<int>(); var fleet = new List<int>();
+        for (int b = 0; b < c.MilitaryGoods.Length; b++)
+        {
+            int g = c.MilitaryGoods[b];
+            if (g >= cap.Markets.Length) continue;
+            cap.Markets[g].Stock = 1e9;
+            if (Array.IndexOf(c.FleetGoodIds, g) >= 0) fleet.Add(g); else if (rates[b] > 0) land.Add(g);
+        }
+        Assert.NotEmpty(land);
+        var st0 = new Dictionary<int, double>(); var ex0 = new Dictionary<int, double>(); var px = new Dictionary<int, double>();
+        foreach (int g in land.Concat(fleet)) { st0[g] = cap.Markets[g].Stock; ex0[g] = cap.Markets[g].LastExport; px[g] = Math.Max(cap.Markets[g].Price, 1e-9); }
+        double led0 = w.TreasuryLedger[(int)TreasuryCat.Army], infra0 = locked.Infra;
+        Territory.Step(w, c);
+        double spent = 0;
+        foreach (int g in land)
+        {
+            double used = st0[g] - cap.Markets[g].Stock;
+            Assert.Equal(used, cap.Markets[g].LastExport - ex0[g], 6);   // 市場から出た量＝財の出入りの台帳
+            spent += used * px[g];
+        }
+        foreach (int g in fleet) Assert.Equal(st0[g], cap.Markets[g].Stock);   // 艦隊の財は買わない
+        Assert.True(spent > 0, "陸の軍需を買っていない＝財を買わない国家支出のまま");
+        Assert.True(Math.Abs(led0 - w.TreasuryLedger[(int)TreasuryCat.Army] - spent) <= 1e-9 * Math.Max(1.0, spent), "陸軍の区分の国庫の払いが軍需の代金と一致しない");
+        double fill = Math.Min(1.0, spent / c.ForceUnlockTreasuryCost);
+        Assert.True(Math.Abs(locked.Infra - infra0 - c.ForceUnlockRate * fill) <= 1e-9 * c.ForceUnlockRate, $"進み方 {locked.Infra - infra0} ≠ 速さ×買えた割合 {c.ForceUnlockRate * fill}");
     }
 }

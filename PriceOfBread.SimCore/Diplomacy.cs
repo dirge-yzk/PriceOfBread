@@ -2,7 +2,7 @@
 
 /// <summary>
 /// 国際社会の一国（列強）。<see cref="Nation"/> が紐づく国は経済から軍/GDP/財庫を毎月同期し、
-/// 戦費は自国 pop へ還流・賠償は自国の貿易収支に計上する。Nation==null の国は抽象（静的値＋AI のみ）。
+/// 賠償は自国の貿易収支に計上する（戦費は軍需の調達と兵士の給与が実体＝独自の支払いは無い・2026-09-30 段3-2）。Nation==null の国は抽象（静的値＋AI のみ）。
 /// </summary>
 public sealed class Power
 {
@@ -78,10 +78,8 @@ public sealed class Power
             return n;
         }
     }
-    /// <summary>抽象標的（Nation==null）の財布＝世界の外の「支払い能力の見積もり」（戦費の Fund が読むだけ・減らない）。
-    /// ★国を持つ Power はこれを使わない＝国庫は World.Treasury を直接読み、動かすのは World.Pay だけ
-    /// （2026-09-28 支払いの一元化 段1-3＝旧の同期窓〔Diplomacy.Step の冒頭で World→Power・末尾で Power→World を代入〕と Power.Pay を撤去）。</summary>
-    public double Treasury;
+    // 【墓標2026-09-30・支払いの一元化 段3-2】Treasury（抽象標的の財布＝世界の外の「支払い能力の見積もり」・戦費の Fund だけが読んだ）を削除＝戦費の Fund ごと消えて読み手0（思想⑩）。
+    //   国を持つ Power の国庫は World.Treasury（動かすのは World.Pay だけ＝2026-09-28 段1-3）。
     public double WarExhaustion;  // 戦争疲弊 0..1
     public double TradeWeight = 0.2;  // 世界市場でのこの国の比重（禁輸で失われる交易シェア）
     public int WarsWon, WarsLost; // 戦争の勝敗回数（決定的講和。白紙講和は除く）。テスト記録用
@@ -144,7 +142,7 @@ public sealed class War
     // 【削除2026-09-26（棚卸し dorm-42）】戦勝点の分解の診断の積算3本（SumPush・SumPushAbs・SumLuckAbs）＝旗 WarScoreDecomposition（既定0）が立つときだけ年表に1行出す材料を、
     //   既定でも毎月すべての戦争で積んでいた（⑩）。Runner に warprobe は無く「[分解]」を読む処理も無かった。要るなら Runner の計器として作り直す。
     // ★崩壊講和の取り分（2026-08-12・CollapseImposeFromFront が読む）：各月の押しを side ごとに積む。
-    //   単月スナップでは崩壊月に敗者の戦費充足が床(0.3)へ落ちて歪むので、**戦争を通した累積**で見る。
+    //   単月スナップでは崩壊月の押しが歪むので、**戦争を通した累積**で見る。
     public double PushA, PushB;
 }
 
@@ -284,7 +282,7 @@ public readonly record struct TensionPoliticsPreview(
 /// **WarDeclareTension 以上が WarTriggerMonths 続くと宣戦（攻守は区別しない）**。
 /// **同盟**（友好かつ共通の敵・上限 MaxAlliances＝陣営化／**参加義務なし**＝利害が一致する同盟国だけ参戦・連鎖参戦あり）。
 /// **禁輸**（挑発に同梱・戦争中は強制）。講和（ResolvePeace）＝戦勝点に応じ植民地の奪取・賠償金・州割譲・属国化/条約港・矯正講和。列強の調停は白紙講和。
-/// 戦費は国内 pop へ還流（金は消えない）、賠償は対外移転として CumulativeTradeFlow で追跡。
+/// 戦費は軍需の調達と兵士の給与が実体（独自の支払いは無い・2026-09-30 段3-2）、賠償は対外移転として CumulativeTradeFlow で追跡。
 /// </summary>
 public sealed class Diplomacy
 {
@@ -379,8 +377,6 @@ public sealed class Diplomacy
     private const double ColonizeGdpNormalizer = 100_000.0;   // 植民地化価値のGDP正規化（per 100k）
     private const double AiColonizeMinProjection = 0.2;       // AI植民地化で標的として考慮する最小投射
     private const double OfficerCasualtyPopCap = 0.05;        // 将校戦死の貴族人口上限（5%/月）
-    private const double WarFundFloor = 0.3;                  // 戦費未払いでも保つ戦力充足（現物徴発）
-    private const double WarFundPayWeight = 0.7;              // 支払い能力が戦力充足へ寄与する重み
     private const int EndedWarRingCapacity = 256;             // 終戦記録リングの容量
 
     private static long Key(Power a, Power b) => a.Id < b.Id ? ((long)a.Id << 32) | (uint)b.Id : ((long)b.Id << 32) | (uint)a.Id;
@@ -733,7 +729,10 @@ public sealed class Diplomacy
     // 通商破壊係数（CommerceRaidFactor）は03手順7（2026-07-29）で削除＝海盆別リスク線積分（BasinHostility×経路の海盆別距離→World.LastBlockadeRisk）が置換。C2裁定＝財は消さずマージンに乗せる
 
     // 拿捕賞金（改修2026-06-28・A2）：制海権を握った側が、封鎖した敵の海上交易を拿捕して得る（私掠・拿捕貨物）。
-    // ＝通商破壊を「相手が損するだけ」でなく「海軍国が得る戦略」にする（海軍を持つ意味＝交易面の利得）。保存：敵の対外流出＝自国の対外流入（運河通行料/賠償と同じ両建て）。
+    // ＝通商破壊を「相手が損するだけ」でなく「海軍国が得る戦略」にする（海軍を持つ意味＝交易面の利得）。保存：敵の対外流出＝自国の対外流入（運河通行料/賠償と同じ両建て・移し方の1本が台帳を書く）。
+    // ★支払いの一元化 段3-2（2026-09-30・C11）：私人の積荷の損得は私人の間で＝払い手は**敵の商人**（積荷と船の持ち主＝(108) C3 の船の持ち主と同じ口座・貯蓄の比・貯蓄まで）、
+    //   受け手は**拿捕した側の兵士**（拿捕の賞金は捕獲した艦の乗組員へ＝兵力の生産者の④の持分・Earned を通す＝InternationalMarket.PaySales の国の枝）。
+    //   旧＝敵の国庫から制海国の国庫へ（区分＝戦費）×敵の国家の支払い率 r。国庫は動かない＝区分の戦費には載らない。
     private void CommerceRaidPrize(Coefficients c)
     {
         foreach (var war in Wars) { CollectPrize(war.A, war.B, c); CollectPrize(war.B, war.A, c); }
@@ -770,10 +769,11 @@ public sealed class Diplomacy
             }
         }
         double prizeRaw = c.PrizeMoneyRate * advantage * ((1.0 - c.PrizeCargoShare) * Math.Max(0, vw.Gdp) + c.PrizeCargoShare * cargoBase);
-        double prize = prizeRaw * vw.FiscalFundingRatio;   // 払い手の国家の支払い率 r の分だけ（2026-09-28 段2-1＝旧は国庫の残りで切る門）。PrizeCargoShare=0で旧式 PrizeMoneyRate×GDP×advantage
-        if (prize <= 1e-9) return;
-        vw.Pay(TreasuryCat.WarCost, -prize); vw.CumulativeTradeFlow -= prize;   // 敵＝拿捕で対外流出（区分＝戦費・作者裁定 Q14）
-        rw.Pay(TreasuryCat.WarCost, prize); rw.CumulativeTradeFlow += prize;   // 制海国＝拿捕賞金の対外流入（保存・区分＝戦費）
+        if (!(prizeRaw > 1e-9)) return;
+        var merchants = new List<Pop>();
+        foreach (var r in vw.Regions)
+            if (r.State == RegionState.Active && r.MerchantPopIndex >= 0 && r.MerchantPopIndex < r.Pops.Count) merchants.Add(r.Pops[r.MerchantPopIndex]);
+        InternationalMarket.PaySales((vw, merchants), null, Catalog.MilitaryPowerId, prizeRaw, rw);   // 敵の商人→拿捕した兵士（両国の CumulativeTradeFlow は移し方の1本が書く）
     }
 
     // ★四半期末の同期の窓（2026-09-30 作者裁定「計算量の予算」・恒等・作業領域＝セーブに載らない）：MultiNationSim は四半期末に外交を3回（月次の歩）
@@ -1968,7 +1968,7 @@ public sealed class Diplomacy
     }
 
     /// <summary>#106 戦争見通し（UI表示・副作用なし）。双方の陸/海/空戦力と、勝勢シェア（0..1）を返す。UIが予想戦果の文言を組む。
-    /// ★勝勢は実際の戦線と**同じ押しの式**（<see cref="FrontPush"/>・戦線1・戦費満額＝開戦前の問い）＝旧は陸軍力×投射だけで上陸と制空が抜けていた（2026-09-29 処理の一元化 段3 G）。</summary>
+    /// ★勝勢は実際の戦線と**同じ押しの式**（<see cref="FrontPush"/>・戦線1＝開戦前の問い）＝旧は陸軍力×投射だけで上陸と制空が抜けていた（2026-09-29 処理の一元化 段3 G）。</summary>
     public (double MyLand, double MyNaval, double MyAir, double EnLand, double EnNaval, double EnAir, double WinShare) WarOutlook(Power me, Power enemy, Coefficients c)
     {
         double myPush = FrontPush(me, enemy, c);
@@ -1977,12 +1977,14 @@ public sealed class Diplomacy
         return (me.LandPower, me.NavalPower, me.AirPower, enemy.LandPower, enemy.NavalPower, enemy.AirPower, win);
     }
 
-    /// <summary>★戦線の押しの1本（2026-09-29 処理の一元化 段3 G）＝陸軍力÷戦線数×戦費充足×投射×上陸×制空。
+    /// <summary>★戦線の押しの1本（2026-09-29 処理の一元化 段3 G）＝陸軍力÷戦線数×投射×上陸×制空。
     /// 実際の戦線（<see cref="StepWars"/>）・画面の戦争見通し（<see cref="WarOutlook"/>）・AI の生存効用の脅威（UtilityAgent.ChooseStance）が同じ1本を読む
     /// ＝AI とプレイヤーが同じ物差しで相手を見る（⚠旧＝AI は陸海合計の Military×投射、画面は陸軍力×投射、戦線はその上に上陸と制空）。
-    /// 上陸は <see cref="LandBattleHappens"/>（どちらか一方でも上陸できれば陸戦は起きる＝両側に同じ値）。見通しと AI は開戦前の問い＝戦線1・戦費満額。</summary>
-    public double FrontPush(Power x, Power y, Coefficients c, int fronts = 1, double fund = 1.0)
-        => x.LandPower / Math.Max(1, fronts) * fund * Projection(x, y, c) * (LandBattleHappens(x, y, c) ? 1.0 : 0.0) * (1.0 + c.AirControlPushWeight * (AirCtl(x, y) - 0.5));
+    /// 上陸は <see cref="LandBattleHappens"/>（どちらか一方でも上陸できれば陸戦は起きる＝両側に同じ値）。見通しと AI は開戦前の問い＝戦線1。
+    /// ★2026-09-30（支払いの一元化 段3-2・作者裁定 Q8 (a)）：戦費充足（0.3＋0.7×払えた割合）の乗数を削除＝払えない国の弱さは装備の充足と兵の補給
+    ///   （軍需の調達と兵士の給与×国家の支払い率＝即応度＝LandPower の中）に既に入っている＝もう一度掛けない（思想⑨）。</summary>
+    public double FrontPush(Power x, Power y, Coefficients c, int fronts = 1)
+        => x.LandPower / Math.Max(1, fronts) * Projection(x, y, c) * (LandBattleHappens(x, y, c) ? 1.0 : 0.0) * (1.0 + c.AirControlPushWeight * (AirCtl(x, y) - 0.5));
 
     // 禁輸ボタンの廃止（禁制品doc C1・2026-07-30）：旧 Embargo()/LiftEmbargo() は**プレイヤーのボタン専用**の動詞だった
     // （唯一の呼び出しが GameViewModel の DiploEmbargo）。50カ国分を手動で管理するマイクロマネジメントを畳み、禁輸は
@@ -2236,20 +2238,15 @@ public sealed class Diplomacy
             if (p0.Nation is { } nw0)
                 foreach (var r0 in nw0.Regions) r0.LastWarIntensity = 0;
         if (Wars.Count == 0) return;
-        // #8 多正面戦争の Power単位集約：戦費・厭戦・闘争度・戦死を War単位で多重適用せず **Power単位で1回**。
-        // 旧来は各 War が独立に Fund(国庫ドレイン)/WarExhaustion/WarMilitancy/WarCasualties を呼び、連合された側が戦争件数ぶん戦費・戦死・厭戦を被って不当に速く崩壊していた（合従が物理的に正しくない形で効きすぎた）。
+        // #8 多正面戦争の Power単位集約：厭戦・闘争度・戦死を War単位で多重適用せず **Power単位で1回**。
+        // 旧来は各 War が独立に WarExhaustion/WarMilitancy/WarCasualties を呼び、連合された側が戦争件数ぶん戦死・厭戦を被って不当に速く崩壊していた（合従が物理的に正しくない形で効きすぎた）。
+        // ★2026-09-30（支払いの一元化 段3-2・作者裁定 Q8 (a)・思想⑨）：戦費 Fund（軍ゲージ×WarCostPerMilitary を国家の支払い率 r の分だけ国庫から全POP へ頭数で配り、
+        //   押しに 0.3＋0.7×r を掛けた）を削除＝戦争の費用の実体は軍需の調達（戦時の倍率つきの予算）と兵士の給与（徴兵で増えた兵の数）で、どちらも国家の支払い率 r で量が減る
+        //   ＝同じ戦争を国庫で2度払い、押しに r を2度掛けていた。財政の厭戦（外13）は国家の支払い率そのもの（抽象標的は世界の外の財布＝1）。
         var fronts = new Dictionary<Power, int>();
         foreach (var w in Wars) { fronts[w.A] = fronts.GetValueOrDefault(w.A) + 1; fronts[w.B] = fronts.GetValueOrDefault(w.B) + 1; }
-        var fundRatio = new Dictionary<Power, double>();
-        var payRatio = new Dictionary<Power, double>();   // 外13：支払い能力（0..1）。国庫枯渇＝財政厭戦の原資
-        foreach (var p in Powers)   // Powers リスト順＝決定論（Dictionary列挙順に依存しない）
-        {
-            if (!fronts.ContainsKey(p)) continue;
-            fundRatio[p] = Fund(p, c, out double pr);   // 戦費は Power単位で1回（複数戦線でも国庫ドレインは1回＝多重支払いの解消）
-            payRatio[p] = pr;
-        }
         // 外2：各戦線の実接触強度＝min(aPush,bPush)＝両軍が実際にぶつかる前線の激しさ（投射が届かず片側Push≈0の遠隔戦は接触も薄い）。
-        // Power単位に合算＝多正面国の総接触。fundRatio 確定後に計算（Fund の副作用を二重に踏まない）。
+        // Power単位に合算＝多正面国の総接触。
         // ★2026-09-27 回2-1b：旗 CasualtiesFromContact（1.0で点火済み・0＝自軍の Military を基準にする旧の枝）を焼き込んで削除＝常に計算する。
         // ★2026-09-28 回8-1（棚卸し mil-11）：押しの式はここの1か所だけ＝戦線ごとに1回計算し、下の戦勝点の押し合いが同じ値を読む
         //   （旧＝同じ式を戦勝点の側でもう一度書き、1か月に2回計算していた＝片方だけ直す事故の型）。
@@ -2263,13 +2260,13 @@ public sealed class Diplomacy
         for (int wi = 0; wi < nWars; wi++)
         {
             var war = Wars[wi];
-            // 押し合い＝陸軍力×戦費充足×投射×上陸×制空（B-1）＝押しの1本 FrontPush（見通しと AI の脅威も同じ1本・2026-09-29 段3 G）。
+            // 押し合い＝陸軍力×投射×上陸×制空（B-1）＝押しの1本 FrontPush（見通しと AI の脅威も同じ1本・2026-09-29 段3 G）。
             //   **戦力は戦線数で割る**＝多正面の国は各戦線で弱くなり連合が勝つ（弱い側が崩壊＝決定的）。
             // ★上陸ゲート（2026-08-01・作者裁定）：海越え戦線では**制海権を取った側だけが陸で押せる**＝海軍で勝たないとブリテン島に乗れない
             //   （SeaInvasionControlMin=0 で常に1.0＝恒等）。★どちらか一方でも上陸できれば陸戦は起きる（起きたら双方が全力で戦う）。
             //   ⚠片側だけを0にすると守る側が自国土で押し返せなくなる。制空（1934拡張E2）＝偵察・着弾観測（空軍0の時代＝0.5＝×1.0恒等）。
-            double aPush = FrontPush(war.A, war.B, c, fronts[war.A], fundRatio[war.A]);
-            double bPush = FrontPush(war.B, war.A, c, fronts[war.B], fundRatio[war.B]);
+            double aPush = FrontPush(war.A, war.B, c, fronts[war.A]);
+            double bPush = FrontPush(war.B, war.A, c, fronts[war.B]);
             pushA[wi] = aPush; pushB[wi] = bPush; landFront[wi] = LandBattleHappens(war.A, war.B, c);
             double contactStrength = Math.Min(aPush, bPush);   // 前線の実接触＝弱い側の押し（片側が届かなければ小）
             contact[war.A] = contact.GetValueOrDefault(war.A) + contactStrength;
@@ -2291,8 +2288,9 @@ public sealed class Diplomacy
             double blockade = c.WarExhaustionBlockade * (p.Nation?.LastBlockadeRisk ?? 0.0);   // 03手順7：封鎖の痛み＝リスク線積分の取扱高加重平均（旧CommerceRaidFactorの置換）。海軍劣勢で封鎖されるほど厭戦が募る（兵糧攻め）
             // 戦時配給法（E6）：公平配給で封鎖の飢餓厭戦を緩和（英国型）。RationingGate=0またはRationing未制定で×1.0＝恒等。戦時のみ発火＝単一国較正（戦争なし）に無影響。
             if (c.RationingGate > 0 && (p.Nation?.WartimeRationing ?? false)) blockade *= c.RationingBlockadeRelief;
-            // 外13：財政破綻の厭戦＝支払い能力の不足(1−payRatio)を厭戦に加算＝国庫枯渇が講和事由になる（18-19世紀の戦費調達限界＝講和の最大要因）。FiscalExhaustionWarWeariness=0で無影響（現行）。
-            double fiscal = c.FiscalExhaustionWarWeariness * (1.0 - payRatio.GetValueOrDefault(p, 1.0));
+            // 外13：財政破綻の厭戦＝国家の支払い率の不足(1−r)を厭戦に加算＝国庫枯渇が講和事由になる（18-19世紀の戦費調達限界＝講和の最大要因）。FiscalExhaustionWarWeariness=0で無影響。
+            //   ★2026-09-30：旧の Fund の支払い能力（払えた戦費÷戦費＝国を持つ Power は r そのもの）を r で直接読む（抽象標的は1＝財政の厭戦なし）。
+            double fiscal = c.FiscalExhaustionWarWeariness * (1.0 - (p.Nation?.FiscalFundingRatio ?? 1.0));
             // 1934拡張E2：空襲の厭戦（封鎖と同型・都市爆撃1917〜）＝敵空軍が実在し制空劣勢なほど。化学兵器の泥沼＝相互保有の下限（片側だけでは厭戦は増えない＝戦死側で優位）。
             double eAir = enemyAir.GetValueOrDefault(p);
             double airCtl = p.AirPower + eAir > 1e-9 ? p.AirPower / (p.AirPower + eAir) : 0.5;
@@ -2775,7 +2773,7 @@ public sealed class Diplomacy
         double repBase = c.ReparationGdpFraction * loser.Gdp * sa * (farCrush ? c.TreatyPortReparationMult : 1.0);
         repBase -= repCut * repBase;   // #21 会議外交：会議度に応じ賠償を削る（repCut=0＝現行ビット恒等・x−0*x==x）。植民地/割譲は不変＝賠償のみ抑制
         // ★賠償は**貨幣経済を持つ2国の間だけ**で動く（回1-1・2026-09-26・段0の番人 fis-21 が全長で発見）。
-        //   抽象標的（Nation の無い勢力）は World を持たない＝国庫も基礎貨幣も無い（Power.Treasury は台帳の外の「支払い能力の見積もり」＝Fund と同じ扱い）。
+        //   抽象標的（Nation の無い勢力）は World を持たない＝国庫も基礎貨幣も無い。
         //   ⚠旧＝片側記帳：勝者が抽象標的だと敗者だけが −rep を記帳して金が世界から消え（seed1789 全長で 1862年 カザフ草原←ポーランド 1,009・1932年 アチェ←マイソール 888）、
         //     逆向き（外8 AbstractTargetReparations＝抽象標的の国庫の3割）は受け手だけが +rep を記帳して金が世界の外から湧いた。
         //   保存則が閉じる形は「受け手の無い支払い・出し手の無い受け取りは起きない」の1つだけ（世界の基礎貨幣は鋳造と不換発行でしか動かない）。
@@ -3078,22 +3076,8 @@ public sealed class Diplomacy
         Wars.RemoveAt(i);
     }
 
-    private static double Fund(Power p, Coefficients c, out double payRatio)
-    {
-        double cost = c.WarCostPerMilitary * p.Military;
-        // ★国を持つ Power は国家の支払い率 r の分だけ払う（作者裁定 F3・2026-09-28 段2-1＝旧は独自の payRatio＝国庫の残り/費用）＝支払い能力の比は r そのもの。
-        //   抽象標的は世界の外の財布（見積もり・作者裁定 Q10＝据え置き）。戦費そのものの削除（二重計上・Q8）は段3-2。
-        double pay = p.Nation is { } fw ? cost * fw.FiscalFundingRatio : Math.Min(Math.Max(0, p.Treasury), cost);
-        // ★是正（監査2026-09-02 #27）：抽象標的（Nation==null）はWorld外の財布＝pay分の受け手が無いまま黙って蒸発していた
-        //（当時は貢納・戦利品で増えるTreasuryが開戦の価値の判定 SpoilsWorthThreshold に使われていた＝回1-1で判定ごと削除）。実在国のみ実際に引く＝抽象標的は支払い能力だけ評価。
-        if (p.Nation is { } w)
-        {
-            w.Pay(TreasuryCat.WarCost, -pay);
-            if (pay > 0) w.Pay(TreasuryCat.WarCost, World.Distribute(new List<Pop>(w.AllPops()), pay));   // 戦費は自国 pop へ還流（金は消えない）。按分は World.Distribute の1本（2026-09-11 M7・旧の同文複製を削除。2026-09-29 段2-3 から微小な額も配る＝旧の差 0<pay≤1e-12 も消えた）
-        }
-        payRatio = cost > 1e-9 ? pay / cost : 1.0;   // 外13：支払い能力（0..1）。国庫枯渇＝0＝厭戦加算に使う
-        return cost > 1e-9 ? WarFundFloor + WarFundPayWeight * payRatio : 1.0;   // 戦力充足＝払えなくても 0.3（現物徴発）
-    }
+    // 【墓標2026-09-30・支払いの一元化 段3-2】Fund（戦費＝軍ゲージ×WarCostPerMilitary を国家の支払い率 r の分だけ国庫から全POP へ頭数で配り、押しに 0.3＋0.7×r を掛けた）を削除（作者裁定 Q8 (a)）。
+    //   戦争の費用の実体は軍需の調達と兵士の給与（どちらも r で量が減る）＝同じ戦争の二重計上（思想⑨）。財政の厭戦は StepWars が r を直接読む。
 
     // ── B-1 戦力投射（距離減衰・制海権・海盆経路）──────────────────────────────
 

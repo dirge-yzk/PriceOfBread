@@ -219,7 +219,8 @@ public static class Fiscal
                 adminCost += c.AdminCostPerPop * rp * mul;
             }
         }
-        double upkeep = c.CoercionUpkeepRate * w.BaseCoercion * coercionScale + adminCost;
+        double coercionUpkeep = c.CoercionUpkeepRate * w.BaseCoercion * coercionScale;   // 治安維持（警察・駐屯）＝兵士の兵力を買う（段3-2・下の支払い）
+        double upkeep = coercionUpkeep + adminCost;
 
         // === 国債：利払い（借入は月初の Borrow＝払える額の側・2026-09-28）===
         // R9（満期構造）：既往債は発行時クーポン(GovAvgCoupon)で利払い。毎月 BondRolloverFrac だけ現行市場金利GovBondRateへ乗り換わる。
@@ -374,23 +375,12 @@ public static class Fiscal
         }
 
         // 維持費の支払い＝請求×r（旧＝国庫の残りで切る滝の2番目）。
-        double pay = upkeep * payRate;
-        w.Pay(TreasuryCat.Admin, -pay);
-        // 財14（抑圧装置の維持費の帰属）：連合維持費（軍・警察・官僚の俸給）を CoercionUpkeepToSoldiers で分配先を傾斜。
-        // 既定0＝全popへ頭数比例（現行）＝抑圧装置の維持費が全国民へヘリコプター移転され「重い常備軍が民を貧しくする」経路が名目税負担だけに希薄化。
-        // 1で兵士pop・官僚(ClassId8)popへ傾斜（俸給を受け取る当事者）。受け手が不在なら国庫に残置（分配せず＝民へは還流しない）。中間で線形ブレンド。
-        if (c.CoercionUpkeepToSoldiers > 1e-9 && pay > 1e-12)
-        {
-            var coercers = new List<Pop>();
-            foreach (var p in pops) if (p.IsSoldier || (p.ClassId == PopClass.Bureaucrat && !p.Closed)) coercers.Add(p);   // 兵士＋官僚＝維持費の俸給を受け取る抑圧装置
-            double coercerSize = 0; foreach (var p in coercers) coercerSize += p.Size;
-            double targeted = pay * c.CoercionUpkeepToSoldiers;   // 傾斜配分に回す分
-            double flat = pay - targeted;                          // 残りは従来どおり全popへ頭数比例
-            if (flat > 1e-12) w.Pay(TreasuryCat.Admin, World.Distribute(pops, flat));
-            w.Pay(TreasuryCat.Admin, World.Distribute(coercers, targeted));   // 受け手不在＝国庫残置（民へは還流しない＝維持費が経済から抜ける）
-        }
-        else
-            w.Pay(TreasuryCat.Admin, World.Distribute(pops, pay));   // 既定＝全popへ頭数比例（現行と厳密一致）。受け手不在＝国庫残置（保存）
+        // ★支払いの一元化 段3-2（2026-09-30・作者裁定 Q8 (a)・C7）：連合維持費は**治安と行政の役務の給与**＝国として兵士の兵力（治安維持）と官僚の行政（行政費）を
+        //   買う代金を、その役務の生産者の④の持分（産出の比・賃金は労働＝兵士と官僚・Earned を通す）で払う（InternationalMarket.PaySales の国の枝）。
+        //   旧＝全POP へ頭数で配った（名目は軍・警察・官僚の俸給なのに受け手は全国民＝ヘリコプター移転）＋休眠の傾斜 CoercionUpkeepToSoldiers（兵士と官僚へ頭数で・係数ごと削除）。
+        //   量は動かさない（兵力と行政の買い付けの量と充足〔AdminFill・兵の給与の信号〕は予算の行の購買のまま）＝維持費は給与の上乗せとして担い手に届く。担い手がいなければ国庫に残る。
+        InternationalMarket.PaySales((w, null), null, Catalog.MilitaryPowerId, coercionUpkeep * payRate, w, TreasuryCat.Admin);
+        InternationalMarket.PaySales((w, null), null, Catalog.AdminId, adminCost * payRate, w, TreasuryCat.Admin);
         //（旧 FiscalFundingRatio＝維持費を払えた割合 pay/upkeep は、2026-09-28 から月初の国家の支払い率 r＝Simulation の1か所だけが書く）
 
         // ★撤去2026-08-16（C2-C5）：汚職根絶費の実支払い（acPay→官僚popへ俸給分配・TreasuryCat.AntiCorruption 記帳・LastAntiCorruptionCost 診断）を物理削除。
