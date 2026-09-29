@@ -148,18 +148,21 @@ public class WriterRatchetTests
     //   清算の着値の充填 44,882,844→35,263,928（−21.4%＝月の清算で不足だけで起きた行のうち、前の走査で成約せず自州価格が上がっていない行を眠らせる）・
     //   価格の財の歩 15,536,007→14,629,209（−5.8%＝供給も在庫も無く張り付いた財は不動点に着いた旬から月の残りを眠る）・日次の写像の回 40,223,878→39,615,736（−1.5%）。
     //   ほかは軌道の違いの揺れ（建設 +0.6%・清算の買い手行 −0.6%・覇権の判定 −2.9%・請求 −0.1%・消費 −0.01%・残り7本は同じ）。
+    // ★2026-09-30 表の更新（(122) 合流の前段＝線2〔(118) 幽霊の国の根・(119) 助走は法を動かさない〕を載せた木＝軌道が動いた分の宣言・新しい処理は無い）：
+    //   建設 28,392→13,571・請求 9,682→4,710（下がった＝表を下げる）・覇権の判定 1,657,020→2,300,741（+39%＝開幕の法と同盟の軌道が変わり、
+    //   同盟の候補が居る月が増えた＝処理の形は同じ）。推定の単位では 40四半期で +6.7ms（単価 0.01035µs）＝全長の予算の内／超過は合わせた main の10種の .cost で見る（実装ログ (122)）。
     [InlineData(CostLedger.PriceGoods, 14629209L)]
     [InlineData(CostLedger.PriceDailyRuns, 39615736L)]
-    [InlineData(CostLedger.ConstructionSeen, 28392L)]
+    [InlineData(CostLedger.ConstructionSeen, 13571L)]
     [InlineData(CostLedger.CreditSpans, 33138L)]
     [InlineData(CostLedger.ConsumePopGoods, 29298230L)]
     [InlineData(CostLedger.ProducerMonths, 9037980L)]
-    [InlineData(CostLedger.ClaimProducers, 9682L)]
+    [InlineData(CostLedger.ClaimProducers, 4710L)]
     [InlineData(CostLedger.MonthlyPops, 706680L)]
     [InlineData(CostLedger.ClearingRows, 5577638L)]
     [InlineData(CostLedger.ClearingFills, 35263928L)]
     [InlineData(CostLedger.DiploPowerMonths, 9906L)]
-    [InlineData(CostLedger.DiploHegemonScans, 1657020L)]
+    [InlineData(CostLedger.DiploHegemonScans, 2300741L)]
     [InlineData(CostLedger.QuarterStartPops, 235560L)]
     [InlineData(CostLedger.QuarterEndPops, 235560L)]
     [InlineData(CostLedger.SharedNationQuarters, 3682L)]
