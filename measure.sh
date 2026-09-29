@@ -38,9 +38,11 @@ SNAP_OWNED=0
 if [ -z "${SNAP_DIR:-}" ]; then SNAP_OWNED=1; fi
 SNAP="${SNAP_DIR:-${TMPDIR:-/c/Users/$USERNAME/AppData/Local/Temp}/claude/pob-measure-snap-$$}"
 
-echo "[1/4] ソースを隔離ディレクトリへ複製（bin/obj/docs/dist を除く）"
+echo "[1/4] ソースを隔離ディレクトリへ複製（bin/obj/docs/dist/measurements/uishot を除く）"
 rm -rf "$SNAP" && mkdir -p "$SNAP" || exit 1
-tar -cf - -C "$SRC_DIR" --exclude=bin --exclude=obj --exclude=docs --exclude=dist --exclude='.vs' --exclude='.git' . \
+# ★2026-09-29（高速化の段 S1）：measurements（帯と計器の表 46MB）と uishot（撮影 18MB）も外す＝ビルドにも測定にも読まれない
+#   （マニフェストが数える .cs/.json/.axaml/.csproj/.slnx はどちらにも無い＝SOURCE-HASH は変わらない）。
+tar -cf - -C "$SRC_DIR" --exclude=bin --exclude=obj --exclude=docs --exclude=dist --exclude='.vs' --exclude='.git' --exclude=measurements --exclude=uishot . \
   | tar -xf - -C "$SNAP" || exit 1
 
 echo "[2/4] ソースのマニフェストを作成"
@@ -52,7 +54,10 @@ rm -f "$OUT.manifest.tmp"
 echo "      SOURCE-HASH=$HASH"
 
 echo "[3/4] 隔離ディレクトリでビルド"
-"$DOTNET" build "$SNAP/PriceOfBread.slnx" -c Release 2>&1 | grep -E "error|エラー|警告|成功" | head -5
+# ★2026-09-29（高速化の段 S1）：テストを回さない測定は Runner（と SimCore）だけをビルドする＝App（Avalonia）と Tests を外す（測る Runner は同じ）。
+BUILD_TARGET="$SNAP/PriceOfBread.slnx"
+[ "${RUN_TESTS:-0}" = "1" ] || BUILD_TARGET="$SNAP/PriceOfBread.Runner/PriceOfBread.Runner.csproj"
+"$DOTNET" build "$BUILD_TARGET" -c Release 2>&1 | grep -E "error|エラー|警告|成功" | head -5
 [ "${PIPESTATUS[0]}" = "0" ] || { echo "!! ビルド失敗＝測定を中止"; exit 1; }
 
 # テストも隔離側で回す（--test を付けたとき）。作業ツリーで dotnet test を叩くと testhost が

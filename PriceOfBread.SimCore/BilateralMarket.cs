@@ -13,7 +13,6 @@ public sealed partial class InternationalMarket
 {
     // ★発見・段7（2026-08-31）：四半期のペア貿易額 [売り手国][買い手国]（純記帳＝力学の読者は MultiNationSim.StepDiffusion のみ・四半期消費でゼロ化）。
     //   ⚠SaveGame は2次元配列を往復できない（Arr は1次元前提）＝**ジャグ配列**で持つ。DiffusionWeight=0 では一度も確保されない＝恒等。
-    private static double[] CreateFilled(int n, double v) { var a = new double[n]; System.Array.Fill(a, v); return a; }
     // ★清算内部の計器（2026-09-01・POB_TIME=1 のみ・純カウンタ＝挙動非接触。timeprobe が末尾で読む）
     internal static long TimeListsTicks, TimeClearTicks;   // 財ごとの (a)平均+売買リスト構築 (b)買い手清算ループ の累計（Stopwatch の刻み。⚠2026-09-26 是正＝旧は財ごとに ElapsedMilliseconds を足して端数を捨てていた＝1財1ms未満の清算がほぼ0に丸められ、高速化の後は「清算ループ」が実時間の数分の1しか数えなかった）
     internal static long CntGoods, CntBuyers, CntRollIters, CntScanSteps, CntSkips, CntFills, CntDeals;
@@ -48,6 +47,19 @@ public sealed partial class InternationalMarket
         if (slot is null || !(value > top[g])) return;
         top[g] = value; slot[g] = name;
     }
+
+    /// <summary>距離の表の持ち越し（2026-09-29 高速化の段 S2）の作業領域＝スレッドごと（selfplay-batch は試合ごとにスレッド）。
+    /// 表の値は署名（Sig）の純関数＝どの試合が残した表でも署名が同じなら同じ値。静的＝セーブに載らない（状態ではない）。</summary>
+    private sealed class KmScratch
+    {
+        public int Tc = -1, G;
+        public double LandRoute = double.NaN, RiskLambda = double.NaN;
+        public double[] Km = [], Risk = [];
+        public bool[] Land = [];
+        public int[] Gen = [];
+        public long[] Sig = [], SigNext = [], RSig = [], RSigNext = [];
+    }
+    [System.ThreadStatic] private static KmScratch? _kmScratch;
 
     private void StepBilateral(IReadOnlyList<Simulation> nations, Coefficients c, bool firstClearingOfQuarter = true)
     {
@@ -84,7 +96,7 @@ public sealed partial class InternationalMarket
 
         // ---- 交易主体＝全active州。州ごとに「海に出る点（自港 or 最寄り港）・そこまでの陸路・アクセス・容量」を1回だけ作る ----
         // ★重心は作らない（廃止）。距離は下の対ごとに引く。
-        var tr = new List<(int nation, Region r, double lat, double lon, double landKm, double access, double cap, bool linked, double ownLat, double ownLon, bool seaOk)>();
+        var trList = new List<(int nation, Region r, double lat, double lon, double landKm, double access, double cap, bool linked, double ownLat, double ownLon, bool seaOk)>();
         // Stage C（裁定A3）：内陸国トランジット＝自国に港が無い州は外国の港を借りる。旧経路と同じ候補（構築時の上位2港）を読み、
         //   現所有国と交戦中なら次候補へ。借りた州は下で通行料（取扱高×TransitTollShare）を港所有国へ払う。
         bool transitOn = c.TransitEnabled > 0.5;
@@ -176,10 +188,13 @@ public sealed partial class InternationalMarket
                 bool seaOk = linked;
                 if (c.LandRouteEnabled > 0 && (cc.Lat != 0 || cc.Lon != 0)) linked = true;
                 // ★S4-1：容量は同期制約（capLeft）で効く＝前月の律速率 LastTradeThrottle はアクセスに掛けない（同じ容量が2回効く二重拘束の回避）
-                tr.Add((i, r, lat, lon, landKm, natAccess, cap, linked, cc.Lat, cc.Lon, seaOk));
+                trList.Add((i, r, lat, lon, landKm, natAccess, cap, linked, cc.Lat, cc.Lon, seaOk));
             }
         }
-        int tc = tr.Count;
+        int tc = trList.Count;
+        // ★2026-09-29（高速化の段 S2・厳密恒等）：州の表は配列で読む（List の添字は11項目の組を丸ごと写してから項目を読む＝清算の内側のループで1回約80バイト）。
+        //   組の項目への書き込みは無い（List では書けない）＝読む値は同じ。
+        var tr = trList.ToArray();
         // ★(3) 地形の陸路コスト係数（設計doc 20260826_地形と輸送コスト.DONE.md）＝州ごとに1回だけ算出。
         //   実効係数＝馬と鉄道の**railGate ブレンド**（既存の技術連続ゲート＝新しい時計を作らない）。
         //   水路タグは >0 のとき陸脚コストをその値へ**置換**（川が道の代わり＝内陸なのに港に近い扱い）。
@@ -227,18 +242,74 @@ public sealed partial class InternationalMarket
         //   ⚠対称保存はしない（2026-08-30実測＝armstrace DIFF）：PairKm は数学的に対称でも**ビット単位では非対称**
         //   （海路の経路加算順・viaSea の加算順が向きで異なる）＝計算した向きだけ保存＝旧と完全に同じ値・同じ演算。
         //   旧＝財×買い手×ロールオーバー×走査深さ ≈ 数百万回/清算 → メモ化後は高々 tc(tc+1)/2 ≈ 4.6万回。
-        var kmTab = new double[tc * tc];
-        System.Array.Fill(kmTab, -1.0);
-        var kmLand = new bool[tc * tc];   // ★陸路可視化（2026-08-31・純テレメトリ）：この対の最短が陸直行だったか（PairKm と同じ比較＝算術に触れない）
+        // ★表の持ち越し（2026-09-29 高速化の段 S2・厳密恒等）：PairKm(a,b) は両端の州の経路の入力（下の署名＝海に出る点の座標・海に出られるか・
+        //   スエズとパナマの可否・陸脚の長さ・地形係数・陸/海の比・陸グラフの最寄りノードと接ぎ木）と c.LandRouteEnabled だけで決まる純関数
+        //   （ほかに読むのはプロセスで不変の静的な表＝海グラフ・陸グラフ・接ぎ木の予算）。旧＝清算ごとに表を作り直し、同じ対を四半期に3回引き直していた
+        //   （1試合で約1億回・清算の約2割）。新＝前の清算の表をスレッドの作業領域（KmScratch＝静的＝セーブに載らない・状態ではない）に残し、
+        //   署名が1ビットでも違う州の行と列だけを捨てる（州の数か陸路の旗が違えば全て捨てる）＝残る対は同じ入力から同じ式で出した同じ値。
+        //   陸路の記帳が読む印（kmLand）は「この清算で引いた対だけ」＝旧（清算ごとに false から）と同じに保つ（世代 kmGen）。
+        //   危険料の表（下の PairRisk）も同じ作法で持ち越す＝署名は両端の海に出る点の座標と、その州の国のスエズとパナマの可否・海盆ごとの敵対度（c.RiskLambda は全体）。
+        var ks = _kmScratch ??= new KmScratch();
+        {
+            const int KS = 10, KR = 4 + Basins.Count;
+            if (ks.SigNext.Length < tc * KS) ks.SigNext = new long[tc * KS];
+            if (ks.RSigNext.Length < tc * KR) ks.RSigNext = new long[tc * KR];
+            var sg = ks.SigNext; var rg = ks.RSigNext;
+            for (int t0 = 0; t0 < tc; t0++)
+            {
+                var e = tr[t0]; int o = t0 * KS;
+                sg[o] = e.seaOk ? 1 : 0; sg[o + 1] = BitConverter.DoubleToInt64Bits(e.lat); sg[o + 2] = BitConverter.DoubleToInt64Bits(e.lon);
+                sg[o + 3] = suezOkN[e.nation] ? 1 : 0; sg[o + 4] = panOkN[e.nation] ? 1 : 0; sg[o + 5] = BitConverter.DoubleToInt64Bits(e.landKm);
+                sg[o + 6] = BitConverter.DoubleToInt64Bits(terrCost[t0]); sg[o + 7] = BitConverter.DoubleToInt64Bits(landRatio[t0]);
+                sg[o + 8] = landNode[t0]; sg[o + 9] = BitConverter.DoubleToInt64Bits(landGraft[t0]);
+                int r0 = t0 * KR; var hv0 = natHostility[e.nation];
+                rg[r0] = BitConverter.DoubleToInt64Bits(e.lat); rg[r0 + 1] = BitConverter.DoubleToInt64Bits(e.lon);
+                rg[r0 + 2] = suezOkN[e.nation] ? 1 : 0; rg[r0 + 3] = panOkN[e.nation] ? 1 : 0;
+                for (int b = 0; b < Basins.Count; b++) rg[r0 + 4 + b] = BitConverter.DoubleToInt64Bits(hv0[b]);
+            }
+            // 署名の違う州の行（売り手）と列（買い手）を捨てる
+            static void Drop(double[] tab, long[] sOld, long[] sNew, int k, int n)
+            {
+                for (int a = 0; a < n; a++)
+                {
+                    int o = a * k; bool same = true;
+                    for (int q = 0; q < k; q++) if (sOld[o + q] != sNew[o + q]) { same = false; break; }
+                    if (same) continue;
+                    System.Array.Fill(tab, -1.0, a * n, n);
+                    for (int j = 0; j < n; j++) tab[j * n + a] = -1.0;
+                }
+            }
+            if (ks.Tc != tc)
+            {
+                ks.Tc = tc; ks.LandRoute = c.LandRouteEnabled; ks.RiskLambda = c.RiskLambda;
+                ks.Km = new double[tc * tc]; System.Array.Fill(ks.Km, -1.0); ks.Land = new bool[tc * tc]; ks.Gen = new int[tc * tc];
+                ks.Risk = new double[tc * tc]; System.Array.Fill(ks.Risk, -1.0);
+            }
+            else
+            {
+                if (BitConverter.DoubleToInt64Bits(ks.LandRoute) != BitConverter.DoubleToInt64Bits(c.LandRouteEnabled)) { ks.LandRoute = c.LandRouteEnabled; System.Array.Fill(ks.Km, -1.0); }
+                else Drop(ks.Km, ks.Sig, sg, KS, tc);
+                if (BitConverter.DoubleToInt64Bits(ks.RiskLambda) != BitConverter.DoubleToInt64Bits(c.RiskLambda)) { ks.RiskLambda = c.RiskLambda; System.Array.Fill(ks.Risk, -1.0); }
+                else Drop(ks.Risk, ks.RSig, rg, KR, tc);
+            }
+            (ks.Sig, ks.SigNext) = (sg, ks.Sig);
+            (ks.RSig, ks.RSigNext) = (rg, ks.RSig);
+        }
+        var kmTab = ks.Km;
+        var kmLand = ks.Land;   // ★陸路可視化（2026-08-31・純テレメトリ）：この対の最短が陸直行だったか（PairKm と同じ比較＝算術に触れない）
+        var kmGen = ks.Gen; int kmG = ++ks.G;
         double KmOf(int a, int b)
         {
-            double v = kmTab[a * tc + b];
-            if (v >= 0) return v;
+            int ix = a * tc + b;
+            double v = kmTab[ix];
+            if (v >= 0) { kmGen[ix] = kmG; return v; }
             v = PairKm(a, b);
-            kmTab[a * tc + b] = v;   // ⚠この向きのみ（鏡像は書かない＝ビット恒等の維持）
-            kmLand[a * tc + b] = LastPairWasLand;
+            kmTab[ix] = v;   // ⚠この向きのみ（鏡像は書かない＝ビット恒等の維持）
+            kmLand[ix] = LastPairWasLand;
+            kmGen[ix] = kmG;
             return v;
         }
+        bool LandNow(int ix) => kmGen[ix] == kmG && kmLand[ix];   // この清算で引いた対の印だけ（旧＝清算ごとに false の表から）
         // 対ごとの実距離（km）。SeaGraph が内部でキャッシュしているので引き直しても実質ゼロコスト
         // （実測 routecost＝港81件・3240対で2回目 0ms）。陸路は LandSeaCostRatio 倍して足す＝港湾都市の優位が距離から出る。
         double PairKm(int a, int b)
@@ -266,12 +337,12 @@ public sealed partial class InternationalMarket
         // ★通商破壊リスクのメモ化（2026-09-01・高速化第2弾）：PairRisk は Step 内の純関数（依存＝tr座標・natHostility・choke開閉＝全てStep冒頭で確定）
         //   なのに、戦時の買い手×売り手×財×ロールオーバーごとに海盆経路探索（RouteBasinKm）を再実行していた＝戦争が増える終盤×貿易復活で
         //   清算が2倍超遅化した主犯（kmTab と同じ番兵式・⚠**向き付き**＝買い手国の敵対ベクトルに依存＝鏡像は書かない）。純メモ＝ビット恒等。
-        double[]? riskTab = null;
+        //   ★2026-09-29（高速化の段 S2）：表は清算をまたいで持ち越す（上の KmScratch・署名の違う州の行と列だけ捨てる）。
+        var riskTab = ks.Risk;
         double PairRisk(int seller, int buyer)
         {
             int bi = tr[buyer].nation;
             if (!natAnyHostile[bi]) return 0;
-            riskTab ??= CreateFilled(tc * tc, -1.0);
             double cached = riskTab[seller * tc + buyer];
             if (cached >= 0) return cached;
             var kmB = SeaGraph.RouteBasinKm(SeaGraph.NearestSeaNode(tr[seller].lat, tr[seller].lon), SeaGraph.NearestSeaNode(tr[buyer].lat, tr[buyer].lon), suezOkN[bi], panOkN[bi]);
@@ -660,14 +731,14 @@ public sealed partial class InternationalMarket
                     if (crossA) { importVal[ni] += vA + frG; impByGood[ni][g] += vA + frG; exportVal[siA] += vA; expByGood[siA][g] += vA; }
                     // ★2026-09-27（回4-1・項目12②）：港の取扱高は海路の成約だけ（この組の着値を決めた経路＝KmOf(snA, t) が書いた向きの印）。
                     //   陸路の直行は港を通らない。同じ国の沿岸の海路（英のニューカッスル→ロンドンの石炭）は積む＝国境でなく経路で分ける。
-                    if (!kmLand[snA * tc + t]) { tr[t].r.LastPortThroughput += vA; tr[snA].r.LastPortThroughput += vA; }
+                    if (!LandNow(snA * tc + t)) { tr[t].r.LastPortThroughput += vA; tr[snA].r.LastPortThroughput += vA; }
                     _volume[g] += qA;
                     RecordPartner(nations[ni].World.ImportFromByGood, g, tr[snA].r.Name, vA, impTop[ni]);
                     RecordPartner(nations[siA].World.ExportToByGood, g, tr[t].r.Name, vA, expTop[siA]);
                     if (vA > distTop[t]) { distTop[t] = vA; tr[t].r.LastTradeDistanceKm = bestKmA; }
                     if (vA > distTop[snA]) { distTop[snA] = vA; tr[snA].r.LastTradeDistanceKm = bestKmA; }
                     // ★陸路可視化（2026-08-31）：この対の最短が陸直行なら、両端の州へ「陸路の最大相手」を記帳（純テレメトリ・地図が実経路を描く）
-                    if (kmLand[snA * tc + t] || kmLand[t * tc + snA])
+                    if (LandNow(snA * tc + t) || LandNow(t * tc + snA))
                     {
                         if (vA > tr[t].r.LastLandPartnerFlow) { tr[t].r.LastLandPartnerFlow = vA; tr[t].r.LastLandPartnerName = tr[snA].r.Name; }
                         if (vA > tr[snA].r.LastLandPartnerFlow) { tr[snA].r.LastLandPartnerFlow = vA; tr[snA].r.LastLandPartnerName = tr[t].r.Name; }

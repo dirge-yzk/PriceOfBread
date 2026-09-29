@@ -1,0 +1,45 @@
+# s12time_20260929_r110s — (112) 高速化の段 S1/S2 の時間（Ryzen 7 5700X 8コア16スレッド・32GB）。A＝r110（5d52315）・B＝この回の木（SOURCE-HASH 198c613f256957b6）。
+# 各行＝実行ごとの壁と CPU（プロセスのハンドルで終わった後に読んだ値）・others＝開始と終了の時に同時に走っていた Runner（空＝負荷なし）。
+# ⚠ 21:20〜21:32 の行（tptest・tpA_1・tpB_1・tpB_2・tpA_2）は並行の担当（S3a）の全長のバッチの負荷の下＝記録だけ・比較に使わない。
+
+## 全長 selfplay-batch 10（measure.sh・Runner の壁と CPU）
+b1	束1（GC・measure.sh・国内価格・距離の表・州の表）＋RUN_TESTS=1	SOURCE-HASH 7d240032d0113079	Runner 20:58:04〜21:18:29＝1,225秒・CPU 8,663.4秒（ユーザー 8,613・カーネル 50.4）	⚠ S3a のバッチと重なった（21:17 まで）	報告＝r110 と全行一致
+b2	束2＝コミットの木＋RUN_TESTS=1	SOURCE-HASH 198c613f256957b6	Runner 21:53:04〜22:02:50＝585.7秒・CPU 7,539.6秒（ユーザー 7,485.7・カーネル 53.9）	負荷なし（開始と終了に他の Runner 無し）	報告＝r110 と全行一致（sha1 f3dabebcd144d21f）
+a2	r110＋DOTNET_gcServer=1・DOTNET_GCDynamicAdaptationMode=0	SOURCE-HASH 41f8bd23f5db16f4	Runner 22:03:43〜22:14:17＝633.4秒・CPU 8,042.4秒（ユーザー 7,979.8・カーネル 62.6）	負荷なし	報告＝r110 と全行一致
+S0	r110・既定の GC（(111) の (a)）	41f8bd23f5db16f4 系	Runner 1,036.2秒・CPU 8,916.9秒	負荷なし（19時台）
+S0fD	r110＋サーバー GC（(111) の fD）		Runner 678.6秒・CPU 8,410.6秒	負荷なし（19時台）
+
+## measure.sh の前処理（行ごとの時刻から）
+v2save	22:14:34.413296600 [1/4] ソースを隔離ディレクトリへ複製（bin/obj/docs/dist/measurements/uishot を除く）
+v2save	22:14:34.582190900 [2/4] ソースのマニフェストを作成
+v2save	22:14:36.175424800       SOURCE-HASH=198c613f256957b6
+v2save	22:14:36.197959800 [3/4] 隔離ディレクトリでビルド
+v2save	22:14:58.324197000 ビルドに成功しました。
+v2save	22:14:58.395622000 [4/4] 測定: savetest 1789 300 12
+v2save	22:17:07.843844800       終了コード=0　テスト=0　出力=/d/PoB_work/s12/out_v2save.txt　マニフェスト=/d/PoB_work/s12
+
+## timeprobe 200 と selfplay-batch 5（Run-T＝dotnet を直に・POB_FIDELITY_BASELINE は写し）
+tptest rc=0 wall=23.4 cpu=26.5 user=25.4 at=21:20:08 others=[selfplay-batch 10]
+tpA_1 rc=0 wall=214.7 cpu=257.7 user=254.5 at=21:23:55 others=[selfplay-batch 10]
+tpB_1 rc=0 wall=188.4 cpu=234 user=230.7 at=21:27:03 others=[selfplay-batch 10]
+tpB_2 rc=0 wall=181.2 cpu=231 user=228 at=21:30:19 others=[selfplay-batch 10]
+tpA_2 rc=0 wall=99.4 cpu=165.3 user=162.3 at=21:31:59 others=[selfplay-batch 10]
+tpB_3 rc=0 wall=81.1 cpu=142.3 user=139.2 at=21:33:38 others=[] others_end=[]
+tpA_3 rc=0 wall=91.7 cpu=151.3 user=147.3 at=21:35:10 others=[] others_end=[]
+tpB_4 rc=0 wall=81 cpu=140.7 user=137.5 at=21:36:31 others=[] others_end=[]
+tpB_5 rc=0 wall=80.4 cpu=139.5 user=136.9 at=22:25:44 others=[] others_end=[]
+tpA_5 rc=0 wall=90.5 cpu=153.2 user=150.1 at=22:27:14 others=[] others_end=[]
+tpC_5 rc=0 wall=79 cpu=140.5 user=136.5 at=22:28:33 others=[] others_end=[]
+tpB_6 rc=0 wall=81 cpu=142.1 user=138.6 at=22:29:54 others=[] others_end=[]
+b5B rc=1 wall=396.4 cpu=3040.8 user=3008.2 at=22:36:54 others=[] others_end=[]
+b5A rc=1 wall=452.8 cpu=3360.6 user=3327.1 at=22:44:43 others=[] others_end=[]
+
+## timeprobe の本走の内訳（POB_TIME=1）
+tpA_3	構築 1019ms　助走 9487ms　本走 80876ms　合計 91382ms	各国の日次 52528ms（57 %）　国際市場 28811ms（32 %）　その他 10043ms	リスト構築 4346ms　清算ループ 23951ms
+tpA_5	構築 994ms　助走 8986ms　本走 80285ms　合計 90265ms	各国の日次 51900ms（57 %）　国際市場 28534ms（32 %）　その他 9830ms	リスト構築 4263ms　清算ループ 23758ms
+tpB_3	構築 990ms　助走 8163ms　本走 71699ms　合計 80852ms	各国の日次 52016ms（64 %）　国際市場 18991ms（23 %）　その他 9845ms	リスト構築 2718ms　清算ループ 15744ms
+tpB_4	構築 1000ms　助走 8260ms　本走 71506ms　合計 80766ms	各国の日次 51884ms（64 %）　国際市場 18821ms（23 %）　その他 10061ms	リスト構築 2653ms　清算ループ 15650ms
+tpB_5	構築 978ms　助走 8206ms　本走 70899ms　合計 80083ms	各国の日次 52163ms（65 %）　国際市場 18076ms（23 %）　その他 9845ms	リスト構築 2647ms　清算ループ 14888ms
+tpB_6	構築 997ms　助走 8144ms　本走 71564ms　合計 80705ms	各国の日次 52459ms（65 %）　国際市場 18161ms（23 %）　その他 10085ms	リスト構築 2688ms　清算ループ 14939ms
+tpC_5	構築 1003ms　助走 7962ms　本走 69754ms　合計 78719ms	各国の日次 50656ms（64 %）　国際市場 18344ms（23 %）　その他 9720ms	リスト構築 2777ms　清算ループ 15081ms
+# tpB_3・tpB_4＝束1 のビルド（危険料の表の前）・tpB_5・tpB_6・tpC_5＝束2（コミットの木 snap_b2）・tpB_*＝DOTNET_gcServer=0（S2 だけを A と比べる）・tpC_5＝出荷の設定（サーバー GC）。b5A＝r110＋サーバー GC の環境変数・b5B＝束2（報告は互いに全行一致）。

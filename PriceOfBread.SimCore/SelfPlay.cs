@@ -1988,7 +1988,10 @@ public static class SelfPlayMatch
         _ = WorldData.Nations();
         // 並列度：2026-07-27 実測（Ryzen 7 5825U＝物理8/論理16・RAM15.3GB）。1シード当たり par=6:91.0秒 → 8:76.6 → 12:66.8 → **16:61.3秒（1.48倍）**。
         // 物理8コアでも SMT が素直に伸びる（batch30 換算 48.4分→約33分）。旧既定 clamp(コア/2,2,6) の上限6は 2026-07-03 の Telemetry 常時ON時代の
-        // メモリ見積りに由来し、2026-07-09 の常時OFF化で前提が失効していた。GC設定（gen0size・ServerGC+DATAS0）は実測で効果なし〜逆効果だったため入れない。
+        // メモリ見積りに由来し、2026-07-09 の常時OFF化で前提が失効していた。
+        // ★GC（2026-09-29 高速化の段 S1・旧注記「GC設定は実測で効果なし〜逆効果（2026-07-27）」を訂正）：今の木ではワークステーション GC の1つのヒープを
+        //   10試合が分け合い、GC の停止が全長のバッチの壁の34%だった（毎秒約11回・その度に全ての試合が止まる）。サーバー GC（DATAS 切）で 17分16秒→11分19秒・
+        //   報告は全行バイト一致（実装ログ (111)）＝Runner の csproj で入れた（App と Tests は変えない）。
         // n でクランプするのは 30 シードに 32 ワーカーが純粋な遊休になるため。OOM は握り潰さず即 throw する（下の catch 参照）＝静かな帯汚染を防ぐ。
         var opts = new System.Threading.Tasks.ParallelOptions { MaxDegreeOfParallelism = parallel ?? Math.Clamp(Environment.ProcessorCount, 2, Math.Max(2, n)) };
         System.Threading.Tasks.Parallel.For(0, n, opts, i => arr[i] = Run(seedBase + (ulong)i, quarters, interestRate, lean: true));   // ★seedBase 起点（既定1＝旧 i+1 と同値）   // lean＝外交ログ停止（開戦数はカウンタ・イベント年表はバッチでは未使用）

@@ -123,11 +123,11 @@ public static class MarketFlow
                     double P0 = m.Price;
                     if (closedWage)
                     {
-                        double t0 = BandT(P0, wrp, lnFloorWage, lnCeilWage, out _);
+                        double t0 = BandT(P0, wrp, lnFloorWage, lnCeilWage, out _, out _);
                         if (System.Math.Abs(t0) < InnerT)
                         {
                             double g1 = 1 + adj;
-                            double tp = BandT(P0 * System.Math.Pow(g1, h), wrp, lnFloorWage, lnCeilWage, out double lp);
+                            double tp = BandT(P0 * System.Math.Pow(g1, h), wrp, lnFloorWage, lnCeilWage, out double lp, out _);
                             if (g1 > 0 && System.Math.Abs(tp) < InnerT)
                             {
                                 m.Price = wrp * System.Math.Exp(lp * SoftT(tp, k, h));   // P′＝SB_{w,h}(P0·(1＋a)^h)
@@ -178,12 +178,14 @@ public static class MarketFlow
                 double P0 = m.Price;
                 if (closedGoods && !markup)
                 {
-                    double t0 = BandT(P0, rp, lnFloorGoods, lnCeilGoods, out _);
+                    double t0 = BandT(P0, rp, lnFloorGoods, lnCeilGoods, out _, out double u0);
                     if (System.Math.Abs(t0) < InnerT)
                     {
                         // y0 は歩の始めの価格で1回だけ（日次の式と同じ式・同じ順）。1＋y0≧0.837（|y|≦0.61·8/30）＝(1＋y0)^h は常に正。
-                        double g1 = 1 + GoodsY(P0, rp, demandRaw, supply, gap, coef, div);
-                        double tp = BandT(P0 * System.Math.Pow(g1, h), rp, lnFloorGoods, lnCeilGoods, out double lp);
+                        // ★2026-09-29（高速化の段 S2・厳密恒等）：y0 の ln(P0/rp) は BandT の ln(max(P0,Eps)/rp) と同じ double（P0≧Eps なら max は P0 そのもの）＝対数を2度取らない。
+                        //   P0<Eps と NaN（否定形）は従来どおり ln(P0/rp) を取る。
+                        double g1 = 1 + GoodsY(P0, rp, demandRaw, supply, gap, coef, div, P0 >= Eps ? u0 : System.Math.Log(P0 / rp));
+                        double tp = BandT(P0 * System.Math.Pow(g1, h), rp, lnFloorGoods, lnCeilGoods, out double lp, out _);
                         if (g1 > 0 && System.Math.Abs(tp) < InnerT)
                         {
                             m.Price = rp * System.Math.Exp(lp * SoftT(tp, k, h));   // P′＝SB_h(P0·(1＋y0)^h)
@@ -204,7 +206,7 @@ public static class MarketFlow
                 while (run < h)
                 {
                     run++;
-                    double p1 = P * (1 + GoodsY(P, rp, demandRaw, supply, gap, coef, div));   // gap は自己有界∈(−1,1)＝旧 symGap クランプ不要
+                    double p1 = P * (1 + GoodsY(P, rp, demandRaw, supply, gap, coef, div, System.Math.Log(P / rp)));   // gap は自己有界∈(−1,1)＝旧 symGap クランプ不要
                     if (markup) p1 *= muDay;
                     p1 = SoftBandLn(p1, rp, lnFloorGoods, lnCeilGoods, k);   // ハードクランプ→対数空間の滑らかな飽和（内部は恒等≒・境界に漸近＝角を除去）
                     bool still = Same(p1, P);
@@ -237,26 +239,30 @@ public static class MarketFlow
     /// <summary>財の1日ぶんの伸び y（P←P·(1＋y) の y）。段B：需給に**価格弾力性**を入れる＝実効需要 eD=D×(rp/P)^ε は割高で減り、
     /// 実効供給 eS=S×(P/rp)^ε は割高で増える。すると需給差 (eD−eS)/(eD+eS) は有限価格 P*=rp×(D/S)^(1/2ε) でゼロを切る＝価格が自律的に均衡へ収束する復元力。
     /// P=rp（平衡価格）では eD=D, eS=S＝段Aと同一（平常較正への影響は小）。離れた時だけ押し戻す＝クランプは外側の安全網に降格。
-    /// ⚠ 旧来の日次の式を同じ順で書き写したもの（日次の経路と閉じた式の y0 はこの1本）＝h=1 でビット恒等。</summary>
-    private static double GoodsY(double price, double rp, double demandRaw, double supply, double gap, Coefficients coef, double div)
+    /// ⚠ 旧来の日次の式を同じ順で書き写したもの（日次の経路と閉じた式の y0 はこの1本）＝h=1 でビット恒等。
+    /// ★2026-09-29（高速化の段 S2・厳密恒等）：①lnDev＝ln(price/rp) は呼び手が渡す（閉じた式は BandT の対数をそのまま使う）
+    ///   ②供給が ±0 なら eS＝supply×dev^ε＝supply（dev∈(0,最大値]・ε∈[0,1] で dev^ε は正の有限＝積は supply と同じビット）＝Pow を呼ばない
+    ///   ③ndist＝1（参照の20倍より外＝上の帯に張り付いた財）なら 1^p＝1（IEEE の pow の定義）＝Pow を呼ばない。値は1ビットも変わらない。</summary>
+    private static double GoodsY(double price, double rp, double demandRaw, double supply, double gap, Coefficients coef, double div, double lnDev)
     {
         double dev = price / rp;
-        double eD = demandRaw * System.Math.Pow(dev, -coef.PriceElasticity);
-        double eS = supply * System.Math.Pow(dev, coef.PriceElasticity);
+        double e = coef.PriceElasticity;
+        double eD = demandRaw * System.Math.Pow(dev, -e);
+        double eS = supply == 0 && dev > 0 && dev <= double.MaxValue && e >= 0 && e <= 1 ? supply : supply * System.Math.Pow(dev, e);
         double flow = (eD - eS) / (eD + eS + Eps);
         double lnRef = coef.PriceAmpLnScale;   // amp曲線の端の対数距離（=ln20≈3.0）。安全網クランプ幅とは分離
-        double ndist = System.Math.Min(1.0, System.Math.Abs(System.Math.Log(price / rp)) / lnRef);
-        double amp = coef.PriceAmpCenter + (coef.PriceAmpEdge - coef.PriceAmpCenter) * System.Math.Pow(ndist, coef.PriceAmpPower);
+        double ndist = System.Math.Min(1.0, System.Math.Abs(lnDev) / lnRef);
+        double amp = coef.PriceAmpCenter + (coef.PriceAmpEdge - coef.PriceAmpCenter) * (ndist == 1.0 ? 1.0 : System.Math.Pow(ndist, coef.PriceAmpPower));
         return (coef.PriceAdjustSpeed * gap + coef.FlowAdjustSpeed * flow) / div * amp;
     }
 
     /// <summary>ビット単位で同じか（打ち切りの判定）。+0/−0 を区別し、同じビットの NaN を同一と見る＝写像の不動点を厳密に言う。</summary>
     private static bool Same(double a, double b) => System.BitConverter.DoubleToInt64Bits(a) == System.BitConverter.DoubleToInt64Bits(b);
 
-    /// <summary>SoftBand の正規化距離 t＝ln(max(P,Eps)/rp)/L（L＝その向きの帯の対数）。<see cref="SoftBandLn"/> と同じ式。</summary>
-    private static double BandT(double price, double rp, double lnFloorPos, double lnCeilPos, out double L)
+    /// <summary>SoftBand の正規化距離 t＝ln(max(P,Eps)/rp)/L（L＝その向きの帯の対数）。<see cref="SoftBandLn"/> と同じ式。u＝その対数（閉じた式の y0 が使い回す）。</summary>
+    private static double BandT(double price, double rp, double lnFloorPos, double lnCeilPos, out double L, out double u)
     {
-        double u = System.Math.Log(System.Math.Max(price, Eps) / rp);
+        u = System.Math.Log(System.Math.Max(price, Eps) / rp);
         L = u >= 0 ? lnCeilPos : lnFloorPos;
         return u / L;
     }

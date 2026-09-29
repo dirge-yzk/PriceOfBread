@@ -9,6 +9,12 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <!-- ★GC（2026-09-29 高速化の段 S1）：サーバー GC・動的な適応（DATAS）は切る。selfplay-batch は1つのプロセスで10試合を並べる＝
+         ワークステーション GC の1つのヒープを10試合が分け合い、毎秒約11回の GC の度に全ての試合が止まっていた（全長のバッチの壁の34%）。
+         サーバー GC はコアごとのヒープ＝停止は1%・全長のバッチ 17分16秒→11分19秒（実装ログ (111)(112)）。GC の設定は軌道を変えない（報告は全行バイト一致）。
+         ⚠ Runner だけ＝App（画面は1試合・停止1.8%）と Tests の testhost は変えない。 -->
+    <ServerGarbageCollection>true</ServerGarbageCollection>
+    <GarbageCollectionAdaptationMode>0</GarbageCollectionAdaptationMode>
   </PropertyGroup>
 
 </Project>
