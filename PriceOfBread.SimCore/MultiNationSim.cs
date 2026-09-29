@@ -1877,10 +1877,13 @@ public static class CostLedger
     /// <summary>★予算の目標（1試合の CPU 秒・バッチの条件）＝10種の全長を5分で＝300 秒×働くコア 約12.9÷10（2026-09-30 作者裁定・推奨で決めた）。</summary>
     public const double BudgetTargetCpuSeconds = 387.0;
     /// <summary>★予算の上限（推定の計算量・1試合の秒）＝今の値（速くなるたびに下げるだけ＝目標に届くまで）。⚠超えるコミットは、どこで払ったかを実装ログとコミットに書く。
-    /// 0＝未設定。判定は <see cref="BudgetSlack"/> の許し（軌道の小さな揺れ）つき。</summary>
-    public const double BudgetLimitEstSeconds = 0;
-    /// <summary>上限を置いたときの覆う割合（推定÷実測の CPU・バッチの条件）＝目標を推定の単位へ写す（目標の推定＝目標の CPU×これ）。0＝未設定。</summary>
-    public const double BudgetCoverageAtLimit = 0;
+    /// 0＝未設定。判定は <see cref="BudgetSlack"/> の許し（軌道の小さな揺れ）つき。
+    /// 2026-09-30 (121)＝計算量の予算 第1回（恒等の手の後）の全長10種の1試合の平均の推定＝297.2 秒（手の前 356.9 秒）。</summary>
+    public const double BudgetLimitEstSeconds = 297.2;
+    /// <summary>上限を置いたときの覆う割合（推定÷実測の CPU・バッチの条件）＝目標を推定の単位へ写す（目標の推定＝目標の CPU×これ）。0＝未設定。
+    /// 2026-09-30 (121)＝単独の10種（(115)・計器なし・他の実行なし）の1試合 555.6 CPU 秒に対する同じ軌道の推定 356.9 秒＝0.642
+    /// （単価は単独の1試合の秒＝バッチでは SMT の取り合いで CPU 秒が膨らむ）⇒ 目標の推定＝387×0.642＝248.5 秒。</summary>
+    public const double BudgetCoverageAtLimit = 0.642;
     /// <summary>予算の判定の許し（軌道の小さな揺れ＝番人と同じ +2%）。</summary>
     public const double BudgetSlack = 0.02;
 

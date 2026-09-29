@@ -255,4 +255,46 @@ public class FactoryTierTests
         Assert.True(sA.World.Treasury < tre0, "前提が崩れた：工賃が払われていない");
     }
 
+    /// <summary>★工事中の一覧の印（2026-09-30 作者裁定「計算量の予算」・恒等）：<see cref="World.StepConstruction"/> は州の工事中の一覧
+    /// （Region.BuildSites）だけを回し、一覧は ConstructionLeft の書き込み（「工事中か」が変わるとき）の印で作り直す。
+    /// 一覧を作った後に直書きで着工しても（テスト・盤面の復元の型）次の呼び出しで工事が進み、一覧を捨てて作り直した双子と工事の残り・国庫・工員の貯蓄が一致する。
+    /// 完成（0 の書き込み）でも印が立ち工事中の一覧から外れ、建った棟（BuiltScale の印）は国営持分の請求の一覧（Region.StateSites）に入る。
+    /// ⚠突然変異「ConstructionLeft の書き込みで印を立てない」で赤（一覧が古いまま＝着工した棟が進まない）。</summary>
+    [Fact]
+    public void 工事中の一覧は直書きの着工と完成を書き込みの印で拾う()
+    {
+        var sA = new Simulation(Fr(11), new NullAgent());   // 一覧を作った後の直書き＝書き込みの印だけが頼り
+        var sB = new Simulation(Fr(11), new NullAgent());   // 双子＝毎回一覧を捨てて盤面から作り直す（真値）
+        sA.Run(40); sB.Run(40);
+        int sg = sA.World.Coef.SteelGoodId;
+        var rA = sA.World.Regions[0]; var rB = sB.World.Regions[0];
+        var pA = World.FindFactory(rA, sg)!; var pB = World.FindFactory(rB, sg)!;
+        foreach (var (s, p) in new[] { (sA, pA), (sB, pB) }) { s.World.FiscalFundingRatio = 1.0; s.World.Coef.FactoryBuildPriceGateScale = 0; p.ConstructionPayPerDay = 100.0; }
+        sA.World.StepConstruction(10); sB.World.StepConstruction(10);   // 一覧を作る（鋼の工場は工事中でない）
+        Assert.True(pA.ConstructionLeft <= 0 && rA.BuildSites is not null && Array.IndexOf(rA.BuildSites, pA) < 0, "前提が崩れた：鋼の工場が既に工事中か一覧が無い");
+        double built0 = pA.BuiltScale;
+        pA.ConstructionLeft = 23.5; pB.ConstructionLeft = 23.5;   // 直書きの着工（一覧を作った後）
+        var labA = rA.Pops[pA.LaborPopIndex]; var labB = rB.Pops[pB.LaborPopIndex];
+        for (int span = 0; span < 4; span++)
+        {
+            rB.BuildSites = null;   // 双子は毎回作り直す
+            sA.World.StepConstruction(10); sB.World.StepConstruction(10);
+            Assert.Equal(pB.ConstructionLeft, pA.ConstructionLeft);
+            Assert.Equal(sB.World.Treasury, sA.World.Treasury);
+            Assert.Equal(labB.Savings, labA.Savings);
+        }
+        Assert.Equal(0.0, pA.ConstructionLeft);                     // 3旬目に完成
+        Assert.True(pA.BuiltScale > built0, "前提が崩れた：完成で棟が増えていない");
+        rA.EnsureSites();
+        Assert.True(Array.IndexOf(rA.BuildSites!, pA) < 0, "完成した棟が工事中の一覧に残った（0 の書き込みで印が立っていない）");
+        Assert.True(Array.IndexOf(rA.StateSites!, pA) >= 0, "建った棟が国営持分の請求の一覧に入っていない");
+        // 工事と無関係に BuiltScale だけが立つ書き込み（接収・盤面の直書きの型）も印を立てる
+        var q = rA.Producers.Find(x => x.ConstructionLeft <= 0 && !(x.BuiltScale > 1e-9));
+        Assert.NotNull(q);
+        Assert.True(Array.IndexOf(rA.StateSites!, q) < 0, "前提が崩れた：棟の無い生産者が国営持分の請求の一覧に居る");
+        q!.BuiltScale = 1.0;
+        rA.EnsureSites();
+        Assert.True(Array.IndexOf(rA.StateSites!, q) >= 0, "BuiltScale の書き込みで印が立っていない（国営持分の請求の一覧が古い）");
+    }
+
 }

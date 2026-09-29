@@ -83,6 +83,35 @@ public class EconomyTests
         Assert.True(System.Math.Abs(one10[1] - two5[1]) <= 1e-3 * two5[1], $"近い財の1歩と2歩の差 {(one10[1] - two5[1]) / two5[1]} が大きすぎる");
     }
 
+    /// <summary>★死んだ財の一覧の印（2026-09-30 作者裁定「計算量の予算」・恒等）：国内価格（<see cref="MarketFlow.StepDay"/>）は州の死んでいない財の一覧
+    /// （Region.LiveGoods＝需要か産出が 1e-9 以上）だけを回し、一覧は LastDemand／LastProduced の書き込み（「死んだ財か」が変わるとき）の印で作り直す。
+    /// 一覧を作った後に死んだ財へ需要が立つと次の1歩で値段が動き、一覧を捨てて作り直した双子と州の全ての値段が1ビットも違わない。需要が消える書き込みで一覧から外れる。
+    /// ⚠突然変異「LastDemand の書き込みで印を立てない」で赤（需要の立った財が動かない）。</summary>
+    [Fact]
+    public void 死んだ財の一覧は需要が立った書き込みの印で拾う()
+    {
+        var sA = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());   // 一覧を作った後の直書き＝書き込みの印だけが頼り
+        var sB = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());   // 双子＝一覧を捨てて盤面から作り直す（真値）
+        var rA = sA.World.Region; var rB = sB.World.Region; var c = sA.World.Coef;
+        var g = rA.Goods.First(x => x.Tier != GoodTier.Service && x.RefPrice > 0);
+        foreach (var r in new[] { rA, rB })
+        {
+            var m = r.Markets[g.Id];
+            m.LastDemand = 0; m.LastProduced = 0; m.LastImport = 0; m.LastExport = 0; m.Stock = 0; m.Price = 3 * g.RefPrice * r.PriceLevel;   // 死んだ財（参照より高い値のまま置く）
+        }
+        double p0 = rA.Markets[g.Id].Price;
+        MarketFlow.StepDay(rA, c, 10); MarketFlow.StepDay(rB, sB.World.Coef, 10);   // 一覧を作る（この財は死んでいる＝動かない）
+        Assert.Equal(p0, rA.Markets[g.Id].Price);
+        Assert.DoesNotContain(g, rA.LiveGoods!);
+        rA.Markets[g.Id].LastDemand = 100; rB.Markets[g.Id].LastDemand = 100;   // 需要が立つ（一覧を作った後の直書き）
+        rB.LiveGoods = null;   // 双子は作り直す
+        MarketFlow.StepDay(rA, c, 10); MarketFlow.StepDay(rB, sB.World.Coef, 10);
+        Assert.NotEqual(p0, rA.Markets[g.Id].Price);                      // 需要の立った財が動いた
+        for (int gi = 0; gi < rA.Markets.Length; gi++) Assert.Equal(rB.Markets[gi].Price, rA.Markets[gi].Price);
+        rA.Markets[g.Id].LastDemand = 0;   // 需要も産出も消える
+        Assert.DoesNotContain(g, rA.EnsureLiveGoods());
+    }
+
     [Fact]
     public void 放置で食料価格は限界費用以上に収束し暴騰もしない()
     {
