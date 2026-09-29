@@ -1,0 +1,192 @@
+# S0（2026-09-29・実装ログ (111)）：全長のバッチ・1試合・GC の4腕・5種の時間の標本の要約（main 5d52315＝SimCore は 5a72df9 の写し＋時刻の記録だけ・SOURCE-HASH 2baca0630bb2b47c／1試合の段の内訳は s0prof_20260929_r110＝16d0c7d5f67f59a6）
+# 標本の欄：t=Runner の開始からの秒・cpu/user/kern=プロセスの CPU 秒・g0/g1/g2=GC.CollectionCount・pause=GC の停止の合計秒・alloc=確保の合計GB・heap/ws/priv=GB・thr=スレッド・pool=スレッドプール・done=完走した種
+
+## a＝全長 selfplay-batch 10・既定の GC（報告は r110 と全行バイト一致）
+WRAPSTART 19:13:18.866150900
+19:13:18.961986600 [1/4] ソースを隔離ディレクトリへ複製（bin/obj/docs/dist を除く）
+19:13:22.977096300 [2/4] ソースのマニフェストを作成
+19:13:24.547394600 [3/4] 隔離ディレクトリでビルド
+19:13:47.639569900 [4/4] 測定: selfplay-batch 10
+19:31:03.882151700       終了コード=1　テスト=0
+WRAPEND 19:31:03.921946700 rc=1
+報告の sha1 先頭16桁: f3dabebcd144d21f
+CONF	serverGC=False	latency=Interactive	procs=16	minThreads=16	maxThreads=32767	concurrent=(既定)	tieredPGO=(既定)	tiered=(既定)	avail=34.3GB	par=0	n=10	gq=668
+BEGIN	t=0.0	cpu=0.2	user=0.2	kern=0.0	g0=0	g1=0	g2=0	pause=0.00	alloc=0.00	heap=0.00	ws=0.05	priv=0.02	thr=8	pool=0	done=0	pend=0
+SEED	seed=4	tid=8	t=1010.3	cpu=8788.0	user=8691.1	kern=96.9	g0=11034	g1=5096	g2=227	pause=347.58	alloc=210.42	heap=0.77	ws=1.18	priv=1.14	thr=37	pool=29	done=1	pend=0
+SEED	seed=5	tid=9	t=1013.5	cpu=8814.0	user=8716.9	kern=97.1	g0=11070	g1=5112	g2=228	pause=348.62	alloc=211.08	heap=0.60	ws=1.18	priv=1.13	thr=37	pool=29	done=2	pend=0
+SEED	seed=3	tid=7	t=1015.1	cpu=8826.0	user=8728.6	kern=97.3	g0=11089	g1=5120	g2=229	pause=349.15	alloc=211.41	heap=0.41	ws=1.15	priv=1.11	thr=37	pool=29	done=3	pend=0
+SEED	seed=10	tid=14	t=1021.1	cpu=8868.9	user=8770.9	kern=98.0	g0=11152	g1=5149	g2=231	pause=351.00	alloc=212.59	heap=0.41	ws=1.15	priv=1.10	thr=37	pool=29	done=4	pend=0
+SEED	seed=8	tid=12	t=1022.5	cpu=8877.7	user=8779.6	kern=98.1	g0=11167	g1=5156	g2=231	pause=351.40	alloc=212.87	heap=0.49	ws=1.15	priv=1.10	thr=37	pool=29	done=5	pend=0
+SEED	seed=6	tid=10	t=1022.6	cpu=8877.9	user=8779.8	kern=98.1	g0=11169	g1=5157	g2=232	pause=351.41	alloc=212.89	heap=0.48	ws=1.15	priv=1.11	thr=37	pool=29	done=6	pend=0
+SEED	seed=9	tid=13	t=1024.5	cpu=8886.0	user=8787.7	kern=98.3	g0=11184	g1=5164	g2=233	pause=351.90	alloc=213.17	heap=0.24	ws=1.00	priv=0.96	thr=37	pool=29	done=7	pend=0
+SEED	seed=2	tid=5	t=1028.3	cpu=8901.7	user=8803.0	kern=98.8	g0=11213	g1=5177	g2=233	pause=352.49	alloc=213.73	heap=0.36	ws=0.45	priv=0.41	thr=37	pool=29	done=8	pend=0
+SEED	seed=1	tid=2	t=1032.1	cpu=8912.0	user=8813.0	kern=99.0	g0=11238	g1=5190	g2=237	pause=352.78	alloc=214.15	heap=0.13	ws=0.37	priv=0.33	thr=30	pool=22	done=9	pend=0
+SEED	seed=7	tid=11	t=1035.3	cpu=8916.8	user=8817.4	kern=99.3	g0=11253	g1=5203	g2=242	pause=352.90	alloc=214.36	heap=0.08	ws=0.17	priv=0.13	thr=30	pool=22	done=10	pend=0
+BATCHDONE	t=1035.4	cpu=8916.8	user=8817.5	kern=99.3	g0=11253	g1=5203	g2=242	pause=352.90	alloc=214.36	heap=0.08	ws=0.18	priv=0.13	thr=30	pool=22	done=10	pend=0
+REPORTDONE	t=1035.4	cpu=8916.9	user=8817.5	kern=99.3	g0=11253	g1=5203	g2=242	pause=352.90	alloc=214.36	heap=0.08	ws=0.18	priv=0.13	thr=30	pool=22	done=10	pend=0
+
+## fD＝全長 selfplay-batch 10・DOTNET_gcServer=1＋DOTNET_GCDynamicAdaptationMode=0（報告は r110 と全行バイト一致）
+WRAPSTART 19:49:05.916120600 env=DOTNET_gcServer=1 DOTNET_GCDynamicAdaptationMode=0 args=selfplay-batch 10
+19:49:06.032468900 [1/4] ソースを隔離ディレクトリへ複製（bin/obj/docs/dist を除く）
+19:49:06.403435400 [2/4] ソースのマニフェストを作成
+19:49:08.030730200 [3/4] 隔離ディレクトリでビルド
+19:49:34.582154000 [4/4] 測定: selfplay-batch 10
+20:00:54.035628000       終了コード=1　テスト=0
+WRAPEND 20:00:54.072642500 rc=1
+報告の sha1 先頭16桁: f3dabebcd144d21f
+CONF	serverGC=True	latency=Interactive	procs=16	minThreads=16	maxThreads=32767	concurrent=(既定)	tieredPGO=(既定)	tiered=(既定)	avail=34.3GB	par=0	n=10	gq=668
+BEGIN	t=0.0	cpu=0.3	user=0.2	kern=0.1	g0=0	g1=0	g2=0	pause=0.00	alloc=0.00	heap=0.00	ws=0.05	priv=0.06	thr=24	pool=0	done=0	pend=0
+SEED	seed=6	tid=10	t=658.2	cpu=8236.3	user=8116.3	kern=120.0	g0=379	g1=235	g2=115	pause=7.16	alloc=209.34	heap=0.87	ws=1.69	priv=1.75	thr=70	pool=29	done=1	pend=1
+SEED	seed=1	tid=2	t=664.6	cpu=8310.2	user=8189.1	kern=121.1	g0=382	g1=236	g2=115	pause=7.22	alloc=211.34	heap=1.06	ws=1.76	priv=1.82	thr=68	pool=27	done=2	pend=2
+SEED	seed=4	tid=8	t=667.3	cpu=8338.5	user=8217.0	kern=121.5	g0=384	g1=238	g2=116	pause=7.24	alloc=212.09	heap=0.69	ws=1.70	priv=1.76	thr=68	pool=27	done=3	pend=1
+SEED	seed=5	tid=9	t=668.9	cpu=8354.0	user=8232.1	kern=121.8	g0=384	g1=238	g2=116	pause=7.24	alloc=212.54	heap=1.14	ws=1.71	priv=1.77	thr=68	pool=27	done=4	pend=0
+SEED	seed=8	tid=12	t=672.3	cpu=8381.5	user=8259.1	kern=122.3	g0=387	g1=239	g2=116	pause=7.29	alloc=213.43	heap=0.73	ws=1.52	priv=1.58	thr=67	pool=27	done=5	pend=0
+SEED	seed=3	tid=7	t=674.2	cpu=8394.6	user=8272.1	kern=122.5	g0=388	g1=239	g2=116	pause=7.31	alloc=213.86	heap=0.87	ws=1.54	priv=1.61	thr=67	pool=27	done=6	pend=0
+SEED	seed=7	tid=11	t=674.3	cpu=8395.4	user=8272.9	kern=122.5	g0=388	g1=239	g2=116	pause=7.31	alloc=213.89	heap=0.90	ws=1.55	priv=1.61	thr=67	pool=27	done=7	pend=0
+SEED	seed=9	tid=13	t=677.0	cpu=8407.4	user=8284.7	kern=122.7	g0=390	g1=240	g2=117	pause=7.32	alloc=214.30	heap=0.40	ws=1.29	priv=1.35	thr=67	pool=27	done=8	pend=0
+SEED	seed=10	tid=14	t=677.7	cpu=8409.6	user=8286.9	kern=122.7	g0=390	g1=240	g2=117	pause=7.32	alloc=214.38	heap=0.49	ws=1.30	priv=1.36	thr=67	pool=27	done=9	pend=0
+SEED	seed=2	tid=5	t=678.4	cpu=8410.6	user=8287.9	kern=122.8	g0=390	g1=240	g2=117	pause=7.32	alloc=214.43	heap=0.54	ws=1.30	priv=1.36	thr=66	pool=26	done=10	pend=0
+BATCHDONE	t=678.5	cpu=8410.7	user=8287.9	kern=122.8	g0=391	g1=241	g2=117	pause=7.33	alloc=214.43	heap=0.22	ws=1.29	priv=1.35	thr=66	pool=26	done=10	pend=0
+REPORTDONE	t=678.6	cpu=8410.8	user=8288.0	kern=122.8	g0=391	g1=241	g2=117	pause=7.33	alloc=214.43	heap=0.22	ws=1.29	priv=1.35	thr=66	pool=26	done=10	pend=0
+
+## s1＝全長 selfplay-batch 1・既定の GC（雑音のない1試合）
+WRAPSTART 20:00:54.234718600 env=- args=selfplay-batch 1
+20:00:54.349832700 [1/4] ソースを隔離ディレクトリへ複製（bin/obj/docs/dist を除く）
+20:00:54.758302000 [2/4] ソースのマニフェストを作成
+20:00:56.429233300 [3/4] 隔離ディレクトリでビルド
+20:01:27.416081500 [4/4] 測定: selfplay-batch 1
+20:06:57.440055500       終了コード=1　テスト=0
+WRAPEND 20:06:57.470128600 rc=1
+報告の sha1 先頭16桁: 734eeed47cf693d5
+CONF	serverGC=False	latency=Interactive	procs=16	minThreads=16	maxThreads=32767	concurrent=(既定)	tieredPGO=(既定)	tiered=(既定)	avail=34.3GB	par=0	n=1	gq=668
+BEGIN	t=0.0	cpu=0.3	user=0.2	kern=0.1	g0=0	g1=0	g2=0	pause=0.00	alloc=0.00	heap=0.00	ws=0.05	priv=0.02	thr=8	pool=0	done=0	pend=0
+SEED	seed=1	tid=5	t=329.1	cpu=528.8	user=517.9	kern=10.8	g0=1224	g1=937	g2=99	pause=6.01	alloc=22.21	heap=0.08	ws=0.18	priv=0.14	thr=27	pool=17	done=1	pend=0
+BATCHDONE	t=329.2	cpu=528.8	user=518.0	kern=10.9	g0=1224	g1=937	g2=99	pause=6.01	alloc=22.21	heap=0.08	ws=0.18	priv=0.14	thr=27	pool=17	done=1	pend=0
+REPORTDONE	t=329.2	cpu=528.9	user=518.0	kern=10.9	g0=1224	g1=937	g2=99	pause=6.01	alloc=22.21	heap=0.08	ws=0.18	priv=0.14	thr=27	pool=17	done=1	pend=0
+
+## f5D＝全長 selfplay-batch 5・サーバー GC・DATAS 切
+WRAPSTART 20:06:57.611019900 env=DOTNET_gcServer=1 DOTNET_GCDynamicAdaptationMode=0 args=selfplay-batch 5
+20:06:57.718630700 [1/4] ソースを隔離ディレクトリへ複製（bin/obj/docs/dist を除く）
+20:06:58.088125900 [2/4] ソースのマニフェストを作成
+20:06:59.742104500 [3/4] 隔離ディレクトリでビルド
+20:07:26.234927000 [4/4] 測定: selfplay-batch 5
+20:15:22.660606400       終了コード=1　テスト=0
+WRAPEND 20:15:22.697548600 rc=1
+報告の sha1 先頭16桁: 2a0c2284e99933c5
+CONF	serverGC=True	latency=Interactive	procs=16	minThreads=16	maxThreads=32767	concurrent=(既定)	tieredPGO=(既定)	tiered=(既定)	avail=34.3GB	par=0	n=5	gq=668
+BEGIN	t=0.0	cpu=0.3	user=0.2	kern=0.1	g0=0	g1=0	g2=0	pause=0.00	alloc=0.00	heap=0.00	ws=0.05	priv=0.06	thr=24	pool=0	done=0	pend=0
+SEED	seed=1	tid=2	t=466.0	cpu=3539.6	user=3471.3	kern=68.4	g0=371	g1=229	g2=112	pause=4.09	alloc=106.64	heap=0.41	ws=0.85	priv=0.85	thr=63	pool=24	done=1	pend=0
+SEED	seed=4	tid=8	t=466.0	cpu=3539.8	user=3471.5	kern=68.4	g0=371	g1=229	g2=112	pause=4.09	alloc=106.64	heap=0.41	ws=0.85	priv=0.85	thr=63	pool=24	done=2	pend=1
+SEED	seed=5	tid=9	t=468.2	cpu=3549.1	user=3480.6	kern=68.5	g0=372	g1=229	g2=112	pause=4.10	alloc=107.01	heap=0.47	ws=0.88	priv=0.88	thr=63	pool=24	done=3	pend=0
+SEED	seed=3	tid=7	t=470.5	cpu=3555.8	user=3487.2	kern=68.6	g0=373	g1=230	g2=112	pause=4.11	alloc=107.32	heap=0.46	ws=0.91	priv=0.91	thr=63	pool=24	done=4	pend=0
+SEED	seed=2	tid=5	t=475.5	cpu=3563.2	user=3494.4	kern=68.8	g0=375	g1=231	g2=113	pause=4.12	alloc=107.65	heap=0.10	ws=0.77	priv=0.77	thr=59	pool=20	done=5	pend=0
+BATCHDONE	t=475.6	cpu=3563.2	user=3494.5	kern=68.8	g0=375	g1=231	g2=113	pause=4.12	alloc=107.65	heap=0.10	ws=0.77	priv=0.77	thr=59	pool=20	done=5	pend=0
+REPORTDONE	t=475.6	cpu=3563.3	user=3494.5	kern=68.8	g0=375	g1=231	g2=113	pause=4.12	alloc=107.65	heap=0.10	ws=0.77	priv=0.77	thr=59	pool=20	done=5	pend=0
+
+## gA＝短い selfplay-batch 10 - 0 1 100・既定
+WRAPSTART 19:38:33.247380400 env=- args=selfplay-batch 10 - 0 1 100
+19:38:33.358136700 [1/4] ソースを隔離ディレクトリへ複製（bin/obj/docs/dist を除く）
+19:38:33.737248400 [2/4] ソースのマニフェストを作成
+19:38:35.385003100 [3/4] 隔離ディレクトリでビルド
+19:38:58.022448600 [4/4] 測定: selfplay-batch 10 - 0 1 100
+19:41:33.423640800       終了コード=1　テスト=0
+WRAPEND 19:41:33.454592600 rc=1
+報告の sha1 先頭16桁: ba89b500595f7398
+CONF	serverGC=False	latency=Interactive	procs=16	minThreads=16	maxThreads=32767	concurrent=(既定)	tieredPGO=(既定)	tiered=(既定)	avail=34.3GB	par=0	n=10	gq=100
+BEGIN	t=0.0	cpu=0.3	user=0.2	kern=0.0	g0=0	g1=0	g2=0	pause=0.00	alloc=0.00	heap=0.00	ws=0.05	priv=0.02	thr=8	pool=0	done=0	pend=0
+SEED	seed=10	tid=14	t=150.9	cpu=1346.8	user=1331.6	kern=15.2	g0=1511	g1=784	g2=34	pause=49.77	alloc=28.91	heap=0.54	ws=1.11	priv=1.07	thr=43	pool=35	done=1	pend=0
+SEED	seed=4	tid=7	t=151.1	cpu=1348.3	user=1333.2	kern=15.2	g0=1513	g1=785	g2=34	pause=49.83	alloc=28.95	heap=0.56	ws=1.11	priv=1.07	thr=43	pool=35	done=2	pend=2
+SEED	seed=3	tid=5	t=151.2	cpu=1349.3	user=1334.1	kern=15.2	g0=1513	g1=785	g2=34	pause=49.83	alloc=28.97	heap=0.57	ws=1.11	priv=1.07	thr=43	pool=35	done=3	pend=1
+SEED	seed=1	tid=8	t=151.6	cpu=1352.7	user=1337.5	kern=15.2	g0=1517	g1=787	g2=34	pause=49.97	alloc=29.05	heap=0.60	ws=1.11	priv=1.07	thr=43	pool=35	done=4	pend=0
+SEED	seed=9	tid=13	t=151.8	cpu=1354.1	user=1338.9	kern=15.2	g0=1520	g1=788	g2=34	pause=50.04	alloc=29.10	heap=0.61	ws=1.11	priv=1.07	thr=43	pool=35	done=5	pend=0
+SEED	seed=5	tid=9	t=152.0	cpu=1355.3	user=1340.0	kern=15.3	g0=1521	g1=788	g2=34	pause=50.07	alloc=29.12	heap=0.62	ws=1.11	priv=1.07	thr=43	pool=35	done=6	pend=0
+SEED	seed=8	tid=12	t=153.0	cpu=1360.5	user=1345.1	kern=15.4	g0=1529	g1=792	g2=34	pause=50.27	alloc=29.29	heap=0.66	ws=1.11	priv=1.07	thr=43	pool=35	done=7	pend=0
+SEED	seed=7	tid=11	t=153.5	cpu=1362.4	user=1347.0	kern=15.5	g0=1534	g1=795	g2=35	pause=50.35	alloc=29.36	heap=0.67	ws=1.11	priv=1.07	thr=43	pool=35	done=8	pend=0
+SEED	seed=2	tid=2	t=153.7	cpu=1363.0	user=1347.5	kern=15.5	g0=1535	g1=796	g2=35	pause=50.36	alloc=29.38	heap=0.14	ws=1.06	priv=1.01	thr=43	pool=35	done=9	pend=0
+SEED	seed=6	tid=10	t=154.4	cpu=1364.1	user=1348.6	kern=15.5	g0=1537	g1=798	g2=36	pause=50.43	alloc=29.42	heap=0.06	ws=0.90	priv=0.86	thr=43	pool=35	done=10	pend=0
+BATCHDONE	t=154.5	cpu=1364.1	user=1348.6	kern=15.5	g0=1537	g1=798	g2=36	pause=50.43	alloc=29.43	heap=0.06	ws=0.91	priv=0.86	thr=43	pool=35	done=10	pend=0
+REPORTDONE	t=154.5	cpu=1364.2	user=1348.6	kern=15.5	g0=1537	g1=798	g2=36	pause=50.43	alloc=29.43	heap=0.06	ws=0.91	priv=0.86	thr=43	pool=35	done=10	pend=0
+
+## gB＝短い・DOTNET_GCgen0size=0x10000000
+WRAPSTART 19:41:33.597446600 env=DOTNET_GCgen0size=0x10000000 args=selfplay-batch 10 - 0 1 100
+19:41:33.705155700 [1/4] ソースを隔離ディレクトリへ複製（bin/obj/docs/dist を除く）
+19:41:34.086869400 [2/4] ソースのマニフェストを作成
+19:41:35.765413000 [3/4] 隔離ディレクトリでビルド
+19:41:58.320191300 [4/4] 測定: selfplay-batch 10 - 0 1 100
+19:43:58.593322600       終了コード=1　テスト=0
+WRAPEND 19:43:58.633411400 rc=1
+報告の sha1 先頭16桁: ba89b500595f7398
+CONF	serverGC=False	latency=Interactive	procs=16	minThreads=16	maxThreads=32767	concurrent=(既定)	tieredPGO=(既定)	tiered=(既定)	avail=34.3GB	par=0	n=10	gq=100
+BEGIN	t=0.0	cpu=0.3	user=0.2	kern=0.0	g0=0	g1=0	g2=0	pause=0.00	alloc=0.00	heap=0.00	ws=0.05	priv=0.02	thr=8	pool=0	done=0	pend=0
+SEED	seed=4	tid=8	t=116.1	cpu=1326.5	user=1306.1	kern=20.5	g0=201	g1=201	g2=18	pause=12.52	alloc=28.83	heap=0.76	ws=1.01	priv=0.97	thr=38	pool=28	done=1	pend=1
+SEED	seed=10	tid=14	t=116.2	cpu=1328.2	user=1307.7	kern=20.5	g0=201	g1=201	g2=18	pause=12.52	alloc=28.87	heap=0.80	ws=1.02	priv=0.98	thr=38	pool=28	done=2	pend=1
+SEED	seed=2	tid=7	t=116.4	cpu=1329.9	user=1309.4	kern=20.6	g0=201	g1=201	g2=18	pause=12.52	alloc=28.91	heap=0.84	ws=1.03	priv=0.98	thr=38	pool=28	done=3	pend=0
+SEED	seed=5	tid=9	t=117.2	cpu=1337.3	user=1316.5	kern=20.8	g0=203	g1=203	g2=18	pause=12.66	alloc=29.08	heap=0.75	ws=1.05	priv=1.01	thr=38	pool=28	done=4	pend=1
+SEED	seed=9	tid=13	t=117.4	cpu=1338.8	user=1318.0	kern=20.8	g0=204	g1=204	g2=19	pause=12.66	alloc=29.13	heap=0.80	ws=1.05	priv=1.01	thr=38	pool=28	done=5	pend=0
+SEED	seed=8	tid=12	t=118.1	cpu=1344.4	user=1323.4	kern=21.0	g0=205	g1=205	g2=19	pause=12.70	alloc=29.28	heap=0.33	ws=0.95	priv=0.90	thr=38	pool=28	done=6	pend=0
+SEED	seed=3	tid=5	t=118.2	cpu=1345.2	user=1324.2	kern=21.0	g0=205	g1=205	g2=19	pause=12.70	alloc=29.31	heap=0.36	ws=0.95	priv=0.90	thr=38	pool=28	done=7	pend=0
+SEED	seed=7	tid=11	t=118.4	cpu=1346.5	user=1325.4	kern=21.0	g0=205	g1=205	g2=19	pause=12.70	alloc=29.34	heap=0.39	ws=0.95	priv=0.90	thr=38	pool=28	done=8	pend=0
+SEED	seed=6	tid=10	t=118.7	cpu=1347.3	user=1326.2	kern=21.1	g0=205	g1=205	g2=19	pause=12.70	alloc=29.37	heap=0.43	ws=0.95	priv=0.90	thr=38	pool=28	done=9	pend=0
+SEED	seed=1	tid=2	t=119.4	cpu=1348.3	user=1327.2	kern=21.2	g0=206	g1=206	g2=19	pause=12.75	alloc=29.42	heap=0.34	ws=0.94	priv=0.90	thr=37	pool=27	done=10	pend=0
+BATCHDONE	t=119.5	cpu=1348.4	user=1327.2	kern=21.2	g0=206	g1=206	g2=19	pause=12.75	alloc=29.42	heap=0.34	ws=0.95	priv=0.90	thr=37	pool=27	done=10	pend=0
+REPORTDONE	t=119.5	cpu=1348.4	user=1327.2	kern=21.2	g0=206	g1=206	g2=19	pause=12.75	alloc=29.42	heap=0.34	ws=0.95	priv=0.90	thr=37	pool=27	done=10	pend=0
+
+## gC＝短い・DOTNET_gcServer=1（DATAS 入）
+WRAPSTART 19:43:58.780199600 env=DOTNET_gcServer=1 args=selfplay-batch 10 - 0 1 100
+19:43:58.897057600 [1/4] ソースを隔離ディレクトリへ複製（bin/obj/docs/dist を除く）
+19:43:59.283711100 [2/4] ソースのマニフェストを作成
+19:44:00.936555700 [3/4] 隔離ディレクトリでビルド
+19:44:30.450373800 [4/4] 測定: selfplay-batch 10 - 0 1 100
+19:46:20.649520200       終了コード=1　テスト=0
+WRAPEND 19:46:20.684336900 rc=1
+報告の sha1 先頭16桁: ba89b500595f7398
+CONF	serverGC=True	latency=Interactive	procs=16	minThreads=16	maxThreads=32767	concurrent=(既定)	tieredPGO=(既定)	tiered=(既定)	avail=34.3GB	par=0	n=10	gq=100
+BEGIN	t=0.0	cpu=0.2	user=0.2	kern=0.1	g0=0	g1=0	g2=0	pause=0.00	alloc=0.00	heap=0.00	ws=0.05	priv=0.03	thr=24	pool=0	done=0	pend=0
+SEED	seed=2	tid=5	t=107.9	cpu=1352.3	user=1338.3	kern=14.0	g0=112	g1=41	g2=32	pause=1.92	alloc=29.11	heap=0.61	ws=1.19	priv=1.20	thr=60	pool=27	done=1	pend=1
+SEED	seed=6	tid=10	t=108.3	cpu=1358.0	user=1344.0	kern=14.0	g0=112	g1=41	g2=32	pause=1.92	alloc=29.23	heap=0.74	ws=1.19	priv=1.20	thr=60	pool=27	done=2	pend=1
+SEED	seed=9	tid=13	t=108.4	cpu=1358.4	user=1344.4	kern=14.0	g0=112	g1=41	g2=32	pause=1.92	alloc=29.24	heap=0.74	ws=1.19	priv=1.20	thr=60	pool=27	done=3	pend=0
+SEED	seed=8	tid=12	t=108.8	cpu=1363.1	user=1349.0	kern=14.1	g0=113	g1=41	g2=32	pause=1.94	alloc=29.36	heap=0.56	ws=1.19	priv=1.20	thr=60	pool=27	done=4	pend=0
+SEED	seed=4	tid=8	t=108.8	cpu=1363.2	user=1349.1	kern=14.1	g0=113	g1=41	g2=32	pause=1.94	alloc=29.36	heap=0.56	ws=1.19	priv=1.20	thr=60	pool=27	done=5	pend=0
+SEED	seed=5	tid=9	t=109.0	cpu=1364.4	user=1350.3	kern=14.1	g0=113	g1=41	g2=32	pause=1.94	alloc=29.39	heap=0.59	ws=1.19	priv=1.20	thr=60	pool=27	done=6	pend=1
+SEED	seed=3	tid=7	t=109.1	cpu=1364.8	user=1350.7	kern=14.1	g0=113	g1=41	g2=32	pause=1.94	alloc=29.41	heap=0.61	ws=1.19	priv=1.20	thr=60	pool=27	done=7	pend=0
+SEED	seed=7	tid=11	t=109.1	cpu=1364.9	user=1350.8	kern=14.1	g0=113	g1=41	g2=32	pause=1.94	alloc=29.42	heap=0.62	ws=1.19	priv=1.20	thr=60	pool=27	done=8	pend=0
+SEED	seed=1	tid=2	t=109.1	cpu=1365.0	user=1350.9	kern=14.1	g0=113	g1=41	g2=32	pause=1.94	alloc=29.42	heap=0.63	ws=1.19	priv=1.20	thr=60	pool=27	done=9	pend=0
+SEED	seed=10	tid=14	t=109.2	cpu=1365.0	user=1350.9	kern=14.1	g0=113	g1=41	g2=32	pause=1.94	alloc=29.42	heap=0.63	ws=1.19	priv=1.20	thr=60	pool=27	done=10	pend=0
+BATCHDONE	t=109.2	cpu=1365.1	user=1351.0	kern=14.1	g0=113	g1=41	g2=32	pause=1.94	alloc=29.42	heap=0.63	ws=1.19	priv=1.20	thr=60	pool=27	done=10	pend=0
+REPORTDONE	t=109.3	cpu=1365.2	user=1351.1	kern=14.1	g0=113	g1=41	g2=32	pause=1.94	alloc=29.42	heap=0.63	ws=1.19	priv=1.20	thr=60	pool=27	done=10	pend=0
+
+## gD＝短い・DOTNET_gcServer=1＋DOTNET_GCDynamicAdaptationMode=0
+WRAPSTART 19:46:20.833431400 env=DOTNET_gcServer=1 DOTNET_GCDynamicAdaptationMode=0 args=selfplay-batch 10 - 0 1 100
+19:46:20.944672300 [1/4] ソースを隔離ディレクトリへ複製（bin/obj/docs/dist を除く）
+19:46:21.342198600 [2/4] ソースのマニフェストを作成
+19:46:23.006157000 [3/4] 隔離ディレクトリでビルド
+19:46:49.803950400 [4/4] 測定: selfplay-batch 10 - 0 1 100
+19:48:36.182167400       終了コード=1　テスト=0
+WRAPEND 19:48:36.211870200 rc=1
+報告の sha1 先頭16桁: ba89b500595f7398
+CONF	serverGC=True	latency=Interactive	procs=16	minThreads=16	maxThreads=32767	concurrent=(既定)	tieredPGO=(既定)	tiered=(既定)	avail=34.3GB	par=0	n=10	gq=100
+BEGIN	t=0.0	cpu=0.3	user=0.2	kern=0.0	g0=0	g1=0	g2=0	pause=0.00	alloc=0.00	heap=0.00	ws=0.05	priv=0.06	thr=24	pool=0	done=0	pend=0
+SEED	seed=3	tid=7	t=104.3	cpu=1305.2	user=1284.7	kern=20.5	g0=66	g1=41	g2=31	pause=1.18	alloc=29.26	heap=0.50	ws=1.29	priv=1.35	thr=71	pool=30	done=1	pend=0
+SEED	seed=2	tid=5	t=104.4	cpu=1306.9	user=1286.4	kern=20.5	g0=66	g1=41	g2=31	pause=1.18	alloc=29.30	heap=0.55	ws=1.30	priv=1.36	thr=71	pool=30	done=2	pend=0
+SEED	seed=4	tid=8	t=104.5	cpu=1307.5	user=1286.9	kern=20.5	g0=66	g1=41	g2=31	pause=1.18	alloc=29.32	heap=0.57	ws=1.30	priv=1.36	thr=71	pool=30	done=3	pend=1
+SEED	seed=6	tid=10	t=104.5	cpu=1308.0	user=1287.5	kern=20.5	g0=66	g1=41	g2=31	pause=1.18	alloc=29.33	heap=0.58	ws=1.30	priv=1.36	thr=71	pool=30	done=4	pend=0
+SEED	seed=7	tid=11	t=104.6	cpu=1308.2	user=1287.7	kern=20.5	g0=66	g1=41	g2=31	pause=1.18	alloc=29.34	heap=0.59	ws=1.30	priv=1.36	thr=71	pool=30	done=5	pend=1
+SEED	seed=8	tid=12	t=104.7	cpu=1309.5	user=1289.0	kern=20.5	g0=66	g1=41	g2=31	pause=1.18	alloc=29.38	heap=0.62	ws=1.30	priv=1.36	thr=71	pool=30	done=6	pend=0
+SEED	seed=10	tid=14	t=104.8	cpu=1310.1	user=1289.6	kern=20.5	g0=66	g1=41	g2=31	pause=1.18	alloc=29.39	heap=0.63	ws=1.30	priv=1.36	thr=71	pool=30	done=7	pend=0
+SEED	seed=9	tid=13	t=104.8	cpu=1310.2	user=1289.7	kern=20.5	g0=66	g1=41	g2=31	pause=1.18	alloc=29.40	heap=0.64	ws=1.30	priv=1.36	thr=71	pool=30	done=8	pend=0
+SEED	seed=1	tid=2	t=104.9	cpu=1310.7	user=1290.2	kern=20.5	g0=66	g1=41	g2=31	pause=1.18	alloc=29.41	heap=0.65	ws=1.30	priv=1.37	thr=71	pool=30	done=9	pend=0
+SEED	seed=5	tid=9	t=105.4	cpu=1311.5	user=1290.9	kern=20.5	g0=66	g1=41	g2=31	pause=1.18	alloc=29.44	heap=0.68	ws=1.31	priv=1.37	thr=71	pool=30	done=10	pend=0
+BATCHDONE	t=105.5	cpu=1311.5	user=1291.0	kern=20.5	g0=66	g1=41	g2=31	pause=1.18	alloc=29.44	heap=0.68	ws=1.31	priv=1.37	thr=71	pool=30	done=10	pend=0
+REPORTDONE	t=105.5	cpu=1311.6	user=1291.0	kern=20.5	g0=66	g1=41	g2=31	pause=1.18	alloc=29.44	heap=0.68	ws=1.31	priv=1.37	thr=71	pool=30	done=10	pend=0
+
+## a の100秒ごとの窓（コア＝ΔCPU÷Δ壁・停止＝ΔGC停止÷Δ壁）
+     5-   105秒	コア 8.99	停止 33.3%	確保 0.19 GB/秒	GC 9.9回/秒
+   105-   205秒	コア 8.93	停止 33.9%	確保 0.20 GB/秒	GC 10.1回/秒
+   205-   305秒	コア 8.86	停止 34.2%	確保 0.21 GB/秒	GC 10.5回/秒
+   305-   410秒	コア 8.77	停止 34.6%	確保 0.22 GB/秒	GC 11.1回/秒
+   410-   515秒	コア 8.61	停止 34.6%	確保 0.22 GB/秒	GC 11.3回/秒
+   515-   615秒	コア 8.63	停止 34.8%	確保 0.21 GB/秒	GC 11.3回/秒
+   615-   715秒	コア 8.58	停止 34.8%	確保 0.21 GB/秒	GC 11.3回/秒
+   715-   815秒	コア 8.56	停止 35.1%	確保 0.21 GB/秒	GC 11.3回/秒
+   815-   920秒	コア 8.57	停止 34.9%	確保 0.21 GB/秒	GC 11.2回/秒
+   920-  1020秒	コア 8.45	停止 34.5%	確保 0.21 GB/秒	GC 11.2回/秒
