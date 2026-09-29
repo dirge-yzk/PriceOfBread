@@ -406,7 +406,7 @@ public class FiscalTests
         new BondLedger().Check(pw); new BondLedger().Check(rw);
         // (2) 割譲（内戦の膨張の腕＝Diplomacy の州の物理移転）：割譲州の保有も親の対外債へ
         var war = sim.Diplomacy.Wars.Find(x => x.CivilWarParent == pw.SelfPower)!;
-        war.Score = -0.20;
+        war.Score = -0.20; war.CivilWarSecession = true;   // ★2026-09-29 線2：膠着の枝（膨張の器）は分離独立の白紙だけ（政体の内戦の膠着は勝者で終わる）
         var before = new HashSet<Region>(rw.Regions);
         double fd0 = pw.ForeignDebt, cl0 = rw.ForeignBondClaims;
         sim.Diplomacy.ResolvePeace(coef, war);

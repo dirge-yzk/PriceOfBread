@@ -213,7 +213,10 @@ public static class CrownParliament
         //     読み手＝Transition（RegimeTrackRecordWeight=0.3・現政体族の乗数）・PowerAffinity.ArmyHoldsCommand（[1]の符号）・CivicOpenness（[1]の正部）。
         w.RegimeTenureQuarters++;
         for (int i = 0; i < RegimeFamilyCount; i++) w.RegimeTrackRecord[i] *= 1.0 - c.RegimeRecordDecay;
-        w.RecentRegimeChanges *= 1.0 - c.RegimeRecordDecay;   // ★政権への失望（2026-09-29）も同じ政治の記憶＝同率で薄れる（世代交代で忘れる）
+        // ★政権への失望（2026-09-29）は**1世代**の政治の記憶＝失地・講和の遺恨と同じ半減期20年（LostLandHalflifeQuarters）で薄れる（2026-09-29 線2・推奨で進めた）。
+        //   ⚠実績ストックの半減期50年（2世代）ではない＝史実の「失望→秩序の受け入れ」は革命の10年（1789〜99・1848〜51・1868〜74）で積もり次の世代で薄れた
+        //   （仏は1789〜1815 の約7回の後も1830・1848 に革命＝50年だと 1830 の期待 H≈0.2・20年だと約0.35）。新しい係数は作らない（世代の長さの1本を読む）。
+        w.RecentRegimeChanges *= System.Math.Pow(0.5, 1.0 / System.Math.Max(1.0, c.LostLandHalflifeQuarters));
         double record = w.CoopPublicRegime;   // [-1,1]
         if (record > 0)   // 正の信認は時間が要る（始まったばかりの形態は実績を持てない）
             record *= PoliticalQuantities.Clamp01(w.RegimeTenureQuarters / (Calendar.QuartersPerYear * System.Math.Max(1.0, c.RegimeRecordSuccessTenureGate)));

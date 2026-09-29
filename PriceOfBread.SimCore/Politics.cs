@@ -315,59 +315,10 @@ public static class Politics
 
         Ideologies.UpdateShares(w);   // 各POPのイデオロギー分布を更新（段1＝創発のみ・遷移は未駆動＝較正不変）
 
-        // 労働運動の両義性（B-5）：容認/統制の組合は組織労働として改革派を動員する＝体制への改革圧力（闘争度緩和で革命radicalは下げつつ、ここで改革reformistを上げる）。非合法＝動員なし。
-        double unionMob = c.UnionMobilization * (w.LaborUnion switch { LaborUnionLaw.Tolerated => 1.0, LaborUnionLaw.Controlled => 0.5, _ => 0.0 });
-        double reformist = 0, radical = 0, conscSum = 0, sizeSum = 0;
-        foreach (var p in w.AllPops())
-        {
-            // POP動詞①（階級弾圧の表出抑制 express・常時1.0）は2026-07-20廃止＝第3段3-1で削除（2026-07-27・厳密恒等）。
-            reformist += p.Size * p.Consciousness * (1 - p.Militancy);
-            radical += p.Size * p.Consciousness * p.Militancy;
-            if (unionMob > 0 && IsMassPop(p))
-                reformist += p.Size * p.Consciousness * unionMob;   // 組織労働の政治動員＝改革派を押し上げ
-            // 窮乏チャネル（パンの蜂起＝1789）：意識が低くても、窮乏で闘争度が暴動水準を超えた群衆は革命的脅威になる
-            // （飢えた群衆そのもの＝バスティーユ）。意識ゲートとは別経路で radical 挑戦力に上乗せ。平穏な大衆には発火しない＝徳川パス温存。
-            // 二重計上監査C1（2026-07-11）：高意識のmilitantは上の意識経路（politicalGap）と本経路の両方に乗る二重だった→
-            // ×(1−gate×Consciousness)＝「無学の飢えた群衆」の設計意図どおりのゲート（gate=1で完全直交・0で旧＝休眠可）。
-            // 失われるradicalはDesperationChallengeWeightの補償再調整とセット（較正のAbsolutist梯子帯が番人）。
-            // ★段3＝闘争度による**手段の上書き**（作者裁定2026-09-09 その2①・設計メモ §7-2）。3層は「既定の手段」であって固定ではない
-            //   ＝闘争度が高ければ政治意識のある層も暴力へ回る（1789バスティーユ・1917ペトログラードの知識層・パリコミューン）。
-            //   ⚠新しい閾値も分岐も階級も持ち込まない：開度はこの項が**既に読んでいる同じ2数**（闘争度と暴動閾値）からの純導出。
-            //   ⚠DesperationMilitancyOverride=0（既定）で ×(1−0)＝1.0＝ビット恒等。
-            double desperationRelief = 0;
-            if (c.DesperationMilitancyOverride > 0)
-            {
-                double over = (p.Militancy - c.RiotMilitancyThreshold) / Math.Max(1e-9, 1.0 - c.RiotMilitancyThreshold);
-                desperationRelief = c.DesperationMilitancyOverride * (!(over > 0) ? 0 : over > 1 ? 1 : over);   // 否定形＝NaN は上書きなし側（＝旧挙動）へ倒す
-            }
-            double whoActs = 1.0 - c.DesperationConsciousnessGate * p.Consciousness * (1.0 - desperationRelief);   // 旧＝意識ゲート（誰が自ら動くか）
-            if (c.DesperationLayerBlend > 0)
-            {
-                // ★⑤3層の振る舞い分け（設計メモ §6-3／§7-2・器2026-09-11・休眠）＝「誰が自ら動くか」を層の重みで読む＝**エンジン内で wMid を読む唯一の箇所**。
-                //   政治意識あり wEdu → 開度（DesperationMilitancyOverride）のぶんだけ（政治が既定）／識字×政治意識なし wMid → 自ら暴力へ／
-                //   文盲 1−識字 → 自分からは動かない・蜂起が起きたら合流する（inRevolt＝上の民兵の札と同じ内戦の述語＝新しい状態を作らない）。
-                //   ⚠階級を読まない（読むのは識字・意識・闘争度だけ＝作者裁定 §7-8）。⚠西欧では wMid≈0（意識＞識字）＝係数コメント参照。
-                //   ⚠否定形＝層の和が NaN なら旧のゲートへ倒す。k>1 は1へ（混合比）。
-                double wEdu = Math.Min(p.Consciousness, p.Literacy), wMid = p.Literacy - wEdu;
-                double layers = wMid + wEdu * desperationRelief + (1.0 - p.Literacy) * (inRevolt ? 1.0 : 0.0);
-                double k = c.DesperationLayerBlend > 1 ? 1.0 : c.DesperationLayerBlend;
-                whoActs = !(layers >= 0) ? whoActs : (1.0 - k) * whoActs + k * layers;
-            }
-            radical += p.Size * Math.Max(0, p.Militancy - c.RiotMilitancyThreshold) * c.DesperationChallengeWeight * whoActs;
-            conscSum += p.Consciousness * p.Size;
-            sizeSum += p.Size;
-        }
-        reformist *= 1 + c.ReformPressureBoost * w.ExternalPressure;   // 明治の追い風（§A-11）
-        // ★政権への失望（作者裁定 2026-09-29「連続した革命は許容するが6往復はやりすぎ＝政権への失望のような量が積もって止まる仕掛け」）。
-        //   期待 H＝1/max(1, 直近の政変の数)＝政変のたびに「次の政権こそ」が割られる（最初の政変は期待で起きる＝H=1・2回目の後は半分・3回目の後は3分の1）。
-        //   ①動員：失望した層は動かない＝改革派・急進派の**両方**に同じ H（分子と分母を同じ規則で＝急進主導か改革主導かの判定は変わらない）。
-        //     蓄えるのは H を掛けた後の動員＝読み手（Transition の挑戦・床交差の議会圧力の門・便乗の勢い・革命圧力）が同じ1量を読む。
-        //   ②正統性の床 1−H は下（信任帝政の下限の後）。直近の政変の数の書き手は CrownParliament.ApplyRegime（数える）と CrownParliament.Step（忘れる）。
-        double hope = 1.0 / Math.Max(1.0, w.RecentRegimeChanges);
-        reformist *= hope;
-        radical *= hope;
-        w.ReformistPower = reformist;
-        w.RadicalPower = radical;
+        // ★動員の測定は1本（MeasureMobilization・2026-09-29）＝四半期の測定（ここ）と、内戦の開戦で両陣営の POP が入れ替わった直後の測り直し
+        //   （Diplomacy.DeclareCivilWar）が同じ式を通る。H（政権への期待）は下の正統性の床が、意識と人口の和は平均意識と平均満足が読む。
+        var (hope, conscSum, sizeSum) = MeasureMobilization(w, c, inRevolt);
+        double reformist = w.ReformistPower, radical = w.RadicalPower;
         // 平均満足度＝経済危機の指標（一党支配→独裁化はこれが低い危機国だけ＝満足した安定な立憲を巻き込まない）。
         // 第5段5-1：実装をNationalScore.MeanSatisfactionへ一元化（旧＝本ループの重複集計。pop更新後の同時点で呼ぶ）。
         // ★2026-09-25：母集団は**大衆のみ**（IsMassPop＝闘争度・不満度と同じ）。ガードの sizeSum は全POP＝人口>0で大衆0の国×四半期は実測0件（seed1-3×668Q）。
@@ -471,6 +422,7 @@ public static class Politics
         // 政1：正統性＝**ストック**（前期値から侵食を減算し、上限1へ緩慢に再生＝内戦ドレイン等が累積する経路依存量）。
         // 第3段3-4/3-5（2026-07-27）＝旧・フロー/ストック混合（LegitimacyIsStock）を1.0焼き込みで簡約：
         // legFlow（毎期計算して重み0で捨てる死荷重）と (1−s)×MandateSpent（同じく重み0の死項）を削除。s=1.0は2026-07-10点火以来の既定＝厳密恒等。
+        double legStart = w.Legitimacy;   // この四半期の測定の前の正統性（上の出来事の衝撃＝矯正講和・不履行・鎮圧の後）＝下の「侵食が進行中」の比べ先（局所の値・状態ではない）
         double leg = w.Legitimacy - erosion + c.LegitimacyRegenRate * Math.Max(0, 1 - w.Legitimacy) * dynRegenMul;   // ストック（前期値から侵食・再生）。P8天命＝回復の変調（×1.0で恒等）
         // 政治資本の請求（Government.MandateGate／Move）：反対を押し切った分だけ正統性を削る。
         // ストック正統性では前期の減算が残留する→毎期ストック全額を引くと増幅率≈1/RegenRate=50倍の二重計上
@@ -505,12 +457,17 @@ public static class Politics
         //   期待を割られた層（1−H）は今の政権を受け入れる＝正統性の底が 1−H へ上がる＝今の政権が続きやすくなる（慣性の棒 PolityInertia×正統性・保持力・上からの改革の門が同じ正統性を読む）。
         //   直近の政変が1回以下（H=1）なら床0＝何もしない。
         double orderFloor = 1.0 - hope;
-        double legFloor = Math.Max(mandateFloor, orderFloor);   // 旧＝①を当ててから②を当てる2行＝同じ値（max は結合的）
+        // ③★敗戦は床を通さない（2026-09-29 線2・推奨で進めた）＝床は受け入れた層が下から支える量＝敗戦はその受け入れそのものを取り消す
+        //   （1870年5月の人民投票83%〔信任帝政〕→9月のセダンで第二帝政が倒れた・1918 の独墺露）＝床×(1−敗戦ショック)。敗戦の四半期は床0・ショックの減衰（DefeatShockDecay）とともに戻る。
+        //   ⚠旧＝床が敗戦の崩れを支えた（半減期50年の失望で 1870 の仏の床≈0.77）。係数0（敗戦ショックは0..1＝ResolvePeace が1.0を置き四半期で減衰する既存の量）。
+        double legFloor = Math.Max(mandateFloor, orderFloor) * (1.0 - PoliticalQuantities.Clamp01(w.DefeatShock));   // 旧＝①を当ててから②を当てる2行＝同じ値（max は結合的）。否定形の Clamp01＝NaN は床を残す側
         if (w.Legitimacy < legFloor)
         {
             w.Explain?.Add("Legitimacy", mandateFloor >= orderFloor ? "信任帝政の下限(民の信任を得た皇帝)" : "政変続きへの失望(秩序の受け入れ)", legFloor - w.Legitimacy);
             w.Legitimacy = legFloor;
         }
+        // ★侵食が進行中＝この四半期の測定（侵食・回復・政治資本の請求・床）で正統性が下がった（2026-09-29 線2＝(102) の申し送り2 (b)・推奨で進めた）＝上からの改革の門が読む。
+        bool eroding = w.Legitimacy < legStart;
         w.DefeatShock *= c.DefeatShockDecay;   // 敗戦ショックは四半期で減衰（leg が今期の全幅を浴びた後・数年で消える）。Politics.Step は四半期1回
         w.VictoryShock *= c.VictoryShockDecay;   // 機能8-②（2026-07-28）：戦勝の熱狂も同様に数年で冷める（r[4]/r[8]の持続はこの減衰だけが決める＝Ideologyは毎期クリア再構成）
         // 機能8-④（2026-07-28）：飢えの記憶＝ストック＋減衰（RegimeTrackRecordと同じ様式）。アンカーは天命と同じ飢饉基準（DynMandateFoodAnchor＝単一ソース）。
@@ -592,7 +549,7 @@ public static class Politics
         //   （旧経路の「内戦中は通常遷移せず戦乱を進める」と同じ規則＝首都の政変は旧経路の内戦だった）。⚠旧＝戦争の形の地方の蜂起・分離独立の内戦は止めていない＝そのまま。
         //   ⚠止めないと、首都を失った政府が戦争の途中で自ら反乱側の政体へ転じ（圧勝の即時の政変）、政体をめぐる内戦が要求戦に化けた（年代記 seed1 の英 1788）。
         bool capitalHeld = w.SecedingRegion is not null;
-        if (!capitalHeld) Transition(w, c, reformist, radical, coerce);
+        if (!capitalHeld) Transition(w, c, reformist, radical, coerce, eroding);
         bool capitalRose = w.PendingRebelRegions is not null;   // 首都の蜂起を予約した四半期＝他の蜂起は判定しない（旧＝旧経路の内戦が始まった四半期と同じ扱い）。予約は四半期末に回収＝この四半期の Transition だけが書く
         CheckSecession(w, c, coerce);   // ★E-06：ストックは内戦中も積分する（旗 DominanceIsStock は 2026-09-26 に焼き込み）。分離独立を判定（保持力は人口項を内包・政5で coerce=軍/警察由来の保持力を渡す）
         if (!capitalRose && !capitalHeld) CheckFactionRevolt(w, c, coerce);   // F3b 組織運動の内乱（結束した国内勢力＝太平天国型・FactionRevoltScale=1.0稼働・0で観察のみ）
@@ -604,13 +561,76 @@ public static class Politics
         CrownParliament.Step(w, c);
     }
 
+    /// <summary>★動員の測定＝改革派・急進派の力（POP の和×外圧の追い風×政権への期待 H）を World.ReformistPower／RadicalPower へ書く（書き手はこの1本）。
+    /// 四半期の測定（<see cref="Step"/>）と、内戦の開戦で両陣営の POP が入れ替わった直後の測り直し（Diplomacy.DeclareCivilWar＝2026-09-29）が同じ式を通る。
+    /// ⚠旧＝測定は四半期末の Step だけ＝開戦の四半期は、反乱国は測定0（革命圧力0＝崩壊の線1.0）・政府は出て行った首都の住民を含む前の測定（革命圧力1.0＝線0.6）のまま戦った
+    ///   （首都発の内戦の最初の四半期 194件すべて・r103）＝規則は両陣営で同じでも、読む量が自国の POP でなかった。
+    /// 戻り値＝期待 H（正統性の床が読む）と意識の和・人口の和（Step の平均意識と平均満足の門が読む）。</summary>
+    internal static (double Hope, double ConscSum, double SizeSum) MeasureMobilization(World w, Coefficients c, bool inRevolt)
+    {
+        // 労働運動の両義性（B-5）：容認/統制の組合は組織労働として改革派を動員する＝体制への改革圧力（闘争度緩和で革命radicalは下げつつ、ここで改革reformistを上げる）。非合法＝動員なし。
+        double unionMob = c.UnionMobilization * (w.LaborUnion switch { LaborUnionLaw.Tolerated => 1.0, LaborUnionLaw.Controlled => 0.5, _ => 0.0 });
+        double reformist = 0, radical = 0, conscSum = 0, sizeSum = 0;
+        foreach (var p in w.AllPops())
+        {
+            // POP動詞①（階級弾圧の表出抑制 express・常時1.0）は2026-07-20廃止＝第3段3-1で削除（2026-07-27・厳密恒等）。
+            reformist += p.Size * p.Consciousness * (1 - p.Militancy);
+            radical += p.Size * p.Consciousness * p.Militancy;
+            if (unionMob > 0 && IsMassPop(p))
+                reformist += p.Size * p.Consciousness * unionMob;   // 組織労働の政治動員＝改革派を押し上げ
+            // 窮乏チャネル（パンの蜂起＝1789）：意識が低くても、窮乏で闘争度が暴動水準を超えた群衆は革命的脅威になる
+            // （飢えた群衆そのもの＝バスティーユ）。意識ゲートとは別経路で radical 挑戦力に上乗せ。平穏な大衆には発火しない＝徳川パス温存。
+            // 二重計上監査C1（2026-07-11）：高意識のmilitantは上の意識経路（politicalGap）と本経路の両方に乗る二重だった→
+            // ×(1−gate×Consciousness)＝「無学の飢えた群衆」の設計意図どおりのゲート（gate=1で完全直交・0で旧＝休眠可）。
+            // 失われるradicalはDesperationChallengeWeightの補償再調整とセット（較正のAbsolutist梯子帯が番人）。
+            // ★段3＝闘争度による**手段の上書き**（作者裁定2026-09-09 その2①・設計メモ §7-2）。3層は「既定の手段」であって固定ではない
+            //   ＝闘争度が高ければ政治意識のある層も暴力へ回る（1789バスティーユ・1917ペトログラードの知識層・パリコミューン）。
+            //   ⚠新しい閾値も分岐も階級も持ち込まない：開度はこの項が**既に読んでいる同じ2数**（闘争度と暴動閾値）からの純導出。
+            //   ⚠DesperationMilitancyOverride=0（既定）で ×(1−0)＝1.0＝ビット恒等。
+            double desperationRelief = 0;
+            if (c.DesperationMilitancyOverride > 0)
+            {
+                double over = (p.Militancy - c.RiotMilitancyThreshold) / Math.Max(1e-9, 1.0 - c.RiotMilitancyThreshold);
+                desperationRelief = c.DesperationMilitancyOverride * (!(over > 0) ? 0 : over > 1 ? 1 : over);   // 否定形＝NaN は上書きなし側（＝旧挙動）へ倒す
+            }
+            double whoActs = 1.0 - c.DesperationConsciousnessGate * p.Consciousness * (1.0 - desperationRelief);   // 旧＝意識ゲート（誰が自ら動くか）
+            if (c.DesperationLayerBlend > 0)
+            {
+                // ★⑤3層の振る舞い分け（設計メモ §6-3／§7-2・器2026-09-11・休眠）＝「誰が自ら動くか」を層の重みで読む＝**エンジン内で wMid を読む唯一の箇所**。
+                //   政治意識あり wEdu → 開度（DesperationMilitancyOverride）のぶんだけ（政治が既定）／識字×政治意識なし wMid → 自ら暴力へ／
+                //   文盲 1−識字 → 自分からは動かない・蜂起が起きたら合流する（inRevolt＝上の民兵の札と同じ内戦の述語＝新しい状態を作らない）。
+                //   ⚠階級を読まない（読むのは識字・意識・闘争度だけ＝作者裁定 §7-8）。⚠西欧では wMid≈0（意識＞識字）＝係数コメント参照。
+                //   ⚠否定形＝層の和が NaN なら旧のゲートへ倒す。k>1 は1へ（混合比）。
+                double wEdu = Math.Min(p.Consciousness, p.Literacy), wMid = p.Literacy - wEdu;
+                double layers = wMid + wEdu * desperationRelief + (1.0 - p.Literacy) * (inRevolt ? 1.0 : 0.0);
+                double k = c.DesperationLayerBlend > 1 ? 1.0 : c.DesperationLayerBlend;
+                whoActs = !(layers >= 0) ? whoActs : (1.0 - k) * whoActs + k * layers;
+            }
+            radical += p.Size * Math.Max(0, p.Militancy - c.RiotMilitancyThreshold) * c.DesperationChallengeWeight * whoActs;
+            conscSum += p.Consciousness * p.Size;
+            sizeSum += p.Size;
+        }
+        reformist *= 1 + c.ReformPressureBoost * w.ExternalPressure;   // 明治の追い風（§A-11）
+        // ★政権への失望（作者裁定 2026-09-29「連続した革命は許容するが6往復はやりすぎ＝政権への失望のような量が積もって止まる仕掛け」）。
+        //   期待 H＝1/max(1, 直近の政変の数)＝政変のたびに「次の政権こそ」が割られる（最初の政変は期待で起きる＝H=1・2回目の後は半分・3回目の後は3分の1）。
+        //   ①動員：失望した層は動かない＝改革派・急進派の**両方**に同じ H（分子と分母を同じ規則で＝急進主導か改革主導かの判定は変わらない）。
+        //     蓄えるのは H を掛けた後の動員＝読み手（Transition の挑戦・床交差の議会圧力の門・便乗の勢い・革命圧力）が同じ1量を読む。
+        //   ②正統性の床 1−H は下（信任帝政の下限の後）。直近の政変の数の書き手は CrownParliament.ApplyRegime（数える）と CrownParliament.Step（忘れる）。
+        double hope = 1.0 / Math.Max(1.0, w.RecentRegimeChanges);
+        reformist *= hope;
+        radical *= hope;
+        w.ReformistPower = reformist;
+        w.RadicalPower = radical;
+        return (hope, conscSum, sizeSum);
+    }
+
     /// <summary>
     /// 政体転換（§9-E・利益集団駆動）。動員（改革派＋急進派）が現体制の保持力（治安維持力×正統性）を超えると倒れ、
     /// **支配的になる勢力と移行の仕方が目標政体を決める**：漸進改革→立憲君主制（明治型）／革命は主力が大衆ならプロレタリア独裁・
     /// ブルジョワなら共和制。権威主義（絶対/専制/幕府）からの転換が主。自由な政体ではブルジョワが大衆の脅威に独裁化、
     /// 貴族が極端なら反動・復古。絶対君主制は貴族が衰え官僚軍が空白を埋めると専制君主制（上からの近代化）へ。
     /// </summary>
-    private static void Transition(World w, Coefficients c, double reformist, double radical, double coerce)
+    private static void Transition(World w, Coefficients c, double reformist, double radical, double coerce, bool eroding)
     {
         double challenge = reformist + radical;
         // 画一的な政体遷移（イデオロギー駆動）：国民イデオロギー集計→各政体の支持→引力点。
@@ -683,8 +703,14 @@ public static class Politics
         double anticipation = c.ReformAnticipationWeight > 0
             ? c.ReformAnticipationWeight * PoliticalQuantities.ChallengeRatio(challenge, coerce)
             : 0;
+        // ★侵食が「進行中」＝正統性が低い**かつ**この四半期に下がった（2026-09-29 線2＝(102) の申し送り2 (b)・推奨で進めた）。
+        //   ⚠旧＝水準だけ（Legitimacy<閾値）＝矯正講和で上限 ImposedRegimeLegitimacy 0.3（門 0.4 の下）に置かれた押し付けの政体は、侵食されていないのに
+        //   翌四半期に下賜で戻った（全長で押し付け↔上からの改革の往復 132・米が君主政へ移る主な経路）＝銃剣の上の玉座の低さは侵食ではなく生まれ。
+        //   史実の上からの改革は侵食の最中（プロイセン1807〜〔イエナ・ティルジットの後〕・露1861〔クリミアの敗戦と農民騒擾〕・墺1860〔ソルフェリーノと財政危機〕・
+        //   墺1867〔ケーニヒグレーツ〕・オスマン1876〔不履行とバルカン危機〕・日本1889〔自由民権運動〕）／押し付けの復古（西1823〜33・ナポリ1821〜）は改革せず約10年続いた。
+        //   診断（main af5cc7b・4種×300四半期）＝絶対・専制の下賜 222件のうち正統性が下がった四半期は 64件（残りは衝撃の後の回復の途中＝露の1816年ほか）。
         bool reformFromAbove = !IsSeizure(attractor)
-                             && w.Legitimacy < c.ReformFromAboveLegitThreshold + anticipation;
+                             && w.Legitimacy < c.ReformFromAboveLegitThreshold + anticipation && eroding;
         if (challenge <= coerce && !reformFromAbove) return;   // 動員（改革派＋急進派）が実効治安維持力を超えない＝国家が鎮圧＝高治安維持力の権威主義は工業化しても徳川に留まる（上からの改革チャネルのみ免除）
         // P3c 遷移グラフの廃止（旗 PolityGraphRetired は 2026-09-26 に焼き込み）：**平和的な漸進遷移**（非奪取×改革派主導）はグラフのジャンプから外す＝
         // 連続動学（P3b＝議会/王権圧力→統制力→床交差の再ラベル・廃位・王権の形の変異）が同じ帰結を漸進で出す。

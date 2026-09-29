@@ -106,11 +106,12 @@ public class CrownParliamentTests
     }
 
     // ==== 政権への失望（作者裁定 2026-09-29「連続した革命は許容するが6往復はやりすぎ＝政権への失望のような量が積もって止まる仕掛け」）====
-    // 在庫＝World.RecentRegimeChanges（直近の政変の数・減衰つき）。数える＝CrownParliament.ApplyRegime（事件の政変）／忘れる＝CrownParliament.Step（RegimeRecordDecay）。
-    // 期待 H＝1/max(1,在庫)。読み手＝Politics.Step の1か所＝①動員（改革派＋急進派）×H ②正統性の床 1−H。
+    // 在庫＝World.RecentRegimeChanges（直近の政変の数・減衰つき）。数える＝CrownParliament.ApplyRegime（事件の政変）／忘れる＝CrownParliament.Step
+    //   （★2026-09-29 線2：1世代＝失地・講和の遺恨と同じ半減期20年 LostLandHalflifeQuarters・旧＝実績ストックの半減期50年 RegimeRecordDecay）。
+    // 期待 H＝1/max(1,在庫)。読み手＝Politics.Step の1か所＝①動員（改革派＋急進派）×H ②正統性の床 1−H（★敗戦は床を通さない＝床×(1−敗戦ショック)）。
 
     [Fact]
-    public void 政権への失望_事件の政変だけを1回と数え_漸進の再ラベルは数えず_実績ストックと同じ率で忘れる()
+    public void 政権への失望_事件の政変だけを1回と数え_漸進の再ラベルは数えず_1世代で半分を忘れる()
     {
         var sim = new Simulation(NationConfig.France().ToScenario(1), new NullAgent());
         var w = sim.World; var c = w.Coef;
@@ -129,11 +130,16 @@ public class CrownParliamentTests
         w.ParliamentControl = 0.95;
         CrownParliament.Step(w, c);
         Assert.Equal(Polity.ConstitutionalMonarchy, w.Polity);    // 前提＝再ラベルが起きた
-        Assert.Equal(2.0 * (1.0 - c.RegimeRecordDecay), w.RecentRegimeChanges);   // +1 されず、実績ストックと同じ率で薄れただけ
+        double perQuarter = Math.Pow(0.5, 1.0 / c.LostLandHalflifeQuarters);   // 1世代の政治の記憶（失地・講和の遺恨と同じ半減期20年）
+        Assert.Equal(2.0 * perQuarter, w.RecentRegimeChanges);   // +1 されず、1四半期ぶん薄れただけ
+        Assert.NotEqual(2.0 * (1.0 - c.RegimeRecordDecay), w.RecentRegimeChanges);   // 旧＝実績ストックの半減期50年（2世代）ではない
+        for (int q = 1; q < 80; q++) CrownParliament.Step(w, c);   // 計80四半期＝20年
+        Assert.Equal(80.0, c.LostLandHalflifeQuarters);                // 前提＝1世代＝20年
+        Assert.Equal(1.0, w.RecentRegimeChanges, 1e-9);                // 20年で半分（仏：1789〜1815 の政変の記憶は1830・1848 には薄れていた）
     }
 
     /// <summary>同じ種の同じ盤面を20四半期進め、直近の政変の数と正統性だけを置いて Politics.Step を1回踏む（F1 は切る＝鎮圧の正統性の傷を混ぜない）。</summary>
-    private static World 失望の盤面(double recent, double legitimacy = -1)
+    private static World 失望の盤面(double recent, double legitimacy = -1, double defeat = 0)
     {
         var sim = new Simulation(NationConfig.France().ToScenario(11), new NullAgent());
         sim.Run(20);
@@ -141,6 +147,7 @@ public class CrownParliamentTests
         w.Coef.RegionalRevoltThreshold = 0;   // F1 を切る（一揆の鎮圧が正統性を削る＝床の検査を汚す）
         w.RecentRegimeChanges = recent;
         if (legitimacy >= 0) w.Legitimacy = legitimacy;
+        w.DefeatShock = defeat;
         w.Explain = new ExplainLedger();
         Politics.Step(w, w.Coef);
         return w;
@@ -171,5 +178,18 @@ public class CrownParliamentTests
         Assert.Single(lift);
         Assert.True(lift[0].Delta > 0, "床の持ち上げが台帳に記帳されていない");
         Assert.True(hi.Coercion > lo.Coercion, "保持力（治安維持力×正統性）が床の正統性を読んでいない");
+    }
+
+    // ★敗戦は床を通さない（2026-09-29 線2）＝床×(1−敗戦ショック)。1870年5月の人民投票83%（信任帝政）→9月のセダンで第二帝政が倒れた・1918 の独墺露。
+    [Fact]
+    public void 政権への失望_敗戦は床を通さず_敗戦ショックが薄れる分だけ床が戻る()
+    {
+        var calm = 失望の盤面(4.0, legitimacy: 0.05);                  // 対照＝床 1−1/4＝0.75
+        var sedan = 失望の盤面(4.0, legitimacy: 0.05, defeat: 1.0);    // 敗戦の四半期＝床0
+        var half = 失望の盤面(4.0, legitimacy: 0.05, defeat: 0.5);     // ショックが半分へ薄れた四半期＝床 0.375
+        Assert.True(calm.Legitimacy >= 0.75 - 1e-12, $"前提が崩れた：対照で床が立っていない（{calm.Legitimacy:F3}）");
+        Assert.True(sedan.Legitimacy < 0.2, $"敗戦の四半期に床が正統性を支えた（{sedan.Legitimacy:F3}）");
+        Assert.DoesNotContain(sedan.Explain!.Get("Legitimacy"), t => t.Reason.StartsWith("政変続きへの失望"));
+        Assert.True(half.Legitimacy >= 0.75 * 0.5 - 1e-12 && half.Legitimacy < 0.75 * 0.5 + 1e-9, $"床×(1−敗戦ショック)＝0.375 になっていない（{half.Legitimacy:F3}）");
     }
 }

@@ -586,13 +586,34 @@ public class WarThemeTests
         // 旧＝白紙（分断）と独立の確定は運動の参照を残したまま return＝一度膠着した国は二度と蜂起できない恒久の錠。
         var (sim, fr, rebel, war) = CivilWarBoard();
         var mv = Movement(fr, rebel.Nation!);
-        war.Score = -0.1;   // |戦勝点| < WhitePeaceScore＝白紙＝分断が固定
+        war.Score = 0;   // 押し合えなかった膠着＝分断が固定（★2026-09-29 線2：政体の内戦は |戦勝点|>0 なら勝者で終わる）
 
         sim.Diplomacy.ResolvePeace(sim.Coef, war);
 
         Assert.True(rebel.Nation!.RumpParentName.Length > 0, "前提が崩れた：分断の枝を通っていない");
         Assert.Null(fr.RevoltingFaction);
         Assert.Equal(0.0, mv.Cohesion);
+    }
+
+    // ★政体の内戦は勝者で終わる（2026-09-29 線2＝(100) の申し送り3）：両陣営が疲れて講和の線を越えても白紙（分断）にせず押し（戦勝点）の大きい側が勝つ
+    //   （カルリスタ戦争・太平天国・レフォルマ戦争）。分断は押し合えなかった膠着（戦勝点ちょうど0＝届かない者どうし＝中華民国1949）だけ・分離独立の白紙は独立の確定のまま。
+    [Fact]
+    public void 政体の内戦は小さな戦勝点でも勝者で終わり_押し合えない膠着と分離独立の白紙だけが分断と独立()
+    {
+        foreach (var (score, secession, reint, rebelWon, rump) in new[]
+                 { (-0.10, false, true, true, false),     // 反乱側の押し（親＝A の負）＝革命の成就（旧＝分断）
+                   (0.10, false, true, false, false),     // 政府の押し＝鎮定（旧＝分断）
+                   (0.0, false, false, false, true),      // 押し合えなかった＝分断のまま
+                   (-0.10, true, false, false, true) })   // 分離独立の白紙＝独立の確定（分断の枝）のまま
+        {
+            var (sim, fr, rebel, war) = CivilWarBoard();
+            Assert.True(Math.Abs(score) < sim.Coef.WhitePeaceScore, "前提が崩れた：白紙の帯の戦勝点ではない");
+            war.Score = score; war.CivilWarSecession = secession;
+            sim.Diplomacy.ResolvePeace(sim.Coef, war);
+            Assert.Equal(reint, sim.Diplomacy.PendingReintegrations.Count == 1);
+            if (reint) Assert.Equal(rebelWon, sim.Diplomacy.PendingReintegrations[0].RebelWon);
+            Assert.Equal(rump, rebel.Nation!.RumpParentName.Length > 0);
+        }
     }
 
     [Fact]
@@ -660,9 +681,10 @@ public class WarThemeTests
         return () => { foreach (var (p, s, cs) in saved) { System.Array.Copy(s, p.IdeologyShares, s.Length); p.Consciousness = cs; } w.Legitimacy = leg0; w.Coef.MilitaryCoupSupport = coup0; };
     }
 
-    private static void Transition(World w, double reformist, double radical, double coerce)
+    /// <summary>eroding＝この四半期に正統性が下がった（Politics.Step が測る・上からの改革の門が読む）。既定＝侵食の最中の盤面。</summary>
+    private static void Transition(World w, double reformist, double radical, double coerce, bool eroding = true)
         => typeof(Politics).GetMethod("Transition", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!
-            .Invoke(null, [w, w.Coef, reformist, radical, coerce]);
+            .Invoke(null, [w, w.Coef, reformist, radical, coerce, eroding]);
 
     [Fact]
     public void 首都の蜂起は反乱国が首都州を握り政府は遷都して戦う()
@@ -713,6 +735,27 @@ public class WarThemeTests
         sim.StepQuarter();
         Assert.DoesNotContain(sim.Diplomacy.Wars, x => x.CivilWarParent == fr.SelfPower && !x.CivilWarSecession);
         Assert.Null(fr.SecedingRegion);
+    }
+
+    // ★上からの改革は侵食の最中だけ（2026-09-29 線2＝(102) の申し送り2 (b)）：門＝正統性が低い**かつ**この四半期に下がった。
+    //   ⚠旧＝水準だけ＝矯正講和で上限0.3（門0.4 の下）に置かれた押し付けの政体は、侵食されていないのに翌四半期に下賜で戻った（押し付け↔上からの改革の往復 132）。
+    //   史実の上からの改革は侵食の最中（プロイセン1807・露1861・墺1860/1867・オスマン1876）／押し付けの復古（西1823〜33・ナポリ1821〜）は改革せず続いた。
+    [Fact]
+    public void 上からの改革は侵食の最中だけ_生まれの低い正統性が回復している四半期は下賜しない()
+    {
+        var sim = Board("フランス", "イギリス");
+        var fr = sim.Nations[0].World;
+        foreach (bool eroding in new[] { false, true })
+        {
+            fr.ParliamentControl = 0; int grants0 = fr.ReformGrantCount; var polity0 = fr.Polity;
+            var restore = PinIdeology(fr, Ideology.Republicanism);   // 代議制の引力点・正統性0（門の下）
+            Transition(fr, reformist: 0.5, radical: 0, coerce: 1.0, eroding);   // 動員は保持力の下＝上からの改革の窓だけが転換を許す
+            restore();
+            Assert.Null(fr.PendingRebelRegions);
+            Assert.Equal(polity0, fr.Polity);
+            if (eroding) Assert.True(fr.ReformGrantCount == grants0 + 1 && fr.ParliamentControl > 0, "前提が崩れた：侵食の最中の盤面で上からの改革の下賜が起きていない");
+            else Assert.True(fr.ReformGrantCount == grants0 && fr.ParliamentControl == 0, "正統性が下がっていない（回復している）四半期に下賜した＝押し付けの低さを侵食と読んだ");
+        }
     }
 
     [Fact]

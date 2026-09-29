@@ -735,6 +735,51 @@ public class RevoltIgnitionTests
             $"民兵が労働から抜けていない（民兵0.5 {armed.HomeLabor:F2} ≥ 民兵0 {none.HomeLabor:F2}）＝札が労働供給へ届いていない");
     }
 
+    // ★地方の建国は厭戦0から・開戦で両陣営を自国の POP で測る（2026-09-29 線2＝(100) の申し送り2・4）。
+    //   ①厭戦の継承は首都発の建国だけ（同じ社会の首都の住民）＝地方の蜂起と分離独立の建国は0から（旧＝全ての建国が継ぎ、分離独立の戦争の月数の中央が1）。
+    //   ②崩壊の線（1−RevolutionSurrenderWeight×革命圧力）は両陣営で同じ式＝読む動員を開戦の瞬間に自国の POP で測り直す（Diplomacy.DeclareCivilWar→Politics.MeasureMobilization）。
+    //     旧＝反乱国は測定0（革命圧力0）・政府は出て行った首都の住民を含む前の測定のまま最初の四半期を戦った。新しい国の保持力の測定は親の値から（保持力0で満杯にしない）。
+    [Fact]
+    public void 地方の建国は親の厭戦を継がず_開戦で両陣営の動員は自国のPOPで測る()
+    {
+        var sim = new MultiNationSim([WorldData.ByName("イギリス"), WorldData.ByName("フランス")], seed: 1789) { DiplomacyFrozen = true };
+        sim.StepQuarter();
+        var pw = sim.Nations[0].World;
+        const double exhaustion = 0.37;
+        pw.SelfPower!.WarExhaustion = exhaustion;
+        var far = pw.Regions.FindAll(r => r.Id != 0 && r.State == RegionState.Active);
+        Assert.True(far.Count >= 2, "前提が崩れた：首都のほかに活動州が2つない");
+
+        pw.PendingRebelRegions = [far[0]]; pw.PendingRebelPolity = Polity.Republic;   // 地方の蜂起（首都でない州の政体の建国）
+        sim.SpawnSecededNations();
+        Assert.Contains(far[0], sim.Nations[^1].World.Regions);
+        Assert.Equal(0.0, sim.Nations[^1].World.SelfPower!.WarExhaustion);
+        pw.PendingSecessionWars = [far[1]];                                            // 分離独立（州ごとの建国）
+        sim.SpawnSecededNations();
+        Assert.Contains(far[1], sim.Nations[^1].World.Regions);
+        Assert.Equal(0.0, sim.Nations[^1].World.SelfPower!.WarExhaustion);
+        Assert.Equal(exhaustion, pw.SelfPower!.WarExhaustion);                          // 親は変わらない
+
+        // 首都の蜂起：厭戦は継ぐ（同じ社会の首都の住民）・動員は両陣営とも自国の POP で測った値（測り直しても1ビットも動かない）
+        var capital = pw.Regions[0];
+        double coerce0 = pw.Coercion;
+        pw.PendingRebelRegions = [capital]; pw.PendingRebelPolity = Polity.Republic;
+        sim.SpawnSecededNations();
+        var rw = sim.Nations[^1].World;
+        Assert.Contains(capital, rw.Regions);
+        Assert.Equal(exhaustion, rw.SelfPower!.WarExhaustion);
+        Assert.True(rw.ReformistPower + rw.RadicalPower > 0, "反乱国の動員が測られていない（旧＝最初の四半期は0＝革命圧力0）");
+        Assert.Equal(coerce0, rw.Coercion);                                             // 保持力の測定は親の値から
+        Assert.True(Politics.RevolutionPressure(rw) > 0, "反乱国の革命圧力が0＝崩壊の線が下がらない");
+        foreach (var w in new[] { pw, rw })
+        {
+            double r0 = w.ReformistPower, d0 = w.RadicalPower;
+            Politics.MeasureMobilization(w, w.Coef, inRevolt: true);
+            Assert.Equal(r0, w.ReformistPower);   // 蓄えた動員＝自国の今の POP で測った値（政府は出て行った首都の住民を含まない）
+            Assert.Equal(d0, w.RadicalPower);
+        }
+    }
+
     // ★段5＝守備兵の寝返りと武器庫（2026-09-29 処理の一元化 段3＝点火・旧係数 SoldierDefectionByMilitancy を1で焼き込んで削除）
     //   ＋忠誠の兵と武器庫は政府について行く・建国した国は親の厭戦を継ぐ（2026-09-29 首都の分離独立の続き）。
     //   首都の分離独立（首都州が反乱国へ・政府は残る州へ遷都）で、首都の守備兵（兵士POP）は**闘争度の割合**だけ寝返り、
@@ -993,7 +1038,7 @@ public class RevoltIgnitionTests
     {
         // 3枝＝膠着(分断固定)／分離戦で反乱勝ち(独立確定)／それ以外(再併合予約)。最後は反乱勝ち・親勝ちの両向きを踏む。
         foreach (var (score, secession, rump, reint) in
-                 new[] { (-0.20, false, true, false), (-0.60, true, false, false), (-0.60, false, false, true), (0.60, false, false, true) })
+                 new[] { (-0.20, true, true, false), (-0.60, true, false, false), (-0.60, false, false, true), (0.60, false, false, true) })   // ★2026-09-29 線2：膠着の枝は分離独立の白紙（政体の内戦の膠着は勝者の枝へ）
         {
             var (sim, pw, rw, war) = 段7_内戦を1本立てる(new Coefficients());
             Assert.Equal(0.0, sim.Coef.RevoltExpansionScore);   // ⚠OFF側も明示的に確かめる（点火したらこの対照は空洞になる＝そのとき赤で気付く）
@@ -1019,6 +1064,7 @@ public class RevoltIgnitionTests
         var coef = new Coefficients { RevoltExpansionScore = 0.10 };   // 州1つの値段＝戦勝点0.10
         var (sim, pw, rw, war) = 段7_内戦を1本立てる(coef);
         war.Score = -0.20;   // 反乱側が押している膠着（|戦勝点| < WhitePeaceScore=0.25＝この枝の定義）＝予算0.20で2州
+        war.CivilWarSecession = true;   // ★2026-09-29 線2：膠着の枝は分離独立の白紙だけ（政体の内戦の膠着は勝者で終わる）
         int pn = pw.Regions.Count, rn = rw.Regions.Count;
         double rPop0 = rw.TotalPopulation;
         var core0 = new System.Collections.Generic.Dictionary<string, double>();
@@ -1051,7 +1097,7 @@ public class RevoltIgnitionTests
         int total = pw.Regions.Count + rw.Regions.Count;   // 内戦が始まった時点の親の版図（建国で割れた両側の和）
         var core0 = new System.Collections.Generic.Dictionary<string, double>();
         foreach (var r in pw.Regions) if (r.Pops.Count > 0) core0[r.Name] = r.Pops[0].CoreEthnicShare;
-        war.Score = -0.20;
+        war.Score = -0.20; war.CivilWarSecession = true;   // ★2026-09-29 線2：膠着の枝は分離独立の白紙だけ（政体の内戦の膠着は勝者で終わる）
         sim.Diplomacy.ResolvePeace(coef, war);
         Assert.True(rw.Regions.Count > 1, "前提が崩れた：膨張していない＝全返還の検査にならない");
         var expanded = new System.Collections.Generic.List<string>();

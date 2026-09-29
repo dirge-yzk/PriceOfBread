@@ -1,0 +1,5 @@
+# 政変と内戦の続き（線2）の国庫の計器 inj_treas3d（scratchpad/cs/inj_treas3d.py）の読み（scratchpad/pol/an/an_treas_min.py）。生の T 行（約160MB）は置かない。SOURCE-HASH d6fb46e8177e0cc7
+######## A（r103 と同じ）
+T 行 423674・国庫<0 の生存国×四半期 20293・不履行（国ごとの最後の値の和）436
+######## B
+T 行 420719・国庫<0 の生存国×四半期 23404・不履行（国ごとの最後の値の和）422

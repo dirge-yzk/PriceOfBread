@@ -1755,7 +1755,7 @@ public sealed class Coefficients
     //   ⚠再点火禁止（墓標）＝実測で7次元が改善し、政体exact は動かなかった＝この上限は忠実度を支えていなかった。読み手ゼロ（Government.cs/NationConfig.cs にコメント残置のみ）
     public double DefeatNationalism = 1.0;         // 機能7-1点火（2026-07-28）：敗戦ショック→r[4]ナショナリズム（刺され伝説＝1871仏/1918独）。時代ゲート・ファシズム式の前に加算＝r[9]の燃料として自動で効く。裁定（未決1）＝Ideologyコアへ直接加算（P1は闘争度ポート＝置き場が意味を壊す）。0で恒等
     public double LostLandNationalism = 0.1;       // 機能7-2点火（2026-07-28）：失地ストック×これ→r[4]の長期項。裁定（機能7-6）＝案A役割分担：RevanchismTension=特定の相手への対外敵意（緊張・ワンショット）／本項=国内イデオロギー分布（持続）＝出力先が異なり二重計上でない（[PORT:P1]台帳へ記録）。0で恒等
-    public double LostLandHalflifeQuarters = 80;   // 機能7-2：失地ストックの半減期（20年＝アルザスの遺恨は世代を跨ぐ）
+    public double LostLandHalflifeQuarters = 80;   // 機能7-2：失地ストックの半減期（20年＝アルザスの遺恨は世代を跨ぐ）。★1世代の政治の記憶の長さ＝講和の遺恨（_grudge）と政権への失望（World.RecentRegimeChanges・2026-09-29 線2）も同じ半減期で薄れる
     public double WarRallyCoercion = 0.3;          // 機能6-1点火（2026-07-28）：戦時の結束（rally around the flag）＝保持力×(1+これ×max(0,1−厭戦/減衰点))。厭戦で減衰させないと二月革命型が構造的に消える＝恒常抑制にしない。0で旧＝ドレインのみ恒等
     public double WarRallyDecayPoint = 0.4;        // 機能6-1：結束が消える厭戦水準（開戦時+30%→WE0.4でゼロ→以後はドレインが上回る）
     public double RevolutionSurrenderWeight = 0.4; // 機能6-2点火（2026-07-28）：講和意欲の閾値×(1−これ×革命圧力)＝内戦の懸念がある国は余力を残して降伏（独1918/露1917型）。厭戦崩壊(WE≥1)の決着は不変。0で旧固定閾値恒等
@@ -2618,7 +2618,7 @@ public sealed class Coefficients
     // LegitimacyIsStock は第3段3-4/3-5（2026-07-27）で削除＝1.0（2026-07-10点火）をPoliticsへ焼き込み。正統性は常にストック（旧フロー混合＝重み0の死荷重 legFlow/(1−s)×MandateSpent を同時削除）。
     public double LegitimacyRegenRate = 0.1;    // 政1：正統性ストックの四半期再生率。**0.02（時定数12.5年）は過剰安定＝革命が起きず世界が固化（上海97%・首位確定Q152・幕府消滅を実測2026-07-10）→0.1（時定数2.5年）へ**。侵食族は平衡対応（erosion=regen×旧水準）で×5済み＝平衡不変・過渡だけ速い。政治資本の回復は MandateRecoveryRate へ分離（2026-07-26）→ 2026-09-21 ㉖で MandateRefillQuarters の線形回復へ置換（係数は削除）
     // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】ReformFromAboveEnabled＝上からの改革の遷移経路（政2・点火済み）
-    public double ReformFromAboveLegitThreshold = 0.4;   // 政2：上からの改革が発火する正統性の上限（Legitimacy<これ＝侵食が進行中の体制のみ自己改革）。ReformFromAboveEnabled=0では未評価
+    public double ReformFromAboveLegitThreshold = 0.4;   // 政2：上からの改革が発火する正統性の上限（Legitimacy<これ＝侵食が進行中の体制のみ自己改革）。ReformFromAboveEnabled=0では未評価。★2026-09-29 線2：「進行中」は水準に加えてこの四半期に正統性が下がったこと（Politics.Transition の eroding）＝押し付けの低さ（ImposedRegimeLegitimacy）は侵食ではない
     // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】SuffrageRatchetOnLiberalize＝自由化の遷移で参政権を狭めない（政3・点火済み）
     // ★2026-08-01の調整（0.5→1.0）。治安維持力項の上限を SecessionThreshold と同じ高さにする＝
     //   **十分な軍を置いた国は、それだけで分離を抑えうる**（清が太平天国を鎮圧し、英がアイルランドを保った形）。
@@ -2975,7 +2975,7 @@ public sealed class Coefficients
     // 蓄積/減衰は書くだけ（P0観測と同型）＝いつ走っても恒等。読むのは Transition の注入のみで RegimeTrackRecordWeight=0なら無効（現行0.3＝有効）。
     public double RegimeRecordAccumRate = 0.02;    // CoopPublicRegime（満足−闘争）×これ/四半期で現政体系統の実績が符号のまま積む（+信認/−失望）
     public double RegimeRecordSuccessTenureGate = 20.0;  // 正の信認が満額になる在任年数（長期成功のみ信認へ寄る＝始まったばかりの形態は実績を持てない）。負の失望は在任に関わらず即時（失敗の刻印は速い）
-    public double RegimeRecordDecay = 0.00346;     // 実績の四半期減衰率（半減期50年＝2世代・ユーザー指定）。信認も失望も同率で0へ薄れる（世代交代で忘れる）。★2026-09-29：政権への失望（World.RecentRegimeChanges＝直近の政変の数）も同じ記憶としてこの率で薄れる
+    public double RegimeRecordDecay = 0.00346;     // 実績の四半期減衰率（半減期50年＝2世代・ユーザー指定）。信認も失望も同率で0へ薄れる（世代交代で忘れる）。⚠政権への失望（World.RecentRegimeChanges＝直近の政変の数）は 2026-09-29 線2 で1世代（LostLandHalflifeQuarters＝20年）へ移した＝この率は読まない
     public double RegimeTrackRecordWeight = 0.3;   // **主フラグ**：Transition の各政体支持へ符号付き乗数 (1+これ×実績) を掛ける＝信認された形態は選ばれ/粘り、失望された形態は避けられる。0=読まない＝厳密恒等。**固着⇔カオスの直接ノブ**（正の信認=安定・負の失望=多様化）
     // --- 国民意識（市民的結束＝民主主義の前提・2026-07-13・設計doc「国民意識」）。蓄積は書くだけ（実値既定） ---
     // NationalConsciousnessInitial / NationBuildRate / NationBuildReligiousDrag / NationBuildCrisisWeight は第3段3-6（2026-07-27）で削除＝v1国民意識（到達不能）の専用係数。宗教civicは第5段5-5で新設計へ。

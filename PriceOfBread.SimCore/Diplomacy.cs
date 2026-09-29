@@ -1480,6 +1480,13 @@ public sealed class Diplomacy
         Log.Add(secession ? $"{_year} {rebel.Name}が{parent.Name}からの独立を宣言＝分離独立戦争" : $"{_year} {parent.Name}で内戦＝{rebel.Name}が地図の上に立った");
         // 交戦の入口の1本（内戦中は敵対州間の交易が禁輸/密輸の既存機構に乗る＝doc §3 の④が自動になる・同盟は親側だけに問う）
         AddBelligerent(new War { A = parent, B = rebel, CivilWarParent = parent, CivilWarPolity = rebelPolity, CivilWarSecession = secession }, c, depth: 0);
+        // ★革命圧力は自国の POP から（2026-09-29 線2＝(100) の申し送り2・推奨で進めた）：開戦の瞬間に両陣営の動員を**自国の POP** で測り直す（Politics.MeasureMobilization の1本）。
+        //   崩壊の線（StepWars の RevCut＝1−RevolutionSurrenderWeight×革命圧力）は元から両陣営で同じ式＝読む量が違った：
+        //   旧＝測定は四半期末の Politics.Step だけ＝最初の四半期は、反乱国は測定0（線1.0）・政府は出て行った州の住民まで含む前の測定（線0.6）のまま戦った
+        //   （r103 の首都発の内戦 194件の最初の四半期はすべて 政府1.0／反乱国0・3分の1がその四半期のうちに終わった）。
+        //   内乱の述語（Politics.Step の inRevolt）は開戦の直後なので両陣営とも真。
+        foreach (var side in (Power[])[parent, rebel])
+            if (side.Nation is { } sw) Politics.MeasureMobilization(sw, sw.Coef, inRevolt: true);
         if (c.EnableDependency) DefendDependent(parent, rebel, c);
     }
 
@@ -2531,7 +2538,13 @@ public sealed class Diplomacy
             Log.Add($"{_year} {cwRebel.Name}の独立が確定（列強の調停・{cwParent!.Name}からの分離）");
             return;
         }
-        if (Math.Abs(s) < c.WhitePeaceScore && cwRebel is not null)   // 内戦の白紙＝分断が固定（台湾・南北型の創発）
+        // ★政体の内戦は勝者で終わる（2026-09-29 線2＝(100) の申し送り3・推奨で進めた）：政体・要求をめぐる内戦（分離独立でない）は、両陣営が疲れて講和の線を越えても
+        //   白紙（分断）にせず、押し（戦勝点）の大きい側が勝つ＝下の勝者の枝（再併合＝鎮定／革命の成就）へ。史実の政体の内戦はほぼ勝者で終わった
+        //   （カルリスタ戦争・太平天国・メキシコのレフォルマ戦争）＝分断が固まったのは両陣営が互いに届かない場合（中華民国1949＝台湾海峡）だけ。
+        //   ⚠戦勝点がちょうど0＝この戦線で一度も押し合えなかった（接触なし・崩壊の講和で届いていない）＝届かない者どうしの分断はそのまま。
+        //   ⚠分離独立の戦争の白紙＝独立の確定は今のまま（ベルギー1831・ギリシャ1830）。旧＝|戦勝点|<WhitePeaceScore の政体の内戦はすべて分断（r103 で22件・英が繰り返し割れた）。
+        bool regimeWar = cwRebel is not null && !war.CivilWarSecession;
+        if (Math.Abs(s) < c.WhitePeaceScore && cwRebel is not null && !(regimeWar && s != 0))   // 内戦の白紙＝分断が固定（台湾・南北型の創発）
         {
             Log.Add($"{_year} {cwParent!.Name}の内戦は膠着のまま終わった＝分断（{cwRebel.Name}が存続）");
             // ★分断の記録と首都（2026-09-28 処理の一元化 段2 束3）：政体をめぐる内戦の分断の回数（SelfPlay の「内戦分裂」＝旧経路の国家分裂の計器を戦争の形へ）。
@@ -2569,7 +2582,7 @@ public sealed class Diplomacy
             ConfirmIndependence(cwParent, cwRebel, c);
             return;
         }
-        if (Math.Abs(s) < c.WhitePeaceScore)   // 戦勝点が小さい＝白紙講和（得るものなし）
+        if (Math.Abs(s) < c.WhitePeaceScore && !regimeWar)   // 戦勝点が小さい＝白紙講和（得るものなし）。政体の内戦は上の注記どおり勝者の枝へ
         {
             Log.Add($"{_year} {war.A.Name}×{war.B.Name} 白紙講和（戦勝点{s:+0.00;-0.00}）");
             return;

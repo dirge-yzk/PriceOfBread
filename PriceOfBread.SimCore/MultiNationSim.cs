@@ -348,7 +348,8 @@ public sealed class MultiNationSim
         // ⚠**人口台帳の順序に手を入れない**＝下の 1) S/P 確定より前・親の内側だけで動かす。親の総人口も総貨幣も不変で、
         //   確定される移転量 P が「寝返った分だけ」になる（S/P 確定と PopulationDelta -= P の間には1命令も入れない＝Invariants の帯）。
         // ⚠移す動詞は既存の Military.MoveCohort（規模・貯蓄・債務・結晶資産・年齢/男女コホートを既存の作法で運ぶ）＝新しい経路を作らない。
-        Region? loyalRegion = regs.Contains(pw.Regions[0]) ? Territory.NextCapital(pw, regs) : pw.Regions[0];
+        bool capitalRising = regs.Contains(pw.Regions[0]);   // 首都発の建国（首都の蜂起＝同じ社会の首都の住民）。下の厭戦の継承も読む（段2 の遷都で Regions[0] が変わる前に取る）
+        Region? loyalRegion = capitalRising ? Territory.NextCapital(pw, regs) : pw.Regions[0];
         Pop? loyalPop = loyalRegion?.Pops.Find(x => x.IsSoldier);
         if (loyalPop is not null && loyalRegion is not null)
             foreach (var rr in regs)
@@ -450,6 +451,9 @@ public sealed class MultiNationSim
         nw.InstitutionalDecay = pw.InstitutionalDecay;
         nw.InstitutionalDecayCeiling = pw.InstitutionalDecayCeiling;
         nw.BornOfSecession = true;   // P9：独立戦争の危機乗数（レヴェ・アン・マス）の判定用（分離で生まれた国＋交戦中）
+        // ★保持力の測定は親の値から始まる（2026-09-29 線2）＝治安の強度（人口あたり）は構築の BaseCoercion と同じく親から＝次の四半期末の Politics.Step が自国の軍と正統性で測り直す。
+        //   ⚠旧＝新しい国の測定は0（最初の四半期は保持力0）＝開戦で動員を自国の POP で測る（Diplomacy.DeclareCivilWar）と革命圧力が「保持力0」で満杯になる。
+        nw.Coercion = pw.Coercion;
         nw.Quarter = pw.Quarter;
 
         // --- 6) Power 生成（コンストラクタと同型）＋共有外交への接続 ---
@@ -459,10 +463,12 @@ public sealed class MultiNationSim
             Military = parentPower.Military * (parentPop > 1e-9 ? P / parentPop : 0),   // 初期表示値のみ（次の Diplomacy.Step が兵士POPから再導出＝実体は移転した兵士）
             Gdp = nw.Gdp, TradeWeight = DefaultTradeWeightBase,
             Culture = reg.Culture, Religion = reg.Religion,   // 次の毎月同期まで州ラベルで代用
-            // ★厭戦の継承（2026-09-29）：建国した国は親の厭戦を継ぐ＝技術・法・制度疲労と同じ「独立は社会を入れ替えない」の継承
-            //   （厭戦は前の戦争の疲れが住民に残った量＝首都の蜂起は同じ社会の、いちばん疲れた首都の住民が立てる）。
+            // ★厭戦の継承（2026-09-29）：首都発の建国は親の厭戦を継ぐ（厭戦は前の戦争の疲れが住民に残った量＝首都の蜂起は同じ社会の、いちばん疲れた首都の住民が立てる）。
             //   ⚠旧＝新しい国は厭戦0から＝首都発の内戦で政府（持ち越しの厭戦 中央0.52）だけが先に崩壊の線に届いた（反乱の勝ち 93.8%・(97) §8）。
-            WarExhaustion = parentPower.WarExhaustion,
+            // ★地方の建国（分離独立・地方の組織運動の蜂起）は0から（2026-09-29 線2＝(100) の申し送り4 (b)・推奨で進めた）＝親の戦争の疲れは親の政府と首都の住民のもの
+            //   ＝(100) で全ての建国に継がせた結果、疲れ切った親から離れた州が生まれた月に講和の線を越えた（分離独立の戦争の月数の中央 18→1）。
+            //   史実の独立戦争は年単位（ギリシア1821-29・スペイン領アメリカ1810-25・ハンガリー1848-49・合衆国1861-65）。
+            WarExhaustion = capitalRising ? parentPower.WarExhaustion : 0,
         };
         power.SpawnedDuringPlay = true;   // ★プレイ中に生まれた国＝ハーネスの「満足度・最小国」の対象外（Validation.WorstSat）
         nw.Diplomacy = Diplomacy; nw.SelfPower = power;
