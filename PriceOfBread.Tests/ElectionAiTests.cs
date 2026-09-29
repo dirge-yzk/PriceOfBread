@@ -392,11 +392,15 @@ public class ElectionAiTests
         w.Coef.ElectionEventEnabled = 1.0;
         w.Coef.ParliamentStreetSupersede = 0;   // ★2026-08-31点火（既定0.5）：本検査の本義は「Δ正統性=|純支持|×効き」の経路同一性＝二重票の是正とは無関係。0.5だと純支持の余白が半分になり、前提設置（MandateSpent）で符号が反転する足場の脆さを踏む＝OFF側を明示ピン
         for (int q = 0; q < 6; q++) sim.StepQuarter();
+        // ★盤面の直し（2026-09-29 (110) 合流）：看板は**前提を置いた盤面**（危機・逼迫なし・正統性1・紛争記憶1）で選ぶ。
+        //   旧＝前提の前の盤面で最も安い逆風（|純支持| が最小＝0 のすぐ下）を選び、紛争記憶を焼くと符号が返りうる足場だった
+        //   （(108) 段4b〔課税の基数を前の月の所得へ〕と (109)〔開始の税の段〕を合わせた木で踏んだ・各々の木では通る）。主張（Δ正統性＝|純支持|×効き）は同じ。
+        ForceGovernmentInDanger(w);
+        ClearFiscalStress(w);    // 他の支出に逼迫なし＝FiscalStress=0
+        w.Legitimacy = 1.0; w.MandateSpent = 1.0;   // OpenMandateWindow と下の紛争記憶と同じ値
         var (axis, inc, net) = FindPricedAgenda(w);
         Assert.True(net < 0, "テスト前提の破れ：支配ブロックが推し世論が逆風の法軸が1つも無い（盤面を変えて再取得）");
         OpenMandateWindow(w, net);
-        ForceGovernmentInDanger(w);
-        ClearFiscalStress(w);    // 他の支出に逼迫なし＝FiscalStress=0
         w.MandateSpent = 1.0;    // 紛争記憶＝レバーは半分に渋る ⇒ danger(1)×(1−0)÷(1+1)＝0.50
 
         // ★2026-08-18（親軍法の撤去）：旧支配層の政治力が「軍の政治的優位」に連動するようになり、その項に**粛清・人事介入の記憶**

@@ -145,15 +145,16 @@ public class WarThemeTests
         var c = sim.Coef;
         static double Out(Region r) { double g = 0; foreach (var s in r.Producers) { var good = r.GoodOf(s.GoodId); if (good is null || good.Tier == GoodTier.Service) continue; g += s.Output * good.RefPrice; } return g; }
         double natPc = fr.Gdp / fr.TotalPopulation;
-        Region? cede = null; double best = 0;   // 1人あたりが国の平均以下の州のうち、産出の最も大きい州（総額の落ち込みを立てる）
+        // ★盤面の直し（2026-09-29 (110) 合流）：1人あたりが国の平均以下の州を**全て**割譲する（首都は除く）。旧＝そのうち産出の最も大きい1州だけ
+        //   ＝(108)(109) を合わせた木では総額の落ち込みの差が 0.0034（前提の 0.01 に届かない）。平均以下の州だけを割るので残る国の1人あたりは落ちない（主張は同じ）。
+        var cede = new List<Region>();
         foreach (var r in fr.Regions)
         {
             if (r.Id == 0 || r.State != RegionState.Active || !(r.SumPopulation() > 0)) continue;
-            double o = Out(r);
-            if (o / r.SumPopulation() <= natPc && o > best) { best = o; cede = r; }
+            if (Out(r) / r.SumPopulation() <= natPc) cede.Add(r);
         }
-        Assert.True(cede is not null, $"前提が崩れた：1人あたりが国の平均以下の州がない（国の平均 {natPc:G6}）");
-        Territory.TransferRegion(fr, br, cede!, Territory.Rehoming.Ceded);
+        Assert.True(cede.Count > 0, $"前提が崩れた：1人あたりが国の平均以下の州がない（国の平均 {natPc:G6}）");
+        foreach (var r in cede) Territory.TransferRegion(fr, br, r, Territory.Rehoming.Ceded);
         for (int i = 0; i < 8; i++) { fr.UpdateGdpCycle(); twin.UpdateGdpCycle(); }
         double pc0 = twin.GdpPcDrawdown;
         Assert.True(fr.GdpPcDrawdown <= pc0 + 1e-12, $"前提が崩れた：割譲で1人あたりが落ちた（双子 {pc0:G6} → {fr.GdpPcDrawdown:G6}）");
