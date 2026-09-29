@@ -86,7 +86,7 @@ public class TreasuryLedgerTests
     [Fact]
     public void 国家の支払い率は全ての行に同じrで掛かり利子の未払いは元本へ()
     {
-        var sim = new Simulation(NationConfig.France().ToScenario(19), new NullAgent());   // 仏＝開幕の国債あり（保有台帳も起票済み）
+        var sim = new Simulation(FranceFiat(), new NullAgent());   // 仏＝開幕の国債あり（保有台帳も起票済み）
         sim.Run(4);
         sim.StepDay();   // 四半期首（政策の反映）を先に済ませる＝以後の29日で月次決算が1回だけ走る
         var w = sim.World;
@@ -140,12 +140,22 @@ public class TreasuryLedgerTests
         return s;
     }
 
+    /// <summary>仏（seed 19）の盤面＝旧の開幕の不換（2026-09-30 (119) の盤面の直し）。実国家の開幕は銀になった（助走は法を動かさない＝通貨の初期値を史実の銀へ）。
+    /// ここの番人は不換の切り下げの窓・払える額・借入の門を測る＝不換が前提（銀の段は余地の式が改鋳の窓になり、兌換に入った NullAgent の仏は
+    /// 切り下げの余地が閉じて4四半期で不履行＝国債が消える）＝旧と同じ盤面を置く。</summary>
+    private static Scenario FranceFiat()
+    {
+        var cfg = NationConfig.France().ShallowClone();
+        cfg.InitialMonetaryLaw = MonetaryStandardLaw.Fiat;
+        return cfg.ToScenario(19);
+    }
+
     /// <summary>借入の門を測る仏の盤面（2026-09-29 (109)）。1783年の仏は所得税0・直接税だけ（NationConfig の税の段）＝NullAgent の盤面（専売なし）は
     /// 利払い÷歳入が借入の上限（MaxInterestShareOfRevenue）を開幕から越える（史実の1788年の仏＝利払い÷歳入 約0.5〜0.67＝借りられない国）。
     /// 借入の門そのものを測る番人は「上限の下にいる国」が前提＝旧の開始の所得税10% を盤面に置く（旧と同じ盤面の歳入）。</summary>
     private static Simulation FranceBelowBorrowCap()
     {
-        var sim = new Simulation(NationConfig.France().ToScenario(19), new NullAgent());
+        var sim = new Simulation(FranceFiat(), new NullAgent());
         sim.World.TaxRate = 0.10; sim.World.Policy.IncomeTaxTarget = 0.10;
         return sim;
     }
@@ -243,7 +253,7 @@ public class TreasuryLedgerTests
     {
         static World Twin()
         {
-            var sim = new Simulation(NationConfig.France().ToScenario(19), new NullAgent());
+            var sim = new Simulation(FranceFiat(), new NullAgent());
             sim.Run(4);
             var w = sim.World;
             w.PollTax = 0;   // 人頭税の率は頭数あたりの実額（物価水準で伸びない）＝双子の名目を2倍にしても2倍にならない＝止める
@@ -365,7 +375,7 @@ public class TreasuryLedgerTests
         const double conv = 0.5;
         (World w, double payable, double overdraft, double dev) Month(bool capZero)
         {
-            var sim = new Simulation(NationConfig.France().ToScenario(19), new NullAgent());
+            var sim = new Simulation(FranceFiat(), new NullAgent());
             sim.Run(4);
             sim.StepDay();
             var w = sim.World;
@@ -385,7 +395,7 @@ public class TreasuryLedgerTests
         var (wf, pf, of, dev) = Month(false);
         var (wg, pg, og, devG) = Month(true);
         Assert.NotSame(wf.Coef, wg.Coef);
-        Assert.NotEqual(MonetaryStandardLaw.Silver, wf.MonetaryLaw);   // 前提：銀の段なら余地の式が改鋳の窓になる（仏の開幕は不換・NullAgent は銀へ上げない）
+        Assert.NotEqual(MonetaryStandardLaw.Silver, wf.MonetaryLaw);   // 前提：銀の段なら余地の式が改鋳の窓になる（盤面は不換＝FranceFiat・NullAgent は銀へ上げない）
         Assert.Equal(pg, pf); Assert.Equal(og, of);   // 双子＝締めの直前まで同じ
         double rG = wg.FiscalFundingRatio, rF = wf.FiscalFundingRatio;
         Assert.True(rG > 0 && rG < 1, $"前提：G の r が (0,1) に無い（{rG:F4}）");

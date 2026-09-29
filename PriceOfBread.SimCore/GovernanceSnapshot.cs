@@ -12,8 +12,9 @@ public sealed class GovernanceSnapshot
 {
     // 法律・政治（現在値）
     private EducationLaw _eduLaw; private Suffrage _suffrage;   // ★親軍法（_militarism）は2026-08-18に撤去＝軍国主義は PoliticalQuantities の4実体へ分解（法ではなくなったので退避対象そのものが消えた）
-    // ⚠申し送り：4実体が読む ConscriptionLaw / Bureaucracy は**ここで退避していない**（親軍法の時代からの既存の穴・撤去で新たに生じたものではない）。
-    //   助走で両者がドリフトすると練度と文民制度の弁が助走後も戻らない。追加は挙動を動かす（＝帯が動く）ので測定ラウンド送り。
+    // ~~⚠申し送り：4実体が読む ConscriptionLaw / Bureaucracy は**ここで退避していない**（助走で両者がドリフトすると練度と文民制度の弁が助走後も戻らない）。~~
+    //   → 2026-09-30 (119) 助走そのものが法を動かさなくなった（Government.Step の施行は World.WarmupFrozen の間は走らない）＝両者も助走で動かない＝穴は閉じた。
+    //   以後この退避の法の欄は助走の前後で同じ値を書き戻すだけ（目標＝Policy と国庫・銀行・検地台帳と行政力は助走で動く＝ここの復元に意味が残る）。
     private CensorshipLaw _censorship; private LaborUnionLaw _laborUnion; private WomenRightsLaw _womenRights;   // ★女性の権利（統合法・2026-08-10）＝旧・財産権/参政権の2boolを1段へ（教育権は旧は捕捉漏れ＝統合で自動的に含まれる）
     private ReformLevel _cornLaws, _serfEmancipation, _landReform;   // 改革法の現在値（穀物法・農奴解放・土地改革）＝初期の史実差別化を助走後も保持
     private WorkHours _workHours;   // 労働時間の現在値（A-1#2）＝助走後も初期値を保持

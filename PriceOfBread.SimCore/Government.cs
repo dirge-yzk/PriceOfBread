@@ -231,6 +231,22 @@ public static class Government
         //   法律タブに至っては毎tick 45回走る＝重い。★2026-09-21 ㉖で旗 PoliticalCapitalStock を焼き込み＝毎四半期かならず導出する。
         w.PoliticalCapitalMax = PoliticalQuantities.PoliticalCapitalMax(w);
 
+        // 債務緊縮の強度（下の施行の後に置く＝下の注記）。[単位・B13] 債務/GDP＝**年次名目**（GovDebt÷(月次NominalGdp×12)）＝Fiscal の国債の金利の dGdp・CapitalMarket の対外信用と同じ物差し（2026-09-29・棚卸し fis-02 の残り）。
+        //   旧＝**月次実質**（GovDebt÷月次Gdp）＝年GDP の約1.7% で緊縮が始まり約8% で満額＝史実の国債の国は開幕から強度1（値の史実は Coefficients.AusterityStartDebt）。
+        //   ⚠導出をここ（施行の前）に置いても値は同じ＝材料の国債と名目GDP（州×生産者の産出×参照価格×物価水準）を下の施行は書かない。
+        double austGdp = w.FiscalEnabled && w.GovDebt > 0 ? w.NominalGdp : 0;   // 州×生産者の走査は債務のある国だけ・1回（旧は条件と割り算で2回）
+        double austerity = austGdp > 1e-9
+            ? PoliticalQuantities.Clamp01((w.GovDebt / (austGdp * Calendar.MonthsPerYear) - c.AusterityStartDebt) / c.AusterityRange) : 0;
+
+        // ★助走は法を動かさない（2026-09-30 (119)・(109) の申し送り3）＝施行（下の段の法・税と支出の段・治安維持力・軍事費と陸海の維持費・関税・金利・行政費）は
+        //   開始前の助走（World.WarmupFrozen）では走らない＝開幕の法は world.json と史実の初期値のまま始まる。法の施行は「年月をかけて起きること」＝国庫・国債・人口・資本と同じ門。
+        //   旧＝助走は政治（PoliticsEnabled=false）だけを止め、AI の目標と施行は回っていた＝5年の助走で所得税 0→0.02〜0.05・土地税の最上段 0.4→0.32・金利 0.25→0.02〜0.24・
+        //   関税・官僚制・秘密投票・徴兵法・教育法・穀物法・国教・通貨（不換→銀）まで動いた（seed 1789 で61カ国の全て）。
+        //   導出量（上の政治予算・政治資本の最大量・緊縮の強度）は助走でも導出する＝開幕の最初の四半期の議会と法の門は助走の盤面の値を読む（旧と同じ）。
+        //   AI の目標（DecideQuarter）は止めない＝目標は意図であって法ではない（開幕の最初の四半期に同じ関数が置き直す＝AI とプレイヤーは同じ入口）。
+        //   ⚠法でないもの＝専売の材・補助・売買方針・国営工場（生産の決断＝作者裁定 2026-09-20）・制度の解禁（特許・株式会社・鉄道・検地台帳＝社会の盤面から導く）・兌換の運転（信用の門）は助走でも動く＝経済の定常の一部。
+        if (w.WarmupFrozen) { w.AusterityIntensity = austerity; return; }
+
         // 法整備（離散）：力の均衡が許す向きに一歩ずつ。教育法・参政権・徴兵法は World が現在値を持ち効果に効く。
         // ★段の法は表 <see cref="LevelLaws"/> を施行の順に1本のループで回す（2026-09-28 処理の一元化 段1＝旧は軸ごとに StepEnum/StepBool の1行・各軸の注記は表の行へ移した）。
         foreach (var law in LevelLaws)
@@ -326,11 +342,8 @@ public static class Government
         //     債務スパイラルは未払い（Fiscal の利払い・維持費の Min）→FiscalFundingRatio の劣化→デフォルト（DefaultTriggerQuarters）で閉じる。
         //   ⚠w.AusterityIntensity の計算は残る＝三部会の召集信号（CrownParliament が >0.5 を読む）と門の材料。
         //   軍事費の緊縮は**不採用**（2026-06-18 検証）：負債国だけが動員解除し財政健全な覇権国は軍を維持＝非対称な武装解除で力の格差が拡大した。
-        // [単位・B13] 債務/GDP＝**年次名目**（GovDebt÷(月次NominalGdp×12)）＝Fiscal の国債の金利の dGdp・CapitalMarket の対外信用と同じ物差し（2026-09-29・棚卸し fis-02 の残り）。
-        //   旧＝**月次実質**（GovDebt÷月次Gdp）＝年GDP の約1.7% で緊縮が始まり約8% で満額＝史実の国債の国は開幕から強度1（値の史実は Coefficients.AusterityStartDebt）。
-        double austGdp = w.FiscalEnabled && w.GovDebt > 0 ? w.NominalGdp : 0;   // 州×生産者の走査は債務のある国だけ・1回（旧は条件と割り算で2回）
-        w.AusterityIntensity = austGdp > 1e-9
-            ? PoliticalQuantities.Clamp01((w.GovDebt / (austGdp * Calendar.MonthsPerYear) - c.AusterityStartDebt) / c.AusterityRange) : 0;
+        // ★値は施行の前（上の austerity）で導出し、置くのはここ＝この四半期の法の門は前の四半期の値を読む（2026-09-30 (119) で導出だけを上へ移した・並びは旧と同じ）。
+        w.AusterityIntensity = austerity;
     }
 
     // スライダーの5%刻み：0..1の目標を0.05単位に丸める（UI/AI共通の「つまみは20段」仕様）。

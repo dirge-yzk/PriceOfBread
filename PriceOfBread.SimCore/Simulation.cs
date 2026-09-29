@@ -207,7 +207,7 @@ public sealed class Simulation
         World.CornLaws = World.Policy.CornLaws;             // 穀物法の現在値＝初期値（農業国＝保護／自由貿易国＝なし）
         World.SerfEmancipation = World.Policy.SerfEmancipation;   // 農奴解放の現在値＝初期値（東欧＝未解放／西欧＝全面）
         World.ImmigrationRestriction = World.Policy.ImmigrationRestriction;   // 移民制限法の現在値＝初期値
-        World.MonetaryLaw = scenario.InitialMonetaryLaw;          // 通貨制度の現在値＝初期値（英＝金／他＝不換→AI が最初の四半期に銀へ）
+        World.MonetaryLaw = scenario.InitialMonetaryLaw;          // 通貨制度の現在値＝初期値（英＝金／他＝銀＝NationConfig の既定・2026-09-30 (119)＝助走は法を動かさない）
         World.Policy.MonetaryTarget = (int)World.MonetaryLaw;    // 目標も現在値に揃える（官僚制度と同じ＝翌期に巻き戻さない）
         // 軍事費の現在値＝初期目標（兵士の徴募/給与を駆動）。★陸海へ按分（2026-08-04）
         World.Policy.Bureaucracy = World.Bureaucracy;   // ★官僚制度の目標も初期値に揃える（Government が翌期に巻き戻さない・2026-08-04）

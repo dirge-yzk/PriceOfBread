@@ -154,6 +154,9 @@ public class StartWarmupTests
     /// ②開幕（既定の助走の後）の歳入÷年名目GDP＝欧州の6カ国（英・仏・蘭・西・墺・普）が 4〜14%・全ての国で25% 以下。
     /// ③開幕の直接税（歳入−関税−専売）÷年名目GDP＝清 0.5〜3%（地丁銀 約3,000万両＝GDP の約1.5〜2%）。
     /// ⚠消費税（専売）は法の段でなく AI の生産の決断（助走の間も毎四半期）＝開幕は教義の段2（奢侈品と役務）で年GDP の3〜12%（役務を含まない GDP で割る＝アジアの国で大きい）＝②の上限はこの分を含む。
+    /// ⚠蘭の上限は 18%（2026-09-30 (119)＝助走は法を動かさない）：旧は助走の5年で AI が所得税を上げて赤字を閉じ（歳入 7.8%）、新は1783年の直接税のまま＝国債 年GDP の約2倍の利払い
+    ///   （史実のホラントは歳入の約3分の2が利払い）で赤字＝AI の財政の逼迫の応答が専売を日用品まで広げる（段3＝専売 年GDP の約14%・歳入 16.5%）。
+    ///   段3（パン・ビール・泥炭・塩・石鹸の物品税＝gemene middelen）は史実の形・水準（標準率30%）が史実（歳入 約10%）の約1.6倍＝(109) の申し送り1（消費税の水準）が根。
     /// 突然変異：所得税を旧の10% へ→①が赤（①の所得税0 の行を外した写しで②も赤＝欧州の国が 14.9%）／world.json の段を読まない（全ての国を既定の段）→①が赤
     /// （③は清を既定の段にしても帯の内側＝段の取り違えは①が持つ・③は地丁銀の桁の錨）。</summary>
     [Fact]
@@ -184,10 +187,49 @@ public class StartWarmupTests
             return (w.LastRevenue - mon - tar) / w.NominalGdp;
         }
         foreach (var nm in new[] { "イギリス", "フランス", "ネーデルラント", "スペイン", "オーストリア", "プロイセン" })
-            Assert.InRange(Rev(names.IndexOf(nm)), 0.04, 0.14);
+            Assert.InRange(Rev(names.IndexOf(nm)), 0.04, nm == "ネーデルラント" ? 0.18 : 0.14);   // ⚠蘭の上限（2026-09-30 (119)）＝下の注記
         for (int i = 0; i < names.Count; i++)
             Assert.True(Rev(i) <= 0.25, $"{names[i]} の開幕の歳入が年GDP の {Rev(i):P1}（旧＝清 36.6%）");
         Assert.InRange(Direct(names.IndexOf("清")), 0.005, 0.03);
+    }
+
+    /// <summary>★助走は法を動かさない（2026-09-30 (119)・(109) の申し送り3）＝開幕の法は world.json と史実の初期値のまま始まる。
+    /// 法の施行は「年月をかけて起きること」（国庫・国債・人口・資本と同じ門）＝施行（<see cref="Government.Step"/>）は助走で走らない。
+    /// 旧＝政治だけを止め AI の目標と施行は回っていた＝5年の助走で所得税 0→0.02〜0.05・土地税の最上段 0.4→0.32・金利 0.25→0.02〜0.24・関税・官僚制・秘密投票・
+    /// 徴兵法・教育法・穀物法・国教・通貨（不換→銀）が動いた（seed 1789 で61カ国の全て）。
+    /// ①全ての国で、法の値（段の法の表・税と支出の段の表・陸海の維持費・関税・金利・行政費・治安維持力・福祉水準・年金・法に追従する実労働時間と賃金保持と児童労働の合法度）が
+    ///   助走の前後で1ビットも変わらない（表を読む＝軸を足しても番人から漏れない）。
+    /// ②開幕の通貨は英＝金・他の国＝銀（1783年の銀の世界＝データ。旧は不換で始まり、助走の最初の四半期に AI が銀へ上げていた）。
+    /// ③導出量は助走でも導出する＝英（国債 年GDP の約1.1倍）の緊縮の強度と全ての国の政治資本の最大量が開幕に0でない（施行と一緒に導出まで止めると構築の0のまま）。
+    /// 突然変異：施行の門を外す→①が赤／通貨の既定を不換へ戻す→②が赤／門を導出の前へ上げる→③が赤。</summary>
+    [Fact]
+    public void 助走は法を動かさない()
+    {
+        static System.Collections.Generic.List<(string Name, long Bits)> Laws(World w)
+        {
+            var v = new System.Collections.Generic.List<(string, long)>();
+            for (int k = 0; k < Government.LevelLaws.Length; k++) v.Add(($"{Government.LevelLaws[k].Axis}#{k}", Government.LevelLaws[k].Get(w)));
+            foreach (var law in Government.RateLaws) v.Add((law.Axis.ToString(), System.BitConverter.DoubleToInt64Bits(law.Get(w))));
+            void D(string name, double x) => v.Add((name, System.BitConverter.DoubleToInt64Bits(x)));
+            D("陸軍維持費", w.ArmyUpkeep); D("海軍維持費", w.NavyUpkeep); D("関税", w.Tariff); D("金利", w.InterestRate); D("行政費", w.AdminSpending);
+            D("治安維持力", w.BaseCoercion); D("福祉水準", w.SocialSecurity); D("実労働時間", w.WorkHoursValue); D("賃金保持", w.WomenWageRetention); D("児童労働の合法度", w.ChildLaborLegal);
+            v.Add(("年金", (long)w.Pension));
+            return v;
+        }
+        var sim = Build();
+        var before = sim.Nations.Select(n => Laws(n.World)).ToArray();
+        sim.StartWarmup();
+        for (int i = 0; i < sim.Nations.Count; i++)
+        {
+            var w = sim.Nations[i].World;
+            var after = Laws(w);
+            for (int k = 0; k < after.Count; k++)
+                Assert.True(before[i][k].Bits == after[k].Bits, $"{w.SelfPower?.Name} の {after[k].Name} が助走で動いた（{before[i][k].Bits}→{after[k].Bits}）");
+            Assert.Equal(w.SelfPower?.Name == "イギリス" ? MonetaryStandardLaw.Gold : MonetaryStandardLaw.Silver, w.MonetaryLaw);
+            Assert.True(w.PoliticalCapitalMax > 0, $"{w.SelfPower?.Name} の政治資本の最大量が助走で導出されていない");
+        }
+        var uk = sim.Nations.First(n => n.World.SelfPower?.Name == "イギリス").World;
+        Assert.True(uk.AusterityIntensity > 0.5, $"英の緊縮の強度が助走で導出されていない（{uk.AusterityIntensity}）");
     }
 
     [Fact]
