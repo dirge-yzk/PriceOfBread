@@ -139,19 +139,23 @@ public class WriterRatchetTests
     private static readonly Lazy<long[]> Cost40 = new(() => SelfPlayMatch.Run(1, 40, null, lean: true).Cost ?? new long[CostLedger.Count]);
 
     [Theory]
-    // 表＝2026-09-30 の実測（宣言）。
-    [InlineData(CostLedger.PriceGoods, 22505040L)]
+    // 表＝2026-09-30 の実測（宣言・計器なしの全長の報告と同じ道）。
+    // ★2026-09-30 表の更新（＝改善の宣言・計算量の予算 第1回＝恒等の手）：
+    //   価格の財の歩 22,505,040→15,536,007（死んだ財を一覧で回さない＝Region.LiveGoods）・建設 19,761,052→28,231（工事中の一覧＝Region.BuildSites）・
+    //   消費 97,521,840→29,300,830（必要の無い財の POP のループを飛ばす）・請求 9,037,980→9,688（国営持分の請求の一覧＝Region.StateSites）・
+    //   覇権の判定 7,460,493→1,706,531（陣営戦力の閾値は同盟の候補が居るときだけ・従属の離反は安い条件から）。他の10本は1件も変わらない（軌道が同じ）。
+    [InlineData(CostLedger.PriceGoods, 15536007L)]
     [InlineData(CostLedger.PriceDailyRuns, 40223878L)]
-    [InlineData(CostLedger.ConstructionSeen, 19761052L)]
+    [InlineData(CostLedger.ConstructionSeen, 28231L)]
     [InlineData(CostLedger.CreditSpans, 33138L)]
-    [InlineData(CostLedger.ConsumePopGoods, 97521840L)]
+    [InlineData(CostLedger.ConsumePopGoods, 29300830L)]
     [InlineData(CostLedger.ProducerMonths, 9037980L)]
-    [InlineData(CostLedger.ClaimProducers, 9037980L)]
+    [InlineData(CostLedger.ClaimProducers, 9688L)]
     [InlineData(CostLedger.MonthlyPops, 706680L)]
     [InlineData(CostLedger.ClearingRows, 5613576L)]
     [InlineData(CostLedger.ClearingFills, 44882844L)]
     [InlineData(CostLedger.DiploPowerMonths, 9906L)]
-    [InlineData(CostLedger.DiploHegemonScans, 7460493L)]
+    [InlineData(CostLedger.DiploHegemonScans, 1706531L)]
     [InlineData(CostLedger.QuarterStartPops, 235560L)]
     [InlineData(CostLedger.QuarterEndPops, 235560L)]
     [InlineData(CostLedger.SharedNationQuarters, 3682L)]

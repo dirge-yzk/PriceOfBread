@@ -289,7 +289,20 @@ public sealed class Producer
     public double Scale = 1.0;     // 操業規模（企業の参入退出）。採算で伸縮：採算良→拡張・採算悪→縮小（≒閉鎖）。労働配分の重みに掛かり、閉鎖工場は労働を採算の良い財へ解放（§9-A 仕組み4）
     public double SmoothedMargin;  // 数期移動平均の採算＝(価格−限界費用)/限界費用 のEMA。倒産判定に使う（一過性の赤字では潰れない）
     public bool Bankrupt;          // 倒産（操業停止・産出0・労働解放）。慢性赤字で倒産し、価格が原価を上回れば新規参入で再開＝有限責任（§9-A 仕組み4 拡張）
-    public double BuiltScale;      // プレイヤーが建設した工場容量（Scaleの下限＝離散工場・Vic2型）。建設で増え、建てた工場は操業を続ける
+    /// <summary>プレイヤーが建設した工場容量（Scaleの下限＝離散工場・Vic2型）。建設で増え、建てた工場は操業を続ける。
+    /// ★書き込みで印を立てる（2026-09-30 計算量の予算）：「国営持分を持ちうるか」（&gt;1e-9）が変わる書き込みは、州の工事と国営持分の一覧（<see cref="Region.StateSites"/>）を作り直す印を立てる。</summary>
+    public double BuiltScale
+    {
+        get => _builtScale;
+        set
+        {
+            if (_siteRegion is { } sr && (value > 1e-9) != (_builtScale > 1e-9)) sr.SitesDirty = true;
+            _builtScale = value;
+        }
+    }
+    private double _builtScale;
+    /// <summary>作業領域（[NonSerialized]・セーブに載らない）：この生産者を載せた州（一覧を作った時に付ける・生産者は州をまたがない）＝印の宛先。</summary>
+    [System.NonSerialized] internal Region? _siteRegion;
     // ★休止（mothball・AI審査2-6・2026-08-31）：BuiltScale のうち操業を止めている割合（0..FactoryMothballCap×民営持分）。
     //   建てた工場は倒産免除＋床で全稼働を強制されるため、慢性赤字が資本家の負債へ垂れ流しになる欠落の是正＝
     //   設備は残る（BuiltScale不変）が床が (1−MothballFrac) 倍に縮む＝維持労働と産出だけ止まり、採算が戻れば同率で再開。
@@ -300,7 +313,19 @@ public sealed class Producer
     // 目標>現在なら World.StepStateTargets が着工を試み（国庫・建材採算・技術ゲートが速度を決める）、
     // 目標<現在なら1棟ずつ払い下げる。プレイヤーもAIも同じこの1本の動詞（World.SetStateTarget）を操作する。
     public int StateTarget;
-    public double ConstructionLeft;   // 建設残り**日数**（>0＝建設中）。日次で減り、完成で BuiltScale が1棟増える＝建設は数年かかる
+    /// <summary>建設残り**日数**（&gt;0＝建設中）。日次で減り、完成で BuiltScale が1棟増える＝建設は数年かかる。
+    /// ★書き込みで印を立てる（2026-09-30 計算量の予算）：「工事中か」（&gt;0 と ≦0 の両方の述語＝NaN も）が変わる書き込みは、州の工事中の一覧
+    /// （<see cref="Region.BuildSites"/>）を作り直す印を立てる＝着工・完成・テストの直書きを1か所で拾う（セーブの読み込みは一覧が空から作り直し・州の移転は一覧が州ごと移る）。</summary>
+    public double ConstructionLeft
+    {
+        get => _constructionLeft;
+        set
+        {
+            if (_siteRegion is { } sr && ((value > 0) != (_constructionLeft > 0) || (value <= 0) != (_constructionLeft <= 0))) sr.SitesDirty = true;
+            _constructionLeft = value;
+        }
+    }
+    private double _constructionLeft;
     public double ConstructionPayPerDay;   // 建設の1日あたり支払い（国庫→工員＝労務費。素材費でなく労務費）
     // 補助金（2026-07-19に率へ拡張）：民間持分の赤字のうちこの率を国庫が肩代わり。満額(1.0)なら旧boolのONとビット同値
     // （赤字全額肩代わり＋採算floor0＝操業維持）。部分率は損失を率ぶんだけ緩和＝深い赤字なら倒産もありうる。
@@ -328,14 +353,39 @@ public sealed class Market
     public double TargetStock;
 
     public double PrevStock;
-    public double LastProduced;
+    /// <summary>今期の産出。★書き込みで印を立てる（2026-09-30 計算量の予算）：「死んだ財か」（需要も産出も 1e-9 未満＝国内価格が動かさない財）が
+    /// 変わる書き込みは、州の死んでいない財の一覧（<see cref="Region.LiveGoods"/>）を作り直す印を立てる。</summary>
+    public double LastProduced
+    {
+        get => _lastProduced;
+        set
+        {
+            if (_liveRegion is { } lr && (_lastDemand < DeadEps && value < DeadEps) != (_lastDemand < DeadEps && _lastProduced < DeadEps)) lr.LiveDirty = true;
+            _lastProduced = value;
+        }
+    }
+    private double _lastProduced;
     public double LastSold;
     public double LastShortage;
     public double LastImport;   // 今期の輸入量（§5.1・財収支に算入）
     public double LastExport;   // 今期の輸出量
     public double PrevImport;   // ★S2台帳衛生（TradeLedgerFix・2026-08-30）：前清算の輸入量。ゼロ化(:EconomyStep)直前に退避＝清算外の読み手（人口の主食純輸入）が常に0を見る非対称の是正。読み手はTradeLedgerFix>0のみ
     public double PrevExport;   // 同・前清算の輸出量
-    public double LastDemand;   // 前期の総需要（消費＋投入）。次期の労働配分の重み（持続・リセットしない）
+    /// <summary>前期の総需要（消費＋投入）。次期の労働配分の重み（持続・リセットしない）。★書き込みで印を立てる（<see cref="LastProduced"/> と同じ）。</summary>
+    public double LastDemand
+    {
+        get => _lastDemand;
+        set
+        {
+            if (_liveRegion is { } lr && (value < DeadEps && _lastProduced < DeadEps) != (_lastDemand < DeadEps && _lastProduced < DeadEps)) lr.LiveDirty = true;
+            _lastDemand = value;
+        }
+    }
+    private double _lastDemand;
+    /// <summary>死んだ財の境（<see cref="MarketFlow"/> の「需要も産出も Eps 未満なら動かさない」と同じ 1e-9）。</summary>
+    internal const double DeadEps = 1e-9;
+    /// <summary>作業領域（[NonSerialized]・セーブに載らない）：この市場を死んでいない財の一覧に載せた州＝印の宛先。</summary>
+    [System.NonSerialized] internal Region? _liveRegion;
     public double ReservationWage;  // 留保賃金＝労働者が慣れた賃金の下限（労働財のみ使用）。賃上げに速く・賃下げに遅く追従＝下方硬直の創発源
     // 配給率の記帳（作者指示2026-08-10「生産コスト欄の各材に供給率を出す」）＝EconomyStep のクリアリングが決めた
     // その月のこの財の配給率 ration[gi]（買い手が欲しかった量のうち実際に渡った比）。Producer.LastMaterialFill は
@@ -616,6 +666,64 @@ public sealed class Region
     public List<Pop> Pops = [];
     public List<Producer> Producers = [];
     public Market[] Markets = [];
+
+    // ★起きている物だけ回す（2026-09-30 作者裁定「計算量の予算」・恒等）＝州の作業領域の一覧。状態ではない＝セーブに載らない（[NonSerialized]＝ロード後は null から作り直す）。
+    //   起こすのは理由＝書き込みの印（Producer.ConstructionLeft／BuiltScale・Market.LastDemand／LastProduced の setter が「述語が変わる書き込み」で印を立てる）。タイマーは無い。
+    //   一覧は州に付く＝州が国をまたいでも（Territory.TransferRegion）一覧ごと移る（国の側で作り直す必要が無い）。
+    /// <summary>工事中の一覧＝!(ConstructionLeft≦0) の生産者を州の生産者の順に（World.StepConstruction が読む）。</summary>
+    [System.NonSerialized] internal Producer[]? BuildSites;
+    /// <summary>国営持分の請求の一覧＝工事中か BuiltScale&gt;1e-9 の生産者を州の生産者の順に（月初の国家の支払いの請求＝Simulation が読む）。
+    /// それ以外の生産者は請求に 0.0×赤字（有限）を足すだけ＝飛ばしても和は1ビットも変わらない（国有化の枝が生きる州は全件へ戻す＝呼び手）。</summary>
+    [System.NonSerialized] internal Producer[]? StateSites;
+    [System.NonSerialized] internal bool SitesDirty;
+    /// <summary>印が立っていれば（または未作成なら）2つの一覧を作り直す。作るときに生産者へ宛先（この州）を付ける。</summary>
+    internal void EnsureSites()
+    {
+        if (BuildSites is not null && !SitesDirty) return;
+        int nb = 0, ns = 0;
+        foreach (var p in Producers)
+        {
+            p._siteRegion = this;
+            bool b = !(p.ConstructionLeft <= 0);
+            if (b) nb++;
+            if (b || p.BuiltScale > 1e-9) ns++;
+        }
+        var bs = nb == 0 ? System.Array.Empty<Producer>() : new Producer[nb];
+        var ss = ns == 0 ? System.Array.Empty<Producer>() : new Producer[ns];
+        int ib = 0, iss = 0;
+        foreach (var p in Producers)
+        {
+            bool b = !(p.ConstructionLeft <= 0);
+            if (b) bs[ib++] = p;
+            if (b || p.BuiltScale > 1e-9) ss[iss++] = p;
+        }
+        BuildSites = bs; StateSites = ss; SitesDirty = false;
+    }
+
+    /// <summary>死んでいない財の一覧＝Goods の順のうち「需要も産出も 1e-9 未満」でない財（MarketFlow.StepDay が読む＝死んだ財は今も continue で動かさない＝回さないだけ）。</summary>
+    [System.NonSerialized] internal Good[]? LiveGoods;
+    [System.NonSerialized] internal bool LiveDirty;
+    /// <summary>印が立っていれば（または未作成なら）作り直す。作るときに市場へ宛先（この州）を付ける。</summary>
+    internal Good[] EnsureLiveGoods()
+    {
+        if (LiveGoods is { } lg && !LiveDirty) return lg;
+        int n = 0;
+        foreach (var g in Goods)
+        {
+            var m = Markets[g.Id];
+            m._liveRegion = this;
+            if (!(m.LastDemand < Market.DeadEps && m.LastProduced < Market.DeadEps)) n++;
+        }
+        var arr = n == 0 ? System.Array.Empty<Good>() : new Good[n];
+        int i = 0;
+        foreach (var g in Goods)
+        {
+            var m = Markets[g.Id];
+            if (!(m.LastDemand < Market.DeadEps && m.LastProduced < Market.DeadEps)) arr[i++] = g;
+        }
+        LiveGoods = arr; LiveDirty = false;
+        return arr;
+    }
 
     // 財Id→Good の直引き（遅延構築）。Goods は構築後に増減しない＝安全。線形探索 Goods.Find(x=>x.Id==id) の O(財数) を O(1) に（Gdp等のホットパス高速化）。
     private Good?[]? _goodById;

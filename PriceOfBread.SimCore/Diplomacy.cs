@@ -14,6 +14,11 @@ public sealed class Power
     public bool SpawnedDuringPlay;
     public bool IsPlayer;
     public World? Nation;         // 背後の経済（多国シミュ）。null＝抽象的な外国（静的）
+    // ★四半期末の同期の窓の GDP（2026-09-30 計算量の予算・作業領域＝セーブに載らない）：同じ窓（MultiNationSim が四半期末に外交を3回まわす同じ瞬間）で
+    //   州の並びが同じなら GDP は同じ値＝使い回す（Diplomacy.Step の同期）。
+    [System.NonSerialized] internal int _syncGdpWindow;
+    [System.NonSerialized] internal double _syncGdp;
+    [System.NonSerialized] internal Region[]? _syncGdpRegions;
     public double Military;       // 陸海軍の総合ゲージ
     public double NavalShare;     // 海軍シェア（0..1。Military のうち海軍が占める割合＝地理から創発。陸軍力=Military×(1−NavalShare)。B-1）
     // ★海軍力（点火2026-08-01・作者裁定「**陸軍は兵士ありきですが、海軍は戦艦ありきです。海軍の強さが海兵の数から決まるのはナンセンス**」）。
@@ -771,6 +776,29 @@ public sealed class Diplomacy
         rw.Pay(TreasuryCat.WarCost, prize); rw.CumulativeTradeFlow += prize;   // 制海国＝拿捕賞金の対外流入（保存・区分＝戦費）
     }
 
+    // ★四半期末の同期の窓（2026-09-30 作者裁定「計算量の予算」・恒等・作業領域＝セーブに載らない）：MultiNationSim は四半期末に外交を3回（月次の歩）
+    //   同じ瞬間にまわす＝その間に経済は進まない。GDP（World.Gdp＝稼働中の州の生産者の産出×参照価格の和）の入力のうち、産出の書き手は月次決算の EconomyStep だけ・
+    //   州の状態の書き手は月次の Territory.Step だけ＝外交の中で変わりうるのは州の並び（講和の割譲・遷都＝Territory.TransferRegion・World の州の入れ替え）だけ
+    //   ＝窓の中で州の並びが同じ国は1回目の値を使い回す（旧＝3回とも全ての生産者を足し直した）。窓の外（単独の Step 呼び）は毎回求める＝旧と同じ。
+    //   ⚠文化と宗教の多数派は使い回さない（戦死で POP の規模が窓の中で動く＝重みが変わる）・海軍比の平滑と艦隊の摩耗は状態を持つ＝触らない。
+    [System.NonSerialized] private int _syncWindow, _syncWindowSeq;
+    internal void BeginQuarterSyncWindow() => _syncWindow = ++_syncWindowSeq;
+    internal void EndQuarterSyncWindow() => _syncWindow = 0;
+    private double SyncGdp(Power p, World nw)
+    {
+        if (_syncWindow == 0) return nw.Gdp;
+        var regs = nw.Regions;
+        if (p._syncGdpWindow == _syncWindow && p._syncGdpRegions is { } snap && snap.Length == regs.Count)
+        {
+            bool same = true;
+            for (int i = 0; i < snap.Length; i++) if (!ReferenceEquals(snap[i], regs[i])) { same = false; break; }
+            if (same) return p._syncGdp;
+        }
+        double g = nw.Gdp;
+        p._syncGdpWindow = _syncWindow; p._syncGdp = g; p._syncGdpRegions = [.. regs];
+        return g;
+    }
+
     public void Step(Coefficients c, DeterministicRng rng, int month)
     {
         Cost[CostLedger.DiploPowerMonths] += Powers.Count;   // 計算量の台帳（診断）：外交の月の歩は国×月に比例
@@ -778,7 +806,7 @@ public sealed class Diplomacy
         foreach (var p in Powers)
         {
             if (p.Nation is not { } nw) { p.NavalShare = c.AbstractNavalShare; continue; }   // 抽象標的＝弱小海軍（陸の守りが主・B-1）
-            p.Gdp = nw.Gdp;
+            p.Gdp = SyncGdp(p, nw);   // 四半期末の窓の中で州の並びが同じなら1回目の値（上の SyncGdp の注記）
             // 軍隊規模＝兵士POP数（軍事費が徴募）。即応度（兵士の充足）が乗数＝給与/補給が切れた軍は大幅に弱い。
             // 扶養限界＝大軍は給与（民間賃金×兵数）を要し、払えなければ充足が落ち戦力が下がる（経済が要る）。治安維持力（警察）とは分離。
             // 軍の質の3因子＝ArmyShape.Quality の1本（★2026-09-26 棚卸し mil-13＝旧＝同じ式の写しがここにあり、制度疲労の門だけが食い違っていた）：
@@ -1246,8 +1274,11 @@ public sealed class Diplomacy
             // ★猶予タイマーの物理置換（2026-09-06・vassal0 腕＝列強再現−8/貿易−4 で振動を確認）：離反と屈服が別の物差し（離反＝単独軍 vs 投射陸軍×0.5／
             //   屈服＝陣営戦力3倍差）だったので「離反→即再屈服」の振動を猶予年数が隠していた。器>0 では**屈服と同じ物差し**で「離反しても再屈服する状況なら離反しない」
             //   （SideMilitary×AISubmitMilRatio＝屈服判定と同一述語）。0＝従来。
-            bool wouldResubmit = c.VassalDefectionUsesSubmitMeasure > 0 && SideMilitary(s, d, c) > SideMilitary(d, s, c) * c.AISubmitMilRatio;
-            if (!wouldResubmit && d.Military > hold + 1e-9 && Politics.AvgMassMilitancy(d.Nation) > c.VassalDefectionMilitancy)
+            // ★評価の順（2026-09-30 作者裁定「計算量の予算」・恒等）：3つの条件（軍が抑えを上回る・闘争度・再屈服しない）はどれも読むだけの純関数
+            //   ＝論理積は順に依らない。安い2つを先に見て、陣営戦力（SideMilitary×2＝覇権の判定を含む＝この段の時間の98%〔この回の計器〕）は
+            //   両方が成り立った組だけで引く（旧＝全ての組で毎月引いた）。
+            if (d.Military > hold + 1e-9 && Politics.AvgMassMilitancy(d.Nation) > c.VassalDefectionMilitancy
+                && !(c.VassalDefectionUsesSubmitMeasure > 0 && SideMilitary(s, d, c) > SideMilitary(d, s, c) * c.AISubmitMilRatio))
             {
                 RemoveDependency(s, d);
                 AddTension(s, d, DefectionTensionResidue, TensionReason.Defection);   // 離反は遺恨を残す
@@ -1413,11 +1444,15 @@ public sealed class Diplomacy
     {
         double m = p.Military;
         if (c.SubmitCountsAllies <= 0) return m;
-        double jt = AllyJoinThreshold(foe, c);
+        // ★参戦の閾値（覇権の判定＝国×国）は同盟の候補が居たときに初めて引く（2026-09-30 作者裁定「計算量の予算」・恒等）：
+        //   AllyJoinThreshold は読むだけの純関数＝どこで引いても同じ値・閾値と比べる前に引く順は旧と同じ。同盟の無い国（大半）は引かない。
+        double jt = 0; bool jtKnown = false;
         foreach (var ally in Powers)
-            if (ally != p && ally != foe && HasAlliance(p, ally) && !AtWar(ally, foe)
-                && Tension(ally, foe) >= jt)
-                m += ally.Military;
+            if (ally != p && ally != foe && HasAlliance(p, ally) && !AtWar(ally, foe))
+            {
+                if (!jtKnown) { jt = AllyJoinThreshold(foe, c); jtKnown = true; }
+                if (Tension(ally, foe) >= jt) m += ally.Military;
+            }
         return m;
     }
 

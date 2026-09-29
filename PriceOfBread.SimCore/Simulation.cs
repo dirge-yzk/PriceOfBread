@@ -1643,6 +1643,15 @@ public sealed class Simulation
         }
     }
 
+    /// <summary>月初の国家の支払いの請求のうち生産者1件の分（工事の工賃の1か月分・国営持分の赤字の見込み）＝旧の州×生産者のループの本体そのもの
+    /// （2つの足し算を同じ順で＝和は1ビットも変わらない）。</summary>
+    private static void AddStateClaim(Producer pr, Region r, World w, ref double claims)
+    {
+        if (pr.ConstructionLeft > 0) claims += pr.ConstructionPayPerDay * Calendar.DaysPerMonth;   // 工事の工賃の1か月分（World.StepConstruction）
+        double loss = pr.LastCost - pr.LastRevenue;
+        if (loss > 0) claims += World.StateProfitShare(pr, r, w.Coef) * loss;   // 国営持分の赤字の見込み（先月の損益）
+    }
+
     /// <summary>稼働中の州の POP の件数（計算量の台帳の四半期の計数だけが読む＝診断）。</summary>
     private int ActivePopCount()
     {
@@ -2094,12 +2103,21 @@ public sealed class Simulation
                         + r.StateBuildQueue + r.MonumentBuildQueue + r.HigherEduFunding
                         + regrow * (Math.Max(0, r.StateSpent[(int)TreasuryCat.Education]) + Math.Max(0, r.StateSpent[(int)TreasuryCat.Welfare])       // 先月の義務教育・健康保険
                                   + Math.Max(0, r.StateSpent[(int)TreasuryCat.FactoryBuild]) + Math.Max(0, r.StateSpent[(int)TreasuryCat.Subsidy]));   // 先月の工場の材料・民営の補助
-                World.Cost[CostLedger.ClaimProducers] += r.Producers.Count;   // 計算量の台帳（診断）：請求で見る生産者
-                foreach (var pr in r.Producers)
+                // ★国営持分の請求の一覧（2026-09-30 作者裁定「計算量の予算」・恒等）：旧＝州の全ての生産者を毎月走査した（census＝請求に効いた生産者は10.2%）。
+                //   一覧 Region.StateSites＝工事中か BuiltScale>1e-9 の生産者を州の生産者の順に。一覧の外の生産者は StateProfitShare＝0.0（BuiltScale≦1e-9・国有化の枝が死んでいる）
+                //   ＝赤字（有限）に 0.0 を掛けた +0.0 を足すだけ＝請求は1ビットも変わらない（請求は正の予算の和から始まる＝−0.0 にならない）。和の順（州→生産者）も同じ。
+                //   ⚠国有化の枝（NationalizationSeizureRate≦0 かつ州に国有化の印）が生きる州は BuiltScale の無い生産者にも持分がつく＝旧の全件の走査へ戻す。
+                if (World.Coef.NationalizationSeizureRate <= 0 && r.NationalizedMask != 0)
                 {
-                    if (pr.ConstructionLeft > 0) claims += pr.ConstructionPayPerDay * Calendar.DaysPerMonth;   // 工事の工賃の1か月分（World.StepConstruction）
-                    double loss = pr.LastCost - pr.LastRevenue;
-                    if (loss > 0) claims += World.StateProfitShare(pr, r, World.Coef) * loss;   // 国営持分の赤字の見込み（先月の損益）
+                    World.Cost[CostLedger.ClaimProducers] += r.Producers.Count;   // 計算量の台帳（診断）：請求で見る生産者
+                    foreach (var pr in r.Producers) AddStateClaim(pr, r, World, ref claims);
+                }
+                else
+                {
+                    r.EnsureSites();
+                    var sites = r.StateSites!;
+                    World.Cost[CostLedger.ClaimProducers] += sites.Length;   // 計算量の台帳（診断）：請求で見る生産者＝国営持分の請求の一覧
+                    foreach (var pr in sites) AddStateClaim(pr, r, World, ref claims);
                 }
             }
         double payable = Math.Max(0, World.Treasury) + World.LastRevenue;

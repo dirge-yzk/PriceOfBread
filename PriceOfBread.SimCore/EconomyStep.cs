@@ -1350,7 +1350,7 @@ public static class EconomyStep
         foreach (var p in region.Pops) if (p.ClassId >= popClassLen) popClassLen = p.ClassId + 1;
         // ★特権 段4（同業組合・2026-09-07）：職人の自営レシピの財ごとの供給シェア。唯一定義＝GuildShares（ProductionDiag も同じものを呼ぶ）
         double[]? guildShare = GuildShares(region, coef, world, out double guildDeg);
-        if (costL is not null) costL[CostLedger.ConsumePopGoods] += (long)ngoods * region.Pops.Count;   // 計算量の台帳（診断）：消費で見る POP×財
+        int consumedGoods = 0;   // POP のループを回した財（必要の無い財を除く）＝計算量の台帳の「消費：POP×財」（財のループの後にまとめて足す）
         for (int coi = 0; coi < ngoods; coi++)
         {
             var good = consumeOrder[coi];
@@ -1409,7 +1409,18 @@ public static class EconomyStep
                 effBaseNeed = coef.HousingNeedPerUrban * housingGate;
             }
             double popDemand = 0;
+            // ★必要の無い財（2026-09-30 作者裁定「計算量の予算」・恒等）：基礎の必要（技術の門・住居の都市化の門の後）が 0 の財は、どの POP の必要も
+            //   0×規模＝0・買う量も0＝下の POP のループ（需要）と後段の POP のループ（支払いと充足の台帳）は 0 を書くか +0.0 を足すだけ（census＝POP×財の72.7%）。
+            //   ⚠ p.GoodNeed・p.GoodDemand は財ごとの作業欄＝飛ばすと前の財の値が残る＝この財の後段で2つを読むループも一緒に飛ばす
+            //     （新聞は識字・教育と高等教育は子供と識字・阿片は困窮から必要を作る＝対象外。役務の優先配分〔BaseNeed>0 の役務・高等教育〕も対象外＝常に回す）。
+            //   ラジオの充足は必要が0なら0＝飛ばしても同じ0を書く（下）。月末に残る作業欄の値は読み手が無い（次に読む前に同じ財の値で上書き）。
+            bool needless = effBaseNeed == 0.0
+                && gi != Catalog.EducationId && gi != Catalog.HigherEducationId && gi != Catalog.NewspaperId
+                && !(gi == coef.OpiumGoodId && coef.OpiumAddictionGrowth > 0)
+                && !(isService[gi] && (good.BaseNeed > 0 || gi == Catalog.HigherEducationId));
+            if (!needless) consumedGoods++;
             int pIdx = -1;   // 阿片の困窮ゲートが前月の補給の充足（lastSupply）を引く添字
+            if (!needless)
             foreach (var p in region.Pops)
             {
                 pIdx++;
@@ -1489,7 +1500,7 @@ public static class EconomyStep
             if (gi == Catalog.NewspaperId)
                 foreach (var p in region.Pops) p.NewsFill = p.GoodNeed > Eps ? PoliticalQuantities.Clamp01(p.GoodDemand * ration[gi] / p.GoodNeed) : 0;
             else if (gi == Catalog.RadioId)
-                foreach (var p in region.Pops) p.RadioFill = p.GoodNeed > Eps ? PoliticalQuantities.Clamp01(p.GoodDemand * ration[gi] / p.GoodNeed) : 0;
+                foreach (var p in region.Pops) p.RadioFill = !needless && p.GoodNeed > Eps ? PoliticalQuantities.Clamp01(p.GoodDemand * ration[gi] / p.GoodNeed) : 0;   // 必要の無い財＝必要0＝0（作業欄は前の財の値＝読まない）
             if (housingGood) region.HousingFill = housingGate > 0 ? ration[gi] : 1.0;   // 住居充足＝移民摩擦へ。都市化ゲート未満の州＝住居需要なし＝過密なし(1.0)
             // （レビュー2026-07-19 HIGH：旧は ration=0/0=0 を全農村州に書き、摩擦0.5点火で農村の移民引力だけ×0.5＝「過密都市は流入が鈍る」の意図が逆転しロンドン一強を強化していた）
             // 効率化材は**最低優先**＝コアを満たした残余だけ買える（工具を機械が先取り→建設は遅延しない）。
@@ -1628,6 +1639,9 @@ public static class EconomyStep
                 //     ＝飢饉の物理（死亡・疫病・移民・扶養力・天命の dmFood）は1本のままで、移るのは政治的帰結だけ。
                 bool foodTier = staple || foodNonStaple;
                 double needW = foodTier ? 0.0 : good.Tier switch { GoodTier.Daily => coef.DailyNeedWeight, GoodTier.Luxury => coef.LuxuryNeedWeight, _ => 1.0 };
+                // 必要の無い財（上の needless）＝どの POP も買う量0・必要0＝このループは支払い・売上・国庫・台帳へ +0.0 を足し（各欄は月初に +0 から積む＝−0 にならない）、
+                //   0 の特権の取り分を捨て（Privileges.Record は正の額だけ）、充足の台帳（GoodNeed>Eps）に入らない＝回さない（作業欄は前の財の値＝読まない）。
+                if (!needless)
                 foreach (var p in region.Pops)
                 {
                     double qty = p.GoodDemand * ration[gi];
@@ -1706,6 +1720,7 @@ public static class EconomyStep
             //   クリアリングと所得決済（金の動き）だけを担い、価格は鼓動（日次）が需給を読んで少しずつ動かす（三層時計）。
             //   ★2026-09-26 A3：鼓動の刻みは旬（PriceFlowStepDays 日ごとに h 日ぶんを1歩）＝この決算が読む価格は今までと同じ「月の30日ぶん寄せた価格」。
         }
+        if (costL is not null) costL[CostLedger.ConsumePopGoods] += (long)consumedGoods * region.Pops.Count;   // 計算量の台帳（診断）：消費で見た POP×財（必要の無い財を除く）
         // ★純テレメトリ（2026-08-21）：全財を買い終えた時点の**使い残し**。予算が binding なら 0 に張り付く。
         if (BudgetBindDiag.On)
         {

@@ -678,7 +678,11 @@ public sealed class MultiNationSim
             if (_coef.ThreatRailTargetWeight > 0) StepSecurityThreat();   // ★安保手順3（2026-08-30点火＝既定1）：脅威の観測（=0なら1命令も走らない。threatprobe と同式）
             UpdateTradeWeights(); ProbeDiff("交易比重");                // 外1：交易比重を貿易取扱高のシェア（LastExportValue+LastImportValue の EMA）から四半期同期（TradeWeightDynamic=0 で1789固定値を維持＝恒等）
             if (!DiplomacyFrozen)
+            {
+                Diplomacy.BeginQuarterSyncWindow();   // ★同じ瞬間の3回＝GDP の同期を使い回す窓（2026-09-30 計算量の予算・恒等＝Diplomacy.SyncGdp）
                 for (int m = 0; m < Calendar.MonthsPerQuarter; m++) { Diplomacy.Step(_coef, Rng, _quarter * Calendar.MonthsPerQuarter + m); ProbeDiff($"外交m{m}"); }   // 共有外交を月次3回（戦争の月次カデンス）。凍結中＝経済助走で戦争・緊張を進めない
+                Diplomacy.EndQuarterSyncWindow();
+            }
             StepCanals(); ProbeDiff("運河");   // 海峡・運河：扼者を解決し、運河は host 保有国の資本家が建設（§B）
             // ★助走中は巨大建造物を進めない（2026-08-10 追加裁定＝能力の凍結）。着工も進捗も完成効果（工業化度・耕地・送電容量）も
             //   「年月をかけて建つ」もの＝暦の進まない助走で建ててはいけない。1783年は技術ゲートでほぼ全件が未解禁＝需要への影響も無い。

@@ -1689,9 +1689,14 @@ public sealed class World
         var cost = Cost;   // 計算量の台帳（診断・この国の台帳＝並列の日次相でも国ごと）
         foreach (var r in Regions)
         {
-            int scan = 0; while (scan < r.Producers.Count && !(r.Producers[scan].ConstructionLeft > 0)) scan++;
-            bool building = scan < r.Producers.Count;
-            cost[CostLedger.ConstructionSeen] += building ? scan + 1 : scan;   // 工事中の棟を探して見た生産者
+            // ★工事中の一覧（2026-09-30 作者裁定「計算量の予算」・恒等）：旧＝州の全ての生産者（1州 約130〜170）を毎回走査して工事中の棟を探した
+            //   （census＝建設の時間の69.5% は工事中の棟の無い州の走査・走査の0.22% だけが工事中）。一覧＝!(ConstructionLeft≦0) の生産者を州の生産者の順に
+            //   （Region.EnsureSites＝着工・完成・直書きは ConstructionLeft の書き込みの印で作り直す）＝旧の2つのループが見る集合と順序そのもの
+            //   （「工事中か」の走査は ConstructionLeft>0 の生産者を必ず含む・本体は !(≦0) の生産者だけを処理した）＝支払いの和の順も同じ＝結果は1ビットも変わらない。
+            r.EnsureSites();
+            var sites = r.BuildSites!;
+            cost[CostLedger.ConstructionSeen] += sites.Length;   // 見た生産者＝工事中の一覧
+            bool building = false; foreach (var p in sites) if (p.ConstructionLeft > 0) { building = true; break; }
             if (!building) continue;   // 工事中の棟が無い州は採算率（Math.Pow）を評価しない
             // 素材束（鋼・機械・セメント・製材）の高騰では建設を**崖でなく連続に絞る**（採算の連続判断）。進捗は採算率に比例した日数で進む
             // ＝材料が半減点を超えるほど工事がゆっくりになり、需要減→価格低下で自然に律速（停止/再開のオン・オフ振動を排除）。
@@ -1706,8 +1711,7 @@ public sealed class World
                 buildAfford = Coef.FactoryBuildProgress(cpuNow, cpuRef, r.PriceLevel);   // ★裁定②＝FactoryBuildPriceGateScale で混合（1＝恒等・0＝価格を見ずに進む）
             }
             if (buildAfford <= 1e-9) continue;
-            cost[CostLedger.ConstructionSeen] += r.Producers.Count;   // 工事を進めるために見た生産者（州の全て）
-            foreach (var p in r.Producers)
+            foreach (var p in sites)   // 一覧は配列の写し＝完成で ConstructionLeft が0になると印が立ち次の呼び出しで作り直す（この呼び出しの中の順は旧と同じ）
             {
                 if (p.ConstructionLeft <= 0) continue;
                 // ★工賃は国家の支払い率 r の分だけ払い、工事も r の分だけ進む（作者裁定 F3・2026-09-28 段2-1）＝旧の門（国庫が1日分に満たない日は丸休み）を撤去。
