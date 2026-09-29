@@ -326,8 +326,11 @@ public static class Government
         //     債務スパイラルは未払い（Fiscal の利払い・維持費の Min）→FiscalFundingRatio の劣化→デフォルト（DefaultTriggerQuarters）で閉じる。
         //   ⚠w.AusterityIntensity の計算は残る＝三部会の召集信号（CrownParliament が >0.5 を読む）と門の材料。
         //   軍事費の緊縮は**不採用**（2026-06-18 検証）：負債国だけが動員解除し財政健全な覇権国は軍を維持＝非対称な武装解除で力の格差が拡大した。
-        w.AusterityIntensity = (w.FiscalEnabled && w.GovDebt > 0 && w.Gdp > 1e-9)
-            ? PoliticalQuantities.Clamp01((w.GovDebt / w.Gdp - c.AusterityStartDebt) / c.AusterityRange) : 0;   // [単位・B13] 債務/GDP＝**月次実質**（GovDebt÷月次Gdp）。AusterityStartDebt/Range はこの単位（Fiscal の年次名目 dGdp の約1/12 とは別の物差し）
+        // [単位・B13] 債務/GDP＝**年次名目**（GovDebt÷(月次NominalGdp×12)）＝Fiscal の国債の金利の dGdp・CapitalMarket の対外信用と同じ物差し（2026-09-29・棚卸し fis-02 の残り）。
+        //   旧＝**月次実質**（GovDebt÷月次Gdp）＝年GDP の約1.7% で緊縮が始まり約8% で満額＝史実の国債の国は開幕から強度1（値の史実は Coefficients.AusterityStartDebt）。
+        double austGdp = w.FiscalEnabled && w.GovDebt > 0 ? w.NominalGdp : 0;   // 州×生産者の走査は債務のある国だけ・1回（旧は条件と割り算で2回）
+        w.AusterityIntensity = austGdp > 1e-9
+            ? PoliticalQuantities.Clamp01((w.GovDebt / (austGdp * Calendar.MonthsPerYear) - c.AusterityStartDebt) / c.AusterityRange) : 0;
     }
 
     // スライダーの5%刻み：0..1の目標を0.05単位に丸める（UI/AI共通の「つまみは20段」仕様）。

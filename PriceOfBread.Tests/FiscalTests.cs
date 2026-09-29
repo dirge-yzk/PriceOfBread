@@ -33,6 +33,10 @@ public class FiscalTests
         // ⚠この世界は不換＝払えない分は月初に切り下げで埋まり（2026-09-28 から払える額の側）r＜1 の月が来ない＝借りない。
         //   借入→債務→緊縮の門を測るため、切り下げの余地を閉じる（兌換の国と同じ形）。
         sim.World.Coef.DevaluationCapFrac = 0;
+        // ⚠緊縮の物差しは年の名目GDP（2026-09-29・史実＝年GDP の3割で始まる）。この小経済（歳入は年GDP の約1%）は借入の上限（利払い÷歳入 MaxInterestShareOfRevenue）で
+        //   国債が年GDP の約5% までしか積めない（貸し手は歳入の小さい国に貸さない＝史実どおり）＝鎖（赤字→借入→債務→緊縮の門）を測るため、開始だけをこの世界の債務の桁へ下げる
+        //   （物差しと史実の値の番人は 緊縮と歳入要求と銀行の評価損は年の名目GDPで測る）。
+        sim.World.Coef.AusterityStartDebt = 0.01;
         double maxAusterity = 0, maxPollTax = 0, maxMonopolyBreadth = 0;
         bool floorSeen = false;
         for (int q = 0; q < 400; q++)
@@ -791,6 +795,70 @@ public class FiscalTests
         Assert.InRange(Term(0.7, false), 0.7, 0.85);
         Assert.True(Term(2.5, false) > 0, "英1815（国債÷年GDP 約2.5）で対外信用の債務の項が尽きた");
         Assert.True(Math.Abs(Term(1.0, true) - one) <= 1e-12, "物価水準2倍の双子の債務の項が違う（実質の物差しが混じった）");
+    }
+
+    /// <summary>★債務÷GDP の物差しは1本＝**年の名目GDP**（2026-09-29・棚卸し fis-02 の残り＝B13）：Government の緊縮の強度・PolicyPreferences の国家の歳入要求・
+    /// Credit の銀行の評価損を、国債の金利（Fiscal の dGdp）と資本市場の対外信用と同じ単位で測る。旧＝緊縮と歳入要求は**月次実質**・評価損は**月次名目**
+    /// ＝緊縮は年GDP の約1.7% で始まり約8% で満額・歳入要求と評価損は年GDP の約8% で飽和（1783年の英仏蘭米は開幕から緊縮1＝三部会の召集の信号が立った）。
+    /// 盤面＝外交を止めた仏英の構築直後に、仏の国債＝年名目GDP の n 倍を置く。
+    /// ①緊縮の強度＝(n−AusterityStartDebt)÷AusterityRange＝n=0.3 で0・仏1788 の0.7 で 4/7（三部会の召集の信号 0.5 を越える）・1.0 で1
+    /// ②国家の歳入要求（法の支持の内訳の「国庫」・支払い率1）＝0.5＋min(1, n)＝n=0.25 で0.75・0.5 で1.0・2.0 で1.5
+    /// ③銀行の評価損（国債の価格0.5）＝n=0.5 の国は n=1 の国より信頼を削らない・n=1 と 2 は同じ（年GDP の1倍で頭打ち）
+    /// ④物価水準が2倍の双子（名目の国債も2倍）は①②が同じ。
+    /// 突然変異：Government の×12 を落とす→①が赤／PolicyPreferences の×12 を落とす→②が赤／Credit の×12 を落とす→③が赤／
+    /// Government・PolicyPreferences の分母を実質GDP にする→④が赤。</summary>
+    [Fact]
+    public void 緊縮と歳入要求と銀行の評価損は年の名目GDPで測る()
+    {
+        static World Board(double years, bool doublePrice)
+        {
+            var sim = new MultiNationSim([NationConfig.France(), NationConfig.Britain()], 1789, _ => new NullAgent()) { DiplomacyFrozen = true };
+            var w = sim.Nations[0].World;
+            w.FiscalEnabled = true; w.PoliticalLockEnabled = false;
+            double n0 = w.NominalGdp;
+            Assert.True(n0 > 0 && w.MonetaryEnabled && w.Bank is not null, "前提が崩れた：仏の名目GDP・貨幣・銀行が立っていない");
+            if (doublePrice)
+            {
+                w.PriceLevel *= 2;
+                Assert.True(Math.Abs(w.NominalGdp - 2 * n0) <= 1e-12 * n0, $"前提が崩れた：名目GDPが2倍にならない（{n0}→{w.NominalGdp}）");
+            }
+            w.GovDebt = years * w.NominalGdp * Calendar.MonthsPerYear; w.ForeignDebt = 0;
+            w.FiscalFundingRatio = 1;
+            return w;
+        }
+        static double Austerity(double years, bool doublePrice = false) { var w = Board(years, doublePrice); Government.Step(w, w.Coef); return w.AusterityIntensity; }
+        static double StateDemand(double years, bool doublePrice = false)
+        {
+            var w = Board(years, doublePrice);
+            foreach (var (who, v) in PolicyPreferences.SupportBreakdown(w, PolicyAxis.IncomeTax, true)) if (who == "国庫") return v;
+            Assert.Fail("前提が崩れた：所得税の支持の内訳に国庫が無い");
+            return double.NaN;
+        }
+        static double Confidence(double years)
+        {
+            var w = Board(years, false);
+            w.GovBondRate = 2 * w.Coef.BondBaseRate;   // 国債の価格＝基礎金利÷国債の金利＝0.5
+            Credit.Step(w, w.Coef, (w.NominalGdp, 1.0, w.MeanIndustrialization));
+            return w.Bank!.Confidence;
+        }
+        var c = new Coefficients();
+        // ① 緊縮の強度
+        Assert.True(Austerity(0.3) <= 1e-9, $"年GDP の0.3倍の国債で緊縮が立った（{Austerity(0.3)}＝物差しが年の名目GDP でない）");
+        double fr = Austerity(0.7);
+        Assert.True(Math.Abs(fr - (0.7 - c.AusterityStartDebt) / c.AusterityRange) <= 1e-9, $"仏1788（0.7）の緊縮の強度 {fr} が (0.7−開始)÷幅 でない");
+        Assert.True(fr > 0.5, $"仏1788（0.7）で三部会の召集の信号（緊縮 0.5 超）が立たない（{fr}）");
+        Assert.Equal(1.0, Austerity(1.0), 9);
+        // ② 国家の歳入要求
+        Assert.Equal(0.75, StateDemand(0.25), 9);
+        Assert.Equal(1.0, StateDemand(0.5), 9);
+        Assert.Equal(1.5, StateDemand(2.0), 9);
+        // ③ 銀行の評価損
+        double half = Confidence(0.5), one = Confidence(1.0), two = Confidence(2.0);
+        Assert.True(half > one + 1e-6, $"国債が年GDP の0.5倍の銀行の信頼 {half} が1倍 {one} より高くない＝国債の多さが評価損に効かない（物差しが飽和している）");
+        Assert.True(Math.Abs(one - two) <= 1e-12, $"年GDP の1倍と2倍で評価損が違う（{one}／{two}）＝頭打ちが年GDP の1倍でない");
+        // ④ 物価水準2倍の双子
+        Assert.Equal(Austerity(0.5), Austerity(0.5, true), 9);
+        Assert.Equal(StateDemand(0.25), StateDemand(0.25, true), 9);
     }
 
     /// <summary>★減債は年に残高の約1%（減債基金・2026-09-29）＝余剰のある英でも10年で国債の1割しか返さない（史実＝英の国債は1783〜92 の平時に約2.4億ポンドのまま・

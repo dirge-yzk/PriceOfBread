@@ -59,7 +59,7 @@ public static class NationBrief
             "乾隆帝の治世48年目。世界の人口の4割がこの国に住む。茶と絹を求めて世界中の銀が流れ込むが、" +
             "ヨーロッパ商人が入れるのは広州の一港だけで、彼らの持ち込む品に用はない。" +
             "科挙を勝ち抜いた官僚が広大な国土を紙の上で統べる仕組みは、かつて世界の最先端だった。" +
-            "いまは皇帝の寵臣・和珅が売官を取り仕切り、国庫に残るのは行政の固定費わずか4ヶ月分。国力は最大。それを食い潰す速度も最大。",
+            "いまは皇帝の寵臣・和珅が売官を取り仕切る。戸部の銀庫にはまだ盛世の蓄えが残るが、国力は最大。それを食い潰す速度も最大。",
         _ => "",
     };
 
@@ -107,7 +107,7 @@ public static class NationBrief
     public static (double Ease, double Resource, double Hold, double Safety, double Load, double Decay)
         Terms(NationConfig c, NationConfig[] all, Coefficients coef)
     {
-        // ①資源の余裕＝国庫が行政費だけで持つ月数。桁で効く（清4 と 蘭6667）ので対数で圧縮（1ヶ月=0／10000ヶ月=1）。
+        // ①資源の余裕＝国庫が行政費だけで持つ月数。桁で効く（仏4・米5 と 普274＝2026-09-29 に開幕の国庫を史実の桁へ直した後・旧＝清4 と 蘭6667）ので対数で圧縮（1ヶ月=0／10000ヶ月=1）。
         double resource = PoliticalQuantities.Clamp01(Math.Log10(Math.Max(1.0, TreasuryMonths(c, coef))) / 4.0);
         // ②人口による分離圧に抗う力（Politics の保持力と同式）。
         double hold = SecessionHold(c, coef);

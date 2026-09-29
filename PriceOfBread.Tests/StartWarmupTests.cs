@@ -119,6 +119,33 @@ public class StartWarmupTests
         Assert.InRange(Ratio("ネーデルラント"), 1.2, 2.2);
     }
 
+    /// <summary>★助走は国庫を動かさず、開幕の国庫は史実の桁（2026-09-29）＝国庫も国債・人口・資本と同じ「年月が経って積み上がる量」。
+    /// 旧＝開幕の歳入が請求の約2〜4倍（初期の人頭税の最上段と所得税10%）の余剰を助走の5年に積み、world.json の初期値（英 55万・普 19万ほか）と合わせて
+    /// 開幕の国庫が年GDP の約0.8〜1.3（清 1.27・蘭 4.7）＝史実（年GDP の数%）の数十倍＝英がナポレオン戦争を蓄えで払い国債が史実の半分だった。
+    /// ①全ての国で助走の後の国庫＝助走なしの盤面の国庫（1ビットも動かない）②開幕の国庫÷年の名目GDP＝英 1〜6%（手元は年の歳出の数か月分）・
+    /// 仏 2% 未満（1788年8月の支払い停止）・普 20〜40%（フリードリヒ2世の戦時財宝 約5,000万ターラー＝年の歳入の2年分強）・清 2〜8%（乾隆末の戸部の銀庫 約7,000万両）・
+    /// 普を除く全ての国で10% 以下。
+    /// 突然変異：助走の四半期ごとの戻しを外す→①が赤／英の初期の国庫を旧の 550,000 へ→②が赤。</summary>
+    [Fact]
+    public void 助走は国庫を動かさず開幕の国庫は年GDPの数パーセント()
+    {
+        var bare = Build();
+        var warmed = Build();
+        warmed.StartWarmup();
+        for (int i = 0; i < bare.Nations.Count; i++)
+            Assert.Equal(bare.Nations[i].World.Treasury, warmed.Nations[i].World.Treasury);
+        var names = WorldData.Nations().Select(n => n.Name).ToList();
+        double Ratio(int i) { var w = warmed.Nations[i].World; return w.Treasury / (w.NominalGdp * Calendar.MonthsPerYear); }
+        double R(string name) => Ratio(names.IndexOf(name));
+        Assert.InRange(R("イギリス"), 0.01, 0.06);
+        Assert.InRange(R("フランス"), 0.0, 0.02);
+        Assert.InRange(R("プロイセン"), 0.2, 0.4);
+        Assert.InRange(R("清"), 0.02, 0.08);
+        for (int i = 0; i < names.Count; i++)
+            if (names[i] != "プロイセン")
+                Assert.True(Ratio(i) <= 0.1, $"{names[i]} の開幕の国庫が年GDP の {Ratio(i):P1}（史実の桁＝数%）");
+    }
+
     [Fact]
     public void 助走は建材の需要を殺さない()
     {

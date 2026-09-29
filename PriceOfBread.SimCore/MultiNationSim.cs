@@ -523,16 +523,29 @@ public sealed class MultiNationSim
     /// <para>外交（戦争・緊張・植民地）もこの間だけ凍結する＝呼び出し側が <see cref="DiplomacyFrozen"/> を立て忘れても
     /// 「経済だけの助走」という名前どおりに動く（旧は App だけが外から立てており、Runner の各プローブでは外交が走っていた）。</para>
     /// <para><paramref name="onQuarter"/>＝各四半期の終わりに呼ばれる**観測だけ**の手（既定 null＝一切呼ばれない）。
-    /// UI が助走中の価格を標本に採るために使う（生産タブの価格グラフ・2026-08-10）。力学には触れない。</para></summary>
+    /// UI が助走中の価格を標本に採るために使う（生産タブの価格グラフ・2026-08-10）。力学には触れない。</para>
+    /// <para>★**助走は国庫を動かさない**（2026-09-29）＝各四半期の終わりに国庫を助走の前の値へ戻し、台帳も捨てる（<see cref="World.RebaseTreasury"/>＝暦の外で動いた金は歴史に属さない）
+    /// ＝国債（Fiscal の3つの門）・人口・資本と同じ「年月が経って積み上がる量」。税と支出の流れは止めない（価格の均衡の一部）。
+    /// 旧＝開幕の歳入が請求の約2〜4倍（歳入 年GDP の15〜50%・請求 6〜16%＝初期の人頭税の最上段と所得税10%）の余剰を5年積み、開幕の国庫が年GDP の約1〜2
+    /// （英 0.79→0.97・仏 0.26→0.83・清 0.01→1.19・日 0.23→0.99）＝史実の国庫（年GDP の数%・普の戦時財宝 約0.3 は例外）の数十倍だった。
+    /// 四半期ごとに戻す＝助走の国庫が潤沢線（<see cref="UtilityAgent.OpulenceLineOf"/>）へ届かない＝開幕と同じ予算の形のまま価格が落ち着く（終わりに1度だけ戻すと、
+    /// 助走の後半に潤沢の支出が乗った均衡から開幕に支出が抜ける）。戻した分は基礎貨幣から消えるので保存則の基準線を取り直す（<see cref="RebaselineInvariants"/>）。</para></summary>
     public void WarmupEconomy(int quarters, Action? onQuarter = null)
     {
         if (quarters <= 0) return;   // 助走なし＝素の構築直後の盤面と厳密恒等（フラグの上げ下げすらしない）
         var prevPolitics = Nations.Select(n => n.World.PoliticsEnabled).ToArray();
+        var treasury0 = Nations.Select(n => n.World.Treasury).ToArray();   // 助走の前の国庫（world.json の初期値）
         bool prevDiplomacy = DiplomacyFrozen;
         foreach (var n in Nations) { n.World.PoliticsEnabled = false; n.World.WarmupFrozen = true; }
         DiplomacyFrozen = true;
         _calendarFrozen = true;
-        for (int q = 0; q < quarters; q++) { StepQuarter(); onQuarter?.Invoke(); }
+        for (int q = 0; q < quarters; q++)
+        {
+            StepQuarter();
+            for (int i = 0; i < treasury0.Length && i < Nations.Count; i++) Nations[i].World.RebaseTreasury(treasury0[i]);
+            RebaselineInvariants();
+            onQuarter?.Invoke();
+        }
         _calendarFrozen = false;
         DiplomacyFrozen = prevDiplomacy;
         // 助走中に生まれた国は無い（外交凍結＝戦争も分離独立も起きない）が、Nations が伸びても添字が壊れないよう長さで守る

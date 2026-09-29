@@ -136,13 +136,14 @@ public static class PolicyPreferences
         Normalize(wealth, tw); Normalize(rent, tr); Normalize(income, ti); Normalize(poll, tp);
         for (int i = 0; i < BlocCount; i++) old[i] = blocPop[i] > 1e-9 ? old[i] / blocPop[i] : 0;   // ブロック内の高齢比率＝水準（高齢化した国だけ大きい）
         // 国家の歳入要求：常に基礎0.5（国家は財源を欲する）＋財政逼迫（funding不足・債務/GDP）で増す。＝誰も支持しない税も国家が押せる。
-        double gdp = w.Gdp;   // ★A2-2：州×生産者の走査はこの1回だけ（旧＝ここで2回・Pref の名目GDPの読み手ごとに1回ずつ）
+        double ngdp = w.NominalOf(w.Gdp);   // ★A2-2：州×生産者の走査はこの1回だけ（旧＝ここで2回・Pref の名目GDPの読み手ごとに1回ずつ）
         double stress = w.FiscalEnabled
-            // [単位・B13] 債務/GDP＝**月次実質**（GovDebt÷月次Gdp・Min 1）＝Government の緊縮と同じ単位・Fiscal の年次名目とは別
-            ? PoliticalQuantities.Clamp01((1.0 - w.FiscalFundingRatio) + (gdp > 1e-9 ? System.Math.Min(1.0, w.GovDebt / gdp) : 0))
+            // [単位・B13] 債務/GDP＝**年次名目**（GovDebt÷(月次NominalGdp×12)・Min 1）＝Fiscal の国債の金利・CapitalMarket・Government の緊縮と同じ物差し（2026-09-29・棚卸し fis-02 の残り）。
+            //   旧＝**月次実質**（年次の約12倍の値）＝国債が年GDP の1割（8.3%）を越えた国は全て1で飽和＝国債の多さが歳入の要求に効かなかった。
+            ? PoliticalQuantities.Clamp01((1.0 - w.FiscalFundingRatio) + (ngdp > 1e-9 ? System.Math.Min(1.0, w.GovDebt / (ngdp * Calendar.MonthsPerYear)) : 0))
             : 0;
         return new Profile(power, wealth, rent, income, poll, old, 0.5 + stress,
-            pettyM, pettyS, ti > 1e-9 ? pettyInc / ti : 0, ti > 1e-9 ? pettyIncM / ti : 0, w.NominalOf(gdp));
+            pettyM, pettyS, ti > 1e-9 ? pettyInc / ti : 0, ti > 1e-9 ? pettyIncM / ti : 0, ngdp);
     }
 
     private static void Normalize(double[] a, double total)

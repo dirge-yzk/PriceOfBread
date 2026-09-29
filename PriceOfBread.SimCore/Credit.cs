@@ -57,8 +57,9 @@ public static class Credit
         // 民間負債デフレ（B-3 フィッシャー）：デフレ×レバレッジ(前期Heat)＝実質債務増→債務者困窮→信頼↓→与信回収→さらにデフレの渦。MonetaryEnabled時のみ（デフレ率が定義される）。
         double debtDeflation = w.MonetaryEnabled ? c.DebtDeflationWeight * Math.Max(0, -w.ExpectedInflation) * bank.Heat : 0;
         // 国債二次流通の評価損（no-bond-secondary-market）：BondPrice下落(利回り上昇)で国内債を抱える銀行が評価損→信頼↓→与信収縮（平時のマーク・トゥ・マーケット）。既存診断値BondPriceを配線。BondLossConfWeight=0で恒等（既定0.5）。
-        // [単位・B13] 債務/GDP＝**月次名目**（GovDebt÷月次NominalGdp・Clamp 0..1）＝年次名目の約12倍の値で飽和が早い
-        double bondLoss = w.FiscalEnabled ? c.BondLossConfWeight * Math.Max(0, 1.0 - w.BondPrice) * PoliticalQuantities.Clamp01(w.GovDebt / Math.Max(1.0, month?.NominalGdp ?? w.NominalGdp)) : 0;
+        // [単位・B13] 債務/GDP＝**年次名目**（GovDebt÷(月次NominalGdp×12)・Clamp 0..1）＝Fiscal の国債の金利・CapitalMarket・Government の緊縮と同じ物差し（2026-09-29・棚卸し fis-02 の残り）。
+        //   旧＝**月次**名目（年次の約12倍の値）＝国債が年GDP の1割（8.3%）を越えた国は全て1で飽和＝国債の多さが評価損の大きさに効かなかった。
+        double bondLoss = w.FiscalEnabled ? c.BondLossConfWeight * Math.Max(0, 1.0 - w.BondPrice) * PoliticalQuantities.Clamp01(w.GovDebt / Math.Max(1.0, (month?.NominalGdp ?? w.NominalGdp) * Calendar.MonthsPerYear)) : 0;
         // シティ型恐慌（A・最終調整2026-06-29）：与信過熱(Heat・前期＝持ち越したレバレッジ)が閾値を超えると、満足度が高くても信頼が脆くなる＝
         // 最も金融化した経済（深い与信＝高Heat＝覇権の金融中心）ほど好況の絶頂でミンスキー暴落を起こす。着火後は既存 DrawdownPanic が暴落へ増幅。OverheatFragility=0で恒等（既定1.1）。
         double overheatFragility = c.OverheatFragility * Math.Max(0, bank.Heat - c.OverheatFragilityThreshold);
