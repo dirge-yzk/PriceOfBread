@@ -27,6 +27,13 @@ public sealed class NationConfig
     //   蘭 約1.6（ホラント州を主とする約6億ギルダー）・米 約0.4（大陸会議と各州の独立戦争債務 約7,800万ドル・1790 の引き受け）・西 約0.3（王室債と国王証券 vales reales）・
     //   墺 約0.2（1780年代 約3億フローリン）・露 約0.05（1769年以後の蘭の借款）・普 0（戦時財宝の黒字）。他の国は0（数字の拠り所が無い）。
     //   旧＝仏のみ 600,000（助走の5年の余剰で返して開幕に年GDP の0.04 へ痩せていた＝助走は国債を動かさない・Fiscal）。
+    // ★1783年の税の段（2026-09-29 (109)・序数0..3＝Government.TaxValue で率へ・world.json の pollTaxStage／landTaxStage）。
+    //   旧＝全61カ国が所得税10%（段の格子の外）＋人頭税の最上段＝開幕の歳入が年GDP の15〜37%（史実の1780年代＝英 約12%・仏 約8%・清 約2〜3%）。
+    //   ⚠所得税は全ての国で0（ToScenario で置かない）＝1783年に所得税を持つ国は無い（英1799・普1811/20・墺1849・日1887・米1861/1913）。
+    //   直接税（土地税・人頭税）の段は史実の直接税÷GDP から（英＝地租と査定税 約2%・仏＝タイユ・カピタシオン・ヴァンティエーム 約3.5〜4%・露＝人頭税 約2.5%・清＝地丁銀 約1.5〜2%ほか＝world.json）。
+    //   既定＝史料の薄い近世の農業国家＝土地税1段＋人頭税1段（直接税で年GDP の約3%）。
+    //   ⚠消費税（専売）は法の段でなく生産の決断（AI は毎四半期の教義で対象を置く）＝初期値を持たない。関税は initialTariff。
+    public int PollTaxStage = 1, LandTaxStage = 1;
     // ★官僚制度の初期値（2026-08-04）。**既定は縁故任用（Spoils）**＝18世紀の常態。
     //   資格任用は例外であって出発点ではない（英ノースコート＝トレヴェリアン改革1854・米ペンドルトン法1883）。
     //   旧＝全53カ国が1783年から MeritExam に到達済みで、資格任用を前提にした法（社会保障の高段/独占禁止/国有化/累進課税）の
@@ -72,7 +79,7 @@ public sealed class NationConfig
     {
         SharedWorld = sharedWorld, Seed = seed, StartYear = Calendar.StartYear, Kind = ScenarioKind.Nation, NationConfig = this,
         PoliticsEnabled = true, InitialPolity = Polity, FiscalEnabled = true,
-        TaxRate = 0.10, InitialPollTax = Government.PollTaxTop, InitialTreasury = Treasury, InitialGovDebt = GovDebt, InitialInstitutionalDecay = InstitutionalDecay, InitialBureaucracy = Bureaucracy, InitialNationalConsciousness = NationalConsciousness0, InitialMassMilitancy = InitialMassMilitancy, BaseCoercion = Coercion,   // 所得税は19世紀まで実効ロック＝序盤は人頭税が国庫を支える（近世財政・土地税は行政力で解禁）
+        InitialPollTax = Government.TaxValue(PolicyAxis.PollTax, PollTaxStage), InitialLandTax = Government.TaxValue(PolicyAxis.LandTax, LandTaxStage), InitialTreasury = Treasury, InitialGovDebt = GovDebt, InitialInstitutionalDecay = InstitutionalDecay, InitialBureaucracy = Bureaucracy, InitialNationalConsciousness = NationalConsciousness0, InitialMassMilitancy = InitialMassMilitancy, BaseCoercion = Coercion,   // 所得税は0から（TaxRate の既定＝1783年に所得税を持つ国は無い）・直接税は国ごとの段（上の PollTaxStage／LandTaxStage）
         EducationLaw = Education, ExternalPressure = 0.3,
         InitialInterestRate = InitialInterestRate,  // 中庸の金利＝信用の過剰変動を抑える初期設定（プレイヤーが上下で金融政策）
         InitialTariff = InitialTariff,  // 関税の初期値（日本＝鎖国）

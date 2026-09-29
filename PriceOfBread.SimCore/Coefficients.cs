@@ -2370,7 +2370,6 @@ public sealed class Coefficients
     public double OpulenceSpendRate = 0.6;         // 【梯子測定中2026-08-08＝0.6】支出反射（減税反射の対）：月次予算基数を 歳入 → 歳入＋これ×max(0,国庫−潤沢線)/12 へ（行政・軍需・扶養限界の3箇所）。0=厳密恒等。梯子0.3→0.6→1.2/年
     public double MilitarizeAgrarianTaxes = 1.0;   // 【L3点火測定中2026-08-08】Militarizeスタンスに土地税0.4・関税0.3の目標を追記（軍国が地租と関税で軍を養った史実＝地租改正・Grundsteuer）。0=恒等・1=有効
     public double MilitarizeEducationDrive = 1.0;  // 【L4点火測定中2026-08-08】Militarizeスタンスに公教育＋教育費0.4の目標を追記（義務教育は兵営国家の発明＝プロイセン1763・明治学制）。露のElite封鎖の解錠。0=恒等
-    public double InitialLandTaxScale = 0.2;       // 【L3点火測定中2026-08-08＝0.2・台帳と軍国税は対で一つの機構】1783年の地租台帳：全53カ国一律 InitialLandTax=max(world.json値, これ)（Scenario.cs:55「確立国家は台帳を持つ」の履行）。0=恒等
     public double OpulenceInfraChannel = 0.0;      // 支出反射のインフラ拡張（退蔵→鉄道国家の建設）。0.6同時点火で硬性赤（公教育テスト）＝分離休眠2026-08-08。単独再測定用
     // 【墓標2026-09-26】退蔵結晶化（HoardCrystallizeRate・WealthAnchorYears・WealthAnchorFloorPerCapita）と結晶資産 Pop.IlliquidWealth＝休眠の枝だけが書き常に0を運んでいた（dorm-24・思想⑩）。再挑戦するなら §30 レールごと設計し直すこと
     // 【墓標2026-08-29】InvestIncomeFloor/InvestFloorUsesIndustrialRent/InvestReadsLiquid/ConsumeReadsLiquid＝Stage1中止の予算配線4本を撤去

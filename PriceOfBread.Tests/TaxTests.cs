@@ -61,6 +61,8 @@ public class TaxTests
         // ★2026-09-20 段の点火：人頭税は段の法＝目標1.0は最上段（錨 Government.PollTaxTop＝0.5＝開始値そのもの）へ落ちる＝課税側は開始値に留まる。
         //   旧の対比（無税へ漸減 vs 1.0へ漸増）が縮むので、無税側は**開始時点から無税**にして同じ「無税 vs 最大」の対比を保つ。
         baseline.World.PollTax = 0;
+        // ★2026-09-29 (109)：1783年の仏の人頭税は段2（タイユとカピタシオン＝NationConfig.PollTaxStage）＝課税側も**開始時点から最上段**に置いて同じ「無税 vs 最大」の対比を保つ。
+        taxed.World.PollTax = Government.PollTaxTop;
         // 人頭税の逆進性（直接負担）の検証＝民族統一度とは直交。民族の一般均衡効果（行政効率・不満）が貴族の間接損を揺らして
         // 24Qでも逆転させるため、この税制テストでは民族系を無効化して直接負担だけを測る（24Q短期化と同じ趣旨の隔離）。
         baseline.World.EthnicEnabled = taxed.World.EthnicEnabled = false;
@@ -154,6 +156,7 @@ public class TaxTests
         {
             var s = new Simulation(NationConfig.Britain().ToScenario(19), new NullAgent());
             s.World.PoliticalLockEnabled = false;   // 富裕層の政治抵抗は漏れの検証と直交
+            s.World.TaxRate = 0.10;   // ★2026-09-29 (109)：1783年の英に所得税は無い（1799年から）＝漏れを測る前提の率を盤面へ直接置く（旧の開始値）
             s.World.Policy.IncomeTaxTarget = 1.0;
             s.Run(12);
             return s;

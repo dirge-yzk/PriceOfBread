@@ -353,8 +353,10 @@ public static class Fiscal
         // ★利子の未払いは元本へ繰り入れる（作者裁定 Q3・2026-09-28）＝お金は動かない・請求権だけが増える。国内分は持ち手の保有へ（保有に比例＝台帳の不変条件
         //   Σ保有＝GovDebt−ForeignDebt を保つ）・対外分は対外債へ（CapitalMarket が新しい対外債として債権国へ付ける）。持ち手のいない国内分は債権者がいない＝繰り入れない。
         //   不履行は既存の計数（借入の上限に張り付いたまま＝InsolvencyQuarters）のまま。
+        //   ★開始前の助走（World.WarmupFrozen）は繰り入れない（2026-09-29 (109)）＝国債の残高は時間が経って積み上がる量（借入・減債・不履行の計数と同じ門）。
+        //     旧は助走の歳入が請求の数倍で r＜1 の月が来ず、この穴が表に出なかった（1783年の税の段で米の国債が助走で +0.02 動いた）。
         double unpaidInt = interest - interestPaid;
-        if (unpaidInt > 1e-12)
+        if (unpaidInt > 1e-12 && !w.WarmupFrozen)
         {
             double unpaidForeign = unpaidInt * foreignDebtFrac;
             double unpaidDom = unpaidInt - unpaidForeign;

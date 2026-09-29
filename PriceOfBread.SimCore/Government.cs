@@ -26,7 +26,7 @@ public static class Government
     //   新しい4段 0／11.7／23.3／35% は全て史実の帯の内側で、最上段35%が1918年の英標準税率30%を上回る＝「高率」の名に合う。
     internal const double IncomeTaxTop = 0.35;          // 緊縮教義の所得税（SelfPlay.Apply の case Stance.Fiscal）＝この軸でエンジンが置く最大値
     internal const double ProgressiveTaxTop = 0.8;      // ソ連風税制の累進（SelfPlay.Apply の SovietTaxProfile ブロック）
-    internal const double PollTaxTop = 0.5;             // 全61カ国の開始値（NationConfig.ToScenario の InitialPollTax）＝近世の主財源が最上段
+    internal const double PollTaxTop = 0.5;             // 人頭税の最上段（旧＝全61カ国の開始値・2026-09-29 (109) から開始値は国ごとの段＝NationConfig.PollTaxStage）
     // ★専売の教義最大（旧 StateMonopolyTop=0.8）は物理削除（作者裁定2026-09-20）＝専売に率の軸は無い。ソ連風税制は**対象を主食まで広げる**（World.StateMonopolyLadder の最上段）で表す。
     internal const double LandTaxTop = 0.4;             // 近代化/福祉/緊縮/軍国の4教義が共有する土地税（SelfPlay.Apply）
     internal const double EducationSpendingTop = 1.0;   // 近代化教義の教育費（SelfPlay.Apply の case Stance.Modernize・Agents.ModernizerAgent）＝旧の錨と同値＝教育費の段は1ビットも動かない

@@ -40,9 +40,15 @@ public class ElectionAiTests
     }
 
     /// <summary>単一国（英＝立憲君主制）。SelfPower が無い＝「プレイヤーでない」＝AIの書き手が答える側。
-    /// 押し込みの式・代価の式を余計な外交/他国の擾乱なしで見るための軽い盤面（NullAgent＝pop・法を勝手に動かさない）。</summary>
+    /// 押し込みの式・代価の式を余計な外交/他国の擾乱なしで見るための軽い盤面（NullAgent＝pop・法を勝手に動かさない）。
+    /// ★2026-09-29 (109)：1783年の英は所得税0（1799年から）・地租の段2＝NullAgent の盤面（専売なし）は歳入が国債（年GDP の約1.1）の利払いに届かず
+    /// 裁量余剰＝注ぐ原資が0＝押し込みの式が測れない。式を見る盤面として旧の開始の所得税10% を置く（旧と同じ盤面の歳入）。</summary>
     private static Simulation ElectiveWorld(ulong seed)
-        => new(WorldData.ByName("イギリス").ToScenario(seed), new NullAgent());
+    {
+        var sim = new Simulation(WorldData.ByName("イギリス").ToScenario(seed), new NullAgent());
+        sim.World.TaxRate = 0.10; sim.World.Policy.IncomeTaxTarget = 0.10;
+        return sim;
+    }
 
     private static void SetGate(MultiNationSim sim, double v)
     { foreach (var n in sim.Nations) n.World.Coef.ElectionEventEnabled = v; }

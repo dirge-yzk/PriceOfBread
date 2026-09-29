@@ -94,10 +94,10 @@ public class StartWarmupTests
     }
 
     /// <summary>★助走は国債の残高を動かさない＋開幕の国債は1783年の史実（2026-09-29）。国債は「年月が経って積み上がる/減る量」（人口・資本と同じ）
-    /// ＝助走の余剰で返さない・赤字で借りない・不履行へ数えない（旧＝仏の米独立戦争債務 年GDP の約0.76 が助走の5年の余剰で返され、開幕に0.04 へ痩せた）。
+    /// ＝助走の余剰で返さない・赤字で借りない・不履行へ数えない・利子の未払いを元本へ繰り入れない（旧＝仏の米独立戦争債務 年GDP の約0.76 が助走の5年の余剰で返され、開幕に0.04 へ痩せた）。
     /// ①全ての国の国債・対外債・保有の和が助走なしの盤面と同じ ②開幕（既定の助走の後）の国債÷年名目GDP＝英 0.9〜1.4（1783 約2.4億ポンド÷GDP 約2億）・
     /// 仏 0.45〜0.8（米独立戦争の後・1789 0.6〜0.8）・蘭 1.2〜2.2（ホラント州を主とする約6億ギルダー）。
-    /// 突然変異：助走の減債の門を外す→①②が赤／英の初期国債を0に戻す→②が赤。</summary>
+    /// 突然変異：助走の減債の門を外す→①②が赤／英の初期国債を0に戻す→②が赤／助走の繰り入れの門を外す→①が赤（2026-09-29 (109)＝1783年の税の段で米の国債が助走で +0.023）。</summary>
     [Fact]
     public void 助走は国債を動かさず開幕の英の国債は年GDPの約1倍()
     {
@@ -144,6 +144,50 @@ public class StartWarmupTests
         for (int i = 0; i < names.Count; i++)
             if (names[i] != "プロイセン")
                 Assert.True(Ratio(i) <= 0.1, $"{names[i]} の開幕の国庫が年GDP の {Ratio(i):P1}（史実の桁＝数%）");
+    }
+
+    /// <summary>★1783年の税の段（2026-09-29 (109)）＝開幕の歳入の水準は史実の桁。
+    /// 旧＝全61カ国が所得税10%（段の格子の外）と人頭税の最上段で始まり、開幕の歳入が年GDP の15〜37%（清 36.6%・蘭 21.3%）。
+    /// 史実の1780年代の中央政府の歳入÷GDP＝英 約12%（関税と消費税が主・所得税は1799年から）・仏 約8%・蘭 約10%・西 約6〜7%・墺・普 約6〜8%・露 約5〜6%・清 約2〜3%。
+    /// ①構築の盤面（助走の前）＝全ての国で所得税0（1783年に所得税を持つ国は無い＝英1799・普1811/20・墺1849・日1887）・人頭税と土地税は world.json の段どおり
+    ///   （英・清は人頭税0＝英の人頭税は1698年が最後・清は1720年代の攤丁入畝で地丁銀へ畳んだ／露は土地税0＝1724年の人頭税が直接税の柱）。
+    /// ②開幕（既定の助走の後）の歳入÷年名目GDP＝欧州の6カ国（英・仏・蘭・西・墺・普）が 4〜14%・全ての国で25% 以下。
+    /// ③開幕の直接税（歳入−関税−専売）÷年名目GDP＝清 0.5〜3%（地丁銀 約3,000万両＝GDP の約1.5〜2%）。
+    /// ⚠消費税（専売）は法の段でなく AI の生産の決断（助走の間も毎四半期）＝開幕は教義の段2（奢侈品と役務）で年GDP の3〜12%（役務を含まない GDP で割る＝アジアの国で大きい）＝②の上限はこの分を含む。
+    /// 突然変異：所得税を旧の10% へ→①が赤（①の所得税0 の行を外した写しで②も赤＝欧州の国が 14.9%）／world.json の段を読まない（全ての国を既定の段）→①が赤
+    /// （③は清を既定の段にしても帯の内側＝段の取り違えは①が持つ・③は地丁銀の桁の錨）。</summary>
+    [Fact]
+    public void 開幕の歳入は所得税なしの直接税の段で年GDPの史実の桁()
+    {
+        var cfgs = WorldData.Nations();
+        var names = cfgs.Select(n => n.Name).ToList();
+        var bare = Build();
+        for (int i = 0; i < names.Count; i++)
+        {
+            var w = bare.Nations[i].World;
+            Assert.Equal(0.0, w.TaxRate);
+            Assert.Equal(Government.TaxValue(PolicyAxis.PollTax, cfgs[i].PollTaxStage), w.PollTax);
+            Assert.Equal(Government.TaxValue(PolicyAxis.LandTax, cfgs[i].LandTaxStage), w.LandTax);
+        }
+        World B(string nm) => bare.Nations[names.IndexOf(nm)].World;
+        Assert.Equal(0.0, B("イギリス").PollTax); Assert.Equal(0.0, B("清").PollTax); Assert.Equal(0.0, B("ロシア").LandTax);
+        Assert.True(B("フランス").PollTax > 0 && B("フランス").LandTax > 0, "仏のタイユ・カピタシオンとヴァンティエームが無い");
+
+        var sim = Build();
+        sim.StartWarmup();
+        double Rev(int i) { var w = sim.Nations[i].World; return w.LastRevenue / w.NominalGdp; }   // 月次÷月次＝年の比
+        double Direct(int i)
+        {
+            var w = sim.Nations[i].World;
+            double mon = 0; foreach (var r in w.Regions) if (r.State == RegionState.Active) mon -= r.StateSpent[(int)TreasuryCat.StateMonopoly];
+            double tar = System.Math.Max(0, w.LastTariffRevenue) / w.Coef.MonthsPerClearing;
+            return (w.LastRevenue - mon - tar) / w.NominalGdp;
+        }
+        foreach (var nm in new[] { "イギリス", "フランス", "ネーデルラント", "スペイン", "オーストリア", "プロイセン" })
+            Assert.InRange(Rev(names.IndexOf(nm)), 0.04, 0.14);
+        for (int i = 0; i < names.Count; i++)
+            Assert.True(Rev(i) <= 0.25, $"{names[i]} の開幕の歳入が年GDP の {Rev(i):P1}（旧＝清 36.6%）");
+        Assert.InRange(Direct(names.IndexOf("清")), 0.005, 0.03);
     }
 
     [Fact]

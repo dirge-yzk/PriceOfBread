@@ -140,6 +140,16 @@ public class TreasuryLedgerTests
         return s;
     }
 
+    /// <summary>借入の門を測る仏の盤面（2026-09-29 (109)）。1783年の仏は所得税0・直接税だけ（NationConfig の税の段）＝NullAgent の盤面（専売なし）は
+    /// 利払い÷歳入が借入の上限（MaxInterestShareOfRevenue）を開幕から越える（史実の1788年の仏＝利払い÷歳入 約0.5〜0.67＝借りられない国）。
+    /// 借入の門そのものを測る番人は「上限の下にいる国」が前提＝旧の開始の所得税10% を盤面に置く（旧と同じ盤面の歳入）。</summary>
+    private static Simulation FranceBelowBorrowCap()
+    {
+        var sim = new Simulation(NationConfig.France().ToScenario(19), new NullAgent());
+        sim.World.TaxRate = 0.10; sim.World.Policy.IncomeTaxTarget = 0.10;
+        return sim;
+    }
+
     private static double HeldSum(World w)
     {
         double s = 0; foreach (var rg in w.Regions) foreach (var p in rg.Pops) s += p.BondHoldings;
@@ -153,7 +163,7 @@ public class TreasuryLedgerTests
     [Fact]
     public void 借入は払えない額のある月だけ減債はrが1の月の余剰からだけ()
     {
-        var sim = new Simulation(NationConfig.France().ToScenario(19), new NullAgent());
+        var sim = FranceBelowBorrowCap();
         sim.Run(4);
         var w = sim.World; var c = w.Coef;
         int bo = (int)TreasuryCat.Borrow, rp = (int)TreasuryCat.DebtRepay;
@@ -202,7 +212,7 @@ public class TreasuryLedgerTests
     [Fact]
     public void 借入は払えない額だけで不足が大きいと1件の額で止まる()
     {
-        var sim = new Simulation(NationConfig.France().ToScenario(19), new NullAgent());
+        var sim = FranceBelowBorrowCap();
         sim.Run(4);
         var w = sim.World; var c = w.Coef;
         int bo = (int)TreasuryCat.Borrow;
@@ -302,7 +312,7 @@ public class TreasuryLedgerTests
     public void 借入はエンジンの1行だけでAIとプレイヤーの経路が無い()
     {
         // ① 借りる主体のいない世界の月次決算で借りる（盤面は上の「国家の支払い率は全ての行に同じrで…」と同じ＝借りなければ r＜1 の月）
-        var sim = new Simulation(NationConfig.France().ToScenario(19), new NullAgent());
+        var sim = FranceBelowBorrowCap();
         sim.Run(4);
         sim.StepDay();
         var w = sim.World;
@@ -413,7 +423,7 @@ public class TreasuryLedgerTests
         const double conv = 0.5;
         (World w, double payable, double overdraft, double dev, double bor, double unit) Month(System.Action<World> setup)
         {
-            var sim = new Simulation(NationConfig.France().ToScenario(19), new NullAgent());
+            var sim = FranceBelowBorrowCap();
             sim.Run(4);
             sim.StepDay();
             var w = sim.World;

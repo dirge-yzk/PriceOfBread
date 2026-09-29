@@ -522,10 +522,10 @@ public class PolicyPoliticsTests
         // 累進課税（M=0.80＝ソ連風税制）：0.30=近代化／0.40=緊縮／0.50=旧・社会党綱領の床と連立相手の値（2026-09-19撤去＝エンジンはもう置かない・段2の内側の点）／0.60=福祉／0.80=ソ連風
         { PolicyAxis.ProgressiveTax, 0.30, 1 }, { PolicyAxis.ProgressiveTax, 0.40, 2 }, { PolicyAxis.ProgressiveTax, 0.50, 2 },
         { PolicyAxis.ProgressiveTax, 0.60, 2 }, { PolicyAxis.ProgressiveTax, 0.80, 3 },
-        // 人頭税（M=0.50＝全61カ国の開始値）：0.30=緊縮／0.40=軍備・財政逼迫の床／0.50=開始値＝近世の主財源が最上段
+        // 人頭税（M=0.50＝最上段）：0.30=緊縮／0.40=軍備・財政逼迫の床／0.50=旧の全61カ国の開始値（2026-09-29 (109) から国ごとの段）
         { PolicyAxis.PollTax, 0.30, 2 }, { PolicyAxis.PollTax, 0.40, 2 }, { PolicyAxis.PollTax, 0.50, 3 },
         // ⚠専売の行は 2026-09-20 に削除（作者裁定＝段の法にしない）＝段の写像を持たない軸になった。
-        // 土地税（M=0.40＝近代化/福祉/緊縮/軍備が共有）：0.20=建国時の開始値（InitialLandTaxScale）／0.30=産業／0.40=4教義
+        // 土地税（M=0.40＝近代化/福祉/緊縮/軍備が共有）：0.20=段1と段2の中点（丸めて段2）／0.30=産業／0.40=4教義
         { PolicyAxis.LandTax, 0.20, 2 }, { PolicyAxis.LandTax, 0.30, 2 }, { PolicyAxis.LandTax, 0.40, 3 },
         // 教育費（M=1.00＝近代化教義＝**旧の錨と同値＝この軸は1ビットも変わらない**）：0.20=緊縮／0.40=軍備／0.50=福祉／0.60=産業／1.00=近代化
         { PolicyAxis.EducationSpending, 0.20, 1 }, { PolicyAxis.EducationSpending, 0.40, 1 },

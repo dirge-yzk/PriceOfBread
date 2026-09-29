@@ -417,7 +417,7 @@ public sealed class MultiNationSim
             Seed = MixSeed(_seed, (ulong)Nations.Count), StartYear = pw.Year, Kind = ScenarioKind.Nation,
             NationConfig = cfg, PrebuiltRegions = [.. regs], Coef = pw.Coef,   // 係数は親インスタンスを共有（テスト/実験の書き込みが分裂しない）
             PoliticsEnabled = true, InitialPolity = polity ?? pw.Polity, FiscalEnabled = true,
-            TaxRate = pw.TaxRate, InitialPollTax = pw.PollTax, InitialLandTax = pw.LandTax,   // ⚠1783年の地租台帳の床（InitialLandTaxScale）は建国に掛けない＝親の率のまま（法の継承 World.CopyLawsFrom と同じ値）
+            TaxRate = pw.TaxRate, InitialPollTax = pw.PollTax, InitialLandTax = pw.LandTax,   // ⚠建国は1783年の税の段（NationConfig.PollTaxStage／LandTaxStage）を読まない＝親の率のまま（法の継承 World.CopyLawsFrom と同じ値）
             InitialTreasury = T, BaseCoercion = pw.BaseCoercion, EducationLaw = pw.EducationLaw,
             EducationSpending = pw.EducationSpending, ExternalPressure = pw.ExternalPressure,
             InitialInterestRate = pw.InterestRate, InitialTariff = pw.Tariff,
