@@ -114,6 +114,29 @@ public class FiscalTests
     }
     private static double HeldOf(World w) { double h = 0; foreach (var r in w.Regions) foreach (var p in r.Pops) h += p.BondHoldings; return h; }
 
+    /// <summary>★段3-1（2026-09-29）：所得税の基数＝確定した前の月の所得（LastEarned）。月次の財政より後に入る受け取り（輸出代金・運賃〔国際市場の清算は
+    /// 全ての国の月次決算の後〕・領主の取り分）は Earned に入り、次の月の頭で LastEarned へ写る＝翌月の所得税の基数になる（旧＝今月の Earned＝翌月の頭で0へ戻り課税されなかった）。
+    /// 盤面＝英の静かな盤面で所得税だけを立て、1つの POP だけに所得を置く。前の月の所得（LastEarned）なら課税され、今月の Earned だけでは課税されない。</summary>
+    [Fact]
+    public void 所得税は確定した前の月の所得に掛かる()
+    {
+        double Revenue(bool last)
+        {
+            var w = QuietBritain();
+            w.TaxRate = 0.1; w.Coef.TitheRate = 0;
+            foreach (var r in w.Regions) foreach (var q in r.Pops) { q.Earned = 0; q.LastEarned = 0; }
+            Pop? p = null;
+            foreach (var r in w.Regions) foreach (var q in r.Pops) if (p is null && !q.IsSoldier && q.Size > 1 && q.Savings > 1e6) p = q;
+            Assert.True(p is not null, "前提が崩れた：貯蓄の厚い POP が無い");
+            if (last) p!.LastEarned = 1000; else p!.Earned = 1000;
+            double t0 = w.TreasuryLedger[(int)TreasuryCat.Tax];
+            FiscalMonth(w, 1.0);
+            return w.TreasuryLedger[(int)TreasuryCat.Tax] - t0;
+        }
+        Assert.True(Revenue(last: true) > 1e-6, "前の月の所得（LastEarned）に所得税が掛からない");
+        Assert.Equal(0.0, Revenue(last: false), 9);   // 今月の Earned は翌月の基数（二重に取らない）
+    }
+
     /// <summary>英を1四半期温め、財政の国債以外の流れ（税・汚職の漏れ・維持費の頭数分配・福祉・年金・外債）を止めた盤面。
     /// 同じ種で2つ作れば双子＝片方だけで起債すれば、2つの貯蓄の差が国債の流れ（購入・利払い・償還）そのものになる。</summary>
     private static World QuietBritain()

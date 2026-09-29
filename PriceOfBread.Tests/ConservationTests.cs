@@ -60,8 +60,8 @@ public class ConservationTests
         }
         // ★J-011（2026-09-03）：**輸出利潤経路が動いていること**もここで見る＝旧 `ExportRevenueTests` が
         //   単一国の世界市場（`Trade.cs`）で見ていた検査を、**実ゲームが通る二国間経路**へ移した。
-        //   ⚠`ExportRevenueToProducers`（既定0.5）は `BilateralMarket` が読む生きた機構で、
-        //   輸出代金の一部が生産者POPへ直接渡る＝**貨幣が国庫を経由せず動く**経路。上のD不変が壊れやすい場所そのもの。
+        //   ⚠2026-09-29（段3-1）から輸出代金は全額が清算所（世界の外）から④の持分（持ち主・国庫・労働）へ（InternationalMarket.PaySales・旧＝係数 ExportRevenueToProducers の半分だけ持ち主へ直接）
+        //   ＝**貨幣が国境をまたいで POP へ直接動く**経路。上のD不変が壊れやすい場所そのもの。
         double exported = 0;
         foreach (var n in sim.Nations)
             if (n.World.ExportsByGood is { } eg) foreach (var v in eg) if (v > 0) exported += v;
@@ -142,6 +142,7 @@ public class ConservationTests
                 }
                 foreach (var ap in sim.Diplomacy.Powers)   // 抽象標的（Nation の無い勢力）の植民地の住民
                     if (ap.Nation is null) foreach (var col in ap.ColonyList) pop += System.Math.Max(0, col.PopSize) + col.SettlerSize;
+                minted += sim.Market.CumulativeFxResidual;   // ★段3-1（A7）：為替の換算で世界の名目の基礎貨幣が動く分（清算所の台帳）＝鋳造・不換発行と並ぶ正当な湧き口と消え口
                 return (pop, created, money, minted);
             }
             // 国ごと：人口と基礎貨幣は現存国だけ（消えた国の州と金は親へ移っている）／出生・死亡・戦死・鋳造・不換発行の累積は一度でも居た国の全部

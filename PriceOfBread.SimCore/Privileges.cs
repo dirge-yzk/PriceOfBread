@@ -103,14 +103,13 @@ public static class Privileges
         if (!(clergySize > 1e-9)) return 0;
         double collected = 0;
         foreach (var p in pops)
-            if (Politics.IsMassPop(p) && p.Earned > 0)
+            if (Politics.IsMassPop(p) && p.LastEarned > 0)   // ★段3-1：基数＝確定した前の月の所得（所得税と同じ＝Fiscal の注記）
             {
-                double t = System.Math.Min(titheRate * p.Earned, System.Math.Max(0, p.Savings));
+                double t = System.Math.Min(titheRate * p.LastEarned, System.Math.Max(0, p.Savings));
                 p.Savings -= t; collected += t;
             }
         // ★支払いの一元化 段2-3（E1・2026-09-29）：貯蓄は按分の本体 World.Distribute（頭数・端数は最後の聖職）＝旧は端数を寄せなかった。所得（UIの所得に反映）は同じ比で記帳。
-        World.Distribute(clergy, collected);
-        foreach (var p in clergy) p.Earned += collected * (p.Size / clergySize);
+        World.Distribute(clergy, collected, null, income: true);   // ★段3-1：所得も同じ按分の1行で（旧＝別の行で同じ比を足した）
         return collected;
     }
 

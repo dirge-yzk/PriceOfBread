@@ -1056,7 +1056,7 @@ public sealed class Coefficients
     public double TradeBiasStrength = 0.25;   // 敷居を動かす幅（世界価格比）。高く買う＝輸入の敷居を25%下げる／安く売る＝輸出の敷居を25%上げる。0で厳密恒等
     public double TariffProtect = 1.0;               // 輸入の敷居を上げる強さ：輸入閾値＝世界価格×(1+輸送費+関税率×これ)。高関税＝輸入減→国内価格高止まり→国内産業を保護（輸入代替）
     // 【墓標2026-09-26（econ-15・sweep-20）】TariffExportDrag（0.3・保護の代償＝輸出閾値から関税×これを引く）＝唯一の読み手 Trade.cs が 2026-09-03 に削除されて読み手0だった
-    public double TariffRevenueRate = 1.0;           // 関税収入＝輸入額（世界価格建て）×関税率×これ→国庫（popが負担＝保護下でも消費する分の関税）。慢性赤字の主財源
+    // 【墓標2026-09-29・支払いの一元化 段3-1】TariffRevenueRate を削除（関税収入＝輸入額×関税率×これ＝常に1。関税と穀物法の分は成約ごとに積出し価格×楔で通関の時点に輸入者から国庫へ＝BilateralMarket・econ-07）。
     public double TariffFloor = -0.25;               // 関税の下限＝負の関税（ダンピング／輸出補助金）。負の関税は輸出閾値を|関税|ぶん引き上げ→輸出増（世界市場へ安売り）、国庫→商人の補助金。AI（産業スタンスのダンピング）とプレイヤーの双方が負値を使う。条約は負値を物差しにしない
     // 土地（耕地）＝固定生産要素。農村人口が耕地賦存量(Region.ArableLand)を超えると土地作物RGOが収穫逓減し、食料/人↓→所得↓→移民が自然に止まる（room/容量番兵を撤去した本体）。
     public double LandDiminishExponent = 0.7;       // landFactor=min(1,(耕地/農村人口)^これ)。農村が耕地の2倍で産出0.76倍・4倍で0.57倍。0＝逓減なし
@@ -2510,7 +2510,7 @@ public sealed class Coefficients
     //   1914年の世界貿易/GDP 0.2%（史実の英は輸出だけで約25%）の壁＝①関税wedgeが同国ペアにも掛かる内国関税 ②運賃革命が従量成分にしか効かない。
     // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】TariffBorderOnly＝関税・穀物法の楔を国境だけに＝同国の売り手には掛けない・同国取引を輸入統計と関税の基礎から除く（2026-08-15 点火）
     // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】FreightRevolutionAdValorem＝運賃革命を従価マージンにも（2026-08-15 点火）
-    public double TradeBandWiden = 0.5;          // ★点火2026-08-15（ign_trade1）：③帯の拡張（tradewhy2＝量の分解2026-08-15）：売り手帯=平均×(1+w)・買い手帯=平均/(1+w)。旧＝平均分割は「世界の裾と裾」しか取引できず、穀物大国（露≈平均価格）がロンドン（平均の1.5倍）へ売れない構造遮断＝麦・石炭の貿易死の主因。成立判定（着値vs自州価格）と量式は不変＝ペア黒字の取引を到達可能にするだけ。0＝×1.0/÷1.0＝ビット恒等。設計値0.5。点火はA/B（貿易/GDP＋帯・壁2本との合成も測る）
+    // 【墓標2026-09-29・支払いの一元化 段3-1】TradeBandWiden を削除（表示用の単純平均の帯＝R6 で撤去。成立は組ごとの判定（最良の売り手の着値＜自州価格）だけ）。
     public double TradeAccessNormalized = 1.0;   // ★点火2026-08-15（ign_trade1＝主動因・貿易0.23→1.19%・帯全次元改善）：④対外アクセスの正規化：TradeAccessのlostを真のシェア（lost/Σ全相手weight）へ。旧＝TradeWeight（平均0.25・総和≈15）をシェア扱い＝平均4カ国と禁輸/交戦で床0.10＝実測で英仏露普清が全員恒久床。正規化で禁輸4/60≈7%喪失の史実スケールへ。0＝旧式ビット恒等。点火はA/B
     public double RiskLambda = 2.0;              // 03手順7：リスク線積分の強度＝1−exp(−λΣ敵支配度×km/1e4)。完全支配10,000kmで0.86≈旧ChokeBlockadePenalty(0.8)の帯を継承
     // ⚠撤去2026-08-12（旧世界市場の撤去で読み手消滅）: PerStateTradeDistance  03手順4A（2026-07-28）：距離マージンを州単位の3脚（州→港(陸×LandSeaCostRatio)→海→重心）で計算。0=旧・国一律（首都→重心）
@@ -2565,7 +2565,7 @@ public sealed class Coefficients
     // ⚠撤去2026-08-12（旧世界市場の撤去で読み手消滅）: ThrottlePrepassUsesRealThreshold  財10（保護バイアス）：輸送スロットルの事前パスの輸入閾値。0で従来の裸マージン＝保護国のthrottleが過小→輸出が巻き添え・1で本パスと同式(tar×TariffProtect+cornPen+blockadeBias)に共通化。>0.5で発火
     public double WorldPriceInitFromRefPrice = 1.0;   // **点火2026-07-27（機能優先ラウンド第1群）**   // 財11（世界価格の初期値）：0で全財1.0初期化（現行）・1でCatalog.RefPricesから初期化＝開始数年の高額財交易の凍結を解消。>0.5で発火。MultiNationSim側でコンストラクタへ渡す配線が要る（既定省略時は0で現行と厳密一致）
     // ⚠撤去2026-09-03（J-011）：`SingleNationTradeParity` を削除＝唯一の読み手だった旧・世界市場（`Trade.cs`）を消したため死蔵になった。
-    public double ExportRevenueToProducers = 0.5;   // 財15（輸出利潤経路）：輸出代金のうち当該財の生産者所有者popへ直接渡す割合∈[0,1]。0で全額を全pop貯蓄按分（現行）＝輸出産業に利潤経路なし・>0で生産者所得とMarket.LastSoldが立ち輸出主導成長が通る。生産者不在の財は全額netFlowへフォールバック
+    // 【墓標2026-09-29・支払いの一元化 段3-1】ExportRevenueToProducers を削除（輸出代金の半分を生産者の持ち主へ直接・残りを国の全POP の貯蓄比＝輸出代金は全額を④の持分へ＝InternationalMarket.PaySales・C4）。
 
     // === リアリティ監査 2026-07-02 Wave3（人口・社会・労働の機構）===
     // 点火状況は各行参照。1州較正harnessでは加重=非加重・OldShare=0・複数州なしで恒等になるよう設計。

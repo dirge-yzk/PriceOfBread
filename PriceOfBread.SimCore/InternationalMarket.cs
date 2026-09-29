@@ -4,7 +4,7 @@
 /// 国際市場（§5.1 多国版）＝**二国間交易**（作者裁定2026-08-11・docs/202608/二国間交易への置換_設計_完了.md【完了】.md）。
 /// 各国の**全active州**を、州と州の**実経路**（陸→最寄り港→海盆→港→陸）で結ぶ清算。
 /// 買い手は「自分のところまで最も安く着く売り手」を選ぶ＝**世界にひとつの価格は存在しない**（同じ財でも産地と距離で着値が違う）。
-/// **輸入の支払い＝輸出の受取**で地球規模では金が保存（各国の貿易収支は CumulativeTradeFlow で黒字/赤字を追跡）。
+/// **輸入の支払い＝輸出の受取**（金建て）で地球規模では金が保存（各国の貿易収支は CumulativeTradeFlow で黒字/赤字を追跡・★段3-1 から各国の通貨へ為替で換算＝名目の差は CumulativeFxResidual）。
 /// 輸送ゲート：各州のアクセスを鉄道/船容量で律速。**港州＝船のみ・内陸州＝鉄道＋船(min)**＝港ハブ効果
 /// （内陸は鉄道がボトルネック＝港経由の含意）。国の容量は前期に各州が運びたかった量に比例して配る（TransportShareByPotential・実績の無い開幕は均等割り）。
 /// 禁輸・交戦の国は交易が縮む（§6.1）。植民地財も同じ二国間清算に載る（TradeColonialGoods・2026-08-26 点火）。
@@ -22,6 +22,11 @@ public sealed partial class InternationalMarket
 
     public IReadOnlyList<double> Price => _price;
     public IReadOnlyList<double> Volume => _volume;
+    /// <summary>★為替の換算の台帳（支払いの一元化 段3-1・A7・2026-09-29）＝清算所（世界の外）の名目の出入りの差の累計
+    /// （売り手と船の持ち主が受け取った額〔各自の通貨〕−払い手が払った額〔各自の通貨〕）。金建ての成約を各国の通貨へ換算すると、
+    /// 通貨の違う国どうしでは世界の名目の基礎貨幣が動く（為替 1 の国どうしでは0）。世界の合計の番人（ConservationTests・leakhunt）が
+    /// 鋳造・不換発行と並ぶ正当な湧き口と消え口として読む＝国ごとの台帳（CumulativeTradeFlow）は各自の通貨の実額のまま。</summary>
+    public double CumulativeFxResidual;
 
     private const double PriceBandFloorMul = 0.1;       // 平均価格の対RefPrice下限倍率
     private const double PriceBandCeilMul = 10.0;       // 平均価格の対RefPrice上限倍率
@@ -57,37 +62,51 @@ public sealed partial class InternationalMarket
     //   CollectTariff（関税＝全州の商人POP の貯蓄比で取って残高で切る）は、清算の末尾（BilateralMarket.StepBilateral）で移し方の1本 World.Transfer を直接呼ぶ形へ畳んだ
     //   （受け手・重み・区分・関税の実収の記帳は同じ。受け手へ渡すのは引けた額そのもの＝A4）。
 
-    // 財15：輸出代金の一部を当該財の生産者の所有者popへ直接支払う（生産量シェアで按分）。所得は所有者popのSavingsへ入る＝利潤シグナル。
-    // ※LastSold には積まない：LastSold は財収支恒等式(GoodsBalance)の販売量であり、輸出は LastExport で既に計上済み。ここで足すと同一数量の二重計上→在庫恒等式が破れて InvariantViolationException。採算(SmoothedMargin)は価格vs限界費用ベースで別経路（LastSold非依存）。
-    // 実際に渡せた額を返す（呼び出し側は netFlow から差し引き、別途 direct として台帳へ計上＝保存）。生産者不在/産出0の財は0を返し全額 netFlow へフォールバック＝現行経路。
-    // internal＝清算の本体（BilateralMarket.cs）から呼ぶ。旧・単一国経路（Trade.cs）は 2026-09-03 に削除済み。
-    // ★2026-09-26（高速化・厳密恒等）：その財の生産者の列（元の順）と totalOut を、呼び手が持つ記憶（ownPr/ownTotal＝清算の局所・州×財ごと）へ
-    //   初回だけ作って返し、2回目からは州の全生産者（約150）を2周しない。清算の中で Producers・Output・OwnerPopIndex・Pops の数を変える行は無い
-    //   （変わるのは Savings だけ）＝同じ部分列を同じ順で足す＝浮動小数も同一。旧＝成約ごとに全生産者を2周（成約は全長で3.16億回）。
-    // ★2026-09-27（線2・国営持分の対称）：各生産者の取り分のうち国営持分（World.StateProfitShare＝唯一の定義）は国庫へ（TreasuryCat.StateFactory）。
-    //   赤字の側（EconomyStep の「国営持分の赤字は国庫が負う」）と同じ持分＝旧は国有化した輸出産業の費用だけが国庫・代金は所有者POPへ（分子と分母の非対称）。
-    //   受け手が変わるだけ（どちらも同じ国の BaseMoney）＝返す額・呼び手の台帳（directLedger→CumulativeTradeFlow・買い手の引き落とし）は不変。
-    internal static double PayExportToProducers(Region r, int goodId, double amount, ref Producer[]? ownPr, ref double ownTotal, World w)
+    /// <summary>★④の持分で売上を分ける（支払いの一元化 段3-1・C4・2026-09-29）＝市場の外の売上（輸出代金・輸送財の買い付け）を、
+    /// 国内の売上と同じ④の分け方で受け取らせる：その財の生産者の産出の比で分け、地代（RGO は地代の上限と土地の稀少度＝EconomyStep.RentShareOf）
+    /// のうち国営持分（World.StateProfitShare）は国庫（区分 StateFactory）・残りの地代は持ち主・賃金は労働。**受け取りは Earned を通す**
+    /// （所得・信用枠・票・課税の基数＝月次の精算の後の受け取りなので貯蓄と所得を同じ額で書く＝Fiscal の領主の取り分と同じ作法）。
+    /// 生産者のいない在庫（輸入の在庫）は捌き手の商人へ（EconomyStep の「生産者のいない財の売上」と同じ規則・商人不在は州の頭数）。
+    /// 旧＝PayExportToProducers（輸出代金の半分〔係数 ExportRevenueToProducers〕を持ち主の貯蓄へ直接・賃金分なし・残りは国の全POP の貯蓄比）。
+    /// 払い手＝from（清算所＝(null, null)・輸送財の買い手＝(国, [POP])）。戻り値＝動いた額。</summary>
+    internal static double PaySales((World? W, List<Pop>? Pops) from, Region r, int goodId, double amount, World w)
     {
-        if (amount <= 1e-12) return 0.0;
-        if (ownPr is null)
+        if (!(amount > 0)) return 0;
+        var coef = w.Coef;
+        double totalOut = 0;
+        foreach (var pr in r.Producers)
+            if (pr.GoodId == goodId && pr.OwnerPopIndex >= 0 && pr.OwnerPopIndex < r.Pops.Count && pr.LaborPopIndex >= 0 && pr.LaborPopIndex < r.Pops.Count)
+                totalOut += Math.Max(0, pr.Output);
+        var to = new List<Pop>(); List<double>? wt = null;
+        double stateCut = 0;
+        if (totalOut > 1e-9)
         {
-            int n = 0; double totalOut = 0;
-            foreach (var pr in r.Producers) if (pr.GoodId == goodId && pr.OwnerPopIndex >= 0 && pr.OwnerPopIndex < r.Pops.Count) { n++; totalOut += Math.Max(0, pr.Output); }
-            var list = new Producer[n]; n = 0;
-            foreach (var pr in r.Producers) if (pr.GoodId == goodId && pr.OwnerPopIndex >= 0 && pr.OwnerPopIndex < r.Pops.Count) list[n++] = pr;
-            ownPr = list; ownTotal = totalOut;
+            wt = [];
+            double ruralPop = 0;
+            foreach (var p in r.Pops) if (!p.IsUrban) ruralPop += p.Size;
+            foreach (var pr in r.Producers)
+            {
+                if (pr.GoodId != goodId || pr.OwnerPopIndex < 0 || pr.OwnerPopIndex >= r.Pops.Count || pr.LaborPopIndex < 0 || pr.LaborPopIndex >= r.Pops.Count) continue;
+                double amt = amount * (Math.Max(0, pr.Output) / totalOut);
+                if (!(amt > 0)) continue;
+                double rent = EconomyStep.RentShareOf(pr, r, coef, ruralPop) * amt;
+                double wages = amt - rent;
+                double sc = rent * World.StateProfitShare(pr, r, coef);
+                if (sc > 0) { stateCut += sc; rent -= sc; }
+                if (rent > 0) { to.Add(r.Pops[pr.OwnerPopIndex]); wt.Add(rent); }
+                if (wages > 0) { to.Add(r.Pops[pr.LaborPopIndex]); wt.Add(wages); }
+            }
         }
-        if (ownTotal <= 1e-9) return 0.0;   // 生産者不在＝按分不能＝現行の全pop経路へ全額戻す
-        double paid = 0;
-        foreach (var pr in ownPr)
+        if (to.Count == 0)
         {
-            double sh = Math.Max(0, pr.Output) / ownTotal;
-            double stateCut = amount * sh * World.StateProfitShare(pr, r, w.Coef);
-            if (stateCut > 0) w.Pay(TreasuryCat.StateFactory, stateCut); else stateCut = 0;
-            r.Pops[pr.OwnerPopIndex].Savings += amount * sh - stateCut; paid += amount * sh;
+            stateCut = 0; wt = null;
+            if (r.MerchantPopIndex >= 0 && r.MerchantPopIndex < r.Pops.Count) to.Add(r.Pops[r.MerchantPopIndex]);
+            else to.AddRange(r.Pops);   // 重み null＝頭数
         }
-        return paid;
+        double moved = 0;
+        if (stateCut > 0) moved += World.Transfer(from, (w, null, null), stateCut, TreasuryCat.StateFactory);
+        moved += World.Transfer(from, (w, to, wt), amount - stateCut, TreasuryCat.OtherIn, income: true);
+        return moved;
     }
 
     // 穀物法の保護強度：なし0／限定的0.5／全面1.0（輸入閾値への上乗せ＝CornLawImportPenalty に掛かる）。
@@ -102,27 +121,6 @@ public sealed partial class InternationalMarket
 
     internal static double CornFactor(ReformLevel lv) => lv switch { ReformLevel.Full => 1.0, ReformLevel.Limited => 0.5, _ => 0.0 };   // internal＝ProductionDiag が穀物法の楔を同式で読む
 
-    // 純貿易流入を pop 貯蓄へ配分＋貿易収支へ計上（保存の追跡）。各国個別は黒字/赤字でよい（世界合計は0）。
-    // 黒字（流入）から商人が仲介料を先取り（取扱高＝捌いた量に比例＝交易の担い手）、残りは貯蓄比例。赤字（流出）は貯蓄比例で負担。
-    // ★支払いの一元化 段2-3（E1・2026-09-29）：仲介料（商人の頭数の比）と残余（貯蓄の比・負の額＝赤字も同じ式）は按分の本体 World.Distribute へ畳んだ
-    //   ＝端数は最後の受け手（旧＝仲介料は端数を寄せなかった）。配れなかった額（商人の頭数≈0／POP 不在・総貯蓄≈0）は、仲介料なら残余へ、残余なら国庫へ（旧と同じ行き先）。
-    private static void Apply(World w, double netFlow, double turnover, Coefficients c, double directLedger = 0)
-    {
-        double remaining = netFlow;
-        if (netFlow > 0 && turnover > 1e-9)
-        {
-            var merchants = new List<Pop>();
-            foreach (var r in w.Regions) if (r.MerchantPopIndex >= 0 && r.MerchantPopIndex < r.Pops.Count) merchants.Add(r.Pops[r.MerchantPopIndex]);
-            // 仲介料＝取扱高×料率（黒字の固定割合でなく捌いた量に比例）。流入を上限にクランプ（手数料が黒字を超えない）。
-            double mShare = Math.Min(netFlow, turnover * c.MerchantTradeMargin);
-            remaining -= mShare - World.Distribute(merchants, mShare);
-        }
-        var pops = new List<Pop>();
-        foreach (var r in w.Regions) pops.AddRange(r.Pops);
-        var held = new List<double>(pops.Count);
-        foreach (var p in pops) held.Add(Math.Max(0, p.Savings));   // 重みは Max(0,·)（負貯蓄popで逆符号配分になるのを防ぐ）
-        w.Pay(TreasuryCat.OtherIn, World.Distribute(pops, remaining, held));   // 分配不能（pop不在・総貯蓄≈0の貯蓄枯渇国）なら残余を国庫へ落とす（財2）＝実マネーが必ず remaining ぶん動く
-        // ＝仲介料(pop)＋残余(pop or 国庫)の合計は常に netFlow。財15の生産者直接分(directLedger)は PayExportToProducers で既に pop へ入れ済みなので、ここでは台帳にのみ加算（二重配分しない）。
-        w.CumulativeTradeFlow += netFlow + directLedger;   // Δ基礎貨幣 = netFlow(Apply配分) + directLedger(生産者直接) と厳密一致＝MoneyConservation維持。既定0で directLedger=0＝現行不変
-    }
+    // 【墓標2026-09-29・支払いの一元化 段3-1】Apply（国ごとの純流入を、黒字なら商人の仲介料＋残りを国の全POP の貯蓄比・赤字も全POP の貯蓄比で配る）を削除した。
+    //   輸入代金は捌き手の商人・売り手の受取は④の持分・運賃は船の持ち主・仲介料は越境の輸出の受取から州の商人へ（黒字と赤字で対称）＝BilateralMarket.StepBilateral の清算の終わり。
 }

@@ -118,12 +118,15 @@ public static class Fiscal
                 consent = 1.0 - c.TaxConsentWeight * (1.0 - voice);
             }
             // 所得税：全階級の所得への定率課税。率そのまま課し、行政不足の徴収漏れは下の汚職leakが担う（土地税と同方式・2026-09-12 の天井廃止で経路は1本だけ）。
-            double tax = Math.Min(w.TaxRate * Math.Max(0, p.Earned) * privBase * consent, Math.Max(0, p.Savings));
+            // ★段3-1（2026-09-29）：課税の基数＝**確定した前の月の所得**（LastEarned＝EconomyStep が月初に写す前の月の Earned の全部）。旧＝今月の Earned＝
+            //   月次の財政より後に入る受け取り（輸出代金と運賃〔国際市場の清算は全ての国の月次決算の後〕・領主の取り分）が翌月の頭で0へ戻り、課税されなかった。
+            //   史実の所得税も前の期の所得を査定した（英1799 ピットの所得税・1842 ピールの再導入）。
+            double tax = Math.Min(w.TaxRate * Math.Max(0, p.LastEarned) * privBase * consent, Math.Max(0, p.Savings));
             if (c.PrivilegeLedgerEnabled > 0 && privBase < 1.0)   // ★特権台帳（段1・観測）：免税で抜けた分＝あるべき税×(1−privBase)（貯蓄上限は無視＝取り分の定義は査定の特権）
-                Privileges.Record(w, Privileges.TaxExemption, (w.TaxRate * Math.Max(0, p.Earned) * consent + w.LandTax * Math.Max(0, p.LandRent)) * (1.0 - privBase));
+                Privileges.Record(w, Privileges.TaxExemption, (w.TaxRate * Math.Max(0, p.LastEarned) * consent + w.LandTax * Math.Max(0, p.LandRent)) * (1.0 - privBase));
             // 累進課税（A-1#3配線2026-06-24）：富裕層（近代エリート＝資本家/ブルジョワ・閉鎖階級＝貴族/聖職）の所得に**追加**課税＝再分配。所得税と同じ査定機構（漏れも同じ汚職leak）。富裕が強く抵抗（PolicyPreferences）。
             if (w.ProgressiveTax > 1e-9 && (p.IsModernElite || p.Closed) && !p.IsSoldier)
-                tax += Math.Min(w.ProgressiveTax * Math.Max(0, p.Earned) * consent, Math.Max(0, p.Savings - tax));
+                tax += Math.Min(w.ProgressiveTax * Math.Max(0, p.LastEarned) * consent, Math.Max(0, p.Savings - tax));
             // 人頭税：頭数に一律＝行政不要で確実だが逆進的。閉鎖階級（貴族・聖職）は免除＝特権（大衆の不満の種）。兵士は国が雇い主＝対象外。
             if (w.PollTax > 1e-9 && !p.Closed && !p.IsSoldier)
                 tax += Math.Min(c.PollTaxRate * w.PollTax * p.Size, Math.Max(0, p.Savings - tax));

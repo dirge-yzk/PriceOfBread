@@ -595,7 +595,7 @@ public sealed class MultiNationSim
     //   新しい状態は作らない（既存の配列を1枠伸ばすだけ）。★回1-2（2026-09-27）で世界プール（ゲーム外から湧く持参金＝旧の既知の湧き口）は消えた。
     private double[]? _probeD;
     private static double ProbeD(World w) => w.BaseMoney - w.CumulativeTradeFlow - w.CumulativeGoldMinted - w.CumulativeFiatIssued;
-    private double ProbeWorldW() { double s = 0; foreach (var n in Nations) { var w = n.World; s += w.BaseMoney - w.CumulativeGoldMinted - w.CumulativeFiatIssued; } return s; }
+    private double ProbeWorldW() { double s = -Market.CumulativeFxResidual; foreach (var n in Nations) { var w = n.World; s += w.BaseMoney - w.CumulativeGoldMinted - w.CumulativeFiatIssued; } return s; }   // ★段3-1（A7）：為替の換算の台帳を差し引く
     private void ProbeSnap()
     {
         if (!Simulation.ConservationProbe) return;

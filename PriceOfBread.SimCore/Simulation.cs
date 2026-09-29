@@ -2053,9 +2053,11 @@ public sealed class Simulation
                         claims += World.Coef.MegaprojectForeignYield * mp.ForeignPrincipal;   // 外資の利回り（四半期）
         }
         // 売買方針の代金とダンピング補助（清算ごと・清算の末尾の World.Transfer＝旧 InternationalMarket.PaySubsidy）＝直近の清算の越境の輸入額・輸出額で見込む（同国の州どうしの買い付けの分は見込みの外）
-        double tradeClaim = World.Tariff < 0 ? World.LastExportValue * -World.Tariff * World.Coef.TariffRevenueRate : 0;
+        //   ★段3-1（A7）：清算は金建て＝自国通貨へ為替で換算して見込む（清算と同じ守り＝為替≦1e-9 は1）。
+        double erClaim = World.ExchangeRate > 1e-9 ? World.ExchangeRate : 1.0;
+        double tradeClaim = World.Tariff < 0 ? World.LastExportValue / erClaim * -World.Tariff : 0;
         if (World.ImportsByGood is { } payImp)
-            for (int g = 0; g < payImp.Length; g++) if (World.TradeBiasOf(g) > 0) tradeClaim += World.Coef.TradeBiasStrength * payImp[g];
+            for (int g = 0; g < payImp.Length; g++) if (World.TradeBiasOf(g) > 0) tradeClaim += World.Coef.TradeBiasStrength * payImp[g] / erClaim;
         claims += tradeClaim / World.Coef.MonthsPerClearing;
         // 先月の区分つき StateSpent で見込む行（義務教育・健康保険・工場の材料・民営の補助）は先月の r で払った額＝請求へ戻すには先月の r で割る
         //   （この時点の FiscalFundingRatio＝先月の r。先月 0 なら先月は払っていない＝見込みも 0）。

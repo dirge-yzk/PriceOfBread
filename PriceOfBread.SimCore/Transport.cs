@@ -4,7 +4,7 @@
 /// 輸送容量（§5.1拡張）：鉄道（内陸→港）と海運（港→世界市場）の容量を、鉄道財/船財の投資で積む。
 /// 投資家が国内市場から鉄道(線路+機関車)を、商人が船（帆船か汽船の、容量あたりの総費用が安い方）を買い→容量に変換（在庫消費＝非貨幣）。
 /// 容量は毎期減耗し、維持に再投資が要る＝鉄道/船の持続需要を生む（史実：輸送財の需要増）。
-/// 金は 買い手pop→生産者の持ち主pop（出力の割合で按分＝輸出代金と同じ売上の経路）で移転＝保存（BaseMoney不変）。積んだ容量が交易量を律速する（<see cref="InternationalMarket"/>＝清算の本体は BilateralMarket.cs）。
+/// 金は 買い手pop→生産者の④の持分（出力の割合で按分＝輸出代金と同じ売上の経路・InternationalMarket.PaySales）で移転＝保存（BaseMoney不変）。積んだ容量が交易量を律速する（<see cref="InternationalMarket"/>＝清算の本体は BilateralMarket.cs）。
 /// </summary>
 public static class Transport
 {
@@ -96,12 +96,9 @@ public static class Transport
             m.Stock -= buy;
             m.LastSold += buy;          // 汽船が焚く＝消費（財収支に計上）
             // ★2026-09-26（回4-3・econ-12）：旧＝最初に見つかった生産者の持ち主へ全額。今＝輸出代金と同じ売上の経路（各生産者の出力の割合）。
-            Producer[]? ownPr = null; double ownTotal = 0;
-            double paid = InternationalMarket.PayExportToProducers(r, fuelG, pay, ref ownPr, ref ownTotal, w);   // ⚠先に払ってから引く（買い手が持ち主のとき、`-=` の左辺を先に読むと受け取った分を上書きする）
-            // ★支払いの一元化 段2-2（A2・2026-09-29）：生産者が居ない（在庫は輸入の在庫）なら在庫の持ち主＝捌き手の商人へ払う（EconomyStep の「生産者のいない財の売上」と同じ規則・商人不在は州の頭数）。
-            //   旧＝0が返ると買い手は払わずに在庫を持ち去った（物が無償で消えた）。買い手が商人なら自分の在庫を使うだけ（払って受け取る＝純0）。
-            if (!(paid > 0)) paid = pay - (r.MerchantPopIndex >= 0 ? World.Distribute([r.Pops[r.MerchantPopIndex]], pay, [1.0]) : World.Distribute(r.Pops, pay));
-            buyer.Savings -= paid;
+            // ★支払いの一元化 段3-1（C4・2026-09-29）：代金は④の持分（地代・国営持分・賃金＝Earned を通す）で・買い手から移し方の1本で（InternationalMarket.PaySales）。
+            //   生産者が居ない（在庫は輸入の在庫）なら在庫の持ち主＝捌き手の商人へ（段2-2 の A2 と同じ規則）。買い手が商人なら自分の在庫を使うだけ（払って受け取る＝純0）。
+            InternationalMarket.PaySales((w, [buyer]), r, fuelG, pay, w);
         }
     }
 
@@ -176,11 +173,8 @@ public static class Transport
                 if (buy <= 1e-9) continue;
                 m.Stock -= buy;
                 m.LastSold += buy;          // 財収支に計上（輸送購入＝販売）。在庫減を販売として記録し§11.6財収支を保つ
-                // 代金＝輸出代金と同じ売上の経路（各生産者の出力の割合で持ち主へ・econ-12）。
-                Producer[]? ownPr = null; double ownTotal = 0;
-                double paid = InternationalMarket.PayExportToProducers(r, gi, pay, ref ownPr, ref ownTotal, w);   // ⚠先に払ってから引く（買い手が持ち主のとき、`-=` の左辺を先に読むと受け取った分を上書きする）
-                if (!(paid > 0)) paid = pay - (r.MerchantPopIndex >= 0 ? World.Distribute([r.Pops[r.MerchantPopIndex]], pay, [1.0]) : World.Distribute(r.Pops, pay));   // ★段2-2（A2）：生産者のいない在庫は持ち主（捌き手の商人）へ＝上の燃料と同じ規則
-                investor.Savings -= paid;
+                // 代金＝輸出代金と同じ売上の経路（④の持分・econ-12・段3-1 の C4）＝上の燃料と同じ1本。
+                InternationalMarket.PaySales((w, [investor]), r, gi, pay, w);
                 double add = buy * c.TransportCapPerUnit * mult;
                 if (rail) w.RailCapacity += add; else w.ShipCapacity += add;
                 addTotal += add;

@@ -65,7 +65,7 @@ public sealed partial class InternationalMarket
         foreach (var g in nations[0].World.Region.Goods) goodById[g.Id] = g;
 
         var exRate = new double[nn]; var tar = new double[nn]; var corn = new double[nn];
-        var oban = new bool[nn]; var oexban = new bool[nn]; var biasCost = new double[nn]; var milExportAcc = new double[nn];
+        var oban = new bool[nn]; var oexban = new bool[nn]; var milExportAcc = new double[nn];
         for (int i = 0; i < nn; i++)
         {
             var w0 = nations[i].World;
@@ -301,16 +301,38 @@ public sealed partial class InternationalMarket
             expByGood[i] = w0.ExportsByGood!; impByGood[i] = w0.ImportsByGood!;
         }
 
-        var netFlow = new double[nn]; var direct = new double[nn];
-        var importVal = new double[nn]; var exportVal = new double[nn];   // 越境の輸入額・輸出額（同じ国の州どうしは数えない＝分子と分母を同じ規則で）
-        double freightPool = 0;
+        // ★支払いの一元化 段3-1（貿易・2026-09-29・計画 §10-12-9 の 3-1・C1〜C5・D4・A7・econ-07/B21）：旧＝国ごとの純流入 netFlow を Apply で
+        //   国の全POP の貯蓄比に配っていた（輸入代金を払うのは国の全POP・運賃も関税の残りも同じ）＝払い手と受け手が名目と違った。
+        //   新＝**成約ごとの当事者が払い、受け取る**：輸入代金・運賃・関税は輸入の捌き手（買い手の州の商人POP＝国内でその在庫を売って代金を受け取る口座と同じ・Q7 の b）が払う／
+        //   売り手の受取（積出し価格＝次善の着値を最良の売り手の楔で割り戻した値）は④の持分（地代・国営持分・賃金＝Earned を通す）／運賃は船の持ち主（商人）へ／
+        //   関税と穀物法の分は通関の時点で輸入国の国庫へ（econ-07）／金建ての額は各国の通貨へ為替で換算（A7）。
+        //   清算所＝世界の外（払い手は清算所へ払い、受け手は清算所から受け取る）＝同じ国の州どうしの取引は同じ国の台帳に −x と +x が入って打ち消す（国内の決済）。
+        var importVal = new double[nn]; var exportVal = new double[nn];   // 越境の輸入額（CIF＝積出し価格＋運賃）・輸出額（FOB＝積出し価格）・金建て（同じ国の州どうしは数えない＝分子と分母を同じ規則で）
+        double freightPool = 0;   // 運賃（金建て）＝船腹の比で各国の船の持ち主へ
         var shipShare = new double[nn];
+        // ★段3-1（C3）：運賃の受け手＝船の持ち主＝その国の商人POP（船を買うのは州の商人＝Transport.BuyToward）。旧＝運賃は各国の純流入に混ぜて国の全POP の貯蓄比（Apply）。
+        //   商人の居ない国（合成の試験世界）は活動州の全POP。受け手の居ない国は船腹の比から外す（運賃が誰にも渡らない片側記帳を作らない）。
+        var shipOwners = new List<Pop>[nn];
+        double freightRate = 0;
         if (c.FreightRatePer10Mm > 1e-12)
         {
-            double shipSum = 0;
-            for (int i2 = 0; i2 < nn; i2++) { shipShare[i2] = Math.Max(0, nations[i2].World.ShipCapacity / (1.0 + Math.Max(0, nations[i2].World.ColonialShipBurden))); shipSum += shipShare[i2]; }
+            double shipSum = 0; int eligible = 0;
+            var ok = new bool[nn];
+            for (int i2 = 0; i2 < nn; i2++)
+            {
+                var so = new List<Pop>();
+                foreach (var r2 in nations[i2].World.Regions)
+                    if (r2.State == RegionState.Active && r2.MerchantPopIndex >= 0 && r2.MerchantPopIndex < r2.Pops.Count) so.Add(r2.Pops[r2.MerchantPopIndex]);
+                if (so.Count == 0) foreach (var r2 in nations[i2].World.Regions) if (r2.State == RegionState.Active) so.AddRange(r2.Pops);
+                double sz = 0; foreach (var p2 in so) sz += p2.Size;
+                shipOwners[i2] = so;
+                if (!(sz > 1e-9)) continue;   // 受け手不在＝船腹の比から外す
+                ok[i2] = true; eligible++;
+                shipShare[i2] = Math.Max(0, nations[i2].World.ShipCapacity / (1.0 + Math.Max(0, nations[i2].World.ColonialShipBurden))); shipSum += shipShare[i2];
+            }
             if (shipSum > 1e-9) for (int i2 = 0; i2 < nn; i2++) shipShare[i2] /= shipSum;
-            else for (int i2 = 0; i2 < nn; i2++) shipShare[i2] = 1.0 / nn;   // ★船腹が全国0（開幕Q1・合成世界）＝運賃プールが誰にも渡らず消える片側記帳を回避＝均等配分へ倒す
+            else for (int i2 = 0; i2 < nn; i2++) shipShare[i2] = ok[i2] ? 1.0 / eligible : 0.0;   // ★船腹が全国0（開幕Q1・合成世界）＝受け手のいる国で均等に
+            if (eligible > 0) freightRate = c.FreightRatePer10Mm;   // 受け手の居る国が1つも無ければ運賃を取らない
         }
 
         // 従量成分（重量/価値比×運賃革命）＝旧 Step のローカル関数と同式（A-高2）。前線技術は世界財＝旗に依らない。
@@ -337,22 +359,35 @@ public sealed partial class InternationalMarket
         int[]? nextS = null;   // ★連結リスト圧縮（2026-09-01）：在庫が尽きた売り手（と 2026-09-26 から容量が尽きた売り手）を走査から恒久除去する「次の生存索引」
         // ★逐次の候補表（2026-09-26・高速化・厳密恒等）：買い手1行のあいだ、訪問済みで有資格の売り手（着値＜MaxValue）を持つ＝伸長のみ・買い手ごとに0から。
         //   旧＝反復のたびに先頭から走査し直していた（成約の直後の同一の再走査・一時スキップの踏み直し）。下の買い手ループの注記を参照。
-        int[]? candS = null; double[]? candD = null; double[]? candK = null;
-        var budgetLeft = new double[nn];   // 支払能力＝Apply と同一集合 Σmax(0,Savings)（裁定11・国庫は含めない）
-        for (int i2 = 0; i2 < nn; i2++)
+        int[]? candS = null; double[]? candD = null; double[]? candK = null; double[]? candF = null;   // candF＝着値の倍率（1＋運賃＋楔＋封鎖）＝売り手の受取を割り戻す分母
+        // ★段3-1：支払能力＝輸入の捌き手（州の商人POP・商人の居ない州は州の全POP）の貯蓄（自国通貨・清算の始めの値）。旧＝国の全POP の貯蓄の和（Apply と同一集合）。
+        //   この清算の受け取り（商人の仲介料・生産者のいない在庫の代金）は清算の終わりに入る＝この清算の支払能力に足さない（先に使えない）。
+        var payerOf = new List<Pop>?[tc];   // 輸入の払い手（null＝払い手なし＝輸入しない）
+        var budget = new double[tc];
+        for (int t2 = 0; t2 < tc; t2++)
         {
-            double bsum = 0;
-            foreach (var r2 in nations[i2].World.Regions) foreach (var p2 in r2.Pops) bsum += Math.Max(0, p2.Savings);
-            budgetLeft[i2] = bsum;
+            var r2 = tr[t2].r;
+            if (r2.MerchantPopIndex >= 0 && r2.MerchantPopIndex < r2.Pops.Count) payerOf[t2] = [r2.Pops[r2.MerchantPopIndex]];
+            else if (r2.Pops.Count > 0) payerOf[t2] = r2.Pops;
+            if (payerOf[t2] is { } pl) foreach (var p2 in pl) budget[t2] += Math.Max(0, p2.Savings);
         }
+        var payHouse = new double[tc];   // 払い手が清算所へ払う額（輸入代金＋運賃・自国通貨）
+        var payTariff = new double[tc];  // 払い手が自国の国庫へ払う関税と穀物法の分（自国通貨）
+        var paySub = new double[tc];     // 売買方針（高く買う）の補助＝国庫→払い手（自国通貨・国家の支払い率 r は払う時に掛ける）
+        var rev = new double[tc]; var revX = new double[tc];   // 財ごとの売り手の受取（自国通貨）・うち越境（仲介料の基数）＝財の清算の終わりに④で分けて0へ戻す
+        var expReg = new double[tc];     // 越境の輸出の受取（自国通貨・全財）＝ダンピング補助の重み（輸出を捌いた州の商人）
+        double fxIntended = 0;           // 清算所の名目の出入りの差（受け取る側の通貨−払う側の通貨）＝為替の換算で世界の名目の基礎貨幣が動く分（A7）
         var potNew = new double[tc];   // 新定義の潜在量（容量で切る前の pot·W を両端に計上）＝θ/T4 の分母
         var capLeft = new double[tc]; for (int t2 = 0; t2 < tc; t2++) capLeft[t2] = tr[t2].cap;
+        // ★国際市場の間引き（作者裁定 2026-09-29 の3・(6)）：前の清算で成約が無かった買い手の行（州×財）は眠る＝月次の清算では回さない。
+        //   起こす理由＝①四半期の最初の清算で値段の差が運賃を超えているか軽く確かめる（下の 1b の打ち切り＝最良の売り手の着値の下界 ≧ 自州価格なら O(1) で終わる）
+        //   ②この月にその財が足りなかった（Market.LastShortage＞0＝飢饉の輸入を遅らせない）。前の清算で成約したか＝Market.PrevImport（EconomyStep が月初に写す前の月の輸入）
+        //   ＝新しい状態を持たない。⚠四半期に1回の清算（TradeMonthlyClearing=0）は毎回が四半期の最初＝間引かない。
+        bool thin = c.TradeMonthlyClearing > 0 && !firstClearingOfQuarter;
 
         var sellers = new List<Seller>(tc);
         var buyers = new List<(int Node, double Price)>(tc);
         var distTop = new double[tc];   // 距離の診断＝どの取引を代表に採ったか（最大額）
-        // ★財15の生産者の列の記憶（2026-09-26・高速化・厳密恒等）：州(tr添字)ごと・財ごとに PayExportToProducers が初回に作る（財が変わるたびに空へ戻す）。
-        var payPr = new Producer[]?[tc]; var payTot = new double[tc];
 
         var gOrder = new int[gc];
         for (int gi0 = 0; gi0 < gc; gi0++) gOrder[gi0] = gi0;
@@ -368,7 +403,6 @@ public sealed partial class InternationalMarket
             var gd = goodById[g];
             if (swSec is not null) { TimeClearTicks += swSec.ElapsedTicks; swSec.Restart(); }   // ★前財の清算ループ時間（初回は≈0）
             _volume[g] = 0;
-            Array.Clear(payPr);   // 生産者の列は財ごと（前の財の列を読まない）
             // ★植民地財も二国間清算に載る（点火2026-08-26・2026-09-28 に旗 TradeColonialGoods ごと焼き込み）。
             if (gd is null || gd.NonTradeable) continue;
 
@@ -390,20 +424,17 @@ public sealed partial class InternationalMarket
             double Wg = Catalog.TransportWeight(g);   // 財の輸送重量（積載・容量の単位）
             bool milGood = Array.IndexOf(c.MilitaryExportGoods, g) >= 0;
 
-            // ---- 売り手候補＝平均より安い州。価格の昇順（枝刈りのため） ----
-            // ★貿易復活③（2026-08-15・tradewhy2＝量の分解）：平均分割の帯を広げる。旧＝売り手lp<平均・買い手lp>平均は
-            //   「世界の裾と裾」しか取引できない＝穀物大国（露≈平均価格）がロンドン（平均の1.5倍）に売れない構造遮断。
-            //   売り手帯＝平均×(1+w)・買い手帯＝平均/(1+w)＝**ペア単位で黒字な取引を到達可能に**（成立判定は従来どおり着値vs自州価格）。
-            //   TradeBandWiden=0＝×1.0/÷1.0＝ビット恒等。点火はA/B（貿易/GDP＋帯）。
-            double sellCap = avg * (1.0 + c.TradeBandWiden);
-            double buyFloor = avg / (1.0 + c.TradeBandWiden);
+            // ---- 売り手候補＝出せる在庫のある州の全て。価格の昇順（枝刈りのため） ----
+            // ★段3-1（R6・英の交易の診断 2026-09-28 の裁定）：旧＝売り手は平均×(1+TradeBandWiden) より安い州・買い手は平均÷(1+w) より高い州だけ
+            //   ＝表示用の単純平均（統計）が成立の門になっていた（偏在財で平均が振れると組が閉じる・銀の平均は為替に自己参照する）。
+            //   新＝帯を撤去し、成立は組ごとの判定（最良の売り手の着値＜自州価格・下の 1b／1c）だけ。係数 TradeBandWiden を削除。
             sellers.Clear();
             for (int t = 0; t < tc; t++)
             {
                 if (!tr[t].linked) continue;
                 var m = tr[t].r.Markets[g];
                 double lp = m.Price * exRate[tr[t].nation];
-                if (lp <= 1e-9 || lp >= sellCap || m.Stock <= 1e-9) continue;
+                if (lp <= 1e-9 || m.Stock <= 1e-9) continue;
                 int ni = tr[t].nation;
                 double sellAcc = tr[t].access * (milGood ? milExportAcc[ni] : 1.0);
                 if (c.IsolationExportWeight > 0) sellAcc *= System.Math.Max(0, 1.0 - c.IsolationExportWeight * System.Math.Max(0, tar[ni]) * System.Math.Max(0, tar[ni]));   // ★鎖国の対称化（高関税レジーム＝輸出側も閉じる・0＝恒等）
@@ -424,7 +455,7 @@ public sealed partial class InternationalMarket
             if (nextS is null || nextS.Length < sellers.Count) nextS = new int[Math.Max(64, sellers.Count * 2)];
             for (int s = 0; s < sellers.Count; s++) nextS[s] = s + 1;
 
-            // ---- 買い手＝平均より高い州。**高く買う相手から順に**応じる（作者指示2026-08-11）。
+            // ---- 買い手＝全ての州（段3-1 の R6＝帯を撤去）。**高く買う相手から順に**応じる（作者指示2026-08-11）。
             //   売り手の在庫は有限なので、処理順がそのまま「誰に売るか」になる＝局所価格の高い買い手を先に通す。
             //   同値は州名で全順序＝決定論（走査順に依存しない）。
             buyers.Clear();
@@ -432,7 +463,7 @@ public sealed partial class InternationalMarket
             {
                 if (!tr[t].linked) continue;
                 double lpB = tr[t].r.Markets[g].Price * exRate[tr[t].nation];
-                if (lpB > buyFloor) buyers.Add((t, lpB));   // ★③帯の拡張（TradeBandWiden=0＝旧: >平均と厳密同値）
+                if (lpB > 1e-9) buyers.Add((t, lpB));
             }
             if (buyers.Count == 0) continue;
             buyers.Sort((x, y) => x.Price != y.Price ? y.Price.CompareTo(x.Price) : string.CompareOrdinal(tr[x.Node].r.Name, tr[y.Node].r.Name));
@@ -440,12 +471,14 @@ public sealed partial class InternationalMarket
             foreach (var (t, lp) in buyers)
             {
                 var m = tr[t].r.Markets[g];
+                if (thin && !(m.PrevImport > 0) && !(m.LastShortage > 0)) continue;   // ★間引き：眠っている行（上の thin の注記）
                 int ni = tr[t].nation;
                 int bias = nations[ni].World.TradeBiasOf(g);
                 double buyDear = bias > 0 ? c.TradeBiasStrength : 0;
                 double protect = Math.Max(0, tar[ni]);
                 double cornPen = gd.Tier == GoodTier.Staple || gd.GrainChain ? corn[ni] * c.CornLawImportPenalty : 0;   // 穀物法の客体＝主食＋麦の連鎖（旗 CornLawGrainChainGate は 2026-09-26 に焼き込み）
-                double wedge = protect * c.TariffProtect + cornPen - buyDear;   // 買い手側の敷居（関税・穀物法・売買方針）
+                double duty = protect * c.TariffProtect + cornPen;   // ★段3-1（econ-07）：関税と穀物法の分＝通関で輸入国の国庫へ入る楔（積出し価格に掛かる）
+                double wedge = duty - buyDear;   // 買い手側の敷居（関税・穀物法・売買方針）
                 // ★貿易復活①（2026-08-15）：関税・穀物法は**国境の税**＝同国の売り手には掛けない（内国関税は1789仏/1834独関税同盟で消えた制度。
                 //   旧＝自国州からの購入にも関税wedgeが掛かり、国内州間交易まで殺していた＝tradewhy分解の壁の片翼）。
                 //   ★点火2026-08-15（旗 TariffBorderOnly は 2026-09-26 に焼き込み）。買い手方針buyDearは境を問わず据え置き。
@@ -475,8 +508,9 @@ public sealed partial class InternationalMarket
                 if (!(m.TargetStock + m.LastDemand - m.LastProduced - m.Stock > 0)) { if (MultiNationSim.TimeOn) CntRowSkipNeed++; continue; }   // 物理の不足 xNeed≦0（下の xNeed と同じ式）
                 if (!(gd.RefPrice * tr[t].r.PriceLevel * exRate[ni] > 1e-9)) { if (MultiNationSim.TimeOn) CntRowSkipRef++; continue; }   // rpT≦1e-9＝xPrice が0の枝（下の rpT と同じ式）
                 if (!(m.LastDemand > 0) && !(m.LastProduced + m.LastImport < 0)) { if (MultiNationSim.TimeOn) CntRowSkipDead++; continue; }   // 需要0＝D·Pow≦0 から P+I≧0 を引く＝xPrice≦0
-                if (!(budgetLeft[ni] > 0)) { if (MultiNationSim.TimeOn) CntRowSkipBudget++; continue; }   // 支払能力0＝pot≦0（予算はこの行の成約でしか増えない）
-                if (candS is null || candS.Length < sellers.Count) { int cn0 = Math.Max(64, sellers.Count * 2); candS = new int[cn0]; candD = new double[cn0]; candK = new double[cn0]; }
+                if (!(budget[t] > 0)) { if (MultiNationSim.TimeOn) CntRowSkipBudget++; continue; }   // 支払能力0＝pot≦0（この清算の中で増えない）
+                if (candS is null || candS.Length < sellers.Count) { int cn0 = Math.Max(64, sellers.Count * 2); candS = new int[cn0]; candD = new double[cn0]; candK = new double[cn0]; candF = new double[cn0]; }
+                double unmetQ = 0;   // ★潜在量は組ごとに1回（作者裁定 2026-09-29 の2）＝この行で「容量で切られた不足」として既に数えた量（同じ不足を次善の売り手で数え直さない）
                 double baseMul = 1 + c.TransportMargin * adValoremRev;   // 距離0・危険0の運賃の倍率（lbMul と同じ評価順＝(1＋TM·adV)＋楔）
                 double lbMul = baseMul + Math.Min(wedge, wedgeHome);   // 昇順の打ち切りの下界の倍率（真の下界＝運賃革命の従価割引込み・旧の式そのもの）
                 int candN = 0, resS = headS, resPrev = -1;   // 候補の数／次に調べる売り手（打ち切り位置）とその手前の生存売り手
@@ -534,10 +568,11 @@ public sealed partial class InternationalMarket
                             double bb2 = gd.Tier == GoodTier.Staple ? c.BlockadeStapleBias * risk2 : 0.0;
                             double mar2 = c.TransportMargin * (1.0 + c.DistanceMarginScale * km2 / Diplomacy.DistanceNormKm) * adValoremRev
                                         + weightAdd * (km2 / Diplomacy.DistanceNormKm) + risk2;
-                            double del2 = sellers[s2].Price * (1 + mar2 + wS2 + bb2);
+                            double fac2 = 1 + mar2 + wS2 + bb2;   // 着値の倍率（段3-1＝売り手の受取を割り戻す分母）
+                            double del2 = sellers[s2].Price * fac2;
                             if (del2 < double.MaxValue)
                             {
-                                candS[candN] = s2; candD![candN] = del2; candK![candN] = km2;
+                                candS[candN] = s2; candD![candN] = del2; candK![candN] = km2; candF![candN] = fac2;
                                 if (del2 < bestDelA) { secondDelA = bestDelA; bestDelA = del2; bestA = s2; bestPos = candN; }   // 新しく訪問した売り手は候補表の誰よりも添字が大きい＝旧の厳密比較と同じ
                                 else if (del2 < secondDelA) secondDelA = del2;
                                 candN++;
@@ -569,62 +604,95 @@ public sealed partial class InternationalMarket
                     double rpS = gd.RefPrice * tr[snA].r.PriceLevel * exRate[siA];
                     double yPrice = rpS > 1e-9 ? (msA.LastProduced + msA.LastImport) * unitA / rpS - msA.LastDemand - msA.LastExport : 0.0;
                     double Y = sellAccB * Math.Max(0, Math.Min(yPrice, left[bestA]));   // 物理上限＝avail（=Stock−TargetStock・left が消化を追う）
-                    double frA = c.FreightRatePer10Mm > 1e-12 ? c.FreightRatePer10Mm * bestKmA / Diplomacy.DistanceNormKm : 0.0;
+                    double frA = freightRate > 1e-12 ? freightRate * bestKmA / Diplomacy.DistanceNormKm : 0.0;
+                    // ★段3-1（econ-07/B21）：売り手の受取＝次善の着値（単価 unitA）を最良の売り手の着値の倍率（1＋運賃＋楔＋封鎖）で割り戻した積出し価格。
+                    //   旧＝単価を丸ごと売り手に払った＝輸入国の関税・穀物法と影の運送（従価の運送の楔・危険料）が外国の売り手の収入になっていた
+                    //   （関税を上げるほど輸出国への支払いが増える＝帰着が逆）。関税と穀物法の分は通関で輸入国の国庫へ・影の運送は誰にも払わない
+                    //   （捌き手の商人が国内で売る値との差として残る）・運賃は積出し価格に掛かり船の持ち主へ。
+                    bool crossA = siA != ni;   // 同国取引は輸入の統計と関税の基礎に数えない（国境の税）
+                    double sA = unitA / candF![bestPos];
+                    double dutyA = crossA ? duty : 0.0;
+                    double costA = sA * (1 + dutyA + frA) / exRate[ni];   // 払い手が1単位に払う額（積出し価格＋関税＋運賃・自国通貨＝A7）
                     double pot = Math.Min(Math.Min(X, Y), left[bestA]);
-                    pot = Math.Min(pot, budgetLeft[ni] / Math.Max(1e-12, unitA * (1 + frA)));   // 支払能力（Apply集合）
-                    if (pot > 0) { potNew[t] += pot * Wg; potNew[snA] += pot * Wg; }   // 容量で切る**前**＝θ/T4 の分母
+                    pot = Math.Min(pot, budget[t] / Math.Max(1e-12, costA));   // 支払能力（捌き手の貯蓄）
                     double qA = pot;
                     qA = Math.Min(qA, Math.Min(capLeft[t], capLeft[snA]) / Math.Max(1e-9, Wg));
+                    // 潜在量（容量で切る**前**＝θ/T4 の分母）＝成約した量＋容量で切られた不足。★不足は組ごとに1回（作者裁定 2026-09-29 の2）：
+                    //   旧＝切られた不足を次善の売り手ごとに数え直した（同じ不足が売り手の数だけ重なる＝思想⑨）。
+                    //   新＝この売り手で切られた分のうち、この行の不足（X）でまだ数えていない分だけを足す（行の潜在量は X を超えない）。
+                    if (pot > 0)
+                    {
+                        double doneQ = qA > 1e-12 ? qA : 0.0;
+                        double newUnmet = Math.Min(pot - doneQ, Math.Max(0, X - doneQ - unmetQ));
+                        potNew[t] += (doneQ + newUnmet) * Wg; potNew[snA] += (doneQ + newUnmet) * Wg;
+                        unmetQ += newUnmet;
+                    }
                     if (!(qA > 1e-12))
                     {
                         if (!(X > 1e-12)) break;          // 買い手が満ちた＝この財は終了
+                        if (capLeft[t] <= 1e-12 && !(X - unmetQ > 1e-12)) break;   // 買い手の容量が尽き、不足は全て数えた＝この行は終わり（以後の売り手は数え直しになるだけ）
+                        if (!(budget[t] > 1e-12)) break;  // 払い手の支払能力が尽きた（この清算の中で増えない）
                         // 売り手側の事情（Y=0/容量0/在庫0）＝次善へ回る（旧＝一時スキップの印 skipS[bestA]）＝候補表から外す
-                        candN--; candS[bestPos] = candS[candN]; candD![bestPos] = candD[candN]; candK![bestPos] = candK[candN];
+                        candN--; candS[bestPos] = candS[candN]; candD![bestPos] = candD[candN]; candK![bestPos] = candK[candN]; candF![bestPos] = candF[candN];
                         continue;
                     }
-                    // ---- 記帳（買い手が払い、売り手が受け取る。運賃だけが荷主から海運プールへ）----
+                    // ---- 記帳（払い手が清算所へ払い、売り手は財の清算の終わりに④で受け取る。運賃は船の持ち主へ・関税は国庫へ）----
                     if (MultiNationSim.TimeOn) CntDeals++;   // ★計器
-                    double valueA = qA * unitA;
-                    if (TradeReachDiag.On) { TradeReachDiag.Deal(siA, ni, valueA, bestKmA); TradeReachDiag.DealRef(siA, ni, qA * gd.RefPrice); }
+                    double vA = qA * sA;              // 積出し価格の額（金建て）
+                    double frG = vA * frA;            // 運賃（金建て）
+                    if (TradeReachDiag.On) { TradeReachDiag.Deal(siA, ni, vA, bestKmA); TradeReachDiag.DealRef(siA, ni, qA * gd.RefPrice); }
                     left[bestA] -= qA;
                     msA.Stock -= qA; msA.LastExport += qA;
                     m.Stock += qA; m.LastImport += qA;
-                    bool crossA = siA != ni;   // 同国取引は輸入の統計と関税の基礎に数えない（国境の税）
-                    if (c.DiffusionWeight > 0 && siA != ni) AccumulatePairFlow(siA, ni, valueA, netFlow.Length);   // ★段7：伝播のペア記帳（国際取引のみ・0＝不読＝恒等）
-                    netFlow[ni] -= valueA;
+                    if (c.DiffusionWeight > 0 && crossA) AccumulatePairFlow(siA, ni, vA, nn);   // ★段7：伝播のペア記帳（国際取引のみ・0＝不読＝恒等）
+                    double payA = (vA + frG) / exRate[ni];     // 清算所へ（輸入代金＋運賃・買い手の通貨）
+                    double dutyPay = vA * dutyA / exRate[ni];  // 国庫へ（関税と穀物法・買い手の通貨）
+                    payHouse[t] += payA; payTariff[t] += dutyPay; budget[t] -= payA + dutyPay;
+                    double recvA = vA / exRate[siA];            // 売り手の受取（売り手の通貨）
+                    rev[snA] += recvA;
+                    if (crossA) { revX[snA] += recvA; expReg[snA] += recvA; }
+                    fxIntended += recvA - payA;                 // 為替の換算の差（運賃の受取は清算の終わりに足す）
+                    freightPool += frG;
+                    if (buyDear > 0) paySub[t] += vA * buyDear / exRate[ni];   // 売買方針（高く買う）＝積出し価格×楔（旧＝数量×表示用の平均×楔＝R6）
                     // ★2026-09-27（回4-1・項目12①・新1）：輸出の統計も輸入と同じ「国境を越えるか」の1本で数える。旧＝総取引額（買い手側と売り手側の両方に積む）
                     //   から輸入額を引いて輸出額にしていた＝同じ国の州どうしの取引が2回入り、輸出額＝本当の輸出＋国内の州間取引の2倍だった。
-                    if (crossA) { importVal[ni] += valueA; impByGood[ni][g] += valueA; exportVal[siA] += valueA; expByGood[siA][g] += valueA; }
+                    //   ★段3-1：輸出＝積出し価格（FOB）・輸入＝積出し価格＋運賃（CIF）＝史実の貿易統計の慣行（旧＝どちらも単価＝次善の着値）。
+                    if (crossA) { importVal[ni] += vA + frG; impByGood[ni][g] += vA + frG; exportVal[siA] += vA; expByGood[siA][g] += vA; }
                     // ★2026-09-27（回4-1・項目12②）：港の取扱高は海路の成約だけ（この組の着値を決めた経路＝KmOf(snA, t) が書いた向きの印）。
                     //   陸路の直行は港を通らない。同じ国の沿岸の海路（英のニューカッスル→ロンドンの石炭）は積む＝国境でなく経路で分ける。
-                    if (!kmLand[snA * tc + t]) { tr[t].r.LastPortThroughput += valueA; tr[snA].r.LastPortThroughput += valueA; }
-                    double toProdA = c.ExportRevenueToProducers > 1e-12 ? PayExportToProducers(tr[snA].r, g, valueA * PoliticalQuantities.Clamp01(c.ExportRevenueToProducers), ref payPr[snA], ref payTot[snA], nations[siA].World) : 0.0;
-                    netFlow[siA] += valueA - toProdA; direct[siA] += toProdA;
-                    if (c.FreightRatePer10Mm > 1e-12)
-                    {
-                        double freightA = c.FreightRatePer10Mm * valueA * (bestKmA / Diplomacy.DistanceNormKm);
-                        netFlow[ni] -= freightA; freightPool += freightA;
-                    }
-                    if (buyDear > 0) biasCost[ni] += qA * avg * buyDear;
+                    if (!kmLand[snA * tc + t]) { tr[t].r.LastPortThroughput += vA; tr[snA].r.LastPortThroughput += vA; }
                     _volume[g] += qA;
-                    RecordPartner(nations[ni].World.ImportFromByGood, g, tr[snA].r.Name, valueA, impTop[ni]);
-                    RecordPartner(nations[siA].World.ExportToByGood, g, tr[t].r.Name, valueA, expTop[siA]);
-                    if (valueA > distTop[t]) { distTop[t] = valueA; tr[t].r.LastTradeDistanceKm = bestKmA; }
-                    if (valueA > distTop[snA]) { distTop[snA] = valueA; tr[snA].r.LastTradeDistanceKm = bestKmA; }
+                    RecordPartner(nations[ni].World.ImportFromByGood, g, tr[snA].r.Name, vA, impTop[ni]);
+                    RecordPartner(nations[siA].World.ExportToByGood, g, tr[t].r.Name, vA, expTop[siA]);
+                    if (vA > distTop[t]) { distTop[t] = vA; tr[t].r.LastTradeDistanceKm = bestKmA; }
+                    if (vA > distTop[snA]) { distTop[snA] = vA; tr[snA].r.LastTradeDistanceKm = bestKmA; }
                     // ★陸路可視化（2026-08-31）：この対の最短が陸直行なら、両端の州へ「陸路の最大相手」を記帳（純テレメトリ・地図が実経路を描く）
                     if (kmLand[snA * tc + t] || kmLand[t * tc + snA])
                     {
-                        if (valueA > tr[t].r.LastLandPartnerFlow) { tr[t].r.LastLandPartnerFlow = valueA; tr[t].r.LastLandPartnerName = tr[snA].r.Name; }
-                        if (valueA > tr[snA].r.LastLandPartnerFlow) { tr[snA].r.LastLandPartnerFlow = valueA; tr[snA].r.LastLandPartnerName = tr[t].r.Name; }
+                        if (vA > tr[t].r.LastLandPartnerFlow) { tr[t].r.LastLandPartnerFlow = vA; tr[t].r.LastLandPartnerName = tr[snA].r.Name; }
+                        if (vA > tr[snA].r.LastLandPartnerFlow) { tr[snA].r.LastLandPartnerFlow = vA; tr[snA].r.LastLandPartnerName = tr[t].r.Name; }
                     }
-                    // ---- 予算と容量の簿記 ----
-                    budgetLeft[ni] -= qA * unitA * (1 + frA); budgetLeft[siA] += qA * unitA;
+                    // ---- 容量の簿記 ----
                     capLeft[t] -= qA * Wg; capLeft[snA] -= qA * Wg;
                     if (capLeft[t] <= 1e-12) break;   // この買い手は今清算これ以上運べない
                     // 最良が有資格のまま（旧の走査の資格判定そのもの＝否定形の NaN も同じ側）なら (a)、外れたら (b)
                     if (!(left[bestA] <= 1e-12) && !(capLeft[snA] <= 1e-12)) keepBest = true;
-                    else { candN--; candS[bestPos] = candS[candN]; candD![bestPos] = candD[candN]; candK![bestPos] = candK[candN]; }
+                    else { candN--; candS[bestPos] = candS[candN]; candD![bestPos] = candD[candN]; candK![bestPos] = candK[candN]; candF![bestPos] = candF[candN]; }
                 }
+            }
+            // ---- 財の清算の終わり：売り手の受取を④の持分で分ける（段3-1・C4）----
+            //   旧＝成約ごとに受取の半分（係数 ExportRevenueToProducers）を生産者の持ち主の貯蓄へ直接・残りは国の全POP の貯蓄比（Apply）＝賃金分が無く Earned を通らなかった。
+            //   新＝州×財ごとに1回（成約あたりは O(1) の足し算だけ）：越境の分の仲介料（MerchantTradeMargin）を州の商人へ・残りを④の持分
+            //   （地代→持ち主・国営持分→国庫・賃金→労働）＝国内の売上と同じ分け方で Earned を通す（所得・課税の基数）。生産者のいない在庫は捌き手の商人へ。
+            for (int t = 0; t < tc; t++)
+            {
+                if (!(rev[t] > 0)) continue;
+                var rS = tr[t].r; var wS = nations[tr[t].nation].World;
+                double comm = 0;
+                if (revX[t] > 0 && rS.MerchantPopIndex >= 0 && rS.MerchantPopIndex < rS.Pops.Count)
+                    comm = World.Transfer((null, null), (wS, [rS.Pops[rS.MerchantPopIndex]], null), revX[t] * c.MerchantTradeMargin, TreasuryCat.OtherIn, income: true);
+                PaySales((null, null), rS, g, rev[t] - comm, wS);
+                rev[t] = 0; revX[t] = 0;
             }
         }
         if (swSec is not null) TimeClearTicks += swSec.ElapsedTicks;   // ★計器：最後の財の清算ループ（旧は足していなかった）
@@ -642,28 +710,40 @@ public sealed partial class InternationalMarket
             if (distTop[t] <= 0 && tr[t].linked) tr[t].r.LastTradeDistanceKm = tr[t].landKm * terrCost[t] * landRatio[t];   // ★実着値の物差し（:262/:273）に統一＝地形/鉄道低下を無視した旧定数(12)フォールバックを廃止
         }
 
+        // ---- 清算の終わり（段3-1）：運賃→船の持ち主／補助→払い手／関税→国庫（通関）／輸入代金と運賃→清算所 ----
+        //   受け取りを先に・払いを後に（払い手の支払能力は清算の始めの貯蓄で数えた＝この清算の受け取りは使っていない）。
+        //   運賃＝船腹の比で各国の船の持ち主（船を買う商人＝Transport.BuyToward）へ頭数で。
         for (int i = 0; i < nn; i++)
         {
-            if (freightPool > 1e-12) netFlow[i] += freightPool * shipShare[i];
-            if (Math.Abs(netFlow[i]) > 1e-12 || Math.Abs(direct[i]) > 1e-12)
-                Apply(nations[i].World, netFlow[i], importVal[i] + exportVal[i], c, direct[i]);   // 仲介料の基数＝越境の輸入＋輸出（MerchantTradeMargin の定義どおり）
+            if (!(freightPool > 0) || !(shipShare[i] > 0)) continue;
+            double amt = freightPool * shipShare[i] / exRate[i];
+            fxIntended += amt;
+            World.Transfer((null, null), (nations[i].World, shipOwners[i], null), amt, TreasuryCat.OtherIn, income: true);
         }
+        for (int i = 0; i < nn; i++) nations[i].World.LastTariffRevenue = 0;
+        for (int t = 0; t < tc; t++)
+        {
+            var w0 = nations[tr[t].nation].World;
+            if (paySub[t] > 0 && payerOf[t] is { } ps) World.Transfer((w0, null), (w0, ps, null), paySub[t] * w0.FiscalFundingRatio, TreasuryCat.Subsidy);   // 売買方針の補助＝国家の支払い率 r の分だけ（区分 Subsidy・作者裁定 Q14）
+            if (payTariff[t] > 0 && payerOf[t] is { } pt) w0.LastTariffRevenue += World.Transfer((w0, pt), (w0, null, null), payTariff[t], TreasuryCat.Tariff);   // 関税と穀物法＝輸入者から通関の時点で（econ-07）
+            if (payHouse[t] > 0 && payerOf[t] is { } pp) World.Transfer((w0, pp), (null, null, null), payHouse[t]);   // 輸入代金と運賃＝清算所へ（国境をまたげば世界の台帳へ・同じ国の州どうしは台帳で打ち消す）
+        }
+        CumulativeFxResidual += fxIntended;
         for (int i = 0; i < nn; i++)
         {
             var w0 = nations[i].World;
-            w0.LastTariffRevenue = 0;
             w0.LastImportValue = importVal[i];
             w0.LastExportValue = exportVal[i];   // ＝ExportsByGood の和（同じ成約を同じ条件で積む）
-            // ★支払いの一元化 段2-3（E2・2026-09-29）：関税・ダンピング補助・売買方針の代金＝商人POP ⇄ 国庫を移し方の1本（World.Transfer）で（旧 CollectTariff・PaySubsidy）。
-            //   関税＝輸入の捌き手（商人pop）の輸入差益から国庫へ（④貨幣金融）。消費者帰着は①価格チャネル（保護で国内価格↑＝EconomyStepの buyerPrice）が既に担う
-            //   ＝割増が溜まる先の商人から国庫へ「付け替え」る（消費者への二重徴収なし）。商人の貯蓄の比・残高超は取り切れない（ラッファー的に部分）。
-            //   補助＝国庫→商人（頭数で等分＝重み1・国家の支払い率 r の分だけ）。ダンピング補助は関税の純額から減算・売買方針の代金は関税の実収に混ぜない（区分 Subsidy・作者裁定 Q14）。
-            //   関税の実収（LastTariffRevenue）は動いた額（旧＝関税は引けた額・補助は払う予定の額）。受け手の重みを払い手（実際の輸入者）へ替えるのは段3-1。
-            var merchants = new List<Pop>(); var perHead = new List<double>();
-            foreach (var r in w0.Regions) if (r.MerchantPopIndex >= 0 && r.MerchantPopIndex < r.Pops.Count) { merchants.Add(r.Pops[r.MerchantPopIndex]); perHead.Add(1.0); }
-            if (tar[i] >= 0) w0.LastTariffRevenue += World.Transfer((w0, merchants), (w0, null, null), importVal[i] * tar[i] * c.TariffRevenueRate, TreasuryCat.Tariff);
-            else w0.LastTariffRevenue -= World.Transfer((w0, null), (w0, merchants, perHead), w0.LastExportValue * Math.Abs(tar[i]) * c.TariffRevenueRate * w0.FiscalFundingRatio, TreasuryCat.Tariff);
-            if (biasCost[i] > 1e-12) World.Transfer((w0, null), (w0, merchants, perHead), biasCost[i] * w0.FiscalFundingRatio, TreasuryCat.Subsidy);
+            // ダンピングの輸出補助（負の関税）＝国庫→輸出を捌いた州の商人（越境の輸出の受取の比）・国家の支払い率 r の分だけ・関税の純額から減算。
+            //   旧＝全州の商人の頭数で等分・輸出額は単価の和・TariffRevenueRate（削除）を掛けた。
+            if (tar[i] < 0 && exportVal[i] > 0)
+            {
+                var ms = new List<Pop>(); var mw = new List<double>();
+                for (int t = 0; t < tc; t++)
+                    if (tr[t].nation == i && expReg[t] > 0 && tr[t].r.MerchantPopIndex >= 0 && tr[t].r.MerchantPopIndex < tr[t].r.Pops.Count)
+                    { ms.Add(tr[t].r.Pops[tr[t].r.MerchantPopIndex]); mw.Add(expReg[t]); }
+                w0.LastTariffRevenue -= World.Transfer((w0, null), (w0, ms, mw), exportVal[i] / exRate[i] * Math.Abs(tar[i]) * w0.FiscalFundingRatio, TreasuryCat.Tariff);
+            }
         }
         // Stage C：トランジット通行料＝利用国の国庫から港所有国の国庫へ（運河通行料と同じ台帳作法・両建てで保存）。
         if (transitUses is { Count: > 0 } && c.TransitTollShare > 1e-12)

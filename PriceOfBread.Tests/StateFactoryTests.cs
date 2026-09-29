@@ -460,7 +460,7 @@ public class StateFactoryTests
     //   市場の外で生産者へ直接払われる代金（輸出代金の分配・造幣局の買い）も国庫へ入る。旧＝費用だけが国庫・代金は所有者POPへ（s4 の英の国有の銀山）。
 
     [Fact]
-    public void 国営持分の輸出の代金は持分の割合だけ国庫へ()
+    public void 輸出の代金は付加価値の持分で分けられ所得を通る()
     {
         var w = Warm(2055).World;
         var r = w.Regions[0];
@@ -472,14 +472,39 @@ public class StateFactoryTests
         double f = World.StateProfitShare(p, r, w.Coef);
         Assert.True(Math.Abs(f - 0.5) < 1e-12, $"前提が崩れた：国営持分が 1/2 でない（{f}）");
         double amount = 1000.0;
-        double t0 = w.Treasury, led0 = w.TreasuryLedger[(int)TreasuryCat.StateFactory], own0 = r.Pops[p.OwnerPopIndex].Savings, base0 = w.BaseMoney;
-        Producer[]? ownPr = null; double ownTotal = 0;
-        double paid = InternationalMarket.PayExportToProducers(r, 32, amount, ref ownPr, ref ownTotal, w);
-        Assert.Equal(amount, paid, 9);                                                  // 返す額（呼び手の台帳 directLedger・買い手の引き落とし）は不変
-        Assert.Equal(amount * f, w.Treasury - t0, 9);                                    // 持分の割合だけ国庫へ
-        Assert.Equal(amount * f, w.TreasuryLedger[(int)TreasuryCat.StateFactory] - led0, 9);   // 区分＝国営工場
-        Assert.Equal(amount * (1 - f), r.Pops[p.OwnerPopIndex].Savings - own0, 9);       // 残りが所有者POPへ
-        Assert.Equal(amount, w.BaseMoney - base0, 6);                                    // 受け手が変わるだけ＝同じ国の基礎貨幣が同額増える
+        // ★段3-1（2026-09-29・C4）：輸出代金は④の持分（地代のうち国営持分→国庫・残りの地代→持ち主・賃金→労働）で分け、所得（Earned）も同じ額で書く
+        //   （旧 PayExportToProducers＝持ち主へ地代と賃金の区別なく全額・国営持分は代金の全額に掛けた）。
+        double rural = 0; foreach (var q in r.Pops) if (!q.IsUrban) rural += q.Size;
+        double rs = EconomyStep.RentShareOf(p, r, w.Coef, rural);   // 工場は労働を投入として買う＝付加価値は全て持ち主の側（rs＝1）
+        var own = r.Pops[p.OwnerPopIndex];
+        double t0 = w.Treasury, led0 = w.TreasuryLedger[(int)TreasuryCat.StateFactory], own0 = own.Savings, ownE0 = own.Earned, base0 = w.BaseMoney, tf0 = w.CumulativeTradeFlow;
+        double paid = InternationalMarket.PaySales((null, null), r, 32, amount, w);   // 払い手＝清算所（世界の外）
+        Assert.Equal(amount, paid, 9);
+        Assert.Equal(amount * rs * f, w.Treasury - t0, 9);                                    // 地代の国営持分だけ国庫へ
+        Assert.Equal(amount * rs * f, w.TreasuryLedger[(int)TreasuryCat.StateFactory] - led0, 9);   // 区分＝国営工場
+        Assert.True(own.Savings - own0 >= amount * rs * (1 - f) - 1e-9, "残りの地代が持ち主へ届いていない");
+        Assert.Equal(own.Savings - own0, own.Earned - ownE0, 9);                              // 所得にも同じ額（課税の基数）
+        Assert.Equal(amount, w.BaseMoney - base0, 6);                                         // 世界の外から＝この国の基礎貨幣が同額増え
+        Assert.Equal(amount, w.CumulativeTradeFlow - tf0, 6);                                 //   同じ額が世界の台帳に入る（保存量 D は動かない）
+
+        // 賃金の側（RGO＝地代の取り分が 0〜1）：地代→持ち主・賃金→労働（旧 PayExportToProducers＝全額を持ち主へ・賃金0）。
+        Producer? rg = null;
+        foreach (var q in r.Producers)
+        {
+            if (!q.IsRgo || q.OwnerPopIndex < 0 || q.LaborPopIndex < 0 || q.OwnerPopIndex == q.LaborPopIndex || q.OwnerPopIndex >= r.Pops.Count || q.LaborPopIndex >= r.Pops.Count) continue;
+            double rq = EconomyStep.RentShareOf(q, r, w.Coef, rural);
+            if (rq > 0.01 && rq < 0.99 && World.StateProfitShare(q, r, w.Coef) == 0) { rg = q; break; }
+        }
+        Assert.True(rg is not null, "前提が崩れた：地代の取り分が 0〜1 の民営の RGO が無い");
+        foreach (var q in r.Producers) if (q.GoodId == rg!.GoodId) q.Output = 0;
+        rg!.Output = 1.0;
+        double rs2 = EconomyStep.RentShareOf(rg, r, w.Coef, rural);
+        var own2 = r.Pops[rg.OwnerPopIndex]; var lab2 = r.Pops[rg.LaborPopIndex];
+        double o20 = own2.Savings, l20 = lab2.Savings, l2e = lab2.Earned;
+        InternationalMarket.PaySales((null, null), r, rg.GoodId, amount, w);
+        Assert.Equal(amount * rs2, own2.Savings - o20, 9);          // 地代→持ち主
+        Assert.Equal(amount * (1 - rs2), lab2.Savings - l20, 9);    // 賃金→労働
+        Assert.Equal(amount * (1 - rs2), lab2.Earned - l2e, 9);     // 賃金も所得（課税の基数）
     }
 
     [Fact]

@@ -339,6 +339,26 @@ public static class EconomyStep
 
     /// <param name="bank">家計向け与信の貸し手（POPの個人債務・2026-08-02）。null＝消費者信用は発動しない
     /// （単体テスト・較正はこの経路を持たない＝厳密恒等）。</param>
+    /// <summary>★④の地代の取り分（支払いの一元化 段3-1・2026-09-29＝④の式をここへ移した・国内の売上と輸出代金・輸送財の代金〔InternationalMarket.PaySales〕が同じ1本を読む）。
+    /// RGOの地代（封建貢租）は土地改革・農奴解放で上限が下がる＝地主の取り分↓・残りは農民の賃金へ（保存＝rent+wages=valueAdded）。
+    /// 上限方式＝元の取り分が低い国（自作農・小作）には効かない＝農奴制国だけ解放が効く（史実）。
+    /// rank5 囲い込みプッシュ（★live 2026-08-31点火・RentScarcityElasticity=1）：RGOの地代取り分を土地の混み具合（稀少度）の増加関数へ
+    /// ＝土地が稀少なほど地主の取り分↑→農民のEarned↓→既存の都市化softmax・失業プールが自然に排出（プッシュ型離農・囲い込みの収奪）。
+    /// 稀少度＝landFactor と**同一入力**（ArableLand÷農村人口）の逆数側 max(0, 農村人口/ArableLand−1)＝耕地を超えた分だけ正。
+    /// センチネル（ArableLand≥1e8＝合成較正・最小テスト世界）は LandFactor と同じく除外＝0。
+    /// clamp上限＝既存の物差し FarmRentCap（土地改革/農奴解放の法上限＝解放国では稀少でも貢租を上げられない・≤1.0で賃金非負＝保存不変）。
+    /// ⚠新しい移動経路・移動補助は作らない（作者条件＝「移動費が払えず貧困から抜けられない」型を潰さない。押し出しは所得低下→既存機構経由のみ）。</summary>
+    internal static double RentShareOf(Producer s, Region region, Coefficients coef, double ruralPop)
+    {
+        double rentShare = s.IsRgo ? System.Math.Min(s.RentShare, region.FarmRentCap) : s.RentShare;
+        if (coef.RentScarcityElasticity > 0 && s.IsRgo)
+        {
+            double landScarcity = region.ArableLand < 1e8 ? Math.Max(0, ruralPop / Math.Max(1.0, region.ArableLand) - 1.0) : 0;
+            rentShare = System.Math.Min(s.RentShare * (1.0 + coef.RentScarcityElasticity * landScarcity), region.FarmRentCap);
+        }
+        return rentShare;
+    }
+
     public static void Run(Region region, Coefficients coef, double productivityMultiplier = 1.0, Bank? bank = null, World? world = null)
     {
         int ng = region.Markets.Length;
@@ -561,16 +581,10 @@ public static class EconomyStep
 
         // 土地（耕地）の収穫逓減：農村人口が耕地賦存量(ArableLand)を超えると土地作物RGOの産出が落ちる（農地＝固定生産要素）。未設定＝1.0（制約なし）。
         double regionLandFactor;
-        // rank5 囲い込みプッシュ（★live 2026-08-31点火・RentScarcityElasticity=1）：土地の混み具合＝稀少度。
-        // landFactor と**同一入力**（ArableLand÷農村人口）の逆数側 max(0, 農村人口/ArableLand−1)＝耕地を超えた分だけ正。
-        // センチネル（ArableLand≥1e8＝合成較正・最小テスト世界）は LandFactor と同じく除外＝0。ゲート内でのみ計算＝dormant時は1命令も走らない（NaN/∞も入らない）。
-        double landScarcity = 0;
         // Σ Size は Run 中不変（Size の書き手なし）＝一度だけ集計して各所で共有（各所の再走査と同じ加算順＝ビット恒等）
         double totalPop = 0, urbanPop = 0, ruralPop = 0;
         foreach (var p in region.Pops) { totalPop += p.Size; if (p.IsUrban) urbanPop += p.Size; else ruralPop += p.Size; }
         regionLandFactor = Territory.LandFactor(region, ruralPop, coef);
-        if (coef.RentScarcityElasticity > 0 && region.ArableLand < 1e8)
-            landScarcity = Math.Max(0, ruralPop / Math.Max(1.0, region.ArableLand) - 1.0);
 
         // === ① 供給：能力＝労働（工業化度で生産性が上がる）。供給曲線。投入充足で律速（§9-A 注2）===
         for (int pi = 0; pi < np; pi++)
@@ -2251,7 +2265,10 @@ public static class EconomyStep
                 int gi = good.Id;
                 if (good.Tier == GoodTier.Service || good.NonTradeable || producerCount[gi] == 0 || revenue[gi] <= Eps) continue;
                 double domesticValue = produced[gi] * clearPrice[gi];
-                double importValue = region.Markets[gi].LastImport * clearPrice[gi];   // 当期の輸入額＝商人（輸入の捌き手）が受け取れる上限
+                // ★段3-1（2026-09-29・C1＝分子と分母を同じ規則で）：輸入額＝前の清算で着いた輸入（PrevImport＝月初に写した前の月の輸入）＋この月の植民地の輸入（LastImport）。
+                //   旧＝LastImport だけ＝国際市場の清算は月次決算の後に着き、次の月の頭で0へ戻る＝**二国間の輸入は一度も上限に入らなかった**
+                //   （国内の売上は国内の生産者へ・輸入代金は国の全POP＝払い手と受け手が別）。輸入代金を払う捌き手の商人が、その在庫を国内で売った代金を受け取る。
+                double importValue = (region.Markets[gi].PrevImport + region.Markets[gi].LastImport) * clearPrice[gi];   // 商人（輸入の捌き手）が受け取れる上限
                 double merchantCut = Math.Min(revenue[gi] - domesticValue, importValue);
                 if (merchantCut > Eps) { region.Pops[region.MerchantPopIndex].Earned += merchantCut; revenue[gi] -= merchantCut; }
             }
@@ -2289,16 +2306,7 @@ public static class EconomyStep
             double stateCover = stateFrac * payRate;
             if (valueAdded >= 0)
             {
-                // RGOの地代（封建貢租）は土地改革・農奴解放で上限が下がる＝地主の取り分↓・残りは農民の賃金へ（保存＝rent+wages=valueAdded）。
-                // 上限方式＝元の取り分が低い国（自作農・小作）には効かない＝農奴制国だけ解放が効く（史実）。
-                double rentShare = s.IsRgo ? System.Math.Min(s.RentShare, region.FarmRentCap) : s.RentShare;
-                // rank5 囲い込みプッシュ（★live 2026-08-31点火・RentScarcityElasticity=1）：RGOの地代取り分を土地の混み具合の増加関数へ
-                // ＝土地が稀少なほど地主の取り分↑→農民のEarned↓→既存の都市化softmax・失業プールが自然に排出（プッシュ型離農・囲い込みの収奪）。
-                // clamp上限＝既存の物差し FarmRentCap（土地改革/農奴解放の法上限＝解放国では稀少でも貢租を上げられない・≤1.0で賃金非負＝保存不変）。
-                // ⚠新しい移動経路・移動補助は作らない（作者条件＝「移動費が払えず貧困から抜けられない」型を潰さない。押し出しは所得低下→既存機構経由のみ）。
-                // ゲート0＝分岐ごと不読＝×1.0すら掛けない厳密恒等。
-                if (coef.RentScarcityElasticity > 0 && s.IsRgo)
-                    rentShare = System.Math.Min(s.RentShare * (1.0 + coef.RentScarcityElasticity * landScarcity), region.FarmRentCap);
+                double rentShare = RentShareOf(s, region, coef, ruralPop);   // ★段3-1：輸出代金と輸送財の代金（InternationalMarket.PaySales）も同じ1本を読む
                 rent = rentShare * valueAdded; wages = valueAdded - rent;
                 if (stateFrac > 0) { region.StateSpent[(int)TreasuryCat.StateFactory] -= rent * stateFrac; rent *= 1.0 - stateFrac; }   // 国営持分の利潤は国庫へ（StateSpentの負値＝国庫収入。Treasury-=StateSpent がそのまま精算＝保存）
             }

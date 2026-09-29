@@ -697,8 +697,10 @@ public sealed class World
     ///   保険の受け手側）は式・足し順・端数の行き先・縮退の枝が同じだったのでここへ畳んだ。
     /// ★段2-3（2026-09-29）：縮退の枝が違った複製（符号つきの与信の注入と回収・貿易の残余・国債の持ち手・窃盗・年金・恐怖政治・十分の一税・運河と港・招聘の支度金）も
     ///   ここへ畳んだ＝**額は符号つき**（負の額＝重みの比で取る・与信の回収と貿易の赤字）・**微小な額も配る**（旧＝1e-12 以下は配らずに 0 を返した＝呼び手が
-    ///   配ったものとして扱い、その分が消えた）。額が0か NaN なら何もせず 0 を返す。</summary>
-    internal static double Distribute(List<Pop> pops, double amount, List<double>? weights = null)
+    ///   配ったものとして扱い、その分が消えた）。額が0か NaN なら何もせず 0 を返す。
+    /// ★段3-1（2026-09-29）：<paramref name="income"/>＝受け取りを所得（Earned）にも同じ額で書く＝月次の精算（EconomyStep の Savings += Earned − Paid）の後の受け取り
+    ///   （輸出代金・輸送財の代金・運賃・仲介料・十分の一税・領主の取り分）が所得・信用枠・票・課税の基数に載る。書き込みの行は1つ（端数は最後の受け手＝同じ式を1行へ）。</summary>
+    internal static double Distribute(List<Pop> pops, double amount, List<double>? weights = null, bool income = false)
     {
         if (!(Math.Abs(amount) > 0)) return 0;
         if (pops.Count == 0) return amount;
@@ -707,13 +709,12 @@ public sealed class World
         else foreach (var x in weights) total += x;
         if (!(total > 1e-9)) return amount;
         double done = 0;
-        for (int i = 0; i < pops.Count - 1; i++)
+        for (int i = 0; i < pops.Count; i++)
         {
-            double share = amount * ((weights is null ? pops[i].Size : weights[i]) / total);
-            pops[i].Savings += share;
+            double share = i < pops.Count - 1 ? amount * ((weights is null ? pops[i].Size : weights[i]) / total) : amount - done;
+            pops[i].Savings += share; if (income) pops[i].Earned += share;
             done += share;
         }
-        pops[^1].Savings += amount - done;
         return 0;
     }
 
@@ -725,7 +726,7 @@ public sealed class World
     /// 受け手：POP＝<see cref="Distribute"/> の本体（重み null＝頭数）／国庫＝<see cref="Pay"/>。**受け手不在（空・重みの合計≈0）なら動かさない**＝払い手に残る。
     /// 世界の台帳：両側の国が違えば払い手の国の CumulativeTradeFlow を減らし受け手の国を増やす（片側が世界の外なら世界の中の側だけ）＝台帳を書くのはここの1か所。
     /// ⚠払い手と受け手の集合が重なってもよい（先に取り、後で配る＝両建てで純保存）。否定形のガード＝NaN と負の額は動かさない（負の額の按分は Distribute）。</summary>
-    internal static double Transfer((World? W, List<Pop>? Pops) from, (World? W, List<Pop>? Pops, List<double>? Weights) to, double amount, TreasuryCat cat = TreasuryCat.OtherOut)
+    internal static double Transfer((World? W, List<Pop>? Pops) from, (World? W, List<Pop>? Pops, List<double>? Weights) to, double amount, TreasuryCat cat = TreasuryCat.OtherOut, bool income = false)
     {
         if (!(amount > 0)) return 0;
         if (to.Pops is { } tp)
@@ -750,7 +751,7 @@ public sealed class World
             moved = amount;
             from.W?.Pay(cat, -moved);   // 国庫（世界の外なら引く相手が無い）
         }
-        if (to.Pops is { } rp) Distribute(rp, moved, to.Weights);   // 受け手が居ることは上で確かめた＝配り切る
+        if (to.Pops is { } rp) Distribute(rp, moved, to.Weights, income);   // 受け手が居ることは上で確かめた＝配り切る（income＝所得にも書く）
         else to.W?.Pay(cat, moved);
         if (!ReferenceEquals(from.W, to.W))
         {

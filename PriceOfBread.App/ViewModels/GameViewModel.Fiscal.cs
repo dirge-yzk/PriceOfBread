@@ -311,7 +311,7 @@ public partial class GameViewModel
         double net = gIncome + gProg + gPoll + gLand;
         // 関税：直近の貿易額（世界価格建て・国際市場は清算単位（四半期清算=3ヶ月／月次清算=1ヶ月）＝MonthsPerClearing で月割）×レートで予想。正=輸入関税収入／負=輸出補助（ダンピング＝コスト）。
         double tImpVal = _player.LastImportValue / (double)c.MonthsPerClearing, tExpVal = _player.LastExportValue / (double)c.MonthsPerClearing;   // 清算単位→月割（月次清算に追随・2026-08-22）
-        double TariffRev(double rate) => (rate >= 0 ? tImpVal : tExpVal) * rate * c.TariffRevenueRate;
+        double TariffRev(double rate) => (rate >= 0 ? tImpVal : tExpVal) * rate;   // ★段3-1：係数 TariffRevenueRate（常に1）を削除
         double tariffGross = TariffRev(_player.Policy.TariffTarget);   // 予想（目標レート＝バーに即応）
         // 接14（監査2026-07-11・2026-07-25実装）：実効はUIの自前近似でなくエンジンの実績診断を読む（国際市場は清算単位＝MonthsPerClearing で月割。負値＝ダンピングの補助金支出）
         double tariffActMonthly = _player.LastTariffRevenue / (double)c.MonthsPerClearing;

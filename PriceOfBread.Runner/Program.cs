@@ -3202,6 +3202,7 @@ if (args.Length > 0 && args[0] == "leakhunt")
         foreach (var n in lm.Nations) { foreach (var r in n.World.Regions) pop += r.SumPopulation(); money += n.World.BaseMoney; }
         foreach (var lap in lm.Diplomacy.Powers) if (lap.Nation is null) foreach (var lcol in lap.ColonyList) pop += Math.Max(0, lcol.PopSize) + lcol.SettlerSize;   // 抽象標的の植民地の住民
         foreach (var n in lseen) { var w = n.World; pop -= w.DiagBirths - w.DiagDeaths - w.WarDeadCumulative; money -= w.CumulativeGoldMinted + w.CumulativeFiatIssued; }
+        money -= lm.Market.CumulativeFxResidual;   // ★段3-1（A7）：為替の換算で世界の名目の基礎貨幣が動く分（清算所の台帳）
         return (pop, money);
     }
     int lPopBad = 0, lMoneyBad = 0; double lPopSum = 0, lMoneySum = 0;

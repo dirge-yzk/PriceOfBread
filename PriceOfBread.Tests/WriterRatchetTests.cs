@@ -98,12 +98,16 @@ public class WriterRatchetTests
     //   按分の本体 World.Distribute（符号つき・微小な額も配る）へ畳んだ＝与信の注入と回収（旧 Credit.InjectMoney を削除）・貿易の仲介料と残余・国債の持ち手・
     //   窃盗・年金・恐怖政治・十分の一税・港の建設労務・生産者のいない在庫の代金（輸送の買い付け）。再点火の代金は月内の仮勘定（Paid）へ（建設の材料と工賃の Paid の2行を1行へ＝Paid は 9 のまま）。
     //   銀行の無い世界の底打ち（最富裕→全員から取る・作者裁定 Q11 で撤去）。CumulativeFiatIssued は3のまま（非常発行の行＝負の国の与信の償却だけになった）。
-    [InlineData("Savings", 47)]               // POP の貯蓄（段3の終わりに Pop の中の3つへ閉じる）
+    // ★2026-09-29 段3-1（貿易＝処理の一元化 段4b）：Savings 47→**43**・CumulativeTradeFlow 31→**30**（＝宣言）。Earned は11 のまま。
+    //   貿易の純流入を国の全POP の貯蓄比に配る Apply（TradeFlow 1）・輸出代金の持ち主への直書き（旧 PayExportToProducers・Savings 1）・輸送財の買い手の引き落とし2行（Transport）を削除＝
+    //   輸入代金・関税・運賃・売り手の受取・仲介料・運賃の受け手は全て移し方の1本（World.Transfer）へ。按分の本体 World.Distribute の書き込みを1行へ（端数は最後の受け手＝同じ式・Savings −1）＋
+    //   所得（Earned）も同じ行で書く引数（月次の精算の後の受け取り＝Earned +1）・十分の一税の所得の別の行を畳んだ（Earned −1）。
+    [InlineData("Savings", 43)]               // POP の貯蓄（段3の終わりに Pop の中の3つへ閉じる）
     // ★2026-09-28 段2-1（国家の支払い率）：StateSpent 25→24＝区分つきの配列へ（添字つきの書き込みを数える）・月次のゼロ化は Array.Clear（代入でない）。
     //   FiscalFundingRatio（国家の支払い率 r）を足した＝書き手は月初の1か所（Simulation）＋ランナーの盤面の復元（GovernanceSnapshot）の2つ＝増やさない。
     [InlineData("StateSpent", 24)]            // 州の未精算の国家支出（区分つき＝TreasuryCat の配列）
     [InlineData("FiscalFundingRatio", 2)]     // 国家の支払い率 r（月初の1か所＋盤面の復元）
-    [InlineData("CumulativeTradeFlow", 31)]   // 世界の台帳・国境をまたいだ出入り（移し方の中の1か所へ畳む）
+    [InlineData("CumulativeTradeFlow", 30)]   // 世界の台帳・国境をまたいだ出入り（移し方の中の1か所へ畳む）
     [InlineData("CumulativeFiatIssued", 3)]   // 不換の発行と回収（2）＋非常発行（1＝負の国の与信の償却だけ・銀行なしの底打ちは 2026-09-29 段2-2 で撤去）
     [InlineData("CumulativeGoldMinted", 2)]   // 鋳造と準備の売却
     [InlineData("Loans", 6)]                  // 銀行の与信（企業・損失の負債化・負の国の償却）
