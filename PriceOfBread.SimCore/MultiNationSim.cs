@@ -383,7 +383,8 @@ public sealed class MultiNationSim
         //   民族＝旧少数派がこの国の中核になる（CoreEthnicShare の意味は「所属国の中核民族に属する割合」＝反転が要る・敵対検証2026-07-12）・
         //   併合の荷物0（案Y・2026-08-21：分離建国の創設州は新国家の「生まれの人口」）・市場の台帳のリセット・植民地財の空化。
         //   ⚠格と支配度は独立が確定するまで動かさない（RegisterIndependence／内戦の白紙講和で本土へ）＝親が勝てば元の格のまま戻る。
-        foreach (var rr in regs) Territory.TransferRegion(pw, null, rr, Territory.Rehoming.Seceded);
+        double railIn = 0, shipIn = 0;   // ★輸送の容量は州と一緒に移る（2026-09-30 (118)）＝新しい国の器を組んだ後に受け取る（下の段5）
+        foreach (var rr in regs) { var (rlMoved, shMoved) = Territory.TransferRegion(pw, null, rr, Territory.Rehoming.Seceded); railIn += rlMoved; shipIn += shMoved; }
         pw.Pay(TreasuryCat.OtherOut, -T);
         pw.CumulativeTradeFlow -= T;   // 国庫の分与も同じ対外移転台帳
         // （Bank.Gold の親⇄新国家の移し替え2行は 2026-09-28 に削除＝Bank.Gold は導出量で、翌日の Credit.Step が BaseMoney から上書きするまで読み手が無い）
@@ -439,6 +440,7 @@ public sealed class MultiNationSim
         // 新国家を birth BaseMoney(=S+T) で再基線化するため、子は baseline=S+T・TradeFlow=0 で保存が閉じる（親は −(S+T) を BaseMoney/TradeFlow 両方に記帳）。
         // ここに +S+T を足すと二重計上でプローブが即例外（検証済み）。MultiNationTestの世界合計式がspawnの子baselineを勘定しない側の非対応でありコードは正しい。
         nw.TechLevel = pw.TechLevel; nw.Elite = pw.Elite;
+        Transport.Receive(nw, railIn, shipIn, pw.ShipSteamShareEma);   // 移った州の鉄道と船（旧＝船腹0・鉄道0で生まれた）
         // ★法の継承は1本（World.CopyLawsFrom＝段の法と税・支出の段は法の軸の表のまま・政策の目標は丸ごと・2026-09-28 処理の一元化 段2 C）。
         //   旧＝ここに World と Policy の対を軸ごとに約40行＝女性の権利は Policy だけ写し漏れた前歴・累進課税／植民地参政権／移民原住民参政権／
         //   技術者流出禁止法／行政費は漏れたままだった。政体の含意する参政権・報道の床は構築時と同じ規則で畳み直す（写した親の値が床を下回らないように）。

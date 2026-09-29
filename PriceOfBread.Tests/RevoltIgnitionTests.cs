@@ -1298,6 +1298,50 @@ public class RevoltIgnitionTests
         return w;
     }
 
+    /// <summary>★幽霊の国の根（2026-09-30 (118)）：離脱の力は州の大衆の人の数で測る＝圧力×N/(N+N0)（N0＝植民地の州昇格の人口 ColonyPromotionMinPop）。
+    /// 同じ盤面を3つ＝X（大衆そのまま）・Y（大衆の99%を首都へ移す）・Z（1人だけ残す）。国の総人口・闘争度・関税の利害・民族・意識・引き留めは3つとも同じ
+    /// ＝支配度の1歩の差は圧力の差だけ。1人あたりの圧力は同じなので、圧力の比は人の数の飽和の比そのもの。⚠突然変異「人の数を掛けない」「基準人口を取り違える」で赤。</summary>
+    [Fact]
+    public void 幽霊の国の根_離脱の力は州の大衆の人の数で測る()
+    {
+        (World W, Region R) Board(double keep)
+        {
+            var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+            var w = sim.World; var c = w.Coef;
+            var r = w.Regions.Find(x => x.Id != 0 && x.State == RegionState.Active && Politics.RegionCrowd(x) > 100)!;
+            Assert.NotNull(r);
+            var cap = w.Regions.Find(x => x.Id == 0)!;
+            w.Tariff = 1.0;             // 国の関税姿勢＝保護の端（州の関税の利害は開幕で0＝乖離1）
+            w.Legitimacy = 0.02;        // 引き留めを小さく＝大衆のいる州は離れる向き
+            foreach (var q in w.Regions) foreach (var p in q.Pops) p.Militancy = 0;
+            foreach (var p in r.Pops) { p.Militancy = 1.0; p.CoreEthnicShare = 0.0; p.NationalConsciousness = 0.0; }   // 州の中で一様＝人を動かしても州の平均は同じ
+            r.Dominance = 0.5;
+            foreach (var p in r.Pops)
+            {
+                if (p.Closed || p.IsSoldier || !(p.Size > 0)) continue;
+                var dp = cap.Pops.Find(x => x.ClassId == p.ClassId && !x.IsSoldier);
+                Assert.NotNull(dp);
+                double move = p.Size * (1.0 - keep);
+                p.Size -= move; dp!.Size += move;   // 国の中で動かす＝国の総人口（引き留めの分母）は変わらない
+            }
+            return (w, r);
+        }
+        var (wX, rX) = Board(1.0);
+        var (wY, rY) = Board(0.01);
+        var (wZ, rZ) = Board(0.0);   // 大衆を全て首都へ移し、1人だけ残す
+        var keepOne = rZ.Pops.Find(p => !p.Closed && !p.IsSoldier)!; keepOne.Size = 0.001;   // 1人＝0.001単位
+        Assert.Equal(wX.TotalPopulation, wY.TotalPopulation, 6);
+        var c = wX.Coef;
+        foreach (var (w, _) in new[] { (wX, rX), (wY, rY), (wZ, rZ) }) Politics.CheckSecession(w, w.Coef, 0.0);
+        double s = c.DominanceSpeed, h = wX.SecessionHold;   // 標的の州が最悪の州（他の州は闘争度0）＝その州に届く引き留め
+        double pX = h - (rX.Dominance - 0.5) / s, pY = h - (rY.Dominance - 0.5) / s;
+        Assert.True(pX > h, $"前提が崩れた：大衆のいる州が離れる向きでない（圧力 {pX:F4}・引き留め {h:F4}）");
+        double nX = Politics.RegionCrowd(rX), nY = Politics.RegionCrowd(rY), n0 = c.ColonyPromotionMinPop;
+        double fX = nX / (nX + n0), fY = nY / (nY + n0);
+        Assert.True(System.Math.Abs(pY / pX - fY / fX) <= 1e-9, $"圧力の比が人の数の飽和の比でない（{pY / pX:F9} 対 {fY / fX:F9}）");
+        Assert.True(rZ.Dominance > 0.5, $"1人の州の支配度が回復していない（{rZ.Dominance:F6}）＝数人の州が離れる向きのまま");
+    }
+
     [Fact]
     public void 項目3_人口加重では微小州は選ばれず大州が燃える()
     {

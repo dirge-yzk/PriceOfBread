@@ -67,6 +67,37 @@ public static class Transport
         if (c.ShipFuelRate > 0) BuyShipFuel(w, c, era);
     }
 
+    /// <summary>★州の取り分の規則の1本（2026-09-30 (118)）＝国の輸送の容量のうち州が使う割合の基底（国ごと）。
+    /// 清算（BilateralMarket の港と鉄道の容量）と州の移し替え（<see cref="Territory.TransferRegion"/>＝容量が州と一緒に移る）が同じ規則を読む。
+    /// 均等割り＝活動州の数の逆数・潜在量比例の度合い＝TransportShareByPotential（0..1）・潜在量の和＝活動州の前期の LastTradePotential（負は0）。
+    /// 潜在量の和が痩せたら（開幕・実績なし）均等へ倒す＝<see cref="RegionShare"/> が読む。</summary>
+    internal static (double Even, double KPot, double TotalPot) ShareBasis(World w, Coefficients c)
+    {
+        int activeCount = 0;
+        foreach (var r in w.Regions) if (r.State == RegionState.Active) activeCount++;
+        double evenShare = activeCount > 0 ? 1.0 / activeCount : 1.0;
+        double kPot = PoliticalQuantities.Clamp01(c.TransportShareByPotential);
+        double totalPot = 0;
+        if (kPot > 0) foreach (var r in w.Regions) if (r.State == RegionState.Active) totalPot += System.Math.Max(0, r.LastTradePotential);
+        return (evenShare, kPot, totalPot);
+    }
+
+    /// <summary>州の取り分＝(1−k)×均等＋k×州の潜在量÷潜在量の和（潜在量の和≦1e-9 か k＝0 なら均等）。基底は <see cref="ShareBasis"/>。</summary>
+    internal static double RegionShare((double Even, double KPot, double TotalPot) b, Region r)
+        => b.KPot > 0 && b.TotalPot > 1e-9 ? (1.0 - b.KPot) * b.Even + b.KPot * System.Math.Max(0, r.LastTradePotential) / b.TotalPot : b.Even;
+
+    /// <summary>★移ってきた容量を受け取る（2026-09-30 (118)）＝割譲・再併合・建国で州と一緒に来た鉄道と船。汽船の割合は容量で加重して混ぜる
+    /// （汽船の割合は容量の在庫に占める汽船＝Step の注記と同じ定義）。</summary>
+    internal static void Receive(World to, double rail, double ship, double steamShare)
+    {
+        if (rail > 0) to.RailCapacity += rail;
+        if (!(ship > 0)) return;   // 否定形＝NaN も受け取らない
+        double tot = to.ShipCapacity + ship;
+        double s = (to.ShipSteamShareEma * to.ShipCapacity + steamShare * ship) / tot;
+        to.ShipSteamShareEma = s >= 0 ? System.Math.Min(1.0, s) : 0.0;   // NaN は帆走の側へ（Step と同じ守り）
+        to.ShipCapacity = tot;
+    }
+
     // #3 汽船の運行燃料（運用コスト監査2026-08-16）：商人pop（船の買い手＝BuyToward と同じ選択）が地元市場から石炭（または重油＝
     // Colonial B6 の二択・供給実在ガード込み）を買って焚く。決済は BuyToward の船購入と同一パターン（需要計上→在庫/財布律速→
     // 生産者の持ち主へ出力の割合で支払い＝pop→pop 移転で保存・LastSold 計上で財収支を保つ）。呼び手が ShipFuelRate>0 でゲート済み。

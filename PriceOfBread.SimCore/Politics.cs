@@ -1498,7 +1498,8 @@ public static class Politics
     }
 
     // 分離独立（§9-E拡張）：州の関税利害が国政策と乖離＋州の不満が高いと分離圧力。中央の保持力を超える州があれば離脱→内戦（再統合戦）。稀に発生。
-    private static void CheckSecession(World w, Coefficients c, double coerce)
+    // internal＝番人（RevoltIgnitionTests の「離脱の力は人の数で測る」）が四半期の他の流れを挟まずにこの1段だけを踏む（SpawnSecededNations と同じ作法）。
+    internal static void CheckSecession(World w, Coefficients c, double coerce)
     {
         if (w.Regions.Count < 2) return;
         double stance = w.Tariff * 2 - 1;   // 国の関税姿勢（−1自由貿易..+1保護）
@@ -1554,6 +1555,19 @@ public static class Politics
             //   （旗 SuffrageScopeUnified は 2026-09-26 に焼き込み＝格を読む旧の枝は削除）
             if (c.SuffrageScopeGate > 0)
                 pressure *= 1.0 - PoliticalQuantities.Clamp01(SuffrageInclusion(w, r));
+            // ★幽霊の国の根（2026-09-30 (118)・推奨で進めた）：**離脱の力は人の数で測る**（反乱を起こすのは人）。
+            //   旧＝圧力は1人あたりの量（関税の乖離×州の平均闘争度×文化）だけで州の人口に依らず、引き留めは国の人口と治安維持力（人の数 coerce）で測る
+            //   ＝分子と分母が別の単位。州の間の移民で大衆が数人まで抜けた州（小さな植民地の州）も人口3千の州と同じ圧力で離れ、
+            //   人口100未満の「幽霊の国」を生んでいた（fff9f01 の10種＝分離の戦争へ入った州97のうち80が人口100未満・幽霊の国79のうち72がそこで生まれた＝国×四半期の9割）。
+            //   新＝州の大衆 N（閉鎖階級と兵士を除く＝平均闘争度と同じ母集団・F1 の群衆と同じ1本 RegionCrowd）の飽和 N/(N+N0) を掛ける。
+            //   N0＝人の集まりが1つの政治単位になれる人口＝植民地の州昇格と同じ数（ColonyPromotionMinPop＝北西部条例1787 の自由人口6万人）
+            //   ＝州を名乗れる人口の土地は、国を名乗る力も半分まで持つ。数人の州は離れない・人口千以上の州はほぼ旧のまま。
+            //   ⚠引き留めの治安維持力の項と同じ基準人口（PoliticalReferencePop＝100万人）は探索の腕で試して採らなかった＝5種で分離の戦争0件・
+            //   人口10万〜100万の州の離脱も全て消えた＝史実の小さな独立（テキサス1836 約4万・ウルグアイ1828 約7.5万・コスタリカ1838 約8万・
+            //   ドミニカ1844 約13万）が構造的に不能になる（99_実装ログ (118)）。
+            //   ⚠闘争度は圧力の中に既にある＝人の数には闘争度を掛けない（二重計上しない）。新しい係数も状態も無い。大衆が NaN の州は圧力0（否定形＝離れない側へ倒す）。
+            double crowdSec = RegionCrowd(r);
+            pressure *= crowdSec > 0 ? crowdSec / (crowdSec + c.ColonyPromotionMinPop) : 0.0;
             // ★E-05 段1（作者裁定2026-09-03「あらゆる反乱は1つの経路で発生し、1つの方法で対処する。植民地反乱と国内反乱でルールが異なるのはダメ」）。
             //   ⚠**「植民地なら」という条件を1つも書かない**＝植民地が離れやすいのは格が違うからではなく**遠いから**である。
             //   ★保持力は「軍が届く分だけ」効く＝`Diplomacy.Projection` と**同じ形・同じ係数**（DistanceWarDecay / DistanceNormKm）を州へ当てる。

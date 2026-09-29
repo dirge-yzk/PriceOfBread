@@ -203,6 +203,48 @@ public class ConservationTests
         Assert.True(run.DebtBreaks.Count == 0, $"{run.DebtBreaks.Count} 件：\n" + string.Join("\n", run.DebtBreaks.Take(8)));
     }
 
+    /// <summary>★輸送の容量は州と一緒に移る（2026-09-30 (118)）：割譲（Territory.TransferRegion）で、出ていく州の取り分（清算と同じ規則 Transport.RegionShare）の
+    /// 鉄道と船が受け手へ移る＝両国の和は変わらない・送り手の残る州の容量は前と同じ（潜在量比例）・汽船の割合は容量で加重して混ざる。
+    /// 建国（SpawnSecededNations）の新しい国は移った州の容量を持って生まれる（旧＝船腹0・鉄道0）。⚠突然変異「移さない」「建国で受け取らない」「汽船の割合を混ぜない」で赤。</summary>
+    [Fact]
+    public void 輸送の容量は割譲と建国で州と一緒に移る()
+    {
+        var sim = new MultiNationSim([WorldData.ByName("イギリス"), WorldData.ByName("フランス")], seed: 1789, coef: new Coefficients()) { DiplomacyFrozen = true };
+        var uk = sim.Nations[0].World; var fr = sim.Nations[1].World;
+        uk.ShipCapacity = 1000; uk.RailCapacity = 400; uk.ShipSteamShareEma = 0.5;
+        fr.ShipCapacity = 200; fr.RailCapacity = 0; fr.ShipSteamShareEma = 0.0;
+        int k = 0; foreach (var q in uk.Regions) q.LastTradePotential = ++k;   // 州ごとに違う潜在量（清算の配分の入力）
+        var r = uk.Regions.Find(x => x.Id != 0 && x.State == RegionState.Active)!;
+        var b = Transport.ShareBasis(uk, uk.Coef);
+        double sh = Transport.RegionShare(b, r);
+        Assert.True(sh > 0 && sh < 1, $"前提が崩れた：取り分が 0..1 の内側でない（{sh}）");
+        var rest = new System.Collections.Generic.Dictionary<Region, double>();
+        foreach (var q in uk.Regions) if (q != r && q.State == RegionState.Active) rest[q] = uk.ShipCapacity * Transport.RegionShare(b, q);
+        Territory.TransferRegion(uk, fr, r, Territory.Rehoming.Ceded);
+        Assert.Equal(1200.0, uk.ShipCapacity + fr.ShipCapacity, 9);
+        Assert.Equal(400.0, uk.RailCapacity + fr.RailCapacity, 9);
+        Assert.Equal(1000.0 * (1 - sh), uk.ShipCapacity, 9);
+        Assert.Equal(400.0 * sh, fr.RailCapacity, 9);
+        Assert.Equal(0.5 * 1000.0 * sh / (200.0 + 1000.0 * sh), fr.ShipSteamShareEma, 12);
+        var b2 = Transport.ShareBasis(uk, uk.Coef);
+        foreach (var (q, before) in rest) Assert.Equal(before, uk.ShipCapacity * Transport.RegionShare(b2, q), 9);   // 残る州の容量は前と同じ
+
+        // 建国：新しい国は出ていく州の取り分の容量を持って生まれる
+        double ship0 = uk.ShipCapacity, rail0 = uk.RailCapacity;
+        var sec = uk.Regions.Find(x => x.Id != 0 && x.State == RegionState.Active && x != r)!;
+        double sh2 = Transport.RegionShare(Transport.ShareBasis(uk, uk.Coef), sec);
+        int n0 = sim.Nations.Count;
+        uk.PendingSecessionWars = [sec];
+        sim.SpawnSecededNations();
+        Assert.Equal(n0 + 1, sim.Nations.Count);
+        var nw = sim.Nations[^1].World;
+        Assert.Contains(sec, nw.Regions);
+        Assert.Equal(ship0 * sh2, nw.ShipCapacity, 9);
+        Assert.Equal(rail0 * sh2, nw.RailCapacity, 9);
+        Assert.Equal(ship0, uk.ShipCapacity + nw.ShipCapacity, 9);
+        Assert.Equal(0.5, nw.ShipSteamShareEma, 12);
+    }
+
     /// <summary>★債務は債務者について行く（2026-09-29 S3b）：州の割譲（Territory.TransferRegion）と越境移民（MoveMigrants）で、POP の債務の分の
     /// 家計の与信が受け入れ国の銀行へ移り、運ぶ基礎貨幣＝貯蓄−債務＝両国の D が閉じる。⚠突然変異「与信を移さない」で赤。</summary>
     [Fact]

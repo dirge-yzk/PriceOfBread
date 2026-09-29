@@ -127,21 +127,16 @@ public sealed partial class InternationalMarket
             bool any = false; foreach (var hv in natHostility[i]) if (hv > 1e-9) { any = true; break; }
             natAnyHostile[i] = any;
             double natAccess = W.ExternalTradeAccess();
-            int activeCount = 0;
-            foreach (var r in W.Regions) if (r.State == RegionState.Active) activeCount++;
-            double evenShare = activeCount > 0 ? 1.0 / activeCount : 1.0;
             // ★(4) 潜在量比例の配分（TransportShareByPotential・既定1.0＝潜在量比例。0で均等割り）。前期の LastTradePotential を読む。
-            double kPot = PoliticalQuantities.Clamp01(c.TransportShareByPotential);
-            double totalPot = 0;
-            if (kPot > 0) foreach (var r in W.Regions) if (r.State == RegionState.Active) totalPot += Math.Max(0, r.LastTradePotential);
-            bool potOk = kPot > 0 && totalPot > 1e-9;   // 分母が痩せたら（開幕・実績なし）均等へ倒す＝立ち上がりの跳躍なし
+            //   規則は1本（Transport.ShareBasis／RegionShare＝州の移し替えで容量が州と一緒に移るときも同じ割合・2026-09-30 (118)）。分母が痩せたら（開幕・実績なし）均等へ倒す＝立ち上がりの跳躍なし
+            var shareBasis = Transport.ShareBasis(W, c);
             // ★B-06（2026-09-03 点火・旗 TransportBaselineIsLand は 2026-09-26 に焼き込み）：鉄道以前の基礎容量は**陸**（道路・河川）。
             double railCapNat = W.RailCapacity + c.TransportBaseline;
             double shipCapNat = W.ShipCapacity / (1.0 + W.ColonialShipBurden);
             foreach (var r in W.Regions)
             {
                 if (r.State != RegionState.Active) continue;
-                double share = potOk ? (1.0 - kPot) * evenShare + kPot * Math.Max(0, r.LastTradePotential) / totalPot : evenShare;
+                double share = Transport.RegionShare(shareBasis, r);
                 double railToPort = railCapNat * share;
                 double shipEff = shipCapNat * share;
                 if (firstClearingOfQuarter) { r.LastPortThroughput = 0; r.LastLandPartnerName = ""; r.LastLandPartnerFlow = 0; }   // 四半期の第1清算でリセット（従来＝毎回＝既定 true で厳密同値）

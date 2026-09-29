@@ -237,7 +237,7 @@ public static class Territory
     /// 手順＝①保存量（同一値を両辺に使う）②外す＋送り手の台帳 ③受け手へ（<see cref="Adopt"/>＝Id は最大＋1・併合の荷物・国債の保有は送り手の対外債へ振替・受け手の台帳）
     ///   ④首都だったら残る州のうち最大GDPの州へ遷都（<see cref="World.SetCapital"/>）⑤付け直し（<see cref="Rehome"/>）。
     /// 講和の帰結（被征服の不満・失地の累計・年代記）は割譲の呼び手（Diplomacy.CedeRegion）だけが足す。状態も係数も増やさない。</summary>
-    internal static void TransferRegion(World from, World? to, Region r, Rehoming how, bool sameCore = false)
+    internal static (double Rail, double Ship) TransferRegion(World from, World? to, Region r, Rehoming how, bool sameCore = false)
     {
         bool wasCapital = r.Id == 0;
         // 保存量＝移転州の貯蓄総額・人口（同一値を両辺に使い浮動小数ズレ回避＝TotalMoney/TotalPopulation の実減と CumulativeTradeFlow/PopulationDelta の調整をビット一致させる）。
@@ -246,6 +246,15 @@ public static class Territory
         double S = r.SumSavings(), P = r.SumPopulation(), D = 0;
         foreach (var p in r.Pops) D += p.Debt;
         double B = S - D;
+        // ★輸送の容量は州と一緒に移る（2026-09-30 (118)・推奨で進めた＝保存）：鉄道と船は国の値（World.RailCapacity／ShipCapacity）で、
+        //   清算はそれを州の取り分（Transport.RegionShare）で配る＝州が使っていた分は、その州の港と線路にある物。
+        //   旧＝移し替えで容量は送り手に全部残った＝建国の新しい国は船腹0・鉄道0で生まれ（fff9f01 の10種＝生まれ≥1000 の新しい国の最初の8四半期は4分の3以上で輸出0）、
+        //   送り手の残る州は同じ容量を少ない州で分けた（取り分の窓落ち）。新＝出ていく前の取り分（清算と同じ規則）で送り手から引き、受け手へ足す（建国は呼び手が新しい国へ）。
+        //   残る州の容量は変わらない（潜在量比例＝既定の TransportShareByPotential=1 では、送り手の容量×(1−s) を残る州の潜在量で分け直す＝前と同じ）。活動していない州は取り分0。
+        double sh = r.State == RegionState.Active ? Transport.RegionShare(Transport.ShareBasis(from, from.Coef), r) : 0.0;
+        if (!(sh > 0)) sh = 0;   // 否定形＝NaN は移さない側へ（取り分は定義上 0..1）
+        double rail = from.RailCapacity * sh, ship = from.ShipCapacity * sh;
+        from.RailCapacity -= rail; from.ShipCapacity -= ship;
         from.Regions.Remove(r);
         from.CumulativeTradeFlow -= B; from.PopulationDelta -= P;
         from.Bank!.Carry(to?.Bank, D);
@@ -261,9 +270,11 @@ public static class Territory
             //   帳消しにする形は、失地で送り手の債務が軽くなり持ち手だけが損をする（負けるほど財政が楽になる）。再併合は反乱国の国債を先に消している＝0 は素通り。
             foreach (var p in r.Pops) Fiscal.ExportBondHoldings(p, p.BondHoldings, from, to);
             to.CumulativeTradeFlow += B; to.PopulationDelta += P;
+            Transport.Receive(to, rail, ship, from.ShipSteamShareEma);
         }
         if (wasCapital && NextCapital(from) is { } cap) from.SetCapital(cap);   // 首都を失った＝「首都を持つ」不変条件を維持
         Rehome(r, how, sameCore);
+        return (rail, ship);   // 建国（to＝null）は呼び手が新しい国の器を組んでから受け取る
     }
 
     /// <summary>★遷都先の選び方の1本＝首都を失った国が移る州＝残る active 州のうち最大GDP（同値は Id の小さい方）。
