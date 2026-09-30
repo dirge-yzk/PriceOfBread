@@ -789,7 +789,7 @@ public partial class GameViewModel
         };
 
     /// <summary>目標兵数（全国）＝Military.Step の desired の州別合計と同一式。
-    /// 平時＝軍事費駆動×(1−ArmySustainWeight)＋扶養限界目標の州按分×ArmySustainWeight、戦時＝徴兵の max 経路。
+    /// 平時＝扶養限界の目標の州按分（(145)＝旧の軍事費駆動との混合 ArmySustainWeight は削除）、戦時＝徴兵の max 経路。
     /// ⚠エンジンの徴兵率は Military.Step のローカル変数で外から読めない＝ここで同じ式を組む（PolityMobilizationText と同じ作法）。
     /// 式を動かすときは Military.cs と両方を直す。</summary>
     private (double Target, double Now, double Sustain, double Manpower) SoldierTargetNow()
@@ -823,28 +823,16 @@ public partial class GameViewModel
         }
         bool wartimeConscript = atWar && _player.ConscriptionLaw >= ConscriptionLaw.Selective;   // Military.cs:187 と同式（M1 2026-09-19＝総動員は志願兵制を迂回しない）
         double lawFrac = _player.ConscriptionLaw == ConscriptionLaw.Universal ? c.UniversalConscriptionFactor : 1.0;
-        double sustainTargetNat = 0, natMan = 0;
-        if (c.ArmySustainWeight > 0 && _player.Diplomacy is not null && _player.SelfPower is not null)
-            sustainTargetNat = Military.SustainTargetOf(_player, c, out natMan);
+        double sustainTargetNat = Military.SustainTargetOf(_player, c, out double natMan);   // (145) 平時の目標＝扶養限界の目標そのもの
         double total = 0, now = 0, manTotal = 0;
         foreach (var rg in _player.Regions)
         {
             if (rg.State != RegionState.Active) continue;
-            double sld = 0, sldMen = 0, pool = 0; bool hasSoldier = false;
-            foreach (var p in rg.Pops)
-            {
-                if (p.IsSoldier) { sld += p.Size; sldMen += Military.RecruitMen(p); hasSoldier = true; }   // 兵士の項も徴募元と同じ換算（(144)・エンジンと同じ）
-                else if (p.ClassId == c.SoldierRecruitClassA || p.ClassId == c.SoldierRecruitClassB) pool += Military.RecruitMen(p);   // 兵役の母数＝徴募元の男20〜39歳（標準の構成の人数に換算・エンジンと同じ1本）
-            }
-            if (!hasSoldier) continue;   // 兵士POPの無い州は徴募の対象外（Military.Step の soldier==null と同じ）
-            double manpower = (pool + sldMen) * Politics.RuleDelivery(rg, c, c.RuleSharesTaxBase);   // Military.Step の兵役の母数と同一（支配度 段3・RuleSharesTaxBase=0 で ×1）
+            double manpower = Military.RegionManpower(rg, c);   // Military.Step の兵役の母数と同じ1本（働き盛りの男・兵士も同じ単位・支配度の届き方）＝兵士POPの無い州は0
+            if (!(manpower > 0)) continue;   // 兵士POPの無い州は徴募の対象外（Military.Step の soldier==null と同じ）
+            double sld = 0; foreach (var p in rg.Pops) if (p.IsSoldier) sld += p.Size;
             now += sld; manTotal += manpower;
-            double desired = _player.MilitarySpending * c.MaxSoldierFraction * manpower;
-            if (sustainTargetNat > 0 && natMan > 1e-9)
-            {
-                double susK = Math.Clamp(c.ArmySustainWeight, 0, 1);
-                desired = (1.0 - susK) * desired + susK * sustainTargetNat * (manpower / natMan);
-            }
+            double desired = natMan > 1e-9 ? sustainTargetNat * (manpower / natMan) : 0;
             if (wartimeConscript) desired = Math.Max(desired, conscriptFrac * lawFrac * manpower);
             total += desired;
         }

@@ -795,20 +795,11 @@ if (args.Length > 0 && args[0] == "armydump")
 {
     var ms0 = new MultiNationSim(WorldData.Nations(), 1789UL, _ => new UtilityAgent());
     var co0 = new PriceOfBread.SimCore.Coefficients();
-    System.Console.WriteLine("国名,初期兵,人頭均衡,GDP,軍事費,GDP当たり必要係数");
+    System.Console.WriteLine("国名,初期兵,扶養限界の目標,GDP,軍事費,GDP当たり必要係数");
     foreach (var sim0 in ms0.Nations)
     {
-        var w0 = sim0.World; double mp = 0, sol = 0;
-        foreach (var r0 in w0.Regions)
-        {
-            if (r0.State != RegionState.Active) continue;
-            foreach (var p0 in r0.Pops)
-            {
-                if (p0.IsSoldier) sol += p0.Size;
-                else if (!p0.Closed && !p0.IsModernElite) mp += p0.Size;
-            }
-        }
-        double head = w0.MilitarySpending * co0.MaxSoldierFraction * (mp + sol);
+        var w0 = sim0.World; double sol = w0.SoldierSize();
+        double head = PriceOfBread.SimCore.Military.SustainTargetOf(w0, co0, out _);   // ★(145) 平時の目標＝扶養限界の目標（旧＝軍事費×上限割合×頭数の人頭均衡）
         double need = w0.Gdp > 1e-9 && w0.MilitarySpending > 1e-9 ? sol / (w0.MilitarySpending * w0.Gdp) : 0;
         System.Console.WriteLine($"{w0.SelfPower?.Name},{sol:F1},{head:F1},{w0.Gdp:F0},{w0.MilitarySpending:F2},{need:F6}");
     }
@@ -6497,19 +6488,13 @@ if (args.Length > 0 && args[0] == "natprobe")
         int wars = 0; foreach (var war in npsim.Diplomacy.Wars) if (war.A == sp || war.B == sp) wars++;
         double invSav = 0;
         foreach (var r in w.Regions) { if (r.State != RegionState.Active) continue; foreach (var pp in r.Pops) if (pp.IsModernElite) invSav += Math.Max(0, pp.Savings); }
-        double mpPool = 0, mpDesired = 0;
+        double mpPool = 0;
+        double mpDesired = Military.SustainTargetOf(w, w.Coef, out _);   // ★(145) 平時の目標＝扶養限界の目標（州の和と一致）
         foreach (var r in w.Regions)
         {
             if (r.State != RegionState.Active) continue;
-            double pa = 0, pb = 0, ss = 0;
             foreach (var pp in r.Pops)
-            {
-                if (pp.IsSoldier) ss += Military.RecruitMen(pp);   // 兵士の項も徴募元と同じ換算（(144)・エンジンと同じ）
-                else if (pp.ClassId == w.Coef.SoldierRecruitClassA) pa += Military.RecruitMen(pp);   // 兵役の母数＝徴募元の男20〜39歳（標準の構成の人数に換算・エンジンと同じ1本）
-                else if (pp.ClassId == w.Coef.SoldierRecruitClassB) pb += Military.RecruitMen(pp);
-            }
-            mpPool += pa + pb;
-            mpDesired += w.MilitarySpending * w.Coef.MaxSoldierFraction * (pa + pb + ss);
+                if (!pp.IsSoldier && (pp.ClassId == w.Coef.SoldierRecruitClassA || pp.ClassId == w.Coef.SoldierRecruitClassB)) mpPool += Military.RecruitMen(pp);   // 兵役の母数＝徴募元の働き盛りの男（エンジンと同じ1本）
         }
         double lossers = 0, lossVal = 0; int lossN = 0;
         foreach (var r in w.Regions)
@@ -6543,16 +6528,17 @@ if (args.Length > 0 && args[0] == "milprobe")
         if (ns is null) continue;
         var w = ns.World;
         Console.WriteLine($"── {w.Year} 軍事費{w.MilitarySpending:P0} 総兵{w.SoldierSize():F1} 即応{w.MilitaryReadiness:F2}");
+        double mprTarget = Military.SustainTargetOf(w, w.Coef, out double mprNat);   // ★(145) 平時の目標＝扶養限界の目標の州按分（エンジンと同じ1本）
         foreach (var r in w.Regions)
         {
-            double pa = 0, pb = 0, ss = -1, sm = 0;   // ss=-1＝兵士POPなし・sm＝兵士の項（徴募元と同じ換算・(144)）
+            double pa = 0, pb = 0, ss = -1;   // ss=-1＝兵士POPなし
             foreach (var pp in r.Pops)
             {
-                if (pp.IsSoldier) { ss = Math.Max(0, ss) + pp.Size; sm += Military.RecruitMen(pp); }
+                if (pp.IsSoldier) ss = Math.Max(0, ss) + pp.Size;
                 else if (pp.ClassId == w.Coef.SoldierRecruitClassA) pa += Military.RecruitMen(pp);   // 兵役の母数（エンジンと同じ1本）
                 else if (pp.ClassId == w.Coef.SoldierRecruitClassB) pb += Military.RecruitMen(pp);
             }
-            double desired = w.MilitarySpending * w.Coef.MaxSoldierFraction * (pa + pb + sm);
+            double desired = mprNat > 1e-9 ? mprTarget * Military.RegionManpower(r, w.Coef) / mprNat : 0;
             Console.WriteLine($"  [{r.State}] {r.Name}	兵{(ss < 0 ? "なし" : ss.ToString("F1"))}	プール{pa + pb:F0}	州目標{desired:F1}");
         }
     }

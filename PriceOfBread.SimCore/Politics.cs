@@ -1846,15 +1846,16 @@ public static class Politics
     {
         double tot = soldierForce + coerce;
         double pull = c.MilitaryCoupSupport * (!(tot > 0) ? 0 : soldierForce / tot);
-        return pull * ProfessionalArmyShare(w.SoldierSize(), w.TotalPopulation, c.MaxSoldierFraction);
+        return pull * ProfessionalArmyShare(w.SoldierSize(), w.TotalPopulation, Military.PeaceCapShareOfPop(c));   // ★(145)：平時の上限の人口比（上限割合×標準の構成の働き盛りの男の割合）
     }
 
-    /// <summary>★作者裁定2026-09-19 R4：職業軍の度合い π∈(0,1]＝兵のうち平時の上限（総人口×<see cref="Coefficients.MaxSoldierFraction"/>）に収まる割合。
-    /// x＝兵数÷(総人口×MSF)（PowerAffinity の軍部シェアと同じ正規化・同じガード＝新しい数ゼロ）。x≤1 で1、それ以外は 1/x。NaN は1＝割り引かない側（否定形）。
-    /// ⚠平時の π=1 は「平時の兵 ≤ 1.05×MSF×徴募母数」（Military の扶養ブレンド）に依存する。戦後の復員の遅れ・内戦の徴集・総人口の急な痩せ（飢饉・州の喪失）では平時でも &lt;1。</summary>
-    internal static double ProfessionalArmyShare(double soldiers, double population, double maxSoldierFraction)
+    /// <summary>★作者裁定2026-09-19 R4：職業軍の度合い π∈(0,1]＝兵のうち平時の上限（総人口×平時の上限の人口比 <see cref="Military.PeaceCapShareOfPop"/>）に収まる割合。
+    /// x＝兵数÷(総人口×上限の人口比)（PowerAffinity の軍部シェアと同じ正規化・同じガード＝新しい数ゼロ）。x≤1 で1、それ以外は 1/x。NaN は1＝割り引かない側（否定形）。
+    /// ★(145)：上限の人口比＝MaxSoldierFraction（働き盛りの男の割合）×標準の構成の働き盛りの男の割合（旧＝MaxSoldierFraction をそのまま人口比）。
+    /// ⚠平時の π=1 は「平時の兵 ≤ 扶養限界×軍拡の倍率（最大1.2）≤ 1.2×上限割合×母数」に依存する（母数＝徴募元と兵士の働き盛りの男＝人口の約8割の層）。戦後の復員の遅れ・内戦の徴集・総人口の急な痩せ（飢饉・州の喪失）では平時でも &lt;1。</summary>
+    internal static double ProfessionalArmyShare(double soldiers, double population, double capShareOfPop)
     {
-        double x = soldiers / Math.Max(1.0, population) / Math.Max(1e-9, maxSoldierFraction);
+        double x = soldiers / Math.Max(1.0, population) / Math.Max(1e-9, capShareOfPop);
         return !(x > 1) ? 1.0 : 1.0 / x;
     }
 

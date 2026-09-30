@@ -779,7 +779,12 @@ public sealed class Diplomacy
         var merchants = new List<Pop>();
         foreach (var r in vw.Regions)
             if (r.State == RegionState.Active && r.MerchantPopIndex >= 0 && r.MerchantPopIndex < r.Pops.Count) merchants.Add(r.Pops[r.MerchantPopIndex]);
-        InternationalMarket.PaySales((vw, merchants), null, Catalog.MilitaryPowerId, prizeRaw, rw);   // 敵の商人→拿捕した兵士（両国の CumulativeTradeFlow は移し方の1本が書く）
+        // 敵の商人→拿捕した兵士（兵士POPの頭数で・両国の CumulativeTradeFlow は移し方の1本が書く）。★(145)：旧＝兵力の売上（PaySales の兵力の生産者＝兵士POP・地代0）＝兵力の生産者の削除で兵士へ直接。
+        var captors = new List<Pop>();
+        foreach (var r in rw.Regions)
+            if (r.State == RegionState.Active && r.SoldierPopIndex >= 0 && r.SoldierPopIndex < r.Pops.Count && r.Pops[r.SoldierPopIndex].Size > 1e-9) captors.Add(r.Pops[r.SoldierPopIndex]);
+        if (captors.Count == 0) return;   // 兵のいない国は受け取らない（払い手に残る＝旧の PaySales の生産者なしと同じ）
+        World.Transfer((vw, merchants), (rw, captors, null), prizeRaw, TreasuryCat.OtherIn, income: true, outside: World.Outside.Border);
     }
 
     // ★四半期末の同期の窓（2026-09-30 作者裁定「計算量の予算」・恒等・作業領域＝セーブに載らない）：MultiNationSim は四半期末に外交を3回（月次の歩）

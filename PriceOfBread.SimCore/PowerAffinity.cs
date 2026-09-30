@@ -118,9 +118,9 @@ public static class PowerAffinity
         // ★史実＝軍事独裁は「軍が最大だったから」ではなく、**王権と議会が同時に崩れ、軍だけが組織を保っていたから**起きた
         //   （西1923プリモ・デ・リベラ／葡1926／波1926＝いずれも文民の議会政治が麻痺した直後）。
         // ★★非対称の正体＝**革命は誰でも参加できるが、軍は入隊した者しか担えない**。⇒ 常備軍の対人口比を軍部側に掛ける。
-        //   ⚠正規化は既存の `MaxSoldierFraction`（平時に兵にできる上限）を流用＝**新しい定数ゼロ**。
+        //   ⚠正規化は既存の `MaxSoldierFraction`（平時に兵にできる上限）を流用＝**新しい定数ゼロ**。★(145)：人口比へは Military.PeaceCapShareOfPop（上限割合×標準の構成の働き盛りの男の割合）。
         //   ★平時は軍が小さく、王権と議会が痩せたときだけ相対的に浮上する＝**順序が史実になる**。
-        double soldierOrg = w.SoldierSize() / System.Math.Max(1.0, w.TotalPopulation) / System.Math.Max(1e-9, w.Coef.MaxSoldierFraction);
+        double soldierOrg = w.SoldierSize() / System.Math.Max(1.0, w.TotalPopulation) / System.Math.Max(1e-9, Military.PeaceCapShareOfPop(w.Coef));
         if (!(soldierOrg >= 0)) soldierOrg = 0; else if (soldierOrg > 1) soldierOrg = 1;
 
         // ★★②形だけの議会は「制度に届いた」ことにしない（同上）。

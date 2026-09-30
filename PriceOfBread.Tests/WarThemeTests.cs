@@ -941,7 +941,7 @@ public class WarThemeTests
         var merchants = new System.Collections.Generic.HashSet<Pop>();
         foreach (var r in arm.fr.Regions) if (r.State == RegionState.Active && r.MerchantPopIndex >= 0) merchants.Add(r.Pops[r.MerchantPopIndex]);
         var soldiers = new System.Collections.Generic.HashSet<Pop>();
-        foreach (var r in arm.br.Regions) if (r.State == RegionState.Active) foreach (var pr in r.Producers) if (pr.GoodId == Catalog.MilitaryPowerId && pr.Output > 0) soldiers.Add(r.Pops[pr.LaborPopIndex]);
+        foreach (var r in arm.br.Regions) if (r.State == RegionState.Active && r.SoldierPopIndex >= 0 && r.Pops[r.SoldierPopIndex].Size > 1e-9) soldiers.Add(r.Pops[r.SoldierPopIndex]);   // ★(145) 拿捕の受け手＝兵士POP（旧＝兵力の生産者の労働 POP＝同じ兵士POP・兵力の市場は削除）
         Assert.NotEmpty(soldiers);
         double paid = 0, got = 0; int i = 0;
         foreach (var r in arm.fr.Regions) foreach (var p in r.Pops)

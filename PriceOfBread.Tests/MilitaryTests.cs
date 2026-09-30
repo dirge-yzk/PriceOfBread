@@ -260,6 +260,7 @@ public class MilitaryTests
             var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
             var w = sim.World;
             w.Coef.RuleSharesTaxBase = g;
+            w.Coef.SustainMilShare = 1e9;   // ★(145) 平時の目標＝扶養限界の目標＝人口の側（上限割合×母数）で読む（経済の側が律速にならない）
             foreach (var r in w.Regions) r.Rule = [0.5, 0.0, 0.5, 0.0];   // 国家区分5割・在地区分0（村請け無し）＝届き方 0.5
             double before = w.SoldierSize();
             Military.Step(w, w.Coef, atWar: false);
@@ -390,7 +391,8 @@ public class MilitaryTests
     /// 兵力の市場の値で払わない（旧＝兵力の参照価格 0.5×物価水準の価格の門で頭を押さえられた市場の値＝兵の給与が請求の 7〜99%）。
     /// 盤面＝仏の双子（同じ種で2四半期）＝月の頭に兵力の市場の値だけを 1/100 と 100 倍にして1か月＝兵士の月の所得が1ビットも違わず、給与の予算（名簿の兵×請求の単価×r）を受け取る。
     /// ⚠突然変異「市場の値で払う（旧）」「配給率を掛ける」で赤。⚠「価格の門を掛ける」は走らせていない（給与は予算に固定＝門を掛けても緑・(144) 反証の指摘）。
-    /// ⚠見るのは「予算以上を受け取る」だけ＝予算の出どころ（請求の単価＝<see cref="Military.RecruitWage"/>）は新2 が見る。</summary>
+    /// ⚠見るのは「予算以上を受け取る」だけ＝予算の出どころ（請求の単価＝<see cref="Military.RecruitWage"/>）は新2 が見る。
+    /// ★(145)：兵力の市場は削除した（下の「兵力の市場は無く…」）＝市場の値の拡縮は何も読まない＝この番人は市場を戻したときに給与がその値を読まないことの見張り。</summary>
     [Fact]
     public void 兵の給与は請求どおりの賃金で払い兵力の市場の値で払わない()
     {
@@ -442,9 +444,9 @@ public class MilitaryTests
     }
 
     /// <summary>★(144) 合流（反証の指摘＝分子と分母の非対称）：兵役の母数（兵の目標 Step と扶養限界 SustainLimitOf の人口の側）は**徴兵で動かない**
-    /// ＝徴募元の項（男20〜39歳÷標準の割合＝<see cref="Military.RecruitMen"/>）と現兵士の項が同じ単位（兵士も RecruitMen）。
+    /// ＝徴募元の項（働き盛りの男＝<see cref="Military.RecruitMen"/>・(145) で男16〜59歳の実数へ）と現兵士の項が同じ単位（兵士も RecruitMen）。
     /// 旧（(142) 4e-2b の段）＝兵士を頭数のまま足した＝男を1人徴兵すると徴募元の項が約6.9 減り兵士の項は1しか増えない＝母数が徴兵のたびに細った。
-    /// 盤面＝仏の双子（同じ種で1四半期・扶養限界の混合を外す＝平時の目標＝軍事費×上限割合×母数）。片方だけ首都の農民から男20〜39 を3割徴兵（MoveCohort）してから
+    /// 盤面＝仏の双子（同じ種で1四半期・経済の側を外す＝平時の目標＝扶養限界の人口の側＝上限割合×母数×軍拡の倍率・(145)）。片方だけ首都の農民から男20〜39 を3割徴兵（MoveCohort）してから
     /// 扶養限界の母数と、兵の目標（Step の1回＝兵数の変化÷率＋兵数）を読む＝2つの腕で一致する。
     /// ⚠突然変異「兵士を頭数のまま」（Step・扶養限界のどちらか）で赤。</summary>
     [Fact]
@@ -455,7 +457,7 @@ public class MilitaryTests
             var sim = new Simulation(NationConfig.France().ToScenario(17), new NullAgent());
             sim.Run(1);
             var w = sim.World; var c = w.Coef; var cap = w.Region;
-            c.ArmySustainWeight = 0;   // 平時の目標＝軍事費×上限割合×母数（扶養限界の混合を外す＝母数だけを読む）
+            c.SustainMilShare = 1e9;   // ★(145) 平時の目標＝扶養限界の目標＝人口の側（上限割合×母数×軍拡の倍率）で読む（経済の側が律速にならない＝母数だけを読む）
             var sld = cap.Pops[cap.SoldierPopIndex];
             Pop? pool = null; foreach (var p in cap.Pops) if (!p.IsSoldier && p.ClassId == c.SoldierRecruitClassA) { pool = p; break; }
             Assert.True(pool is not null && pool.Size > 0 && sld.Size > 0, "前提が崩れた：首都に農民か兵士がいない");
@@ -539,5 +541,94 @@ public class MilitaryTests
         Assert.True(Math.Abs(led0 - w.TreasuryLedger[(int)TreasuryCat.Army] - spent) <= 1e-9 * Math.Max(1.0, spent), "陸軍の区分の国庫の払いが軍需の代金と一致しない");
         double fill = Math.Min(1.0, spent / c.ForceUnlockTreasuryCost);
         Assert.True(Math.Abs(locked.Infra - infra0 - c.ForceUnlockRate * fill) <= 1e-9 * c.ForceUnlockRate, $"進み方 {locked.Infra - infra0} ≠ 速さ×買えた割合 {c.ForceUnlockRate * fill}");
+    }
+
+    // ===== (145) 兵の単位（2026-10-01）の番人 =====
+
+    /// <summary>★(145)：平時の兵の目標は扶養限界の目標**そのもの**で、州への按分の分子（州の母数）と分母（国の母数）が同じ規則（<see cref="Military.RegionManpower"/>）
+    /// ＝州の目標の和が国の目標（<see cref="Military.SustainTargetOf"/>）に一致する。
+    /// 旧＝0.75×軍事費の段×上限割合×母数＋0.25×扶養限界の按分・按分の分母だけが国民意識で割り引かれた（N4）＝和が 1÷平均の国民意識 倍（清で約12倍）。
+    /// 盤面＝仏（1四半期・平時）＝Step の1回の兵数の変化から州の目標を読み（変化＝率×(目標−兵数)）、和を国の目標と比べる。
+    /// ⚠突然変異「扶養限界の国の母数を国民意識で割り引く（旧 N4）」「平時の目標に軍事費の段の項を戻す」で赤。</summary>
+    [Fact]
+    public void 平時の兵の目標は扶養限界の目標そのもので州の和が国の目標に一致する()
+    {
+        var sim = new Simulation(NationConfig.France().ToScenario(17), new NullAgent());
+        sim.Run(1);
+        var w = sim.World; var c = w.Coef;
+        double target = Military.SustainTargetOf(w, c, out double natMan);
+        Assert.True(target > 0 && natMan > 0, $"前提が崩れた：目標 {target}・母数 {natMan}");
+        var s0 = new Dictionary<Region, double>();
+        foreach (var r in w.Regions)
+            if (r.State == RegionState.Active)
+                foreach (var p in r.Pops) if (p.IsSoldier) { s0[r] = p.Size; break; }
+        Military.Step(w, c, atWar: false);
+        double sum = 0; int n = 0;
+        foreach (var (r, before) in s0)
+        {
+            double after = 0; foreach (var p in r.Pops) if (p.IsSoldier) { after = p.Size; break; }
+            sum += before + (after - before) / c.SoldierMigrationRate; n++;
+        }
+        Assert.True(n > 1, "前提が崩れた：兵士POPのある州が1つ以下");
+        Assert.True(Math.Abs(sum - target) <= 1e-9 * target, $"州の目標の和 {sum} ≠ 国の目標（扶養限界の目標） {target}");
+    }
+
+    /// <summary>★(145)（分子と分母を同じ規則で＝単位をそろえる）：扶養限界の経済の側の兵1人の費用＝賃金（名目）＋装備（参照価格×自己費用の物価水準＝名目）。
+    /// 旧＝装備だけ参照価格の単位のまま＝物価の高い国ほど装備が安く見えた。盤面＝仏（人口の側を外す）で自己費用の物価水準を倍にする
+    /// ＝兵1人の費用（使える歳入×SustainMilShare÷限界）の増えが、参照価格の装備×元の物価水準に一致する。⚠突然変異「物価水準を掛けない」で赤。</summary>
+    [Fact]
+    public void 扶養限界の装備は自己費用の物価水準で名目へ直す()
+    {
+        var sim = new Simulation(NationConfig.France().ToScenario(17), new NullAgent());
+        sim.Run(1);
+        var w = sim.World; var c = w.Coef;
+        c.MaxSoldierFraction = 1e9;   // 扶養限界を経済の側で読む
+        double equipRef = 0;
+        for (int b = 0; b < c.MilitaryGoods.Length; b++) equipRef += c.MilitaryUpkeepScale * c.MilitaryRates[b] * Catalog.RefPrices[c.MilitaryGoods[b]];
+        double budget = c.SustainMilShare * Math.Max(0, w.SpendableRevenue());
+        double pl0 = w.CostPriceLevel;
+        double lim0 = Military.SustainLimitOf(w, c, out _);
+        w.CostPriceLevel = 2.0 * pl0;
+        double lim1 = Military.SustainLimitOf(w, c, out _);
+        Assert.True(lim0 > 0 && lim1 > 0 && equipRef > 0, $"前提が崩れた：限界 {lim0}・{lim1}・装備 {equipRef}");
+        double dPer = budget / lim1 - budget / lim0;   // 兵1人の費用の増え
+        Assert.True(Math.Abs(dPer - equipRef * pl0) <= 1e-9 * equipRef * pl0, $"兵1人の費用の増え {dPer} ≠ 装備×元の物価水準 {equipRef * pl0}");
+    }
+
+    /// <summary>★(145) 兵の単位の読み替え：兵役の母数を「全ての人（標準の構成）」から「働き盛りの男」へ読み替えた比 u（<see cref="Military.WorkingMenStdShare"/>）で、
+    /// 兵を単位にした較正を同じ比で読み替えた（旧の兵1単位の働きを保つ＝戦力ゲージ・治安維持力・装備・軍政の力・軍の政治力・徴兵の国民形成・戦争熱）。
+    /// 艦隊ゲージの分母（戦力ゲージ×装備）は読み替えの前と同じ（積は u が消える）。⚠突然変異＝どれか1本の読み替えを外すと赤。</summary>
+    [Fact]
+    public void 兵を単位にした較正は同じ比で読み替える()
+    {
+        var c = new Coefficients(); double u = Military.WorkingMenStdShare;
+        Assert.Equal(0.2765, u, 12);
+        Assert.Equal(250.0, c.SoldiersPerMilitary / u, 9);
+        Assert.Equal(5.0, c.CoercionPerSoldier * u, 9);
+        Assert.Equal(0.18, c.MilitaryUpkeepScale * u, 12);
+        Assert.Equal(1.4, c.MilitaryCoupWeight * u, 9);
+        Assert.Equal(5.0, c.ArmyPoliticalWeight * u, 9);
+        Assert.Equal(0.5, c.NationBuildConscript * u, 12);
+        Assert.Equal(4.0, c.WarFeverSoldier * u, 9);
+        Assert.Equal(250.0 * 0.18, c.SoldiersPerMilitary * c.MilitaryUpkeepScale, 9);   // 艦隊ゲージの分母の積は不変
+        Assert.Equal(c.MaxSoldierFraction * u, Military.PeaceCapShareOfPop(c), 15);    // 平時の上限の人口比
+    }
+
+    /// <summary>★(145)：兵力の市場（国家の需要・値・配給率・兵力の生産者）は無い＝兵士の給与は兵士POPの所得へ直接（(140) から市場の値と量の読み手が無かった）。
+    /// 盤面＝仏（1四半期＋30日）＝どの州の生産者の一覧にも兵力が無く、兵士の月の所得が給与の予算（名簿の兵×請求の単価×r）に届く。⚠突然変異「兵力の生産者を戻す」で赤。</summary>
+    [Fact]
+    public void 兵力の市場は無く兵士の給与は所得へ直接届く()
+    {
+        var sim = new Simulation(NationConfig.France().ToScenario(17), new NullAgent());
+        sim.Run(1);
+        for (int d = 0; d < 30; d++) sim.StepDay();
+        double e = 0, b = 0;
+        foreach (var r in sim.World.Regions)
+        {
+            foreach (var pr in r.Producers) Assert.NotEqual(Catalog.MilitaryPowerId, pr.GoodId);
+            if (r.State == RegionState.Active && r.SoldierPopIndex >= 0) { e += r.Pops[r.SoldierPopIndex].Earned; b += r.SoldierPayBudget; }
+        }
+        Assert.True(b > 0, "前提が崩れた：兵士の給与の予算が0");
+        Assert.True(e >= b * (1 - 1e-9), $"兵士の所得 {e} が給与の予算 {b} に届かない");
     }
 }

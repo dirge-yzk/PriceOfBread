@@ -846,20 +846,23 @@ public sealed class Simulation
         teacher.SetAdultFemaleShare(0.25); bureaucrat.SetAdultFemaleShare(0.03); doctor.SetAdultFemaleShare(0.05); researcher.SetAdultFemaleShare(0.02);   // 研究者＝技師と同じ（19世紀の大学は男性のみ）
         merchant.SetAdultFemaleShare(0.25); artisan.SetAdultFemaleShare(0.30);
 
-        // 兵士POP（Part 2）：**平時の均衡そのもの**で播く＝軍事費 × MaxSoldierFraction × 人的資源。
+        // 兵士POP（Part 2）：平時の均衡の近くで播く＝既定の軍事費の段 × MaxSoldierFraction × 兵役の母数（働き盛りの男・(145)）。
         // ── ★2026-08-02：国別のハードコード初期兵（cfg.Military×250）を撤去 ──────────────────
         // ⚠旧は国ごとに手で置いた数で、**経済が養える量と桁で食い違っていた**（作者指摘）。実測（armydump）＝
         //   イギリス 初期兵1125／人頭均衡150＝**7.5倍**・プロイセン 900／61＝**14.7倍**・オーストリア 650／270＝2.4倍。
         //   その結果、開始10年で英の兵は 1125→364・充足率 1.00→0.21 へ落ち、軍ゲージは **450→20 と20倍以上潰れた**。
         //   逆に清は初期225に対し10年後 9,575人まで膨れ、充足率0.00＝**払えない大軍**になった。
         //   ＝初期値が台本で、1793年に一斉に経済の現実へ引き戻されていた（設計原則①台本禁止に反する）。
-        // ★式は Military.cs の `desired`（平時の均衡）と**同じもの**を使う＝物差しを1本にする。
+        // ★播種＝扶養限界の人口の側（上限割合×兵役の母数＝働き盛りの男・Military.RecruitMen）×既定の軍事費の段。
+        //   ★(145)：平時の目標は扶養限界の目標そのもの（Military.Step）＝経済の側（歳入÷兵1人の費用）は播種の時点に歳入が無いので読めない
+        //   ＝最初の1〜2年（SoldierMigrationRate＝月8%）で扶養限界の目標へ寄る。旧＝「Military.cs の desired と完全一致」（軍事費の段×上限割合×頭数＝旧の平時の目標）。
         //   富の乗数（SoldierWealthExponent）は世界平均を要るので播種時には掛けない＝最初の数四半期で自然に効く。
         // ⚠ cfg.Military は抽象勢力（Nation を持たない標的）と Power の初期ゲージ表示に残る（次の Diplomacy.Step で再導出）。
         double pw = peasant.Size + worker.Size;
         var soldier = new Pop { ClassId = 5, ClassName = "兵士", IsUrban = false, Satisfaction = 1.0, IsSoldier = true, Ages = Pop.SoldierAges(),
             Literacy = pw > 1e-9 ? (peasant.Literacy * peasant.Size + worker.Literacy * worker.Size) / pw : 0.3 };
-        double draft = PolicyDefaults.MilitarySpendingTarget * coef.MaxSoldierFraction * pw;   // Military.cs の desired と完全一致（不発の上限0.3×pwを撤去）
+        double pwMen = Military.RecruitMen(peasant) + Military.RecruitMen(worker);   // ★(145) 兵役の母数の単位（働き盛りの男）
+        double draft = PolicyDefaults.MilitarySpendingTarget * coef.MaxSoldierFraction * pwMen;
         if (pw > 1e-9)
         {
             Military.MoveCohort(peasant, soldier, draft * peasant.Size / pw, coef);   // ★2026-09-26：手元の coef を渡す（旧＝3引数版が既定の係数を新しく作っていた・sweep-23）
@@ -878,8 +881,7 @@ public sealed class Simulation
         producers.Add(new Producer { GoodId = Catalog.DomesticServiceId, Productivity = 1.0, Output = servant.Size * 0.5, MarginalCost = 0.3, LaborPopIndex = 12, OwnerPopIndex = 12, RentShare = 0.0 });
         AddAdvancedProducers(producers, pops, engineerIdx: 4, workerIdx: 2, ownerIdx: 3, coef);   // 高度労働力（技師）＋石油火力
         AddArtisanProducers(producers, artisanIdx: 11);   // 職人の工房（工場との並存レシピ）。家事使用人を末尾(12)に足したので pops.Count-1 でなく職人の明示index
-        // 兵力：兵士が算出し国家が軍事費で買う（給与＝兵力の売上。買えない月＝兵士の収入が絶え弱兵化）。
-        producers.Add(new Producer { GoodId = Catalog.MilitaryPowerId, Productivity = 1.0, Output = soldier.Size * 0.5, MarginalCost = 0.3, LaborPopIndex = 5, OwnerPopIndex = 5, RentShare = 0.0 });
+        // （兵力の生産者は (145) で削除＝兵士の給与は EconomyStep が兵士POPの所得へ直接払う＝兵力の市場は (140) から読み手が無かった）
         AddAlternateRecipes(producers, coef);   // ★代替レシピ（2026-09-06）：全ての州の構築経路で同じ1回
         var region = new Region
         {
@@ -1411,7 +1413,6 @@ public sealed class Simulation
         AddAdvancedProducers(producers, pops, engineerIdx: 4, workerIdx: 2, ownerIdx: 3, coef);   // ★2026-09-26：渡された coef を使う（旧＝ここだけ既定の係数を新しく作っていた＝国ごとの係数・テストの w.Coef.X= が植民地州の高度な生産者に届かなかった・col-26）
         AddArtisanProducers(producers, artisanIdx: 10);
         producers.Add(new Producer { GoodId = Catalog.DomesticServiceId, Productivity = 1.0, Output = 0, MarginalCost = 0.3, LaborPopIndex = 11, OwnerPopIndex = 11, RentShare = 0.0 });
-        producers.Add(new Producer { GoodId = Catalog.MilitaryPowerId, Productivity = 1.0, Output = 0, MarginalCost = 0.3, LaborPopIndex = 12, OwnerPopIndex = 12, RentShare = 0.0 });
         AddAlternateRecipes(producers, coef);   // ★代替レシピ（2026-09-06）：全ての州の構築経路で同じ1回
         var region = new Region
         {

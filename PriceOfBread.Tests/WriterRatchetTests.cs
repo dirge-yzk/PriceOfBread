@@ -142,7 +142,10 @@ public class WriterRatchetTests
     [InlineData("Loans", 4)]                  // 銀行の与信（移し方の1本の台帳の1行＝企業の貸しと回収・損失の負債化・利息の繰り入れ）＋負の国の償却・再併合の合算・盤面の復元
     [InlineData("HouseholdLoans", 4)]         // 銀行の与信（家計）＝移し方の1本の台帳の1行（Bank.Lend）・Bank.Carry の受け手・再併合の合算・盤面の復元
     [InlineData("Paid", 9)]                  // 月内の仮勘定（払い）
-    [InlineData("Earned", 10)]                // 月内の仮勘定（受け取り）
+    // ★2026-10-01 (145)：Earned 10→**11**（＝宣言）＝兵士の給与の受け取り（EconomyStep の兵士の給与の決済の1行）。旧＝兵力の売上（revenue）→兵力の生産者の按分
+    //   （生産者の賃金の行＝既存の書き手）→兵士POP の中継だった。兵力の市場（国家の需要・値・配給率・生産者）は (140) から読み手が無く (145) で削除＝兵士の所得へ直接
+    //   （同じ月の同じ位置＝月初のゼロ化と月末の精算の間・国庫の側は州の未精算の国家支出〔陸軍〕のまま＝払い手の側の書き手は増えていない）。
+    [InlineData("Earned", 11)]                // 月内の仮勘定（受け取り）
     [InlineData("Treasury", 0)]               // 外交層の財布への代入（World.Treasury は private set＝構造で閉じている・Power.Treasury は 2026-09-30 に欄ごと削除）
     public void お金への書き手は増やさない(string member, int baseline)
     {
@@ -296,6 +299,8 @@ public class WriterRatchetTests
     // ★2026-10-01 表の更新（(144) 合流＝線2〔(140) 軍の費用・(143) 飢えで州が痩せる型〕の載った main へ線1〔(139) 段4g・(141) 国内の移民・(142) 4e-2b＋兵役の母数の兵士の項の直し〕を載せ直した木
     //   ＝軌道が動いた分の宣言・新しい計数の処理は無い）：建設 7,226→7,634（+5.6%）・請求 2,515→2,692（+7.0%）・覇権の判定 2,414,464→2,585,796（+7.1%）
     //   ＝どちらの線の単独の表とも違う軌道（線1 単独＝建設 7,146・覇権 2,227,505／線2 単独＝建設 7,226・請求 2,515・覇権 2,414,464）。ほかの13本は許しの内。全長の10種の推定は実装ログ (144)。
+    // ★2026-10-01 表の更新（(145) 兵の単位＝軌道が動いた分の宣言・新しい計数の処理は無い）：覇権の判定 2,585,796→2,175,698（−15.9%＝10% を超えて下がった＝表を下げる・
+    //   同盟の候補が居る月の軌道・処理の形は同じ）。兵力の生産者の削除で生産者×月は州あたり1件減った（全長の5種で −0.4%＝許しの内）。ほかの14本は許しの内。全長の10種の推定は実装ログ (145)。
     [InlineData(CostLedger.PriceGoods, 14149727L)]
     [InlineData(CostLedger.PriceDailyRuns, 25283828L)]
     [InlineData(CostLedger.ConstructionSeen, 7634L)]
@@ -307,7 +312,7 @@ public class WriterRatchetTests
     [InlineData(CostLedger.ClearingRows, 5185642L)]
     [InlineData(CostLedger.ClearingFills, 27954050L)]
     [InlineData(CostLedger.DiploPowerMonths, 9954L)]
-    [InlineData(CostLedger.DiploHegemonScans, 2585796L)]
+    [InlineData(CostLedger.DiploHegemonScans, 2175698L)]
     [InlineData(CostLedger.QuarterStartPops, 235560L)]
     [InlineData(CostLedger.QuarterEndPops, 235560L)]
     [InlineData(CostLedger.SharedNationQuarters, 3698L)]

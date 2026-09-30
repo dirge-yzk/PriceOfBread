@@ -34,30 +34,34 @@ public static class Military
     public static double SkillCombatMultiplier(double skill, Coefficients c) => 1.0 + c.SkillCombatMax * PoliticalQuantities.Clamp01(skill);
 
     /// <summary>扶養限界目標＝SustainLimit × clamp(近隣ライバル最大limit ÷ 自国limit, ArmsRaceLow, ArmsRaceHigh)。
-    /// Step（兵数の錨）と SelfPlay 配線C（請求書駆動の軍事費）と armyneed プローブの**単一ソース**。
-    /// Diplomacy/SelfPower が無い世界（単一国較正）は0＝不発。</summary>
+    /// Step（平時の兵の目標＝これそのもの・(145)）と armyneed プローブと画面の**単一ソース**。
+    /// ★(145)：外交の無い世界（単一国較正）は「緊張を持つ相手がいない」＝ArmsRaceLow（覇権国の平時の小軍と同じ1本の規則・旧＝0＝不発で人口と軍事費の段の目標へ落ちた）。</summary>
     public static double SustainTargetOf(World w, Coefficients c, out double natManpower)
     {
-        natManpower = 0;
-        if (w.Diplomacy is not { } dip || w.SelfPower is not { } sp) return 0;
         double ownLimit = SustainLimitOf(w, c, out natManpower);
-        if (ownLimit <= 1e-9) return 0;
+        if (!(ownLimit > 1e-9)) return 0;   // 否定形＝NaN も0（兵の目標へ NaN を通さない）
         double rivalMax = 0;
-        foreach (var rp in dip.Powers)
-        {
-            if (rp == sp || rp.Nation is not { } rw) continue;
-            if (dip.Tension(sp, rp) < c.ArmsRaceTensionFloor) continue;   // 緊張を持つ相手だけがライバル（0なら全比較）
-            double rl = SustainLimitOf(rw, c, out _);
-            if (rl > rivalMax) rivalMax = rl;
-        }
+        if (w.Diplomacy is { } dip && w.SelfPower is { } sp)
+            foreach (var rp in dip.Powers)
+            {
+                if (rp == sp || rp.Nation is not { } rw) continue;
+                if (dip.Tension(sp, rp) < c.ArmsRaceTensionFloor) continue;   // 緊張を持つ相手だけがライバル（0なら全比較）
+                double rl = SustainLimitOf(rw, c, out _);
+                if (rl > rivalMax) rivalMax = rl;
+            }
         double mod = rivalMax > 1e-9 ? Math.Clamp(rivalMax / ownLimit, c.ArmsRaceLow, c.ArmsRaceHigh) : c.ArmsRaceLow;
         return ownLimit * mod;
     }
 
     /// <summary>扶養限界（作者設計2026-08-08）＝この国が経済に悪影響なく養える兵数。
     /// 経済側＝持続可能な軍事支出（歳入×SustainMilShare）÷ 兵1人あたり月次コスト（給与＝徴募プールの前月の働き盛り1人あたりの賃金×SoldierPayMult＝<see cref="RecruitWage"/> と同じ規則
-    /// ＋装備＝MilitaryUpkeepScale×Σ(rate×RefPrice)＝**参照価格建て**＝市場価格の循環を避ける・S4欠陥の教訓）。
-    /// 人口側＝徴募可能人口（兵士POPを持つ州の農民+労働者の男20〜39歳を標準の構成の人数に換算＋兵士も同じ換算＝<see cref="RecruitMen"/>・2026-09-30 段4e 後半・兵士の項は (144)）×MaxSoldierFraction。
+    /// ＋装備＝MilitaryUpkeepScale×Σ(rate×RefPrice)×自己費用の物価水準＝**参照価格建てを名目へ**＝市場価格の循環を避ける・S4欠陥の教訓）。
+    /// ★(145)：装備に <see cref="World.CostPriceLevel"/>（P の遅い趨勢＝参照価格の単位を名目へ直す物価・鉱物の自己費用と同じ1本）を掛けた
+    ///   ＝分子（歳入）と賃金は名目・装備だけ参照価格の単位だった（単位の非対称＝物価の高い国ほど装備が安く見えた）。
+    /// 人口側＝徴募可能人口（兵士POPを持つ州の徴募元と兵士の働き盛りの男＝<see cref="RegionManpower"/>）×MaxSoldierFraction。
+    /// ★(145)：国民意識の割引（N4・ConscriptConsciousnessWeight）を外した＝国民意識は戦時の動員の深さ（Step の国民意識ゲート）だけが読む
+    ///   （旧＝平時の扶養限界の人口の側にも掛けた＝同じ国民意識の2度目・思想⑨。しかも州への按分の分母だけが割り引かれ、分子の州の母数は割り引かれなかった
+    ///   ＝国の目標の和が 1÷平均の国民意識 倍に膨らんだ＝清の平時の目標が約12倍＝分子と分母の非対称）。
     /// min が国ごとのボトルネックを選ぶ＝露は経済・英は人口（作者の設計意図どおり式から出る）。
     /// ⚠錨は歳入・人口・参照価格＝ゆっくりしか動かない量のみ（相手の兵数・充足率を読まない＝軍拡ループを閉じない）。</summary>
     public static double SustainLimitOf(World w, Coefficients c, out double natManpower)
@@ -67,42 +71,41 @@ public static class Military
         foreach (var r in w.Regions)
         {
             if (r.State != RegionState.Active) continue;
-            Pop? sld = null; double pa = 0, pb = 0, pe = 0, ps = 0;
+            double m = RegionManpower(r, c);
+            if (!(m > 0)) continue;   // 兵士POPの無い州は母数に入らない（Step も同じ州を飛ばす）
+            natManpower += m;
             foreach (var p in r.Pops)
-            {
-                if (p.IsSoldier) sld = p;
-                else if (p.ClassId == c.SoldierRecruitClassA || p.ClassId == c.SoldierRecruitClassB)
-                { pa += p.ClassId == c.SoldierRecruitClassA ? RecruitMen(p) : 0; pb += p.ClassId == c.SoldierRecruitClassB ? RecruitMen(p) : 0; pe += Math.Max(0, p.LastEarned); ps += WorkingAdults(p); }   // 兵役の母数＝徴募元の男20〜39歳（標準の構成の人数に換算・段4e 後半）・賃金の分母＝働き盛り（(140)）
-            }
-            // ★N4 徴兵の州別化（国民意識doc・2026-08-13）：**国民意識の無い州からは兵が出ない。**
-            //   ⚠旧＝兵士POPを持つ活動州の頭数をそのまま足していた＝多民族帝国の周辺州も中核州と同率で徴募できた。
-            //   ★史実＝墺洪の非独語圏・露のポーランド/中央アジアは、頭数はあっても「皇帝のために死ぬ理由」が無く、
-            //     徴兵忌避と脱走で実効の動員力にならなかった。国民国家（仏・普）が同じ人口からはるかに多くの兵を出せたのはこれである。
-            //   ⚠国名も民族名も書かない——読むのは州のPOPの国民意識だけ。既定0＝×1.0＝**厳密恒等**。
-            if (sld is not null)
-            {
-                double share = 1.0;
-                if (c.ConscriptConsciousnessWeight > 0)
-                {
-                    double avgNc = Politics.AvgRegionConsciousness(r, none: 1.0);   // 1つも捕捉されていない＝機構が休眠＝割引なし（州の国民意識の1本）
-                    share = Math.Max(0, 1.0 - c.ConscriptConsciousnessWeight * (1.0 - avgNc));
-                }
-                natManpower += (pa + pb + RecruitMen(sld)) * share; poolEarn += pe; poolSize += ps;   // ★(144) 兵士の項も徴募元と同じ単位（RecruitMen）＝徴兵と復員で母数が動かない
-            }
+                if (!p.IsSoldier && (p.ClassId == c.SoldierRecruitClassA || p.ClassId == c.SoldierRecruitClassB))
+                { poolEarn += Math.Max(0, p.LastEarned); poolSize += WorkingAdults(p); }   // 賃金の分母＝働き盛り（(140)）
         }
         double manLimit = c.MaxSoldierFraction * natManpower;
         double wage = poolSize > 1e-9 ? poolEarn / poolSize : 0;   // 徴募プールの前月の働き盛り1人あたりの賃金＝兵士の機会費用（富国の兵は高い）＝RecruitWage と同じ規則（ここは国の和）
         double equip = 0;
         for (int b = 0; b < c.MilitaryGoods.Length; b++)
             if (c.MilitaryGoods[b] < Catalog.RefPrices.Length) equip += c.MilitaryUpkeepScale * c.MilitaryRates[b] * Catalog.RefPrices[c.MilitaryGoods[b]];
-        double perSoldier = wage * c.SoldierPayMult + equip;
+        double perSoldier = wage * c.SoldierPayMult + equip * w.CostPriceLevel;
         double econLimit = perSoldier > 1e-9 ? c.SustainMilShare * Math.Max(0, w.SpendableRevenue()) / perSoldier : 0;   // 支出反射：潤沢国庫は扶養限界にも翻訳（ユリウス塔の戦争準備金。既定0=LastRevenueと厳密同値）
         return Math.Min(econLimit, manLimit);
     }
 
+    /// <summary>★州の兵役の母数の1本（(145)）＝徴募元（農民・都市労働者）と兵士の働き盛りの男（<see cref="RecruitMen"/>）×支配度の届き方。兵士POPの無い州は0。
+    /// 兵の目標（<see cref="Step"/>＝州への按分と戦時の徴兵の目標）と扶養限界（<see cref="SustainLimitOf"/>＝国の和）が同じ規則で数える
+    /// ＝国の目標を州へ配る比の分子と分母が同じ量（旧＝分子は Step の州の頭数×届き方、分母は扶養限界の国民意識で割り引いた和＝和が目標を超えた）。</summary>
+    internal static double RegionManpower(Region r, Coefficients c)
+    {
+        double m = 0; bool sld = false;
+        foreach (var p in r.Pops)
+        {
+            if (p.IsSoldier) { sld = true; m += RecruitMen(p); }   // 兵士も徴募元と同じ単位＝徴兵と復員で母数が動かない（(144)）
+            else if (p.ClassId == c.SoldierRecruitClassA || p.ClassId == c.SoldierRecruitClassB) m += RecruitMen(p);
+        }
+        return sld ? m * Politics.RuleDelivery(r, c, c.RuleSharesTaxBase) : 0;   // ★支配度 段3：徴兵ベース＝国家区分＋在地区分×村請け率（RuleSharesTaxBase=0 で ×1＝恒等）
+    }
+
     /// <summary>兵1人の機会費用の分母＝働き盛り（16〜59歳・男女）の人数。兵は働き盛りの男の1人＝世帯の頭数（子供と老人を含む）で割った所得で払うと
-    /// 分子（大人1人）と分母（世帯の頭数）が非対称＝兵の給与が民間の大人の賃金の約半分になる（2026-09-30 (140)）。窓は (140) の時点の徴兵の範囲（16〜60）。
-    /// ⚠(142)（4e-2b）で徴兵は男20〜39／皆兵49 へ狭めた＝この窓（働き盛りの男女）とはもう一致しない＝分母を労働供給の人数にそろえるかは兵の単位の回で決める（(144) 注記・反証の指摘）。</summary>
+    /// 分子（大人1人）と分母（世帯の頭数）が非対称＝兵の給与が民間の大人の賃金の約半分になる（2026-09-30 (140)）。
+    /// ★(145)：兵役の母数（<see cref="RecruitMen"/>）も同じ窓（16〜59歳の男）になった＝(142) で分かれた窓がそろった。
+    ///   労働供給の人数（女性の参加率・60歳以上の0.75・児童労働）にはそろえていない（男1人の機会費用を1割前後低く出す【推】＝兵1人の費用の史実の約3倍との差より小さい＝記録）。</summary>
     internal static double WorkingAdults(Pop p) => p.Size * p.AgeShare(16, 60);
 
     /// <summary>★州の兵1人の月給の請求の単価＝徴募の母数（農民・都市労働者）の前月の所得÷働き盛りの人数×SoldierPayMult の手前（2026-09-30 (140)）。
@@ -160,10 +163,11 @@ public static class Military
         // 覇権国は−20%（平時の小軍）・追う側は+20%（軍拡の無理＝afford<1と労働流出が自然に請求書を出す）。
         // ★錨は人口・歳入＝ゆっくりしか動かない量＝「兵数→脅威→目標」の外側ループが構造的に閉じている
         //   （NeedMen錨定 R2a の失敗＝相手の現在兵数を読んで ρ0.79→0.43、の是正）。
-        // ⚠ArmySustainWeight=0 ならブロックごとスキップ＝厳密恒等（★ 2026-08-08 採用＝既定0.25）。Diplomacy==null（単一国較正）も不発。
-        double sustainTargetNat = 0, sustainNatManpower = 0;
-        if (c.ArmySustainWeight > 0 && w.Diplomacy is not null && w.SelfPower is not null)
-            sustainTargetNat = SustainTargetOf(w, c, out sustainNatManpower);
+        // ★(145) 平時の兵の目標＝扶養限界の目標**そのもの**（作者設計の梯子 0.25→0.5→1.0 の終点）。旧＝AI が 2026-08-08 の梯子の測定から採った混合
+        //   （0.75×軍事費の段×上限割合×母数＋0.25×扶養限界）＝平時の目標に財政の上限が無く、軍拡の段の国は払えるかに依らず母数の約3%を持った
+        //   （清1800 ＝約1,060万［史実 80〜100万］・英1860 ＝人口の約4%［約1%］）。混合比 ArmySustainWeight は削除。
+        //   ⚠軍事費の段は平時の兵数を動かさない＝装備の予算（MilitaryBudget）と即応度・治安維持力を動かす（兵数は歳入と母数で決まる）。
+        double sustainTargetNat = SustainTargetOf(w, c, out double sustainNatManpower);
         foreach (var r in w.Regions)
         {
             if (r.State != RegionState.Active) continue;
@@ -177,31 +181,27 @@ public static class Military
             }
             if (soldier == null) continue;
 
-            // ★年齢の層（2026-09-30 段4e 後半・設計書 §4-1）：兵役の母数＝徴募元の男20〜39歳を標準のピラミッドの人数に換算（÷標準の割合 0.145＝1783年の兵数は旧と同じ）＋現兵士（同じ換算）。
-            //   ★(144) 合流（反証の指摘＝分子と分母の非対称）：旧の段4e 後半は現兵士を頭数のまま足した＝男を1人徴兵すると徴募元の項が 1÷0.145≈6.9 減り兵士の項は1しか増えず、
-            //   母数が徴兵のたびに細った（t=0 から旧の約0.94倍・戦時の定常は兵÷男20〜39≈0.48＝率÷0.145 の 0.83 より約4割小さい）。兵士も RecruitMen（男20〜39÷標準の割合）で数える
-            //   ＝徴兵（男20〜39）でも皆兵の40〜49歳の徴兵でも復員でも母数は動かない（旧の頭数どうしの和と同じ性質）。
-            //   旧＝徴募元の全人数（女性・子供・老年を含む）。男手が徴兵と戦死で細ると母数も細る（空洞の年次）。
-            double manpower = (RecruitMen(poolA) + RecruitMen(poolB) + RecruitMen(soldier)) * Politics.RuleDelivery(r, c, c.RuleSharesTaxBase);   // 兵役の母数＝農民＋都市労働者＋現兵士（エリートは除く）。★支配度 段3：徴兵ベース＝国家区分＋在地区分×村請け率（RuleSharesTaxBase=0 で ×1＝恒等）
+            // ★兵役の母数（(145) 兵の単位）＝徴募元と兵士の**働き盛りの男（16〜59歳）の実数**（RegionManpower＝扶養限界の国の和と同じ1本）。
+            //   上限割合（平時 MaxSoldierFraction・戦時 ConscriptionFraction・限定戦争の床・総動員・皆兵の倍率）は「働き盛りの男の何割」と読む。
+            //   旧（(142) 段4e 後半〜(144)）＝男20〜39歳を標準のピラミッドの人数に換算（÷0.145）＝割合が「全ての人の何%」のまま＝平時の上限 4%＝男の15%・
+            //   戦時 12%＝男の43%・総動員 22%＝男の80%・皆兵×2.5＝男の全てを超えた。働き盛りの男で読むと平時の上限＝人口の約1.1%・戦時 3.3%・総動員 6%・皆兵 8%（史実の桁）。
+            //   徴兵が引くのは徴兵の年齢の男（MoveCohort の 20〜39／皆兵 49）＝母数の部分集合＝徴兵でも復員でも母数は動かない（(144) の性質のまま）。
+            //   兵を単位にした較正（戦力ゲージ・治安維持力・装備・政治の正規化）は同じ比（WorkingMenStdShare）で読み替えた（Coefficients の各行）。
+            double manpower = RegionManpower(r, c);   // 兵役の母数＝農民＋都市労働者＋現兵士（エリートは除く）×支配度の届き方
 
             // ※給与は「兵力」（役務財）の調達に移行：兵士が兵力を算出し国家が買う（EconomyStep・国庫→兵士で保存）。
             //   兵力財を持たない簡易世界（SoldierPopIndex<0）では給与なし＝従来の充足ベース挙動のみ。
 
-            // === 徴募/離職：軍事費が決める目標兵数へ漸進（プールから規模＋貯蓄を比例移動＝総人口・総マネー保存）===
-            double desired = w.MilitarySpending * c.MaxSoldierFraction * manpower;
+            // === 徴募/離職：扶養限界の目標へ漸進（プールから規模＋貯蓄を比例移動＝総人口・総マネー保存）===
             // ⚠墓標2026-08-08：ここには「富で兵を養う」(SoldierWealthExponent)と「軍の恒常性」(SoldierSustainDriven)が
             //   あったが、いずれも不合格で**再点火禁止**。恒常性は「積分器＋欠陥信号＋min凍結」の三重機序で発散し、
             //   富の乗数は NeedMen 錨定（ArmyShape）が上位互換。★実装は 2026-08-12 に撤去（30行）。
             //   撤去時の基準線＝SOURCE-HASH 778729fcd7aa72b7（build緑・テスト283/283緑・savetest 相対差0.0E+000）。
-            // 扶養限界方式：desired = (1−k)×人口×スライダー駆動 + k×扶養限界目標の州按分（州manpower／全国manpower）。
+            // 平時＝扶養限界の目標の州按分（州の母数÷国の母数＝分子と分母が同じ RegionManpower＝州の和が国の目標に一致）。
             // 戦時徴兵の max 経路（下の wartimeConscript）は不変＝平時=扶養限界・戦時=人口。
-            if (sustainTargetNat > 0 && sustainNatManpower > 1e-9)
-            {
-                double susK = PoliticalQuantities.Clamp01(c.ArmySustainWeight);
-                desired = (1.0 - susK) * desired + susK * sustainTargetNat * (manpower / sustainNatManpower);
-            }
+            double desired = sustainNatManpower > 1e-9 ? sustainTargetNat * (manpower / sustainNatManpower) : 0;
             double rate = c.SoldierMigrationRate;
-            // 1934拡張E5 徴兵法：戦時の強制徴募は**徴兵制の国だけ**（志願兵制は戦時も志願規模＝MilitarySpending駆動のまま＝小さい軍・不満なし）。
+            // 1934拡張E5 徴兵法：戦時の強制徴募は**徴兵制の国だけ**（志願兵制は戦時も平時の目標＝扶養限界のまま＝小さい軍・不満なし）。
             // 既定 Conscription＝現行挙動（戦時徴兵）。conscriptFrac は外12で戦争規模スケール（既定＝ConscriptionFraction＝恒等）。
             bool wartimeConscript = atWar && w.ConscriptionLaw >= ConscriptionLaw.Selective;   // ★3値化2026-08-01：選抜以上で発動（旧2値と同値）   // ★M1（作者裁定2026-09-19）：総動員は条件に入らない＝志願兵制を迂回しない（旧 `|| w.Mobilized`＝2026-08-31の是正を覆す）。総動員は上の conscriptFrac で深さだけを上げる
             // ★3値化2026-08-01：**引ける人数が法で変わる**。選抜＝籤で一部（旧＝1.0＝厳密同値）／皆兵＝適齢男子ぜんぶ＋予備役。
@@ -325,8 +325,21 @@ public static class Military
     /// ⚠皆兵の倍率 UniversalConscriptionFactor の削除（物理の池が倍率を置き換える）は別の腕（1つの腕に1つの変更＝申し送り）。</summary>
     internal static double DraftAgeHi(World w) => w.ConscriptionLaw == ConscriptionLaw.Universal ? 50 : 40;
 
-    /// <summary>★兵役の母数の1本（2026-09-30 段4e 後半・設計書 §4-1）＝POP の男20〜39歳を標準のピラミッドの人数に換算（規模×男20〜39の割合÷標準の割合 0.145）
-    /// ＝MaxSoldierFraction・徴兵の率の4本は「標準の構成の人口あたり」のまま（1783年の兵数は旧と同じ）。読み手＝兵の目標（Step）・扶養限界（SustainLimitOf）・画面と診断の写し。
-    /// ★(144)：現兵士の項も同じ換算（徴募元と兵士が同じ単位＝徴兵と復員で母数が動かない・番人 MilitaryTests）。</summary>
-    internal static double RecruitMen(Pop? p) => p is null ? 0 : p.Size * p.AgeShare(20, 40, 0) / Pop.StdShare(20, 40, 0);
+    /// <summary>★兵役の母数の1本（(145) 兵の単位）＝POP の**働き盛りの男（16〜59歳）の実数**（規模×男16〜59の割合）。
+    /// MaxSoldierFraction・徴兵の率の4本（戦時・限定戦争の床・総動員・皆兵の倍率）は「働き盛りの男の何割」（史実の桁＝平時の上限 人口の約1.1%・戦時 3.3%・総動員 6%・皆兵 8%）。
+    /// 旧（2026-09-30 段4e 後半・設計書 §4-1〜(144)）＝男20〜39歳を標準のピラミッドの人数に換算（÷0.145）＝割合が「全ての人の何%」のままだった。
+    /// 窓＝賃金の分母（<see cref="WorkingAdults"/>）と同じ 16〜59歳。徴兵が引く男20〜39（皆兵49）はこの部分集合。
+    /// 読み手＝州の母数（<see cref="RegionManpower"/>＝兵の目標と扶養限界）・画面と診断の写し。現兵士も同じ単位（徴兵と復員で母数が動かない・(144)・番人 MilitaryTests）。</summary>
+    internal static double RecruitMen(Pop? p) => p is null ? 0 : p.Size * p.AgeShare(16, 60, 0);
+
+    /// <summary>★兵の単位の換算（(145)）＝標準のピラミッドの働き盛りの男（16〜59歳）の割合（0.2765）＝新しい数0（標準のピラミッドの表から）。
+    /// 兵役の母数を「全ての人（標準の構成）」から「働き盛りの男」へ読み替えた比＝同じ割合の値で兵の数がこの比になる。
+    /// 兵を単位にした較正（戦力ゲージ SoldiersPerMilitary・治安維持力 CoercionPerSoldier・装備 MilitaryUpkeepScale・民兵 MilitiaCombatValue・
+    /// 軍政の力 MilitaryCoupWeight・軍の政治力 ArmyPoliticalWeight・徴兵の国民形成 NationBuildConscript・戦争熱 WarFeverSoldier）と
+    /// 政治の正規化（平時の上限の人口比 <see cref="PeaceCapShareOfPop"/>）は、この比で読み替える＝旧の兵1単位の働きを新しい兵の単位で保つ。</summary>
+    internal static readonly double WorkingMenStdShare = Pop.StdShare(16, 60, 0);
+
+    /// <summary>★平時の上限の人口比（(145)）＝MaxSoldierFraction（働き盛りの男の割合）×標準の構成の働き盛りの男の割合＝「兵÷総人口」で読む正規化の分母
+    /// （軍の社会的重み・職業軍の度合い π・軍部の組織性）。旧＝MaxSoldierFraction をそのまま人口比として読んだ（母数が全ての人の頃の単位）。</summary>
+    internal static double PeaceCapShareOfPop(Coefficients c) => c.MaxSoldierFraction * WorkingMenStdShare;
 }

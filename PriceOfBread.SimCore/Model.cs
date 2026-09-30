@@ -870,7 +870,7 @@ public sealed class Region
     public int BureaucratPopIndex = -1;               // 官僚（行政を生産。不足＝汚職で税収が漏れる）
     public int DoctorPopIndex = -1;                   // 医者（医療を生産。人口扶養力に効く）
     public int ResearcherPopIndex = -1;               // 研究者（高等教育を生産＝大学。段②の昇格先）。⚠-1＝研究者POPを持たない世界＝昇格先に数えない＝厳密恒等
-    public int SoldierPopIndex = -1;                  // 兵士（兵力を生産。国家が軍事費で買う＝給与）
+    public int SoldierPopIndex = -1;                  // 兵士（国家が雇う＝給与は EconomyStep が所得へ直接・(145) で兵力の市場を削除）
     public int MerchantPopIndex = -1;                 // 商人（流通マージン＋貿易の仲立ちで稼ぎ、商船を買って海運容量を支える）
     public int ArtisanPopIndex = -1;                  // 職人（手工業の自営＝工場と並存レシピで競合。敗れると労働者へ転落＝ラッダイト）
     public int ServantPopIndex = -1;                  // 家事使用人（家事奉仕を生産・女性がなりやすい。富裕層の余剰が雇う＝#12）

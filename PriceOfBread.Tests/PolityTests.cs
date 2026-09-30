@@ -64,11 +64,12 @@ public class PolityTests
 
     private static World 世界() => new Simulation(NationConfig.France().ToScenario(1789), new NullAgent()).World;
 
-    /// <summary>兵の規模 x＝兵数÷(総人口×MaxSoldierFraction) を指定した世界（兵士POPの Size を一律に拡縮。総人口は兵を含むので解いてから掛ける）。</summary>
+    /// <summary>兵の規模 x＝兵数÷(総人口×平時の上限の人口比) を指定した世界（兵士POPの Size を一律に拡縮。総人口は兵を含むので解いてから掛ける）。
+    /// ★(145)：上限の人口比＝Military.PeaceCapShareOfPop（MaxSoldierFraction＝働き盛りの男の割合×標準の構成の働き盛りの男の割合）＝CoupSupport が読む物差しと同じ。</summary>
     private static World 兵の規模の世界(double x)
     {
         var w = 世界();
-        double msf = w.Coef.MaxSoldierFraction, soldiers = w.SoldierSize(), others = w.TotalPopulation - soldiers;
+        double msf = Military.PeaceCapShareOfPop(w.Coef), soldiers = w.SoldierSize(), others = w.TotalPopulation - soldiers;
         Assert.True(soldiers > 0 && others > 0);
         double k = x * msf * others / (1 - x * msf) / soldiers;
         foreach (var p in w.AllPops()) if (p.IsSoldier) p.Size *= k;
@@ -93,7 +94,7 @@ public class PolityTests
         }
         // 取り分の曲がり所＝門2と同じ物差し：兵力が保持力を上回る（sf>κ）ときだけ取り分が半分を超える（π=1 の平時の規模で見る）
         var p = 兵の規模の世界(0.68); var cp = p.Coef;
-        Assert.Equal(1.0, Politics.ProfessionalArmyShare(p.SoldierSize(), p.TotalPopulation, cp.MaxSoldierFraction));
+        Assert.Equal(1.0, Politics.ProfessionalArmyShare(p.SoldierSize(), p.TotalPopulation, Military.PeaceCapShareOfPop(cp)));
         Assert.True(Politics.CoupSupport(p, cp, 2.0, 1.0) > 0.5 * cp.MilitaryCoupSupport);
         Assert.True(Politics.CoupSupport(p, cp, 1.0, 2.0) < 0.5 * cp.MilitaryCoupSupport);
         // 保持力が0へ崩れても加算は上限 MCS に張り付くだけ（旧式の裸の比 sf/max(1,κ) は同じ入力で兵力そのものに比例した＝上限が無い＝分子と分母の非対称）
@@ -101,9 +102,9 @@ public class PolityTests
     }
 
     [Fact]
-    public void 平時の上限に収まる軍は割り引かない()   // ② R4：x＝兵数÷(総人口×MaxSoldierFraction)≤1 で π=1、π=1 の割引は1ビットも動かさない
+    public void 平時の上限に収まる軍は割り引かない()   // ② R4：x＝兵数÷(総人口×平時の上限の人口比)≤1 で π=1、π=1 の割引は1ビットも動かさない
     {
-        double msf0 = new Coefficients().MaxSoldierFraction, pop = 1e6;
+        double msf0 = Military.PeaceCapShareOfPop(new Coefficients()), pop = 1e6;   // ★(145) 上限の人口比
         foreach (double x in new[] { 0.0, 0.25, 0.68, 0.999, 1.0 })
             Assert.Equal(1.0, Politics.ProfessionalArmyShare(x * pop * msf0, pop, msf0));
         // π=1（平時）の ×1.0 は厳密＝加算は割り引かない取り分 MCS×σ とビット一致。π は CoupSupport が世界の兵数と総人口から読む
@@ -111,7 +112,7 @@ public class PolityTests
         foreach (double x in new[] { 0.25, 0.68, 0.999 })
         {
             var w = 兵の規模の世界(x); var c = w.Coef;
-            Assert.Equal(1.0, Politics.ProfessionalArmyShare(w.SoldierSize(), w.TotalPopulation, c.MaxSoldierFraction));
+            Assert.Equal(1.0, Politics.ProfessionalArmyShare(w.SoldierSize(), w.TotalPopulation, Military.PeaceCapShareOfPop(c)));
             for (int i = 0; i < 700; i++)
             {
                 double sf = rng.NextDouble() * 3000, coerce = rng.NextDouble() * 4000;
@@ -125,7 +126,7 @@ public class PolityTests
     [Fact]
     public void 上限を超えた戦時徴兵の分は軍政へ足さない()   // ③ R4：x=2.5（総動員の平均の規模）で π=0.4＝加算は職業軍の分だけ
     {
-        double msf0 = new Coefficients().MaxSoldierFraction, pop = 1e6, capSoldiers = pop * msf0;
+        double msf0 = Military.PeaceCapShareOfPop(new Coefficients()), pop = 1e6, capSoldiers = pop * msf0;   // ★(145) 上限の人口比
         Assert.Equal(0.4, Politics.ProfessionalArmyShare(2.5 * capSoldiers, pop, msf0), 12);
         Assert.Equal(0.5, Politics.ProfessionalArmyShare(2.0 * capSoldiers, pop, msf0), 12);
         Assert.True(Politics.ProfessionalArmyShare(10 * capSoldiers, pop, msf0) > 0);   // 割引は比例＝どれだけ膨らんでも職業軍の分は残る（0へ畳まない）
@@ -135,7 +136,7 @@ public class PolityTests
         Assert.True(full > 0);
         var w = 兵の規模の世界(2.5); var c = w.Coef;
         w.ArmyAllegiance = 0.2;
-        Assert.Equal(0.4, Politics.ProfessionalArmyShare(w.SoldierSize(), w.TotalPopulation, c.MaxSoldierFraction), 9);
+        Assert.Equal(0.4, Politics.ProfessionalArmyShare(w.SoldierSize(), w.TotalPopulation, Military.PeaceCapShareOfPop(c)), 9);
         Assert.Equal(0.4 * full, Politics.CoupSupport(w, c, 500, 800), 9);
     }
 
@@ -156,7 +157,7 @@ public class PolityTests
             w.ArmyAllegiance = alleg;
             Assert.True(同じビット(r0, Politics.CoupSupport(w, c, 500.0, 800.0)), $"帰属={alleg} で加算が動いた（軍帰属は読まない）");
         }
-        double msf = c.MaxSoldierFraction;
+        double msf = Military.PeaceCapShareOfPop(c);
         Assert.Equal(1.0, Politics.ProfessionalArmyShare(double.NaN, 1e6, msf));
         Assert.Equal(1.0, Politics.ProfessionalArmyShare(100, double.NaN, msf));
         Assert.Equal(1.0, Politics.ProfessionalArmyShare(100, 1e6, double.NaN));

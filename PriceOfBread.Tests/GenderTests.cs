@@ -226,11 +226,12 @@ public class AgeStructureTests
     {
         var c = new Coefficients();
         var p = new Pop { Size = 1000 };
-        // 兵役の母数＝徴募元の男20〜39 を標準の構成の人数へ換算＝標準の POP は規模そのもの（1783年の兵数は旧と同じ）
-        Assert.Equal(1000.0, Military.RecruitMen(p), 9);
-        // 男手が抜けた村は母数も細る（空洞の年次）
+        // ★(145) 兵役の母数＝働き盛りの男（16〜59歳）の実数（起点合わせをやめた＝上限と徴兵の割合を働き盛りの男で読む）＝標準の POP は規模×標準の構成の働き盛りの男の割合
+        Assert.Equal(1000.0 * Military.WorkingMenStdShare, Military.RecruitMen(p), 9);
+        Assert.Equal(0.2765, Military.WorkingMenStdShare, 12);   // 標準のピラミッドの男16〜59（0.5×(0.195×0.4＋0.160＋0.130＋0.105＋0.080)）
+        // 男手が抜けた村は母数も細る（空洞の年次）＝男20〜39（母数の過半）が0 の POP は母数が約半分
         var q = new Pop { Size = 1000 }; q.Ages[4] = 0; q.Ages[6] = 0; double s = 0; foreach (var x in q.Ages) s += x; for (int k = 0; k < 16; k++) q.Ages[k] /= s;
-        Assert.True(Military.RecruitMen(q) < 1.0, $"男20〜39 がいない POP の兵役の母数が残る（{Military.RecruitMen(q):F3}）");
+        Assert.True(Military.RecruitMen(q) < 0.6 * Military.RecruitMen(p), $"男20〜39 がいない POP の兵役の母数が細らない（{Military.RecruitMen(q):F3}／標準 {Military.RecruitMen(p):F3}）");
         // 教育の必要量＝学齢（5〜14歳）×EduPerChild＝人口あたり0.06（旧＝子供比0.3×0.2）
         Assert.Equal(0.06, c.EduPerChild * p.AgeShare(5, 15), 12);
     }

@@ -153,8 +153,9 @@ public class ServiceEconomyTests
         Assert.True(clergy.Size > c0, $"豊かな聖職者に転身者が流れない（{c0:F1}→{clergy.Size:F1}）＝世俗化を阻む罠が働かない");
     }
 
+    /// <summary>★(145)：兵士は国家の給与（名簿の兵×請求の単価×r）を所得として受け取る（旧＝兵力を市場で売った売上＝兵力の市場は (145) で削除）。</summary>
     [Fact]
-    public void 兵士は兵力を売って収入を得る()
+    public void 兵士は国家の給与で収入を得る()
     {
         var sim = new Simulation(NationConfig.France().ToScenario(17), new NullAgent());
         sim.World.GovDebt = 0;   // P5：仏は重債務開始＝利払いが軍事費を圧迫するため中立財政で隔離
@@ -162,9 +163,8 @@ public class ServiceEconomyTests
         sim.Run(20);
         var r = sim.World.Regions[0];
         var soldier = r.Pops[r.SoldierPopIndex];
-        var m = r.Markets[Catalog.MilitaryPowerId];
-        Assert.True(m.LastSold > 0, "国家が兵力を買っていない（兵士の給与が流れていない）");
-        Assert.True(soldier.Savings > 0, "兵士が兵力の売上で収入を得ていない");
+        Assert.True(soldier.LastEarned > 0, "国家が兵士に給与を払っていない（兵士の所得が0）");
+        Assert.True(soldier.Savings > 0, "兵士が給与で収入を得ていない");
     }
 
     [Fact]

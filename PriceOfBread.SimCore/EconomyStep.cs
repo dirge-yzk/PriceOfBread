@@ -1173,19 +1173,13 @@ public static class EconomyStep
             militaryDemand[Catalog.ElecInfraId] += elecInfraWant;
         }
 
-        // 兵力調達（兵士の給与）：国家が兵士の算出する「兵力」を買う＝**名簿の全ての兵を雇い、請求どおりの賃金を払う**（決済は下）
+        // 兵士の給与：国家は**名簿の全ての兵を雇い、請求どおりの賃金を払う**（決済は下）
         //   （賃金の単価＝徴募の母数の働き盛り1人あたりの月収×SoldierPayMult×国家の支払い率 r＝Simulation の SoldierPayBudget÷兵数）。払えない月は単価が r で下がる＝充足↓＝弱兵。
         // ★2026-09-30 (140)：旧＝市場の値で払った。兵力の値は参照価格（労働の錨 0.5×物価水準）の国家調達の価格の門で頭を押さえられ、
         //   買い手が国家1人・量が兵数で決まる市場は値が上がらない＝兵の給与が請求（民間の賃金）の 7〜99%（英1913＝7%・腕A の計器）へ落ち、
         //   請求の残りは国庫に予約されたまま使われなかった。兵の給与は兵の機会費用（民間の賃金）で決まる＝市場の値で払わない（価格の門も掛けない）。
-        double mpNeed = 0, mpWant = 0;
-        bool mpProc = region.SoldierPopIndex >= 0 && Catalog.MilitaryPowerId < ng;
-        if (mpProc)
-        {
-            mpNeed = region.Pops[region.SoldierPopIndex].Size;   // 兵士1人＝兵力1単位/月
-            mpWant = mpNeed;
-            militaryDemand[Catalog.MilitaryPowerId] += mpWant;
-        }
+        // ★(145) 兵力の市場（国家の需要・値・配給率・兵力の生産者）を削除＝(140) から給与は市場の外で払われ、市場の値と量の読み手が無かった（生産者への按分だけ＝兵士へ全額）。
+        bool mpProc = region.SoldierPopIndex >= 0;
 
         // === ② 工場の投入需要 ＋ 財ごとの生産者数。電化の意思決定もここ ===
         bool elecOn = Catalog.ElectricityId < ng && isService.Length > Catalog.ElectricityId;   // 電力を持つ世界か（小シナリオは対象外）
@@ -2217,13 +2211,13 @@ public static class EconomyStep
             region.ElecInfraFill = elecInfraNeed > Eps ? PoliticalQuantities.Clamp01(got / elecInfraNeed) : 0.0;
         }
 
-        // 兵力の決済：名簿の全ての兵の月×請求の単価（SoldierPayBudget＝兵数×民間の賃金×r）＝兵士の売上＝給与（国庫→兵士で保存）。★(140) 市場の値では払わない（上の調達の注記）。
-        //   ⚠配給率も掛けない＝兵力の生産者の産出は兵力の市場の値（兵の給与と切り離した帳簿の値）の採算で動く＝値が下がると兵が「務めない」月が出て給与が消えた（番人の双子で実測）。
-        //   兵は国家に雇われている＝名簿の兵の月に払う（兵力の受け渡しの量は市場の帳簿だけ）。
+        // 兵士の給与の決済：名簿の全ての兵の月×請求の単価（SoldierPayBudget＝兵数×民間の賃金×r）＝兵士の所得（国庫→兵士で保存）。★(140) 市場の値では払わない（上の注記）。
+        //   ⚠配給率も掛けない＝兵は国家に雇われている＝名簿の兵の月に払う。
+        //   ★(145)：旧＝兵力の売上（revenue）→兵力の生産者（地代0・労働も持ち主も兵士POP）→兵士の所得＝同じ額が同じ POP へ届く中継だった＝兵士の所得へ直接。
         if (mpProc)
         {
             double pay = region.SoldierPayBudget;
-            revenue[Catalog.MilitaryPowerId] += pay;
+            region.Pops[region.SoldierPopIndex].Earned += pay;
             region.StateSpent[(int)TreasuryCat.Army] += pay;
         }
 

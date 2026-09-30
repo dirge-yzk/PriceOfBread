@@ -408,7 +408,7 @@ public sealed class Coefficients
     // ★0.000005 で正統性項は 英0.92・仏0.86・露0.86・清0.36 になり、治安維持力項と合わせて閾値を超えうる＝
     //   **強く正統な国は帝国を保てる／弱く正統性を欠く国は割れる**という本来の形になる。
     public double SecessionHoldPerPop = 0.000005;      // 中央の保持力＝治安維持力×正統性をこれ×人口で割る（大国ほど辺境を抑えにくい）
-    public double MilitaryCoupWeight = 1.4;           // 兵士の政治力＝規模×(0.2+不満)×これ＝軍政の支持への加算の入力（Politics.CoupSupport）。決めるのは引力点だけで、実行は兵士込みの挑戦力が保持力を超える門2に従う（CoercionSoftCap の注記）。兵の頭数を保持力の単位へ換える交換比＝取り分 sf/(sf+保持力) の曲がり所を動かす
+    public double MilitaryCoupWeight = 1.4 / Military.WorkingMenStdShare;           // （(145) 兵の単位の読み替え＝旧値 1.4÷Military.WorkingMenStdShare〔標準のピラミッドの働き盛りの男の割合 0.2765〕＝兵役の母数を働き盛りの男で読むと兵の数がこの比になる＝旧の兵1単位の働きを保つ）。兵士の政治力＝規模×(0.2+不満)×これ＝軍政の支持への加算の入力（Politics.CoupSupport）。決めるのは引力点だけで、実行は兵士込みの挑戦力が保持力を超える門2に従う（CoercionSoftCap の注記）。兵の頭数を保持力の単位へ換える交換比＝取り分 sf/(sf+保持力) の曲がり所を動かす
     public double IndustrializedTechThreshold = 0.25;  // 経路分類：工業化とみなす技術水準（§B-5。失敗0.1<これ<採用0.5）
     public double IndustrializedUrbanThreshold = 0.45; // 経路分類：工業化とみなす都市率（高め＝都市化単独では誤分類しない・技術主導）
 
@@ -963,7 +963,7 @@ public sealed class Coefficients
     // BaseCoercion 自体が兵数×即応度×CoercionPerSoldier から出るので、これは軍と別立ての費用ではない。
     // （治安維持費 CoercionUpkeepRate＝0.05×治安維持力の基礎×人口÷基準人口は 2026-09-30 (135) に削除＝治安維持力は兵数×即応度から＝軍そのもの・給与と装備に続く3度目の課金で人口の2乗に比例＝軍の費用は兵力と装備の購買の1本）
     public double WarCoercionDrain = 0.15;    // 治安維持力と軍事のリンク(A)：軍は内外を兼ねる一つの武力＝戦時は前線に取られ国内の治安維持力が下がる。実効治安維持力 ×(1−これ×厭戦)。長期戦ほど本国で革命機会（1917型）。較正は無戦争＝不変
-    public double CoercionPerSoldier = 5.0;   // 治安維持力＝**兵数×即応度×これ**（治安維持力=軍の一本化 2026-06-23）。装備された軍だけが治安維持力を持つ＝武器を買えぬ軍は即応度0→治安維持力0→革命。軍隊規模(兵数)＝軍事費スライダーが駆動。CoercionMax で頭打ち（CoercionFollowsForce=true 時）
+    public double CoercionPerSoldier = 5.0 / Military.WorkingMenStdShare;   // （(145) 兵の単位の読み替え＝旧値 5.0÷Military.WorkingMenStdShare〔標準のピラミッドの働き盛りの男の割合 0.2765〕＝兵役の母数を働き盛りの男で読むと兵の数がこの比になる＝旧の兵1単位の働きを保つ）。治安維持力＝**兵数×即応度×これ**（治安維持力=軍の一本化 2026-06-23）。装備された軍だけが治安維持力を持つ＝武器を買えぬ軍は即応度0→治安維持力0→革命。軍隊規模(兵数)＝扶養限界が駆動（(145)・旧＝軍事費スライダー）。CoercionMax で頭打ち（CoercionFollowsForce=true 時）
     public double CoercionMax = 2000;   // 【点火2000・2026-08-16 点火梯子＝★2026-08-16に4000→2000（漸近化と同時）＝挑戦力の理論最大（BaseCoercion換算≈1250）の3.2倍だった壁を等号点の1.6倍へ。旧4000は「不満100%でも革命が代数的に不能」を作っていた。合成comp4（12本＋海0.5）で exact41.6/near77.4/法63.2/貿易0.66・硬性緑】         // 治安維持力の上限（旧 Reactionary の最大治安維持力＝史実の最大動員）。装備された大軍でも2000で漸近（CoercionSoftCap）
 
     // --- 領土・地域間移民（§5.2／§A-8・段4c）---
@@ -1454,7 +1454,7 @@ public sealed class Coefficients
     public double SeaInvasionControlMin = 0.65;
     public double WarDeclareTension = 140.0;      // **2026-07-25採用（C-高6の次段＝下げ戻し）**：exact38/near71/◎20・人口一致30%（ともに梯子最高）。屈服経路（AISubmitMilRatio=3.0）の開通で一方的な組合せは戦わずに折れる＝旧140へ戻し互角の対立だけが戦争へ（160は屈服なし時代の戦争過多対策だった）。緊張上限200
     // 1934拡張 #106（外交・戦争UI）。総動員（World.Mobilized）の書き手＝プレイヤーの戦争タブと SelfPlay.DecideQuarter の AI 分岐（2026-09-20 に段の点火で常時 live）
-    public double MobilizationConscriptFrac = 0.22;   // 総動員ONでの戦時徴兵の深さ（levée en masse＝大衆の22%まで兵士化・平時上限0.04/通常戦時0.12を超える）。既存のDrawFromPoolで非兵士POPを兵士へ変換＝代償は自然（労働喪失で経済悪化・兵増で戦死増・国民意識ゲートで低NC国は届かない）。★M1（作者裁定2026-09-19）：効くのは徴兵法≥選抜の国だけ＝総動員は既存の徴兵を深めるのであって志願兵制を迂回しない
+    public double MobilizationConscriptFrac = 0.22;   // 総動員ONでの戦時徴兵の深さ（levée en masse＝働き盛りの男の22%まで兵士化＝人口の約6%〔1794 の仏 約4%・1813 の普 約6%〕・平時上限0.04/通常戦時0.12を超える。(145) で母数を働き盛りの男へ＝旧＝大衆の22%）。既存のDrawFromPoolで非兵士POPを兵士へ変換＝代償は自然（労働喪失で経済悪化・兵増で戦死増・国民意識ゲートで低NC国は届かない）。★M1（作者裁定2026-09-19）：効くのは徴兵法≥選抜の国だけ＝総動員は既存の徴兵を深めるのであって志願兵制を迂回しない
     public double ConcedeTensionTarget = 110.0;   // 最後通牒で「要求を受け入れる」＝緊張をこの値へ下げて開戦を回避（WarDeclareTension=140未満）
     public double TensionPopupThreshold = 70.0;   // 緊張ポップアップを出す内部緊張の閾値（同ランク列強と）＝**宣戦閾値の半分**（WarDeclareTension=140）。プレイヤーUIのみ＝自己対戦/較正に無影響
     // ★2026-08-02に 100→70（作者指摘「もっと早く通知してもよい」）。100は表示のクランプ上限と同値だったので
@@ -1488,7 +1488,7 @@ public sealed class Coefficients
                                                    //   ⚠記録＝◎7割帯 19→16／経済規模 20.0→16.3／人口 20.0→15.7。差し戻し口＝この値を0へ。
     public double WarFeverMilSpend   = 0.5;   // ×軍事費(0..1)
     public double WarFeverNoble      = 0.3;   // ×伝統支配層の力（将校貴族＝旧支配層ブロック）
-    public double WarFeverSoldier    = 4.0;   // ×兵士人口比
+    public double WarFeverSoldier    = 4.0 / Military.WorkingMenStdShare;   // ×兵士人口比（(145) 兵の単位の読み替え＝旧値 4.0÷Military.WorkingMenStdShare〔標準のピラミッドの働き盛りの男の割合 0.2765〕＝兵役の母数を働き盛りの男で読むと兵の数がこの比になる＝旧の兵1単位の働きを保つ）
     public double WarFeverThreat     = 0.3;   // ×外的脅威(MaxTension/100)＝脅威下では軍が発言力を得る
     public double WarFeverThreshold  = 0.5;   // これを超えた分だけ膨張意欲が貯まる（中立＝0.5前後）
     public double ExpansionWillGrowth   = 0.5;   // 四半期あたりの累積率 ×(戦争熱-閾値)
@@ -1775,7 +1775,7 @@ public sealed class Coefficients
     public double FactionOverwhelmFactor = 1.5;    // 第6段6-5：圧倒判定＝勢力強度が保持力のこれ倍超なら好機を待たず打つ（雪崩は止まらない）
     public double FactionTargetsWeakAxis = 1.0;    // 第6段6-5②点火（2026-07-28）：要求スコア÷(1+これ×OpposingPower)＝体制の守りが薄い軸を優先（状況依存の要求）。0で旧＝ブロック選好×可動域のみ
     public double PoliticalBudgetGate = 0.5;       // 第6段6-1点火（2026-07-28）：政治予算制約＝開いた戦線（目標≠現在の政治軸）数Nで押す力を正規化（速度・余白×(1/N)^これ）。0で全軸に全力＝厳密恒等・1で完全正規化。「全部を同時には押せない」
-    public double ArmyPoliticalWeight = 5.0;       // 第6段6-4点火（2026-07-28）：統帥権＝軍を第4の勢力へ。力＝これ×兵士人口シェア×(1−議会統制)＝文民統制の確立が軍を政治から退場させる。選好＝軍事軸（武力＝軍事費/治安維持力・徴兵法）のみ＝軍国度の2因子。0で旧3勢力＝恒等
+    public double ArmyPoliticalWeight = 5.0 / Military.WorkingMenStdShare;       // （(145) 兵の単位の読み替え＝旧値 5.0÷Military.WorkingMenStdShare〔標準のピラミッドの働き盛りの男の割合 0.2765〕＝兵役の母数を働き盛りの男で読むと兵の数がこの比になる＝旧の兵1単位の働きを保つ）。第6段6-4点火（2026-07-28）：統帥権＝軍を第4の勢力へ。力＝これ×兵士人口シェア×(1−議会統制)＝文民統制の確立が軍を政治から退場させる。選好＝軍事軸（武力＝軍事費/治安維持力・徴兵法）のみ＝軍国度の2因子。0で旧3勢力＝恒等
     public double ArmyPcPressure = 0.02;           // 第6段6-2点火（2026-07-28）：4主体の欠けた腕＝軍。王権寄りの軍（lean>0）が文民統制の確立を毎期押し戻す（プロイセン統帥権・憲法紛争1862）。×lean×軍政治力。0で恒等
     // ★PolityLeverRanges は2026-08-19に**物理削除**（作者裁定「政体ごとの上限は全て廃止」）。旧＝参政権/報道/組合の上限＋軍事費の床（MilitaryFloorScaleも同時撤去）。
     //   ⚠再点火禁止（墓標）＝実測で7次元が改善し、政体exact は動かなかった＝この上限は忠実度を支えていなかった。読み手ゼロ（Government.cs/NationConfig.cs にコメント残置のみ）
@@ -2110,7 +2110,7 @@ public sealed class Coefficients
     // ★1.0＝消耗品＝従来のフロー経路。1未満＝耐久品＝在庫を持つ（上位段の ArmsWearRate と同じ0.02）。
     // ⚠**新しい分類表を作らない**＝「耐久か消耗か」は摩耗の速さという物理そのもので表す（1.0で従来経路に退化する）。
     public double[] MilitaryWearRates = [0.02, 1.0, 0.02, 0.02, 0.02, 1.0, 0.02];
-    public double MilitaryUpkeepScale = 0.18;                 // 軍隊+治安維持力1あたりの平時軍需消費スケール（0.12→0.18＝戦争が減っても常備軍の調達で火薬/鉛/帆船の連鎖を維持＝死蔵防止）
+    public double MilitaryUpkeepScale = 0.18 / Military.WorkingMenStdShare;                 // 兵士1人あたりの平時軍需消費スケール（0.12→0.18＝戦争が減っても常備軍の調達で火薬/鉛/帆船の連鎖を維持＝死蔵防止）（(145) 兵の単位の読み替え＝旧値 0.18÷Military.WorkingMenStdShare〔標準のピラミッドの働き盛りの男の割合 0.2765〕＝兵役の母数を働き盛りの男で読むと兵の数がこの比になる＝旧の兵1単位の働きを保つ）＝軍需の総量は旧のまま・兵1人の装備は約3.6倍＝兵1人の費用が史実〔1人あたり年GDP の約3倍〕へ近づく
     // ★初期軍需の整合（2026-08-22・作者報告「初期軍隊と実際の生産が噛み合ってない（火器0%・軍艦1083%）＝初期値を調整」）。
     //   詳細と実測は docs/202608/20260822_初期軍需の整合_部分完了.md。播種の対象財は Simulation.InitialArmsIndustryGoods。
     //   ⚠**どちらも 0 で「触らない」＝旧初期値と厳密恒等**（＝合成後アブレーションの腕をソース編集なしで測るための対）。
@@ -2309,7 +2309,7 @@ public sealed class Coefficients
     // 兵士POP は IsSoldier フラグで識別（ClassId は貴族0/農民1/労働者2/ブルジョワ3/専門職4/兵士5）。
     public int SoldierRecruitClassA = 1;                     // 徴募/復員プールその1＝農民
     public int SoldierRecruitClassB = 2;                     // 徴募/復員プールその2＝都市労働者
-    public double SoldiersPerMilitary = 250.0;              // 戦力ゲージ1.0 ＝ 兵士250単位（×1000人）。ゲージ＝兵士数÷これ×即応度
+    public double SoldiersPerMilitary = 250.0 * Military.WorkingMenStdShare;              // 戦力ゲージ1.0 ＝ 兵士約69単位（×1000人）。ゲージ＝兵士数÷これ×即応度（(145) 兵の単位の読み替え＝旧値 250×Military.WorkingMenStdShare〔標準のピラミッドの働き盛りの男の割合 0.2765〕＝兵役の母数を働き盛りの男で読むと兵の数がこの比になる＝旧の兵1単位の働きを保つ）
     // ★富で兵を養う（2026-07-31 裁定・案B）：均衡兵力 desired は **完全に人頭ベース**（軍事費×MaxSoldierFraction×(農民+労働者)）で、
     // 財政力・工業力・技術が一切入らない。結果、巨大な農民人口を持つ清が自動的に世界最大の軍になり、
     // 人口が小さく富裕なネーデルラント・イギリス・プロイセンは最小級になる（史実のプロイセンは人口比で最も軍事化した国）。
@@ -2369,11 +2369,11 @@ public sealed class Coefficients
     // ── 扶養限界方式（作者設計2026-08-08）：軍拡・建艦競争を**扶養限界の比較**で駆動する ──
     //   扶養限界 SustainLimit = min(経済側, 人口側)。経済側＝持続可能な軍事支出（歳入×シェア）÷兵1人あたりコスト
     //   （給与＋装備・**参照価格建て**＝市場価格の循環を避ける・S4欠陥の教訓）。人口側＝徴募可能人口×MaxSoldierFraction。
-    //   目標兵数 = SustainLimit × clamp(近隣ライバルの最大SustainLimit ÷ 自国SustainLimit, 下率, 上率)。
+    //   目標兵数 = SustainLimit × clamp(近隣ライバルの最大SustainLimit ÷ 自国SustainLimit, 下率, 上率)。★(145) 平時の兵の目標はこれそのもの（混合比は削除）・装備は自己費用の物価水準で名目へ。
     //   ★錨は人口・歳入＝ゆっくりしか動かない量なので「兵数→脅威→目標」の外側ループが**構造的に閉じている**
     //   （NeedMen錨定の失敗＝相手の現在兵数を読んだこと、の是正）。±20%の無理は台本なしで痛みになる＝
     //   限界超過は afford<1（露＝経済の負担）・人口側超過は労働力が抜ける（英＝労働の負担）。
-    // ★輸送T4（輸送doc・2026-08-13）：容量目標の錨を人口から**潜在輸送量**へブレンドで寄せる。軍と同じ形（下の ArmySustainWeight の兄弟）。
+    // ★輸送T4（輸送doc・2026-08-13）：容量目標の錨を人口から**潜在輸送量**へブレンドで寄せる。軍と同じ形（軍の扶養限界の混合比〔ArmySustainWeight・(145) で削除＝k＝1〕の兄弟）。
     public double TransportPotentialWeight = 0.0;   // 0=人口のみ（厳密恒等）／1=潜在量のみ。中間でブレンド（Math.Max で競わせない＝軍の失敗の教訓）
     public double TransportPotentialHeadroom = 1.2; // 潜在量に対して確保する余裕（1.2＝2割の余力。1.0だと常に律速ぎりぎりで貼りつく）
     public double ThreatRailTargetWeight = 1.0;     // ★点火2026-08-30（安保W1腕batch10＝exact+2.0/法+1.3/本国+1.6/開放度8.5→16.7・破綻0）：輸送目標の国防項＝target×(1+これ×脅威比)。脅威比＝SecurityThreat/自国質量（前期値読み＝閉路なし）。戦略鉄道の一般化＝路線を1本も書かない
@@ -2381,7 +2381,8 @@ public sealed class Coefficients
     // ★段6（理想の軍隊・2026-08-14実装＝休眠）：Power.Military への艦隊ゲージの合算比。0＝兵数のみ（厳密恒等）／1＝艦隊1ゲージ=兵250と等価。
     //   docs/202607/20260801_理想の軍隊の形_部分完了.md【一部】.md §10-1「要作者裁定」の器＝A/Bで測ってから裁定に出す。
     public double ArmyShapeGauge = 0.0;
-    public double ArmySustainWeight = 0.25;        // desired の扶養限界ブレンド比（0=恒等。【0.25採用確定2026-08-08＝k0.5は経済−6.3/領土植民地−6.7で差し戻し】k≥0.5と海側分離は経済順位の是正（退蔵結晶化）後に再測定）
+    // 【削除2026-10-01 (145)】ArmySustainWeight（desired の扶養限界の混合比 k＝0.25・AI が 2026-08-08 の梯子の測定から採った値＝作者設計の梯子 0.25→0.5→1.0 の途中）＝
+    //   平時の兵の目標は扶養限界の目標そのもの（k＝1＝梯子の終点）。旧の 0.75 の側（軍事費の段×上限割合×母数）は財政の上限の無い目標で、清の平時の兵を約1,060万（史実 80〜100万）にした根。
     public double SustainMilShare = 0.175;         // 経済側の持続可能シェア＝歳入のうち軍（給与+装備）へ恒常的に回せる割合（0.25×0.7相当から出発・要較正）
     public double ArmsRaceHigh = 1.2;              // 近隣に上位の扶養限界がいる場合の上限倍率（作者値+20%・要調整）
     public double ArmsRaceLow = 0.8;               // 周辺に脅威がない覇権国の下限倍率（作者値−20%・要調整）
@@ -2415,12 +2416,12 @@ public sealed class Coefficients
     // 目標設定が誤りだった＝**初期軍13031は一度も維持されたことがない値**で、経済が較正されているのは現在の均衡8069の方。
     // 0.10 は世界総量 8069→9205（**+14%**）に収まる値。普61→115・蘭19→58が持ち上がり、清3845は不変（人頭が勝つ）。
     // ※英は人頭150が財政を上回るためこの水準では不変。英に効き始めるのは k≥0.13（世界総量+26%）＝経済が耐えるかを段階的に測る。
-    public double MaxSoldierFraction = 0.04;               // 軍事費1.0で大衆の最大この割合が兵士（平時の上限。人口大国ほど大軍を持てる＝国力）
+    public double MaxSoldierFraction = 0.04;               // 平時の上限＝兵役の母数（働き盛りの男＝Military.RecruitMen）のこの割合（扶養限界の人口の側＝人口の約1.1%〔普1786 約3.6%・英仏 0.5〜1%〕。人口大国ほど大軍を持てる＝国力）。(145) で母数を働き盛りの男へ（旧＝大衆の割合＝人口の約3.4%）
     public double MilitarismStrengthBonus = 1.3;            // 軍の練度：軍事力（戦力評価）の乗数の**満額**＝実効は 1+(これ−1)×軍の練度（識字×組織×勤務年数。★2026-08-18＝法のON/OFFを撤去）。同じ兵数で軍が強い（訓練・規律・動員）＝労働を奪わないので経済を弱めず軍事に出る
     public double MilitarismClout = 0.5;                   // 旧支配層(将校貴族)が軍から得る政治力＝MilitarismClout×**軍の政治的優位**（軍の圧力×(1−文民制度の弁)∈[0,1]）。★2026-08-18＝法の門を撤去。⚠**給与では買えない**（西1931アサーニャ改革は満額俸給付き退役で最大のクーデタを招いた）＝組織の大きさ・解隊の脅威・人事介入・屈辱が源泉
     public double SoldierPayMult = 1.0;                     // 兵士給与＝民間の働き盛り1人あたり月収（徴募の母数・Military.RecruitWage）×これ（同等待遇を目指す。払えなければ r で単価が下がる＝充足↓＝弱兵）。★(140) 請求どおりの賃金で払う（旧＝兵力の市場の値＝参照価格の門で押さえられ請求の7〜80%）
     public double SoldierMigrationRate = 0.08;             // 平時の徴募/離職速度（目標兵数への漸進・月次）
-    public double ConscriptionFraction = 0.12;            // 戦時の徴兵上限＝大衆のこの割合まで兵士化（行き過ぎは経済に打撃）
+    public double ConscriptionFraction = 0.12;            // 戦時の徴兵上限＝働き盛りの男のこの割合まで兵士化（人口の約3.3%＝ナポレオン戦争の頂点 4〜6% の桁・行き過ぎは経済に打撃）。(145) で母数を働き盛りの男へ（旧＝大衆の割合）
     public double ConscriptionRate = 0.15;               // 戦時の動員速度（平時より速い）
 
     // --- 軍事／武力解錠（§6.1／§A-8・段4e）---
@@ -2619,6 +2620,7 @@ public sealed class Coefficients
     // 20×0.015×(1−資産)≈0.3＝「他の争点と並ぶ強さ」。物価が安定していれば両側とも0＝争点にならない。
     // 国民皆兵が引ける人数＝選抜徴兵の何倍か。★較正＝1870年の普（2400万人から120万人＝5.0%）と
     // 仏の選抜徴兵（3600万人から50万人＝1.4%）の比＝約3.5。動員の上限は別途 manpower が抑えるので 2.5 から入る。
+    // ★(145)：母数は働き盛りの男＝皆兵の戦時の上限＝働き盛りの男の 30%＝人口の約8%（第1次大戦の独仏の動員の頂点 12〜15% の桁）。
     public double UniversalConscriptionFactor = 2.5;
     public double MonetaryPrefScale = 20.0;
     public double ImmigrationRestrictionPrefScale = 40.0;
@@ -2633,7 +2635,7 @@ public sealed class Coefficients
     public double CanalTollTrafficRate = 0.02;   // 外6：取扱高あたり通行料率（通航トン数課金の実効レート。旧CanalTollRate/CanalTollByTraffic/CanalTollByRouteは02断線走査2026-07-28のルート判定一本化で削除済み＝この係数が唯一の実効レバー。#17較正）
     public double CanalInvestReturns = 0.5;   // 外7：運河建設拠出国へ通行料を持分比で配当する割合(0..1)＋交戦中の拠出停止。0=現行の全額扼者・無条件拠出（恒等）
     public double ConscriptionScalesWithWar = 1.0;   // 外12：戦時徴兵率を戦争規模でスケール。0=現行の一律ConscriptionFraction（恒等）
-    public double ConscriptionFloorFraction = 0.02;   // 外12：限定戦争の徴兵下限（depth=0の徴兵率。ConscriptionScalesWithWar>0でのみ使用。#17較正）
+    public double ConscriptionFloorFraction = 0.02;   // 外12：限定戦争の徴兵下限（depth=0の徴兵率＝働き盛りの男の割合・(145)。ConscriptionScalesWithWar>0でのみ使用。#17較正）
     public double ConscriptionExhaustionWeight = 1.0;   // 外12：厭戦(WarExhaustion)→動員深度の重み（同上）
     public double ConscriptionFrontStep = 0.34;   // 外12：追加戦線1本あたりの動員深度増分（単一戦線=0で恒等。同上）
     public double ConscriptionEnemyRatioWeight = 1.0;   // 外12：敵陸軍優勢(比>1)→動員深度の重み（同上）
@@ -2952,6 +2954,7 @@ public sealed class Coefficients
     //   (c) 戦場の民間人死の配分の重みになる (d) 内戦が終われば剥がれる（Politics.Step 冒頭＝タイマーではなく状態）。0＝1命令も走らない＝厳密恒等。
     public double RevoltMilitiaRaise = 0.0;
     // 民兵1人あたりの戦力 a（<1＝弱兵）。頭数×これ が Power.Military の兵士頭数へ加算される（＝新しい戦力の経路を作らない）。
+    // ★(145)：a は**本当の兵1人**に対する比（兵の単位を働き盛りの男で読んだ後の兵）＝値は読み替えない（既定0＝どちらでも同じ）。
     // ⚠同じ a が「戦場の民間人死」の配分の重み 1+a×民兵率 にも使われる＝武器を取った層は戦場に**居る**（新しい数を作らない）。
     // 0＝民兵は戦力にも死の配分にも寄与しない＝現行と厳密恒等。
     public double MilitiaCombatValue = 0.0;
@@ -3004,7 +3007,7 @@ public sealed class Coefficients
     public double RegimeTrackRecordWeight = 0.3;   // **主フラグ**：Transition の各政体支持へ符号付き乗数 (1+これ×実績) を掛ける＝信認された形態は選ばれ/粘り、失望された形態は避けられる。0=読まない＝厳密恒等。**固着⇔カオスの直接ノブ**（正の信認=安定・負の失望=多様化）
     // --- 国民意識（市民的結束＝民主主義の前提・2026-07-13・設計doc「国民意識」）。蓄積は書くだけ（実値既定） ---
     // NationalConsciousnessInitial / NationBuildRate / NationBuildReligiousDrag / NationBuildCrisisWeight は第3段3-6（2026-07-27）で削除＝v1国民意識（到達不能）の専用係数。宗教civicは第5段5-5で新設計へ。
-    public double NationBuildConscript = 0.5;      // 徴兵（兵士POP比）の重み＝国民軍の国民形成（ウェーバー「軍は国民の学校」）
+    public double NationBuildConscript = 0.5 / Military.WorkingMenStdShare;      // 徴兵（兵士POP比）の重み＝国民軍の国民形成（ウェーバー「軍は国民の学校」）（(145) 兵の単位の読み替え＝旧値 0.5÷Military.WorkingMenStdShare〔標準のピラミッドの働き盛りの男の割合 0.2765〕＝兵役の母数を働き盛りの男で読むと兵の数がこの比になる＝旧の兵1単位の働きを保つ）
     public double NationBuildCivicFloor = 0.3;     // 多民族の抵抗の下限＝drag=clamp(EthnicUnity+これ,0,1)＝天井でなく抵抗（civicナショナリズムで多民族でも克服可＝米/スイス）
     public double NationalConsciousnessCorruptionWeight = 0.2;  // **主フラグ**：⚠旧・汚職チャネル（civicGraft→Fiscal leak別項）は汚職V2恒久ONにつきC2-C5で物理撤去（2026-08-16）＝現在の生き読者は2箇所＝World.civicCarriesEthnic（代議制で民族の行政痩せを切る二重計上回避ゲート）と CrownParliament の国民意識蓄積チャネルゲート。0にすると両者の挙動が変わる＝**掃除対象外（読者あり）**。ゲートの意味の再裁定は較正ラウンドへ
     // P9 国民意識v2「購入モデル」（2026-07-17）：NCは育つものでなく買うもの（機会費用＋維持費で全国飽和を根治）。主フラグは2026-07-27にNationBuildPurchaseMode=1（常にv2）を焼き込み削除済み＝v1蓄積式へ戻す道は無い
@@ -3427,8 +3430,13 @@ public sealed class Coefficients
     // ==== 国民意識の消費側（国民意識doc N4/N7・2026-08-13）====
     // ★蓄積（国民形成に金を投じる）だけがあって、**育った国民意識が何かを買う**経路が細かった。2本足す：
     //   N4＝国民意識の無い州からは兵が出ない（墺洪の周辺州）／N7＝国民意識が育った州は離れない（国民国家の形成そのもの）。
-    // ⚠N3（蓄積）とN4（消費）を同じバッチで測っていない＝別の帯を動かす。両方とも点火済み（1.0）。
-    public double ConscriptConsciousnessWeight = 1.0;   // ★点火2026-08-29（夜間R16クラスタA/B batch30＝帯中立・破綻0。N3は既点火済み＝同時測定はしていない）。徴募可能人口に (1 − これ×(1−州の国民意識)) を掛ける。1で「国民意識0の州は兵ゼロ」
+    // ⚠N3（蓄積）とN4（消費）を同じバッチで測っていない＝別の帯を動かす。N7 は点火済み（1.0）。
+    // 【削除2026-10-01 (145)】ConscriptConsciousnessWeight（N4・点火2026-08-29 夜間R16＝AI の点火・帯中立）＝平時の扶養限界の人口の側に掛けていた国民意識の割引。
+    //   ①設計の N4（国民意識doc §3-4）は**戦時の動員の深さ**を州別にする案（中核州は深く・周辺州は浅く）＝平時の常備軍の上限ではない
+    //   （史実＝1786 の普の常備軍は約1/3 が外国人の傭兵・1913 の墺洪の平時の軍は人口の約0.9%・1784 の露は人口の約1.4%＝国民意識は平時の常備軍を縛らなかった）。
+    //   ②国民意識は戦時の徴兵の深さ（Military.Step の国民意識ゲート NationBuildMobilizationWeight）が既に読む＝平時の上限にも掛けると同じ国民意識の2度目（思想⑨）。
+    //   ③実装は州への按分の分母（国の母数）だけを割り引き、分子（州の母数）を割り引かなかった＝国の目標の和が 1÷平均の国民意識 倍に膨らんだ（清で約12倍・向きが設計と逆）。
+    //   ⇒ 削除。N4 の設計の意図（戦時の動員の深さを州別に）は 00一覧の行（未着手）。
     public double SecessionConsciousnessWeight = 1.0;   // ★点火2026-08-13（同一ソースA/B：経済規模 +11.2・領土本国 +5.8・列強再現率 +3.7・政体exact +1.2／法 −1.5・人口 −2.9）。分離圧力に (1 − これ×州の国民意識) を掛ける
     // 【墓標2026-09-26・旗の焼き込み（x-01・0-4）】GoldDebtBurdenGate（銀本位G8・点火2026-08-29）＝銀本位国の対外債務は金建て（銀安が実質負担になる）
     public double GoldDebtBurdenCap = 3.0;             // 実質負担の上限倍率。青天井にすると銀の谷で利払いが発散し「破綻しない」を割る（思想＝破綻しない＞正しい挙動）

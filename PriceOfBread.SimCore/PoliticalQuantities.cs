@@ -163,7 +163,7 @@ public static class PoliticalQuantities
         var c = w.Coef;
         // --- 分子：将校団が政治へ押し出す圧力（4つの加法＝どれか1つが十分に高ければ軍は動く）。⚠**給与を読まない**（水準でなく組織と解隊が効く） ---
         double soldierShare = w.SoldierSize() / Math.Max(1.0, w.TotalPopulation);
-        double weight = Clamp01(soldierShare / Math.Max(1e-9, c.MaxSoldierFraction));   // 組織の大きさ＝軍の社会的重み（平時上限 MaxSoldierFraction で正規化）
+        double weight = Clamp01(soldierShare / Math.Max(1e-9, Military.PeaceCapShareOfPop(c)));   // 組織の大きさ＝軍の社会的重み（平時上限の人口比で正規化・(145) 上限割合×標準の構成の働き盛りの男の割合）
         // ★レンジの実測（裁定S1・2026-09-21）＝**ここに書いてあった旧の予測は向きが逆だった**（書き直し）。
         //   旧の指数減衰の S は 中央0.0041／最大0.1417＝purge は実質ゼロの死項だった。θ を退役して在庫だけの門にすると
         //   S は 中央0.1196／最大0.2399（b 中央0.1804・隔離計器 seed1・604四半期）＝purge は 0.002 → **0.060（最大0.120）**＝重み0.5で軍国教義の線
