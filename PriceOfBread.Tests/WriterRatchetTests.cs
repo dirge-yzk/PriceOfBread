@@ -114,12 +114,17 @@ public class WriterRatchetTests
     // ★2026-09-30 段3-4・3-5（POP の義務と鋳造＝処理の一元化 段4d）：Savings 38→**33**（＝宣言）。POP の義務（税・十分の一税・領主の取り分）を POP ごとの1本の率へ
     //   （税の後の残りから取った十分の一税の走査 Privileges.CollectTithe と領主の取り分の払い手の行が消えた）・鋳造の代金を④の持分（PaySales＝移し方の1本）へ
     //   （持ち主・労働〔MintWageShare〕・持ち込みの商人への直の払いの3行が消えた）・準備の売却を1本へ（平価の売りの買い手の直の引き落としが消えた）。
-    [InlineData("Savings", 33)]               // POP の貯蓄（段3の終わりに Pop の中の3つへ閉じる）
+    // ★2026-09-30 段4f（コンパイラの番人の前段＝作者裁定 Q13）：Savings 33→**23**・CumulativeTradeFlow 14→**13**（＝宣言）。
+    //   人と動くお金の運搬（州の間の移民と入植・社会移動・徴兵と復員・州の中の移動・越境移民・招聘の6か所が写していた「貯蓄・債務・保有」の2行）を
+    //   Pop の中の1本（Pop.Carry）へ（12行→2行）・分離建国の国庫の分与（国庫と国境の出入りの台帳の手書き2行）を移し方の1本（World.Transfer）へ。
+    //   ⚠Pop.Savings の private set はまだ入れられない＝残る23行のうち18行は相手の側が手書き（徴税の1本の率・利払い・借入・切り下げ・没収・窃盗・与信・植民地など）で、
+    //   移し方の1本へ寄せると浮動小数の演算の順が変わる（恒等にならない）＝実装ログ (126) の申し送り。
+    [InlineData("Savings", 23)]               // POP の貯蓄（最後は Pop の中の3つ＝按分・運搬 Pop.Carry・月末の精算へ閉じる）
     // ★2026-09-28 段2-1（国家の支払い率）：StateSpent 25→24＝区分つきの配列へ（添字つきの書き込みを数える）・月次のゼロ化は Array.Clear（代入でない）。
     //   FiscalFundingRatio（国家の支払い率 r）を足した＝書き手は月初の1か所（Simulation）＋ランナーの盤面の復元（GovernanceSnapshot）の2つ＝増やさない。
     [InlineData("StateSpent", 23)]            // 州の未精算の国家支出（区分つき＝TreasuryCat の配列）
     [InlineData("FiscalFundingRatio", 2)]     // 国家の支払い率 r（月初の1か所＋盤面の復元）
-    [InlineData("CumulativeTradeFlow", 14)]   // 世界の台帳・国境をまたいだ出入り（移し方の中の1か所へ畳む）
+    [InlineData("CumulativeTradeFlow", 13)]   // 世界の台帳・国境をまたいだ出入り（移し方の中の1か所へ畳む）
     [InlineData("CumulativeFiatIssued", 3)]   // 不換の発行と回収（2）＋非常発行（1＝負の国の与信の償却だけ・銀行なしの底打ちは 2026-09-29 段2-2 で撤去）
     [InlineData("CumulativeGoldMinted", 2)]   // 鋳造と準備の売却
     [InlineData("Loans", 6)]                  // 銀行の与信（企業・損失の負債化・負の国の償却）
@@ -134,6 +139,41 @@ public class WriterRatchetTests
             $"{member} への書き手が {n} 箇所（基準 {baseline}）＝**増えている**。" +
             "支払いは1本の移し方を通すこと（計画 §10-12）。" +
             "どうしても必要なら基準値を上げて理由をこのファイルに書く（＝宣言）。");
+    }
+
+    /// <summary>★国庫の口（World.Pay）を World の外から呼ぶ行の数（2026-09-30 段4f・作者裁定 Q13 の前段）。
+    /// World.Pay は相手を名乗らない片側の記帳＝外からは移し方の1本（World.Transfer）を使う。最後は Pay を private にしてコンパイラで閉じる（Q13）が、
+    /// 残る行は相手の側が手書きで、移し方の1本へ寄せると浮動小数の演算の順が変わる＝それまでは数を上限にする（＝宣言・減らすのは通る・増やすと落ちる）。
+    /// 走査＝SimCore・App・Runner の .cs（obj/bin を除く・World.cs を除く・コメントは数えない）。
+    /// 2026-09-30 段4f＝16→**10**：福祉（国庫→大衆）・年金（国庫→老年）・国営持分の取り分（区分だけ動く）・分離建国の国庫の分与を移し方の1本へ（全長の10種の報告が段4d と全行一致）。
+    /// 残る10行＝徴税の1本の率（Fiscal・国庫の側）・利払い（2）・減債（2）・借入（Fiscal）・再併合の国庫の合算（MultiNationSim）・恐怖政治の没収の残り（Politics）・
+    ///   切り下げ（Simulation）・国家の仮勘定の月末の精算（Simulation）。</summary>
+    [Fact]
+    public void 国庫の口を外から呼ぶ行は増やさない()
+    {
+        const int declared = 10;
+        var rx = new Regex(@"\.Pay\(");
+        string root = Path.GetDirectoryName(SimCoreDir())!;
+        char sep = Path.DirectorySeparatorChar;
+        var hits = new System.Collections.Generic.List<string>();
+        foreach (var dir in new[] { "PriceOfBread.SimCore", "PriceOfBread.App", "PriceOfBread.Runner" })
+            foreach (var f in Directory.EnumerateFiles(Path.Combine(root, dir), "*.cs", SearchOption.AllDirectories))
+            {
+                if (f.Contains($"{sep}obj{sep}") || f.Contains($"{sep}bin{sep}")) continue;
+                if (dir == "PriceOfBread.SimCore" && Path.GetFileName(f) == "World.cs") continue;
+                int ln = 0;
+                foreach (var line in File.ReadLines(f))
+                {
+                    ln++;
+                    var code = line;
+                    int c = code.IndexOf("//", StringComparison.Ordinal);
+                    if (c >= 0) code = code[..c];
+                    if (rx.IsMatch(code)) hits.Add($"{Path.GetFileName(f)}:{ln}");
+                }
+            }
+        Assert.True(hits.Count <= declared,
+            $"World.Pay を外から呼ぶ行が {hits.Count}（基準 {declared}）＝**増えている**：{string.Join(", ", hits)}。" +
+            "国庫の出入りは移し方の1本（World.Transfer＝相手を名乗る）を通すこと。どうしても必要なら基準を上げて理由をここに書く（＝宣言）。");
     }
 
     // ★2026-09-30（作者裁定「計算量の予算」＝推奨で採択）：**計算量の番人**＝1種（seed 1）・40四半期（助走を含む＝バッチと同じ道

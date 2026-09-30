@@ -970,7 +970,10 @@ public sealed class World
     public double LastSpecialistExit { get; internal set; }
     public double[] TreasuryLedger = new double[(int)TreasuryCat.Count];   // 区分ごとの累積（符号つき＝収入が正・支出が負）
 
-    /// <summary>国庫を動かす唯一の口。<paramref name="delta"/> は符号つき（収入が正・支出が負）。</summary>
+    /// <summary>国庫を動かす唯一の口。<paramref name="delta"/> は符号つき（収入が正・支出が負）。
+    /// ⚠片側だけの記帳（相手を名乗らない）＝World の外からは移し方の1本 <see cref="Transfer"/> を使う。外から呼ぶ行は <c>WriterRatchetTests</c> が数える
+    /// （2026-09-30 段4f＝10行・相手の側が手書きの行だけ＝徴税・利払い・減債・借入・再併合・恐怖政治の没収・切り下げ・国家の仮勘定の月末の精算）。
+    /// 最後は private（作者裁定 Q13）＝残る10行を相手ごと移し方の1本へ寄せた後（実装ログ (126) の申し送り）。</summary>
     public void Pay(TreasuryCat cat, double delta)
     {
         Treasury += delta;

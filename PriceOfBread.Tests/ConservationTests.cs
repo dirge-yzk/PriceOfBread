@@ -579,6 +579,27 @@ public class ConservationTests
         Assert.Equal(want, dp.Savings); Assert.Equal(want, dp.Debt); Assert.Equal(want, dp.BondHoldings);
     }
 
+    /// <summary>★人と動くお金の運搬の1本（2026-09-30 段4f・作者裁定 Q13＝書き手を Pop の中へ）＝<c>Pop.Carry</c> は送り手と受け手を同じ額で書く
+    /// （貯蓄・個人債務・国債の保有のどれも、送り手が減った額と受け手が増えた額が同じ＝湧かず消えない）。州の間の移住（Territory.MoveBetweenRegions）を通して見る＋
+    /// 越境（国債の保有は発行国の対外債へ振り替える＝運ぶ額0）の形。⚠突然変異「送り手の貯蓄を減らさない」「受け手の債務を足さない」で赤。</summary>
+    [Fact]
+    public void 人と動くお金は送り手と受け手を同じ額で書く()
+    {
+        var sp = new Pop { Size = 7, Savings = 100, Debt = 50, BondHoldings = 30 };
+        var dp = new Pop { Size = 1, Savings = 5, Debt = 2, BondHoldings = 1 };
+        Territory.MoveBetweenRegions(sp, dp, 3, new Coefficients());
+        double f = 3.0 / 7.0;
+        Assert.Equal(100 - 100 * f, sp.Savings); Assert.Equal(5 + 100 * f, dp.Savings);
+        Assert.Equal(50 - 50 * f, sp.Debt); Assert.Equal(2 + 50 * f, dp.Debt);
+        Assert.Equal(30 - 30 * f, sp.BondHoldings); Assert.Equal(1 + 30 * f, dp.BondHoldings);
+        var a = new Pop { Savings = 10, Debt = 4, BondHoldings = 3 };
+        var b = new Pop { Savings = 1, Debt = 0, BondHoldings = 2 };
+        Pop.Carry(a, b, 6, 4, 0);   // 越境の形＝運賃を引いた持参金と債務を運び、保有は運ばない
+        Assert.Equal(4.0, a.Savings); Assert.Equal(7.0, b.Savings);
+        Assert.Equal(0.0, a.Debt); Assert.Equal(4.0, b.Debt);
+        Assert.Equal(3.0, a.BondHoldings); Assert.Equal(2.0, b.BondHoldings);
+    }
+
     // ── 支払いの一元化 段3-2 の番人（2026-09-30・C9）──
 
     /// <summary>★港と運河の建設の工賃は労働の④の持分（労働力の生産者の産出の比・賃金は労働者）へ＝旧は自国の全POP へ頭数（財を買わない）。

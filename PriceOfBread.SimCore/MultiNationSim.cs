@@ -385,8 +385,8 @@ public sealed class MultiNationSim
         //   ⚠格と支配度は独立が確定するまで動かさない（RegisterIndependence／内戦の白紙講和で本土へ）＝親が勝てば元の格のまま戻る。
         double railIn = 0, shipIn = 0;   // ★輸送の容量は州と一緒に移る（2026-09-30 (118)）＝新しい国の器を組んだ後に受け取る（下の段5）
         foreach (var rr in regs) { var (rlMoved, shMoved) = Territory.TransferRegion(pw, null, rr, Territory.Rehoming.Seceded); railIn += rlMoved; shipIn += shMoved; }
-        pw.Pay(TreasuryCat.OtherOut, -T);
-        pw.CumulativeTradeFlow -= T;   // 国庫の分与も同じ対外移転台帳
+        // 国庫の分与は移し方の1本で世界の外へ（段4f）＝親の国庫から引き、同じ額を国境の出入りの台帳へ（子は生まれの基礎貨幣 S＋T で基線を取り直す＝下の注）。
+        World.Transfer((pw, null), (null, null, null), T, TreasuryCat.OtherOut);
         // （Bank.Gold の親⇄新国家の移し替え2行は 2026-09-28 に削除＝Bank.Gold は導出量で、翌日の Credit.Step が BaseMoney から上書きするまで読み手が無い）
 
         // --- 3) 新世界の州Id＝0が首都（World.Region=Regions[0] 規約）---
@@ -1641,8 +1641,8 @@ public sealed class MultiNationSim
             // ★国債の保有台帳（2026-09-21）：移民の按分ぶんの保有は**発行国（src）の対外債へ振替**＝請求権は src に対するまま、受入国の対外債権になる
             //   （国境を越えると1本のスカラーでは「どの国の国債か」を持てない＝Fiscal.BookForeignDebt の注）。運賃は金の話＝保有は目減りしない。
             if (sp.Size > 1e-9) Fiscal.BookForeignDebt(sp, sp.BondHoldings * (flow / sp.Size), src, dst);
-            sp.Size -= flow; sp.Savings -= savArriving; sp.Debt -= debtMove;
-            dp.Size += flow; dp.Savings += savArriving; dp.Debt += debtMove;
+            sp.Size -= flow; dp.Size += flow;
+            Pop.Carry(sp, dp, savArriving, debtMove, 0);   // お金の3行（段4f）＝国債の保有は上で発行国の対外債へ振り替えた＝運ばない
             moved += flow; money += savArriving - debtMove; debt += debtMove;   // 運ぶ基礎貨幣＝持参金−債務（債務は債務者について行く＝S3b）
         }
         if (!(moved > 0)) return;
@@ -1777,8 +1777,8 @@ public sealed class MultiNationSim
             }
             // ⚠お雇い外国人は**中核民族に数えない**（MoveMigrants の大衆移民と同じ＝希釈）。契約が切れれば帰る人々である。
             if (dst.EthnicEnabled) dp.CoreEthnicShare = dp.CoreEthnicShare * dp.Size / newSize;
-            sp.Size -= flow; sp.Savings -= sav; sp.Debt -= debtMove;
-            dp.Size += flow; dp.Savings += sav; dp.Debt += debtMove;
+            sp.Size -= flow; dp.Size += flow;
+            Pop.Carry(sp, dp, sav, debtMove, 0);   // お金の3行（段4f）＝国債の保有は上で発行国の対外債へ振り替えた＝運ばない
             moved += flow; money += sav - debtMove; debt += debtMove;   // 運ぶ基礎貨幣＝持参金−債務（S3b）
         }
         if (!(moved > 0)) return;

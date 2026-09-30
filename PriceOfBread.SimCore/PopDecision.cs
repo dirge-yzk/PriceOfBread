@@ -90,10 +90,7 @@ public static class PopDecision
             }
         }
         src.Size -= amount;
-        src.Savings -= moveSavings;
-        src.Debt -= moveDebt; src.BondHoldings -= moveBond;   // ⚠既存バグ修正2026-08-08：moveDebt が計算されるだけで**適用行が無かった**（按分6箇所ルール違反＝移動者の債務が送り出し側に残る）
         dst.Size += amount;
-        dst.Savings += moveSavings;
-        dst.Debt += moveDebt; dst.BondHoldings += moveBond;
+        Pop.Carry(src, dst, moveSavings, moveDebt, moveBond);   // お金の3行（段4f・旧の2026-08-08 の直し＝債務の適用行の欠落は運搬の1本で構造的に起きない）
     }
 }

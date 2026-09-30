@@ -258,6 +258,17 @@ public sealed class Pop
     public double Earned;             // その月に得た総所得
     public double LandRent;           // その月に受け取った土地の地代（RGOの所有者取り分＝封建貢租）。土地税の課税ベース
     public double IndustrialRent;     // その月に受け取った工業レント（非RGO・投資家所有の利潤。設計3段1＝物差し専用の書き込みタグ・挙動の読者なし）
+
+    /// <summary>★人と動くお金の運搬の1本（2026-09-30 段4f・作者裁定 Q13＝書き手を Pop の中へ）：貯蓄・個人債務・国債の保有を、人と一緒に <paramref name="from"/> から
+    /// <paramref name="to"/> へ同じ額で移す（両側を1回の呼び出しで書く＝湧かず消えない）。運ぶ額は呼び手が決める＝ストック×(運ぶ人数÷規模)（E3）・越境は運賃を引いた持参金と
+    /// 国債の保有 0（保有は発行国の対外債へ振り替える＝<see cref="Fiscal.BookForeignDebt"/>）。旧＝州の間の移民と入植（Territory.MoveBetweenRegions）・社会移動（Meritocracy）・
+    /// 徴兵と復員（Military.MoveCohort）・州の中の移動（PopDecision）・越境移民と招聘（MultiNationSim）の6か所が同じ2行を写していた（式と順は同じ＝移しただけ）。
+    /// 人数と属性の混ぜ方は各所に残る（段4e の I＝PopTransfer.Blend）。</summary>
+    internal static void Carry(Pop from, Pop to, double savings, double debt, double bond)
+    {
+        from.Savings -= savings; from.Debt -= debt; from.BondHoldings -= bond;
+        to.Savings += savings; to.Debt += debt; to.BondHoldings += bond;
+    }
 }
 
 /// <summary>レシピの投入（§2.4・§11.2 Recipe）：産出1単位あたり投入財をどれだけ要するか。</summary>

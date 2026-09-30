@@ -686,8 +686,8 @@ public static class Meritocracy
             if (c.MigrationCarriesHumanCapital > 0)
                 toPop.Literacy = PoliticalQuantities.Clamp01((toPop.Literacy * toPop.Size + moveLit * flow) / newSize);
         }
-        fromPop.Size -= flow; fromPop.Savings -= moveSavings; fromPop.Debt -= moveDebt; fromPop.BondHoldings -= moveBond;
-        toPop.Size += flow; toPop.Savings += moveSavings; toPop.Debt += moveDebt; toPop.BondHoldings += moveBond;
+        fromPop.Size -= flow; toPop.Size += flow;
+        Pop.Carry(fromPop, toPop, moveSavings, moveDebt, moveBond);   // お金の3行（段4f）
     }
 
     // 政体の近代性：君主の身分制＝低、自由（立憲君主・共和）・独裁（能力主義的動員）＝開かれた社会＝高

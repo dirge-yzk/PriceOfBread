@@ -584,8 +584,7 @@ public static class Fiscal
             //   （旧＝滝の後段で国庫の残りまで）。充足率 WelfareFunding は r と同じ量になるので畳んだ（保険・医療は FiscalFundingRatio を読む）。
             double welfareCost = welfareClaim * payRate;
             w.LastWelfareCost = welfareClaim;   // 請求（r を掛ける前）＝翌月の月初の請求の見込み（Simulation）と予算表が読む
-            w.Pay(TreasuryCat.Welfare, -welfareCost);
-            w.Pay(TreasuryCat.Welfare, World.Distribute(masses, welfareCost));   // 受け手不在＝国庫残置（保存）
+            World.Transfer((w, null), (w, masses, null), welfareCost, TreasuryCat.Welfare);   // 国庫→大衆（頭数）＝移し方の1本（段4f）。受け手不在＝動かさない（国庫に残る）
         }
         else w.LastWelfareCost = 0;
 
@@ -598,7 +597,6 @@ public static class Fiscal
             double pensionClaim = Math.Min(pensionReq, c.WelfareRevenueShare * w.FiscalCapacity);   // 福祉と同じ裁量余剰から（請求）
             double pensionCost = pensionClaim * payRate;   // 払うのは請求×r（福祉と同じ・2026-09-28 段2-1＝SpendingCapFactor と国庫残高のクランプを撤去）
             w.LastPensionCost = pensionClaim;   // 請求（r を掛ける前）＝翌月の月初の請求の見込みと予算表が読む
-            w.Pay(TreasuryCat.Pension, -pensionCost);
             if (pensionCost > 0)   // 老年人口に比例して配分（年金は老人の所得＝消費に回る）。wave2b：分母を受け手と同じフィルタで作り直し（旧oldSizeはOldShare≤1e-9の pop も算入したまま
             {                       // 給付側だけ除外していた＝分子分母の非対称）、Distribute作法どおり端数は最後の受け手へ・受け手不在は国庫残置（保存）。
                 var elderly = new List<Pop>(); var elderW = new List<double>();
@@ -613,8 +611,9 @@ public static class Fiscal
                 }
                 // ★支払いの一元化 段2-3（E1・2026-09-29）：按分の本体 World.Distribute へ畳んだ（旧＝式 pensionCost×w/Σ の結合順が本体と違い、到達の枝は端数を寄せなかった＝同じ支払いに端数規則が2つ）。
                 //   届く額＝給付×(届く重み÷老年人口)を届く重みで配る＝各人の額は旧と同じ量。届かない分・受け手不在・配れなかった額は国庫残置。
+                // ★段4f（2026-09-30）：国庫→老年は移し方の1本（旧＝給付の全額を引いてから届かない分を Pay で戻す2行）＝国庫から出るのは届く額だけ（到達の重みが1＝既定では給付の全額）。
                 double reached = elderSize > 1e-9 ? pensionCost * (reachW / elderSize) : 0;
-                w.Pay(TreasuryCat.Pension, pensionCost - reached + World.Distribute(elderly, reached, elderW));
+                World.Transfer((w, null), (w, elderly, elderW), reached, TreasuryCat.Pension);
             }
         }
         else w.LastPensionCost = 0;

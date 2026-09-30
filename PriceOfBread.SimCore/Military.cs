@@ -380,7 +380,6 @@ public static class Military
         double sav = from.Savings * (amount / size0);
         double debt = from.Debt * (amount / size0);
         double bondm = from.BondHoldings * (amount / size0);
-        from.Savings -= sav; from.Debt -= debt; from.BondHoldings -= bondm;
-        to.Savings += sav; to.Debt += debt; to.BondHoldings += bondm;
+        Pop.Carry(from, to, sav, debt, bondm);   // お金の3行（段4f＝Pop の中の運搬の1本）
     }
 }
