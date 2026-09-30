@@ -170,7 +170,7 @@ public class DormantIdentityTests
         "CorruptionPoorOfficialWeight",
         "DomesticMarkupMax", "EducationGateUsesEma",
         "ElectionBribePovertyWeight", "EnclosureRate", "EraNavalFuel",
-        "FamineAbsoluteThreshold", "FertileAbsoluteBlend",
+        "FertileAbsoluteBlend",   // FamineAbsoluteThreshold は 2026-09-30 (131) に局地飢饉の死と一緒に係数ごと削除
         "FertilityEquilibriumWeight", "FertilityIncomeSurvivalGate", "FertilityLandDivisionSlope",
         "FoodIncludesAnimalProtein", "GarrisonProcurement",
         "HigherEduNeedPerEducated",

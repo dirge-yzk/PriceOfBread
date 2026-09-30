@@ -592,7 +592,7 @@ public sealed class Region
     public double LastSubsistenceOutput;   // 人2補完（2026-07-11）：この州の今月の主食**自給**産出Σ（市場外・無償＝Market.LastProducedに載らない）。扶養力の生産アンカーの分子欠落（自給7割の農業国で分子過小→capacity崩落）を埋める。EconomyStep月初にリセット
     public double[]? CropHealth;                       // 作物別の健全度（World.CropHealth を月次で複製＝参照）。病虫害で<1の作物は栽培州の産出が落ちる（作物固有の不作）。null=従来（健全）
     public double WeatherBandFactor = 1.0;            // 緯度帯（気候帯）の天候係数（World から複製）。HarvestFactorと積算＝同じ気候帯の国/州が一緒に不作（欧州一帯の凶作）。1.0=中立
-    public double FoodFill = 1.0;                     // 州ごとの主食充足（消費ベース∈[0,1]・平滑）。書き手は RegionalFamineStep のみ（RegionalFamineMortality=0 でも常時更新＝死亡計算の早期returnより前）。読み手＝局地飢饉・移民の飢饉push（MultiNationSim）・州反乱（Politics）・派閥crisis（Factions）。1州なら World.FoodFill と一致＝較正中立
+    public double FoodFill = 1.0;                     // 州ごとの主食充足（消費ベース∈[0,1]・平滑）。書き手は Simulation.SmoothRegionalFoodFill のみ（★2026-09-30 (131) 旧 RegionalFamineStep の局地飢饉の死は削除・平滑だけ残した。旧注記＝RegionalFamineMortality=0 でも常時更新＝死亡計算の早期returnより前）。読み手＝移民の飢饉push（MultiNationSim）・州反乱（Politics）・派閥crisis（Factions）。1州なら World.FoodFill と一致＝較正中立
     public double MineralDepletion = 1.0;
     public bool SilverRushed;                          // ★シルバーラッシュ（2026-09-07）：後期の銀産地が解禁されて一度だけ富鉱化した（決定論・再発なし）
     // ★鉱脈在庫（DepletionFromExtraction・2026-08-14）。-1＝未捕捉（助走明けの最初の産出月に初期化）。ゲート0では誰も書かない＝恒等

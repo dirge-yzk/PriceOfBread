@@ -297,7 +297,7 @@ public sealed class Simulation
     }
 
     /// <summary>局地飢饉の検証用：2つの active 州。州0＝食料余剰（農民多）、州1＝食料大幅不足（労働者多・自給僅少）。
-    /// 世界市場なし（単一国・TradeEnabled=false）なので州1は輸入できず、国平均より食料が乏しい＝RegionalFamineStep で州1だけ人口が減る。</summary>
+    /// 世界市場なし（単一国・TradeEnabled=false）なので州1は輸入できず飢える＝POP の飢えの上乗せ（DemographicStep）で州1だけ人口が減る。</summary>
     private static List<Region> BuildRegionalFamine()
     {
         Region Make(int id, string name, double farmerSize, double workerSize, double foodOutput)
@@ -2284,7 +2284,7 @@ public sealed class Simulation
         // 助走中（World.WarmupFrozen・2026-08-10）は人口動態を止める＝出生死亡は「時間が経つと積み上がる」量そのもの。
         // 暦を止めたまま回すと「10年ぶんの人口成長が時間経過なしに起きる」＝1783年の開始盤面でなくなる。
         if (!World.WarmupFrozen)
-            DemographicStep();           // 人口動態：出生（医療/都市化）−死亡（労働時間）＝動的人口・戦死からの回復も兼ねる（人口転換）。局地飢饉（RegionalFamineStep）も内包
+            DemographicStep();           // 人口動態：出生（医療/都市化）−死亡（労働時間）＝動的人口・戦死からの回復も兼ねる（人口転換）。飢えの超過死亡（平常の死亡率の上乗せ）と州の食料充足の平滑も内包
         ProbeCheck("月次人口");
         BackstopNegativeSavings();   // 損失吸収の脆さの会計：貯蓄が負になった pop は不足を信用で埋める（有限責任・保存則厳守）
         ProbeCheck("月次バックストップ");
@@ -2334,7 +2334,7 @@ public sealed class Simulation
         return w;
     }
 
-    private void DemographicStep()
+    internal void DemographicStep()   // internal＝番人テスト（FamineTests 飢えた植民地の州は…）が月ごとに直接呼ぶ。可視性だけの変更
     {
         double pop = World.TotalPopulation;
         if (pop < 1e-9) return;
@@ -2503,35 +2503,28 @@ public sealed class Simulation
             massBirthWeight += BirthWeight(p, c);   // ①Phase3：出生の配分鍵（既定は Size＝massBirthWeight==massPop）
         }
         if (massPop < 1e-9) return;
-        // 出生は規模比例（粗出生）、死亡は**脆弱性（食料不足 FoodFill）で配分**＝飢饉は最貧・自給なき層に集中（地主/資本家は生き延びる）。
-        // 総出生 − 総死亡 = net を保存（人口台帳・ロジスティック軌道は不変）。回復期（純増＞粗出生）は死亡0で超過を出生（旧 Math.Max と同じ）。
-        // FamineMortalityConcentration=0 なら死亡も規模一律＝旧式に厳密一致（中立）。
+        // ★出生と死は同じ単位（2026-09-30 (131)）＝POP ごとに「1人あたりの率×規模」。出生は配分鍵（粗出生）、**平常の死は国の平常の死亡率×規模**（全ての POP で同じ率）。
+        //   総出生 − 平常の死 = net（ロジスティック）。回復期（純増＞粗出生）は平常の死0で超過を出生（旧 Math.Max と同じ）。
+        //   ★飢えの超過死亡は平常の死亡率の**上乗せ**（下の POP のループの終わり＝平常の死亡率×FamineMortalityConcentration×飢えの深さ×規模）＝国の死の予算から取らない。
+        //   ⚠旧＝国の死（総出生−net）を脆弱性の重みで飢えた POP に寄せていた（重み＝規模×(1＋これ×不足)÷Σ重み）＝飢えた POP が国全体の死の受け皿になり、
+        //     豊かな POP の死がその分だけ減った＝飢えた州の減りが国の中の他の州の伸びに付け替わった（分子と分母の非対称）。
+        //     加えて局地飢饉（旧 RegionalFamineStep＝国平均からの相対の不足×0.025／月）が同じ飢えを2本目の死として数えていた（思想⑨）＝植民地の州が開幕から
+        //     飢えの死で年3%ずつ痩せ、ピークの1/10 未満へ落ちた（(125) の10種で532件・(131) の計器＝局地飢饉 32.5‰・寄せた分 5.5‰／年）。
         double totalBirths = c.CrudeBirthRate / Calendar.MonthsPerYear * fertility * massBirthWeight;   // 既定 massBirthWeight==massPop ＝現行と厳密一致
         bool recovering = net >= totalBirths;
         double totalDeaths = recovering ? 0 : totalBirths - net;
-        double vulnSum = 0;
+        double deathRate = recovering ? 0 : totalDeaths / massPop;   // 平常の死亡率（1人あたり・月）＝全ての POP で同じ
         double diagBirths = 0, diagDeaths = 0;   // ★計器（2026-09-26）：粗出生・粗死亡の累積の元（World.DiagBirths/DiagDeaths へ＝力学は読まない）
         double ghostDeaths = 0;   // 人口保存バグ修正：負人口防止クランプ(下)で削られた「人が足りず起き得なかった死」を集計し、台帳のnetから差し戻す（無クランプ時は0＝ビット恒等・West巨大人口の崩壊時のみ発火）
+        double famineDead = 0;    // 飢えの超過死亡（平常の死の上乗せ）の実際に減った人数＝台帳へ別に引く
         bool birthsSuppressed = recovering && massBirthWeight <= 1e-9;   // 人口保存：回復期にmassBirthWeightガード(add0=0)が発火すると実出生0なのに台帳が+=netでズレる＝netを差し引く（正常時false＝ビット恒等・出産可能プール≈0の退化popでのみ発火）
-        if (!recovering)
-            foreach (var r in World.Regions)
-            {
-                foreach (var p in r.Pops)
-                    if (!p.IsSoldier)
-                    {
-                        double ff = p.FoodNeed > 1e-9 ? PoliticalQuantities.Clamp01(p.FoodMet / p.FoodNeed) : 1.0;
-                        // 第4段4-5（2026-07-27）：飢饉死の絶対水準ゲート＝充足がFamineDeathFillFloor以上のpopは飢饉集中の対象外（重み1.0＝ベース死亡のみ）。
-                        // 旧・(1−ff)連続重みは「国平均をわずかに下回る州が構造的に常時半数」→恒常的な偽陽性の超過死亡を飢えていない層にも配っていた。Floor=1.0で旧恒等。
-                        double shortfall = ff < c.FamineDeathFillFloor ? 1.0 - ff : 0.0;
-                        vulnSum += p.Size * (1.0 + c.FamineMortalityConcentration * shortfall);
-                    }
-            }
         foreach (var r in World.Regions)
         {
             foreach (var p in r.Pops)
                 if (!p.IsSoldier)
                 {
                     double bw = BirthWeight(p, c);   // コホート送りが ChildShare/FemaleShare を変える「前」に捕捉＝massBirthWeight（事前パス）と同一構成で評価＝Σbirths=net の保存を厳密化
+                    double size0 = p.Size;           // 月初の規模＝出生・平常の死・飢えの上乗せが掛かる同じ規模
                     // コホート送り：子供は約16年かけて成人する（規模は不変・構成だけ動く）。成人になる世代は男女半々＝女性比率は0.5へ漸近。
                     if (p.Size > 1e-9 && p.ChildShare > 1e-9)
                     {
@@ -2540,7 +2533,7 @@ public sealed class Simulation
                         p.FemaleShare = (p.FemaleShare * adults + 0.5 * aged) / (adults + aged);
                         p.ChildShare = Math.Max(0, (p.Size * p.ChildShare - aged) / p.Size);
                     }
-                    // 出生は**粗出生**として子供に加わる（純増だけを子供にすると成熟社会で子供が払底＝構成崩壊）。死亡は脆弱性配分。
+                    // 出生は**粗出生**として子供に加わる（純増だけを子供にすると成熟社会で子供が払底＝構成崩壊）。平常の死は全ての POP で同じ率。
                     double births, deaths;
                     if (recovering)
                     {
@@ -2550,11 +2543,8 @@ public sealed class Simulation
                     else
                     {
                         births = c.CrudeBirthRate / Calendar.MonthsPerYear * fertility * bw;   // 出生は配分鍵比例（既定 Size＝現行の粗出生）
-                        double ff = p.FoodNeed > 1e-9 ? PoliticalQuantities.Clamp01(p.FoodMet / p.FoodNeed) : 1.0;
-                        double shortfallD = ff < c.FamineDeathFillFloor ? 1.0 - ff : 0.0;   // 第4段4-5：絶対飢餓ライン（vulnSum側と同式＝配分の正規化整合）
-                        double w = p.Size * (1.0 + c.FamineMortalityConcentration * shortfallD);   // 脆弱性重み（真に飢えた層に集中）
-                        double deathsRaw = vulnSum > 1e-9 ? totalDeaths * (w / vulnSum) : 0;
-                        deaths = Math.Min(deathsRaw, p.Size + births);   // 下限保護（負人口の防止）＝姉妹関数 RegionalFamineStep と同型
+                        double deathsRaw = deathRate * size0;               // 平常の死＝国の平常の死亡率×規模（飢えで寄せない）
+                        deaths = Math.Min(deathsRaw, p.Size + births);   // 下限保護（負人口の防止）
                         ghostDeaths += deathsRaw - deaths;   // クランプで削られた「人が足りず起き得なかった死」を集計（下でnetから差し戻す）。無クランプ時は0＝ビット恒等（West巨大人口の崩壊時のみ発火＝人口保存バグ修正）
                     }
                     double add = births - deaths;
@@ -2586,24 +2576,35 @@ public sealed class Simulation
                         oldAmt = Math.Max(0, oldAmt + retired - dOld);
                         p.OldShare = Math.Clamp(oldAmt / p.Size, 0, Math.Min(1.0 - p.ChildShare, c.OldShareMax));   // 上限＝成長期に老年が貯まりすぎる近似誤差を抑える安全弁
                     }
+                    // ★飢えの超過死亡（2026-09-30 (131)）＝**平常の死亡率の上乗せ**＝平常の死亡率×FamineMortalityConcentration×飢えの深さ×月初の規模（出生と同じ単位）。
+                    //   飢えの深さ＝(門−充足)÷門（門＝飢饉死の門 FamineDeathFillFloor・絶対水準・平常 FoodRef は読まない＝回B）＝門の上は平常（上乗せ0）・
+                    //   門で連続・充足0で1（上乗せの最大＝平常の死亡率×これ＝旧の重みの充足0 と同じ）。⚠旧の重みの不足（1−充足）は門で 0→0.2 へ跳んだ
+                    //   ＝配分の鍵のうちは相対の差だったが、上乗せの率にすると門のすぐ下の POP に平常の6割の超過死亡が段で立つ。
+                    //   国の死の予算の外＝豊かな POP の死は減らない（旧＝同じ総数を飢えた POP へ寄せた）。子供と老年に厚く（災害死と同じ運搬＝リ10）。
+                    //   回復期は平常の死亡率0＝上乗せも0（この模型の回復期は誰も死なない）。否定形＝NaN の上乗せは殺さない側。
+                    double fill = p.FoodNeed > 1e-9 ? PoliticalQuantities.Clamp01(p.FoodMet / p.FoodNeed) : 1.0;
+                    double floorF = c.FamineDeathFillFloor;
+                    double excess = fill < floorF ? deathRate * c.FamineMortalityConcentration * ((floorF - fill) / floorF) * size0 : 0.0;
+                    if (excess > 0 && p.Size > 0)
+                    {
+                        double d = Math.Min(excess, p.Size);
+                        World.CarryDeathAgeStructure(p, p.Size, d, c.DisasterAgeMortalityExcess);
+                        p.Size -= d; famineDead += d;
+                    }
                 }
         }
-        World.DiagBirths += diagBirths; World.DiagDeaths += diagDeaths;   // ★計器（2026-09-26・純記帳）
-        World.PopulationDelta += net + ghostDeaths - (birthsSuppressed ? net : 0.0);   // 人口保存：意図netに①クランプで起き得なかった幽霊死ghostDeathsを差し戻し②ガードで実出生0の時はnetを引く（無クランプ・非抑制時は net+0−0＝net＝ビット恒等）。実Size減と一致
-        RegionalFamineStep(c);   // 局地飢饉（相対的剥奪）：国の成長は据え置き、国平均より食料が乏しい州にだけ超過死亡を上乗せ。1州なら発火せず＝較正中立
+        World.DiagBirths += diagBirths; World.DiagDeaths += diagDeaths + famineDead;   // ★計器（2026-09-26・純記帳）
+        World.PopulationDelta += net + ghostDeaths - (birthsSuppressed ? net : 0.0) - famineDead;   // 人口保存：意図netに①クランプで起き得なかった幽霊死ghostDeathsを差し戻し②ガードで実出生0の時はnetを引く③飢えの上乗せで実際に減った人数を引く。実Size減と一致
+        SmoothRegionalFoodFill(c);   // 州の食料充足の平滑（移民の飢饉の押し出し・州反乱・派閥の危機が読む）
     }
 
-    /// <summary>
-    /// 地域別の飢饉（§A-3拡張・相対的剥奪モデル）：国全体の食料が回っていても、**国平均より食料が乏しい州**は局地飢饉で人口が減る。
-    /// 国家の人口トレンド（DemographicStep のロジスティック＝較正済み・辺境吸収も保つ）には触れず、超過死亡だけを上乗せ＝堅牢。
-    /// 1州なら州=国平均で不足0＝発火しない＝較正中立。複数州で不作/孤立/輸送途絶した州だけがアイルランド型に飢える。
-    /// 死亡は食料不足の層に集中（FamineMortalityConcentration）、savings不変（金は保存）、PopulationDelta で人口台帳追跡（回復可能）。
-    /// </summary>
-    private void RegionalFamineStep(Coefficients c)
+    /// <summary>州の食料充足（<see cref="Region.FoodFill"/>）の平滑＝穀倉の備蓄（餓死は数ヶ月の持続的欠乏で起きる）。
+    /// 読み手＝移民の飢饉の押し出し（MultiNationSim）・州反乱（Politics）・派閥の危機（Factions）。
+    /// ★2026-09-30 (131)：旧 RegionalFamineStep の局地飢饉の死（国平均からの相対の不足×RegionalFamineMortality／月・閾値 FamineAbsoluteThreshold）を削除
+    ///   ＝同じ飢えを POP の飢えの上乗せ（DemographicStep）と2本目の死で数えていた（思想⑨）。人は国平均より貧しいから死ぬのではなく食べられないから死ぬ
+    ///   ＝POP の絶対の充足だけが死に効く（州の中の不作・孤立・途絶で飢えた州は、その州の POP の充足が落ちて上乗せが立つ）。</summary>
+    private void SmoothRegionalFoodFill(Coefficients c)
     {
-        // 州の食料充足（Region.FoodFill）の平滑更新は常時行う＝早期returnの手前に置く。読み手は本メソッドの飢饉判定だけでなく
-        // 移民の飢饉push（MultiNationSim）・州反乱（Politics）・派閥crisis（Factions）もある＝RegionalFamineMortality=0（アブレーション腕）で
-        // これらが無言でFoodFill=1.0に凍結する副作用を防ぐ（既定0.025では従来と厳密同順・同値）。
         foreach (var region in World.Regions)
         {
             if (region.State != RegionState.Active) continue;
@@ -2612,37 +2613,6 @@ public sealed class Simulation
             double raw = need > 1e-9 ? PoliticalQuantities.Clamp01(met / need) : 1.0;
             region.FoodFill += c.FoodFillSmoothing * (raw - region.FoodFill);   // 州の食料充足を平滑（穀倉の備蓄＝餓死は数ヶ月の持続的欠乏で起きる）
         }
-        if (c.RegionalFamineMortality <= 0) return;
-        double natFood = World.FoodFill;   // DemographicStep が平滑済みの国平均（1州なら下の region.FoodFill と一致＝不足0）
-        double deadTotal = 0;
-        foreach (var region in World.Regions)
-        {
-            if (region.State != RegionState.Active) continue;
-            // 人9（絶対水準の併用）：現行は国平均との相対差だけで発火＝国平均1.0・州0.95 の「十分食えている」州でも恒常死（飢餓死は絶対的欠乏で起きる現象なのに）。
-            // FamineAbsoluteThreshold=0 で基準＝natFood（純・相対のみ＝現行と厳密一致）・>0で基準＝min(natFood,閾値)＝州が絶対閾値を上回れば shortfall=0（十分食える州は飢えない）。
-            double famineRef = c.FamineAbsoluteThreshold > 0 ? Math.Min(natFood, c.FamineAbsoluteThreshold) : natFood;
-            double shortfall = Math.Max(0, famineRef - region.FoodFill);   // 基準からの不足。1州なら region.FoodFill==natFood かつ閾値未使用時0＝較正中立
-            if (shortfall <= 1e-9) continue;
-            double massPop = 0, vulnSum = 0;
-            foreach (var p in region.Pops) if (!p.IsSoldier)
-            {
-                massPop += p.Size;
-                double ff = p.FoodNeed > 1e-9 ? PoliticalQuantities.Clamp01(p.FoodMet / p.FoodNeed) : 1.0;
-                vulnSum += p.Size * (1.0 + c.FamineMortalityConcentration * (1.0 - ff));
-            }
-            if (massPop < 1e-9 || vulnSum < 1e-9) continue;
-            double regionDeaths = c.RegionalFamineMortality * shortfall * massPop;   // 月次の超過死亡＝相対不足×係数×州人口
-            foreach (var p in region.Pops) if (!p.IsSoldier)
-            {
-                double ff = p.FoodNeed > 1e-9 ? PoliticalQuantities.Clamp01(p.FoodMet / p.FoodNeed) : 1.0;
-                double w = p.Size * (1.0 + c.FamineMortalityConcentration * (1.0 - ff));
-                double d = Math.Min(p.Size, regionDeaths * (w / vulnSum));   // 食料不足の層に集中（地主/資本家は生き延びる）
-                World.CarryDeathAgeStructure(p, p.Size, d, c.DisasterAgeMortalityExcess);   // リ10：飢饉死も年齢構成へ運搬（既定0＝即リターン＝恒等）
-                p.Size -= d; deadTotal += d;
-            }
-        }
-        World.PopulationDelta -= deadTotal;   // 人口保存（超過死亡を台帳に計上＝回復可能）
-        World.DiagDeaths += deadTotal;         // ★計器（2026-09-26）：粗死亡の累積（力学は読まない）
     }
 
     /// <summary>支出反射のインフラ拡張（2026-08-08）：行政・軍需の実支出は**需要でキャップ**され国庫が減らない

@@ -9,7 +9,7 @@ public enum ScenarioKind
     AgrarianToUrban,
     /// <summary>段4c：本拠地（active）＋辺境（locked・豊かな土地）。領土解錠と地域間移民の検証用（§A-8/§A-9）。</summary>
     FrontierDevelopment,
-    /// <summary>局地飢饉の検証用：2つの active 州＝食料余剰州と食料不足州。世界市場なし（単一国）で不足州が国平均より飢える＝RegionalFamineStep の検証。</summary>
+    /// <summary>局地飢饉の検証用：2つの active 州＝食料余剰州と食料不足州。世界市場なし（単一国）で不足州が飢える＝POP の飢えの上乗せ（DemographicStep・2026-09-30 (131)）の検証。</summary>
     RegionalFamine,
     /// <summary>放任：農民＋労働者＋資本家。資本家が利潤を吸い上げ溜め込む→過少消費（§2.3.1/§2.4.2）の検証用。</summary>
     LaissezFaire,

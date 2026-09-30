@@ -601,11 +601,10 @@ public sealed class Coefficients
                                                       // 既存コメント自身が「死亡率低下の後に遅れて効く」と意図を明記しながら、実装は avgInd（開幕バーストで全国+2.0）を直に読み
                                                       // 全国の出生率を1808年までに床へ叩き落としていた（英は開幕から0.5固定＝ヴィクトリア朝の高出生と正反対）。
                                                       // ⚠F1と同時に立てると fertility を引き上げて F1 の有効成分（仏・日の抑制）まで打ち消す（C=24.3<B=27.1）＝清の保護（0.74→0.93）にだけ効いた。0で乗算1.0＝厳密恒等
-    public double FamineMortalityConcentration = 3.0;  // 飢饉死の困窮層集中度。死亡の配分重み＝規模×(1+これ×(1−FoodFill))＝食料不足の層ほど多く死ぬ（地主/資本家は生き延びる）。0＝旧式（規模一律按分・中立）
-    public double FamineDeathFillFloor = 0.8;          // 第4段4-5点火（2026-07-27）：飢饉死集中の絶対水準ゲート＝食料充足がこれ以上のpopは飢饉集中の対象外（重み1.0）。旧・連続(1−ff)重みは平均をわずかに下回るだけの州に恒常的な偽陽性の超過死亡を配っていた。1.0で旧恒等。#17較正2026-07-28：0.9→0.8（0.9は限界的な州まで集中対象＝総政変+49の主因・真に飢えた州へ絞る）
-    // 局地飢饉（地域別・相対的剥奪）：国の人口トレンド（DemographicStep）はそのまま、**国平均より食料が乏しい州**にだけ超過死亡を上乗せ＝アイルランド型の局地飢饉。
-    // 月次超過死亡＝これ×(国平均FoodFill−州FoodFill)×州人口。1州なら州=国平均で不足0＝発火しない＝較正中立。0で無効。
-    public double RegionalFamineMortality = 0.025; // 相対的不足1.0あたりの月次超過死亡率（不足0.4で≈1%/月＝数年で深刻な人口減）。複数州ナラティブでのみ発火
+    public double FamineMortalityConcentration = 3.0;  // 飢えの超過死亡の強さ（★2026-09-30 (131) 平常の死亡率の上乗せ）＝飢えた POP の月の超過死亡＝平常の死亡率×これ×(1−充足)×規模（国の死の予算の外＝豊かな POP の死は減らない）。食料不足の層ほど多く死ぬ（地主/資本家は生き延びる）。0＝飢えの超過死亡なし。旧＝国の死を規模×(1+これ×不足)の重みで飢えた POP へ寄せる配分の鍵
+    public double FamineDeathFillFloor = 0.8;          // 第4段4-5点火（2026-07-27）：飢えの超過死亡の絶対水準ゲート＝食料充足がこれ以上のpopは上乗せなし（平常の死だけ）。旧・連続(1−ff)重みは平均をわずかに下回るだけの州に恒常的な偽陽性の超過死亡を配っていた。1.0で旧恒等。#17較正2026-07-28：0.9→0.8（0.9は限界的な州まで集中対象＝総政変+49の主因・真に飢えた州へ絞る）
+    // （局地飢饉の相対的剥奪の死 RegionalFamineMortality〔国平均からの州の不足×0.025／月〕は 2026-09-30 (131) に係数ごと削除＝POP の飢えの上乗せと同じ飢えの2本目の死〔思想⑨〕・
+    //   植民地の州を開幕から年3%ずつ痩せさせピークの1/10 未満へ落としていた。局地の不作・孤立で飢えた州は、その州の POP の充足が落ちて上乗せが立つ）
     // 作物病虫害（年次・専用RNG＝主系列を乱さない）：病害に弱い作物（ジャガイモ/葡萄/小麦/米/トウモロコシ）に稀に胴枯れ。
     // その作物の産出が数年落ち、栽培州で局地飢饉（アイルランドのジャガイモ胴枯病1845型・葡萄フィロキセラ）。天候(緯度)の悪いロールと積算＝重なれば産出ほぼ0。
     // 病害は good id 別（作物固有）＝栽培地から空間相関が創発（地域独立ロールでない）。較正の合成食料(id 0)は非対象＝中立。
@@ -2581,7 +2580,7 @@ public sealed class Coefficients
     public double CapacityFromFoodOutput = 0.5;   // 人2（扶養力の食料産出アンカー・大改修スカフォールド）：DemographicStepのcapacity基準を「初期人口baseline」と「実食料産出アンカー(baseline×未クランプfoodMet/foodNeed・下限0.3)」の間でブレンド。0=baselineアンカー(天井約2.5倍)で現行と厳密一致・1で実食料産出から再構成＝19世紀の人口爆発(英4倍/米23倍)とpop>capacityの補償死倒錯を解消。乗数束上限撤去・耕地×技術アンカー・再較正は#17残件
     public double CoupleLimitedBirths = 1.0;   // 人5（徴兵で出生が増える符号逆転）：FertileWomenBirths経路の出産可能プールをFemaleShare比例(0=現行)からカップル律速2×min(女,男)(1)へブレンド。標準構成FemaleShare=0.5で両式が定数倍で一致しt=0正規化が相殺＝較正中立。FertileWomenBirths=true（既定）で有効。falseなら不読
     public double FertilityAffectsBirthsOnly = 1.0;   // 人7（出生率倍率の死亡側混線）：第4段4-6で単独点火（2026-07-27）＝「女子教育を進めた国は同じ食料不足でも飢饉死が半分」の誤因果を解消。旧・M8試験の破綻1/30は OldLaborFactor=0.5 との抱き合わせで、相方はその後0.75で単独点火済み＝前提消滅→単独再測定へ。netFertility=fertility+これ×(1−fertility)。0で旧（死亡側もfertility比例）
-    public double FamineAbsoluteThreshold = 0.0;   /* #17保留:balance(London creep) */   // 人9（局地飢饉の絶対水準ゲート）：RegionalFamineStepの飢饉基準famineRef。0=natFood（相対的剥奪だけで発火・現行と厳密一致）・>0でfamineRef=min(natFood,これ)＝十分食える州は国平均以下でも飢えない
+    // （人9 の局地飢饉の絶対水準ゲート FamineAbsoluteThreshold は 2026-09-30 (131) に局地飢饉の死と一緒に係数ごと削除＝飢えの死は POP の絶対の充足〔FamineDeathFillFloor〕だけが門）
     public double NewbornLiteracyDilution = 0.0;   /* #17保留:Stage2/TechInst識字テスト */   // 人11a（新生児の識字の無償相続）：DemographicStepの出生分(識字0の新生児births人)でpopのLiteracyを加重平均希釈。0=希釈なし（現行と厳密一致）・1でLit_new=Lit_old×(Size−births)/Size。識字ラチェットの解消。教育側はTechEducation.cs
     public double OverworkMortalityWeight = 0.015;   /* トレードオフ化2026-07-06:有効化。短時間側 OverworkHealthSlope=0.015 と対称の初期値＝無制限14hで扶養力−0.03（=+19%産出 whOut の対価）。0で旧挙動・要較正再走 */   // 人12（14hの健康被害が12hと同値）：WorkHoursCapacityの長時間側の超過死亡項。扶養力に−これ×max(0,hours−12)を加算。0=現行（Max(0,12−hours)の片側のみ）と厳密一致・>0で12h超に人口動態コスト
     public double EpidemicIntraCountrySpread = 0.5;   /* #17有効化 */   // 人14（疫病の州間伝播）：TriggerEpidemicの感染窓中に最過密州から次過密州へ与える二次スパイクの減衰致死率倍率。0=単一最過密州のみ（現行と厳密一致）・>0で次過密州へdeathFrac×これの二次死亡（1832コレラのパリ→リヨン型）。新規RNG消費なし（決定論不変）。1州世界は不発
