@@ -328,6 +328,39 @@ public class ProductionDiagTests
         Assert.True(multi > 0, "代替レシピを2本以上返した財が1つも無い＝レシピの列挙が効いていない");
     }
 
+    /// <summary>★先頭の個体を渡す読み口（2026-10-01 (146) 計算量の予算・恒等）：<c>ExplainCost(w, 州, 先頭の個体)</c> は <c>ExplainCost(w, 州, 財)</c>
+    /// （個体＝その州の生産者の並びでその財を作る最初の個体＝FindProducer の規約）と同じ分解を返す。AI の着工の判断（連鎖の目）は州の生産者を先頭から
+    /// 回しながら覚えた先頭の個体を渡す。⚠同じ州に同じ財の個体が2つ以上ある（代替レシピ）州も通る＝先頭以外を渡せば別のレシピの分解になる＝ここで落ちる。</summary>
+    [Fact]
+    public void 先頭の個体を渡す分解は財で引く分解と同じ()
+    {
+        var sim = RunWorld(20);
+        int compared = 0, later = 0;
+        foreach (var n in sim.Nations)
+        {
+            var w = n.World;
+            foreach (var r in w.Regions)
+            {
+                if (r.State != RegionState.Active) continue;
+                var seen = new HashSet<int>();
+                foreach (var p in r.Producers)
+                {
+                    if (p.GoodId < 0 || p.GoodId >= Catalog.Goods.Length) continue;
+                    if (!seen.Add(p.GoodId)) { later++; continue; }   // 2つ目以降の個体（代替レシピ）＝先頭ではない
+                    var byGood = ProductionDiag.ExplainCost(w, r, p.GoodId);
+                    var byFirst = ProductionDiag.ExplainCost(w, r, p);
+                    string at = $"{w.SelfPower?.Name}／{r.Name}／{Catalog.Goods[p.GoodId].Name}";
+                    Assert.True(byGood.Recipe == byFirst.Recipe, $"{at}：レシピが違う（{byGood.Recipe}／{byFirst.Recipe}）");
+                    Assert.True(BitConverter.DoubleToInt64Bits(byGood.Mc) == BitConverter.DoubleToInt64Bits(byFirst.Mc), $"{at}：限界費用が違う");
+                    Assert.Equal(byGood.Items, byFirst.Items);
+                    compared++;
+                }
+            }
+        }
+        Assert.True(compared > 5000, $"比べた個体が少なすぎる（{compared}）");
+        Assert.True(later > 0, "同じ州に同じ財の個体が2つ以上ある州が無い＝先頭の規約を試していない");
+    }
+
     /// <summary>M5（2026-09-11）ON経路：同業組合法を点火した英8Qで、職人の自営レシピの財に GuildRent が立ち（積み上げ表が pop の実支払いと合う）、
     /// 買い手価格の恒等式が同業組合項込みで閉じ、5項はエンジンの唯一定義（EconomyStep.GuildShares／BuyerWedge）と厳密一致する。
     /// 旧＝診断が5項を書き写して同業組合項を欠いていた（自己整合の番人は赤にならない時限バグ）。</summary>

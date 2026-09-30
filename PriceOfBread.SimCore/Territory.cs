@@ -85,9 +85,11 @@ public static class Territory
         var inflow = new double[k];
         var gap = new double[k];
         var size0 = new double[k][];   // 出る州の POP の月初の規模（移す人数＝月初の規模×流量の割合）
+        long seenPairs = 0;   // 計算量の台帳（診断）：出る州×行き先の組（(146)＝O(州²)・旧は数えず単価に入っていた）
         for (int s = 0; s < k; s++)
         {
             if (!double.IsFinite(stay[s])) continue;
+            seenPairs += k;
             double gMax = 0, wSum = 0;
             for (int d = 0; d < k; d++)
             {
@@ -112,6 +114,7 @@ public static class Territory
                 inflow[d] += f * Movable(active[s], classes[d]);
             }
         }
+        w.Cost[CostLedger.MigrationPairs] += seenPairs;
         // ★(125)：受け入れる州ごとに上限で縮める（縮んだ分は出る州に残る＝越境移民の段4 と同じ式）
         var scale = new double[k];
         for (int d = 0; d < k; d++) if (inflow[d] > 0) scale[d] = ReceiveScale(active[d], inflow[d], c);

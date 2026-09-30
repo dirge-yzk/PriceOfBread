@@ -72,8 +72,11 @@ public static class PolicyPreferences
     private const double LandTaxRentierThreshold = 0.34;         // 土地税＝この地代シェア未満なら転嫁を歓迎（賛成）
     private const int BlocCount = 3;                             // 3ブロック（0旧支配層/1近代エリート/2大衆）＝党（保守0/自由1/社会2）と1:1対応
 
-    /// <summary>ブロックの経済プロファイル＋力（1パス集計。selfplay並列のため static キャッシュは使わない）。</summary>
-    private readonly struct Profile
+    /// <summary>ブロックの経済プロファイル＋力（1パス集計。selfplay並列のため static キャッシュは使わない）。
+    /// ★internal（2026-10-01 (146) 計算量の予算・恒等）：同じ瞬間に何本も立場を読む呼び手（要求の順位 <see cref="FactionSnapshot.ComputeDemands"/>・
+    ///   スライダーの一歩 Government.Move）が <see cref="Build"/> を1回だけ取り、下の `in Profile` の読み口へ渡す＝その間に何も書かない呼び手に限る
+    ///   （書き込みを挟む呼び手が古い立場を読まないよう、キャッシュは作らない＝World に置いた導出量は記憶になる）。</summary>
+    internal readonly struct Profile
     {
         public readonly double[] Power;        // 政治力（富×参政権重み）
         public readonly double[] Wealth;       // 富のシェア（誰が富裕＝資産課税の的）
@@ -110,7 +113,7 @@ public static class PolicyPreferences
     /// ★クラスタ側の4値分類（<paramref name="petty"/> を渡すと小営業＝<see cref="PettyBloc"/>）も同じ1本（2026-09-28 処理の一元化 段1＝旧は FactionSnapshot・Factions・Politics に同じ三項式の写しが4箇所）。petty=null＝3値。</summary>
     internal static int BlocOf(Pop p, HashSet<Pop>? petty = null) => p.Closed ? 0 : petty != null && petty.Contains(p) ? PettyBloc : p.IsModernElite ? 1 : 2;
 
-    private static Profile Build(World w)
+    internal static Profile Build(World w)
     {
         // プチブル利益束（第4束「小営業」・作者承認2026-08-15・休眠 PettyInterestGate=0）：**束の判定切替が唯一の分岐点**＝
         // gate=0 では petty=null＝分類・加算の順序と値が従来と同一＝ビット恒等。gate>0 でも wealth/rent/income/poll の
@@ -150,7 +153,8 @@ public static class PolicyPreferences
     { if (total > 1e-9) for (int i = 0; i < BlocCount; i++) a[i] /= total; }
 
     // 「進める方向」への各ブロックの賛否（+賛成 / −反対）を**経済プロファイルから導出**。連続値（概ね −2..+2）。
-    private static double Pref(PolicyAxis a, int b, in Profile e, World w)
+    // ★internal（2026-10-01 (146)）：要求の順位（FactionSnapshot.ComputeDemands）が自分のブロックの1本だけを読む（旧＝Stance で3ブロックと純支持を全て計算して1本を捨てた）。
+    internal static double Pref(PolicyAxis a, int b, in Profile e, World w)
     {
         bool trad = b == 0, modern = b == 1, mass = b == 2;
         switch (a)
@@ -367,9 +371,11 @@ public static class PolicyPreferences
     }
 
     /// <summary>その向きの変更に反対するブロックの力の合計（スライダーの律速）。</summary>
-    public static double OpposingPower(World w, PolicyAxis a, bool increasing)
+    public static double OpposingPower(World w, PolicyAxis a, bool increasing) => OpposingPower(w, a, increasing, Build(w));
+
+    /// <summary>同じ瞬間の <see cref="Build"/> を渡す読み口（<see cref="Profile"/> の注記＝間に何も書かない呼び手だけ）。</summary>
+    internal static double OpposingPower(World w, PolicyAxis a, bool increasing, in Profile e)
     {
-        var e = Build(w);
         double sign = increasing ? 1 : -1;
         double sum = 0;
         for (int b = 0; b < BlocCount; b++)
@@ -498,9 +504,11 @@ public static class PolicyPreferences
 
     /// <summary>小営業束の per-unit 立場（ComputeDemands の要求生成・押し切り/阻止遺恨のpop写像が読む）。
     /// 対象3軸＝束の立場×向き・他軸＝旧束の値の力加重平均（フォールバック）。gate=0（束が空）は常に0。</summary>
-    public static double PettyStance(World w, PolicyAxis a, bool increasing)
+    public static double PettyStance(World w, PolicyAxis a, bool increasing) => PettyStance(w, a, increasing, Build(w));
+
+    /// <summary>同じ瞬間の <see cref="Build"/> を渡す読み口（<see cref="Profile"/> の注記）。</summary>
+    internal static double PettyStance(World w, PolicyAxis a, bool increasing, in Profile e)
     {
-        var e = Build(w);
         double pw = e.PettyPowerModern + e.PettyPowerMass;
         if (pw <= 0) return 0;
         return PettyNet(w, a, increasing ? 1 : -1, e) / pw;
@@ -571,7 +579,7 @@ public static class PolicyPreferences
     {
         var e = Build(w);
         double sign = increasing ? 1 : -1;
-        return (Pref(a, 0, e, w) * sign, Pref(a, 1, e, w) * sign, Pref(a, 2, e, w) * sign, NetSupport(w, a, increasing));
+        return (Pref(a, 0, e, w) * sign, Pref(a, 1, e, w) * sign, Pref(a, 2, e, w) * sign, NetSupport(w, a, increasing, e));   // ★同じ瞬間の e を渡す（(146)＝旧は純支持の中で Build をもう1回）
     }
 
     // SupportRate は第3段3-3（2026-07-27）で削除＝呼び出し元ゼロ・Build(w) の4つ目の重複実行を抱えていた死蔵（改革支持の表示は法律タブの段階ボタン/StageHintへ移行済み）。
@@ -614,9 +622,11 @@ public static class PolicyPreferences
     }
 
     /// <summary>その向きの変更への純支持（賛成勢力−反対勢力）。正なら法整備が一歩通る／スライダーが動く。</summary>
-    public static double NetSupport(World w, PolicyAxis a, bool increasing)
+    public static double NetSupport(World w, PolicyAxis a, bool increasing) => NetSupport(w, a, increasing, Build(w));
+
+    /// <summary>同じ瞬間の <see cref="Build"/> を渡す読み口（<see cref="Profile"/> の注記）。</summary>
+    internal static double NetSupport(World w, PolicyAxis a, bool increasing, in Profile e)
     {
-        var e = Build(w);
         double sign = increasing ? 1 : -1;
         double sum = 0;
         // ★議会の二重票の是正（ParliamentStreetSupersede・2026-08-31）：党の選好表＝ブロックの選好表なので、

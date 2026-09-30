@@ -46,6 +46,40 @@ public class NationIdentityTests
         Assert.Equal("北ドイツ連邦", prussia.Name);
     }
 
+    /// <summary>★従属国の列挙の近道（2026-10-01 (146) 計算量の予算・恒等）：<see cref="Diplomacy.DependentsOf"/> は、宗主として1本も鍵を張っていない国なら
+    /// 国の並びを走査せずに空を返す。答えは定義（国の並びの順に「宗主→その国」の鍵がある国＝旧の走査）と同じであること
+    /// ＝張る・宗主の付け替え・外す・国の除去の後も。⚠近道の判定（鍵の上位32ビット＝宗主）を誤ると、従属を持つ宗主が空を返す＝ここで落ちる。</summary>
+    [Fact]
+    public void 従属国の列挙は定義どおりで宗主の鍵が無い国は空()
+    {
+        var sim = new MultiNationSim(Pick("プロイセン", "ライン諸邦", "ザクセン", "ハノーファー", "オーストリア"), 17UL, _ => new NullAgent());
+        var d = sim.Diplomacy;
+        Power P(string n) => d.Powers.First(p => p.BaseName == n);
+        void Same()
+        {
+            foreach (var s in d.Powers)
+                Assert.Equal(d.Powers.Where(x => d.IsDependentOf(s, x)).ToList(), d.DependentsOf(s).ToList());   // 旧の走査の定義そのもの
+        }
+        Same();
+        foreach (var s in d.Powers) Assert.Empty(d.DependentsOf(s));   // 開幕＝従属なし
+        d.SetDependency(P("プロイセン"), P("ハノーファー"));
+        d.SetDependency(P("プロイセン"), P("ライン諸邦"));
+        d.SetDependency(P("オーストリア"), P("ザクセン"));
+        Same();
+        var expect = d.Powers.Where(x => x.BaseName is "ライン諸邦" or "ハノーファー").ToList();   // 国の並びの順（張った順ではない）
+        Assert.Equal(expect, d.DependentsOf(P("プロイセン")).ToList());
+        Assert.Empty(d.DependentsOf(P("ハノーファー")));   // 従属国は宗主ではない（鍵の下位32ビットに居るだけ）
+        d.SetDependency(P("オーストリア"), P("ハノーファー"));   // 宗主の付け替え（従属は1宗主のみ）
+        Same();
+        d.RemoveDependency(P("オーストリア"), P("ザクセン"));
+        d.RemoveDependency(P("オーストリア"), P("ハノーファー"));
+        Same();
+        Assert.Empty(d.DependentsOf(P("オーストリア")));
+        d.RemovePower(P("ライン諸邦"), sim.Coef);   // 国の除去＝その国の鍵を掃除して並びから外す
+        Same();
+        Assert.Empty(d.DependentsOf(P("プロイセン")));
+    }
+
     [Fact]
     public void UI変体パネルの源_プロイセンは4つの変体を進捗つきで名乗れる()
     {

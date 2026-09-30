@@ -130,6 +130,11 @@ public static class ProductionDiag
     /// 個体は <see cref="FindProducer"/> の1本＝レシピ1本ぶん（代替レシピを全部見るのは <see cref="ExplainCostByRecipe"/>）。</summary>
     public static CostParts ExplainCost(World w, Region region, int goodId) => CostOf(w, region, FindProducer(w, region, goodId), goodId);
 
+    /// <summary>呼び手が <see cref="FindProducer"/> の答え（<paramref name="region"/> でその財を作る先頭の個体）を既に持っているときの読み口＝上と同じ分解
+    /// （2026-10-01 (146) 計算量の予算・恒等＝AI の着工の判断〔連鎖の目〕が州の生産者を先頭から回しながら候補ごとに探し直していた）。
+    /// ⚠<paramref name="first"/> は必ず「<paramref name="region"/> の生産者の並びでその財を作る最初の個体」であること（違う個体を渡すと別のレシピの分解になる）。</summary>
+    internal static CostParts ExplainCost(World w, Region region, Producer first) => CostOf(w, region, (region, first), first.GoodId);
+
     /// <summary>同じ財の**レシピごと**の生産コスト分解（作者要望2026-09-07 (3)「複数レシピがある場合、生産コストを分ける」）。
     /// 代替レシピ（肥料＝グアノ／ハーバーボッシュ／堆肥、電力＝石炭火力／石油火力／水力発電、鋼＝坩堝鋼／転炉…）は
     /// 同一 GoodId の**別 Producer 実体**＝<see cref="ExplainCost"/> はその1個体しか見ない。

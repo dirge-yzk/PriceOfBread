@@ -718,6 +718,15 @@ public static class Government
     /// cost＝押し切りに要する政治資本（純支持が負の分×消費率。正なら0）。reason＝不可/前提不足の説明（可なら空）。</summary>
     public static (bool Ok, double Cost, string Reason) GateInfo(World w, PolicyAxis a, bool increasing, int targetLevel)
     {
+        PolicyPreferences.Profile? none = null;
+        return GateInfo(w, a, increasing, targetLevel, ref none);
+    }
+
+    /// <summary>★立場の土台（<see cref="PolicyPreferences.Build"/>）を呼び手と分け合う読み口（2026-10-01 (146) 計算量の予算・恒等）：
+    /// <paramref name="shared"/> が空なら純支持を読むときに1回だけ取って入れ、次の照会はそれを使う＝**間に立場の土台の入力を書かない呼び手だけ**が渡す
+    /// （AI の法目標の整形 UtilityAgent.GateAllLawTargets＝法目標〔NationPolicy〕を書くだけ・軍事費の目標の書き込みは最後の照会の後）。</summary>
+    internal static (bool Ok, double Cost, string Reason) GateInfo(World w, PolicyAxis a, bool increasing, int targetLevel, ref PolicyPreferences.Profile? shared)
+    {
         // ★段（R1/R2・2026-09-12）：段になった財政の軸だけは**下げる側でも**前提を照会する＝床（緊縮の逆進フロア・軍事費の最下段）が
         //   「押せない段」として上下とも同じ1本（LawPrereq）から出る。他の軸は従来どおり上げる時だけ。
         if (increasing || FiscalStagedAxis(a))
@@ -734,7 +743,7 @@ public static class Government
         //   ＝施行側は弁で開いているのに、AIが目標を「通らない」と判断して現行法へ畳む→法が永久に動かない
         //   （実測＝聖職者の世俗化テストで日本の教育法が400四半期 Religious のまま・reason「政治資本が届かず否決」net≈−0.8）。
         //   実ゲームは常に true＝挙動不変。弁の意味論（政治的可否と直交な機構の単体検証）を施行・スライダー・照会で揃える。
-        double net = w.PoliticalLockEnabled ? PolicyPreferences.NetSupport(w, a, increasing) : 1.0;
+        double net = w.PoliticalLockEnabled ? PolicyPreferences.NetSupport(w, a, increasing, shared ??= PolicyPreferences.Build(w)) : 1.0;
         double costMul = ReversalCostMul(w, a, Regressive(a, increasing));   // §13：照会も施行と同じ倍率
         double cost = net < 0 ? -net * w.Coef.MandateSpendRate * costMul : 0;   // 上限廃止（2026-07-26ユーザー裁定）：反対が強いほど青天井に高くつく
         bool ok = net > -MandateMargin(w, a, targetLevel) / costMul;
@@ -783,9 +792,12 @@ public static class Government
     {
         if (Math.Abs(target - cur) < 1e-12) return cur;
         bool increasing = target > cur;
-        double net = w.PoliticalLockEnabled ? PolicyPreferences.NetSupport(w, a, increasing) : 1.0;   // ロック無効（財政機構の単体テスト）＝ゲート/消費とも不発の番人値
+        // ★純支持と反対の力は同じ瞬間の立場の土台を読む＝Build は1回（2026-10-01 (146) 計算量の予算・恒等）：この2つの間は何も書かない（余白の照会だけ）。
+        //   旧＝それぞれが Build（POP の数回の走査）を取った＝全長の1種で約24万回（Build の20%）。
+        var e = PolicyPreferences.Build(w);
+        double net = w.PoliticalLockEnabled ? PolicyPreferences.NetSupport(w, a, increasing, e) : 1.0;   // ロック無効（財政機構の単体テスト）＝ゲート/消費とも不発の番人値
         if (!(net > -(mandate ? MandateMargin(w, a, -1) : 0))) return cur;   // ★否定形（2026-09-21 ㉖）＝NaN の押しは動かさない（旧 `<=` は NaN で素通りし、下の `net < 0` も偽＝無償で動いた）。純反対＝その向きへロック（mandate=false の機械追従だけ。政策の押しは MandateMargin=+∞ で倒れず下の在庫で払う）。スライダーは段の概念がない＝targetLevel=−1（憲法級の段判定に掛からない）
-        double resist = PolicyPreferences.OpposingPower(w, a, increasing);
+        double resist = PolicyPreferences.OpposingPower(w, a, increasing, e);
         // P1-C 予算闘争（憲法紛争1862型）：非協力的な議会（CoopParliamentCrown<0）×高い統制力＝予算軸（所得税）のスライダーが
         // 議会の拒否で動きにくい。免責＝協力度は紛争記憶（MandateSpent）の減衰と議席の構成の変化で回復（2026-09-26 回5-1 Q16＝旧「与党交代」）。既定0で恒等。
         // 機能2-1（2026-07-28）：予算協賛の対象を所得税のみ→全税軸へ（旗 ParliamentBudgetScope は 2026-09-26 に焼き込み）。議会の同意なしに予算（歳入構成）は動かない

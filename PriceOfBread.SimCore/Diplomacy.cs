@@ -445,6 +445,12 @@ public sealed class Diplomacy
     }
     public IEnumerable<Power> DependentsOf(Power suzerain)
     {
+        // ★宗主として1本も張っていない国は国の並びを走査しない（2026-10-01 (146) 計算量の予算・恒等）：鍵の上位32ビットは宗主の Id（DirKey）
+        //   ＝この国を宗主とする鍵が1つも無ければ、下の走査の Contains は全ての国で偽＝何も返さない（同じ答え）。鍵がある国は旧の走査のまま（国の並びの順）。
+        //   旧＝全長の1種で約1,200万回×国の数（約10億回の Contains）＝覇権の判定（国×国）・変名の領有・陣営戦力ほかの読み手の大半は従属を持たない国。
+        bool any = false;
+        foreach (long k in _dependency) if ((int)(k >> 32) == suzerain.Id) { any = true; break; }
+        if (!any) yield break;
         foreach (var d in Powers) if (_dependency.Contains(DirKey(suzerain, d))) yield return d;
     }
     /// <summary>二国に宗主-従属の関係があるか（どちら向きでも）。</summary>

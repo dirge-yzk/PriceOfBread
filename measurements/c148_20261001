@@ -1,0 +1,371 @@
+# (146) 計算量の予算の恒等の手（線2 後半・枝 soldier・2026-10-01）＝census・計算量の測り・検証の生の表
+# 腕A＝(145) のコミット 8a3e097（SOURCE-HASH aafe007a11aa8959・10種 b10_20261001_sol）／この回＝SOURCE-HASH 53080ffa0a193679（10種 b10_20261001_c148・コミットの木との差は番人のテスト1本〔PolicyPoliticsTests の盤面〕だけ）
+
+## 1. 帯の恒等（10種・計器なし・単独）
+b10_20261001_c148 と b10_20261001_sol は全181行バイト一致（sha1 aa041c6b72b4d46882e4bf2934c749b9ac0eb866）。計算量の計数16本（既存）は10種の1試合の平均で1件も違わない。
+
+## 2. 計算量（10種の .cost＝この回）
+# 計算量の測り（selfplay-batch）＝帯の報告とは別のファイル（件数と CPU 秒は揺れる・報告の全行バイト一致の検証を壊さないためここだけに書く）
+条件: seeds 1..10（10種）・各668四半期（助走を含む）・SOURCE-HASH 53080ffa0a193679・論理コア 16・サーバーGC True
+実測: 1試合あたりの CPU 432.5 秒（プロセスの CPU 4324.5 秒÷10種）・バッチの壁 362.9 秒・バッチの CPU 4324.3 秒（平均 11.92 コア）
+負荷: 系の稼働（平均）84.6 %・他のプロセスが使ったコア（平均）1.62（⚠他の測りと重なると1試合の CPU 秒は膨らむ＝記録だけ）
+計数（1試合の平均・助走を含む）:
+  名前	件数	単価（µs）	推定（秒）
+  価格：財の歩（州×財×旬）	186949641	0.24025	44.91
+  価格：日次の写像の回	188400114	0.14406	27.14
+  建設：見た生産者（旬）	323278	0.01300	0.00
+  信用：国×旬	401592	2.58278	1.04
+  消費：POP×財（月）	364408539	0.03012	10.98
+  生産：生産者×月	102659613	0.45650	46.86
+  請求：見た生産者（月）	1241109	0.03490	0.04
+  月次：POP×月（決算の残り）	8538964	1.73157	14.79
+  清算：見た買い手行	71382608	0.19264	13.75
+  清算：着値の充填	405846200	0.11034	44.78
+  外交：国×月	172288	84.89478	14.63
+  外交：覇権の判定の国×国	192554186	0.00470	0.91
+  四半期首：POP×国（AI・議会・政府）	2846321	3.36578	9.58
+  四半期末：POP×国	2846321	1.05863	3.01
+  共有層：国×四半期（国力・移民・国際金融ほか）	44621	110.34900	4.92
+  GDP：州×生産者の和（取り直した分）	103824096	0.01550	1.61
+  移民：州×州の組（国内・越境）	77547830	0.01671	1.30
+推定の計算量（1試合）: 240.3 秒　覆う割合（推定÷実測の CPU）: 55.6 %（★下がったら数えていない重い処理が増えた合図）
+予算: 上限（推定）248.5 秒（許し +2 %＝253.5 秒）・目標 1試合の CPU 387 秒（バッチの条件）＝推定の単位で 248.5 秒（上限を置いたときの覆う割合 64.2 %）
+判定: 予算の内（目標にも届いた＝推定 240.3 ≦ 目標 248.5 秒・余りは機能が使ってよい）
+忠実度の種ごとの値（止める規則＝README §1-2）:
+  seed1	exact 54.1	near 83.6
+  seed2	exact 47.5	near 82.0
+  seed3	exact 55.7	near 82.0
+  seed4	exact 49.2	near 78.7
+  seed5	exact 54.1	near 85.2
+  seed6	exact 50.8	near 80.3
+  seed7	exact 47.5	near 78.7
+  seed8	exact 44.3	near 75.4
+  seed9	exact 50.8	near 82.0
+  seed10	exact 55.7	near 86.9
+揺れ: 10種の平均 exact 51.0（標準誤差 1.2pt）・near 81.5（標準誤差 1.1pt）＝線から標準誤差の2倍（exact 2.5・near 2.1pt）以上離れていれば10種を回さずに決めてよい
+
+## 3. census（種1全長・計器つき・腕A→この回を続けて単独で＝同じ負荷の組・scratchpad/c148/inj_c1.py）
+### 腕A（c6_A）
+区間	回	時間（秒・入れ子を含む）
+四半期首	45278	17.654
+四半期末	45278	4.192
+月次決算	135834	86.101
+EconomyStep.Run	656937	65.159
+共有層の塊	688	39.824
+外交	2004	14.986
+国際市場（四半期末）	688	18.948
+覇権の判定	28778	2.809
+関数	区間	回	時間（秒）
+PolicyPreferences.Build	四半期首	1187657	4.936
+PolicyPreferences.Build	四半期末	576	0.003
+PolicyPreferences.Build	計	1188233	4.939
+InterestGroups.BlocsSplit	四半期首	1326780	3.197
+InterestGroups.BlocsSplit	四半期末	100310	0.241
+InterestGroups.BlocsSplit	月次決算	135834	0.379
+InterestGroups.BlocsSplit	外交	363	0.002
+InterestGroups.BlocsSplit	計	1563287	3.819
+Formations.Check	外交	668	2.309
+Formations.Check	計	668	2.309
+World.AdminEfficiency	四半期首	45278	0.039
+World.AdminEfficiency	四半期末	173096	0.059
+World.AdminEfficiency	月次決算	271668	0.114
+World.AdminEfficiency	EconomyStep.Run	656937	0.999
+World.AdminEfficiency	共有層の塊	45278	0.031
+World.AdminEfficiency	区間の外	496	0.000
+World.AdminEfficiency	計	1192753	1.242
+World.EthnicUnity	四半期首	20864	0.018
+World.EthnicUnity	四半期末	165830	0.063
+World.EthnicUnity	月次決算	125184	0.056
+World.EthnicUnity	EconomyStep.Run	283494	0.395
+World.EthnicUnity	共有層の塊	64903	0.043
+World.EthnicUnity	外交	176232	0.161
+World.EthnicUnity	区間の外	432	0.000
+World.EthnicUnity	計	836939	0.736
+FactionSnapshot.ComputeDemands	四半期首	2857	1.457
+FactionSnapshot.ComputeDemands	四半期末	2	0.002
+FactionSnapshot.ComputeDemands	計	2859	1.459
+World.Gdp	四半期首	1284672	0.063
+World.Gdp	四半期末	135190	0.009
+World.Gdp	月次決算	156470	1.014
+World.Gdp	共有層の塊	228995	0.066
+World.Gdp	外交	69299	0.042
+World.Gdp	区間の外	276111	0.069
+World.Gdp	計	2150737	1.262
+Territory.Step	月次決算	132174	0.749
+Territory.Step	計	132174	0.749
+MultiNationSim.MigrateBetweenNations	共有層の塊	668	0.754
+MultiNationSim.MigrateBetweenNations	計	668	0.754
+四半期首：AI.DecideQuarter	四半期首	45278	12.624
+四半期首：AI.DecideQuarter	計	45278	12.624
+四半期首：Parliament.Step	四半期首	45278	1.649
+四半期首：Parliament.Step	計	45278	1.649
+四半期首：ApplyModernizationInvestment	四半期首	45278	0.073
+四半期首：ApplyModernizationInvestment	計	45278	0.073
+四半期首：Government.Step	四半期首	45278	3.230
+四半期首：Government.Step	計	45278	3.230
+AI：ChooseStance	四半期首	45278	1.824
+AI：ChooseStance	計	45278	1.824
+AI：Apply	四半期首	45278	2.893
+AI：Apply	計	45278	2.893
+AI：TryTradeBias	四半期首	45278	0.609
+AI：TryTradeBias	計	45278	0.609
+AI：TryBuildFacility	四半期首	45278	6.170
+AI：TryBuildFacility	計	45278	6.170
+AI：StartMegaproject	四半期首	45278	0.018
+AI：StartMegaproject	計	45278	0.018
+AI：ReactProtectiveTariff	四半期首	45278	0.073
+AI：ReactProtectiveTariff	計	45278	0.073
+着工：ExplainCost	四半期首	13396701	2.862
+着工：ExplainCost	計	13396701	2.862
+着工：FacilityBuildScore	四半期首	20224964	0.583
+着工：FacilityBuildScore	計	20224964	0.583
+着工：前の走査（バッファ＋工事）	四半期首	40965	0.599
+着工：前の走査（バッファ＋工事）	計	40965	0.599
+着工：FiscalBufferOf	四半期首	43190	0.001
+着工：FiscalBufferOf	計	43190	0.001
+DependentsOf の呼び出し 11976612・国の数の和 1044327610・従属の鍵の数の和 432479189
+Build の呼び出し 1188233・見た POP 77202333
+Build の呼び手（1/32 の標本×32）
+484352	Government.Move < Government.Step < Simulation.QuarterStart
+201024	Parliament.BuildElectionEvent < Parliament.Step < Simulation.QuarterStart
+134784	Government.GateInfo < UtilityAgent.GateAllLawTargets < UtilityAgent.Apply
+127232	Government.MandateGate < Government.StepLevel < Government.Step
+100544	FactionSnapshot.ComputeDemandsCore < Parliament.BuildElectionEvent < Parliament.Step
+41792	Government.GateInfo < <>c__DisplayClass49_0.<GateAllLawTargets>g__GateTax|24 < UtilityAgent.GateAllLawTargets
+32992	Government.MandateGate < <>c.<.cctor>b__49_41 < Government.Step
+23136	Government.GateInfo < UtilityAgent.GateLaw < UtilityAgent.GateAllLawTargets
+10272	Government.GateInfo < UtilityAgent.Apply < UtilityAgent.DecideQuarter
+7424	FactionSnapshot.ComputeDemandsCore < FactionSnapshot.ComputeDemands < Parliament.BuildElectionEvent
+6080	Government.GateInfo < UtilityAgent.StepLawToward < UtilityAgent.Apply
+4480	Government.GateInfo < Parliament.TargetDemand < Parliament.TargetCrisisDemands
+4448	FactionSnapshot.ComputeDemands < Parliament.BuildElectionEvent < Parliament.Step
+3680	PolicyPreferences.Stance < FactionSnapshot.ComputeDemandsCore < FactionSnapshot.ComputeDemands
+2496	PolicyPreferences.NetSupport < Government.GateInfo < UtilityAgent.GateLaw
+1344	PolicyPreferences.OpposingPower < Government.Move < Government.Step
+384	Government.MandateGate < Government.StepLevel < <>c.<.cctor>b__49_41
+288	PolicyPreferences.Stance < UtilityAgent.DecideElection < Parliament.Step
+288	UtilityAgent.DecideElection < Parliament.Step < Simulation.QuarterStart
+288	Parliament.<TargetDemand>g__StepTo|11_0 < Parliament.TargetDemand < Parliament.TargetCrisisDemands
+192	Government.GateInfo < Parliament.TargetDemand < Politics.CheckRegionalRevolt
+128	PolicyPreferences.NetSupport < Government.GateInfo < UtilityAgent.StepLawToward
+128	FactionSnapshot.ComputeDemands < Politics.RecordCrisisDemands < Politics.CrisisThroughLawPath
+128	FactionSnapshot.ComputeDemands < Parliament.TargetCrisisDemands < UtilityAgent.Apply
+64	Government.GateInfo < Parliament.<TargetDemand>g__StepTo|11_0 < Parliament.TargetDemand
+64	FactionSnapshot.ComputeDemandsCore < FactionSnapshot.ComputeDemands < Politics.RecordCrisisDemands
+64	FactionSnapshot.ComputeDemandsCore < FactionSnapshot.ComputeDemands < Parliament.TargetCrisisDemands
+32	Government.GateInfo < UtilityAgent.DecideModernLaws < UtilityAgent.Apply
+32	Government.MandateGate < <>c.<.cctor>b__49_60 < Government.Step
+32	Government.MandateGate < <>c.<.cctor>b__49_12 < Government.Step
+32	Parliament.<TargetDemand>g__StepTo|11_0 < Parliament.TargetDemand < Politics.CheckRegionalRevolt
+### この回（c6_B）
+区間	回	時間（秒・入れ子を含む）
+四半期首	45278	13.329
+四半期末	45278	4.206
+月次決算	135834	86.413
+EconomyStep.Run	656937	64.940
+共有層の塊	688	37.606
+外交	2004	11.687
+国際市場（四半期末）	688	19.957
+覇権の判定	28778	1.277
+関数	区間	回	時間（秒）
+PolicyPreferences.Build	四半期首	491861	2.162
+PolicyPreferences.Build	四半期末	374	0.002
+PolicyPreferences.Build	計	492235	2.163
+InterestGroups.BlocsSplit	四半期首	630984	1.579
+InterestGroups.BlocsSplit	四半期末	100108	0.242
+InterestGroups.BlocsSplit	月次決算	135834	0.394
+InterestGroups.BlocsSplit	外交	363	0.002
+InterestGroups.BlocsSplit	計	867289	2.217
+Formations.Check	外交	668	0.183
+Formations.Check	計	668	0.183
+World.AdminEfficiency	四半期首	45278	0.036
+World.AdminEfficiency	四半期末	173096	0.060
+World.AdminEfficiency	月次決算	271668	0.111
+World.AdminEfficiency	EconomyStep.Run	656937	1.018
+World.AdminEfficiency	共有層の塊	45278	0.035
+World.AdminEfficiency	区間の外	496	0.000
+World.AdminEfficiency	計	1192753	1.261
+World.EthnicUnity	四半期首	20864	0.017
+World.EthnicUnity	四半期末	165830	0.064
+World.EthnicUnity	月次決算	125184	0.053
+World.EthnicUnity	EconomyStep.Run	283494	0.415
+World.EthnicUnity	共有層の塊	64903	0.059
+World.EthnicUnity	外交	176232	0.174
+World.EthnicUnity	区間の外	432	0.000
+World.EthnicUnity	計	836939	0.781
+FactionSnapshot.ComputeDemands	四半期首	2857	0.084
+FactionSnapshot.ComputeDemands	四半期末	2	0.000
+FactionSnapshot.ComputeDemands	計	2859	0.084
+World.Gdp	四半期首	588876	0.035
+World.Gdp	四半期末	134988	0.010
+World.Gdp	月次決算	156470	1.067
+World.Gdp	共有層の塊	228995	0.070
+World.Gdp	外交	69299	0.041
+World.Gdp	区間の外	276111	0.067
+World.Gdp	計	1454739	1.288
+Territory.Step	月次決算	132174	0.762
+Territory.Step	計	132174	0.762
+MultiNationSim.MigrateBetweenNations	共有層の塊	668	0.799
+MultiNationSim.MigrateBetweenNations	計	668	0.799
+四半期首：AI.DecideQuarter	四半期首	45278	10.496
+四半期首：AI.DecideQuarter	計	45278	10.496
+四半期首：Parliament.Step	四半期首	45278	0.285
+四半期首：Parliament.Step	計	45278	0.285
+四半期首：ApplyModernizationInvestment	四半期首	45278	0.076
+四半期首：ApplyModernizationInvestment	計	45278	0.076
+四半期首：Government.Step	四半期首	45278	2.401
+四半期首：Government.Step	計	45278	2.401
+AI：ChooseStance	四半期首	45278	1.871
+AI：ChooseStance	計	45278	1.871
+AI：Apply	四半期首	45278	2.187
+AI：Apply	計	45278	2.187
+AI：TryTradeBias	四半期首	45278	0.592
+AI：TryTradeBias	計	45278	0.592
+AI：TryBuildFacility	四半期首	45278	5.247
+AI：TryBuildFacility	計	45278	5.247
+AI：StartMegaproject	四半期首	45278	0.019
+AI：StartMegaproject	計	45278	0.019
+AI：ReactProtectiveTariff	四半期首	45278	0.082
+AI：ReactProtectiveTariff	計	45278	0.082
+着工：ExplainCost	四半期首	13396701	1.715
+着工：ExplainCost	計	13396701	1.715
+着工：FacilityBuildScore	四半期首	20224964	0.592
+着工：FacilityBuildScore	計	20224964	0.592
+着工：前の走査（バッファ＋工事）	四半期首	40965	0.619
+着工：前の走査（バッファ＋工事）	計	40965	0.619
+着工：FiscalBufferOf	四半期首	43190	0.001
+着工：FiscalBufferOf	計	43190	0.001
+DependentsOf の呼び出し 7057123・国の数の和 616152472・従属の鍵の数の和 258112464
+Build の呼び出し 492235・見た POP 31286320
+Build の呼び手（1/32 の標本×32）
+259008	Government.Step < Simulation.QuarterStart < Simulation.StepDayOpen
+126112	Government.StepLevel < Government.Step < Simulation.QuarterStart
+44672	Government.GateInfo < UtilityAgent.GateAllLawTargets < UtilityAgent.Apply
+33312	<>c.<.cctor>b__50_41 < Government.Step < Simulation.QuarterStart
+10176	Government.GateInfo < UtilityAgent.Apply < UtilityAgent.DecideQuarter
+6080	Government.GateInfo < UtilityAgent.StepLawToward < UtilityAgent.Apply
+2944	Parliament.Step < Simulation.QuarterStart < Simulation.StepDayOpen
+2656	Parliament.TargetDemand < Parliament.TargetCrisisDemands < UtilityAgent.Apply
+1888	Government.GateInfo < Parliament.TargetDemand < Parliament.TargetCrisisDemands
+1760	PolicyPreferences.NetSupport < Government.MandateGate < Government.StepLevel
+1376	Government.Move < Government.Step < Simulation.QuarterStart
+480	Parliament.<TargetDemand>g__StepTo|11_0 < Parliament.TargetDemand < Parliament.TargetCrisisDemands
+448	Government.GateInfo < UtilityAgent.GateLaw < UtilityAgent.GateAllLawTargets
+288	UtilityAgent.DecideElection < Parliament.Step < Simulation.QuarterStart
+192	Government.GateInfo < Government.GateInfo < UtilityAgent.StepLawToward
+160	Government.GateInfo < Parliament.TargetDemand < Politics.CheckRegionalRevolt
+160	Government.GateInfo < <>c__DisplayClass49_0.<GateAllLawTargets>g__GateTax|24 < UtilityAgent.GateAllLawTargets
+128	PolicyPreferences.Stance < UtilityAgent.DecideElection < Parliament.Step
+96	Parliament.TargetDemand < Politics.CheckRegionalRevolt < Politics.Step
+64	Government.GateInfo < UtilityAgent.DecideModernLaws < UtilityAgent.Apply
+64	<>c.<.cctor>b__50_60 < Government.Step < Simulation.QuarterStart
+64	World.ResolveElection < Parliament.Step < Simulation.QuarterStart
+32	Government.GateInfo < Government.GateInfo < Parliament.<TargetDemand>g__StepTo|11_0
+32	World.ResolveElection < UtilityAgent.DecideElection < Parliament.Step
+32	FactionSnapshot.ComputeDemands < Parliament.BuildElectionEvent < Parliament.Step
+
+## 4. 種1全長の .cost（この回・計器なし・単独・単価を置き直す前）
+# 計算量の測り（selfplay-batch）＝帯の報告とは別のファイル（件数と CPU 秒は揺れる・報告の全行バイト一致の検証を壊さないためここだけに書く）
+条件: seeds 1..1（1種）・各668四半期（助走を含む）・SOURCE-HASH （measure.sh の外）・論理コア 16・サーバーGC True
+実測: 1試合あたりの CPU 293.4 秒（プロセスの CPU 293.4 秒÷1種）・バッチの壁 213.1 秒・バッチの CPU 293.1 秒（平均 1.38 コア）
+負荷: 系の稼働（平均）15.0 %・他のプロセスが使ったコア（平均）1.02（⚠他の測りと重なると1試合の CPU 秒は膨らむ＝記録だけ）
+計数（1試合の平均・助走を含む）:
+  名前	件数	単価（µs）	推定（秒）
+  価格：財の歩（州×財×旬）	188026749	0.24025	45.17
+  価格：日次の写像の回	184096152	0.14406	26.52
+  建設：見た生産者（旬）	331344	0.01300	0.00
+  信用：国×旬	407502	2.58278	1.05
+  消費：POP×財（月）	366231762	0.03012	11.03
+  生産：生産者×月	102673845	0.45650	46.87
+  請求：見た生産者（月）	1515993	0.03490	0.05
+  月次：POP×月（決算の残り）	8540181	1.79528	15.33
+  清算：見た買い手行	71373707	0.19264	13.75
+  清算：着値の充填	412740934	0.11034	45.54
+  外交：国×月	174258	99.30487	17.30
+  外交：覇権の判定の国×国	219383111	0.01035	2.27
+  四半期首：POP×国（AI・議会・政府）	2846727	4.45657	12.69
+  四半期末：POP×国	2846727	1.05863	3.01
+  共有層：国×四半期（国力・移民・国際金融ほか）	45278	127.42606	5.77
+  GDP：州×生産者の和（取り直した分）	104011981	0.01550	1.61
+  移民：州×州の組（国内・越境）	78843627	0.00000	0.00
+推定の計算量（1試合）: 248.0 秒　覆う割合（推定÷実測の CPU）: 84.5 %（★下がったら数えていない重い処理が増えた合図）
+予算: 上限（推定）248.5 秒（許し +2 %＝253.5 秒）・目標 1試合の CPU 387 秒（バッチの条件）＝推定の単位で 248.5 秒（上限を置いたときの覆う割合 64.2 %）
+判定: 予算の内（目標にも届いた＝推定 248.0 ≦ 目標 248.5 秒・余りは機能が使ってよい）
+忠実度の種ごとの値（止める規則＝README §1-2）:
+  seed1	exact 54.1	near 83.6
+揺れ: 1種の平均 exact 54.1（標準誤差 NaNpt）・near 83.6（標準誤差 NaNpt）＝線から標準誤差の2倍（exact NaN・near NaNpt）以上離れていれば10種を回さずに決めてよい
+
+## 5. 40四半期の計数（番人の表の道・腕A とこの回）
+### 腕A
+# 計算量の測り（selfplay-batch）＝帯の報告とは別のファイル（件数と CPU 秒は揺れる・報告の全行バイト一致の検証を壊さないためここだけに書く）
+条件: seeds 1..1（1種）・各40四半期（助走を含む）・SOURCE-HASH （measure.sh の外）・論理コア 16・サーバーGC True
+実測: 1試合あたりの CPU 28.7 秒（プロセスの CPU 28.7 秒÷1種）・バッチの壁 18.4 秒・バッチの CPU 28.5 秒（平均 1.54 コア）
+負荷: 系の稼働（平均）17.8 %・他のプロセスが使ったコア（平均）1.31（⚠他の測りと重なると1試合の CPU 秒は膨らむ＝記録だけ）
+計数（1試合の平均・助走を含む）:
+  名前	件数	単価（µs）	推定（秒）
+  価格：財の歩（州×財×旬）	13321290	0.24025	3.20
+  価格：日次の写像の回	25272995	0.14406	3.64
+  建設：見た生産者（旬）	7720	0.01300	0.00
+  信用：国×旬	33210	2.58278	0.09
+  消費：POP×財（月）	28584114	0.03012	0.86
+  生産：生産者×月	8494380	0.45650	3.88
+  請求：見た生産者（月）	2721	0.03490	0.00
+  月次：POP×月（決算の残り）	706680	1.79528	1.27
+  清算：見た買い手行	5219466	0.19264	1.01
+  清算：着値の充填	27345660	0.11034	3.02
+  外交：国×月	9930	99.30487	0.99
+  外交：覇権の判定の国×国	2175698	0.01035	0.02
+  四半期首：POP×国（AI・議会・政府）	235560	4.45657	1.05
+  四半期末：POP×国	235560	1.05863	0.25
+  共有層：国×四半期（国力・移民・国際金融ほか）	3690	127.42606	0.47
+  GDP：州×生産者の和（取り直した分）	8608745	0.01550	0.13
+推定の計算量（1試合）: 19.9 秒　覆う割合（推定÷実測の CPU）: 69.2 %（★下がったら数えていない重い処理が増えた合図）
+予算: 上限（推定）248.5 秒（許し +2 %＝253.5 秒）・目標 1試合の CPU 387 秒（バッチの条件）＝推定の単位で 248.5 秒（上限を置いたときの覆う割合 64.2 %）
+判定: 予算の内（目標にも届いた＝推定 19.9 ≦ 目標 248.5 秒・余りは機能が使ってよい）
+忠実度の種ごとの値（止める規則＝README §1-2）:
+  seed1	exact 45.9	near 83.6
+揺れ: 1種の平均 exact 45.9（標準誤差 NaNpt）・near 83.6（標準誤差 NaNpt）＝線から標準誤差の2倍（exact NaN・near NaNpt）以上離れていれば10種を回さずに決めてよい
+### この回
+# 計算量の測り（selfplay-batch）＝帯の報告とは別のファイル（件数と CPU 秒は揺れる・報告の全行バイト一致の検証を壊さないためここだけに書く）
+条件: seeds 1..1（1種）・各40四半期（助走を含む）・SOURCE-HASH （measure.sh の外）・論理コア 16・サーバーGC True
+実測: 1試合あたりの CPU 28.8 秒（プロセスの CPU 28.8 秒÷1種）・バッチの壁 17.5 秒・バッチの CPU 28.5 秒（平均 1.63 コア）
+負荷: 系の稼働（平均）13.9 %・他のプロセスが使ったコア（平均）0.59（⚠他の測りと重なると1試合の CPU 秒は膨らむ＝記録だけ）
+計数（1試合の平均・助走を含む）:
+  名前	件数	単価（µs）	推定（秒）
+  価格：財の歩（州×財×旬）	13321290	0.24025	3.20
+  価格：日次の写像の回	25272995	0.14406	3.64
+  建設：見た生産者（旬）	7720	0.01300	0.00
+  信用：国×旬	33210	2.58278	0.09
+  消費：POP×財（月）	28584114	0.03012	0.86
+  生産：生産者×月	8494380	0.45650	3.88
+  請求：見た生産者（月）	2721	0.03490	0.00
+  月次：POP×月（決算の残り）	706680	1.73157	1.22
+  清算：見た買い手行	5219466	0.19264	1.01
+  清算：着値の充填	27345660	0.11034	3.02
+  外交：国×月	9930	84.89478	0.84
+  外交：覇権の判定の国×国	2175698	0.00470	0.01
+  四半期首：POP×国（AI・議会・政府）	235560	3.36578	0.79
+  四半期末：POP×国	235560	1.05863	0.25
+  共有層：国×四半期（国力・移民・国際金融ほか）	3690	110.34900	0.41
+  GDP：州×生産者の和（取り直した分）	8608745	0.01550	0.13
+  移民：州×州の組（国内・越境）	4191142	0.01671	0.07
+推定の計算量（1試合）: 19.4 秒　覆う割合（推定÷実測の CPU）: 67.5 %（★下がったら数えていない重い処理が増えた合図）
+予算: 上限（推定）248.5 秒（許し +2 %＝253.5 秒）・目標 1試合の CPU 387 秒（バッチの条件）＝推定の単位で 248.5 秒（上限を置いたときの覆う割合 64.2 %）
+判定: 予算の内（目標にも届いた＝推定 19.4 ≦ 目標 248.5 秒・余りは機能が使ってよい）
+忠実度の種ごとの値（止める規則＝README §1-2）:
+  seed1	exact 45.9	near 83.6
+揺れ: 1種の平均 exact 45.9（標準誤差 NaNpt）・near 83.6（標準誤差 NaNpt）＝線から標準誤差の2倍（exact NaN・near NaNpt）以上離れていれば10種を回さずに決めてよい
+
+## 6. 単価の導き（census の区間の比・移民の組の分け方）
+四半期首：POP×国 4.45657→3.36578＝×(1−減った割合 0.24476)＝変えた3つの部品の差（議会 1.649→0.285・政府 3.230→2.401・AI の判断 12.624→10.496＝計 4.321 秒）÷区間 17.654 秒（区間の差 4.325 秒と一致）
+外交：国×月 99.30487→84.89478＝×（外交−覇権の区間 10.410÷12.177＝0.85489）＝変名の判定 2.309→0.183 秒・残りの差 +0.36 秒は区間の揺れを含めて保守側に観測の比を使った
+外交：覇権の判定の国×国 0.01035→0.004705＝×（覇権の判定の時間 1.277÷2.809＝0.45461）＝従属国の列挙の近道
+月次：POP×月 1.79528→1.73157＝×(1−国内の移民〔Territory.Step 0.762 秒〕÷月次決算の残り 21.473 秒＝0.03549)
+共有層：国×四半期 127.42606→110.34900＝×(1−越境移民〔MigrateBetweenNations 0.799 秒〕÷共有層の残り 5.962 秒＝0.13402)
+移民：州×州の組 0.016708＝上の2本から外した推定（種1 の件数＝月次 8,540,181×1.79528µs×0.03549＋共有層 45,278×127.42606µs×0.13402＝1.3173 秒）÷種1全長の組 78,843,627
+参照の区間（変えていない）＝EconomyStep.Run 65.159→64.940・月次決算 86.101→86.413・四半期末 4.192→4.206（同じ負荷＝±0.5%）・国際市場 18.948→19.957（+5%＝揺れ）
+
+## 7. 検証
+突然変異（scratchpad/c148/mut.py・写しの木・新しい番人だけ）：M0 変異なし＝20本緑／M1 従属国の列挙の近道で鍵の下位32ビットを宗主と比べる＝赤／M2 要求の順位が旧支配層の選好を読む＝赤／M3 要求の順位の反対の力の向きを取り違える＝赤／M4 先頭の個体を渡す読み口が州の最後の個体を読む＝赤／M5 移民の組の計数を足さない＝計算量の番人の移民の行が赤
+フルスイート（Release・Category!=FullLength）＝1回目 892 合格・1 失敗（新しい番人の盤面の前提）→ 直して 893 合格・失敗0（6分59秒）／全長の保存則の番人（Category=FullLength）3 合格（4分15秒）
+savetest 1789 300 12＝OK・最大相対差 0.0E+000（全63カ国・保存 44.2MB）／leakhunt 1789 200＝保存則違反なし・世界の台帳の説明できない増減 人口0・基礎貨幣0（どちらも measure.sh・SOURCE-HASH 3a77ba83d667bbc5＝コミットの木）

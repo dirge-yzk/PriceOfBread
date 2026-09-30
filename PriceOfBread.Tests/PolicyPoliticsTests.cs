@@ -1878,4 +1878,66 @@ public class PolicyPoliticsTests
             default: Assert.Fail($"目標の置き方を知らない軸 {a}"); break;
         }
     }
+
+    /// <summary>★立場の土台を分け合う読み口（2026-10-01 (146) 計算量の予算・恒等）：同じ瞬間に <see cref="PolicyPreferences.Build"/> を1回だけ取って渡す読み口
+    /// （純支持・反対の力・小営業の立場・門の照会）は、旧の読み口（呼ぶたびに Build）とビット単位で同じ値を返す。
+    /// 要求の順位（<see cref="FactionSnapshot.ComputeDemands"/>＝Build を1回・自分のブロックの選好だけを読む）は、旧の式
+    /// （軸ごとに Stance の成分・小営業の立場・反対の力を照会して並べる）と同じ列を返す。
+    /// ⚠要求の順位が自分でないブロックの選好を読む・反対の力の向きを取り違える、と落ちる。</summary>
+    [Fact]
+    public void 立場の土台を分け合う読み口は旧の読み口と同じ値を返す()
+    {
+        var sim = new Simulation(NationConfig.Britain().ToScenario(1789), new UtilityAgent());
+        sim.Run(40);
+        var w = sim.World;
+        static long Bits(double x) => BitConverter.DoubleToInt64Bits(x);
+        // 旧の式（(145) までの ComputeDemands の本体そのもの）
+        static List<FactionSnapshot.Demand> Legacy(World w, int bloc, bool lawsOnly)
+        {
+            var list = new List<FactionSnapshot.Demand>();
+            foreach (var axis in FactionSnapshot.Axes)
+            {
+                if (axis == PolicyAxis.NationalizationAll) continue;
+                if (lawsOnly && FactionSnapshot.IsInstantAxis(axis)) continue;
+                var (trad, modern, mass, _) = PolicyPreferences.Stance(w, axis, increasing: true);
+                double prefInc = bloc == 0 ? trad : bloc == 1 ? modern : bloc == 2 ? mass : PolicyPreferences.PettyStance(w, axis, increasing: true);
+                bool increase = prefInc >= 0;
+                double score = Math.Abs(prefInc) * FactionSnapshot.Headroom(w, axis, increase);
+                if (w.Coef.FactionTargetsWeakAxis > 0) score /= 1.0 + w.Coef.FactionTargetsWeakAxis * PolicyPreferences.OpposingPower(w, axis, increase);
+                if (score > FactionSnapshot.MinDemandScore) list.Add(new FactionSnapshot.Demand(axis, increase, score));
+            }
+            list.Sort((x, y) => { int cmp = y.Score.CompareTo(x.Score); return cmp != 0 ? cmp : x.Axis.CompareTo(y.Axis); });
+            if (list.Count > FactionSnapshot.TopK) list.RemoveRange(FactionSnapshot.TopK, list.Count - FactionSnapshot.TopK);
+            return list;
+        }
+        Assert.True(w.Coef.FactionTargetsWeakAxis > 0, "前提が崩れた：反対の力で割る項が消えている（反対の力の照会を通らない）");
+        int filled = 0, legislatures = 0;
+        void Check()
+        {
+            if (w.ParliamentEnabled && w.Polity is Polity.ConstitutionalMonarchy or Polity.Republic) legislatures++;
+            var e = PolicyPreferences.Build(w);
+            foreach (var a in FactionSnapshot.Axes)
+                foreach (bool inc in new[] { true, false })
+                {
+                    Assert.Equal(Bits(PolicyPreferences.NetSupport(w, a, inc)), Bits(PolicyPreferences.NetSupport(w, a, inc, e)));
+                    Assert.Equal(Bits(PolicyPreferences.OpposingPower(w, a, inc)), Bits(PolicyPreferences.OpposingPower(w, a, inc, e)));
+                    Assert.Equal(Bits(PolicyPreferences.PettyStance(w, a, inc)), Bits(PolicyPreferences.PettyStance(w, a, inc, e)));
+                    PolicyPreferences.Profile? shared = e;
+                    int next = Government.NextStage(w, a, inc);
+                    Assert.Equal(Government.GateInfo(w, a, inc, next), Government.GateInfo(w, a, inc, next, ref shared));
+                }
+            for (int b = 0; b <= PolicyPreferences.PettyBloc; b++)
+                foreach (bool lawsOnly in new[] { false, true })
+                {
+                    var got = FactionSnapshot.ComputeDemands(w, b, lawsOnly);
+                    Assert.Equal(Legacy(w, b, lawsOnly), got);
+                    if (got.Count > 0) filled++;
+                }
+        }
+        Check();   // 40四半期の盤面のまま
+        w.Polity = Polity.ConstitutionalMonarchy; w.ParliamentEnabled = true;   // 議会の項（議席×選好）を通る盤面にもする
+        Check();
+        Assert.True(legislatures >= 1, "前提が崩れた：議会のある盤面を1度も通っていない（議会の項を通らない）");
+        Assert.True(filled >= 8, $"前提が崩れた：要求の立つブロックが {filled}（比べる中身が無い）");
+    }
 }

@@ -301,6 +301,9 @@ public class WriterRatchetTests
     //   ＝どちらの線の単独の表とも違う軌道（線1 単独＝建設 7,146・覇権 2,227,505／線2 単独＝建設 7,226・請求 2,515・覇権 2,414,464）。ほかの13本は許しの内。全長の10種の推定は実装ログ (144)。
     // ★2026-10-01 表の更新（(145) 兵の単位＝軌道が動いた分の宣言・新しい計数の処理は無い）：覇権の判定 2,585,796→2,175,698（−15.9%＝10% を超えて下がった＝表を下げる・
     //   同盟の候補が居る月の軌道・処理の形は同じ）。兵力の生産者の削除で生産者×月は州あたり1件減った（全長の5種で −0.4%＝許しの内）。ほかの14本は許しの内。全長の10種の推定は実装ログ (145)。
+    // ★2026-10-01 表の更新（(146) 計算量の予算の恒等の手＝立場の土台の分け合い・連鎖の目の読む個体・変名の判定の順・従属国の列挙の近道＋計数を1本足した＝「移民：州×州の組（国内・越境）」）：
+    //   移民の組の走査（国内＝出る州×行き先・越境＝送出州×他国の州＝O(州²)）は旧は数えず2本（月次・共有層）の単価に入っていた＝州が増える回で伸びても番人に見えなかった
+    //   ＝40四半期で 4,191,142 件（宣言）。ほかの16本は腕A（(145)）と1件も違わない（恒等＝処理の件数は同じ・1件あたりの時間だけが減った＝単価を下げた）。
     [InlineData(CostLedger.PriceGoods, 14149727L)]
     [InlineData(CostLedger.PriceDailyRuns, 25283828L)]
     [InlineData(CostLedger.ConstructionSeen, 7634L)]
@@ -317,6 +320,7 @@ public class WriterRatchetTests
     [InlineData(CostLedger.QuarterEndPops, 235560L)]
     [InlineData(CostLedger.SharedNationQuarters, 3698L)]
     [InlineData(CostLedger.GdpScans, 8670915L)]
+    [InlineData(CostLedger.MigrationPairs, 4191142L)]
     public void 計算量の見た件数は宣言した表を超えない(int item, long declared)
     {
         long n = Cost40.Value[item];

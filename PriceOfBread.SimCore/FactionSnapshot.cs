@@ -164,6 +164,10 @@ public static class FactionSnapshot
     public static List<Demand> ComputeDemands(World w, int bloc, bool lawsOnly = false)
     {
         var list = new List<Demand>();
+        // ★立場の土台（PolicyPreferences.Build＝POP の数回の走査）は全軸で同じ瞬間＝1回だけ取る（2026-10-01 (146) 計算量の予算・恒等）：
+        //   このループは盤面に何も書かない（選好・可動域・反対の力を読むだけ）。旧＝軸ごとに Stance で2回（純支持の中でもう1回）＋反対の力で1回
+        //   ＝全長の1種で約32万回（Build の27%）。自分のブロックの選好だけを読む（旧＝3ブロックと純支持を全て計算して1本を捨てた）。
+        var e = PolicyPreferences.Build(w);
         foreach (var axis in Axes)
         {
             // 『全て』専用軸（§11-6d）は要求軸にしない＝国有化要求は Nationalization 梯子（最終段＝『全て』・StepNationalization）が一元管理。
@@ -174,16 +178,15 @@ public static class FactionSnapshot
             // ★裁定C1（2026-09-12「税率は反乱の要求に乗せる」）：段になった税5軸は**もう即座に上げ下げできない**（4段の法）ので除外しない
             //   （2026-09-20 の段の点火で条件式を IsInstantAxis の4軸＝治安維持力・海軍維持費・関税・専売へ畳んだ。専売は同日の裁定で段の法から外れて即時値の側に残った）。
             if (lawsOnly && IsInstantAxis(axis)) continue;
-            var (trad, modern, mass, _) = PolicyPreferences.Stance(w, axis, increasing: true);
-            double prefInc = bloc == 0 ? trad : bloc == 1 ? modern : bloc == 2 ? mass
-                           : PolicyPreferences.PettyStance(w, axis, increasing: true);   // 第4束「小営業」（PettyInterestGate>0のクラスタのみ到達）。減少向きの選好＝−prefInc（Pref×sign の定義から厳密）
+            double prefInc = bloc is 0 or 1 or 2 ? PolicyPreferences.Pref(axis, bloc, e, w)   // ＝Stance の「進める向き」の成分（Pref×(+1)）
+                           : PolicyPreferences.PettyStance(w, axis, increasing: true, e);   // 第4束「小営業」（PettyInterestGate>0のクラスタのみ到達）。減少向きの選好＝−prefInc（Pref×sign の定義から厳密）
             bool increase = prefInc >= 0;
             double strength = System.Math.Abs(prefInc);
             double score = strength * Headroom(w, axis, increase);
             // 第6段6-5②（2026-07-28）：狙う軸を選べる＝体制の守り（その軸の反対勢力の力）が薄い軸を優先（中核ルールdoc §3-3②・
             // 新データ不要＝OpposingPowerの再利用）。運動は正面の壁を避けて弱い扉を押す。FactionTargetsWeakAxis=0で旧＝選好×可動域のみ。
             if (w.Coef.FactionTargetsWeakAxis > 0)
-                score /= 1.0 + w.Coef.FactionTargetsWeakAxis * PolicyPreferences.OpposingPower(w, axis, increase);
+                score /= 1.0 + w.Coef.FactionTargetsWeakAxis * PolicyPreferences.OpposingPower(w, axis, increase, e);
             if (score > MinDemandScore) list.Add(new Demand(axis, increase, score));
         }
         list.Sort((a, b) => { int cmp = b.Score.CompareTo(a.Score); return cmp != 0 ? cmp : a.Axis.CompareTo(b.Axis); });   // スコア降順・同点＝軸順＝決定論

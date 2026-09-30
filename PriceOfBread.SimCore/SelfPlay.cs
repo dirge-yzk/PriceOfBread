@@ -213,12 +213,12 @@ public sealed class UtilityAgent : INationAgent
     ///   新＝到達不能が**規則**による段（前提DAG・段の飛び越し・緊縮の床/天井・総動員・不可逆＝支持層が確立した法の後退）だけ畳む
     ///   ＝プレイヤーもボタンを押せない段＝Move が前提DAGを迂回せず、永久に閉じない幽霊戦線も作らない。
     ///   支持不足は**政治の争点**であって到達不能ではない＝目標は次の1段のまま残す（プレイヤーの置いた目標が消えないのと同じ）。</summary>
-    private static void GateLaw(World w, PolicyAxis axis, int cur, int want, int max, System.Action<int> set)
+    private static void GateLaw(ref PolicyPreferences.Profile? shared, World w, PolicyAxis axis, int cur, int want, int max, System.Action<int> set)
     {
         want = System.Math.Clamp(want, 0, max);
         if (want == cur) { set(cur); return; }   // 目標＝現状（過去に置いた残存目標も畳む＝戦線を閉じる）
         int next = System.Math.Clamp(cur + (want > cur ? 1 : -1), 0, max);
-        var (ok, _, _) = Government.GateInfo(w, axis, want > cur, next);
+        var (ok, _, _) = Government.GateInfo(w, axis, want > cur, next, ref shared);   // ★(146)：立場の土台は GateAllLawTargets の中で1回（下の注記）
         if (ok) { set(next); return; }           // 通る＝次の1段を目標に
         // 通らない理由で分ける。照会するのは法律タブ（LawRowVM.CanReach）とエンジン（StepEnum/StepBool）が既に共有している副作用なしの2本だけ
         // ＝新しい判定式も新しい状態も新しいタイマーもゼロ。⚠LawPrereq は下げる側でも訊く（段そのものが規則で塞がれているかを訊いている）。
@@ -237,37 +237,41 @@ public sealed class UtilityAgent : INationAgent
     /// 移民制限法・国教法＝AiLawWriteCoverage の書き手が常に StepLawToward 経由（二重整形しない）。</summary>
     internal static void GateAllLawTargets(World w, NationPolicy p)   // internal＝番人（潤沢の減税も門を通る）が冪等性を確かめるためだけ（可視性のみ）
     {
-        GateLaw(w, PolicyAxis.EducationLaw, (int)w.EducationLaw, (int)p.EducationLaw, (int)EducationLaw.Compulsory, v => p.EducationLaw = (EducationLaw)v);
-        GateLaw(w, PolicyAxis.Suffrage, (int)w.Suffrage, (int)p.Suffrage, (int)Suffrage.Universal, v => p.Suffrage = (Suffrage)v);
-        GateLaw(w, PolicyAxis.WomenRights, (int)w.WomenRights, (int)p.WomenRights, (int)WomenRightsLaw.Suffrage, v => p.WomenRights = (WomenRightsLaw)v);
-        GateLaw(w, PolicyAxis.Censorship, (int)w.Censorship, (int)p.Censorship, (int)CensorshipLaw.FreePress, v => p.Censorship = (CensorshipLaw)v);
-        GateLaw(w, PolicyAxis.LaborUnion, (int)w.LaborUnion, (int)p.LaborUnion, (int)LaborUnionLaw.Tolerated, v => p.LaborUnion = (LaborUnionLaw)v);
-        GateLaw(w, PolicyAxis.ShorterHours, (int)w.WorkHours, (int)p.WorkHours, (int)WorkHours.Unlimited, v => p.WorkHours = (WorkHours)v);
-        GateLaw(w, PolicyAxis.ChildLabor, w.ChildLaborAllowed ? 1 : 0, p.ChildLaborAllowed ? 1 : 0, 1, v => p.ChildLaborAllowed = v != 0);
-        GateLaw(w, PolicyAxis.ConscriptionLaw, (int)w.ConscriptionLaw, (int)p.ConscriptionLaw, (int)ConscriptionLaw.Universal, v => p.ConscriptionLaw = (ConscriptionLaw)v);
-        GateLaw(w, PolicyAxis.SecretBallot, (int)w.SecretBallot, (int)p.SecretBallot, (int)SecretBallotLaw.Secret, v => p.SecretBallot = (SecretBallotLaw)v);
-        GateLaw(w, PolicyAxis.Bureaucracy, (int)w.Bureaucracy, (int)p.Bureaucracy, (int)BureaucracyLaw.Professional, v => p.Bureaucracy = (BureaucracyLaw)v);
-        GateLaw(w, PolicyAxis.Antitrust, (int)w.Antitrust, (int)p.Antitrust, (int)AntitrustLaw.Trustbust, v => p.Antitrust = (AntitrustLaw)v);
-        if (w.Coef.GuildLawGate > 0) GateLaw(w, PolicyAxis.Guild, (int)w.Guild, (int)p.Guild, (int)GuildLaw.None, v => p.Guild = (GuildLaw)v);   // ★特権 段4
-        GateLaw(w, PolicyAxis.WartimeRationing, w.WartimeRationing ? 1 : 0, p.WartimeRationing ? 1 : 0, 1, v => p.WartimeRationing = v != 0);
-        GateLaw(w, PolicyAxis.MilitaryExport, w.MilitaryExportBan ? 1 : 0, p.MilitaryExportBan ? 1 : 0, 1, v => p.MilitaryExportBan = v != 0);
-        if (w.Coef.RebelArmsMarketEnabled > 0) GateLaw(w, PolicyAxis.CivilianArms, w.CivilianArmsBan ? 1 : 0, p.CivilianArmsBan ? 1 : 0, 1, v => p.CivilianArmsBan = v != 0);   // ★民間の武器購入の法（2026-09-11）
-        GateLaw(w, PolicyAxis.Nationalization, w.NationalizeRailways ? 1 : 0, p.NationalizeRailways ? 1 : 0, 1, v => p.NationalizeRailways = v != 0);
-        GateLaw(w, PolicyAxis.Nationalization, w.NationalizeMines ? 1 : 0, p.NationalizeMines ? 1 : 0, 1, v => p.NationalizeMines = v != 0);
-        GateLaw(w, PolicyAxis.Nationalization, w.NationalizeMilitary ? 1 : 0, p.NationalizeMilitary ? 1 : 0, 1, v => p.NationalizeMilitary = v != 0);
-        GateLaw(w, PolicyAxis.Nationalization, w.NationalizeOil ? 1 : 0, p.NationalizeOil ? 1 : 0, 1, v => p.NationalizeOil = v != 0);
-        GateLaw(w, PolicyAxis.Nationalization, w.NationalizeElectricity ? 1 : 0, p.NationalizeElectricity ? 1 : 0, 1, v => p.NationalizeElectricity = v != 0);
-        GateLaw(w, PolicyAxis.NationalizationAll, w.NationalizeAll ? 1 : 0, p.NationalizeAll ? 1 : 0, 1, v => p.NationalizeAll = v != 0);
-        GateLaw(w, PolicyAxis.OpiumPossession, (int)w.OpiumPossession, (int)p.OpiumPossession, (int)ReformLevel.Full, v => p.OpiumPossession = (ReformLevel)v);
-        GateLaw(w, PolicyAxis.OpiumExport, w.OpiumExportBan ? 1 : 0, p.OpiumExportBan ? 1 : 0, 1, v => p.OpiumExportBan = v != 0);
-        GateLaw(w, PolicyAxis.CapitalMobility, w.CapitalControlLaw ? 1 : 0, p.CapitalControlTarget ? 1 : 0, 1, v => p.CapitalControlTarget = v != 0);
+        // ★立場の土台（PolicyPreferences.Build＝POP の数回の走査）は、この整形の中で最初に純支持を読むときに1回だけ取って全ての照会で分け合う（2026-10-01 (146) 計算量の予算・恒等）：
+        //   土台の入力（POP の保有・現行法・軍事費の目標〔Government.MilitaryTotalTarget〕ほか）をこの整形は書かない＝書くのは法目標（NationPolicy）だけで、
+        //   土台が読む軍事費の目標（陸海の維持費の目標）の書き込みは**最後の照会の後**（末尾の軍事費の段）。旧＝照会ごとに Build＝全長の1種で約18万回（Build の15%）。
+        PolicyPreferences.Profile? shared = null;
+        GateLaw(ref shared, w, PolicyAxis.EducationLaw, (int)w.EducationLaw, (int)p.EducationLaw, (int)EducationLaw.Compulsory, v => p.EducationLaw = (EducationLaw)v);
+        GateLaw(ref shared, w, PolicyAxis.Suffrage, (int)w.Suffrage, (int)p.Suffrage, (int)Suffrage.Universal, v => p.Suffrage = (Suffrage)v);
+        GateLaw(ref shared, w, PolicyAxis.WomenRights, (int)w.WomenRights, (int)p.WomenRights, (int)WomenRightsLaw.Suffrage, v => p.WomenRights = (WomenRightsLaw)v);
+        GateLaw(ref shared, w, PolicyAxis.Censorship, (int)w.Censorship, (int)p.Censorship, (int)CensorshipLaw.FreePress, v => p.Censorship = (CensorshipLaw)v);
+        GateLaw(ref shared, w, PolicyAxis.LaborUnion, (int)w.LaborUnion, (int)p.LaborUnion, (int)LaborUnionLaw.Tolerated, v => p.LaborUnion = (LaborUnionLaw)v);
+        GateLaw(ref shared, w, PolicyAxis.ShorterHours, (int)w.WorkHours, (int)p.WorkHours, (int)WorkHours.Unlimited, v => p.WorkHours = (WorkHours)v);
+        GateLaw(ref shared, w, PolicyAxis.ChildLabor, w.ChildLaborAllowed ? 1 : 0, p.ChildLaborAllowed ? 1 : 0, 1, v => p.ChildLaborAllowed = v != 0);
+        GateLaw(ref shared, w, PolicyAxis.ConscriptionLaw, (int)w.ConscriptionLaw, (int)p.ConscriptionLaw, (int)ConscriptionLaw.Universal, v => p.ConscriptionLaw = (ConscriptionLaw)v);
+        GateLaw(ref shared, w, PolicyAxis.SecretBallot, (int)w.SecretBallot, (int)p.SecretBallot, (int)SecretBallotLaw.Secret, v => p.SecretBallot = (SecretBallotLaw)v);
+        GateLaw(ref shared, w, PolicyAxis.Bureaucracy, (int)w.Bureaucracy, (int)p.Bureaucracy, (int)BureaucracyLaw.Professional, v => p.Bureaucracy = (BureaucracyLaw)v);
+        GateLaw(ref shared, w, PolicyAxis.Antitrust, (int)w.Antitrust, (int)p.Antitrust, (int)AntitrustLaw.Trustbust, v => p.Antitrust = (AntitrustLaw)v);
+        if (w.Coef.GuildLawGate > 0) GateLaw(ref shared, w, PolicyAxis.Guild, (int)w.Guild, (int)p.Guild, (int)GuildLaw.None, v => p.Guild = (GuildLaw)v);   // ★特権 段4
+        GateLaw(ref shared, w, PolicyAxis.WartimeRationing, w.WartimeRationing ? 1 : 0, p.WartimeRationing ? 1 : 0, 1, v => p.WartimeRationing = v != 0);
+        GateLaw(ref shared, w, PolicyAxis.MilitaryExport, w.MilitaryExportBan ? 1 : 0, p.MilitaryExportBan ? 1 : 0, 1, v => p.MilitaryExportBan = v != 0);
+        if (w.Coef.RebelArmsMarketEnabled > 0) GateLaw(ref shared, w, PolicyAxis.CivilianArms, w.CivilianArmsBan ? 1 : 0, p.CivilianArmsBan ? 1 : 0, 1, v => p.CivilianArmsBan = v != 0);   // ★民間の武器購入の法（2026-09-11）
+        GateLaw(ref shared, w, PolicyAxis.Nationalization, w.NationalizeRailways ? 1 : 0, p.NationalizeRailways ? 1 : 0, 1, v => p.NationalizeRailways = v != 0);
+        GateLaw(ref shared, w, PolicyAxis.Nationalization, w.NationalizeMines ? 1 : 0, p.NationalizeMines ? 1 : 0, 1, v => p.NationalizeMines = v != 0);
+        GateLaw(ref shared, w, PolicyAxis.Nationalization, w.NationalizeMilitary ? 1 : 0, p.NationalizeMilitary ? 1 : 0, 1, v => p.NationalizeMilitary = v != 0);
+        GateLaw(ref shared, w, PolicyAxis.Nationalization, w.NationalizeOil ? 1 : 0, p.NationalizeOil ? 1 : 0, 1, v => p.NationalizeOil = v != 0);
+        GateLaw(ref shared, w, PolicyAxis.Nationalization, w.NationalizeElectricity ? 1 : 0, p.NationalizeElectricity ? 1 : 0, 1, v => p.NationalizeElectricity = v != 0);
+        GateLaw(ref shared, w, PolicyAxis.NationalizationAll, w.NationalizeAll ? 1 : 0, p.NationalizeAll ? 1 : 0, 1, v => p.NationalizeAll = v != 0);
+        GateLaw(ref shared, w, PolicyAxis.OpiumPossession, (int)w.OpiumPossession, (int)p.OpiumPossession, (int)ReformLevel.Full, v => p.OpiumPossession = (ReformLevel)v);
+        GateLaw(ref shared, w, PolicyAxis.OpiumExport, w.OpiumExportBan ? 1 : 0, p.OpiumExportBan ? 1 : 0, 1, v => p.OpiumExportBan = v != 0);
+        GateLaw(ref shared, w, PolicyAxis.CapitalMobility, w.CapitalControlLaw ? 1 : 0, p.CapitalControlTarget ? 1 : 0, 1, v => p.CapitalControlTarget = v != 0);
         // ★税・支出・軍事費の段（作者裁定2026-09-12 R1/R2）：段になった軸も**現行段から・いま通る1段**へ整形する＝法と同じ作法。
         //   ⚠これが無いと、AIが置いた遠い目標（例：緊縮スタンスの所得税0.35＝段1）が通らないまま CountOpenFronts に数え続けられ、
         //     政治押し予算 (1/N)^0.5 が全軸の押しを薄める＝**AIだけが幽霊戦線を開く**（ゲート緑≠機構が働いた）。
         //   ⚠AI＝プレイヤー対称：置く/置かないの物差しは法律タブと同じ GateInfo（IsPlayer は読まない）。
         // ★錨2026-09-18：段序数↔率の写像は Government.TaxStage／TaxValue の2本だけ（軸ごとの錨を引く）＝ここに第二の式（v/3）を置かない。
         void GateTax(PolicyAxis a, double cur, double tgt, Action<double> set)
-            => GateLaw(w, a, Government.TaxStage(a, cur), Government.TaxStage(a, tgt), Government.TaxLawStages, v => set(Government.TaxValue(a, v)));
+            => GateLaw(ref shared, w, a, Government.TaxStage(a, cur), Government.TaxStage(a, tgt), Government.TaxLawStages, v => set(Government.TaxValue(a, v)));
         GateTax(PolicyAxis.IncomeTax, w.TaxRate, p.IncomeTaxTarget, v => p.IncomeTaxTarget = v);
         GateTax(PolicyAxis.ProgressiveTax, w.ProgressiveTax, p.ProgressiveTaxTarget, v => p.ProgressiveTaxTarget = v);
         GateTax(PolicyAxis.PollTax, w.PollTax, p.PollTaxTarget, v => p.PollTaxTarget = v);
@@ -275,7 +279,7 @@ public sealed class UtilityAgent : INationAgent
         GateTax(PolicyAxis.LandTax, w.LandTax, p.LandTaxTarget, v => p.LandTaxTarget = v);
         GateTax(PolicyAxis.EducationSpending, w.EducationSpending, p.EducationSpendingTarget, v => p.EducationSpendingTarget = v);
         // 軍事費＝合計だけが段（陸海比は SetNavalUpkeepShare が続けて連続で決める＝D4）。書き込み口は比を保つ既存の1本。
-        GateLaw(w, PolicyAxis.Coercion, Government.MilitaryStage(w.MilitarySpending), Government.MilitaryStage(p.MilitarySpendingTarget),
+        GateLaw(ref shared, w, PolicyAxis.Coercion, Government.MilitaryStage(w.MilitarySpending), Government.MilitaryStage(p.MilitarySpendingTarget),
                 Government.MilitaryLawStages, v => p.MilitarySpendingTarget = Math.Max(1, v) / (double)Government.MilitaryLawStages);   // Max(1,…)＝「なし」を作らない
     }
 
@@ -1018,13 +1022,19 @@ public sealed class UtilityAgent : INationAgent
             if (relax) { if (sc > bestScoreR![cri]) { bestScoreR[cri] = sc; bestGr![cri] = gid; } }
             else if (sc > bestScore) { bestScore = sc; bestR = cri; bestG = gid; }
         }
+        // ★連鎖の目の読む個体（2026-10-01 (146) 計算量の予算・恒等＝全長の1種で連鎖の目 約1,340万回）：その州でその財を作る**先頭の生産者**
+        //   （ProductionDiag.ExplainCost の規約＝FindProducer）。この走査は州の生産者を先頭から回す＝先頭の個体は既に通った
+        //   ＝州ごとに「財→先頭の個体」を覚えて渡す（旧＝候補ごとに州の生産者を先頭から探し直した＝連鎖の目の時間の約半分）。
+        Producer?[]? firstOf = w.Coef.AiSupplyChainEyes > 0 ? new Producer?[Catalog.Goods.Length] : null;
         for (int ri = 0; ri < w.Regions.Count; ri++)
         {
             var rg = w.Regions[ri];
             if (rg.State != RegionState.Active) continue;
             if (pendingRegion is not null && pendingRegion[ri] > 0) continue;   // ★#3(a)：意志の残る州だけ静止（他州は動く）
+            if (firstOf is not null) System.Array.Clear(firstOf);
             foreach (var pr in rg.Producers)
             {
+                if (firstOf is not null && pr.GoodId >= 0 && pr.GoodId < firstOf.Length) firstOf[pr.GoodId] ??= pr;   // 先頭の個体（下の continue より前＝建設中・倒産中も数える＝FindProducer と同じ）
                 if (pr.ConstructionLeft > 0 || pr.Bankrupt) continue;   // 建設中・倒産中は対象外
                 if (pr.GoodId < 0 || pr.GoodId >= Catalog.Goods.Length) continue;
                 if (Catalog.Goods[pr.GoodId].Tier == GoodTier.Service) continue;   // 役務は工場として建たない（BuildFactory と同条件）
@@ -1043,7 +1053,7 @@ public sealed class UtilityAgent : INationAgent
                 //   0＝ProductionDiag を一切呼ばない＝恒等。
                 if (w.Coef.AiSupplyChainEyes > 0 && eff > FacilityBuildMinMargin)
                 {
-                    var chain = ProductionDiag.ExplainCost(w, rg, pr.GoodId);
+                    var chain = ProductionDiag.ExplainCost(w, rg, firstOf![pr.GoodId]!);   // ＝ExplainCost(w, rg, pr.GoodId) と同じ個体（(146)）
                     int starved = -1; double minFill = AiChainStarvedFill;
                     foreach (var it in chain.Items)
                         if (!it.IsLabor && it.Qty > 1e-9 && it.Fill < minFill) { minFill = it.Fill; starved = it.GoodId; }

@@ -409,10 +409,13 @@ public static class Formations
     // 1ルールの成立判定（適格＋文明ゲート＋領有）。
     private static bool Qualifies(Diplomacy d, Power power, FormationRule rule, Coefficients c)
     {
+        // ★同一性（国の名・文化・宗教）を先に見る（2026-10-01 (146) 計算量の予算・恒等）：どの条件も盤面を読むだけで何も書かない＝論理積の順を入れ替えても答えは同じ。
+        //   旧＝文化の規則ごとに、その文化でない国まで「開幕より同文化の州を増やしたか」（文化の全ての州×直接と従属の領有の走査）を数えていた
+        //   ＝全長の1種で外交の区間の約15%（Formations.Check 2.4 秒・668回）。
+        if (!IdentityEligible(power, rule)) return false;
         // ★変名機構の一般化（器2026-08-01）：自動生成規則（CultureOrigin 非null）は「開幕より同文化の州を増やした」ことを要件にする。
         // ⚠既存40ルールは CultureOrigin==null なのでこの行を素通りする＝厳密恒等。
         if (rule.CultureOrigin is { } cul && c.CultureFormationNeedsGain > 0 && !CultureRealms.HasGained(d, power, cul)) return false;
-        if (!IdentityEligible(power, rule)) return false;
         foreach (var name in rule.RequiredAll) if (!Owns(d, power, name)) return false;
         if (rule.AnyOfSet is not null)
         {
