@@ -204,7 +204,7 @@ public sealed partial class InternationalMarket
         for (int t0 = 0; t0 < tc; t0++)
         {
             var W0 = nations[tr[t0].nation].World;
-            double rg0 = PoliticalQuantities.Clamp01((W0.TechLevel - c.RailTechOnset) / Math.Max(1e-9, c.RailTechWidth));
+            double rg0 = c.RailGate(W0.TechLevel);   // 鉄道の門の1本（段4e K）
             landRatio[t0] = c.LandSeaCostRatio * (1.0 - rg0 * (1.0 - PoliticalQuantities.Clamp01(c.RailCostFraction)));
             double rg = rg0;
             int ti = (int)tr[t0].r.Terrain;

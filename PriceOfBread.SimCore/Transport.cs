@@ -44,7 +44,7 @@ public static class Transport
             if (congN > 0) target *= 1.0 + c.TransportCongestionWeight * (congSum / congN);
         }
         // 鉄道は技術で解禁（史実1820s〜）：技術がonset未満は内陸輸送が道路/河川（基準値）のみ＝序盤の内陸交易は強く絞られる。船（帆船＝海運）は古来あり据え置き。
-        double railGate = PoliticalQuantities.Clamp01((w.TechLevel - c.RailTechOnset) / System.Math.Max(1e-9, c.RailTechWidth));   // 0除算ガード（BilateralMarket.cs の同式と同じ守り）
+        double railGate = c.RailGate(w.TechLevel);   // 鉄道の門の1本（清算の陸路の費用と同じ・段4e K）
         BuyToward(w, c, [c.RailGoodId, c.LocoGoodId], target * railGate, rail: true, 1.0);
         // ★2026-09-27（回4-3 の再挑戦・作者裁定 2026-09-26 (3)「汽船の性能を上げるべき」）：汽船の性能を、植民地補給線と同じ機関の時代係数から導く。
         //   era＝EraFactor(前線技術, EraColonyCoal)＝運賃革命のランプ（前線 1.7〜2.9）に沿って 1.0→0.5（複式機関1860年代→三段膨張1880年代・史実の石炭/馬力時は約4ポンド→1.5ポンド）。
@@ -117,19 +117,10 @@ public static class Transport
             if (buyerIdx < 0 || Catalog.CoalId >= r.Markets.Length) continue;
             var buyer = r.Pops[buyerIdx];
             var (fuelG, want) = Colonial.ChooseFuelGood(r, c, per);   // 石炭→重油の二択（海軍・植民地補給線と同式）
-            var m = r.Markets[fuelG];
-            m.LastDemand += want;               // 在庫が無くても需要を計上＝生産を駆動（BuyToward と同じ鶏卵回避）
-            if (m.Stock <= 1e-9 || m.Price <= 1e-9) continue;
-            double buy = System.Math.Min(m.Stock, want);
-            double pay = buy * m.Price;
-            if (pay > buyer.Savings) { pay = System.Math.Max(0, buyer.Savings); buy = pay / m.Price; }
-            if (buy <= 1e-9) continue;
-            m.Stock -= buy;
-            m.LastSold += buy;          // 汽船が焚く＝消費（財収支に計上）
-            // ★2026-09-26（回4-3・econ-12）：旧＝最初に見つかった生産者の持ち主へ全額。今＝輸出代金と同じ売上の経路（各生産者の出力の割合）。
-            // ★支払いの一元化 段3-1（C4・2026-09-29）：代金は④の持分（地代・国営持分・賃金＝Earned を通す）で・買い手から移し方の1本で（InternationalMarket.PaySales）。
+            // 汽船が焚く＝市場の外の買い付けの1本（InternationalMarket.Procure・段4e K）＝需要の計上（在庫が無くても＝鶏卵回避）・買い手の貯蓄まで・販売（LastSold）・
+            //   代金は④の持分（★2026-09-26 回4-3・econ-12＝旧は最初の生産者の持ち主へ全額／★段3-1 C4＝地代・国営持分・賃金＝Earned を通す）。
             //   生産者が居ない（在庫は輸入の在庫）なら在庫の持ち主＝捌き手の商人へ（段2-2 の A2 と同じ規則）。買い手が商人なら自分の在庫を使うだけ（払って受け取る＝純0）。
-            InternationalMarket.PaySales((w, [buyer]), r, fuelG, pay, w);
+            InternationalMarket.Procure(w, r, fuelG, want, buyer);
         }
     }
 
@@ -196,16 +187,10 @@ public static class Transport
                 double want = perGood / mult;   // 同じ容量に要る単位数（汽船は1/steamMult）
                 if (c.TransportDemandAffordCap > 0 && m.Price > 1e-9)
                     want = System.Math.Min(want, c.TransportDemandAffordCap * System.Math.Max(0, investor.Savings) / m.Price);
-                m.LastDemand += want;               // 在庫が無くても需要を計上＝生産を駆動（鉄道/船の需要が上がる＝史実・ブートストラップ）
-                if (m.Stock <= 1e-9 || m.Price <= 1e-9) continue;
-                double buy = System.Math.Min(m.Stock, want);
-                double pay = buy * m.Price;
-                if (pay > investor.Savings) { pay = System.Math.Max(0, investor.Savings); buy = pay / m.Price; }
+                // 買い付けは燃料と同じ1本（InternationalMarket.Procure・段4e K）＝需要の計上（在庫が無くても＝生産を駆動＝鉄道/船の需要が上がる＝史実・ブートストラップ）・
+                //   買い手の貯蓄まで・販売（LastSold＝在庫減を販売として記録し§11.6財収支を保つ）・代金は④の持分（econ-12・段3-1 の C4）。
+                double buy = InternationalMarket.Procure(w, r, gi, want, investor);
                 if (buy <= 1e-9) continue;
-                m.Stock -= buy;
-                m.LastSold += buy;          // 財収支に計上（輸送購入＝販売）。在庫減を販売として記録し§11.6財収支を保つ
-                // 代金＝輸出代金と同じ売上の経路（④の持分・econ-12・段3-1 の C4）＝上の燃料と同じ1本。
-                InternationalMarket.PaySales((w, [investor]), r, gi, pay, w);
                 double add = buy * c.TransportCapPerUnit * mult;
                 if (rail) w.RailCapacity += add; else w.ShipCapacity += add;
                 addTotal += add;

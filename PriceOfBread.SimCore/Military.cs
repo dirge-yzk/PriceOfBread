@@ -84,9 +84,7 @@ public static class Military
                 double share = 1.0;
                 if (c.ConscriptConsciousnessWeight > 0)
                 {
-                    double nc = 0, ncSize = 0;
-                    foreach (var p in r.Pops) if (!p.IsSoldier && p.NationalConsciousness >= 0) { nc += p.NationalConsciousness * p.Size; ncSize += p.Size; }
-                    double avgNc = ncSize > 1e-9 ? PoliticalQuantities.Clamp01(nc / ncSize) : 1.0;   // 1つも捕捉されていない＝機構が休眠＝割引なし
+                    double avgNc = Politics.AvgRegionConsciousness(r, none: 1.0);   // 1つも捕捉されていない＝機構が休眠＝割引なし（州の国民意識の1本）
                     share = Math.Max(0, 1.0 - c.ConscriptConsciousnessWeight * (1.0 - avgNc));
                 }
                 natManpower += (pa + pb + sld.Size) * share; poolEarn += pe; poolSize += ps;
@@ -156,9 +154,9 @@ public static class Military
             Pop? soldier = null, poolA = null, poolB = null;
             foreach (var p in r.Pops)
             {
-                if (p.IsSoldier) soldier = p;
-                else if (p.ClassId == c.SoldierRecruitClassA) poolA = p;   // 農民
-                else if (p.ClassId == c.SoldierRecruitClassB) poolB = p;   // 都市労働者
+                if (p.IsSoldier) soldier ??= p;                                // 最初の一致（移る先の同じ階級の POP の探し方の1本＝Region.PopOf と同じ規則・段4e I）
+                else if (p.ClassId == c.SoldierRecruitClassA) poolA ??= p;   // 農民
+                else if (p.ClassId == c.SoldierRecruitClassB) poolB ??= p;   // 都市労働者
             }
             if (soldier == null) continue;
 
@@ -235,7 +233,7 @@ public static class Military
         if (!(c.NavalFuelPerGauge > 0)) return;   // 否定形＝NaN係数も不走行側へ
         var r = w.Region;
         double gauge = w.SelfPower?.FleetGauge ?? 0;   // 単一国較正（SelfPowerなし）・艦隊駆動OFFでは0＝燃料需要なし（fill=1.0側）
-        double steamGate = PoliticalQuantities.Clamp01((w.TechLevel - c.SteamTechOnset) / c.SteamTechWidth);   // EconomyStep の蒸気ゲートと同式（帆走艦隊は焚かない）（NaN は Clamp01 が0＝帆走側へ）
+        double steamGate = c.SteamGate(w.TechLevel);   // 蒸気の門の1本（EconomyStep と同じ・段4e K＝帆走艦隊は焚かない）（NaN は Clamp01 が0＝帆走側へ）
         double coalWant = c.NavalFuelPerGauge * gauge * PoliticalQuantities.Clamp01(w.NavyUpkeep) * steamGate * c.EraFactor(w.WorldTechLevel, c.EraNavalFuel);
         double fill = 1.0;   // 需要ゼロ（帆走・係船・艦隊なし）＝燃料は制約でない
         if (coalWant > 1e-9 && r.State == RegionState.Active && Catalog.CoalId < r.Markets.Length)
@@ -279,107 +277,25 @@ public static class Military
         MoveCohort(soldier, b, amount * ((b?.Size ?? 0) / pool), c);
     }
 
-    /// <summary>階級間の人の移動（規模＋貯蓄を比例移動＝per-capita貯蓄を保つ。国内移籍で総人口・総マネー保存）。setup と徴募で共用。</summary>
-    /// <summary>★運搬の加重平均を1本へ（思想⑫・docs/202608 §14-9 段1・2026-08-29）：闘争度の「書き手」8箇所が
-    /// 同じ式（到着側＝サイズ加重平均）を別々に書いていた＝ラチェット（WriterRatchetTests）の分子を減らす純リファクタ。
-    /// ⚠clamp の有無は site ごとに違った（Meritocracy/PopDecision/Territory＝あり・Military/移民＝なし）＝**引数で保存**
-    ///   ＝加重平均は数学的に[0,1]を出ないが浮動小数の1ulp超えで clamp が効く縁があるため、揃えるとビット恒等が崩れる。</summary>
-    public static double BlendCarry(double toVal, double toSize, double fromVal, double amount, double newSize, bool clamp)
-    {
-        double v = (toVal * toSize + fromVal * amount) / newSize;
-        return clamp ? PoliticalQuantities.Clamp01(v) : v;
-    }
-
     // 【削除2026-09-26（棚卸し sweep-23）】3引数版 MoveCohort（呼ぶたびに既定の係数 new Coefficients() を作って4引数版を呼んでいた）＝呼び手は手元の係数を渡す。
+    // 【削除2026-09-30 段4e I】BlendCarry（闘争度の運搬の式の1本・段1 2026-08-29）＝人の移し方の1本 Pop.Blend が全ての属性を混ぜる（闘争度の書き手の運搬8か所が1行へ）。
 
-    /// <summary>階級間の人の移動（係数付き）。人1（人的資本の運搬整合）：MigrationCarriesHumanCapital=1 で識字・闘争度も size 加重で運搬（0=現行の無運搬で厳密恒等）。</summary>
+    /// <summary>階級間の人の移動（徴兵・復員・通常＝規模・属性・貯蓄と債務と国債の保有を運ぶ＝国内移籍で総人口・総マネー保存）。setup と徴募で共用。
+    /// ★2026-09-30 処理の一元化 段4e I：本体は人の移し方の1本 <see cref="Pop.Blend"/>（旧の3枝＝徴兵・復員・通常の混ぜ方の写しを畳んだ）。
+    /// 徴兵＝**成人の男**（老年でない）だけが抜ける（動けるのは働き盛りの男の数まで・<see cref="Pop.Blend"/> の draft）＝残る集団の女性比・子供比・老年比が上がる＝男手の消えた村。
+    /// 復員＝兵士 POP の構成（成人の男）のまま戻る＝受け手の女性比・子供比・老年比が下がる（通常の混ぜ方と同じ式＝女性比は成人数で）。</summary>
     public static void MoveCohort(Pop? from, Pop? to, double amount, Coefficients c)
     {
         if (from == null || to == null || amount < 1e-12 || from.Size < 1e-12) return;
         amount = Math.Min(amount, from.Size);
-        double size0 = from.Size;   // 動かす前の人数＝お金の按分の分母（お金は末尾で1回だけ運ぶ）
-        if (to.IsSoldier && !from.IsSoldier)
+        bool draft = to.IsSoldier && !from.IsSoldier;
+        if (draft)
         {
-            // 徴兵：**成人男性**だけが抜ける（動けるのは成人男性の数まで）。残る集団の女性比率・子供比率が上がる＝男手の消えた村。
-            double adults = from.Size * (1.0 - from.ChildShare);
-            // 他13（監査2026-07-11・2026-07-25休眠配線）：旧上限は老年男性を含む＝上限まで徴兵すると「出征した老年男性」が下の olds 保存で
-            // 残留側にも数え直され OldShare が水増し（出産可能プールの過小・年金基盤の過大＝深い総動員時のみ発火）。1で上限を働き盛り男性
-            //（成人−老年）へ締める。既定0＝旧上限＝現行と厳密一致。
-            double draftable = c.ConscriptExcludeOldMales > 0 ? from.Size * Math.Max(0, 1.0 - from.ChildShare - from.OldShare) : adults;
+            // 他13（監査2026-07-11・2026-07-25休眠配線・2026-07-27 点火）：上限は働き盛りの男（成人−老年）＝老年は徴兵されない。旧の既定0は成人の男（老年込み）。
+            double draftable = c.ConscriptExcludeOldMales > 0 ? from.Size * Math.Max(0, 1.0 - from.ChildShare - from.OldShare) : from.Size * (1.0 - from.ChildShare);
             amount = Math.Min(amount, draftable * (1.0 - from.FemaleShare));
             if (amount < 1e-12) return;
-            double children = from.Size * from.ChildShare;
-            double olds = from.Size * from.OldShare;   // 老年は徴兵されない（子供と同型の人数保存）＝男手が抜けると残る集団の老年比率が上がる
-            double females = adults * from.FemaleShare;
-            from.Size -= amount;
-            if (from.Size > 1e-12)
-            {
-                from.ChildShare = PoliticalQuantities.Clamp01(children / from.Size);
-                from.OldShare = PoliticalQuantities.Clamp01(olds / from.Size);   // 老年人数を保存（OldShare=0の世界では0のまま＝較正中立）
-                double adultsLeft = adults - amount;
-                from.FemaleShare = adultsLeft > 1e-12 ? PoliticalQuantities.Clamp01(females / adultsLeft) : 0.5;
-            }
-            if (to.Size + amount > 1e-12) to.CoreEthnicShare = (to.CoreEthnicShare * to.Size + from.CoreEthnicShare * amount) / (to.Size + amount);   // 倍率排除⑧：徴兵は中核民族割合を運搬（軍の結束は兵士の民族構成から創発）
-            // 人1：識字・闘争度も運搬（新兵の人的資本を無償生成しない）。MigrationCarriesHumanCapital=0 なら from の属性を無視＝旧の to 据え置きと厳密恒等（★ #17 で有効化＝既定1.0）。
-            if (c.MigrationCarriesHumanCapital > 0 && to.Size + amount > 1e-12)
-            {
-                to.Literacy = (to.Literacy * to.Size + from.Literacy * amount) / (to.Size + amount);
-                to.Militancy = BlendCarry(to.Militancy, to.Size, from.Militancy, amount, to.Size + amount, clamp: false);   // ★運搬1本化（段1・恒等）
-            }
-            to.Size += amount;   // 兵士は成人男性のみ（FemaleShare=0・ChildShare=0のまま）
         }
-        else if (from.IsSoldier && !to.IsSoldier)
-        {
-            // 復員：成人男性が市民階級へ戻る＝受け入れ側の女性比率・子供比率が下がる。
-            double childrenTo = to.Size * to.ChildShare;
-            double oldsTo = to.Size * to.OldShare;   // 復員兵（成人男性）は老年でない＝受入側の老年「人数」を保存（流入で老年比率は下がる）
-            double adultsTo = to.Size * (1.0 - to.ChildShare);
-            double femalesTo = adultsTo * to.FemaleShare;
-            if (to.Size + amount > 1e-12) to.CoreEthnicShare = (to.CoreEthnicShare * to.Size + from.CoreEthnicShare * amount) / (to.Size + amount);   // 倍率排除⑧：復員も中核民族割合を運搬
-            // 人1：復員兵の識字・闘争度も市民階級へ運搬（従軍で得た闘争度＝退役軍人の政治化）。MigrationCarriesHumanCapital=0 なら恒等（★ #17 で有効化＝既定1.0）。
-            if (c.MigrationCarriesHumanCapital > 0 && to.Size + amount > 1e-12)
-            {
-                to.Literacy = (to.Literacy * to.Size + from.Literacy * amount) / (to.Size + amount);
-                to.Militancy = BlendCarry(to.Militancy, to.Size, from.Militancy, amount, to.Size + amount, clamp: false);   // ★運搬1本化（段1・恒等）
-            }
-            from.Size -= amount;
-            to.Size += amount;
-            if (to.Size > 1e-12)
-            {
-                to.ChildShare = PoliticalQuantities.Clamp01(childrenTo / to.Size);
-                to.OldShare = PoliticalQuantities.Clamp01(oldsTo / to.Size);   // 老年人数を保存（OldShare=0の世界では0のまま＝較正中立）
-                to.FemaleShare = PoliticalQuantities.Clamp01(femalesTo / (adultsTo + amount));
-            }
-        }
-        else
-        {
-            // 通常の階級間移動：男女比・子供比は移動者で加重混合
-            double newSize = to.Size + amount;
-            if (newSize > 1e-12)
-            {
-                // ★分子と分母の非対称（wave2b G11#2）：FemaleShare は成人内比率（徴兵経路の females=adults*FemaleShare と同じ定義）だが、
-                //   ここは子供込みの Size で加重していた＝from/to の ChildShare が異なると女性人数の和がずれる。成人数で加重して揃える（同じChildShareなら旧式と厳密同値）。
-                double adultsToF = to.Size * (1.0 - to.ChildShare), adultsFromF = amount * (1.0 - from.ChildShare);
-                double adultsSumF = adultsToF + adultsFromF;
-                to.FemaleShare = adultsSumF > 1e-12 ? (to.FemaleShare * adultsToF + from.FemaleShare * adultsFromF) / adultsSumF : to.FemaleShare;
-                to.ChildShare = (to.ChildShare * to.Size + from.ChildShare * amount) / newSize;
-                to.OldShare = (to.OldShare * to.Size + from.OldShare * amount) / newSize;   // 倍率排除⑧：老年比率も運搬（OldShare=0の世界では恒等＝較正中立）
-                to.CoreEthnicShare = (to.CoreEthnicShare * to.Size + from.CoreEthnicShare * amount) / newSize;   // 倍率排除⑧：中核民族割合も運搬
-                // 人1：階級間移動でも識字・闘争度を運搬（着地と同時の無償識字獲得を解消）。MigrationCarriesHumanCapital=0 なら from の属性を無視＝旧の to 据え置きと厳密恒等（★ #17 で有効化＝既定1.0）。
-                if (c.MigrationCarriesHumanCapital > 0)
-                {
-                    to.Literacy = (to.Literacy * to.Size + from.Literacy * amount) / newSize;
-                    to.Militancy = BlendCarry(to.Militancy, to.Size, from.Militancy, amount, newSize, clamp: false);   // ★運搬1本化（段1・恒等）
-                }
-            }
-            from.Size -= amount;
-            to.Size += amount;
-        }
-        // ★お金の運搬（3経路で1本＝支払いの一元化 段1-5・2026-09-28）：貯蓄・個人債務（2026-08-02）・国債の保有台帳（2026-09-21・徴兵は国内＝発行国は同じ）を
-        //   1人あたりで按分して運ぶ。分母は動かす前の人数 size0＝旧の3枝（徴兵・復員・通常）と同じ式・同じ値（上の枝は Savings・Debt・BondHoldings を読まない）。
-        double sav = from.Savings * (amount / size0);
-        double debt = from.Debt * (amount / size0);
-        double bondm = from.BondHoldings * (amount / size0);
-        Pop.Carry(from, to, sav, debt, bondm);   // お金の3行（段4f＝Pop の中の運搬の1本）
+        Pop.Blend(from, to, amount, draft: draft);
     }
 }

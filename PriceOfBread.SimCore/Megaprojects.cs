@@ -43,11 +43,7 @@ public static class Megaprojects
     /// 見積りであって固定価格ではない（工場の FactorySpec.Cost と違い、資材相場で実支出は上下する）。</summary>
     public static double EstimateCost(Region host, Megaproject mp, Coefficients coef)
     {
-        double sP = Math.Max(host.Markets[coef.SteelGoodId].Price, 1e-9);
-        double mP = Math.Max(host.Markets[coef.MachineGoodId].Price, 1e-9);
-        double cP = Math.Max(host.Markets[coef.CementGoodId].Price, 1e-9);
-        double lP = Math.Max(host.Markets[coef.LumberGoodId].Price, 1e-9);
-        double costPerUnit = coef.ConsSteel * sP + coef.ConsMachine * mP + coef.ConsCement * cP + coef.ConsLumber * lP;
+        double costPerUnit = EconomyStep.BundleCost(host, coef);   // 建設の資材の束の1本（建てる州の価格）
         double perUnit = costPerUnit * (1.0 + coef.ConstructionLaborWageFrac);
         return Math.Max(0, mp.BuildUnits - mp.BuildProgress) * perUnit;
     }

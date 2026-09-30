@@ -123,7 +123,7 @@ public static class Politics
     internal static double FamineDrive(Pop p, Coefficients c)
     {
         if (!(c.FamineDriveGain > 0) || !(p.FoodNeed > 1e-9)) return 0;
-        double fill = p.FoodMet / p.FoodNeed;
+        double fill = p.FoodMet / p.FoodNeed;                    // ⚠生の比（主食の充足の1本 Pop.FoodFill は下限0で切る＝負の貯蓄の POP の需要が負になると比が負＝段4e の申し送り）
         if (fill > 1) fill = 1;                                  // 平常の側（更新）と同じ上限＝満腹を超えた分は落差に数えない
         double refv = p.FoodRef < 0 ? fill : p.FoodRef;          // 未捕捉＝今の充足（＝ループの初期化直後と同値・こちらは書かない）
         double drive = c.FamineDriveGain * (refv - fill - c.FamineDropOnset);
@@ -200,7 +200,7 @@ public static class Politics
             {
                 w.PendingRevoltDemand = 0;
                 foreach (var r in w.Regions) if (r.Id == w.PendingRevoltRegion && r.State == RegionState.Active)
-                    foreach (var p in r.Pops) if (!p.Closed && !p.IsSoldier) p.Militancy *= c.ReformMilitancyRelief;
+                    foreach (var p in r.Pops) if (p.IsCommoner) p.Militancy *= c.ReformMilitancyRelief;
             }
         }
 
@@ -253,7 +253,7 @@ public static class Politics
             if (c.LivingRefWeight > 0 && p.LivingRef < 0) p.LivingRef = p.Satisfaction;   // 未捕捉＝現在値で初期化（立ち上がりの跳躍なし）
             // ★食料の平常（2026-09-22 回B）も同じ作法：未捕捉＝今の充足で初期化＝開始時の慢性の低さは「平常」として入る（1783年の塊の根）。
             //   分母なし（FoodNeed≈0）・NaN の月は捕捉も更新もしない（否定形の `>= 0` は NaN で false）。
-            double foodFill = p.FoodNeed > 1e-9 ? Math.Min(1.0, p.FoodMet / p.FoodNeed) : double.NaN;
+            double foodFill = p.FoodNeed > 1e-9 ? Math.Min(1.0, p.FoodMet / p.FoodNeed) : double.NaN;   // ⚠生の比（飢餓の駆動と同じ・Pop.FoodFill の下限0の切りを通さない＝段4e の申し送り）
             if (p.FoodRef < 0 && foodFill >= 0) p.FoodRef = foodFill;
             double want = LivingWant(p, c);
             // 政治の空間モデル（voiceless の一般化）：政治的不満＝**意識 ×（1−実効発言権）× dist(POPの理想点, 現政体座標)**。
@@ -1301,7 +1301,7 @@ public static class Politics
         w.MandateSpent += spend;        // 上限廃止（2026-07-26ユーザー裁定）
         w.MandateSpentNew += spend;
         // 緩和は運動の本拠州の大衆のみ（全国一律にしない＝Transition鎮圧緩和との二重を作らない）。戦争の形では本拠州は再併合で親へ戻った後。
-        foreach (var p in f.Region.Pops) if (!p.Closed && !p.IsSoldier) p.Militancy *= c.ReformMilitancyRelief;
+        foreach (var p in f.Region.Pops) if (p.IsCommoner) p.Militancy *= c.ReformMilitancyRelief;
         w.LogAdd($"{w.Year} {w.SelfPower?.Name}が{Factions.DisplayName(f)}の要求をのんだ");
     }
 
@@ -1452,13 +1452,10 @@ public static class Politics
         coerce = LocalizedHold(w, c, worst, coerce);
         if (strength <= coerce)
         {
-            // 鎮圧：戦死は台帳（PopulationDelta/WarDeadCumulative）・貯蓄は遺族に残る＝貨幣保存非接触。
+            // 鎮圧：州の平民の民間人に規模按分で死＝死の記帳の1本（World.KillPops・段4e J＝人口の台帳と戦死の累計）・貯蓄は遺族に残る＝貨幣保存非接触。
             double dead = Math.Min(crowd * c.RevoltSuppressDeadFrac, crowd);
             if (dead > 1e-9 && crowd > 1e-9)
-            {
-                foreach (var p in worst.Pops) if (!p.Closed && !p.IsSoldier) p.Size -= p.Size / crowd * dead;
-                w.PopulationDelta -= dead; w.WarDeadCumulative += dead;
-            }
+                dead = w.KillPops(worst.Pops.FindAll(p => p.IsCommoner), null, dead, violent: true);
             double legBeforeRevolt = w.Legitimacy;
             w.Legitimacy = Math.Max(0, w.Legitimacy - c.RevoltSuppressLegitCost);   // 流血の記憶＝ストック正統性への直接の傷（regenで数年かけ回復）
             w.Explain?.Add("Legitimacy", "一揆鎮圧の流血(ストック正統性への傷)", w.Legitimacy - legBeforeRevolt);   // 説明API（#63）
@@ -1699,15 +1696,25 @@ public static class Politics
     /// heat の内訳を**同じ関数**で読むための読み取り専用の公開（式も呼び出し順も不変＝ビット恒等）。</summary>
     internal static double AvgRegionMilitancy(Region r)
     {
-        double mil = 0, size = 0;
-        foreach (var p in r.Pops) if (!p.Closed && !p.IsSoldier) { mil += p.Militancy * p.Size; size += p.Size; }
+        var (mil, size) = RegionMilitancy(r);
         return size > 1e-9 ? mil / size : 0;
+    }
+
+    /// <summary>★州の闘争度の和＝平民の民間人（<see cref="Pop.IsCommoner"/>＝閉鎖階級と兵士を除く）の Σ闘争度×規模 と Σ規模（2026-09-30 処理の一元化 段4e H）。
+    /// 読み手＝州の平均闘争度（一揆・分離・計器）・植民地の不満（維持費の不満の重み・反帝世論）・移民の押し出し（機会の不穏）。
+    /// ⚠旧＝植民地の2か所と機会の押し出しは全ての POP（貴族・聖職・兵士込み）で手書きした＝駐留の兵と在地の貴族の闘争度が植民地の住民の不満と
+    ///   州の不穏に混ざった（偶発のずれ）。</summary>
+    internal static (double Mil, double Size) RegionMilitancy(Region r)
+    {
+        double mil = 0, size = 0;
+        foreach (var p in r.Pops) if (p.IsCommoner) { mil += p.Militancy * p.Size; size += p.Size; }
+        return (mil, size);
     }
 
     /// <summary>州の大衆＝閉鎖階級と兵士を除く pop の規模の和（F1 の群衆・蜂起の勢いの人口項）。旧は CheckRegionalRevolt のインラインループ（同じ述語・同じ順）。</summary>
     internal static double RegionCrowd(Region r)
     {
-        double crowd = 0; foreach (var p in r.Pops) if (!p.Closed && !p.IsSoldier) crowd += p.Size;
+        double crowd = 0; foreach (var p in r.Pops) if (p.IsCommoner) crowd += p.Size;
         return crowd;
     }
 
@@ -1743,11 +1750,13 @@ public static class Politics
 
     /// <summary>★州の国民意識（N7・2026-08-13）＝POPの国民意識のsize加重平均。未捕捉(-1)のpopは平均から除く
     /// （国スカラーで代用すると州差が消える＝この機構の目的そのものが失われる）。1つも捕捉されていなければ0＝割引なし。</summary>
-    private static double AvgRegionConsciousness(Region r)
+    /// <summary>州の国民意識＝兵士でなく捕捉済み（≧0）の POP の人口加重平均。<paramref name="none"/>＝1つも捕捉されていない州の値（分離の割引＝0・
+    /// 徴兵の割引〔Military〕＝1＝機構の休眠＝割引なし）。★2026-09-30 処理の一元化 段4e H：旧＝徴兵の母数の割引が同じ和を手書きした。</summary>
+    internal static double AvgRegionConsciousness(Region r, double none = 0)
     {
         double nc = 0, size = 0;
         foreach (var p in r.Pops) if (!p.IsSoldier && p.NationalConsciousness >= 0) { nc += p.NationalConsciousness * p.Size; size += p.Size; }
-        return size > 1e-9 ? PoliticalQuantities.Clamp01(nc / size) : 0;
+        return size > 1e-9 ? PoliticalQuantities.Clamp01(nc / size) : none;
     }
 
     // 政14：州の平均中核民族割合（人口加重・兵士除く）。(1−これ)＝州の少数派度＝民族主因の分離圧力の源（均質州=1で加算0）。
@@ -1911,7 +1920,7 @@ public static class Politics
     // 大衆（労働者・農民。兵士除く）の母集団＝**この1本だけ**（闘争度と不満度は二量分離の対＝分母の式を二度書かない）。
     // ★2026-09-25：満足度（NationalScore.MeanSatisfaction）も同じ母集団へ揃えた＝同じアセンブリから呼ぶため private→internal（述語は不変）。
     // ★2026-09-26（棚卸し sweep-13）：同じ述語の手書きの写し（植民地の本国圧力・組合の厚生・役務の順位・債務不履行の打撃・特権の俸給・初期の闘争度・大衆の所得）もこの1本を呼ぶ。
-    internal static bool IsMassPop(Pop p) => !p.Closed && !p.IsModernElite && !p.IsSoldier;
+    internal static bool IsMassPop(Pop p) => p.IsCommoner && !p.IsModernElite;   // 大衆＝平民の民間人（Pop.IsCommoner）から近代エリートを除く
 
     // 大衆（労働者・農民。兵士除く）の平均闘争度（人口に依らない水準）。高ければブルジョワが独裁化（ブルジョア独裁の引き金）
     public static double AvgMassMilitancy(World w)   // 戦争熱＝外征の出口にも使う
@@ -1948,6 +1957,7 @@ public static class Politics
         bool terror = c.RevolutionTerror > 0
                    && w.Polity is Polity.Republic or Polity.ProletarianDictatorship or Polity.Anarchy;
         double confiscated = 0, confiscatedBonds = 0;
+        List<Pop>? purgedPops = null; double purgeTotal = 0;   // 粛清・亡命の死は死の記帳の1本へ（段4e J）
         foreach (var p in w.AllPops())
         {
             bool deposed = (depTrad && p.Closed)
@@ -1958,10 +1968,7 @@ public static class Politics
                 p.Militancy = PoliticalQuantities.Clamp01(p.Militancy + c.DeposedMilitancySpike);   // 失脚＝反革命の激しい不満
                 if (terror && !p.IsSoldier && p.Size > 0)
                 {
-                    double purged = p.Size * c.RevolutionTerror;
-                    p.Size -= purged;
-                    w.PopulationDelta -= purged; w.WarDeadCumulative += purged;   // 人口保存（粛清・亡命を戦死累計へ計上）
-                    w.TerrorPurgeCumulative += purged;   // 診断（UI）：粛清量の累計＝書くだけ（挙動非依存）。UIがニュース化に使う
+                    (purgedPops ??= []).Add(p); purgeTotal += p.Size * c.RevolutionTerror;   // 粛清・亡命＝失脚した層の RevolutionTerror の割合（下で死の記帳の1本へ）
                     double seized = Math.Max(0, p.Savings) * c.RevolutionTerror;   // 資産没収（貴族の所領・資本の没収）
                     p.Savings -= seized; confiscated += seized;
                     double seizedBonds = p.BondHoldings * c.RevolutionTerror;   // ★保有台帳（2026-09-21）：国債も貯蓄と同じ規則で没収（請求権は国内に残る＝下で大衆へ）
@@ -1970,6 +1977,8 @@ public static class Politics
             }
             else p.Militancy *= c.ReformMilitancyRelief;                                            // 勝者・中立＝緩和
         }
+        // 粛清・亡命の死＝死の記帳の1本（World.KillPops＝人口の台帳・戦死の累計に計上）。失脚した層の規模の比＝各層の RevolutionTerror の割合。
+        if (purgedPops is not null) w.TerrorPurgeCumulative += w.KillPops(purgedPops, null, purgeTotal, violent: true);   // 診断（UI）：粛清量の累計＝書くだけ（挙動非依存）。UIがニュース化に使う
         // 没収資産を大衆pop（非特権・非エリート・非兵士）へSize按分で再分配＝革命の余剰再分配（保存＝pop→pop純移転・貨幣不変）。受け手不在は全popへ按分。
         // ★保有台帳（2026-09-21）：没収した国債も**同じ受け手・同じ按分**で渡す（国の保有の和は不変＝不変条件を保つ）。没収が0の側は +0.0＝貯蓄の分配はビット不変。
         // ★支払いの一元化 段2-3（E1・2026-09-29）：貯蓄は按分の本体 World.Distribute（頭数・端数は最後の受け手）＝旧は端数を寄せず、全popの頭数も0なら没収額が消えた（配れなければ国庫へ）。

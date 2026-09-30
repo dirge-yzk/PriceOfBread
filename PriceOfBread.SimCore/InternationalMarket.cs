@@ -91,8 +91,7 @@ public sealed partial class InternationalMarket
             {
                 var rr = r ?? w.Regions[ri];
                 if (r is null && rr.State != RegionState.Active) continue;
-                double ruralPop = 0;
-                foreach (var p in rr.Pops) if (!p.IsUrban) ruralPop += p.Size;
+                double ruralPop = rr.SumRuralPopulation();
                 foreach (var pr in rr.Producers)
                 {
                     if (!Sells(pr, rr, goodId)) continue;
@@ -120,6 +119,28 @@ public sealed partial class InternationalMarket
             moved += World.Transfer(from, (w, null, null), stateCut, from.Pops is null && ReferenceEquals(from.W, w) ? cat : TreasuryCat.StateFactory, toCat: TreasuryCat.StateFactory, minted: minted);
         moved += World.Transfer(from, (w, to, wt), amount - stateCut, cat, income: true, minted: minted);
         return moved;
+    }
+
+    /// <summary>★市場の外の買い付けの1本（2026-09-30 処理の一元化 段4e K の <c>Procure</c>）＝州の市場から財 <paramref name="g"/> を <paramref name="want"/> だけ買って消費する：
+    /// 需要を計上（在庫が無くても＝生産を駆動する）→ 在庫と買い手の貯蓄で律速 → 在庫を減らし財の出入りの台帳へ → 代金はその財の生産者の④の持分（<see cref="PaySales"/>）。
+    /// 買い手＝POP（<paramref name="buyer"/>＝汽船の燃料と船と線路の商人・投資家＝貯蓄まで・台帳は販売 LastSold）／null＝国庫（国家の調達＝<see cref="Colonial.BuyUpkeepGood"/>＝
+    /// 価格の門と国家の支払い率 r は呼び手が量に掛けた後・台帳は域外 LastExport・区分 <paramref name="cat"/>）。戻り値＝買えた量。
+    /// ⚠旧＝国家の調達（BuyUpkeepGood）と汽船の燃料（Transport.BuyShipFuel）と船と線路（Transport.BuyToward）が同じ手順を3つ写した。
+    /// 価格が付いていない財（≦1e-9）は買わない（国家の側は旧＝床 1e-9 で買った＝価格は帯の床で常に正＝同じ）。</summary>
+    internal static double Procure(World w, Region r, int g, double want, Pop? buyer, TreasuryCat cat = TreasuryCat.OtherIn)
+    {
+        var m = r.Markets[g];
+        m.LastDemand += want;                  // 在庫が無くても需要を計上＝価格上昇と増産を駆動（鶏卵回避）
+        if (m.Stock <= 1e-9 || m.Price <= 1e-9) return 0;
+        double buy = Math.Min(m.Stock, want);  // 在庫超は買えない（物理の律速）
+        double pay = buy * m.Price;
+        if (buyer is not null && pay > buyer.Savings) { pay = Math.Max(0, buyer.Savings); buy = pay / m.Price; }   // 買い手の貯蓄まで
+        if (buy <= 1e-9) return 0;
+        m.Stock -= buy;
+        if (buyer is null) m.LastExport += buy;   // 国家の調達＝域外（植民地・艦隊・遠征）へ出る
+        else m.LastSold += buy;                   // 私の買い付け＝販売（財収支に計上）
+        PaySales(buyer is null ? (w, null) : (w, [buyer]), r, g, pay, w, cat);
+        return buy;
     }
 
     /// <summary>国として財 g を買う支払い（<see cref="PaySales"/> の国の枝）に受け手がいる＝国の活きた州のその財の産出の和＞0（PaySales の totalOut と同じ閾値）。

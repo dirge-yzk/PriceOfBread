@@ -2357,15 +2357,11 @@ public sealed class Diplomacy
                 //   ⚠民兵率0（既定）では重みが厳密に1.0＝Σ重み==Σ規模＝旧式とビット恒等。
                 if (tollRate > 1e-12)
                 {
-                    double civPop = 0, civW = 0;
-                    foreach (var pp in wz.AllPops()) if (!pp.IsSoldier) { civPop += pp.Size; civW += pp.Size * (1.0 + c.MilitiaCombatValue * pp.MilitiaShare); }
+                    double civPop = 0;
+                    var civ = new List<Pop>(); var civW = new List<double>();
+                    foreach (var pp in wz.AllPops()) if (!pp.IsSoldier) { civPop += pp.Size; civ.Add(pp); civW.Add(pp.Size * (1.0 + c.MilitiaCombatValue * pp.MilitiaShare)); }
                     if (civPop > 1e-9)
-                    {
-                        double toll = civPop * tollRate;
-                        foreach (var pp in wz.AllPops()) if (!pp.IsSoldier) pp.Size -= toll * (pp.Size * (1.0 + c.MilitiaCombatValue * pp.MilitiaShare) / civW);
-                        wz.PopulationDelta -= toll; wz.WarDeadCumulative += toll;
-                        civToll = toll;   // ★2026-09-23：戦争別台帳へ渡すのは**この1回**（国の累計と戦争別台帳は別物＝二重計上でない）
-                    }
+                        civToll = wz.KillPops(civ, civW, civPop * tollRate, violent: true);   // 死の記帳の1本（段4e J）。★2026-09-23：戦争別台帳へ渡すのは**この1回**（国の累計と戦争別台帳は別物＝二重計上でない）
                 }
             }
             // 戦争別台帳（UI表示用の純記帳・2026-07-19）：この国の今月の戦死を、参加中の各戦争へ戦線数で均等按分。
@@ -2541,18 +2537,14 @@ public sealed class Diplomacy
         casForce *= 1.0 + c.AirCasualtyWeight * Math.Max(0.0, 1.0 - 2.0 * airControl);   // 1934拡張E2：制空劣勢＝上空からの観測砲爆撃で出血増（中立0.5＝×1.0恒等・優勢側は増えない）
         double cas = Math.Min(casForce, soldierPop * c.WarCasualtyMonthlyCap);   // 1ヶ月最大で兵士の WarCasualtyMonthlyCap（改修2026-06-28：旧15%/月＝年率80%超は桁外れ→4%/月＝総力戦で年〜40%の史実水準へ）
         CasualtyProbe?.Invoke(casForce, soldierPop);   // 観測だけ（既定 null＝引数ごと評価しない）
-        foreach (var pop in w.AllPops()) if (pop.IsSoldier) pop.Size -= cas * (pop.Size / soldierPop);   // 兵士に規模按分で戦死
-        w.PopulationDelta -= cas;       // 戦死＝人口減（符号付き台帳）
-        w.WarDeadCumulative += cas;
+        // 兵士に規模按分で戦死＝死の記帳の1本（World.KillPops・段4e J＝人口の台帳と戦死の累計）
+        var soldiers = new List<Pop>(); var officers = new List<Pop>();
+        foreach (var pop in w.AllPops()) { if (pop.IsSoldier) soldiers.Add(pop); else if (pop.Closed) officers.Add(pop); }
+        w.KillPops(soldiers, null, cas, violent: true);
         // 将校貴族の戦死（B-1）：戦死の一部は士官＝伝統支配層（貴族）にも及ぶ＝WarFeverを煽る貴族も血を流す。少数なので小さく、貴族の5%/月を上限。
         double offCasTotal = 0;
         if (nobPop > 1e-9)
-        {
-            double offCas = Math.Min(c.OfficerCasualtyShare * cas, nobPop * OfficerCasualtyPopCap);
-            foreach (var pop in w.AllPops()) if (pop.Closed && !pop.IsSoldier) pop.Size -= offCas * (pop.Size / nobPop);
-            w.PopulationDelta -= offCas; w.WarDeadCumulative += offCas;
-            offCasTotal = offCas;
-        }
+            offCasTotal = w.KillPops(officers, null, Math.Min(c.OfficerCasualtyShare * cas, nobPop * OfficerCasualtyPopCap), violent: true);
         double weBefore = p.WarExhaustion, casTerm = c.WarExhaustionCasualty * (cas / soldierPop);
         p.WarExhaustion = Math.Min(1, p.WarExhaustion + casTerm);   // 戦死率に比例して厭戦↑
         if (p.Nation?.Explain is { } exc)   // 説明API：戦死の衝撃を厭戦内訳へ追記（Resetは StepWars の主サイトのみ）

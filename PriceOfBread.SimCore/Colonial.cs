@@ -70,9 +70,7 @@ public static class Colonial
                 if (cr.State != RegionState.Active || cr.Tier != RegionTier.Colonial) continue;
                 var ccr = Places.Coord(cr.Name);
                 double pw = c.ColonialPopScale > 1e-9 ? cr.SumPopulation() / c.ColonialPopScale : 0;   // col.Population と同じ物差しへ戻す
-                double mn = 0, md = 0;
-                foreach (var cp2 in cr.Pops) { mn += cp2.Militancy * cp2.Size; md += cp2.Size; }
-                AccumUpkeep(ccr.Lat, ccr.Lon, pw, md > 1e-9 ? mn / md : 0, cr.Malarial);
+                AccumUpkeep(ccr.Lat, ccr.Lon, pw, Politics.AvgRegionMilitancy(cr), cr.Malarial);   // 州の平均闘争度の1本（平民の民間人＝駐留の兵と在地の貴族を除く・段4e H）
             }
         foreach (var col in w.SelfPower!.ColonyList) AccumUpkeep(col.Latitude, col.Longitude, col.Population, col.Militancy, col.Malarial);
         w.ColonialShipBurden = shipBurden;   // 交易の実効海運を絞る（InternationalMarket/Trade が ShipCapacity/(1+これ) で参照）
@@ -239,8 +237,7 @@ public static class Colonial
                 foreach (var cr in w.Regions)
                 {
                     if (cr.State != RegionState.Active || cr.Tier != RegionTier.Colonial) continue;
-                    double mn = 0, md = 0;
-                    foreach (var cp in cr.Pops) { mn += cp.Militancy * cp.Size; md += cp.Size; }
+                    var (mn, md) = Politics.RegionMilitancy(cr);   // 州の闘争度の和の1本（平民の民間人・段4e H）
                     if (md > 1e-9) { colMilSum += mn; colPopSum += md; }
                 }
             MechanismProbe.Eval(MechanismProbe.Site.AntiImperialOpinion);   // ★D-34：試した回数（⚠ここが0なら配線漏れ・Hitが0なら死んだ機構）
@@ -382,9 +379,7 @@ public static class Colonial
                         if (p.Size <= 1e-9) continue;
                         double f = Math.Min(flow * (wgt / srcMassR), p.Size);
                         if (!(f > 1e-12)) continue;
-                        Pop? dp = null;
-                        foreach (var d in cr.Pops) if (d.ClassId == p.ClassId) { dp = d; break; }
-                        if (dp is null) continue;
+                        if (cr.PopOf(p.ClassId) is not { } dp) continue;   // 移る先の同じ階級の POP の探し方の1本（段4e I）
                         Territory.MoveBetweenRegions(p, dp, f, c);
                         moved += f;
                     }
@@ -425,12 +420,11 @@ public static class Colonial
     internal static double BuyUpkeepGood(World w, Region r, int goodId, double want, TreasuryCat cat = TreasuryCat.ColonialUpkeep)
     {
         if (!(want > 1e-9) || goodId >= r.Markets.Length) return 0;   // ⚠否定形＝NaN も弾く（LastDemand を汚さない）
-        // ★国家調達の価格感応（2026-08-03・全ての政府支出で同じ式）：参照価格より高騰していれば買い控える。
+        // ★国家調達の価格感応（2026-08-03・全ての政府支出で同じ式）：参照価格より高騰していれば買い控える＝価格の門の1本（EconomyStep.StatePriceAfford・段4e K）。
         //   ⚠燃料・糧食を買い控えた分は維持費が浮く（国庫に残る）＝補給が細れば植民地の不満が育つ経路が既にある。
-        if (w.Coef.StateProcurePriceGate > 0 && goodId < Catalog.RefPrices.Length && Catalog.RefPrices[goodId] > 1e-9)
+        if (w.Coef.StateProcurePriceGate > 0)
         {
-            double a = w.Coef.FactoryBuildAfford(Math.Max(r.Markets[goodId].Price, 1e-9), Catalog.RefPrices[goodId] * Math.Max(r.PriceLevel, 1e-9));   // ★実質で比べる（2026-08-04）
-            if (a > 0 && a <= 1) want *= 1.0 - w.Coef.StateProcurePriceGate * (1.0 - a);
+            want *= EconomyStep.StatePriceAfford(r, w.Coef, goodId);
             if (!(want > 1e-9)) return 0;
         }
         // 植民地の補給財の請求（r を掛ける前）を植民地維持費の請求へ積む＝翌月の月初の国家の支払いの請求に入る（例外なし・作者裁定 Q2）。
@@ -438,16 +432,8 @@ public static class Colonial
         if (cat == TreasuryCat.ColonialUpkeep) w.LastColonialUpkeep += want * Math.Max(r.Markets[goodId].Price, 1e-9);
         want *= w.FiscalFundingRatio;                                      // ★国家の支払い率 r の分だけ買う＝量を減らす（2026-09-28 段2-1＝旧は国庫で買える上限の門）
         if (!(want > 1e-9)) return 0;
-        var m = r.Markets[goodId];
-        m.LastDemand += want;                                              // 需要を計上＝価格上昇＆増産を駆動（在庫が無くても＝補給の引きが産業を圧迫）
-        double price = Math.Max(m.Price, 1e-9);
-        double got = Math.Min(want, m.Stock);                              // 在庫超は買えない（物理の律速・財政は上の r）
-        if (got <= 1e-9) return 0;
-        double cost = got * price;
-        m.Stock -= got; m.LastExport += got;                              // 物理消費（汽船が焚く・駐留が食う＝本国市場から域外圏へ出る。財収支台帳に計上）
-        // ★支払いの一元化 段3-2（2026-09-30・C6）：代金はその財の生産者の④の持分へ（国庫→地代・国営持分・賃金＝輸送財の買い付けと同じ1本 InternationalMarket.PaySales）。
-        //   旧＝本国の全POP へ頭数で配った（補給の石炭・缶詰・キニーネ・侵攻の物資・海軍の燃料の代金を、作った者でなく全国民が受け取った）。
-        InternationalMarket.PaySales((w, null), r, goodId, cost, w, cat);
-        return got;                                                        // 買えた量（マラリア鎮静の充足率の算出に使う）
+        // 買い付けは市場の外の買い付けの1本（InternationalMarket.Procure・段4e K）＝需要の計上・在庫の律速・域外へ（LastExport）・
+        //   代金はその財の生産者の④の持分へ（段3-2・C6＝旧は本国の全POP へ頭数で配った）。戻り値＝買えた量（マラリア鎮静の充足率の算出に使う）。
+        return InternationalMarket.Procure(w, r, goodId, want, null, cat);
     }
 }

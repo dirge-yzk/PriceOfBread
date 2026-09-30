@@ -546,6 +546,10 @@ public sealed class Coefficients
     public double SteamBoost = 0.3;              // 完全蒸気動力時の能力上乗せ（蒸気機関＝水車/畜力を超える出力。電化のElecBoostと対称）。買えた石炭の割合(SteamFill)に比例
     public double SteamTechOnset = 0.25;         // 蒸気機関が動力として採用可能になる技術水準（≈工業化開始 IndustrializedTechThreshold と同水準＝産業革命の動力転換）。これ未満は水車/畜力のみ＝石炭を焚かない
     public double SteamTechWidth = 0.5;          // onset から full 解禁までの技術幅（蒸気の普及帯。電化のAdvancedTechWidthと同役）
+    /// <summary>★蒸気の門∈[0,1]＝技術 <paramref name="tech"/> が蒸気の普及帯（SteamTechOnset〜＋SteamTechWidth）のどこにいるか（2026-09-30 処理の一元化 段4e K）。
+    /// 読み手＝鉄道の石炭（EconomyStep）・電化の蒸気（EconomyStep）・海軍の運用燃料（Military.NavalFuelStep）＝旧は同じ式を3か所で手書き（海軍だけ幅の0除算の守りが無かった）。
+    /// ⚠NaN は Clamp01 が0＝蒸気以前へ。</summary>
+    public double SteamGate(double tech) => PoliticalQuantities.Clamp01((tech - SteamTechOnset) / System.Math.Max(1e-9, SteamTechWidth));
     // --- 女性・子供（構成属性。POP分割はしない）---
     public double FemalePartBase = 0.4;          // 女性の労働参加率の基礎（紡績女工・農婦・家事奉公＝19世紀の現実）。賃金保持(財産権)なしの構造的参加率
     public double FemalePartProperty = 0.7;      // 女性財産権法の下での参加率（自分の賃金を持てる＝働く誘因。労働供給+2割）
@@ -1261,6 +1265,9 @@ public sealed class Coefficients
     public double TransportBaseline = 50.0;         // 前鉄道の基礎輸送（道路/河川＝低容量で高コスト）。鉄道前は州が世界市場と細々としか繋がらず地域価格が割れる→鉄道（容量≈人口×0.08）で統合され収束
     public double RailTechOnset = 0.35;             // 鉄道（内陸輸送）の技術解禁。工業化判定閾値(IndustrializedTechThreshold0.25)の一段上＝工業化に入った国から鉄道を積める。旧1.0は採用上限(AdoptionCeiling0.5)/後追い天井(×CatchupFraction0.7)と不整合で後発国・単一国が永久に解禁できなかった（Wave1-B監査）。船(帆船)は古来あり据え置き
     public double RailTechWidth = 0.5;             // 解禁の幅：onset(0.35)〜onset+width(0.85)で鉄道容量上限が0→満額へ。先端国は満額・工業化途上国も部分的に鉄道を持てる（普及の漸進）
+    /// <summary>★鉄道の門∈[0,1]＝技術 <paramref name="tech"/> が鉄道の解禁帯（RailTechOnset〜＋RailTechWidth）のどこにいるか（2026-09-30 処理の一元化 段4e K）。
+    /// 読み手＝鉄道の容量の目標（Transport）・清算の陸路の費用（BilateralMarket）＝旧は同じ式を2か所で手書き。⚠NaN は Clamp01 が0。</summary>
+    public double RailGate(double tech) => PoliticalQuantities.Clamp01((tech - RailTechOnset) / System.Math.Max(1e-9, RailTechWidth));
     public int[] ShipGoodIds = [Catalog.SailingShipId, Catalog.SteamshipId];            // 帆船(tier1)・汽船(tier2)。★2026-09-26（回4-3）：Transport が州ごとに容量あたりの総費用（船価＋汽船は寿命の間の燃料）の安い1財だけを買う
     public int ShipTier2GoodId = Catalog.SteamshipId;                // 汽船＝tier2輸送船（蒸気船）。蒸気機関を要する＝供給チェーンで自然に技術ゲート
     public double ShipTier2CapMult = 2.5;           // tier2輸送船は1単位あたり容量が大（蒸気船は帆船より高速・大容量＝海運の革命）。★2026-09-27（回4-3 の再挑戦）：これは運賃革命のランプの手前（1830年代・外輪と単式機関）の値。
@@ -2585,8 +2592,8 @@ public sealed class Coefficients
     public double OverworkMortalityWeight = 0.015;   /* トレードオフ化2026-07-06:有効化。短時間側 OverworkHealthSlope=0.015 と対称の初期値＝無制限14hで扶養力−0.03（=+19%産出 whOut の対価）。0で旧挙動・要較正再走 */   // 人12（14hの健康被害が12hと同値）：WorkHoursCapacityの長時間側の超過死亡項。扶養力に−これ×max(0,hours−12)を加算。0=現行（Max(0,12−hours)の片側のみ）と厳密一致・>0で12h超に人口動態コスト
     public double EpidemicIntraCountrySpread = 0.5;   /* #17有効化 */   // 人14（疫病の州間伝播）：TriggerEpidemicの感染窓中に最過密州から次過密州へ与える二次スパイクの減衰致死率倍率。0=単一最過密州のみ（現行と厳密一致）・>0で次過密州へdeathFrac×これの二次死亡（1832コレラのパリ→リヨン型）。新規RNG消費なし（決定論不変）。1州世界は不発
     public double IndustrializationPopWeighted = 1.0;   /* #17有効化 */   // 人16（工業化度の人口加重）：DemographicStepの出生率・扶養力に効く工業化度を非加重州平均(avgInd)から人口加重平均(ΣInd×rpop/Σrpop)へ。0=非加重（現行）と厳密一致・1で人口加重。1州世界では両者恒等＝較正中立
-    public double MigrationCarriesHumanCapital = 1.0;   /* #17有効化 */   // 人1：移動サイトが識字・闘争度もsize加重で運搬する強さ（0=運ばない＝現行の着地時無償識字獲得を温存／>0で運搬ON）。国家集計は加重平均で中立・per-region分布のみ実勢化。共有係数（PopDecision/Meritocracy/Territory/Military/MultiNationSimが参照）
-    public double PromotionLiteracySelection = 0.5;   /* #17有効化 */   // 人1：昇格の識字選抜強度（Meritocracy）。0=選抜なし＝移動コホートの識字＝src平均（現行恒等）／>0で移動者の識字を引き上げ質量保存で残留srcを引き下げ＝昇格ポンプの自己補充を解消。MigrationCarriesHumanCapital>0とセットの時のみ発火
+    // 【墓標2026-09-30・旗の焼き込み（処理の一元化 段4e I）】MigrationCarriesHumanCapital（人1・#17点火 1.0）＝移動サイトが識字・闘争度を運ぶ＝人の移し方の1本 Pop.Blend が常に運ぶ。
+    public double PromotionLiteracySelection = 0.5;   /* #17有効化 */   // 人1：昇格の識字選抜強度（Meritocracy）。0=選抜なし＝移動コホートの識字＝src平均（現行恒等）／>0で移動者の識字を引き上げ質量保存で残留srcを引き下げ＝昇格ポンプの自己補充を解消。Pop.Blend の選抜の枝（残る人がいるときだけ）
     // 【墓標2026-09-26・旗の焼き込み（x-01・0-4）】RegionMigrationExcludesClosed（人4・#17点火）＝地域間移民は閉鎖階級と兵士を動かさない
     public double LiteracyGenerationalDecay = 0.002;   /* 【R10点火2026-07-13＝0.002】 */   // 人11b：識字の世代減衰（TechEducation・月次）。0=減衰なし＝既得識字は永遠保持（旧ラチェット）／>0でEducationFillを上回る分に微小な世代減衰＝教育投資の維持費（教育崩壊で識字後退）。0.002＝超過分の半減期≈29年（世代規模）＝使わなければ失う
     public double EducationGateUsesEma = 0.0;   // 人13：昇格の高等教育ゲート（Meritocracy）に多年EMAを使う（0=当月EducationFillの瞬間フロー＝現行／1=EducationEmaストックで判定＝一時的な教育の途絶で資格が消えない）
@@ -3074,9 +3081,8 @@ public sealed class Coefficients
                                                        // 民族距離=1−CoreEthnicShare（既存POP化と同じ代理・タスクAを待たない）・開放度=CrownParliament.CivicOpenness
                                                        // （共和経験×参政権×自由度の等分＝既存政治変数のみ・国別データなし）。スカラー経路も国平均の民族距離(1−EthnicUnity)で同型の天井
                                                        // ＝NC読み手3本（汚職Fiscal/総動員Military/ナショIdeology）への民族抵抗の効きが「天井経由の一本」になる。点火帯1.0
-    public double MigrantCarriesConsciousness = 1.0;  // 【点火2026-08-09 同上・NC総量保存】// ★P12残渣②（原典「移住は加重平均で混合」・0801ログ:79の既知の限界の是正）：越境移民（MoveMigrants）が
-                                                       // 出身popの国民意識を持参し、到着popとSize加重平均で混合＝NC×Size総量が移動の前後で保存（湧かず消えず）。
-                                                       // 0（既定）＝現行＝移動分が到着国popの値を纏う（意識が国境で消える）＝ビット恒等。点火帯1.0
+    // 【墓標2026-09-30・旗の焼き込み（処理の一元化 段4e I）】MigrantCarriesConsciousness（P12残渣②・2026-08-09 点火 1.0）＝越境移民が出身 POP の国民意識を持参＝
+    //   人の移し方の1本 Pop.Blend が国内の移動も含め常に運ぶ（作者裁定 2026-09-28 §14-2 の6）。
     // 1934拡張E5 秘密投票（「紙の参政権」是正）：発言権の鎮静効果を選挙の実在で変調。0（既定）で reality=1.0＝現行恒等（E9で点火し帯を測る＝忠実度が大きく動きうる主変更）
     public double SecretBallotGate = 1.0;   /* E9点火（1934拡張） */              // **主フラグ**：0で秘密投票の効果なし＝恒等。>0で下の reality で politicalGap の鎮静を変調
     public double OpenBallotReality = 0.9;             // 議会政体×公開投票＝選挙は実在するが買収/脅迫で歪む（英1872以前）。E9点火（1934拡張）＝0.6→0.9に緩和（較正への衝撃を抑えつつ秘密投票に価値を残す）

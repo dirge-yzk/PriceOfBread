@@ -273,15 +273,55 @@ public class MobilityTests
         foreach (var p in r.Pops) if (p.IsModernElite) { p.EducationFill = 1.0; p.EducationEma = 1.0; }
         eng.Earned = 10.0 * eng.Size; teacher.Earned = 10.0 * teacher.Size;
         double engSize0 = eng.Size, teaSize0 = teacher.Size;
-        double femMass0 = 0; foreach (var p in r.Pops) femMass0 += p.FemaleShare * p.Size;
+        // 女性比は「成人のうち」の比＝保存されるのは成人の女性の数 Σ 女性比×規模×(1−子供比)（2026-09-30 段4e I＝人の移し方の1本は成人数で混ぜる）
+        double femMass0 = 0; foreach (var p in r.Pops) femMass0 += p.FemaleShare * p.Size * (1.0 - p.ChildShare);
         Meritocracy.Step(w, c);
         Assert.True(eng.Size > engSize0 + 1e-9, "技師への昇格が起きない（前提が崩れた）");
         Assert.True(teacher.Size > teaSize0 + 1e-9, "教師への昇格が起きない（前提が崩れた）");
         // 技師行きコホートは女性0（access=0）＝技師の女性比は流入で薄まる。教師行き（access=1.0）は従来どおりsrc平均0.6を運ぶ＝教師の女性比は上がる。
         Assert.True(eng.FemaleShare < 0.02, $"閉じた専門職の女性比が薄まらない（技師 {eng.FemaleShare:F4}）");
         Assert.True(teacher.FemaleShare > 0.25, $"教師行きコホートの女性比が運ばれていない（教師 {teacher.FemaleShare:F4}）");
-        double femMass1 = 0; foreach (var p in r.Pops) femMass1 += p.FemaleShare * p.Size;
+        double femMass1 = 0; foreach (var p in r.Pops) femMass1 += p.FemaleShare * p.Size * (1.0 - p.ChildShare);
         Assert.True(System.Math.Abs(femMass1 - femMass0) < 1e-6 * System.Math.Max(1.0, femMass0),
             $"性別の選抜運搬で女性の総量が保存されない（{femMass0:F2}→{femMass1:F2}）");
+    }
+
+    /// <summary>★人の移し方の1本（2026-09-30 処理の一元化 段4e I・<c>Pop.Blend</c>）：女性比は「成人のうちの女性の割合」＝移る組と受け手を**成人数**で混ぜる
+    /// （成人の女性の数が保存される）。旧＝5つの写し（州の中・社会移動・州の間・越境・招聘）が子供込みの規模で重み付けた＝子供比の違う組では女性の数がずれた
+    /// （Military の G11#2 の直しが5つに届いていなかった）。盤面＝子供の多い村（子供比 0.5・女性比 0.5）から子供のいない POP（女性比 0.2）へ40人。
+    /// ⚠突然変異「規模で重み付ける」で赤。</summary>
+    [Fact]
+    public void 人の移し方は女性比を成人数で混ぜ成人の女性の数を保存する()
+    {
+        static double FemaleAdults(Pop p) => p.FemaleShare * p.Size * (1.0 - p.ChildShare);
+        var from = new Pop { Size = 100, ChildShare = 0.5, FemaleShare = 0.5 };
+        var to = new Pop { Size = 100, ChildShare = 0.0, FemaleShare = 0.2 };
+        double fem0 = FemaleAdults(from) + FemaleAdults(to);
+        Pop.Blend(from, to, 40);
+        // 受け手＝成人 100＋20（移る40人のうち成人20）・女性 20＋10 → 30/120＝0.25（規模で重み付けると (0.2×100＋0.5×40)/140＝0.2857）
+        Assert.Equal(0.25, to.FemaleShare, 12);
+        Assert.Equal(20.0 / 140.0, to.ChildShare, 12);
+        Assert.Equal(0.5, from.FemaleShare, 12);   // 選抜の無い移動は送り手の構成を1ビットも動かさない
+        Assert.Equal(fem0, FemaleAdults(from) + FemaleAdults(to), 9);
+    }
+
+    /// <summary>★国内の移動も政治意識・国民意識・思想の分布を人数で運ぶ（作者裁定 2026-09-28 §14-2 の6「国内の移動でも運ぶ＝1本の Blend で全部」・段4e I）。
+    /// 旧＝国民意識を運ぶのは越境移民だけ・政治意識と思想の分布はどの経路も運ばなかった（移った人の意識が着地の POP の値に化けた）。
+    /// 国民意識の未捕捉（−1）は重み0（書き手が触らない POP は読み手も見ない）。⚠突然変異「政治意識を運ばない」「未捕捉を重みに入れる」「思想を運ばない」で赤。</summary>
+    [Fact]
+    public void 国内の移動も政治意識と国民意識と思想の分布を人数で運ぶ()
+    {
+        var a = new Pop { Size = 30, Consciousness = 0.9, NationalConsciousness = 0.6 };
+        var b = new Pop { Size = 90, Consciousness = 0.1, NationalConsciousness = 0.2 };
+        a.IdeologyShares[2] = 1.0; b.IdeologyShares[0] = 1.0;
+        Territory.MoveBetweenRegions(a, b, 10, new Coefficients());
+        Assert.Equal((0.1 * 90 + 0.9 * 10) / 100, b.Consciousness, 12);
+        Assert.Equal((0.2 * 90 + 0.6 * 10) / 100, b.NationalConsciousness, 12);
+        Assert.Equal(0.9, b.IdeologyShares[0], 12); Assert.Equal(0.1, b.IdeologyShares[2], 12);
+        Assert.Equal(0.9, a.Consciousness, 12); Assert.Equal(0.6, a.NationalConsciousness, 12);   // 送り手の1人あたりは動かない
+        var c = new Pop { Size = 50, NationalConsciousness = -1 };   // 未捕捉の受け手
+        var d = new Pop { Size = 20, NationalConsciousness = 0.7 };
+        Territory.MoveBetweenRegions(d, c, 5, new Coefficients());
+        Assert.Equal(0.7, c.NationalConsciousness, 12);
     }
 }

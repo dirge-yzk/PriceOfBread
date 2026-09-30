@@ -960,4 +960,28 @@ public class WarThemeTests
         Assert.True(Math.Abs(got - paid * conv) <= tol, $"英の兵士の受け取り {got} ≠ 仏の商人の払いの金の値打ち {paid * conv}");
         Assert.True(Math.Abs(zero.ff - arm.ff - paid) <= tol && Math.Abs(arm.bf - zero.bf - got) <= tol, "両国の台帳が動いた額で対になっていない");
     }
+
+    /// <summary>★死の記帳の1本（2026-09-30 処理の一元化 段4e J・<c>World.KillPops</c>）：総数を重みの比で配り、規模を超えては殺さず、実際に減った人数を
+    /// 人口の台帳と死因の台帳へ書く（戦死・戦災・鎮圧・粛清＝戦死の累計／疫病・遠征の病死＝粗死亡の計器）。旧＝7か所が記帳を手書きした（台帳に意図の総数を書く所と
+    /// 実際の和を書く所・規模の下限を守る所と守らない所が混在）。⚠突然変異「台帳に意図の総数を書く」「規模を超えて殺す」「死因を取り違える」で赤。</summary>
+    [Fact]
+    public void 死の記帳は規模を超えず実際に減った人数を死因の台帳へ書く()
+    {
+        var sim = new Simulation(NationConfig.France().ToScenario(1), new NullAgent());
+        var w = sim.World;
+        var a = new Pop { Size = 10 }; var b = new Pop { Size = 1 };
+        double pd0 = w.PopulationDelta, wd0 = w.WarDeadCumulative, dd0 = w.DiagDeaths;
+        // 重み 1:9 で総数 20＝b の取り分 18 は規模 1 を超える＝1 だけ死ぬ・a は 2
+        double dead = w.KillPops([a, b], [1.0, 9.0], 20, violent: true);
+        Assert.Equal(3.0, dead, 12);
+        Assert.Equal(8.0, a.Size, 12); Assert.Equal(0.0, b.Size, 12);
+        Assert.Equal(pd0 - 3.0, w.PopulationDelta, 12);
+        Assert.Equal(wd0 + 3.0, w.WarDeadCumulative, 12);
+        Assert.Equal(dd0, w.DiagDeaths);
+        double dead2 = w.KillPops([a], null, 2, violent: false);
+        Assert.Equal(2.0, dead2, 12); Assert.Equal(6.0, a.Size, 12);
+        Assert.Equal(dd0 + 2.0, w.DiagDeaths, 12);
+        Assert.Equal(wd0 + 3.0, w.WarDeadCumulative, 12);
+        Assert.Equal(pd0 - 5.0, w.PopulationDelta, 12);
+    }
 }

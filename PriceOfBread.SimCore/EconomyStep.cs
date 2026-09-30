@@ -738,11 +738,8 @@ public static class EconomyStep
         foreach (var pw in region.Producers) if (pw.GoodId == Catalog.LaborId) { conWorker = pw.LaborPopIndex; break; }
         if (cap && region.InvestorPopIndex >= 0)
         {
-            double sP = Math.Max(region.Markets[coef.SteelGoodId].Price, Eps);
-            double mP = Math.Max(region.Markets[coef.MachineGoodId].Price, Eps);
-            double cP = Math.Max(region.Markets[coef.CementGoodId].Price, Eps);
-            double lP = Math.Max(region.Markets[coef.LumberGoodId].Price, Eps);
-            double costPerUnit = coef.ConsSteel * sP + coef.ConsMachine * mP + coef.ConsCement * cP + coef.ConsLumber * lP;
+            double costPerUnit = BundleCost(region, coef);   // 建設の資材の束の費用（K の1本）
+            double cP = Math.Max(region.Markets[coef.CementGoodId].Price, Eps);   // インフラ保守の単価（下の maintCostPerUnit）
             // 経4：建設1単位に付随する鉄道・機関車（下段の鉄道インフラ需要で construction 比例に消費）も本来は予算の律速に入る。
             // costPerUnit 自体は「材料束の純価格」（下段の stateConstruction が StateBuildQueue の割り算に使う＝鉄道を含めない）ので別変数 buildCostPerUnit で資本家建設の予算律速だけに算入。
             // 予算に算入し貯蓄が負に振れるのを防ぐ（点火2026-07-31・2026-09-28 に旗 InvestBudgetIncludesAllInputs ごと焼き込み）。
@@ -823,9 +820,7 @@ public static class EconomyStep
             // 国家の手動建設（プレイヤー）：資本家と同じ建設の束を国庫負担で買い増す（決済は後段）。
             // ★束の採算（2026-08-03）：私的な工場建設は既に FactoryBuildAfford で絞っているのに、国家建設と巨大建造物は
             //   素通りで、高騰した束を国庫が買い切っていた。同じ式を通す（StateProcurePriceGate=0 で恒等）。
-            double bundleRef = (coef.ConsSteel * Catalog.RefPrices[coef.SteelGoodId] + coef.ConsMachine * Catalog.RefPrices[coef.MachineGoodId]
-                             + coef.ConsCement * Catalog.RefPrices[coef.CementGoodId] + coef.ConsLumber * Catalog.RefPrices[coef.LumberGoodId])
-                             * Math.Max(region.PriceLevel, Eps);   // ★実質で比べる（名目のままだと一般インフレで恒久的に絞られる・2026-08-04）
+            double bundleRef = BundleRef(coef) * Math.Max(region.PriceLevel, Eps);   // ★実質で比べる（名目のままだと一般インフレで恒久的に絞られる・2026-08-04）
             double bundleAfford = coef.StateProcurePriceGate > 0 && bundleRef > Eps
                 ? 1.0 - coef.StateProcurePriceGate * (1.0 - coef.FactoryBuildAfford(costPerUnit, bundleRef)) : 1.0;
             stateConstruction = costPerUnit > Eps ? region.StateBuildQueue / costPerUnit * bundleAfford : 0;
@@ -895,7 +890,7 @@ public static class EconomyStep
             // RailCoalRate=0 なら railCoalGate=0＝需要側・決済側とも1命令も足さない（★2026-08-29点火＝既定0.22）。導出は係数コメント（Coefficients.RailCoalRate）。
             if (coef.RailCoalRate > 0 && railLoco && Catalog.CoalId < ng)
             {
-                railCoalGate = PoliticalQuantities.Clamp01((region.TechLevel - coef.SteamTechOnset) / coef.SteamTechWidth);   // NaN は Clamp01 が0＝蒸気以前へ
+                railCoalGate = coef.SteamGate(region.TechLevel);   // 蒸気の門の1本（段4e K・NaN は0＝蒸気以前へ）
                 maintCostPerUnit += coef.RailCoalRate * railCoalGate * Math.Max(region.Markets[Catalog.CoalId].Price, Eps);
             }
             double maintBudget = Math.Max(0, budget - construction * buildCostPerUnit);
@@ -1127,20 +1122,7 @@ public static class EconomyStep
         //     参照側に Region.PriceLevel（＝物価水準。MarketFlow の価格アンカーも rp×これでスケールする）を掛けて実質比にする。
         //   ⚠StateProcurePriceGate=0 で 1.0 固定＝厳密恒等（休眠可）。
         // ★耐久装備の発注量（段2a）は <see cref="TierQty"/>（見積と発注が同じ1本・2026-09-28 に局所関数 StockOrder から移した）。
-        double PriceAfford(int gid)
-        {
-            if (coef.StateProcurePriceGate <= 0) return 1.0;
-            if (gid < 0 || gid >= region.Markets.Length || gid >= Catalog.RefPrices.Length) return 1.0;
-            double rp = Catalog.RefPrices[gid] * Math.Max(region.PriceLevel, Eps);   // ★物価水準で実質化（下記の⚠）
-            if (!(rp > Eps)) return 1.0;   // ⚠否定形＝参照価格が無い財は絞らない（fail-open）
-            double a = coef.FactoryBuildAfford(Math.Max(region.Markets[gid].Price, Eps), rp);
-            // ★軍需財の価格ゲート倍率（2026-09-07・英の軍が立たない根＝armsdebug 実測：ロンドンの小銃価格は基準の3〜5倍→ゲートで発注が約13%に絞られ→前期需要（労働配分の重み）が
-            //   細り→生産者1・産出0.3〜20/期のまま→価格が下がらない＝**自己ロック**。史実の国家はマスケットを相場で買った（トタ）。MilitaryProcurePriceGateScale=1.0＝現行（厳密恒等）・
-            //   0＝軍需財は価格を見ずに発注（国庫の afford は別に効く）。対象＝MilitaryGoods（小銃/弾薬/火砲/艦/馬/自動車）のみ。
-            double gate = coef.StateProcurePriceGate;
-            if (coef.MilitaryProcurePriceGateScale < 1.0 && System.Array.IndexOf(coef.MilitaryGoods, gid) >= 0) gate *= Math.Max(0, coef.MilitaryProcurePriceGateScale);
-            return a > 0 && a <= 1 ? 1.0 - gate * (1.0 - a) : 1.0;   // ゲート比で連続に混合（0=旧恒等・1=満額適用）
-        }
+        double PriceAfford(int gid) => StatePriceAfford(region, coef, gid);   // 国家調達の価格の門の1本（2026-09-30 段4e K）
 
         // 行政調達（軍事費の行政版）：国家が官僚の算出する「行政」を買う。予算不足や官僚不足＝AdminFill<1＝汚職（税収が漏れる）。
         double adminNeed = 0, adminWant = 0, adminMul = 1.0;
@@ -1205,7 +1187,7 @@ public static class EconomyStep
         // === ② 工場の投入需要 ＋ 財ごとの生産者数。電化の意思決定もここ ===
         bool elecOn = Catalog.ElectricityId < ng && isService.Length > Catalog.ElectricityId;   // 電力を持つ世界か（小シナリオは対象外）
         bool energyOn = coef.EnergyPerOutput > 0 && Catalog.CoalId < ng;   // #9 石炭動力を持つ世界か（石炭good非搭載の最小テスト経済では inputNeed[CoalId] が範囲外になるので必須ガード＝電化の elecOn と同型）
-        double steamGate = energyOn ? PoliticalQuantities.Clamp01((region.TechLevel - coef.SteamTechOnset) / coef.SteamTechWidth) : 0.0;   // 蒸気機関の発明・普及度（電化の AdvancedTechScale(電力) と同役）。0=未発明＝石炭を焚かない（1789年の蒸気の時代錯誤を解消）
+        double steamGate = energyOn ? coef.SteamGate(region.TechLevel) : 0.0;   // 蒸気機関の発明・普及度（電化の AdvancedTechScale(電力) と同役）。0=未発明＝石炭を焚かない（1789年の蒸気の時代錯誤を解消）
         var elecNeed = scratch.ElecNeed;
         var steamNeed = scratch.SteamNeed;  // 蒸気動力化した工場の石炭（燃料）購入量。電化分は電力が代替（(1−ElecFill)）。energyOn かつ steamGate>0 でのみ立つ（旧：全機械化工場が無条件で焚いていた＝時代錯誤を是正）
         var effNeed = scratch.EffNeed;      // RGO効率化材の購入量
@@ -2508,15 +2490,10 @@ public static class EconomyStep
         // ★材料は工賃と同じ国家の支払い率 r で買う（作者裁定 F3・2026-09-28 段2-1）＝旧の門（国庫が1日分の工賃に満たない月は材料を買わない）を撤去。
         //   工事は r の分だけ進む（World.StepConstruction）＝材料も r の分だけ＝同じ1本の率。世界の無い試験（world=null）は 1。
         double payRate = world?.FiscalFundingRatio ?? 1.0;
-        double sP = Math.Max(region.Markets[coef.SteelGoodId].Price, Eps);
-        double mP = Math.Max(region.Markets[coef.MachineGoodId].Price, Eps);
-        double cP = Math.Max(region.Markets[coef.CementGoodId].Price, Eps);
-        double lP = Math.Max(region.Markets[coef.LumberGoodId].Price, Eps);
-        double costPerUnit = coef.ConsSteel * sP + coef.ConsMachine * mP + coef.ConsCement * cP + coef.ConsLumber * lP;
+        double costPerUnit = BundleCost(region, coef);   // 建設の資材の束の費用（K の1本）
             // プレイヤーの工場建設（特定財）：建設中の生産者は材料を建設期間で徐々に消費（工賃はStepConstructionで日次・国庫）。
         // 素材の必要「量」は参照価格で較正した固定量＝実支払い（下段）は現在の市場価格×量なので、鋼などが高い時期は建設費も上がる（真の素材価格依存）。
-        double costPerUnitRef = coef.ConsSteel * Catalog.RefPrices[coef.SteelGoodId] + coef.ConsMachine * Catalog.RefPrices[coef.MachineGoodId]
-                              + coef.ConsCement * Catalog.RefPrices[coef.CementGoodId] + coef.ConsLumber * Catalog.RefPrices[coef.LumberGoodId];
+        double costPerUnitRef = BundleRef(coef);
         double buildAfford = coef.FactoryBuildProgress(costPerUnit, costPerUnitRef, region.PriceLevel);              // 採算の連続判断：素材高騰で建設率が崖でなく滑らかに減衰（★裁定②＝FactoryBuildPriceGateScale で混合・1＝恒等）
         foreach (var cs in region.Producers)
             if (cs.ConstructionLeft > 0)
@@ -2532,6 +2509,40 @@ public static class EconomyStep
                 investDemand[coef.LumberGoodId] += coef.ConsLumber * u;
             }
     }
+
+    /// <summary>★建設の資材の束（鋼・機械・セメント・製材）1単位の費用＝その州の今の価格（2026-09-30 処理の一元化 段4e K の <c>BundleCost</c>）。
+    /// 読み手＝資本家の建設・国家の建設と巨大建造物・工場建設の材料・着工の門（<see cref="World.ConstructionAfford"/>）・工事の進捗（<see cref="World.StepConstruction"/>）・
+    /// 素材の月次支出（<see cref="World.ConstructionMaterialPerMonth"/>）・巨大建造物の見積り（<see cref="Megaprojects.EstimateCost"/>）＝全て**建てる州**の価格を読む。
+    /// ⚠旧＝同じ束を7か所で手書き（価格の床が Eps・1e-9・床なしとばらばら）＝床は Eps（1e-9）の1つ。参照の束は <see cref="BundleRef"/>。
+    /// ⚠資材の市場が無い試験世界（財が少ない）は呼び手が id の範囲を確かめる。</summary>
+    internal static double BundleCost(Region r, Coefficients c)
+        => c.ConsSteel * Math.Max(r.Markets[c.SteelGoodId].Price, Eps) + c.ConsMachine * Math.Max(r.Markets[c.MachineGoodId].Price, Eps)
+         + c.ConsCement * Math.Max(r.Markets[c.CementGoodId].Price, Eps) + c.ConsLumber * Math.Max(r.Markets[c.LumberGoodId].Price, Eps);
+
+    /// <summary>★国家調達の価格の門∈(0,1]＝財 <paramref name="gid"/> の州の今の価格が参照価格（×物価水準＝実質）よりどれだけ高いかで需要を連続に絞る倍率
+    /// （2026-09-30 処理の一元化 段4e K の <c>PriceAfford</c>）。国家の全ての調達（軍需の発注・行政と電力と軍用電力・植民地の補給・海軍の燃料・侵攻の物資・武力解錠＝
+    /// <see cref="Colonial.BuyUpkeepGood"/>）と画面・診断の同じ量が読む。⚠旧＝EconomyStep の局所関数と BuyUpkeepGood と App と Runner の4つの写し
+    /// （軍需財の門の倍率 MilitaryProcurePriceGateScale を読むのは局所関数だけ・参照価格の門が 1e-9 と Eps×物価水準で違った）。
+    /// ⚠StateProcurePriceGate=0 で 1.0＝厳密恒等（休眠可）。参照価格の無い財・範囲外の id は絞らない（fail-open）。
+    /// ★軍需財の価格ゲート倍率（2026-09-07・英の軍が立たない根＝armsdebug 実測：ロンドンの小銃価格は基準の3〜5倍→ゲートで発注が約13%に絞られ→前期需要（労働配分の重み）が
+    ///   細り→生産者1・産出0.3〜20/期のまま→価格が下がらない＝**自己ロック**。史実の国家はマスケットを相場で買った（トタ）。MilitaryProcurePriceGateScale=1.0＝現行（厳密恒等）・
+    ///   0＝軍需財は価格を見ずに発注（国庫の afford は別に効く）。対象＝MilitaryGoods（小銃/弾薬/火砲/艦/馬/自動車）のみ。</summary>
+    internal static double StatePriceAfford(Region region, Coefficients coef, int gid)
+    {
+        if (coef.StateProcurePriceGate <= 0) return 1.0;
+        if (gid < 0 || gid >= region.Markets.Length || gid >= Catalog.RefPrices.Length) return 1.0;
+        double rp = Catalog.RefPrices[gid] * Math.Max(region.PriceLevel, Eps);   // ★物価水準で実質化（2026-08-04）
+        if (!(rp > Eps)) return 1.0;   // ⚠否定形＝参照価格が無い財は絞らない（fail-open）
+        double a = coef.FactoryBuildAfford(Math.Max(region.Markets[gid].Price, Eps), rp);
+        double gate = coef.StateProcurePriceGate;
+        if (coef.MilitaryProcurePriceGateScale < 1.0 && System.Array.IndexOf(coef.MilitaryGoods, gid) >= 0) gate *= Math.Max(0, coef.MilitaryProcurePriceGateScale);
+        return a > 0 && a <= 1 ? 1.0 - gate * (1.0 - a) : 1.0;   // ゲート比で連続に混合（0=旧恒等・1=満額適用）
+    }
+
+    /// <summary>建設の資材の束1単位の参照価格（名目・1783年＝<see cref="Catalog.RefPrices"/>）。実質で比べる所は呼び手が州の物価水準を掛ける。</summary>
+    internal static double BundleRef(Coefficients c)
+        => c.ConsSteel * Catalog.RefPrices[c.SteelGoodId] + c.ConsMachine * Catalog.RefPrices[c.MachineGoodId]
+         + c.ConsCement * Catalog.RefPrices[c.CementGoodId] + c.ConsLumber * Catalog.RefPrices[c.LumberGoodId];
 
     /// <summary>経17：建設束の1資材について、手持ち繰越(carry)を want まで充当し、新規需要は不足分だけ investDemand へ積む。
     /// 充当量を applied[gid] に記録（決済で built に足し戻す）し、手持ち carry からは充当分を差し引く（消費）。係数0（呼び出されない）で全経路0＝中立。</summary>

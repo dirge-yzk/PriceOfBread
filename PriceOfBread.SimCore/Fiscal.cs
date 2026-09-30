@@ -144,7 +144,7 @@ public static class Fiscal
             if (w.ProgressiveTax > 1e-9 && (p.IsModernElite || p.Closed) && !p.IsSoldier)
                 tax += w.ProgressiveTax * Math.Max(0, p.LastEarned) * consent;
             // 人頭税：頭数に一律＝行政不要で確実だが逆進的。閉鎖階級（貴族・聖職）は免除＝特権（大衆の不満の種）。兵士は国が雇い主＝対象外。
-            if (w.PollTax > 1e-9 && !p.Closed && !p.IsSoldier)
+            if (w.PollTax > 1e-9 && p.IsCommoner)
                 tax += c.PollTaxRate * w.PollTax * p.Size;
             // 土地税：RGOの地代（封建貢租の受け手＝地主）に課税。率そのまま課し、行政不足の徴収漏れは汚職leakが担う（所得税と同方式）。
             if (w.LandTax > 1e-9 && p.LandRent > 0)

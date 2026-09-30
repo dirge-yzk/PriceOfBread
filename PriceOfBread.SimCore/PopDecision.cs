@@ -58,39 +58,16 @@ public static class PopDecision
         if (flow > 0 && coef.SerfMobilityGate > 0)
             flow *= (1.0 - coef.SerfMobilityGate) + coef.SerfMobilityGate * serfFree;
 
-        if (flow > 0) Move(rural, urban, flow, coef);     // 農村 → 都市
-        else if (flow < 0) Move(urban, rural, -flow, coef); // 都市 → 農村
+        if (flow > 0) Move(rural, urban, flow);     // 農村 → 都市
+        else if (flow < 0) Move(urban, rural, -flow); // 都市 → 農村
     }
 
-    /// <summary>src から dst へ amount 人を移す。貯蓄は1人あたりで按分して一緒に移す（保存）。男女比は移動者で加重混合。</summary>
-    private static void Move(Pop src, Pop dst, double amount, Coefficients coef)
+    /// <summary>src から dst へ amount 人を移す（農村⇄都市）＝人の移し方の1本（<see cref="Pop.Blend"/>・2026-09-30 処理の一元化 段4e I）。
+    /// 移住者は自分の人的資本（識字）・不満（闘争度）・政治意識・国民意識・思想・年齢と男女の構成を携えて着地の POP へ混ざり、貯蓄・債務・国債の保有は1人あたりで一緒に移る（保存）。
+    /// ⚠旧＝ここの写しは女性比を子供込みの規模で重み付けた（成人のうちの女性比＝成人数で重み付ける＝Military の G11#2 の直しが届いていなかった）。</summary>
+    private static void Move(Pop src, Pop dst, double amount)
     {
         if (amount <= 0 || src.Size <= Eps) return;
-        amount = Math.Min(amount, src.Size);
-        // ★支払いの一元化 段2-3（E3・2026-09-29）：お金の運搬の式を1つに＝ストック×(運ぶ人数÷規模)（旧＝(ストック÷規模)×人数・Territory.MoveBetweenRegions と同じ直し）。
-        double frac = amount / src.Size;
-        double moveSavings = src.Savings * frac;
-        double moveDebt = src.Debt * frac;   // 個人債務も按分して運ぶ（2026-08-02・既定0で恒等）
-        double moveBond = src.BondHoldings * frac;   // ★国債の保有台帳（2026-09-21）も貯蓄と同じ按分（州内の移動＝発行国は同じ）
-
-        double newSize = dst.Size + amount;
-        if (newSize > Eps)
-        {
-            dst.FemaleShare = (dst.FemaleShare * dst.Size + src.FemaleShare * amount) / newSize;
-            dst.ChildShare = (dst.ChildShare * dst.Size + src.ChildShare * amount) / newSize;
-            dst.OldShare = (dst.OldShare * dst.Size + src.OldShare * amount) / newSize;   // 倍率排除⑧：国内移動も老年比率を運搬（OldShare=0の世界では恒等＝較正中立）
-            dst.CoreEthnicShare = (dst.CoreEthnicShare * dst.Size + src.CoreEthnicShare * amount) / newSize;   // 倍率排除⑧：国内移動は中核民族割合を運搬
-            // 人1：識字・闘争度の運搬（4移動サイトの属性運搬を統一）。移住者は自分の人的資本(識字)と不満(闘争度)を携えて着地popへ加重混合。
-            // 欠けると農村→都市の移住者が着地と同時に無償で都市の識字を獲得（人的資本の生成）＝per-region分布が歪む。国家集計では加重平均で中立。
-            // MigrationCarriesHumanCapital 既定1.0（#17で点火済み・live）＝運搬する。0 で旧挙動（着地時無償識字）。
-            if (coef.MigrationCarriesHumanCapital > 0)
-            {
-                dst.Literacy = (dst.Literacy * dst.Size + src.Literacy * amount) / newSize;
-                dst.Militancy = Military.BlendCarry(dst.Militancy, dst.Size, src.Militancy, amount, newSize, clamp: true);   // ★運搬1本化（段1・恒等）
-            }
-        }
-        src.Size -= amount;
-        dst.Size += amount;
-        Pop.Carry(src, dst, moveSavings, moveDebt, moveBond);   // お金の3行（段4f・旧の2026-08-08 の直し＝債務の適用行の欠落は運搬の1本で構造的に起きない）
+        Pop.Blend(src, dst, amount);
     }
 }

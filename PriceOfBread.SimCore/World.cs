@@ -778,12 +778,7 @@ public sealed class World
             moved = amount;
             from.W?.Pay(cat, -moved);   // 国庫（世界の外なら引く相手が無い）
         }
-        double got = moved;   // 受け手の通貨の額
-        if (from.W is { } xw && to.W is { } yw && !ReferenceEquals(xw, yw))
-        {
-            got = moved * xw.FxRate / yw.FxRate;
-            if (xw.Diplomacy is { } dip) dip.CumulativeFxResidual += got - moved;
-        }
+        double got = CrossFx(from.W, to.W, moved);   // 受け手の通貨の額（国をまたげば換算＝換算の1本）
         if (to.Pops is { } rp) Distribute(rp, got, to.Weights, income);   // 受け手が居ることは上で確かめた＝配り切る（income＝所得にも書く）
         else to.W?.Pay(toCat ?? cat, got);
         if (!ReferenceEquals(from.W, to.W))
@@ -800,6 +795,20 @@ public sealed class World
             }
         }
         return moved;
+    }
+
+    /// <summary>★国境をまたぐ額の換算の1本（2026-09-30 処理の一元化 段4e・段3-3 の規則を関数へ）＝<paramref name="from"/> の通貨の額 <paramref name="amount"/> を
+    /// <paramref name="to"/> の通貨へ（×払い手の為替÷受け手の為替・<see cref="FxRate"/>＝清算と同じ守り）。差は為替の換算の台帳（<see cref="Diplomacy.CumulativeFxResidual"/>）へ。
+    /// 同じ国か片側が世界の外（null）か為替が同じなら換算しない（そのまま返す＝x×a÷a の丸めを台帳に積まない）。読み手＝移し方の1本（<see cref="Transfer"/>）と、人と動くお金
+    /// （越境移民の持参金・招聘・州の移し替えの貯蓄と債務・再併合の国庫と与信）＝どれも同じ規則（旧＝人と動くお金は国をまたいでも名目のまま＝(120) の残り）。
+    /// <paramref name="book"/>＝false は基礎貨幣でない名目の残高（対外の資本と債権・国債の元本と保有）の換算＝換算の台帳に積まない（世界の基礎貨幣は動かない）。
+    /// 負債（与信・債務）は負の額として渡す＝台帳の差の符号が基礎貨幣（貯蓄＋国庫−与信）と揃う。</summary>
+    internal static double CrossFx(World? from, World? to, double amount, bool book = true)
+    {
+        if (from is null || to is null || ReferenceEquals(from, to) || from.FxRate == to.FxRate) return amount;
+        double got = amount * from.FxRate / to.FxRate;
+        if (book && from.Diplomacy is { } dip) dip.CumulativeFxResidual += got - amount;
+        return got;
     }
     public double ExternalPressure { get; internal set; }
     public int ReformGrantCount { get; internal set; }   // C-高1完成検証（2026-07-25）：下賜（欽定憲法＝上からの改革でPC床を与えた回数）の診断カウンタ（書くだけ・挙動非依存）
@@ -1153,23 +1162,44 @@ public sealed class World
         double realSanit = PoliticalQuantities.Clamp01(wr.InfraFill + c.SoapSanitationWeight * wr.SoapFill + c.ElecInfraSanitationWeight * wr.ElecInfraFill);
         double sanitDev = (1.0 - c.EpidemicSanitationWeight) * oldDev + c.EpidemicSanitationWeight * realSanit;
         double deathFrac = c.EpidemicSeverity * (1.0 - SanitationMortalityReduction * sanitDev) * jitter * scale;
-        double dead = 0;
-        // 死亡配分（epidemic-uniform-age-class-mortality）：脆弱層（乳幼児/老年/食料不足）へ集中。EpidemicVulnConcentration=0で全階級一律＝現行。総死亡量(deathFrac×ΣSize)は保存。
-        if (c.EpidemicVulnConcentration <= 0)
-            foreach (var p in wr.Pops) { double d = p.Size * deathFrac; CarryDeathAgeStructure(p, p.Size, d, c.DisasterAgeMortalityExcess); p.Size -= d; dead += d; }   // 全階級を襲う（savings不変＝金は保存・人口だけ減る）
-        else
+        // 死亡配分（epidemic-uniform-age-class-mortality）：総死者＝致死率×州の人口を脆弱層（乳幼児/老年/食料不足）へ集中＝重み 規模×(1＋これ×(子供比＋老年比＋(1−主食の充足)))。
+        //   EpidemicVulnConcentration=0 で重み＝規模＝全階級一律。記帳（人口の台帳・粗死亡の計器・年齢構成の運搬）は死の記帳の1本（KillPops・段4e J）。
+        var pops = wr.Pops; var wts = new List<double>(pops.Count); double totalD = 0;
+        foreach (var p in pops)
         {
-            double totalD = 0, wsum = 0;
-            foreach (var p in wr.Pops) { totalD += p.Size * deathFrac; double ff = p.FoodNeed > 1e-9 ? PoliticalQuantities.Clamp01(p.FoodMet / p.FoodNeed) : 1.0; wsum += p.Size * (1.0 + c.EpidemicVulnConcentration * (p.ChildShare + p.OldShare + (1.0 - ff))); }
-            foreach (var p in wr.Pops)
-            {
-                double ff = p.FoodNeed > 1e-9 ? PoliticalQuantities.Clamp01(p.FoodMet / p.FoodNeed) : 1.0;
-                double wp = p.Size * (1.0 + c.EpidemicVulnConcentration * (p.ChildShare + p.OldShare + (1.0 - ff)));
-                double d = System.Math.Min(p.Size, wsum > 1e-9 ? totalD * (wp / wsum) : 0);
-                CarryDeathAgeStructure(p, p.Size, d, c.DisasterAgeMortalityExcess);
-                p.Size -= d; dead += d;
-            }
+            totalD += p.Size * deathFrac;
+            wts.Add(p.Size * (1.0 + c.EpidemicVulnConcentration * (p.ChildShare + p.OldShare + (1.0 - p.FoodFill))));
         }
+        return KillPops(pops, wts, totalD, violent: false, c.DisasterAgeMortalityExcess);
+    }
+
+    /// <summary>★死の記帳の1本（2026-09-30 処理の一元化 段4e J＝設計の <c>World.KillPops(集合, 総数, 重み, 死因)</c>）：総数 <paramref name="total"/> を
+    /// 集合 <paramref name="pops"/> へ重み <paramref name="weights"/>（null＝規模）の比で配り、各 POP の規模を超えては殺さず（非負の保護）、
+    /// 年齢構成へ運び（<paramref name="ageExcess"/>＞0＝子供と老年に厚く＝<see cref="CarryDeathAgeStructure"/>）、実際に減った人数を台帳へ書く
+    /// ＝人口の台帳（<see cref="PopulationDelta"/>）と死因の台帳（<paramref name="violent"/>＝戦死と民間人の戦災と鎮圧と粛清＝<see cref="WarDeadCumulative"/>／
+    /// それ以外＝疫病と遠征の病死＝粗死亡の計器 <see cref="DiagDeaths"/>）。戻り値＝実際に死んだ人数。
+    /// ⚠旧＝7か所（戦場の民間人・兵士・将校・一揆の鎮圧・恐怖政治の粛清・疫病・遠征地の疫病）が同じ記帳を手書きした（台帳に意図の総数を書く所と実際の和を書く所が混在・
+    ///   規模の下限を守る所と守らない所が混在）。人口動態（出生と平常の死と飢えの上乗せ＝Simulation.DemographicStep）は純増の積分と一緒に記帳する別の1本。
+    /// 死者の貯蓄は遺族に残る（POP の中に残る＝貨幣は動かない）。⚠否定形のガード＝NaN の総数と重みは殺さない。</summary>
+    internal double KillPops(List<Pop> pops, List<double>? weights, double total, bool violent, double ageExcess = 0)
+    {
+        if (!(total > 0) || pops.Count == 0) return 0;
+        double sw = 0;
+        if (weights is null) foreach (var p in pops) sw += p.Size;
+        else foreach (var x in weights) sw += x;
+        if (!(sw > 1e-9)) return 0;
+        double dead = 0;
+        for (int i = 0; i < pops.Count; i++)
+        {
+            var p = pops[i];
+            double d = total * ((weights is null ? p.Size : weights[i]) / sw);
+            if (!(d > 0)) continue;
+            if (d > p.Size) d = p.Size;   // 非負の保護（規模を超えては殺さない）
+            CarryDeathAgeStructure(p, p.Size, d, ageExcess);
+            p.Size -= d; dead += d;
+        }
+        PopulationDelta -= dead;
+        if (violent) WarDeadCumulative += dead; else DiagDeaths += dead;
         return dead;
     }
 
@@ -1227,8 +1257,7 @@ public sealed class World
         // EpidemicIntraCountrySpread=0 で二次スパイクなし＝現行と厳密一致・>0で感染窓中に次過密州へ減衰致死率(×これ)の二次スパイク。新規RNG消費なし（同一 jitter を流用＝決定論不変）。1州世界は wr2=null で不発。
         if (c.EpidemicIntraCountrySpread > 0 && wr2 is not null)
             dead += ApplyEpidemicDeaths(wr2, c, jitter, c.EpidemicIntraCountrySpread);
-        PopulationDelta -= dead;
-        DiagDeaths += dead;   // ★計器（2026-09-26）：粗死亡の累積（力学は読まない）
+        // 記帳（人口の台帳・粗死亡の計器）は死の記帳の1本（KillPops）が州ごとに済ませた
         EpidemicActiveYears = c.EpidemicContagiousYears;   // 感染窓を立てる＝以後この国は感染源（伝播）
         LogAdd($"{Year} {wr.Name}で疫病が流行（死者{dead:F0}・{SelfPower?.Name}）");
         return true;
@@ -1689,7 +1718,7 @@ public sealed class World
         if (p0 is null) return (false, "産地・生産者がない");
         if (p0.ConstructionLeft > 0) return (false, "既に建設中");
         if (WarmupFrozen) return (false, "開始前");
-        double afford = ConstructionAfford(this);
+        double afford = ConstructionAfford(this, r0);   // 建てる州の建材の価格（段4e K）
         if (afford < Coef.FactoryStartAffordFloor) return (false, $"建材が高すぎる(採算率{afford:P0}<床{Coef.FactoryStartAffordFloor:P0})");
         var spec0 = Catalog.FactorySpec(goodId);
         double days0 = Math.Max(1, spec0.Quarters) * (double)Calendar.DaysPerQuarter;
@@ -1718,7 +1747,7 @@ public sealed class World
         //   暦の進まない助走で建てると1783年に存在しないはずの棟（BuiltScale）が立つ。
         //   ⚠AIもプレイヤーもこの1関数を通る（カウンター駆動 StepStateTarget も内部でここを呼ぶ）＝1行で対称に効く。
         if (WarmupFrozen) return false;
-        if (ConstructionAfford(this) < Coef.FactoryStartAffordFloor) return false;
+        if (ConstructionAfford(this, r) < Coef.FactoryStartAffordFloor) return false;   // 建てる州の建材の価格（段4e K）
         var spec = Catalog.FactorySpec(goodId);
         double days = Math.Max(1, spec.Quarters) * (double)Calendar.DaysPerQuarter;
         double payPerDay = (1.0 - Coef.FactoryMaterialFrac) * spec.Cost / days;   // 工賃ぶん（残りの材料は建設中にEconomyStepが市場から買う）
@@ -1735,11 +1764,9 @@ public sealed class World
     {
         int nm = r.Markets.Length;
         if (!(c.SteelGoodId < nm && c.MachineGoodId < nm && c.CementGoodId < nm && c.LumberGoodId < nm)) return 0;
-        double cpuRef = c.ConsSteel * Catalog.RefPrices[c.SteelGoodId] + c.ConsMachine * Catalog.RefPrices[c.MachineGoodId]
-                      + c.ConsCement * Catalog.RefPrices[c.CementGoodId] + c.ConsLumber * Catalog.RefPrices[c.LumberGoodId];
+        double cpuRef = EconomyStep.BundleRef(c);
         if (!(cpuRef > 1e-9)) return 0;
-        double cpuNow = c.ConsSteel * r.Markets[c.SteelGoodId].Price + c.ConsMachine * r.Markets[c.MachineGoodId].Price
-                      + c.ConsCement * r.Markets[c.CementGoodId].Price + c.ConsLumber * r.Markets[c.LumberGoodId].Price;
+        double cpuNow = EconomyStep.BundleCost(r, c);   // 建設の資材の束の1本（建てる州の価格）
         if (!(cpuNow >= 0)) return 0;
         var fs = Catalog.FactorySpec(p.GoodId);
         double conMonths = Math.Max(1.0, fs.Quarters * (double)Calendar.MonthsPerQuarter);
@@ -1754,10 +1781,7 @@ public sealed class World
         if (WarmupFrozen) return;   // ★助走は暦が進まない＝工事も進まない（着工も BuildFactory 側で止めてあるので、通常は工事中の棟が無い＝空回り防止と、ロード済み盤面で助走した場合の保険）
         int ng = Catalog.Goods.Length;
         bool hasConsMarkets = Coef.SteelGoodId < ng && Coef.MachineGoodId < ng && Coef.CementGoodId < ng && Coef.LumberGoodId < ng;
-        double cpuRef = hasConsMarkets   // 参照束価格＝係数×参照価格のみ＝州ループ不変
-            ? Coef.ConsSteel * Catalog.RefPrices[Coef.SteelGoodId] + Coef.ConsMachine * Catalog.RefPrices[Coef.MachineGoodId]
-              + Coef.ConsCement * Catalog.RefPrices[Coef.CementGoodId] + Coef.ConsLumber * Catalog.RefPrices[Coef.LumberGoodId]
-            : 0;
+        double cpuRef = hasConsMarkets ? EconomyStep.BundleRef(Coef) : 0;   // 参照束価格＝係数×参照価格のみ＝州ループ不変
         var cost = Cost;   // 計算量の台帳（診断・この国の台帳＝並列の日次相でも国ごと）
         foreach (var r in Regions)
         {
@@ -1776,8 +1800,7 @@ public sealed class World
             double buildAfford = 1.0;
             if (hasConsMarkets && Coef.SteelGoodId < r.Markets.Length && Coef.MachineGoodId < r.Markets.Length && Coef.CementGoodId < r.Markets.Length && Coef.LumberGoodId < r.Markets.Length)
             {
-                double cpuNow = Coef.ConsSteel * r.Markets[Coef.SteelGoodId].Price + Coef.ConsMachine * r.Markets[Coef.MachineGoodId].Price
-                              + Coef.ConsCement * r.Markets[Coef.CementGoodId].Price + Coef.ConsLumber * r.Markets[Coef.LumberGoodId].Price;
+                double cpuNow = EconomyStep.BundleCost(r, Coef);   // 建設の資材の束の1本（建てる州の価格）
                 buildAfford = Coef.FactoryBuildProgress(cpuNow, cpuRef, r.PriceLevel);   // ★裁定②＝FactoryBuildPriceGateScale で混合（1＝恒等・0＝価格を見ずに進む）
             }
             if (buildAfford <= 1e-9) continue;
@@ -1815,20 +1838,20 @@ public sealed class World
     // 併せて、直下にあった「国費による植民地開発の ON/OFF」のメンバーの無い孤児 XML コメントも削除（対応する member は存在しない）。
 
     /// <summary>建設束（鋼/機械/セメント/製材）の採算率∈(0,1]（2026-08-03）。
-    /// 首都州の現在価格で束1単位の費用を出し、参照価格の束と比べて <see cref="Coefficients.FactoryBuildAfford"/> に通す。
+    /// **建てる州** <paramref name="region"/>（省略＝首都州＝画面と診断の国の目安）の現在価格で束1単位の費用を出し（<see cref="EconomyStep.BundleCost"/>）、
+    /// 参照価格の束（×その州の物価水準）と比べて <see cref="Coefficients.FactoryBuildAfford"/> に通す。
+    /// ★2026-09-30 処理の一元化 段4e K：着工の門（<see cref="CanBuildFactory"/>・<see cref="BuildFactory"/>）は建てる州を渡す＝旧は首都州の価格を読んで別の州に建てた
+    ///   （工事の進捗〔<see cref="StepConstruction"/>〕・材料〔EconomyStep.AccumulateFactoryBuild〕・巨大建造物の見積りは建てる州を読んでいた＝門だけ首都）。
     /// ★私的な工場建設が既に使っている判断と**同じ関数**＝国家だけが相場を無視して買い漁る非対称を消す。
     /// 高騰時に国庫を注いでも、買える単位は増えず価格だけ上がる（実測＝英の鋼が在庫0・参照の約4倍で常態化）。</summary>
-    public static double ConstructionAfford(World w)
+    public static double ConstructionAfford(World w, Region? region = null)
     {
-        var r = w.Region;
+        var r = region ?? w.Region;
         var c = w.Coef;
         int sg = c.SteelGoodId, mg = c.MachineGoodId, cg = c.CementGoodId, lg = c.LumberGoodId;
         if (sg >= r.Markets.Length || mg >= r.Markets.Length || cg >= r.Markets.Length || lg >= r.Markets.Length) return 1.0;
-        double now = c.ConsSteel * Math.Max(r.Markets[sg].Price, 1e-9) + c.ConsMachine * Math.Max(r.Markets[mg].Price, 1e-9)
-                   + c.ConsCement * Math.Max(r.Markets[cg].Price, 1e-9) + c.ConsLumber * Math.Max(r.Markets[lg].Price, 1e-9);
-        double refp = (c.ConsSteel * Catalog.RefPrices[sg] + c.ConsMachine * Catalog.RefPrices[mg]
-                    + c.ConsCement * Catalog.RefPrices[cg] + c.ConsLumber * Catalog.RefPrices[lg])
-                    * Math.Max(r.PriceLevel, 1e-9);   // ★実質で比べる（名目のままだと一般インフレで恒久的に着工不能になる・2026-08-04）
+        double now = EconomyStep.BundleCost(r, c);   // 建設の資材の束の1本
+        double refp = EconomyStep.BundleRef(c) * Math.Max(r.PriceLevel, 1e-9);   // ★実質で比べる（名目のままだと一般インフレで恒久的に着工不能になる・2026-08-04）
         double a = c.FactoryBuildAfford(now, refp);
         return a > 0 && a <= 1 ? a : 1.0;   // ⚠否定形＝NaN は絞らない（fail-open。ここで0にすると投資が静かに死ぬ）
     }
@@ -2120,12 +2143,12 @@ public sealed class World
             double need = InvadeCannedReq(target);
             double fill = PoliticalQuantities.Clamp01(Colonial.BuyUpkeepGood(this, Region, InvQuinineId, need, TreasuryCat.WarCost) / Math.Max(1e-9, need));   // 買えた分だけ防護に充てる（植民地の駐留のマラリアの鎮静と同じ形）
             double exposed = 1.0 - fill;
-            if (exposed > 1e-9)   // （未防護割合×兵士数）が EpidemicSeverity（既存の疫病致死率）で死ぬ。疫病と同型に PopulationDelta で人口台帳追跡＝保存
+            if (exposed > 1e-9)   // （未防護割合×兵士数）が EpidemicSeverity（既存の疫病致死率）で死ぬ＝疫病と同じ死の記帳の1本（KillPops・段4e J＝人口の台帳・粗死亡の計器）
             {
-                double rate = exposed * Coef.EpidemicSeverity, dead = 0;
-                foreach (var p in AllPops()) if (p.IsSoldier) { double d = p.Size * rate; p.Size -= d; dead += d; }
-                PopulationDelta -= dead;
-                DiagDeaths += dead;   // ★計器（2026-09-26）：粗死亡の累積（力学は読まない）
+                double rate = exposed * Coef.EpidemicSeverity, total = 0;
+                var soldiers = new List<Pop>();
+                foreach (var p in AllPops()) if (p.IsSoldier) { soldiers.Add(p); total += p.Size * rate; }
+                KillPops(soldiers, null, total, violent: false);
             }
         }
         bool ok = Diplomacy!.Subjugate(SelfPower!, target, Coef);   // 屈服（属国化/併合）か拒否（開戦）か＝結果判定は1箇所

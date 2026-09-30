@@ -148,8 +148,7 @@ public static class Territory
     internal static double Opportunity(Region r, Coefficients c)
     {
         double pop = r.SumPopulation();
-        double rural = 0; foreach (var p in r.Pops) if (!p.IsUrban) rural += p.Size;
-        double land = LandFactor(r, rural, c);
+        double land = LandFactor(r, r.SumRuralPopulation(), c);
         // ★2026-09-30 (125)：工業の引力（旧＝×(1＋0.5×工業化度)・2026-06-28）を外した＝州の空洞化の根。工業化度は州に立っている資本の**総量**
         //   （人が集まる州ほど建設が積もる）で、移民1人から見た機会（1人あたりの量）ではない＝人が来るほど資本が積もり、さらに人を引く正帰還
         //   （計器・種3＝マルセイユ 1783→1793 で人口 5,203→15,088 千人・工業化度 0.06→3.7、パリ 7,920→1,703→1820年に101 千人＝出る州の方が1人あたり所得が高い〔パリの賃金のプレミアム 1.07→2.69〕）。
@@ -160,10 +159,11 @@ public static class Territory
         if (!(pop >= 1.0)) return r.ProductivityBonus * wagePull * land;   // ★否定形＝pop が NaN のとき除算枝（unemp/pop）へ落ちない。有限値では `pop < 1.0` と厳密に同値
         double unemp = 0; foreach (var p in r.Pops) unemp += p.Size * p.UnemploymentRate;
         // プッシュ要因（B-4）：地域の不満（迫害・治安悪化）が機会を下げ、その地域からの流出を促す（ポグロム・抑圧からの逃避）。
-        double unrest = 0; foreach (var p in r.Pops) unrest += p.Size * p.Militancy;
+        //   ★2026-09-30 段4e H：不穏＝州の平均闘争度の1本（平民の民間人＝駐留の兵と閉鎖階級を除く）＝旧は全 POP の和÷全人口（兵と貴族の闘争度が州の不穏に混ざった）。
+        double unrest = Politics.AvgRegionMilitancy(r);
         // 接16（監査2026-07-11・2026-07-25休眠配線）：州別犯罪率も押し出し要因へ（「治安悪化」の実配線＝従来の闘争度経由の間接経路は
         // 機会ペナルティ約0.3%とノイズ級だった）。CrimePushWeight 既定6.0（点火2026-07-27）・0で不読＝旧と厳密一致。
-        double pushPenalty = 1.0 - c.PushUnrestWeight * (unrest / pop) - c.CrimePushWeight * r.CrimeRate;
+        double pushPenalty = 1.0 - c.PushUnrestWeight * unrest - c.CrimePushWeight * r.CrimeRate;
         // 都市住宅（housing-urban-rent-absent）：住居充足が低い(過密)州は移民の引力が下がる＝過密で流入が自然飽和（無上限吸引の解消）。
         // HousingMigrationFriction 既定0.5（点火2026-07-19）・0（または HousingFill=1.0＝住居財なし/需要0）で摩擦=1.0＝旧と厳密一致。
         double housingFriction = 1.0 - c.HousingMigrationFriction * (1.0 - r.HousingFill);
@@ -194,8 +194,7 @@ public static class Territory
     internal static double Holding(Region r, Coefficients c)
     {
         if (r.ArableLand >= 1e8) return 1.0;   // 未設定＝制約なし（LandFactor と同じ）
-        double rural = 0; foreach (var p in r.Pops) if (!p.IsUrban) rural += p.Size;
-        double ratio = r.ArableLand / Math.Max(1.0, rural);   // LandFactor と同じ入力
+        double ratio = r.ArableLand / Math.Max(1.0, r.SumRuralPopulation());   // LandFactor と同じ入力
         return Math.Pow(Math.Max(1.0, ratio), c.LandDiminishExponent);
     }
 
@@ -216,9 +215,7 @@ public static class Territory
     internal static double AbsorbCap(Region? r, Coefficients c)
     {
         if (r is null || !(c.ImmigrationAbsorbExponent > 0)) return 1.0;
-        double rural = 0;
-        foreach (var p in r.Pops) if (!p.IsUrban) rural += p.Size;
-        double slack = PoliticalQuantities.Clamp01(r.FoodFill) * PoliticalQuantities.Clamp01(r.HousingFill) * LandFactor(r, rural, c);
+        double slack = PoliticalQuantities.Clamp01(r.FoodFill) * PoliticalQuantities.Clamp01(r.HousingFill) * LandFactor(r, r.SumRuralPopulation(), c);
         if (!(slack > 0)) return 0;   // 否定形＝NaN もここで落ちる（有限値では厳密同値）
         return Math.Pow(slack, c.ImmigrationAbsorbExponent);
     }
@@ -234,42 +231,15 @@ public static class Territory
             if (sp.Closed || sp.IsSoldier) continue;
             double moveSize = sp.Size * fraction;
             if (!(moveSize > 1e-9)) continue;   // ★否定形＝NaN も弾く（旧 `moveSize <= 1e-9` は NaN で false ＝ Size/Savings を直接 NaN 化していた）。有限値では厳密同値
-            Pop? dp = null;
-            foreach (var d in dst.Pops) if (d.ClassId == sp.ClassId) { dp = d; break; }
-            if (dp is null) continue;   // 目的地に同クラスが無ければ移さない（最小核）
+            if (dst.PopOf(sp.ClassId) is not { } dp) continue;   // 目的地に同クラスが無ければ移さない（最小核）
             MoveBetweenRegions(sp, dp, moveSize, c);
         }
     }
-    /// <summary>★B1（2026-09-07）：1つの pop から同クラスの別州 pop へ moveSize を運ぶ（規模・貯蓄・債務・結晶資産・民族/男女/子供/老年/識字/闘争度）。
-    /// MoveRegion（地域間移民）と Colonial.Step の入植（本国→植民地格の州）が**同じ1本**を呼ぶ＝運搬漏れの再発を防ぐ（抽出＝ビット恒等）。</summary>
-    internal static void MoveBetweenRegions(Pop sp, Pop dp, double moveSize, Coefficients c)
-    {
-        // ★支払いの一元化 段2-3（E3・2026-09-29）：お金の運搬の式を1つに＝ストック×(運ぶ人数÷規模)（社会移動・徴兵・越境移民・招聘と同じ結合順。旧＝(ストック÷規模)×人数）。
-        double frac = sp.Size > 1e-9 ? moveSize / sp.Size : 0;
-        double moveSavings = sp.Savings * frac;
-        double moveDebt = sp.Debt * frac;   // 個人債務も按分して運ぶ（2026-08-02・既定0で恒等）
-        double moveBond = sp.BondHoldings * frac;   // ★国債の保有台帳（2026-09-21）も按分（州間移動・入植は同じ国の中＝発行国は同じ）
-
-        sp.Size -= moveSize;
-        // 入植者は人口構成（民族・男女・子供・識字）を携えて移動先へ混ざる＝他の全移動サイト（PopDecision/Meritocracy/Military/越境移民）と同型。
-        // これが欠けると入植先のSizeだけ増えてCoreEthnicShare等が据え置き＝EthnicUnity(加重平均)・男女比の保存が静かに破れる（倍率排除⑧の運搬漏れ修正）。
-        double newSize = dp.Size + moveSize;
-        if (newSize > 1e-9)
-        {
-            dp.CoreEthnicShare = (dp.CoreEthnicShare * dp.Size + sp.CoreEthnicShare * moveSize) / newSize;
-            dp.FemaleShare = (dp.FemaleShare * dp.Size + sp.FemaleShare * moveSize) / newSize;
-            dp.ChildShare = (dp.ChildShare * dp.Size + sp.ChildShare * moveSize) / newSize;
-            dp.OldShare = (dp.OldShare * dp.Size + sp.OldShare * moveSize) / newSize;   // 倍率排除⑧：老年比率も運搬（欠けると移動先のOldShareが希釈されず年金課税ベースが乖離）。OldShare=0の世界では恒等＝較正中立
-            dp.Literacy = (dp.Literacy * dp.Size + sp.Literacy * moveSize) / newSize;
-            // 人1：闘争度の運搬漏れを埋める（他移動サイトとの統一）。地域間移民は識字は運ぶのに闘争度を運ばず＝不満の per-region 分布が静かに破れていた。
-            // MigrationCarriesHumanCapital 既定1.0（#17点火）・0で従来どおり運ばない＝旧挙動。>0 で加重混合＝国家集計は中立（既存の識字運搬と同型）。
-            if (c.MigrationCarriesHumanCapital > 0)
-                dp.Militancy = Military.BlendCarry(dp.Militancy, dp.Size, sp.Militancy, moveSize, newSize, clamp: true);   // ★運搬1本化（段1・恒等）
-        }
-        dp.Size += moveSize;
-        Pop.Carry(sp, dp, moveSavings, moveDebt, moveBond);   // お金の3行（段4f）＝上の混ぜ方は貯蓄・債務・保有を読まない
-
-    }
+    /// <summary>★B1（2026-09-07）：1つの pop から同クラスの別州 pop へ moveSize を運ぶ（規模・貯蓄・債務・国債の保有・年齢と男女の構成・識字・闘争度・政治意識・国民意識・思想・民族）。
+    /// MoveRegion（地域間移民）と Colonial.Step の入植（本国→植民地格の州）と植民地の同名州の吸収が**同じ1本**を呼ぶ。
+    /// ★2026-09-30 処理の一元化 段4e I：本体は人の移し方の1本 <see cref="Pop.Blend"/>（旧＝ここの写しは女性比を子供込みの規模で重み付け、識字を旗を見ずに運んだ）。
+    ///   州の間の移動は国の中＝発行国は同じ＝国債の保有も1人あたりで運ぶ。</summary>
+    internal static void MoveBetweenRegions(Pop sp, Pop dp, double moveSize, Coefficients c) => Pop.Blend(sp, dp, moveSize);
 
     /// <summary>州が持ち主を替えるときの種類（<see cref="Rehome"/> の引数）。</summary>
     internal enum Rehoming
@@ -353,7 +323,17 @@ public static class Territory
         from.RailCapacity -= rail; from.ShipCapacity -= ship;
         from.Regions.Remove(r);
         from.CumulativeTradeFlow -= B; from.PopulationDelta -= P;
-        from.Bank!.Carry(to?.Bank, D);
+        // ★人と動くお金の換算（2026-09-30 処理の一元化 段4e＝(120) の残り）：州ごと別の国へ移る POP の貯蓄と債務を受け手の通貨へ（換算の1本 World.CrossFx・差は換算の台帳へ）。
+        //   旧＝名目のまま＝割譲と再併合で、為替の違う国の州の貯蓄が同じ数字のまま別の通貨の貨幣になった（為替 0.5 の国から 1 の国へ移ると貯蓄の値打ちが2倍）。
+        //   建国（to＝null）は新しい国の為替が親の値から始まる（MultiNationSim.SpawnNation）＝換算しない。受け手の台帳は換算後の和（同じ値を両辺に）。
+        double Din = D, Bin = B;
+        if (to is not null && to.FxRate != from.FxRate)
+        {
+            double Sin = 0; Din = 0;
+            foreach (var p in r.Pops) { p.Rebase(from, to); Sin += p.Savings; Din += p.Debt; }
+            Bin = Sin - Din;
+        }
+        from.Bank!.Carry(to?.Bank, D, Din);
         if (to is not null)
         {
             Adopt(to, r);
@@ -365,7 +345,7 @@ public static class Territory
             //   ⚠勝者の按分継承（ツューリヒ1859・ヴェルサイユ254条）は国家間の債務分担の取り決めで、持ち手の請求権の債務者は変わらない。
             //   帳消しにする形は、失地で送り手の債務が軽くなり持ち手だけが損をする（負けるほど財政が楽になる）。再併合は反乱国の国債を先に消している＝0 は素通り。
             foreach (var p in r.Pops) Fiscal.BookForeignDebt(p, p.BondHoldings, from, to);
-            to.CumulativeTradeFlow += B; to.PopulationDelta += P;
+            to.CumulativeTradeFlow += Bin; to.PopulationDelta += P;
             Transport.Receive(to, rail, ship, from.ShipSteamShareEma);
         }
         if (wasCapital && NextCapital(from) is { } cap) from.SetCapital(cap);   // 首都を失った＝「首都を持つ」不変条件を維持

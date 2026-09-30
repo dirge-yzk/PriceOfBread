@@ -1062,19 +1062,24 @@ public sealed class MultiNationSim
             //   首都州がこの国へ戻らなかった（戦中に第三国へ割譲された）ままこの親の内戦が全て終わったら、記しだけを外す（戦時の首都が首都のまま）。
             if (pw.SecedingRegion is { } seat && moving.Contains(seat)) pw.SetCapital(seat);
             if (pw.SecedingRegion is { } seat2 && (moving.Contains(seat2) || !Diplomacy.Wars.Exists(x => x.CivilWarParent == parentP))) pw.SecedingRegion = null;
-            pw.Pay(T >= 0 ? TreasuryCat.OtherIn : TreasuryCat.OtherOut, T);
+            // ★人と動くお金の換算（2026-09-30 処理の一元化 段4e＝(120) の残り）：反乱国の国庫・与信・対外の残高は反乱国の通貨＝親の通貨へ換算して足す
+            //   （換算の1本 World.CrossFx＝国庫と与信は基礎貨幣＝差は換算の台帳へ・与信は負の額として・対外の資本と債権と途中の管は名目の残高＝台帳に積まない）。
+            //   旧＝名目のまま足した（反乱国の為替は建国の時は親の値だが、戦争の間に自国の月次の式で離れる）。金属の準備は現物＝換算しない。
+            double Tin = World.CrossFx(rw, pw, T);
+            pw.Pay(Tin >= 0 ? TreasuryCat.OtherIn : TreasuryCat.OtherOut, Tin);
             double L = 0;
             if (pw.Bank is { } pb && rw.Bank is { } rb)
             {
-                pb.Loans += rb.Loans; pb.HouseholdLoans += rb.HouseholdLoans; L = rb.Loans + rb.HouseholdLoans;
+                double loansIn = -World.CrossFx(rw, pw, -rb.Loans), hhIn = -World.CrossFx(rw, pw, -rb.HouseholdLoans);
+                pb.Loans += loansIn; pb.HouseholdLoans += hhIn; L = loansIn + hhIn;
             }
-            pw.CumulativeTradeFlow += T - L;   // 貯蓄 S は州ごとに上で記帳済み＝合わせて反乱国の基礎貨幣（S＋T−L）＝親の per-nation 保存が閉じ、世界の和も動かない（建国時の −(S+T) の鏡映＋反乱国として積んだ分）
-            pw.ForeignCapitalIn += rw.ForeignCapitalIn; pw.CapitalAbroad += rw.CapitalAbroad;
+            pw.CumulativeTradeFlow += Tin - L;   // 貯蓄 S は州ごとに上で記帳済み＝合わせて反乱国の基礎貨幣（S＋T−L・親の通貨）＝親の per-nation 保存が閉じ、世界の和の差は換算の台帳（建国時の −(S+T) の鏡映＋反乱国として積んだ分）
+            pw.ForeignCapitalIn += World.CrossFx(rw, pw, rw.ForeignCapitalIn, book: false); pw.CapitalAbroad += World.CrossFx(rw, pw, rw.CapitalAbroad, book: false);
             // 反乱国の対外債の否認（政府の勝ち）：債権へ繰り上げ済みの額（PrevForeignDebt）を、反乱国以外の債権の比で落とす（債権の増減の1本＝CapitalMarket.AdjustClaims・
             //   四半期の償還と同じ規則）。反乱国自身の債権は次の行で親へ。
             if (!rebelWon && rw.PrevForeignDebt > 1e-9) CapitalMarket.AdjustClaims(Nations, ri, -rw.PrevForeignDebt);
-            pw.ForeignBondClaims += rw.ForeignBondClaims;
-            pw.ForeignIntPaidThisQuarter += rw.ForeignIntPaidThisQuarter; pw.PendingForeignBorrow += rw.PendingForeignBorrow;
+            pw.ForeignBondClaims += World.CrossFx(rw, pw, rw.ForeignBondClaims, book: false);
+            pw.ForeignIntPaidThisQuarter += World.CrossFx(rw, pw, rw.ForeignIntPaidThisQuarter, book: false); pw.PendingForeignBorrow += World.CrossFx(rw, pw, rw.PendingForeignBorrow, book: false);
             pw.SilverReserveQty += rw.SilverReserveQty; pw.GoldReserveQty += rw.GoldReserveQty;
             // 反乱国の植民地（戦中に得た場合の防御）＝親へ移す（無主化して消さない）
             foreach (var col in rebelP.ColonyList) Diplomacy.AcquireColony(parentP, col, _coef);   // 植民地の受け取りの1本（講和の奪取・無血併合と同じ＝国を持つ受け手は植民地格の州へ）
@@ -1095,10 +1100,11 @@ public sealed class MultiNationSim
             //   （対外債の債権国の債権はそのまま＝請求の相手が統一後の国になるだけ）。国内元本＝Σ保有＝rw.GovDebt−rw.ForeignDebt＝親の不変条件も閉じる。
             if (inherit is not null)
             {
-                foreach (var (hp, h) in inherit) hp.BondHoldings += h;
-                double debt0 = pw.GovDebt;
-                pw.GovDebt += rw.GovDebt; pw.ForeignDebt += rw.ForeignDebt; pw.PrevForeignDebt += rw.PrevForeignDebt;
-                if (pw.GovDebt > 1e-9) pw.GovAvgCoupon = (debt0 * pw.GovAvgCoupon + rw.GovDebt * rw.GovAvgCoupon) / pw.GovDebt;   // 既往債の利率は元本の加重（起債の R9 の混ぜ方と同じ）
+                // ★人と動くお金の換算（段4e）：反乱国の国債の元本と保有は反乱国の通貨＝親の通貨へ（名目の残高＝換算の台帳に積まない・Σ保有＝国内元本の不変条件は同じ比で保つ）。
+                foreach (var (hp, h) in inherit) hp.BondHoldings += World.CrossFx(rw, pw, h, book: false);
+                double debt0 = pw.GovDebt, rwDebt = World.CrossFx(rw, pw, rw.GovDebt, book: false);
+                pw.GovDebt += rwDebt; pw.ForeignDebt += World.CrossFx(rw, pw, rw.ForeignDebt, book: false); pw.PrevForeignDebt += World.CrossFx(rw, pw, rw.PrevForeignDebt, book: false);
+                if (pw.GovDebt > 1e-9) pw.GovAvgCoupon = (debt0 * pw.GovAvgCoupon + rwDebt * rw.GovAvgCoupon) / pw.GovDebt;   // 既往債の利率は元本の加重（起債の R9 の混ぜ方と同じ）
             }
             // ★作者裁定 f（2026-09-28）：反乱側に乗り換えたプレイヤーの国が吸収された＝親の国で続ける（操作者と外交の IsPlayer を親へ・画面は GameViewModel が追従して通知）。
             //   ⚠AI の国は何もしない（操作者が居ない）＝エンジンの規則は同じ。
@@ -1543,7 +1549,7 @@ public sealed class MultiNationSim
                 if (!(wSum > 0)) continue;
                 foreach (int cls in MigrantClasses)   // 農民・労働者（大衆）が移る
                 {
-                    var sp = r.Pops.Find(x => x.ClassId == cls && !x.IsSoldier);
+                    var sp = r.PopOf(cls);
                     if (sp is null || !(sp.Size >= 1e-9)) continue;   // ★否定形＝NaN の Size も弾く
                     // 危機時の上限緩和：故郷の飢饉(1-FoodFill)に比例して MaxFrac を引き上げ＝アイルランド型の大量脱出。
                     // B-高5（史実検証2026-07-22）：判定を送出**州**の FoodFill へブレンド（RegionBlend=0で国平均のみ）。
@@ -1600,56 +1606,44 @@ public sealed class MultiNationSim
     // 保存＝人口/貨幣台帳が両国で閉じる。internal＝P12残渣②のON経路/保存則テスト用（InternalsVisibleTo・Coef と同じ流儀）。
     internal void MoveMigrants(World src, World dst, Region srcR, Region dstR, int cls, double flow)
     {
-        double moved = 0, money = 0, debt = 0;
         // R3 渡航コスト：距離比例の運賃（1人あたり）。MigrationFarePerkKm=0 で fare=0＝以下の運賃ロジックを一切通らず厳密恒等（距離計算もしない）。
-        // 払える割合（貧困の罠）は流量を決める側（MigrateBetweenNations の段4）が掛ける。ここは持参金から運賃を引くだけ。
+        // 払える割合（貧困の罠）は流量を決める側（MigrateBetweenNations の段4）が掛ける。ここは持参金から運賃を引くだけ（MoveAbroad）。
         double fare = 0;
         if (_coef.MigrationFarePerkKm > 0)
             fare = _coef.MigrationFarePerkKm * Geo.DistanceKm(src.Latitude, src.Longitude, dst.Latitude, dst.Longitude) / MigrationFareDistanceUnitKm;
-        {   // 運搬（旧の階級ループの本体＝属性を運ぶ行は回1-2 で1行も変えていない）
-            var sp = srcR.Pops.Find(x => x.ClassId == cls && !x.IsSoldier);
-            var dp = dstR.Pops.Find(x => x.ClassId == cls && !x.IsSoldier);
-            if (sp is null || dp is null || !(sp.Size >= 1e-9)) return;   // ★否定形＝NaN の Size も弾く
-            if (!(flow > 1e-9)) return;   // ★否定形＝NaN の流量を弾く（旧は NaN 素通しで Size/Savings を直接汚染した）
-            double sav = sp.Savings * (flow / sp.Size);   // 持参金＝1人あたり貯蓄ぶん
-            // R3 運賃控除：越境するのは運賃を引いた持参金だけ（運賃分は送出経済に残る＝保存則を閉じる）。fare=0 では savArriving=sav で厳密恒等。非有限fareは運賃控除せず（安全弁）。
-            // ★支払いの一元化 段2-3（C17・2026-09-29）：運賃は**持っている正の持参金から**だけ払う（min(max(0,持参金), 運賃×人数)）＝負の貯蓄（借越）は運賃の有無に関わらず移民に付いて行く。
-            //   旧＝運賃があると max(0, 持参金−運賃) で負の持参金を送出 POP に残し、運賃0では負の持参金も運んだ（運賃の有無で負の貯蓄の扱いが変わった）。運賃の受け手（船の持ち主）は段3-1。
-            double savArriving = fare > 1e-9 && double.IsFinite(fare) ? sav - Math.Min(Math.Max(0, sav), fare * flow) : sav;
-            double newSize = dp.Size + flow;
-            // 移民は家族で動く＝識字・男女比・子供比を携えて受け入れ国に混ざる
-            dp.Literacy = (dp.Literacy * dp.Size + sp.Literacy * flow) / newSize;
-            dp.FemaleShare = (dp.FemaleShare * dp.Size + sp.FemaleShare * flow) / newSize;
-            dp.ChildShare = (dp.ChildShare * dp.Size + sp.ChildShare * flow) / newSize;
-            dp.OldShare = (dp.OldShare * dp.Size + sp.OldShare * flow) / newSize;   // 倍率排除⑧：越境移民も老年比率を運搬（OldShare=0の世界では恒等＝較正中立）
-            // 人1：闘争度も運搬（識字は上で運搬済・欠落していた Militancy を補完＝人的資本の運搬整合）。既定1.0（#17有効化）で運搬。0で dp 据え置き＝厳密恒等。
-            if (_coef.MigrationCarriesHumanCapital > 0) dp.Militancy = Military.BlendCarry(dp.Militancy, dp.Size, sp.Militancy, flow, newSize, clamp: false);   // ★運搬1本化（段1・恒等）
-            // ★P12残渣②（原典2026-07-17「移住は加重平均で混合」・0801ログ:79既知の限界の是正）：移民は**出身popの国民意識を持参**し、
-            //   到着popとSize加重平均で混合＝NC×Size総量が移動の前後で保存（新規生成も消滅もない・出典popの1人当たり値は不変）。
-            //   未初期化(−1)側は各国の実効現在値で評価（CrownParliament の種播きと同じ規約＝跳躍なし）。sp へは書き戻さない（移動に必要な読みだけ）。
-            //   MigrantCarriesConsciousness＝★点火済み（2026-08-09 ign_p12＝1.0）。0に戻せばブロック不実行＝旧挙動（移動分が到着国popの値を纏う）とビット恒等。
-            if (_coef.MigrantCarriesConsciousness > 1e-12)
-            {
-                double spNc = sp.NationalConsciousness >= 0 ? sp.NationalConsciousness : EffectiveConsciousness(src, _coef);
-                double dpNc = dp.NationalConsciousness >= 0 ? dp.NationalConsciousness : EffectiveConsciousness(dst, _coef);
-                dp.NationalConsciousness = (dpNc * dp.Size + spNc * flow) / newSize;
-            }
-            if (dst.EthnicEnabled) dp.CoreEthnicShare = dp.CoreEthnicShare * dp.Size / newSize;   // 倍率排除⑧：越境移民は受入国で中核外(core=0)＝希釈（EthnicUnity の加重平均が自動で下がる）
-            // R3：越境するのは savArriving のみ（運賃 sav−savArriving は sp に残る＝送出経済に留まり保存則が閉じる）。fare=0 で savArriving=sav＝現行と厳密恒等。
-            // 個人債務も按分して運ぶ（2026-08-02・既定0で 0×比=0.0 の恒等）。⚠債務は運賃で目減りしない＝債務は移民に付いて回る
-            double debtMove = sp.Size > 1e-9 ? sp.Debt * (flow / sp.Size) : 0;
-            // ★国債の保有台帳（2026-09-21）：移民の按分ぶんの保有は**発行国（src）の対外債へ振替**＝請求権は src に対するまま、受入国の対外債権になる
-            //   （国境を越えると1本のスカラーでは「どの国の国債か」を持てない＝Fiscal.BookForeignDebt の注）。運賃は金の話＝保有は目減りしない。
-            if (sp.Size > 1e-9) Fiscal.BookForeignDebt(sp, sp.BondHoldings * (flow / sp.Size), src, dst);
-            sp.Size -= flow; dp.Size += flow;
-            Pop.Carry(sp, dp, savArriving, debtMove, 0);   // お金の3行（段4f）＝国債の保有は上で発行国の対外債へ振り替えた＝運ばない
-            moved += flow; money += savArriving - debtMove; debt += debtMove;   // 運ぶ基礎貨幣＝持参金−債務（債務は債務者について行く＝S3b）
-        }
+        var sp = srcR.PopOf(cls);
+        var dp = dstR.PopOf(cls);
+        if (sp is null || dp is null || !(sp.Size >= 1e-9)) return;   // ★否定形＝NaN の Size も弾く
+        if (!(flow > 1e-9)) return;   // ★否定形＝NaN の流量を弾く（旧は NaN 素通しで Size/Savings を直接汚染した）
+        double moved = MoveAbroad(src, dst, sp, dp, flow, fare);
         if (!(moved > 0)) return;
         src.LastEmigration += moved; dst.LastImmigration += moved;           // 診断（UI）：越境の流出/流入
-        src.PopulationDelta -= moved; dst.PopulationDelta += moved;          // 人口台帳（両国で相殺）
-        src.CumulativeTradeFlow -= money; dst.CumulativeTradeFlow += money;  // 持参金＝対外移転（基礎貨幣の台帳が閉じる）
-        src.Bank!.Carry(dst.Bank, debt);                                     // 家計の与信も債務について行く（S3b）
+    }
+
+    /// <summary>★国境をまたぐ人の運搬の1本（2026-09-30 処理の一元化 段4e I＋人と動くお金の換算）＝越境移民（<see cref="MoveMigrants"/>）と招聘（<see cref="MoveSpecialists"/>）。
+    /// 旧＝2つが同じ運搬を逐語で写していた。人数と属性は人の移し方の1本（<see cref="Pop.Blend"/>）＝移民は家族で動く（年齢と男女の構成・識字・闘争度・政治意識・国民意識・思想を携えて混ざる）・
+    /// 受入国では中核民族ではない（core＝0 で希釈＝EthnicUnity の加重平均が下がる・お雇い外国人も同じ＝契約が切れれば帰る人々）。
+    /// お金＝持参金（1人あたりの貯蓄）から運賃を引いた額と債務（債務は債務者について行く＝運賃で目減りしない）を**受入国の通貨へ換算**して運ぶ（移し方の1本と同じ規則
+    /// ＝<see cref="World.CrossFx"/>・差は換算の台帳へ＝旧は名目のまま＝(120) の残り）。運賃は持っている正の持参金から（C17）＝送出経済に残る。
+    /// 国債の保有は発行国の対外債へ振り替える（<see cref="Fiscal.BookForeignDebt"/>）＝運ばない。人口の台帳・国境の出入りの台帳（持参金−債務・各自の通貨）・家計の与信（S3b）を両国で閉じる。
+    /// 戻り値＝動いた人数。</summary>
+    private static double MoveAbroad(World src, World dst, Pop sp, Pop dp, double flow, double fare)
+    {
+        double frac = flow / sp.Size;
+        double sav = sp.Savings * frac;   // 持参金＝1人あたり貯蓄ぶん
+        // ★支払いの一元化 段2-3（C17・2026-09-29）：運賃は**持っている正の持参金から**だけ払う（min(max(0,持参金), 運賃×人数)）＝負の貯蓄（借越）は運賃の有無に関わらず移民に付いて行く。
+        double savOut = fare > 1e-9 && double.IsFinite(fare) ? sav - Math.Min(Math.Max(0, sav), fare * flow) : sav;
+        double debtOut = sp.Debt * frac;
+        Fiscal.BookForeignDebt(sp, sp.BondHoldings * frac, src, dst);   // ★国債の保有台帳（2026-09-21）：発行国（src）の対外債へ振替＝受入国の対外債権
+        double moved = Pop.Blend(sp, dp, flow, coreAtDest: dst.EthnicEnabled ? 0.0 : dp.CoreEthnicShare, money: false);
+        if (!(moved > 0)) return 0;
+        double savIn = World.CrossFx(src, dst, savOut);     // 換算（差は換算の台帳へ）
+        double debtIn = -World.CrossFx(src, dst, -debtOut); // 負債は負の額として換算＝台帳の差の符号が基礎貨幣（貯蓄−与信）と揃う
+        Pop.Carry(sp, dp, savOut, debtOut, 0, savIn, debtIn);   // お金（運賃を引いた持参金・債務）＝国債の保有は上で振り替えた＝運ばない
+        src.PopulationDelta -= moved; dst.PopulationDelta += moved;                      // 人口台帳（両国で相殺）
+        src.CumulativeTradeFlow -= savOut - debtOut; dst.CumulativeTradeFlow += savIn - debtIn;   // 持参金−債務＝対外移転（基礎貨幣の台帳が閉じる・各自の通貨）
+        src.Bank!.Carry(dst.Bank, debtOut, debtIn);                                      // 家計の与信も債務について行く（S3b・受入国の通貨）
+        return moved;
     }
 
     private static readonly int[] MigrantClasses = [PopClass.Peasant, PopClass.Worker];   // 農民・労働者
@@ -1711,7 +1705,7 @@ public sealed class MultiNationSim
                         if (r.State != RegionState.Active) continue;
                         double sz = 0;
                         foreach (var cls in SpecialistClasses)
-                        { var q = r.Pops.Find(x => x.ClassId == cls && !x.IsSoldier); if (q is not null && q.Size > 0) sz += q.Size; }
+                        { var q = r.PopOf(cls); if (q is not null && q.Size > 0) sz += q.Size; }
                         if (sz > pl) { pl = sz; bR = r; }
                     }
                     srcBest[sIdx] = bR; srcPool[sIdx] = pl; srcKnown[sIdx] = true;
@@ -1742,44 +1736,25 @@ public sealed class MultiNationSim
         for (int i = 0; i < n; i++) Nations[i].World.RecruitBudget = 0;
     }
 
-    // ★段④の実転送：pool の中で階級ごとに比例配分して heads 人を動かす。保存＝人口/貨幣の台帳が両国で閉じる。
+    // ★段④の実転送：pool の中で階級ごとに比例配分して heads 人を動かす。保存＝人口/貨幣の台帳が両国で閉じる（国境をまたぐ人の運搬の1本 MoveAbroad）。
     private void MoveSpecialists(World src, World dst, Region srcR, Region dstR, double heads, double perHead)
     {
         double pool = 0;
         foreach (var cls in SpecialistClasses)
-        { var q = srcR.Pops.Find(x => x.ClassId == cls && !x.IsSoldier); if (q is not null && q.Size > 0) pool += q.Size; }
+        { var q = srcR.PopOf(cls); if (q is not null && q.Size > 0) pool += q.Size; }
         if (!(pool > 1e-9)) return;
-        double moved = 0, money = 0, debt = 0;
+        double moved = 0;
         var arrived = new List<Pop>(); var arrivedFlow = new List<double>();   // 支度金の受け手＝呼ばれた本人が入った受入州の POP と、その人数（C16）
         foreach (var cls in SpecialistClasses)
         {
-            var sp = srcR.Pops.Find(x => x.ClassId == cls && !x.IsSoldier);
-            var dp = dstR.Pops.Find(x => x.ClassId == cls && !x.IsSoldier);
+            var sp = srcR.PopOf(cls);
+            var dp = dstR.PopOf(cls);
             if (sp is null || dp is null || !(sp.Size > 1e-9)) continue;   // ⚠受け皿が無ければ呼べない（研究者を持たない世界）
             double flow = System.Math.Min(heads * (sp.Size / pool), sp.Size);
             if (!(flow > 1e-9)) continue;
             arrived.Add(dp); arrivedFlow.Add(flow);
-            double sav = sp.Savings * (flow / sp.Size);          // ★持参金（大衆移民と同じ＝自分の貯蓄を持って来る）
-            double debtMove = sp.Debt * (flow / sp.Size);
-            Fiscal.BookForeignDebt(sp, sp.BondHoldings * (flow / sp.Size), src, dst);   // ★国債の保有台帳（2026-09-21）：大衆移民と同じ＝発行国の対外債へ振替
-            double newSize = dp.Size + flow;
-            // ★人的資本を運搬（⚠招聘の要点はまさにこれ＝識字と技能を持って来る）。MoveMigrants（大衆移民）と同じ加重平均。
-            dp.Literacy = (dp.Literacy * dp.Size + sp.Literacy * flow) / newSize;
-            dp.FemaleShare = (dp.FemaleShare * dp.Size + sp.FemaleShare * flow) / newSize;
-            dp.ChildShare = (dp.ChildShare * dp.Size + sp.ChildShare * flow) / newSize;
-            dp.OldShare = (dp.OldShare * dp.Size + sp.OldShare * flow) / newSize;
-            if (_coef.MigrationCarriesHumanCapital > 0) dp.Militancy = Military.BlendCarry(dp.Militancy, dp.Size, sp.Militancy, flow, newSize, clamp: false);   // ★運搬1本化（段1・恒等）
-            if (_coef.MigrantCarriesConsciousness > 1e-12)
-            {
-                double spNc = sp.NationalConsciousness >= 0 ? sp.NationalConsciousness : EffectiveConsciousness(src, _coef);
-                double dpNc = dp.NationalConsciousness >= 0 ? dp.NationalConsciousness : EffectiveConsciousness(dst, _coef);
-                dp.NationalConsciousness = (dpNc * dp.Size + spNc * flow) / newSize;
-            }
-            // ⚠お雇い外国人は**中核民族に数えない**（MoveMigrants の大衆移民と同じ＝希釈）。契約が切れれば帰る人々である。
-            if (dst.EthnicEnabled) dp.CoreEthnicShare = dp.CoreEthnicShare * dp.Size / newSize;
-            sp.Size -= flow; dp.Size += flow;
-            Pop.Carry(sp, dp, sav, debtMove, 0);   // お金の3行（段4f）＝国債の保有は上で発行国の対外債へ振り替えた＝運ばない
-            moved += flow; money += sav - debtMove; debt += debtMove;   // 運ぶ基礎貨幣＝持参金−債務（S3b）
+            // ★人的資本を運搬（⚠招聘の要点はまさにこれ＝識字と技能を持って来る）。大衆移民と同じ1本（持参金＝自分の貯蓄を持って来る・運賃なし）。
+            moved += MoveAbroad(src, dst, sp, dp, flow, 0);
         }
         if (!(moved > 0)) return;
         // ★支度金＝国庫→呼ばれた本人（⚠受入国の内側で保存する。国庫が減り、その分だけ呼ばれた人の貯蓄が増える）。
@@ -1789,19 +1764,10 @@ public sealed class MultiNationSim
         dst.RecruitBudget -= World.Transfer((dst, null), (dst, arrived, arrivedFlow), cost, TreasuryCat.Modernization);
         src.LastEmigration += moved; dst.LastImmigration += moved;           // 診断（UI）
         src.LastSpecialistExit += moved;                                     // ★段⑤：抜かれた側の実測＝流出禁止法の選好の入力（抜かれていない国では法が争点にならない）
-        src.PopulationDelta -= moved; dst.PopulationDelta += moved;          // 人口台帳（両国で相殺）
-        src.CumulativeTradeFlow -= money; dst.CumulativeTradeFlow += money;  // 持参金＝対外移転（基礎貨幣の台帳が閉じる）
-        src.Bank!.Carry(dst.Bank, debt);                                     // 家計の与信も債務について行く（S3b）
     }
 
-    // P12残渣②：国の実効国民意識（未捕捉は world.json 初期値→係数既定へフォールバック＝CrownParliament:194-195 の初期化と同じ規約）。
-    // 移民NC運搬で未初期化(−1)popを評価するためだけの読み（書かない）。
-    private static double EffectiveConsciousness(World w, Coefficients c)
-    {
-        double v = w.NationalConsciousness;
-        if (!(v >= 0)) v = w.InitialNationalConsciousness >= 0 ? w.InitialNationalConsciousness : c.NationBuildInitialDefault;
-        return v;
-    }
+    // 【削除2026-09-30 段4e I】EffectiveConsciousness（越境移民の国民意識の未捕捉〔−1〕を国の実効値で読む）＝人の移し方の1本 Pop.Blend は未捕捉を重み0で混ぜる
+    //   （書き手が触らない POP は読み手も見ない＝World.NationalConsciousness と同じ規則・国内の移動も同じ1本）。
 
     public int Year => Nations.Count > 0 ? Nations[0].World.Year : 0;
 

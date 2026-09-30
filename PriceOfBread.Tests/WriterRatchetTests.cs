@@ -66,10 +66,13 @@ public class WriterRatchetTests
     // ★2026-09-28 基準値の更新（＝宣言・処理の一元化 段2 束3＝旧経路の内戦〔第二の戦争エンジン ProcessCivilWar〕と単一州の分離の削除）：
     //   闘争度 35→**32**（旧経路の分離戦の決着の緩和2本〔独立・鎮圧〕と国家分裂の両陣営の緩和1本）・正統性 14→**13**（内戦の消耗 CivilWarLegitimacyDrain）。
     //   首都の蜂起は戦争の形（決着の緩和は SettleRevolt の1本・戦死と民間人の死は対外戦争と同じ1本）。
-    [InlineData("Militancy", 32)]      // 力学1・運搬8（式は1本化済み）・事件スパイク約17・緩和約4・初期化ほか（内戦の決着の緩和は SettleRevolt の1本）
+    // ★2026-09-30 基準値の更新（＝宣言・処理の一元化 段4e I＝人の移し方の1本 Pop.Blend）：闘争度 32→**25**＝運搬の書き手8か所（階級の移動3枝・州の中・社会移動・
+    //   州の間・越境・招聘）が Blend の1行へ（−7）。政治意識 1→**2**＝運搬の1行（作者裁定 2026-09-28 §14-2 の6「国内の移動でも国民意識・政治意識・思想の分布を運ぶ＝1本の Blend で全部」）。
+    //   ⚠事件スパイクではない＝人と一緒に動く量の保存（旧＝移った人の政治意識が着地の POP の値に化けた＝移動のたびに意識が湧くか消えた）。力学の書き手は Politics の1本のまま。
+    [InlineData("Militancy", 25)]      // 力学1・運搬1（Pop.Blend）・事件スパイク約17・緩和約4・初期化ほか（内戦の決着の緩和は SettleRevolt の1本）
     [InlineData("Satisfaction", 4)]    // ⚠プロパティ代入のみ（初期化子は構築＝対象外）
     [InlineData("Legitimacy", 13)]
-    [InlineData("Consciousness", 1)]   // ★これが手本（書き手1本＝力学だけ）
+    [InlineData("Consciousness", 2)]   // ★手本（力学1本）＋人と一緒に動く運搬の1本（Pop.Blend）
     public void 心理量への書き手は増やさない(string member, int baseline)
     {
         int n = CountWriters(member);
@@ -124,7 +127,8 @@ public class WriterRatchetTests
     //   FiscalFundingRatio（国家の支払い率 r）を足した＝書き手は月初の1か所（Simulation）＋ランナーの盤面の復元（GovernanceSnapshot）の2つ＝増やさない。
     [InlineData("StateSpent", 23)]            // 州の未精算の国家支出（区分つき＝TreasuryCat の配列）
     [InlineData("FiscalFundingRatio", 2)]     // 国家の支払い率 r（月初の1か所＋盤面の復元）
-    [InlineData("CumulativeTradeFlow", 13)]   // 世界の台帳・国境をまたいだ出入り（移し方の中の1か所へ畳む）
+    // ★2026-09-30 段4e（I＋人と動くお金の換算）：CumulativeTradeFlow 13→**12**（＝宣言）＝越境移民と招聘の持参金の台帳（逐語の写し2行）を国境をまたぐ人の運搬の1本（MultiNationSim.MoveAbroad）へ。
+    [InlineData("CumulativeTradeFlow", 12)]   // 世界の台帳・国境をまたいだ出入り（移し方の中の1か所へ畳む）
     [InlineData("CumulativeFiatIssued", 3)]   // 不換の発行と回収（2）＋非常発行（1＝負の国の与信の償却だけ・銀行なしの底打ちは 2026-09-29 段2-2 で撤去）
     [InlineData("CumulativeGoldMinted", 2)]   // 鋳造と準備の売却
     [InlineData("Loans", 6)]                  // 銀行の与信（企業・損失の負債化・負の国の償却）
@@ -241,6 +245,10 @@ public class WriterRatchetTests
     // ★2026-09-30 表の更新（(136) GDP の和の使い回し＝恒等・計数を1本足した＝「GDP：州×生産者の和（取り直した分）」）：World.Gdp は前の和の後に州の並び・稼働・
     //   生産者の一覧・産出が変わっていなければ前の値を返す＝走査するのは取り直した時だけ。40四半期で 8,670,915 件（使い回す前なら全ての呼び出しが走査した）。
     //   ほかの15本は1件も変わらない（報告も同じ＝恒等）。⚠使い回しが壊れる変更（産出を日次に書く・版を進めない書き手）はこの行が増えて見つかる。
+    // ★2026-09-30 表の更新（(134) 段4e＝処理の一元化 H・I・J・K＋人と動くお金の換算＝軌道が動いた分の宣言・新しい計数の処理は無い）：
+    //   建設 18,466→8,533（−54%）・請求 6,397→3,063（−52%）＝着工の門が建てる州の建材の価格を読む（旧＝首都州）＝最初の40四半期は首都より建材の高い州の着工が減る
+    //   （全長の5種では建設 644,548→552,484＝−14%・請求 +3.5%＝10% を超えて下がった＝表を下げる）。覇権の判定 2,268,853→2,375,296（+4.7%＝同盟の候補が居る月の軌道・
+    //   処理の形は同じ・単価 0.01035µs＝40四半期で +1.1ms）。ほかの12本は許しの内。人の移し方の1本（Pop.Blend）と死の記帳の1本（World.KillPops）は数えない（件数の処理の置き換え）。
     [InlineData(CostLedger.PriceGoods, 14149727L)]
     [InlineData(CostLedger.PriceDailyRuns, 25283828L)]
     [InlineData(CostLedger.ConstructionSeen, 6246L)]

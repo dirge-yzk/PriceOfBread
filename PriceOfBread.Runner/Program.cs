@@ -135,6 +135,7 @@ if (args.Length > 0 && args[0] == "popprobe")
     var immCum = new System.Collections.Generic.Dictionary<string, double>();   // 累積流入（越境。★回1-2・2026-09-27 に国際移民＝世界プールは削除）
     var emiCum = new System.Collections.Generic.Dictionary<string, double>();   // 累積流出（越境）
     // ★2026-09-26：粗出生・粗死亡（‰/年）＝前の断面からの World.DiagBirths/DiagDeaths の増分÷年数÷今の人口（計器の裁き10・純記帳）
+    // ★2026-09-30 段4e J（計器の偏り）：粗死亡は全ての死＝DiagDeaths（人口動態・疫病・遠征の病死）＋WarDeadCumulative（戦死・戦災・鎮圧・粛清）＝死の記帳の1本 World.KillPops が死因で2つへ分ける
     var prevBirths = new System.Collections.Generic.Dictionary<string, double>();
     var prevDeaths = new System.Collections.Generic.Dictionary<string, double>();
     var pop0 = new System.Collections.Generic.Dictionary<string, double>();     // 1783年人口（成長倍率の分母）
@@ -187,8 +188,8 @@ if (args.Length > 0 && args[0] == "popprobe")
                 $"{w.DiagFertility:F3},{w.DiagLandRoom:F3}," +
                 $"{w.MeanIndustrialization:F2},{w.UrbanShare:F3},{(sz > 1e-9 ? lit / sz : 0):F3},{w.SocialSecurity:F3},{(int)w.LandReform}," +
                 $"{immCum.GetValueOrDefault(pw.BaseName):F1},{emiCum.GetValueOrDefault(pw.BaseName):F1},{w.WarDeadCumulative:F1}," +
-                $"{CrudeRate(w.DiagBirths - prevBirths.GetValueOrDefault(pw.BaseName), w.TotalPopulation, cut - prevCutP):F1},{CrudeRate(w.DiagDeaths - prevDeaths.GetValueOrDefault(pw.BaseName), w.TotalPopulation, cut - prevCutP):F1}");
-            prevBirths[pw.BaseName] = w.DiagBirths; prevDeaths[pw.BaseName] = w.DiagDeaths;
+                $"{CrudeRate(w.DiagBirths - prevBirths.GetValueOrDefault(pw.BaseName), w.TotalPopulation, cut - prevCutP):F1},{CrudeRate(w.DiagDeaths + w.WarDeadCumulative - prevDeaths.GetValueOrDefault(pw.BaseName), w.TotalPopulation, cut - prevCutP):F1}");
+            prevBirths[pw.BaseName] = w.DiagBirths; prevDeaths[pw.BaseName] = w.DiagDeaths + w.WarDeadCumulative;
         }
         Console.WriteLine($"# Q{cut}: 国数 {msP.Nations.Count}（初期{n0P}）");
         prevCutP = cut;
@@ -6732,14 +6733,7 @@ if (args.Length > 0 && args[0] == "milstart")
             int ng = r.Markets.Length;
             double Price(int g) => r.Markets[g].Price;
             double Ration(int g) => r.Markets[g].LastRation;
-            double PriceAfford(int g)
-            {
-                if (c.StateProcurePriceGate <= 0 || g < 0 || g >= ng || g >= Catalog.RefPrices.Length) return 1.0;
-                double rp = Catalog.RefPrices[g] * Math.Max(r.PriceLevel, 1e-9);
-                if (!(rp > 1e-9)) return 1.0;
-                double a = c.FactoryBuildAfford(Math.Max(Price(g), 1e-9), rp);
-                return a > 0 && a <= 1 ? 1.0 - c.StateProcurePriceGate * (1.0 - a) : 1.0;
-            }
+            double PriceAfford(int g) => EconomyStep.StatePriceAfford(r, c, g);   // 国家調達の価格の門の1本（エンジンと同じ式・2026-09-30 段4e K）
             double[] milRates = EconomyStep.DiscoveredRates(r, c, c.MilitaryGoods, c.MilitaryRates);   // 発見の解禁度込みの原単位＝エンジンと同じ1本（2026-09-11 #17）
             double flatNaval = 0, flatAll = 0;
             for (int b = 0; b < c.MilitaryGoods.Length; b++)

@@ -213,4 +213,29 @@ public class FactoryTierTests
         Assert.True(Array.IndexOf(rA.StateSites!, q) >= 0, "BuiltScale の書き込みで印が立っていない（国営持分の請求の一覧が古い）");
     }
 
+    /// <summary>★着工の門は建てる州の建材の価格を読む（2026-09-30 処理の一元化 段4e K）＝旧は首都州の価格を読んで別の州に建てた
+    /// （工事の進捗・材料・巨大建造物の見積りは建てる州を読んでいた＝門だけ首都）。盤面＝仏（多州の世界）・首都と首都でない州 k の両方で着工できる財 g。
+    /// k の建材だけを10倍＝k は「建材が高すぎる」で着工できず首都はできる／首都の建材だけを10倍＝k はできる。⚠突然変異「首都州の価格を読む」で赤。</summary>
+    [Fact]
+    public void 着工の門は建てる州の建材の価格を読む()
+    {
+        var sim = new MultiNationSim([WorldData.ByName("フランス")], seed: 1789, coef: new Coefficients()) { DiplomacyFrozen = true };
+        sim.StepQuarter();
+        var w = sim.Nations[0].World; var c = w.Coef;
+        int[] mats = { c.SteelGoodId, c.MachineGoodId, c.CementGoodId, c.LumberGoodId };
+        int k = -1, g = -1;
+        for (int i = 1; i < w.Regions.Count && k < 0; i++)
+            for (int gi = 0; gi < Catalog.Goods.Length; gi++)
+                if (w.CanBuildFactory(0, gi).Ok && w.CanBuildFactory(i, gi).Ok) { k = i; g = gi; break; }
+        Assert.True(k > 0, "前提が崩れた：首都と別の州で同じ財を着工できる組が無い");
+        var rk = w.Regions[k]; var r0 = w.Regions[0];
+        foreach (int id in mats) rk.Markets[id].Price *= 10.0;
+        var (okK, why) = w.CanBuildFactory(k, g);
+        Assert.False(okK, "建てる州の建材が高騰しても着工できる＝門が首都を読んでいる");
+        Assert.Contains("建材", why);
+        Assert.True(w.CanBuildFactory(0, g).Ok, "首都の建材は平常なのに首都で着工できない");
+        foreach (int id in mats) { rk.Markets[id].Price /= 10.0; r0.Markets[id].Price *= 10.0; }
+        Assert.True(w.CanBuildFactory(k, g).Ok, "首都の建材の高騰で別の州の着工が止まる＝門が首都を読んでいる");
+        Assert.False(w.CanBuildFactory(0, g).Ok);
+    }
 }

@@ -100,7 +100,7 @@ public static class PolicyPreferences
     internal static double AvgUnemployment(World w)
     {
         double u = 0, size = 0;
-        foreach (var p in w.AllPops()) if (!p.Closed && !p.IsSoldier) { u += p.UnemploymentRate * p.Size; size += p.Size; }
+        foreach (var p in w.AllPops()) if (p.IsCommoner) { u += p.UnemploymentRate * p.Size; size += p.Size; }
         return size > 1e-9 ? u / size : 0;
     }
 
@@ -130,7 +130,7 @@ public static class PolicyPreferences
             double rn = System.Math.Max(0, p.LandRent); rent[b] += rn; tr += rn;
             double inc = System.Math.Max(0, p.Earned); income[b] += inc; ti += inc;
             if (petty != null && petty.Contains(p)) { pettyInc += inc; if (p.IsModernElite) pettyIncM += inc; }   // 小営業の自営所得（対象3軸の強さの導出元。gate=0＝枝ごと不走行）
-            if (!p.Closed && !p.IsSoldier) { poll[b] += p.Size; tp += p.Size; }   // 人頭税の対象（特権＝Closed は免除）
+            if (p.IsCommoner) { poll[b] += p.Size; tp += p.Size; }   // 人頭税の対象（特権＝Closed は免除）
             if (!p.IsSoldier) { old[b] += p.Size * p.OldShare; blocPop[b] += p.Size; }   // 法多様性L2：ブロックの高齢人口（年金の受益者）
         }
         Normalize(wealth, tw); Normalize(rent, tr); Normalize(income, ti); Normalize(poll, tp);

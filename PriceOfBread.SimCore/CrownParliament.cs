@@ -353,7 +353,7 @@ public static class CrownParliament
     /// （遠くて中核民族が少ない州＝定義上の植民地）。だから州の身分ラベル(RegionTier)が空でも正しく効く。
     /// ⚠−1＝未初期化のPOPは国の現在値で種を播く（新規POP＝移民や階級移動も同じ＝跳躍しない）。
     /// ★既知の限界の是正（P12残渣②・2026-08-09）：移民が「到着国の平均的な国民意識」を持って現れる件は
-    ///   MigrantCarriesConsciousness=1 で MultiNationSim.MoveMigrants が出身popのNCをSize加重平均で運搬する（★2026-08-09に点火＝既定1.0）。
+    ///   人の移し方の1本 Pop.Blend が出身popのNCをSize加重平均で運搬する（旧の旗 MigrantCarriesConsciousness は 2026-09-30 段4e で焼き込み・国内の移動も同じ1本）（★2026-08-09に点火＝既定1.0）。
     /// ★P12残渣①（CivicOpennessEnabled=1・原典2026-07-17）：民族抵抗をcore速度係数から原典式の**天井**へ移す＝
     ///   popの国民化天井 = ceiling×(1−民族距離×(1−開放度))・民族距離=1−CoreEthnicShare・開放度=<see cref="CivicOpenness"/>。
     ///   ★2026-08-09に点火＝既定1.0（0に戻すとcore速度係数のままビット恒等＝openness引数は読まれない）。internal＝テストの式検証用（InternalsVisibleTo）。</summary>

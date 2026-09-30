@@ -559,15 +559,8 @@ public partial class GameViewModel
                      airRates = EconomyStep.DiscoveredRates(r, c, c.MilitaryAirGoods, c.MilitaryAirRates);
             double Price(int g) => r.Markets[g].Price;
             double Ration(int g) => r.Markets[g].LastRation;
-            // 価格による買い控え（EconomyStep の PriceAfford と同一式）
-            double PriceAfford(int g)
-            {
-                if (c.StateProcurePriceGate <= 0 || g < 0 || g >= ng || g >= Catalog.RefPrices.Length) return 1.0;
-                double rp = Catalog.RefPrices[g] * Math.Max(r.PriceLevel, Eps);
-                if (!(rp > Eps)) return 1.0;
-                double a = c.FactoryBuildAfford(Math.Max(Price(g), Eps), rp);
-                return a > 0 && a <= 1 ? 1.0 - c.StateProcurePriceGate * (1.0 - a) : 1.0;
-            }
+            // 価格による買い控え＝国家調達の価格の門の1本（EconomyStep.StatePriceAfford＝エンジンと同じ式・2026-09-30 段4e K）
+            double PriceAfford(int g) => EconomyStep.StatePriceAfford(r, c, g);
             // 陸海の再配分（EconomyStep）：港のない国は艦を発注せず、その分が陸へ回る。理想の形の海比（ShapeNavalShare）にも寄る。
             double flatNaval = 0, flatAll = 0;
             for (int b = 0; b < c.MilitaryGoods.Length; b++)

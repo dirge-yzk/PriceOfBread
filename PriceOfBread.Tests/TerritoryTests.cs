@@ -195,4 +195,21 @@ public class TerritoryTests
         var nc = Places.Coord(next.Name);
         Assert.Equal((nc.Lat, nc.Lon), (fr.Latitude, fr.Longitude));
     }
+
+    /// <summary>★州の不穏は平民の民間人の闘争度（2026-09-30 処理の一元化 段4e H＝州の闘争度の1本 Politics.RegionMilitancy）：移民の押し出し（機会の不穏）・
+    /// 植民地の維持費の不満・反帝世論が同じ集合を読む。旧＝3か所が全 POP（駐留の兵・在地の貴族と聖職）の和で手書きした。
+    /// 盤面＝仏の首都州の兵士だけ闘争度1＝機会は動かない／平民の民間人を闘争度1＝機会が下がる。⚠突然変異「全 POP で数える」で赤。</summary>
+    [Fact]
+    public void 州の不穏は平民の民間人の闘争度だけで兵と貴族を含まない()
+    {
+        var sim = new Simulation(NationConfig.France().ToScenario(1), new NullAgent());
+        var r = sim.World.Region; var c = sim.World.Coef;
+        foreach (var p in r.Pops) p.Militancy = 0;
+        double o0 = Territory.Opportunity(r, c);
+        foreach (var p in r.Pops) if (!p.IsCommoner) p.Militancy = 1.0;
+        Assert.Equal(o0, Territory.Opportunity(r, c), 12);
+        foreach (var p in r.Pops) if (p.IsCommoner) p.Militancy = 1.0;
+        Assert.True(Territory.Opportunity(r, c) < o0, "平民の民間人の闘争度で機会が下がらない＝押し出しが死んでいる");
+        Assert.Equal(1.0, Politics.AvgRegionMilitancy(r), 12);
+    }
 }

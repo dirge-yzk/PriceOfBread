@@ -228,7 +228,7 @@ public static class Meritocracy
                     {
                         Pop? dest = r.TeacherPopIndex >= 0 ? r.Pops[r.TeacherPopIndex] : null;
                         if (dest is null)
-                            foreach (var pp in r.Pops) if (!pp.Closed && !pp.IsSoldier && pp.ClassId == PopClass.Worker) { dest = pp; break; }
+                            foreach (var pp in r.Pops) if (pp.IsCommoner && pp.ClassId == PopClass.Worker) { dest = pp; break; }
                         if (dest is not null) Move(clergyOut, dest, c.ClergyExitRate * poverty * clergyOut.Size, c);
                     }
                 }
@@ -241,7 +241,7 @@ public static class Meritocracy
             if (c.RuralPromotionRate > 0)
             {
                 Pop? peasant = null;
-                foreach (var p in r.Pops) if (!p.Closed && !p.IsUrban && !p.IsSoldier && p.ClassId == PopClass.Peasant) { peasant = p; break; }
+                foreach (var p in r.Pops) if (p.IsCommoner && !p.IsUrban && p.ClassId == PopClass.Peasant) { peasant = p; break; }
                 if (peasant is { Size: > Eps } pz)
                 {
                     double pzInc = Math.Max(0, pz.Earned) / pz.Size;
@@ -640,54 +640,23 @@ public static class Meritocracy
         return 1.0 - g * (1.0 - access);
     }
 
-    /// <summary>階級間の移動（規模＋貯蓄を比例移動＝保存）。移動者は自分の闘争度を持ち込む（行き先に加重混合）。
+    /// <summary>階級間の移動（規模＋貯蓄を比例移動＝保存）＝人の移し方の1本（<see cref="Pop.Blend"/>・2026-09-30 処理の一元化 段4e I）。
+    /// 移動者は自分の闘争度・識字・政治意識・国民意識・思想・年齢と男女の構成を持ち込む（行き先に加重混合）。
     /// 没落の不満は固定上乗せでなく、転落先の低所得→満足度↓→want↑→闘争度（Politics）が自然に拾う（倍率排除＝二重計上解消）。
-    /// 人1：識字も同型で運搬（MigrationCarriesHumanCapital ゲート）。selectLiteracy=true の昇格は識字上位を選抜し src の識字を引き下げる（PromotionLiteracySelection ゲート）。
+    /// 人1：selectLiteracy=true の昇格は識字上位を選抜し src の識字を引き下げる（PromotionLiteracySelection ゲート・昇格ポンプの自己補充＝二重計上を解消）。
+    ///   選抜コホートの識字＝src平均＋選抜強度×(1−src平均)（上位ほど識字が高い方向）。残留は質量保存で下がる（Blend の選抜の枝）。
     /// rank12：genderAccess&lt;1（点火 ProfessionGenderGate=1.0 の専門職行き）では移動コホートの FemaleShare=src×access に選抜し、
-    /// 残留側で質量保存（識字選抜と同型・男が出て女は残る＝srcの女性比が上がる）。既定1.0で従来の按分混合とビット恒等。</summary>
+    /// 残留側で質量保存（識字選抜と同型・男が出て女は残る＝srcの女性比が上がる）。
+    /// ⚠旧＝ここの写しは女性比を子供込みの規模で重み付けた（成人のうちの女性比＝Blend は成人数で重み付ける）。旧の旗 MigrationCarriesHumanCapital（識字の運搬と選抜の門）は焼き込み。</summary>
     private static void Move(Pop fromPop, Pop toPop, double flow, Coefficients c, bool selectLiteracy = false, double genderAccess = 1.0)
     {
         if (flow <= Eps || fromPop.Size <= Eps || ReferenceEquals(fromPop, toPop)) return;
         flow = Math.Min(flow, fromPop.Size);
-        double moveSavings = fromPop.Savings * (flow / fromPop.Size);
-        double moveDebt = fromPop.Debt * (flow / fromPop.Size);   // 個人債務も按分して運ぶ（2026-08-02・既定0で 0×比=0.0 の恒等）
-        double moveBond = fromPop.BondHoldings * (flow / fromPop.Size);   // ★国債の保有台帳（2026-09-21）も貯蓄と同じ1人あたり按分で運ぶ（転落・昇格は国内＝発行国は同じ）
-        // 人1：識字の選抜運搬（昇格は from.Literacy 比例＝識字の高い者が抜ける）。既定 PromotionLiteracySelection=0.5（#17有効化）で選抜あり。0なら移動者の識字＝src平均（旧恒等）。
-        // >0 で選抜強度に応じ移動コホートの識字を src平均より高く取り、質量保存で残留 src の識字を引き下げる（昇格ポンプの自己補充＝二重計上を解消）。
-        double srcLit = fromPop.Literacy;
-        double moveLit = srcLit;
-        double srcSizeAfter = fromPop.Size - flow;
-        // 選抜は運搬とセットで質量保存する（運搬off時に src だけ下げると識字が消滅する）＝両ゲートON時のみ発火。
-        if (selectLiteracy && c.MigrationCarriesHumanCapital > 0 && c.PromotionLiteracySelection > 0 && srcSizeAfter > Eps)
-        {
-            // 選抜コホートの識字＝src平均＋選抜強度×(1−src平均)（上位ほど識字が高い方向）。残留は質量保存で下がる。
-            moveLit = PoliticalQuantities.Clamp01(srcLit + c.PromotionLiteracySelection * (1.0 - srcLit));
-            double residualLit = (srcLit * fromPop.Size - moveLit * flow) / srcSizeAfter;
-            fromPop.Literacy = PoliticalQuantities.Clamp01(residualLit);
-        }
-        // rank12（点火 ProfessionGenderGate=1.0 経由の genderAccess）：性別の選抜運搬＝識字選抜（上）と同型。
-        // 行き先が女性に閉じた職ほど移動コホートの女性比が下がり、残留側で質量保存（クランプ時のみ微小非保存＝識字と同じ許容）。
-        // genderAccess=1.0（既定・ゲート0のとき全呼び出しで1.0）ではこのブロックが走らず moveFem=src平均＝従来とビット恒等。
-        double moveFem = fromPop.FemaleShare;
-        if (genderAccess < 1.0 && srcSizeAfter > Eps)
-        {
-            moveFem = fromPop.FemaleShare * genderAccess;
-            fromPop.FemaleShare = PoliticalQuantities.Clamp01((fromPop.FemaleShare * fromPop.Size - moveFem * flow) / srcSizeAfter);
-        }
-        double newSize = toPop.Size + flow;
-        if (newSize > Eps)
-        {
-            toPop.Militancy = Military.BlendCarry(toPop.Militancy, toPop.Size, fromPop.Militancy, flow, newSize, clamp: true);   // ★運搬1本化（段1・恒等）
-            toPop.FemaleShare = (toPop.FemaleShare * toPop.Size + moveFem * flow) / newSize;   // 男女比・子供比は移動者で加重混合（rank12：コホート女性比＝moveFem）
-            toPop.ChildShare = (toPop.ChildShare * toPop.Size + fromPop.ChildShare * flow) / newSize;
-            toPop.OldShare = (toPop.OldShare * toPop.Size + fromPop.OldShare * flow) / newSize;   // 倍率排除⑧：社会移動も老年比率を運搬（OldShare=0の世界では恒等＝較正中立）
-            toPop.CoreEthnicShare = (toPop.CoreEthnicShare * toPop.Size + fromPop.CoreEthnicShare * flow) / newSize;   // 倍率排除⑧：昇格も中核民族割合を運搬
-            // 人1：識字の運搬（MigrationCarriesHumanCapital=1.0 既定＝#17有効化。加重混合＝国家集計は中立、per-region 分布が実勢化。0なら旧・運ばない）。
-            if (c.MigrationCarriesHumanCapital > 0)
-                toPop.Literacy = PoliticalQuantities.Clamp01((toPop.Literacy * toPop.Size + moveLit * flow) / newSize);
-        }
-        fromPop.Size -= flow; toPop.Size += flow;
-        Pop.Carry(fromPop, toPop, moveSavings, moveDebt, moveBond);   // お金の3行（段4f）
+        bool select = fromPop.Size - flow > Eps;   // 選抜は残る人がいるときだけ（質量保存の分母）
+        double moveLit = selectLiteracy && c.PromotionLiteracySelection > 0 && select
+            ? PoliticalQuantities.Clamp01(fromPop.Literacy + c.PromotionLiteracySelection * (1.0 - fromPop.Literacy)) : double.NaN;
+        double moveFem = genderAccess < 1.0 && select ? fromPop.FemaleShare * genderAccess : double.NaN;
+        Pop.Blend(fromPop, toPop, flow, female: moveFem, literacy: moveLit);
     }
 
     // 政体の近代性：君主の身分制＝低、自由（立憲君主・共和）・独裁（能力主義的動員）＝開かれた社会＝高

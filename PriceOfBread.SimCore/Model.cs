@@ -155,6 +155,10 @@ public sealed class Pop
     public double Subsistence;       // 自給率（0..1）。必需(Staple)の一部を市場外で自足＝農民。市場で飢えない
     public bool IsModernElite;       // 近代的利益団体（専門職・ブルジョワ）。その勢力割合がメリトクラシー値を決める
     public bool IsSoldier;           // 兵士POP（軍隊規模の素）。軍事費で徴募/離職、戦争で戦死、徴兵で大衆から変換。自然出生死は対象外（規模は軍事力学が管理）
+    /// <summary>★平民の民間人の述語（2026-09-30 処理の一元化 段4e H）＝閉鎖階級（貴族・聖職）でも兵士でもない（近代エリートを含む）。
+    /// 旧＝同じ述語 `!Closed &amp;&amp; !IsSoldier` を人頭税・失業・州の闘争度と群衆・鎮圧の死・緩和・昇格の受け手が10か所で手書きした。
+    /// 大衆（<see cref="Politics.IsMassPop"/>）はこれから近代エリートを除いたもの。福祉の受給者（Fiscal＝閉鎖階級と近代エリートを除く＝兵士を含む）は別の集合（作者裁定 2026-09-28 §14-2 の3）。</summary>
+    public bool IsCommoner => !Closed && !IsSoldier;
     /// <summary>★民兵率（段5＝民兵と寝返り・作者裁定3・2026-09-08）＝このPOPの**何割が武器を取ったか**（0..1）。
     /// ⚠<see cref="IsSoldier"/> とは**別概念**：兵士POPは常備軍そのもの（軍事費で徴募され、職業として軍にいる＝戦力の素・戦死の母数）。
     ///   民兵は**職業を持ったまま武器を取った民間人**＝畑と工場から労働が抜け（EconomyStep の労働供給が ×(1−これ)）、
@@ -254,6 +258,11 @@ public sealed class Pop
             return !(v >= 0) ? 0 : v > 1 ? 1 : v;   // 否定形＝NaN は 0 側（旧 SoldierWelfare の NaN の倒し先と同じ）
         }
     }
+    /// <summary>★主食の充足∈[0,1]＝FoodMet÷FoodNeed（導出量・2026-09-30 処理の一元化 段4e H）。必要が無い（FoodNeed≈0）は 1＝飢えていない。
+    /// ⚠否定形のクランプ（<see cref="PoliticalQuantities.Clamp01"/>）＝NaN は 0 の側。旧＝同じ式を人口動態の飢えの上乗せ・疫病の脆弱さの重み（2か所）が手書きした
+    /// （上の月次の台帳から導く＝月の途中で読まない）。⚠飢餓の駆動と食料の平常の捕捉（Politics）は生の比のまま＝負の貯蓄の POP は食料の需要が負になり
+    /// （残予算÷価格が負）比が負になる＝下限0で切ると軌道が変わる（2026-09-30 段4e の申し送り）。</summary>
+    public double FoodFill => FoodNeed > 1e-9 ? PoliticalQuantities.Clamp01(FoodMet / FoodNeed) : 1.0;
     public double Paid;               // その月に支払った総額
     public double Earned;             // その月に得た総所得
     public double LandRent;           // その月に受け取った土地の地代（RGOの所有者取り分＝封建貢租）。土地税の課税ベース
@@ -263,11 +272,80 @@ public sealed class Pop
     /// <paramref name="to"/> へ同じ額で移す（両側を1回の呼び出しで書く＝湧かず消えない）。運ぶ額は呼び手が決める＝ストック×(運ぶ人数÷規模)（E3）・越境は運賃を引いた持参金と
     /// 国債の保有 0（保有は発行国の対外債へ振り替える＝<see cref="Fiscal.BookForeignDebt"/>）。旧＝州の間の移民と入植（Territory.MoveBetweenRegions）・社会移動（Meritocracy）・
     /// 徴兵と復員（Military.MoveCohort）・州の中の移動（PopDecision）・越境移民と招聘（MultiNationSim）の6か所が同じ2行を写していた（式と順は同じ＝移しただけ）。
-    /// 人数と属性の混ぜ方は各所に残る（段4e の I＝PopTransfer.Blend）。</summary>
-    internal static void Carry(Pop from, Pop to, double savings, double debt, double bond)
+    /// ★2026-09-30 段4e I：人数と属性の混ぜ方は <see cref="Blend"/> の1本（これを呼ぶ）。</summary>
+    internal static void Carry(Pop from, Pop to, double savings, double debt, double bond) => Carry(from, to, savings, debt, bond, savings, debt);
+
+    /// <summary>★国境をまたぐ運搬（2026-09-30 段4e＝人と動くお金の換算・(120) の残り）：送り手からは自国の通貨の額（<paramref name="savings"/>・<paramref name="debt"/>）、
+    /// 受け手へは受け手の通貨へ換算した額（<paramref name="savingsIn"/>・<paramref name="debtIn"/>＝呼び手が <see cref="World.CrossFx"/> で換算して差を換算の台帳へ）。
+    /// 国内（同じ通貨）は同じ額（上の5引数）。国債の保有は国内だけ運ぶ（越境は発行国の対外債へ振り替えて 0）。</summary>
+    internal static void Carry(Pop from, Pop to, double savings, double debt, double bond, double savingsIn, double debtIn)
     {
         from.Savings -= savings; from.Debt -= debt; from.BondHoldings -= bond;
-        to.Savings += savings; to.Debt += debt; to.BondHoldings += bond;
+        to.Savings += savingsIn; to.Debt += debtIn; to.BondHoldings += bond;
+    }
+
+    /// <summary>★人の移し方の1本（2026-09-30 処理の一元化 段4e I＝設計の <c>PopTransfer.Blend</c>・Pop の中の1本）：<paramref name="from"/> から <paramref name="to"/> へ
+    /// <paramref name="n"/> 人を移し、移る組の属性を受け手へ人数で混ぜ、人と動くお金（貯蓄・債務・国債の保有＝1人あたりの按分）を <see cref="Carry"/> で運ぶ。
+    /// 呼び手＝徴兵と復員と階級の移動（Military.MoveCohort）・州の中の移動（PopDecision）・社会移動（Meritocracy）・州の間の移民と入植（Territory.MoveBetweenRegions）・
+    /// 越境移民と招聘（MultiNationSim.MoveAbroad＝お金は換算して呼び手が運ぶ＝<paramref name="money"/>＝false）。
+    /// ── 移る組の構成＝送り手の平均。選抜のときだけ違う（残る側はその分だけ質量保存で動く）：
+    ///   <paramref name="draft"/>＝徴兵＝成人の男（老年でない）だけ（子供・老年・女性は残る＝男手の消えた村）／
+    ///   <paramref name="female"/>＝成人の女性比の選抜（専門職の性別の門）／<paramref name="literacy"/>＝識字の選抜（昇格）。
+    /// ── 受け手の側：女性比は**成人数**で混ぜる（女性比＝成人のうちの女性の割合＝旧は5つの写しが子供込みの規模で重み付けた＝子供比の違う組の女性の人数の和がずれた・
+    ///   徴兵と Military の通常の枝だけ成人数＝G11#2 の直しが5つに届いていなかった）。子供比・老年比・識字・闘争度・政治意識・国民意識・中核民族の割合・思想の分布は人数で混ぜる
+    ///   （作者裁定 2026-09-28 §14-2 の6「国内の移動でも国民意識・政治意識・思想の分布を運ぶ＝1本の Blend で全部」）。国民意識の未捕捉（&lt;0）は重み0（書き手が触らない POP は読み手も見ない）。
+    ///   中核民族の割合は <paramref name="coreAtDest"/>＝受け手の国での移る組の値（越境＝受入国の中核民族ではない＝0）。旧の旗（MigrationCarriesHumanCapital・MigrantCarriesConsciousness）は焼き込み。
+    /// ⚠[0,1] の量は否定形のクランプ（NaN は0の側）。戻り値＝動いた人数。</summary>
+    internal static double Blend(Pop from, Pop to, double n, bool draft = false, double female = double.NaN, double literacy = double.NaN,
+                                 double coreAtDest = double.NaN, bool money = true)
+    {
+        if (!(n > 1e-12) || !(from.Size > 1e-12) || ReferenceEquals(from, to)) return 0;
+        if (n > from.Size) n = from.Size;
+        double s0 = from.Size, t0 = to.Size, t1 = t0 + n;
+        // 移る組の構成（送り手の平均・選抜のときだけ違う）
+        double cChild = draft ? 0 : from.ChildShare, cOld = draft ? 0 : from.OldShare;
+        double cFem = draft ? 0 : double.IsNaN(female) ? from.FemaleShare : female;
+        double cLit = double.IsNaN(literacy) ? from.Literacy : literacy;
+        double cCore = double.IsNaN(coreAtDest) ? from.CoreEthnicShare : coreAtDest;
+        double cAdults = n * (1.0 - cChild);
+        // 残る側＝選抜で組が平均と違う量だけ質量保存で動かす（平均と同じなら1ビットも触らない）
+        double rest = s0 - n;
+        if (rest > 1e-12)
+        {
+            double ad0 = s0 * (1.0 - from.ChildShare), adRest = ad0 - cAdults;
+            if (cFem != from.FemaleShare) from.FemaleShare = adRest > 1e-12 ? PoliticalQuantities.Clamp01((from.FemaleShare * ad0 - cFem * cAdults) / adRest) : 0.5;
+            if (cChild != from.ChildShare) from.ChildShare = PoliticalQuantities.Clamp01((from.ChildShare * s0 - cChild * n) / rest);
+            if (cOld != from.OldShare) from.OldShare = PoliticalQuantities.Clamp01((from.OldShare * s0 - cOld * n) / rest);
+            if (cLit != from.Literacy) from.Literacy = PoliticalQuantities.Clamp01((from.Literacy * s0 - cLit * n) / rest);
+        }
+        // 受け手の側＝人数で混ぜる（女性比だけ成人数）
+        double tAdults = t0 * (1.0 - to.ChildShare), adults1 = tAdults + cAdults;
+        if (adults1 > 1e-12) to.FemaleShare = PoliticalQuantities.Clamp01((to.FemaleShare * tAdults + cFem * cAdults) / adults1);
+        to.ChildShare = PoliticalQuantities.Clamp01((to.ChildShare * t0 + cChild * n) / t1);
+        to.OldShare = PoliticalQuantities.Clamp01((to.OldShare * t0 + cOld * n) / t1);
+        to.Literacy = PoliticalQuantities.Clamp01((to.Literacy * t0 + cLit * n) / t1);
+        to.Militancy = PoliticalQuantities.Clamp01((to.Militancy * t0 + from.Militancy * n) / t1);
+        to.Consciousness = PoliticalQuantities.Clamp01((to.Consciousness * t0 + from.Consciousness * n) / t1);
+        to.CoreEthnicShare = PoliticalQuantities.Clamp01((to.CoreEthnicShare * t0 + cCore * n) / t1);
+        double wTo = to.NationalConsciousness >= 0 ? t0 : 0, wFrom = from.NationalConsciousness >= 0 ? n : 0;
+        if (wTo + wFrom > 1e-12)
+            to.NationalConsciousness = PoliticalQuantities.Clamp01(((wTo > 0 ? to.NationalConsciousness * wTo : 0) + (wFrom > 0 ? from.NationalConsciousness * wFrom : 0)) / (wTo + wFrom));
+        var ti = to.IdeologyShares; var fi = from.IdeologyShares;
+        for (int i = 0; i < ti.Length && i < fi.Length; i++) ti[i] = (ti[i] * t0 + fi[i] * n) / t1;
+        // お金（1人あたりの按分＝ストック×(運ぶ人数÷規模)・E3）は人と一緒に（越境は呼び手が換算して運ぶ）
+        double frac = n / s0;
+        double sav = from.Savings * frac, debt = from.Debt * frac, bond = from.BondHoldings * frac;
+        from.Size -= n; to.Size += n;
+        if (money) Carry(from, to, sav, debt, bond);
+        return n;
+    }
+
+    /// <summary>★人が動かずに国が替わるときの換算（2026-09-30 段4e＝人と動くお金の換算）＝割譲・再併合で州ごと別の国へ移る POP の貯蓄と債務を、
+    /// 受け手の国の通貨へ（換算の1本 <see cref="World.CrossFx"/>・差は換算の台帳へ・債務は負の額として換算）。国債の保有は発行国の対外債へ振り替える（呼び手）。</summary>
+    internal void Rebase(World from, World to)
+    {
+        Savings = World.CrossFx(from, to, Savings);
+        Debt = -World.CrossFx(from, to, -Debt);
     }
 }
 
@@ -790,5 +868,25 @@ public sealed class Region
         double s = 0;
         foreach (var p in Pops) if (p.IsUrban) s += p.Size;
         return s;
+    }
+
+    /// <summary>★州の農村人口＝都市でない POP の規模の和（兵士を含む＝都市率 <see cref="SumUrbanPopulation"/> の補数と同じ集合）。2026-09-30 処理の一元化 段4e H。
+    /// 読み手＝土地の逓減（<see cref="Territory.LandFactor"/>）の入力を持つ全ての所＝機会・残る値打ち・受け入れの上限・輸出代金の地代・人口動態の空き土地。
+    /// ⚠旧＝同じ和を5か所で手書きし、人口動態の空き土地だけが兵士を除いた（「landFactor と同一入力」の注記と食い違う）。EconomyStep の土地の逓減は
+    /// 月初の1回の走査で都市・農村・総人口を同時に数える（同じ集合）。</summary>
+    public double SumRuralPopulation()
+    {
+        double s = 0;
+        foreach (var p in Pops) if (!p.IsUrban) s += p.Size;
+        return s;
+    }
+
+    /// <summary>★移る先の同じ階級の POP の探し方の1本（2026-09-30 処理の一元化 段4e I）＝その階級の兵士でない**最初の** POP（無ければ null）。
+    /// 旧＝4通り（Find に !IsSoldier・foreach で最初の一致・foreach を最後まで回して最後の一致・Find で最初の一致）＝同じ階級の POP が複数ある州で
+    /// 経路ごとに別の POP を選んだ（州を作る経路は階級ごとに1つ＝今は同じ POP）。</summary>
+    public Pop? PopOf(int classId)
+    {
+        foreach (var p in Pops) if (p.ClassId == classId && !p.IsSoldier) return p;
+        return null;
     }
 }

@@ -7,7 +7,7 @@ namespace PriceOfBread.Tests;
 
 /// <summary>P12残渣（原典2026-07-17 P12節・実装2026-08-09）の番人。
 /// ①開放度導出（CivicOpennessEnabled）＝民族抵抗を速度drag/coreから原典式の天井「1−民族距離×(1−開放度)」へ一本化。
-/// ②移民NC運搬（MigrantCarriesConsciousness）＝越境移民が出身popの国民意識を持参しSize加重平均で混合（総量保存）。
+/// ②移民NC運搬（旧 MigrantCarriesConsciousness＝2026-09-30 段4e で焼き込み＝人の移し方の1本 Pop.Blend）＝越境移民が出身popの国民意識を持参しSize加重平均で混合（総量保存）。
 /// ★2026-08-09に点火（両係数とも既定1.0・ign_p12）。0へ戻せば全新コードがフラグの内側で1命令も実行しない）。</summary>
 public class NcOpennessTests(ITestOutputHelper output)
 {
@@ -16,7 +16,6 @@ public class NcOpennessTests(ITestOutputHelper output)
     {
         var c = new Coefficients();
         Assert.Equal(1.0, c.CivicOpennessEnabled);        // 点火2026-08-09（ign_p12＝硬性緑・開放度導出＝当てがい値除去の正しい挙動）
-        Assert.Equal(1.0, c.MigrantCarriesConsciousness); // 点火2026-08-09（同上・NC総量保存の移送）
     }
 
     // ── 残渣①：開放度の天井 ─────────────────────────────────────────────
@@ -160,7 +159,6 @@ public class NcOpennessTests(ITestOutputHelper output)
     public void ON経路_移民は出身NCを持参しSize加重平均で混ざり総量が保存される()
     {
         var (sim, src, dst, srcR, dstR) = MigrationWorld();
-        sim.Coef.MigrantCarriesConsciousness = 1.0;
         var before = new System.Collections.Generic.Dictionary<int, (double spSize, double dpSize, double dpNc)>();
         foreach (int cls in new[] { PopClass.Peasant, PopClass.Worker })
         {
@@ -187,19 +185,7 @@ public class NcOpennessTests(ITestOutputHelper output)
         Assert.Equal(massBefore, NcMass(src, dst), 6);   // 総量保存＝NC×Sizeは湧かず消えず（移転のみ）
     }
 
-    [Fact]
-    public void 休眠_移民のNCは運ばれず到着国の値を纏う()
-    {
-        var (sim, src, dst, srcR, dstR) = MigrationWorld();
-        sim.Coef.MigrantCarriesConsciousness = 0.0;   // OFF経路の回帰ピン（既定は点火済み1.0＝2026-08-09。既定非依存で明示OFF）
-        var spSize0 = srcR.Pops.Find(x => x.ClassId == PopClass.Peasant && !x.IsSoldier)!.Size;
-        sim.MoveMigrants(src, dst, srcR, dstR, PopClass.Peasant, sim.Coef.EmigrationMaxFrac * spSize0);
-        var sp = srcR.Pops.Find(x => x.ClassId == PopClass.Peasant && !x.IsSoldier)!;
-        var dp = dstR.Pops.Find(x => x.ClassId == PopClass.Peasant && !x.IsSoldier)!;
-        Assert.True(spSize0 - sp.Size > 1e-9, "移動が起きていない＝テスト前提の破れ");
-        Assert.Equal(0.8, sp.NationalConsciousness, 15);   // 現行＝NCは1ビットも触られない
-        Assert.Equal(0.2, dp.NationalConsciousness, 15);   // 移動分は到着国popの値を纏う（＝総量は保存されない現行仕様）
-    }
+    // 【削除2026-09-30 段4e I】休眠_移民のNCは運ばれず到着国の値を纏う（OFF経路の回帰ピン）＝旗 MigrantCarriesConsciousness を焼き込んだ＝経路ごと無い。
 
     // ── 段4（2026-09-09）：§7-7の実バグ2件 ─────────────────────────────
     // a. 同化が速すぎる（到達年で判定）／b. 国民意識が国内経路で保存しない（裁定5の導出化で定義ごと消す）

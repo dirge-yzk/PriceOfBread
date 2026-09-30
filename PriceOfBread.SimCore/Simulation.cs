@@ -1400,7 +1400,7 @@ public sealed class Simulation
             // （支払いの一元化 段2-2 の A12「受け手の階級が無いと蓄えが運ばれず消える」【推】は確かめて外した＝2026-09-29：実国の州を作る経路〔BuildProvince・辺境・
             //   植民地の州昇格〕は全て農民と労働者の階級を持つ＝同名の州の吸収で受け手が欠けることは無い）
             foreach (var mp in new[] { peasant, worker })
-                if (mp.Size > 1e-9 && same.Pops.Find(x => x.ClassId == mp.ClassId && !x.IsSoldier) is { } dp) Territory.MoveBetweenRegions(mp, dp, mp.Size, coef);
+                if (mp.Size > 1e-9 && same.PopOf(mp.ClassId) is { } dp) Territory.MoveBetweenRegions(mp, dp, mp.Size, coef);
             double inP = same.SumPopulation() - pop0, inS = same.SumSavings() - sav0;
             w.CumulativeTradeFlow += inS; w.PopulationDelta += inP;
             same.AnnexBaggage += inP;   // 案Y（観測専用）：併合の持ち込み人口＝本土の自然増ではない（新しい州のときと同じ記帳）
@@ -2400,7 +2400,7 @@ public sealed class Simulation
             if (r.ArableLand < 1e8)   // 人2b：空き土地の集計（センチネル除外）
             {
                 arableSum += r.ArableLand;
-                foreach (var p in r.Pops) if (!p.IsUrban && !p.IsSoldier) ruralSum += p.Size;
+                ruralSum += r.SumRuralPopulation();   // 州の農村人口の1本（兵士を含む＝土地の逓減・機会・受け入れの上限と同じ入力・段4e H＝旧はここだけ兵士を除いた）
             }
             stapleOutput += r.LastSubsistenceOutput;   // 人2補完：自給産出（市場外）を分子へ＝自給7割の農業国で分子過小→capacity崩落を防ぐ（2026-07-11）
         }
@@ -2584,7 +2584,7 @@ public sealed class Simulation
                     //   ＝配分の鍵のうちは相対の差だったが、上乗せの率にすると門のすぐ下の POP に平常の6割の超過死亡が段で立つ。
                     //   国の死の予算の外＝豊かな POP の死は減らない（旧＝同じ総数を飢えた POP へ寄せた）。子供と老年に厚く（災害死と同じ運搬＝リ10）。
                     //   回復期は平常の死亡率0＝上乗せも0（この模型の回復期は誰も死なない）。否定形＝NaN の上乗せは殺さない側。
-                    double fill = p.FoodNeed > 1e-9 ? PoliticalQuantities.Clamp01(p.FoodMet / p.FoodNeed) : 1.0;
+                    double fill = p.FoodFill;   // 主食の充足の1本
                     double floorF = c.FamineDeathFillFloor;
                     double excess = fill < floorF ? deathRate * c.FamineMortalityConcentration * ((floorF - fill) / floorF) * size0 : 0.0;
                     if (excess > 0 && p.Size > 0)

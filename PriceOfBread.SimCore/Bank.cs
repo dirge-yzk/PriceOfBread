@@ -29,10 +29,12 @@ public sealed class Bank
 
     /// <summary>★債務は債務者について行く（2026-09-29 S3b）＝POP が国をまたいで移る（割譲・建国・再併合・越境移民・招聘）とき、
     /// 運ぶ債務 <paramref name="debt"/> の分の家計の与信を受け入れ国の銀行へ移す（null＝建国：新しい国の銀行は構築で自国の POP の債務から始まる）。
-    /// ⚠呼び手は同じ額を持参金の台帳から引く（運ぶ基礎貨幣＝貯蓄−債務）＝国ごとの保存が閉じる。</summary>
-    internal void Carry(Bank? to, double debt)
+    /// ⚠呼び手は同じ額を持参金の台帳から引く（運ぶ基礎貨幣＝貯蓄−債務）＝国ごとの保存が閉じる。
+    /// ★2026-09-30 段4e（人と動くお金の換算）：受け入れ国の銀行には受け入れ国の通貨へ換算した額 <paramref name="debtIn"/>（POP の債務の換算と同じ値・呼び手が
+    /// <see cref="World.CrossFx"/> で換算）。省略＝同じ通貨（建国＝新しい国の為替は親の値から始まる）。</summary>
+    internal void Carry(Bank? to, double debt, double? debtIn = null)
     {
         HouseholdLoans -= debt;
-        if (to is not null) to.HouseholdLoans += debt;
+        if (to is not null) to.HouseholdLoans += debtIn ?? debt;
     }
 }
