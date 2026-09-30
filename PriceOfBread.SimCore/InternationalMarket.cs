@@ -143,17 +143,6 @@ public sealed partial class InternationalMarket
         return buy;
     }
 
-    /// <summary>国として財 g を買う支払い（<see cref="PaySales"/> の国の枝）に受け手がいる＝国の活きた州のその財の産出の和＞0（PaySales の totalOut と同じ閾値）。
-    /// 産出の和は月次の決算が書いた <see cref="Market.LastProduced"/>（その財の生産者の Output の和＝EconomyStep）を読む＝生産者を走査しない（州の数だけ）。
-    /// ★段4d（2026-09-30・分子と分母を同じ規則で）：国として役務を買う請求（連合維持費・植民地の駐留の俸給）は受け手のいる分だけ立てる＝払えない請求で国家の支払い率 r を下げない。</summary>
-    internal static bool HasSellers(World w, int g)
-    {
-        double sum = 0;
-        foreach (var r in w.Regions)
-            if (r.State == RegionState.Active && g < r.Markets.Length) sum += Math.Max(0, r.Markets[g].LastProduced);
-        return sum > 1e-9;
-    }
-
     // 穀物法の保護強度：なし0／限定的0.5／全面1.0（輸入閾値への上乗せ＝CornLawImportPenalty に掛かる）。
     /// <summary>条約港による関税の実効低下（2026-08-04・作者仕様(4)）。港を開かされるほど自国の関税が効かなくなる。
     /// 史実＝南京条約1842は5港開港＋協定関税（清は税率を自分で決められなくなった）・安政条約1858も同型。

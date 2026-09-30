@@ -874,7 +874,6 @@ public sealed class Region
     // 既存の afford は Math.Min(1,…) で切っているため「余裕がある」が読めず、軍を増やすべきか減らすべきかの信号にならなかった。
     // 生の比＝1超で余裕・1未満で不足。Military.Step がこれを見て軍を増減させる（目標を式で決めるのをやめる）。
     public double MilitaryAffordRaw = 1.0;            // 装備の支払能力（軍事予算÷必要額・無クランプ）
-    public double SoldierPayAffordRaw = 1.0;          // 給与の支払能力（給与予算÷必要額・無クランプ）
     public double GarrisonShare;                      // 駐屯州調達（課題6）：この州の装備需要・予算の全国シェア（月次・Simulationが設定）
     public double SoldierPayBudget;                   // 今期の兵力調達の予算（兵士給与。Simulation が設定）
     public double CompulsoryEduFunding;               // 義務教育の財源率（教育費スライダー）。popが買えない教育の何割を国庫が買い与えるか。0＝義務教育でない

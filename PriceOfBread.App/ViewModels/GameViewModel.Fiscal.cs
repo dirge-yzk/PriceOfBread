@@ -339,7 +339,9 @@ public partial class GameViewModel
         double aPoll = c.PollTaxRate * _player.PollTax * headNonPriv * leak;
         double aLand = _player.LandTax * landRent * leak;
         double netA = aIncome + aProg + aPoll + aLand;
-        double aMil = _player.LastMilitaryClaim + _player.LastSoldierPay * _player.FiscalFundingRatio;   // 軍需の請求＋兵の給与（請求×国家の支払い率 r＝(140) から請求どおりの賃金で払う）
+        double aMilGoods = _player.LastMilitaryClaim;   // 軍需の請求（陸海の維持費の比で割る）
+        double aSoldier = _player.LastSoldierPay * _player.FiscalFundingRatio;   // 兵の給与＝請求×国家の支払い率 r（(140) から請求どおりの賃金で払う）＝陸軍の行だけ（(144) 反証の指摘＝海軍の比で割らない）
+        double aMil = aMilGoods + aSoldier;
         double aAdmin = _player.LastAdminClaim;
         double aWel = _player.LastWelfareCost * _player.FiscalFundingRatio;   // 実効＝請求×国家の支払い率 r（エンジンの Fiscal と同じ・2026-09-28）
         double aPen = _player.LastPensionCost * _player.FiscalFundingRatio;
@@ -350,8 +352,10 @@ public partial class GameViewModel
         //   （World.NavalSpendShare＝NavyUpkeep/(Army+Navy)）で総額を割る＝UIに第二の配分式を置かない。
         //   和は必ず旧「軍事費」の額と一致する（表示を分けただけで金は動いていない）。
         double navShare = _player.NavalSpendShare;
-        ArmyAct = Money(aMil * (1 - navShare)); ArmyAmt = Money(mil * (1 - navShare));
-        NavyAct = Money(aMil * navShare);       NavyAmt = Money(mil * navShare);
+        //   ★(144)：兵の給与は陸軍の行だけ（陸海の比で割るのは軍需の請求だけ）。予定の側も同じ定義＝軍需の目標＋兵の給与の請求（r の前）。
+        double pSoldier = _player.LastSoldierPay;
+        ArmyAct = Money(aMilGoods * (1 - navShare) + aSoldier); ArmyAmt = Money(mil * (1 - navShare) + pSoldier);
+        NavyAct = Money(aMilGoods * navShare);                  NavyAmt = Money(mil * navShare);
         AdminLine = $"行政費 {_player.Policy.AdminSpendingTarget:P0}　実効 {_player.AdminSpending:P0}"; AdminAct = Money(aAdmin); AdminAmt = Money(admin);  // 行政調達（官僚の給与×人数×距離の割増）
         // ★汚職根絶のラベル更新は撤去（汚職V2点火2026-08-15＝表示ごと削除）
         // 国民形成費のレバー行は廃止（2026-07-19）＝国民運動は需要駆動（内訳はヘッダー国民意識の説明API）
@@ -404,7 +408,7 @@ public partial class GameViewModel
         ForeignInAmt = Money(_fInMonthly);
         ForeignOutAmt = Money(_fOutMonthly);
 
-        double spendTotal = interest + mil + admin + wel + pen + ind + _eduMonthly + _fOutMonthly + colonialUp + tribOut;   // 接1：植民地維持費・貢納を合計へ（根絶費はV2撤去2026-08-15）
+        double spendTotal = interest + mil + pSoldier + admin + wel + pen + ind + _eduMonthly + _fOutMonthly + colonialUp + tribOut;   // 接1：植民地維持費・貢納を合計へ（根絶費はV2撤去2026-08-15）
         double revTotal = net + tariffGross + _stateMonopMonthly + _fInMonthly + tribIn;
         double spendActT = aInterest + aMil + aAdmin + aWel + aPen + ind + _eduMonthly + _fOutMonthly + colonialUp + tribOut;
         double revActT = netA + tariffActMonthly + _stateMonopMonthly + _fInMonthly + tribIn;

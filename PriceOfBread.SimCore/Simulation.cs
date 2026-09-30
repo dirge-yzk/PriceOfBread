@@ -2195,7 +2195,6 @@ public sealed class Simulation
                 // 全ての予算と予約に同じ r（予算は量の上限＝買えた分だけ払う＝払えない分は量が減る）
                 r.MilitaryBudget *= payRate; r.MilitaryBudgetCeiling *= payRate;
                 r.AdminBudget *= payRate; r.InfraBudget *= payRate; r.ElecInfraBudget *= payRate; r.SoldierPayBudget *= payRate;
-                r.SoldierPayAffordRaw = payRate;   // ★(140) 給与の充足＝請求の賃金のうち払えた割合（旧＝予算÷(兵数×兵力の市場の値)＝民間の賃金÷兵力の値を測っていた）
                 r.CompulsoryEduFunding *= payRate; r.InsuranceCoverage *= payRate;
                 r.StateBuildQueue *= payRate; r.MonumentBuildQueue *= payRate; r.HigherEduFunding *= payRate;
                 // 技術→工場生産性。技術2まではそのまま（較正域）、それ超は逓減（高技術でも生産性7倍等にならず経済を壊さない）
