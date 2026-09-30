@@ -5,13 +5,15 @@ namespace PriceOfBread.Tests;
 
 public class FamineTests
 {
-    // ★2026-09-30 (131)：飢えの死は POP の飢えの上乗せ（平常の死亡率×FamineMortalityConcentration×飢えの深さ）の1本＝OFF の腕はその強さを0に（旧＝局地飢饉 RegionalFamineMortality=0）。
-    private static Scenario Famine(ulong s, double mortality = -1) => new()
+    // ★2026-09-30 (131)：飢えの死は POP の飢えの上乗せの1本＝OFF の腕はその強さを0に（旧＝局地飢饉 RegionalFamineMortality=0）。
+    // ★2026-10-01 (143)：上乗せは飢えの深さの絶対の率（FamineExcessMortality×深さ^FamineExcessMortalityExponent・旧＝平常の死亡率×FamineMortalityConcentration×深さ）。
+    private static Scenario Famine(ulong s, double mortality = -1, double birthRate = -1)
     {
-        Seed = s,
-        Kind = ScenarioKind.RegionalFamine,
-        Coef = mortality < 0 ? new Coefficients() : new Coefficients { FamineMortalityConcentration = mortality },
-    };
+        var c = new Coefficients();
+        if (mortality >= 0) c.FamineExcessMortality = mortality;
+        if (birthRate >= 0) c.CrudeBirthRate = birthRate;
+        return new Scenario { Seed = s, Kind = ScenarioKind.RegionalFamine, Coef = c };
+    }
 
     [Fact]
     public void 局地飢饉で食料不足の州だけが減り豊富な州は減らない()   // §A-3拡張：局地飢饉（★2026-09-30 (131) 相対的剥奪の死は削除＝POP の飢えの上乗せが運ぶ）
@@ -27,7 +29,7 @@ public class FamineTests
         Assert.True(poorOn < poor0 * 0.95, $"食料不足の州が飢饉で減らない（{poor0:F0}→{poorOn:F0}）");
         Assert.True(richOn > rich0 * 0.95, $"食料豊富な州まで道連れに減った（{rich0:F0}→{richOn:F0}）＝局地化していない");
 
-        // 飢えの上乗せの寄与を分離：上乗せ OFF（FamineMortalityConcentration=0）より ON の方が不足州がさらに減る
+        // 飢えの上乗せの寄与を分離：上乗せ OFF（FamineExcessMortality=0）より ON の方が不足州がさらに減る
         var off = new Simulation(Famine(1, mortality: 0), new NullAgent());
         off.Run(120);
         Assert.True(poorOn < off.World.Regions[1].SumPopulation(),
@@ -78,14 +80,15 @@ public class FamineTests
     }
 
     [Fact]
-    public void 飢えた植民地の州は飢えの死だけでピークの10分の1未満へ落ちない_国の死を寄せず平常の死亡率に上乗せ()
+    public void 飢えた植民地の州は飢えの死だけでピークの10分の1未満へ落ちない_飢えの深さの絶対の率()
     {
-        // ★2026-09-30 (131)（作者 2026-09-30「州から人が抜けきるというのは現実的ではない。不具合とみなしてください」）。
-        //   盤面＝豊かな本国の州（全 POP の充足1）と飢えた植民地の州（大衆＝充足0.7〔飢饉死の門0.8の下〕・残り＝0.9）の1国。
+        // ★2026-09-30 (131)→2026-10-01 (143)（作者 2026-09-30「州から人が抜けきるというのは現実的ではない。不具合とみなしてください」）。
+        //   盤面＝豊かな本国の州（全 POP の充足1）と飢えた植民地の州（全 POP の充足0.58＝飢えの深さ 0.275）の1国。充足0.58 は (140) の木の計器で
+        //   空洞化した州の飢えた POP の平均（州の7割が飢え・百四十年続いた・`measurements/fam_20261001`）。
         //   毎月、充足を置いて人口動態（DemographicStep）だけを167年（2004か月）回す＝飢えは人が減っても和らがない（(131) の計器＝植民地の州の飢えは
-        //   値段と購買力で決まり、人口が1/10 へ落ちても充足は 0.74→0.75）。扶養力は動かない盤面＝国が伸びきった後の厳しい形。
+        //   値段と購買力で決まり、人口が1/10 へ落ちても充足は動かない）。扶養力は動かない盤面＝国が伸びきった後の厳しい形。
         //   ①植民地の州は自分のピークの1/10 未満へ落ちない ②前提＝飢えは効いている（植民地の州は本国の州より伸びが低い）③人口保存。
-        //   旧（国の死を飢えた POP へ寄せる＋国平均からの相対の不足で局地飢饉の死）では植民地の州が数十年で1/10 未満へ落ちた。
+        //   旧（(131)＝平常の死亡率×3×深さ）では慢性の浅い飢え（深さ0.275）が年 約25‰ で州を削った・深さに比例（指数1）でも同じ桁。
         var sim = new Simulation(Famine(1), new NullAgent());
         var w = sim.World;
         var home = w.Regions[0]; var col = w.Regions[1];
@@ -94,7 +97,7 @@ public class FamineTests
             foreach (var r in w.Regions)
                 foreach (var p in r.Pops)
                 {
-                    double fill = ReferenceEquals(r, home) ? 1.0 : p.ClassId == 1 ? 0.7 : 0.9;   // 植民地の大衆（工場労働者の POP）だけが門の下
+                    double fill = ReferenceEquals(r, home) ? 1.0 : 0.58;
                     p.FoodNeed = 0.8 * p.Size; p.FoodMet = fill * p.FoodNeed;
                 }
         }
@@ -115,9 +118,63 @@ public class FamineTests
     }
 
     [Fact]
+    public void 飢えの超過死亡は平常の死亡率によらない絶対の率_出生率の違う国でも同じ飢えで同じだけ死ぬ()
+    {
+        // ★2026-10-01 (143)：飢えの超過死亡＝FamineExcessMortality÷12×深さ^指数（深さ＝(門−充足)÷門）＝平常の死亡率を読まない。
+        //   旧（(131)）＝平常の死亡率×濃さ×深さ＝出生と死の多い国ほど同じ飢えで多く死んだ（年齢の層で出生と死が史実へ近づいた分だけ飢えの死が増え、
+        //   r138 で飢えによる州の空洞化が2→16件）。盤面＝粗出生率 0.035 と 0.050 の2つの国（平常の死亡率が違う）。各国で同じ構成の農民の対
+        //   （本国の州＝充足1・不足州＝充足0.4）を1か月＝1人あたりの増減の差がその国の飢えの上乗せ（1人あたり）＝両国で同じ・式の値と一致。
+        double Excess(double birthRate, out double deathsPerHead)
+        {
+            var sim = new Simulation(Famine(1, birthRate: birthRate), new NullAgent());
+            var w = sim.World;
+            Pop Of(int region) { foreach (var p in w.Regions[region].Pops) if (p.ClassId == 0) return p; throw new System.InvalidOperationException(); }
+            var fed = Of(0); var hungry = Of(1);
+            foreach (var r in w.Regions) foreach (var p in r.Pops) { p.FoodNeed = 0.8 * p.Size; p.FoodMet = p.FoodNeed; }
+            hungry.FoodMet = 0.4 * hungry.FoodNeed;
+            double f0 = fed.Size, h0 = hungry.Size, d0 = w.DiagDeaths;
+            sim.DemographicStep();
+            deathsPerHead = (w.DiagDeaths - d0) / w.TotalPopulation;
+            return (fed.Size - f0) / f0 - (hungry.Size - h0) / h0;
+        }
+        var c = new Coefficients();
+        double expect = c.FamineExcessMortality / 12.0 * System.Math.Pow((c.FamineDeathFillFloor - 0.4) / c.FamineDeathFillFloor, c.FamineExcessMortalityExponent);
+        double lo = Excess(0.035, out double dLo), hi = Excess(0.050, out double dHi);
+        Assert.True(dHi > dLo * 1.2, $"前提：平常の死亡率が違う国になっていない（1人あたりの死 {dLo:E3}・{dHi:E3}）");
+        Assert.True(System.Math.Abs(lo - expect) < 1e-9 && System.Math.Abs(hi - expect) < 1e-9,
+            $"飢えの上乗せが飢えの深さの絶対の率でない（出生 0.035 の国 {lo:E6}・0.050 の国 {hi:E6}・式 {expect:E6}）");
+    }
+
+    [Fact]
+    public void 飢饉の線の下で農村より食べられない都市のPOPへは農村から移らない_農村がもっと飢えていれば移る()
+    {
+        // ★2026-10-01 (143)（線2 後半・飢えで州が痩せる型の残り）：農村→都市の移動（PopDecision）は貨幣の所得の差で目標の都市の割合を決める。
+        //   旧＝都市の POP が飢えていても（植民地の工場労働者＝主食の充足 0.22・失業 60%）目標へ引かれ続け、農民が飢えた都市へ移って飢えの死で消えた（流しの管）。
+        //   盤面＝同じ州の農民（農村）と工場労働者（都市）。都市の所得を農村の2倍に置き（旧なら必ず都市へ流れる）、充足だけを振って1回：
+        //   ①都市 0.2・農村 0.9（都市が飢饉の線の下で農村より飢える）＝移らない ②都市 0.9・農村 0.9（都市が線の上）＝移る
+        //   ③都市 0.6・農村 0.4（農村がもっと飢える＝町へ逃げる）＝移る。
+        double Moved(double fillRural, double fillUrban)
+        {
+            var sim = new Simulation(Famine(1), new NullAgent());
+            var w = sim.World; var r = w.Regions[0];
+            Pop Of(int cls) { foreach (var p in r.Pops) if (p.ClassId == cls) return p; throw new System.InvalidOperationException(); }
+            var rural = Of(0); var urban = Of(1);
+            rural.FoodNeed = 0.8 * rural.Size; rural.FoodMet = fillRural * rural.FoodNeed; rural.Earned = 0.1 * rural.Size;
+            urban.FoodNeed = 0.8 * urban.Size; urban.FoodMet = fillUrban * urban.FoodNeed; urban.Earned = 0.2 * urban.Size;
+            double u0 = urban.Size;
+            PopDecision.Run(r, w.Coef);
+            return urban.Size - u0;
+        }
+        double starving = Moved(0.9, 0.2), fed = Moved(0.9, 0.9), refuge = Moved(0.4, 0.6);
+        Assert.True(fed > 0, $"前提：都市の所得が高く食べられる時に農村から移らない（{fed:E3}）");
+        Assert.True(refuge > 0, $"農村がもっと飢えている時に町へ逃げない（{refuge:E3}）");
+        Assert.True(starving <= 0, $"飢饉の線の下で農村より食べられない都市の POP へ農村から移った（{starving:E3}）");
+    }
+
+    [Fact]
     public void 飢えの上乗せは飢饉死の門で連続_門のすぐ下は平常とほぼ同じ()
     {
-        // ★2026-09-30 (131)：上乗せ＝平常の死亡率×FamineMortalityConcentration×飢えの深さ（(門−充足)÷門）。旧の重みの不足（1−充足）のままでは
+        // ★2026-09-30 (131)：上乗せは飢えの深さ（(門−充足)÷門）の関数（(143) から絶対の率＝FamineExcessMortality×深さ^指数）。旧の重みの不足（1−充足）のままでは
         //   門（0.8）で 0→0.2 へ跳ぶ＝上乗せの率にすると門のすぐ下の POP に平常の6割の超過死亡が段で立つ。
         //   盤面＝同じ階級（同じ構成＝1人あたりの出生と平常の死が同じ）の POP の対を2組：①充足0.81（門の上）と0.79（門のすぐ下）②充足1.0 と0.4（深い飢え）。
         //   1か月の人口動態の1人あたりの増減の差＝その POP の上乗せ（1人あたり）。①の差は②の差の1割未満（連続なら 0.0125÷0.5＝2.5%・跳ぶと約35%）。

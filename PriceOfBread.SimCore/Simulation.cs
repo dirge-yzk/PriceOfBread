@@ -2313,7 +2313,7 @@ public sealed class Simulation
         double couple = 2.0 * Math.Min(female, 1.0 - female);   // 少数側の性が2人でカップル1組＝律速（男女どちらが不足しても出生↓）
         return adult * (female + c.CoupleLimitedBirths * (couple - female));
     }
-    // ①Phase3：出生の配分鍵。false（対照腕）は Size＝従来の粗出生（規模比例）＝厳密に従来挙動。既定 true で女性プール律速。
+    // ①Phase3：国の出生の**総数**と州の中の階級への配り方の鍵（★2026-10-01 (143) から州への配り方は今の出産可能のプール×規模＝DemographicStep）。false（対照腕）は Size＝従来の粗出生（規模比例）＝厳密に従来挙動。既定 true で女性プール律速。
     // true で「出産可能女性プール」に律速し、各popの t=0 値で正規化＝標準構成（子供0.3・老年0・女性0.5）では Size と恒等＝較正中立。
     private static double BirthWeight(Pop p, Coefficients c)
     {
@@ -2337,6 +2337,14 @@ public sealed class Simulation
             w = (1.0 - c.FertileAbsoluteBlend) * w + c.FertileAbsoluteBlend * wStd;
         }
         return w;
+    }
+    /// <summary>★平常の死の年齢の指数（2026-10-01 (143)）＝その POP の年齢の構成で平常の死の年齢の重み（<see cref="Pop.MortalityWeights"/>）を平均した値（1人あたりの相対の死亡率）。
+    /// 平常の死はこれ×規模の比で POP へ配る＝年寄りの多い POP ほど多く死に、若い POP ほど少なく死ぬ（年齢別の死）。標準のピラミッドでは粗死亡率（出生−表の増加率）。</summary>
+    private static double AgeMortalityIndex(Pop p, double[] mortW)
+    {
+        double s = 0;
+        for (int k = 0; k < mortW.Length; k++) s += mortW[k] * p.Ages[k];
+        return s;
     }
 
     internal void DemographicStep()   // internal＝番人テスト（FamineTests 飢えた植民地の州は…）が月ごとに直接呼ぶ。可視性だけの変更
@@ -2498,53 +2506,77 @@ public sealed class Simulation
         double eqFert = 1.0 - c.FertilityEquilibriumWeight * Math.Max(0.0, 1.0 - fertility);
         double net = c.PopGrowthRate * netFertility * pop * (eqFert - pop / capacity);   // ロジスティック：均衡＝eqFert×扶養力へ収束（出生−死亡の純）。fertility の死亡側寄与は FertilityAffectsBirthsOnly で切り離せる
         World.DiagFertility = fertility; World.DiagLandRoom = landRoom;   // ★人口診断拡張（2026-08-21・純記帳）：出生率倍率と空き土地ブースト＝仏過大/英過小の因子分解用
-        double massPop = 0, massBirthWeight = 0;
-        foreach (var p in World.AllPops()) if (!p.IsSoldier)   // 出生死亡は兵士以外の全階級（貴族・聖職も人口とともに増減。兵士は軍事力学が別途管理）
+        var mortW = Pop.MortalityWeights(c.CrudeBirthRate);   // ★年齢の層（段4e 後半）：平常の死の年齢の重み（標準のピラミッドが1783年の出生で動かない重み）
+        double massPop = 0, massBirthWeight = 0, massBirthKey = 0, massDeathWeight = 0;
+        var regions = World.Regions;
+        var regKey = new double[regions.Count];   // ★(143) 州ごとの出産年齢の女性の実数（今の出産可能のプール×規模の和）＝国の出生を州へ配る鍵
+        var regBW = new double[regions.Count];    //   州ごとの旧の鍵の和＝州の中の階級への配り方（凍結の分母のまま＝9-2）
+        for (int ri = 0; ri < regions.Count; ri++)
+        foreach (var p in regions[ri].Pops) if (!p.IsSoldier)   // 出生死亡は兵士以外の全階級（貴族・聖職も人口とともに増減。兵士は軍事力学が別途管理）
         {
             massPop += p.Size;
+            massDeathWeight += p.Size * AgeMortalityIndex(p, mortW);   // ★(143) 平常の死の配分鍵＝年齢の構成で重みを付けた規模
             if (c.FertileWomenBirths && p.InitialFertileShare < 0)
                 p.InitialFertileShare = Math.Max(c.FertileShareFloor, FertilePool(p, c));   // t=0 の出産可能女性プールを各popの相対基準として捕捉（BirthWeight と同一式＝人5 のカップル律速も t=0 正規化に反映）
 
-            massBirthWeight += BirthWeight(p, c);   // ①Phase3：出生の配分鍵（既定は Size＝massBirthWeight==massPop）
+            double bwp = BirthWeight(p, c);
+            massBirthWeight += bwp;   // ①Phase3：国の出生の総数の物差し（既定は Size＝massBirthWeight==massPop）
+            regBW[ri] += bwp;
+            double key = c.FertileWomenBirths ? p.Size * FertilePool(p, c) : p.Size;
+            regKey[ri] += key; massBirthKey += key;
         }
         if (massPop < 1e-9) return;
-        // ★出生と死は同じ単位（2026-09-30 (131)）＝POP ごとに「1人あたりの率×規模」。出生は配分鍵（粗出生）、**平常の死は国の平常の死亡率×規模**（全ての POP で同じ率）。
+        bool ageDeath = massDeathWeight > 1e-12;   // 年齢の重みが全て0（係数で死亡率が負に振り切れた場合）なら規模で配る＝台帳の Σ死＝総死は保つ
+        // ★出生と死は同じ単位（2026-09-30 (131)）＝POP ごとに「1人あたりの率×規模」。出生は配分鍵（粗出生）、平常の死は国の平常の死亡率×規模。
+        //   ★2026-10-01 (143)：**平常の死は年齢の構成で重みを付けた規模**（年齢の指数×規模＝年寄りの多い POP ほど多く死ぬ・標準のピラミッドの POP は国の平均の率）。
+        //   国の中の年齢別の死亡率は年齢の重み（MortalityWeights）に比例する＝POP の中の年齢の配り方（StepAges）と同じ重み。旧＝POP の間は1人あたり同じ率・POP の中だけ年齢の重み
+        //   ＝若い POP の年寄りほど多く死に、老いた POP の年寄りほど少なく死んだ（POP の間と中で規則が違った）。
         //   総出生 − 平常の死 = net（ロジスティック）。回復期（純増＞粗出生）は平常の死0で超過を出生（旧 Math.Max と同じ）。
-        //   ★飢えの超過死亡は平常の死亡率の**上乗せ**（下の POP のループの終わり＝平常の死亡率×FamineMortalityConcentration×飢えの深さ×規模）＝国の死の予算から取らない。
+        //   ★飢えの超過死亡は**飢えの深さの絶対の率**（下の POP のループの終わり＝FamineExcessMortality×深さ^FamineExcessMortalityExponent×規模・(143)）＝国の死の予算から取らない。
+        //   ⚠(131) の形＝平常の死亡率×濃さ×深さ＝平常の死が多い国ほど同じ飢えで多く死んだ＝年齢の層（(137)）で出生と死が史実へ近づいて増えた分だけ飢えの死も増え、
+        //     r138 で飢えによる州の空洞化（ピークの1/10 未満）が2→16件・(140) で25件。
         //   ⚠旧＝国の死（総出生−net）を脆弱性の重みで飢えた POP に寄せていた（重み＝規模×(1＋これ×不足)÷Σ重み）＝飢えた POP が国全体の死の受け皿になり、
         //     豊かな POP の死がその分だけ減った＝飢えた州の減りが国の中の他の州の伸びに付け替わった（分子と分母の非対称）。
         //     加えて局地飢饉（旧 RegionalFamineStep＝国平均からの相対の不足×0.025／月）が同じ飢えを2本目の死として数えていた（思想⑨）＝植民地の州が開幕から
         //     飢えの死で年3%ずつ痩せ、ピークの1/10 未満へ落ちた（(125) の10種で532件・(131) の計器＝局地飢饉 32.5‰・寄せた分 5.5‰／年）。
         double totalBirths = c.CrudeBirthRate / Calendar.MonthsPerYear * fertility * massBirthWeight;   // 既定 massBirthWeight==massPop ＝現行と厳密一致
+        bool noMothers = !(massBirthKey > 1e-12);   // 産む人が居ない（全 POP の出産可能のプール≈0）＝出生0（否定形＝NaN も0）
+        if (noMothers) totalBirths = 0;
         bool recovering = net >= totalBirths;
         double totalDeaths = recovering ? 0 : totalBirths - net;
-        double deathRate = recovering ? 0 : totalDeaths / massPop;   // 平常の死亡率（1人あたり・月）＝全ての POP で同じ
+        double deathRate = recovering ? 0 : totalDeaths / (ageDeath ? massDeathWeight : massPop);   // 平常の死の率（年齢の指数×規模の1単位あたり・月）
         double diagBirths = 0, diagDeaths = 0;   // ★計器（2026-09-26）：粗出生・粗死亡の累積の元（World.DiagBirths/DiagDeaths へ＝力学は読まない）
         double ghostDeaths = 0;   // 人口保存バグ修正：負人口防止クランプ(下)で削られた「人が足りず起き得なかった死」を集計し、台帳のnetから差し戻す（無クランプ時は0＝ビット恒等・West巨大人口の崩壊時のみ発火）
-        double famineDead = 0;    // 飢えの超過死亡（平常の死の上乗せ）の実際に減った人数＝台帳へ別に引く
-        bool birthsSuppressed = recovering && massBirthWeight <= 1e-9;   // 人口保存：回復期にmassBirthWeightガード(add0=0)が発火すると実出生0なのに台帳が+=netでズレる＝netを差し引く（正常時false＝ビット恒等・出産可能プール≈0の退化popでのみ発火）
-        var mortW = Pop.MortalityWeights(c.CrudeBirthRate);   // ★年齢の層（段4e 後半）：平常の死の年齢の重み（標準のピラミッドが1783年の出生で動かない重み）
+        double famineDead = 0;    // 飢えの超過死亡（国の死の予算の外）の実際に減った人数＝台帳へ別に引く
+        bool birthsSuppressed = recovering && noMothers;   // 人口保存：回復期に産む人が居ない（add0=0）と実出生0なのに台帳が+=netでズレる＝netを差し引く（正常時false・出産可能プール≈0の退化popでのみ発火）
         Span<double> disasterW = stackalloc double[2 * Pop.AgeBands];
         Pop.DisasterWeights(disasterW, c.DisasterAgeMortalityExcess);   // 飢えの超過死亡の年齢の重み（災害死と同じ）
-        foreach (var r in World.Regions)
+        for (int ri = 0; ri < regions.Count; ri++)
         {
+            var r = regions[ri];
+            // ★(143) 出生の州の取り分＝州の出産年齢の女性の実数÷国の和（旧＝旧の鍵＝POP ごとの t=0 の凍結の分母で州へも配った＝ペルシャのタブリーズは国の平均より年 7‰ 少なく産んだ）。
+            //   州の中の階級へは旧の鍵の比（凍結の分母のまま）＝階級の配り方を今のプールにすると、凍結の分母が膨らませていた識字の高い階級（聖職者 2.3→5.4%・資本家 4.1→6.1%
+            //   〔日本・公教育の番人の盤面・30年〕）が膨らまなくなり、公教育の下で識字が 0.35→0.19 へ落ちて幕府の番人が赤＝教育の経路が凍結の分母に支えられていた＝9-2 で一緒に。
+            double regShare = noMothers ? 0 : regKey[ri] / massBirthKey;
+            double regBWr = regBW[ri];
             foreach (var p in r.Pops)
                 if (p.IsSoldier) { if (p.Size > 1e-12) p.StepAges(p.Size, 0, 0, mortW); }   // 兵士も年を取る（作者裁定 Q10・自然の出生と死は外のまま＝9-2 で）
                 else
                 {
-                    double bw = BirthWeight(p, c);   // 加齢が年齢の層を変える「前」に捕捉＝massBirthWeight（事前パス）と同一構成で評価＝Σbirths=net の保存を厳密化
+                    double bk = regBWr > 1e-300 ? regShare * BirthWeight(p, c) / regBWr : 0;   // 出生の取り分＝州の取り分×州の中の旧の鍵の比（加齢の「前」に捕捉＝事前パスと同一構成＝Σ取り分＝1＝Σbirths=net の保存を厳密化）
                     double size0 = p.Size;           // 月初の規模＝出生・平常の死・飢えの上乗せが掛かる同じ規模
-                    // 出生は**粗出生**として0〜9 の層に加わる（純増だけを子供にすると成熟社会で子供が払底＝構成崩壊）。平常の死は全ての POP で同じ率。
+                    double dw = ageDeath ? size0 * AgeMortalityIndex(p, mortW) : size0;   // 平常の死の配分鍵（事前パスと同じ月初の構成）
+                    // 出生は**粗出生**として0〜9 の層に加わる（純増だけを子供にすると成熟社会で子供が払底＝構成崩壊）。平常の死は年齢の構成で重みを付けた規模（(143)）。
                     double births, deaths;
                     if (recovering)
                     {
-                        double add0 = massBirthWeight > 1e-9 ? net * (bw / massBirthWeight) : 0;   // 回復期：純増を出生配分鍵で按分（既定 Size/massPop と恒等）。massBirthWeight≈0（地域の非兵士pop枯渇＝移民摂動で露出）で0/0=NaNを防ぐ潜在バグ修正＝正常時はmassBirthWeight>0で不発＝較正中立（#54運賃点火が露出した下流NaN）
+                        double add0 = net * bk;   // 回復期：純増を出生の取り分で按分。産む人が居なければ0（旧 massBirthWeight≈0 の 0/0=NaN の防止＝#54運賃点火が露出した下流NaN と同じ）
                         births = add0; deaths = 0;
                     }
                     else
                     {
-                        births = c.CrudeBirthRate / Calendar.MonthsPerYear * fertility * bw;   // 出生は配分鍵比例（既定 Size＝現行の粗出生）
-                        double deathsRaw = deathRate * size0;               // 平常の死＝国の平常の死亡率×規模（飢えで寄せない）
+                        births = totalBirths * bk;   // 出生＝国の総出生×取り分（(143)・州へは出産年齢の女性の実数・州の中は旧の鍵）
+                        double deathsRaw = deathRate * dw;                  // 平常の死＝国の平常の死の率×年齢の指数×規模（飢えで寄せない・(143) 年齢別の死）
                         deaths = Math.Min(deathsRaw, p.Size + births);   // 下限保護（負人口の防止）
                         ghostDeaths += deathsRaw - deaths;   // クランプで削られた「人が足りず起き得なかった死」を集計（下でnetから差し戻す）。無クランプ時は0＝ビット恒等（West巨大人口の崩壊時のみ発火＝人口保存バグ修正）
                     }
@@ -2564,15 +2596,16 @@ public sealed class Simulation
                         double diluted = p.Literacy * PoliticalQuantities.Clamp01((p.Size - births) / p.Size);   // 新生児=識字0 で加重平均（births 人が0を持ち込む）
                         p.Literacy += c.NewbornLiteracyDilution * (diluted - p.Literacy);   // 0で不変（恒等）・1で完全希釈
                     }
-                    // ★飢えの超過死亡（2026-09-30 (131)）＝**平常の死亡率の上乗せ**＝平常の死亡率×FamineMortalityConcentration×飢えの深さ×月初の規模（出生と同じ単位）。
-                    //   飢えの深さ＝(門−充足)÷門（門＝飢饉死の門 FamineDeathFillFloor・絶対水準・平常 FoodRef は読まない＝回B）＝門の上は平常（上乗せ0）・
-                    //   門で連続・充足0で1（上乗せの最大＝平常の死亡率×これ＝旧の重みの充足0 と同じ）。⚠旧の重みの不足（1−充足）は門で 0→0.2 へ跳んだ
-                    //   ＝配分の鍵のうちは相対の差だったが、上乗せの率にすると門のすぐ下の POP に平常の6割の超過死亡が段で立つ。
-                    //   国の死の予算の外＝豊かな POP の死は減らない（旧＝同じ総数を飢えた POP へ寄せた）。子供と老年に厚く（災害死と同じ運搬＝リ10）。
-                    //   回復期は平常の死亡率0＝上乗せも0（この模型の回復期は誰も死なない）。否定形＝NaN の上乗せは殺さない側。
+                    // ★飢えの超過死亡（2026-10-01 (143)）＝**飢えの深さの絶対の率**＝FamineExcessMortality（年率）÷12×深さ^FamineExcessMortalityExponent×月初の規模。
+                    //   飢えの深さ＝(門−充足)÷門（門＝飢饉死の門 FamineDeathFillFloor・絶対水準・平常 FoodRef は読まない＝回B）＝門の上は0・門で連続（(131) 腕C）・充足0で1。
+                    //   凸（指数4）＝慢性の浅い不足（充足0.6〜0.7）はほとんど殺さず、深い飢饉は速く殺す（史実の飢饉の死は栄養の不足に強く凸・係数の注記）。
+                    //   ⚠旧（(131)）＝平常の死亡率×FamineMortalityConcentration×深さ＝平常の死が多い国ほど同じ飢えで多く死に、回復期（平常の死0）は飢えても死ななかった。
+                    //   ⚠深い飢えが何十年も続く POP（植民地の工場労働者＝充足0.22）は凸の率で速く死ぬ＝農村から飢えた都市へ移る流しの管が州を痩せさせた（(143) 腕B）
+                    //     ＝飢饉の線の下で農村より食べられない都市へは移らない（PopDecision）と対。
+                    //   国の死の予算の外＝豊かな POP の死は減らない。子供と老年に厚く（災害死と同じ運搬＝リ10）。否定形＝NaN の上乗せは殺さない側。
                     double fill = p.FoodFill;   // 主食の充足の1本
                     double floorF = c.FamineDeathFillFloor;
-                    double excess = fill < floorF ? deathRate * c.FamineMortalityConcentration * ((floorF - fill) / floorF) * size0 : 0.0;
+                    double excess = fill < floorF ? c.FamineExcessMortality / Calendar.MonthsPerYear * Math.Pow((floorF - fill) / floorF, c.FamineExcessMortalityExponent) * size0 : 0.0;
                     if (excess > 0 && p.Size > 0)
                     {
                         double d = Math.Min(excess, p.Size);

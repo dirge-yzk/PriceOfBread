@@ -39,10 +39,21 @@ public class MobilityTests
         double take = System.Math.Min(System.Math.Max(0, want - System.Math.Max(0, mid.Savings)), System.Math.Max(0, cap.Savings));
         cap.Savings -= take; mid.Savings += take;
         Assert.True(mid.Savings / mid.Size > sim.World.Coef.CapitalRiseThreshold * avgPerCap, "セットアップ不足：中層が昇格閾値に達していない");
+        // ★盤面の直し（2026-10-01 (143)）：旧＝資本家の規模が8回の後に増えたか（cap1 > cap0）で見た。だが財源を資本家から移すので資本家の1人あたりの資産が転落の線
+        //   （上流の転落 UpperFallThreshold 0.8×平均）を割り、④の転落が同じ8回の中で起きる（1人あたり 4,217→417）＝昇格（③・1回に約+1人）と盤面が起こした転落（1〜2回に約−6人）の差を見ていた
+        //   ＝(143) で最初の20四半期の軌道が少し動いた（資本家 459→475・1人あたり 4,386→4,217）だけで転落が1回から2回へ増えて赤になった。
+        //   直し＝**同じ移転の双子で昇格の閾値だけ無限大**（③だけを止める）と比べる＝盤面の転落は両方に同じだけ起きる＝差が③の昇格。主張（蓄財した中層は資本家へ昇格する）は同じ。
+        var ctl = new Simulation(NationConfig.Britain().ToScenario(43), new NullAgent());
+        ctl.Run(20);
+        var rc = ctl.World.Region;
+        var midC = rc.Pops[rc.MeritToIndex]; var capC = rc.Pops[rc.InvestorPopIndex];
+        capC.Savings -= take; midC.Savings += take;   // 同じ種・同じ20四半期＝同じ盤面へ同じ移転
+        ctl.World.Coef.CapitalRiseThreshold = double.PositiveInfinity;   // ③（中流→資本家）だけを止める
         double cap0 = cap.Size;
-        for (int i = 0; i < 8; i++) Meritocracy.Step(sim.World, sim.World.Coef);   // 昇格機構のみを回す（人口動態を挟まない＝衛生等の人口ノイズと隔離）
-        double cap1 = r.Pops[r.InvestorPopIndex].Size;
-        Assert.True(cap1 > cap0, $"蓄財した中層が資本家に昇格しない（資本家 {cap0:F1}→{cap1:F1}）");
+        Assert.Equal(cap0, capC.Size);   // 前提：双子は同じ盤面（同じ種・同じ20四半期＝移転の前の資本家の規模が一致）
+        for (int i = 0; i < 8; i++) { Meritocracy.Step(sim.World, sim.World.Coef); Meritocracy.Step(ctl.World, ctl.World.Coef); }   // 昇格機構のみを回す（人口動態を挟まない＝衛生等の人口ノイズと隔離）
+        double cap1 = r.Pops[r.InvestorPopIndex].Size, capCtl = rc.Pops[rc.InvestorPopIndex].Size;
+        Assert.True(cap1 > capCtl, $"蓄財した中層が資本家に昇格しない（資本家 {cap0:F1}→{cap1:F1}・昇格を止めた双子 {capCtl:F1}）");
     }
 
     [Fact]

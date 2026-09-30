@@ -260,6 +260,10 @@ public class WriterRatchetTests
     //   建設 6,978→7,226（+3.6%）・請求 2,456→2,515（+2.4%）・清算の着値の充填 27,104,468→27,954,050（+3.1%）＝兵の給与が国庫から実際に出る（旧＝請求の 7〜80% しか払わず残りは国庫に残った）＝
     //   最初の40四半期の国庫・請求・値段の軌道が変わった（処理の形は同じ・請求の単価は州の同じ POP の走査の中＝Military.RecruitWage）。ほかの12本は許しの内。
     //   全長の10種の推定は 239.0→236.5 秒（下がった＝払う必要が無い・実装ログ (140)）。
+    // ★2026-10-01 表の更新（(143) 飢えで州が痩せる型の残り＝飢えの超過死亡を飢えの深さの絶対の率へ・平常の死を年齢の構成で・国の出生を州へ出産年齢の女性の実数で・
+    //   飢えた都市へ移らない＝軌道が動いた分の宣言・新しい計数の処理は無い〔年齢の指数と州の和2本は人口動態の同じ POP のループの中＝「月次：POP×月」の件数は変わらない〕）：
+    //   覇権の判定 2,755,889→2,414,464（−12.4%＝10% を超えて下がった＝表を下げる・同盟の候補が居る月の軌道＝(124)(128)(131) と同じ型・処理の形は同じ）。ほかの14本は許しの内。
+    //   全長の10種の推定は 236.5→237.4 秒（+0.4%・予算の内・実装ログ (143)）。
     [InlineData(CostLedger.PriceGoods, 14149727L)]
     [InlineData(CostLedger.PriceDailyRuns, 25283828L)]
     [InlineData(CostLedger.ConstructionSeen, 7226L)]
@@ -271,7 +275,7 @@ public class WriterRatchetTests
     [InlineData(CostLedger.ClearingRows, 5185642L)]
     [InlineData(CostLedger.ClearingFills, 27954050L)]
     [InlineData(CostLedger.DiploPowerMonths, 9954L)]
-    [InlineData(CostLedger.DiploHegemonScans, 2755889L)]
+    [InlineData(CostLedger.DiploHegemonScans, 2414464L)]
     [InlineData(CostLedger.QuarterStartPops, 235560L)]
     [InlineData(CostLedger.QuarterEndPops, 235560L)]
     [InlineData(CostLedger.SharedNationQuarters, 3698L)]
