@@ -14,9 +14,9 @@ public class NutritionTests
         Assert.Equal(1.0, c.StapleElasticityZero);      // ★2026-08-31点火（ラウンドB・符号の是正）
         Assert.Equal(0.0, c.FoodIncludesAnimalProtein); // 休眠温存（英常勝復活のため＝負帰還とセットで再挑戦）
         // goods.json の nutrition 列＝加工肉63/干物64のみ1.0（dumpgoods再生成2026-08-31）
-        Assert.Equal(1.0, Catalog.Goods[63].Nutrition);
-        Assert.Equal(1.0, Catalog.Goods[64].Nutrition);
-        Assert.True(Catalog.Goods[62].Nutrition < 0, "主食（パン）はTier由来＝-1のはず（データで上書きしない）");
+        Assert.Equal(1.0, Catalog.Goods[Catalog.PreservedMeatId].Nutrition);
+        Assert.Equal(1.0, Catalog.Goods[Catalog.DriedFishId].Nutrition);
+        Assert.True(Catalog.Goods[Catalog.BreadId].Nutrition < 0, "主食（パン）はTier由来＝-1のはず（データで上書きしない）");
         // 再配分率＝データ導出（0.22/1.10=0.2）
         Assert.Equal(0.2, Catalog.AnimalNutritionNeedRatio, 2);
     }

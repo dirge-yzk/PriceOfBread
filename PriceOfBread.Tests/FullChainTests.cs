@@ -35,8 +35,8 @@ public class FullChainTests
         var sim = new Simulation(Full(1), new NullAgent());
         sim.Run(400);
         var r = sim.World.Regions[0];
-        Assert.True(OutputOf(r, 62) > 0, "パンが生産されていない（麦→小麦粉→パンの連鎖が機能していない）");
-        Assert.True(OutputOf(r, 57) > 0, "衣料が生産されていない（綿花→綿布→衣料の連鎖が機能していない）");
+        Assert.True(OutputOf(r, Catalog.BreadId) > 0, "パンが生産されていない（麦→小麦粉→パンの連鎖が機能していない）");
+        Assert.True(OutputOf(r, Catalog.ClothingId) > 0, "衣料が生産されていない（綿花→綿布→衣料の連鎖が機能していない）");
     }
 
     [Fact]
@@ -88,7 +88,7 @@ public class FullChainTests
         var b = new Simulation(Full(2), new NullAgent());
         a.Run(200);
         b.Run(200);
-        Assert.Equal(a.World.Regions[0].Markets[31].Price, b.World.Regions[0].Markets[31].Price);
+        Assert.Equal(a.World.Regions[0].Markets[Catalog.IronId].Price, b.World.Regions[0].Markets[Catalog.IronId].Price);
         Assert.Equal(a.World.TotalMoney, b.World.TotalMoney);
     }
 }

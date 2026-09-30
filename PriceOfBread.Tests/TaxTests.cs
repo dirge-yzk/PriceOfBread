@@ -126,7 +126,7 @@ public class TaxTests
         {
             s.World.PoliticalLockEnabled = false;   // 所得税の歳入・保存を検証＝政治ロック（富裕層の所得税反対）とは直交なので隔離
             // ★2026-08-23（配分＝付加価値×売れる量・幽霊生産なし）：閉じた英国は綿花が無く紙（行政の投入）が立たない＝多国世界の交易/植民地財の代替として紙を外生供給（検証対象は行政→所得税の梯子）
-            s.World.Region.Markets[61].Stock = 1e9;   // 在庫は腐敗で指数減衰（1e6 は Q120 で尽きた実測）＝300Q を持たせる量
+            s.World.Region.Markets[Catalog.PaperId].Stock = 1e9;   // 在庫は腐敗で指数減衰（1e6 は Q120 で尽きた実測）＝300Q を持たせる量
             s.World.Region.Markets[Catalog.Goods.First(g => g.Name == "書籍").Id].Stock = 1e9;   // 教育の投入（識字→官僚の補充）も同じ閉世界の栓
             s.World.Policy.LandTaxTarget = 1.0;
             s.World.Policy.AdminSpendingTarget = 0.8;

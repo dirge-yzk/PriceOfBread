@@ -181,7 +181,7 @@ public class ServiceEconomyTests
     {
         var sim = new Simulation(NationConfig.Britain().ToScenario(23), new NullAgent());
         var r = sim.World.Regions[0];
-        Assert.True(r.Producers.Count(p => p.GoodId == 87) >= 2, "電力のレシピ（石炭火力/石油火力）が並存していない");
+        Assert.True(r.Producers.Count(p => p.GoodId == Catalog.ElectricityId) >= 2, "電力のレシピ（石炭火力/石油火力）が並存していない");
         Assert.True(r.Producers.Any(p => p.GoodId == Catalog.AdvLaborId), "高度労働力（技師の役務）の生産者が居ない");
         Assert.True(r.Producers.Where(p => p.BuysLabor).All(p => p.Inputs.Any(i => i.GoodId == Catalog.LaborId) && p.Inputs.Any(i => i.GoodId == Catalog.AdvLaborId)),
             "労働力＋高度労働力を買わない工場がある（雇用の一本化の漏れ）");
@@ -276,7 +276,7 @@ public class ServiceEconomyTests
             Assert.Equal(r.ClergyPopIndex, parish.LaborPopIndex); Assert.Equal(r.ClergyPopIndex, parish.OwnerPopIndex);   // 教区学校＝聖職者の自営
             Assert.Equal(r.TeacherPopIndex, pub.LaborPopIndex); Assert.Equal(r.TeacherPopIndex, pub.OwnerPopIndex);         // 公立学校＝教師の自営
             Assert.Equal(c.ClergyEduProductivity, parish.Productivity); Assert.Equal(c.TeacherEduProductivity, pub.Productivity);
-            Assert.Equal(61, Assert.Single(parish.Inputs).GoodId); Assert.Equal(Catalog.BookId, Assert.Single(pub.Inputs).GoodId);   // 紙／書籍
+            Assert.Equal(Catalog.PaperId, Assert.Single(parish.Inputs).GoodId); Assert.Equal(Catalog.BookId, Assert.Single(pub.Inputs).GoodId);   // 紙／書籍
             Assert.Equal(0.0, parish.RentShare); Assert.Equal(0.0, pub.RentShare);
         }
         var r0 = w.Regions[0];
@@ -298,7 +298,7 @@ public class ServiceEconomyTests
         Assert.True(pu.Capacity > 0 && pu.Output > 0, $"公教育で公立学校が立ち上がらない（能力 {pu.Capacity:F2}・産出 {pu.Output:F2}）");
         Assert.Equal(r0.ClergyPopIndex, pa.LaborPopIndex); Assert.Equal(r0.TeacherPopIndex, pu.LaborPopIndex);
         Assert.Equal(c.ClergyEduProductivity, pa.Productivity); Assert.Equal(c.TeacherEduProductivity, pu.Productivity);
-        Assert.Equal(61, Assert.Single(pa.Inputs).GoodId); Assert.Equal(Catalog.BookId, Assert.Single(pu.Inputs).GoodId);
+        Assert.Equal(Catalog.PaperId, Assert.Single(pa.Inputs).GoodId); Assert.Equal(Catalog.BookId, Assert.Single(pu.Inputs).GoodId);
         Assert.Equal(2, r0.Producers.Count(p => p.GoodId == Catalog.EducationId));   // 法を変えても生産者の数は不変（差し替えでなく並置）
     }
 }

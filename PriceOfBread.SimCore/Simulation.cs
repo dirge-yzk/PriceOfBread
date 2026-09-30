@@ -242,6 +242,7 @@ public sealed class Simulation
         _invariants.Add(new BondLedger());   // ★国債の保有台帳（2026-09-21）：Σ保有＝国内元本（状態なし）
     }
 
+    // ◆玩具の世界ここから（2026-09-30 段0-1）：下の単一州の最小シナリオは Catalog を使わず、財 id は各シナリオの中だけの番号（Catalog の財 id ではない）＝番人「数値の財 id を書かない」の対象外。
     private static List<Region> BuildSelfSufficientFarm()
     {
         var food = new Good { Id = 0, Name = "食料", Tier = GoodTier.Staple, BaseNeed = 0.8, RefPrice = 1.0, Elasticity = 0.3 };
@@ -382,6 +383,7 @@ public sealed class Simulation
             Markets = [Mk(1000), Mk(500), Mk(300), Mk(300), Mk(300), Mk(300), Mk(300)],
         }];
     }
+    // ◆玩具の世界ここまで
 
     /// <summary>
     /// カタログ全財のフルチェーン（§2.4・Catalog）。各財に生産者を1つ生成：RGO は一次労働者の自営、工場は工員労働・資本家所有。
@@ -449,11 +451,11 @@ public sealed class Simulation
             Inputs = [new Input(Catalog.GeneratorId, 0.5), new Input(Catalog.CrudeOilId, 0.6), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.ElectricityId))] });
         // A-中1（2026-07-23）：水力発電＝燃料ゼロ・資本費重（発電機0.40＝火力の2.7倍＝ダム/導水路/大型水車の資本）。石炭が高い州でのみ火力に勝つ
         //（燃料の地理が電源を分ける＝スイス/伊/ノルウェー型の水力国が価格から創発）。TechOnset=発電機(1.3)と同時＝上流の発電機供給にも自然律速。
-        producers.Add(new Producer { GoodId = Catalog.ElectricityId, RecipeName = "水力発電", TechOnset = 1.3, Productivity = 1.4 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = 1, OwnerPopIndex = 2, RentShare = 1.0, BuysLabor = true,
+        producers.Add(new Producer { GoodId = Catalog.ElectricityId, RecipeName = "水力発電", TechOnset = Catalog.RecipeOnset(Catalog.ElectricityId, "水力発電"), Productivity = 1.4 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = 1, OwnerPopIndex = 2, RentShare = 1.0, BuysLabor = true,
             Inputs = [new Input(Catalog.GeneratorId, 0.65), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.ElectricityId))] });
         // 魚の缶詰（缶詰の第2レシピ）：漁獲を缶詰める＝漁獲に第2の消費先（従来は干物のみ）。市場が安い方を選ぶ。
         producers.Add(new Producer { GoodId = Catalog.CannedFoodId, RecipeName = "魚の缶詰", TechOnset = Catalog.DefaultRecipeOnset(Catalog.CannedFoodId), Productivity = 1.7 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = 1, OwnerPopIndex = 2, RentShare = 1.0, BuysLabor = true,
-            Inputs = [new Input(20, 0.6), new Input(31, 0.3), new Input(Catalog.SaltId, 0.2), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.CannedFoodId))] });
+            Inputs = [new Input(Catalog.FishId, 0.6), new Input(Catalog.IronId, 0.3), new Input(Catalog.SaltId, 0.2), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.CannedFoodId))] });
 
         AddAlternateRecipes(producers, new Coefficients());   // ★代替レシピ（2026-09-06）：フルチェーンも同じ1回（旧＝コンストラクタの走査が拾っていた＝生産者126の内訳）
         return [new Region
@@ -748,7 +750,7 @@ public sealed class Simulation
     // 技術ゲート財（汽船85/装甲艦105等）は対象外＝TechOnset>0 の並存レシピも触らない（TechGatedScaleZero と整合）。
     // ★備蓄の深さは <see cref="Coefficients.InitialArsenalMonths"/>（0で旧初期値と厳密恒等＝アブレーションの腕を POB_COEF で測れる）。
     //   操業規模の器 InitialArmsIndustryScale は 2026-08-22 の実測で棄却＝2026-09-26 に削除（棚卸し mil-21・dorm-36）。
-    internal static readonly int[] InitialArmsIndustryGoods = [38, 42, 81, 82, 83, 84, 86];
+    internal static readonly int[] InitialArmsIndustryGoods = [Catalog.GunpowderId, Catalog.CanvasId, Catalog.ArtilleryId, Catalog.RifleId, Catalog.AmmunitionId, Catalog.SailingShipId, Catalog.WarshipId];
 
     private static Region BuildProvince(int id, ProvinceSpec p, NationConfig cfg, Coefficients coef, bool sharedWorld = false)
     {
@@ -764,7 +766,7 @@ public sealed class Simulation
         producers.RemoveAll(pr => pr.GoodId == Catalog.RiceId && !Climate.RiceSuitable(plat, plon) && System.Array.IndexOf(resources, pr.GoodId) < 0);
         // A-中5（史実検証2026-07-22）：綿花の気候ゲート（米ゲートと同型）。適地外（|緯度|>37）は賦存列挙がない限り生産者ごと除去＝
         // 英仏独露の本国綿花自給を排除（綿布は輸入原綿で織る＝ランカシャーの現実。賦存21州＝米南部・インド・エジプト等のみ産する）。
-        producers.RemoveAll(pr => pr.GoodId == 12 && !Climate.CottonSuitable(plat) && System.Array.IndexOf(resources, pr.GoodId) < 0);
+        producers.RemoveAll(pr => pr.GoodId == Catalog.CottonId && !Climate.CottonSuitable(plat) && System.Array.IndexOf(resources, pr.GoodId) < 0);
         // 州の資源プロファイル：列挙財は増産（×3.5）、非列挙のRGOは減産（×0.4・要輸入）。工場財は地理に縛られないので減産しない。
         // 主食は気候帯の自給セット（Climate.StapleSelfSufficient）に該当すれば非列挙でも減産しない（自給ぶんを作る＝封鎖で即飢饉にしない）。
         foreach (var pr in producers)
@@ -969,7 +971,7 @@ public sealed class Simulation
                 EffGoods = isFactory ? [] : Catalog.RgoBoosterGoods(d.Id),   // RGOの効率化材の候補（肥料/帆船/飼料/工具・火薬）。工場は空（電化を使う）
                 Inputs = isFactory ? [.. d.Inputs, new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(d.Id))]
                                    : coef.OilNeedsMachinery > 0 && d.Id == Catalog.CrudeOilId
-                                       ? [new Input(Catalog.FarmLaborId, FarmLaborPerOutput), new Input(53, coef.OilMachineryInput)]   // ★原油＝掘削機（機械）を要する（2026-09-05・器）
+                                       ? [new Input(Catalog.FarmLaborId, FarmLaborPerOutput), new Input(Catalog.MachineryId, coef.OilMachineryInput)]   // ★原油＝掘削機（機械）を要する（2026-09-05・器）
                                        : [new Input(Catalog.FarmLaborId, FarmLaborPerOutput)],
             });
         }
@@ -999,8 +1001,8 @@ public sealed class Simulation
         if (coef.SteamTransportOnset > 0)
             foreach (var pr in producers)
             {
-                if (pr.GoodId == Catalog.SteamshipId && pr.TechOnset <= 0) pr.TechOnset = 0.5;
-                else if (pr.GoodId == Catalog.LocomotiveId && pr.TechOnset <= 0) pr.TechOnset = 0.6;
+                if (pr.GoodId == Catalog.SteamshipId && pr.TechOnset <= 0) pr.TechOnset = Catalog.RecipeOnset(Catalog.SteamshipId, Catalog.FlagDefaultRow);
+                else if (pr.GoodId == Catalog.LocomotiveId && pr.TechOnset <= 0) pr.TechOnset = Catalog.RecipeOnset(Catalog.LocomotiveId, Catalog.FlagDefaultRow);
             }
         // A-高1（史実検証2026-07-22）：鋼のベッセマー不連続。既定レシピ（鉄1.0+コークス0.4＝ベッセマー転炉）を onset0.55（≈1858・原油0.6/クロムなめし0.55と整合）で
         // ゲートし、TechOnset=0 の「坩堝鋼」（鉄2.2+コークス1.2・Productivity0.9＝るつぼ1基数十kgのバッチ＝5倍以上高い）と「錬鉄レール」（鉄1.3＝
@@ -1011,19 +1013,19 @@ public sealed class Simulation
                 Producer? steelDefault = null, railDefault = null;
                 foreach (var pr in producers)
                 {
-                    if (pr.GoodId == 32 && pr.TechOnset <= 0) steelDefault = pr;
+                    if (pr.GoodId == Catalog.SteelId && pr.TechOnset <= 0) steelDefault = pr;
                     else if (pr.GoodId == Catalog.RailId && pr.TechOnset <= 0) railDefault = pr;
                 }
                 if (steelDefault is not null)   // 鋼の無い世界（最小シナリオ）は不発
                 {
-                steelDefault.TechOnset = 0.55;
-                producers.Add(new Producer { GoodId = 32, RecipeName = "坩堝鋼", Productivity = 0.9 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa,
+                steelDefault.TechOnset = Catalog.RecipeOnset(Catalog.SteelId, Catalog.FlagDefaultRow);
+                producers.Add(new Producer { GoodId = Catalog.SteelId, RecipeName = "坩堝鋼", Productivity = 0.9 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa,
                     LaborPopIndex = steelDefault.LaborPopIndex, OwnerPopIndex = steelDefault.OwnerPopIndex, RentShare = 1.0, BuysLabor = true,
-                    Inputs = [new Input(31, 2.2), new Input(30, 1.2), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(32))] });
+                    Inputs = [new Input(Catalog.IronId, 2.2), new Input(Catalog.CokeId, 1.2), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.SteelId))] });
                 if (railDefault is not null)
-                    producers.Add(new Producer { GoodId = 56, RecipeName = "錬鉄レール", Productivity = 1.0 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa,
+                    producers.Add(new Producer { GoodId = Catalog.RailId, RecipeName = "錬鉄レール", Productivity = 1.0 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa,
                         LaborPopIndex = railDefault.LaborPopIndex, OwnerPopIndex = railDefault.OwnerPopIndex, RentShare = 1.0, BuysLabor = true,
-                        Inputs = [new Input(31, 1.3), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(56))] });
+                        Inputs = [new Input(Catalog.IronId, 1.3), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.RailId))] });
                 }
             }
         // ★前期の軍需レシピ（2026-09-07・英の軍が立たない根＝armsdebug 実測：1783年の小銃在庫363/目標3696・発注は毎期立つのに60年間充足0.02〜0.09）：
@@ -1040,20 +1042,20 @@ public sealed class Simulation
         double successorOnset = 0;
         foreach (var pr in producers)
         {
-            if (pr.GoodId == 82 && pr.TechOnset <= 0 && rifleDefault is null) rifleDefault = pr;
-            else if (pr.GoodId == 81 && pr.TechOnset <= 0 && cannonDefault is null) cannonDefault = pr;
-            else if (pr.GoodId == 32 && pr.TechOnset > successorOnset) successorOnset = pr.TechOnset;
+            if (pr.GoodId == Catalog.RifleId && pr.TechOnset <= 0 && rifleDefault is null) rifleDefault = pr;
+            else if (pr.GoodId == Catalog.ArtilleryId && pr.TechOnset <= 0 && cannonDefault is null) cannonDefault = pr;
+            else if (pr.GoodId == Catalog.SteelId && pr.TechOnset > successorOnset) successorOnset = pr.TechOnset;
         }
         if (rifleDefault is not null)   // 軍需の無い世界（最小シナリオ）は不発
-            producers.Add(new Producer { GoodId = 82, RecipeName = "マスケット", TechOnset = -successorOnset,
+            producers.Add(new Producer { GoodId = Catalog.RifleId, RecipeName = "マスケット", TechOnset = -successorOnset,
                 Productivity = rifleDefault.Productivity * coef.MusketProductivity, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa,
                 LaborPopIndex = rifleDefault.LaborPopIndex, OwnerPopIndex = rifleDefault.OwnerPopIndex, RentShare = 1.0, BuysLabor = true,
-                Inputs = [new Input(31, 1.0), new Input(39, 0.4), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(82))] });
+                Inputs = [new Input(Catalog.IronId, 1.0), new Input(Catalog.LumberId, 0.4), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.RifleId))] });
         if (cannonDefault is not null)
-            producers.Add(new Producer { GoodId = 81, RecipeName = "鋳鉄砲", TechOnset = -successorOnset,
+            producers.Add(new Producer { GoodId = Catalog.ArtilleryId, RecipeName = "鋳鉄砲", TechOnset = -successorOnset,
                 Productivity = cannonDefault.Productivity * coef.MusketProductivity, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa,
                 LaborPopIndex = cannonDefault.LaborPopIndex, OwnerPopIndex = cannonDefault.OwnerPopIndex, RentShare = 1.0, BuysLabor = true,
-                Inputs = [new Input(31, 1.3), new Input(39, 0.3), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(81))] });
+                Inputs = [new Input(Catalog.IronId, 1.3), new Input(Catalog.LumberId, 0.3), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.ArtilleryId))] });
         // ★石油ケロシン（灯油doc・2026-08-13）：灯油(68)の**第2レシピ**。既定は鯨油/魚油（漁獲0.8）。
         // ⚠★2026-09-03（キューAUD-09・監査「保存則・台帳」）：**追加根拠のコメントが事実と食い違っていた**。
         //   「原油には買い手が1本も無い40年の空白があった」と書かれていたが、現物には AddAdvancedProducers 側に
@@ -1067,13 +1069,13 @@ public sealed class Simulation
         if (coef.KeroseneFromOilEnabled > 0)
             {
                 Producer? keroDefault = null;
-                foreach (var pr in producers) if (pr.GoodId == 68 && pr.TechOnset <= 0) { keroDefault = pr; break; }
+                foreach (var pr in producers) if (pr.GoodId == Catalog.LampOilId && pr.TechOnset <= 0) { keroDefault = pr; break; }
                 if (keroDefault is not null)   // 灯油を作らない世界（最小シナリオ）は不発
                 {
-                producers.Add(new Producer { GoodId = 68, RecipeName = "石油ケロシン", TechOnset = 0.6,
+                producers.Add(new Producer { GoodId = Catalog.LampOilId, RecipeName = "石油ケロシン", TechOnset = Catalog.RecipeOnset(Catalog.LampOilId, "石油ケロシン"),
                     Productivity = coef.KeroseneOilProductivity * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa,
                     LaborPopIndex = keroDefault.LaborPopIndex, OwnerPopIndex = keroDefault.OwnerPopIndex, RentShare = 1.0, BuysLabor = true,
-                    Inputs = [new Input(Catalog.CrudeOilId, coef.KeroseneOilInput), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(68))] });
+                    Inputs = [new Input(Catalog.CrudeOilId, coef.KeroseneOilInput), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.LampOilId))] });
                 }
             }
 
@@ -1086,13 +1088,13 @@ public sealed class Simulation
         if (coef.ChilledMeatEnabled > 0)
             {
                 Producer? saltCured = null;
-                foreach (var pr in producers) if (pr.GoodId == 63 && pr.TechOnset <= 0) { saltCured = pr; break; }
+                foreach (var pr in producers) if (pr.GoodId == Catalog.PreservedMeatId && pr.TechOnset <= 0) { saltCured = pr; break; }
                 if (saltCured is not null)   // 加工肉を作らない世界（最小シナリオ）は不発
                 {
-                producers.Add(new Producer { GoodId = 63, RecipeName = "冷蔵の加工肉", TechOnset = 0,
+                producers.Add(new Producer { GoodId = Catalog.PreservedMeatId, RecipeName = "冷蔵の加工肉", TechOnset = 0,
                     Productivity = saltCured.Productivity * coef.ChilledMeatProductivity, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa,
                     LaborPopIndex = saltCured.LaborPopIndex, OwnerPopIndex = saltCured.OwnerPopIndex, RentShare = 1.0, BuysLabor = true,
-                    Inputs = [new Input(48, 0.6), new Input(137, coef.ChilledMeatColdInput), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(63))] });
+                    Inputs = [new Input(Catalog.MeatId, 0.6), new Input(Catalog.RefrigeratorId, coef.ChilledMeatColdInput), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.PreservedMeatId))] });
                 }
             }
 
@@ -1103,20 +1105,20 @@ public sealed class Simulation
         if (coef.SulfurFromPyriteEnabled > 0)
             {
                 Producer? leblanc = null;
-                foreach (var pr in producers) if (pr.GoodId == 37 && pr.TechOnset <= 0) { leblanc = pr; break; }
+                foreach (var pr in producers) if (pr.GoodId == Catalog.ChemicalsId && pr.TechOnset <= 0) { leblanc = pr; break; }
                 if (leblanc is not null)
                 {
-                producers.Add(new Producer { GoodId = 37, RecipeName = "黄鉄鉱法", TechOnset = coef.SulfurFromPyriteOnset,
+                producers.Add(new Producer { GoodId = Catalog.ChemicalsId, RecipeName = "黄鉄鉱法", TechOnset = coef.SulfurFromPyriteOnset,
                     Productivity = leblanc.Productivity * coef.SulfurFromPyriteProductivity, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa,
                     LaborPopIndex = leblanc.LaborPopIndex, OwnerPopIndex = leblanc.OwnerPopIndex, RentShare = 1.0, BuysLabor = true,
-                    Inputs = [new Input(0, 0.6), new Input(1, 0.8), new Input(6, 0.4), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(37))] });
+                    Inputs = [new Input(Catalog.IronOreId, 0.6), new Input(Catalog.CoalId, 0.8), new Input(Catalog.SaltId, 0.4), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.ChemicalsId))] });
                 }
             }
     }
 
     private static void AddArtisanProducers(List<Producer> producers, int artisanIdx)
     {
-        foreach (int gid in (int[])[57, 59, 70, 71])   // 衣料・家具・革製品・陶磁器
+        foreach (int gid in (int[])[Catalog.ClothingId, Catalog.FurnitureId, Catalog.LeatherGoodsId, Catalog.PorcelainId])   // 衣料・家具・革製品・陶磁器
         {
             var d = Catalog.Goods[gid];
             producers.Add(new Producer
@@ -1145,9 +1147,9 @@ public sealed class Simulation
         // 「動力源」という新しい出口ができる（新財ゼロ＝§1の致命3障害を全回避）。水車はE1立地上限が未解決＝裁定待ちで見送り。
         producers.Add(new Producer { GoodId = Catalog.LaborId, RecipeName = "畜力", Productivity = LaborProductivity * FullChainProductivityScale * 1.3, Output = 0.5, Scale = 0.05, MarginalCost = 0.35, LaborPopIndex = workerIdx, OwnerPopIndex = workerIdx, RentShare = 0.0,
             Inputs = [new Input(Catalog.HorseId, 0.05)] });   // 馬力＝荷駄・巻上機（馬が本当の生産投入になる）
-        producers.Add(new Producer { GoodId = Catalog.LaborId, RecipeName = "蒸気機関", TechOnset = 0.5, Productivity = LaborProductivity * FullChainProductivityScale * 2.0, Output = 0.5, Scale = 0.05, MarginalCost = 0.35, LaborPopIndex = workerIdx, OwnerPopIndex = workerIdx, RentShare = 0.0,
-            Inputs = [new Input(54, 0.02), new Input(Catalog.CoalId, 0.3)] });   // 蒸気機関54＋石炭＝工場に据える原動機（54の第3の出口＝Runner診断が点灯）
-        producers.Add(new Producer { GoodId = Catalog.LaborId, RecipeName = "電動", TechOnset = 1.3, Productivity = LaborProductivity * FullChainProductivityScale * 2.5, Output = 0.5, Scale = 0.05, MarginalCost = 0.35, LaborPopIndex = workerIdx, OwnerPopIndex = workerIdx, RentShare = 0.0,
+        producers.Add(new Producer { GoodId = Catalog.LaborId, RecipeName = "蒸気機関", TechOnset = Catalog.RecipeOnset(Catalog.LaborId, "蒸気機関"), Productivity = LaborProductivity * FullChainProductivityScale * 2.0, Output = 0.5, Scale = 0.05, MarginalCost = 0.35, LaborPopIndex = workerIdx, OwnerPopIndex = workerIdx, RentShare = 0.0,
+            Inputs = [new Input(Catalog.SteamEngineId, 0.02), new Input(Catalog.CoalId, 0.3)] });   // 蒸気機関54＋石炭＝工場に据える原動機（54の第3の出口＝Runner診断が点灯）
+        producers.Add(new Producer { GoodId = Catalog.LaborId, RecipeName = "電動", TechOnset = Catalog.RecipeOnset(Catalog.LaborId, "電動"), Productivity = LaborProductivity * FullChainProductivityScale * 2.5, Output = 0.5, Scale = 0.05, MarginalCost = 0.35, LaborPopIndex = workerIdx, OwnerPopIndex = workerIdx, RentShare = 0.0,
             Inputs = [new Input(Catalog.ElectricityId, 0.25)] });   // 電動機＝電力が安い国だけ採算が合う（発電機1.3以後）
         // 水車（07_再設計 §2＋A2裁定・2026-07-31）：★裁定＝**水車は弱い動力（自家農場級）／山岳の強力な水力は巨大建造物**の2層に分ける。
         // したがって立地上限（案a/b/c）は全て破棄＝上限なしの微優位レシピ1本にする。投入ゼロ（落差は買えない）・維持費は人力より高い（堰・水路の普請）。
@@ -1163,7 +1165,7 @@ public sealed class Simulation
             //   [eduIndex+1]=公立学校＝教師・TeacherEduProductivity・書籍112×0.05（近代の教科書）。2件目の添字は「連続 add」から導く＝Region に新フィールドを持たない（盤面則）。
             //   担い手・生産性・投入は**構築時に確定し以後差し替えない**。教育法は StepMonth が非活性側の Scale=0 を置くゲートに降格（TechGatedScaleZero の役務版）。
             //   自営（LaborPopIndex=OwnerPopIndex・RentShare 0）は現行と同じ＝売上が丸ごと担い手 pop の Earned（doc §1-1）。
-            producers.Add(new Producer { GoodId = Catalog.EducationId, RecipeName = "教区学校", Productivity = coef.ClergyEduProductivity, Output = 1, MarginalCost = 0.4, LaborPopIndex = clergyIdx, OwnerPopIndex = clergyIdx, RentShare = 0.0, Inputs = [new Input(61, 0.05)] });
+            producers.Add(new Producer { GoodId = Catalog.EducationId, RecipeName = "教区学校", Productivity = coef.ClergyEduProductivity, Output = 1, MarginalCost = 0.4, LaborPopIndex = clergyIdx, OwnerPopIndex = clergyIdx, RentShare = 0.0, Inputs = [new Input(Catalog.PaperId, 0.05)] });
             producers.Add(new Producer { GoodId = Catalog.EducationId, RecipeName = "公立学校", Productivity = coef.TeacherEduProductivity, Output = 1, MarginalCost = 0.4, LaborPopIndex = teacherIdx, OwnerPopIndex = teacherIdx, RentShare = 0.0, Inputs = [new Input(Catalog.BookId, 0.05)] });
         }
         else
@@ -1198,110 +1200,110 @@ public sealed class Simulation
             Inputs = [new Input(Catalog.GeneratorId, 0.5), new Input(Catalog.CrudeOilId, 0.6), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.ElectricityId))] });
         // A-中1（2026-07-23）：水力発電（電力の第3レシピ）＝燃料ゼロ・資本費重（発電機0.40＝火力の2.7倍＝ダム/導水路の資本）。
         // 石炭が高い州でのみ火力に勝つ＝スイス/伊/ノルウェー型の水力国が価格から創発（1914年に伊約2/3・スイス/ノルウェーほぼ100%水力）。
-        producers.Add(new Producer { GoodId = Catalog.ElectricityId, RecipeName = "水力発電", TechOnset = 1.3, Productivity = 1.4 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
+        producers.Add(new Producer { GoodId = Catalog.ElectricityId, RecipeName = "水力発電", TechOnset = Catalog.RecipeOnset(Catalog.ElectricityId, "水力発電"), Productivity = 1.4 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
             Inputs = [new Input(Catalog.GeneratorId, 0.65), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.ElectricityId))] });
         // ★蒸気タービン（2026-09-05・器 SteamTurbineEnabled）：電力の第4レシピ＝発電機0.2＋石炭 SteamTurbineCoalInput（熱効率で0.9→0.6）・生産性×SteamTurbineProductivity。
         //   パーソンズ1884→1890s＝onset SteamTurbineOnset（発電機1.3の直後）。市場が安い方を選ぶ＝火力の中で石炭を節約する製法が創発的に置き換える。0＝足さない＝恒等。
         if (coef.SteamTurbineEnabled > 0)
             producers.Add(new Producer { GoodId = Catalog.ElectricityId, RecipeName = "蒸気タービン", TechOnset = coef.SteamTurbineOnset, Productivity = 1.4 * coef.SteamTurbineProductivity * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = 2, OwnerPopIndex = 3, RentShare = 1.0, BuysLabor = true,
-                Inputs = [new Input(Catalog.GeneratorId, 0.2), new Input(1, coef.SteamTurbineCoalInput), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.ElectricityId))] });
+                Inputs = [new Input(Catalog.GeneratorId, 0.2), new Input(Catalog.CoalId, coef.SteamTurbineCoalInput), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.ElectricityId))] });
         // 魚の缶詰（缶詰の第2レシピ）：肉(畜産)の代わりに漁獲を缶詰める＝缶詰の軍需増を漁業からも賄える。漁獲に第2の消費先を与える（従来は干物のみ）。
         producers.Add(new Producer { GoodId = Catalog.CannedFoodId, RecipeName = "魚の缶詰", TechOnset = Catalog.DefaultRecipeOnset(Catalog.CannedFoodId), Productivity = 1.7 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
-            Inputs = [new Input(20, 0.6), new Input(31, 0.3), new Input(Catalog.SaltId, 0.2), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.CannedFoodId))] });
+            Inputs = [new Input(Catalog.FishId, 0.6), new Input(Catalog.IronId, 0.3), new Input(Catalog.SaltId, 0.2), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.CannedFoodId))] });
         // 下位インフラ＝水道局（#4 施設化）：建設会社(資本家所有)が労働力+技師+資材(セメント/鋼)で衛生インフラ(上下水道)を敷設＝流通不可の役務。国家が行政費で調達。
         producers.Add(new Producer { GoodId = Catalog.InfrastructureId, RecipeName = "水道局", Productivity = 1.4 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
-            Inputs = [new Input(35, 0.4), new Input(32, 0.2), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, 0.2)] });
+            Inputs = [new Input(Catalog.CementId, 0.4), new Input(Catalog.SteelId, 0.2), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, 0.2)] });
         // 上位インフラ＝電化インフラ（近代都市インフラ）。2つの並存レシピ＝早期はガス灯、電化が安くなると電灯が駆逐（創造的破壊）。国家が行政費で調達。便益＝満足度＋衛生＋送電容量。
         // 電灯式（既定）：送電網＋電化製品＋鋼。電化期の財が高い序盤は高コストで休眠＝自然に終盤の能力。
         producers.Add(new Producer { GoodId = Catalog.ElecInfraId, RecipeName = "電灯網", Productivity = 1.6 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
-            Inputs = [new Input(Catalog.GridId, 0.4), new Input(80, 0.3), new Input(32, 0.2), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, 0.2)] });
+            Inputs = [new Input(Catalog.GridId, 0.4), new Input(Catalog.ApplianceId, 0.3), new Input(Catalog.SteelId, 0.2), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, 0.2)] });
         // ガス灯式（並存・早期）：ガス＋鋼。電化前から都市照明を供給＝電灯が安くなるまでの中道。電灯に駆逐される。
         producers.Add(new Producer { GoodId = Catalog.ElecInfraId, RecipeName = "ガス灯", Productivity = 1.5 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
-            Inputs = [new Input(Catalog.GasId, 0.6), new Input(32, 0.2), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, 0.2)] });
+            Inputs = [new Input(Catalog.GasId, 0.6), new Input(Catalog.SteelId, 0.2), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, 0.2)] });
         // === 植民地素材の国内代替（並存レシピ）＝封鎖/戦争で植民地材が高騰すると自動で勝つ＝輸入代替が創発（特別分岐なし）===
         // 平時は植民地材が安く既定レシピ（サトウキビ/パーム油）が勝つよう、国内材は係数をやや厚く＝普段は休眠・危機に起動。
         // 甜菜糖：砂糖の第2レシピ。サトウキビ(25・植民地輸入)の代わりに国内の果実(16)を糖源に＋化学薬品(精製)。ナポレオン大陸封鎖のビート糖。
         // **明確に劣位なフォールバック**（果実を厚く＝平時は植民地糖が安く勝ち休眠、植民地糖が断たれた時だけ起動）。
-        producers.Add(new Producer { GoodId = 49, RecipeName = "甜菜糖", Productivity = 1.4 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
-            Inputs = [new Input(16, 2.2), new Input(Catalog.ChemicalsId, 0.15), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(49))] });
+        producers.Add(new Producer { GoodId = Catalog.SugarId, RecipeName = "甜菜糖", Productivity = 1.4 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
+            Inputs = [new Input(Catalog.FruitId, 2.2), new Input(Catalog.ChemicalsId, 0.15), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.SugarId))] });
         // 獣脂石鹸：石鹸の第2レシピ。パーム油(23・植民地輸入)の代わりに国内の畜産(19・獣脂)＋化学薬品。伝統的な獣脂石鹸（植民地油脂が断たれても作れる）。
-        producers.Add(new Producer { GoodId = 72, RecipeName = "獣脂石鹸", Productivity = 1.3 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
-            Inputs = [new Input(19, 1.1), new Input(Catalog.ChemicalsId, 0.3), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(72))] });
+        producers.Add(new Producer { GoodId = Catalog.SoapId, RecipeName = "獣脂石鹸", Productivity = 1.3 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
+            Inputs = [new Input(Catalog.LivestockId, 1.1), new Input(Catalog.ChemicalsId, 0.3), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.SoapId))] });
         // === 旧生産方式を駆逐する「電化/化学」の新レシピ（並存＝安くなった新法が旧法を置換＝創造的破壊）===
         // ハーバーボッシュ（肥料109の第2レシピ）：硫黄を使わず化学薬品＋**電力**で窒素固定＝超安価。電力(87)依存で**電化期に自動ゲート**（電化製品80と同型）。TechOnset=既定ゲート(0.6)の床付き（02断線走査2026-07-28：名目解禁の1789迂回を閉鎖―実勝利は電力価格が決める）。
         // 高tech＝電力が安い国だけ起動し従来肥料（化学薬品+硫黄）を駆逐＝終盤の農業革命（食料連結で人口増＝技術投資の報酬）。
         producers.Add(new Producer { GoodId = Catalog.FertilizerId, RecipeName = "ハーバーボッシュ", TechOnset = Catalog.DefaultRecipeOnset(Catalog.FertilizerId), Productivity = 2.7 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
             Inputs = [new Input(Catalog.ChemicalsId, 0.15), new Input(Catalog.ElectricityId, 0.25), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.FertilizerId))] });   // 02断線走査（2026-07-28）：0.3/0.4→0.15/0.25＝「少量で同機能」の勝ち筋（旧・3レシピ中最も高い型F＝終盤の農業革命が一度も起きない）を是正。電力の燃料主導化とセット
         // 合成染料（染料17の第2レシピ）：天然染料(RGO)の代わりに化学薬品から合成（アニリン1856）。化学工業が成熟＝化学薬品が安い国で天然染料を駆逐。
-        producers.Add(new Producer { GoodId = 17, RecipeName = "合成染料", Productivity = 2.2 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
-            Inputs = [new Input(Catalog.ChemicalsId, 0.7), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(17))] });
+        producers.Add(new Producer { GoodId = Catalog.DyeId, RecipeName = "合成染料", Productivity = 2.2 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
+            Inputs = [new Input(Catalog.ChemicalsId, 0.7), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.DyeId))] });
         // 毛織衣料（衣料57の第2レシピ）：綿布(綿花)の代わりに毛織物(畜産)で仕立てる＝綿花が断たれた時の代替（米南北戦争の綿花飢饉でランカシャーが羊毛へ）。
-        producers.Add(new Producer { GoodId = 57, RecipeName = "毛織衣料", Productivity = 1.6 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
-            Inputs = [new Input(44, 0.7), new Input(17, 0.2), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(57))] });
+        producers.Add(new Producer { GoodId = Catalog.ClothingId, RecipeName = "毛織衣料", Productivity = 1.6 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
+            Inputs = [new Input(Catalog.WoolenClothId, 0.7), new Input(Catalog.DyeId, 0.2), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.ClothingId))] });
         // === #30 Stage2 産業作物の並存レシピ＝新主食を主食baseNeedでなく産業原料として接続（食料系を撹乱しない）===
         // ジャガイモ蒸留酒（蒸留酒103の第2レシピ）：麦(15)の代わりにジャガイモ(115)澱粉を蒸留＝東欧/露の安価な穀物代替（ウォッカ/シュナップス）。ジャガイモが安い産地で起動。
-        producers.Add(new Producer { GoodId = 103, RecipeName = "ジャガイモ蒸留酒", Productivity = 1.8 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
-            Inputs = [new Input(Catalog.PotatoId, 0.7), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(103))] });
+        producers.Add(new Producer { GoodId = Catalog.SpiritsId, RecipeName = "ジャガイモ蒸留酒", Productivity = 1.8 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
+            Inputs = [new Input(Catalog.PotatoId, 0.7), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.SpiritsId))] });
         // トウモロコシ飼料（飼料110の第2レシピ）：麦(15)の代わりにトウモロコシ(116)＝米州/南欧/バルカンの高単収飼料。トウモロコシが安い産地で起動し畜産(19)の濃厚飼料を賄う。
-        producers.Add(new Producer { GoodId = 110, RecipeName = "トウモロコシ飼料", Productivity = 2.2 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
-            Inputs = [new Input(Catalog.MaizeId, 0.6), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(110))] });
+        producers.Add(new Producer { GoodId = Catalog.FodderId, RecipeName = "トウモロコシ飼料", Productivity = 2.2 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
+            Inputs = [new Input(Catalog.MaizeId, 0.6), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.FodderId))] });
         // 米酒（蒸留酒103の第3レシピ）：麦(15)/ジャガイモ(115)の代わりに米(102)を醸造蒸留＝日本/東アジア/南欧の米産地の清酒・焼酎。米が安い産地で起動（麦蒸留酒との燃料/原料択一）。
-        producers.Add(new Producer { GoodId = 103, RecipeName = "米酒", Productivity = 1.9 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
-            Inputs = [new Input(Catalog.RiceId, 0.6), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(103))] });
+        producers.Add(new Producer { GoodId = Catalog.SpiritsId, RecipeName = "米酒", Productivity = 1.9 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
+            Inputs = [new Input(Catalog.RiceId, 0.6), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.SpiritsId))] });
         // グアノ肥料（肥料109の第3レシピ）：合成(化学薬品+硫黄)・ハーバーボッシュ(電力)に並ぶ天然窒素源＝グアノ(121・ペルー賦存の植民地材)。ペルー保有国(グアノ輸入可)でのみ起動し、合成肥料より安価＝1840s-70sのグアノ時代を再現。非保有国は合成肥料のまま。
         producers.Add(new Producer { GoodId = Catalog.FertilizerId, RecipeName = "グアノ肥料", Productivity = 2.0 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
-            Inputs = [new Input(121, 0.6), new Input(Catalog.ChemicalsId, 0.1), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.FertilizerId))] });
+            Inputs = [new Input(Catalog.GuanoId, 0.6), new Input(Catalog.ChemicalsId, 0.1), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.FertilizerId))] });
         // ★堆肥（2026-09-06・器 CompostFertilizerEnabled）：肥料(109)の第4レシピ＝畜産(19)＋労働・解禁0。化学法より高い＝硫黄が届かない所の代替。0＝足さない＝恒等。
         if (coef.CompostFertilizerEnabled > 0)
             producers.Add(new Producer { GoodId = Catalog.FertilizerId, RecipeName = "堆肥", TechOnset = 0, Productivity = 2.0 * coef.CompostProductivity * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
-                Inputs = [new Input(19, coef.CompostLivestockInput), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.FertilizerId))] });   // ★雇用の一本化＝全工場が労働+高度労働を買う（ServiceEconomyTests の番人・2026-09-06）
+                Inputs = [new Input(Catalog.LivestockId, coef.CompostLivestockInput), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.FertilizerId))] });   // ★雇用の一本化＝全工場が労働+高度労働を買う（ServiceEconomyTests の番人・2026-09-06）
         // ★硝石丘（2026-09-06・器 NiterBedEnabled）：硝石(118)の代替レシピ＝畜産(19)＋労働・解禁0（仏1793の硝石丘＝厩肥と灰から）。産地の硝石より高い＝
         //   財の3分類（作者裁定「無くても低効率で生産できる」）の硝石版。0＝足さない＝恒等。
         if (coef.NiterBedEnabled > 0)
-            producers.Add(new Producer { GoodId = 118, RecipeName = "硝石丘", TechOnset = 0, Productivity = 2.0 * coef.NiterBedProductivity * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
-                Inputs = [new Input(19, coef.CompostLivestockInput), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(118))] });   // ★雇用の一本化（同上）
+            producers.Add(new Producer { GoodId = Catalog.SaltpeterId, RecipeName = "硝石丘", TechOnset = 0, Productivity = 2.0 * coef.NiterBedProductivity * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
+                Inputs = [new Input(Catalog.LivestockId, coef.CompostLivestockInput), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.SaltpeterId))] });   // ★雇用の一本化（同上）
         // === 製法の時代差・地理差を表す代替レシピ（市場が安い方を採る・近代法は TechOnset で晩期にゲート）===
         // ぼろ布製紙（紙61の早期レシピ）：麻+綿布のボロ布を漉く＝19世紀前半の製紙原料（木材パルプは1840s砕木/1860s化学パルプ）。
         // デフォルトの木材パルプ製紙(goods.json)は DefaultRecipeOnset(61)=0.5 で晩期にゲート＝早期はこのぼろ布製紙が供給し、パルプが安くなると駆逐される。
-        producers.Add(new Producer { GoodId = 61, RecipeName = "ぼろ布製紙", Productivity = 1.8 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
-            Inputs = [new Input(13, 0.6), new Input(41, 0.4), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(61))] });
+        producers.Add(new Producer { GoodId = Catalog.PaperId, RecipeName = "ぼろ布製紙", Productivity = 1.8 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
+            Inputs = [new Input(Catalog.HempId, 0.6), new Input(Catalog.CottonClothId, 0.4), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.PaperId))] });
         // 木炭製鉄/銅/鉛（鉄31・銅33・鉛34の代替）：コークス(石炭)の代わりに木炭(木)で還元＝石炭が乏しく森林が豊かな地域の製錬（スウェーデン/露ウラル/米の木炭高炉が19世紀半ばまで存続）。
         // 産出は低め＝石炭/コークスが安い地域ではコークス法が勝ち、石炭が高い地域でのみ木炭法が勝つ（燃料の地理が製錬法を分ける・倍率排除と同思想）。
-        producers.Add(new Producer { GoodId = 31, RecipeName = "木炭製鉄", Productivity = 1.6 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
-            Inputs = [new Input(0, 1.0), new Input(11, 0.8), new Input(7, 0.25), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(31))] });
-        producers.Add(new Producer { GoodId = 33, RecipeName = "木炭製銅", Productivity = 1.6 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
-            Inputs = [new Input(2, 1.0), new Input(11, 0.7), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(33))] });
-        producers.Add(new Producer { GoodId = 34, RecipeName = "木炭製鉛", Productivity = 1.6 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
-            Inputs = [new Input(3, 1.0), new Input(11, 0.7), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(34))] });
+        producers.Add(new Producer { GoodId = Catalog.IronId, RecipeName = "木炭製鉄", Productivity = 1.6 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
+            Inputs = [new Input(Catalog.IronOreId, 1.0), new Input(Catalog.TimberId, 0.8), new Input(Catalog.LimestoneId, 0.25), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.IronId))] });
+        producers.Add(new Producer { GoodId = Catalog.CopperId, RecipeName = "木炭製銅", Productivity = 1.6 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
+            Inputs = [new Input(Catalog.CopperOreId, 1.0), new Input(Catalog.TimberId, 0.7), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.CopperId))] });
+        producers.Add(new Producer { GoodId = Catalog.LeadId, RecipeName = "木炭製鉛", Productivity = 1.6 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
+            Inputs = [new Input(Catalog.LeadOreId, 1.0), new Input(Catalog.TimberId, 0.7), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.LeadId))] });
         // クロムなめし革（革46の近代レシピ・TechOnset=0.55＝1858特許〜）：原皮＋クロム鉱を少量。タンニンなめし(木0.15)より投入質量が小さく速い＝onset後にコストで勝ちデフォルト(タンニン)を駆逐＝クロムの工業需要は晩期に立つ（史実：クロムは19世紀後半まで用途僅少）。
-        producers.Add(new Producer { GoodId = 46, RecipeName = "クロムなめし", TechOnset = 0.55, Productivity = 2.0 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
-            Inputs = [new Input(19, 0.5), new Input(98, 0.08), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(46))] });
+        producers.Add(new Producer { GoodId = Catalog.LeatherId, RecipeName = "クロムなめし", TechOnset = Catalog.RecipeOnset(Catalog.LeatherId, "クロムなめし"), Productivity = 2.0 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
+            Inputs = [new Input(Catalog.LivestockId, 0.5), new Input(Catalog.ChromeId, 0.08), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.LeatherId))] });
         // 無煙火薬（火薬38の近代レシピ・TechOnset=0.85＝1880s〜）：化学薬品(ニトロセルロース)＋硝石。高エネルギー密度＝総投入質量が黒色火薬(1.0)より小さい(0.55)＝少量で同威力＝onset後にコストで勝つ。
-        producers.Add(new Producer { GoodId = 38, RecipeName = "無煙火薬", TechOnset = 0.85, Productivity = 2.0 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
-            Inputs = [new Input(Catalog.ChemicalsId, 0.3), new Input(118, 0.2), new Input(Catalog.CoalId, 0.05), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(38))] });
+        producers.Add(new Producer { GoodId = Catalog.GunpowderId, RecipeName = "無煙火薬", TechOnset = Catalog.RecipeOnset(Catalog.GunpowderId, "無煙火薬"), Productivity = 2.0 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
+            Inputs = [new Input(Catalog.ChemicalsId, 0.3), new Input(Catalog.SaltpeterId, 0.2), new Input(Catalog.CoalId, 0.05), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.GunpowderId))] });
         // 亜麻衣料（衣料57の代替）：綿布の代わりに帆布(麻織物)で仕立てる＝亜麻が安い地域・綿花が断たれた時の代替（市場が安い方を採る）。
-        producers.Add(new Producer { GoodId = 57, RecipeName = "亜麻衣料", Productivity = 1.7 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
-            Inputs = [new Input(42, 0.6), new Input(17, 0.2), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(57))] });
+        producers.Add(new Producer { GoodId = Catalog.ClothingId, RecipeName = "亜麻衣料", Productivity = 1.7 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
+            Inputs = [new Input(Catalog.CanvasId, 0.6), new Input(Catalog.DyeId, 0.2), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.ClothingId))] });
         // 石油灯油＝ケロシン（灯油68の近代レシピ・TechOnset=0.6＝1859ドレーク油井〜）：原油を精製。原油(安価RGO)は鯨油/魚油(漁獲)より安い＝onset後にコストで勝ち鯨油を駆逐（史実：ケロシンが捕鯨を終わらせた）。原油RGOも DefaultRecipeOnset(10)=0.6 でゲート＝早期に湧かないので原油の価格スパイクも起きない。
-        producers.Add(new Producer { GoodId = 68, RecipeName = "石油灯油", TechOnset = 0.6, Productivity = 1.9 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
-            Inputs = [new Input(Catalog.CrudeOilId, 1.0), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(68))] });
+        producers.Add(new Producer { GoodId = Catalog.LampOilId, RecipeName = "石油灯油", TechOnset = Catalog.RecipeOnset(Catalog.LampOilId, "石油灯油"), Productivity = 1.9 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
+            Inputs = [new Input(Catalog.CrudeOilId, 1.0), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.LampOilId))] });
         // === B6（2026-07-19ユーザー裁定）===
         // 人絹＝ビスコース（絹織物45の並存レシピ・TechOnset=0.95＝1905〜）：木材パルプ(製材)＋化学薬品から人造絹糸＝
         // 化学工業が生糸(14)経済を創造的破壊（"artificial silk"そのもの・ぼろ布製紙/クロムなめしと同型・RefPrice不変）。
         // C-高8（2026-07-23）：旧0.95は統一尺度で1800年代半ば＝実用レーヨン1905より約60年早い。圧縮帯（自動車1.50・WWI財1.55・ラジオ1.60）へ整合。
-        producers.Add(new Producer { GoodId = 45, RecipeName = "人絹", TechOnset = 1.52, Productivity = 2.2 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
-            Inputs = [new Input(39, 0.4), new Input(Catalog.ChemicalsId, 0.5), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(45))] });
+        producers.Add(new Producer { GoodId = Catalog.SilkClothId, RecipeName = "人絹", TechOnset = Catalog.RecipeOnset(Catalog.SilkClothId, "人絹"), Productivity = 2.2 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
+            Inputs = [new Input(Catalog.LumberId, 0.4), new Input(Catalog.ChemicalsId, 0.5), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.SilkClothId))] });
         // 鉄筋コンクリート（住居126の並存レシピ・TechOnset=0.85＝1890s〜）：セメント＋鋼の多層建築＝戸あたり資材(0.5)が
         // 木造漆喰(0.7)より小さい＝onset後にコストで勝ち都市の収容力を解放（無煙火薬と同じ「少量で同機能」の勝ち筋）。
         // C-高8（2026-07-23）：旧0.85は統一尺度で1800年前後＝エヌビック式1892・普及1900sより約100年早い。圧縮帯へ整合。
-        producers.Add(new Producer { GoodId = Catalog.HousingId, RecipeName = "鉄筋コンクリート", TechOnset = 1.50, Productivity = 1.6 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
-            Inputs = [new Input(35, 0.3), new Input(32, 0.2), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.HousingId))] });
+        producers.Add(new Producer { GoodId = Catalog.HousingId, RecipeName = "鉄筋コンクリート", TechOnset = Catalog.RecipeOnset(Catalog.HousingId, "鉄筋コンクリート"), Productivity = 1.6 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
+            Inputs = [new Input(Catalog.CementId, 0.3), new Input(Catalog.SteelId, 0.2), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.HousingId))] });
         // === 1934拡張E2（2026-07-19ユーザー裁定）===
         // 合成ゴム＝ブナ/ネオプレン（ゴム50の並存レシピ・TechOnset=1.10＝1930s〜）：化学薬品＋石炭から合成＝
         // 天然ゴム（賦存州＋加硫0.9ゲート）の地理独占を晩期に技術が破る（人絹・甜菜糖と同型の創造的破壊・RefPrice不変）。
         // C-高8（2026-07-23）：旧1.10は統一尺度で1815年前後＝実用合成ゴム（ブナ1930s）より約120年早い。ラジオ(1.60)の後へ。
-        producers.Add(new Producer { GoodId = 50, RecipeName = "合成ゴム", TechOnset = 1.65, Productivity = 1.8 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
-            Inputs = [new Input(Catalog.ChemicalsId, 0.5), new Input(Catalog.CoalId, 0.3), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(50))] });
+        producers.Add(new Producer { GoodId = Catalog.RubberId, RecipeName = "合成ゴム", TechOnset = Catalog.RecipeOnset(Catalog.RubberId, "合成ゴム"), Productivity = 1.8 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
+            Inputs = [new Input(Catalog.ChemicalsId, 0.5), new Input(Catalog.CoalId, 0.3), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.RubberId))] });
     }
 
     // 階級（代表スケール 1単位＝1000人）。貯蓄＝サイズ×階級別の一人当たり富。識字・自給は設定から。
@@ -1330,7 +1332,7 @@ public sealed class Simulation
         // 気候ゲート（BuildProvince と同じ規則）：気候ゲート財（茶葉/ゴム…旧colonial）は賦存列挙のみ・米/綿花は適地のみ産する
         producers.RemoveAll(pr => Catalog.IsColonial(pr.GoodId) && System.Array.IndexOf(col.Resources, pr.GoodId) < 0);
         producers.RemoveAll(pr => pr.GoodId == Catalog.RiceId && !Climate.RiceSuitable(clat, clon) && System.Array.IndexOf(col.Resources, pr.GoodId) < 0);
-        producers.RemoveAll(pr => pr.GoodId == 12 && !Climate.CottonSuitable(clat) && System.Array.IndexOf(col.Resources, pr.GoodId) < 0);
+        producers.RemoveAll(pr => pr.GoodId == Catalog.CottonId && !Climate.CottonSuitable(clat) && System.Array.IndexOf(col.Resources, pr.GoodId) < 0);
         foreach (var pr in producers)
         {
             if (System.Array.IndexOf(col.Resources, pr.GoodId) >= 0)
@@ -2026,7 +2028,7 @@ public sealed class Simulation
                         // 宗教学校：聖職者が教える。少人数しか教えられない（供給希少）＝下層に行き渡らず識字が低位で頭打ち。紙を消費（写本・教義書）。
                         ep.LaborPopIndex = r.ClergyPopIndex; ep.OwnerPopIndex = r.ClergyPopIndex;
                         ep.Productivity = World.Coef.ClergyEduProductivity;
-                        if (ep.Inputs.Count > 0) ep.Inputs[0] = new Input(61, 0.05);   // 紙（教材）
+                        if (ep.Inputs.Count > 0) ep.Inputs[0] = new Input(Catalog.PaperId, 0.05);   // 紙（教材）
                     }
                     else if (World.EducationLaw is EducationLaw.Public or EducationLaw.Compulsory && r.TeacherPopIndex >= 0)
                     {

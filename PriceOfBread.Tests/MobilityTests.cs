@@ -63,7 +63,7 @@ public class MobilityTests
         // ②昇格：給与差駆動で、教育が売れる限り教師の給与が立ち志望者が補充される（枠の凍結事故は構造ごと廃止）。
         var sim = new Simulation(NationConfig.Britain().ToScenario(59), new NullAgent());   // イギリス＝最初から公教育
         var r = sim.World.Region;
-        r.Markets[61].Stock = 1e6;   // ★2026-08-23：閉じた英国は綿花なし→紙（教育の投入）が立たない＝多国世界の交易/植民地財の代替として紙を外生供給（検証対象は就学需要→教師の補充）
+        r.Markets[Catalog.PaperId].Stock = 1e6;   // ★2026-08-23：閉じた英国は綿花なし→紙（教育の投入）が立たない＝多国世界の交易/植民地財の代替として紙を外生供給（検証対象は就学需要→教師の補充）
         r.Markets[Catalog.Goods.First(g => g.Name == "書籍").Id].Stock = 1e6;   // 教育の投入は技術で紙→書籍へ切り替わる＝書籍も外生供給
         sim.Run(240);
         double childShare = r.Pops[2].ChildShare;   // 工場労働者の子供比率（粗出生で補充され続ける）

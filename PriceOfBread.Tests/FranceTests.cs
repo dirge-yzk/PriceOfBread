@@ -56,8 +56,8 @@ public class FranceTests
         sim.World.Coef.ElecInfraBudgetScale = 0;   // 同上＝電化インフラ（送電網/電化製品/鋼を奪う）の素材競合も隔離
         double base0 = sim.World.BaseMoney;
         sim.Run(40);                                   // 助走（経済が回り資本家に貯蓄が貯まる）
-        Assert.True(sim.World.BuildFactory(0, 32), "国営工場（鋼）を着工できない");
-        var p = World.FindFactory(sim.World.Regions[0], 32)!;   // エンジンの着工が掴むのと同じ1本（鋼は坩堝鋼/ベッセマーの2本立て＝World.FindFactory）
+        Assert.True(sim.World.BuildFactory(0, Catalog.SteelId), "国営工場（鋼）を着工できない");
+        var p = World.FindFactory(sim.World.Regions[0], Catalog.SteelId)!;   // エンジンの着工が掴むのと同じ1本（鋼は坩堝鋼/ベッセマーの2本立て＝World.FindFactory）
         Assert.True(p.ConstructionLeft > 0, "着工後に建設中（ConstructionLeft>0）にならない");
         Assert.Equal(0.0, p.BuiltScale);               // 着工直後はまだ立たない（時間制＝一瞬でない）
         sim.Run(60);                                   // 重工業は最短8四半期だが、建設費が素材価格依存になり、品不足の鋼を建てる間は鋼が高騰し、
@@ -65,8 +65,8 @@ public class FranceTests
                                                        // （汽船tier2/装甲艦の素材競合＋RGO効率化の火薬が石炭を奪い鋼/セメントを押し上げる競合で更に伸びる）。
         Assert.True(p.BuiltScale > 0, "建設完了後に BuiltScale が増えない");
         sim.Run(40);                                   // 10年運営（黒字化＋資本家の資金蓄積）
-        var sale = sim.World.CanSellFactory(0, 32);    // 売却可否の判定
-        bool sold = sim.World.SellFactory(0, 32);
+        var sale = sim.World.CanSellFactory(0, Catalog.SteelId);    // 売却可否の判定
+        bool sold = sim.World.SellFactory(0, Catalog.SteelId);
         Assert.Equal(sale.Ok, sold);                   // CanSell の判定と実売却が一致
         if (sold) Assert.Equal(0.0, p.BuiltScale);     // 売却＝民営化（BuiltScale=0・以後は市場が伸縮）
         var ex = Record.Exception(() => sim.Run(20));  // §11.6 が全ティック保持

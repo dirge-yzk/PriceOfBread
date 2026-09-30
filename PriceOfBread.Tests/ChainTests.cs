@@ -5,6 +5,7 @@ namespace PriceOfBread.Tests;
 
 public class ChainTests
 {
+    // ◆玩具の世界ここから（2026-09-30 段0-1）：このファイルは単一州の最小シナリオ（ScenarioKind.ProductionChain）だけを使う＝財 id はシナリオの中だけの番号（Catalog の財 id ではない）＝番人「数値の財 id を書かない」の対象外。
     private static Scenario Chain(ulong s) => new() { Seed = s, Kind = ScenarioKind.ProductionChain };
 
     private static double OutputOf(Region r, int goodId)

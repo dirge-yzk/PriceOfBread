@@ -156,11 +156,11 @@ public class FuelOperatingCostTests
         {
             if (r.State != RegionState.Active) continue;
             r.TechLevel = regionTech;
-            var sail = r.Markets[84]; var steam = r.Markets[85];
+            var sail = r.Markets[Catalog.SailingShipId]; var steam = r.Markets[Catalog.SteamshipId];
             sail.Price = sailPrice; sail.Stock = 1_000_000;
             steam.Price = steamPrice; steam.Stock = steamSupplied ? 1_000_000 : 0;
             steam.LastProduced = 0; steam.LastImport = 0;   // 供給の実在は在庫だけで決める
-            foreach (var pr in r.Producers) if (pr.GoodId == 84 || pr.GoodId == 85) pr.Output = steamSupplied || pr.GoodId == 84 ? 1.0 : 0.0;
+            foreach (var pr in r.Producers) if (pr.GoodId == Catalog.SailingShipId || pr.GoodId == Catalog.SteamshipId) pr.Output = steamSupplied || pr.GoodId == Catalog.SailingShipId ? 1.0 : 0.0;
             var coal = r.Markets[Catalog.CoalId];
             coal.Price = coalPrice >= 0 ? coalPrice : Catalog.RefPrices[Catalog.CoalId]; coal.Stock = 1_000_000;
             r.Markets[Catalog.CrudeOilId].Price = 1_000.0;   // 燃料の二択を石炭へ固定（二択の式自体は Colonial.ChooseFuelGood のまま）
@@ -173,7 +173,7 @@ public class FuelOperatingCostTests
     static (double Sail, double Steam) ShipDemand(World w)
     {
         double s = 0, t = 0;
-        foreach (var r in w.Regions) if (r.State == RegionState.Active) { s += r.Markets[84].LastDemand; t += r.Markets[85].LastDemand; }
+        foreach (var r in w.Regions) if (r.State == RegionState.Active) { s += r.Markets[Catalog.SailingShipId].LastDemand; t += r.Markets[Catalog.SteamshipId].LastDemand; }
         return (s, t);
     }
 
@@ -202,7 +202,7 @@ public class FuelOperatingCostTests
     {
         var coef = new Coefficients();
         double coal = Catalog.RefPrices[Catalog.CoalId] * coalMult;
-        var sim = ShipWorld(57, coef, Catalog.RefPrices[84], Catalog.RefPrices[85], steamSupplied: true, frontierTech, coal);
+        var sim = ShipWorld(57, coef, Catalog.RefPrices[Catalog.SailingShipId], Catalog.RefPrices[Catalog.SteamshipId], steamSupplied: true, frontierTech, coal);
         var (s0, t0) = ShipDemand(sim.World);
         Transport.Step(sim.World, coef);
         var (s1, t1) = ShipDemand(sim.World);
@@ -221,9 +221,9 @@ public class FuelOperatingCostTests
         {
             var sim = ShipWorld(58, coef, sailPrice: 10.0, steamPrice: 1.0, steamSupplied: true, frontierTech: tech, regionTech: regionTech);   // 汽船が安い
             var w = sim.World;
-            double stock0 = 0; foreach (var r in w.Regions) if (r.State == RegionState.Active) stock0 += r.Markets[85].Stock;
+            double stock0 = 0; foreach (var r in w.Regions) if (r.State == RegionState.Active) stock0 += r.Markets[Catalog.SteamshipId].Stock;
             Transport.Step(w, coef);
-            double stock1 = 0; foreach (var r in w.Regions) if (r.State == RegionState.Active) stock1 += r.Markets[85].Stock;
+            double stock1 = 0; foreach (var r in w.Regions) if (r.State == RegionState.Active) stock1 += r.Markets[Catalog.SteamshipId].Stock;
             Assert.Equal(1.0, w.ShipSteamShareEma);
             return w.ShipCapacity / (stock0 - stock1);
         }
@@ -287,7 +287,7 @@ public class FuelOperatingCostTests
         foreach (var r in w.Regions)
         {
             if (r.State != RegionState.Active) continue;
-            stock0 += r.Markets[85].Stock; money0 += r.SumSavings();
+            stock0 += r.Markets[Catalog.SteamshipId].Stock; money0 += r.SumSavings();
             if (r.InvestorPopIndex >= 0) buyers0 += r.Pops[r.MerchantPopIndex >= 0 ? r.MerchantPopIndex : r.InvestorPopIndex].Savings;
         }
         Transport.Step(w, coef);
@@ -295,7 +295,7 @@ public class FuelOperatingCostTests
         foreach (var r in w.Regions)
         {
             if (r.State != RegionState.Active) continue;
-            stock1 += r.Markets[85].Stock; money1 += r.SumSavings();
+            stock1 += r.Markets[Catalog.SteamshipId].Stock; money1 += r.SumSavings();
             if (r.InvestorPopIndex >= 0) buyers1 += r.Pops[r.MerchantPopIndex >= 0 ? r.MerchantPopIndex : r.InvestorPopIndex].Savings;
         }
         double bought = stock0 - stock1;
@@ -319,7 +319,7 @@ public class FuelOperatingCostTests
         {
             if (r.State != RegionState.Active || r.InvestorPopIndex < 0) continue;
             int buyerIdx = r.MerchantPopIndex >= 0 ? r.MerchantPopIndex : r.InvestorPopIndex;
-            foreach (var pr in r.Producers) if (pr.GoodId == 85 || pr.GoodId == Catalog.CoalId) { pr.OwnerPopIndex = buyerIdx; owned++; }
+            foreach (var pr in r.Producers) if (pr.GoodId == Catalog.SteamshipId || pr.GoodId == Catalog.CoalId) { pr.OwnerPopIndex = buyerIdx; owned++; }
             money0 += r.SumSavings();
         }
         Assert.True(owned > 0, "汽船の生産者が居ない世界ではテストにならない");
@@ -345,13 +345,13 @@ public class FuelOperatingCostTests
             foreach (var r in w.Regions)
             {
                 if (r.State != RegionState.Active) continue;
-                r.Markets[84].Price = steamCheap ? 10.0 : 0.2;   // 帆船 0.2/30 < 汽船 1/(75÷era)＋燃料
-                stock85 += r.Markets[85].Stock;
+                r.Markets[Catalog.SailingShipId].Price = steamCheap ? 10.0 : 0.2;   // 帆船 0.2/30 < 汽船 1/(75÷era)＋燃料
+                stock85 += r.Markets[Catalog.SteamshipId].Stock;
             }
             if (k % 4 == 3) { const double wear = 0.3; w.ShipCapacity *= 1.0 - wear; steamCap *= 1.0 - wear; }   // 戦災（Diplomacy の輸送容量の戦災と同じ一律の掛け算）
             Transport.Step(w, coef);
             double stock85b = 0;
-            foreach (var r in w.Regions) if (r.State == RegionState.Active) stock85b += r.Markets[85].Stock;
+            foreach (var r in w.Regions) if (r.State == RegionState.Active) stock85b += r.Markets[Catalog.SteamshipId].Stock;
             steamCap = steamCap * (1 - coef.TransportDecay) + (stock85 - stock85b) * coef.TransportCapPerUnit * coef.ShipTier2CapMult / era;
             double expect = steamCap / w.ShipCapacity;   // 汽船の容量は在庫(1e6)の差から数える＝差の丸め（約1e-10）ぶんだけ相対の許容を置く
             Assert.True(System.Math.Abs(w.ShipSteamShareEma - expect) <= 1e-9 * System.Math.Max(expect, 1e-12), $"{k}: 割合 {w.ShipSteamShareEma:R} ≠ 汽船の容量÷容量 {expect:R}");

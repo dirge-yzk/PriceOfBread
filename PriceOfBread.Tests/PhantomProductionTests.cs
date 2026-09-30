@@ -61,7 +61,7 @@ public class PhantomProductionTests
         var sim = RunWorld(4);
         var coef = sim.Nations[0].World.Coef;
         // 作者が実例に挙げた3つ（内燃機関125／自動車132／缶詰65）＝開始時点ではどの国も作れない
-        foreach (int gi in new[] { 125, 132, 65 })
+        foreach (int gi in new[] { Catalog.CombustionEngineId, Catalog.AutomobileId, Catalog.CannedFoodId })
         {
             double world = 0;
             foreach (var n in sim.Nations)
@@ -71,7 +71,7 @@ public class PhantomProductionTests
             Assert.True(world == 0.0, $"{Catalog.Goods[gi].Name}：世界生産 {world}（未発明なのに幻の産出が残っている）");
         }
         var unavail = ProductionDiag.UnavailableGoods(sim, coef);
-        foreach (int gi in new[] { 125, 132, 65 })
+        foreach (int gi in new[] { Catalog.CombustionEngineId, Catalog.AutomobileId, Catalog.CannedFoodId })
             Assert.True(unavail[gi], $"{Catalog.Goods[gi].Name} が「まだ存在しない財」と判定されない");
     }
 
@@ -97,7 +97,7 @@ public class PhantomProductionTests
         Assert.True(unavail[65], "前提が崩れている（開始時の缶詰は未発明のはず）");
         foreach (var n in sim.Nations)
             foreach (var region in n.World.Regions)
-                region.TechLevel = Catalog.DefaultRecipeOnset(65) + 1.0;   // 缶詰の発明ゲートを開ける（産出は0のまま）
+                region.TechLevel = Catalog.DefaultRecipeOnset(Catalog.CannedFoodId) + 1.0;   // 缶詰の発明ゲートを開ける（産出は0のまま）
         var opened = ProductionDiag.UnavailableGoods(sim, coef);
         Assert.False(opened[65], "技術が缶詰の onset を越えても「存在しない財」のまま＝判定が技術に追随していない");
     }

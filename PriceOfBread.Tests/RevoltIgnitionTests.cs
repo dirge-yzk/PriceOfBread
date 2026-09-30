@@ -1180,7 +1180,7 @@ public class RevoltIgnitionTests
     [Fact]
     public void 武器購入_点火すると資金が参加者の貯蓄から減り売り手に届く()   // (b) 金の保存
     {
-        const int rifle = 82;
+        const int rifle = Catalog.RifleId;
         var (sim, f, payer) = 武装する運動(enabled: 1);
         var w = sim.World; var c = w.Coef; var r = w.Region;
         double s0 = r.SumSavings();
@@ -1245,7 +1245,7 @@ public class RevoltIgnitionTests
         // ＝陸海の規則で消えるのではなく**発見**で消えることを見る。
         // ★双子（2026-09-27 回2-1＝旗 EquipNeedsDiscovery を点火して削除したので OFF の腕は無い）：B だけ汽船の原単位を**素の表で0**にする（「要らない」を表で言う）。
         //   運動の購入が発見の表を通っていれば、A の汽船は既に0＝A と B の決済は同じ（汽船の需要も武器庫も充足もビット一致）。素の表を読んでいれば A だけ汽船を買う。
-        int ship = Catalog.SteamshipId; const int rifle = 82;
+        int ship = Catalog.SteamshipId; const int rifle = Catalog.RifleId;
         var (simA, fA, _) = 武装する運動(enabled: 1);
         var (simB, fB, _) = 武装する運動(enabled: 1, tune: c =>
         {

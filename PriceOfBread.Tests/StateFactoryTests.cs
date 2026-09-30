@@ -37,7 +37,7 @@ public class StateFactoryTests
     /// ★エンジンの動詞（着工・補助金・売却・カウンター）と**同じ選択関数**を通す＝
     /// テストが別の生産者を掴んでいて、通っているように見えるだけ、を構造的に起こさない。
     private static Producer Steel(Region r)
-        => World.FindFactory(r, 32)
+        => World.FindFactory(r, Catalog.SteelId)
            ?? throw new Xunit.Sdk.XunitException($"{r.Name}に鋼の生産者がない（技術水準 {r.TechLevel:F2}／坩堝鋼の配線が動いた？）");
 
     private static Simulation Warm(ulong seed)
@@ -59,7 +59,7 @@ public class StateFactoryTests
         Assert.Equal(0, p.StateTarget);
         Assert.Equal(0, World.StateUnits(p, w.Coef));
 
-        w.SetStateTarget(0, 32, 1);
+        w.SetStateTarget(0, Catalog.SteelId, 1);
         Assert.Equal(1, p.StateTarget);                       // 意志は必ず記録される
         Assert.Equal(0, World.StateUnits(p, w.Coef));         // ★同じ日に工場は湧かない（建設は日数で進む）
         Assert.True(p.ConstructionLeft > 0, "目標を上げても着工が始まらない＝カウンターが動詞に届いていない");
@@ -82,13 +82,13 @@ public class StateFactoryTests
         w.Regions[0].Pops[w.Regions[0].InvestorPopIndex].Savings = 1e9;        // 資本家は買える
         double treasury0 = w.Treasury;
 
-        Assert.True(w.SetStateTarget(0, 32, 1), "目標を下げても払い下げが走らない");
+        Assert.True(w.SetStateTarget(0, Catalog.SteelId, 1), "目標を下げても払い下げが走らない");
         Assert.Equal(1, World.StateUnits(p, w.Coef));          // ★1棟だけ（旧は全部売り＝0棟になっていた）
         Assert.Equal(1, p.StateTarget);
         Assert.True(w.Treasury > treasury0, "払い下げ代金が国庫へ入っていない");
         Assert.True(p.SubsidyRate <= 0 || p.BuiltScale > 1e-9);   // 残る棟があるうちは補助金を外さない
 
-        Assert.True(w.SetStateTarget(0, 32, 0));
+        Assert.True(w.SetStateTarget(0, Catalog.SteelId, 0));
         Assert.Equal(0, World.StateUnits(p, w.Coef));
         Assert.Equal(0.0, p.BuiltScale);                       // 売り切ると完全民営化
         Assert.Equal(0.0, p.SubsidyRate);
@@ -159,13 +159,13 @@ public class StateFactoryTests
         r.Pops[r.InvestorPopIndex].Militancy = 0.6;
 
         Assert.Equal(0.0, w.Coef.SoeSaleMilitancyCeil);         // 既定＝休眠＝現行どおり買える
-        Assert.True(w.CanSellFactory(0, 32).Ok);
+        Assert.True(w.CanSellFactory(0, Catalog.SteelId).Ok);
 
         w.Coef.SoeSaleMilitancyCeil = 0.3;                      // 点火
-        var no = w.CanSellFactory(0, 32);
+        var no = w.CanSellFactory(0, Catalog.SteelId);
         Assert.False(no.Ok);
         Assert.Equal("資本家が政府に不満", no.Reason);          // 理由が読める（売れない月を無言にしない）
-        Assert.False(w.SellFactory(0, 32));
+        Assert.False(w.SellFactory(0, Catalog.SteelId));
         Assert.Equal(w.Coef.FactoryBuildScale, p.BuiltScale);   // 拒否は副作用を残さない
     }
 
@@ -196,26 +196,26 @@ public class StateFactoryTests
         var p = Steel(w.Regions[0]);
 
         // ① 民営100%＝従来どおり設定できる（厳密恒等）
-        w.SetSubsidyRate(0, 32, 1.0);
+        w.SetSubsidyRate(0, Catalog.SteelId, 1.0);
         Assert.Equal(1.0, p.SubsidyRate);
-        var all = w.CanSubsidize(0, 32);
+        var all = w.CanSubsidize(0, Catalog.SteelId);
         Assert.True(all.Ok);
         Assert.Equal(1.0, all.PrivateShare, 9);
 
         // ② 半分だけ国営＝**崖を作らない**（1棟建てただけでボタンが死なない）。効くのは民営持分だけ
         p.Scale = 2.0; p.BuiltScale = 1.0;
-        var half = w.CanSubsidize(0, 32);
+        var half = w.CanSubsidize(0, Catalog.SteelId);
         Assert.True(half.Ok);
         Assert.Equal(0.5, half.PrivateShare, 9);
 
         // ③ 国営100%＝対象外。プレイヤーの動詞もAIの動詞（SelfPlay の SetSubsidy）も同じここを通る＝対称
         p.BuiltScale = p.Scale;
-        var no = w.CanSubsidize(0, 32);
+        var no = w.CanSubsidize(0, Catalog.SteelId);
         Assert.False(no.Ok);
         Assert.Equal("国営100%", no.Reason);
-        w.SetSubsidyRate(0, 32, 1.0);
+        w.SetSubsidyRate(0, Catalog.SteelId, 1.0);
         Assert.Equal(0.0, p.SubsidyRate);
-        w.SetSubsidy(0, 32, true);
+        w.SetSubsidy(0, Catalog.SteelId, true);
         Assert.Equal(0.0, p.SubsidyRate);
     }
 
@@ -225,7 +225,7 @@ public class StateFactoryTests
         var sim = Warm(2032);
         var w = sim.World;
         var p = Steel(w.Regions[0]);
-        w.SetSubsidyRate(0, 32, 1.0);
+        w.SetSubsidyRate(0, Catalog.SteelId, 1.0);
         Assert.Equal(1.0, p.SubsidyRate);
         p.BuiltScale = p.Scale;                          // 建設が完成して国営100%になった
         p.StateTarget = World.StateUnits(p, w.Coef);     // カウンターは現在値＝払い下げも着工も走らせない
@@ -380,17 +380,17 @@ public class StateFactoryTests
         {
             var r = w.Regions[ri];
             if (r.State != RegionState.Active) continue;
-            var p = World.FindFactory(r, 32);
+            var p = World.FindFactory(r, Catalog.SteelId);
             if (p is null || p.ConstructionLeft > 0 || p.Bankrupt) continue;
             double sc = UtilityAgent.FacilityBuildScore(w, r, p).Score;
             if (sc > best) { best = sc; expect = ri; }
         }
         Assert.True(expect >= 0, "鋼を作れる州が1つも無い＝ハーネスが空回りしている");
         w.StepStateTargets();
-        var pe = World.FindFactory(w.Regions[expect], 32)!;
+        var pe = World.FindFactory(w.Regions[expect], Catalog.SteelId)!;
         Assert.True(pe.StateTarget > World.StateUnits(pe, w.Coef), $"{w.Regions[expect].Name}に意志が立っていない");
         for (int ri = 0; ri < w.Regions.Count; ri++)   // 1財1か月1歩＝他州は動かない
-            if (ri != expect && World.FindFactory(w.Regions[ri], 32) is { } q)
+            if (ri != expect && World.FindFactory(w.Regions[ri], Catalog.SteelId) is { } q)
                 Assert.Equal(0, q.StateTarget);
     }
 
@@ -432,7 +432,7 @@ public class StateFactoryTests
         w.SetFactoryTarget(32, st + pv + 5);
         w.StepStateTargets();
         for (int ri = 1; ri < w.Regions.Count; ri++)          // 意志は溜めない＝他州へ広がらない
-            if (World.FindFactory(w.Regions[ri], 32) is { } q)
+            if (World.FindFactory(w.Regions[ri], Catalog.SteelId) is { } q)
                 Assert.Equal(0, q.StateTarget);
     }
 
@@ -447,7 +447,7 @@ public class StateFactoryTests
             if (r.State != RegionState.Active) continue;
             foreach (var p in r.Producers)
             {
-                if (p.GoodId != 32) continue;
+                if (p.GoodId != Catalog.SteelId) continue;
                 if (!(ProductionDiag.TechGate(32, p.TechOnset, r.TechLevel) > ProductionDiag.TechGateClosed)) continue;
                 st += World.StateUnits(p, w.Coef);
                 if (!p.Bankrupt) pv += World.PrivateUnits(p, w.Coef);
@@ -465,7 +465,7 @@ public class StateFactoryTests
         var w = Warm(2055).World;
         var r = w.Regions[0];
         var p = Steel(r);
-        foreach (var q in r.Producers) if (q.GoodId == 32) q.Output = 0;   // 按分を1本に閉じる（この生産者が全額の取り分）
+        foreach (var q in r.Producers) if (q.GoodId == Catalog.SteelId) q.Output = 0;   // 按分を1本に閉じる（この生産者が全額の取り分）
         p.Output = 1.0;
         if (!(p.Scale > 1e-6)) p.Scale = 1.0;
         p.BuiltScale = 0.5 * p.Scale;                                         // 国営持分 1/2
@@ -478,7 +478,7 @@ public class StateFactoryTests
         double rs = EconomyStep.RentShareOf(p, r, w.Coef, rural);   // 工場は労働を投入として買う＝付加価値は全て持ち主の側（rs＝1）
         var own = r.Pops[p.OwnerPopIndex];
         double t0 = w.Treasury, led0 = w.TreasuryLedger[(int)TreasuryCat.StateFactory], own0 = own.Savings, ownE0 = own.Earned, base0 = w.BaseMoney, tf0 = w.CumulativeTradeFlow;
-        double paid = InternationalMarket.PaySales((null, null), r, 32, amount, w);   // 払い手＝清算所（世界の外）
+        double paid = InternationalMarket.PaySales((null, null), r, Catalog.SteelId, amount, w);   // 払い手＝清算所（世界の外）
         Assert.Equal(amount, paid, 9);
         Assert.Equal(amount * rs * f, w.Treasury - t0, 9);                                    // 地代の国営持分だけ国庫へ
         Assert.Equal(amount * rs * f, w.TreasuryLedger[(int)TreasuryCat.StateFactory] - led0, 9);   // 区分＝国営工場

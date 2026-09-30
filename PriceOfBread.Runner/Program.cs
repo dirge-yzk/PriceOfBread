@@ -525,8 +525,8 @@ if (args.Length > 0 && args[0] == "armsdebug")
         prevLoss = loss;
         int rifN = 0; double rifOut = 0, rifScale = 0, rifBuilt = 0, rifFill = 0;   // ★小銃(82)の生産者の内訳
         foreach (var pr in rD.Producers)
-            if (pr.GoodId == 82) { rifN++; rifOut += pr.Output; rifScale += pr.Scale; rifBuilt += pr.BuiltScale; rifFill += pr.LastInputFill; }
-        double rifPrice = 82 < rD.Markets.Length ? rD.Markets[82].Price : 0, rifRef = 82 < Catalog.RefPrices.Length ? Catalog.RefPrices[82] * Math.Max(rD.PriceLevel, 1e-9) : 0;
+            if (pr.GoodId == Catalog.RifleId) { rifN++; rifOut += pr.Output; rifScale += pr.Scale; rifBuilt += pr.BuiltScale; rifFill += pr.LastInputFill; }
+        double rifPrice = Catalog.RifleId < rD.Markets.Length ? rD.Markets[Catalog.RifleId].Price : 0, rifRef = Catalog.RifleId < Catalog.RefPrices.Length ? Catalog.RefPrices[Catalog.RifleId] * Math.Max(rD.PriceLevel, 1e-9) : 0;
         int pendingWill = 0, building = 0;
         foreach (var pr in rD.Producers) { pendingWill += Math.Max(0, pr.StateTarget - World.StateUnits(pr, cD)); if (pr.ConstructionLeft > 0) building++; }
         Console.WriteLine($"{q + 1},{msD.Year},{rD.MilitaryScale:F3},{rD.MilitaryScalePeace:F3}," +
@@ -1287,7 +1287,7 @@ if (args.Length > 0 && args[0] == "selfsuff")
                     if (r2.State != RegionState.Active) continue;
                     foreach (var pr in r2.Producers)
                     {
-                        if (pr.GoodId != 37) continue;
+                        if (pr.GoodId != Catalog.ChemicalsId) continue;
                         string key = pr.RecipeName.Length > 0 ? pr.RecipeName : "既定（ルブラン法）";
                         var cur = byRecipe.TryGetValue(key, out var v) ? v : (0, 0, 0);
                         byRecipe[key] = (cur.Out + pr.Output * pr.Scale, cur.N + 1, cur.Active + (pr.Output * pr.Scale > 1e-9 && !pr.Bankrupt ? 1 : 0));
@@ -1752,7 +1752,7 @@ if (args.Length > 0 && args[0] == "endowprobe")
     epm.StartWarmup();
     var epEndow = new HashSet<(string, int)>();
     foreach (var n0 in WorldData.Nations()) foreach (var p0 in n0.Provinces) foreach (var g0 in p0.Resources) epEndow.Add((p0.City, g0));
-    int[] epGoods = [1, 0, 15, 11, 14, 19, 20, 12, 10, 31, 32];
+    int[] epGoods = [Catalog.CoalId, Catalog.IronOreId, Catalog.WheatId, Catalog.TimberId, Catalog.SilkId, Catalog.LivestockId, Catalog.FishId, Catalog.CottonId, Catalog.CrudeOilId, Catalog.IronId, Catalog.SteelId];
     static double Pct(List<double> v, double p) { if (v.Count == 0) return 0; int i = (int)Math.Clamp(Math.Round(p * (v.Count - 1)), 0, v.Count - 1); return v[i]; }
     void EpDump(int q)
     {
@@ -1817,7 +1817,7 @@ if (args.Length > 0 && args[0] == "tradewhy")
     foreach (var nn in twm.Nations) nn.TelemetryEnabled = false;
     twm.Diplomacy.Log.Enabled = false;
     twm.StartWarmup();
-    int[] twGoods = [15, 1, 31, 12, 47];   // 麦・石炭・鉄・綿花・小麦粉（貿易の主役級＝主食/燃料/金属/繊維原料）
+    int[] twGoods = [Catalog.WheatId, Catalog.CoalId, Catalog.IronId, Catalog.CottonId, Catalog.FlourId];   // 麦・石炭・鉄・綿花・小麦粉（貿易の主役級＝主食/燃料/金属/繊維原料）
     void TwDump(int q)
     {
         var c0 = twm.Nations[0].World.Coef;
@@ -5503,7 +5503,7 @@ if (args.Length > 0 && args[0] == "electime")
         var bits = em.Nations.Select(n =>
         {
             var w = n.World; var r = w.Region;
-            return $"{w.SelfPower?.Name?.Substring(0, 2)}:t{w.TechLevel:F1}/電{r.Markets[87].LastDemand:F0}/化{r.Markets[80].LastDemand:F0}";
+            return $"{w.SelfPower?.Name?.Substring(0, 2)}:t{w.TechLevel:F1}/電{r.Markets[Catalog.ElectricityId].LastDemand:F0}/化{r.Markets[Catalog.ApplianceId].LastDemand:F0}";
         });
         Console.WriteLine($"{em.Nations[0].World.Year}  {front:F2} | {string.Join("  ", bits)}");
     }
@@ -5671,13 +5671,13 @@ if (args.Length > 0 && args[0] == "buildcost")
     bcsim.World.Policy.CoercionTarget = 80;
     var bccoef = bcsim.World.Coef; var bcr = bcsim.World.Regions[0];
     bcsim.Run(40);
-    Console.WriteLine($"着工前 Q40: 国庫{bcsim.World.Treasury / 1000:F0}k 鋼価格比{bcr.Markets[32].Price / Catalog.RefPrices[32]:P0}");
-    Console.WriteLine($"着工: {bcsim.World.BuildFactory(0, 32)}");
-    var bcp = bcr.Producers.Find(x => x.GoodId == 32)!;
+    Console.WriteLine($"着工前 Q40: 国庫{bcsim.World.Treasury / 1000:F0}k 鋼価格比{bcr.Markets[Catalog.SteelId].Price / Catalog.RefPrices[Catalog.SteelId]:P0}");
+    Console.WriteLine($"着工: {bcsim.World.BuildFactory(0, Catalog.SteelId)}");
+    var bcp = bcr.Producers.Find(x => x.GoodId == Catalog.SteelId)!;
     for (int q = 0; q < 36 && bcp.BuiltScale <= 0; q++)
     {
         bcsim.Run(1);
-        Console.WriteLine($"  +Q{q + 1}: 国庫{bcsim.World.Treasury / 1000,6:F0}k 鋼価格比{bcr.Markets[32].Price / Catalog.RefPrices[32],6:P0} 残建設{bcp.ConstructionLeft,5:F0}日 棟数{bcp.BuiltScale:F2}");
+        Console.WriteLine($"  +Q{q + 1}: 国庫{bcsim.World.Treasury / 1000,6:F0}k 鋼価格比{bcr.Markets[Catalog.SteelId].Price / Catalog.RefPrices[Catalog.SteelId],6:P0} 残建設{bcp.ConstructionLeft,5:F0}日 棟数{bcp.BuiltScale:F2}");
     }
     Console.WriteLine($"完成時の棟数: {bcp.BuiltScale:F2}");
     return;
@@ -5698,7 +5698,7 @@ if (args.Length > 0 && args[0] == "freshboard")
     foreach (var n in fbm.Nations)
     {
         var w = n.World; var r = w.Region;
-        int bid = r.CulturalGoodId >= 0 ? r.CulturalGoodId : 62;
+        int bid = r.CulturalGoodId >= 0 ? r.CulturalGoodId : Catalog.BreadId;
         double brp = r.Goods.First(x => x.Id == bid).RefPrice;
         double bread = brp > 1e-9 ? r.Markets[bid].Price / brp : 1;
         int ceil = 0; foreach (var good in r.Goods) { if (good.Tier == GoodTier.Service) continue; var mk = r.Markets[good.Id]; if (mk.LastDemand < 1) continue; bool f = Catalog.Goods[good.Id].Inputs.Length > 0 && !Catalog.Goods[good.Id].IsColonial; if (!f && mk.LastProduced + mk.LastImport < 0.05) continue; if ((good.RefPrice > 1e-9 ? mk.Price / good.RefPrice : 1) >= 19) ceil++; }
@@ -5723,7 +5723,7 @@ if (args.Length > 0 && args[0] == "startboard")
         foreach (var n in sbm.Nations)
         {
             var w = n.World; var r = w.Region;
-            int bid = r.CulturalGoodId >= 0 ? r.CulturalGoodId : 62;
+            int bid = r.CulturalGoodId >= 0 ? r.CulturalGoodId : Catalog.BreadId;
             double brp = r.Goods.First(x => x.Id == bid).RefPrice;
             breadMax = System.Math.Max(breadMax, brp > 1e-9 ? r.Markets[bid].Price / brp : 1);
             treasMin = System.Math.Min(treasMin, w.Treasury);
@@ -5771,7 +5771,7 @@ if (args.Length > 0 && args[0] == "warmsettle")
                 if (ratio >= 19.0) ceil++;
             }
             counts.Add($"{ceil,6}");
-            int bid = r.CulturalGoodId >= 0 ? r.CulturalGoodId : 62;
+            int bid = r.CulturalGoodId >= 0 ? r.CulturalGoodId : Catalog.BreadId;
             double brp = r.Goods.First(x => x.Id == bid).RefPrice;
             breadMax = System.Math.Max(breadMax, brp > 1e-9 ? r.Markets[bid].Price / brp : 1);
         }
@@ -6135,7 +6135,7 @@ if (args.Length > 0 && args[0] == "services")
             var lm = rp.Markets[Catalog.LaborId];
             double unemp = UnemploymentOf(rp, Catalog.LaborId);
             var bk = wp.Bank;
-            Console.WriteLine($"  巴里 {wp.Year} 闘争{mil2:F2} 満足{satM2:F2} 失業{unemp:P0} 不作{wp.HarvestFactor:F2} パン価格{rp.Markets[62].Price:F2} 賃金{lm.Price:F2}" +
+            Console.WriteLine($"  巴里 {wp.Year} 闘争{mil2:F2} 満足{satM2:F2} 失業{unemp:P0} 不作{wp.HarvestFactor:F2} パン価格{rp.Markets[Catalog.BreadId].Price:F2} 賃金{lm.Price:F2}" +
                 (bk is null ? "" : $" 信用{bk.Loans:F0}/金{bk.Gold:F0} 過熱{wp.FinancialHeat:F2} 信頼{bk.Confidence:F2} 金利{wp.InterestRate:F2}"));
         }
     }
@@ -6165,7 +6165,7 @@ if (args.Length > 0 && args[0] == "services")
         var facts = r0.Producers.Where(p => p.BuysLabor).ToList();
         double elecFill = facts.Count > 0 ? facts.Sum(p => p.ElecFill * p.Output) / Math.Max(1e-9, facts.Sum(p => p.Output)) : 0;
         Console.WriteLine($"  労働: 都市{laborM.Price:F2}（失業 {UnemploymentOf(r0, Catalog.LaborId):P0}） 農村{farmM.Price:F2}（失業 {UnemploymentOf(r0, Catalog.FarmLaborId):P0}） 技師{advM.Price:F2}");
-        Console.WriteLine($"  電化: 平均電化率{elecFill:P0} 送電容量{r0.GridCapacity:F0} 電力価格{r0.Markets[87].Price:F2} 石炭{r0.Markets[1].Price:F2}");
+        Console.WriteLine($"  電化: 平均電化率{elecFill:P0} 送電容量{r0.GridCapacity:F0} 電力価格{r0.Markets[Catalog.ElectricityId].Price:F2} 石炭{r0.Markets[Catalog.CoalId].Price:F2}");
         Console.WriteLine($"  教育: 価格{eduM.Price:F2} 生産{eduM.LastProduced:F1} 販売{eduM.LastSold:F1}　医療: 価格{medM.Price:F2} 生産{medM.LastProduced:F1}");
         foreach (var p in r0.Pops)
             Console.WriteLine($"    {p.ClassName,-6} 規模{p.Size,8:F0} 貯蓄/人{(p.Size > 1 ? p.Savings / p.Size : 0),8:F1} 識字{p.Literacy:P0} 教育Fill{p.EducationFill:F2} 満足{p.Satisfaction:F2} 闘争{p.Militancy:F2}");
@@ -6793,15 +6793,15 @@ if (args.Length > 0 && args[0] == "milstart")
             double wArms = 0, wAll = 0;
             foreach (var pr in r.Producers)
             {
-                if (pr.GoodId == 82 && !pr.IsRgo) pRifle = pr;
-                if (pr.GoodId == 38 && !pr.IsRgo) pPowder = pr;
+                if (pr.GoodId == Catalog.RifleId && !pr.IsRgo) pRifle = pr;
+                if (pr.GoodId == Catalog.GunpowderId && !pr.IsRgo) pPowder = pr;
                 if (pr.GoodId >= r.Markets.Length) continue;
                 double wgt = r.Markets[pr.GoodId].LastDemand * pr.Scale;   // EconomyStep:300 の prodW と同一式
                 wAll += wgt;
                 if (System.Array.IndexOf(Simulation.InitialArmsIndustryGoods, pr.GoodId) >= 0) wArms += wgt;
             }
             Console.WriteLine($"解剖:{nm},{PR(82):F2},{PR(32):F2},{PR(39):F2},{PR(38):F2},{PR(118):F2},{PR(84):F2},{PR(81):F2}," +
-                $"{pRifle?.Scale ?? -1:F2},{pRifle?.LastMaterialFill ?? -1:F2},{pRifle?.Output ?? -1:F1},{r.Markets[82].LastDemand:F1},{r.Markets[82].Stock:F0},{pPowder?.Scale ?? -1:F2},{pPowder?.Output ?? -1:F1}," +
+                $"{pRifle?.Scale ?? -1:F2},{pRifle?.LastMaterialFill ?? -1:F2},{pRifle?.Output ?? -1:F1},{r.Markets[Catalog.RifleId].LastDemand:F1},{r.Markets[Catalog.RifleId].Stock:F0},{pPowder?.Scale ?? -1:F2},{pPowder?.Output ?? -1:F1}," +
                 $"{(wAll > 1e-9 ? wArms / wAll * 100 : 0):F2},{r.Industrialization:F2}");
         }
     }
@@ -7091,7 +7091,7 @@ if (args.Length > 0 && args[0] == "noviceprobe")
         }
 
         // ④の候補財＝軽工業（FactorySpec=30,000/4四半期）：綿布・毛織物・絹織物・衣料・家具
-        int[] lightGoods = [41, 44, 45, 57, 59];
+        int[] lightGoods = [Catalog.CottonClothId, Catalog.WoolenClothId, Catalog.SilkClothId, Catalog.ClothingId, Catalog.FurnitureId];
         int[]? subsidyGoods = null;   // ⑤：輸出実績が立ってからトップ3を1度だけ選ぶ（初心者が貿易タブを見て決める、の再現）
 
         for (int q = 0; q < Coefficients.GameQuarters; q++)
@@ -7413,7 +7413,7 @@ if (args.Length > 0 && args[0] == "lawaudit")
     P("徴兵法", "兵数", w => { w.ConscriptionLaw = ConscriptionLaw.Volunteer; w.Policy.ConscriptionLaw = ConscriptionLaw.Volunteer; }, w => { w.ConscriptionLaw = ConscriptionLaw.Universal; w.Policy.ConscriptionLaw = ConscriptionLaw.Universal; }, w => w.SoldierSize());
     P("検閲", "技術", w => { w.Censorship = CensorshipLaw.FreePress; w.Policy.Censorship = CensorshipLaw.FreePress; }, w => { w.Censorship = CensorshipLaw.StatePressOnly; w.Policy.Censorship = CensorshipLaw.StatePressOnly; }, w => w.TechLevel);
     P("労働組合", "満足", w => { w.LaborUnion = LaborUnionLaw.Illegal; w.Policy.LaborUnion = LaborUnionLaw.Illegal; }, w => { w.LaborUnion = LaborUnionLaw.Tolerated; w.Policy.LaborUnion = LaborUnionLaw.Tolerated; }, w => NationalScore.MeanSatisfaction(w));
-    P("穀物法", "麦価", w => { w.CornLaws = ReformLevel.None; w.Policy.CornLaws = ReformLevel.None; }, w => { w.CornLaws = ReformLevel.Full; w.Policy.CornLaws = ReformLevel.Full; }, w => w.Region.Markets[15].Price);
+    P("穀物法", "麦価", w => { w.CornLaws = ReformLevel.None; w.Policy.CornLaws = ReformLevel.None; }, w => { w.CornLaws = ReformLevel.Full; w.Policy.CornLaws = ReformLevel.Full; }, w => w.Region.Markets[Catalog.WheatId].Price);
     P("土地改革", "GDP", w => { w.LandReform = ReformLevel.None; w.Policy.LandReform = ReformLevel.None; }, w => { w.LandReform = ReformLevel.Full; w.Policy.LandReform = ReformLevel.Full; }, w => w.Gdp);
     P("農奴解放", "GDP", w => { w.SerfEmancipation = ReformLevel.None; w.Policy.SerfEmancipation = ReformLevel.None; }, w => { w.SerfEmancipation = ReformLevel.Full; w.Policy.SerfEmancipation = ReformLevel.Full; }, w => w.Gdp);
     P("児童労働", "GDP", w => w.Policy.ChildLaborAllowed = false, w => w.Policy.ChildLaborAllowed = true, w => w.Gdp);
@@ -7543,7 +7543,7 @@ if (args.Length > 0 && args[0] == "cost-test")
                    + tcf.ConsCement * Catalog.RefPrices[tcf.CementGoodId] + tcf.ConsLumber * Catalog.RefPrices[tcf.LumberGoodId];
     Console.WriteLine($"\n素材階層+α（係数{tierOn}・参照価格）: 機械RefPrice {Catalog.RefPrices[tcf.MachineGoodId]:F2}　建設束RefPrice {tCpuRef:F2}");
     Console.WriteLine($"{"財",-8}{"カテゴリ",-7}{"深さ",4}{"基本費",8}{"基本機械",9}{"追加機械",9}{"追加実額",9}{"対基本費",9}");
-    foreach (int gid in new[] { 15, 57, 32, 53, 80 })   // 麦=RGO/衣料=軽工業/鋼=重工業/機械/電化製品=先端
+    foreach (int gid in new[] { Catalog.WheatId, Catalog.ClothingId, Catalog.SteelId, Catalog.MachineryId, Catalog.ApplianceId })   // 麦=RGO/衣料=軽工業/鋼=重工業/機械/電化製品=先端
     {
         var fs = Catalog.FactorySpec(gid);
         double depth = Catalog.Complexity[gid];
@@ -7558,8 +7558,8 @@ if (args.Length > 0 && args[0] == "cost-test")
     var s2 = new Simulation(Fr(), new NullAgent());
     s2.Run(40);
     double tb = s2.World.Treasury, indb = s2.World.Region.TotalIndustrialization;
-    var steel = s2.World.Regions[0].Producers.Find(p => p.GoodId == 32)!;
-    s2.World.BuildFactory(0, 32);
+    var steel = s2.World.Regions[0].Producers.Find(p => p.GoodId == Catalog.SteelId)!;
+    s2.World.BuildFactory(0, Catalog.SteelId);
     double minT = tb;
     int guard = 0; while (steel.ConstructionLeft > 0 && guard++ < 40) { s2.Run(1); minT = Math.Min(minT, s2.World.Treasury); }
     double tDone = s2.World.Treasury;
@@ -7594,7 +7594,7 @@ if (args.Length > 0 && args[0] == "monitor")
     var msim = new MultiNationSim(mcfgs, mseed, _ => new UtilityAgent());
     int MQ = Coefficients.GameQuarters;
     int MYear(int q) => 1783 + q / 4;
-    var adv = new Dictionary<int, string> { { 104, "機関銃" }, { 105, "装甲艦" }, { 80, "電化製品" }, { 87, "電力" }, { 55, "発電機" }, { 99, "送電網" }, { 106, "精密工作機械" } };
+    var adv = new Dictionary<int, string> { { Catalog.MachineGunId, "機関銃" }, { Catalog.IroncladId, "装甲艦" }, { Catalog.ApplianceId, "電化製品" }, { Catalog.ElectricityId, "電力" }, { Catalog.GeneratorId, "発電機" }, { Catalog.GridId, "送電網" }, { Catalog.MachineToolId, "精密工作機械" } };
     var firstYear = new Dictionary<int, int>();
     var polPrev = new Polity[mcfgs.Length];
     int polTrans = 0; bool mbroke = false; int mbrokeQ = -1; int mlogSeen = 0;
@@ -8139,7 +8139,7 @@ const int quarters = 400;
 var sim = new MultiNationSim(configs, 1789);
 
 SimMetrics met;
-int[] traceGoods = [12, 1];   // 綿花・石炭＝資源プロファイルの代表（英は綿花不足→輸入・石炭過多→輸出）。輸入依存の確認用
+int[] traceGoods = [Catalog.CottonId, Catalog.CoalId];   // 綿花・石炭＝資源プロファイルの代表（英は綿花不足→輸入・石炭過多→輸出）。輸入依存の確認用
 var trace = new List<string>();
 try
 {
@@ -8155,7 +8155,7 @@ try
                 var mk = r.Markets[gid];
                 parts.Add($"{Catalog.Goods[gid].Name} P{mk.Price:F2} 産{mk.LastProduced:F0} 需{mk.LastDemand:F0} 輸入{mk.LastImport:F0} 輸出{mk.LastExport:F0}");
             }
-            trace.Add($"Q{q + 1,3}  金世界{sim.Market.Price[4]:F2} 日関税{sim.Nations[1].World.Tariff:F2}  " + string.Join("   ", parts));
+            trace.Add($"Q{q + 1,3}  金世界{sim.Market.Price[Catalog.GoldOreId]:F2} 日関税{sim.Nations[1].World.Tariff:F2}  " + string.Join("   ", parts));
         }
     }
     met = Metrics.Compute(sim);

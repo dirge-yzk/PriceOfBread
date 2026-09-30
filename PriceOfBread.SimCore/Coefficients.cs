@@ -1219,10 +1219,10 @@ public sealed class Coefficients
     public double ConsMachine = 0.15;
     public double ConsCement = 0.4;
     public double ConsLumber = 0.5;
-    public int SteelGoodId = 32;                  // Catalog の id
-    public int MachineGoodId = 53;
-    public int CementGoodId = 35;
-    public int LumberGoodId = 39;
+    public int SteelGoodId = Catalog.SteelId;                  // Catalog の id
+    public int MachineGoodId = Catalog.MachineryId;
+    public int CementGoodId = Catalog.CementId;
+    public int LumberGoodId = Catalog.LumberId;
     // 工場建設費の素材階層+α（2026-08-09・ユーザー裁定「基本は固定・上位材+α」）：出力財の連鎖深さ（Catalog.Complexity＝レシピDAG最長深さ0〜9・手置きテーブルなし）で建設費を差別化。
     // 建設1単位あたり 機械（MachineGoodId）を これ×max(0, 深さ−1) 束だけ**追加**購入（深さ0のRGOと深さ1は式から自然に+α=0＝特例コードなし）。
     // ⚠costPerUnitRef には**意図的に加えない**＝加えると建設単位 u が縮んで「+α」でなく既存4材の「置換」になる（基本束は不変・+αは Cost の外の追加支出＝裁定の実装形）。
@@ -1231,8 +1231,8 @@ public sealed class Coefficients
     // 番人＝FactoryTierTests（点火ピン0.05・Complexity階層ピン・ON経路の式・保存）。★点火済み（2026-08-09 ign_tier）＝0に戻せばガード>1e-12を踏まず1命令も実行しない＝既存フルスイート全緑がビット恒等の番人。点火設計値0.05目安。
     public double FactoryTierMachinePerDepth = 0.05;
     // 工業化に伴うインフラ敷設（鉄道）＝建設に比例して消費。資本財段（機関車→蒸気機関→機械部品）へ需要が波及し死蔵を解消。
-    public int RailGoodId = 56;                   // 線路
-    public int LocoGoodId = 88;                   // 機関車
+    public int RailGoodId = Catalog.RailId;                   // 線路
+    public int LocoGoodId = Catalog.LocomotiveId;                   // 機関車
     public double ConsRail = 0.25;
     public double ConsLoco = 0.12;
     // 敷設済みインフラの保守需要＝工業化度×これ。成長（建設）が止まってもセメント/線路/機関車を毎期消費＝定常でも消費先が持続（死蔵解消）。
@@ -1260,8 +1260,8 @@ public sealed class Coefficients
     public double TransportBaseline = 50.0;         // 前鉄道の基礎輸送（道路/河川＝低容量で高コスト）。鉄道前は州が世界市場と細々としか繋がらず地域価格が割れる→鉄道（容量≈人口×0.08）で統合され収束
     public double RailTechOnset = 0.35;             // 鉄道（内陸輸送）の技術解禁。工業化判定閾値(IndustrializedTechThreshold0.25)の一段上＝工業化に入った国から鉄道を積める。旧1.0は採用上限(AdoptionCeiling0.5)/後追い天井(×CatchupFraction0.7)と不整合で後発国・単一国が永久に解禁できなかった（Wave1-B監査）。船(帆船)は古来あり据え置き
     public double RailTechWidth = 0.5;             // 解禁の幅：onset(0.35)〜onset+width(0.85)で鉄道容量上限が0→満額へ。先端国は満額・工業化途上国も部分的に鉄道を持てる（普及の漸進）
-    public int[] ShipGoodIds = [84, 85];            // 帆船(tier1)・汽船(tier2)。★2026-09-26（回4-3）：Transport が州ごとに容量あたりの総費用（船価＋汽船は寿命の間の燃料）の安い1財だけを買う
-    public int ShipTier2GoodId = 85;                // 汽船＝tier2輸送船（蒸気船）。蒸気機関を要する＝供給チェーンで自然に技術ゲート
+    public int[] ShipGoodIds = [Catalog.SailingShipId, Catalog.SteamshipId];            // 帆船(tier1)・汽船(tier2)。★2026-09-26（回4-3）：Transport が州ごとに容量あたりの総費用（船価＋汽船は寿命の間の燃料）の安い1財だけを買う
+    public int ShipTier2GoodId = Catalog.SteamshipId;                // 汽船＝tier2輸送船（蒸気船）。蒸気機関を要する＝供給チェーンで自然に技術ゲート
     public double ShipTier2CapMult = 2.5;           // tier2輸送船は1単位あたり容量が大（蒸気船は帆船より高速・大容量＝海運の革命）。★2026-09-27（回4-3 の再挑戦）：これは運賃革命のランプの手前（1830年代・外輪と単式機関）の値。
     //   Transport が ×その州の汽船の解禁度（EconomyStep.EquipUnlock・技術0.5→1.5で0→1）÷EraFactor(前線技術, EraColonyCoal) で伸ばす（解禁度1で 1.0→0.5 なので 2.5→5.0）
     //   ＝同時代の換算「汽船1トンは帆船3〜5トン分を運ぶ」（1860〜70年代に約3・1900年代に4〜5）。
@@ -2013,9 +2013,9 @@ public sealed class Coefficients
     public double LandAnchorCapacityWeight = 1.0;   // 人2c 土地アンカー（2026-07-11・#17級）：capacityBaselineへ＋これ×max(0, Σ耕地/(1−都市化)−capacityBaseline)＝土地が養える人口を天井に（米25×の構造解・下方向なし・センチネル除外で較正厳密恒等）。0で休眠
     public double SanitationCapacityWeight = 0.4; // **衛生の扶養力連結（近代公衆衛生→死亡率低下）**：sanitation=上下水道(InfraFill)+石鹸(SoapFill)+電化(ElecInfraFill)の人口加重∈[0,1]。capacity に +これ×都市化×(sanitation−1) ＝不衛生な都市で疫病死↑→扶養力↓。**都市化で按分**＝疫病は過密の問題（既存の疫病圧 (都市人口/人口)×(1−衛生) と一貫・農村は影響小）。施設/石鹸の無い世界は sanitation=1.0 で中立（較正温存）。19世紀の死亡率低下の主因は医療より衛生＝直接チャネル
     public double FoodFillSmoothing = 0.2;        // FoodFill の移動平均速度（備蓄＝穀倉が月次の振れをならす。餓死は単月でなく数ヶ月の持続的欠乏で起きる＝時定数≒5ヶ月）
-    public int MedicalGoodId = 77;                // 医薬品の good.Id（社会保障＝公共医療が消費する資材）
+    public int MedicalGoodId = Catalog.MedicineId;                // 医薬品の good.Id（社会保障＝公共医療が消費する資材）
     public double InsuranceCoverageMax = 0.6;     // 健康保険(#3)：国家が医薬品の購入費をこの割合まで肩代わり（実効負担＝社会保障×充足×これ）。popの実効価格↓→医療消費↑→HealthFill↑＋満足↑。費用は福祉と同じ裁量余剰から（保存：国庫→生産者）
-    public int SoapGoodId = 72;                   // 石鹸の good.Id（消費充足が衛生＝公衆衛生を上げる）
+    public int SoapGoodId = Catalog.SoapId;                   // 石鹸の good.Id（消費充足が衛生＝公衆衛生を上げる）
     public double MedicalWelfareBoost = 2.0;      // 医薬品需要 ＝ 基礎 ×(1＋社会保障×これ)。高福祉ほど医薬品を大量消費（資材）
     // 過密/スラムの疫病：都市化が衛生(工業化由来)を上回ると疫病圧が立ち、医療(医者の役務)の需要が跳ねる。満たせねば HealthFill↓→扶養力↓(死亡)＋不満。
     // ＝公衆衛生をスライダーでなく「医療の市場需要」として表す（供給は医者＋医薬品の連鎖が応える）。容量という上限を使わず emergent に都市を律速する。
@@ -2051,7 +2051,7 @@ public sealed class Coefficients
     public double ConscriptGrievanceRate = 0.05;      // 戦時の強制徴兵（徴兵法≥選抜の国・総動員はその深さを上げる）で徴兵された階級の闘争度加算×徴兵率＝E5徴兵法の一般効果（★M1 2026-09-19：志願募兵は総動員中でも不発＝wartimeConscript に総動員は入らない＝2026-08-31の「志願制でも総動員中は発火」を覆す・番人テストあり）。供給源の選別=POP動詞③は2026-07-21撤去済み・この遺恨のみ残置（清の内戦/対外戦の不満が抜けると覇権化するため対称機構として維持）
 
     // --- 軍需調達（国家が軍需財を消費＝死蔵解消。財源は国庫→生産者で保存。戦時増＝武器需要ブーム）---
-    public int[] MilitaryGoods = [82, 83, 81, 86, 85, Catalog.HorseId, 132];   // 02断線走査（2026-07-28）：裸の127をHorseIdへ＋自動車132を輜重へ（馬と併存＝WWIも馬匹依存だが自動車が食い込む。DemandOnset1.50到達後の晩期のみ実需）        // 小銃・弾薬・火砲・軍艦・汽船・馬・自動車
+    public int[] MilitaryGoods = [Catalog.RifleId, Catalog.AmmunitionId, Catalog.ArtilleryId, Catalog.WarshipId, Catalog.SteamshipId, Catalog.HorseId, Catalog.AutomobileId];   // 02断線走査（2026-07-28）：裸の127をHorseIdへ＋自動車132を輜重へ（馬と併存＝WWIも馬匹依存だが自動車が食い込む。DemandOnset1.50到達後の晩期のみ実需）        // 小銃・弾薬・火砲・軍艦・汽船・馬・自動車
     public double[] MilitaryRates = [1.0, 0.8, 0.4, 0.15, 0.2, 0.1, 0.02]; // 各軍需財の消費比率。馬=0.1（初期0.25は畜産＝食料源と競合しNYの産出財が18まで痩せた＝多国200Qテストで実測・戦時9倍の馬匹徴発は自動で付く）。自動車=0.02（輜重の機械化＝小さく併存）
     // ★装備の発見（作者裁定2026-09-08「これは技術ゲートではなく、装備追加を発見に追加するのがよいだろう。機関銃陣地を発見するまで、理想の軍隊に機関銃を入れない」）。
     //   ── なぜ要るか（実測 1793年の英・uishot）───────────────────────────────────
@@ -2114,11 +2114,11 @@ public sealed class Coefficients
     public double WarMobilizationDepth = 0.5;                 // 戦時動員の段階性（wartime-economy-field-dead）：対外戦の軍需倍率＝MilitaryWarMult×(1+これ×WarExhaustion)。長期戦ほど総動員(WWI型)。0で旧の固定倍率（恒等）
     // 監査2026-07-12 死19：MilitaryBudgetFrac（国庫比の軍需上限）は歳入フロー基準（MilitaryRevenueShare）への置換後の残骸＝参照ゼロにつき削除。軍需上限を調整する係数は MilitaryRevenueShare
     // 上位軍需（機関銃・装甲艦）：基本装備を整えた残余予算で調達＝戦力の質的乗数。富裕/軍国国ほど届く（高価だが強い）。値は暫定でsweep対象
-    public int[] MilitaryQualityGoods = [104, 105];          // 機関銃・装甲艦
+    public int[] MilitaryQualityGoods = [Catalog.MachineGunId, Catalog.IroncladId];          // 機関銃・装甲艦
     public double[] MilitaryQualityRates = [0.5, 0.1];       // 各上位軍需の消費比率（基本より少量＝高価な少数精鋭）
     public double MilitaryQualityBonus = 0.6;                // 上位軍需を満たした時の Power.Military 乗数の最大上乗せ（+60%）
     // --- 軍需輸出の法（禁制品doc C5・2026-07-30）：「許可／禁止」の1本の法＋緊張の閾値で、売らない相手を**法が選ぶ**（50カ国の手動管理を作らない）---
-    public int[] MilitaryExportGoods = [82, 83, 81, 86];      // 輸出禁止の客体＝小銃・弾薬・火砲・軍艦。★MilitaryGoods 全部にはしない＝汽船(85)・馬(127)・自動車(132)は民生用途が主（doc未決4bをこの形で決着）
+    public int[] MilitaryExportGoods = [Catalog.RifleId, Catalog.AmmunitionId, Catalog.ArtilleryId, Catalog.WarshipId];      // 輸出禁止の客体＝小銃・弾薬・火砲・軍艦。★MilitaryGoods 全部にはしない＝汽船(85)・馬(127)・自動車(132)は民生用途が主（doc未決4bをこの形で決着）
     public double MilitaryExportTensionThreshold = 60.0;      // この緊張以上の相手へは軍需財を輸出しない（尺度0..200・ライバル40とポップアップ100の間）。実分布を見て調整する
     public double MilitaryExportPrefScale = 10.0;             // 軍需財の生産額シェア→資本（近代エリート）の反対強度（シェア0.1で−1.0＝他軸と同水準）。武器商人が禁止に反対する唯一の回路
     public double MilitaryExportAccessFloor = 0.1;            // 禁止しても残る輸出口（Diplomacy.TradeAccess と同じ床＝全遮断はしない＝密輸・第三国再輸出の抽象）
@@ -2137,11 +2137,11 @@ public sealed class Coefficients
     // --- プランテーション（プランテーションdoc D6・2026-07-30）：地代取り分を州別・財別へ ---
     public double PlantationRentShare = 0.6;                  // 賦存財のRGO（＝その州の輸出向け一次産品＝大農園/鉱山）の地代取り分の下限。所有も地主階級へ。0で旧＝国家スカラー max(0.3, farmLordShare) のまま＝厳密恒等
     // #16 tier3 軍需（戦車・弩級戦艦）：tier2(quality)を圧倒する最上位の質的乗数。基本＋上位を整えた更なる残余予算で調達＝深い連鎖の高コストで富裕/軍国/晩期のみ届く（外科ゲートなし＝連鎖深とコストで自然律速）。
-    public int[] MilitaryTier3Goods = [122, 123];            // 戦車（陸tier3）・弩級戦艦（海tier3）
+    public int[] MilitaryTier3Goods = [Catalog.TankId, Catalog.DreadnoughtId];            // 戦車（陸tier3）・弩級戦艦（海tier3）
     public double[] MilitaryTier3Rates = [0.04, 0.015];      // 各tier3の消費比率（上位より更に少量＝極少数の決戦兵器）
     public double MilitaryTier3Bonus = 1.2;                  // tier3を満たした時の Power.Military 乗数の最大上乗せ（+120%＝tier2の+60%を圧倒）
     // --- 1934拡張E2（2026-07-19）：空軍装備＝tier3の更なる残余予算で調達する第4tier。財の解禁(onset1.0=1910s)前は生産ゼロ→Fill0＝空の概念ごと不走行＝厳密恒等 ---
-    public int[] MilitaryAirGoods = [130, 131, 133];         // 飛行機（偵察/輸送）・戦闘機・化学兵器
+    public int[] MilitaryAirGoods = [Catalog.AirplaneId, Catalog.FighterId, Catalog.ChemicalWeaponId];         // 飛行機（偵察/輸送）・戦闘機・化学兵器
     public double[] MilitaryAirRates = [0.03, 0.02, 0.02];   // 各空軍財の消費比率（tier3級の少量＝最晩期の高価な装備）
     public double AirControlPushWeight = 0.3;                // 制空の押し合い補正＝aPush×(1−これ/2＋これ×AirControl)。制空満点で+15%・劣勢で−15%（偵察・着弾観測）
     public double AirCasualtyWeight = 0.3;                   // 制空劣勢側の戦死増幅＝cas×(1＋これ×(2×(1−AirControl)−1)クランプ正)。優勢側は増えない
@@ -2195,7 +2195,7 @@ public sealed class Coefficients
     public double InternalGarrisonPerPop = 0.002;  // 不穏度1.0のとき国内秩序に要する兵÷人口。★清の八旗・緑営は約80万／人口3.8億＝約0.2%（1783〜1850の常備の内地守備）
     public double SeaEscortPerTradeValue = 0.0;    // 守るべき海上価値1あたりの護衛艦隊（ゲージ）。⚠**この1本が「英の海軍が世界最大になるか」を決める唯一の較正点**＝段1の分布で同定する
     public double NavalCrewPerGauge = 0.5;         // 同じ戦力ゲージあたりの乗員（海軍は資本集約・陸軍は労働集約）＝英の常備陸軍が人口比で小さいことの本質。⚠較正で決める
-    public int[] FleetGoodIds = [86, 105, 123];   // 軍艦・装甲艦・弩級戦艦（＝戦闘艦。汽船85/帆船84は輸送・補助なので艦隊に数えない）
+    public int[] FleetGoodIds = [Catalog.WarshipId, Catalog.IroncladId, Catalog.DreadnoughtId];   // 軍艦・装甲艦・弩級戦艦（＝戦闘艦。汽船85/帆船84は輸送・補助なので艦隊に数えない）
     // ★★段2（2026-08-01）：軍需の**内訳**を理想の軍隊の形の陸海比で再配分する。
     // ⚠現行は MilitaryRates が全国一律＝**海に出られるかを問わず全員が軍艦0.15・汽船0.2 を買う**＝
     //   実測（1914断面）で艦隊ストック4位ネパール・8位アワド（どちらも内陸国）という不条理になっていた。
@@ -2233,7 +2233,7 @@ public sealed class Coefficients
     // ⚠★係数 FleetStockPerNavalGauge は**撤去した**（2026-08-01・裁定③の但し書き）。定数Kは時代で×7.74漂い
     //   （Q200 228029／Q350 54429／Q524 29452）、2倍の許容を大きく超えた。換算分母は現行の調達式から導出する
     //   ＝EconomyStep.FleetGaugeDenominator（SoldiersPerMilitary × MilitaryUpkeepScale × Σ(rate×RefPrice) ÷ Spoilage）。
-    public int WarshipGoodId = 86;                // 軍艦（修理需要の宛先）
+    public int WarshipGoodId = Catalog.WarshipId;                // 軍艦（修理需要の宛先）
     public double AbstractNavalShare = 0.10;      // 抽象標的（被植民地勢力）の海軍シェア＝弱小（陸の守りが主）
     public double DistanceWarDecay = 1.0;         // 戦力投射の距離減衰（1あたり1万km）。遠い戦線ほど押し合いが鈍る＝クリミア/ボーア型の兵站難
     // 倍率排除：旧 SuezDetourKm（投射の一律ケープ迂回加算）は撤去。投射距離も Geo.SeaDistanceKm が喜望峰/スエズ/パナマ経由で表現する。
@@ -2430,9 +2430,9 @@ public sealed class Coefficients
     public double ColonialDevStep = 0.02;            // 採算が合う時に1期で進める開発度の刻み
     public double ColonialInvestFrac = 0.03;         // 私的投資家が貯蓄からこの割合まで植民地開発に充てる（affordability 上限）
     public double ColonialProductionPerColony = 600; // 植民地1つが固有資源を毎期産出する量（×産出率）。需要に関係なく市場へ流入＝過剰なら価格暴落（フラッディング）
-    public int[] ColonialMarketGoods = [62, 57, 59, 69, 66];   // 捕囚市場で売る完成財（パン・衣料・家具・煙草・ビール）
+    public int[] ColonialMarketGoods = [Catalog.BreadId, Catalog.ClothingId, Catalog.FurnitureId, Catalog.TobaccoId, Catalog.BeerId];   // 捕囚市場で売る完成財（パン・衣料・家具・煙草・ビール）
     // アヘン（特殊資材・実験）：消費するほど中毒度が上がり、それが需要に上乗せされる＝供給が需要を生む正のフィードバック（暴走する想定）。
-    public int OpiumGoodId = 92;                     // アヘンの good.Id
+    public int OpiumGoodId = Catalog.OpiumId;                     // アヘンの good.Id
     public double OpiumAddictionGrowth = 0.1;        // P3点火0.1（2026-07-18＝Phase B実現。0.2はハーネス13/30＝依存→満足↓→困窮消費の発散で却下）。0=機構全体オフ（恒等）。点火で困窮ゲート消費・労働/満足ペナルティ・世界プール参加・AI禁令・輸出国緊張が全て連動
     public double OpiumAddictionCap = 0.2;           // 中毒度ストックの生理的上限（州人口の実効障害の飽和＝発散の物理的な蓋）
     public double OpiumAddictionDecay = 0.02;        // 中毒度の自然減（成長>減衰なら発散）

@@ -24,7 +24,7 @@ public class EquipDiscoveryTests
         var r = sim.World.Region; var c = sim.World.Coef;
         int iShip = System.Array.IndexOf(c.MilitaryGoods, Catalog.SteamshipId);   // 汽船＝既定Producerに TechOnset=0.5 が焼かれている
         int iCar = System.Array.IndexOf(c.MilitaryGoods, Car);
-        int iRifle = System.Array.IndexOf(c.MilitaryGoods, 82);                   // 小銃＝1783年から作れる（onset 0）
+        int iRifle = System.Array.IndexOf(c.MilitaryGoods, Catalog.RifleId);                   // 小銃＝1783年から作れる（onset 0）
         Assert.True(iShip >= 0 && iCar >= 0 && iRifle >= 0);
 
         // 1783年の技術水準（助走直後）＝汽船も自動車も未発見
@@ -155,7 +155,7 @@ public class EquipDiscoveryTests
                 double u = EconomyStep.EquipUnlock(r, c, g);
                 Assert.True(u == 0.0 || u == 1.0, $"前提が崩れた：1783年に部分解禁の装備 {g}（{u:F3}）");
             }
-        foreach (int g in new[] { Catalog.SteamshipId, Car, 123, 131 })   // 汽船・自動車・弩級戦艦・戦闘機
+        foreach (int g in new[] { Catalog.SteamshipId, Car, Catalog.DreadnoughtId, Catalog.FighterId })   // 汽船・自動車・弩級戦艦・戦闘機
             Assert.Equal(0.0, EconomyStep.EquipUnlock(r, c, g));
 
         double needLow = EconomyStep.MilitaryProcurementNeed(r, c);

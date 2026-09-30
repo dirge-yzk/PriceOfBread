@@ -456,7 +456,7 @@ public class ConservationTests
         var jp = sim.Nations[0].World;
         var ezo = new Power { Id = sim.Diplomacy.Powers.Max(p => p.Id) + 1, Name = "蝦夷地", BaseName = "蝦夷地", Military = 0.2, Gdp = 0, TradeWeight = 0.0 };
         var cc = Geo.ColonyCoord("蝦夷地");
-        var col = new Colony { Name = "蝦夷地", Resources = [20, 11], Population = 0.05, PopSize = 0.05 * coef.ColonialPopScale, Latitude = cc.Lat, Longitude = cc.Lon };
+        var col = new Colony { Name = "蝦夷地", Resources = [Catalog.FishId, Catalog.TimberId], Population = 0.05, PopSize = 0.05 * coef.ColonialPopScale, Latitude = cc.Lat, Longitude = cc.Lon };
         ezo.ColonyList.Add(col);
         sim.Diplomacy.Powers.Add(ezo);
         var region = jp.Regions.Find(r => r.Name == "蝦夷地")!;

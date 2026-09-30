@@ -22,12 +22,12 @@ public static class DiploCore
     public static readonly string[] CatNames = ["主食", "燃料", "繊維原料", "金属", "化学肥料", "植民地物産", "工業製品", "金融"];
 
     // ── 手書き仮表（13a）。①主食は GoodTier.Staple ＋穀物上流（麦・小麦粉＝露の穀物輸出を表現）・⑥は IsColonial（実行時）──
-    private static readonly int[] StapleExtra = [15, 47];                      // 麦・小麦粉（Staple tier の上流＝過不足は連鎖の頭で余る）
-    private static readonly int[] FuelGoods = [1, 10, 11, 30, 68, 113];        // 石炭・原油・木・コークス・灯油・ガス
-    private static readonly int[] FiberGoods = [12, 13, 14, 43];               // 綿花・麻・生糸・羊毛
-    private static readonly int[] MetalGoods = [0, 2, 3, 31, 32, 33, 34, 98, 117];   // 鉄鉱石・銅鉱・鉛鉱・鉄・鋼・銅・鉛・クロム・錫鉱
-    private static readonly int[] ChemicalGoods = [5, 37, 38, 109, 118, 128];   // 硫黄・化学薬品・火薬・肥料・硝石・ダイナマイト（グアノ121はIsColonial=true→⑥へ先に分類されるため掲載しない＝到達不能だった死エントリを削除）
-    private static readonly int[] IndustryGoods = [41, 44, 45, 51, 52, 53, 54, 55, 56, 57, 81, 82, 83, 84, 85, 86, 88, 104, 105, 106, 122, 123, 125, 129, 130, 131, 132, 133];
+    private static readonly int[] StapleExtra = [Catalog.WheatId, Catalog.FlourId];                      // 麦・小麦粉（Staple tier の上流＝過不足は連鎖の頭で余る）
+    private static readonly int[] FuelGoods = [Catalog.CoalId, Catalog.CrudeOilId, Catalog.TimberId, Catalog.CokeId, Catalog.LampOilId, Catalog.GasId];        // 石炭・原油・木・コークス・灯油・ガス
+    private static readonly int[] FiberGoods = [Catalog.CottonId, Catalog.HempId, Catalog.SilkId, Catalog.WoolId];               // 綿花・麻・生糸・羊毛
+    private static readonly int[] MetalGoods = [Catalog.IronOreId, Catalog.CopperOreId, Catalog.LeadOreId, Catalog.IronId, Catalog.SteelId, Catalog.CopperId, Catalog.LeadId, Catalog.ChromeId, Catalog.TinOreId];   // 鉄鉱石・銅鉱・鉛鉱・鉄・鋼・銅・鉛・クロム・錫鉱
+    private static readonly int[] ChemicalGoods = [Catalog.SulfurId, Catalog.ChemicalsId, Catalog.GunpowderId, Catalog.FertilizerId, Catalog.SaltpeterId, Catalog.DynamiteId];   // 硫黄・化学薬品・火薬・肥料・硝石・ダイナマイト（グアノ121はIsColonial=true→⑥へ先に分類されるため掲載しない＝到達不能だった死エントリを削除）
+    private static readonly int[] IndustryGoods = [Catalog.CottonClothId, Catalog.WoolenClothId, Catalog.SilkClothId, Catalog.MachinePartsId, Catalog.ToolsId, Catalog.MachineryId, Catalog.SteamEngineId, Catalog.GeneratorId, Catalog.RailId, Catalog.ClothingId, Catalog.ArtilleryId, Catalog.RifleId, Catalog.AmmunitionId, Catalog.SailingShipId, Catalog.SteamshipId, Catalog.WarshipId, Catalog.LocomotiveId, Catalog.MachineGunId, Catalog.IroncladId, Catalog.MachineToolId, Catalog.TankId, Catalog.DreadnoughtId, Catalog.CombustionEngineId, Catalog.BicycleId, Catalog.AirplaneId, Catalog.FighterId, Catalog.AutomobileId, Catalog.ChemicalWeaponId];
     // 織物3種・衣料＋機械系＋軍需（⚠電力87/送電網99/上下水道111＝NonTradeable の役務インフラは対外過不足に載らないので除外）
 
     /// <summary>財id→カテゴリ（-1＝どのカテゴリにも属さない）。⑥は IsColonial を実行時に読む。</summary>

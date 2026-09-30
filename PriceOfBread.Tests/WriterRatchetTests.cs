@@ -206,4 +206,86 @@ public class WriterRatchetTests
         Assert.Null(sim2.Market.CostOrNull);
         Assert.Equal(0L, sim2.CostTotals().Sum());
     }
+
+    // ★2026-09-30 段0-1（財の削減の回・設計 docs/202609/20260928/20260928_財の削減_連鎖の深さの撤去_設計 の段0-1）：**数値の財 id を書かない**。
+    //   財の id は Catalog の定数（IronOreId〜RefrigeratorId）だけで書く＝財を畳む・id を振り直すときは定数の値を直すだけで全ての読み手が追いつく
+    //   （数値で書いた読み手は、振り直しの後に黙って別の財を読む＝型の統合の教訓）。基準 0＝1件でも書いたら落ちる。
+    //   数える形＝レシピの投入 I(n,…)・new Input(n,…)・GoodId の比較と代入・Markets／RefPrices／Complexity／Catalog.Goods の添字・id is n・id == n・
+    //   名前が …Goods／…GoodIds の配列の初期化子・辞書の初期化子 { n, "…" }・財を2番目の引数に取る呼び出し（BuildFactory(0, n) など）・
+    //   財の switch（Catalog.cs と Policy.cs）の or n と腕の先頭の n。対象＝SimCore・Runner・App・Tests（このファイルの正規表現の文字列は数えない＝文字列は消してから読む）。
+    //   0 と 1（鉄鉱石・石炭）は数えない＝単一州の最小シナリオの番号や添字の 0／1 と見分けられない（この2財は残す財＝振り直しでも番号が変わらない）。
+    //   対象外＝単一州の最小シナリオ（「◆玩具の世界ここから／ここまで」の間＝Simulation.cs の最小シナリオ・ChainTests.cs＝シナリオの中だけの番号で Catalog の財 id ではない）。
+    [Fact]
+    public void 数値の財idは書かない()
+    {
+        var pats = new[]
+        {
+            new Regex(@"\bI\(\s*(\d+)\s*,"),
+            new Regex(@"new Input\(\s*(\d+)\s*,"),
+            new Regex(@"\bGoodId\s*(?:==|!=|=(?![=>]))\s*(\d+)\b"),
+            new Regex(@"(?:Markets|RefPrices|Complexity|Catalog\.Goods)\[\s*(\d+)\s*\]"),
+            new Regex(@"\bid\s+is\s+(\d+)"),
+            new Regex(@"\bid\s*==\s*(\d+)"),
+            new Regex(@"\{\s*(\d+)\s*,\s*"""),   // 辞書の初期化子 { n, "名前" }
+            new Regex(@"\b(?:BuildFactory|CanBuildFactory|CanSellFactory|SellFactory|FindFactory|SetStateTarget|SetSubsidyRate|SetSubsidy|CanSubsidize|OutputOf|PaySales|GoodOf)\([^,()]*,\s*(\d+)\s*[,)]"),   // 財を2番目の引数に取る呼び出し
+            new Regex(@"\bSelectProdGood\(\s*(\d+)\s*\)"),
+        };
+        var switchPats = new[] { new Regex(@"\bor\s+(\d+)\b"), new Regex(@"^\s*(\d+)\s*(?:or\b|=>)") };
+        var arr = new Regex(@"\w*(?:Goods|GoodIds)\s*=\s*\[([^\]]*)\]");
+        var num = new Regex(@"(?<![\w.])(\d+)(?![\w.])");
+        var str = new Regex(@"""(?:[^""\\]|\\.)*""");
+        string root = Path.GetDirectoryName(SimCoreDir())!;
+        var hits = new System.Collections.Generic.List<string>();
+        foreach (var proj in new[] { "PriceOfBread.SimCore", "PriceOfBread.Runner", "PriceOfBread.App", "PriceOfBread.Tests" })
+            foreach (var f in Directory.EnumerateFiles(Path.Combine(root, proj), "*.cs", SearchOption.AllDirectories))
+            {
+                if (f.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}") || f.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}")) continue;
+                bool goodSwitch = Path.GetFileName(f) is "Catalog.cs" or "Policy.cs";
+                bool toy = false;
+                int ln = 0;
+                foreach (var line in File.ReadLines(f))
+                {
+                    ln++;
+                    if (line.Contains("◆玩具の世界ここから")) toy = true;
+                    if (line.Contains("◆玩具の世界ここまで")) { toy = false; continue; }
+                    if (toy) continue;
+                    var code = line;
+                    int c = code.IndexOf("//", StringComparison.Ordinal);
+                    if (c >= 0) code = code[..c];
+                    code = str.Replace(code, "\"\"");
+                    foreach (var p in goodSwitch ? pats.Concat(switchPats) : pats)
+                        foreach (Match m in p.Matches(code))
+                            if (int.Parse(m.Groups[1].Value) >= 2) hits.Add($"{Path.GetFileName(f)}:{ln}: {m.Value.Trim()}");
+                    foreach (Match m in arr.Matches(code))
+                        foreach (Match n in num.Matches(m.Groups[1].Value))
+                            if (int.Parse(n.Groups[1].Value) >= 2) hits.Add($"{Path.GetFileName(f)}:{ln}: {m.Value.Trim()}");
+                }
+            }
+        Assert.True(hits.Count == 0,
+            $"数値の財 id が {hits.Count} 件＝Catalog の定数（…Id）で書くこと（財を畳む・振り直すと数値は黙って別の財を読む）：" + string.Join(" ／ ", hits.Take(12)));
+    }
+
+    // ★2026-09-30 段0-3（財の削減の回）：**解禁の onset は表から読む**＝Catalog の解禁の表（レシピ単位の1枚・Catalog.RecipeOnset）の外で
+    //   Producer.TechOnset に正の数値を直に書かない（旧＝Simulation の代替のレシピの注入に数値で散っていた）。0（無ゲート）は数えない。
+    //   係数の onset（蒸気タービン・黄鉄鉱法）は係数の名前で書く＝数値ではないので数えない。
+    [Fact]
+    public void 解禁のonsetは表から読む()
+    {
+        var rx = new Regex(@"\bTechOnset\s*=\s*(\d+(?:\.\d+)?)\b");
+        var hits = new System.Collections.Generic.List<string>();
+        foreach (var f in Directory.EnumerateFiles(SimCoreDir(), "*.cs"))
+        {
+            int ln = 0;
+            foreach (var line in File.ReadLines(f))
+            {
+                ln++;
+                var code = line;
+                int c = code.IndexOf("//", StringComparison.Ordinal);
+                if (c >= 0) code = code[..c];
+                foreach (Match m in rx.Matches(code))
+                    if (double.Parse(m.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture) > 0) hits.Add($"{Path.GetFileName(f)}:{ln}: {m.Value}");
+            }
+        }
+        Assert.True(hits.Count == 0, "解禁の onset を数値で書いている＝Catalog の解禁の表に行を足して Catalog.RecipeOnset で読むこと：" + string.Join(" ／ ", hits));
+    }
 }

@@ -153,12 +153,12 @@ public class MilitaryTests
     {
         var sim = new Simulation(NationConfig.Britain().ToScenario(29), new NullAgent());
         var r = sim.World.Region;
-        var musket = Assert.Single(r.Producers, p => p.GoodId == 82 && p.RecipeName == "マスケット");
-        var castGun = Assert.Single(r.Producers, p => p.GoodId == 81 && p.RecipeName == "鋳鉄砲");
+        var musket = Assert.Single(r.Producers, p => p.GoodId == Catalog.RifleId && p.RecipeName == "マスケット");
+        var castGun = Assert.Single(r.Producers, p => p.GoodId == Catalog.ArtilleryId && p.RecipeName == "鋳鉄砲");
         foreach (var p in new[] { musket, castGun })
         {
             Assert.Equal(1.0, ProductionDiag.TechGate(p.GoodId, p.TechOnset, r.TechLevel));   // 1783年は満額（退場は下の番人）
-            Assert.DoesNotContain(p.Inputs, inp => inp.GoodId == 32);   // 鋼を要しない
+            Assert.DoesNotContain(p.Inputs, inp => inp.GoodId == Catalog.SteelId);   // 鋼を要しない
         }
         double cumulative = 0;
         for (int q = 0; q < 12; q++) { sim.Run(1); cumulative += musket.Output; }
@@ -175,14 +175,14 @@ public class MilitaryTests
         var sim = new Simulation(NationConfig.Britain().ToScenario(29), new NullAgent());
         var r = sim.World.Region; var c = sim.World.Coef;
         double Mc(Producer p) => EconomyStep.MineralSelfCost(p, r, c, sim.World) + EconomyStep.InputCostPerUnit(p, r, r, c);
-        var musket = Assert.Single(r.Producers, p => p.GoodId == 82 && p.RecipeName == "マスケット");
-        var rifle = Assert.Single(r.Producers, p => p.GoodId == 82 && p.Inputs.Any(inp => inp.GoodId == 32));   // 既定（鋼）レシピ
-        var bessemer = Assert.Single(r.Producers, p => p.GoodId == 32 && p.TechOnset > 0);                     // 既定の鋼＝ベッセマー転炉（onset 0.55）
-        var crucible = Assert.Single(r.Producers, p => p.GoodId == 32 && p.RecipeName == "坩堝鋼");
+        var musket = Assert.Single(r.Producers, p => p.GoodId == Catalog.RifleId && p.RecipeName == "マスケット");
+        var rifle = Assert.Single(r.Producers, p => p.GoodId == Catalog.RifleId && p.Inputs.Any(inp => inp.GoodId == Catalog.SteelId));   // 既定（鋼）レシピ
+        var bessemer = Assert.Single(r.Producers, p => p.GoodId == Catalog.SteelId && p.TechOnset > 0);                     // 既定の鋼＝ベッセマー転炉（onset 0.55）
+        var crucible = Assert.Single(r.Producers, p => p.GoodId == Catalog.SteelId && p.RecipeName == "坩堝鋼");
 
-        r.Markets[32].Price = Mc(crucible);   // ベッセマー以前＝鋼は坩堝鋼の値段
+        r.Markets[Catalog.SteelId].Price = Mc(crucible);   // ベッセマー以前＝鋼は坩堝鋼の値段
         Assert.True(Mc(musket) < Mc(rifle), $"坩堝鋼の値段でマスケットが安くない（マスケット {Mc(musket):F3} / 既定 {Mc(rifle):F3}）");
-        r.Markets[32].Price = Mc(bessemer);   // ベッセマー以後＝鋼が安い
+        r.Markets[Catalog.SteelId].Price = Mc(bessemer);   // ベッセマー以後＝鋼が安い
         Assert.True(Mc(rifle) < Mc(musket), $"ベッセマーの値段で既定の小銃が安くない（既定 {Mc(rifle):F3} / マスケット {Mc(musket):F3}）＝転換が費用で起きない");
     }
 
@@ -195,9 +195,9 @@ public class MilitaryTests
     {
         var sim = new Simulation(NationConfig.Britain().ToScenario(29), new NullAgent());
         var w = sim.World; var r = w.Region; var c = w.Coef;
-        var musket = Assert.Single(r.Producers, p => p.GoodId == 82 && p.RecipeName == "マスケット");
-        var castGun = Assert.Single(r.Producers, p => p.GoodId == 81 && p.RecipeName == "鋳鉄砲");
-        var bessemer = Assert.Single(r.Producers, p => p.GoodId == 32 && p.TechOnset > 0);   // 後継を実用にした発見＝鋼の既定レシピ（ベッセマー転炉）
+        var musket = Assert.Single(r.Producers, p => p.GoodId == Catalog.RifleId && p.RecipeName == "マスケット");
+        var castGun = Assert.Single(r.Producers, p => p.GoodId == Catalog.ArtilleryId && p.RecipeName == "鋳鉄砲");
+        var bessemer = Assert.Single(r.Producers, p => p.GoodId == Catalog.SteelId && p.TechOnset > 0);   // 後継を実用にした発見＝鋼の既定レシピ（ベッセマー転炉）
         var old = new[] { musket, castGun };
 
         // ①1783年＝後継の onset の手前＝満額

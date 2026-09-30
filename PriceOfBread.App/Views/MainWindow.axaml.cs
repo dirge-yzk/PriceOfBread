@@ -354,13 +354,13 @@ public partial class MainWindow : Window
             BootLog.Write($"uishot: 生産タブ撮影済み CurrentPage={mwvm.CurrentPage?.GetType().Name}");
             // 財を選んだ状態（右の詳細パネル）も撮る（2026-08-02）。★ここは長らく無人検証の穴で、
             // 「商品をクリックするとフリーズする」型の不具合を uishot が一度も踏めていなかった。
-            gvm.SelectProdGood(32);   // 鋼（加工財＝工場側。素材だけでなく工場の詳細パネルを踏む）
+            gvm.SelectProdGood(PriceOfBread.SimCore.Catalog.SteelId);   // 鋼（加工財＝工場側。素材だけでなく工場の詳細パネルを踏む）
             await Task.Delay(1200);
             BootLog.Write($"uishot: 財選択後 CurrentPage={mwvm.CurrentPage?.GetType().Name} ProdOpen={gvm.ProdOpen}");
             Capture(dir, $"{k++:D2}_生産タブ_財選択.png");
             // popが直接食べる財も撮る（2026-08-10 項目6）＝用途の先頭に出る「食料」の行は、pop需要のある財でしか撮れない
             // （鋼＝BaseNeed 0 では出ない＝無人撮影の穴だった）。パン(62)＝主食で全州に産地がある。
-            gvm.SelectProdGood(62);
+            gvm.SelectProdGood(PriceOfBread.SimCore.Catalog.BreadId);
             await Task.Delay(1200);
             Capture(dir, $"{k++:D2}_生産タブ_主食を選択.png");
             // ⚠ツールチップは別ウィンドウのポップアップ＝この RenderTargetBitmap には写らない（緊張モーダルと同じ）。

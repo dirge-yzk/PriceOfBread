@@ -37,13 +37,24 @@ public class FactoryTierTests
     [Fact]
     public void 連鎖深さの階層が期待どおり()   // goods.json のレシピ変更で+αの階層が黙って動かないための実測ピン
     {
-        Assert.Equal(0.0, Catalog.Complexity[15]);   // 麦＝RGO（+α対象外）
-        Assert.Equal(0.0, Catalog.Complexity[0]);    // 鉄鉱石＝RGO（+α対象外）
-        Assert.Equal(1.0, Catalog.Complexity[47]);   // 小麦粉＝深さ1（max(0, 深さ−1)=0＝式から+αなし）
-        Assert.Equal(2.0, Catalog.Complexity[57]);   // 衣料＝軽工業（+α深さ1）
-        Assert.Equal(3.0, Catalog.Complexity[32]);   // 鋼＝重工業（+α深さ2）
-        Assert.Equal(5.0, Catalog.Complexity[53]);   // 機械（+α深さ4）
-        Assert.Equal(9.0, Catalog.Complexity[80]);   // 電化製品＝先端（+α深さ8）
+        Assert.Equal(0.0, Catalog.Complexity[Catalog.WheatId]);   // 麦＝RGO（+α対象外）
+        Assert.Equal(0.0, Catalog.Complexity[Catalog.IronOreId]);    // 鉄鉱石＝RGO（+α対象外）
+        Assert.Equal(1.0, Catalog.Complexity[Catalog.FlourId]);   // 小麦粉＝深さ1（max(0, 深さ−1)=0＝式から+αなし）
+        Assert.Equal(2.0, Catalog.Complexity[Catalog.ClothingId]);   // 衣料＝軽工業（+α深さ1）
+        Assert.Equal(3.0, Catalog.Complexity[Catalog.SteelId]);   // 鋼＝重工業（+α深さ2）
+        Assert.Equal(5.0, Catalog.Complexity[Catalog.MachineryId]);   // 機械（+α深さ4）
+        Assert.Equal(9.0, Catalog.Complexity[Catalog.ApplianceId]);   // 電化製品＝先端（+α深さ8）
+    }
+
+    [Fact]
+    public void 焼いた発明の門は連鎖の深さの旧式と一致する()   // ★段0-2（2026-09-30・財の削減の回）：段0 の間だけの番人＝財を畳む段1 で深さが動くので、そこで消す
+    {
+        foreach (var g in Catalog.Goods)
+        {
+            double extra = Catalog.Complexity[g.Id] - 6.0;
+            double old = extra <= 0 ? 0.0 : 0.7 * extra;   // 旧 Catalog.AdvancedOnset（ComplexityOnsetScale×(深さ−ComplexityFreeDepth)）
+            Assert.True(Catalog.AdvancedOnset(g.Id) == old, $"{g.Name}：焼いた発明の門 {Catalog.AdvancedOnset(g.Id):R} ≠ 旧式 {old:R}");
+        }
     }
 
     /// <summary>3世界の単月切り分け：C=建設なし・A=建設(OFF)・B=建設(ON 0.05)。40四半期まで3世界はビット恒等（決定論）
@@ -93,7 +104,7 @@ public class FactoryTierTests
         sOff.Run(40); sOn.Run(40);
         var rOff = sOff.World.Regions[0]; var rOn = sOn.World.Regions[0];
         int mg = sOff.World.Coef.MachineGoodId;
-        foreach (int gid in new[] { 47, 15 })   // 小麦粉＝深さ1・麦＝RGO深さ0
+        foreach (int gid in new[] { Catalog.FlourId, Catalog.WheatId })   // 小麦粉＝深さ1・麦＝RGO深さ0
         {
             var pOff = rOff.Producers.Find(p => p.GoodId == gid); var pOn = rOn.Producers.Find(p => p.GoodId == gid);
             Assert.NotNull(pOff); Assert.NotNull(pOn);
@@ -116,7 +127,7 @@ public class FactoryTierTests
         sim.World.Coef.FactoryTierMachinePerDepth = 0.05;
         double base0 = sim.World.BaseMoney;
         sim.Run(40);
-        Assert.True(sim.World.BuildFactory(0, 32), "着工できない＝テスト前提の破れ");
+        Assert.True(sim.World.BuildFactory(0, Catalog.SteelId), "着工できない＝テスト前提の破れ");
         var ex = Record.Exception(() => sim.Run(60));   // §11.6（保存・非負・財収支）が全ティックで保持
         Assert.Null(ex);
         Assert.True(Math.Abs(sim.World.BaseMoney - base0 - sim.World.CumulativeTradeFlow - sim.World.CumulativeGoldMinted - sim.World.CumulativeFiatIssued) < 1e-6 * base0,
@@ -137,16 +148,16 @@ public class FactoryTierTests
         var c = w.Coef;
         int[] mats = { c.SteelGoodId, c.MachineGoodId, c.CementGoodId, c.LumberGoodId };
         Assert.True(World.ConstructionAfford(w) >= new Coefficients().FactoryStartAffordFloor, "平常の相場で採算が半減点を割っている＝テスト前提の破れ");
-        Assert.True(w.BuildFactory(0, 32), "平常の相場で着工できない＝テスト前提の破れ");
-        var p = World.FindFactory(r, 32);   // 同上＝着工した生産者そのものを掴む（別の生産者の ConstructionLeft を0にしても枝は外れない）
+        Assert.True(w.BuildFactory(0, Catalog.SteelId), "平常の相場で着工できない＝テスト前提の破れ");
+        var p = World.FindFactory(r, Catalog.SteelId);   // 同上＝着工した生産者そのものを掴む（別の生産者の ConstructionLeft を0にしても枝は外れない）
         Assert.NotNull(p);
         p!.ConstructionLeft = 0;                                   // 「建設中」の枝を外し、採算ゲートだけを単離する
         foreach (int id in mats) r.Markets[id].Price *= 10.0;       // 建材束を参照の半減点（FactoryBuildPriceCeil=2.5）の遥か上へ
         Assert.True(World.ConstructionAfford(w) < new Coefficients().FactoryStartAffordFloor);
-        Assert.False(w.BuildFactory(0, 32), "建材が高騰しても着工できる＝ゲートが死んでいる");
+        Assert.False(w.BuildFactory(0, Catalog.SteelId), "建材が高騰しても着工できる＝ゲートが死んでいる");
         Assert.Equal(0.0, p.ConstructionLeft);                      // 拒否は副作用を残さない（UI が false を受けても世界は不変）
         foreach (int id in mats) r.Markets[id].Price /= 10.0;       // 相場が戻れば着工できる＝判定は価格だけに依存する
-        Assert.True(w.BuildFactory(0, 32));
+        Assert.True(w.BuildFactory(0, Catalog.SteelId));
     }
 
     [Fact]
@@ -178,8 +189,8 @@ public class FactoryTierTests
         Assert.Equal(("軽工業", 30_000.0, 4), Catalog.FactorySpec(Catalog.EducationId));
         Assert.Equal(("重工業", 70_000.0, 8), Catalog.FactorySpec(Catalog.HealthcareId));
         Assert.Equal(("先端", 180_000.0, 20), Catalog.FactorySpec(Catalog.HigherEducationId));
-        Assert.Equal(Catalog.FactorySpec(32), Catalog.FactorySpec(Catalog.HealthcareId));          // 病院＝鋼32と同じ組（既存タプルの再利用）
-        Assert.Equal(Catalog.FactorySpec(55), Catalog.FactorySpec(Catalog.HigherEducationId));     // 大学＝発電機55と同じ組
+        Assert.Equal(Catalog.FactorySpec(Catalog.SteelId), Catalog.FactorySpec(Catalog.HealthcareId));          // 病院＝鋼32と同じ組（既存タプルの再利用）
+        Assert.Equal(Catalog.FactorySpec(Catalog.GeneratorId), Catalog.FactorySpec(Catalog.HigherEducationId));     // 大学＝発電機55と同じ組
         var sim = new Simulation(NationConfig.Britain().ToScenario(23), new NullAgent());
         foreach (int gid in new[] { Catalog.EducationId, Catalog.HealthcareId, Catalog.HigherEducationId })
         {
