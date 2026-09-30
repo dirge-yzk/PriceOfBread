@@ -94,7 +94,7 @@ public class TreasuryLedgerTests
         // 国庫を空に＝払える額は当月の歳入の見込みだけ。国庫の現金は1つの POP へ移す（保存則を割らない＝台帳の区分 OtherOut で記帳）。
         // 行政費を歳入の3倍へ＝行政の予算（行政費×AdminBudgetFrac×歳入）が歳入を超える＝r＜1 の月を作る（四半期首の政策の反映の後なので月内は保たれる）
         double drain = w.Treasury + 3 * System.Math.Max(1.0, w.LastRevenue);
-        w.Pay(TreasuryCat.OtherOut, -drain); w.Regions[0].Pops[0].Savings += drain;
+        World.Transfer((w, null), (w, [w.Regions[0].Pops[0]], [1.0]), drain, TreasuryCat.OtherOut);   // 移し方の1本（2026-09-30 段4g＝国庫の口は private）
         w.AdminSpending = 3.0;
         w.Coef.DevaluationCapFrac = 0;   // 切り下げの余地を閉じる（2026-09-28 から切り下げは払える額の側＝仏は不換で、余地が払えない分を埋めて r＝1 になる・切り下げは下の番人が見る）
         w.BorrowCooldown = 1;            // 借りられない月（2026-09-28 (b) から借入は月初の払える額の側＝借りられる月は借りて r＝1 になる・借入と切り下げの順は下の番人が見る）
@@ -270,7 +270,7 @@ public class TreasuryLedgerTests
             foreach (var r in w.Regions)
             {
                 r.StateSpent[(int)TreasuryCat.StateMonopoly] *= 2;
-                foreach (var p in r.Pops) { p.Savings *= 2; p.Earned *= 2; p.LandRent *= 2; p.BondHoldings *= 2; }
+                foreach (var p in r.Pops) { p.SetSavings(p.Savings * (2)); p.Earned *= 2; p.LandRent *= 2; p.BondHoldings *= 2; }
             }
         }
         const double Big = 1e18;
@@ -329,7 +329,7 @@ public class TreasuryLedgerTests
         sim.StepDay();
         var w = sim.World;
         double drain = w.Treasury + 3 * System.Math.Max(1.0, w.LastRevenue);
-        w.Pay(TreasuryCat.OtherOut, -drain); w.Regions[0].Pops[0].Savings += drain;
+        World.Transfer((w, null), (w, [w.Regions[0].Pops[0]], [1.0]), drain, TreasuryCat.OtherOut);   // 移し方の1本（2026-09-30 段4g＝国庫の口は private）
         w.AdminSpending = 3.0;
         w.Coef.DevaluationCapFrac = 0;   // 切り下げの余地を閉じる（仏は不換＝余地が払えない分を埋めて r＝1 になる・切り下げは下の番人が見る）
         double b0 = w.TreasuryLedger[(int)TreasuryCat.Borrow];
@@ -350,12 +350,14 @@ public class TreasuryLedgerTests
                 foreach (var line in System.IO.File.ReadLines(f))
                 {
                     var code = line; int k = code.IndexOf("//", System.StringComparison.Ordinal); if (k >= 0) code = code[..k];
-                    if (code.Contains("Pay(TreasuryCat.Borrow")) borrowSites.Add(System.IO.Path.GetFileName(f));   // 国庫へ起債の金を入れる口（読み手＝台帳の検査や表示の名前は数えない）
+                    // 国庫へ起債の金を入れる口（読み手＝台帳の検査や表示の名前は数えない）。★2026-09-30 段4g：国庫の口（Pay）は private＝起債の金は移し方の1本で
+                    //   国庫（受け手＝(国, null, null)）へ入る行（区分 Borrow）を数える（貸し手の引き落としの戻し＝受け手が世界の外の行は数えない）。
+                    if (System.Text.RegularExpressions.Regex.IsMatch(code, @"Transfer\(.*\((?!null)\w+, null, null\).*TreasuryCat\.Borrow")) borrowSites.Add(System.IO.Path.GetFileName(f));
                     if (code.Contains("Fiscal.Step(")) stepCallers.Add(System.IO.Path.GetFileName(f));
                     if (code.Contains("Fiscal.Borrow(")) borrowCallers.Add(System.IO.Path.GetFileName(f));
                 }
             }
-        Assert.Equal(new[] { "Fiscal.cs" }, borrowSites.ToArray());
+        Assert.Equal(new[] { "Fiscal.cs" }, System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Distinct(borrowSites)));   // 国内の脚と対外の脚（2行）＝同じ関数 Fiscal.Borrow
         Assert.Equal(new[] { "Simulation.cs" }, stepCallers.ToArray());
         Assert.Equal(new[] { "Simulation.cs" }, borrowCallers.ToArray());
     }
@@ -380,7 +382,7 @@ public class TreasuryLedgerTests
             sim.StepDay();
             var w = sim.World;
             double t0 = w.Treasury;
-            w.Pay(TreasuryCat.OtherOut, -t0); w.Regions[0].Pops[0].Savings += t0;   // 国庫を0へ（現金は1つの POP へ移す＝保存則を割らない）
+            World.Transfer((w, null), (w, [w.Regions[0].Pops[0]], [1.0]), t0, TreasuryCat.OtherOut);   // 国庫を0へ（現金は1つの POP へ移す＝保存則を割らない・移し方の1本）
             w.AdminSpending = 3.0;                                                    // 行政の予算が歳入を超える＝r＜1 の月を作る
             w.BorrowCooldown = 1;                                                     // 借りられない月（この月の締めの月初は冷却中）
             if (capZero) w.Coef.DevaluationCapFrac = 0;
@@ -440,7 +442,7 @@ public class TreasuryLedgerTests
             sim.StepDay();
             var w = sim.World;
             double t0 = w.Treasury;
-            w.Pay(TreasuryCat.OtherOut, -t0); w.Regions[0].Pops[0].Savings += t0;   // 国庫を0へ（現金は1つの POP へ移す＝保存則を割らない）
+            World.Transfer((w, null), (w, [w.Regions[0].Pops[0]], [1.0]), t0, TreasuryCat.OtherOut);   // 国庫を0へ（現金は1つの POP へ移す＝保存則を割らない・移し方の1本）
             w.AdminSpending = 3.0;                                                    // 行政の予算が歳入を超える＝払えない月を作る
             for (int d = 0; d < 28; d++) sim.StepDay();
             sim.StepDayOpen(); sim.StepDayDaily();   // 締めの直前＝r を決める時点と同じ国庫と見込み

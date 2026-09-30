@@ -279,7 +279,7 @@ public class TradeClearingTests
         foreach (var n in sim.Nations)
             foreach (var r in n.World.Regions)
                 if (r.State == RegionState.Active && !ReferenceEquals(r, seller) && !ReferenceEquals(r, seller2) && r.MerchantPopIndex >= 0)
-                { r.Pops[r.MerchantPopIndex].Savings = 0; buyers.Add(r); }
+                { r.Pops[r.MerchantPopIndex].SetSavings(0); buyers.Add(r); }
         Assert.True(buyers.Count > 0, "前提が崩れた：買い手の州に商人が居ない");
         var before = new Dictionary<Pop, double>();
         foreach (var r in buyers) foreach (var p in r.Pops) before[p] = p.Savings;
@@ -307,7 +307,7 @@ public class TradeClearingTests
         {
             var mer = r.Pops[r.MerchantPopIndex]; debts[mer] = mer.Debt;
             Pop rich = r.Pops[0]; foreach (var p in r.Pops) if (p.Savings > rich.Savings) rich = p;
-            double proceeds = 2 * mer.Debt; rich.Savings -= proceeds; mer.Savings += proceeds;
+            double proceeds = 2 * mer.Debt; rich.SetSavings(rich.Savings - (proceeds)); mer.SetSavings(mer.Savings + (proceeds));
         }
         foreach (var r in buyers) r.Markets[g].Stock = 1e6;
         sim.Market.Step(sim.Nations, sim.Coef);
@@ -332,7 +332,7 @@ public class TradeClearingTests
                 if (r.State == RegionState.Active && !ReferenceEquals(r, seller) && !ReferenceEquals(r, seller2) && r.MerchantPopIndex >= 0)
                 {
                     var mer = r.Pops[r.MerchantPopIndex];
-                    mer.Savings = 0; mer.Debt = 100; n.World.Bank!.HouseholdLoans += 100;   // 前の清算の手形が返っていない（貯蓄0＝返せない）
+                    mer.SetSavings(0); mer.Debt = 100; n.World.Bank!.HouseholdLoans += 100;   // 前の清算の手形が返っていない（貯蓄0＝返せない）
                     buyers.Add(r);
                 }
         Assert.True(buyers.Count > 0, "前提が崩れた：買い手の州に商人が居ない");
@@ -357,7 +357,7 @@ public class TradeClearingTests
             if (!ReferenceEquals(m, r.Markets[g])) { m.LastDemand = 0; m.TargetStock = 0; m.LastProduced = 0; }
         foreach (var sr in new[] { seller, seller2 }) { var m = sr.Markets[g]; m.Stock = 5000; m.TargetStock = 10; m.LastDemand = 10; m.LastProduced = 5000; }
         seller.Markets[g].Stock = 110;   // 最安の売り手は薄い（出せる量100＜不足）＝次善の売り手へ回る＝旧は次善でも同じ不足を丸ごと数え直した
-        foreach (var r in w.Regions) if (r.MerchantPopIndex >= 0) r.Pops[r.MerchantPopIndex].Savings = 1e9;   // 捌き手の支払能力で量が切られない（切るのは容量だけ）
+        foreach (var r in w.Regions) if (r.MerchantPopIndex >= 0) r.Pops[r.MerchantPopIndex].SetSavings(1e9);   // 捌き手の支払能力で量が切られない（切るのは容量だけ）
         foreach (var r in w.Regions)   // 買い手は内陸の州だけ（港の州は欲しがらない＝最安の売り手の在庫を先に取らない）・量は物理の不足（550）で決まる（価格の量＝需要×参照÷単価 が十分に大きい）
             if (!ReferenceEquals(r, seller) && !ReferenceEquals(r, seller2))
             { var m = r.Markets[g]; if (r.IsPort) { m.LastDemand = 0; m.TargetStock = 0; m.Stock = 0; } else { m.LastDemand = 5000; m.TargetStock = 50; m.Stock = 4500; } }
@@ -419,7 +419,7 @@ public class TradeClearingTests
         foreach (var r in w.Regions) foreach (var m in r.Markets)
             if (!ReferenceEquals(m, r.Markets[g])) { m.LastDemand = 0; m.TargetStock = 0; m.LastProduced = 0; }
         foreach (var sr in new[] { seller, seller2 }) { var m = sr.Markets[g]; m.Stock = 5000; m.TargetStock = 10; m.LastDemand = 10; m.LastProduced = 5000; }
-        foreach (var r in w.Regions) if (r.MerchantPopIndex >= 0) r.Pops[r.MerchantPopIndex].Savings = 1e9;
+        foreach (var r in w.Regions) if (r.MerchantPopIndex >= 0) r.Pops[r.MerchantPopIndex].SetSavings(1e9);
         var inland = new List<Region>();
         foreach (var r in w.Regions)
             if (!ReferenceEquals(r, seller) && !ReferenceEquals(r, seller2))

@@ -116,8 +116,8 @@ public sealed partial class InternationalMarket
         double moved = 0;
         // 国営持分の取り分は国庫へ（受け手の区分は StateFactory）。払い手が自国の国庫なら払い手の区分は買ったものの区分（cat）＝区分だけ動く（段4f＝旧の Pay の2行を移し方の1本へ）。
         if (stateCut > 0)
-            moved += World.Transfer(from, (w, null, null), stateCut, from.Pops is null && ReferenceEquals(from.W, w) ? cat : TreasuryCat.StateFactory, toCat: TreasuryCat.StateFactory, minted: minted);
-        moved += World.Transfer(from, (w, to, wt), amount - stateCut, cat, income: true, minted: minted);
+            moved += World.Transfer(from, (w, null, null), stateCut, from.Pops is null && ReferenceEquals(from.W, w) ? cat : TreasuryCat.StateFactory, toCat: TreasuryCat.StateFactory, outside: minted ? World.Outside.Mint : World.Outside.Border);
+        moved += World.Transfer(from, (w, to, wt), amount - stateCut, cat, income: true, outside: minted ? World.Outside.Mint : World.Outside.Border);
         return moved;
     }
 

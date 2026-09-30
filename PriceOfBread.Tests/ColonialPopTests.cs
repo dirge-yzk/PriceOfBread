@@ -22,7 +22,6 @@ public class ColonialPopTests
         Assert.NotNull(bengal);
         Assert.True(bengal!.PopSize > 0, "植民地に住民が居ない");
         Assert.True(bengal.Militancy > 0, "搾取されているのに不満が育たない");
-        Assert.True(bengal.Savings >= 0, "住民の蓄えが負");
     }
 
     [Fact]

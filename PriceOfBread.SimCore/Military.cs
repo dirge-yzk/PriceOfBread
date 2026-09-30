@@ -239,7 +239,7 @@ public static class Military
 
     /// <summary>海軍の運用燃料（運用コスト監査2026-08-16 #1・休眠）。海軍維持費（NavyUpkeep）は兵数と熟練度にしか行かず、
     /// 艦隊を動かす石炭・重油の物理消費がゼロだった欠落の是正＝国庫が本国市場から燃料を買い焚く（植民地補給線と同じ
-    /// <see cref="Colonial.BuyUpkeepGood"/> 経路＝需要計上・在庫律速・国庫上限・World.Distribute で保存・台帳は TreasuryCat.Navy）。
+    /// <see cref="Colonial.BuyUpkeepGood"/> 経路＝需要計上・在庫律速・国庫上限・移し方の1本〔World.Transfer〕で保存・台帳は TreasuryCat.Navy）。
     /// 需要式＝NavalFuelPerGauge×FleetGauge×NavyUpkeep×蒸気ゲート×EraFactor（帆走時代は燃料ゼロ・NavyUpkeep=係船か常時哨戒か）。
     /// 充足はEMA（World.NavalFuelFillEma）→ Diplomacy の同期が Power.NavalFuelMul（下限フロア付き線形）へ写し
     /// NavalPower の min に緩く噛む（燃料が切れた艦隊は港から出られない）。⚠年号・年代は読まない（蒸気ゲート＝SteamTechOnset のみ）。

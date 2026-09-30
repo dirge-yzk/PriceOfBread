@@ -95,6 +95,10 @@ public static class Fiscal
             if (!(clergySize > 1e-9)) clergy = null;
         }
         double titheCollected = 0;
+        // ★2026-09-30 段4g：払い手と自分の請求（1本の率を掛けた後）を集め、走査の後に移し方の1本で取る（払い手の重み＝自分の請求・払い手ごとの1本の率＝Q4）。
+        //   旧＝走査の中で貯蓄を手で引き（税＋取り分＋十分の一税）、国庫は合計を1回で足した（国庫の片側の記帳）・十分の一税は按分の本体を直に呼んだ。
+        var taxPayers = new List<Pop>(); var taxClaim = new List<double>();
+        var tithePayers = new List<Pop>(); var titheClaim = new List<double>();
         for (int pi = 0; pi < pops.Count; pi++)
         {
             var p = pops[pi];
@@ -163,12 +167,14 @@ public static class Fiscal
             double held = Math.Max(0, p.Savings);
             double rp = held >= claims ? 1.0 : held / claims;   // 1本の率（払える額が足りれば 1＝全額）
             tax *= rp; cut *= rp; tithe *= rp;
-            p.Savings -= tax + cut + tithe;
             if (lord is not null && cut > 0)
             {
-                lord.Savings += cut; lord.Earned += cut;   // 仲介者の取り分（納税者→貴族＝保存）
-                if (c.PrivilegeLedgerEnabled > 0) Privileges.Record(w, Privileges.Seigneurial, cut);
+                // 仲介者の取り分（納税者→貴族＝移し方の1本・所得にも書く）。受け手は重み1（在地の貴族1人＝頭数に依らない＝旧と同じ）。
+                double moved = World.Transfer((w, [p]), (w, [lord], [1.0]), cut, income: true);
+                if (c.PrivilegeLedgerEnabled > 0) Privileges.Record(w, Privileges.Seigneurial, moved);
             }
+            if (tax > 0) { taxPayers.Add(p); taxClaim.Add(tax); }
+            if (tithe > 0) { tithePayers.Add(p); titheClaim.Add(tithe); }
             titheCollected += tithe;
             revenue += tax;
         }
@@ -181,16 +187,16 @@ public static class Fiscal
         //   ⚠NationalConsciousnessCorruptionWeight 係数自体は存続＝読者が別に2箇所生きている（World.civicCarriesEthnic の二重計上回避ゲート・CrownParliament の国民意識蓄積チャネル）。
         double leak = revenue * c.CorruptionMax * w.EffectiveCorruption;
         w.LastTaxLeak = leak;   // 診断：汚職漏れの実額
+        double delivered = 0;
         if (leak > 1e-12)
         {
             var bureaucrats = new List<Pop>();
             foreach (var p in pops) if (p.ClassId == PopClass.Bureaucrat && !p.IsSoldier) bureaucrats.Add(p);   // ClassId 8＝官僚
             if (bureaucrats.Count > 0)
             {
-                // 官僚が実際に受け取れた分だけ歳入から漏れる（官僚popが存在してもSize≈0だとDistributeが未配分で返す＝
-                // 旧コードは戻りを捨てて revenue-=leak だけ実行し、その額が誰の手にも渡らず消えていた＝seed25/27の貨幣保存違反の根因）。
-                double delivered = leak - World.Distribute(bureaucrats, leak);
-                revenue -= delivered;
+                // 官僚が実際に受け取れた分だけ歳入から漏れる（官僚popが存在してもSize≈0なら受け手不在＝移し方の1本が動かさない＝漏れない）。
+                // ★2026-09-30 段4g：納税者→官僚の移し方の1本（払い手の重み＝自分の税の請求＝受け手が2つ〔官僚と国庫〕の1つ目）。旧＝国庫の取り分から按分の本体を直に呼んだ。
+                delivered = World.Transfer((w, taxPayers), (w, bureaucrats, null), leak, fromWeights: taxClaim);
                 // ★特権台帳（段1・観測）：既得の官職の取り分＝官僚へ渡った汚職の分×身分の度合い（猟官1／資格任用0.5／専門0＝PowerShares.PrivilegeIntact と同じ物差し）
                 if (c.PrivilegeLedgerEnabled > 0)
                     Privileges.Record(w, Privileges.VestedOffice, delivered * Privileges.EstateDegree(w));
@@ -205,14 +211,16 @@ public static class Fiscal
                 }
             }
         }
-        w.Pay(TreasuryCat.Tax, revenue);
+        // 国庫の取り分＝税の請求の和−官僚へ漏れた分（納税者→国庫の移し方の1本・払い手の重み＝自分の税の請求＝受け手の2つ目）。動いた額が純税収。
+        revenue = World.Transfer((w, taxPayers), (w, null, null), revenue - delivered, TreasuryCat.Tax, fromWeights: taxClaim);
 
         // 十分の一税（教会税）：大衆（非特権・非兵士＝農民・労働者・職人）の所得の TitheRate を聖職者が受け取る。
         // 公教育に教育の担い手を奪われても食える恒常収入（要望）。pop→聖職者の移転＝国庫を通さず基礎貨幣保存。
         // 1934拡張E6 国教法：寛容化ほど十分の一税の徴収力が下がる（内心の自由=0.6・信仰の自由=0.3＝教会の税権が国家に制限される）。StateReligionGate=0で×1.0＝恒等。
         // 例外①（2026-07-28）：国家無神論＝教会税の全廃（ソ連1918政教分離令＝教会財産の没収・収入源の遮断）。
         // ★段3-4（2026-09-30）：徴収は上の税と同じ1本の率（旧 Privileges.CollectTithe の徴収の走査を畳んだ）。貯蓄は按分の本体（頭数・端数は最後の聖職）・所得も同じ1行で。
-        if (clergy is not null && titheCollected > 0) World.Distribute(clergy, titheCollected, null, income: true);
+        //   ★2026-09-30 段4g：大衆→聖職の移し方の1本（払い手の重み＝自分の十分の一税の請求・受け手は頭数・所得にも書く）。
+        if (clergy is not null && titheCollected > 0) titheCollected = World.Transfer((w, tithePayers), (w, clergy, null), titheCollected, income: true, fromWeights: titheClaim);
         if (c.PrivilegeLedgerEnabled > 0) Privileges.Record(w, Privileges.Tithe, titheCollected);   // ★特権台帳（段1・観測）
         if (c.PrivilegeLedgerEnabled > 0) Privileges.StepMonth(w, c);   // ★特権台帳（段1）：今月の取り分を畳み保有年数を積む（月次・十分の一税の後）
 
@@ -322,12 +330,10 @@ public static class Fiscal
                 if (loans > tre && lo < 1.0) burn = Math.Min(burn, Math.Max(0, w.TotalMoney - (loans - tre) / (1.0 - lo)));
                 if (burn > 1e-12 && sav > 1e-9)
                 {
-                    double baseBefore = w.BaseMoney;
-                    foreach (var p in pops) p.Savings -= burn * (Math.Max(0, p.Savings) / sav);
-                    double drop = baseBefore - w.BaseMoney;   // ★実測で閉じる（意図額をそのまま台帳へ書かない）
-                    if (Math.Abs(drop - burn) > 1e-8 * Math.Max(1.0, Math.Abs(baseBefore)))
-                        throw new InvariantViolationException($"通貨改革：焼却の意図{burn}と基礎貨幣の減少{drop}が不一致");
-                    w.CumulativeFiatIssued -= drop;   // 不換の**回収**＝基礎貨幣の正当な減少源（Invariants の expected が同額下がる）
+                    // ★2026-09-30 段4g：焼却＝全POP（貨幣の保有＝貯蓄の比・d5）→世界の外（不換の発行者＝Outside.Fiat）の移し方の1本＝不換の**回収**
+                    //   （基礎貨幣の正当な減少源＝台帳 CumulativeFiatIssued が動いた額だけ下がる＝Invariants の expected が同額下がる）。
+                    //   旧＝貯蓄を手で引き、基礎貨幣の前後の差を実測して台帳へ書き、意図との不一致を例外で検査した（移し方の1本は動いた額をそのまま台帳へ書く＝構造で閉じる）。
+                    burn = World.Transfer((w, pops), (null, null, null), burn, outside: World.Outside.Fiat);
                     double bite = burn / sav;
                     foreach (var p in pops) p.Militancy = Math.Min(1, p.Militancy + bite);   // 消えた分だけ怒る（新係数を作らない）
                 }
@@ -351,13 +357,14 @@ public static class Fiscal
             : share;
         double foreignDebtFrac = ForeignFrac(foreignShare);
         double foreignInt = interestPaid * foreignDebtFrac;
-        w.Pay(TreasuryCat.Interest, -interestPaid);
         // ★保有台帳（2026-09-21裁定）：国内分の利払いは**保有に比例**。旧＝接5（2026-07-27点火）の「今の貯蓄比」＋頭数比の残り
         //   ＝「保有台帳を持たない現行設計での最良近似」だった（BondInterestSavingsWeighted は台帳で不要になり削除）。
         //   受け手＝国の全POP（階級が落ちて投資家でなくなっても、持っている国債の利子は受け取る）。持ち手不在＝国庫残置（保存）。
+        // ★2026-09-30 段4g：利払いは2つの脚の移し方の1本＝国内の脚（国庫→持ち手・保有の重み）と対外の脚（国庫→世界の外・国境の出入りの台帳）。
+        //   旧＝国庫から全額を引き、持ち手へ配れなかった分を戻し（Fiscal.PayBondHolders＝削除）、対外の流出は台帳を手で書いた。
         double domInt = interestPaid - foreignInt;
-        if (domInt > 1e-12) { double back = PayBondHolders(pops, domInt, 0); if (back > 0) w.Pay(TreasuryCat.Interest, back); }
-        w.CumulativeTradeFlow -= foreignInt;   // 対外流出（保存）
+        if (domInt > 1e-12) { var (holders, held) = BondHolders(pops); World.Transfer((w, null), (w, holders, held), domInt, TreasuryCat.Interest); }
+        World.Transfer((w, null), (null, null, null), foreignInt, TreasuryCat.Interest);   // 対外流出（国境の出入りの台帳へ＝保存）
         w.ForeignIntPaidThisQuarter += foreignInt;   // 02断線走査（2026-07-28）：CapitalMarketが債権国投資家へ配当（旧＝世界から消えるだけの片側記帳）
         // ★利子の未払いは元本へ繰り入れる（作者裁定 Q3・2026-09-28）＝お金は動かない・請求権だけが増える。国内分は持ち手の保有へ（保有に比例＝台帳の不変条件
         //   Σ保有＝GovDebt−ForeignDebt を保つ）・対外分は対外債へ（CapitalMarket が新しい対外債として債権国へ付ける）。持ち手のいない国内分は債権者がいない＝繰り入れない。
@@ -404,17 +411,26 @@ public static class Fiscal
             double shareNow = PoliticalQuantities.Clamp01(w.ForeignDebt / w.GovDebt);
             double frForeign = repay * shareNow;   // ★2026-09-26：旗 DebtRepayUsesPrincipalShare（点火2026-09-05）を焼き込み（x-01）＝元本の比
             double domBefore = w.GovDebt - w.ForeignDebt;
-            w.Pay(TreasuryCat.DebtRepay, -repay); w.GovDebt -= repay; w.ForeignDebt = Math.Max(0, w.ForeignDebt - frForeign);
+            w.GovDebt -= repay; w.ForeignDebt = Math.Max(0, w.ForeignDebt - frForeign);
             // ★保有台帳（2026-09-21裁定）：国内分の償還は**保有に比例**して払い、同じ比で保有を減らす
             //   （旧＝貯蓄比で買い・頭数比で償還＝往復ごとに富裕な資本家から貧しい資本家へ富が移る分子と分母の非対称）。
             //   減らす額＝国内元本の実減（GovDebt−ForeignDebt の差分）＝台帳と元本が同じ量で動く。持ち手不在＝国庫残置（債権者の消えた国内債は実質帳消し・保存）。
-            double back = PayBondHolders(pops, Math.Max(0, repay - frForeign), domBefore - (w.GovDebt - w.ForeignDebt));
-            if (back > 0) w.Pay(TreasuryCat.DebtRepay, back);
+            // ★2026-09-30 段4g：減債も利払いと同じ2つの脚の移し方の1本（国内＝国庫→持ち手・保有の重み／対外＝国庫→世界の外・国境の出入りの台帳）。
+            //   保有を同じ比で縮める1行は旧 Fiscal.PayBondHolders（削除）からここへ（計画 §10-12-2-4）。
+            var (holders, held) = BondHolders(pops);
+            double heldTotal = 0; foreach (var h in held) heldTotal += h;
+            World.Transfer((w, null), (w, holders, held), Math.Max(0, repay - frForeign), TreasuryCat.DebtRepay);
+            double principal = domBefore - (w.GovDebt - w.ForeignDebt);
+            if (principal > 0 && heldTotal > 0)
+            {
+                double keep = principal < heldTotal ? 1.0 - principal / heldTotal : 0.0;   // 同じ比で減らす＝和は total−principal（負にしない）
+                foreach (var p in pops) p.BondHoldings *= keep;
+            }
             // ★対外の元本も利子と同じ管で債権国へ（2026-09-22）：旧＝ここで流出を記帳するだけで、CapitalMarket は債権（ForeignBondClaims）を
             //   減らすだけ＝**どの貸し手にも金が届かず世界から消えていた**（国ごとの保存は閉じるので計器に掛からない片側記帳。
             //   seed1789・604四半期で 467,565）。利払い（上の foreignInt）と貸付（MultiNationSim の貸し手の引き落とし）は両建てだった。
             //   CapitalMarket が四半期末に、減らした債権と同じ比（＝債権の比）で債権国の投資家へ GiveGold する。
-            w.CumulativeTradeFlow -= frForeign;
+            World.Transfer((w, null), (null, null, null), frForeign, TreasuryCat.DebtRepay);   // 対外の元本の流出（国境の出入りの台帳へ）
             w.ForeignIntPaidThisQuarter += frForeign;
             // （返せた分だけ国債と翌月の利払いが減る＝借入の上限〔利払い÷歳入〕から離れる。旧のスタックの減算は 2026-09-28 にスタックごと削除）
         }
@@ -708,37 +724,36 @@ public static class Fiscal
         // ★保有台帳（2026-09-21裁定）：各資本家は**払った額だけ**国債を持つ（台帳は金を動かさない＝払う額の式は旧と同一）。
         //   ⚠門を `capSavings > 1e-9` から `> 0` へ：旧は 0<capSavings≤1e-9 のとき国内分（≤capSavings×BondAppetite）が誰からも引かれずに
         //   国庫へ湧き、持ち手のいない元本が立っていた。capSavings=0 なら domesticPool=0＝foreignPool/pool=1 で domesticPortion は厳密に0。
+        // ★2026-09-30 段4g：借入は2つの脚の移し方の1本＝国内の脚（資本家→国庫＝貯蓄の比＝旧の式そのまま・保有は払い手ごとの動いた額）と
+        //   対外の脚（世界の外→国庫＝国境の出入りの台帳・貸し手の引き落としの予約）。旧＝資本家の貯蓄を手で引き、国庫へ合計を1回で足し（片側の記帳）、台帳を手で書いた。
+        double domesticMoved = 0;
         if (domesticPortion > 0 && capSavings > 0)
-            foreach (var p in capitalists)
-            {
-                double paid = domesticPortion * (Math.Max(0, p.Savings) / capSavings);
-                p.Savings -= paid; p.BondHoldings += paid;   // 国内＝資本家貯蓄→国庫（純移転・クラウディングアウト）＋同額の保有
-            }
-        w.CumulativeTradeFlow += foreignPortion;   // 海外＝対外資本流入（BaseMoney+CumulativeTradeFlow同時＝保存）
+        {
+            var paid = new List<double>(capitalists.Count);
+            domesticMoved = World.Transfer((w, capitalists), (w, null, null), domesticPortion, TreasuryCat.Borrow, taken: paid);   // 国内＝資本家貯蓄→国庫（純移転・クラウディングアウト）
+            for (int i = 0; i < paid.Count; i++) capitalists[i].BondHoldings += paid[i];   // ＋払った額だけの保有
+        }
+        World.Transfer((null, null), (w, null, null), foreignPortion, TreasuryCat.Borrow);   // 海外＝対外資本流入（BaseMoney+CumulativeTradeFlow同時＝保存）
         w.PendingForeignBorrow += foreignPortion;   // ★§1-4：貸し手側の引き落とし予約（四半期末に MultiNationSim が他国資本家から対称に控除＝両建て）。旗 ForeignLendingDebits は2026-09-26に焼き込み（x-01）
-        w.Pay(TreasuryCat.Borrow, borrowed); w.GovDebt += borrowed; w.ForeignDebt += foreignPortion;
+        double added = domesticMoved + foreignPortion;   // 国庫へ入った額（国内は動いた額＝払い手ごとの額の和）＝国債の元本も同じ額
+        w.GovDebt += added; w.ForeignDebt += foreignPortion;
         // ★段3-3（C13・2026-09-30）：対外分の債権は四半期末の貸し手の引き落とし（MultiNationSim）が**払った額そのもの**で貸し手の国へ付ける＝
         //   CapitalMarket の繰上げ（ForeignDebt−PrevForeignDebt）で数え直さない（払えなかった分は引き落としが両方から戻す）。
         w.PrevForeignDebt += foreignPortion;
         // R9：新発債を現行市場金利で既往クーポンへ加重平均で混ぜる（BondRolloverFrac<1の時のみ意味を持つ。既定1.0では月末の Step の rollover で GovBondRate に上書き＝ビット一致）。残高0からの借入はdebtBefore=0で現行金利へ自然収束
-        { double debtBefore = w.GovDebt - borrowed; w.GovAvgCoupon = (debtBefore * w.GovAvgCoupon + borrowed * w.GovBondRate) / System.Math.Max(1e-9, w.GovDebt); }
-        return borrowed;
+        { double debtBefore = w.GovDebt - added; w.GovAvgCoupon = (debtBefore * w.GovAvgCoupon + added * w.GovBondRate) / System.Math.Max(1e-9, w.GovDebt); }
+        // 返り値＝借りた額（貸し手に割り当てた額）＝呼び手（月初の Simulation）が払える額の見込みへ足す。国内の脚の動いた額は払い手ごとの額の和＝割り当てた額と端数の丸め
+        //   （1ulp）だけ違う＝払える額の見込み（歳入の見込みと同じ見込みの量）は割り当てた額で数える＝「払えない額をちょうど借りた月の r は 1」を保つ（2026-09-30 段4g）。
+        return domesticMoved > 0 ? borrowed : foreignPortion;
     }
 
-    /// <summary>★国債の保有台帳（2026-09-21裁定）：cash を**保有に比例**して配り、principal ぶん保有を同じ比で減らす。
-    /// 台帳は金を動かさない＝配る金は呼び手が国庫から出した cash だけ。★支払いの一元化 段2-3（E1・2026-09-29）：配るのは按分の本体 World.Distribute
-    /// （持ち手＝保有が正の POP・重み＝保有・端数は最後の持ち手＝旧と同じ式）。持ち手不在（保有の和≈0）なら cash をそのまま返す＝呼び手が国庫残置して保存則を守る。</summary>
-    private static double PayBondHolders(List<Pop> pops, double cash, double principal)
+    /// <summary>★国債の持ち手と保有（2026-09-21 保有台帳・2026-09-30 段4g に旧 PayBondHolders を移し方の1本へ畳んだ残り）＝保有が正の POP と、その保有（受け手の重み）。
+    /// 利払いと減債の国内の脚が読む（持ち手＝保有が正の POP・重み＝保有・端数は最後の持ち手）。持ち手不在（保有の和≈0）なら移し方の1本は動かさない＝国庫残置（保存）。</summary>
+    private static (List<Pop> Holders, List<double> Held) BondHolders(List<Pop> pops)
     {
-        var holders = new List<Pop>(); var held = new List<double>(); double total = 0;
-        foreach (var p in pops) if (p.BondHoldings > 0) { holders.Add(p); held.Add(p.BondHoldings); total += p.BondHoldings; }
-        double back = World.Distribute(holders, cash, held);
-        if (principal > 0 && total > 0)
-        {
-            double keep = principal < total ? 1.0 - principal / total : 0.0;   // 同じ比で減らす＝和は total−principal（負にしない）
-            foreach (var p in pops) p.BondHoldings *= keep;
-        }
-        return back;
+        var holders = new List<Pop>(); var held = new List<double>();
+        foreach (var p in pops) if (p.BondHoldings > 0) { holders.Add(p); held.Add(p.BondHoldings); }
+        return (holders, held);
     }
 
     /// <summary>★対外債の起票の1本（2026-09-21 保有台帳の国外振替・2026-09-30 段3-3 で国家間の移転の未払いへ広げた）：請求権 h（発行国の通貨）を

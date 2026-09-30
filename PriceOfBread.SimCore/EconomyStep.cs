@@ -1451,7 +1451,7 @@ public static class EconomyStep
                     //   RemainingBudget を増やさないとその月に使えない。貨幣は Bank.HouseholdLoans が対で作る＝ΔBaseMoney=0。
                     // ★主食の tier に限る＝質屋は食い扶持のための信用であって奢侈のためではない（新しい優先順位規則を書かずに史実の形になる）。
                     // ⚠自給農民には原理的に効かない（marketNeed が自給ぶん減っているため）＝機構の適用範囲であって欠陥ではない。
-                    if (coef.PopDebtDriven > 0 && coef.HouseholdCreditMonths > 0 && bank is not null
+                    if (coef.PopDebtDriven > 0 && coef.HouseholdCreditMonths > 0 && bank is not null && world is not null
                         && (staple || coef.HouseholdCreditStapleOnly <= 0))
                     {
                         double shortfall = (desired - p.RemainingBudget / buyerPrice) * buyerPrice;
@@ -1461,7 +1461,7 @@ public static class EconomyStep
                             double borrow = Math.Min(shortfall, Math.Max(0, creditCap));
                             if (borrow > 0)
                             {
-                                bank.Lend(p, borrow); p.RemainingBudget += borrow;   // 債務の記録・預金・家計の与信を同じ額で（Bank.Lend の1本）
+                                Bank.Lend(world, p, borrow); p.RemainingBudget += borrow;   // 債務の記録・預金・家計の与信を同じ額で（Bank.Lend の1本）
                                 if (world is not null) world.HouseholdCreditIssued += borrow;
                             }
                         }
@@ -2424,7 +2424,7 @@ public static class EconomyStep
 
         foreach (var p in region.Pops)
         {
-            p.Savings += p.Earned - p.Paid;
+            p.SettleMonth();   // 月末の精算＝貯蓄 += 所得 − 支払い（Pop の中の1本・2026-09-30 段4g）
             // （退蔵結晶化 段3＝HoardCrystallizeRate と結晶資産 Pop.IlliquidWealth は 2026-09-26 に削除＝休眠の枝だけが書き、常に0を運んでいた）
             // ★★★**これは「満足度」ではなく「生活水準」である**（作者裁定 2026-08-19）。
             //   ⚠**必要なものをどれだけ買えているかだけ**で決まる。直接バフ4件（時短/電化/福祉/年金）は物理削除2026-08-21（思想⑨・各墓標＝Coefficients）。

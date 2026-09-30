@@ -587,7 +587,7 @@ public class EconomyTests
         stopped!.Output = 0;   // 止まった工場＝再点火の発注（ReignitionDemandFrac×DesiredOutput−Output）が立つ
         w.Coef.ReignitionDemandFrac = 2.0;   // 盤面の係数（この国の係数だけ）＝産出が採算の量の2倍に届かない全ての生産者に発注が立つ（月初に産出が引き直されても請求が立つ）
         var owner = region.Pops[stopped.OwnerPopIndex];
-        owner.Savings = Math.Max(owner.Savings, 1e9);   // 持ち主の予算が発注を満たす（充足率1）
+        owner.SetSavings(Math.Max(owner.Savings, 1e9));   // 持ち主の予算が発注を満たす（充足率1）
         foreach (var inp in stopped.Inputs) region.Markets[inp.GoodId].Stock = Math.Max(region.Markets[inp.GoodId].Stock, 1e6);   // 投入の在庫＝配給率が正＝請求が立つ
         var s0 = region.Pops.Select(p => p.Savings).ToArray();
         EconomyStep.Run(region, w.Coef, 1.0, w.Bank, w);

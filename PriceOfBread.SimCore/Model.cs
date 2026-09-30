@@ -128,7 +128,11 @@ public sealed class Pop
     public string ClassName = "";
     public bool IsUrban;
     public double Size;
-    public double Savings;
+    /// <summary>貯蓄（お金の口座）。★2026-09-30 段4g（作者裁定 Q13＝コンパイラの番人）：**書けるのは Pop の中だけ**＝按分の本体（<see cref="Distribute"/>）・
+    /// 移し方の払い手の側（<see cref="Take"/>）・人と動くお金の運搬（<see cref="Carry"/>）・国の換算（<see cref="Rebase"/>）・月末の精算（<see cref="SettleMonth"/>）。
+    /// 外の書き手は移し方の1本（<see cref="World.Transfer"/>＝相手を名乗る）を通す＝片側だけの記帳は型で書けない。初期化子（<c>new Pop { Savings = … }</c>＝構築）は <c>init</c>。</summary>
+    public double Savings { get => _savings; init => _savings = value; }
+    private double _savings;
     /// <summary>個人債務（設計＝docs/202608/20260802_POPの個人債務_部分完了.md・2026-08-02）。⚠**貨幣ではない**——
     /// <see cref="Bank.HouseholdLoans"/>（そちらが貨幣）の内訳＝「誰の分か」を持つ記録である。
     /// ⚠★<c>World.OutstandingLoans</c> に足してはならない（両方足すと貨幣が二重に消える）。
@@ -285,9 +289,68 @@ public sealed class Pop
     /// 国内（同じ通貨）は同じ額（上の5引数）。国債の保有は国内だけ運ぶ（越境は発行国の対外債へ振り替えて 0）。</summary>
     internal static void Carry(Pop from, Pop to, double savings, double debt, double bond, double savingsIn, double debtIn)
     {
-        from.Savings -= savings; from.Debt -= debt; from.BondHoldings -= bond;
-        to.Savings += savingsIn; to.Debt += debtIn; to.BondHoldings += bond;
+        from._savings -= savings; from.Debt -= debt; from.BondHoldings -= bond;
+        to._savings += savingsIn; to.Debt += debtIn; to.BondHoldings += bond;
     }
+
+    /// <summary>★按分の1本（支払いの一元化 段1-2・2026-09-28＝旧 Fiscal.Distribute の本体・2026-09-30 段4g に World から Pop へ移した＝貯蓄の書き手を Pop の中へ）。
+    /// 額×(重み÷合計) を先頭から順に足し、端数は最後の受け手へ＝合計が厳密に <paramref name="amount"/>（複合代入の罠を避ける2文）。
+    /// 重み＝<paramref name="weights"/>（pops と同じ並び・呼び手が今の時点の値で詰める）／null なら頭数（Size）。
+    /// 受け手不在（空リスト・重みの合計≈0）なら配れなかった額を返す（移し方の1本は受け手不在を先に確かめる＝動かさない）。
+    /// ⚠否定形のガード＝NaN の額・合計は配らない。**額は符号つき**（負の額＝重みの比で取る）・**微小な額も配る**。額が0か NaN なら何もせず 0 を返す。
+    /// <paramref name="income"/>＝受け取りを所得（Earned）にも同じ額で書く＝月次の精算の後の受け取りが所得・信用枠・票・課税の基数に載る。
+    /// 呼び手＝移し方の1本（<see cref="World.Transfer"/>）だけ（2026-09-30 段4g＝外から呼ぶ7行を移し方の1本へ畳んだ）。</summary>
+    internal static double Distribute(List<Pop> pops, double amount, List<double>? weights = null, bool income = false)
+    {
+        if (!(Math.Abs(amount) > 0)) return 0;
+        if (pops.Count == 0) return amount;
+        double total = 0;
+        if (weights is null) foreach (var p in pops) total += p.Size;
+        else foreach (var x in weights) total += x;
+        if (!(total > 1e-9)) return amount;
+        double done = 0;
+        for (int i = 0; i < pops.Count; i++)
+        {
+            double share = i < pops.Count - 1 ? amount * ((weights is null ? pops[i].Size : weights[i]) / total) : amount - done;
+            pops[i]._savings += share; if (income) pops[i].Earned += share;
+            done += share;
+        }
+        return 0;
+    }
+
+    /// <summary>★移し方の1本の払い手の側（2026-09-30 段4g＝World.Transfer から Pop へ移した＝貯蓄の書き手を Pop の中へ）。戻り値＝動いた額（引いた額の和）。
+    /// <paramref name="weights"/>＝null なら**貯蓄の保有の比**（d5）：取る額＝min(額, Σmax(0,貯蓄))・各自＝取る額×max(0,貯蓄)÷Σ（旧の式のまま）。
+    /// 重みがあれば**払い手ごとの自分の請求**：各自の請求＝重み×(額÷Σ重み)・払うのは自分の貯蓄まで（max(0,貯蓄)）＝払い手ごとの1本の率（作者裁定 Q4）。
+    ///   呼び手が額に Σ重み（同じ並びの和）を渡せば 額÷Σ重み＝1 ちょうど＝請求そのもの。
+    /// <paramref name="taken"/>＝非 null なら払い手ごとの動いた額を並びの順に足す。否定形のガード＝NaN の額・請求は取らない。</summary>
+    internal static double Take(List<Pop> payers, double amount, List<double>? weights = null, List<double>? taken = null)
+    {
+        double moved = 0;
+        if (weights is null)
+        {
+            double held = 0;
+            foreach (var p in payers) held += Math.Max(0, p._savings);
+            double take = Math.Min(amount, held);
+            if (!(take > 1e-12) || !(held > 1e-9)) return 0;
+            foreach (var p in payers) { double s = take * (Math.Max(0, p._savings) / held); p._savings -= s; moved += s; taken?.Add(s); }
+            return moved;
+        }
+        double tw = 0;
+        foreach (var x in weights) tw += x;
+        if (!(tw > 0)) return 0;
+        double scale = amount / tw;
+        for (int i = 0; i < payers.Count; i++)
+        {
+            double claim = weights[i] * scale, h = Math.Max(0, payers[i]._savings);
+            double s = !(claim > 0) ? 0 : claim <= h ? claim : h;
+            if (s > 0) { payers[i]._savings -= s; moved += s; }
+            taken?.Add(s);
+        }
+        return moved;
+    }
+
+    /// <summary>★月末の精算（月内の仮勘定＝1本の月内の形・計画 §10-12-2-3）＝その月の所得と支払いの差を貯蓄へ（EconomyStep の月の終わり・2026-09-30 段4g に Pop の中へ移した）。</summary>
+    internal void SettleMonth() => _savings += Earned - Paid;
 
     /// <summary>★人の移し方の1本（2026-09-30 処理の一元化 段4e I＝設計の <c>PopTransfer.Blend</c>・Pop の中の1本）：<paramref name="from"/> から <paramref name="to"/> へ
     /// <paramref name="n"/> 人を移し、移る組の属性を受け手へ人数で混ぜ、人と動くお金（貯蓄・債務・国債の保有＝1人あたりの按分）を <see cref="Carry"/> で運ぶ。
@@ -368,7 +431,7 @@ public sealed class Pop
     /// 受け手の国の通貨へ（換算の1本 <see cref="World.CrossFx"/>・差は換算の台帳へ・債務は負の額として換算）。国債の保有は発行国の対外債へ振り替える（呼び手）。</summary>
     internal void Rebase(World from, World to)
     {
-        Savings = World.CrossFx(from, to, Savings);
+        _savings = World.CrossFx(from, to, _savings);
         Debt = -World.CrossFx(from, to, -Debt);
     }
 

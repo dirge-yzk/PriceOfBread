@@ -341,7 +341,7 @@ public class ElectionAiTests
         return (pops, sav);
     }
     private static void RestoreSavings((List<Pop> Pops, double[] Savings) snap)
-    { for (int i = 0; i < snap.Pops.Count; i++) snap.Pops[i].Savings = snap.Savings[i]; }
+    { for (int i = 0; i < snap.Pops.Count; i++) snap.Pops[i].SetSavings(snap.Savings[i]); }
 
     private static ElectionEvent Agenda(int ideo, PolicyAxis a, bool inc)
         => new() { AgendaIdeologies = [ideo], AgendaAxes = [a], AgendaIncrease = [inc], AgendaLabels = ["試験の看板"] };

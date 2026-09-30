@@ -684,11 +684,9 @@ public sealed class World
             if (-net > System.Math.Max(0, margin)) return;   // 余白超え＝動かせない（史実の政府の力の範囲＝傾きかけた天秤しか押せない）。金も払わない
             Legitimacy = System.Math.Max(0, Legitimacy - (-net) * effect);   // 正統性の項（逆風を押した度合い＝効きに比例）
         }
-        // 金の代価＝投入額そのもの。既存の国庫支出と同じ作法（Territory の武力解錠・Colonial の維持費と同型）＝
-        // 国庫から引き、届かなかった分だけ国庫へ戻す＝貨幣は湧かず消えない（leakhunt が検出する保存則）。
-        Pay(TreasuryCat.OtherOut, -amount);
-        // 選挙資金は**有権者の重みで** pop へ配る（保存）。重みは効きを決めるのと同じ 規模×FranchiseVoice＝金は票を持つ者に渡る
-        // （制限選挙では名望家へのパトロネジ・普通選挙では大衆へ薄く）。受け手不在（有権者ゼロ）＝国庫へ戻す。
+        // 金の代価＝投入額そのもの。選挙資金は**有権者の重みで** pop へ配る（国庫→有権者＝移し方の1本・保存）。重みは効きを決めるのと同じ 規模×FranchiseVoice
+        // ＝金は票を持つ者に渡る（制限選挙では名望家へのパトロネジ・普通選挙では大衆へ薄く）。受け手不在（有権者ゼロ）＝動かさない（国庫に残る）。
+        // ★段4g（2026-09-30）：旧＝国庫から全額を引き、配れなかった額を戻す2行（国庫の片側の記帳）。
         var voters = new List<Pop>(); var voice = new List<double>();
         foreach (var p in AllPops())
         {
@@ -696,7 +694,7 @@ public sealed class World
             if (v <= 1e-9) continue;
             voters.Add(p); voice.Add(v);
         }
-        Pay(TreasuryCat.OtherOut, Distribute(voters, amount, voice));
+        Transfer((this, null), (this, voters, voice), amount, TreasuryCat.OtherOut);
         ElectionPushIdeology = ideology;
         ElectionPushStrength = effect;
         // ★マニフェスト＝加担した議題を公約として持つ（達成判定は Parliament.StepManifesto・作者指示2026-08-24）
@@ -709,53 +707,44 @@ public sealed class World
         ElectionsBacked++;   // 診断カウンタ（E4・書くだけ）：加担が**成立**した回数＝プレイヤー/AI共通の1点で数える
     }
 
-    /// <summary>★按分の1本（支払いの一元化 段1-2・2026-09-28＝旧 Fiscal.Distribute の本体をここへ移した）。
-    /// 額×(重み÷合計) を先頭から順に足し、端数は最後の受け手へ＝合計が厳密に <paramref name="amount"/>（複合代入の罠を避ける2文）。
-    /// 重み＝<paramref name="weights"/>（pops と同じ並び・呼び手が今の時点の値で詰める）／null なら頭数（Size）。
-    /// 受け手不在（空リスト・重みの合計≈0）なら配れなかった額を返す＝呼び手が出所へ戻して保存則を守る
-    /// （貨幣保存リーク修正 2026-07-07：国内債権者が州割譲で転出し capitalists が空になると、利払い/減債の国内分が国庫から引かれたまま無配分で消えていた）。
-    /// ⚠否定形のガード＝NaN の額・合計は配らない。旧の複製（Colonial.DistributeToPops・World.DistributeToVoters・GiveGold と信用の利息の配当・
-    ///   保険の受け手側）は式・足し順・端数の行き先・縮退の枝が同じだったのでここへ畳んだ。
-    /// ★段2-3（2026-09-29）：縮退の枝が違った複製（符号つきの与信の注入と回収・貿易の残余・国債の持ち手・窃盗・年金・恐怖政治・十分の一税・運河と港・招聘の支度金）も
-    ///   ここへ畳んだ＝**額は符号つき**（負の額＝重みの比で取る・与信の回収と貿易の赤字）・**微小な額も配る**（旧＝1e-12 以下は配らずに 0 を返した＝呼び手が
-    ///   配ったものとして扱い、その分が消えた）。額が0か NaN なら何もせず 0 を返す。
-    /// ★段3-1（2026-09-29）：<paramref name="income"/>＝受け取りを所得（Earned）にも同じ額で書く＝月次の精算（EconomyStep の Savings += Earned − Paid）の後の受け取り
-    ///   （輸出代金・輸送財の代金・運賃・仲介料・十分の一税・領主の取り分）が所得・信用枠・票・課税の基数に載る。書き込みの行は1つ（端数は最後の受け手＝同じ式を1行へ）。</summary>
-    internal static double Distribute(List<Pop> pops, double amount, List<double>? weights = null, bool income = false)
+    /// <summary>★移し方の1本の世界の外の側（2026-09-30 段4g）＝世界の中の側の台帳の種類。お金が国境を越える／生まれる／消える経路は全て、動いた額をそのまま
+    /// この台帳へ書く（計画 §10-12-2）。保存量 D＝BaseMoney−TradeFlow−GoldMinted−FiatIssued・BaseMoney＝Σ貯蓄＋国庫−(Loans＋HouseholdLoans)＝どの台帳も
+    /// 「流入で増え・流出で減る」同じ符号（与信は貸しで増え・返しで減る）。</summary>
+    internal enum Outside : byte
     {
-        if (!(Math.Abs(amount) > 0)) return 0;
-        if (pops.Count == 0) return amount;
-        double total = 0;
-        if (weights is null) foreach (var p in pops) total += p.Size;
-        else foreach (var x in weights) total += x;
-        if (!(total > 1e-9)) return amount;
-        double done = 0;
-        for (int i = 0; i < pops.Count; i++)
-        {
-            double share = i < pops.Count - 1 ? amount * ((weights is null ? pops[i].Size : weights[i]) / total) : amount - done;
-            pops[i].Savings += share; if (income) pops[i].Earned += share;
-            done += share;
-        }
-        return 0;
+        /// <summary>国境の出入り（<see cref="CumulativeTradeFlow"/>・既定）＝対外の相手が四半期末に決まる出入り・貿易・移転。</summary>
+        Border,
+        /// <summary>造幣局（<see cref="CumulativeGoldMinted"/>）＝鋳造の代金と準備の売却（段3-5・C8）。</summary>
+        Mint,
+        /// <summary>不換の発行者（<see cref="CumulativeFiatIssued"/>）＝切り下げの新規発行と通貨改革の焼却。</summary>
+        Fiat,
+        /// <summary>銀行の与信（<see cref="Bank.Loans"/>）＝企業の貸しと回収・損失の負債化・預金者への利息の繰り入れ。</summary>
+        Credit,
+        /// <summary>銀行の家計の与信（<see cref="Bank.HouseholdLoans"/>）＝手形の振り出しと決済・消費者信用と返済（<see cref="Bank.Lend"/>）。</summary>
+        HouseholdCredit,
     }
 
     /// <summary>★お金の移し方の1本（支払いの一元化 段2-3・2026-09-29＝旧 MultiNationSim.TransferToPops を World へ移して一般化・計画 §10-12-2）。
     /// 払い手から受け手へ、1回の呼び出しで**両側**を書く。戻り値＝動いた額（払い手から引いた額と受け手へ渡した額は同じ＝旧の「払い手からは Σ(take×w/Σ)・受け手へは take」の端数の不一致〔A4〕が構造的に消える）。
-    /// 側＝(国, null)＝その国の国庫（区分 <paramref name="cat"/>）／(国, POP の集合)＝POP／(null, null)＝世界の外（鋳造・与信・対外の相手が四半期末に決まる出入り）。
-    /// 払える額：POP＝Σmax(0,貯蓄)＝**貯蓄の保有の比で取る**（この段の払い手は全て貨幣の保有に掛かる名目＝d5。払い手を実際の当事者へ替えるのは段3）／
-    ///   国庫と世界の外＝上限なし（国庫は呼び手が国家の支払い率 r を掛けた額を渡す＝§10-12-3-3）。
-    /// 受け手：POP＝<see cref="Distribute"/> の本体（重み null＝頭数）／国庫＝<see cref="Pay"/>。**受け手不在（空・重みの合計≈0）なら動かさない**＝払い手に残る。
-    /// 世界の台帳：両側の国が違えば払い手の国の CumulativeTradeFlow を減らし受け手の国を増やす（片側が世界の外なら世界の中の側だけ）＝台帳を書くのはここの1か所。
-    /// ⚠払い手と受け手の集合が重なってもよい（先に取り、後で配る＝両建てで純保存）。否定形のガード＝NaN と負の額は動かさない（負の額の按分は Distribute）。
+    /// 側＝(国, null)＝その国の国庫（区分 <paramref name="cat"/>）／(国, POP の集合)＝POP／(null, null)＝世界の外（台帳の種類は <paramref name="outside"/>）。
+    /// ⚠POP の側は国を名乗る（(null, POP) は台帳に載らない＝例外・2026-09-30 段4g の番人）。
+    /// 払える額：POP＝Σmax(0,貯蓄)。取り方は2つ＝<paramref name="fromWeights"/> が null なら**貯蓄の保有の比**（貨幣の保有に掛かる名目＝d5）／
+    ///   重みがあれば**払い手ごとの自分の請求**（重み×(額÷Σ重み)＝呼び手が額に Σ重み〔同じ順の和〕を渡せば請求そのもの・払い手ごとに自分の貯蓄まで＝払い手ごとの1本の率〔Q4〕）。
+    ///   国庫と世界の外＝上限なし（国庫は呼び手が国家の支払い率 r を掛けた額を渡す＝§10-12-3-3）。<paramref name="taken"/> を渡せば払い手ごとの動いた額を並びの順に足す（国債の保有の記帳）。
+    /// 受け手：POP＝<see cref="Pop.Distribute"/> の本体（重み null＝頭数）／国庫＝<see cref="Pay"/>。**受け手不在（空・重みの合計≈0）なら動かさない**＝払い手に残る。
+    /// 世界の台帳：両側の国が違えば払い手の国の台帳を減らし受け手の国を増やす（片側が世界の外なら世界の中の側だけ）＝台帳を書くのはここの1か所（<see cref="Book"/>）。
+    /// ⚠払い手と受け手の集合が重なってもよい（先に取り、後で配る＝両建てで純保存）。否定形のガード＝NaN と負の額は動かさない。
     /// ★段3-3（2026-09-30）：**国境をまたぐ払いは為替で換算**（貿易の清算〔段3-1・A7〕と同じ規則）＝払い手は自国の通貨で <paramref name="amount"/>、受け手はその金の値打ちを
     ///   自国の通貨で受け取る（×払い手の為替÷受け手の為替）。差は為替の換算の台帳（<see cref="Diplomacy.CumulativeFxResidual"/>）へ。戻り値は払い手の通貨の額。
     ///   受け手が国庫のとき、区分は <paramref name="toCat"/>（省略時は <paramref name="cat"/>＝払い手と受け手で名目が違う国家間の移転＝貢納の出と入り・通行料）。
-    /// ★段3-5（2026-09-30・C8＝処理の一元化 段4d）：<paramref name="minted"/>＝世界の外の側が**造幣局**（新しい貨幣の発行と回収）＝世界の中の側の台帳は鋳造
-    ///   （<see cref="CumulativeGoldMinted"/>）へ（既定＝国境の出入り CumulativeTradeFlow）。鋳造の代金（造幣局→④の持分）と準備の売却（捌き手→造幣局）が同じ1本を通る
-    ///   ＝お金が生まれる／消える経路も、動いた額をそのまま台帳へ書く（計画 §10-12-2）。</summary>
-    internal static double Transfer((World? W, List<Pop>? Pops) from, (World? W, List<Pop>? Pops, List<double>? Weights) to, double amount, TreasuryCat cat = TreasuryCat.OtherOut, bool income = false, TreasuryCat? toCat = null, bool minted = false)
+    /// ★段3-5（2026-09-30・C8）＝造幣局・★段4g（2026-09-30）＝不換の発行者と銀行の与信（企業・家計）も世界の外の側の台帳の種類（<see cref="Outside"/>）
+    ///   ＝お金が生まれる／消える経路も、動いた額をそのまま台帳へ書く（旧＝切り下げ・通貨改革・与信・損失の負債化・手形が台帳と貯蓄を手で書いた）。</summary>
+    internal static double Transfer((World? W, List<Pop>? Pops) from, (World? W, List<Pop>? Pops, List<double>? Weights) to, double amount, TreasuryCat cat = TreasuryCat.OtherOut, bool income = false, TreasuryCat? toCat = null,
+                                    Outside outside = Outside.Border, List<double>? fromWeights = null, List<double>? taken = null)
     {
         if (!(amount > 0)) return 0;
+        if ((from.Pops is not null && from.W is null) || (to.Pops is not null && to.W is null))
+            throw new InvariantViolationException("移し方の1本：POP の側が国を名乗っていない（国 null・POP は台帳に載らない）");
         if (to.Pops is { } tp)
         {
             double tw = 0;
@@ -766,12 +755,8 @@ public sealed class World
         double moved;
         if (from.Pops is { } fp)
         {
-            double held = 0;
-            foreach (var p in fp) held += Math.Max(0, p.Savings);
-            double take = Math.Min(amount, held);
-            if (!(take > 1e-12) || !(held > 1e-9)) return 0;
-            moved = 0;
-            foreach (var p in fp) { double s = take * (Math.Max(0, p.Savings) / held); p.Savings -= s; moved += s; }   // 動いた額＝引いた額の和（受け手へは同じ額）
+            moved = Pop.Take(fp, amount, fromWeights, taken);   // 動いた額＝引いた額の和（受け手へは同じ額）
+            if (!(moved > 0)) return 0;
         }
         else
         {
@@ -779,22 +764,27 @@ public sealed class World
             from.W?.Pay(cat, -moved);   // 国庫（世界の外なら引く相手が無い）
         }
         double got = CrossFx(from.W, to.W, moved);   // 受け手の通貨の額（国をまたげば換算＝換算の1本）
-        if (to.Pops is { } rp) Distribute(rp, got, to.Weights, income);   // 受け手が居ることは上で確かめた＝配り切る（income＝所得にも書く）
+        if (to.Pops is { } rp) Pop.Distribute(rp, got, to.Weights, income);   // 受け手が居ることは上で確かめた＝配り切る（income＝所得にも書く）
         else to.W?.Pay(toCat ?? cat, got);
         if (!ReferenceEquals(from.W, to.W))
         {
-            if (minted)
-            {
-                if (from.W is { } fw) fw.CumulativeGoldMinted -= moved;   // 回収（準備の売却＝鋳造の逆）
-                if (to.W is { } rw) rw.CumulativeGoldMinted += got;       // 発行（鋳造の代金）
-            }
-            else
-            {
-                if (from.W is { } fw) fw.CumulativeTradeFlow -= moved;
-                if (to.W is { } rw) rw.CumulativeTradeFlow += got;
-            }
+            if (from.W is { } fw) Book(fw, outside, -moved);   // 流出（回収・焼却・返済）
+            if (to.W is { } rw) Book(rw, outside, got);        // 流入（発行・鋳造・貸し）
         }
         return moved;
+    }
+
+    /// <summary>世界の外の側の台帳への記帳（<see cref="Transfer"/> の中の1か所だけが呼ぶ）。<paramref name="delta"/>＝流入が正・流出が負。</summary>
+    private static void Book(World w, Outside k, double delta)
+    {
+        switch (k)
+        {
+            case Outside.Mint: w.CumulativeGoldMinted += delta; break;
+            case Outside.Fiat: w.CumulativeFiatIssued += delta; break;
+            case Outside.Credit: w.Bank!.Loans += delta; break;
+            case Outside.HouseholdCredit: w.Bank!.HouseholdLoans += delta; break;
+            default: w.CumulativeTradeFlow += delta; break;
+        }
     }
 
     /// <summary>★国境をまたぐ額の換算の1本（2026-09-30 処理の一元化 段4e・段3-3 の規則を関数へ）＝<paramref name="from"/> の通貨の額 <paramref name="amount"/> を
@@ -980,13 +970,21 @@ public sealed class World
     public double[] TreasuryLedger = new double[(int)TreasuryCat.Count];   // 区分ごとの累積（符号つき＝収入が正・支出が負）
 
     /// <summary>国庫を動かす唯一の口。<paramref name="delta"/> は符号つき（収入が正・支出が負）。
-    /// ⚠片側だけの記帳（相手を名乗らない）＝World の外からは移し方の1本 <see cref="Transfer"/> を使う。外から呼ぶ行は <c>WriterRatchetTests</c> が数える
-    /// （2026-09-30 段4f＝10行・相手の側が手書きの行だけ＝徴税・利払い・減債・借入・再併合・恐怖政治の没収・切り下げ・国家の仮勘定の月末の精算）。
-    /// 最後は private（作者裁定 Q13）＝残る10行を相手ごと移し方の1本へ寄せた後（実装ログ (126) の申し送り）。</summary>
-    public void Pay(TreasuryCat cat, double delta)
+    /// ★2026-09-30 段4g（作者裁定 Q13＝コンパイラの番人）：**private**＝片側だけの記帳（相手を名乗らない）は World の外から書けない。
+    /// 呼び手は移し方の1本（<see cref="Transfer"/>＝相手を名乗る）と国家の仮勘定の月末の精算（<see cref="SettleStateSpent"/>）だけ。</summary>
+    private void Pay(TreasuryCat cat, double delta)
     {
         Treasury += delta;
         TreasuryLedger[(int)cat] += delta;
+    }
+
+    /// <summary>★国家の仮勘定の月末の精算（2026-09-30 段4g＝Simulation の月次決算から World の中へ移した・POP の月末の精算 <see cref="Pop.SettleMonth"/> と同じ形）。
+    /// 州の未精算の国家支出（<see cref="Region.StateSpent"/>＝区分つき・正＝支出・負＝収入）を区分ごとに国庫へ＝国庫→生産者（支出）／生産者・消費者→国庫（専売益・国営持分の利潤）。
+    /// 相手の側（生産者の持分と消費者）は月内の仮勘定（Paid・Earned）が同じ額で書いてある＝両側は月の中の1本の形で閉じる（計画 §10-12-2-3）。</summary>
+    internal void SettleStateSpent(Region r)
+    {
+        for (int k = 0; k < r.StateSpent.Length; k++)
+            if (r.StateSpent[k] != 0) Pay((TreasuryCat)k, -r.StateSpent[k]);
     }
 
     /// <summary>国庫の**代入**（フローでない＝台帳に載せない）。同期・助走のリベース・生成時の初期化だけが使う。
@@ -1254,7 +1252,7 @@ public sealed class World
 
     // --- 植民地（§6.1 拡張：固有資源＋人口プール＋開発度）---
     public double ColonialInfra { get; internal set; }   // 植民地の開発度。輸送船＋鉄道の投資で上がり、固有資源の産出と扶養人口を増やす（飽和＝逓減）
-    public double ColonialPop { get; internal set; }     // 植民地人口プール（＝植民地数×産出率）。読み手はRunnerの表示1行のみ＝診断量（02断線走査2026-07-28コメント是正：捕囚市場の基数は col.Savings×ColonialSpendRate でありこの量ではない。国力へ繋ぐと ThreatUsesColonyValue のΣColony.Value と二重計上になる＝繋がない）
+    public double ColonialPop { get; internal set; }     // 植民地人口プール（＝植民地数×産出率）。読み手はRunnerの表示1行のみ＝診断量（02断線走査2026-07-28コメント是正：旧の捕囚市場〔2026-09-30 段4g に削除〕の基数もこの量ではなかった。国力へ繋ぐと ThreatUsesColonyValue のΣColony.Value と二重計上になる＝繋がない）
     public double ModernizationFrac { get; set; }       // 近代化投資レバー（0..1・UI/AI 共通の動詞・既定0＝無効）。四半期予算は ModernizationBudget()（GDP比の凸コスト）、配分は ApplyModernizationInvestment（招聘/高等教育/建設）
     public double ExpansionWill { get; internal set; }   // 膨張意欲（累積）：戦争熱が閾値超で四半期ごとに貯まり、小国侵略で消費（段C）。標的が大きいほど多く要る
 
@@ -1788,6 +1786,7 @@ public sealed class World
         bool hasConsMarkets = Coef.SteelGoodId < ng && Coef.MachineGoodId < ng && Coef.CementGoodId < ng && Coef.LumberGoodId < ng;
         double cpuRef = hasConsMarkets ? EconomyStep.BundleRef(Coef) : 0;   // 参照束価格＝係数×参照価格のみ＝州ループ不変
         var cost = Cost;   // 計算量の台帳（診断・この国の台帳＝並列の日次相でも国ごと）
+        List<Pop>? labor = null; List<double>? unit = null;   // 労務費の受け手1人の並び（使い回す＝棟ごとに確保しない）
         foreach (var r in Regions)
         {
             // ★工事中の一覧（2026-09-30 作者裁定「計算量の予算」・恒等）：旧＝州の全ての生産者（1州 約130〜170）を毎回走査して工事中の棟を探した
@@ -1824,8 +1823,9 @@ public sealed class World
                     n = need < days ? Math.Max(1, (int)need) : days;       // 否定形でない比較＝NaN は h 日ぶん（旧の日次も NaN の残りを毎日進めた）
                 }
                 double pay = p.ConstructionPayPerDay * step * n;          // 進捗が遅い日は工賃も比例（採算率×r ぶんだけ工事）×働いた日数
-                Pay(TreasuryCat.FactoryBuild, -pay);
-                r.Pops[p.LaborPopIndex].Savings += pay;                   // 労務費＝工員へ（保存）
+                // 労務費＝国庫→工員（移し方の1本・2026-09-30 段4g＝旧は国庫の片側の記帳と貯蓄の手書き）。受け手は重み1＝頭数0の工員の POP でも受ける（旧と同じ）。
+                (labor ??= new List<Pop>(1)).Clear(); labor.Add(r.Pops[p.LaborPopIndex]);
+                Transfer((this, null), (this, labor, unit ??= [1.0]), pay, TreasuryCat.FactoryBuild);
                 p.ConstructionLeft -= step * n;                           // 採算率×r に比例した進捗（崖でなく漸減）
                 // 完成＝1棟ぶん操業開始。カウンター（国営工場の目標）も現在値まで引き上げる＝**外から増えた棟を月次駆動が売り戻さない**
                 // （BuildFactory を直に呼ぶ経路＝テスト/Runner も同じ扱いになる＝1箇所で閉じる）。
@@ -2313,8 +2313,7 @@ public sealed class World
         if (!ok) return false;
         var r = Regions[regionIndex];
         var p = FindFactory(r, goodId)!;
-        r.Pops[r.InvestorPopIndex].Savings -= price;
-        Pay(TreasuryCat.StateFactory, price);                                             // 資本家→国庫（保存）
+        Transfer((this, [r.Pops[r.InvestorPopIndex]]), (this, null, null), price, TreasuryCat.StateFactory);   // 資本家→国庫（移し方の1本・2026-09-30 段4g＝旧は貯蓄の手書きと国庫の片側の記帳。買えることは CanSellFactory が確かめた）
         p.BuiltScale = Math.Max(0, p.BuiltScale - Coef.FactoryBuildScale);   // 1棟ぶん民営化（残る棟は国営のまま）
         if (p.BuiltScale <= 1e-9) { p.BuiltScale = 0; p.SubsidyRate = 0; }   // 売り切った時だけ補助金も外れる（旧挙動と同値）
         p.StateTarget = Math.Min(p.StateTarget, StateUnitsOf(p));

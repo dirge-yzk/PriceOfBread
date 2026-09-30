@@ -66,7 +66,7 @@ public class TaxTests
             w.Coef.TitheRate = 0; w.Coef.CorruptionMax = 0;
             w.SocialSecurity = 0; w.Pension = ReformLevel.None;
             w.GovDebt = 0; w.ForeignDebt = 0;
-            foreach (var rg in w.Regions) foreach (var pp in rg.Pops) { pp.BondHoldings = 0; pp.Savings = System.Math.Max(pp.Savings, 0) + 1e3 * pp.Size; }   // 全員が払える＝率 r_p は1
+            foreach (var rg in w.Regions) foreach (var pp in rg.Pops) { pp.BondHoldings = 0; pp.SetSavings(System.Math.Max(pp.Savings, 0) + 1e3 * pp.Size); }   // 全員が払える＝率 r_p は1
             w.FiscalFundingRatio = 1.0;
             Fiscal.Step(w, w.Coef);
             return w;
@@ -182,7 +182,7 @@ public class TaxTests
         Assert.True(high.World.TaxRate > 0.1, $"前提が崩れた：所得税が立っていない＝漏れを測れない（{high.World.TaxRate:F3}）");
         foreach (var r in high.World.Regions) r.AdminFill = 1.0;   // 行政の行き届いた国
         foreach (var r in low.World.Regions) r.AdminFill = 0.0;    // 官僚の役務が買えていない国
-        int cat = (int)TreasuryCat.Tax;   // 書き手は Fiscal の w.Pay(TreasuryCat.Tax, revenue) 1箇所だけ＝他の歳出入と混ざらない
+        int cat = (int)TreasuryCat.Tax;   // 書き手は Fiscal の徴税の移し方の1本（納税者→国庫・区分 Tax・2026-10-01 段4g＝旧 w.Pay(TreasuryCat.Tax, revenue)）1箇所だけ＝他の歳出入と混ざらない
         double hb = high.World.TreasuryLedger[cat], lb = low.World.TreasuryLedger[cat];
         Fiscal.Step(high.World, high.World.Coef);
         Fiscal.Step(low.World, low.World.Coef);

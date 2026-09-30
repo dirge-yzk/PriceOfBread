@@ -192,7 +192,7 @@ public class PrivilegeDisplayTests
         foreach (var p in pops)
         {
             p.LastEarned = 0;
-            if (!p.Closed && !p.IsModernElite && !p.IsSoldier) { p.LastEarned = 100; p.Savings = 100; expected += 0.05 * 100; }   // 払い手に確実に原資を持たせる
+            if (!p.Closed && !p.IsModernElite && !p.IsSoldier) { p.LastEarned = 100; p.SetSavings(100); expected += 0.05 * 100; }   // 払い手に確実に原資を持たせる
         }
 
         double Sum(System.Func<Pop, bool> pick) { double s = 0; foreach (var p in pops) if (pick(p)) s += p.Savings; return s; }

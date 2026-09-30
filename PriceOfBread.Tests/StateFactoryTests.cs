@@ -79,7 +79,7 @@ public class StateFactoryTests
         p.BuiltScale = 2 * w.Coef.FactoryBuildScale;
         p.StateTarget = 2;
         p.LastRevenue = 10_000; p.LastCost = 1_000; p.SmoothedMargin = 0.2;   // 黒字（売却の前提）
-        w.Regions[0].Pops[w.Regions[0].InvestorPopIndex].Savings = 1e9;        // 資本家は買える
+        w.Regions[0].Pops[w.Regions[0].InvestorPopIndex].SetSavings(1e9);        // 資本家は買える
         double treasury0 = w.Treasury;
 
         Assert.True(w.SetStateTarget(0, Catalog.SteelId, 1), "目標を下げても払い下げが走らない");
@@ -155,7 +155,7 @@ public class StateFactoryTests
         var p = Steel(r);
         p.BuiltScale = w.Coef.FactoryBuildScale;
         p.LastRevenue = 10_000; p.LastCost = 1_000; p.SmoothedMargin = 0.2;
-        r.Pops[r.InvestorPopIndex].Savings = 1e9;
+        r.Pops[r.InvestorPopIndex].SetSavings(1e9);
         r.Pops[r.InvestorPopIndex].Militancy = 0.6;
 
         Assert.Equal(0.0, w.Coef.SoeSaleMilitancyCeil);         // 既定＝休眠＝現行どおり買える
@@ -178,7 +178,7 @@ public class StateFactoryTests
         var p = r.Producers.Find(x => x.GoodId == Catalog.CoalId)!;
         p.BuiltScale = w.Coef.FactoryBuildScale;
         p.LastRevenue = 10_000; p.LastCost = 1_000; p.SmoothedMargin = 0.2;
-        r.Pops[r.InvestorPopIndex].Savings = 1e9;
+        r.Pops[r.InvestorPopIndex].SetSavings(1e9);
         Assert.True(w.CanSellFactory(0, Catalog.CoalId).Ok);    // 法がなければ売れる
 
         w.NationalizeMines = true;

@@ -61,7 +61,7 @@ public class FuelOperatingCostTests
         w.SetMilitaryUpkeep(0.2, 0.4);                    // NavyUpkeep=0.4＝哨戒稼働
         var m = w.Region.Markets[Catalog.CoalId];
         m.Stock = 1_000_000; m.Price = Catalog.RefPrices[Catalog.CoalId];   // 価格ゲートを中立化（相場＝参照価格）
-        w.Pay(TreasuryCat.OtherIn, 1_000_000);
+        World.Transfer((null, null), (w, null, null), 1_000_000, TreasuryCat.OtherIn);   // 国庫へ注入（移し方の1本・2026-09-30 段4g＝国庫の口は private）
         double treasury0 = w.Treasury, stock0 = m.Stock, demand0 = m.LastDemand;
         double navy0 = w.TreasuryLedger[(int)TreasuryCat.Navy];
 
@@ -102,7 +102,7 @@ public class FuelOperatingCostTests
             var r = s.World.Region;
             r.CapitalEnabled = true;
             r.Industrialization = 5.0;                             // 保守対象のインフラ
-            r.Pops[r.InvestorPopIndex].Savings = 10_000_000;       // 投資予算を潤沢に
+            r.Pops[r.InvestorPopIndex].SetSavings(10_000_000);       // 投資予算を潤沢に
         }
         var coefOff = new Coefficients { SteamTechOnset = -1.0 };
         var coefOn = new Coefficients { SteamTechOnset = -1.0, RailCoalRate = 10.0 };
@@ -130,7 +130,7 @@ public class FuelOperatingCostTests
         var m = r.Markets[Catalog.CoalId];
         m.Stock = 1_000_000; m.Price = Catalog.RefPrices[Catalog.CoalId];
         r.Markets[Catalog.CrudeOilId].Price = 1_000.0;   // 二択を石炭側へ固定（重油の実効単価を吊り上げる。二択の式自体は既存Colonial B6と同一）
-        r.Pops[buyerIdx].Savings = 1_000_000;
+        r.Pops[buyerIdx].SetSavings(1_000_000);
         double money0 = r.SumSavings();
         double stock0 = m.Stock, demand0 = m.LastDemand;
 
@@ -164,8 +164,8 @@ public class FuelOperatingCostTests
             var coal = r.Markets[Catalog.CoalId];
             coal.Price = coalPrice >= 0 ? coalPrice : Catalog.RefPrices[Catalog.CoalId]; coal.Stock = 1_000_000;
             r.Markets[Catalog.CrudeOilId].Price = 1_000.0;   // 燃料の二択を石炭へ固定（二択の式自体は Colonial.ChooseFuelGood のまま）
-            if (r.MerchantPopIndex >= 0) r.Pops[r.MerchantPopIndex].Savings = 1e9;
-            if (r.InvestorPopIndex >= 0) r.Pops[r.InvestorPopIndex].Savings = 1e9;
+            if (r.MerchantPopIndex >= 0) r.Pops[r.MerchantPopIndex].SetSavings(1e9);
+            if (r.InvestorPopIndex >= 0) r.Pops[r.InvestorPopIndex].SetSavings(1e9);
         }
         return sim;
     }
@@ -470,7 +470,7 @@ public class FuelOperatingCostTests
             regs.Add(r);
             foreach (int g in new[] { coef.RailGoodId, coef.LocoGoodId }) { r.Markets[g].Price = 1.0; r.Markets[g].Stock = 1e6; }
             foreach (var pr in r.Producers) if (pr.GoodId == coef.RailGoodId || pr.GoodId == coef.LocoGoodId) pr.Output = 0;
-            r.Pops[r.InvestorPopIndex].Savings = 1e9;
+            r.Pops[r.InvestorPopIndex].SetSavings(1e9);
         }
         Assert.NotEmpty(regs);
         var inv0 = regs.Select(r => r.Pops[r.InvestorPopIndex].Savings).ToArray();

@@ -37,7 +37,7 @@ public class MobilityTests
         // 財源は最富裕の資本家から移す（pop間移転＝貨幣保存＝保存則を破らない）。
         double want = 20.0 * avgPerCap * mid.Size;
         double take = System.Math.Min(System.Math.Max(0, want - System.Math.Max(0, mid.Savings)), System.Math.Max(0, cap.Savings));
-        cap.Savings -= take; mid.Savings += take;
+        cap.SetSavings(cap.Savings - (take)); mid.SetSavings(mid.Savings + (take));
         Assert.True(mid.Savings / mid.Size > sim.World.Coef.CapitalRiseThreshold * avgPerCap, "セットアップ不足：中層が昇格閾値に達していない");
         // ★盤面の直し（2026-10-01 (143)）：旧＝資本家の規模が8回の後に増えたか（cap1 > cap0）で見た。だが財源を資本家から移すので資本家の1人あたりの資産が転落の線
         //   （上流の転落 UpperFallThreshold 0.8×平均）を割り、④の転落が同じ8回の中で起きる（1人あたり 4,217→417）＝昇格（③）と盤面が起こした転落の差を見ていた（(144) 反証の読み＝差の大半は昇格が運ぶ貯蓄で転落を避けた分）
@@ -47,7 +47,7 @@ public class MobilityTests
         ctl.Run(20);
         var rc = ctl.World.Region;
         var midC = rc.Pops[rc.MeritToIndex]; var capC = rc.Pops[rc.InvestorPopIndex];
-        capC.Savings -= take; midC.Savings += take;   // 同じ種・同じ20四半期＝同じ盤面へ同じ移転
+        capC.SetSavings(capC.Savings - (take)); midC.SetSavings(midC.Savings + (take));   // 同じ種・同じ20四半期＝同じ盤面へ同じ移転（盤面の書き込みは Board.SetSavings＝(139) の init・(144) 合流）
         ctl.World.Coef.CapitalRiseThreshold = double.PositiveInfinity;   // ③（中流→資本家）を止める（閾値は rank1 の商人・職人→資本家と共有＝下で両方の腕の rank1 を止める）
         sim.World.Coef.MerchantArtisanCapitalRise = 0; ctl.World.Coef.MerchantArtisanCapitalRise = 0;   // ★(144) 反証の指摘：両方の腕で rank1 を止める＝差が③だけになる（商人が閾値を越える盤面でも③の壊れを見逃さない）
         double cap0 = cap.Size;
@@ -213,7 +213,7 @@ public class MobilityTests
             {
                 double totalSav = 0, total = 0;
                 foreach (var p in r.Pops) { totalSav += System.Math.Max(0, p.Savings); total += p.Size; }
-                noble.Savings = 0.5 * (totalSav / total) * noble.Size;
+                noble.SetSavings(0.5 * (totalSav / total) * noble.Size);
             }
             double avgF; { double totalSav = 0, total = 0; foreach (var p in r.Pops) { totalSav += System.Math.Max(0, p.Savings); total += p.Size; } avgF = totalSav / total; }
             noble.Earned = 0.5 * avgF * noble.Size / Calendar.MonthsPerYear;   // 年所得/人 ＝ 平均貯蓄/人の半分（アンカーの言語）

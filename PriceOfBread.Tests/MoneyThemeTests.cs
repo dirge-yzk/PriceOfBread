@@ -92,7 +92,7 @@ public class MoneyThemeTests
         int buyer = r.MerchantPopIndex >= 0 && r.MerchantPopIndex < r.Pops.Count ? r.MerchantPopIndex : r.InvestorPopIndex;
         Assert.True(buyer >= 0, "前提＝買い手（商人/投資家）がいる");
         var pop = r.Pops[buyer];
-        pop.Savings = Math.Max(pop.Savings, 1000.0 * parity);   // 貯蓄側で縛られない＝数量は準備×率で決まる
+        pop.SetSavings(Math.Max(pop.Savings, 1000.0 * parity));   // 貯蓄側で縛られない＝数量は準備×率で決まる
         double D(World x) => x.BaseMoney - x.CumulativeTradeFlow - x.CumulativeGoldMinted - x.CumulativeFiatIssued;
         double d0 = D(w), reserve0 = w.SilverReserveQty, stock0 = m.Stock, sav0 = pop.Savings, minted0 = w.CumulativeGoldMinted, base0 = w.BaseMoney, imp0 = m.LastImport;
         var mint = typeof(Simulation).GetMethod("MintGold", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
@@ -141,7 +141,7 @@ public class MoneyThemeTests
         Assert.True(price > 0, "前提＝銀の市場価格が正");
         double fullQty = w.SilverReserveQty * rate;
         var mer = r.Pops[r.MerchantPopIndex];
-        mer.Savings = savingsFrac >= 1 ? Math.Max(mer.Savings, 10 * fullQty * price) : savingsFrac * fullQty * price;
+        mer.SetSavings(savingsFrac >= 1 ? Math.Max(mer.Savings, 10 * fullQty * price) : savingsFrac * fullQty * price);
         double expectQty = Math.Min(fullQty, mer.Savings / price);
         double D(World x) => x.BaseMoney - x.CumulativeTradeFlow - x.CumulativeGoldMinted - x.CumulativeFiatIssued;
         double d0 = D(w), minted0 = w.CumulativeGoldMinted, stock0 = m.Stock, imp0 = m.LastImport, sav0 = mer.Savings, reserve0 = w.SilverReserveQty;

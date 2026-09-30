@@ -73,7 +73,7 @@ public class ServiceEconomyTests
         // Σ_p need×(1−fill)×gr ＝ take。行政の脚を配分率 gr の側に入れると Σ配分＝take/reach になり教育が無から湧く。
         // 全popの貯蓄をゼロにする＝私費購入が立たない＝この期の販売量 m.LastSold は**国庫購入だけ**。
         var (r, _, _, _) = EduRegion(workerSavings: 0, compulsoryFunding: 1.0, supplyPerTeacher: 0.9);
-        foreach (var p in r.Pops) p.Savings = 0;
+        foreach (var p in r.Pops) p.SetSavings(0);
         r.AdminFill = 0.4;
         EconomyStep.Run(r, new Coefficients { EduReachFromAdmin = 0.5 });
         var m = r.Markets[Catalog.EducationId];
@@ -89,7 +89,7 @@ public class ServiceEconomyTests
         static Region Arm(double adminFill)
         {
             var (r, _, _, _) = EduRegion(workerSavings: 0, compulsoryFunding: 1.0, supplyPerTeacher: 5.0);
-            foreach (var p in r.Pops) p.Savings = 0;
+            foreach (var p in r.Pops) p.SetSavings(0);
             r.AdminFill = adminFill;
             return r;
         }
@@ -132,8 +132,8 @@ public class ServiceEconomyTests
         var teacher = r.Pops[r.TeacherPopIndex];
         // 資本家の富を教師へ移す（恐慌で資本が溶け中流に金が残った状況の再現。総貨幣は不変＝保存則を破らない）
         double transfer = capitalist.Savings - capitalist.Size * 0.5;
-        capitalist.Savings -= transfer;
-        teacher.Savings += transfer;
+        capitalist.SetSavings(capitalist.Savings - (transfer));
+        teacher.SetSavings(teacher.Savings + (transfer));
         double cap0 = capitalist.Size;
         double mil0 = teacher.Militancy;
         sim.StepQuarter();

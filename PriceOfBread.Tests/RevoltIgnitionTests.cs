@@ -1146,8 +1146,8 @@ public class RevoltIgnitionTests
         payer!.Militancy = 0.9;
         // 参加者の財布を厚くする＝**州の他POPの貯蓄の半分を移す**（金を湧かせない＝貨幣保存の番人が黙ったまま通しで走れる）
         double pool = 0;
-        foreach (var p in r.Pops) if (!ReferenceEquals(p, payer) && p.Savings > 0) { pool += p.Savings * 0.5; p.Savings *= 0.5; }
-        payer.Savings += pool;
+        foreach (var p in r.Pops) if (!ReferenceEquals(p, payer) && p.Savings > 0) { pool += p.Savings * 0.5; p.SetSavings(p.Savings * (0.5)); }
+        payer.SetSavings(payer.Savings + (pool));
         Assert.True(payer.Savings > 1e3, $"前提が崩れた：参加者の財布が薄い（{payer.Savings:F1}）");
         var (petty, _, _) = FactionSnapshot.MembershipContext(w);
         var (bloc, ideo) = FactionSnapshot.BlocIdeo(payer, petty);

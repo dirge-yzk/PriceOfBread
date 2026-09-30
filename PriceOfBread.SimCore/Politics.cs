@@ -1957,6 +1957,7 @@ public static class Politics
         bool terror = c.RevolutionTerror > 0
                    && w.Polity is Polity.Republic or Polity.ProletarianDictatorship or Polity.Anarchy;
         double confiscated = 0, confiscatedBonds = 0;
+        List<Pop>? seizedPops = null; List<double>? seizedAmt = null;   // 没収の払い手と自分の請求（下で移し方の1本へ・2026-09-30 段4g）
         List<Pop>? purgedPops = null; double purgeTotal = 0;   // 粛清・亡命の死は死の記帳の1本へ（段4e J）
         foreach (var p in w.AllPops())
         {
@@ -1969,8 +1970,8 @@ public static class Politics
                 if (terror && !p.IsSoldier && p.Size > 0)
                 {
                     (purgedPops ??= []).Add(p); purgeTotal += p.Size * c.RevolutionTerror;   // 粛清・亡命＝失脚した層の RevolutionTerror の割合（下で死の記帳の1本へ）
-                    double seized = Math.Max(0, p.Savings) * c.RevolutionTerror;   // 資産没収（貴族の所領・資本の没収）
-                    p.Savings -= seized; confiscated += seized;
+                    double seized = Math.Max(0, p.Savings) * c.RevolutionTerror;   // 資産没収（貴族の所領・資本の没収）＝自分の請求（下で移し方の1本が取る）
+                    if (seized > 0) { (seizedPops ??= []).Add(p); (seizedAmt ??= []).Add(seized); confiscated += seized; }
                     double seizedBonds = p.BondHoldings * c.RevolutionTerror;   // ★保有台帳（2026-09-21）：国債も貯蓄と同じ規則で没収（請求権は国内に残る＝下で大衆へ）
                     p.BondHoldings -= seizedBonds; confiscatedBonds += seizedBonds;
                 }
@@ -1980,14 +1981,16 @@ public static class Politics
         // 粛清・亡命の死＝死の記帳の1本（World.KillPops＝人口の台帳・戦死の累計に計上）。失脚した層の規模の比＝各層の RevolutionTerror の割合。
         if (purgedPops is not null) w.TerrorPurgeCumulative += w.KillPops(purgedPops, null, purgeTotal, violent: true);   // 診断（UI）：粛清量の累計＝書くだけ（挙動非依存）。UIがニュース化に使う
         // 没収資産を大衆pop（非特権・非エリート・非兵士）へSize按分で再分配＝革命の余剰再分配（保存＝pop→pop純移転・貨幣不変）。受け手不在は全popへ按分。
-        // ★保有台帳（2026-09-21）：没収した国債も**同じ受け手・同じ按分**で渡す（国の保有の和は不変＝不変条件を保つ）。没収が0の側は +0.0＝貯蓄の分配はビット不変。
-        // ★支払いの一元化 段2-3（E1・2026-09-29）：貯蓄は按分の本体 World.Distribute（頭数・端数は最後の受け手）＝旧は端数を寄せず、全popの頭数も0なら没収額が消えた（配れなければ国庫へ）。
+        // ★保有台帳（2026-09-21）：没収した国債も**同じ受け手・同じ按分**で渡す（国の保有の和は不変＝不変条件を保つ）。
+        // ★2026-09-30 段4g：貯蓄は移し方の1本（失脚した層＝払い手の重みは自分の没収の額→大衆＝頭数・端数は最後の受け手）。旧＝粛清の走査の中で貯蓄を引き、
+        //   全popの頭数も0なら按分の本体の戻り（配れなかった額）を国庫へ入れた（国庫の片側の記帳）＝今は受け手不在なら動かない（払い手に残る＝没収は起きなかった）。
+        //   粛清の死（上の死の記帳の1本）は没収の後の規模の和を変えない＝払い手の貯蓄はそのまま＝没収の額は走査の時点の値と同じ。
         if (confiscated > 0 || confiscatedBonds > 0)
         {
             var masses = new List<Pop>(); double ms = 0;
             foreach (var p in w.AllPops()) if (IsMassPop(p)) { masses.Add(p); ms += p.Size; }
             if (!(ms > 1e-9)) { masses = new List<Pop>(w.AllPops()); ms = 0; foreach (var p in masses) ms += p.Size; }   // 受け手不在は全popへ按分
-            w.Pay(TreasuryCat.OtherIn, World.Distribute(masses, confiscated));
+            if (seizedPops is not null) World.Transfer((w, seizedPops), (w, masses, null), confiscated, TreasuryCat.OtherIn, fromWeights: seizedAmt);
             if (ms > 1e-9) foreach (var p in masses) p.BondHoldings += confiscatedBonds * (p.Size / ms);
         }
     }

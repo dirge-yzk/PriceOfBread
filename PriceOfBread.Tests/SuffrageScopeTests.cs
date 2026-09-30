@@ -41,7 +41,7 @@ public class SuffrageScopeTests
         {
             var col = sim.World.Regions[1];
             foreach (var p in col.Pops)
-                if (!p.Closed && !p.IsModernElite && !p.IsSoldier) { p.Savings = 1e9; break; }
+                if (!p.Closed && !p.IsModernElite && !p.IsSoldier) { p.SetSavings(1e9); break; }
         }
         var (_, _, massOff) = InterestGroups.Blocs(off.World);
         var (_, _, massOn) = InterestGroups.Blocs(on.World);
@@ -58,7 +58,7 @@ public class SuffrageScopeTests
             w.Coef.TaxConsentWeight = 0.5;   // 課税への同意を明示的に有効化（双子とも）
             w.TaxRate = 0.2;                 // 所得税（同意が効く税）
             foreach (var p in w.Regions[1].Pops)
-                if (!p.IsSoldier) { p.Earned = 1_000; p.Savings = System.Math.Max(p.Savings, 100_000); }   // 課税ベースを確保（双子とも同額）
+                if (!p.IsSoldier) { p.Earned = 1_000; p.SetSavings(System.Math.Max(p.Savings, 100_000)); }   // 課税ベースを確保（双子とも同額）
             Fiscal.Step(w, w.Coef);
         }
         // 算入された植民地pop＝声がある＝同意が立つ＝所得税が多く取れる（貯蓄がより減る）。

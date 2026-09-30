@@ -1322,8 +1322,9 @@ public sealed class Simulation
     /// <summary>植民地の州昇格（2026-08-09・作者裁定2026-08-08「植民地州昇格＝実装」・設計原典＝docs/202607/20260731_植民地のラベル化_部分完了.md §3-3d）。
     /// 入植者が過半数に達した植民地（<see cref="Colonial"/>.Step §5 が判定）を、宗主の**完全な州**（pop/生産者/市場・RegionTier.Integrated）として実体化する。
     /// ── 保存則（思想⑥）＝湧かさない ────────────────────────────────────────
-    ///   人口＝現地住民(col.PopSize)＋入植者(col.SettlerSize)だけ。骨格階級は全て Size0（辺境の兵士Size0と同じ作法）＝社会移動・国内移住が埋める。台帳＝PopulationDelta へ全額。
-    ///   貨幣＝col.Savings（現地の蓄え）＋col.SettlerSavings（持参金）だけ。台帳＝CumulativeTradeFlow へ全額（同上）。植民地は元々台帳の外（Diplomacy.cs Colony 参照）＝ここで初めて台帳の内側に入る。
+    ///   人口＝現地住民(col.PopSize)だけ。骨格階級は全て Size0（辺境の兵士Size0と同じ作法）＝社会移動・国内移住が埋める。台帳＝PopulationDelta へ全額。
+    ///   貨幣＝持ち込まない（植民地の蓄え col.Savings・入植者の持参金 col.SettlerSavings は 2026-09-30 段4g に経路ごと削除＝作者裁定 Q12＝どちらも常に0だった）。
+    ///   ★入植者（col.SettlerSize）も同じ回に削除＝Colony オブジェクトの入植は国の植民地の一覧〔ゲームの間ずっと空〕の上でしか走らなかった。
     /// ── 同名の州が既に在る（J-006＝同じ領土を既に州として保有）とき（回1-2・2026-09-27）──────────────
     ///   新しい州は作らず、住民をその州の同じ階級へ運んでその州を返す（作者裁定 2026-09-26「住民が消えるのは好ましくない」。旧＝呼び手が Colony を捨て、住民も消えた）。
     /// ── 設計判断（記録・docs/202608/植民地州昇格_2026-08-09_完了.md【完了】.md）───────────────
@@ -1356,18 +1357,15 @@ public sealed class Simulation
             else if (!w.StepsDiplomacy && coef.ScarceMineralGate > 0 && Catalog.IsScarceMineral(pr.GoodId, coef)) pr.Productivity = 0;   // ★共有世界だけ（2026-09-06）   // ★同上（植民地→州の昇格側）
             else if (pr.IsRgo && !Climate.StapleSelfSufficient(pr.GoodId, clat, clon)) ApplyEndowment(pr, ResourceScarcity * coef.ResourceScarcityScale, coef);
         }
-        // 階級構成：実人口は現地住民＋入植者だけ（保存則＝湧かさない）。入植者の着地は農民/労働者（新州は Ind=0＝農民寄り＝ImmigrantWorkerBase の割合だけ労働者）。
+        // 階級構成：実人口は現地住民だけ（保存則＝湧かさない）。（入植者の着地〔農民/労働者〕は 2026-09-30 段4g に入植の経路ごと削除＝作者裁定 Q12）
         double natives = Math.Max(0, col.PopSize);
-        double workerFrac = PoliticalQuantities.Clamp01(coef.ImmigrantWorkerBase);
-        double settlerWorker = col.SettlerSize * workerFrac, settlerPeasant = col.SettlerSize - settlerWorker;
-        double peasantSize = natives + settlerPeasant;
-        double savPerSettler = col.SettlerSize > 1e-9 ? col.SettlerSavings / col.SettlerSize : 0;   // 持参金は入植者の頭数按分
+        double peasantSize = natives;
         // 現地住民の自給率：植民地POPは元々市場の外で食っていた（台帳の外）＝自給農。首都の農民自給率を下回らない床0.5
         double subs = 0.5;
         foreach (var cp in w.Region.Pops) if (cp.ClassId == PopClass.Peasant) { subs = Math.Max(subs, cp.Subsistence); break; }
         var nobility  = MkPop(0, "貴族",       false, 0, 0.5, 0, closed: true);
         var peasant   = MkPop(1, "農民",       false, peasantSize, 0.3, 0, subs: subs);
-        var worker    = MkPop(2, "工場労働者", true,  settlerWorker, col.SettlerLiteracy, 0);
+        var worker    = MkPop(2, "工場労働者", true,  0, 0.3, 0);   // 器（Size0）＝識字は旧の入植者の既定値 0.3 のまま
         var bourgeois = MkPop(3, "資本家",     true,  0, 0.5, 0, modern: true);
         var engineer  = MkPop(4, "技師",       true,  0, 0.5, 0, modern: true);
         var clergy    = MkPop(6, "聖職者",     false, 0, 0.5, 0, closed: true);
@@ -1381,29 +1379,27 @@ public sealed class Simulation
         clergy.SetAdultFemaleShare(0.10); bourgeois.SetAdultFemaleShare(0.20); engineer.SetAdultFemaleShare(0.02);
         teacher.SetAdultFemaleShare(0.25); bureaucrat.SetAdultFemaleShare(0.03); doctor.SetAdultFemaleShare(0.05);
         merchant.SetAdultFemaleShare(0.25); artisan.SetAdultFemaleShare(0.30);
-        // 農民pop＝現地住民（民族の実体＝CoreEthnicShare0・不満と識字を運搬）＋入植農民（core=1）の加重合成。蓄え＝現地の蓄え＋入植農民の持参金
+        // 農民pop＝現地住民（民族の実体＝CoreEthnicShare0・不満と識字を運搬）。蓄えは持ち込まない（上の注記）。
         if (peasantSize > 1e-9)
         {
-            peasant.Literacy = (col.Literacy * natives + col.SettlerLiteracy * settlerPeasant) / peasantSize;
-            peasant.Militancy = col.Militancy * (natives / peasantSize);          // 入植者は不満0で混ざる（独立の不満は現地住民のもの）
-            peasant.CoreEthnicShare = settlerPeasant / peasantSize;               // 現地住民=0・入植者=1 の加重＝州平均が昇格閾値を映す
+            peasant.Literacy = col.Literacy * natives / peasantSize;
+            peasant.Militancy = col.Militancy * (natives / peasantSize);
+            peasant.CoreEthnicShare = 0.0;   // 現地住民＝宗主の中核民族ではない
         }
-        peasant.Savings = col.Savings + savPerSettler * settlerPeasant;
-        worker.Savings = savPerSettler * settlerWorker;
-        worker.CoreEthnicShare = 1.0;   // 労働者枠は入植者のみ
+        worker.CoreEthnicShare = 1.0;   // 労働者枠（器）は宗主の中核民族
         // ★J-006 の吸収（回1-2・2026-09-27・作者裁定 2026-09-26「住民が消えるのは好ましくない」）：同名の州を既に持つ＝同じ領土を既に州として保有している
         //   （一度州になった領土は Colony に戻さない＝J-006「止める」2026-09-05）。旧＝呼び手が Colony オブジェクトを捨て、住民も州へ入らずに消えた。
         //   新＝新しい州は作らず、上で組んだ住民（現地の農民＋入植の農民・労働者＝蓄え・識字・不満・中核民族の割合）をその州の同じ階級へ運ぶ
         //   （運搬は州間の移住・入植と同じ1本＝Territory.MoveBetweenRegions）。記帳は新しい州のときと同じ（台帳の外から入った分だけ）。
         if (w.Regions.Find(x => x.Name == col.Name) is { } same)
         {
-            double pop0 = same.SumPopulation(), sav0 = same.SumSavings();
+            double pop0 = same.SumPopulation();
             // （支払いの一元化 段2-2 の A12「受け手の階級が無いと蓄えが運ばれず消える」【推】は確かめて外した＝2026-09-29：実国の州を作る経路〔BuildProvince・辺境・
             //   植民地の州昇格〕は全て農民と労働者の階級を持つ＝同名の州の吸収で受け手が欠けることは無い）
             foreach (var mp in new[] { peasant, worker })
                 if (mp.Size > 1e-9 && same.PopOf(mp.ClassId) is { } dp) Territory.MoveBetweenRegions(mp, dp, mp.Size, coef);
-            double inP = same.SumPopulation() - pop0, inS = same.SumSavings() - sav0;
-            w.CumulativeTradeFlow += inS; w.PopulationDelta += inP;
+            double inP = same.SumPopulation() - pop0;
+            w.PopulationDelta += inP;   // 貨幣は持ち込まない（上の注記＝蓄えは 2026-09-30 段4g に削除＝旧の貨幣の台帳の行は常に +0）
             same.AnnexBaggage += inP;   // 案Y（観測専用）：併合の持ち込み人口＝本土の自然増ではない（新しい州のときと同じ記帳）
             return same;
         }
@@ -1443,9 +1439,8 @@ public sealed class Simulation
         foreach (var m in region.Markets) { m.Stock = 0; m.PrevStock = 0; }   // 在庫0で開始（上記の設計判断）。Last*=0 は初期値どおり＝財収支恒等式（GoodsBalance）が最初から閉じる
         Territory.Adopt(w, region);   // Id＝国の中で最大＋1（移し替えと同じ1本・2026-09-28 処理の一元化 段2 B）
         // 保存の記帳（同一値を両辺に使う＝CedeTerritory の作法）
-        double S = region.SumSavings(), P = region.SumPopulation();
-        w.CumulativeTradeFlow += S;   // 蓄え＋持参金＝台帳の外から国家台帳へ（外部マネー流入）
-        w.PopulationDelta += P;       // 現地住民＋入植者＝台帳の外から（ゲーム外流入の作法）
+        double P = region.SumPopulation();
+        w.PopulationDelta += P;       // 現地住民＝台帳の外から（ゲーム外流入の作法）。貨幣は持ち込まない（蓄えと持参金は 2026-09-30 段4g に削除＝旧の貨幣の台帳の行は常に +0）
         // 案Y（人口物差しの脱汚染・2026-08-21）：植民地の州昇格＝**本土の自然増ではない**外部人口の流入（帯の定義＝本土人口。
         // 葡帯の注記「ブラジル喪失は植民地＝本土人口に非算入」と同じ物差し）。持ち込み分Pを記帳し PopGrowth 分子から除く（昇格後の自然増は自国分）。
         // 以後この州はこの国の故地扱い（OriginPowerId）＝将来の喪失→再征服の往復で二重記帳しない。観測専用＝力学は読まない。
@@ -2177,9 +2172,17 @@ public sealed class Simulation
                     // 発行ぶんは CumulativeFiatIssued に積み Invariants の expected に算入(鋳造と同型)。M↑→P↑は FiatInflationPressure が表現＝二重取りなし。
                     double issue = devalue * World.Coef.FiatIssueFrac;
                     double haircut = devalue - issue;
-                    if (haircut > 1e-12) foreach (var dr in World.Regions) foreach (var dp in dr.Pops) dp.Savings -= haircut * (Math.Max(0, dp.Savings) / totalSav);
-                    World.Pay(TreasuryCat.Devalue, devalue); World.CumulativeDevaluation += devalue; devalued = devalue;
-                    World.CumulativeFiatIssued += issue;   // BaseMoney の正当な増加源（Invariants 算入）
+                    // ★2026-09-30 段4g：インフレ税＝全POP（貨幣の保有＝貯蓄の比・d5）→国庫と、不換の新規発行（世界の外の側＝不換の発行者 Outside.Fiat→国庫）の2本の移し方
+                    //   （旧＝貯蓄の手書きの引き落とし・国庫の片側の記帳・不換の台帳の手書き）。台帳 CumulativeFiatIssued は発行の分だけ（BaseMoney の正当な増加源＝Invariants 算入）。
+                    if (haircut > 1e-12)
+                    {
+                        var allPops = new List<Pop>(); foreach (var dr in World.Regions) allPops.AddRange(dr.Pops);
+                        haircut = World.Transfer((World, allPops), (World, null, null), haircut, TreasuryCat.Devalue);
+                    }
+                    else haircut = 0;
+                    issue = World.Transfer((null, null), (World, null, null), issue, TreasuryCat.Devalue, outside: World.Outside.Fiat);
+                    devalue = haircut + issue;
+                    World.CumulativeDevaluation += devalue; devalued = devalue;
                     World.FiatInflationPressure += devalue / Math.Max(1.0, World.BroadMoney);   // 紙幣増発＝インフレ圧（名目GDP↑→実質債務減）
                     payable += devalue; spare += devalue;   // 取った金はこの月の払える額＝r に入る（請求を切った上で別に取らない）
                 }
@@ -2242,8 +2245,7 @@ public sealed class Simulation
                 }
                 // 国家の調達・国営の損益・専売の精算を**区分ごとに**（2026-09-28 段2-1 D1〜D3）。旧＝1本の StateSpent を OtherOut へ呑ませ、
                 //   専売益だけを別の欄 LastStateMonopolyRevenue に二重に積んで割り戻していた＝財政タブで軍需・行政・教育・建設・補助・国営の損益の区分が出なかった。
-                for (int k = 0; k < r.StateSpent.Length; k++)
-                    if (r.StateSpent[k] != 0) World.Pay((TreasuryCat)k, -r.StateSpent[k]);   // 国庫→生産者（支出）／生産者・消費者→国庫（専売益・国営持分の利潤）で保存
+                World.SettleStateSpent(r);   // 国庫→生産者（支出）／生産者・消費者→国庫（専売益・国営持分の利潤）で保存（World の中の1本・2026-09-30 段4g）
                 // （植民地の採取費の対外流出と、その一部を植民地の蓄えへ渡す枝は 2026-09-28 に削除＝旗 TradeColonialGoods=1 で常に0だった）
             }
         ProbeCheck("月次経済");
@@ -2801,7 +2803,7 @@ public sealed class Simulation
             double impPart = want * impShare;
             double paid = InternationalMarket.PaySales((null, null), r, metal, want - impPart, World, minted: true);
             if (impPart > 0)
-                paid += World.Transfer((null, null), (World, r.MerchantPopIndex >= 0 && r.MerchantPopIndex < r.Pops.Count ? [r.Pops[r.MerchantPopIndex]] : r.Pops, null), impPart, TreasuryCat.OtherIn, income: true, minted: true);
+                paid += World.Transfer((null, null), (World, r.MerchantPopIndex >= 0 && r.MerchantPopIndex < r.Pops.Count ? [r.Pops[r.MerchantPopIndex]] : r.Pops, null), impPart, TreasuryCat.OtherIn, income: true, outside: World.Outside.Mint);
             if (!(paid > 1e-12)) continue;
             if (paid < want) qty *= paid / want;   // 受け手のいない分は引き取らない（量を減らす）
             double value = paid;
@@ -2850,7 +2852,7 @@ public sealed class Simulation
         int b = r.MerchantPopIndex >= 0 && r.MerchantPopIndex < r.Pops.Count ? r.MerchantPopIndex
               : r.InvestorPopIndex >= 0 && r.InvestorPopIndex < r.Pops.Count ? r.InvestorPopIndex : -1;
         if (b < 0) return 0;
-        double sold = World.Transfer((World, [r.Pops[b]]), (null, null, null), qty * price, minted: true) / price;   // 払えた額の分だけ（Transfer は貯蓄まで）
+        double sold = World.Transfer((World, [r.Pops[b]]), (null, null, null), qty * price, outside: World.Outside.Mint) / price;   // 払えた額の分だけ（Transfer は貯蓄まで）
         if (!(sold > 1e-12)) return 0;
         m.Stock += sold; m.LastImport += sold;
         return sold;
@@ -2869,13 +2871,13 @@ public sealed class Simulation
     /// ⚠走査は Active のみ（EconomyStep と同じ範囲）。backstop は無フィルタで**走査範囲が元から非対称**＝設計§11-2の裁定。</summary>
     private void RepayHouseholdDebt(Region r)
     {
-        if (!(World.Coef.PopDebtDriven > 0) || !(World.Coef.DebtRepayFrac > 0) || World.Bank is not { } bank) return;
+        if (!(World.Coef.PopDebtDriven > 0) || !(World.Coef.DebtRepayFrac > 0) || World.Bank is null) return;
         foreach (var p in r.Pops)
         {
             if (!(p.Debt > 0)) continue;   // ⚠否定形＝NaN も飛ばす
             double pay = Math.Min(p.Debt, Math.Max(0, p.Savings) * World.Coef.DebtRepayFrac);
             if (!(pay > 0)) continue;
-            bank.Lend(p, -pay);   // 返済＝貸しの逆（Bank.Lend の1本）
+            Bank.Lend(World, p, -pay);   // 返済＝貸しの逆（Bank.Lend の1本）
             World.HouseholdDebtRepaid += pay;   // 診断。⚠LossFinanced とは**別カウンタ**（硬性ゲートの分子を汚さない・設計§6-1）
         }
     }
@@ -2898,17 +2900,21 @@ public sealed class Simulation
     internal void BackstopNegativeSavings()
     {
         var bank = World.Bank!;   // 構築で必ず作る（Simulation のコンストラクタ）
+        List<Pop>? one = null; List<double>? unit = null;   // 受け手1人の並び（使い回す＝POP ごとに確保しない）
         foreach (var r in World.Regions)
             foreach (var p in r.Pops)
                 if (p.Savings < 0)
                 {
-                    bank.Loans += -p.Savings;   // 不足を借入（負債↑）
-                    World.LossFinanced += -p.Savings; // 可視化：損失の負債化を累積記録
+                    double need = -p.Savings;
+                    // ★2026-09-30 段4g：不足を借入（負債↑）＝移し方の1本（世界の外の側＝銀行の与信 Outside.Credit）＝貯蓄は 0 ちょうどへ（x+(−x)＝0）・与信が同じ額だけ増える
+                    //   （旧＝与信と貯蓄を手で書いた2行＝下げ止まり＝TotalMoney＋不足, Loans＋不足 で相殺＝保存）。受け手は重み1（頭数0の POP でも受ける＝旧と同じ）。
+                    (one ??= new List<Pop>(1)).Clear(); one.Add(p);
+                    World.Transfer((null, null), (World, one, unit ??= [1.0]), need, outside: World.Outside.Credit);
+                    World.LossFinanced += need; // 可視化：損失の負債化を累積記録
                     // ★入口A（損失の記憶・2026-08-02）：**記録を併記するだけ**＝貸し手側（Bank.Loans）は1ビットも変えない。
                     //   PopDebtLossShare は「消えた赤字のうち個人が背負う割合」＝有限責任の度合い（1.0で無限責任）。
                     //   ⚠これが無いと、赤字は毎月0へ均されて**誰の記憶にも残らず**、デレバレッジが起きない。
-                    if (World.Coef.PopDebtDriven > 0) p.Debt += -p.Savings * World.Coef.PopDebtLossShare;
-                    p.Savings = 0;                    // 下げ止まり（TotalMoney＋不足, Loans＋不足 で相殺＝保存）
+                    if (World.Coef.PopDebtDriven > 0) p.Debt += need * World.Coef.PopDebtLossShare;
                 }
         // ★E6：負の分だけ与信を償却（基礎貨幣は償却の額だけ上がり、非常発行が同じ額だけ台帳に積まれる＝保存量は動かない）。
         //   ⚠NaN は比較が偽＝何もしない（否定形の門）。償却の後の基礎貨幣＝0（与信が足りれば）か国庫の負の分（与信を全部消しても残る分）。

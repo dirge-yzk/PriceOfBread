@@ -153,26 +153,26 @@ public static class Credit
         // 2026-07-12のユーザー裁定で機構ごと廃止（恒久デッドコードだったelse枝と係数を削除）。与信は首都州の投資家のみ＝ロンドン一強の金融面は覇権抑制の裁定（92%受容）に従う。
         // （需要駆動の与信の器 CreditDemandDriven は作者裁定 A16 で点火せず削除＝不足分は投資家の貯蓄の5%−貯蓄＝常に0で、点火すると回収だけが働いた。
         //   後半の「残高≤返せる額」は上の与信の上限へ入れた）
-        // 与信の増減を書くのは下の1行だけ（2026-09-28 E6：投資家の枝と全POPへ注入する枝の同じ行を1本へ＝お金の書き手を増やさない側の整理・ビット恒等）。
-        double lent = delta;
+        // ★2026-09-30 段4g：与信の貸しと回収は移し方の1本（世界の外の側＝銀行の与信 Outside.Credit＝貸しは銀行→借り手・回収は借り手→銀行・与信の残高は動いた額）。
+        //   旧＝借り手の貯蓄と与信の残高を手で書いた（2026-09-28 E6 で投資家の枝と全POPへ注入する枝の与信の行を1本へ）。
         if (home.InvestorPopIndex >= 0 && home.InvestorPopIndex < home.Pops.Count)
         {
             var inv = home.Pops[home.InvestorPopIndex];
-            lent = Math.Max(delta, -Math.Max(0, inv.Savings));   // 回収は投資家の貯蓄まで（負債で保存）
-            inv.Savings += lent;
+            double lent = Math.Max(delta, -Math.Max(0, inv.Savings));   // 回収は投資家の貯蓄まで（負債で保存）
+            if (lent > 0) World.Transfer((null, null), (w, [inv], [1.0]), lent, outside: World.Outside.Credit);   // 受け手は重み1（頭数0でも借りる＝旧と同じ）
+            else if (lent < 0) World.Transfer((w, [inv]), (null, null, null), -lent, outside: World.Outside.Credit);
         }
         else
         {
-            // ★支払いの一元化 段2-2（A1・2026-09-29）：投資家のいない首都では全POPへ預金の比で注入・回収する（旧 InjectMoney＝按分の本体 World.Distribute へ畳んだ・E1）。
-            //   旧＝与信の残高を先に動かし、InjectMoney が早期 return（預金の合計≈0・POP 不在）しても戻さなかった＝基礎貨幣が delta だけ動いた（湧き口）。
-            //   今＝**受け手がいるときだけ与信**（配れなかった額は与信に積まない）・回収は投資家の枝と同じく預金の合計まで（負の貯蓄を作らない）。
+            // ★支払いの一元化 段2-2（A1・2026-09-29）：投資家のいない首都では全POPへ預金の比で注入・回収する（旧 InjectMoney）。
+            //   **受け手がいるときだけ与信**（配れなかった額は与信に積まない＝移し方の1本は受け手不在なら動かさない）・回収は預金の合計まで（負の貯蓄を作らない＝貯蓄の比で取る）。
             var pops = Pops();
             var held = new List<double>(pops.Count); double heldSum = 0;
             foreach (var p in pops) { double h = Math.Max(0, p.Savings); held.Add(h); heldSum += h; }
-            lent = Math.Max(delta, -heldSum);
-            lent -= World.Distribute(pops, lent, held);
+            double lent = Math.Max(delta, -heldSum);
+            if (lent > 0) World.Transfer((null, null), (w, pops, held), lent, outside: World.Outside.Credit);
+            else if (lent < 0) World.Transfer((w, pops), (null, null, null), -lent, outside: World.Outside.Credit);
         }
-        bank.Loans += lent;
 
         // 民間貸出の金利キャッシュフロー（no-loan-interest-cashflow）：借り手(投資家)が利息を払い、銀行利潤として預金者(全pop)へ分配＝pop→pop純移転でBaseMoney保存。
         // 既定 LoanSpread=0・PolicyRateLoanWeight=0 で loanRate=0＝利息なし＝現行恒等。引締め(InterestRate↑)で借り手の利払い増＝金融政策の所得分配チャネル（資本家が借金で建て利潤から利息を払う）。
@@ -198,12 +198,14 @@ public static class Credit
             //   ★単位：Earned/Paid は EconomyStep.Run で**月次**リセット、Credit.Step は**日次**（Simulation.StepDayDaily）。
             //   月次の利潤で日次の利息を頭打ちにすると1ヶ月で最大30回ぶん払えるので、日割り（/DaysPerMonth）で揃える（2026-09-30 S3c から旬次＝h 日ぶん×days）。
             //   現金（Savings）も同時に上限＝持っていない金は払えない（両方の min）。
+            // ★2026-09-30 段4g：払い手（借り手＝投資家／投資家のいない首都では全POP の預金の比）→預金者の利息は下の移し方の1本（払い手の側と受け手の側を1回で書く）。
+            //   ここは払う額だけを決める（旧＝ここで借り手の貯蓄を手で引き、下で按分の本体を直に呼んだ＝片側ずつ）。
+            Pop? borrower = null;
             if (home.InvestorPopIndex >= 0 && home.InvestorPopIndex < home.Pops.Count)
             {
-                var borrower = home.Pops[home.InvestorPopIndex];
+                borrower = home.Pops[home.InvestorPopIndex];
                 double profitDaily = Math.Max(0, borrower.Earned - borrower.Paid) / (double)Calendar.DaysPerMonth * days;   // h 日ぶんの利潤（旬次）
                 paid = Math.Min(interestDue, Math.Min(profitDaily, Math.Max(0, borrower.Savings)));
-                borrower.Savings -= paid;
             }
             else
             {
@@ -211,7 +213,6 @@ public static class Credit
                 double tot = 0, profitTot = 0;
                 foreach (var p in pops) { tot += Math.Max(0, p.Savings); profitTot += Math.Max(0, p.Earned - p.Paid); }
                 paid = Math.Min(interestDue, Math.Min(profitTot / (double)Calendar.DaysPerMonth * days, tot));
-                if (tot > 1e-9) foreach (var p in pops) p.Savings -= paid * (Math.Max(0, p.Savings) / tot);
             }
             // 【案B】払えなかった分は**消えない**＝残高へ繰り入れる（複利化）。
             // ★保存則：bank.Loans は MoneyConservation の恒等式（BaseMoney = baseline + TradeFlow + GoldMinted + FiatIssued）に
@@ -224,16 +225,19 @@ public static class Credit
             //   正しい会計＝**繰入は与信の創造**：銀行が不足分を借り手に貸し（Loans↑）、借り手がそれを預金者へ払う（TotalMoney↑）＝差し引き BaseMoney 不変。
             //   実装＝繰入額を「払った額」に足して預金者へ配る（借り手の現金は減らない＝借金が増える）。
             double capitalized = c.InterestCapitalization > 0 && unpaidInterest > 1e-12 ? c.InterestCapitalization * unpaidInterest : 0;
-            if (capitalized > 0) { bank.Loans += capitalized; paid += capitalized; }
-            if (paid > 1e-12)   // 銀行利潤を預金者(全pop)へ**預金額(Max(0,Savings))比例**で分配＝取った額（＋繰入＝新規与信）と厳密一致で保存（経10）
+            if (paid > 0 || capitalized > 0)   // 銀行利潤を預金者(全pop)へ**預金額(Max(0,Savings))比例**で分配＝取った額（＋繰入＝新規与信）と厳密一致で保存（経10）
             {
                 // 利潤は預金者への配当ゆえ Size(人頭) でなく預金額比例が正しい（人頭だと無貯蓄の貧農も同額/人＝資本家→大衆の意図せぬ恒常移転）。
                 // 徴収側（上の tot）と同形の Math.Max(0, Savings) 重み。LoanSpread 既定0でdormant＝現行挙動に影響なし。
+                // 重み＝払った後の預金（旧と同じ時点）＝借り手の枝は借り手の預金から払う額を除いて数える（全POP の枝は払い手と受け手が同じ預金の比＝払う前の比のまま）。
                 var pops = Pops();
                 var held = new List<double>(pops.Count); double heldSum = 0;
-                foreach (var p in pops) { double h = Math.Max(0, p.Savings); held.Add(h); heldSum += h; }
-                // ★段2-2（2026-09-29）：預金の合計≈0（預金者不在）なら頭数で配る＝旧は戻り値を捨てて、払った利息が消えた（受け手不在の保存の穴）。
-                World.Distribute(pops, paid, heldSum > 1e-9 ? held : null);
+                foreach (var p in pops) { double h = Math.Max(0, ReferenceEquals(p, borrower) ? p.Savings - paid : p.Savings); held.Add(h); heldSum += h; }
+                // ★段2-2（2026-09-29）：預金の合計≈0（預金者不在）なら頭数で配る（受け手不在の保存の穴を作らない）。
+                var weights = heldSum > 1e-9 ? held : null;
+                // 払い手→預金者（移し方の1本）・繰入＝銀行が不足分を借り手に貸し、借り手がそれを預金者へ払う＝銀行の与信→預金者（世界の外の側＝銀行の与信）。
+                if (paid > 0) World.Transfer((w, borrower is not null ? [borrower] : pops), (w, pops, weights), paid);
+                if (capitalized > 0) World.Transfer((null, null), (w, pops, weights), capitalized, outside: World.Outside.Credit);
             }
         }
     }

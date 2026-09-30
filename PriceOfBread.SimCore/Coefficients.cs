@@ -695,7 +695,7 @@ public sealed class Coefficients
     // 植民地の過伸展（最終調整2026-06-29・ユーザー指示「覇権が現れづらい仕組み」）：行政・駐留・制海の限界で、保持能力（基礎＋軍事力×係数）を超える植民地は AI が新規に獲得しない＝
     // 最多保有国（覇権）の植民地獲得だけが頭打ちになり、植民地スコアの独占が緩む（少数しか持たない挑戦者は無傷＝恐慌脱植民地化のような逆効果がない）。帝国過伸展(Kennedy)の実体化。既定0で無制限＝旧挙動。
     // ※植民地の過伸展キャップも逆効果（挑戦者＝植民地保有国の唯一の武器を奪い覇権が経済力で勝つ）＝既定0で無効化（撤回）。覇権抑制はキャッチアップ＋資本破壊＋過熱で行う。
-    public double ColonialSpendRate = 0.08;      // 住民の蓄えが本国財の購入（捕囚市場）に向かう月次率＝財布の実体
+    // 【墓標2026-09-30 段4g・作者裁定 Q12】ColonialSpendRate（0.08＝植民地の蓄えが捕囚市場に向かう月次率）＝捕囚市場ごと削除（国の植民地の一覧はゲームの間ずっと空＝一度も走らなかった）
     public double ColonialLiteracyGrowth = 0.0006; // 開発（産出率）との接触で識字が上がる速さ＝教育された植民地ほど独立を求める
     public double ColonialMilitancyGrowth = 0.0023; // 不満の成長（×搾取×(0.3+識字)）。0.01→0.003→0.0023＋独立閾値0.85。
     // 閾値超えは「崖」（0.0022で0回／0.0025で30回）。0.0023で125年＝独立11回（5シード安定）＝19世紀は概ね帝国の時代、終盤に発達した大植民地のみ少数が離反。
@@ -1284,7 +1284,7 @@ public sealed class Coefficients
     // ★2026-09-30 (125)：工業の引力 IndustrialOpportunityWeight（旧 0.5＝機会 ×(1＋これ×工業化度)・2026-06-28）を削除＝州の空洞化の根
     //   （工業化度は資本の総量＝人が集まる州ほど積もり、さらに人を引く正帰還・1人に与える機会は賃金と雇用が既に運ぶ＝思想⑨）。Territory.Opportunity の注記。
     public double OpportunityWageWeight = 0.2;       // 州の労働価格プレミアム（1人あたり月次所得の対国平均比＝Region.WagePremium）1あたり移民機会の上乗せ（Opportunity ×(1+これ×(premium−1))）。金鉱州の高賃金→移民殺到＝ゴールドラッシュを賃金経由で創発（キュー3・金発見移民）。0=恒等（較正中立＝単一州はpremium=1）。0.2採用＝実測2026-07-10：(a)wageprobe＝前提「欧州平時bestOpp<0.55」は不成立（全53カ国が常時>0.55＝国際流入は受入上限ImmigrationReceiveCapFracで飽和＝重みは国際流入量を変えず磁石化リスクなし（02断線走査2026-07-28：死んだImmigrationMaxFracの論拠を実係数へ差し替え）・実効は金鉱/ブーム州への誘導＝受入州選択・国内移動）(b)提案帯0.3-0.4は4国回帰番人「工業化の差別化」を壊す（0.3→spread0.15/0.4→0.22＜基準0.5＝賃金スパイク追随が工業州への集積を乱す）→番人合格の上限0.2
-    public double ImmigrantWorkerBase = 0.3;         // 入植者のうち労働者になる割合（植民地の州昇格＝Simulation.PromoteColonyToRegion。★回1-2 で国際移民の着地＝ImmigrantWorkerPerInd と共に使っていた経路は削除）
+    // 【墓標2026-10-01 (139) 段4g・作者裁定 Q12】ImmigrantWorkerBase（0.3＝入植者のうち労働者になる割合）＝読み手（植民地の州昇格の入植者の着地）が Colony オブジェクトの入植ごと消えた
 
     // --- 外交・戦争（§6.1 国際層）---
     // ※旧 MilitaryFromCoercion / GdpPerMilitary（治安維持力ベースの軍ゲージ）は Part 2 で兵士POPベースに置換し廃止。
@@ -2446,7 +2446,7 @@ public sealed class Coefficients
     public double ColonialDevStep = 0.02;            // 採算が合う時に1期で進める開発度の刻み
     public double ColonialInvestFrac = 0.03;         // 私的投資家が貯蓄からこの割合まで植民地開発に充てる（affordability 上限）
     public double ColonialProductionPerColony = 600; // 植民地1つが固有資源を毎期産出する量（×産出率）。需要に関係なく市場へ流入＝過剰なら価格暴落（フラッディング）
-    public int[] ColonialMarketGoods = [Catalog.BreadId, Catalog.ClothingId, Catalog.FurnitureId, Catalog.TobaccoId, Catalog.BeerId];   // 捕囚市場で売る完成財（パン・衣料・家具・煙草・ビール）
+    // 【墓標2026-09-30 段4g・作者裁定 Q12】ColonialMarketGoods（捕囚市場で売る完成財＝パン・衣料・家具・煙草・ビール）＝捕囚市場ごと削除
     // アヘン（特殊資材・実験）：消費するほど中毒度が上がり、それが需要に上乗せされる＝供給が需要を生む正のフィードバック（暴走する想定）。
     public int OpiumGoodId = Catalog.OpiumId;                     // アヘンの good.Id
     public double OpiumAddictionGrowth = 0.1;        // P3点火0.1（2026-07-18＝Phase B実現。0.2はハーネス13/30＝依存→満足↓→困窮消費の発散で却下）。0=機構全体オフ（恒等）。点火で困窮ゲート消費・労働/満足ペナルティ・世界プール参加・AI禁令・輸出国緊張が全て連動

@@ -447,9 +447,9 @@ public sealed partial class InternationalMarket
         for (int t2 = 0; t2 < tc; t2++)
         {
             var r2 = tr[t2].r;
-            var bank2 = nations[tr[t2].nation].World.Bank!;   // 全ての世界に銀行（段2-2）
+            var w2 = nations[tr[t2].nation].World;   // 全ての世界に銀行（段2-2）
             foreach (var p2 in r2.Pops)
-                if (p2.Debt > 0) { double back = Math.Min(p2.Debt, Math.Max(0, p2.Savings)); if (back > 0) bank2.Lend(p2, -back); }   // ①手形の決済（否定形の門＝NaN は返さない）
+                if (p2.Debt > 0) { double back = Math.Min(p2.Debt, Math.Max(0, p2.Savings)); if (back > 0) Bank.Lend(w2, p2, -back); }   // ①手形の決済（否定形の門＝NaN は返さない）
             if (r2.MerchantPopIndex >= 0 && r2.MerchantPopIndex < r2.Pops.Count) { payerOf[t2] = [r2.Pops[r2.MerchantPopIndex]]; bill[t2] = !(r2.Pops[r2.MerchantPopIndex].Debt > 0); }
             else if (r2.Pops.Count > 0) payerOf[t2] = r2.Pops;
             if (payerOf[t2] is { } pl) foreach (var p2 in pl) budget[t2] += Math.Max(0, p2.Savings);
@@ -877,7 +877,7 @@ public sealed partial class InternationalMarket
             if (bill[t] && payerOf[t] is [var mer])
             {   // ③手形の振り出し＝貯蓄（補助の後）で足りない分だけ自国の銀行で割り引く（払いの前＝関税と代金を満額払える）
                 double due = payTariff[t] + payHouse[t], have = Math.Max(0, mer.Savings);
-                if (due > have) w0.Bank!.Lend(mer, due - have);
+                if (due > have) Bank.Lend(w0, mer, due - have);
             }
             if (payTariff[t] > 0 && payerOf[t] is { } pt) w0.LastTariffRevenue += World.Transfer((w0, pt), (w0, null, null), payTariff[t], TreasuryCat.Tariff);   // 関税と穀物法＝輸入者から通関の時点で（econ-07）
             if (payHouse[t] > 0 && payerOf[t] is { } pp) World.Transfer((w0, pp), (null, null, null), payHouse[t]);   // 輸入代金と運賃＝清算所へ（国境をまたげば世界の台帳へ・同じ国の州どうしは台帳で打ち消す）

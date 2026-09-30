@@ -81,8 +81,8 @@ public class AiFirstWaveTests
         w.Coef.AiLawGateUnified = 1.0;
         // 純支持を確実に正へ（憲法級＝マンデート余白では押せない＝実際の支持が要る）：大衆と近代の発言権を厚く
         //（SuffrageScopeTests と同じ細工＝巨大貯蓄で発言権を作る。参政権のこの段は大衆+1・近代も制限選挙までは賛成）。
-        foreach (var pp in w.AllPops()) if (!pp.Closed && !pp.IsModernElite && !pp.IsSoldier) { pp.Savings = 1e9; break; }
-        foreach (var pp in w.AllPops()) if (pp.IsModernElite) { pp.Savings = 1e9; break; }
+        foreach (var pp in w.AllPops()) if (!pp.Closed && !pp.IsModernElite && !pp.IsSoldier) { pp.SetSavings(1e9); break; }
+        foreach (var pp in w.AllPops()) if (pp.IsModernElite) { pp.SetSavings(1e9); break; }
         Assert.True(Government.GateInfo(w, PolicyAxis.Suffrage, increasing: true, (int)w.Suffrage + 1).Ok,
             "テスト前提が崩れた：大衆/近代の厚い発言権でも参政権の次の1段が通らない");
         new UtilityAgent().DecideQuarter(w);
@@ -136,7 +136,7 @@ public class AiFirstWaveTests
         //   （この盤面は1四半期も回していない＝b=0 のまま）。同じ式で b を今の係数から導出して満タンにする＝b≈30 の「在庫ハンマー」（主張は不変）。
         w.PoliticalCapitalMax = PoliticalQuantities.PoliticalCapitalMax(w); w.MandateSpent = 0;
         w.LastImmigration = w.TotalPopulation * 0.05;   // 大量流入（四半期5%）＝制限圧力 40×0.05×(1+失業) ≥ 2.0 ＞ 開放の上限の線 0.48（F5）
-        foreach (var pp in w.AllPops()) if (pp.IsModernElite) { pp.Savings = 1e9; break; }   // 近代エリート支配＝教義 Industrialist＝国教は内心の自由へ
+        foreach (var pp in w.AllPops()) if (pp.IsModernElite) { pp.SetSavings(1e9); break; }   // 近代エリート支配＝教義 Industrialist＝国教は内心の自由へ
         new UtilityAgent().DecideQuarter(w);
         Assert.Equal(ImmigrationLaw.Selective, w.Policy.ImmigrationRestriction);   // 今の法（開放）から1段（選別）
         Assert.Equal(StateReligionLaw.InnerFreedom, w.Policy.StateReligion);       // 国教のみ→内心の自由（1段）
@@ -149,7 +149,7 @@ public class AiFirstWaveTests
         var w = sim.World;
         w.Coef.AiLawWriteCoverage = 0;   // ★OFF側を明示ピン（2026-08-16に既定0→1.0で点火済み）
         w.LastImmigration = w.TotalPopulation * 0.05;
-        foreach (var pp in w.AllPops()) if (pp.IsModernElite) { pp.Savings = 1e9; break; }
+        foreach (var pp in w.AllPops()) if (pp.IsModernElite) { pp.SetSavings(1e9); break; }
         new UtilityAgent().DecideQuarter(w);
         Assert.Equal(ImmigrationLaw.Open, w.Policy.ImmigrationRestriction);        // 書き手ゼロのまま＝enum既定値
         Assert.Equal(StateReligionLaw.StateChurch, w.Policy.StateReligion);
@@ -266,8 +266,8 @@ public class AiFirstWaveTests
             Assert.Equal(Suffrage.Census, w.Policy.Suffrage);   // 40期どれだけ否決されても目標は同じ＝経過期数は何も持たない
         }
         // 支持が届く（大衆と近代の発言権を厚くする＝上の到達可能テストと同じ細工）。フラグもカウンタも触らない。
-        foreach (var pp in w.AllPops()) if (!pp.Closed && !pp.IsModernElite && !pp.IsSoldier) { pp.Savings = 1e9; break; }
-        foreach (var pp in w.AllPops()) if (pp.IsModernElite) { pp.Savings = 1e9; break; }
+        foreach (var pp in w.AllPops()) if (!pp.Closed && !pp.IsModernElite && !pp.IsSoldier) { pp.SetSavings(1e9); break; }
+        foreach (var pp in w.AllPops()) if (pp.IsModernElite) { pp.SetSavings(1e9); break; }
         Assert.True(Government.GateInfo(w, PolicyAxis.Suffrage, increasing: true, (int)Suffrage.Census).Ok,
             "テスト前提が崩れた：発言権を厚くしても次の1段が通らない");
         Government.Step(w, w.Coef);                              // 待ち期間ゼロ＝同じ目標が最初の施行機会で通る

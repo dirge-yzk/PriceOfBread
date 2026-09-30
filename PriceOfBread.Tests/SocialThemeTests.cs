@@ -36,12 +36,12 @@ public class SocialThemeTests
         var sim = new Simulation(NationConfig.France().ToScenario(5), new NullAgent());
         sim.Run(8);   // pop に貯蓄を持たせる
         // 全POPの1人あたり貯蓄を均一化→ジニ≈0
-        foreach (var p in sim.World.AllPops()) p.Savings = p.Size * 10.0;
+        foreach (var p in sim.World.AllPops()) p.SetSavings(p.Size * 10.0);
         double giniEqual = Politics.GiniIndex(sim.World);
         Assert.True(giniEqual < 0.05, $"完全平等でジニが0付近にならない（{giniEqual:F3}）");
         // 1つのPOPに富を偏在させる→ジニ増加
         var rich = System.Linq.Enumerable.First(sim.World.AllPops());
-        rich.Savings = rich.Size * 1000.0;
+        rich.SetSavings(rich.Size * 1000.0);
         double giniRich = Politics.GiniIndex(sim.World);
         Assert.True(giniRich > giniEqual + 0.05, $"富の偏在でジニが増えない（平等{giniEqual:F3}→偏在{giniRich:F3}）");
     }

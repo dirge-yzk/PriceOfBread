@@ -35,12 +35,12 @@ public class InvariantTests
         var sim = new Simulation(new Scenario { Seed = 9 }, new NullAgent());
         var inv = new MoneyConservation(sim.World);
 
-        sim.World.Region.Pops[0].Savings += 1.0;   // 人為的に総マネーを変える
+        sim.World.Region.Pops[0].SetSavings(sim.World.Region.Pops[0].Savings + (1.0));   // 人為的に総マネーを変える
 
         Assert.Throws<InvariantViolationException>(() => inv.Check(sim.World));
     }
 
-    /// <summary>M7（2026-09-11）：pop への配分の唯一定義＝World.Distribute（旧 Diplomacy の同文複製を削除・2026-09-28 に Colonial.DistributeToPops もここへ畳んだ＝全POP×頭数は呼び手が集合を名乗る）。
+    /// <summary>M7（2026-09-11）：pop への配分の唯一定義＝Pop.Distribute（2026-10-01 段4g に World.Distribute から移した・旧 Diplomacy の同文複製を削除・2026-09-28 に Colonial.DistributeToPops もここへ畳んだ＝全POP×頭数は呼び手が集合を名乗る）。
     /// Σ⊿Savings==amount（保存）・受け手不在（総人口0）で amount をそのまま返す・
     /// 1e-12 以下と NaN は配らず 0 を返す（否定形ガード＝Invariants の許容 1e-8×scale 未満）。</summary>
     [Fact]
@@ -55,19 +55,19 @@ public class InvariantTests
         double OtherSavings() { double s = 0; foreach (var p in other!.Pops) s += p.Savings; return s; }
 
         double before = SumSavings();
-        Assert.Equal(0.0, World.Distribute(new List<Pop>(w.AllPops()), 1000.0));
+        Assert.Equal(0.0, Pop.Distribute(new List<Pop>(w.AllPops()), 1000.0));
         Assert.True(Math.Abs(SumSavings() - before - 1000.0) <= 1e-6, $"配分が保存しない（Σ⊿Savings={SumSavings() - before}）");
 
         double otherBefore = OtherSavings();
         Assert.True(otherBefore > 0, "前提が崩れた：他の州に貯蓄が無い");   // 受け手は国の全州（AllPops）
 
         double before3 = SumSavings();
-        Assert.Equal(0.0, World.Distribute(new List<Pop>(w.AllPops()), 1e-13));
-        Assert.Equal(0.0, World.Distribute(new List<Pop>(w.AllPops()), double.NaN));
+        Assert.Equal(0.0, Pop.Distribute(new List<Pop>(w.AllPops()), 1e-13));
+        Assert.Equal(0.0, Pop.Distribute(new List<Pop>(w.AllPops()), double.NaN));
         Assert.Equal(before3, SumSavings());   // 微小/NaN は1銭も動かさない
 
         foreach (var r in w.Regions) foreach (var p in r.Pops) p.Size = 0;
-        Assert.Equal(700.0, World.Distribute(new List<Pop>(w.AllPops()), 700.0));   // 受け手不在＝配れなかった額をそのまま返す（呼び手が出所へ戻す）
+        Assert.Equal(700.0, Pop.Distribute(new List<Pop>(w.AllPops()), 700.0));   // 受け手不在＝配れなかった額をそのまま返す（呼び手が出所へ戻す）
     }
 
     /// <summary>NaN破綻の番人（2026-09-21）：★本国を全て失い植民地だけが残った国の形を固定する。
@@ -87,8 +87,8 @@ public class InvariantTests
         Assert.NotNull(poor);
 
         // 破綻した州＝全popの現金が尽き、1popにだけ丸め残差の負値が残る（実測と同じ桁）
-        foreach (var p in poor!.Pops) p.Savings = 0;
-        poor.Pops[0].Savings = -8.881784197001252e-16;
+        foreach (var p in poor!.Pops) p.SetSavings(0);
+        poor.Pops[0].SetSavings(-8.881784197001252e-16);
         double natSav = 0, natPop = 0;
         foreach (var r in w.Regions) if (r.State == RegionState.Active) foreach (var p in r.Pops) { natSav += p.Savings; natPop += p.Size; }
         Assert.True(natSav / natPop > 1e-9, "比の分母（国の1人あたり貯蓄）が生きている前提＝分子だけが負に転ぶ形");

@@ -43,25 +43,26 @@ public static class Crime
             // 【重要】受取重みは満足度ペナルティ適用『前』の Satisfaction で計算する（分母 criminal と同一基準）。
             // 満足度ペナルティを先に適用すると Σweight≠criminal となり done>pool＝残差が負値で末尾popから恣意的控除（貯蓄が負へ）になるため、
             // 貨幣移転を満足度ペナルティより先に済ませ、両者の基準を厳密に揃える。
+            // ★2026-09-30 段4g：移し方の1本（州の全員＝払い手の重みは自分の被害＝貯蓄×犯罪率→困窮大衆＝重み 困窮×不満・端数は最後の受け手）。
+            //   旧＝被害の手書きの引き落としと按分の本体の直の呼び出し（片側ずつ）。受け手の重みの和＝criminal（>1e-9 を上で確かめた）＝配り切る。
+            //   受取も母体と同じ困窮×不満（階級フィルタ撤去）＝criminal と同一のペナルティ前満足度。
             double pool = 0;
+            var stolen = new List<double>(r.Pops.Count);
             foreach (var p in r.Pops)
             {
                 double steal = Math.Max(0, p.Savings) * crimeRate;
-                p.Savings -= steal;
+                stolen.Add(steal);
                 pool += steal;
             }
             if (pool > 1e-12)
             {
-                // ★支払いの一元化 段2-3（E1・2026-09-29）：按分の本体 World.Distribute へ畳んだ（重み＝困窮×不満・端数は最後の受け手）。
-                //   受取も母体と同じ困窮×不満（階級フィルタ撤去）＝criminal と同一のペナルティ前満足度。旧＝最後の受け手が自分の分と端数の両方を受ける手書きの複製。
-                //   受け手の重みの和＝criminal（>1e-9 を上で確かめた）＝配り切る。
                 var poor = new List<Pop>(); var need = new List<double>();
                 foreach (var p in r.Pops)
                 {
                     double weight = p.Size * p.Militancy * (1.0 - p.Satisfaction);
                     if (weight > 0) { poor.Add(p); need.Add(weight); }
                 }
-                World.Distribute(poor, pool, need);
+                World.Transfer((w, r.Pops), (w, poor, need), pool, fromWeights: stolen);
             }
 
             // 犯罪→満足度の還流（crime-is-dead-end + theft-no-property-disincentive 統合）：治安崩壊は非物質厚生（安心）を毀損する。

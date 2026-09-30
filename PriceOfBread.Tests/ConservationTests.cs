@@ -151,7 +151,7 @@ public class ConservationTests
                     pop += p; created += c; money += m; minted += mi;
                 }
                 foreach (var ap in sim.Diplomacy.Powers)   // 抽象標的（Nation の無い勢力）の植民地の住民
-                    if (ap.Nation is null) foreach (var col in ap.ColonyList) pop += System.Math.Max(0, col.PopSize) + col.SettlerSize;
+                    if (ap.Nation is null) foreach (var col in ap.ColonyList) pop += System.Math.Max(0, col.PopSize);
                 minted += sim.Diplomacy.CumulativeFxResidual;   // ★段3-1（A7）：為替の換算で世界の名目の基礎貨幣が動く分（清算所の台帳）＝鋳造・不換発行と並ぶ正当な湧き口と消え口
                 return (pop, created, money, minted);
             }
@@ -255,7 +255,7 @@ public class ConservationTests
         var r = uk.Regions[1];
         Assert.True(r.MerchantPopIndex >= 0, "前提が崩れた：割譲する州に商人が居ない");
         var mer = r.Pops[r.MerchantPopIndex];
-        uk.Bank!.Lend(mer, 50);   // 手形の債務（貸しの1本）
+        Bank.Lend(uk, mer, 50);   // 手形の債務（貸しの1本）
         double dUk = D(uk), dFr = D(fr), hUk = uk.Bank.HouseholdLoans, hFr = fr.Bank!.HouseholdLoans;
         double tol = 1e-9 * System.Math.Max(1.0, System.Math.Abs(uk.BaseMoney) + System.Math.Abs(fr.BaseMoney));
         Territory.TransferRegion(uk, fr, r, Territory.Rehoming.Ceded);
@@ -263,7 +263,7 @@ public class ConservationTests
         Assert.True(System.Math.Abs(D(uk) - dUk) <= tol && System.Math.Abs(D(fr) - dFr) <= tol, "割譲で国ごとの D が閉じない");
         var sp = uk.Regions[0].Pops.Find(p => p.ClassId == PopClass.Worker && !p.IsSoldier)!;
         var dp = fr.Regions[0].Pops.Find(p => p.ClassId == PopClass.Worker && !p.IsSoldier)!;
-        uk.Bank.Lend(sp, 30);
+        Bank.Lend(uk, sp, 30);
         double flow = 0.1 * sp.Size, carried = sp.Debt * (flow / sp.Size);
         dUk = D(uk); dFr = D(fr); hUk = uk.Bank.HouseholdLoans; hFr = fr.Bank.HouseholdLoans;
         sim.MoveMigrants(uk, fr, uk.Regions[0], fr.Regions[0], PopClass.Worker, flow);
@@ -460,7 +460,7 @@ public class ConservationTests
         ezo.ColonyList.Add(col);
         sim.Diplomacy.Powers.Add(ezo);
         var region = jp.Regions.Find(r => r.Name == "蝦夷地")!;
-        double people = System.Math.Max(0, col.PopSize) + col.SettlerSize;
+        double people = System.Math.Max(0, col.PopSize);
         Assert.True(people > 0, "前提が崩れた：抽象標的の蝦夷地に住民がいない");
         double pop0 = region.SumPopulation(), delta0 = jp.PopulationDelta;
         int regions0 = jp.Regions.Count, absorbed0 = sim.Diplomacy.AbsorbedColonies;
@@ -475,20 +475,20 @@ public class ConservationTests
 
     // ── 支払いの一元化 段2-2・2-3 の番人（2026-09-29・計画 docs/202609/20260926/20260926_外部レビューの検討.md §10-12）──
 
-    /// <summary>★按分の本体（World.Distribute）は**符号つき**で**微小な額も配り切る**（段2-3 E1）。旧＝1e-12 以下の額は配らずに0を返した（呼び手は配ったものとして扱い、その分が消えた）・
+    /// <summary>★按分の本体（Pop.Distribute＝2026-10-01 段4g に World から Pop へ移した）は**符号つき**で**微小な額も配り切る**（段2-3 E1）。旧＝1e-12 以下の額は配らずに0を返した（呼び手は配ったものとして扱い、その分が消えた）・
     /// 負の額（与信の回収・貿易の赤字）は同じ式の手書きの複製が配っていた。額が0か NaN なら何もしない。
     /// ⚠突然変異「旧の門 !(amount > 1e-12)」で赤（微小な額が消え、負の額が配られない）。</summary>
     [Fact]
     public void 按分の本体は符号つきで微小な額も配り切る()
     {
         var a = new Pop { Size = 1, Savings = 0 }; var b = new Pop { Size = 3, Savings = 0 };
-        Assert.Equal(0.0, World.Distribute([a, b], 4e-13));
+        Assert.Equal(0.0, Pop.Distribute([a, b], 4e-13));
         Assert.True(System.Math.Abs(a.Savings + b.Savings - 4e-13) <= 1e-27 && a.Savings > 0, $"微小な額が配られていない（{a.Savings}＋{b.Savings}）");
         var c = new Pop { Size = 1, Savings = 10 }; var d = new Pop { Size = 1, Savings = 30 };
-        Assert.Equal(0.0, World.Distribute([c, d], -8.0, [10.0, 30.0]));   // 負の額＝重みの比で取る（与信の回収・貿易の赤字）
+        Assert.Equal(0.0, Pop.Distribute([c, d], -8.0, [10.0, 30.0]));   // 負の額＝重みの比で取る（与信の回収・貿易の赤字）
         Assert.Equal(8.0, c.Savings); Assert.Equal(24.0, d.Savings);
-        Assert.Equal(0.0, World.Distribute([c, d], double.NaN)); Assert.Equal(8.0, c.Savings);   // NaN は配らない
-        Assert.Equal(-5.0, World.Distribute([], -5.0));                                        // 受け手不在＝配れなかった額を返す（符号つき）
+        Assert.Equal(0.0, Pop.Distribute([c, d], double.NaN)); Assert.Equal(8.0, c.Savings);   // NaN は配らない
+        Assert.Equal(-5.0, Pop.Distribute([], -5.0));                                        // 受け手不在＝配れなかった額を返す（符号つき）
     }
 
     /// <summary>★お金の移し方の1本（World.Transfer・段2-3 E2・A4＝旧 MultiNationSim.TransferToPops を移して一般化）：払い手（POP＝貯蓄の保有の比・貯蓄まで・負の貯蓄からは取らない）から
@@ -518,6 +518,107 @@ public class ConservationTests
         Assert.Equal(uf1, uk.CumulativeTradeFlow);                                                         // 同じ国の中＝台帳は動かない
     }
 
+    // ── 支払いの一元化 段4g の番人（2026-09-30・残る片側の記帳を移し方の1本へ・実装ログ (139)）──
+
+    /// <summary>★払い手の重み＝自分の請求（作者裁定 Q4＝払い手ごとの1本の率）：各払い手は 重み×(額÷Σ重み) を、自分の貯蓄（max(0,貯蓄)）まで払う。
+    /// 額に Σ重みを渡せば請求そのもの（÷1 ちょうど）。払えない分は取らない（他人から埋めない）・動いた額は払い手ごとの額の和・<c>taken</c> は払い手ごとの動いた額。
+    /// ⚠突然変異「貯蓄で切らない」「重みを使わず貯蓄の比で取る」で赤。</summary>
+    [Fact]
+    public void 払い手の重みは自分の請求で払い手ごとに自分の貯蓄まで()
+    {
+        var sim = new MultiNationSim([WorldData.ByName("イギリス")], seed: 1789, coef: new Coefficients()) { DiplomacyFrozen = true };
+        var uk = sim.Nations[0].World;
+        var a = new Pop { Size = 1, Savings = 100 }; var b = new Pop { Size = 1, Savings = 5 }; var c = new Pop { Size = 1, Savings = -3 };
+        var payers = new List<Pop> { a, b, c };
+        var claims = new List<double> { 20, 10, 4 };   // b は 10 を払えない（5 まで）・c は負の貯蓄＝払えない
+        var taken = new List<double>();
+        double t0 = uk.Treasury;
+        double moved = World.Transfer((uk, payers), (uk, null, null), 34, TreasuryCat.Tax, fromWeights: claims, taken: taken);
+        Assert.Equal(25.0, moved);
+        Assert.Equal(new List<double> { 20, 5, 0 }, taken);
+        Assert.Equal(80.0, a.Savings); Assert.Equal(0.0, b.Savings); Assert.Equal(-3.0, c.Savings);
+        Assert.True(System.Math.Abs(uk.Treasury - t0 - 25.0) <= 1e-9 * System.Math.Max(1.0, System.Math.Abs(t0)), "国庫の増分 ≠ 動いた額");
+        // 額が Σ重みの半分＝請求も半分（各自の率は同じ）
+        var d = new Pop { Size = 1, Savings = 100 }; var e = new Pop { Size = 1, Savings = 100 };
+        Assert.Equal(15.0, World.Transfer((uk, [d, e]), (uk, [new Pop { Size = 1 }], null), 15, fromWeights: [10.0, 20.0]));
+        Assert.Equal(95.0, d.Savings); Assert.Equal(90.0, e.Savings);
+    }
+
+    /// <summary>★世界の外の側の台帳の種類（段4g）：銀行の与信（企業 Loans・家計 HouseholdLoans）・不換の発行者（CumulativeFiatIssued）・造幣局（CumulativeGoldMinted）は
+    /// 移し方の1本が**動いた額**をそのまま書く＝貸しと発行で増え・返しと焼却で減る＝保存量 D（基礎貨幣−台帳）は動かない。返しは借り手の貯蓄まで。
+    /// ⚠突然変異「与信の台帳を書かない」「不換の台帳の符号が逆」で赤。</summary>
+    [Fact]
+    public void 世界の外の側の台帳は与信と不換と鋳造へ動いた額を書く()
+    {
+        var sim = new MultiNationSim([WorldData.ByName("イギリス")], seed: 1789, coef: new Coefficients()) { DiplomacyFrozen = true };
+        var uk = sim.Nations[0].World; var bank = uk.Bank!;
+        var p = uk.Regions[0].Pops.Find(x => x.ClassId == PopClass.Worker && !x.IsSoldier)!;
+        double tol = 1e-9 * System.Math.Max(1.0, System.Math.Abs(uk.BaseMoney) + bank.Loans + bank.HouseholdLoans + System.Math.Abs(uk.CumulativeFiatIssued));
+        double d0 = D(uk), L0 = bank.Loans, s0 = p.Savings;
+        Assert.Equal(40.0, World.Transfer((null, null), (uk, [p], [1.0]), 40, outside: World.Outside.Credit));   // 貸し
+        Assert.True(System.Math.Abs(bank.Loans - L0 - 40) <= tol && System.Math.Abs(p.Savings - s0 - 40) <= tol, "与信と預金が同じ額だけ増えていない");
+        Assert.True(System.Math.Abs(D(uk) - d0) <= tol, "与信の貸しで保存量 D が動いた");
+        double back = World.Transfer((uk, [p]), (null, null, null), 1e18, outside: World.Outside.Credit);            // 返し＝貯蓄まで
+        Assert.True(System.Math.Abs(back - (s0 + 40)) <= tol && System.Math.Abs(p.Savings) <= tol, $"返しが借り手の貯蓄までになっていない（{back}）");
+        Assert.True(System.Math.Abs(bank.Loans - (L0 + 40 - back)) <= tol && System.Math.Abs(D(uk) - d0) <= tol, "返しで与信が動いた額だけ減っていない（か D が動いた）");
+        double h0 = bank.HouseholdLoans, debt0 = p.Debt;
+        Bank.Lend(uk, p, 12);                                                                                         // 家計の与信の1本
+        Assert.True(System.Math.Abs(bank.HouseholdLoans - h0 - 12) <= tol && System.Math.Abs(p.Debt - debt0 - 12) <= tol && System.Math.Abs(D(uk) - d0) <= tol, "家計の貸しの台帳が閉じない");
+        Bank.Lend(uk, p, -12);
+        Assert.True(System.Math.Abs(bank.HouseholdLoans - h0) <= tol && System.Math.Abs(p.Debt - debt0) <= tol, "家計の返しの台帳が閉じない");
+        double f0 = uk.CumulativeFiatIssued, t0 = uk.Treasury;
+        World.Transfer((null, null), (uk, null, null), 30, TreasuryCat.Devalue, outside: World.Outside.Fiat);     // 不換の発行（切り下げ）
+        Assert.True(System.Math.Abs(uk.CumulativeFiatIssued - f0 - 30) <= tol && System.Math.Abs(uk.Treasury - t0 - 30) <= tol && System.Math.Abs(D(uk) - d0) <= tol, "不換の発行の台帳が閉じない");
+        var q = uk.Regions[0].Pops.Find(x => x.ClassId == PopClass.Peasant && !x.IsSoldier)!;
+        double burned = World.Transfer((uk, [q]), (null, null, null), 7, outside: World.Outside.Fiat);             // 焼却（通貨改革）＝不換の回収
+        Assert.Equal(7.0, burned);
+        Assert.True(System.Math.Abs(uk.CumulativeFiatIssued - f0 - 23) <= tol && System.Math.Abs(D(uk) - d0) <= tol, "焼却で不換の台帳が回収の額だけ下がっていない");
+        double g0 = uk.CumulativeGoldMinted;
+        World.Transfer((null, null), (uk, [q], [1.0]), 5, outside: World.Outside.Mint);                              // 鋳造の代金
+        Assert.True(System.Math.Abs(uk.CumulativeGoldMinted - g0 - 5) <= tol && System.Math.Abs(D(uk) - d0) <= tol, "鋳造の台帳が閉じない");
+    }
+
+    /// <summary>★恐怖政治の没収（段4g＝移し方の1本・払い手の重み＝自分の没収の額）：急進革命（共和制）の勝利で失脚した旧支配層（閉鎖階級）は正の貯蓄の
+    /// RevolutionTerror の割合を失い、同じ額が大衆へ頭数で渡る（国庫は動かない・保存量 D も動かない）。旧＝粛清の走査の中で貯蓄を手で引き、按分の本体の戻りを国庫へ入れた。
+    /// ⚠突然変異「没収を大衆へ渡さない」「受け手を失脚した層に」で赤。</summary>
+    [Fact]
+    public void 恐怖政治の没収は失脚した層から大衆へ同じ額で移る()
+    {
+        var sim = new MultiNationSim([WorldData.ByName("フランス")], seed: 1789, coef: new Coefficients()) { DiplomacyFrozen = true };
+        var w = sim.Nations[0].World; var c = w.Coef;
+        Assert.True(c.RevolutionTerror > 0, "前提：恐怖政治が休眠");
+        var deposed = new List<(Pop P, double S0)>(); var masses = new List<(Pop P, double S0)>();
+        foreach (var p in w.AllPops())
+        {
+            if (p.Closed && !p.IsSoldier && p.Size > 0) deposed.Add((p, p.Savings));
+            else if (Politics.IsMassPop(p)) masses.Add((p, p.Savings));
+        }
+        double expect = 0; foreach (var (_, s0) in deposed) expect += System.Math.Max(0, s0) * c.RevolutionTerror;
+        Assert.True(expect > 0, "前提：失脚する層に貯蓄が無い");
+        double t0 = w.Treasury, d0 = D(w);
+        Politics.ExecuteRegimeChange(w, c, Polity.Republic, violent: false);
+        double tol = 1e-9 * System.Math.Max(1.0, expect + System.Math.Abs(d0));
+        foreach (var (p, s0) in deposed)
+            Assert.True(System.Math.Abs(p.Savings - (s0 - System.Math.Max(0, s0) * c.RevolutionTerror)) <= tol, $"失脚した {p.ClassName} の貯蓄 {s0}→{p.Savings}（没収の割合 {c.RevolutionTerror} と違う）");
+        double gained = 0; foreach (var (p, s0) in masses) gained += p.Savings - s0;
+        Assert.True(System.Math.Abs(gained - expect) <= tol, $"大衆の受け取り {gained} ≠ 没収 {expect}");
+        Assert.Equal(t0, w.Treasury);
+        Assert.True(System.Math.Abs(D(w) - d0) <= tol, "没収で保存量 D が動いた");
+    }
+
+    /// <summary>★POP の側は国を名乗る（段4g・(126) の申し送り）：(国 null・POP の集合) の側は台帳に載らない（世界の外でも国の中でもない）＝例外で止める。
+    /// ⚠突然変異「門を外す」で赤（黙って片側の国の台帳だけが動く）。</summary>
+    [Fact]
+    public void 国を名乗らないPOPの側は移し方の1本が止める()
+    {
+        var sim = new MultiNationSim([WorldData.ByName("イギリス")], seed: 1789, coef: new Coefficients()) { DiplomacyFrozen = true };
+        var uk = sim.Nations[0].World;
+        var p = new Pop { Size = 1, Savings = 10 };
+        Assert.Throws<InvariantViolationException>(() => World.Transfer((uk, null), (null, [p], null), 5));
+        Assert.Throws<InvariantViolationException>(() => World.Transfer((null, [p]), (uk, null, null), 5));
+        Assert.Equal(10.0, p.Savings);
+    }
+
     /// <summary>★移民の運賃（段2-3 C17）：運賃は**持っている正の持参金から**だけ払う＝負の貯蓄（借越）は運賃の有無に関わらず移民に付いて行く。
     /// 旧＝運賃があると max(0, 持参金−運賃) で負の持参金を送出 POP に残し、運賃0では負の持参金も運んだ。⚠突然変異「旧の max(0,…)」で赤。</summary>
     [Fact]
@@ -529,7 +630,7 @@ public class ConservationTests
             var src = sim.Nations[0].World; var dst = sim.Nations[2].World;   // 英→米（遠い＝運賃が立つ）
             var sp = src.Regions[0].Pops.Find(p => p.ClassId == PopClass.Worker && !p.IsSoldier)!;
             var dp = dst.Regions[0].Pops.Find(p => p.ClassId == PopClass.Worker && !p.IsSoldier)!;
-            sp.Savings = -0.5 * sp.Size;   // 借越
+            sp.SetSavings(-0.5 * sp.Size);   // 借越
             double flow = 0.01 * sp.Size, carried = sp.Savings * (flow / sp.Size), dp0 = dp.Savings, sp0 = sp.Savings;
             sim.MoveMigrants(src, dst, src.Regions[0], dst.Regions[0], PopClass.Worker, flow);
             double tol = 1e-9 * System.Math.Max(1.0, System.Math.Abs(dp0) + System.Math.Abs(sp0));
@@ -689,7 +790,7 @@ public class ConservationTests
         var uk = sim.Nations[0].World; var fr = sim.Nations[1].World;
         uk.ExchangeRate = 1.0; fr.ExchangeRate = 0.5;
         var sp = uk.Regions[0].PopOf(PopClass.Worker)!; var dp = fr.Regions[0].PopOf(PopClass.Worker)!;
-        uk.Bank!.Lend(sp, 30);
+        Bank.Lend(uk, sp, 30);
         double flow = 0.1 * sp.Size, sav = sp.Savings * (flow / sp.Size), debt = sp.Debt * (flow / sp.Size);
         Assert.True(sav > 0 && debt > 0, "前提が崩れた：持参金か債務が無い");
         double dUk = D(uk), dFr = D(fr), fx0 = sim.Diplomacy.CumulativeFxResidual, bm0 = uk.BaseMoney + fr.BaseMoney;
@@ -716,7 +817,7 @@ public class ConservationTests
         uk.ExchangeRate = 1.0; fr.ExchangeRate = 0.5;
         var r = uk.Regions[1];
         var mer = r.Pops[r.MerchantPopIndex];
-        uk.Bank!.Lend(mer, 50);
+        Bank.Lend(uk, mer, 50);
         double S = r.SumSavings(), Dr = 0; foreach (var p in r.Pops) Dr += p.Debt;
         Assert.True(S > 0 && Dr > 0, "前提が崩れた");
         double dUk = D(uk), dFr = D(fr), fx0 = sim.Diplomacy.CumulativeFxResidual, bm0 = uk.BaseMoney + fr.BaseMoney, hFr = fr.Bank!.HouseholdLoans;
@@ -730,4 +831,16 @@ public class ConservationTests
         Assert.True(System.Math.Abs(uk.BaseMoney + fr.BaseMoney - bm0 - fxMoved) <= tol, "世界の名目の動き ≠ 換算の台帳の動き");
         Assert.True(System.Math.Abs(D(uk) - dUk) <= tol && System.Math.Abs(D(fr) - dFr) <= tol, "割譲で国ごとの D が閉じない");
     }
+}
+
+/// <summary>★盤面の道具（2026-09-30 段4g・作者裁定 Q13＝<see cref="Pop.Savings"/> は Pop の中だけが書く＝<c>init</c>）：テストの盤面を組むための貯蓄の代入の1本。
+/// SimCore に口を増やさない（反射で Pop の欄へ直に書く＝盤面を作るだけ＝お金の移し方ではない）。お金を動かす番人は移し方の1本（World.Transfer）を使うこと。</summary>
+internal static class Board
+{
+    private static readonly System.Reflection.FieldInfo SavingsField =
+        typeof(Pop).GetField("_savings", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+        ?? throw new System.InvalidOperationException("Pop の貯蓄の欄（_savings）が見つからない");
+
+    /// <summary>盤面の貯蓄を <paramref name="v"/> にする（複合代入は呼び手が <c>p.SetSavings(p.Savings + x)</c> と書く）。</summary>
+    internal static void SetSavings(this Pop p, double v) => SavingsField.SetValue(p, v);
 }

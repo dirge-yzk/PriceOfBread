@@ -21,10 +21,15 @@ public sealed class Bank
 
     /// <summary>★家計の与信の貸しと返しの1本（2026-09-29 S3b）＝POP の債務の記録（<see cref="Pop.Debt"/>）・預金（Savings）・貨幣（<see cref="HouseholdLoans"/>）を
     /// 同じ額で書く＝ΔBaseMoney＝0。呼び手＝輸入の為替手形（BilateralMarket＝清算の始めの決済と振り出し）・消費者信用と返済規律（休眠 PopDebtDriven）。
-    /// <paramref name="amount"/> は正（貸し）か負（返し）。</summary>
-    internal void Lend(Pop p, double amount)
+    /// <paramref name="amount"/> は正（貸し）か負（返し）。<paramref name="w"/>＝POP の国（その国の銀行が貸し手）。
+    /// ★2026-09-30 段4g：預金と与信は移し方の1本（<see cref="World.Transfer"/>・世界の外の側＝家計の与信 <see cref="World.Outside.HouseholdCredit"/>）が書く
+    /// ＝債務の記録は動いた額（返しは貯蓄まで＝呼び手はどれも貯蓄までに切ってから呼ぶ）。旧＝ここで貯蓄と与信を手で書いた。</summary>
+    internal static void Lend(World w, Pop p, double amount)
     {
-        p.Savings += amount; p.Debt += amount; HouseholdLoans += amount;
+        double moved = amount > 0
+            ? World.Transfer((null, null), (w, [p], [1.0]), amount, outside: World.Outside.HouseholdCredit)
+            : -World.Transfer((w, [p]), (null, null, null), -amount, outside: World.Outside.HouseholdCredit);
+        p.Debt += moved;
     }
 
     /// <summary>★債務は債務者について行く（2026-09-29 S3b）＝POP が国をまたいで移る（割譲・建国・再併合・越境移民・招聘）とき、

@@ -62,7 +62,7 @@ public class CreditTests
         var w = sim.World;
         var inv = w.Region.Pops[w.Region.InvestorPopIndex];
         inv.LastEarned = monthlyIncome;
-        double d = loans - w.Bank!.Loans; w.Bank.Loans += d; inv.Savings += d;   // 信用創造の対（与信と預金）＝基礎貨幣は動かない
+        double d = loans - w.Bank!.Loans; w.Bank.Loans += d; inv.SetSavings(inv.Savings + (d));   // 信用創造の対（与信と預金）＝基礎貨幣は動かない
         w.Explain = new ExplainLedger();
         return w;
     }
@@ -133,19 +133,19 @@ public class CreditTests
         Assert.True(peak <= repay * (1 + 1e-12), $"好況の与信が返せる額を越えた（最大 {peak} ＞ {repay}）");
         Assert.True(bank.Loans > 0.2 * repay, $"前提が崩れた：好況で与信が伸びていない（{bank.Loans}・返せる額 {repay}）");
         // (2) 国内の金が流出＝国庫を0へ・全POPの正の貯蓄を同じ割合で減らし、基礎貨幣＝−与信/2 に置く（与信の残高は動かさない）
-        if (w.Treasury > 0) w.Pay(TreasuryCat.OtherOut, -w.Treasury);
+        if (w.Treasury > 0) World.Transfer((w, null), (w, new List<Pop>(w.AllPops()), null), w.Treasury, TreasuryCat.OtherOut);   // 国庫の現金は POP へ（移し方の1本・2026-09-30 段4g＝国庫の口は private）
         double loans0 = bank.Loans, pos = 0;
         foreach (var p in w.AllPops()) pos += Math.Max(0, p.Savings);
         double keep = 1.0 - (w.TotalMoney - 0.5 * loans0) / pos;
         Assert.True(keep > 0 && keep < 1, $"前提が崩れた：流出の割合が作れない（{keep}）");
-        foreach (var p in w.AllPops()) if (p.Savings > 0) p.Savings *= keep;
+        foreach (var p in w.AllPops()) if (p.Savings > 0) p.SetSavings(p.Savings * (keep));
         double base0 = w.BaseMoney;
         Assert.True(base0 < 0 && Math.Abs(base0 + 0.5 * loans0) <= 1e-6 * loans0, $"前提が崩れた：基礎貨幣が与信の半分の負になっていない（{base0}・与信 {loans0}）");
         double prev = loans0;
         for (int d = 0; d < 3000; d++)
         {
             foreach (var p in w.AllPops())   // 国内の売り上げ＝他のPOPの貯蓄の1%が投資家へ（国内の移転＝基礎貨幣は動かない）
-                if (!ReferenceEquals(p, inv) && p.Savings > 0) { double x = 0.01 * p.Savings; p.Savings -= x; inv.Savings += x; }
+                if (!ReferenceEquals(p, inv) && p.Savings > 0) { double x = 0.01 * p.Savings; p.SetSavings(p.Savings - (x)); inv.SetSavings(inv.Savings + (x)); }
             Day(w);
             Assert.True(bank.Loans <= prev * (1 + 1e-12), $"基礎貨幣が負の国で与信が増えた（{prev} → {bank.Loans}・{d}日目）");
             prev = bank.Loans;
@@ -171,12 +171,12 @@ public class CreditTests
             sim.Run(1);
             var w = sim.World; var bank = w.Bank!; var inv = w.Region.Pops[w.Region.InvestorPopIndex];
             double L = 0.5 * w.TotalMoney;
-            double d = L - bank.Loans; bank.Loans += d; inv.Savings += d;   // 信用創造の対（与信と預金）
+            double d = L - bank.Loans; bank.Loans += d; inv.SetSavings(inv.Savings + (d));   // 信用創造の対（与信と預金）
             w.SetTreasuryRaw(treasuryShare * L);                               // 盤面づくり（保存量の検査はこの後で取る）
-            var victim = w.Region.Pops[0]; victim.Savings = 0;
+            var victim = w.Region.Pops[0]; victim.SetSavings(0);
             double pos = 0; foreach (var p in w.AllPops()) pos += Math.Max(0, p.Savings);
-            foreach (var p in w.AllPops()) p.Savings = p.Savings > 0 ? p.Savings * (moneyShare * L / pos) : 0;   // 国内の貨幣＝moneyShare×L
-            double loss = 0.1 * L; victim.Savings = -loss;                   // 今月の損失
+            foreach (var p in w.AllPops()) p.SetSavings(p.Savings > 0 ? p.Savings * (moneyShare * L / pos) : 0);   // 国内の貨幣＝moneyShare×L
+            double loss = 0.1 * L; victim.SetSavings(-loss);                   // 今月の損失
             Assert.True(w.Bank!.HouseholdLoans == 0, "前提が崩れた：家計の与信が0でない（休眠の器が点いている）");
             return (sim, L, loss);
         }
@@ -251,7 +251,7 @@ public class CreditTests
         // (1) 預金者不在
         {
             var w = Board(); var bank = w.Bank!;
-            foreach (var p in w.AllPops()) p.Savings = 0;
+            foreach (var p in w.AllPops()) p.SetSavings(0);
             bank.Loans = 0; bank.Confidence = 1.0;
             w.SetTreasuryRaw(1e6);   // 準備（基礎貨幣＝国庫）＞0＝与信の目標＞0
             double base0 = w.BaseMoney;
@@ -262,7 +262,7 @@ public class CreditTests
         // (2) 回収は預金の合計まで
         {
             var w = Board(); var bank = w.Bank!;
-            double held = 0; foreach (var p in w.AllPops()) { p.Savings = 1.0; held += 1.0; }
+            double held = 0; foreach (var p in w.AllPops()) { p.SetSavings(1.0); held += 1.0; }
             bank.Loans = 1e9; bank.Confidence = 0;   // 目標≪残高＝大きく回収したい
             double base0 = w.BaseMoney;
             PriceOfBread.SimCore.Credit.Step(w, w.Coef);
@@ -283,7 +283,7 @@ public class CreditTests
         Assert.NotNull(w.Bank);
         var pops = w.Region.Pops;
         Assert.True(pops.Count >= 2, "前提が崩れた：POP が1つしかない");
-        pops[0].Savings = -100;
+        pops[0].SetSavings(-100);
         var others = new double[pops.Count]; for (int i = 1; i < pops.Count; i++) others[i] = pops[i].Savings;
         double loans0 = w.Bank!.Loans, fiat0 = w.CumulativeFiatIssued, base0 = w.BaseMoney + 100;   // 損失を置く前の基礎貨幣
         var mc = new MoneyConservation(w);

@@ -101,14 +101,11 @@ public sealed class Colony
     public double Latitude, Longitude;                 // 概略座標（度）。本国首都からの大圏距離＝維持費に効く（遠方ほど高い＝帝国の過伸展）。征服で本国が変わっても付いて回る
     // --- 植民地POP（現地住民の実体。本国の利益団体には属さない＝台帳の外の人々）---
     public double PopSize;                              // 住民数（1単位=1000人。初期＝Population×係数で起動し、ゆっくり成長）
-    public double Savings;                              // 蓄え（搾取の分け前が貯まり、本国財の購入＝捕囚市場で還流する）
     public double Militancy;                            // 独立への不満（搾取×識字＝接触で育つ。産出を乱し、本国の抑えを超えると独立）
     public double Literacy = 0.05;                      // 識字（開発との接触でゆっくり上がる＝教育された植民地ほど独立を求める）
     public double Infra;                                // R13：この植民地固有の開発度。所有国の国家開発度へ緩やかに収束するが、征服/独立でオブジェクトごと移動＝開発済み植民地を奪えば産出を引き継ぎ・独立後も凍結しない。ColonialInfraPerColony=0 なら未使用＝旧と厳密一致（★ 2026-07-15 点火＝既定1.0）
-    // --- 入植と州昇格（2026-08-09・作者裁定2026-08-08「植民地州昇格＝実装」。設計原典＝docs/202607/20260731_植民地のラベル化_部分完了.md §3-3d）---
-    public double SettlerSize;                          // 本国からの入植者（1単位=1000人）。送出popから物理移転（PopulationDeltaで台帳を閉じる＝湧かない）。過半数（ColonyPromotionCoreShare）で州昇格
-    public double SettlerSavings;                       // 入植者の持参金の蓄え（送出popのSavingsから運搬＝CumulativeTradeFlowで台帳を閉じる）。昇格時に新州のpopへ移す
-    public double SettlerLiteracy = 0.3;                // 入植者の識字（流入の加重平均を運搬）。昇格時に新州の入植者popへ引き継ぐ
+    // （蓄え Savings と入植者 SettlerSize・SettlerSavings・SettlerLiteracy は 2026-09-30 段4g に経路ごと削除＝作者裁定 Q12：書き手は捕囚市場と入植だけで、
+    //   どちらも国の植民地の一覧〔ゲームの間ずっと空〕の上でしか走らなかった＝常に0。入植と昇格の主体は植民地格の州＝Colonial の B1）
     public bool PlayerInterest;                         // プレイヤーが「関心」を付けた＝講和でプレイヤーが勝つ時この州を優先割譲（侵略で狙う州にも自動付与）
     public int FreedYear = -1;                          // 独立した年（B-4 独立ショック）。-1＝未独立。独立直後は供給崩壊→数年で自由な供給者へ回復（ハイチ型）
     public bool Malarial;                              // マラリア地（熱帯）。キニーネ未供給で征服軍が溶け、保有中も人口成長が鈍る（RequiresQuinine 標的の州を征服すると付与・征服で本国が変わっても付いて回る）

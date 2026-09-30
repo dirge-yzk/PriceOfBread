@@ -1065,15 +1065,19 @@ public sealed class MultiNationSim
             // ★人と動くお金の換算（2026-09-30 処理の一元化 段4e＝(120) の残り）：反乱国の国庫・与信・対外の残高は反乱国の通貨＝親の通貨へ換算して足す
             //   （換算の1本 World.CrossFx＝国庫と与信は基礎貨幣＝差は換算の台帳へ・与信は負の額として・対外の資本と債権と途中の管は名目の残高＝台帳に積まない）。
             //   旧＝名目のまま足した（反乱国の為替は建国の時は親の値だが、戦争の間に自国の月次の式で離れる）。金属の準備は現物＝換算しない。
-            double Tin = World.CrossFx(rw, pw, T);
-            pw.Pay(Tin >= 0 ? TreasuryCat.OtherIn : TreasuryCat.OtherOut, Tin);
+            // ★2026-09-30 段4g：国庫は移し方の1本（反乱国の国庫→親の国庫・国をまたぐ＝換算の1本・台帳は国境の出入り＝親の CumulativeTradeFlow へ動いた額）。
+            //   負の国庫（当座借越）は逆向き（親の国庫→反乱国の国庫＝反乱国の借越を埋める額を親が負う）＝親の国庫が同じ換算の額だけ減る（旧の Pay(負の額) と同じ量）。
+            //   旧＝親の国庫の片側の記帳（Pay）と台帳の手書き。反乱国の側の台帳と国庫は反乱国ごと消える（読み手なし）。
+            double Tin = World.CrossFx(rw, pw, T, book: false);   // 換算の目安（台帳には積まない＝移し方の1本が積む）
+            if (T > 0) World.Transfer((rw, null), (pw, null, null), T, TreasuryCat.OtherOut, toCat: TreasuryCat.OtherIn);
+            else if (T < 0) World.Transfer((pw, null), (rw, null, null), -Tin, TreasuryCat.OtherOut, toCat: TreasuryCat.OtherIn);
             double L = 0;
             if (pw.Bank is { } pb && rw.Bank is { } rb)
             {
                 double loansIn = -World.CrossFx(rw, pw, -rb.Loans), hhIn = -World.CrossFx(rw, pw, -rb.HouseholdLoans);
                 pb.Loans += loansIn; pb.HouseholdLoans += hhIn; L = loansIn + hhIn;
             }
-            pw.CumulativeTradeFlow += Tin - L;   // 貯蓄 S は州ごとに上で記帳済み＝合わせて反乱国の基礎貨幣（S＋T−L・親の通貨）＝親の per-nation 保存が閉じ、世界の和の差は換算の台帳（建国時の −(S+T) の鏡映＋反乱国として積んだ分）
+            pw.CumulativeTradeFlow -= L;   // 与信（負債）の合算＝基礎貨幣の −L（親の通貨）。貯蓄 S は州ごとに上で記帳済み・国庫は上の移し方の1本＝合わせて反乱国の基礎貨幣（S＋T−L）＝親の per-nation 保存が閉じ、世界の和の差は換算の台帳（建国時の −(S+T) の鏡映＋反乱国として積んだ分）
             pw.ForeignCapitalIn += World.CrossFx(rw, pw, rw.ForeignCapitalIn, book: false); pw.CapitalAbroad += World.CrossFx(rw, pw, rw.CapitalAbroad, book: false);
             // 反乱国の対外債の否認（政府の勝ち）：債権へ繰り上げ済みの額（PrevForeignDebt）を、反乱国以外の債権の比で落とす（債権の増減の1本＝CapitalMarket.AdjustClaims・
             //   四半期の償還と同じ規則）。反乱国自身の債権は次の行で親へ。

@@ -463,8 +463,7 @@ public class FiscalTests
             var payers = new List<Pop>(pw.AllPops());
             double sav = 0; foreach (var p in payers) sav += Math.Max(0, p.Savings);
             double x = Math.Min(0.5 * sav, 12 * (pw.LastInterest + pw.LastRevenue + pw.LastAdminClaim + pw.LastMilitaryClaim + pw.LastSoldierPay));
-            foreach (var p in payers) p.Savings -= x * (Math.Max(0, p.Savings) / sav);
-            pw.Pay(TreasuryCat.OtherIn, x);
+            World.Transfer((pw, payers), (pw, null, null), x, TreasuryCat.OtherIn);   // 貯蓄の比で国庫へ（移し方の1本・2026-09-30 段4g）
         }
         double pwDom0 = pw.GovDebt - pw.ForeignDebt;
         sim.Diplomacy.PendingReintegrations.Add((pw.SelfPower!, rw.SelfPower!, false, pw.Polity));
@@ -1003,9 +1002,9 @@ public class FiscalTests
         foreach (var r in rw.Regions) foreach (var p in r.Pops) if (p.Savings > cap.Savings) cap = p;
         double scale = Math.Max(1.0, rw.TotalMoney);
         double loan = 0.3 * scale, overdraft = rw.Treasury + 0.2 * scale, hh = 0.05 * scale;
-        rb.Loans += loan; cap.Savings += loan;
-        rw.Pay(TreasuryCat.OtherOut, -overdraft); cap.Savings += overdraft;
-        rb.HouseholdLoans += hh; cap.Debt += hh; cap.Savings += hh;
+        World.Transfer((null, null), (rw, [cap], [1.0]), loan, outside: World.Outside.Credit);   // 信用創造（与信と預金の対）＝移し方の1本（2026-09-30 段4g）
+        World.Transfer((rw, null), (rw, [cap], [1.0]), overdraft, TreasuryCat.OtherOut);        // 国庫の当座借越での支出
+        Bank.Lend(rw, cap, hh);                                                                   // 家計の借入（Pop.Debt と HouseholdLoans の対）
         // 請求権：反乱国の対外債（仏と英が3:1で持つ・国内元本は不変＝保有台帳は割れない）と、外資の負債・対外資産
         double fd = 0.1 * scale;
         rw.ForeignDebt += fd; rw.GovDebt += fd; rw.PrevForeignDebt += fd;
@@ -1081,11 +1080,11 @@ public class FiscalTests
         {
             if (r.State != RegionState.Active) continue;
             var sink = r.Pops.Find(p => !p.IsModernElite && !p.IsSoldier)!;   // 貸し手の貯蓄の余りを同じ州の大衆へ移す＝仏の基礎貨幣は動かない（保存量の検査を通る盤面）
-            foreach (var p in r.Pops) if (p.IsModernElite && !p.IsSoldier) { double ex = p.Savings - 10; p.Savings = 10; sink.Savings += ex; lenders.Add(p); }
+            foreach (var p in r.Pops) if (p.IsModernElite && !p.IsSoldier) { double ex = p.Savings - 10; p.SetSavings(10); sink.SetSavings(sink.Savings + (ex)); lenders.Add(p); }
         }
         Assert.NotEmpty(lenders);
         const double X = 1e9;
-        uk.Pay(TreasuryCat.Borrow, X); uk.CumulativeTradeFlow += X; uk.GovDebt += X; uk.ForeignDebt += X; uk.PendingForeignBorrow += X;
+        World.Transfer((null, null), (uk, null, null), X, TreasuryCat.Borrow); uk.GovDebt += X; uk.ForeignDebt += X; uk.PendingForeignBorrow += X;
         double fd0 = uk.ForeignDebt;
         sim.StepQuarter();
         foreach (var p in lenders) Assert.True(p.Savings >= -1e-9, $"貸し手の貯蓄が負になった（{p.Savings}）＝他人から取った");
@@ -1534,7 +1533,7 @@ public class FiscalTests
             Pop? p = null;
             foreach (var r in w.Regions) foreach (var q in r.Pops) if (p is null && Politics.IsMassPop(q) && q.Size > 1) p = q;
             Assert.True(p is not null, "前提が崩れた：大衆の POP が無い");
-            p!.LastEarned = 1000; p.Savings = savings; p.Earned = 7;
+            p!.LastEarned = 1000; p.SetSavings(savings); p.Earned = 7;
             var clergy = AllPopsOf(w).FindAll(q => q.ClassId == PopClass.Clergy && q.Size > 1e-9);
             Assert.NotEmpty(clergy);
             double c0 = 0, ce0 = 0; foreach (var q in clergy) { c0 += q.Savings; ce0 += q.Earned; }
