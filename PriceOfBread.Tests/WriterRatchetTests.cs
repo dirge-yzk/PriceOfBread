@@ -168,18 +168,20 @@ public class WriterRatchetTests
     //   全長の推定は州が空にならない分だけ増える（清算の着値の充填・日次の写像の回＝人の居る州の市場が残る）＝実装ログ (125) の .cost（10種）。
     // ★2026-09-30 表の更新（(127) 歳入の構成を史実から＝所得税の導入は払えない請求から・専売の梯子は史実の物品税の財から・漏れの最大 0.6＝軌道が動いた分の宣言・新しい計数の処理は無い）：
     //   覇権の判定 2,757,936→2,260,272（−18%＝下がった＝表を下げる・同盟の候補が居る月が減った＝処理の形は同じ）。ほかの14本は許しの内＝表は動かさない。
+    // ★2026-09-30 表の更新（(128) 合流の前段＝線2 の (125)(127) を財の削減 (123) の載った main へ載せ直した木＝軌道が動いた分の宣言・新しい処理は無い）：
+    //   建設 21,398→18,466（−13.7%）・請求 7,532→6,397（−15.1%）・覇権の判定 2,424,757→2,137,387（−11.9%）＝10% を超えて下がった＝表を下げる。ほかの12本は許しの内。
     [InlineData(CostLedger.PriceGoods, 14149727L)]
     [InlineData(CostLedger.PriceDailyRuns, 37318732L)]
-    [InlineData(CostLedger.ConstructionSeen, 21398L)]
+    [InlineData(CostLedger.ConstructionSeen, 18466L)]
     [InlineData(CostLedger.CreditSpans, 33282L)]
     [InlineData(CostLedger.ConsumePopGoods, 28595736L)]
     [InlineData(CostLedger.ProducerMonths, 8440020L)]
-    [InlineData(CostLedger.ClaimProducers, 7532L)]
+    [InlineData(CostLedger.ClaimProducers, 6397L)]
     [InlineData(CostLedger.MonthlyPops, 706680L)]
     [InlineData(CostLedger.ClearingRows, 5185642L)]
     [InlineData(CostLedger.ClearingFills, 31689816L)]
     [InlineData(CostLedger.DiploPowerMonths, 9954L)]
-    [InlineData(CostLedger.DiploHegemonScans, 2424757L)]
+    [InlineData(CostLedger.DiploHegemonScans, 2137387L)]
     [InlineData(CostLedger.QuarterStartPops, 235560L)]
     [InlineData(CostLedger.QuarterEndPops, 235560L)]
     [InlineData(CostLedger.SharedNationQuarters, 3698L)]
