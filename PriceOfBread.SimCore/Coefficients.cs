@@ -776,8 +776,8 @@ public sealed class Coefficients
     public double EmigrationMaxFrac = 0.003;     // 四半期の流出上限（人口割合）＝大量流出の暴走防止
     // 移民の自己制限（07_再設計 §12-1・A4裁定・2026-07-31）：人が減るほど賃金と機会が上がり縁故が細る＝流出は自然に止まる。
     // ★国の消滅処理（ゾンビ清掃）は廃案＝「空になる」ことを後始末で対症せず、上流のフィードバックで防ぐ。
-    public double EmigrationFloorSize = 50.0;    // 送出popの下限（千人）。これに近づくほど流出が絞られ、下回れば止まる
-    public double EmigrationFloorSpan = 2.0;     // 絞りが効き始める幅（下限の何倍から効くか＝下限の3倍で満額流出）
+    // 【墓標2026-10-01 (141)】EmigrationFloorSize（50＝送出 POP の規模の下限〔千人〕）・EmigrationFloorSpan（2＝絞りの幅）＝送出の床（下限のクランプ＝思想⑧）を削除。
+    //   越境の出る側は国内の移民と同じ「残る値打ち」＝機会×残る人の土地の持ち分（Territory.Holding）×州の食料充足＝人が抜けるほど残る人の持ち分が増えて流出が止まる（MultiNationSim.MigrateBetweenNations）。
     public double DistanceMarginScale = 1.0;     // 貿易重心からの距離1万kmあたり輸送マージンが何倍嵩むか（日本≈9千km＝マージン約2倍＝遠さの障壁）
     // 相対/地域距離：単一重心からの距離を「近隣相手への重力重み付き平均距離」へブレンド＝隣国が安く繋がる地域貿易ブロック。
     // ⚠撤去2026-08-12（棄却確定（コメントに明記））: RegionalDistanceWeight  第3波の単離再点火（2026-07-28）＝**棄却確定**：相対距離が日本の実効距離を縮め「距離の遠い国は交易が細い」契約を反転（ServiceEconomyTests赤＝帯でなく硬性ゲート）。過去却下near−5の帰属疑義は解消＝本体の効果だった。休眠温存。  // 0=重心距離（現行・既定）。1=相対距離（近い大相手が居れば実効距離が縮む＝地域ブロック）。**2026-06-29検証：現7カ国は欧州単一クラスタゆえ相対≒重心で効果ほぼ無し（pricedist不変）＝複数の地理クラスタ（アジア圏等）を足した時に効く土台として温存**。多国のみ走行＝較正不発
@@ -970,8 +970,8 @@ public sealed class Coefficients
     public double FrontierDevelopmentRate = 0.01;   // locked 地域のインフラ開発速度（毎月）
     public double FrontierUnlockThreshold = 1.0;    // インフラがこれを超えたら active 化
     public double RegionMobility = 0.03;            // 地域間移民の緩和速度
-    public double MigrationSecondDestShare = 0.3;   // 監査2026-07-05（D2）：州間移民の第2目的地への分岐率。0=最大機会の単一州へ一極吸引（現行と厳密一致）・0.3程度で第2機会の州にも分散（現実の移民は複数都市へ散る）。#17で有効化検討
-    public double TransportFriction = 0.15;         // 距離/輸送の摩擦（引力から差し引く）
+    // 【墓標2026-10-01 (141)】MigrationSecondDestShare（0.3＝州間移民の第2目的地への分岐率・監査2026-07-05 D2）＝行き先は機会の差の比で全ての州へ（越境移民と同じ規則・Territory.Step）。
+    public double TransportFriction = 0.15;         // 州間移民の差から差し引く摩擦（★(141)：距離の減衰は別に Territory.MigrationDecay＝越境移民と同じ1本）
     // 民族統一度（倍率排除⑧で POP属性化＝各popの CoreEthnicShare 加重平均から創発。EthnicEnabled の国のみ・較正＝無効）。移民（国家間移民）で希釈→同化で回復、低統一度は移民を引き低教育は排斥で阻む。
     // ★段2で削除（設計メモ §7-3）：UnityMilitancyRelief（上昇鈍化）と UnitySecessionMilitancy（国項）。
     //   EthnicUnity は **CoreEthnicShare の人口加重平均そのもの**＝同じ民族統一度を闘争度の中で3度読んでいた
@@ -2604,11 +2604,11 @@ public sealed class Coefficients
     // 【削除2026-09-30 段4e 後半 4e-3】LiteracyGenerationalDecay（識字の世代減衰の月率0.002）＝世代の流れ（20歳になる若者が max(学校, 母の識字の比×大人の識字) を持ち込む）が置き換えた（設計書 §4-2・§5-2）。
     public double EducationGateUsesEma = 0.0;   // 人13：昇格の高等教育ゲート（Meritocracy）に多年EMAを使う（0=当月EducationFillの瞬間フロー＝現行／1=EducationEmaストックで判定＝一時的な教育の途絶で資格が消えない）
     public double EducationEmaRate = 0.05;   // 人13：EducationEmaの当月Fillへの月次収束率。EducationGateUsesEma=0の既定では未使用＝挙動非依存。値は#17で較正
-    public double CrossBorderMigrationByOpportunity = 1.0;   // 人3/外14：国家間移民を州の機会で判定する（★回1-2・2026-09-27＝全ての Active 州が送出州・各国の最良州が受入州・差＝受入国の最良州の機会−送出州の機会×食料充足−閾値＝MultiNationSim.MigrateBetweenNations の5段）。0で越境移民なし（旧・満足度ベース経路は2026-07-28に係数ごと削除済み）
+    public double CrossBorderMigrationByOpportunity = 1.0;   // 人3/外14：国家間移民を州の機会で判定する（★回1-2・2026-09-27＝全ての Active 州が送出州・★(141) 他の国の全ての Active 州が受入州・差＝受入州の機会−送出州の機会×持ち分×食料充足−閾値＝MultiNationSim.MigrateBetweenNations の5段）。0で越境移民なし（旧・満足度ベース経路は2026-07-28に係数ごと削除済み）
     public double CrossBorderOppGapThreshold = 0.5;    // 州機会gapの発火閾値（機会スケール1〜3に合わせた初期値＝要batch測定。旧EmigrationGapThreshold=満足度スケール0.15は不適合）
     // R3 移民の距離減衰＋渡航コスト財化（2026-07-13・残タスク表 最高インパクト）。移民3関数がGeo/距離を一切読まない＝欧州の農民が米も豪も同確率だった。
     // 大圏距離 Geo.DistanceKm（首都間・海路運河は移民には過剰精緻＝陸海両用の距離近似）。両係数とも既定0で厳密恒等（scale=0→減衰1.0・fare=0→運賃なし）。
-    public double MigrationDistanceScale = 10000.0;   // 【点火2026-07-13(2)＝10000km】0=距離無感応（厳密恒等）。>0で越境移民の引力gapに距離減衰 1/(1+DistanceKm/これ) を乗じる＝近い行き先を選ぶ（史実の距離逓減：欧州内・北大西洋が主流で遠距離は運賃/情報で細る）。10000＝欧州→米6000km:0.63/アルゼンチン11000km:0.48/豪16000km:0.38＝機会の大きい米が距離でも勝ち残る緩い減衰。要batch調律
+    public double MigrationDistanceScale = 10000.0;   // 【点火2026-07-13(2)＝10000km】0=距離無感応（厳密恒等）。>0で越境移民（★(141) 国内の移民も＝Territory.MigrationDecay の1本・州の座標の間）の引力gapに距離減衰 1/(1+DistanceKm/これ) を乗じる＝近い行き先を選ぶ（史実の距離逓減：欧州内・北大西洋が主流で遠距離は運賃/情報で細る）。10000＝欧州→米6000km:0.63/アルゼンチン11000km:0.48/豪16000km:0.38＝機会の大きい米が距離でも勝ち残る緩い減衰。要batch調律
     public double MigrationFarePerkKm = 0.0;   /* 休眠。#54再点火試験2026-07-14＝0.1でmassBirthWeightガード後seed3は完走するが、住民が≈0まで流出した国家がゾンビ残存→多国batchでO(N²)膨張→約12倍低速化。要ゾンビ国家清掃（civilian pop→0の国の消滅機構）。R3距離感応が移民リアリティの核心は提供済み＝運賃は保留 */      // 【休眠に戻した2026-07-13(2)＝要追加調査】0=渡航コストなし（厳密恒等）。>0で移民1人が距離比例の運賃(=これ×DistanceKm/1000)を要する＝貯蓄が運賃に満たない最貧層は動けない（貧困の罠）。運賃分は送出経済に残し保存則を閉じる。**点火0.1で保存則は清潔（leakhunt seed1/25/27緑）だがseed3が破綻＝運賃コード外の下流でSize NaN（診断未発火＝affordFrac自体は有限）＝運賃の軌道摂動が潜在NaNバグを露出。距離減衰は完走。運賃コード（IsFinite安全弁）は残置し、潜在NaN特定後に再点火**
     public double ImmigrationReceiveCapFrac = 0.012;   // **2026-07-23 B-高6＝台帳一致**（コメントの0.012へ・旧リテラル0.004は台帳の食い違い）   // 受入国側の物理上限（/四半期・中間案(b)2026-07-10）＝アイルランド脱出級の絶対フロー年4.8%。無上限は高識字小国への洪水→エリート崩壊を実測。★回1-2（2026-09-27）：世界プールの上限から国家間移民の受入の上限へ（超えた分は送出州に残る）
     // ★移民制限法の効き（2026-08-01）。⚠既定は Open＝1.0 なのでどちらも読まれない＝厳密恒等。

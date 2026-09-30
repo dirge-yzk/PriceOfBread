@@ -388,6 +388,8 @@ public class ConservationTests
 
     /// <summary>受入国の流入の合計は上限 C_d（受入の上限率×人口×移民制限法×受入能力≦1）以下・閉鎖の国は同じ条件の開放の国の2割以下。
     /// 上限率を小さくして両方で上限が効く盤面にする（効いていない盤面では「2割以下」は言えない）。
+    /// ★(141)：受入の上限が州ごと（行き先は受入国の全ての州）＝全ての行き先の州で上限が効くよう上限率を 1e-5→1e-7 へ（1e-5 では流れの小さな州が上限の下に残り、
+    /// その州は法で縮まない＝閉鎖÷開放 0.39）。線（上限以下・2割以下）は変えていない。
     /// 受入国＝盤面の6か国のうち開放で最も多く受け入れる国（どの国が引き寄せるかは1四半期の軌道で決まる＝創発。番人は規則だけを見る・2026-09-27 (73)
     /// 旧＝米に固定。自己費用の単位の是正で1四半期目の州の費用が動き、米の機会が他国を下回って番人が空振りした）。</summary>
     [Fact]
@@ -395,7 +397,7 @@ public class ConservationTests
     {
         double Inflow(string name, ImmigrationLaw law, out double capNoAbsorb)
         {
-            var sim = MigrationBoard(new Coefficients { ImmigrationReceiveCapFrac = 1e-5 });
+            var sim = MigrationBoard(new Coefficients { ImmigrationReceiveCapFrac = 1e-7 });
             var dst = sim.Nations.First(n => n.World.SelfPower?.BaseName == name).World;
             dst.ImmigrationRestriction = law;
             capNoAbsorb = sim.Coef.ImmigrationReceiveCapFrac * dst.TotalPopulation * (law == ImmigrationLaw.Closed ? sim.Coef.ImmigrationClosedFrac : 1.0);
@@ -423,6 +425,88 @@ public class ConservationTests
         foreach (var n in sim.Nations) { Assert.Equal(0.0, n.World.LastImmigration); Assert.Equal(0.0, n.World.LastEmigration); }
         foreach (var (p, s) in sizes) Assert.Equal(s, p.Size);
         Assert.Equal(p0, MigrationWorldTotals(sim).Pop);
+    }
+
+    /// <summary>★(141) 越境移民の行き先は受入国の全ての州（国内の移民と同じ規則）・受け入れの上限は州ごと（その州の人口×受入の上限率×移民制限法×その州の受入能力）。
+    /// 米の全ての州の機会を盤面の全ての州より十分に高く揃える（生産性で合わせる）＝米の州は出ない（米の州の増分＝流入）・米の全ての州が行き先になる。
+    /// 上限率を小さくして州の上限が効く盤面にする。⚠突然変異「国の最良の1州だけへ」で赤（受け入れた州が1つ）・「上限を国の人口で」で赤（州の上限を超える）。</summary>
+    [Fact]
+    public void 国家間移民は受入国の全ての州へ着き州ごとの上限を超えない()
+    {
+        var sim = MigrationBoard(new Coefficients { ImmigrationReceiveCapFrac = 1e-4 });
+        var c = sim.Coef;
+        var us = sim.Nations.First(n => n.World.SelfPower?.BaseName == "アメリカ").World;
+        double oMax = 0;
+        foreach (var n in sim.Nations) foreach (var r in n.World.Regions)
+            if (r.State == RegionState.Active) oMax = System.Math.Max(oMax, Territory.Opportunity(r, c));
+        var usR = us.Regions.Where(r => r.State == RegionState.Active).ToList();
+        Assert.True(usR.Count >= 3, "前提が崩れた：米の稼働中の州が3つ未満");
+        double target = 3 * oMax + 1;
+        double Mass(Region r) { double m = 0; foreach (var p in r.Pops) if (!p.IsSoldier && (p.ClassId == PopClass.Peasant || p.ClassId == PopClass.Worker)) m += p.Size; return m; }
+        var before = new Dictionary<Region, (double Mass, double Cap)>();
+        foreach (var r in usR)
+        {
+            double o = Territory.Opportunity(r, c);
+            Assert.True(o > 0, $"前提が崩れた：{r.Name} の機会が0");
+            r.ProductivityBonus *= target / o;
+            Assert.True(r.FoodFill >= 0.5, $"前提が崩れた：{r.Name} の食料充足 {r.FoodFill}（米の州が出ない条件）");
+            before[r] = (Mass(r), c.ImmigrationReceiveCapFrac * r.SumPopulation() * Territory.AbsorbCap(r, c));   // 開放＝法の率1
+        }
+        Assert.Equal(ImmigrationLaw.Open, us.ImmigrationRestriction);
+        sim.MigrateBetweenNations();
+        Assert.Equal(0.0, us.LastEmigration);   // 前提：米の州は出ない＝州の増分は流入
+        int got = 0; double sum = 0, capHit = 0;
+        foreach (var r in usR)
+        {
+            double d = Mass(r) - before[r].Mass, cap = before[r].Cap;
+            Assert.True(d >= 0, $"{r.Name} の大衆が減った（{d}）");
+            Assert.True(d <= cap * (1 + 1e-9), $"{r.Name} の流入 {d:G6} が州の上限 {cap:G6} を超えた");
+            if (d > 0) { got++; sum += d; capHit = System.Math.Max(capHit, d / cap); }
+        }
+        Assert.True(got >= 3, $"米で受け入れた州が {got}（国の最良の州だけに着いている）");
+        Assert.True(capHit > 0.99, $"州の上限に届いた州が無い（最大 {capHit:P1}）＝上限の番人が何も検査していない");
+        Assert.True(System.Math.Abs(sum - us.LastImmigration) <= 1e-9 * us.LastImmigration, "州の流入の和が国の流入と合わない");
+    }
+
+    /// <summary>★(141) 越境の出る側は送出の床（旧 EmigrationFloorSize＝送出 POP の規模の下限のクランプ・思想⑧）でなく、国内の移民と同じ
+    /// 「残る人の持ち分」（Territory.Holding）で止まる。(1) 旧の床（50千人）より小さい POP の州からも差があれば出る。
+    /// (2) 同じ州の耕地を広くする（残る人の持ち分が大きい＝残る値打ちが最良の行き先を超える）と1人も出ない。
+    /// ⚠突然変異「床を戻す」で赤（(1)）・「出る側に持ち分を掛けない」で赤（(2)）。</summary>
+    [Fact]
+    public void 越境の出る側は残る人の持ち分で止まり規模の床を持たない()
+    {
+        (Region R, double Size0, double Size1) Run(bool wideLand)
+        {
+            var sim = MigrationBoard();
+            var c = sim.Coef;
+            // 送出州＝盤面で最も残る値打ちの低い州（農民の居る稼働中の州）
+            Region? src = null; World? sw = null; double low = double.PositiveInfinity;
+            foreach (var n in sim.Nations) foreach (var r in n.World.Regions)
+            {
+                if (r.State != RegionState.Active || r.PopOf(PopClass.Peasant) is null) continue;
+                double v = Territory.Opportunity(r, c) * Territory.Holding(r, c) * r.FoodFill;
+                if (v < low) { low = v; src = r; sw = n.World; }
+            }
+            Assert.NotNull(src);
+            var sp = src!.PopOf(PopClass.Peasant)!;
+            double ratio0 = src.ArableLand / System.Math.Max(1.0, src.SumRuralPopulation());
+            sp.Size = 30;   // 旧の床（50千人）より小さい
+            src.ArableLand = wideLand ? 1e7 : ratio0 * System.Math.Max(1.0, src.SumRuralPopulation());   // 狭い＝耕地÷農村を元の比のまま（持ち分は変わらない）・広い＝持ち分が巨大
+            Assert.True(ratio0 < 1e3 && src.ArableLand < 1e8, "前提が崩れた：耕地が未設定");
+            double v2 = Territory.Opportunity(src, c) * Territory.Holding(src, c) * src.FoodFill;
+            double best = 0;
+            foreach (var n in sim.Nations) if (!ReferenceEquals(n.World, sw)) foreach (var r in n.World.Regions)
+                if (r.State == RegionState.Active) best = System.Math.Max(best, Territory.Opportunity(r, c));
+            Assert.Equal(!wideLand, best - v2 - c.CrossBorderOppGapThreshold > 0);   // 前提：狭い土地では差が正・広い土地では負
+            double s0 = sp.Size;
+            sim.MigrateBetweenNations();
+            return (src, s0, sp.Size);
+        }
+        var (r1, a0, a1) = Run(false);
+        Assert.True(a1 < a0, $"{r1.Name} の農民（{a0} 千人＝旧の床の下）が出ない＝規模の床が残っている");
+        var (r2, b0, b1) = Run(true);
+        Assert.Equal(r1.Name, r2.Name);
+        Assert.Equal(b0, b1);   // 残る人の持ち分が大きい州からは1人も出ない
     }
 
     /// <summary>持参金＝送出 POP の1人あたり貯蓄×動いた人数（外から湧かない）。受入 POP の貯蓄の増分・送出 POP の減分・両国の台帳の記帳が同じ額。</summary>

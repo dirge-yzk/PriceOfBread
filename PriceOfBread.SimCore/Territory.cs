@@ -57,69 +57,87 @@ public static class Territory
                 }
             }
 
-        // 2. active 地域間の移民（§2.2.1）。最大機会の地域を目的地に、他から引き寄せる
+        // 2. active 地域間の移民（§2.2.1）。
+        // ★2026-10-01 (141)：行き先は**機会の差の比で全ての州へ**配り、**距離で減らす**＝越境移民（MultiNationSim.MigrateBetweenNations）と同じ規則。
+        //   出る州 s から行き先 d への差 g_sd＝(d の機会−s の残る値打ち−摩擦 TransportFriction)×距離の減衰（MigrationDecay＝越境と同じ1本）。
+        //   s の流量の割合＝RegionMobility×最良の行き先の差（上限 MaxMigrationFraction＝流出の上限は1回だけ＝行き先の数に依らない）を g_sd の比で全ての行き先へ
+        //   （越境の段3〜4 と同じ形）。受け入れる州ごとに上限で縮め（(125)・縮んだ分は出る州に残る）、決まった人数を移す（越境の段5 と同じ）。
+        //   旧＝最大の機会の1州（と第2の州に MigrationSecondDestShare＝0.3）だけへ、距離に依らず流した＝上位2州の受け入れの上限が国の移民の総量を決め
+        //   （(125) の後の国内の移民＝州の間の出÷州の人口 四半期 0.2‰）、征服された遠い州からも大陸を越えて首都圏へ流れた（(137) の 4e-2b の移民の1/10 の1件＝バルナウル→プーナ）。
         var active = new List<Region>();
         foreach (var r in w.Regions) if (r.State == RegionState.Active) active.Add(r);
-        if (active.Count < 2) return;
+        int k = active.Count;
+        if (k < 2) return;
 
-        // ★非有限の遮断（2026-07-31・潜在NaNの封じ込め）：旧実装は bestOpp を active[0] の機会で初期化していたため、
-        // 先頭州の機会が NaN だと以後の比較 `o > NaN` が恒偽になり **NaN が最大値として居座り**、
-        // 下の gap が全 src 州で NaN → クランプも「gap<=0」も NaN を素通し → 国内全州の Size/Savings が一括で NaN 化した。
-        // ここでは「評価できない州は目的地に選ばない」＝fail-closed にする。有限値だけの世界では最初の最大値を選ぶ挙動が旧と厳密一致
-        //（旧も strict `>` で先頭の最大を保持する）。⚠握り潰しではない：プローブONなら現場を stderr に出して上流を追える。
-        Region? dest = null;
-        double bestOpp = double.NegativeInfinity;
-        foreach (var r in active) { double o = OppChecked(r, c); if (double.IsFinite(o) && o > bestOpp) { bestOpp = o; dest = r; } }
-        if (dest is null) return;   // 全州が評価不能＝移民しない（人口は動かさない＝保存則に触れない）
-        // 監査2026-07-05（D2）：移民の分散＝第2目的地への分岐。MigrationSecondDestShare 既定0.3（点火）・0で全量が最大機会の単一州へ＝旧と厳密一致。
-        // >0 で流量の一部を第2機会の州へ分ける（現実の移民は複数の魅力的地域へ分散する）。決定論＝RNGなし。
-        Region? dest2 = null; double secondOpp = double.MinValue;
-        if (c.MigrationSecondDestShare > 0 && active.Count >= 3)
-            foreach (var r in active) { if (ReferenceEquals(r, dest)) continue; double o = OppChecked(r, c); if (double.IsFinite(o) && o > secondOpp) { secondOpp = o; dest2 = r; } }
-
-        // ★2026-09-30 (125)：流量は先に全ての州で決め（月初の盤面＝出る州の順に依らない）、受け入れる州ごとに上限で縮めてから移す
-        //   ＝越境移民と同じ規則（MultiNationSim.MigrateBetweenNations の段4〜5：上限＝ImmigrationReceiveCapFrac×受け入れる側の人口×受け入れの能力 AbsorbCap・
-        //   四半期の率を月へ・縮んだ分は出る州に残る）＝州の空洞化の根の3つ目。旧＝全ての州が最大機会の1州へ同じ月に流し込んだ（判断は月初の盤面＝
-        //   1か月の中の流入は機会を下げない）＝人口数万の州が1四半期で10倍以上に膨れ（(125) 計器＝清 s2 のバロー 46→666 千人・耕地18）、
-        //   土地の逓減で膨れた分が何十年もかけて流れ出た（ピークの1/10 未満へ）。
-        var plan = new List<(Region Src, double F1, double F2)>();
-        double in1 = 0, in2 = 0;
-        foreach (var src in active)
+        // 月初の盤面で全て決める（出る州・行き先の順に依らない）：機会・残る値打ち・座標・行き先に居る階級（兵士を除く＝MoveRegion が移せる相手＝PopOf と同じ述語）。
+        // ★非有限の遮断（2026-07-31・潜在NaNの封じ込め）：機会が評価できない州（NaN/∞）は行き先にも出る州にもしない＝fail-closed
+        //   （旧＝先頭州の NaN が最大値として居座り、全ての出る州の差が NaN になって国内全州の Size/Savings が一括で NaN 化した）。有限値だけの世界では何も変えない。
+        var opp = new double[k]; var stay = new double[k]; var lat = new double[k]; var lon = new double[k]; var classes = new int[k];
+        for (int i = 0; i < k; i++)
         {
-            if (ReferenceEquals(src, dest)) continue;
-            // ★2026-09-30 (125)：出る側は「残る値打ち」＝機会×残る人の土地の持ち分（Holding）で測る＝人が抜けるほど残る人の持ち分が増え、流出が止まる（州の空洞化の根の2つ目）。
-            double stay = OppChecked(src, c) * Holding(src, c);
-            double gap = bestOpp - stay - c.TransportFriction;
-            if (!(gap > 0)) continue;   // ★否定形で書く＝NaN も弾く（`gap <= 0` は NaN で false になり素通しだった）。有限値では `gap <= 0` と厳密に同値
-            double fraction = Math.Clamp(c.RegionMobility * gap, 0, MaxMigrationFraction);
-            double f1 = fraction, f2 = 0;
-            if (dest2 is not null && !ReferenceEquals(src, dest2) && secondOpp - stay - c.TransportFriction > 0)
-            { f1 = fraction * (1.0 - c.MigrationSecondDestShare); f2 = fraction * c.MigrationSecondDestShare; }
-            plan.Add((src, f1, f2));
-            in1 += f1 * Movable(src, dest);
-            if (f2 > 0) in2 += f2 * Movable(src, dest2!);
+            var r = active[i];
+            opp[i] = OppChecked(r, c);
+            stay[i] = opp[i] * Holding(r, c);   // ★(125)：出る側は「残る値打ち」＝機会×残る人の土地の持ち分（人が抜けるほど増え、流出が止まる＝州の空洞化の根の2つ目）
+            (lat[i], lon[i]) = Places.Coord(r.Name);
+            foreach (var p in r.Pops) if (!p.IsSoldier) classes[i] |= 1 << p.ClassId;
         }
-        double scale1 = ReceiveScale(dest, in1, c), scale2 = dest2 is null ? 0.0 : ReceiveScale(dest2, in2, c);
-        foreach (var (src, f1, f2) in plan)
+        var plan = new List<(int S, int D, double F)>();
+        var inflow = new double[k];
+        var gap = new double[k];
+        var size0 = new double[k][];   // 出る州の POP の月初の規模（移す人数＝月初の規模×流量の割合）
+        for (int s = 0; s < k; s++)
         {
-            double g1 = f1 * scale1;
-            MoveRegion(src, dest, g1, c);
-            // ★是正（監査G10#2）：MoveRegionは逐次適用（sp.Sizeを直接減らす）＝2回目のfractionは1回目で
-            //   既に減ったSizeに掛かる＝第2流量が意図（元Size×fraction×share）より系統的に小さかった。
-            //   残ったSize基準の比へ補正し、同じ元Sizeから両方を切る（分母はfraction≤0.2でクランプ済みなので1に近づかない）。
-            if (f2 > 0) MoveRegion(src, dest2!, f2 * scale2 / Math.Max(1e-9, 1.0 - g1), c);
+            if (!double.IsFinite(stay[s])) continue;
+            double gMax = 0, wSum = 0;
+            for (int d = 0; d < k; d++)
+            {
+                gap[d] = 0;
+                if (d == s || !double.IsFinite(opp[d])) continue;
+                double g = opp[d] - stay[s] - c.TransportFriction;
+                if (!(g > 0)) continue;   // ★否定形＝NaN も弾く。差が0以下の州へは1人も行かない
+                g *= MigrationDecay(Geo.DistanceKm(lat[s], lon[s], lat[d], lon[d]), w.WorldTechLevel, c);
+                if (!(g > 0)) continue;
+                gap[d] = g; wSum += g;
+                if (g > gMax) gMax = g;
+            }
+            if (!(wSum > 0)) continue;
+            double fraction = Math.Clamp(c.RegionMobility * gMax, 0, MaxMigrationFraction);
+            size0[s] = new double[active[s].Pops.Count];
+            for (int i = 0; i < size0[s].Length; i++) size0[s][i] = active[s].Pops[i].Size;
+            for (int d = 0; d < k; d++)
+            {
+                if (!(gap[d] > 0)) continue;
+                double f = fraction * (gap[d] / wSum);
+                plan.Add((s, d, f));
+                inflow[d] += f * Movable(active[s], classes[d]);
+            }
+        }
+        // ★(125)：受け入れる州ごとに上限で縮める（縮んだ分は出る州に残る＝越境移民の段4 と同じ式）
+        var scale = new double[k];
+        for (int d = 0; d < k; d++) if (inflow[d] > 0) scale[d] = ReceiveScale(active[d], inflow[d], c);
+        // 移す＝決まった人数（月初の規模×割合）。旧＝今の規模に比を掛けた（受け取った後の州から計画より多く出た・第2の行き先は残りの比で割り戻した〔監査G10#2〕）
+        //   ＝月初の規模で切れば、出る州と行き先の順に依らず、受け入れの上限を計画の人数で守る。
+        foreach (var (s, d, f) in plan)
+        {
+            double g = f * scale[d];
+            if (g > 0) MoveRegion(active[s], active[d], g, size0[s]!, c);
         }
     }
 
-    /// <summary>★(125)：src から dst へ動ける人数（閉鎖階級と兵士を除き、dst に同じ階級が居る POP の規模の和＝<see cref="MoveRegion"/> が実際に動かす母集団）。</summary>
-    private static double Movable(Region src, Region dst)
+    /// <summary>★(141)：移民の距離の減衰＝越境移民（MultiNationSim.MigrateBetweenNations）と地域間移民（<see cref="Step"/>）の同じ1本。
+    /// 1/(1＋距離km÷(MigrationDistanceScale×EraFactor(世界の技術, EraMigrationScale)))＝時代とともに遠くへ行きやすくなる（大西洋横断が6週間→6日）。
+    /// 差（行き先の機会−出る側の残る値打ち−摩擦）に掛ける＝遠い行き先ほど選ばれにくく、流れが細い（止まる位置＝差の符号は変えない）。MigrationDistanceScale≦0 は1（距離に無感応）。
+    /// 旧＝越境だけが国の座標の間で読み（MultiNationSim の中の式）、国内の移民は距離を読まなかった（棚卸し pop-24「同じ移動で規則が2つ」）。</summary>
+    internal static double MigrationDecay(double km, double worldTech, Coefficients c)
+        => c.MigrationDistanceScale > 0 ? 1.0 / (1.0 + km / (c.MigrationDistanceScale * c.EraFactor(worldTech, c.EraMigrationScale))) : 1.0;
+
+    /// <summary>★(125)：src から行き先へ動ける人数＝閉鎖階級と兵士を除き、行き先に同じ階級（兵士を除く POP＝<paramref name="dstClasses"/> のビット）が居る POP の規模の和
+    /// ＝<see cref="MoveRegion"/> が実際に動かす母集団（★(141)：行き先の階級は PopOf と同じ述語＝旧は兵士の POP も「居る」に数えた）。</summary>
+    private static double Movable(Region src, int dstClasses)
     {
         double m = 0;
         foreach (var sp in src.Pops)
-        {
-            if (sp.Closed || sp.IsSoldier) continue;
-            foreach (var d in dst.Pops) if (d.ClassId == sp.ClassId) { m += sp.Size; break; }
-        }
+            if (sp.IsCommoner && (dstClasses >> sp.ClassId & 1) != 0) m += sp.Size;
         return m;
     }
 
@@ -220,16 +238,17 @@ public static class Territory
         return Math.Pow(slack, c.ImmigrationAbsorbExponent);
     }
 
-    // src の各クラスから fraction を dest の同クラスへ移す（規模・貯蓄を保存移動）
-    private static void MoveRegion(Region src, Region dst, double fraction, Coefficients c)
+    // src の各クラスから月初の規模×fraction を dst の同クラスへ移す（規模・貯蓄を保存移動）。★(141)：月初の規模 size0（src.Pops と同じ並び）に掛ける＝決まった人数
+    private static void MoveRegion(Region src, Region dst, double fraction, double[] size0, Coefficients c)
     {
-        foreach (var sp in src.Pops)
+        for (int i = 0; i < src.Pops.Count; i++)
         {
+            var sp = src.Pops[i];
             // 人4：地域間移民は経済移民＝閉鎖階級（貴族・聖職）・兵士を動かさない（PopDecision:20 の明示除外・越境の !IsSoldier と対称化）。
             // 貴族が毎月世界の技術水準へ経済移民する非対称の解消（★2026-09-26：旗 RegionMigrationExcludesClosed（#17点火）を焼き込み・x-01）。
             // FrontierDevelopment 較正世界は農民pop単体（Closed/IsSoldier なし）＝TerritoryTests 中立。
             if (sp.Closed || sp.IsSoldier) continue;
-            double moveSize = sp.Size * fraction;
+            double moveSize = size0[i] * fraction;
             if (!(moveSize > 1e-9)) continue;   // ★否定形＝NaN も弾く（旧 `moveSize <= 1e-9` は NaN で false ＝ Size/Savings を直接 NaN 化していた）。有限値では厳密同値
             if (dst.PopOf(sp.ClassId) is not { } dp) continue;   // 目的地に同クラスが無ければ移さない（最小核）
             MoveBetweenRegions(sp, dp, moveSize, c);

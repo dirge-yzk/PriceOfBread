@@ -100,6 +100,53 @@ public class TerritoryTests
         Assert.True(Math.Abs(core.SumPopulation() + fr.SumPopulation() - total) <= 1e-9 * total, "人口が保存されない");
     }
 
+    /// <summary>★(141) 国内の移民は行き先を機会の差の比で全ての州へ配り、距離で減らす（越境移民と同じ規則）の番人。
+    /// 仏の1か国の盤面で、出る州 S（リール）の残る値打ちを他の州の機会 O の2割にし、他の州の機会を同じ O に揃える（機会は生産性に比例＝生産性で合わせる）。
+    /// 他の州どうしの差＝O−O×持ち分−摩擦＜0＝出ない。受け入れの上限は外す（上限率を巨大に）。1か月の移民＝S から全ての州へ・差は同じ
+    /// ＝行き先の階級が同じ州どうしの流れの比は距離の減衰の比だけ（パリ〔約200km〕とマルセイユ〔約830km〕）。人は保存。
+    /// ⚠突然変異「上位2州だけへ」で赤（受け入れる州が2つ）・「距離の減衰を掛けない」で赤（比が1）。</summary>
+    [Fact]
+    public void 国内の移民は行き先を差の比で全ての州へ配り距離で減らす()
+    {
+        var sim = Board("フランス");
+        var w = sim.Nations[0].World; var c = w.Coef;
+        c.ImmigrationReceiveCapFrac = 1e9;   // 受け入れの上限を外す（流れの比だけを見る）
+        const double O = 2.0;
+        Region S = w.Regions.First(r => r.Name == "リール"), a = w.Regions.First(r => r.Name == "パリ"), b = w.Regions.First(r => r.Name == "マルセイユ");
+        foreach (var r in w.Regions)
+        {
+            Assert.Equal(RegionState.Active, r.State);
+            double o = Territory.Opportunity(r, c);
+            Assert.True(o > 0, $"前提が崩れた：{r.Name} の機会が0");
+            r.ProductivityBonus *= (ReferenceEquals(r, S) ? 0.2 * O / Territory.Holding(r, c) : O) / o;   // S の残る値打ち＝0.2×O・他の州の機会＝O
+        }
+        Assert.True(Math.Abs(Territory.Opportunity(a, c) - O) < 1e-9 && Math.Abs(Territory.Opportunity(S, c) * Territory.Holding(S, c) - 0.2 * O) < 1e-9, "前提が崩れた：機会が揃わない");
+        int Classes(Region r) { int m = 0; foreach (var p in r.Pops) if (!p.IsSoldier) m |= 1 << p.ClassId; return m; }
+        Assert.Equal(Classes(a), Classes(b));   // 前提：行き先の階級が同じ（動ける人数が同じ）
+        var pop0 = w.Regions.ToDictionary(r => r, r => r.SumPopulation());
+        double total0 = pop0.Values.Sum();
+
+        Territory.Step(w, c);
+
+        int got = 0;
+        foreach (var r in w.Regions)
+        {
+            if (ReferenceEquals(r, S)) continue;
+            double d = r.SumPopulation() - pop0[r];
+            Assert.True(d >= -1e-9, $"{r.Name} から人が出た（{d}）＝他の州どうしは差が負のはず");
+            if (d > 1e-9) got++;
+        }
+        Assert.True(got >= 3, $"受け入れた州が {got}（上位の州だけへ流れている）");
+        Assert.Equal(w.Regions.Count - 1, got);   // 差が正の全ての州へ
+        double da = a.SumPopulation() - pop0[a], db = b.SumPopulation() - pop0[b];
+        var ca = Places.Coord(S.Name); var pa = Places.Coord(a.Name); var pb = Places.Coord(b.Name);
+        double expect = Territory.MigrationDecay(Geo.DistanceKm(ca.Lat, ca.Lon, pa.Lat, pa.Lon), w.WorldTechLevel, c)
+                      / Territory.MigrationDecay(Geo.DistanceKm(ca.Lat, ca.Lon, pb.Lat, pb.Lon), w.WorldTechLevel, c);
+        Assert.True(expect > 1.03, $"前提が崩れた：距離の減衰の比 {expect} が1に近い");
+        Assert.True(Math.Abs(da / db - expect) <= 1e-9 * expect, $"パリ÷マルセイユの流入 {da / db} ≠ 距離の減衰の比 {expect}");
+        Assert.True(Math.Abs(w.Regions.Sum(r => r.SumPopulation()) - total0) <= 1e-9 * total0, "人口が保存されない");
+    }
+
     // ===== 州の移し替えの1本（2026-09-28 処理の一元化 段2 B）の番人 =====
 
     private static MultiNationSim Board(params string[] names)

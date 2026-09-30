@@ -1480,16 +1480,23 @@ public sealed class MultiNationSim
     }
 
     // 国家間移民（回1-2・2026-09-27＝国際移民を閉じる・外部レビューの検討 §10-3 Q3／項目3）：機会（Territory.Opportunity＝土地逓減・住宅摩擦・
-    // 賃金プレミアムを含む飽和しない実体量）の差で、各州の大衆（農民・労働者）が豊かな国の最良州へ移る。「アメリカに流すのではなく、アメリカが豊かだから流入する」。
+    // 賃金プレミアムを含む飽和しない実体量）の差で、各州の大衆（農民・労働者）が豊かな国の州へ移る。「アメリカに流すのではなく、アメリカが豊かだから流入する」。
     // ★人はゲームの外から来ない＝送出州から引いた分だけ受入州に着く（旧の世界プール＝世界人口×0.004/四半期を送出国から1人も引かずに配り、
     //   持参金を世界平均の貯蓄から湧かせた経路は削除）。保存：出る側 PopulationDelta−/持参金は CumulativeTradeFlow−、入る側 ＋（両国で閉じる）。
+    // ★2026-10-01 (141)：**国内の移民（Territory.Step）と同じ規則**＝行き先は全ての国の全ての州（旧＝各国の最良の1州に着いた＝米東部の混んだ州に積もり、
+    //   国内の移民で西部へ抜けて1/4 未満〔(125) の申し送り5〕）・距離は州の座標の間で同じ1本（Territory.MigrationDecay・旧＝国の座標の間）・
+    //   受け入れの上限は州ごと（国内の移民と同じ＝受け入れる州の人口×受け入れの能力・越境だけ移民制限法を掛ける）・
+    //   出る側は国内と同じ「残る値打ち」＝機会×残る人の土地の持ち分（Territory.Holding）×州の食料充足（旧＝機会×食料充足に、送出 POP の規模の下限のクランプ
+    //   EmigrationFloorSize〔50千人・幅 EmigrationFloorSpan 2〕＝A4 裁定「人が減るほど賃金が上がる」を床で書いたもの＝思想⑧＝残る人の持ち分が同じことを収穫逓減で言う）。
     // 流量はすべて四半期の初めの値で決め、決め終えてから移す。
-    //   1 受入国 d＝最良州とその機会 O_d・受入の重み a_d（民族：低統一度は引く・低識字は差別で阻む）・受入の上限 C_d（人口×移民制限法×受入能力）
-    //   2 送出州 r（全ての Active 州）＝押し出し P_r＝機会×州の食料充足。差 g_rd＝(O_d−P_r−閾値)×距離の減衰（正のものだけ）・重み w_rd＝g_rd×a_d
-    //   3 階級ごとの流出 F＝min(EmigrationRate×最良の行き先の差, 上限×(1＋飢え))×人数×送出の床。**流出の上限はここで1回だけ**＝行き先がいくつあっても同じ
+    //   1 行き先 x＝全ての国の稼働中の州（機会が評価できる州）＝機会 O_x・座標・受入国 d の重み a_d（民族：低統一度は引く・低識字は差別で阻む）・
+    //     州の受入の上限 C_x（州の人口×受入の上限率×移民制限法×州の受入能力）
+    //   2 送出州 r（全ての Active 州）＝残る値打ち P_r＝機会×持ち分×州の食料充足。差 g_rx＝(O_x−P_r−閾値)×距離の減衰（正のものだけ）・重み w_rx＝g_rx×a_d
+    //   3 階級ごとの流出 F＝min(EmigrationRate×最良の行き先の差, 上限×(1＋飢え))×人数。**流出の上限はここで1回だけ**＝行き先がいくつあっても同じ
     //     （旧＝「最悪の1州→最良の1国」の1組だけ動かしていた。全組で上限まで抜くと1国が多重に排水される＝プロイセン技術0.38への空洞化を実測したため。
-    //     上限を1回だけ掛ければ、1つの州が多くの国へ同時に上限まで流れ出ることが構造的に起きない）。
-    //   4 F を w_rd の比で行き先へ割り当てる（休眠の運賃は払える割合を掛ける）。受入国ごとの合計が C_d を超えたら d への分をすべて C_d÷合計で縮める
+    //     上限を1回だけ掛ければ、1つの州が多くの州へ同時に上限まで流れ出ることが構造的に起きない）。
+    //   4 F を、その階級の POP が居る行き先へ w_rx の比で割り当てる（休眠の運賃は払える割合を掛ける＝居ない行き先の分は送出州に残る＝国内の移民の Movable と同じ）。
+    //     受入州ごとの合計が C_x を超えたら x への分をすべて C_x÷合計で縮める
     //     ＝**縮んだ分は送出州に残る**（消えない・湧かない。移民制限法は「別の国へ回す」でなく「流れを減らす」法＝作者裁定 B3）。
     //   5 移す（MoveMigrants＝決まった人数を1つの階級だけ・属性の運搬は旧のまま）。
     internal void MigrateBetweenNations()   // internal＝番人テストが段を単離して1回だけ呼ぶため（StepAssimilation・MoveMigrants と同じ扱い）
@@ -1497,58 +1504,61 @@ public sealed class MultiNationSim
         foreach (var sim0 in Nations) { var w0 = sim0.World; w0.LastImmigration = 0; w0.LastEmigration = 0; w0.LastSpecialistExit = 0; }   // 診断（UI）：四半期の移民収支カウンタ（★段⑤：専門職の流出カウンタも同じ場所で0に＝無条件＝滞留しない）
         if (!(_coef.CrossBorderMigrationByOpportunity > 0)) return;   // 0＝越境移民なし（旧・満足度ベース経路は2026-07-28に係数ごと削除済み）
         int n = Nations.Count;
-        // 1. 受入国ごとの最良州・機会・重み・上限
-        var dstR = new Region?[n]; var dstO = new double[n]; var dstA = new double[n]; var dstCap = new double[n];
+        // 1. 行き先の州・機会・座標・受入国の重み・州の受入の上限・居る階級
+        var dstA = new double[n];
+        var dst = new List<(int D, Region R, double O, double Lat, double Lon, double Cap, int Classes)>();
         for (int d = 0; d < n; d++)
         {
             var w = Nations[d].World;
-            Region? bR = null; double bO = double.NegativeInfinity;
-            // ★非有限の遮断（2026-07-31・Territory 側と同じ流儀）：評価できない州は選ばない
-            foreach (var r in w.Regions) if (r.State == RegionState.Active) { double o = Territory.Opportunity(r, _coef); if (double.IsFinite(o) && (bR is null || o > bO)) { bR = r; bO = o; } }
-            if (bR is null) continue;
-            dstR[d] = bR; dstO[d] = bO;
             // 民族：低統一度は移民を引く（坩堝＝アメリカ）／低教育は差別で移民を阻む（平均識字が閾値未満で減衰＝排斥）。
             dstA[d] = w.EthnicEnabled
                 ? (1.0 + _coef.EthnicDraw * (1.0 - w.EthnicUnity)) * PoliticalQuantities.Clamp01(PoliticalQuantities.AvgLiteracy(w) / _coef.DiscriminationLiteracy)
                 : 1.0;
             // 受入の物理上限＝アイルランド脱出級の絶対フロー（ImmigrationReceiveCapFrac/四半期）×移民制限法×受入能力（混雑で縮む＝AbsorbCap）。
             // ★移民制限法（法の棚卸しdoc L2・2026-08-01）：Open＝1.0／Selective＝選別で細る／Closed＝ほぼ閉じる
-            //   （史実＝米の排華移民法1882・紳士協約1907・1924移民法／豪の白豪主義）。
+            //   （史実＝米の排華移民法1882・紳士協約1907・1924移民法／豪の白豪主義）。★(141)：州ごと（国内の移民の受け入れの上限と同じ＝その州の人口×その州の受入能力）
             double lawCap = w.ImmigrationRestriction switch
             {
                 ImmigrationLaw.Selective => _coef.ImmigrationSelectiveFrac,
                 ImmigrationLaw.Closed => _coef.ImmigrationClosedFrac,
                 _ => 1.0,
             };
-            dstCap[d] = _coef.ImmigrationReceiveCapFrac * w.TotalPopulation * lawCap * Territory.AbsorbCap(bR, _coef);
+            foreach (var r in w.Regions)
+            {
+                if (r.State != RegionState.Active) continue;
+                double o = Territory.Opportunity(r, _coef);
+                if (!double.IsFinite(o)) continue;   // ★非有限の遮断（2026-07-31・Territory 側と同じ流儀）：評価できない州は選ばない
+                var (la, lo) = Places.Coord(r.Name);
+                int classes = 0;
+                foreach (var p in r.Pops) if (!p.IsSoldier) classes |= 1 << p.ClassId;   // MoveMigrants が移せる相手（PopOf と同じ述語）
+                dst.Add((d, r, o, la, lo, _coef.ImmigrationReceiveCapFrac * r.SumPopulation() * lawCap * Territory.AbsorbCap(r, _coef), classes));
+            }
         }
+        int m = dst.Count;
         // 2〜4. 送出州ごと・階級ごとの流量を決める（まだ移さない）
-        var plan = new List<(World Src, Region SrcR, int Cls, int D, double Flow)>();
-        var toD = new double[n];
-        var decay = new double[n]; var gap = new double[n];
+        var plan = new List<(World Src, Region SrcR, int Cls, int X, double Flow)>();
+        var toX = new double[m]; var gap = new double[m];
         for (int s = 0; s < n; s++)
         {
             var src = Nations[s].World;
-            // R3：距離減衰＝遠い行き先ほど差（＝行き先選好＋流量）が細る（国の座標の間＝旧と同じ式）。scale=0 で乗算しない。
-            for (int d = 0; d < n; d++)
-                decay[d] = d != s && dstR[d] is not null && _coef.MigrationDistanceScale > 0
-                    ? 1.0 / (1.0 + Geo.DistanceKm(src.Latitude, src.Longitude, Nations[d].World.Latitude, Nations[d].World.Longitude) / (_coef.MigrationDistanceScale * _coef.EraFactor(src.WorldTechLevel, _coef.EraMigrationScale)))   // ★時代関数化：大西洋横断が6週間→6日
-                    : 1.0;
             foreach (var r in src.Regions)
             {
                 if (r.State != RegionState.Active) continue;
-                double push = Territory.Opportunity(r, _coef) * r.FoodFill;
+                double push = Territory.Opportunity(r, _coef) * Territory.Holding(r, _coef) * r.FoodFill;
                 if (!double.IsFinite(push)) continue;   // ★非有限の遮断＝評価できない州は送出元にしない
+                var (sla, slo) = Places.Coord(r.Name);
                 double gMax = 0, wSum = 0;
-                for (int d = 0; d < n; d++)
+                for (int x = 0; x < m; x++)
                 {
-                    gap[d] = 0;
-                    if (d == s || dstR[d] is null) continue;
-                    double g = (dstO[d] - push - _coef.CrossBorderOppGapThreshold) * decay[d];
-                    if (!(g > 0)) continue;   // 差が0以下の国へは1人も行かない
-                    gap[d] = g;
+                    gap[x] = 0;
+                    if (dst[x].D == s) continue;
+                    double g = dst[x].O - push - _coef.CrossBorderOppGapThreshold;
+                    if (!(g > 0)) continue;   // 差が0以下の州へは1人も行かない
+                    g *= Territory.MigrationDecay(Geo.DistanceKm(sla, slo, dst[x].Lat, dst[x].Lon), src.WorldTechLevel, _coef);   // ★時代関数化：大西洋横断が6週間→6日
+                    if (!(g > 0)) continue;
+                    gap[x] = g;
                     if (g > gMax) gMax = g;
-                    wSum += g * dstA[d];
+                    wSum += g * dstA[dst[x].D];
                 }
                 if (!(wSum > 0)) continue;
                 foreach (int cls in MigrantClasses)   // 農民・労働者（大衆）が移る
@@ -1561,23 +1571,16 @@ public sealed class MultiNationSim
                     double srcFamine = Math.Max(0.0, 1.0 - effFill);
                     double maxFrac = _coef.EmigrationMaxFrac * (1.0 + _coef.FaminePushMaxFracBoost * srcFamine);
                     double flow = Math.Min(_coef.EmigrationRate * gMax, maxFrac) * sp.Size;
-                    // 移民の自己制限（07_再設計 §12-1・A4裁定・2026-07-31）：人が減るほど賃金が上がり、縁故と渡航費のネットワークが細る＝流出は自己制限的。
-                    //   送出側の残存規模で表す：閾値未満へ近づくほど流出が絞られ、下限では止まる（「最後の住民は故郷を捨てない」）。EmigrationFloorSize=0 で絞らない。
-                    if (_coef.EmigrationFloorSize > 0)
-                    {
-                        double room = (sp.Size - _coef.EmigrationFloorSize) / Math.Max(1e-9, _coef.EmigrationFloorSize * _coef.EmigrationFloorSpan);
-                        flow *= PoliticalQuantities.Clamp01(room);
-                    }
                     if (!(flow > 1e-9)) continue;   // ★否定形＝NaN の流量を弾く
-                    for (int d = 0; d < n; d++)
+                    for (int x = 0; x < m; x++)
                     {
-                        if (!(gap[d] > 0)) continue;
-                        double f = flow * (gap[d] * dstA[d] / wSum);
+                        if (!(gap[x] > 0) || (dst[x].Classes >> cls & 1) == 0) continue;   // その階級の POP が居ない州の分は送出州に残る
+                        double f = flow * (gap[x] * dstA[dst[x].D] / wSum);
                         // R3 貧困の罠（休眠 MigrationFarePerkKm）：運賃を賄える貯蓄がある層だけ動ける。1人当たり貯蓄が運賃の2倍で全員可・運賃以下で0。
                         //   0 の間はこの分岐に入らない（距離計算もしない）。
                         if (_coef.MigrationFarePerkKm > 0)
                         {
-                            var dw = Nations[d].World;
+                            var dw = Nations[dst[x].D].World;
                             double fare = _coef.MigrationFarePerkKm * Geo.DistanceKm(src.Latitude, src.Longitude, dw.Latitude, dw.Longitude) / MigrationFareDistanceUnitKm;
                             if (fare > 1e-9)
                             {
@@ -1590,19 +1593,19 @@ public sealed class MultiNationSim
                             }
                         }
                         if (!(f > 0)) continue;
-                        plan.Add((src, r, cls, d, f)); toD[d] += f;
+                        plan.Add((src, r, cls, x, f)); toX[x] += f;
                     }
                 }
             }
         }
         // 4〜5. 受入の上限で縮めてから移す（縮んだ分は送出州に残る）
-        foreach (var (src, srcR, cls, d, f) in plan)
+        foreach (var (src, srcR, cls, x, f) in plan)
         {
-            double cap = dstCap[d];
-            double scale = toD[d] <= cap ? 1.0 : cap > 0 ? cap / toD[d] : 0.0;   // ★上限が NaN なら0の側へ倒す（fail-closed）
+            double cap = dst[x].Cap;
+            double scale = toX[x] <= cap ? 1.0 : cap > 0 ? cap / toX[x] : 0.0;   // ★上限が NaN なら0の側へ倒す（fail-closed）
             double flow = f * scale;
             if (!(flow > 1e-9)) continue;
-            MoveMigrants(src, Nations[d].World, srcR, dstR[d]!, cls, flow);
+            MoveMigrants(src, Nations[dst[x].D].World, srcR, dst[x].R, cls, flow);
         }
     }
 
