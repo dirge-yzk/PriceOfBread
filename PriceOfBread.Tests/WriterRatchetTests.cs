@@ -160,21 +160,24 @@ public class WriterRatchetTests
     //   新しい処理は無い＝15本とも合わせた木の件数へ置き直した）：建設 13,571→22,986・請求 4,710→7,908（国営持分の工事と植民地・港・運河の代金の軌道）・
     //   清算の着値の充填 35,263,928→36,674,517（+4.0%）・覇権の判定 2,300,741→2,459,718（+6.9%）・価格の財の歩 14,629,209→14,830,130・日次の写像の回 39,615,736→39,322,063・
     //   信用 33,138→33,237・外交：国×月 9,906→9,939・共有層 3,682→3,693（40四半期で国が1つ多い）・ほかは揺れ。全長の推定と予算の上限は合わせた main の10種の .cost（実装ログ (122)）。
-    [InlineData(CostLedger.PriceGoods, 14830130L)]
-    [InlineData(CostLedger.PriceDailyRuns, 39322063L)]
-    [InlineData(CostLedger.ConstructionSeen, 22986L)]
-    [InlineData(CostLedger.CreditSpans, 33237L)]
-    [InlineData(CostLedger.ConsumePopGoods, 29299010L)]
-    [InlineData(CostLedger.ProducerMonths, 9037980L)]
-    [InlineData(CostLedger.ClaimProducers, 7908L)]
+    // ★2026-09-30 表の更新（＝改善の宣言・財の削減の回 (123)＝段1：138→127財・深さの撤去 Q2）：財の数が減り軌道も変わる＝15本とも今の件数へ置き直した。
+    //   価格の財の歩 14,830,130→14,149,727（−4.6%）・日次の写像の回 −5.1%・消費 −2.4%・生産 −6.6%・清算の買い手行 −7.7%・清算の着値の充填 36,674,517→31,689,816（−13.6%）・
+    //   建設 −6.9%・請求 −4.8%・覇権の判定 −1.4%・信用 +0.1%・外交の国×月 +0.2%・共有層 +0.1%・POP の3本は同じ。全長の件数と推定は measurements の b10 の g123 の .cost。
+    [InlineData(CostLedger.PriceGoods, 14149727L)]
+    [InlineData(CostLedger.PriceDailyRuns, 37318732L)]
+    [InlineData(CostLedger.ConstructionSeen, 21398L)]
+    [InlineData(CostLedger.CreditSpans, 33282L)]
+    [InlineData(CostLedger.ConsumePopGoods, 28595736L)]
+    [InlineData(CostLedger.ProducerMonths, 8440020L)]
+    [InlineData(CostLedger.ClaimProducers, 7532L)]
     [InlineData(CostLedger.MonthlyPops, 706680L)]
-    [InlineData(CostLedger.ClearingRows, 5618106L)]
-    [InlineData(CostLedger.ClearingFills, 36674517L)]
-    [InlineData(CostLedger.DiploPowerMonths, 9939L)]
-    [InlineData(CostLedger.DiploHegemonScans, 2459718L)]
+    [InlineData(CostLedger.ClearingRows, 5185642L)]
+    [InlineData(CostLedger.ClearingFills, 31689816L)]
+    [InlineData(CostLedger.DiploPowerMonths, 9954L)]
+    [InlineData(CostLedger.DiploHegemonScans, 2424757L)]
     [InlineData(CostLedger.QuarterStartPops, 235560L)]
     [InlineData(CostLedger.QuarterEndPops, 235560L)]
-    [InlineData(CostLedger.SharedNationQuarters, 3693L)]
+    [InlineData(CostLedger.SharedNationQuarters, 3698L)]
     public void 計算量の見た件数は宣言した表を超えない(int item, long declared)
     {
         long n = Cost40.Value[item];
@@ -229,9 +232,10 @@ public class WriterRatchetTests
             new Regex(@"\{\s*(\d+)\s*,\s*"""),   // 辞書の初期化子 { n, "名前" }
             new Regex(@"\b(?:BuildFactory|CanBuildFactory|CanSellFactory|SellFactory|FindFactory|SetStateTarget|SetSubsidyRate|SetSubsidy|CanSubsidize|OutputOf|PaySales|GoodOf)\([^,()]*,\s*(\d+)\s*[,)]"),   // 財を2番目の引数に取る呼び出し
             new Regex(@"\bSelectProdGood\(\s*(\d+)\s*\)"),
+            new Regex(@"\b(?:SetFactoryTarget|NationFactoryUnits)\(\s*(\d+)\s*[,)]"),   // 財を1番目の引数に取る呼び出し
         };
         var switchPats = new[] { new Regex(@"\bor\s+(\d+)\b"), new Regex(@"^\s*(\d+)\s*(?:or\b|=>)") };
-        var arr = new Regex(@"\w*(?:Goods|GoodIds)\s*=\s*\[([^\]]*)\]");
+        var arr = new Regex(@"(?:\w*(?:Goods|GoodIds|Resources)\s*=\s*|ColonyDto\([^,()]*,\s*)\[([^\]]*)\]");   // 財の一覧・賦存（Resources・ColonyDto）の配列
         var num = new Regex(@"(?<![\w.])(\d+)(?![\w.])");
         var str = new Regex(@"""(?:[^""\\]|\\.)*""");
         string root = Path.GetDirectoryName(SimCoreDir())!;

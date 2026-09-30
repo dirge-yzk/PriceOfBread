@@ -728,7 +728,6 @@ public static class EconomyStep
         double monumentConstruction = 0, monumentLaborUnits = 0;
         double stateConstruction = 0;   // プレイヤーの手動建設（国庫負担で同じ束を買う）
         double factoryBuildUnits = 0;   // プレイヤーの工場建設（特定財）が今月消費する建設の束（材料・国庫負担。工賃はStepConstruction）
-        double factoryTierUnits = 0;    // 素材階層+α（2026-08-09）：工場建設の出力財の深さ加重済み機械追加束＝Σ(FactoryTierMachinePerDepth×max(0,深さ−1)×u)。財ごとに深さが違うため需要側で集計し決済はこの合計を使う（factoryBuildUnits と同型）。FactoryTierMachinePerDepth=0.05 点火済み（0で恒等）
         double conLaborUnits = 0;        // 経5：資本家建設の工賃を労働力財として立てた需要量（工賃予算/労働価格・配給前）。ConstructionLaborViaMarket=1.0（点火2026-07-28）の決済でこの量×ration を市場支払い。0なら直接加算の旧経路
         double railCoalGate = 0;         // 運用コスト監査2026-08-16 #2：鉄道の運行石炭の蒸気ゲート（RailCoalRate>0のときのみ>0＝決済側と需要側で同値を共有）。★2026-08-29点火＝既定0.22（0なら1命令も足さない）
         double airFuelNeed = 0, airFuelWant = 0, motorFuelWant = 0;   // 運用コスト監査2026-08-16 #4：空軍・輜重の燃料（原油）。need=afford前の必要量（充足率の分母）・want=発注量（決済はこの量×ration＝militaryDemandの他の書き手と混ざらない）
@@ -874,7 +873,7 @@ public static class EconomyStep
             }
             // プレイヤーの工場建設（特定財）＝共通ヘルパーへ抽出（2026-08-09・capゲート穴の閉鎖）。式・順序は抽出前と同一＝
             // CapitalEnabled=true の州ではビット恒等。材料需要は国庫負担の物理＝資本区画の有無と無関係（非cap州は下のelse分岐が同じ式で積む）。
-            AccumulateFactoryBuild(region, coef, investDemand, ref factoryBuildUnits, ref factoryTierUnits, world);
+            AccumulateFactoryBuild(region, coef, investDemand, ref factoryBuildUnits, world);
             bool railLoco = coef.RailGoodId < ng && coef.LocoGoodId < ng;
             // 鉄道インフラ：工業化に伴い敷設（線路・機関車を消費）。死蔵解消＋資本財段へ波及（機関車←蒸気機関←機械部品）
             if (railLoco)
@@ -931,7 +930,7 @@ public static class EconomyStep
         {
             // capゲート穴の閉鎖（2026-08-09）：資本区画のない州（または投資家pop不在）でも着工中の工場は材料を買う。
             // 従来は材料費ゼロ・工賃のみで完成する抜け道（素材階層+αの導入で価値が増すため恒久閉鎖）。
-            AccumulateFactoryBuild(region, coef, investDemand, ref factoryBuildUnits, ref factoryTierUnits, world);
+            AccumulateFactoryBuild(region, coef, investDemand, ref factoryBuildUnits, world);
         }
 
         // 軍需調達：国家が軍需財を消費（平時の維持＋戦時増）。財源＝国庫（予算内に収める）。消費が入力へ波及（火薬/鉛/帆船…）。
@@ -1998,15 +1997,6 @@ public static class EconomyStep
             revenue[mg] += mGot * clearPrice[mg];
             revenue[cg] += cGot * clearPrice[cg];
             revenue[lg] += lGot * clearPrice[lg];
-            // 素材階層+α（2026-08-09）の決済：需要側で深さ加重済みの機械追加束（factoryTierUnits）を既存4材と同型で決済＝
-            // got×clearPrice を StateSpent（国庫負担）と revenue[機械]（生産者の売上）へ＝国庫→生産者の移転で保存。★点火済み0.05（0に戻せば factoryTierUnits=0＝不実行（ビット恒等）。
-            if (factoryTierUnits > Eps)
-            {
-                double tGot = factoryTierUnits * ration[mg];
-                double tPay = tGot * clearPrice[mg];
-                region.StateSpent[(int)TreasuryCat.FactoryBuild] += tPay;
-                revenue[mg] += tPay;
-            }
         }
 
         // インフラ保守の決済：投資家が保守材（セメント・線路・機関車）＋運行要員（高度労働力・労働力）を買う
@@ -2510,7 +2500,7 @@ public static class EconomyStep
     /// 「国庫＜1日分の工賃×採算率なら進まない」）と同じ述語。旧＝国庫を見ずに毎月買った＝工賃で止まった工事が材料だけを買い続け、
     /// 取り消しの動詞も無いので国庫が負のまま戻らない吸収状態になった（5年以上の負の国庫22件中20件・分離国が建国の四半期に沈む型）。
     /// 工事はそのまま待ち、国庫が戻れば材料も工賃も再開する。world=null（較正・単体テスト）は国庫が無い＝門なし＝恒等。</summary>
-    private static void AccumulateFactoryBuild(Region region, Coefficients coef, double[] investDemand, ref double factoryBuildUnits, ref double factoryTierUnits, World? world)
+    private static void AccumulateFactoryBuild(Region region, Coefficients coef, double[] investDemand, ref double factoryBuildUnits, World? world)
     {
         // ★材料は工賃と同じ国家の支払い率 r で買う（作者裁定 F3・2026-09-28 段2-1）＝旧の門（国庫が1日分の工賃に満たない月は材料を買わない）を撤去。
         //   工事は r の分だけ進む（World.StepConstruction）＝材料も r の分だけ＝同じ1本の率。世界の無い試験（world=null）は 1。
@@ -2522,7 +2512,6 @@ public static class EconomyStep
         double costPerUnit = coef.ConsSteel * sP + coef.ConsMachine * mP + coef.ConsCement * cP + coef.ConsLumber * lP;
             // プレイヤーの工場建設（特定財）：建設中の生産者は材料を建設期間で徐々に消費（工賃はStepConstructionで日次・国庫）。
         // 素材の必要「量」は参照価格で較正した固定量＝実支払い（下段）は現在の市場価格×量なので、鋼などが高い時期は建設費も上がる（真の素材価格依存）。
-        // ⚠素材階層+α（FactoryTierMachinePerDepth）はこの分母に**意図的に入れない**＝入れると u が縮み「+α」でなく既存4材の「置換」になる（基本束は固定・上位材は追加、がユーザー裁定2026-08-09）。
         double costPerUnitRef = coef.ConsSteel * Catalog.RefPrices[coef.SteelGoodId] + coef.ConsMachine * Catalog.RefPrices[coef.MachineGoodId]
                               + coef.ConsCement * Catalog.RefPrices[coef.CementGoodId] + coef.ConsLumber * Catalog.RefPrices[coef.LumberGoodId];
         double buildAfford = coef.FactoryBuildProgress(costPerUnit, costPerUnitRef, region.PriceLevel);              // 採算の連続判断：素材高騰で建設率が崖でなく滑らかに減衰（★裁定②＝FactoryBuildPriceGateScale で混合・1＝恒等）
@@ -2538,18 +2527,6 @@ public static class EconomyStep
                 investDemand[coef.MachineGoodId] += coef.ConsMachine * u;
                 investDemand[coef.CementGoodId] += coef.ConsCement * u;
                 investDemand[coef.LumberGoodId] += coef.ConsLumber * u;
-                // 素材階層+α（2026-08-09）：出力財が深い（後の時代の）工場ほど機械を余計に食う＝建設費の階層差別化。
-                // 深さは既存の Catalog.Complexity（レシピDAG最長深さ）＝手置きテーブルなし。深さ0（RGO）と深さ1は max で自然に+α=0（特例コードなし）。
-                // ⚠u の分母 costPerUnitRef には加えない（意図的）＝加えると u が縮み既存4材束の「置換」になる。+αは基本束の外の追加支出（詳細は Coefficients.FactoryTierMachinePerDepth）。
-                if (coef.FactoryTierMachinePerDepth > 1e-12 && cs.GoodId >= 0 && cs.GoodId < Catalog.Complexity.Length)
-                {
-                    double tierQty = coef.FactoryTierMachinePerDepth * Math.Max(0.0, Catalog.Complexity[cs.GoodId] - 1.0);   // 建設1単位あたりの機械追加束
-                    if (tierQty > Eps)
-                    {
-                        factoryTierUnits += tierQty * u;
-                        investDemand[coef.MachineGoodId] += tierQty * u;
-                    }
-                }
             }
     }
 

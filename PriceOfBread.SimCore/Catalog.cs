@@ -59,27 +59,22 @@ public static class Catalog
 
         // === 素材：植民地限定（第1段は国内採取で代用・IsColonial）===
         new(RawRubberId, "生ゴム",   GoodTier.Intermediate, 0.0,  0.5, 2.2, [], true),
-        new(CinchonaBarkId, "金鶏樹皮", GoodTier.Intermediate, 0.0,  0.6, 2.0, [], true),
         new(PalmOilId, "パーム油", GoodTier.Intermediate, 0.0,  0.5, 2.2, [], true),
         new(IvoryId, "象牙",     GoodTier.Intermediate, 0.0,  0.9, 1.8, [], true),
         new(SugarCaneId, "サトウキビ", GoodTier.Intermediate, 0.0, 0.6, 2.4, [], true),
         new(CocoaId, "カカオ",   GoodTier.Intermediate, 0.0,  0.8, 2.0, [], true),
-        new(TeaLeafId, "茶葉",     GoodTier.Intermediate, 0.0,  0.8, 2.2, [], true),
-        new(CoffeeBeanId, "コーヒー豆", GoodTier.Intermediate, 0.0, 0.8, 2.2, [], true),
         new(SpiceId, "香辛料",   GoodTier.Luxury,       0.05, 0.9, 2.0, [], true),   // 直接消費
 
         // === 一次加工（≤2入力）===
-        new(CokeId, "コークス", GoodTier.Intermediate, 0.0, 0.4, 2.2, [I(CoalId,1.0)]),
-        new(IronId, "鉄",       GoodTier.Intermediate, 0.0, 0.4, 2.0, [I(IronOreId,1.0), I(CokeId,0.5), I(LimestoneId,0.25)]),   // 鉄鉱石＋コークス＋石灰石(造滓剤フラックス＝脈石を除きスラグ化する高炉の必須投入)。製鉄三点セット(鉄鉱石+石炭+石灰石)の地理的共立が立つ
-        new(SteelId, "鋼",       GoodTier.Intermediate, 0.0, 0.4, 1.9, [I(IronId,1.0), I(CokeId,0.4)]),
-        new(CopperId, "銅",       GoodTier.Intermediate, 0.0, 0.4, 2.0, [I(CopperOreId,1.0), I(CokeId,0.4)]),
-        new(LeadId, "鉛",       GoodTier.Intermediate, 0.0, 0.4, 2.0, [I(LeadOreId,1.0), I(CokeId,0.4)]),
+        new(IronId, "鉄",       GoodTier.Intermediate, 0.0, 0.4, 2.0, [I(IronOreId,1.0), I(CoalId,0.824), I(LimestoneId,0.25)]),   // 鉄鉱石＋石炭（コークス炉の分を含む）＋石灰石(造滓剤フラックス＝脈石を除きスラグ化する高炉の必須投入)。製鉄三点セット(鉄鉱石+石炭+石灰石)の地理的共立が立つ。★段1（2026-09-30・財の削減＝設計 docs/202609/20260928 §3）：コークス（石炭1.0の素通し）を畳む＝旧 コークス0.5 を参照価格の比（0.89÷0.54）で石炭0.824へ＝参照価格は旧のまま（コークス1t≈石炭1.4〜1.6t の物の量とも合う）
+        new(SteelId, "鋼",       GoodTier.Intermediate, 0.0, 0.4, 1.9, [I(IronId,1.0), I(CoalId,0.659)]),   // ★段1（2026-09-30・財の削減＝設計 docs/202609/20260928 §3）：旧 コークス0.4→石炭0.659（参照価格を保つ換算）
+        new(CopperId, "銅",       GoodTier.Intermediate, 0.0, 0.4, 2.0, [I(CopperOreId,1.0), I(CoalId,0.659)]),   // ★段1（2026-09-30・財の削減＝設計 docs/202609/20260928 §3）：旧 コークス0.4→石炭0.659。⚠銅鉱は畳まない＝原料→製錬の行程（スウォンジーがコーンウォール・チリ・キューバの鉱石を製錬＝作者裁定 2026-09-29「加工は畳まない」）
+        new(LeadId, "鉛",       GoodTier.Intermediate, 0.0, 0.4, 2.0, [I(LeadOreId,1.0), I(CoalId,0.659)]),   // ★段1（2026-09-30・財の削減＝設計 docs/202609/20260928 §3）：旧 コークス0.4→石炭0.659（銅と同じ理由で鉛鉱は残す）
         new(CementId, "セメント", GoodTier.Intermediate, 0.0, 0.4, 2.2, [I(LimestoneId,1.0), I(CoalId,0.4)]),
         new(GlassId, "ガラス",   GoodTier.Intermediate, 0.0, 0.4, 2.0, [I(SilicaSandId,1.0), I(LimestoneId,0.3)]),
         new(ChemicalsId, "化学薬品", GoodTier.Intermediate, 0.0, 0.4, 1.8, [I(SulfurId,0.6), I(CoalId,0.5), I(SaltId,0.4)]),   // 硫黄＋石炭＋塩（ルブラン法＝塩+硫酸→ソーダ灰＝19世紀重化学の基幹）。塩の工業需要が生まれ化学連鎖が一段深くなる
         new(GunpowderId, "火薬",     GoodTier.Intermediate, 0.0, 0.4, 1.8, [I(SaltpeterId,0.75), I(SulfurId,0.10), I(CoalId,0.15)]),   // 黒色火薬＝硝石(75%)＋硫黄(10%)＋石炭(15%＝木炭の抽象)。史実配合比。総投入量1.0保存＝硝石/硫黄/石炭は同一RGO RefPriceのため火薬RefPriceは不変。化学薬品を要さない近世の火薬（1789から作れる）。無煙火薬は化学薬品ベースの並存レシピで晩期に。硝石を欠く国は輸入硝石に律される（英のベンガル独占）
         new(LumberId, "製材",     GoodTier.Intermediate, 0.0, 0.4, 2.2, [I(TimberId,1.0)]),
-        new(PulpId, "パルプ",   GoodTier.Intermediate, 0.0, 0.4, 2.2, [I(TimberId,0.8)]),
         new(CottonClothId, "綿布",     GoodTier.Intermediate, 0.0, 0.4, 1.9, [I(CottonId,1.0)]),
         new(CanvasId, "帆布",     GoodTier.Intermediate, 0.0, 0.4, 1.9, [I(HempId,1.0)]),
         new(WoolId, "羊毛",     GoodTier.Intermediate, 0.0, 0.4, 2.2, [I(LivestockId,0.5)]),
@@ -96,11 +91,8 @@ public static class Catalog
         new(RubberId, "ゴム",     GoodTier.Intermediate, 0.0, 0.4, 1.8, [I(RawRubberId,1.0), I(SulfurId,0.2)]),
 
         // === 資本財・機械（≤2入力）===
-        new(MachinePartsId, "機械部品", GoodTier.Producer,     0.0, 0.4, 1.6, [I(SteelId,1.0), I(CopperId,0.5)]),
-        new(ToolsId, "工具",     GoodTier.Producer,     0.0, 0.4, 1.7, [I(SteelId,0.6)]),   // 鋼の工具。クロム鋼(1860s〜・硬く摩耗しにくい)は鋼にクロムを足す純粋な高コスト＝品質を持たぬモデルでは採算で勝てないため代替化せず、デフォルトを鋼工具に是正（時代錯誤の解消）
-        new(MachineryId, "機械",     GoodTier.Producer,     0.0, 0.4, 1.4, [I(MachinePartsId,1.0), I(ToolsId,0.5)]),
-        new(SteamEngineId, "蒸気機関", GoodTier.Producer,     0.0, 0.4, 1.4, [I(MachinePartsId,1.0), I(CoalId,0.4)]),
-        new(GeneratorId, "発電機",   GoodTier.Producer,     0.0, 0.4, 1.4, [I(MachineToolId,0.6), I(CopperId,0.4), I(SteelId,0.3)]),   // 精密工作機械＋銅(界磁/電機子巻線)＋鋼(磁路ヨーク/軸)＝発電機の物理。電気系の銅依存を連鎖に
+        new(MachineryId, "機械",     GoodTier.Producer,     0.0, 0.4, 1.4, [I(SteelId,1.514), I(CopperId,0.570)]),   // ★段1（2026-09-30・財の削減＝設計 docs/202609/20260928 §3）：機械部品（鋼1.0＋銅0.5）・工具（鋼0.6）・精密工作機械（機械0.8＋工具0.5）・発電機を機械1つへ畳む（B-1・B-2）。旧 機械部品1.0＋工具0.5 を鋼・銅へ展開し、消えた2段の付加価値ぶんを比例で上乗せ＝参照価格 4.39 を保つ。精密加工（鋼＋銅＋電力）の時代差のレシピは発見の回（段2A）
+        new(SteamEngineId, "蒸気機関", GoodTier.Producer,     0.0, 0.4, 1.4, [I(MachineryId,0.726), I(CoalId,0.4)]),   // ★段1（2026-09-30・財の削減＝設計 docs/202609/20260928 §3）：旧 機械部品1.0→機械0.726（参照価格の比 3.19÷4.39＝コスト中立）。蒸気機関は残す（作者裁定 Q4＝単独で取引された資本財）
         new(RailId, "線路",     GoodTier.Producer,     0.0, 0.4, 1.8, [I(SteelId,1.0)]),
 
         // === 最終財：消費・医療（≤2入力・入力ペアは固有）===
@@ -108,7 +100,7 @@ public static class Catalog
         new(LuxuryClothingId, "高級衣料", GoodTier.Luxury,       0.10, 0.9, 1.5, [I(SilkClothId,0.4), I(WoolenClothId,0.3), I(FurId,0.3)]),   // 絹＋毛織＋毛皮（裏地/襟巻＝上流の冬季奢侈）。毛皮の最大の吸収先
         new(FurnitureId, "家具",     GoodTier.Daily,        0.16, 0.6, 1.7, [I(LumberId,0.6), I(LeatherId,0.3)]),
         new(LuxuryFurnitureId, "高級家具", GoodTier.Luxury,       0.10, 0.9, 1.5, [I(LumberId,0.5), I(SilkClothId,0.3), I(FurId,0.2)]),   // 製材＋絹＋毛皮（敷物/椅子張り＝富裕邸宅の調度）
-        new(PaperId, "紙",       GoodTier.Daily,        0.10, 0.6, 1.8, [I(PulpId,1.0), I(ChemicalsId,0.1)]),
+        new(PaperId, "紙",       GoodTier.Daily,        0.10, 0.6, 1.8, [I(TimberId,1.404), I(ChemicalsId,0.1)]),   // 既定＝木材パルプ製紙（解禁の表の onset 0.5）。★段1（2026-09-30・財の削減＝設計 docs/202609/20260928 §3）：パルプ（木0.8 の素通し）を畳む＝旧 パルプ1.0→木1.404（参照価格の比）
         new(BreadId, "パン",     GoodTier.Staple,       0.55, 0.3, 2.0, [I(FlourId,1.0)]),   // 野菜(108)の追加で総食料を概ね不変に保つため 0.80→0.55（差分は野菜へ）
         new(PreservedMeatId, "加工肉",   GoodTier.Daily,        0.12, 0.5, 1.8, [I(MeatId,0.6), I(FlourId,0.3)], Nutrition: 1.0),   // ★塊1：食卓の動物性タンパク（生肉48は中間財のまま＝塩漬け/干物/缶詰にしてから食べる19世紀）。FoodIncludesAnimalProtein=0では不読
         new(DriedFishId, "干物",     GoodTier.Daily,        0.10, 0.5, 1.9, [I(FishId,0.7), I(SaltId,0.2)], Nutrition: 1.0),   // ★塊1：同上（魚の保存食）
@@ -121,26 +113,25 @@ public static class Catalog
         new(PorcelainId, "陶磁器",   GoodTier.Daily,        0.07, 0.6, 1.7, [I(ClayId,0.6), I(SilicaSandId,0.3)]),   // 粘土＋珪砂（長石/珪石）＝窯業の一次製品。旧ガラス(36)投入は誤り（ガラスと陶磁器は別系統）を是正
         new(SoapId, "石鹸",     GoodTier.Daily,        0.08, 0.6, 1.8, [I(PalmOilId,0.5), I(ChemicalsId,0.3)]),
         new(ChocolateId, "チョコレート", GoodTier.Luxury,   0.05, 0.9, 1.5, [I(CocoaId,0.5), I(SugarId,0.4)]),
-        new(TeaId, "茶",       GoodTier.Daily,        0.07, 0.8, 1.9, [I(TeaLeafId,1.0)]),
-        new(CoffeeId, "コーヒー", GoodTier.Daily,        0.07, 0.8, 1.9, [I(CoffeeBeanId,1.0)]),
+        new(TeaId, "茶",       GoodTier.Daily,        0.07, 0.8, 2.2, [], true),   // ★段1（2026-09-30・財の削減＝設計 docs/202609/20260928 §3）：茶葉を畳む（A群・作者裁定 2026-09-29「茶は畳んでよい」）＝茶そのものを植民地の採取（RGO・賦存州だけが産する）に。生産性は茶葉の2.2（茶葉1.0＝茶1.0）
+        new(CoffeeId, "コーヒー", GoodTier.Daily,        0.07, 0.8, 2.2, [], true),   // ★段1（2026-09-30・財の削減＝設計 docs/202609/20260928 §3）：コーヒー豆を畳む（同上）＝コーヒーを植民地の採取に。生産性はコーヒー豆の2.2
         new(WaterproofClothId, "防水布",   GoodTier.Daily,        0.05, 0.7, 1.6, [I(RubberId,0.5), I(CottonClothId,0.4)]),
-        new(MedicineId, "医薬品",   GoodTier.Daily,        0.08, 0.6, 1.6, [I(ChemicalsId,0.5), I(FruitId,0.3)]),
-        new(QuinineId, "キニーネ", GoodTier.Daily,        0.04, 0.7, 1.6, [I(CinchonaBarkId,0.5), I(ChemicalsId,0.3)]),
-        new(BandageId, "包帯",     GoodTier.Daily,        0.04, 0.5, 1.8, [I(CottonClothId,0.5)]),
-        new(ApplianceId, "電化製品", GoodTier.Luxury,       0.10, 0.9, 1.3, [I(ElectricityId,0.5), I(MachinePartsId,0.5), I(CopperId,0.3)]),   // 電力＋機械部品＋銅(巻線/配線/端子)＝電化製品の導体。銅鉱の電気時代戦略性を一貫させる
+        new(MedicineId, "医薬品",   GoodTier.Daily,        0.108, 0.6, 1.6, [I(ChemicalsId,0.5), I(FruitId,0.3)]),   // ★段1（2026-09-30・財の削減＝設計 docs/202609/20260928 §3）：包帯（必要0.04・綿布0.5）を畳んで必要へ足す（作者裁定 Q8）＝0.08＋0.04×参照価格の比（0.76÷1.07）＝0.108（支出を保つ）
+        new(QuinineId, "キニーネ", GoodTier.Daily,        0.04, 0.7, 4.0, [], true),   // ★段1（2026-09-30・財の削減＝設計 docs/202609/20260928 §3）：金鶏樹皮を畳む（同上）＝キニーネを植民地の採取に（単離の時代差は解禁の表の既定の行 0.5 がそのまま採取に掛かる）。生産性＝樹皮2.0÷旧投入0.5＝4.0（1人が採る樹皮の量から作れるキニーネの量）
+        new(ApplianceId, "電化製品", GoodTier.Luxury,       0.10, 0.9, 1.3, [I(ElectricityId,0.5), I(MachineryId,0.363), I(CopperId,0.3)]),   // 電力＋機械＋銅(巻線/配線/端子)＝電化製品の導体。★段1（2026-09-30・財の削減＝設計 docs/202609/20260928 §3）：旧 機械部品0.5→機械0.363（コスト中立）
 
         // === 最終財：軍事・輸送・奢侈（≤2入力）===
         // ※電信機・海底電信は下流（消費先）が無い死蔵財だったため整理（削除）。必要なら将来「電信網インフラ」として固有の効果付きで再導入。
-        new(ArtilleryId, "火砲",     GoodTier.Producer,     0.0,  0.4, 1.3, [I(SteelId,1.0), I(MachinePartsId,0.5)]),
+        new(ArtilleryId, "火砲",     GoodTier.Producer,     0.0,  0.4, 1.3, [I(SteelId,1.0), I(MachineryId,0.363)]),   // ★段1（2026-09-30・財の削減＝設計 docs/202609/20260928 §3）：旧 機械部品0.5→機械0.363（コスト中立）
         new(RifleId, "小銃",     GoodTier.Producer,     0.0,  0.4, 1.4, [I(SteelId,0.6), I(LumberId,0.4)]),
         new(AmmunitionId, "弾薬",     GoodTier.Producer,     0.0,  0.4, 1.5, [I(GunpowderId,0.6), I(LeadId,0.3), I(CopperId,0.2)]),   // 火薬＋鉛(弾頭)＋銅(黄銅薬莢)＝金属薬莢実包(1860s〜)。近代小火器の物量が銅供給に律される史実構造
         new(SailingShipId, "帆船",     GoodTier.Producer,     0.0,  0.4, 1.4, [I(LumberId,1.0), I(CanvasId,0.5)]),
         new(SteamshipId, "汽船",     GoodTier.Producer,     0.0,  0.4, 1.3, [I(SteamEngineId,0.6), I(LumberId,0.6)]),
         new(WarshipId, "軍艦",     GoodTier.Producer,     0.0,  0.4, 1.2, [I(SailingShipId,1.0), I(ArtilleryId,0.5)]),
-        new(ElectricityId, "電力",     GoodTier.Producer,     0.0,  0.4, 1.4, [I(GeneratorId,0.15), I(CoalId,0.9)], NonTradeable: true),   // 石炭火力（既定レシピ）。A-中1（2026-07-22）→02断線走査で実適用（2026-07-28・型F筆頭＝goods.jsonと同時更新）：旧 発電機0.5+石炭0.5 は燃料シェア9.3%＝1910-20年代の火力原価（燃料25-40%・資本30-50%）と逆＝自国炭の安さが電化に効かず水力も原理的に勝てなかった。発電機0.15+石炭0.9で燃料主導へ。電気は輸送できない＝地産地消。石油火力・水力の並存レシピはビルダーが追加
+        new(ElectricityId, "電力",     GoodTier.Producer,     0.0,  0.4, 1.4, [I(MachineryId,0.149), I(CoalId,0.9)], NonTradeable: true),   // 石炭火力（既定レシピ）＝燃料主導（A-中1・2026-07-22／02断線走査2026-07-28）：燃料25-40%・資本30-50%＝自国炭の安さが電化に効く。電気は輸送できない＝地産地消。石油火力・水力の並存レシピはビルダーが追加。★段1（2026-09-30・財の削減＝設計 docs/202609/20260928 §3）：発電機を機械へ畳む（B-2）＝旧 発電機0.15→機械0.149（参照価格の比 4.37÷4.39）
         new(LocomotiveId, "機関車",   GoodTier.Producer,     0.0,  0.4, 1.3, [I(SteamEngineId,0.6), I(SteelId,0.5)]),
         new(JewelryId, "宝飾",     GoodTier.Luxury,       0.09, 1.0, 1.4, [I(GoldOreId,0.3), I(SilverId,0.3), I(GlassId,0.3)]),   // 金＋銀＋ガラス。金鉱国/銀鉱国の双方に宝飾需要（総量0.6保存＝参照価格不変）
-        new(WatchId, "時計",     GoodTier.Luxury,       0.09, 1.0, 1.4, [I(GoldOreId,0.2), I(SilverId,0.2), I(MachinePartsId,0.4)]),   // 金側ケース＋銀側ケース＋機械部品（総量0.4保存）。銀無垢時計＝大衆量産
+        new(WatchId, "時計",     GoodTier.Luxury,       0.09, 1.0, 1.4, [I(GoldOreId,0.2), I(SilverId,0.2), I(MachineryId,0.290)]),   // 金側ケース＋銀側ケース＋機械。銀無垢時計＝大衆量産。★段1（2026-09-30・財の削減＝設計 docs/202609/20260928 §3）：旧 機械部品0.4→機械0.290（コスト中立）
         new(InstrumentId, "楽器",     GoodTier.Luxury,       0.04, 1.0, 1.4, [I(LumberId,0.5), I(IvoryId,0.3)]),
         // 植民地の固有資源（追加）。アヘン：本国の小さな悪徳消費（嗜好）が当面の消費先。本命は清への交易（将来段＝アヘン戦争）。
         new(OpiumId, "アヘン",   GoodTier.Luxury,       0.02, 0.8, 2.0, [], true),
@@ -157,7 +148,7 @@ public static class Catalog
         new(ChromeId, "クロム",   GoodTier.Intermediate, 0.0,  0.5, 2.4, []),   // 産地が偏在（オスマン＝アナトリアが世界最大・次いでウラル）。消費は革（クロムなめし並存レシピ・tech0.55〜）のみ＝工具はクロム鋼でなく鋼へ是正済み（02断線走査2026-07-28コメント是正）
 
         // === 電化インフラ ===
-        new(GridId, "送電網",   GoodTier.Producer,     0.0,  0.4, 1.6, [I(CopperId,0.6), I(GeneratorId,0.3)], NonTradeable: true),   // 銅線＋発電機（変電）。深い連鎖＝電化インフラ（後の時代）。輸送不可（地域内の施設）
+        new(GridId, "送電網",   GoodTier.Producer,     0.0,  0.4, 1.6, [I(CopperId,0.6), I(MachineryId,0.299)], NonTradeable: true),   // 銅線＋変電の機械。輸送不可（地域内の施設）。★段1（2026-09-30・財の削減＝設計 docs/202609/20260928 §3）：旧 発電機0.3→機械0.299。⚠送電網は畳まない＝投資家が買って送電容量（在庫）を積む資本財・畳み先の電化インフラは国が買う役務（在庫を持てない）＝型が違う（設計 B-2 の後半は保留）
 
         // === 役務（続き）===
         new(AdvLaborId, "高度労働力", GoodTier.Service,   0.0,  0.5, 1.0, [],          NonTradeable: true),   // 技師が算出（監督・保守・運転）。全工場が少量・エネルギーを使う工程ほど多く要求。鉄道・船舶の運行も消費
@@ -174,9 +165,8 @@ public static class Catalog
         new(SpiritsId, "蒸留酒",  GoodTier.Daily,        0.05, 0.6, 1.8, [I(WheatId,0.6)]),
 
         // === 上位軍需（高価＝複雑な連鎖だが強い。装備の質的乗数＝Power.Military を増幅。深い入力で自然に工業化を要求＝史実ペーシング）===
-        new(MachineGunId, "機関銃",  GoodTier.Producer,     0.0,  0.4, 1.2, [I(SteelId,0.5), I(MachineToolId,0.6)]),   // 鋼＋精密工作機械＝深い連鎖（精密＝後の時代。マキシム1884）
+        new(MachineGunId, "機関銃",  GoodTier.Producer,     0.0,  0.4, 1.2, [I(SteelId,0.5), I(MachineryId,0.645)]),   // 鋼＋機械（マキシム1884）。★段1（2026-09-30・財の削減＝設計 docs/202609/20260928 §3）：旧 精密工作機械0.6→機械0.645（参照価格の比 4.72÷4.39）。時期は解禁の表（発明の門 0.7）
         new(IroncladId, "装甲艦",  GoodTier.Producer,     0.0,  0.4, 1.1, [I(SteamshipId,1.0), I(SteelId,1.0), I(ArtilleryId,0.5)]),   // 汽船(tier2輸送船)＋鋼(装甲)＋火砲＝鉄甲艦（tier1軍艦=帆船、tier2=汽船 の対称。1860s）
-        new(MachineToolId, "精密工作機械", GoodTier.Producer, 0.0,  0.4, 1.3, [I(MachineryId,0.8), I(ToolsId,0.5)]),   // 機械＋工具＝精密製造（機関銃・発電機の素材＝深い連鎖の中間財）
         new(CheeseId, "チーズ",   GoodTier.Daily,        0.06, 0.6, 1.8, [I(LivestockId,0.6)]),   // 畜産(乳)＝乳製品。蘭の執着財（ゴーダ/エダム）。畜産に新たな加工先を与える
 
         // === 最も安い食料（RGO・直接消費）===
@@ -220,12 +210,12 @@ public static class Catalog
         new(GuanoId, "グアノ",   GoodTier.Intermediate, 0.0, 0.6, 2.2, [], true),
         // #16 tier3 軍需（陸=戦車・海=弩級戦艦）：tier2(機関銃104/装甲艦105)を圧倒する質的乗数。深い連鎖＝AdvancedTechScaleで晩期に自動解禁・高RefPrice＝富裕/軍国国のみ装備（外科ゲートでなく連鎖深とコストで自然律速）。
         new(TankId, "戦車",     GoodTier.Producer, 0.0, 0.4, 1.1, [I(SteelId,1.0), I(CombustionEngineId,0.6), I(ArtilleryId,0.4)]),   // 鋼＋内燃機関＋火砲＝装軌装甲戦闘車（WWI末）。デ6：精密工作機械(106)を内燃機関(125)へ差し替え＝原動機の連鎖深に律速され1910s代まで解禁されない
-        new(DreadnoughtId, "弩級戦艦", GoodTier.Producer, 0.0, 0.4, 1.0, [I(IroncladId,1.0), I(SteelId,1.0), I(MachineToolId,0.5)]),   // 装甲艦＋鋼(全装甲)＋精密工作機械＝超弩級戦艦（最深連鎖＝最晩期・最高コスト）
+        new(DreadnoughtId, "弩級戦艦", GoodTier.Producer, 0.0, 0.4, 1.0, [I(IroncladId,1.0), I(SteelId,1.0), I(MachineryId,0.537)]),   // 装甲艦＋鋼(全装甲)＋機械＝超弩級戦艦（最高コスト）。★段1（2026-09-30・財の削減＝設計 docs/202609/20260928 §3）：旧 精密工作機械0.5→機械0.537
         // #12 家事奉仕（役務）：家事使用人(ClassId12・女性がなりやすい)が算出し、予算に余裕のある富裕層(貴族/資本家)が雇う。Service tier＝消費は全段の後＝余剰のある層のみ＝「奉仕は富の余剰から創発」（特別な階級フィルタ不要）。輸送不可。
         new(DomesticServiceId, "家事奉仕", GoodTier.Service, 0.06, 0.7, 1.0, [], NonTradeable: true),
         // デ6：内燃機関（石油時代の原動機＝ガソリン/ディーゼル機関・実用化1900s〜）。鋼＋精密工作機械＋原油（石油燃料系＝ドレーク油井1859の下流）。
         // 戦車(122)の入力に差し込む（上）ことで、戦車が内燃機関の深い連鎖に律速され WWI 期(1910s)まで解禁されない＝機関銃(1884)/装甲艦(1860)と同時解禁だった時代錯誤を構造から是正（AdvancedTechScaleは連鎖深Complexityから自動導出＋原油の掘削onsetが下流を後送り）。id は末尾に追加（RefPriceは反復収束のため上流参照でも可）＝既存idの連番を崩さない。
-        new(CombustionEngineId, "内燃機関", GoodTier.Producer, 0.0, 0.4, 1.1, [I(SteelId,1.0), I(MachineToolId,0.5), I(CrudeOilId,0.2)]),
+        new(CombustionEngineId, "内燃機関", GoodTier.Producer, 0.0, 0.4, 1.1, [I(SteelId,1.0), I(MachineryId,0.537), I(CrudeOilId,0.2)]),   // ★段1（2026-09-30・財の削減＝設計 docs/202609/20260928 §3）：旧 精密工作機械0.5→機械0.537
         // 住居（家賃＝家計の最大固定費・生活費テーマの核心）：2026-07-19ユーザー裁定「家を材にする」＝役務→**通常財（日用品）**。
         // 製材＋石灰（1783年から生産可能な建材＝木造漆喰）を消費する建設業が供給＝非役務財の標準生産者ループに乗る
         // （全州に生産者・工場建設/補助金/生産タブのグラフ・価格が上がれば供給が伸びる＝住宅不足が市場で自律解消）。
@@ -239,12 +229,11 @@ public static class Catalog
         // 化学薬品0.5→0.4（B6レビュー2026-07-19）：0.5ではRefPrice0.96で黒色火薬0.89に負け競争窓がほぼ無かった＝0.4で1867〜の勝ち筋を開く。
         new(DynamiteId, "ダイナマイト", GoodTier.Intermediate, 0.0, 0.5, 1.4, [I(ChemicalsId,0.4), I(SaltpeterId,0.1)]),
         // 自転車（安全型1885〜・DefaultRecipeOnset=0.8）：労働者の移動手段＝日用財。ゴム(50・加硫1839ゲート)に民需の出口を与える。
-        new(BicycleId, "自転車",   GoodTier.Daily, 0.04, 0.5, 1.2, [I(SteelId,0.5), I(RubberId,0.3), I(MachinePartsId,0.3)]),
+        new(BicycleId, "自転車",   GoodTier.Daily, 0.04, 0.5, 1.2, [I(SteelId,0.5), I(RubberId,0.3), I(MachineryId,0.218)]),   // ★段1（2026-09-30・財の削減＝設計 docs/202609/20260928 §3）：旧 機械部品0.3→機械0.218
         // === 1934拡張E2（2026-07-19ユーザー裁定）＝戦間期の時代財。id末尾追加（RefPrice反復収束で安全・連番不変）===
         // 飛行機（木骨羽布張り＝1910s・DefaultRecipeOnset=1.0）：内燃機関＋製材＋防水布。空軍調達（偵察/輸送）＋戦闘機の機体。
-        new(AirplaneId, "飛行機",   GoodTier.Producer, 0.0, 0.4, 1.2, [I(CombustionEngineId,0.6), I(LumberId,0.3), I(WaterproofClothId,0.2)]),
+        new(MilitaryAircraftId, "軍用機",   GoodTier.Producer, 0.0, 0.4, 1.16, [I(CombustionEngineId,0.567), I(LumberId,0.284), I(WaterproofClothId,0.189), I(MachineGunId,0.123)]),   // ★段1（2026-09-30・財の削減＝設計 docs/202609/20260928 §3）：飛行機（偵察・輸送）と戦闘機（飛行機0.8＋機関銃0.3）を軍用機1つへ（B-3・作者裁定 Q5）＝調達の比（0.03：0.02）で投入を合わせ、参照価格は加重平均（4.18）を保つ。全金属機の時代差のレシピは段2A
         // 戦闘機（同調機銃＝1915フォッカー・onset=1.0）：飛行機＋機関銃。空軍tierの主装備。
-        new(FighterId, "戦闘機",   GoodTier.Producer, 0.0, 0.4, 1.1, [I(AirplaneId,0.8), I(MachineGunId,0.3)]),
         // 自動車（T型量産1908〜・生産onset=0.95/需要onset=1.0）：内燃機関＋鋼＋ゴム。富裕の耐久財＋軍の輜重（馬と併存＝WWIも馬匹依存）。
         new(AutomobileId, "自動車",   GoodTier.Luxury, 0.05, 0.9, 1.2, [I(CombustionEngineId,0.6), I(SteelId,0.4), I(RubberId,0.2)]),
         // 化学兵器（毒ガス弾＝1915イーペル・onset=1.0）：化学薬品＋硝石。空軍tierで調達＝相互保有は厭戦の泥沼・片側保有は戦死優位。
@@ -252,9 +241,9 @@ public static class Catalog
         // === 1934拡張E3（2026-07-19）＝国民意識の財化 ===
         // 新聞：紙＋機械部品（手引き印刷機は1783から・パルプ紙0.5で安価化）。需要は識字比例（EconomyStep特例）＝
         // 「読める者だけが新聞を買い結社に集う」（旧Fiscal需要駆動拠出の物理化）。NewsFill→国民意識＋政治意識（検閲で内容が痩せる）。
-        new(NewspaperId, "新聞",     GoodTier.Daily, 0.06, 0.6, 1.8, [I(PaperId,0.6), I(MachinePartsId,0.05)]),
+        new(NewspaperId, "新聞",     GoodTier.Daily, 0.06, 0.6, 1.8, [I(PaperId,0.6), I(MachineryId,0.036)]),   // ★段1（2026-09-30・財の削減＝設計 docs/202609/20260928 §3）：旧 機械部品0.05→機械0.036
         // ラジオ（受信機・1920s〜）：電化製品＋機械部品。識字不要＝文盲にも届く国民精神の増幅器（検閲の影響を受けない＝国営宣伝の物理）。
-        new(RadioId, "ラジオ",   GoodTier.Daily, 0.03, 0.6, 1.4, [I(ApplianceId,0.6), I(MachinePartsId,0.2)]),
+        new(RadioId, "ラジオ",   GoodTier.Daily, 0.03, 0.6, 1.4, [I(ApplianceId,0.6), I(MachineryId,0.145)]),   // ★段1（2026-09-30・財の削減＝設計 docs/202609/20260928 §3）：旧 機械部品0.2→機械0.145
         // 高等教育（役務・2026-08-17 作者裁定「近代化投資は研究者や技師を増やす補助金として／まず高等教育から順に」）：
         // 大学が算出し、**教育を既に買ったpopがさらに自費で買う**ことでのみ技師・研究者へ昇格する（無償化されない＝作者裁定2026-08-14）。
         // 投入＝書籍のみ。★ガラスは史実検討で却下（2026-08-17）：英はガラス税1746-1845で自国産業を1世紀抑圧しながら産業革命を達成し、
@@ -266,7 +255,7 @@ public static class Catalog
         //   ⚠入力を精密工作機械にするのは史実（圧縮式冷凍機は高精度の圧縮機が要る＝リンデ1876）であると同時に、
         //   **解禁時期を連鎖の深さから自動で出す**ため（浅い連鎖だと FreeDepth=6 に収まって自動ゲートが不発になる既知の穴）。
         //   ⚠電力を入力にしない＝初期の冷凍機は**蒸気駆動**。電力を入れると家庭用電気冷蔵庫（1920s）まで50年遅れる。
-        new(RefrigeratorId, "冷蔵庫",   GoodTier.Luxury, 0.06, 0.9, 1.3, [I(MachineToolId,0.4), I(ChemicalsId,0.3)]),
+        new(RefrigeratorId, "冷蔵庫",   GoodTier.Luxury, 0.06, 0.9, 1.3, [I(MachineryId,0.430), I(ChemicalsId,0.3)]),   // ★段1（2026-09-30・財の削減＝設計 docs/202609/20260928 §3）：旧 精密工作機械0.4→機械0.430
         // ⚠冷蔵肉という財は**作らない**（2026-09-04・作者指摘で撤回）。
         //   ★代わりに**加工肉の代替レシピ**（肉＋冷蔵庫）を足す＝新しい財を増やさず、
         //   加工肉の需要は既に較正済みのまま使える。⇒ 実装は Simulation の代替レシピ注入（石油灯油と同じ作法）。
@@ -274,8 +263,8 @@ public static class Catalog
     ];
 
     /// <summary>真実源＝埋め込みリソース <c>goods.json</c>（world.json と同型）。未生成時は上の C# 定義 <see cref="BuiltinGoods"/> にフォールバック。
-    /// 材追加・レシピ編集は goods.json を直接編集→ビルドで反映（gen_world と同じ運用）。RefPrices/Complexity はこの配列から自動派生。
-    /// ※静的初期化順＝BuiltinGoods → Goods → RefPrices/Complexity（textual order）。Goods は BuiltinGoods の後に置くこと。</summary>
+    /// 材追加・レシピ編集は goods.json を直接編集→ビルドで反映（gen_world と同じ運用）。RefPrices はこの配列から自動派生。
+    /// ※静的初期化順＝BuiltinGoods → Goods → RefPrices（textual order）。Goods は BuiltinGoods の後に置くこと。</summary>
     public static readonly GoodDef[] Goods = LoadGoods();
 
     /// <summary>RGOの効率化材（任意の増強材）の候補。市場が安い・profit-gateを通る物を毎期選ぶ（並存レシピと同じ「安い方を採る」思想）。
@@ -286,7 +275,7 @@ public static class Catalog
         CottonId or HempId or WheatId or FruitId or DyeId or TobaccoLeafId or RiceId or VegetableId or PotatoId or MaizeId => [FertilizerId, HorseId],  // 作物 → 肥料 or 馬（馬耕・B6）。肥料はonset0.6=1842までゲート＝序盤は馬耕・晩期は安い化学肥料が駆逐（02断線走査2026-07-28：肥料の投入を軽量化＝旧・馬0.91<肥料1.07で駆逐が一度も起きない型Fを是正）
         FishId => [SailingShipId],                                                                  // 漁業（漁獲）→ 帆船（漁船団）
         LivestockId => [FodderId],                                                                 // 畜産 → 飼料
-        IronOreId or CoalId or CopperOreId or LeadOreId or GoldOreId or SulfurId or LimestoneId or SilicaSandId or ClayId or CrudeOilId or ChromeId or TinOreId or SaltpeterId or SilverId => [ToolsId, DynamiteId],   // 鉱山（＋錫・硝石・銀）→ 工具 or ダイナマイト（1867解禁・B6）。02断線走査（2026-07-28）：火薬38を外す＝工具1.63>火薬0.89で工具が一度も選ばれない型Fの是正（1789-1867は工具・以後ダイナマイトが駆逐＝B6の勝ち筋が実際に発火）。効率化は最低優先配給
+        IronOreId or CoalId or CopperOreId or LeadOreId or GoldOreId or SulfurId or LimestoneId or SilicaSandId or ClayId or CrudeOilId or ChromeId or TinOreId or SaltpeterId or SilverId => [IronId, DynamiteId],   // ★段1（2026-09-30・財の削減）：工具（鋼0.6 の素通し・参照価格1.63）を畳んだ＝鉱山の増強材は鉄（1.47＝鉄の工具＝つるはし・楔。機械 4.39 では割に合う条件 3.75×産出の価格を越え、1867年まで鉱山が増強できなくなる）。鉱山（＋錫・硝石・銀）→ 工具 or ダイナマイト（1867解禁・B6）。02断線走査（2026-07-28）：火薬38を外す＝工具1.63>火薬0.89で工具が一度も選ばれない型Fの是正（1789-1867は工具・以後ダイナマイトが駆逐＝B6の勝ち筋が実際に発火）。効率化は最低優先配給
         _ => [],
     };
 
@@ -298,7 +287,7 @@ public static class Catalog
     {
         CottonId or HempId or WheatId or FruitId or DyeId or TobaccoLeafId or RiceId or VegetableId or PotatoId or MaizeId => 1.0,   // 露地作物（綿花・麻・麦・果実・染料・葉煙草・米・野菜・ジャガイモ・トウモロコシ）
         // デ8：熱帯露地作物（サトウキビ25・カカオ26・茶葉27・コーヒー豆28・アヘン92＝ケシ露地）＝カリブのハリケーン・干魃・多雨に晒される露地栽培。0.8で高露出（完全露天の主食1.0よりやや低い＝多年生樹木は単年の天候に相対的に鈍い）。
-        SugarCaneId or CocoaId or TeaLeafId or CoffeeBeanId or OpiumId => 0.8,
+        SugarCaneId or CocoaId or TeaId or CoffeeId or OpiumId => 0.8,   // ★段1（2026-09-30・財の削減）：茶葉・コーヒー豆→茶・コーヒー（採取の財へ畳んだ）
         // デ8：熱帯樹木プランテーション（生ゴム21＝パラゴムノキ樹液・パーム油23＝アブラヤシ）＝樹木は単年の天候に相対的に鈍いが露地。0.6で中露出。
         RawRubberId or PalmOilId => 0.6,
         LivestockId => 0.45,                                       // 畜産
@@ -345,61 +334,60 @@ public static class Catalog
     /// <summary>病虫害に弱い作物（年次の胴枯れの対象＝作物固有の不作）。麦(さび病)・果実/葡萄(フィロキセラ)・米・ジャガイモ(胴枯病1845)・トウモロコシ・コーヒー(さび病1869)。
     /// 病害は good id 別にロールし、栽培州（賦存）で局地飢饉を起こす（地域独立ロールでなく作物単位＝空間相関が栽培地から創発）。
     /// デ8：コーヒー豆(28)にコーヒーさび病(Hemileia vastatrix・1869セイロン)を追加＝セイロンを茶へ転換させた大事件。病害は栽培州（コーヒー賦存州）でのみロール＝合成食料(id0)は非対象で較正中立。</summary>
-    public static bool IsDiseaseProneCrop(int id) => id is WheatId or FruitId or RiceId or PotatoId or MaizeId or CoffeeBeanId;
+    public static bool IsDiseaseProneCrop(int id) => id is WheatId or FruitId or RiceId or PotatoId or MaizeId or CoffeeId;   // ★段1（2026-09-30・財の削減）：コーヒー豆→コーヒー
 
     /// <summary>気候ゲート財（旧IsColonial＝熱帯/特定産地のみ・賦存州でのみ産する）。生ゴム・金鶏樹皮・パーム油・象牙・サトウキビ・カカオ・茶葉・コーヒー豆・香辛料・アヘン。
     /// 287州世界では「植民地限定の輸入専用」でなく「賦存州（州が Resources に列挙）が産み、非賦存州は産めない」＝地理から供給の偏在が創発する（茶＝中国・ゴム＝東南ア…）。</summary>
-    public static bool IsColonial(int id) => id is RawRubberId or CinchonaBarkId or PalmOilId or IvoryId or SugarCaneId or CocoaId or TeaLeafId or CoffeeBeanId or SpiceId or OpiumId or GuanoId;   // ＋グアノ（ペルー賦存の植民地RGO）
+    public static bool IsColonial(int id) => id is RawRubberId or PalmOilId or IvoryId or SugarCaneId or CocoaId or SpiceId or OpiumId or GuanoId or TeaId or CoffeeId or QuinineId;   // ★段1（2026-09-30・財の削減）：金鶏樹皮・茶葉・コーヒー豆を畳んで キニーネ・茶・コーヒーが採取の財に   // ＋グアノ（ペルー賦存の植民地RGO）
 
     // 役務財の good.Id（ビルダー・経済ステップ・UI が参照）
-    public const int LaborId = 93;
-    public const int EducationId = 94;
-    public const int HigherEducationId = 136;  // 高等教育（役務・2026-08-17）：大学が算出。教育を買ったpopがさらに買うことでのみ技師・研究者へ昇格（無償化されない）
-    public const int HealthcareId = 95;
-    public const int AdminId = 96;
-    public const int InfrastructureId = 111;   // 上下水道（#4 施設化＝都市の衛生インフラ・国家が行政費で調達）
-    public const int BookId = 112;             // 書籍（#4 学校の上位投入＝紙の一段上。公教育の学校が消費）
-    public const int GasId = 113;              // ガス（石炭ガス＝照明/調理の日用＋上位インフラ(ガス灯)の素材）
-    public const int ElecInfraId = 114;        // 電化インフラ（上位インフラ＝近代都市インフラ・国家が行政費で調達。満足度＋衛生＋送電容量）
-    public const int HousingId = 126;          // 都市住居（housing-urban-rent-absent）：NonTradeableな役務的必需。家賃が家計の最大固定費。**materialize済み**＝goods.jsonは136財でid126実在・HousingNeedPerUrban=0.03点火中＝都市国で家賃が家計に乗っている（02断線走査2026-07-28：陳腐化した「未materialize」注記を是正）
-    public const int NewspaperId = 134;        // 新聞（1934拡張E3）：需要＝識字比例（EconomyStep特例）。NewsFill→国民意識＋政治意識（検閲で内容が痩せる）
-    public const int RadioId = 135;            // ラジオ（E3・1920s〜）：識字不要の国民精神増幅器（検閲非依存＝国営宣伝）。RadioFill→国民意識
-    public const int MilitaryPowerId = 97;
-    public const int GridId = 99;
-    public const int AdvLaborId = 100;
-    public const int FarmLaborId = 101;
-    public const int ElectricityId = 87;   // 電力（NonTradeable）。決済・revenue集計に絡むので生整数でなく名前付き定数で参照（貨幣保存の取りこぼし防止）
+    public const int LaborId = 84;
+    public const int EducationId = 85;
+    public const int HigherEducationId = 125;  // 高等教育（役務・2026-08-17）：大学が算出。教育を買ったpopがさらに買うことでのみ技師・研究者へ昇格（無償化されない）
+    public const int HealthcareId = 86;
+    public const int AdminId = 87;
+    public const int InfrastructureId = 101;   // 上下水道（#4 施設化＝都市の衛生インフラ・国家が行政費で調達）
+    public const int BookId = 102;             // 書籍（#4 学校の上位投入＝紙の一段上。公教育の学校が消費）
+    public const int GasId = 103;              // ガス（石炭ガス＝照明/調理の日用＋上位インフラ(ガス灯)の素材）
+    public const int ElecInfraId = 104;        // 電化インフラ（上位インフラ＝近代都市インフラ・国家が行政費で調達。満足度＋衛生＋送電容量）
+    public const int HousingId = 116;          // 都市住居（housing-urban-rent-absent）：NonTradeableな役務的必需。家賃が家計の最大固定費。**materialize済み**＝goods.jsonは136財でid126実在・HousingNeedPerUrban=0.03点火中＝都市国で家賃が家計に乗っている（02断線走査2026-07-28：陳腐化した「未materialize」注記を是正）
+    public const int NewspaperId = 123;        // 新聞（1934拡張E3）：需要＝識字比例（EconomyStep特例）。NewsFill→国民意識＋政治意識（検閲で内容が痩せる）
+    public const int RadioId = 124;            // ラジオ（E3・1920s〜）：識字不要の国民精神増幅器（検閲非依存＝国営宣伝）。RadioFill→国民意識
+    public const int MilitaryPowerId = 88;
+    public const int GridId = 90;
+    public const int AdvLaborId = 91;
+    public const int FarmLaborId = 92;
+    public const int ElectricityId = 78;   // 電力（NonTradeable）。決済・revenue集計に絡むので生整数でなく名前付き定数で参照（貨幣保存の取りこぼし防止）
     public const int GoldOreId = 4;        // 金鉱（RGO）。産出が貨幣供給(Bank.Gold)に流入＝ゴールドラッシュ
-    public const int SilverId = 120;       // 銀（銀本位doc G3・2026-08-13）。銀本位国の造幣局が買う本位金属＝法が変われば需要が現れ・消える
+    public const int SilverId = 110;       // 銀（銀本位doc G3・2026-08-13）。銀本位国の造幣局が買う本位金属＝法が変われば需要が現れ・消える
     public const int CoalId = 1;           // 石炭（RGO）。蒸気動力の燃料（蒸気→電力で代替）＝発明後(SteamScale>0)に蒸気化した工場が EnergyPerOutput で消費（電化と同型）
-    public const int DomesticServiceId = 124;  // 家事奉仕（役務）。家事使用人(ClassId12)が算出・富裕層が消費（#12）
+    public const int DomesticServiceId = 114;  // 家事奉仕（役務）。家事使用人(ClassId12)が算出・富裕層が消費（#12）
     // マジックナンバー一掃2026-07-20：各所に散在していた裸の good-id リテラルを命名（値は据え置き＝挙動不変）。
     public const int LivestockId = 19;         // 畜産（RGO・牧場）。派生需要のみ（BaseNeed=0）＝羊毛/革/肉/チーズ/馬の上流
     public const int FishId = 20;              // 漁獲（RGO・土地を占めない＝囲い込みの罠が働かない唯一のRGO）
     // ★RGOの施設名（2026-08-10）で要る採取形態の id（<see cref="RgoFacilityName"/>）＝作物でない一次産品
     public const int TimberId = 11;            // 木（伐採＝森林から採る。植えて育てるものではない）
     public const int SilkId = 14;              // 生糸（屋内養蚕＝露地の畑ではない。WeatherExposure も0＝天候非依存）
-    public const int IvoryId = 24;             // 象牙（野生個体を獲る＝狩猟。栽培でない）
-    public const int GuanoId = 121;            // グアノ（島の堆積を掘る＝チンチャ諸島の採掘。栽培でない）
-    public const int FurId = 119;              // 毛皮（罠猟＝野生個体。WeatherExposure が漁獲と同じ0.35なのも同じ理由）
+    public const int IvoryId = 23;             // 象牙（野生個体を獲る＝狩猟。栽培でない）
+    public const int GuanoId = 111;            // グアノ（島の堆積を掘る＝チンチャ諸島の採掘。栽培でない）
+    public const int FurId = 109;              // 毛皮（罠猟＝野生個体。WeatherExposure が漁獲と同じ0.35なのも同じ理由）
     public const int SaltId = 6;               // 塩（王室のgabelle＝法的独占の対象）
-    public const int TeaId = 74;               // 茶（東インド会社独占＝法的独占の対象）
-    public const int ChemicalsId = 37;         // 化学薬品
+    public const int TeaId = 66;               // 茶（東インド会社独占＝法的独占の対象）
+    public const int ChemicalsId = 33;         // 化学薬品
     public const int CrudeOilId = 10;          // 原油（掘削1859〜）
     public const int WheatId = 15;             // 麦（乾燥穀粒）
-    public const int RailId = 56;              // 線路（鉄道の軌条）
-    public const int GeneratorId = 55;         // 発電機
-    public const int CannedFoodId = 65;        // 缶詰（アペール法1809〜）
-    public const int QuinineId = 78;           // キニーネ（金鶏樹皮1820〜）
-    public const int SailingShipId = 84;       // 帆船
-    public const int SteamshipId = 85;         // 汽船
-    public const int LocomotiveId = 88;        // 機関車
-    public const int RiceId = 102;             // 米（乾燥穀粒・気候帯主食）
-    public const int VegetableId = 108;        // 野菜
-    public const int FertilizerId = 109;       // 肥料（過リン酸石灰1842〜）
-    public const int PotatoId = 115;           // ジャガイモ（気候帯主食）
-    public const int MaizeId = 116;            // トウモロコシ（気候帯主食）
-    public const int HorseId = 127;            // 馬（生体在庫）
+    public const int RailId = 48;              // 線路（鉄道の軌条）
+    public const int CannedFoodId = 57;        // 缶詰（アペール法1809〜）
+    public const int QuinineId = 70;           // キニーネ（金鶏樹皮1820〜）
+    public const int SailingShipId = 75;       // 帆船
+    public const int SteamshipId = 76;         // 汽船
+    public const int LocomotiveId = 79;        // 機関車
+    public const int RiceId = 93;             // 米（乾燥穀粒・気候帯主食）
+    public const int VegetableId = 98;        // 野菜
+    public const int FertilizerId = 99;       // 肥料（過リン酸石灰1842〜）
+    public const int PotatoId = 105;           // ジャガイモ（気候帯主食）
+    public const int MaizeId = 106;            // トウモロコシ（気候帯主食）
+    public const int HorseId = 117;            // 馬（生体在庫）
     // ★段0-1（2026-09-30・財の削減の回）：残りの財 id もすべて名前付きの定数にする＝数値の財 id をコードに書かない（番人＝WriterRatchetTests の「数値の財 id」）。
     //   財を畳む・振り直すときはここ（と上の既存の定数）の値だけを直す。値は goods.json の id と同じ（名前は goods.json の name）。
     public const int IronOreId = 0;              // 鉄鉱石
@@ -415,85 +403,75 @@ public static class Catalog
     public const int DyeId = 17;                 // 染料
     public const int TobaccoLeafId = 18;         // 葉煙草
     public const int RawRubberId = 21;           // 生ゴム
-    public const int CinchonaBarkId = 22;        // 金鶏樹皮
-    public const int PalmOilId = 23;             // パーム油
-    public const int SugarCaneId = 25;           // サトウキビ
-    public const int CocoaId = 26;               // カカオ
-    public const int TeaLeafId = 27;             // 茶葉
-    public const int CoffeeBeanId = 28;          // コーヒー豆
-    public const int SpiceId = 29;               // 香辛料
-    public const int CokeId = 30;                // コークス
-    public const int IronId = 31;                // 鉄
-    public const int SteelId = 32;               // 鋼
-    public const int CopperId = 33;              // 銅
-    public const int LeadId = 34;                // 鉛
-    public const int CementId = 35;              // セメント
-    public const int GlassId = 36;               // ガラス
-    public const int GunpowderId = 38;           // 火薬
-    public const int LumberId = 39;              // 製材
-    public const int PulpId = 40;                // パルプ
-    public const int CottonClothId = 41;         // 綿布
-    public const int CanvasId = 42;              // 帆布
-    public const int WoolId = 43;                // 羊毛
-    public const int WoolenClothId = 44;         // 毛織物
-    public const int SilkClothId = 45;           // 絹織物
-    public const int LeatherId = 46;             // 革
-    public const int FlourId = 47;               // 小麦粉
-    public const int MeatId = 48;                // 肉
-    public const int SugarId = 49;               // 砂糖
-    public const int RubberId = 50;              // ゴム
-    public const int MachinePartsId = 51;        // 機械部品
-    public const int ToolsId = 52;               // 工具
-    public const int MachineryId = 53;           // 機械
-    public const int SteamEngineId = 54;         // 蒸気機関
-    public const int ClothingId = 57;            // 衣料
-    public const int LuxuryClothingId = 58;      // 高級衣料
-    public const int FurnitureId = 59;           // 家具
-    public const int LuxuryFurnitureId = 60;     // 高級家具
-    public const int PaperId = 61;               // 紙
-    public const int BreadId = 62;               // パン
-    public const int PreservedMeatId = 63;       // 加工肉
-    public const int DriedFishId = 64;           // 干物
-    public const int BeerId = 66;                // ビール
-    public const int WineId = 67;                // ワイン
-    public const int LampOilId = 68;             // 灯油
-    public const int TobaccoId = 69;             // 煙草
-    public const int LeatherGoodsId = 70;        // 革製品
-    public const int PorcelainId = 71;           // 陶磁器
-    public const int SoapId = 72;                // 石鹸
-    public const int ChocolateId = 73;           // チョコレート
-    public const int CoffeeId = 75;              // コーヒー
-    public const int WaterproofClothId = 76;     // 防水布
-    public const int MedicineId = 77;            // 医薬品
-    public const int BandageId = 79;             // 包帯
-    public const int ApplianceId = 80;           // 電化製品
-    public const int ArtilleryId = 81;           // 火砲
-    public const int RifleId = 82;               // 小銃
-    public const int AmmunitionId = 83;          // 弾薬
-    public const int WarshipId = 86;             // 軍艦
-    public const int JewelryId = 89;             // 宝飾
-    public const int WatchId = 90;               // 時計
-    public const int InstrumentId = 91;          // 楽器
-    public const int OpiumId = 92;               // アヘン
-    public const int ChromeId = 98;              // クロム
-    public const int SpiritsId = 103;            // 蒸留酒
-    public const int MachineGunId = 104;         // 機関銃
-    public const int IroncladId = 105;           // 装甲艦
-    public const int MachineToolId = 106;        // 精密工作機械
-    public const int CheeseId = 107;             // チーズ
-    public const int FodderId = 110;             // 飼料
-    public const int TinOreId = 117;             // 錫鉱
-    public const int SaltpeterId = 118;          // 硝石
-    public const int TankId = 122;               // 戦車
-    public const int DreadnoughtId = 123;        // 弩級戦艦
-    public const int CombustionEngineId = 125;   // 内燃機関
-    public const int DynamiteId = 128;           // ダイナマイト
-    public const int BicycleId = 129;            // 自転車
-    public const int AirplaneId = 130;           // 飛行機
-    public const int FighterId = 131;            // 戦闘機
-    public const int AutomobileId = 132;         // 自動車
-    public const int ChemicalWeaponId = 133;     // 化学兵器
-    public const int RefrigeratorId = 137;       // 冷蔵庫
+    public const int PalmOilId = 22;             // パーム油
+    public const int SugarCaneId = 24;           // サトウキビ
+    public const int CocoaId = 25;               // カカオ
+    public const int SpiceId = 26;               // 香辛料
+    public const int IronId = 27;                // 鉄
+    public const int SteelId = 28;               // 鋼
+    public const int CopperId = 29;              // 銅
+    public const int LeadId = 30;                // 鉛
+    public const int CementId = 31;              // セメント
+    public const int GlassId = 32;               // ガラス
+    public const int GunpowderId = 34;           // 火薬
+    public const int LumberId = 35;              // 製材
+    public const int CottonClothId = 36;         // 綿布
+    public const int CanvasId = 37;              // 帆布
+    public const int WoolId = 38;                // 羊毛
+    public const int WoolenClothId = 39;         // 毛織物
+    public const int SilkClothId = 40;           // 絹織物
+    public const int LeatherId = 41;             // 革
+    public const int FlourId = 42;               // 小麦粉
+    public const int MeatId = 43;                // 肉
+    public const int SugarId = 44;               // 砂糖
+    public const int RubberId = 45;              // ゴム
+    public const int MachineryId = 46;           // 機械
+    public const int SteamEngineId = 47;         // 蒸気機関
+    public const int ClothingId = 49;            // 衣料
+    public const int LuxuryClothingId = 50;      // 高級衣料
+    public const int FurnitureId = 51;           // 家具
+    public const int LuxuryFurnitureId = 52;     // 高級家具
+    public const int PaperId = 53;               // 紙
+    public const int BreadId = 54;               // パン
+    public const int PreservedMeatId = 55;       // 加工肉
+    public const int DriedFishId = 56;           // 干物
+    public const int BeerId = 58;                // ビール
+    public const int WineId = 59;                // ワイン
+    public const int LampOilId = 60;             // 灯油
+    public const int TobaccoId = 61;             // 煙草
+    public const int LeatherGoodsId = 62;        // 革製品
+    public const int PorcelainId = 63;           // 陶磁器
+    public const int SoapId = 64;                // 石鹸
+    public const int ChocolateId = 65;           // チョコレート
+    public const int CoffeeId = 67;              // コーヒー
+    public const int WaterproofClothId = 68;     // 防水布
+    public const int MedicineId = 69;            // 医薬品
+    public const int ApplianceId = 71;           // 電化製品
+    public const int ArtilleryId = 72;           // 火砲
+    public const int RifleId = 73;               // 小銃
+    public const int AmmunitionId = 74;          // 弾薬
+    public const int WarshipId = 77;             // 軍艦
+    public const int JewelryId = 80;             // 宝飾
+    public const int WatchId = 81;               // 時計
+    public const int InstrumentId = 82;          // 楽器
+    public const int OpiumId = 83;               // アヘン
+    public const int ChromeId = 89;              // クロム
+    public const int SpiritsId = 94;            // 蒸留酒
+    public const int MachineGunId = 95;         // 機関銃
+    public const int IroncladId = 96;           // 装甲艦
+    public const int CheeseId = 97;             // チーズ
+    public const int FodderId = 100;             // 飼料
+    public const int TinOreId = 107;             // 錫鉱
+    public const int SaltpeterId = 108;          // 硝石
+    public const int TankId = 112;               // 戦車
+    public const int DreadnoughtId = 113;        // 弩級戦艦
+    public const int CombustionEngineId = 115;   // 内燃機関
+    public const int DynamiteId = 118;           // ダイナマイト
+    public const int BicycleId = 119;            // 自転車
+    public const int MilitaryAircraftId = 120;   // 軍用機（★段1：飛行機と戦闘機を畳んだ＝旧 飛行機の番号を継ぐ）
+    public const int AutomobileId = 121;         // 自動車
+    public const int ChemicalWeaponId = 122;     // 化学兵器
+    public const int RefrigeratorId = 126;       // 冷蔵庫
 
     /// <summary>役務の参照価格（費用基準）。在庫を持てない純フロー市場は価格が発振しやすいので、
     /// 費用に錨を置き値幅を狭く取る（EconomyStep が ±3倍程度に制限）＝役務popの収入が暴落・暴騰で壊れない。</summary>
@@ -509,8 +487,8 @@ public static class Catalog
     public static double AdvLaborPerOutput(int id) => id switch
     {
         ElectricityId => 0.15,                                              // 発電所＝技師の塊
-        MachinePartsId or MachineryId or SteamEngineId or GeneratorId or ApplianceId or SteamshipId or WarshipId or LocomotiveId or GridId or MachineGunId or IroncladId or MachineToolId or TankId or DreadnoughtId or CombustionEngineId => 0.10,   // 機械部品・機械・蒸気機関・発電機・電化製品・汽船・軍艦・機関車・送電網・機関銃・装甲艦・精密工作機械・戦車・弩級戦艦・内燃機関
-        CokeId or IronId or SteelId or CopperId or LeadId or CementId or GlassId or ChemicalsId or GunpowderId => 0.05,   // 製錬・窯業・化学（石炭を焚く重工業）
+        MachineryId or SteamEngineId or ApplianceId or SteamshipId or WarshipId or LocomotiveId or GridId or MachineGunId or IroncladId or TankId or DreadnoughtId or CombustionEngineId => 0.10,   // 機械部品・機械・蒸気機関・発電機・電化製品・汽船・軍艦・機関車・送電網・機関銃・装甲艦・精密工作機械・戦車・弩級戦艦・内燃機関
+        IronId or SteelId or CopperId or LeadId or CementId or GlassId or ChemicalsId or GunpowderId => 0.05,   // 製錬・窯業・化学（石炭を焚く重工業）
         _ => 0.02,                                               // 軽工業＝監督・保守の最小限
     };
 
@@ -529,26 +507,10 @@ public static class Catalog
     /// </summary>
     public static readonly double[] RefPrices = ComputeRefPrices();
 
-    /// <summary>財の連鎖の複雑度＝サプライチェーンの深さ（採取/役務=0、加工=1+max(入力の複雑度)）。
-    /// 「後の時代の財ほど深い」を構造から表す。技術解禁(AdvancedTechScale)を手置きの数値でなくこの深さから導く。</summary>
-    public static readonly double[] Complexity = ComputeComplexity();
-
-    // 連鎖（DAG）の反復緩和回数＝最大深さ（≈9）より十分多く回して収束させる（ComputeComplexity/ComputeRefPrices 共通・値は据え置き）
+    // 連鎖（DAG）の反復緩和回数＝最大深さ（≈9）より十分多く回して収束させる（ComputeRefPrices・値は据え置き）。
+    // ★段1（2026-09-30・財の削減＝作者裁定 Q2）：連鎖の深さ Complexity とその計算を削除＝読み手は発明の門（段0-2 で解禁の表へ焼いた）と
+    //   工場の建設の機械の上乗せ FactoryTierMachinePerDepth（撤去）の2つだけだった＝深さで時代や難しさを表さない（発見が表す）。
     private const int ChainRelaxIterations = 24;
-
-    private static double[] ComputeComplexity()
-    {
-        var d = new double[Goods.Length];
-        for (int iter = 0; iter < ChainRelaxIterations; iter++)   // DAG。ID順でないので反復で収束
-            foreach (var g in Goods)
-            {
-                if (g.Tier == GoodTier.Service || g.Inputs.Length == 0) { d[g.Id] = 0; continue; }
-                double mx = 0;
-                foreach (var inp in g.Inputs) if (inp.GoodId >= 0 && inp.GoodId < d.Length) mx = System.Math.Max(mx, d[inp.GoodId]);
-                d[g.Id] = 1 + mx;
-            }
-        return d;
-    }
 
     /// <summary>冷蔵で腐敗が下がる生鮮（肉・畜産・魚・果実・加工肉）。1870s冷凍肉貿易革命の対象（B-2）。</summary>
     public static bool IsRefrigerable(int id) => id is FruitId or LivestockId or FishId or MeatId or PreservedMeatId;
@@ -564,10 +526,10 @@ public static class Catalog
         SugarCaneId => 0.10,                                                                 // サトウキビ
         WheatId or FlourId or TobaccoLeafId or PreservedMeatId or BeerId or FodderId or MaizeId or RiceId => 0.06,                    // 麦・小麦粉・葉煙草・加工肉・ビール・飼料・トウモロコシ・米（乾燥穀粒）。デ9：米(102)は従来defaultに落ち0.005＝鋼並みの保存性で米在庫が永久滞留し価格床を作りえた。乾燥穀粒0.06へ（麦・トウモロコシと一貫）
         HorseId => 0.04,                                                                // 馬（B6レビュー2026-07-19）：生体在庫の飼養損耗＝金属既定0.005に落とすと馬余りが半永久滞留し価格床になる。革(0.02)と飼料(0.06)の間
-        TimberId or SilkId or CinchonaBarkId or PalmOilId or CocoaId or TeaLeafId or CoffeeBeanId or ChemicalsId or GunpowderId or PulpId or DriedFishId or TobaccoId
+        TimberId or SilkId or PalmOilId or CocoaId or ChemicalsId or GunpowderId or DriedFishId or TobaccoId
             or ChocolateId or TeaId or CoffeeId or MedicineId or QuinineId or CheeseId or GuanoId => 0.03,                    // 木・生糸・嗜好品原料・薬・化学・パルプ・チーズ・グアノ等（半生鮮）
         CottonId or HempId or DyeId or RawRubberId or LumberId or CottonClothId or CanvasId or WoolId or WoolenClothId or SilkClothId or LeatherId or SugarId
-            or RubberId or ClothingId or LuxuryClothingId or PaperId or WaterproofClothId or BandageId or FurId => 0.02,                     // 繊維・木材・紙・革・砂糖・衣料・毛皮等
+            or RubberId or ClothingId or LuxuryClothingId or PaperId or WaterproofClothId or FurId => 0.02,                     // 繊維・木材・紙・革・砂糖・衣料・毛皮等
         _ => 0.005,                                                                 // 金属・鉱物・燃料・機械・武器・耐久奢侈財（最小）
     };
 
@@ -575,7 +537,7 @@ public static class Catalog
     public static double TransportWeight(int id) => id switch
     {
         RailId or LocomotiveId or SailingShipId or SteamshipId or WarshipId or IroncladId or DreadnoughtId => 6.0,                            // 線路・機関車・帆船・汽船・軍艦・装甲艦・弩級戦艦＝極大（巨大構造物）
-        MachineryId or SteamEngineId or GeneratorId or ArtilleryId or MachineGunId or MachineToolId or TankId or CombustionEngineId => 3.0,                     // 機械・蒸気機関・発電機・火砲・機関銃・精密工作機械・戦車・内燃機関＝大型機械
+        MachineryId or SteamEngineId or ArtilleryId or MachineGunId or TankId or CombustionEngineId => 3.0,                     // 機械・蒸気機関・発電機・火砲・機関銃・精密工作機械・戦車・内燃機関＝大型機械
         // ★2026-08-28（輸送コスト是正・作者一任）：ジャガイモ115・トウモロコシ116を鉱石群から外す＝主食3財（麦1.0・米1.0・芋2.5）の
         //   あいだで従量輸送費が2.5倍割れる内部矛盾（RefPriceが同一0.54なので比がそのまま費用差になる）＝緯度帯主食の地域だけ主食輸入が構造的に不能だった。
         IronOreId or CoalId or CopperOreId or LeadOreId or LimestoneId or ClayId or CrudeOilId or TimberId or IronId or SteelId or CopperId or LeadId or CementId or LumberId or ChromeId or FertilizerId or TinOreId or SaltpeterId or GuanoId => 2.5,   // 鉄鉱石・石炭・銅鉱・鉛鉱・石灰・粘土・原油・木・鉄・鋼・銅・鉛・セメント・製材・クロム鉱・肥料・錫鉱・硝石・グアノ＝嵩高
@@ -593,10 +555,10 @@ public static class Catalog
         // ★施設の明示登録（LIST §0-9-C 段1・2026-09-12）：学校94／病院95／大学136 を既定の軽工業（1年・3万）へ落とさない。値は既存タプルの再利用だけ（新しい数字ゼロ）。
         //   役務は建てられない（World.CanBuildFactory/BuildFactory・SelfPlay の候補列挙が Tier==Service を先に弾く）ので、今はどの読み手もこの3 id で引かない＝厳密恒等。
         //   施設化（LIST 段2〜4）で役務の施設が建てられるようになった時に初めて効く。
-        GeneratorId or ElectricityId or ApplianceId or LocomotiveId or SteamshipId or WarshipId or GridId or HigherEducationId => ("先端", 180_000, 20),   // 発電機・電力・電化製品・機関車・汽船・軍艦・送電網・大学（高等教育136）＝高額/長期
-        MachinePartsId or ToolsId or MachineryId or SteamEngineId or RailId or MachineToolId or CombustionEngineId => ("機械", 110_000, 12),   // 機械部品・工具・機械・蒸気機関・線路・精密工作機械・内燃機関
+        ElectricityId or ApplianceId or LocomotiveId or SteamshipId or WarshipId or GridId or HigherEducationId => ("先端", 180_000, 20),   // 発電機・電力・電化製品・機関車・汽船・軍艦・送電網・大学（高等教育136）＝高額/長期
+        MachineryId or SteamEngineId or RailId or CombustionEngineId => ("機械", 110_000, 12),   // 機械部品・工具・機械・蒸気機関・線路・精密工作機械・内燃機関
         ArtilleryId or RifleId or AmmunitionId or SailingShipId             => ("軍需", 90_000,  8),    // 火砲・小銃・弾薬・帆船
-        CokeId or IronId or SteelId or CopperId or LeadId or CementId or GlassId or ChemicalsId or GunpowderId or HealthcareId => ("重工業", 70_000, 8),   // 製鉄・化学・窯業・病院（医療95＝重工業相当）
+        IronId or SteelId or CopperId or LeadId or CementId or GlassId or ChemicalsId or GunpowderId or HealthcareId => ("重工業", 70_000, 8),   // 製鉄・化学・窯業・病院（医療95＝重工業相当）
         EducationId => ("軽工業", 30_000, 4),                                 // 学校（教育94）＝軽工業の組を明示（既定と同じ組＝値は不変）
         _ => ("軽工業", 30_000, 4),                                  // 繊維・食品・日用・奢侈＝安価/短期
     };
@@ -656,14 +618,12 @@ public static class Catalog
         (FertilizerId, "", 0.6),          // 肥料＝硫酸で処理する過リン酸石灰（ロース1842）。それ以前の施肥は厩肥/グアノ
         (GasId, "", 0.5),                 // ガス＝石炭乾留の都市ガス灯（マードック1792実演/商用1812）
         (DynamiteId, "", 0.7),            // ダイナマイト＝ノーベル1867。肥料(0.6=1842)と無煙火薬(0.85)の中間（B6）
-        (GeneratorId, "", 1.3),           // 発電機＝実用機（ファラデー1831は原理／グラム1870s）。この尺度上の最上位アンカー
         // 戦間期財（旧値0.8-1.10は発電機1.3を下回る順序の逆転＝WWI財が1830-60年代に点火しうる）＝発電機(1.3)より確実に後段へ置き、かつ主要国が到達できる帯に収める。
         //   順序＝自転車<内燃機関<自動車<WWI財<ラジオ。
         (BicycleId, "", 1.35),            // 自転車＝安全型1885〜。ゴム(0.9=加硫)の上流ゲートにも律速される
         (CombustionEngineId, "", 1.45),   // 内燃機関＝実用ガソリン/ディーゼル機関の普及(1900s〜)。戦車/自動車/飛行機の実効解禁もこれに律速
         (AutomobileId, "", 1.50),         // 自動車＝T型量産1908〜
-        (AirplaneId, "", 1.55),           // 飛行機＝軍用機の実用化（WWI）。内燃機関(1.45)の上流ゲートにも律速
-        (FighterId, "", 1.55),            // 戦闘機＝同調機銃1915。飛行機の上流ゲートで自然律速
+        (MilitaryAircraftId, "", 1.55),   // 軍用機＝実用化（WWI・同調機銃1915）。内燃機関(1.45)の上流ゲートにも律速
         (ChemicalWeaponId, "", 1.55),     // 化学兵器＝1915イーペル
         (TankId, "", 1.55),               // 戦車＝1916。内燃機関(1.45)の上流ゲートにも律速
         (RadioId, "", 1.60),              // ラジオ＝放送の実用化1920s（E3）。電化製品の連鎖にも律速
@@ -673,8 +633,8 @@ public static class Catalog
         (SteelId, FlagDefaultRow, 0.55),       // 鋼の既定＝ベッセマー転炉≈1858（CrucibleSteelEnabled＝坩堝鋼・錬鉄レールを並存させる器）
         // --- 代替のレシピ（旧 Simulation の注入の数値）---
         (LaborId, "蒸気機関", 0.5),             // 工場に据える原動機
-        (LaborId, "電動", 1.3),                 // 電動機（発電機1.3以後）
-        (ElectricityId, "水力発電", 1.3),       // 発電機(1.3)と同時
+        (LaborId, "電動", 1.3),                 // 電動機（旧 発電機1.3 と同じ）
+        (ElectricityId, "水力発電", 1.3),       // 旧 発電機の既定 onset 1.3（実用機＝グラム1870s・この尺度上の最上位アンカー）と同時。★段1 で発電機を機械へ畳んだ＝電力の門は電力の発明の門 1.4 と各レシピの行
         (LampOilId, "石油ケロシン", 0.6),       // 原油の既定レシピと同値（掘削できない時代に精製は始まらない）
         (LampOilId, "石油灯油", 0.6),           // 同上（1859ドレーク油井〜）
         (LeatherId, "クロムなめし", 0.55),      // 1858特許〜
@@ -683,7 +643,6 @@ public static class Catalog
         (HousingId, "鉄筋コンクリート", 1.50),  // エヌビック式1892・普及1900s（圧縮帯）
         (RubberId, "合成ゴム", 1.65),           // ブナ/ネオプレン1930s（ラジオ1.60の後）
         // --- 発明の門（旧 AdvancedOnset＝段0-2 で連鎖の深さから焼いた値・onset＝0.7×(深さ−6)）---
-        (GeneratorId, InventionRow, 0.7),        // 深さ7
         (MachineGunId, InventionRow, 0.7),       // 深さ7
         (IroncladId, InventionRow, 0.7),         // 深さ7
         (CombustionEngineId, InventionRow, 0.7), // 深さ7
@@ -692,10 +651,9 @@ public static class Catalog
         (GridId, InventionRow, 1.4),             // 深さ8
         (TankId, InventionRow, 1.4),             // 深さ8
         (DreadnoughtId, InventionRow, 1.4),      // 深さ8
-        (AirplaneId, InventionRow, 1.4),         // 深さ8
+        (MilitaryAircraftId, InventionRow, 1.4), // 深さ8（旧 飛行機の門）
         (AutomobileId, InventionRow, 1.4),       // 深さ8
         (ApplianceId, InventionRow, 0.7 * 3),    // 深さ9（＝2.0999999999999996・旧式 0.7×(9−6) と同じ倍精度）
-        (FighterId, InventionRow, 0.7 * 3),      // 深さ9（同上）
         (RadioId, InventionRow, 2.8),            // 深さ10
         // --- 需要の門（旧 DemandOnset：B6レビュー2026-07-19＝発明前に需要が立つと供給不能な幻の未充足になる財。C-高8 で供給側の尺度に追随）---
         (BicycleId, DemandRow, 1.35),     // 発明前は誰も欲しがらない（連鎖が浅く発明の門が無い・供給解禁1885まで約100年の幻需要を防ぐ）
@@ -764,7 +722,7 @@ public static class Catalog
             {
                 if (g.Tier == GoodTier.Service || g.Inputs.Length == 0) continue;
                 double c = FactoryVa + LaborPerOutput * ServiceRefPrice(LaborId) + AdvLaborPerOutput(g.Id) * ServiceRefPrice(AdvLaborId);
-                foreach (var inp in g.Inputs) if (inp.GoodId >= 0 && inp.GoodId < rp.Length) c += inp.QtyPerOutput * rp[inp.GoodId];   // 姉妹の ComputeComplexity と同じ境界ガード（goods.json 手編集で範囲外 id が混ざっても静的初期化を TypeInitializationException で殺さない）
+                foreach (var inp in g.Inputs) if (inp.GoodId >= 0 && inp.GoodId < rp.Length) c += inp.QtyPerOutput * rp[inp.GoodId];   // 境界ガード（goods.json 手編集で範囲外 id が混ざっても静的初期化を TypeInitializationException で殺さない）
                 rp[g.Id] = c;
             }
         return rp;

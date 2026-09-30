@@ -123,7 +123,7 @@ public static class Nationalization
     {
         Catalog.LocomotiveId => NationalizedSector.Railways,                            // 機関車＝鉄道産業
         Catalog.IronOreId or Catalog.CoalId or Catalog.CopperOreId or Catalog.LeadOreId or Catalog.GoldOreId or Catalog.SulfurId or Catalog.LimestoneId or Catalog.SilicaSandId or Catalog.ClayId or Catalog.SilverId => NationalizedSector.Mines,   // 鉄鉱石/石炭/銅鉱/鉛鉱/金/硫黄/石灰石/珪砂/粘土/銀＝鉱山（塩6は独禁の独占レント側で扱うため除外）
-        Catalog.ArtilleryId or Catalog.RifleId or Catalog.AmmunitionId or Catalog.WarshipId or Catalog.TankId or Catalog.DreadnoughtId or Catalog.FighterId or Catalog.ChemicalWeaponId => NationalizedSector.Military, // 火砲/小銃/弾薬/軍艦/戦車/弩級戦艦/戦闘機/化学兵器＝軍事産業
+        Catalog.ArtilleryId or Catalog.RifleId or Catalog.AmmunitionId or Catalog.WarshipId or Catalog.TankId or Catalog.DreadnoughtId or Catalog.MilitaryAircraftId or Catalog.ChemicalWeaponId => NationalizedSector.Military, // 火砲/小銃/弾薬/軍艦/戦車/弩級戦艦/戦闘機/化学兵器＝軍事産業
         Catalog.NewspaperId or Catalog.RadioId => NationalizedSector.All,               // 新聞/ラジオ（旧Telecom）＝『全て』へ統合（作者裁定2026-08-14 §11-6d）
         Catalog.CrudeOilId => NationalizedSector.Oil,                                   // 原油＝石油
         Catalog.ElectricityId => NationalizedSector.Electricity,                        // 電力

@@ -448,11 +448,11 @@ public sealed class Simulation
         producers.Add(new Producer { GoodId = Catalog.FarmLaborId, Productivity = LaborProductivity * FullChainProductivityScale, Output = laborer.Size * 0.5, MarginalCost = 0.3, LaborPopIndex = 0, OwnerPopIndex = 0, RentShare = 0.0 });
         // A-中1（2026-07-23）：石油火力も燃料主導の比率へ（発電機0.5→0.15＝石炭火力と同一の資本費。原油0.6＝石炭0.9のエネルギー等価1/1.5）。
         producers.Add(new Producer { GoodId = Catalog.ElectricityId, RecipeName = "石油火力", Productivity = 1.4 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = 1, OwnerPopIndex = 2, RentShare = 1.0, BuysLabor = true,
-            Inputs = [new Input(Catalog.GeneratorId, 0.5), new Input(Catalog.CrudeOilId, 0.6), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.ElectricityId))] });
+            Inputs = [new Input(Catalog.MachineryId, 0.498), new Input(Catalog.CrudeOilId, 0.6), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.ElectricityId))] });
         // A-中1（2026-07-23）：水力発電＝燃料ゼロ・資本費重（発電機0.40＝火力の2.7倍＝ダム/導水路/大型水車の資本）。石炭が高い州でのみ火力に勝つ
         //（燃料の地理が電源を分ける＝スイス/伊/ノルウェー型の水力国が価格から創発）。TechOnset=発電機(1.3)と同時＝上流の発電機供給にも自然律速。
         producers.Add(new Producer { GoodId = Catalog.ElectricityId, RecipeName = "水力発電", TechOnset = Catalog.RecipeOnset(Catalog.ElectricityId, "水力発電"), Productivity = 1.4 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = 1, OwnerPopIndex = 2, RentShare = 1.0, BuysLabor = true,
-            Inputs = [new Input(Catalog.GeneratorId, 0.65), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.ElectricityId))] });
+            Inputs = [new Input(Catalog.MachineryId, 0.647), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.ElectricityId))] });
         // 魚の缶詰（缶詰の第2レシピ）：漁獲を缶詰める＝漁獲に第2の消費先（従来は干物のみ）。市場が安い方を選ぶ。
         producers.Add(new Producer { GoodId = Catalog.CannedFoodId, RecipeName = "魚の缶詰", TechOnset = Catalog.DefaultRecipeOnset(Catalog.CannedFoodId), Productivity = 1.7 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = 1, OwnerPopIndex = 2, RentShare = 1.0, BuysLabor = true,
             Inputs = [new Input(Catalog.FishId, 0.6), new Input(Catalog.IronId, 0.3), new Input(Catalog.SaltId, 0.2), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.CannedFoodId))] });
@@ -1021,7 +1021,7 @@ public sealed class Simulation
                 steelDefault.TechOnset = Catalog.RecipeOnset(Catalog.SteelId, Catalog.FlagDefaultRow);
                 producers.Add(new Producer { GoodId = Catalog.SteelId, RecipeName = "坩堝鋼", Productivity = 0.9 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa,
                     LaborPopIndex = steelDefault.LaborPopIndex, OwnerPopIndex = steelDefault.OwnerPopIndex, RentShare = 1.0, BuysLabor = true,
-                    Inputs = [new Input(Catalog.IronId, 2.2), new Input(Catalog.CokeId, 1.2), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.SteelId))] });
+                    Inputs = [new Input(Catalog.IronId, 2.2), new Input(Catalog.CoalId, 1.978), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.SteelId))] });
                 if (railDefault is not null)
                     producers.Add(new Producer { GoodId = Catalog.RailId, RecipeName = "錬鉄レール", Productivity = 1.0 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa,
                         LaborPopIndex = railDefault.LaborPopIndex, OwnerPopIndex = railDefault.OwnerPopIndex, RentShare = 1.0, BuysLabor = true,
@@ -1197,16 +1197,16 @@ public sealed class Simulation
         // 石油火力（電力の第2レシピ）：他の工場と同じく労働力＋高度労働力を買う。
         // A-中1（2026-07-23）：燃料主導の比率へ（発電機0.5→0.15。原油0.6＝石炭0.9のエネルギー等価1/1.5）。
         producers.Add(new Producer { GoodId = Catalog.ElectricityId, RecipeName = "石油火力", Productivity = 1.4 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
-            Inputs = [new Input(Catalog.GeneratorId, 0.5), new Input(Catalog.CrudeOilId, 0.6), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.ElectricityId))] });
+            Inputs = [new Input(Catalog.MachineryId, 0.498), new Input(Catalog.CrudeOilId, 0.6), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.ElectricityId))] });
         // A-中1（2026-07-23）：水力発電（電力の第3レシピ）＝燃料ゼロ・資本費重（発電機0.40＝火力の2.7倍＝ダム/導水路の資本）。
         // 石炭が高い州でのみ火力に勝つ＝スイス/伊/ノルウェー型の水力国が価格から創発（1914年に伊約2/3・スイス/ノルウェーほぼ100%水力）。
         producers.Add(new Producer { GoodId = Catalog.ElectricityId, RecipeName = "水力発電", TechOnset = Catalog.RecipeOnset(Catalog.ElectricityId, "水力発電"), Productivity = 1.4 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
-            Inputs = [new Input(Catalog.GeneratorId, 0.65), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.ElectricityId))] });
+            Inputs = [new Input(Catalog.MachineryId, 0.647), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.ElectricityId))] });
         // ★蒸気タービン（2026-09-05・器 SteamTurbineEnabled）：電力の第4レシピ＝発電機0.2＋石炭 SteamTurbineCoalInput（熱効率で0.9→0.6）・生産性×SteamTurbineProductivity。
         //   パーソンズ1884→1890s＝onset SteamTurbineOnset（発電機1.3の直後）。市場が安い方を選ぶ＝火力の中で石炭を節約する製法が創発的に置き換える。0＝足さない＝恒等。
         if (coef.SteamTurbineEnabled > 0)
             producers.Add(new Producer { GoodId = Catalog.ElectricityId, RecipeName = "蒸気タービン", TechOnset = coef.SteamTurbineOnset, Productivity = 1.4 * coef.SteamTurbineProductivity * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = 2, OwnerPopIndex = 3, RentShare = 1.0, BuysLabor = true,
-                Inputs = [new Input(Catalog.GeneratorId, 0.2), new Input(Catalog.CoalId, coef.SteamTurbineCoalInput), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.ElectricityId))] });
+                Inputs = [new Input(Catalog.MachineryId, 0.199), new Input(Catalog.CoalId, coef.SteamTurbineCoalInput), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.ElectricityId))] });
         // 魚の缶詰（缶詰の第2レシピ）：肉(畜産)の代わりに漁獲を缶詰める＝缶詰の軍需増を漁業からも賄える。漁獲に第2の消費先を与える（従来は干物のみ）。
         producers.Add(new Producer { GoodId = Catalog.CannedFoodId, RecipeName = "魚の缶詰", TechOnset = Catalog.DefaultRecipeOnset(Catalog.CannedFoodId), Productivity = 1.7 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
             Inputs = [new Input(Catalog.FishId, 0.6), new Input(Catalog.IronId, 0.3), new Input(Catalog.SaltId, 0.2), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.CannedFoodId))] });

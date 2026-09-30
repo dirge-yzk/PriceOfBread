@@ -267,7 +267,7 @@ internal static class PlayHarness
         sb.AppendLine();
         sb.AppendLine("---- 建設の束と主要財（首都州）----");
         int[] watch = { coef.SteelGoodId, coef.MachineGoodId, coef.CementGoodId, coef.LumberGoodId,
-                        Catalog.CoalId, coef.OpiumGoodId, Catalog.IronId, Catalog.MachinePartsId, Catalog.WheatId, Catalog.TimberId };   // 鉄31・機械部品51・麦15・木11
+                        Catalog.CoalId, coef.OpiumGoodId, Catalog.IronId, Catalog.WheatId, Catalog.TimberId };   // 鉄31・機械部品51・麦15・木11
         sb.AppendLine("財         価格   参照  価格/参照  在庫    需要   生産   輸入");
         foreach (int gi in watch.Distinct())
         {
@@ -283,7 +283,7 @@ internal static class PlayHarness
         sb.AppendLine($"建設1単位の束： 参照 {bundleRef * cap.PriceLevel:F2} ／ いまの市価 {bundleNow:F2}　（比 {(bundleRef * cap.PriceLevel > 1e-9 ? bundleNow / (bundleRef * cap.PriceLevel) : 0):F2}）");
         sb.AppendLine($"★建設可能率 {World.ConstructionAfford(w):F3}　（着工に要る床 {coef.FactoryStartAffordFloor:F2}／半減点は束の比 {coef.FactoryBuildPriceCeil:F1} 倍）");
         sb.AppendLine("主要財の産地（州：規模・産出）：");
-        foreach (int gi in new[] { coef.SteelGoodId, coef.MachineGoodId, Catalog.IronId, Catalog.MachinePartsId })
+        foreach (int gi in new[] { coef.SteelGoodId, coef.MachineGoodId, Catalog.IronId })
         {
             var g0 = cap.GoodOf(gi); if (g0 is null) continue;
             var sites = new List<string>();

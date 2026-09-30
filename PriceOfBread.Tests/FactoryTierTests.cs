@@ -4,12 +4,9 @@ using Xunit;
 
 namespace PriceOfBread.Tests;
 
-/// <summary>工場建設費の素材階層+α（FactoryTierMachinePerDepth・2026-08-09）の番人。
-/// 階層＝既存の Catalog.Complexity（レシピDAG最長深さ0〜9・手置きテーブルなし）。
-/// +α＝工場建設ブロック限定＝建設1単位あたり 機械を 係数×max(0, 深さ−1) 束だけ追加購入（基本4材束は不変＝「基本は固定・上位材+α」）。
-/// ★2026-08-09に点火（既定0.05・ign_tier）。0へ戻せば全新コードが >1e-12 ガードの内側で1命令も実行しない＝ビット恒等）。
-/// ここでは (1)既定値ピン（点火0.05） (2)Complexity階層ピン＝goods.json変更の番人 (3)ON経路＝機械の需要と決済が深さの式どおり増え他3材は不変
-/// (4)浅い財/RGOはONでも1ビットも動かない (5)ON経路のフル走行で基礎貨幣保存 を固定する。</summary>
+/// <summary>工場の建設（着工・材料・工賃・支払い率・保存）の番人。
+/// ★2026-09-30 段1（財の削減＝作者裁定 Q2）：素材階層+α（FactoryTierMachinePerDepth＝連鎖の深さ×機械の上乗せ）を撤去＝
+///   その番人（既定値ピン・深さの階層ピン・ON経路の式・浅い財で不変）と段0 の「焼いた発明の門＝深さの旧式」の番人を消した。ファイル名は歴史の名前のまま。</summary>
 public class FactoryTierTests
 {
     private static Scenario Fr(ulong s, double pollTax = 0.5, double treasury = 200_000) => new()
@@ -29,109 +26,17 @@ public class FactoryTierTests
     };
 
     [Fact]
-    public void 係数の既定は点火済み()
-    {
-        Assert.Equal(0.05, new Coefficients().FactoryTierMachinePerDepth);   // 点火2026-08-09（ign_tier＝硬性緑Δ総合+2.1・列強+3.7＝狙いの軸）   // 既定0＝ビット恒等（既存フルスイートが番人）。点火設計値0.05目安
-    }
-
-    [Fact]
-    public void 連鎖深さの階層が期待どおり()   // goods.json のレシピ変更で+αの階層が黙って動かないための実測ピン
-    {
-        Assert.Equal(0.0, Catalog.Complexity[Catalog.WheatId]);   // 麦＝RGO（+α対象外）
-        Assert.Equal(0.0, Catalog.Complexity[Catalog.IronOreId]);    // 鉄鉱石＝RGO（+α対象外）
-        Assert.Equal(1.0, Catalog.Complexity[Catalog.FlourId]);   // 小麦粉＝深さ1（max(0, 深さ−1)=0＝式から+αなし）
-        Assert.Equal(2.0, Catalog.Complexity[Catalog.ClothingId]);   // 衣料＝軽工業（+α深さ1）
-        Assert.Equal(3.0, Catalog.Complexity[Catalog.SteelId]);   // 鋼＝重工業（+α深さ2）
-        Assert.Equal(5.0, Catalog.Complexity[Catalog.MachineryId]);   // 機械（+α深さ4）
-        Assert.Equal(9.0, Catalog.Complexity[Catalog.ApplianceId]);   // 電化製品＝先端（+α深さ8）
-    }
-
-    [Fact]
-    public void 焼いた発明の門は連鎖の深さの旧式と一致する()   // ★段0-2（2026-09-30・財の削減の回）：段0 の間だけの番人＝財を畳む段1 で深さが動くので、そこで消す
-    {
-        foreach (var g in Catalog.Goods)
-        {
-            double extra = Catalog.Complexity[g.Id] - 6.0;
-            double old = extra <= 0 ? 0.0 : 0.7 * extra;   // 旧 Catalog.AdvancedOnset（ComplexityOnsetScale×(深さ−ComplexityFreeDepth)）
-            Assert.True(Catalog.AdvancedOnset(g.Id) == old, $"{g.Name}：焼いた発明の門 {Catalog.AdvancedOnset(g.Id):R} ≠ 旧式 {old:R}");
-        }
-    }
-
-    /// <summary>3世界の単月切り分け：C=建設なし・A=建設(OFF)・B=建設(ON 0.05)。40四半期まで3世界はビット恒等（決定論）
-    /// →同じ建設中フラグをA/Bへ手置き→EconomyStep.Run を1回だけ直接呼ぶ（式の単離＝着工ゲートは対象外）。
-    /// 今月の建設束 u はOFF側の鋼需要差から逆算＝buildAfford を再実装せずに式を厳密検証。
-    /// 機械在庫は3世界同一に厚くする＝配給率1で決済式（got=需要×ration）を厳密に読む。</summary>
-    [Fact]
-    public void ON経路_深い財の建設は機械の需要と決済が深さの式どおり増える()
-    {
-        var sA = new Simulation(Fr(11), new NullAgent());
-        var sB = new Simulation(Fr(11), new NullAgent());
-        var sC = new Simulation(Fr(11), new NullAgent());
-        sA.Run(40); sB.Run(40); sC.Run(40);
-        var rA = sA.World.Regions[0]; var rB = sB.World.Regions[0]; var rC = sC.World.Regions[0];
-        var c = sA.World.Coef;
-        int sg = c.SteelGoodId, mg = c.MachineGoodId, cg = c.CementGoodId, lg = c.LumberGoodId;
-        rA.Markets[mg].Stock += 1e6; rB.Markets[mg].Stock += 1e6; rC.Markets[mg].Stock += 1e6;   // 3世界同一の在庫増＝比較は保たれたまま ration[機械]=1
-        double days = Catalog.FactorySpec(sg).Quarters * (double)Calendar.DaysPerQuarter;
-        var pA = rA.Producers.Find(p => p.GoodId == sg); var pB = rB.Producers.Find(p => p.GoodId == sg);
-        Assert.NotNull(pA); Assert.NotNull(pB);
-        pA!.ConstructionLeft = days; pB!.ConstructionLeft = days;   // Cは建設なし
-        sA.World.Coef.FactoryTierMachinePerDepth = 0.0;             // OFF側を明示（既定は点火済み0.05＝2026-08-09。既定非依存の対照実験）
-        sC.World.Coef.FactoryTierMachinePerDepth = 0.0;
-        sB.World.Coef.FactoryTierMachinePerDepth = 0.05;            // ON側
-        int fb = (int)TreasuryCat.FactoryBuild;   // 工場の材料の区分（2026-09-28 段2-1＝StateSpent は区分つき）
-        double spentA0 = rA.StateSpent[fb], spentB0 = rB.StateSpent[fb];
-        double machinePrice = rA.Markets[mg].Price;                 // 決済価格（EconomyStep 内で価格は不変＝clearPrice と同値。価格更新は MarketFlow）
-        EconomyStep.Run(rA, sA.World.Coef);
-        EconomyStep.Run(rB, sB.World.Coef);
-        EconomyStep.Run(rC, sC.World.Coef);
-        double u = (rA.Markets[sg].LastDemand - rC.Markets[sg].LastDemand) / c.ConsSteel;   // 今月の建設束（OFF側の差分から逆算）
-        Assert.True(u > 1e-9, "建設束が立っていない＝テスト前提の破れ");
-        double expected = 0.05 * (Catalog.Complexity[sg] - 1.0) * u;                        // 鋼＝深さ3→建設1単位あたり機械+0.10
-        Assert.Equal(expected, rB.Markets[mg].LastDemand - rA.Markets[mg].LastDemand, 6);   // 需要計上が式どおり
-        Assert.Equal(rA.Markets[sg].LastDemand, rB.Markets[sg].LastDemand);   // +αは機械のみ＝他3材の需要は1ビットも動かない（基本束は固定）
-        Assert.Equal(rA.Markets[cg].LastDemand, rB.Markets[cg].LastDemand);
-        Assert.Equal(rA.Markets[lg].LastDemand, rB.Markets[lg].LastDemand);
-        // 決済＝got×clearPrice（ration[機械]=1）：国庫負担の増分が +α束×市場価格に一致（StateSpent へ記帳・revenue[機械] は保存テストが番人）
-        Assert.Equal(expected * machinePrice, (rB.StateSpent[fb] - spentB0) - (rA.StateSpent[fb] - spentA0), 6);
-    }
-
-    [Fact]
-    public void ON経路_浅い財とRGOの建設では機械の需要も決済も1ビットも動かない()   // 深さ0/1は max(0, 深さ−1)=0＝式から自然に+αなし（特例コードなし）
-    {
-        var sOff = new Simulation(Fr(11), new NullAgent());
-        var sOn = new Simulation(Fr(11), new NullAgent());
-        sOff.Run(40); sOn.Run(40);
-        var rOff = sOff.World.Regions[0]; var rOn = sOn.World.Regions[0];
-        int mg = sOff.World.Coef.MachineGoodId;
-        foreach (int gid in new[] { Catalog.FlourId, Catalog.WheatId })   // 小麦粉＝深さ1・麦＝RGO深さ0
-        {
-            var pOff = rOff.Producers.Find(p => p.GoodId == gid); var pOn = rOn.Producers.Find(p => p.GoodId == gid);
-            Assert.NotNull(pOff); Assert.NotNull(pOn);
-            double days = Catalog.FactorySpec(gid).Quarters * (double)Calendar.DaysPerQuarter;
-            pOff!.ConstructionLeft = days; pOn!.ConstructionLeft = days;
-        }
-        sOff.World.Coef.FactoryTierMachinePerDepth = 0.0;    // OFF側を明示（既定は点火済み0.05＝2026-08-09。既定依存だと同一世界比較になり番人が空洞化する）
-        sOn.World.Coef.FactoryTierMachinePerDepth = 0.05;
-        EconomyStep.Run(rOff, sOff.World.Coef);
-        EconomyStep.Run(rOn, sOn.World.Coef);
-        Assert.Equal(rOff.Markets[mg].LastDemand, rOn.Markets[mg].LastDemand);   // ビット恒等（tierQty=0＝加算も決済も不実行）
-        Assert.Equal(rOff.StateSpent, rOn.StateSpent);
-    }
-
-    [Fact]
-    public void ON経路_工場建設のフル走行で基礎貨幣を保存する()   // +αの材料購入＝国庫→生産者の移転（StateSpent と revenue の対記帳）＝Dブラケットが全ティック保持
+    public void 工場建設のフル走行で基礎貨幣を保存する()   // 材料購入＝国庫→生産者の移転（StateSpent と revenue の対記帳）＝Dブラケットが全ティック保持
     {
         var sim = new Simulation(Fr(2025, 1.0, 1_000_000), new NullAgent());   // FranceTests の国営工場テストと同じ厚い国庫（重工業の建設費は素材価格依存）
         sim.World.BaseCoercion = 80; sim.World.Policy.CoercionTarget = 80;
-        sim.World.Coef.FactoryTierMachinePerDepth = 0.05;
         double base0 = sim.World.BaseMoney;
         sim.Run(40);
         Assert.True(sim.World.BuildFactory(0, Catalog.SteelId), "着工できない＝テスト前提の破れ");
         var ex = Record.Exception(() => sim.Run(60));   // §11.6（保存・非負・財収支）が全ティックで保持
         Assert.Null(ex);
         Assert.True(Math.Abs(sim.World.BaseMoney - base0 - sim.World.CumulativeTradeFlow - sim.World.CumulativeGoldMinted - sim.World.CumulativeFiatIssued) < 1e-6 * base0,
-            "素材階層+αの決済で基礎貨幣保存が破れた");
+            "工場建設の材料の決済で基礎貨幣保存が破れた");
     }
     /// <summary>着工の採算ゲート（<see cref="Coefficients.FactoryStartAffordFloor"/>・2026-08-04）の番人。
     /// ★生産タブの着工ボタンは2026-08-09からこの判定を**同じ関数・同じ定数**で写す（GameViewModel.Production の canBuild）。
@@ -190,7 +95,7 @@ public class FactoryTierTests
         Assert.Equal(("重工業", 70_000.0, 8), Catalog.FactorySpec(Catalog.HealthcareId));
         Assert.Equal(("先端", 180_000.0, 20), Catalog.FactorySpec(Catalog.HigherEducationId));
         Assert.Equal(Catalog.FactorySpec(Catalog.SteelId), Catalog.FactorySpec(Catalog.HealthcareId));          // 病院＝鋼32と同じ組（既存タプルの再利用）
-        Assert.Equal(Catalog.FactorySpec(Catalog.GeneratorId), Catalog.FactorySpec(Catalog.HigherEducationId));     // 大学＝発電機55と同じ組
+        Assert.Equal(Catalog.FactorySpec(Catalog.ElectricityId), Catalog.FactorySpec(Catalog.HigherEducationId));   // 大学＝電力（発電所）と同じ組（★段1：発電機は機械へ畳んだ）
         var sim = new Simulation(NationConfig.Britain().ToScenario(23), new NullAgent());
         foreach (int gid in new[] { Catalog.EducationId, Catalog.HealthcareId, Catalog.HigherEducationId })
         {

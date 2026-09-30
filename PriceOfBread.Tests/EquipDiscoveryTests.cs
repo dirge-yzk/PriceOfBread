@@ -8,7 +8,7 @@ namespace PriceOfBread.Tests;
 /// 未解禁の装備が必要量・見積・武器庫の目標から抜け、解禁後は戻ること、「要らない」と「持っている」を区別することを固定する。</summary>
 public class EquipDiscoveryTests
 {
-    private const int Car = 132;   // 自動車（輜重）＝DefaultRecipeOnset 1.50
+    private const int Car = Catalog.AutomobileId;   // 自動車（輜重）＝DefaultRecipeOnset 1.50
 
     private static Simulation Build(ulong seed)
     {
@@ -155,7 +155,7 @@ public class EquipDiscoveryTests
                 double u = EconomyStep.EquipUnlock(r, c, g);
                 Assert.True(u == 0.0 || u == 1.0, $"前提が崩れた：1783年に部分解禁の装備 {g}（{u:F3}）");
             }
-        foreach (int g in new[] { Catalog.SteamshipId, Car, Catalog.DreadnoughtId, Catalog.FighterId })   // 汽船・自動車・弩級戦艦・戦闘機
+        foreach (int g in new[] { Catalog.SteamshipId, Car, Catalog.DreadnoughtId, Catalog.MilitaryAircraftId })   // 汽船・自動車・弩級戦艦・軍用機（★段1：飛行機と戦闘機を畳んだ）
             Assert.Equal(0.0, EconomyStep.EquipUnlock(r, c, g));
 
         double needLow = EconomyStep.MilitaryProcurementNeed(r, c);

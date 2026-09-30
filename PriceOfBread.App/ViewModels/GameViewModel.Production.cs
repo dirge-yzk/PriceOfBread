@@ -910,8 +910,7 @@ public partial class GameViewModel
         // 着工ボタンの常時ツールチップ（作者フィードバック2026-08-10 項目7で4行構成へ）：
         //   建設費 ＝ FactorySpec.Cost（工場カテゴリの基本費）
         //   材料費リスト ＝ 総必要量（FactoryMaterialFrac×Cost/costPerUnitRef×Cons*＝EconomyStep.AccumulateFactoryBuild の建設束 u の
-        //     全期間合計・採算率100%時）×首都州の現在価格。★素材階層+α（FactoryTierMachinePerDepth×max(0,深さ−1)×u）は
-        //     **機械の行に畳む**＝「上位材」等の但し書きを書かない（同じ材が2行に割れない）。
+        //     全期間合計・採算率100%時）×首都州の現在価格。（★2026-09-30 段1：素材階層+α FactoryTierMachinePerDepth は撤去＝機械の行は基本束だけ）
         //   合計コスト ＝ 工賃（(1−FactoryMaterialFrac)×Cost＝World.BuildFactory が日割りで国庫から工員へ払う総額）＋材料費（現在価格）。
         //     ＝素材が高い時期は建設費より高くつく＝エンジンの「真の価格依存」がそのまま数字に出る。
         //   完成まで ＝ spec.Quarters ÷ 四半期/年。
@@ -925,8 +924,7 @@ public partial class GameViewModel
                           + cf.ConsCement * Catalog.RefPrices[cf.CementGoodId] + cf.ConsLumber * Catalog.RefPrices[cf.LumberGoodId];
             double units = cpuRef > 1e-9 ? cf.FactoryMaterialFrac * spec.Cost / cpuRef : 0;   // 総建設ユニット
             double P(int id) => id >= 0 && id < cap0.Markets.Length ? cap0.Markets[id].Price : 0;
-            double depth = gi >= 0 && gi < Catalog.Complexity.Length ? Catalog.Complexity[gi] : 0;
-            double machineQty = cf.ConsMachine * units + cf.FactoryTierMachinePerDepth * Math.Max(0.0, depth - 1.0) * units;
+            double machineQty = cf.ConsMachine * units;
             var mats = new System.Text.StringBuilder();
             double matCostSum = 0;
             void Row(int id, double qty) { double amt = qty * P(id); matCostSum += amt; mats.Append($"\n{Catalog.Goods[id].Name} {Qty(qty)}　{Money(amt)}"); }   // 材料数量もk統一（項目4）

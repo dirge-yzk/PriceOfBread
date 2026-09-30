@@ -94,12 +94,12 @@ public class PhantomProductionTests
         Assert.True(open > 10, $"無ゲートの主食/日用品が少なすぎる（{open}）＝ハーネスが空回りしている");
         // 逆側の担保：技術が onset を越えれば、**生産がまだ0でも**「存在しない財」から外れる
         // ＝判定は固定の財リストではなく技術ゲートを読んでおり、「作れるが今は作っていない」を別扱いにできている。
-        Assert.True(unavail[65], "前提が崩れている（開始時の缶詰は未発明のはず）");
+        Assert.True(unavail[Catalog.CannedFoodId], "前提が崩れている（開始時の缶詰は未発明のはず）");
         foreach (var n in sim.Nations)
             foreach (var region in n.World.Regions)
                 region.TechLevel = Catalog.DefaultRecipeOnset(Catalog.CannedFoodId) + 1.0;   // 缶詰の発明ゲートを開ける（産出は0のまま）
         var opened = ProductionDiag.UnavailableGoods(sim, coef);
-        Assert.False(opened[65], "技術が缶詰の onset を越えても「存在しない財」のまま＝判定が技術に追随していない");
+        Assert.False(opened[Catalog.CannedFoodId], "技術が缶詰の onset を越えても「存在しない財」のまま＝判定が技術に追随していない");
     }
 
     private static int GoodId(string name)

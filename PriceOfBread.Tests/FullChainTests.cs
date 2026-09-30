@@ -18,9 +18,9 @@ public class FullChainTests
     public void 全50財がロードされ放置で破綻せず基礎貨幣を保存する()
     {
         var sim = new Simulation(Full(1), new NullAgent());
-        Assert.Equal(130, sim.World.Regions[0].Goods.Count);   // ★2026-09-04：129→130＝冷蔵庫（作者提案の冷蔵＝消費財かつ生肉の遠距離輸送を開く財）     // ＋1934拡張E2/E3の6財（飛行機・戦闘機・自動車・化学兵器・新聞・ラジオ＝2026-07-19）。上下水道/電化インフラはService＝国家世界のみ
+        Assert.Equal(119, sim.World.Regions[0].Goods.Count);   // ★2026-09-30 段1（財の削減）：130→119＝11財を畳んだ（金鶏樹皮・茶葉・コーヒー豆・コークス・パルプ・機械部品・工具・発電機・包帯・精密工作機械・戦闘機）   // ★2026-09-04：129→130＝冷蔵庫（作者提案の冷蔵＝消費財かつ生肉の遠距離輸送を開く財）     // ＋1934拡張E2/E3の6財（飛行機・戦闘機・自動車・化学兵器・新聞・ラジオ＝2026-07-19）。上下水道/電化インフラはService＝国家世界のみ
         // ★2026-09-06：126→127＝E-13 再開で黄鉄鉱法（化学薬品の第2レシピ）を点火＝フルチェーンにも1件。代替レシピの注入は AddAlternateRecipes（構築経路）へ移した（同日）。
-        Assert.Equal(129, sim.World.Regions[0].Producers.Count);   // ★2026-09-27：127→129＝前期の軍需レシピ（マスケット・鋳鉄砲）を回2-1 で旗ごと点火＝小銃・火砲の第2生産者   // ★2026-09-04：125→126＝冷蔵の加工肉レシピ（ChilledMeatEnabled 点火＝加工肉の第2生産者が全州に立つ）   // ★2026-09-04：124→125＝冷蔵庫の生産者（財の追加に伴う。⚠冷蔵の加工肉は ChilledMeatEnabled=0 で休眠＝この数には入らない）   // ★2026-08-14：123→124＝石油ケロシン（灯油の第2レシピ・KeroseneFromOilEnabled=1点火＝原油の40年の買い手ゼロの穴埋め） // 同6財の生産者＋水力発電（A-中1・2026-07-23＝電力の第3レシピ）＋坩堝鋼/錬鉄レール（CrucibleSteelEnabled=1・第7段第1波2026-07-28）。並存レシピ（人絹/鉄筋コンクリート/合成ゴム）は国家世界のビルダー側
+        Assert.Equal(118, sim.World.Regions[0].Producers.Count);   // ★2026-09-30 段1（財の削減）：129→118＝畳んだ11財の既定の生産者   // ★2026-09-27：127→129＝前期の軍需レシピ（マスケット・鋳鉄砲）を回2-1 で旗ごと点火＝小銃・火砲の第2生産者   // ★2026-09-04：125→126＝冷蔵の加工肉レシピ（ChilledMeatEnabled 点火＝加工肉の第2生産者が全州に立つ）   // ★2026-09-04：124→125＝冷蔵庫の生産者（財の追加に伴う。⚠冷蔵の加工肉は ChilledMeatEnabled=0 で休眠＝この数には入らない）   // ★2026-08-14：123→124＝石油ケロシン（灯油の第2レシピ・KeroseneFromOilEnabled=1点火＝原油の40年の買い手ゼロの穴埋め） // 同6財の生産者＋水力発電（A-中1・2026-07-23＝電力の第3レシピ）＋坩堝鋼/錬鉄レール（CrucibleSteelEnabled=1・第7段第1波2026-07-28）。並存レシピ（人絹/鉄筋コンクリート/合成ゴム）は国家世界のビルダー側
 
         double base0 = sim.World.BaseMoney;
         var ex = Record.Exception(() => sim.Run(400));
@@ -90,5 +90,197 @@ public class FullChainTests
         b.Run(200);
         Assert.Equal(a.World.Regions[0].Markets[Catalog.IronId].Price, b.World.Regions[0].Markets[Catalog.IronId].Price);
         Assert.Equal(a.World.TotalMoney, b.World.TotalMoney);
+    }
+
+    // ★2026-09-30 段1（財の削減＝設計 docs/202609/20260928/20260928_財の削減_連鎖の深さの撤去_設計 §3・作者裁定 2026-09-28／09-29）の番人。
+    [Fact]
+    public void 畳んだ財はカタログに無く畳み先が引き継ぐ()
+    {
+        string[] folded = ["金鶏樹皮", "茶葉", "コーヒー豆", "コークス", "パルプ", "機械部品", "工具", "発電機", "包帯", "精密工作機械", "飛行機", "戦闘機"];
+        foreach (var n in folded) Assert.DoesNotContain(Catalog.Goods, g => g.Name == n);
+        for (int i = 0; i < Catalog.Goods.Length; i++) Assert.Equal(i, Catalog.Goods[i].Id);   // 墓石でなく詰めた（作者裁定 Q7）＝id は 0..n−1
+        foreach (int g in new[] { Catalog.TeaId, Catalog.CoffeeId, Catalog.QuinineId })       // 採取の財へ畳んだ3財＝投入なし・植民地の気候ゲート
+        {
+            Assert.Empty(Catalog.Goods[g].Inputs);
+            Assert.True(Catalog.IsColonial(g) && Catalog.Goods[g].IsColonial, $"{Catalog.Goods[g].Name} が植民地の採取になっていない");
+        }
+        Assert.Equal("軍用機", Catalog.Goods[Catalog.MilitaryAircraftId].Name);
+        // 残した財（作者裁定 2026-09-29「加工は畳まない」・Q4 蒸気機関・型の違う送電網ほか＝実装ログ (123)）
+        foreach (var n in new[] { "サトウキビ", "葉煙草", "生ゴム", "羊毛", "銅鉱", "鉛鉱", "小麦粉", "飼料", "送電網", "蒸気機関" })
+            Assert.Contains(Catalog.Goods, g => g.Name == n);
+    }
+
+    /// <summary>振り直しの番人（作者裁定 Q7）：全ての財の定数が goods.json の同じ名前の財を指す＝定数の値の書き違い・振り直しの漏れを捕まえる。</summary>
+    [Fact]
+    public void 財の定数はカタログの同じ名前の財を指す()
+    {
+        (int Id, string Name)[] pins =
+        [
+            (Catalog.IronOreId, "鉄鉱石"),
+            (Catalog.CoalId, "石炭"),
+            (Catalog.CopperOreId, "銅鉱"),
+            (Catalog.LeadOreId, "鉛鉱"),
+            (Catalog.GoldOreId, "金"),
+            (Catalog.SulfurId, "硫黄"),
+            (Catalog.SaltId, "塩"),
+            (Catalog.LimestoneId, "石灰石"),
+            (Catalog.SilicaSandId, "珪砂"),
+            (Catalog.ClayId, "粘土"),
+            (Catalog.CrudeOilId, "原油"),
+            (Catalog.TimberId, "木"),
+            (Catalog.CottonId, "綿花"),
+            (Catalog.HempId, "麻"),
+            (Catalog.SilkId, "生糸"),
+            (Catalog.WheatId, "麦"),
+            (Catalog.FruitId, "果実"),
+            (Catalog.DyeId, "染料"),
+            (Catalog.TobaccoLeafId, "葉煙草"),
+            (Catalog.LivestockId, "畜産"),
+            (Catalog.FishId, "漁獲"),
+            (Catalog.RawRubberId, "生ゴム"),
+            (Catalog.PalmOilId, "パーム油"),
+            (Catalog.IvoryId, "象牙"),
+            (Catalog.SugarCaneId, "サトウキビ"),
+            (Catalog.CocoaId, "カカオ"),
+            (Catalog.SpiceId, "香辛料"),
+            (Catalog.IronId, "鉄"),
+            (Catalog.SteelId, "鋼"),
+            (Catalog.CopperId, "銅"),
+            (Catalog.LeadId, "鉛"),
+            (Catalog.CementId, "セメント"),
+            (Catalog.GlassId, "ガラス"),
+            (Catalog.ChemicalsId, "化学薬品"),
+            (Catalog.GunpowderId, "火薬"),
+            (Catalog.LumberId, "製材"),
+            (Catalog.CottonClothId, "綿布"),
+            (Catalog.CanvasId, "帆布"),
+            (Catalog.WoolId, "羊毛"),
+            (Catalog.WoolenClothId, "毛織物"),
+            (Catalog.SilkClothId, "絹織物"),
+            (Catalog.LeatherId, "革"),
+            (Catalog.FlourId, "小麦粉"),
+            (Catalog.MeatId, "肉"),
+            (Catalog.SugarId, "砂糖"),
+            (Catalog.RubberId, "ゴム"),
+            (Catalog.MachineryId, "機械"),
+            (Catalog.SteamEngineId, "蒸気機関"),
+            (Catalog.RailId, "線路"),
+            (Catalog.ClothingId, "衣料"),
+            (Catalog.LuxuryClothingId, "高級衣料"),
+            (Catalog.FurnitureId, "家具"),
+            (Catalog.LuxuryFurnitureId, "高級家具"),
+            (Catalog.PaperId, "紙"),
+            (Catalog.BreadId, "パン"),
+            (Catalog.PreservedMeatId, "加工肉"),
+            (Catalog.DriedFishId, "干物"),
+            (Catalog.CannedFoodId, "缶詰"),
+            (Catalog.BeerId, "ビール"),
+            (Catalog.WineId, "ワイン"),
+            (Catalog.LampOilId, "灯油"),
+            (Catalog.TobaccoId, "煙草"),
+            (Catalog.LeatherGoodsId, "革製品"),
+            (Catalog.PorcelainId, "陶磁器"),
+            (Catalog.SoapId, "石鹸"),
+            (Catalog.ChocolateId, "チョコレート"),
+            (Catalog.TeaId, "茶"),
+            (Catalog.CoffeeId, "コーヒー"),
+            (Catalog.WaterproofClothId, "防水布"),
+            (Catalog.MedicineId, "医薬品"),
+            (Catalog.QuinineId, "キニーネ"),
+            (Catalog.ApplianceId, "電化製品"),
+            (Catalog.ArtilleryId, "火砲"),
+            (Catalog.RifleId, "小銃"),
+            (Catalog.AmmunitionId, "弾薬"),
+            (Catalog.SailingShipId, "帆船"),
+            (Catalog.SteamshipId, "汽船"),
+            (Catalog.WarshipId, "軍艦"),
+            (Catalog.ElectricityId, "電力"),
+            (Catalog.LocomotiveId, "機関車"),
+            (Catalog.JewelryId, "宝飾"),
+            (Catalog.WatchId, "時計"),
+            (Catalog.InstrumentId, "楽器"),
+            (Catalog.OpiumId, "アヘン"),
+            (Catalog.LaborId, "労働力"),
+            (Catalog.EducationId, "教育"),
+            (Catalog.HealthcareId, "医療"),
+            (Catalog.AdminId, "行政"),
+            (Catalog.MilitaryPowerId, "兵力"),
+            (Catalog.ChromeId, "クロム"),
+            (Catalog.GridId, "送電網"),
+            (Catalog.AdvLaborId, "高度労働力"),
+            (Catalog.FarmLaborId, "農業労働力"),
+            (Catalog.RiceId, "米"),
+            (Catalog.SpiritsId, "蒸留酒"),
+            (Catalog.MachineGunId, "機関銃"),
+            (Catalog.IroncladId, "装甲艦"),
+            (Catalog.CheeseId, "チーズ"),
+            (Catalog.VegetableId, "野菜"),
+            (Catalog.FertilizerId, "肥料"),
+            (Catalog.FodderId, "飼料"),
+            (Catalog.InfrastructureId, "上下水道"),
+            (Catalog.BookId, "書籍"),
+            (Catalog.GasId, "ガス"),
+            (Catalog.ElecInfraId, "電化インフラ"),
+            (Catalog.PotatoId, "ジャガイモ"),
+            (Catalog.MaizeId, "トウモロコシ"),
+            (Catalog.TinOreId, "錫鉱"),
+            (Catalog.SaltpeterId, "硝石"),
+            (Catalog.FurId, "毛皮"),
+            (Catalog.SilverId, "銀"),
+            (Catalog.GuanoId, "グアノ"),
+            (Catalog.TankId, "戦車"),
+            (Catalog.DreadnoughtId, "弩級戦艦"),
+            (Catalog.DomesticServiceId, "家事奉仕"),
+            (Catalog.CombustionEngineId, "内燃機関"),
+            (Catalog.HousingId, "住居"),
+            (Catalog.HorseId, "馬"),
+            (Catalog.DynamiteId, "ダイナマイト"),
+            (Catalog.BicycleId, "自転車"),
+            (Catalog.MilitaryAircraftId, "軍用機"),
+            (Catalog.AutomobileId, "自動車"),
+            (Catalog.ChemicalWeaponId, "化学兵器"),
+            (Catalog.NewspaperId, "新聞"),
+            (Catalog.RadioId, "ラジオ"),
+            (Catalog.HigherEducationId, "高等教育"),
+            (Catalog.RefrigeratorId, "冷蔵庫")
+        ];
+        Assert.Equal(Catalog.Goods.Length, pins.Length);
+        foreach (var (id, n) in pins) Assert.Equal(n, Catalog.Goods[id].Name);
+    }
+
+    /// <summary>採取の財へ畳んだ3財の賦存は、畳む前の原料の賦存と同じ数（設計 §7 組2 の番人）。</summary>
+    [Fact]
+    public void 畳んだ採取の財の賦存は畳む前と同じ数()
+    {
+        static int Count(int gid)
+        {
+            int n = 0;
+            foreach (var c in WorldData.Nations())
+            {
+                foreach (var p in c.Provinces) if (System.Array.IndexOf(p.Resources, gid) >= 0) n++;
+                foreach (var col in c.InitialColonies) if (System.Array.IndexOf(col.Resources, gid) >= 0) n++;
+            }
+            return n;
+        }
+        Assert.Equal(8, Count(Catalog.TeaId));       // 旧 茶葉＝州5・初期の植民地3
+        Assert.Equal(10, Count(Catalog.CoffeeId));   // 旧 コーヒー豆＝州2・初期の植民地8
+        Assert.Equal(5, Count(Catalog.QuinineId));   // 旧 金鶏樹皮＝初期の植民地5
+    }
+
+    /// <summary>畳んだ中間財の下流は参照価格を保つ（コスト中立の換算＝作者方針 2026-08-01「既存の較正済み量に絡める」）。
+    /// 値＝畳む前（2026-09-30 の goods.json）の参照価格。±0.5%（量の丸め3桁）。</summary>
+    [Fact]
+    public void 畳んだ中間財の下流は参照価格を保つ()
+    {
+        (int Id, double Rp)[] pins =
+        [
+            (Catalog.IronId, 1.4700), (Catalog.SteelId, 2.1760), (Catalog.MachineryId, 4.3948), (Catalog.SteamEngineId, 3.7950),
+            (Catalog.PaperId, 1.2000), (Catalog.BreadId, 1.1920), (Catalog.PreservedMeatId, 0.9758), (Catalog.ApplianceId, 3.1444),
+            (Catalog.ArtilleryId, 4.0965), (Catalog.ElectricityId, 1.5721), (Catalog.WatchId, 1.8176), (Catalog.GridId, 2.4499),
+            (Catalog.MachineGunId, 4.3110), (Catalog.DreadnoughtId, 12.7277), (Catalog.CombustionEngineId, 5.0348), (Catalog.HorseId, 0.9100),
+            (Catalog.BicycleId, 2.6629), (Catalog.NewspaperId, 1.2055), (Catalog.RadioId, 2.8504), (Catalog.RefrigeratorId, 2.5627),
+        ];
+        foreach (var (id, rp) in pins)
+            Assert.True(System.Math.Abs(Catalog.RefPrices[id] / rp - 1.0) <= 0.005, $"{Catalog.Goods[id].Name}：参照価格 {Catalog.RefPrices[id]:F4}（畳む前 {rp:F4}）＝コスト中立が崩れた");
     }
 }

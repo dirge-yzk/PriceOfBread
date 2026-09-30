@@ -287,19 +287,6 @@
   },
   {
     "id": 22,
-    "name": "金鶏樹皮",
-    "tier": "Intermediate",
-    "baseNeed": 0,
-    "elasticity": 0.6,
-    "productivity": 2,
-    "inputs": [],
-    "isColonial": true,
-    "nonTradeable": false,
-    "grainChain": false,
-    "nutrition": -1
-  },
-  {
-    "id": 23,
     "name": "パーム油",
     "tier": "Intermediate",
     "baseNeed": 0,
@@ -312,7 +299,7 @@
     "nutrition": -1
   },
   {
-    "id": 24,
+    "id": 23,
     "name": "象牙",
     "tier": "Intermediate",
     "baseNeed": 0,
@@ -325,7 +312,7 @@
     "nutrition": -1
   },
   {
-    "id": 25,
+    "id": 24,
     "name": "サトウキビ",
     "tier": "Intermediate",
     "baseNeed": 0,
@@ -338,7 +325,7 @@
     "nutrition": -1
   },
   {
-    "id": 26,
+    "id": 25,
     "name": "カカオ",
     "tier": "Intermediate",
     "baseNeed": 0,
@@ -351,33 +338,7 @@
     "nutrition": -1
   },
   {
-    "id": 27,
-    "name": "茶葉",
-    "tier": "Intermediate",
-    "baseNeed": 0,
-    "elasticity": 0.8,
-    "productivity": 2.2,
-    "inputs": [],
-    "isColonial": true,
-    "nonTradeable": false,
-    "grainChain": false,
-    "nutrition": -1
-  },
-  {
-    "id": 28,
-    "name": "コーヒー豆",
-    "tier": "Intermediate",
-    "baseNeed": 0,
-    "elasticity": 0.8,
-    "productivity": 2.2,
-    "inputs": [],
-    "isColonial": true,
-    "nonTradeable": false,
-    "grainChain": false,
-    "nutrition": -1
-  },
-  {
-    "id": 29,
+    "id": 26,
     "name": "香辛料",
     "tier": "Luxury",
     "baseNeed": 0.05,
@@ -390,25 +351,7 @@
     "nutrition": -1
   },
   {
-    "id": 30,
-    "name": "コークス",
-    "tier": "Intermediate",
-    "baseNeed": 0,
-    "elasticity": 0.4,
-    "productivity": 2.2,
-    "inputs": [
-      {
-        "goodId": 1,
-        "qtyPerOutput": 1
-      }
-    ],
-    "isColonial": false,
-    "nonTradeable": false,
-    "grainChain": false,
-    "nutrition": -1
-  },
-  {
-    "id": 31,
+    "id": 27,
     "name": "鉄",
     "tier": "Intermediate",
     "baseNeed": 0,
@@ -420,8 +363,8 @@
         "qtyPerOutput": 1
       },
       {
-        "goodId": 30,
-        "qtyPerOutput": 0.5
+        "goodId": 1,
+        "qtyPerOutput": 0.824
       },
       {
         "goodId": 7,
@@ -434,7 +377,7 @@
     "nutrition": -1
   },
   {
-    "id": 32,
+    "id": 28,
     "name": "鋼",
     "tier": "Intermediate",
     "baseNeed": 0,
@@ -442,12 +385,12 @@
     "productivity": 1.9,
     "inputs": [
       {
-        "goodId": 31,
+        "goodId": 27,
         "qtyPerOutput": 1
       },
       {
-        "goodId": 30,
-        "qtyPerOutput": 0.4
+        "goodId": 1,
+        "qtyPerOutput": 0.659
       }
     ],
     "isColonial": false,
@@ -456,7 +399,7 @@
     "nutrition": -1
   },
   {
-    "id": 33,
+    "id": 29,
     "name": "銅",
     "tier": "Intermediate",
     "baseNeed": 0,
@@ -468,8 +411,8 @@
         "qtyPerOutput": 1
       },
       {
-        "goodId": 30,
-        "qtyPerOutput": 0.4
+        "goodId": 1,
+        "qtyPerOutput": 0.659
       }
     ],
     "isColonial": false,
@@ -478,7 +421,7 @@
     "nutrition": -1
   },
   {
-    "id": 34,
+    "id": 30,
     "name": "鉛",
     "tier": "Intermediate",
     "baseNeed": 0,
@@ -490,8 +433,8 @@
         "qtyPerOutput": 1
       },
       {
-        "goodId": 30,
-        "qtyPerOutput": 0.4
+        "goodId": 1,
+        "qtyPerOutput": 0.659
       }
     ],
     "isColonial": false,
@@ -500,7 +443,7 @@
     "nutrition": -1
   },
   {
-    "id": 35,
+    "id": 31,
     "name": "セメント",
     "tier": "Intermediate",
     "baseNeed": 0,
@@ -522,7 +465,7 @@
     "nutrition": -1
   },
   {
-    "id": 36,
+    "id": 32,
     "name": "ガラス",
     "tier": "Intermediate",
     "baseNeed": 0,
@@ -544,7 +487,7 @@
     "nutrition": -1
   },
   {
-    "id": 37,
+    "id": 33,
     "name": "化学薬品",
     "tier": "Intermediate",
     "baseNeed": 0,
@@ -570,7 +513,7 @@
     "nutrition": -1
   },
   {
-    "id": 38,
+    "id": 34,
     "name": "火薬",
     "tier": "Intermediate",
     "baseNeed": 0,
@@ -578,7 +521,7 @@
     "productivity": 1.8,
     "inputs": [
       {
-        "goodId": 118,
+        "goodId": 108,
         "qtyPerOutput": 0.75
       },
       {
@@ -596,7 +539,7 @@
     "nutrition": -1
   },
   {
-    "id": 39,
+    "id": 35,
     "name": "製材",
     "tier": "Intermediate",
     "baseNeed": 0,
@@ -614,25 +557,7 @@
     "nutrition": -1
   },
   {
-    "id": 40,
-    "name": "パルプ",
-    "tier": "Intermediate",
-    "baseNeed": 0,
-    "elasticity": 0.4,
-    "productivity": 2.2,
-    "inputs": [
-      {
-        "goodId": 11,
-        "qtyPerOutput": 0.8
-      }
-    ],
-    "isColonial": false,
-    "nonTradeable": false,
-    "grainChain": false,
-    "nutrition": -1
-  },
-  {
-    "id": 41,
+    "id": 36,
     "name": "綿布",
     "tier": "Intermediate",
     "baseNeed": 0,
@@ -650,7 +575,7 @@
     "nutrition": -1
   },
   {
-    "id": 42,
+    "id": 37,
     "name": "帆布",
     "tier": "Intermediate",
     "baseNeed": 0,
@@ -668,7 +593,7 @@
     "nutrition": -1
   },
   {
-    "id": 43,
+    "id": 38,
     "name": "羊毛",
     "tier": "Intermediate",
     "baseNeed": 0,
@@ -686,7 +611,7 @@
     "nutrition": -1
   },
   {
-    "id": 44,
+    "id": 39,
     "name": "毛織物",
     "tier": "Intermediate",
     "baseNeed": 0,
@@ -694,7 +619,7 @@
     "productivity": 1.9,
     "inputs": [
       {
-        "goodId": 43,
+        "goodId": 38,
         "qtyPerOutput": 1
       }
     ],
@@ -704,7 +629,7 @@
     "nutrition": -1
   },
   {
-    "id": 45,
+    "id": 40,
     "name": "絹織物",
     "tier": "Intermediate",
     "baseNeed": 0,
@@ -722,7 +647,7 @@
     "nutrition": -1
   },
   {
-    "id": 46,
+    "id": 41,
     "name": "革",
     "tier": "Intermediate",
     "baseNeed": 0,
@@ -744,7 +669,7 @@
     "nutrition": -1
   },
   {
-    "id": 47,
+    "id": 42,
     "name": "小麦粉",
     "tier": "Intermediate",
     "baseNeed": 0,
@@ -762,7 +687,7 @@
     "nutrition": -1
   },
   {
-    "id": 48,
+    "id": 43,
     "name": "肉",
     "tier": "Intermediate",
     "baseNeed": 0,
@@ -780,7 +705,7 @@
     "nutrition": -1
   },
   {
-    "id": 49,
+    "id": 44,
     "name": "砂糖",
     "tier": "Intermediate",
     "baseNeed": 0,
@@ -788,7 +713,7 @@
     "productivity": 2.2,
     "inputs": [
       {
-        "goodId": 25,
+        "goodId": 24,
         "qtyPerOutput": 1
       }
     ],
@@ -798,7 +723,7 @@
     "nutrition": -1
   },
   {
-    "id": 50,
+    "id": 45,
     "name": "ゴム",
     "tier": "Intermediate",
     "baseNeed": 0,
@@ -820,47 +745,7 @@
     "nutrition": -1
   },
   {
-    "id": 51,
-    "name": "機械部品",
-    "tier": "Producer",
-    "baseNeed": 0,
-    "elasticity": 0.4,
-    "productivity": 1.6,
-    "inputs": [
-      {
-        "goodId": 32,
-        "qtyPerOutput": 1
-      },
-      {
-        "goodId": 33,
-        "qtyPerOutput": 0.5
-      }
-    ],
-    "isColonial": false,
-    "nonTradeable": false,
-    "grainChain": false,
-    "nutrition": -1
-  },
-  {
-    "id": 52,
-    "name": "工具",
-    "tier": "Producer",
-    "baseNeed": 0,
-    "elasticity": 0.4,
-    "productivity": 1.7,
-    "inputs": [
-      {
-        "goodId": 32,
-        "qtyPerOutput": 0.6
-      }
-    ],
-    "isColonial": false,
-    "nonTradeable": false,
-    "grainChain": false,
-    "nutrition": -1
-  },
-  {
-    "id": 53,
+    "id": 46,
     "name": "機械",
     "tier": "Producer",
     "baseNeed": 0,
@@ -868,12 +753,12 @@
     "productivity": 1.4,
     "inputs": [
       {
-        "goodId": 51,
-        "qtyPerOutput": 1
+        "goodId": 28,
+        "qtyPerOutput": 1.514
       },
       {
-        "goodId": 52,
-        "qtyPerOutput": 0.5
+        "goodId": 29,
+        "qtyPerOutput": 0.57
       }
     ],
     "isColonial": false,
@@ -882,7 +767,7 @@
     "nutrition": -1
   },
   {
-    "id": 54,
+    "id": 47,
     "name": "蒸気機関",
     "tier": "Producer",
     "baseNeed": 0,
@@ -890,8 +775,8 @@
     "productivity": 1.4,
     "inputs": [
       {
-        "goodId": 51,
-        "qtyPerOutput": 1
+        "goodId": 46,
+        "qtyPerOutput": 0.726
       },
       {
         "goodId": 1,
@@ -904,33 +789,7 @@
     "nutrition": -1
   },
   {
-    "id": 55,
-    "name": "発電機",
-    "tier": "Producer",
-    "baseNeed": 0,
-    "elasticity": 0.4,
-    "productivity": 1.4,
-    "inputs": [
-      {
-        "goodId": 106,
-        "qtyPerOutput": 0.6
-      },
-      {
-        "goodId": 33,
-        "qtyPerOutput": 0.4
-      },
-      {
-        "goodId": 32,
-        "qtyPerOutput": 0.3
-      }
-    ],
-    "isColonial": false,
-    "nonTradeable": false,
-    "grainChain": false,
-    "nutrition": -1
-  },
-  {
-    "id": 56,
+    "id": 48,
     "name": "線路",
     "tier": "Producer",
     "baseNeed": 0,
@@ -938,7 +797,7 @@
     "productivity": 1.8,
     "inputs": [
       {
-        "goodId": 32,
+        "goodId": 28,
         "qtyPerOutput": 1
       }
     ],
@@ -948,7 +807,7 @@
     "nutrition": -1
   },
   {
-    "id": 57,
+    "id": 49,
     "name": "衣料",
     "tier": "Daily",
     "baseNeed": 0.3,
@@ -956,7 +815,7 @@
     "productivity": 1.8,
     "inputs": [
       {
-        "goodId": 41,
+        "goodId": 36,
         "qtyPerOutput": 0.6
       },
       {
@@ -970,7 +829,7 @@
     "nutrition": -1
   },
   {
-    "id": 58,
+    "id": 50,
     "name": "高級衣料",
     "tier": "Luxury",
     "baseNeed": 0.1,
@@ -978,15 +837,15 @@
     "productivity": 1.5,
     "inputs": [
       {
-        "goodId": 45,
+        "goodId": 40,
         "qtyPerOutput": 0.4
       },
       {
-        "goodId": 44,
+        "goodId": 39,
         "qtyPerOutput": 0.3
       },
       {
-        "goodId": 119,
+        "goodId": 109,
         "qtyPerOutput": 0.3
       }
     ],
@@ -996,7 +855,7 @@
     "nutrition": -1
   },
   {
-    "id": 59,
+    "id": 51,
     "name": "家具",
     "tier": "Daily",
     "baseNeed": 0.16,
@@ -1004,11 +863,11 @@
     "productivity": 1.7,
     "inputs": [
       {
-        "goodId": 39,
+        "goodId": 35,
         "qtyPerOutput": 0.6
       },
       {
-        "goodId": 46,
+        "goodId": 41,
         "qtyPerOutput": 0.3
       }
     ],
@@ -1018,7 +877,7 @@
     "nutrition": -1
   },
   {
-    "id": 60,
+    "id": 52,
     "name": "高級家具",
     "tier": "Luxury",
     "baseNeed": 0.1,
@@ -1026,15 +885,15 @@
     "productivity": 1.5,
     "inputs": [
       {
-        "goodId": 39,
+        "goodId": 35,
         "qtyPerOutput": 0.5
       },
       {
-        "goodId": 45,
+        "goodId": 40,
         "qtyPerOutput": 0.3
       },
       {
-        "goodId": 119,
+        "goodId": 109,
         "qtyPerOutput": 0.2
       }
     ],
@@ -1044,7 +903,7 @@
     "nutrition": -1
   },
   {
-    "id": 61,
+    "id": 53,
     "name": "紙",
     "tier": "Daily",
     "baseNeed": 0.1,
@@ -1052,11 +911,11 @@
     "productivity": 1.8,
     "inputs": [
       {
-        "goodId": 40,
-        "qtyPerOutput": 1
+        "goodId": 11,
+        "qtyPerOutput": 1.404
       },
       {
-        "goodId": 37,
+        "goodId": 33,
         "qtyPerOutput": 0.1
       }
     ],
@@ -1066,7 +925,7 @@
     "nutrition": -1
   },
   {
-    "id": 62,
+    "id": 54,
     "name": "パン",
     "tier": "Staple",
     "baseNeed": 0.55,
@@ -1074,7 +933,7 @@
     "productivity": 2,
     "inputs": [
       {
-        "goodId": 47,
+        "goodId": 42,
         "qtyPerOutput": 1
       }
     ],
@@ -1084,7 +943,7 @@
     "nutrition": -1
   },
   {
-    "id": 63,
+    "id": 55,
     "name": "加工肉",
     "tier": "Daily",
     "baseNeed": 0.12,
@@ -1092,11 +951,11 @@
     "productivity": 1.8,
     "inputs": [
       {
-        "goodId": 48,
+        "goodId": 43,
         "qtyPerOutput": 0.6
       },
       {
-        "goodId": 47,
+        "goodId": 42,
         "qtyPerOutput": 0.3
       }
     ],
@@ -1106,7 +965,7 @@
     "nutrition": 1
   },
   {
-    "id": 64,
+    "id": 56,
     "name": "干物",
     "tier": "Daily",
     "baseNeed": 0.1,
@@ -1128,7 +987,7 @@
     "nutrition": 1
   },
   {
-    "id": 65,
+    "id": 57,
     "name": "缶詰",
     "tier": "Daily",
     "baseNeed": 0.1,
@@ -1136,15 +995,15 @@
     "productivity": 1.7,
     "inputs": [
       {
-        "goodId": 48,
+        "goodId": 43,
         "qtyPerOutput": 0.6
       },
       {
-        "goodId": 31,
+        "goodId": 27,
         "qtyPerOutput": 0.25
       },
       {
-        "goodId": 117,
+        "goodId": 107,
         "qtyPerOutput": 0.05
       },
       {
@@ -1158,7 +1017,7 @@
     "nutrition": -1
   },
   {
-    "id": 66,
+    "id": 58,
     "name": "ビール",
     "tier": "Daily",
     "baseNeed": 0.12,
@@ -1176,7 +1035,7 @@
     "nutrition": -1
   },
   {
-    "id": 67,
+    "id": 59,
     "name": "ワイン",
     "tier": "Luxury",
     "baseNeed": 0.12,
@@ -1188,7 +1047,7 @@
         "qtyPerOutput": 0.5
       },
       {
-        "goodId": 36,
+        "goodId": 32,
         "qtyPerOutput": 0.2
       }
     ],
@@ -1198,7 +1057,7 @@
     "nutrition": -1
   },
   {
-    "id": 68,
+    "id": 60,
     "name": "灯油",
     "tier": "Daily",
     "baseNeed": 0.1,
@@ -1216,7 +1075,7 @@
     "nutrition": -1
   },
   {
-    "id": 69,
+    "id": 61,
     "name": "煙草",
     "tier": "Daily",
     "baseNeed": 0.08,
@@ -1234,7 +1093,7 @@
     "nutrition": -1
   },
   {
-    "id": 70,
+    "id": 62,
     "name": "革製品",
     "tier": "Daily",
     "baseNeed": 0.08,
@@ -1242,11 +1101,11 @@
     "productivity": 1.7,
     "inputs": [
       {
-        "goodId": 46,
+        "goodId": 41,
         "qtyPerOutput": 0.5
       },
       {
-        "goodId": 119,
+        "goodId": 109,
         "qtyPerOutput": 0.2
       },
       {
@@ -1260,7 +1119,7 @@
     "nutrition": -1
   },
   {
-    "id": 71,
+    "id": 63,
     "name": "陶磁器",
     "tier": "Daily",
     "baseNeed": 0.07,
@@ -1282,7 +1141,7 @@
     "nutrition": -1
   },
   {
-    "id": 72,
+    "id": 64,
     "name": "石鹸",
     "tier": "Daily",
     "baseNeed": 0.08,
@@ -1290,11 +1149,11 @@
     "productivity": 1.8,
     "inputs": [
       {
-        "goodId": 23,
+        "goodId": 22,
         "qtyPerOutput": 0.5
       },
       {
-        "goodId": 37,
+        "goodId": 33,
         "qtyPerOutput": 0.3
       }
     ],
@@ -1304,7 +1163,7 @@
     "nutrition": -1
   },
   {
-    "id": 73,
+    "id": 65,
     "name": "チョコレート",
     "tier": "Luxury",
     "baseNeed": 0.05,
@@ -1312,11 +1171,11 @@
     "productivity": 1.5,
     "inputs": [
       {
-        "goodId": 26,
+        "goodId": 25,
         "qtyPerOutput": 0.5
       },
       {
-        "goodId": 49,
+        "goodId": 44,
         "qtyPerOutput": 0.4
       }
     ],
@@ -1326,43 +1185,33 @@
     "nutrition": -1
   },
   {
-    "id": 74,
+    "id": 66,
     "name": "茶",
     "tier": "Daily",
     "baseNeed": 0.07,
     "elasticity": 0.8,
-    "productivity": 1.9,
-    "inputs": [
-      {
-        "goodId": 27,
-        "qtyPerOutput": 1
-      }
-    ],
-    "isColonial": false,
+    "productivity": 2.2,
+    "inputs": [],
+    "isColonial": true,
     "nonTradeable": false,
     "grainChain": false,
     "nutrition": -1
   },
   {
-    "id": 75,
+    "id": 67,
     "name": "コーヒー",
     "tier": "Daily",
     "baseNeed": 0.07,
     "elasticity": 0.8,
-    "productivity": 1.9,
-    "inputs": [
-      {
-        "goodId": 28,
-        "qtyPerOutput": 1
-      }
-    ],
-    "isColonial": false,
+    "productivity": 2.2,
+    "inputs": [],
+    "isColonial": true,
     "nonTradeable": false,
     "grainChain": false,
     "nutrition": -1
   },
   {
-    "id": 76,
+    "id": 68,
     "name": "防水布",
     "tier": "Daily",
     "baseNeed": 0.05,
@@ -1370,11 +1219,11 @@
     "productivity": 1.6,
     "inputs": [
       {
-        "goodId": 50,
+        "goodId": 45,
         "qtyPerOutput": 0.5
       },
       {
-        "goodId": 41,
+        "goodId": 36,
         "qtyPerOutput": 0.4
       }
     ],
@@ -1384,15 +1233,15 @@
     "nutrition": -1
   },
   {
-    "id": 77,
+    "id": 69,
     "name": "医薬品",
     "tier": "Daily",
-    "baseNeed": 0.08,
+    "baseNeed": 0.108,
     "elasticity": 0.6,
     "productivity": 1.6,
     "inputs": [
       {
-        "goodId": 37,
+        "goodId": 33,
         "qtyPerOutput": 0.5
       },
       {
@@ -1406,47 +1255,20 @@
     "nutrition": -1
   },
   {
-    "id": 78,
+    "id": 70,
     "name": "キニーネ",
     "tier": "Daily",
     "baseNeed": 0.04,
     "elasticity": 0.7,
-    "productivity": 1.6,
-    "inputs": [
-      {
-        "goodId": 22,
-        "qtyPerOutput": 0.5
-      },
-      {
-        "goodId": 37,
-        "qtyPerOutput": 0.3
-      }
-    ],
-    "isColonial": false,
+    "productivity": 4,
+    "inputs": [],
+    "isColonial": true,
     "nonTradeable": false,
     "grainChain": false,
     "nutrition": -1
   },
   {
-    "id": 79,
-    "name": "包帯",
-    "tier": "Daily",
-    "baseNeed": 0.04,
-    "elasticity": 0.5,
-    "productivity": 1.8,
-    "inputs": [
-      {
-        "goodId": 41,
-        "qtyPerOutput": 0.5
-      }
-    ],
-    "isColonial": false,
-    "nonTradeable": false,
-    "grainChain": false,
-    "nutrition": -1
-  },
-  {
-    "id": 80,
+    "id": 71,
     "name": "電化製品",
     "tier": "Luxury",
     "baseNeed": 0.1,
@@ -1454,15 +1276,15 @@
     "productivity": 1.3,
     "inputs": [
       {
-        "goodId": 87,
+        "goodId": 78,
         "qtyPerOutput": 0.5
       },
       {
-        "goodId": 51,
-        "qtyPerOutput": 0.5
+        "goodId": 46,
+        "qtyPerOutput": 0.363
       },
       {
-        "goodId": 33,
+        "goodId": 29,
         "qtyPerOutput": 0.3
       }
     ],
@@ -1472,7 +1294,7 @@
     "nutrition": -1
   },
   {
-    "id": 81,
+    "id": 72,
     "name": "火砲",
     "tier": "Producer",
     "baseNeed": 0,
@@ -1480,12 +1302,12 @@
     "productivity": 1.3,
     "inputs": [
       {
-        "goodId": 32,
+        "goodId": 28,
         "qtyPerOutput": 1
       },
       {
-        "goodId": 51,
-        "qtyPerOutput": 0.5
+        "goodId": 46,
+        "qtyPerOutput": 0.363
       }
     ],
     "isColonial": false,
@@ -1494,7 +1316,7 @@
     "nutrition": -1
   },
   {
-    "id": 82,
+    "id": 73,
     "name": "小銃",
     "tier": "Producer",
     "baseNeed": 0,
@@ -1502,11 +1324,11 @@
     "productivity": 1.4,
     "inputs": [
       {
-        "goodId": 32,
+        "goodId": 28,
         "qtyPerOutput": 0.6
       },
       {
-        "goodId": 39,
+        "goodId": 35,
         "qtyPerOutput": 0.4
       }
     ],
@@ -1516,7 +1338,7 @@
     "nutrition": -1
   },
   {
-    "id": 83,
+    "id": 74,
     "name": "弾薬",
     "tier": "Producer",
     "baseNeed": 0,
@@ -1524,15 +1346,15 @@
     "productivity": 1.5,
     "inputs": [
       {
-        "goodId": 38,
+        "goodId": 34,
         "qtyPerOutput": 0.6
       },
       {
-        "goodId": 34,
+        "goodId": 30,
         "qtyPerOutput": 0.3
       },
       {
-        "goodId": 33,
+        "goodId": 29,
         "qtyPerOutput": 0.2
       }
     ],
@@ -1542,7 +1364,7 @@
     "nutrition": -1
   },
   {
-    "id": 84,
+    "id": 75,
     "name": "帆船",
     "tier": "Producer",
     "baseNeed": 0,
@@ -1550,11 +1372,11 @@
     "productivity": 1.4,
     "inputs": [
       {
-        "goodId": 39,
+        "goodId": 35,
         "qtyPerOutput": 1
       },
       {
-        "goodId": 42,
+        "goodId": 37,
         "qtyPerOutput": 0.5
       }
     ],
@@ -1564,7 +1386,7 @@
     "nutrition": -1
   },
   {
-    "id": 85,
+    "id": 76,
     "name": "汽船",
     "tier": "Producer",
     "baseNeed": 0,
@@ -1572,11 +1394,11 @@
     "productivity": 1.3,
     "inputs": [
       {
-        "goodId": 54,
+        "goodId": 47,
         "qtyPerOutput": 0.6
       },
       {
-        "goodId": 39,
+        "goodId": 35,
         "qtyPerOutput": 0.6
       }
     ],
@@ -1586,7 +1408,7 @@
     "nutrition": -1
   },
   {
-    "id": 86,
+    "id": 77,
     "name": "軍艦",
     "tier": "Producer",
     "baseNeed": 0,
@@ -1594,11 +1416,11 @@
     "productivity": 1.2,
     "inputs": [
       {
-        "goodId": 84,
+        "goodId": 75,
         "qtyPerOutput": 1
       },
       {
-        "goodId": 81,
+        "goodId": 72,
         "qtyPerOutput": 0.5
       }
     ],
@@ -1608,7 +1430,7 @@
     "nutrition": -1
   },
   {
-    "id": 87,
+    "id": 78,
     "name": "電力",
     "tier": "Producer",
     "baseNeed": 0,
@@ -1616,8 +1438,8 @@
     "productivity": 1.4,
     "inputs": [
       {
-        "goodId": 55,
-        "qtyPerOutput": 0.15
+        "goodId": 46,
+        "qtyPerOutput": 0.149
       },
       {
         "goodId": 1,
@@ -1630,7 +1452,7 @@
     "nutrition": -1
   },
   {
-    "id": 88,
+    "id": 79,
     "name": "機関車",
     "tier": "Producer",
     "baseNeed": 0,
@@ -1638,11 +1460,11 @@
     "productivity": 1.3,
     "inputs": [
       {
-        "goodId": 54,
+        "goodId": 47,
         "qtyPerOutput": 0.6
       },
       {
-        "goodId": 32,
+        "goodId": 28,
         "qtyPerOutput": 0.5
       }
     ],
@@ -1652,7 +1474,7 @@
     "nutrition": -1
   },
   {
-    "id": 89,
+    "id": 80,
     "name": "宝飾",
     "tier": "Luxury",
     "baseNeed": 0.09,
@@ -1664,11 +1486,11 @@
         "qtyPerOutput": 0.3
       },
       {
-        "goodId": 120,
+        "goodId": 110,
         "qtyPerOutput": 0.3
       },
       {
-        "goodId": 36,
+        "goodId": 32,
         "qtyPerOutput": 0.3
       }
     ],
@@ -1678,7 +1500,7 @@
     "nutrition": -1
   },
   {
-    "id": 90,
+    "id": 81,
     "name": "時計",
     "tier": "Luxury",
     "baseNeed": 0.09,
@@ -1690,12 +1512,12 @@
         "qtyPerOutput": 0.2
       },
       {
-        "goodId": 120,
+        "goodId": 110,
         "qtyPerOutput": 0.2
       },
       {
-        "goodId": 51,
-        "qtyPerOutput": 0.4
+        "goodId": 46,
+        "qtyPerOutput": 0.29
       }
     ],
     "isColonial": false,
@@ -1704,7 +1526,7 @@
     "nutrition": -1
   },
   {
-    "id": 91,
+    "id": 82,
     "name": "楽器",
     "tier": "Luxury",
     "baseNeed": 0.04,
@@ -1712,11 +1534,11 @@
     "productivity": 1.4,
     "inputs": [
       {
-        "goodId": 39,
+        "goodId": 35,
         "qtyPerOutput": 0.5
       },
       {
-        "goodId": 24,
+        "goodId": 23,
         "qtyPerOutput": 0.3
       }
     ],
@@ -1726,7 +1548,7 @@
     "nutrition": -1
   },
   {
-    "id": 92,
+    "id": 83,
     "name": "アヘン",
     "tier": "Luxury",
     "baseNeed": 0.02,
@@ -1739,7 +1561,7 @@
     "nutrition": -1
   },
   {
-    "id": 93,
+    "id": 84,
     "name": "労働力",
     "tier": "Service",
     "baseNeed": 0,
@@ -1752,7 +1574,7 @@
     "nutrition": -1
   },
   {
-    "id": 94,
+    "id": 85,
     "name": "教育",
     "tier": "Service",
     "baseNeed": 0.06,
@@ -1760,7 +1582,7 @@
     "productivity": 2,
     "inputs": [
       {
-        "goodId": 61,
+        "goodId": 53,
         "qtyPerOutput": 0.05
       }
     ],
@@ -1770,7 +1592,7 @@
     "nutrition": -1
   },
   {
-    "id": 95,
+    "id": 86,
     "name": "医療",
     "tier": "Service",
     "baseNeed": 0.05,
@@ -1778,11 +1600,11 @@
     "productivity": 3,
     "inputs": [
       {
-        "goodId": 77,
+        "goodId": 69,
         "qtyPerOutput": 0.1
       },
       {
-        "goodId": 72,
+        "goodId": 64,
         "qtyPerOutput": 0.05
       }
     ],
@@ -1792,7 +1614,7 @@
     "nutrition": -1
   },
   {
-    "id": 96,
+    "id": 87,
     "name": "行政",
     "tier": "Service",
     "baseNeed": 0,
@@ -1800,7 +1622,7 @@
     "productivity": 3,
     "inputs": [
       {
-        "goodId": 61,
+        "goodId": 53,
         "qtyPerOutput": 0.1
       }
     ],
@@ -1810,7 +1632,7 @@
     "nutrition": -1
   },
   {
-    "id": 97,
+    "id": 88,
     "name": "兵力",
     "tier": "Service",
     "baseNeed": 0,
@@ -1823,7 +1645,7 @@
     "nutrition": -1
   },
   {
-    "id": 98,
+    "id": 89,
     "name": "クロム",
     "tier": "Intermediate",
     "baseNeed": 0,
@@ -1836,7 +1658,7 @@
     "nutrition": -1
   },
   {
-    "id": 99,
+    "id": 90,
     "name": "送電網",
     "tier": "Producer",
     "baseNeed": 0,
@@ -1844,12 +1666,12 @@
     "productivity": 1.6,
     "inputs": [
       {
-        "goodId": 33,
+        "goodId": 29,
         "qtyPerOutput": 0.6
       },
       {
-        "goodId": 55,
-        "qtyPerOutput": 0.3
+        "goodId": 46,
+        "qtyPerOutput": 0.299
       }
     ],
     "isColonial": false,
@@ -1858,7 +1680,7 @@
     "nutrition": -1
   },
   {
-    "id": 100,
+    "id": 91,
     "name": "高度労働力",
     "tier": "Service",
     "baseNeed": 0,
@@ -1871,7 +1693,7 @@
     "nutrition": -1
   },
   {
-    "id": 101,
+    "id": 92,
     "name": "農業労働力",
     "tier": "Service",
     "baseNeed": 0,
@@ -1884,7 +1706,7 @@
     "nutrition": -1
   },
   {
-    "id": 102,
+    "id": 93,
     "name": "米",
     "tier": "Staple",
     "baseNeed": 0.2,
@@ -1897,7 +1719,7 @@
     "nutrition": -1
   },
   {
-    "id": 103,
+    "id": 94,
     "name": "蒸留酒",
     "tier": "Daily",
     "baseNeed": 0.05,
@@ -1915,7 +1737,7 @@
     "nutrition": -1
   },
   {
-    "id": 104,
+    "id": 95,
     "name": "機関銃",
     "tier": "Producer",
     "baseNeed": 0,
@@ -1923,12 +1745,12 @@
     "productivity": 1.2,
     "inputs": [
       {
-        "goodId": 32,
+        "goodId": 28,
         "qtyPerOutput": 0.5
       },
       {
-        "goodId": 106,
-        "qtyPerOutput": 0.6
+        "goodId": 46,
+        "qtyPerOutput": 0.645
       }
     ],
     "isColonial": false,
@@ -1937,7 +1759,7 @@
     "nutrition": -1
   },
   {
-    "id": 105,
+    "id": 96,
     "name": "装甲艦",
     "tier": "Producer",
     "baseNeed": 0,
@@ -1945,15 +1767,15 @@
     "productivity": 1.1,
     "inputs": [
       {
-        "goodId": 85,
+        "goodId": 76,
         "qtyPerOutput": 1
       },
       {
-        "goodId": 32,
+        "goodId": 28,
         "qtyPerOutput": 1
       },
       {
-        "goodId": 81,
+        "goodId": 72,
         "qtyPerOutput": 0.5
       }
     ],
@@ -1963,29 +1785,7 @@
     "nutrition": -1
   },
   {
-    "id": 106,
-    "name": "精密工作機械",
-    "tier": "Producer",
-    "baseNeed": 0,
-    "elasticity": 0.4,
-    "productivity": 1.3,
-    "inputs": [
-      {
-        "goodId": 53,
-        "qtyPerOutput": 0.8
-      },
-      {
-        "goodId": 52,
-        "qtyPerOutput": 0.5
-      }
-    ],
-    "isColonial": false,
-    "nonTradeable": false,
-    "grainChain": false,
-    "nutrition": -1
-  },
-  {
-    "id": 107,
+    "id": 97,
     "name": "チーズ",
     "tier": "Daily",
     "baseNeed": 0.06,
@@ -2003,7 +1803,7 @@
     "nutrition": -1
   },
   {
-    "id": 108,
+    "id": 98,
     "name": "野菜",
     "tier": "Staple",
     "baseNeed": 0.25,
@@ -2016,7 +1816,7 @@
     "nutrition": -1
   },
   {
-    "id": 109,
+    "id": 99,
     "name": "肥料",
     "tier": "Intermediate",
     "baseNeed": 0,
@@ -2024,7 +1824,7 @@
     "productivity": 1.9,
     "inputs": [
       {
-        "goodId": 37,
+        "goodId": 33,
         "qtyPerOutput": 0.443
       }
     ],
@@ -2034,7 +1834,7 @@
     "nutrition": -1
   },
   {
-    "id": 110,
+    "id": 100,
     "name": "飼料",
     "tier": "Intermediate",
     "baseNeed": 0,
@@ -2052,7 +1852,7 @@
     "nutrition": -1
   },
   {
-    "id": 111,
+    "id": 101,
     "name": "上下水道",
     "tier": "Service",
     "baseNeed": 0,
@@ -2060,11 +1860,11 @@
     "productivity": 2.5,
     "inputs": [
       {
-        "goodId": 35,
+        "goodId": 31,
         "qtyPerOutput": 0.4
       },
       {
-        "goodId": 32,
+        "goodId": 28,
         "qtyPerOutput": 0.2
       }
     ],
@@ -2074,7 +1874,7 @@
     "nutrition": -1
   },
   {
-    "id": 112,
+    "id": 102,
     "name": "書籍",
     "tier": "Daily",
     "baseNeed": 0.02,
@@ -2082,7 +1882,7 @@
     "productivity": 2.6,
     "inputs": [
       {
-        "goodId": 61,
+        "goodId": 53,
         "qtyPerOutput": 0.5
       }
     ],
@@ -2092,7 +1892,7 @@
     "nutrition": -1
   },
   {
-    "id": 113,
+    "id": 103,
     "name": "ガス",
     "tier": "Daily",
     "baseNeed": 0.03,
@@ -2110,7 +1910,7 @@
     "nutrition": -1
   },
   {
-    "id": 114,
+    "id": 104,
     "name": "電化インフラ",
     "tier": "Service",
     "baseNeed": 0,
@@ -2118,15 +1918,15 @@
     "productivity": 1.6,
     "inputs": [
       {
-        "goodId": 99,
+        "goodId": 90,
         "qtyPerOutput": 0.4
       },
       {
-        "goodId": 80,
+        "goodId": 71,
         "qtyPerOutput": 0.3
       },
       {
-        "goodId": 32,
+        "goodId": 28,
         "qtyPerOutput": 0.2
       }
     ],
@@ -2136,7 +1936,7 @@
     "nutrition": -1
   },
   {
-    "id": 115,
+    "id": 105,
     "name": "ジャガイモ",
     "tier": "Staple",
     "baseNeed": 0.06,
@@ -2149,7 +1949,7 @@
     "nutrition": -1
   },
   {
-    "id": 116,
+    "id": 106,
     "name": "トウモロコシ",
     "tier": "Staple",
     "baseNeed": 0.04,
@@ -2162,7 +1962,7 @@
     "nutrition": -1
   },
   {
-    "id": 117,
+    "id": 107,
     "name": "錫鉱",
     "tier": "Intermediate",
     "baseNeed": 0,
@@ -2175,7 +1975,7 @@
     "nutrition": -1
   },
   {
-    "id": 118,
+    "id": 108,
     "name": "硝石",
     "tier": "Intermediate",
     "baseNeed": 0,
@@ -2188,7 +1988,7 @@
     "nutrition": -1
   },
   {
-    "id": 119,
+    "id": 109,
     "name": "毛皮",
     "tier": "Intermediate",
     "baseNeed": 0,
@@ -2201,7 +2001,7 @@
     "nutrition": -1
   },
   {
-    "id": 120,
+    "id": 110,
     "name": "銀",
     "tier": "Intermediate",
     "baseNeed": 0,
@@ -2214,7 +2014,7 @@
     "nutrition": -1
   },
   {
-    "id": 121,
+    "id": 111,
     "name": "グアノ",
     "tier": "Intermediate",
     "baseNeed": 0,
@@ -2227,7 +2027,7 @@
     "nutrition": -1
   },
   {
-    "id": 122,
+    "id": 112,
     "name": "戦車",
     "tier": "Producer",
     "baseNeed": 0,
@@ -2235,15 +2035,15 @@
     "productivity": 1.1,
     "inputs": [
       {
-        "goodId": 32,
+        "goodId": 28,
         "qtyPerOutput": 1
       },
       {
-        "goodId": 125,
+        "goodId": 115,
         "qtyPerOutput": 0.6
       },
       {
-        "goodId": 81,
+        "goodId": 72,
         "qtyPerOutput": 0.4
       }
     ],
@@ -2253,7 +2053,7 @@
     "nutrition": -1
   },
   {
-    "id": 123,
+    "id": 113,
     "name": "弩級戦艦",
     "tier": "Producer",
     "baseNeed": 0,
@@ -2261,16 +2061,16 @@
     "productivity": 1,
     "inputs": [
       {
-        "goodId": 105,
+        "goodId": 96,
         "qtyPerOutput": 1
       },
       {
-        "goodId": 32,
+        "goodId": 28,
         "qtyPerOutput": 1
       },
       {
-        "goodId": 106,
-        "qtyPerOutput": 0.5
+        "goodId": 46,
+        "qtyPerOutput": 0.537
       }
     ],
     "isColonial": false,
@@ -2279,7 +2079,7 @@
     "nutrition": -1
   },
   {
-    "id": 124,
+    "id": 114,
     "name": "家事奉仕",
     "tier": "Service",
     "baseNeed": 0.06,
@@ -2292,7 +2092,7 @@
     "nutrition": -1
   },
   {
-    "id": 125,
+    "id": 115,
     "name": "内燃機関",
     "tier": "Producer",
     "baseNeed": 0,
@@ -2300,12 +2100,12 @@
     "productivity": 1.1,
     "inputs": [
       {
-        "goodId": 32,
+        "goodId": 28,
         "qtyPerOutput": 1
       },
       {
-        "goodId": 106,
-        "qtyPerOutput": 0.5
+        "goodId": 46,
+        "qtyPerOutput": 0.537
       },
       {
         "goodId": 10,
@@ -2318,7 +2118,7 @@
     "nutrition": -1
   },
   {
-    "id": 126,
+    "id": 116,
     "name": "住居",
     "tier": "Daily",
     "baseNeed": 0,
@@ -2326,7 +2126,7 @@
     "productivity": 1.2,
     "inputs": [
       {
-        "goodId": 39,
+        "goodId": 35,
         "qtyPerOutput": 0.5
       },
       {
@@ -2340,7 +2140,7 @@
     "nutrition": -1
   },
   {
-    "id": 127,
+    "id": 117,
     "name": "馬",
     "tier": "Intermediate",
     "baseNeed": 0,
@@ -2352,7 +2152,7 @@
         "qtyPerOutput": 0.6
       },
       {
-        "goodId": 110,
+        "goodId": 100,
         "qtyPerOutput": 0.4
       }
     ],
@@ -2362,7 +2162,7 @@
     "nutrition": -1
   },
   {
-    "id": 128,
+    "id": 118,
     "name": "ダイナマイト",
     "tier": "Intermediate",
     "baseNeed": 0,
@@ -2370,11 +2170,11 @@
     "productivity": 1.4,
     "inputs": [
       {
-        "goodId": 37,
+        "goodId": 33,
         "qtyPerOutput": 0.4
       },
       {
-        "goodId": 118,
+        "goodId": 108,
         "qtyPerOutput": 0.1
       }
     ],
@@ -2384,7 +2184,7 @@
     "nutrition": -1
   },
   {
-    "id": 129,
+    "id": 119,
     "name": "自転車",
     "tier": "Daily",
     "baseNeed": 0.04,
@@ -2392,16 +2192,16 @@
     "productivity": 1.2,
     "inputs": [
       {
-        "goodId": 32,
+        "goodId": 28,
         "qtyPerOutput": 0.5
       },
       {
-        "goodId": 50,
+        "goodId": 45,
         "qtyPerOutput": 0.3
       },
       {
-        "goodId": 51,
-        "qtyPerOutput": 0.3
+        "goodId": 46,
+        "qtyPerOutput": 0.218
       }
     ],
     "isColonial": false,
@@ -2410,24 +2210,28 @@
     "nutrition": -1
   },
   {
-    "id": 130,
-    "name": "飛行機",
+    "id": 120,
+    "name": "軍用機",
     "tier": "Producer",
     "baseNeed": 0,
     "elasticity": 0.4,
-    "productivity": 1.2,
+    "productivity": 1.16,
     "inputs": [
       {
-        "goodId": 125,
-        "qtyPerOutput": 0.6
+        "goodId": 115,
+        "qtyPerOutput": 0.567
       },
       {
-        "goodId": 39,
-        "qtyPerOutput": 0.3
+        "goodId": 35,
+        "qtyPerOutput": 0.284
       },
       {
-        "goodId": 76,
-        "qtyPerOutput": 0.2
+        "goodId": 68,
+        "qtyPerOutput": 0.189
+      },
+      {
+        "goodId": 95,
+        "qtyPerOutput": 0.123
       }
     ],
     "isColonial": false,
@@ -2436,29 +2240,7 @@
     "nutrition": -1
   },
   {
-    "id": 131,
-    "name": "戦闘機",
-    "tier": "Producer",
-    "baseNeed": 0,
-    "elasticity": 0.4,
-    "productivity": 1.1,
-    "inputs": [
-      {
-        "goodId": 130,
-        "qtyPerOutput": 0.8
-      },
-      {
-        "goodId": 104,
-        "qtyPerOutput": 0.3
-      }
-    ],
-    "isColonial": false,
-    "nonTradeable": false,
-    "grainChain": false,
-    "nutrition": -1
-  },
-  {
-    "id": 132,
+    "id": 121,
     "name": "自動車",
     "tier": "Luxury",
     "baseNeed": 0.05,
@@ -2466,15 +2248,15 @@
     "productivity": 1.2,
     "inputs": [
       {
-        "goodId": 125,
+        "goodId": 115,
         "qtyPerOutput": 0.6
       },
       {
-        "goodId": 32,
+        "goodId": 28,
         "qtyPerOutput": 0.4
       },
       {
-        "goodId": 50,
+        "goodId": 45,
         "qtyPerOutput": 0.2
       }
     ],
@@ -2484,7 +2266,7 @@
     "nutrition": -1
   },
   {
-    "id": 133,
+    "id": 122,
     "name": "化学兵器",
     "tier": "Producer",
     "baseNeed": 0,
@@ -2492,11 +2274,11 @@
     "productivity": 1.2,
     "inputs": [
       {
-        "goodId": 37,
+        "goodId": 33,
         "qtyPerOutput": 0.6
       },
       {
-        "goodId": 118,
+        "goodId": 108,
         "qtyPerOutput": 0.2
       }
     ],
@@ -2506,7 +2288,7 @@
     "nutrition": -1
   },
   {
-    "id": 134,
+    "id": 123,
     "name": "新聞",
     "tier": "Daily",
     "baseNeed": 0.06,
@@ -2514,12 +2296,12 @@
     "productivity": 1.8,
     "inputs": [
       {
-        "goodId": 61,
+        "goodId": 53,
         "qtyPerOutput": 0.6
       },
       {
-        "goodId": 51,
-        "qtyPerOutput": 0.05
+        "goodId": 46,
+        "qtyPerOutput": 0.036
       }
     ],
     "isColonial": false,
@@ -2528,7 +2310,7 @@
     "nutrition": -1
   },
   {
-    "id": 135,
+    "id": 124,
     "name": "ラジオ",
     "tier": "Daily",
     "baseNeed": 0.03,
@@ -2536,12 +2318,12 @@
     "productivity": 1.4,
     "inputs": [
       {
-        "goodId": 80,
+        "goodId": 71,
         "qtyPerOutput": 0.6
       },
       {
-        "goodId": 51,
-        "qtyPerOutput": 0.2
+        "goodId": 46,
+        "qtyPerOutput": 0.145
       }
     ],
     "isColonial": false,
@@ -2550,7 +2332,7 @@
     "nutrition": -1
   },
   {
-    "id": 136,
+    "id": 125,
     "name": "高等教育",
     "tier": "Service",
     "baseNeed": 0,
@@ -2558,7 +2340,7 @@
     "productivity": 3,
     "inputs": [
       {
-        "goodId": 112,
+        "goodId": 102,
         "qtyPerOutput": 0.4
       }
     ],
@@ -2568,7 +2350,7 @@
     "nutrition": -1
   },
   {
-    "id": 137,
+    "id": 126,
     "name": "冷蔵庫",
     "tier": "Luxury",
     "baseNeed": 0.06,
@@ -2576,11 +2358,11 @@
     "productivity": 1.3,
     "inputs": [
       {
-        "goodId": 106,
-        "qtyPerOutput": 0.4
+        "goodId": 46,
+        "qtyPerOutput": 0.43
       },
       {
-        "goodId": 37,
+        "goodId": 33,
         "qtyPerOutput": 0.3
       }
     ],

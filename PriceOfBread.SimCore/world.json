@@ -34,32 +34,32 @@
     {
      "name": "北部サン=ドマング",
      "resources": [
-      25,
-      28
+      24,
+      67
      ],
      "population": 2.5
     },
     {
      "name": "南部サン=ドマング",
      "resources": [
-      25,
-      28
+      24,
+      67
      ],
      "population": 2
     },
     {
      "name": "マルティニーク",
      "resources": [
-      25,
-      26
+      24,
+      25
      ],
      "population": 1.5
     },
     {
      "name": "マスカリン諸島",
      "resources": [
-      25,
-      28
+      24,
+      67
      ],
      "population": 1
     },
@@ -67,7 +67,7 @@
      "name": "ポンディシェリ",
      "resources": [
       17,
-      29,
+      26,
       12
      ],
      "population": 2
@@ -75,7 +75,7 @@
     {
      "name": "セネガル",
      "resources": [
-      24,
+      23,
       17
      ],
      "population": 1
@@ -95,7 +95,7 @@
      "resources": [
       15,
       19,
-      108
+      98
      ],
      "coastal": false,
      "culture": "フランス",
@@ -114,7 +114,7 @@
      "share": 0.19,
      "resources": [
       14,
-      45
+      40
      ],
      "coastal": false,
      "culture": "フランス",
@@ -150,7 +150,7 @@
      "share": 0.14,
      "resources": [
       1,
-      41
+      36
      ],
      "coastal": false,
      "culture": "フランス",
@@ -170,7 +170,7 @@
    "latitude": 48.9,
    "longitude": 2.3,
    "farmLordShare": 0.5,
-   "culturalGoodId": 62
+   "culturalGoodId": 54
   },
   {
    "name": "日本",
@@ -214,7 +214,7 @@
      "rule": [0.5, 0.48, 0.0, 0.02],
      "share": 0.25945212,
      "resources": [
-      102,
+      93,
       14
      ],
      "culture": "日本",
@@ -226,7 +226,7 @@
      "rule": [0.5, 0.48, 0.0, 0.02],
      "share": 0.21953641,
      "resources": [
-      102,
+      93,
       14,
       2
      ],
@@ -256,7 +256,7 @@
      "rule": [0.15, 0.83, 0.0, 0.02],
      "share": 0.16964177,
      "resources": [
-      102,
+      93,
       11
      ],
      "culture": "日本",
@@ -268,7 +268,7 @@
      "rule": [0.48, 0.52, 0.0, 0.0],
      "share": 0.11974713,
      "resources": [
-      71,
+      63,
       20
      ],
      "culture": "日本",
@@ -302,7 +302,7 @@
    "latitude": 35.7,
    "longitude": 139.7,
    "farmLordShare": 0.5,
-   "culturalGoodId": 102
+   "culturalGoodId": 93
   },
   {
    "name": "イギリス",
@@ -337,23 +337,23 @@
     {
      "name": "ジャマイカ",
      "resources": [
-      25,
-      28
+      24,
+      67
      ],
      "population": 2
     },
     {
      "name": "小アンティル",
      "resources": [
-      25
+      24
      ],
      "population": 1.5
     },
     {
      "name": "ウィンドワード諸島",
      "resources": [
-      25,
-      26
+      24,
+      25
      ],
      "population": 1
     },
@@ -362,27 +362,27 @@
      "resources": [
       11,
       20,
-      119
+      109
      ],
      "population": 1
     },
     {
      "name": "中核ベンガル",
      "resources": [
-      92,
+      83,
       14,
       17,
-      118
+      108
      ],
      "population": 6
     },
     {
      "name": "内陸ベンガル",
      "resources": [
-      92,
+      83,
       13,
-      27,
-      118
+      66,
+      108
      ],
      "population": 4
     },
@@ -391,7 +391,7 @@
      "resources": [
       12,
       17,
-      22
+      70
      ],
      "population": 5
     },
@@ -399,7 +399,7 @@
      "name": "ボンベイ",
      "resources": [
       12,
-      92
+      83
      ],
      "population": 4
     },
@@ -407,8 +407,8 @@
      "name": "沿岸西アフリカ",
      "resources": [
       4,
-      24,
       23,
+      22,
       21
      ],
      "population": 2
@@ -514,7 +514,7 @@
      "share": 0.2346,
      "resources": [
       19,
-      108,
+      98,
       7
      ],
      "culture": "イングランド",
@@ -526,7 +526,7 @@
      "city": "マンチェスター",
      "share": 0.1656,
      "resources": [
-      41,
+      36,
       1
      ],
      "culture": "イングランド",
@@ -539,9 +539,9 @@
      "share": 0.1518,
      "resources": [
       0,
-      31,
+      27,
       1,
-      117
+      107
      ],
      "culture": "イングランド",
      "religion": "プロテスタント",
@@ -555,7 +555,7 @@
      "share": 0.138,
      "resources": [
       1,
-      84
+      75
      ],
      "culture": "スコットランド",
      "religion": "プロテスタント",
@@ -568,7 +568,7 @@
      "heldSince": 1691,
      "share": 0.31,
      "resources": [
-      115,
+      105,
       19,
       13
      ],
@@ -582,7 +582,7 @@
    "latitude": 51.5,
    "longitude": -0.1,
    "farmLordShare": 0.5,
-   "culturalGoodId": 74
+   "culturalGoodId": 66
   },
   {
    "name": "アメリカ",
@@ -641,7 +641,7 @@
      "resources": [
       1,
       0,
-      32,
+      28,
       10
      ],
      "coastal": true,
@@ -667,7 +667,7 @@
      "resources": [],
      "lateResources": [
       5,
-      120
+      110
      ],
      "coastal": false,
      "culture": "",
@@ -688,7 +688,7 @@
    "latitude": 40.7,
    "longitude": -74,
    "farmLordShare": 0,
-   "culturalGoodId": 103
+   "culturalGoodId": 94
   },
   {
    "name": "ロシア",
@@ -724,7 +724,7 @@
     {
      "name": "アラスカ",
      "resources": [
-      119
+      109
      ],
      "population": 0.2
     },
@@ -756,7 +756,7 @@
      "rule": [0.65, 0.33, 0.0, 0.02],
      "share": 0.15044732,
      "resources": [
-      41,
+      36,
       11
      ],
      "culture": "ロシア",
@@ -769,7 +769,7 @@
      "share": 0.09439452,
      "resources": [
       11,
-      32
+      28
      ],
      "culture": "ロシア",
      "religion": "正教",
@@ -783,7 +783,7 @@
      "resources": [
       11,
       15,
-      115
+      105
      ],
      "culture": "バルト",
      "religion": "プロテスタント",
@@ -833,8 +833,8 @@
      "resources": [
       13,
       11,
-      115,
-      119
+      105,
+      109
      ],
      "culture": "ロシア",
      "religion": "正教",
@@ -847,7 +847,7 @@
      "resources": [
       11,
       20,
-      119
+      109
      ],
      "culture": "ロシア",
      "religion": "正教",
@@ -860,7 +860,7 @@
      "resources": [
       0,
       2,
-      98
+      89
      ],
      "culture": "ロシア",
      "religion": "正教",
@@ -887,8 +887,8 @@
      "resources": [
       11,
       4,
-      119,
-      120
+      109,
+      110
      ],
      "culture": "ロシア",
      "religion": "正教",
@@ -1033,7 +1033,7 @@
    "latitude": 59.9,
    "longitude": 30.3,
    "farmLordShare": 1,
-   "culturalGoodId": 103
+   "culturalGoodId": 94
   },
   {
    "name": "プロイセン",
@@ -1077,8 +1077,8 @@
      "rule": [0.85, 0.15, 0.0, 0.0],
      "share": 0.3,
      "resources": [
-      32,
-      53
+      28,
+      46
      ],
      "culture": "ドイツ",
      "religion": "プロテスタント",
@@ -1104,7 +1104,7 @@
      "resources": [
       15,
       13,
-      115
+      105
      ],
      "culture": "ドイツ",
      "religion": "プロテスタント",
@@ -1117,7 +1117,7 @@
      "resources": [
       1,
       3,
-      115
+      105
      ],
      "culture": "ドイツ",
      "religion": "カトリック",
@@ -1141,7 +1141,7 @@
    "latitude": 52.5,
    "longitude": 13.4,
    "farmLordShare": 0.8,
-   "culturalGoodId": 66
+   "culturalGoodId": 58
   },
   {
    "name": "オスマン",
@@ -1197,7 +1197,7 @@
      "resources": [
       15,
       12,
-      116
+      106
      ],
      "culture": "アラブ",
      "religion": "イスラム",
@@ -1222,7 +1222,7 @@
      "resources": [
       19,
       15,
-      98
+      89
      ],
      "culture": "トルコ",
      "religion": "イスラム",
@@ -1235,7 +1235,7 @@
      "resources": [
       19,
       15,
-      98
+      89
      ],
      "culture": "トルコ",
      "religion": "イスラム",
@@ -1247,7 +1247,7 @@
      "share": 0.08,
      "resources": [
       14,
-      45
+      40
      ],
      "culture": "アラブ",
      "religion": "イスラム",
@@ -1299,7 +1299,7 @@
      "resources": [
       15,
       19,
-      116
+      106
      ],
      "culture": "セルビア",
      "religion": "正教",
@@ -1311,7 +1311,7 @@
      "resources": [
       15,
       16,
-      116
+      106
      ],
      "culture": "ブルガリア",
      "religion": "正教",
@@ -1348,7 +1348,7 @@
      "resources": [
       15,
       19,
-      116,
+      106,
       10
      ],
      "culture": "ルーマニア",
@@ -1360,7 +1360,7 @@
    "latitude": 41,
    "longitude": 29,
    "farmLordShare": 0.8,
-   "culturalGoodId": 75
+   "culturalGoodId": 67
   },
   {
    "name": "オーストリア",
@@ -1405,8 +1405,8 @@
      "share": 0.1457,
      "resources": [
       0,
-      32,
-      53
+      28,
+      46
      ],
      "culture": "ドイツ",
      "religion": "カトリック",
@@ -1430,7 +1430,7 @@
       1,
       0,
       8,
-      120
+      110
      ],
      "culture": "チェコ",
      "religion": "カトリック",
@@ -1440,7 +1440,7 @@
      "city": "ブリュン",
      "share": 0.0521,
      "resources": [
-      41,
+      36,
       1
      ],
      "culture": "チェコ",
@@ -1455,7 +1455,7 @@
      "resources": [
       15,
       19,
-      116
+      106
      ],
      "culture": "ハンガリー",
      "religion": "カトリック",
@@ -1507,7 +1507,7 @@
      "resources": [
       15,
       19,
-      116
+      106
      ],
      "culture": "ルーマニア",
      "religion": "正教",
@@ -1520,8 +1520,8 @@
      "share": 0.0938,
      "resources": [
       14,
-      45,
-      116
+      40,
+      106
      ],
      "culture": "イタリア",
      "religion": "カトリック",
@@ -1533,7 +1533,7 @@
      "heldSince": 1714,
      "share": 0.125,
      "resources": [
-      41,
+      36,
       1
      ],
      "culture": "フラマン",
@@ -1556,7 +1556,7 @@
    "latitude": 48.2,
    "longitude": 16.4,
    "farmLordShare": 0.5,
-   "culturalGoodId": 66
+   "culturalGoodId": 58
   },
   {
    "name": "ネーデルラント",
@@ -1591,13 +1591,13 @@
     {
      "name": "バタヴィア",
      "resources": [
-      28,
-      29,
-      25,
-      27,
+      67,
+      26,
+      24,
+      66,
       10,
-      117,
-      22
+      107,
+      70
      ],
      "population": 5
     },
@@ -1612,17 +1612,17 @@
     {
      "name": "セイロン",
      "resources": [
-      29,
-      27,
-      22
+      26,
+      66,
+      70
      ],
      "population": 1.5
     },
     {
      "name": "スリナム",
      "resources": [
-      25,
-      28
+      24,
+      67
      ],
      "population": 1
     },
@@ -1645,7 +1645,7 @@
      "resources": [
       20,
       19,
-      108
+      98
      ],
      "coastal": true,
      "culture": "オランダ",
@@ -1669,7 +1669,7 @@
    "latitude": 52.4,
    "longitude": 4.9,
    "farmLordShare": 0.5,
-   "culturalGoodId": 107
+   "culturalGoodId": 97
   },
   {
    "name": "スペイン",
@@ -1704,24 +1704,24 @@
     {
      "name": "ヌエバ・エスパーニャ銀地帯",
      "resources": [
-      120
+      110
      ],
      "population": 3
     },
     {
      "name": "中央メキシコ",
      "resources": [
-      25,
+      24,
       17,
       18,
-      116
+      106
      ],
      "population": 5
     },
     {
      "name": "キューバ",
      "resources": [
-      25,
+      24,
       18
      ],
      "population": 3
@@ -1729,12 +1729,12 @@
     {
      "name": "ペルー",
      "resources": [
-      120,
+      110,
       2,
-      117,
-      118,
-      121,
-      22
+      107,
+      108,
+      111,
+      70
      ],
      "population": 4
     },
@@ -1742,7 +1742,7 @@
      "name": "ヌエバ・グラナダ",
      "resources": [
       4,
-      28
+      67
      ],
      "population": 3
     },
@@ -1750,17 +1750,17 @@
      "name": "ラ・プラタ",
      "resources": [
       19,
-      120,
-      116,
-      118
+      110,
+      106,
+      108
      ],
      "population": 3
     },
     {
      "name": "フィリピン",
      "resources": [
-      29,
-      25,
+      26,
+      24,
       11
      ],
      "population": 3
@@ -1768,14 +1768,14 @@
     {
      "name": "プエルトリコ",
      "resources": [
-      25
+      24
      ],
      "population": 1.5
     },
     {
      "name": "カラカス",
      "resources": [
-      26,
+      25,
       17,
       19
      ],
@@ -1792,7 +1792,7 @@
     {
      "name": "チリ",
      "resources": [
-      118,
+      108,
       2,
       15
      ],
@@ -1888,7 +1888,7 @@
      "rule": [0.75, 0.25, 0.0, 0.0],
      "share": 0.26,
      "resources": [
-      41,
+      36,
       16
      ],
      "culture": "カタルーニャ",
@@ -1912,7 +1912,7 @@
      "resources": [
       16,
       15,
-      102
+      93
      ],
      "culture": "スペイン",
      "religion": "カトリック",
@@ -1940,7 +1940,7 @@
    "latitude": 40.4,
    "longitude": -3.7,
    "farmLordShare": 0.5,
-   "culturalGoodId": 62
+   "culturalGoodId": 54
   },
   {
    "name": "サルデーニャ＝ピエモンテ",
@@ -2006,9 +2006,9 @@
      "city": "ノヴァーラ",
      "share": 0.25,
      "resources": [
-      102,
+      93,
       15,
-      116
+      106
      ],
      "culture": "イタリア",
      "religion": "カトリック",
@@ -2019,7 +2019,7 @@
    "latitude": 45.1,
    "longitude": 7.7,
    "farmLordShare": 0.5,
-   "culturalGoodId": 62
+   "culturalGoodId": 54
   },
   {
    "name": "清",
@@ -2067,8 +2067,8 @@
      "share": 0.0972,
      "resources": [
       14,
-      71,
-      27
+      63,
+      66
      ],
      "culture": "漢",
      "religion": "儒仏",
@@ -2100,7 +2100,7 @@
      "rule": [0.55, 0.35, 0.0, 0.1],
      "share": 0.07776,
      "resources": [
-      102,
+      93,
       6
      ],
      "culture": "漢",
@@ -2145,8 +2145,8 @@
      "rule": [0.6, 0.38, 0.0, 0.02],
      "share": 0.05832,
      "resources": [
-      102,
-      27
+      93,
+      66
      ],
      "culture": "漢",
      "religion": "儒仏",
@@ -2156,7 +2156,7 @@
      "city": "長沙",
      "share": 0.06804,
      "resources": [
-      102
+      93
      ],
      "culture": "漢",
      "religion": "儒仏",
@@ -2168,7 +2168,7 @@
      "share": 0.05832,
      "resources": [
       14,
-      27,
+      66,
       9
      ],
      "culture": "漢",
@@ -2180,9 +2180,9 @@
      "rule": [0.6, 0.4, 0.0, 0.0],
      "share": 0.05832,
      "resources": [
-      27,
+      66,
       14,
-      25
+      24
      ],
      "culture": "漢",
      "religion": "儒仏",
@@ -2203,7 +2203,7 @@
      "rule": [0.6, 0.38, 0.0, 0.02],
      "share": 0.0486,
      "resources": [
-      27,
+      66,
       11
      ],
      "culture": "漢",
@@ -2215,7 +2215,7 @@
      "rule": [0.45, 0.45, 0.0, 0.1],
      "share": 0.02916,
      "resources": [
-      102,
+      93,
       11
      ],
      "culture": "漢",
@@ -2229,7 +2229,7 @@
      "share": 0.02916,
      "resources": [
       2,
-      29
+      26
      ],
      "culture": "漢",
      "religion": "儒仏",
@@ -2254,8 +2254,8 @@
      "heldSince": 1683,
      "share": 0.0243,
      "resources": [
-      25,
-      102,
+      24,
+      93,
       11
      ],
      "culture": "漢",
@@ -2364,7 +2364,7 @@
    "latitude": 39.9,
    "longitude": 116.4,
    "farmLordShare": 0.5,
-   "culturalGoodId": 102
+   "culturalGoodId": 93
   },
   {
    "name": "朝鮮",
@@ -2446,7 +2446,7 @@
      "rule": [0.5, 0.47, 0.0, 0.03],
      "share": 0.1,
      "resources": [
-      102
+      93
      ],
      "culture": "朝鮮",
      "religion": "儒",
@@ -2457,7 +2457,7 @@
    "latitude": 37.5,
    "longitude": 127.0,
    "farmLordShare": 0.6,
-   "culturalGoodId": 102
+   "culturalGoodId": 93
   },
   {
    "name": "マラータ同盟",
@@ -2526,7 +2526,7 @@
      "resources": [
       15,
       12,
-      118
+      108
      ],
      "culture": "マラーター",
      "religion": "ヒンドゥー教",
@@ -2538,7 +2538,7 @@
      "share": 0.15,
      "resources": [
       12,
-      92
+      83
      ],
      "culture": "マラーター",
      "religion": "ヒンドゥー教",
@@ -2573,7 +2573,7 @@
    "latitude": 18.52,
    "longitude": 73.86,
    "farmLordShare": 0.6,
-   "culturalGoodId": 102
+   "culturalGoodId": 93
   },
   {
    "name": "マイソール",
@@ -2616,7 +2616,7 @@
      "rule": [0.8, 0.18, 0.0, 0.02],
      "share": 0.55,
      "resources": [
-      29,
+      26,
       12
      ],
      "culture": "カンナダ",
@@ -2646,7 +2646,7 @@
    "latitude": 12.42,
    "longitude": 76.69,
    "farmLordShare": 0.6,
-   "culturalGoodId": 102
+   "culturalGoodId": 93
   },
   {
    "name": "ハイデラバード",
@@ -2719,7 +2719,7 @@
    "latitude": 17.4,
    "longitude": 78.5,
    "farmLordShare": 0.6,
-   "culturalGoodId": 102
+   "culturalGoodId": 93
   },
   {
    "name": "シク連邦",
@@ -2773,7 +2773,7 @@
    "latitude": 31.5,
    "longitude": 74.3,
    "farmLordShare": 0.6,
-   "culturalGoodId": 102
+   "culturalGoodId": 93
   },
   {
    "name": "ビルマ",
@@ -2814,7 +2814,7 @@
      "rule": [0.42, 0.43, 0.0, 0.15],
      "share": 0.45,
      "resources": [
-      102,
+      93,
       11
      ],
      "culture": "ビルマ",
@@ -2827,7 +2827,7 @@
      "share": 0.55,
      "resources": [
       11,
-      102
+      93
      ],
      "culture": "ビルマ",
      "religion": "上座部仏教",
@@ -2838,7 +2838,7 @@
    "latitude": 21.9,
    "longitude": 96.0,
    "farmLordShare": 0.6,
-   "culturalGoodId": 102
+   "culturalGoodId": 93
   },
   {
    "name": "ネパール",
@@ -2878,7 +2878,7 @@
      "city": "カトマンズ",
      "share": 1.0,
      "resources": [
-      102,
+      93,
       19
      ],
      "culture": "ネパール",
@@ -2890,7 +2890,7 @@
    "latitude": 27.7,
    "longitude": 85.3,
    "farmLordShare": 0.6,
-   "culturalGoodId": 102
+   "culturalGoodId": 93
   },
   {
    "name": "シャム",
@@ -2930,11 +2930,11 @@
      "city": "バンコク",
      "share": 1.0,
      "resources": [
-      102,
+      93,
       11,
-      25,
-      29,
-      117
+      24,
+      26,
+      107
      ],
      "culture": "タイ",
      "religion": "上座部仏教",
@@ -2945,7 +2945,7 @@
    "latitude": 13.75,
    "longitude": 100.5,
    "farmLordShare": 0.6,
-   "culturalGoodId": 102
+   "culturalGoodId": 93
   },
   {
    "name": "西山朝",
@@ -2986,7 +2986,7 @@
      "rule": [0.2, 0.55, 0.0, 0.25],
      "share": 0.69,
      "resources": [
-      102,
+      93,
       14
      ],
      "culture": "ベトナム",
@@ -2998,8 +2998,8 @@
      "rule": [0.35, 0.45, 0.0, 0.2],
      "share": 0.31,
      "resources": [
-      102,
-      29
+      93,
+      26
      ],
      "culture": "ベトナム",
      "religion": "儒仏",
@@ -3010,7 +3010,7 @@
    "latitude": 16.47,
    "longitude": 107.58,
    "farmLordShare": 0.6,
-   "culturalGoodId": 102
+   "culturalGoodId": 93
   },
   {
    "name": "カンボジア",
@@ -3050,7 +3050,7 @@
      "city": "プノンペン",
      "share": 1.0,
      "resources": [
-      102,
+      93,
       20
      ],
      "culture": "クメール",
@@ -3062,7 +3062,7 @@
    "latitude": 11.55,
    "longitude": 104.9,
    "farmLordShare": 0.6,
-   "culturalGoodId": 102
+   "culturalGoodId": 93
   },
   {
    "name": "ラオス",
@@ -3103,7 +3103,7 @@
      "share": 1.0,
      "resources": [
       11,
-      102
+      93
      ],
      "culture": "ラオ",
      "religion": "上座部仏教",
@@ -3114,7 +3114,7 @@
    "latitude": 17.97,
    "longitude": 102.6,
    "farmLordShare": 0.6,
-   "culturalGoodId": 102
+   "culturalGoodId": 93
   },
   {
    "name": "ペルシャ",
@@ -3225,7 +3225,7 @@
    "latitude": 35.7,
    "longitude": 51.4,
    "farmLordShare": 0.6,
-   "culturalGoodId": 62
+   "culturalGoodId": 54
   },
   {
    "name": "アラビア",
@@ -3286,7 +3286,7 @@
    "latitude": 24.73,
    "longitude": 46.57,
    "farmLordShare": 0.6,
-   "culturalGoodId": 62
+   "culturalGoodId": 54
   },
   {
    "name": "イエメン",
@@ -3326,8 +3326,8 @@
      "city": "サヌア",
      "share": 0.85,
      "resources": [
-      28,
-      29
+      67,
+      26
      ],
      "culture": "アラブ",
      "religion": "ザイド派",
@@ -3347,7 +3347,7 @@
    "latitude": 15.35,
    "longitude": 44.2,
    "farmLordShare": 0.6,
-   "culturalGoodId": 62
+   "culturalGoodId": 54
   },
   {
    "name": "オマーン",
@@ -3379,8 +3379,8 @@
     {
      "name": "ザンジバル",
      "resources": [
-      29,
-      24
+      26,
+      23
      ],
      "population": 1
     },
@@ -3401,7 +3401,7 @@
      "city": "マスカット",
      "share": 0.95,
      "resources": [
-      29,
+      26,
       20
      ],
      "culture": "アラブ",
@@ -3422,7 +3422,7 @@
    "latitude": 23.6,
    "longitude": 58.5,
    "farmLordShare": 0.6,
-   "culturalGoodId": 62
+   "culturalGoodId": 54
   },
   {
    "name": "アフガニスタン",
@@ -3511,7 +3511,7 @@
    "latitude": 34.5,
    "longitude": 69.2,
    "farmLordShare": 0.6,
-   "culturalGoodId": 62
+   "culturalGoodId": 54
   },
   {
    "name": "ブハラ",
@@ -3564,7 +3564,7 @@
    "latitude": 39.77,
    "longitude": 64.42,
    "farmLordShare": 0.6,
-   "culturalGoodId": 62
+   "culturalGoodId": 54
   },
   {
    "name": "ヒヴァ",
@@ -3616,7 +3616,7 @@
    "latitude": 41.38,
    "longitude": 60.36,
    "farmLordShare": 0.6,
-   "culturalGoodId": 62
+   "culturalGoodId": 54
   },
   {
    "name": "コーカンド",
@@ -3669,7 +3669,7 @@
    "latitude": 40.52,
    "longitude": 70.94,
    "farmLordShare": 0.6,
-   "culturalGoodId": 62
+   "culturalGoodId": 54
   },
   {
    "name": "モロッコ",
@@ -3743,7 +3743,7 @@
    "latitude": 34.0,
    "longitude": -6.8,
    "farmLordShare": 0.6,
-   "culturalGoodId": 62
+   "culturalGoodId": 54
   },
   {
    "name": "エチオピア",
@@ -3783,7 +3783,7 @@
      "city": "ゴンダール",
      "share": 0.85,
      "resources": [
-      28,
+      67,
       19
      ],
      "culture": "アムハラ",
@@ -3804,7 +3804,7 @@
    "latitude": 12.6,
    "longitude": 37.5,
    "farmLordShare": 0.6,
-   "culturalGoodId": 75
+   "culturalGoodId": 67
   },
   {
    "name": "マダガスカル",
@@ -3844,7 +3844,7 @@
      "city": "アンタナナリヴ",
      "share": 0.85,
      "resources": [
-      102,
+      93,
       19
      ],
      "culture": "メリナ",
@@ -3865,7 +3865,7 @@
    "latitude": -18.9,
    "longitude": 47.5,
    "farmLordShare": 0.6,
-   "culturalGoodId": 102
+   "culturalGoodId": 93
   },
   {
    "name": "スウェーデン",
@@ -3952,7 +3952,7 @@
    "latitude": 59.33,
    "longitude": 18.07,
    "farmLordShare": 0.6,
-   "culturalGoodId": 62
+   "culturalGoodId": 54
   },
   {
    "name": "デンマーク",
@@ -4043,7 +4043,7 @@
    "latitude": 55.68,
    "longitude": 12.57,
    "farmLordShare": 0.6,
-   "culturalGoodId": 62
+   "culturalGoodId": 54
   },
   {
    "name": "スイス",
@@ -4095,7 +4095,7 @@
    "latitude": 46.95,
    "longitude": 7.45,
    "farmLordShare": 0.6,
-   "culturalGoodId": 62
+   "culturalGoodId": 54
   },
   {
    "name": "ポーランド",
@@ -4138,7 +4138,7 @@
      "resources": [
       15,
       19,
-      115
+      105
      ],
      "culture": "ポーランド",
      "religion": "カトリック",
@@ -4151,7 +4151,7 @@
      "resources": [
       15,
       11,
-      115
+      105
      ],
      "culture": "リトアニア",
      "religion": "カトリック",
@@ -4187,7 +4187,7 @@
    "latitude": 52.23,
    "longitude": 21.0,
    "farmLordShare": 0.6,
-   "culturalGoodId": 62
+   "culturalGoodId": 54
   },
   {
    "name": "ポルトガル",
@@ -4221,10 +4221,10 @@
     {
      "name": "ブラジル",
      "resources": [
-      25,
-      28,
+      24,
+      67,
       4,
-      116
+      106
      ],
      "population": 5
     },
@@ -4233,7 +4233,7 @@
      "resources": [
       21,
       11,
-      22
+      70
      ],
      "population": 0.5
     },
@@ -4309,7 +4309,7 @@
    "latitude": 38.7,
    "longitude": -9.1,
    "farmLordShare": 0.5,
-   "culturalGoodId": 62
+   "culturalGoodId": 54
   },
   {
    "name": "ジェノヴァ",
@@ -4361,7 +4361,7 @@
    "latitude": 44.41,
    "longitude": 8.93,
    "farmLordShare": 0.5,
-   "culturalGoodId": 62
+   "culturalGoodId": 54
   },
   {
    "name": "ライン諸邦",
@@ -4413,7 +4413,7 @@
    "latitude": 50.9,
    "longitude": 6.96,
    "farmLordShare": 0.6,
-   "culturalGoodId": 66
+   "culturalGoodId": 58
   },
   {
    "name": "両シチリア",
@@ -4495,7 +4495,7 @@
    "latitude": 40.85,
    "longitude": 14.27,
    "farmLordShare": 0.6,
-   "culturalGoodId": 62
+   "culturalGoodId": 54
   },
   {
    "name": "教皇領",
@@ -4572,7 +4572,7 @@
    "latitude": 41.9,
    "longitude": 12.5,
    "farmLordShare": 0.6,
-   "culturalGoodId": 62
+   "culturalGoodId": 54
   },
   {
    "name": "トスカーナ",
@@ -4632,7 +4632,7 @@
    "latitude": 43.77,
    "longitude": 11.25,
    "farmLordShare": 0.6,
-   "culturalGoodId": 62
+   "culturalGoodId": 54
   },
   {
    "name": "ヴェネツィア",
@@ -4673,7 +4673,7 @@
      "rule": [0.85, 0.15, 0.0, 0.0],
      "share": 0.45,
      "resources": [
-      45,
+      40,
       20
      ],
      "culture": "イタリア",
@@ -4687,7 +4687,7 @@
      "resources": [
       15,
       14,
-      116
+      106
      ],
      "culture": "イタリア",
      "religion": "カトリック",
@@ -4710,7 +4710,7 @@
    "latitude": 45.44,
    "longitude": 12.34,
    "farmLordShare": 0.6,
-   "culturalGoodId": 62
+   "culturalGoodId": 54
   },
   {
    "name": "バイエルン",
@@ -4763,7 +4763,7 @@
    "latitude": 48.14,
    "longitude": 11.58,
    "farmLordShare": 0.6,
-   "culturalGoodId": 66
+   "culturalGoodId": 58
   },
   {
    "name": "ザクセン",
@@ -4803,9 +4803,9 @@
      "city": "ドレスデン",
      "share": 1.0,
      "resources": [
-      71,
-      120,
-      115,
+      63,
+      110,
+      105,
       9
      ],
      "culture": "ドイツ",
@@ -4817,7 +4817,7 @@
    "latitude": 51.34,
    "longitude": 12.37,
    "farmLordShare": 0.6,
-   "culturalGoodId": 66
+   "culturalGoodId": 58
   },
   {
    "name": "ハノーファー",
@@ -4859,7 +4859,7 @@
      "resources": [
       15,
       19,
-      115
+      105
      ],
      "culture": "ドイツ",
      "religion": "プロテスタント",
@@ -4879,7 +4879,7 @@
    "latitude": 52.37,
    "longitude": 9.73,
    "farmLordShare": 0.6,
-   "culturalGoodId": 66
+   "culturalGoodId": 58
   },
   {
    "name": "ヴュルテンベルク",
@@ -4931,7 +4931,7 @@
    "latitude": 48.78,
    "longitude": 9.18,
    "farmLordShare": 0.6,
-   "culturalGoodId": 66
+   "culturalGoodId": 58
   },
   {
    "name": "阮氏",
@@ -4971,8 +4971,8 @@
      "city": "サイゴン",
      "share": 1.0,
      "resources": [
-      102,
-      25
+      93,
+      24
      ],
      "culture": "ベトナム",
      "religion": "儒仏",
@@ -4983,7 +4983,7 @@
    "latitude": 10.78,
    "longitude": 106.7,
    "farmLordShare": 0.6,
-   "culturalGoodId": 102
+   "culturalGoodId": 93
   },
   {
    "name": "ラヘジ",
@@ -5023,7 +5023,7 @@
      "city": "アデン",
      "share": 1.0,
      "resources": [
-      29,
+      26,
       20
      ],
      "culture": "アラブ",
@@ -5035,7 +5035,7 @@
    "latitude": 12.8,
    "longitude": 44.9,
    "farmLordShare": 0.6,
-   "culturalGoodId": 62
+   "culturalGoodId": 54
   },
   {
    "name": "デリー",
@@ -5089,7 +5089,7 @@
    "latitude": 28.6,
    "longitude": 77.2,
    "farmLordShare": 0.6,
-   "culturalGoodId": 102
+   "culturalGoodId": 93
   },
   {
    "name": "アワド",
@@ -5131,7 +5131,7 @@
      "city": "ラクナウ",
      "share": 1.0,
      "resources": [
-      102,
+      93,
       15
      ],
      "culture": "ヒンドゥスタン",
@@ -5143,7 +5143,7 @@
    "latitude": 26.85,
    "longitude": 80.95,
    "farmLordShare": 0.6,
-   "culturalGoodId": 102
+   "culturalGoodId": 93
   },
   {
    "name": "ダホメ王国",
@@ -5207,7 +5207,7 @@
    "latitude": 7.19,
    "longitude": 1.99,
    "farmLordShare": 0.6,
-   "culturalGoodId": 116
+   "culturalGoodId": 106
   },
   {
    "name": "アシャンティ王国",
@@ -5248,7 +5248,7 @@
      "share": 0.7,
      "resources": [
       4,
-      26
+      25
      ],
      "culture": "アカン",
      "religion": "土着信仰",
@@ -5259,7 +5259,7 @@
      "rule": [0.0, 0.7, 0.2, 0.1],
      "share": 0.3,
      "resources": [
-      23,
+      22,
       20
      ],
      "culture": "アカン",
@@ -5271,7 +5271,7 @@
    "latitude": 6.69,
    "longitude": -1.62,
    "farmLordShare": 0.6,
-   "culturalGoodId": 116
+   "culturalGoodId": 106
   },
   {
    "name": "ソコト",
@@ -5313,7 +5313,7 @@
      "share": 0.35,
      "resources": [
       19,
-      24
+      23
      ],
      "culture": "ハウサ",
      "religion": "イスラム",
@@ -5337,7 +5337,7 @@
      "share": 0.25,
      "resources": [
       19,
-      116
+      106
      ],
      "culture": "ハウサ",
      "religion": "イスラム",
@@ -5348,7 +5348,7 @@
    "latitude": 13.06,
    "longitude": 5.24,
    "farmLordShare": 0.7,
-   "culturalGoodId": 116
+   "culturalGoodId": 106
   },
   {
    "name": "コンゴ王国",
@@ -5388,7 +5388,7 @@
      "city": "ンバンザ=コンゴ",
      "share": 0.6,
      "resources": [
-      24,
+      23,
       2
      ],
      "culture": "コンゴ",
@@ -5401,7 +5401,7 @@
      "share": 0.4,
      "resources": [
       21,
-      23
+      22
      ],
      "culture": "コンゴ",
      "religion": "カトリック",
@@ -5412,7 +5412,7 @@
    "latitude": -6.27,
    "longitude": 14.24,
    "farmLordShare": 0.6,
-   "culturalGoodId": 116
+   "culturalGoodId": 106
   },
   {
    "name": "アルジェ摂政国",
@@ -5489,7 +5489,7 @@
    "latitude": 36.75,
    "longitude": 3.06,
    "farmLordShare": 0.6,
-   "culturalGoodId": 62
+   "culturalGoodId": 54
   },
   {
    "name": "オヨ帝国",
@@ -5530,7 +5530,7 @@
      "share": 0.7,
      "resources": [
       19,
-      116
+      106
      ],
      "culture": "ヨルバ",
      "religion": "土着信仰",
@@ -5541,7 +5541,7 @@
      "rule": [0.05, 0.75, 0.0, 0.2],
      "share": 0.3,
      "resources": [
-      23,
+      22,
       17
      ],
      "culture": "ヨルバ",
@@ -5553,7 +5553,7 @@
    "latitude": 8.13,
    "longitude": 4.24,
    "farmLordShare": 0.6,
-   "culturalGoodId": 116
+   "culturalGoodId": 106
   },
   {
    "name": "ボルヌ帝国",
@@ -5595,7 +5595,7 @@
      "resources": [
       6,
       19,
-      24
+      23
      ],
      "culture": "カヌリ",
      "religion": "イスラム",
@@ -5606,7 +5606,7 @@
    "latitude": 12.9,
    "longitude": 13.4,
    "farmLordShare": 0.7,
-   "culturalGoodId": 116
+   "culturalGoodId": 106
   },
   {
    "name": "ハワイ王国",
@@ -5646,7 +5646,7 @@
      "city": "ホノルル",
      "share": 1.0,
      "resources": [
-      25,
+      24,
       20
      ],
      "culture": "ポリネシア",
@@ -5658,7 +5658,7 @@
    "latitude": 21.31,
    "longitude": -157.86,
    "farmLordShare": 0.5,
-   "culturalGoodId": 102
+   "culturalGoodId": 93
   }
  ],
  "abstractTargets": [
@@ -5670,7 +5670,7 @@
     {
      "name": "琉球",
      "resources": [
-      25,
+      24,
       17,
       20
      ],
@@ -5705,7 +5705,7 @@
      "resources": [
       21,
       10,
-      29,
+      26,
       11
      ],
      "population": 2
@@ -5720,9 +5720,9 @@
     {
      "name": "マレー",
      "resources": [
-      29,
+      26,
       21,
-      117
+      107
      ],
      "population": 1.5
     }

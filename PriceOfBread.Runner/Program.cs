@@ -1887,7 +1887,7 @@ if (args.Length > 0 && args[0] == "tradewhy")
     // ★量の分解（2026-08-15・壁A/B＝効果なしを受けた第2診断）：価格差が壁を超えても取引されない財（綿花＝分散58倍）の
     //   ボトルネックを特定する。q ∝ 買い手のscaleT=max(LastDemand,LastProduced,TargetStock)＝「消費したことのない州は輸入も始められない」
     //   鶏卵ロックの検証。売り手側＝在庫と流量。
-    foreach (int g in new[] { 12, 15 })
+    foreach (int g in new[] { Catalog.CottonId, Catalog.WheatId })
     {
         Console.WriteLine($"--- 量の分解（{Catalog.Goods[g].Name}・最終Q）: 売り手候補=安値+在庫 / 買い手候補=高値 ---");
         var rows = new List<(double lp, string nation, string region, double stock, double dem, double prod, double tgt)>();
@@ -6765,7 +6765,7 @@ if (args.Length > 0 && args[0] == "milstart")
             double Fill(int g) => afford * MilMul(g) * PriceAfford(g) * Ration(g);
             double ProdN(int g) { double s = 0; foreach (var rr in w.Regions) if (rr.State == RegionState.Active && g < rr.Markets.Length) s += rr.Markets[g].LastProduced; return s; }
             double NeedOf(int gid) { for (int b = 0; b < c.MilitaryGoods.Length; b++) if (c.MilitaryGoods[b] == gid) return r.MilitaryScale * milRates[b]; return 0; }
-            int gRifle = 82, gArty = 81, gAmmo = 83, gShip = 86, gSteam = 85;
+            int gRifle = Catalog.RifleId, gArty = Catalog.ArtilleryId, gAmmo = Catalog.AmmunitionId, gShip = Catalog.WarshipId, gSteam = Catalog.SteamshipId;
             double shipRef = Catalog.RefPrices[gShip] * Math.Max(r.PriceLevel, 1e-9);
             nTotal++;
             if (navalMul > 5) nNaval5++;
@@ -7526,32 +7526,13 @@ if (args.Length > 0 && args[0] == "cost-test")
     Console.WriteLine($"定常：国庫 {b.World.Treasury:N0}　四半期黒字 {surplusPerQ:N0}/Q　GDP {b.World.Gdp:N0}\n");
 
     Console.WriteLine($"{"財",-8}{"カテゴリ",-7}{"総額",8}{"期間",6}{"/四半期",9}{"黒字比",8}{"国庫比",8}");
-    int[] reps = { 57, 32, 82, 53, 80 };   // 衣料/鋼/小銃/機械/電化製品（各カテゴリ代表）
+    int[] reps = { Catalog.ClothingId, Catalog.SteelId, Catalog.RifleId, Catalog.MachineryId, Catalog.ApplianceId };   // 衣料/鋼/小銃/機械/電化製品（各カテゴリ代表）
     foreach (int gid in reps)
     {
         var s = Catalog.FactorySpec(gid);
         double payPerQ = s.Cost / s.Quarters;
         string surplusRatio = surplusPerQ > 1 ? $"{payPerQ / surplusPerQ:F1}倍" : "—";
         Console.WriteLine($"{Catalog.Goods[gid].Name,-8}{s.Category,-7}{s.Cost / 1000,6:F0}k{s.Quarters / 4.0,5:F1}年{payPerQ / 1000,7:F1}k{surplusRatio,8}{s.Cost / 200000.0,7:P0}");
-    }
-
-    // 素材階層+α（FactoryTierMachinePerDepth・2026-08-09）：点火設計値0.05での代表財の機械追加束と実額
-    // （参照価格・採算率100%時の建設全期間合計＝FactoryMaterialFrac×Cost/costPerUnitRef×0.05×max(0,深さ−1)）
-    var tcf = new Coefficients();
-    double tierOn = 0.05;
-    double tCpuRef = tcf.ConsSteel * Catalog.RefPrices[tcf.SteelGoodId] + tcf.ConsMachine * Catalog.RefPrices[tcf.MachineGoodId]
-                   + tcf.ConsCement * Catalog.RefPrices[tcf.CementGoodId] + tcf.ConsLumber * Catalog.RefPrices[tcf.LumberGoodId];
-    Console.WriteLine($"\n素材階層+α（係数{tierOn}・参照価格）: 機械RefPrice {Catalog.RefPrices[tcf.MachineGoodId]:F2}　建設束RefPrice {tCpuRef:F2}");
-    Console.WriteLine($"{"財",-8}{"カテゴリ",-7}{"深さ",4}{"基本費",8}{"基本機械",9}{"追加機械",9}{"追加実額",9}{"対基本費",9}");
-    foreach (int gid in new[] { Catalog.WheatId, Catalog.ClothingId, Catalog.SteelId, Catalog.MachineryId, Catalog.ApplianceId })   // 麦=RGO/衣料=軽工業/鋼=重工業/機械/電化製品=先端
-    {
-        var fs = Catalog.FactorySpec(gid);
-        double depth = Catalog.Complexity[gid];
-        double units = tcf.FactoryMaterialFrac * fs.Cost / tCpuRef;
-        double baseMach = tcf.ConsMachine * units;
-        double tierQty = tierOn * Math.Max(0.0, depth - 1.0) * units;
-        double tierCost = tierQty * Catalog.RefPrices[tcf.MachineGoodId];
-        Console.WriteLine($"{Catalog.Goods[gid].Name,-8}{fs.Category,-7}{depth,4:F0}{fs.Cost / 1000,6:F0}k{baseMach,9:N0}{tierQty,9:N0}{tierCost / 1000,8:F1}k{tierCost / fs.Cost,9:P1}");
     }
 
     // 鋼工場を実建設して国庫・工業化への影響を見る
@@ -7570,17 +7551,6 @@ if (args.Length > 0 && args[0] == "cost-test")
     return;
 }
 
-// === 連鎖複雑度の計測： dotnet run -- techtiers ===
-if (args.Length > 0 && args[0] == "techtiers")
-{
-    var rows = new List<(string Name, double C)>();
-    foreach (var g in PriceOfBread.SimCore.Catalog.Goods) rows.Add((g.Name, PriceOfBread.SimCore.Catalog.Complexity[g.Id]));
-    rows.Sort((a, b) => b.C.CompareTo(a.C));
-    Console.WriteLine("財の連鎖複雑度（深さ・降順）＝これが大きいほど後の時代の財:");
-    foreach (var r in rows) Console.WriteLine($"  深さ{r.C,4:F0}  {r.Name}");
-    return;
-}
-
 // === 総合モニタ： dotnet run -- monitor [seed] ===（破綻/極端価格/政権遷移/戦争/植民地移譲/運河/輸送/技術登場）
 if (args.Length > 0 && args[0] == "monitor")
 {
@@ -7594,7 +7564,7 @@ if (args.Length > 0 && args[0] == "monitor")
     var msim = new MultiNationSim(mcfgs, mseed, _ => new UtilityAgent());
     int MQ = Coefficients.GameQuarters;
     int MYear(int q) => 1783 + q / 4;
-    var adv = new Dictionary<int, string> { { Catalog.MachineGunId, "機関銃" }, { Catalog.IroncladId, "装甲艦" }, { Catalog.ApplianceId, "電化製品" }, { Catalog.ElectricityId, "電力" }, { Catalog.GeneratorId, "発電機" }, { Catalog.GridId, "送電網" }, { Catalog.MachineToolId, "精密工作機械" } };
+    var adv = new Dictionary<int, string> { { Catalog.MachineGunId, "機関銃" }, { Catalog.IroncladId, "装甲艦" }, { Catalog.ApplianceId, "電化製品" }, { Catalog.ElectricityId, "電力" }, { Catalog.GridId, "送電網" } };
     var firstYear = new Dictionary<int, int>();
     var polPrev = new Polity[mcfgs.Length];
     int polTrans = 0; bool mbroke = false; int mbrokeQ = -1; int mlogSeen = 0;
@@ -8029,7 +7999,7 @@ if (args.Length > 0 && args[0] == "trace-prod")
     var tsim = new MultiNationSim(tc, 1, _ => new UtilityAgent());
     tsim.StartWarmup();   // ★2026-09-07 計器の助走統一：selfplay-batch/popprobe と同じ助走を通す＝「測る世界」を帯の世界と一致させる（旧＝助走なし＝chronicle が popprobe と食い違った構築時型の計器バグ）
     for (int q = 0; q < qs; q++) tsim.StepQuarter();
-    int[] watch = [80, 87, 55, 54, 32, 53, 35];   // 電化製品・電力・発電機・蒸気機関・鋼・機械・セメント
+    int[] watch = [Catalog.ApplianceId, Catalog.ElectricityId, Catalog.SteamEngineId, Catalog.SteelId, Catalog.MachineryId, Catalog.CementId];   // 電化製品・電力・蒸気機関・鋼・機械・セメント（★段1：発電機は機械へ畳んだ）
     foreach (var nat in tsim.Nations.Take(2))
     {
         var tw = nat.World;
@@ -8109,7 +8079,7 @@ if (args.Length > 0 && args[0] == "test8")
         if (maxD < 0.5) deadEnds8.Add($"{g.Id}:{g.Name}");
     }
     Console.WriteLine($"\n下流の無い財({deadEnds8.Count}): {(deadEnds8.Count > 0 ? string.Join("、", deadEnds8) : "なし")}");
-    int[] milTrace = { 83, 38, 34, 3, 86, 84, 42, 13 };   // 弾薬→火薬+鉛→鉛鉱 / 軍艦→帆船→帆布→麻
+    int[] milTrace = { Catalog.AmmunitionId, Catalog.GunpowderId, Catalog.LeadId, Catalog.LeadOreId, Catalog.WarshipId, Catalog.SailingShipId, Catalog.CanvasId, Catalog.HempId };   // 弾薬→火薬+鉛→鉛鉱 / 軍艦→帆船→帆布→麻
     Console.Write("軍需連鎖の需給(全国最大 需/産): ");
     foreach (int gi in milTrace)
     {

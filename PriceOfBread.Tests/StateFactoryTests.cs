@@ -359,7 +359,7 @@ public class StateFactoryTests
         var sim = Warm(2040);
         var w = sim.World;
         Assert.Empty(w.GoodFactoryTarget);        // 既定＝配列そのものが無い
-        w.SetFactoryTarget(32, 0);                // 0 を置いても確保しない＝厳密恒等
+        w.SetFactoryTarget(Catalog.SteelId, 0);                // 0 を置いても確保しない＝厳密恒等
         Assert.Empty(w.GoodFactoryTarget);
         全州の意志は0(w, 32);
         w.StepStateTargets();
@@ -372,8 +372,8 @@ public class StateFactoryTests
         var sim = Warm(2041);
         var w = sim.World;
         全州の意志は0(w, 32);
-        var (st0, pv0) = w.NationFactoryUnits(32);
-        w.SetFactoryTarget(32, st0 + pv0 + 1);
+        var (st0, pv0) = w.NationFactoryUnits(Catalog.SteelId);
+        w.SetFactoryTarget(Catalog.SteelId, st0 + pv0 + 1);
         // 期待する州は**エンジンと同じ物差し**（AIの着工判断が使う1本）で決める＝テストが第二の式を持たない
         int expect = -1; double best = double.NegativeInfinity;
         for (int ri = 0; ri < w.Regions.Count; ri++)
@@ -400,8 +400,8 @@ public class StateFactoryTests
         var sim = Warm(2042);
         var w = sim.World;
         全州の意志は0(w, 32);
-        var (st, pv) = w.NationFactoryUnits(32);
-        w.SetFactoryTarget(32, st + pv);   // 現在＝目標
+        var (st, pv) = w.NationFactoryUnits(Catalog.SteelId);
+        w.SetFactoryTarget(Catalog.SteelId, st + pv);   // 現在＝目標
         w.StepStateTargets();
         全州の意志は0(w, 32);
     }
@@ -414,7 +414,7 @@ public class StateFactoryTests
         var p = Steel(w.Regions[0]);
         p.BuiltScale = w.Coef.FactoryBuildScale * 2;          // 国営2棟が既に建っている
         p.StateTarget = World.StateUnits(p, w.Coef);
-        w.SetFactoryTarget(32, 1);                            // 全国目標を現在より下へ
+        w.SetFactoryTarget(Catalog.SteelId, 1);                            // 全国目標を現在より下へ
         w.StepStateTargets();
         Assert.Equal(2, World.StateUnits(p, w.Coef));         // 取り壊さない（払い下げは州別カウンターだけの動詞）
         Assert.Equal(2, p.StateTarget);
@@ -428,8 +428,8 @@ public class StateFactoryTests
         全州の意志は0(w, 32);
         var p0 = Steel(w.Regions[0]);
         p0.StateTarget = World.StateUnits(p0, w.Coef) + 1;    // 前に立てた意志が未実現
-        var (st, pv) = w.NationFactoryUnits(32);
-        w.SetFactoryTarget(32, st + pv + 5);
+        var (st, pv) = w.NationFactoryUnits(Catalog.SteelId);
+        w.SetFactoryTarget(Catalog.SteelId, st + pv + 5);
         w.StepStateTargets();
         for (int ri = 1; ri < w.Regions.Count; ri++)          // 意志は溜めない＝他州へ広がらない
             if (World.FindFactory(w.Regions[ri], Catalog.SteelId) is { } q)
@@ -453,7 +453,7 @@ public class StateFactoryTests
                 if (!p.Bankrupt) pv += World.PrivateUnits(p, w.Coef);
             }
         }
-        Assert.Equal((st, pv), w.NationFactoryUnits(32));   // カードの分子＝全国工場目標の分子（式は1本）
+        Assert.Equal((st, pv), w.NationFactoryUnits(Catalog.SteelId));   // カードの分子＝全国工場目標の分子（式は1本）
     }
 
     // ★国営持分の対称（2026-09-27・線2）：赤字の側（EconomyStep の「国営持分の赤字は国庫が負う」）と同じ持分（World.StateProfitShare＝唯一の定義）で、

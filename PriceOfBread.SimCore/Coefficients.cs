@@ -1223,13 +1223,8 @@ public sealed class Coefficients
     public int MachineGoodId = Catalog.MachineryId;
     public int CementGoodId = Catalog.CementId;
     public int LumberGoodId = Catalog.LumberId;
-    // 工場建設費の素材階層+α（2026-08-09・ユーザー裁定「基本は固定・上位材+α」）：出力財の連鎖深さ（Catalog.Complexity＝レシピDAG最長深さ0〜9・手置きテーブルなし）で建設費を差別化。
-    // 建設1単位あたり 機械（MachineGoodId）を これ×max(0, 深さ−1) 束だけ**追加**購入（深さ0のRGOと深さ1は式から自然に+α=0＝特例コードなし）。
-    // ⚠costPerUnitRef には**意図的に加えない**＝加えると建設単位 u が縮んで「+α」でなく既存4材の「置換」になる（基本束は不変・+αは Cost の外の追加支出＝裁定の実装形）。
-    // ⚠着工ゲート（World.ConstructionAfford）と進捗ゲート（StepConstruction）にも**意図的に加えない**＝機械高騰で着工・進捗が止まらない fail-open（サプライを考える負担を作らない裁定）。
-    // 書き手＝なし（純係数）。読み手＝EconomyStep の工場建設ブロック限定2箇所（需要計上:614付近・決済:1500付近）のみ＝Cons*系の他経路（国家建設・巨大建造物・私的工業化・保守）へ波及しない。
-    // 番人＝FactoryTierTests（点火ピン0.05・Complexity階層ピン・ON経路の式・保存）。★点火済み（2026-08-09 ign_tier）＝0に戻せばガード>1e-12を踏まず1命令も実行しない＝既存フルスイート全緑がビット恒等の番人。点火設計値0.05目安。
-    public double FactoryTierMachinePerDepth = 0.05;
+    // ★段1（2026-09-30・財の削減＝作者裁定 Q2）：工場建設費の素材階層+α FactoryTierMachinePerDepth（出力財の連鎖の深さ×機械の上乗せ・2026-08-09 点火）を撤去＝
+    //   深さで時代や難しさを表さない（発見が表す）。建設費の差は FactorySpec（カテゴリの建設費）と建設の束の価格が持つ。
     // 工業化に伴うインフラ敷設（鉄道）＝建設に比例して消費。資本財段（機関車→蒸気機関→機械部品）へ需要が波及し死蔵を解消。
     public int RailGoodId = Catalog.RailId;                   // 線路
     public int LocoGoodId = Catalog.LocomotiveId;                   // 機関車
@@ -2141,8 +2136,8 @@ public sealed class Coefficients
     public double[] MilitaryTier3Rates = [0.04, 0.015];      // 各tier3の消費比率（上位より更に少量＝極少数の決戦兵器）
     public double MilitaryTier3Bonus = 1.2;                  // tier3を満たした時の Power.Military 乗数の最大上乗せ（+120%＝tier2の+60%を圧倒）
     // --- 1934拡張E2（2026-07-19）：空軍装備＝tier3の更なる残余予算で調達する第4tier。財の解禁(onset1.0=1910s)前は生産ゼロ→Fill0＝空の概念ごと不走行＝厳密恒等 ---
-    public int[] MilitaryAirGoods = [Catalog.AirplaneId, Catalog.FighterId, Catalog.ChemicalWeaponId];         // 飛行機（偵察/輸送）・戦闘機・化学兵器
-    public double[] MilitaryAirRates = [0.03, 0.02, 0.02];   // 各空軍財の消費比率（tier3級の少量＝最晩期の高価な装備）
+    public int[] MilitaryAirGoods = [Catalog.MilitaryAircraftId, Catalog.ChemicalWeaponId];         // 飛行機（偵察/輸送）・戦闘機・化学兵器
+    public double[] MilitaryAirRates = [0.05, 0.02];   // 各空軍財の消費比率（tier3級の少量＝最晩期の高価な装備）
     public double AirControlPushWeight = 0.3;                // 制空の押し合い補正＝aPush×(1−これ/2＋これ×AirControl)。制空満点で+15%・劣勢で−15%（偵察・着弾観測）
     public double AirCasualtyWeight = 0.3;                   // 制空劣勢側の戦死増幅＝cas×(1＋これ×(2×(1−AirControl)−1)クランプ正)。優勢側は増えない
     public double WarExhaustionAirRaid = 0.03;               // 空襲の厭戦（封鎖と同型）＝これ×(1−AirControl)×敵AirPower実在ゲート。都市爆撃1917〜

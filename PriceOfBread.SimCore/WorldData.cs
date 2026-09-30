@@ -118,16 +118,16 @@ public static class WorldData
     /// <summary>国際層初期条件のコード定義（真実源の種＝dumpworld で world.json に書き出す。旧 MultiNationSim コンストラクタのリテラルを値据え置きで移設）。順序厳守＝Power.Id は Powers.Count で連番付与されるため配列順が挙動を決める。</summary>
     internal static WorldSetup BootstrapSetup() => new(
         [   // 抽象標的（AddTarget 順）：目玉資源は被りを避ける（史実＋やや誇張）
-            new TargetDto("琉球", 0.1, false, [new ColonyDto("琉球", [25, 17, 20], 0.5)]),
-            new TargetDto("アルタ=カリフォルニア", 0.4, false, [new ColonyDto("アルタ=カリフォルニア", [4, 15, 19, 11], 1.5)]),
-            new TargetDto("ボルネオ", 0.5, false, [new ColonyDto("ボルネオ", [21, 10, 29, 11], 2)]),
-            new TargetDto("マレー", 0.4, false, [new ColonyDto("マレー", [29, 21], 1.5)]),
-            new TargetDto("バルバリ", 0.6, false, [new ColonyDto("アルジェ", [15, 16, 19], 3)]),
-            new TargetDto("アシャンティ", 0.6, true, [new ColonyDto("アシャンティ", [4, 26, 23], 2)]),
-            new TargetDto("ソコト", 0.6, true, [new ColonyDto("ソコト", [17, 19, 24], 3)]),
-            new TargetDto("コンゴ", 0.6, true, [new ColonyDto("コンゴ", [21, 24, 2, 23], 3)]),
-            new TargetDto("南アフリカ", 0.5, false, [new ColonyDto("南アフリカ", [4, 2, 19], 2)]),
-            new TargetDto("パナマ", 0.4, false, [new ColonyDto("パナマ", [11], 1)]),
+            new TargetDto("琉球", 0.1, false, [new ColonyDto("琉球", [Catalog.SugarCaneId, Catalog.DyeId, Catalog.FishId], 0.5)]),
+            new TargetDto("アルタ=カリフォルニア", 0.4, false, [new ColonyDto("アルタ=カリフォルニア", [Catalog.GoldOreId, Catalog.WheatId, Catalog.LivestockId, Catalog.TimberId], 1.5)]),
+            new TargetDto("ボルネオ", 0.5, false, [new ColonyDto("ボルネオ", [Catalog.RawRubberId, Catalog.CrudeOilId, Catalog.SpiceId, Catalog.TimberId], 2)]),
+            new TargetDto("マレー", 0.4, false, [new ColonyDto("マレー", [Catalog.SpiceId, Catalog.RawRubberId], 1.5)]),
+            new TargetDto("バルバリ", 0.6, false, [new ColonyDto("アルジェ", [Catalog.WheatId, Catalog.FruitId, Catalog.LivestockId], 3)]),
+            new TargetDto("アシャンティ", 0.6, true, [new ColonyDto("アシャンティ", [Catalog.GoldOreId, Catalog.CocoaId, Catalog.PalmOilId], 2)]),
+            new TargetDto("ソコト", 0.6, true, [new ColonyDto("ソコト", [Catalog.DyeId, Catalog.LivestockId, Catalog.IvoryId], 3)]),
+            new TargetDto("コンゴ", 0.6, true, [new ColonyDto("コンゴ", [Catalog.RawRubberId, Catalog.IvoryId, Catalog.CopperOreId, Catalog.PalmOilId], 3)]),
+            new TargetDto("南アフリカ", 0.5, false, [new ColonyDto("南アフリカ", [Catalog.GoldOreId, Catalog.CopperOreId, Catalog.LivestockId], 2)]),
+            new TargetDto("パナマ", 0.4, false, [new ColonyDto("パナマ", [Catalog.TimberId], 1)]),
         ],
         [   // 初期史実ライバルの緊張（SeedRivalries 順）
             new RivalryDto("フランス", "イギリス", 50),

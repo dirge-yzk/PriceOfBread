@@ -12,7 +12,7 @@ namespace PriceOfBread.Tests;
 /// ★分子と分母は <see cref="World.FactoryCounter"/> の一巡から作る＝別の集合・別の式を持たない。</summary>
 public class FactoryCounterTests
 {
-    private const int Steel = 32;
+    private const int Steel = Catalog.SteelId;
 
     // StateFactoryTests と同じ前提（国費で重工業を建てる絶対王政＝厚い国庫）
     private static Simulation Warm(ulong seed)

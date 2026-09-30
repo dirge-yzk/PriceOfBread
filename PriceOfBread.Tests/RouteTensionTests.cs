@@ -35,6 +35,10 @@ public class RouteTensionTests
         c.ActionTensionStep = 0;   // ★2026-09-28 回8-1：AI の挑発も同じ動詞＝ならしが毎月動く（旧＝押した瞬間に入り切った）＝緊張の操作も黙らせる
         sim.StartWarmup();     // 扼者の解決（StepCanals）は助走中も通る
         sim.StepQuarter();     // 海盆プレゼンスの同期を最低1回通す（取扱高ゼロ＝港海盆の均等フォールバック）
+        // ★2026-09-30 段1（財の削減）：開幕の四半期の露の港の取扱高（どの港に成約が立つか）は財の構成と助走の軌道の偶然＝
+        //   旧は黒海の港（ロストフ）に小さな取扱高が偶然立っていた（財を畳むと成約はバルト海の港へ寄り、黒海の依存度が0になる）。
+        //   この番人が測るのは「依存度に比例した緊張」の式＝依存度は手で置く（露の港の取扱高を黒海の港だけに1）。
+        foreach (var r in sim.Nations[0].World.Regions) if (r.IsPort) r.LastPortThroughput = r.SeaBasin == Basin.BlackSea ? 1.0 : 0.0;
         var ru = sim.Nations[0].World.SelfPower!;
         var ot = sim.Nations[1].World.SelfPower!;
         var bosporus = sim.Diplomacy.Chokepoints.Find(x => x.Id == "bosporus")!;

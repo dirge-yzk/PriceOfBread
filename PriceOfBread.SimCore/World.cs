@@ -1678,13 +1678,6 @@ public sealed class World
         double conMonths = Math.Max(1.0, fs.Quarters * (double)Calendar.MonthsPerQuarter);
         double u = c.FactoryMaterialFrac * fs.Cost / conMonths / cpuRef * c.FactoryBuildProgress(cpuNow, cpuRef, r.PriceLevel);   // AccumulateFactoryBuild の u と同じ式
         double material = u * cpuNow;
-        // 素材階層+α（FactoryTierMachinePerDepth・live）＝深い工場ほど機械を余計に食い、国庫が同じ台帳で払う＝安全弁も同じ量を数える（レビュー是正2026-09-07）。
-        //   ⚠cpuRef には入れない（u を縮めない）＝AccumulateFactoryBuild と同じ規則・同じガード。
-        if (c.FactoryTierMachinePerDepth > 1e-12 && p.GoodId >= 0 && p.GoodId < Catalog.Complexity.Length)
-        {
-            double tierQty = c.FactoryTierMachinePerDepth * Math.Max(0.0, Catalog.Complexity[p.GoodId] - 1.0);
-            if (tierQty > 1e-9) material += tierQty * u * Math.Max(r.Markets[c.MachineGoodId].Price, 0.0);
-        }
         return material;
     }
     /// <param name="days">★旬次（2026-09-30 高速化の段 S3c・近似）：この1回で進める日数 h（旬の初日に呼ぶ）。棟ごとに働く日数 n＝min(h, 完成までの日数)
@@ -1716,8 +1709,6 @@ public sealed class World
             double buildAfford = 1.0;
             if (hasConsMarkets && Coef.SteelGoodId < r.Markets.Length && Coef.MachineGoodId < r.Markets.Length && Coef.CementGoodId < r.Markets.Length && Coef.LumberGoodId < r.Markets.Length)
             {
-                // ⚠素材階層+α（FactoryTierMachinePerDepth）はこの進捗ゲートに**意図的に入れない**＝機械高騰で工事が止まらない fail-open
-                //   （「サプライを考える負担を作らない」ユーザー裁定2026-08-09。+αの支払いは EconomyStep の決済側で市場価格に従う）。
                 double cpuNow = Coef.ConsSteel * r.Markets[Coef.SteelGoodId].Price + Coef.ConsMachine * r.Markets[Coef.MachineGoodId].Price
                               + Coef.ConsCement * r.Markets[Coef.CementGoodId].Price + Coef.ConsLumber * r.Markets[Coef.LumberGoodId].Price;
                 buildAfford = Coef.FactoryBuildProgress(cpuNow, cpuRef, r.PriceLevel);   // ★裁定②＝FactoryBuildPriceGateScale で混合（1＝恒等・0＝価格を見ずに進む）
@@ -1762,8 +1753,6 @@ public sealed class World
     /// 高騰時に国庫を注いでも、買える単位は増えず価格だけ上がる（実測＝英の鋼が在庫0・参照の約4倍で常態化）。</summary>
     public static double ConstructionAfford(World w)
     {
-        // ⚠素材階層+α（FactoryTierMachinePerDepth）はこの着工ゲートに**意図的に入れない**＝機械高騰で着工が止まらない fail-open
-        //   （「サプライを考える負担を作らない」ユーザー裁定2026-08-09。深さ別に閾値を変えると財ごとの着工可否表が要る＝負担そのもの）。
         var r = w.Region;
         var c = w.Coef;
         int sg = c.SteelGoodId, mg = c.MachineGoodId, cg = c.CementGoodId, lg = c.LumberGoodId;

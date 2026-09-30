@@ -27,7 +27,7 @@ public class NutritionTests
         // ⚠絶対比較（ON vs OFF）は物差し違い＝ONは主食BaseNeedの×0.8再配分（総食料の中立化）で基準量ごと縮むため、
         //   交差の増分が隠れる（初版で実測 OFF1071.6/ON1041.9）。ギッフェンの証拠は**肉の価格だけを動かした双子**で見る：
         //   同じゲートの2世界で肉高騰側だけパンの需要が増えるか（ゲート0では肉→パンの経路が無い＝不変が対照）。
-        const int bread = 62, meat = 63;
+        const int bread = Catalog.BreadId, meat = Catalog.PreservedMeatId;
         static (double breadD, double meatD) Probe(double gate, bool meatSpike)
         {
             var sim = new Simulation(NationConfig.France().ToScenario(41), new NullAgent());
@@ -57,7 +57,7 @@ public class NutritionTests
         off.Run(20); on.Run(20);
         off.World.Coef.StapleElasticityZero = 0;    // ★2026-08-31点火（既定1.0）：OFF側を明示ピン＝明示しないと対照の番人が空洞化する
         on.World.Coef.StapleElasticityZero = 1.0;
-        const int bread = 62;
+        const int bread = Catalog.BreadId;
         foreach (var sim in new[] { off, on })
         {
             var r = sim.World.Region;
