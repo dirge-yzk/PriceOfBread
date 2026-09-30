@@ -365,7 +365,7 @@ public sealed class Pop
     ///   中核民族の割合は <paramref name="coreAtDest"/>＝受け手の国での移る組の値（越境＝受入国の中核民族ではない＝0）。旧の旗（MigrationCarriesHumanCapital・MigrantCarriesConsciousness）は焼き込み。
     /// ⚠[0,1] の量は否定形のクランプ（NaN は0の側）。戻り値＝動いた人数。</summary>
     internal static double Blend(Pop from, Pop to, double n, bool draft = false, double femaleAccess = double.NaN, double literacy = double.NaN,
-                                 double coreAtDest = double.NaN, bool money = true, double draftLo = 16, double draftHi = 60)
+                                 double coreAtDest = double.NaN, bool money = true, double draftLo = 20, double draftHi = 40)
     {
         if (!(n > 1e-12) || !(from.Size > 1e-12) || ReferenceEquals(from, to)) return 0;
         if (n > from.Size) n = from.Size;

@@ -1160,18 +1160,18 @@ public sealed class World
         double realSanit = PoliticalQuantities.Clamp01(wr.InfraFill + c.SoapSanitationWeight * wr.SoapFill + c.ElecInfraSanitationWeight * wr.ElecInfraFill);
         double sanitDev = (1.0 - c.EpidemicSanitationWeight) * oldDev + c.EpidemicSanitationWeight * realSanit;
         double deathFrac = c.EpidemicSeverity * (1.0 - SanitationMortalityReduction * sanitDev) * jitter * scale;
-        // 死亡配分（epidemic-uniform-age-class-mortality）：総死者＝致死率×州の人口を脆弱層（乳幼児/老年/食料不足）へ集中＝重み 規模×(1＋これ×(子供比＋老年比＋(1−主食の充足)))。
-        //   EpidemicVulnConcentration=0 で重み＝規模＝全階級一律。記帳（人口の台帳・粗死亡の計器・年齢の層の運搬）は死の記帳の1本（KillPops・段4e J）。
-        //   ★年齢の層（2026-09-30 段4e 後半）：子供比＝16歳未満・老年比＝60歳以上を年齢の層から読む（旧の子供比・老年比と同じ意味）。POP の中は災害死の年齢の重み（0〜9 と 60以上）。
-        //   ⚠同じ年齢の脆弱さを POP の間と POP の中で2度読む（思想⑨の疑い・(134) の申し送り4）＝1本にする読み替えは 4e-2b（差し戻し＝申し送り）。
+        // 死亡配分（epidemic-uniform-age-class-mortality）：総死者＝致死率×州の人口を脆弱な人へ集中。記帳（人口の台帳・粗死亡の計器・年齢の層の運搬）は死の記帳の1本（KillPops・段4e J）。
+        // ★年齢の脆弱さは1本（2026-09-30 段4e 後半・設計書 §2-4）＝1人あたりの重み (1＋飢え)×(年齢の重み)：POP の間は 規模×(1＋EpidemicVulnConcentration×(1−主食の充足))×Σ層の割合×年齢の重み、
+        //   POP の中は年齢の重み（0〜9 と 60以上に (1＋DisasterAgeMortalityExcess)）。旧＝POP の間の重みが子供比＋老年比を読み、POP の中の年齢の運搬も同じ脆弱さを読んだ＝2度（思想⑨）。
+        var aw = new double[2 * Pop.AgeBands];
+        Pop.DisasterWeights(aw, c.DisasterAgeMortalityExcess);
         var pops = wr.Pops; var wts = new List<double>(pops.Count); double totalD = 0;
         foreach (var p in pops)
         {
             totalD += p.Size * deathFrac;
-            wts.Add(p.Size * (1.0 + c.EpidemicVulnConcentration * (p.AgeShare(0, 16) + p.AgeShare(60, double.PositiveInfinity) + (1.0 - p.FoodFill))));
+            double ageW = 0; for (int k = 0; k < aw.Length; k++) ageW += p.Ages[k] * aw[k];
+            wts.Add(p.Size * (1.0 + c.EpidemicVulnConcentration * (1.0 - p.FoodFill)) * ageW);
         }
-        var aw = new double[2 * Pop.AgeBands];
-        Pop.DisasterWeights(aw, c.DisasterAgeMortalityExcess);
         return KillPops(pops, wts, totalD, violent: false, aw);
     }
 

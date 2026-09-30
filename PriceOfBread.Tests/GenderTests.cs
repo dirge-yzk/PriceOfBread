@@ -187,13 +187,13 @@ public class AgeStructureTests
         for (int k = 0; k < 16; k++) Assert.Equal(s0[k], from.Ages[k]);   // 1ビットも動かない
         fc = Counts(from); tc = Counts(to);
         for (int k = 0; k < 16; k++) Assert.Equal(sum0[k], fc[k] + tc[k], 9);
-        // 徴兵＝男だけ・移る組は男の [draftLo, draftHi)（ここでは 20〜39）＝兵士に女と0〜19 と 40以上は入らず・送り手の女性の人数は動かない
+        // 徴兵＝男だけ・移る組は徴兵の年齢の男（20〜39）＝兵士に女と0〜19 と 40以上は入らず・送り手の女性の人数は動かない
         var soldier = new Pop { Size = 50, IsSoldier = true, Ages = Pop.SoldierAges() };
         double femFrom0 = 0; fc = Counts(from); for (int b = 0; b < 8; b++) femFrom0 += fc[2 * b + 1];
-        Pop.Blend(from, soldier, 60, draft: true, draftLo: 20, draftHi: 40);
+        Pop.Blend(from, soldier, 60, draft: true);
         for (int b = 0; b < 8; b++) Assert.Equal(0.0, soldier.Ages[2 * b + 1]);
         Assert.Equal(0.0, soldier.AgeShare(0, 20) + soldier.AgeShare(40, double.PositiveInfinity));
-        // 範囲を広げれば広げた層から（49歳まで）
+        // 皆兵＝池を男49歳まで広げる（Military.DraftAgeHi）
         var reserve = new Pop { Size = 1, IsSoldier = true, Ages = Pop.SoldierAges() };
         Pop.Blend(from, reserve, 60, draft: true, draftHi: 50);
         Assert.True(reserve.AgeShare(40, 50, 0) > 0.1 && reserve.AgeShare(50, double.PositiveInfinity) == 0);
@@ -222,6 +222,20 @@ public class AgeStructureTests
     }
 
     [Fact]
+    public void 読み手の起点合わせは標準のピラミッドで旧の値を保つ()
+    {
+        var c = new Coefficients();
+        var p = new Pop { Size = 1000 };
+        // 兵役の母数＝徴募元の男20〜39 を標準の構成の人数へ換算＝標準の POP は規模そのもの（1783年の兵数は旧と同じ）
+        Assert.Equal(1000.0, Military.RecruitMen(p), 9);
+        // 男手が抜けた村は母数も細る（空洞の年次）
+        var q = new Pop { Size = 1000 }; q.Ages[4] = 0; q.Ages[6] = 0; double s = 0; foreach (var x in q.Ages) s += x; for (int k = 0; k < 16; k++) q.Ages[k] /= s;
+        Assert.True(Military.RecruitMen(q) < 1.0, $"男20〜39 がいない POP の兵役の母数が残る（{Military.RecruitMen(q):F3}）");
+        // 教育の必要量＝学齢（5〜14歳）×EduPerChild＝人口あたり0.06（旧＝子供比0.3×0.2）
+        Assert.Equal(0.06, c.EduPerChild * p.AgeShare(5, 15), 12);
+    }
+
+    [Fact]
     public void 年金の利害は標準のピラミッドより老いた分だけ()   // 設計書 §4-1「PensionOldWeight を標準の値で割り直す」＝起点合わせ
     {
         var w = new Simulation(NationConfig.Britain().ToScenario(67), new NullAgent()).World;
@@ -236,6 +250,46 @@ public class AgeStructureTests
         foreach (var q in w.AllPops()) if (!q.IsSoldier) q.Ages = [0.1, 0.1, 0.08, 0.08, 0.07, 0.07, 0.06, 0.06, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.04, 0.04];   // 60歳以上 18%
         var aged = PolicyPreferences.Stance(w, PolicyAxis.SocialSecurity, true);
         Assert.Equal(off.Mass + k * (0.18 - Pop.StdShare(60, double.PositiveInfinity)), aged.Mass, 9);   // 老いた分だけ年金を推す
+    }
+
+    [Fact]
+    public void 将校の戦死は貴族の男20から49歳から()
+    {
+        var w = new Simulation(NationConfig.Britain().ToScenario(67), new NullAgent()).World;
+        var nob = new Pop { Size = 1000, Closed = true };
+        double fem0 = nob.AgeShare(0, double.PositiveInfinity, 1) * nob.Size, kids0 = nob.AgeShare(0, 20) * nob.Size, men0 = nob.AgeShare(20, 50, 0) * nob.Size;
+        var ow = (double[])typeof(Diplomacy).GetField("OfficerAgeWeights", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!.GetValue(null)!;
+        double dead = w.KillPops([nob], null, 30, violent: true, ow);
+        Assert.Equal(30.0, dead, 9);
+        Assert.Equal(fem0, nob.AgeShare(0, double.PositiveInfinity, 1) * nob.Size, 9);   // 女性は死なない
+        Assert.Equal(kids0, nob.AgeShare(0, 20) * nob.Size, 9);                         // 子供も死なない
+        Assert.Equal(men0 - 30.0, nob.AgeShare(20, 50, 0) * nob.Size, 9);
+    }
+
+    /// <summary>★(142) 4e-2b・思想⑨：疫病の年齢の脆弱さは1本＝主食の充足が同じ POP の間では、年齢の層ごとの1人あたりの死の率が同じ
+    /// （POP の間の重み＝規模×(1＋EpidemicVulnConcentration×飢え)×Σ層の割合×年齢の重み・POP の中＝同じ年齢の重み DisasterWeights）。
+    /// 旧＝POP の間の重みが子供比＋老年比も読み、POP の中の年齢の重みと同じ脆弱さを2度読んだ＝子供の多い POP の子供は標準の POP の子供より多く死んだ。
+    /// ⚠突然変異「POP の間の重みに子供比＋老年比を戻す」で赤。</summary>
+    [Fact]
+    public void 疫病の死は年齢の脆弱さを1度だけ読む()
+    {
+        var w = new Simulation(NationConfig.Britain().ToScenario(67), new NullAgent()).World;
+        var a = new Pop { Size = 1000 };   // 標準のピラミッド
+        var b = new Pop { Size = 1000 };   // 子供の多い POP（0〜9 の層を3倍）
+        b.Ages[0] *= 3; b.Ages[1] *= 3; double s = 0; foreach (var x in b.Ages) s += x; for (int k = 0; k < 16; k++) b.Ages[k] /= s;
+        a.FoodNeed = b.FoodNeed = 1; a.FoodMet = b.FoodMet = 0.7;   // 同じ主食の充足
+        var r = new Region { Pops = [a, b] };
+        double[] na = new double[16], nb = new double[16];
+        for (int k = 0; k < 16; k++) { na[k] = a.Ages[k] * a.Size; nb[k] = b.Ages[k] * b.Size; }
+        var m = typeof(World).GetMethod("ApplyEpidemicDeaths", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!;
+        double dead = (double)m.Invoke(w, [r, w.Coef, 1.0, 1.0])!;
+        Assert.True(dead > 1, $"前提が崩れた：死者 {dead}");
+        for (int k = 0; k < 16; k++)
+        {
+            double ra = (na[k] - a.Ages[k] * a.Size) / na[k], rb = (nb[k] - b.Ages[k] * b.Size) / nb[k];
+            Assert.True(ra > 0, $"前提が崩れた：層 {k} で死がない");
+            Assert.True(Math.Abs(ra - rb) <= 1e-9 * ra, $"層 {k} の1人あたりの死の率が POP で違う（標準 {ra:G6}・子供の多い POP {rb:G6}）＝年齢の脆弱さを2度読んでいる");
+        }
     }
 
     [Fact]
@@ -285,13 +339,13 @@ public class AgeStructureTests
     {
         var sim = new Simulation(NationConfig.Russia().ToScenario(61), new NullAgent());   // 大陸軍＝重い徴兵
         sim.Run(40);   // 10年（毎月の CheckInvariants が合計1と非負を見る）
-        double kids = 0, tot = 0, sold60 = 0;
+        double kids = 0, tot = 0, sold40 = 0;
         foreach (var p in sim.World.AllPops())
         {
-            if (p.IsSoldier) { for (int b = 0; b < 8; b++) Assert.Equal(0.0, p.Ages[2 * b + 1]); Assert.Equal(0.0, p.AgeShare(0, 10)); sold60 += p.AgeShare(60, double.PositiveInfinity) * p.Size; }
+            if (p.IsSoldier) { for (int b = 0; b < 8; b++) Assert.Equal(0.0, p.Ages[2 * b + 1]); Assert.Equal(0.0, p.AgeShare(0, 20)); sold40 += p.AgeShare(40, double.PositiveInfinity) * p.Size; }
             kids += p.AgeShare(0, 15) * p.Size; tot += p.Size;
         }
         Assert.InRange(kids / tot, 0.2, 0.5);
-        Assert.True(sold60 > 0, "兵士が年を取らない（徴兵は男16〜59 だけ＝60歳以上は加齢でしか入らない）");
+        Assert.True(sold40 > 0, "兵士が年を取らない（徴兵は男20〜39 だけ＝40歳以上は加齢でしか入らない）");
     }
 }

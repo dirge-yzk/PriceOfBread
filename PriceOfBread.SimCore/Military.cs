@@ -57,7 +57,7 @@ public static class Military
     /// <summary>扶養限界（作者設計2026-08-08）＝この国が経済に悪影響なく養える兵数。
     /// 経済側＝持続可能な軍事支出（歳入×SustainMilShare）÷ 兵1人あたり月次コスト（給与＝徴募プールの前月の働き盛り1人あたりの賃金×SoldierPayMult＝<see cref="RecruitWage"/> と同じ規則
     /// ＋装備＝MilitaryUpkeepScale×Σ(rate×RefPrice)＝**参照価格建て**＝市場価格の循環を避ける・S4欠陥の教訓）。
-    /// 人口側＝徴募可能人口（兵士POPを持つ州の農民+労働者+兵士）×MaxSoldierFraction。
+    /// 人口側＝徴募可能人口（兵士POPを持つ州の農民+労働者の男20〜39歳を標準の構成の人数に換算＋兵士も同じ換算＝<see cref="RecruitMen"/>・2026-09-30 段4e 後半・兵士の項は (144)）×MaxSoldierFraction。
     /// min が国ごとのボトルネックを選ぶ＝露は経済・英は人口（作者の設計意図どおり式から出る）。
     /// ⚠錨は歳入・人口・参照価格＝ゆっくりしか動かない量のみ（相手の兵数・充足率を読まない＝軍拡ループを閉じない）。</summary>
     public static double SustainLimitOf(World w, Coefficients c, out double natManpower)
@@ -72,7 +72,7 @@ public static class Military
             {
                 if (p.IsSoldier) sld = p;
                 else if (p.ClassId == c.SoldierRecruitClassA || p.ClassId == c.SoldierRecruitClassB)
-                { pa += p.ClassId == c.SoldierRecruitClassA ? p.Size : 0; pb += p.ClassId == c.SoldierRecruitClassB ? p.Size : 0; pe += Math.Max(0, p.LastEarned); ps += WorkingAdults(p); }
+                { pa += p.ClassId == c.SoldierRecruitClassA ? RecruitMen(p) : 0; pb += p.ClassId == c.SoldierRecruitClassB ? RecruitMen(p) : 0; pe += Math.Max(0, p.LastEarned); ps += WorkingAdults(p); }   // 兵役の母数＝徴募元の男20〜39歳（標準の構成の人数に換算・段4e 後半）・賃金の分母＝働き盛り（(140)）
             }
             // ★N4 徴兵の州別化（国民意識doc・2026-08-13）：**国民意識の無い州からは兵が出ない。**
             //   ⚠旧＝兵士POPを持つ活動州の頭数をそのまま足していた＝多民族帝国の周辺州も中核州と同率で徴募できた。
@@ -87,7 +87,7 @@ public static class Military
                     double avgNc = Politics.AvgRegionConsciousness(r, none: 1.0);   // 1つも捕捉されていない＝機構が休眠＝割引なし（州の国民意識の1本）
                     share = Math.Max(0, 1.0 - c.ConscriptConsciousnessWeight * (1.0 - avgNc));
                 }
-                natManpower += (pa + pb + sld.Size) * share; poolEarn += pe; poolSize += ps;
+                natManpower += (pa + pb + RecruitMen(sld)) * share; poolEarn += pe; poolSize += ps;   // ★(144) 兵士の項も徴募元と同じ単位（RecruitMen）＝徴兵と復員で母数が動かない
             }
         }
         double manLimit = c.MaxSoldierFraction * natManpower;
@@ -101,7 +101,8 @@ public static class Military
     }
 
     /// <summary>兵1人の機会費用の分母＝働き盛り（16〜59歳・男女）の人数。兵は働き盛りの男の1人＝世帯の頭数（子供と老人を含む）で割った所得で払うと
-    /// 分子（大人1人）と分母（世帯の頭数）が非対称＝兵の給与が民間の大人の賃金の約半分になる（2026-09-30 (140)）。窓は徴兵が抜く範囲（<see cref="MoveCohort"/> の 16〜60）と同じ。</summary>
+    /// 分子（大人1人）と分母（世帯の頭数）が非対称＝兵の給与が民間の大人の賃金の約半分になる（2026-09-30 (140)）。窓は (140) の時点の徴兵の範囲（16〜60）。
+    /// ⚠(142)（4e-2b）で徴兵は男20〜39／皆兵49 へ狭めた＝この窓（働き盛りの男女）とはもう一致しない＝分母を労働供給の人数にそろえるかは兵の単位の回で決める（(144) 注記・反証の指摘）。</summary>
     internal static double WorkingAdults(Pop p) => p.Size * p.AgeShare(16, 60);
 
     /// <summary>★州の兵1人の月給の請求の単価＝徴募の母数（農民・都市労働者）の前月の所得÷働き盛りの人数×SoldierPayMult の手前（2026-09-30 (140)）。
@@ -176,8 +177,12 @@ public static class Military
             }
             if (soldier == null) continue;
 
-            double poolSize = (poolA?.Size ?? 0) + (poolB?.Size ?? 0);
-            double manpower = (poolSize + soldier.Size) * Politics.RuleDelivery(r, c, c.RuleSharesTaxBase);   // 兵役の母数＝農民＋都市労働者＋現兵士（エリートは除く）。★支配度 段3：徴兵ベース＝国家区分＋在地区分×村請け率（RuleSharesTaxBase=0 で ×1＝恒等）
+            // ★年齢の層（2026-09-30 段4e 後半・設計書 §4-1）：兵役の母数＝徴募元の男20〜39歳を標準のピラミッドの人数に換算（÷標準の割合 0.145＝1783年の兵数は旧と同じ）＋現兵士（同じ換算）。
+            //   ★(144) 合流（反証の指摘＝分子と分母の非対称）：旧の段4e 後半は現兵士を頭数のまま足した＝男を1人徴兵すると徴募元の項が 1÷0.145≈6.9 減り兵士の項は1しか増えず、
+            //   母数が徴兵のたびに細った（t=0 から旧の約0.94倍・戦時の定常は兵÷男20〜39≈0.48＝率÷0.145 の 0.83 より約4割小さい）。兵士も RecruitMen（男20〜39÷標準の割合）で数える
+            //   ＝徴兵（男20〜39）でも皆兵の40〜49歳の徴兵でも復員でも母数は動かない（旧の頭数どうしの和と同じ性質）。
+            //   旧＝徴募元の全人数（女性・子供・老年を含む）。男手が徴兵と戦死で細ると母数も細る（空洞の年次）。
+            double manpower = (RecruitMen(poolA) + RecruitMen(poolB) + RecruitMen(soldier)) * Politics.RuleDelivery(r, c, c.RuleSharesTaxBase);   // 兵役の母数＝農民＋都市労働者＋現兵士（エリートは除く）。★支配度 段3：徴兵ベース＝国家区分＋在地区分×村請け率（RuleSharesTaxBase=0 で ×1＝恒等）
 
             // ※給与は「兵力」（役務財）の調達に移行：兵士が兵力を算出し国家が買う（EconomyStep・国庫→兵士で保存）。
             //   兵力財を持たない簡易世界（SoldierPopIndex<0）では給与なし＝従来の充足ベース挙動のみ。
@@ -207,7 +212,7 @@ public static class Military
             // ★支配度doc §15（2026-09-06 追記裁定・器2026-09-07）：平時の常備軍の徴募でも、植民地格または在地区分が国家区分を上回る州から引いた分は遺恨を積む
             //   （英印軍・セネガル狙撃兵＝平時の徴募が本国軍と同じ規則で恨まれないのが誤り）。PeacetimeConscriptGrievance＝遺恨率の倍率（0＝旧＝厳密恒等）。
             bool peacetimeColonial = c.PeacetimeConscriptGrievance > 0 && !wartimeConscript && (r.Tier == RegionTier.Colonial || (r.Rule.Length == 4 && r.Rule[1] > r.Rule[0]));
-            if (delta > 0) DrawFromPool(soldier, poolA, poolB, delta, c, wartimeConscript || peacetimeColonial, peacetimeColonial ? c.PeacetimeConscriptGrievance : 1.0);    // 徴募（プール→兵士）＝規模比例。遺恨は wartimeConscript＝徴兵法≥選抜の戦時だけ（★M1 2026-09-19：2026-08-31の「総動員なら志願制でも発火」を覆す＝志願兵制は総動員しても強制徴募されない＝遺恨も立たない。番人テスト MilitaryTests で固定）
+            if (delta > 0) DrawFromPool(soldier, poolA, poolB, delta, c, wartimeConscript || peacetimeColonial, peacetimeColonial ? c.PeacetimeConscriptGrievance : 1.0, DraftAgeHi(w));    // 徴募（プール→兵士）＝規模比例。遺恨は wartimeConscript＝徴兵法≥選抜の戦時だけ（★M1 2026-09-19：2026-08-31の「総動員なら志願制でも発火」を覆す＝志願兵制は総動員しても強制徴募されない＝遺恨も立たない。番人テスト MilitaryTests で固定）
             else DischargeToPool(soldier, poolA, poolB, -delta, c);          // 離職/復員（兵士→プール）
         }
 
@@ -267,15 +272,15 @@ public static class Military
     // 徴募：プール（農民＋労働者）→兵士。規模に比例して引き抜く（1ヶ月にプールの半分まで）。
     // 戦時の強制徴兵（徴兵法≥選抜の国。総動員はその深さを上げる）は取られた家の不満を積む（徴兵率×ConscriptGrievanceRate。志願募兵は総動員中でも積まない＝M1）＝E5徴兵法の一般効果。
     // 供給源の選別（POP動詞③=均等/農民/貴族士官…）は2026-07-21ユーザー指示で撤去済み・この遺恨のみ残置（供給源に依らず戦時徴兵で発火）。
-    private static void DrawFromPool(Pop soldier, Pop? a, Pop? b, double amount, Coefficients c, bool conscription, double grievanceScale = 1.0)
+    private static void DrawFromPool(Pop soldier, Pop? a, Pop? b, double amount, Coefficients c, bool conscription, double grievanceScale, double draftHi)
     {
         double sa = a?.Size ?? 0, sb = b?.Size ?? 0, pool = sa + sb;
         if (pool < 1e-9) return;
         amount = Math.Min(amount, pool * 0.5);
         // Min クランプは amount≤pool/2 ゆえ商は常に sa/2 未満＝不発（比例で厳密に引き抜く）。
         double da = Math.Min(amount * (sa / pool), sa), db = Math.Min(amount * (sb / pool), sb);
-        MoveCohort(a, soldier, da, c);
-        MoveCohort(b, soldier, db, c);
+        MoveCohort(a, soldier, da, c, draftHi);
+        MoveCohort(b, soldier, db, c, draftHi);
         if (conscription && c.ConscriptGrievanceRate > 0)
         {
             if (a is not null && sa > 1e-9 && da > 1e-12) a.Militancy = Math.Min(1, a.Militancy + c.ConscriptGrievanceRate * grievanceScale * (da / sa));
@@ -298,21 +303,30 @@ public static class Military
 
     /// <summary>階級間の人の移動（徴兵・復員・通常＝規模・属性・貯蓄と債務と国債の保有を運ぶ＝国内移籍で総人口・総マネー保存）。setup と徴募で共用。
     /// ★2026-09-30 処理の一元化 段4e I：本体は人の移し方の1本 <see cref="Pop.Blend"/>（旧の3枝＝徴兵・復員・通常の混ぜ方の写しを畳んだ）。
-    /// 徴兵＝**成人の男**（老年でない）だけが抜ける（動けるのは働き盛りの男の数まで・<see cref="Pop.Blend"/> の draft）＝残る集団の女性比・子供比・老年比が上がる＝男手の消えた村。
-    /// 復員＝兵士 POP の構成（成人の男）のまま戻る＝受け手の女性比・子供比・老年比が下がる（通常の混ぜ方と同じ式＝女性比は成人数で）。</summary>
-    public static void MoveCohort(Pop? from, Pop? to, double amount, Coefficients c)
+    /// 徴兵＝**徴兵の年齢の男**（20〜<paramref name="draftHi"/> 歳・<see cref="DraftAgeHi"/>）だけが抜ける（動けるのはその年齢の男の数まで・<see cref="Pop.Blend"/> の draft）
+    /// ＝残る集団の女性・子供・老年の割合が上がる＝男手の消えた村。
+    /// 復員＝兵士 POP の構成（年を取った男）のまま戻る（兵士も年を取る＝長い軍務の後は年上の男が戻る）。</summary>
+    public static void MoveCohort(Pop? from, Pop? to, double amount, Coefficients c, double draftHi = 40)
     {
         if (from == null || to == null || amount < 1e-12 || from.Size < 1e-12) return;
         amount = Math.Min(amount, from.Size);
         bool draft = to.IsSoldier && !from.IsSoldier;
         if (draft)
         {
-            // 他13（監査2026-07-11・2026-07-25休眠配線・2026-07-27 点火）：上限は働き盛りの男（成人−老年）＝老年は徴兵されない。旧の既定0は成人の男（老年込み）。
-            // ★年齢の層（2026-09-30 段4e 後半）：働き盛りの男＝16〜59歳の男（旧の成人−老年×男の割合と同じ意味）を年齢の層から読む。移る組も同じ範囲（Blend の draft）。
-            double draftHi = c.ConscriptExcludeOldMales > 0 ? 60 : double.PositiveInfinity;
-            amount = Math.Min(amount, from.Size * from.AgeShare(16, draftHi, 0));
+            // ★年齢の層（2026-09-30 段4e 後半・推奨で採択＝作者の恒久指示 2026-09-29・設計書 §9 の Q9〔(144) 訂正〕）：上限は徴兵の年齢の男＝男20〜39歳（選抜・志願）／男20〜49歳（皆兵）。
+            //   旧＝成人（16歳以上）−老年（60歳以上）の男（旗 ConscriptExcludeOldMales）。
+            amount = Math.Min(amount, from.Size * from.AgeShare(20, draftHi, 0));
             if (amount < 1e-12) return;
         }
-        Pop.Blend(from, to, amount, draft: draft, draftLo: 16, draftHi: c.ConscriptExcludeOldMales > 0 ? 60 : double.PositiveInfinity);
+        Pop.Blend(from, to, amount, draft: draft, draftLo: 20, draftHi: draftHi);
     }
+
+    /// <summary>★徴兵の年齢の上の端（2026-09-30 段4e 後半・推奨で採択＝作者の恒久指示 2026-09-29・設計書 §9 の Q9〔(144) 訂正〕）＝選抜・志願は男20〜39歳・皆兵は男20〜49歳（予備役まで＝池を広げる）。
+    /// ⚠皆兵の倍率 UniversalConscriptionFactor の削除（物理の池が倍率を置き換える）は別の腕（1つの腕に1つの変更＝申し送り）。</summary>
+    internal static double DraftAgeHi(World w) => w.ConscriptionLaw == ConscriptionLaw.Universal ? 50 : 40;
+
+    /// <summary>★兵役の母数の1本（2026-09-30 段4e 後半・設計書 §4-1）＝POP の男20〜39歳を標準のピラミッドの人数に換算（規模×男20〜39の割合÷標準の割合 0.145）
+    /// ＝MaxSoldierFraction・徴兵の率の4本は「標準の構成の人口あたり」のまま（1783年の兵数は旧と同じ）。読み手＝兵の目標（Step）・扶養限界（SustainLimitOf）・画面と診断の写し。
+    /// ★(144)：現兵士の項も同じ換算（徴募元と兵士が同じ単位＝徴兵と復員で母数が動かない・番人 MilitaryTests）。</summary>
+    internal static double RecruitMen(Pop? p) => p is null ? 0 : p.Size * p.AgeShare(20, 40, 0) / Pop.StdShare(20, 40, 0);
 }

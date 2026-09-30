@@ -2305,14 +2305,13 @@ public sealed class Simulation
     // 人5（徴兵で出生が増える符号逆転の解消）：素の女性プール（∝女性）は、成人男性だけ抜く徴兵で残留popの女性比率が上がると出生配分が「増える」＝史実（夫不在で出生急減）と逆。
     // CoupleLimitedBirths=0 で女性の数に比例・1で「カップル律速」＝少数側の性 min(女,男)×2 に律速。
     // 徴兵で男が抜けると min(女,男) の男側が縮み出生が減る＝カップル（夫婦）が律速資源＝WWI 仏の出生半減を再現。Wave1 の FertileShareFloor（重み膨張の防止）と整合。
-    // ★年齢の層（2026-09-30 段4e 後半）：旧＝成人（16歳以上）のうち老年（60歳以上）でない者×成人の女性比＝年齢の層から同じ意味で読む。
-    internal static double FertilePool(Pop p, Coefficients c)
+    // ★年齢の層（2026-09-30 段4e 後半・設計書 §4-1）：15〜49歳の女×カップル律速（同じ15〜49歳の男との少数側）。旧＝成人（16歳以上）のうち老年（60歳以上）でない者×成人の女性比。
+    //   起点合わせは要らない＝InitialFertileShare（t=0 の各 POP の値）で正規化する。標準の分母（FertileAbsoluteBlend）は標準のピラミッドをこの式に通した値（旧 FertileShareStd）。
+    internal static double FertilePool(Pop p, Coefficients c) => FertilePoolOf(p.Ages, c);
+    private static double FertilePoolOf(double[] ages, Coefficients c)
     {
-        double adult = p.AgeShare(16, 60);
-        double a16 = p.AgeShare(16, double.PositiveInfinity);
-        double female = a16 > 1e-300 ? p.AgeShare(16, double.PositiveInfinity, 1) / a16 : 0.5;
-        double couple = 2.0 * Math.Min(female, 1.0 - female);   // 少数側の性が2人でカップル1組＝律速（男女どちらが不足しても出生↓）
-        return adult * (female + c.CoupleLimitedBirths * (couple - female));
+        double f = Pop.AgeShareOf(ages, 15, 50, 1), m = Pop.AgeShareOf(ages, 15, 50, 0);
+        return f + c.CoupleLimitedBirths * (2.0 * Math.Min(f, m) - f);   // 少数側の性が2人でカップル1組＝律速（男女どちらが不足しても出生↓）
     }
     // ①Phase3：国の出生の**総数**と州の中の階級への配り方の鍵（★2026-10-01 (143) から州への配り方は今の出産可能のプール×規模＝DemographicStep）。false（対照腕）は Size＝従来の粗出生（規模比例）＝厳密に従来挙動。既定 true で女性プール律速。
     // true で「出産可能女性プール」に律速し、各popの t=0 値で正規化＝標準構成（子供0.3・老年0・女性0.5）では Size と恒等＝較正中立。
@@ -2334,7 +2333,7 @@ public sealed class Simulation
         // ゲート0＝下の分岐に入らず w をそのまま返す＝旧popごと凍結分母とビット恒等／1＝(1−b)w+b·wStd で wStd へ厳密に全置換。
         if (c.FertileAbsoluteBlend > 0)
         {
-            double wStd = p.Size * fertile / (c.FertileShareStd * (1.0 + c.CoupleLimitedBirths));
+            double wStd = p.Size * fertile / FertilePoolOf(Pop.StdAgesRef, c);   // 標準のピラミッドの出産可能プール（旧＝FertileShareStd×(1＋CoupleLimitedBirths)＝同じ式の標準の構成）
             w = (1.0 - c.FertileAbsoluteBlend) * w + c.FertileAbsoluteBlend * wStd;
         }
         return w;
@@ -2510,7 +2509,7 @@ public sealed class Simulation
         var mortW = Pop.MortalityWeights(c.CrudeBirthRate);   // ★年齢の層（段4e 後半）：平常の死の年齢の重み（標準のピラミッドが1783年の出生で動かない重み）
         double massPop = 0, massBirthWeight = 0, massBirthKey = 0, massDeathWeight = 0;
         var regions = World.Regions;
-        var regKey = new double[regions.Count];   // ★(143) 州ごとの出産年齢の女性の実数（今の出産可能のプール×規模の和）＝国の出生を州へ配る鍵
+        var regKey = new double[regions.Count];   // ★(143) 州ごとの出産年齢の女性の実数（今の出産可能のプール×規模の和）＝国の出生を州へ配る鍵（プール＝(142) から15〜49歳の女×カップル律速・(143) の測りの時点は16〜59歳×成人の女性比＝(144) 注記）
         var regBW = new double[regions.Count];    //   州ごとの旧の鍵の和＝州の中の階級への配り方（凍結の分母のまま＝9-2）
         for (int ri = 0; ri < regions.Count; ri++)
         foreach (var p in regions[ri].Pops) if (!p.IsSoldier)   // 出生死亡は兵士以外の全階級（貴族・聖職も人口とともに増減。兵士は軍事力学が別途管理）

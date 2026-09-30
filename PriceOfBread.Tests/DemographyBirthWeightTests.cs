@@ -16,7 +16,8 @@ public class DemographyBirthWeightTests
     {
         var c = new Coefficients();
         Assert.Equal(0.0, c.FertileAbsoluteBlend);   // ★2026-08-30 点火→同日差し戻し（幕府転換テスト赤の単独犯・英人口縮小化）＝再点火は出生率再較正とセット
-        Assert.Equal(0.35, c.FertileShareStd);
+        // ★2026-09-30 段4e 後半：標準の分母＝標準のピラミッドの出産可能プール（15〜49歳の女×カップル律速＝男女半々なら15〜49歳の割合 0.4925・旧 FertileShareStd 0.35×2 の置き換え）
+        Assert.Equal(Pop.StdShare(15, 50), Simulation.FertilePool(new Pop(), c), 12);
     }
 
     [Fact]
@@ -95,8 +96,10 @@ public class DemographyBirthWeightTests
     public void 平常の死は年齢の構成で配る_年寄りの多いPOPほど多く死ぬ()
     {
         // ★2026-10-01 (143)：平常の死＝国の平常の死の率×年齢の指数（その POP の年齢の構成で平常の死の年齢の重みを平均した値）×規模。
-        //   盤面＝同じ階級の対（本国の州と不足州の農民・同じ構成）。1か月目は同じ構成で回し、2か月目の前に片方の 20〜29 の男の8割を 50〜59 の男へ移す
-        //   （出産可能のプール＝16〜59歳×成人の女性比は同じ＝出生の取り分は同じ）＝2か月目の1人あたりの増減は年寄りの多い方が小さい（旧＝POP の間は規模に比例＝同じ率）。
+        //   盤面＝同じ階級の対（本国の州と不足州の農民・同じ構成）。1か月目は同じ構成で回し、2か月目の前に片方の 50〜59 の男の8割を 70歳以上の男へ移す
+        //   （出産可能のプール＝15〜49歳の女×カップル律速は同じ＝出生の取り分は同じ）＝2か月目の1人あたりの増減は年寄りの多い方が小さい（旧＝POP の間は規模に比例＝同じ率）。
+        //   ★(144) 合流で盤面だけ直した（主張は同じ）：旧＝20〜29 の男を 50〜59 へ移した＝(142)（4e-2b）で出産可能のプールが 15〜49歳の女×同じ年齢の男とのカップル律速になり、
+        //   男が抜けると出生の取り分が減る＝「出生の取り分は同じ」の前提が崩れた（年寄りの多い方が出生でも減る＝突然変異 M4〔死を規模で配る〕でも緑になりうる）。
         var sim = new Simulation(new Scenario { Seed = 1, Kind = ScenarioKind.RegionalFamine }, new NullAgent());
         var w = sim.World;
         Pop Of(int region) { foreach (var p in w.Regions[region].Pops) if (p.ClassId == 0) return p; throw new System.InvalidOperationException(); }
@@ -104,10 +107,10 @@ public class DemographyBirthWeightTests
         var young = Of(0); var old = Of(1);
         Fed(); sim.DemographicStep();   // 凍結の分母（出生の鍵）を同じ構成で捕まえる
         old.Ages = (double[])young.Ages.Clone();
-        double move = 0.8 * old.Ages[4];
-        old.Ages[4] -= move; old.Ages[10] += move;   // 男の 20〜29 → 50〜59（出産可能のプールと成人の女性比は同じ＝出生の取り分は同じ）
+        double move = 0.8 * old.Ages[10];
+        old.Ages[10] -= move; old.Ages[14] += move;   // 男の 50〜59 → 70歳以上（出産可能のプール〔15〜49歳〕の外どうし＝出生の取り分は同じ）
         var mw = Pop.MortalityWeights(w.Coef.CrudeBirthRate);
-        double gapYear = move * (mw[10] - mw[4]);   // 年齢の重みの差（1人あたり・年）
+        double gapYear = move * (mw[14] - mw[10]);   // 年齢の重みの差（1人あたり・年）
         Fed();
         double y0 = young.Size, o0 = old.Size, d0 = w.DiagDeaths;
         sim.DemographicStep();

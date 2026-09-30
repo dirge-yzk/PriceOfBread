@@ -6504,9 +6504,9 @@ if (args.Length > 0 && args[0] == "natprobe")
             double pa = 0, pb = 0, ss = 0;
             foreach (var pp in r.Pops)
             {
-                if (pp.IsSoldier) ss += pp.Size;
-                else if (pp.ClassId == w.Coef.SoldierRecruitClassA) pa += pp.Size;
-                else if (pp.ClassId == w.Coef.SoldierRecruitClassB) pb += pp.Size;
+                if (pp.IsSoldier) ss += Military.RecruitMen(pp);   // 兵士の項も徴募元と同じ換算（(144)・エンジンと同じ）
+                else if (pp.ClassId == w.Coef.SoldierRecruitClassA) pa += Military.RecruitMen(pp);   // 兵役の母数＝徴募元の男20〜39歳（標準の構成の人数に換算・エンジンと同じ1本）
+                else if (pp.ClassId == w.Coef.SoldierRecruitClassB) pb += Military.RecruitMen(pp);
             }
             mpPool += pa + pb;
             mpDesired += w.MilitarySpending * w.Coef.MaxSoldierFraction * (pa + pb + ss);
@@ -6545,14 +6545,14 @@ if (args.Length > 0 && args[0] == "milprobe")
         Console.WriteLine($"── {w.Year} 軍事費{w.MilitarySpending:P0} 総兵{w.SoldierSize():F1} 即応{w.MilitaryReadiness:F2}");
         foreach (var r in w.Regions)
         {
-            double pa = 0, pb = 0, ss = -1;   // ss=-1＝兵士POPなし
+            double pa = 0, pb = 0, ss = -1, sm = 0;   // ss=-1＝兵士POPなし・sm＝兵士の項（徴募元と同じ換算・(144)）
             foreach (var pp in r.Pops)
             {
-                if (pp.IsSoldier) ss = Math.Max(0, ss) + pp.Size;
-                else if (pp.ClassId == w.Coef.SoldierRecruitClassA) pa += pp.Size;
-                else if (pp.ClassId == w.Coef.SoldierRecruitClassB) pb += pp.Size;
+                if (pp.IsSoldier) { ss = Math.Max(0, ss) + pp.Size; sm += Military.RecruitMen(pp); }
+                else if (pp.ClassId == w.Coef.SoldierRecruitClassA) pa += Military.RecruitMen(pp);   // 兵役の母数（エンジンと同じ1本）
+                else if (pp.ClassId == w.Coef.SoldierRecruitClassB) pb += Military.RecruitMen(pp);
             }
-            double desired = w.MilitarySpending * w.Coef.MaxSoldierFraction * (pa + pb + Math.Max(0, ss));
+            double desired = w.MilitarySpending * w.Coef.MaxSoldierFraction * (pa + pb + sm);
             Console.WriteLine($"  [{r.State}] {r.Name}	兵{(ss < 0 ? "なし" : ss.ToString("F1"))}	プール{pa + pb:F0}	州目標{desired:F1}");
         }
     }

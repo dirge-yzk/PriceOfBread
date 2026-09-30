@@ -124,8 +124,10 @@ public static class InterestGroups
         double gate = p.Closed ? 1.0
                     : p.IsModernElite ? (s >= Suffrage.Census ? 1.0 : c.ModernEliteSubCensusVoice)
                     : (s >= Suffrage.AdultMale ? 1.0 : 0.0);
-        double a16 = s >= Suffrage.Universal ? 0 : p.AgeShare(16, double.PositiveInfinity);
-        double fem = s >= Suffrage.Universal ? 1.0 : a16 > 1e-300 ? 1.0 - p.AgeShare(16, double.PositiveInfinity, 1) / a16 : 0.5;   // 成人（16歳以上）のうちの男（年齢の層・段4e 後半）
+        // ★年齢の層（2026-09-30 段4e 後半）：投票年齢（21歳以上＝男子普通選挙の史実の年齢）のうちの男。旧＝成人（16歳以上）の男の割合。
+        //   ⚠子供を票に数えない直し（設計書 §1-5 d）は読み手18か所の意味が2つ（成人のうちの割合／頭数）に割れる＝1本の正規化で [0,1] を守れない＝利害の回へ申し送り。
+        double a21 = s >= Suffrage.Universal ? 0 : p.AgeShare(21, double.PositiveInfinity);
+        double fem = s >= Suffrage.Universal ? 1.0 : a21 > 1e-300 ? 1.0 - p.AgeShare(21, double.PositiveInfinity, 1) / a21 : 0.5;
         return gate * fem;
     }
 }

@@ -441,6 +441,36 @@ public class MilitaryTests
         Assert.True(Math.Abs(a1.sustain - a0.sustain) <= 1e-9 * a0.sustain, $"子供が増えると扶養限界が動いた（{a0.sustain} → {a1.sustain}）");
     }
 
+    /// <summary>★(144) 合流（反証の指摘＝分子と分母の非対称）：兵役の母数（兵の目標 Step と扶養限界 SustainLimitOf の人口の側）は**徴兵で動かない**
+    /// ＝徴募元の項（男20〜39歳÷標準の割合＝<see cref="Military.RecruitMen"/>）と現兵士の項が同じ単位（兵士も RecruitMen）。
+    /// 旧（(142) 4e-2b の段）＝兵士を頭数のまま足した＝男を1人徴兵すると徴募元の項が約6.9 減り兵士の項は1しか増えない＝母数が徴兵のたびに細った。
+    /// 盤面＝仏の双子（同じ種で1四半期・扶養限界の混合を外す＝平時の目標＝軍事費×上限割合×母数）。片方だけ首都の農民から男20〜39 を3割徴兵（MoveCohort）してから
+    /// 扶養限界の母数と、兵の目標（Step の1回＝兵数の変化÷率＋兵数）を読む＝2つの腕で一致する。
+    /// ⚠突然変異「兵士を頭数のまま」（Step・扶養限界のどちらか）で赤。</summary>
+    [Fact]
+    public void 兵役の母数は徴兵で動かない_兵士も徴募元と同じ単位で数える()
+    {
+        (double natMan, double target) Arm(double draftFrac)
+        {
+            var sim = new Simulation(NationConfig.France().ToScenario(17), new NullAgent());
+            sim.Run(1);
+            var w = sim.World; var c = w.Coef; var cap = w.Region;
+            c.ArmySustainWeight = 0;   // 平時の目標＝軍事費×上限割合×母数（扶養限界の混合を外す＝母数だけを読む）
+            var sld = cap.Pops[cap.SoldierPopIndex];
+            Pop? pool = null; foreach (var p in cap.Pops) if (!p.IsSoldier && p.ClassId == c.SoldierRecruitClassA) { pool = p; break; }
+            Assert.True(pool is not null && pool.Size > 0 && sld.Size > 0, "前提が崩れた：首都に農民か兵士がいない");
+            if (draftFrac > 0) Military.MoveCohort(pool!, sld, draftFrac * pool!.Size * pool.AgeShare(20, 40, 0), c);
+            Military.SustainLimitOf(w, c, out double nm);
+            double s0 = sld.Size;
+            Military.Step(w, c, atWar: false);
+            return (nm, s0 + (sld.Size - s0) / c.SoldierMigrationRate);   // Step の目標（兵数の変化＝率×(目標−兵数)）
+        }
+        var a = Arm(0); var b = Arm(0.3);
+        Assert.True(a.natMan > 0 && a.target > 0, $"前提が崩れた：母数 {a.natMan}・目標 {a.target}");
+        Assert.True(System.Math.Abs(b.natMan - a.natMan) <= 1e-9 * a.natMan, $"徴兵で扶養限界の母数が動いた（{a.natMan} → {b.natMan}）＝兵士と徴募元の単位が違う");
+        Assert.True(System.Math.Abs(b.target - a.target) <= 1e-9 * a.target, $"徴兵で兵の目標が動いた（{a.target} → {b.target}）＝兵士と徴募元の単位が違う");
+    }
+
     /// <summary>★国家の調達（補給財・侵攻の物資・海軍の燃料＝Colonial.BuyUpkeepGood）の代金は、その財の生産者の④の持分（地代・国営持分・賃金）へ。旧＝本国の全POP へ頭数。
     /// 盤面＝英仏の英の双子＝首都で最も多く作られている財を買う量だけが違う。⚠突然変異「全POP へ頭数で配る」で赤。</summary>
     [Fact]

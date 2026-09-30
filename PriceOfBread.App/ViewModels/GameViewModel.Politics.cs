@@ -830,14 +830,14 @@ public partial class GameViewModel
         foreach (var rg in _player.Regions)
         {
             if (rg.State != RegionState.Active) continue;
-            double sld = 0, pool = 0; bool hasSoldier = false;
+            double sld = 0, sldMen = 0, pool = 0; bool hasSoldier = false;
             foreach (var p in rg.Pops)
             {
-                if (p.IsSoldier) { sld += p.Size; hasSoldier = true; }
-                else if (p.ClassId == c.SoldierRecruitClassA || p.ClassId == c.SoldierRecruitClassB) pool += p.Size;
+                if (p.IsSoldier) { sld += p.Size; sldMen += Military.RecruitMen(p); hasSoldier = true; }   // 兵士の項も徴募元と同じ換算（(144)・エンジンと同じ）
+                else if (p.ClassId == c.SoldierRecruitClassA || p.ClassId == c.SoldierRecruitClassB) pool += Military.RecruitMen(p);   // 兵役の母数＝徴募元の男20〜39歳（標準の構成の人数に換算・エンジンと同じ1本）
             }
             if (!hasSoldier) continue;   // 兵士POPの無い州は徴募の対象外（Military.Step の soldier==null と同じ）
-            double manpower = (pool + sld) * Politics.RuleDelivery(rg, c, c.RuleSharesTaxBase);   // Military.Step の兵役の母数と同一（支配度 段3・RuleSharesTaxBase=0 で ×1）
+            double manpower = (pool + sldMen) * Politics.RuleDelivery(rg, c, c.RuleSharesTaxBase);   // Military.Step の兵役の母数と同一（支配度 段3・RuleSharesTaxBase=0 で ×1）
             now += sld; manTotal += manpower;
             double desired = _player.MilitarySpending * c.MaxSoldierFraction * manpower;
             if (sustainTargetNat > 0 && natMan > 1e-9)

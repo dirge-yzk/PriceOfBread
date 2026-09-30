@@ -382,6 +382,9 @@ public sealed class Diplomacy
     private const double OfficerCasualtyPopCap = 0.05;        // 将校戦死の貴族人口上限（5%/月）
     private const int EndedWarRingCapacity = 256;             // 終戦記録リングの容量
 
+    /// <summary>★将校の戦死の年齢の重み（2026-09-30 段4e 後半・設計書 §2-4）＝男の20〜49歳だけ（1人あたり1・ほか0＝尽きれば残りの全員から＝TakeWeighted）。</summary>
+    private static readonly double[] OfficerAgeWeights = [0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0];
+
     private static long Key(Power a, Power b) => a.Id < b.Id ? ((long)a.Id << 32) | (uint)b.Id : ((long)b.Id << 32) | (uint)a.Id;
     private static long DirKey(Power suzerain, Power dependent) => ((long)suzerain.Id << 32) | (uint)dependent.Id;   // 有向（非対称関係用）
 
@@ -2541,7 +2544,7 @@ public sealed class Diplomacy
         // 将校貴族の戦死（B-1）：戦死の一部は士官＝伝統支配層（貴族）にも及ぶ＝WarFeverを煽る貴族も血を流す。少数なので小さく、貴族の5%/月を上限。
         double offCasTotal = 0;
         if (nobPop > 1e-9)
-            offCasTotal = w.KillPops(officers, null, Math.Min(c.OfficerCasualtyShare * cas, nobPop * OfficerCasualtyPopCap), violent: true);
+            offCasTotal = w.KillPops(officers, null, Math.Min(c.OfficerCasualtyShare * cas, nobPop * OfficerCasualtyPopCap), violent: true, OfficerAgeWeights);   // ★年齢の層（段4e 後半）：将校＝男20〜49歳から（旧＝閉鎖階級の女性と子供も比例で死んだ）
         double weBefore = p.WarExhaustion, casTerm = c.WarExhaustionCasualty * (cas / soldierPop);
         p.WarExhaustion = Math.Min(1, p.WarExhaustion + casTerm);   // 戦死率に比例して厭戦↑
         if (p.Nation?.Explain is { } exc)   // 説明API：戦死の衝撃を厭戦内訳へ追記（Resetは StepWars の主サイトのみ）

@@ -567,13 +567,13 @@ public sealed class Coefficients
     //   史実（1914年に女性参政権を持つ主要国は事実上ゼロ・多くは1918-1920+）との整合＝最上段だけが憲法級＋男性普通選挙を前提、が担う。
     // 【削除2026-09-30 段4e 後半（年齢の層の器）】AgingYears（子供→成人の年数16）・WorkingYears（成人→老年の年数45）・OldMortalityWeight（老衰の重み3.0）・
     //   OldShareMax（老年比の上限0.15＝天井＝思想⑧違反）＝年齢の層（Pop.Ages＝10歳刻み8層×男女）の層の幅・加齢の流れ・死の年齢の重み（標準のピラミッドから導く）が置き換えた。
-    public double OldLaborFactor = 0.75;   /* 【史実方向2026-08-08＝0.6は硬性赤（経済−7.5）→0.75測定・旧0.92 */   /* リアリティ群点火2026-07-18＝人口転換(穏やか) */          // ①Phase3：老年の労働参加率（0=完全引退〜1=フル稼働）。（M8点火試験2026-07-13＝0.5でbatch破綻1/30＋exact35に悪化／**再計測2026-07-15＝0.85でbatch破綻0・calib24-24-24堅持だがexact41→39（−2）＝高齢化がexactを単調に削る（1.0→41/0.85→39/0.5→35）。唯一 清覇権を抑制(12→8・仏11勝で競争化)したがexact優先で却下。清抑制を優先するなら0.85が選択肢（要ユーザー裁定）。専用の経済再較正なしにexact41維持と両立不能**）（EconomyStepの労働供給で (1−OldLaborFactor)×老年比〔60歳以上・★2026-09-30 段4e 後半＝年齢の層から読む〕を成人から差し引く）。（M8点火試験2026-07-13＝0.5+FertilityAffectsBirthsOnly=1.0でbatch破綻1/30＋exact38→35/◎22→19悪化＝#17 balance再較正が要る確定＝休眠へ差し戻し・要専用Calibration.Search）。#17の較正再走で <1 に下げ、高齢化→労働力縮小→成長鈍化（人口転換後の扶養比率上昇）を有効化
+    public double OldLaborFactor = 0.75;   /* 【史実方向2026-08-08＝0.6は硬性赤（経済−7.5）→0.75測定・旧0.92 */   /* リアリティ群点火2026-07-18＝人口転換(穏やか) */          // ①Phase3：老年の労働参加率（0=完全引退〜1=フル稼働）。（M8点火試験2026-07-13＝0.5でbatch破綻1/30＋exact35に悪化／**再計測2026-07-15＝0.85でbatch破綻0・calib24-24-24堅持だがexact41→39（−2）＝高齢化がexactを単調に削る（1.0→41/0.85→39/0.5→35）。唯一 清覇権を抑制(12→8・仏11勝で競争化)したがexact優先で却下。清抑制を優先するなら0.85が選択肢（要ユーザー裁定）。専用の経済再較正なしにexact41維持と両立不能**）（EconomyStepの労働供給＝★2026-09-30 段4e 後半：65歳以上×これ（年齢の層）・旧＝(1−これ)×OldShare を成人から差し引く）。（M8点火試験2026-07-13＝0.5+FertilityAffectsBirthsOnly=1.0でbatch破綻1/30＋exact38→35/◎22→19悪化＝#17 balance再較正が要る確定＝休眠へ差し戻し・要専用Calibration.Search）。#17の較正再走で <1 に下げ、高齢化→労働力縮小→成長鈍化（人口転換後の扶養比率上昇）を有効化
     // 年金法（①年齢コホート Phase2）：老年人口への給付。デフォルト（年金なし）＝0で較正中立。
     public double PensionCostRate = 0.8;         // 年金「十分」時・老年1単位あたりの月次給付（国庫→老年）。高齢化が進むほど財政負担＝福祉国家のジレンマ
     // ★物理削除2026-08-21【墓標・再点火禁止】：PensionSatBonus（旧0.10→8/17に0）＝年金の満足度フラット加算（Region.PensionWellbeing・読み手ごと削除）。
     //   作者裁定2026-08-17「年金を現金給付へ」＋2026-08-19「満足度は買えたかのみ」＝年金の効果は現金給付（PensionCostRate＝国庫→老年→消費→生活水準）だけが担う。
-    public double EduPerChild = 0.2;             // 子供1人あたりの教育の必要量（×子供比率0.3＝従来の人口あたり0.06と一致）
-    public bool FertileWomenBirths = true;      // ①Phase3：出生を「出産可能女性プール」比例にする。**true＝有効化済み**（台帳訂正2026-07-12・旧注記「既定false＝dormant」は誤り）。各popの出生量を Size×出産可能プール/InitialFertileShare に律速（出産可能プール＝16〜59歳×成人の女性比〔★2026-09-30 段4e 後半＝年齢の層から旧と同じ意味で読む〕）＝徴兵で男が抜け女性比率が上がっても/老人だらけでも出生が構成に応答（失われた世代の伝播）。net（ロジスティック）は不変＝人口保存
+    public double EduPerChild = 0.06 / Pop.StdShare(5, 15);   // 学齢（5〜14歳）の子供1人あたりの教育の必要量＝人口あたり0.06（旧＝子供比0.3×0.2）÷標準のピラミッドの5〜14歳（0.225）＝約0.267（★2026-09-30 段4e 後半＝年齢の層・起点合わせ＝1783年の需要は旧と同じ）
+    public bool FertileWomenBirths = true;      // ①Phase3：出生を「出産可能女性プール」比例にする。**true＝有効化済み**（台帳訂正2026-07-12・旧注記「既定false＝dormant」は誤り）。各popの出生量を Size×出産可能プール/InitialFertileShare に律速（★2026-09-30 段4e 後半＝15〜49歳の女×カップル律速・年齢の層・旧＝(1−ChildShare−OldShare)×FemaleShare）＝徴兵で男が抜け女性比率が上がっても/老人だらけでも出生が構成に応答（失われた世代の伝播）。net（ロジスティック）は不変＝人口保存
     public double FertilityBase = 1.0;           // 出生率の基礎倍率（無学の社会＝従来の較正値そのまま＝中立）
     public double FertilityLitSlope = 0.55;      // 女性の識字で出生率が**下がる**幅＝人口転換の因果（女子教育→少子化。多産側の加速は医療＝死亡率低下が担当）
     public double FertilityFloor = 0.5;          // 出生率の下限（先進社会でも人口は緩やかに増える）
@@ -631,7 +631,7 @@ public sealed class Coefficients
     public double EpidemicSeverity = 0.06;       // 流行時に地域人口が失う割合の基礎（揺らぎで0.5〜1.5倍）。衛生・医療の価値を高める
     // === テーマC（疫病の完成）===
     public double EpidemicSanitationWeight = 0.6; // 致死率を工業化proxyから実衛生財(InfraFill+石鹸+電化)へブレンド（epidemic-ignores-built-sanitation）。0で旧proxy厳密一致。>0で上下水道投資がコレラ致死を下げる(スノウ)
-    public double EpidemicVulnConcentration = 0.5; // 疫病死を脆弱層へ集中（epidemic-uniform-age-class-mortality）：重み=Size×(1+これ×(子供比〔16歳未満〕+老年比〔60歳以上〕+(1−食料充足)))（★2026-09-30 段4e 後半＝年齢の層から読む）。0で全階級一律(現行)・総死亡量は保存
+    public double EpidemicVulnConcentration = 0.5; // 疫病死を飢えた層へ集中：POP の重み＝Size×(1+これ×(1−主食の充足))×年齢の重み（★2026-09-30 段4e 後半＝年齢の脆弱さは DisasterAgeMortalityExcess の年齢の重みの1本へ・旧＝子供比＋老年比もここで読み、POP の中の年齢の運搬と同じ脆弱さを2度読んだ＝思想⑨）。0で飢えの差なし・総死亡量は保存
     // 疫病の伝播（コレラの世界的流行＝交易路・近接で運ばれる）。発生国は EpidemicContagiousYears 年だけ感染源になり、近接＋交易接触で未感染国へ飛び火。単一国較正は伝播相手なしで無影響。
     public int EpidemicContagiousYears = 3;      // 発生後に感染源であり続ける年数（この間は他国へ伝染しうる）
     public double EpidemicTransmitChance = 0.35; // 完全接触（隣接の感染国）から1年で伝染する基礎確率
@@ -2004,9 +2004,9 @@ public sealed class Coefficients
     public double CrimePushWeight = 6.0;   // **点火2026-07-27（機能優先ラウンド第2群）→ 同日 0.3→6.0 へ再点火**：crimeRate の上限は CrimeBase 0.01×(1+CrimeUrbanWeight 0.6)=0.016 しかなく、
                                            // 0.3 では押し出し上限 0.0048＝同式の PushUnrestWeight(上限0.5) の約1/100＝ノイズ級で機構が事実上死んでいた。6.0 で上限 0.096＝不満項の約2割＝副次要因として意味を持つ水準。             // 接16：州別犯罪率を移民の押し出し（pushPenalty）へ加重＝治安悪化からの逃避。0=不読
     public double SteamTransportOnset = 1.0;   // **点火2026-07-27（機能優先ラウンド第1群）**         // リ5：1で汽船(85)onset0.5・機関車(88)onset0.6を既定レシピへ＝フルトン以前の汽船流通を止める（州の構築経路 Simulation.AddAlternateRecipes・CrucibleSteelと同型＝2026-09-27 に起動時の走査から移した＝植民地格の州にも焼く）。0=無ゲート
-    public double DisasterAgeMortalityExcess = 0.4;   // **点火2026-07-27（機能優先ラウンド第2群）**  // リ10：災害死（疫病・飢えの超過死亡）の年齢の重み＝0〜9 と 60以上の1人あたりの死に (1＋これ)（★2026-09-30 段4e 後半＝年齢の層・Pop.DisasterWeights）。0=均等死
+    public double DisasterAgeMortalityExcess = 0.4;   // **点火2026-07-27（機能優先ラウンド第2群）**  // リ10：災害死（疫病・飢えの超過死亡）の年齢の重み＝0〜9 と 60以上の1人あたりの死に (1＋これ)（★2026-09-30 段4e 後半＝年齢の層・Pop.DisasterWeights＝POP の間と POP の中の1本）。0=均等死
     // 【墓標2026-09-28・段2-1】StateSpendTreasuryClamp（他12＝軍需・行政・教育の予算を「いま国庫にある現金」で比例縮小）を削除＝全ての国家の支払いは月初の1本の率 r（Simulation）。
-    public double ConscriptExcludeOldMales = 1.0;   // **点火2026-07-27（機能優先ラウンド第3群）**    // 他13：徴兵上限を働き盛り男性（成人−老年）へ＝総動員時の老年男性二重計上（OldShare水増し）を解消。0=現行（★2026-09-30 段4e 後半＝16〜59歳の男を年齢の層から読む）
+    // 【削除2026-09-30 段4e 後半】ConscriptExcludeOldMales（徴兵の上限から老年の男を除く旗）＝年齢の層で徴兵の年齢（男20〜39・皆兵は49まで）を直接読む＝自明（設計書 §4-2）。
     public double ExternalPressureDerived = 1.0;   // **点火2026-07-27（機能優先ラウンド第2群）**     // 接7：外圧を創建時定数0.3から「世界の技術水準格差×海の接触」の四半期導出へ（1で有効）。0=定数据え置き（現行）
     public double ExternalPressureGapScale = 1.5;    // 接7：外圧が満額になる技術格差（世界の技術水準−自国がこれで外圧1.0）。ExternalPressureDerived=0では不読
     public double ExternalPressureInlandFactor = 0.5; // 接7：内陸国（活動州に港なし）の外圧係数＝黒船は海から来る（陸伝いの外圧は弱い）。ExternalPressureDerived=0では不読
@@ -2591,7 +2591,7 @@ public sealed class Coefficients
     // === リアリティ監査 2026-07-02 Wave3（人口・社会・労働の機構）===
     // 点火状況は各行参照。1州較正harnessでは加重=非加重・老年なし（旧 OldShare=0・★2026-09-30 段4e 後半で年齢の層へ＝全 POP が標準のピラミッドから始まる）・複数州なしで恒等になるよう設計。
     public double CapacityFromFoodOutput = 0.5;   // 人2（扶養力の食料産出アンカー・大改修スカフォールド）：DemographicStepのcapacity基準を「初期人口baseline」と「実食料産出アンカー(baseline×未クランプfoodMet/foodNeed・下限0.3)」の間でブレンド。0=baselineアンカー(天井約2.5倍)で現行と厳密一致・1で実食料産出から再構成＝19世紀の人口爆発(英4倍/米23倍)とpop>capacityの補償死倒錯を解消。乗数束上限撤去・耕地×技術アンカー・再較正は#17残件
-    public double CoupleLimitedBirths = 1.0;   // 人5（徴兵で出生が増える符号逆転）：FertileWomenBirths経路の出産可能プールを女性比例(0)からカップル律速2×min(女,男)(1)へブレンド（★2026-09-30 段4e 後半＝成人の女性比を年齢の層から読む）。男女半々で両式が定数倍で一致しt=0正規化が相殺＝較正中立。FertileWomenBirths=true（既定）で有効。falseなら不読
+    public double CoupleLimitedBirths = 1.0;   // 人5（徴兵で出生が増える符号逆転）：FertileWomenBirths経路の出産可能プールを女性比例(0)からカップル律速2×min(女,男)(1)へブレンド（★2026-09-30 段4e 後半＝15〜49歳の女と男・年齢の層）。男女半々で両式が定数倍で一致しt=0正規化が相殺＝較正中立。FertileWomenBirths=true（既定）で有効。falseなら不読
     public double FertilityAffectsBirthsOnly = 1.0;   // 人7（出生率倍率の死亡側混線）：第4段4-6で単独点火（2026-07-27）＝「女子教育を進めた国は同じ食料不足でも飢饉死が半分」の誤因果を解消。旧・M8試験の破綻1/30は OldLaborFactor=0.5 との抱き合わせで、相方はその後0.75で単独点火済み＝前提消滅→単独再測定へ。netFertility=fertility+これ×(1−fertility)。0で旧（死亡側もfertility比例）
     // （人9 の局地飢饉の絶対水準ゲート FamineAbsoluteThreshold は 2026-09-30 (131) に局地飢饉の死と一緒に係数ごと削除＝飢えの死は POP の絶対の充足〔FamineDeathFillFloor〕だけが門）
     public double NewbornLiteracyDilution = 0.0;   /* #17保留:Stage2/TechInst識字テスト */   // 人11a（新生児の識字の無償相続）：DemographicStepの出生分(識字0の新生児births人)でpopのLiteracyを加重平均希釈。0=希釈なし（現行と厳密一致）・1でLit_new=Lit_old×(Size−births)/Size。識字ラチェットの解消。教育側はTechEducation.cs
@@ -3449,7 +3449,7 @@ public sealed class Coefficients
     // BirthWeight の popごと t=0 凍結分母（InitialFertileShare）は、初期構成が偏ったpop（聖職者F=0.10）が新生児蓄積で構成正常化すると
     // 分母凍結のまま分子が育ち恒久出生倍率（実測2.1倍）になる罠＝「比のガードは絶対値で書かない」と同族。
     public double FertileAbsoluteBlend = 0.0;   // ★差し戻し2026-08-30（点火bisect＝幕府転換テスト赤の単独犯・英人口が停滞→縮小0.73×へ）：凍結分母ポンプ（出生2.1倍）は較正の暗黙の土台だった＝是正は**出生率の実再較正とセット**でのみ再点火（AI工業化バーストと同型の扱い）
-    public double FertileShareStd = 0.35;   // 標準構成の出産可能プール定数＝(1−0.3子供)×0.5女性=0.35。FertileAbsoluteBlend>0のときのみ読む分母の物差し（カップル律速項×(1+CoupleLimitedBirths)はBirthWeight側で乗算＝標準構成popの重み=Sizeを保ち総出生の物差しを動かさない）
+    // 【削除2026-09-30 段4e 後半】FertileShareStd（標準構成の出産可能プール定数0.35）＝標準のピラミッドの出産可能プール（Simulation.FertilePool に標準の構成を通した値）が置き換えた（設計書 §4-2）。
 
     // ==== 運用コスト監査 2026-08-16（燃料系＝「金は払うが物資を消費しない運用」の物資化。#1海軍燃料のみ休眠・#2#4は点火済み・#3汽船燃料は2026-09-27 に点火）====
     // 対象4本＝#1海軍の運用燃料／#2鉄道の運行石炭／#3汽船（民間海運）の運行燃料／#4空軍・輜重の燃料。
