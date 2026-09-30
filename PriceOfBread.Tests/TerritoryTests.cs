@@ -46,6 +46,60 @@ public class TerritoryTests
         Assert.Equal(a.World.Regions[0].SumPopulation(), b.World.Regions[0].SumPopulation());
     }
 
+    /// <summary>★(125) 州の空洞化は不具合（作者 2026-09-30「州から人が抜けきるというのは現実的ではない」）の番人＝不変条件：
+    /// 賃金の低い州（本土・賃金のプレミアム 0.25）と高い州（辺境・4＝どちらも上下の端）を並べ、機会の差をずっと保ったまま（プレミアムは四半期の更新を回さない＝動かない・
+    /// 辺境は耕地が無尽蔵＝入る側は土地が混まない）地域間の移民だけを 167 年（2004 か月）回しても、出る州の人口はピークの1/10 未満へ落ちない
+    /// ＝流出は残る人の土地の持ち分（<see cref="Territory.Holding"/>）で止まる（収穫逓減の出る側）。
+    /// ⚠突然変異「持ち分を掛けない（Holding≡1）」で赤（本土が空になる）・「入る側の機会にも持ち分を掛ける」で赤（辺境の耕地が全国を吸う）・
+    /// 「工業の引力を戻す（機会×(1＋0.5×工業化度)）」で赤（工業の総量が機会の差を広げ、持ち分では止まらない）。</summary>
+    [Fact]
+    public void 移民だけでは州は空にならない_流出は残る人の土地の持ち分で止まる()
+    {
+        var sim = new Simulation(Frontier(1), new NullAgent());
+        var w = sim.World; var c = w.Coef;
+        Region core = w.Regions[0], fr = w.Regions[1];
+        fr.State = RegionState.Active;
+        fr.ProductivityBonus = core.ProductivityBonus;   // 差は賃金だけ
+        core.WagePremium = 0.25; fr.WagePremium = 4.0;
+        fr.Industrialization = 10.0;   // 賃金の高い州には工業も積もっている（工業化度の総量は機会に入らない＝二重計上しない）
+        core.ArableLand = core.SumPopulation() * 1.8;   // 入植の時の持ち分（本土州と同じ規則＝初期農民×余裕 1.8）
+        fr.ArableLand = 1e7;   // 入る側は混まない＝止めるのは出る側だけ（1e8 以上は「未設定」の印）
+        double peak = core.SumPopulation(), low = peak, lastYear = peak;
+        for (int m = 0; m < 2004; m++)
+        {
+            if (m == 2004 - 12) lastYear = core.SumPopulation();
+            Territory.Step(w, c);
+            double p = core.SumPopulation();
+            if (p > peak) peak = p;
+            if (p < low) low = p;
+        }
+        Assert.True(Territory.Opportunity(fr, c) - Territory.Opportunity(core, c) - c.TransportFriction > 0, "前提が崩れた：機会の差が閉じた（入る側が混んだ）");
+        Assert.True(low < 0.9 * peak, $"前提が崩れた：移民が流れていない（{low:F1}／{peak:F1}）");
+        Assert.True(low >= peak / 10, $"本土が移民だけでピークの1/10 未満へ落ちた（{low:F1}／{peak:F1}）");
+        Assert.True(Math.Abs(core.SumPopulation() - lastYear) <= 1e-3 * peak, $"流出が止まっていない（最後の1年に {lastYear - core.SumPopulation():F3} 減った）");
+    }
+
+    /// <summary>★(125) 受け入れの上限（越境移民と同じ規則）：人口の小さな州が最大機会になっても、1か月の流入は
+    /// ImmigrationReceiveCapFrac÷3×その州の人口×<see cref="Territory.AbsorbCap"/> を超えない（旧＝全ての州が同じ月に流し込み、
+    /// 人口数万の州が1四半期で10倍以上に膨れ、膨れた分が土地の逓減で何十年もかけて流れ出た）。縮んだ分は出る州に残る（人口は保存）。
+    /// ⚠突然変異「縮めない（比≡1）」で赤。</summary>
+    [Fact]
+    public void 小さな州への流入は受け入れの上限を超えない_超えた分は出る州に残る()
+    {
+        var sim = new Simulation(Frontier(1), new NullAgent());
+        var w = sim.World; var c = w.Coef;
+        Region core = w.Regions[0], fr = w.Regions[1];
+        fr.State = RegionState.Active;   // 辺境＝人口10（千人）・生産性2.5＝最大機会
+        double frPop = fr.SumPopulation(), total = core.SumPopulation() + frPop;
+        double cap = c.ImmigrationReceiveCapFrac / Calendar.MonthsPerQuarter * frPop * Territory.AbsorbCap(fr, c);
+        Assert.True(cap > 0, "前提が崩れた：受け入れの能力が0");
+        Territory.Step(w, c);
+        double inflow = fr.SumPopulation() - frPop;
+        Assert.True(inflow > 0.5 * cap, $"前提が崩れた：流れていない（{inflow}）");
+        Assert.True(inflow <= cap * (1 + 1e-9), $"流入 {inflow} が上限 {cap} を超えた");
+        Assert.True(Math.Abs(core.SumPopulation() + fr.SumPopulation() - total) <= 1e-9 * total, "人口が保存されない");
+    }
+
     // ===== 州の移し替えの1本（2026-09-28 処理の一元化 段2 B）の番人 =====
 
     private static MultiNationSim Board(params string[] names)

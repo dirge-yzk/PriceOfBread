@@ -1262,8 +1262,8 @@ public sealed class Coefficients
     //   ＝同時代の換算「汽船1トンは帆船3〜5トン分を運ぶ」（1860〜70年代に約3・1900年代に4〜5）。
 
     // --- 移民の機会と着地（国家間移民の行き先の機会＝Territory.Opportunity。★回1-2・2026-09-27：ゲーム外からの国際移民＝世界プールは削除＝MigrationStayHome も削除）---
-    // 改修2026-06-28：アメリカ脱工業化の構造修正（移民が農業世界の技術水準一極に吸われず工業州にも流れ、労働者として着地する）。多国移民専用＝単一国較正は内部移民非走行で不変。
-    public double IndustrialOpportunityWeight = 0.5; // 工業化度1あたり移民機会の上乗せ（Opportunity ×(1+これ×Ind)）。空世界の技術水準の静的高生産性一極吸引を解く
+    // ★2026-09-30 (125)：工業の引力 IndustrialOpportunityWeight（旧 0.5＝機会 ×(1＋これ×工業化度)・2026-06-28）を削除＝州の空洞化の根
+    //   （工業化度は資本の総量＝人が集まる州ほど積もり、さらに人を引く正帰還・1人に与える機会は賃金と雇用が既に運ぶ＝思想⑨）。Territory.Opportunity の注記。
     public double OpportunityWageWeight = 0.2;       // 州の労働価格プレミアム（1人あたり月次所得の対国平均比＝Region.WagePremium）1あたり移民機会の上乗せ（Opportunity ×(1+これ×(premium−1))）。金鉱州の高賃金→移民殺到＝ゴールドラッシュを賃金経由で創発（キュー3・金発見移民）。0=恒等（較正中立＝単一州はpremium=1）。0.2採用＝実測2026-07-10：(a)wageprobe＝前提「欧州平時bestOpp<0.55」は不成立（全53カ国が常時>0.55＝国際流入は受入上限ImmigrationReceiveCapFracで飽和＝重みは国際流入量を変えず磁石化リスクなし（02断線走査2026-07-28：死んだImmigrationMaxFracの論拠を実係数へ差し替え）・実効は金鉱/ブーム州への誘導＝受入州選択・国内移動）(b)提案帯0.3-0.4は4国回帰番人「工業化の差別化」を壊す（0.3→spread0.15/0.4→0.22＜基準0.5＝賃金スパイク追随が工業州への集積を乱す）→番人合格の上限0.2
     public double ImmigrantWorkerBase = 0.3;         // 入植者のうち労働者になる割合（植民地の州昇格＝Simulation.PromoteColonyToRegion。★回1-2 で国際移民の着地＝ImmigrantWorkerPerInd と共に使っていた経路は削除）
 

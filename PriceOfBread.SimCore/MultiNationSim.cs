@@ -1474,29 +1474,6 @@ public sealed class MultiNationSim
         }
     }
 
-    /// <summary>★受入能力（2026-08-12・作者裁定③「移民が殺到→移民求心力が落ちる→適切な水準に落ち着く」）。
-    ///
-    /// 旧＝受入上限 cap = 0.012 × 自国人口 が binding で、しかも**率**なので人口が増えれば上限も同率で増える＝正帰還。
-    /// 引力(pull)側には混雑項（土地逓減・失業・住居・不穏）が4本あるのに、cap に張り付いた国では inflow が pull に
-    /// 依存しないので**混雑がいくら進んでも流入が1人も減らない**＝信号線が上限で切断されていた。
-    /// 結果、ネーデルラントは10年で人口2.14倍（年8.3%）・アメリカ2.39倍（年9.6%）と指数で発散し、有限の定常点が存在しない。
-    ///
-    /// 新＝**binding な制約そのもの**に既存の混雑量を通す。cap ∝ pop × (食料充足×住居充足×土地逓減)^e となり、
-    /// 耕地は移民で増えない既存ストックなので、指数 e が十分大きいと1人あたり流入が人口の減少関数になり**水準で止まる**。
-    /// 止まる位置を決めるのは新しい数ではなく、既に較正されている耕地・住宅の供給力・食料生産である。
-    /// ★回1-2（2026-09-27）：絞られた分は送出州に残る（旧＝世界プールの余剰再配分で他国へ回した。プールは削除）。
-    ///
-    /// 既定 <c>ImmigrationAbsorbExponent = 2.0</c>＝受入能力が有効。0 なら 1.0 を返す＝**厳密恒等**（掛け算が1回増えるだけで値は不変）。</summary>
-    private static double AbsorbCap(Region? r, Coefficients c)
-    {
-        if (r is null || !(c.ImmigrationAbsorbExponent > 0)) return 1.0;
-        double rural = 0;
-        foreach (var p in r.Pops) if (!p.IsUrban) rural += p.Size;
-        double slack = PoliticalQuantities.Clamp01(r.FoodFill) * PoliticalQuantities.Clamp01(r.HousingFill) * Territory.LandFactor(r, rural, c);
-        if (!(slack > 0)) return 0;   // 否定形＝NaN もここで落ちる（有限値では厳密同値）
-        return Math.Pow(slack, c.ImmigrationAbsorbExponent);
-    }
-
     // 国家間移民（回1-2・2026-09-27＝国際移民を閉じる・外部レビューの検討 §10-3 Q3／項目3）：機会（Territory.Opportunity＝土地逓減・住宅摩擦・
     // 賃金プレミアムを含む飽和しない実体量）の差で、各州の大衆（農民・労働者）が豊かな国の最良州へ移る。「アメリカに流すのではなく、アメリカが豊かだから流入する」。
     // ★人はゲームの外から来ない＝送出州から引いた分だけ受入州に着く（旧の世界プール＝世界人口×0.004/四半期を送出国から1人も引かずに配り、
@@ -1538,7 +1515,7 @@ public sealed class MultiNationSim
                 ImmigrationLaw.Closed => _coef.ImmigrationClosedFrac,
                 _ => 1.0,
             };
-            dstCap[d] = _coef.ImmigrationReceiveCapFrac * w.TotalPopulation * lawCap * AbsorbCap(bR, _coef);
+            dstCap[d] = _coef.ImmigrationReceiveCapFrac * w.TotalPopulation * lawCap * Territory.AbsorbCap(bR, _coef);
         }
         // 2〜4. 送出州ごと・階級ごとの流量を決める（まだ移さない）
         var plan = new List<(World Src, Region SrcR, int Cls, int D, double Flow)>();

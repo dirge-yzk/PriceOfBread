@@ -77,24 +77,58 @@ public static class Territory
         if (c.MigrationSecondDestShare > 0 && active.Count >= 3)
             foreach (var r in active) { if (ReferenceEquals(r, dest)) continue; double o = OppChecked(r, c); if (double.IsFinite(o) && o > secondOpp) { secondOpp = o; dest2 = r; } }
 
+        // ★2026-09-30 (125)：流量は先に全ての州で決め（月初の盤面＝出る州の順に依らない）、受け入れる州ごとに上限で縮めてから移す
+        //   ＝越境移民と同じ規則（MultiNationSim.MigrateBetweenNations の段4〜5：上限＝ImmigrationReceiveCapFrac×受け入れる側の人口×受け入れの能力 AbsorbCap・
+        //   四半期の率を月へ・縮んだ分は出る州に残る）＝州の空洞化の根の3つ目。旧＝全ての州が最大機会の1州へ同じ月に流し込んだ（判断は月初の盤面＝
+        //   1か月の中の流入は機会を下げない）＝人口数万の州が1四半期で10倍以上に膨れ（(125) 計器＝清 s2 のバロー 46→666 千人・耕地18）、
+        //   土地の逓減で膨れた分が何十年もかけて流れ出た（ピークの1/10 未満へ）。
+        var plan = new List<(Region Src, double F1, double F2)>();
+        double in1 = 0, in2 = 0;
         foreach (var src in active)
         {
             if (ReferenceEquals(src, dest)) continue;
-            double gap = bestOpp - OppChecked(src, c) - c.TransportFriction;
+            // ★2026-09-30 (125)：出る側は「残る値打ち」＝機会×残る人の土地の持ち分（Holding）で測る＝人が抜けるほど残る人の持ち分が増え、流出が止まる（州の空洞化の根の2つ目）。
+            double stay = OppChecked(src, c) * Holding(src, c);
+            double gap = bestOpp - stay - c.TransportFriction;
             if (!(gap > 0)) continue;   // ★否定形で書く＝NaN も弾く（`gap <= 0` は NaN で false になり素通しだった）。有限値では `gap <= 0` と厳密に同値
             double fraction = Math.Clamp(c.RegionMobility * gap, 0, MaxMigrationFraction);
-            if (dest2 is not null && !ReferenceEquals(src, dest2) && secondOpp - Opportunity(src, c) - c.TransportFriction > 0)
-            {
-                double firstFrac = fraction * (1.0 - c.MigrationSecondDestShare);
-                MoveRegion(src, dest, firstFrac, c);
-                // ★是正（監査G10#2）：MoveRegionは逐次適用（sp.Sizeを直接減らす）＝2回目のfractionは1回目で
-                //   既に減ったSizeに掛かる＝第2流量が意図（元Size×fraction×share）より系統的に小さかった。
-                //   残ったSize基準の比へ補正し、同じ元Sizeから両方を切る（分母はfraction≤0.2でクランプ済みなので1に近づかない）。
-                MoveRegion(src, dest2, fraction * c.MigrationSecondDestShare / Math.Max(1e-9, 1.0 - firstFrac), c);
-            }
-            else
-                MoveRegion(src, dest, fraction, c);
+            double f1 = fraction, f2 = 0;
+            if (dest2 is not null && !ReferenceEquals(src, dest2) && secondOpp - stay - c.TransportFriction > 0)
+            { f1 = fraction * (1.0 - c.MigrationSecondDestShare); f2 = fraction * c.MigrationSecondDestShare; }
+            plan.Add((src, f1, f2));
+            in1 += f1 * Movable(src, dest);
+            if (f2 > 0) in2 += f2 * Movable(src, dest2!);
         }
+        double scale1 = ReceiveScale(dest, in1, c), scale2 = dest2 is null ? 0.0 : ReceiveScale(dest2, in2, c);
+        foreach (var (src, f1, f2) in plan)
+        {
+            double g1 = f1 * scale1;
+            MoveRegion(src, dest, g1, c);
+            // ★是正（監査G10#2）：MoveRegionは逐次適用（sp.Sizeを直接減らす）＝2回目のfractionは1回目で
+            //   既に減ったSizeに掛かる＝第2流量が意図（元Size×fraction×share）より系統的に小さかった。
+            //   残ったSize基準の比へ補正し、同じ元Sizeから両方を切る（分母はfraction≤0.2でクランプ済みなので1に近づかない）。
+            if (f2 > 0) MoveRegion(src, dest2!, f2 * scale2 / Math.Max(1e-9, 1.0 - g1), c);
+        }
+    }
+
+    /// <summary>★(125)：src から dst へ動ける人数（閉鎖階級と兵士を除き、dst に同じ階級が居る POP の規模の和＝<see cref="MoveRegion"/> が実際に動かす母集団）。</summary>
+    private static double Movable(Region src, Region dst)
+    {
+        double m = 0;
+        foreach (var sp in src.Pops)
+        {
+            if (sp.Closed || sp.IsSoldier) continue;
+            foreach (var d in dst.Pops) if (d.ClassId == sp.ClassId) { m += sp.Size; break; }
+        }
+        return m;
+    }
+
+    /// <summary>★(125)：受け入れの上限で流量を縮める比＝越境移民と同じ式（上限＝ImmigrationReceiveCapFrac〔四半期〕÷3×受け入れる州の人口×<see cref="AbsorbCap"/>・
+    /// 計画が上限以下なら1）。上限が NaN なら0の側へ倒す（fail-closed＝MultiNationSim の段4と同じ）。</summary>
+    private static double ReceiveScale(Region dst, double planned, Coefficients c)
+    {
+        double cap = c.ImmigrationReceiveCapFrac / Calendar.MonthsPerQuarter * dst.SumPopulation() * AbsorbCap(dst, c);
+        return planned <= cap ? 1.0 : cap > 0 ? cap / planned : 0.0;
     }
 
     // 土地機会 ＝ 生産性 × 土地係数(landFactor) ×(1−失業率)。容量(room)の壁ではなく、土地という固定生産要素の収穫逓減で混雑を表す：
@@ -116,13 +150,14 @@ public static class Territory
         double pop = r.SumPopulation();
         double rural = 0; foreach (var p in r.Pops) if (!p.IsUrban) rural += p.Size;
         double land = LandFactor(r, rural, c);
-        // 改修2026-06-28：工業化度を機会に連結。工業州ほど雇用機会が大きく移民を引く＝空世界の技術水準（高ProductivityBonus・無工業）一極吸引を解く。
-        // 空世界の技術水準は Ind=0 で従来どおり初期入植を呼び、工業化した州は後年に競り勝つ（史実：移民は東部都市にも大量に滞留）。
-        double indPull = 1.0 + c.IndustrialOpportunityWeight * r.TotalIndustrialization;   // 雇用機会は立っている工業の規模＝新旧合計（失業は(1−unemp)側が既に見る。ヴィンテージ2026-07-10）
+        // ★2026-09-30 (125)：工業の引力（旧＝×(1＋0.5×工業化度)・2026-06-28）を外した＝州の空洞化の根。工業化度は州に立っている資本の**総量**
+        //   （人が集まる州ほど建設が積もる）で、移民1人から見た機会（1人あたりの量）ではない＝人が来るほど資本が積もり、さらに人を引く正帰還
+        //   （計器・種3＝マルセイユ 1783→1793 で人口 5,203→15,088 千人・工業化度 0.06→3.7、パリ 7,920→1,703→1820年に101 千人＝出る州の方が1人あたり所得が高い〔パリの賃金のプレミアム 1.07→2.69〕）。
+        //   工業が1人に与える機会は、賃金（WagePremium＝1人あたり所得の対国平均比）と雇用（1−失業）が既に運ぶ＝二重計上（思想⑨）。工業化度の廃止（残タスクの7）と同じ向き。
         // 労働価格プレミアム（キュー3・金発見移民）：高賃金州（金鉱・ブーム州）ほど機会が大きく移民を引く＝ゴールドラッシュを賃金経由で創発。
         // WagePremium は UpdateRegionalPriceLevels が四半期更新（[0.25,4]クランプ済み）。OpportunityWageWeight 既定0.2（点火）・0で wagePull=1＝旧と厳密一致。
         double wagePull = Math.Max(OpportunityFactorFloor, 1.0 + c.OpportunityWageWeight * (r.WagePremium - 1.0));
-        if (!(pop >= 1.0)) return r.ProductivityBonus * indPull * wagePull * land;   // ★否定形＝pop が NaN のとき除算枝（unemp/pop）へ落ちない。有限値では `pop < 1.0` と厳密に同値
+        if (!(pop >= 1.0)) return r.ProductivityBonus * wagePull * land;   // ★否定形＝pop が NaN のとき除算枝（unemp/pop）へ落ちない。有限値では `pop < 1.0` と厳密に同値
         double unemp = 0; foreach (var p in r.Pops) unemp += p.Size * p.UnemploymentRate;
         // プッシュ要因（B-4）：地域の不満（迫害・治安悪化）が機会を下げ、その地域からの流出を促す（ポグロム・抑圧からの逃避）。
         double unrest = 0; foreach (var p in r.Pops) unrest += p.Size * p.Militancy;
@@ -132,7 +167,7 @@ public static class Territory
         // 都市住宅（housing-urban-rent-absent）：住居充足が低い(過密)州は移民の引力が下がる＝過密で流入が自然飽和（無上限吸引の解消）。
         // HousingMigrationFriction 既定0.5（点火2026-07-19）・0（または HousingFill=1.0＝住居財なし/需要0）で摩擦=1.0＝旧と厳密一致。
         double housingFriction = 1.0 - c.HousingMigrationFriction * (1.0 - r.HousingFill);
-        return r.ProductivityBonus * indPull * wagePull * land * (1.0 - unemp / pop) * Math.Max(OpportunityFactorFloor, pushPenalty) * Math.Max(OpportunityFactorFloor, housingFriction);
+        return r.ProductivityBonus * wagePull * land * (1.0 - unemp / pop) * Math.Max(OpportunityFactorFloor, pushPenalty) * Math.Max(OpportunityFactorFloor, housingFriction);
     }
 
     // 土地（耕地）の収穫逓減係数。農村人口が耕地賦存量(ArableLand)以下なら1（影響なし）、超えると逓減。EconomyStep の土地作物RGOと Opportunity が共有。
@@ -142,6 +177,50 @@ public static class Territory
         if (r.ArableLand >= 1e8) return 1.0;   // 未設定＝制約なし（合成較正・最小テスト世界）
         double ratio = r.ArableLand / Math.Max(1.0, ruralLabor);
         return Math.Min(1.0, Math.Pow(ratio, c.LandDiminishExponent));
+    }
+
+    /// <summary>★2026-09-30 (125)：残る人の土地の持ち分（州の空洞化の根の2つ目）＝出ていく人が置いていく土地の値打ち（その土地に固有の資本）。
+    /// 生産の土地係数（<see cref="LandFactor"/>＝min(1,(耕地÷農村人口)^指数)）が上限1で切った分＝(耕地÷農村人口)^指数 の1を超えた分
+    /// ＝max(1, 耕地÷農村人口)^LandDiminishExponent（1人あたりの耕地が1以下＝土地が混む州は1＝土地係数の逓減がそのまま効く）。
+    /// ⚠ 生産の土地係数は1人あたりの耕地が1を超えると1で平ら（労働が律速＝開幕は余裕1.8で平らな帯の中）＝人が抜けても残る人の産出も所得も上がらず、
+    ///   機会の差が続く限り州は空になるまで流れ出た（計器＝(125) の工業の引力を外した腕の5種で移民による空洞化の214州のうち212州は窓の始めと終わりで土地係数1〔耕地÷農村の中央値 1.9→20.8〕）。
+    ///   上限は生産の話（1人が耕せる広さ）＝残る人の持ち分は上限で切らない（思想⑧）＝人が抜けるほど残る人の持ち分が増え、出ていけば失う土地が増える
+    ///   ＝土地係数の逓減（混む側）と切れ目なく続く収穫逓減の出る側＝流出が止まる。
+    ///   ⚠ 探索の腕で「入植の時の持ち分（1.8）を超えた分だけ」を試した＝耕地÷農村 1〜1.8 に土地係数も持ち分も動かない平らな帯が残り、
+    ///   育った後に痩せる州（種9 のロンドン 1825→1926）が帯の中で止まらずに流れ出た＝採らない。
+    /// ⚠ 出る側（残る値打ち）だけに掛ける＝入る側の機会（<see cref="Opportunity"/>）には掛けない：入る人は土地を持って来ない（開墾し、買う）＝
+    ///   耕地が桁違いの辺境（米西部 740・シベリア 238）の引力は今までどおり（掛けると辺境が全国を一瞬で吸う）。辺境の住民は出にくい（持ち分が大きい）。
+    /// 状態も係数も増やさない（耕地・農村人口・土地の逓減の指数の既存の値だけ）。耕地の未設定（合成較正・最小テスト世界）は1。</summary>
+    internal static double Holding(Region r, Coefficients c)
+    {
+        if (r.ArableLand >= 1e8) return 1.0;   // 未設定＝制約なし（LandFactor と同じ）
+        double rural = 0; foreach (var p in r.Pops) if (!p.IsUrban) rural += p.Size;
+        double ratio = r.ArableLand / Math.Max(1.0, rural);   // LandFactor と同じ入力
+        return Math.Pow(Math.Max(1.0, ratio), c.LandDiminishExponent);
+    }
+
+    /// <summary>★受入能力（2026-08-12・作者裁定③「移民が殺到→移民求心力が落ちる→適切な水準に落ち着く」）。
+    ///
+    /// 旧＝受入上限 cap = 0.012 × 自国人口 が binding で、しかも**率**なので人口が増えれば上限も同率で増える＝正帰還。
+    /// 引力(pull)側には混雑項（土地逓減・失業・住居・不穏）が4本あるのに、cap に張り付いた国では inflow が pull に
+    /// 依存しないので**混雑がいくら進んでも流入が1人も減らない**＝信号線が上限で切断されていた。
+    /// 結果、ネーデルラントは10年で人口2.14倍（年8.3%）・アメリカ2.39倍（年9.6%）と指数で発散し、有限の定常点が存在しない。
+    ///
+    /// 新＝**binding な制約そのもの**に既存の混雑量を通す。cap ∝ pop × (食料充足×住居充足×土地逓減)^e となり、
+    /// 耕地は移民で増えない既存ストックなので、指数 e が十分大きいと1人あたり流入が人口の減少関数になり**水準で止まる**。
+    /// 止まる位置を決めるのは新しい数ではなく、既に較正されている耕地・住宅の供給力・食料生産である。
+    /// ★回1-2（2026-09-27）：絞られた分は送出州に残る（旧＝世界プールの余剰再配分で他国へ回した。プールは削除）。
+    ///
+    /// 既定 <c>ImmigrationAbsorbExponent = 2.0</c>＝受入能力が有効。0 なら 1.0 を返す＝**厳密恒等**（掛け算が1回増えるだけで値は不変）。
+    /// ★2026-09-30 (125)：国家間移民（MultiNationSim.MigrateBetweenNations）と地域間移民（<see cref="Step"/>）の受け入れの上限が同じこの1本を読む（旧＝MultiNationSim の private）。</summary>
+    internal static double AbsorbCap(Region? r, Coefficients c)
+    {
+        if (r is null || !(c.ImmigrationAbsorbExponent > 0)) return 1.0;
+        double rural = 0;
+        foreach (var p in r.Pops) if (!p.IsUrban) rural += p.Size;
+        double slack = PoliticalQuantities.Clamp01(r.FoodFill) * PoliticalQuantities.Clamp01(r.HousingFill) * LandFactor(r, rural, c);
+        if (!(slack > 0)) return 0;   // 否定形＝NaN もここで落ちる（有限値では厳密同値）
+        return Math.Pow(slack, c.ImmigrationAbsorbExponent);
     }
 
     // src の各クラスから fraction を dest の同クラスへ移す（規模・貯蓄を保存移動）
