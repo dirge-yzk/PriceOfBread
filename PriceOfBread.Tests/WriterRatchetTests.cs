@@ -253,13 +253,16 @@ public class WriterRatchetTests
     //   日次の写像の回 25,283,828→25,892,693（+2.4%）・覇権の判定 2,375,296→2,473,198（+4.1%）＝1783年から老年がいる・出生の物差しの人工物が消えた（出生が多い）・識字と記憶が
     //   世代で薄れる＝最初の40四半期の値段と外交の軌道が変わった（処理の形は同じ）。年齢の層の加齢（POP×16本・月次）は人口動態の同じ POP のループの中＝「月次：POP×月」の
     //   件数は変わらない（単価に入る）。全長の10種の推定は 254.4→252.3 秒（下がった）。ほかの13本は許しの内。
+    // ★2026-09-30 表の更新（(138) 合流＝線2 の (135)(136)〔費用の側・GDP の和の使い回し〕の載った main へ線1 の (134)(137)〔段4e〕を載せ直した木＝軌道が動いた分の宣言・新しい計数の処理は無い）：
+    //   建設 6,246→6,978（+11.7%）・請求 2,140→2,456（+14.8%）＝線1 の着工の門（建てる州の建材を読む）と線2 の国の請求の減りが重なった軌道（線1 単独 8,533・3,063／線2 単独 6,246・2,140 の間）。
+    //   ほかの14本は許しの内（+2%／−10%）。全長の推定は10種の .cost（実装ログ (138)）。
     [InlineData(CostLedger.PriceGoods, 14149727L)]
     [InlineData(CostLedger.PriceDailyRuns, 25283828L)]
-    [InlineData(CostLedger.ConstructionSeen, 6246L)]
+    [InlineData(CostLedger.ConstructionSeen, 6978L)]
     [InlineData(CostLedger.CreditSpans, 33282L)]
     [InlineData(CostLedger.ConsumePopGoods, 28595736L)]
     [InlineData(CostLedger.ProducerMonths, 8440020L)]
-    [InlineData(CostLedger.ClaimProducers, 2140L)]
+    [InlineData(CostLedger.ClaimProducers, 2456L)]
     [InlineData(CostLedger.MonthlyPops, 706680L)]
     [InlineData(CostLedger.ClearingRows, 5185642L)]
     [InlineData(CostLedger.ClearingFills, 27104468L)]
