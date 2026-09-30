@@ -351,14 +351,15 @@ public sealed class Coefficients
     //   ⚠現状は「学校が減ると**大人が字を忘れる**」形になっており、実測で**イギリスの識字も1853年0.841→1936年0.595**へ落ちている
     //   （★日本固有ではなく全世界＝識字を読む全ての量に効く）。⚠日本は1788年の開始時点で全階級が Literacy>EducationFill なので
     //   **1か月目から減衰が始まる**（初期識字と教育市場の供給力が world.json の時点で噛み合っていない）。
-    // ★正しい形＝**識字は個人の一生ものであり、失われるのは世代が入れ替わるとき**。年齢コホート（OldShare＝老年の退出／
-    //   ChildShare＝就学不足の子供）が既にあるので、減衰をその割合に掛けるだけでよい＝**新しい状態も定数もゼロ**。
+    // ★正しい形＝**識字は個人の一生ものであり、失われるのは世代が入れ替わるとき**。年齢コホート（旧 OldShare＝老年の退出／
+    //   旧 ChildShare＝就学不足の子供）が既にあるので、減衰をその割合に掛けるだけでよい＝**新しい状態も定数もゼロ**。
+    //   ★2026-09-30 段4e 後半 4e-3：年齢の層（Pop.Ages）の世代の流れ（20歳になる若者が伝わった識字を持ち込む＝Pop.GenerationalMix）へ置き換えた＝この旗と月率は削除。
     //   0＝旧式（全人口に掛ける）／1＝世代交代ぶんのみ。
     // ★★点火 2026-08-21（既定0→1）＝A/B実測（selfplay-batch 10・同一ソース）：経済規模 25.0→**32.5**（+7.5）・政体exact 41.3→43.9（+2.6）／
     //   法 65.8→61.7（−4.1）・領土本国 84.2→78.3（−5.9）・硬性ゲート緑。⚠帯の混合は記録して進む（破綻しない＞正しい挙動＞バランス）。
     //   ★決め手＝initcheck 実測で**48/61カ国が「支えの無い識字」を持ち**（教育市場の充足は開始直後0.00〜0.09）、
     //   旧式では世界中の識字が根拠なく溶けていた（英0.84→0.60も同根）。「大人が字を忘れる」は機構として誤り。
-    public double LiteracyDecayIsGenerational = 1;
+    // 【削除2026-09-30 段4e 後半 4e-3】LiteracyDecayIsGenerational（識字の減衰を世代交代ぶんに限る旗）＝識字の下がる側は世代の流れ（TechEducation・Pop.GenerationalMix）そのもの。
     // ★★休眠（2026-08-20）：**反動の担い手を「富の水準」から「地位の喪失」へ**。0で旧式（厳密恒等）／1で新経路。
     // ⚠**実測で反動が枯れている**（全断面で中央0.00・最大0.02）。原因＝旧式 `2.0 × 闘争度 × conserv` は
     //   **闘争度と富の両方が高いPOP**を要求するが、富裕層は満足度が高くて闘争度が立たず、闘争度の高い貧困層は conserv≈0
@@ -564,18 +565,15 @@ public sealed class Coefficients
     //   「財産権と参政権を別の法にするか」というスイッチは、財産権→教育権→選挙権を1本の梯子（<see cref="WomenRightsLaw"/>）にした時点で
     //   意味を失った＝分離は**段の並びそのもの**が恒久的に保証する（脱結合=1.0 の挙動が構造として焼き込まれた形）。
     //   史実（1914年に女性参政権を持つ主要国は事実上ゼロ・多くは1918-1920+）との整合＝最上段だけが憲法級＋男性普通選挙を前提、が担う。
-    public double AgingYears = 16;               // 子供→生産年齢のコホート送り年数（出生が労働力になるまでの時差＝投資は一世代後に実る）
-    // ①年齢コホート（老年）：生産年齢→老年→死。Phase1は OldShare を追跡するのみ（Size/ChildShareは不変＝較正中立）。Phase2の年金法(PensionLaw)が老年を支援。
-    public double WorkingYears = 45;             // 生産年齢→老年のコホート送り年数（≈15→60歳の就労期）。長いほど老年比率は低位
-    public double OldMortalityWeight = 3.0;      // 老衰：成人の死亡のうち老年に厚く配分する重み（働き盛りより死にやすい）＝OldShareを現実的に有界化。Size総量は不変（既存の死亡の内訳のみ＝較正中立）
-    public double OldShareMax = 0.15;            // 老年比率の上限（成長期＝死亡0で老年が貯まりすぎるのを防ぐ安全弁＝19世紀の高齢者比率の現実的天井）。Phase1の近似（物理的な老年死亡＝Size減はPhase3で較正再走）
-    public double OldLaborFactor = 0.75;   /* 【史実方向2026-08-08＝0.6は硬性赤（経済−7.5）→0.75測定・旧0.92 */   /* リアリティ群点火2026-07-18＝人口転換(穏やか) */          // ①Phase3：老年の労働参加率（0=完全引退〜1=フル稼働）。（M8点火試験2026-07-13＝0.5でbatch破綻1/30＋exact35に悪化／**再計測2026-07-15＝0.85でbatch破綻0・calib24-24-24堅持だがexact41→39（−2）＝高齢化がexactを単調に削る（1.0→41/0.85→39/0.5→35）。唯一 清覇権を抑制(12→8・仏11勝で競争化)したがexact優先で却下。清抑制を優先するなら0.85が選択肢（要ユーザー裁定）。専用の経済再較正なしにexact41維持と両立不能**）（EconomyStepの労働供給で (1−OldLaborFactor)×OldShare を成人から差し引く）。（M8点火試験2026-07-13＝0.5+FertilityAffectsBirthsOnly=1.0でbatch破綻1/30＋exact38→35/◎22→19悪化＝#17 balance再較正が要る確定＝休眠へ差し戻し・要専用Calibration.Search）。#17の較正再走で <1 に下げ、高齢化→労働力縮小→成長鈍化（人口転換後の扶養比率上昇）を有効化
+    // 【削除2026-09-30 段4e 後半（年齢の層の器）】AgingYears（子供→成人の年数16）・WorkingYears（成人→老年の年数45）・OldMortalityWeight（老衰の重み3.0）・
+    //   OldShareMax（老年比の上限0.15＝天井＝思想⑧違反）＝年齢の層（Pop.Ages＝10歳刻み8層×男女）の層の幅・加齢の流れ・死の年齢の重み（標準のピラミッドから導く）が置き換えた。
+    public double OldLaborFactor = 0.75;   /* 【史実方向2026-08-08＝0.6は硬性赤（経済−7.5）→0.75測定・旧0.92 */   /* リアリティ群点火2026-07-18＝人口転換(穏やか) */          // ①Phase3：老年の労働参加率（0=完全引退〜1=フル稼働）。（M8点火試験2026-07-13＝0.5でbatch破綻1/30＋exact35に悪化／**再計測2026-07-15＝0.85でbatch破綻0・calib24-24-24堅持だがexact41→39（−2）＝高齢化がexactを単調に削る（1.0→41/0.85→39/0.5→35）。唯一 清覇権を抑制(12→8・仏11勝で競争化)したがexact優先で却下。清抑制を優先するなら0.85が選択肢（要ユーザー裁定）。専用の経済再較正なしにexact41維持と両立不能**）（EconomyStepの労働供給で (1−OldLaborFactor)×老年比〔60歳以上・★2026-09-30 段4e 後半＝年齢の層から読む〕を成人から差し引く）。（M8点火試験2026-07-13＝0.5+FertilityAffectsBirthsOnly=1.0でbatch破綻1/30＋exact38→35/◎22→19悪化＝#17 balance再較正が要る確定＝休眠へ差し戻し・要専用Calibration.Search）。#17の較正再走で <1 に下げ、高齢化→労働力縮小→成長鈍化（人口転換後の扶養比率上昇）を有効化
     // 年金法（①年齢コホート Phase2）：老年人口への給付。デフォルト（年金なし）＝0で較正中立。
     public double PensionCostRate = 0.8;         // 年金「十分」時・老年1単位あたりの月次給付（国庫→老年）。高齢化が進むほど財政負担＝福祉国家のジレンマ
     // ★物理削除2026-08-21【墓標・再点火禁止】：PensionSatBonus（旧0.10→8/17に0）＝年金の満足度フラット加算（Region.PensionWellbeing・読み手ごと削除）。
     //   作者裁定2026-08-17「年金を現金給付へ」＋2026-08-19「満足度は買えたかのみ」＝年金の効果は現金給付（PensionCostRate＝国庫→老年→消費→生活水準）だけが担う。
     public double EduPerChild = 0.2;             // 子供1人あたりの教育の必要量（×子供比率0.3＝従来の人口あたり0.06と一致）
-    public bool FertileWomenBirths = true;      // ①Phase3：出生を「出産可能女性プール」比例にする。**true＝有効化済み**（台帳訂正2026-07-12・旧注記「既定false＝dormant」は誤り）。各popの出生量を Size×(1−ChildShare−OldShare)×FemaleShare/InitialFertileShare に律速＝徴兵で男が抜け女性比率が上がっても/老人だらけでも出生が構成に応答（失われた世代の伝播）。net（ロジスティック）は不変＝人口保存
+    public bool FertileWomenBirths = true;      // ①Phase3：出生を「出産可能女性プール」比例にする。**true＝有効化済み**（台帳訂正2026-07-12・旧注記「既定false＝dormant」は誤り）。各popの出生量を Size×出産可能プール/InitialFertileShare に律速（出産可能プール＝16〜59歳×成人の女性比〔★2026-09-30 段4e 後半＝年齢の層から旧と同じ意味で読む〕）＝徴兵で男が抜け女性比率が上がっても/老人だらけでも出生が構成に応答（失われた世代の伝播）。net（ロジスティック）は不変＝人口保存
     public double FertilityBase = 1.0;           // 出生率の基礎倍率（無学の社会＝従来の較正値そのまま＝中立）
     public double FertilityLitSlope = 0.55;      // 女性の識字で出生率が**下がる**幅＝人口転換の因果（女子教育→少子化。多産側の加速は医療＝死亡率低下が担当）
     public double FertilityFloor = 0.5;          // 出生率の下限（先進社会でも人口は緩やかに増える）
@@ -625,7 +623,7 @@ public sealed class Coefficients
     public double EpidemicSeverity = 0.06;       // 流行時に地域人口が失う割合の基礎（揺らぎで0.5〜1.5倍）。衛生・医療の価値を高める
     // === テーマC（疫病の完成）===
     public double EpidemicSanitationWeight = 0.6; // 致死率を工業化proxyから実衛生財(InfraFill+石鹸+電化)へブレンド（epidemic-ignores-built-sanitation）。0で旧proxy厳密一致。>0で上下水道投資がコレラ致死を下げる(スノウ)
-    public double EpidemicVulnConcentration = 0.5; // 疫病死を脆弱層へ集中（epidemic-uniform-age-class-mortality）：重み=Size×(1+これ×(ChildShare+OldShare+(1−食料充足)))。0で全階級一律(現行)・総死亡量は保存
+    public double EpidemicVulnConcentration = 0.5; // 疫病死を脆弱層へ集中（epidemic-uniform-age-class-mortality）：重み=Size×(1+これ×(子供比〔16歳未満〕+老年比〔60歳以上〕+(1−食料充足)))（★2026-09-30 段4e 後半＝年齢の層から読む）。0で全階級一律(現行)・総死亡量は保存
     // 疫病の伝播（コレラの世界的流行＝交易路・近接で運ばれる）。発生国は EpidemicContagiousYears 年だけ感染源になり、近接＋交易接触で未感染国へ飛び火。単一国較正は伝播相手なしで無影響。
     public int EpidemicContagiousYears = 3;      // 発生後に感染源であり続ける年数（この間は他国へ伝染しうる）
     public double EpidemicTransmitChance = 0.35; // 完全接触（隣接の感染国）から1年で伝染する基礎確率
@@ -875,8 +873,8 @@ public sealed class Coefficients
     public double MinorityPenaltyModernBlend = 0.5;  // 【点火0.5・2026-08-16＝S級梯子r17単独37/73/61=単独帯最良（Search手掛かり）】rank17：ガラスの天井の時代ブレンド＝実効ペナルティ=MinorityPromotionPenalty×(1−これ×M)（M=メリトクラシー値）。開かれた社会ほど法的障壁が畳まれ慣行が残る（ユダヤ人解放の年代差が政体・社会構成から出る＝国名条件なし）。①とプールJobGateの物差しも統一（プール側にminorityF追加）
     // --- 作者裁定2026-08-16（同監査 rank7/8/12・点火状況は各行参照・実装は Meritocracy.cs・点火は1本1バッチのA/B）---
     public double FallAnchorReform = 0.3;            // 【点火0.3・2026-08-16】A/B＝1.0はexact39.7/法57.3だが小国満足度で硬性赤／0.5はバッチ緑(exact38.0・法58.1)だが**TaxTestsが赤＝英の行政成熟が止まる**（所得税の実効上限が238四半期で0.085→0.100・要求+0.1）＝中流（官僚）が転落で痩せる。カナリア二分探索で崖は0.4と0.5の間＝**崖の直下を避けて0.3**（テスト緑側の余裕）。rank7：転落物差し改革の束（3点を1本で・0=旧とビット恒等）。(a)③④⑤⑥の判定資産を(Savings+IlliquidWealth)/Sizeへ・分母の地域平均も同定義（⚠IWはSavingsの内数タグ（Model.cs）＝これは結晶資産を流動の2倍に重む加重＝土地・地金は没落判定で「恐慌に溶けない重い資産」）。(b)アンカーを他人の平均→**自分の平滑所得×年数**へブレンド（0=地域平均・1=年所得＝debtRuined判定の p.Earned×MonthsPerYear と同じ言語・平滑=max(当月,前月)=結晶化アンカー（EconomyStep）と同じ取り方）＝⚠>0では閾値係数（UpperFallThreshold=0.8等）の単位が「平均の何割」→「**年所得の何倍**」へ切替わる。(c)転落率を深さ連続化 rate×((1−f)+f×clamp((閾値−資産)/閾値,0,1))＝浅い割れはゆっくり・深い割れ（恐慌）は速い・debtRuinedは素通し。avgPerCap相対の「格差が没落を製造する因果の逆転」とClark比7-10倍速のエリート融解の是正
-    public double CohortGateK = 0.0;                 // rank8：世代ゲート＝非ショックの大流量移動（①昇格・①*小営業参入・①'手工業没落・①''失業プール）に flow×=min(1, K×四半期新成人率)。新成人率=ChildShare×3/(AgingYears×12)＝Simulationのコホート送りagedと同じ物差し（新しい量を作らない）。④⑤⑥の転落・戦争・破産（BankruptcyFallRate経路）は素通し＝「破産は速い」が史実。移動の大半は入職時（Long&Ferrie）＝均衡は不変で時定数だけ世代スケールへ。0=乗算ごとスキップ（厳密恒等）。新成人率≈0.5%/四半期なのでK≈数十〜百が実効目盛り
-    public double ProfessionGenderGate = 1.0;        // 【点火1.0・2026-08-16＝A/B単独で exact36.2→37.2・near/法ほぼ中立・硬性緑】rank12：職業の性別運搬＝Moveの移動コホート FemaleShare=src×access(行き先)（識字選抜PromotionLiteracySelectionと同型＝残留側で質量保存）。access=専門職（技師/官僚/医者）のみ「女性の権利」の梯子((int)WomenRights/3＝FactionSnapshotと同じ物差し)×WomenWageRetention（財産権の社会的確立の連続量）から導出・教師/使用人/その他=1.0＝**新しい法は作らない**（作者裁定）。女性教育権→教職の女性化と専門職の男性閉鎖（marriage bar）が同じ1本の法から出る。0=従来の按分混合とビット恒等
+    public double CohortGateK = 0.0;                 // rank8：世代ゲート＝非ショックの大流量移動（①昇格・①*小営業参入・①'手工業没落・①''失業プール）に flow×=min(1, K×四半期新成人率)。新成人率＝10〜19 の層から 20〜29 へ出ていく四半期の流れ（Pop.EnteringAdultsMonthly×3＝年齢の層の加齢と同じ物差し・★2026-09-30 段4e 後半・旧＝ChildShare×3/(AgingYears×12)）。④⑤⑥の転落・戦争・破産（BankruptcyFallRate経路）は素通し＝「破産は速い」が史実。移動の大半は入職時（Long&Ferrie）＝均衡は不変で時定数だけ世代スケールへ。0=乗算ごとスキップ（厳密恒等）。新成人率≈0.5%/四半期なのでK≈数十〜百が実効目盛り
+    public double ProfessionGenderGate = 1.0;        // 【点火1.0・2026-08-16＝A/B単独で exact36.2→37.2・near/法ほぼ中立・硬性緑】rank12：職業の性別運搬＝Moveの移動コホートの女性比＝src×access(行き先)（★2026-09-30 段4e 後半＝年齢の層の20歳以上の女性・Pop.Blend の femaleAccess）（識字選抜PromotionLiteracySelectionと同型＝残留側で質量保存）。access=専門職（技師/官僚/医者）のみ「女性の権利」の梯子((int)WomenRights/3＝FactionSnapshotと同じ物差し)×WomenWageRetention（財産権の社会的確立の連続量）から導出・教師/使用人/その他=1.0＝**新しい法は作らない**（作者裁定）。女性教育権→教職の女性化と専門職の男性閉鎖（marriage bar）が同じ1本の法から出る。0=従来の按分混合とビット恒等
 
     // --- 信用・銀行（§2.5.1／§9-G・段4）---
     public double CreditMultiplier = 3.0;     // 信用乗数（1/準備率）。広義マネー上限 ＝ 金×これ
@@ -1775,7 +1773,7 @@ public sealed class Coefficients
     //   ⚠再点火禁止（墓標）＝実測で7次元が改善し、政体exact は動かなかった＝この上限は忠実度を支えていなかった。読み手ゼロ（Government.cs/NationConfig.cs にコメント残置のみ）
     public double DefeatNationalism = 1.0;         // 機能7-1点火（2026-07-28）：敗戦ショック→r[4]ナショナリズム（刺され伝説＝1871仏/1918独）。時代ゲート・ファシズム式の前に加算＝r[9]の燃料として自動で効く。裁定（未決1）＝Ideologyコアへ直接加算（P1は闘争度ポート＝置き場が意味を壊す）。0で恒等
     public double LostLandNationalism = 0.1;       // 機能7-2点火（2026-07-28）：失地ストック×これ→r[4]の長期項。裁定（機能7-6）＝案A役割分担：RevanchismTension=特定の相手への対外敵意（緊張・ワンショット）／本項=国内イデオロギー分布（持続）＝出力先が異なり二重計上でない（[PORT:P1]台帳へ記録）。0で恒等
-    public double LostLandHalflifeQuarters = 80;   // 機能7-2：失地ストックの半減期（20年＝アルザスの遺恨は世代を跨ぐ）。★1世代の政治の記憶の長さ＝講和の遺恨（_grudge）と政権への失望（World.RecentRegimeChanges・2026-09-29 線2）も同じ半減期で薄れる
+    // 【削除2026-09-30 段4e 後半 4e-3】LostLandHalflifeQuarters（失地・政権への失望・講和の遺恨の半減期80四半期）＝国の世代の置き換わり率（World.ReplacementRate・τ＝0）が置き換えた（1783年は四半期 約0.88%＝半減期 約20年）。
     public double WarRallyCoercion = 0.3;          // 機能6-1点火（2026-07-28）：戦時の結束（rally around the flag）＝保持力×(1+これ×max(0,1−厭戦/減衰点))。厭戦で減衰させないと二月革命型が構造的に消える＝恒常抑制にしない。0で旧＝ドレインのみ恒等
     public double WarRallyDecayPoint = 0.4;        // 機能6-1：結束が消える厭戦水準（開戦時+30%→WE0.4でゼロ→以後はドレインが上回る）
     public double RevolutionSurrenderWeight = 0.4; // 機能6-2点火（2026-07-28）：講和意欲の閾値×(1−これ×革命圧力)＝内戦の懸念がある国は余力を残して降伏（独1918/露1917型）。厭戦崩壊(WE≥1)の決着は不変。0で旧固定閾値恒等
@@ -1998,9 +1996,9 @@ public sealed class Coefficients
     public double CrimePushWeight = 6.0;   // **点火2026-07-27（機能優先ラウンド第2群）→ 同日 0.3→6.0 へ再点火**：crimeRate の上限は CrimeBase 0.01×(1+CrimeUrbanWeight 0.6)=0.016 しかなく、
                                            // 0.3 では押し出し上限 0.0048＝同式の PushUnrestWeight(上限0.5) の約1/100＝ノイズ級で機構が事実上死んでいた。6.0 で上限 0.096＝不満項の約2割＝副次要因として意味を持つ水準。             // 接16：州別犯罪率を移民の押し出し（pushPenalty）へ加重＝治安悪化からの逃避。0=不読
     public double SteamTransportOnset = 1.0;   // **点火2026-07-27（機能優先ラウンド第1群）**         // リ5：1で汽船(85)onset0.5・機関車(88)onset0.6を既定レシピへ＝フルトン以前の汽船流通を止める（州の構築経路 Simulation.AddAlternateRecipes・CrucibleSteelと同型＝2026-09-27 に起動時の走査から移した＝植民地格の州にも焼く）。0=無ゲート
-    public double DisasterAgeMortalityExcess = 0.4;   // **点火2026-07-27（機能優先ラウンド第2群）**  // リ10：災害死（疫病・局地飢饉）の子供/老年の超過死亡倍率＝ChildShare/OldShareへ運搬しコホートの穴を残す。0=均等死＝比率不変（現行）
+    public double DisasterAgeMortalityExcess = 0.4;   // **点火2026-07-27（機能優先ラウンド第2群）**  // リ10：災害死（疫病・飢えの超過死亡）の年齢の重み＝0〜9 と 60以上の1人あたりの死に (1＋これ)（★2026-09-30 段4e 後半＝年齢の層・Pop.DisasterWeights）。0=均等死
     // 【墓標2026-09-28・段2-1】StateSpendTreasuryClamp（他12＝軍需・行政・教育の予算を「いま国庫にある現金」で比例縮小）を削除＝全ての国家の支払いは月初の1本の率 r（Simulation）。
-    public double ConscriptExcludeOldMales = 1.0;   // **点火2026-07-27（機能優先ラウンド第3群）**    // 他13：徴兵上限を働き盛り男性（成人−老年）へ＝総動員時の老年男性二重計上（OldShare水増し）を解消。0=現行
+    public double ConscriptExcludeOldMales = 1.0;   // **点火2026-07-27（機能優先ラウンド第3群）**    // 他13：徴兵上限を働き盛り男性（成人−老年）へ＝総動員時の老年男性二重計上（OldShare水増し）を解消。0=現行（★2026-09-30 段4e 後半＝16〜59歳の男を年齢の層から読む）
     public double ExternalPressureDerived = 1.0;   // **点火2026-07-27（機能優先ラウンド第2群）**     // 接7：外圧を創建時定数0.3から「世界の技術水準格差×海の接触」の四半期導出へ（1で有効）。0=定数据え置き（現行）
     public double ExternalPressureGapScale = 1.5;    // 接7：外圧が満額になる技術格差（世界の技術水準−自国がこれで外圧1.0）。ExternalPressureDerived=0では不読
     public double ExternalPressureInlandFactor = 0.5; // 接7：内陸国（活動州に港なし）の外圧係数＝黒船は海から来る（陸伝いの外圧は弱い）。ExternalPressureDerived=0では不読
@@ -2583,9 +2581,9 @@ public sealed class Coefficients
     // 【墓標2026-09-29・支払いの一元化 段3-1】ExportRevenueToProducers を削除（輸出代金の半分を生産者の持ち主へ直接・残りを国の全POP の貯蓄比＝輸出代金は全額を④の持分へ＝InternationalMarket.PaySales・C4）。
 
     // === リアリティ監査 2026-07-02 Wave3（人口・社会・労働の機構）===
-    // 点火状況は各行参照。1州較正harnessでは加重=非加重・OldShare=0・複数州なしで恒等になるよう設計。
+    // 点火状況は各行参照。1州較正harnessでは加重=非加重・老年なし（旧 OldShare=0・★2026-09-30 段4e 後半で年齢の層へ＝全 POP が標準のピラミッドから始まる）・複数州なしで恒等になるよう設計。
     public double CapacityFromFoodOutput = 0.5;   // 人2（扶養力の食料産出アンカー・大改修スカフォールド）：DemographicStepのcapacity基準を「初期人口baseline」と「実食料産出アンカー(baseline×未クランプfoodMet/foodNeed・下限0.3)」の間でブレンド。0=baselineアンカー(天井約2.5倍)で現行と厳密一致・1で実食料産出から再構成＝19世紀の人口爆発(英4倍/米23倍)とpop>capacityの補償死倒錯を解消。乗数束上限撤去・耕地×技術アンカー・再較正は#17残件
-    public double CoupleLimitedBirths = 1.0;   // 人5（徴兵で出生が増える符号逆転）：FertileWomenBirths経路の出産可能プールをFemaleShare比例(0=現行)からカップル律速2×min(女,男)(1)へブレンド。標準構成FemaleShare=0.5で両式が定数倍で一致しt=0正規化が相殺＝較正中立。FertileWomenBirths=true（既定）で有効。falseなら不読
+    public double CoupleLimitedBirths = 1.0;   // 人5（徴兵で出生が増える符号逆転）：FertileWomenBirths経路の出産可能プールを女性比例(0)からカップル律速2×min(女,男)(1)へブレンド（★2026-09-30 段4e 後半＝成人の女性比を年齢の層から読む）。男女半々で両式が定数倍で一致しt=0正規化が相殺＝較正中立。FertileWomenBirths=true（既定）で有効。falseなら不読
     public double FertilityAffectsBirthsOnly = 1.0;   // 人7（出生率倍率の死亡側混線）：第4段4-6で単独点火（2026-07-27）＝「女子教育を進めた国は同じ食料不足でも飢饉死が半分」の誤因果を解消。旧・M8試験の破綻1/30は OldLaborFactor=0.5 との抱き合わせで、相方はその後0.75で単独点火済み＝前提消滅→単独再測定へ。netFertility=fertility+これ×(1−fertility)。0で旧（死亡側もfertility比例）
     // （人9 の局地飢饉の絶対水準ゲート FamineAbsoluteThreshold は 2026-09-30 (131) に局地飢饉の死と一緒に係数ごと削除＝飢えの死は POP の絶対の充足〔FamineDeathFillFloor〕だけが門）
     public double NewbornLiteracyDilution = 0.0;   /* #17保留:Stage2/TechInst識字テスト */   // 人11a（新生児の識字の無償相続）：DemographicStepの出生分(識字0の新生児births人)でpopのLiteracyを加重平均希釈。0=希釈なし（現行と厳密一致）・1でLit_new=Lit_old×(Size−births)/Size。識字ラチェットの解消。教育側はTechEducation.cs
@@ -2595,7 +2593,7 @@ public sealed class Coefficients
     // 【墓標2026-09-30・旗の焼き込み（処理の一元化 段4e I）】MigrationCarriesHumanCapital（人1・#17点火 1.0）＝移動サイトが識字・闘争度を運ぶ＝人の移し方の1本 Pop.Blend が常に運ぶ。
     public double PromotionLiteracySelection = 0.5;   /* #17有効化 */   // 人1：昇格の識字選抜強度（Meritocracy）。0=選抜なし＝移動コホートの識字＝src平均（現行恒等）／>0で移動者の識字を引き上げ質量保存で残留srcを引き下げ＝昇格ポンプの自己補充を解消。Pop.Blend の選抜の枝（残る人がいるときだけ）
     // 【墓標2026-09-26・旗の焼き込み（x-01・0-4）】RegionMigrationExcludesClosed（人4・#17点火）＝地域間移民は閉鎖階級と兵士を動かさない
-    public double LiteracyGenerationalDecay = 0.002;   /* 【R10点火2026-07-13＝0.002】 */   // 人11b：識字の世代減衰（TechEducation・月次）。0=減衰なし＝既得識字は永遠保持（旧ラチェット）／>0でEducationFillを上回る分に微小な世代減衰＝教育投資の維持費（教育崩壊で識字後退）。0.002＝超過分の半減期≈29年（世代規模）＝使わなければ失う
+    // 【削除2026-09-30 段4e 後半 4e-3】LiteracyGenerationalDecay（識字の世代減衰の月率0.002）＝世代の流れ（20歳になる若者が max(学校, 母の識字の比×大人の識字) を持ち込む）が置き換えた（設計書 §4-2・§5-2）。
     public double EducationGateUsesEma = 0.0;   // 人13：昇格の高等教育ゲート（Meritocracy）に多年EMAを使う（0=当月EducationFillの瞬間フロー＝現行／1=EducationEmaストックで判定＝一時的な教育の途絶で資格が消えない）
     public double EducationEmaRate = 0.05;   // 人13：EducationEmaの当月Fillへの月次収束率。EducationGateUsesEma=0の既定では未使用＝挙動非依存。値は#17で較正
     public double CrossBorderMigrationByOpportunity = 1.0;   // 人3/外14：国家間移民を州の機会で判定する（★回1-2・2026-09-27＝全ての Active 州が送出州・各国の最良州が受入州・差＝受入国の最良州の機会−送出州の機会×食料充足−閾値＝MultiNationSim.MigrateBetweenNations の5段）。0で越境移民なし（旧・満足度ベース経路は2026-07-28に係数ごと削除済み）
@@ -2645,7 +2643,7 @@ public sealed class Coefficients
     public double SecessionHoldCoercion = 1.0;   // 政5（分離の中央保持力判定がデッドコード）：>0でholdに軍・警察(Coercion)由来の飽和項を加え第2条件を活性化（大軍の帝国ほど分離を抑える）。0で従来のhold式＝現行恒等
     public double SecessionCultureAdditive = 3.0;   // 政14（**【R8点火2026-07-13＝3.0】** 旧0.5は効果≈0.1で分離閾値1.43に届かず実質関税駆動だった＝民族主因の分離が出なかった）：>0で文化/宗教距離×州少数派度×州不満を関税と独立の加算圧力に（民族主因の分離）。参考例（5.0の場合）＝強民族州(文化距離1×少数派0.8×不満0.8)で加算≈0.64＝関税項と合わせ閾値超えが可能に＝バルカン型の民族分離を実数化。0で旧の乗算構造のみ。EthnicEnabledの国のみ
     public double ConsciousnessFromSchoolingStock = 1.0;   /* #17保留:PolicyPolitics/Polityテスト */   // 政15（変換係数が現行の教育法を読む＝世代遅れなし）：混合比∈[0,1]。0=今期の教育法の即時値を全pop一律（現行恒等）／>0でpopの就学履歴ストックと混ぜ世代遅れを作る
-    public double SchoolingStockSpeed = 0.02;   // 政15：就学履歴ストックが今期の変換係数へ寄る四半期速度（法改正が変換に効くまで数年）。ConsciousnessFromSchoolingStock=0では未使用
+    // 【削除2026-09-30 段4e 後半 4e-3】SchoolingStockSpeed（就学履歴が今の変換係数へ寄る四半期の速さ0.02）＝世代の流れ（20歳になる若者が今の教育法の変換係数を持ち込む）が置き換えた。
     // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】IrreversibleEmancipation＝農奴解放・土地改革の不可逆（政4・点火済み）
     public double SeatsFrozenBetweenElections = 1.0;   // 政7：選挙間の議席固定。0=PartySeatsを毎期の世論で上書き＝直接民主制的（VoteShares==PartySeats恒等）／>0で得票率はVoteShares(表示)に置きPartySeats(確定議席)は選挙時スナップショットで固定＝レームダック
     public double CenterIsFirstProvince = 1.0;   /* ★点火2026-09-05 B群(G5 中心州)＝0.0→1.0・batch10連鎖の実測（凍結木）で硬性ゲート緑 */      // ★J-003（作者裁定2026-09-03「首都（史実・表示のみ）と経済中心地は別でよい」）：エンジンの距離計算の基準を**1番目の州**（＝エンジンが首都として扱う州）の座標へ差し替える。⚠世界データの首都座標は `World.DisplayCapitalLat/Lon` に残り**表示専用**になる。実測で差が出るのは3カ国（露634km・コーカンド167km・モロッコ166km）。0で厳密恒等

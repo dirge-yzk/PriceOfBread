@@ -560,7 +560,7 @@ public static class Fiscal
         double pensionLevel = w.Pension switch { ReformLevel.Full => 1.0, ReformLevel.Limited => 0.5, _ => 0.0 };
         if (pensionLevel > 1e-9)
         {
-            double oldSize = 0; foreach (var p in pops) if (!p.IsSoldier) oldSize += p.Size * p.OldShare;
+            double oldSize = 0; foreach (var p in pops) if (!p.IsSoldier) oldSize += p.Size * p.AgeShare(60, double.PositiveInfinity);   // 老年＝60歳以上（年齢の層・段4e 後半）
             double pensionReq = c.PensionCostRate * pensionLevel * oldSize;
             double pensionClaim = Math.Min(pensionReq, c.WelfareRevenueShare * w.FiscalCapacity);   // 福祉と同じ裁量余剰から（請求）
             double pensionCost = pensionClaim * payRate;   // 払うのは請求×r（福祉と同じ・2026-09-28 段2-1＝SpendingCapFactor と国庫残高のクランプを撤去）
@@ -575,7 +575,11 @@ public static class Fiscal
                 foreach (var rg in w.Regions)
                 {
                     double reach = reachOn ? Politics.RuleReach(rg, c) : 1.0;
-                    foreach (var p in rg.Pops) if (!p.IsSoldier && p.OldShare > 1e-9) { elderly.Add(p); elderW.Add(p.Size * p.OldShare * reach); elderSize += p.Size * p.OldShare; reachW += p.Size * p.OldShare * reach; }
+                    foreach (var p in rg.Pops)
+                    {
+                        double os = p.AgeShare(60, double.PositiveInfinity);
+                        if (!p.IsSoldier && os > 1e-9) { elderly.Add(p); elderW.Add(p.Size * os * reach); elderSize += p.Size * os; reachW += p.Size * os * reach; }
+                    }
                 }
                 // ★支払いの一元化 段2-3（E1・2026-09-29）：按分の本体 World.Distribute へ畳んだ（旧＝式 pensionCost×w/Σ の結合順が本体と違い、到達の枝は端数を寄せなかった＝同じ支払いに端数規則が2つ）。
                 //   届く額＝給付×(届く重み÷老年人口)を届く重みで配る＝各人の額は旧と同じ量。届かない分・受け手不在・配れなかった額は国庫残置。

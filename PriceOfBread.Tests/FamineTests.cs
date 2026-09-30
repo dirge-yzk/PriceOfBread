@@ -137,14 +137,14 @@ public class FamineTests
     }
 
     [Fact]
-    public void 年齢コホート_実国で老年人口が形成される()   // ①年齢コホート Phase1
+    public void 年齢コホート_実国で老年人口が形成される()   // ①年齢コホート（★2026-09-30 段4e 後半＝年齢の層・老年比の上限0.15〔天井〕を撤去）
     {
         var sim = new Simulation(NationConfig.Britain().ToScenario(9), new NullAgent());
-        sim.Run(200);   // 50年：生産年齢→老年のコホート送りで老年が形成される
+        sim.Run(200);   // 50年：加齢と年齢の重みの死で老年の層が保たれる（1783年は標準のピラミッドの 7.5%）
         double oldSize = 0, totalSize = 0;
-        foreach (var p in sim.World.AllPops()) if (!p.IsSoldier) { oldSize += p.Size * p.OldShare; totalSize += p.Size; }
+        foreach (var p in sim.World.AllPops()) if (!p.IsSoldier) { oldSize += p.Size * p.AgeShare(60, double.PositiveInfinity); totalSize += p.Size; }
         Assert.True(totalSize > 0, "人口が消えた");
-        Assert.True(oldSize / totalSize > 0.02, $"老年人口が形成されていない（老年比率 {oldSize / totalSize:P1}）＝①年齢コホートのコホート送りが効いていない");
+        Assert.InRange(oldSize / totalSize, 0.03, 0.2);   // 天井なしで溜まりすぎず・加齢で消えもしない（前近代〜転換期の 60歳以上＝5〜15%）
     }
 
     [Fact]

@@ -54,7 +54,7 @@ public class DemographyBirthWeightTests
         sim.World.Coef.FertileAbsoluteBlend = 1.0;
         var r = sim.World.Region;
         var clergy = r.Pops[6];
-        clergy.FemaleShare = 0.0;   // 出産可能プール≈0 の退化構成を直接セット（couple=0・female=0 → fertile=0）
+        clergy.Ages = Pop.SoldierAges();   // 出産可能プール≈0 の退化構成を直接セット（男だけ＝couple=0・female=0 → fertile=0・年齢の層）
         double size0 = clergy.Size;
         double p0 = sim.World.TotalPopulation;
         sim.Run(8);   // 2年（出生配分が毎月走る）

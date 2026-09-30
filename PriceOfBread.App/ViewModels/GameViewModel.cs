@@ -547,7 +547,7 @@ public partial class GameViewModel : ViewModelBase
         double clSum = 0, clSize = 0;
         foreach (var r in _player.Regions)
             foreach (var p in r.Pops)
-                if (!p.IsSoldier && p.ChildShare > 1e-9) { clSum += p.ChildLaborRate * p.Size; clSize += p.Size; }
+                if (!p.IsSoldier && p.AgeShare(10, 15) > 1e-9) { clSum += p.ChildLaborRate * p.Size; clSize += p.Size; }   // 働きうる子供（10〜14歳・年齢の層）のいる POP
         // ★2026-08-02（作者指示）：「児童労働率」→**児童の就業率**（何の率かが名前で分かる）。合法度は撤去＝
         //   法の現在値は法律タブの「児童労働」行（禁止/合法）が持っており、ここに出すと同じことを2箇所で言う。
         ChildLaborLine = clSize > 1e-9 ? $"児童の就業率 {clSum / clSize:P0}" : "";

@@ -1,0 +1,447 @@
+diff --git a/PriceOfBread.App/ViewModels/GameViewModel.Politics.cs b/PriceOfBread.App/ViewModels/GameViewModel.Politics.cs
+index f67df08..9ec9f24 100644
+--- a/PriceOfBread.App/ViewModels/GameViewModel.Politics.cs
++++ b/PriceOfBread.App/ViewModels/GameViewModel.Politics.cs
+@@ -840,7 +840,7 @@ public partial class GameViewModel
+             foreach (var p in rg.Pops)
+             {
+                 if (p.IsSoldier) { sld += p.Size; hasSoldier = true; }
+-                else if (p.ClassId == c.SoldierRecruitClassA || p.ClassId == c.SoldierRecruitClassB) pool += p.Size;
++                else if (p.ClassId == c.SoldierRecruitClassA || p.ClassId == c.SoldierRecruitClassB) pool += Military.RecruitMen(p);   // 兵役の母数＝徴募元の男20〜39歳（標準の構成の人数に換算・エンジンと同じ1本）
+             }
+             if (!hasSoldier) continue;   // 兵士POPの無い州は徴募の対象外（Military.Step の soldier==null と同じ）
+             double manpower = (pool + sld) * Politics.RuleDelivery(rg, c, c.RuleSharesTaxBase);   // Military.Step の兵役の母数と同一（支配度 段3・RuleSharesTaxBase=0 で ×1）
+diff --git a/PriceOfBread.Runner/Program.cs b/PriceOfBread.Runner/Program.cs
+index e51a0fa..3e1d953 100644
+--- a/PriceOfBread.Runner/Program.cs
++++ b/PriceOfBread.Runner/Program.cs
+@@ -6505,8 +6505,8 @@ if (args.Length > 0 && args[0] == "natprobe")
+             foreach (var pp in r.Pops)
+             {
+                 if (pp.IsSoldier) ss += pp.Size;
+-                else if (pp.ClassId == w.Coef.SoldierRecruitClassA) pa += pp.Size;
+-                else if (pp.ClassId == w.Coef.SoldierRecruitClassB) pb += pp.Size;
++                else if (pp.ClassId == w.Coef.SoldierRecruitClassA) pa += Military.RecruitMen(pp);   // 兵役の母数＝徴募元の男20〜39歳（標準の構成の人数に換算・エンジンと同じ1本）
++                else if (pp.ClassId == w.Coef.SoldierRecruitClassB) pb += Military.RecruitMen(pp);
+             }
+             mpPool += pa + pb;
+             mpDesired += w.MilitarySpending * w.Coef.MaxSoldierFraction * (pa + pb + ss);
+@@ -6549,8 +6549,8 @@ if (args.Length > 0 && args[0] == "milprobe")
+             foreach (var pp in r.Pops)
+             {
+                 if (pp.IsSoldier) ss = Math.Max(0, ss) + pp.Size;
+-                else if (pp.ClassId == w.Coef.SoldierRecruitClassA) pa += pp.Size;
+-                else if (pp.ClassId == w.Coef.SoldierRecruitClassB) pb += pp.Size;
++                else if (pp.ClassId == w.Coef.SoldierRecruitClassA) pa += Military.RecruitMen(pp);   // 兵役の母数（エンジンと同じ1本）
++                else if (pp.ClassId == w.Coef.SoldierRecruitClassB) pb += Military.RecruitMen(pp);
+             }
+             double desired = w.MilitarySpending * w.Coef.MaxSoldierFraction * (pa + pb + Math.Max(0, ss));
+             Console.WriteLine($"  [{r.State}] {r.Name}	兵{(ss < 0 ? "なし" : ss.ToString("F1"))}	プール{pa + pb:F0}	州目標{desired:F1}");
+diff --git a/PriceOfBread.SimCore/Coefficients.cs b/PriceOfBread.SimCore/Coefficients.cs
+index 089397b..d57c386 100644
+--- a/PriceOfBread.SimCore/Coefficients.cs
++++ b/PriceOfBread.SimCore/Coefficients.cs
+@@ -567,13 +567,13 @@ public sealed class Coefficients
+     //   史実（1914年に女性参政権を持つ主要国は事実上ゼロ・多くは1918-1920+）との整合＝最上段だけが憲法級＋男性普通選挙を前提、が担う。
+     // 【削除2026-09-30 段4e 後半（年齢の層の器）】AgingYears（子供→成人の年数16）・WorkingYears（成人→老年の年数45）・OldMortalityWeight（老衰の重み3.0）・
+     //   OldShareMax（老年比の上限0.15＝天井＝思想⑧違反）＝年齢の層（Pop.Ages＝10歳刻み8層×男女）の層の幅・加齢の流れ・死の年齢の重み（標準のピラミッドから導く）が置き換えた。
+-    public double OldLaborFactor = 0.75;   /* 【史実方向2026-08-08＝0.6は硬性赤（経済−7.5）→0.75測定・旧0.92 */   /* リアリティ群点火2026-07-18＝人口転換(穏やか) */          // ①Phase3：老年の労働参加率（0=完全引退〜1=フル稼働）。（M8点火試験2026-07-13＝0.5でbatch破綻1/30＋exact35に悪化／**再計測2026-07-15＝0.85でbatch破綻0・calib24-24-24堅持だがexact41→39（−2）＝高齢化がexactを単調に削る（1.0→41/0.85→39/0.5→35）。唯一 清覇権を抑制(12→8・仏11勝で競争化)したがexact優先で却下。清抑制を優先するなら0.85が選択肢（要ユーザー裁定）。専用の経済再較正なしにexact41維持と両立不能**）（EconomyStepの労働供給で (1−OldLaborFactor)×老年比〔60歳以上・★2026-09-30 段4e 後半＝年齢の層から読む〕を成人から差し引く）。（M8点火試験2026-07-13＝0.5+FertilityAffectsBirthsOnly=1.0でbatch破綻1/30＋exact38→35/◎22→19悪化＝#17 balance再較正が要る確定＝休眠へ差し戻し・要専用Calibration.Search）。#17の較正再走で <1 に下げ、高齢化→労働力縮小→成長鈍化（人口転換後の扶養比率上昇）を有効化
++    public double OldLaborFactor = 0.75;   /* 【史実方向2026-08-08＝0.6は硬性赤（経済−7.5）→0.75測定・旧0.92 */   /* リアリティ群点火2026-07-18＝人口転換(穏やか) */          // ①Phase3：老年の労働参加率（0=完全引退〜1=フル稼働）。（M8点火試験2026-07-13＝0.5でbatch破綻1/30＋exact35に悪化／**再計測2026-07-15＝0.85でbatch破綻0・calib24-24-24堅持だがexact41→39（−2）＝高齢化がexactを単調に削る（1.0→41/0.85→39/0.5→35）。唯一 清覇権を抑制(12→8・仏11勝で競争化)したがexact優先で却下。清抑制を優先するなら0.85が選択肢（要ユーザー裁定）。専用の経済再較正なしにexact41維持と両立不能**）（EconomyStepの労働供給＝★2026-09-30 段4e 後半：65歳以上×これ（年齢の層）・旧＝(1−これ)×OldShare を成人から差し引く）。（M8点火試験2026-07-13＝0.5+FertilityAffectsBirthsOnly=1.0でbatch破綻1/30＋exact38→35/◎22→19悪化＝#17 balance再較正が要る確定＝休眠へ差し戻し・要専用Calibration.Search）。#17の較正再走で <1 に下げ、高齢化→労働力縮小→成長鈍化（人口転換後の扶養比率上昇）を有効化
+     // 年金法（①年齢コホート Phase2）：老年人口への給付。デフォルト（年金なし）＝0で較正中立。
+     public double PensionCostRate = 0.8;         // 年金「十分」時・老年1単位あたりの月次給付（国庫→老年）。高齢化が進むほど財政負担＝福祉国家のジレンマ
+     // ★物理削除2026-08-21【墓標・再点火禁止】：PensionSatBonus（旧0.10→8/17に0）＝年金の満足度フラット加算（Region.PensionWellbeing・読み手ごと削除）。
+     //   作者裁定2026-08-17「年金を現金給付へ」＋2026-08-19「満足度は買えたかのみ」＝年金の効果は現金給付（PensionCostRate＝国庫→老年→消費→生活水準）だけが担う。
+-    public double EduPerChild = 0.2;             // 子供1人あたりの教育の必要量（×子供比率0.3＝従来の人口あたり0.06と一致）
+-    public bool FertileWomenBirths = true;      // ①Phase3：出生を「出産可能女性プール」比例にする。**true＝有効化済み**（台帳訂正2026-07-12・旧注記「既定false＝dormant」は誤り）。各popの出生量を Size×出産可能プール/InitialFertileShare に律速（出産可能プール＝16〜59歳×成人の女性比〔★2026-09-30 段4e 後半＝年齢の層から旧と同じ意味で読む〕）＝徴兵で男が抜け女性比率が上がっても/老人だらけでも出生が構成に応答（失われた世代の伝播）。net（ロジスティック）は不変＝人口保存
++    public double EduPerChild = 0.06 / Pop.StdShare(5, 15);   // 学齢（5〜14歳）の子供1人あたりの教育の必要量＝人口あたり0.06（旧＝子供比0.3×0.2）÷標準のピラミッドの5〜14歳（0.225）＝約0.267（★2026-09-30 段4e 後半＝年齢の層・起点合わせ＝1783年の需要は旧と同じ）
++    public bool FertileWomenBirths = true;      // ①Phase3：出生を「出産可能女性プール」比例にする。**true＝有効化済み**（台帳訂正2026-07-12・旧注記「既定false＝dormant」は誤り）。各popの出生量を Size×出産可能プール/InitialFertileShare に律速（★2026-09-30 段4e 後半＝15〜49歳の女×カップル律速・年齢の層・旧＝(1−ChildShare−OldShare)×FemaleShare）＝徴兵で男が抜け女性比率が上がっても/老人だらけでも出生が構成に応答（失われた世代の伝播）。net（ロジスティック）は不変＝人口保存
+     public double FertilityBase = 1.0;           // 出生率の基礎倍率（無学の社会＝従来の較正値そのまま＝中立）
+     public double FertilityLitSlope = 0.55;      // 女性の識字で出生率が**下がる**幅＝人口転換の因果（女子教育→少子化。多産側の加速は医療＝死亡率低下が担当）
+     public double FertilityFloor = 0.5;          // 出生率の下限（先進社会でも人口は緩やかに増える）
+@@ -623,7 +623,7 @@ public sealed class Coefficients
+     public double EpidemicSeverity = 0.06;       // 流行時に地域人口が失う割合の基礎（揺らぎで0.5〜1.5倍）。衛生・医療の価値を高める
+     // === テーマC（疫病の完成）===
+     public double EpidemicSanitationWeight = 0.6; // 致死率を工業化proxyから実衛生財(InfraFill+石鹸+電化)へブレンド（epidemic-ignores-built-sanitation）。0で旧proxy厳密一致。>0で上下水道投資がコレラ致死を下げる(スノウ)
+-    public double EpidemicVulnConcentration = 0.5; // 疫病死を脆弱層へ集中（epidemic-uniform-age-class-mortality）：重み=Size×(1+これ×(子供比〔16歳未満〕+老年比〔60歳以上〕+(1−食料充足)))（★2026-09-30 段4e 後半＝年齢の層から読む）。0で全階級一律(現行)・総死亡量は保存
++    public double EpidemicVulnConcentration = 0.5; // 疫病死を飢えた層へ集中：POP の重み＝Size×(1+これ×(1−主食の充足))×年齢の重み（★2026-09-30 段4e 後半＝年齢の脆弱さは DisasterAgeMortalityExcess の年齢の重みの1本へ・旧＝子供比＋老年比もここで読み、POP の中の年齢の運搬と同じ脆弱さを2度読んだ＝思想⑨）。0で飢えの差なし・総死亡量は保存
+     // 疫病の伝播（コレラの世界的流行＝交易路・近接で運ばれる）。発生国は EpidemicContagiousYears 年だけ感染源になり、近接＋交易接触で未感染国へ飛び火。単一国較正は伝播相手なしで無影響。
+     public int EpidemicContagiousYears = 3;      // 発生後に感染源であり続ける年数（この間は他国へ伝染しうる）
+     public double EpidemicTransmitChance = 0.35; // 完全接触（隣接の感染国）から1年で伝染する基礎確率
+@@ -1996,9 +1996,9 @@ public sealed class Coefficients
+     public double CrimePushWeight = 6.0;   // **点火2026-07-27（機能優先ラウンド第2群）→ 同日 0.3→6.0 へ再点火**：crimeRate の上限は CrimeBase 0.01×(1+CrimeUrbanWeight 0.6)=0.016 しかなく、
+                                            // 0.3 では押し出し上限 0.0048＝同式の PushUnrestWeight(上限0.5) の約1/100＝ノイズ級で機構が事実上死んでいた。6.0 で上限 0.096＝不満項の約2割＝副次要因として意味を持つ水準。             // 接16：州別犯罪率を移民の押し出し（pushPenalty）へ加重＝治安悪化からの逃避。0=不読
+     public double SteamTransportOnset = 1.0;   // **点火2026-07-27（機能優先ラウンド第1群）**         // リ5：1で汽船(85)onset0.5・機関車(88)onset0.6を既定レシピへ＝フルトン以前の汽船流通を止める（州の構築経路 Simulation.AddAlternateRecipes・CrucibleSteelと同型＝2026-09-27 に起動時の走査から移した＝植民地格の州にも焼く）。0=無ゲート
+-    public double DisasterAgeMortalityExcess = 0.4;   // **点火2026-07-27（機能優先ラウンド第2群）**  // リ10：災害死（疫病・飢えの超過死亡）の年齢の重み＝0〜9 と 60以上の1人あたりの死に (1＋これ)（★2026-09-30 段4e 後半＝年齢の層・Pop.DisasterWeights）。0=均等死
++    public double DisasterAgeMortalityExcess = 0.4;   // **点火2026-07-27（機能優先ラウンド第2群）**  // リ10：災害死（疫病・飢えの超過死亡）の年齢の重み＝0〜9 と 60以上の1人あたりの死に (1＋これ)（★2026-09-30 段4e 後半＝年齢の層・Pop.DisasterWeights＝POP の間と POP の中の1本）。0=均等死
+     // 【墓標2026-09-28・段2-1】StateSpendTreasuryClamp（他12＝軍需・行政・教育の予算を「いま国庫にある現金」で比例縮小）を削除＝全ての国家の支払いは月初の1本の率 r（Simulation）。
+-    public double ConscriptExcludeOldMales = 1.0;   // **点火2026-07-27（機能優先ラウンド第3群）**    // 他13：徴兵上限を働き盛り男性（成人−老年）へ＝総動員時の老年男性二重計上（OldShare水増し）を解消。0=現行（★2026-09-30 段4e 後半＝16〜59歳の男を年齢の層から読む）
++    // 【削除2026-09-30 段4e 後半】ConscriptExcludeOldMales（徴兵の上限から老年の男を除く旗）＝年齢の層で徴兵の年齢（男20〜39・皆兵は49まで）を直接読む＝自明（設計書 §4-2）。
+     public double ExternalPressureDerived = 1.0;   // **点火2026-07-27（機能優先ラウンド第2群）**     // 接7：外圧を創建時定数0.3から「世界の技術水準格差×海の接触」の四半期導出へ（1で有効）。0=定数据え置き（現行）
+     public double ExternalPressureGapScale = 1.5;    // 接7：外圧が満額になる技術格差（世界の技術水準−自国がこれで外圧1.0）。ExternalPressureDerived=0では不読
+     public double ExternalPressureInlandFactor = 0.5; // 接7：内陸国（活動州に港なし）の外圧係数＝黒船は海から来る（陸伝いの外圧は弱い）。ExternalPressureDerived=0では不読
+@@ -2583,7 +2583,7 @@ public sealed class Coefficients
+     // === リアリティ監査 2026-07-02 Wave3（人口・社会・労働の機構）===
+     // 点火状況は各行参照。1州較正harnessでは加重=非加重・老年なし（旧 OldShare=0・★2026-09-30 段4e 後半で年齢の層へ＝全 POP が標準のピラミッドから始まる）・複数州なしで恒等になるよう設計。
+     public double CapacityFromFoodOutput = 0.5;   // 人2（扶養力の食料産出アンカー・大改修スカフォールド）：DemographicStepのcapacity基準を「初期人口baseline」と「実食料産出アンカー(baseline×未クランプfoodMet/foodNeed・下限0.3)」の間でブレンド。0=baselineアンカー(天井約2.5倍)で現行と厳密一致・1で実食料産出から再構成＝19世紀の人口爆発(英4倍/米23倍)とpop>capacityの補償死倒錯を解消。乗数束上限撤去・耕地×技術アンカー・再較正は#17残件
+-    public double CoupleLimitedBirths = 1.0;   // 人5（徴兵で出生が増える符号逆転）：FertileWomenBirths経路の出産可能プールを女性比例(0)からカップル律速2×min(女,男)(1)へブレンド（★2026-09-30 段4e 後半＝成人の女性比を年齢の層から読む）。男女半々で両式が定数倍で一致しt=0正規化が相殺＝較正中立。FertileWomenBirths=true（既定）で有効。falseなら不読
++    public double CoupleLimitedBirths = 1.0;   // 人5（徴兵で出生が増える符号逆転）：FertileWomenBirths経路の出産可能プールを女性比例(0)からカップル律速2×min(女,男)(1)へブレンド（★2026-09-30 段4e 後半＝15〜49歳の女と男・年齢の層）。男女半々で両式が定数倍で一致しt=0正規化が相殺＝較正中立。FertileWomenBirths=true（既定）で有効。falseなら不読
+     public double FertilityAffectsBirthsOnly = 1.0;   // 人7（出生率倍率の死亡側混線）：第4段4-6で単独点火（2026-07-27）＝「女子教育を進めた国は同じ食料不足でも飢饉死が半分」の誤因果を解消。旧・M8試験の破綻1/30は OldLaborFactor=0.5 との抱き合わせで、相方はその後0.75で単独点火済み＝前提消滅→単独再測定へ。netFertility=fertility+これ×(1−fertility)。0で旧（死亡側もfertility比例）
+     // （人9 の局地飢饉の絶対水準ゲート FamineAbsoluteThreshold は 2026-09-30 (131) に局地飢饉の死と一緒に係数ごと削除＝飢えの死は POP の絶対の充足〔FamineDeathFillFloor〕だけが門）
+     public double NewbornLiteracyDilution = 0.0;   /* #17保留:Stage2/TechInst識字テスト */   // 人11a（新生児の識字の無償相続）：DemographicStepの出生分(識字0の新生児births人)でpopのLiteracyを加重平均希釈。0=希釈なし（現行と厳密一致）・1でLit_new=Lit_old×(Size−births)/Size。識字ラチェットの解消。教育側はTechEducation.cs
+@@ -3441,7 +3441,7 @@ public sealed class Coefficients
+     // BirthWeight の popごと t=0 凍結分母（InitialFertileShare）は、初期構成が偏ったpop（聖職者F=0.10）が新生児蓄積で構成正常化すると
+     // 分母凍結のまま分子が育ち恒久出生倍率（実測2.1倍）になる罠＝「比のガードは絶対値で書かない」と同族。
+     public double FertileAbsoluteBlend = 0.0;   // ★差し戻し2026-08-30（点火bisect＝幕府転換テスト赤の単独犯・英人口が停滞→縮小0.73×へ）：凍結分母ポンプ（出生2.1倍）は較正の暗黙の土台だった＝是正は**出生率の実再較正とセット**でのみ再点火（AI工業化バーストと同型の扱い）
+-    public double FertileShareStd = 0.35;   // 標準構成の出産可能プール定数＝(1−0.3子供)×0.5女性=0.35。FertileAbsoluteBlend>0のときのみ読む分母の物差し（カップル律速項×(1+CoupleLimitedBirths)はBirthWeight側で乗算＝標準構成popの重み=Sizeを保ち総出生の物差しを動かさない）
++    // 【削除2026-09-30 段4e 後半】FertileShareStd（標準構成の出産可能プール定数0.35）＝標準のピラミッドの出産可能プール（Simulation.FertilePool に標準の構成を通した値）が置き換えた（設計書 §4-2）。
+ 
+     // ==== 運用コスト監査 2026-08-16（燃料系＝「金は払うが物資を消費しない運用」の物資化。#1海軍燃料のみ休眠・#2#4は点火済み・#3汽船燃料は2026-09-27 に点火）====
+     // 対象4本＝#1海軍の運用燃料／#2鉄道の運行石炭／#3汽船（民間海運）の運行燃料／#4空軍・輜重の燃料。
+diff --git a/PriceOfBread.SimCore/Diplomacy.cs b/PriceOfBread.SimCore/Diplomacy.cs
+index ae31500..30e1fc7 100644
+--- a/PriceOfBread.SimCore/Diplomacy.cs
++++ b/PriceOfBread.SimCore/Diplomacy.cs
+@@ -385,6 +385,9 @@ public sealed class Diplomacy
+     private const double OfficerCasualtyPopCap = 0.05;        // 将校戦死の貴族人口上限（5%/月）
+     private const int EndedWarRingCapacity = 256;             // 終戦記録リングの容量
+ 
++    /// <summary>★将校の戦死の年齢の重み（2026-09-30 段4e 後半・設計書 §2-4）＝男の20〜49歳だけ（1人あたり1・ほか0＝尽きれば残りの全員から＝TakeWeighted）。</summary>
++    private static readonly double[] OfficerAgeWeights = [0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0];
++
+     private static long Key(Power a, Power b) => a.Id < b.Id ? ((long)a.Id << 32) | (uint)b.Id : ((long)b.Id << 32) | (uint)a.Id;
+     private static long DirKey(Power suzerain, Power dependent) => ((long)suzerain.Id << 32) | (uint)dependent.Id;   // 有向（非対称関係用）
+ 
+@@ -2544,7 +2547,7 @@ public sealed class Diplomacy
+         // 将校貴族の戦死（B-1）：戦死の一部は士官＝伝統支配層（貴族）にも及ぶ＝WarFeverを煽る貴族も血を流す。少数なので小さく、貴族の5%/月を上限。
+         double offCasTotal = 0;
+         if (nobPop > 1e-9)
+-            offCasTotal = w.KillPops(officers, null, Math.Min(c.OfficerCasualtyShare * cas, nobPop * OfficerCasualtyPopCap), violent: true);
++            offCasTotal = w.KillPops(officers, null, Math.Min(c.OfficerCasualtyShare * cas, nobPop * OfficerCasualtyPopCap), violent: true, OfficerAgeWeights);   // ★年齢の層（段4e 後半）：将校＝男20〜49歳から（旧＝閉鎖階級の女性と子供も比例で死んだ）
+         double weBefore = p.WarExhaustion, casTerm = c.WarExhaustionCasualty * (cas / soldierPop);
+         p.WarExhaustion = Math.Min(1, p.WarExhaustion + casTerm);   // 戦死率に比例して厭戦↑
+         if (p.Nation?.Explain is { } exc)   // 説明API：戦死の衝撃を厭戦内訳へ追記（Resetは StepWars の主サイトのみ）
+diff --git a/PriceOfBread.SimCore/EconomyStep.cs b/PriceOfBread.SimCore/EconomyStep.cs
+index 50861e2..b0107ef 100644
+--- a/PriceOfBread.SimCore/EconomyStep.cs
++++ b/PriceOfBread.SimCore/EconomyStep.cs
+@@ -651,16 +651,16 @@ public static class EconomyStep
+             if (isLabor || s.GoodId == Catalog.AdvLaborId)
+             {
+                 var lpop = region.Pops[lp];
+-                // ①Phase3（live・OldLaborFactor=0.75）：老年の労働不参加分 (1−OldLaborFactor)×老年比 を成人から差し引く＝老年の25%が労働不参加。1.0なら旧と厳密一致。
+-                // ★年齢の層（2026-09-30 段4e 後半）：子供比＝16歳未満・老年比＝60歳以上・成人の女性比＝16歳以上のうちの女性（旧の3欄と同じ意味）を年齢の層から読む。
+-                double child = lpop.AgeShare(0, 16), old = lpop.AgeShare(60, double.PositiveInfinity), a16 = 1.0 - child;
+-                double fem = a16 > 1e-300 ? lpop.AgeShare(16, double.PositiveInfinity, 1) / a16 : 0.5;
+-                double adults = 1.0 - child - (1.0 - coef.OldLaborFactor) * old;
++                // ★年齢の層（2026-09-30 段4e 後半・設計書 §4-1）：働く年齢＝15〜64歳の男＋女×参加率＋65歳以上×OldLaborFactor×(男＋女×参加率)＋10〜14歳×児童労働の半人前×就業率。
++                //   旧＝成人（16歳以上＝子供比の補数）−(1−OldLaborFactor)×老年比（60歳以上）・子供は0〜16歳の全員（乳児も）が児童労働の母数だった。
++                //   起点合わせは要らない＝下の InitialWork の正規化が t=0 を等倍にする（設計書 §4-1）。
++                double part = LaborSupply.FemaleParticipation(region, coef, lastSupply[lp]);
++                double adults = lpop.AgeShare(15, 65, 0) + lpop.AgeShare(15, 65, 1) * part
++                              + coef.OldLaborFactor * (lpop.AgeShare(65, double.PositiveInfinity, 0) + lpop.AgeShare(65, double.PositiveInfinity, 1) * part);
+                 if (coef.OpiumAddictionGrowth > 0 && region.OpiumAddiction > 0) adults *= Math.Max(0.5, 1.0 - coef.OpiumLaborPenalty * region.OpiumAddiction);   // P3：依存が労働供給を蝕む（床0.5・煙館の昼）
+                 // 倍率排除④：女性参加・児童労働を時間配分から創発（家計困窮×賃金保持×就学）。較正harness（学校なし・retention=0）では旧式に恒等一致。
+                 lpop.ChildLaborRate = LaborSupply.ChildLaborRate(lpop, region, coef, lastSupply[lp]);   // 子供の労働時間割合（識字側＝TechEducationも同式を参照）
+-                double work = adults * ((1.0 - fem) + fem * LaborSupply.FemaleParticipation(region, coef, lastSupply[lp]))
+-                            + child * coef.ChildWorkFactor * lpop.ChildLaborRate;
++                double work = adults + lpop.AgeShare(10, 15) * coef.ChildWorkFactor * lpop.ChildLaborRate;
+                 // 倍率排除②：旧 work/0.64（標準構成を等倍化する正規化定数）を「各popの初期労働供給 work0」基準へ一般化。
+                 // 初回（t=0）の work を基準に捕捉＝各popが自分の出発点に対する相対変化（女性財産権法・児童労働禁止・戦死）で効く。標準構成は work0=0.64 で旧挙動と一致＝較正中立。
+                 if (lpop.InitialWork < 0) lpop.InitialWork = work;
+@@ -1410,7 +1410,7 @@ public static class EconomyStep
+                 pIdx++;
+                 p.GoodNeed = effBaseNeed * p.Size;
+                 if (housingGood && !p.IsUrban) p.GoodNeed = 0;   // 家賃は都市住民のみ（レビュー2026-07-19：全popに掛かり需要を最大2倍過大計上→摩擦点火で過密ペナルティが過大化していた）
+-                if (gi == Catalog.EducationId) p.GoodNeed = coef.EduPerChild * p.AgeShare(0, 16) * p.Size;   // 教育の必要量＝**子供の数**（子供3割×0.2＝従来の0.06と一致。少子化＝学校需要減）
++                if (gi == Catalog.EducationId) p.GoodNeed = coef.EduPerChild * p.AgeShare(5, 15) * p.Size;   // ★年齢の層（段4e 後半）：学齢＝5〜14歳（旧＝子供比0〜16歳×0.2）   // 教育の必要量＝**子供の数**（子供3割×0.2＝従来の0.06と一致。少子化＝学校需要減）
+                 // ★段②（2026-08-17・作者裁定「教育を買ったpopがさらに買うことでのみ技師・研究者へ昇格（無償化されない）」）：
+                 //   高等教育の需要＝**前月に学校を出られた者のうち、字が読める分**。義務教育のような国庫の肩代わりは無い（自費のみ）。
+                 //   ⚠BaseNeed=0 なので既定の effBaseNeed*Size は 0。HigherEduNeedPerEducated=0 でこの行も 0 を書く＝**ビット恒等**。
+diff --git a/PriceOfBread.SimCore/InterestGroups.cs b/PriceOfBread.SimCore/InterestGroups.cs
+index 8f245a2..66f3b02 100644
+--- a/PriceOfBread.SimCore/InterestGroups.cs
++++ b/PriceOfBread.SimCore/InterestGroups.cs
+@@ -124,8 +124,10 @@ public static class InterestGroups
+         double gate = p.Closed ? 1.0
+                     : p.IsModernElite ? (s >= Suffrage.Census ? 1.0 : c.ModernEliteSubCensusVoice)
+                     : (s >= Suffrage.AdultMale ? 1.0 : 0.0);
+-        double a16 = s >= Suffrage.Universal ? 0 : p.AgeShare(16, double.PositiveInfinity);
+-        double fem = s >= Suffrage.Universal ? 1.0 : a16 > 1e-300 ? 1.0 - p.AgeShare(16, double.PositiveInfinity, 1) / a16 : 0.5;   // 成人（16歳以上）のうちの男（年齢の層・段4e 後半）
++        // ★年齢の層（2026-09-30 段4e 後半）：投票年齢（21歳以上＝男子普通選挙の史実の年齢）のうちの男。旧＝成人（16歳以上）の男の割合。
++        //   ⚠子供を票に数えない直し（設計書 §1-5 d）は読み手18か所の意味が2つ（成人のうちの割合／頭数）に割れる＝1本の正規化で [0,1] を守れない＝利害の回へ申し送り。
++        double a21 = s >= Suffrage.Universal ? 0 : p.AgeShare(21, double.PositiveInfinity);
++        double fem = s >= Suffrage.Universal ? 1.0 : a21 > 1e-300 ? 1.0 - p.AgeShare(21, double.PositiveInfinity, 1) / a21 : 0.5;
+         return gate * fem;
+     }
+ }
+diff --git a/PriceOfBread.SimCore/Military.cs b/PriceOfBread.SimCore/Military.cs
+index 8b39807..75c8c8e 100644
+--- a/PriceOfBread.SimCore/Military.cs
++++ b/PriceOfBread.SimCore/Military.cs
+@@ -57,7 +57,7 @@ public static class Military
+     /// <summary>扶養限界（作者設計2026-08-08）＝この国が経済に悪影響なく養える兵数。
+     /// 経済側＝持続可能な軍事支出（歳入×SustainMilShare）÷ 兵1人あたり月次コスト（給与＝徴募プールの前月賃金×SoldierPayMult
+     /// ＋装備＝MilitaryUpkeepScale×Σ(rate×RefPrice)＝**参照価格建て**＝市場価格の循環を避ける・S4欠陥の教訓）。
+-    /// 人口側＝徴募可能人口（兵士POPを持つ州の農民+労働者+兵士）×MaxSoldierFraction。
++    /// 人口側＝徴募可能人口（兵士POPを持つ州の農民+労働者の男20〜39歳を標準の構成の人数に換算＋兵士＝<see cref="RecruitMen"/>・2026-09-30 段4e 後半）×MaxSoldierFraction。
+     /// min が国ごとのボトルネックを選ぶ＝露は経済・英は人口（作者の設計意図どおり式から出る）。
+     /// ⚠錨は歳入・人口・参照価格＝ゆっくりしか動かない量のみ（相手の兵数・充足率を読まない＝軍拡ループを閉じない）。</summary>
+     public static double SustainLimitOf(World w, Coefficients c, out double natManpower)
+@@ -72,7 +72,7 @@ public static class Military
+             {
+                 if (p.IsSoldier) sld = p;
+                 else if (p.ClassId == c.SoldierRecruitClassA || p.ClassId == c.SoldierRecruitClassB)
+-                { pa += p.ClassId == c.SoldierRecruitClassA ? p.Size : 0; pb += p.ClassId == c.SoldierRecruitClassB ? p.Size : 0; pe += Math.Max(0, p.LastEarned); ps += p.Size; }
++                { pa += p.ClassId == c.SoldierRecruitClassA ? RecruitMen(p) : 0; pb += p.ClassId == c.SoldierRecruitClassB ? RecruitMen(p) : 0; pe += Math.Max(0, p.LastEarned); ps += p.Size; }   // 兵役の母数＝徴募元の男20〜39歳（標準の構成の人数に換算・段4e 後半）
+             }
+             // ★N4 徴兵の州別化（国民意識doc・2026-08-13）：**国民意識の無い州からは兵が出ない。**
+             //   ⚠旧＝兵士POPを持つ活動州の頭数をそのまま足していた＝多民族帝国の周辺州も中核州と同率で徴募できた。
+@@ -160,8 +160,9 @@ public static class Military
+             }
+             if (soldier == null) continue;
+ 
+-            double poolSize = (poolA?.Size ?? 0) + (poolB?.Size ?? 0);
+-            double manpower = (poolSize + soldier.Size) * Politics.RuleDelivery(r, c, c.RuleSharesTaxBase);   // 兵役の母数＝農民＋都市労働者＋現兵士（エリートは除く）。★支配度 段3：徴兵ベース＝国家区分＋在地区分×村請け率（RuleSharesTaxBase=0 で ×1＝恒等）
++            // ★年齢の層（2026-09-30 段4e 後半・設計書 §4-1）：兵役の母数＝徴募元の男20〜39歳を標準のピラミッドの人数に換算（÷標準の割合 0.145＝1783年の兵数は旧と同じ）＋現兵士。
++            //   旧＝徴募元の全人数（女性・子供・老年を含む）。男手が徴兵と戦死で細ると母数も細る（空洞の年次）。
++            double manpower = (RecruitMen(poolA) + RecruitMen(poolB) + soldier.Size) * Politics.RuleDelivery(r, c, c.RuleSharesTaxBase);   // 兵役の母数＝農民＋都市労働者＋現兵士（エリートは除く）。★支配度 段3：徴兵ベース＝国家区分＋在地区分×村請け率（RuleSharesTaxBase=0 で ×1＝恒等）
+ 
+             // ※給与は「兵力」（役務財）の調達に移行：兵士が兵力を算出し国家が買う（EconomyStep・国庫→兵士で保存）。
+             //   兵力財を持たない簡易世界（SoldierPopIndex<0）では給与なし＝従来の充足ベース挙動のみ。
+@@ -191,7 +192,7 @@ public static class Military
+             // ★支配度doc §15（2026-09-06 追記裁定・器2026-09-07）：平時の常備軍の徴募でも、植民地格または在地区分が国家区分を上回る州から引いた分は遺恨を積む
+             //   （英印軍・セネガル狙撃兵＝平時の徴募が本国軍と同じ規則で恨まれないのが誤り）。PeacetimeConscriptGrievance＝遺恨率の倍率（0＝旧＝厳密恒等）。
+             bool peacetimeColonial = c.PeacetimeConscriptGrievance > 0 && !wartimeConscript && (r.Tier == RegionTier.Colonial || (r.Rule.Length == 4 && r.Rule[1] > r.Rule[0]));
+-            if (delta > 0) DrawFromPool(soldier, poolA, poolB, delta, c, wartimeConscript || peacetimeColonial, peacetimeColonial ? c.PeacetimeConscriptGrievance : 1.0);    // 徴募（プール→兵士）＝規模比例。遺恨は wartimeConscript＝徴兵法≥選抜の戦時だけ（★M1 2026-09-19：2026-08-31の「総動員なら志願制でも発火」を覆す＝志願兵制は総動員しても強制徴募されない＝遺恨も立たない。番人テスト MilitaryTests で固定）
++            if (delta > 0) DrawFromPool(soldier, poolA, poolB, delta, c, wartimeConscript || peacetimeColonial, peacetimeColonial ? c.PeacetimeConscriptGrievance : 1.0, DraftAgeHi(w));    // 徴募（プール→兵士）＝規模比例。遺恨は wartimeConscript＝徴兵法≥選抜の戦時だけ（★M1 2026-09-19：2026-08-31の「総動員なら志願制でも発火」を覆す＝志願兵制は総動員しても強制徴募されない＝遺恨も立たない。番人テスト MilitaryTests で固定）
+             else DischargeToPool(soldier, poolA, poolB, -delta, c);          // 離職/復員（兵士→プール）
+         }
+ 
+@@ -251,15 +252,15 @@ public static class Military
+     // 徴募：プール（農民＋労働者）→兵士。規模に比例して引き抜く（1ヶ月にプールの半分まで）。
+     // 戦時の強制徴兵（徴兵法≥選抜の国。総動員はその深さを上げる）は取られた家の不満を積む（徴兵率×ConscriptGrievanceRate。志願募兵は総動員中でも積まない＝M1）＝E5徴兵法の一般効果。
+     // 供給源の選別（POP動詞③=均等/農民/貴族士官…）は2026-07-21ユーザー指示で撤去済み・この遺恨のみ残置（供給源に依らず戦時徴兵で発火）。
+-    private static void DrawFromPool(Pop soldier, Pop? a, Pop? b, double amount, Coefficients c, bool conscription, double grievanceScale = 1.0)
++    private static void DrawFromPool(Pop soldier, Pop? a, Pop? b, double amount, Coefficients c, bool conscription, double grievanceScale, double draftHi)
+     {
+         double sa = a?.Size ?? 0, sb = b?.Size ?? 0, pool = sa + sb;
+         if (pool < 1e-9) return;
+         amount = Math.Min(amount, pool * 0.5);
+         // Min クランプは amount≤pool/2 ゆえ商は常に sa/2 未満＝不発（比例で厳密に引き抜く）。
+         double da = Math.Min(amount * (sa / pool), sa), db = Math.Min(amount * (sb / pool), sb);
+-        MoveCohort(a, soldier, da, c);
+-        MoveCohort(b, soldier, db, c);
++        MoveCohort(a, soldier, da, c, draftHi);
++        MoveCohort(b, soldier, db, c, draftHi);
+         if (conscription && c.ConscriptGrievanceRate > 0)
+         {
+             if (a is not null && sa > 1e-9 && da > 1e-12) a.Militancy = Math.Min(1, a.Militancy + c.ConscriptGrievanceRate * grievanceScale * (da / sa));
+@@ -282,21 +283,29 @@ public static class Military
+ 
+     /// <summary>階級間の人の移動（徴兵・復員・通常＝規模・属性・貯蓄と債務と国債の保有を運ぶ＝国内移籍で総人口・総マネー保存）。setup と徴募で共用。
+     /// ★2026-09-30 処理の一元化 段4e I：本体は人の移し方の1本 <see cref="Pop.Blend"/>（旧の3枝＝徴兵・復員・通常の混ぜ方の写しを畳んだ）。
+-    /// 徴兵＝**成人の男**（老年でない）だけが抜ける（動けるのは働き盛りの男の数まで・<see cref="Pop.Blend"/> の draft）＝残る集団の女性比・子供比・老年比が上がる＝男手の消えた村。
+-    /// 復員＝兵士 POP の構成（成人の男）のまま戻る＝受け手の女性比・子供比・老年比が下がる（通常の混ぜ方と同じ式＝女性比は成人数で）。</summary>
+-    public static void MoveCohort(Pop? from, Pop? to, double amount, Coefficients c)
++    /// 徴兵＝**徴兵の年齢の男**（20〜<paramref name="draftHi"/> 歳・<see cref="DraftAgeHi"/>）だけが抜ける（動けるのはその年齢の男の数まで・<see cref="Pop.Blend"/> の draft）
++    /// ＝残る集団の女性・子供・老年の割合が上がる＝男手の消えた村。
++    /// 復員＝兵士 POP の構成（年を取った男）のまま戻る（兵士も年を取る＝長い軍務の後は年上の男が戻る）。</summary>
++    public static void MoveCohort(Pop? from, Pop? to, double amount, Coefficients c, double draftHi = 40)
+     {
+         if (from == null || to == null || amount < 1e-12 || from.Size < 1e-12) return;
+         amount = Math.Min(amount, from.Size);
+         bool draft = to.IsSoldier && !from.IsSoldier;
+         if (draft)
+         {
+-            // 他13（監査2026-07-11・2026-07-25休眠配線・2026-07-27 点火）：上限は働き盛りの男（成人−老年）＝老年は徴兵されない。旧の既定0は成人の男（老年込み）。
+-            // ★年齢の層（2026-09-30 段4e 後半）：働き盛りの男＝16〜59歳の男（旧の成人−老年×男の割合と同じ意味）を年齢の層から読む。移る組も同じ範囲（Blend の draft）。
+-            double draftHi = c.ConscriptExcludeOldMales > 0 ? 60 : double.PositiveInfinity;
+-            amount = Math.Min(amount, from.Size * from.AgeShare(16, draftHi, 0));
++            // ★年齢の層（2026-09-30 段4e 後半・作者裁定 Q9＝推奨）：上限は徴兵の年齢の男＝男20〜39歳（選抜・志願）／男20〜49歳（皆兵）。
++            //   旧＝成人（16歳以上）−老年（60歳以上）の男（旗 ConscriptExcludeOldMales）。
++            amount = Math.Min(amount, from.Size * from.AgeShare(20, draftHi, 0));
+             if (amount < 1e-12) return;
+         }
+-        Pop.Blend(from, to, amount, draft: draft, draftLo: 16, draftHi: c.ConscriptExcludeOldMales > 0 ? 60 : double.PositiveInfinity);
++        Pop.Blend(from, to, amount, draft: draft, draftLo: 20, draftHi: draftHi);
+     }
++
++    /// <summary>★徴兵の年齢の上の端（2026-09-30 段4e 後半・作者裁定 Q9＝推奨）＝選抜・志願は男20〜39歳・皆兵は男20〜49歳（予備役まで＝池を広げる）。
++    /// ⚠皆兵の倍率 UniversalConscriptionFactor の削除（物理の池が倍率を置き換える）は別の腕（1つの腕に1つの変更＝申し送り）。</summary>
++    internal static double DraftAgeHi(World w) => w.ConscriptionLaw == ConscriptionLaw.Universal ? 50 : 40;
++
++    /// <summary>★兵役の母数の1本（2026-09-30 段4e 後半・設計書 §4-1）＝POP の男20〜39歳を標準のピラミッドの人数に換算（規模×男20〜39の割合÷標準の割合 0.145）
++    /// ＝MaxSoldierFraction・徴兵の率の4本は「標準の構成の人口あたり」のまま（1783年の兵数は旧と同じ）。読み手＝兵の目標（Step）・扶養限界（SustainLimitOf）・画面と診断の写し。</summary>
++    internal static double RecruitMen(Pop? p) => p is null ? 0 : p.Size * p.AgeShare(20, 40, 0) / Pop.StdShare(20, 40, 0);
+ }
+diff --git a/PriceOfBread.SimCore/Model.cs b/PriceOfBread.SimCore/Model.cs
+index 59e22ff..de8f858 100644
+--- a/PriceOfBread.SimCore/Model.cs
++++ b/PriceOfBread.SimCore/Model.cs
+@@ -302,7 +302,7 @@ public sealed class Pop
+     ///   中核民族の割合は <paramref name="coreAtDest"/>＝受け手の国での移る組の値（越境＝受入国の中核民族ではない＝0）。旧の旗（MigrationCarriesHumanCapital・MigrantCarriesConsciousness）は焼き込み。
+     /// ⚠[0,1] の量は否定形のクランプ（NaN は0の側）。戻り値＝動いた人数。</summary>
+     internal static double Blend(Pop from, Pop to, double n, bool draft = false, double femaleAccess = double.NaN, double literacy = double.NaN,
+-                                 double coreAtDest = double.NaN, bool money = true, double draftLo = 16, double draftHi = 60)
++                                 double coreAtDest = double.NaN, bool money = true, double draftLo = 20, double draftHi = 40)
+     {
+         if (!(n > 1e-12) || !(from.Size > 1e-12) || ReferenceEquals(from, to)) return 0;
+         if (n > from.Size) n = from.Size;
+diff --git a/PriceOfBread.SimCore/Simulation.cs b/PriceOfBread.SimCore/Simulation.cs
+index 5a5dd71..5758c02 100644
+--- a/PriceOfBread.SimCore/Simulation.cs
++++ b/PriceOfBread.SimCore/Simulation.cs
+@@ -2301,14 +2301,13 @@ public sealed class Simulation
+     // 人5（徴兵で出生が増える符号逆転の解消）：素の女性プール（∝女性）は、成人男性だけ抜く徴兵で残留popの女性比率が上がると出生配分が「増える」＝史実（夫不在で出生急減）と逆。
+     // CoupleLimitedBirths=0 で女性の数に比例・1で「カップル律速」＝少数側の性 min(女,男)×2 に律速。
+     // 徴兵で男が抜けると min(女,男) の男側が縮み出生が減る＝カップル（夫婦）が律速資源＝WWI 仏の出生半減を再現。Wave1 の FertileShareFloor（重み膨張の防止）と整合。
+-    // ★年齢の層（2026-09-30 段4e 後半）：旧＝成人（16歳以上）のうち老年（60歳以上）でない者×成人の女性比＝年齢の層から同じ意味で読む。
+-    internal static double FertilePool(Pop p, Coefficients c)
++    // ★年齢の層（2026-09-30 段4e 後半・設計書 §4-1）：15〜49歳の女×カップル律速（同じ15〜49歳の男との少数側）。旧＝成人（16歳以上）のうち老年（60歳以上）でない者×成人の女性比。
++    //   起点合わせは要らない＝InitialFertileShare（t=0 の各 POP の値）で正規化する。標準の分母（FertileAbsoluteBlend）は標準のピラミッドをこの式に通した値（旧 FertileShareStd）。
++    internal static double FertilePool(Pop p, Coefficients c) => FertilePoolOf(p.Ages, c);
++    private static double FertilePoolOf(double[] ages, Coefficients c)
+     {
+-        double adult = p.AgeShare(16, 60);
+-        double a16 = p.AgeShare(16, double.PositiveInfinity);
+-        double female = a16 > 1e-300 ? p.AgeShare(16, double.PositiveInfinity, 1) / a16 : 0.5;
+-        double couple = 2.0 * Math.Min(female, 1.0 - female);   // 少数側の性が2人でカップル1組＝律速（男女どちらが不足しても出生↓）
+-        return adult * (female + c.CoupleLimitedBirths * (couple - female));
++        double f = Pop.AgeShareOf(ages, 15, 50, 1), m = Pop.AgeShareOf(ages, 15, 50, 0);
++        return f + c.CoupleLimitedBirths * (2.0 * Math.Min(f, m) - f);   // 少数側の性が2人でカップル1組＝律速（男女どちらが不足しても出生↓）
+     }
+     // ①Phase3：出生の配分鍵。false（対照腕）は Size＝従来の粗出生（規模比例）＝厳密に従来挙動。既定 true で女性プール律速。
+     // true で「出産可能女性プール」に律速し、各popの t=0 値で正規化＝標準構成（子供0.3・老年0・女性0.5）では Size と恒等＝較正中立。
+@@ -2330,7 +2329,7 @@ public sealed class Simulation
+         // ゲート0＝下の分岐に入らず w をそのまま返す＝旧popごと凍結分母とビット恒等／1＝(1−b)w+b·wStd で wStd へ厳密に全置換。
+         if (c.FertileAbsoluteBlend > 0)
+         {
+-            double wStd = p.Size * fertile / (c.FertileShareStd * (1.0 + c.CoupleLimitedBirths));
++            double wStd = p.Size * fertile / FertilePoolOf(Pop.StdAgesRef, c);   // 標準のピラミッドの出産可能プール（旧＝FertileShareStd×(1＋CoupleLimitedBirths)＝同じ式の標準の構成）
+             w = (1.0 - c.FertileAbsoluteBlend) * w + c.FertileAbsoluteBlend * wStd;
+         }
+         return w;
+diff --git a/PriceOfBread.SimCore/World.cs b/PriceOfBread.SimCore/World.cs
+index 294f3e1..abbc423 100644
+--- a/PriceOfBread.SimCore/World.cs
++++ b/PriceOfBread.SimCore/World.cs
+@@ -1163,18 +1163,18 @@ public sealed class World
+         double realSanit = PoliticalQuantities.Clamp01(wr.InfraFill + c.SoapSanitationWeight * wr.SoapFill + c.ElecInfraSanitationWeight * wr.ElecInfraFill);
+         double sanitDev = (1.0 - c.EpidemicSanitationWeight) * oldDev + c.EpidemicSanitationWeight * realSanit;
+         double deathFrac = c.EpidemicSeverity * (1.0 - SanitationMortalityReduction * sanitDev) * jitter * scale;
+-        // 死亡配分（epidemic-uniform-age-class-mortality）：総死者＝致死率×州の人口を脆弱層（乳幼児/老年/食料不足）へ集中＝重み 規模×(1＋これ×(子供比＋老年比＋(1−主食の充足)))。
+-        //   EpidemicVulnConcentration=0 で重み＝規模＝全階級一律。記帳（人口の台帳・粗死亡の計器・年齢の層の運搬）は死の記帳の1本（KillPops・段4e J）。
+-        //   ★年齢の層（2026-09-30 段4e 後半）：子供比＝16歳未満・老年比＝60歳以上を年齢の層から読む（旧の子供比・老年比と同じ意味）。POP の中は災害死の年齢の重み（0〜9 と 60以上）。
+-        //   ⚠同じ年齢の脆弱さを POP の間と POP の中で2度読む（思想⑨の疑い・(134) の申し送り4）＝1本にする読み替えは 4e-2b（差し戻し＝申し送り）。
++        // 死亡配分（epidemic-uniform-age-class-mortality）：総死者＝致死率×州の人口を脆弱な人へ集中。記帳（人口の台帳・粗死亡の計器・年齢の層の運搬）は死の記帳の1本（KillPops・段4e J）。
++        // ★年齢の脆弱さは1本（2026-09-30 段4e 後半・設計書 §2-4）＝1人あたりの重み (1＋飢え)×(年齢の重み)：POP の間は 規模×(1＋EpidemicVulnConcentration×(1−主食の充足))×Σ層の割合×年齢の重み、
++        //   POP の中は年齢の重み（0〜9 と 60以上に (1＋DisasterAgeMortalityExcess)）。旧＝POP の間の重みが子供比＋老年比を読み、POP の中の年齢の運搬も同じ脆弱さを読んだ＝2度（思想⑨）。
++        var aw = new double[2 * Pop.AgeBands];
++        Pop.DisasterWeights(aw, c.DisasterAgeMortalityExcess);
+         var pops = wr.Pops; var wts = new List<double>(pops.Count); double totalD = 0;
+         foreach (var p in pops)
+         {
+             totalD += p.Size * deathFrac;
+-            wts.Add(p.Size * (1.0 + c.EpidemicVulnConcentration * (p.AgeShare(0, 16) + p.AgeShare(60, double.PositiveInfinity) + (1.0 - p.FoodFill))));
++            double ageW = 0; for (int k = 0; k < aw.Length; k++) ageW += p.Ages[k] * aw[k];
++            wts.Add(p.Size * (1.0 + c.EpidemicVulnConcentration * (1.0 - p.FoodFill)) * ageW);
+         }
+-        var aw = new double[2 * Pop.AgeBands];
+-        Pop.DisasterWeights(aw, c.DisasterAgeMortalityExcess);
+         return KillPops(pops, wts, totalD, violent: false, aw);
+     }
+ 
+diff --git a/PriceOfBread.Tests/DemographyBirthWeightTests.cs b/PriceOfBread.Tests/DemographyBirthWeightTests.cs
+index 2b5b7f0..d33bf2f 100644
+--- a/PriceOfBread.Tests/DemographyBirthWeightTests.cs
++++ b/PriceOfBread.Tests/DemographyBirthWeightTests.cs
+@@ -16,7 +16,8 @@ public class DemographyBirthWeightTests
+     {
+         var c = new Coefficients();
+         Assert.Equal(0.0, c.FertileAbsoluteBlend);   // ★2026-08-30 点火→同日差し戻し（幕府転換テスト赤の単独犯・英人口縮小化）＝再点火は出生率再較正とセット
+-        Assert.Equal(0.35, c.FertileShareStd);
++        // ★2026-09-30 段4e 後半：標準の分母＝標準のピラミッドの出産可能プール（15〜49歳の女×カップル律速＝男女半々なら15〜49歳の割合 0.4925・旧 FertileShareStd 0.35×2 の置き換え）
++        Assert.Equal(Pop.StdShare(15, 50), Simulation.FertilePool(new Pop(), c), 12);
+     }
+ 
+     [Fact]
+diff --git a/PriceOfBread.Tests/GenderTests.cs b/PriceOfBread.Tests/GenderTests.cs
+index ba01169..2acaa05 100644
+--- a/PriceOfBread.Tests/GenderTests.cs
++++ b/PriceOfBread.Tests/GenderTests.cs
+@@ -187,13 +187,13 @@ public class AgeStructureTests
+         for (int k = 0; k < 16; k++) Assert.Equal(s0[k], from.Ages[k]);   // 1ビットも動かない
+         fc = Counts(from); tc = Counts(to);
+         for (int k = 0; k < 16; k++) Assert.Equal(sum0[k], fc[k] + tc[k], 9);
+-        // 徴兵＝男だけ・移る組は男の [draftLo, draftHi)（ここでは 20〜39）＝兵士に女と0〜19 と 40以上は入らず・送り手の女性の人数は動かない
++        // 徴兵＝男だけ・移る組は徴兵の年齢の男（20〜39）＝兵士に女と0〜19 と 40以上は入らず・送り手の女性の人数は動かない
+         var soldier = new Pop { Size = 50, IsSoldier = true, Ages = Pop.SoldierAges() };
+         double femFrom0 = 0; fc = Counts(from); for (int b = 0; b < 8; b++) femFrom0 += fc[2 * b + 1];
+-        Pop.Blend(from, soldier, 60, draft: true, draftLo: 20, draftHi: 40);
++        Pop.Blend(from, soldier, 60, draft: true);
+         for (int b = 0; b < 8; b++) Assert.Equal(0.0, soldier.Ages[2 * b + 1]);
+         Assert.Equal(0.0, soldier.AgeShare(0, 20) + soldier.AgeShare(40, double.PositiveInfinity));
+-        // 範囲を広げれば広げた層から（49歳まで）
++        // 皆兵＝池を男49歳まで広げる（Military.DraftAgeHi）
+         var reserve = new Pop { Size = 1, IsSoldier = true, Ages = Pop.SoldierAges() };
+         Pop.Blend(from, reserve, 60, draft: true, draftHi: 50);
+         Assert.True(reserve.AgeShare(40, 50, 0) > 0.1 && reserve.AgeShare(50, double.PositiveInfinity) == 0);
+@@ -221,6 +221,20 @@ public class AgeStructureTests
+         for (int k = 0; k < 16; k++) Assert.Equal(a0[k], q.Ages[k]);
+     }
+ 
++    [Fact]
++    public void 読み手の起点合わせは標準のピラミッドで旧の値を保つ()
++    {
++        var c = new Coefficients();
++        var p = new Pop { Size = 1000 };
++        // 兵役の母数＝徴募元の男20〜39 を標準の構成の人数へ換算＝標準の POP は規模そのもの（1783年の兵数は旧と同じ）
++        Assert.Equal(1000.0, Military.RecruitMen(p), 9);
++        // 男手が抜けた村は母数も細る（空洞の年次）
++        var q = new Pop { Size = 1000 }; q.Ages[4] = 0; q.Ages[6] = 0; double s = 0; foreach (var x in q.Ages) s += x; for (int k = 0; k < 16; k++) q.Ages[k] /= s;
++        Assert.True(Military.RecruitMen(q) < 1.0, $"男20〜39 がいない POP の兵役の母数が残る（{Military.RecruitMen(q):F3}）");
++        // 教育の必要量＝学齢（5〜14歳）×EduPerChild＝人口あたり0.06（旧＝子供比0.3×0.2）
++        Assert.Equal(0.06, c.EduPerChild * p.AgeShare(5, 15), 12);
++    }
++
+     [Fact]
+     public void 年金の利害は標準のピラミッドより老いた分だけ()   // 設計書 §4-1「PensionOldWeight を標準の値で割り直す」＝起点合わせ
+     {
+@@ -238,6 +252,20 @@ public class AgeStructureTests
+         Assert.Equal(off.Mass + k * (0.18 - Pop.StdShare(60, double.PositiveInfinity)), aged.Mass, 9);   // 老いた分だけ年金を推す
+     }
+ 
++    [Fact]
++    public void 将校の戦死は貴族の男20から49歳から()
++    {
++        var w = new Simulation(NationConfig.Britain().ToScenario(67), new NullAgent()).World;
++        var nob = new Pop { Size = 1000, Closed = true };
++        double fem0 = nob.AgeShare(0, double.PositiveInfinity, 1) * nob.Size, kids0 = nob.AgeShare(0, 20) * nob.Size, men0 = nob.AgeShare(20, 50, 0) * nob.Size;
++        var ow = (double[])typeof(Diplomacy).GetField("OfficerAgeWeights", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!.GetValue(null)!;
++        double dead = w.KillPops([nob], null, 30, violent: true, ow);
++        Assert.Equal(30.0, dead, 9);
++        Assert.Equal(fem0, nob.AgeShare(0, double.PositiveInfinity, 1) * nob.Size, 9);   // 女性は死なない
++        Assert.Equal(kids0, nob.AgeShare(0, 20) * nob.Size, 9);                         // 子供も死なない
++        Assert.Equal(men0 - 30.0, nob.AgeShare(20, 50, 0) * nob.Size, 9);
++    }
++
+     [Fact]
+     public void 世代の流れは大人と20歳になる若者を人数で混ぜる()   // 4e-3（設計書 §5-4）
+     {
+@@ -285,13 +313,13 @@ public class AgeStructureTests
+     {
+         var sim = new Simulation(NationConfig.Russia().ToScenario(61), new NullAgent());   // 大陸軍＝重い徴兵
+         sim.Run(40);   // 10年（毎月の CheckInvariants が合計1と非負を見る）
+-        double kids = 0, tot = 0, sold60 = 0;
++        double kids = 0, tot = 0, sold40 = 0;
+         foreach (var p in sim.World.AllPops())
+         {
+-            if (p.IsSoldier) { for (int b = 0; b < 8; b++) Assert.Equal(0.0, p.Ages[2 * b + 1]); Assert.Equal(0.0, p.AgeShare(0, 10)); sold60 += p.AgeShare(60, double.PositiveInfinity) * p.Size; }
++            if (p.IsSoldier) { for (int b = 0; b < 8; b++) Assert.Equal(0.0, p.Ages[2 * b + 1]); Assert.Equal(0.0, p.AgeShare(0, 20)); sold40 += p.AgeShare(40, double.PositiveInfinity) * p.Size; }
+             kids += p.AgeShare(0, 15) * p.Size; tot += p.Size;
+         }
+         Assert.InRange(kids / tot, 0.2, 0.5);
+-        Assert.True(sold60 > 0, "兵士が年を取らない（徴兵は男16〜59 だけ＝60歳以上は加齢でしか入らない）");
++        Assert.True(sold40 > 0, "兵士が年を取らない（徴兵は男20〜39 だけ＝40歳以上は加齢でしか入らない）");
+     }
+ }

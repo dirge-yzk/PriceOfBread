@@ -128,7 +128,7 @@ if (args.Length > 0 && args[0] == "popprobe")
     //   引数2＝シード（既定1）。参照7カ国（帯定義国）を全部見張る＝英過小・仏過大の因子分解。
     ulong ppSeed = args.Length > 1 && ulong.TryParse(args[1], out var pps) ? pps : 1UL;
     string[] watch = ["イギリス", "フランス", "プロイセン", "アメリカ", "ロシア", "清", "スペイン", "日本", "オーストリア", "ポルトガル"];
-    int[] cuts = [4, 100, 200, 300, 400, 524, Coefficients.GameQuarters];   // ★2026-09-26：断面668（全長の終端）を足した（回0-4・計器の裁き10）
+    int[] cuts = [4, 100, 200, 268, 300, 400, 524, Coefficients.GameQuarters];   // ★2026-09-26：断面668（全長の終端）を足した（回0-4・計器の裁き10）。★2026-09-30 段4e 後半：断面268（1850年＝年齢の層の史実の照合）
     var msP = new MultiNationSim(WorldData.Nations(), ppSeed, _ => new UtilityAgent());
     int n0P = msP.Nations.Count;   // 初期国数（ベタ書き禁止＝world.json の実件数から取る）
     msP.StartWarmup();   // ★2026-08-21：selfplay-batch と同じ助走を通す＝「測る世界」を帯の世界と一致させる（暦は進まない・人口動態は凍結）
@@ -149,7 +149,7 @@ if (args.Length > 0 && args[0] == "popprobe")
             pop0[p0.BaseName] = s0.World.TotalPopulation;
             initRegions[p0.BaseName] = [.. s0.World.Regions];
         }
-    Console.WriteLine("断面Q,国名,人口,倍率,倍率初期州,州数,扶養力,人口/扶養力,扶養力基準,医療(門番後),医者役務,食料比,食料比生産,主食純輸入,耕地計,出生率倍率,空き土地ブースト,工業化,都市化,識字,社会保障,土地改革,累積流入,累積流出,累計戦死,粗出生‰,粗死亡‰");
+    Console.WriteLine("断面Q,国名,人口,倍率,倍率初期州,州数,扶養力,人口/扶養力,扶養力基準,医療(門番後),医者役務,食料比,食料比生産,主食純輸入,耕地計,出生率倍率,空き土地ブースト,工業化,都市化,識字,社会保障,土地改革,累積流入,累積流出,累計戦死,粗出生‰,粗死亡‰,15歳未満%,15-64歳%,60以上%,65以上%,層0-9%,層10-19%,層20-29%,層30-39%,層40-49%,層50-59%,層60-69%,層70以上%,20歳以上の女性比,置き換わり率%/四半期");
     int prevCutP = 0;
     // 粗率（‰/年）＝区間の人数÷区間の年数÷今の人口×1000（区間＝前の断面から今の断面まで）
     double CrudeRate(double count, double pop, int span) => pop > 1e-9 && span > 0 ? count / (span / (double)Calendar.QuartersPerYear) / pop * 1000.0 : 0;
@@ -179,6 +179,20 @@ if (args.Length > 0 && args[0] == "popprobe")
             if (w.SelfPower is not { } pw || System.Array.IndexOf(watch, pw.BaseName) < 0) continue;
             double lit = 0, sz = 0;
             foreach (var pp in w.AllPops()) { lit += pp.Literacy * pp.Size; sz += pp.Size; }
+            // ★年齢の層（2026-09-30 段4e 後半・計器）：兵士を含む全ての POP の人数の和＝国のピラミッド（層ごと・性ごと）と世代の置き換わり率（四半期＝20歳になる人÷(大人＋入る人)）
+            var ageN = new double[2 * Pop.AgeBands]; double entQ = 0, adultsQ = 0;
+            foreach (var pp in w.AllPops())
+            {
+                for (int k = 0; k < ageN.Length; k++) ageN[k] += pp.Ages[k] * pp.Size;
+                entQ += 3.0 * pp.EnteringAdultsMonthly() * pp.Size; adultsQ += pp.AgeShare(20, double.PositiveInfinity) * pp.Size;
+            }
+            double ageT = 0; foreach (var x in ageN) ageT += x;
+            double[] ageSh = new double[2 * Pop.AgeBands];
+            for (int k = 0; k < ageN.Length; k++) ageSh[k] = ageT > 1e-9 ? ageN[k] / ageT : 0;
+            string ageCols = $"{100 * Pop.AgeShareOf(ageSh, 0, 15, -1):F1},{100 * Pop.AgeShareOf(ageSh, 15, 65, -1):F1},{100 * Pop.AgeShareOf(ageSh, 60, double.PositiveInfinity, -1):F1},{100 * Pop.AgeShareOf(ageSh, 65, double.PositiveInfinity, -1):F1}";
+            for (int b = 0; b < Pop.AgeBands; b++) ageCols += $",{100 * (ageSh[2 * b] + ageSh[2 * b + 1]):F1}";
+            double adF = Pop.AgeShareOf(ageSh, 20, double.PositiveInfinity, 1), adA = Pop.AgeShareOf(ageSh, 20, double.PositiveInfinity, -1);
+            ageCols += $",{(adA > 1e-12 ? adF / adA : 0):F3},{(adultsQ + entQ > 1e-9 ? 100 * entQ / (adultsQ + entQ) : 0):F3}";
             double popHome = 0;   // ★初期州集合ベースの人口（征服で得た州を除外＝「領土不変な定義」の実装。失った州は自然に落ちる）
             if (initRegions.TryGetValue(pw.BaseName, out var ir))
                 foreach (var rr in w.Regions) if (rr.State == RegionState.Active && ir.Contains(rr)) popHome += rr.SumPopulation();
@@ -188,7 +202,7 @@ if (args.Length > 0 && args[0] == "popprobe")
                 $"{w.DiagFertility:F3},{w.DiagLandRoom:F3}," +
                 $"{w.MeanIndustrialization:F2},{w.UrbanShare:F3},{(sz > 1e-9 ? lit / sz : 0):F3},{w.SocialSecurity:F3},{(int)w.LandReform}," +
                 $"{immCum.GetValueOrDefault(pw.BaseName):F1},{emiCum.GetValueOrDefault(pw.BaseName):F1},{w.WarDeadCumulative:F1}," +
-                $"{CrudeRate(w.DiagBirths - prevBirths.GetValueOrDefault(pw.BaseName), w.TotalPopulation, cut - prevCutP):F1},{CrudeRate(w.DiagDeaths + w.WarDeadCumulative - prevDeaths.GetValueOrDefault(pw.BaseName), w.TotalPopulation, cut - prevCutP):F1}");
+                $"{CrudeRate(w.DiagBirths - prevBirths.GetValueOrDefault(pw.BaseName), w.TotalPopulation, cut - prevCutP):F1},{CrudeRate(w.DiagDeaths + w.WarDeadCumulative - prevDeaths.GetValueOrDefault(pw.BaseName), w.TotalPopulation, cut - prevCutP):F1}," + ageCols);
             prevBirths[pw.BaseName] = w.DiagBirths; prevDeaths[pw.BaseName] = w.DiagDeaths + w.WarDeadCumulative;
         }
         Console.WriteLine($"# Q{cut}: 国数 {msP.Nations.Count}（初期{n0P}）");
@@ -2470,7 +2484,7 @@ if (args.Length > 0 && args[0] == "eduprobe")
         {
             int ci = p.ClassId; if (ci < 0 || ci >= EpN || !(p.Size > 0)) continue;
             size[ci] += p.Size; lit[ci] += p.Literacy * p.Size; fill[ci] += p.EducationFill * p.Size;
-            cons[ci] += p.Consciousness * p.Size; child[ci] += p.ChildShare * p.Size;
+            cons[ci] += p.Consciousness * p.Size; child[ci] += p.AgeShare(0, 15) * p.Size;
             if (names[ci].Length == 0) names[ci] = p.ClassName;
             tot += p.Size;
         }
@@ -2612,7 +2626,7 @@ if (args.Length > 0 && args[0] == "eduprobe")
     Console.WriteLine("   実際 ≈ 階級内だけ ならば低下は**識字そのものの減衰**／実際 ≈ 構成だけ ならば低下は**低識字層の相対増加**");
     foreach (var line in epTrace) Console.WriteLine(line);
     var epC = new Coefficients();
-    Console.WriteLine($"\n  参考係数：識字の世代減衰 LiteracyGenerationalDecay={epC.LiteracyGenerationalDecay}"
+    Console.WriteLine($"\n  参考係数：識字の下がる側＝世代の流れ（2026-09-30 段4e 後半・旧 LiteracyGenerationalDecay）"
         + $"　識字の伸び速度（法別）なし0.0001/宗教0.004/公教育0.005/義務0.007　児童労働ペナルティ{epC.ChildLaborLiteracyPenalty}"
         + $"　意識の変換係数（法別）なし0.10/宗教0.15/公教育1.0/義務1.0");
     return;
@@ -6073,7 +6087,7 @@ if (args.Length > 0 && args[0] == "wages")
     var eduW = wr.Markets[Catalog.EducationId];
     var wk2 = wr.Pops[2];
     Console.WriteLine($"教育: 価格{eduW.Price:F2} 生産{eduW.LastProduced:F1} 販売{eduW.LastSold:F1} 需要{eduW.LastDemand:F1}");
-    Console.WriteLine($"労働者: 子供比率{wk2.ChildShare:F2} 教育Fill{wk2.EducationFill:F2} 識字{wk2.Literacy:P0}　農民: 子供比率{wr.Pops[1].ChildShare:F2} 教育Fill{wr.Pops[1].EducationFill:F2} 識字{wr.Pops[1].Literacy:P0}");
+    Console.WriteLine($"労働者: 子供比率{wk2.AgeShare(0, 15):F2} 教育Fill{wk2.EducationFill:F2} 識字{wk2.Literacy:P0}　農民: 子供比率{wr.Pops[1].AgeShare(0, 15):F2} 教育Fill{wr.Pops[1].EducationFill:F2} 識字{wr.Pops[1].Literacy:P0}");
     foreach (var pr in wr.Producers)
         if (pr.GoodId == Catalog.EducationId)
             Console.WriteLine($"教育生産者: 労働pop={wr.Pops[pr.LaborPopIndex].ClassName} 産出{pr.Output:F1} 操業{pr.Scale:F2} 直近売上{pr.LastRevenue:F1}");
@@ -6936,11 +6950,11 @@ if (args.Length > 0 && args[0] == "genderprobe")
                 for (int pi = 0; pi < r.Pops.Count; pi++)
                 {
                     var p = r.Pops[pi];
-                    if (p.IsSoldier || p.Size <= 1e-9) continue;   // 兵士は男性のみ＝就業率の分母に入れない（FemaleShare=0でも明示除外）
-                    double fa = p.Size * (1.0 - p.ChildShare) * p.FemaleShare;                 // 成人女性
+                    if (p.IsSoldier || p.Size <= 1e-9) continue;   // 兵士は男性のみ＝就業率の分母に入れない（女性の層が0でも明示除外）
+                    double fa = p.Size * p.AgeShare(15, 65, 1);                                 // 働く年齢（15〜64歳）の女性（年齢の層・段4e 後半）
                     double part = LaborSupply.FemaleParticipation(r, w.Coef, p.SupplyFill);    // 実効参加率（構造+困窮×賃金保持）
                     femAd += fa; femWork += fa * part;
-                    if (pi == r.ServantPopIndex) { servFem += p.FemaleShare * p.Size; servAll += p.Size; servFemWork += fa * part; }
+                    if (pi == r.ServantPopIndex) { double a20 = p.AgeShare(20, double.PositiveInfinity); servFem += (a20 > 1e-300 ? p.AgeShare(20, double.PositiveInfinity, 1) / a20 : 0) * p.Size; servAll += p.Size; servFemWork += fa * part; }
                 }
             }
             double eff = femAd > 1e-9 ? femWork / femAd : 0;

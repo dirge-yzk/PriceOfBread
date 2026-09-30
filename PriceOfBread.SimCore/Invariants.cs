@@ -75,6 +75,11 @@ public sealed class NonNegativeBounds : IInvariant
             Require(p.Size, "規模");
             if (double.IsNaN(p.Satisfaction) || double.IsInfinity(p.Satisfaction))
                 throw new InvariantViolationException($"{Name}：充足度が NaN／∞");
+            // ★年齢の層（2026-09-30 段4e 後半）：16本の割合は各々0以上・合計1（許容1e-9・否定形＝NaN も赤）
+            double sa = 0; bool neg = p.Ages.Length != 2 * Pop.AgeBands;
+            foreach (var x in p.Ages) { if (!(x >= 0)) neg = true; sa += x; }
+            if (neg || !(Math.Abs(sa - 1.0) <= 1e-9))
+                throw new InvariantViolationException($"{Name}：年齢の層の割合が壊れた[{p.ClassName}]（合計 {sa}）");
         }
         foreach (var r in world.Regions)
             foreach (var m in r.Markets)

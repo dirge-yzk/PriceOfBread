@@ -618,13 +618,12 @@ public static class Meritocracy
     }
 
     /// <summary>rank8（休眠 CohortGateK）：世代ゲート＝大流量の非ショック移動（①昇格・①*小営業参入・①'手工業没落・①''失業プール）の律速。
-    /// 物差しは人口動態のコホート送り（Simulation：aged=Size×ChildShare/(AgingYears×12)／月）と同一＝四半期の新成人率
-    /// ＝ChildShare×3/(AgingYears×12)＝**新しい量を作らない**。gate=min(1, K×新成人率)＝移動の大半は入職時（Long&amp;Ferrie）で
+    /// 物差しは人口動態の加齢（年齢の層・段4e 後半＝10〜19 の層から 20〜29 へ出ていく流れ＝<see cref="Pop.EnteringAdultsMonthly"/>）と同一＝四半期の新成人率
+    /// ＝月の流れ×3＝**新しい量を作らない**（旧＝子供比×3÷(AgingYears×12)）。gate=min(1, K×新成人率)＝移動の大半は入職時（Long&amp;Ferrie）で
     /// 均衡は不変・時定数だけ世代スケールへ。④⑤⑥の転落・戦争・破産（BankruptcyFallRate経路）は素通し＝「破産は速い」が史実。
     /// 呼び出し側が K&gt;0 のときだけ乗算する（K=0＝1命令も走らない厳密恒等）。新成人率≈0.5%/四半期なのでK≈数十〜百が実効目盛り。</summary>
     private static double CohortGate(Pop src, Coefficients c)
-        => Math.Min(1.0, c.CohortGateK * src.ChildShare * Calendar.MonthsPerQuarter
-                         / Math.Max(Eps, c.AgingYears * Calendar.MonthsPerYear));
+        => Math.Min(1.0, c.CohortGateK * src.EnteringAdultsMonthly() * Calendar.MonthsPerQuarter);
 
     /// <summary>rank12（点火 ProfessionGenderGate=1.0）：行き先職の女性アクセス（1.0＝制約なし）。**新しい法は作らない**（作者裁定）＝
     /// 既存の「女性の権利」梯子（なし0／財産権1/3／教育権2/3／選挙権1＝FactionSnapshotと同じ物差し）×WomenWageRetention
@@ -655,8 +654,8 @@ public static class Meritocracy
         bool select = fromPop.Size - flow > Eps;   // 選抜は残る人がいるときだけ（質量保存の分母）
         double moveLit = selectLiteracy && c.PromotionLiteracySelection > 0 && select
             ? PoliticalQuantities.Clamp01(fromPop.Literacy + c.PromotionLiteracySelection * (1.0 - fromPop.Literacy)) : double.NaN;
-        double moveFem = genderAccess < 1.0 && select ? fromPop.FemaleShare * genderAccess : double.NaN;
-        Pop.Blend(fromPop, toPop, flow, female: moveFem, literacy: moveLit);
+        double femAccess = genderAccess < 1.0 && select ? genderAccess : double.NaN;   // 性別の門（移る組の女性比＝送り手の女性比×これ・Blend の中）
+        Pop.Blend(fromPop, toPop, flow, femaleAccess: femAccess, literacy: moveLit);
     }
 
     // 政体の近代性：君主の身分制＝低、自由（立憲君主・共和）・独裁（能力主義的動員）＝開かれた社会＝高

@@ -464,7 +464,7 @@ public partial class GameViewModel
         }
         // 年齢構成（高齢化採用2026-07-18＝OldLaborFactor<1で老年が労働から退く）：人口加重平均の実値
         double childSum = 0, oldSum = 0, szSum = 0;
-        foreach (var p in _player.AllPops()) { childSum += p.ChildShare * p.Size; oldSum += p.OldShare * p.Size; szSum += p.Size; }
+        foreach (var p in _player.AllPops()) { childSum += p.AgeShare(0, 15) * p.Size; oldSum += p.AgeShare(60, double.PositiveInfinity) * p.Size; szSum += p.Size; }   // 年齢の層：15歳未満・60歳以上
         if (szSum > 1e-9) rows.Add(Neutral($"子供比 {childSum / szSum:P0}　老年比 {oldSum / szSum:P0}"));
         return rows;
     }

@@ -130,12 +130,12 @@ public class CrownParliamentTests
         w.ParliamentControl = 0.95;
         CrownParliament.Step(w, c);
         Assert.Equal(Polity.ConstitutionalMonarchy, w.Polity);    // 前提＝再ラベルが起きた
-        double perQuarter = Math.Pow(0.5, 1.0 / c.LostLandHalflifeQuarters);   // 1世代の政治の記憶（失地・講和の遺恨と同じ半減期20年）
+        // ★2026-09-30 段4e 後半 4e-3：1世代＝国の世代の置き換わり率（τ＝0）＝20歳になって大人に入る人÷(大人＋入る人)（旧＝固定の半減期20年 LostLandHalflifeQuarters）
+        double perQuarter = 1.0 - w.ReplacementRate(Calendar.MonthsPerQuarter);
         Assert.Equal(2.0 * perQuarter, w.RecentRegimeChanges);   // +1 されず、1四半期ぶん薄れただけ
         Assert.NotEqual(2.0 * (1.0 - c.RegimeRecordDecay), w.RecentRegimeChanges);   // 旧＝実績ストックの半減期50年（2世代）ではない
-        for (int q = 1; q < 80; q++) CrownParliament.Step(w, c);   // 計80四半期＝20年
-        Assert.Equal(80.0, c.LostLandHalflifeQuarters);                // 前提＝1世代＝20年
-        Assert.Equal(1.0, w.RecentRegimeChanges, 1e-9);                // 20年で半分（仏：1789〜1815 の政変の記憶は1830・1848 には薄れていた）
+        for (int q = 1; q < 80; q++) CrownParliament.Step(w, c);   // 計80四半期＝20年（盤面は動かない＝年齢の層は1783年の標準のピラミッドのまま）
+        Assert.InRange(w.RecentRegimeChanges, 0.9, 1.1);             // 約20年で半分（標準のピラミッドの置き換わり＝四半期 約0.88%＝半減期 約20年・仏：1789〜1815 の政変の記憶は1830・1848 には薄れていた）
     }
 
     /// <summary>同じ種の同じ盤面を20四半期進め、直近の政変の数と正統性だけを置いて Politics.Step を1回踏む（F1 は切る＝鎮圧の正統性の傷を混ぜない）。</summary>

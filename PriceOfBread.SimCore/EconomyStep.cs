@@ -651,13 +651,16 @@ public static class EconomyStep
             if (isLabor || s.GoodId == Catalog.AdvLaborId)
             {
                 var lpop = region.Pops[lp];
-                // ①Phase3（live・OldLaborFactor=0.75）：老年の労働不参加分 (1−OldLaborFactor)×OldShare を成人から差し引く＝老年の25%が労働不参加。1.0なら旧と厳密一致。
-                double adults = 1.0 - lpop.ChildShare - (1.0 - coef.OldLaborFactor) * lpop.OldShare;
+                // ①Phase3（live・OldLaborFactor=0.75）：老年の労働不参加分 (1−OldLaborFactor)×老年比 を成人から差し引く＝老年の25%が労働不参加。1.0なら旧と厳密一致。
+                // ★年齢の層（2026-09-30 段4e 後半）：子供比＝16歳未満・老年比＝60歳以上・成人の女性比＝16歳以上のうちの女性（旧の3欄と同じ意味）を年齢の層から読む。
+                double child = lpop.AgeShare(0, 16), old = lpop.AgeShare(60, double.PositiveInfinity), a16 = 1.0 - child;
+                double fem = a16 > 1e-300 ? lpop.AgeShare(16, double.PositiveInfinity, 1) / a16 : 0.5;
+                double adults = 1.0 - child - (1.0 - coef.OldLaborFactor) * old;
                 if (coef.OpiumAddictionGrowth > 0 && region.OpiumAddiction > 0) adults *= Math.Max(0.5, 1.0 - coef.OpiumLaborPenalty * region.OpiumAddiction);   // P3：依存が労働供給を蝕む（床0.5・煙館の昼）
                 // 倍率排除④：女性参加・児童労働を時間配分から創発（家計困窮×賃金保持×就学）。較正harness（学校なし・retention=0）では旧式に恒等一致。
                 lpop.ChildLaborRate = LaborSupply.ChildLaborRate(lpop, region, coef, lastSupply[lp]);   // 子供の労働時間割合（識字側＝TechEducationも同式を参照）
-                double work = adults * ((1.0 - lpop.FemaleShare) + lpop.FemaleShare * LaborSupply.FemaleParticipation(region, coef, lastSupply[lp]))
-                            + lpop.ChildShare * coef.ChildWorkFactor * lpop.ChildLaborRate;
+                double work = adults * ((1.0 - fem) + fem * LaborSupply.FemaleParticipation(region, coef, lastSupply[lp]))
+                            + child * coef.ChildWorkFactor * lpop.ChildLaborRate;
                 // 倍率排除②：旧 work/0.64（標準構成を等倍化する正規化定数）を「各popの初期労働供給 work0」基準へ一般化。
                 // 初回（t=0）の work を基準に捕捉＝各popが自分の出発点に対する相対変化（女性財産権法・児童労働禁止・戦死）で効く。標準構成は work0=0.64 で旧挙動と一致＝較正中立。
                 if (lpop.InitialWork < 0) lpop.InitialWork = work;
@@ -1410,7 +1413,7 @@ public static class EconomyStep
                 pIdx++;
                 p.GoodNeed = effBaseNeed * p.Size;
                 if (housingGood && !p.IsUrban) p.GoodNeed = 0;   // 家賃は都市住民のみ（レビュー2026-07-19：全popに掛かり需要を最大2倍過大計上→摩擦点火で過密ペナルティが過大化していた）
-                if (gi == Catalog.EducationId) p.GoodNeed = coef.EduPerChild * p.ChildShare * p.Size;   // 教育の必要量＝**子供の数**（子供3割×0.2＝従来の0.06と一致。少子化＝学校需要減）
+                if (gi == Catalog.EducationId) p.GoodNeed = coef.EduPerChild * p.AgeShare(0, 16) * p.Size;   // 教育の必要量＝**子供の数**（子供3割×0.2＝従来の0.06と一致。少子化＝学校需要減）
                 // ★段②（2026-08-17・作者裁定「教育を買ったpopがさらに買うことでのみ技師・研究者へ昇格（無償化されない）」）：
                 //   高等教育の需要＝**前月に学校を出られた者のうち、字が読める分**。義務教育のような国庫の肩代わりは無い（自費のみ）。
                 //   ⚠BaseNeed=0 なので既定の effBaseNeed*Size は 0。HigherEduNeedPerEducated=0 でこの行も 0 を書く＝**ビット恒等**。

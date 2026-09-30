@@ -80,7 +80,7 @@ public static class Politics
         // 未捕捉＝-1センチネル（SchoolingConvStock の初期値）→初回は convertNow で埋める＝立ち上がりの跳躍を作らない。
         double stock = p.SchoolingConvStock;
         if (stock < 0) stock = convertNow;   // -1＝未捕捉（初回）→即時値で初期化
-        stock += c.SchoolingStockSpeed * (convertNow - stock);
+        stock = p.GenerationalMix(stock, convertNow, Calendar.MonthsPerQuarter);   // ★世代の流れ（2026-09-30 段4e 後半 4e-3）：20歳になる若者が今の教育法の変換係数を持ち込む（旧＝四半期0.02＝半減期約9年の SchoolingStockSpeed）
         p.SchoolingConvStock = stock;
         double g = c.ConsciousnessFromSchoolingStock;
         return (1.0 - g) * convertNow + g * stock;   // g=0 で convertNow（現行恒等）
@@ -184,8 +184,8 @@ public static class Politics
         if (!w.PoliticsEnabled) return;
 
         if (w.RuptureWindowQuarters > 0) w.RuptureWindowQuarters--;   // 第6段6-8b：断裂の窓の減衰（鎮圧・制圧・クーデタが再セット）
-        if (w.LostRegionsCumulative > 1e-9)   // 機能7-2：失地ストックの半減期減衰（20年＝世代を跨ぐ遺恨・やがて風化）
-            w.LostRegionsCumulative *= Math.Pow(0.5, 1.0 / Math.Max(1.0, c.LostLandHalflifeQuarters));
+        if (w.LostRegionsCumulative > 1e-9)   // 機能7-2：失地ストックの風化＝世代の置き換わり（τ＝0・2026-09-30 段4e 後半 4e-3＝旧は固定の半減期20年 LostLandHalflifeQuarters）
+            w.LostRegionsCumulative *= 1.0 - w.ReplacementRate(Calendar.MonthsPerQuarter);
 
         // ★F1 譲歩は法の経路（作者裁定2026-09-11）：前回の一揆への譲歩で置いた要求の法が要求の向きへ動いた（Government.Step の通常経路でのまれた）
         //   ＝記録を下ろし（AI の Apply の置き直し＝Parliament.TargetCrisisDemands が止まる）、一揆の州（PendingRevoltRegion）が今も自国の Active 州ならその大衆へ既存の緩和率を掛ける

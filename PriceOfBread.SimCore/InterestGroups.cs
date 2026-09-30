@@ -124,7 +124,8 @@ public static class InterestGroups
         double gate = p.Closed ? 1.0
                     : p.IsModernElite ? (s >= Suffrage.Census ? 1.0 : c.ModernEliteSubCensusVoice)
                     : (s >= Suffrage.AdultMale ? 1.0 : 0.0);
-        double fem = s >= Suffrage.Universal ? 1.0 : 1.0 - p.FemaleShare;
+        double a16 = s >= Suffrage.Universal ? 0 : p.AgeShare(16, double.PositiveInfinity);
+        double fem = s >= Suffrage.Universal ? 1.0 : a16 > 1e-300 ? 1.0 - p.AgeShare(16, double.PositiveInfinity, 1) / a16 : 0.5;   // 成人（16歳以上）のうちの男（年齢の層・段4e 後半）
         return gate * fem;
     }
 }

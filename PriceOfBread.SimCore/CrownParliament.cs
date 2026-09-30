@@ -216,7 +216,8 @@ public static class CrownParliament
         // ★政権への失望（2026-09-29）は**1世代**の政治の記憶＝失地・講和の遺恨と同じ半減期20年（LostLandHalflifeQuarters）で薄れる（2026-09-29 線2・推奨で進めた）。
         //   ⚠実績ストックの半減期50年（2世代）ではない＝史実の「失望→秩序の受け入れ」は革命の10年（1789〜99・1848〜51・1868〜74）で積もり次の世代で薄れた
         //   （仏は1789〜1815 の約7回の後も1830・1848 に革命＝50年だと 1830 の期待 H≈0.2・20年だと約0.35）。新しい係数は作らない（世代の長さの1本を読む）。
-        w.RecentRegimeChanges *= System.Math.Pow(0.5, 1.0 / System.Math.Max(1.0, c.LostLandHalflifeQuarters));
+        // ★2026-09-30 段4e 後半 4e-3：1世代の政治の記憶＝国の世代の置き換わり率（τ＝0＝作者の「1世代で薄れる」そのもの・旧は固定の半減期20年 LostLandHalflifeQuarters＝1783年は近い恒等）。
+        w.RecentRegimeChanges *= 1.0 - w.ReplacementRate(Calendar.MonthsPerQuarter);
         double record = w.CoopPublicRegime;   // [-1,1]
         if (record > 0)   // 正の信認は時間が要る（始まったばかりの形態は実績を持てない）
             record *= PoliticalQuantities.Clamp01(w.RegimeTenureQuarters / (Calendar.QuartersPerYear * System.Math.Max(1.0, c.RegimeRecordSuccessTenureGate)));

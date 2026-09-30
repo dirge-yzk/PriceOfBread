@@ -48,7 +48,7 @@ public class CohortPhase3Tests
         aged.World.Coef.OldLaborFactor = 0.0;      // 老年は完全引退＝労働供給から外れる
         baseline.Run(200); neutral.Run(200); aged.Run(200);   // 50年：OldShare が形成される
         double oldSize = 0, total = 0;
-        foreach (var p in baseline.World.AllPops()) if (!p.IsSoldier) { oldSize += p.Size * p.OldShare; total += p.Size; }
+        foreach (var p in baseline.World.AllPops()) if (!p.IsSoldier) { oldSize += p.Size * p.AgeShare(60, double.PositiveInfinity); total += p.Size; }   // 老年＝60歳以上（年齢の層・段4e 後半）
         Assert.True(total > 0 && oldSize / total > 0.02, $"老年人口が形成されていない（{oldSize / total:P1}）＝この検証の前提が崩れた");
         // ① 既定（1.0）は (1−1.0)×OldShare=0 ＝OldShareの値に関わらず中立＝明示1.0と厳密一致
         Assert.Equal(baseline.World.Gdp, neutral.World.Gdp, 6);

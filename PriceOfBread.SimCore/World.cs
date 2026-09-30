@@ -1163,25 +1163,30 @@ public sealed class World
         double sanitDev = (1.0 - c.EpidemicSanitationWeight) * oldDev + c.EpidemicSanitationWeight * realSanit;
         double deathFrac = c.EpidemicSeverity * (1.0 - SanitationMortalityReduction * sanitDev) * jitter * scale;
         // 死亡配分（epidemic-uniform-age-class-mortality）：総死者＝致死率×州の人口を脆弱層（乳幼児/老年/食料不足）へ集中＝重み 規模×(1＋これ×(子供比＋老年比＋(1−主食の充足)))。
-        //   EpidemicVulnConcentration=0 で重み＝規模＝全階級一律。記帳（人口の台帳・粗死亡の計器・年齢構成の運搬）は死の記帳の1本（KillPops・段4e J）。
+        //   EpidemicVulnConcentration=0 で重み＝規模＝全階級一律。記帳（人口の台帳・粗死亡の計器・年齢の層の運搬）は死の記帳の1本（KillPops・段4e J）。
+        //   ★年齢の層（2026-09-30 段4e 後半）：子供比＝16歳未満・老年比＝60歳以上を年齢の層から読む（旧の子供比・老年比と同じ意味）。POP の中は災害死の年齢の重み（0〜9 と 60以上）。
+        //   ⚠同じ年齢の脆弱さを POP の間と POP の中で2度読む（思想⑨の疑い・(134) の申し送り4）＝1本にする読み替えは 4e-2b（差し戻し＝申し送り）。
         var pops = wr.Pops; var wts = new List<double>(pops.Count); double totalD = 0;
         foreach (var p in pops)
         {
             totalD += p.Size * deathFrac;
-            wts.Add(p.Size * (1.0 + c.EpidemicVulnConcentration * (p.ChildShare + p.OldShare + (1.0 - p.FoodFill))));
+            wts.Add(p.Size * (1.0 + c.EpidemicVulnConcentration * (p.AgeShare(0, 16) + p.AgeShare(60, double.PositiveInfinity) + (1.0 - p.FoodFill))));
         }
-        return KillPops(pops, wts, totalD, violent: false, c.DisasterAgeMortalityExcess);
+        var aw = new double[2 * Pop.AgeBands];
+        Pop.DisasterWeights(aw, c.DisasterAgeMortalityExcess);
+        return KillPops(pops, wts, totalD, violent: false, aw);
     }
 
     /// <summary>★死の記帳の1本（2026-09-30 処理の一元化 段4e J＝設計の <c>World.KillPops(集合, 総数, 重み, 死因)</c>）：総数 <paramref name="total"/> を
     /// 集合 <paramref name="pops"/> へ重み <paramref name="weights"/>（null＝規模）の比で配り、各 POP の規模を超えては殺さず（非負の保護）、
-    /// 年齢構成へ運び（<paramref name="ageExcess"/>＞0＝子供と老年に厚く＝<see cref="CarryDeathAgeStructure"/>）、実際に減った人数を台帳へ書く
+    /// 年齢の層へ運び（<paramref name="ageWeights"/>＝層×性の1人あたりの重み16本・null＝全層に比例＝割合は動かない・段4e 後半）、実際に減った人数を台帳へ書く
     /// ＝人口の台帳（<see cref="PopulationDelta"/>）と死因の台帳（<paramref name="violent"/>＝戦死と民間人の戦災と鎮圧と粛清＝<see cref="WarDeadCumulative"/>／
     /// それ以外＝疫病と遠征の病死＝粗死亡の計器 <see cref="DiagDeaths"/>）。戻り値＝実際に死んだ人数。
     /// ⚠旧＝7か所（戦場の民間人・兵士・将校・一揆の鎮圧・恐怖政治の粛清・疫病・遠征地の疫病）が同じ記帳を手書きした（台帳に意図の総数を書く所と実際の和を書く所が混在・
     ///   規模の下限を守る所と守らない所が混在）。人口動態（出生と平常の死と飢えの上乗せ＝Simulation.DemographicStep）は純増の積分と一緒に記帳する別の1本。
-    /// 死者の貯蓄は遺族に残る（POP の中に残る＝貨幣は動かない）。⚠否定形のガード＝NaN の総数と重みは殺さない。</summary>
-    internal double KillPops(List<Pop> pops, List<double>? weights, double total, bool violent, double ageExcess = 0)
+    /// 死者の貯蓄は遺族に残る（POP の中に残る＝貨幣は動かない）。⚠否定形のガード＝NaN の総数と重みは殺さない。
+    /// ★年齢の層（段4e 後半）：旧の年齢の運搬の関数（CarryDeathAgeStructure＝子供比と老年比を切り下げる）はこの年齢の重みへ吸収（設計書 §2-3）。</summary>
+    internal double KillPops(List<Pop> pops, List<double>? weights, double total, bool violent, double[]? ageWeights = null)
     {
         if (!(total > 0) || pops.Count == 0) return 0;
         double sw = 0;
@@ -1195,28 +1200,12 @@ public sealed class World
             double d = total * ((weights is null ? p.Size : weights[i]) / sw);
             if (!(d > 0)) continue;
             if (d > p.Size) d = p.Size;   // 非負の保護（規模を超えては殺さない）
-            CarryDeathAgeStructure(p, p.Size, d, ageExcess);
+            if (ageWeights is not null) p.KillAges(p.Size, d, ageWeights);
             p.Size -= d; dead += d;
         }
         PopulationDelta -= dead;
         if (violent) WarDeadCumulative += dead; else DiagDeaths += dead;
         return dead;
-    }
-
-    /// <summary>リ10（監査2026-07-11・2026-07-25休眠配線）：災害死（疫病・局地飢饉）を年齢構成へ運搬＝死亡 d のうち子供/老年の超過死亡分だけ
-    /// ChildShare/OldShare を切り下げてコホートの穴を残す（将来の労働供給・出産可能プール・年金負担への後遺症＝従来は Size のみ減で年齢構成が無傷だった）。
-    /// 子/老の per-capita 死亡重み＝(1+excess)・成人＝1。excess=0（既定）＝均等死＝比率不変（呼び出し自体を即リターン）＝現行と厳密一致。</summary>
-    internal static void CarryDeathAgeStructure(Pop p, double sizeBefore, double d, double excess)
-    {
-        if (excess <= 0 || d <= 1e-12 || sizeBefore <= 1e-9) return;
-        double cs = p.ChildShare, os = p.OldShare;
-        double wTot = 1.0 + excess * (cs + os);
-        double dChild = d * cs * (1.0 + excess) / wTot;
-        double dOld = d * os * (1.0 + excess) / wTot;
-        double after = sizeBefore - d;
-        if (after <= 1e-9) return;
-        p.ChildShare = PoliticalQuantities.Clamp01((cs * sizeBefore - dChild) / after);
-        p.OldShare = PoliticalQuantities.Clamp01((os * sizeBefore - dOld) / after);
     }
 
     /// <summary>接12（監査2026-07-11・2026-07-25休眠配線）：疫病の**発生**確率にも衛生を接続するための読み口＝最過密州の衛生整備度
@@ -1672,6 +1661,22 @@ public sealed class World
             exFx.Add("ExpectedInflation", "直近の物価騰落(年率)", infl);
             exFx.Add("ExpectedInflation", "平滑(前期の期待の残り)", ExpectedInflation - infl);
         }
+    }
+
+    /// <summary>★国の世代の置き換わり率（2026-09-30 段4e 後半 4e-3・設計書 §5-1）＝<paramref name="months"/> か月に20歳になって大人に入る人÷(入る前の大人＋入る人)
+    /// ＝ΣE÷Σ(A＋E)（全ての POP・兵士も大人として数える）。毎回導く（貯めない＝思想⑩）。国の水準の記憶（失地・政権への失望・講和の遺恨）が τ＝0 で
+    /// ×(1−これ) で薄れる＝固定の半減期（旧 LostLandHalflifeQuarters＝80四半期）をやめ、人口の年齢構成から追従する（高齢化すると記憶が長く・若者の膨らみでは速く）。
+    /// 1783年の標準のピラミッドで四半期 約0.88%（半減期 約20年＝旧の20年とほぼ同じ＝近い恒等）。人がいない国は標準のピラミッドの値。</summary>
+    internal double ReplacementRate(int months)
+    {
+        double e = 0, a = 0;
+        foreach (var p in AllPops())
+        {
+            if (!(p.Size > 0)) continue;
+            e += p.Size * p.EnteringAdultsMonthly(); a += p.Size * p.AgeShare(20, double.PositiveInfinity);
+        }
+        e *= months;
+        return a + e > 1e-9 ? e / (a + e) : Pop.StdReplacementRate(months);
     }
 
     /// <summary>国家会計上の全 pop を走査（国家レベルの subsystem 用）。

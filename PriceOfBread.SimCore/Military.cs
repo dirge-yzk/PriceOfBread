@@ -292,10 +292,11 @@ public static class Military
         if (draft)
         {
             // 他13（監査2026-07-11・2026-07-25休眠配線・2026-07-27 点火）：上限は働き盛りの男（成人−老年）＝老年は徴兵されない。旧の既定0は成人の男（老年込み）。
-            double draftable = c.ConscriptExcludeOldMales > 0 ? from.Size * Math.Max(0, 1.0 - from.ChildShare - from.OldShare) : from.Size * (1.0 - from.ChildShare);
-            amount = Math.Min(amount, draftable * (1.0 - from.FemaleShare));
+            // ★年齢の層（2026-09-30 段4e 後半）：働き盛りの男＝16〜59歳の男（旧の成人−老年×男の割合と同じ意味）を年齢の層から読む。移る組も同じ範囲（Blend の draft）。
+            double draftHi = c.ConscriptExcludeOldMales > 0 ? 60 : double.PositiveInfinity;
+            amount = Math.Min(amount, from.Size * from.AgeShare(16, draftHi, 0));
             if (amount < 1e-12) return;
         }
-        Pop.Blend(from, to, amount, draft: draft);
+        Pop.Blend(from, to, amount, draft: draft, draftLo: 16, draftHi: c.ConscriptExcludeOldMales > 0 ? 60 : double.PositiveInfinity);
     }
 }

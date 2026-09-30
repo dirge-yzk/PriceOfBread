@@ -66,7 +66,7 @@ public class MobilityTests
         r.Markets[Catalog.PaperId].Stock = 1e6;   // ★2026-08-23：閉じた英国は綿花なし→紙（教育の投入）が立たない＝多国世界の交易/植民地財の代替として紙を外生供給（検証対象は就学需要→教師の補充）
         r.Markets[Catalog.Goods.First(g => g.Name == "書籍").Id].Stock = 1e6;   // 教育の投入は技術で紙→書籍へ切り替わる＝書籍も外生供給
         sim.Run(240);
-        double childShare = r.Pops[2].ChildShare;   // 工場労働者の子供比率（粗出生で補充され続ける）
+        double childShare = r.Pops[2].AgeShare(0, 15);   // 工場労働者の15歳未満の割合（粗出生で補充され続ける・年齢の層）
         Assert.True(childShare > 0.2, $"成熟社会で子供が払底した（子供比率 {childShare:P0}）＝粗出生の補充が機能していない");
         var edu = r.Markets[Catalog.EducationId];
         Assert.True(edu.LastProduced > 50, $"教育の生産が崩壊した（{edu.LastProduced:F1}）＝就学需要に教師の供給が応えていない");
@@ -237,7 +237,7 @@ public class MobilityTests
             foreach (var idx in new[] { r.MeritToIndex, r.TeacherPopIndex, r.BureaucratPopIndex, r.DoctorPopIndex })
                 if (idx >= 0 && r.Pops[idx].Size > 1e-9) r.Pops[idx].Earned = 10.0 * r.Pops[idx].Size;   // attract≫1＝流量は率×Sizeで決まる
             if (ReferenceEquals(sim, on))
-                gateExp = System.Math.Min(1.0, c.CohortGateK * worker.ChildShare * Calendar.MonthsPerQuarter / (c.AgingYears * Calendar.MonthsPerYear));
+                gateExp = System.Math.Min(1.0, c.CohortGateK * worker.EnteringAdultsMonthly() * Calendar.MonthsPerQuarter);   // 四半期の新成人率（年齢の層の加齢と同じ流れ）
             double before = worker.Size;
             Meritocracy.Step(w, c);
             double moved = before - r.Pops[r.MeritFromIndex].Size;
@@ -268,20 +268,21 @@ public class MobilityTests
         var eng = r.Pops[r.MeritToIndex];
         Assert.True(r.TeacherPopIndex >= 0, "教師popが無い");
         var teacher = r.Pops[r.TeacherPopIndex];
-        worker.Literacy = 1.0; worker.Earned = 1.0 * worker.Size; worker.FemaleShare = 0.6;
-        eng.FemaleShare = 0.02; teacher.FemaleShare = 0.25;   // 初期符号化と同じ性別分離（技師0.02・教師0.25）
+        worker.Literacy = 1.0; worker.Earned = 1.0 * worker.Size; worker.SetAdultFemaleShare(0.6);
+        eng.SetAdultFemaleShare(0.02); teacher.SetAdultFemaleShare(0.25);   // 初期符号化と同じ性別分離（技師0.02・教師0.25＝20歳以上の層）
+        static double Fem(Pop p) => p.AgeShare(20, double.PositiveInfinity, 1) / p.AgeShare(20, double.PositiveInfinity);
         foreach (var p in r.Pops) if (p.IsModernElite) { p.EducationFill = 1.0; p.EducationEma = 1.0; }
         eng.Earned = 10.0 * eng.Size; teacher.Earned = 10.0 * teacher.Size;
         double engSize0 = eng.Size, teaSize0 = teacher.Size;
-        // 女性比は「成人のうち」の比＝保存されるのは成人の女性の数 Σ 女性比×規模×(1−子供比)（2026-09-30 段4e I＝人の移し方の1本は成人数で混ぜる）
-        double femMass0 = 0; foreach (var p in r.Pops) femMass0 += p.FemaleShare * p.Size * (1.0 - p.ChildShare);
+        // 保存されるのは女性の人数（年齢の層の女の層×規模・2026-09-30 段4e 後半＝移し方は層×性ごとの人数を足す）
+        double femMass0 = 0; foreach (var p in r.Pops) femMass0 += p.AgeShare(0, double.PositiveInfinity, 1) * p.Size;
         Meritocracy.Step(w, c);
         Assert.True(eng.Size > engSize0 + 1e-9, "技師への昇格が起きない（前提が崩れた）");
         Assert.True(teacher.Size > teaSize0 + 1e-9, "教師への昇格が起きない（前提が崩れた）");
         // 技師行きコホートは女性0（access=0）＝技師の女性比は流入で薄まる。教師行き（access=1.0）は従来どおりsrc平均0.6を運ぶ＝教師の女性比は上がる。
-        Assert.True(eng.FemaleShare < 0.02, $"閉じた専門職の女性比が薄まらない（技師 {eng.FemaleShare:F4}）");
-        Assert.True(teacher.FemaleShare > 0.25, $"教師行きコホートの女性比が運ばれていない（教師 {teacher.FemaleShare:F4}）");
-        double femMass1 = 0; foreach (var p in r.Pops) femMass1 += p.FemaleShare * p.Size * (1.0 - p.ChildShare);
+        Assert.True(Fem(eng) < 0.02, $"閉じた専門職の女性比が薄まらない（技師 {Fem(eng):F4}）");
+        Assert.True(Fem(teacher) > 0.25, $"教師行きコホートの女性比が運ばれていない（教師 {Fem(teacher):F4}）");
+        double femMass1 = 0; foreach (var p in r.Pops) femMass1 += p.AgeShare(0, double.PositiveInfinity, 1) * p.Size;
         Assert.True(System.Math.Abs(femMass1 - femMass0) < 1e-6 * System.Math.Max(1.0, femMass0),
             $"性別の選抜運搬で女性の総量が保存されない（{femMass0:F2}→{femMass1:F2}）");
     }
@@ -293,15 +294,17 @@ public class MobilityTests
     [Fact]
     public void 人の移し方は女性比を成人数で混ぜ成人の女性の数を保存する()
     {
-        static double FemaleAdults(Pop p) => p.FemaleShare * p.Size * (1.0 - p.ChildShare);
-        var from = new Pop { Size = 100, ChildShare = 0.5, FemaleShare = 0.5 };
-        var to = new Pop { Size = 100, ChildShare = 0.0, FemaleShare = 0.2 };
+        // ★年齢の層（2026-09-30 段4e 後半）：性は層の中＝移し方は層×性の人数を足すだけ＝成人数で混ぜる形が構造で出る
+        static double FemaleAdults(Pop p) => p.AgeShare(20, double.PositiveInfinity, 1) * p.Size;
+        static double Fem(Pop p) => p.AgeShare(20, double.PositiveInfinity, 1) / p.AgeShare(20, double.PositiveInfinity);
+        var from = new Pop { Size = 100, Ages = [0.125, 0.125, 0.125, 0.125, 0.25, 0.25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] };   // 子供（0〜19）が半分・大人は男女半々
+        var to = new Pop { Size = 100, Ages = [0, 0, 0, 0, 0.8, 0.2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] };   // 子供がいない・大人の女性比 0.2
         double fem0 = FemaleAdults(from) + FemaleAdults(to);
         Pop.Blend(from, to, 40);
-        // 受け手＝成人 100＋20（移る40人のうち成人20）・女性 20＋10 → 30/120＝0.25（規模で重み付けると (0.2×100＋0.5×40)/140＝0.2857）
-        Assert.Equal(0.25, to.FemaleShare, 12);
-        Assert.Equal(20.0 / 140.0, to.ChildShare, 12);
-        Assert.Equal(0.5, from.FemaleShare, 12);   // 選抜の無い移動は送り手の構成を1ビットも動かさない
+        // 受け手＝大人 100＋20（移る40人のうち大人20）・女性 20＋10 → 30/120＝0.25（規模で重み付けると (0.2×100＋0.5×40)/140＝0.2857）
+        Assert.Equal(0.25, Fem(to), 12);
+        Assert.Equal(20.0 / 140.0, to.AgeShare(0, 20), 12);
+        Assert.Equal(0.5, Fem(from), 12);   // 選抜の無い移動は送り手の構成を1ビットも動かさない
         Assert.Equal(fem0, FemaleAdults(from) + FemaleAdults(to), 9);
     }
 

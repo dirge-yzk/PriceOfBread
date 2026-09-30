@@ -210,11 +210,16 @@ public sealed class Pop
     public double RadioFill;             // ラジオ（財）の充足率（E3・1920s〜）。国民意識の識字不要チャネル（検閲非依存＝国営宣伝）。財の解禁前は0
     public double UnemploymentRate;      // 労働（労働力/農業/高度）の売れ残り率＝失業。職の喪失は所得の算術を超えて怒りを生む（社会保障が和らげる対象）。労働市場の無い世界は0＝従来挙動
     public double UnemploymentEma = -1.0;   // rank10b（JobSearchUsesEma=0.02点火2026-08-16）：失業率の多年EMA＝慢性失業の記憶。-1=未捕捉（初回更新で現在値から開始＝跳躍なし）。JobSearchUsesEma=0（対照腕）では読み書きされず恒等。失業プール①''の駆動が瞬間UでなくこれをEMA読み＝循環失業と構造失業の分岐
-    public double FemaleShare = 0.5;     // **成人のうち**の女性比率（兵士=0）。徴兵が男だけを抜くと上がる＝戦死の多い国は労働が締まる。労働供給と参政権（普通選挙＝男女）に効く
-    public double ChildShare = 0.3;      // 子供比率（兵士=0）。出生は子供として加わり、約16年かけて成人する（コホート送り）＝医療・教育投資は一世代後に実る。児童労働の実体
-    public double OldShare;              // 老年比率（①年齢コホート）。生産年齢が約45年で老年へ送られ、老衰で多く死ぬ。0=従来（老年なし）。年金法(PensionLaw)の支援対象・人口転換の高齢化。OldShare≤(1−ChildShare)
     public double InitialWork = -1.0;    // 労働供給の初期値（t=0 の work＝成人男女参加＋児童労働）。倍率排除②：旧 work/0.64 の正規化定数を「各popの初期労働供給」へ一般化（標準構成なら0.64＝中立）。-1=未捕捉（初回 EconomyStep で確定）
-    public double InitialFertileShare = -1.0;  // ①Phase3：出産可能女性プールの初期値（t=0 の (1−ChildShare−OldShare)×FemaleShare）。出生を女性プール比例化する際の正規化定数（自分の出発点に対する相対変化＝標準構成で Size 比例と恒等）。-1=未捕捉
+    public double InitialFertileShare = -1.0;  // ①Phase3：出産可能女性プールの初期値（t=0 の出産可能プール＝Simulation.FertilePool・年齢の層から読む）。出生を女性プール比例化する際の正規化定数（自分の出発点に対する相対変化＝標準構成で Size 比例と恒等）。-1=未捕捉
+    /// <summary>★年齢の層（2026-09-30 段4e 後半・設計 docs/202609/20260929/20260929_年齢の層_人口ピラミッドと世代の流れ_設計_未着手.md・作者裁定 2026-09-29＝C 案）＝
+    /// 10歳刻み8層（0〜9・10〜19・…・60〜69・70以上）×男女の**割合**16本（合計1・添字＝層×2＋性〔0＝男・1＝女〕）。人数は Size×割合＝Size が主
+    /// （年齢を指定しない死と移動は何もしなくても全層に比例）。読み口は <see cref="AgeShare"/> の1本。
+    /// 書き手＝加齢と出生と平常の死（<see cref="StepAges"/>＝Simulation.DemographicStep・兵士も年を取る）・年齢を選ぶ死（<see cref="World.KillPops"/> の年齢の重み）・
+    /// 人の移し方の1本（<see cref="Blend"/>＝移る組の構成）・初期の構成（標準のピラミッド・兵士・職業の性比）。
+    /// ⚠新しい状態（思想⑩の例外＝設計書 §8）：年齢の構成は0〜70年前の出生・戦死・飢饉・移民の履歴で、今の盤面から導けない。
+    /// ⚠固定長の構造体にしない（SaveGame の値型の switch に無い型は Struct 経路で無限に潜る）＝double[]。</summary>
+    public double[] Ages = StdAges();
     public double ChildLaborRate;        // この pop の子供の労働時間割合（0..1・倍率排除④）。家計困窮×合法度×(1−就学)から創発。労働供給（半人前）と識字（働く子は学校へ行けない）の両方を律する。LaborSupply が算出
     public double CoreEthnicShare = 1.0; // 中核（titular）民族の割合（0..1・倍率排除⑧）。国一律スカラー EthnicUnity を POP属性化＝民族統一度は各popの加重平均から創発。移民は core=0 で混ざり希釈、同化で回復、内部移動で運搬、征服で低下
     public double NationalConsciousness = -1;   // ★国民意識のpop属性（国スカラー World.NationalConsciousness のpop化・2026-08-01）。
@@ -289,40 +294,27 @@ public sealed class Pop
     /// 呼び手＝徴兵と復員と階級の移動（Military.MoveCohort）・州の中の移動（PopDecision）・社会移動（Meritocracy）・州の間の移民と入植（Territory.MoveBetweenRegions）・
     /// 越境移民と招聘（MultiNationSim.MoveAbroad＝お金は換算して呼び手が運ぶ＝<paramref name="money"/>＝false）。
     /// ── 移る組の構成＝送り手の平均。選抜のときだけ違う（残る側はその分だけ質量保存で動く）：
-    ///   <paramref name="draft"/>＝徴兵＝成人の男（老年でない）だけ（子供・老年・女性は残る＝男手の消えた村）／
-    ///   <paramref name="female"/>＝成人の女性比の選抜（専門職の性別の門）／<paramref name="literacy"/>＝識字の選抜（昇格）。
-    /// ── 受け手の側：女性比は**成人数**で混ぜる（女性比＝成人のうちの女性の割合＝旧は5つの写しが子供込みの規模で重み付けた＝子供比の違う組の女性の人数の和がずれた・
-    ///   徴兵と Military の通常の枝だけ成人数＝G11#2 の直しが5つに届いていなかった）。子供比・老年比・識字・闘争度・政治意識・国民意識・中核民族の割合・思想の分布は人数で混ぜる
+    ///   <paramref name="draft"/>＝徴兵＝男の [<paramref name="draftLo"/>, <paramref name="draftHi"/>) 歳だけ（子供・老年・女性は残る＝男手の消えた村）／
+    ///   <paramref name="femaleAccess"/>＝20歳以上の女性の選抜（専門職の性別の門＝送り手の女性比×これ）／<paramref name="literacy"/>＝識字の選抜（昇格）。
+    /// ── 受け手の側：年齢と男女の構成は**層×性の人数**で足す（<see cref="BlendAges"/>＝2026-09-30 段4e 後半の年齢の層＝旧の子供比・老年比・成人の女性比の3欄を置き換えた）。
+    ///   識字・闘争度・政治意識・国民意識・中核民族の割合・思想の分布は人数で混ぜる
     ///   （作者裁定 2026-09-28 §14-2 の6「国内の移動でも国民意識・政治意識・思想の分布を運ぶ＝1本の Blend で全部」）。国民意識の未捕捉（&lt;0）は重み0（書き手が触らない POP は読み手も見ない）。
     ///   中核民族の割合は <paramref name="coreAtDest"/>＝受け手の国での移る組の値（越境＝受入国の中核民族ではない＝0）。旧の旗（MigrationCarriesHumanCapital・MigrantCarriesConsciousness）は焼き込み。
     /// ⚠[0,1] の量は否定形のクランプ（NaN は0の側）。戻り値＝動いた人数。</summary>
-    internal static double Blend(Pop from, Pop to, double n, bool draft = false, double female = double.NaN, double literacy = double.NaN,
-                                 double coreAtDest = double.NaN, bool money = true)
+    internal static double Blend(Pop from, Pop to, double n, bool draft = false, double femaleAccess = double.NaN, double literacy = double.NaN,
+                                 double coreAtDest = double.NaN, bool money = true, double draftLo = 16, double draftHi = 60)
     {
         if (!(n > 1e-12) || !(from.Size > 1e-12) || ReferenceEquals(from, to)) return 0;
         if (n > from.Size) n = from.Size;
         double s0 = from.Size, t0 = to.Size, t1 = t0 + n;
+        BlendAges(from, to, n, s0, t0, draft, draftLo, draftHi, femaleAccess);   // 年齢と男女の構成（16本）
         // 移る組の構成（送り手の平均・選抜のときだけ違う）
-        double cChild = draft ? 0 : from.ChildShare, cOld = draft ? 0 : from.OldShare;
-        double cFem = draft ? 0 : double.IsNaN(female) ? from.FemaleShare : female;
         double cLit = double.IsNaN(literacy) ? from.Literacy : literacy;
         double cCore = double.IsNaN(coreAtDest) ? from.CoreEthnicShare : coreAtDest;
-        double cAdults = n * (1.0 - cChild);
         // 残る側＝選抜で組が平均と違う量だけ質量保存で動かす（平均と同じなら1ビットも触らない）
         double rest = s0 - n;
-        if (rest > 1e-12)
-        {
-            double ad0 = s0 * (1.0 - from.ChildShare), adRest = ad0 - cAdults;
-            if (cFem != from.FemaleShare) from.FemaleShare = adRest > 1e-12 ? PoliticalQuantities.Clamp01((from.FemaleShare * ad0 - cFem * cAdults) / adRest) : 0.5;
-            if (cChild != from.ChildShare) from.ChildShare = PoliticalQuantities.Clamp01((from.ChildShare * s0 - cChild * n) / rest);
-            if (cOld != from.OldShare) from.OldShare = PoliticalQuantities.Clamp01((from.OldShare * s0 - cOld * n) / rest);
-            if (cLit != from.Literacy) from.Literacy = PoliticalQuantities.Clamp01((from.Literacy * s0 - cLit * n) / rest);
-        }
-        // 受け手の側＝人数で混ぜる（女性比だけ成人数）
-        double tAdults = t0 * (1.0 - to.ChildShare), adults1 = tAdults + cAdults;
-        if (adults1 > 1e-12) to.FemaleShare = PoliticalQuantities.Clamp01((to.FemaleShare * tAdults + cFem * cAdults) / adults1);
-        to.ChildShare = PoliticalQuantities.Clamp01((to.ChildShare * t0 + cChild * n) / t1);
-        to.OldShare = PoliticalQuantities.Clamp01((to.OldShare * t0 + cOld * n) / t1);
+        if (rest > 1e-12 && cLit != from.Literacy) from.Literacy = PoliticalQuantities.Clamp01((from.Literacy * s0 - cLit * n) / rest);
+        // 受け手の側＝人数で混ぜる
         to.Literacy = PoliticalQuantities.Clamp01((to.Literacy * t0 + cLit * n) / t1);
         to.Militancy = PoliticalQuantities.Clamp01((to.Militancy * t0 + from.Militancy * n) / t1);
         to.Consciousness = PoliticalQuantities.Clamp01((to.Consciousness * t0 + from.Consciousness * n) / t1);
@@ -340,12 +332,241 @@ public sealed class Pop
         return n;
     }
 
+    /// <summary>★年齢の層の運搬（<see cref="Blend"/> の中・段4e 後半）＝移る組の人数16本を受け手へ人数で足す。移る組は送り手の構成（送り手の割合は1ビットも動かない）。
+    /// 選抜のときだけ違い、残る側が質量保存で動く：徴兵＝男の [<paramref name="draftLo"/>, <paramref name="draftHi"/>) だけ（層の中は按分）／
+    /// 性別の門＝20歳以上の層の女性を <paramref name="femaleAccess"/> 倍（男はその分だけ多く＝層の人数は送り手の比のまま）。いる人数を超えては移らない（<see cref="TakeWeighted"/>）。</summary>
+    private static void BlendAges(Pop from, Pop to, double n, double s0, double t0, bool draft, double draftLo, double draftHi, double femaleAccess)
+    {
+        Span<double> took = stackalloc double[2 * AgeBands];
+        bool female = !draft && !double.IsNaN(femaleAccess);
+        if (!draft && !female)
+            for (int k = 0; k < took.Length; k++) took[k] = from.Ages[k] * n;
+        else
+        {
+            Span<double> cnt = stackalloc double[2 * AgeBands];
+            Span<double> w = stackalloc double[2 * AgeBands];
+            for (int k = 0; k < cnt.Length; k++) cnt[k] = from.Ages[k] * s0;
+            for (int b = 0; b < AgeBands; b++)
+            {
+                if (draft) { w[2 * b] = BandOverlap(b, draftLo, draftHi); w[2 * b + 1] = 0; continue; }
+                w[2 * b] = w[2 * b + 1] = 1.0;
+                if (b < 2) continue;
+                double t = from.Ages[2 * b] + from.Ages[2 * b + 1];
+                double phi = t > 1e-300 ? from.Ages[2 * b + 1] / t : 0;
+                w[2 * b + 1] = femaleAccess;
+                w[2 * b] = phi < 1 ? (1.0 - phi * femaleAccess) / (1.0 - phi) : 1.0;
+            }
+            TakeWeighted(cnt, took, w, n);
+            if (s0 - n > 1e-12) from.SetAgesFromCounts(cnt);
+        }
+        Span<double> dst = stackalloc double[2 * AgeBands];
+        for (int k = 0; k < dst.Length; k++) dst[k] = to.Ages[k] * t0 + took[k];
+        to.SetAgesFromCounts(dst);
+    }
+
     /// <summary>★人が動かずに国が替わるときの換算（2026-09-30 段4e＝人と動くお金の換算）＝割譲・再併合で州ごと別の国へ移る POP の貯蓄と債務を、
     /// 受け手の国の通貨へ（換算の1本 <see cref="World.CrossFx"/>・差は換算の台帳へ・債務は負の額として換算）。国債の保有は発行国の対外債へ振り替える（呼び手）。</summary>
     internal void Rebase(World from, World to)
     {
         Savings = World.CrossFx(from, to, Savings);
         Debt = -World.CrossFx(from, to, -Debt);
+    }
+
+    // ==== 年齢の層（2026-09-30 段4e 後半・<see cref="Ages"/>）====================================================
+    /// <summary>年齢の層の数（10歳刻み・最後は70以上）。</summary>
+    public const int AgeBands = 8;
+    /// <summary>★標準の前近代ピラミッド（男女計・設計書 §3-1 の表＝データ＝思想②の「データ」）＝平均寿命30前後・年0.5%増の安定人口
+    /// （15歳未満 35.3%・60歳以上 7.5%＝英1781 約35%・瑞1750 約32%）。1783年の全ての POP の初期の構成（作者裁定 Q2＝標準1枚を全国に＝国の差は模型の出生と死が作る）。</summary>
+    internal static readonly double[] StdPyramid = [0.255, 0.195, 0.160, 0.130, 0.105, 0.080, 0.050, 0.025];
+    /// <summary>標準のピラミッドを作った安定人口の年の増加率（表の前提＝設計書 §3-1 の「年0.5%増」）。死の年齢の重み（<see cref="MortalityWeights"/>）だけが読む。</summary>
+    internal const double StdPyramidGrowth = 0.005;
+
+    /// <summary>標準のピラミッドの16本（読むだけの写し）＝起点合わせの物差し（<see cref="StdShare"/>）。</summary>
+    internal static readonly double[] StdAgesRef = StdAges();
+    /// <summary>標準のピラミッドでの <see cref="AgeShare"/>＝読み手の起点合わせ（1783年の値を旧と揃える）の物差し＝新しい数0。</summary>
+    internal static double StdShare(double lo, double hi, int sex = -1) => AgeShareOf(StdAgesRef, lo, hi, sex);
+
+    /// <summary>標準のピラミッド（男女は各層で半々）の16本＝全ての POP の初期値。</summary>
+    internal static double[] StdAges()
+    {
+        var a = new double[2 * AgeBands];
+        for (int b = 0; b < AgeBands; b++) a[2 * b] = a[2 * b + 1] = 0.5 * StdPyramid[b];
+        return a;
+    }
+
+    /// <summary>兵士 POP の初期の構成＝男の20〜29 と 30〜39 に標準のピラミッドの比（16:13＝設計書 §3-1）。</summary>
+    internal static double[] SoldierAges()
+    {
+        var a = new double[2 * AgeBands];
+        double s = StdPyramid[2] + StdPyramid[3];
+        a[4] = StdPyramid[2] / s; a[6] = StdPyramid[3] / s;
+        return a;
+    }
+
+    /// <summary>職業 POP の性比（設計書 §3-1）＝20歳以上の層の男女を職業の女性比 <paramref name="female"/> で分ける（0〜19 は半々のまま）。</summary>
+    internal void SetAdultFemaleShare(double female)
+    {
+        for (int b = 2; b < AgeBands; b++)
+        {
+            double t = Ages[2 * b] + Ages[2 * b + 1];
+            Ages[2 * b] = t * (1.0 - female); Ages[2 * b + 1] = t * female;
+        }
+    }
+
+    /// <summary>★年齢の読み口の1本：<paramref name="lo"/> 歳から <paramref name="hi"/> 歳（含まない）・性 <paramref name="sex"/>（0＝男・1＝女・負＝男女計）の割合。
+    /// 層の中は一様として按分（重なり÷10）。70以上の層は分けない（lo≤70 かつ hi＝∞ のときだけ全部）。人数は Size×これ。</summary>
+    public double AgeShare(double lo, double hi, int sex = -1) => AgeShareOf(Ages, lo, hi, sex);
+
+    internal static double AgeShareOf(double[] a, double lo, double hi, int sex)
+    {
+        double s = 0;
+        for (int b = 0; b < AgeBands; b++)
+        {
+            double ov = BandOverlap(b, lo, hi);
+            if (ov > 0) s += ov * (sex < 0 ? a[2 * b] + a[2 * b + 1] : a[2 * b + sex]);
+        }
+        return s;
+    }
+
+    /// <summary>層 <paramref name="b"/> と [lo, hi) の重なり（層の幅に対する割合）。70以上の層は分けない。</summary>
+    internal static double BandOverlap(int b, double lo, double hi)
+    {
+        if (b == AgeBands - 1) return lo <= 10 * b && double.IsPositiveInfinity(hi) ? 1.0 : 0.0;
+        double bl = 10 * b, ov = Math.Min(hi, bl + 10) - Math.Max(lo, bl);
+        return ov > 0 ? ov / 10.0 : 0.0;
+    }
+
+    /// <summary>★加齢の流れの1本（月次）＝層 b から上の層へ1か月に出ていく人数＝層の中は一様（層の人数÷10歳×1/12＝1/120・設計書 §2-2）。
+    /// ★4e-1 の計器で選んだ（2026-09-30）：改良案の「層の上の端の密度＝隣の層との平均」は、開いた70以上の層が大きくなると 60〜69 を吸い出した
+    ///   （上の層の人数が下の層の出ていく流れを決める＝物理でない・英仏普の1850〜1914年に 60〜69 が 0.5〜3%・70以上が 10〜20%）。一様は層の中の誤差（若い側が厚い層で出ていく流れを多めに数える）を
+    ///   死の年齢の重み（標準のピラミッドが動かない重み＝同じ1本から導く）が吸う＝1783年の構成は動かない。
+    /// 加齢（<see cref="StepAges"/>）・死の年齢の重みの導出（<see cref="MortalityWeights"/>）・世代の置き換わり（<see cref="EnteringAdultsMonthly"/>）が同じ1本を読む。</summary>
+    internal static double AgingOutflow(double band) => band / 120.0;
+
+    /// <summary>★平常の死の年齢の重み（1人あたりの相対の死亡率・16本）＝標準のピラミッドが、模型の1783年の出生（粗出生率 <paramref name="crudeBirthRate"/>）と表の増加率の下で
+    /// 動かない重み（設計書 §3-3・作者裁定 Q3＝層の比から導く・新しい数0・旧 OldMortalityWeight を置き換える）。μ_b＝(入る流れ−出る流れ)÷n_b−増加率（年）。
+    /// 死因別の死（9-2）までの近似＝率の水準は模型の総数（出生−純増）が決め、これは層への配り方だけ。</summary>
+    internal static double[] MortalityWeights(double crudeBirthRate)
+    {
+        var w = new double[2 * AgeBands];
+        double inflow = crudeBirthRate;
+        for (int b = 0; b < AgeBands; b++)
+        {
+            double outflow = b < AgeBands - 1 ? 12.0 * AgingOutflow(StdPyramid[b]) : 0.0;
+            double mu = (inflow - outflow) / StdPyramid[b] - StdPyramidGrowth;
+            if (!(mu > 0)) mu = 0;   // 死亡率は負にならない（否定形＝NaN も0）
+            w[2 * b] = w[2 * b + 1] = mu;
+            inflow = outflow;
+        }
+        return w;
+    }
+
+    /// <summary>★1か月の年齢の層（Simulation.DemographicStep の POP のループ・月次）：月初の規模 <paramref name="size0"/> の人数から、加齢（<see cref="AgingOutflow"/>）・
+    /// 出生（0〜9 の男女へ半々＝作者裁定 Q11）・平常の死（年齢の重み <paramref name="mortW"/>）の流れを**全て月初の人数から同時に**数えて動かし（設計書 §2-2「前の値から同時に」）、
+    /// 割合へ戻す＝標準のピラミッドは1783年の出生と死で丸めを除いて動かない（順に進めると月の中の順の2次の誤差が10年で 1e-4 残る）。Size は呼び手が書く（これは構成だけ）。
+    /// <paramref name="deaths"/>＝実際に減った人数（負人口の保護の後）。層が死で尽きた月（大きな死）は0で止める（割合は合計で割る）。</summary>
+    internal void StepAges(double size0, double births, double deaths, double[] mortW)
+    {
+        Span<double> n0 = stackalloc double[2 * AgeBands];
+        Span<double> n = stackalloc double[2 * AgeBands];
+        for (int k = 0; k < n.Length; k++) n[k] = n0[k] = Ages[k] * size0;
+        if (deaths > 0)
+        {
+            Span<double> tmp = stackalloc double[2 * AgeBands];
+            Span<double> took = stackalloc double[2 * AgeBands];
+            n0.CopyTo(tmp);
+            TakeWeighted(tmp, took, mortW, deaths);
+            for (int k = 0; k < n.Length; k++) n[k] -= took[k];
+        }
+        AgeOneMonth(n0, n);
+        if (births > 0) { n[0] += 0.5 * births; n[1] += 0.5 * births; }
+        for (int k = 0; k < n.Length; k++) if (!(n[k] > 0)) n[k] = 0;
+        SetAgesFromCounts(n);
+    }
+
+    /// <summary>★年齢を選ぶ死（人数の上）：月初の規模 <paramref name="sizeBefore"/> から <paramref name="d"/> 人を1人あたりの重み <paramref name="w"/> の比で層×性から取り、割合へ戻す（Size は呼び手が書く）。</summary>
+    internal void KillAges(double sizeBefore, double d, ReadOnlySpan<double> w)
+    {
+        Span<double> n = stackalloc double[2 * AgeBands];
+        Span<double> took = stackalloc double[2 * AgeBands];
+        for (int k = 0; k < n.Length; k++) n[k] = Ages[k] * sizeBefore;
+        TakeWeighted(n, took, w, d);
+        SetAgesFromCounts(n);
+    }
+
+    /// <summary>災害死（疫病・飢えの超過死亡）の年齢の重み＝0〜9 と 60以上に (1＋<paramref name="excess"/>)・ほかは1（設計書 §2-4・旧の子供と老年の超過 DisasterAgeMortalityExcess と同じ数）。</summary>
+    internal static void DisasterWeights(Span<double> w, double excess)
+    {
+        for (int b = 0; b < AgeBands; b++)
+        {
+            double v = b == 0 || b >= 6 ? 1.0 + excess : 1.0;
+            w[2 * b] = w[2 * b + 1] = v;
+        }
+    }
+
+    /// <summary>1か月の加齢（人数の上・層ごと・性ごと）＝月初の人数 <paramref name="n0"/> から流れを数えて <paramref name="n"/> を動かす（前の値から同時に）。</summary>
+    internal static void AgeOneMonth(ReadOnlySpan<double> n0, Span<double> n)
+    {
+        for (int b = 0; b < AgeBands - 1; b++)
+            for (int s = 0; s < 2; s++)
+            {
+                double o = AgingOutflow(n0[2 * b + s]);
+                n[2 * b + s] -= o; n[2 * b + 2 + s] += o;
+            }
+    }
+
+    /// <summary>★重みで人を取り出す1本（人数の上）：<paramref name="d"/> 人を1人あたりの重み <paramref name="w"/>（null＝一様）の比で層×性から取り、取った人数を <paramref name="took"/> へ足す。
+    /// いる人数を超えては取らない＝あふれた分は残りへ同じ比で配り直す（重みの付いた層が尽きたら残りの全員から一様に）。死（平常・災害・将校）と徴兵の移る組が読む。</summary>
+    internal static void TakeWeighted(Span<double> n, Span<double> took, ReadOnlySpan<double> w, double d)
+    {
+        for (int iter = 0; iter <= n.Length && d > 1e-12; iter++)
+        {
+            double sw = 0, sn = 0;
+            for (int k = 0; k < n.Length; k++) { sn += n[k]; if (!w.IsEmpty) sw += w[k] * n[k]; }
+            bool uniform = w.IsEmpty || !(sw > 1e-300);
+            if (uniform) sw = sn;
+            if (!(sw > 1e-300)) break;
+            double f = d / sw, left = 0; bool clipped = false;
+            for (int k = 0; k < n.Length; k++)
+            {
+                double r = f * (uniform ? 1.0 : w[k]) * n[k];
+                if (!(r > 0)) continue;
+                if (r >= n[k]) { r = n[k]; clipped = true; }
+                n[k] -= r; took[k] += r; left += r;
+            }
+            d -= left;
+            if (!clipped) break;
+        }
+    }
+
+    /// <summary>人数16本から割合へ（合計で割る＝丸めの積み重ねを残さない）。人数の和が無い（空の POP）は前の割合のまま＝次に人が入ったとき移る組の構成で上書きされる。</summary>
+    internal void SetAgesFromCounts(ReadOnlySpan<double> n)
+    {
+        double s = 0;
+        for (int k = 0; k < n.Length; k++) { if (!(n[k] > 0)) continue; s += n[k]; }
+        if (!(s > 1e-300)) return;
+        for (int k = 0; k < n.Length; k++) Ages[k] = n[k] > 0 ? n[k] / s : 0.0;
+    }
+
+    /// <summary>★世代の置き換わり（1か月）＝20歳になって大人に入る人の割合（10〜19 の層から 20〜29 へ出ていく1か月の流れ÷規模）＝加齢と同じ1本（<see cref="AgingOutflow"/>）。</summary>
+    internal double EnteringAdultsMonthly() => EnteringAdultsMonthlyOf(Ages);
+    internal static double EnteringAdultsMonthlyOf(double[] a) => AgingOutflow(a[2]) + AgingOutflow(a[3]);
+
+    /// <summary>★世代の流れで大人の性質を混ぜる1本（2026-09-30 段4e 後半 4e-3・設計書 §5-1・作者裁定 2026-09-29「人が運ぶ記憶は年齢の層の入れ替わりで減衰」）：
+    /// <paramref name="months"/> か月のあいだに20歳になって大人に入る若者 E が伝わった値 <paramref name="xIn"/> を持ち込み、入る前の大人 A（20歳以上）と混ざった後の値
+    /// ＝(A·x＋E·x_in)÷(A＋E)。大人の死・移出は平均で出る（x は変わらない）。E＝0 なら x のまま・x は必ず x と x_in の間（加重平均）。
+    /// ⚠性質は大人に1値（作者裁定 Q5＝大人の境は20歳）。読み手＝識字の下がる側（TechEducation）・就学履歴（Politics.SchoolingConversion）。</summary>
+    internal double GenerationalMix(double x, double xIn, int months)
+    {
+        double e = months * EnteringAdultsMonthly(), a = AgeShare(20, double.PositiveInfinity);
+        return a + e > 1e-300 ? (a * x + e * xIn) / (a + e) : x;
+    }
+
+    /// <summary>★標準のピラミッドの世代の置き換わり率（<paramref name="months"/> か月）＝E÷(A＋E)。国の無い抽象の勢力の記憶（外交の遺恨）が読む＝新しい数0。</summary>
+    internal static double StdReplacementRate(int months)
+    {
+        double e = months * EnteringAdultsMonthlyOf(StdAgesRef), a = AgeShareOf(StdAgesRef, 20, double.PositiveInfinity, -1);
+        return e / (a + e);
     }
 }
 

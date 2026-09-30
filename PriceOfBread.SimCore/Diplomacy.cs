@@ -3280,9 +3280,19 @@ public sealed class Diplomacy
         // 遺恨の風化（月次・失地ストックと同一の半減期＝新しい定数を置かない）。HighTensionDecayRate=0 では _grudge が空のまま＝ループ0回。
         if (_grudge.Count > 0)
         {
-            double keep = Math.Pow(0.5, 1.0 / Math.Max(1.0, c.LostLandHalflifeQuarters * Calendar.MonthsPerQuarter));
+            // ★2026-09-30 段4e 後半 4e-3：失地と同じ＝世代の置き換わり（τ＝0）。組の2国の月の置き換わり率の平均（国の無い抽象の勢力は標準のピラミッド）で薄れる。
+            //   旧＝固定の半減期20年（LostLandHalflifeQuarters×3か月）。国ごとの率はこの月に1回だけ導く（貯めない）。
+            var repl = new Dictionary<int, double>();
+            double Repl(int id)
+            {
+                if (repl.TryGetValue(id, out var v0)) return v0;
+                var pw = Powers.Find(x => x.Id == id);
+                double r = pw?.Nation is { } nw ? nw.ReplacementRate(1) : Pop.StdReplacementRate(1);
+                repl[id] = r; return r;
+            }
             foreach (var gk in new List<long>(_grudge.Keys))
             {
+                double keep = 1.0 - 0.5 * (Repl((int)(gk >> 32)) + Repl((int)(uint)gk));
                 double v = _grudge[gk] * keep;
                 if (v < 1e-4) _grudge.Remove(gk); else _grudge[gk] = v;   // 十分薄れたら消す（辞書の有界化）
             }

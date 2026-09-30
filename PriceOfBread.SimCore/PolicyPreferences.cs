@@ -80,7 +80,7 @@ public static class PolicyPreferences
         public readonly double[] Rent;         // 地代のシェア（誰が地主＝土地税の的）
         public readonly double[] Income;       // 所得のシェア
         public readonly double[] Poll;         // 人頭税の課税対象（非免除）人口シェア（Closedは免除＝0）
-        public readonly double[] Old;          // ブロック内の高齢比率（0..OldShareMax。法多様性L2＝年金の受益者。高齢化した国ほど大きい＝水準であって配分シェアではない）
+        public readonly double[] Old;          // ブロック内の高齢比率（60歳以上・年齢の層。法多様性L2＝年金の受益者。高齢化した国ほど大きい＝水準であって配分シェアではない）
         public readonly double StateRevenue;   // 国家の歳入要求（0..1.5。財政逼迫で増す。税を＋方向に押す主体）
         // プチブル利益束（第4束「小営業」＝職人+商人・作者承認2026-08-15・休眠 PettyInterestGate=0）。gate=0では全て0（分類が束を生まない）。
         public readonly double PettyPowerModern;   // 小営業の政治力・商人（旧束=近代エリート）成分
@@ -131,7 +131,7 @@ public static class PolicyPreferences
             double inc = System.Math.Max(0, p.Earned); income[b] += inc; ti += inc;
             if (petty != null && petty.Contains(p)) { pettyInc += inc; if (p.IsModernElite) pettyIncM += inc; }   // 小営業の自営所得（対象3軸の強さの導出元。gate=0＝枝ごと不走行）
             if (p.IsCommoner) { poll[b] += p.Size; tp += p.Size; }   // 人頭税の対象（特権＝Closed は免除）
-            if (!p.IsSoldier) { old[b] += p.Size * p.OldShare; blocPop[b] += p.Size; }   // 法多様性L2：ブロックの高齢人口（年金の受益者）
+            if (!p.IsSoldier) { old[b] += p.Size * p.AgeShare(60, double.PositiveInfinity); blocPop[b] += p.Size; }   // 法多様性L2：ブロックの高齢人口（年金の受益者）
         }
         Normalize(wealth, tw); Normalize(rent, tr); Normalize(income, ti); Normalize(poll, tp);
         for (int i = 0; i < BlocCount; i++) old[i] = blocPop[i] > 1e-9 ? old[i] / blocPop[i] : 0;   // ブロック内の高齢比率＝水準（高齢化した国だけ大きい）
@@ -165,7 +165,10 @@ public static class PolicyPreferences
             case PolicyAxis.PollTax:          // 人頭税＝対象（大衆）が反対・免除（特権）は転嫁を歓迎
                 return (e.Poll[b] < 1e-6 ? 1.0 : 0) - BurdenScale * e.Poll[b];
             case PolicyAxis.SocialSecurity:   // 福祉＝大衆が受益・富裕が財源負担。法多様性L2＝高齢比率の受益者項（年金軸が同じPrefを使う＝高齢化した国だけ年金が通る・ビスマルク1889型）
-                return (mass ? 1.0 : 0) - 2.0 * e.Wealth[b] + w.Coef.PensionOldWeight * e.Old[b];
+                // ★年齢の層（2026-09-30 段4e 後半・設計書 §4-1「PensionOldWeight を標準の値で割り直す」＝起点合わせ）：受益者項＝標準のピラミッドより老いた分（60歳以上の割合−標準の 7.5%）。
+                //   旧＝老年比が1783年に0から貯まった（上限0.15）＝「高齢化した国だけ年金が通る」の物差しの起点が0だった。年齢の層は1783年に 7.5% から始まる＝差を取らないと全ての国の全てのブロックで
+                //   開幕から +2.5×0.075 の年金の支持が立つ（器の置き換えの人工物）。若い国（標準より若い）は負＝年金を急がない。
+                return (mass ? 1.0 : 0) - 2.0 * e.Wealth[b] + w.Coef.PensionOldWeight * (e.Old[b] - Pop.StdShare(60, double.PositiveInfinity));
             case PolicyAxis.EducationSpending:// 教育費＝大衆/近代は受益（上昇・人材）・旧支配層（教会の教育独占）は失う
                 return trad ? -1.0 : 1.0;
             case PolicyAxis.Tariff:           // 関税＝保護される生産者（地代＝穀物）が賛成・消費者（大衆）が反対

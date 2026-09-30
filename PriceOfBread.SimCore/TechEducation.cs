@@ -77,6 +77,9 @@ public static class TechEducation
         // ★ただし下の Elite の再計算は助走中も必ず通す＝あれは蓄積ではなく**現在の識字と教育者構成からの導出**であり、
         //   止めると Elite=0 のまま GrowTech の入口ガードに弾かれ、技術の助走（WarmupTech）が丸ごと不発になる（実測）。
         double baseSpeed = w.WarmupFrozen ? 0 : LiteracyRate(w.EducationLaw);
+        // 母の識字の比（家庭で伝わる割合 τ）＝人口動態の女性の識字の式と同じ（Simulation.DemographicStep の femaleLit÷平均識字）。
+        double motherLit = c.FemaleLitFloor + (1.0 - c.FemaleLitFloor) * w.WomenWageRetention;
+        if (c.WomenEducationGate > 0 && w.WomenEducationLaw) motherLit = Math.Min(1.0, motherLit * (1.0 + c.WomenEduLitBonus));
         if (baseSpeed > 0)
             foreach (var r in w.Regions)
             {
@@ -88,22 +91,14 @@ public static class TechEducation
                         double litFactor = 1.0 + c.ChildLaborLiteracyPenalty * (1.0 - LaborSupply.ChildLaborRate(p, r, c, p.SupplyFill));   // 児童労働率0＝学校へ（旧 禁止＝1+penalty）／率1＝全員労働（旧 許可＝1.0）
                         p.Literacy += baseSpeed * litFactor * (p.EducationFill - p.Literacy);   // 買えた教育の水準へ漸近（買えない者は伸びない）
                     }
-                    // 人11b：識字の世代減衰（ラチェット解消）。live（LiteracyGenerationalDecay=0.002・R10点火2026-07-13）。0で減衰なし＝既得識字は永遠保持（対照用）。
-                    // >0 で EducationFill を上回る分（教育供給の裏付けを失った識字）に微小な世代減衰＝教育投資を止めると識字が緩やかに希釈（世代交代の維持費）。
-                    else if (c.LiteracyGenerationalDecay > 0 && p.Literacy > p.EducationFill)
-                    {
-                        // ★live（2026-08-21点火・既定1）：LiteracyDecayIsGenerational>0 で**世代交代のぶんだけ**に掛ける。
-                        //   ⚠0に戻すと旧式（全人口に掛ける＝「大人が字を忘れる」）＝A/Bの対照用にのみ使う。
-                        //   ★根拠＝「学校が減ると大人が字を忘れる」は誤り。識字は一生ものであり、失われるのは**老年が退出し、
-                        //   就学しない子供が入ってくる**ときだけ。実測で英の識字も0.84→0.60へ落ちていた（全世界の問題）。
-                        double turnover = 1.0;
-                        if (c.LiteracyDecayIsGenerational > 0)
-                        {
-                            double t = p.OldShare + p.ChildShare;   // 退出する老年＋就学が要る子供＝入れ替わる側
-                            turnover = !(t > 0) ? 0 : (t > 1.0 ? 1.0 : t);
-                        }
-                        p.Literacy -= c.LiteracyGenerationalDecay * turnover * (p.Literacy - p.EducationFill);
-                    }
+                    // ★識字の下がる側＝世代の流れ（2026-09-30 段4e 後半 4e-3・設計書 §5-2・作者裁定 Q6＝推奨）：識字は一生もの＝大人は字を忘れない。
+                    //   変わるのは20歳になって大人に入る若者が持ち込む値だけ＝伝わった識字 x_in＝max(学校＝教育の充足, 家庭＝母の識字の比 τ×大人の識字)。
+                    //   τ＝女性の識字の比（人口動態の出生率の女性の識字の式と同じ＝FemaleLitFloor＋(1−Floor)×賃金の保持・女性教育権で×(1＋WomenEduLitBonus)・1が上）。
+                    //   x_in は識字を超えない（教育の充足＜識字・τ≦1）＝支えの無い枝で識字が上がることはない（上限の切り詰めでなく式の形）。
+                    //   旧＝月0.002×(老年比＋子供比＝在庫の割合)×(識字−教育の充足)（LiteracyGenerationalDecay・LiteracyDecayIsGenerational）＝支えの無い識字の実効の半減期 約65〜95年。
+                    //   新＝置き換わり率×(1−τ)＝τ＝0.6 の国で約50年（家庭で覚える識字＝スウェーデンの家庭の読み・プロテスタントの聖書の読み）。伸びる枝（教育法の月率）は触らない（二重を作らない＝思想⑨）。
+                    else if (p.Literacy > p.EducationFill)
+                        p.Literacy = p.GenerationalMix(p.Literacy, Math.Max(p.EducationFill, motherLit * p.Literacy), 1);
                 }
             }
 

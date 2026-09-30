@@ -839,11 +839,12 @@ public sealed class Simulation
         var artisan    = MkPop(11, "職人", true, cfg.Artisan * share, 0.45, 400);   // 手工業の自営（大衆ブロック＝ラッダイトの母体）
         // #12 家事使用人：富裕層(貴族＋資本家)の世帯規模に比例して雇われる（家事奉仕を算出）。女性がなりやすい（高FemaleShare＝紡績/家事奉公）。低識字・低富。
         var servant    = MkPop(12, "使用人", true, (nobility.Size + bourgeois.Size) * 1.0, 0.30, 150);   // 表示名は「使用人」（2026-07-04ユーザー指示）
-        servant.FemaleShare = 0.75;   // 女性が多数（19世紀の家事使用人＝女性就労の主要な受け皿）
+        servant.SetAdultFemaleShare(0.75);   // 女性が多数（19世紀の家事使用人＝女性就労の主要な受け皿）
         // 職業POPの成人女性比（1789・ユーザー指示2026-07-04）：聖職/専門職は男性が支配的（貴族・農民・労働者は世帯階級＝0.5のまま）。
-        clergy.FemaleShare = 0.10; bourgeois.FemaleShare = 0.20; engineer.FemaleShare = 0.02;
-        teacher.FemaleShare = 0.25; bureaucrat.FemaleShare = 0.03; doctor.FemaleShare = 0.05; researcher.FemaleShare = 0.02;   // 研究者＝技師と同じ（19世紀の大学は男性のみ）
-        merchant.FemaleShare = 0.25; artisan.FemaleShare = 0.30;
+        //   ★年齢の層（2026-09-30 段4e 後半）＝20歳以上の層の男女を職業の女性比で分ける（0〜19 は半々）。
+        clergy.SetAdultFemaleShare(0.10); bourgeois.SetAdultFemaleShare(0.20); engineer.SetAdultFemaleShare(0.02);
+        teacher.SetAdultFemaleShare(0.25); bureaucrat.SetAdultFemaleShare(0.03); doctor.SetAdultFemaleShare(0.05); researcher.SetAdultFemaleShare(0.02);   // 研究者＝技師と同じ（19世紀の大学は男性のみ）
+        merchant.SetAdultFemaleShare(0.25); artisan.SetAdultFemaleShare(0.30);
 
         // 兵士POP（Part 2）：**平時の均衡そのもの**で播く＝軍事費 × MaxSoldierFraction × 人的資源。
         // ── ★2026-08-02：国別のハードコード初期兵（cfg.Military×250）を撤去 ──────────────────
@@ -856,7 +857,7 @@ public sealed class Simulation
         //   富の乗数（SoldierWealthExponent）は世界平均を要るので播種時には掛けない＝最初の数四半期で自然に効く。
         // ⚠ cfg.Military は抽象勢力（Nation を持たない標的）と Power の初期ゲージ表示に残る（次の Diplomacy.Step で再導出）。
         double pw = peasant.Size + worker.Size;
-        var soldier = new Pop { ClassId = 5, ClassName = "兵士", IsUrban = false, Satisfaction = 1.0, IsSoldier = true, FemaleShare = 0, ChildShare = 0,
+        var soldier = new Pop { ClassId = 5, ClassName = "兵士", IsUrban = false, Satisfaction = 1.0, IsSoldier = true, Ages = Pop.SoldierAges(),
             Literacy = pw > 1e-9 ? (peasant.Literacy * peasant.Size + worker.Literacy * worker.Size) / pw : 0.3 };
         double draft = PolicyDefaults.MilitarySpendingTarget * coef.MaxSoldierFraction * pw;   // Military.cs の desired と完全一致（不発の上限0.3×pwを撤去）
         if (pw > 1e-9)
@@ -1376,10 +1377,10 @@ public sealed class Simulation
         var merchant  = MkPop(10, "商人",      true,  0, 0.5, 0, modern: true);
         var artisan   = MkPop(11, "職人",      true,  0, 0.4, 0);
         var servant   = MkPop(12, "使用人",    true,  0, 0.3, 0);
-        servant.FemaleShare = 0.75;   // 職業POPの女性比（BuildProvince/BuildFrontier と同値）
-        clergy.FemaleShare = 0.10; bourgeois.FemaleShare = 0.20; engineer.FemaleShare = 0.02;
-        teacher.FemaleShare = 0.25; bureaucrat.FemaleShare = 0.03; doctor.FemaleShare = 0.05;
-        merchant.FemaleShare = 0.25; artisan.FemaleShare = 0.30;
+        servant.SetAdultFemaleShare(0.75);   // 職業POPの女性比（BuildProvince/BuildFrontier と同値・20歳以上の層＝段4e 後半）
+        clergy.SetAdultFemaleShare(0.10); bourgeois.SetAdultFemaleShare(0.20); engineer.SetAdultFemaleShare(0.02);
+        teacher.SetAdultFemaleShare(0.25); bureaucrat.SetAdultFemaleShare(0.03); doctor.SetAdultFemaleShare(0.05);
+        merchant.SetAdultFemaleShare(0.25); artisan.SetAdultFemaleShare(0.30);
         // 農民pop＝現地住民（民族の実体＝CoreEthnicShare0・不満と識字を運搬）＋入植農民（core=1）の加重合成。蓄え＝現地の蓄え＋入植農民の持参金
         if (peasantSize > 1e-9)
         {
@@ -1406,7 +1407,7 @@ public sealed class Simulation
             same.AnnexBaggage += inP;   // 案Y（観測専用）：併合の持ち込み人口＝本土の自然増ではない（新しい州のときと同じ記帳）
             return same;
         }
-        var soldier = new Pop { ClassId = 5, ClassName = "兵士", IsUrban = false, Satisfaction = 1.0, IsSoldier = true, FemaleShare = 0, ChildShare = 0, Literacy = peasant.Literacy };   // Size0の器（辺境と同じ作法）＝軍事費が平時均衡で徴募
+        var soldier = new Pop { ClassId = 5, ClassName = "兵士", IsUrban = false, Satisfaction = 1.0, IsSoldier = true, Ages = Pop.SoldierAges(), Literacy = peasant.Literacy };   // Size0の器（辺境と同じ作法）＝軍事費が平時均衡で徴募
         var pops = new List<Pop> { nobility, peasant, worker, bourgeois, engineer, clergy, teacher, bureaucrat, doctor, merchant, artisan, servant, soldier };
         // ★段1 器 EduProducersCoexist（2026-09-12）：昇格植民地州も本国州と同じ2件並置を受ける（coef を渡す・researcherIdx は既定 -1 のままなので大学の枝は不変＝0 で厳密恒等）。
         //   渡さないと >0 の世界で StepMonth が [eduIdx+1] を公立学校と誤認する（実体は医療）＝型の統合が起こす静かな破損の型。
@@ -2299,14 +2300,15 @@ public sealed class Simulation
     /// 戦死で減った人口もこのステップで扶養力へ回復。規模按分で全 pop に適用、符号付き台帳で保存則追跡。頑健（暴走/崩壊しない）。
     /// </summary>
     // ①Phase3：出産可能女性プール（成人のうち非老年×女性比率）。BirthWeight と InitialFertileShare 捕捉で共有＝t=0 正規化と実行時重みが同一式（Σbirths=net の保存を厳密化）。
-    // 人5（徴兵で出生が増える符号逆転の解消）：素の女性プール（∝FemaleShare）は、成人男性だけ抜く徴兵で残留popの女性比率が上がると出生配分が「増える」＝史実（夫不在で出生急減）と逆。
-    // CoupleLimitedBirths=0 で従来の FemaleShare 比例（現行の FertileWomenBirths 経路を厳密再現）・1で「カップル律速」＝成人の少数側の性 min(女,男)×2 に律速。
-    // 標準構成（FemaleShare=0.5）では 2×min(0.5,0.5)=1.0 で FemaleShare×2 と一致し、比 fertile/init が定数倍不変＝較正中立（t=0 正規化が定数を相殺）。
+    // 人5（徴兵で出生が増える符号逆転の解消）：素の女性プール（∝女性）は、成人男性だけ抜く徴兵で残留popの女性比率が上がると出生配分が「増える」＝史実（夫不在で出生急減）と逆。
+    // CoupleLimitedBirths=0 で女性の数に比例・1で「カップル律速」＝少数側の性 min(女,男)×2 に律速。
     // 徴兵で男が抜けると min(女,男) の男側が縮み出生が減る＝カップル（夫婦）が律速資源＝WWI 仏の出生半減を再現。Wave1 の FertileShareFloor（重み膨張の防止）と整合。
-    private static double FertilePool(Pop p, Coefficients c)
+    // ★年齢の層（2026-09-30 段4e 後半）：旧＝成人（16歳以上）のうち老年（60歳以上）でない者×成人の女性比＝年齢の層から同じ意味で読む。
+    internal static double FertilePool(Pop p, Coefficients c)
     {
-        double adult = Math.Max(0, 1.0 - p.ChildShare - p.OldShare);
-        double female = p.FemaleShare;
+        double adult = p.AgeShare(16, 60);
+        double a16 = p.AgeShare(16, double.PositiveInfinity);
+        double female = a16 > 1e-300 ? p.AgeShare(16, double.PositiveInfinity, 1) / a16 : 0.5;
         double couple = 2.0 * Math.Min(female, 1.0 - female);   // 少数側の性が2人でカップル1組＝律速（男女どちらが不足しても出生↓）
         return adult * (female + c.CoupleLimitedBirths * (couple - female));
     }
@@ -2520,22 +2522,18 @@ public sealed class Simulation
         double ghostDeaths = 0;   // 人口保存バグ修正：負人口防止クランプ(下)で削られた「人が足りず起き得なかった死」を集計し、台帳のnetから差し戻す（無クランプ時は0＝ビット恒等・West巨大人口の崩壊時のみ発火）
         double famineDead = 0;    // 飢えの超過死亡（平常の死の上乗せ）の実際に減った人数＝台帳へ別に引く
         bool birthsSuppressed = recovering && massBirthWeight <= 1e-9;   // 人口保存：回復期にmassBirthWeightガード(add0=0)が発火すると実出生0なのに台帳が+=netでズレる＝netを差し引く（正常時false＝ビット恒等・出産可能プール≈0の退化popでのみ発火）
+        var mortW = Pop.MortalityWeights(c.CrudeBirthRate);   // ★年齢の層（段4e 後半）：平常の死の年齢の重み（標準のピラミッドが1783年の出生で動かない重み）
+        Span<double> disasterW = stackalloc double[2 * Pop.AgeBands];
+        Pop.DisasterWeights(disasterW, c.DisasterAgeMortalityExcess);   // 飢えの超過死亡の年齢の重み（災害死と同じ）
         foreach (var r in World.Regions)
         {
             foreach (var p in r.Pops)
-                if (!p.IsSoldier)
+                if (p.IsSoldier) { if (p.Size > 1e-12) p.StepAges(p.Size, 0, 0, mortW); }   // 兵士も年を取る（作者裁定 Q10・自然の出生と死は外のまま＝9-2 で）
+                else
                 {
-                    double bw = BirthWeight(p, c);   // コホート送りが ChildShare/FemaleShare を変える「前」に捕捉＝massBirthWeight（事前パス）と同一構成で評価＝Σbirths=net の保存を厳密化
+                    double bw = BirthWeight(p, c);   // 加齢が年齢の層を変える「前」に捕捉＝massBirthWeight（事前パス）と同一構成で評価＝Σbirths=net の保存を厳密化
                     double size0 = p.Size;           // 月初の規模＝出生・平常の死・飢えの上乗せが掛かる同じ規模
-                    // コホート送り：子供は約16年かけて成人する（規模は不変・構成だけ動く）。成人になる世代は男女半々＝女性比率は0.5へ漸近。
-                    if (p.Size > 1e-9 && p.ChildShare > 1e-9)
-                    {
-                        double aged = p.Size * p.ChildShare / (c.AgingYears * Calendar.MonthsPerYear);
-                        double adults = p.Size * (1.0 - p.ChildShare);
-                        p.FemaleShare = (p.FemaleShare * adults + 0.5 * aged) / (adults + aged);
-                        p.ChildShare = Math.Max(0, (p.Size * p.ChildShare - aged) / p.Size);
-                    }
-                    // 出生は**粗出生**として子供に加わる（純増だけを子供にすると成熟社会で子供が払底＝構成崩壊）。平常の死は全ての POP で同じ率。
+                    // 出生は**粗出生**として0〜9 の層に加わる（純増だけを子供にすると成熟社会で子供が払底＝構成崩壊）。平常の死は全ての POP で同じ率。
                     double births, deaths;
                     if (recovering)
                     {
@@ -2550,12 +2548,13 @@ public sealed class Simulation
                         ghostDeaths += deathsRaw - deaths;   // クランプで削られた「人が足りず起き得なかった死」を集計（下でnetから差し戻す）。無クランプ時は0＝ビット恒等（West巨大人口の崩壊時のみ発火＝人口保存バグ修正）
                     }
                     double add = births - deaths;
-                    double children = p.ChildShare * p.Size + births - deaths * p.ChildShare;
                     double newSize = p.Size + add;
                     if (newSize < 0) { ghostDeaths += -newSize; newSize = 0; }   // 死亡クランプ発火時の浮動小数丸めでSizeが極小負(≈-3.5e-18)になるのを0にクランプし、削った分をghostDeathsで台帳へ差し戻す（非負境界の保護・正常時newSize≥0で不発＝ビット恒等）
                     diagBirths += births; diagDeaths += births - (newSize - p.Size);   // ★計器：死亡＝実際に減った人数（クランプ込み）＝出生−実際の増分
+                    // ★年齢の層（2026-09-30 段4e 後半）：加齢（毎月・層の上の端の密度で上の層へ・70以上は死でだけ出る）→ 出生（0〜9 の男女へ半々）→ 平常の死（年齢の重み＝
+                    //   標準のピラミッドが1783年の出生で動かない重み）＝実際に減った人数。旧＝子供比（約16年で成人・AgingYears）と老年比（約45年で老年・WorkingYears・老衰の重み3・上限0.15）の2本。
+                    p.StepAges(size0, births, births - (newSize - size0), mortW);
                     p.Size = newSize;
-                    if (p.Size > 1e-9) p.ChildShare = PoliticalQuantities.Clamp01(children / p.Size);
                     // 人11a（新生児の識字の無償相続の解消）：出生は Size を増やすだけで Literacy 不変＝新生児が親popの識字を暗黙相続（無償の世代間伝達＝識字ラチェット）。
                     // NewbornLiteracyDilution=0 で希釈なし＝現行と厳密一致・1で出生分（識字0の新生児 births 人）を加重平均で希釈：Lit_new = Lit_old×(Size−births)/Size。
                     // 死亡は平均識字で抜ける（平均不変）ため births のみで希釈。生存者(Size−births)が旧識字を担い、新生児は0＝親の識字を無償相続しない。（教育側の識字ラチェットは TechEducation.cs=別担当）
@@ -2563,20 +2562,6 @@ public sealed class Simulation
                     {
                         double diluted = p.Literacy * PoliticalQuantities.Clamp01((p.Size - births) / p.Size);   // 新生児=識字0 で加重平均（births 人が0を持ち込む）
                         p.Literacy += c.NewbornLiteracyDilution * (diluted - p.Literacy);   // 0で不変（恒等）・1で完全希釈
-                    }
-                    // 老年コホートの追跡（①年齢コホート・Phase1）：成人(=非子供)のうち生産年齢が老年へ送られ、老年は既存の成人死亡の内訳として厚く死ぬ（老衰）。
-                    // **Size と ChildShare は上で更新済み＝一切触らない＝較正中立**。OldShare はまだ挙動に効かない（Phase2の年金 PensionLaw が参照する高齢化の実体）。
-                    if (p.Size > 1e-9)
-                    {
-                        double adults = p.Size * (1.0 - p.ChildShare);                  // 成人総量（既存ロジックで確定）
-                        double oldAmt = Math.Min(p.OldShare * p.Size, adults);
-                        double workingAmt = adults - oldAmt;
-                        double retired = workingAmt / (c.WorkingYears * Calendar.MonthsPerYear);          // 生産年齢→老年（≈45年の就労期）
-                        double adultDeaths = Math.Max(0, deaths) * (1.0 - p.ChildShare);// 既存の死亡のうち成人にかかった分（新規の死亡は足さない）
-                        double ow = oldAmt * c.OldMortalityWeight;
-                        double dOld = (ow + workingAmt) > 1e-9 ? adultDeaths * ow / (ow + workingAmt) : 0;   // 老衰＝老年に厚く（働き盛りは薄い）
-                        oldAmt = Math.Max(0, oldAmt + retired - dOld);
-                        p.OldShare = Math.Clamp(oldAmt / p.Size, 0, Math.Min(1.0 - p.ChildShare, c.OldShareMax));   // 上限＝成長期に老年が貯まりすぎる近似誤差を抑える安全弁
                     }
                     // ★飢えの超過死亡（2026-09-30 (131)）＝**平常の死亡率の上乗せ**＝平常の死亡率×FamineMortalityConcentration×飢えの深さ×月初の規模（出生と同じ単位）。
                     //   飢えの深さ＝(門−充足)÷門（門＝飢饉死の門 FamineDeathFillFloor・絶対水準・平常 FoodRef は読まない＝回B）＝門の上は平常（上乗せ0）・
@@ -2590,7 +2575,7 @@ public sealed class Simulation
                     if (excess > 0 && p.Size > 0)
                     {
                         double d = Math.Min(excess, p.Size);
-                        World.CarryDeathAgeStructure(p, p.Size, d, c.DisasterAgeMortalityExcess);
+                        p.KillAges(p.Size, d, disasterW);   // 年齢の層：災害死の年齢の重み（0〜9 と 60以上に厚く）
                         p.Size -= d; famineDead += d;
                     }
                 }
