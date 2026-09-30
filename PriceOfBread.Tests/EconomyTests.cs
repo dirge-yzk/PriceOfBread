@@ -25,7 +25,9 @@ public class EconomyTests
 
     /// <summary>★張り付いた市場の打ち切り（2026-09-29 高速化の段 S3b・近似）：供給も在庫も無い財が参照より上の不動点の近くにいると、
     /// 旬の1歩（h 日）は1日の動きが相対 1e-8 を切った日で打ち切る＝結果は1日の写像と同じで、h 日の写像との差は許しの2.5倍以内。
-    /// 供給の立った財（帯の下の端にいる財）は打ち切らない＝h 日の写像と1ビットも違わない。⚠突然変異「打ち切らない」で赤。</summary>
+    /// 供給の立った財（帯の下の端にいる財）は打ち切らない＝h 日の写像と1ビットも違わない。⚠突然変異「打ち切らない」で赤。
+    /// ★2026-09-30 (132)：帯の端の不動点の近くにいる財は閉じた式で進む（下の「張り付いた財は帯の端の不動点へ閉じた式で戻る」）＝この番人は
+    /// 閉じた式を使えない張り付いた財（需要が Eps の桁＝需給差の欠け Eps/(eD＋Eps)＞1e-3＝日次の経路に残る）で打ち切りを見る。</summary>
     [Fact]
     public void 張り付いた市場は不動点の近くで旬の1歩を打ち切る()
     {
@@ -36,7 +38,7 @@ public class EconomyTests
         Assert.True(goods.Length == 2, "前提が崩れた：財が2つ無い");
         var mS = r.Markets[goods[0].Id]; var mG = r.Markets[goods[1].Id];
         double rpS = goods[0].RefPrice * r.PriceLevel, rpG = goods[1].RefPrice * r.PriceLevel;
-        mS.LastDemand = 10; mS.LastProduced = 0; mS.LastImport = 0; mS.LastExport = 0; mS.Stock = 0; mS.Price = 49 * rpS;         // 供給も在庫も無い（上に張り付く）
+        mS.LastDemand = 1e-6; mS.LastProduced = 0; mS.LastImport = 0; mS.LastExport = 0; mS.Stock = 0; mS.Price = 49 * rpS;       // 供給も在庫も無い（上に張り付く）・需要は Eps の桁（閉じた式を使えない＝日次の経路）
         mG.LastDemand = 10; mG.LastProduced = 1000; mG.LastImport = 0; mG.LastExport = 0; mG.Stock = 5000; mG.Price = 0.05 * rpG;   // 供給過剰（帯の下の端＝日次の経路）
         for (int i = 0; i < 400; i++) MarketFlow.StepDay(r, c, 1);   // 不動点へ（1日ずつ）
         double fp = mS.Price;
@@ -144,6 +146,56 @@ public class EconomyTests
         MarketFlow.StepDay(r, c, 10, null, monthStart: true);   // 次の月の最初の旬＝印を作り直して回す
         Assert.False(mS.FlowAsleep, "供給の立った財が眠ったまま");
         Assert.True(mS.Price < pS, $"月の最初の旬に起きて動いていない（{mS.Price} ≧ {pS}）");
+    }
+
+    /// <summary>★張り付いた財の閉じた式（2026-09-30 (132) 計算量の予算・近似）：供給も在庫も無く帯の端（参照の20倍より上）に張り付いた財が
+    /// 不動点の近く（対数の距離 0.1 未満）にいれば、旬（h=10日）を日次の写像を回さずに閉じた式で進める＝計算量の台帳の「価格：日次の写像の回」が0・
+    /// 値は日次の写像を10回まわした値と相対 1e-4 の内（census の最大 2.5e-5）。不動点から遠い財（四半期の境の大きな跳び）と需要が Eps の桁の財
+    /// （需給差が価格で動く＝t 空間の一定の平行移動にならない）は日次へ落ちる＝日次の写像を1日ずつ10回まわした値と1ビットも違わない。
+    /// ⚠突然変異「閉じた式を使わない」「縮みの冪を h−1 に」「遠い財も閉じた式」「需要の小さい財も閉じた式」で赤。</summary>
+    [Fact]
+    public void 張り付いた財は帯の端の不動点へ閉じた式で戻る()
+    {
+        var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+        var r = sim.World.Region; var c = sim.World.Coef;
+        Assert.True(c.DomesticMarkupMax <= 0, "前提が崩れた：国内の寡占マークアップが点いている（日次の経路の別の枝）");
+        var g = r.Goods.First(x => x.Tier != GoodTier.Service && x.RefPrice > 0);
+        foreach (var x in r.Goods) { var mx = r.Markets[x.Id]; mx.LastDemand = 0; mx.LastProduced = 0; }   // この財だけを生きた財にする（台帳の件数をこの財だけにする）
+        var m = r.Markets[g.Id];
+        double rp = g.RefPrice * r.PriceLevel;
+        double Settle(double demand)
+        {
+            m.LastDemand = demand; m.LastProduced = 0; m.LastImport = 0; m.LastExport = 0; m.Stock = 0; m.Price = 49 * rp;   // 供給も在庫も無い（上に張り付く）
+            for (int i = 0; i < 400; i++) MarketFlow.StepDay(r, c, 1);   // 不動点へ
+            Assert.True(m.Price > 20 * rp, $"前提が崩れた：供給の無い財が帯の端に張り付いていない（{m.Price / rp} 倍）");
+            return m.Price;
+        }
+        (double daily, double stepped, long runs) Both(double start)
+        {
+            m.Price = start;
+            for (int i = 0; i < 10; i++) MarketFlow.StepDay(r, c, 1);   // 日次の写像を1日ずつ
+            double daily = m.Price;
+            m.Price = start;
+            var cost = new long[CostLedger.Count];
+            MarketFlow.StepDay(r, c, 10, cost, monthStart: true);        // 旬（h=10）
+            Assert.Equal(1L, cost[CostLedger.PriceGoods]);
+            return (daily, m.Price, cost[CostLedger.PriceDailyRuns]);
+        }
+        double fp = Settle(10);
+        // 不動点の近く（物価水準が 5% 跳んだ後と同じ距離）＝閉じた式
+        var (d1, s1, n1) = Both(fp * 1.05);
+        Assert.Equal(0L, n1);
+        Assert.True(Math.Abs(s1 - d1) / d1 < 1e-4, $"閉じた式が日次の写像から離れた（{s1} 対 {d1}）");
+        Assert.True(Math.Abs(s1 - fp) < 0.05 * fp * 0.1, $"閉じた式が不動点へ戻っていない（{s1 / fp}）");
+        // 不動点から遠い（対数の距離 0.26）＝日次へ落ちる＝1ビットも違わない
+        var (d2, s2, n2) = Both(fp * 1.3);
+        Assert.True(n2 > 0, "不動点から遠い財が閉じた式を使った");
+        Assert.Equal(d2, s2);
+        // 需要が Eps の桁（需給差の欠け＞1e-3）＝日次へ落ちる
+        double fpSmall = Settle(1e-6);
+        var (d3, s3, n3) = Both(fpSmall * 1.05);
+        Assert.True(n3 > 0, "需要が Eps の桁の財が閉じた式を使った");
+        Assert.Equal(d3, s3);
     }
 
     [Fact]

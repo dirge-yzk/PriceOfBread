@@ -222,8 +222,11 @@ public class WriterRatchetTests
     //   清算の着値の充填 31,689,816→27,104,468（−14.5%＝月の清算で成約できない行〔買い手の州の容量が尽きている〕が売り手を回らない）・
     //   覇権の判定 2,634,247→2,348,562（−10.8%＝軌道の分＝同盟の候補が居る月が減った・処理の形は同じ）。ほかの13本は許しの内（+2%／−10%）＝表は動かさない。
     //   全長の推定 281.1→269.3 秒（10種の .cost＝実装ログ (130)）。
+    // ★2026-09-30 表の更新（＝改善の宣言・(132) 計算量の予算＝張り付いた財の閉じた式：帯の端の不動点の近くにいる旬を日次の写像を回さず1回の式で進める）：
+    //   日次の写像の回 37,318,732→25,283,828（−32.2%）。覇権の判定 2,348,562→2,617,303（+11.4%＝軌道の分＝同盟の候補が居る月が増えた・処理の形は同じ・
+    //   単価 0.01035µs＝40四半期で +2.8ms・全長の10種では 156.0M→147.7M＝−5.3%）。ほかの13本は許しの内＝表は動かさない。全長の推定 269.3→255.1 秒（実装ログ (132)）。
     [InlineData(CostLedger.PriceGoods, 14149727L)]
-    [InlineData(CostLedger.PriceDailyRuns, 37318732L)]
+    [InlineData(CostLedger.PriceDailyRuns, 25283828L)]
     [InlineData(CostLedger.ConstructionSeen, 18466L)]
     [InlineData(CostLedger.CreditSpans, 33282L)]
     [InlineData(CostLedger.ConsumePopGoods, 28595736L)]
@@ -233,7 +236,7 @@ public class WriterRatchetTests
     [InlineData(CostLedger.ClearingRows, 5185642L)]
     [InlineData(CostLedger.ClearingFills, 27104468L)]
     [InlineData(CostLedger.DiploPowerMonths, 9954L)]
-    [InlineData(CostLedger.DiploHegemonScans, 2348562L)]
+    [InlineData(CostLedger.DiploHegemonScans, 2617303L)]
     [InlineData(CostLedger.QuarterStartPops, 235560L)]
     [InlineData(CostLedger.QuarterEndPops, 235560L)]
     [InlineData(CostLedger.SharedNationQuarters, 3698L)]

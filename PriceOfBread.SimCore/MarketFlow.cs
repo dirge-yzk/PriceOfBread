@@ -16,6 +16,7 @@
 ///     値がビットで止まったら残りを打ち切る（入力が定数なので以後も同じ値＝厳密に同じ結果）。局所変数だけで回す＝状態を持たない。
 ///     ⚠例外＝供給も在庫も無く参照より上に張り付いた財（2026-09-29 S3b・近似）は、1日の動きが <see cref="PinnedTol"/>（相対）を切ったら打ち切る。
 ///     ★その財が不動点に着いた旬からは、月の残りの旬を回さない（2026-09-30 計算量の予算 第2回・近似＝<see cref="Market.FlowAsleep"/>・月の最初の旬に作り直す）。
+///     ★その財が帯の端（参照の20倍より上）で不動点の近くにいる間は、日次の写像を回さず閉じた式で h 日を進める（2026-09-30 (132)・近似＝<see cref="PinnedClosed"/>）。
 ///   h=1 なら旧来の日次と1ビットも変わらない（眠りは呼び手が月の2旬目以降と言ったときだけ＝既定は使わない）。
 /// 金の移動は伴わない（価格を置くだけ）＝保存則に無関係。クリアリング・所得決済は月次のまま。
 /// </summary>
@@ -34,15 +35,24 @@ public static class MarketFlow
     /// ⇒ 打ち切った値の不動点からの距離 ≦ 動き×ρ/(1−ρ) ≈ 2.5×1e-8（相対）。月の境で需要が変わって不動点が動いた日は動きが大きく出て打ち切らない＝理由で起きる。</summary>
     private const double PinnedTol = 1e-8;
 
+    /// <summary>★張り付いた財の閉じた式（2026-09-30 (132)・近似・<see cref="PinnedClosed"/>）を使う、歩の始めの不動点からの対数の距離の上限。
+    /// これより遠い財（四半期の境で物価水準が大きく跳んだ・張り付いたばかり）は日次へ落とす。根拠＝census（種1の全長・15.1M 歩）＝距離 0.1 未満では
+    /// 2次の閉じた式の日次に対する相対の差が最大 2.5e-5（平均 1e-8 の桁）・0.1 以上では最大 6.5e-2（歩の 3.6%）。</summary>
+    private const double PinnedClosedMaxDev = 0.1;
+
+    /// <summary>同じ閉じた式を使う、需給差の欠け Eps/(eD＋Eps) の上限（eD＝価格弾力で割り引いた需要）。欠けが大きい財（需要が Eps の桁）は
+    /// 需給差が価格で動き、写像が t 空間で一定の平行移動にならない＝日次へ落とす。census＝欠け 1e-3 未満・距離 0.1 未満の最大の差 2.5e-5。</summary>
+    private const double PinnedClosedMaxDeficit = 1e-3;
+
     /// <summary>★閉じた式の小刻み（2026-09-30 高速化の段 S3c・近似）の物差し＝1歩の刻み×1日の縮み g の上限（刻み≦時定数/10＝作者の局所の線の目安）。
     /// g＝平衡まわりの1日の縮み＝FlowAdjustSpeed·ε/div·amp（需給差の項の価格微分・在庫ギャップの項は価格に依らない）＝参照付近（amp 0.7）で時定数 約180日・
     /// 内側の端（|t|＝0.5・amp 4.02）で 約31日 ⇒ h=10 なら参照の約3.5倍（と1/3.5）の内側は1歩・約6.5倍までは 5日×2・その外（内側の端＝10倍まで）は 2日×5（<see cref="SubStep"/>）。</summary>
     private const double StepPerTau = 0.1;
 
     // ★旬次の計器（2026-09-26 A3）：POB_TIME=1 のときだけ、州ごとの局所の数を出口で足す（既定は足さない）。timeprobe が読む。
-    //   財の歩＝この関数が動かした（死んでいない）財の数。閉じた式／日次に落ちた理由別の内訳の和は、財の歩の数に一致する。
+    //   財の歩＝この関数が動かした（死んでいない）財の数。閉じた式（財・役務・張り付いた財 (132)）／日次に落ちた理由別の内訳の和は、財の歩の数に一致する。
     //   日次の回＝日次の写像を実際にまわした回数・省いた日＝ビットで止まって打ち切った残りの日数（日次に落ちた財×h＝回＋省いた日）。
-    internal static long CntGoodSteps, CntClosedGoods, CntClosedService,
+    internal static long CntGoodSteps, CntClosedGoods, CntClosedService, CntClosedPinned,
         CntDailyStartBand, CntDailyStartHigh, CntDailyStartService, CntDailyPredBand, CntDailyLabor, CntDailyMarkup, CntDailyHardBand, CntDailyNaN, CntDailyStep1,
         CntDailyDaysRun, CntDailyDaysSkipped;
 
@@ -75,7 +85,7 @@ public static class MarketFlow
         // 組合の賃金交渉（no-monopsony-wage）：組織率(LaborWellbeing代理)で留保賃金の上昇速度を増幅＝賃上げに速く・賃下げに抗う。UnionWageRiseBoost=0.5 だが LaborWellbeing は UnionSatBonus=0（休眠）で実効0＝ReservationWageRiseのまま。下方(Fall)は触らず下方硬直温存。
         //   coef と region.LaborWellbeing（月次）だけで決まる＝財ループ不変＝州1回へ巻き上げ（同じ double＝ビット恒等）。
         double unionRise = coef.ReservationWageRise * (1.0 + coef.UnionWageRiseBoost * region.LaborWellbeing);
-        long nSteps = 0, nClosedG = 0, nClosedS = 0, nStart = 0, nStartHi = 0, nStartSvc = 0, nPred = 0, nLabor = 0, nMarkup = 0, nHard = 0, nNaN = 0, nStep1 = 0, nRun = 0, nSkip = 0;
+        long nSteps = 0, nClosedG = 0, nClosedS = 0, nClosedP = 0, nStart = 0, nStartHi = 0, nStartSvc = 0, nPred = 0, nLabor = 0, nMarkup = 0, nHard = 0, nNaN = 0, nStep1 = 0, nRun = 0, nSkip = 0;
         // ★死んだ財を一覧で回さない（2026-09-30 作者裁定「計算量の予算」・恒等）：需要も産出も Eps 未満の財は下で continue する（動かさない）＝回さないだけ。
         //   一覧＝Region.EnsureLiveGoods（Goods の順のうち死んでいない財・LastDemand／LastProduced の書き込みで「死んだ財か」が変わると印が立ち作り直す）。
         //   書き手は全て境界相（月次決算・清算・四半期）とテストの直書き＝日次相の中で変わらない（census）。下の continue は残す（一覧の外の財は旧でも必ず continue した）。
@@ -203,6 +213,8 @@ public static class MarketFlow
                     markup = true;
                 }
                 double P0 = m.Price;
+                // ★張り付いた市場（S3b）：供給が需要に比べて無い（≦需要×Eps＝流入も在庫も無い）財が参照より上にいる＝帯の不動点への強い縮小（下の日次と閉じた式が読む）。
+                bool pinned = !markup && !(supply > Eps * demandRaw) && P0 > rp;
                 if (closedGoods && !markup)
                 {
                     double t0 = BandT(P0, rp, lnFloorGoods, lnCeilGoods, out _, out double u0);
@@ -232,16 +244,24 @@ public static class MarketFlow
                         nPred++;
                     }
                     else if (MultiNationSim.TimeOn && double.IsNaN(t0)) nNaN++;
+                    // ★張り付いた財の閉じた式（2026-09-30 (132)・近似・<see cref="PinnedClosed"/>）＝帯の端の不動点へ戻る途中の h 日を1回の式で進める（日次の写像を回さない）。
+                    //   使えない財（帯の内・不動点から遠い・需要が Eps の桁）は下の日次へ落ちる＝旧のまま。
+                    else if (pinned && PinnedClosed(P0, rp, u0, demandRaw, supply, gap, coef, div, lnCeilGoods, k, h, out double pc, out bool atRest))
+                    {
+                        m.Price = pc;
+                        if (atRest) m.FlowAsleep = true;   // 不動点に着いた（次の1日の動きが PinnedTol を切る）＝月の残りの旬は眠る（上の remarks と同じ印）
+                        nClosedP++;
+                        continue;
+                    }
                     else { nStart++; if (MultiNationSim.TimeOn && t0 > 0) nStartHi++; }   // 計器の内訳（上側＝参照より高い側）は POB_TIME のときだけ
                 }
                 else if (h == 1) nStep1++;
                 else if (markup) nMarkup++;
                 else nHard++;
-                // 日次の写像（旧来の1日ぶんと同じ式・同じ順）を h 回。帯に張り付く財（供給0・在庫0で参照の約49倍）はここ＝張り付く水準を保つ。
-                // ★張り付いた市場（S3b・近似）：供給が需要に比べて無い（≦需要×Eps＝流入も在庫も無い）財が参照より上にいる＝不動点への強い縮小
+                // 日次の写像（旧来の1日ぶんと同じ式・同じ順）を h 回。帯に張り付く財（供給0・在庫0で参照の約49倍）のうち閉じた式を使えない財はここ＝張り付く水準を保つ。
+                // ★張り付いた市場（S3b・近似）：pinned の財は不動点への強い縮小
                 //   ＝1日の動きが PinnedTol（相対）を切ったら打ち切る。旧＝ビットで止まるまで h 日（丸めの末尾が動き続け、止まるのは0.7%だけ＝S0）。
                 //   供給か在庫が立つと需給差が変わり最初の1日の動きが大きく出る＝打ち切らない（眠らせない・理由で起きる）。
-                bool pinned = !markup && !(supply > Eps * demandRaw) && P0 > rp;
                 double P = P0;
                 int run = 0;
                 while (run < h)
@@ -265,6 +285,7 @@ public static class MarketFlow
             System.Threading.Interlocked.Add(ref CntGoodSteps, nSteps);
             System.Threading.Interlocked.Add(ref CntClosedGoods, nClosedG);
             System.Threading.Interlocked.Add(ref CntClosedService, nClosedS);
+            System.Threading.Interlocked.Add(ref CntClosedPinned, nClosedP);
             System.Threading.Interlocked.Add(ref CntDailyStartBand, nStart);
             System.Threading.Interlocked.Add(ref CntDailyStartHigh, nStartHi);
             System.Threading.Interlocked.Add(ref CntDailyStartService, nStartSvc);
@@ -308,6 +329,54 @@ public static class MarketFlow
         u = System.Math.Log(System.Math.Max(price, Eps) / rp);
         L = u >= 0 ? lnCeilPos : lnFloorPos;
         return u / L;
+    }
+
+    /// <summary>★張り付いた財の閉じた式（2026-09-30 (132) 計算量の予算・近似・作者裁定「起きている物だけ回す」）。
+    /// 供給も在庫も無く参照の20倍より上に張り付いた財（pinned・帯の端＝ndist が1＝amp が一定）の日次の写像は、SoftBand の正規化距離 t＝ln(P/rp)/L の上で
+    /// **一定の平行移動と飽和** T(t)＝S(t＋c)（c＝ln(1＋y)/L・S(x)＝x/(1＋x^k)^(1/k)）になる＝y は需給差の欠けの桁でしか価格に依らない。
+    /// ⇒ 不動点 t*（S(t*＋c)＝t*・ニュートン法）と、そのまわりの縮み ρ＝S′(t*＋c)（約0.71/日）で、h 日後の距離を閉じた式で出す：
+    /// 2次のケーニヒスの線形化 φ(e)＝e＋A·e²（A＝S″/(2ρ(1−ρ))）で φ(e_h)＝ρ^h·φ(e_0)。
+    /// 旧（S3b）＝日次の写像を最大 h 回（1日 約6回の超越関数）＝張り付いた財が四半期の境で物価水準の跳びへ戻る約50日と、月の境で需要が変えた不動点へ寄る日数の分を
+    /// 毎日まわした（census＝日次の回の41%）。
+    /// 使うのは①歩の始めが帯の端（u0≧PriceAmpLnScale）②不動点も帯の端 ③歩の始めの不動点からの対数の距離が <see cref="PinnedClosedMaxDev"/> 未満
+    /// ④需給差の欠けが <see cref="PinnedClosedMaxDeficit"/> 未満 ⑤ニュートン法が収束した、のときだけ（false＝呼び手は日次へ落とす）。
+    /// 誤差の上界（census）＝日次に対して最大 2.5e-5（相対）。<paramref name="atRest"/>＝次の1日の動きが <see cref="PinnedTol"/> を切る（日次の打ち切りと同じ判定＝月の残りを眠る印）。
+    /// ⚠ 否定形で判定する＝NaN は必ず日次へ落ちる。状態を持たない（局所変数だけ）＝並列の日次相でも決定的。</summary>
+    private static bool PinnedClosed(double P0, double rp, double u0, double demandRaw, double supply, double gap, Coefficients coef, double div, double L, double k, int h,
+                                     out double P, out bool atRest)
+    {
+        P = P0; atRest = false;
+        if (!(u0 >= coef.PriceAmpLnScale) || !(L > Eps)) return false;                         // ①帯の端（amp が一定）でなければ日次
+        double eD = demandRaw * System.Math.Pow(P0 / rp, -coef.PriceElasticity);
+        if (!(Eps < PinnedClosedMaxDeficit * (eD + Eps))) return false;                          // ④需給差の欠け Eps/(eD＋Eps) が大きい
+        double y = GoodsY(P0, rp, demandRaw, supply, gap, coef, div, u0);
+        if (!(y > -1)) return false;
+        double c = System.Math.Log(1 + y) / L;
+        double t0 = u0 / L, t = t0, xk = 0, b = 0, root = 0, x = 0;
+        bool conv = false;
+        for (int it = 0; it < 40; it++)
+        {
+            x = t + c;
+            if (!(x > 0)) return false;
+            xk = System.Math.Pow(x, k); b = 1 + xk; root = System.Math.Pow(b, 1.0 / k);
+            double dt = (x / root - t) / (1.0 / (root * b) - 1);   // f(t)＝S(t＋c)−t・f′＝S′−1＜0
+            t -= dt;
+            if (!(System.Math.Abs(dt) > 1e-15)) { conv = !double.IsNaN(t); break; }
+        }
+        if (!conv || !(t * L >= coef.PriceAmpLnScale)) return false;                             // ⑤収束・②不動点も帯の端
+        double e0 = t0 - t;
+        if (!(System.Math.Abs(e0) * L < PinnedClosedMaxDev)) return false;                       // ③不動点から遠い
+        x = t + c; xk = System.Math.Pow(x, k); b = 1 + xk; root = System.Math.Pow(b, 1.0 / k);
+        double rho = 1.0 / (root * b);                                                           // S′(x)＝(1＋x^k)^(−1/k−1)
+        double s2 = -(k + 1) * (xk / x) / (root * b * b);                                        // S″(x)＝−(k＋1)·x^(k−1)·(1＋x^k)^(−1/k−2)
+        double a = s2 / (2 * rho * (1 - rho));
+        double z = System.Math.Pow(rho, h) * (e0 + a * e0 * e0);
+        double eh = z - a * z * z;
+        double p = rp * System.Math.Exp(L * (t + eh));
+        if (!(p > 0) || double.IsInfinity(p)) return false;
+        P = p;
+        atRest = !(L * (1 - rho) * System.Math.Abs(eh) > PinnedTol);
+        return true;
     }
 
     /// <summary>★閉じた式の小刻み（2026-09-30 S3c）：h の約数のうち hs×g≦<see cref="StepPerTau"/> を満たす最大（最小1）。g＝FlowAdjustSpeed·ε/div·amp(lnDev)
