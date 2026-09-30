@@ -357,7 +357,7 @@ public class TreasuryLedgerTests
                     if (code.Contains("Fiscal.Borrow(")) borrowCallers.Add(System.IO.Path.GetFileName(f));
                 }
             }
-        Assert.Equal(new[] { "Fiscal.cs" }, System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Distinct(borrowSites)));   // 国内の脚と対外の脚（2行）＝同じ関数 Fiscal.Borrow
+        Assert.Equal(new[] { "Fiscal.cs", "Fiscal.cs" }, borrowSites.ToArray());   // 国内の脚と対外の脚（2行）＝同じ関数 Fiscal.Borrow（★(144) 反証の指摘＝数を2に固定・旧は Distinct で Fiscal.cs の中の行の数を見なかった）
         Assert.Equal(new[] { "Simulation.cs" }, stepCallers.ToArray());
         Assert.Equal(new[] { "Simulation.cs" }, borrowCallers.ToArray());
     }

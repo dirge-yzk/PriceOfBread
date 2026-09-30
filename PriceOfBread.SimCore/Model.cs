@@ -320,7 +320,7 @@ public sealed class Pop
 
     /// <summary>★移し方の1本の払い手の側（2026-09-30 段4g＝World.Transfer から Pop へ移した＝貯蓄の書き手を Pop の中へ）。戻り値＝動いた額（引いた額の和）。
     /// <paramref name="weights"/>＝null なら**貯蓄の保有の比**（d5）：取る額＝min(額, Σmax(0,貯蓄))・各自＝取る額×max(0,貯蓄)÷Σ（旧の式のまま）。
-    /// 重みがあれば**払い手ごとの自分の請求**：各自の請求＝重み×(額÷Σ重み)・払うのは自分の貯蓄まで（max(0,貯蓄)）＝払い手ごとの1本の率（作者裁定 Q4）。
+    /// 重みがあれば**払い手ごとの自分の請求**：各自の請求＝重み×(額÷Σ重み)・払うのは自分の貯蓄まで（max(0,貯蓄)）＝払い手ごとの1本の率（作者裁定 Q4＝POP が払えない税は請求を立てない・窃盗と没収への拡張は Q4 の払い手の側の形を推奨で広げたもの＝(144) 注記）。
     ///   呼び手が額に Σ重み（同じ並びの和）を渡せば 額÷Σ重み＝1 ちょうど＝請求そのもの。
     /// <paramref name="taken"/>＝非 null なら払い手ごとの動いた額を並びの順に足す。否定形のガード＝NaN の額・請求は取らない。</summary>
     internal static double Take(List<Pop> payers, double amount, List<double>? weights = null, List<double>? taken = null)

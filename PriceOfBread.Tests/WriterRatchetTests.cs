@@ -172,6 +172,36 @@ public class WriterRatchetTests
         Assert.True(fld is not null && fld.IsPrivate, "Pop の貯蓄の欄（_savings）が private でない");
     }
 
+    /// <summary>★(144) 合流（反証の指摘＝「型が閉じた」の残り）：型が閉じたのは直書き（貯蓄の代入・World.Pay）まで。貯蓄と国庫を片側だけ書く内部の関数
+    /// （Pop.Distribute・Pop.Take・Pop.Carry・Pop.SettleMonth・Pop.Rebase・World.SetTreasuryRaw）は internal＝InternalsVisibleTo で Tests・Runner・App にも見える
+    /// ＝どのファイルからでも台帳なしでお金を湧かせられる。呼び手を宣言したファイルと数に閉じる（SimCore・Runner・App を走査・コメントは数えない・テストの盤面は対象外）。
+    /// 数を増やすなら表を上げて理由を書く（＝宣言）。⚠突然変異「Colonial から Pop.Distribute を呼ぶ」で赤。</summary>
+    [Theory]
+    [InlineData("Pop.Distribute(", "World.cs", 1)]         // 移し方の1本（World.Transfer）の受け手の按分だけ
+    [InlineData("Pop.Take(", "World.cs", 1)]               // 移し方の1本の払い手の引き落としだけ
+    [InlineData("Pop.Carry(", "MultiNationSim.cs", 1)]     // 国境をまたぐ人の運搬の1本（MoveAbroad）だけ
+    [InlineData(".SettleMonth(", "EconomyStep.cs", 1)]     // 月末の精算（貯蓄 += 所得 − 支払い＝Pop の中の1本）
+    [InlineData(".Rebase(", "Territory.cs", 1)]            // 割譲の通貨の付け替え（換算の台帳と対）
+    [InlineData(".SetTreasuryRaw(", "Simulation.cs", 1)]   // 初期国庫（フローでない）
+    public void 片側の記帳の内部の関数は宣言した呼び手だけが呼ぶ(string call, string file, int baseline)
+    {
+        string root = Path.GetDirectoryName(SimCoreDir())!;
+        char sep = Path.DirectorySeparatorChar;
+        var sites = new System.Collections.Generic.List<string>();
+        foreach (var dir in new[] { "PriceOfBread.SimCore", "PriceOfBread.Runner", "PriceOfBread.App" })
+            foreach (var f in Directory.EnumerateFiles(Path.Combine(root, dir), "*.cs", SearchOption.AllDirectories))
+            {
+                if (f.Contains($"{sep}obj{sep}") || f.Contains($"{sep}bin{sep}")) continue;
+                foreach (var line in File.ReadLines(f))
+                {
+                    var code = line; int k = code.IndexOf("//", StringComparison.Ordinal); if (k >= 0) code = code[..k];
+                    if (code.Contains(call, StringComparison.Ordinal)) sites.Add(Path.GetFileName(f));
+                }
+            }
+        Assert.True(sites.All(x => x == file), $"{call} を {file} の外から呼んでいる（{string.Join("・", sites.Where(x => x != file))}）＝台帳なしの片側の記帳の口");
+        Assert.True(sites.Count <= baseline, $"{call} の呼び手が {sites.Count} か所（宣言 {baseline}）＝増えている");
+    }
+
     // ★2026-09-30（作者裁定「計算量の予算」＝推奨で採択）：**計算量の番人**＝1種（seed 1）・40四半期（助走を含む＝バッチと同じ道
     //   SelfPlayMatch.Run(lean)）の処理ごとの「見た件数」（CostLedger）が宣言した表を超えないこと。書き手の数の番人と同じく、
     //   **件数が増えるコミットは表を上げて理由をここに書く（＝宣言）**＝予算の超過はどこで払ったかを実装ログとコミットに書く。
@@ -263,18 +293,21 @@ public class WriterRatchetTests
     // ★2026-10-01 表の更新（(142) 4e-2b の載せ直し＝読み手ごとの年齢〔労働15〜64・教育5〜14・出産15〜49・徴兵 男20〜39・将校・参政権21歳・疫病の脆弱さの1本〕＝軌道が動いた分の宣言・新しい計数の処理は無い）：
     //   覇権の判定 2,755,889→2,227,505（−19.2%＝10% を超えて下がった＝表を下げる・同盟の候補が居る月の軌道・処理の形は同じ）。全長の10種は 170,551,902→164,219,307（−3.7%）。
     //   ほかの14本は許しの内（+2%／−10%）。全長の推定は 239.2→240.2 秒（予算の内・目標より下の余りの中）。
+    // ★2026-10-01 表の更新（(144) 合流＝線2〔(140) 軍の費用・(143) 飢えで州が痩せる型〕の載った main へ線1〔(139) 段4g・(141) 国内の移民・(142) 4e-2b＋兵役の母数の兵士の項の直し〕を載せ直した木
+    //   ＝軌道が動いた分の宣言・新しい計数の処理は無い）：建設 7,226→7,634（+5.6%）・請求 2,515→2,692（+7.0%）・覇権の判定 2,414,464→2,585,796（+7.1%）
+    //   ＝どちらの線の単独の表とも違う軌道（線1 単独＝建設 7,146・覇権 2,227,505／線2 単独＝建設 7,226・請求 2,515・覇権 2,414,464）。ほかの13本は許しの内。全長の10種の推定は実装ログ (144)。
     [InlineData(CostLedger.PriceGoods, 14149727L)]
     [InlineData(CostLedger.PriceDailyRuns, 25283828L)]
-    [InlineData(CostLedger.ConstructionSeen, 7226L)]
+    [InlineData(CostLedger.ConstructionSeen, 7634L)]
     [InlineData(CostLedger.CreditSpans, 33282L)]
     [InlineData(CostLedger.ConsumePopGoods, 28595736L)]
     [InlineData(CostLedger.ProducerMonths, 8440020L)]
-    [InlineData(CostLedger.ClaimProducers, 2515L)]
+    [InlineData(CostLedger.ClaimProducers, 2692L)]
     [InlineData(CostLedger.MonthlyPops, 706680L)]
     [InlineData(CostLedger.ClearingRows, 5185642L)]
     [InlineData(CostLedger.ClearingFills, 27954050L)]
     [InlineData(CostLedger.DiploPowerMonths, 9954L)]
-    [InlineData(CostLedger.DiploHegemonScans, 2414464L)]
+    [InlineData(CostLedger.DiploHegemonScans, 2585796L)]
     [InlineData(CostLedger.QuarterStartPops, 235560L)]
     [InlineData(CostLedger.QuarterEndPops, 235560L)]
     [InlineData(CostLedger.SharedNationQuarters, 3698L)]
