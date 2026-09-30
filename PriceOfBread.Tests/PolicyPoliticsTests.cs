@@ -1264,6 +1264,10 @@ public class PolicyPoliticsTests
     [Fact]
     public void 実税が重い世界ほど生活が苦しく闘争度が高い()   // (f) 裁定C3 の鎖の番人（実税→可処分所得→充足→生活苦→闘争度）
     {
+        // ★盤面の直し（2026-10-01 段2A・主張は同じ）：充足と闘争度は60四半期目の1点ではなく**後半20四半期の平均**で比べる。
+        //   人頭税の目標は35四半期ほどで効き始め（前半は軽税と重税で充足が同じ）、1点の値は四半期の揺れ（±0.02）に埋もれる＝段2A で発見していない財
+        //   （缶詰・ガス）の幻の需要が消えて充足の水準が上がった木では60四半期目の1点が逆転した（軽 0.1452・重 0.1464）が、後半20四半期の平均は
+        //   軽 0.1615＞重 0.1492（闘争度 0.1015＜0.1111）＝鎖は生きている（旧の木の平均は 0.1313＞0.1154）。
         (double Tax, double Sat, double Mil) Run(double pollTax)
         {
             var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
@@ -1273,10 +1277,16 @@ public class PolicyPoliticsTests
             //   （大衆の暴動・信用の凍結）へ・重税の世界は利子を資本家へ払う＝税の差でなく国債の差が充足を動かし、鎖の向きが逆に見えた（充足 0.1068→0.1084）。
             w.GovDebt = 0; w.ForeignDebt = 0; foreach (var rg in w.Regions) foreach (var pp in rg.Pops) pp.BondHoldings = 0;
             w.PollTax = pollTax; w.Policy.PollTaxTarget = pollTax;
-            sim.Run(60);
-            double sat = 0, mil = 0, size = 0;
-            foreach (var p in w.AllPops()) { if (p.Closed || p.IsSoldier) continue; sat += p.Satisfaction * p.Size; mil += p.Militancy * p.Size; size += p.Size; }
-            return (w.PollTax, sat / System.Math.Max(1e-9, size), mil / System.Math.Max(1e-9, size));
+            double satAvg = 0, milAvg = 0; int k = 0;
+            for (int q = 0; q < 60; q++)
+            {
+                sim.Run(1);
+                if (q < 40) continue;   // 後半20四半期の平均
+                double sat = 0, mil = 0, size = 0;
+                foreach (var p in w.AllPops()) { if (p.Closed || p.IsSoldier) continue; sat += p.Satisfaction * p.Size; mil += p.Militancy * p.Size; size += p.Size; }
+                satAvg += sat / System.Math.Max(1e-9, size); milAvg += mil / System.Math.Max(1e-9, size); k++;
+            }
+            return (w.PollTax, satAvg / k, milAvg / k);
         }
         var light = Run(0.0);
         var heavy = Run(0.6);

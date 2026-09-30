@@ -12,23 +12,29 @@ public class BreakDetectionTests
 {
     // 早期供給を**意図した**公認の橋レシピ（既定レシピの近代法onsetより早いことが設計＝DefaultRecipeOnsetのコメントに明記）：
     // 紙のぼろ布製紙（早期は麻+綿布）・肥料のグアノ肥料（それ以前の施肥は厩肥/グアノ）。新しい早期橋はここに追記して意図を宣言する。
-    private static readonly HashSet<string> SanctionedEarlyRecipes = ["ぼろ布製紙", "グアノ肥料", "堆肥", "樹皮の粉末"];   // ★堆肥（2026-09-06・E-13再開）＝厩肥は最古の肥料＝化学肥料（1842）より前から在る並存レシピ   // ★樹皮の粉末（2026-09-30 (129)）＝キニーネの単離（1820）の前に欧州の薬局が樹皮を挽いて飲ませた（17世紀〜）
+    private static readonly HashSet<string> SanctionedEarlyRecipes = ["ぼろ布製紙", "グアノ肥料", "堆肥", "樹皮の粉末", "坩堝鋼"];   // ★坩堝鋼（2026-10-01 段2A）＝転炉鋼（鋼の既定のレシピ・1850年代）の前の橋（旧＝器の旗が既定の Producer へ onset を焼いた＝既定の onset の表に出ず検査の外だった）   // ★堆肥（2026-09-06・E-13再開）＝厩肥は最古の肥料＝化学肥料（1842）より前から在る並存レシピ   // ★樹皮の粉末（2026-09-30 (129)）＝キニーネの単離（1820）の前に欧州の薬局が樹皮を挽いて飲ませた（17世紀〜）
 
+    /// <summary>★2026-10-01 段2A（発見の表＝行はレシピ・年代）：既定のレシピに発見の行がある財（発明の財・近代の既定の製法）の他のレシピは、
+    /// 既定の行より早い年代の行か表に無い（地理差＝常にある）なら迂回＝公認の橋（SanctionedEarlyRecipes）だけが許される。</summary>
     [Fact]
     public void 並存レシピは既定レシピの解禁を迂回しない()
     {
         var sim = new MultiNationSim([NationConfig.Britain()], seed: 1);
         var w = sim.Nations[0].World;
         var violations = new List<string>();
+        int gatedGoods = 0;
         foreach (var r in w.Regions)
             foreach (var p in r.Producers)
             {
-                double onset = Catalog.DefaultRecipeOnset(p.GoodId, w.Coef);   // ★2026-09-06：係数対応の既定onset（OilNeedsMachinery=1 点火で原油の閾値0.6は外れ、掘削機＝機械の投入が物理ゲート）
-                if (onset <= 0) continue;
-                if (p.TechOnset >= onset - 1e-9) continue;
+                int defRow = Catalog.DiscoveryRowOf(p.GoodId, "");
+                if (defRow < 0) continue;
+                gatedGoods++;
+                int row = p.DiscoveryRow;
+                if (row >= 0 && Catalog.Discoveries[row].Decade >= Catalog.Discoveries[defRow].Decade) continue;
                 if (SanctionedEarlyRecipes.Contains(p.RecipeName ?? "")) continue;
-                violations.Add($"{r.Name}: {Catalog.Goods[p.GoodId].Name}({p.GoodId}) レシピ'{p.RecipeName}' onset={p.TechOnset:F2} < 既定 {onset:F2}");
+                violations.Add($"{r.Name}: {Catalog.Goods[p.GoodId].Name}({p.GoodId}) レシピ'{p.RecipeName}' 行={(row >= 0 ? Catalog.Discoveries[row].Decade.ToString() : "地理差")} < 既定 {Catalog.Discoveries[defRow].Decade}");
             }
+        Assert.True(gatedGoods > 10, $"既定のレシピに発見の行がある生産者が少なすぎる（{gatedGoods}）＝検査が空回りしている");
         Assert.True(violations.Count == 0, string.Join("\n", violations));
     }
 

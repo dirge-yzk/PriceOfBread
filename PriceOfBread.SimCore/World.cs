@@ -160,6 +160,19 @@ public sealed class World
     public double EducationSpending { get; internal set; }   // 教育費（0..1・現在値）。義務教育の財源率＝popが買えない教育を国庫が買う割合（それ以外の法では効果なし）
     public double TechLevel { get; internal set; }
     public double WorldTechLevel { get; internal set; } // 世界の技術先端（多国・§5.1）。後発はここへ収束（後発の優位）。単独＝0
+    /// <summary>★発見（段2A・2026-10-01・設計 §1A-2）＝発見の表（<see cref="Catalog.Discoveries"/>）の行ごとの「解禁済み」の2値（一度でも点数が100に届いた＝失われない）。
+    /// 新しい状態＝作者裁定 2026-09-28 で許可（設計思想⑩の「本当に必要な場合」）。州は同じ配列を参照する（<see cref="Region.Discovered"/>＝月次に写す）＝書き換えは要素だけ（配列を差し替えない）。
+    /// 建国は親の知識を継ぐ（独立は文明を巻き戻さない＝技術水準と同じ）。</summary>
+    public bool[] Discovered { get; internal set; } = new bool[Catalog.Discoveries.Length];
+    /// <summary>★世界の解禁の和（段2A）＝どこかの国が解禁した行（輸入で手に入る）＝**需要の門**が読む（消費者は外国の財を買える＝需要は世界に在る財に立つ・作るのは自国が発見してから）。
+    /// 多国は全ての国で同じ配列（<see cref="MultiNationSim"/> が四半期末の発見の段の後に書き直す）・単独の世界は null（自国の解禁で読む）。
+    /// ⚠理想の軍隊の装備・汽船の船腹・缶詰の糧食は自国の解禁（作者裁定 2026-09-08「機関銃陣地を発見するまで、理想の軍隊に機関銃を入れない」）。</summary>
+    public bool[]? WorldDiscovered { get; internal set; }
+    /// <summary>★発見の伝わりの取引の記帳（四半期・国際市場の成約が書く）＝行ごとに、その行を解禁済みの国から、まだの自国が買った運び手の財の額（金建て）。
+    /// 四半期末の共有層（<see cref="MultiNationSim"/>）が接触へ直して0に戻す。⚠四半期の途中のセーブに載る（月の清算の分）。</summary>
+    public double[]? DiscoveryImportQ;
+    /// <summary>直近の四半期の発見の判定に使った国の外の値（接触・人件費の世界の平均・世界の値段＝画面と計器が同じ3項を出すため）。作業領域＝セーブに載らない（ロード直後は null）。</summary>
+    [System.NonSerialized] internal Discovery.WorldView? LastDiscoveryView;
     // ★知識と人的資本（作者採用2026-09-06）：厚み＝専門人材率（近代エリート層の高等教育充足×人数÷全人口・毎四半期の導出量＝保存しない）・世界の先端・接触度
     public double Expertise { get; internal set; }                    // 専門人材率（UI 語彙）。TechEducation が Elite と同時に計算
     public double WorldFrontierExpertise { get; internal set; }       // 世界の専門人材率の先端（MultiNationSim が配る）
@@ -2323,13 +2336,13 @@ public sealed class World
     // ===== 国営工場カウンター（作者裁定2026-08-10）＝プレイヤーとAIが共有する唯一の動詞 =====
 
     /// <summary>「この州のこの財の工場」を1本に決める（着工・補助金・売却・カウンターの共通の入口）。
-    /// 同じ財に複数の生産者が並ぶことがある＝**代替レシピ**（鋼＝坩堝鋼(onset0)とベッセマー転炉(onset0.55)／
+    /// 同じ財に複数の生産者が並ぶことがある＝**代替レシピ**（鋼＝坩堝鋼（門なし）とベッセマー転炉（発見の表の転炉鋼・旧 onset0.55）／
     /// レール＝錬鉄レールと鋼レール／電力＝火力と水力…）。素朴な <c>Find(GoodId==goodId)</c> は**リストの先頭**を返し、
     /// 鋼ではそれが1858年まで動かせないベッセマー転炉だった＝国営工場を建てても補助金を出しても**動かない工場**に付いていた
     /// （2026-08-11に TechGatedScaleZero を点火するまでは幻の操業規模が立っていたため、動いているように見えていた）。
     /// 優先順位＝①既に持分か意志がある生産者（＝プレイヤー/AIが投資した対象を取り違えない・時代が変わっても付け替えない）
     /// → ②今日操業できる生産者（技術ゲートが開いている） → ③先頭（全部閉じている＝どのみち各所の理由で弾かれる）。
-    /// ⚠新しい判定を作らない＝ゲートは供給側・Scale側と同じ2本（AdvancedTechScale × RecipeTechScale）。</summary>
+    /// ⚠新しい判定を作らない＝ゲートは供給側・Scale側と同じ1本（Discovery.Gate＝発見の門・2026-10-01 段2A）。</summary>
     public static Producer? FindFactory(Region r, int goodId)
     {
         Producer? first = null, operable = null;
@@ -2338,7 +2351,7 @@ public sealed class World
             if (p.GoodId != goodId) continue;
             if (p.BuiltScale > 1e-9 || p.StateTarget > 0 || p.ConstructionLeft > 0) return p;   // ①投資済み＝これが「その工場」
             first ??= p;
-            if (operable is null && Catalog.AdvancedTechScale(goodId, r.TechLevel) * Catalog.RecipeTechScale(p.TechOnset, r.TechLevel) > 0) operable = p;
+            if (operable is null && Discovery.Gate(r, p) > 0) operable = p;
         }
         return operable ?? first;
     }
@@ -2378,7 +2391,7 @@ public sealed class World
             foreach (var p in r.Producers)
             {
                 if (p.GoodId != goodId) continue;
-                if (!(ProductionDiag.TechGate(goodId, p.TechOnset, r.TechLevel) > ProductionDiag.TechGateClosed)) continue;   // 否定形＝NaNは数えない
+                if (!(Discovery.Gate(r, p) > ProductionDiag.TechGateClosed)) continue;   // 否定形＝NaNは数えない
                 int units = StateUnitsOf(p);
                 st += units;
                 pd += Math.Max(0, p.StateTarget - units);

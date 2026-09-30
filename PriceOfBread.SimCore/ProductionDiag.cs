@@ -139,7 +139,7 @@ public static class ProductionDiag
     /// 代替レシピ（肥料＝グアノ／ハーバーボッシュ／堆肥、電力＝石炭火力／石油火力／水力発電、鋼＝坩堝鋼／転炉…）は
     /// 同一 GoodId の**別 Producer 実体**＝<see cref="ExplainCost"/> はその1個体しか見ない。
     /// ここは自国（<paramref name="region"/>優先→他の active 州）の生産者を集め、レシピ名＋投入集合が同じものを1本に畳んで全部返す。
-    /// 並びは TechOnset 昇順→発見順（決定論）＝古いレシピが先（グアノ→ハーバーボッシュ）。
+    /// 並びは発見の年代の昇順（表に無い地理差のレシピは0＝先）→見つけた順（決定論）＝古いレシピが先（グアノ→ハーバーボッシュ）。
     /// 生産者が国内に1人も居ない財は既定レシピ1本＝<see cref="ExplainCost"/> と同じ内容。1本しか無ければ長さ1＝従来と同じ見た目。
     /// ★純関数＝世界を1ビットも書かない（ProductionDiagTests の番人が固定）。</summary>
     public static CostParts[] ExplainCostByRecipe(World w, Region region, int goodId)
@@ -166,12 +166,13 @@ public static class ProductionDiag
         for (int i = 0; i < order.Length; i++) order[i] = i;
         Array.Sort(order, (a, b) =>
         {
-            int c = found[a].P.TechOnset.CompareTo(found[b].P.TechOnset);
+            int c = DecadeOf(found[a].P).CompareTo(DecadeOf(found[b].P));
             return c != 0 ? c : a.CompareTo(b);
         });
         var outp = new CostParts[found.Count];
         for (int i = 0; i < order.Length; i++) outp[i] = CostOf(w, region, found[order[i]], goodId);
         return outp;
+        static int DecadeOf(Producer p) => p.DiscoveryRow is int row and >= 0 ? Catalog.Discoveries[row].Decade : 0;
     }
 
     /// <summary>同じレシピか＝レシピ名と投入（材id列）が一致する。州の数だけ並ぶ同一レシピの生産者を1本に畳むのに使う。</summary>
@@ -348,14 +349,9 @@ public static class ProductionDiag
 
     // ===== 「まだ存在しない財」の判定（作者裁定2026-08-10）=====
 
-    /// <summary>ある州のある生産者（レシピ）の**技術ゲート**＝<c>AdvancedTechScale × RecipeTechScale</c>。
-    /// <see cref="EconomyStep"/> が能力（boost）に掛けているのと同じ2本の積＝0なら1単位も作れない。
-    /// ★この式を読む場所（未発明の判定・生産タブの灰色化・着工ボタンの可否・工場数の表示）は全部ここを通す
-    ///   ＝画面とエンジンで「作れるか」の定義が食い違わない。</summary>
-    public static double TechGate(int goodId, double techOnset, double techLevel)
-        => Catalog.AdvancedTechScale(goodId, techLevel) * Catalog.RecipeTechScale(techOnset, techLevel);
+    // ★2026-10-01 段2A：生産者の技術ゲート（旧 TechGate＝AdvancedTechScale × RecipeTechScale）は発見の門 Discovery.Gate の1本へ（未発明の判定・生産タブの灰色化・着工ボタンの可否・工場数の表示も同じ1本）。
 
-    /// <summary>技術ゲートが立っている（1単位も作れない）と見なす閾値。生産タブの灰色化・着工ボタンの理由と同じ物差し。</summary>
+    /// <summary>発見の門が立っている（1単位も作れない）と見なす閾値。生産タブの灰色化・着工ボタンの理由と同じ物差し（門は2値・鉱床の後期の産地だけ傾斜）。</summary>
     public const double TechGateClosed = 0.001;
 
     /// <summary>財ごとの<b>まだ存在しない</b>フラグ（<c>true</c>＝世界のどこにも無い財）。添字＝good.Id。
@@ -369,9 +365,9 @@ public static class ProductionDiag
     /// <list type="number">
     /// <item>世界生産（全国の active 州の <c>Market.LastProduced</c> の合算）が実用閾値
     ///       <see cref="Coefficients.TargetStockFloor"/>（＝「量として意味を持たない」の既存の物差し）**以下**。</item>
-    /// <item>どの国のどの active 州でも技術ゲート <c>AdvancedTechScale × RecipeTechScale</c> が **0**。
-    ///       生産者が1つも居ない国（気候ゲートで除去された財・役務）は、その国の最先進州の技術で
-    ///       既定レシピ（<see cref="Catalog.DefaultRecipeOnset"/>）を読む＝「産地が無い」を「作れない」と取り違えない。</item>
+    /// <item>どの国のどの active 州でも発見の門（<see cref="Discovery.Gate"/>）が **0**。
+    ///       生産者が1つも居ない国（気候ゲートで除去された財・役務）は、その国が既定のレシピの行を発見したか（行が無ければ常に作れる）で読む
+    ///       ＝「産地が無い」を「作れない」と取り違えない。</item>
     /// </list>
     /// <b>⚠「作れるが今は作っていない」財との区別</b>＝②で外れる。技術ゲートが1つでも開いていれば、
     /// 採算割れで生産が0でも価格もシェアも意味を持つ（従来どおり数字を出す）＝この2状態は別物。
@@ -387,11 +383,9 @@ public static class ProductionDiag
         {
             var w = nat.World;
             var has = new bool[n];
-            double maxTech = 0;
             foreach (var region in w.Regions)
             {
                 if (region.State != RegionState.Active) continue;
-                if (region.TechLevel > maxTech) maxTech = region.TechLevel;
                 int mn = Math.Min(region.Markets.Length, n);
                 for (int gi = 0; gi < mn; gi++) produced[gi] += region.Markets[gi].LastProduced;
                 foreach (var s in region.Producers)
@@ -401,16 +395,14 @@ public static class ProductionDiag
                     has[gi] = true;
                     // ★可否判定の不一致（wave2b G11#3）：旧 `>0` は「1単位も作れない」の物差し（TechGateClosed=0.001・生産タブの灰色化/着工ボタンと同じ）と食い違い、
                     //   ゲートが0<値≤0.001の財を「存在する」側に誤判定しうる。UI側の閾値に揃える。
-                    if (Gate(gi, s.TechOnset, region.TechLevel) > TechGateClosed) techOpen[gi] = true;
+                    if (Discovery.Gate(region, s) > TechGateClosed) techOpen[gi] = true;
                 }
             }
             for (int gi = 0; gi < n; gi++)
-                if (!has[gi] && Gate(gi, Catalog.DefaultRecipeOnset(gi), maxTech) > TechGateClosed) techOpen[gi] = true;
+                if (!has[gi]) { int row = Catalog.DiscoveryRowOf(gi, ""); if (row < 0 || Discovery.Known(w.Discovered, row)) techOpen[gi] = true; }
         }
         var res = new bool[n];
         for (int gi = 0; gi < n; gi++) res[gi] = !techOpen[gi] && !(produced[gi] > coef.TargetStockFloor);   // 否定形＝NaN も「存在しない」側へ倒す
         return res;
-
-        static double Gate(int gi, double onset, double tech) => TechGate(gi, onset, tech);
     }
 }

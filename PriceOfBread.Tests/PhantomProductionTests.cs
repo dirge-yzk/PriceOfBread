@@ -28,7 +28,7 @@ public class PhantomProductionTests
         return sim;
     }
 
-    /// <summary>技術ゲート（財の複雑度ゲート×レシピの発明ゲート）が0の生産者は、産出が**厳密に0**。</summary>
+    /// <summary>発見の門（Discovery.Gate＝2026-10-01 段2A＝国がレシピの行を発見したか・旧＝財の複雑度ゲート×レシピの発明ゲート）が0の生産者は、産出が**厳密に0**。</summary>
     [Fact]
     public void 技術未解禁の財は産出が厳密に0()
     {
@@ -42,8 +42,7 @@ public class PhantomProductionTests
                 {
                     if (s.GoodId < 0 || s.GoodId >= Catalog.Goods.Length) continue;
                     if (Catalog.Goods[s.GoodId].Tier == GoodTier.Service) continue;   // 役務は発明ゲートを持たない（ボーモル）
-                    double gate = Catalog.AdvancedTechScale(s.GoodId, region.TechLevel)
-                                * Catalog.RecipeTechScale(s.TechOnset, region.TechLevel);
+                    double gate = Discovery.Gate(region, s);
                     if (gate > 0) continue;
                     gated++;
                     Assert.True(s.Output == 0.0,
@@ -87,7 +86,7 @@ public class PhantomProductionTests
         for (int gi = 0; gi < Catalog.Goods.Length; gi++)
         {
             if (Catalog.Goods[gi].Tier is not (GoodTier.Staple or GoodTier.Daily)) continue;
-            if (Catalog.DefaultRecipeOnset(gi) > 0 || Catalog.AdvancedTechScale(gi, 0.0) <= 0) continue;   // 発明ゲートを持つ財は対象外
+            if (Catalog.DiscoveryRowOf(gi, "") >= 0) continue;   // 既定のレシピに発見の門を持つ財は対象外（2026-10-01 段2A）
             open++;
             Assert.False(unavail[gi], $"{Catalog.Goods[gi].Name}は1783年から作れる財なのに「存在しない財」と判定された");
         }
@@ -95,11 +94,10 @@ public class PhantomProductionTests
         // 逆側の担保：技術が onset を越えれば、**生産がまだ0でも**「存在しない財」から外れる
         // ＝判定は固定の財リストではなく技術ゲートを読んでおり、「作れるが今は作っていない」を別扱いにできている。
         Assert.True(unavail[Catalog.CannedFoodId], "前提が崩れている（開始時の缶詰は未発明のはず）");
-        foreach (var n in sim.Nations)
-            foreach (var region in n.World.Regions)
-                region.TechLevel = Catalog.DefaultRecipeOnset(Catalog.CannedFoodId) + 1.0;   // 缶詰の発明ゲートを開ける（産出は0のまま）
+        int canned = Catalog.DiscoveryRowOf(Catalog.CannedFoodId, "");
+        foreach (var n in sim.Nations) n.World.Discovered[canned] = true;   // 缶詰の発見の門を開ける（産出は0のまま・★段2A＝旧は技術水準を onset の上へ）
         var opened = ProductionDiag.UnavailableGoods(sim, coef);
-        Assert.False(opened[Catalog.CannedFoodId], "技術が缶詰の onset を越えても「存在しない財」のまま＝判定が技術に追随していない");
+        Assert.False(opened[Catalog.CannedFoodId], "缶詰を発見しても「存在しない財」のまま＝判定が発見に追随していない");
     }
 
     private static int GoodId(string name)
@@ -144,7 +142,7 @@ public class PhantomProductionTests
                 {
                     if (s.GoodId < 0 || s.GoodId >= Catalog.Goods.Length) continue;
                     if (Catalog.Goods[s.GoodId].Tier == GoodTier.Service) continue;
-                    if (ProductionDiag.TechGate(s.GoodId, s.TechOnset, region.TechLevel) > 0)
+                    if (Discovery.Gate(region, s) > 0)
                     {
                         if (s.GoodId == steel && !s.Bankrupt) { Assert.True(s.Scale > 0, $"{region.Name}の鋼が誤って0にされた"); kept++; }
                         continue;
@@ -175,7 +173,7 @@ public class PhantomProductionTests
             if (pr is null) continue;
             regions++;
             // 生産タブの州別テーブルはこの判定で民営/国営の棟数を0にする
-            Assert.True(ProductionDiag.TechGate(mg, pr.TechOnset, region.TechLevel) <= ProductionDiag.TechGateClosed,
+            Assert.True(Discovery.Gate(region, pr) <= ProductionDiag.TechGateClosed,
                 $"{region.Name}の機関銃の技術ゲートが開いている（1783年に量産できる想定になっている）");
         }
         Assert.True(regions >= 5, $"日本の機関銃の生産者が居る州が少なすぎる（{regions}）＝ハーネスが空回りしている");

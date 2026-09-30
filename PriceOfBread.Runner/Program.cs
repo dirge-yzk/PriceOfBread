@@ -4328,6 +4328,138 @@ if (args.Length > 0 && args[0] == "landgraph")
     return;
 }
 
+// === ★発見の計器（段2A・2026-10-01）：誰がいつ何を発見したか・点数の3項の生の強度（観測だけ）： dotnet run -- discprobe [seed=1] [四半期=668] [間隔=40] [断面の行=既定の13行｜all｜行名,行名…] ===
+// 設計 §7 段2A の番人の計器「誰が最初に見つけたか（発見の国と年を記録する動詞＝観測だけ）」。selfplay-batch と同じ助走（StartWarmup）を通す。
+// 出力：①開幕の既知 ②発見の出来事（年・国・行・直前の四半期の3項）③間隔ごとの主要国×主要行の生の強度（技術水準÷難易度・押し・必要性の強度・接触）④行ごとの最初の国と年・主要国の年。
+// 生の強度は3項から逆算（必要性 n＝70s÷(s＋半分点) → s＝半分点×n÷(70−n)）＝エンジンの式を写さない。
+if (args.Length > 0 && args[0] == "discprobe")
+{
+    ulong dpSeed = ArgUlong(args, 1, 1UL);
+    int dpQ = ArgInt(args, 2, Coefficients.GameQuarters);
+    int dpEvery = ArgInt(args, 3, 40);
+    var msDp = new MultiNationSim(WorldData.Nations(), dpSeed, _ => new UtilityAgent());
+    msDp.StartWarmup();
+    var cDp = msDp.Nations[0].World.Coef;
+    var rowsDp = Catalog.Discoveries;
+    string[] majors = ["イギリス", "フランス", "プロイセン", "オーストリア", "ロシア", "アメリカ", "スペイン", "オスマン", "日本", "清", "ネーデルラント"];
+    string[] keyRows = ["蒸気機関", "甜菜糖", "機関車", "汽船", "転炉鋼", "石炭火力", "電動機", "機関銃", "装甲艦", "自動車", "ラジオ", "合成ゴム", "窒素固定"];
+    if (args.Length > 4) keyRows = args[4] == "all" ? rowsDp.Select(x => x.Name).ToArray() : args[4].Split(',');   // 断面に出す行（誰も発見しない行の3項を読む）
+    string NameOf(World w) => w.SelfPower?.BaseName ?? w.Region.Name;
+    Console.WriteLine($"# discprobe seed={dpSeed} 四半期={dpQ}　Y={cDp.DiscoveryTechPerDecade}・半分点 製法{cDp.DiscoveryNeedHalfProcess}/新兵器{cDp.DiscoveryNeedHalfWeapon}/新製品{cDp.DiscoveryNeedHalfProduct}/伝わり{cDp.DiscoveryContactHalf}");
+    Console.WriteLine("## 1. 開幕の既知（助走の終わり）＝主要国の蒸気機関と甜菜糖の3項（解禁済みでも項を見る）");
+    {
+        var view0 = msDp.Nations[0].World.LastDiscoveryView; double ww0 = view0?.Wage ?? 0;
+        int rSteam = System.Array.FindIndex(rowsDp, x => x.Name == "蒸気機関"), rBeet = System.Array.FindIndex(rowsDp, x => x.Name == "甜菜糖");
+        foreach (var dsim0 in msDp.Nations)
+        {
+            var w0 = dsim0.World;
+            var t0 = Discovery.Evaluate(w0, view0, cDp, includeKnown: true);
+            Console.WriteLine($"  {NameOf(w0),-12} 技術 {w0.TechLevel:F2}　人件費の世界比 {Discovery.LaborWage(w0).Wage / System.Math.Max(1e-12, ww0):F2}　蒸気機関 {t0[rSteam].Tech:F0}/{t0[rSteam].Need:F0}/{t0[rSteam].Transmit:F0}{(w0.Discovered[rSteam] ? "＝済" : "")}　甜菜糖 {t0[rBeet].Tech:F0}/{t0[rBeet].Need:F0}/{t0[rBeet].Transmit:F0}");
+        }
+    }
+    foreach (var dsim in msDp.Nations)
+    {
+        var k = dsim.World.Discovered;
+        var names = new List<string>();
+        for (int r = 0; r < rowsDp.Length; r++) if (k[r]) names.Add(rowsDp[r].Name);
+        if (names.Count > 0) Console.WriteLine($"- {NameOf(dsim.World)}: {string.Join("・", names)}");
+    }
+    var lastTerms = new Dictionary<World, Discovery.Terms[]>();
+    long evTicks = 0, evCount = 0;   // 発見の判定の1回の時間（計算量の台帳の単価 CostLedger.DiscoveryUnitMicros の実測）
+    var firstBy = new (string Nation, int Year)?[rowsDp.Length];
+    var yearOf = new Dictionary<(string, int), int>();
+    foreach (var dsim in msDp.Nations)
+        for (int r = 0; r < rowsDp.Length; r++)
+            if (dsim.World.Discovered[r]) { firstBy[r] ??= (NameOf(dsim.World), dsim.World.Year); yearOf[(NameOf(dsim.World), r)] = dsim.World.Year; }
+    // 製法の行の割高さの参照＝既定のレシピの投入の費用（参照価格）と財の参照価格の比（旧の参照＝財の参照価格は工場の自己費用のぶん割高さを負へ偏らせた）
+    {
+        var w0 = msDp.Nations[0].World; var rp0 = Catalog.RefPrices;
+        var parts0 = new List<string>();
+        foreach (var d0 in rowsDp)
+        {
+            if (d0.Field != DiscoveryField.Process || d0.Good == Catalog.LaborId) continue;
+            var dp0 = w0.Regions.SelectMany(rg => rg.Producers).FirstOrDefault(p => p.GoodId == d0.Good && p.RecipeName.Length == 0);
+            if (dp0 is null) { parts0.Add($"{d0.Name}=既定なし"); continue; }
+            double sr0 = 0; foreach (var inp in dp0.Inputs) if (inp.GoodId >= 0 && inp.GoodId < rp0.Length) sr0 += inp.QtyPerOutput * rp0[inp.GoodId];
+            parts0.Add($"{d0.Name}={sr0:F3}/{rp0[d0.Good]:F3}（{sr0 / rp0[d0.Good] - 1:P1}）");
+        }
+        Console.WriteLine("## 1b. 製法の割高さの参照（既定のレシピの投入の費用／財の参照価格〔旧の参照〕・比−1＝旧の偏り）: " + string.Join("　", parts0));
+    }
+    Console.WriteLine("## 2. 発見の出来事（年 国 行 ＜直前の四半期の 技術力/必要性/伝わり＞）");
+    var prevKnown = new Dictionary<World, bool[]>();
+    foreach (var dsim in msDp.Nations) prevKnown[dsim.World] = (bool[])dsim.World.Discovered.Clone();
+    for (int q = 0; q < dpQ; q++)
+    {
+        msDp.StepQuarter();
+        foreach (var dsim in msDp.Nations)
+        {
+            var w = dsim.World;
+            if (!prevKnown.TryGetValue(w, out var pk)) { pk = (bool[])w.Discovered.Clone(); prevKnown[w] = pk; }   // 建国した国＝親から継いだ知識は出来事にしない
+            lastTerms.TryGetValue(w, out var lt);
+            for (int r = 0; r < rowsDp.Length; r++)
+                if (w.Discovered[r] && !pk[r])
+                {
+                    string tt = lt is not null ? $"{lt[r].Tech:F0}/{lt[r].Need:F0}/{lt[r].Transmit:F0}" : "—";
+                    Console.WriteLine($"{w.Year} {NameOf(w)} {rowsDp[r].Name} ＜{tt}＞");
+                    firstBy[r] ??= (NameOf(w), w.Year);
+                    yearOf.TryAdd((NameOf(w), r), w.Year);
+                    pk[r] = true;
+                }
+            long tEv = System.Diagnostics.Stopwatch.GetTimestamp();
+            lastTerms[w] = Discovery.Evaluate(w, w.LastDiscoveryView, w.Coef);
+            evTicks += System.Diagnostics.Stopwatch.GetTimestamp() - tEv; evCount++;
+        }
+        if ((q + 1) % dpEvery != 0) continue;
+        Console.WriteLine($"### {msDp.Nations[0].World.Year}年の断面（国: 行=技術水準÷難易度×押し｜必要性の強度｜接触｜点数）");
+        foreach (var nm in majors)
+        {
+            var dsim = msDp.Nations.FirstOrDefault(n => n.World.SelfPower?.BaseName == nm);
+            if (dsim is null) continue;
+            var w = dsim.World;
+            var tm = lastTerms[w];
+            var parts = new List<string>();
+            foreach (var kr in keyRows)
+            {
+                int r = System.Array.FindIndex(rowsDp, x => x.Name == kr);
+                if (r < 0) continue;
+                if (w.Discovered[r]) { parts.Add($"{kr}=済"); continue; }
+                double diff = Discovery.Difficulty(r, cDp);
+                double ratio = diff > 0 ? System.Math.Min(1, w.TechLevel / diff) : 1;
+                double push = ratio > 1e-9 ? tm[r].Tech / (Discovery.TermMax * ratio) : 0;
+                double half = rowsDp[r].Field switch { DiscoveryField.Process => cDp.DiscoveryNeedHalfProcess, DiscoveryField.Weapon => cDp.DiscoveryNeedHalfWeapon, _ => cDp.DiscoveryNeedHalfProduct };
+                double s = tm[r].Need < Discovery.TermMax - 1e-9 ? half * tm[r].Need / (Discovery.TermMax - tm[r].Need) : double.PositiveInfinity;
+                double x = tm[r].Transmit < Discovery.TermMax - 1e-9 ? cDp.DiscoveryContactHalf * tm[r].Transmit / (Discovery.TermMax - tm[r].Transmit) : double.PositiveInfinity;
+                // 製法の行＝その財の国の需要（必要性0 が「需要が無い」か「割高さが0以下」かを分ける）
+                string demTxt = "";
+                if (rowsDp[r].Field == DiscoveryField.Process)
+                {
+                    double dd = 0; int g0 = rowsDp[r].Good;
+                    foreach (var rg in w.Regions) if (rg.State == RegionState.Active && g0 < rg.Markets.Length) dd += rg.Markets[g0].LastDemand;
+                    demTxt = $"｜需要{dd:G3}";
+                }
+                parts.Add($"{kr}={ratio:F2}×{push:F2}｜{s:G3}｜{x:G3}｜{tm[r].Score:F0}{demTxt}");
+            }
+            Console.WriteLine($"- {nm}（技術 {w.TechLevel:F2}）: {string.Join("  ", parts)}");
+            // 人件費の物差し（労働を代替する発明の必要性の入力）＝労働・石炭・蒸気機関の国の値段（需要で重み付け）÷物価水準÷参照価格
+            double Px(int g) { double pd = 0, dd = 0; foreach (var rg in w.Regions) { if (rg.State != RegionState.Active || g >= rg.Markets.Length) continue; pd += rg.Markets[g].Price * rg.Markets[g].LastDemand; dd += rg.Markets[g].LastDemand; } return dd > 1e-12 ? pd / dd / w.NominalOf(Catalog.RefPrices[g]) : double.NaN; }
+            double We(int cls) { double e = 0, z = 0; foreach (var rg in w.Regions) { if (rg.State != RegionState.Active) continue; var pp = rg.PopOf(cls); if (pp is null || !(pp.Size > 0)) continue; e += pp.Earned; z += pp.Size; } return z > 1e-12 ? e / z : double.NaN; }
+            double coalNom = 0; { double pd = 0, dd = 0; foreach (var rg in w.Regions) { if (rg.State != RegionState.Active) continue; pd += rg.Markets[Catalog.CoalId].Price * rg.Markets[Catalog.CoalId].LastDemand; dd += rg.Markets[Catalog.CoalId].LastDemand; } coalNom = dd > 1e-12 ? pd / dd : double.NaN; }
+            Console.WriteLine($"    人件費の物差し（値段÷参照×物価）: 労働 {Px(Catalog.LaborId):F2}・石炭 {Px(Catalog.CoalId):F2}・蒸気機関 {Px(Catalog.SteamEngineId):F2}・電力 {Px(Catalog.ElectricityId):F2}　1人の月の所得÷物価: 工場労働者 {We(PopClass.Worker) / w.NominalOf(1):F3}・農民 {We(PopClass.Peasant) / w.NominalOf(1):F3}　÷石炭の値段: 工場労働者 {We(PopClass.Worker) / coalNom:F3}・農民 {We(PopClass.Peasant) / coalNom:F3}　1人GDP {w.Gdp / System.Math.Max(1e-9, w.TotalPopulation):F4}　人件費の世界比 {Discovery.LaborWage(w).Wage / System.Math.Max(1e-12, w.LastDiscoveryView?.Wage ?? 0):F2}");
+        }
+    }
+    Console.WriteLine("## 4. 行ごとの最初の国と年・主要国の年");
+    for (int r = 0; r < rowsDp.Length; r++)
+    {
+        var f = firstBy[r];
+        var per = majors.Select(nm => yearOf.TryGetValue((nm, r), out int y) ? $"{nm}{y}" : $"{nm}—");
+        Console.WriteLine($"- {rowsDp[r].Name}（{rowsDp[r].Decade}年代）: 最初 {(f is { } ff ? $"{ff.Nation} {ff.Year}" : "—")}　{string.Join(" ", per)}");
+    }
+    int total = 0; foreach (var dsim in msDp.Nations) foreach (bool b in dsim.World.Discovered) if (b) total++;
+    Console.WriteLine($"終局の解禁の総数（国×行）: {total}／{msDp.Nations.Count * rowsDp.Length}");
+    Console.WriteLine($"発見の判定（Discovery.Evaluate）の1回＝{evTicks * 1e6 / System.Diagnostics.Stopwatch.Frequency / System.Math.Max(1, evCount):F1} マイクロ秒（{evCount} 回・計算量の台帳の単価 {CostLedger.DiscoveryUnitMicros}）");
+    return;
+}
+
 // === 02断線走査 §3恒久対策（2026-07-28）：型F検出器＝参照価格の順位・並存レシピの単位投入費・解禁順の警告： dotnet run -- refaudit ===
 // ⚠改名2026-09-08：同名の refprice（参照価格の一覧・:834）が先に return するため、2026-09-05 以降この検出器は一度も走っていなかった。
 // portledger が政治の二重計上を可視化したのと同じ役割を財の側で果たす（電力・缶詰・グアノ・水力・肥料の5件はこの1回の実行で全部出る）。
@@ -4345,9 +4477,9 @@ if (args.Length > 0 && args[0] == "refaudit")
         if (!seenSets.Add(key)) continue;
         var ranked = b.OrderBy(x => rp[x]).ToArray();
         Console.WriteLine("- 候補群[" + string.Join("・", b.Select(x => goods[x].Name)) + "] 順位: "
-            + string.Join(" < ", ranked.Select(x => $"{goods[x].Name}({rp[x]:F2}・onset{Catalog.DefaultRecipeOnset(x):F2})")));
+            + string.Join(" < ", ranked.Select(x => $"{goods[x].Name}({rp[x]:F2}・{DecadeText(x, "")})")));
     }
-    Console.WriteLine("\n## 2. 並存レシピの単位投入費（Σ投入比×参照価格・安い方が市場で駆逐する）と解禁onset\n");
+    Console.WriteLine("\n## 2. 並存レシピの単位投入費（Σ投入比×参照価格・安い方が市場で駆逐する）と発見の年代（段2A＝発見の表の行・無い＝地理差）\n");
     var rsim = new MultiNationSim([NationConfig.Britain()], seed: 1);
     var rw = rsim.Nations[0].World;
     var byGood = new Dictionary<int, List<Producer>>();
@@ -4356,26 +4488,25 @@ if (args.Length > 0 && args[0] == "refaudit")
         if (!byGood.TryGetValue(pr.GoodId, out var l)) byGood[pr.GoodId] = l = new List<Producer>();
         l.Add(pr);
     }
-    const double TechReachableMax = 2.1;   // C-高8：主要国が1934年までに到達できる帯の上限（英1877/普1900/米1915/清1900）
     foreach (var kv in byGood.OrderBy(k => k.Key))
     {
         if (kv.Value.Count < 2) continue;   // 並存レシピ（同一財に複数生産者）のみ
-        Console.WriteLine($"### {goods[kv.Key].Name}({kv.Key})　既定onset {Catalog.DefaultRecipeOnset(kv.Key):F2}");
+        Console.WriteLine($"### {goods[kv.Key].Name}({kv.Key})　既定 {DecadeText(kv.Key, "")}");
         foreach (var pr in kv.Value)
         {
             double unitCost = 0; foreach (var inp in pr.Inputs) unitCost += inp.QtyPerOutput * rp[inp.GoodId];
-            string onsetWarn = pr.TechOnset > TechReachableMax ? "　⚠ onsetが到達帯2.1超＝事実上の死レシピ" : "";
-            Console.WriteLine($"  - {(string.IsNullOrEmpty(pr.RecipeName) ? "(既定)" : pr.RecipeName),-10} onset {pr.TechOnset:F2}　単位投入費 {unitCost:F2}{onsetWarn}");
+            Console.WriteLine($"  - {(string.IsNullOrEmpty(pr.RecipeName) ? "(既定)" : pr.RecipeName),-10} {DecadeText(pr.GoodId, pr.RecipeName)}　単位投入費 {unitCost:F2}");
         }
     }
-    Console.WriteLine("\n## 3. 到達不能onsetの警告（TechOnset > 2.1＝C-高8の到達帯上限）\n");
-    int warned = 0;
-    foreach (var r in rw.Regions)
-        foreach (var pr in r.Producers)
-            if (pr.TechOnset > TechReachableMax)
-            { Console.WriteLine($"- ⚠ {r.Name}: {goods[pr.GoodId].Name} '{pr.RecipeName}' onset={pr.TechOnset:F2}"); warned++; }
-    Console.WriteLine(warned == 0 ? "警告なし" : $"計{warned}件");
+    Console.WriteLine("\n## 3. 発見の表（段2A）＝行・分野・年代・難易度（Y＝DiscoveryTechPerDecade）\n");
+    var cfa = new Coefficients();
+    for (int row = 0; row < Catalog.Discoveries.Length; row++)
+    {
+        var d = Catalog.Discoveries[row];
+        Console.WriteLine($"- {d.Name}（{goods[d.Good].Name}・{(d.Recipe == "" ? "既定" : d.Recipe)}）{d.Field}{(d.Domain != WarDomain.None ? "・" + d.Domain : "")}　{d.Decade}年代　難易度 {Discovery.Difficulty(row, cfa):F2}");
+    }
     return;
+    static string DecadeText(int g, string recipe) => Catalog.DiscoveryRowOf(g, recipe) is int row and >= 0 ? $"{Catalog.Discoveries[row].Decade}年代" : "地理差";
 }
 
 // === セーブ/ロードの往復検証： dotnet run -- savetest [seed] [事前四半期] [事後四半期] ===

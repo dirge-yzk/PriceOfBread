@@ -33,7 +33,7 @@ public static class Colonial
         //    遠方植民地が多い国（イギリス）ほど石炭・糧食が逼迫し交易船が補給に取られる＝一強の是正を物理コストで律する（固定倍率2.0を排除）。
         // ★2026-09-28（植民地の費用の側・c1・c2・R2）：
         //   c1＝補給線の石炭は民間の汽船と**同じ状態**（汽船の割合 ShipSteamShareEma＝帆走なら0）と**同じ物理**（機関の時代係数 EraColonyCoal＝容量あたりの燃料・Transport と共有）で焚く。
-        //       旧＝汽船の発明の前から焚いた（英1783-1802 の植民地維持費の実払いの62%）。缶詰糧食は缶詰の財の解禁度（EquipUnlock＝装備の解禁の唯一の読み口）で食う
+        //       旧＝汽船の発明の前から焚いた（英1783-1802 の植民地維持費の実払いの62%）。缶詰糧食は缶詰の財の解禁度（Discovery.GoodGate＝装備の解禁の唯一の読み口）で食う
         //       ＝アペール法の前の駐留は缶詰を食わない。旧の EraColonyFood（缶詰・冷蔵で距離あたりの糧食が下がる）はこの解禁度が置き換えた＝係数ごと削除。
         //   c2＝平場（旧 ColonyUpkeepBase＝1行150/月）を撤去＝同じ俸給は行政の購買（植民地格の州の官僚の給与×人数×首都からの距離の割増＝UpkeepDistanceGeneral・2026-09-30 (135) に
         //       旧の行政費の人頭割り AdminCostPerPop から移した＝Fiscal.AdminDistanceMul）が払っている。
@@ -49,7 +49,7 @@ public static class Colonial
         bool panamaOpen = w.Diplomacy?.ChokeOpenFor(Diplomacy.PanamaId, w.SelfPower) ?? false;
         double coalWant = 0, foodWant = 0, shipBurden = 0, quinineWant = 0;
         double coalPerMassDist = c.ColonyUpkeepCoalPerDist * w.ShipSteamShareEma * c.EraFactor(w.WorldTechLevel, c.EraColonyCoal);   // c1：帆走（割合0）の補給線は石炭を焚かない
-        double foodPerMassDist = c.ColonyUpkeepFoodPerDist * EconomyStep.EquipUnlock(r, c, foodG);                                    // c1：缶詰の未発見の間は缶詰を食わない
+        double foodPerMassDist = c.ColonyUpkeepFoodPerDist * Discovery.GoodGate(r, foodG);                                    // c1：缶詰の未発見の間は缶詰を食わない
         double countPerMass = w.Diplomacy is { } dipM && dipM.InitialColonyMass > 1e-9 ? dipM.InitialColonyCount / dipM.InitialColonyMass : 1.0;   // R2：質量→個数単位の錨
         // ★植民地の州昇格（2026-08-26・ColoniesAreRegions）：昇格した植民地は ColonyList に居ないので、
         //   **同じ式**を植民地格の州にも当てる＝帝国の過伸展のコストが昇格で消えない。
@@ -281,7 +281,7 @@ public static class Colonial
     }
 
     // 補給線燃料の石炭→重油二択（B6・2026-07-19）：石炭 vs 原油の実効単価が安い方（原油はエネルギー密度で同熱量の必要量が1/比）。
-    // 原油は DefaultRecipeOnset=0.6（1859）まで供給ゼロ＝転換時期は価格から創発（明示の技術ゲート不要）。ColonyFuelOilEnergyRatio=0で石炭固定。
+    // 原油は掘削の機械が要る（OilNeedsMachinery）＝転換時期は価格から創発（明示の技術ゲート不要）。ColonyFuelOilEnergyRatio=0で石炭固定。
     // 読み手＝Colonial.Step（植民地補給線）・海軍の運用燃料・民間汽船（運用コスト監査2026-08-16）＝式は1本。
     internal static (int GoodId, double Want) ChooseFuelGood(Region r, Coefficients c, double coalWant)
     {

@@ -30,7 +30,8 @@ public static class EconomyStep
         public double[] TrickleOwner = [];  // 同上の作業配列（持ち主POPごとの発注額の和→充足率）
         public int[] LaborCount = [];
         public double[] LastSupply = [];   // ★前月の補給の充足（Pop.SupplyFill）＝月頭のゼロ化の前に撮る作業配列（状態ではない・2026-09-22）
-        public bool[] IsStaple = [], IsService = [], AnyProducer = [], AnyUnlocked = [];
+        public bool[] IsStaple = [], IsService = [];
+        public double[] GoodGate = [], DemandGate = [];   // ★財の解禁（段2A・2026-10-01）＝Discovery.GoodGates を月の Run の頭で1回（国の解禁＝電化・効率化材／世界の解禁の和＝需要）
         public Good[] ConsumeOrder = [];
     }
     [System.ThreadStatic] private static Scratch? _scratch;
@@ -43,7 +44,7 @@ public static class EconomyStep
             s.InvestDemand = new double[ng]; s.MilitaryDemand = new double[ng]; s.RebelDemand = new double[ng]; s.Ration = new double[ng];
             s.EffDemand = new double[ng]; s.EffRation = new double[ng]; s.ClearPrice = new double[ng];
             s.Revenue = new double[ng]; s.ProducerCount = new int[ng];
-            s.IsStaple = new bool[ng]; s.IsService = new bool[ng]; s.AnyProducer = new bool[ng]; s.AnyUnlocked = new bool[ng];
+            s.IsStaple = new bool[ng]; s.IsService = new bool[ng]; s.GoodGate = new double[ng]; s.DemandGate = new double[ng];
         }
         else
         {
@@ -51,7 +52,7 @@ public static class EconomyStep
             System.Array.Clear(s.InvestDemand); System.Array.Clear(s.MilitaryDemand); System.Array.Clear(s.RebelDemand); System.Array.Clear(s.Ration);
             System.Array.Clear(s.EffDemand); System.Array.Clear(s.EffRation); System.Array.Clear(s.ClearPrice);
             System.Array.Clear(s.Revenue); System.Array.Clear(s.ProducerCount);
-            System.Array.Clear(s.IsStaple); System.Array.Clear(s.IsService); System.Array.Clear(s.AnyProducer); System.Array.Clear(s.AnyUnlocked);
+            System.Array.Clear(s.IsStaple); System.Array.Clear(s.IsService);   // GoodGate は Run の頭で全要素を上書きする
         }
         if (s.InputCost.Length < np)
         {
@@ -127,34 +128,15 @@ public static class EconomyStep
         return true;
     }
 
-    /// <summary>装備の解禁度（0..1）＝「まだ発見していない装備は理想の軍隊に入れない」の**唯一の読み口**
-    /// （作者裁定2026-09-08「機関銃陣地を発見するまで、理想の軍隊に機関銃を入れない」）。
-    /// 判定はこの世界の解禁の1本＝<see cref="ProductionDiag.TechGate"/>（AdvancedTechScale×RecipeTechScale）だけを読む
-    /// ＝新しい解禁の仕組みを作らない。0..1の連続量をそのまま返す＝**崖を作らない**（部分解禁は部分的にしか数えない）。
-    /// onset は「この州に実在する製法のうち最も早く解禁されるもの」＝効率化材の解禁判定（anyProducer/anyUnlocked）と同じ規律
-    /// （汽船85・機関車88 の TechOnset は起動時に既定 Producer へ焼かれる＝既定onsetだけを読むと汽船の未発明を見落とす）。
-    /// 生産者が1つも居ない財（賦存の無いRGO＝馬など）は既定レシピの onset で読む＝「産地が無い」を「作れない」と取り違えない。</summary>
-    internal static double EquipUnlock(Region region, Coefficients coef, int gid)
-    {
-        double best = -1;
-        foreach (var pr in region.Producers)
-            if (pr.GoodId == gid)
-            {
-                double g = ProductionDiag.TechGate(gid, pr.TechOnset, region.TechLevel);
-                if (g > best) best = g;
-            }
-        if (best < 0) best = ProductionDiag.TechGate(gid, Catalog.DefaultRecipeOnset(gid, coef), region.TechLevel);
-        return !(best > 0) ? 0.0 : Math.Min(1.0, best);   // 否定形＝NaN は「まだ発見していない」側へ倒す
-    }
-
-    /// <summary>装備の原単位表に発見の解禁度を掛けた表を返す（<c>原単位 × 解禁度</c>）。
+    /// <summary>装備の原単位表に発見の解禁度を掛けた表を返す（<c>原単位 × 解禁度</c>）。解禁度＝財の解禁（<see cref="Discovery.GoodGate"/>＝「まだ発見していない装備は理想の軍隊に入れない」の
+    /// 唯一の読み口・作者裁定2026-09-08「機関銃陣地を発見するまで、理想の軍隊に機関銃を入れない」・★2026-10-01 段2A＝2値の発見・旧 EquipUnlock＝技術水準の傾斜は削除）。
     /// 必要量（分母）・発注（分子）・見積（予算）・目標在庫の全てがこの1本を通る＝分子と分母の非対称を作らない。
     /// ★旗 EquipNeedsDiscovery（旧＝<c>1 − k(1 − 解禁度)</c> の k）は 2026-09-27 回2-1 で点火して削除＝常にこの形。</summary>
     internal static double[] DiscoveredRates(Region region, Coefficients coef, int[] goods, double[] rates)
     {
         var res = new double[rates.Length];
         for (int b = 0; b < rates.Length; b++)
-            res[b] = b < goods.Length ? rates[b] * EquipUnlock(region, coef, goods[b]) : rates[b];
+            res[b] = b < goods.Length ? rates[b] * Discovery.GoodGate(region, goods[b]) : rates[b];
         return res;
     }
 
@@ -376,6 +358,10 @@ public static class EconomyStep
         //   world==null（較正セル・単体テスト）は常に false＝厳密恒等。
         bool warmFrozen = world?.WarmupFrozen == true;
         var scratch = RentScratch(ng, np, region.Pops.Count);
+        var goodGate = scratch.GoodGate;
+        Discovery.GoodGates(region, goodGate, ng, region.Discovered);   // ★財の解禁（段2A＝レシピの解禁の最大・生産者の居ない財は既定のレシピの行）＝電化・効率化材（作るか・使うかの国の判断）
+        var demandGate = scratch.DemandGate;
+        Discovery.GoodGates(region, demandGate, ng, world?.WorldDiscovered ?? region.Discovered);   // ★需要の門＝世界の解禁の和（どこかの国が作れる財は輸入で手に入る）・単独の世界は国の解禁
         var produced = scratch.Produced;
         var inputNeed = scratch.InputNeed;
         var inputTrickle = scratch.InputTrickle;   // 経1：再点火トリクルの超過分（Output超え＝止まった工場の再開発注）。コア需要に入る＝実際に在庫を食う（作者裁定2026-08-01）
@@ -494,7 +480,7 @@ public static class EconomyStep
         for (int pi = 0; pi < np; pi++)
         {
             var s = region.Producers[pi];
-            // A-中1派生（2026-07-23）：**未発明のレシピは労働を雇わない**＝TechOnset 未解禁の生産者は労働配分に参加しない
+            // A-中1派生（2026-07-23）：**未発明のレシピは労働を雇わない**＝未発見（★2026-10-01 段2A＝発見の門 Discovery.Gate が0・旧 TechOnset 未解禁）の生産者は労働配分に参加しない
             //（旧＝解禁前でも prodW=需要×Scale の死ウェイトを持ち、労働を取るのに産出0＝純損失。onset レシピが増えるたびに
             // 見えない損失が積もる構造で、水力発電の追加が4カ国テスト世界の米Techアンカーを割って発覚）。onset≤0＝×1.0＝厳密恒等。
             // ⚠この行にゲートは無い＝上の記述が真になるのは **操業規模の更新の TechGatedScaleZero（2026-08-11 点火）が Scale=0 を置く経路**による。
@@ -619,21 +605,19 @@ public static class EconomyStep
             // 役務（教育・医療・行政・高度労働力）＝労働集約のまま＝倍率に乗らない（ボーモルのコスト病）。
             // 人力労働＝工業化（indMult＝投資で買い積んだ機械・組織）でのみ伸びる＝裸の技術では人は増えない。
             // 工場＝フル倍率＋**電化ブースト**（買えた電力に応じて稼働率↑＝夜間操業）。
-            // ※AdvancedTechScale＝**発明の時期の表現**（外科的パッチではない・結論）。撤去実験を二度行い、
+            // ※発見の門＝**発明の時期の表現**（外科的パッチではない・結論）。撤去実験を二度行い、
             //   一律参照価格でも費用連鎖の参照価格でも1790年代に電化が始まった（28%）＝価格は「高い」を表現できても
             //   「まだ発明されていない」を表現できない（カタログは全レシピを1789年から実働で持つ）。
-            //   発電機系の生産性が技術と共に立ち上がる＝発明＝知識の普及の正当なモデルとして確定。
+            //   ★2026-10-01 段2A：門は技術水準の傾斜から**発見（2値）**へ（Discovery.Gate＝国が点数100に届いたレシピだけ1）＝普及のなめらかさは市場（操業規模の伸び）が持つ。
             bool isLabor = s.GoodId is Catalog.LaborId or Catalog.FarmLaborId;   // 人力（工場労働・農業労働）＝工業化(indMult)でのみ伸びる
             bool baumol = isService[s.GoodId] && !isLabor;
             // ★2026-08-10（幻の生産）：技術ゲート2本を**変数に取る**だけ（式・値・掛順は不変＝厳密恒等）。
             //   下の産出スナップが「未発明か」を**この同じ値**で判定する＝能力の式と判定式が食い違わない。
-            double recipeGate = Catalog.RecipeTechScale(s.TechOnset, region.TechLevel);   // 代替レシピの近代側の製法を晩期にゲート（TechOnset=0＝旧法は無ゲート）＝発明の時期の表現
-            double advGate = Catalog.AdvancedTechScale(s.GoodId, region.TechLevel);       // 財の連鎖の深さから導く発明ゲート
+            double gate = Discovery.Gate(region, s);   // 発見の門（レシピの行を国が発見したか・表に無いレシピ＝地理差は1・鉱床の後期の産地だけ傾斜・退場のレシピは後継の発見で0）
             double boost = baumol ? 1.0
-                : isLabor ? indMult * recipeGate   // 04材化(c)：労働力の並存レシピ（畜力/蒸気/電動）の発明ゲート。既存人力=TechOnset0で×1.0＝厳密恒等
+                : isLabor ? indMult * gate   // 04材化(c)：労働力の並存レシピ（畜力/蒸気/電動）の発見の門。人力・畜力・水車＝表に無い＝×1.0
                 : productivityMultiplier * region.ProductivityBonus * indMult * (1.0 + coef.SteamBoost * s.SteamFill) * (1.0 + coef.ElecBoost * s.ElecFill) * (1.0 + coef.EffBoost * s.EffFill)
-                  * advGate      // 工場は蒸気(SteamFill)→電化(ElecFill)、RGOは効率化材(EffFill)で増産。RGOはSteam/Elec=0、工場はEff=0なので各々の分だけ乗る
-                  * recipeGate;
+                  * gate;        // 工場は蒸気(SteamFill)→電化(ElecFill)、RGOは効率化材(EffFill)で増産。RGOはSteam/Elec=0、工場はEff=0なので各々の分だけ乗る
             // 05-A（2026-07-29）：戦災＝農業・畜産の産出減（劣勢側の戦場のみ・戦争終結で自然回復）。飢饉・食料充足・扶養力の丁寧な機構に
             // 戦争が一切影響しなかった欠落を閉じる（戦争→飢饉→闘争度→政変の連鎖）。畜産(19)は重め＝「馬は真っ先に持っていかれる」（徴発は市場価格経由で自動）。
             if (s.IsRgo && region.LastWarIntensity > 1e-12)
@@ -717,7 +701,7 @@ public static class EconomyStep
             // 「0にすると二度と立ち上がらない」経路は無い。PhantomOutputSnapFloor=0 で①②とも不発＝現行と厳密恒等。
             if (coef.PhantomOutputSnapFloor > 0)
             {
-                bool unInvented = !baumol && (isLabor ? !(recipeGate > 0) : !(advGate > 0) || !(recipeGate > 0));   // 否定形＝NaN も未発明側へ倒す
+                bool unInvented = !baumol && !(gate > 0);   // 否定形＝NaN も未発明側へ倒す
                 if (unInvented) s.Output = 0;
                 else if (!(target > 0) && s.Output < coef.PhantomOutputSnapFloor * coef.TargetStockFloor) s.Output = 0;
             }
@@ -1012,7 +996,7 @@ public static class EconomyStep
                     double remainingA = Math.Max(0, remaining3 - OrderTier(coef.MilitaryTier3Goods, t3Rates, remaining3));
 
                     // 1934拡張E2（2026-07-19）：空軍装備（飛行機・戦闘機・化学兵器）＝tier3の更なる残余で調達＝空の別枠 Fill。
-                    // 財の解禁（onset1.0=1910s）前は生産ゼロ→Fill 0＝制空も厭戦も不走行＝厳密恒等。
+                    // 財の解禁（★2026-10-01 段2A＝発見の表の軍用機〔1910年代〕・旧 onset1.0）前は生産ゼロ→Fill 0＝制空も厭戦も不走行＝厳密恒等。
                     if (AllPresent(coef.MilitaryAirGoods, ng))
                     {
                         double aCost = TierCost(region, coef, coef.MilitaryAirGoods, airRates, false, 1.0, 1.0);   // 空軍は陸海の再配分を掛けない（意図＝作者裁定 2026-09-28 §13-5：空は陸海のどちらの取り分でもない別枠）
@@ -1184,23 +1168,13 @@ public static class EconomyStep
         // === ② 工場の投入需要 ＋ 財ごとの生産者数。電化の意思決定もここ ===
         bool elecOn = Catalog.ElectricityId < ng && isService.Length > Catalog.ElectricityId;   // 電力を持つ世界か（小シナリオは対象外）
         bool energyOn = coef.EnergyPerOutput > 0 && Catalog.CoalId < ng;   // #9 石炭動力を持つ世界か（石炭good非搭載の最小テスト経済では inputNeed[CoalId] が範囲外になるので必須ガード＝電化の elecOn と同型）
-        double steamGate = energyOn ? coef.SteamGate(region.TechLevel) : 0.0;   // 蒸気機関の発明・普及度（電化の AdvancedTechScale(電力) と同役）。0=未発明＝石炭を焚かない（1789年の蒸気の時代錯誤を解消）
+        double steamGate = energyOn ? coef.SteamGate(region.TechLevel) : 0.0;   // 蒸気機関の発明・普及度（電化の電力の財の解禁と同役・⚠技術水準の傾斜のまま＝発見の表へ移すのは次の段）。0=未発明＝石炭を焚かない（1789年の蒸気の時代錯誤を解消）
         var elecNeed = scratch.ElecNeed;
         var steamNeed = scratch.SteamNeed;  // 蒸気動力化した工場の石炭（燃料）購入量。電化分は電力が代替（(1−ElecFill)）。energyOn かつ steamGate>0 でのみ立つ（旧：全機械化工場が無条件で焚いていた＝時代錯誤を是正）
         var effNeed = scratch.EffNeed;      // RGO効率化材の購入量
         var effChosen = scratch.EffChosen;  // 今期その産者が選んだ効率化材の good.Id（候補から最安を選択。-1＝買わない）
         for (int i = 0; i < np; i++) effChosen[i] = -1;
-        // 効率化材の解禁判定（財別・Run内不変）を1回で前計算：全生産者を1周し、財ごとに「生産者が実在するか」「その中に解禁済みが1つでもあるか」を積む。
-        // 下のEffGoods選定は producer×候補材ごとに読むだけ（値・判定は元の入れ子走査と同一＝ビット恒等）。
-        var anyProducerArr = scratch.AnyProducer;
-        var anyUnlockedArr = scratch.AnyUnlocked;
-        foreach (var bprodAll in region.Producers)
-        {
-            int pbg = bprodAll.GoodId;
-            if (pbg < 0 || pbg >= ng) continue;
-            anyProducerArr[pbg] = true;
-            if (Catalog.RecipeTechScale(bprodAll.TechOnset > 0 ? bprodAll.TechOnset : Catalog.DefaultRecipeOnset(pbg, coef), region.TechLevel) > 0) anyUnlockedArr[pbg] = true;
-        }
+        // 効率化材の解禁判定＝財の解禁（Run の頭で1回求めた goodGate＝その州の生産者の門の最大・生産者の居ない財は既定のレシピの行）。
         for (int pi = 0; pi < np; pi++)
         {
             var s = region.Producers[pi];
@@ -1224,7 +1198,7 @@ public static class EconomyStep
             // 電化の意思決定：稼働率↑の価値が電力代を上回るなら買う＝高価格財の工場から電化が始まり、
             // 電力が安くなるほど裾野（安い財）へ広がる＝**電化の波が価格から創発**（時代クランプなし）。
             if (elecOn && s.BuysLabor && s.GoodId != Catalog.ElectricityId
-                && Catalog.AdvancedTechScale(Catalog.ElectricityId, region.TechLevel) > 0   // 電力が未発明なら電化しない（序盤の電力需要を断つ）
+                && goodGate[Catalog.ElectricityId] > 0   // 電力が未発見なら電化しない（序盤の電力需要を断つ）＝電力の財の解禁（石炭火力・水力・蒸気タービン・石油火力のどれか）
                 && coef.ElecBoost * region.Markets[s.GoodId].Price > coef.ElecPerOutput * region.Markets[Catalog.ElectricityId].Price)
                 elecNeed[pi] = s.Output * coef.ElecPerOutput;
             // 蒸気動力の意思決定（電化と完全に同型）：原動機(蒸気機関)が発明され(steamGate>0)、稼働率↑の価値が石炭代を上回るなら焚く＝
@@ -1240,10 +1214,9 @@ public static class EconomyStep
             foreach (int bg in s.EffGoods)
             {
                 if (bg < 0 || bg >= ng) continue;
-                if (Catalog.AdvancedTechScale(bg, region.TechLevel) <= 0) continue;
-                // 02断線走査（2026-07-28）：既定onsetでなく「この州に解禁済みの生産者が実在するか」で判定＝グアノ肥料（onset0）が届く国は1842年を待たずに肥料を使える（1840s-70sのグアノ時代の先行・ペルーの非対称）。生産者が居ない財は従来どおり既定onsetで判定。値は上の前計算（anyProducerArr/anyUnlockedArr）から読む。
-                bool anyProducer = anyProducerArr[bg], anyUnlocked = anyUnlockedArr[bg];
-                if (anyProducer ? !anyUnlocked : Catalog.RecipeTechScale(Catalog.DefaultRecipeOnset(bg, coef), region.TechLevel) <= 0) continue;   // 解禁前の候補を「供給ゼロの凍結価格」で選ばない（レビュー2026-07-19の規律は維持）
+                // 02断線走査（2026-07-28）：「この州に解禁済みの生産者が実在するか」で判定＝グアノ肥料（地理差）が届く国は過リン酸石灰の発見を待たずに肥料を使える（1840s-70sのグアノ時代の先行・ペルーの非対称）。
+                //   生産者が居ない財は既定のレシピの行で判定＝財の解禁（goodGate）そのもの。
+                if (!(goodGate[bg] > 0)) continue;   // 解禁前の候補を「供給ゼロの凍結価格」で選ばない（レビュー2026-07-19の規律は維持）・否定形
                 double bp = region.Markets[bg].Price;
                 if (coef.EffBoost * outPrice <= coef.EffPerOutput * bp) continue;   // 割に合わない
                 if (bp < bestPrice) { bestPrice = bp; chosen = bg; }
@@ -1376,10 +1349,10 @@ public static class EconomyStep
             }
             // ★塊1段1b：バスケットに肉が入った分だけ穀物の取り分が減る（野菜追加時のパン0.80→0.55と同じ処理をデータ比から導出）＝総食料需要は中立。ゲート0＝×1.0＝恒等
             if (staple && coef.FoodIncludesAnimalProtein > 0) effBaseNeed *= 1.0 - coef.FoodIncludesAnimalProtein * Catalog.AnimalNutritionNeedRatio;
-            // 先進消費財（電化製品）は発明前は需要も立たない＝供給と同じ発明ゲートで解禁（非先進財は常に×1.0）。
-            effBaseNeed *= Catalog.AdvancedTechScale(gi, region.TechLevel);
-            // 浅連鎖の明示需要ゲート（B6レビュー2026-07-19）：自転車＝発明前の幻需要（100年の未充足＝満足度ドラグ）を防ぐ。大半の財は0=×1.0
-            effBaseNeed *= Catalog.RecipeTechScale(Catalog.DemandOnset(gi), region.TechLevel);
+            // ★需要＝財の解禁（段2A・2026-10-01・設計 §1-2）：世界のどの国も発見していない財は需要も立たない（旧＝財の門（発明の行）×需要の門（需要の行・B6レビュー2026-07-19＝自転車の幻需要）の2本）。
+            //   ⚠「財の解禁」は世界の解禁の和（どこかの国が作れる＝輸入で手に入る）で読む＝推奨で進めた（実装ログ (147)）：国の解禁で読むと、缶詰・ガスを発見しない国（清・印・東南アジア）は
+            //   輸入で満たしていた消費が消えた（5種の探索で exact −7.6pt・下がった国は全てアジアとアフリカ＝旧の需要に戻すと +1.9pt）。地理差のレシピが1本でもある財は常に×1.0。
+            effBaseNeed *= demandGate[gi];
             // 都市住宅（housing-urban-rent-absent）：住居の必要量は**都市popのみ**・都市化度ゲートの先でだけ立てる。HousingNeedPerUrban=0.03（点火2026-07-18）。0で住居項=0＝家賃が家計に乗らない。
             bool housingGood = Catalog.HousingId < ng && gi == Catalog.HousingId && coef.HousingNeedPerUrban > 0;
             double housingGate = 0;
@@ -2361,12 +2334,12 @@ public static class EconomyStep
             s.Scale += catSpeed * (scaleTarget - s.Scale);   // ★カテゴリ速度（ゲート0＝ScaleAdjustSpeed＝恒等）
             // ★幻の工場（**live**・2026-08-11点火／係数 TechGatedScaleZero に由来の全文）＝技術ゲートが0の財は操業規模も0。
             // 上の scaleTarget は 1+利幅 が基底なので、**作れない財でも Scale が1.0付近へ育つ**（1783年に機関銃工場が7つ）。
-            // ゲートは供給側①が能力（boost）に掛けているのと同じ2本（AdvancedTechScale × RecipeTechScale）＝定義を分岐させない。
+            // ゲートは供給側①が能力（boost）に掛けているのと同じ1本（Discovery.Gate＝発見の門・2026-10-01 段2A）＝定義を分岐させない。
             // 役務（ボーモル＝発明ゲートを持たない）は対象外。労働財も Tier=Service なのでここで自然に外れる
             // （労働の生産者は労働配分の重み付けで競争そのものから外れるため Scale が重みにならない＝除外して安全）。
             // TechGatedScaleZero=0 で不発＝旧挙動と厳密恒等（二分探索の基線として恒久保持）。
             if (coef.TechGatedScaleZero > 0 && Catalog.Goods[gi].Tier != GoodTier.Service
-                && !(Catalog.AdvancedTechScale(gi, region.TechLevel) * Catalog.RecipeTechScale(s.TechOnset, region.TechLevel) > 0))   // 否定形＝NaN も「作れない」側へ倒す
+                && !(Discovery.Gate(region, s) > 0))   // 否定形＝NaN も「作れない」側へ倒す
                 s.Scale = 0;
 
             // 数期移動平均の採算で倒産/再参入（有限責任：慢性赤字の工場は退出し損失の垂れ流しを止める＝過剰在庫と床の固定を解消）

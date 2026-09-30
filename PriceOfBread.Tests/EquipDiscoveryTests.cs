@@ -5,10 +5,12 @@ namespace PriceOfBread.Tests;
 
 /// <summary>装備の発見（作者裁定2026-09-08「機関銃陣地を発見するまで、理想の軍隊に機関銃を入れない」）の番人。
 /// 旗 EquipNeedsDiscovery は 2026-09-27 回2-1 で点火して削除＝原単位表は常に「原単位×解禁度」（EconomyStep.DiscoveredRates）。
-/// 未解禁の装備が必要量・見積・武器庫の目標から抜け、解禁後は戻ること、「要らない」と「持っている」を区別することを固定する。</summary>
+/// 未解禁の装備が必要量・見積・武器庫の目標から抜け、解禁後は戻ること、「要らない」と「持っている」を区別することを固定する。
+/// ★2026-10-01 段2A：解禁度＝財の解禁（Discovery.GoodGate＝国が発見したレシピの最大・2値）。旧＝技術水準の傾斜（EquipUnlock）＝技術を上げて解禁した盤面は
+///   発見の表を国ごとに解禁済みにして作る（技術水準は解禁を決めない＝点数の技術力の項に入るだけ）。</summary>
 public class EquipDiscoveryTests
 {
-    private const int Car = Catalog.AutomobileId;   // 自動車（輜重）＝DefaultRecipeOnset 1.50
+    private const int Car = Catalog.AutomobileId;   // 自動車（輜重）＝発見の表の1890年代
 
     private static Simulation Build(ulong seed)
     {
@@ -22,24 +24,25 @@ public class EquipDiscoveryTests
     {
         var sim = Build(32);
         var r = sim.World.Region; var c = sim.World.Coef;
-        int iShip = System.Array.IndexOf(c.MilitaryGoods, Catalog.SteamshipId);   // 汽船＝既定Producerに TechOnset=0.5 が焼かれている
+        int iShip = System.Array.IndexOf(c.MilitaryGoods, Catalog.SteamshipId);   // 汽船＝発見の表の1820年代（既定のレシピの行）
         int iCar = System.Array.IndexOf(c.MilitaryGoods, Car);
-        int iRifle = System.Array.IndexOf(c.MilitaryGoods, Catalog.RifleId);                   // 小銃＝1783年から作れる（onset 0）
+        int iRifle = System.Array.IndexOf(c.MilitaryGoods, Catalog.RifleId);                   // 小銃＝1783年から作れる（表に行が無い）
         Assert.True(iShip >= 0 && iCar >= 0 && iRifle >= 0);
 
-        // 1783年の技術水準（助走直後）＝汽船も自動車も未発見
-        Assert.True(r.TechLevel < 0.5, $"前提が崩れている（初期技術 {r.TechLevel:F3}）");
+        // 1783年（24四半期の後）＝汽船も自動車も未発見
+        Assert.False(Discovery.Known(sim.World.Discovered, Catalog.DiscoveryRowOf(Catalog.SteamshipId, "")), "前提が崩れている（汽船が発見済み）");
         var early = EconomyStep.DiscoveredRates(r, c, c.MilitaryGoods, c.MilitaryRates);
         Assert.Equal(0.0, early[iShip]);
         Assert.Equal(0.0, early[iCar]);
         Assert.Equal(c.MilitaryRates[iRifle], early[iRifle]);   // 解禁済みの装備は1ビットも変わらない
-        Assert.Equal(0.0, EconomyStep.EquipUnlock(r, c, Catalog.SteamshipId));
+        Assert.Equal(0.0, Discovery.GoodGate(r, Catalog.SteamshipId));
 
-        // 発見後（技術水準を解禁の帯の上へ）＝理想の軍隊に戻る＝素の表と一致
-        r.TechLevel = 3.0;
+        // 発見後（発見の表を全て解禁済みへ）＝理想の軍隊に戻る＝素の表と一致
+        Assert.Same(sim.World.Discovered, r.Discovered);   // 州は国の配列を参照する（写しではない）
+        System.Array.Fill(sim.World.Discovered, true);
         var late = EconomyStep.DiscoveredRates(r, c, c.MilitaryGoods, c.MilitaryRates);
         Assert.Equal(c.MilitaryRates, late);
-        Assert.Equal(1.0, EconomyStep.EquipUnlock(r, c, Catalog.SteamshipId));
+        Assert.Equal(1.0, Discovery.GoodGate(r, Catalog.SteamshipId));
     }
 
     [Fact]
@@ -48,27 +51,43 @@ public class EquipDiscoveryTests
         // ★2026-09-27（回4-3 の再挑戦）：旧＝汽船(85) onset0.5・機関車(88) onset0.6 をコンストラクタが「構築時の州」だけに焼いていた
         //   ＝植民地格の州（PromoteColonyToRegion＝開幕の植民地・講和で奪った植民地）は onset0 のまま1783年から作れた（seed 1 の開幕で77州）。
         //   州の構築経路（AddAlternateRecipes）へ移した＝どの州も同じ解禁。
+        // ★2026-10-01 段2A：門は発見の表の行（財とレシピ名から導く）＝どの州の汽船・機関車の生産者も表の行を持つ（構築の経路に依らない）。
         var sim = new MultiNationSim(WorldData.Nations(), 1, _ => new UtilityAgent());
-        int colonial = 0, bad = 0;
+        int colonial = 0, bad = 0, seen = 0;
+        int rowShip = Catalog.DiscoveryRowOf(Catalog.SteamshipId, ""), rowLoco = Catalog.DiscoveryRowOf(Catalog.LocomotiveId, "");
+        Assert.True(rowShip >= 0 && rowLoco >= 0, "汽船・機関車の既定のレシピが発見の表に無い");
         foreach (var n in sim.Nations)
             foreach (var r in n.World.Regions)
             {
                 if (r.Tier == RegionTier.Colonial) colonial++;
                 foreach (var pr in r.Producers)
-                    if ((pr.GoodId == Catalog.SteamshipId && !(pr.TechOnset >= 0.5)) || (pr.GoodId == Catalog.LocomotiveId && !(pr.TechOnset >= 0.6))) bad++;
+                {
+                    if (pr.GoodId != Catalog.SteamshipId && pr.GoodId != Catalog.LocomotiveId) continue;
+                    seen++;
+                    if (pr.DiscoveryRow != (pr.GoodId == Catalog.SteamshipId ? rowShip : rowLoco)) bad++;
+                }
             }
         Assert.True(colonial > 0, "植民地格の州が無い世界ではテストにならない");
+        Assert.True(seen > 0, "汽船・機関車の生産者が居ない");
         Assert.Equal(0, bad);
     }
 
+    /// <summary>★2026-10-01 段2A（作者裁定 2026-09-28 §1A-2「発見は2値」＝旧の番人「解禁は連続・崖を作らない」を置き換えた）：
+    /// 財の解禁は0か1だけ（技術水準をどれだけ上げても途中の値は立たない＝技術水準は点数の技術力の項に入るだけ）・解禁は国の行を立てた時だけ。</summary>
     [Fact]
-    public void 解禁は連続_崖を作らない()
+    public void 解禁は2値_技術水準では開かない()
     {
         var sim = Build(33);
         var r = sim.World.Region;
-        r.TechLevel = 0.5 + 0.5;   // 汽船の onset 0.5 ＋ 解禁幅の半ば
-        double half = EconomyStep.EquipUnlock(r, sim.World.Coef, Catalog.SteamshipId);
-        Assert.True(half > 0 && half < 1, $"部分解禁が0か1に潰れている（{half:F3}）＝崖ができている");
+        int row = Catalog.DiscoveryRowOf(Catalog.SteamshipId, "");
+        Assert.False(Discovery.Known(sim.World.Discovered, row), "前提が崩れている（汽船が発見済み）");
+        foreach (double t in new[] { 0.5, 1.0, 3.0, 10.0 })
+        {
+            r.TechLevel = t;
+            Assert.Equal(0.0, Discovery.GoodGate(r, Catalog.SteamshipId));   // 技術水準だけでは開かない（旧＝傾斜で 0<x<1）
+        }
+        sim.World.Discovered[row] = true;
+        Assert.Equal(1.0, Discovery.GoodGate(r, Catalog.SteamshipId));
     }
 
     /// <summary>兵士POPが立つのは多国世界（MilitaryScale の書き手＝Simulation の軍需調達）なので、見積・充足の番人は実世界の首都で見る。
@@ -93,7 +112,7 @@ public class EquipDiscoveryTests
     private static double[] ZeroUndiscovered(Region r, Coefficients c, int[] goods, double[] rates)
     {
         var z = (double[])rates.Clone();
-        for (int b = 0; b < goods.Length; b++) if (EconomyStep.EquipUnlock(r, c, goods[b]) == 0.0) z[b] = 0.0;
+        for (int b = 0; b < goods.Length; b++) if (Discovery.GoodGate(r, goods[b]) == 0.0) z[b] = 0.0;
         return z;
     }
 
@@ -117,8 +136,8 @@ public class EquipDiscoveryTests
         Assert.Equal(ra.MilitaryEquipFill, rb.MilitaryEquipFill);
 
         // 前提＝1783年に未発見の基本段の装備が実在する（汽船・自動車）
-        Assert.Equal(0.0, EconomyStep.EquipUnlock(ra, ca, Catalog.SteamshipId));
-        Assert.Equal(0.0, EconomyStep.EquipUnlock(ra, ca, Car));
+        Assert.Equal(0.0, Discovery.GoodGate(ra, Catalog.SteamshipId));
+        Assert.Equal(0.0, Discovery.GoodGate(ra, Car));
         // 武器庫は0（未発見の装備は目標0＝満額で持って始まらない）
         Assert.NotNull(ra.ArmsStock);
         Assert.Equal(0.0, ra.ArmsStock!.GetValueOrDefault(Catalog.SteamshipId));
@@ -152,24 +171,26 @@ public class EquipDiscoveryTests
         foreach (var goods in tiers)
             foreach (int g in goods)
             {
-                double u = EconomyStep.EquipUnlock(r, c, g);
+                double u = Discovery.GoodGate(r, g);
                 Assert.True(u == 0.0 || u == 1.0, $"前提が崩れた：1783年に部分解禁の装備 {g}（{u:F3}）");
             }
         foreach (int g in new[] { Catalog.SteamshipId, Car, Catalog.DreadnoughtId, Catalog.MilitaryAircraftId })   // 汽船・自動車・弩級戦艦・軍用機（★段1：飛行機と戦闘機を畳んだ）
-            Assert.Equal(0.0, EconomyStep.EquipUnlock(r, c, g));
+            Assert.Equal(0.0, Discovery.GoodGate(r, g));
 
         double needLow = EconomyStep.MilitaryProcurementNeed(r, c);
         double[] z0 = ZeroUndiscovered(r, c, c.MilitaryGoods, c.MilitaryRates), z1 = ZeroUndiscovered(r, c, c.MilitaryQualityGoods, c.MilitaryQualityRates),
                  z2 = ZeroUndiscovered(r, c, c.MilitaryTier3Goods, c.MilitaryTier3Rates), z3 = ZeroUndiscovered(r, c, c.MilitaryAirGoods, c.MilitaryAirRates);
 
-        r.TechLevel = 10.0;   // 全ての装備が解禁
+        var known0 = (bool[])r.Discovered!.Clone();
+        System.Array.Fill(r.Discovered!, true);   // 全ての装備が解禁（★段2A＝発見の表を解禁済みへ・旧＝技術水準 10）
         foreach (var goods in tiers)
-            foreach (int g in goods) Assert.Equal(1.0, EconomyStep.EquipUnlock(r, c, g));
+            foreach (int g in goods) Assert.Equal(1.0, Discovery.GoodGate(r, g));
         double needHigh = EconomyStep.MilitaryProcurementNeed(r, c);
         var (m0, m1, m2, m3) = (c.MilitaryRates, c.MilitaryQualityRates, c.MilitaryTier3Rates, c.MilitaryAirRates);
         (c.MilitaryRates, c.MilitaryQualityRates, c.MilitaryTier3Rates, c.MilitaryAirRates) = (z0, z1, z2, z3);
         double needHighWithoutUndiscovered = EconomyStep.MilitaryProcurementNeed(r, c);
         (c.MilitaryRates, c.MilitaryQualityRates, c.MilitaryTier3Rates, c.MilitaryAirRates) = (m0, m1, m2, m3);
+        System.Array.Copy(known0, r.Discovered!, known0.Length);
         r.TechLevel = techLow;
 
         Assert.True(needLow > 0, $"発見済みの装備まで見積から消えた（{needLow:F1}）");
@@ -193,7 +214,7 @@ public class EquipDiscoveryTests
         Assert.True(i >= 0, "前提が崩れた：港の無い国で軍需調達が走っていない");
         var w = sim.Nations[i].World; var r = w.Region; var c = w.Coef;
         Assert.True(c.NavalProcurementNeedsPort > 0, "前提が崩れた：港の無い国も軍艦を買う");
-        r.TechLevel = 10.0;   // 上位段・tier3 を解禁
+        System.Array.Fill(r.Discovered!, true);   // 上位段・tier3 を解禁（★段2A＝発見の表を解禁済みへ・旧＝技術水準 10）
         foreach (var tier in new[] { c.MilitaryQualityGoods, c.MilitaryTier3Goods })
             foreach (int g in tier)
                 if (System.Array.IndexOf(c.FleetGoodIds, g) < 0) r.ArmsStock![g] = 1e9;   // 陸の装備（機関銃・戦車）は満ちている

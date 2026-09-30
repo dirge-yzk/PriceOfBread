@@ -448,7 +448,7 @@ public class StateFactoryTests
             foreach (var p in r.Producers)
             {
                 if (p.GoodId != Catalog.SteelId) continue;
-                if (!(ProductionDiag.TechGate(32, p.TechOnset, r.TechLevel) > ProductionDiag.TechGateClosed)) continue;
+                if (!(Discovery.Gate(r, p) > ProductionDiag.TechGateClosed)) continue;
                 st += World.StateUnits(p, w.Coef);
                 if (!p.Bankrupt) pv += World.PrivateUnits(p, w.Coef);
             }

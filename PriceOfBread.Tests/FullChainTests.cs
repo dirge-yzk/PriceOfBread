@@ -295,12 +295,13 @@ public class FullChainTests
         var bark = Catalog.Goods[Catalog.CinchonaBarkId];
         Assert.Empty(bark.Inputs);
         Assert.True(Catalog.IsColonial(Catalog.CinchonaBarkId) && bark.IsColonial, "金鶏樹皮が植民地の採取になっていない");
-        Assert.Equal(0.0, Catalog.DefaultRecipeOnset(Catalog.CinchonaBarkId));   // 樹皮を剥ぐのに発見は要らない（17世紀から）
+        Assert.Equal(-1, Catalog.DiscoveryRowOf(Catalog.CinchonaBarkId, ""));   // 樹皮を剥ぐのに発見は要らない（17世紀から）＝発見の表に行が無い
         var q = Catalog.Goods[Catalog.QuinineId];
         Assert.False(Catalog.IsColonial(Catalog.QuinineId) || q.IsColonial, "キニーネが植民地の採取に残っている（工程を飛ばす）");
         Assert.Contains(q.Inputs, i => i.GoodId == Catalog.CinchonaBarkId && i.QtyPerOutput > 0);
         Assert.Contains(q.Inputs, i => i.GoodId == Catalog.ChemicalsId && i.QtyPerOutput > 0);   // 単離＝酸とアルコールで抽出する化学の工程
-        Assert.Equal(0.5, Catalog.DefaultRecipeOnset(Catalog.QuinineId));   // 単離（ペルティエとカヴァントゥ 1820）＝(123) の R8 を工場のレシピへ戻した
+        int iso = Catalog.DiscoveryRowOf(Catalog.QuinineId, "");   // 単離（ペルティエとカヴァントゥ 1820）＝(123) の R8 を工場のレシピへ戻した＝発見の表の既定の行（2026-10-01 段2A）
+        Assert.True(iso >= 0 && Catalog.Discoveries[iso].Decade == 1820 && Catalog.Discoveries[iso].Field == DiscoveryField.Process, "キニーネの単離が発見の表の1820年代の製法でない");
     }
 
     /// <summary>単離の前は「樹皮の粉末」が橋になる（早期の橋＝解禁の門なし・化学薬品を使わない・同じ防護に単離より多くの樹皮）。
@@ -318,8 +319,9 @@ public class FullChainTests
         }
         Assert.NotNull(iso);
         Assert.NotNull(powder);
-        Assert.Equal(Catalog.DefaultRecipeOnset(Catalog.QuinineId), iso!.TechOnset);   // 単離は解禁の門の後
-        Assert.True(powder!.TechOnset <= 0, "樹皮の粉末に解禁の門がある（単離の前の橋にならない）");
+        Assert.Equal(Catalog.DiscoveryRowOf(Catalog.QuinineId, ""), iso!.DiscoveryRow);   // 単離は発見の門の後（2026-10-01 段2A＝発見の表の行）
+        Assert.True(iso.DiscoveryRow >= 0, "単離に発見の門が無い");
+        Assert.True(powder!.DiscoveryRow < 0, "樹皮の粉末に発見の門がある（単離の前の橋にならない）");
         Assert.DoesNotContain(powder.Inputs, i => i.GoodId == Catalog.ChemicalsId);
         double BarkOf(Producer p) { double b = 0; foreach (var i in p.Inputs) if (i.GoodId == Catalog.CinchonaBarkId) b += i.QtyPerOutput; return b; }
         Assert.True(BarkOf(powder) > BarkOf(iso), $"粉末の樹皮 {BarkOf(powder)} が単離 {BarkOf(iso)} 以下＝効き目の低さが無い");

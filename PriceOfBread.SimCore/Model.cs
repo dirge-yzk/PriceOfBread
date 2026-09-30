@@ -718,7 +718,26 @@ public sealed class Producer
     public bool BuysLabor;         // 労働力（財）を市場から買う工場。労働配分（pop労働の取り合い）に参加せず、賃金でなく労働購入で人を雇う
     public bool IsRgo;             // 自家農家・採取場（土地の生産者）。農業労働力を買い、残余＝地代の行き先が農制（地主/自作）。土地税の課税ベース
     public string RecipeName = ""; // 複数レシピの表示名（例：電力の「石炭火力」「石油火力」）。空＝単一レシピ
-    public double TechOnset;       // この生産者(レシピ)が採用可能になる技術水準（0=無ゲート＝1789年から・負＝後継の onset で退場する前期レシピ＝マスケット・鋳鉄砲）。代替レシピで近代側の製法を晩期にゲート＝発明の時期の表現（電化/蒸気のonsetと同型・外科的な暦年ゲートではない）。Catalog.RecipeTechScale で能力に乗る
+    public double TechOnset;       // ★鉱床の後期の産地（Simulation の LateResources の RGO）だけ＝その産地が採れ始める技術水準（0=無ゲート）。Catalog.DepositTechScale で能力に乗る。★2026-10-01 段2A：レシピの解禁は発見の表（Catalog.Discoveries・2値）へ移った＝ここは鉱床の発見の段（次の段）まで残る唯一の時計
+    /// <summary>★発見の表の行（段2A・2026-10-01）＝この生産者の（財・レシピ）の行の添字（−1＝表に無い＝地理差＝常にある）。
+    /// 作業領域の控え（[NonSerialized]＝財とレシピ名から導く・セーブに載らない）＝財かレシピ名が変わったら引き直す。</summary>
+    public int DiscoveryRow
+    {
+        get
+        {
+            if (_discGood != GoodId || !ReferenceEquals(_discRecipe, RecipeName))
+            {
+                _discRow = Catalog.DiscoveryRowOf(GoodId, RecipeName);
+                _retRow = Catalog.RetiredByRowOf(GoodId, RecipeName);
+                _discGood = GoodId; _discRecipe = RecipeName;
+            }
+            return _discRow;
+        }
+    }
+    /// <summary>このレシピを退かせる発見の行（−1＝退かない）＝前期の軍需（マスケット・鋳鉄砲）は転炉鋼の発見で退く（Catalog の退場の表）。</summary>
+    public int RetiredByRow { get { _ = DiscoveryRow; return _retRow; } }
+    [System.NonSerialized] private int _discRow = -1, _retRow = -1, _discGood = int.MinValue;
+    [System.NonSerialized] private string? _discRecipe;
     public double ElecFill;        // 電化率（0..1・EMA）。電力を買えた工場は稼働率が上がり（夜間操業）労働投入が減る（機械化）。電力が高い/送電網が無いと0
     public double SteamFill;       // 蒸気動力化率（0..1・EMA・電化と同型）。蒸気機関の発明後（SteamScale>0）採算が合えば石炭を焚き稼働率↑（SteamBoost）。1789年は水車/畜力＝0＝無ブースト・石炭を焚かない。電化が安くなると電力が蒸気を代替（(1−ElecFill)）
     public int[] EffGoods = [];    // RGOの効率化材の候補（肥料/帆船/飼料/工具/火薬…）。市場が安い・profit-gateを通る物を毎期選ぶ。空＝なし（工場・役務）。Catalog.RgoBoosterGoods で設定
@@ -970,6 +989,7 @@ public sealed class Region
     public double UrbanIndSmoothed = -1.0;            // 監査2026-07-05（D3）：都市化天井が参照する平滑化済み工業化度（UrbanCapFollowSpeed<1で使用）。-1=未初期化（初回に現在値から開始）
     public int CulturalGoodId = -1;                   // 各国の象徴的主食（英＝茶・露＝蒸留酒・日＝米…）の good.Id。**表示用のみ**（「パンの値段」UI/診断の価格アンカー）。固執財の需要床/闘争度機構は廃止。-1＝なし
     public double TechLevel;                          // 技術水準（World から複製）。先進財の生産性が技術依存（創発的な時代解禁）に効く
+    public bool[]? Discovered;                        // ★発見の表の解禁（段2A・2026-10-01）＝国の World.Discovered と同じ配列への参照（月次に TechLevel と一緒に写す・複製しない）。null＝まだ写していない＝表の行は全て未発見
     public double MilitaryScalePeace;                 // ★段2a：戦時倍率を除いた平時基準の規模（耐久品の目標在庫はこちら）
     public double MilitaryWarMultLast;                // ★段2a：その月の戦時倍率（耐久品の摩耗へ回す）
     public double MilitaryScale;                      // 軍需消費の規模（治安維持力×戦時倍率。Simulation が設定）

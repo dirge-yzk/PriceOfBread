@@ -144,18 +144,18 @@ public class FuelOperatingCostTests
     // ★2026-09-26（回4-3・項目8）：船は州ごとに容量あたりの総費用が安い1財だけを欲しがる。
     //   全ての活動州で帆船(84)と汽船(85)の値段・在庫・生産と、燃料（石炭＝参照価格・重油は高値で二択から外す）をそろえ、
     //   商人と投資家の財布を潤沢にして Transport.Step を直接呼ぶ。frontierTech＝前線技術（汽船の機関の時代係数 era の時計）。
-    //   regionTech＝州の技術（汽船の解禁度＝製法の技術ゲート＝(技術−0.5)÷1 を 0..1 で読む。既定 1.5＝解禁度1）。
-    static Simulation ShipWorld(ulong seed, Coefficients coef, double sailPrice, double steamPrice, bool steamSupplied, double frontierTech = 0.0, double coalPrice = -1, double regionTech = 1.5)
+    //   steamKnown＝国が汽船を発見したか（★2026-10-01 段2A＝汽船の解禁度は発見の表の2値＝旧の州の技術 regionTech の傾斜〔(技術−0.5)÷1〕に代わる）。
+    static Simulation ShipWorld(ulong seed, Coefficients coef, double sailPrice, double steamPrice, bool steamSupplied, double frontierTech = 0.0, double coalPrice = -1, bool steamKnown = true)
     {
         var sim = new Simulation(new Scenario { Seed = seed, Kind = ScenarioKind.France, Coef = coef }, new NullAgent());
         sim.Run(8);
         var w = sim.World;
         w.ShipCapacity = 0;   // 目標との差を最大に＝必ず買いに行く
         w.WorldTechLevel = frontierTech;
+        w.Discovered[Catalog.DiscoveryRowOf(Catalog.SteamshipId, "")] = steamKnown;   // 州は国の配列を参照する（8四半期の月次で写し済み）
         foreach (var r in w.Regions)
         {
             if (r.State != RegionState.Active) continue;
-            r.TechLevel = regionTech;
             var sail = r.Markets[Catalog.SailingShipId]; var steam = r.Markets[Catalog.SteamshipId];
             sail.Price = sailPrice; sail.Stock = 1_000_000;
             steam.Price = steamPrice; steam.Stock = steamSupplied ? 1_000_000 : 0;
@@ -215,11 +215,11 @@ public class FuelOperatingCostTests
     {
         // era＝EraFactor(前線技術, EraColonyCoal)：前線 1.0（運賃革命のランプの前）で 1.0・3.5（満了の後）で 0.5。
         //   ①汽船1単位の容量＝30×2.5×解禁度÷era＝75→150（同時代の換算「汽船1トンは帆船3〜5トン分」）②容量あたりの燃料＝ShipFuelRate×era＝半分。
-        //   ③州の解禁度が半分（州の技術1.0＝onset0.5＋幅1の半ば）なら1単位の容量も半分（外洋で使いこなせる度合い）。
+        //   ★2026-10-01 段2A：旧③「州の解禁度が半分なら1単位の容量も半分」は外した＝汽船の解禁度は発見の2値（作者裁定 §1A-2）＝半分の盤面は無い。
         var coef = new Coefficients();
-        double CapPerUnit(double tech, double regionTech)
+        double CapPerUnit(double tech)
         {
-            var sim = ShipWorld(58, coef, sailPrice: 10.0, steamPrice: 1.0, steamSupplied: true, frontierTech: tech, regionTech: regionTech);   // 汽船が安い
+            var sim = ShipWorld(58, coef, sailPrice: 10.0, steamPrice: 1.0, steamSupplied: true, frontierTech: tech);   // 汽船が安い
             var w = sim.World;
             double stock0 = 0; foreach (var r in w.Regions) if (r.State == RegionState.Active) stock0 += r.Markets[Catalog.SteamshipId].Stock;
             Transport.Step(w, coef);
@@ -227,10 +227,9 @@ public class FuelOperatingCostTests
             Assert.Equal(1.0, w.ShipSteamShareEma);
             return w.ShipCapacity / (stock0 - stock1);
         }
-        double early = CapPerUnit(1.0, 1.5), late = CapPerUnit(3.5, 1.5), half = CapPerUnit(1.0, 1.0);
+        double early = CapPerUnit(1.0), late = CapPerUnit(3.5);
         Assert.Equal(coef.TransportCapPerUnit * coef.ShipTier2CapMult, early, 6);   // 買った単位は在庫(1e6)の差から数える＝差の丸め（約1e-9）ぶんの許容
         Assert.Equal(2.0 * early, late, 6);
-        Assert.Equal(0.5 * early, half, 6);
 
         double FuelDemand(double tech)
         {
@@ -267,7 +266,7 @@ public class FuelOperatingCostTests
         // ★2026-09-27（回4-3 の再挑戦）：全州は開幕に汽船200単位の在庫を持つ（Simulation.CatalogEconomy の一律の初期在庫）＝在庫だけを供給と数えると
         //   1783年に商人がその在庫を買い、汽船の割合が開幕に7割（seed 1 の1788年・61カ国中44カ国で過半）へ跳ねた。発見（解禁度＞0）を候補の条件にする。
         var coef = new Coefficients();
-        var sim = ShipWorld(60, coef, sailPrice: 10.0, steamPrice: 0.01, steamSupplied: true, regionTech: 0.3);   // 在庫も生産もあり値段だけなら汽船が圧倒的に安いが、州の技術は onset0.5 の手前
+        var sim = ShipWorld(60, coef, sailPrice: 10.0, steamPrice: 0.01, steamSupplied: true, steamKnown: false);   // 在庫も生産もあり値段だけなら汽船が圧倒的に安いが、国は汽船を未発見
         var (s0, t0) = ShipDemand(sim.World);
         Transport.Step(sim.World, coef);
         var (s1, t1) = ShipDemand(sim.World);

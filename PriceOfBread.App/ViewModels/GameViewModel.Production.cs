@@ -597,12 +597,10 @@ public partial class GameViewModel
         // 技術不足の判定に使う材料（項目13・2026-08-09）：財ごとの**素材レシピの集合**（労働・役務は除く）。
         // 代替レシピ（紙＝木材パルプ or ぼろ布／電力＝石炭 or 原油）を個別に持つ＝1本でも生きていれば作れる、を表せる。
         var recipesOf = new List<List<int>>?[n];
-        double maxTech = 0;              // 自国で最も進んだ州の技術水準（生産者が1つも無い財の技術ゲートを読むのに使う）
 
         foreach (var rg in _player.Regions)
         {
             if (rg.State != RegionState.Active) continue;
-            if (rg.TechLevel > maxTech) maxTech = rg.TechLevel;
             int mn = Math.Min(rg.Markets.Length, n);
             for (int gi = 0; gi < mn; gi++)
             {
@@ -614,7 +612,7 @@ public partial class GameViewModel
                 int gi = p.GoodId;
                 if (gi >= n || !lay.ContainsKey(gi)) continue;
                 hasProducer[gi] = true;
-                double pGate = ProductionDiag.TechGate(gi, p.TechOnset, rg.TechLevel);   // 「作れるか」の式はエンジン側1本（ProductionDiag.TechGate）から読む
+                double pGate = Discovery.Gate(rg, p);   // 「作れるか」の式はエンジン側1本（Discovery.Gate＝発見の門）から読む
                 gate[gi] = Math.Max(gate[gi], pGate);
                 AddRecipe(recipesOf, gi, p.Inputs);
                 if (p.ConstructionLeft > 0) building[gi]++;
@@ -632,7 +630,7 @@ public partial class GameViewModel
             }
         }
 
-        var techShort = TechShortSet(lay, n, gate, hasProducer, recipesOf, maxTech);
+        var techShort = TechShortSet(lay, n, gate, hasProducer, recipesOf, _player.Discovered);
         // ★「まだ存在しない財」（作者裁定2026-08-10）＝世界のどこにも生産が無く、どの国も技術的に作れない財。
         //   判定はエンジンの純関数1本（ProductionDiag.UnavailableGoods）＝UI に第二の式を置かない。
         //   ⚠上の techShort（灰色化）は**自国**の技術で読む＝「他国は作れるが自国は作れない」財は灰色だが、
@@ -834,17 +832,17 @@ public partial class GameViewModel
     private static bool IsMaterial(int gid) => gid >= 0 && gid < Catalog.Goods.Length && Catalog.Goods[gid].Tier != GoodTier.Service;
 
     /// <summary>技術不足の財（作者仕様2026-08-09 項目13）＝灰色に落とす集合。
-    /// 直接＝技術ゲートが0（生産者があればその実ゲート、無ければ財の複雑度ゲートを最先進州の技術水準で読む）。
+    /// 直接＝発見の門が0（生産者があればその実ゲート、無ければ既定のレシピの行を自国が発見したか＝行が無ければ作れる）。
     /// 伝播＝**全段**（1段でなく収束するまで）かつ**レシピ単位**＝持っているレシピが全て「作れない材料」を要求する財も作れない。
     ///   レシピ単位にする理由＝代替レシピ（紙＝木材パルプ or ぼろ布／電力＝石炭 or 原油）が1本でも生きていれば作れるので、
     ///   出辺を無条件に辿る実装では生きている財まで灰色になる。更新は単調（false→true のみ）＝走査順に依らず収束点は一意。</summary>
-    private static bool[] TechShortSet(Dictionary<int, PNode> lay, int n, double[] gate, bool[] hasProducer, List<List<int>>?[] recipesOf, double maxTech)
+    private static bool[] TechShortSet(Dictionary<int, PNode> lay, int n, double[] gate, bool[] hasProducer, List<List<int>>?[] recipesOf, bool[]? known)
     {
         var blocked = new bool[n];
         foreach (var pn in lay.Values)
         {
             int gi = pn.Id;
-            blocked[gi] = !((hasProducer[gi] ? gate[gi] : Catalog.AdvancedTechScale(gi, maxTech)) > ProductionDiag.TechGateClosed);
+            blocked[gi] = !((hasProducer[gi] ? gate[gi] : Catalog.DiscoveryRowOf(gi, "") is int row and >= 0 ? (Discovery.Known(known, row) ? 1.0 : 0.0) : 1.0) > ProductionDiag.TechGateClosed);
             if (recipesOf[gi] is null && Catalog.Goods[gi].Inputs.Length > 0)
             {
                 var mats = new List<int>(Catalog.Goods[gi].Inputs.Length);
@@ -990,8 +988,8 @@ public partial class GameViewModel
                 matLocal += inp.QtyPerOutput * (inp.GoodId < rg.Markets.Length ? rg.Markets[inp.GoodId].Price : 0);
             }
             double mdiff = matWorld > 1e-6 ? matLocal * ex / matWorld - 1.0 : 0;
-            double regionGate = pr is null ? 0 : ProductionDiag.TechGate(gi, pr.TechOnset, rg.TechLevel);   // 「作れるか」の式はエンジン側1本から読む
-            bool cantMakeHere = pr is not null && !(regionGate > ProductionDiag.TechGateClosed);            // この州の技術ではこの財を1単位も作れない
+            double regionGate = pr is null ? 0 : Discovery.Gate(rg, pr);   // 「作れるか」の式はエンジン側1本（発見の門）から読む
+            bool cantMakeHere = pr is not null && !(regionGate > ProductionDiag.TechGateClosed);            // この州（の国）はこの財のレシピを発見していない＝1単位も作れない
             // RGOの建設を解禁（プランテーションdoc D1・2026-07-30）：旧 `d.Inputs.Length > 0`（投入を持つ財だけ）が
             // 投入ゼロのRGO（鉱山・牧場・プランテーション）を弾いていた。エンジン（World.BuildFactory）は Tier==Service しか弾かず、
             // 建てられる条件は「その州にRGOの生産者が立っている」＝ pr is not null に既に畳み込まれている

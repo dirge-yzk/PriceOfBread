@@ -1241,7 +1241,7 @@ public class RevoltIgnitionTests
     [Fact]
     public void 武器購入_未発見の武器は買えない()   // (d) 必要量は国軍と同じ DiscoveredRates を通る
     {
-        // 汽船85＝既定Producerに TechOnset=0.5 が焼かれている（EquipDiscoveryTests と同じ前提）。艦隊財ではない（FleetGoodIds＝戦闘艦）
+        // 汽船85＝発見の表の1820年代（既定のレシピの行・EquipDiscoveryTests と同じ前提）。艦隊財ではない（FleetGoodIds＝戦闘艦）
         // ＝陸海の規則で消えるのではなく**発見**で消えることを見る。
         // ★双子（2026-09-27 回2-1＝旗 EquipNeedsDiscovery を点火して削除したので OFF の腕は無い）：B だけ汽船の原単位を**素の表で0**にする（「要らない」を表で言う）。
         //   運動の購入が発見の表を通っていれば、A の汽船は既に0＝A と B の決済は同じ（汽船の需要も武器庫も充足もビット一致）。素の表を読んでいれば A だけ汽船を買う。
@@ -1255,11 +1255,11 @@ public class RevoltIgnitionTests
         });
         foreach (var s in new[] { simA, simB })
         {
-            Assert.True(s.World.Region.TechLevel < 0.5, $"前提が崩れた：初期技術 {s.World.Region.TechLevel:F3}");
+            Assert.False(Discovery.Known(s.World.Discovered, Catalog.DiscoveryRowOf(ship, "")), "前提が崩れた：汽船が発見済み");
             Assert.True(Array.IndexOf(s.World.Coef.FleetGoodIds, ship) < 0, "前提が崩れた：汽船が艦隊財に数えられている");
             EconomyStep.Run(s.World.Region, s.World.Coef, 1.0, null, s.World);
         }
-        Assert.Equal(0.0, EconomyStep.EquipUnlock(simA.World.Region, simA.World.Coef, ship));   // 1783年＝汽船は未発見
+        Assert.Equal(0.0, Discovery.GoodGate(simA.World.Region, ship));   // 1783年＝汽船は未発見
         Assert.NotNull(fA.ArmsStock);
         Assert.Equal(0.0, fA.ArmsStock![ship]);      // 未発見の汽船は1単位も買わない（必要量0＝発注0）
         Assert.True(fA.ArmsStock[rifle] > 0);       // 発見済みの小銃は買う

@@ -130,7 +130,7 @@ public static class Transport
     // ★2026-09-26（回4-3・項目8・econ-12）：船は州ごとに「容量1あたりの総費用」が安い1財だけを欲しがる（旧＝帆船と汽船を同じ単位数ずつ・値段を見ない）。
     //   帆船＝値段÷TransportCapPerUnit。汽船＝値段÷(TransportCapPerUnit×汽船の容量倍)＋寿命（1÷TransportDecay か月）の間に焚く燃料の代金
     //   （ShipFuelRate×era×燃料の値段÷TransportDecay・燃料は石炭か重油の安い方＝Colonial.ChooseFuelGood と同じ二択）。
-    //   汽船の容量倍＝ShipTier2CapMult×その州の汽船の解禁度（EconomyStep.EquipUnlock＝製法の技術ゲート・発見の唯一の読み口）÷era（Step の注記）。
+    //   汽船の容量倍＝ShipTier2CapMult×その州の汽船の解禁度（Discovery.GoodGate＝製法の発見ゲート・発見の唯一の読み口）÷era（Step の注記）。
     //   ★2026-09-27（回4-3 の再挑戦）：解禁度は「その州で汽船を外洋で使いこなせる度合い」＝技術 0.5→1.5 で 0→1（英は1810年代の沿岸の外輪船→1838年のシリウス・グレート・ウェスタン号の大西洋横断→1840年のキュナード）。
     //   ⇒ 燃料が高い州・時代は帆船に戻る（転換は費用で起きる）。
     //   汽船は、その州で汽船が発見済み（解禁度＞0）で、かつ供給が実在するとき（在庫があるか、今月の生産か輸入が正）だけ候補に入る（ChooseFuelGood の供給の確かめと同じ作法）
@@ -153,7 +153,7 @@ public static class Transport
             if (r.State != RegionState.Active || r.InvestorPopIndex < 0) continue;
             int buyerIdx = rail ? r.InvestorPopIndex : (r.MerchantPopIndex >= 0 ? r.MerchantPopIndex : r.InvestorPopIndex);
             var investor = r.Pops[buyerIdx];
-            double steamGate = rail ? 0.0 : EconomyStep.EquipUnlock(r, c, c.ShipTier2GoodId);   // 汽船の解禁度（0..1・NaN は0）
+            double steamGate = rail ? 0.0 : Discovery.GoodGate(r, c.ShipTier2GoodId);   // 汽船の解禁度（0..1・NaN は0）
             double steamMult = c.ShipTier2CapMult * steamGate / era;   // 汽船1単位の容量倍（era≥0.05＝EraFactor の床で有限）
             int pick = -1;   // 船：この州で容量あたりの総費用が最も安い財
             if (!rail)

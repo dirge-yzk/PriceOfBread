@@ -208,13 +208,13 @@ public static class Catalog
         new(SilverId, "銀",       GoodTier.Intermediate, 0.0, 0.5, 2.0, []),
         // グアノ：ペルー沖チンチャ諸島の海鳥糞＝19世紀の高窒素肥料の主役(1840s-)。植民地RGO(賦存=ペルーのみ・isColonial)。肥料(109)の並存レシピ「グアノ肥料」で接続＝ペルー保有国のみ安価・他国は合成肥料(化学薬品+硫黄)＝非保有国を壊さない。
         new(GuanoId, "グアノ",   GoodTier.Intermediate, 0.0, 0.6, 2.2, [], true),
-        // #16 tier3 軍需（陸=戦車・海=弩級戦艦）：tier2(機関銃104/装甲艦105)を圧倒する質的乗数。深い連鎖＝AdvancedTechScaleで晩期に自動解禁・高RefPrice＝富裕/軍国国のみ装備（外科ゲートでなく連鎖深とコストで自然律速）。
+        // #16 tier3 軍需（陸=戦車・海=弩級戦艦）：tier2(機関銃104/装甲艦105)を圧倒する質的乗数。解禁＝発見の表の行（2026-10-01 段2A＝戦車1910年代・弩級戦艦1900年代＝旧は連鎖の深さの門）・高RefPrice＝富裕/軍国国のみ装備。
         new(TankId, "戦車",     GoodTier.Producer, 0.0, 0.4, 1.1, [I(SteelId,1.0), I(CombustionEngineId,0.6), I(ArtilleryId,0.4)]),   // 鋼＋内燃機関＋火砲＝装軌装甲戦闘車（WWI末）。デ6：精密工作機械(106)を内燃機関(125)へ差し替え＝原動機の連鎖深に律速され1910s代まで解禁されない
         new(DreadnoughtId, "弩級戦艦", GoodTier.Producer, 0.0, 0.4, 1.0, [I(IroncladId,1.0), I(SteelId,1.0), I(MachineryId,0.537)]),   // 装甲艦＋鋼(全装甲)＋機械＝超弩級戦艦（最高コスト）。★段1（2026-09-30・財の削減＝設計 docs/202609/20260928 §3）：旧 精密工作機械0.5→機械0.537
         // #12 家事奉仕（役務）：家事使用人(ClassId12・女性がなりやすい)が算出し、予算に余裕のある富裕層(貴族/資本家)が雇う。Service tier＝消費は全段の後＝余剰のある層のみ＝「奉仕は富の余剰から創発」（特別な階級フィルタ不要）。輸送不可。
         new(DomesticServiceId, "家事奉仕", GoodTier.Service, 0.06, 0.7, 1.0, [], NonTradeable: true),
         // デ6：内燃機関（石油時代の原動機＝ガソリン/ディーゼル機関・実用化1900s〜）。鋼＋精密工作機械＋原油（石油燃料系＝ドレーク油井1859の下流）。
-        // 戦車(122)の入力に差し込む（上）ことで、戦車が内燃機関の深い連鎖に律速され WWI 期(1910s)まで解禁されない＝機関銃(1884)/装甲艦(1860)と同時解禁だった時代錯誤を構造から是正（AdvancedTechScaleは連鎖深Complexityから自動導出＋原油の掘削onsetが下流を後送り）。id は末尾に追加（RefPriceは反復収束のため上流参照でも可）＝既存idの連番を崩さない。
+        // 戦車(122)の入力に差し込む（上）ことで、戦車が内燃機関の深い連鎖に律速され WWI 期(1910s)まで解禁されない＝機関銃(1884)/装甲艦(1860)と同時解禁だった時代錯誤を構造から是正（★2026-10-01 段2A：時期は発見の表の年代・内燃機関を作っていない国は技術の押しが下がる）。id は末尾に追加（RefPriceは反復収束のため上流参照でも可）＝既存idの連番を崩さない。
         new(CombustionEngineId, "内燃機関", GoodTier.Producer, 0.0, 0.4, 1.1, [I(SteelId,1.0), I(MachineryId,0.537), I(CrudeOilId,0.2)]),   // ★段1（2026-09-30・財の削減＝設計 docs/202609/20260928 §3）：旧 精密工作機械0.5→機械0.537
         // 住居（家賃＝家計の最大固定費・生活費テーマの核心）：2026-07-19ユーザー裁定「家を材にする」＝役務→**通常財（日用品）**。
         // 製材＋石灰（1783年から生産可能な建材＝木造漆喰）を消費する建設業が供給＝非役務財の標準生産者ループに乗る
@@ -224,19 +224,20 @@ public static class Catalog
         // === B6新財（2026-07-19ユーザー裁定）＝id末尾追加（RefPrice反復収束で安全・連番不変）===
         // 馬：畜産から育成する上位財（飼料＝穀物消費）。用途＝軍需バンドルの馬匹（騎兵・輜重）＋作物RGOの馬耕ブースター
         // （肥料はonset0.6=1842解禁＝序盤の作物ブースター空白を馬耕が埋め、晩期に安い化学肥料へ駆逐される転換が創発）。
+        // ★2026-10-01 段2A：化学法の解禁は発見の表の過リン酸石灰（1840年代・2値）。⚠ 種1 の試走では誰も発見しない（堆肥・グアノより割高＝割高さが0以下）＝申し送り。
         new(HorseId, "馬",       GoodTier.Intermediate, 0.0, 0.5, 1.6, [I(LivestockId,0.6), I(FodderId,0.4)]),
-        // ダイナマイト（ノーベル1867・DefaultRecipeOnset=0.7）：鉱山発破の第3ブースター候補＝工具/火薬より晩期に安い爆薬（無煙火薬0.85より早い）。
+        // ダイナマイト（ノーベル1867・発見の表の1860年代）：鉱山発破の第3ブースター候補＝工具/火薬より晩期に安い爆薬（無煙火薬0.85より早い）。
         // 化学薬品0.5→0.4（B6レビュー2026-07-19）：0.5ではRefPrice0.96で黒色火薬0.89に負け競争窓がほぼ無かった＝0.4で1867〜の勝ち筋を開く。
         new(DynamiteId, "ダイナマイト", GoodTier.Intermediate, 0.0, 0.5, 1.4, [I(ChemicalsId,0.4), I(SaltpeterId,0.1)]),
-        // 自転車（安全型1885〜・DefaultRecipeOnset=0.8）：労働者の移動手段＝日用財。ゴム(50・加硫1839ゲート)に民需の出口を与える。
+        // 自転車（安全型1885〜・発見の表の1880年代）：労働者の移動手段＝日用財。ゴム(50・加硫1839ゲート)に民需の出口を与える。
         new(BicycleId, "自転車",   GoodTier.Daily, 0.04, 0.5, 1.2, [I(SteelId,0.5), I(RubberId,0.3), I(MachineryId,0.218)]),   // ★段1（2026-09-30・財の削減＝設計 docs/202609/20260928 §3）：旧 機械部品0.3→機械0.218
         // === 1934拡張E2（2026-07-19ユーザー裁定）＝戦間期の時代財。id末尾追加（RefPrice反復収束で安全・連番不変）===
-        // 飛行機（木骨羽布張り＝1910s・DefaultRecipeOnset=1.0）：内燃機関＋製材＋防水布。空軍調達（偵察/輸送）＋戦闘機の機体。
+        // 飛行機（木骨羽布張り＝1910s・発見の表の軍用機1910年代）：内燃機関＋製材＋防水布。空軍調達（偵察/輸送）＋戦闘機の機体。
         new(MilitaryAircraftId, "軍用機",   GoodTier.Producer, 0.0, 0.4, 1.16, [I(CombustionEngineId,0.567), I(LumberId,0.284), I(WaterproofClothId,0.189), I(MachineGunId,0.123)]),   // ★段1（2026-09-30・財の削減＝設計 docs/202609/20260928 §3）：飛行機（偵察・輸送）と戦闘機（飛行機0.8＋機関銃0.3）を軍用機1つへ（B-3・作者裁定 Q5）＝調達の比（0.03：0.02）で投入を合わせ、参照価格は加重平均（4.18）を保つ。全金属機の時代差のレシピは段2A
-        // 戦闘機（同調機銃＝1915フォッカー・onset=1.0）：飛行機＋機関銃。空軍tierの主装備。
-        // 自動車（T型量産1908〜・生産onset=0.95/需要onset=1.0）：内燃機関＋鋼＋ゴム。富裕の耐久財＋軍の輜重（馬と併存＝WWIも馬匹依存）。
+        // 戦闘機（同調機銃＝1915フォッカー・onset=1.0）：飛行機＋機関銃。空軍tierの主装備。（★onset は旧＝2026-10-01 段2A から解禁は発見の表の行）
+        // 自動車（T型量産1908〜・旧 生産onset=0.95/需要onset=1.0＝2026-10-01 段2A から発見の表の1890年代・需要は世界の解禁の和）：内燃機関＋鋼＋ゴム。富裕の耐久財＋軍の輜重（馬と併存＝WWIも馬匹依存）。
         new(AutomobileId, "自動車",   GoodTier.Luxury, 0.05, 0.9, 1.2, [I(CombustionEngineId,0.6), I(SteelId,0.4), I(RubberId,0.2)]),
-        // 化学兵器（毒ガス弾＝1915イーペル・onset=1.0）：化学薬品＋硝石。空軍tierで調達＝相互保有は厭戦の泥沼・片側保有は戦死優位。
+        // 化学兵器（毒ガス弾＝1915イーペル・旧 onset=1.0＝2026-10-01 段2A から発見の表の1910年代〔陸〕）：化学薬品＋硝石。空軍tierで調達＝相互保有は厭戦の泥沼・片側保有は戦死優位。
         new(ChemicalWeaponId, "化学兵器", GoodTier.Producer, 0.0, 0.4, 1.2, [I(ChemicalsId,0.6), I(SaltpeterId,0.2)]),
         // === 1934拡張E3（2026-07-19）＝国民意識の財化 ===
         // 新聞：紙＋機械部品（手引き印刷機は1783から・パルプ紙0.5で安価化）。需要は識字比例（EconomyStep特例）＝
@@ -568,7 +569,7 @@ public static class Catalog
         _ => ("軽工業", 30_000, 4),                                  // 繊維・食品・日用・奢侈＝安価/短期
     };
 
-    private const double AdvancedTechWidth = 1.0;      // onset から full 解禁までの技術幅（全ての門で共通）
+    private const double DepositTechWidth = 1.0;       // 鉱床の後期の産地の傾斜の幅（onset から full まで・DepositTechScale）
 
     /// <summary>★塊1（2026-08-31）：動物性食料の必要量/主食の必要量＝Σ(非主食のNutrition×BaseNeed)/Σ(主食のBaseNeed)。
     /// FoodIncludesAnimalProtein 点火時に主食の必要量をこの比で譲る（バスケットに肉が入った分だけ穀物の取り分が減る＝
@@ -585,135 +586,90 @@ public static class Catalog
         return staple > 1e-9 ? animal / staple : 0;
     }
 
-    /// <summary>★解禁の表（段0-3・2026-09-30＝財の削減の回・設計 docs/202609/20260928/20260928_財の削減_連鎖の深さの撤去_設計 §1-2）＝**レシピ単位の1枚**。
-    /// 旧＝財単位の3表（既定のレシピの onset DefaultRecipeOnset・需要の onset DemandOnset・連鎖の深さから導いた発明の門 AdvancedOnset）と、
-    ///   Simulation の代替のレシピの注入に数値で散っていた onset。行＝（財, レシピ, 解禁の始まる技術水準）。onset〜onset+幅1 で 0→1。
-    /// ・レシピ ""＝既定のレシピ（goods.json の Inputs）。代替のレシピは Simulation の注入と同じ名前（Producer.RecipeName）。
-    /// ・レシピ <see cref="InventionRow"/>＝財そのものの門（旧 AdvancedOnset）＝その財の全てのレシピと需要に掛かる。
-    ///   ★段0-2：値は連鎖の深さから**焼いた**＝onset＝0.7×(深さ−6)（2026-09-30 の goods.json の深さ7〜10・倍精度も旧式と同じ＝0.7×3 は 2.1 と書かない）。
-    ///   深さはもう読まない＝財を畳んで連鎖が浅くなっても門は動かない（発明の時期は設計 §1A-5 の年代の表へ段2A で置き換える）。
-    /// ・レシピ <see cref="DemandRow"/>＝需要の門（旧 DemandOnset＝発明前の幻の需要を防ぐ3財）。
-    /// ・レシピ <see cref="FlagDefaultRow"/>＝器（係数）が点いたときに既定のレシピへ置く onset（汽船・機関車＝SteamTransportOnset・鋼のベッセマー転炉＝CrucibleSteelEnabled）。
-    /// ⚠段0 は恒等＝門の掛け方（財の門×レシピの門の積・需要は財の門×需要の門）は変えていない。設計 §1-2 の「財の解禁＝レシピの解禁の最大・需要＝財の解禁」は
-    ///   発見の作り替え（段2A＝発見は2値・作者裁定 §1A-2）で入れる＝連続の門の形をいま変えると、2値へ変えるときにもう一度挙動が変わる。
-    /// ⚠係数で動く onset（蒸気タービン SteamTurbineOnset・黄鉄鉱法 SulfurFromPyriteOnset）は係数のまま（調整の口）。</summary>
-    public const string InventionRow = "発明", DemandRow = "需要", FlagDefaultRow = "既定（器）";
-    private static readonly (int Good, string Recipe, double Onset)[] OnsetTable =
+    /// <summary>★発見の表（段2A・2026-10-01＝発見の作り替えの骨組み・設計 docs/202609/20260928/20260928_財の削減_連鎖の深さの撤去_設計 §1A・§9）＝**発見の単位はレシピ**。
+    /// 旧＝解禁の表 OnsetTable（行＝財・レシピ・onset＝技術水準の時計の傾斜の始まり）と、財の門（発明の行＝旧 連鎖の深さ）・需要の門（需要の行）・器の既定の行。
+    /// 新＝行＝（名前・財・レシピ・分野・年代）。解禁は**2値**（作者裁定 2026-09-28 §1A-2＝点数＝技術力＋必要性＋伝わり、一度でも100に届けば解禁・失われない）＝<see cref="Discovery.Step"/>。
+    /// ・レシピ ""＝既定のレシピ（goods.json の Inputs）。代替のレシピは Simulation の注入と同じ名前（Producer.RecipeName）。表に無いレシピ＝地理差（常にある）。
+    /// ・財の解禁＝その財のレシピの解禁の最大（地理差のレシピが1本でもあれば常に解禁）・需要＝財の解禁（<see cref="Discovery.GoodGate"/>・設計 §1-2）
+    ///   ＝旧の財の門（発明の行）と需要の門（需要の行）は行ごと消えた（財の門だけを持っていた財は既定のレシピの行へ）。
+    /// ・難易度＝年代（10年刻み・作者裁定 2026-09-28 ③）を1本の Y（<see cref="Coefficients.DiscoveryTechPerDecade"/>）で技術水準へ写す＝<see cref="Discovery.Difficulty"/>。
+    ///   ⚠暦は読まない（年代は行のデータ・コードは暦の年を読まない＝§1A-5 の注）。年代は §1A-5 の表・無い行は Q11（発見の年と実用の年の中間）で置いた。
+    /// ・分野＝作者裁定 2026-09-28 ⑤（制度・思想・製法・発明〔新兵器・新製品〕）。⚠この回は製法と発明の行だけ（制度＝特許・株式会社と思想は別の回＝設計 §1A-6「思想の解禁は政治の較正に広く効く＝別の回で単独に測る」）。
+    /// ⚠鉱床（後期の産地＝Producer.TechOnset の傾斜）はこの表の外のまま（設計 §9-1 の提案③＝鉱床の発見は次の段）。</summary>
+    public const int DiscoveryBaseDecade = 1780;   // 難易度0の年代（1783年の開幕で既知の行＝坩堝鋼 1740年代・ワットの回転機関 1781＝設計 §1A-5 の注）
+    public static readonly DiscoveryRow[] Discoveries =
     [
-        // --- 既定のレシピ（旧 DefaultRecipeOnset）---
-        // **C-高8（2026-07-22）：tech→暦年の尺度を1本に統一**。
-        // 旧実装は同一switch内に2つの尺度が同居していた＝「55=>1.3≈1850s」（尺度A）と「130=>1.0≈1915」（尺度B）。
-        // techcurve プローブ（Runner）で前線国の実軌道を実測した結果、**イギリスは 1806年に t1.0・1858年に t1.80・1913年に t2.92**。
-        // つまり尺度Bの「1.00≈1915」は実際には**1806年**で、ずれは約110年。戦間期財（飛行機/戦闘機/化学兵器 onset1.0）が
-        // ナポレオン戦争期に解禁されうる状態だった。アンカーは TechInstitutionTests.cs:24（Q300＝1858年に英t>1.5＝実測1.80で充足）。
-        // **配置方針**：1870年代までは英の実測軌道に忠実（後発国が遅れるのは史実どおり）。1870年代以降は**圧縮**する。
-        // 理由＝1913年断面の実測が 英2.92／清2.56／普2.22／米2.09 と国家間の技術差が非常に大きく、史実年に忠実な onset
-        // （飛行機＝英1915年相当の2.92）を置くと**飛行機がイギリス専用**になりE2の空戦が成立しない。上限を約2.1に抑えると
-        // 英1877/普1900/米1915/清1900 で主要国が到達でき、先進国がやや早い代わりに機構が生きる。
-        // ※国家間の技術差が史実より広すぎること自体は別の構造課題（本項の範囲外・要別途検証）。
-        // 19世紀前半〜後半は**既存値を維持**（帯に較正済み）。※当初これらも英の実測軌道へ引き上げたが（缶詰1.05/ガス1.08/キニーネ1.25/肥料1.60/紙1.58 等）、batch30で
-        //   忠実度が exact41/near73 → 39/69 へ劣化し、逸脱過多が11→15に増えた。新規の逸脱過多は朝鮮・カンボジア・
-        //   アフガニスタン・阮氏・デリーという後発国＝早期財（肥料・紙・ガス・キニーネ）の遅延が後発国の発展を直撃した。
-        //   本項の是正対象は「戦間期財が1830-60年代に点火すること」であって早期財ではないため、早期財は既存値へ戻す。
-        (CrudeOilId, "", 0.6),            // 原油＝掘削技術（ドレーク油井1859）。早期の灯火は鯨油/魚油・ガス。消費先(石油灯油/石油火力)も晩期
-        (PaperId, "", 0.5),               // 紙＝木材パルプ製紙（砕木1840s/化学パルプ1860s）。早期は「ぼろ布製紙」(麻+綿布)が供給
-        (RubberId, "", 0.9),              // ゴム＝加硫（グッドイヤー1839）。防水布(1823)はゴムを上流投入に持つため上流ゲートで自然律速
-        (CannedFoodId, "", 0.5),          // 缶詰＝アペール法1809/ブリキ缶1810。干物が実質代替なので供給は壊れない
-        (QuinineId, "", 0.5),             // キニーネ＝金鶏樹皮からのアルカロイド単離（ペルティエ&カヴァントゥ1820）＝本国の工場のレシピ（★2026-09-30 (129)：(123) で採取に掛けていた単離の門を工場へ戻した）。単離の前は「樹皮の粉末」（早期の橋）
-        (FertilizerId, "", 0.6),          // 肥料＝硫酸で処理する過リン酸石灰（ロース1842）。それ以前の施肥は厩肥/グアノ
-        (GasId, "", 0.5),                 // ガス＝石炭乾留の都市ガス灯（マードック1792実演/商用1812）
-        (DynamiteId, "", 0.7),            // ダイナマイト＝ノーベル1867。肥料(0.6=1842)と無煙火薬(0.85)の中間（B6）
-        // 戦間期財（旧値0.8-1.10は発電機1.3を下回る順序の逆転＝WWI財が1830-60年代に点火しうる）＝発電機(1.3)より確実に後段へ置き、かつ主要国が到達できる帯に収める。
-        //   順序＝自転車<内燃機関<自動車<WWI財<ラジオ。
-        (BicycleId, "", 1.35),            // 自転車＝安全型1885〜。ゴム(0.9=加硫)の上流ゲートにも律速される
-        (CombustionEngineId, "", 1.45),   // 内燃機関＝実用ガソリン/ディーゼル機関の普及(1900s〜)。戦車/自動車/飛行機の実効解禁もこれに律速
-        (AutomobileId, "", 1.50),         // 自動車＝T型量産1908〜
-        (MilitaryAircraftId, "", 1.55),   // 軍用機＝実用化（WWI・同調機銃1915）。内燃機関(1.45)の上流ゲートにも律速
-        (ChemicalWeaponId, "", 1.55),     // 化学兵器＝1915イーペル
-        (TankId, "", 1.55),               // 戦車＝1916。内燃機関(1.45)の上流ゲートにも律速
-        (RadioId, "", 1.60),              // ラジオ＝放送の実用化1920s（E3）。電化製品の連鎖にも律速
-        // --- 器（係数）が点いたときの既定のレシピ（旧 Simulation.AddAlternateRecipes の数値）---
-        (SteamshipId, FlagDefaultRow, 0.5),    // 汽船＝実用化1807→普及≈1840s（SteamTransportOnset・クロムなめし0.55/原油0.6 と同尺度）
-        (LocomotiveId, FlagDefaultRow, 0.6),   // 機関車＝ロケット号1829→幹線網≈1850s（同上）
-        (SteelId, FlagDefaultRow, 0.55),       // 鋼の既定＝ベッセマー転炉≈1858（CrucibleSteelEnabled＝坩堝鋼・錬鉄レールを並存させる器）
-        // --- 代替のレシピ（旧 Simulation の注入の数値）---
-        (LaborId, "蒸気機関", 0.5),             // 工場に据える原動機
-        (LaborId, "電動", 1.3),                 // 電動機（旧 発電機1.3 と同じ）
-        (ElectricityId, "水力発電", 1.3),       // 旧 発電機の既定 onset 1.3（実用機＝グラム1870s・この尺度上の最上位アンカー）と同時。★段1 で発電機を機械へ畳んだ＝電力の門は電力の発明の門 1.4 と各レシピの行
-        (LampOilId, "石油ケロシン", 0.6),       // 原油の既定レシピと同値（掘削できない時代に精製は始まらない）
-        (LampOilId, "石油灯油", 0.6),           // 同上（1859ドレーク油井〜）
-        (LeatherId, "クロムなめし", 0.55),      // 1858特許〜
-        (GunpowderId, "無煙火薬", 0.85),        // 1880s〜
-        (SilkClothId, "人絹", 1.52),            // ビスコース（実用レーヨン1905〜・圧縮帯）
-        (HousingId, "鉄筋コンクリート", 1.50),  // エヌビック式1892・普及1900s（圧縮帯）
-        (RubberId, "合成ゴム", 1.65),           // ブナ/ネオプレン1930s（ラジオ1.60の後）
-        // --- 発明の門（旧 AdvancedOnset＝段0-2 で連鎖の深さから焼いた値・onset＝0.7×(深さ−6)）---
-        (MachineGunId, InventionRow, 0.7),       // 深さ7
-        (IroncladId, InventionRow, 0.7),         // 深さ7
-        (CombustionEngineId, InventionRow, 0.7), // 深さ7
-        (RefrigeratorId, InventionRow, 0.7),     // 深さ7
-        (ElectricityId, InventionRow, 1.4),      // 深さ8
-        (GridId, InventionRow, 1.4),             // 深さ8
-        (TankId, InventionRow, 1.4),             // 深さ8
-        (DreadnoughtId, InventionRow, 1.4),      // 深さ8
-        (MilitaryAircraftId, InventionRow, 1.4), // 深さ8（旧 飛行機の門）
-        (AutomobileId, InventionRow, 1.4),       // 深さ8
-        (ApplianceId, InventionRow, 0.7 * 3),    // 深さ9（＝2.0999999999999996・旧式 0.7×(9−6) と同じ倍精度）
-        (RadioId, InventionRow, 2.8),            // 深さ10
-        // --- 需要の門（旧 DemandOnset：B6レビュー2026-07-19＝発明前に需要が立つと供給不能な幻の未充足になる財。C-高8 で供給側の尺度に追随）---
-        (BicycleId, DemandRow, 1.35),     // 発明前は誰も欲しがらない（連鎖が浅く発明の門が無い・供給解禁1885まで約100年の幻需要を防ぐ）
-        (AutomobileId, DemandRow, 1.50),  // 大衆需要はT型量産(1908)から
-        (RadioId, DemandRow, 1.60),       // 放送網の成立(1920s)まで受信機の需要なし（E3）
+        // --- 製法（同じ財を別の投入で作る方法＝時代差のレシピ）---
+        new("蒸気機関", LaborId, "蒸気機関", DiscoveryField.Process, 1780),              // 工場に据える原動機（ワットの回転機関1781）＝労働を代替する発明（必要性＝人件費の高さ）
+        new("甜菜糖", SugarId, "甜菜糖", DiscoveryField.Process, 1800),                  // アシャール1801・大陸封鎖1806〜（作者 2026-09-28 提案①の採用＝地理差でなく発見）
+        new("魚の缶詰", CannedFoodId, "魚の缶詰", DiscoveryField.Process, 1810),          // 缶詰の第2レシピ（アペール法1809）
+        new("キニーネの単離", QuinineId, "", DiscoveryField.Process, 1820),              // ペルティエ＝カヴァントゥ1820（単離の前は樹皮の粉末＝地理差）
+        new("黄鉄鉱法", ChemicalsId, "黄鉄鉱法", DiscoveryField.Process, 1830),          // 1838年の硫黄危機の後（旧 SulfurFromPyriteOnset）
+        new("木材パルプ製紙", PaperId, "", DiscoveryField.Process, 1840),                // 砕木1840s（その前はぼろ布製紙＝地理差）
+        new("過リン酸石灰", FertilizerId, "", DiscoveryField.Process, 1840),             // ロース1842（その前は厩肥・グアノ＝地理差）
+        new("転炉鋼", SteelId, "", DiscoveryField.Process, 1850),                        // ベッセマー1856（その前は坩堝鋼・錬鉄レール＝地理差）
+        new("石油灯油", LampOilId, "石油灯油", DiscoveryField.Process, 1850),            // ドレーク油井1859
+        new("石油ケロシン", LampOilId, "石油ケロシン", DiscoveryField.Process, 1850),    // 同上（石油灯油と同じ変換の2本目＝設計 §5 F4 の重複・畳むのは次の段）
+        new("鉄筋コンクリート", HousingId, "鉄筋コンクリート", DiscoveryField.Process, 1860),   // モニエ1867（§1A-5 の表）
+        new("クロムなめし", LeatherId, "クロムなめし", DiscoveryField.Process, 1880),     // 商用1884（§1A-5 の表）
+        new("無煙火薬", GunpowderId, "無煙火薬", DiscoveryField.Process, 1880),          // ヴィエイユ1884
+        new("水力発電", ElectricityId, "水力発電", DiscoveryField.Process, 1880),         // アップルトン1882・ナイアガラ1895
+        new("蒸気タービン", ElectricityId, "蒸気タービン", DiscoveryField.Process, 1880), // パーソンズ1884
+        new("電動機", LaborId, "電動", DiscoveryField.Process, 1880),                    // 工場の電動機＝労働を代替する発明
+        new("人絹", SilkClothId, "人絹", DiscoveryField.Process, 1890),                  // シャルドネ1891・ビスコース1892
+        new("石油火力", ElectricityId, "石油火力", DiscoveryField.Process, 1900),        // §1A-5 の表
+        new("窒素固定", FertilizerId, "ハーバーボッシュ", DiscoveryField.Process, 1910), // ハーバー＝ボッシュ1913（旧＝肥料の既定の onset の流用＝設計 §5 F2 の半分・硝石へ移すのは次の段）
+        new("合成ゴム", RubberId, "合成ゴム", DiscoveryField.Process, 1910),             // メチルゴム1916（§1A-5 の表）
+        // --- 発明・新製品（今までに無かった財＝既定のレシピの行）---
+        new("ガス灯", GasId, "", DiscoveryField.Product, 1810),                          // マードック1792・商用1812
+        new("缶詰", CannedFoodId, "", DiscoveryField.Product, 1810),                     // アペール法1809・ブリキ缶1810
+        new("汽船", SteamshipId, "", DiscoveryField.Product, 1820),                      // クラーモント1807〜外洋1830s（Q11＝中間）
+        new("機関車", LocomotiveId, "", DiscoveryField.Product, 1820),                   // ストックトン＝ダーリントン1825・ロケット号1829
+        new("加硫ゴム", RubberId, "", DiscoveryField.Product, 1830),                     // グッドイヤー1839（ゴムに地理差のレシピは無い＝新しい財）
+        new("ダイナマイト", DynamiteId, "", DiscoveryField.Product, 1860),               // ノーベル1867
+        new("冷蔵", RefrigeratorId, "", DiscoveryField.Product, 1870),                   // リンデ1870s・冷凍船1877〜82（冷蔵庫の財は冷蔵の加工肉の投入も兼ねる）
+        new("石炭火力", ElectricityId, "", DiscoveryField.Product, 1880),                // パール街1882（電力の既定のレシピ）
+        new("送電網", GridId, "", DiscoveryField.Product, 1880),
+        new("電化製品", ApplianceId, "", DiscoveryField.Product, 1880),                  // §1A-5 の表
+        new("自転車", BicycleId, "", DiscoveryField.Product, 1880),                      // 安全型1885
+        new("内燃機関", CombustionEngineId, "", DiscoveryField.Product, 1880),           // オットー1876・ダイムラー1885
+        new("自動車", AutomobileId, "", DiscoveryField.Product, 1890),                   // §1A-5 の表（自転車・自動車＝1880〜1890年代）
+        new("ラジオ", RadioId, "", DiscoveryField.Product, 1920),                        // 放送の実用化1920
+        // --- 発明・新兵器（軍事の圧力は陸・海・空で分ける＝作者裁定 2026-09-28 ⑤）---
+        new("装甲艦", IroncladId, "", DiscoveryField.Weapon, 1850, WarDomain.Sea),        // ラ・グロワール1859
+        new("機関銃", MachineGunId, "", DiscoveryField.Weapon, 1880, WarDomain.Land),     // マキシム1884
+        new("弩級戦艦", DreadnoughtId, "", DiscoveryField.Weapon, 1900, WarDomain.Sea),   // ドレッドノート1906
+        new("戦車", TankId, "", DiscoveryField.Weapon, 1910, WarDomain.Land),             // 1916
+        new("軍用機", MilitaryAircraftId, "", DiscoveryField.Weapon, 1910, WarDomain.Air),
+        new("化学兵器", ChemicalWeaponId, "", DiscoveryField.Weapon, 1910, WarDomain.Land), // イーペル1915
     ];
-    private static readonly double[] DefaultOnsets = OnsetColumn("");
-    private static readonly double[] InventionOnsets = OnsetColumn(InventionRow);
-    private static readonly double[] DemandOnsets = OnsetColumn(DemandRow);
-    private static double[] OnsetColumn(string recipe)
+
+    /// <summary>退場（2026-09-27 回2-1 の続き）＝前期のレシピは後継の発見で退く（旧＝TechOnset＝−後継の onset・能力に 1−後継の解禁度）。
+    /// 後継＝既定のレシピ（鋼の後装施条砲・鋼の小銃）を実用にした発見＝転炉鋼。⚠2値＝後継を発見した四半期に退く（普及のなめらかさは市場＝既定のレシピの工場が建つ速さ）。</summary>
+    private static readonly (int Good, string Recipe, int SuccessorGood, string SuccessorRecipe)[] Retirements =
+    [
+        (RifleId, "マスケット", SteelId, ""),
+        (ArtilleryId, "鋳鉄砲", SteelId, ""),
+    ];
+
+    /// <summary>発見の表の行（財・レシピ）の添字。無ければ −1（地理差＝常にある）。⚠線形の走査＝構築と Producer の控え（<see cref="Producer.DiscoveryRow"/>）だけが呼ぶ。</summary>
+    public static int DiscoveryRowOf(int good, string recipe)
     {
-        var a = new double[Goods.Length];
-        foreach (var (g, r, o) in OnsetTable) if (r == recipe && g >= 0 && g < a.Length) a[g] = o;
-        return a;
+        for (int i = 0; i < Discoveries.Length; i++) if (Discoveries[i].Good == good && Discoveries[i].Recipe == recipe) return i;
+        return -1;
     }
 
-    /// <summary>表の1行（財・レシピ名）の onset。⚠行が無ければ例外＝名前の書き違いで黙って0（無ゲート）を読まない（構築のときだけ呼ぶ）。</summary>
-    public static double RecipeOnset(int good, string recipe)
+    /// <summary>このレシピを退かせる発見の行（無ければ −1）。</summary>
+    public static int RetiredByRowOf(int good, string recipe)
     {
-        foreach (var (g, r, o) in OnsetTable) if (g == good && r == recipe) return o;
-        throw new System.ArgumentException($"解禁の表に行が無い：財 {good}・レシピ「{recipe}」");
+        foreach (var (g, r, sg, sr) in Retirements) if (g == good && r == recipe) return DiscoveryRowOf(sg, sr);
+        return -1;
     }
 
-    /// <summary>先進財の発明ゲート（生産能力にも消費需要にも効く）＝表の「発明」の行。onset〜onset+AdvancedTechWidth で線形に0→1。
-    /// 発明前は厳密0（旧版の床0.15は技術≈0の1789年から電化を立てたため廃止）。</summary>
-    public static double AdvancedTechScale(int id, double techLevel)
-    {
-        if (id < 0 || id >= InventionOnsets.Length) return 1.0;
-        double onset = InventionOnsets[id];
-        if (onset <= 0) return 1.0;                    // 門の無い財＝常に解禁
-        return PoliticalQuantities.Clamp01((techLevel - onset) / AdvancedTechWidth);
-    }
-
-    /// <summary>先進財の発明ゲートが開き始める技術水準（0＝無ゲート）＝表の「発明」の行。<see cref="AdvancedTechScale"/> が使うのと同じ値＝
-    /// 閾値を表示する側（発見パネル）が値を複製しないための読み口。</summary>
-    public static double AdvancedOnset(int id) => id >= 0 && id < InventionOnsets.Length ? InventionOnsets[id] : 0.0;
-
-    /// <summary>レシピ別の技術ゲート（代替レシピの近代側の製法を晩期に解禁＝発明の時期。Producer.TechOnset で指定）。
-    /// onset=0 は無ゲート（1789年から）。AdvancedTechScale（財の門）と同型だが、**同一財の複数レシピを個別にゲート**できる
-    /// （例：紙＝木材パルプ製紙を晩期にゲート／ぼろ布製紙は早期）。暦年でなく内生的技術水準が時計＝外科的でない（電化/蒸気と同思想）。
-    /// ★onset&lt;0 は**退場**＝後継の解禁度を引いた割合 <c>1 − RecipeTechScale(−onset)</c>（2026-09-27 前期の軍需レシピ）。
-    ///   同じ時計・同じ幅の裏返し＝能力・未発明の判定・操業規模0・生産タブの灰色化の全てが、この1本から退場を読む（新しい判定を作らない）。</summary>
-    public static double RecipeTechScale(double onset, double techLevel)
-        => onset < 0 ? 1.0 - PoliticalQuantities.Clamp01((techLevel + onset) / AdvancedTechWidth)
-         : onset <= 0 ? 1.0 : PoliticalQuantities.Clamp01((techLevel - onset) / AdvancedTechWidth);
-
-    /// <summary>既定のレシピ（goods.json の Inputs）が「近代的な製法」で1789年には時代錯誤になる財の技術 onset＝表の既定の行（""）。
-    /// 旧法は AddAdvancedProducers / 合成ビルダーが onset=0 の代替レシピで早期供給する＝早期は旧法・晩期は近代法（創発的な製法転換）。0=無ゲート（大半の財）。
-    /// 係数つきの版（2026-09-05）：OilNeedsMachinery>0 では原油の技術閾値を外す（採掘機＝機械の投入が物理ゲート）。0＝従来と同値。</summary>
-    public static double DefaultRecipeOnset(int id, Coefficients c) => c.OilNeedsMachinery > 0 && id == CrudeOilId ? 0.0 : DefaultRecipeOnset(id);
-    public static double DefaultRecipeOnset(int id) => id >= 0 && id < DefaultOnsets.Length ? DefaultOnsets[id] : 0.0;
-
-    /// <summary>需要側の発明ゲート＝表の「需要」の行（旧 DemandOnset・B6レビュー2026-07-19）：浅連鎖で財の門が常時1.0 の財のうち、発明前に需要が立つと
-    /// 供給不能な幻の未充足（満足度ドラグ）になる財のみ明示ゲート。0=無ゲート（大半の財）。</summary>
-    public static double DemandOnset(int id) => id >= 0 && id < DemandOnsets.Length ? DemandOnsets[id] : 0.0;
+    /// <summary>鉱床の後期の産地の傾斜（Producer.TechOnset＞0 の RGO＝後期の銀・硫黄の産地だけ）＝onset〜onset+幅1 で 0→1。
+    /// ⚠発見の表の外に残った唯一の時計（鉱床の発見は次の段＝設計 §9-1 の提案③）。0＝無ゲート。</summary>
+    public static double DepositTechScale(double onset, double techLevel)
+        => onset <= 0 ? 1.0 : PoliticalQuantities.Clamp01((techLevel - onset) / DepositTechWidth);
 
     private static double[] ComputeRefPrices()
     {

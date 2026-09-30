@@ -1,5 +1,5 @@
 ﻿// GameViewModel.Discovery.cs ＝ 発見パネル（F・2026-08-31作者指示「UIはFボタンに配置」／2026-09-03にF1→Fへ）。
-// 発見＝解禁の唯一の形（Discovery.Unlock）の現在地をデータで見せる：制度の普及度＋解禁物（既定製法・代替製法・世界のゲート）の進行。
+// 発見＝解禁の唯一の形の現在地をデータで見せる：制度の普及度（Discovery.Unlock）＋発見の表の行（Discovery.Evaluate＝2値・段2A）＋世界のゲートの進行。
 // 2026-09-07（作者要望11）：エンジンに在る解禁物を全部並べる（未解禁0%も解禁済み100%も載せる）＋パネル寸法を右ドックと一致させた。
 // ⚠UI規律＝説明文なし・データのみ・漢字1字略称なし（ツールチップもデータ）。
 // 2026-09-08（作者裁定）：思想の解禁（社会主義/共産主義/帝国主義/ファシズム）を同じ器で並べる＝Ideologies.EraGates を読む。
@@ -81,40 +81,20 @@ public partial class GameViewModel
         ideo.Sort(ByGate);
         foreach (var t in ideo) rows.Add(new DiscoveryRow(t.Name, "思想", t.Pct, $"{t.Pct:P0}", t.Tip));
 
-        // ★2026-09-07（作者要望11「追加分をリストに追加」）＝エンジンに在る解禁物を漏れなく1つの物差しで並べる。
-        //   旧版は「財」（連鎖深ゲート）と「技術」（州に実在する代替製法）を別カテゴリで持ち、しかも進行中（0%<x<100%）だけを載せていたので、
-        //   1783年はほぼ空・解禁した物は一覧から消え、既定製法の発明ゲート（RecipeName が空＝工場の既定レシピ）は1つも出なかった。
-        //   新版＝(財, 製法名) をキーに畳み、未解禁0%も解禁済み100%も並べる。種別は「技術」1つ＝同じ財が2行に割れない。
-        //   解禁度は ProductionDiag.TechGate（＝AdvancedTechScale×RecipeTechScale・EconomyStep が能力に掛ける同じ積）＝UIに第二の式を置かない。
+        // ★2026-09-07（作者要望11「追加分をリストに追加」）＝エンジンに在る解禁物を漏れなく1つの物差しで並べる（未解禁0%も解禁済み100%も）。
+        // ★2026-10-01 段2A：発見の表（Catalog.Discoveries＝行はレシピ）を全て並べる。発見は2値＝解禁済みは100%・まだの行は点数（技術力＋必要性＋伝わり）の割合
+        //   ＝閾値は出さない・パーセントは出す（作者裁定 2026-09-23）。値は Discovery.Evaluate＝エンジンが判定に読む同じ関数（接触は直近の判定の値）。
+        //   ホバー＝3項の値（データのみ）。並べ替えの第2キーは年代（旧＝onset）。
         var tech = new List<(string Name, double Pct, double Onset, string Tip)>();
-        var gates = new Dictionary<(int GoodId, string Recipe), double>();   // 値＝発見の閾値（同じキーは大きい方＝遅い方が実効）
-        void Gate((int, string) key, double onset)
+        var terms = Discovery.Evaluate(w, w.LastDiscoveryView, c);
+        for (int row = 0; row < Catalog.Discoveries.Length; row++)
         {
-            if (!gates.TryGetValue(key, out double prev) || onset > prev) gates[key] = onset;
-        }
-        // ① 既定製法（国に依らない知識＝賦存の無い財も消さない）。ゲートを1つも持たない財は発見の対象でないので載せない。
-        foreach (var g in Catalog.Goods)
-        {
-            if (g.Tier == GoodTier.Service) continue;
-            double onset = Catalog.DefaultRecipeOnset(g.Id, c);
-            if (!(onset > 0) && !(Catalog.AdvancedOnset(g.Id) > 0)) continue;
-            Gate((g.Id, ""), onset);
-        }
-        // ② 自国の州に実在する製法（代替製法＝水力発電/蒸気タービン/石油ケロシン/黄鉄鉱法…と、起動時に既定 Producer へ焼かれた鋼/汽船/機関車）。
-        foreach (var r in w.Regions)
-        {
-            if (r.State != RegionState.Active) continue;
-            foreach (var pr in r.Producers)
-                if (pr.TechOnset > 0) Gate((pr.GoodId, pr.RecipeName), pr.TechOnset);
-        }
-        foreach (var kv in gates)
-        {
-            (int gid, string recipe) = kv.Key;
-            if (gid < 0 || gid >= Catalog.Goods.Length) continue;
-            double s = ProductionDiag.TechGate(gid, kv.Value, w.TechLevel);
-            double onset = System.Math.Max(kv.Value, Catalog.AdvancedOnset(gid));   // 実効の閾値＝2本のゲートの遅い方
-            string name = recipe.Length > 0 ? $"{Catalog.Goods[gid].Name}（{recipe}）" : Catalog.Goods[gid].Name;
-            tech.Add((name, s, onset, $"技術 {w.TechLevel:F2}"));   // ★2026-09-23（作者裁定）：閾値は画面に出さない・パーセントで出す＝onset は並べ替え ByGate の第2キーとしてだけ残す
+            var d = Catalog.Discoveries[row];
+            bool known = Discovery.Known(w.Discovered, row);
+            var tm = terms[row];
+            double s = known ? 1.0 : System.Math.Clamp(tm.Score / Discovery.GateScore, 0, 1);
+            if (!(s >= 0)) s = 0;
+            tech.Add((d.Name, s, d.Decade, known ? $"{d.Decade}年代" : $"技術力 {tm.Tech:F0} ／ 必要性 {tm.Need:F0} ／ 伝わり {tm.Transmit:F0}"));
         }
         // ③ 財に紐づかない世界のゲート（産業の形を変えるが Producer を持たないので①②では出ない）。式は全てエンジンと同一。
         if (c.RefrigerationEffect > 0 && c.RefrigerationIndSpan > 0)   // 冷蔵＝生鮮の腐敗低減（EconomyStep の在庫腐敗・工業化度が時計）

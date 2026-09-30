@@ -304,6 +304,11 @@ public class WriterRatchetTests
     // ★2026-10-01 表の更新（(146) 計算量の予算の恒等の手＝立場の土台の分け合い・連鎖の目の読む個体・変名の判定の順・従属国の列挙の近道＋計数を1本足した＝「移民：州×州の組（国内・越境）」）：
     //   移民の組の走査（国内＝出る州×行き先・越境＝送出州×他国の州＝O(州²)）は旧は数えず2本（月次・共有層）の単価に入っていた＝州が増える回で伸びても番人に見えなかった
     //   ＝40四半期で 4,191,142 件（宣言）。ほかの16本は腕A（(145)）と1件も違わない（恒等＝処理の件数は同じ・1件あたりの時間だけが減った＝単価を下げた）。
+    // ★2026-10-01 表の更新（(147) 段2A 発見の作り替え＝発見は2値・点数の門＝軌道が動いた分の宣言＋新しい計数1本の宣言）：
+    //   ①新しい処理＝「発見：国×四半期（点数の判定）」＝国ごとに四半期1回の Discovery.Evaluate（州×財の集計・生産者の走査・行の3項）＝40四半期で 2,532 件
+    //   （単価 76.0µs＝(147) の discprobe の実測〔割高さの参照を直した後の木〕・全長の10種で 41,773 件＝推定 3.17 秒＝目標より下の余りの中＝払う必要が無い〔全長の推定 244.3→246.1 秒〕）。
+    //   ②覇権の判定 2,585,796→3,590,682（+38.9%＝同盟の候補が居る月の軌道＝(122) の +39% と同じ型・処理の形は同じ・単価 0.01035µs＝40四半期で +10.4ms）。
+    //   ほかの15本は許しの内（+2%／−10%）＝表は動かさない（価格の財の歩 −5.5%・消費 −5.0%・建設 −7.5%・請求 −8.4%＝発見していない財の需要が立たない）。
     [InlineData(CostLedger.PriceGoods, 14149727L)]
     [InlineData(CostLedger.PriceDailyRuns, 25283828L)]
     [InlineData(CostLedger.ConstructionSeen, 7634L)]
@@ -321,6 +326,7 @@ public class WriterRatchetTests
     [InlineData(CostLedger.SharedNationQuarters, 3698L)]
     [InlineData(CostLedger.GdpScans, 8670915L)]
     [InlineData(CostLedger.MigrationPairs, 4191142L)]
+    [InlineData(CostLedger.DiscoveryNations, 2532L)]
     public void 計算量の見た件数は宣言した表を超えない(int item, long declared)
     {
         long n = Cost40.Value[item];

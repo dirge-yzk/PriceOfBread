@@ -157,7 +157,7 @@ public class MilitaryTests
         var castGun = Assert.Single(r.Producers, p => p.GoodId == Catalog.ArtilleryId && p.RecipeName == "鋳鉄砲");
         foreach (var p in new[] { musket, castGun })
         {
-            Assert.Equal(1.0, ProductionDiag.TechGate(p.GoodId, p.TechOnset, r.TechLevel));   // 1783年は満額（退場は下の番人）
+            Assert.Equal(1.0, Discovery.Gate(r, p));   // 1783年は満額（退場は下の番人）
             Assert.DoesNotContain(p.Inputs, inp => inp.GoodId == Catalog.SteelId);   // 鋼を要しない
         }
         double cumulative = 0;
@@ -177,7 +177,7 @@ public class MilitaryTests
         double Mc(Producer p) => EconomyStep.MineralSelfCost(p, r, c, sim.World) + EconomyStep.InputCostPerUnit(p, r, r, c);
         var musket = Assert.Single(r.Producers, p => p.GoodId == Catalog.RifleId && p.RecipeName == "マスケット");
         var rifle = Assert.Single(r.Producers, p => p.GoodId == Catalog.RifleId && p.Inputs.Any(inp => inp.GoodId == Catalog.SteelId));   // 既定（鋼）レシピ
-        var bessemer = Assert.Single(r.Producers, p => p.GoodId == Catalog.SteelId && p.TechOnset > 0);                     // 既定の鋼＝ベッセマー転炉（onset 0.55）
+        var bessemer = Assert.Single(r.Producers, p => p.GoodId == Catalog.SteelId && p.DiscoveryRow >= 0);                 // 既定の鋼＝ベッセマー転炉（発見の表の転炉鋼）
         var crucible = Assert.Single(r.Producers, p => p.GoodId == Catalog.SteelId && p.RecipeName == "坩堝鋼");
 
         r.Markets[Catalog.SteelId].Price = Mc(crucible);   // ベッセマー以前＝鋼は坩堝鋼の値段
@@ -186,43 +186,44 @@ public class MilitaryTests
         Assert.True(Mc(rifle) < Mc(musket), $"ベッセマーの値段で既定の小銃が安くない（既定 {Mc(rifle):F3} / マスケット {Mc(musket):F3}）＝転換が費用で起きない");
     }
 
-    /// <summary>★前期の軍需レシピの退場（2026-09-27・回2-1 の続き）：能力に「1 − 後継の解禁度」が乗る
-    /// （TechOnset＝−ベッセマー転炉の onset＝Catalog.RecipeTechScale の負の枝・解禁の仕組みは1本のまま）。
-    /// ①1783年は満額 ②後継の解禁の帯の中は、ちょうど 1 − 後継の解禁度（連続＝崖を作らない）
-    /// ③後継の解禁の後は操業規模も産出も0（未発明と同じ扱い）で、火砲・小銃は発見済みのまま（既定のレシピが引き継ぐ）。</summary>
+    /// <summary>★前期の軍需レシピの退場（2026-09-27・回2-1 の続き）：後継（転炉鋼＝鋼の既定のレシピ）を発見すると退く。
+    /// ★2026-10-01 段2A（作者裁定 §1A-2＝発見は2値）：旧＝能力に「1 − 後継の解禁度」（技術水準の傾斜・連続）→ 新＝後継を発見した四半期に門が0（2値・退場の表）。
+    /// ①1783年（後継は未発見）は満額 ②技術水準をどれだけ上げても後継を発見するまで満額（技術水準は門を動かさない）
+    /// ③後継の発見の後は門が0・操業規模も産出も0（未発明と同じ扱い）で、火砲・小銃は発見済みのまま（既定のレシピが引き継ぐ）。</summary>
     [Fact]
     public void 前期の軍需レシピは後継の発見で退場する()
     {
         var sim = new Simulation(NationConfig.Britain().ToScenario(29), new NullAgent());
-        var w = sim.World; var r = w.Region; var c = w.Coef;
+        var w = sim.World; var r = w.Region;
         var musket = Assert.Single(r.Producers, p => p.GoodId == Catalog.RifleId && p.RecipeName == "マスケット");
         var castGun = Assert.Single(r.Producers, p => p.GoodId == Catalog.ArtilleryId && p.RecipeName == "鋳鉄砲");
-        var bessemer = Assert.Single(r.Producers, p => p.GoodId == Catalog.SteelId && p.TechOnset > 0);   // 後継を実用にした発見＝鋼の既定レシピ（ベッセマー転炉）
+        var bessemer = Assert.Single(r.Producers, p => p.GoodId == Catalog.SteelId && p.DiscoveryRow >= 0);   // 後継を実用にした発見＝鋼の既定レシピ（ベッセマー転炉＝発見の表の転炉鋼）
         var old = new[] { musket, castGun };
+        foreach (var p in old) Assert.Equal(bessemer.DiscoveryRow, p.RetiredByRow);   // 退場の表＝後継は転炉鋼
+        r.Discovered = w.Discovered;   // 州は国の配列を参照する（月次の写しの前の盤面）
 
-        // ①1783年＝後継の onset の手前＝満額
-        Assert.True(r.TechLevel < bessemer.TechOnset, $"前提が崩れている（初期技術 {r.TechLevel:F3}／後継の onset {bessemer.TechOnset:F3}）");
-        foreach (var p in old) Assert.Equal(1.0, ProductionDiag.TechGate(p.GoodId, p.TechOnset, r.TechLevel));
+        // ①1783年＝後継は未発見＝満額
+        Assert.False(Discovery.Known(w.Discovered, bessemer.DiscoveryRow), "前提が崩れている（転炉鋼が発見済み）");
+        foreach (var p in old) Assert.Equal(1.0, Discovery.Gate(r, p));
 
-        // ②後継の解禁の帯の中＝1 − 後継の解禁度（連続）
-        foreach (double t in new[] { bessemer.TechOnset + 0.25, bessemer.TechOnset + 0.5, bessemer.TechOnset + 0.75 })
-            foreach (var p in old)
-            {
-                double g = ProductionDiag.TechGate(p.GoodId, p.TechOnset, t);
-                Assert.Equal(1.0 - ProductionDiag.TechGate(32, bessemer.TechOnset, t), g, 12);
-                Assert.True(g > 0 && g < 1, $"{p.RecipeName}：技術 {t:F2} で退場が0か1に潰れている（{g:F3}）＝崖ができている");
-            }
+        // ②技術水準では退かない（2値＝発見だけが門を動かす）
+        foreach (double t in new[] { 0.5, 1.5, 5.0 })
+        {
+            r.TechLevel = t;
+            foreach (var p in old) Assert.Equal(1.0, Discovery.Gate(r, p));
+        }
 
-        // ③後継の解禁の後＝操業規模も産出も0・装備は発見済みのまま
-        w.TechLevel = bessemer.TechOnset + 2.0;
+        // ③後継の発見の後＝門が0・操業規模も産出も0・装備は発見済みのまま
+        w.Discovered[bessemer.DiscoveryRow] = true;
+        foreach (var p in old) Assert.Equal(0.0, Discovery.Gate(r, p));
         sim.Run(2);
         foreach (var p in old)
         {
-            Assert.Equal(0.0, ProductionDiag.TechGate(p.GoodId, p.TechOnset, r.TechLevel));
-            Assert.True(p.Output == 0.0 && p.Scale == 0.0, $"{p.RecipeName}：後継の解禁の後も産出 {p.Output}／操業規模 {p.Scale}");
+            Assert.Equal(0.0, Discovery.Gate(r, p));
+            Assert.True(p.Output == 0.0 && p.Scale == 0.0, $"{p.RecipeName}：後継の発見の後も産出 {p.Output}／操業規模 {p.Scale}");
         }
-        Assert.Equal(1.0, EconomyStep.EquipUnlock(r, c, 81));   // 火砲は既定のレシピ（鋼の砲）で作れる＝発見済みのまま
-        Assert.Equal(1.0, EconomyStep.EquipUnlock(r, c, 82));
+        Assert.Equal(1.0, Discovery.GoodGate(r, Catalog.ArtilleryId));   // 火砲は既定のレシピ（鋼の砲）で作れる＝発見済みのまま
+        Assert.Equal(1.0, Discovery.GoodGate(r, Catalog.RifleId));
     }
 
     /// <summary>M4（2026-09-11）：恒常性の信号の分子は上限（MilitaryBudgetCeiling）1本＝旧 Math.Max(Ceiling, Budget) は Budget ≤ Ceiling の単調性で同値。

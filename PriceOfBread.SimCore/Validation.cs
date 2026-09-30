@@ -150,17 +150,17 @@ public static class Metrics
         var deadEndNames = new List<string>();
         // ★時代盲の是正（2026-08-31）：300Q探索（1858年）で弩級戦艦・戦闘機・ラジオ・高等教育が「下流の無い財」として
         //   硬性ゲートを赤にした＝時代未到達の財に下流が無いのは正しい挙動であって死蔵ではない（短尺の物差しのアーティファクト）。
-        //   世界最先端の技術水準でまだ解禁が始まっていない財（AdvancedTechScale=0）は検査対象から外す。
-        //   604Q完走（1934年・全財解禁済み）では従来と同じ集合を検査する＝受け入れ物差しは不変。
-        double maxTech = 0;
-        foreach (var n in sim.Nations) maxTech = Math.Max(maxTech, n.World.TechLevel);
-        // ★(145)：兵力（(145) で市場ごと削除＝財の番号をずらさないため一覧に残した財）は「下流の無い財」ではなく市場そのものが無い＝検査の外。
-        //   ★(149) 反証の指摘：外すのは兵力だけ（旧＝「生産者の一覧に載らない財は全て外す」＝不具合で生産者が消えた財も黙って通った）。
+        //   世界のどの国もまだ発見していない財（全てのレシピが発見の表の行で、どの国も未発見＝2026-10-01 段2A）は検査対象から外す。
+        //   全財を発見した後の完走では従来と同じ集合を検査する＝受け入れ物差しは不変。
+        var unavailable = ProductionDiag.UnavailableGoods(sim, sim.Coef);   // 「まだ存在しない財」の判定の1本（どの国のどの州でも発見の門が0・産出も無い）
         foreach (var g in Catalog.Goods)
         {
             if (g.IsColonial) continue;
+            // ★(145)：兵力（(145) で市場ごと削除＝財の番号をずらさないため一覧に残した財）は「下流の無い財」ではなく市場そのものが無い＝検査の外。
+            //   ★(149) 反証の指摘：外すのは兵力だけ（旧＝「生産者の一覧に載らない財は全て外す」＝不具合で生産者が消えた財も黙って通った）。
+            //   （「まだ存在しない財」の判定 UnavailableGoods は生産者の無い財を存在する側に数える＝兵力はここで外す）
             if (g.Id == Catalog.MilitaryPowerId) continue;
-            if (!(Catalog.AdvancedTechScale(g.Id, maxTech) > 0)) continue;   // 時代未到達＝下流が無いのが正しい（否定形＝NaNも除外側）
+            if (g.Id < unavailable.Length && unavailable[g.Id]) continue;   // 時代未到達＝下流が無いのが正しい
             double maxD = 0;
             foreach (var n in sim.Nations) { var mk = n.World.Region.Markets; if (g.Id < mk.Length) maxD = Math.Max(maxD, mk[g.Id].LastDemand); }   // コードベース規約の < Markets.Length ガード（最小テスト世界で Markets が全財を持たない場合に落ちない）
             if (maxD < 0.5) { deadEnd++; deadEndNames.Add($"{g.Id}:{g.Name}"); }   // 顔ぶれも残す（診断のみ）

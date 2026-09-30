@@ -443,6 +443,10 @@ public sealed class MultiNationSim
         // 新国家を birth BaseMoney(=S+T) で再基線化するため、子は baseline=S+T・TradeFlow=0 で保存が閉じる（親は −(S+T) を BaseMoney/TradeFlow 両方に記帳）。
         // ここに +S+T を足すと二重計上でプローブが即例外（検証済み）。MultiNationTestの世界合計式がspawnの子baselineを勘定しない側の非対応でありコードは正しい。
         nw.TechLevel = pw.TechLevel; nw.Elite = pw.Elite;
+        // ★発見は親から（段2A・独立は文明を巻き戻さない＝技術水準と同じ）。移った州は新しい国の配列を読む（月次の写しを待たない）。
+        System.Array.Copy(pw.Discovered, nw.Discovered, System.Math.Min(pw.Discovered.Length, nw.Discovered.Length));
+        nw.WorldDiscovered = pw.WorldDiscovered;   // 世界の解禁の和は全ての国で同じ配列
+        foreach (var rr in regs) rr.Discovered = nw.Discovered;
         Transport.Receive(nw, railIn, shipIn, pw.ShipSteamShareEma);   // 移った州の鉄道と船（旧＝船腹0・鉄道0で生まれた）
         // ★法の継承は1本（World.CopyLawsFrom＝段の法と税・支出の段は法の軸の表のまま・政策の目標は丸ごと・2026-09-28 処理の一元化 段2 C）。
         //   旧＝ここに World と Policy の対を軸ごとに約40行＝女性の権利は Policy だけ写し漏れた前歴・累進課税／植民地参政権／移民原住民参政権／
@@ -513,9 +517,80 @@ public sealed class MultiNationSim
         if (quarters <= 0) return;   // 助走なし＝構築直後の盤面そのままで開始（厳密恒等の底）
         WarmupEconomy(quarters, onQuarter);
         WarmupTech(_coef.StartWarmupTechIterations);
+        // ★開幕の既知の集合（段2A・2026-10-01）＝助走の終わりの盤面（均衡の値段・助走で進めた技術水準）で1度だけ判定する（誰もまだ持たない＝伝わり0）。
+        //   1780年代の行（蒸気機関）は難易度0＝技術力は最大＝必要性（人件費の高さ）が30に届く国だけが開幕から持つ。
+        { var view0 = new Discovery.WorldView(null, WorldLaborWage()); foreach (var n in Nations) Discovery.Step(n.World, view0, _coef); ShareWorldDiscovered(); }
         RebaselineInvariants();
     }
     private bool _startWarmupDone;
+
+    /// <summary>★発見の段（段2A・2026-10-01・設計 §1A-2・§1A-7）＝四半期末の共有層。
+    /// 接触（行ごと）＝①取引：その行を解禁済みの国から、まだの自国が買った運び手の財の額 ÷ 世界のその運び手の財の取引額の和（思想の伝播 StepDiffusion と同じ「世界の取引に占める割合」＝小国を過大に見ない）
+    /// ＋②技師：この四半期に解禁済みの国から呼んだ技師・研究者 ÷ 自国の技師・研究者（招聘 RecruitSpecialists が記帳）。
+    /// 全ての国の接触を先に求めてから判定する（判定の順で他国の接触が変わらない）。記帳は毎四半期0へ戻す（助走も）。</summary>
+    private void StepDiscoveries(bool evaluate)
+    {
+        if (evaluate)
+        {
+            int nr = Catalog.Discoveries.Length, n = Nations.Count;
+            var gf = Market.DiscoveryGoodFlowQ;
+            var carriers = Market.DiscoveryCarriers(Nations);
+            var contacts = new double[n][];
+            for (int i = 0; i < n; i++)
+            {
+                var w = Nations[i].World;
+                var ct = new double[nr];
+                if (w.DiscoveryImportQ is { } dq && gf is not null)
+                    for (int r = 0; r < nr && r < dq.Length; r++)
+                    {
+                        if (!(dq[r] > 0)) continue;
+                        double den = 0; foreach (int g in carriers[r]) if (g < gf.Length) den += gf[g];
+                        if (den > 1e-12) ct[r] += dq[r] / den;
+                    }
+                if (_recruitLog is { Count: > 0 } log)
+                {
+                    double pool = 0;
+                    foreach (var reg in w.Regions)
+                    {
+                        if (reg.State != RegionState.Active) continue;
+                        foreach (var cls in SpecialistClasses) { var q = reg.PopOf(cls); if (q is not null && q.Size > 0) pool += q.Size; }
+                    }
+                    if (pool > 1e-9)
+                        foreach (var (src, dst, heads) in log)
+                        {
+                            if (!ReferenceEquals(dst, w)) continue;
+                            for (int r = 0; r < nr; r++)
+                                if (Discovery.Known(src.Discovered, r) && !Discovery.Known(w.Discovered, r)) ct[r] += heads / pool;
+                        }
+                }
+                contacts[i] = ct;
+            }
+            double ww = WorldLaborWage();
+            for (int i = 0; i < n; i++) Discovery.Step(Nations[i].World, new Discovery.WorldView(contacts[i], ww), _coef);
+            ShareWorldDiscovered();
+        }
+        foreach (var sim in Nations) sim.World.DiscoveryImportQ = null;
+        Market.DiscoveryGoodFlowQ = null;
+        _recruitLog?.Clear();
+    }
+    /// <summary>世界の解禁の和（需要の門が読む）を書き直して全ての国へ配る（同じ配列＝建国した国も親と同じものを参照）。</summary>
+    private void ShareWorldDiscovered()
+    {
+        _worldDiscovered ??= new bool[Catalog.Discoveries.Length];
+        Discovery.UnionInto(Nations.Select(s => s.World), _worldDiscovered);
+        foreach (var sim in Nations) sim.World.WorldDiscovered = _worldDiscovered;
+    }
+    private bool[]? _worldDiscovered;   // ⚠セーブに載る（全ての国の World と同じ配列＝参照は1つ）
+
+    /// <summary>人件費の世界の平均＝各国の働き手1人の月の所得÷物価水準を働き手の人数で重み付けた平均（<see cref="Discovery.LaborWage"/>）。</summary>
+    private double WorldLaborWage()
+    {
+        double s = 0, z = 0;
+        foreach (var sim in Nations) { var (wg, h) = Discovery.LaborWage(sim.World); if (wg > 0 && h > 0) { s += wg * h; z += h; } }
+        return z > 1e-12 ? s / z : 0;
+    }
+    /// <summary>この四半期の招聘（送り手・受け手・人数）＝発見の段が読んで空にする。作業領域（同じ四半期末の中で書いて読む＝セーブを挟まない）。</summary>
+    [System.NonSerialized] private List<(World Src, World Dst, double Heads)>? _recruitLog;
 
     /// <summary>**価格の助走**：暦・政治・外交・人口・識字・技術・移民・**資本形成**を凍結したまま指定四半期を回す＝
     /// 価格・在庫・クリアリング・賃金/地代/税という初期過渡だけを実勢へ落ち着かせる。開始スナップショットを
@@ -715,6 +790,7 @@ public sealed class MultiNationSim
                         }            // 国家間移民：貧しい国の大衆が豊かな国へ抜ける（欧州→新大陸）
                 RecruitSpecialists(); ProbeDiff("技師の招聘");                // ★段④：後進国が国庫で先進国から技師・研究者を買う（大衆とは逆向き・ゼロサム）
             }
+            StepDiscoveries(evaluate: !_calendarFrozen);   // ★段2A：発見（伝わりの接触＝この四半期の取引と技師の移動→国ごとに点数を求めて100に届いた行を解禁）。助走は記帳を捨てるだけ
             CapitalMarket.Step(Nations, _coef); ProbeDiff("国際金融");   // 国際金融（第3b段）：民間外資が高収益国へ流れ工業化を支え、配当を送り、危機で逃避・伝染
             if (!DiplomacyFrozen) StepEpidemicTransmission();          // 疫病の国家間伝播（年次）：感染国から近接＋交易接触で未感染国へ飛び火（コレラの世界的流行）
             StepWeatherBands();                                         // 緯度帯天候（年次）：同じ気候帯の国を一緒に豊凶させる（欧州一帯の干ばつ/冷夏）。自然現象＝外交凍結中も走る
@@ -1774,6 +1850,7 @@ public sealed class MultiNationSim
         dst.RecruitBudget -= World.Transfer((dst, null), (dst, arrived, arrivedFlow), cost, TreasuryCat.Modernization);
         src.LastEmigration += moved; dst.LastImmigration += moved;           // 診断（UI）
         src.LastSpecialistExit += moved;                                     // ★段⑤：抜かれた側の実測＝流出禁止法の選好の入力（抜かれていない国では法が争点にならない）
+        (_recruitLog ??= new()).Add((src, dst, moved));                      // ★段2A：発見の伝わりの技師の移動（同じ四半期末の発見の段が読んで空にする）
     }
 
     // 【削除2026-09-30 段4e I】EffectiveConsciousness（越境移民の国民意識の未捕捉〔−1〕を国の実効値で読む）＝人の移し方の1本 Pop.Blend は未捕捉を重み0で混ぜる
@@ -1814,7 +1891,7 @@ public static class CostLedger
 {
     public const int PriceGoods = 0, PriceDailyRuns = 1, ConstructionSeen = 2, CreditSpans = 3, ConsumePopGoods = 4, ProducerMonths = 5,
         ClaimProducers = 6, MonthlyPops = 7, ClearingRows = 8, ClearingFills = 9, DiploPowerMonths = 10, DiploHegemonScans = 11,
-        QuarterStartPops = 12, QuarterEndPops = 13, SharedNationQuarters = 14, GdpScans = 15, MigrationPairs = 16, Count = 17;
+        QuarterStartPops = 12, QuarterEndPops = 13, SharedNationQuarters = 14, GdpScans = 15, MigrationPairs = 16, DiscoveryNations = 17, Count = 18;
 
     /// <summary>計数の名前（番人の表・測りのファイル・docs の「処理の刻みの表」の列が同じ名前を使う）。</summary>
     public static readonly string[] Names =
@@ -1822,7 +1899,7 @@ public static class CostLedger
         "価格：財の歩（州×財×旬）", "価格：日次の写像の回", "建設：見た生産者（旬）", "信用：国×旬", "消費：POP×財（月）", "生産：生産者×月",
         "請求：見た生産者（月）", "月次：POP×月（決算の残り）", "清算：見た買い手行", "清算：着値の充填", "外交：国×月", "外交：覇権の判定の国×国",
         "四半期首：POP×国（AI・議会・政府）", "四半期末：POP×国", "共有層：国×四半期（国力・移民・国際金融ほか）",
-        "GDP：州×生産者の和（取り直した分）", "移民：州×州の組（国内・越境）",
+        "GDP：州×生産者の和（取り直した分）", "移民：州×州の組（国内・越境）", "発見：国×四半期（点数の判定）",
     ];
 
     /// <summary>単価（マイクロ秒/件）。census の処理の秒÷件数×計器の重さの割り戻し（0.9163）。算出の式は docs の「処理の刻みの表」。
@@ -1851,7 +1928,10 @@ public static class CostLedger
         110.34900, // 共有層：国×四半期＝12.194 秒÷4.35万＝256.74759×(1−GDP の割合 0.50369)（(136)）＝127.42606×(1−越境移民の割合 0.13402)（(146)＝移民の組を下の計数へ分けた）
         0.015503,  // GDP：州×生産者の和（取り直した分）＝上の5本から外した GDP の推定 16.09 秒÷その区間の走査 10.38億件（(136) の census）
         0.016708,  // 移民：州×州の組（国内・越境）＝上の2本（月次・共有層）から外した移民の推定 1.3173 秒÷種1全長の組 7,884万（(146) の census）
+        DiscoveryUnitMicros,   // 発見：国×四半期＝Discovery.Evaluate の1回（州×財の集計・生産者の走査・行の3項）＝(147) の discprobe の実測（下の定数の注記）
     ];
+    /// <summary>発見の判定の単価（マイクロ秒/国×四半期）＝(147) の Runner discprobe（種1・668四半期・全ての国の Discovery.Evaluate を Stopwatch で計った和÷回数＝76.0・41,373回〔割高さの参照を投入の費用へ直した後の木〕・直す前の木は 67.7）。</summary>
+    public const double DiscoveryUnitMicros = 76.0;
 
     /// <summary>★予算の目標（1試合の CPU 秒・バッチの条件）＝10種の全長を5分で＝300 秒×働くコア 約12.9÷10（2026-09-30 作者裁定・推奨で決めた）。</summary>
     public const double BudgetTargetCpuSeconds = 387.0;
