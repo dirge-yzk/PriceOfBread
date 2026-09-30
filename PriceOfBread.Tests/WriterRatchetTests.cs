@@ -216,6 +216,8 @@ public class WriterRatchetTests
     // ★2026-09-30 表の更新（(124) 段4d＝支払いの段3-4・3-5＝軌道が動いた分の宣言・新しい処理は無い）：覇権の判定 2,459,718→2,825,300（+14.9%＝同盟の候補が居る月の軌道・
     //   処理の形は同じ＝(122) の +39%/+6.9% と同じ型）。連合維持費と駐留の俸給の請求の担い手は州ごとの産出の和（LastProduced）を読む＝生産者を走査しない（新しい計数は無い）。
     //   建設 21,518・請求 7,446 は表の許しの内（−6%）。推定の単位では 40四半期で +3.8ms（単価 0.01035µs）＝全長は10種の .cost（実装ログ (124)）。
+    // ★2026-09-30 表の更新（(128) 合流＝線1 の (124)(126) を線2 と財の削減の載った main へ載せ直した木＝軌道が動いた分の宣言・新しい処理は無い）：
+    //   覇権の判定 2,137,387→2,634,247（+23.2%＝(124) 単独の +14.9% と同じ型＝同盟の候補が居る月が増えた・処理の形は同じ・単価 0.01035µs＝40四半期で +5.1ms）。ほかの14本は許しの内。
     [InlineData(CostLedger.PriceGoods, 14149727L)]
     [InlineData(CostLedger.PriceDailyRuns, 37318732L)]
     [InlineData(CostLedger.ConstructionSeen, 18466L)]
@@ -227,7 +229,7 @@ public class WriterRatchetTests
     [InlineData(CostLedger.ClearingRows, 5185642L)]
     [InlineData(CostLedger.ClearingFills, 31689816L)]
     [InlineData(CostLedger.DiploPowerMonths, 9954L)]
-    [InlineData(CostLedger.DiploHegemonScans, 2137387L)]
+    [InlineData(CostLedger.DiploHegemonScans, 2634247L)]
     [InlineData(CostLedger.QuarterStartPops, 235560L)]
     [InlineData(CostLedger.QuarterEndPops, 235560L)]
     [InlineData(CostLedger.SharedNationQuarters, 3698L)]
