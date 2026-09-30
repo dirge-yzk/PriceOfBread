@@ -1260,9 +1260,18 @@
     "tier": "Daily",
     "baseNeed": 0.04,
     "elasticity": 0.7,
-    "productivity": 4,
-    "inputs": [],
-    "isColonial": true,
+    "productivity": 1.6,
+    "inputs": [
+      {
+        "goodId": 127,
+        "qtyPerOutput": 0.5
+      },
+      {
+        "goodId": 33,
+        "qtyPerOutput": 0.3
+      }
+    ],
+    "isColonial": false,
     "nonTradeable": false,
     "grainChain": false,
     "nutrition": -1
@@ -2367,6 +2376,19 @@
       }
     ],
     "isColonial": false,
+    "nonTradeable": false,
+    "grainChain": false,
+    "nutrition": -1
+  },
+  {
+    "id": 127,
+    "name": "金鶏樹皮",
+    "tier": "Intermediate",
+    "baseNeed": 0,
+    "elasticity": 0.6,
+    "productivity": 2,
+    "inputs": [],
+    "isColonial": true,
     "nonTradeable": false,
     "grainChain": false,
     "nutrition": -1

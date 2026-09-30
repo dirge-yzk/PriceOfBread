@@ -117,7 +117,7 @@ public static class Catalog
         new(CoffeeId, "コーヒー", GoodTier.Daily,        0.07, 0.8, 2.2, [], true),   // ★段1（2026-09-30・財の削減＝設計 docs/202609/20260928 §3）：コーヒー豆を畳む（同上）＝コーヒーを植民地の採取に。生産性はコーヒー豆の2.2
         new(WaterproofClothId, "防水布",   GoodTier.Daily,        0.05, 0.7, 1.6, [I(RubberId,0.5), I(CottonClothId,0.4)]),
         new(MedicineId, "医薬品",   GoodTier.Daily,        0.108, 0.6, 1.6, [I(ChemicalsId,0.5), I(FruitId,0.3)]),   // ★段1（2026-09-30・財の削減＝設計 docs/202609/20260928 §3）：包帯（必要0.04・綿布0.5）を畳んで必要へ足す（作者裁定 Q8）＝0.08＋0.04×参照価格の比（0.76÷1.07）＝0.108（支出を保つ）
-        new(QuinineId, "キニーネ", GoodTier.Daily,        0.04, 0.7, 4.0, [], true),   // ★段1（2026-09-30・財の削減＝設計 docs/202609/20260928 §3）：金鶏樹皮を畳む（同上）＝キニーネを植民地の採取に（単離の時代差は解禁の表の既定の行 0.5 がそのまま採取に掛かる）。生産性＝樹皮2.0÷旧投入0.5＝4.0（1人が採る樹皮の量から作れるキニーネの量）
+        new(QuinineId, "キニーネ", GoodTier.Daily,        0.04, 0.7, 1.6, [I(CinchonaBarkId,0.5), I(ChemicalsId,0.3)]),   // ★2026-09-30 (129)（作者裁定 2026-09-30＝財の削減 (123) で畳んだ金鶏樹皮を戻す・元の裁定 2026-09-29「加工は畳まない。植民地材→本国に輸送→加工の行程を飛ばすべきではない」）：キニーネは**本国の工場**で樹皮から抽出する（既定のレシピ＝単離・解禁の表の既定の行 0.5＝ペルティエとカヴァントゥ 1820 パリ）。樹皮はアンデスからカディス・ロンドン・アムステルダム（樹皮の競売）へ運ばれ、欧州の工場で硫酸キニーネにした（植民地側の工場はバンドン 1896）。単離の前は代替のレシピ「樹皮の粉末」（Simulation.AddAdvancedProducers）
         new(ApplianceId, "電化製品", GoodTier.Luxury,       0.10, 0.9, 1.3, [I(ElectricityId,0.5), I(MachineryId,0.363), I(CopperId,0.3)]),   // 電力＋機械＋銅(巻線/配線/端子)＝電化製品の導体。★段1（2026-09-30・財の削減＝設計 docs/202609/20260928 §3）：旧 機械部品0.5→機械0.363（コスト中立）
 
         // === 最終財：軍事・輸送・奢侈（≤2入力）===
@@ -260,6 +260,10 @@ public static class Catalog
         //   ★代わりに**加工肉の代替レシピ**（肉＋冷蔵庫）を足す＝新しい財を増やさず、
         //   加工肉の需要は既に較正済みのまま使える。⇒ 実装は Simulation の代替レシピ注入（石油灯油と同じ作法）。
         //   ★副産物＝塩漬け（肉＋小麦粉）の設備が**座礁する**＝「乗り換えるか・捨てられる側が抵抗するか」の最初の実例になる。
+        // === 2026-09-30 (129) 戻した財（作者裁定 2026-09-30＝財の削減 (123) で畳んだ金鶏樹皮を戻す）＝id末尾追加（既存の財の番号は変えない・B6 と E2 の前例）===
+        // 金鶏樹皮：アンデス（ペルー・ボリビア・エクアドル）の森で剥いだキナの樹皮＝植民地の採取（気候ゲート）。本国へ運ばれ、欧州の工場でキニーネにした
+        //   （元の裁定 2026-09-29「加工は畳まない。植民地材→本国に輸送→加工の行程を飛ばすべきではない」）。値は畳む前と同じ（生産性2.0・弾力0.6）。
+        new(CinchonaBarkId, "金鶏樹皮", GoodTier.Intermediate, 0.0,  0.6, 2.0, [], true),
     ];
 
     /// <summary>真実源＝埋め込みリソース <c>goods.json</c>（world.json と同型）。未生成時は上の C# 定義 <see cref="BuiltinGoods"/> にフォールバック。
@@ -336,9 +340,9 @@ public static class Catalog
     /// デ8：コーヒー豆(28)にコーヒーさび病(Hemileia vastatrix・1869セイロン)を追加＝セイロンを茶へ転換させた大事件。病害は栽培州（コーヒー賦存州）でのみロール＝合成食料(id0)は非対象で較正中立。</summary>
     public static bool IsDiseaseProneCrop(int id) => id is WheatId or FruitId or RiceId or PotatoId or MaizeId or CoffeeId;   // ★段1（2026-09-30・財の削減）：コーヒー豆→コーヒー
 
-    /// <summary>気候ゲート財（旧IsColonial＝熱帯/特定産地のみ・賦存州でのみ産する）。生ゴム・金鶏樹皮・パーム油・象牙・サトウキビ・カカオ・茶葉・コーヒー豆・香辛料・アヘン。
+    /// <summary>気候ゲート財（旧IsColonial＝熱帯/特定産地のみ・賦存州でのみ産する）。生ゴム・金鶏樹皮・パーム油・象牙・サトウキビ・カカオ・茶・コーヒー・香辛料・アヘン・グアノ。
     /// 287州世界では「植民地限定の輸入専用」でなく「賦存州（州が Resources に列挙）が産み、非賦存州は産めない」＝地理から供給の偏在が創発する（茶＝中国・ゴム＝東南ア…）。</summary>
-    public static bool IsColonial(int id) => id is RawRubberId or PalmOilId or IvoryId or SugarCaneId or CocoaId or SpiceId or OpiumId or GuanoId or TeaId or CoffeeId or QuinineId;   // ★段1（2026-09-30・財の削減）：金鶏樹皮・茶葉・コーヒー豆を畳んで キニーネ・茶・コーヒーが採取の財に   // ＋グアノ（ペルー賦存の植民地RGO）
+    public static bool IsColonial(int id) => id is RawRubberId or PalmOilId or IvoryId or SugarCaneId or CocoaId or SpiceId or OpiumId or GuanoId or TeaId or CoffeeId or CinchonaBarkId;   // ★段1（2026-09-30・財の削減）：茶葉・コーヒー豆を畳んで 茶・コーヒーが採取の財に。★2026-09-30 (129)：金鶏樹皮を戻した＝採取の財は樹皮（キニーネは本国の工場）   // ＋グアノ（ペルー賦存の植民地RGO）
 
     // 役務財の good.Id（ビルダー・経済ステップ・UI が参照）
     public const int LaborId = 84;
@@ -472,6 +476,7 @@ public static class Catalog
     public const int AutomobileId = 121;         // 自動車
     public const int ChemicalWeaponId = 122;     // 化学兵器
     public const int RefrigeratorId = 126;       // 冷蔵庫
+    public const int CinchonaBarkId = 127;       // 金鶏樹皮（★2026-09-30 (129)：財の削減 (123) で畳んだのを戻した＝id は末尾に足した＝既存の財の番号は変えない）
 
     /// <summary>役務の参照価格（費用基準）。在庫を持てない純フロー市場は価格が発振しやすいので、
     /// 費用に錨を置き値幅を狭く取る（EconomyStep が ±3倍程度に制限）＝役務popの収入が暴落・暴騰で壊れない。</summary>
@@ -526,7 +531,7 @@ public static class Catalog
         SugarCaneId => 0.10,                                                                 // サトウキビ
         WheatId or FlourId or TobaccoLeafId or PreservedMeatId or BeerId or FodderId or MaizeId or RiceId => 0.06,                    // 麦・小麦粉・葉煙草・加工肉・ビール・飼料・トウモロコシ・米（乾燥穀粒）。デ9：米(102)は従来defaultに落ち0.005＝鋼並みの保存性で米在庫が永久滞留し価格床を作りえた。乾燥穀粒0.06へ（麦・トウモロコシと一貫）
         HorseId => 0.04,                                                                // 馬（B6レビュー2026-07-19）：生体在庫の飼養損耗＝金属既定0.005に落とすと馬余りが半永久滞留し価格床になる。革(0.02)と飼料(0.06)の間
-        TimberId or SilkId or PalmOilId or CocoaId or ChemicalsId or GunpowderId or DriedFishId or TobaccoId
+        TimberId or SilkId or CinchonaBarkId or PalmOilId or CocoaId or ChemicalsId or GunpowderId or DriedFishId or TobaccoId
             or ChocolateId or TeaId or CoffeeId or MedicineId or QuinineId or CheeseId or GuanoId => 0.03,                    // 木・生糸・嗜好品原料・薬・化学・パルプ・チーズ・グアノ等（半生鮮）
         CottonId or HempId or DyeId or RawRubberId or LumberId or CottonClothId or CanvasId or WoolId or WoolenClothId or SilkClothId or LeatherId or SugarId
             or RubberId or ClothingId or LuxuryClothingId or PaperId or WaterproofClothId or FurId => 0.02,                     // 繊維・木材・紙・革・砂糖・衣料・毛皮等
@@ -614,7 +619,7 @@ public static class Catalog
         (PaperId, "", 0.5),               // 紙＝木材パルプ製紙（砕木1840s/化学パルプ1860s）。早期は「ぼろ布製紙」(麻+綿布)が供給
         (RubberId, "", 0.9),              // ゴム＝加硫（グッドイヤー1839）。防水布(1823)はゴムを上流投入に持つため上流ゲートで自然律速
         (CannedFoodId, "", 0.5),          // 缶詰＝アペール法1809/ブリキ缶1810。干物が実質代替なので供給は壊れない
-        (QuinineId, "", 0.5),             // キニーネ＝金鶏樹皮からのアルカロイド単離（ペルティエ&カヴァントゥ1820）
+        (QuinineId, "", 0.5),             // キニーネ＝金鶏樹皮からのアルカロイド単離（ペルティエ&カヴァントゥ1820）＝本国の工場のレシピ（★2026-09-30 (129)：(123) で採取に掛けていた単離の門を工場へ戻した）。単離の前は「樹皮の粉末」（早期の橋）
         (FertilizerId, "", 0.6),          // 肥料＝硫酸で処理する過リン酸石灰（ロース1842）。それ以前の施肥は厩肥/グアノ
         (GasId, "", 0.5),                 // ガス＝石炭乾留の都市ガス灯（マードック1792実演/商用1812）
         (DynamiteId, "", 0.7),            // ダイナマイト＝ノーベル1867。肥料(0.6=1842)と無煙火薬(0.85)の中間（B6）

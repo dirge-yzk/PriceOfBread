@@ -18,9 +18,9 @@ public class FullChainTests
     public void 全50財がロードされ放置で破綻せず基礎貨幣を保存する()
     {
         var sim = new Simulation(Full(1), new NullAgent());
-        Assert.Equal(119, sim.World.Regions[0].Goods.Count);   // ★2026-09-30 段1（財の削減）：130→119＝11財を畳んだ（金鶏樹皮・茶葉・コーヒー豆・コークス・パルプ・機械部品・工具・発電機・包帯・精密工作機械・戦闘機）   // ★2026-09-04：129→130＝冷蔵庫（作者提案の冷蔵＝消費財かつ生肉の遠距離輸送を開く財）     // ＋1934拡張E2/E3の6財（飛行機・戦闘機・自動車・化学兵器・新聞・ラジオ＝2026-07-19）。上下水道/電化インフラはService＝国家世界のみ
+        Assert.Equal(120, sim.World.Regions[0].Goods.Count);   // ★2026-09-30 (129)：119→120＝金鶏樹皮を戻した（作者裁定 2026-09-30）   // ★2026-09-30 段1（財の削減）：130→119＝11財を畳んだ（金鶏樹皮・茶葉・コーヒー豆・コークス・パルプ・機械部品・工具・発電機・包帯・精密工作機械・戦闘機）   // ★2026-09-04：129→130＝冷蔵庫（作者提案の冷蔵＝消費財かつ生肉の遠距離輸送を開く財）     // ＋1934拡張E2/E3の6財（飛行機・戦闘機・自動車・化学兵器・新聞・ラジオ＝2026-07-19）。上下水道/電化インフラはService＝国家世界のみ
         // ★2026-09-06：126→127＝E-13 再開で黄鉄鉱法（化学薬品の第2レシピ）を点火＝フルチェーンにも1件。代替レシピの注入は AddAlternateRecipes（構築経路）へ移した（同日）。
-        Assert.Equal(118, sim.World.Regions[0].Producers.Count);   // ★2026-09-30 段1（財の削減）：129→118＝畳んだ11財の既定の生産者   // ★2026-09-27：127→129＝前期の軍需レシピ（マスケット・鋳鉄砲）を回2-1 で旗ごと点火＝小銃・火砲の第2生産者   // ★2026-09-04：125→126＝冷蔵の加工肉レシピ（ChilledMeatEnabled 点火＝加工肉の第2生産者が全州に立つ）   // ★2026-09-04：124→125＝冷蔵庫の生産者（財の追加に伴う。⚠冷蔵の加工肉は ChilledMeatEnabled=0 で休眠＝この数には入らない）   // ★2026-08-14：123→124＝石油ケロシン（灯油の第2レシピ・KeroseneFromOilEnabled=1点火＝原油の40年の買い手ゼロの穴埋め） // 同6財の生産者＋水力発電（A-中1・2026-07-23＝電力の第3レシピ）＋坩堝鋼/錬鉄レール（CrucibleSteelEnabled=1・第7段第1波2026-07-28）。並存レシピ（人絹/鉄筋コンクリート/合成ゴム）は国家世界のビルダー側
+        Assert.Equal(119, sim.World.Regions[0].Producers.Count);   // ★2026-09-30 (129)：118→119＝キニーネが本国の工場へ戻った（樹皮は植民地の財＝フルチェーンに生産者は無い・早期の「樹皮の粉末」は国家世界のビルダー側）   // ★2026-09-30 段1（財の削減）：129→118＝畳んだ11財の既定の生産者   // ★2026-09-27：127→129＝前期の軍需レシピ（マスケット・鋳鉄砲）を回2-1 で旗ごと点火＝小銃・火砲の第2生産者   // ★2026-09-04：125→126＝冷蔵の加工肉レシピ（ChilledMeatEnabled 点火＝加工肉の第2生産者が全州に立つ）   // ★2026-09-04：124→125＝冷蔵庫の生産者（財の追加に伴う。⚠冷蔵の加工肉は ChilledMeatEnabled=0 で休眠＝この数には入らない）   // ★2026-08-14：123→124＝石油ケロシン（灯油の第2レシピ・KeroseneFromOilEnabled=1点火＝原油の40年の買い手ゼロの穴埋め） // 同6財の生産者＋水力発電（A-中1・2026-07-23＝電力の第3レシピ）＋坩堝鋼/錬鉄レール（CrucibleSteelEnabled=1・第7段第1波2026-07-28）。並存レシピ（人絹/鉄筋コンクリート/合成ゴム）は国家世界のビルダー側
 
         double base0 = sim.World.BaseMoney;
         var ex = Record.Exception(() => sim.Run(400));
@@ -96,17 +96,17 @@ public class FullChainTests
     [Fact]
     public void 畳んだ財はカタログに無く畳み先が引き継ぐ()
     {
-        string[] folded = ["金鶏樹皮", "茶葉", "コーヒー豆", "コークス", "パルプ", "機械部品", "工具", "発電機", "包帯", "精密工作機械", "飛行機", "戦闘機"];
+        string[] folded = ["茶葉", "コーヒー豆", "コークス", "パルプ", "機械部品", "工具", "発電機", "包帯", "精密工作機械", "飛行機", "戦闘機"];   // ★2026-09-30 (129)：金鶏樹皮は戻した（下の番人）
         foreach (var n in folded) Assert.DoesNotContain(Catalog.Goods, g => g.Name == n);
         for (int i = 0; i < Catalog.Goods.Length; i++) Assert.Equal(i, Catalog.Goods[i].Id);   // 墓石でなく詰めた（作者裁定 Q7）＝id は 0..n−1
-        foreach (int g in new[] { Catalog.TeaId, Catalog.CoffeeId, Catalog.QuinineId })       // 採取の財へ畳んだ3財＝投入なし・植民地の気候ゲート
+        foreach (int g in new[] { Catalog.TeaId, Catalog.CoffeeId })       // 採取の財へ畳んだ2財＝投入なし・植民地の気候ゲート（★2026-09-30 (129)：キニーネは本国の工場へ戻した）
         {
             Assert.Empty(Catalog.Goods[g].Inputs);
             Assert.True(Catalog.IsColonial(g) && Catalog.Goods[g].IsColonial, $"{Catalog.Goods[g].Name} が植民地の採取になっていない");
         }
         Assert.Equal("軍用機", Catalog.Goods[Catalog.MilitaryAircraftId].Name);
         // 残した財（作者裁定 2026-09-29「加工は畳まない」・Q4 蒸気機関・型の違う送電網ほか＝実装ログ (123)）
-        foreach (var n in new[] { "サトウキビ", "葉煙草", "生ゴム", "羊毛", "銅鉱", "鉛鉱", "小麦粉", "飼料", "送電網", "蒸気機関" })
+        foreach (var n in new[] { "サトウキビ", "葉煙草", "生ゴム", "金鶏樹皮", "羊毛", "銅鉱", "鉛鉱", "小麦粉", "飼料", "送電網", "蒸気機関" })
             Assert.Contains(Catalog.Goods, g => g.Name == n);
     }
 
@@ -242,13 +242,14 @@ public class FullChainTests
             (Catalog.NewspaperId, "新聞"),
             (Catalog.RadioId, "ラジオ"),
             (Catalog.HigherEducationId, "高等教育"),
-            (Catalog.RefrigeratorId, "冷蔵庫")
+            (Catalog.RefrigeratorId, "冷蔵庫"),
+            (Catalog.CinchonaBarkId, "金鶏樹皮"),   // ★2026-09-30 (129)：戻した財は末尾（既存の番号は変えない）
         ];
         Assert.Equal(Catalog.Goods.Length, pins.Length);
         foreach (var (id, n) in pins) Assert.Equal(n, Catalog.Goods[id].Name);
     }
 
-    /// <summary>採取の財へ畳んだ3財の賦存は、畳む前の原料の賦存と同じ数（設計 §7 組2 の番人）。</summary>
+    /// <summary>採取の財へ畳んだ2財の賦存は、畳む前の原料の賦存と同じ数（設計 §7 組2 の番人）。★2026-09-30 (129)：戻した金鶏樹皮は畳む前と同じ5か所。</summary>
     [Fact]
     public void 畳んだ採取の財の賦存は畳む前と同じ数()
     {
@@ -264,7 +265,8 @@ public class FullChainTests
         }
         Assert.Equal(8, Count(Catalog.TeaId));       // 旧 茶葉＝州5・初期の植民地3
         Assert.Equal(10, Count(Catalog.CoffeeId));   // 旧 コーヒー豆＝州2・初期の植民地8
-        Assert.Equal(5, Count(Catalog.QuinineId));   // 旧 金鶏樹皮＝初期の植民地5
+        Assert.Equal(5, Count(Catalog.CinchonaBarkId));   // 金鶏樹皮＝初期の植民地5（★2026-09-30 (129)：(123) でキニーネの採取へ移した5か所を樹皮へ戻した）
+        Assert.Equal(0, Count(Catalog.QuinineId));        // キニーネは採らない（本国の工場で樹皮から作る）
     }
 
     /// <summary>畳んだ中間財の下流は参照価格を保つ（コスト中立の換算＝作者方針 2026-08-01「既存の較正済み量に絡める」）。
@@ -282,5 +284,47 @@ public class FullChainTests
         ];
         foreach (var (id, rp) in pins)
             Assert.True(System.Math.Abs(Catalog.RefPrices[id] / rp - 1.0) <= 0.005, $"{Catalog.Goods[id].Name}：参照価格 {Catalog.RefPrices[id]:F4}（畳む前 {rp:F4}）＝コスト中立が崩れた");
+    }
+
+    // ★2026-09-30 (129) 金鶏樹皮を戻す（作者裁定 2026-09-30＝財の削減 (123) で畳んだのを戻す・元の裁定 2026-09-29
+    //   「加工は畳まない。植民地材→本国に輸送→加工の行程を飛ばすべきではない」）の番人。
+    /// <summary>樹皮は植民地で採り（投入なし・気候ゲート）、キニーネは本国の工場で樹皮と化学薬品から作る（単離＝解禁の表の既定の行）。</summary>
+    [Fact]
+    public void 金鶏樹皮は植民地で採りキニーネは本国の工場で作る()
+    {
+        var bark = Catalog.Goods[Catalog.CinchonaBarkId];
+        Assert.Empty(bark.Inputs);
+        Assert.True(Catalog.IsColonial(Catalog.CinchonaBarkId) && bark.IsColonial, "金鶏樹皮が植民地の採取になっていない");
+        Assert.Equal(0.0, Catalog.DefaultRecipeOnset(Catalog.CinchonaBarkId));   // 樹皮を剥ぐのに発見は要らない（17世紀から）
+        var q = Catalog.Goods[Catalog.QuinineId];
+        Assert.False(Catalog.IsColonial(Catalog.QuinineId) || q.IsColonial, "キニーネが植民地の採取に残っている（工程を飛ばす）");
+        Assert.Contains(q.Inputs, i => i.GoodId == Catalog.CinchonaBarkId && i.QtyPerOutput > 0);
+        Assert.Contains(q.Inputs, i => i.GoodId == Catalog.ChemicalsId && i.QtyPerOutput > 0);   // 単離＝酸とアルコールで抽出する化学の工程
+        Assert.Equal(0.5, Catalog.DefaultRecipeOnset(Catalog.QuinineId));   // 単離（ペルティエとカヴァントゥ 1820）＝(123) の R8 を工場のレシピへ戻した
+    }
+
+    /// <summary>単離の前は「樹皮の粉末」が橋になる（早期の橋＝解禁の門なし・化学薬品を使わない・同じ防護に単離より多くの樹皮）。
+    /// 単離の後は参照価格で粉末が単離に負ける（史実＝単離の後20年ほどで硫酸キニーネが薬局から粉末を駆逐した）。</summary>
+    [Fact]
+    public void 単離の前は樹皮の粉末が橋になり単離の後は参照価格で負ける()
+    {
+        var sim = new MultiNationSim([NationConfig.Britain()], seed: 1);
+        var r = sim.Nations[0].World.Regions[0];
+        Producer? iso = null, powder = null;
+        foreach (var p in r.Producers)
+        {
+            if (p.GoodId != Catalog.QuinineId) continue;
+            if (p.RecipeName == "樹皮の粉末") powder = p; else if (string.IsNullOrEmpty(p.RecipeName)) iso = p;
+        }
+        Assert.NotNull(iso);
+        Assert.NotNull(powder);
+        Assert.Equal(Catalog.DefaultRecipeOnset(Catalog.QuinineId), iso!.TechOnset);   // 単離は解禁の門の後
+        Assert.True(powder!.TechOnset <= 0, "樹皮の粉末に解禁の門がある（単離の前の橋にならない）");
+        Assert.DoesNotContain(powder.Inputs, i => i.GoodId == Catalog.ChemicalsId);
+        double BarkOf(Producer p) { double b = 0; foreach (var i in p.Inputs) if (i.GoodId == Catalog.CinchonaBarkId) b += i.QtyPerOutput; return b; }
+        Assert.True(BarkOf(powder) > BarkOf(iso), $"粉末の樹皮 {BarkOf(powder)} が単離 {BarkOf(iso)} 以下＝効き目の低さが無い");
+        double unit = Catalog.FactoryVa;   // 参照価格の式（ComputeRefPrices）と同じ単位費用
+        foreach (var i in powder.Inputs) unit += i.QtyPerOutput * Catalog.RefPrices[i.GoodId];
+        Assert.True(unit > Catalog.RefPrices[Catalog.QuinineId], $"樹皮の粉末の単位費用 {unit:F3} が単離の参照価格 {Catalog.RefPrices[Catalog.QuinineId]:F3} 以下＝単離の後も粉末が勝つ");
     }
 }

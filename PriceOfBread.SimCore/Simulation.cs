@@ -1267,6 +1267,13 @@ public sealed class Simulation
         // デフォルトの木材パルプ製紙(goods.json)は DefaultRecipeOnset(61)=0.5 で晩期にゲート＝早期はこのぼろ布製紙が供給し、パルプが安くなると駆逐される。
         producers.Add(new Producer { GoodId = Catalog.PaperId, RecipeName = "ぼろ布製紙", Productivity = 1.8 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
             Inputs = [new Input(Catalog.HempId, 0.6), new Input(Catalog.CottonClothId, 0.4), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.PaperId))] });
+        // ★2026-09-30 (129) 樹皮の粉末（キニーネの早期レシピ＝ぼろ布製紙と同じ「早期の橋」）：単離（1820・既定のレシピ＝樹皮0.5＋化学薬品0.3・解禁の表の既定の行 0.5）の前は、
+        //   欧州の薬局が樹皮を挽いてワインで飲ませた（「イエズス会の粉」＝17世紀から）。同じ病に効くが、苦く嵩が張り吐き戻す・品位の低い樹皮と混ぜ物が多い＝効き目が低い。
+        //   ⚠樹皮1.5（単離の3倍）＝史実に1本の換算率は無い（推奨で決めた）。下限は史実の帰結＝単離の後20年ほどで硫酸キニーネが薬局から粉末を駆逐した＝参照価格で
+        //   粉末の単位費用（0.326＋0.54×樹皮）が単離（0.944）を上回る樹皮 1.14 より上。1.5 は樹皮が参照価格の 0.35 まで安くなるまで単離が勝つ幅（樹皮の値崩れの後は粉末が戻る＝
+        //   1880年代のジャワの植林で樹皮が暴落した後、インドの「キナの解熱剤」〔精製しない混合アルカロイド〕が貧者の薬になったのと同じ向き）。
+        producers.Add(new Producer { GoodId = Catalog.QuinineId, RecipeName = "樹皮の粉末", Productivity = 1.6 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
+            Inputs = [new Input(Catalog.CinchonaBarkId, 1.5), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.QuinineId))] });
         // 木炭製鉄/銅/鉛（鉄31・銅33・鉛34の代替）：コークス(石炭)の代わりに木炭(木)で還元＝石炭が乏しく森林が豊かな地域の製錬（スウェーデン/露ウラル/米の木炭高炉が19世紀半ばまで存続）。
         // 産出は低め＝石炭/コークスが安い地域ではコークス法が勝ち、石炭が高い地域でのみ木炭法が勝つ（燃料の地理が製錬法を分ける・倍率排除と同思想）。
         producers.Add(new Producer { GoodId = Catalog.IronId, RecipeName = "木炭製鉄", Productivity = 1.6 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,

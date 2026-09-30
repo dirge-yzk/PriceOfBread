@@ -12,7 +12,7 @@ public class BreakDetectionTests
 {
     // 早期供給を**意図した**公認の橋レシピ（既定レシピの近代法onsetより早いことが設計＝DefaultRecipeOnsetのコメントに明記）：
     // 紙のぼろ布製紙（早期は麻+綿布）・肥料のグアノ肥料（それ以前の施肥は厩肥/グアノ）。新しい早期橋はここに追記して意図を宣言する。
-    private static readonly HashSet<string> SanctionedEarlyRecipes = ["ぼろ布製紙", "グアノ肥料", "堆肥"];   // ★堆肥（2026-09-06・E-13再開）＝厩肥は最古の肥料＝化学肥料（1842）より前から在る並存レシピ
+    private static readonly HashSet<string> SanctionedEarlyRecipes = ["ぼろ布製紙", "グアノ肥料", "堆肥", "樹皮の粉末"];   // ★堆肥（2026-09-06・E-13再開）＝厩肥は最古の肥料＝化学肥料（1842）より前から在る並存レシピ   // ★樹皮の粉末（2026-09-30 (129)）＝キニーネの単離（1820）の前に欧州の薬局が樹皮を挽いて飲ませた（17世紀〜）
 
     [Fact]
     public void 並存レシピは既定レシピの解禁を迂回しない()
