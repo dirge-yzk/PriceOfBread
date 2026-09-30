@@ -286,7 +286,14 @@ public sealed class Producer
     // ★配分信念（2026-08-22・恐慌をAIの賢さで抑える）：期待市場価値 付加価値×売れる量 のEMA（時定数＝SupplyAdjustSpeed）。
     //   生産者はスポット価格でなくこの信念で職を選ぶ＝コブウェブの教科書的減衰（適応的期待）。点火済み（2026-08-22）＝常時書かれる。
     public double LaborWeight;
-    public double Output;         // 実産出（§9-A がゆっくり寄せる状態変数）
+    /// <summary>実産出（§9-A がゆっくり寄せる状態変数）。★書き込みで版を進める（2026-09-30 (136) 計算量の予算・恒等）：書き込みのたびに、
+    /// この生産者を持つ州の <see cref="Region.GdpVersion"/> を1つ進める＝<see cref="World.Gdp"/> の使い回しを捨てる理由（宛先は <see cref="_siteRegion"/>）。</summary>
+    public double Output
+    {
+        get => _output;
+        set { if (_siteRegion is { } sr) sr.GdpVersion++; _output = value; }
+    }
+    private double _output;
     public double DesiredOutput;  // 採算が合えば作りたい量（能力×採算）。入力需要の再点火トリクルに使う（死んでも需要を残し価格で蘇生＝床なしでデッドロック防止）
     public double MarginalCost;   // 1単位の付加価値費用（賃金・生存線分）＝**参照価格の単位**。読むときは EconomyStep.MineralSelfCost（×自己費用の物価水準 World.CostPriceLevel×州の乗数＝価格と同じ単位・2026-09-27 (73)）を通す。退出閾値には投入費を加算（§9-A 仕組み2）
     public int OwnerPopIndex;     // 地代/利潤の受け手
@@ -312,7 +319,7 @@ public sealed class Producer
         }
     }
     private double _builtScale;
-    /// <summary>作業領域（[NonSerialized]・セーブに載らない）：この生産者を載せた州（一覧を作った時に付ける・生産者は州をまたがない）＝印の宛先。</summary>
+    /// <summary>作業領域（[NonSerialized]・セーブに載らない）：この生産者を持つ州（一覧を作った時と GDP の和を取った時に付ける・生産者は州をまたがない）＝印と版の宛先。</summary>
     [System.NonSerialized] internal Region? _siteRegion;
     // ★休止（mothball・AI審査2-6・2026-08-31）：BuiltScale のうち操業を止めている割合（0..FactoryMothballCap×民営持分）。
     //   建てた工場は倒産免除＋床で全稼働を強制されるため、慢性赤字が資本家の負債へ垂れ流しになる欠落の是正＝
@@ -697,6 +704,9 @@ public sealed class Region
     /// それ以外の生産者は請求に 0.0×赤字（有限）を足すだけ＝飛ばしても和は1ビットも変わらない（国有化の枝が生きる州は全件へ戻す＝呼び手）。</summary>
     [System.NonSerialized] internal Producer[]? StateSites;
     [System.NonSerialized] internal bool SitesDirty;
+    /// <summary>★産出の版（2026-09-30 (136) 計算量の予算・恒等）＝この州の生産者の <see cref="Producer.Output"/> が書かれた回数（宛先を付けた生産者だけ・進むだけで戻らない）。
+    /// 読むのは <see cref="World.Gdp"/> の使い回しの判定だけ（版が同じ＝前に和を取った後に産出が1つも書かれていない）。作業領域＝セーブに載らない。</summary>
+    [System.NonSerialized] internal long GdpVersion;
     /// <summary>印が立っていれば（または未作成なら）2つの一覧を作り直す。作るときに生産者へ宛先（この州）を付ける。</summary>
     internal void EnsureSites()
     {

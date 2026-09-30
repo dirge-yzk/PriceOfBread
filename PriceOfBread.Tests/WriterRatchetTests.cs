@@ -238,6 +238,9 @@ public class WriterRatchetTests
     //   建設 18,466→6,246（−66%）・請求 6,397→2,140（−67%）＝10% を超えて下がった＝表を下げる（国の請求が減り、専売が早く狭まって歳入が下がる＝国営の工場の工事と材料が減った・
     //   全長の5種でも建設 −31%・請求 −24%）。覇権の判定 2,268,853→2,755,889（+21.5%＝同盟の候補が居る月の軌道・処理の形は同じ＝(124)(128) と同じ型・単価 0.01035µs＝40四半期で +5.0ms）。
     //   ほかの12本は許しの内（+2%／−10%）。行政の距離の割増は州×月に1回の距離の計算（旧の Fiscal の州の走査と同じ量が予算・単価・請求の3か所へ）＝計数の外。全長の推定は10種の .cost（実装ログ (135)）。
+    // ★2026-09-30 表の更新（(136) GDP の和の使い回し＝恒等・計数を1本足した＝「GDP：州×生産者の和（取り直した分）」）：World.Gdp は前の和の後に州の並び・稼働・
+    //   生産者の一覧・産出が変わっていなければ前の値を返す＝走査するのは取り直した時だけ。40四半期で 8,670,915 件（使い回す前なら全ての呼び出しが走査した）。
+    //   ほかの15本は1件も変わらない（報告も同じ＝恒等）。⚠使い回しが壊れる変更（産出を日次に書く・版を進めない書き手）はこの行が増えて見つかる。
     [InlineData(CostLedger.PriceGoods, 14149727L)]
     [InlineData(CostLedger.PriceDailyRuns, 25283828L)]
     [InlineData(CostLedger.ConstructionSeen, 6246L)]
@@ -253,6 +256,7 @@ public class WriterRatchetTests
     [InlineData(CostLedger.QuarterStartPops, 235560L)]
     [InlineData(CostLedger.QuarterEndPops, 235560L)]
     [InlineData(CostLedger.SharedNationQuarters, 3698L)]
+    [InlineData(CostLedger.GdpScans, 8670915L)]
     public void 計算量の見た件数は宣言した表を超えない(int item, long declared)
     {
         long n = Cost40.Value[item];

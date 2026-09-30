@@ -1355,25 +1355,64 @@ public sealed class World
     /// 役務(Service)は除外：労働力は工場産出の中に賃金として織り込まれる（足すと二重計上）、
     /// 教育・医療・行政も従来スコアとの互換のため除く（サービス部門の規模はUIで別途見る）。
     /// 監査2026-07-11（他5）：locked州（分離独立中などの非稼働州）を除外＝初期値で凍結したOutputが幽霊GDPとして
-    /// 借入枠・金本位資格・脅威評価・賠償金・貢納へ波及していた（AdminEfficiencyと同じActiveフィルタ）。</summary>
+    /// 借入枠・金本位資格・脅威評価・賠償金・貢納へ波及していた（AdminEfficiencyと同じActiveフィルタ）。
+    /// ★使い回し（2026-09-30 (136) 計算量の予算・恒等）：1試合で約200万回呼ばれ（議会・政府の選好〔PolicyPreferences.Build〕・財政・国力ほか）、
+    ///   その 94% は前の呼び出しと同じ値だった（census＝州×生産者の走査 15億件・約30秒）。和の入力は州の並び・州の稼働・州の生産者の一覧と
+    ///   産出（<see cref="Producer.Output"/>）・財の参照価格と種類（構築の後に書く行が無い）だけ＝前の和の後にどれも変わっていなければ前の値を返す。
+    ///   産出の書き込みは州の版（<see cref="Region.GdpVersion"/>）を進める（宛先はこの走査が付ける）。変わっていれば旧の式を同じ順で回す＝同じビット。
+    ///   版は走査の前に撮る＝走査と並んで書かれた産出は次の読みで版の違いとして拾う（画面のスレッドが読んでも捨てる側に倒れる）。</summary>
     public double Gdp
     {
         get
         {
-            double g = 0;
-            foreach (var r in Regions)
+            var regs = Regions;
+            if (_gdpMemo is { } memo && memo.Regions.Length == regs.Count)
             {
+                bool same = true;
+                for (int i = 0; i < regs.Count && same; i++)
+                {
+                    var r = regs[i];
+                    bool act = r.State == RegionState.Active;
+                    same = ReferenceEquals(memo.Regions[i], r) && act == memo.Active[i]
+                        && (!act || (memo.Versions[i] == r.GdpVersion && ReferenceEquals(memo.Lists[i], r.Producers) && memo.Counts[i] == r.Producers.Count));
+                }
+                if (same) return memo.Value;
+            }
+            var m2 = new GdpMemo(regs.Count);
+            double g = 0;
+            long seen = 0;
+            for (int i = 0; i < regs.Count; i++)
+            {
+                var r = regs[i];
+                m2.Regions[i] = r;
                 if (r.State != RegionState.Active) continue;
+                m2.Active[i] = true; m2.Versions[i] = r.GdpVersion; m2.Lists[i] = r.Producers; m2.Counts[i] = r.Producers.Count;
+                seen += r.Producers.Count;
                 foreach (var s in r.Producers)
                 {
+                    s._siteRegion = r;   // 産出の書き込みの宛先（生産者は州をまたがない）
                     var good = r.GoodOf(s.GoodId);   // O(1) 直引き（旧 Goods.Find＝O(財数)の二重ループを解消）
                     if (good is null || good.Tier == GoodTier.Service) continue;
                     g += s.Output * good.RefPrice;
                 }
             }
+            m2.Value = g;
+            _gdpMemo = m2;
+            Cost[CostLedger.GdpScans] += seen;   // 計算量の台帳（診断）：取り直した和で見た州×生産者
             return g;
         }
     }
+    /// <summary>GDP の使い回しの控え（作業領域＝セーブに載らない）。和を取った時の州の並び・稼働・版・生産者の一覧と、その和。</summary>
+    private sealed class GdpMemo(int n)
+    {
+        public readonly Region[] Regions = new Region[n];
+        public readonly bool[] Active = new bool[n];
+        public readonly long[] Versions = new long[n];
+        public readonly List<Producer>?[] Lists = new List<Producer>?[n];
+        public readonly int[] Counts = new int[n];
+        public double Value;
+    }
+    [System.NonSerialized] private GdpMemo? _gdpMemo;
 
     /// <summary>行政効率＝行政（官僚の役務）の充足率（人口加重平均）。1未満＝汚職（税収が漏れる・Fiscal）。行政財の無い世界は1.0。</summary>
     public double AdminEfficiency

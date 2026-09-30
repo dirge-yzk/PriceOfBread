@@ -1,0 +1,451 @@
+# (136) 計算量の予算の続き（線2 後半・枝 fiscalcost）＝GDP の和の使い回し（恒等）＋台帳に GDP の走査を1本。腕A＝db55232（(135)・SOURCE-HASH f86485f4882fc7bb）・この回＝SOURCE-HASH 816dbff61632808e（採否の10種）→ de6715c2eb87a4e1（コミットの木＝上限の定数だけ違う）
+# 計器＝scratchpad/c137/inj_g1.py（World.Gdp の呼び出し・呼び手・同じ値の割合）・inj_s1.py（台帳の区間と区間の中の GDP の時間）・inj_c1.py（清算の着値の充填の内訳・値段の歩の不動）・sample.py（dotnet-stack の標本）
+
+## census の1：World.Gdp（腕A・種1全長・inj_g1）
+World.Gdp：呼び出し 2005093・走査した生産者 1508591326・時間 29.71 秒・前の呼び出しと同じ値 1876511（93.6%）
+      249344  PolicyPreferences.Build < PolicyPreferences.NetSupport < Government.Move < 
+      242304  PolicyPreferences.Build < PolicyPreferences.NetSupport < Government.GateInfo < 
+      207808  PolicyPreferences.Build < PolicyPreferences.OpposingPower < Government.Move < 
+      146176  PolicyPreferences.Build < PolicyPreferences.NetSupport < Government.MandateGate < 
+      141440  PolicyPreferences.Build < Parliament.BuildElectionEvent < Parliament.Step < 
+      131840  Fiscal.Step < Simulation.MonthSettle < Simulation.StepDayClose < 
+      126784  Simulation.StepDayDaily < <>c__DisplayClass19_0`2.<ForWorker>b__1 < Replica.Execute < 
+       89664  SelfPlayMatch.Run < <>c__DisplayClass16_0.<RunBatch>b__0 < <>c__DisplayClass19_0`2.<ForWorker>b__1 < 
+       85696  MultiNationSim.StepDiffusion < MultiNationSim.StepDay < MultiNationSim.StepQuarter < 
+       72576  PolicyPreferences.Build < PolicyPreferences.OpposingPower < Parliament.BuildElectionEvent < 
+       44928  World.UpdateGdpCycle < Simulation.QuarterEnd < Simulation.StepDayClose < 
+       42624  NationalScore.StepStanding < MultiNationSim.StepDay < MultiNationSim.StepQuarter < 
+       42560  UtilityAgent.ReactProtectiveTariff < UtilityAgent.DecideQuarter < Simulation.QuarterStart < 
+       41600  MultiNationSim.StepDay < MultiNationSim.StepQuarter < SelfPlayMatch.Run < 
+       41216  World.UpdatePriceLevel < Simulation.QuarterEnd < Simulation.StepDayClose < 
+       40512  NationalScore.Of < SelfPlayMatch.Run < <>c__DisplayClass16_0.<RunBatch>b__0 < 
+       40384  PoliticalQuantities.PoliticalCapitalRate < Politics.Step < Simulation.QuarterEnd < 
+       40128  Diplomacy.Step < MultiNationSim.StepDay < MultiNationSim.StepQuarter < 
+       38720  CapitalMarket.Step < MultiNationSim.StepDay < MultiNationSim.StepQuarter < 
+       37696  Fiscal.Borrow < Simulation.MonthSettle < Simulation.StepDayClose < 
+       27968  World.ModernizationBudget < World.ApplyModernizationInvestment < Simulation.QuarterStart < 
+       27456  Government.Step < Simulation.StepDayOpen < MultiNationSim.StepDay < 
+        6656  Diplomacy.ComputeRanks < Diplomacy.Step < MultiNationSim.StepDay < 
+        4928  Diplomacy.CollectPrize < Diplomacy.CommerceRaidPrize < Diplomacy.Step < 
+        4672  PolicyPreferences.Build < PolicyPreferences.OpposingPower < FactionSnapshot.ComputeDemands < 
+        3840  World.get_NominalGdp < CapitalMarket.Step < MultiNationSim.StepDay < 
+        3712  NationalScore.Of < Diplomacy.ComputeRanks < Diplomacy.Step < 
+        3712  PolicyPreferences.Build < FactionSnapshot.ComputeDemands < Parliament.BuildElectionEvent < 
+        3072  UtilityAgent.DecideQuarter < Simulation.QuarterStart < Simulation.StepDayOpen < 
+        2880  PolicyPreferences.Build < PolicyPreferences.NetSupport < PolicyPreferences.Stance < 
+        2560  PolicyPreferences.Build < PolicyPreferences.Stance < FactionSnapshot.ComputeDemands < 
+        1280  Diplomacy.SyncGdp < Diplomacy.Step < MultiNationSim.StepDay < 
+        1216  MultiNationSim.StepDay < MultiNationSim.StepQuarter < MultiNationSim.WarmupEconomy < 
+        1088  PolicyPreferences.Build < PolicyPreferences.NetSupport < Parliament.<TargetDemand>g__StepTo|11_0 < 
+         832  MultiNationSim.ReabsorbNations < MultiNationSim.StepDay < MultiNationSim.StepQuarter < 
+         768  World.get_NominalGdp < Simulation.StepDayDaily < MultiNationSim.<StepDay>b__58_0 < 
+         640  World.get_NominalGdp < SelfPlayMatch.Run < <>c__DisplayClass16_0.<RunBatch>b__0 < 
+         576  <>c__DisplayClass9_0.<Run>b__13 < ListSelectIterator`2.Fill < ListSelectIterator`2.ToArray < 
+         512  World.get_NominalGdp < MultiNationSim.StepDiffusion < MultiNationSim.StepDay < 
+         448  NationalScore.WealthParts < NationalScore.Wealth < NationalScore.Of < 
+         448  World.get_NominalGdp < World.ModernizationBudget < World.ApplyModernizationInvestment < 
+         448  NationalScore.Wealth < Diplomacy.TreatyPortLapse < Diplomacy.Step < 
+         192  World.get_NominalGdp < UtilityAgent.ReactProtectiveTariff < UtilityAgent.DecideQuarter < 
+         192  World.get_NominalGdp < Simulation.StepDayDaily < <>c__DisplayClass19_0`2.<ForWorker>b__1 < 
+         192  World.get_NominalGdp < <>c__DisplayClass9_0.<Run>b__13 < ListSelectIterator`2.Fill < 
+         192  PowerShares.ParliamentEffective < PowerShares.CivilianInstitutions < PowerAffinity.Detail < 
+         192  PowerShares.CivilianInstitutions < PowerAffinity.Detail < PowerAffinity.Coalition < 
+         128  World.get_NominalGdp < UtilityAgent.DecideQuarter < Simulation.QuarterStart < 
+          64  PolicyPreferences.Build < PolicyPreferences.NetSupport < World.ResolveElection < 
+          64  MultiNationSim.SpawnNation < MultiNationSim.SpawnSecededNations < MultiNationSim.StepDay < 
+          64  World.get_NominalGdp < World.ElectionPushHalfPoint < World.ElectionPushEffectOf < 
+          64  PolicyPreferences.Build < PolicyPreferences.Stance < UtilityAgent.DecideElection < 
+
+## census の2：台帳の区間と区間の中の World.Gdp（種1全長・腕A と この回を同時に・線1 のバッチと並ぶ＝負荷つき・報告は2本で全行一致）
+### 腕A
+区間	回	時間（秒・入れ子を含む）	うち World.Gdp（最も内側の区間）
+四半期首	42713	27.563	8.696
+四半期末	42713	5.802	1.110
+月次決算	128139	128.307	3.142
+EconomyStep.Run	656259	96.700	0.000
+共有層の塊	688	61.637	8.733
+外交	2004	22.750	2.476
+国際市場（四半期末）	688	21.549	0.000
+覇権の判定	18767	2.654	0.000
+区間の外			10.952
+World.Gdp の呼び出し 2005093・時間 35.109
+導出：月次決算の残り＝月次決算−EconomyStep.Run 31.607（うち Gdp 3.142）・共有層＝塊−外交−国際市場 17.338（うち Gdp 8.733）・外交−覇権 20.095（うち Gdp 2.476）
+### この回
+区間	回	時間（秒・入れ子を含む）	うち World.Gdp（最も内側の区間）
+四半期首	42713	20.093	0.089
+四半期末	42713	4.807	0.013
+月次決算	128139	133.803	2.567
+EconomyStep.Run	656259	101.881	0.000
+共有層の塊	688	52.732	0.125
+外交	2004	20.674	0.074
+国際市場（四半期末）	688	23.569	0.000
+覇権の判定	18767	2.811	0.000
+区間の外			0.105
+World.Gdp の呼び出し 2005093・時間 2.974
+導出：月次決算の残り＝月次決算−EconomyStep.Run 31.921（うち Gdp 2.567）・共有層＝塊−外交−国際市場 8.489（うち Gdp 0.125）・外交−覇権 17.863（うち Gdp 0.074）
+
+## 単価の分け方（腕A の census）
+区間	GDP の割合 f	旧単価	新単価
+四半期首	0.31550	6.51065	4.45657
+四半期末	0.19131	1.30907	1.05863
+月次の残り	0.09941	1.99345	1.79528
+共有層	0.50369	256.74759	127.42606
+外交（覇権の判定を除く）	0.12321	113.26019	99.30487
+GDP：州×生産者の和（取り直した分）	5本から外した推定 16.09 秒÷その区間の走査 10.38億件（全体 15.09億件×区間の GDP の時間 24.157÷35.109）	—	0.015503
+
+## census の3：清算の着値の充填の内訳（腕A・種1全長・inj_c1）
+値段の歩（眠りを含む生きた財）：月の最初の旬 64118226（1ビットも動かず 6965）・2旬目以降 128236452（動かず 10292542）
+清算	行の結果	買い手の容量	前の月に輸入	行	着値の充填	うち無効（着値≧自州価格）
+四半期の最初	成約	残る	0	739919	18429918	7449269
+四半期の最初	成約	残る	1	1311712	35159199	15544175
+四半期の最初	有効あり成約なし	残る	0	1668975	29554925	15070604
+四半期の最初	有効あり成約なし	残る	1	276095	4946639	2769832
+四半期の最初	有効あり成約なし	尽きた	0	3707257	111085289	23635277
+四半期の最初	有効あり成約なし	尽きた	1	96382	3071996	802216
+四半期の最初	有効なし	残る	0	2232136	7944699	7944699
+四半期の最初	有効なし	残る	1	109344	543618	543618
+四半期の最初	有効なし	尽きた	0	1450263	8647798	8647798
+四半期の最初	有効なし	尽きた	1	3307	14906	14906
+月	成約	残る	0	967080	22526576	6760649
+月	成約	残る	1	2870488	78691359	35561719
+月	有効あり成約なし	残る	0	969039	18050639	8288188
+月	有効あり成約なし	残る	1	550794	10458217	6000093
+月	有効なし	残る	0	1108786	4455193	4455193
+月	有効なし	残る	1	202218	1629915	1629915
+計					355210886	145118151
+
+## 採否の10種（この回・計器なし）の .cost
+# 計算量の測り（selfplay-batch）＝帯の報告とは別のファイル（件数と CPU 秒は揺れる・報告の全行バイト一致の検証を壊さないためここだけに書く）
+条件: seeds 1..10（10種）・各668四半期（助走を含む）・SOURCE-HASH 816dbff61632808e・論理コア 16・サーバーGC True
+実測: 1試合あたりの CPU 472.4 秒（プロセスの CPU 4724.2 秒÷10種）・バッチの壁 582.1 秒・バッチの CPU 4723.9 秒（平均 8.12 コア）
+負荷: 系の稼働（平均）95.2 %・他のプロセスが使ったコア（平均）7.12（⚠他の測りと重なると1試合の CPU 秒は膨らむ＝記録だけ）
+計数（1試合の平均・助走を含む）:
+  名前	件数	単価（µs）	推定（秒）
+  価格：財の歩（州×財×旬）	179605029	0.24025	43.15
+  価格：日次の写像の回	185260558	0.14406	26.69
+  建設：見た生産者（旬）	434128	0.01300	0.01
+  信用：国×旬	386037	2.58278	1.00
+  消費：POP×財（月）	362002436	0.03012	10.90
+  生産：生産者×月	102706778	0.45650	46.89
+  請求：見た生産者（月）	1002703	0.03490	0.03
+  月次：POP×月（決算の残り）	8488658	1.79528	15.24
+  清算：見た買い手行	71090530	0.19264	13.69
+  清算：着値の充填	345837493	0.11034	38.16
+  外交：国×月	167103	99.30487	16.59
+  外交：覇権の判定の国×国	159821155	0.01035	1.65
+  四半期首：POP×国（AI・議会・政府）	2829553	4.45657	12.61
+  四半期末：POP×国	2829553	1.05863	3.00
+  共有層：国×四半期（国力・移民・国際金融ほか）	42893	127.42606	5.47
+  GDP：州×生産者の和（取り直した分）	103573725	0.01550	1.61
+推定の計算量（1試合）: 236.7 秒　覆う割合（推定÷実測の CPU）: 50.1 %（★下がったら数えていない重い処理が増えた合図）
+予算: 上限（推定）255.1 秒（許し +2 %＝260.2 秒）・目標 1試合の CPU 387 秒（バッチの条件）＝推定の単位で 248.5 秒（上限を置いたときの覆う割合 64.2 %）
+判定: 予算の内（目標にも届いた＝推定 236.7 ≦ 目標 248.5 秒・余りは機能が使ってよい）
+忠実度の種ごとの値（止める規則＝README §1-2）:
+  seed1	exact 45.9	near 85.2
+  seed2	exact 44.3	near 83.6
+  seed3	exact 45.9	near 80.3
+  seed4	exact 47.5	near 80.3
+  seed5	exact 49.2	near 82.0
+  seed6	exact 45.9	near 80.3
+  seed7	exact 49.2	near 80.3
+  seed8	exact 42.6	near 78.7
+  seed9	exact 41.0	near 80.3
+  seed10	exact 45.9	near 86.9
+揺れ: 10種の平均 exact 45.7（標準誤差 0.8pt）・near 81.8（標準誤差 0.8pt）＝線から標準誤差の2倍（exact 1.7・near 1.7pt）以上離れていれば10種を回さずに決めてよい
+
+## 番人の表（1種40四半期・selfplay-batch 1 - 0 1 40）の .cost：腕A／この回（報告は全行一致・15本の件数は1件も違わない）
+### 腕A
+計数（1試合の平均・助走を含む）:
+  名前	件数	単価（µs）	推定（秒）
+  価格：財の歩（州×財×旬）	13373390	0.24025	3.21
+  価格：日次の写像の回	25144785	0.14406	3.62
+  建設：見た生産者（旬）	6246	0.01300	0.00
+  信用：国×旬	33318	2.58278	0.09
+  消費：POP×財（月）	28597179	0.03012	0.86
+  生産：生産者×月	8548740	0.45650	3.90
+  請求：見た生産者（月）	2140	0.03490	0.00
+  月次：POP×月（決算の残り）	706680	1.99345	1.41
+  清算：見た買い手行	5249364	0.19264	1.01
+  清算：着値の充填	27339559	0.11034	3.02
+  外交：国×月	9966	113.26019	1.13
+  外交：覇権の判定の国×国	2755889	0.01035	0.03
+  四半期首：POP×国（AI・議会・政府）	235560	6.51065	1.53
+  四半期末：POP×国	235560	1.30907	0.31
+  共有層：国×四半期（国力・移民・国際金融ほか）	3702	256.74759	0.95
+推定の計算量（1試合）: 21.1 秒　覆う割合（推定÷実測の CPU）: 43.3 %（★下がったら数えていない重い処理が増えた合図）
+### この回
+計数（1試合の平均・助走を含む）:
+  名前	件数	単価（µs）	推定（秒）
+  価格：財の歩（州×財×旬）	13373390	0.24025	3.21
+  価格：日次の写像の回	25144785	0.14406	3.62
+  建設：見た生産者（旬）	6246	0.01300	0.00
+  信用：国×旬	33318	2.58278	0.09
+  消費：POP×財（月）	28597179	0.03012	0.86
+  生産：生産者×月	8548740	0.45650	3.90
+  請求：見た生産者（月）	2140	0.03490	0.00
+  月次：POP×月（決算の残り）	706680	1.79528	1.27
+  清算：見た買い手行	5249364	0.19264	1.01
+  清算：着値の充填	27339559	0.11034	3.02
+  外交：国×月	9966	99.30487	0.99
+  外交：覇権の判定の国×国	2755889	0.01035	0.03
+  四半期首：POP×国（AI・議会・政府）	235560	4.45657	1.05
+  四半期末：POP×国	235560	1.05863	0.25
+  共有層：国×四半期（国力・移民・国際金融ほか）	3702	127.42606	0.47
+  GDP：州×生産者の和（取り直した分）	8670915	0.01550	0.13
+推定の計算量（1試合）: 19.9 秒　覆う割合（推定÷実測の CPU）: 44.8 %（★下がったら数えていない重い処理が増えた合図）
+
+## 1種200四半期の canary（腕A とこの回を同時に・報告は全行一致 sha1 c40ea498…）
+q200_A.cost:実測: 1試合あたりの CPU 128.8 秒（プロセスの CPU 128.8 秒÷1種）・バッチの壁 124.2 秒・バッチの CPU 128.5 秒（平均 1.03 コア）
+q200_A.cost:推定の計算量（1試合）: 75.2 秒　覆う割合（推定÷実測の CPU）: 58.3 %（★下がったら数えていない重い処理が増えた合図）
+q200_B.cost:実測: 1試合あたりの CPU 119.4 秒（プロセスの CPU 119.4 秒÷1種）・バッチの壁 117.6 秒・バッチの CPU 119.1 秒（平均 1.01 コア）
+q200_B.cost:推定の計算量（1試合）: 75.2 秒　覆う割合（推定÷実測の CPU）: 63.0 %（★下がったら数えていない重い処理が増えた合図）
+
+## dotnet-stack の標本（種1全長・自分の時間の上位）
+### 腕A
+標本 236 回・SimCore を実行中のスレッド標本 289
+=== 自分の時間（最も内側の SimCore の関数）上位60 ===
+18.34%      53  MarketFlow.StepDay
+18.34%      53  EconomyStep.Run
+15.57%      45  InternationalMarket.StepBilateral
+ 9.00%      26  World.get_Gdp
+ 5.88%      17  EconomyStep.RentScratch
+ 4.15%      12  MultiNationSim.StepDay
+ 2.42%       7  InternationalMarket.PaySales
+ 2.42%       7  Diplomacy+<DependentsOf>d__66.MoveNext
+ 1.38%       4  Fiscal.Step
+ 1.38%       4  MultiNationSim.StepSecurityThreat
+ 1.04%       3  Region.EnsureLiveGoods
+ 1.04%       3  Transport.BuyToward
+ 1.04%       3  Simulation.StepDayDaily
+ 1.04%       3  World.get_AdminEfficiency
+ 1.04%       3  Fiscal.Borrow
+ 0.69%       2  Simulation.MonthSettle
+ 0.69%       2  ProductionDiag.FindProducer
+ 0.69%       2  CapitalMarket.Investors
+### この回
+標本 301 回・SimCore を実行中のスレッド標本 338
+=== 自分の時間（最も内側の SimCore の関数）上位60 ===
+24.85%      84  EconomyStep.Run
+15.98%      54  InternationalMarket.StepBilateral
+10.36%      35  MarketFlow.StepDay
+ 7.99%      27  EconomyStep.RentScratch
+ 4.14%      14  Region.EnsureLiveGoods
+ 2.96%      10  Fiscal.Step
+ 2.37%       8  InternationalMarket.PaySales
+ 2.07%       7  Diplomacy+<DependentsOf>d__66.MoveNext
+ 1.48%       5  InternationalMarket+<>c__DisplayClass29_0.<StepBilateral>g__PairKm|4
+ 1.48%       5  MultiNationSim.StepDay
+ 1.18%       4  InternationalMarket+<>c__DisplayClass29_0.<StepBilateral>g__PairRisk|5
+ 1.18%       4  Military.SustainLimitOf
+ 1.18%       4  NonNegativeBounds.Check
+ 1.18%       4  Simulation.MonthSettle
+ 0.89%       3  Simulation.LogRecipeTransitions
+ 0.89%       3  World.get_AdminEfficiency
+ 0.89%       3  Diplomacy.TriggerWars
+ 0.89%       3  World.get_EthnicUnity
+
+## 検証
+成功!   -失敗:     0、合格:   851、スキップ:     0、合計:   851、期間: 4 m 51 s - PriceOfBread.Tests.dll (net10.0)
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 5 m 29 s - PriceOfBread.Tests.dll (net10.0)
+savetest OK：12四半期後も全61カ国が継続系列と一致（最大相対差 0.0E+000）
+[PROBE世界] 国際金融 1784年 ΔW=37.996（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1785年 ΔW=50.839（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1785年 ΔW=61.547（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1785年 ΔW=72.135（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1785年 ΔW=81.527（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1786年 ΔW=89.153（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1786年 ΔW=91.123（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1786年 ΔW=100.671（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1786年 ΔW=108.391（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1787年 ΔW=114.787（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1787年 ΔW=136.455（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1787年 ΔW=156.629（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1787年 ΔW=152.704（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1788年 ΔW=182.144（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1788年 ΔW=193.529（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1788年 ΔW=170.861（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1788年 ΔW=2515.764（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1789年 ΔW=3394.513（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1789年 ΔW=3243.527（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1789年 ΔW=2998.138（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1789年 ΔW=2905.366（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1790年 ΔW=3055.515（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1790年 ΔW=2935.938（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1790年 ΔW=2941.620（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1790年 ΔW=2894.082（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1791年 ΔW=3197.631（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1791年 ΔW=3402.386（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1791年 ΔW=3555.947（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1791年 ΔW=3535.172（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1792年 ΔW=3510.721（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1792年 ΔW=3487.099（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1792年 ΔW=3466.641（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1792年 ΔW=3447.456（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1793年 ΔW=3429.809（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1793年 ΔW=3763.576（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1793年 ΔW=3755.679（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1793年 ΔW=3743.483（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1794年 ΔW=3727.721（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1794年 ΔW=3712.893（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1794年 ΔW=3287.752（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1794年 ΔW=3405.662（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1795年 ΔW=3530.527（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1795年 ΔW=3615.273（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1795年 ΔW=3450.612（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1795年 ΔW=4116.977（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1796年 ΔW=4425.368（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1796年 ΔW=4408.314（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1796年 ΔW=4376.873（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1796年 ΔW=4325.827（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1797年 ΔW=4272.998（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1797年 ΔW=4224.950（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1797年 ΔW=4179.115（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1797年 ΔW=4137.100（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1798年 ΔW=4104.599（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1798年 ΔW=4082.717（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1798年 ΔW=4061.338（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1798年 ΔW=4036.123（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1799年 ΔW=4006.038（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1799年 ΔW=3088.620（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1799年 ΔW=3639.501（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1799年 ΔW=3995.905（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1800年 ΔW=4240.120（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1800年 ΔW=4181.404（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1800年 ΔW=4231.380（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1800年 ΔW=4425.193（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1801年 ΔW=4137.457（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1801年 ΔW=4008.245（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1801年 ΔW=4234.282（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1801年 ΔW=4067.617（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1802年 ΔW=4394.773（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1802年 ΔW=4560.672（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1802年 ΔW=4534.090（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1802年 ΔW=4519.942（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1803年 ΔW=4385.351（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1803年 ΔW=4597.936（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1803年 ΔW=4642.786（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1803年 ΔW=4694.224（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1804年 ΔW=4566.177（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1804年 ΔW=4245.040（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1804年 ΔW=4261.948（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1804年 ΔW=4277.329（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1805年 ΔW=4645.814（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1805年 ΔW=4716.203（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1805年 ΔW=4786.898（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1805年 ΔW=4433.202（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1806年 ΔW=4363.901（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1806年 ΔW=4680.837（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1806年 ΔW=4667.156（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1806年 ΔW=4806.701（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1807年 ΔW=4764.327（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1807年 ΔW=4731.068（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1807年 ΔW=4753.143（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1807年 ΔW=4791.549（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1808年 ΔW=4810.700（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1808年 ΔW=4874.811（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1808年 ΔW=4919.926（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1808年 ΔW=4650.318（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1809年 ΔW=4553.675（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1809年 ΔW=4568.674（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1809年 ΔW=4567.464（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1809年 ΔW=4933.664（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1810年 ΔW=4752.124（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1810年 ΔW=4769.075（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1810年 ΔW=4861.117（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1810年 ΔW=5184.026（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1811年 ΔW=5120.986（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1811年 ΔW=5061.665（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1811年 ΔW=4887.583（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1811年 ΔW=5054.388（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1812年 ΔW=5090.945（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1812年 ΔW=5169.821（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1812年 ΔW=5258.978（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1812年 ΔW=5319.334（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1813年 ΔW=5335.666（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1813年 ΔW=5164.047（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1813年 ΔW=4848.326（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1813年 ΔW=4802.297（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1814年 ΔW=4728.283（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1814年 ΔW=4656.633（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1814年 ΔW=4918.788（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1814年 ΔW=4870.058（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1815年 ΔW=4671.490（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1815年 ΔW=5087.097（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1815年 ΔW=4892.441（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1815年 ΔW=4857.475（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1816年 ΔW=4994.836（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1816年 ΔW=5012.304（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1816年 ΔW=5025.577（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1816年 ΔW=5068.670（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1817年 ΔW=5074.709（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1817年 ΔW=5061.151（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1817年 ΔW=5023.455（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1817年 ΔW=4942.461（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1818年 ΔW=9293.324（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1818年 ΔW=9188.237（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1818年 ΔW=8349.698（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1818年 ΔW=8130.182（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1819年 ΔW=8764.397（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1819年 ΔW=9136.475（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1819年 ΔW=9853.030（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1819年 ΔW=9060.068（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1820年 ΔW=9502.800（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1820年 ΔW=9754.120（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1820年 ΔW=13176.087（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1820年 ΔW=13556.918（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1821年 ΔW=13595.231（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1821年 ΔW=13653.860（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1821年 ΔW=13659.882（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1821年 ΔW=10734.898（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1822年 ΔW=8428.261（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1822年 ΔW=8138.125（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1822年 ΔW=8062.267（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1822年 ΔW=7760.645（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1823年 ΔW=6953.517（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1823年 ΔW=9517.852（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1823年 ΔW=9427.269（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1823年 ΔW=9677.218（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1824年 ΔW=10031.253（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1824年 ΔW=9595.249（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1824年 ΔW=10025.724（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1824年 ΔW=9798.314（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1825年 ΔW=10184.690（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1825年 ΔW=10116.626（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1825年 ΔW=10009.250（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1825年 ΔW=9271.958（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1826年 ΔW=8971.068（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1826年 ΔW=9778.019（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1826年 ΔW=9756.053（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1826年 ΔW=9650.854（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1827年 ΔW=9682.269（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1827年 ΔW=10022.790（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1827年 ΔW=9975.834（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1827年 ΔW=9924.729（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1828年 ΔW=9838.110（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1828年 ΔW=10151.403（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1828年 ΔW=10177.063（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1828年 ΔW=10229.006（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1829年 ΔW=10204.109（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1829年 ΔW=9588.387（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1829年 ΔW=13951.370（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1829年 ΔW=16790.925（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1830年 ΔW=16979.042（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1830年 ΔW=16321.917（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1830年 ΔW=17027.320（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1830年 ΔW=16755.263（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1831年 ΔW=18377.857（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1831年 ΔW=17780.219（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1831年 ΔW=17944.439（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1831年 ΔW=17961.249（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1832年 ΔW=17817.053（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1832年 ΔW=17765.675（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1832年 ΔW=18965.262（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1832年 ΔW=19012.354（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+[PROBE世界] 国際金融 1833年 ΔW=19387.991（月次の段の片側と対なら四半期で閉じる＝判定は leakhunt の[世界の台帳]）
+leakhunt 完走（seed=1789・200四半期・保存則違反なし）
+世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0）
+
+## 突然変異（scratchpad/c137/mut.py・写しの木）＝5本すべて赤
+M1 産出の書き込みで版を進めない：新しい番人＋計算量の番人6本（軌道が動いた＝古い GDP を返すと恒等が割れる）
+M2 稼働を見ない・M3 生産者の一覧を見ない・M4 宛先を付けない：新しい番人
+M5 使い回さない：新しい番人（①使い回しが効いている）＋計算量の番人の GDP の行

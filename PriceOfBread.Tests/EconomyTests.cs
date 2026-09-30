@@ -114,6 +114,52 @@ public class EconomyTests
         Assert.DoesNotContain(g, rA.EnsureLiveGoods());
     }
 
+    /// <summary>★GDP の和の使い回し（2026-09-30 (136) 計算量の予算・恒等）：World.Gdp は前の和の後に州の並び・稼働・生産者の一覧・産出が変わっていなければ
+    /// 前の値を返し、どれかが変われば旧の式（稼働中の州×生産者の産出×参照価格を同じ順で）を回す＝真値と1ビットも違わない。
+    /// 産出の直書き・州の稼働の切り替え（止まっていた間に書かれた産出を含む）・生産者の一覧から外す、のどれでも取り直す。
+    /// 使い回しが効いていることは、控えの外の入力（参照価格＝構築の後に書く行が無い）をわざと書いて前の値が返ることで見る。
+    /// ⚠突然変異「産出の書き込みで版を進めない」「稼働を見ない」「一覧を見ない」「宛先を付けない」「使い回さない」で赤。</summary>
+    [Fact]
+    public void GDPの和は産出と州の稼働の書き込みで取り直す()
+    {
+        var w = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent()).World;
+        Assert.True(w.Regions.Count >= 2, "前提が崩れた：州が2つ無い");
+        static double Truth(World w)   // 旧の式そのもの（稼働中の州×生産者・役務を除く・同じ順）
+        {
+            double g = 0;
+            foreach (var r in w.Regions)
+            {
+                if (r.State != RegionState.Active) continue;
+                foreach (var s in r.Producers) { var good = r.GoodOf(s.GoodId); if (good is null || good.Tier == GoodTier.Service) continue; g += s.Output * good.RefPrice; }
+            }
+            return g;
+        }
+        static Producer OfGoods(Region r) => r.Producers.First(p => r.GoodOf(p.GoodId) is { Tier: not GoodTier.Service, RefPrice: > 0 });
+        var r0 = w.Regions[0]; var r1 = w.Regions[1];
+        var p0 = OfGoods(r0); var p1 = OfGoods(r1);
+        p0.Output = 7; p1.Output = 11;
+        Assert.Equal(Truth(w), w.Gdp);
+        double g0 = w.Gdp;
+        // ①使い回し：控えの外の入力を書いても前の値が返る（効いている証拠）
+        var good0 = r0.GoodOf(p0.GoodId)!; double ref0 = good0.RefPrice;
+        good0.RefPrice = ref0 * 2;
+        Assert.Equal(g0, w.Gdp);
+        good0.RefPrice = ref0;
+        // ②産出の直書き
+        p0.Output = 9;
+        Assert.Equal(Truth(w), w.Gdp);
+        Assert.NotEqual(g0, w.Gdp);
+        // ③州の稼働の切り替え＝止めた州は和から外れ、止まっていた間に書かれた産出も戻した時に拾う
+        r1.State = RegionState.Locked;
+        Assert.Equal(Truth(w), w.Gdp);
+        p1.Output = 13;
+        r1.State = RegionState.Active;
+        Assert.Equal(Truth(w), w.Gdp);
+        // ④生産者の一覧から外す
+        r0.Producers.Remove(p0);
+        Assert.Equal(Truth(w), w.Gdp);
+    }
+
     /// <summary>★月の残りを眠る市場（2026-09-30 計算量の予算 第2回・近似）：供給も在庫も無く参照より上に張り付いた財は、不動点に着いた旬に
     /// 印（Market.FlowAsleep）が立ち、月の2旬目以降（monthStart=false）は回さない＝値段も在庫目標も1ビットも動かず、計算量の台帳の「価格：財の歩」に数えない。
     /// 月の最初の旬（monthStart=true）は印を作り直して回す＝境界相で供給が立てば起きて動く。供給の立った財は眠らない。
