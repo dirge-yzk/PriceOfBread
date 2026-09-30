@@ -287,16 +287,16 @@ public partial class GameViewModel
     public HeaderStat TechHover => StatG("", "技術水準", _histTech, v => v.ToString("F2"), 0, $"技術水準 {_player.TechLevel:F2}");
 
     // === 予算予想（経済タブ）：Fiscal.Step と同じ式を「今の目標（段ボタンで置いた値）＋今のpop状態」で毎tick評価＝常に予想値（四半期を待たない）===
-    // 収入＝各税の粗収入×汚職控除。支出＝維持費・利払い・軍需/行政（歳入シェア）・社会保障/年金（裁量余剰上限）・近代化投資（国庫割合の月割）。
+    // 収入＝各税の粗収入×汚職控除。支出＝利払い・軍需/行政（歳入シェア）・社会保障/年金（裁量余剰上限）・近代化投資（国庫割合の月割）。
     private void UpdateForecast()
     {
         var c = _player.Coef;
-        double earnedAll = 0, earnedElite = 0, headNonPriv = 0, landRent = 0, popAll = 0, massSize = 0, oldSize = 0;
+        double earnedAll = 0, earnedElite = 0, headNonPriv = 0, landRent = 0, massSize = 0, oldSize = 0;
         foreach (var r in _player.Regions)
             foreach (var p in r.Pops)
             {
                 double e = System.Math.Max(0, p.Earned);
-                earnedAll += e; popAll += p.Size;
+                earnedAll += e;
                 if ((p.IsModernElite || p.Closed) && !p.IsSoldier) earnedElite += e;
                 if (!p.Closed && !p.IsSoldier) headNonPriv += p.Size;
                 if (p.LandRent > 0) landRent += p.LandRent;
@@ -315,15 +315,12 @@ public partial class GameViewModel
         double tariffGross = TariffRev(_player.Policy.TariffTarget);   // 予想（目標レート＝バーに即応）
         // 接14（監査2026-07-11・2026-07-25実装）：実効はUIの自前近似でなくエンジンの実績診断を読む（国際市場は清算単位＝MonthsPerClearing で月割。負値＝ダンピングの補助金支出）
         double tariffActMonthly = _player.LastTariffRevenue / (double)c.MonthsPerClearing;
-        // 維持費の按分（表示のみ）：治安維持力維持＝軍の俸給→軍事費へ・行政コスト→行政費へ加算（合計は不変）。軍事費0%でも俸給は残る＝仕様。
-        double milUpkeep = c.CoercionUpkeepRate * _player.BaseCoercion * (popAll / System.Math.Max(1.0, c.PoliticalReferencePop));
-        double adminUpkeep = c.AdminCostPerPop * popAll;
-        double upkeep = milUpkeep + adminUpkeep;
+        // （連合維持費＝治安維持と行政の人頭割りは 2026-09-30 (135) に撤去＝軍と官僚の給与は兵力と行政の購買の1本＝下の軍事費と行政費の行）
         double interest = _player.GovDebt * _player.GovBondRate / (double)Calendar.MonthsPerYear;
         // ★予測はエンジンが実際に施行する目標を読む（2026-09-12 反証・接14と同じ作法＝UIに第二の式を置かない）。
         //   旧は生の陸海の和（Policy.MilitarySpendingTarget）で、段（R2）では段へ丸められる前の値＝開幕0.30に対し施行は段1の0.25＝予測が**2割過大**だった。
         double mil = Government.MilitaryTotalTarget(_player, _player.Policy) * c.MilitaryRevenueShare * net;
-        double admin = c.AdminBudgetFrac * _player.Policy.AdminSpendingTarget * net;
+        double admin = c.AdminBudgetFrac * _player.Policy.AdminSpendingTarget * net * Fiscal.AdminDistanceMean(_player);   // 州の距離の割増の平均＝エンジンの行政の請求と同じ1本（2026-09-30 (135)）
         double welCap = c.WelfareRevenueShare * _player.FiscalCapacity;   // 裁量余剰の上限（請求の上限＝エンジンの Fiscal と同じ式・借入スタックの出費上限は 2026-09-28 に撤去）
         double wel = System.Math.Min(c.WelfareCostRate * _player.Policy.SocialSecurityTarget * massSize, welCap);
         double penLevel = _player.Pension switch { ReformLevel.Full => 1.0, ReformLevel.Limited => 0.5, _ => 0.0 };
@@ -342,8 +339,8 @@ public partial class GameViewModel
         double aPoll = c.PollTaxRate * _player.PollTax * headNonPriv * leak;
         double aLand = _player.LandTax * landRent * leak;
         double netA = aIncome + aProg + aPoll + aLand;
-        double aMil = _player.LastMilitaryClaim + milUpkeep;
-        double aAdmin = _player.LastAdminClaim + adminUpkeep;
+        double aMil = _player.LastMilitaryClaim;
+        double aAdmin = _player.LastAdminClaim;
         double aWel = _player.LastWelfareCost * _player.FiscalFundingRatio;   // 実効＝請求×国家の支払い率 r（エンジンの Fiscal と同じ・2026-09-28）
         double aPen = _player.LastPensionCost * _player.FiscalFundingRatio;
         double aInterest = _player.LastInterest;   // R9満期構造の実クーポン込み（UI近似はGovBondRate直＝乖離しうる）
@@ -353,9 +350,9 @@ public partial class GameViewModel
         //   （World.NavalSpendShare＝NavyUpkeep/(Army+Navy)）で総額を割る＝UIに第二の配分式を置かない。
         //   和は必ず旧「軍事費」の額と一致する（表示を分けただけで金は動いていない）。
         double navShare = _player.NavalSpendShare;
-        ArmyAct = Money(aMil * (1 - navShare)); ArmyAmt = Money((mil + milUpkeep) * (1 - navShare));
-        NavyAct = Money(aMil * navShare);       NavyAmt = Money((mil + milUpkeep) * navShare);
-        AdminLine = $"行政費 {_player.Policy.AdminSpendingTarget:P0}　実効 {_player.AdminSpending:P0}"; AdminAct = Money(aAdmin); AdminAmt = Money(admin + adminUpkeep);  // 行政調達＋行政コスト（維持費の官僚分）
+        ArmyAct = Money(aMil * (1 - navShare)); ArmyAmt = Money(mil * (1 - navShare));
+        NavyAct = Money(aMil * navShare);       NavyAmt = Money(mil * navShare);
+        AdminLine = $"行政費 {_player.Policy.AdminSpendingTarget:P0}　実効 {_player.AdminSpending:P0}"; AdminAct = Money(aAdmin); AdminAmt = Money(admin);  // 行政調達（官僚の給与×人数×距離の割増）
         // ★汚職根絶のラベル更新は撤去（汚職V2点火2026-08-15＝表示ごと削除）
         // 国民形成費のレバー行は廃止（2026-07-19）＝国民運動は需要駆動（内訳はヘッダー国民意識の説明API）
         if (OpiumVisible) OpiumLine = $"アヘン中毒度 {OpiumAvgAddiction():P1}";   // 中毒度は財の性質＝表示は残る（禁令は法律タブへ移行・2026-07-30）
@@ -407,7 +404,7 @@ public partial class GameViewModel
         ForeignInAmt = Money(_fInMonthly);
         ForeignOutAmt = Money(_fOutMonthly);
 
-        double spendTotal = upkeep + interest + mil + admin + wel + pen + ind + _eduMonthly + _fOutMonthly + colonialUp + tribOut;   // 接1：植民地維持費・貢納を合計へ（根絶費はV2撤去2026-08-15）
+        double spendTotal = interest + mil + admin + wel + pen + ind + _eduMonthly + _fOutMonthly + colonialUp + tribOut;   // 接1：植民地維持費・貢納を合計へ（根絶費はV2撤去2026-08-15）
         double revTotal = net + tariffGross + _stateMonopMonthly + _fInMonthly + tribIn;
         double spendActT = aInterest + aMil + aAdmin + aWel + aPen + ind + _eduMonthly + _fOutMonthly + colonialUp + tribOut;
         double revActT = netA + tariffActMonthly + _stateMonopMonthly + _fInMonthly + tribIn;

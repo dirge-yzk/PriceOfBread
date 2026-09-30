@@ -173,7 +173,7 @@ public class PrivilegeDisplayTests
 
     /// <summary>特権の取り分は pop→pop の移転＝ゼロ和（国庫を通さず貨幣を作らない）。
     /// 十分の一税＝特権そのものが金を動かす現物の経路（★2026-09-30 段3-4＝Fiscal.Step の税の走査で税と同じ1本の率で集める＝旧 Privileges.CollectTithe は削除）。
-    /// 盤面＝税・汚職の漏れ・維持費・福祉・年金・国債を止めた月次の財政1回＝動く金は十分の一税だけ。</summary>
+    /// 盤面＝税・汚職の漏れ・福祉・年金・国債を止めた月次の財政1回＝動く金は十分の一税だけ（連合維持費は 2026-09-30 (135) に撤去）。</summary>
     [Fact]
     public void 十分の一税の取り分は聖職者への移転でゼロ和()
     {
@@ -182,7 +182,7 @@ public class PrivilegeDisplayTests
         w.StateReligion = StateReligionLaw.StateChurch;
         c.TitheRate = 0.05; c.StateReligionGate = 0; c.CorruptionMax = 0;
         w.TaxRate = 0; w.PollTax = 0; w.LandTax = 0; w.ProgressiveTax = 0;
-        w.BaseCoercion = 0; c.AdminCostPerPop = 0; w.SocialSecurity = 0; w.Pension = ReformLevel.None;
+        w.SocialSecurity = 0; w.Pension = ReformLevel.None;
         w.GovDebt = 0; w.ForeignDebt = 0;
         var pops = new System.Collections.Generic.List<Pop>(w.AllPops());
         foreach (var p in pops) p.BondHoldings = 0;

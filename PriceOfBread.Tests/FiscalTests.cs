@@ -143,7 +143,7 @@ public class FiscalTests
         Assert.Equal(0.0, Revenue(last: false), 9);   // 今月の Earned は翌月の基数（二重に取らない）
     }
 
-    /// <summary>英を1四半期温め、財政の国債以外の流れ（税・汚職の漏れ・維持費の頭数分配・福祉・年金・外債）を止めた盤面。
+    /// <summary>英を1四半期温め、財政の国債以外の流れ（税・汚職の漏れ・福祉・年金・外債）を止めた盤面（連合維持費は 2026-09-30 (135) に撤去＝止める行が無い）。
     /// 同じ種で2つ作れば双子＝片方だけで起債すれば、2つの貯蓄の差が国債の流れ（購入・利払い・償還）そのものになる。</summary>
     private static World QuietBritain()
     {
@@ -151,7 +151,6 @@ public class FiscalTests
         sim.Run(1);
         var w = sim.World;
         w.TaxRate = 0; w.PollTax = 0; w.LandTax = 0; w.ProgressiveTax = 0;   // 歳入0＝汚職の漏れも0
-        w.BaseCoercion = 0; w.Coef.AdminCostPerPop = 0;                        // 維持費0＝頭数比の俸給分配が0
         w.SocialSecurity = 0; w.Pension = ReformLevel.None;                    // 福祉・年金（借入スタックの出費上限に依存＝双子で食い違う）を止める
         w.Coef.ForeignBondCapacity = 0;                                        // 全額を国内の投資家が引き受ける
         // 初期の国債（world.json の govDebt＝1783年の英の国債 年GDP の約1.1・2026-09-29）と保有を消す＝国債の流れは番人が起こしたものだけ（金は動かない＝請求権と記録だけ）
@@ -458,6 +457,15 @@ public class FiscalTests
         sim.StepQuarter();   // 反乱国が自国の投資家から借りる
         Assert.True(HeldOf(rw) > 0 && rw.GovDebt > 0, "前提が崩れた：反乱国の国債の持ち手がいない");
         var returning = new List<Region>(rw.Regions);
+        // 親の月の支払いを満たす（国庫へ POP の貯蓄から移す＝保存）＝利子の未払いの元本への繰り入れ（r＜1 の月）で親の国内元本が動かない＝継承だけを測る。
+        //   2026-09-30 (135)：連合維持費を撤去した軌道では、この四半期の親は歳入が利払いを下回り r＜1 だった＝繰り入れ（正しい機構）が継承に見えた。
+        {
+            var payers = new List<Pop>(pw.AllPops());
+            double sav = 0; foreach (var p in payers) sav += Math.Max(0, p.Savings);
+            double x = Math.Min(0.5 * sav, 12 * (pw.LastInterest + pw.LastRevenue + pw.LastAdminClaim + pw.LastMilitaryClaim + pw.LastSoldierPay));
+            foreach (var p in payers) p.Savings -= x * (Math.Max(0, p.Savings) / sav);
+            pw.Pay(TreasuryCat.OtherIn, x);
+        }
         double pwDom0 = pw.GovDebt - pw.ForeignDebt;
         sim.Diplomacy.PendingReintegrations.Add((pw.SelfPower!, rw.SelfPower!, false, pw.Polity));
         sim.StepQuarter();
@@ -521,16 +529,16 @@ public class FiscalTests
         Fiscal.BookForeignDebt(cap, 0.6 * h, fr, br);
         Fiscal.BookForeignDebt(cap, 0.2 * h, fr, pr);
         new BondLedger().Check(fr);
-        // 仏の財政を静める（歳入・維持費・福祉が0＝国庫の出入りは減債だけ）＋利子0（元本だけを見る）＋余剰の全額で減債
+        // 仏の財政を静める（歳入・福祉が0＝国庫の出入りは減債だけ）＋利子0（元本だけを見る）＋余剰の全額で減債
         fr.TaxRate = 0; fr.PollTax = 0; fr.LandTax = 0; fr.ProgressiveTax = 0;
-        fr.BaseCoercion = 0; fr.Coef.AdminCostPerPop = 0; fr.SocialSecurity = 0; fr.Pension = ReformLevel.None;
+        fr.SocialSecurity = 0; fr.Pension = ReformLevel.None;
         fr.GovBondRate = 0; fr.GovAvgCoupon = 0; fr.Coef.BondRepayFrac = 1.0;
         var guards = Array.ConvertAll(all, w => new MoneyConservation(w));
         var base0 = Array.ConvertAll(all, w => w.BaseMoney);
         double world0 = WorldBase(all), mint0 = MintedAndFiat(all);
         double cBr0 = br.ForeignBondClaims, cPr0 = pr.ForeignBondClaims, fd0 = fr.ForeignDebt;
 
-        FiscalMonth(fr, 1, fr.Treasury);           // 仏が減債する（r＝1・余剰＝国庫＝維持費も利子も0の盤面・国内分は保有比で国内の持ち手へ・対外分は国外へ）
+        FiscalMonth(fr, 1, fr.Treasury);           // 仏が減債する（r＝1・余剰＝国庫＝利子も0の盤面・国内分は保有比で国内の持ち手へ・対外分は国外へ）
         double principal = fd0 - fr.ForeignDebt;
         Assert.True(principal > 0, $"前提が崩れた：対外の元本が償還されていない（国庫 {fr.Treasury}）");
         CapitalMarket.Step(sim.Nations, coef);     // 四半期末の国際金融＝債権の繰上げと元利の配当
@@ -1390,52 +1398,114 @@ public class FiscalTests
         new BondLedger().Check(pw);
     }
 
-    /// <summary>★段3-2（2026-09-30・作者裁定 Q8 (a)・C7）：連合維持費は治安と行政の役務の給与＝治安維持の分は兵士の兵力の生産者の④（兵士の賃金）、
-    /// 行政費の分は官僚の行政の生産者の④（官僚の賃金）へ・Earned を通す・国家の支払い率 r の分だけ。旧＝全POP へ頭数（名目は俸給なのに受け手は全国民）。
-    /// 盤面＝英の静かな盤面の双子＝維持費だけが違う（治安維持だけ・行政費だけの2組と維持費0）。双子の貯蓄の差が維持費の流れそのもの。
-    /// ⚠突然変異「全POP へ頭数で配る」で赤（担い手でない POP の貯蓄が動く）。</summary>
+    /// <summary>★費用の側（2026-09-30 (135)）：連合維持費の人頭割り（治安維持費＝係数×治安維持力の基礎×人口・行政費＝係数×人口×距離の割増）は無い
+    /// ＝治安維持力と人口は月の国庫の請求を動かさない（兵士と官僚の給与は兵力と行政の購買の1本＝同じ役務の二重・三重の支払いを撤去した）。
+    /// 盤面＝英の静かな盤面（税・福祉・年金・国債が0＝財政の月の流れが無い）で、治安維持力 0 と 3000・人口そのままと2倍。国庫・貯蓄・台帳の Admin が1ビットも動かない。
+    /// ⚠突然変異「治安維持費を戻す」「行政費の人頭割りを戻す」で赤。</summary>
     [Fact]
-    public void 連合維持費は兵士と官僚の役務の賃金へ届き全POPへ頭数で配らない()
+    public void 連合維持費の人頭割りは無く治安維持力と人口は国庫の請求を動かさない()
     {
-        const double r = 0.6;
-        (World w, List<Pop> pops, double[] sav, double[] earned) Board(double coercion, double adminPerPop)
+        (double treasury, double admin, double[] sav) Board(double coercion, double popScale)
         {
             var w = QuietBritain();
             w.Coef.TitheRate = 0;
-            w.BaseCoercion = coercion; w.Coef.AdminCostPerPop = adminPerPop;
-            FiscalMonth(w, r, spare: 0);
-            var pops = AllPopsOf(w);
-            return (w, pops, pops.ConvertAll(p => p.Savings).ToArray(), pops.ConvertAll(p => p.Earned).ToArray());
+            w.BaseCoercion = coercion;
+            if (popScale != 1.0) foreach (var r in w.Regions) foreach (var p in r.Pops) p.Size *= popScale;
+            double t0 = w.Treasury, a0 = w.TreasuryLedger[(int)TreasuryCat.Admin];
+            FiscalMonth(w, 1.0);
+            return (w.Treasury - t0, w.TreasuryLedger[(int)TreasuryCat.Admin] - a0, AllPopsOf(w).ConvertAll(p => p.Savings).ToArray());
         }
-        var zero = Board(0, 0);
-        Assert.Equal(0.0, zero.w.LastUpkeep);
-        foreach (var (coercion, admin, good) in new[] { (3000.0, 0.0, Catalog.MilitaryPowerId), (0.0, 0.03, Catalog.AdminId) })
+        var zero = Board(0, 1.0);
+        Assert.Equal(0.0, zero.treasury);   // 前提：静かな盤面の月の財政は国庫を動かさない
+        Assert.Equal(0.0, zero.admin);
+        foreach (var (coercion, scale) in new[] { (3000.0, 1.0), (0.0, 2.0), (3000.0, 2.0) })
         {
-            var arm = Board(coercion, admin);
-            double pay = arm.w.LastUpkeep * r;
-            Assert.True(pay > 0, "前提が崩れた：維持費の請求が立っていない");
-            var sellers = new HashSet<Pop>();
-            foreach (var reg in arm.w.Regions)
-                if (reg.State == RegionState.Active)
-                    foreach (var pr in reg.Producers) if (pr.GoodId == good && pr.Output > 0) sellers.Add(reg.Pops[pr.LaborPopIndex]);
-            Assert.NotEmpty(sellers);
-            double got = 0;
-            for (int i = 0; i < arm.pops.Count; i++)
-            {
-                double d = arm.sav[i] - zero.sav[i];
-                if (sellers.Contains(arm.pops[i]))
-                {
-                    got += d;
-                    double de = arm.earned[i] - zero.earned[i];
-                    Assert.True(Math.Abs(d - de) <= 1e-9 * Math.Max(1.0, Math.Abs(arm.sav[i]) + Math.Abs(arm.earned[i])), $"担い手の所得（Earned）が貯蓄と同じ額で書かれていない（{d} vs {de}）");
-                }
-                else Assert.True(d == 0, $"担い手でない POP（階級 {arm.pops[i].ClassId}）の貯蓄が {d} 動いた＝全POP へ配っている");
-            }
-            Assert.True(Math.Abs(got - pay) <= 1e-9 * pay, $"担い手の受け取り {got} ≠ 維持費×r {pay}");
-            Assert.True(Math.Abs(zero.w.Treasury - arm.w.Treasury - pay) <= 1e-9 * Math.Max(1.0, Math.Abs(arm.w.Treasury)), "国庫の減りが維持費×r と一致しない");
+            var arm = Board(coercion, scale);
+            Assert.Equal(0.0, arm.treasury);   // 治安維持費・行政費の人頭割りが戻れば国庫が減る
+            Assert.Equal(0.0, arm.admin);
+            for (int i = 0; i < arm.sav.Length; i++) Assert.Equal(zero.sav[i], arm.sav[i]);   // 担い手（兵士・官僚）への給与の上乗せも無い
         }
     }
 
+    /// <summary>★行政の距離の割増（2026-09-30 (135)＝作者裁定 2026-09-03 E-05段4「維持費は本国州にも必要なはずだ。植民地は遠く、それが高額なだけ」を
+    /// 維持費の人頭割りから行政の購買へ移した）：遠い州の官僚は同じ働きに割増の俸給＝国の払う単価は市場の価格×割増・予算も同じ割増
+    /// ＝充足は割増の無い州と同じ・国庫の支払いだけが割増倍（Fiscal.AdminDistanceMul の1本を予算〔Simulation〕・単価〔EconomyStep〕・請求〔Fiscal〕が読む）。
+    /// 盤面＝英の同じ種の双子（UpkeepDistanceGeneral 0＝割増1・10＝首都から離れた州ほど割増）＝同じ州で予算を割増倍にして EconomyStep を1回。
+    /// ⚠突然変異「単価に割増を掛けない」「見積もりに割増を掛けない」で赤（支払いか充足が食い違う）。</summary>
+    [Fact]
+    public void 遠い州の行政は同じ充足に距離の割増の金額を払う()
+    {
+        (World w, Region r) Board(double general)
+        {
+            var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+            sim.Run(1);
+            var w = sim.World;
+            w.Coef.UpkeepDistanceGeneral = general;
+            Region? far = null; double km = 0;
+            foreach (var rg in w.Regions)
+            {
+                if (rg.State != RegionState.Active || rg.BureaucratPopIndex < 0) continue;
+                var rc = Places.Coord(rg.Name);
+                if (rc.Lat == 0 && rc.Lon == 0) continue;
+                double d = Geo.DistanceKm(w.Latitude, w.Longitude, rc.Lat, rc.Lon);
+                if (d > km) { km = d; far = rg; }
+            }
+            Assert.True(far is not null && km > 100, "前提が崩れた：首都から離れた官僚のいる州が無い");
+            return (w, far!);
+        }
+        var (a, ra) = Board(0.0);
+        var (b, rb) = Board(10.0);
+        Assert.Equal(ra.Name, rb.Name);
+        Assert.Equal(1.0, Fiscal.AdminDistanceMul(a, ra));   // 係数0＝割増なし
+        double mul = Fiscal.AdminDistanceMul(b, rb);
+        var rc2 = Places.Coord(rb.Name);
+        double expect = 1.0 + 10.0 * b.Coef.DistanceWarDecay * Geo.DistanceKm(b.Latitude, b.Longitude, rc2.Lat, rc2.Lon) / Diplomacy.DistanceNormKm;
+        Assert.Equal(expect, mul, 12);
+        Assert.True(mul > 1.05, $"前提が崩れた：割増が小さすぎて測れない（{mul}）");
+        // 同じ予算の比（予算で必要量の1割しか買えない＝供給でなく予算が効く盤面）・上下水道と電化は止める（同じ区分 Admin に記帳する）
+        double est = b.Coef.AdminNeedPerPop * ra.SumPopulation() * Math.Max(ra.Markets[Catalog.AdminId].Price, 1e-12);
+        foreach (var (w, r, m) in new[] { (a, ra, 1.0), (b, rb, mul) })
+        {
+            r.AdminBudget = 0.1 * est * m; r.InfraBudget = 0; r.ElecInfraBudget = 0;
+            r.StateSpent[(int)TreasuryCat.Admin] = 0;
+            EconomyStep.Run(r, w.Coef, 1.0, w.Bank, w);
+        }
+        Assert.True(ra.AdminFill > 0.02 && ra.AdminFill < 0.3, $"前提が崩れた：予算が効いていない（充足 {ra.AdminFill}）");
+        Assert.True(Math.Abs(rb.AdminFill - ra.AdminFill) <= 1e-9, $"充足が割増で変わった（{ra.AdminFill} vs {rb.AdminFill}）＝見積もりと予算の割増が食い違う");
+        double pa = ra.StateSpent[(int)TreasuryCat.Admin], pb = rb.StateSpent[(int)TreasuryCat.Admin];
+        Assert.True(pa > 0, "前提が崩れた：行政を買っていない");
+        Assert.True(Math.Abs(pb - mul * pa) <= 1e-9 * pb, $"国庫の支払い {pb} ≠ 割増 {mul}×割増なし {pa}");
+    }
+
+    /// <summary>★行政の予算と請求は同じ規則（2026-09-30 (135)・分子と分母を同じ規則で）：州の行政の予算＝行政費×割合×歳入×人口の比×距離の割増（Simulation）・
+    /// 国の行政の請求（LastAdminClaim＝余剰の控除と財政の安全水準が読む）＝行政費×割合×歳入×距離の割増の人口加重の平均（Fiscal）。
+    /// 盤面＝英（距離の割増50倍＝州ごとに割増が大きく違う）を1四半期。①予算÷（人口×割増）が全ての官僚のいる州で同じ（人口は予算を配った月初から
+    /// 1か月の動きの分だけずれる＝2%）②月の財政の直後の請求＝行政費×割合×歳入×平均の割増。
+    /// ⚠突然変異「予算に割増を掛けない」「請求に平均の割増を掛けない」で赤。</summary>
+    [Fact]
+    public void 行政の予算は人口の比と距離の割増で配り国の請求は同じ割増の平均()
+    {
+        var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+        sim.Run(1);
+        var w = sim.World;
+        w.Coef.UpkeepDistanceGeneral = 50.0;
+        sim.Run(1);   // この四半期の月の予算は全て割増で配る
+        double k = double.NaN; int n = 0; double lo = double.MaxValue, hi = 0;
+        foreach (var r in w.Regions)
+        {
+            if (r.State != RegionState.Active || r.BureaucratPopIndex < 0 || !(r.AdminBudget > 0)) continue;
+            double m = Fiscal.AdminDistanceMul(w, r);
+            lo = Math.Min(lo, m); hi = Math.Max(hi, m);
+            double v = r.AdminBudget / (r.SumPopulation() * m);
+            if (double.IsNaN(k)) k = v; else Assert.True(Math.Abs(v - k) <= 0.02 * k, $"州 {r.Name} の予算÷（人口×割増）{v} ≠ {k}（割増 {m}）");
+            n++;
+        }
+        Assert.True(n >= 2 && hi > lo * 1.3, $"前提が崩れた：割増の違う州が2つ以上ない（{n}・{lo}〜{hi}）");
+        w.FiscalFundingRatio = 1.0; Fiscal.Step(w, w.Coef);
+        double claim = w.Coef.AdminBudgetFrac * w.AdminSpending * w.LastRevenue * Fiscal.AdminDistanceMean(w);
+        Assert.True(Fiscal.AdminDistanceMean(w) > 1.3, "前提が崩れた：平均の割増が小さい");
+        Assert.Equal(claim, w.LastAdminClaim);   // 同じ式・同じ順＝ビット一致
+    }
     /// <summary>★段3-4（2026-09-30・B6・作者裁定 Q4＝処理の一元化 段4d）：POP の義務は1本の率＝税と十分の一税の請求を POP ごとに集め、
     /// 払える額（貯蓄）が足りなければ全ての請求に同じ率 r_p＝貯蓄÷請求の和を掛ける（国家が教会に優先しない）。足りれば全額。
     /// どの義務も払い手の総所得（Earned）を減らさず、十分の一税は聖職の所得になる（C15 の確かめ＝所得税と同じ記帳）。
@@ -1480,27 +1550,4 @@ public class FiscalTests
         Assert.True(Math.Abs(shortM.clergyEarned - shortM.tithe) <= 1e-9, "聖職の所得（Earned）が受け取った十分の一税と一致しない");
     }
 
-    /// <summary>★段4d（2026-09-30・(117) の申し送り4＝分子と分母を同じ規則で）：連合維持費の請求（LastUpkeep＝翌月の r の請求）は払える担い手のいる分だけ＝
-    /// 国に兵士の兵力の生産者が居なければ治安維持の分は請求に入らない（行政費の分だけ）。旧＝担い手がいなくても請求に入り、払えない請求で r が下がった。
-    /// 盤面＝英の静かな盤面（治安維持 3000・行政費 0.03/人）の兵士の兵力の生産者の産出を0にした腕と、治安維持0の腕（担い手は居る）で請求が同じ。
-    /// ⚠突然変異「担い手を見ない（旧）」で赤。</summary>
-    [Fact]
-    public void 連合維持費の請求は払える担い手のいる分だけ()
-    {
-        double Upkeep(double coercion, bool soldiers)
-        {
-            var w = QuietBritain();
-            w.Coef.TitheRate = 0;
-            w.BaseCoercion = coercion; w.Coef.AdminCostPerPop = 0.03;
-            if (!soldiers)   // 兵士の兵力の生産者がいない国（月次の決算が書く産出の和 LastProduced も0＝盤面を一貫させる）
-                foreach (var reg in w.Regions) { foreach (var pr in reg.Producers) if (pr.GoodId == Catalog.MilitaryPowerId) pr.Output = 0; reg.Markets[Catalog.MilitaryPowerId].LastProduced = 0; }
-            FiscalMonth(w, 1.0);
-            return w.LastUpkeep;
-        }
-        double adminOnly = Upkeep(0, soldiers: true);
-        double both = Upkeep(3000, soldiers: true);
-        double noSoldiers = Upkeep(3000, soldiers: false);
-        Assert.True(adminOnly > 0 && both > adminOnly, $"前提が崩れた：維持費の請求が立っていない（行政費だけ {adminOnly}・両方 {both}）");
-        Assert.True(Math.Abs(noSoldiers - adminOnly) <= 1e-9 * adminOnly, $"兵士の兵力の担い手がいないのに治安維持の請求が入った（{noSoldiers} vs 行政費だけ {adminOnly}）");
-    }
 }

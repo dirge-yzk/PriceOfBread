@@ -234,18 +234,22 @@ public class WriterRatchetTests
     //   ⚠全長では植民地の州が空にならない分だけ日次の写像の回が増える（人の居る州の市場が残る＝(125) と同じ型）＝全長は10種の .cost（実装ログ (131)）。
     // ★2026-09-30 表の更新（(133) 合流＝線1 の (130)(132)〔計算量の予算〕の載った main へ線2 の (129)(131)〔金鶏樹皮・飢えの空洞化〕を載せ直した木＝軌道が動いた分の宣言・新しい処理は無い）：
     //   覇権の判定 2,617,303→2,268,853（−13.3%＝10% を超えて下がった＝表を下げる・線2 単独の (131) の −16.2% と同じ型＝同盟の候補が居る月の軌道・処理の形は同じ）。ほかの14本は許しの内。
+    // ★2026-09-30 表の更新（(135) 費用の側＝連合維持費の人頭割り〔治安維持費・行政費の人頭割り〕を撤去し距離の割増を行政の購買へ＝軌道が動いた分の宣言・新しい計数の処理は無い）：
+    //   建設 18,466→6,246（−66%）・請求 6,397→2,140（−67%）＝10% を超えて下がった＝表を下げる（国の請求が減り、専売が早く狭まって歳入が下がる＝国営の工場の工事と材料が減った・
+    //   全長の5種でも建設 −31%・請求 −24%）。覇権の判定 2,268,853→2,755,889（+21.5%＝同盟の候補が居る月の軌道・処理の形は同じ＝(124)(128) と同じ型・単価 0.01035µs＝40四半期で +5.0ms）。
+    //   ほかの12本は許しの内（+2%／−10%）。行政の距離の割増は州×月に1回の距離の計算（旧の Fiscal の州の走査と同じ量が予算・単価・請求の3か所へ）＝計数の外。全長の推定は10種の .cost（実装ログ (135)）。
     [InlineData(CostLedger.PriceGoods, 14149727L)]
     [InlineData(CostLedger.PriceDailyRuns, 25283828L)]
-    [InlineData(CostLedger.ConstructionSeen, 18466L)]
+    [InlineData(CostLedger.ConstructionSeen, 6246L)]
     [InlineData(CostLedger.CreditSpans, 33282L)]
     [InlineData(CostLedger.ConsumePopGoods, 28595736L)]
     [InlineData(CostLedger.ProducerMonths, 8440020L)]
-    [InlineData(CostLedger.ClaimProducers, 6397L)]
+    [InlineData(CostLedger.ClaimProducers, 2140L)]
     [InlineData(CostLedger.MonthlyPops, 706680L)]
     [InlineData(CostLedger.ClearingRows, 5185642L)]
     [InlineData(CostLedger.ClearingFills, 27104468L)]
     [InlineData(CostLedger.DiploPowerMonths, 9954L)]
-    [InlineData(CostLedger.DiploHegemonScans, 2268853L)]
+    [InlineData(CostLedger.DiploHegemonScans, 2755889L)]
     [InlineData(CostLedger.QuarterStartPops, 235560L)]
     [InlineData(CostLedger.QuarterEndPops, 235560L)]
     [InlineData(CostLedger.SharedNationQuarters, 3698L)]

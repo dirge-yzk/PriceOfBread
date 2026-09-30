@@ -1,11 +1,11 @@
 ﻿namespace PriceOfBread.SimCore;
 
 /// <summary>
-/// 国庫・財政（§9-F／§6.2）。所得税で国庫を満たし、連合（軍・官僚）の維持費を払う。
+/// 国庫・財政（§9-F／§6.2）。所得税で国庫を満たし、利子・福祉・年金を払う（連合〔軍・官僚〕の給与は兵力と行政の購買＝2026-09-30 (135) に維持費の人頭割りを撤去）。
 /// 税は可処分所得を削る＝中心ジレンマ（§3.1）。国庫が国家の支払いの請求を払えないと国家の支払い率（FiscalFundingRatio）が下がり、
 /// 治安維持力が崩壊して革命の扉が開く（§6.2）。税（pop→国庫）と俸給（国庫→pop）は移転で基礎貨幣保存。
 /// ★支払いの規則は1本（作者裁定 F3・2026-09-28 段2-1）：率 r は月初に Simulation が決め（全ての国家の支払いの請求÷払える額）、
-///   ここの利子・維持費・福祉・年金にも同じ r を掛ける（旧＝利払い→維持費→福祉/年金→減債の順に国庫の残りで切る滝）。
+///   ここの利子・福祉・年金にも同じ r を掛ける（旧＝利払い→維持費→福祉/年金→減債の順に国庫の残りで切る滝）。
 /// 国家レベル＝全地域の pop を集計する。
 /// </summary>
 public static class Fiscal
@@ -216,41 +216,16 @@ public static class Fiscal
         if (c.PrivilegeLedgerEnabled > 0) Privileges.Record(w, Privileges.Tithe, titheCollected);   // ★特権台帳（段1・観測）
         if (c.PrivilegeLedgerEnabled > 0) Privileges.StepMonth(w, c);   // ★特権台帳（段1）：今月の取り分を畳み保有年数を積む（月次・十分の一税の後）
 
-        // 連合維持費（§6.2）＋広大な領土/人口の行政コスト（大国ほど重い）。払えた割合が funding ratio（<1 で治安維持力↓→政情不安）。
-        double popSizeAll = 0; foreach (var p in pops) popSizeAll += p.Size;
-        double coercionScale = popSizeAll / Math.Max(1.0, c.PoliticalReferencePop);
-        // ★E-05段4（作者裁定2026-09-03「維持費は本国州にも必要なはずだ。植民地は遠く、それが高額なだけ、という形が正しい」）。
-        //   ★実測＝**本国州は既に維持費を払っている**（この行の AdminCostPerPop×全州POP。⚠植民地格の州のPOPもここに入っている）。
-        //     つまり植民地は「行政費」と「植民地維持費（ColonyUpkeepBase）」を**二重に**払っていた＝植民地専用の平場は要らない（★2026-09-28 に平場を撤去＝c2・Colonial.Step は不満の上乗せだけ）。
-        //   ⇒ 足りないのは**距離**だけ。同じ行政費に首都からの距離の割増を掛ければ、格を見ずに作者裁定の形になる。
-        //   ⚠形と係数は `Diplomacy.Projection`／E-05段1の分離判定と共有（DistanceWarDecay / DistanceNormKm）＝新しい数字を作らない。
-        //   ⚠座標未登録(0,0)の州は割増なし＝中立（幻の遠距離を作らない）。UpkeepDistanceGeneral=0 で州別ループに入らない＝厳密恒等。
-        double adminCost = c.AdminCostPerPop * popSizeAll;
-        if (c.UpkeepDistanceGeneral > 0)
-        {
-            adminCost = 0;
-            foreach (var r in w.Regions)
-            {
-                if (r.State != RegionState.Active) continue;
-                double rp = 0; foreach (var p in r.Pops) rp += p.Size;
-                if (!(rp > 0)) continue;
-                double mul = 1.0;
-                var rc = Places.Coord(r.Name);
-                if (!(rc.Lat == 0 && rc.Lon == 0))
-                {
-                    double km = Geo.DistanceKm(w.Latitude, w.Longitude, rc.Lat, rc.Lon);
-                    if (km > 0 && double.IsFinite(km)) mul = 1.0 + c.UpkeepDistanceGeneral * c.DistanceWarDecay * km / Diplomacy.DistanceNormKm;
-                }
-                adminCost += c.AdminCostPerPop * rp * mul;
-            }
-        }
-        double coercionUpkeep = c.CoercionUpkeepRate * w.BaseCoercion * coercionScale;   // 治安維持（警察・駐屯）＝兵士の兵力を買う（段3-2・下の支払い）
-        // ★段4d（2026-09-30・(117) の申し送り4＝分子と分母を同じ規則で）：請求は**払える担い手のいる分だけ**。治安維持は兵士の兵力・行政費は官僚の行政の生産者
-        //   （④の持分の受け手＝下の支払い PaySales の国の枝が受け手を見つける条件と同じ＝国の活きた州のその財の産出の和＞0）が国に居なければ請求に入れない。
-        //   旧＝担い手がいなくても請求 LastUpkeep と余剰の控除に入った＝払えない（受け手不在で国庫に残る）請求で月初の国家の支払い率 r が下がった（較正の世界・残骸国家）。
-        if (!InternationalMarket.HasSellers(w, Catalog.MilitaryPowerId)) coercionUpkeep = 0;
-        if (!InternationalMarket.HasSellers(w, Catalog.AdminId)) adminCost = 0;
-        double upkeep = coercionUpkeep + adminCost;
+        // ★費用の側＝維持費の人頭割りを撤去（2026-09-30 (135)・(109) §9-2 と (127) §10-1 の申し送り）。
+        //   旧＝連合維持費（§6.2）＝治安維持費（CoercionUpkeepRate×治安維持力の基礎×人口÷基準人口）＋行政費の人頭割り（AdminCostPerPop×州の人口×首都からの距離の割増）を、
+        //   役務の購買とは別の強制義務として請求し、兵士と官僚の④の持分へ給与の上乗せとして払った（段3-2）＝同じ役務の二重・三重の支払い：
+        //   行政は官僚の役務を市場で買う行（行政の予算→EconomyStep の行政の購買＝官僚の給与×人数）が既にあり、治安維持力は 2026-06-23 から兵数×即応度×係数
+        //   ＝軍そのもの（給与 SoldierPayBudget・装備 MilitaryBudget に続く3度目の課金＝2026-08-01 導出の精査で確認済み・人口の2乗に比例）。
+        //   しかも名目の定数×頭数（物価と賃金に非連動）＝1人あたりの産出の低い大国ほど重い（分子と分母の非対称：費用は頭数・GDP は産出）
+        //   ＝1784 の年GDP 比 清 7.3%（人頭割り 3.7・治安維持 3.6）・西 7.1・蘭 5.1・英 3.0（史実の文官の費用は年GDP の約1%・清の国家の支出は全部で2〜3%）。
+        //   ⇒ 費用は役務の購買の1本（官僚と兵士の給与×人数）。作者裁定 2026-09-03（E-05段4）「維持費は本国州にも必要なはずだ。植民地は遠く、それが高額なだけ」は
+        //     行政の購買の州ごとの距離の割増（AdminDistanceMul＝旧と同じ形と係数）＝遠い州の官僚は同じ働きに割増の俸給が要る
+        //     （予算と単価の両方に掛ける＝充足は変わらず金額だけ増える＝下の行政の請求も同じ割増の平均）。
 
         // === 国債：利払い（借入は月初の Borrow＝払える額の側・2026-09-28）===
         // R9（満期構造）：既往債は発行時クーポン(GovAvgCoupon)で利払い。毎月 BondRolloverFrac だけ現行市場金利GovBondRateへ乗り換わる。
@@ -274,10 +249,10 @@ public static class Fiscal
         }
         double foreignShare = w.GovDebt > 1e-9 ? PoliticalQuantities.Clamp01(w.ForeignDebt / w.GovDebt) : 0;
         if (goldDebtBurden > 1.0) interest *= 1.0 + foreignShare * (goldDebtBurden - 1.0);   // 対外分だけが金建て＝国内債は自国通貨のまま
-        // 裁量余剰（EMA）＝公共サービスの財源。**純税収から強制義務（維持費＋利払い）を引いた余り**から支弁する（funding修正の核心）：
-        // 余剰の無い国（高治安維持力で維持費が歳入を食う France 等）は自然にサービス≈0＝赤字を作らない／余剰のある国（英）は歳入からサービスが機能。
+        // 裁量余剰（EMA）＝公共サービスの財源。**純税収から強制義務（利払い・行政・軍需の請求）を引いた余り**から支弁する（funding修正の核心）：
+        // 余剰の無い国は自然にサービス≈0＝赤字を作らない／余剰のある国（英）は歳入からサービスが機能。
         // 債務が増えると利払い↑→余剰↓→サービス自動縮小＝赤字スパイラルを利払い経由で自己制限（旧「×国庫(0で0)」の自己制限の正しい復活）。
-        // 行政＝徴税の費用＝歳入への第一請求権（維持費と同列の強制義務）。余剰の前に引く＝軍需/福祉/インフラはその残りから引く
+        // 行政＝徴税の費用＝歳入への第一請求権（利払いと同列の強制義務）。余剰の前に引く＝軍需/福祉/インフラはその残りから引く
         // （同じ歳入を行政と軍需に二重に充てない）。行政自体は粗歳入から支弁（Simulation の AdminBudget）＝ブートストラップ・デッドロック解消（2026-06-22）。
         // 間接税の予算基数算入（監査2026-07-11 接2・2026-07-12ユーザー裁定で有効化＝「史実どおりの物理で良い」）：
         // 関税（四半期実収→月次換算）と専売（当月実収）は国庫に現金として届く一方、旧・予算基数（行政・軍装備・裁量余剰の請求権）は
@@ -287,7 +262,7 @@ public static class Fiscal
         double indirectRevenue = Math.Max(0, w.LastTariffRevenue) / w.Coef.MonthsPerClearing;   // 国際市場は清算単位（四半期 or 月次清算）→月次換算（単位ヘルパー・2026-08-22）
         foreach (var r in w.Regions) if (r.State == RegionState.Active) indirectRevenue -= r.StateSpent[(int)TreasuryCat.StateMonopoly];   // 当月の専売益（負の支出＝収入。2026-09-28 に旧の別持ち LastStateMonopolyRevenue を畳んだ＝塩などの独占レントの国庫の取り分も同じ区分）
         double budgetBase = revenue + c.IndirectTaxInBudgetBase * indirectRevenue;
-        double adminClaim = c.AdminBudgetFrac * w.AdminSpending * budgetBase;
+        double adminClaim = c.AdminBudgetFrac * w.AdminSpending * budgetBase * AdminDistanceMean(w);   // 州ごとの行政の予算（人口の比×距離の割増＝Simulation）の和と同じ量（2026-09-30 (135)）
         double militaryClaim = w.MilitarySpending * c.MilitaryRevenueShare * budgetBase;   // 軍需装備も粗歳入の第一請求権（Simulation の MilitaryBudget と対）＝軍を装備する費用。余剰（福祉/インフラ）はこの後の残り＝guns-vs-butter
         // ★S3a（2026-07-31）：Simulation 側で軍需予算を min(上限, 必要額) にするとき、**請求額もそろえる**。
         // 揃えないと「使いもしない軍事費が福祉・インフラを圧迫する」（請求は満額・実支出は必要額どまり）。
@@ -302,8 +277,8 @@ public static class Fiscal
         }
         // ★撤去2026-08-16（C2-C5）：汚職根絶費の請求 antiCorruptionClaim を物理削除（V2点火2026-08-15で請求は既に遮断済み＝恒等0の死骸だった）。
         //   V2では根絶費の動詞ごと死ぬ（清廉度はもう読まれない＝金を燃やすだけの支出を許さない）。旧式へ戻す道は消滅（裁定済み）。
-        double surplus = Math.Max(0, budgetBase - upkeep - interest - adminClaim - militaryClaim);
-        w.LastRevenue = budgetBase; w.LastUpkeep = upkeep; w.LastInterest = interest;   // 診断（LastRevenue は Simulation の AdminBudget/MilitaryBudget の基数＝間接税込みへ）
+        double surplus = Math.Max(0, budgetBase - interest - adminClaim - militaryClaim);
+        w.LastRevenue = budgetBase; w.LastInterest = interest;   // 診断（LastRevenue は Simulation の AdminBudget/MilitaryBudget の基数＝間接税込みへ）
         w.LastMilitaryClaim = militaryClaim; w.LastAdminClaim = adminClaim;          // 診断（予算表の支出内訳）
         w.FiscalCapacity = w.FiscalCapacity < 1e-9 ? surplus : w.FiscalCapacity + c.FiscalCapacitySmoothing * (surplus - w.FiscalCapacity);
         // （借入は 2026-09-28 に月初の Simulation の払える額の側へ移した＝Borrow（下）。払える額の中身の順＝税・歳入→借入→それでも足りない分だけ切り下げ（作者裁定 2026-09-28 (b)）。
@@ -404,14 +379,7 @@ public static class Fiscal
             }
         }
 
-        // 維持費の支払い＝請求×r（旧＝国庫の残りで切る滝の2番目）。
-        // ★支払いの一元化 段3-2（2026-09-30・作者裁定 Q8 (a)・C7）：連合維持費は**治安と行政の役務の給与**＝国として兵士の兵力（治安維持）と官僚の行政（行政費）を
-        //   買う代金を、その役務の生産者の④の持分（産出の比・賃金は労働＝兵士と官僚・Earned を通す）で払う（InternationalMarket.PaySales の国の枝）。
-        //   旧＝全POP へ頭数で配った（名目は軍・警察・官僚の俸給なのに受け手は全国民＝ヘリコプター移転）＋休眠の傾斜 CoercionUpkeepToSoldiers（兵士と官僚へ頭数で・係数ごと削除）。
-        //   量は動かさない（兵力と行政の買い付けの量と充足〔AdminFill・兵の給与の信号〕は予算の行の購買のまま）＝維持費は給与の上乗せとして担い手に届く。担い手がいなければ請求も立たない（上の段4d）。
-        InternationalMarket.PaySales((w, null), null, Catalog.MilitaryPowerId, coercionUpkeep * payRate, w, TreasuryCat.Admin);
-        InternationalMarket.PaySales((w, null), null, Catalog.AdminId, adminCost * payRate, w, TreasuryCat.Admin);
-        //（旧 FiscalFundingRatio＝維持費を払えた割合 pay/upkeep は、2026-09-28 から月初の国家の支払い率 r＝Simulation の1か所だけが書く）
+        //（連合維持費の支払い＝治安維持と行政の人頭割りの給与の上乗せは 2026-09-30 (135) に撤去＝兵士と官僚の給与は兵力と行政の購買の1本＝上の注記）
 
         // ★撤去2026-08-16（C2-C5）：汚職根絶費の実支払い（acPay→官僚popへ俸給分配・TreasuryCat.AntiCorruption 記帳・LastAntiCorruptionCost 診断）を物理削除。
         //   V2点火2026-08-15で請求が恒等0＝この支払いは一度も走らない死骸だった。TreasuryCat.AntiCorruption の enum 値自体は台帳の添字互換のため残置（払い手ゼロ＝表示は0行フィルタで出ない）。
@@ -639,6 +607,34 @@ public static class Fiscal
             w.NationBuildingSpending = newsSz > 1e-9 ? PoliticalQuantities.Clamp01(newsW / newsSz * zeal) : 0;
         }
         // POP動詞①（階級への優遇/弾圧）は廃止（2026-07-20ユーザー指示＝税で表現済みで冗長）。弾圧の概念は国内危機（Politics.CheckFactionRevolt→CrisisThroughLawPath＝通知のみ・ボタンなし）へ移行＝⚠2026-09-08に無血鎮圧の枝は撤去・2026-09-11に弾圧/譲歩の択も撤去＝対処は法改正か内戦だけ。
+    }
+
+    /// <summary>行政の購買の距離の割増（作者裁定 2026-09-03 E-05段4「維持費は本国州にも必要なはずだ。植民地は遠く、それが高額なだけ」）
+    /// ＝1＋UpkeepDistanceGeneral×DistanceWarDecay×首都からの距離÷DistanceNormKm（戦力投射と同じ形と物差し）。遠い州の官僚は同じ働きに割増の俸給が要る。
+    /// 座標未登録(0,0)の州・距離が有限でない州は1（幻の遠距離を作らない）。2026-09-30 (135) に維持費の人頭割りから行政の購買へ移した。
+    /// 読み手＝州の行政の予算（Simulation）・行政の購買の単価（EconomyStep）・行政の請求の平均（<see cref="AdminDistanceMean"/>）＝同じ1本。</summary>
+    internal static double AdminDistanceMul(World w, Region r)
+    {
+        var c = w.Coef;
+        if (!(c.UpkeepDistanceGeneral > 0)) return 1.0;
+        var rc = Places.Coord(r.Name);
+        if (rc.Lat == 0 && rc.Lon == 0) return 1.0;
+        double km = Geo.DistanceKm(w.Latitude, w.Longitude, rc.Lat, rc.Lon);
+        return km > 0 && double.IsFinite(km) ? 1.0 + c.UpkeepDistanceGeneral * c.DistanceWarDecay * km / Diplomacy.DistanceNormKm : 1.0;
+    }
+
+    /// <summary>行政の距離の割増の人口加重の平均（活きた州）＝州ごとの行政の予算（人口の比×割増＝Simulation）の和を、国の行政の請求（Fiscal）と予算表（UI）が同じ量で読む。</summary>
+    public static double AdminDistanceMean(World w)
+    {
+        double s = 0, n = 0;
+        foreach (var r in w.Regions)
+        {
+            if (r.State != RegionState.Active) continue;
+            double rp = r.SumPopulation();
+            if (!(rp > 0)) continue;
+            s += rp * AdminDistanceMul(w, r); n += rp;
+        }
+        return n > 0 ? s / n : 1.0;
     }
 
     /// <summary>★借入（エンジンが自動で借りる・作者裁定 2026-09-28「借入は自動化・借金ボタンは不要」）：借入額＝min(1件の額, 月初の払えない額, 貸し手のプール)。

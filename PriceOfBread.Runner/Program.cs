@@ -6316,14 +6316,14 @@ if (args.Length > 0 && args[0] == "milfund")
     mm.StartWarmup();   // ★2026-09-07 計器の助走統一：selfplay-batch/popprobe と同じ助走を通す＝「測る世界」を帯の世界と一致させる（旧＝助走なし＝chronicle が popprobe と食い違った構築時型の計器バグ）
     for (int q = 0; q < 364; q++) mm.StepQuarter();   // 1874年付近
     Console.WriteLine($"=== 軍需資金の内訳 {mm.Nations[0].World.Year}年 ===");
-    Console.WriteLine("  国         歳入   維持費  利払い ｜ 国債     債務/GDP 金利 ｜ 余剰FC  軍予算  装備cost afford 装備充足 ｜ 兵数  軍事費");
+    Console.WriteLine("  国         歳入   行政    利払い ｜ 国債     債務/GDP 金利 ｜ 余剰FC  軍予算  装備cost afford 装備充足 ｜ 兵数  軍事費");
     foreach (var n in mm.Nations)
     {
         var w = n.World; var r = w.Region; var coef = w.Coef;
         double estCost = EconomyStep.MilitaryProcurementNeed(r, coef);   // 装備の必要額＝エンジンの1本（全4段・発見込み）。旧＝MilitaryUpkeepScale×MilitaryScale の二重掛け（MilitaryScale は Simulation で既に UpkeepScale 込み）・2026-09-11 #1
         double afford = Math.Min(1.0, r.MilitaryAffordRaw);               // エンジンが書いた支払能力（上限÷必要額）を1で切る＝EconomyStep と同じ読み方
         double dGdp = w.NominalGdp > 1e-9 ? w.GovDebt / w.NominalGdp : 0;
-        Console.WriteLine($"  {w.SelfPower?.Name,-8} {w.LastRevenue,7:F0} {w.LastUpkeep,7:F0} {w.LastInterest,7:F0} ｜ {w.GovDebt,9:F0} {dGdp,6:F2} {w.GovBondRate,5:F2} ｜ {w.FiscalCapacity,6:F0} {r.MilitaryBudget,6:F0} {estCost,7:F0} {afford,6:F2} {r.MilitaryEquipFill,6:F2} ｜ {w.SoldierSize(),5:F0} {w.MilitarySpending,5:F2}");
+        Console.WriteLine($"  {w.SelfPower?.Name,-8} {w.LastRevenue,7:F0} {w.LastAdminClaim,7:F0} {w.LastInterest,7:F0} ｜ {w.GovDebt,9:F0} {dGdp,6:F2} {w.GovBondRate,5:F2} ｜ {w.FiscalCapacity,6:F0} {r.MilitaryBudget,6:F0} {estCost,7:F0} {afford,6:F2} {r.MilitaryEquipFill,6:F2} ｜ {w.SoldierSize(),5:F0} {w.MilitarySpending,5:F2}");
     }
     return;
 }

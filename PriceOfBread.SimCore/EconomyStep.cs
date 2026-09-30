@@ -1143,12 +1143,15 @@ public static class EconomyStep
         }
 
         // 行政調達（軍事費の行政版）：国家が官僚の算出する「行政」を買う。予算不足や官僚不足＝AdminFill<1＝汚職（税収が漏れる）。
-        double adminNeed = 0, adminWant = 0;
+        double adminNeed = 0, adminWant = 0, adminMul = 1.0;
         bool adminProc = region.BureaucratPopIndex >= 0 && Catalog.AdminId < ng;
         if (adminProc)
         {
             adminNeed = coef.AdminNeedPerPop * totalPop;
-            double est = adminNeed * Math.Max(region.Markets[Catalog.AdminId].Price, Eps);
+            // ★距離の割増（2026-09-30 (135)・作者裁定 2026-09-03 E-05段4「植民地は遠く、それが高額なだけ」）：遠い州の官僚は同じ働きに割増の俸給
+            //   ＝国の払う単価は市場の価格×割増（予算も同じ割増＝Simulation）＝充足は割増の無い州と同じ・金額だけ増える（割増ぶんも担い手の売上＝保存）。
+            if (world is not null) adminMul = Fiscal.AdminDistanceMul(world, region);
+            double est = adminNeed * Math.Max(region.Markets[Catalog.AdminId].Price, Eps) * adminMul;
             double afford = est > Eps ? Math.Min(1.0, region.AdminBudget / est) : 0.0;
             // ★2026-08-13（作者裁定「行政費は汚職などで抜け落ちるが、それ以外は価格相応の働きをするように」）：
             //   買い控えのゲート（PriceAfford）を行政から外す。**予算の制約（afford）は残す**＝それ自体が「価格相応」
@@ -2203,7 +2206,7 @@ public static class EconomyStep
         if (adminProc)
         {
             double got = adminWant * ration[Catalog.AdminId];
-            double pay = got * clearPrice[Catalog.AdminId];
+            double pay = got * clearPrice[Catalog.AdminId] * adminMul;   // 単価×距離の割増（上の予算の見積もりと同じ）
             revenue[Catalog.AdminId] += pay;
             region.StateSpent[(int)TreasuryCat.Admin] += pay;
             region.AdminFill = adminNeed > Eps ? PoliticalQuantities.Clamp01(got / adminNeed) : 1.0;

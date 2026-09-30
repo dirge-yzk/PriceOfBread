@@ -255,7 +255,7 @@ public static class PoliticalQuantities
     public static double MilitaryBudgetShare(World w)
     {
         double mil = Math.Max(0, w.LastMilitaryClaim) + Math.Max(0, w.LastSoldierPay);
-        double other = Math.Max(0, w.LastAdminClaim) + Math.Max(0, w.LastUpkeep) + Math.Max(0, w.LastInterest);
+        double other = Math.Max(0, w.LastAdminClaim) + Math.Max(0, w.LastInterest);   // （連合維持費は 2026-09-30 (135) に撤去＝行政と兵力の購買の1本）
         double tot = mil + other;
         return tot > 1e-9 ? Clamp01(mil / tot) : 0;
     }

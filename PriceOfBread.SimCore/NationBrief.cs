@@ -6,7 +6,7 @@ namespace PriceOfBread.SimCore;
 /// <summary>国家選択画面が読む「開始条件の要約」＝おすすめ国と難易度（docs/202608/おすすめ国家と難易度_2026-08-09_完了.md）。
 ///
 /// ★難易度を world.json に固定値で書かない（同doc §3-3）。理由＝序列を決めている2係数
-/// （<see cref="Coefficients.AdminCostPerPop"/>・<see cref="Coefficients.SecessionHoldPerPop"/>）は
+/// （行政の必要量 <see cref="Coefficients.AdminNeedPerPop"/>〔2026-09-30 (135) まで AdminCostPerPop〕・<see cref="Coefficients.SecessionHoldPerPop"/>）は
 /// 「人口だけの式」としてA級に分類され、いずれ機構へ置き換える予定＝固定値で書くとラベルだけが取り残される。
 /// ここで**実行時に導出**しておけば、係数を直した日にラベルが自動で追随する。
 ///
@@ -67,10 +67,11 @@ public static class NationBrief
     public static double Population(NationConfig c)
         => c.Nobility + c.Peasant + c.Worker + c.Bourgeois + c.Professional + c.Merchant + c.Artisan;
 
-    /// <summary>国庫が行政の固定費だけで何ヶ月持つか（同doc §3 ①）。分母＝Fiscal の月次行政維持費。</summary>
+    /// <summary>国庫が行政の固定費だけで何ヶ月持つか（同doc §3 ①）。分母＝全ての頭数の行政の必要量を参照価格で買う月の額（官僚の給与×人数＝EconomyStep の行政の購買の充足1）。
+    /// 2026-09-30 (135)：旧の分母＝行政費の人頭割り AdminCostPerPop×人口（削除＝行政の購買と同じ役務の二重の支払い）。</summary>
     public static double TreasuryMonths(NationConfig c, Coefficients coef)
     {
-        double cost = coef.AdminCostPerPop * Population(c);
+        double cost = coef.AdminNeedPerPop * Catalog.RefPrices[Catalog.AdminId] * Population(c);
         return cost > 1e-9 ? c.Treasury / cost : double.PositiveInfinity;
     }
 

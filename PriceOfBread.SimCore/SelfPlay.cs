@@ -392,7 +392,7 @@ public sealed class UtilityAgent : INationAgent
         => w.Coef.MilitaryBuildCostCapScale > 1.0 && Catalog.FactorySpec(goodId).Category == "軍需" ? w.Coef.MilitaryBuildCostCapScale : 1.0;
 
     public static double FiscalBufferOf(World w)
-        => Math.Max(1.0, w.Coef.FiscalStressBufferMonths * (w.LastUpkeep + w.LastInterest + w.LastAdminClaim + w.LastMilitaryClaim));
+        => Math.Max(1.0, w.Coef.FiscalStressBufferMonths * (w.LastInterest + w.LastAdminClaim + w.LastMilitaryClaim));   // （連合維持費は 2026-09-30 (135) に撤去＝行政と兵力の購買の1本）
     // ⚠R3安定形（2026-08-08作者裁定「不具合として解決・安定するように」）：兵士給与は**ここ（緊縮反射の分母）には入れない**
     //   ＝R3=1.0の全面算入は世界的な緊縮暴発で棄却済み。給与は下の OpulenceLineOf（潤沢判定＝減税反射・支出反射の線）にだけ算入
     //   ＝清の「軍の請求書を見ない潤沢判定→減税」の嘘だけを閉じ、austerity側は不変。

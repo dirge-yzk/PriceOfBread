@@ -35,8 +35,8 @@ public static class Colonial
         //   c1＝補給線の石炭は民間の汽船と**同じ状態**（汽船の割合 ShipSteamShareEma＝帆走なら0）と**同じ物理**（機関の時代係数 EraColonyCoal＝容量あたりの燃料・Transport と共有）で焚く。
         //       旧＝汽船の発明の前から焚いた（英1783-1802 の植民地維持費の実払いの62%）。缶詰糧食は缶詰の財の解禁度（EquipUnlock＝装備の解禁の唯一の読み口）で食う
         //       ＝アペール法の前の駐留は缶詰を食わない。旧の EraColonyFood（缶詰・冷蔵で距離あたりの糧食が下がる）はこの解禁度が置き換えた＝係数ごと削除。
-        //   c2＝平場（旧 ColonyUpkeepBase＝1行150/月）を撤去＝同じ俸給は Fiscal の行政費（AdminCostPerPop×州のPOP×首都からの距離の割増＝UpkeepDistanceGeneral）が植民地格の州にも払っている
-        //       （Fiscal.cs と Coefficients の注記「平場は二重・点火時に外す」の約束）。不満の上乗せ（駐留・鎮圧）は Fiscal の行政費にも治安維持費（CoercionUpkeepRate×BaseCoercion×人口）にも無い＝残す。
+        //   c2＝平場（旧 ColonyUpkeepBase＝1行150/月）を撤去＝同じ俸給は行政の購買（植民地格の州の官僚の給与×人数×首都からの距離の割増＝UpkeepDistanceGeneral・2026-09-30 (135) に
+        //       旧の行政費の人頭割り AdminCostPerPop から移した＝Fiscal.AdminDistanceMul）が払っている。不満の上乗せ（駐留・鎮圧）は行政の購買にも兵力の購買にも無い＝残す。
         //   R2＝距離の費用と海運占有は行（州）の数でなく**質量**（ColonyMassUnits の加数＝人口ウェイト）で数える＝行を分けただけで増えない（2026-08-28「行の数でなく中身」）。
         //       個数単位への換算は既存の錨（初期の 個数/質量＝NationalScore.Wealth・SelfPlay の植民地防衛と同じ）＝抽象標的を含む世界の全植民地の初期の総量は旧の行の数と同じ目盛り
         //       （実在国の植民地は平均より重い＝実在国の合計は旧の約1.19倍）・資源の無い前哨は小さく・大植民地は大きく。

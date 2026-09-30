@@ -1269,6 +1269,9 @@ public class PolicyPoliticsTests
             var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
             var w = sim.World;
             w.Coef.AusterityStartDebt = 99;   // 緊縮の逆進フロアを隔離＝「選んだ税率」だけを対照にする（旧クリップが低税側を押し上げると対照が壊れる）
+            // 開幕の国債（仏1783＝world.json の govDebt）を消す＝国債の流れを隔離（2026-09-30 (135)）：連合維持費を撤去した後は、軽税の世界が国債を払えず不履行
+            //   （大衆の暴動・信用の凍結）へ・重税の世界は利子を資本家へ払う＝税の差でなく国債の差が充足を動かし、鎖の向きが逆に見えた（充足 0.1068→0.1084）。
+            w.GovDebt = 0; w.ForeignDebt = 0; foreach (var rg in w.Regions) foreach (var pp in rg.Pops) pp.BondHoldings = 0;
             w.PollTax = pollTax; w.Policy.PollTaxTarget = pollTax;
             sim.Run(60);
             double sat = 0, mil = 0, size = 0;

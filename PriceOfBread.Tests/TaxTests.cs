@@ -64,7 +64,6 @@ public class TaxTests
             var w = sim.World;
             w.TaxRate = 0; w.LandTax = 0; w.ProgressiveTax = 0; w.PollTax = poll;
             w.Coef.TitheRate = 0; w.Coef.CorruptionMax = 0;
-            w.BaseCoercion = 0; w.Coef.AdminCostPerPop = 0;
             w.SocialSecurity = 0; w.Pension = ReformLevel.None;
             w.GovDebt = 0; w.ForeignDebt = 0;
             foreach (var rg in w.Regions) foreach (var pp in rg.Pops) { pp.BondHoldings = 0; pp.Savings = System.Math.Max(pp.Savings, 0) + 1e3 * pp.Size; }   // 全員が払える＝率 r_p は1

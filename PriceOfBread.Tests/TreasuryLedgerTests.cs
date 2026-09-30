@@ -81,7 +81,7 @@ public class TreasuryLedgerTests
     //   規則＝月初に全ての国家の支払いの請求を集め、r＝min(1, 払える額÷Σ請求)（払える額＝max(0,国庫)＋LastRevenue）。
     //   全ての行に同じ r・優先順位なし・借入は r＜1 の月だけ・減債は r＝1 の月の余剰から・利子の未払いは元本へ。
 
-    /// <summary>国庫が空の月に、利子・維持費・兵士の給与が**同じ r** で払われる（優先順位がない）。利子の未払いは元本へ繰り入れる。
+    /// <summary>国庫が空の月に、利子・兵士の給与が**同じ r** で払われる（優先順位がない）。利子の未払いは元本へ繰り入れる。区分 Admin の減りは行政の購買だけ（連合維持費は 2026-09-30 (135) に撤去）。
     /// 突然変異：1つの行だけ r を掛けない・利子を先に満額払う（旧の滝）→ 赤。</summary>
     [Fact]
     public void 国家の支払い率は全ての行に同じrで掛かり利子の未払いは元本へ()
@@ -114,11 +114,11 @@ public class TreasuryLedgerTests
         double borrowed = w.TreasuryLedger[(int)TreasuryCat.Borrow] - bor0;   // 借入（冷却中＝0 のはず）は元本の増分から除く
         Assert.True(System.Math.Abs((w.GovDebt - debt0 - borrowed) - (1 - r) * w.LastInterest) <= 1e-9 * System.Math.Max(1.0, w.GovDebt), $"元本の増分（借入を除く）{w.GovDebt - debt0 - borrowed:F6} ≠ 利子の未払い {(1 - r) * w.LastInterest:F6}");
         Assert.True(BondLedger.Balanced(w, HeldSum(w)), "繰り入れの後に保有台帳（Σ保有＝国内元本）が割れた");
-        // 維持費：区分 Admin の減り＝維持費×r＋行政の調達（StateSpent の Admin）
+        // 行政：区分 Admin の減り＝行政の調達（StateSpent の Admin）だけ（連合維持費の人頭割りは 2026-09-30 (135) に撤去＝官僚と兵士の給与は購買の1本）
         double stateAdmin = 0; foreach (var rg in w.Regions) if (rg.State == RegionState.Active) stateAdmin += rg.StateSpent[(int)TreasuryCat.Admin];
-        double upkeepPaid = admL0 - w.TreasuryLedger[(int)TreasuryCat.Admin] - stateAdmin;
-        Assert.True(w.LastUpkeep > 0, "前提：維持費の請求が0");
-        Assert.True(System.Math.Abs(upkeepPaid - r * w.LastUpkeep) <= 1e-6 * w.LastUpkeep, $"維持費の支払い {upkeepPaid:F6} ≠ r×請求 {r * w.LastUpkeep:F6}");
+        double adminOther = admL0 - w.TreasuryLedger[(int)TreasuryCat.Admin] - stateAdmin;
+        Assert.True(stateAdmin > 0, "前提：行政の調達が0");
+        Assert.True(System.Math.Abs(adminOther) <= 1e-9 * stateAdmin, $"区分 Admin に行政の購買の外の支払い {adminOther:F6} がある（連合維持費が戻った？）");
         // 兵士の給与：予算＝請求×r（旧＝州ごとの min(国庫)＝先着）
         double soldierBudget = 0; foreach (var rg in w.Regions) if (rg.State == RegionState.Active) soldierBudget += rg.SoldierPayBudget;
         Assert.True(w.LastSoldierPay > 0, "前提：兵士の給与の請求が0");

@@ -1000,7 +1000,6 @@ public sealed class World
     public double FiscalFundingRatio { get; internal set; } = 1.0;
     public double FiscalCapacity { get; internal set; }   // 直近の税収フロー（EMA）。公共サービス予算（行政/福祉/インフラ/軍需）の基準＝国庫ストックでなく歳入から支弁＝国庫0でも機能（funding修正2026-06-18）
     public double LastRevenue { get; internal set; }       // 診断：直近四半期の純税収（汚職漏れ控除後）
-    public double LastUpkeep { get; internal set; }        // 診断：直近四半期の強制義務（連合維持費＋行政コスト）
     public double LastInterest { get; internal set; }      // 診断：直近四半期の利払い
     public double LastWelfareCost { get; internal set; }   // 社会保障の給付の請求（r を掛ける前・2026-09-28 から＝旧は実支出）。翌月の月初の請求の見込み（Simulation）と予算表が読む
     public double LastMilitaryClaim { get; internal set; } // 診断：直近四半期の軍需調達予算（軍事費×歳入シェア）

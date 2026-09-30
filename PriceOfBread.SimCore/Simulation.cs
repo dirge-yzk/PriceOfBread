@@ -2056,8 +2056,10 @@ public sealed class Simulation
                 // funding修正：上下水道・電化インフラは**税収フロー(FiscalCapacity)から支弁**（国庫ストックは基礎義務に食われ常時0で餓死していた）。スライダー×シェア×歳入×人口比。
                 // 行政だけは別格：行政＝徴税の費用＝「税収を生むサービス」。余剰から支弁すると貧国は余剰0→行政0→税収0の永久デッドロックに陥る（funding修正の盲点）。
                 // → 行政は**粗歳入(LastRevenue)を第一請求権として支弁**（税吏を雇わねば税は集まらない）＝余剰0でもブートストラップできる（2026-06-22）。
+                // ★距離の割増（2026-09-30 (135)＝旧の維持費の人頭割りの距離の割増を行政の購買へ・作者裁定 2026-09-03 E-05段4）：遠い州の予算は割増ぶん厚い
+                //   ＝EconomyStep の単価も同じ割増＝充足は割増の無い州と同じ・金額だけ増える（Fiscal.AdminDistanceMul の1本）。
                 r.AdminBudget = r.BureaucratPopIndex >= 0 && nationPop > 1e-9
-                    ? World.AdminSpending * World.Coef.AdminBudgetFrac * World.SpendableRevenue() * (r.SumPopulation() / nationPop) : 0;   // 請求（r を掛ける前）
+                    ? World.AdminSpending * World.Coef.AdminBudgetFrac * World.SpendableRevenue() * (r.SumPopulation() / nationPop) * Fiscal.AdminDistanceMul(World, r) : 0;   // 請求（r を掛ける前）
                 r.InfraBudget = nationPop > 1e-9
                     ? World.AdminSpending * World.Coef.InfraBudgetScale * World.FiscalCapacity * (r.SumPopulation() / nationPop) * HoardSpendScale() : 0;
                 r.ElecInfraBudget = nationPop > 1e-9
@@ -2084,7 +2086,7 @@ public sealed class Simulation
         //   ⚠出来事（選挙資金・賠償・武力解錠の軍需・通行料・港・売買方針の代金・外資の拠出・燃料）は月初に額が分からない＝請求の見込みに入らず、起きた時点の r で払う（拿捕は 2026-09-30 から私人の間＝国庫を通らない）。
         //   ⚠四半期の支払い（貢納・招聘の支度金・外資の利回り）は四半期末の外交と共有層がまとめて払う＝四半期の締め月の請求に入れる。
         //   （戦費 Fund の請求の見込みは 2026-09-30 に Fund ごと削除＝支払いの段3-2・戦争の費用の実体は上の軍需の予算と兵士の給与）
-        double claims = World.LastUpkeep + World.LastInterest + World.LastWelfareCost + World.LastPensionCost + World.LastColonialUpkeep;
+        double claims = World.LastInterest + World.LastWelfareCost + World.LastPensionCost + World.LastColonialUpkeep;   // （連合維持費 LastUpkeep は 2026-09-30 (135) に撤去＝兵力と行政の購買の1本）
         bool payQuarter = World.IsQuarterEndMonth;
         if (payQuarter) claims += World.LastTributeOut + World.RecruitBudget;   // 四半期の請求（貢納・招聘の支度金）
         if (payQuarter && World.SelfPower is not null && World.Diplomacy is { } payDip)
