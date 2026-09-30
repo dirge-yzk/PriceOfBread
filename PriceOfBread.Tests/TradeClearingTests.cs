@@ -405,6 +405,56 @@ public class TradeClearingTests
         Assert.True(Imported(c, gc) > 1e-9, "四半期の最初の清算で眠っている行が起きなかった");
     }
 
+    /// <summary>★月の清算は潜在量を書かず、買い手の容量が尽きた行を回さない（2026-09-30 (130) 計算量の予算・清算の眠りの切り分け）：
+    /// 潜在量と律速率（州の輸送の容量の取り分・混雑の信号）は四半期の最初の清算（眠る行が無い）だけが書く。月の清算で、買い手の州の容量が尽きている行は
+    /// 成約できない＝売り手を回らない（着値の充填が0）・印は走査して成約しなかった行と同じ（その時の自州価格）。
+    /// ⚠突然変異「月の清算も潜在量を書く」「容量の尽きた行も回す」「回さない行に印を付けない」で赤。</summary>
+    [Fact]
+    public void 月の清算は潜在量を書かず容量の尽きた行を回さない()
+    {
+        // 盤面＝英の1国：鉄道と基礎の陸の容量を0にすると内陸の州は運べない（容量が尽きた行）。売り手は港の2州・内陸の州だけが欲しがる（潜在量の番人と同じ盤面）。
+        var (sim, g, seller, seller2, _) = Make(WorldData.ByName("イギリス"));
+        var w = sim.Nations[0].World;
+        sim.Coef.TransportBaseline = 0; sim.Coef.PortCapToThroughput = 0; w.RailCapacity = 0;
+        foreach (var r in w.Regions) foreach (var m in r.Markets)
+            if (!ReferenceEquals(m, r.Markets[g])) { m.LastDemand = 0; m.TargetStock = 0; m.LastProduced = 0; }
+        foreach (var sr in new[] { seller, seller2 }) { var m = sr.Markets[g]; m.Stock = 5000; m.TargetStock = 10; m.LastDemand = 10; m.LastProduced = 5000; }
+        foreach (var r in w.Regions) if (r.MerchantPopIndex >= 0) r.Pops[r.MerchantPopIndex].Savings = 1e9;
+        var inland = new List<Region>();
+        foreach (var r in w.Regions)
+            if (!ReferenceEquals(r, seller) && !ReferenceEquals(r, seller2))
+            {
+                var m = r.Markets[g];
+                if (r.IsPort) { m.LastDemand = 0; m.TargetStock = 0; m.Stock = 0; }
+                else { m.LastDemand = 5000; m.TargetStock = 50; m.Stock = 4500; if (r.State == RegionState.Active) inland.Add(r); }
+            }
+        Assert.True(inland.Count > 0, "英に内陸の買い手の州が無い（テスト前提の破れ）");
+        long Fills() => sim.CostTotals()[CostLedger.ClearingFills];
+        long f0 = Fills();
+        sim.Market.Step(sim.Nations, sim.Coef, firstClearingOfQuarter: true);
+        Assert.True(Fills() > f0, "四半期の最初の清算で容量の尽きた行が回っていない（テスト前提の破れ）");
+        var pot = inland.ToDictionary(r => r, r => (r.LastTradePotential, r.LastTradeThrottle));
+        Assert.True(inland.Any(r => r.LastTradePotential > 1e-9), "運べない買い手の潜在量が0（テスト前提の破れ）");
+        foreach (var r in inland)
+        {   // 月の清算で起きる行（前の月に輸入が無く不足だけ・自州価格が印を超えて上がった）・欲しい量も増やす（書けば潜在量が変わる）
+            var m = r.Markets[g];
+            Assert.Equal(0.0, m.LastImport);
+            m.PrevImport = 0; m.LastShortage = 100; m.Price *= 1.01; m.LastDemand = 6000;
+        }
+        long f1 = Fills();
+        sim.Market.Step(sim.Nations, sim.Coef, firstClearingOfQuarter: false);
+        Assert.Equal(f1, Fills());   // 容量の尽きた行は売り手を回らない（着値の充填が0）
+        foreach (var r in inland)
+        {
+            Assert.Equal(pot[r].LastTradePotential, r.LastTradePotential);   // 月の清算は潜在量を書かない
+            Assert.Equal(pot[r].LastTradeThrottle, r.LastTradeThrottle);
+            Assert.Equal(r.Markets[g].Price * w.FxRate, r.Markets[g].ClearFailLp);   // 印＝走査して成約しなかった行と同じ（今の自州価格）
+            Assert.Equal(0.0, r.Markets[g].LastImport);
+        }
+        sim.Market.Step(sim.Nations, sim.Coef, firstClearingOfQuarter: true);
+        Assert.Contains(inland, r => r.LastTradePotential != pot[r].LastTradePotential);   // 四半期の最初の清算は書く（欲しい量が増えた分）
+    }
+
     /// <summary>★不足で起きたが成約しない行を眠らせる（2026-09-30 計算量の予算 第2回・近似）：月の清算（四半期の2・3回目）で、不足だけで起きた行
     /// （前の月に輸入が無い）が前の走査で成約しなかったなら、自州価格がその時の値（Market.ClearFailLp）を超えて上がるまで眠る＝売り手が安くなっても月の途中では起きない
     /// （売り手の側は四半期の最初の清算が拾う）。自州価格が上がれば起きて買う。四半期の最初の清算は、買い手の行に入らない州の印も消す。

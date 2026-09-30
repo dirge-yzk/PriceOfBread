@@ -494,6 +494,13 @@ public sealed partial class InternationalMarket
         //   売り手の側（在庫の出現・積出し価格・関税・運賃）で差が開いた分は①の四半期の最初の清算が拾う（印はそこで全て消す）＝遅れは (108) の間引きと同じく最長2か月。
         //   census（2026-09-30・種1全長）＝この形の行は清算の着値の充填の約1割（不足だけで起きた行の成約の額の 6.7%＝貿易額の全体の 0.66% が四半期の最初まで遅れる）。
         //   ⚠印は作業領域（[NonSerialized]・セーブに載らない）。四半期の境のセーブは次の清算が①＝印を作り直す（往復は一致）。
+        // ★月の清算は潜在量を書かない＋買い手の容量が尽きた行は回さない（2026-09-30 (130) 計算量の予算・清算の眠りの切り分け）：
+        //   ①潜在量（容量で切る前の量＝州の輸送の容量の取り分〔Transport.ShareBasis〕・混雑の信号〔律速率＝Transport.Step の目標・港の拡張〕の分母）は
+        //     全ての行が起きている清算（四半期の最初）で測る。旧＝月の清算も上書きしていた＝眠った行（上の間引きと不足で起きた行の眠り）の分を数え漏らした
+        //     潜在量が、次の月の取り分と四半期末の港の拡張の判定に入っていた（計器 (130)＝局所の盤面12で州の潜在量の差 2〜13%・律速率の差 3〜21%）。
+        //   ②月の清算で、行の番が来た時に買い手の州の輸送の容量が尽きている（capLeft÷重量≦1e-12＝下の成約の量 qA の上限）行は1件も成約できない（ソースから決まる）。
+        //     旧＝有効な売り手を回って潜在量だけを書いていた（自州価格が上がれば起きる＝起こす理由が効かない行）。①で月の清算の潜在量は読まれない＝回さない。
+        //     印は走査して成約しなかった行と同じ（自州価格）。計器（(130)・5種の全長・読むだけ）＝月の清算の充填の 35% がこの行（清算の充填の全体の 18.9%）。
         bool thin = c.TradeMonthlyClearing > 0 && !firstClearingOfQuarter;
         if (!thin)
             for (int i = 0; i < nn; i++)
@@ -628,6 +635,7 @@ public sealed partial class InternationalMarket
                 if (!(gd.RefPrice * tr[t].r.PriceLevel * exRate[ni] > 1e-9)) { if (MultiNationSim.TimeOn) CntRowSkipRef++; continue; }   // rpT≦1e-9＝xPrice が0の枝（下の rpT と同じ式）
                 if (!(m.LastDemand > 0) && !(m.LastProduced + m.LastImport < 0)) { if (MultiNationSim.TimeOn) CntRowSkipDead++; continue; }   // 需要0＝D·Pow≦0 から P+I≧0 を引く＝xPrice≦0
                 if (!(budget[t] > 0)) { if (MultiNationSim.TimeOn) CntRowSkipBudget++; continue; }   // 支払能力0＝pot≦0（この清算の中で増えない）
+                if (thin && !(capLeft[t] / Math.Max(1e-9, Wg) > 1e-12)) { m.ClearFailLp = lp; continue; }   // ★(130)②買い手の容量が尽きた行＝成約できない（qA の上限）・月の清算の潜在量は読まれない＝回さない。印は走査して成約しなかった行と同じ（上の (130) の注記・否定形＝NaN も回さない）
                 if (candS is null || candS.Length < sellers.Count) { int cn0 = Math.Max(64, sellers.Count * 2); candS = new int[cn0]; candD = new double[cn0]; candK = new double[cn0]; candF = new double[cn0]; }
                 double unmetQ = 0;   // ★潜在量は組ごとに1回（作者裁定 2026-09-29 の2）＝この行で「容量で切られた不足」として既に数えた量（同じ不足を次善の売り手で数え直さない）
                 double baseMul = 1 + c.TransportMargin * adValoremRev;   // 距離0・危険0の運賃の倍率（lbMul と同じ評価順＝(1＋TM·adV)＋楔）
@@ -829,15 +837,19 @@ public sealed partial class InternationalMarket
         }
         if (swSec is not null) TimeClearTicks += swSec.ElapsedTicks;   // ★計器：最後の財の清算ループ（旧は足していなかった）
 
-        // 容量律速の診断（LastTradeThrottle＝1未満なら鉄道/船/港が交易を絞っていた・力学は読まない＝貿易タブと診断）
+        // 容量律速（LastTradeThrottle＝1未満なら鉄道/船/港が交易を絞っていた）と潜在量（LastTradePotential）＝読み手は州の輸送の容量の取り分（Transport.ShareBasis）・
+        //   輸送の目標の混雑（Transport.Step）・港の拡張（MultiNationSim.StepPorts）・貿易タブ。★(130)①：四半期の最初の清算（眠る行が無い）だけが書く。
         for (int t = 0; t < tc; t++)
         {
             double cap = tr[t].cap;
             // ★律速中は積載自体が絞られているので、容量で切る**前**の潜在量（pot·W・§2-3）で測る
             //   （絞った後の量で割ると必ず1.0付近に戻ってしまう）。
             double potential = potNew[t];
-            tr[t].r.LastTradeThrottle = potential > 1e-9 && cap < double.MaxValue ? Math.Min(1.0, cap / potential) : 1.0;
-            tr[t].r.LastTradePotential = potential;   // ★T0（輸送doc・2026-08-13）：比だけでなく**絶対量**を残す（純テレメトリ・力学は読まない）
+            if (!thin)
+            {
+                tr[t].r.LastTradeThrottle = potential > 1e-9 && cap < double.MaxValue ? Math.Min(1.0, cap / potential) : 1.0;
+                tr[t].r.LastTradePotential = potential;   // ★T0（輸送doc・2026-08-13）：比だけでなく**絶対量**を残す
+            }
             // 取引が1件も立たなかった州＝陸脚だけは確定しているので、そこまでを距離として残す（0km＝未接続と紛れさせない）。
             if (distTop[t] <= 0 && tr[t].linked) tr[t].r.LastTradeDistanceKm = tr[t].landKm * terrCost[t] * landRatio[t];   // ★実着値の物差し（:262/:273）に統一＝地形/鉄道低下を無視した旧定数(12)フォールバックを廃止
         }

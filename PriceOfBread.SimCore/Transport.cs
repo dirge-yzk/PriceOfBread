@@ -69,7 +69,7 @@ public static class Transport
 
     /// <summary>★州の取り分の規則の1本（2026-09-30 (118)）＝国の輸送の容量のうち州が使う割合の基底（国ごと）。
     /// 清算（BilateralMarket の港と鉄道の容量）と州の移し替え（<see cref="Territory.TransferRegion"/>＝容量が州と一緒に移る）が同じ規則を読む。
-    /// 均等割り＝活動州の数の逆数・潜在量比例の度合い＝TransportShareByPotential（0..1）・潜在量の和＝活動州の前期の LastTradePotential（負は0）。
+    /// 均等割り＝活動州の数の逆数・潜在量比例の度合い＝TransportShareByPotential（0..1）・潜在量の和＝活動州の LastTradePotential（負は0・四半期の最初の清算が書いた値＝2026-09-30 (130)）。
     /// 潜在量の和が痩せたら（開幕・実績なし）均等へ倒す＝<see cref="RegionShare"/> が読む。</summary>
     internal static (double Even, double KPot, double TotalPot) ShareBasis(World w, Coefficients c)
     {
