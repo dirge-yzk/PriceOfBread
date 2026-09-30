@@ -232,6 +232,8 @@ public class WriterRatchetTests
     // ★2026-09-30 表の更新（(131) 飢えで州が抜けきる型の根＝出生と死を同じ単位で・飢えの超過死亡は平常の死亡率の上乗せ・局地飢饉の相対の不足の死を削除＝軌道が動いた分の宣言・新しい処理は無い）：
     //   覇権の判定 2,843,437→2,381,797（−16.2%＝10% を超えて下がった＝表を下げる・同盟の候補が居る月の軌道・処理の形は同じ）。ほかの14本は許しの内（+2%／−10%）。
     //   ⚠全長では植民地の州が空にならない分だけ日次の写像の回が増える（人の居る州の市場が残る＝(125) と同じ型）＝全長は10種の .cost（実装ログ (131)）。
+    // ★2026-09-30 表の更新（(133) 合流＝線1 の (130)(132)〔計算量の予算〕の載った main へ線2 の (129)(131)〔金鶏樹皮・飢えの空洞化〕を載せ直した木＝軌道が動いた分の宣言・新しい処理は無い）：
+    //   覇権の判定 2,617,303→2,268,853（−13.3%＝10% を超えて下がった＝表を下げる・線2 単独の (131) の −16.2% と同じ型＝同盟の候補が居る月の軌道・処理の形は同じ）。ほかの14本は許しの内。
     [InlineData(CostLedger.PriceGoods, 14149727L)]
     [InlineData(CostLedger.PriceDailyRuns, 25283828L)]
     [InlineData(CostLedger.ConstructionSeen, 18466L)]
@@ -243,7 +245,7 @@ public class WriterRatchetTests
     [InlineData(CostLedger.ClearingRows, 5185642L)]
     [InlineData(CostLedger.ClearingFills, 27104468L)]
     [InlineData(CostLedger.DiploPowerMonths, 9954L)]
-    [InlineData(CostLedger.DiploHegemonScans, 2617303L)]
+    [InlineData(CostLedger.DiploHegemonScans, 2268853L)]
     [InlineData(CostLedger.QuarterStartPops, 235560L)]
     [InlineData(CostLedger.QuarterEndPops, 235560L)]
     [InlineData(CostLedger.SharedNationQuarters, 3698L)]
