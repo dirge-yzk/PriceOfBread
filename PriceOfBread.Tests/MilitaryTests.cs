@@ -362,63 +362,82 @@ public class MilitaryTests
         return (l, l.ConvertAll(p => p.Savings).ToArray());
     }
 
-    /// <summary>★植民地の駐留と鎮圧の俸給は兵士の兵力の生産者の④（兵士の賃金）へ・国家の支払い率 r の分だけ。旧＝本国の全POP へ頭数。
-    /// 盤面＝英仏の英の双子（植民地格の州の不満 0.5）＝不満の維持費の係数だけが違う（30 と 0）＝双子の貯蓄の差が俸給の流れそのもの。
-    /// ⚠突然変異「全POP へ頭数で配る」で赤。</summary>
+    /// <summary>★(140)（2026-09-30・col-16）：植民地の不満は兵への俸給を立てない＝駐留の兵は兵力の購買（兵数×民間の賃金）で払われている＝旧の不満の俸給
+    /// （30×人口ウェイト×不満を兵士の兵力の生産者へ）は同じ兵への2度目の支払いだった。盤面＝英仏の英の双子（植民地格の州の不満 0／0.9）で
+    /// 植民地の月（Colonial.Step）を1回＝請求・国庫の台帳・全ての POP の貯蓄が1ビットも違わない。⚠突然変異「不満の俸給を戻す」で赤。</summary>
     [Fact]
-    public void 植民地の駐留の俸給は兵士の兵力の賃金へ届く()
+    public void 植民地の不満は兵への二重の俸給を立てない()
     {
-        (World w, List<Pop> pops, double[] sav, double led) Arm(double scale)
+        (double claim, double led, double[] sav) Arm(double militancy)
         {
             var sim = TwoNations();
             var w = sim.Nations[0].World;
-            w.Coef.ColonyUpkeepMilitancyScale = scale;
-            foreach (var r in w.Regions) if (r.State == RegionState.Active && r.Tier == RegionTier.Colonial) foreach (var p in r.Pops) p.Militancy = 0.5;
+            int n = 0;
+            foreach (var r in w.Regions) if (r.State == RegionState.Active && r.Tier == RegionTier.Colonial) { n++; foreach (var p in r.Pops) p.Militancy = militancy; }
+            Assert.True(n > 0, "前提が崩れた：英に植民地格の州が無い");
             w.FiscalFundingRatio = 0.7;
             double led0 = w.TreasuryLedger[(int)TreasuryCat.ColonialUpkeep];
             Colonial.Step(w, w.Coef);
-            var (pops, sav) = SavingsOf(w);
-            return (w, pops, sav, w.TreasuryLedger[(int)TreasuryCat.ColonialUpkeep] - led0);
+            return (w.LastColonialUpkeep, w.TreasuryLedger[(int)TreasuryCat.ColonialUpkeep] - led0, SavingsOf(w).sav);
         }
-        var zero = Arm(0); var arm = Arm(new Coefficients().ColonyUpkeepMilitancyScale);
-        double paid = zero.led - arm.led;
-        Assert.True(paid > 0, "前提が崩れた：駐留の俸給が立っていない（植民地格の州の不満）");
-        var soldiers = new HashSet<Pop>();
-        foreach (var r in arm.w.Regions) if (r.State == RegionState.Active) foreach (var pr in r.Producers) if (pr.GoodId == Catalog.MilitaryPowerId && pr.Output > 0) soldiers.Add(r.Pops[pr.LaborPopIndex]);
-        Assert.NotEmpty(soldiers);
-        double got = 0;
-        for (int i = 0; i < arm.pops.Count; i++)
-        {
-            double d = arm.sav[i] - zero.sav[i];
-            if (soldiers.Contains(arm.pops[i])) got += d; else Assert.True(d == 0, $"兵士でない POP（階級 {arm.pops[i].ClassId}）の貯蓄が {d} 動いた＝全POP へ配っている");
-        }
-        Assert.True(Math.Abs(got - paid) <= 1e-9 * paid, $"兵士の受け取り {got} ≠ 国庫の払い {paid}");
+        var calm = Arm(0.0); var hot = Arm(0.9);
+        Assert.Equal(calm.claim, hot.claim);
+        Assert.Equal(calm.led, hot.led);
+        Assert.Equal(calm.sav, hot.sav);
     }
 
-    /// <summary>★段4d（2026-09-30・分子と分母を同じ規則で）：駐留の俸給の請求（LastColonialUpkeep＝翌月の国家の支払い率 r の請求）は受け手（兵士の兵力の生産者）のいる分だけ＝
-    /// 連合維持費と同じ1本の述語（InternationalMarket.HasSellers）。兵士のいない国は俸給の請求が立たず、国庫も動かない（旧＝請求だけが立ち、払えない請求で r が下がった）。
-    /// 盤面＝英仏の英の2×2（不満の維持費の係数 0／既定 × 兵士の兵力の産出あり／0）＝係数の差が俸給の請求（補給財の請求は打ち消す）。⚠突然変異「受け手を見ない（旧）」で赤。</summary>
+    /// <summary>★(140)（2026-09-30）：兵の給与は請求どおりの賃金（徴募の母数の働き盛り1人あたりの月収×SoldierPayMult×国家の支払い率 r＝SoldierPayBudget）で払い、
+    /// 兵力の市場の値で払わない（旧＝兵力の参照価格 0.5×物価水準の価格の門で頭を押さえられた市場の値＝兵の給与が請求の 7〜80%）。
+    /// 盤面＝仏の双子（同じ種で2四半期）＝月の頭に兵力の市場の値だけを 1/100 と 100 倍にして1か月＝兵士の月の所得が1ビットも違わず、給与の予算（名簿の兵×請求の単価×r）を受け取る。
+    /// ⚠突然変異「市場の値で払う（旧）」「価格の門を掛ける」で赤。</summary>
     [Fact]
-    public void 植民地の駐留の俸給の請求は兵士のいる分だけ()
+    public void 兵の給与は請求どおりの賃金で払い兵力の市場の値で払わない()
     {
-        (double claim, double led) Arm(double scale, bool soldiers)
+        (double earned, double budget) Arm(double priceMul)
         {
-            var sim = TwoNations();
-            var w = sim.Nations[0].World;
-            w.Coef.ColonyUpkeepMilitancyScale = scale;
-            foreach (var r in w.Regions) if (r.State == RegionState.Active && r.Tier == RegionTier.Colonial) foreach (var p in r.Pops) p.Militancy = 0.5;
-            if (!soldiers)   // 兵士の兵力の生産者がいない国（月次の決算が書く産出の和 LastProduced も0＝盤面を一貫させる）
-                foreach (var r in w.Regions) { foreach (var pr in r.Producers) if (pr.GoodId == Catalog.MilitaryPowerId) pr.Output = 0; r.Markets[Catalog.MilitaryPowerId].LastProduced = 0; }
-            w.FiscalFundingRatio = 0.7;
-            double led0 = w.TreasuryLedger[(int)TreasuryCat.ColonialUpkeep];
-            Colonial.Step(w, w.Coef);
-            return (w.LastColonialUpkeep, w.TreasuryLedger[(int)TreasuryCat.ColonialUpkeep] - led0);
+            var sim = new Simulation(NationConfig.France().ToScenario(17), new NullAgent());
+            sim.Run(2);
+            foreach (var r in sim.World.Regions) if (r.State == RegionState.Active && r.SoldierPopIndex >= 0) r.Markets[Catalog.MilitaryPowerId].Price *= priceMul;
+            for (int d = 0; d < 30; d++) sim.StepDay();
+            double e = 0, b = 0;
+            foreach (var r in sim.World.Regions) if (r.State == RegionState.Active && r.SoldierPopIndex >= 0) { e += r.Pops[r.SoldierPopIndex].Earned; b += r.SoldierPayBudget; }
+            return (e, b);
         }
-        double scale = new Coefficients().ColonyUpkeepMilitancyScale;
-        var w0 = Arm(0, true); var w1 = Arm(scale, true); var n0 = Arm(0, false); var n1 = Arm(scale, false);
-        Assert.True(w1.claim - w0.claim > 1e-9, "前提が崩れた：兵士のいる国で俸給の請求が立っていない（植民地格の州の不満）");
-        Assert.True(Math.Abs(n1.claim - n0.claim) <= 1e-9 * Math.Max(1.0, n0.claim), $"兵士のいない国に俸給の請求が立った（{n1.claim - n0.claim}）");
-        Assert.True(Math.Abs(n1.led - n0.led) <= 1e-9 * Math.Max(1.0, Math.Abs(n0.led)), $"兵士のいない国の国庫が俸給で動いた（{n1.led - n0.led}）");
+        var lo = Arm(0.01); var hi = Arm(100.0);
+        Assert.True(lo.earned > 0, "前提が崩れた：兵士が給与を受け取っていない");
+        Assert.Equal(lo.earned, hi.earned);
+        Assert.True(lo.earned >= lo.budget * (1 - 1e-9), $"兵の所得 {lo.earned} が給与の予算 {lo.budget} に届かない（市場の値か配給率で払っている）");
+    }
+
+    /// <summary>★(140)（2026-09-30・分子と分母を同じ規則で）：兵の賃金（請求の単価と扶養限界の兵1人の費用）は徴募の母数（農民・都市労働者）の
+    /// **働き盛り（16〜59歳）1人あたり**＝世帯の子供の数に依らない（旧＝頭数あたり＝子供が増えると兵の賃金が下がった）。
+    /// 盤面＝仏の首都の農民の頭数を倍にし、増えた分を全て0〜9歳に置く（働き盛りの人数と所得は同じ）＝請求の単価（RecruitWage）も扶養限界も変わらない。
+    /// ⚠突然変異「頭数で割る（旧）」（請求の単価・扶養限界のどちらか）で赤。</summary>
+    [Fact]
+    public void 兵の賃金は徴募の母数の働き盛り1人あたりで子供の数に依らない()
+    {
+        (double wage, double sustain) Arm(bool children)
+        {
+            var sim = new Simulation(NationConfig.France().ToScenario(17), new NullAgent());
+            sim.Run(1);
+            var w = sim.World; var c = w.Coef; var cap = w.Region;
+            c.MaxSoldierFraction = 1e9;   // 扶養限界を経済の側で読む（人口の側が律速にならない）
+            if (children)
+                foreach (var r in w.Regions)
+                    foreach (var p in r.Pops)
+                        if (!p.IsSoldier && (p.ClassId == c.SoldierRecruitClassA || p.ClassId == c.SoldierRecruitClassB) && p.Size > 0)
+                        {
+                            var a = (double[])p.Ages.Clone();
+                            for (int k = 0; k < a.Length; k++) a[k] *= 0.5;
+                            a[0] += 0.25; a[1] += 0.25;   // 0〜9歳の男女
+                            p.Ages = a; p.Size *= 2;
+                        }
+            return (Military.RecruitWage(cap, c, last: true), Military.SustainLimitOf(w, c, out _));
+        }
+        var a0 = Arm(false); var a1 = Arm(true);
+        Assert.True(a0.wage > 0 && a0.sustain > 0, $"前提が崩れた：賃金 {a0.wage}・扶養限界 {a0.sustain}");
+        Assert.True(Math.Abs(a1.wage - a0.wage) <= 1e-9 * a0.wage, $"子供が増えると兵の賃金が動いた（{a0.wage} → {a1.wage}）");
+        Assert.True(Math.Abs(a1.sustain - a0.sustain) <= 1e-9 * a0.sustain, $"子供が増えると扶養限界が動いた（{a0.sustain} → {a1.sustain}）");
     }
 
     /// <summary>★国家の調達（補給財・侵攻の物資・海軍の燃料＝Colonial.BuyUpkeepGood）の代金は、その財の生産者の④の持分（地代・国営持分・賃金）へ。旧＝本国の全POP へ頭数。

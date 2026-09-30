@@ -256,16 +256,20 @@ public class WriterRatchetTests
     // ★2026-09-30 表の更新（(138) 合流＝線2 の (135)(136)〔費用の側・GDP の和の使い回し〕の載った main へ線1 の (134)(137)〔段4e〕を載せ直した木＝軌道が動いた分の宣言・新しい計数の処理は無い）：
     //   建設 6,246→6,978（+11.7%）・請求 2,140→2,456（+14.8%）＝線1 の着工の門（建てる州の建材を読む）と線2 の国の請求の減りが重なった軌道（線1 単独 8,533・3,063／線2 単独 6,246・2,140 の間）。
     //   ほかの14本は許しの内（+2%／−10%）。全長の推定は10種の .cost（実装ログ (138)）。
+    // ★2026-10-01 表の更新（(140) 軍の費用＝兵の給与は請求どおりの賃金〔働き盛り1人あたり〕・植民地の不満の俸給を撤去＝軌道が動いた分の宣言・新しい計数の処理は無い）：
+    //   建設 6,978→7,226（+3.6%）・請求 2,456→2,515（+2.4%）・清算の着値の充填 27,104,468→27,954,050（+3.1%）＝兵の給与が国庫から実際に出る（旧＝請求の 7〜80% しか払わず残りは国庫に残った）＝
+    //   最初の40四半期の国庫・請求・値段の軌道が変わった（処理の形は同じ・請求の単価は州の同じ POP の走査の中＝Military.RecruitWage）。ほかの12本は許しの内。
+    //   全長の10種の推定は 239.0→236.5 秒（下がった＝払う必要が無い・実装ログ (140)）。
     [InlineData(CostLedger.PriceGoods, 14149727L)]
     [InlineData(CostLedger.PriceDailyRuns, 25283828L)]
-    [InlineData(CostLedger.ConstructionSeen, 6978L)]
+    [InlineData(CostLedger.ConstructionSeen, 7226L)]
     [InlineData(CostLedger.CreditSpans, 33282L)]
     [InlineData(CostLedger.ConsumePopGoods, 28595736L)]
     [InlineData(CostLedger.ProducerMonths, 8440020L)]
-    [InlineData(CostLedger.ClaimProducers, 2456L)]
+    [InlineData(CostLedger.ClaimProducers, 2515L)]
     [InlineData(CostLedger.MonthlyPops, 706680L)]
     [InlineData(CostLedger.ClearingRows, 5185642L)]
-    [InlineData(CostLedger.ClearingFills, 27104468L)]
+    [InlineData(CostLedger.ClearingFills, 27954050L)]
     [InlineData(CostLedger.DiploPowerMonths, 9954L)]
     [InlineData(CostLedger.DiploHegemonScans, 2755889L)]
     [InlineData(CostLedger.QuarterStartPops, 235560L)]

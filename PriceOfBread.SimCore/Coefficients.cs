@@ -2249,7 +2249,7 @@ public sealed class Coefficients
     public double InvadeSeaControlMin = 0.45;     // 海越え侵略に要る最低制海権（弱海軍の内陸国は海外植民地を取れない＝英の海上覇権が意味を持つ）
     public double LandReachKm = 4000;             // 旧・陸続き判定（同一海盆かつこの距離内）。ContinentalLandReach=0のフォールバック時のみ読む
     public double ContinentalLandReach = 1.0;     // 第4段4-4点火（2026-07-27）→03地理 手順0（2026-07-28）：陸続き＝**陸塊一致**（Landmass.Of＝landmass.json・距離制限なし）。旧・矩形大陸一致は島の概念が無く85.6%の国対が陸続きだった。0=最旧の海盆×LandReachKm判定へ戻す
-    public double ColonyUpkeepMilitancyScale = 30.0;  // 植民地維持費の不満項＝月の俸給＝これ×人口ウェイト×不満。高不満の大植民地ほど駐留・鎮圧が高くつく＝インド大反乱型。★2026-09-28（c2）：平場 ColonyUpkeepBase（150）を撤去して畳んだ＝旧 0.2×150 と同じ値（Fiscal の行政費にも治安維持費にも無い上乗せだけを残す）
+    // 【墓標2026-09-30 (140)・col-16】ColonyUpkeepMilitancyScale（植民地維持費の不満項＝月の俸給＝30×人口ウェイト×不満・兵士の兵力の生産者へ）＝植民地格の州の駐留の兵は兵力の購買で既に払われている＝同じ兵への2度目の支払い＝撤去（兵力の購買の1本）
     // B-4 移民プッシュ・独立ショック
     public double PushUnrestWeight = 0.5;            // 移民のプッシュ要因：地域の不満（迫害・治安悪化）が土地機会を下げ流出を促す（ポグロム型）。単一地域較正は移民非走行で無影響
     public int IndependenceShockYears = 6;           // 独立植民地の供給がショックから回復するまでの年数（ハイチ1804型＝独立直後は産出崩壊、数年かけて自由な供給者へ）
@@ -2410,7 +2410,7 @@ public sealed class Coefficients
     public double MaxSoldierFraction = 0.04;               // 軍事費1.0で大衆の最大この割合が兵士（平時の上限。人口大国ほど大軍を持てる＝国力）
     public double MilitarismStrengthBonus = 1.3;            // 軍の練度：軍事力（戦力評価）の乗数の**満額**＝実効は 1+(これ−1)×軍の練度（識字×組織×勤務年数。★2026-08-18＝法のON/OFFを撤去）。同じ兵数で軍が強い（訓練・規律・動員）＝労働を奪わないので経済を弱めず軍事に出る
     public double MilitarismClout = 0.5;                   // 旧支配層(将校貴族)が軍から得る政治力＝MilitarismClout×**軍の政治的優位**（軍の圧力×(1−文民制度の弁)∈[0,1]）。★2026-08-18＝法の門を撤去。⚠**給与では買えない**（西1931アサーニャ改革は満額俸給付き退役で最大のクーデタを招いた）＝組織の大きさ・解隊の脅威・人事介入・屈辱が源泉
-    public double SoldierPayMult = 1.0;                     // 兵士給与＝民間1人あたり月収×これ（同等待遇を目指す。払えなければ充足↓＝弱兵）
+    public double SoldierPayMult = 1.0;                     // 兵士給与＝民間の働き盛り1人あたり月収（徴募の母数・Military.RecruitWage）×これ（同等待遇を目指す。払えなければ r で単価が下がる＝充足↓＝弱兵）。★(140) 請求どおりの賃金で払う（旧＝兵力の市場の値＝参照価格の門で押さえられ請求の7〜80%）
     public double SoldierMigrationRate = 0.08;             // 平時の徴募/離職速度（目標兵数への漸進・月次）
     public double ConscriptionFraction = 0.12;            // 戦時の徴兵上限＝大衆のこの割合まで兵士化（行き過ぎは経済に打撃）
     public double ConscriptionRate = 0.15;               // 戦時の動員速度（平時より速い）
@@ -2427,7 +2427,7 @@ public sealed class Coefficients
     public double ColonialInfraDepreciation = 0.004; // 植民地開発度の月次減衰（維持しないと衰える）
     public double ColonialInfraPerColony = 1.0;      // 【R13点火2026-07-15＝1.0】植民地開発度の州単位化：0=国家一律の開発度w.ColonialInfraで全植民地の産出（現行と厳密一致）・>0.5で植民地ごとのcol.Infra（所有国水準へ収束するが征服/独立で移動＝奪った開発済み植民地は産出を引き継ぎ・独立後も凍結せず新所有国水準へ調整）。投資決定は国家プールのまま＝影響は移転植民地の産出に局所化
     public double ColonialInfraConverge = 0.01;      // R13：col.Infra が所有国の国家開発度へ収束する月次率（0.01≒半減期6年）。低いほど征服/独立後の開発が長く保持され、高いほど速く新所有国水準へ均される。ColonialInfraPerColony=0では未使用
-    // 【墓標2026-09-28（c2）】ColonyUpkeepBase（植民地1つの月次維持費の平場150）＝Fiscal の行政費×距離（UpkeepDistanceGeneral）と二重＝撤去。不満の上乗せは ColonyUpkeepMilitancyScale へ畳んだ
+    // 【墓標2026-09-28（c2）】ColonyUpkeepBase（植民地1つの月次維持費の平場150）＝Fiscal の行政費×距離（UpkeepDistanceGeneral）と二重＝撤去。不満の上乗せは ColonyUpkeepMilitancyScale へ畳んだ（それも 2026-09-30 (140) に撤去）
     // 帝国の過伸展は距離の金銭倍率でなく**物理消費**から創発：遠方植民地ほど補給線が長く、汽船が石炭(good1)を焚き駐留が缶詰糧食(good65)を食う。
     // 国庫が本国市場から買う＝石炭が産業と競合し価格律速（LastDemand）＝遠方帝国ほど石炭・糧食が逼迫（イギリスの過伸展が物理コストに）。
     public double ColonyUpkeepCoalPerDist = 400.0;   // 植民地の質量1個数単位・距離1万kmあたり汽船補給線が焚く石炭量（物理消費）。×汽船の割合（帆走は0）×機関の時代係数（EraColonyCoal）＝民間の汽船と同じ状態と物理（2026-09-28 c1・R2）。balance：仏英二強の安価な帝国を実コスト化（200→400）＝過伸展が石炭価格・国庫を圧迫

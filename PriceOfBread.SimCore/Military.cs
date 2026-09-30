@@ -55,7 +55,7 @@ public static class Military
     }
 
     /// <summary>扶養限界（作者設計2026-08-08）＝この国が経済に悪影響なく養える兵数。
-    /// 経済側＝持続可能な軍事支出（歳入×SustainMilShare）÷ 兵1人あたり月次コスト（給与＝徴募プールの前月賃金×SoldierPayMult
+    /// 経済側＝持続可能な軍事支出（歳入×SustainMilShare）÷ 兵1人あたり月次コスト（給与＝徴募プールの前月の働き盛り1人あたりの賃金×SoldierPayMult＝<see cref="RecruitWage"/> と同じ規則
     /// ＋装備＝MilitaryUpkeepScale×Σ(rate×RefPrice)＝**参照価格建て**＝市場価格の循環を避ける・S4欠陥の教訓）。
     /// 人口側＝徴募可能人口（兵士POPを持つ州の農民+労働者+兵士）×MaxSoldierFraction。
     /// min が国ごとのボトルネックを選ぶ＝露は経済・英は人口（作者の設計意図どおり式から出る）。
@@ -72,7 +72,7 @@ public static class Military
             {
                 if (p.IsSoldier) sld = p;
                 else if (p.ClassId == c.SoldierRecruitClassA || p.ClassId == c.SoldierRecruitClassB)
-                { pa += p.ClassId == c.SoldierRecruitClassA ? p.Size : 0; pb += p.ClassId == c.SoldierRecruitClassB ? p.Size : 0; pe += Math.Max(0, p.LastEarned); ps += p.Size; }
+                { pa += p.ClassId == c.SoldierRecruitClassA ? p.Size : 0; pb += p.ClassId == c.SoldierRecruitClassB ? p.Size : 0; pe += Math.Max(0, p.LastEarned); ps += WorkingAdults(p); }
             }
             // ★N4 徴兵の州別化（国民意識doc・2026-08-13）：**国民意識の無い州からは兵が出ない。**
             //   ⚠旧＝兵士POPを持つ活動州の頭数をそのまま足していた＝多民族帝国の周辺州も中核州と同率で徴募できた。
@@ -91,13 +91,29 @@ public static class Military
             }
         }
         double manLimit = c.MaxSoldierFraction * natManpower;
-        double wage = poolSize > 1e-9 ? poolEarn / poolSize : 0;   // 徴募プールの前月賃金＝兵士の機会費用（富国の兵は高い）
+        double wage = poolSize > 1e-9 ? poolEarn / poolSize : 0;   // 徴募プールの前月の働き盛り1人あたりの賃金＝兵士の機会費用（富国の兵は高い）＝RecruitWage と同じ規則（ここは国の和）
         double equip = 0;
         for (int b = 0; b < c.MilitaryGoods.Length; b++)
             if (c.MilitaryGoods[b] < Catalog.RefPrices.Length) equip += c.MilitaryUpkeepScale * c.MilitaryRates[b] * Catalog.RefPrices[c.MilitaryGoods[b]];
         double perSoldier = wage * c.SoldierPayMult + equip;
         double econLimit = perSoldier > 1e-9 ? c.SustainMilShare * Math.Max(0, w.SpendableRevenue()) / perSoldier : 0;   // 支出反射：潤沢国庫は扶養限界にも翻訳（ユリウス塔の戦争準備金。既定0=LastRevenueと厳密同値）
         return Math.Min(econLimit, manLimit);
+    }
+
+    /// <summary>兵1人の機会費用の分母＝働き盛り（16〜59歳・男女）の人数。兵は働き盛りの男の1人＝世帯の頭数（子供と老人を含む）で割った所得で払うと
+    /// 分子（大人1人）と分母（世帯の頭数）が非対称＝兵の給与が民間の大人の賃金の約半分になる（2026-09-30 (140)）。窓は徴兵が抜く範囲（<see cref="MoveCohort"/> の 16〜60）と同じ。</summary>
+    internal static double WorkingAdults(Pop p) => p.Size * p.AgeShare(16, 60);
+
+    /// <summary>★州の兵1人の月給の請求の単価＝徴募の母数（農民・都市労働者）の前月の所得÷働き盛りの人数×SoldierPayMult の手前（2026-09-30 (140)）。
+    /// 請求（Simulation の SoldierPayBudget＝兵数×これ×SoldierPayMult）と扶養限界（<see cref="SustainLimitOf"/>＝国の和で同じ規則）が同じ母数と同じ窓を読む。
+    /// <paramref name="last"/>＝前月の所得の欄（月の決算の後＝LastEarned・月の決算の前＝Earned＝どちらも前月の所得）。</summary>
+    internal static double RecruitWage(Region r, Coefficients c, bool last)
+    {
+        double pe = 0, pa = 0;
+        foreach (var p in r.Pops)
+            if (!p.IsSoldier && (p.ClassId == c.SoldierRecruitClassA || p.ClassId == c.SoldierRecruitClassB))
+            { pe += Math.Max(0, last ? p.LastEarned : p.Earned); pa += WorkingAdults(p); }
+        return pa > 1e-9 ? pe / pa : 0;
     }
 
     public static void Step(World w, Coefficients c, bool atWar)

@@ -2065,12 +2065,12 @@ public sealed class Simulation
                     ? World.AdminSpending * World.Coef.InfraBudgetScale * World.FiscalCapacity * (r.SumPopulation() / nationPop) * HoardSpendScale() : 0;
                 r.ElecInfraBudget = nationPop > 1e-9
                     ? World.AdminSpending * World.Coef.ElecInfraBudgetScale * World.FiscalCapacity * (r.SumPopulation() / nationPop) * HoardSpendScale() : 0;
-                // 兵力（兵士の給与）の予算：民間賃金（前月の農民＋労働者の1人あたり所得）に揃える。軍事費スライダーは兵数（徴募目標）を駆動し、総給与＝兵数×賃金。
+                // 兵力（兵士の給与）の予算：民間賃金（前月の徴募の母数＝農民＋都市労働者の**働き盛り1人あたり**の所得）に揃える。軍事費スライダーは兵数（徴募目標）を駆動し、総給与＝兵数×賃金。
+                // ★2026-09-30 (140)：旧＝大衆（平民の民間人）の**頭数**あたり＝子供と老人を含む世帯の1人あたり＝兵（働き盛りの男の1人）の機会費用の約半分（分子と分母の非対称）。
+                //   母数と窓は扶養限界（Military.SustainLimitOf）と徴兵（MoveCohort の 16〜60）と同じ＝Military.RecruitWage の1本。
                 if (r.SoldierPopIndex >= 0)
                 {
-                    double pe = 0, ps = 0;
-                    foreach (var p in r.Pops) if (Politics.IsMassPop(p)) { pe += p.Earned; ps += p.Size; }
-                    double civWage = ps > 1e-9 ? Math.Max(0, pe / ps) : 0;
+                    double civWage = Military.RecruitWage(r, World.Coef, last: false);
                     r.SoldierPayBudget = r.Pops[r.SoldierPopIndex].Size * civWage * World.Coef.SoldierPayMult;   // 請求（r を掛ける前）。旧＝州ごとの min(国庫)＝先着（B2）
                     World.LastSoldierPay += r.SoldierPayBudget;   // 請求書（形が先・金が後 段0）
                 }
@@ -2195,6 +2195,7 @@ public sealed class Simulation
                 // 全ての予算と予約に同じ r（予算は量の上限＝買えた分だけ払う＝払えない分は量が減る）
                 r.MilitaryBudget *= payRate; r.MilitaryBudgetCeiling *= payRate;
                 r.AdminBudget *= payRate; r.InfraBudget *= payRate; r.ElecInfraBudget *= payRate; r.SoldierPayBudget *= payRate;
+                r.SoldierPayAffordRaw = payRate;   // ★(140) 給与の充足＝請求の賃金のうち払えた割合（旧＝予算÷(兵数×兵力の市場の値)＝民間の賃金÷兵力の値を測っていた）
                 r.CompulsoryEduFunding *= payRate; r.InsuranceCoverage *= payRate;
                 r.StateBuildQueue *= payRate; r.MonumentBuildQueue *= payRate; r.HigherEduFunding *= payRate;
                 // 技術→工場生産性。技術2まではそのまま（較正域）、それ超は逓減（高技術でも生産性7倍等にならず経済を壊さない）

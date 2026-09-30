@@ -339,7 +339,7 @@ public partial class GameViewModel
         double aPoll = c.PollTaxRate * _player.PollTax * headNonPriv * leak;
         double aLand = _player.LandTax * landRent * leak;
         double netA = aIncome + aProg + aPoll + aLand;
-        double aMil = _player.LastMilitaryClaim;
+        double aMil = _player.LastMilitaryClaim + _player.LastSoldierPay * _player.FiscalFundingRatio;   // 軍需の請求＋兵の給与（請求×国家の支払い率 r＝(140) から請求どおりの賃金で払う）
         double aAdmin = _player.LastAdminClaim;
         double aWel = _player.LastWelfareCost * _player.FiscalFundingRatio;   // 実効＝請求×国家の支払い率 r（エンジンの Fiscal と同じ・2026-09-28）
         double aPen = _player.LastPensionCost * _player.FiscalFundingRatio;
@@ -360,7 +360,7 @@ public partial class GameViewModel
         WelLine = $"社会保障 {_player.Policy.SocialSecurityTarget:P0}　実効 {_player.SocialSecurity:P0}"; WelAct = Money(aWel); WelAmt = Money(wel);   // 02断線走査（2026-07-28）：「約束した福祉の何割が払えたか」の可視化（ビスマルク年金の財源問題）
         PensionLine = "年金"; PensionAct = Money(aPen); PensionAmt = Money(pen);
         // 見えない出費の可視化（監査2026-07-11 接1）：国庫を実際に動かすのに予算表に現れず「黒字表示なのに国庫が減る」原因だった3項目。
-        double colonialUp = _player.LastColonialUpkeep * _player.FiscalFundingRatio;   // 植民地維持費（俸給＋補給財〔石炭/糧食/キニーネ〕の請求×国家の支払い率 r・2026-09-28）
+        double colonialUp = _player.LastColonialUpkeep * _player.FiscalFundingRatio;   // 植民地維持費（補給財〔石炭/糧食/キニーネ〕の請求×国家の支払い率 r・2026-09-28／不満の俸給は 2026-09-30 (140) に撤去）
         double tribOut = _player.LastTributeOut * _player.FiscalFundingRatio / (double)Calendar.MonthsPerQuarter;   // 属国貢納（支払＝請求×r・四半期→月割）
         double tribIn = _player.LastTributeIn / (double)Calendar.MonthsPerQuarter;                    // 属国貢納（受取・同）
         ColonialRowVisible = colonialUp > 1e-9;
