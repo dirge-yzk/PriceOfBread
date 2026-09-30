@@ -395,6 +395,32 @@ public class MilitaryTests
         Assert.True(Math.Abs(got - paid) <= 1e-9 * paid, $"兵士の受け取り {got} ≠ 国庫の払い {paid}");
     }
 
+    /// <summary>★段4d（2026-09-30・分子と分母を同じ規則で）：駐留の俸給の請求（LastColonialUpkeep＝翌月の国家の支払い率 r の請求）は受け手（兵士の兵力の生産者）のいる分だけ＝
+    /// 連合維持費と同じ1本の述語（InternationalMarket.HasSellers）。兵士のいない国は俸給の請求が立たず、国庫も動かない（旧＝請求だけが立ち、払えない請求で r が下がった）。
+    /// 盤面＝英仏の英の2×2（不満の維持費の係数 0／既定 × 兵士の兵力の産出あり／0）＝係数の差が俸給の請求（補給財の請求は打ち消す）。⚠突然変異「受け手を見ない（旧）」で赤。</summary>
+    [Fact]
+    public void 植民地の駐留の俸給の請求は兵士のいる分だけ()
+    {
+        (double claim, double led) Arm(double scale, bool soldiers)
+        {
+            var sim = TwoNations();
+            var w = sim.Nations[0].World;
+            w.Coef.ColonyUpkeepMilitancyScale = scale;
+            foreach (var r in w.Regions) if (r.State == RegionState.Active && r.Tier == RegionTier.Colonial) foreach (var p in r.Pops) p.Militancy = 0.5;
+            if (!soldiers)   // 兵士の兵力の生産者がいない国（月次の決算が書く産出の和 LastProduced も0＝盤面を一貫させる）
+                foreach (var r in w.Regions) { foreach (var pr in r.Producers) if (pr.GoodId == Catalog.MilitaryPowerId) pr.Output = 0; r.Markets[Catalog.MilitaryPowerId].LastProduced = 0; }
+            w.FiscalFundingRatio = 0.7;
+            double led0 = w.TreasuryLedger[(int)TreasuryCat.ColonialUpkeep];
+            Colonial.Step(w, w.Coef);
+            return (w.LastColonialUpkeep, w.TreasuryLedger[(int)TreasuryCat.ColonialUpkeep] - led0);
+        }
+        double scale = new Coefficients().ColonyUpkeepMilitancyScale;
+        var w0 = Arm(0, true); var w1 = Arm(scale, true); var n0 = Arm(0, false); var n1 = Arm(scale, false);
+        Assert.True(w1.claim - w0.claim > 1e-9, "前提が崩れた：兵士のいる国で俸給の請求が立っていない（植民地格の州の不満）");
+        Assert.True(Math.Abs(n1.claim - n0.claim) <= 1e-9 * Math.Max(1.0, n0.claim), $"兵士のいない国に俸給の請求が立った（{n1.claim - n0.claim}）");
+        Assert.True(Math.Abs(n1.led - n0.led) <= 1e-9 * Math.Max(1.0, Math.Abs(n0.led)), $"兵士のいない国の国庫が俸給で動いた（{n1.led - n0.led}）");
+    }
+
     /// <summary>★国家の調達（補給財・侵攻の物資・海軍の燃料＝Colonial.BuyUpkeepGood）の代金は、その財の生産者の④の持分（地代・国営持分・賃金）へ。旧＝本国の全POP へ頭数。
     /// 盤面＝英仏の英の双子＝首都で最も多く作られている財を買う量だけが違う。⚠突然変異「全POP へ頭数で配る」で赤。</summary>
     [Fact]

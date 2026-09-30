@@ -200,6 +200,72 @@ public class TradeClearingTests
         Assert.True(checkedRegions > 0, "輸入した買い手の州が無い（テスト前提の破れ）");
     }
 
+    /// <summary>★段3-4（2026-09-30・C10＝処理の一元化 段4d）：港湾料と海上保険の保険料は**成約の時点**で輸入の捌き手（荷主＝買い手の州の商人）が払う
+    /// （単価の上乗せ＝手形の振り出しも同じ額）。港湾料は海路の成約の港の端（港の州）の投資家＝港の持ち主へ・取扱高×率。保険料は輸入国の商人（引受手）へ頭数で。
+    /// 荷主でも受け手でもない POP の貯蓄は1ビットも動かない（旧＝四半期末に国の全POP から貯蓄の比で取った）。
+    /// 盤面＝ジェノヴァとトスカーナで財 g だけを取引する同じ清算を3つの双子で1回（率 0／保険料だけ／港湾料だけ）＝手形で量は同じ。
+    /// ⚠突然変異「保険料を全POP から（旧）」「港湾料を取らない」「保険料を取らない」で赤。</summary>
+    [Fact]
+    public void 港湾料と保険料は荷主が成約の時点で払い港の持ち主と引受手が受け取る()
+    {
+        (MultiNationSim sim, int g, Region s1, Region s2) Run(double portRate, double premRate)
+        {
+            var (sim, g, seller, seller2, _) = Make();
+            foreach (var n in sim.Nations) foreach (var r in n.World.Regions) foreach (var m in r.Markets)   // ほかの財は取引しない（払いを財 g だけにする）
+                if (!ReferenceEquals(m, r.Markets[g])) { m.LastDemand = 0; m.TargetStock = 0; m.LastProduced = 0; }
+            sim.Coef.PortFeeRate = portRate; sim.Coef.MarinePremiumRate = premRate;
+            sim.Market.Step(sim.Nations, sim.Coef);
+            return (sim, g, seller, seller2);
+        }
+        double portRate = new Coefficients().PortFeeRate, premRate = new Coefficients().MarinePremiumRate;
+        Assert.True(portRate > 0 && premRate > 0, "前提＝港湾料と保険料の率が正");
+        var off = Run(0, 0); var prem = Run(0, premRate); var port = Run(portRate, 0);
+        static IEnumerable<(int n, Region r, int i, Pop p)> Pops(MultiNationSim s)
+        {
+            for (int n = 0; n < s.Nations.Count; n++)
+                foreach (var r in s.Nations[n].World.Regions)
+                    if (r.State == RegionState.Active) for (int i = 0; i < r.Pops.Count; i++) yield return (n, r, i, r.Pops[i]);
+        }
+        var o = Pops(off.sim).ToList(); var pp = Pops(prem.sim).ToList(); var pt = Pops(port.sim).ToList();
+        Assert.Equal(o.Count, pp.Count); Assert.Equal(o.Count, pt.Count);
+        Assert.Equal(0.0, off.s1.Markets[off.g].LastImport); Assert.Equal(0.0, off.s2.Markets[off.g].LastImport);   // 前提：売り手の港は買わない
+        // 保険料だけ：払い手＝海路で輸入した州の商人（取扱高×率）・受け手＝その国の商人の頭数＝ほかの POP は動かない
+        var premPool = new double[off.sim.Nations.Count]; var merSize = new double[off.sim.Nations.Count];
+        foreach (var (n, r, i, p) in o)
+        {
+            if (i != r.MerchantPopIndex) continue;
+            merSize[n] += p.Size;
+            if (r.Markets[off.g].LastImport > 1e-12) premPool[n] += premRate * r.LastPortThroughput / off.sim.Nations[n].World.FxRate;
+        }
+        Assert.True(premPool.Sum() > 1e-9, "前提が崩れた：海路の輸入が立っていない");
+        for (int k = 0; k < o.Count; k++)
+        {
+            var (n, r, i, p) = o[k];
+            double d = pp[k].p.Savings - p.Savings;
+            if (i != r.MerchantPopIndex) { Assert.Equal(p.Savings, pp[k].p.Savings); continue; }   // 荷主でも引受手でもない
+            double paid = r.Markets[off.g].LastImport > 1e-12 ? premRate * r.LastPortThroughput / off.sim.Nations[n].World.FxRate : 0;
+            double got = premPool[n] * p.Size / merSize[n];
+            Assert.True(Math.Abs(d - (got - paid)) <= 1e-9 * Math.Max(1.0, Math.Abs(p.Savings)), $"{r.Name} の商人：保険料の差し引き {d} ≠ 受け取り {got}−払い {paid}");
+        }
+        // 港湾料だけ：港の州の投資家が 取扱高×率 を受け取る・払うのは荷主の商人だけ＝ほかの POP は動かない・払いと受け取りは金の値打ちで閉じる
+        double owners = 0, goldNet = 0;
+        for (int k = 0; k < o.Count; k++)
+        {
+            var (n, r, i, p) = o[k];
+            double fx = off.sim.Nations[n].World.FxRate, d = pt[k].p.Savings - p.Savings;
+            goldNet += d * fx;
+            if (r.IsPort && i == r.InvestorPopIndex)
+            {
+                double want = portRate * r.LastPortThroughput / fx;
+                Assert.True(Math.Abs(d - want) <= 1e-9 * Math.Max(1.0, Math.Abs(p.Savings)), $"{r.Name} の港の持ち主：港湾料 {d} ≠ 取扱高×率 {want}");
+                owners += want;
+            }
+            else if (i != r.MerchantPopIndex) Assert.Equal(p.Savings, pt[k].p.Savings);
+        }
+        Assert.True(owners > 1e-9, "前提が崩れた：港湾料が立っていない（港の州の海路の成約が無い）");
+        Assert.True(Math.Abs(goldNet) <= 1e-9 * Math.Max(1.0, owners), $"港湾料の払いと受け取りが金の値打ちで閉じない（{goldNet}）");
+    }
+
     /// <summary>★為替手形（2026-09-29 S3b・補給の鎖の緩衝）：貯蓄の無い捌き手の商人も、積荷を担保に自国の銀行で手形を割り引いて輸入し
     /// （債務の記録・預金・家計の与信が同じ額＝国ごとの D が閉じる）、国内で売った代金で次の清算の始めに返す。
     /// 旧＝支払能力は商人の貯蓄だけ＝貯蓄の尽きた州は何十年も輸入できなかった（S3a）。⚠突然変異「手形なし（貯蓄だけ）」「返さない」で赤。</summary>

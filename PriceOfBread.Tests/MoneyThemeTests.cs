@@ -118,4 +118,42 @@ public class MoneyThemeTests
             Assert.Equal(minted0, w.CumulativeGoldMinted);
         }
     }
+
+    /// <summary>★段3-5（2026-09-30・C8＝処理の一元化 段4d）：法が捨てた本位金属の準備の売却（demonetization）は準備の売却の1本（平価の売りと同じ Simulation.SellReserve）＝
+    /// 首都州の捌き手（商人）が市場価格で造幣局へ払い（貨幣の回収＝CumulativeGoldMinted が同額減る＝保存量 D は不変）、金属は市場の在庫へ（LastImport）。
+    /// 払えるのは貯蓄まで＝払えない分は売らない（準備に残る）。旧＝金は動かさず在庫へ入れた＝国内で売れた代金は払っていない輸入の捌き手の所得になった。
+    /// 盤面＝密閉1国の仏・銀の準備 100・銀を捨てて金へ（SellDemonetizedReserves を1回）。⚠突然変異「代金を取らない（旧）」で赤。</summary>
+    [Theory]
+    [InlineData(1e9)]    // 貯蓄は十分＝準備×率の全量
+    [InlineData(0.25)]   // 貯蓄は全量の代金の 1/4＝その分だけ売る
+    public void 捨てた本位金属の準備は捌き手が市場価格で買い貨幣を回収する(double savingsFrac)
+    {
+        var sim = new Simulation(NationConfig.France().ToScenario(1), new NullAgent());
+        var w = sim.World;
+        var r = w.Region;
+        Assert.True(r.State == RegionState.Active && r.GoodOf(Catalog.SilverId) is not null, "前提＝首都州に銀市場がある");
+        Assert.True(r.MerchantPopIndex >= 0 && r.MerchantPopIndex < r.Pops.Count, "前提＝首都州に商人がいる");
+        double rate = Math.Clamp(w.Coef.MintReserveSellRate, 0, 1);
+        Assert.True(rate > 0, "前提＝準備の売却が live");
+        w.SilverReserveQty = 100.0;
+        var m = r.Markets[Catalog.SilverId];
+        double price = m.Price;
+        Assert.True(price > 0, "前提＝銀の市場価格が正");
+        double fullQty = w.SilverReserveQty * rate;
+        var mer = r.Pops[r.MerchantPopIndex];
+        mer.Savings = savingsFrac >= 1 ? Math.Max(mer.Savings, 10 * fullQty * price) : savingsFrac * fullQty * price;
+        double expectQty = Math.Min(fullQty, mer.Savings / price);
+        double D(World x) => x.BaseMoney - x.CumulativeTradeFlow - x.CumulativeGoldMinted - x.CumulativeFiatIssued;
+        double d0 = D(w), minted0 = w.CumulativeGoldMinted, stock0 = m.Stock, imp0 = m.LastImport, sav0 = mer.Savings, reserve0 = w.SilverReserveQty;
+        var sell = typeof(Simulation).GetMethod("SellDemonetizedReserves", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        Assert.NotNull(sell);
+        sell!.Invoke(sim, [Catalog.GoldOreId, false]);   // 金本位へ移った＝銀の準備を売る
+        double sold = reserve0 - w.SilverReserveQty;
+        Assert.True(Math.Abs(sold - expectQty) <= 1e-9 * Math.Max(1.0, expectQty), $"売った量 {sold} が min(準備×率, 貯蓄÷価格)={expectQty} でない");
+        Assert.True(Math.Abs((m.Stock - stock0) - sold) <= 1e-9, "市場の在庫の増えが売った量と一致しない");
+        Assert.True(Math.Abs((m.LastImport - imp0) - sold) <= 1e-9, "LastImport の増えが売った量と一致しない（在庫の恒等式）");
+        Assert.True(Math.Abs((sav0 - mer.Savings) - sold * price) <= 1e-9 * Math.Max(1.0, sav0), "捌き手の払いが 売った量×市場価格 でない");
+        Assert.True(Math.Abs((minted0 - w.CumulativeGoldMinted) - sold * price) <= 1e-9 * Math.Max(1.0, sav0), "鋳造の台帳が払った額だけ減っていない（貨幣の回収）");
+        Assert.True(Math.Abs(D(w) - d0) <= 1e-9 * Math.Max(1.0, Math.Abs(d0)), $"保存量Dが動いた {d0}→{D(w)}");
+    }
 }

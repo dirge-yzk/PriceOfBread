@@ -1548,7 +1548,7 @@ if (args.Length > 0 && args[0] == "tradeprobe")
 //     四半期末**以外**の月（各四半期の第1・第2月）の Market.LastImport/LastExport を書くのは植民地機構だけ
 //     （EconomyStep の植民地素材輸入／Colonial の LastExport 書き手＝投資・捕囚市場・維持費）。
 //     そこを読めば「植民地→本国の財の流入」「本国→植民地の財の流出」を計上漏れなく金額で測れる。8/12ヶ月ぶん→×1.5で年額。
-//     金銀（準備の市中放出＝Simulation.DumpReserve）だけは同じ口を使うので除外する。
+//     金銀（準備の市中放出＝Simulation.SellReserve）だけは同じ口を使うので除外する。
 if (args.Length > 0 && args[0] == "openprobe")
 {
     int opQ = ArgInt(args, 1, 524);
@@ -1585,7 +1585,7 @@ if (args.Length > 0 && args[0] == "openprobe")
                     if (r.State != RegionState.Active) continue;
                     for (int g = 0; g < r.Markets.Length; g++)
                     {
-                        if (g == Catalog.GoldOreId || g == Catalog.SilverId) continue;   // 準備放出（DumpReserve）は植民地機構ではない
+                        if (g == Catalog.GoldOreId || g == Catalog.SilverId) continue;   // 準備放出（SellReserve）は植民地機構ではない
                         var m = r.Markets[g];
                         double p = System.Math.Max(0, m.Price) * er;
                         double rp = g < Catalog.RefPrices.Length ? Catalog.RefPrices[g] : 0;

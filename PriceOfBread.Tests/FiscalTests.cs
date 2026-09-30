@@ -1435,4 +1435,72 @@ public class FiscalTests
             Assert.True(Math.Abs(zero.w.Treasury - arm.w.Treasury - pay) <= 1e-9 * Math.Max(1.0, Math.Abs(arm.w.Treasury)), "国庫の減りが維持費×r と一致しない");
         }
     }
+
+    /// <summary>★段3-4（2026-09-30・B6・作者裁定 Q4＝処理の一元化 段4d）：POP の義務は1本の率＝税と十分の一税の請求を POP ごとに集め、
+    /// 払える額（貯蓄）が足りなければ全ての請求に同じ率 r_p＝貯蓄÷請求の和を掛ける（国家が教会に優先しない）。足りれば全額。
+    /// どの義務も払い手の総所得（Earned）を減らさず、十分の一税は聖職の所得になる（C15 の確かめ＝所得税と同じ記帳）。
+    /// 盤面＝英の静かな盤面で所得税 10%・十分の一税 5%・汚職の漏れ0・1人の大衆の POP だけに前の月の所得 1000。
+    /// ⚠突然変異「税を先に取り、十分の一税は残りから（旧の順序つきクランプ）」で赤（十分の一税が0になる）。</summary>
+    [Fact]
+    public void POPの義務は1本の率で税と十分の一税を同じ割合で払う()
+    {
+        (double tax, double tithe, double paid, double earnedDrop, double clergyEarned) Month(double savings)
+        {
+            var w = QuietBritain();
+            w.TaxRate = 0.1; w.Coef.TitheRate = 0.05; w.Coef.CorruptionMax = 0;
+            w.Coef.TaxConsentWeight = 0;   // 課税への同意（発言権の無い大衆から取りきれない分）を外す＝請求は査定の全額
+            w.StateReligion = StateReligionLaw.StateChurch;
+            foreach (var r in w.Regions) foreach (var q in r.Pops) { q.Earned = 0; q.LastEarned = 0; }
+            Pop? p = null;
+            foreach (var r in w.Regions) foreach (var q in r.Pops) if (p is null && Politics.IsMassPop(q) && q.Size > 1) p = q;
+            Assert.True(p is not null, "前提が崩れた：大衆の POP が無い");
+            p!.LastEarned = 1000; p.Savings = savings; p.Earned = 7;
+            var clergy = AllPopsOf(w).FindAll(q => q.ClassId == PopClass.Clergy && q.Size > 1e-9);
+            Assert.NotEmpty(clergy);
+            double c0 = 0, ce0 = 0; foreach (var q in clergy) { c0 += q.Savings; ce0 += q.Earned; }
+            double t0 = w.TreasuryLedger[(int)TreasuryCat.Tax];
+            FiscalMonth(w, 1.0);
+            double c1 = 0, ce1 = 0; foreach (var q in clergy) { c1 += q.Savings; ce1 += q.Earned; }
+            return (w.TreasuryLedger[(int)TreasuryCat.Tax] - t0, c1 - c0, savings - p.Savings, 7 - p.Earned, ce1 - ce0);
+        }
+        double taxClaim = 0.1 * 1000, titheClaim = 0.05 * 1000;
+        // 足りる＝全額
+        var full = Month(1e6);
+        Assert.True(Math.Abs(full.tax - taxClaim) <= 1e-9 * taxClaim, $"税が全額でない（{full.tax}）");
+        Assert.True(Math.Abs(full.tithe - titheClaim) <= 1e-9 * titheClaim, $"十分の一税が全額でない（{full.tithe}）");
+        // 足りない＝同じ率（貯蓄 30÷請求 150＝0.2）
+        const double s = 30;
+        var shortM = Month(s);
+        double rp = s / (taxClaim + titheClaim);
+        Assert.True(Math.Abs(shortM.paid - s) <= 1e-9, $"払った額 {shortM.paid} が貯蓄 {s} でない");
+        Assert.True(Math.Abs(shortM.tax - taxClaim * rp) <= 1e-9, $"税 {shortM.tax} が請求×率 {taxClaim * rp} でない＝国家が優先している");
+        Assert.True(Math.Abs(shortM.tithe - titheClaim * rp) <= 1e-9, $"十分の一税 {shortM.tithe} が請求×率 {titheClaim * rp} でない");
+        // 所得の記帳（C15）：払い手の総所得は減らない・聖職の所得は受け取った十分の一税
+        Assert.Equal(0.0, shortM.earnedDrop);
+        Assert.True(Math.Abs(shortM.clergyEarned - shortM.tithe) <= 1e-9, "聖職の所得（Earned）が受け取った十分の一税と一致しない");
+    }
+
+    /// <summary>★段4d（2026-09-30・(117) の申し送り4＝分子と分母を同じ規則で）：連合維持費の請求（LastUpkeep＝翌月の r の請求）は払える担い手のいる分だけ＝
+    /// 国に兵士の兵力の生産者が居なければ治安維持の分は請求に入らない（行政費の分だけ）。旧＝担い手がいなくても請求に入り、払えない請求で r が下がった。
+    /// 盤面＝英の静かな盤面（治安維持 3000・行政費 0.03/人）の兵士の兵力の生産者の産出を0にした腕と、治安維持0の腕（担い手は居る）で請求が同じ。
+    /// ⚠突然変異「担い手を見ない（旧）」で赤。</summary>
+    [Fact]
+    public void 連合維持費の請求は払える担い手のいる分だけ()
+    {
+        double Upkeep(double coercion, bool soldiers)
+        {
+            var w = QuietBritain();
+            w.Coef.TitheRate = 0;
+            w.BaseCoercion = coercion; w.Coef.AdminCostPerPop = 0.03;
+            if (!soldiers)   // 兵士の兵力の生産者がいない国（月次の決算が書く産出の和 LastProduced も0＝盤面を一貫させる）
+                foreach (var reg in w.Regions) { foreach (var pr in reg.Producers) if (pr.GoodId == Catalog.MilitaryPowerId) pr.Output = 0; reg.Markets[Catalog.MilitaryPowerId].LastProduced = 0; }
+            FiscalMonth(w, 1.0);
+            return w.LastUpkeep;
+        }
+        double adminOnly = Upkeep(0, soldiers: true);
+        double both = Upkeep(3000, soldiers: true);
+        double noSoldiers = Upkeep(3000, soldiers: false);
+        Assert.True(adminOnly > 0 && both > adminOnly, $"前提が崩れた：維持費の請求が立っていない（行政費だけ {adminOnly}・両方 {both}）");
+        Assert.True(Math.Abs(noSoldiers - adminOnly) <= 1e-9 * adminOnly, $"兵士の兵力の担い手がいないのに治安維持の請求が入った（{noSoldiers} vs 行政費だけ {adminOnly}）");
+    }
 }

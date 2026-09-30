@@ -455,7 +455,29 @@ public sealed partial class InternationalMarket
             if (payerOf[t2] is { } pl) foreach (var p2 in pl) budget[t2] += Math.Max(0, p2.Savings);
             if (bill[t2]) budget[t2] = double.PositiveInfinity;   // ③積荷が担保（量は X が決める）
         }
-        var payHouse = new double[tc];   // 払い手が清算所へ払う額（輸入代金＋運賃・自国通貨）
+        var payHouse = new double[tc];   // 払い手が清算所へ払う額（輸入代金＋運賃＋港湾料＋保険料・自国通貨）
+        // ★支払いの一元化 段3-4（2026-09-30・C10＝処理の一元化 段4d）：**港湾料と海上保険の保険料は取引の時点の上乗せ**＝海路の成約ごとに輸入の捌き手（荷主）が払う
+        //   （単価に入る＝払い手の支払能力が量を減らす・手形の振り出しも同じ額）。受け手＝港湾料は両端の港の州の投資家（港の持ち主・1端ごとに取扱高×PortFeeRate）・
+        //   保険料は輸入国の引受手（その国の商人の頭数）。旧＝四半期末に国の全POP から貯蓄の比で（StepPorts／StepMarineInsurance）＝荷主でない内陸の農民も払った。
+        //   港の州は IsPort（旧と同じ＝内陸州の取扱高には港湾料が掛からない）・持ち主のいない港は取らない・引受手のいない国は保険を掛けない（旧と同じ）。
+        var portOwner = new Pop?[tc];     // 港の持ち主（港の州の投資家・不在は null＝港湾料を取らない）
+        var portRecv = new double[tc];    // 港の持ち主の受け取り（その州の国の通貨）
+        for (int t2 = 0; t2 < tc; t2++)
+        {
+            var r2 = tr[t2].r;
+            if (c.PortFeeRate > 0 && r2.IsPort && r2.InvestorPopIndex >= 0 && r2.InvestorPopIndex < r2.Pops.Count && r2.Pops[r2.InvestorPopIndex].Size > 1e-9) portOwner[t2] = r2.Pops[r2.InvestorPopIndex];   // 受け手が居る＝移し方の1本が配れる（頭数＞0）
+        }
+        var underwriters = new List<Pop>?[nn];   // 引受手＝その国の活きた州の商人（居ない国・外交層の無い国は保険市場が立たない＝null）
+        var premRecv = new double[nn];           // 引受手の受け取り（その国の通貨）
+        if (c.MarinePremiumRate > 0)
+            for (int i2 = 0; i2 < nn; i2++)
+            {
+                var w2 = nations[i2].World;
+                if (w2.SelfPower is null) continue;
+                var uw = new List<Pop>(); double uwSize = 0;
+                foreach (var r2 in w2.Regions) if (r2.State == RegionState.Active && r2.MerchantPopIndex >= 0 && r2.MerchantPopIndex < r2.Pops.Count) { uw.Add(r2.Pops[r2.MerchantPopIndex]); uwSize += r2.Pops[r2.MerchantPopIndex].Size; }
+                if (uwSize > 1e-9) underwriters[i2] = uw;   // 受け手が居る＝移し方の1本が頭数で配れる（払わせて配れない額を作らない）
+            }
         var payTariff = new double[tc];  // 払い手が自国の国庫へ払う関税と穀物法の分（自国通貨）
         var paySub = new double[tc];     // 売買方針（高く買う）の補助＝国庫→払い手（自国通貨・国家の支払い率 r は払う時に掛ける）
         var rev = new double[tc]; var revX = new double[tc];   // 財ごとの売り手の受取（自国通貨）・うち越境（仲介料の基数）＝財の清算の終わりに④で分けて0へ戻す
@@ -711,7 +733,11 @@ public sealed partial class InternationalMarket
                     bool crossA = siA != ni;   // 同国取引は輸入の統計と関税の基礎に数えない（国境の税）
                     double sA = unitA / candF![bestPos];
                     double dutyA = crossA ? duty : 0.0;
-                    double costA = sA * (1 + dutyA + frA) / exRate[ni];   // 払い手が1単位に払う額（積出し価格＋関税＋運賃・自国通貨＝A7）
+                    // 港湾料と保険料の率（海路の成約だけ＝港の取扱高と同じ印・上の段3-4 の注記）
+                    bool seaA = !LandNow(snA * tc + t);
+                    double portT = seaA && portOwner[t] is not null ? c.PortFeeRate : 0.0, portS = seaA && portOwner[snA] is not null ? c.PortFeeRate : 0.0;
+                    double premA = seaA && underwriters[ni] is not null ? c.MarinePremiumRate : 0.0;
+                    double costA = sA * (1 + dutyA + frA + portT + portS + premA) / exRate[ni];   // 払い手が1単位に払う額（積出し価格＋関税＋運賃＋港湾料＋保険料・自国通貨＝A7）
                     double pot = Math.Min(Math.Min(X, Y), left[bestA]);
                     pot = Math.Min(pot, budget[t] / Math.Max(1e-12, costA));   // 支払能力（捌き手の貯蓄）
                     double qA = pot;
@@ -747,11 +773,15 @@ public sealed partial class InternationalMarket
                     if (c.DiffusionWeight > 0 && crossA) AccumulatePairFlow(siA, ni, vA, nn);   // ★段7：伝播のペア記帳（国際取引のみ・0＝不読＝恒等）
                     double payA = (vA + frG) / exRate[ni];     // 清算所へ（輸入代金＋運賃・買い手の通貨）
                     double dutyPay = vA * dutyA / exRate[ni];  // 国庫へ（関税と穀物法・買い手の通貨）
-                    payHouse[t] += payA; payTariff[t] += dutyPay; budget[t] -= payA + dutyPay;
+                    double feePay = vA * (portT + portS + premA) / exRate[ni];   // 清算所へ（港湾料と保険料・買い手の通貨）＝受け手へは清算の終わりに
+                    payHouse[t] += payA + feePay; payTariff[t] += dutyPay; budget[t] -= payA + dutyPay + feePay;
                     double recvA = vA / exRate[siA];            // 売り手の受取（売り手の通貨）
                     rev[snA] += recvA;
                     if (crossA) { revX[snA] += recvA; expReg[snA] += recvA; }
                     fxIntended += recvA - payA;                 // 為替の換算の差（運賃の受取は清算の終わりに足す）
+                    if (portT > 0) portRecv[t] += vA * portT / exRate[ni];
+                    if (portS > 0) { double rS = vA * portS / exRate[siA]; portRecv[snA] += rS; fxIntended += rS - vA * portS / exRate[ni]; }   // 積出し港の持ち主は自国の通貨で（換算の差は台帳へ）
+                    if (premA > 0) premRecv[ni] += vA * premA / exRate[ni];
                     freightPool += frG;
                     if (buyDear > 0) paySub[t] += vA * buyDear / exRate[ni];   // 売買方針（高く買う）＝積出し価格×楔（旧＝数量×表示用の平均×楔＝R6）
                     // ★2026-09-27（回4-1・項目12①・新1）：輸出の統計も輸入と同じ「国境を越えるか」の1本で数える。旧＝総取引額（買い手側と売り手側の両方に積む）
@@ -760,7 +790,7 @@ public sealed partial class InternationalMarket
                     if (crossA) { importVal[ni] += vA + frG; impByGood[ni][g] += vA + frG; exportVal[siA] += vA; expByGood[siA][g] += vA; }
                     // ★2026-09-27（回4-1・項目12②）：港の取扱高は海路の成約だけ（この組の着値を決めた経路＝KmOf(snA, t) が書いた向きの印）。
                     //   陸路の直行は港を通らない。同じ国の沿岸の海路（英のニューカッスル→ロンドンの石炭）は積む＝国境でなく経路で分ける。
-                    if (!LandNow(snA * tc + t)) { tr[t].r.LastPortThroughput += vA; tr[snA].r.LastPortThroughput += vA; }
+                    if (seaA) { tr[t].r.LastPortThroughput += vA; tr[snA].r.LastPortThroughput += vA; }
                     _volume[g] += qA;
                     RecordPartner(nations[ni].World.ImportFromByGood, g, tr[snA].r.Name, vA, impTop[ni]);
                     RecordPartner(nations[siA].World.ExportToByGood, g, tr[t].r.Name, vA, expTop[siA]);
@@ -822,6 +852,11 @@ public sealed partial class InternationalMarket
             fxIntended += amt;
             World.Transfer((null, null), (nations[i].World, shipOwners[i], null), amt, TreasuryCat.OtherIn, income: true);
         }
+        // 港湾料→港の持ち主・保険料→輸入国の引受手（段3-4・C10＝上の成約の時点で捌き手が清算所へ払った分・各自の通貨＝所得を通す）
+        for (int t = 0; t < tc; t++)
+            if (portRecv[t] > 0 && portOwner[t] is { } po) World.Transfer((null, null), (nations[tr[t].nation].World, [po], null), portRecv[t], TreasuryCat.OtherIn, income: true);
+        for (int i = 0; i < nn; i++)
+            if (premRecv[i] > 0 && underwriters[i] is { } uw) World.Transfer((null, null), (nations[i].World, uw, null), premRecv[i], TreasuryCat.OtherIn, income: true);
         for (int i = 0; i < nn; i++) nations[i].World.LastTariffRevenue = 0;
         for (int t = 0; t < tc; t++)
         {

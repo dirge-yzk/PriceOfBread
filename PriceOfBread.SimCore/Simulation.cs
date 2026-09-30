@@ -2771,25 +2771,13 @@ public sealed class Simulation
             bool atMarket = m.Price > parity && gapLeft > 1e-9;   // ★準備不足なら平価の上でも市場で買う（2026-09-06・第2版＝予算 gapLeft が尽きるまで・在庫のある州ならどこでも）
             // ★器 MintParitySells（2026-09-07・休眠既定0）：平価の**上**では造幣局が準備を平価で**売る**＝下の平価買いの厳密な逆操作（固定平価の両側）。
             //   数量＝今月の国1本の予算 sellLeft（準備×MintFloorBuyRate＝買い側と同じ月次率・ループ前で確定）と買い手の貯蓄÷平価の小さい方。買い手＝商人（不在なら投資家＝床の持ち込み手と同じ探索）。
-            //   会計＝Savings−value／CumulativeGoldMinted−value（鋳造の逆＝保存量D＝BaseMoney−累積貿易−鋳造−不換 は不変）／準備−qty／Stock＋qty・LastImport＋qty（DumpReserve と同じ在庫恒等式）。
+            //   会計＝Savings−value／CumulativeGoldMinted−value（鋳造の逆＝保存量D＝BaseMoney−累積貿易−鋳造−不換 は不変）／準備−qty／Stock＋qty・LastImport＋qty（準備の売却の1本 SellReserve＝投げ売りと同じ在庫恒等式・2026-09-30）。
             //   準備不足の月（sellLeft=0）は売らない。売りは在庫ゲートの**前**（在庫0の州こそ売り先）。売ったあとは従来どおり下の continue（平価の上では買わない）へ落ちる＝買い側は非接触。
             if (sellLeft > 1e-12 && m.Price > parity)
             {
-                int buyer = r.MerchantPopIndex >= 0 && r.MerchantPopIndex < r.Pops.Count ? r.MerchantPopIndex
-                          : r.InvestorPopIndex >= 0 && r.InvestorPopIndex < r.Pops.Count ? r.InvestorPopIndex : -1;
-                if (buyer >= 0)
-                {
-                    double sellQty = Math.Min(sellLeft, r.Pops[buyer].Savings / parity);
-                    if (sellQty > 1e-12)   // NaN は売らない側へ倒す（肯定形の比較＝NaN で偽・Min は NaN を消さない）
-                    {
-                        double sellValue = sellQty * parity;
-                        r.Pops[buyer].Savings -= sellValue;                 // 正貨で支払い＝TotalMoney↓＝BaseMoney↓
-                        World.CumulativeGoldMinted -= sellValue;            // 鋳造台帳の逆記帳＝MoneyConservation の expected も同額↓（保存量D不変）
-                        if (metal == Catalog.SilverId) World.SilverReserveQty -= sellQty; else World.GoldReserveQty -= sellQty;
-                        m.Stock += sellQty; m.LastImport += sellQty;        // 国庫の金庫からの「輸入」（DumpReserve と同じ在庫恒等式）
-                        sellLeft -= sellQty;                                // 国1本の月次予算を消費
-                    }
-                }
+                double sold = SellReserve(r, metal, sellLeft, parity);   // 準備の売却の1本（平価で・下の投げ売りと同じ）
+                if (metal == Catalog.SilverId) World.SilverReserveQty -= sold; else World.GoldReserveQty -= sold;
+                sellLeft -= sold;                                          // 国1本の月次予算を消費
             }
             if (m.Stock <= 1e-12) continue;
             if (!floor && m.LastProduced <= 0) continue;   // 旧来＝産出のある月しか買わない／★床＝在庫があれば買う（自由鋳造は持ち込み制＝産出と無関係）
@@ -2802,35 +2790,25 @@ public sealed class Simulation
             double totOut = 0;
             foreach (var p in r.Producers) if (p.GoodId == metal) totOut += p.Output;
             if (!floor && totOut <= 1e-12) continue;   // 旧来＝国内鉱山限定／★床＝撤廃（パリの造幣局はどこで掘られた銀も受けた＝仏は大産地でないのに世界の緩衝材だった）
-            double value = qty * (atMarket ? m.Price : parity);   // 鋳造価値＝平価建て（旧 qty×m.Price は正帰還）。★市場買い（MintBuysAtMarket）だけ市場価格＝準備の購入代金
+            double price = atMarket ? m.Price : parity;   // 鋳造価値＝平価建て（旧 qty×m.Price は正帰還）。★市場買い（MintBuysAtMarket）だけ市場価格＝準備の購入代金
+            // ★支払いの一元化 段3-5（2026-09-30・C8＝処理の一元化 段4d）：鋳造の代金は**④の持分**（InternationalMarket.PaySales＝その財の生産者の産出の比・地代→持ち主
+            //   〔国営持分は国庫〕・賃金→労働・Earned を通す＝国内の売上と輸出代金と同じ分け方）。旧＝産出の比で持ち主へ・労働へは係数 MintWageShare（0.5）で別に分けた
+            //   （④と別の規則・国営分の区分も別）＝係数を削除。**在庫のうち輸入の分**（輸入の量＝前の月の輸入＋この月の輸入〔EconomyStep の商人の取り分の上限と同じ量〕と
+            //   この月の産出の比で按分＝在庫の出どころの比）は
+            //   輸入の捌き手（州の商人・不在は州の頭数＝PaySales の生産者のいない在庫の枝と同じ）へ＝旧は輸入の在庫も今月の産出の比で国内の鉱山へ払った。
+            //   国内に鉱山の無い州（床モード）は全てが捌き手へ（旧＝商人・不在は投資家）。払い手＝造幣局（新しい貨幣＝世界の台帳は鋳造＝移し方の1本の minted）。
+            //   受け手のいない分は買わない（量を減らす）＝旧＝商人も投資家も居なければ買わなかった。
+            double imp = Math.Max(0, m.PrevImport + m.LastImport), prodQ = Math.Max(0, m.LastProduced);
+            double impShare = totOut > 1e-12 ? (imp + prodQ > 0 ? imp / (imp + prodQ) : 0.0) : 1.0;
+            double want = qty * price;
+            double impPart = want * impShare;
+            double paid = InternationalMarket.PaySales((null, null), r, metal, want - impPart, World, minted: true);
+            if (impPart > 0)
+                paid += World.Transfer((null, null), (World, r.MerchantPopIndex >= 0 && r.MerchantPopIndex < r.Pops.Count ? [r.Pops[r.MerchantPopIndex]] : r.Pops, null), impPart, TreasuryCat.OtherIn, income: true, minted: true);
+            if (!(paid > 1e-12)) continue;
+            if (paid < want) qty *= paid / want;   // 受け手のいない分は引き取らない（量を減らす）
+            double value = paid;
             if (atMarket) gapLeft -= value;   // 予算を消費（国の準備ギャップは州をまたいで1本）
-            if (floor && totOut <= 1e-12)
-            {
-                // ★床モードで国内鉱山なし＝持ち込むのは商人（貿易在庫の持ち手）。商人不在なら投資家。どちらも居なければ買わない（金の宛先が無い＝保存）
-                int seller = r.MerchantPopIndex >= 0 && r.MerchantPopIndex < r.Pops.Count ? r.MerchantPopIndex
-                           : r.InvestorPopIndex >= 0 && r.InvestorPopIndex < r.Pops.Count ? r.InvestorPopIndex : -1;
-                if (seller < 0) continue;
-                r.Pops[seller].Savings += value;   // 新鋳貨（保存＝CumulativeGoldMinted に同額を計上・下の共通部）
-            }
-            else
-            foreach (var p in r.Producers)
-                if (p.GoodId == metal && p.OwnerPopIndex >= 0 && p.OwnerPopIndex < r.Pops.Count)
-                {
-                    double share = value * (p.Output / totOut);   // 鉱山所有者へ新鋳貨で支払い（新規貨幣の創造）
-                    // 接6（監査2026-07-11・2026-07-25休眠配線）：鋳造代金が全額所有者へ＝賃金の分配回路を迂回し「掘り子の高賃金」
-                    //（ゴールドラッシュの創発）が出ず、金鉱州の所得が所有者に偏る。これ>0で賃金分を労働popへ（自営＝同一popなら実質不変・
-                    // 総額不変＝保存とCumulativeGoldMintedは非接触）。0（対照腕）で全額所有者・既定0.5でlive。
-                    double mintWage = (uint)p.LaborPopIndex < (uint)r.Pops.Count && p.LaborPopIndex != p.OwnerPopIndex
-                        ? share * PoliticalQuantities.Clamp01(World.Coef.MintWageShare) : 0;
-                    if (mintWage > 0) r.Pops[p.LaborPopIndex].Savings += mintWage;
-                    // ★2026-09-27（線2・国営持分の対称）：所有者の取り分のうち国営持分（World.StateProfitShare＝唯一の定義）は国庫へ。
-                    //   赤字の側（EconomyStep の「国営持分の赤字は国庫が負う」）と同じ持分＝旧は費用だけが国庫・造幣の代金は貴族と農民へ
-                    //   （s4 の英＝国有化したロンドンの銀山が黒字なのに国庫が 1931〜50 負のまま）。受け手が変わるだけ＝BaseMoney と鋳造の台帳は不変。
-                    double ownCut = share - mintWage;
-                    double stateCut = ownCut * World.StateProfitShare(p, r, World.Coef);
-                    if (stateCut > 0) World.Pay(TreasuryCat.StateFactory, stateCut); else stateCut = 0;
-                    r.Pops[p.OwnerPopIndex].Savings += ownCut - stateCut;
-                }
             m.Stock -= qty; m.LastSold += qty;        // 造幣局への引き取り＝GoodsBalance不変（Stock−／LastSold＋で対称）
             // ★★準備需要を**需要として計上する**（2026-08-13・実測で発見した会計の欠落）。
             // ⚠旧＝Stock と LastSold しか書かず `LastDemand` を書いていなかった。`MarketFlow.StepDay` は
@@ -2842,35 +2820,43 @@ public sealed class Simulation
             //   （Colonial.cs:234/325 の捕囚市場・EconomyStep.cs:1271 の国家購入・Transport.cs:72 の鉄道船）。造幣だけが外れていた。
             // ⚠0（対照腕）で書かない＝厳密恒等。既定1.0でlive（★点火2026-08-14。金の造幣は既定 live なので、点火は必ず単独バッチで測る）。
             if (World.Coef.MintDemandCounted > 0) m.LastDemand += qty * World.Coef.MintDemandCounted;
-            World.CumulativeGoldMinted += value;      // 基礎貨幣増の正当な源として台帳に計上（MoneyConservation が許容）
+            //（鋳造の台帳＝基礎貨幣増の正当な源は、上の移し方の1本〔minted〕が動いた額で書いた＝MoneyConservation が許容）
             // ★床モード＝吸った現物を国の準備として保持（旧来は「コインになって消える」＝追跡しない＝恒等）。
             //   法が本位を捨てたとき、この準備が市場へ売られる＝暴落を深める投げ売りが台本なしで出る。
             if (floor) { if (metal == Catalog.SilverId) World.SilverReserveQty += qty; else World.GoldReserveQty += qty; }
         }
     }
 
-    /// <summary>★demonetization（2026-08-14・床モードのみ）：法が捨てた本位金属の準備を毎月 MintReserveSellRate で市場へ売る。
-    /// 金属は首都州の市場在庫へ戻る（Stock＋/LastImport＋＝国庫の金庫からの「輸入」＝GoodsBalance恒等）。
-    /// ⚠金は動かさない＝鋳造時に発行された貨幣はそのまま流通し続ける（demonetized coins＝不換のオーバーハング。
-    ///   独は売却額を回収したが銀安で損を出し1879年に売却を停止した——その損得の表現は簡略化し、供給ショックだけを採る）。</summary>
+    /// <summary>★demonetization（2026-08-14・床モードのみ）：法が捨てた本位金属の準備を毎月 MintReserveSellRate で首都州の市場へ売る（<see cref="SellReserve"/>＝市場価格で）。
+    /// ⚠鋳造時に発行された貨幣は流通し続ける（demonetized coins＝不換のオーバーハング）。★2026-09-30（段3-5・C8）：売った代金は買い手（捌き手）から造幣局へ＝貨幣の回収
+    ///   （旧＝金は動かさず、在庫へ入った金属の国内の売上は輸入の捌き手の商人へ＝払っていない積荷の代金が商人の所得になった）。独は売却額を回収し、銀安で損を出して1879年に売却を停止した。</summary>
     private void SellDemonetizedReserves(int lawMetal, bool isFiat)
     {
         double rate = PoliticalQuantities.Clamp01(World.Coef.MintReserveSellRate);
         if (rate <= 0) return;
         if (World.SilverReserveQty > 1e-9 && (isFiat || lawMetal != Catalog.SilverId))
-            World.SilverReserveQty -= DumpReserve(Catalog.SilverId, World.SilverReserveQty * rate);
+            World.SilverReserveQty -= SellReserve(World.Region, Catalog.SilverId, World.SilverReserveQty * rate);
         if (World.GoldReserveQty > 1e-9 && (isFiat || lawMetal != Catalog.GoldOreId))
-            World.GoldReserveQty -= DumpReserve(Catalog.GoldOreId, World.GoldReserveQty * rate);
+            World.GoldReserveQty -= SellReserve(World.Region, Catalog.GoldOreId, World.GoldReserveQty * rate);
     }
 
-    private double DumpReserve(int gid, double qty)
+    /// <summary>★準備の売却の1本（支払いの一元化 段3-5・C8・2026-09-30＝旧 DumpReserve と平価の売り〔休眠 MintParitySells〕の2か所を畳んだ）：
+    /// 造幣局が金属の準備を州の捌き手（商人・不在は投資家・どちらも居なければ売らない）へ <paramref name="price"/>（省略時＝その州の市場価格）で売る。
+    /// 代金は買い手から造幣局へ（移し方の1本・minted＝鋳造の逆＝貨幣の回収＝保存量 D は不変）・金属は市場の在庫へ（輸入＝在庫の恒等式 Stock＝前在庫＋生産＋輸入−販売−輸出）
+    /// ＝買い手はその在庫を国内で売る輸入の捌き手（EconomyStep の商人の取り分）。払えるのは貯蓄まで＝払えない分は売らない（量を減らす）。戻り値＝売った量（呼び手が準備から引く）。</summary>
+    private double SellReserve(Region r, int gid, double qty, double price = double.NaN)
     {
-        if (qty <= 1e-12) return 0;
-        var r = World.Region;   // 首都州（Regions[0]規約）
-        if (r.State != RegionState.Active || r.GoodOf(gid) is null) return 0;
+        if (!(qty > 1e-12) || r.State != RegionState.Active || r.GoodOf(gid) is null) return 0;
         var m = r.Markets[gid];
-        m.Stock += qty; m.LastImport += qty;   // 在庫恒等式＝Stock=前在庫+生産+輸入−販売−輸出（Invariants.GoodsBalance）
-        return qty;
+        if (double.IsNaN(price)) price = m.Price;
+        if (!(price > 1e-12)) return 0;   // 否定形＝NaN・0 の値段では売らない
+        int b = r.MerchantPopIndex >= 0 && r.MerchantPopIndex < r.Pops.Count ? r.MerchantPopIndex
+              : r.InvestorPopIndex >= 0 && r.InvestorPopIndex < r.Pops.Count ? r.InvestorPopIndex : -1;
+        if (b < 0) return 0;
+        double sold = World.Transfer((World, [r.Pops[b]]), (null, null, null), qty * price, minted: true) / price;   // 払えた額の分だけ（Transfer は貯蓄まで）
+        if (!(sold > 1e-12)) return 0;
+        m.Stock += sold; m.LastImport += sold;
+        return sold;
     }
 
     /// <summary>出口＝返済規律（POPの個人債務・設計 docs/20260802・2026-08-02）。黒字が出たらまず返す。

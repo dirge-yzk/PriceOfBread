@@ -66,8 +66,9 @@ public sealed partial class InternationalMarket
     /// 旧＝PayExportToProducers（輸出代金の半分〔係数 ExportRevenueToProducers〕を持ち主の貯蓄へ直接・賃金分なし・残りは国の全POP の貯蓄比）。
     /// 払い手＝from（清算所＝(null, null)・輸送財の買い手＝(国, [POP])・国庫＝(国, null)＝区分 <paramref name="cat"/>）。戻り値＝動いた額。
     /// ★段3-2（2026-09-30）：<paramref name="r"/>＝null は**国の全ての活きた州**の生産者の産出の比（役務＝兵士の兵力・官僚の行政・労働の工賃を国として買う＝連合と植民地の維持費・運河の工賃）。
-    ///   生産者が1人もいなければ動かさない（受け手不在＝払い手に残る）。国庫が自国の国営持分から買う分は区分だけ動く（払い手の区分から StateFactory へ＝EconomyStep の④と同じ記帳）。</summary>
-    internal static double PaySales((World? W, List<Pop>? Pops) from, Region? r, int goodId, double amount, World w, TreasuryCat cat = TreasuryCat.OtherIn)
+    ///   生産者が1人もいなければ動かさない（受け手不在＝払い手に残る）。国庫が自国の国営持分から買う分は区分だけ動く（払い手の区分から StateFactory へ＝EconomyStep の④と同じ記帳）。
+    /// ★段3-5（2026-09-30・C8）：<paramref name="minted"/>＝払い手が造幣局（世界の外＝新しい貨幣）＝世界の台帳は鋳造（CumulativeGoldMinted）へ（移し方の1本の引数をそのまま渡す）。</summary>
+    internal static double PaySales((World? W, List<Pop>? Pops) from, Region? r, int goodId, double amount, World w, TreasuryCat cat = TreasuryCat.OtherIn, bool minted = false)
     {
         if (!(amount > 0)) return 0;
         var coef = w.Coef;
@@ -117,10 +118,21 @@ public sealed partial class InternationalMarket
         if (stateCut > 0)
         {
             if (from.Pops is null && ReferenceEquals(from.W, w)) { w.Pay(cat, -stateCut); w.Pay(TreasuryCat.StateFactory, stateCut); moved += stateCut; }   // 国庫が自国の国営持分から買う＝区分だけ動く
-            else moved += World.Transfer(from, (w, null, null), stateCut, TreasuryCat.StateFactory);
+            else moved += World.Transfer(from, (w, null, null), stateCut, TreasuryCat.StateFactory, minted: minted);
         }
-        moved += World.Transfer(from, (w, to, wt), amount - stateCut, cat, income: true);
+        moved += World.Transfer(from, (w, to, wt), amount - stateCut, cat, income: true, minted: minted);
         return moved;
+    }
+
+    /// <summary>国として財 g を買う支払い（<see cref="PaySales"/> の国の枝）に受け手がいる＝国の活きた州のその財の産出の和＞0（PaySales の totalOut と同じ閾値）。
+    /// 産出の和は月次の決算が書いた <see cref="Market.LastProduced"/>（その財の生産者の Output の和＝EconomyStep）を読む＝生産者を走査しない（州の数だけ）。
+    /// ★段4d（2026-09-30・分子と分母を同じ規則で）：国として役務を買う請求（連合維持費・植民地の駐留の俸給）は受け手のいる分だけ立てる＝払えない請求で国家の支払い率 r を下げない。</summary>
+    internal static bool HasSellers(World w, int g)
+    {
+        double sum = 0;
+        foreach (var r in w.Regions)
+            if (r.State == RegionState.Active && g < r.Markets.Length) sum += Math.Max(0, r.Markets[g].LastProduced);
+        return sum > 1e-9;
     }
 
     // 穀物法の保護強度：なし0／限定的0.5／全面1.0（輸入閾値への上乗せ＝CornLawImportPenalty に掛かる）。

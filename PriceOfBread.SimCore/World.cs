@@ -749,8 +749,11 @@ public sealed class World
     /// ⚠払い手と受け手の集合が重なってもよい（先に取り、後で配る＝両建てで純保存）。否定形のガード＝NaN と負の額は動かさない（負の額の按分は Distribute）。
     /// ★段3-3（2026-09-30）：**国境をまたぐ払いは為替で換算**（貿易の清算〔段3-1・A7〕と同じ規則）＝払い手は自国の通貨で <paramref name="amount"/>、受け手はその金の値打ちを
     ///   自国の通貨で受け取る（×払い手の為替÷受け手の為替）。差は為替の換算の台帳（<see cref="Diplomacy.CumulativeFxResidual"/>）へ。戻り値は払い手の通貨の額。
-    ///   受け手が国庫のとき、区分は <paramref name="toCat"/>（省略時は <paramref name="cat"/>＝払い手と受け手で名目が違う国家間の移転＝貢納の出と入り・通行料）。</summary>
-    internal static double Transfer((World? W, List<Pop>? Pops) from, (World? W, List<Pop>? Pops, List<double>? Weights) to, double amount, TreasuryCat cat = TreasuryCat.OtherOut, bool income = false, TreasuryCat? toCat = null)
+    ///   受け手が国庫のとき、区分は <paramref name="toCat"/>（省略時は <paramref name="cat"/>＝払い手と受け手で名目が違う国家間の移転＝貢納の出と入り・通行料）。
+    /// ★段3-5（2026-09-30・C8＝処理の一元化 段4d）：<paramref name="minted"/>＝世界の外の側が**造幣局**（新しい貨幣の発行と回収）＝世界の中の側の台帳は鋳造
+    ///   （<see cref="CumulativeGoldMinted"/>）へ（既定＝国境の出入り CumulativeTradeFlow）。鋳造の代金（造幣局→④の持分）と準備の売却（捌き手→造幣局）が同じ1本を通る
+    ///   ＝お金が生まれる／消える経路も、動いた額をそのまま台帳へ書く（計画 §10-12-2）。</summary>
+    internal static double Transfer((World? W, List<Pop>? Pops) from, (World? W, List<Pop>? Pops, List<double>? Weights) to, double amount, TreasuryCat cat = TreasuryCat.OtherOut, bool income = false, TreasuryCat? toCat = null, bool minted = false)
     {
         if (!(amount > 0)) return 0;
         if (to.Pops is { } tp)
@@ -785,8 +788,16 @@ public sealed class World
         else to.W?.Pay(toCat ?? cat, got);
         if (!ReferenceEquals(from.W, to.W))
         {
-            if (from.W is { } fw) fw.CumulativeTradeFlow -= moved;
-            if (to.W is { } rw) rw.CumulativeTradeFlow += got;
+            if (minted)
+            {
+                if (from.W is { } fw) fw.CumulativeGoldMinted -= moved;   // 回収（準備の売却＝鋳造の逆）
+                if (to.W is { } rw) rw.CumulativeGoldMinted += got;       // 発行（鋳造の代金）
+            }
+            else
+            {
+                if (from.W is { } fw) fw.CumulativeTradeFlow -= moved;
+                if (to.W is { } rw) rw.CumulativeTradeFlow += got;
+            }
         }
         return moved;
     }

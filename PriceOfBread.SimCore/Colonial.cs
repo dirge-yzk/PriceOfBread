@@ -76,12 +76,15 @@ public static class Colonial
             }
         foreach (var col in w.SelfPower!.ColonyList) AccumUpkeep(col.Latitude, col.Longitude, col.Population, col.Militancy, col.Malarial);
         w.ColonialShipBurden = shipBurden;   // 交易の実効海運を絞る（InternationalMarket/Trade が ShipCapacity/(1+これ) で参照）
+        // ★段4d（2026-09-30・分子と分母を同じ規則で）：俸給の請求は受け手（兵士の兵力の生産者）のいる分だけ＝連合維持費（Fiscal）と同じ1本の述語。
+        //   旧＝兵士がいなくても請求に入った＝払えない（国庫に残る）請求で翌月の国家の支払い率 r が下がった。
+        if (!InternationalMarket.HasSellers(w, Catalog.MilitaryPowerId)) totalUpkeep = 0;
         w.LastColonialUpkeep = totalUpkeep;   // 請求（r を掛ける前・2026-09-28 から＝旧は実支払い）＝翌月の月初の請求の見込み（Simulation）と予算表が読む。下の補給財の請求も BuyUpkeepGood が足す
         if (totalUpkeep > 1e-9)
         {
             double paid = totalUpkeep * w.FiscalFundingRatio;   // 国家の支払い率 r の分だけ（2026-09-28 段2-1＝旧は国庫の残りで切る門）
             // ★支払いの一元化 段3-2（2026-09-30・作者裁定 Q8 (a)・C7）：駐留と鎮圧の俸給＝国として兵士の兵力を買う代金を、兵力の生産者の④の持分（兵士の賃金・Earned を通す）で。
-            //   旧＝本国の全POP へ頭数で配った（名目は駐留の俸給なのに受け手は全国民）。兵士がいなければ国庫に残る。
+            //   旧＝本国の全POP へ頭数で配った（名目は駐留の俸給なのに受け手は全国民）。兵士がいなければ請求も立たない（上の段4d）。
             InternationalMarket.PaySales((w, null), null, Catalog.MilitaryPowerId, paid, w, TreasuryCat.ColonialUpkeep);
         }
         // 距離維持費の物理消費：国庫が本国市場から燃料・缶詰糧食を買う（在庫律速・需要計上で価格律速・産業と競合）。支払いは生産者へ（保存）。

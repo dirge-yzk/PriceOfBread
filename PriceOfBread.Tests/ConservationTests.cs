@@ -605,7 +605,6 @@ public class ConservationTests
         {
             var sim = Uk(); var w = sim.Nations[0].World;
             sim.Coef.PortInvestFrac = frac; sim.Coef.PortTechOnset = 0;
-            sim.Coef.PortFeeRate = 0;   // 港料を止める（後の港の州の港料は全POP の貯蓄の比で取る＝前の州の工賃で比が動き、双子の差に混ざる）
             var port = w.Regions.Find(r => r.State == RegionState.Active && r.IsPort && r.InvestorPopIndex >= 0)!;
             foreach (var r in w.Regions) r.LastTradeThrottle = 1.0;   // 他の港は混雑していない＝建設は1つの港だけ
             port.LastTradeThrottle = 0; w.FiscalFundingRatio = 1.0;

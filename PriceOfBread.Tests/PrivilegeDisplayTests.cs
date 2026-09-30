@@ -4,7 +4,7 @@ using Xunit;
 namespace PriceOfBread.Tests;
 
 /// <summary>特権の表示（作者指示2026-09-07(7)(8)＝POPタブの各行の下に1行）が読む観測量の機構テスト。
-/// (a) 税の本体（TaxAssessment／CollectTithe の率）から残高関数へ畳んだ重複が**ビット同一**であること＝較正帯が動かない証拠。
+/// (a) 税の本体（TaxAssessment／Fiscal.Step の十分の一税の率）から残高関数へ畳んだ重複が**ビット同一**であること＝較正帯が動かない証拠。
 /// (b) 受益クラスの判定＝身分制免税だけは閉鎖階級すべて（貴族と聖職者）。
 /// (c) 休眠ゲートで1銭も動かない特権（同業組合＝GuildLawGate=0）は「在る」と名乗らない。
 /// (d) 初期状態が国家の初期法に一致する（新しい状態を作っていない証拠）。</summary>
@@ -69,7 +69,7 @@ public class PrivilegeDisplayTests
                     double old = rate;
                     if (gate > 0)
                         old *= law switch { StateReligionLaw.InnerFreedom => c.InnerFreedomTithe, StateReligionLaw.ReligiousFreedom => c.ReligiousFreedomTithe, StateReligionLaw.StateAtheism => 0.0, _ => 1.0 };
-                    // 畳み込み後（CollectTithe の1行目と同じ式）
+                    // 畳み込み後（Fiscal.Step の十分の一税の率と同じ式）
                     AssertBitEqual(old, c.TitheRate * Privileges.TitheDegree(w, c), $"十分の一税の実効率（{law}/{gate}/{rate}）");
                 }
         }
@@ -172,27 +172,39 @@ public class PrivilegeDisplayTests
     }
 
     /// <summary>特権の取り分は pop→pop の移転＝ゼロ和（国庫を通さず貨幣を作らない）。
-    /// 十分の一税＝特権そのものが金を動かす現物の経路（<see cref="Privileges.CollectTithe"/>）。</summary>
+    /// 十分の一税＝特権そのものが金を動かす現物の経路（★2026-09-30 段3-4＝Fiscal.Step の税の走査で税と同じ1本の率で集める＝旧 Privileges.CollectTithe は削除）。
+    /// 盤面＝税・汚職の漏れ・維持費・福祉・年金・国債を止めた月次の財政1回＝動く金は十分の一税だけ。</summary>
     [Fact]
     public void 十分の一税の取り分は聖職者への移転でゼロ和()
     {
         var w = Warm(NationConfig.France());
         var c = w.Coef;
         w.StateReligion = StateReligionLaw.StateChurch;
-        c.TitheRate = 0.05; c.StateReligionGate = 0;
+        c.TitheRate = 0.05; c.StateReligionGate = 0; c.CorruptionMax = 0;
+        w.TaxRate = 0; w.PollTax = 0; w.LandTax = 0; w.ProgressiveTax = 0;
+        w.BaseCoercion = 0; c.AdminCostPerPop = 0; w.SocialSecurity = 0; w.Pension = ReformLevel.None;
+        w.GovDebt = 0; w.ForeignDebt = 0;
         var pops = new System.Collections.Generic.List<Pop>(w.AllPops());
+        foreach (var p in pops) p.BondHoldings = 0;
         double clergySize = 0; foreach (var p in pops) if (p.ClassId == PopClass.Clergy) clergySize += p.Size;
         Assert.True(clergySize > 1e-9, "聖職者のいない世界では移転を測れない");
-        foreach (var p in pops) if (!p.Closed && !p.IsModernElite && !p.IsSoldier) { p.Earned = 100; p.Savings = 100; }   // 払い手に確実に原資を持たせる
+        double expected = 0;
+        foreach (var p in pops)
+        {
+            p.LastEarned = 0;
+            if (!p.Closed && !p.IsModernElite && !p.IsSoldier) { p.LastEarned = 100; p.Savings = 100; expected += 0.05 * 100; }   // 払い手に確実に原資を持たせる
+        }
 
         double Sum(System.Func<Pop, bool> pick) { double s = 0; foreach (var p in pops) if (pick(p)) s += p.Savings; return s; }
-        double before = Sum(_ => true), clergyBefore = Sum(p => p.ClassId == PopClass.Clergy);
-        double collected = Privileges.CollectTithe(w, c, pops);
+        double before = Sum(_ => true), clergyBefore = Sum(p => p.ClassId == PopClass.Clergy), t0 = w.Treasury;
+        w.FiscalFundingRatio = 1.0;
+        Fiscal.Step(w, c);
         double after = Sum(_ => true), clergyAfter = Sum(p => p.ClassId == PopClass.Clergy);
 
-        Assert.True(collected > 0, "十分の一税が1銭も動いていない＝移転を測れていない");
+        Assert.True(expected > 0, "十分の一税の請求が立っていない＝移転を測れていない");
         Assert.True(System.Math.Abs(after - before) <= 1e-9 * System.Math.Max(1, before), $"貯蓄の総和が動いた＝移転でなく生成/消滅（{before:R}→{after:R}）");
-        Assert.True(System.Math.Abs((clergyAfter - clergyBefore) - collected) <= 1e-9 * System.Math.Max(1, collected), $"集めた額と聖職者の受取が一致しない（{collected:R}/{clergyAfter - clergyBefore:R}）");
+        Assert.Equal(t0, w.Treasury);   // 国庫を通さない
+        Assert.True(System.Math.Abs((clergyAfter - clergyBefore) - expected) <= 1e-9 * System.Math.Max(1, expected), $"請求の額と聖職者の受取が一致しない（{expected:R}/{clergyAfter - clergyBefore:R}）");
     }
 
     // ==== 剥離の怒り＝特権 段3（二量分離の設計メモ §7-6・2026-09-09）====================================================

@@ -79,6 +79,22 @@ public static class Fiscal
             }
             if (ri != pops.Count) { ruleMul = null; ruleCut = null; ruleLord = null; }   // ⚠添字が合わない（集合の定義が変わった）ときは旧挙動へ倒す＝壊さない
         }
+        // ★支払いの一元化 段3-4（2026-09-30・B6・作者裁定 Q4＝処理の一元化 段4d）：**POP の義務は1本の率**。税（所得・累進・人頭・土地）と十分の一税と領主の取り分を
+        //   POP ごとに全部集め、r_p＝min(1, 払える額÷請求の和)（払える額＝max(0, 貯蓄)）を全ての請求に同じに掛ける＝優先順位を作らない（国家の支払い率と同じ規則の POP 版）。
+        //   旧＝所得→累進→人頭→土地の順に残りの貯蓄で切り、十分の一税は税の後の残りから（別の関数 Privileges.CollectTithe・国家が教会に優先）。
+        //   払えない分は請求が立たない（Q4＝不足は記録しない）。十分の一税の受け手（聖職）がいなければ十分の一税の請求は立たない（受け手不在＝払い手に残る）。
+        //   ★所得の記帳は義務の間で揃える（C15 の確かめ）＝どの義務も払い手の総所得（Earned）を減らさない（所得税と同じ＝総所得から払う）・受け取りは受け手の所得
+        //   （聖職の十分の一税・領主の取り分＝教会と領主の役務の対価＝国庫の税が官僚の俸給として所得になるのと同じ）。
+        double titheRate = c.TitheRate * Privileges.TitheDegree(w, c);   // 国教法の変調は TitheDegree の1本（旧 CollectTithe の1行目と同じ式）
+        List<Pop>? clergy = null;
+        if (titheRate > 1e-9)
+        {
+            clergy = [];
+            double clergySize = 0;
+            foreach (var p in pops) if (p.ClassId == PopClass.Clergy && p.Size > 1e-9) { clergy.Add(p); clergySize += p.Size; }
+            if (!(clergySize > 1e-9)) clergy = null;
+        }
+        double titheCollected = 0;
         for (int pi = 0; pi < pops.Count; pi++)
         {
             var p = pops[pi];
@@ -121,31 +137,39 @@ public static class Fiscal
             // ★段3-1（2026-09-29）：課税の基数＝**確定した前の月の所得**（LastEarned＝EconomyStep が月初に写す前の月の Earned の全部）。旧＝今月の Earned＝
             //   月次の財政より後に入る受け取り（輸出代金と運賃〔国際市場の清算は全ての国の月次決算の後〕・領主の取り分）が翌月の頭で0へ戻り、課税されなかった。
             //   史実の所得税も前の期の所得を査定した（英1799 ピットの所得税・1842 ピールの再導入）。
-            double tax = Math.Min(w.TaxRate * Math.Max(0, p.LastEarned) * privBase * consent, Math.Max(0, p.Savings));
+            double tax = w.TaxRate * Math.Max(0, p.LastEarned) * privBase * consent;   // 請求（査定の全額）＝払うのは下の1本の率 r_p を掛けた額
             if (c.PrivilegeLedgerEnabled > 0 && privBase < 1.0)   // ★特権台帳（段1・観測）：免税で抜けた分＝あるべき税×(1−privBase)（貯蓄上限は無視＝取り分の定義は査定の特権）
                 Privileges.Record(w, Privileges.TaxExemption, (w.TaxRate * Math.Max(0, p.LastEarned) * consent + w.LandTax * Math.Max(0, p.LandRent)) * (1.0 - privBase));
             // 累進課税（A-1#3配線2026-06-24）：富裕層（近代エリート＝資本家/ブルジョワ・閉鎖階級＝貴族/聖職）の所得に**追加**課税＝再分配。所得税と同じ査定機構（漏れも同じ汚職leak）。富裕が強く抵抗（PolicyPreferences）。
             if (w.ProgressiveTax > 1e-9 && (p.IsModernElite || p.Closed) && !p.IsSoldier)
-                tax += Math.Min(w.ProgressiveTax * Math.Max(0, p.LastEarned) * consent, Math.Max(0, p.Savings - tax));
+                tax += w.ProgressiveTax * Math.Max(0, p.LastEarned) * consent;
             // 人頭税：頭数に一律＝行政不要で確実だが逆進的。閉鎖階級（貴族・聖職）は免除＝特権（大衆の不満の種）。兵士は国が雇い主＝対象外。
             if (w.PollTax > 1e-9 && !p.Closed && !p.IsSoldier)
-                tax += Math.Min(c.PollTaxRate * w.PollTax * p.Size, Math.Max(0, p.Savings - tax));
+                tax += c.PollTaxRate * w.PollTax * p.Size;
             // 土地税：RGOの地代（封建貢租の受け手＝地主）に課税。率そのまま課し、行政不足の徴収漏れは汚職leakが担う（所得税と同方式）。
             if (w.LandTax > 1e-9 && p.LandRent > 0)
-                tax += Math.Min(w.LandTax * p.LandRent * privBase, Math.Max(0, p.Savings - tax));   // C-高4：土地税も特権の過少査定（史実の免税の本丸＝taille réelle は土地税）。⚠同意(consent)は掛けない＝源泉で取る税
+                tax += w.LandTax * p.LandRent * privBase;   // C-高4：土地税も特権の過少査定（史実の免税の本丸＝taille réelle は土地税）。⚠同意(consent)は掛けない＝源泉で取る税
+            // 仲介者の取り分（支配度 段3・休眠 RuleSharesTaxBase=0）＝国庫へ届く分と在地の貴族の分に割る（査定の全額に掛ける）。
+            double cut = 0; Pop? lord = null;
             if (ruleMul is not null)
             {
                 double full = tax;
                 tax = full * ruleMul[pi];
-                double cut = full * ruleCut![pi];
-                if (cut > 1e-12 && ruleLord![pi] is { } lord && !ReferenceEquals(lord, p))
-                {
-                    cut = Math.Min(cut, Math.Max(0, p.Savings - tax));
-                    p.Savings -= cut; lord.Savings += cut; lord.Earned += cut;   // 仲介者の取り分（納税者→貴族＝保存）
-                    if (c.PrivilegeLedgerEnabled > 0) Privileges.Record(w, Privileges.Seigneurial, cut);
-                }
+                if (ruleLord![pi] is { } lp && !ReferenceEquals(lp, p) && full * ruleCut![pi] > 1e-12) { cut = full * ruleCut[pi]; lord = lp; }
             }
-            p.Savings -= tax;
+            double tithe = clergy is not null && Politics.IsMassPop(p) && p.LastEarned > 0 ? titheRate * p.LastEarned : 0;   // 十分の一税の請求（大衆の前の月の所得＝所得税と同じ基数）
+            double claims = tax + cut + tithe;
+            if (!(claims > 0)) continue;   // 否定形＝NaN の請求は立てない
+            double held = Math.Max(0, p.Savings);
+            double rp = held >= claims ? 1.0 : held / claims;   // 1本の率（払える額が足りれば 1＝全額）
+            tax *= rp; cut *= rp; tithe *= rp;
+            p.Savings -= tax + cut + tithe;
+            if (lord is not null && cut > 0)
+            {
+                lord.Savings += cut; lord.Earned += cut;   // 仲介者の取り分（納税者→貴族＝保存）
+                if (c.PrivilegeLedgerEnabled > 0) Privileges.Record(w, Privileges.Seigneurial, cut);
+            }
+            titheCollected += tithe;
             revenue += tax;
         }
         // 汚職：行政（官僚の役務）が足りないと税収の一部が国庫に届かず役人の懐へ消える（pop→官僚の移転＝保存）。
@@ -183,11 +207,12 @@ public static class Fiscal
         }
         w.Pay(TreasuryCat.Tax, revenue);
 
-        // 十分の一税（教会税）：大衆（非特権・非兵士＝農民・労働者・職人）の所得の1/10を聖職者が受け取る。
+        // 十分の一税（教会税）：大衆（非特権・非兵士＝農民・労働者・職人）の所得の TitheRate を聖職者が受け取る。
         // 公教育に教育の担い手を奪われても食える恒常収入（要望）。pop→聖職者の移転＝国庫を通さず基礎貨幣保存。
         // 1934拡張E6 国教法：寛容化ほど十分の一税の徴収力が下がる（内心の自由=0.6・信仰の自由=0.3＝教会の税権が国家に制限される）。StateReligionGate=0で×1.0＝恒等。
         // 例外①（2026-07-28）：国家無神論＝教会税の全廃（ソ連1918政教分離令＝教会財産の没収・収入源の遮断）。
-        double titheCollected = Privileges.CollectTithe(w, c, pops);   // ★特権台帳へ移設（2026-09-06・順序も式もビット同一）
+        // ★段3-4（2026-09-30）：徴収は上の税と同じ1本の率（旧 Privileges.CollectTithe の徴収の走査を畳んだ）。貯蓄は按分の本体（頭数・端数は最後の聖職）・所得も同じ1行で。
+        if (clergy is not null && titheCollected > 0) World.Distribute(clergy, titheCollected, null, income: true);
         if (c.PrivilegeLedgerEnabled > 0) Privileges.Record(w, Privileges.Tithe, titheCollected);   // ★特権台帳（段1・観測）
         if (c.PrivilegeLedgerEnabled > 0) Privileges.StepMonth(w, c);   // ★特権台帳（段1）：今月の取り分を畳み保有年数を積む（月次・十分の一税の後）
 
@@ -220,6 +245,11 @@ public static class Fiscal
             }
         }
         double coercionUpkeep = c.CoercionUpkeepRate * w.BaseCoercion * coercionScale;   // 治安維持（警察・駐屯）＝兵士の兵力を買う（段3-2・下の支払い）
+        // ★段4d（2026-09-30・(117) の申し送り4＝分子と分母を同じ規則で）：請求は**払える担い手のいる分だけ**。治安維持は兵士の兵力・行政費は官僚の行政の生産者
+        //   （④の持分の受け手＝下の支払い PaySales の国の枝が受け手を見つける条件と同じ＝国の活きた州のその財の産出の和＞0）が国に居なければ請求に入れない。
+        //   旧＝担い手がいなくても請求 LastUpkeep と余剰の控除に入った＝払えない（受け手不在で国庫に残る）請求で月初の国家の支払い率 r が下がった（較正の世界・残骸国家）。
+        if (!InternationalMarket.HasSellers(w, Catalog.MilitaryPowerId)) coercionUpkeep = 0;
+        if (!InternationalMarket.HasSellers(w, Catalog.AdminId)) adminCost = 0;
         double upkeep = coercionUpkeep + adminCost;
 
         // === 国債：利払い（借入は月初の Borrow＝払える額の側・2026-09-28）===
@@ -378,7 +408,7 @@ public static class Fiscal
         // ★支払いの一元化 段3-2（2026-09-30・作者裁定 Q8 (a)・C7）：連合維持費は**治安と行政の役務の給与**＝国として兵士の兵力（治安維持）と官僚の行政（行政費）を
         //   買う代金を、その役務の生産者の④の持分（産出の比・賃金は労働＝兵士と官僚・Earned を通す）で払う（InternationalMarket.PaySales の国の枝）。
         //   旧＝全POP へ頭数で配った（名目は軍・警察・官僚の俸給なのに受け手は全国民＝ヘリコプター移転）＋休眠の傾斜 CoercionUpkeepToSoldiers（兵士と官僚へ頭数で・係数ごと削除）。
-        //   量は動かさない（兵力と行政の買い付けの量と充足〔AdminFill・兵の給与の信号〕は予算の行の購買のまま）＝維持費は給与の上乗せとして担い手に届く。担い手がいなければ国庫に残る。
+        //   量は動かさない（兵力と行政の買い付けの量と充足〔AdminFill・兵の給与の信号〕は予算の行の購買のまま）＝維持費は給与の上乗せとして担い手に届く。担い手がいなければ請求も立たない（上の段4d）。
         InternationalMarket.PaySales((w, null), null, Catalog.MilitaryPowerId, coercionUpkeep * payRate, w, TreasuryCat.Admin);
         InternationalMarket.PaySales((w, null), null, Catalog.AdminId, adminCost * payRate, w, TreasuryCat.Admin);
         //（旧 FiscalFundingRatio＝維持費を払えた割合 pay/upkeep は、2026-09-28 から月初の国家の支払い率 r＝Simulation の1か所だけが書く）

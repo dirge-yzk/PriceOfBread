@@ -26,7 +26,7 @@ public static class Privileges
     public static double GuildDegree(World w) => w.Guild switch { GuildLaw.Full => 1.0, GuildLaw.Limited => 0.5, _ => 0.0 };
 
     /// <summary>十分の一税の残高＝国教法で変調した実効率÷基準率（国教のみ1／内心の自由・信仰の自由は係数／国家無神論0）。
-    /// ★<see cref="CollectTithe"/> と同じ1本の定義（同じ式を2箇所に書かない・2026-09-07）。TitheRate=0 の世界は0＝特権そのものが無い。</summary>
+    /// ★十分の一税の徴収（Fiscal.Step の税の走査）と同じ1本の定義（同じ式を2箇所に書かない・2026-09-07）。TitheRate=0 の世界は0＝特権そのものが無い。</summary>
     public static double TitheDegree(World w, Coefficients c)
         => !(c.TitheRate > 0) ? 0.0
          : c.StateReligionGate > 0
@@ -91,27 +91,8 @@ public static class Privileges
     public static double TaxAssessment(World w, Coefficients c, Pop p, double crownShare)
         => p.Closed && !p.IsSoldier ? 1.0 - TaxExemptionDegree(w, c, crownShare) : 1.0;
 
-    /// <summary>十分の一税＝大衆（非特権・非近代エリート・非兵士）の所得の TitheRate を聖職者へ（pop→pop 移転・国庫非経由＝保存）。
-    /// ★Fiscal から**移設**（2026-09-06・順序も式もビット同一・旧経路は削除）。国教法で率が下がる（StateReligionGate）。戻り値＝集めた額。</summary>
-    public static double CollectTithe(World w, Coefficients c, System.Collections.Generic.List<Pop> pops)
-    {
-        double titheRate = c.TitheRate * TitheDegree(w, c);   // ★2026-09-07：国教法の変調を TitheDegree へ畳んだ（同じ式を2箇所に書かない・積の順序も同じでビット同一）
-        if (!(titheRate > 1e-9)) return 0;
-        var clergy = new System.Collections.Generic.List<Pop>();
-        foreach (var p in pops) if (p.ClassId == PopClass.Clergy && p.Size > 1e-9) clergy.Add(p);
-        double clergySize = 0; foreach (var p in clergy) clergySize += p.Size;
-        if (!(clergySize > 1e-9)) return 0;
-        double collected = 0;
-        foreach (var p in pops)
-            if (Politics.IsMassPop(p) && p.LastEarned > 0)   // ★段3-1：基数＝確定した前の月の所得（所得税と同じ＝Fiscal の注記）
-            {
-                double t = System.Math.Min(titheRate * p.LastEarned, System.Math.Max(0, p.Savings));
-                p.Savings -= t; collected += t;
-            }
-        // ★支払いの一元化 段2-3（E1・2026-09-29）：貯蓄は按分の本体 World.Distribute（頭数・端数は最後の聖職）＝旧は端数を寄せなかった。所得（UIの所得に反映）は同じ比で記帳。
-        World.Distribute(clergy, collected, null, income: true);   // ★段3-1：所得も同じ按分の1行で（旧＝別の行で同じ比を足した）
-        return collected;
-    }
+    // 【墓標2026-09-30・支払いの一元化 段3-4（B6）】CollectTithe（十分の一税の徴収の走査・税の後の残りの貯蓄から）を削除した。
+    //   十分の一税の請求は Fiscal.Step の税の走査で税・領主の取り分と一緒に集め、POP ごとに1本の率 r_p で払う（国家が教会に優先しない）＝率は TitheDegree の1本。
 
     /// <summary>今月の取り分を記帳（pop→pop の移転額・貨幣は既に移動済み＝ここは記帳のみ）。</summary>
     public static void Record(World w, int kind, double take)

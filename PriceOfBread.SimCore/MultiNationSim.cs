@@ -1291,7 +1291,8 @@ public sealed class MultiNationSim
     }
 
     // 港湾の建設（改修2026-06-28）：StepCanals の雛形を Region に移植＝各国の港州を、交易が容量で律速（混雑）している時に**資本家が主導・国家が上乗せ**して拡張する。
-    // 保存：投資（資本家貯蓄＋国庫）→ 港の州の労働の④（建設の工賃＝StepCanals と同じ・BaseMoney不変）。港料：取扱高×率を地元投資家へ（関税同型の国内移転）。
+    // 保存：投資（資本家貯蓄＋国庫）→ 港の州の労働の④（建設の工賃＝StepCanals と同じ・BaseMoney不変）。
+    // ★2026-09-30（段3-4・C10）：港湾料は成約の時点の上乗せへ移した（BilateralMarket.StepBilateral＝荷主〔輸入の捌き手〕が払い、港の州の投資家が受け取る）＝ここは容量だけ。
     private void StepPorts()
     {
         foreach (var sim in Nations)
@@ -1300,17 +1301,11 @@ public sealed class MultiNationSim
             double natPop = 0; foreach (var r in w.Regions) if (r.State == RegionState.Active) foreach (var p in r.Pops) natPop += p.Size;
             if (natPop <= 1e-9) continue;
             bool techOk = w.TechLevel >= _coef.PortTechOnset;
-            List<Pop>? pops = null;   // 港料徴収の母集団（国ごとに高々1回だけ構築＝複数港での重複確保を避ける）
             foreach (var r in w.Regions)
             {
                 if (r.State != RegionState.Active || !r.IsPort) continue;
                 if (!_calendarFrozen) r.PortCapacity = Math.Max(0, r.PortCapacity * (1 - _coef.PortDecay));   // 減耗（維持に再投資）。★助走中は減耗も拡張も止める＝港湾容量は1783年のまま
-                // 港料：取扱高×率を地元投資家へ（荷主popから薄く徴収＝関税同型の国内移転で保存）。港を持つ意味＝施設使用料収入。
-                // ★港料は助走中も徴収する＝所得と価格の均衡の一部（止めるのは「能力が育つこと」だけ）。
-                // ★支払いの一元化 段2-3（E2・A4・2026-09-29）：旧 CollectPortFee（貯蓄比で取って残高で切る複製）を移し方の1本へ＝持ち主へ渡すのは引けた額そのもの。
-                if (pops is null) { pops = new List<Pop>(); foreach (var r2 in w.Regions) if (r2.State == RegionState.Active) pops.AddRange(r2.Pops); }
-                if (r.LastPortThroughput > 1e-9 && r.InvestorPopIndex >= 0 && r.InvestorPopIndex < r.Pops.Count)
-                    World.Transfer((w, pops), (w, [r.Pops[r.InvestorPopIndex]], [1.0]), r.LastPortThroughput * _coef.PortFeeRate);
+                //（港湾料は 2026-09-30 に成約の時点へ＝旧＝四半期末に取扱高×率を国の全POP から貯蓄の比で・段3-4 C10）
                 // 拡張は混雑時のみ（律速率<目標＝容量が交易を絞っている）＝採算ゲートで過剰投資しない。技術ゲート（近代港湾）。
                 if (_calendarFrozen || !techOk || r.LastTradeThrottle >= _coef.PortCongestionTarget) continue;   // ★助走：港湾も「年月をかけて広がる」能力＝凍結
                 if (r.InvestorPopIndex < 0 || r.InvestorPopIndex >= r.Pops.Count) continue;
@@ -1328,11 +1323,14 @@ public sealed class MultiNationSim
         }
     }
 
-    // 海上保険（改修2026-06-28・金融改革③）：商人pop＝引受手。平時は海上取扱高×料率を荷主(全pop)→商人へ（underwriting収入）、封鎖損失時は損失×給付率を商人基金→荷主へ（基金=商人貯蓄の範囲で部分払い＝ロイズの破綻リスク）。
+    // 海上保険（改修2026-06-28・金融改革③）：商人pop＝引受手。封鎖損失時は損失×給付率を商人基金→荷主へ（基金=商人貯蓄の範囲で部分払い＝ロイズの破綻リスク）。
     // すべてpop⇄pop移転＝基礎貨幣不変。多国シム(StepDay四半期)からのみ呼ばれる＝単一国較正は不走行で中立。商人不在の国は保険市場が立たない。
+    // ★2026-09-30（段3-4・C10＝処理の一元化 段4d）：保険料は成約の時点の上乗せへ移した（BilateralMarket.StepBilateral＝輸入の捌き手が払い、輸入国の商人が受け取る）。
+    //   保険金の受け手は**損をした荷主**＝各州の捌き手の商人（その州の海路の取扱高の比）。旧＝保険料は全POP の貯蓄の比・保険金は全POP の頭数（荷主でも損をした者でもない）。
+    //   ⚠封鎖の危険 LastBlockadeRisk の書き手が無い＝常に0（棚卸し econ-14）＝保険金は実ゲームでは立たない（形だけを直した）。
     private void StepMarineInsurance()
     {
-        if (_coef.MarinePremiumRate <= 0 && _coef.InsurancePayoutFrac <= 0) return;
+        if (_coef.InsurancePayoutFrac <= 0) return;
         foreach (var sim in Nations)
         {
             var w = sim.World;
@@ -1340,18 +1338,15 @@ public sealed class MultiNationSim
             double throughput = 0;
             foreach (var r in w.Regions) if (r.State == RegionState.Active) throughput += r.LastPortThroughput;
             if (throughput < 1e-9) continue;
-            var allPops = new List<Pop>(); var merchants = new List<Pop>();
-            foreach (var r in w.Regions) if (r.State == RegionState.Active)
-            {
-                foreach (var p in r.Pops) allPops.Add(p);
-                if (r.MerchantPopIndex >= 0 && r.MerchantPopIndex < r.Pops.Count) merchants.Add(r.Pops[r.MerchantPopIndex]);
-            }
-            if (merchants.Count == 0) continue;   // 引受手(商人)が居ない国は保険市場が立たない
-            // ★支払いの一元化 段2-3（2026-09-29）：旧 TransferToPops は World.Transfer（移し方の1本）へ移して一般化した＝受け手へ渡すのは引けた額そのもの（A4）・受け手不在なら動かさない。
-            World.Transfer((w, allPops), (w, merchants, null), _coef.MarinePremiumRate * throughput);   // 保険料：荷主→商人（平時の収入＝基金の積み増し）
             double risk = w.LastBlockadeRisk;   // 03手順7：旧CommerceRaidFactorの置換＝リスク線積分（取扱高加重平均）
-            if (risk > 1e-9)
-                World.Transfer((w, merchants), (w, allPops, null), _coef.InsurancePayoutFrac * throughput * risk);   // 保険金：商人基金→荷主（基金の範囲で部分払い＝払い手の貯蓄でクランプ）
+            if (!(risk > 1e-9)) continue;
+            var merchants = new List<Pop>(); var exposure = new List<double>();
+            foreach (var r in w.Regions)
+                if (r.State == RegionState.Active && r.MerchantPopIndex >= 0 && r.MerchantPopIndex < r.Pops.Count)
+                { merchants.Add(r.Pops[r.MerchantPopIndex]); exposure.Add(Math.Max(0, r.LastPortThroughput)); }
+            if (merchants.Count == 0) continue;   // 引受手(商人)が居ない国は保険市場が立たない
+            // 保険金：商人基金（引受手・貯蓄の比）→荷主（捌き手の商人・海路の取扱高の比）＝基金の範囲で部分払い（払い手の貯蓄でクランプ・移し方の1本）
+            World.Transfer((w, merchants), (w, merchants, exposure), _coef.InsurancePayoutFrac * throughput * risk);
         }
     }
 

@@ -49,39 +49,53 @@ public class TaxTests
             $"課税しても国庫が増えない（課税{taxed.World.Treasury:F0} vs 基準{baseline.World.Treasury:F0}）");
     }
 
+    /// <summary>人頭税＝頭数に一律（行政不要・逆進的）・閉鎖階級（貴族・聖職）は免除・兵士は国が雇い主で対象外。
+    /// ★2026-09-30（段4d・(122) の申し送り4＝番人の作り直し）：**1人あたりの額**で測る。旧＝24四半期の貯蓄の目減りの比（農民 vs 貴族）＝貴族は1人あたりの
+    ///   貯蓄が大きく頭数の税の目減りの比が小さい＝貴族も払う突然変異（M1）でも緑だった（免除の有無を見分けなかった）。
+    /// 盤面＝仏を1四半期温めた双子（人頭税 0 と最上段）・他の税と十分の一税と汚職の漏れと維持費と福祉と国債を止めて、月次の財政を1回＝双子の貯蓄の差が人頭税そのもの。
+    /// ⚠突然変異「閉鎖階級も払う」「兵士も払う」「人頭税を取らない」で赤。</summary>
     [Fact]
     public void 人頭税は閉鎖階級を免除し大衆に重い()   // 特権＝貴族・聖職者は払わない（逆進性の設計）
     {
-        // ★2026-09-30 (122) 盤面の直し：開幕の通貨は旧の不換（(119) で実国家の開幕は銀になった）。銀の盤面では、(117)(120)（支払いの段3-2・3-3）と
-        //   合わせた木で無税の側の赤字の埋め方（借入と改鋳）が変わり、直接負担の対比が 6.9%→4.0% に縮む＝この番人が測る逆進性（直接負担）とは別の経路。
-        Scenario FranceFiat() { var c = NationConfig.France().ShallowClone(); c.InitialMonetaryLaw = MonetaryStandardLaw.Fiat; return c.ToScenario(17); }
-        var baseline = new Simulation(FranceFiat(), new NullAgent());
-        var taxed = new Simulation(FranceFiat(), new NullAgent());
-        baseline.World.GovDebt = taxed.World.GovDebt = 0;   // P5：仏は重債務開始＝切り下げが両系の貯蓄を毎月削り逆進性の対比が埋もれるため中立財政で隔離
-        foreach (var w0 in new[] { baseline.World, taxed.World }) foreach (var rg in w0.Regions) foreach (var pp in rg.Pops) pp.BondHoldings = 0;   // ★2026-09-21：国債を手で消すなら持ち手の記録（保有台帳）も消す＝Σ保有＝国内元本の不変条件
-        baseline.World.Policy.PollTaxTarget = 0;     // 既定で人頭税0.5が入る（近世財政）ため、清浄な対比（無税 vs 最大）にして逆進性の直接効果を測る
-        taxed.World.Policy.PollTaxTarget = 1.0;
-        // ★2026-09-20 段の点火：人頭税は段の法＝目標1.0は最上段（錨 Government.PollTaxTop＝0.5＝開始値そのもの）へ落ちる＝課税側は開始値に留まる。
-        //   旧の対比（無税へ漸減 vs 1.0へ漸増）が縮むので、無税側は**開始時点から無税**にして同じ「無税 vs 最大」の対比を保つ。
-        baseline.World.PollTax = 0;
-        // ★2026-09-29 (109)：1783年の仏の人頭税は段2（タイユとカピタシオン＝NationConfig.PollTaxStage）＝課税側も**開始時点から最上段**に置いて同じ「無税 vs 最大」の対比を保つ。
-        taxed.World.PollTax = Government.PollTaxTop;
-        // 人頭税の逆進性（直接負担）の検証＝民族統一度とは直交。民族の一般均衡効果（行政効率・不満）が貴族の間接損を揺らして
-        // 24Qでも逆転させるため、この税制テストでは民族系を無効化して直接負担だけを測る（24Q短期化と同じ趣旨の隔離）。
-        baseline.World.EthnicEnabled = taxed.World.EthnicEnabled = false;
-        baseline.World.ParliamentEnabled = taxed.World.ParliamentEnabled = false;   // 人頭税の逆進性（直接負担）を測る＝議会が税の綱領で人頭/消費を動かすのは別レイヤーなので isolate
-        baseline.World.PoliticalLockEnabled = taxed.World.PoliticalLockEnabled = false;   // 逆進性の直接負担を測る＝大衆の人頭税反対による政治ロックとは直交なので隔離
-        // 直接の税負担（農民が払い貴族は免除）を測る短い期間。長期（60Q）まで回すと一般均衡の間接効果
-        // （景気収縮で貴族の地代・奢侈資産が目減り）が直接負担を上回り、逆進性の直接効果が埋もれるため24Qで測る。
-        baseline.Run(24);
-        taxed.Run(24);
-        double PeasantPc(Simulation s) { var p = s.World.Region.Pops[1]; return p.Savings / System.Math.Max(1, p.Size); }
-        double NoblePc(Simulation s) { var p = s.World.Region.Pops[0]; return p.Savings / System.Math.Max(1, p.Size); }
-        // 大衆（農民）は人頭税で明確に貧しくなる。貴族の減り方は相対的に軽い（免除＝直接は払わない）。
-        double peasantHit = 1 - PeasantPc(taxed) / System.Math.Max(1e-9, PeasantPc(baseline));
-        double nobleHit = 1 - NoblePc(taxed) / System.Math.Max(1e-9, NoblePc(baseline));
-        Assert.True(peasantHit > 0.05, $"人頭税が大衆に効いていない（農民の目減り {peasantHit:P1}）");
-        Assert.True(nobleHit < peasantHit, $"免除のはずの貴族（{nobleHit:P1}）が農民（{peasantHit:P1}）より重く払っている");
+        World Board(double poll)
+        {
+            var sim = new Simulation(NationConfig.France().ToScenario(17), new NullAgent());
+            sim.Run(1);   // 前の月の所得（LastEarned）を立てる＝双子は同じ種で同じ軌道
+            var w = sim.World;
+            w.TaxRate = 0; w.LandTax = 0; w.ProgressiveTax = 0; w.PollTax = poll;
+            w.Coef.TitheRate = 0; w.Coef.CorruptionMax = 0;
+            w.BaseCoercion = 0; w.Coef.AdminCostPerPop = 0;
+            w.SocialSecurity = 0; w.Pension = ReformLevel.None;
+            w.GovDebt = 0; w.ForeignDebt = 0;
+            foreach (var rg in w.Regions) foreach (var pp in rg.Pops) { pp.BondHoldings = 0; pp.Savings = System.Math.Max(pp.Savings, 0) + 1e3 * pp.Size; }   // 全員が払える＝率 r_p は1
+            w.FiscalFundingRatio = 1.0;
+            Fiscal.Step(w, w.Coef);
+            return w;
+        }
+        var none = Board(0);
+        var taxed = Board(Government.PollTaxTop);
+        double perHead = taxed.Coef.PollTaxRate * Government.PollTaxTop;
+        Assert.True(perHead > 0, "前提が崩れた：人頭税の1人あたりの額が0");
+        var np = new System.Collections.Generic.List<Pop>(none.AllPops()); var tp = new System.Collections.Generic.List<Pop>(taxed.AllPops());
+        Assert.Equal(np.Count, tp.Count);
+        double massPaid = 0, massIncome = 0, massSize = 0, elitePaid = 0, eliteIncome = 0, eliteSize = 0;
+        int closed = 0, soldiers = 0, masses = 0;
+        for (int i = 0; i < tp.Count; i++)
+        {
+            var p = tp[i];
+            if (!(p.Size > 1)) continue;
+            double paidPerHead = (np[i].Savings - p.Savings) / p.Size;
+            if (p.Closed) { closed++; Assert.True(System.Math.Abs(paidPerHead) <= 1e-9 * perHead, $"免除のはずの閉鎖階級（{p.ClassName}）が1人あたり {paidPerHead} 払った"); continue; }
+            if (p.IsSoldier) { soldiers++; Assert.True(System.Math.Abs(paidPerHead) <= 1e-9 * perHead, $"対象外のはずの兵士が1人あたり {paidPerHead} 払った"); continue; }
+            Assert.True(System.Math.Abs(paidPerHead - perHead) <= 1e-9 * perHead, $"{p.ClassName} の1人あたりの人頭税 {paidPerHead} が一律の額 {perHead} でない");
+            if (p.IsModernElite) { elitePaid += paidPerHead * p.Size; eliteIncome += System.Math.Max(0, p.LastEarned); eliteSize += p.Size; }
+            else { masses++; massPaid += paidPerHead * p.Size; massIncome += System.Math.Max(0, p.LastEarned); massSize += p.Size; }
+        }
+        Assert.True(closed > 0 && masses > 0, $"前提が崩れた：閉鎖階級 {closed}・大衆 {masses}");
+        // 逆進性＝同じ額が所得の低い大衆の所得に対して重い（負担率＝払った額÷前の月の所得）
+        Assert.True(massIncome > 0 && eliteIncome > 0, "前提が崩れた：前の月の所得が立っていない");
+        double massRate = massPaid / massIncome, eliteRate = elitePaid / eliteIncome;
+        Assert.True(massRate > eliteRate, $"人頭税が大衆に重くない（大衆の負担率 {massRate:P2}・近代エリート {eliteRate:P2}）");
     }
 
     [Fact]
