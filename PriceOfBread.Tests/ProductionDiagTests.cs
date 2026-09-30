@@ -447,7 +447,7 @@ public class ProductionDiagTests
         static int FirstUntaxedLadderGood(World w)
         {
             for (int g = 0; g < Catalog.Goods.Length && g < w.StateMonopolyMargins.Length; g++)
-                if (System.Array.IndexOf(World.StateMonopolyLadder, Catalog.Goods[g].Tier) >= 0 && !(w.StateMonopolyMargins[g] > 1e-9)) return g;
+                if (World.StateMonopolyStepOf[g] >= 0 && !(w.StateMonopolyMargins[g] > 1e-9)) return g;
             return -1;
         }
         // ★書き直し（2026-09-20・R2）：旧はここで「政治の門が閉じた国では押しても点かない」ことで鏡の不在を測っていた。

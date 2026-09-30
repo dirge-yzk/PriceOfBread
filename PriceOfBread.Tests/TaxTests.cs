@@ -39,7 +39,7 @@ public class TaxTests
         baseline.World.GovDebt = taxed.World.GovDebt = 0;   // P5：仏は重債務開始＝利払いが両系の国庫を0まで枯渇させ税収差が埋もれる（課税0 vs 基準0）ため中立財政で税機構を隔離
         foreach (var w0 in new[] { baseline.World, taxed.World }) foreach (var rg in w0.Regions) foreach (var pp in rg.Pops) pp.BondHoldings = 0;   // ★2026-09-21：国債を手で消すなら持ち手の記録（保有台帳）も消す＝Σ保有＝国内元本の不変条件
         taxed.World.PoliticalLockEnabled = false;   // 税の歳入・保存機構を検証＝政治ロック（大衆の人頭税反対等）とは直交なので隔離
-        // ★主張の書き直し（作者裁定2026-09-20＝率の廃止）：腕は率でなく**対象の広さ**（段2＝奢侈品＋役務）。率はエンジンの標準率1本。
+        // ★主張の書き直し（作者裁定2026-09-20＝率の廃止）：腕は率でなく**対象の広さ**（段2＝史実の物品税の財＋奢侈品・2026-09-30 (127) の梯子）。率はエンジンの標準率1本。
         taxed.World.SetStateMonopolyTier(2);
         taxed.World.Policy.PollTaxTarget = 0.5;
         baseline.Run(80);
@@ -179,5 +179,37 @@ public class TaxTests
         Assert.True(low.World.LastTaxLeak > high.World.LastTaxLeak,
             $"漏れが行政力で増えていない（行き届いた{high.World.LastTaxLeak:F0} vs 空{low.World.LastTaxLeak:F0}）");
         Assert.Equal(high.World.TaxRate, low.World.TaxRate);   // 率は1ミリも変わらない＝行政は率でなく額に効く（天井の不在）
+    }
+
+    /// <summary>★所得税の**導入**は払えない請求が起こす（2026-09-30 (127)）＝所得税の無い国（率0）が段を上げられるのは国家の支払い率 r＜1 の時だけ・
+    /// いったん課した国（率＞0）は政治の門だけ・下げる側は常に通る（天井型の前提は登る側だけ）。法律タブ（GateInfo）と AI の目標の整形（GateAllLawTargets）が同じ1本を読む。
+    /// 旧＝前提なし＝AI の教義が開幕の最初の四半期から61カ国で所得税を置いた（仏 0.042・露 0.038＝史実の導入は英1799・普1811/20・墺1849・日1887）。
+    /// 突然変異：門を外す→①が赤／率＞0 の免除を外す→③が赤／r の条件を外す（常に閉じる）→②が赤。</summary>
+    [Fact]
+    public void 所得税の導入は払えない請求の時だけ_導入の後は政治の門だけ()
+    {
+        var sim = new Simulation(NationConfig.France().ToScenario(29), new NullAgent());
+        sim.StepQuarter();
+        var w = sim.World;
+        Assert.Equal(0.0, w.TaxRate);   // 前提＝1783年の所得税0（NationConfig・(109)）
+        // ① 払えない請求が無い（r＝1）＝導入の段は法律タブでも押せない（理由つき）・AI の目標は現状（段0）へ畳まれる
+        w.FiscalFundingRatio = 1.0;
+        var (ok1, _, why1) = Government.GateInfo(w, PolicyAxis.IncomeTax, increasing: true, 1);
+        Assert.False(ok1, "払えない請求が無いのに所得税の導入の段が押せる");
+        Assert.Equal("払えない請求が前提", why1);
+        w.Policy.IncomeTaxTarget = Government.IncomeTaxTop;
+        UtilityAgent.GateAllLawTargets(w, w.Policy);
+        Assert.Equal(0.0, w.Policy.IncomeTaxTarget);
+        // ② 払えない請求がある（r＜1）＝同じ門が開く・AI の目標は次の1段
+        w.FiscalFundingRatio = 0.9;
+        Assert.True(Government.LawPrereq(w, PolicyAxis.IncomeTax, 1, w.Coef).Ok, "払えない請求があるのに所得税を導入できない");
+        w.Policy.IncomeTaxTarget = Government.IncomeTaxTop;
+        UtilityAgent.GateAllLawTargets(w, w.Policy);
+        Assert.Equal(Government.TaxValue(PolicyAxis.IncomeTax, 1), w.Policy.IncomeTaxTarget);
+        // ③ いったん課した国（率＞0）は r＝1 でも上げられる（前提は導入だけ）・下げる側は常に通る
+        w.FiscalFundingRatio = 1.0;
+        w.TaxRate = Government.TaxValue(PolicyAxis.IncomeTax, 1);
+        Assert.True(Government.LawPrereq(w, PolicyAxis.IncomeTax, 2, w.Coef).Ok, "導入の後も払えない請求を前提にしている");
+        Assert.True(Government.LawPrereq(w, PolicyAxis.IncomeTax, 0, w.Coef).Ok, "下げる側に前提が掛かっている（天井型は登る側だけ）");
     }
 }

@@ -27,7 +27,7 @@ public static class Government
     internal const double IncomeTaxTop = 0.35;          // 緊縮教義の所得税（SelfPlay.Apply の case Stance.Fiscal）＝この軸でエンジンが置く最大値
     internal const double ProgressiveTaxTop = 0.8;      // ソ連風税制の累進（SelfPlay.Apply の SovietTaxProfile ブロック）
     internal const double PollTaxTop = 0.5;             // 人頭税の最上段（旧＝全61カ国の開始値・2026-09-29 (109) から開始値は国ごとの段＝NationConfig.PollTaxStage）
-    // ★専売の教義最大（旧 StateMonopolyTop=0.8）は物理削除（作者裁定2026-09-20）＝専売に率の軸は無い。ソ連風税制は**対象を主食まで広げる**（World.StateMonopolyLadder の最上段）で表す。
+    // ★専売の教義最大（旧 StateMonopolyTop=0.8）は物理削除（作者裁定2026-09-20）＝専売に率の軸は無い。ソ連風税制は**対象を全ての消費財へ広げる**（World.StateMonopolyStepOf の最上段）で表す。
     internal const double LandTaxTop = 0.4;             // 近代化/福祉/緊縮/軍国の4教義が共有する土地税（SelfPlay.Apply）
     internal const double EducationSpendingTop = 1.0;   // 近代化教義の教育費（SelfPlay.Apply の case Stance.Modernize・Agents.ModernizerAgent）＝旧の錨と同値＝教育費の段は1ビットも動かない
     /// <summary>その軸の最上段が意味する率。段を持たない軸は 1.0＝旧の錨（呼ばれない）。</summary>
@@ -558,11 +558,23 @@ public static class Government
             //   掛けると「天井より上に居る国が1段も降りられない」＝行政力が落ちた国の所得税・公教育を失った国の教育費が
             //   その段に凍りつき、UIには下げるボタンに「行政力が足りない」という逆の理由が出る（所得税の例は 2026-09-12 に天井ごと廃止＝教育費など残る軸の話）。
             //   現在段以下（＝降りる先）は常に通す＝天井は登れなさであって降りられなさではない。新しい量は置かない（CurrentStage は既存）。
-            // ⚠所得税・累進はここに腕を持たない（2026-09-12 FIX1 で行政力の天井を廃止）＝弱い行政は「課せない」のではなく
+            // ⚠所得税・累進は行政力の腕を持たない（2026-09-12 FIX1 で行政力の天井を廃止）＝弱い行政は「課せない」のではなく
             //   「取り立てた金が国庫に届かない」（Fiscal の汚職漏れ）。議会の噛みつき（PowerShares.ParliamentGrip の分子＝所得税＋累進）を
-            //   立法で先に0にしてしまうのが天井の実害だった。
+            //   立法で先に0にしてしまうのが天井の実害だった。★所得税の門は行政力ではなく理由（払えない請求＝下の case IncomeTax・2026-09-30 (127)）。
             case PolicyAxis.LandTax:
                 if (targetLevel >= 1 && !w.LandTaxUnlocked && targetLevel > CurrentStage(w, a)) return (false, "検地台帳が前提");   // 測量・登記なしに地租は課せない（土地改革と同文・地租改正1873）
+                break;
+            case PolicyAxis.IncomeTax:
+                // ★所得税の**導入**は払えない請求が起こす（2026-09-30 (127)）＝所得税の無い国（率が0）が段を上げられるのは国家の支払い率 r＜1
+                //   （借入と切り下げの後にも払えない請求がある）の時だけ。いったん課した国（率＞0＝査定の仕組みと先例がある）は政治の門だけで上げ下げする。
+                //   史実＝所得税の導入は戦費と債務の非常の時：英1799（ピット＝対仏戦争の借入が細った）・普1811/1820（敗戦の賠償）・墺1849（革命とハンガリー・イタリアの戦役）・
+                //   米1861（南北戦争）・伊1864（統一の債務）・日1887（軍拡）・仏1914・露1916＝平時に財政が回る国は置かなかった。導入の後は平時にも残り・上がった
+                //   （英1842 ピールの再導入〔先例の上〕・普1891 ミーケル・日1899）。
+                //   ⚠日付ではなく理由（盤面の r と率）＝AI（教義の目標は GateAllLawTargets がこの門で畳む）とプレイヤー（法律タブの段のボタン）が同じ1本を読む。新しい状態は無い
+                //   （導入の印＝今の率＞0＝率そのものが持つ・要求の決着が段0へ戻せば導入前へ戻る＝英1816 の廃止）。
+                //   ⚠天井型の前提は登る側にしか掛けない（上の注記）＝払えない請求が消えても課している段はそのまま（下げるのは自由）。
+                //   ⚠行政力の門にはしない＝2026-09-12 FIX1（行政の弱さは Fiscal の汚職の漏れが額で表す＝同じ量を率の側にも掛けると二重計上）。否定形＝NaN の r・NaN の率は門を閉じる側。
+                if (targetLevel >= 1 && targetLevel > CurrentStage(w, a) && !(w.TaxRate > 0) && !(w.FiscalFundingRatio < 1.0)) return (false, "払えない請求が前提");
                 break;
             case PolicyAxis.EducationSpending:
                 // 教育費＝公教育の制度が先（学校の無い国に教育予算の段は無い）。Step も EducationLaw が下段のままなら効果を持たない。

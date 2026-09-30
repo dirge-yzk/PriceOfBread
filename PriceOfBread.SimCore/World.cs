@@ -197,7 +197,7 @@ public sealed class World
     // ★★専売＝「材ごとの ON/OFF × エンジンの標準率」1本（作者裁定2026-09-20「専売の率を法律から完全に消す。材を選ぶのみにする」）。
     //   ⚠**国ごとの率は存在しない**＝旧 World.StateMonopoly（政治が動かす天井）と Policy.StateMonopolyTarget（その目標）は物理削除した。
     //   率という別のレバーがあると「減税の譲歩を受けたうえで材を増やす」＝同じ量を2つの数で操作するチートになる（作者裁定の本文）。
-    //   実効率＝標準率×(0.5+0.5×AdminFill)（EconomyStep.BuyerWedge の唯一定義）。行政の弱い地域は密輸で漏れる。
+    //   実効率＝標準率×(1−StateMonopolyLeakMax×(1−AdminFill))（EconomyStep.BuyerWedge の唯一定義・2026-09-30 (127) に漏れを係数へ）。行政の弱い地域は密輸と請負で漏れる。
     //   ⚠配列は double[] のまま（bool[] にすると SaveGame の f.SetValue が旧 POBSIM2 の double[] で型不一致例外＝セーブ破れ）。
     //     「0 か標準率の2値」は型ではなく下の唯一のセッターが保証する。
     //   ⚠宣言初期値で**財数ぴったりに確保する**（旧 `= []`）。SaveGame は現行に無い保存名を読み捨て、保存に無い現行フィールドを
@@ -205,32 +205,47 @@ public sealed class World
     //     `goodId >= Length` で常に false を返してプレイヤー唯一のレバーが黙って死ぬ（クラッシュしないので検査網に掛からない）。
     //     新しい修復経路は作らず、ドナーが正しい長さを配るようにして構造的に塞ぐ（長さは Catalog.Goods からの導出＝新しい状態ではない）。
     public double[] StateMonopolyMargins = new double[Catalog.Goods.Length];
-    /// <summary>★専売の対象の広さ（逆進性の順＝奢侈が先・主食が最後）。段0＝非課税。段k＝先頭k個の区分に課税。
+    /// <summary>★専売の対象の広さの梯子（2026-09-30 (127)＝史実の物品税の財が先・役務が最後）。段0＝非課税。段k＝先頭k個の群に課税。
+    /// 群＝①史実の物品税の財（<see cref="ExciseGoods"/>＝酒・煙草・茶・コーヒー・石鹸）→②奢侈品→③日用品→④主食→⑤役務。
+    /// ★史実（1783年）：どの国の間接税もまず酒・煙草・塩・植民地の飲み物に掛かった（英の物品税と関税の約8割＝ビール・麦芽・蒸留酒・ワイン・茶・煙草・石鹸・塩・
+    ///   仏の総徴税請負＝塩税・酒の aides・煙草の専売・露の酒の請負＝歳入の約3分の1・普の煙草とコーヒーの専売・蘭の物品税）。日用品の広い売上税（西の alcabala・
+    ///   普の都市の Akzise）はその先、主食（蘭の製粉税・普の製粉と屠畜の税）は財政の非常の時、役務（教育・医療・家事奉仕）に物品税を掛けた国は無い。
+    ///   ⚠旧（2026-09-20）＝奢侈品→役務→日用品→主食＝役務を史実の物品税の財（日用品の中）より先に課し、段3で日用品の全て（衣料・家具・紙…）へ一度に広がった。
+    ///   ⚠塩は中間財＝pop の消費ループに乗らない＝梯子の外。塩の専売（gabelle・塩引）は既存の独占レント（EconomyStep.BuyerWedge の monRent＝国庫へ）が運ぶ。
     /// 中間財・生産財は pop の消費ループに乗らないので梯子に含めない（＝段でどれだけ広げても課税されない）。
-    /// ⚠2026-09-20 の実測でこの名乗りは**役務の区分について破れている**：役務11財のうち pop が買うのは 教育・医療・家事奉仕 の3つだけで、
-    ///   労働力・行政・兵力・高度労働力・農業労働力・上下水道・電化インフラ・高等教育 の8財は baseNeed=0＝消費ループに乗らない。
-    ///   区分そのものを割らずに済んでいるのは、位置（<see cref="StateMonopolyBreadth"/>）を**課税ベース加重**で測るから
-    ///   ＝これら8財の重みは自動的に0で、「押しても負担が増えない段」は政治的にも0になる。</summary>
-    internal static readonly GoodTier[] StateMonopolyLadder = [GoodTier.Luxury, GoodTier.Service, GoodTier.Daily, GoodTier.Staple];
-    internal static int StateMonopolyMaxTier => StateMonopolyLadder.Length;
-    /// <summary>今の段＝梯子の先頭から「その区分の財が全て課税されている」段の数（最初の欠け／空の区分で止まる）。
+    /// ⚠役務11財のうち pop が買うのは 教育・医療・家事奉仕 の3つだけ（残り8財は baseNeed=0）＝位置（<see cref="StateMonopolyBreadth"/>）は**課税ベース加重**で測る
+    ///   ＝これら8財の重みは自動的に0。</summary>
+    internal static readonly int[] ExciseGoods = [Catalog.BeerId, Catalog.SpiritsId, Catalog.WineId, Catalog.TobaccoId, Catalog.TeaId, Catalog.CoffeeId, Catalog.SoapId];
+    internal const int StateMonopolyMaxTier = 5;
+    /// <summary>財 → 梯子の群（0..4）・梯子の外は −1。Catalog からの導出（状態ではない）。</summary>
+    internal static readonly int[] StateMonopolyStepOf = BuildStateMonopolySteps();
+    private static int[] BuildStateMonopolySteps()
+    {
+        var s = new int[Catalog.Goods.Length];
+        for (int gi = 0; gi < s.Length; gi++)
+            s[gi] = System.Array.IndexOf(ExciseGoods, gi) >= 0 ? 0
+                  : Catalog.Goods[gi].Tier switch { GoodTier.Luxury => 1, GoodTier.Daily => 2, GoodTier.Staple => 3, GoodTier.Service => 4, _ => -1 };
+        return s;
+    }
+    /// <summary>今の段＝梯子の先頭から「その群の財が全て課税されている」段の数（最初の欠け／空の群で止まる）。
     /// **決断の格子**（AIの教義・要求への応答・譲歩が1段ずつ動かす単位）＝<see cref="Government.TaxStage"/> と同じ役回り。
     /// ⚠導出量＝新しい状態変数を作らない（思想⑩）。</summary>
     internal int StateMonopolyTier
     {
         get
         {
-            int tier = 0;
-            for (int t = 0; t < StateMonopolyLadder.Length; t++)
+            System.Span<int> n = stackalloc int[StateMonopolyMaxTier], taxed = stackalloc int[StateMonopolyMaxTier];
+            for (int gi = 0; gi < StateMonopolyStepOf.Length && gi < StateMonopolyMargins.Length; gi++)
             {
-                int n = 0, taxed = 0;
-                for (int gi = 0; gi < Catalog.Goods.Length && gi < StateMonopolyMargins.Length; gi++)
-                {
-                    if (Catalog.Goods[gi].Tier != StateMonopolyLadder[t]) continue;
-                    n++;
-                    if (StateMonopolyMargins[gi] > 1e-9) taxed++;   // ⚠否定形の裏＝NaN は「課税されていない」側へ落ちる
-                }
-                if (taxed < n || n == 0) break;   // 欠けがある／その区分の財が1つも無い＝そこで段は止まる
+                int t = StateMonopolyStepOf[gi];
+                if (t < 0) continue;
+                n[t]++;
+                if (StateMonopolyMargins[gi] > 1e-9) taxed[t]++;   // ⚠否定形の裏＝NaN は「課税されていない」側へ落ちる
+            }
+            int tier = 0;
+            for (int t = 0; t < StateMonopolyMaxTier; t++)
+            {
+                if (taxed[t] < n[t] || n[t] == 0) break;   // 欠けがある／その群の財が1つも無い＝そこで段は止まる
                 tier = t + 1;
             }
             return tier;
@@ -269,15 +284,15 @@ public sealed class World
     ///   ⚠参照価格建て（市場価格ではない）＝上乗せが価格を押し上げ→ベースが増え→広さが上がる自己参照を断つ
     ///     （PolicyPreferences の既存2集計 FirmConcentration/ArtisanImportShare と同じ作法）。
     ///   ⚠徴収漏れ（AdminFill）は**掛けない**＝広さは「どれだけの材を専売にしたか」であって、漏れは実効率の側
-    ///     （EconomyStep.BuyerWedge の 0.5+0.5×AdminFill）が持つ＝同じ漏れを2度掛けない（思想⑨）。
+    ///     （EconomyStep.BuyerWedge の 1−StateMonopolyLeakMax×(1−AdminFill)）が持つ＝同じ漏れを2度掛けない（思想⑨）。
     /// ⚠新しい状態を持たない（思想⑩）＝毎回その場で集計する純関数。キャッシュを置くと助走中・月次の読み手へ古い値を返す
     ///   （PolicyPreferences.LawGap の注記と同じ理由）。決定論＝財順→州順→階級順の固定走査・RNGなし。</summary>
     private (double Part, double Total, int Taxed, int Count) StateMonopolyBase()
     {
         double part = 0, total = 0; int taxed = 0, count = 0;
-        for (int gi = 0; gi < Catalog.Goods.Length && gi < StateMonopolyMargins.Length; gi++)
+        for (int gi = 0; gi < StateMonopolyStepOf.Length && gi < StateMonopolyMargins.Length; gi++)
         {
-            if (System.Array.IndexOf(StateMonopolyLadder, Catalog.Goods[gi].Tier) < 0) continue;
+            if (StateMonopolyStepOf[gi] < 0) continue;
             count++;
             bool on = StateMonopolyMargins[gi] > 1e-9;   // ⚠否定形の裏＝NaN は「課税されていない」側へ落ちる（Tier の数え方と同じ規約）
             if (on) taxed++;
@@ -310,14 +325,14 @@ public sealed class World
         StateMonopolyMargins[goodId] = want;
         return true;
     }
-    /// <summary>対象の広さを段で置く（AIの教義の書き込み口）。梯子の先頭 tier 個の区分を ON・残りを OFF。
+    /// <summary>対象の広さを段で置く（AIの教義の書き込み口）。梯子の先頭 tier 個の群を ON・残りを OFF。
     /// 1財ずつ上の唯一のセッターを通る＝プレイヤーが1つずつ押すのと厳密に同じ規則。</summary>
     public void SetStateMonopolyTier(int tier)
     {
         int t = System.Math.Clamp(tier, 0, StateMonopolyMaxTier);
-        for (int gi = 0; gi < Catalog.Goods.Length && gi < StateMonopolyMargins.Length; gi++)
+        for (int gi = 0; gi < StateMonopolyStepOf.Length && gi < StateMonopolyMargins.Length; gi++)
         {
-            int idx = System.Array.IndexOf(StateMonopolyLadder, Catalog.Goods[gi].Tier);
+            int idx = StateMonopolyStepOf[gi];
             if (idx < 0) continue;   // 中間財・生産財＝梯子の外（段では触らない＝プレイヤーが個別に選ぶ余地は残る）
             SetStateMonopolyOn(gi, idx < t);
         }

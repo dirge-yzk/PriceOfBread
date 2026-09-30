@@ -562,7 +562,7 @@ public sealed class Region
     public double CompulsoryEduFunding;               // 義務教育の財源率（教育費スライダー）。popが買えない教育の何割を国庫が買い与えるか。0＝義務教育でない
     public double GridCapacity;                       // 送電容量（地域内）。電力はこの容量までしか工場に届かない＝電化には送電網への投資が要る
     public double LastElecWant;                       // 前期の電力需要（送電網の増設判断に使う）
-    public double[]? StateMonopolyMargins;             // 材ごとの専売の上乗せ率（World 参照）。★作者裁定2026-09-20＝0 か標準率の2値だけ（国ごとの率＝旧 Region.StateMonopoly は物理削除）。実効＝率×(0.5+0.5×AdminFill)
+    public double[]? StateMonopolyMargins;             // 材ごとの専売の上乗せ率（World 参照）。★作者裁定2026-09-20＝0 か標準率の2値だけ（国ごとの率＝旧 Region.StateMonopoly は物理削除）。実効＝率×(1−StateMonopolyLeakMax×(1−AdminFill))（2026-09-30 (127)）
     public double FemaleParticipation = 0.4;          // 女性の構造的労働参加率（need=0 の代表値・診断/UI用。倍率排除④：実効参加率は LaborSupply.FemaleParticipation が家計困窮を上乗せ）。賃金保持から導出
     public double WomenWageRetention;                 // 賃金保持（World から複製・連続0..1。倍率排除④）。女性参加・女性識字の駆動
     public double ChildLaborLegal = 1.0;              // 児童労働の合法度（World から複製・連続0..1。倍率排除④）。子供の労働/就学の時間配分を律する（旧 bool ChildLaborAllowed を連続化）

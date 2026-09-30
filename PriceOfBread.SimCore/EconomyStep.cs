@@ -317,7 +317,7 @@ public static class EconomyStep
     /// <see cref="Run"/> の消費ループ（需要と決済）・<see cref="ProductionDiag.ExplainPrice"/>（生産タブの価格積み上げ）・
     /// が同じものを呼ぶ（⚠ PolicyPreferences の実効率の集計は 2026-09-20 に削除＝専売を政治から切り離したので読み手が消えた）。
     /// 旧＝ProductionDiag が5項を書き写していて同業組合項を欠いていた（点火時に積み上げ表が pop の実支払いと合わない時限バグ）。
-    /// ・stateMonop＝専売（★作者裁定2026-09-20「専売の率を法律から完全に消す。材を選ぶのみにする」）：材ごとの ON/OFF だけ＝実効は **標準率×(0.5+0.5×AdminFill)**。
+    /// ・stateMonop＝専売（★作者裁定2026-09-20「専売の率を法律から完全に消す。材を選ぶのみにする」）：材ごとの ON/OFF だけ＝実効は **標準率×(1−StateMonopolyLeakMax×(1−AdminFill))**（2026-09-30 (127)・旧＝0.5+0.5×AdminFill）。
     ///   ⚠旧は min(商品率, 国ごとの天井 World.ConsumptionTax) で、天井が0の間は材を選んでも実効0だった（生産タブのチェックが政治の登坂を待つ形）＝天井ごと削除した。行政の弱い地域は密輸で漏れる。
     /// ・distM＝流通マージン（商人の収入）。役務（教育・医療＝対面）は直接取引＝マージンなし。
     /// ・monRent＝独占レント（<see cref="MonopolyDegree"/>×MonopolyRentPremium・塩/茶のみ）。
@@ -327,7 +327,7 @@ public static class EconomyStep
     internal static (double stateMonop, double distM, double monRent, double guildRent, double insure) BuyerWedge(Region region, Coefficients coef, int gi, bool isService, double[]? guildShare, double guildDeg)
     {
         double stateMonop = region.StateMonopolyMargins is { } ctr && gi >= 0 && gi < ctr.Length && ctr[gi] > Eps
-            ? ctr[gi] * (0.5 + 0.5 * region.AdminFill)
+            ? ctr[gi] * (1.0 - coef.StateMonopolyLeakMax * (1.0 - region.AdminFill))   // ★漏れ＝行政の欠けた分×漏れの最大（2026-09-30 (127)・旧＝0.5+0.5×AdminFill のリテラル）
             : 0;
         double distM = region.MerchantPopIndex >= 0 && !isService ? coef.MerchantMargin : 0;
         double insure = gi == coef.MedicalGoodId ? Math.Clamp(region.InsuranceCoverage, 0, InsuranceCoverageCap) : 0;

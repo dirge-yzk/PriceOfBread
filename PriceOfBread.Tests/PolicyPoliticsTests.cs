@@ -569,10 +569,10 @@ public class PolicyPoliticsTests
         // (e) 政治が何四半期回っても選んだ材の税は1ミリも削られない（思想⑧＝天井の廃止）
         for (int q = 0; q < 200; q++) Government.Step(w, w.Coef);
         Assert.Equal(std, w.StateMonopolyMargins[gi]);
-        // 実効＝標準率×(0.5+0.5×AdminFill)＝EconomyStep.BuyerWedge の唯一定義（min(商品率, 天井) は消えた）
+        // 実効＝標準率×(1−漏れの最大×(1−AdminFill))＝EconomyStep.BuyerWedge の唯一定義（min(商品率, 天井) は消えた・漏れは 2026-09-30 (127) に係数へ）
         var r = w.Region;
         double stateMonop = EconomyStep.BuyerWedge(r, w.Coef, gi, isService: false, guildShare: null, guildDeg: 0).stateMonop;
-        Assert.Equal(std * (0.5 + 0.5 * r.AdminFill), stateMonop, 12);
+        Assert.Equal(std * (1.0 - w.Coef.StateMonopolyLeakMax * (1.0 - r.AdminFill)), stateMonop, 12);
         // 外すと厳密に0（2値＝率の中間という状態を作れない）
         Assert.True(w.SetStateMonopolyOn(gi, false), "材を外せない");
         Assert.Equal(0.0, w.StateMonopolyMargins[gi]);
@@ -689,8 +689,9 @@ public class PolicyPoliticsTests
         Assert.Equal(1.0, prev);   // 梯子を全て専売にすれば厳密に1
         // F4＝旧の不揃い（主食の段は財数なら 5/54=0.093 なのに負担は最大・奢侈の段は 12/54=0.222 なのに負担は最小）の解消：
         //     主食の段の増分は奢侈の段より**大きい**（財の数では逆）＝段の粒度と負担の向きが揃った。
-        Assert.True(step[^1] > step[0],
-            $"主食の段の増分 {step[^1]:F3} ≤ 奢侈の段の増分 {step[0]:F3}＝段が負担に比例していない（F4）");
+        //   ★2026-09-30 (127)：梯子は 物品税の財→奢侈品→日用品→主食→役務（World.StateMonopolyStepOf）＝主食は段4（添字3）・奢侈品は段2（添字1）。
+        Assert.True(step[3] > step[1],
+            $"主食の段の増分 {step[3]:F3} ≤ 奢侈の段の増分 {step[1]:F3}＝段が負担に比例していない（F4）");
     }
 
     // ★★主張の書き直し（2026-09-20 作者裁定R2）。旧の主張＝「押し切りは政治資本を払う（F2の是正）」。
@@ -707,7 +708,7 @@ public class PolicyPoliticsTests
             var w = n.World;
             int gi = -1;   // まだ専売にしていない梯子の財＝「対象を広げる一歩」
             for (int g = 0; g < Catalog.Goods.Length && g < w.StateMonopolyMargins.Length; g++)
-                if (System.Array.IndexOf(World.StateMonopolyLadder, Catalog.Goods[g].Tier) >= 0 && !(w.StateMonopolyMargins[g] > 1e-9)) { gi = g; break; }
+                if (World.StateMonopolyStepOf[g] >= 0 && !(w.StateMonopolyMargins[g] > 1e-9)) { gi = g; break; }
             if (gi < 0) continue;   // 梯子を全て専売にしている国＝広げる余地が無い
             double spent0 = w.MandateSpent, spentNew0 = w.MandateSpentNew;
             Assert.True(w.SetStateMonopolyOn(gi, true), $"{w.SelfPower?.Name}：材を選んでも専売にならない＝政治の門が残っている");
@@ -717,6 +718,83 @@ public class PolicyPoliticsTests
             widened++;
         }
         Assert.True(widened > 0, "61カ国12四半期に『対象を広げられる国』が1つも無い＝この番人は何も測っていない");
+    }
+
+    /// <summary>★専売の梯子（2026-09-30 (127)）＝史実の物品税の財（酒・煙草・茶・コーヒー・石鹸）→奢侈品→日用品→主食→役務。
+    /// 旧＝奢侈品→役務→日用品→主食＝役務（教育・医療・家事奉仕）を史実の物品税の財（日用品の中）より先に課した。
+    /// ①群の割り当て（物品税の財＝段1・役務＝最後・塩と中間財は梯子の外）②段 t＝先頭 t 群を課す（段1＝物品税の7財だけ）③段の導出の往復。
+    /// 突然変異：旧の梯子へ戻す→①②が赤。</summary>
+    [Fact]
+    public void 専売の梯子は史実の物品税の財から始まり役務が最後()
+    {
+        int[] excise = [Catalog.BeerId, Catalog.SpiritsId, Catalog.WineId, Catalog.TobaccoId, Catalog.TeaId, Catalog.CoffeeId, Catalog.SoapId];
+        Assert.Equal(5, World.StateMonopolyMaxTier);
+        for (int g = 0; g < Catalog.Goods.Length; g++)
+        {
+            int want = System.Array.IndexOf(excise, g) >= 0 ? 0
+                     : Catalog.Goods[g].Tier switch { GoodTier.Luxury => 1, GoodTier.Daily => 2, GoodTier.Staple => 3, GoodTier.Service => 4, _ => -1 };
+            Assert.True(want == World.StateMonopolyStepOf[g], $"{Catalog.Goods[g].Name} の梯子の群 {World.StateMonopolyStepOf[g]}（期待 {want}）");
+        }
+        Assert.Equal(-1, World.StateMonopolyStepOf[Catalog.SaltId]);   // 塩は中間財＝既存の独占レント（gabelle）が運ぶ
+        var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
+        var w = sim.World;
+        for (int t = 0; t <= World.StateMonopolyMaxTier; t++)
+        {
+            w.SetStateMonopolyTier(t);
+            Assert.Equal(t, w.StateMonopolyTier);
+            for (int g = 0; g < Catalog.Goods.Length; g++)
+            {
+                int s = World.StateMonopolyStepOf[g];
+                bool on = w.StateMonopolyMargins[g] > 1e-9;
+                Assert.True(s >= 0 ? on == (s < t) : !on, $"段{t}で {Catalog.Goods[g].Name} の専売が {on}");
+            }
+        }
+        w.SetStateMonopolyTier(1);
+        int n = 0; for (int g = 0; g < w.StateMonopolyMargins.Length; g++) if (w.StateMonopolyMargins[g] > 1e-9) n++;
+        Assert.Equal(excise.Length, n);   // 段1＝物品税の7財だけ（役務も奢侈品もまだ課さない）
+        w.SetStateMonopolyTier(World.StateMonopolyMaxTier - 1);
+        Assert.False(w.StateMonopolyMargins[Catalog.EducationId] > 1e-9, "主食まで広げた段で役務（教育）に専売が掛かっている＝役務が最後でない");
+    }
+
+    /// <summary>★専売の広さの規律（2026-09-30 (127)）＝**今の広さから**動く（教義の広さは床）：払えない請求（r＜1）＝1段広げる・
+    /// 国庫が安全水準（FiscalBufferOf）を超えた＝1段狭める・その間＝保つ・助走は教義の広さのまま。
+    /// 旧＝「教義の段＋逼迫なら1」を毎四半期に教義から計算し直した＝広げた四半期の黒字で次の四半期に戻り、また払えない＝四半期ごとの往復（英 段2↔3）。
+    /// 突然変異：逼迫の応答を教義から（旧 stateMonopTier++）→②が赤／保つ枝を教義へ戻す→③が赤／狭める枝を外す→④が赤／助走の免除を外す→⑥が赤。</summary>
+    [Fact]
+    public void 専売の広さは今の広さから動き四半期ごとに往復しない()
+    {
+        var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
+        sim.Run(4);
+        var w = sim.World;
+        double buffer = UtilityAgent.FiscalBufferOf(w);
+        Assert.True(buffer > 1.0, "前提が崩れた：月次の義務が無い盤面＝安全水準が測れない");
+        void Step(UtilityAgent.Stance s, double r, double treasury) { w.FiscalFundingRatio = r; w.SetTreasuryRaw(treasury); UtilityAgent.Apply(w, s); }
+        // ① 教義の床：近代化＝段1（物品税の財）
+        w.SetStateMonopolyTier(0);
+        Step(UtilityAgent.Stance.Modernize, 1.0, 0.5 * buffer);
+        Assert.Equal(1, w.StateMonopolyTier);
+        // ② 払えない請求＝今の広さ（段2）から1段広げる（旧＝教義の段1＋1＝段2 に留まった）
+        w.SetStateMonopolyTier(2);
+        Step(UtilityAgent.Stance.Modernize, 0.9, 0.5 * buffer);
+        Assert.Equal(3, w.StateMonopolyTier);
+        // ③ 払えない請求が消えても国庫が安全水準の下＝保つ（旧＝教義の段1へ戻り、翌四半期にまた払えない）
+        Step(UtilityAgent.Stance.Modernize, 1.0, 0.5 * buffer);
+        Assert.Equal(3, w.StateMonopolyTier);
+        // ④ 国庫が安全水準を超えた＝1段ずつ狭める・教義の広さより下へは行かない
+        Step(UtilityAgent.Stance.Modernize, 1.0, 10 * buffer);
+        Assert.Equal(2, w.StateMonopolyTier);
+        Step(UtilityAgent.Stance.Modernize, 1.0, 10 * buffer);
+        Assert.Equal(1, w.StateMonopolyTier);
+        Step(UtilityAgent.Stance.Modernize, 1.0, 10 * buffer);
+        Assert.Equal(1, w.StateMonopolyTier);
+        // ⑤ 教義が広い（緊縮＝段3）＝床が上がる
+        Step(UtilityAgent.Stance.Fiscal, 1.0, 0.5 * buffer);
+        Assert.Equal(3, w.StateMonopolyTier);
+        // ⑥ 開始前の助走は今の広さを積まない＝払えない請求でも教義の広さのまま（助走は借りない＝r＜1 は助走の作りもの）
+        w.WarmupFrozen = true;
+        Step(UtilityAgent.Stance.Modernize, 0.9, 0.5 * buffer);
+        Assert.Equal(1, w.StateMonopolyTier);
+        w.WarmupFrozen = false;
     }
 
     [Fact]
@@ -1126,6 +1204,7 @@ public class PolicyPoliticsTests
         var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
         var w = sim.World; var c = w.Coef;
         w.AdminPowerSmoothed = 0.0;                                     // 査定機構が未熟な国（旧なら段0＝所得税0だけが合法）
+        w.FiscalFundingRatio = 0.9;   // ★盤面の直し（2026-09-30 (127)）：所得税の導入の前提は払えない請求（r＜1）＝行政力ではない。前提を満たした盤面で「行政力の腕が無い」ことを測る
         for (int stage = 1; stage <= Government.TaxLawStages; stage++)
         {
             Assert.True(Government.LawPrereq(w, PolicyAxis.IncomeTax, stage, c).Ok,

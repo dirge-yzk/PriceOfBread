@@ -786,7 +786,8 @@ public sealed class UtilityAgent : INationAgent
         var p = w.Policy;
         p.IncomeTaxTarget *= mul; p.PollTaxTarget *= mul;
         p.LandTaxTarget *= mul; p.ProgressiveTaxTarget *= mul; p.TariffTarget *= mul;
-        // ★専売はこの割引から**外す**（2026-09-20・F3の是正）。旧は `SetStateMonopolyTier(Tier-1)` で段を丸ごと1つ落としていたが、
+        // ★専売はこの割引から**外す**（2026-09-20・F3の是正）。専売の広さの規律は Apply の末尾（今の広さから・教義の床・安全水準で1段狭める＝2026-09-30 (127)）が持つ。
+        //   旧は `SetStateMonopolyTier(Tier-1)` で段を丸ごと1つ落としていたが、
         //   この関数の操作は「率に 0.25 の床つき連続倍率を掛ける」＝取り過ぎの分だけ薄く下げ**決して無税にしない**もので、
         //   段を落とす翻訳はそれと等価でない：(a) 潤沢の度合いに比例しない (b) 床が無い (c) Apply が毎期教義の段を書いた直後に走る
         //   ＝定常で恒久的に教義−1段。教義段1の国（Modernize／Welfare）は毎期0へ落ちた。
@@ -1114,8 +1115,9 @@ public sealed class UtilityAgent : INationAgent
     {
         var p = w.Policy;
         p.CoercionTarget = 400;          // 既定＝低治安維持力（警察・内政の鎮圧）。軍備スタンス(Militarize)のみ4000へ
-        // ★専売（作者裁定2026-09-20「専売の率を法律から完全に消す。材を選ぶのみにする」）＝教義が選ぶのは率でなく**対象の広さ**（World.StateMonopolyLadder の段）。
-        //   逆進性の順＝奢侈が先・主食が最後。旧の率（0.1〜0.4・ソ連風0.8）はこの段へ翻訳した＝新しい数も新しい状態変数も作らない（毎期ここで導出して末尾で書く）。
+        // ★専売（作者裁定2026-09-20「専売の率を法律から完全に消す。材を選ぶのみにする」）＝教義が選ぶのは率でなく**対象の広さ**（World.StateMonopolyStepOf の段）。
+        //   梯子の順＝史実の物品税の財（酒・煙草・茶・コーヒー・石鹸）→奢侈品→日用品→主食→役務（2026-09-30 (127)）。教義の段はこの広さの**床**
+        //   ＝末尾の財政の規律が今の広さから広げ・保ち・狭める（新しい数も新しい状態変数も作らない＝今の広さは World.StateMonopolyTier の導出）。
         int stateMonopTier = 0;                // 既定＝非課税（旧 Policy.StateMonopolyTarget の開始0と同じ場所）
         p.MilitarySpendingTarget = 0.25; // 既定＝中庸の常備軍。軍備スタンスで増（軍隊規模＝兵士POP数＝国力の軍項）
         p.Censorship = CensorshipLaw.FreePress;    // 既定＝自由化を目指す（革新↑だが政治意識↑）。政治ゲートが可否を決める（旧支配層が抵抗）
@@ -1132,7 +1134,7 @@ public sealed class UtilityAgent : INationAgent
                 p.AdminSpendingTarget = 0.6;    // 近代国家＝行政を整備（汚職を抑える＝税の漏れが減る→検地台帳のアンロックにも繋がる）
                 p.IncomeTaxTarget = 0.25;   // 治安維持力は上の教義既定に従う（軍国は大軍のまま近代化）
                 p.LandTaxTarget = Government.LandTaxTop; p.ProgressiveTaxTarget = 0.3; p.PollTaxTarget = 0;   // 近代税制へ移行（人頭税は廃止）
-                stateMonopTier = 1;   // 専売は奢侈品どまり（旧0.2）
+                stateMonopTier = 1;   // 専売は史実の物品税の財どまり（酒・煙草・茶・コーヒー・石鹸＝旧の率0.2）
                 p.SocialSecurityTarget = 0.3;   // 近代国家は公共医療を一定維持＝人口増（乳児死亡の低下）
                 p.ChildLaborAllowed = false;    // 近代化＝児童労働を禁止（出力↓だが識字↑＝教育→医療→人口）
                 if (w.TechLevel > WomenPropertyTechThreshold) RaiseWomenRights(p, WomenRightsLaw.Property);   // 成熟した近代国家＝女性財産権（労働供給+2割・普通選挙への布石）
@@ -1145,7 +1147,7 @@ public sealed class UtilityAgent : INationAgent
                 p.AdminSpendingTarget = 0.5;
                 p.IncomeTaxTarget = 0.15; p.TariffTarget = 0.2;
                 p.LandTaxTarget = 0.3; p.PollTaxTarget = 0;   // 産業重視＝所得税を抑え土地・消費に課税
-                stateMonopTier = 2;   // 専売を役務まで広げる（旧0.3）
+                stateMonopTier = 2;   // 専売を奢侈品まで広げる（旧の率0.3）
                 // 金利は下の反景気循環ブロックが一元的に決める（旧・スタンス別の低金利0.1は直後に必ず上書きされる死書き込みだった＝監査2026-07-12 死10で削除。スタンス別金融政策を生かす改修は別件）
                 break;
             case Stance.Welfare:
@@ -1154,7 +1156,7 @@ public sealed class UtilityAgent : INationAgent
                 RaiseWomenRights(p, WomenRightsLaw.Suffrage);   // 労働者福祉＝女性の権利も梯子の最上段まで推進（北欧型・自分の賃金を持ち、学び、投票する）
                 p.IncomeTaxTarget = 0.2;
                 p.ProgressiveTaxTarget = 0.6; p.LandTaxTarget = Government.LandTaxTop; p.PollTaxTarget = 0;   // 福祉の財源＝富裕層から（再分配）
-                stateMonopTier = 1;   // 逆進税は最小限＝奢侈品だけ（旧0.1）
+                stateMonopTier = 1;   // 逆進税は最小限＝史実の物品税の財だけ（旧の率0.1）
                 p.WorkHours = WorkHours.Ten;   // 労働者福祉＝労働時間短縮（産出↓だが死亡率↓・不満↓）
                 p.ChildLaborAllowed = false;   // 労働者福祉＝児童労働の禁止
                 break;
@@ -1162,7 +1164,7 @@ public sealed class UtilityAgent : INationAgent
                 p.IncomeTaxTarget = Government.IncomeTaxTop; p.EducationSpendingTarget = 0.2;   // ★錨2026-09-18＝所得税の教義最大＝段の最上段（35%＝1918年の英標準税率30%超）
                 p.AdminSpendingTarget = 0.3;    // 緊縮＝行政費も削る（汚職が増える代償）
                 p.PollTaxTarget = 0.3; p.LandTaxTarget = Government.LandTaxTop; p.ProgressiveTaxTarget = 0.4;   // 取れる所から全部取る（緊縮財政）
-                stateMonopTier = 3;   // 日用品まで広く課税（旧0.4）
+                stateMonopTier = 3;   // 日用品まで広く課税（旧の率0.4）
                 p.SocialSecurityTarget = 0.1;   // 金利は下の反景気循環ブロックが一元的に決める（旧・緊縮の高金利0.4は死書き込み＝監査2026-07-12 死10で削除）
                 break;
             case Stance.Militarize:
@@ -1173,7 +1175,8 @@ public sealed class UtilityAgent : INationAgent
                 p.AdminSpendingTarget = 0.5;
                 p.IncomeTaxTarget = 0.25;                       // 大軍を養う財源
                 p.PollTaxTarget = 0.4;   // 戦費＝人頭税と専売（治安維持力で不満を抑え込む賭け）
-                stateMonopTier = 3;   // 日用品まで広く課税（旧0.4）
+                stateMonopTier = 2;   // 物品税の財と奢侈品（2026-09-30 (127)＝旧の段3＝日用品の全てを外した）。史実の軍国の戦費＝酒・煙草・塩の専売と人頭税（露の酒の請負と魂の税・普の煙草とコーヒーの専売・仏の塩税と aides と煙草）
+                //   ＝日用品の広い売上税は緊縮（取れる所から全部）と下の財政の規律（払えない請求で広げる）の仕事。
                 // 露普歳入是正（2026-08-08）：Militarize が土地税・関税・教育を一切書かない唯一の主要スタンスだった＝
                 // 軍国こそ地租と関税で軍を養い（地租改正・ユンカーのGrundsteuer）、義務教育は兵営国家の発明（プロイセン1763・明治学制）。
                 // 露＝militarism固定でこのスタンスに130年閉じ込められ、教育が一度も目標化されず識字逆行→技術凍結が第一原因。
@@ -1280,7 +1283,23 @@ public sealed class UtilityAgent : INationAgent
             p.EducationSpendingTarget = Math.Min(p.EducationSpendingTarget, EducationEaseFloor + EducationEaseSpan * ease);
             p.AdminSpendingTarget = Math.Max(p.AdminSpendingTarget, 0.5);          // 行政費は維持＝スパイラルの要（行政が死ぬと所得税が永久ロック）
             p.PollTaxTarget = Math.Max(p.PollTaxTarget, FiscalTaxStressMult * stressEff);       // 行政不要の確実な財源を確保（恐慌中は引上げ幅も半減）
-            stateMonopTier++;   // ★広い税で黒字へ戻す（上のコメントの「広い税」がそのまま段の言葉になる）＝対象を1段広げる。Clamp は SetStateMonopolyTier が持つ
+        }
+        // ★専売の広さの規律（2026-09-30 (127)）＝**今の広さから**動かす（教義の広さは床）：払えない請求（r＜1）＝1段広げる（上のコメントの「広い税で黒字へ戻す」）・
+        //   国庫が安全水準（FiscalBufferOf＝月次義務の FiscalStressBufferMonths か月分＝この AI の逼迫の物差し）を超えた＝1段狭める・その間＝保つ。Clamp は SetStateMonopolyTier が持つ。
+        //   ⚠旧＝「教義の段＋逼迫なら1」を毎四半期に教義の段から計算し直した＝広げた四半期に黒字→次の四半期に教義の段へ戻る→また払えない、の
+        //     四半期ごとの往復（seed 1 の英＝段2↔3 を毎四半期・歳入÷年GDP 6%↔17%・日用品の買い手価格が四半期ごとに ±21%）。
+        //   理由で動く（逼迫と余裕の2本の線＝既存の r と安全水準）＝タイマーでも新しい状態でもない（今の広さは StateMonopolyMargins からの導出）。
+        //   ⚠潤沢の減税（RelieveOpulence・8四半期分の線）は使わない＝あちらは率への連続倍率・こちらは広さの1段＝同じ線に乗せると国庫が数年分積もるまで狭まらない
+        //     （probe seed 1＝英が段3→4・蘭が段3 に張り付き 1784 の歳入÷年GDP 18・24%）。
+        //   ⚠狭める側は教義の広さより下へ行かない＝旧 RelieveOpulence の注記が退けた「段を落とす翻訳」（床が無い・毎期 教義−1段）にならない。
+        //   ⚠開始前の助走（World.WarmupFrozen）は今の広さを積まない＝教義の広さのまま（助走は借りない＝r＜1 は「借りられない」助走の作りもの・
+        //     広げた記憶は年月が経って積み上がる量＝国庫・国債・法と同じ門）。
+        if (!w.WarmupFrozen)
+        {
+            int curTier = w.StateMonopolyTier;
+            if (fiscalStress > 0) stateMonopTier = Math.Max(stateMonopTier, curTier + 1);
+            else if (w.Treasury > FiscalBufferOf(w)) stateMonopTier = Math.Max(stateMonopTier, curTier - 1);
+            else stateMonopTier = Math.Max(stateMonopTier, curTier);
         }
         // ★専売の書き込み口（作者裁定2026-09-20）＝**プレイヤーの生産タブのチェックボックスと同じ1本**（World.SetStateMonopolyOn 経由）。
         //   ⚠旧はここが w.StateMonopolyMargins[] へ直書きしていた（天井の自動導出を避けるための意図的な迂回）＝P5の破れ。天井が消えたので迂回の理由も消えた。

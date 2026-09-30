@@ -7383,7 +7383,7 @@ if (args.Length > 0 && args[0] == "lawaudit")
         // 共通base：行政成熟＋中庸の税で余剰を作る（福祉/軍需/インフラが資金化され効果が出る）。各probeは自分のレバーだけ上書き。
         p.AdminSpendingTarget = 0.6;
         p.IncomeTaxTarget = 0.3; p.PollTaxTarget = 0.4; p.LandTaxTarget = 0.3;
-        w.SetStateMonopolyTier(1);   // ★2026-09-20：専売は率でなく対象の段（1＝奢侈品まで＝旧0.2の翻訳）
+        w.SetStateMonopolyTier(1);   // ★2026-09-20：専売は率でなく対象の段（1＝史実の物品税の財〔2026-09-30 (127) の梯子〕＝旧0.2の翻訳）
         p.SocialSecurityTarget = 0.3; p.EducationSpendingTarget = 0.5; p.MilitarySpendingTarget = 0.3;
         w.EducationLaw = EducationLaw.Public; p.EducationLaw = EducationLaw.Public;
         cfg(w);
