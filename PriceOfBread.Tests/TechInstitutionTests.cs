@@ -105,10 +105,6 @@ public class TechInstitutionTests
     {
         var sim = new MultiNationSim(Four(), seed: 1789, coef: new Coefficients { ColoniesAreRegions = 0 });
         sim.Nations[1].World.ParliamentEnabled = false;
-        // ★(159) 盤面の前提（主張は同じ）：物を生む行の必要性が動力（労働力の財）の平滑化した値段÷参照価格になり、この4カ国の閉じた世界では動力が参照を超えず
-        //   誰も蒸気機関を必要としない（1843年まで）＝工場が石炭を焚かず英米の技術水準が 1.04・1.20 で凍る（r154 の盤面は4カ国とも開幕から蒸気機関を知り英 2.18）。
-        //   この番人の主題は制度（特許・株式会社）と宗教教育＝蒸気機関は開幕から4カ国に与える（r154 の盤面と同じ前提）。
-        foreach (var n in sim.Nations) n.World.Discovered[Discovery.SteamRow] = true;
         sim.Run(quarters);
         return sim;
     }

@@ -594,9 +594,6 @@ public static class Catalog
     ///   ⚠暦は読まない（年代は行のデータ・コードは暦の年を読まない＝§1A-5 の注）。年代は §1A-5 の表・無い行は Q11（発見の年と実用の年の中間）で置いた。
     /// ・分野＝作者裁定 2026-09-28 ⑤（制度・思想・製法・発明〔新兵器・新製品〕）。制度（特許・株式会社）と思想（社会主義・共産主義・帝国主義・ファシズム）は 2026-10-01 (152) に同じ表へ（設計 §1A-6）＝財を持たない行。
     /// ・場所に結びついた発見（大鉱床・植林）は <see cref="Sites"/>（同じ骨組み・2項）。</summary>
-    /// <summary>★代替する物の欄（<see cref="DiscoveryRow.Replaces"/>・2026-10-02 (159)）の特別な値＝その行の財そのもの（製法の既定）と陸の輸送（機関車＝財ではない＝内陸の州の輸送の容量の律速）。
-    /// 財の id は 0 以上＝特別な値は負（財を持たない行の <see cref="NoGood"/>＝−1 とは別の欄）。</summary>
-    public const int ReplacesOwn = -1, LandFreight = -2;
     public const int DiscoveryBaseDecade = 1780;   // 難易度0の年代（1783年の開幕で既知の行＝坩堝鋼 1740年代・ワットの回転機関 1781＝設計 §1A-5 の注）
     public static readonly DiscoveryRow[] Discoveries =
     [
@@ -622,22 +619,20 @@ public static class Catalog
         new("窒素固定", FertilizerId, "ハーバーボッシュ", DiscoveryField.Process, 1910), // ハーバー＝ボッシュ1913（旧＝肥料の既定の onset の流用＝設計 §5 F2 の半分・硝石へ移すのは次の段）
         new("合成ゴム", RubberId, "合成ゴム", DiscoveryField.Process, 1910),             // メチルゴム1916（§1A-5 の表）
         // --- 発明・新製品（今までに無かった財＝既定のレシピの行）---
-        //   ★代替する物（Replaces・2026-10-02 (159)）＝作者 2026-10-02「その発見が生み出すものが代替するものが高いか、で判定する」の「代替するもの」＝新製品が置き換えた既存の財（AI の対応づけ＝推奨で進めた）。
-        //   機関車だけは財ではない（陸の輸送＝作者 2026-10-02「鉄道研究の必要性は、軍事力ではなく、輸送力の不足から導かれるべきだ」）。
-        new("ガス灯", GasId, "", DiscoveryField.Product, 1810, Replaces: LampOilId),      // マードック1792・商用1812＝灯油（鯨油・菜種油のランプ）とろうそくの灯りを置き換えた
-        new("缶詰", CannedFoodId, "", DiscoveryField.Product, 1810, Replaces: PreservedMeatId),   // アペール法1809・ブリキ缶1810＝塩漬けの肉（艦隊と軍の糧食・1795 の懸賞）を置き換えた
-        new("汽船", SteamshipId, "", DiscoveryField.Product, 1820, Replaces: SailingShipId),   // クラーモント1807〜外洋1830s（Q11＝中間）＝帆船
-        new("機関車", LocomotiveId, "", DiscoveryField.Product, 1820, Replaces: LandFreight),   // ストックトン＝ダーリントン1825・ロケット号1829＝陸の輸送（馬車・運河の荷船＝内陸の輸送の容量）
-        new("加硫ゴム", RubberId, "", DiscoveryField.Product, 1830, Replaces: LeatherId),  // グッドイヤー1839（ゴムに地理差のレシピは無い＝新しい財）＝革（ベルト・ホース・靴底・防水）
-        new("ダイナマイト", DynamiteId, "", DiscoveryField.Product, 1860, Replaces: GunpowderId),   // ノーベル1867＝発破の黒色火薬
-        new("冷蔵", RefrigeratorId, "", DiscoveryField.Product, 1870, Replaces: PreservedMeatId),   // リンデ1870s・冷凍船1877〜82（冷蔵庫の財は冷蔵の加工肉の投入も兼ねる）＝塩漬けの加工肉
-        new("石炭火力", ElectricityId, "", DiscoveryField.Product, 1880, Replaces: GasId),   // パール街1882（電力の既定のレシピ）＝ガス灯
-        new("送電網", GridId, "", DiscoveryField.Product, 1880, Replaces: GasId),          // 配電（パール街1882）・交流送電1890s＝ガスの導管の網
-        new("電化製品", ApplianceId, "", DiscoveryField.Product, 1880, Replaces: DomesticServiceId),   // §1A-5 の表＝家事奉仕（家事使用人）
-        new("自転車", BicycleId, "", DiscoveryField.Product, 1880, Replaces: HorseId),     // 安全型1885＝馬（個人の移動）
-        new("内燃機関", CombustionEngineId, "", DiscoveryField.Product, 1880, Replaces: SteamEngineId),   // オットー1876・ダイムラー1885＝蒸気機関
-        new("自動車", AutomobileId, "", DiscoveryField.Product, 1890, Replaces: HorseId),  // §1A-5 の表（自転車・自動車＝1880〜1890年代）＝馬（馬車・輜重）
-        new("ラジオ", RadioId, "", DiscoveryField.Product, 1920, Replaces: NewspaperId),   // 放送の実用化1920＝新聞
+        new("ガス灯", GasId, "", DiscoveryField.Product, 1810),                          // マードック1792・商用1812
+        new("缶詰", CannedFoodId, "", DiscoveryField.Product, 1810),                     // アペール法1809・ブリキ缶1810
+        new("汽船", SteamshipId, "", DiscoveryField.Product, 1820),                      // クラーモント1807〜外洋1830s（Q11＝中間）
+        new("機関車", LocomotiveId, "", DiscoveryField.Product, 1820),                   // ストックトン＝ダーリントン1825・ロケット号1829
+        new("加硫ゴム", RubberId, "", DiscoveryField.Product, 1830),                     // グッドイヤー1839（ゴムに地理差のレシピは無い＝新しい財）
+        new("ダイナマイト", DynamiteId, "", DiscoveryField.Product, 1860),               // ノーベル1867
+        new("冷蔵", RefrigeratorId, "", DiscoveryField.Product, 1870),                   // リンデ1870s・冷凍船1877〜82（冷蔵庫の財は冷蔵の加工肉の投入も兼ねる）
+        new("石炭火力", ElectricityId, "", DiscoveryField.Product, 1880),                // パール街1882（電力の既定のレシピ）
+        new("送電網", GridId, "", DiscoveryField.Product, 1880),
+        new("電化製品", ApplianceId, "", DiscoveryField.Product, 1880),                  // §1A-5 の表
+        new("自転車", BicycleId, "", DiscoveryField.Product, 1880),                      // 安全型1885
+        new("内燃機関", CombustionEngineId, "", DiscoveryField.Product, 1880),           // オットー1876・ダイムラー1885
+        new("自動車", AutomobileId, "", DiscoveryField.Product, 1890),                   // §1A-5 の表（自転車・自動車＝1880〜1890年代）
+        new("ラジオ", RadioId, "", DiscoveryField.Product, 1920),                        // 放送の実用化1920
         // --- 発明・新兵器（軍事の圧力は陸・海・空で分ける＝作者裁定 2026-09-28 ⑤）---
         new("装甲艦", IroncladId, "", DiscoveryField.Weapon, 1850, WarDomain.Sea),        // ラ・グロワール1859
         new("機関銃", MachineGunId, "", DiscoveryField.Weapon, 1880, WarDomain.Land),     // マキシム1884
