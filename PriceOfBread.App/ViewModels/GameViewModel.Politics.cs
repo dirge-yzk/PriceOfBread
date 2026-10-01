@@ -507,7 +507,7 @@ public partial class GameViewModel
     //       材別加重の分母になっており、ここの材別行と同じ定義になっている。旧コメント（一律レート＝定義が違う）は現物と食い違っていた。
     //   ・耐久の段（上位装備・最上位装備／ArmsStockEnabled>0）＝EconomyStep の need（平時規模×レート÷摩耗率＝目標在庫）と
     //     Region.ArmsStock（保有）。⚠この段だけ「実際」は在庫であって今月買えた量ではない（エンジンの Fill の定義と同じ）。
-    //   ・兵士＝Military.Step の desired（軍事費駆動と扶養限界目標のブレンド・戦時は徴兵の max）と現在の兵士POP。
+    //   ・兵士＝Military.Step の desired（平時＝扶養限界の目標の州按分〔(145)＝軍事費の段は平時の兵数を動かさない〕・戦時は徴兵の max）と現在の兵士POP。
     // ⚠**需要が立っていない材は行を作らない**（必要量0＝休眠の係数・港のない国の艦・世界にまだ存在しない財）
     //   ＝「充足0%」と書くと嘘になる（燃料4本は2026-08-16時点で既定0＝休眠＝1行も出ない）。
     public ObservableCollection<ArmyNeedRow> ArmyNeeds { get; } = new();
@@ -536,9 +536,10 @@ public partial class GameViewModel
             // 給与の充足＝請求の賃金のうち払えた割合＝国家の支払い率 r（(140) から兵の給与は請求×r で払う＝全ての州で同じ r）。
             //   ★(144)：旧の州の欄 SoldierPayAffordRaw は r の写し（導ける量を貯めていた＝思想⑩）＝欄ごと撤去して r を読む。
             double payFill = Math.Min(1.0, _player.FiscalFundingRatio);
-            string solTip = $"徴募可能人口 {PopFmtK(sol.Manpower)}　軍事費 {_player.MilitarySpending:P0}"
+            // ★(149) 反証の指摘：軍事費の段は (145) から平時の兵数を動かさない（装備の予算・即応度・治安維持力を動かす）＝兵の目標の行から装備の行へ移した。
+            string solTip = $"徴募可能人口 {PopFmtK(sol.Manpower)}"
                           + (sol.Sustain > Eps ? $"\n扶養限界の目標 {PopFmtK(sol.Sustain)}" : "")
-                          + $"\n装備の充足 {_player.Region.MilitaryEquipFill:P0}　給与の充足 {payFill:P0}　即応度 {_player.MilitaryReadiness:P0}";   // ★2026-09-03（A-14）：装備の充足を復帰＝エンジンの分母（equipWant）が陸海再配分込みになり、直下の材別行と同じ定義になった（旧＝定義が2つあるので非表示にしていた）
+                          + $"\n軍事費 {_player.MilitarySpending:P0}　装備の充足 {_player.Region.MilitaryEquipFill:P0}　給与の充足 {payFill:P0}　即応度 {_player.MilitaryReadiness:P0}";   // ★2026-09-03（A-14）：装備の充足を復帰＝エンジンの分母（equipWant）が陸海再配分込みになり、直下の材別行と同じ定義になった（旧＝定義が2つあるので非表示にしていた）
             rows.Add(NeedRow("兵士", "兵士", sol.Target, sol.Now, sol.Target > Eps ? sol.Now / sol.Target : 1.0, solTip, PopFmtK, ""));
         }
 

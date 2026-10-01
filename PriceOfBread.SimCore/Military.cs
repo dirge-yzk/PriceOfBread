@@ -163,7 +163,7 @@ public static class Military
         // 覇権国は−20%（平時の小軍）・追う側は+20%（軍拡の無理＝afford<1と労働流出が自然に請求書を出す）。
         // ★錨は人口・歳入＝ゆっくりしか動かない量＝「兵数→脅威→目標」の外側ループが構造的に閉じている
         //   （NeedMen錨定 R2a の失敗＝相手の現在兵数を読んで ρ0.79→0.43、の是正）。
-        // ★(145) 平時の兵の目標＝扶養限界の目標**そのもの**（作者設計の梯子 0.25→0.5→1.0 の終点）。旧＝AI が 2026-08-08 の梯子の測定から採った混合
+        // ★(145) 平時の兵の目標＝扶養限界の目標**そのもの**（作者設計 2026-08-08 の扶養限界の上で AI の点火の梯子 0.25→0.5→1.0 の終点）。旧＝AI が 2026-08-08 の梯子の測定から採った混合
         //   （0.75×軍事費の段×上限割合×母数＋0.25×扶養限界）＝平時の目標に財政の上限が無く、軍拡の段の国は払えるかに依らず母数の約3%を持った
         //   （清1800 ＝約1,060万［史実 80〜100万］・英1860 ＝人口の約4%［約1%］）。混合比 ArmySustainWeight は削除。
         //   ⚠軍事費の段は平時の兵数を動かさない＝装備の予算（MilitaryBudget）と即応度・治安維持力を動かす（兵数は歳入と母数で決まる）。
@@ -334,9 +334,11 @@ public static class Military
 
     /// <summary>★兵の単位の換算（(145)）＝標準のピラミッドの働き盛りの男（16〜59歳）の割合（0.2765）＝新しい数0（標準のピラミッドの表から）。
     /// 兵役の母数を「全ての人（標準の構成）」から「働き盛りの男」へ読み替えた比＝同じ割合の値で兵の数がこの比になる。
-    /// 兵を単位にした較正（戦力ゲージ SoldiersPerMilitary・治安維持力 CoercionPerSoldier・装備 MilitaryUpkeepScale・民兵 MilitiaCombatValue・
+    /// 兵を単位にした較正（戦力ゲージ SoldiersPerMilitary・治安維持力 CoercionPerSoldier・装備 MilitaryUpkeepScale・
     /// 軍政の力 MilitaryCoupWeight・軍の政治力 ArmyPoliticalWeight・徴兵の国民形成 NationBuildConscript・戦争熱 WarFeverSoldier）と
-    /// 政治の正規化（平時の上限の人口比 <see cref="PeaceCapShareOfPop"/>）は、この比で読み替える＝旧の兵1単位の働きを新しい兵の単位で保つ。</summary>
+    /// 政治の正規化（平時の上限の人口比 <see cref="PeaceCapShareOfPop"/>）は、この比で読み替える＝旧の兵1単位の働きを新しい兵の単位で保つ。
+    /// ★(149) 反証の指摘：民兵の戦力 MilitiaCombatValue（既定0）は「本当の兵1人に対する比」＝兵と同じ分子に入る＝読み替えない（値は旧のまま）。
+    /// ⚠ MilitaryUpkeepScale は休眠の反乱の武器の購入（EconomyStep＝MilitaryUpkeepScale×参加人数〔本当の頭数〕）も読む＝点火すると反乱の装備の必要量が約3.6倍（1÷この比）＝点火の回で決める。</summary>
     internal static readonly double WorkingMenStdShare = Pop.StdShare(16, 60, 0);
 
     /// <summary>★平時の上限の人口比（(145)）＝MaxSoldierFraction（働き盛りの男の割合）×標準の構成の働き盛りの男の割合＝「兵÷総人口」で読む正規化の分母

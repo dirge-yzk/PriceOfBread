@@ -147,7 +147,7 @@ public class PartyTests
             Assert.True(nS > nC, $"{axis}：社会党の議席で純支持が上がらない（保守 {nC:F4} ⇔ 社会 {nS:F4}）＝党の選好が通りやすさに入っていない");
             // 差は議会の項（議席×党選好＝ParliamentNet）だけから来る＝勢力別内訳の党の行の合計の差と一致（街頭・軍・小営業は議席に依らない）
             Assert.Equal(nS - nC, PartyRows(soc, axis) - PartyRows(cons, axis), 9);
-            double oC = PolicyPreferences.OpposingPower(cons, axis, true), oS = PolicyPreferences.OpposingPower(soc, axis, true);
+            double oC = PolicyPreferences.OpposingPower(cons, axis, true, PolicyPreferences.Build(cons)), oS = PolicyPreferences.OpposingPower(soc, axis, true, PolicyPreferences.Build(soc));
             Assert.True(oS < oC, $"{axis}：社会党の議席で反対の力が減らない（保守 {oC:F4} ⇔ 社会 {oS:F4}）＝歩幅（Move の抵抗）に党が入っていない");
         }
     }

@@ -52,7 +52,7 @@ public class PettyInterestTests
         foreach (var a in axes)
         {
             net0[a] = PolicyPreferences.NetSupport(w, a, increasing: true);
-            opp0[a] = PolicyPreferences.OpposingPower(w, a, increasing: true);
+            opp0[a] = PolicyPreferences.OpposingPower(w, a, increasing: true, PolicyPreferences.Build(w));
             foreach (var (who, _) in PolicyPreferences.SupportBreakdown(w, a, increasing: true))
                 Assert.NotEqual("小営業", who);
         }
@@ -61,7 +61,7 @@ public class PettyInterestTests
         foreach (var a in axes)
         {
             double n1 = PolicyPreferences.NetSupport(w, a, increasing: true);
-            double o1 = PolicyPreferences.OpposingPower(w, a, increasing: true);
+            double o1 = PolicyPreferences.OpposingPower(w, a, increasing: true, PolicyPreferences.Build(w));
             if (a is PolicyAxis.Antitrust or PolicyAxis.Tariff
                   or PolicyAxis.IncomeTax or PolicyAxis.ProgressiveTax
                   or PolicyAxis.Guild) continue;   // 対象3本（表の行＝累進/所得税は1行2軸）＋同業組合法（特権 段4・2026-09-07＝職人自身の特権＝小営業束の立場）＝束の立場が入るので除外

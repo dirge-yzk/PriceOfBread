@@ -370,10 +370,8 @@ public static class PolicyPreferences
         return w.Coef.ParliamentLawWeight * sum;
     }
 
-    /// <summary>その向きの変更に反対するブロックの力の合計（スライダーの律速）。</summary>
-    public static double OpposingPower(World w, PolicyAxis a, bool increasing) => OpposingPower(w, a, increasing, Build(w));
-
-    /// <summary>同じ瞬間の <see cref="Build"/> を渡す読み口（<see cref="Profile"/> の注記＝間に何も書かない呼び手だけ）。</summary>
+    /// <summary>その向きの変更に反対するブロックの力の合計（スライダーの律速）。同じ瞬間の <see cref="Build"/> を渡す読み口（<see cref="Profile"/> の注記＝間に何も書かない呼び手だけ）。
+    /// ★(149) 反証の指摘：旧の公開の口（呼ぶたびに Build）は SimCore・App・Runner に読み手が無くなった＝削除（テストは Build(w) を渡す）。</summary>
     internal static double OpposingPower(World w, PolicyAxis a, bool increasing, in Profile e)
     {
         double sign = increasing ? 1 : -1;
@@ -503,10 +501,8 @@ public static class PolicyPreferences
     }
 
     /// <summary>小営業束の per-unit 立場（ComputeDemands の要求生成・押し切り/阻止遺恨のpop写像が読む）。
-    /// 対象3軸＝束の立場×向き・他軸＝旧束の値の力加重平均（フォールバック）。gate=0（束が空）は常に0。</summary>
-    public static double PettyStance(World w, PolicyAxis a, bool increasing) => PettyStance(w, a, increasing, Build(w));
-
-    /// <summary>同じ瞬間の <see cref="Build"/> を渡す読み口（<see cref="Profile"/> の注記）。</summary>
+    /// 対象3軸＝束の立場×向き・他軸＝旧束の値の力加重平均（フォールバック）。gate=0（束が空）は常に0。
+    /// 同じ瞬間の <see cref="Build"/> を渡す読み口（<see cref="Profile"/> の注記）。★(149)：旧の公開の口（呼ぶたびに Build）は読み手が無くなった＝削除。</summary>
     internal static double PettyStance(World w, PolicyAxis a, bool increasing, in Profile e)
     {
         double pw = e.PettyPowerModern + e.PettyPowerMass;

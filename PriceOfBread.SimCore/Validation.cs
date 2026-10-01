@@ -154,13 +154,12 @@ public static class Metrics
         //   604Q完走（1934年・全財解禁済み）では従来と同じ集合を検査する＝受け入れ物差しは不変。
         double maxTech = 0;
         foreach (var n in sim.Nations) maxTech = Math.Max(maxTech, n.World.TechLevel);
-        // ★(145)：どの国のどの州にも生産者の一覧に載っていない財（兵力＝(145) で市場ごと削除）は「下流の無い財」ではなく市場そのものが無い＝検査の外。
-        var hasProducer = new bool[Catalog.Goods.Length];
-        foreach (var n in sim.Nations) foreach (var r in n.World.Regions) foreach (var pr in r.Producers) if (pr.GoodId >= 0 && pr.GoodId < hasProducer.Length) hasProducer[pr.GoodId] = true;
+        // ★(145)：兵力（(145) で市場ごと削除＝財の番号をずらさないため一覧に残した財）は「下流の無い財」ではなく市場そのものが無い＝検査の外。
+        //   ★(149) 反証の指摘：外すのは兵力だけ（旧＝「生産者の一覧に載らない財は全て外す」＝不具合で生産者が消えた財も黙って通った）。
         foreach (var g in Catalog.Goods)
         {
             if (g.IsColonial) continue;
-            if (!hasProducer[g.Id]) continue;
+            if (g.Id == Catalog.MilitaryPowerId) continue;
             if (!(Catalog.AdvancedTechScale(g.Id, maxTech) > 0)) continue;   // 時代未到達＝下流が無いのが正しい（否定形＝NaNも除外側）
             double maxD = 0;
             foreach (var n in sim.Nations) { var mk = n.World.Region.Markets; if (g.Id < mk.Length) maxD = Math.Max(maxD, mk[g.Id].LastDemand); }   // コードベース規約の < Markets.Length ガード（最小テスト世界で Markets が全財を持たない場合に落ちない）

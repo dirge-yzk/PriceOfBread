@@ -142,7 +142,7 @@ public static class Catalog
         new(EducationId, "教育",     GoodTier.Service,      0.06, 0.8, 2.0, [I(PaperId,0.05)], NonTradeable: true),   // 教師（公教育）/聖職者（宗教学校）が算出。紙を消費（教材＝間接コスト）。識字の源泉
         new(HealthcareId, "医療",     GoodTier.Service,      0.05, 0.8, 3.0, [I(MedicineId,0.10), I(SoapId,0.05)], NonTradeable: true),   // 医者が算出。医薬品＋石鹸（衛生）を消費。人口扶養力に効く
         new(AdminId, "行政",     GoodTier.Service,      0.0,  0.5, 3.0, [I(PaperId,0.10)], NonTradeable: true),   // 官僚が算出し国家が買う。紙を消費（文書行政）。不足＝汚職
-        new(MilitaryPowerId, "兵力",     GoodTier.Service,      0.0,  0.5, 1.0, [],          NonTradeable: true),   // 兵士が算出し国家が軍事費で買う（給与＝兵力の売上）。買えない＝弱兵
+        new(MilitaryPowerId, "兵力",     GoodTier.Service,      0.0,  0.5, 1.0, [],          NonTradeable: true),   // ★(145) 兵力の市場は削除（生産者も国家の需要も無い・兵士の給与は兵士POPの所得へ直接）＝財の番号をずらさないため一覧に残す（下流の無い財の検査は外す＝Validation）
 
         // === 追加鉱物 ===
         new(ChromeId, "クロム",   GoodTier.Intermediate, 0.0,  0.5, 2.4, []),   // 産地が偏在（オスマン＝アナトリアが世界最大・次いでウラル）。消費は革（クロムなめし並存レシピ・tech0.55〜）のみ＝工具はクロム鋼でなく鋼へ是正済み（02断線走査2026-07-28コメント是正）
