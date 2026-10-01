@@ -176,7 +176,13 @@ public sealed class World
     /// 書き手＝外交の月次（陸と空＝戦死〔Diplomacy.WarCasualties〕・海＝艦隊摩耗）・読み手＝発見の判定（<see cref="Discovery.Step"/> が四半期の平均へ直して0に戻す）。
     /// ⚠四半期の途中のセーブに載る（<see cref="DiscoveryImportQ"/> と同じ）。</summary>
     public double[]? DiscoveryLossQ;
-    /// <summary>直近の四半期の発見の判定に使った国の外の値（接触・人件費の世界の平均・世界の値段＝画面と計器が同じ3項を出すため）。作業領域＝セーブに載らない（ロード直後は null）。</summary>
+    /// <summary>★発見が読む財の値段（2026-10-01 (150)・作者裁定 Q12「平滑化した価格」）＝国の財ごとの実質の値段（需要で重みを付けた州の値段÷物価水準・死んだ市場は参照価格）の
+    /// 四半期の指数平滑（速さ＝<see cref="Discovery.PriceSmoothingQ"/>＝工場の採算の平滑を四半期へ）。書き手は発見の判定（<see cref="Discovery.Step"/>）の1か所だけ（四半期に1歩）。
+    /// 長さ＝財の数＋1＝末尾は陸の輸送の値段（<see cref="Discovery.LandFreightPrice"/>・2026-10-02 (159)＝機関車の必要性・同じ遅れ）。
+    /// ⚠新しい状態＝思想⑩の例外（市場に平滑化した値段の欄が無い・瞬間の値段は旬ごとに動く調整の値＝一過性の跳ねで2値＝失われない発見が決まった〔(147)(148) の申し送り〕）。
+    /// null＝未捕捉（最初の判定・建国した国＝瞬間の値で始める）。セーブに載る。</summary>
+    public double[]? DiscoveryPrice;
+    /// <summary>直近の四半期の発見の判定に使った国の外の値（接触・損耗の強さ＝画面と計器が同じ3項を出すため・★(159) 人件費の世界の平均は削除）。作業領域＝セーブに載らない（ロード直後は null）。</summary>
     [System.NonSerialized] internal Discovery.WorldView? LastDiscoveryView;
     // ★知識と人的資本（作者採用2026-09-06）：厚み＝専門人材率（近代エリート層の高等教育充足×人数÷全人口・毎四半期の導出量＝保存しない）・世界の先端・接触度
     public double Expertise { get; internal set; }                    // 専門人材率（UI 語彙）。TechEducation が Elite と同時に計算

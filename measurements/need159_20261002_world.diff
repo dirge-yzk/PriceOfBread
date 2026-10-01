@@ -1,0 +1,183 @@
+diff --git a/PriceOfBread.SimCore/Discovery.cs b/PriceOfBread.SimCore/Discovery.cs
+index dcebac7..86b1c12 100644
+--- a/PriceOfBread.SimCore/Discovery.cs
++++ b/PriceOfBread.SimCore/Discovery.cs
+@@ -173,10 +173,12 @@ public static class Discovery
+         }
+     }
+ 
+-    /// <summary>国の外から見た値（<see cref="MultiNationSim"/> が四半期末に求めて渡す・単独の世界は null）＝行ごとの接触（★(159)：人件費の世界の平均〔(147)〕は削除＝必要性は生み出す物の値段だけを読む）。
++    /// <summary>国の外から見た値（<see cref="MultiNationSim"/> が四半期末に求めて渡す・単独の世界は null）＝行ごとの接触と世界の値段。
++    /// ★<paramref name="WorldPrice"/>＝世界の値段（2026-10-02 (159)・<see cref="WorldReference"/>＝各国の平滑化した実質の値段を国の需要で重み付けた平均＋末尾は陸の輸送の通した割合）
++    ///   ＝物を生む行の割高さの物差し（<see cref="ReplacedStrength"/>）。null（単独の世界・判定の前）は比べる相手が無い＝割高さ0。旧＝人件費の世界の平均（(147)）は削除。
+     /// ★<paramref name="Loss"/>＝この四半期の陸・海・空の損耗の強さ（添字は <see cref="WarDomain"/>・月の平均・0〜1＝<see cref="World.DiscoveryLossQ"/> を <see cref="Step"/> が直した値・2026-10-01 (153)）
+     /// ＝国の中の値だが、記帳は判定で捨てる＝画面と計器が判定と同じ3項を読むためにここへ載せる（<see cref="World.LastDiscoveryView"/>）。</summary>
+-    public sealed record WorldView(double[]? Contact, double[]? Loss = null);
++    public sealed record WorldView(double[]? Contact, double[]? WorldPrice = null, double[]? Loss = null);
+ 
+     /// <summary>損耗の記帳の長さ（<see cref="WarDomain"/> の数＝無・陸・海・空）。</summary>
+     public const int LossDomains = (int)WarDomain.Air + 1;
+@@ -287,6 +289,7 @@ public static class Discovery
+         double[] real;
+         if (realPrice is { } rpx && rpx.Length >= ng) real = rpx;
+         else real = w.DiscoveryPrice is { } dpx && dpx.Length >= ng ? dpx : InstantReal(w, ng, prod, imp, dem, pxd);   // 平滑の前（ロード直後・開幕の画面）は瞬間の値
++        double[]? world = view?.WorldPrice;
+         // 軍事の圧力（新兵器）＝その分野の脅威（相手の強さ）が自国の強さとの和に占める割合∈[0,1)＝理想の軍隊の形（ArmyShape）の陸と海の必要量 ÷（必要量＋自国の陸軍力・海軍力）。空は陸の膠着（設計 §1A-4）。
+         //   ⚠比（相手÷自国）のままでは弱い国が数十倍になり必要性が70へ張り付く（1種の試走でダホメが1831年に機関銃・コンゴが1837年に弩級戦艦）＝割合にすれば最大は 70÷(1＋半分点)。
+         //   ★＋交戦中のその分野の損耗（2026-10-01 (153)・設計 §1A-4 (4a) の第2項・作者裁定 2026-09-28 ⑤「陸・海・空で分ける」）＝この四半期の損耗の強さ（<see cref="WorldView.Loss"/>＝
+@@ -359,7 +362,7 @@ public static class Discovery
+                     //   作者 2026-10-02「発見の必要性は今後、その発見が必要とされた背景や因果ではなく、その発見が生み出すものが代替するものが高いか、で判定する」。
+                     //   ⚠旧（(147)〜(154)）＝製法は今の方法の投入の費用÷新しいレシピの投入の費用が参照の比を超えた分・労働を代替する発明（蒸気機関・電動機）は人件費の世界比
+                     //     ×参照の資本と燃料÷自国・新製品は満足した消費者の厚み＝背景（人件費・豊かさ）と新しいレシピの費用を読んでいた。
+-                    s = ReplacedStrength(row, real, dem, prod, imp);
++                    s = ReplacedStrength(row, real, world, dem, prod, imp);
+                     half = NeedHalf(d.Field, c);
+                     break;
+                 case DiscoveryField.Weapon:
+@@ -430,7 +433,7 @@ public static class Discovery
+     /// <summary>生きた市場（国内に需要と供給〔産出＋純輸入の正の分〕の両方がある財）＝値段が物差しになる（瞬間の値段・割高さ・世界の値段の重みが同じ1本を読む）。</summary>
+     private static bool Alive(double dem, double prod, double imp) => dem > 1e-9 && prod + (imp > 0 ? imp : 0) > 1e-9;
+ 
+-    /// <summary>平滑化した値段を1歩（四半期に1回・判定の段の頭だけ＝<see cref="MultiNationSim"/> は全ての国を先に進めてから判定する・単独の世界は <see cref="Simulation"/> の四半期末）
++    /// <summary>平滑化した値段を1歩（四半期に1回・判定の段の頭だけ＝<see cref="MultiNationSim"/> は全ての国を先に進めてから世界の値段を求めて判定する・単独の世界は <see cref="Simulation"/> の四半期末）
+     /// ＝ s ← s ＋ 率×（瞬間 − s）。最初（null・建国した国）は瞬間の値で始める＝立ち上がりの跳躍なし。書き手はこの1か所だけ（画面と計器は読むだけ）。</summary>
+     internal static void AdvancePrice(World w, Coefficients c)
+     {
+@@ -444,31 +447,55 @@ public static class Discovery
+         for (int g = 0; g < x.Length; g++) s[g] += a * (x[g] - s[g]);
+     }
+ 
++    /// <summary>★世界の値段（2026-10-02 (159)）＝割高さの物差し＝各国の平滑化した実質の値段（<see cref="World.DiscoveryPrice"/>）をその国の需要（稼働中の州の LastDemand の和）で重み付けた平均
++    /// （国の中で州の値段を需要で重み付けるのと同じ規則を世界へ）＋末尾＝陸の輸送の値段を内陸の州の潜在量（容量で切る前の交易＝陸の輸送の需要）で重み付けた平均（財と同じ規則）。
++    /// 需要が世界のどこにも無い財は参照価格（死んだ市場と同じ扱い）・内陸の潜在量が無ければ1。分子（自国）と分母（世界）は同じ平滑の値・同じ四半期（全ての国を先に1歩進めてから求める）。</summary>
++    public static double[] WorldReference(IEnumerable<World> worlds)
++    {
++        int ng = Catalog.Goods.Length;
++        var num = new double[ng + 1]; var den = new double[ng + 1];
++        var prod = new double[ng]; var imp = new double[ng]; var dem = new double[ng]; var pxd = new double[ng];
++        foreach (var w in worlds)
++        {
++            var s = w.DiscoveryPrice;
++            if (s is null || s.Length < ng + 1) continue;
++            System.Array.Clear(prod); System.Array.Clear(imp); System.Array.Clear(dem); System.Array.Clear(pxd);
++            Aggregate(w, ng, prod, imp, dem, pxd);
++            for (int g = 0; g < ng; g++) if (Alive(dem[g], prod[g], imp[g])) { num[g] += s[g] * dem[g]; den[g] += dem[g]; }   // 国の重み＝国の需要（生きた市場だけ）
++            double pot = 0;
++            foreach (var r in w.Regions) if (r.State == RegionState.Active && !r.IsPort && r.LastTradePotential > 0) pot += r.LastTradePotential;
++            if (pot > 0) { num[ng] += s[ng] * pot; den[ng] += pot; }
++        }
++        var res = new double[ng + 1];
++        for (int g = 0; g < ng; g++) res[g] = den[g] > 1e-12 && num[g] >= 0 ? num[g] / den[g] : Catalog.RefPrices[g];
++        res[ng] = den[ng] > 1e-12 && num[ng] >= 0 ? num[ng] / den[ng] : 1.0;
++        return res;
++    }
++
+     /// <summary>項の飽和＝70×強度÷(強度＋半分点)（発見の表と産地の発見が共有）。否定形＝NaN・負は0。</summary>
+     private static double Saturate(double s, double half) => s > 0 && half > 0 ? TermMax * s / (s + half) : 0;
+ 
+     /// <summary>★物を生む行（製法・新製品）の必要性の強度（2026-10-02 (159)・作者 2026-10-02「発見の必要性は今後、その発見が必要とされた背景や因果ではなく、
+     /// その発見が生み出すものが代替するものが高いか、で判定する。例えば蒸気機関は「人件費が高いか」ではなく「(間接的に人が生み出している)動力が高いか」を見る」）
+-    /// ＝その行が生み出す物が代替する物（<see cref="DiscoveryRow.Replaces"/>＝製法はその行の財そのもの・新製品は代替する既存の財）の平滑化した実質の値段÷参照価格の対数（参照より高い分だけ・参照以下は0）。
+-    /// 参照価格＝その財が普通に出回ったときの値段（費用の積み上げ・役務は錨）＝「高いか」を普通の値段と比べて読む（推奨で進めた）。
+-    /// ・陸の輸送（機関車）＝陸の輸送の値段（<see cref="LandFreightPrice"/>＝輸送力の不足を市場の値段の均衡式で値段へ・参照＝1）の対数＝財と同じ規則
++    /// ＝その行が生み出す物が代替する物（<see cref="DiscoveryRow.Replaces"/>＝製法はその行の財そのもの・新製品は代替する既存の財）の、自国の平滑化した実質の値段÷世界の値段（<see cref="WorldReference"/>）の対数
++    /// （世界より高い分だけ・世界以下は0）＝作者裁定 2026-09-28 ④「代替の製法は、置き換える原料に割高な代償を払っている国でこそ見つかる（合成ゴムはネーデルラントでなくドイツ）」と同じ向き。
++    /// ・陸の輸送（機関車）＝陸の輸送の値段（<see cref="LandFreightPrice"/>＝輸送力の不足を市場の値段の均衡式で値段へ）の、自国÷世界の対数＝財と同じ規則
+     ///   （作者 2026-10-02「鉄道研究の必要性は、軍事力ではなく、輸送力の不足から導かれるべきだ」）。
+-    /// ・背景・因果（人件費の世界比・豊かさ・脅威・軍）と、新しいレシピの投入の費用・他国の値段は読まない（作者の例「「肥料が高いか」だけを見るべきだろう」・使うかは市場が決める＝安いレシピを選ぶ既存の仕組み）。
+-    /// ・⚠物差しの選び方（(159) の10種の2腕・実装ログ (159) §3）：世界の値段（各国の平滑化した値段を需要で重み付けた平均）と比べる腕 F は、最も安く作る国（英）ほど新製品を必要とせず遅れ、
+-    ///   米 8/10 の常勝＝判定の線（F1）の外。参照価格と比べる腕 R（この形）は F1 の内側（exact 51.8→52.8・near 85.4→87.9・清5・米3・英1・仏1）。
+-    ///   ⚠労働力（動力）の参照価格は費用の積み上げでない一律の錨（0.5）＝開幕の動力の値段は主要国の全てで錨の 0.47〜0.91 倍（種1・ネーデルラント 1.15 だけが上）＝開幕では誰も蒸気機関を必要とせず、
+-    ///   工業化で動力が錨を超えた国が見つける（英1801・米1794〔10種の中央〕）。
++    /// ・背景・因果（人件費の世界比・豊かさ・脅威・軍）と、新しいレシピの投入の費用は読まない（作者の例「「肥料が高いか」だけを見るべきだろう」・使うかは市場が決める＝安いレシピを選ぶ既存の仕組み＝推奨で進めた）。
++    /// ・物差しは参照価格ではなく世界の値段（推奨で進めた）＝⚠参照価格は労働力（動力）では費用の積み上げでない一律の錨（0.5）＝開幕の動力の値段は主要国の全てで錨の 0.47〜0.91 倍（種1・ネーデルラント 1.15 だけが上）＝
++    ///   参照価格で読むと誰も蒸気機関を必要としない。新しい財は発見の直後に世界中で天井へ張り付く＝参照価格で読むと後継の行（合成ゴム・石炭火力）がすぐに飽和する（(159) の試走 h0.2＝合成ゴム1849）。
+     /// ・対数＝値段の比は比で読む（(147) と同じ）。自国の市場が死んでいる（国内に需要か供給が無い＝<see cref="Alive"/>）財は0＝使っていない財の代わりは要らない・凍った値段は物差しにならない
+-    ///   （⚠需要があって供給が無い〔封鎖で全く手に入らない〕国も0＝値段が立たない＝記録の限界）。全ての値段が参照価格の世界では全ての行で0（番人）。</summary>
+-    public static double ReplacedStrength(int row, double[] real, double[] dem, double[] prod, double[] imp)
++    ///   （⚠需要があって供給が無い〔封鎖で全く手に入らない〕国も0＝値段が立たない＝記録の限界）。世界の値段が無い（単独の世界・判定の前）は0。全ての国が同じ値段の世界では全ての行で0（番人）。</summary>
++    public static double ReplacedStrength(int row, double[] real, double[]? world, double[] dem, double[] prod, double[] imp)
+     {
++        if (world is null) return 0;   // 比べる相手が無い（単独の世界・判定の前）＝割高さは測れない
+         var d = Catalog.Discoveries[row];
+         int ng = Catalog.Goods.Length;
+-        // 陸の輸送は末尾の1欄（参照＝1・内陸の州が無い・潜在量が無い国は値段1＝不足なし＝生きた市場の判定は要らない）。財は自国の市場が生きているときだけ。
++        // 陸の輸送は末尾の1欄（内陸の州が無い・潜在量が無い国は値段1＝不足なし＝生きた市場の判定は要らない）。財は自国の市場が生きているときだけ。
+         int g = d.Replaces == Catalog.LandFreight ? ng : d.Replaces == Catalog.ReplacesOwn ? d.Good : d.Replaces;
+-        if (g < 0 || g > ng || g >= real.Length) return 0;
++        if (g < 0 || g > ng || g >= real.Length || g >= world.Length) return 0;
+         if (g < ng && (g >= dem.Length || !Alive(dem[g], prod[g], imp[g]))) return 0;
+-        double v = real[g] / (g < ng ? Catalog.RefPrices[g] : 1.0);
++        double v = real[g] / world[g];
+         return v > 1.0 ? System.Math.Log(v) : 0;   // 否定形＝NaN は0
+     }
+ 
+diff --git a/PriceOfBread.SimCore/MultiNationSim.cs b/PriceOfBread.SimCore/MultiNationSim.cs
+index 33cd9d7..9d785ac 100644
+--- a/PriceOfBread.SimCore/MultiNationSim.cs
++++ b/PriceOfBread.SimCore/MultiNationSim.cs
+@@ -519,10 +519,10 @@ public sealed class MultiNationSim
+         WarmupTech(_coef.StartWarmupTechIterations);
+         // ★開幕の既知の集合（段2A・2026-10-01）＝助走の終わりの盤面（均衡の値段・助走で進めた技術水準）で1度だけ判定する（誰もまだ持たない＝伝わり0）。
+         //   1780年代の行（蒸気機関）は難易度0＝技術力は最大＝必要性（動力＝労働力の財の値段の高さ・(159)）が30に届く国だけが開幕から持つ。
+-        //   ★(159) 判定の段の頭で全ての国の平滑化した値段（作者裁定 Q12）を1歩進めてから判定する（判定は読むだけ）。
++        //   ★(159) 割高さの物差し＝世界の値段（全ての国の平滑化した値段を先に1歩＝分子と分母を同じ四半期の値に）。
+         {
+             foreach (var n in Nations) Discovery.AdvancePrice(n.World, _coef);
+-            var view0 = new Discovery.WorldView(null);
++            var view0 = new Discovery.WorldView(null, Discovery.WorldReference(Nations.Select(s => s.World)));
+             foreach (var n in Nations) Discovery.Step(n.World, view0, _coef);
+             ShareWorldDiscovered();
+         }
+@@ -571,9 +571,10 @@ public sealed class MultiNationSim
+                 }
+                 contacts[i] = ct;
+             }
+-            // ★(159) 平滑化した値段（作者裁定 Q12）を全ての国で先に1歩進めてから判定する（判定は読むだけ＝書き手は判定の段の頭の1か所）。
++            // ★(159) 平滑化した値段（作者裁定 Q12）を全ての国で先に1歩進め、世界の値段（割高さの物差し）を求めてから判定する（判定の順で物差しが変わらない）。
+             for (int i = 0; i < n; i++) Discovery.AdvancePrice(Nations[i].World, _coef);
+-            for (int i = 0; i < n; i++) Discovery.Step(Nations[i].World, new Discovery.WorldView(contacts[i]), _coef);
++            var worldPrice = Discovery.WorldReference(Nations.Select(s => s.World));
++            for (int i = 0; i < n; i++) Discovery.Step(Nations[i].World, new Discovery.WorldView(contacts[i], worldPrice), _coef);
+             ShareWorldDiscovered();
+         }
+         foreach (var sim in Nations) { sim.World.DiscoveryImportQ = null; sim.World.DiscoveryLossQ = null; }   // 損耗の記帳（(153)）も判定の後（助走は判定しない＝捨てるだけ）
+diff --git a/PriceOfBread.SimCore/Coefficients.cs b/PriceOfBread.SimCore/Coefficients.cs
+index db63c26..ace5eff 100644
+--- a/PriceOfBread.SimCore/Coefficients.cs
++++ b/PriceOfBread.SimCore/Coefficients.cs
+@@ -1917,16 +1917,15 @@ public sealed class Coefficients
+     //   鉄道・汽船・甜菜糖1800〜1810s）に合わせて置いた＝実装ログ (147)。
+     public double DiscoveryTechPerDecade = 0.35;    // ★Y（作者裁定 Q11＝「各行の発見の年か実用の年に、最も必要に迫られた平均的な先進国が届く値」）＝難易度＝これ×（行の年代−1780）÷10（技術水準の単位）。
+                                                     //   r144 の英仏普の技術水準の平均（1823 1.07・1843 1.55・1863 2.33・1883 2.81・1903 3.13・1923 3.49）＝10年あたり約0.25 ÷（100−必要性45）×70
+-    public double DiscoveryNeedHalfProcess = 0.2;   // 製法の必要性の半分点＝強度（★(159)＝ln(生み出す物＝その行の財の平滑化した値段÷参照価格)＝作者 2026-10-02「その発見が生み出すものが代替するものが高いか、で判定する」）がこの値で必要性35
+-                                                    //   ★(159) 0.8→0.2（推奨で進めた）＝0.8 では値段が参照の約1.8倍を超えないと最初の発見（必要性30）に届かず、蒸気機関は英1898・電力の行は誰も見つけない（種1の試走）。
+-                                                    //   0.2 の10種（腕 R・実装ログ (159) §3）＝判定の線の内側・Q11 の錨（英仏普米の最早）と史実の差の絶対値の平均＝製法 20.6年（r154 の5種 43.0年）。旧 0.8＝(147)
++    public double DiscoveryNeedHalfProcess = 0.1;   // 製法の必要性の半分点＝強度（★(159)＝ln(生み出す物＝その行の財の平滑化した値段÷世界の値段)＝作者 2026-10-02「その発見が生み出すものが代替するものが高いか、で判定する」）がこの値で必要性35
++                                                    //   ★(159) 0.8→0.1（推奨で進めた）＝世界の値段との比は小さい（開幕の動力＝労働力の財は英 1.056・米 1.17・普 1.20・清 0.62 倍〔種1〕）＝0.8 では開幕で誰も蒸気機関を必要としない
++                                                    //   ＝5種の探索の腕（実装ログ (159) §3）で、0.1 は蒸気機関が英米普墺西で1784年（0.2 の腕は英1803・仏1806＝史実から遠い）・Q11 の錨（英仏普米の最早）と史実の差の絶対値の平均＝製法 18.3年（旧 43.0年）。旧 0.8＝(147)
+     //   旧の注記（(147)〜(154)）：強度＝ln(1＋置き換える方法の割高さ)＝今の方法の投入の費用÷新しいレシピの投入の費用が参照の比を超えた分・労働は人件費の世界比×参照の資本と燃料÷自国
+     public double DiscoveryNeedHalfWeapon = 0.75;   // 新兵器の必要性の半分点＝強度（その分野の脅威の割合∈[0,1)〔必要量÷(必要量＋自国の陸軍力・海軍力)〕＋交戦中のその分野の損耗の強さ∈[0,1]〔(153)〕）がこの値で35
+                                                     //   ★(153) 0.5→0.75（推奨で進めた）：強度に損耗の項を足した（範囲 [0,1)→[0,2)）＝(147) の 0.5（1種の試走・損耗の項なし）を5種の探索で取り直した
+                                                     //   ＝最初の発見の年（種の中央）と史実の差の絶対値の平均＝0.5＋損耗 24.2年・0.75 8.2年・1.0 12.5年（損耗の項なしの 0.5＝21.8年）。脅威だけの最大 70×0.94÷1.69＝39＝技術力 61 が要る
+-    public double DiscoveryNeedHalfProduct = 0.4;   // 新製品の必要性の半分点＝強度（★(159)＝ln(代替する既存の財〔表の Replaces〕の平滑化した値段÷参照価格)・機関車は陸の輸送の値段〔参照＝1〕）がこの値で35
+-                                                    //   ★(159) 0.8→0.4（推奨で進めた）＝5種の探索の腕（世界の値段の形）で 0.2 は機関車が英米1804〜05（史実 1825/30）・米の勝ち 4/5・0.4 は英米1814・米 3/5＝0.4 を参照価格の形の10種（腕 R）へ持ち込んだ
+-                                                    //   ＝判定の線の内側・Q11 の錨の差の平均＝新製品 14.6年（r154 の5種 8.7年）。
++    public double DiscoveryNeedHalfProduct = 0.4;   // 新製品の必要性の半分点＝強度（★(159)＝ln(代替する既存の財〔表の Replaces〕の平滑化した値段÷世界の値段)・機関車は陸の輸送の値段）がこの値で35
++                                                    //   ★(159) 0.8→0.4（推奨で進めた）＝5種の探索の腕（同じ陸の輸送の値段の形）で、0.2 は機関車が英米1804〜05（史実 1825/30）・米の勝ち 4/5・0.4 は英米1814・仏1823・露1850・日1864・清1861＝鉄道の年が史実に近く米 3/5（基線と同じ）。
+                                                     //   旧 0.8＝強度は満足した消費者の厚み（Σ人数×満足度÷人口・作者裁定 Q13）＝作者 2026-10-02 の一般則で代替する物の値段へ置き換えた
+     public double DiscoveryContactHalf = 0.05;      // 伝わりの半分点＝接触（その行を解禁済みの国から買った運び手の財の額÷世界のその財の取引額＋呼んだ技師÷自国の専門職）がこの値で35
+     public double DiscoveryNeedHalfSite = 0.5;      // ★(148) 産地の発見（大鉱床・植林＝Catalog.Sites）の必要性の半分点＝強度（人の厚み N÷(N＋N0)×その財の実質の値段÷参照価格）がこの値で35。
+diff --git a/PriceOfBread.SimCore/Simulation.cs b/PriceOfBread.SimCore/Simulation.cs
+index e4007cd..7832afb 100644
+--- a/PriceOfBread.SimCore/Simulation.cs
++++ b/PriceOfBread.SimCore/Simulation.cs
+@@ -1672,7 +1672,7 @@ public sealed class Simulation
+         bool warm = World.WarmupFrozen;
+         if (!warm) TechEducation.GrowTech(World, World.Coef);          // §2.8 技術＝社会の連続創発（カード廃止）。助走中は WarmupTech が別途担う＝ここで二重に進めない
+         // ★発見（段2A・2026-10-01）：単独の世界だけここで判定する（伝わり＝0）。多国は MultiNationSim の四半期末の共有層が接触を求めてから判定する（同じ関数）。助走は判定しない（開幕の既知は助走の終わりに1度）。
+-        if (!warm && World.StepsDiplomacy) { Discovery.AdvancePrice(World, World.Coef); Discovery.Step(World, null, World.Coef); }   // ★(159) 平滑化した値段は判定の段の頭で1歩（判定は読むだけ）
++        if (!warm && World.StepsDiplomacy) { Discovery.AdvancePrice(World, World.Coef); Discovery.Step(World, null, World.Coef); }   // ★(159) 平滑は判定の段の頭で1歩・世界の値段は無い（比べる相手が無い＝物を生む行の割高さは0）
+         else if (warm && World.StepsDiplomacy) World.DiscoveryLossQ = null;   // ★(153) 損耗の記帳は判定で捨てる（助走は判定しない＝捨てるだけ・多国は MultiNationSim の共有層が捨てる）
+         // （研究C＝制度の施行 Institutions.Step は 2026-10-01 (152) に削除＝特許・株式会社・鉄道は発見の表の行の2値〔World.PatentLaw ほか〕を読むだけ）
+         Politics.Step(World, World.Coef);                   // §9-E

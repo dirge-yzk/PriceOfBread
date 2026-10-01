@@ -4308,6 +4308,41 @@ if (args.Length > 0 && args[0] == "discprobe")
     string NameOf(World w) => w.SelfPower?.BaseName ?? w.Region.Name;
     Console.WriteLine($"# discprobe seed={dpSeed} 四半期={dpQ}　Y={cDp.DiscoveryTechPerDecade}・半分点 製法{cDp.DiscoveryNeedHalfProcess}/新兵器{cDp.DiscoveryNeedHalfWeapon}/新製品{cDp.DiscoveryNeedHalfProduct}/制度{cDp.DiscoveryNeedHalfInstitution}/思想{cDp.DiscoveryNeedHalfIdea}/伝わり{cDp.DiscoveryContactHalf}/産地{cDp.DiscoveryNeedHalfSite}");
     // ★(148) 産地の発見（Catalog.Sites）＝産地の生産者の2値の立ち上がり（年・国・州・行＜直前の四半期の 技術力/必要性＞）と、断面ごとのまだの産地の2項・人の厚み・財の実質の値段
+    // ★(150)→(159) 値段の跳ねで決まった解禁（作者裁定 Q12「平滑化した価格」・計器だけ）＝値段を読む行（製法・新製品＝(159) から生み出す物の値段）と産地の発見の出来事のうち、
+    //   判定の値段（エンジンと同じ平滑化した値段）で点数が100以上だが、持続する値段（瞬間の実質の値段の直近 N 四半期の平均・その四半期を含む）で読むと100に届かない解禁（AI の定義）。
+    //   ★(159)：N＝判定の平滑と同じ平均の遅れ（指数平滑の遅れ (1−率)÷率＝窓の平均の遅れ (N−1)÷2 → N＝2(1−率)÷率＋1 の四捨五入・(154) 反証の指摘「物差しの遅れ」をそろえた）。
+    //   参考に、瞬間の値段で読んだ点数（判定が瞬間の値段なら＝(147) の形）も同じ出来事で数える。
+    var spRing = new Dictionary<World, Queue<double[]>>();
+    var spMean = new Dictionary<World, double[]>();
+    var spInst = new Dictionary<World, double[]>();
+    double spRate = Discovery.PriceSmoothingQ(cDp);
+    int spN = (int)System.Math.Round(2.0 * (1.0 - spRate) / spRate + 1.0);
+    int spEv = 0, spGate = 0, spHit = 0, spInstGate = 0, spInstHit = 0;
+    var spRows = new SortedDictionary<string, (int Ev, int Hit, int InstHit)>();
+    void SpikeRing()
+    {
+        foreach (var dsim in msDp.Nations)
+        {
+            var w = dsim.World;
+            var x = Discovery.InstantRealPrices(w);
+            if (!spRing.TryGetValue(w, out var qq)) { qq = new Queue<double[]>(); spRing[w] = qq; }
+            qq.Enqueue(x); while (qq.Count > spN) qq.Dequeue();
+            var m = new double[x.Length];
+            foreach (var v in qq) for (int g = 0; g < m.Length; g++) m[g] += v[g] / qq.Count;
+            spMean[w] = m; spInst[w] = x;
+        }
+    }
+    void SpikeCount(string name, double gateScore, double refScore, double instScore)
+    {
+        spEv++;
+        bool g = gateScore >= Discovery.GateScore, h = g && !(refScore >= Discovery.GateScore);
+        bool gi = instScore >= Discovery.GateScore, hi = gi && !(refScore >= Discovery.GateScore);
+        if (g) spGate++;
+        if (h) spHit++;
+        if (gi) spInstGate++;
+        if (hi) spInstHit++;
+        spRows[name] = spRows.TryGetValue(name, out var t) ? (t.Ev + 1, t.Hit + (h ? 1 : 0), t.InstHit + (hi ? 1 : 0)) : (1, h ? 1 : 0, hi ? 1 : 0);
+    }
     var siteSeen = new HashSet<Producer>();
     var siteLast = new Dictionary<Producer, Discovery.Terms>();
     void SiteEvents()
@@ -4323,6 +4358,8 @@ if (args.Length > 0 && args[0] == "discprobe")
                     {
                         string tt = siteLast.TryGetValue(p, out var lt) ? $"{lt.Tech:F0}/{lt.Need:F0}" : "—";
                         Console.WriteLine($"{w.Year} {NameOf(w)} {rg.Name} 産地：{Catalog.Sites[p.SiteRow].Name} ＜{tt}＞");
+                        if (spMean.TryGetValue(w, out var mref))
+                            SpikeCount(Catalog.Sites[p.SiteRow].Name, Discovery.SiteTerms(w, rg, p, w.Coef).Score, Discovery.SiteTerms(w, rg, p, w.Coef, mref).Score, Discovery.SiteTerms(w, rg, p, w.Coef, spInst[w]).Score);
                     }
                     if (!p.SiteFound && rg.State == RegionState.Active) siteLast[p] = Discovery.SiteTerms(w, rg, p, w.Coef);
                 }
@@ -4346,15 +4383,16 @@ if (args.Length > 0 && args[0] == "discprobe")
         }
         Console.WriteLine("    産地（まだ）: " + (parts.Count > 0 ? string.Join("  ", parts) : "—"));
     }
-    Console.WriteLine("## 1. 開幕の既知（助走の終わり）＝主要国の蒸気機関と甜菜糖の3項（解禁済みでも項を見る）");
+    Console.WriteLine("## 1. 開幕の既知（助走の終わり）＝主要国の蒸気機関と甜菜糖の3項（解禁済みでも項を見る）・動力（労働力の財）と砂糖の平滑化した値段÷参照価格（(159) の必要性の入力）");
     {
-        var view0 = msDp.Nations[0].World.LastDiscoveryView; double ww0 = view0?.Wage ?? 0;
+        var view0 = msDp.Nations[0].World.LastDiscoveryView;
         int rSteam = System.Array.FindIndex(rowsDp, x => x.Name == "蒸気機関"), rBeet = System.Array.FindIndex(rowsDp, x => x.Name == "甜菜糖");
         foreach (var dsim0 in msDp.Nations)
         {
             var w0 = dsim0.World;
             var t0 = Discovery.Evaluate(w0, view0, cDp, includeKnown: true);
-            Console.WriteLine($"  {NameOf(w0),-12} 技術 {w0.TechLevel:F2}　人件費の世界比 {Discovery.LaborWage(w0).Wage / System.Math.Max(1e-12, ww0):F2}　蒸気機関 {t0[rSteam].Tech:F0}/{t0[rSteam].Need:F0}/{t0[rSteam].Transmit:F0}{(w0.Discovered[rSteam] ? "＝済" : "")}　甜菜糖 {t0[rBeet].Tech:F0}/{t0[rBeet].Need:F0}/{t0[rBeet].Transmit:F0}");
+            double Sm0(int g) => w0.DiscoveryPrice is { } dp0 && g < dp0.Length ? dp0[g] / Catalog.RefPrices[g] : double.NaN;
+            Console.WriteLine($"  {NameOf(w0),-12} 技術 {w0.TechLevel:F2}　動力 {Sm0(Catalog.LaborId):F3}・砂糖 {Sm0(Catalog.SugarId):F3}　蒸気機関 {t0[rSteam].Tech:F0}/{t0[rSteam].Need:F0}/{t0[rSteam].Transmit:F0}{(w0.Discovered[rSteam] ? "＝済" : "")}　甜菜糖 {t0[rBeet].Tech:F0}/{t0[rBeet].Need:F0}/{t0[rBeet].Transmit:F0}");
         }
     }
     foreach (var dsim in msDp.Nations)
@@ -4391,6 +4429,7 @@ if (args.Length > 0 && args[0] == "discprobe")
     for (int q = 0; q < dpQ; q++)
     {
         msDp.StepQuarter();
+        SpikeRing();
         SiteEvents();
         foreach (var dsim in msDp.Nations)
         {
@@ -4402,6 +4441,13 @@ if (args.Length > 0 && args[0] == "discprobe")
                 {
                     string tt = lt is not null ? $"{lt[r].Tech:F0}/{lt[r].Need:F0}/{lt[r].Transmit:F0}" : "—";
                     Console.WriteLine($"{w.Year} {NameOf(w)} {rowsDp[r].Name} ＜{tt}＞");
+                    if (rowsDp[r].Field is DiscoveryField.Process or DiscoveryField.Product && spMean.TryGetValue(w, out var mref))
+                    {
+                        var tg = Discovery.Evaluate(w, w.LastDiscoveryView, w.Coef, includeKnown: true);
+                        var tr = Discovery.Evaluate(w, w.LastDiscoveryView, w.Coef, includeKnown: true, realPrice: mref);
+                        var ti = Discovery.Evaluate(w, w.LastDiscoveryView, w.Coef, includeKnown: true, realPrice: spInst[w]);
+                        SpikeCount(rowsDp[r].Name, tg[r].Score, tr[r].Score, ti[r].Score);
+                    }
                     firstBy[r] ??= (NameOf(w), w.Year);
                     yearOf.TryAdd((NameOf(w), r), w.Year);
                     pk[r] = true;
@@ -4442,11 +4488,13 @@ if (args.Length > 0 && args[0] == "discprobe")
                 parts.Add($"{kr}={ratio:F2}×{push:F2}｜{s:G3}｜{x:G3}｜{tm[r].Score:F0}{demTxt}");
             }
             Console.WriteLine($"- {nm}（技術 {w.TechLevel:F2}）: {string.Join("  ", parts)}");
-            // 人件費の物差し（労働を代替する発明の必要性の入力）＝労働・石炭・蒸気機関の国の値段（需要で重み付け）÷物価水準÷参照価格
+            // 動力の物差し（(159)＝蒸気機関・電動機の必要性の入力）＝労働力（動力）・石炭・蒸気機関・電力の国の値段（需要で重み付け）÷物価水準÷参照価格（瞬間）と平滑化した値段（判定が読む値）・陸の輸送の通した割合
             double Px(int g) { double pd = 0, dd = 0; foreach (var rg in w.Regions) { if (rg.State != RegionState.Active || g >= rg.Markets.Length) continue; pd += rg.Markets[g].Price * rg.Markets[g].LastDemand; dd += rg.Markets[g].LastDemand; } return dd > 1e-12 ? pd / dd / w.NominalOf(Catalog.RefPrices[g]) : double.NaN; }
+            double Sm(int g) => w.DiscoveryPrice is { } dpw && g < dpw.Length ? dpw[g] / Catalog.RefPrices[g] : double.NaN;
+            double landSm = w.DiscoveryPrice is { } dpl && Catalog.Goods.Length < dpl.Length ? dpl[Catalog.Goods.Length] : double.NaN;
             double We(int cls) { double e = 0, z = 0; foreach (var rg in w.Regions) { if (rg.State != RegionState.Active) continue; var pp = rg.PopOf(cls); if (pp is null || !(pp.Size > 0)) continue; e += pp.Earned; z += pp.Size; } return z > 1e-12 ? e / z : double.NaN; }
             double coalNom = 0; { double pd = 0, dd = 0; foreach (var rg in w.Regions) { if (rg.State != RegionState.Active) continue; pd += rg.Markets[Catalog.CoalId].Price * rg.Markets[Catalog.CoalId].LastDemand; dd += rg.Markets[Catalog.CoalId].LastDemand; } coalNom = dd > 1e-12 ? pd / dd : double.NaN; }
-            Console.WriteLine($"    人件費の物差し（値段÷参照×物価）: 労働 {Px(Catalog.LaborId):F2}・石炭 {Px(Catalog.CoalId):F2}・蒸気機関 {Px(Catalog.SteamEngineId):F2}・電力 {Px(Catalog.ElectricityId):F2}　1人の月の所得÷物価: 工場労働者 {We(PopClass.Worker) / w.NominalOf(1):F3}・農民 {We(PopClass.Peasant) / w.NominalOf(1):F3}　÷石炭の値段: 工場労働者 {We(PopClass.Worker) / coalNom:F3}・農民 {We(PopClass.Peasant) / coalNom:F3}　1人GDP {w.Gdp / System.Math.Max(1e-9, w.TotalPopulation):F4}　人件費の世界比 {Discovery.LaborWage(w).Wage / System.Math.Max(1e-12, w.LastDiscoveryView?.Wage ?? 0):F2}");
+            Console.WriteLine($"    動力の物差し（値段÷参照×物価・瞬間／平滑）: 労働力 {Px(Catalog.LaborId):F2}/{Sm(Catalog.LaborId):F2}・石炭 {Px(Catalog.CoalId):F2}/{Sm(Catalog.CoalId):F2}・蒸気機関 {Px(Catalog.SteamEngineId):F2}/{Sm(Catalog.SteamEngineId):F2}・電力 {Px(Catalog.ElectricityId):F2}/{Sm(Catalog.ElectricityId):F2}　陸の輸送の値段（平滑・参照＝1） {landSm:F2}　1人の月の所得÷物価: 工場労働者 {We(PopClass.Worker) / w.NominalOf(1):F3}・農民 {We(PopClass.Peasant) / w.NominalOf(1):F3}　÷石炭の値段: 工場労働者 {We(PopClass.Worker) / coalNom:F3}・農民 {We(PopClass.Peasant) / coalNom:F3}　1人GDP {w.Gdp / System.Math.Max(1e-9, w.TotalPopulation):F4}");
         }
     }
     Console.WriteLine("## 4. 行ごとの最初の国と年・主要国の年");
@@ -4458,6 +4506,9 @@ if (args.Length > 0 && args[0] == "discprobe")
     }
     int total = 0; foreach (var dsim in msDp.Nations) foreach (bool b in dsim.World.Discovered) if (b) total++;
     Console.WriteLine($"終局の解禁の総数（国×行）: {total}／{msDp.Nations.Count * rowsDp.Length}");
+    Console.WriteLine($"## 5. 値段の跳ねで決まった解禁（製法・新製品の行と産地の発見の出来事・(150) Q12・(159)）: 出来事 {spEv}・判定の値段（平滑）で100以上 {spGate}・そのうち持続する値段（瞬間の実質の値段の直近{spN}四半期の平均＝判定の平滑と同じ遅れ）では100未満 {spHit}"
+        + $"／参考＝瞬間の値段で100以上 {spInstGate}・そのうち持続する値段では100未満 {spInstHit}");
+    Console.WriteLine("  行ごと（出来事／平滑の跳ね／瞬間の跳ね）: " + string.Join("　", spRows.Select(kv => $"{kv.Key} {kv.Value.Ev}/{kv.Value.Hit}/{kv.Value.InstHit}")));
     Console.WriteLine($"発見の判定（Discovery.Evaluate）の1回＝{evTicks * 1e6 / System.Diagnostics.Stopwatch.Frequency / System.Math.Max(1, evCount):F1} マイクロ秒（{evCount} 回・計算量の台帳の単価 {CostLedger.DiscoveryUnitMicros}）");
     return;
 }

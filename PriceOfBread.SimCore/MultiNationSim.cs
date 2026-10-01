@@ -518,8 +518,14 @@ public sealed class MultiNationSim
         WarmupEconomy(quarters, onQuarter);
         WarmupTech(_coef.StartWarmupTechIterations);
         // ★開幕の既知の集合（段2A・2026-10-01）＝助走の終わりの盤面（均衡の値段・助走で進めた技術水準）で1度だけ判定する（誰もまだ持たない＝伝わり0）。
-        //   1780年代の行（蒸気機関）は難易度0＝技術力は最大＝必要性（人件費の高さ）が30に届く国だけが開幕から持つ。
-        { var view0 = new Discovery.WorldView(null, WorldLaborWage()); foreach (var n in Nations) Discovery.Step(n.World, view0, _coef); ShareWorldDiscovered(); }
+        //   1780年代の行（蒸気機関）は難易度0＝技術力は最大＝必要性（動力＝労働力の財の値段の高さ・(159)）が30に届く国だけが開幕から持つ。
+        //   ★(159) 判定の段の頭で全ての国の平滑化した値段（作者裁定 Q12）を1歩進めてから判定する（判定は読むだけ）。
+        {
+            foreach (var n in Nations) Discovery.AdvancePrice(n.World, _coef);
+            var view0 = new Discovery.WorldView(null);
+            foreach (var n in Nations) Discovery.Step(n.World, view0, _coef);
+            ShareWorldDiscovered();
+        }
         RebaselineInvariants();
     }
     private bool _startWarmupDone;
@@ -565,8 +571,9 @@ public sealed class MultiNationSim
                 }
                 contacts[i] = ct;
             }
-            double ww = WorldLaborWage();
-            for (int i = 0; i < n; i++) Discovery.Step(Nations[i].World, new Discovery.WorldView(contacts[i], ww), _coef);
+            // ★(159) 平滑化した値段（作者裁定 Q12）を全ての国で先に1歩進めてから判定する（判定は読むだけ＝書き手は判定の段の頭の1か所）。
+            for (int i = 0; i < n; i++) Discovery.AdvancePrice(Nations[i].World, _coef);
+            for (int i = 0; i < n; i++) Discovery.Step(Nations[i].World, new Discovery.WorldView(contacts[i]), _coef);
             ShareWorldDiscovered();
         }
         foreach (var sim in Nations) { sim.World.DiscoveryImportQ = null; sim.World.DiscoveryLossQ = null; }   // 損耗の記帳（(153)）も判定の後（助走は判定しない＝捨てるだけ）
@@ -582,13 +589,7 @@ public sealed class MultiNationSim
     }
     private bool[]? _worldDiscovered;   // ⚠セーブに載る（全ての国の World と同じ配列＝参照は1つ）
 
-    /// <summary>人件費の世界の平均＝各国の働き手1人の月の所得÷物価水準を働き手の人数で重み付けた平均（<see cref="Discovery.LaborWage"/>）。</summary>
-    private double WorldLaborWage()
-    {
-        double s = 0, z = 0;
-        foreach (var sim in Nations) { var (wg, h) = Discovery.LaborWage(sim.World); if (wg > 0 && h > 0) { s += wg * h; z += h; } }
-        return z > 1e-12 ? s / z : 0;
-    }
+    // （人件費の世界の平均 WorldLaborWage は 2026-10-02 (159) に削除＝発見の必要性は生み出す物の値段だけを読む〔作者 2026-10-02〕）
     /// <summary>この四半期の招聘（送り手・受け手・人数）＝発見の段が読んで空にする。作業領域（同じ四半期末の中で書いて読む＝セーブを挟まない）。</summary>
     [System.NonSerialized] private List<(World Src, World Dst, double Heads)>? _recruitLog;
 
