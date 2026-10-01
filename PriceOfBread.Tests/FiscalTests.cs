@@ -78,12 +78,16 @@ public class FiscalTests
     [Fact]
     public void 財政下でも基礎貨幣は保存される()
     {
+        // ★2026-10-01 (148)：保存される量は**台帳を引いた基礎貨幣**（ConservationTests・Invariants と同じ＝基礎貨幣−累積貿易−鋳造−不換の発行）。
+        //   旧＝生の基礎貨幣を比べた＝国庫が負になった月の与信の償却（非常発行＝台帳 CumulativeFiatIssued に同じ額）が起きない種でしか緑にならない
+        //   （(147) の木でも種1・3〜7 は400四半期の中で不換の発行が約0.1%立つ・種2 だけが立たなかった＝(148) で年次の乱数が2つ減って種2 にも立った）。許しは同じ 1e-3。
+        static double D(World w) => w.BaseMoney - w.CumulativeTradeFlow - w.CumulativeGoldMinted - w.CumulativeFiatIssued;
         var sim = new Simulation(Fisc(2, 0.30), new NullAgent());
-        double base0 = sim.World.BaseMoney;
+        double base0 = D(sim.World);
 
         var ex = Record.Exception(() => sim.Run(400));
         Assert.Null(ex);
-        Assert.True(Math.Abs(sim.World.BaseMoney - base0) < 1e-3 * Math.Max(1, base0), "基礎貨幣が保存されない");
+        Assert.True(Math.Abs(D(sim.World) - base0) < 1e-3 * Math.Max(1, Math.Abs(base0)), $"基礎貨幣が保存されない（台帳を引いた量 {base0}→{D(sim.World)}・不換の発行 {sim.World.CumulativeFiatIssued}）");
     }
 
     [Fact]

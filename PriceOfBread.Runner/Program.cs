@@ -4345,7 +4345,46 @@ if (args.Length > 0 && args[0] == "discprobe")
     string[] keyRows = ["蒸気機関", "甜菜糖", "機関車", "汽船", "転炉鋼", "石炭火力", "電動機", "機関銃", "装甲艦", "自動車", "ラジオ", "合成ゴム", "窒素固定"];
     if (args.Length > 4) keyRows = args[4] == "all" ? rowsDp.Select(x => x.Name).ToArray() : args[4].Split(',');   // 断面に出す行（誰も発見しない行の3項を読む）
     string NameOf(World w) => w.SelfPower?.BaseName ?? w.Region.Name;
-    Console.WriteLine($"# discprobe seed={dpSeed} 四半期={dpQ}　Y={cDp.DiscoveryTechPerDecade}・半分点 製法{cDp.DiscoveryNeedHalfProcess}/新兵器{cDp.DiscoveryNeedHalfWeapon}/新製品{cDp.DiscoveryNeedHalfProduct}/伝わり{cDp.DiscoveryContactHalf}");
+    Console.WriteLine($"# discprobe seed={dpSeed} 四半期={dpQ}　Y={cDp.DiscoveryTechPerDecade}・半分点 製法{cDp.DiscoveryNeedHalfProcess}/新兵器{cDp.DiscoveryNeedHalfWeapon}/新製品{cDp.DiscoveryNeedHalfProduct}/伝わり{cDp.DiscoveryContactHalf}/産地{cDp.DiscoveryNeedHalfSite}");
+    // ★(148) 産地の発見（Catalog.Sites）＝産地の生産者の2値の立ち上がり（年・国・州・行＜直前の四半期の 技術力/必要性＞）と、断面ごとのまだの産地の2項・人の厚み・財の実質の値段
+    var siteSeen = new HashSet<Producer>();
+    var siteLast = new Dictionary<Producer, Discovery.Terms>();
+    void SiteEvents()
+    {
+        foreach (var dsim in msDp.Nations)
+        {
+            var w = dsim.World;
+            foreach (var rg in w.Regions)
+                foreach (var p in rg.Producers)
+                {
+                    if (p.SiteRow < 0) continue;
+                    if (p.SiteFound && siteSeen.Add(p))
+                    {
+                        string tt = siteLast.TryGetValue(p, out var lt) ? $"{lt.Tech:F0}/{lt.Need:F0}" : "—";
+                        Console.WriteLine($"{w.Year} {NameOf(w)} {rg.Name} 産地：{Catalog.Sites[p.SiteRow].Name} ＜{tt}＞");
+                    }
+                    if (!p.SiteFound && rg.State == RegionState.Active) siteLast[p] = Discovery.SiteTerms(w, rg, p, w.Coef);
+                }
+        }
+    }
+    void SiteSection()
+    {
+        var parts = new List<string>();
+        foreach (var dsim in msDp.Nations)
+        {
+            var w = dsim.World;
+            foreach (var rg in w.Regions)
+                foreach (var p in rg.Producers)
+                {
+                    if (p.SiteRow < 0 || p.SiteFound) continue;
+                    var st = Discovery.SiteTerms(w, rg, p, w.Coef);
+                    double half = w.Coef.DiscoveryNeedHalfSite;
+                    double sv = st.Need < Discovery.TermMax - 1e-9 ? half * st.Need / (Discovery.TermMax - st.Need) : double.PositiveInfinity;
+                    parts.Add($"{Catalog.Sites[p.SiteRow].Name}＠{rg.Name}（{NameOf(w)}・技術 {w.TechLevel:F2}）={st.Tech:F0}/{st.Need:F0}｜強度{sv:G3}");
+                }
+        }
+        Console.WriteLine("    産地（まだ）: " + (parts.Count > 0 ? string.Join("  ", parts) : "—"));
+    }
     Console.WriteLine("## 1. 開幕の既知（助走の終わり）＝主要国の蒸気機関と甜菜糖の3項（解禁済みでも項を見る）");
     {
         var view0 = msDp.Nations[0].World.LastDiscoveryView; double ww0 = view0?.Wage ?? 0;
@@ -4391,6 +4430,7 @@ if (args.Length > 0 && args[0] == "discprobe")
     for (int q = 0; q < dpQ; q++)
     {
         msDp.StepQuarter();
+        SiteEvents();
         foreach (var dsim in msDp.Nations)
         {
             var w = dsim.World;
@@ -4411,6 +4451,7 @@ if (args.Length > 0 && args[0] == "discprobe")
         }
         if ((q + 1) % dpEvery != 0) continue;
         Console.WriteLine($"### {msDp.Nations[0].World.Year}年の断面（国: 行=技術水準÷難易度×押し｜必要性の強度｜接触｜点数）");
+        SiteSection();
         foreach (var nm in majors)
         {
             var dsim = msDp.Nations.FirstOrDefault(n => n.World.SelfPower?.BaseName == nm);

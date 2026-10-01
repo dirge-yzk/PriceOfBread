@@ -601,7 +601,7 @@ public static class EconomyStep
             double harvestMul = fieldLike && harvestSev > 0 ? 1.0 + (effHarvest - 1.0) * harvestSev : 1.0;
             // 作物固有の病虫害（胴枯れ）：その作物の健全度を産出に乗じる。天候(harvestMul)とは独立にロールされ**積算**＝両者の悪い目が重なれば栽培州の産出はほぼ0（アイルランド大飢饉型）。
             if (region.CropHealth is { } ch && s.GoodId < ch.Length) harvestMul *= ch[s.GoodId];
-            double mineralMul = Catalog.IsMineral(s.GoodId) ? region.MineralDepletion * region.MineralGradeFactor : 1.0;   // 鉱物の枯渇イベント×★鉱脈の品位（在庫由来・2026-08-14。既定1.0＝恒等＝掘るほど落ちるのはゲート点火時のみ）
+            double mineralMul = Catalog.IsMineral(s.GoodId) ? region.MineralGradeFactor : 1.0;   // ★鉱脈の品位（在庫由来・2026-08-14・掘るほど落ちる）。★(148)：抽選の枯渇と富鉱の州の倍率 MineralDepletion を削除＝富鉱は開いた産地の生産者の賦存（Discovery.OpenSite）
             // 役務（教育・医療・行政・高度労働力）＝労働集約のまま＝倍率に乗らない（ボーモルのコスト病）。
             // 人力労働＝工業化（indMult＝投資で買い積んだ機械・組織）でのみ伸びる＝裸の技術では人は増えない。
             // 工場＝フル倍率＋**電化ブースト**（買えた電力に応じて稼働率↑＝夜間操業）。
@@ -2542,16 +2542,16 @@ public static class EconomyStep
     ///   赤字になった・(68) の診断）。名目へは <see cref="World.CostPriceLevel"/>（P の遅い趨勢）×州の乗数（<see cref="Region.LocalPriceMultiplier"/>＝
     ///   州の物価水準と同じ写し方）を掛ける＝長期では価格と同じ単位・短期では物価の循環に先行しない（P そのものを掛けた (68) の D は恐慌 ×1.7）。
     ///   投入費（InputCostPerUnit）は州の価格そのもの＝元から名目。<paramref name="world"/>＝null（較正の1州・単体テスト）は平価 1.0。
-    /// ②★器 MineralCostFollowsGrade（2026-09-07・既定0＝**休眠**）：鉱物RGOは①をさらに鉱脈の倍率（MineralDepletion×MineralGradeFactor
-    ///   ＝①供給の mineralMul と**同じ積**）で割る＝富鉱（GoldRushEndowment 5.0 の州）は安い限界供給者・枯れた鉱脈（DepositGradeFloor）は
-    ///   高い限界供給者。ゲート0・非RGO・非鉱物・倍率が非正/NaN のときは割らない。
+    /// ②★器 MineralCostFollowsGrade（2026-09-07・既定0＝**休眠**）：鉱物RGOは①をさらに鉱脈の品位（MineralGradeFactor
+    ///   ＝①供給の mineralMul と**同じ量**）で割る＝枯れた鉱脈（DepositGradeFloor）は高い限界供給者（★(148)：旧の州の倍率 MineralDepletion は削除＝
+    ///   富鉱は開いた産地の生産者の賦存＝EndowmentCostFollowsAbundance の側）。ゲート0・非RGO・非鉱物・倍率が非正/NaN のときは割らない。
     /// 読み手＝①供給の mc と決算の操業規模の mc の**2箇所**（同じ物差し）＋ProductionDiag（恒等式3の自己費用列・稼働率の採算項）＋
     /// Runner の検証レポートの床財の採算＝全て**この関数**を読む（InputCostPerUnit と同じ理由＝表示が静かに嘘にならない）。</summary>
     internal static double MineralSelfCost(Producer s, Region region, Coefficients coef, World? world)
     {
         double own = s.MarginalCost * (world?.CostPriceLevel ?? 1.0) * region.LocalPriceMultiplier;   // ①参照価格の単位→州の名目（自己費用の物価水準）
         if (!(coef.MineralCostFollowsGrade > 0) || !s.IsRgo || !Catalog.IsMineral(s.GoodId)) return own;
-        double gm = region.MineralDepletion * region.MineralGradeFactor;
+        double gm = region.MineralGradeFactor;
         if (!(gm > Eps)) return own;   // 否定形＝NaN/非正の倍率は割らない側へ倒す（Clamp は NaN を消さない）
         return own / gm;
     }

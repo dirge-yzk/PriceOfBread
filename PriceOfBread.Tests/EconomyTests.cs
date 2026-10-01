@@ -8,8 +8,8 @@ public class EconomyTests
     [Fact]
     public void PI制御で価格は定常へ収束する()
     {
-        // 価格制御機構の単体検証＝外生ショック（豊作/不作・鉱物枯渇）は切る（ショックの価格変動は別途バッチで検証）
-        var sim = new Simulation(new Scenario { Seed = 1, Coef = new Coefficients { HarvestVariation = 0, MineralDepletionChance = 0 } }, new NullAgent());
+        // 価格制御機構の単体検証＝外生ショック（豊作/不作）は切る（ショックの価格変動は別途バッチで検証）。★(148)：確率の鉱物枯渇は経路ごと削除（係数 MineralDepletionChance も）
+        var sim = new Simulation(new Scenario { Seed = 1, Coef = new Coefficients { HarvestVariation = 0 } }, new NullAgent());
         sim.Run(400);
 
         // 後半100四半期の価格レンジが十分小さい＝収束（振動していない・設計判断A）
@@ -292,12 +292,13 @@ public class EconomyTests
     {
         // ★器 MineralCostFollowsGrade（2026-09-07）。小世界の財0は Catalog.IsMineral(0)＝鉱物扱い（mineralMul が既に読む）。
         //   価格を mc(0.5) と mc×(1+SupplySlope) の間に置く＝profitFactor が飽和(1.0)しない領域で採算の差が DesiredOutput に出る。
-        //   富鉱（MineralDepletion＝GoldRushEndowment 5.0）：OFF＝mc 0.5 のまま／ON＝mc 0.1＝安い限界供給者＝同じ価格で採算↑。
-        static Region Rich(Coefficients c)
+        //   ★(148)：州の富鉱の倍率 MineralDepletion を削除＝盤面は枯れた鉱脈（品位 MineralGradeFactor＝DepositGradeFloor 0.15）へ（主張は同じ＝鉱脈の質が限界費用に通る）：
+        //   OFF＝mc 0.5 のまま／ON＝mc 0.5÷0.15＝高い限界供給者＝同じ価格で採算↓。
+        static Region Poor(Coefficients c)
         {
             var r = TwoClassRegion();
             r.Producers[0].IsRgo = true;
-            r.MineralDepletion = c.GoldRushEndowment;
+            r.MineralGradeFactor = c.DepositGradeFloor;
             r.Markets[0].Price = r.Producers[0].MarginalCost * (1.0 + c.SupplySlope * 0.4);   // 0.5×1.2＝0.6（飽和前）
             return r;
         }
@@ -305,12 +306,12 @@ public class EconomyTests
         var zeroCoef = new Coefficients { MineralCostFollowsGrade = 0.0 };
         var onCoef = new Coefficients { MineralCostFollowsGrade = 1.0 };
 
-        var off = Rich(baseCoef); var zero = Rich(zeroCoef); var on = Rich(onCoef);
+        var off = Poor(baseCoef); var zero = Poor(zeroCoef); var on = Poor(onCoef);
         EconomyStep.Run(off, baseCoef); EconomyStep.Run(zero, zeroCoef); EconomyStep.Run(on, onCoef);
 
-        // ON：同じ価格・同じ Capacity（mineralMul は両方×5）で採算だけ上がる＝DesiredOutput が大きい
-        Assert.True(on.Producers[0].DesiredOutput > off.Producers[0].DesiredOutput,
-            $"点火で採算が上がらない：ON {on.Producers[0].DesiredOutput} ≤ OFF {off.Producers[0].DesiredOutput}");
+        // ON：同じ価格・同じ Capacity（mineralMul は両方×0.15）で採算だけ下がる＝DesiredOutput が小さい
+        Assert.True(on.Producers[0].DesiredOutput < off.Producers[0].DesiredOutput,
+            $"点火で採算が下がらない：ON {on.Producers[0].DesiredOutput} ≥ OFF {off.Producers[0].DesiredOutput}");
         Assert.Equal(off.Producers[0].Capacity, on.Producers[0].Capacity);   // 量の倍率は従来どおり（費用側だけが変わる）
 
         // ゲート0の明示＝既定とビット恒等（24ヶ月）

@@ -231,4 +231,141 @@ public class DiscoveryScoreTests
         var byCarrier = Discovery.RowsByCarrier(carriers);
         Assert.Contains(Row("蒸気機関"), byCarrier[Catalog.SteamEngineId]);
     }
+    // ===== ★産地の発見（2026-10-01 (148)・Catalog.Sites＝大鉱床と植林）の番人 =====
+
+    /// <summary>産地の生産者を探す（州の名前＝表の場所・財＝表の財）。</summary>
+    private static (World W, Region R, Producer P) Site(MultiNationSim sim, string siteName)
+    {
+        int row = System.Array.FindIndex(Catalog.Sites, x => x.Name == siteName);
+        Assert.True(row >= 0, $"表に {siteName} が無い");
+        foreach (var n in sim.Nations)
+            foreach (var r in n.World.Regions)
+                foreach (var p in r.Producers)
+                    if (p.SiteRow == row) return (n.World, r, p);
+        throw new Xunit.Sdk.XunitException($"{siteName} の生産者が盤面に無い");
+    }
+
+    /// <summary>産地は表からだけ来る（州も植民地も同じ表・場所の名前で引く）：産地の生産者は表の場所の州にあり財が一致する・開始の盤面に場所がある行は
+    /// ちょうど1つの生産者を持つ・銀の行は SilverRushEnabled＝0 の間は置かない（検討 Q13 (d)）・抽象の標的（アルタ=カリフォルニア・南アフリカ）は入植するまで無い。
+    /// ⚠壊し方＝銀の旗を読まない → 西部の銀の生産者が産地になる＝赤。</summary>
+    [Fact]
+    public void 産地は表からだけ来る_銀は旗が0の間は置かない()
+    {
+        var sim = Board();
+        var count = new int[Catalog.Sites.Length];
+        var places = new HashSet<string>();
+        foreach (var n in sim.Nations)
+            foreach (var r in n.World.Regions)
+            {
+                places.Add(r.Name);
+                foreach (var p in r.Producers)
+                {
+                    if (p.SiteRow < 0) continue;
+                    var st = Catalog.Sites[p.SiteRow];
+                    Assert.Equal(st.Place, r.Name);
+                    Assert.Equal(st.Good, p.GoodId);
+                    Assert.True(p.IsRgo, $"{st.Name}：産地の生産者が採取でない");
+                    count[p.SiteRow]++;
+                }
+            }
+        Assert.Equal(0.0, new Coefficients().SilverRushEnabled);
+        for (int i = 0; i < Catalog.Sites.Length; i++)
+        {
+            var st = Catalog.Sites[i];
+            int expect = st.Good == Catalog.SilverId || !places.Contains(st.Place) ? 0 : 1;
+            Assert.True(count[i] == expect, $"{st.Name}（{st.Place}）：産地の生産者 {count[i]}（期待 {expect}）");
+        }
+        foreach (var name in new[] { "ジャワのキナ", "ニルギリのキナ", "セイロンのキナ", "ルイジアナの硫黄", "九州の硫黄", "ヴィクトリアの金", "クロンダイクの金" })
+            Assert.True(count[System.Array.FindIndex(Catalog.Sites, x => x.Name == name)] == 1, $"{name} が開始の盤面に無い");
+    }
+
+    /// <summary>見つかるまで産まない・見つかったら開く・失われない（2値）＋キナはアンデスだけが開始から（(129) の申し送り）：
+    /// ①アジアのキナ（バタヴィア）の生産者は門0・ペルーの樹皮は門1 ②技術水準0では入植者が厚くても届かない（技術力0＋必要性≦70）
+    /// ③技術水準を難易度へ上げると届いて開く（門1）④技術水準を0へ戻して判定を重ねても開いたまま。
+    /// ⚠壊し方＝門が SiteFound を読まない（常に1）→ ①が赤／判定で SiteFound を戻す → ④が赤。</summary>
+    [Fact]
+    public void 産地は見つかるまで産まない_見つかったら開いて失われない()
+    {
+        var sim = Board();
+        var (w, r, p) = Site(sim, "ジャワのキナ");
+        Assert.False(p.SiteFound, "前提が崩れた（開始から開いている）");
+        Assert.Equal(0.0, Discovery.Gate(r, p));
+        // ペルー（アンデス）の樹皮は開始から産む（表に無い＝開始時の賦存）
+        bool peru = false;
+        foreach (var n in sim.Nations)
+            foreach (var rg in n.World.Regions)
+                if (rg.Name == "ペルー")
+                    foreach (var q in rg.Producers)
+                        if (q.GoodId == Catalog.CinchonaBarkId) { peru = true; Assert.True(q.SiteRow < 0); Assert.Equal(1.0, Discovery.Gate(rg, q)); }
+        Assert.True(peru, "ペルーの樹皮が無い");
+        // 財の解禁（作る門・需要の門）は「場所がまだ知られていない」を「財がまだ発見されていない」と取り違えない
+        Assert.Equal(1.0, Discovery.GoodGate(r, Catalog.CinchonaBarkId));
+
+        double tech0 = w.TechLevel;
+        w.TechLevel = 0;
+        var t0 = Discovery.SiteTerms(w, r, p, w.Coef);
+        Assert.True(t0.Tech == 0 && t0.Transmit == 0 && t0.Need <= Discovery.TermMax, $"項が範囲の外（{t0}）");
+        Discovery.Step(w, null, w.Coef);
+        Assert.False(p.SiteFound, "技術力0で開いた");
+
+        w.TechLevel = Discovery.DifficultyOf(Catalog.Sites[p.SiteRow].Decade, w.Coef) * 2;
+        var t1 = Discovery.SiteTerms(w, r, p, w.Coef);
+        Assert.Equal(Discovery.TermMax, t1.Tech);
+        Assert.True(t1.Score >= Discovery.GateScore, $"技術力70でも住民×樹皮の値で届かない（{t1}）");
+        Discovery.Step(w, null, w.Coef);
+        Assert.True(p.SiteFound);
+        Assert.Equal(1.0, Discovery.Gate(r, p));
+
+        w.TechLevel = 0;
+        for (int i = 0; i < 3; i++) Discovery.Step(w, null, w.Coef);
+        Assert.True(p.SiteFound, "開いた産地が閉じた");
+        Assert.Equal(1.0, Discovery.Gate(r, p));
+        w.TechLevel = tech0;
+    }
+
+    /// <summary>鉱床の必要性は入植者（その国の中核民族の人数）×財の値（設計 §9-1 の提案③・2026-09-28 作者が採用した提案＝文は AI の整理）・植林は住民：
+    /// 同じ州の住民を全て中核民族でなくすと、鉱床（ルイジアナの硫黄）の必要性は0＝技術力70だけでは届かない／植林（ジャワのキナ）の必要性は変わらない。
+    /// ⚠壊し方＝鉱床の人の厚みを住民で数える → 鉱床の必要性が0にならない＝赤。</summary>
+    [Fact]
+    public void 鉱床は入植者が居なければ見つからない_植林は住民で見る()
+    {
+        var sim = Board();
+        var (w, r, p) = Site(sim, "ルイジアナの硫黄");
+        w.TechLevel = Discovery.DifficultyOf(Catalog.Sites[p.SiteRow].Decade, w.Coef) * 2;
+        Assert.True(Discovery.SiteTerms(w, r, p, w.Coef).Need > 0, "前提が崩れた（入植者が居るのに必要性0）");
+        foreach (var q in r.Pops) q.CoreEthnicShare = 0;
+        var t = Discovery.SiteTerms(w, r, p, w.Coef);
+        Assert.Equal(0.0, t.Need);
+        Discovery.Step(w, null, w.Coef);
+        Assert.False(p.SiteFound, $"入植者0の鉱床が開いた（{t}）");
+
+        var (wk, rk, pk) = Site(sim, "ジャワのキナ");
+        double before = Discovery.SiteTerms(wk, rk, pk, wk.Coef).Need;
+        Assert.True(before > 0, "前提が崩れた（植林の必要性0）");
+        foreach (var q in rk.Pops) q.CoreEthnicShare = 0;
+        Assert.Equal(before, Discovery.SiteTerms(wk, rk, pk, wk.Coef).Need);
+    }
+
+    /// <summary>開いた鉱床の富鉱は開いた財の生産者だけ（検討 Q13 (c)・旧＝州の全ての鉱物の MineralDepletion）：同じ州の他の生産者の生産性は1ビットも変わらない・
+    /// 開いた生産者は ×GoldRushEndowment・操業規模≥1（開口＝即産）・州の鉱脈在庫は BonanzaDepositYears×初期在庫÷DepositYearsAtBirth だけ増える。
+    /// ⚠壊し方＝州の全ての鉱物に富鉱を掛ける → 他の生産者が変わる＝赤。</summary>
+    [Fact]
+    public void 開いた鉱床の富鉱は開いた財の生産者だけ()
+    {
+        var sim = Board();
+        var (w, r, p) = Site(sim, "ルイジアナの硫黄");
+        var before = r.Producers.Select(q => q.Productivity).ToArray();
+        r.MineralDepositInitial = 1000; r.MineralDeposit = 400;
+        var c = w.Coef;
+        Discovery.OpenSite(w, r, p, c);
+        Assert.True(p.SiteFound);
+        for (int i = 0; i < r.Producers.Count; i++)
+        {
+            var q = r.Producers[i];
+            if (ReferenceEquals(q, p)) Assert.Equal(before[i] * c.GoldRushEndowment, q.Productivity, 12);
+            else Assert.Equal(before[i], q.Productivity);
+        }
+        Assert.True(p.Scale >= 1.0);
+        Assert.Equal(400 + c.BonanzaDepositYears * 1000 / c.DepositYearsAtBirth, r.MineralDeposit, 9);
+    }
 }

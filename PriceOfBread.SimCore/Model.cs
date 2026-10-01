@@ -718,7 +718,12 @@ public sealed class Producer
     public bool BuysLabor;         // 労働力（財）を市場から買う工場。労働配分（pop労働の取り合い）に参加せず、賃金でなく労働購入で人を雇う
     public bool IsRgo;             // 自家農家・採取場（土地の生産者）。農業労働力を買い、残余＝地代の行き先が農制（地主/自作）。土地税の課税ベース
     public string RecipeName = ""; // 複数レシピの表示名（例：電力の「石炭火力」「石油火力」）。空＝単一レシピ
-    public double TechOnset;       // ★鉱床の後期の産地（Simulation の LateResources の RGO）だけ＝その産地が採れ始める技術水準（0=無ゲート）。Catalog.DepositTechScale で能力に乗る。★2026-10-01 段2A：レシピの解禁は発見の表（Catalog.Discoveries・2値）へ移った＝ここは鉱床の発見の段（次の段）まで残る唯一の時計
+    /// <summary>★産地の発見の行（2026-10-01 (148)）＝この生産者が産地の発見の表（<see cref="Catalog.Sites"/>）の行の産地か（−1＝違う＝開始時の賦存か非産地）。
+    /// 構築のときに場所の名前と財から置く（生産者は自分の州の名前を知らない＝セーブに載せる）。旧＝TechOnset（技術水準の傾斜の始まり・後期の銀と硫黄の産地だけ）。</summary>
+    public int SiteRow = -1;
+    /// <summary>★その産地が見つかったか（2値・失われない＝州と一緒に移る）。<see cref="Discovery.Step"/> だけが書く。門＝<see cref="Discovery.Gate(Region, Producer)"/>。
+    /// 旧＝シルバーラッシュの TechOnset=0 の書き戻しと Region.SilverRushed（再発止め）の2本。</summary>
+    public bool SiteFound;
     /// <summary>★発見の表の行（段2A・2026-10-01）＝この生産者の（財・レシピ）の行の添字（−1＝表に無い＝地理差＝常にある）。
     /// 作業領域の控え（[NonSerialized]＝財とレシピ名から導く・セーブに載らない）＝財かレシピ名が変わったら引き直す。</summary>
     public int DiscoveryRow
@@ -980,12 +985,12 @@ public sealed class Region
     public double[]? CropHealth;                       // 作物別の健全度（World.CropHealth を月次で複製＝参照）。病虫害で<1の作物は栽培州の産出が落ちる（作物固有の不作）。null=従来（健全）
     public double WeatherBandFactor = 1.0;            // 緯度帯（気候帯）の天候係数（World から複製）。HarvestFactorと積算＝同じ気候帯の国/州が一緒に不作（欧州一帯の凶作）。1.0=中立
     public double FoodFill = 1.0;                     // 州ごとの主食充足（消費ベース∈[0,1]・平滑）。書き手は Simulation.SmoothRegionalFoodFill のみ（★2026-09-30 (131) 旧 RegionalFamineStep の局地飢饉の死は削除・平滑だけ残した。旧注記＝RegionalFamineMortality=0 でも常時更新＝死亡計算の早期returnより前）。読み手＝移民の飢饉push（MultiNationSim）・州反乱（Politics）・派閥crisis（Factions）。1州なら World.FoodFill と一致＝較正中立
-    public double MineralDepletion = 1.0;
-    public bool SilverRushed;                          // ★シルバーラッシュ（2026-09-07）：後期の銀産地が解禁されて一度だけ富鉱化した（決定論・再発なし）
-    // ★鉱脈在庫（DepletionFromExtraction・2026-08-14）。-1＝未捕捉（助走明けの最初の産出月に初期化）。ゲート0では誰も書かない＝恒等
+    // 【削除 2026-10-01 (148)】MineralDepletion（抽選の鉱脈の発見の富鉱倍率×年15%の戻り・確率の枯渇）と SilverRushed（シルバーラッシュの再発止め）
+    //   ＝産地の発見（Catalog.Sites・Producer.SiteFound）と採掘による品位（下の鉱脈在庫）の1本へ（検討 §10-3 項目10(c)＝状態が2本減った）。
+    // ★鉱脈在庫（2026-08-14・(148) で旗 DepletionFromExtraction を焼き込み）。-1＝未捕捉（助走明けの最初の産出月に初期化）
     public double MineralDepositInitial = -1.0;   // 初期鉱脈（初年率×DepositYearsAtBirth）＝品位曲線の分母
     public double MineralDeposit = -1.0;          // 残量。毎月、鉱物産出ぶんだけ減る（決定論＝採掘量の関数）
-    public double MineralGradeFactor = 1.0;       // 品位（残量から導出・EconomyStep が MineralDepletion と積で読む）。既定1.0＝恒等
+    public double MineralGradeFactor = 1.0;       // 品位（残量から導出・EconomyStep の鉱物の能力と MineralSelfCost が読む）。既定1.0
     public double UrbanIndSmoothed = -1.0;            // 監査2026-07-05（D3）：都市化天井が参照する平滑化済み工業化度（UrbanCapFollowSpeed<1で使用）。-1=未初期化（初回に現在値から開始）
     public int CulturalGoodId = -1;                   // 各国の象徴的主食（英＝茶・露＝蒸留酒・日＝米…）の good.Id。**表示用のみ**（「パンの値段」UI/診断の価格アンカー）。固執財の需要床/闘争度機構は廃止。-1＝なし
     public double TechLevel;                          // 技術水準（World から複製）。先進財の生産性が技術依存（創発的な時代解禁）に効く

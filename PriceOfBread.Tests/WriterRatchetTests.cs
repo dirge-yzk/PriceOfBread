@@ -309,18 +309,23 @@ public class WriterRatchetTests
     //   （単価 76.0µs＝(147) の discprobe の実測〔割高さの参照を直した後の木〕・全長の10種で 41,773 件＝推定 3.17 秒＝目標より下の余りの中＝払う必要が無い〔全長の推定 244.3→246.1 秒〕）。
     //   ②覇権の判定 2,585,796→3,590,682（+38.9%＝同盟の候補が居る月の軌道＝(122) の +39% と同じ型・処理の形は同じ・単価 0.01035µs＝40四半期で +10.4ms）。
     //   ほかの15本は許しの内（+2%／−10%）＝表は動かさない（価格の財の歩 −5.5%・消費 −5.0%・建設 −7.5%・請求 −8.4%＝発見していない財の需要が立たない）。
+    // ★2026-10-01 表の更新（(148) 産地の発見＝年次の抽選の鉱脈の発見と確率の枯渇〔主系列の乱数を年に4つ〕を削除・大鉱床と植林は産地の発見の表・灯油の近代レシピを1本へ
+    //   ＝軌道が動いた分の宣言・新しい計数の処理は無い〔産地の判定は「発見：国×四半期」の中の州×生産者の1周〕）：
+    //   建設 7,634→8,200（+7.4%）・請求 2,692→2,912（+8.2%）＝最初の40四半期の工事と請求の軌道（(147) の木では表より −7.5%／−8.4% だった＝(148) の木で +16%／+18%）・
+    //   覇権の判定 3,590,682→2,294,511（−36.1%＝10% を超えて下がった＝表を下げる・同盟の候補が居る月の軌道）。全長の10種では建設 440,231→421,923（−4.2%）・
+    //   請求 1,171,849→1,149,529（−1.9%）・覇権の判定 177,116,581→167,872,515（−5.2%）＝どれも下がった＝払う必要が無い（全長の推定 246.1→243.2 秒・実装ログ (148)）。ほかの14本は許しの内。
     [InlineData(CostLedger.PriceGoods, 14149727L)]
     [InlineData(CostLedger.PriceDailyRuns, 25283828L)]
-    [InlineData(CostLedger.ConstructionSeen, 7634L)]
+    [InlineData(CostLedger.ConstructionSeen, 8200L)]
     [InlineData(CostLedger.CreditSpans, 33282L)]
     [InlineData(CostLedger.ConsumePopGoods, 28595736L)]
     [InlineData(CostLedger.ProducerMonths, 8440020L)]
-    [InlineData(CostLedger.ClaimProducers, 2692L)]
+    [InlineData(CostLedger.ClaimProducers, 2912L)]
     [InlineData(CostLedger.MonthlyPops, 706680L)]
     [InlineData(CostLedger.ClearingRows, 5185642L)]
     [InlineData(CostLedger.ClearingFills, 27954050L)]
     [InlineData(CostLedger.DiploPowerMonths, 9954L)]
-    [InlineData(CostLedger.DiploHegemonScans, 2175698L)]
+    [InlineData(CostLedger.DiploHegemonScans, 2294511L)]
     [InlineData(CostLedger.QuarterStartPops, 235560L)]
     [InlineData(CostLedger.QuarterEndPops, 235560L)]
     [InlineData(CostLedger.SharedNationQuarters, 3698L)]
@@ -418,27 +423,5 @@ public class WriterRatchetTests
             $"数値の財 id が {hits.Count} 件＝Catalog の定数（…Id）で書くこと（財を畳む・振り直すと数値は黙って別の財を読む）：" + string.Join(" ／ ", hits.Take(12)));
     }
 
-    // ★2026-09-30 段0-3（財の削減の回）：**解禁の onset は表から読む**＝Catalog の解禁の表（レシピ単位の1枚・Catalog.RecipeOnset）の外で
-    //   Producer.TechOnset に正の数値を直に書かない（旧＝Simulation の代替のレシピの注入に数値で散っていた）。0（無ゲート）は数えない。
-    //   係数の onset（蒸気タービン・黄鉄鉱法）は係数の名前で書く＝数値ではないので数えない。
-    [Fact]
-    public void 解禁のonsetは表から読む()
-    {
-        var rx = new Regex(@"\bTechOnset\s*=\s*(\d+(?:\.\d+)?)\b");
-        var hits = new System.Collections.Generic.List<string>();
-        foreach (var f in Directory.EnumerateFiles(SimCoreDir(), "*.cs"))
-        {
-            int ln = 0;
-            foreach (var line in File.ReadLines(f))
-            {
-                ln++;
-                var code = line;
-                int c = code.IndexOf("//", StringComparison.Ordinal);
-                if (c >= 0) code = code[..c];
-                foreach (Match m in rx.Matches(code))
-                    if (double.Parse(m.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture) > 0) hits.Add($"{Path.GetFileName(f)}:{ln}: {m.Value}");
-            }
-        }
-        Assert.True(hits.Count == 0, "解禁の onset を数値で書いている＝Catalog の解禁の表に行を足して Catalog.RecipeOnset で読むこと：" + string.Join(" ／ ", hits));
-    }
+    // 【削除 2026-10-01 (148)】番人「解禁の onset は表から読む」（Producer.TechOnset に正の数値を直に書かない）＝欄 TechOnset そのものを削除した（鉱床の後期の産地の傾斜は産地の発見の表 Catalog.Sites の2値へ）＝コンパイラが番人。
 }

@@ -142,7 +142,7 @@ public sealed class Simulation
         if (scenario.NationConfig is not null) World.FactionRng = new DeterministicRng(scenario.Seed ^ 0xFAC7_1035_EED5UL);   // F3変異の独立系列（実在国のみ＝較正/最小世界は null＝不発）
         foreach (var r0 in regions) if (r0.State == RegionState.Active) World.FoundingActiveProvinces++;   // 建国時のActive州数（2026-08-04・残余国判定の分母）
         World.FoundingPopulation = World.TotalPopulation;   // ★H-02（2026-09-03）：建国時人口＝残余国判定のもう一つの分母（州数と対）
-        // ★代替レシピ（坩堝鋼/錬鉄レール・石油ケロシン・冷蔵の加工肉・黄鉄鉱法）の注入は AddAlternateRecipes（州の構築経路）へ移した（2026-09-06）。
+        // ★代替レシピ（坩堝鋼/錬鉄レール・石油灯油・冷蔵の加工肉・黄鉄鉱法）の注入は AddAlternateRecipes（州の構築経路）へ移した（2026-09-06）。
         //   旧＝ここで World.Regions を走査＝**構築時に存在した州だけ**に注入され、昇格植民地・建国州は代替を持たなかった
         //   （実測＝E-13 で黄鉄鉱法を持たない州が硫黄34倍のルブラン法を回し、化学薬品の平均価格が16倍・中央値は2倍）。
         //   ★汽船(85)・機関車(88)の onset（リ5・SteamTransportOnset）も 2026-09-27 に AddAlternateRecipes へ移した（同じ穴＝植民地格の州は1783年から無ゲートだった）。
@@ -723,6 +723,16 @@ public sealed class Simulation
         if (!(gate > 0) || !(endowment > 0)) return;
         pr.MarginalCost /= System.Math.Pow(endowment, gate);
     }
+
+    /// <summary>★産地の発見の行（2026-10-01 (148)・<see cref="Catalog.Sites"/>）をこの場所・この財について引く（州の構築と植民地の昇格の2か所が呼ぶ＝同じ規則）。
+    /// ⚠共有世界だけ（密閉世界＝単国の較正とテストでは産地を絞らない＝旧 LateResources の枝と同じ・ScarceEndowment と同じ理由）。
+    /// 銀の行は <see cref="Coefficients.SilverRushEnabled"/>＝0 の間は置かない（銀の平価の自己参照を断つ回の後に点火＝検討 Q13 (d)）。</summary>
+    internal static int SiteRowFor(string place, int good, Coefficients c, bool sharedWorld)
+    {
+        if (!sharedWorld) return -1;
+        int row = Catalog.SiteRowOf(place, good);
+        return row >= 0 && good == Catalog.SilverId && !(c.SilverRushEnabled > 0) ? -1 : row;
+    }
     private const double LandHeadroom = 1.8;         // 本土州の耕地賦存量＝初期農民×これ。初期は余裕（landFactor=1＝既存収支を保持）、流入で農村人口がこれを超えると収穫逓減が効く
     // 主食の自給免除は気候帯で切替（Climate.StapleSelfSufficient）：麦・野菜＝普遍／米＝モンスーン・熱帯／ジャガイモ＝冷涼帯／トウモロコシ＝新大陸（2026-07-05・旧StapleRaw=[15,102,108]の全州一律を地理化）
 
@@ -754,11 +764,11 @@ public sealed class Simulation
 
     private static Region BuildProvince(int id, ProvinceSpec p, NationConfig cfg, Coefficients coef, bool sharedWorld = false)
     {
-        var (city, share, resources, culture, religion, _, _, _, _, _, _, _) = p;   // Coastal/HeldSince/Malarial/ArableLand/IndShare/LateResources は p.* で直接参照（2026-09-05で ProvinceSpec が11要素へ）
+        var (city, share, resources, culture, religion, _, _, _, _, _, _) = p;   // Coastal/HeldSince/Malarial/ArableLand/IndShare/Rule は p.* で直接参照（★2026-10-01 (148)：LateResources を削除＝産地の発見の表 Catalog.Sites へ）
         var (goods, markets, producers) = CatalogEconomy(Math.Min(cfg.FarmLordShare, 1.0 - coef.SerfCashShareFloor), coef);   // 農奴の市場参加床（既定0=恒等）：オブローク＝農奴も市場で現金を得た＝取り分100%の現金遮断を緩める（辺境は対象外＝入植小農）
         // 気候ゲート財（茶葉/ゴム/香辛料…旧colonial）は賦存州（Resources に列挙）のみ産する＝非賦存州の生産者を除去（英は茶を産めない＝気候の現実）。
         // 列挙する州（中国の茶州等）は下の賦存ブースト×3.5で産み、加工して世界へ売る＝供給の偏在が地理から創発する（287州世界）。
-        producers.RemoveAll(pr => Catalog.IsColonial(pr.GoodId) && System.Array.IndexOf(resources, pr.GoodId) < 0);
+        producers.RemoveAll(pr => Catalog.IsColonial(pr.GoodId) && System.Array.IndexOf(resources, pr.GoodId) < 0 && SiteRowFor(city, pr.GoodId, coef, sharedWorld) < 0);
         // 州の気候帯（主食の地理化・2026-07-05）：代表都市の座標で判定。未登録都市・単一州世界は首都座標へフォールバック（テスト世界の(0,0)＝従来挙動を保存）。
         var (plat, plon) = Climate.CityCoord(city);
         if (plat == 0 && plon == 0) { plat = cfg.Latitude; plon = cfg.Longitude; }
@@ -771,8 +781,18 @@ public sealed class Simulation
         // 主食は気候帯の自給セット（Climate.StapleSelfSufficient）に該当すれば非列挙でも減産しない（自給ぶんを作る＝封鎖で即飢饉にしない）。
         foreach (var pr in producers)
         {
-            if (System.Array.IndexOf(resources, pr.GoodId) >= 0)
+            // ★産地の発見（2026-10-01 (148)・Catalog.Sites＝大鉱床と植林）：その場所の生産者は通常の賦存で作り、見つかるまで門0（Discovery.Gate＝Producer.SiteFound）。
+            //   開始時の賦存（resources）に載る財（カリフォルニアの金・アジアのキナ）は下の賦存の枝をそのまま通す（地代の取り分も同じ）＝門が付くだけ。
+            //   載らない財（西部の硫黄・北九州の硫黄・豪州と北ユーコンの金）は通常の賦存（総量保存の k に数えない＝新しい供給＝旧 LateResources の枝と同じ）。
+            int site = pr.IsRgo ? SiteRowFor(city, pr.GoodId, coef, sharedWorld) : -1;
+            if (site >= 0 && System.Array.IndexOf(resources, pr.GoodId) < 0)
             {
+                ApplyEndowment(pr, ResourceEndowment(pr.GoodId) * coef.ResourceEndowmentScale, coef);
+                pr.SiteRow = site;
+            }
+            else if (System.Array.IndexOf(resources, pr.GoodId) >= 0)
+            {
+                pr.SiteRow = site;
                 ApplyEndowment(pr, ScarceEndowment(pr.GoodId, coef, sharedWorld) * coef.ResourceEndowmentScale, coef);   // 賦存量＝good の地理的性質（鉱物=集中4.0／他=中庸3.5）。希少鉱物は総量保存で逆算した高い賦存。★Scale=1.0（既定）でビット恒等＝診断用レバー
                 // D6（プランテーションdoc・2026-07-30）：**地代取り分を州別・財別へ**。旧＝`RentShare = max(0.3, farmLordShare)` の国家スカラー1個で、
                 // 同じ関数の中で Productivity だけが州の resources で財別に分化していた（器はあるのに使っていなかった）。
@@ -787,24 +807,7 @@ public sealed class Simulation
                 }
             }
             // ★希少鉱物は**非産地では厳密に0**（2026-08-13・裁定⑥）。総量は産地の賦存を引き上げて保つ（ScarceEndowment）。
-            else if (sharedWorld && coef.ScarceMineralGate > 0 && Catalog.IsScarceMineral(pr.GoodId, coef))   // ★密閉世界（単国シム）では非産地を0にしない（2026-09-06・ScarceEndowment と同じ理由）
-            {
-                // ★E-15 手順2（2026-09-05）：後期産地（p.LateResources）＝通常賦存で作り、発見（SulfurLateDepositOnset）まで産まない。
-                //   総量保存の k には数えない＝新しい供給（フラッシュ法は世界供給を増やした）。ゲート0ではこの枝に入らない＝恒等。
-                if (p.LateResources is { } lateRes && System.Array.IndexOf(lateRes, pr.GoodId) >= 0)
-                {
-                    ApplyEndowment(pr, ResourceEndowment(pr.GoodId) * coef.ResourceEndowmentScale, coef);
-                    pr.TechOnset = System.Math.Max(pr.TechOnset, pr.GoodId == Catalog.SilverId ? coef.SilverLateDepositOnset : coef.SulfurLateDepositOnset);   // ★財ごとの解禁（銀＝コムストック1859）
-                }
-                else pr.Productivity = 0;
-            }
-            // ★シルバーラッシュ（作者裁定2026-09-07④）：銀が希少鉱物ゲートの対象でない段階（既定＝硫黄のみ）でも、後期の銀産地（LateResources に銀）は
-            //   産地の賦存（通常賦存）で作り、解禁（SilverLateDepositOnset）まで産まない＝開口の年に金の発見と同じ3処理（下の年次ブロック）。SilverRushEnabled=0 では旧の ×0.4 のまま＝厳密恒等。
-            else if (coef.SilverRushEnabled > 0 && pr.IsRgo && pr.GoodId == Catalog.SilverId && p.LateResources is { } lateSilver && System.Array.IndexOf(lateSilver, Catalog.SilverId) >= 0)
-            {
-                ApplyEndowment(pr, ResourceEndowment(pr.GoodId) * coef.ResourceEndowmentScale, coef);
-                pr.TechOnset = System.Math.Max(pr.TechOnset, coef.SilverLateDepositOnset);
-            }
+            else if (sharedWorld && coef.ScarceMineralGate > 0 && Catalog.IsScarceMineral(pr.GoodId, coef)) pr.Productivity = 0;   // ★密閉世界（単国シム）では非産地を0にしない（2026-09-06・ScarceEndowment と同じ理由）
             else if (pr.IsRgo && !Climate.StapleSelfSufficient(pr.GoodId, plat, plon)) ApplyEndowment(pr, ResourceScarcity * coef.ResourceScarcityScale, coef);   // ★Scale=1.0（既定）でビット恒等＝診断用レバー
         }
 
@@ -990,7 +993,7 @@ public sealed class Simulation
     /// <summary>職人の工房（工場との並存レシピ）：衣料・家具・革製品・陶磁器を手仕事で作る自営（全付加価値が職人の収入）。
     /// 1789年は職人が主役（操業規模1.0 vs 工場0.05）。工場が機械・電化で安くなるほど職人レシピは採算で負け、
     /// 没落して労働者へ転落する（ラッダイトの母体＝転落の闘争度が政治に流れ込む）。</summary>
-    /// <summary>★代替レシピ（並存レシピ）の注入＝州の構築経路で1回（2026-09-06）。坩堝鋼/錬鉄レール・石油ケロシン・冷蔵の加工肉・黄鉄鉱法。汽船・機関車の onset（2026-09-27）。
+    /// <summary>★代替レシピ（並存レシピ）の注入＝州の構築経路で1回（2026-09-06）。坩堝鋼/錬鉄レール・石油灯油（★(148)：旧 石油ケロシン＝同じ変換の2本を1本へ）・冷蔵の加工肉・黄鉄鉱法。汽船・機関車の onset（2026-09-27）。
     /// 旧＝Simulation のコンストラクタで構築時の州だけに注入していた（昇格植民地・建国州が代替を持たない穴）。各器=0 で1件も足さない＝恒等。</summary>
     private static void AddAlternateRecipes(List<Producer> producers, Coefficients coef)
     {
@@ -1004,8 +1007,8 @@ public sealed class Simulation
             Producer? steelDefault = null, railDefault = null;
             foreach (var pr in producers)
             {
-                if (pr.GoodId == Catalog.SteelId && pr.TechOnset <= 0) steelDefault = pr;
-                else if (pr.GoodId == Catalog.RailId && pr.TechOnset <= 0) railDefault = pr;
+                if (pr.GoodId == Catalog.SteelId) steelDefault = pr;
+                else if (pr.GoodId == Catalog.RailId) railDefault = pr;
             }
             if (steelDefault is not null)   // 鋼の無い世界（最小シナリオ）は不発
             {
@@ -1031,8 +1034,8 @@ public sealed class Simulation
         Producer? rifleDefault = null, cannonDefault = null;
         foreach (var pr in producers)
         {
-            if (pr.GoodId == Catalog.RifleId && pr.TechOnset <= 0 && rifleDefault is null) rifleDefault = pr;
-            else if (pr.GoodId == Catalog.ArtilleryId && pr.TechOnset <= 0 && cannonDefault is null) cannonDefault = pr;
+            if (pr.GoodId == Catalog.RifleId && rifleDefault is null) rifleDefault = pr;
+            else if (pr.GoodId == Catalog.ArtilleryId && cannonDefault is null) cannonDefault = pr;
         }
         if (rifleDefault is not null)   // 軍需の無い世界（最小シナリオ）は不発
             producers.Add(new Producer { GoodId = Catalog.RifleId, RecipeName = "マスケット",
@@ -1044,28 +1047,21 @@ public sealed class Simulation
                 Productivity = cannonDefault.Productivity * coef.MusketProductivity, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa,
                 LaborPopIndex = cannonDefault.LaborPopIndex, OwnerPopIndex = cannonDefault.OwnerPopIndex, RentShare = 1.0, BuysLabor = true,
                 Inputs = [new Input(Catalog.IronId, 1.3), new Input(Catalog.LumberId, 0.3), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.ArtilleryId))] });
-        // ★石油ケロシン（灯油doc・2026-08-13）：灯油(68)の**第2レシピ**。既定は鯨油/魚油（漁獲0.8）。
-        // ⚠★2026-09-03（キューAUD-09・監査「保存則・台帳」）：**追加根拠のコメントが事実と食い違っていた**。
-        //   「原油には買い手が1本も無い40年の空白があった」と書かれていたが、現物には AddAdvancedProducers 側に
-        //   同じ原油→灯油の近代レシピ（RecipeName="石油灯油"・同じ1850年代の発見の行〔旧 TechOnset=0.6〕）が**既にある**＝空白ではない。
-        //   ⇒ 実体は「同じ変換が2レシピ並存している」。⚠どちらを残すかは帯が動く（KeroseneFromOilEnabled=1 は点火済みで
-        //   列強+6.2/人口−5.7 の実測がある）ので、ここでは**事実の記録だけ**に留め、統合は測定とセットで行う（キューAUD-09）。
-        // ⚠新しい Good は1つも足さない——足すのは Producer 1件だけ。極性は鋼と逆で、**新レシピの方が安い**＝発見の後に自動で置き換わる（★2026-10-01 段2A・旧＝onset後）。
+        // ★石油灯油＝ケロシン（灯油doc・2026-08-13 の石油ケロシン）：灯油(68)の近代レシピ（既定は鯨油/魚油＝漁獲0.8）・発見の表の石油灯油（1850年代＝1859ドレーク油井〜）。
+        //   ★2026-10-01 (148)・設計 §5 F4：同じ原油→灯油の変換が2本並存していた（AddAdvancedProducers の石油灯油〔原油1.0・生産性1.9〕とこの石油ケロシン＝キューAUD-09 の記録）
+        //   ＝この1本へ畳んだ（全てのビルダーがこの注入を1回呼ぶ＝フルチェーンの世界にも同じ1本・名前は発見の行の「石油灯油」・旗 KeroseneFromOilEnabled は焼き込み）。
+        // ⚠新しい Good は1つも足さない——足すのは Producer 1件だけ。極性は鋼と逆で、**新レシピの方が安い**＝発見の後に自動で置き換わる。
         //   史実の較正＝鯨油1.45ドル/ガロン(1856)に対しケロシンは0.58(1865)→0.08(1885)＝おおむね5〜10倍安い。
         //   投入は原油0.5（1870年代の精製収率45〜60%）＋生産性1.6（連続精製 vs 3〜4年の捕鯨航海）で表す＝倍率を書かない。
-        // ★解禁＝発見の表の石油ケロシン（1850年代・2026-10-01 段2A＝石油灯油と同じ年代・畳むのは設計 §5 F4）。⚠KeroseneFromOilEnabled=0 で不発＝厳密恒等。
-        if (coef.KeroseneFromOilEnabled > 0)
-            {
-                Producer? keroDefault = null;
-                foreach (var pr in producers) if (pr.GoodId == Catalog.LampOilId && pr.TechOnset <= 0) { keroDefault = pr; break; }
-                if (keroDefault is not null)   // 灯油を作らない世界（最小シナリオ）は不発
-                {
-                producers.Add(new Producer { GoodId = Catalog.LampOilId, RecipeName = "石油ケロシン",
+        {
+            Producer? keroDefault = null;
+            foreach (var pr in producers) if (pr.GoodId == Catalog.LampOilId) { keroDefault = pr; break; }
+            if (keroDefault is not null)   // 灯油を作らない世界（最小シナリオ）は不発
+                producers.Add(new Producer { GoodId = Catalog.LampOilId, RecipeName = "石油灯油",
                     Productivity = coef.KeroseneOilProductivity * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa,
                     LaborPopIndex = keroDefault.LaborPopIndex, OwnerPopIndex = keroDefault.OwnerPopIndex, RentShare = 1.0, BuysLabor = true,
                     Inputs = [new Input(Catalog.CrudeOilId, coef.KeroseneOilInput), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.LampOilId))] });
-                }
-            }
+        }
 
         // ★冷蔵の加工肉（2026-09-04・作者提案「冷蔵庫という形にして、肉輸送+消費財でよいのでは」）＝**加工肉(63)の第2レシピ**。
         //   既定は 肉+小麦粉（塩漬け・ソーセージ）。⚠冷凍船（1877/1882）以後は**冷蔵**が主役になる。
@@ -1076,10 +1072,10 @@ public sealed class Simulation
         if (coef.ChilledMeatEnabled > 0)
             {
                 Producer? saltCured = null;
-                foreach (var pr in producers) if (pr.GoodId == Catalog.PreservedMeatId && pr.TechOnset <= 0) { saltCured = pr; break; }
+                foreach (var pr in producers) if (pr.GoodId == Catalog.PreservedMeatId) { saltCured = pr; break; }
                 if (saltCured is not null)   // 加工肉を作らない世界（最小シナリオ）は不発
                 {
-                producers.Add(new Producer { GoodId = Catalog.PreservedMeatId, RecipeName = "冷蔵の加工肉", TechOnset = 0,
+                producers.Add(new Producer { GoodId = Catalog.PreservedMeatId, RecipeName = "冷蔵の加工肉",
                     Productivity = saltCured.Productivity * coef.ChilledMeatProductivity, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa,
                     LaborPopIndex = saltCured.LaborPopIndex, OwnerPopIndex = saltCured.OwnerPopIndex, RentShare = 1.0, BuysLabor = true,
                     Inputs = [new Input(Catalog.MeatId, 0.6), new Input(Catalog.RefrigeratorId, coef.ChilledMeatColdInput), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.PreservedMeatId))] });
@@ -1093,7 +1089,7 @@ public sealed class Simulation
         if (coef.SulfurFromPyriteEnabled > 0)
             {
                 Producer? leblanc = null;
-                foreach (var pr in producers) if (pr.GoodId == Catalog.ChemicalsId && pr.TechOnset <= 0) { leblanc = pr; break; }
+                foreach (var pr in producers) if (pr.GoodId == Catalog.ChemicalsId) { leblanc = pr; break; }
                 if (leblanc is not null)
                 {
                 producers.Add(new Producer { GoodId = Catalog.ChemicalsId, RecipeName = "黄鉄鉱法", Productivity = leblanc.Productivity * coef.SulfurFromPyriteProductivity, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa,
@@ -1242,12 +1238,12 @@ public sealed class Simulation
             Inputs = [new Input(Catalog.GuanoId, 0.6), new Input(Catalog.ChemicalsId, 0.1), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.FertilizerId))] });
         // ★堆肥（2026-09-06・器 CompostFertilizerEnabled）：肥料(109)の第4レシピ＝畜産(19)＋労働・解禁0。化学法より高い＝硫黄が届かない所の代替。0＝足さない＝恒等。
         if (coef.CompostFertilizerEnabled > 0)
-            producers.Add(new Producer { GoodId = Catalog.FertilizerId, RecipeName = "堆肥", TechOnset = 0, Productivity = 2.0 * coef.CompostProductivity * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
+            producers.Add(new Producer { GoodId = Catalog.FertilizerId, RecipeName = "堆肥", Productivity = 2.0 * coef.CompostProductivity * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
                 Inputs = [new Input(Catalog.LivestockId, coef.CompostLivestockInput), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.FertilizerId))] });   // ★雇用の一本化＝全工場が労働+高度労働を買う（ServiceEconomyTests の番人・2026-09-06）
         // ★硝石丘（2026-09-06・器 NiterBedEnabled）：硝石(118)の代替レシピ＝畜産(19)＋労働・解禁0（仏1793の硝石丘＝厩肥と灰から）。産地の硝石より高い＝
         //   財の3分類（作者裁定「無くても低効率で生産できる」）の硝石版。0＝足さない＝恒等。
         if (coef.NiterBedEnabled > 0)
-            producers.Add(new Producer { GoodId = Catalog.SaltpeterId, RecipeName = "硝石丘", TechOnset = 0, Productivity = 2.0 * coef.NiterBedProductivity * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
+            producers.Add(new Producer { GoodId = Catalog.SaltpeterId, RecipeName = "硝石丘", Productivity = 2.0 * coef.NiterBedProductivity * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
                 Inputs = [new Input(Catalog.LivestockId, coef.CompostLivestockInput), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.SaltpeterId))] });   // ★雇用の一本化（同上）
         // === 製法の時代差・地理差を表す代替レシピ（市場が安い方を採る・近代法は発見の表の行で門＝2026-10-01 段2A）===
         // ぼろ布製紙（紙61の早期レシピ）：麻+綿布のボロ布を漉く＝19世紀前半の製紙原料（木材パルプは1840s砕木/1860s化学パルプ）。
@@ -1278,9 +1274,7 @@ public sealed class Simulation
         // 亜麻衣料（衣料57の代替）：綿布の代わりに帆布(麻織物)で仕立てる＝亜麻が安い地域・綿花が断たれた時の代替（市場が安い方を採る）。
         producers.Add(new Producer { GoodId = Catalog.ClothingId, RecipeName = "亜麻衣料", Productivity = 1.7 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
             Inputs = [new Input(Catalog.CanvasId, 0.6), new Input(Catalog.DyeId, 0.2), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.ClothingId))] });
-        // 石油灯油＝ケロシン（灯油68の近代レシピ・発見の表の1850年代＝1859ドレーク油井〜）：原油を精製。原油(安価RGO)は鯨油/魚油(漁獲)より安い＝onset後にコストで勝ち鯨油を駆逐（史実：ケロシンが捕鯨を終わらせた）。原油RGOも DefaultRecipeOnset(10)=0.6 でゲート＝早期に湧かないので原油の価格スパイクも起きない。
-        producers.Add(new Producer { GoodId = Catalog.LampOilId, RecipeName = "石油灯油", Productivity = 1.9 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
-            Inputs = [new Input(Catalog.CrudeOilId, 1.0), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.LampOilId))] });
+        // 【畳んだ 2026-10-01 (148)・設計 §5 F4】石油灯油（原油1.0・生産性1.9）＝同じ原油→灯油の変換は AddAlternateRecipes の1本（史実で較正した数の石油ケロシンを「石油灯油」の名で）。
         // === B6（2026-07-19ユーザー裁定）===
         // 人絹＝ビスコース（絹織物45の並存レシピ・発見の表の1890年代）：木材パルプ(製材)＋化学薬品から人造絹糸＝
         // 化学工業が生糸(14)経済を創造的破壊（"artificial silk"そのもの・ぼろ布製紙/クロムなめしと同型・RefPrice不変）。
@@ -1325,13 +1319,21 @@ public sealed class Simulation
         if (clat == 0 && clon == 0) { clat = col.Latitude; clon = col.Longitude; }   // 表に無い名前（将来の新植民地）は植民地オブジェクトの座標（積出港）で代用
         var (goods, markets, producers) = CatalogEconomy(0.0, coef);   // 自作農（RGOの残余は床0.3＝自分の土地の地代・所有は農民自身）
         // 気候ゲート（BuildProvince と同じ規則）：気候ゲート財（茶葉/ゴム…旧colonial）は賦存列挙のみ・米/綿花は適地のみ産する
-        producers.RemoveAll(pr => Catalog.IsColonial(pr.GoodId) && System.Array.IndexOf(col.Resources, pr.GoodId) < 0);
+        producers.RemoveAll(pr => Catalog.IsColonial(pr.GoodId) && System.Array.IndexOf(col.Resources, pr.GoodId) < 0 && SiteRowFor(col.Name, pr.GoodId, coef, !w.StepsDiplomacy) < 0);
         producers.RemoveAll(pr => pr.GoodId == Catalog.RiceId && !Climate.RiceSuitable(clat, clon) && System.Array.IndexOf(col.Resources, pr.GoodId) < 0);
         producers.RemoveAll(pr => pr.GoodId == Catalog.CottonId && !Climate.CottonSuitable(clat) && System.Array.IndexOf(col.Resources, pr.GoodId) < 0);
         foreach (var pr in producers)
         {
-            if (System.Array.IndexOf(col.Resources, pr.GoodId) >= 0)
+            // ★産地の発見（2026-10-01 (148)）＝BuildProvince と同じ規則（場所＝植民地の名前）。
+            int site = pr.IsRgo ? SiteRowFor(col.Name, pr.GoodId, coef, !w.StepsDiplomacy) : -1;
+            if (site >= 0 && System.Array.IndexOf(col.Resources, pr.GoodId) < 0)
             {
+                ApplyEndowment(pr, ResourceEndowment(pr.GoodId) * coef.ResourceEndowmentScale, coef);
+                pr.SiteRow = site;
+            }
+            else if (System.Array.IndexOf(col.Resources, pr.GoodId) >= 0)
+            {
+                pr.SiteRow = site;
                 ApplyEndowment(pr, ScarceEndowment(pr.GoodId, coef, !w.StepsDiplomacy) * coef.ResourceEndowmentScale, coef);   // 植民地の固有資源＝そのまま州の賦存へ（一次データ）。BuildProvince(769)と同じ ScarceEndowment＝ScarceMineralGate=0 なら ResourceEndowment と厳密同値（⚠既定は点火済みの1.0＝2026-09-05・x-02 で注記を是正）
                 // ★B5（実バグ21件・2026-09-07）：本国の賦存州は PlantationRentShare（live 0.6）で大農園の地代を当てるのに、植民地格の昇格州は自作農のまま＝史実の逆
                 //   （ベンガル/ジャワ/カリブは大農園）。ColonyPlantationRent>0 かつ Colonial 格のとき賦存RGOに同じ上書き・所有＝資本家（入植の農園主＝開いた階級・0から流入で育つ）。0＝旧＝厳密恒等。
@@ -1764,73 +1766,10 @@ public sealed class Simulation
                     World.LogAdd($"{World.Year} {World.SelfPower?.Name}で{Catalog.Goods[g].Name}が病虫害に見舞われた（収穫{cropHealth[g]:P0}）");
                 }
             }
-            // 鉱物の枯渇＋発見イベント（年次・確率）。改修2026-06-28：発見（富鉱＝MineralDepletion>1）を枯渇の対として追加。どちらも緩やかに1.0へ収束。
-            var activeRegions = new List<Region>();
-            foreach (var r in World.Regions) if (r.State == RegionState.Active) activeRegions.Add(r);
-            foreach (var r in activeRegions)   // 回復＋減衰の一本化：>1は富鉱の漸減・<1は枯渇からの回復、ともに1.0へ
-                r.MineralDepletion = r.MineralDepletion > 1.0
-                    ? Math.Max(1.0, r.MineralDepletion - World.Coef.MineralBonanzaDecay * (r.MineralDepletion - 1.0))
-                    : Math.Min(1.0, r.MineralDepletion + World.Coef.MineralRecoveryRate * (1.0 - r.MineralDepletion));
-            double depRoll = Rng.NextDouble(); double depPick = Rng.NextDouble();   // 枯渇：常に2つ引く＝確率を変えてもRNG消費順がずれない（テストの安定）
-            if (activeRegions.Count > 0 && depRoll < World.Coef.MineralDepletionChance)
-            {
-                // ★鉱脈在庫（2026-08-14）点火中は確率枯渇を止める＝枯渇は採掘量の関数（決定論）に置き換わる。
-                //   乱数は上で常に2つ引いてある＝RNG消費順は不変（確率を変えてもずれない既存の作法と同型）。
-                if (World.Coef.DepletionFromExtraction <= 0)
-                {
-                    var dr = activeRegions[(int)(depPick * activeRegions.Count) % activeRegions.Count];
-                    dr.MineralDepletion = World.Coef.MineralDepletionFloor;   // 1地域の鉱物が枯渇＝激減
-                    World.LogAdd($"{World.Year} {dr.Name}の鉱山が枯渇しました（{World.SelfPower?.Name}）");
-                }
-            }
-            // 鉱物発見・ゴールドラッシュは**多国シムのみ**＝単一国の較正/経済テストは RNG 消費・挙動とも完全に不変（中立。富鉱という正のショックが過少消費/価格収束テストを乱さない）。
-            if (World.Diplomacy is not null)
-            {
-                double discRoll = Rng.NextDouble(); double discPick = Rng.NextDouble();   // 発見：常に2つ引く（枯渇の直後＝消費順固定で決定論を保つ）
-                // ★AUD-02（2026-09-03）：解禁を暦年から**技術**へ。GoldRushEmergent=0 では旧式（Year>=1820）＝厳密恒等。
-                bool discoveryOpen = World.TechLevel >= World.Coef.MineralDiscoveryTechRef;   // ★2026-09-04：暦年の枝を削除（点火で到達不能）
-                if (activeRegions.Count > 0 && discoveryOpen && discRoll < World.Coef.MineralDiscoveryChance)
-                {
-                    double totalW = 0; foreach (var r in activeRegions) totalW += MineralWeight(r);   // 地質ポテンシャル重み（既知鉱物地帯ほど発見しやすい）
-                    double target = discPick * totalW, acc = 0; Region gr = activeRegions[^1];
-                    foreach (var r in activeRegions) { acc += MineralWeight(r); if (acc >= target) { gr = r; break; } }
-                    // ★AUD-01（2026-09-03）：**辺境での発見＝ゴールドラッシュ**。旧＝暦年1848に州名"西部"を名指しする台本だったが、
-                    //   実体は「未開の土地で富鉱が見つかり、人が殺到して開拓が終わる」＝この発見機構の特別な場合にすぎない。
-                    //   ⚠GoldRushEmergent=0 では下の1行（従来）だけが走る＝厳密恒等。殺到は既存の機会ベース移民から創発（2026-07-08の裁定どおり）。
-                    bool frontierRush = World.Coef.GoldRushEmergent > 0
-                        && (gr.State != RegionState.Active || gr.Infra < World.Coef.FrontierUnlockThreshold);
-                    if (frontierRush)
-                    {
-                        if (gr.State != RegionState.Active) gr.Infra = Math.Max(gr.Infra, World.Coef.FrontierUnlockThreshold);   // 殺到が開拓を完了（解錠は Territory.Step の正規経路に委ねる）
-                        gr.MineralDepletion = Math.Max(gr.MineralDepletion, World.Coef.GoldRushEndowment);
-                        World.LogAdd($"{World.Year} {gr.Name}で金が発見された——ゴールドラッシュ（{World.SelfPower?.Name}）");
-                    }
-                    else gr.MineralDepletion = Math.Max(gr.MineralDepletion, World.Coef.MineralBonanzaCeil);
-                    // ★鉱脈在庫（2026-08-14）：発見は品位だけでなく**在庫も**補充する（新しい鉱脈＝掘れる量が増える。初期率換算で BonanzaDepositYears 年分）
-                    if (World.Coef.DepletionFromExtraction > 0 && gr.MineralDepositInitial > 0)
-                        gr.MineralDeposit += World.Coef.BonanzaDepositYears * gr.MineralDepositInitial / System.Math.Max(1e-9, World.Coef.DepositYearsAtBirth);
-                    World.LogAdd($"{World.Year} {gr.Name}で新たな鉱脈が発見されました（{World.SelfPower?.Name}）");
-                }
-                // ⚠撤去2026-09-04（J-005）：暦年1848に州名「西部」を名指しする台本を削除。創発側（上の frontierRush）が担う。
-                // ★シルバーラッシュ（作者裁定 2026-09-07「銀鉱脈の後期産地を採用。ゴールドラッシュと同じ仕組みに」）：後期の銀産地（LateResources に銀・解禁＝技術）
-                //   の州で、技術が解禁点を越えた最初の年に金の発見と**同じ3処理**（辺境なら解錠・富鉱倍率 GoldRushEndowment・鉱脈在庫の補充）。RNG は使わない＝決定論。
-                //   世界の銀供給が1860年代に跳ね、銀本位国の造幣が買い支えきれず銀/金比が落ちる（1873〜）＝金本位の波を**銀の価格**から起こす。SilverRushEnabled=0＝恒等。
-                if (World.Coef.SilverRushEnabled > 0)
-                    foreach (var r in World.Regions)
-                    {
-                        if (r.SilverRushed) continue;
-                        Producer? sp = null;
-                        foreach (var pr in r.Producers) if (pr.IsRgo && pr.GoodId == Catalog.SilverId && pr.TechOnset > 0) { sp = pr; break; }
-                        if (sp is null || World.TechLevel < sp.TechOnset) continue;
-                        r.SilverRushed = true;
-                        sp.TechOnset = 0; sp.Scale = Math.Max(sp.Scale, 1.0);   // 開口＝即産（技術ゲートの緩いランプで0から育て直さない＝ラッシュの形）
-                        if (r.State != RegionState.Active) r.Infra = Math.Max(r.Infra, World.Coef.FrontierUnlockThreshold);   // 殺到が開拓を完了（解錠は Territory.Step の正規経路）
-                        r.MineralDepletion = Math.Max(r.MineralDepletion, World.Coef.GoldRushEndowment);
-                        if (World.Coef.DepletionFromExtraction > 0 && r.MineralDepositInitial > 0)
-                            r.MineralDeposit += World.Coef.BonanzaDepositYears * r.MineralDepositInitial / System.Math.Max(1e-9, World.Coef.DepositYearsAtBirth);
-                        World.LogAdd($"{World.Year} {r.Name}で銀が発見された——シルバーラッシュ（{World.SelfPower?.Name}）");
-                    }
-            }
+            // 【削除 2026-10-01 (148)】鉱物の枯渇と発見の年次の抽選（国ごとに年3%の枯渇・年2.5%の鉱脈の発見〔全ての発見が frontierRush＝州の全ての鉱物を5倍〕・富鉱の年15%の戻り・
+            //   シルバーラッシュ）と Region.MineralDepletion を削除＝①枯渇は採掘による品位（StepMineralDeposits・旗 DepletionFromExtraction を焼き込み）②大鉱床は産地の発見の表
+            //   （Catalog.Sites＝場所ごとの年代と入植者×財の値・Discovery.Step が四半期に判定・富鉱は開いた財の生産者だけ）＝検討 §10-3 項目10・Q13（計画の 2-2）。
+            //   年に4つ引いていた主系列の乱数（枯渇2・発見2）も消えた＝以後の乱数の列がずれる（挙動の変更＝10種で測った）。
             // 疫病（B-4・コレラ等）：発生は過密（都市化）が駆動し、衛生整備（工業化）は死亡率を下げる。専用RNG系列＝主系列を乱さない。発生＝感染窓を立て他国へ伝播しうる（MultiNationSim）。
             if (World.EpidemicActiveYears > 0) World.EpidemicActiveYears--;   // 感染窓の年次減衰
             double epiRoll = EpidemicRng.NextDouble(); double epiPick = EpidemicRng.NextDouble();   // 常に2つ引く（専用系列）
@@ -2658,15 +2597,14 @@ public sealed class Simulation
     /// 鉱脈＝有限の在庫：毎月、州の鉱物産出の合計だけ減る（**決定論＝サイコロなし**）。
     /// 残量が膝（DepositGradeKnee）を切ると品位が線形に低下→産出減衰→採掘も減る＝自己減速（ハードストップでなく品位曲線）。
     /// 初期在庫＝助走明けの最初の産出月の率×DepositYearsAtBirth（InitialWork と同じ初回捕捉の作法）。
-    /// 発見イベントが在庫を補充する＝産出の大きな伸びは**新しい鉱脈**の仕事（加州1848・ランド1886）＝史実の形。
-    /// ゲート0＝即return・MineralGradeFactor は既定1.0のまま誰も書かない＝厳密恒等。</summary>
+    /// 発見が在庫を補充する＝産出の大きな伸びは**新しい鉱脈**の仕事（加州1848・ランド1886）＝史実の形（★(148)：産地の発見 Discovery.OpenSite が補充する）。</summary>
     private void StepMineralDeposits()
     {
         var c = World.Coef;
         // ⚠多国シム限定（2026-08-14の是正）：発見イベント（在庫の補充）は Diplomacy 非null 限定なのに、排水だけ全世界で効かせると
         //   単一国の較正世界は**純減のみ**＝石炭が60年で痩せて9テストが赤になった（自作農の飢え・PI収束・信用保存）。
         //   排水と発見は**対の機構**＝同じゲートに置く（較正世界は従来の確率イベントのまま＝24-24-24の前提を壊さない）。
-        if (c.DepletionFromExtraction <= 0 || World.WarmupFrozen || World.Diplomacy is null) return;
+        if (World.WarmupFrozen || World.Diplomacy is null) return;   // ★(148)：旗 DepletionFromExtraction（点火 2026-08-14）を焼き込み＝枯渇は採掘量の関数だけ
         foreach (var r in World.Regions)
         {
             if (r.State != RegionState.Active) continue;
@@ -2909,13 +2847,6 @@ public sealed class Simulation
         if (writeOff > 0) { bank.Loans -= writeOff; World.CumulativeFiatIssued += writeOff; }   // 非常発行の台帳（負の国の与信の償却だけ）
     }
 
-
-    // 鉱物発見の地質ポテンシャル重み（改修2026-06-28）：既に鉱物資源を列挙する州ほど新鉱脈が見つかりやすい（鉱床は既知鉱物地帯に偏在）。
-    private static double MineralWeight(Region r)
-    {
-        foreach (var g in r.Resources) if (Catalog.IsMineral(g)) return 3.0;
-        return 1.0;
-    }
 
     // ⚠撤去2026-09-04（J-005）：TriggerGoldRush（暦年1848×州名「西部」の台本）を関数ごと削除。到達不能になったため。
 

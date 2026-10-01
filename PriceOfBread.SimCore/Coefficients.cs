@@ -1402,15 +1402,14 @@ public sealed class Coefficients
     public double SulfurFromPyriteEnabled = 1.0;   /* ★点火2026-09-05＝0.0→1.0・E-13 再開＝黄鉄鉱法（硫黄鎖の代替） */
     public double SulfurFromPyriteProductivity = 0.7;   // 硫黄法比の生産性（黄鉄鉱法は歩留まりが低い＝高コスト）
     // 【削除2026-10-01 段2A】SulfurFromPyriteOnset（黄鉄鉱法の解禁の技術水準 0.55）＝発見の表の行（黄鉄鉱法・1830年代）へ
-    public double SulfurLateDepositOnset = 0.75;        // E-15 手順2：後期産地（ProvinceSpec.LateResources＝1783年の地図に無い産地）の解禁＝フラッシュ法1894・深部採掘。ScarceMineralGate>0 でのみ読む（0では後期産地も通常どおり産む＝恒等）
-    // ★銀の後期産地（作者裁定 2026-09-07・ゴールドラッシュ型）：LateResources に銀を持つ州の解禁技術（コムストック1859≈0.6・銀本位の波の起点）。SilverRushEnabled が主ゲート。
-    public double SilverLateDepositOnset = 0.6;
-    public double SilverRushEnabled = 0.0;   // 0＝後期の銀産地は解禁も富鉱化もしない（データは残る）＝厳密恒等。1＝解禁年に金の発見と同じ3処理。
+    // 【削除 2026-10-01 (148)】SulfurLateDepositOnset（0.75）・SilverLateDepositOnset（0.6）＝後期産地の技術水準の傾斜の始まり＝産地の発見の表（Catalog.Sites）の年代へ。
+    // ★銀の後期産地（作者裁定 2026-09-07・ゴールドラッシュ型）：産地の発見の表のコムストックの銀（西部・1850年代）。SilverRushEnabled が主ゲート（銀の平価の自己参照を断つ回の後に点火＝検討 Q13 (d)）。
+    public double SilverRushEnabled = 0.0;   // 0＝表の銀の行を置かない（西部の銀は非産地の0.4のまま）＝旧と同じ。1＝西部の銀を産地の発見の行として置く（見つかるまで門0・開いたら富鉱）。
     public double ScarceCapFollowsEndowment = 0.0;      // E-15 手順3（休眠）：希少鉱物の産地の拡張天井を賦存比例に（1＝総量保存と同じ倍率）。0＝不読＝恒等
-    // ★器（2026-09-07・休眠）：鉱脈の倍率（MineralDepletion×MineralGradeFactor）を鉱物RGOの**限界費用**にも通す（EconomyStep.MineralSelfCost）。
+    // ★器（2026-09-07・休眠）：鉱脈の品位（MineralGradeFactor）を鉱物RGOの**限界費用**にも通す（EconomyStep.MineralSelfCost）。
     //   旧＝倍率は Capacity にだけ乗る＝GoldRushEndowment 5.0 の州は量が5倍でも単位費用は平年と同じ＝富鉱が「安い限界供給者」にならない・
     //   枯れた鉱脈（DepositGradeFloor 0.15）が「高い限界供給者」にならない＝価格が鉱脈の質を反映しない。新しい数値は作らない（同じ積で割るだけ）。
-    public double MineralCostFollowsGrade = 0.0;         // 0＝鉱脈で割らない（自己費用＝MarginalCost×自己費用の物価水準×州の乗数のまま）＝厳密恒等。1＝さらに÷(MineralDepletion×MineralGradeFactor)
+    public double MineralCostFollowsGrade = 0.0;         // 0＝鉱脈で割らない（自己費用＝MarginalCost×自己費用の物価水準×州の乗数のまま）＝厳密恒等。1＝さらに÷MineralGradeFactor（★(148)：州の倍率 MineralDepletion は削除）
     // ★器（2026-09-08・作者裁定「同一生産コスト辺りの産出能力にするのが正しい」・休眠）：賦存を**同じ費用でどれだけ採れるか**にする。
     //   旧＝賦存倍率（Simulation.ResourceEndowment 鉱物4.0/他3.5・希少鉱物の総量保存 ScarceEndowment・非産地の ResourceScarcity 0.4）は
     //     Productivity＝Capacity にしか乗らず、自己費用（Producer.MarginalCost＝Catalog.RgoVa 0.34）は全州で同じ
@@ -1932,6 +1931,8 @@ public sealed class Coefficients
     public double DiscoveryNeedHalfWeapon = 0.5;    // 新兵器の必要性の半分点＝強度（その分野の必要量÷(必要量＋自国の陸軍力・海軍力)＝脅威の割合∈[0,1)）がこの値で35（最大 70÷1.5＝47）
     public double DiscoveryNeedHalfProduct = 0.8;   // 新製品の必要性の半分点＝強度（Σ人数×満足度÷人口）がこの値で35
     public double DiscoveryContactHalf = 0.05;      // 伝わりの半分点＝接触（その行を解禁済みの国から買った運び手の財の額÷世界のその財の取引額＋呼んだ技師÷自国の専門職）がこの値で35
+    public double DiscoveryNeedHalfSite = 0.5;      // ★(148) 産地の発見（大鉱床・植林＝Catalog.Sites）の必要性の半分点＝強度（人の厚み N÷(N＋N0)×その財の実質の値段÷参照価格）がこの値で35。
+                                                    //   N＝鉱床は入植者（中核民族の人数）・植林は住民・N0＝ColonyPromotionMinPop。2項（伝わりなし）＝技術力70なら強度 0.375 で届く（入植者 3.6万人×値段1）
     // 【墓標2026-09-26】DiscoveryFieldSplit（分野時計の按分・休眠）＝時計 World.DiscoveryClocks に読み手が無かった＝時計ごと削除（x-03）。Discovery.PatronShares（呼び手0）と分野の定数も 0-3 で削除
     public double DiffusionWeight = 1.0;   // ★点火2026-09-04（E-12b・IdeologyReachGate と同時＝読者が居て初めて世界が動く）         // ★発見・段7（思想の伝播・休眠）：到達(A→B)=貿易量(A,B)/買い手GDP×メディアA×メディアB×前四半期の到達A。メディア=NewsFill×識字+RadioFill（全て既存量＝「思想は商人と本と留学生を通じて広がった」＝貿易路がそのまま伝播路・原典§5-4）。0＝ペア記帳（PairFlowQ）も伝播も1命令も走らない＝厳密恒等。読者（思想eraゲートの置換）は段8＝絶対に混ぜない
     public double IdeologyReachGate = 1.0;   // ★点火2026-09-04（E-12b・DiffusionWeight と同時）：batch10＝◎17→18・法58→64・列強再現27.5→30.0・開放度0.189→0.200・exact46維持。社会主義の創発到達＝1848〜1875の窓（自家発火は種の書き戻しが原因＝修正済み）。記録＝人口17→10（ゲート外7カ国）・欧州大陸の到達が遅い＝欧州内貿易の空洞化（既知）       // ★発見・段8（思想の読者・休眠）：解禁 era = max(era, これ×IdeologyReach[k])。到達は段7が貿易路×メディアで積む0..1（発展度と同じ物差し＝新閾値なし）。起点は名前で書かない＝自力で解禁した国が National シェアを種として放射する。0＝不読＝厳密恒等。⚠DiffusionWeight と同時点火（片方だけでは1ビットも動かない＝deadprobe 2026-09-04）
@@ -2023,12 +2024,12 @@ public sealed class Coefficients
     public double ExternalPressureInlandFactor = 0.5; // 接7：内陸国（活動州に港なし）の外圧係数＝黒船は海から来る（陸伝いの外圧は弱い）。ExternalPressureDerived=0では不読
     // A-高1：鋼のベッセマー不連続。坩堝鋼（地理差・高価＝鉄2.2+コークス1.2・Productivity0.9）と錬鉄レール（地理差・鉄1.3）を
     // 並存レシピで追加し、デフォルト（ベッセマー転炉＝鉄1.0+コークス0.4）を発見の表の転炉鋼（1850年代）で門（旧＝onset 0.55・旗 CrucibleSteelEnabled＝2026-10-01 段2A で焼き込み）。
-    // ★石油ケロシン（灯油doc・2026-08-13）：灯油の第2レシピ。原油の「1859年から40年の買い手ゼロ」を埋める。
-    //   鋼（坩堝→ベッセマー）と極性が逆＝**新レシピの方が安い**ので、onset後にコストで自動的に鯨油を駆逐する（捕鯨船団735隻→39隻）。
+    // ★石油灯油（灯油doc・2026-08-13 の石油ケロシン＝(148) で同じ変換の2本を1本へ畳んだ・設計 §5 F4）：鋼（坩堝→ベッセマー）と極性が逆＝**新レシピの方が安い**ので、
+    //   発見の後にコストで自動的に鯨油を駆逐する（捕鯨船団735隻→39隻）。
     public double ChilledMeatEnabled = 1.0;   // ★点火2026-09-04：実測＝硬性ゲート全緑・**貿易/GDP 3.93%→7.10%（1.8倍）**・政体exact 43.9→46.4（当日最高）・法 57.6→60.7（当日最高）・列強+0.8／経済−1.3・near−1.8・◎17→14（記録）。★生肉を輸送不可にした時点で既に貿易が増えた＝**食肉加工が家畜のいる場所に集中し最終財が輸出される**（シカゴ／ブエノスアイレスの構造）      // ★2026-09-04（作者提案）：加工肉(63)の**第2レシピ**＝肉＋冷蔵庫（冷蔵）。⚠生肉は輸送不可にしたので、冷蔵以後の遠距離の食肉はこの経路が担う。★新しい財を作らない（「冷蔵肉」の新設は作者指摘で撤回）＝加工肉の需要は較正済みのまま使える。解禁は暦年でなく**冷蔵庫が作れるか**＝精密工作機械の連鎖に律速。0でProducerを1件も足さない＝厳密恒等
     public double ChilledMeatProductivity = 1.4;  // 冷蔵レシピの生産性倍率（塩漬け比）。⚠史実＝冷蔵牛肉は塩漬けより高値で売れ、ラプラタ川の輸出を支えた。ChilledMeatEnabled=0では不読
     public double ChilledMeatColdInput = 0.15;    // 加工肉1単位あたりの冷蔵庫の投入量（設備の摩耗＝機械と同じ扱い）。ChilledMeatEnabled=0では不読
-    public double KeroseneFromOilEnabled = 1.0;   // ★点火2026-08-14（n22実測：列強再現率+6.2・領土植民地+5.8／人口−5.7・政体exact−2.1・◎20vs21＝混合。原油の40年の買い手ゼロは実在の穴＝正しい挙動＞バランスで採用・#17で見直す）
+    // 【焼き込み 2026-10-01 (148)】KeroseneFromOilEnabled（点火 2026-08-14）＝石油ケロシンと石油灯油を1本へ畳んだ（下の2本はその1本の数）
     public double KeroseneOilInput = 0.5;         // 灯油1単位あたりの原油。1870年代の精製収率45〜60%（残りは廃棄・ナフサ）
     public double KeroseneOilProductivity = 1.6;  // 連続精製の生産性（既定＝鯨油レシピの相対。史実の価格差5〜10倍はこれと投入係数の合成で出す）
     // 【削除2026-10-01 段2A】CrucibleSteelEnabled（坩堝鋼・錬鉄レールを並存させ鋼の既定のレシピへ onset を置く旗・2026-07-28 点火）＝鋼の既定のレシピ（転炉鋼）は発見の表の行（1850年代）が常に門を置く
@@ -2295,27 +2296,13 @@ public sealed class Coefficients
     public double WeatherBandPersistence = 0.35;              // 緯度帯天候の年次自己相関（多国シム限定）。0=旧IID。欧州一帯の多年冷夏。バランス2026-07-07有効化：唯一の乱数（不作）が多年・大陸規模の記憶を持ち、シードごとに勝敗を分ける実体ショックへ（目標2「不作が十分な影響」・単一国較正はWeatherBand非走行＝中立）
     public double BlockadeStapleBias = 0.5;                  // 海上封鎖の主食狙撃（blockade-no-famine-strangulation）∈[0,1]。0で全財一律（現行恒等＝兵糧攻め不成立）。>0 で封鎖severity(1-raid)をStapleの輸入閾値に厚く＝FoodFill低下→既存飢饉機構。交戦なし(raid=1)で不発
     public double FaminePushMaxFracBoost = 1.0;             /* 移民史実化2026-07-08有効化 */ // 飢饉時の移民上限緩和：(1-FoodFill)に比例してEmigrationMaxFracを引き上げ。欠乏30%で上限1.2→1.56%/年・50%で1.8%/年（2.0はハーネス27/30不合格＝過強と実測）。0で旧固定上限
-    public double MineralDepletionChance = 0.03;              // 鉱物枯渇イベントの年次発生確率（国ごと）。0.06→0.03＝より稀に（恐慌が増えすぎたため）。発生で1地域の鉱物産出が激減
-    public double MineralDepletionFloor = 0.2;                // 枯渇直後の鉱物産出倍率（激減＝平常の20%へ）
-    public double MineralRecoveryRate = 0.3;                  // 枯渇からの年次回復速度（緩やか＝0.2から数年かけて1.0へ）
-    // 鉱物の発見（枯渇の対・改修2026-06-28）：中盤以降ランダムに1地域の鉱物産出が急増（富鉱＝MineralDepletion>1）。地質ポテンシャル（既知鉱物地帯）で重み付け。
-    public double MineralDiscoveryChance = 0.025;            // 鉱物発見イベントの年次発生確率（枯渇0.03の対）。Chance=0 で旧挙動＝較正中立
-    public double MineralBonanzaCeil = 2.5;                  // 発見直後の鉱物産出倍率（富鉱＝平常の2.5倍）。MineralDepletion のクランプ上限も兼ねる
-    public double MineralBonanzaDecay = 0.15;                // 発見ボーナスが平常(1.0)へ戻る年次減衰（枯渇回復0.3より遅い＝鉱脈は長く続くが有限）
-    // カリフォルニア・ゴールドラッシュ（1848・史実固定トリガ・改修2026-06-28）：西部州に金鉱出現＋移民殺到でアメリカを強化。Year=9999 で無効化＝中立スイッチ
-    // ★2026-09-03（キューAUD-01/02・監査「暦年・台本」／作者裁定2026-09-03「全て修正対象・可能なら創発する形に」）：
-    //   ゴールドラッシュと鉱物発見の**暦年ゲートと州名リテラル**を消し、既にある鉱物発見の機構から創発させる器。
-    //   ⚠0＝旧経路（暦年1848の決定的トリガ＋Year>=1820 のゲート）＝1命令も変わらない厳密恒等。
-    //   >0 で ①発見の解禁を暦年から**技術**へ ②発見先が辺境（未解錠 or インフラが解錠閾値未満）なら
-    //   その発見が「ゴールドラッシュ」になる（＝解錠＋GoldRushEndowment）。新しいマジックナンバーは作らない
-    //   （解禁の物差しは既存の FrontierUnlockThreshold と GoldRushEndowment を使い回す）。
-    // ⚠撤去2026-09-04（J-005点火の帰結）：MineralDiscoveryStartYear(1820)・GoldRushYear(1848)・GoldRushFrontier("西部") を削除。
-    //   ★どれも「暦年」と「州名の名指し」＝作者裁定「全て削除対象」の対象そのもの。創発側が点火されたので到達不能になった。
-    public double GoldRushEmergent = 1.0;   // ★点火2026-09-04（J-005＝作者裁定「暦年の台本は全て削除対象」「ゴールドラッシュも発見に入れてしまおう」）：暦年1848と州名「西部」の名指しを廃し、**技術水準×未開の州**で出る発見の一種にした。⚠実測＝硬性ゲート全緑・★**要注意フラグ（モンゴル最下位）が1件→0件で解消**・near+1.3/法+1.8/列強一致+0.8／exact−1.0・本国−0.9・◎19→17（記録）
-    // 発見が解禁される技術水準（GoldRushEmergent>0 のときだけ読む）。⚠暦年1820の代替＝「探鉱ができる産業社会になったか」。
-    //   値は既存の技術目盛りに合わせた1本（史実の1820年代＝地質学と蒸気排水が実用化した頃）。
-    public double MineralDiscoveryTechRef = 1.0;
-    public double GoldRushEndowment = 5.0;                   // 出現する金鉱の富鉱倍率（黄金郷＝鉱物4.0を上回る）。MineralDepletion 経路で減衰・保存中立
+    // 【削除 2026-10-01 (148)】MineralDepletionChance・MineralDepletionFloor・MineralRecoveryRate（年3%の確率の枯渇＝旗 DepletionFromExtraction の点火〔2026-08-14〕で到達不能だった・
+    //   乱数だけ年に2つ引いていた＝棚卸し pop-15）・MineralDiscoveryChance・MineralBonanzaCeil・MineralBonanzaDecay（年2.5%の抽選の鉱脈の発見と富鉱の年15%の戻り＝全ての発見が
+    //   frontierRush へ入り 2.5倍の枝は到達不能だった＝検討 §10-3 項目10(a)）＝大鉱床は産地の発見の表（Catalog.Sites・Discovery.Step）・枯渇は採掘による品位（鉱脈在庫）の1本へ。
+    // 【削除 2026-10-01 (148)】GoldRushEmergent（点火 2026-09-04・暦年1848と州名「西部」を廃した創発の器＝抽選の発見のうち辺境のものをラッシュに）と MineralDiscoveryTechRef（抽選の発見の技術の門）
+    //   ＝産地の発見の表（Catalog.Sites＝カリフォルニア1840s・豪1850s・ラント1880s・クロンダイク1890s・難易度＝年代×Y・必要性＝入植者×金の値）へ置き換えた（設計 §9-1 の提案③＝2026-09-28 作者が採用した提案）。
+    //   ⚠2026-09-04 の点火の記録（辺境の州で出る）は辺境の廃止（2026-08-26）の後＝成り立っていなかった（検討 §10-3 項目10(a)・新23）。
+    public double GoldRushEndowment = 5.0;                   // 開いた大鉱床の富鉱倍率（浅い高品位の鉱脈＝通常の賦存4.0に掛ける＝開いた財の生産者だけ・Discovery.OpenSite）。衰えは採掘による品位（鉱脈在庫）
     // === 兵士POP軍制（Part 2）：軍隊規模＝兵士POP数。軍事費が徴募し給与を払う。治安維持力（警察）とは別レバー。 ===
     // 兵士POP は IsSoldier フラグで識別（ClassId は貴族0/農民1/労働者2/ブルジョワ3/専門職4/兵士5）。
     public int SoldierRecruitClassA = 1;                     // 徴募/復員プールその1＝農民
@@ -3333,18 +3320,18 @@ public sealed class Coefficients
     // ★実測の症状＝造幣の standing offer（床）に金の産出が**13.3倍**で応答し、価格が限界費用に固定された（銀/金±1.5%＝暴落不能）。
     //   鉱山が工場と同じ ScaleMax=3.0・同じ調整速度で拡張できる＝供給が完全弾力＝どんな需要ショックも価格に残らない。
     // ★史実＝石炭も金も産出は大きく伸びたが、その担い手は**新しい鉱脈の発見**（加州1848・ランド1886）＝塊で来る。
-    //   既存の鉱山の増産余地は坑道の深化＝遅くて限界がある。発見の塊は既存の bonanza イベント（MineralBonanzaCeil）が担う。
+    //   既存の鉱山の増産余地は坑道の深化＝遅くて限界がある。発見の塊は産地の発見（★(148)：Catalog.Sites・旧＝抽選の bonanza イベント MineralBonanzaCeil）が担う。
     // ⚠漁獲(20)は対象外（土地を占めない唯一のRGO＝既存の記録どおり）。工場は無変更。
     // ★★鉱脈＝在庫（2026-08-14・作者裁定「自然がキャップになっていない。枯渇が確率モデルであることに問題がある。
     //   枯渇率は採掘量により増加すべき」）。旧＝年3%のサイコロ＝掘る量と無関係（触っていない鉱山と剥ぎ取っている鉱山が同率で枯れる宝くじ）。
     // ★新＝鉱脈は有限の在庫：掘った分だけ減る→残量が膝を切ると品位が落ちる（深掘り・低品位鉱へ）→産出が自然に減衰。
-    //   **決定論**（サイコロなし＝採掘量の関数）。発見（bonanza）だけは塊で乱数のまま＝地質の発見は本当に偶然だった（枯渇の不満は掘削と無関係な点）。
-    //   点火時は旧・確率枯渇イベントを止める（乱数は引き続ける＝RNG消費順を保つ既存の作法どおり）。
-    public double DepletionFromExtraction = 1.0;  // ★点火2026-08-14（上と対＝自然の壁。作者裁定「枯渇が確率モデルであることに問題・枯渇率は採掘量により増加すべき」）。0で枯渇は従来の確率イベントのみ＝厳密恒等
+    //   **決定論**（サイコロなし＝採掘量の関数）。（旧＝発見〔bonanza〕だけは塊で乱数のまま・点火時も確率枯渇の乱数は引き続けた）
+    //   ★(148)：発見も乱数をやめ産地の発見の表へ（作者 2026-09-04「ゴールドラッシュも発見に入れてしまおう」・2026-09-28 作者が採用した提案③＝鉱床の発見も同じ骨組みへ）＝乱数の枝を消した。
+    // 【焼き込み 2026-10-01 (148)】DepletionFromExtraction（点火 2026-08-14＝作者裁定「枯渇が確率モデルであることに問題・枯渇率は採掘量により増加すべき」）＝旗ごと削除（確率の枯渇の枝を消した）
     public double DepositYearsAtBirth = 100.0;    // 初期鉱脈の大きさ＝開始時の産出率で掘り続けて何年分か（3倍掘れば33年で膝に届く）
     public double DepositGradeKnee = 0.5;         // 残量がこの割合を切ると品位が線形に低下し始める（浅い高品位層が尽きる点）
     public double DepositGradeFloor = 0.15;       // 掘り尽くしたあとの品位（深部の残滓＝ゼロにしない。閉山は採算側が決める）
-    public double BonanzaDepositYears = 60.0;     // 発見イベントが鉱脈に足す量（初期率換算の年数）＝発見が在庫も補充する
+    public double BonanzaDepositYears = 60.0;     // 大鉱床の発見が州の鉱脈に足す量（初期率換算の年数）＝発見が在庫も補充する（★(148)：産地の発見 Discovery.OpenSite）
     // ★貴族の投資（20260814_貴族が保守に固着する理由・裁定待ち一覧§3で採用推奨）。原因の実測＝CapitalMarket の投資家判定が
     //   IsModernElite のみ＝Closed（貴族・聖職）を排除→earned が永遠に0→rentier=1→伝統が最大固定。
     //   1で Closed も投資家へ（強度の割引=6c・聖職の分離=6a は観測後）。0＝厳密恒等。

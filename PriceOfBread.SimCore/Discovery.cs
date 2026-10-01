@@ -19,7 +19,8 @@ public readonly record struct DiscoveryRow(string Name, int Good, string Recipe,
 ///   「労働を代替する発明は、安い人件費の国では必要とされない、という認識でよい」。**世界で最初の発見は必ず技術力＋必要性**（誰も持っていなければ伝わりは0）。
 /// ・状態＝国×行の「解禁済み」の2値（<see cref="World.Discovered"/>）だけ＝設計思想⑩の「本当に必要な場合」（作者裁定 2026-09-28 で許可）。項はどれも今の盤面から導く。
 /// ⚠時期感は**較正の目標**であってコードに書かない（暦年ゲートの裏口を作らない）＝行の年代はデータ・難易度は1本の Y で技術水準へ写す（<see cref="Difficulty"/>）。
-/// ⚠制度（特許・株式会社）の傾斜 <see cref="Unlock"/> はこの回の外（設計 §1A-6＝別の回）。鉱床の後期の産地の傾斜は <see cref="Catalog.DepositTechScale"/>（次の段）。</summary>
+/// ⚠制度（特許・株式会社）の傾斜 <see cref="Unlock"/> はこの回の外（設計 §1A-6＝別の回）。
+/// ★場所に結びついた発見（大鉱床・植林＝<see cref="Catalog.Sites"/>・2026-10-01 (148)）も同じ関数で判定する（<see cref="SiteTerms"/>＝2項・状態は生産者の <see cref="Producer.SiteFound"/>）。</summary>
 public static class Discovery
 {
     /// <summary>制度の解禁度（ramp・0..1）＝特許・株式会社だけが読む（設計 §1A-6 の別の回で2値の点数へ移す）。⚠span≤0 は設定ミス＝常に0。</summary>
@@ -32,8 +33,10 @@ public static class Discovery
     /// <summary>行の難易度（技術水準の単位）＝ Y ×（行の年代 − 1780）÷10（作者裁定 Q11＝10年刻みの年代を1本の Y で写す・全体の早い遅いは Y で直す）。
     /// Y の物差し（Q11）＝「各行の年代に、最も必要に迫られた平均的な先進国が届く値」＝英仏普の技術水準の平均（r144 で10年あたり約0.25）が
     /// 必要性 約45 と合わせて100に届く＝ 0.25÷(55÷70)≈0.32〜0.35。1780年代の行（1783年の開幕で既知）は0＝技術力の項は最大（技術の押しの分だけ）。</summary>
-    public static double Difficulty(int row, Coefficients c)
-        => c.DiscoveryTechPerDecade * (Catalog.Discoveries[row].Decade - Catalog.DiscoveryBaseDecade) / 10.0;
+    public static double Difficulty(int row, Coefficients c) => DifficultyOf(Catalog.Discoveries[row].Decade, c);
+    /// <summary>年代の難易度（発見の表と産地の発見の表 <see cref="Catalog.Sites"/> が共有する1本の Y）。</summary>
+    public static double DifficultyOf(int decade, Coefficients c)
+        => c.DiscoveryTechPerDecade * (decade - Catalog.DiscoveryBaseDecade) / 10.0;
 
     /// <summary>人件費＝働き手（農民と工場労働者）の1人の月の所得÷物価水準（労働を代替する発明の必要性の入力・作者 2026-09-30「労働を代替する発明は、安い人件費の国では必要とされない」）。
     /// ⚠労働の財の値段（1単位あたり）ではなく**1人あたり**＝機械は人を置き換える（労働の値段は工業化の生産性で割られて国の間でほとんど違わない＝1種の試走で英 1.30・清 1.16）。
@@ -59,14 +62,17 @@ public static class Discovery
 
     public static bool Known(bool[]? known, int row) => row >= 0 && known is not null && row < known.Length && known[row];
 
-    /// <summary>ある州のある生産者（レシピ）の門∈{0,1}（鉱床の後期の産地だけ傾斜）＝能力・未発明の判定・操業規模0・着工の可否・生産タブの灰色化が全てこの1本を読む
-    /// （画面とエンジンで「作れるか」の定義が食い違わない）。表に無いレシピ（地理差）は常に1・退場のレシピは後継を発見したら0。</summary>
+    /// <summary>ある州のある生産者（レシピ）の門∈{0,1}＝能力・未発明の判定・操業規模0・着工の可否・生産タブの灰色化が全てこの1本を読む
+    /// （画面とエンジンで「作れるか」の定義が食い違わない）。表に無いレシピ（地理差）は常に1・退場のレシピは後継を発見したら0。
+    /// ★産地の発見（(148)・<see cref="Catalog.Sites"/>）の生産者は、見つかるまで0（<see cref="Producer.SiteFound"/>＝国の解禁の配列ではなく生産者の2値＝州と一緒に移る）。
+    /// 旧＝鉱床の後期の産地だけ技術水準の傾斜（Catalog.DepositTechScale）。</summary>
     public static double Gate(Region r, Producer p) => Gate(r, p, r.Discovered);
     /// <summary><see cref="Gate(Region, Producer)"/> を与えた解禁の配列で読む（需要の門＝世界の解禁の和で読む・<see cref="GoodGates"/>）。</summary>
     public static double Gate(Region r, Producer p, bool[]? known)
     {
+        if (p.SiteRow >= 0 && !p.SiteFound) return 0.0;
         int row = p.DiscoveryRow;
-        double g = row >= 0 ? (Known(known, row) ? 1.0 : 0.0) : Catalog.DepositTechScale(p.TechOnset, r.TechLevel);
+        double g = row >= 0 ? (Known(known, row) ? 1.0 : 0.0) : 1.0;
         int ret = p.RetiredByRow;
         return ret >= 0 && Known(known, ret) ? 0.0 : g;
     }
@@ -78,7 +84,7 @@ public static class Discovery
     {
         double best = -1;
         foreach (var pr in r.Producers)
-            if (pr.GoodId == gid) { double g = Gate(r, pr); if (g > best) best = g; }
+            if (pr.GoodId == gid && !Unfound(pr)) { double g = Gate(r, pr); if (g > best) best = g; }
         if (best < 0) { int row = Catalog.DiscoveryRowOf(gid, ""); best = row < 0 ? 1.0 : Known(r.Discovered, row) ? 1.0 : 0.0; }
         return !(best > 0) ? 0.0 : System.Math.Min(1.0, best);
     }
@@ -91,7 +97,7 @@ public static class Discovery
         foreach (var pr in r.Producers)
         {
             int g = pr.GoodId;
-            if (g < 0 || g >= n) continue;
+            if (g < 0 || g >= n || Unfound(pr)) continue;
             double x = Gate(r, pr, known);
             if (x > into[g]) into[g] = x;
         }
@@ -102,6 +108,9 @@ public static class Discovery
             into[g] = !(b > 0) ? 0.0 : System.Math.Min(1.0, b);
         }
     }
+
+    /// <summary>まだ見つかっていない産地の生産者（財の解禁の最大から外す＝産地が無いのと同じ扱い＝「その場所がまだ知られていない」を「財がまだ発見されていない」と取り違えない）。</summary>
+    private static bool Unfound(Producer p) => p.SiteRow >= 0 && !p.SiteFound;
 
     /// <summary>世界の解禁の和（どこかの国が解禁した行＝輸入で手に入る）を <paramref name="into"/> へ書く（配列は差し替えない＝国と州が同じ配列を参照し続ける）。</summary>
     public static void UnionInto(IEnumerable<World> worlds, bool[] into)
@@ -330,8 +339,10 @@ public static class Discovery
         return res;
 
         static double Share(double need, double own) => need > 1e-12 ? need / (need + (own > 0 ? own : 0)) : 0;
-        static double Saturate(double s, double half) => s > 0 && half > 0 ? TermMax * s / (s + half) : 0;   // 否定形＝NaN・負は0
     }
+
+    /// <summary>項の飽和＝70×強度÷(強度＋半分点)（発見の表と産地の発見が共有）。否定形＝NaN・負は0。</summary>
+    private static double Saturate(double s, double half) => s > 0 && half > 0 ? TermMax * s / (s + half) : 0;
 
     /// <summary>四半期の発見の判定＝点数が100に届いた行を解禁する（2値・失われない）。多国は <see cref="MultiNationSim"/> の四半期末の共有層（接触を求めた直後）・
     /// 単独の世界は <see cref="Simulation"/> の四半期末（接触なし）。開幕の既知の集合は助走の終わりに1度（<see cref="MultiNationSim.StartWarmup"/>）。</summary>
@@ -346,6 +357,77 @@ public static class Discovery
             known[row] = true;
             w.LogAdd($"{w.Year} {w.SelfPower?.Name ?? w.Region.Name}が{Catalog.Discoveries[row].Name}を発見");
         }
+        // ★産地の発見（(148)・Catalog.Sites）＝この国の州にある、まだ見つかっていない産地（大鉱床・植林）を同じ門で判定する。
+        foreach (var r in w.Regions)
+        {
+            if (r.State != RegionState.Active) continue;
+            foreach (var p in r.Producers)
+            {
+                if (!Unfound(p) || !(SiteTerms(w, r, p, c).Score >= GateScore)) continue;
+                OpenSite(w, r, p, c);
+            }
+        }
         w.LastDiscoveryView = view;
+    }
+
+    /// <summary>★産地の発見の2項（(148)・<see cref="Catalog.Sites"/>）＝読むだけ（判定・画面・計器が同じ関数を読む）。伝わりは持たない（他国の発見は自分の土地の鉱床を見つけない）。
+    /// ・技術力＝70×min(1, 国の技術水準÷難易度)（難易度＝年代×Y＝発見の表と同じ1本）。
+    /// ・必要性＝70×強度÷(強度＋半分点 <see cref="Coefficients.DiscoveryNeedHalfSite"/>)・強度＝人の厚み N÷(N＋N0)×その財の実質の値段÷参照価格
+    ///   （設計 §9-1 の提案③＝適性＝入植者×金の値・2026-09-28 作者が採用した提案＝文は AI の整理）。N＝鉱床は入植者＝州の POP の大きさ×中核民族の割合（CoreEthnicShare・現地住民は0で作られ同化で育つ）・
+    ///   植林は住民（樹を植えて樹皮を剥ぐ働き手）。兵士は数えない。N0＝<see cref="Coefficients.ColonyPromotionMinPop"/>（州を名乗れる人の集まり＝(118) と同じ物差し）。
+    ///   実質の値段＝国の州の値段を需要で重み付けた値÷物価水準（死んだ市場＝参照価格＝1）＝デフレの世では金の実質の値打ちが上がり探鉱が進む（金本位の下で名目の金の値段は動かない）。</summary>
+    public static Terms SiteTerms(World w, Region r, Producer p, Coefficients c)
+    {
+        var site = Catalog.Sites[p.SiteRow];
+        double diff = DifficultyOf(site.Decade, c);
+        double ratio = !(diff > 0) ? 1.0 : w.TechLevel / diff;
+        ratio = !(ratio > 0) ? 0 : ratio > 1 ? 1 : ratio;
+        double people = 0;
+        foreach (var q in r.Pops)
+        {
+            if (q.IsSoldier || !(q.Size > 0)) continue;
+            people += site.Kind == Catalog.SiteKind.Deposit ? q.Size * PoliticalQuantities.Clamp01(q.CoreEthnicShare) : q.Size;
+        }
+        double n0 = c.ColonyPromotionMinPop;
+        double thick = people > 0 && n0 > 0 ? people / (people + n0) : 0;
+        double s = thick * RealValue(w, site.Good);
+        return new Terms(TermMax * ratio, Saturate(s, c.DiscoveryNeedHalfSite), 0);
+    }
+
+    /// <summary>財の実質の値段÷参照価格（国の稼働中の州の値段を需要で重み付け・物価水準で割る）。死んだ市場（国内に需要が無いか、国内に残る供給〔産出＋輸入−輸出の和〕が無い）は1
+    /// （参照価格＝普通に出回ったときの値段＝<see cref="Evaluate"/> の死んだ市場と同じ扱い・⚠ 生きた市場の判定は Evaluate〔産出＋純輸入の正の分〕と少し違う＝全て輸出する産地の国は1と読む）。</summary>
+    private static double RealValue(World w, int g)
+    {
+        double pd = 0, dd = 0, sup = 0;
+        foreach (var r in w.Regions)
+        {
+            if (r.State != RegionState.Active || g >= r.Markets.Length) continue;
+            var m = r.Markets[g];
+            pd += m.Price * m.LastDemand; dd += m.LastDemand; sup += m.LastProduced + m.LastImport - m.LastExport;
+        }
+        double pl = w.NominalOf(1.0), rp = g >= 0 && g < Catalog.RefPrices.Length ? Catalog.RefPrices[g] : 0;
+        if (!(dd > 1e-9) || !(sup > 1e-9) || !(pl > 0) || !(rp > 0)) return 1.0;
+        double v = pd / dd / pl / rp;
+        return !(v > 0) ? 0 : v;   // 否定形＝NaN は「値打ちが無い」側（見つけない）へ倒す
+    }
+
+    /// <summary>産地を開く（(148)）＝2値を立てる（失われない・州と一緒に移る）。鉱床は開口＝即産（操業規模≥1＝ラッシュの形・旧シルバーラッシュと同じ）と
+    /// **富鉱**（浅い高品位の鉱脈＝<see cref="Coefficients.GoldRushEndowment"/> を開いた財の生産者だけに＝検討 Q13 (c)・旧＝州の全ての鉱物の MineralDepletion）と
+    /// 州の鉱脈在庫の補充（<see cref="Coefficients.BonanzaDepositYears"/>×初期在庫÷DepositYearsAtBirth・衰えは採掘による品位だけ）。
+    /// 植林は門が開くだけ（樹は植えてから育つ＝操業規模は市場が育てる）。人の殺到は既存の賃金の割増→機会（Territory・越境の移民）から出る＝足さない。</summary>
+    internal static void OpenSite(World w, Region r, Producer p, Coefficients c)
+    {
+        var site = Catalog.Sites[p.SiteRow];
+        p.SiteFound = true;
+        string gname = Catalog.Goods[site.Good].Name, who = w.SelfPower?.Name ?? w.Region.Name;
+        if (site.Kind == Catalog.SiteKind.Deposit)
+        {
+            Simulation.ApplyEndowment(p, c.GoldRushEndowment, c);
+            if (p.Scale < 1.0) p.Scale = 1.0;
+            if (r.MineralDepositInitial > 0)
+                r.MineralDeposit += c.BonanzaDepositYears * r.MineralDepositInitial / System.Math.Max(1e-9, c.DepositYearsAtBirth);
+            w.LogAdd($"{w.Year} {r.Name}で{gname}の大鉱脈が見つかった（{who}）");
+        }
+        else w.LogAdd($"{w.Year} {r.Name}で{gname}の植林が始まった（{who}）");
     }
 }

@@ -116,10 +116,18 @@ public partial class GameViewModel
             tech.Add(("電信・鉄道・汽船（報せの速さ）", tr, c.TransportRevolutionOnset,
                       $"世界技術 {w.WorldTechLevel:F2}"));   // ★閾値の帯（〜）を出していた唯一の行＝2026-09-23 に撤去
         }
-        // 鉱脈の発見（ゴールドラッシュの前提＝技術で解禁・2026-09-04に暦年を撤去）
-        if (c.MineralDiscoveryTechRef > 0)
-            tech.Add(("鉱脈の発見", System.Math.Clamp(w.TechLevel / c.MineralDiscoveryTechRef, 0, 1), c.MineralDiscoveryTechRef,
-                      $"技術 {w.TechLevel:F2}"));
+        // ★産地の発見（2026-10-01 (148)・Catalog.Sites＝大鉱床と植林）＝自国の州にある行だけ。見つかった産地は100%・まだの産地は点数（技術力＋必要性）の割合
+        //   ＝値は Discovery.SiteTerms＝エンジンが判定に読む同じ関数。ホバー＝2項と州の名前（データのみ）。並べ替えの第2キーは年代。
+        foreach (var r in w.Regions)
+            foreach (var p in r.Producers)
+            {
+                if (p.SiteRow < 0) continue;
+                var site = Catalog.Sites[p.SiteRow];
+                var st = Discovery.SiteTerms(w, r, p, c);
+                double sp = p.SiteFound ? 1.0 : System.Math.Clamp(st.Score / Discovery.GateScore, 0, 1);
+                if (!(sp >= 0)) sp = 0;
+                tech.Add((site.Name, sp, site.Decade, p.SiteFound ? $"{r.Name}・{site.Decade}年代" : $"{r.Name}・技術力 {st.Tech:F0} ／ 必要性 {st.Need:F0}"));
+            }
         // 並びは解禁度の降順→閾値の昇順→名前（全順序＝四半期ごとに行が入れ替わらない）。技術と思想で同じ比較子を使う。
         static int ByGate((string Name, double Pct, double Onset, string Tip) a, (string Name, double Pct, double Onset, string Tip) b)
         {

@@ -569,8 +569,6 @@ public static class Catalog
         _ => ("軽工業", 30_000, 4),                                  // 繊維・食品・日用・奢侈＝安価/短期
     };
 
-    private const double DepositTechWidth = 1.0;       // 鉱床の後期の産地の傾斜の幅（onset から full まで・DepositTechScale）
-
     /// <summary>★塊1（2026-08-31）：動物性食料の必要量/主食の必要量＝Σ(非主食のNutrition×BaseNeed)/Σ(主食のBaseNeed)。
     /// FoodIncludesAnimalProtein 点火時に主食の必要量をこの比で譲る（バスケットに肉が入った分だけ穀物の取り分が減る＝
     /// 総食料需要を中立に保つ。野菜(108)追加時にパンを0.80→0.55へ譲った前例と同じ処理をデータから導出）。現行データでは 0.22/1.10=0.2。</summary>
@@ -595,7 +593,7 @@ public static class Catalog
     /// ・難易度＝年代（10年刻み・作者裁定 2026-09-28 ③）を1本の Y（<see cref="Coefficients.DiscoveryTechPerDecade"/>）で技術水準へ写す＝<see cref="Discovery.Difficulty"/>。
     ///   ⚠暦は読まない（年代は行のデータ・コードは暦の年を読まない＝§1A-5 の注）。年代は §1A-5 の表・無い行は Q11（発見の年と実用の年の中間）で置いた。
     /// ・分野＝作者裁定 2026-09-28 ⑤（制度・思想・製法・発明〔新兵器・新製品〕）。⚠この回は製法と発明の行だけ（制度＝特許・株式会社と思想は別の回＝設計 §1A-6「思想の解禁は政治の較正に広く効く＝別の回で単独に測る」）。
-    /// ⚠鉱床（後期の産地＝Producer.TechOnset の傾斜）はこの表の外のまま（設計 §9-1 の提案③＝鉱床の発見は次の段）。</summary>
+    /// ・場所に結びついた発見（大鉱床・植林）は <see cref="Sites"/>（同じ骨組み・2項）。</summary>
     public const int DiscoveryBaseDecade = 1780;   // 難易度0の年代（1783年の開幕で既知の行＝坩堝鋼 1740年代・ワットの回転機関 1781＝設計 §1A-5 の注）
     public static readonly DiscoveryRow[] Discoveries =
     [
@@ -608,8 +606,7 @@ public static class Catalog
         new("木材パルプ製紙", PaperId, "", DiscoveryField.Process, 1840),                // 砕木1840s（その前はぼろ布製紙＝地理差）
         new("過リン酸石灰", FertilizerId, "", DiscoveryField.Process, 1840),             // ロース1842（その前は厩肥・グアノ＝地理差）
         new("転炉鋼", SteelId, "", DiscoveryField.Process, 1850),                        // ベッセマー1856（その前は坩堝鋼・錬鉄レール＝地理差）
-        new("石油灯油", LampOilId, "石油灯油", DiscoveryField.Process, 1850),            // ドレーク油井1859
-        new("石油ケロシン", LampOilId, "石油ケロシン", DiscoveryField.Process, 1850),    // 同上（石油灯油と同じ変換の2本目＝設計 §5 F4 の重複・畳むのは次の段）
+        new("石油灯油", LampOilId, "石油灯油", DiscoveryField.Process, 1850),            // ドレーク油井1859（★(148)：同じ変換の2本目「石油ケロシン」を畳んだ＝設計 §5 F4）
         new("鉄筋コンクリート", HousingId, "鉄筋コンクリート", DiscoveryField.Process, 1860),   // モニエ1867（§1A-5 の表）
         new("クロムなめし", LeatherId, "クロムなめし", DiscoveryField.Process, 1880),     // 商用1884（§1A-5 の表）
         new("無煙火薬", GunpowderId, "無煙火薬", DiscoveryField.Process, 1880),          // ヴィエイユ1884
@@ -666,10 +663,40 @@ public static class Catalog
         return -1;
     }
 
-    /// <summary>鉱床の後期の産地の傾斜（Producer.TechOnset＞0 の RGO＝後期の銀・硫黄の産地だけ）＝onset〜onset+幅1 で 0→1。
-    /// ⚠発見の表の外に残った唯一の時計（鉱床の発見は次の段＝設計 §9-1 の提案③）。0＝無ゲート。</summary>
-    public static double DepositTechScale(double onset, double techLevel)
-        => onset <= 0 ? 1.0 : PoliticalQuantities.Clamp01((techLevel - onset) / DepositTechWidth);
+    /// <summary>★産地の発見の表（段2A の続き・2026-10-01 (148)・設計 §9-1 の提案③＝鉱床の発見も同じ骨組みへ〔2026-09-28 作者が採用した提案・文は AI の整理〕＋(129) の申し送り＝アジアの樹皮は植林の発見で〔AI の推奨〕）＝
+    /// **場所に結びついた発見**＝1783年の地図に無かった産地（大鉱床・植林）。行＝（名前・場所〔州か植民地の名＝ProvinceSpec.City／Colony.Name〕・財・年代・分野）。
+    /// ・その場所の生産者は通常の賦存（Simulation の ResourceEndowment）で作り、**発見まで門0**（<see cref="Discovery.Gate(Region, Producer)"/>＝Producer.SiteFound）。
+    /// ・判定は発見の表と同じ骨組み（<see cref="Discovery.Step"/>）＝点数＝技術力（0〜70・難易度＝年代×Y）＋必要性（0〜70）が一度でも100に届けば開く・失われない。
+    ///   伝わりの項は持たない（他国の発見は自分の土地の鉱床を見つけない＝設計 §9-2 の提案③の読み＝2項・最大の和 140≧100）。
+    /// ・必要性＝人の厚み N÷(N＋N0)×その財の実質の値段÷参照価格（設計 §9-1 の提案③＝適性＝入植者×金の値・2026-09-28 作者が採用した提案＝文は AI の整理）。N0＝植民地の州昇格の人口（ColonyPromotionMinPop＝6万人＝(118) と同じ物差し）。
+    ///   鉱床＝入植者（その国の中核民族の人数＝POP の大きさ×CoreEthnicShare）・植林＝住民（樹を植えて樹皮を剥ぐ働き手）。
+    /// ・データは場所の一次データ（暦年ではない＝思想①②の「データはよい」）。旧＝ProvinceSpec.LateResources（西部の硫黄・銀・北九州の硫黄）＋技術水準の傾斜 DepositTechScale と、
+    ///   年2.5%の抽選の鉱脈の発見（全ての発見が frontierRush＝州の全ての鉱物を5倍＝検討 §10-3 項目10(a)）とシルバーラッシュの枝＝この表の1本へ置き換えた。</summary>
+    public enum SiteKind { Deposit, Plantation }
+    public readonly record struct SiteRow(string Name, string Place, int Good, int Decade, SiteKind Kind);
+    public static readonly SiteRow[] Sites =
+    [
+        // --- 鉱床（入植者×財の値）---
+        new("カリフォルニアの金", "アルタ=カリフォルニア", GoldOreId, 1840, SiteKind.Deposit),   // サッターの製材所 1848
+        new("ヴィクトリアの金", "オーストラリア", GoldOreId, 1850, SiteKind.Deposit),             // バララット・ベンディゴ 1851
+        new("ラントの金", "南アフリカ", GoldOreId, 1880, SiteKind.Deposit),                       // ウィットウォーターズランド 1886
+        new("クロンダイクの金", "フォートユーコン", GoldOreId, 1890, SiteKind.Deposit),           // ボナンザ・クリーク 1896
+        new("コムストックの銀", "西部", SilverId, 1850, SiteKind.Deposit),                         // コムストック 1859（⚠SilverRushEnabled＝0 の間はこの行を置かない＝検討 Q13 (d)）
+        new("ルイジアナの硫黄", "西部", SulfurId, 1890, SiteKind.Deposit),                         // フラッシュ法 1894（旧 LateResources＋SulfurLateDepositOnset）
+        new("九州の硫黄", "北九州", SulfurId, 1880, SiteKind.Deposit),                             // 明治の近代採掘（旧 LateResources＋SulfurLateDepositOnset）
+        // --- 植林（住民×財の値）＝キナの樹はアンデスの外へ種子で運ばれて植えられた ---
+        new("ジャワのキナ", "バタヴィア", CinchonaBarkId, 1850, SiteKind.Plantation),               // ハスカール 1854
+        new("ニルギリのキナ", "マドラス", CinchonaBarkId, 1860, SiteKind.Plantation),               // マーカム 1860〜
+        new("セイロンのキナ", "セイロン", CinchonaBarkId, 1860, SiteKind.Plantation),               // 1860〜70年代（Q11＝中間）
+    ];
+
+    /// <summary>産地の発見の行（場所・財）の添字。無ければ −1＝開始時の賦存（または非産地）。⚠線形の走査＝構築だけが呼ぶ。
+    /// 銀の行は <see cref="Coefficients.SilverRushEnabled"/>＝0 の間は無いものとして扱う（呼び手が読む）。</summary>
+    public static int SiteRowOf(string place, int good)
+    {
+        for (int i = 0; i < Sites.Length; i++) if (Sites[i].Good == good && Sites[i].Place == place) return i;
+        return -1;
+    }
 
     private static double[] ComputeRefPrices()
     {
