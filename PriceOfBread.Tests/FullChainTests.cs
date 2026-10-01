@@ -59,19 +59,21 @@ public class FullChainTests
     }
 
     [Fact]
-    public void 蒸気動力は技術解禁後に石炭需要を工業へ連動させ保存則を保つ()   // 蒸気＝電化と同型の据付動力：未発明期は石炭を焚かない（1789年の時代錯誤を解消）、解禁後は石炭需要が工業基盤に連動
+    public void 蒸気動力は蒸気機関の発見の後に石炭需要を工業へ連動させ保存則を保つ()   // 蒸気＝電化と同型の据付動力：未発見の国は石炭を焚かない（1789年の時代錯誤を解消）、発見の後は石炭需要が工業基盤に連動
     {
-        // 蒸気未解禁（onset を事実上無限大に）：機械化工場は石炭を「動力」として焚かない＝水車/畜力＝1789年の蒸気の時代錯誤がない
+        // 蒸気機関が未発見（★2026-10-01 (150)：工場の蒸気動力の門＝発見の表の「蒸気機関」の行・旧＝技術水準の時計 SteamTechOnset）：機械化工場は石炭を「動力」として焚かない＝水車/畜力
+        //   （単独の世界も四半期末に判定する＝製法の必要性の半分点を無限にして開かない盤面にする）
         var lockedSim = new Simulation(Full(1), new NullAgent());
         lockedSim.World.Coef.EnergyPerOutput = 0.2;
-        lockedSim.World.Coef.SteamTechOnset = 99.0;   // 蒸気機関が永久に未発明
+        lockedSim.World.Discovered[Discovery.SteamRow] = false;   // 蒸気機関が未発見
+        lockedSim.World.Coef.DiscoveryNeedHalfProcess = double.PositiveInfinity;   // 単独の世界の四半期の判定でも開かない（製法の必要性0＝技術力だけでは門に届かない）
         lockedSim.Run(200);
         double lockedCoalDemand = lockedSim.World.Regions[0].Markets[Catalog.CoalId].LastDemand;
 
-        // 蒸気解禁（onset を負値にしてゲートを強制1＝NullAgentで技術が伸びなくても発明済みとして検証）：機械化工場が産出比例で動力(石炭)を焚く＝石炭需要が工業基盤に連動
+        // 蒸気機関を発見済み（技術水準に依らない＝NullAgentで技術が伸びなくても開く）：機械化工場が産出比例で動力(石炭)を焚く＝石炭需要が工業基盤に連動
         var steamSim = new Simulation(Full(1), new NullAgent());
         steamSim.World.Coef.EnergyPerOutput = 0.2;
-        steamSim.World.Coef.SteamTechOnset = -1.0;   // steamGate=clamp((tech+1)/width)=1（技術0でも解禁）＝蒸気機関が発明済み
+        steamSim.World.Discovered[Discovery.SteamRow] = true;   // 蒸気機関を発見済み
         double base0 = steamSim.World.BaseMoney;
         var ex = Record.Exception(() => steamSim.Run(200));
         Assert.Null(ex);   // §11.6（保存・境界）が全ティックで保持

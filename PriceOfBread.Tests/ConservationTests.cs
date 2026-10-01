@@ -806,11 +806,11 @@ public class ConservationTests
         static void Invoke(MultiNationSim sim, string name) => typeof(MultiNationSim).GetMethod(name, System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!.Invoke(sim, null);
         static HashSet<Pop> Labor(IEnumerable<Region> regs) { var s = new HashSet<Pop>(); foreach (var r in regs) foreach (var pr in r.Producers) if (pr.GoodId == Catalog.LaborId && pr.Output > 0) s.Add(r.Pops[pr.LaborPopIndex]); return s; }
 
-        // 港：最初の港の州を混雑させる（律速率0）・技術の門を開く
+        // 港：最初の港の州を混雑させる（律速率0）・近代港湾の門（★(150)＝蒸気機関の発見）を開く
         (World w, Region port, List<Pop> pops, double[] sav, double treas, double cap) Port(double frac)
         {
             var sim = Uk(); var w = sim.Nations[0].World;
-            sim.Coef.PortInvestFrac = frac; sim.Coef.PortTechOnset = 0;
+            sim.Coef.PortInvestFrac = frac; w.Discovered[Discovery.SteamRow] = true;
             var port = w.Regions.Find(r => r.State == RegionState.Active && r.IsPort && r.InvestorPopIndex >= 0)!;
             foreach (var r in w.Regions) r.LastTradeThrottle = 1.0;   // 他の港は混雑していない＝建設は1つの港だけ
             port.LastTradeThrottle = 0; w.FiscalFundingRatio = 1.0;

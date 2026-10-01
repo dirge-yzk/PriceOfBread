@@ -96,18 +96,8 @@ public partial class GameViewModel
             if (!(s >= 0)) s = 0;
             tech.Add((d.Name, s, d.Decade, known ? $"{d.Decade}年代" : $"技術力 {tm.Tech:F0} ／ 必要性 {tm.Need:F0} ／ 伝わり {tm.Transmit:F0}"));
         }
-        // ③ 財に紐づかない世界のゲート（産業の形を変えるが Producer を持たないので①②では出ない）。式は全てエンジンと同一。
-        if (c.RefrigerationEffect > 0 && c.RefrigerationIndSpan > 0)   // 冷蔵＝生鮮の腐敗低減（EconomyStep の在庫腐敗・工業化度が時計）
-            tech.Add(("冷蔵", System.Math.Clamp((maxInd - c.RefrigerationIndOnset) / c.RefrigerationIndSpan, 0, 1), c.RefrigerationIndOnset,
-                      $"最大工業化度 {maxInd:F2}"));
-        if (c.SteamTechWidth > 0)   // 蒸気動力＝工場が石炭を焚けるか（EconomyStep ②の steamGate）
-            tech.Add(("蒸気動力", System.Math.Clamp((w.TechLevel - c.SteamTechOnset) / c.SteamTechWidth, 0, 1), c.SteamTechOnset,
-                      $"技術 {w.TechLevel:F2}"));
-        if (c.RailTechWidth > 0)    // 鉄道輸送＝内陸輸送容量のランプ（Transport の railGate。制度の「鉄道」とは別量）
-            tech.Add(("鉄道輸送", System.Math.Clamp((w.TechLevel - c.RailTechOnset) / c.RailTechWidth, 0, 1), c.RailTechOnset,
-                      $"技術 {w.TechLevel:F2}"));
-        // 近代港湾（MultiNationSim の港料）はエンジン側が閾値の可否＝ランプでない。同じ形（0か1）で見せる。
-        tech.Add(("近代港湾", w.TechLevel >= c.PortTechOnset ? 1.0 : 0.0, c.PortTechOnset, $"技術 {w.TechLevel:F2}"));
+        // ③ 財に紐づかない世界のゲート。★2026-10-01 (150)：蒸気動力・近代港湾（「蒸気機関」の行）・鉄道輸送（「機関車」の行）・冷蔵（「冷蔵」の行）は発見の表の行が開く
+        //   ＝上の発見の表の行そのもの（旧＝技術水準の時計と工業化度の傾斜の4行＝発見と関係なく開いた）＝別の行を出さない。
         // 電信・鉄道・汽船＝報せの速さ（News の距離ラグが読む世界技術のランプ＝TransportRevolutionOnset/Span・AUD-05）。新しい財を足さず同じ量を見せる。
         if (c.TransportRevolutionSpan > 0)
         {

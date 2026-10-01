@@ -401,7 +401,8 @@ public static class EconomyStep
         // 在庫の腐敗・劣化（保管期間に応じた減衰）：穀物・生鮮は速く、金属・燃料は遅い。だぶつきの恒久滞留を防ぐ。
         // PrevStock 確定前に適用＝期内の財収支（在庫＝前在庫＋生産＋輸入−販売−輸出）は保たれる（腐敗は期の起点に織り込み）。
         // 冷蔵の時代動学（B-2）：工業化が進むと生鮮（肉・魚・乳・果実）の腐敗が下がる＝1870s冷凍肉貿易革命。工業国ほど効く。
-        double refrigeration = coef.RefrigerationEffect > 0
+        // ★冷蔵の門＝発見の表の「冷蔵」の行（2026-10-01 (150)・旧＝工業化度の傾斜だけ＝発見と関係なく開いた）。効きの大きさは立っている設備の規模の傾斜のまま。
+        double refrigeration = coef.RefrigerationEffect > 0 && Discovery.Refrigeration(region.Discovered)
             ? PoliticalQuantities.Clamp01((region.TotalIndustrialization - coef.RefrigerationIndOnset) / coef.RefrigerationIndSpan) : 0;   // 冷蔵チェーンは立っている設備の規模＝新旧合計（ヴィンテージ2026-07-10）
         foreach (var good in region.Goods)
             if (good.Spoilage > 0)
@@ -716,7 +717,7 @@ public static class EconomyStep
         double stateConstruction = 0;   // プレイヤーの手動建設（国庫負担で同じ束を買う）
         double factoryBuildUnits = 0;   // プレイヤーの工場建設（特定財）が今月消費する建設の束（材料・国庫負担。工賃はStepConstruction）
         double conLaborUnits = 0;        // 経5：資本家建設の工賃を労働力財として立てた需要量（工賃予算/労働価格・配給前）。ConstructionLaborViaMarket=1.0（点火2026-07-28）の決済でこの量×ration を市場支払い。0なら直接加算の旧経路
-        double railCoalGate = 0;         // 運用コスト監査2026-08-16 #2：鉄道の運行石炭の蒸気ゲート（RailCoalRate>0のときのみ>0＝決済側と需要側で同値を共有）。★2026-08-29点火＝既定0.22（0なら1命令も足さない）
+        double railCoalGate = 0;         // 運用コスト監査2026-08-16 #2：鉄道の運行石炭の門＝機関車の発見（(150)・RailCoalRate>0のときのみ>0＝決済側と需要側で同値を共有）。★2026-08-29点火＝既定0.22（0なら1命令も足さない）
         double airFuelNeed = 0, airFuelWant = 0, motorFuelWant = 0;   // 運用コスト監査2026-08-16 #4：空軍・輜重の燃料（原油）。need=afford前の必要量（充足率の分母）・want=発注量（決済はこの量×ration＝militaryDemandの他の書き手と混ざらない）
         double stateConLaborUnits = 0;   // 経5：国家建設ぶんの同・労働需要量（国庫負担）
         // 経17：資本家建設束のうち先月から繰越した資材（律速で使い残した非律速成分）を今月適用した量（good.Id添字）。決済で built の計算に足し戻す。ConstructionMaterialCarryover=1.0（点火2026-08-01）。0なら確保せず null＝繰越適用0で旧恒等
@@ -873,11 +874,12 @@ public static class EconomyStep
                 maintCostPerUnit += coef.MaintAdvLaborRate * Math.Max(region.Markets[Catalog.AdvLaborId].Price, Eps)
                                    + coef.MaintLaborRate * Math.Max(region.Markets[Catalog.LaborId].Price, Eps);   // 経18：運行要員の係数化（既定0.4/0.3＝旧直書きと同値・中立）
             // 運用コスト監査2026-08-16 #2（鉄道の運行石炭）：火夫（MaintLaborRate）は雇うのに石炭を買っていない自己矛盾の是正。
-            // 蒸気ゲート＝下段②の steamGate と同式（鉄道が蒸気化した分だけ焚く＝年号は読まない）。投資予算の律速にも同項＝上の運行要員費と同じ作法。
+            // ★機関車の門＝発見の表の「機関車」の行（2026-10-01 (150)・鉄道輸送の門と同じ1本＝Transport の容量・清算の陸路の費用）＝機関車を見つけた国の鉄道だけが石炭を焚く（年号は読まない）。
+            //   旧＝蒸気の時計の傾斜 SteamGate(TechLevel)。投資予算の律速にも同項＝上の運行要員費と同じ作法。
             // RailCoalRate=0 なら railCoalGate=0＝需要側・決済側とも1命令も足さない（★2026-08-29点火＝既定0.22）。導出は係数コメント（Coefficients.RailCoalRate）。
             if (coef.RailCoalRate > 0 && railLoco && Catalog.CoalId < ng)
             {
-                railCoalGate = coef.SteamGate(region.TechLevel);   // 蒸気の門の1本（段4e K・NaN は0＝蒸気以前へ）
+                railCoalGate = Discovery.RailTransport(region.Discovered) ? 1.0 : 0.0;   // 機関車の発見（2値）
                 maintCostPerUnit += coef.RailCoalRate * railCoalGate * Math.Max(region.Markets[Catalog.CoalId].Price, Eps);
             }
             double maintBudget = Math.Max(0, budget - construction * buildCostPerUnit);
@@ -1168,9 +1170,9 @@ public static class EconomyStep
         // === ② 工場の投入需要 ＋ 財ごとの生産者数。電化の意思決定もここ ===
         bool elecOn = Catalog.ElectricityId < ng && isService.Length > Catalog.ElectricityId;   // 電力を持つ世界か（小シナリオは対象外）
         bool energyOn = coef.EnergyPerOutput > 0 && Catalog.CoalId < ng;   // #9 石炭動力を持つ世界か（石炭good非搭載の最小テスト経済では inputNeed[CoalId] が範囲外になるので必須ガード＝電化の elecOn と同型）
-        double steamGate = energyOn ? coef.SteamGate(region.TechLevel) : 0.0;   // 蒸気機関の発明・普及度（電化の電力の財の解禁と同役・⚠技術水準の傾斜のまま＝発見の表へ移すのは次の段）。0=未発明＝石炭を焚かない（1789年の蒸気の時代錯誤を解消）
+        bool steamOn = energyOn && Discovery.SteamPower(region.Discovered);   // ★蒸気動力の門＝発見の表の「蒸気機関」の行（2026-10-01 (150)・旧＝技術水準の時計 SteamGate(TechLevel)＝発見と関係なく開いた）。未発見＝石炭を焚かない（水車・畜力）＝作者 2026-09-30「労働を代替する発明は、安い人件費の国では必要とされない、という認識でよい」を工場の動力でも（AI の読み）
         var elecNeed = scratch.ElecNeed;
-        var steamNeed = scratch.SteamNeed;  // 蒸気動力化した工場の石炭（燃料）購入量。電化分は電力が代替（(1−ElecFill)）。energyOn かつ steamGate>0 でのみ立つ（旧：全機械化工場が無条件で焚いていた＝時代錯誤を是正）
+        var steamNeed = scratch.SteamNeed;  // 蒸気動力化した工場の石炭（燃料）購入量。電化分は電力が代替（(1−ElecFill)）。蒸気機関を発見した国（steamOn）でのみ立つ（旧：全機械化工場が無条件で焚いていた＝時代錯誤を是正）
         var effNeed = scratch.EffNeed;      // RGO効率化材の購入量
         var effChosen = scratch.EffChosen;  // 今期その産者が選んだ効率化材の good.Id（候補から最安を選択。-1＝買わない）
         for (int i = 0; i < np; i++) effChosen[i] = -1;
@@ -1201,10 +1203,10 @@ public static class EconomyStep
                 && goodGate[Catalog.ElectricityId] > 0   // 電力が未発見なら電化しない（序盤の電力需要を断つ）＝電力の財の解禁（石炭火力・水力・蒸気タービン・石油火力のどれか）
                 && coef.ElecBoost * region.Markets[s.GoodId].Price > coef.ElecPerOutput * region.Markets[Catalog.ElectricityId].Price)
                 elecNeed[pi] = s.Output * coef.ElecPerOutput;
-            // 蒸気動力の意思決定（電化と完全に同型）：原動機(蒸気機関)が発明され(steamGate>0)、稼働率↑の価値が石炭代を上回るなら焚く＝
+            // 蒸気動力の意思決定（電化と完全に同型）：原動機(蒸気機関)が発見され(steamOn)、稼働率↑の価値が石炭代を上回るなら焚く＝
             // 高価格財の工場から蒸気化が始まり、石炭が安いほど裾野へ広がる。電化分(ElecFill)は電力が蒸気を代替＝石炭需要が減る（市場的な燃料転換が創発）。
-            // 1789年は steamGate=0 で石炭を焚かない＝水車/畜力（無ブースト）＝蒸気の普及が技術と価格から創発（暦年クランプなし）。EnergyPerOutput=0で無効。
-            if (energyOn && steamGate > 0 && s.BuysLabor && s.GoodId != Catalog.CoalId && s.GoodId != Catalog.ElectricityId
+            // 蒸気機関を発見していない国は石炭を焚かない＝水車/畜力（無ブースト）＝蒸気の普及は発見（人件費の高さ）と石炭の値段から創発（暦年クランプなし）。EnergyPerOutput=0で無効。
+            if (steamOn && s.BuysLabor && s.GoodId != Catalog.CoalId && s.GoodId != Catalog.ElectricityId
                 && coef.SteamBoost * region.Markets[s.GoodId].Price > coef.EnergyPerOutput * region.Markets[Catalog.CoalId].Price)
                 steamNeed[pi] = s.Output * coef.EnergyPerOutput * Math.Max(0, 1.0 - s.ElecFill);
             // RGO効率化の意思決定（電化のRGO版）：候補のうち profit-gate を通る**最安**を選ぶ（市場が安い増強材を採る＝並存レシピと同思想）。
@@ -1256,7 +1258,7 @@ public static class EconomyStep
             foreach (var inp in s.Inputs)
                 inputTrickle[inp.GoodId] += Math.Max(0, coef.ReignitionDemandFrac * s.DesiredOutput - s.Output) * EffectiveQty(s, region, inp, coef) * fill;
         }
-        // 蒸気動力（石炭）需要を加算（電化分は上で電力に置換済み＝石炭需要が自然に減る）。energyOn かつ steamGate>0 でのみ非ゼロ＝従来/最小経済/未発明期は無効。
+        // 蒸気動力（石炭）需要を加算（電化分は上で電力に置換済み＝石炭需要が自然に減る）。steamOn でのみ非ゼロ＝従来/最小経済/未発見の国は無効。
         if (energyOn)
             for (int pi = 0; pi < np; pi++) inputNeed[Catalog.CoalId] += steamNeed[pi];
         // 送電容量で頭打ち：容量を超える電力は工場に届かない＝電化には送電網への投資が要る（§拡張・地域内インフラ）。

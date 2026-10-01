@@ -540,17 +540,14 @@ public sealed class Coefficients
     public double GridBuildRate = 0.1;           // 送電容量の不足分を月に何割ずつ敷設するか（投資家の残予算の範囲で）
     public double FillInertia = 0.25;            // 電化率(ElecFill)・効率化率(EffFill)が目標へ寄る月次速度（設備の慣性＝ゆっくり進み剥がれる）。旧・EconomyStep直書き0.25×2を集約（sweep対象化・DRY）
     public double ElecFillIrreversibility = 1.0; // **1.0点火済み（稼働中）**（第2段2-8是正2026-07-27：旧注記「#17で有効化検討」は点火後も残った嘘）。監査2026-07-05（E4）：電化の不可逆性＝設備ロックイン。0=無効（採算で毎期進退）・1で電化率は下がらない（投資済み発電設備は石炭安でも剥がさない＝史実の電化一方通行）。中間は下落速度を(1−これ)倍に減速。緩和は裁定待ち（史実では電化はほぼ不可逆＝現状も擁護可）
-    // 蒸気動力（電化と完全に同型＝据付資本財）：原動機(蒸気機関)の発明後(SteamScale>0)、採算が合えば工場が石炭を焚いて稼働率↑（SteamBoost）。
-    // 1789年は水車/畜力＝無ブースト・石炭を焚かない。蒸気の普及（≈1820s〜）は技術水準と石炭価格から創発（暦年ゲートなし）。電化が安くなると電力が蒸気を代替（(1−ElecFill)）。
+    // 蒸気動力（電化と完全に同型＝据付資本財）：原動機(蒸気機関)の発見後（発見の表の「蒸気機関」の行＝Discovery.SteamPower）、採算が合えば工場が石炭を焚いて稼働率↑（SteamBoost）。
+    // 未発見の国は水車/畜力＝無ブースト・石炭を焚かない。蒸気の普及は発見（人件費の高さ）と石炭価格から創発（暦年ゲートなし）。電化が安くなると電力が蒸気を代替（(1−ElecFill)）。
     // 石炭需要は蒸気を採った工場にのみ立つ＝石炭価格＝工業活動の体温計（より忠実）／石炭ショックが費用→マージン→規模で蒸気産業に波及。EnergyPerOutput=0 or 石炭good非搭載で無効（較正中立）。
     public double EnergyPerOutput = 0.05;        // 蒸気動力化した工場の産出1単位あたりの石炭（燃料）消費。energyOnガード(石炭good搭載時のみ)で安全。0=従来(中立)
     public double SteamBoost = 0.3;              // 完全蒸気動力時の能力上乗せ（蒸気機関＝水車/畜力を超える出力。電化のElecBoostと対称）。買えた石炭の割合(SteamFill)に比例
-    public double SteamTechOnset = 0.25;         // 蒸気機関が動力として採用可能になる技術水準（≈工業化開始 IndustrializedTechThreshold と同水準＝産業革命の動力転換）。これ未満は水車/畜力のみ＝石炭を焚かない
-    public double SteamTechWidth = 0.5;          // onset から full 解禁までの技術幅（蒸気の普及帯。電化のAdvancedTechWidthと同役）
-    /// <summary>★蒸気の門∈[0,1]＝技術 <paramref name="tech"/> が蒸気の普及帯（SteamTechOnset〜＋SteamTechWidth）のどこにいるか（2026-09-30 処理の一元化 段4e K）。
-    /// 読み手＝鉄道の石炭（EconomyStep）・電化の蒸気（EconomyStep）・海軍の運用燃料（Military.NavalFuelStep）＝旧は同じ式を3か所で手書き（海軍だけ幅の0除算の守りが無かった）。
-    /// ⚠NaN は Clamp01 が0＝蒸気以前へ。</summary>
-    public double SteamGate(double tech) => PoliticalQuantities.Clamp01((tech - SteamTechOnset) / System.Math.Max(1e-9, SteamTechWidth));
+    // 【削除2026-10-01 (150)】SteamTechOnset（0.25）・SteamTechWidth（0.5）・SteamGate(tech)＝蒸気の門の技術水準の時計（工場の蒸気動力・鉄道の石炭・艦隊の燃料）
+    //   ＝発見の表へ移した（工場の蒸気動力と近代港湾＝「蒸気機関」の行・鉄道の石炭＝「機関車」の行・艦隊の燃料＝汽船の財の解禁＝Discovery の世界のゲート）。
+    //   旧＝発見と関係なく技術水準が 0.25 を越えれば工場が石炭を焚いた（人件費の安い国でも）。
     // --- 女性・子供（構成属性。POP分割はしない）---
     public double FemalePartBase = 0.4;          // 女性の労働参加率の基礎（紡績女工・農婦・家事奉公＝19世紀の現実）。賃金保持(財産権)なしの構造的参加率
     public double FemalePartProperty = 0.7;      // 女性財産権法の下での参加率（自分の賃金を持てる＝働く誘因。労働供給+2割）
@@ -1269,11 +1266,8 @@ public sealed class Coefficients
                                                    //   ⚠経済規模 16.3→26.3（+10.0）／列強再現率 18.8→27.5（+8.8）／政体exact 43.3→46.2／法 56.8→59.7／◎16→17。
                                                    //   ⚠記録＝領土植民地 35.0→30.0（−5.0）／人口 15.7→14.3。要注意フラグはモンゴル最下位6/10（既知の慢性観察）。差し戻し口＝この値を0へ。
     public double TransportBaseline = 50.0;         // 前鉄道の基礎輸送（道路/河川＝低容量で高コスト）。鉄道前は州が世界市場と細々としか繋がらず地域価格が割れる→鉄道（容量≈人口×0.08）で統合され収束
-    public double RailTechOnset = 0.35;             // 鉄道（内陸輸送）の技術解禁。工業化判定閾値(IndustrializedTechThreshold0.25)の一段上＝工業化に入った国から鉄道を積める。旧1.0は採用上限(AdoptionCeiling0.5)/後追い天井(×CatchupFraction0.7)と不整合で後発国・単一国が永久に解禁できなかった（Wave1-B監査）。船(帆船)は古来あり据え置き
-    public double RailTechWidth = 0.5;             // 解禁の幅：onset(0.35)〜onset+width(0.85)で鉄道容量上限が0→満額へ。先端国は満額・工業化途上国も部分的に鉄道を持てる（普及の漸進）
-    /// <summary>★鉄道の門∈[0,1]＝技術 <paramref name="tech"/> が鉄道の解禁帯（RailTechOnset〜＋RailTechWidth）のどこにいるか（2026-09-30 処理の一元化 段4e K）。
-    /// 読み手＝鉄道の容量の目標（Transport）・清算の陸路の費用（BilateralMarket）＝旧は同じ式を2か所で手書き。⚠NaN は Clamp01 が0。</summary>
-    public double RailGate(double tech) => PoliticalQuantities.Clamp01((tech - RailTechOnset) / System.Math.Max(1e-9, RailTechWidth));
+    // 【削除2026-10-01 (150)】RailTechOnset（0.35）・RailTechWidth（0.5）・RailGate(tech)＝鉄道の門の技術水準の時計（鉄道の容量の目標・清算の陸路の費用）
+    //   ＝発見の表の「機関車」の行へ移した（Discovery.RailTransport＝2値・敷設の速さは容量を買う予算と財＝市場）。
     public int[] ShipGoodIds = [Catalog.SailingShipId, Catalog.SteamshipId];            // 帆船(tier1)・汽船(tier2)。★2026-09-26（回4-3）：Transport が州ごとに容量あたりの総費用（船価＋汽船は寿命の間の燃料）の安い1財だけを買う
     public int ShipTier2GoodId = Catalog.SteamshipId;                // 汽船＝tier2輸送船（蒸気船）。蒸気機関を要する＝供給チェーンで自然に技術ゲート
     public double ShipTier2CapMult = 2.5;           // tier2輸送船は1単位あたり容量が大（蒸気船は帆船より高速・大容量＝海運の革命）。★2026-09-27（回4-3 の再挑戦）：これは運賃革命のランプの手前（1830年代・外輪と単式機関）の値。
@@ -1552,7 +1546,7 @@ public sealed class Coefficients
     public double PortStateFrac = 0.5;         // 国家が港建設に投じる割合＝行政費予算の一部（国家プロジェクト＝資本家より大きな出し手）
     public double PortBuildCostPerUnit = 40.0; // 港容量1単位の建設費（資本/国庫→自州popへ還流＝保存）
     public double PortDecay = 0.008;           // 港湾の四半期減耗（維持に再投資が要る＝持続需要）
-    public double PortTechOnset = 0.2;         // 近代港湾（蒸気埠頭・浚渫）の技術ゲート（帆船港は古来ありなので低め）
+    // 【削除2026-10-01 (150)】PortTechOnset（0.2）＝近代港湾（蒸気埠頭・浚渫）の技術水準の閾値＝発見の表の「蒸気機関」の行へ移した（Discovery.SteamPower）。
     public double PortCapToThroughput = 1.0;   // 港容量1あたり、その港州の実効海運への加法的上乗せ（港の大きさ＝交易の口の太さ）
     public double PortFeeRate = 0.01;          // 港湾料率＝海路の成約の額×これを港の1端ごとに港所有者(地元投資家)へ（商人仲介料とは別＝施設使用料）。★2026-09-30（段3-4・C10）：成約の時点で輸入の捌き手（荷主）が払う単価の上乗せ（旧＝四半期末に国の全POP から貯蓄の比で）
     public double PortCongestionTarget = 0.9;  // この律速率(LastTradeThrottle)未満＝港/船腹が交易を絞っている＝拡張の採算が立つ（混雑ゲート）
@@ -3461,15 +3455,15 @@ public sealed class Coefficients
     // ==== 運用コスト監査 2026-08-16（燃料系＝「金は払うが物資を消費しない運用」の物資化。#1海軍燃料のみ休眠・#2#4は点火済み・#3汽船燃料は2026-09-27 に点火）====
     // 対象4本＝#1海軍の運用燃料／#2鉄道の運行石炭／#3汽船（民間海運）の運行燃料／#4空軍・輜重の燃料。
     // 保留（被服・港湾資材・巨大建造物維持・医薬品戦時段・馬飼料）＝docs/202608/20260816_運用コスト監査と燃料実装_部分完了.md に記録。
-    // ⚠時代の表現は蒸気ゲート（SteamTechOnset）・供給実在ガード（原油）・EraFactor のみ＝年号・経過年は読まない（恒久指示）。
-    public double NavalFuelPerGauge = 0.0;      // #1 海軍の運用燃料：石炭需要/月 = これ×FleetGauge×NavyUpkeep×蒸気ゲート×EraFactor(EraNavalFuel)。石炭→重油の二択と支払い経路は植民地補給線（Colonial.BuyUpkeepGood/ChooseFuelGood）と同一＝台帳は TreasuryCat.Navy（現在書き手ゼロの枠）。
+    // ⚠時代の表現は発見の門（汽船・機関車＝(150)・旧＝蒸気の時計 SteamTechOnset）・供給実在ガード（原油）・EraFactor のみ＝年号・経過年は読まない（恒久指示）。
+    public double NavalFuelPerGauge = 0.0;      // #1 海軍の運用燃料：石炭需要/月 = これ×FleetGauge×NavyUpkeep×汽船の門（(150)・旧＝蒸気ゲート）×EraFactor(EraNavalFuel)。石炭→重油の二択と支払い経路は植民地補給線（Colonial.BuyUpkeepGood/ChooseFuelGood）と同一＝台帳は TreasuryCat.Navy（現在書き手ゼロの枠）。
     //   点火目標の導出（目盛りの錨＝ColonyUpkeepCoalPerDist=400＝植民地1つ・1万kmの汽船補給線の月次石炭・既較正）：
     //   英1914≈植民地30・平均1.2万km→補給線石炭≈400×30×1.2≈14,400/月。艦隊の運用炊き（哨戒・演習）は史実で商船隊の1〜2割の石炭消費
     //   →目標≈2,000〜4,000/月。点火時は fidelity 走行で英1914の FleetGauge×NavyUpkeep を実測し NavalFuelPerGauge=目標石炭/(FleetGauge×NavyUpkeep) で逆算＝Search再較正ラウンドと同席。
     public double NavalFuelSortieFloor = 0.4;   // #1 燃料切れ艦隊の出撃能力の下限（港湾・沿岸防衛は残る）。NavalFuelPerGauge>0のときのみ読む。⚠形を緩くする理由＝NavalPowerFromFleet の急峻min は2026-08-01に硬性ゲート赤で一度差し戻された経路＝燃料は fill線形×下限フロアの緩い乗数にする
     public double NavalFuelFillSmoothing = 0.25; // #1 燃料充足EMAの月次平滑（艦隊は数ヶ月分の炭庫を持つ＝月次の品切れで即座に港へ縛り付けない）。NavalFuelPerGauge>0のときのみ読み書き
     public double EraNavalFuel = 0.0;           // #1 艦隊燃費の時代改善（複式→三段膨張→タービン）＝⚠負を入れる（EraColonyCoal と同旨・距離あたり費用が下がる）。既定0でEraFactor=1.0＝恒等
-    public double RailCoalRate = 0.22;          // ★点火2026-08-29（夜間R18燃料クラスタA/B batch30＝破綻0・列強+2.9。⚠損失financing 1/30=seed3トスカーナを記録＝広がるなら0.15へ）。導出＝0.25×(0.4×高度労働0.8+0.3×労働0.5)/石炭0.54。#2 鉄道の運行石炭：インフラ保守1単位あたりの石炭消費（×蒸気ゲート）。火夫（MaintLaborRate=0.3）は雇うのに石炭を買っていない自己矛盾の是正。
+    public double RailCoalRate = 0.22;          // ★点火2026-08-29（夜間R18燃料クラスタA/B batch30＝破綻0・列強+2.9。⚠損失financing 1/30=seed3トスカーナを記録＝広がるなら0.15へ）。導出＝0.25×(0.4×高度労働0.8+0.3×労働0.5)/石炭0.54。#2 鉄道の運行石炭：インフラ保守1単位あたりの石炭消費（×機関車の発見の門＝(150)・旧＝蒸気ゲート）。火夫（MaintLaborRate=0.3）は雇うのに石炭を買っていない自己矛盾の是正。
     //   点火目標の導出：19世紀鉄道の営業費構成＝人件費≈50%・燃料≈10〜15%→石炭費≈運行要員費（MaintAdvLaborRate 0.4×高度労働価格＋MaintLaborRate 0.3×労働価格）の約1/4
     //   → RailCoalRate ≈ 0.25×(0.4×AdvLabor参照価格+0.3×Labor参照価格)/石炭参照価格 を初期値に Search で再較正。投資予算の律速（maintCostPerUnit）にも同項を載せる＝InvestBudgetIncludesAllInputs と同じ作法
     public double ShipFuelRate = 0.0016;        // ★点火2026-09-27（回4-3 の再挑戦）。#3 汽船（民間海運）の運行燃料：石炭需要/月 = これ×era×ShipCapacity×汽船の割合（World.ShipSteamShareEma＝容量の在庫に占める汽船）。

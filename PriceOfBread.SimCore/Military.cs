@@ -247,14 +247,14 @@ public static class Military
     /// <see cref="Colonial.BuyUpkeepGood"/> 経路＝需要計上・在庫律速・国庫上限・移し方の1本〔World.Transfer〕で保存・台帳は TreasuryCat.Navy）。
     /// 需要式＝NavalFuelPerGauge×FleetGauge×NavyUpkeep×蒸気ゲート×EraFactor（帆走時代は燃料ゼロ・NavyUpkeep=係船か常時哨戒か）。
     /// 充足はEMA（World.NavalFuelFillEma）→ Diplomacy の同期が Power.NavalFuelMul（下限フロア付き線形）へ写し
-    /// NavalPower の min に緩く噛む（燃料が切れた艦隊は港から出られない）。⚠年号・年代は読まない（蒸気ゲート＝SteamTechOnset のみ）。
+    /// NavalPower の min に緩く噛む（燃料が切れた艦隊は港から出られない）。⚠年号・年代は読まない（汽船の門＝商船と同じ汽船の財の解禁＝発見の表・(150)）。
     /// ⚠既定 NavalFuelPerGauge=0 では1命令も走らない（EMA の読み書きもしない）＝厳密恒等。</summary>
     public static void NavalFuelStep(World w, Coefficients c)
     {
         if (!(c.NavalFuelPerGauge > 0)) return;   // 否定形＝NaN係数も不走行側へ
         var r = w.Region;
         double gauge = w.SelfPower?.FleetGauge ?? 0;   // 単一国較正（SelfPowerなし）・艦隊駆動OFFでは0＝燃料需要なし（fill=1.0側）
-        double steamGate = c.SteamGate(w.TechLevel);   // 蒸気の門の1本（EconomyStep と同じ・段4e K＝帆走艦隊は焚かない）（NaN は Clamp01 が0＝帆走側へ）
+        double steamGate = Discovery.GoodGate(r, c.ShipTier2GoodId);   // ★汽船の門＝商船（Transport）と同じ汽船の財の解禁（2026-10-01 (150)・旧＝蒸気の時計 SteamGate(TechLevel)）＝帆走艦隊は焚かない（NaN は0＝帆走側へ）
         double coalWant = c.NavalFuelPerGauge * gauge * PoliticalQuantities.Clamp01(w.NavyUpkeep) * steamGate * c.EraFactor(w.WorldTechLevel, c.EraNavalFuel);
         double fill = 1.0;   // 需要ゼロ（帆走・係船・艦隊なし）＝燃料は制約でない
         if (coalWant > 1e-9 && r.State == RegionState.Active && Catalog.CoalId < r.Markets.Length)

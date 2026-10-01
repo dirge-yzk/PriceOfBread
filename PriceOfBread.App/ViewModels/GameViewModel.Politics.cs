@@ -689,8 +689,7 @@ public partial class GameViewModel
             if (c.NavalFuelPerGauge > 0)
             {
                 double gauge = _player.SelfPower?.FleetGauge ?? 0;
-                double steamGate = Math.Clamp((_player.TechLevel - c.SteamTechOnset) / c.SteamTechWidth, 0.0, 1.0);
-                if (!(steamGate >= 0 && steamGate <= 1)) steamGate = 0;
+                double steamGate = Discovery.GoodGate(_player.Region, c.ShipTier2GoodId);   // 汽船の門＝Military.NavalFuelStep と同じ1本（(150)）
                 double coalWant = c.NavalFuelPerGauge * gauge * Math.Clamp(_player.NavyUpkeep, 0, 1) * steamGate * c.EraFactor(_player.WorldTechLevel, c.EraNavalFuel);
                 if (coalWant > Eps)
                 {

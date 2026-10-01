@@ -322,6 +322,10 @@ public class WriterRatchetTests
     //   建設 8,200→7,066（−13.8%＝最初の40四半期の工事の軌道＝陸海の分け方が変わり軍需の買い方が変わった）。ほかの14本は許しの内。全長の10種の推定は実装ログ (151)。
     //   ＋新しい計数1本の宣言＝「外交：脅威の届き方（脅威を持つ国×国）」＝脅威の緊張が組ごとに届き方（同盟・従属の照会・投射・有理飽和）を引く＝40四半期で 85,034 件
     //   （単価 0.535µs＝(151) の実測・全長は実装ログ (151)＝推定 0.93 秒〔全長の .cost＝1,729,079件×0.535µs〕＝目標より下の余りの中＝払う必要が無い〔全長の推定 239.9→236.0 秒〕＝(154) で注記の数を .cost に合わせた）。国境の表（1回 0.046ms・1試合 約0.1 秒）は単価に含めない小さい分。
+    // ★2026-10-01 表の更新（(150) 世界のゲートを発見の表へ＝工場の蒸気動力と近代港湾＝「蒸気機関」の行・鉄道輸送と運行の石炭＝「機関車」の行・冷蔵＝「冷蔵」の行（旧＝技術水準の時計と工業化度の傾斜）＝軌道が動いた分の宣言・新しい計数の処理は無い）：
+    //   建設 8,200→7,140（−12.9%＝10% を超えて下がった＝表を下げる）・清算の着値の充填 27,954,050→28,778,490（+2.9%）・覇権の判定 3,148,264→3,215,273（+2.1%）＝最初の40四半期の軌道
+    //   （蒸気機関を開幕で知る国の工場が1784年から石炭を焚く・鉄道は機関車の発見まで積まない）。全長の10種では建設 349,164→322,834（−7.5%）・着値の充填 400,156,280→345,866,018（−13.6%）・
+    //   覇権の判定 198,453,344→193,798,917（−2.3%）＝どれも下がった＝払う必要が無い（全長の推定 239.9→233.1 秒・実装ログ (150)）。ほかの14本は許しの内。
     [InlineData(CostLedger.PriceGoods, 14149727L)]
     [InlineData(CostLedger.PriceDailyRuns, 25283828L)]
     [InlineData(CostLedger.ConstructionSeen, 7066L)]
@@ -331,7 +335,7 @@ public class WriterRatchetTests
     [InlineData(CostLedger.ClaimProducers, 2586L)]
     [InlineData(CostLedger.MonthlyPops, 706680L)]
     [InlineData(CostLedger.ClearingRows, 5185642L)]
-    [InlineData(CostLedger.ClearingFills, 27954050L)]
+    [InlineData(CostLedger.ClearingFills, 28778490L)]
     [InlineData(CostLedger.DiploPowerMonths, 9954L)]
     [InlineData(CostLedger.DiploHegemonScans, 1864716L)]
     [InlineData(CostLedger.QuarterStartPops, 235560L)]

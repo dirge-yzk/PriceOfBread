@@ -62,6 +62,20 @@ public static class Discovery
 
     public static bool Known(bool[]? known, int row) => row >= 0 && known is not null && row < known.Length && known[row];
 
+    /// <summary>★世界のゲート（2026-10-01 (150)・設計 §0-A の 5 の残り）＝財に紐づかない産業の門（工場の蒸気動力・鉄道・近代港湾・冷蔵）も発見の表の行で開く
+    /// （旧＝技術水準の時計〔SteamTechOnset 0.25・RailTechOnset 0.35・PortTechOnset 0.2〕と工業化度の傾斜＝発見と関係なく開いた）。新しい行は置かない＝同じ技術の行を読む（推奨で進めた）。
+    /// ・蒸気動力（工場が石炭を焚く・近代港湾＝蒸気の浚渫と埠頭）＝「蒸気機関」の行＝労働を代替する発明（必要性＝人件費の世界比）
+    ///   ＝作者 2026-09-30「中国では人と生糸が余っているので、紡績機は導入されない、という形にしたい。なので、それでよい」「労働を代替する発明は、安い人件費の国では必要とされない、という認識でよい」が工場の動力の主な経路で成り立つ。
+    /// ・鉄道輸送（内陸の輸送の容量・陸路の費用・機関車の運行の石炭）＝「機関車」の行。
+    /// ・冷蔵（生鮮の腐敗の低減）＝「冷蔵」の行（効きの大きさは立っている設備の規模＝旧の傾斜のまま）。
+    /// ・艦隊の運用燃料（休眠）は商船と同じ汽船の財の解禁（<see cref="GoodGate"/>）。2値＝普及のなめらかさは市場（投資で容量や工場が建つ速さ・石炭の値段）だけが持つ（設計 §1A-2）。</summary>
+    public static readonly int SteamRow = Catalog.DiscoveryRowOf(Catalog.LaborId, "蒸気機関");
+    public static readonly int LocomotiveRow = Catalog.DiscoveryRowOf(Catalog.LocomotiveId, "");
+    public static readonly int ReeferRow = Catalog.DiscoveryRowOf(Catalog.RefrigeratorId, "");
+    public static bool SteamPower(bool[]? known) => Known(known, SteamRow);
+    public static bool RailTransport(bool[]? known) => Known(known, LocomotiveRow);
+    public static bool Refrigeration(bool[]? known) => Known(known, ReeferRow);
+
     /// <summary>ある州のある生産者（レシピ）の門∈{0,1}＝能力・未発明の判定・操業規模0・着工の可否・生産タブの灰色化が全てこの1本を読む
     /// （画面とエンジンで「作れるか」の定義が食い違わない）。表に無いレシピ（地理差）は常に1・退場のレシピは後継を発見したら0。
     /// ★産地の発見（(148)・<see cref="Catalog.Sites"/>）の生産者は、見つかるまで0（<see cref="Producer.SiteFound"/>＝国の解禁の配列ではなく生産者の2値＝州と一緒に移る）。

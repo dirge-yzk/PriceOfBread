@@ -225,7 +225,8 @@ public sealed partial class InternationalMarket
         //   組の項目への書き込みは無い（List では書けない）＝読む値は同じ。
         var tr = trList.ToArray();
         // ★(3) 地形の陸路コスト係数（設計doc 20260826_地形と輸送コスト.DONE.md）＝州ごとに1回だけ算出。
-        //   実効係数＝馬と鉄道の**railGate ブレンド**（既存の技術連続ゲート＝新しい時計を作らない）。
+        //   実効係数＝馬と鉄道の**railGate ブレンド**。★2026-10-01 (150)：railGate＝鉄道輸送の門＝発見の表の「機関車」の行（2値・Transport の容量と同じ1本）
+        //   ＝旧＝技術水準の時計の傾斜 RailGate(TechLevel)（発見と関係なく開いた）。
         //   水路タグは >0 のとき陸脚コストをその値へ**置換**（川が道の代わり＝内陸なのに港に近い扱い）。
         //   表が全1.0・水運0なら terrCost は恒等的に1.0（旗 TerrainCostEnabled は 2026-09-26 に焼き込み＝表は常に効く）。
         var terrCost = new double[tc];
@@ -233,7 +234,7 @@ public sealed partial class InternationalMarket
         for (int t0 = 0; t0 < tc; t0++)
         {
             var W0 = nations[tr[t0].nation].World;
-            double rg0 = c.RailGate(W0.TechLevel);   // 鉄道の門の1本（段4e K）
+            double rg0 = Discovery.RailTransport(W0.Discovered) ? 1.0 : 0.0;   // 鉄道の門の1本＝機関車の発見
             landRatio[t0] = c.LandSeaCostRatio * (1.0 - rg0 * (1.0 - PoliticalQuantities.Clamp01(c.RailCostFraction)));
             double rg = rg0;
             int ti = (int)tr[t0].r.Terrain;

@@ -53,10 +53,11 @@ public class FuelOperatingCostTests
     [Fact]
     public void 海軍燃料ON_艦隊が石炭を焚き国庫Navyに記帳される()
     {
-        var coef = new Coefficients { NavalFuelPerGauge = 5.0, SteamTechOnset = -1.0 };   // 蒸気ゲート全開（序盤の技術でも焚ける＝テスト専用）
+        var coef = new Coefficients { NavalFuelPerGauge = 5.0 };
         var sim = new Simulation(new Scenario { Seed = 12, Kind = ScenarioKind.France, Coef = coef }, new NullAgent());
         sim.Run(8);
         var w = sim.World;
+        w.Discovered[Catalog.DiscoveryRowOf(Catalog.SteamshipId, "")] = true;   // ★(150)：艦隊の燃料の門＝汽船の発見（旧＝蒸気の時計を負の onset で全開）＝序盤でも焚ける（テスト専用）
         w.SelfPower = new Power { FleetGauge = 100.0 };   // 艦隊を注入（単一国世界はSelfPowerなし＝燃料需要ゼロのため）
         w.SetMilitaryUpkeep(0.2, 0.4);                    // NavyUpkeep=0.4＝哨戒稼働
         var m = w.Region.Markets[Catalog.CoalId];
@@ -104,8 +105,9 @@ public class FuelOperatingCostTests
             r.Industrialization = 5.0;                             // 保守対象のインフラ
             r.Pops[r.InvestorPopIndex].SetSavings(10_000_000);       // 投資予算を潤沢に
         }
-        var coefOff = new Coefficients { SteamTechOnset = -1.0 };
-        var coefOn = new Coefficients { SteamTechOnset = -1.0, RailCoalRate = 10.0 };
+        foreach (var s in new[] { off, on }) s.World.Discovered[Discovery.LocomotiveRow] = true;   // ★(150)：運行石炭の門＝機関車の発見（旧＝蒸気の時計を負の onset で全開）
+        var coefOff = new Coefficients();
+        var coefOn = new Coefficients { RailCoalRate = 10.0 };
 
         EconomyStep.Run(off.World.Region, coefOff, 1.0, off.World.Bank, off.World);
         EconomyStep.Run(on.World.Region, coefOn, 1.0, on.World.Bank, on.World);
@@ -461,7 +463,7 @@ public class FuelOperatingCostTests
         var sim = new Simulation(new Scenario { Seed = 61, Kind = ScenarioKind.France, Coef = coef }, new NullAgent());
         sim.Run(8);
         var w = sim.World;
-        w.TechLevel = 10; w.RailCapacity = 0; w.ShipCapacity = 1e18; w.ShipSteamShareEma = 0;   // 鉄道は満額の解禁・船は買わない・燃料も買わない
+        w.Discovered[Discovery.LocomotiveRow] = true; w.RailCapacity = 0; w.ShipCapacity = 1e18; w.ShipSteamShareEma = 0;   // 鉄道は解禁（★(150)＝機関車の発見・旧＝技術水準10）・船は買わない・燃料も買わない
         var regs = new List<Region>();
         foreach (var r in w.Regions)
         {

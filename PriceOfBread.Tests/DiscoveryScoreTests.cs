@@ -439,4 +439,105 @@ public class DiscoveryScoreTests
         Assert.True(p.Scale >= 1.0);
         Assert.Equal(400 + c.BonanzaDepositYears * 1000 / c.DepositYearsAtBirth, r.MineralDeposit, 9);
     }
+
+    // ===== ★世界のゲート（2026-10-01 (150)）＝工場の蒸気動力・近代港湾＝「蒸気機関」の行・鉄道輸送＝「機関車」の行・冷蔵＝「冷蔵」の行（旧＝技術水準の時計と工業化度の傾斜）の番人 =====
+
+    /// <summary>単独の仏を8四半期育てた盤面（直接 EconomyStep・Transport を1回呼ぶ番人の土台＝呼ぶ間に発見の判定は走らない）。</summary>
+    private static Simulation Grown(ulong seed = 21)
+    {
+        var s = new Simulation(new Scenario { Seed = seed, Kind = ScenarioKind.France }, new NullAgent());
+        s.Run(8);
+        return s;
+    }
+
+    /// <summary>工場の蒸気動力は「蒸気機関」の発見が開き、技術水準では開かない（旧＝技術水準 SteamTechOnset 0.25 を越えれば発見と関係なく石炭を焚いた）。
+    /// 双子の盤面（同じ種）＝①技術水準5・未発見 ②技術水準0・発見済み → 月の経済を1回：①はどの工場も石炭を焚かない（SteamFill＝0）・②は焚く。
+    /// ⚠壊し方＝門を技術水準の時計へ戻す（①が焚く）・州へ国の解禁を読ませない（②が焚かない）→ 赤。</summary>
+    [Fact]
+    public void 世界のゲート_工場の蒸気動力は蒸気機関の発見が開き技術水準では開かない()
+    {
+        double Fill(double tech, bool known)
+        {
+            var s = Grown(); var w = s.World; var r = w.Region;
+            w.Discovered[Discovery.SteamRow] = known;
+            w.TechLevel = tech; r.TechLevel = tech;
+            foreach (var p in r.Producers) p.SteamFill = 0;
+            EconomyStep.Run(r, w.Coef, 1.0, w.Bank, w);
+            double f = 0; foreach (var p in r.Producers) f += p.SteamFill;
+            return f;
+        }
+        Assert.Equal(0.0, Fill(5.0, false));
+        Assert.True(Fill(0.0, true) > 0, "蒸気機関を発見した国の工場が石炭を焚かない");
+    }
+
+    /// <summary>鉄道の容量は「機関車」の発見が開き、技術水準では開かない（旧＝技術水準の傾斜 RailTechOnset 0.35〜0.85）。
+    /// 双子の盤面＝線路と機関車の在庫と投資家の貯蓄を潤沢にして輸送を1回：①技術水準5・未発見＝容量を積まない ②技術水準0・発見済み＝積む。
+    /// ⚠壊し方＝門を技術水準の時計へ戻す → 赤。</summary>
+    [Fact]
+    public void 世界のゲート_鉄道の容量は機関車の発見が開き技術水準では開かない()
+    {
+        double Built(double tech, bool known)
+        {
+            var s = Grown(); var w = s.World; var c = w.Coef;
+            w.Discovered[Discovery.LocomotiveRow] = known; w.TechLevel = tech;
+            foreach (var r in w.Regions)
+            {
+                if (r.State != RegionState.Active || r.InvestorPopIndex < 0) continue;
+                foreach (int g in new[] { c.RailGoodId, c.LocoGoodId }) { r.Markets[g].Stock = 1e6; r.Markets[g].Price = Catalog.RefPrices[g]; }
+                r.Pops[r.InvestorPopIndex].SetSavings(1e7);
+            }
+            double after = w.RailCapacity * (1 - c.TransportDecay);   // 減耗の後
+            Transport.Step(w, c);
+            return w.RailCapacity - after;
+        }
+        Assert.Equal(0.0, Built(5.0, false), 12);
+        Assert.True(Built(0.0, true) > 0, "機関車を発見した国が鉄道を積まない");
+    }
+
+    /// <summary>近代港湾（蒸気の浚渫と埠頭）の拡張は「蒸気機関」の発見が開き、技術水準では開かない（旧＝技術水準 PortTechOnset 0.2）。
+    /// 英1国の盤面＝1つの港を混雑させて港の段を1回（非公開＝反射）：①技術水準5・未発見＝港の容量が増えない ②技術水準0・発見済み＝増える。
+    /// ⚠壊し方＝門を技術水準の閾値へ戻す → 赤。</summary>
+    [Fact]
+    public void 世界のゲート_近代港湾は蒸気機関の発見が開き技術水準では開かない()
+    {
+        double Grow(double tech, bool known)
+        {
+            var sim = new MultiNationSim([WorldData.ByName("イギリス")], seed: 1789, coef: new Coefficients()) { DiplomacyFrozen = true };
+            foreach (var n in sim.Nations) n.TelemetryEnabled = false;
+            sim.Diplomacy.Log.Enabled = false;
+            sim.StepQuarter();
+            var w = sim.Nations[0].World;
+            w.Discovered[Discovery.SteamRow] = known; w.TechLevel = tech;
+            var port = w.Regions.Find(r => r.State == RegionState.Active && r.IsPort && r.InvestorPopIndex >= 0)!;
+            foreach (var r in w.Regions) r.LastTradeThrottle = 1.0;
+            port.LastTradeThrottle = 0; w.FiscalFundingRatio = 1.0;
+            port.Pops[port.InvestorPopIndex].SetSavings(1e7);
+            double after = port.PortCapacity * (1 - sim.Coef.PortDecay);
+            typeof(MultiNationSim).GetMethod("StepPorts", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!.Invoke(sim, null);
+            return port.PortCapacity - after;
+        }
+        Assert.Equal(0.0, Grow(5.0, false), 9);
+        Assert.True(Grow(0.0, true) > 0, "蒸気機関を発見した国が港を広げない");
+    }
+
+    /// <summary>冷蔵（生鮮の腐敗の低減）は「冷蔵」の発見が開く（旧＝工業化度の傾斜だけ＝1790年代に全ての国で効いた）。効きの大きさは立っている設備の規模の傾斜のまま。
+    /// 双子の盤面＝工業化度5（傾斜1）・肉の在庫を置いて月の経済を1回：腐った量の比（発見済み÷未発見）＝1−RefrigerationEffect。
+    /// ⚠壊し方＝発見を読まない → 未発見でも効く＝比が1−効きにならない＝赤。</summary>
+    [Fact]
+    public void 世界のゲート_冷蔵は冷蔵の発見が開く()
+    {
+        double Lost(bool known)
+        {
+            var s = Grown(); var w = s.World; var r = w.Region;
+            w.Discovered[Discovery.ReeferRow] = known;
+            r.Industrialization = 5.0;
+            var m = r.Markets[Catalog.MeatId];
+            m.Stock = 1000;
+            EconomyStep.Run(r, w.Coef, 1.0, w.Bank, w);
+            return m.SpoilLog[(m.SpoilIdx + 11) % 12];
+        }
+        double off = Lost(false), on = Lost(true);
+        Assert.True(off > 0, "前提が崩れた（肉が腐らない）");
+        Assert.Equal(1.0 - new Coefficients().RefrigerationEffect, on / off, 9);
+    }
 }

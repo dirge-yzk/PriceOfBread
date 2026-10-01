@@ -1386,7 +1386,7 @@ public sealed class MultiNationSim
             var w = sim.World;
             double natPop = 0; foreach (var r in w.Regions) if (r.State == RegionState.Active) foreach (var p in r.Pops) natPop += p.Size;
             if (natPop <= 1e-9) continue;
-            bool techOk = w.TechLevel >= _coef.PortTechOnset;
+            bool techOk = Discovery.SteamPower(w.Discovered);   // ★近代港湾（蒸気の浚渫・埠頭）の門＝発見の表の「蒸気機関」の行（2026-10-01 (150)・旧＝技術水準の閾値 PortTechOnset 0.2）
             foreach (var r in w.Regions)
             {
                 if (r.State != RegionState.Active || !r.IsPort) continue;
