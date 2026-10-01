@@ -1,0 +1,156 @@
+diff --git a/PriceOfBread.SimCore/ArmyShape.cs b/PriceOfBread.SimCore/ArmyShape.cs
+index a1a9ec4..702b448 100644
+--- a/PriceOfBread.SimCore/ArmyShape.cs
++++ b/PriceOfBread.SimCore/ArmyShape.cs
+@@ -20,8 +20,9 @@ namespace PriceOfBread.SimCore;
+ /// </summary>
+ public static class ArmyShape
+ {
+-    /// <summary>理想の形を全国ぶん計算して Power の Need* へ書く。四半期に1回で十分（形は年単位でしか動かない）。</summary>
+-    public static void Compute(Diplomacy dip, Coefficients c)
++    /// <summary>理想の形を全国ぶん計算して Power の Need* へ書く。四半期に1回で十分（形は年単位でしか動かない）。
++    /// ★(156)：呼び手は四半期末の清算の後（MultiNationSim）＝港の取扱高は四半期の3か月分（<paramref name="portMonths"/> の既定）。開幕だけは清算の前（Diplomacy の最初の同期）＝その時点で取扱高が覆う月数を渡す。</summary>
++    public static void Compute(Diplomacy dip, Coefficients c, int portMonths = Calendar.MonthsPerQuarter)
+     {
+         if (!(c.ArmyShapeEnabled > 0)) return;   // 0（対照用）で1命令も実行しない。否定形＝NaN係数も不走行側へ
+         var ps = new List<Power>();
+@@ -96,7 +97,7 @@ public static class ArmyShape
+             //   （海の必要量の外生アンカー＝他国の艦隊を参照しない＝艦隊の比だけでは全ての海軍が0へ縮む吸収状態を防ぐ）。割合＝港の取扱高÷名目GDP（<see cref="SeaTradeShare"/>）＝新しい数は置かない。
+             //   ⚠旧の設計（2026-08-01）は絶対量（係数 SeaEscortPerTradeValue×取扱高）＝係数は休眠のまま削除。絶対量は海の交易の大きい国の海軍を経済の規模で膨らませ
+             //   （(151) の探索の腕＝清の取扱高は英の約1.5倍〔1914〕＝清の艦隊が英の約15倍に戻った）、軍の総合ゲージ（兵の頭数×即応度×質）と単位も合わない（開幕は即応度0.01〜0.2）。
+-            p.NeedSea += p.Military * SeaTradeShare(w);
++            p.NeedSea += p.Military * SeaTradeShare(w, portMonths);
+             var (qTech, qCohesion, qMilitarism) = Quality(w, c);
+             double q = qTech * qCohesion * qMilitarism;
+             p.NeedMen = c.SoldiersPerMilitary * ((p.NeedLand + p.NeedInternal) + c.NavalCrewPerGauge * p.NeedSea) / System.Math.Max(0.05, q);
+@@ -202,14 +203,14 @@ public static class ArmyShape
+     /// ⚠**IsPort で絞る**（2026-08-01 の自己バグ修正）：LastPortThroughput は名前に反して**内陸州にも立つ**（最寄り港・借りた港まで運んだ海路の荷。2026-09-27 回4-1 から陸路の直行は積まない）。
+     /// 絞らずに足すと、段1プローブで**スイス248・内モンゴル239**が「守るべき海上価値」の上位に来た（英は65）＝機構ごと誤り。既存の SyncBasinPresence が `r.State == Active && r.IsPort` で絞っているのが正しい作法。
+     /// ⚠同じ国の州どうしの沿岸の海路は両端の港に積まれる（取扱高の定義）＝国内の沿岸の海運の厚い国は少し大きく出る（記録）。植民地は州＝植民地の港の取扱高として入る（旧の ColonyList の価値は単位が違い・開幕の州昇格の後は空＝外した）。
+-    /// ⚠(154) 反証役の指摘（未修正・00一覧）：<see cref="Compute"/> は四半期末の外交の3回の最初＝四半期末の清算の前に読む＝月次清算（TradeMonthlyClearing>0）では
+-    /// 取扱高は第1・第2月の2回分＝3か月分の名目GDP で割ると約2/3（分子と分母の期間の非対称）＝通商保護の項は全ての国で約2/3＝次の回で直す（直した後に海の割合を読み直す）。
++    /// ★(156) 分子と分母の期間をそろえる：取扱高は四半期の第1清算でリセットして累計＝<paramref name="months"/>＝取扱高が覆う月数（既定＝四半期の3か月＝四半期末の清算の後）。
++    /// 旧（(154) 反証役の指摘）＝<see cref="Compute"/> を外交の3回の最初（清算の前）に呼び、月次清算の取扱高（第1・第2月の2回分）を3か月分の名目GDP で割った＝通商保護が全ての国で約2/3。
+     /// 割合が定まらない（名目GDP が0・NaN）は0（否定形）。</summary>
+-    internal static double SeaTradeShare(World w)
++    internal static double SeaTradeShare(World w, int months = Calendar.MonthsPerQuarter)
+     {
+         double v = 0;
+         foreach (var r in w.Regions) if (r.State == RegionState.Active && r.IsPort) v += r.LastPortThroughput;
+-        double s = v / (w.FxRate * Calendar.MonthsPerQuarter * w.NominalGdp);
++        double s = v / (w.FxRate * months * w.NominalGdp);
+         return s >= 0 && s < double.PositiveInfinity ? s : 0;
+     }
+ 
+diff --git a/PriceOfBread.SimCore/Diplomacy.cs b/PriceOfBread.SimCore/Diplomacy.cs
+index 1ac4c45..6390415 100644
+--- a/PriceOfBread.SimCore/Diplomacy.cs
++++ b/PriceOfBread.SimCore/Diplomacy.cs
+@@ -958,9 +958,8 @@ public sealed class Diplomacy
+         StepWars(c);                   // 戦争の運は盤面非依存ハッシュ（A-3#8）＝rng不要
+         CommerceRaidPrize(c);          // 拿捕賞金：制海権を握った側が敵の海上交易を拿捕（通商破壊を海軍国の戦略的利得に・改修2026-06-28）
+         DriftTension(c);
+-        // ★理想の軍隊の形（2026-08-01・ArmyShapeEnabled=1.0 live＝NeedSea が軍需の陸海再配分へ流れる）。四半期に1回で十分（形は年単位でしか動かない）＝53×53の対を毎月回さない。
+-        // ArmyShapeEnabled=0 で1命令も実行しない。
+-        if (month % Calendar.MonthsPerQuarter == 0) ArmyShape.Compute(this, c);
++        // ★理想の軍隊の形（2026-08-01・ArmyShapeEnabled=1.0 live＝NeedSea が軍需の陸海再配分へ流れる）は四半期に1回（形は年単位でしか動かない）。
++        //   ★(156)：呼び手は MultiNationSim の四半期末の清算の後（守る海の交易＝港の取扱高を四半期の3か月分そろえて読む）＝ここ（外交の3回の最初＝清算の前）では呼ばない。
+         // （戦費・賠償・拿捕・貢納は World.Pay で国庫へ直接記帳する＝末尾の書き戻しの同期窓は 2026-09-28 に撤去）
+     }
+ 
+@@ -974,7 +973,9 @@ public sealed class Diplomacy
+     /// 開幕の艦隊は他国の艦隊がまだ無い＝海の必要量は守る海の交易（通商保護）と海を越えて来る陸軍（投射）の2つ（艦隊の比の項は0）＝(154) で注記を直した（旧の注記は通商保護だけと書いていた）。</summary>
+     private void OpeningNavalShares(Coefficients c)
+     {
+-        ArmyShape.Compute(this, c);
++        // ★(156) 通商保護の単位：開幕は最初の外交の月（四半期末の清算の前）＝港の取扱高（四半期の第1清算でリセットして累計）は月次清算なら第1・第2月の2か月分
++        //   （四半期1回の清算なら前の四半期の3か月分）＝その月数の名目GDP で割る（分子と分母の期間をそろえる・以後の四半期は清算の後に3か月分で読む）。
++        ArmyShape.Compute(this, c, c.TradeMonthlyClearing > 0 ? Calendar.MonthsPerQuarter - 1 : Calendar.MonthsPerQuarter);
+         foreach (var p in Powers)
+         {
+             if (p.Nation is not { } nw || p._fleetSeeded) continue;
+diff --git a/PriceOfBread.SimCore/MultiNationSim.cs b/PriceOfBread.SimCore/MultiNationSim.cs
+index 52f5dfd..2893b7c 100644
+--- a/PriceOfBread.SimCore/MultiNationSim.cs
++++ b/PriceOfBread.SimCore/MultiNationSim.cs
+@@ -768,6 +768,10 @@ public sealed class MultiNationSim
+             //   「年月をかけて建つ」もの＝暦の進まない助走で建ててはいけない。1783年は技術ゲートでほぼ全件が未解禁＝需要への影響も無い。
+             if (!_calendarFrozen) { Megaprojects.Step(Diplomacy, Nations, _coef); ProbeDiff("巨大建造物"); }   // 巨大建造物：保有国を解決し国庫から資材＋労働を買って建て、完成したら州へ恒久効果を貼る（2026-07-28）
+             { long t2 = TimeOn ? System.Diagnostics.Stopwatch.GetTimestamp() : 0; Market.Step(Nations, _coef, firstClearingOfQuarter: !(_coef.TradeMonthlyClearing > 0)); if (TimeOn) System.Threading.Interlocked.Add(ref TicksMarket, System.Diagnostics.Stopwatch.GetTimestamp() - t2); } ProbeDiff("国際市場");          // 国際市場：州と州の二国間清算（実経路・比較優位）。月次清算ONでは四半期の第3清算＝累計を続ける（リセットしない）
++            // ★理想の軍隊の形＝四半期末の清算の後に1回（(156) 通商保護の単位）。守る海の交易＝港の取扱高（四半期の累計）÷四半期の名目GDP（ArmyShape.SeaTradeShare）。
++            //   旧＝外交の3回の最初（この清算の前）に読んだ＝月次清算では取扱高が第1・第2月の2回分＝3か月分の名目GDP で割ると約2/3（分子と分母の期間の非対称・(151)(154) の反証役の指摘）。
++            //   清算の後なら月次清算でも四半期1回の清算でも取扱高は同じ四半期の3か月分。読み手（発見の必要性＝下の StepDiscoveries・AI と軍需の陸海＝次の四半期）は全てこの後。外交が凍結中（助走）は呼ばない（旧と同じ）。
++            if (!DiplomacyFrozen) ArmyShape.Compute(Diplomacy, _coef);
+             StepPorts(); ProbeDiff("港湾");                             // 港湾容量：混雑する港州を国家＋資本家が拡張（Market.Step の取扱高/律速を見て投資。改修2026-06-28）
+             StepMarineInsurance(); ProbeDiff("海上保険");                // 海上保険：商人pop基金で通商破壊損失を分散（平時=保険料・封鎖時=保険金。改修2026-06-28・金融改革③）
+             // 移民は助走では動かさない（2026-08-10）。移民は総量保存だが時間の流れ（暦を止めた助走で人を動かさない）。
+diff --git a/PriceOfBread.Tests/MilitaryTests.cs b/PriceOfBread.Tests/MilitaryTests.cs
+index 8b2fa85..9186e33 100644
+--- a/PriceOfBread.Tests/MilitaryTests.cs
++++ b/PriceOfBread.Tests/MilitaryTests.cs
+@@ -804,6 +804,8 @@ public class MilitaryTests
+         Assert.True(ports > 0 && ports < w.Regions.Count, "前提が崩れた：仏に港の州と港でない州の両方が無い");
+         double expect = ports * 1000.0 / (w.FxRate * 3 * w.NominalGdp);
+         Assert.Equal(expect, ArmyShape.SeaTradeShare(w), 12);
++        // ★(156) 取扱高が覆う月数で割る（開幕＝清算の前は月次清算で2か月分）＝分子と分母の期間をそろえる。⚠突然変異「月数を読まない」で赤。
++        Assert.Equal(ports * 1000.0 / (w.FxRate * 2 * w.NominalGdp), ArmyShape.SeaTradeShare(w, 2), 12);
+     }
+ 
+     /// <summary>★(151) 陸海の比は目標の生の比（0.05 格子に丸めない＝「陸海比は連続のまま」）。合計 0.75 で海 0.0225（3%）＝旧は丸めて海0（艦隊の乗員ごと消えた）。
+@@ -896,6 +898,56 @@ public class MilitaryTests
+             $"取扱高を入れた差 {uk.NeedSea - sea0:G17} ≠ 軍×割合 {expect:G17}＝Compute が守る海の交易を海の必要量に足していない");
+     }
+ 
++    /// <summary>★(156) 通商保護の単位（分子と分母の期間をそろえる）：理想の軍隊の形は四半期末の清算の後に読む＝月次清算でも港の取扱高は四半期の3か月分。
++    /// 盤面＝英日（外交を動かす・月次清算＝既定）。2四半期回した後の英の海の必要量（本体が書いた値）は、同じ盤面で取扱高を3か月分のまま読み直した値に近く、
++    /// 3分の2（第1・第2月の2回分）で読み直した値からは遠い（読み直しの差＝守る海の交易の3分の1）。
++    /// ⚠突然変異「理想の軍隊の形を外交の3回の最初（清算の前）へ戻す」で赤。</summary>
++    [Fact]
++    public void 理想の軍隊の形は四半期末の清算の後に守る海の交易を3か月分で読む()
++    {
++        var sim = new MultiNationSim(System.Array.ConvertAll(new[] { "イギリス", "日本" }, WorldData.ByName), seed: 1789, coef: new Coefficients());
++        var c = sim.Coef; var dip = sim.Diplomacy;
++        Assert.True(c.TradeMonthlyClearing > 0, "前提が崩れた：月次清算が既定でない");
++        for (int q = 0; q < 2; q++) sim.StepQuarter();
++        var ukw = sim.Nations[0].World; var uk = ukw.SelfPower!;
++        double inSim = uk.NeedSea;
++        double trade = uk.Military * ArmyShape.SeaTradeShare(ukw);
++        Assert.True(trade > 0, $"前提が崩れた：英の守る海の交易が0（{trade}）");
++        ArmyShape.Compute(dip, c);
++        double full = uk.NeedSea;
++        var saved = new System.Collections.Generic.List<(Region r, double v)>();
++        foreach (var r in ukw.Regions) { saved.Add((r, r.LastPortThroughput)); r.LastPortThroughput *= 2.0 / 3.0; }
++        ArmyShape.Compute(dip, c);
++        double twoThirds = uk.NeedSea;
++        foreach (var (r, v) in saved) r.LastPortThroughput = v;
++        Assert.True(System.Math.Abs(inSim - full) < 0.1 * System.Math.Abs(inSim - twoThirds),
++            $"本体の海の必要量 {inSim:G8} が3か月分の読み {full:G8} に近くない（2か月分の読み {twoThirds:G8}）＝四半期末の清算の前に読んでいる");
++    }
++
++    /// <summary>★(156) 開幕（最初の外交の月＝四半期末の清算の前）は、その時点で取扱高が覆う月数（月次清算なら第1・第2月の2か月分）の名目GDP で割る。
++    /// 盤面＝英日を2つ（開幕・外交は本体の時計から止め、外交の1か月を直に呼ぶ）。英の港の取扱高を 1000 と 2000 に置いて開幕の月を回す
++    /// （海盆の居場所は取扱高の割合＝倍にしても同じ＝守る海の交易のほかの項は2つの盤面で同じ）＝本体が書いた英の海の必要量の差＝英の軍×（取扱高の差÷(為替×2×名目GDP)）。
++    /// ⚠突然変異「開幕も3か月分で割る」で赤（差が3分の2になる）。</summary>
++    [Fact]
++    public void 開幕の通商保護は清算の前の取扱高を2か月分で読む()
++    {
++        static (double sea, double mil, double share2) Open(double tp)
++        {
++            var sim = Frozen152("イギリス", "日本");
++            var dip = sim.Diplomacy; var c = sim.Coef;
++            Assert.True(c.TradeMonthlyClearing > 0 && c.NavalPowerFromFleet > 0, "前提が崩れた：月次清算か艦隊駆動が既定でない");
++            var ukw = sim.Nations[0].World; var uk = ukw.SelfPower!;
++            foreach (var r in ukw.Regions) r.LastPortThroughput = tp;
++            dip.Step(c, sim.Rng, 0);   // 最初の外交の月＝開幕の播種（OpeningNavalShares）
++            return (uk.NeedSea, uk.Military, ArmyShape.SeaTradeShare(ukw, 2));
++        }
++        var a = Open(1000.0); var b = Open(2000.0);
++        Assert.True(a.mil > 0 && a.mil == b.mil && b.share2 > a.share2, $"前提が崩れた：英の軍 {a.mil:G8}／{b.mil:G8}・割合 {a.share2:G8}／{b.share2:G8}");
++        double got = b.sea - a.sea, expect = a.mil * (b.share2 - a.share2);
++        Assert.True(System.Math.Abs(got - expect) <= 1e-9 * expect,
++            $"開幕の海の必要量の差 {got:G12} ≠ 軍×（2か月分の割合の差）{expect:G12}（3か月分なら {expect * 2 / 3:G12}）");
++    }
++
+     /// <summary>★(154) 脅威の緊張（Diplomacy.ThreatTension）は国境の長さを届き方（<see cref="Diplomacy.ThreatReach"/>）へ渡す（「国境を接している国は脅威だが、そうでない国はあまり脅威ではない」の配線）。
+     /// 盤面＝仏・西・日を2つ（開幕・他の緊張の源を0）。片方は仏の州を全て山にする（仏西の国境の重みだけが下がる）＝仏西の組に立つ脅威の緊張が小さくなる。
+     /// ⚠突然変異「国境に0を渡す」で赤（2つの盤面で同じ緊張が立つ）。</summary>

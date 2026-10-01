@@ -340,6 +340,9 @@ public class WriterRatchetTests
     //   ②軌道の分＝建設 7,215→7,807（+8.2%）・請求 2,586→2,901（+12.2%）・覇権の判定 2,039,246→3,819,196（+87.3%＝同盟の候補が居る月の軌道＝(147)(149) の +37〜39% と同じ型・処理の形は同じ）。
     //   全長の10種では建設 254,282→294,334（+15.7%）・請求 591,077→795,392・覇権の判定 96,416,656→117,301,662（推定 0.45→0.55 秒）。
     //   全長の推定 231.6→235.2 秒（+3.6 秒＝目標 248.5 秒の内・余り 13.3 秒＝払う必要が無い・実装ログ (155)）。ほかの14本は許しの内。
+    // ★2026-10-02 表の更新（(156) 戦死の率を兵の頭数の単位へ読み替えた＝軌道が動いた分の宣言・新しい計数の処理は無い）：
+    //   覇権の判定 3,819,196→3,376,284（−11.6%＝10% を超えて下がった＝表を下げる・同盟の候補が居る月の軌道＝(152) と同じ型・処理の形は同じ）。ほかの15本は許しの内。
+    //   全長の10種では覇権の判定 117,301,662→107,898,842・着値の充填 372,106,234→380,475,714（+2.3%）＝推定 235.2→235.6 秒（予算の内・目標より下の余りの中＝払っていない・実装ログ (156)）。
     [InlineData(CostLedger.ConstructionSeen, 7807L)]
     [InlineData(CostLedger.CreditSpans, 33282L)]
     [InlineData(CostLedger.ConsumePopGoods, 28595736L)]
@@ -349,7 +352,7 @@ public class WriterRatchetTests
     [InlineData(CostLedger.ClearingRows, 5185642L)]
     [InlineData(CostLedger.ClearingFills, 28778490L)]
     [InlineData(CostLedger.DiploPowerMonths, 9954L)]
-    [InlineData(CostLedger.DiploHegemonScans, 3819196L)]
+    [InlineData(CostLedger.DiploHegemonScans, 3376284L)]
     [InlineData(CostLedger.QuarterStartPops, 235560L)]
     [InlineData(CostLedger.QuarterEndPops, 235560L)]
     [InlineData(CostLedger.SharedNationQuarters, 3698L)]
