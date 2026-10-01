@@ -331,7 +331,9 @@ public class WriterRatchetTests
     //   全長の10種では覇権の判定 193,798,917→202,766,449（+4.6%）・着値の充填 345,866,018→353,020,843（+2.1%）＝推定 233.1→234.4 秒（予算の内・目標より下の余りの中＝払っていない・実装ログ (152)）。
     [InlineData(CostLedger.PriceGoods, 14149727L)]
     [InlineData(CostLedger.PriceDailyRuns, 25283828L)]
-    [InlineData(CostLedger.ConstructionSeen, 7066L)]
+    // ★2026-10-01 表の更新（(154) 合流＝線2〔(151)(153)〕の上へ線1〔(150)(152)〕を載せ直した木＝軌道が動いた分の宣言・新しい計数の処理は無い）：
+    //   建設 7,066→7,215（+2.1%）・覇権の判定 1,864,716→2,039,246（+9.4%）＝最初の40四半期の工事と同盟の候補の月の軌道（線ごとの表はそれぞれの木の値）。ほかの15本は許しの内。全長の10種は実装ログ (154)。
+    [InlineData(CostLedger.ConstructionSeen, 7215L)]
     [InlineData(CostLedger.CreditSpans, 33282L)]
     [InlineData(CostLedger.ConsumePopGoods, 28595736L)]
     [InlineData(CostLedger.ProducerMonths, 8440020L)]
@@ -340,7 +342,7 @@ public class WriterRatchetTests
     [InlineData(CostLedger.ClearingRows, 5185642L)]
     [InlineData(CostLedger.ClearingFills, 28778490L)]
     [InlineData(CostLedger.DiploPowerMonths, 9954L)]
-    [InlineData(CostLedger.DiploHegemonScans, 1864716L)]
+    [InlineData(CostLedger.DiploHegemonScans, 2039246L)]
     [InlineData(CostLedger.QuarterStartPops, 235560L)]
     [InlineData(CostLedger.QuarterEndPops, 235560L)]
     [InlineData(CostLedger.SharedNationQuarters, 3698L)]

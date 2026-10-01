@@ -131,6 +131,8 @@ public class TechInstitutionTests
         var tj = Discovery.Evaluate(jp, null, jp.Coef, includeKnown: true)[Discovery.PatentRow];
         Assert.True(tj.Tech + tj.Need < Discovery.GateScore, $"宗教教育の日本が特許を自力で見つけられる（技術力 {tj.Tech:F1}＋必要性 {tj.Need:F1}・中核エリート {jp.EliteCore:F3}）");
         Assert.True(uk.JointStock, $"工業化したイギリスに株式会社が入らない（技術水準 {uk.TechLevel:F2}）");
+        // (154)：旧の主張（工業化した日本に株式会社が入る）を戻した＝(152) は主語を英へ替えていた（理由の記録なし）・合わせた木の400四半期で日本も入る（技術水準 0.197）。
+        Assert.True(jp.JointStock, $"工業化した日本は株式会社が入るはず（技術水準 {jp.TechLevel:F2}）");
     }
 
     [Fact]
