@@ -1159,15 +1159,21 @@ public class MilitaryTests
         for (int i = 0; i < n; i++)
         {
             Assert.Equal(e0[i], sim.Nations[i].World.SecurityThreat, 9);
-            sumT += sim.Nations[i].World.SecurityThreat; sumSeats += Military.EstablishmentOf(sim.Nations[i].World, sim.Nations[i].World.Coef, out _);
+            sumT += sim.Nations[i].World.SecurityThreat; sumSeats += Military.EstablishmentOf(sim.Nations[i].World, sim.Nations[i].World.Coef, out double man);
+            // ★(157) 自国の分母（脅威の割合の分母・戦略鉄道の分母）＝養える軍の**人口の側**（兵役の母数×MaxSoldierFraction）＝定員（経済の側を含む）ではない（反証役の指摘＝定義の番人が無かった）。
+            //   ⚠突然変異「自国の分母を定員にする」で赤（この盤面は器の割合 0.01＝定員が経済の側で決まる＝人口の側より小さい）。
+            var wi = sim.Nations[i].World;
+            Assert.Equal(wi.Coef.MaxSoldierFraction * man, wi.SecurityThreatOwnMass, 9);
         }
         Assert.True(sumT < sumSeats, $"世界の脅威の和 {sumT} が世界の養える軍の和 {sumSeats} 以上（注意配分で割っていない）");
         double fr0 = sim.Nations[0].World.SecurityThreat;
         Assert.True(fr0 > 0, "前提が崩れた：仏に脅威が無い");
         var es = sim.Nations[1].World;
+        double esOwn0 = es.SecurityThreatOwnMass;
         es.SetMilitarySpending(Math.Min(1.0, es.MilitarySpending * 2), es.NavalSpendShare);
         step.Invoke(sim, null);
         double fr1 = sim.Nations[0].World.SecurityThreat;
+        Assert.Equal(esOwn0, es.SecurityThreatOwnMass, 12);   // ★(157) 自国の段を上げても自国の分母は動かない（自分の段で不安が動かない）
         Assert.True(fr1 > fr0 * (1 + 1e-9), $"西の軍事費の段を上げても仏の不安が増えない（{fr0} → {fr1}）＝相手の選んだ段を読んでいない");
         Ally152(sim.Diplomacy, ps[0], ps[1]);
         step.Invoke(sim, null);
@@ -1200,6 +1206,41 @@ public class MilitaryTests
         w.SecurityThreat = 150;   // 脅威の割合 0.6
         decide.Invoke(null, [w, w.Policy, UtilityAgent.Stance.Industrialize]);
         Assert.Equal(ConscriptionLaw.Selective, w.Policy.ConscriptionLaw);
+        // ★(157) 線の両側（反証役の指摘＝線の下側が固定されていなかった）：割合 0.5（ちょうど線）は徴兵制・0.4（線の下・平時）は徴兵制にしない（志願制のまま）。
+        //   ⚠突然変異「線を 0.3 へ下げる」「線を > 0.5 にする」で赤。
+        Assert.False(w.AtWarNow, "前提が崩れた：仏が交戦中（交戦中は割合に依らず徴兵制）");
+        w.Policy.ConscriptionLaw = ConscriptionLaw.Volunteer;
+        w.SecurityThreat = 100;   // 脅威の割合 0.5
+        decide.Invoke(null, [w, w.Policy, UtilityAgent.Stance.Industrialize]);
+        Assert.Equal(ConscriptionLaw.Selective, w.Policy.ConscriptionLaw);
+        w.Policy.ConscriptionLaw = ConscriptionLaw.Volunteer;
+        w.SecurityThreat = 100.0 * 0.4 / 0.6;   // 脅威の割合 0.4
+        decide.Invoke(null, [w, w.Policy, UtilityAgent.Stance.Industrialize]);
+        Assert.Equal(ConscriptionLaw.Volunteer, w.Policy.ConscriptionLaw);
+    }
+
+    /// <summary>★(157) 呼び手の番人（反証役の指摘）：Fiscal の余剰（guns-vs-butter）は月初の予算（Simulation の軍事費の吸い込み）が書いた装備の請求 World.LastMilitaryClaim を読む
+    /// ＝同じ盤面の双子で月初の装備の請求だけを Δ 変えると、裁量余剰の移動平均（FiscalCapacity）が 平滑化×Δ だけ下がる（余剰が正の範囲）。⚠突然変異「Fiscal が装備の請求を読まない」で赤。</summary>
+    [Fact]
+    public void 財政の余剰は月初の予算が書いた装備の請求を引く()
+    {
+        (double fc, double room, double smooth) Twin(double claim)
+        {
+            var w = France155().World; var c = w.Coef;
+            w.GovDebt = 0; w.ForeignDebt = 0;   // 利払いを消す（仏1789 は利払いと行政で余剰0＝余剰が正の範囲の盤面にする・QuietBritain と同じ作法）
+            foreach (var r in w.Regions) foreach (var p in r.Pops) p.BondHoldings = 0;
+            w.FiscalCapacity = 1.0;              // 平滑化の枝（前の値が正）に置く
+            w.LastMilitaryClaim = claim;
+            Fiscal.Step(w, c);
+            return (w.FiscalCapacity, w.LastRevenue - w.LastInterest - w.LastAdminClaim, c.FiscalCapacitySmoothing);   // room＝装備の請求を引く前の余剰
+        }
+        var a = Twin(0);
+        double d = 0.01 * a.room;
+        Assert.True(d > 0, $"前提が崩れた：装備の請求を引く前の余剰が0以下（{a.room}）");
+        var b = Twin(d);
+        double s = a.smooth;
+        Assert.True(Math.Abs(a.room - b.room) <= 1e-9 * a.room, "前提が崩れた：双子の歳入・利払い・行政が違う");
+        Assert.True(Math.Abs((a.fc - b.fc) - s * d) <= 1e-9 * s * d, $"月初の装備の請求を Δ 増やしても余剰の移動平均が 平滑化×Δ だけ下がらない（差 {a.fc - b.fc:G17}・期待 {s * d:G17}）");
     }
 
     /// <summary>★(155) 失業プールの職の比較の所得＝1人あたり。兵士の席は兵1人の給与を送り手の世帯の1人あたりへ直す（×送り手の働き盛り÷頭数）＝分子と分母を同じ規則で
