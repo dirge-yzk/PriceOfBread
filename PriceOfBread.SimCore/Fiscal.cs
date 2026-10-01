@@ -271,23 +271,15 @@ public static class Fiscal
         foreach (var r in w.Regions) if (r.State == RegionState.Active) indirectRevenue -= r.StateSpent[(int)TreasuryCat.StateMonopoly];   // 当月の専売益（負の支出＝収入。2026-09-28 に旧の別持ち LastStateMonopolyRevenue を畳んだ＝塩などの独占レントの国庫の取り分も同じ区分）
         double budgetBase = revenue + c.IndirectTaxInBudgetBase * indirectRevenue;
         double adminClaim = c.AdminBudgetFrac * w.AdminSpending * budgetBase * AdminDistanceMean(w);   // 州ごとの行政の予算（人口の比×距離の割増＝Simulation）の和と同じ量（2026-09-30 (135)）
-        double militaryClaim = w.MilitarySpending * c.MilitaryRevenueShare * budgetBase;   // 軍需装備も粗歳入の第一請求権（Simulation の MilitaryBudget と対）＝軍を装備する費用。余剰（福祉/インフラ）はこの後の残り＝guns-vs-butter
-        // ★S3a（2026-07-31）：Simulation 側で軍需予算を min(上限, 必要額) にするとき、**請求額もそろえる**。
-        // 揃えないと「使いもしない軍事費が福祉・インフラを圧迫する」（請求は満額・実支出は必要額どまり）。
-        // MilitaryBudgetNeedCapped=0 で従来＝厳密恒等。
-        // ⚠必要額は Simulation 側と同一の全4段（EconomyStep.MilitaryProcurementNeed）。基本段だけで打ち切ると残余＝上位装備の財源が消える。
-        if (c.MilitaryBudgetNeedCapped > 0)
-        {
-            double milNeed = 0;
-            foreach (var r in w.Regions)
-                if (r.State == RegionState.Active && r.Id == 0) milNeed += EconomyStep.MilitaryProcurementNeed(r, c);
-            militaryClaim = Math.Min(militaryClaim, milNeed);
-        }
+        // ★(155) 軍の装備の請求＝その月の月初の予算（Simulation の軍事費の吸い込み＝器から給与の後の装備〔全4段の必要額まで〕）が書いた World.LastMilitaryClaim を読む
+        //   ＝軍を装備する費用も粗歳入の第一請求権（余剰〔福祉/インフラ〕はこの後の残り＝guns-vs-butter）。使い切れない器は請求しない＝余剰を圧迫しない（旧 S3a の「請求額もそろえる」と同じ向き）。
+        //   旧＝ここで 軍事費×MilitaryRevenueShare×基数 を全4段の必要額で切って書いた（Simulation と同じ式の写し＝2本）。給与と質（幹部の給与）は旧の給与と同じく外（LastSoldierPay＝財政バッファは算入しない・R3安定形）。
+        double militaryClaim = Math.Max(0, w.LastMilitaryClaim);
         // ★撤去2026-08-16（C2-C5）：汚職根絶費の請求 antiCorruptionClaim を物理削除（V2点火2026-08-15で請求は既に遮断済み＝恒等0の死骸だった）。
         //   V2では根絶費の動詞ごと死ぬ（清廉度はもう読まれない＝金を燃やすだけの支出を許さない）。旧式へ戻す道は消滅（裁定済み）。
         double surplus = Math.Max(0, budgetBase - interest - adminClaim - militaryClaim);
         w.LastRevenue = budgetBase; w.LastInterest = interest;   // 診断（LastRevenue は Simulation の AdminBudget/MilitaryBudget の基数＝間接税込みへ）
-        w.LastMilitaryClaim = militaryClaim; w.LastAdminClaim = adminClaim;          // 診断（予算表の支出内訳）
+        w.LastAdminClaim = adminClaim;          // 診断（予算表の支出内訳）（★(155) LastMilitaryClaim の書き手は月初の予算＝Simulation）
         w.FiscalCapacity = w.FiscalCapacity < 1e-9 ? surplus : w.FiscalCapacity + c.FiscalCapacitySmoothing * (surplus - w.FiscalCapacity);
         // （借入は 2026-09-28 に月初の Simulation の払える額の側へ移した＝Borrow（下）。払える額の中身の順＝税・歳入→借入→それでも足りない分だけ切り下げ（作者裁定 2026-09-28 (b)）。
         //   旧＝ここ（月末）で借り、借りた金は翌月の払える額になった＝その月は切り下げが先に払えない額を埋め（切り下げの97〜99% は借りられた四半期）、

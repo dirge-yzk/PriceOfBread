@@ -755,7 +755,7 @@ public sealed class MultiNationSim
             ProbeSnap();                                              // 保存量プローブ（leakhunt・既定OFF＝実行ゼロ）
             Cost[CostLedger.SharedNationQuarters] += Nations.Count;   // 計算量の台帳（診断）：四半期末の共有層は国×四半期に比例（国力・脅威・移民・国際金融ほか）
             foreach (var n in Nations) NationalScore.StepStanding(n.World);   // 国力の在庫を1期ぶん寄せる（2026-08-02）＝序列は在庫で決まる。外交(ComputeRanks)より前
-            if (_coef.ThreatRailTargetWeight > 0) StepSecurityThreat();   // ★安保手順3（2026-08-30点火＝既定1）：脅威の観測（=0なら1命令も走らない。threatprobe と同式）
+            StepSecurityThreat();   // ★安全保障の不安（(155) 作り直し）：読み手＝AI の軍事費の段・徴兵法の政治・戦略鉄道（旧＝鉄道の係数 ThreatRailTargetWeight が0なら走らなかった＝鉄道だけの読み手）
             UpdateTradeWeights(); ProbeDiff("交易比重");                // 外1：交易比重を貿易取扱高のシェア（LastExportValue+LastImportValue の EMA）から四半期同期（TradeWeightDynamic=0 で1789固定値を維持＝恒等）
             if (!DiplomacyFrozen)
             {
@@ -1452,52 +1452,59 @@ public sealed class MultiNationSim
         return null;
     }
 
-    /// <summary>★安保doc手順3（2026-08-30）：全国の受脅威を四半期1回計算する。脅威(B←A)＝max over Aの州 rA
-    /// [質量(rA)×1/(1+最近接距離(rA,Bの州)/ProximityTensionRange)] を A≠B で合計。質量＝州人口×(1+工業化度)。
-    /// 読み手は翌期の Transport.Step（前期値読み＝同一ティック閉路なし・doc 4-1）。係数0では呼ばれない（呼び出し側ゲート）。</summary>
+    /// <summary>★安全保障の不安（2026-10-02 (155) 作り直し・作者 2026-10-01 の名前「安全保障の不安」・推奨で進めた）＝全国の受ける脅威を四半期1回計算する。
+    /// 脅威(B←A)＝A の養える軍（定員＝<see cref="Military.EstablishmentOf"/>＝A が選んだ軍事費の段×歳入÷1人あたりの費用と人口の側の小さい方＝相手の今の兵数〔戦時の徴兵の跳ね〕は読まない）のうち
+    /// B に向く注意配分 a(A→B)＝hr(A→B)÷(u(A)＋Σ_K hr(A→K))。hr＝敵意 h（<see cref="ArmyShape.Hostility"/>＝同盟0・宗主と属国の間×(1−AllyAttentionDiscount)・緊張の有理飽和）
+    /// ×届く強さ（国境の長さと地形〔陸路グラフで隣り合う州の組×地形の通りにくさ・植民地格の州も＝<see cref="ArmyShape.Borders"/>〕＋投射〔距離減衰×海越えの制海権＝<see cref="Diplomacy.Projection"/>〕）
+    /// ・u＝内向きに使われる軍（<see cref="ArmyShape.Unrest"/>）＝**(151) の理想の軍隊の形の陸の必要量と同じ物差しと同じ注意配分**（相手の軍は同時に全方位へ向けられない＝世界の脅威の和は世界の養える軍の和より小さい
+    /// ＝軍拡が縮小写像。⚠正規化しない総和は全ての国が全ての国から脅威を受け、61カ国の中央の国の脅威の割合が0.9を超えた＝(155) の試走）。
+    /// 自国の分母＝養える軍の人口の側（兵役の母数×MaxSoldierFraction＝自分の軍事費の段に依らない＝自国の段を上げても不安は下がらない＝段の往復を作らない）。
+    /// 読み手＝AI の軍事費の段（唯一の入口・SelfPlay の脅威の割合）・徴兵法の政治（同）・戦略鉄道（Transport の目標・脅威÷自国の養える軍・前期の値）。旧＝州の経済質量×距離減衰の最大の和（同盟も国境も海も読まない）。
+    /// 世界の中央との比（作者のメモ M4「100%を基本に」＝表示だけ）は UI の回で（導出＝持たない）。</summary>
     private void StepSecurityThreat()
     {
         int n = Nations.Count;
-        var pts = new List<(double lat, double lon, double mass)>[n];
+        var ps = new List<Power>(n);
+        var seats = new double[n];
+        var own = new double[n];
         for (int i = 0; i < n; i++)
         {
-            pts[i] = new List<(double, double, double)>();
-            double own = 0;
-            foreach (var r in Nations[i].World.Regions)
-            {
-                if (r.State != RegionState.Active) continue;
-                var cc = Climate.CityCoord(r.Name);
-                if (cc.Lat == 0 && cc.Lon == 0) continue;
-                double mass = r.SumPopulation() * (1.0 + r.TotalIndustrialization);
-                pts[i].Add((cc.Lat, cc.Lon, mass));
-                own += mass;
-            }
-            Nations[i].World.SecurityThreatOwnMass = own;
+            var w = Nations[i].World;
+            ps.Add(w.SelfPower!);   // 多国では全ての国が外交上の代表を持つ（ArmyShape.Borders は Nation を持つ Power の並び）
+            seats[i] = Military.EstablishmentOf(w, w.Coef, out double man);
+            own[i] = w.Coef.MaxSoldierFraction * man;
         }
-        double scale = System.Math.Max(1.0, _coef.ProximityTensionRange);
+        var border = ArmyShape.Borders(ps, _coef);
+        var hr = new double[n * n];   // hr[a*n+b]＝A の軍が B に届く強さ×敵意
+        var colSum = new double[n];   // A の注意配分の分母＝内向き u(A)＋Σ_B hr(A→B)
+        long pairs = 0;
+        for (int a = 0; a < n; a++)
+        {
+            if (ps[a] is null) continue;
+            double sum = ArmyShape.Unrest(ps[a]);
+            for (int b = 0; b < n; b++)
+            {
+                if (a == b || ps[b] is null) continue;
+                double h = ArmyShape.Hostility(Diplomacy, ps[b], ps[a], _coef);
+                if (!(h > 0)) continue;   // 同盟＝0（否定形＝NaN も数えない）
+                pairs++;
+                double r = border[a * n + b] + Diplomacy.Projection(ps[a], ps[b], _coef);
+                if (!(r > 0)) continue;
+                hr[a * n + b] = h * r;
+                sum += h * r;
+            }
+            colSum[a] = sum;
+        }
         for (int b = 0; b < n; b++)
         {
             double total = 0;
-            if (pts[b].Count > 0)
-                for (int a = 0; a < n; a++)
-                {
-                    if (a == b || pts[a].Count == 0) continue;
-                    double best = 0;
-                    foreach (var ra in pts[a])
-                    {
-                        double dmin = double.MaxValue;
-                        foreach (var rb in pts[b])
-                        {
-                            double d = Geo.DistanceKm(ra.lat, ra.lon, rb.lat, rb.lon);
-                            if (d < dmin) dmin = d;
-                        }
-                        double v = ra.mass / (1.0 + dmin / scale);
-                        if (v > best) best = v;
-                    }
-                    total += best;
-                }
-            Nations[b].World.SecurityThreat = total;
+            for (int a = 0; a < n; a++)
+                if (a != b && colSum[a] > 1e-12 && seats[a] > 0) total += hr[a * n + b] / colSum[a] * seats[a];
+            var wb = Nations[b].World;
+            wb.SecurityThreat = total;
+            wb.SecurityThreatOwnMass = own[b];
         }
+        Cost[CostLedger.ThreatReachPairs] += pairs;   // 計算量の台帳（診断）：脅威の届き方の組（安全保障の不安＝四半期1回・同盟の組を除く）
     }
 
     // 外1：交易比重（TradeWeight）を貿易取扱高のシェアから四半期同期（A-中6 で GDP シェアから置き換え＝下の注記）。1789固定値だと1900年に経済覇権となった国を禁輸しても痛みが初期比重のまま＝関税報復/禁輸/国際価格形成の比重が化石化する問題を解く。

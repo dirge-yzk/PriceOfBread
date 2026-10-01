@@ -214,7 +214,7 @@ public static class ArmyShape
     }
 
     /// <summary>不穏度＝内向きに使われる軍の割合（大衆の闘争度×正統性の欠如）。★これが注意配分の分母に入り、列和を1未満にする。</summary>
-    private static double Unrest(Power p)
+    internal static double Unrest(Power p)   // internal＝安全保障の不安（MultiNationSim.StepSecurityThreat）が同じ注意配分の分母を読む
         => p.Nation is { } w ? PoliticalQuantities.Clamp01(Politics.AvgMassMilitancy(w) * (1.0 - w.Legitimacy)) : 0;
 
     /// <summary>軍の質（技術×結束×軍国）。⚠**装備充足と即応度を入れない**——入れると

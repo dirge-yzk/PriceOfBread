@@ -794,11 +794,11 @@ if (args.Length > 0 && args[0] == "armydump")
 {
     var ms0 = new MultiNationSim(WorldData.Nations(), 1789UL, _ => new UtilityAgent());
     var co0 = new PriceOfBread.SimCore.Coefficients();
-    System.Console.WriteLine("国名,初期兵,扶養限界の目標,GDP,軍事費,GDP当たり必要係数");
+    System.Console.WriteLine("国名,初期兵,定員,GDP,軍事費,GDP当たり必要係数");
     foreach (var sim0 in ms0.Nations)
     {
         var w0 = sim0.World; double sol = w0.SoldierSize();
-        double head = PriceOfBread.SimCore.Military.SustainTargetOf(w0, co0, out _);   // ★(145) 平時の目標＝扶養限界の目標（旧＝軍事費×上限割合×頭数の人頭均衡）
+        double head = PriceOfBread.SimCore.Military.EstablishmentOf(w0, co0, out _);   // ★(155) 定員（旧 (145)＝扶養限界の目標×軍拡の倍率）
         double need = w0.Gdp > 1e-9 && w0.MilitarySpending > 1e-9 ? sol / (w0.MilitarySpending * w0.Gdp) : 0;
         System.Console.WriteLine($"{w0.SelfPower?.Name},{sol:F1},{head:F1},{w0.Gdp:F0},{w0.MilitarySpending:F2},{need:F6}");
     }
@@ -1092,68 +1092,27 @@ if (args.Length > 0 && args[0] == "willprobe")
 
 if (args.Length > 0 && args[0] == "threatprobe")
 {
-    // 安保doc手順1-2（20260826_安全保障と戦略鉄道 §6・2026-08-30）：脅威の**観測層のみ**（配線ゼロ＝厳密恒等）。
-    //   脅威(B←A) ＝ max over Aの州 rA [ 経済質量(rA) × 1/(1 + 最近接距離(rA, Bの州)/ProximityTensionRange) ]
-    //   経済質量＝州人口×(1+工業化度)（既存量のみ・係数新設なし＝観測の物差し。形の確定は断面を見てから＝PowerAffinityの作法）。
-    //   確認点＝露→日が1890年代に上がる／英→米が低いまま／オスマンが露・英印から受ける。
+    // ★安全保障の不安（(155) 2026-10-02 作り直し）の読み手＝エンジンが四半期末に書いた値を読むだけ（旧＝旧の式〔州の質量×距離の最大の和〕の写し＝エンジンと食い違う計器だった）。
+    //   列＝受ける脅威（相手の養える軍のうち自国に向く注意配分の和・兵の頭数）・自国の養える軍の人口の側・脅威の割合（AI の軍事費の段と徴兵法の政治が読む）・AI の段の目標・軍事費の段・兵・定員。
+    //   使い方：threatprobe [四半期=524] [間隔=160]
     int thQ = ArgInt(args, 1, 524);
     int thEvery = ArgInt(args, 2, 160);
     var thm = new MultiNationSim(WorldData.Nations(), 1789UL, _ => new UtilityAgent());
     foreach (var nn in thm.Nations) nn.TelemetryEnabled = false;
     thm.Diplomacy.Log.Enabled = false;
     thm.StartWarmup();
-    var thc = new Coefficients();
     void ThSnap(int q)
     {
-        Console.WriteLine($"\n=== Q{q}（{1783 + q / 4}年）===");
-        int N = thm.Nations.Count;
-        var coords = new List<(int nat, double lat, double lon, double mass)>[N];
-        for (int i = 0; i < N; i++)
+        Console.WriteLine($"\n=== Q{q}（{thm.Year}年）国	受ける脅威	自国の養える軍	脅威の割合	段の目標	軍事費の段	兵	定員 ===");
+        var rows = new List<(string name, double t, double own, double x, double target, double stage, double sold, double seats)>();
+        foreach (var nn in thm.Nations)
         {
-            coords[i] = new List<(int, double, double, double)>();
-            var w = thm.Nations[i].World;
-            foreach (var r in w.Regions)
-            {
-                if (r.State != RegionState.Active) continue;
-                var cc = Climate.CityCoord(r.Name);
-                if (cc.Lat == 0 && cc.Lon == 0) continue;
-                coords[i].Add((i, cc.Lat, cc.Lon, r.SumPopulation() * (1.0 + r.TotalIndustrialization)));
-            }
+            var w = nn.World;
+            double seats = Military.EstablishmentOf(w, w.Coef, out _);
+            rows.Add((w.SelfPower?.Name ?? "?", w.SecurityThreat, w.SecurityThreatOwnMass, UtilityAgent.SecurityShare(w), UtilityAgent.SecurityStageTarget(w), w.MilitarySpending, w.SoldierSize(), seats));
         }
-        var rows = new List<(string a, string b, double threat, double km, double proj)>();
-        for (int a = 0; a < N; a++)
-        {
-            if (coords[a].Count == 0) continue;
-            var wa = thm.Nations[a].World;
-            double transA = wa.RailCapacity + wa.ShipCapacity;
-            for (int b = 0; b < N; b++)
-            {
-                if (a == b || coords[b].Count == 0) continue;
-                double best = 0, bestKm = 0;
-                foreach (var ra in coords[a])
-                {
-                    double dmin = double.MaxValue;
-                    foreach (var rb in coords[b])
-                    {
-                        double d = Geo.DistanceKm(ra.lat, ra.lon, rb.lat, rb.lon);
-                        if (d < dmin) dmin = d;
-                    }
-                    double v = ra.mass / (1.0 + dmin / thc.ProximityTensionRange);
-                    if (v > best) { best = v; bestKm = dmin; }
-                }
-                rows.Add((thm.Nations[a].World.SelfPower?.Name ?? "?", thm.Nations[b].World.SelfPower?.Name ?? "?", best, bestKm, transA));
-            }
-        }
-        Console.WriteLine("  脅威上位15（A→B＝Bが受ける・質量/(1+距離/3000km)・最寄り距離・Aの輸送容量）:");
-        foreach (var t in rows.OrderByDescending(x => x.threat).Take(15))
-            Console.WriteLine($"    {t.a}→{t.b}  {t.threat:F0}（{t.km:F0}km・輸送{t.proj:F0}）");
-        string[][] watch = [["ロシア", "日本"], ["イギリス", "アメリカ"], ["ロシア", "オスマン"], ["ロシア", "清"], ["ドイツ", "フランス"], ["プロイセン", "フランス"]];
-        Console.WriteLine("  確認点:");
-        foreach (var pr in watch)
-        {
-            var hit = rows.FirstOrDefault(x => x.a == pr[0] && x.b == pr[1]);
-            if (hit.a is not null) Console.WriteLine($"    {hit.a}→{hit.b}  {hit.threat:F0}（{hit.km:F0}km）");
-        }
+        foreach (var r in rows.OrderByDescending(x => x.x))
+            Console.WriteLine($"  {r.name}	{r.t:F1}	{r.own:F1}	{r.x:F3}	{r.target:F3}	{r.stage:F2}	{r.sold:F1}	{r.seats:F1}");
     }
     for (int q = 1; q <= thQ; q++)
     {
@@ -6664,7 +6623,7 @@ if (args.Length > 0 && args[0] == "natprobe")
         double invSav = 0;
         foreach (var r in w.Regions) { if (r.State != RegionState.Active) continue; foreach (var pp in r.Pops) if (pp.IsModernElite) invSav += Math.Max(0, pp.Savings); }
         double mpPool = 0;
-        double mpDesired = Military.SustainTargetOf(w, w.Coef, out _);   // ★(145) 平時の目標＝扶養限界の目標（州の和と一致）
+        double mpDesired = Military.EstablishmentOf(w, w.Coef, out _);   // ★(155) 定員（州の和と一致）
         foreach (var r in w.Regions)
         {
             if (r.State != RegionState.Active) continue;
@@ -6703,7 +6662,7 @@ if (args.Length > 0 && args[0] == "milprobe")
         if (ns is null) continue;
         var w = ns.World;
         Console.WriteLine($"── {w.Year} 軍事費{w.MilitarySpending:P0} 総兵{w.SoldierSize():F1} 即応{w.MilitaryReadiness:F2}");
-        double mprTarget = Military.SustainTargetOf(w, w.Coef, out double mprNat);   // ★(145) 平時の目標＝扶養限界の目標の州按分（エンジンと同じ1本）
+        double mprTarget = Military.EstablishmentOf(w, w.Coef, out double mprNat);   // ★(155) 定員の州按分（エンジンと同じ1本）
         foreach (var r in w.Regions)
         {
             double pa = 0, pb = 0, ss = -1;   // ss=-1＝兵士POPなし
@@ -6840,7 +6799,7 @@ if (args.Length > 0 && args[0] == "armyneed")
     {
         ansim.StepQuarter();
         if (ansim.Year < anMarks[anMi]) continue;
-        Console.WriteLine($"━━ {ansim.Year} 国	NeedMen	現兵	軍事費	装備afford	扶養限界	倍率	目標 ━━");
+        Console.WriteLine($"━━ {ansim.Year} 国	NeedMen	現兵	軍事費	装備afford	定員 ━━");
         var needSnapshot = new Dictionary<string, double>();
         foreach (var nm in anWatch)
         {
@@ -6848,20 +6807,10 @@ if (args.Length > 0 && args[0] == "armyneed")
             if (ns is null) continue;
             var w = ns.World; var sp = w.SelfPower!;
             var home = w.Region;
-            // 扶養限界方式（作者設計2026-08-08）：限界・倍率・目標＝点火前でも純関数で検分できる
-            double ownLimit = Military.SustainLimitOf(w, w.Coef, out _);
-            double rivalMax = 0;
-            foreach (var rp in ansim.Diplomacy.Powers)
-            {
-                if (rp == sp || rp.Nation is not { } rw) continue;
-                if (ansim.Diplomacy.Tension(sp, rp) < w.Coef.ArmsRaceTensionFloor) continue;
-                double rl = Military.SustainLimitOf(rw, rw.Coef, out _);
-                if (rl > rivalMax) rivalMax = rl;
-            }
-            double mod = ownLimit > 1e-9 && rivalMax > 1e-9 ? Math.Clamp(rivalMax / ownLimit, w.Coef.ArmsRaceLow, w.Coef.ArmsRaceHigh) : w.Coef.ArmsRaceLow;
-            double target = ownLimit * mod;
-            needSnapshot[nm] = target;   // 順位相関は扶養限界目標で取る（旧＝NeedMen）
-            Console.WriteLine($"{nm}	{sp.NeedMen:F0}	{w.SoldierSize():F0}	{w.MilitarySpending:P0}	{home.MilitaryAffordRaw:F2}	{ownLimit:F0}	×{mod:F2}	{target:F0}");
+            // ★(155) 定員（制度が開く席の数＝払える予算÷1人あたりの費用と徴兵法の割当ての小さい方）＝純関数で検分できる（旧＝扶養限界×軍拡の倍率は削除）
+            double target = Military.EstablishmentOf(w, w.Coef, out _);
+            needSnapshot[nm] = target;   // 順位相関は定員で取る（旧＝NeedMen）
+            Console.WriteLine($"{nm}	{sp.NeedMen:F0}	{w.SoldierSize():F0}	{w.MilitarySpending:P0}	{home.MilitaryAffordRaw:F2}	{target:F0}");
         }
         if (ansim.Year >= 1913)
         {
@@ -6872,7 +6821,7 @@ if (args.Length > 0 && args[0] == "armyneed")
             double d2 = pairs.Sum(x => Math.Pow(needRank[x.Name] - histRank[x.Name], 2));
             int nn = pairs.Count;
             double rho = nn >= 3 ? 1.0 - 6.0 * d2 / (nn * (double)(nn * nn - 1)) : 0;
-            Console.WriteLine($"順位相関（扶養限界目標 vs 史実常備軍・{nn}カ国）ρ = {rho:F2}（点火のblockingゲート ≥0.7）");
+            Console.WriteLine($"順位相関（定員 vs 史実常備軍・{nn}カ国）ρ = {rho:F2}（点火のblockingゲート ≥0.7）");
         }
         Console.WriteLine();
         anMi++;
@@ -7159,7 +7108,7 @@ if (args.Length > 0 && args[0] == "classprobe")
                     var p = r.Pops[pi];
                     if (p.Size <= 1e-9) continue;
                     int cls = Meritocracy.ClassOf(r, pi);
-                    if (cls < 0) { tot += p.Size; continue; }   // 兵士は分母（総人口）のみ
+                    if (cls < 0 || p.IsSoldier) { tot += p.Size; continue; }   // 兵士は分母（総人口）のみ（★(155) ClassOf は兵士を下流の職に数える＝この計器は旧の物差しのまま兵士を外す）
                     double emp = p.Size * (1.0 - p.UnemploymentRate);
                     if (cls == 2) up += emp; else if (cls == 1) mid += emp; else low += emp;
                     unemp += p.Size * p.UnemploymentRate;

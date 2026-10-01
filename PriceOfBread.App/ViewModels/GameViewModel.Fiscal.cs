@@ -319,7 +319,9 @@ public partial class GameViewModel
         double interest = _player.GovDebt * _player.GovBondRate / (double)Calendar.MonthsPerYear;
         // ★予測はエンジンが実際に施行する目標を読む（2026-09-12 反証・接14と同じ作法＝UIに第二の式を置かない）。
         //   旧は生の陸海の和（Policy.MilitarySpendingTarget）で、段（R2）では段へ丸められる前の値＝開幕0.30に対し施行は段1の0.25＝予測が**2割過大**だった。
-        double mil = Government.MilitaryTotalTarget(_player, _player.Policy) * c.MilitaryRevenueShare * net;
+        // ★(155) 軍事費の器（段×MilitaryEnvelopeShare×使える歳入＝エンジンの Military.EnvelopeOf と同じ基数）から給与を先に引いた残り＝装備と質の上限
+        //   （エンジンの吸い込みと同じ順・必要額で切る前＝上限の予測＝使い切れない器は実効に出ない）。旧＝段×MilitaryRevenueShare×税の予測（装備の上限）。
+        double mil = System.Math.Max(0, Government.MilitaryTotalTarget(_player, _player.Policy) * c.MilitaryEnvelopeShare * System.Math.Max(0, _player.SpendableRevenue()) - _player.LastSoldierPay);
         double admin = c.AdminBudgetFrac * _player.Policy.AdminSpendingTarget * net * Fiscal.AdminDistanceMean(_player);   // 州の距離の割増の平均＝エンジンの行政の請求と同じ1本（2026-09-30 (135)）
         double welCap = c.WelfareRevenueShare * _player.FiscalCapacity;   // 裁量余剰の上限（請求の上限＝エンジンの Fiscal と同じ式・借入スタックの出費上限は 2026-09-28 に撤去）
         double wel = System.Math.Min(c.WelfareCostRate * _player.Policy.SocialSecurityTarget * massSize, welCap);

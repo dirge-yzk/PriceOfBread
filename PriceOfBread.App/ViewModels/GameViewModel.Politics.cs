@@ -823,7 +823,7 @@ public partial class GameViewModel
         }
         bool wartimeConscript = atWar && _player.ConscriptionLaw >= ConscriptionLaw.Selective;   // Military.cs:187 と同式（M1 2026-09-19＝総動員は志願兵制を迂回しない）
         double lawFrac = _player.ConscriptionLaw == ConscriptionLaw.Universal ? c.UniversalConscriptionFactor : 1.0;
-        double sustainTargetNat = Military.SustainTargetOf(_player, c, out double natMan);   // (145) 平時の目標＝扶養限界の目標そのもの
+        double sustainTargetNat = Military.EstablishmentOf(_player, c, out double natMan);   // (155) 平時の目標＝定員（制度が開く席の数）
         double total = 0, now = 0, manTotal = 0;
         foreach (var rg in _player.Regions)
         {

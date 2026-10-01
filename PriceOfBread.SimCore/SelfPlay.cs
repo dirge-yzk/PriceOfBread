@@ -415,6 +415,26 @@ public sealed class UtilityAgent : INationAgent
         return s >= 0 ? (s <= 1 ? s : 1.0) : (s < 0 ? 0 : 1.0);   // 否定形ガード＝NaN は逼迫側（1）
     }
 
+    /// <summary>★脅威の割合∈[0,1)（2026-10-02 (155)）＝安全保障の不安（届く敵意の養える軍の和＝<see cref="World.SecurityThreat"/>）÷(それ＋自国の養える軍の人口の側＝<see cref="World.SecurityThreatOwnMass"/>)
+    /// ＝新兵器の必要性の脅威の割合（必要量÷(必要量＋自国の力)・Discovery）と同じ形（有界＝上下を切らない）。小国が大国の隣で感じる不安は1へ近づき、周りに養える軍の少ない国（開国前の日本・清）は0へ近づく。
+    /// 定まらない（単一国・分母0・NaN）は0。</summary>
+    internal static double SecurityShare(World w)
+    {
+        double t = w.SecurityThreat, own = w.SecurityThreatOwnMass;
+        double x = t / (t + own);
+        return x >= 0 && x <= 1 ? x : 0;
+    }
+
+    /// <summary>★AI の軍事費の段の目標＝安全保障の不安の唯一の入口（2026-10-02 (155)・作者 2026-10-01＝脅威の入口を軍事費の段の1つにする案に異議なし・推奨で進めた）。
+    /// 目標＝平時の段の幅（最下段 段1〜平時の最上段 段3＝戦時経済の段4 の手前）を脅威の割合（<see cref="SecurityShare"/>）で内分＝不安のない国は段1・届く敵意が自国の養える軍と同じなら段2・
+    /// 圧倒されるほど段3 へ近づく。段への丸めと1段ずつの登坂と戦時経済の門（総動員）は法の門（Government・GateAllLawTargets）が掛ける＝ここで上下を切らない（思想⑧＝割合が有界）。
+    /// 不安が定まらない世界（単一国）は割合0＝最下段（旧の既定 0.25 と同じ段）。旧＝既定 0.25・軍備スタンスで 0.7（脅威は緊張・植民地防衛・生存の効用を通ってスタンスの2値で入った）。</summary>
+    internal static double SecurityStageTarget(World w)
+    {
+        double lo = 1.0 / Government.MilitaryLawStages, hi = (Government.MilitaryLawStages - 1.0) / Government.MilitaryLawStages;   // 段1（0.25）〜段3（0.75）
+        return lo + (hi - lo) * SecurityShare(w);
+    }
+
     // スタンス選択（DecideQuarter から抽出＝挙動同一）：状況（技術差・工業化余地・不満・国庫・脅威）への効用で最良の政策姿勢を選ぶ。
     private static Stance ChooseStance(World w) => ChooseStance(w, out _);
 
@@ -531,8 +551,8 @@ public sealed class UtilityAgent : INationAgent
         // ★民間の武器購入の法（設計メモ§7 (a)・2026-09-11）：票を持たない大衆から武器を取り上げる＝男子普選前は禁止・普選後は許可
         //   （英1819六法→普選期の解禁／FactionStrength の発言権と同じ物差し＝新しい閾値を作らない）。AI/プレイヤー対称（同じ1本の法）。ゲート0＝目標を書かない＝恒等。
         if (w.Coef.RebelArmsMarketEnabled > 0) p.CivilianArmsBan = w.Suffrage < Suffrage.AdultMale;
-        p.ConscriptionLaw = (s == Stance.Militarize || atWar) ? ConscriptionLaw.Selective
-            : (w.Suffrage >= Suffrage.AdultMale ? ConscriptionLaw.Volunteer : p.ConscriptionLaw);   // 常備軍志向＝徴兵制／平時の自由民主国＝小さな職業軍（英米型）。他は現状維持
+        p.ConscriptionLaw = (SecurityShare(w) >= 0.5 || atWar) ? ConscriptionLaw.Selective
+            : (w.Suffrage >= Suffrage.AdultMale ? ConscriptionLaw.Volunteer : p.ConscriptionLaw);   // ★(155) 徴兵法の政治＝安全保障の不安（届く敵意の養える軍が自国の養える軍以上＝脅威の割合が半分以上）か交戦中＝徴兵制／平時の自由民主国で不安が半分未満＝小さな職業軍（英米型）。他は現状維持（旧＝軍備スタンス＝脅威は効用を通って間接に）
         if (w.Suffrage >= Suffrage.AdultMale) p.SecretBallot = SecretBallotLaw.Secret;   // 大衆選挙＝買収・威圧の排除が票の実在に直結
         if (w.AdminEfficiency > ProfessionalBureaucracyAdminThreshold) p.Bureaucracy = BureaucracyLaw.Professional;   // 行政力が育った国＝専門官僚制へ（プロイセン文官改革）
         if (w.MeanIndustrialization > AntitrustIndThreshold)
@@ -737,7 +757,7 @@ public sealed class UtilityAgent : INationAgent
                 if (mDip.SideMilitary(foe, mSelf, w.Coef) > mDip.SideMilitary(mSelf, foe, w.Coef) * MobilizeOutmatchRatio)
                     mOutmatched = true;
             }
-            if (!mAtWar) w.Mobilized = false;                                          // 講和＝復員（既存機構＝徴兵深度が平時へ・離職は DischargeToPool）
+            if (!mAtWar) w.Mobilized = false;                                          // 講和＝復員（既存機構＝徴兵深度が平時へ・定員を超えた兵は転職の仕組みが民間の職へ戻す＝Meritocracy の ⑦・(155)）
             else if (mOutmatched || mLosing > MobilizeLosingScore) w.Mobilized = true; // 劣勢/存亡＝総動員（levée en masse 1793・独ソの総力戦動員の型）
         }
         Apply(w, ChooseStance(w));
@@ -1133,7 +1153,7 @@ public sealed class UtilityAgent : INationAgent
         //   梯子の順＝史実の物品税の財（酒・煙草・茶・コーヒー・石鹸）→奢侈品→日用品→主食→役務（2026-09-30 (127)）。教義の段はこの広さの**床**
         //   ＝末尾の財政の規律が今の広さから広げ・保ち・狭める（新しい数も新しい状態変数も作らない＝今の広さは World.StateMonopolyTier の導出）。
         int stateMonopTier = 0;                // 既定＝非課税（旧 Policy.StateMonopolyTarget の開始0と同じ場所）
-        p.MilitarySpendingTarget = 0.25; // 既定＝中庸の常備軍。軍備スタンスで増（軍隊規模＝兵士POP数＝国力の軍項）
+        p.MilitarySpendingTarget = SecurityStageTarget(w);   // ★(155) 軍事費の段＝安全保障の不安の唯一の入口（旧＝既定 0.25・軍備スタンスで 0.7＝脅威は緊張・植民地防衛・生存の効用を通ってスタンスの2値で入った）
         p.Censorship = CensorshipLaw.FreePress;    // 既定＝自由化を目指す（革新↑だが政治意識↑）。政治ゲートが可否を決める（旧支配層が抵抗）
         p.LaborUnion = LaborUnionLaw.Tolerated;    // 既定＝労働組合の容認を目指す（不満緩和だが出力↓・資本が抵抗）。軍備スタンスは統制へ戻す
         p.WorkHours = WorkHours.Twelve;            // 既定＝12時間（LaborFatiguePenalty で12hが産出最適＝無制限14hより産出多。福祉スタンスは Ten/Eight へ短縮）。無制限放置の愚行を解消
@@ -1185,7 +1205,7 @@ public sealed class UtilityAgent : INationAgent
                 p.CoercionTarget = 4000;   // 治安維持力目標↑。※実ゲーム（多国）では CoercionFollowsForce=true が毎期 兵数×即応度 から再導出・上書きするため実効なし＝この書き込みが生きるのは単一Simulationのテストのみ（監査2026-07-12 死11の注記＝「革命抑止」はここでなく軍事費0.7→兵数増経由で効く）
                 // ⚠墓標2026-08-08：ここには「脅威に応じて軍事費を連続化する」(MilitarizeSpendThreatSpan) があったが、
                 //   A/B実測で棄却され**再点火禁止**（「形が先・金が後」が代替）。★実装は 2026-08-12 に撤去（11行）。
-                p.MilitarySpendingTarget = 0.7;   // 軍事費↑→兵士POP↑→Power.Military↑＝国力の軍隊項（要・財源）
+                // 【削除2026-10-02 (155)】p.MilitarySpendingTarget = 0.7（軍備スタンスの軍事費）＝軍事費の段は安全保障の不安の唯一の入口（上の SecurityStageTarget・作者 2026-10-01 に異議なし）。
                 p.AdminSpendingTarget = 0.5;
                 p.IncomeTaxTarget = 0.25;                       // 大軍を養う財源
                 p.PollTaxTarget = 0.4;   // 戦費＝人頭税と専売（治安維持力で不満を抑え込む賭け）

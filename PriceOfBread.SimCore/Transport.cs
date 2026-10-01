@@ -28,7 +28,7 @@ public static class Transport
             target = target * (1.0 - c.TransportPotentialWeight) + pot * c.TransportPotentialHeadroom * c.TransportPotentialWeight;
         }
         // ★安保doc手順3（2026-08-30点火＝既定1.0）：国防の目的関数＝受けている脅威が大きいほど目標容量を積む（戦略鉄道の一般化＝路線を1本も定義しない）。
-        //   脅威比＝前期の SecurityThreat/自国質量（無次元）。target×(1+k×脅威比)＝民間項（上）に**乗せるだけ**＝どの路線かは書かない。
+        //   脅威比＝前期の SecurityThreat/SecurityThreatOwnMass（無次元・★(155) 安全保障の不安＝届く敵意の養える軍÷自国の養える軍）。target×(1+k×脅威比)＝民間項（上）に**乗せるだけ**＝どの路線かは書かない。
         //   ⚠正のフィードバック（鉄道→脅威→鉄道）は国庫の有限性だけが歯止め。0＝この分岐を通らない＝厳密恒等。
         if (c.ThreatRailTargetWeight > 0 && w.SecurityThreatOwnMass > 1e-9)
         {

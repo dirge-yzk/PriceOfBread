@@ -1029,6 +1029,7 @@ public sealed class World
     public double LastInterest { get; internal set; }      // 診断：直近四半期の利払い
     public double LastWelfareCost { get; internal set; }   // 社会保障の給付の請求（r を掛ける前・2026-09-28 から＝旧は実支出）。翌月の月初の請求の見込み（Simulation）と予算表が読む
     public double LastMilitaryClaim { get; internal set; } // 診断：直近四半期の軍需調達予算（軍事費×歳入シェア）
+    public double MilitaryTrainingFill { get; internal set; }   // ★(155) その月の訓練の充足∈[0,1]＝軍事費の器の3段目（幹部の給与）の請求÷必要額（給与の満額×MilitaryCadrePayRatio）。書き手は月初の予算（Simulation）だけ・読み手＝熟練（Military.StepSkill・同じ月の後段）と計器。月ごとに作り直す作業の値（持ち越さない）
     public double LastSoldierPay { get; internal set; }     // 兵士給与の月次請求書（Σ兵数×民間賃金×SoldierPayMult・全州）。形が先・金が後 段0＝FiscalBufferOf の義務算入（FiscalBufferSoldierPayWeight）と armyneed プローブが読む
     public double LastAdminClaim { get; internal set; }    // 診断：直近四半期の行政調達予算（行政費×歳入シェア）
     public double LastPensionCost { get; internal set; }   // 年金の給付の請求（r を掛ける前・2026-09-28 から＝旧は実支出）。翌月の月初の請求の見込み（Simulation）と予算表が読む
@@ -1309,11 +1310,15 @@ public sealed class World
         if (Diplomacy is { } d) foreach (var s in PendingLog) d.Log.Add(s);
         PendingLog.Clear();
     }
-    // ★安保doc手順3（20260826_安全保障と戦略鉄道 §3-1・2026-08-30）：受けている脅威の総量（四半期・書き手は MultiNationSim.StepSecurityThreat のみ）。
-    //   脅威(自国←A)＝max over Aの州 [州質量×1/(1+最近接距離/ProximityTensionRange)] の全A合計。質量＝人口×(1+工業化度)。
-    //   ⚠閉路禁止（doc 4-1）＝読み手（Transport の目標）は**前期に書かれた値**を読む（四半期末に書き、翌期の月次 Transport が読む）。
+    // ★安全保障の不安（画面と docs の名前・作者 2026-10-01「「脅威度」は、自身の与えている脅威とも思える…なので「安全保障の不安」でよいと思う。出すとしても軍事タブの一部なので、
+    //   短さよりも正確性を重視したい」・エンジンの識別子は SecurityThreat のまま）＝国が周辺国からどの程度の脅威を感じているか（四半期・書き手は MultiNationSim.StepSecurityThreat のみ）。
+    //   ★2026-10-02 (155) 作り直し（推奨で進めた）：脅威(自国←A)＝敵意（同盟0・宗主と属国の間×0.3＝ArmyShape.Hostility）×届き方（国境の長さと地形〔植民地の国境を含む〕＋投射〔距離と海越えの制海権〕の
+    //   有理飽和＝(151) の理想の軍隊の形と脅威の緊張と同じ物差し）×A の養える軍（定員＝Military.EstablishmentOf＝選んだ軍事費の段と歳入と人口の側）の和（兵の頭数）。
+    //   相手の今の兵数（戦時の徴兵の跳ね）は読まない。旧（2026-08-30）＝A の州の経済質量（人口×(1+工業化度)）÷(1+最近接距離/3000km) の最大の和（同盟も宗主も同じ・国境と海を読まない）。
+    //   ⚠閉路禁止（doc 4-1）＝読み手（Transport の目標・AI の軍事費の段）は**前期に書かれた値**を読む（四半期末に書き、翌期に読む）。
     public double SecurityThreat;
-    public double SecurityThreatOwnMass;   // 自国の総質量（脅威比の分母＝無次元化。0なら脅威項は不発＝否定形ガード）
+    public double SecurityThreatOwnMass;   // 自国の養える軍の人口の側（兵役の母数×MaxSoldierFraction＝軍事費の段に依らない＝不安が自分の段で動かない）＝脅威比の分母（0なら脅威項は不発＝否定形ガード）。旧＝自国の総質量
+    //   ★(155) 脅威の割合＝脅威÷(脅威＋自国の養える軍)∈[0,1)（UtilityAgent.SecurityShare＝導出・持たない）＝AI の軍事費の段と徴兵法の政治が読む。世界の中央との比（作者のメモ M4 の表示）は UI の回で（導出・持たない）。
     public Power? SelfPower { get; internal set; }             // 多国シミュ：この国の外交上の代表（植民地・交戦の主体）
     public bool StepsDiplomacy { get; internal set; } = true;  // 自前で外交を進めるか（多国では MultiNationSim が共有外交を進める＝false）
     // ★旧 NavalEmphasis（海軍偏重の政策スタンス0..1）は撤去（2026-08-10 作者裁定「陸軍と海軍の注力レバーは廃止し、海軍維持費と陸軍維持費で表現する」）。

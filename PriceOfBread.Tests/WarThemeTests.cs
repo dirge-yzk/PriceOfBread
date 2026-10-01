@@ -355,6 +355,11 @@ public class WarThemeTests
         var c = sim.Coef;
         c.WarDeclareTension = 1e9;   // 自発的な宣戦を止める（戦線は手で立てる）
         sim.Run(20);                 // 兵士POP・国庫・海軍が立つまで
+        // ★盤面の直し（2026-10-02 (155)・主張は同じ）：20四半期の後に3国のどれかが内戦の最中（戦死の計器が内戦の側でも呼ばれる＝4回）か他の戦争があると、
+        //   戦死の計器の呼び出しの数（交戦国ごとに1回＝3回）が偶然に乗る＝内戦と戦争が終わり3国に戻るまで四半期を足す（上限20・OneFront と同じ作法）。
+        for (int extra = 0; extra < 20 && (sim.Diplomacy.Wars.Count > 0 || sim.Nations.Count != 3 || sim.Nations.Exists(n => n.World.InCivilWar)); extra++) sim.StepQuarter();
+        Assert.True(sim.Diplomacy.Wars.Count == 0 && sim.Nations.Count == 3 && !sim.Nations.Exists(n => n.World.InCivilWar), "前提が崩れた：内戦か戦争が終わらない");
+        foreach (var n in sim.Nations) n.World.SelfPower!.WarExhaustion = 0;   // 前の戦争・内戦の厭戦が残ると開いた月に講和する（OneFront と同じ作法＝測る押しの外の量を0から）
         c.SeaInvasionControlMin = 0; // 上陸ゲートを恒等へ（測るのは押しの通り道で、上陸の可否ではない）
         c.WarLuck = 0; c.TrenchDefenseWeight = 0;
         var fr = sim.Nations[0].World.SelfPower!; var br = sim.Nations[1].World.SelfPower!; var am = sim.Nations[2].World.SelfPower!;

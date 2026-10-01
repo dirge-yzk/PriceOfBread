@@ -261,7 +261,7 @@ public class MilitaryTests
             var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
             var w = sim.World;
             w.Coef.RuleSharesTaxBase = g;
-            w.Coef.SustainMilShare = 1e9;   // ★(145) 平時の目標＝扶養限界の目標＝人口の側（上限割合×母数）で読む（経済の側が律速にならない）
+            w.Coef.MilitaryEnvelopeShare = 1e9;   // ★(155) 定員＝人口の側（上限割合×母数）で読む（払える予算が律速にならない）
             foreach (var r in w.Regions) r.Rule = [0.5, 0.0, 0.5, 0.0];   // 国家区分5割・在地区分0（村請け無し）＝届き方 0.5
             double before = w.SoldierSize();
             Military.Step(w, w.Coef, atWar: false);
@@ -436,44 +436,39 @@ public class MilitaryTests
                             a[0] += 0.25; a[1] += 0.25;   // 0〜9歳の男女
                             p.Ages = a; p.Size *= 2;
                         }
-            return (Military.RecruitWage(cap, c, last: true), Military.SustainLimitOf(w, c, out _));
+            return (Military.RecruitWage(cap, c, last: true), Military.EstablishmentOf(w, c, out _));
         }
         var a0 = Arm(false); var a1 = Arm(true);
         Assert.True(a0.wage > 0 && a0.sustain > 0, $"前提が崩れた：賃金 {a0.wage}・扶養限界 {a0.sustain}");
         Assert.True(Math.Abs(a1.wage - a0.wage) <= 1e-9 * a0.wage, $"子供が増えると兵の賃金が動いた（{a0.wage} → {a1.wage}）");
-        Assert.True(Math.Abs(a1.sustain - a0.sustain) <= 1e-9 * a0.sustain, $"子供が増えると扶養限界が動いた（{a0.sustain} → {a1.sustain}）");
+        Assert.True(Math.Abs(a1.sustain - a0.sustain) <= 1e-9 * a0.sustain, $"子供が増えると定員（払える予算÷1人あたりの費用）が動いた（{a0.sustain} → {a1.sustain}）");
     }
 
-    /// <summary>★(144) 合流（反証の指摘＝分子と分母の非対称）：兵役の母数（兵の目標 Step と扶養限界 SustainLimitOf の人口の側）は**徴兵で動かない**
+    /// <summary>★(144) 合流（反証の指摘＝分子と分母の非対称）：兵役の母数（定員 EstablishmentOf の人口の側と州への按分＝<see cref="Military.RegionManpower"/>）は**徴兵で動かない**
     /// ＝徴募元の項（働き盛りの男＝<see cref="Military.RecruitMen"/>・(145) で男16〜59歳の実数へ）と現兵士の項が同じ単位（兵士も RecruitMen）。
     /// 旧（(142) 4e-2b の段）＝兵士を頭数のまま足した＝男を1人徴兵すると徴募元の項が約6.9 減り兵士の項は1しか増えない＝母数が徴兵のたびに細った。
-    /// 盤面＝仏の双子（同じ種で1四半期・経済の側を外す＝平時の目標＝扶養限界の人口の側＝上限割合×母数×軍拡の倍率・(145)）。片方だけ首都の農民から男20〜39 を3割徴兵（MoveCohort）してから
-    /// 扶養限界の母数と、兵の目標（Step の1回＝兵数の変化÷率＋兵数）を読む＝2つの腕で一致する。
-    /// ⚠突然変異「兵士を頭数のまま」（Step・扶養限界のどちらか）で赤（(144) の単位＝徴募元は男20〜39÷0.145）。
-    /// ★(149) 反証の指摘：(145) の後は兵士POP の全員が働き盛りの男＝頭数と RecruitMen が同じ値＝この変異はもう赤にならない。
-    ///   今の単位で赤になる変異＝徴募元と兵士の数え方がずれるもの（例＝兵士を規模×標準の構成の働き盛りの男の割合〔0.2765〕で数える＝男を1人徴兵すると徴募元が1減り兵士の項は約0.28 しか増えない＝(149) の突然変異 H3）。</summary>
+    /// 盤面＝仏の双子（同じ種で1四半期）。片方だけ首都の農民から男20〜39 を3割徴兵（MoveCohort）してから、国の母数（定員の人口の側の分母）と首都の州の母数（州への按分の分子）を読む＝2つの腕で一致する。
+    /// ★(155)：旧は Step の1回の兵数の変化から目標を逆算した（平時の目標へ寄せる専用の経路）＝その経路は削除（兵士は転職の仕組みの職）＝母数そのものを読む。
+    /// 今の単位で赤になる変異＝徴募元と兵士の数え方がずれるもの（例＝兵士を規模×標準の構成の働き盛りの男の割合〔0.2765〕で数える＝(149) の突然変異 H3）。</summary>
     [Fact]
     public void 兵役の母数は徴兵で動かない_兵士も徴募元と同じ単位で数える()
     {
-        (double natMan, double target) Arm(double draftFrac)
+        (double natMan, double capMan) Arm(double draftFrac)
         {
             var sim = new Simulation(NationConfig.France().ToScenario(17), new NullAgent());
             sim.Run(1);
             var w = sim.World; var c = w.Coef; var cap = w.Region;
-            c.SustainMilShare = 1e9;   // ★(145) 平時の目標＝扶養限界の目標＝人口の側（上限割合×母数×軍拡の倍率）で読む（経済の側が律速にならない＝母数だけを読む）
             var sld = cap.Pops[cap.SoldierPopIndex];
             Pop? pool = null; foreach (var p in cap.Pops) if (!p.IsSoldier && p.ClassId == c.SoldierRecruitClassA) { pool = p; break; }
             Assert.True(pool is not null && pool.Size > 0 && sld.Size > 0, "前提が崩れた：首都に農民か兵士がいない");
             if (draftFrac > 0) Military.MoveCohort(pool!, sld, draftFrac * pool!.Size * pool.AgeShare(20, 40, 0), c);
-            Military.SustainLimitOf(w, c, out double nm);
-            double s0 = sld.Size;
-            Military.Step(w, c, atWar: false);
-            return (nm, s0 + (sld.Size - s0) / c.SoldierMigrationRate);   // Step の目標（兵数の変化＝率×(目標−兵数)）
+            Military.EstablishmentOf(w, c, out double nm);
+            return (nm, Military.RegionManpower(cap, c));
         }
         var a = Arm(0); var b = Arm(0.3);
-        Assert.True(a.natMan > 0 && a.target > 0, $"前提が崩れた：母数 {a.natMan}・目標 {a.target}");
-        Assert.True(System.Math.Abs(b.natMan - a.natMan) <= 1e-9 * a.natMan, $"徴兵で扶養限界の母数が動いた（{a.natMan} → {b.natMan}）＝兵士と徴募元の単位が違う");
-        Assert.True(System.Math.Abs(b.target - a.target) <= 1e-9 * a.target, $"徴兵で兵の目標が動いた（{a.target} → {b.target}）＝兵士と徴募元の単位が違う");
+        Assert.True(a.natMan > 0 && a.capMan > 0, $"前提が崩れた：国の母数 {a.natMan}・首都の母数 {a.capMan}");
+        Assert.True(System.Math.Abs(b.natMan - a.natMan) <= 1e-9 * a.natMan, $"徴兵で国の母数が動いた（{a.natMan} → {b.natMan}）＝兵士と徴募元の単位が違う");
+        Assert.True(System.Math.Abs(b.capMan - a.capMan) <= 1e-9 * a.capMan, $"徴兵で首都の州の母数が動いた（{a.capMan} → {b.capMan}）＝兵士と徴募元の単位が違う");
     }
 
     /// <summary>★国家の調達（補給財・侵攻の物資・海軍の燃料＝Colonial.BuyUpkeepGood）の代金は、その財の生産者の④の持分（地代・国営持分・賃金）へ。旧＝本国の全POP へ頭数。
@@ -548,19 +543,20 @@ public class MilitaryTests
 
     // ===== (145) 兵の単位（2026-10-01）の番人 =====
 
-    /// <summary>★(145)：平時の兵の目標は扶養限界の目標**そのもの**で、州への按分の分子（州の母数）と分母（国の母数）が同じ規則（<see cref="Military.RegionManpower"/>）
-    /// ＝州の目標の和が国の目標（<see cref="Military.SustainTargetOf"/>）に一致する。
-    /// 旧＝0.75×軍事費の段×上限割合×母数＋0.25×扶養限界の按分・按分の分母だけが国民意識で割り引かれた（N4）＝和が 1÷平均の国民意識 倍（清で約12倍）。
-    /// 盤面＝仏（1四半期・平時）＝Step の1回の兵数の変化から州の目標を読み（変化＝率×(目標−兵数)）、和を国の目標と比べる。
-    /// ⚠突然変異「扶養限界の国の母数を国民意識で割り引く（旧 N4）」「平時の目標に軍事費の段の項を戻す」で赤。</summary>
+    /// <summary>★(155)（旧 (145) の「平時の兵の目標は扶養限界の目標そのもの」の後継）：徴兵制の国は平時に**定員の州按分へ強制で寄せる**（兵士だけの差分＝徴兵は強制で席を埋める）。
+    /// 州への按分の分子（州の母数）と分母（国の母数）が同じ規則（<see cref="Military.RegionManpower"/>）＝州の席の和が国の定員（<see cref="Military.EstablishmentOf"/>）に一致する。
+    /// 盤面＝仏（徴兵制〔選抜〕・1四半期・平時・器と上限割合を大きくして全ての州で兵が席より少ない＝寄せる向きだけ）＝Step の1回の兵数の変化から州の席を読み（変化＝率×(席−兵数)）、和を国の定員と比べる。
+    /// ⚠突然変異「国の母数を国民意識で割り引く（旧 N4）」「席を軍拡の倍率で掛ける（旧）」で赤。</summary>
     [Fact]
-    public void 平時の兵の目標は扶養限界の目標そのもので州の和が国の目標に一致する()
+    public void 徴兵制は平時に定員の州按分へ強制で寄せ州の席の和が国の定員に一致する()
     {
         var sim = new Simulation(NationConfig.France().ToScenario(17), new NullAgent());
         sim.Run(1);
         var w = sim.World; var c = w.Coef;
-        double target = Military.SustainTargetOf(w, c, out double natMan);
-        Assert.True(target > 0 && natMan > 0, $"前提が崩れた：目標 {target}・母数 {natMan}");
+        w.ConscriptionLaw = ConscriptionLaw.Selective;
+        c.MaxSoldierFraction *= 3; c.MilitaryEnvelopeShare = 1e9;   // 席を今の兵より多く（全ての州で寄せる向き）
+        double seats = Military.EstablishmentOf(w, c, out double natMan);
+        Assert.True(seats > 0 && natMan > 0, $"前提が崩れた：定員 {seats}・母数 {natMan}");
         var s0 = new Dictionary<Region, double>();
         foreach (var r in w.Regions)
             if (r.State == RegionState.Active)
@@ -570,15 +566,38 @@ public class MilitaryTests
         foreach (var (r, before) in s0)
         {
             double after = 0; foreach (var p in r.Pops) if (p.IsSoldier) { after = p.Size; break; }
+            Assert.True(after > before, $"前提が崩れた：{r.Name} で兵が増えない（席が今の兵より少ない）");
             sum += before + (after - before) / c.SoldierMigrationRate; n++;
         }
         Assert.True(n > 1, "前提が崩れた：兵士POPのある州が1つ以下");
-        Assert.True(Math.Abs(sum - target) <= 1e-9 * target, $"州の目標の和 {sum} ≠ 国の目標（扶養限界の目標） {target}");
+        Assert.True(Math.Abs(sum - seats) <= 1e-9 * seats, $"州の席の和 {sum} ≠ 国の定員 {seats}");
+    }
+
+    /// <summary>★(155)：志願制の国は Military.Step が兵を強制で集めない（席は転職の仕組みが埋める＝Meritocracy の ⑦・志願は失業プールの職の選択）。
+    /// 盤面＝仏の双子（器と上限割合を大きくして席＞兵）＝志願制は平時に1か月の Step で兵数が1ビットも動かない・徴兵制は増える。
+    /// ⚠突然変異「志願制も強制で集める」で赤。</summary>
+    [Fact]
+    public void 志願制はMilitaryで兵を強制で集めず徴兵制だけが席を強制で埋める()
+    {
+        double Arm(ConscriptionLaw law)
+        {
+            var sim = new Simulation(NationConfig.France().ToScenario(17), new NullAgent());
+            sim.Run(1);
+            var w = sim.World; var c = w.Coef;
+            w.ConscriptionLaw = law;
+            c.MaxSoldierFraction *= 3; c.MilitaryEnvelopeShare = 1e9;
+            double before = w.SoldierSize();
+            Military.Step(w, c, atWar: false);
+            return w.SoldierSize() - before;
+        }
+        double vol = Arm(ConscriptionLaw.Volunteer), sel = Arm(ConscriptionLaw.Selective);
+        Assert.Equal(0.0, vol);
+        Assert.True(sel > 0, $"徴兵制で席を埋めていない（増え {sel}）");
     }
 
     /// <summary>★(145)（分子と分母を同じ規則で＝単位をそろえる）：扶養限界の経済の側の兵1人の費用＝賃金（名目）＋装備（参照価格×自己費用の物価水準＝名目）。
     /// 旧＝装備だけ参照価格の単位のまま＝物価の高い国ほど装備が安く見えた。盤面＝仏（人口の側を外す）で自己費用の物価水準を倍にする
-    /// ＝兵1人の費用（使える歳入×SustainMilShare÷限界）の増えが、参照価格の装備×元の物価水準に一致する。⚠突然変異「物価水準を掛けない」で赤。</summary>
+    /// ＝兵1人の費用（払える予算〔軍事費の器・(155)〕÷定員）の増えが、参照価格の装備×元の物価水準に一致する。⚠突然変異「物価水準を掛けない」で赤。</summary>
     [Fact]
     public void 扶養限界の装備は自己費用の物価水準で名目へ直す()
     {
@@ -588,11 +607,11 @@ public class MilitaryTests
         c.MaxSoldierFraction = 1e9;   // 扶養限界を経済の側で読む
         double equipRef = 0;
         for (int b = 0; b < c.MilitaryGoods.Length; b++) equipRef += c.MilitaryUpkeepScale * c.MilitaryRates[b] * Catalog.RefPrices[c.MilitaryGoods[b]];
-        double budget = c.SustainMilShare * Math.Max(0, w.SpendableRevenue());
+        double budget = Military.EnvelopeOf(w, c);   // ★(155) 払える予算＝軍事費の器
         double pl0 = w.CostPriceLevel;
-        double lim0 = Military.SustainLimitOf(w, c, out _);
+        double lim0 = Military.EstablishmentOf(w, c, out _);
         w.CostPriceLevel = 2.0 * pl0;
-        double lim1 = Military.SustainLimitOf(w, c, out _);
+        double lim1 = Military.EstablishmentOf(w, c, out _);
         Assert.True(lim0 > 0 && lim1 > 0 && equipRef > 0, $"前提が崩れた：限界 {lim0}・{lim1}・装備 {equipRef}");
         double dPer = budget / lim1 - budget / lim0;   // 兵1人の費用の増え
         Assert.True(Math.Abs(dPer - equipRef * pl0) <= 1e-9 * equipRef * pl0, $"兵1人の費用の増え {dPer} ≠ 装備×元の物価水準 {equipRef * pl0}");
@@ -899,5 +918,304 @@ public class MilitaryTests
         double flat = Rise(false), mount = Rise(true);
         Assert.True(flat > 0, $"前提が崩れた：仏西の組に脅威の緊張が立たない（{flat}）");
         Assert.True(mount < flat * (1 - 1e-9), $"国境の重みを下げても仏西の脅威の緊張が弱まらない（{flat:G17}→{mount:G17}）＝ThreatTension が国境の長さを届き方へ渡していない");
+    }
+
+    // ===== (155) 軍の労働市場と安全保障の不安（2026-10-02・作者 2026-10-01「軍事費を上げる→兵士の給与が上がる→兵士を志すPOPが増える→兵士が増える という経路は残したい」・
+    //       「低い軍事費は軍隊POPの流出を招き、「理想の軍隊」に届かない兵数になる」・兵士を転職の仕組みへ「それでよい。ただし兵士は他の職とは性質が違うので、多少の外科的な処置は許可する」）=====
+
+    private static Simulation France155()
+    {
+        var sim = new Simulation(NationConfig.France().ToScenario(17), new NullAgent());
+        sim.Run(1);
+        return sim;
+    }
+
+    private static Pop? SoldierOf(Region r) { foreach (var p in r.Pops) if (p.IsSoldier) return p; return null; }
+
+    /// <summary>★(155) 定員の経済の側＝払える予算（軍事費の器＝軍事費の段×MilitaryEnvelopeShare×使える歳入）÷1人あたりの費用＝**軍事費の段に比例**
+    /// （(145) の「軍事費の段は平時の兵数を動かさない」の解消・英の陸軍予算の型）。盤面＝仏（人口の側を外す）で段を 0.25→0.5＝定員が2倍。
+    /// ⚠突然変異「器が軍事費の段を読まない（旧 SustainMilShare の形）」で赤。</summary>
+    [Fact]
+    public void 定員の経済の側は軍事費の段に比例する()
+    {
+        var w = France155().World; var c = w.Coef;
+        c.MaxSoldierFraction = 1e9;   // 人口の側を外す
+        w.SetMilitarySpending(0.25, w.NavalSpendShare);
+        double s1 = Military.EstablishmentOf(w, c, out _);
+        w.SetMilitarySpending(0.5, w.NavalSpendShare);
+        double s2 = Military.EstablishmentOf(w, c, out _);
+        Assert.True(s1 > 0, $"前提が崩れた：定員 {s1}");
+        Assert.True(Math.Abs(s2 - 2 * s1) <= 1e-9 * s2, $"段を倍にしても定員が倍にならない（{s1} → {s2}）");
+    }
+
+    /// <summary>★(155) 平時に定員を超えた兵は転職の仕組み（Meritocracy の ⑦）が民間の最良の職へ戻す＝超過×旧の徴募/離職の速さの四半期の値（1−(1−SoldierMigrationRate)^3）・人口は保存。
+    /// 戦時は戻さない（兵士だけの差分＝戦時は復員しない）。盤面＝仏英（器をほぼ0＝全ての州で超過・未払いの脱走を外す）で平時と戦時の Meritocracy の1回。
+    /// ⚠突然変異「戦時も戻す」「戻さない」で赤。</summary>
+    [Fact]
+    public void 平時に定員を超えた兵は民間の職へ戻り戦時は戻らない()
+    {
+        (double before, double after, double expect, double pop0, double pop1) Arm(bool war)
+        {
+            var sim = new MultiNationSim([NationConfig.France(), NationConfig.Britain()], seed: 1789);
+            sim.StepQuarter();
+            var w = sim.Nations[0].World; var c = w.Coef;
+            if (war) sim.Diplomacy.Wars.Add(new War { A = w.SelfPower!, B = sim.Nations[1].World.SelfPower! });
+            c.MilitaryEnvelopeShare = 1e-12;   // 席をほぼ0＝全ての州で超過
+            double seatsNat = Military.EstablishmentOf(w, c, out double natMan);
+            double dq = 1.0 - Math.Pow(1.0 - c.SoldierMigrationRate, Calendar.MonthsPerQuarter), expect = 0;
+            foreach (var r in w.Regions)
+            {
+                if (r.State != RegionState.Active || SoldierOf(r) is not { } s) continue;
+                s.UnemploymentRate = 0; s.UnemploymentEma = 0;   // 未払いの脱走（①''）を外す
+                if (natMan > 0) expect += dq * Math.Max(0, s.Size - seatsNat * Military.RegionManpower(r, c) / natMan);
+            }
+            double b = w.SoldierSize(), p0 = w.TotalPopulation;
+            Meritocracy.Step(w, c);
+            return (b, w.SoldierSize(), expect, p0, w.TotalPopulation);
+        }
+        var peace = Arm(false); var war = Arm(true);
+        Assert.True(peace.expect > 0, "前提が崩れた：定員の超過が無い");
+        Assert.True(Math.Abs((peace.before - peace.after) - peace.expect) <= 1e-9 * peace.expect, $"平時の復員 {peace.before - peace.after} ≠ 超過×速さ {peace.expect}");
+        Assert.True(Math.Abs(peace.pop1 - peace.pop0) <= 1e-9 * peace.pop0, "復員で人口が保存されない");
+        Assert.True(war.after >= war.before - 1e-9, $"戦時に復員した（{war.before} → {war.after}）");
+    }
+
+    /// <summary>★(155) 志願＝失業プール（①''）の職の選択に兵士の席が入る＝**席の空きまで**・入るのは徴兵の年齢の男だけ（Military.MoveCohort の人の移し方＝世帯ごとでない）・新兵は熟練を薄める。
+    /// 盤面＝仏（志願制・州ごとに小さな空き〔上限割合を最も詰まった州の兵÷母数の 1.01 倍〕・徴募元の失業 0.3・兵士の給与を10倍＝魅力のある職）。
+    /// ⚠突然変異「空きで切らない」「兵士を候補にしない」「世帯ごとに移す」「志願で薄めない」で赤。</summary>
+    [Fact]
+    public void 志願は失業プールから席の空きまでで徴兵の年齢の男だけが入り熟練を薄める()
+    {
+        var w = France155().World; var c = w.Coef;
+        w.ConscriptionLaw = ConscriptionLaw.Volunteer;
+        c.MilitaryEnvelopeShare = 1e9;
+        double fill = 0;
+        foreach (var r in w.Regions)
+        {
+            if (r.State != RegionState.Active || SoldierOf(r) is not { } s) continue;
+            double man = Military.RegionManpower(r, c);
+            if (man > 0) fill = Math.Max(fill, s.Size / man);
+        }
+        c.MaxSoldierFraction = fill * 1.01;   // 全ての州で席＞兵（空きは小さい）
+        var vac = new Dictionary<Region, (Pop s, double before, double vac)>();
+        foreach (var r in w.Regions)
+        {
+            if (r.State != RegionState.Active || SoldierOf(r) is not { } s) continue;
+            s.UnemploymentRate = 0; s.UnemploymentEma = 0; s.Earned *= 10;
+            vac[r] = (s, s.Size, c.MaxSoldierFraction * Military.RegionManpower(r, c) - s.Size);
+            foreach (var p in r.Pops)
+                if (!p.IsSoldier && (p.ClassId == c.SoldierRecruitClassA || p.ClassId == c.SoldierRecruitClassB)) { p.UnemploymentRate = 0.3; p.UnemploymentEma = 0.3; }
+        }
+        w.ArmySkill = 0.5; w.NavySkill = 0.5;
+        double s0 = w.SoldierSize();
+        Meritocracy.Step(w, c);
+        double s1 = w.SoldierSize(), gained = 0;
+        foreach (var (r, v) in vac)
+        {
+            double inc = v.s.Size - v.before;
+            Assert.True(inc <= v.vac * (1 + 1e-9) + 1e-12, $"{r.Name}：志願 {inc} が席の空き {v.vac} を超えた");
+            Assert.True(v.s.AgeShare(0, 1000, 1) <= 1e-9, $"{r.Name}：兵士 POP に女性が入った（世帯ごとに移した）");
+            gained += Math.Max(0, inc);
+        }
+        Assert.True(gained > 0, "志願が席に入らない（兵士が職の候補になっていない）");
+        Assert.True(Math.Abs(w.ArmySkill - 0.5 * (s1 - gained) / s1) <= 1e-9, $"志願の新兵で熟練が薄まらない（{w.ArmySkill} 期待 {0.5 * (s1 - gained) / s1}）");
+        Assert.True(s1 > s0);
+    }
+
+    /// <summary>★(155) 未払いの兵は脱走して民間の職へ（兵士の「失業」＝給与の未払いの割合・多年EMA を失業プール ①'' が読む＝強制＝席に留まれない）。
+    /// 盤面＝仏の双子（器を大きく・上限割合をどの州でも席≦兵に〔空きが無い＝志願の空きの係数（1−未払い）で差が出ない・超過の復員は双子で同じ〕）で兵士の未払いの割合だけ 0 と 0.5 ＝未払いの腕だけ兵が減り、人口は同じ。
+    /// ⚠突然変異「兵士を ①'' から外す（旧）」で赤。</summary>
+    [Fact]
+    public void 未払いの兵は脱走して民間の職へ移る()
+    {
+        (double sold, double pop) Arm(double unpaid)
+        {
+            var w = France155().World; var c = w.Coef;
+            c.MilitaryEnvelopeShare = 1e9;
+            foreach (var r in w.Regions) if (r.State == RegionState.Active && SoldierOf(r) is { } s) { s.UnemploymentRate = unpaid; s.UnemploymentEma = unpaid; }
+            // 席＝どの州でも今の兵以下（空きを作らない＝志願の空きの係数〔1−未払い〕で差が出ないように・超過の復員は双子で同じ）
+            double fill = double.PositiveInfinity;
+            foreach (var r in w.Regions)
+                if (r.State == RegionState.Active && SoldierOf(r) is { } s2 && Military.RegionManpower(r, c) is var man && man > 0) fill = Math.Min(fill, s2.Size / man);
+            c.MaxSoldierFraction = fill;
+            Meritocracy.Step(w, c);
+            return (w.SoldierSize(), w.TotalPopulation);
+        }
+        var paid = Arm(0); var unpaid = Arm(0.5);
+        Assert.True(unpaid.sold < paid.sold * (1 - 1e-6), $"未払いの兵が脱走しない（払う {paid.sold} / 未払い {unpaid.sold}）");
+        Assert.True(Math.Abs(unpaid.pop - paid.pop) <= 1e-9 * paid.pop, "脱走で人口が保存されない");
+    }
+
+    /// <summary>★(155) 兵士の「失業」＝1−国家の支払い率×器の給与の充足（月初の予算・Simulation）。盤面＝仏の双子で器を大きく／ほぼ0 にして1か月＝
+    /// 大きい器は 1−r・ほぼ0 の器は ほぼ1（給与が払えない）。⚠突然変異「器の給与の充足を読まない（1−r だけ）」で赤。</summary>
+    [Fact]
+    public void 兵士の失業は器の給与の充足と国家の支払い率で決まる()
+    {
+        (double u, double r) Arm(double env)
+        {
+            var sim = France155(); var w = sim.World;
+            w.Coef.MilitaryEnvelopeShare = env;
+            for (int d = 0; d < Calendar.DaysPerMonth; d++) sim.StepDay();
+            var s = w.Region.Pops[w.Region.SoldierPopIndex];
+            return (s.UnemploymentRate, w.FiscalFundingRatio);
+        }
+        var big = Arm(1e9); var tiny = Arm(1e-12);
+        Assert.True(Math.Abs(big.u - (1 - big.r)) <= 1e-12, $"大きい器で未払い {big.u} ≠ 1−r {1 - big.r}");
+        Assert.True(tiny.u > 0.99, $"器がほぼ0 なのに未払いが立たない（{tiny.u}）");
+    }
+
+    /// <summary>★(155) 軍事費の吸い込みの順＝給与・糧食 → 装備（全4段の必要額まで）→ 質（幹部の給与＝規定の給与の満額×MilitaryCadrePayRatio まで）→ 使い切れない分は請求しない。
+    /// 盤面＝仏の双子（1四半期の後に係数だけ替えて1か月）：(i) 器が大きい・幹部 1＝訓練の充足 1・兵士の給与の請求＝(ii) の2倍／(ii) 幹部 0＝訓練 0／(iii) 器がほぼ0＝装備も訓練も0／
+    /// (iv) 器が大きい・幹部 1e15（質の必要額が器を超える）＝装備は (ii) と同じ（質は装備の後）。⚠突然変異「質を装備より先に」「幹部の給与を兵士の給与へ足さない」で赤。</summary>
+    [Fact]
+    public void 軍事費の器は給与から装備から質の順に吸われ使い切れない分は請求しない()
+    {
+        (double pay, double equip, double train, double env) Arm(double envShare, double cadre)
+        {
+            var sim = France155(); var w = sim.World; var c = w.Coef;
+            c.MilitaryEnvelopeShare = envShare; c.MilitaryCadrePayRatio = cadre;
+            for (int d = 0; d < Calendar.DaysPerMonth; d++) sim.StepDay();
+            return (w.LastSoldierPay, w.LastMilitaryClaim, w.MilitaryTrainingFill, Military.EnvelopeOf(w, c));
+        }
+        var i = Arm(1e9, 1.0); var ii = Arm(1e9, 0.0); var iii = Arm(1e-12, 1.0); var iv = Arm(1e9, 1e15);   // (iv) 質の必要額が器より大きい
+        Assert.True(ii.pay > 0 && ii.equip > 0, $"前提が崩れた：給与 {ii.pay}・装備 {ii.equip}");
+        Assert.Equal(1.0, i.train);
+        Assert.Equal(0.0, ii.train);
+        Assert.True(Math.Abs(i.pay - 2 * ii.pay) <= 1e-9 * i.pay, $"幹部の給与が兵士の給与の請求に入らない（{i.pay} vs 2×{ii.pay}）");
+        Assert.True(Math.Abs(i.equip - ii.equip) <= 1e-9 * ii.equip, "幹部の給与で装備が変わった（装備は質より先）");
+        Assert.True(Math.Abs(iv.equip - ii.equip) <= 1e-9 * ii.equip, $"質の必要額が大きいと装備が削られた（{ii.equip} → {iv.equip}）＝質が装備より先");
+        Assert.True(iii.equip <= 1e-9 * ii.equip && iii.train <= 1e-9, $"器がほぼ0 なのに装備 {iii.equip}・訓練 {iii.train} を請求した（給与が先）");
+        Assert.True(i.pay + i.equip < 1e-3 * i.env, "使い切れない器を請求した（出費の頭打ちが無い）");
+    }
+
+    /// <summary>★(155) 熟練は払った訓練（器の3段目の充足＝World.MilitaryTrainingFill）で育ち、維持費の段（旧＝ArmyUpkeep が閾値0.5 を超えるか）を読まない。陸と海は同じ1本。
+    /// 新兵（徴兵）は熟練を薄める（入る前の兵÷入った後の兵）。⚠突然変異「維持費の段を読む（旧）」「徴兵で薄めない」で赤。</summary>
+    [Fact]
+    public void 熟練は払った訓練で育ち徴兵の新兵で薄まる()
+    {
+        var w = France155().World; var c = w.Coef;
+        w.SetMilitaryUpkeep(1.0, 0.0);   // 段は最上段（旧の規則なら育つ）
+        w.MilitaryTrainingFill = 0.0; w.ArmySkill = 0.4; w.NavySkill = 0.4;
+        Military.StepSkill(w, c, atWar: false);
+        Assert.True(w.ArmySkill < 0.4 && w.NavySkill < 0.4, $"訓練が払われないのに熟練が育った（陸 {w.ArmySkill}・海 {w.NavySkill}）");
+        w.SetMilitaryUpkeep(0.0, 0.0);
+        w.MilitaryTrainingFill = 1.0; w.ArmySkill = 0.4; w.NavySkill = 0.4;
+        Military.StepSkill(w, c, atWar: false);
+        double expect = 0.4 + c.SkillGainRate * (1.0 - c.SkillUpkeepThreshold) * 0.6;
+        Assert.Equal(expect, w.ArmySkill, 12);
+        Assert.Equal(expect, w.NavySkill, 12);
+        // 徴兵の新兵で薄める（呼び手＝Military.Step）
+        w.SetMilitarySpending(0.5, 0.1);
+        w.ConscriptionLaw = ConscriptionLaw.Selective; c.MaxSoldierFraction *= 3; c.MilitaryEnvelopeShare = 1e9;
+        w.ArmySkill = 0.6; w.NavySkill = 0.6;
+        double before = w.SoldierSize();
+        Military.Step(w, c, atWar: false);
+        double after = w.SoldierSize();
+        Assert.True(after > before, "前提が崩れた：徴兵で兵が増えない");
+        Assert.Equal(0.6 * before / after, w.ArmySkill, 12);
+        Assert.Equal(0.6 * before / after, w.NavySkill, 12);
+    }
+
+    /// <summary>★(155) 安全保障の不安（エンジンの SecurityThreat）＝相手の養える軍（定員＝選んだ軍事費の段）のうち自国に向く注意配分（(151) の理想の軍隊の形と同じ物差し＝敵意×(国境＋投射)÷(内向き＋相手の全ての向き)）の和。
+    /// 盤面＝仏・西・日（開幕・外交を止める）：(a) 式どおり（公開の部品で数え直して一致）(b) 世界の脅威の和は世界の養える軍の和より小さい（注意配分）(c) 西の軍事費の段を上げると仏の不安が増える
+    /// （相手の選んだ段を読む）(d) 仏西を同盟にすると仏の不安が減る。⚠突然変異「注意配分で割らない」「相手の今の兵数を読む」「同盟も数える」で赤。</summary>
+    [Fact]
+    public void 安全保障の不安は相手の養える軍を注意配分で数え同盟は数えない()
+    {
+        var sim = Frozen152("フランス", "スペイン", "日本");
+        var c = sim.Coef;   // 共有層の係数（敵意・国境・投射）＝国の係数は国ごとの別の写し（定員は国の係数）
+        foreach (var nn in sim.Nations) nn.World.Coef.MilitaryEnvelopeShare = 0.01;   // 全ての国で定員が払える予算で決まる（段を上げれば席が増える）
+        sim.StepQuarter();
+        var step = typeof(MultiNationSim).GetMethod("StepSecurityThreat", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!;
+        var ps = sim.Nations.ConvertAll(n => n.World.SelfPower!);
+        int n = ps.Count;
+        double[] Expected()
+        {
+            var seats = new double[n];
+            for (int i = 0; i < n; i++) seats[i] = Military.EstablishmentOf(sim.Nations[i].World, sim.Nations[i].World.Coef, out _);
+            var border = ArmyShape.Borders(ps, c);
+            var hr = new double[n * n]; var col = new double[n];
+            for (int a = 0; a < n; a++)
+            {
+                double sum = ArmyShape.Unrest(ps[a]);
+                for (int b = 0; b < n; b++)
+                {
+                    if (a == b) continue;
+                    double h = ArmyShape.Hostility(sim.Diplomacy, ps[b], ps[a], c);
+                    if (!(h > 0)) continue;
+                    double r = border[a * n + b] + sim.Diplomacy.Projection(ps[a], ps[b], c);
+                    if (!(r > 0)) continue;
+                    hr[a * n + b] = h * r; sum += h * r;
+                }
+                col[a] = sum;
+            }
+            var t = new double[n];
+            for (int b = 0; b < n; b++) for (int a = 0; a < n; a++) if (a != b && col[a] > 1e-12 && seats[a] > 0) t[b] += hr[a * n + b] / col[a] * seats[a];
+            return t;
+        }
+        step.Invoke(sim, null);
+        var e0 = Expected();
+        double sumT = 0, sumSeats = 0;
+        for (int i = 0; i < n; i++)
+        {
+            Assert.Equal(e0[i], sim.Nations[i].World.SecurityThreat, 9);
+            sumT += sim.Nations[i].World.SecurityThreat; sumSeats += Military.EstablishmentOf(sim.Nations[i].World, sim.Nations[i].World.Coef, out _);
+        }
+        Assert.True(sumT < sumSeats, $"世界の脅威の和 {sumT} が世界の養える軍の和 {sumSeats} 以上（注意配分で割っていない）");
+        double fr0 = sim.Nations[0].World.SecurityThreat;
+        Assert.True(fr0 > 0, "前提が崩れた：仏に脅威が無い");
+        var es = sim.Nations[1].World;
+        es.SetMilitarySpending(Math.Min(1.0, es.MilitarySpending * 2), es.NavalSpendShare);
+        step.Invoke(sim, null);
+        double fr1 = sim.Nations[0].World.SecurityThreat;
+        Assert.True(fr1 > fr0 * (1 + 1e-9), $"西の軍事費の段を上げても仏の不安が増えない（{fr0} → {fr1}）＝相手の選んだ段を読んでいない");
+        Ally152(sim.Diplomacy, ps[0], ps[1]);
+        step.Invoke(sim, null);
+        double fr2 = sim.Nations[0].World.SecurityThreat;
+        Assert.True(fr2 < fr1 * (1 - 1e-9), $"仏西を同盟にしても仏の不安が減らない（{fr1} → {fr2}）");
+        Assert.Equal(Expected()[0], fr2, 9);
+    }
+
+    /// <summary>★(155) AI の軍事費の段＝安全保障の不安の唯一の入口＝平時の段の幅（段1〜段3）を脅威の割合（脅威÷(脅威＋自国の養える軍)）で内分。軍備スタンスは段を書かない。
+    /// 徴兵法の政治＝脅威の割合が半分以上（届く敵意の養える軍が自国の養える軍以上）か交戦中＝徴兵制。⚠突然変異「軍備スタンスが 0.7 を書く（旧）」「徴兵法を軍備スタンスで読む（旧）」で赤。</summary>
+    [Fact]
+    public void AIの軍事費の段は安全保障の不安で決まり徴兵法の政治も同じ不安を読む()
+    {
+        var w = France155().World;
+        w.SecurityThreat = 0; w.SecurityThreatOwnMass = 100;
+        Assert.Equal(0.25, UtilityAgent.SecurityStageTarget(w), 12);
+        w.SecurityThreat = 100;
+        Assert.Equal(0.5, UtilityAgent.SecurityStageTarget(w), 12);
+        w.SecurityThreat = 300;
+        Assert.Equal(0.25 + 0.5 * 0.75, UtilityAgent.SecurityStageTarget(w), 12);
+        w.SecurityThreat = double.NaN;
+        Assert.Equal(0.25, UtilityAgent.SecurityStageTarget(w), 12);
+        // Apply は目標を法の門（段への丸め・1段ずつ）へ通す＝今の段1 で不安0 なら段1 のまま（旧の軍備スタンスの 0.7＝段3 なら門で段2 へ上がる）
+        w.SetMilitarySpending(0.25, w.NavalSpendShare);
+        w.SecurityThreat = 0;
+        UtilityAgent.Apply(w, UtilityAgent.Stance.Militarize);
+        Assert.Equal(0.25, w.Policy.MilitarySpendingTarget, 12);
+        var decide = typeof(UtilityAgent).GetMethod("DecideModernLaws", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!;
+        w.Policy.ConscriptionLaw = ConscriptionLaw.Volunteer;
+        w.SecurityThreat = 150;   // 脅威の割合 0.6
+        decide.Invoke(null, [w, w.Policy, UtilityAgent.Stance.Industrialize]);
+        Assert.Equal(ConscriptionLaw.Selective, w.Policy.ConscriptionLaw);
+    }
+
+    /// <summary>★(155) 失業プールの職の比較の所得＝1人あたり。兵士の席は兵1人の給与を送り手の世帯の1人あたりへ直す（×送り手の働き盛り÷頭数）＝分子と分母を同じ規則で
+    /// （兵士 POP は働き盛りの男だけ＝頭数＝働き手）。⚠突然変異「直さない」で赤。</summary>
+    [Fact]
+    public void 兵士の席の所得は送り手の世帯の1人あたりへ直して比べる()
+    {
+        var w = France155().World; var r = w.Region;
+        var s = r.Pops[r.SoldierPopIndex];
+        Pop? src = null; foreach (var p in r.Pops) if (!p.IsSoldier && p.ClassId == w.Coef.SoldierRecruitClassA) { src = p; break; }
+        Assert.NotNull(src);
+        var f = typeof(Meritocracy).GetMethod("JobIncome", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!;
+        double got = (double)f.Invoke(null, [s, src])!;
+        double expect = Math.Max(0, s.Earned) / s.Size * (Military.WorkingAdults(src!) / src!.Size);
+        Assert.True(expect > 0, "前提が崩れた：兵士の所得が0");
+        Assert.Equal(expect, got, 12);
+        Assert.Equal(Math.Max(0, src.Earned) / src.Size, (double)f.Invoke(null, [src, s])!, 12);   // 民間の職は頭数あたりのまま
     }
 }

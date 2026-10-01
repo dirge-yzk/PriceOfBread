@@ -857,8 +857,9 @@ public sealed class Simulation
         //   逆に清は初期225に対し10年後 9,575人まで膨れ、充足率0.00＝**払えない大軍**になった。
         //   ＝初期値が台本で、1793年に一斉に経済の現実へ引き戻されていた（設計原則①台本禁止に反する）。
         // ★播種＝扶養限界の人口の側（上限割合×兵役の母数＝働き盛りの男・Military.RecruitMen）×既定の軍事費の段。
-        //   ★(145)：平時の目標は扶養限界の目標そのもの（Military.Step）＝経済の側（歳入÷兵1人の費用）は播種の時点に歳入が無いので読めない
-        //   ＝最初の1〜2年（SoldierMigrationRate＝月8%）で扶養限界の目標へ寄る。旧＝「Military.cs の desired と完全一致」（軍事費の段×上限割合×頭数＝旧の平時の目標）。
+        //   ★(145)→(155)：平時の兵は定員（Military.EstablishmentOf＝払える予算÷1人あたりの費用と徴兵法の割当ての小さい方）＝払える予算は播種の時点に歳入が無いので読めない
+        //   ＝最初の1〜2年で定員へ寄る（徴兵制＝強制の徴募が月 SoldierMigrationRate で・志願制＝転職の仕組みの志願・定員の超過は転職の仕組みが民間の職へ戻す）。
+        //   旧＝「Military.cs の desired と完全一致」（軍事費の段×上限割合×頭数＝旧の平時の目標）。
         //   富の乗数（SoldierWealthExponent）は世界平均を要るので播種時には掛けない＝最初の数四半期で自然に効く。
         // ⚠ cfg.Military は抽象勢力（Nation を持たない標的）と Power の初期ゲージ表示に残る（次の Diplomacy.Step で再導出）。
         double pw = peasant.Size + worker.Size;
@@ -1822,6 +1823,28 @@ public sealed class Simulation
             : 1.0;
         int nationalizedMaskNat = World.Coef.NationalizationGate > 0 ? World.NationalizedMask() : 0;
         World.LastSoldierPay = 0;   // 兵士給与の月次請求書（形が先・金が後 段0）＝州ループで積む
+        // ★軍事費の吸い込み（2026-10-02 (155)・作者 2026-10-01「高い軍事費はより多くの兵士の他、より十分な武器（≒軍需産業を育てる需要）や、高品質な軍隊を作ります。
+        //   ただし、扶養限界の考え方は必要だと思います（つまり、十分な軍隊がそろっている状態だと、兵士の給与は高止まりし、軍事費が高い設定でも出費は伸び続けない）」＝推奨で進めた）：
+        //   軍事費の器（Military.EnvelopeOf＝軍事費の段×器の割合×使える歳入）を **給与・糧食 → 装備（目標の在庫まで＋更新＋新型＝軍需の必要額）→ 質（幹部の給与＝訓練・効きは逓減）
+        //   → 使い切れない分は使わない（請求しない＝出費の頭打ち）** の順に吸わせる。旧＝給与は兵数×賃金を器の外で全額・装備は 軍事費×0.25×歳入（必要額で切る）の2本で、
+        //   質（熟練）は払った金でなく維持費の段（ArmyUpkeep＞0.5）で育った＝支出から直接の効き（2026-08-17 の「支出から直接バフを排除する」の型）。
+        //   ・給与（規定）＝州の兵数×徴募の母数の働き盛り1人あたりの賃金×SoldierPayMult（Military.RecruitWage＝市場で競り上がらない）。器が給与に届かない＝未払い（給与の充足 payFill＜1＝兵士の「失業」）。
+        //   ・戦時の器＝段のまま（戦時経済＝軍事費の段の最上段が戦時の器・旧の装備の上限の戦時の追随 WartimeBudgetFollowsNeed は削除＝Coefficients の注記）。
+        double milEnvelope = Military.EnvelopeOf(World, World.Coef);
+        var soldierBasePay = new double[World.Regions.Count];   // 州の規定の給与の満額（請求の単価×兵数×SoldierPayMult・r と充足を掛ける前）
+        double payFull = 0;
+        for (int ri = 0; ri < World.Regions.Count; ri++)
+        {
+            var r = World.Regions[ri];
+            if (r.State != RegionState.Active || r.SoldierPopIndex < 0) continue;
+            soldierBasePay[ri] = r.Pops[r.SoldierPopIndex].Size * Military.RecruitWage(r, World.Coef, last: false) * World.Coef.SoldierPayMult;
+            payFull += soldierBasePay[ri];
+        }
+        double soldierPayFill = payFull > 1e-9 ? milEnvelope / payFull : 1.0;
+        if (!(soldierPayFill >= 0)) soldierPayFill = 0; else if (soldierPayFill > 1) soldierPayFill = 1;   // 否定形＝NaN は払わない側
+        double equipRoom = Math.Max(0, milEnvelope - payFull * soldierPayFill);   // 給与の後に残る器＝装備の上限（必要額で切る前＝恒常性の信号の分子）
+        if (!(equipRoom >= 0)) equipRoom = 0;
+        double equipClaimNat = 0;   // 州ループで立った装備の請求（首都・r を掛ける前）＝下の質の残り
         foreach (var r in World.Regions)
             if (r.State == RegionState.Active)
             {
@@ -1889,13 +1912,11 @@ public sealed class Simulation
                 }
                 r.NationHasPort = navalYard;   // ★2026-08-01：軍艦の発注ゲート（EconomyStep）が読む。国に港が1つでもあれば艦を発注できる   // 軍需調達は首都州のみ（多州で全国軍を二重調達しない）
                 // Region.AtWar（戦時の建設抑制）は倍率排除バッチ2で機構ごと撤去済み（軍需の価格競合による自然縮小に代替）＝書き込みも削除（監査2026-07-12 死37）
-                // 軍需装備の財源：**軍事費×シェア×粗歳入**（兵士給与と同様に確実に＝裁量余剰でなく粗歳入から）。これにより**軍国（余剰0でも）が装備できる**＝武器を買えた軍だけが治安維持力＋対外武力を持つ（買えねば即応度0→治安維持力0→革命）。
+                // 軍需装備の財源：**軍事費の器の給与の後の残り**（★(155)＝吸い込みの2段目・旧＝軍事費×MilitaryRevenueShare（0.25）×粗歳入＝給与と別の2本目の器）。
+                //   粗歳入から確実に（裁量余剰でなく）＝**軍国（余剰0でも）が装備できる**＝武器を買えた軍だけが治安維持力＋対外武力を持つ（買えねば即応度0→治安維持力0→革命）。
                 // ⚠旧＝借入スタックの出費上限（SpendingCapFactor）を軍需にだけ掛けなかった（軍を最後まで維持する）。2026-09-28 に出費上限ごと撤去し、全ての行が同じ国家の支払い率 r（優先順位なし＝作者裁定 F3・Q9）。
-                double milCap = World.MilitarySpending * World.Coef.MilitaryRevenueShare * World.SpendableRevenue();   // 請求（r を掛ける前）。支出反射（OpulenceSpendRate>0で国庫超過分も装備へ＝戦争準備金。0（対照腕）でLastRevenueと同値・既定0.6でlive）
-                // 課題5（2026-08-08）：戦時は必要額（MilitaryScale×warMult）に予算も追随＝赤字戦費。国庫が尽きれば
-                // 国家の支払い率 r が自然に絞る（下の州ループの手前）。⚠既定0＝乗算ごとスキップ＝厳密恒等。倍率は需要側と同一のwarMult＝afford戦時不変。
-                if (World.Coef.WartimeBudgetFollowsNeed > 0 && warMult > 1.0)
-                    milCap *= 1.0 + World.Coef.WartimeBudgetFollowsNeed * (warMult - 1.0);
+                // 課題5（2026-08-08）：戦時は必要額（MilitaryScale×warMult）に予算も追随＝赤字戦費＝★(155) 戦時経済の段（器の最上段）が担う。国庫が尽きれば国家の支払い率 r が自然に絞る。
+                double milCap = equipRoom;   // 請求（r を掛ける前）。支出反射（OpulenceSpendRate>0で国庫超過分も使える歳入へ＝戦争準備金）は器の側で効く
                 // ★段2（2026-08-01）：理想の形の陸海比を州へ写す（軍需の内訳の再配分に使う）。ArmyShapeEnabled=0 では Need* が全て0＝-1のまま＝再配分しない＝厳密恒等。
                 // ★(151)：陸海の維持費の分け方と同じ1本（ArmyShape.NavalSpendShareOf＝州ループの外で1回）＝払う金の陸海と買う装備の陸海が同じ比（旧＝維持費は地理の比・軍需は必要量の比の2本）。
                 if (World.SelfPower is not null) r.ShapeNavalShare = shapeNavalNat;
@@ -1905,6 +1926,7 @@ public sealed class Simulation
                 if (World.Coef.MilitaryBudgetNeedCapped > 0 && r.Id == 0)
                     milCap = Math.Min(milCap, EconomyStep.MilitaryProcurementNeed(r, World.Coef));
                 r.MilitaryBudget = World.Coef.GarrisonProcurement > 0 ? milCap * r.GarrisonShare : (r.Id == 0 ? milCap : 0);   // 駐屯州調達＝予算も配分（r は下で全ての予算に同じく掛ける）
+                equipClaimNat += r.MilitaryBudget;   // ★(155) 吸い込みの2段目の請求（国の和）＝3段目（質）はこの残り
                 r.SocialSecurity = World.SocialSecurity;                 // 公共医療＝医薬品消費に使う（EconomyStep）
                 r.InsuranceCoverage = World.Coef.InsuranceCoverageMax * World.SocialSecurity;   // 健康保険(#3)：医薬品購入費の国家負担割合（r は下で掛ける＝旧 WelfareFunding は国家の支払い率へ畳んだ・2026-09-28）
                 r.StateMonopolyMargins = World.StateMonopolyMargins;       // 材ごとの専売の上乗せ率への参照（★2026-09-20＝これが専売の唯一の実体）
@@ -1995,16 +2017,26 @@ public sealed class Simulation
                     ? World.AdminSpending * World.Coef.InfraBudgetScale * World.FiscalCapacity * (r.SumPopulation() / nationPop) * HoardSpendScale() : 0;
                 r.ElecInfraBudget = nationPop > 1e-9
                     ? World.AdminSpending * World.Coef.ElecInfraBudgetScale * World.FiscalCapacity * (r.SumPopulation() / nationPop) * HoardSpendScale() : 0;
-                // 兵力（兵士の給与）の予算：民間賃金（前月の徴募の母数＝農民＋都市労働者の**働き盛り1人あたり**の所得）に揃える。軍事費スライダーは兵数（徴募目標）を駆動し、総給与＝兵数×賃金。
-                // ★2026-09-30 (140)：旧＝大衆（平民の民間人）の**頭数**あたり＝子供と老人を含む世帯の1人あたり＝兵（働き盛りの男の1人）の機会費用の約半分（分子と分母の非対称）。
-                //   母数と窓は扶養限界（Military.SustainLimitOf）と徴兵（MoveCohort の 16〜60）と同じ＝Military.RecruitWage の1本。
-                if (r.SoldierPopIndex >= 0)
-                {
-                    double civWage = Military.RecruitWage(r, World.Coef, last: false);
-                    r.SoldierPayBudget = r.Pops[r.SoldierPopIndex].Size * civWage * World.Coef.SoldierPayMult;   // 請求（r を掛ける前）。旧＝州ごとの min(国庫)＝先着（B2）
-                    World.LastSoldierPay += r.SoldierPayBudget;   // 請求書（形が先・金が後 段0）
-                }
+                // 兵力（兵士の給与）の予算＝★(155) 州ループの後（吸い込みの1段目と3段目＝装備の請求が立ってから）。
             }
+        // ★(155) 軍事費の吸い込みの1段目（給与・糧食）と3段目（質＝幹部の給与＝訓練）を州へ：
+        //   給与の規定の単価＝民間賃金（前月の徴募の母数＝農民＋都市労働者の**働き盛り1人あたり**の所得・(140)）×SoldierPayMult＝Military.RecruitWage の1本（州ループの前の soldierBasePay）。
+        //   給与は器から先に払う（給与の充足 soldierPayFill＝器÷満額・1で頭打ち）。3段目＝器から給与と装備（首都の請求）を引いた残りを、幹部の給与の必要額（満額×MilitaryCadrePayRatio）まで
+        //   （＝訓練の充足 World.MilitaryTrainingFill＝熟練の育ち方〔Military.StepSkill〕）。それでも残る器は請求しない＝使い切れない分は使わない（出費の頭打ち＝兵士の給与は高止まり）。
+        //   幹部の給与は兵士 POP の所得へ（将校と下士官は兵士 POP の中＝兵士の1人あたりの所得が上がる＝志願の魅力）。
+        double trainNeed = payFull * World.Coef.MilitaryCadrePayRatio;
+        double trainClaim = Math.Min(Math.Max(0, equipRoom - equipClaimNat), trainNeed);
+        double trainShare = payFull > 1e-9 ? trainClaim / payFull : 0;   // 給与の満額1あたりの幹部の給与
+        if (!(trainShare >= 0)) trainShare = 0;
+        World.MilitaryTrainingFill = trainNeed > 1e-9 && trainClaim >= 0 ? trainClaim / trainNeed : 0;
+        for (int ri = 0; ri < World.Regions.Count; ri++)
+        {
+            var r = World.Regions[ri];
+            if (r.State != RegionState.Active || r.SoldierPopIndex < 0) continue;
+            r.SoldierPayBudget = soldierBasePay[ri] * (soldierPayFill + trainShare);   // 請求（r を掛ける前）。旧＝州ごとの min(国庫)＝先着（B2）
+            World.LastSoldierPay += r.SoldierPayBudget;   // 請求書（形が先・金が後 段0）
+        }
+        World.LastMilitaryClaim = equipClaimNat;   // ★(155) 器の請求のうち装備（2段目）＝Fiscal の余剰と財政バッファが読む（旧＝Fiscal が 軍事費×0.25×歳入 を必要額で切って書いた）。給与と質（幹部の給与）は兵士の給与の請求（LastSoldierPay）の側＝旧と同じく余剰からは引かない
         // ★国家の支払い率 r（作者裁定 F3・Q1〜Q3・2026-09-28 支払いの一元化 段2-1＝計画 §10-12-3-3）。
         //   その月の**全ての国家の支払いの請求**を月初（ここ＝予算が立った直後・買う前）に集め、払える額と比べて1本の率を決め、
         //   全ての行（予算・工賃・材料・国営持分の赤字・補助・保険・福祉・年金・維持費・利子・戦費・貢納・選挙・通行料…）に同じ r を掛ける＝優先順位を作らない。
@@ -2133,6 +2165,10 @@ public sealed class Simulation
                 // 全ての予算と予約に同じ r（予算は量の上限＝買えた分だけ払う＝払えない分は量が減る）
                 r.MilitaryBudget *= payRate; r.MilitaryBudgetCeiling *= payRate;
                 r.AdminBudget *= payRate; r.InfraBudget *= payRate; r.ElecInfraBudget *= payRate; r.SoldierPayBudget *= payRate;
+                // ★(155) 兵士の「失業」＝給与の未払いの割合（規定の給与のうち払われない分）＝失業プール（Meritocracy の ①''）の駆動（多年EMA＝未払いが長引くほど脱走が増える）
+                //   と志願の空き（払われない軍には志願しない）が読む。兵士は労働を市場で売らない＝EconomyStep の売れ残りの書き手は兵士に書かない（この行だけ）。
+                if (r.SoldierPopIndex >= 0 && r.SoldierPopIndex < r.Pops.Count && r.Pops[r.SoldierPopIndex].IsSoldier)
+                    r.Pops[r.SoldierPopIndex].UnemploymentRate = 1.0 - payRate * soldierPayFill;   // 未払い＝国家の支払い率×器の給与の充足の不足（幹部の給与は規定の給与の外＝数えない）
                 r.CompulsoryEduFunding *= payRate; r.InsuranceCoverage *= payRate;
                 r.StateBuildQueue *= payRate; r.MonumentBuildQueue *= payRate; r.HigherEduFunding *= payRate;
                 // 技術→工場生産性。技術2まではそのまま（較正域）、それ超は逓減（高技術でも生産性7倍等にならず経済を壊さない）
