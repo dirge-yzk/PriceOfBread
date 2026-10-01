@@ -416,7 +416,8 @@ public class MilitaryTests
     /// <summary>★(140)（2026-09-30・分子と分母を同じ規則で）：兵の賃金（請求の単価と扶養限界の兵1人の費用）は徴募の母数（農民・都市労働者）の
     /// **働き盛り（16〜59歳）1人あたり**＝世帯の子供の数に依らない（旧＝頭数あたり＝子供が増えると兵の賃金が下がった）。
     /// 盤面＝仏の首都の農民の頭数を倍にし、増えた分を全て0〜9歳に置く（働き盛りの人数と所得は同じ）＝請求の単価（RecruitWage）も扶養限界も変わらない。
-    /// ⚠突然変異「頭数で割る（旧）」（請求の単価・扶養限界のどちらか）で赤。</summary>
+    /// ⚠突然変異「頭数で割る（旧）」（請求の単価・扶養限界のどちらか）で赤。
+    /// ★(161)：これは**志願制の規定の給与**の物差し（盤面を志願制にした）。徴兵制の兵卒の手当は頭数あたり（世帯の1人ぶんの暮らし）＝下の「徴兵制の兵卒の給与は…」の番人。</summary>
     [Fact]
     public void 兵の賃金は徴募の母数の働き盛り1人あたりで子供の数に依らない()
     {
@@ -425,6 +426,7 @@ public class MilitaryTests
             var sim = new Simulation(NationConfig.France().ToScenario(17), new NullAgent());
             sim.Run(1);
             var w = sim.World; var c = w.Coef; var cap = w.Region;
+            w.ConscriptionLaw = ConscriptionLaw.Volunteer;   // ★(161) 規定の給与（志願制）の物差しを見る
             c.MaxSoldierFraction = 1e9;   // 扶養限界を経済の側で読む（人口の側が律速にならない）
             if (children)
                 foreach (var r in w.Regions)
@@ -531,7 +533,7 @@ public class MilitaryTests
         foreach (int g in land)
         {
             double used = st0[g] - cap.Markets[g].Stock;
-            Assert.Equal(used, cap.Markets[g].LastExport - ex0[g], 6);   // 市場から出た量＝財の出入りの台帳
+            Assert.True(Math.Abs(used - (cap.Markets[g].LastExport - ex0[g])) <= 5e-7, $"市場から出た量 {used:G17} ≠ 財の出入りの台帳 {cap.Markets[g].LastExport - ex0[g]:G17}");   // 市場から出た量＝財の出入りの台帳（★(161) 6桁の丸めの比較〔丸めの境目で落ちる〕を同じ桁の差へ＝在庫 1e9 の引き算の丸めは約1e-7）
             spent += used * px[g];
         }
         foreach (int g in fleet) Assert.Equal(st0[g], cap.Markets[g].Stock);   // 艦隊の財は買わない
@@ -1066,13 +1068,15 @@ public class MilitaryTests
 
     /// <summary>★(155) 軍事費の吸い込みの順＝給与・糧食 → 装備（全4段の必要額まで）→ 質（幹部の給与＝規定の給与の満額×MilitaryCadrePayRatio まで）→ 使い切れない分は請求しない。
     /// 盤面＝仏の双子（1四半期の後に係数だけ替えて1か月）：(i) 器が大きい・幹部 1＝訓練の充足 1・兵士の給与の請求＝(ii) の2倍／(ii) 幹部 0＝訓練 0／(iii) 器がほぼ0＝装備も訓練も0／
-    /// (iv) 器が大きい・幹部 1e15（質の必要額が器を超える）＝装備は (ii) と同じ（質は装備の後）。⚠突然変異「質を装備より先に」「幹部の給与を兵士の給与へ足さない」で赤。</summary>
+    /// (iv) 器が大きい・幹部 1e15（質の必要額が器を超える）＝装備は (ii) と同じ（質は装備の後）。⚠突然変異「質を装備より先に」「幹部の給与を兵士の給与へ足さない」で赤。
+    /// ★(161)：盤面は志願制（兵卒の給与＝規定の給与＝幹部の給与の物差し＝(i) が (ii) の2倍）。</summary>
     [Fact]
     public void 軍事費の器は給与から装備から質の順に吸われ使い切れない分は請求しない()
     {
         (double pay, double equip, double train, double env) Arm(double envShare, double cadre)
         {
             var sim = France155(); var w = sim.World; var c = w.Coef;
+            w.ConscriptionLaw = ConscriptionLaw.Volunteer; w.Policy.ConscriptionLaw = ConscriptionLaw.Volunteer;   // ★(161) 志願制＝兵卒と幹部の単価が同じ規定の給与（徴兵制の手当は「徴兵制の兵卒の給与は…」の番人）・施行の目標も同じ法（月の施行が戻さない）
             c.MilitaryEnvelopeShare = envShare; c.MilitaryCadrePayRatio = cadre;
             for (int d = 0; d < Calendar.DaysPerMonth; d++) sim.StepDay();
             return (w.LastSoldierPay, w.LastMilitaryClaim, w.MilitaryTrainingFill, Military.EnvelopeOf(w, c));
@@ -1257,6 +1261,158 @@ public class MilitaryTests
         double expect = Math.Max(0, s.Earned) / s.Size * (Military.WorkingAdults(src!) / src!.Size);
         Assert.True(expect > 0, "前提が崩れた：兵士の所得が0");
         Assert.Equal(expect, got, 12);
-        Assert.Equal(Math.Max(0, src.Earned) / src.Size, (double)f.Invoke(null, [src, s])!, 12);   // 民間の職は頭数あたりのまま
+        // ★(161)：送り手が兵士のとき民間の職は働き手1人あたり（世帯の所得÷働き盛り）を送り手の世帯の1人あたりへ直す（兵士 POP の働き盛り÷頭数）＝同じ規則（旧＝頭数あたりのまま＝片向き）
+        Assert.Equal(Math.Max(0, src.Earned) / Military.WorkingAdults(src) * (Military.WorkingAdults(s) / s.Size), (double)f.Invoke(null, [src, s])!, 12);
+        Pop? other = null; foreach (var p in r.Pops) if (!p.IsSoldier && p.ClassId == w.Coef.SoldierRecruitClassB) { other = p; break; }
+        Assert.NotNull(other);
+        Assert.Equal(Math.Max(0, other!.Earned) / other.Size, (double)f.Invoke(null, [other, src])!, 12);   // 民間どうしは頭数あたりのまま
+    }
+
+    private static readonly System.Reflection.MethodInfo RouteViaPoolM =
+        typeof(Meritocracy).GetMethod("RouteViaPool", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!;
+
+    /// <summary>★(161)（(157) の反証役の指摘 va#5・行き先の分布の番人）：兵士が送り手（平時の復員・未払いの脱走＝強制の経路 RouteViaPool）のとき、行き先の民間の職は
+    /// **働き手1人あたりの所得**で比べる（JobIncome の1本）。盤面＝仏の首都で農民と都市労働者の働き手1人あたりの所得を 1.2 と 1.0 に置き、農民の世帯に子供を足して
+    /// **頭数あたりの順位を逆に**する（頭数あたりなら都市労働者が上）。他の下流の職は所得0（候補にならない）・空き（1−失業）は1・都市化の天井は外す。
+    /// (a) 按分＝兵の給与0（どの職も兵の給与×転職のプレミアムを超える）＝低温の softmax で2つへ分かれ、取り分は働き手1人あたりの所得の softmax に一致。
+    /// (b) 総取り＝兵の給与が両方の職を大きく上回る＝第1段が通らず強制の残りが**働き手1人あたりで最良の1つ**（農民）へ全量。人口は保存。
+    /// ⚠突然変異「送り手が兵士でも民間の職は頭数あたり（旧＝片向き）」で (a)(b) とも赤・「強制の残りの最良を頭数あたりで選ぶ」で (b) が赤。</summary>
+    [Fact]
+    public void 兵士が送り手のとき民間の職は働き手1人あたりで比べ行き先は按分か最良の1つへの総取り()
+    {
+        (double toFarm, double toWork, double flow, double popDiff, double farmPW, double workPW) Arm(double soldierEarnedPerHead)
+        {
+            var w = France155().World; var c = w.Coef; var r = w.Region;
+            c.BaseUrbanCap = 0.85; c.UrbanPerInd = 0;   // 都市化の天井を外す（兵士 POP は農村＝都市の職へは天井の残枠まで）
+            c.SerfGateCoversPool = 0;                    // 農奴の移動の門を外す（送った人数＝流れ）
+            var s = r.Pops[r.SoldierPopIndex];
+            Pop? farm = null, work = null;
+            foreach (var p in r.Pops)
+            {
+                if (p.IsSoldier) continue;
+                if (p.ClassId == c.SoldierRecruitClassA) farm ??= p;
+                else if (p.ClassId == c.SoldierRecruitClassB) work ??= p;
+            }
+            Assert.True(farm is not null && work is not null && s.Size > 1, "前提が崩れた：農民・都市労働者・兵士");
+            // 農民の世帯に子供を足す（頭数を2倍・増えた分は0〜9歳）＝働き盛り÷頭数を半分へ
+            var a = (double[])farm!.Ages.Clone();
+            for (int k = 0; k < a.Length; k++) a[k] *= 0.5;
+            a[0] += 0.25; a[1] += 0.25;
+            farm.Ages = a; farm.Size *= 2;
+            for (int i = 0; i < r.Pops.Count; i++)
+            {
+                var p = r.Pops[i];
+                p.UnemploymentRate = 0;   // 空き（1−失業）を1に
+                if (!p.IsSoldier && Meritocracy.ClassOf(r, i) == 0 && !ReferenceEquals(p, farm) && !ReferenceEquals(p, work)) p.Earned = 0;   // 他の下流の職は候補にならない
+            }
+            farm.Earned = 1.2 * Military.WorkingAdults(farm);   // 働き手1人あたり 1.2
+            work!.Earned = 1.0 * Military.WorkingAdults(work);  // 働き手1人あたり 1.0
+            s.Earned = soldierEarnedPerHead * s.Size;
+            Assert.True(work.Earned / work.Size > farm.Earned / farm.Size, "前提が崩れた：頭数あたりでは都市労働者が上（順位が逆になる盤面）");
+            double flow = 0.1 * s.Size, f0 = farm.Size, w0 = work.Size, pop0 = r.SumPopulation(), vac = 0;
+            object[] args = [r, w, 0.5, 1.0, s, 0, flow, 1.0, 1.0, false, c, vac, true];
+            RouteViaPoolM.Invoke(null, args);
+            return (farm.Size - f0, work.Size - w0, flow, r.SumPopulation() - pop0,
+                    1.2 * Military.WorkingAdults(s) / s.Size, 1.0 * Military.WorkingAdults(s) / s.Size);
+        }
+        var split = Arm(0.0);    // (a) 按分
+        var all = Arm(100.0);    // (b) 総取り
+        double T = new Coefficients().JobPoolTemperature;
+        Assert.True(T > 0, "前提が崩れた：着地の温度が0（総取りのウォーターフォール）");
+        double share = 1.0 / (1.0 + Math.Exp((split.workPW - split.farmPW) / T));   // 農民の取り分（働き手1人あたりの softmax）
+        Assert.True(split.toFarm > 0 && split.toWork > 0, $"(a) 按分にならない（農民 {split.toFarm}・都市労働者 {split.toWork}）");
+        Assert.True(Math.Abs(split.toFarm - share * split.flow) <= 1e-9 * split.flow, $"(a) 農民の取り分 {split.toFarm / split.flow:F6} ≠ 働き手1人あたりの softmax {share:F6}");
+        Assert.True(Math.Abs(split.toFarm + split.toWork - split.flow) <= 1e-9 * split.flow, "(a) 送った人数が行き先の和に一致しない");
+        Assert.True(Math.Abs(all.toFarm - all.flow) <= 1e-9 * all.flow && Math.Abs(all.toWork) <= 1e-9 * all.flow,
+            $"(b) 強制の残りが働き手1人あたりで最良の職（農民）へ総取りにならない（農民 {all.toFarm}・都市労働者 {all.toWork}・送った {all.flow}）");
+        Assert.True(Math.Abs(split.popDiff) <= 1e-9 * split.flow && Math.Abs(all.popDiff) <= 1e-9 * all.flow, "州の人口が保存されない");
+    }
+
+    /// <summary>★(161)（(157) の反証役の指摘 va#8）：移民の引力（<see cref="Territory.Opportunity"/>＝州の雇用の項 1−失業者÷人口）は**兵士の未払いを失業に数えない**
+    /// （兵士の「失業」＝給与の未払いの割合＝脱走と志願の空きだけが読む）。民間の失業は今までどおり効く。
+    /// ⚠突然変異「兵士の失業も足す（旧）」で赤。</summary>
+    [Fact]
+    public void 移民の引力は兵士の未払いを失業に数えない()
+    {
+        var w = France155().World; var c = w.Coef; var r = w.Region;
+        var s = r.Pops[r.SoldierPopIndex];
+        Assert.True(s.Size > 1, "前提が崩れた：兵士が居ない");
+        s.UnemploymentRate = 0;
+        double o0 = Territory.Opportunity(r, c);
+        s.UnemploymentRate = 1;
+        double o1 = Territory.Opportunity(r, c);
+        Assert.True(o0 > 0, $"前提が崩れた：機会 {o0}");
+        Assert.Equal(o0, o1);
+        Pop? farm = null; foreach (var p in r.Pops) if (!p.IsSoldier && p.ClassId == c.SoldierRecruitClassA) { farm = p; break; }
+        farm!.UnemploymentRate = Math.Min(1, farm.UnemploymentRate + 0.5);
+        Assert.True(Territory.Opportunity(r, c) < o0, "民間の失業が移民の引力を下げない");
+    }
+
+    /// <summary>★(161) 徴兵は兵1人を安くする（作者に返した設計「徴兵は兵1人を安くする制度でもあった（仏・普が英より大きな軍を持てた理由）」・承認済みの流れ）：
+    /// 徴兵制（選抜・皆兵）の兵卒の給与＝徴兵の兵の手当＝徴募の母数の**頭数あたり**の所得（世帯の1人ぶんの暮らし＝糧食・被服と小遣い）・志願制＝**働き盛り1人あたり**（規定の給与）。
+    /// 幹部の給与（質）の必要額は**どちらの法でも規定の給与**（将校と下士官は長期の職業軍人）。盤面＝仏（器を大きく＝給与の充足1・人口の側を0＝徴兵で兵が動かない）で1か月＝
+    /// 兵士の給与の請求（LastSoldierPay）が Σ兵数×(兵卒の単価＋幹部の割合×規定の単価)×SoldierPayMult に一致（兵数と単価＝月の決算の直前に読む＝予算が読む値）。
+    /// ⚠突然変異「徴兵制でも規定の給与」「幹部の給与を兵卒の手当で数える」で赤。</summary>
+    [Fact]
+    public void 徴兵制の兵卒の給与は徴募の母数の頭数あたりで幹部の給与は規定の給与で数える()
+    {
+        (double claim, double expect, double keep, double reg, double train) Arm(ConscriptionLaw law, double cadre)
+        {
+            var sim = France155(); var w = sim.World; var c = w.Coef;
+            w.ConscriptionLaw = law; w.Policy.ConscriptionLaw = law;   // 施行の目標も同じ法（月の施行が戻さない）
+            c.MilitaryEnvelopeShare = 1e9; c.MilitaryCadrePayRatio = cadre;
+            c.MaxSoldierFraction = 1e-12;   // 席をほぼ0＝徴兵で兵が増えない（減らす枝は Military に無い・Meritocracy は四半期＝この1か月に走らない）
+            for (int d = 0; d < Calendar.DaysPerMonth - 1; d++) sim.StepDay();   // 月の決算（30日目の締め）の直前まで
+            double e = 0, k = 0, g = 0;
+            bool conscript = law >= ConscriptionLaw.Selective;
+            foreach (var r in w.Regions)
+            {
+                if (r.State != RegionState.Active || r.SoldierPopIndex < 0) continue;
+                double n = r.Pops[r.SoldierPopIndex].Size;
+                double kw = Military.RecruitWage(r, c, last: false, keep: true), rw = Military.RecruitWage(r, c, last: false);   // 予算が読む値＝月の決算の前の Earned
+                k += n * kw; g += n * rw;
+                e += n * ((conscript ? kw : rw) + cadre * rw) * c.SoldierPayMult;
+            }
+            sim.StepDay();   // 30日目＝月の決算（予算が立つ）
+            return (w.LastSoldierPay, e, k, g, w.MilitaryTrainingFill);
+        }
+        var sel = Arm(ConscriptionLaw.Selective, 0.0);
+        var vol = Arm(ConscriptionLaw.Volunteer, 0.0);
+        var selQ = Arm(ConscriptionLaw.Selective, 1.0);
+        var uni = Arm(ConscriptionLaw.Universal, 0.0);
+        Assert.True(sel.keep > 0 && sel.keep < sel.reg, $"前提が崩れた：手当 {sel.keep} が規定の給与 {sel.reg} より安くない");
+        Assert.True(Math.Abs(sel.claim - sel.expect) <= 1e-9 * sel.expect, $"選抜：兵卒の給与の請求 {sel.claim} ≠ 手当×兵数 {sel.expect}");
+        Assert.True(Math.Abs(uni.claim - uni.expect) <= 1e-9 * uni.expect, $"皆兵：兵卒の給与の請求 {uni.claim} ≠ 手当×兵数 {uni.expect}");
+        Assert.True(Math.Abs(vol.claim - vol.expect) <= 1e-9 * vol.expect, $"志願：兵卒の給与の請求 {vol.claim} ≠ 規定の給与×兵数 {vol.expect}");
+        Assert.Equal(1.0, selQ.train);
+        Assert.True(Math.Abs(selQ.claim - selQ.expect) <= 1e-9 * selQ.expect, $"選抜＋幹部：請求 {selQ.claim} ≠ 手当＋規定の給与 {selQ.expect}（幹部の給与を手当で数えた）");
+    }
+
+    /// <summary>★(161) 定員の経済の側（払える予算÷兵1人あたりの費用）も同じ物差し＝徴兵制は兵1人の給与が手当（頭数あたり）の分だけ安い＝同じ器でより多くの席
+    /// （仏・普が英より大きな軍を安く持てた理由）。盤面＝仏（人口の側を外す）で法だけ替える＝志願の定員から装備の単価を逆算し、徴兵の定員を予測して一致。
+    /// ⚠突然変異「定員は徴兵制でも働き盛り1人あたり」で赤。</summary>
+    [Fact]
+    public void 定員の経済の側は徴兵制で兵1人の手当の分だけ安い()
+    {
+        var w = France155().World; var c = w.Coef;
+        c.MaxSoldierFraction = 1e9;   // 人口の側を外す
+        double earn = 0, heads = 0, wa = 0;
+        foreach (var r in w.Regions)
+        {
+            if (r.State != RegionState.Active || !(Military.RegionManpower(r, c) > 0)) continue;
+            foreach (var p in r.Pops)
+                if (!p.IsSoldier && (p.ClassId == c.SoldierRecruitClassA || p.ClassId == c.SoldierRecruitClassB))
+                { earn += Math.Max(0, p.LastEarned); heads += p.Size; wa += Military.WorkingAdults(p); }
+        }
+        double env = Military.EnvelopeOf(w, c);
+        w.ConscriptionLaw = ConscriptionLaw.Volunteer;
+        double estV = Military.EstablishmentOf(w, c, out _);
+        w.ConscriptionLaw = ConscriptionLaw.Selective;
+        double estS = Military.EstablishmentOf(w, c, out _);
+        Assert.True(estV > 0 && env > 0 && heads > wa, $"前提が崩れた：定員 {estV}・器 {env}・頭数 {heads}・働き盛り {wa}");
+        double equip = env / estV - earn / wa * c.SoldierPayMult;   // 志願の定員から逆算した装備の単価（自己費用の物価水準込み）
+        double expectS = env / (earn / heads * c.SoldierPayMult + equip);
+        Assert.True(estS > estV, $"徴兵制の定員 {estS} が志願制 {estV} より大きくない");
+        Assert.True(Math.Abs(estS - expectS) <= 1e-9 * expectS, $"徴兵制の定員 {estS} ≠ 器÷(手当＋装備) {expectS}");
     }
 }

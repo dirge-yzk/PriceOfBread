@@ -1030,7 +1030,7 @@ public sealed class World
     public double LastWelfareCost { get; internal set; }   // 社会保障の給付の請求（r を掛ける前・2026-09-28 から＝旧は実支出）。翌月の月初の請求の見込み（Simulation）と予算表が読む
     public double LastMilitaryClaim { get; internal set; } // ★(155) その月の月初の予算（Simulation）が書く軍事費の器の装備の請求（器から給与の後・全4段の必要額まで・r を掛ける前）＝Fiscal の余剰（guns-vs-butter）と財政バッファが読む（旧＝軍事費×歳入シェア＝Fiscal が書いた・(157) で注記を直した）
     public double MilitaryTrainingFill { get; internal set; }   // ★(155) その月の訓練の充足∈[0,1]＝軍事費の器の3段目（幹部の給与）の請求÷必要額（給与の満額×MilitaryCadrePayRatio）。書き手は月初の予算（Simulation）だけ・読み手＝熟練（Military.StepSkill・同じ月の後段）と計器。月ごとに作り直す作業の値（持ち越さない）
-    public double LastSoldierPay { get; internal set; }     // 兵士給与の月次請求書（Σ兵数×民間賃金×SoldierPayMult×(給与の充足＋幹部の給与の割合)・全州＝★(155) から規定の給与〔器で払える分〕と幹部の給与〔質＝訓練〕の和・(157) で注記を直した）。形が先・金が後 段0＝FiscalBufferOf の義務算入（FiscalBufferSoldierPayWeight）と armyneed プローブが読む
+    public double LastSoldierPay { get; internal set; }     // 兵士給与の月次請求書（Σ兵数×SoldierPayMult×(兵卒の単価×給与の充足＋規定の単価×幹部の給与の割合)・全州＝★(155) から兵卒の給与〔器で払える分〕と幹部の給与〔質＝訓練〕の和・(157) で注記を直した・★(161) 兵卒の単価は徴兵制なら手当〔頭数あたり〕・志願制なら規定〔働き盛り1人あたり〕）。形が先・金が後 段0＝FiscalBufferOf の義務算入（FiscalBufferSoldierPayWeight）と armyneed プローブが読む
     public double LastAdminClaim { get; internal set; }    // 診断：直近四半期の行政調達予算（行政費×歳入シェア）
     public double LastPensionCost { get; internal set; }   // 年金の給付の請求（r を掛ける前・2026-09-28 から＝旧は実支出）。翌月の月初の請求の見込み（Simulation）と予算表が読む
     public double LastTariffRevenue { get; internal set; } // 診断：直近四半期の関税収入（国庫へ実収）

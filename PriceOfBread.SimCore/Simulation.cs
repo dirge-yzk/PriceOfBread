@@ -1830,15 +1830,22 @@ public sealed class Simulation
         //   質（熟練）は払った金でなく維持費の段（ArmyUpkeep＞0.5）で育った＝支出から直接の効き（2026-08-17 の「支出から直接バフを排除する」の型）。
         //   ・給与（規定）＝州の兵数×徴募の母数の働き盛り1人あたりの賃金×SoldierPayMult（Military.RecruitWage＝市場で競り上がらない）。器が給与に届かない＝未払い（給与の充足 payFill＜1＝兵士の「失業」）。
         //   ・戦時の器＝段のまま（戦時経済＝軍事費の段の最上段が戦時の器・旧の装備の上限の戦時の追随 WartimeBudgetFollowsNeed は削除＝Coefficients の注記）。
+        //   ・★(161) 徴兵は兵1人を安くする（作者に返した設計・承認済みの流れ＝推奨で進めた）＝徴兵制（選抜・皆兵）の兵卒の給与は徴兵の兵の手当（Military.RecruitWage の keep＝徴募の母数の
+        //     頭数あたりの所得＝世帯の1人ぶんの暮らし＝糧食・被服と小遣い）・志願制は規定の給与（働き盛り1人あたり）。幹部の給与（質）の物差しはどちらも規定の給与（soldierRegularPay）。
         double milEnvelope = Military.EnvelopeOf(World, World.Coef);
-        var soldierBasePay = new double[World.Regions.Count];   // 州の規定の給与の満額（請求の単価×兵数×SoldierPayMult・r と充足を掛ける前）
-        double payFull = 0;
+        bool keepPay = World.ConscriptionLaw >= ConscriptionLaw.Selective;
+        var soldierBasePay = new double[World.Regions.Count];   // 州の給与の満額（請求の単価×兵数×SoldierPayMult・r と充足を掛ける前）＝徴兵制は手当・志願制は規定の給与
+        var soldierRegularPay = new double[World.Regions.Count];   // ★(161) 州の規定の給与の満額（働き盛り1人あたり）＝幹部の給与（質）の物差し（志願制では soldierBasePay と同じ）
+        double payFull = 0, regularFull = 0;
         for (int ri = 0; ri < World.Regions.Count; ri++)
         {
             var r = World.Regions[ri];
             if (r.State != RegionState.Active || r.SoldierPopIndex < 0) continue;
-            soldierBasePay[ri] = r.Pops[r.SoldierPopIndex].Size * Military.RecruitWage(r, World.Coef, last: false) * World.Coef.SoldierPayMult;
+            double size = r.Pops[r.SoldierPopIndex].Size;
+            soldierRegularPay[ri] = size * Military.RecruitWage(r, World.Coef, last: false) * World.Coef.SoldierPayMult;
+            soldierBasePay[ri] = keepPay ? size * Military.RecruitWage(r, World.Coef, last: false, keep: true) * World.Coef.SoldierPayMult : soldierRegularPay[ri];
             payFull += soldierBasePay[ri];
+            regularFull += soldierRegularPay[ri];
         }
         double soldierPayFill = payFull > 1e-9 ? milEnvelope / payFull : 1.0;
         if (!(soldierPayFill >= 0)) soldierPayFill = 0; else if (soldierPayFill > 1) soldierPayFill = 1;   // 否定形＝NaN は払わない側
@@ -2024,16 +2031,18 @@ public sealed class Simulation
         //   給与は器から先に払う（給与の充足 soldierPayFill＝器÷満額・1で頭打ち）。3段目＝器から給与と装備（首都の請求）を引いた残りを、幹部の給与の必要額（満額×MilitaryCadrePayRatio）まで
         //   （＝訓練の充足 World.MilitaryTrainingFill＝熟練の育ち方〔Military.StepSkill〕）。それでも残る器は請求しない＝使い切れない分は使わない（出費の頭打ち＝兵士の給与は高止まり）。
         //   幹部の給与は兵士 POP の所得へ（将校と下士官は兵士 POP の中＝兵士の1人あたりの所得が上がる＝志願の魅力）。
-        double trainNeed = payFull * World.Coef.MilitaryCadrePayRatio;
+        //   ★(161) 幹部の給与の必要額は規定の給与（働き盛り1人あたり）の満額×MilitaryCadrePayRatio＝徴兵制でも幹部（将校と下士官＝長期の職業軍人）は規定の給与で払う
+        //   （徴兵が安くするのは兵卒だけ＝質の値段は法に依らない）。志願制では regularFull＝payFull＝(155) と同じ額。
+        double trainNeed = regularFull * World.Coef.MilitaryCadrePayRatio;
         double trainClaim = Math.Min(Math.Max(0, equipRoom - equipClaimNat), trainNeed);
-        double trainShare = payFull > 1e-9 ? trainClaim / payFull : 0;   // 給与の満額1あたりの幹部の給与
+        double trainShare = regularFull > 1e-9 ? trainClaim / regularFull : 0;   // 規定の給与の満額1あたりの幹部の給与
         if (!(trainShare >= 0)) trainShare = 0;
         World.MilitaryTrainingFill = trainNeed > 1e-9 && trainClaim >= 0 ? trainClaim / trainNeed : 0;
         for (int ri = 0; ri < World.Regions.Count; ri++)
         {
             var r = World.Regions[ri];
             if (r.State != RegionState.Active || r.SoldierPopIndex < 0) continue;
-            r.SoldierPayBudget = soldierBasePay[ri] * (soldierPayFill + trainShare);   // 請求（r を掛ける前）。旧＝州ごとの min(国庫)＝先着（B2）
+            r.SoldierPayBudget = soldierBasePay[ri] * soldierPayFill + soldierRegularPay[ri] * trainShare;   // 請求（r を掛ける前）。旧＝州ごとの min(国庫)＝先着（B2）・★(161) 兵卒の給与（手当か規定）＋幹部の給与（規定の物差し）
             World.LastSoldierPay += r.SoldierPayBudget;   // 請求書（形が先・金が後 段0）
         }
         World.LastMilitaryClaim = equipClaimNat;   // ★(155) 器の請求のうち装備（2段目）＝Fiscal の余剰と財政バッファが読む（旧＝Fiscal が 軍事費×0.25×歳入 を必要額で切って書いた）。給与と質（幹部の給与）は兵士の給与の請求（LastSoldierPay）の側＝旧と同じく余剰からは引かない

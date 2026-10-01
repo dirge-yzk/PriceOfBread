@@ -68,7 +68,11 @@ public static class Military
     /// ・経済の側＝払える予算（<see cref="EnvelopeOf"/>＝軍事費の段×器の割合×使える歳入）÷兵1人あたりの月の費用（給与＝徴募の母数の前月の働き盛り1人あたりの賃金×SoldierPayMult
     ///   ＝<see cref="RecruitWage"/> と同じ規則＋装備＝MilitaryUpkeepScale×Σ(rate×RefPrice)×自己費用の物価水準）＝英の陸軍予算の型（議会は金と兵の数を決めた）。
     /// ・人口の側＝兵役の母数（働き盛りの男＝<see cref="RegionManpower"/>）×MaxSoldierFraction＝徴兵法の割当て（平時の上限）。徴兵制も志願制も同じ1本（徴兵の拡大にも予算が要る
-    ///   ＝普の1862 憲法紛争）。法が変えるのは席の埋め方（徴兵＝強制・志願＝転職の仕組み）だけ。
+    ///   ＝普の1862 憲法紛争）。法が変えるのは席の埋め方（徴兵＝強制・志願＝転職の仕組み）と兵1人の給与の物差し（下）だけ。
+    ///   ★(161)：徴兵制の定員に掛かる予算の上限は、作者に返した設計（承認済みの流れ）「国庫が定員を養えない時は、定員を割る（史実の動員解除・未払い）」の内側と読む＝推奨で進めた。
+    /// ★(161) 徴兵は兵1人を安くする（作者に返した設計「徴兵は兵1人を安くする制度でもあった（仏・普が英より大きな軍を持てた理由）」・承認済みの流れ）＝推奨で進めた：
+    ///   徴兵制（選抜・皆兵）の兵の給与は徴募の母数の**頭数あたり**の所得（世帯の1人ぶんの暮らし＝糧食・被服と小遣い）・志願制は**働き盛り1人あたり**（規定の給与＝家族を養う働き手の賃金）
+    ///   ＝<see cref="RecruitWage"/> の <c>keep</c> と同じ規則（ここは国の和）。分母を替えるだけ＝新しい数なし（頭数÷働き盛り＝標準の構成で約0.55＝徴兵の兵1人の給与は志願の約半分）。
     /// ★軍拡の倍率（旧 SustainTargetOf＝近隣のライバルの扶養限界÷自国×[0.8, 1.2]）は削除＝脅威の入口は軍事費の段の1つ（作者 2026-10-01 に異議なし）。
     /// ⚠錨は歳入・人口・参照価格・軍事費の段＝ゆっくりしか動かない量のみ（相手の兵数・充足率を読まない）。読み手＝<see cref="Step"/>（強制の徴募）・<see cref="Meritocracy"/>（志願と復員）・
     /// 安全保障の不安（相手の養える軍）・診断と画面。</summary>
@@ -76,6 +80,7 @@ public static class Military
     {
         natManpower = 0;
         double poolEarn = 0, poolSize = 0;
+        bool keep = w.ConscriptionLaw >= ConscriptionLaw.Selective;   // ★(161) 徴兵制＝兵1人の給与は頭数あたり（世帯の1人ぶんの暮らし）・志願制＝働き盛り1人あたり（RecruitWage の keep と同じ規則）
         foreach (var r in w.Regions)
         {
             if (r.State != RegionState.Active) continue;
@@ -84,10 +89,10 @@ public static class Military
             natManpower += m;
             foreach (var p in r.Pops)
                 if (!p.IsSoldier && (p.ClassId == c.SoldierRecruitClassA || p.ClassId == c.SoldierRecruitClassB))
-                { poolEarn += Math.Max(0, p.LastEarned); poolSize += WorkingAdults(p); }   // 賃金の分母＝働き盛り（(140)）
+                { poolEarn += Math.Max(0, p.LastEarned); poolSize += keep ? p.Size : WorkingAdults(p); }   // 賃金の分母＝働き盛り（(140)）・徴兵制は頭数（(161)）
         }
         double manLimit = c.MaxSoldierFraction * natManpower;
-        double wage = poolSize > 1e-9 ? poolEarn / poolSize : 0;   // 徴募プールの前月の働き盛り1人あたりの賃金＝兵士の機会費用（富国の兵は高い）＝RecruitWage と同じ規則（ここは国の和）
+        double wage = poolSize > 1e-9 ? poolEarn / poolSize : 0;   // 徴募プールの前月の働き盛り1人あたりの賃金＝兵士の機会費用（富国の兵は高い）＝RecruitWage と同じ規則（ここは国の和）・徴兵制は頭数あたり＝兵1人を安くする（(161)）
         double equip = 0;
         for (int b = 0; b < c.MilitaryGoods.Length; b++)
             if (c.MilitaryGoods[b] < Catalog.RefPrices.Length) equip += c.MilitaryUpkeepScale * c.MilitaryRates[b] * Catalog.RefPrices[c.MilitaryGoods[b]];
@@ -119,13 +124,15 @@ public static class Military
 
     /// <summary>★州の兵1人の月給の請求の単価＝徴募の母数（農民・都市労働者）の前月の所得÷働き盛りの人数×SoldierPayMult の手前（2026-09-30 (140)）。
     /// 請求（Simulation の SoldierPayBudget＝兵数×これ×SoldierPayMult）と定員（<see cref="EstablishmentOf"/>＝国の和で同じ規則）が同じ母数と同じ窓を読む。
-    /// <paramref name="last"/>＝前月の所得の欄（月の決算の後＝LastEarned・月の決算の前＝Earned＝どちらも前月の所得）。</summary>
-    internal static double RecruitWage(Region r, Coefficients c, bool last)
+    /// <paramref name="last"/>＝前月の所得の欄（月の決算の後＝LastEarned・月の決算の前＝Earned＝どちらも前月の所得）。
+    /// ★(161) <paramref name="keep"/>＝徴兵の兵の手当（徴兵制の兵の給与・作者に返した設計「徴兵は兵1人を安くする制度でもあった」）＝同じ所得を**頭数**で割る
+    /// （世帯の1人ぶんの暮らし＝糧食・被服と小遣い・働き手が家族を養う分を含まない）。既定＝働き盛り1人あたり（志願兵の規定の給与・幹部の給与の物差し）。</summary>
+    internal static double RecruitWage(Region r, Coefficients c, bool last, bool keep = false)
     {
         double pe = 0, pa = 0;
         foreach (var p in r.Pops)
             if (!p.IsSoldier && (p.ClassId == c.SoldierRecruitClassA || p.ClassId == c.SoldierRecruitClassB))
-            { pe += Math.Max(0, last ? p.LastEarned : p.Earned); pa += WorkingAdults(p); }
+            { pe += Math.Max(0, last ? p.LastEarned : p.Earned); pa += keep ? p.Size : WorkingAdults(p); }
         return pa > 1e-9 ? pe / pa : 0;
     }
 

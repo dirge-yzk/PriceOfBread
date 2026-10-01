@@ -119,6 +119,7 @@ public static class Meritocracy
             // 兵士は下流（0）の職の1つ＝席の数は制度（定員＝Military.EstablishmentOf の州按分＝州の母数÷国の母数）・給与は国家の規定（Simulation の SoldierPayBudget）。
             // ・志願＝失業プール（①''）と強制の転落（④⑤⑥・①'）の職の選択に兵士の席が入る（席の空きまで・FillJobs）。
             // ・平時に定員を超えた分＝国家が兵を民間の最良の職へ戻す（旧 Military の DischargeToPool＝農民と都市労働者へ比例を置き換え）。速さは旧の平時の徴募/離職の速さ（月 SoldierMigrationRate）の四半期の値。
+            //   ★(161) 行き先の比べ方は JobIncome の1本（民間の職を働き手1人あたりへ直す）＝兵の給与×転職のプレミアムを超える職へ按分（低温の softmax）・超える職が無ければ強制の残りが最良の1つへ（総取り）。
             // ・兵士だけの差分（許可済み）：志願兵は服役の年限ですぐ辞めない＝職の比較で自分から出ていかない（①'' の対象は未払いの分だけ＝兵士の「失業」＝給与の未払いの割合）・
             //   戦時は復員しない（下の枝は平時だけ）・徴兵は強制で席を埋める（Military.Step）。
             Pop? soldierPop = null;
@@ -482,7 +483,7 @@ public static class Meritocracy
                     if (ReferenceEquals(t, src) || t.Closed || t.IsSoldier || t.Size <= Eps) continue;
                     if (i == r.InvestorPopIndex || i == r.MerchantPopIndex) continue;
                     if (ClassOf(r, i) != cls) continue;
-                    double inc = Math.Max(0, t.Earned) / t.Size;
+                    double inc = JobIncome(t, src);   // ★(161) 比べ方の1本（送り手が兵士なら民間の職を働き手1人あたりで・民間どうしは頭数あたり＝旧と同じ値）
                     if (inc > bestInc) { bestInc = inc; best = i; }
                 }
                 if (best >= 0) { Move(src, r.Pops[best], remaining, c, genderAccess: GenderAccess(w, r, best, c)); remaining = 0; }
@@ -603,13 +604,18 @@ public static class Meritocracy
 
     /// <summary>★(155) 職の比較の所得（①''・失業プールの着地）＝1人あたりの所得。兵士の席は兵1人の給与（兵士 POP は働き盛りの男だけ＝頭数＝働き手）を
     /// 送り手の世帯の1人あたりへ直す（×送り手の働き盛りの人数÷頭数＝<see cref="Military.WorkingAdults"/>）＝分子と分母を同じ規則で（民間の職は世帯の頭数あたり・
-    /// 兵の給与は働き手1人あたり＝そのまま比べると兵士が約2倍に見える）。</summary>
+    /// 兵の給与は働き手1人あたり＝そのまま比べると兵士が約2倍に見える）。
+    /// ★(161)（(157) の反証役の指摘 va#5＝片向き）：**送り手が兵士のとき**（平時の復員・未払いの脱走）も同じ規則＝民間の職の所得を働き手1人あたり（世帯の所得÷働き盛り
+    /// ＝その職で働き手1人が得る額）にしてから送り手の世帯の1人あたりへ直す（兵士 POP は働き盛り÷頭数≈1）。旧＝民間の職は頭数あたりのまま＝兵1人の給与（働き手1人あたり）が
+    /// 約2倍に見え、第1段（今より稼げる職×転職のプレミアム）がほぼ通らず強制の残り（最良の1つへ総取り）へ落ちた。民間どうしの比較は頭数あたりのまま（変えていない）。</summary>
     private static double JobIncome(Pop t, Pop src)
     {
         double inc = Math.Max(0, t.Earned) / t.Size;
-        if (!t.IsSoldier) return inc;
+        if (t.IsSoldier == src.IsSoldier) return inc;   // 民間どうし（兵士どうしは自分自身＝候補にならない）＝世帯の頭数あたりのまま
+        double wa = t.IsSoldier ? t.Size : Military.WorkingAdults(t);   // 働き手の人数（兵士 POP は働き盛りの男だけ＝頭数）
+        double perWorker = wa > Eps ? Math.Max(0, t.Earned) / wa : 0;
         double perHead = src.Size > Eps ? Military.WorkingAdults(src) / src.Size : 0;
-        return inc * perHead;
+        return perWorker * perHead;
     }
 
     /// <summary>★(155) 職への移動の1本（①''の着地）＝民間の職は <see cref="Move"/>（世帯ごと）・兵士の席は徴兵と同じ人の移し方（<see cref="Military.MoveCohort"/>＝徴兵の年齢の男だけが抜ける・

@@ -343,6 +343,9 @@ public class WriterRatchetTests
     // ★2026-10-02 表の更新（(156) 戦死の率を兵の頭数の単位へ読み替えた＝軌道が動いた分の宣言・新しい計数の処理は無い）：
     //   覇権の判定 3,819,196→3,376,284（−11.6%＝10% を超えて下がった＝表を下げる・同盟の候補が居る月の軌道＝(152) と同じ型・処理の形は同じ）。ほかの15本は許しの内。
     //   全長の10種では覇権の判定 117,301,662→107,898,842・着値の充填 372,106,234→380,475,714（+2.3%）＝推定 235.2→235.6 秒（予算の内・目標より下の余りの中＝払っていない・実装ログ (156)）。
+    // ★2026-10-02 表の更新（(161) 兵の労働市場の仕上げ＝徴兵の兵の手当・職の比べ方の対称・移民の引力から兵士の未払いを外す＝軌道が動いた分の宣言・新しい計数の処理は無い）：
+    //   覇権の判定 3,376,284→2,148,613（−36.4%＝10% を超えて下がった＝表を下げる・最初の40四半期の同盟の候補が居る月の軌道＝(152)(156) と同じ型・処理の形は同じ）。ほかの16本は許しの内。
+    //   全長の10種では覇権の判定 107,898,842→107,255,350（−0.6%）・建設 269,795→291,863・請求 733,606→767,695＝推定 235.6→235.9 秒（予算の内・目標より下の余りの中＝払っていない・実装ログ (161)）。
     [InlineData(CostLedger.ConstructionSeen, 7807L)]
     [InlineData(CostLedger.CreditSpans, 33282L)]
     [InlineData(CostLedger.ConsumePopGoods, 28595736L)]
@@ -352,7 +355,7 @@ public class WriterRatchetTests
     [InlineData(CostLedger.ClearingRows, 5185642L)]
     [InlineData(CostLedger.ClearingFills, 28778490L)]
     [InlineData(CostLedger.DiploPowerMonths, 9954L)]
-    [InlineData(CostLedger.DiploHegemonScans, 3376284L)]
+    [InlineData(CostLedger.DiploHegemonScans, 2148613L)]
     [InlineData(CostLedger.QuarterStartPops, 235560L)]
     [InlineData(CostLedger.QuarterEndPops, 235560L)]
     [InlineData(CostLedger.SharedNationQuarters, 3698L)]

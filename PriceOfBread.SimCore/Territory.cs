@@ -178,7 +178,9 @@ public static class Territory
         // WagePremium は UpdateRegionalPriceLevels が四半期更新（[0.25,4]クランプ済み）。OpportunityWageWeight 既定0.2（点火）・0で wagePull=1＝旧と厳密一致。
         double wagePull = Math.Max(OpportunityFactorFloor, 1.0 + c.OpportunityWageWeight * (r.WagePremium - 1.0));
         if (!(pop >= 1.0)) return r.ProductivityBonus * wagePull * land;   // ★否定形＝pop が NaN のとき除算枝（unemp/pop）へ落ちない。有限値では `pop < 1.0` と厳密に同値
-        double unemp = 0; foreach (var p in r.Pops) unemp += p.Size * p.UnemploymentRate;
+        // ★(161)（(157) の反証役の指摘 va#8）：兵士は失業者に数えない＝兵士の「失業」は給与の未払いの割合（Simulation が書く・脱走と志願の空きだけが読む）で、民間の職の無さではない。
+        //   分母は州の人口のまま（兵士は職に就いている人として数える＝貴族・聖職と同じ）。
+        double unemp = 0; foreach (var p in r.Pops) if (!p.IsSoldier) unemp += p.Size * p.UnemploymentRate;
         // プッシュ要因（B-4）：地域の不満（迫害・治安悪化）が機会を下げ、その地域からの流出を促す（ポグロム・抑圧からの逃避）。
         //   ★2026-09-30 段4e H：不穏＝州の平均闘争度の1本（平民の民間人＝駐留の兵と閉鎖階級を除く）＝旧は全 POP の和÷全人口（兵と貴族の闘争度が州の不穏に混ざった）。
         double unrest = Politics.AvgRegionMilitancy(r);
