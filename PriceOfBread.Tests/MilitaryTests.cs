@@ -836,4 +836,68 @@ public class MilitaryTests
         Assert.Equal(fe0, dip.Tension(fr, es));
         Assert.True(dip.Tension(fr, jp) + dip.Tension(es, jp) > fj0 + ej0, "前提が崩れた：脅威の緊張がどの組にも立たない（脅威を持つ国が無い）");
     }
+
+    // ===== (154) 呼び手の配線の番人（(151) の反証役の指摘＝Borders・SeaTradeShare・ThreatReach は単体で試しているが、Compute と ThreatTension が読む配線は見ていなかった） =====
+
+    /// <summary>★(154) 理想の軍隊の形（<see cref="ArmyShape.Compute"/>）は国境の長さを陸の必要量に読む（作者裁定 2026-09-29「国境線が長いほど軍事費が必要になる」の配線）。
+    /// 盤面＝仏・西・日（開幕・外交は止める）。仏の州を全て山にすると仏西の国境の重みだけが下がる（投射・敵意・不穏度は地形を読まない）＝西の陸軍のうち仏へ向く分が減り、仏の陸の必要量が下がる。
+    /// ⚠突然変異「陸の到達から国境を外す」で赤（地形を変えても陸の必要量が1ビットも動かない）。</summary>
+    [Fact]
+    public void 理想の軍隊の形は国境の長さを陸の必要量に読む()
+    {
+        var sim = Frozen152("フランス", "スペイン", "日本");
+        var dip = sim.Diplomacy; var c = sim.Coef;
+        var fr = sim.Nations[0].World.SelfPower!;
+        ArmyShape.Compute(dip, c);
+        double before = fr.NeedLand;
+        Assert.True(before > 0, $"前提が崩れた：仏の陸の必要量が0（{before}）");
+        foreach (var r in sim.Nations[0].World.Regions) r.Terrain = Terrain.Mountain;
+        ArmyShape.Compute(dip, c);
+        Assert.True(fr.NeedLand < before * (1 - 1e-9), $"仏を山にしても陸の必要量が下がらない（{before:G17}→{fr.NeedLand:G17}）＝Compute が国境の長さを読んでいない");
+    }
+
+    /// <summary>★(154) 理想の軍隊の形は守る海の交易（軍×海に出ている経済の割合）を海の必要量に足す（通商保護の配線）。
+    /// 盤面＝英日（開幕・外交は止める）。英の港の取扱高を0から正へ変えた差＝英の軍×<see cref="ArmyShape.SeaTradeShare"/>（他の項は取扱高を読まない）。
+    /// ⚠突然変異「通商保護の行を消す」で赤（海越えの陸軍だけでも海の必要量は正＝旧の番人は気づかない）。</summary>
+    [Fact]
+    public void 理想の軍隊の形は守る海の交易を海の必要量に足す()
+    {
+        var sim = Frozen152("イギリス", "日本");
+        var dip = sim.Diplomacy; var c = sim.Coef;
+        var ukw = sim.Nations[0].World; var uk = ukw.SelfPower!;
+        foreach (var nn in sim.Nations) foreach (var r in nn.World.Regions) r.LastPortThroughput = 0;
+        ArmyShape.Compute(dip, c);
+        double sea0 = uk.NeedSea;
+        foreach (var r in ukw.Regions) r.LastPortThroughput = 1000.0;
+        double share = ArmyShape.SeaTradeShare(ukw);
+        Assert.True(share > 0 && uk.Military > 0, $"前提が崩れた：割合 {share}・軍 {uk.Military}");
+        ArmyShape.Compute(dip, c);
+        double expect = uk.Military * share;
+        Assert.True(System.Math.Abs(uk.NeedSea - sea0 - expect) <= 1e-9 * System.Math.Max(1.0, expect),
+            $"取扱高を入れた差 {uk.NeedSea - sea0:G17} ≠ 軍×割合 {expect:G17}＝Compute が守る海の交易を海の必要量に足していない");
+    }
+
+    /// <summary>★(154) 脅威の緊張（Diplomacy.ThreatTension）は国境の長さを届き方（<see cref="Diplomacy.ThreatReach"/>）へ渡す（「国境を接している国は脅威だが、そうでない国はあまり脅威ではない」の配線）。
+    /// 盤面＝仏・西・日を2つ（開幕・他の緊張の源を0）。片方は仏の州を全て山にする（仏西の国境の重みだけが下がる）＝仏西の組に立つ脅威の緊張が小さくなる。
+    /// ⚠突然変異「国境に0を渡す」で赤（2つの盤面で同じ緊張が立つ）。</summary>
+    [Fact]
+    public void 脅威の緊張は国境の長い組ほど強く立つ()
+    {
+        static double Rise(bool mountain)
+        {
+            var sim = Frozen152("フランス", "スペイン", "日本");
+            var dip = sim.Diplomacy; var c = sim.Coef;
+            var fr = sim.Nations[0].World.SelfPower!; var es = sim.Nations[1].World.SelfPower!;
+            c.IdeologyTensionRate = 0; c.IdeologyAffinityRelief = 0; c.EthnicTensionRate = 0; c.EthnicAffinityRelief = 0;
+            c.LawTensionRate = 0; c.ReligionTensionRate = 0; c.ReligionAffinityRelief = 0; c.OpiumBanTensionRate = 0;
+            c.TensionDecay = 0; c.ProtectorTensionRate = 0; c.ActionTensionStep = 0; c.RouteDependenceTensionRate = 0;
+            if (mountain) foreach (var r in sim.Nations[0].World.Regions) r.Terrain = Terrain.Mountain;
+            double t0 = dip.Tension(fr, es);
+            dip.Step(c, sim.Rng, 1);   // 四半期の境でない月＝AI・調停は走らない
+            return dip.Tension(fr, es) - t0;
+        }
+        double flat = Rise(false), mount = Rise(true);
+        Assert.True(flat > 0, $"前提が崩れた：仏西の組に脅威の緊張が立たない（{flat}）");
+        Assert.True(mount < flat * (1 - 1e-9), $"国境の重みを下げても仏西の脅威の緊張が弱まらない（{flat:G17}→{mount:G17}）＝ThreatTension が国境の長さを届き方へ渡していない");
+    }
 }

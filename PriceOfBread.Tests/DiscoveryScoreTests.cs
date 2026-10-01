@@ -281,7 +281,7 @@ public class DiscoveryScoreTests
     }
 
     /// <summary>損耗の記帳（World.DiscoveryLossQ＝月ごとに積む）は判定で四半期の月の平均になり（画面と計器が同じ値を読む＝World.LastDiscoveryView.Loss）、記帳は捨てられる。
-    /// 多国の世界は四半期末の共有層も捨てる（助走は判定しない＝捨てるだけ）。⚠壊し方＝捨てない（次の四半期へ積み残す）・平均にしない（月の和のまま）→ 赤。</summary>
+    /// 多国の世界でも四半期をまたいで積み残さない（判定の Discovery.Step が捨てる＝共有層と助走の捨てる行はこの番人では見ていない＝(154) の反証役の指摘・今は助走中に外交が止まり記帳が積まれない）。⚠壊し方＝捨てない（次の四半期へ積み残す）・平均にしない（月の和のまま）→ 赤。</summary>
     [Fact]
     public void 損耗の記帳は判定で四半期の月の平均になり捨てられる()
     {
@@ -297,7 +297,7 @@ public class DiscoveryScoreTests
         Assert.Equal(0.3 / Calendar.MonthsPerQuarter, l![(int)WarDomain.Land], 12);
         Assert.Equal(0.6 / Calendar.MonthsPerQuarter, l[(int)WarDomain.Sea], 12);
         Assert.Equal(0.9 / Calendar.MonthsPerQuarter, l[(int)WarDomain.Air], 12);
-        // 多国の四半期末（共有層）も捨てる＝四半期をまたいで積み残さない
+        // 多国の四半期でも積み残さない（判定が捨てる・共有層の捨てる行はこの番人では見ていない＝(154)）
         foreach (var n in sim.Nations) n.World.DiscoveryLossQ = new double[Discovery.LossDomains];
         sim.StepQuarter();
         Assert.All(sim.Nations, n => Assert.Null(n.World.DiscoveryLossQ));
