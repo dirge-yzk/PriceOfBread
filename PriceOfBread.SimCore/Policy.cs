@@ -218,7 +218,7 @@ public sealed class NationPolicy
     public double CoercionTarget;         // 治安維持力（警察・内政の鎮圧）の目標。Power.Military とは分離（軍は軍事費が駆動）
     // ★陸海の維持費（2026-08-04・作者仕様(5)「陸海の割り振りは廃止し『陸軍維持費』『海軍維持費』とする」）。
     //   旧 MilitarySpendingTarget（合計1本）＋地理由来の海軍シェア → **2本の目標**へ。合計が旧レバーの意味を保つ。
-    //   既定 0.27/0.03 は旧 0.3 と NavalShareBase 0.10 の積＝**開幕は旧と同じ配分**（較正の出発点を動かさない）。
+    //   既定 0.27/0.03 は旧 0.3 と旧の地理の比の基礎 0.10 の積＝構築の時の仮の比。⚠(151) 開幕の陸海の比は最初の同期で陸と海の必要量から置く（Diplomacy.OpeningNavalShares）。
     public double ArmyUpkeepTarget = 0.27;   // 陸軍維持費 0..1 の目標
     public double NavyUpkeepTarget = 0.03;   // 海軍維持費 0..1 の目標
     /// <summary>軍事費の合計目標（旧 MilitarySpendingTarget の互換読み）。書き込みは陸海比を保って按分する。</summary>
@@ -228,7 +228,7 @@ public sealed class NationPolicy
         set
         {
             double t = PoliticalQuantities.Clamp01(value), cur = ArmyUpkeepTarget + NavyUpkeepTarget;
-            double s = cur > 1e-9 ? NavyUpkeepTarget / cur : 0.1;   // 比を保つ（初期化前は旧 NavalShareBase 相当）
+            double s = cur > 1e-9 ? NavyUpkeepTarget / cur : 0.1;   // 比を保つ（初期化前は既定の仮の比 0.03/0.30）
             NavyUpkeepTarget = t * s; ArmyUpkeepTarget = t - NavyUpkeepTarget;
         }
     }

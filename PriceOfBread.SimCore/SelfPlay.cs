@@ -756,7 +756,7 @@ public sealed class UtilityAgent : INationAgent
         //   前に置くと同じ四半期の Apply が上書きし、反射が一度も効かない（衝突ではなく無効化になる）。
         //   逆に「条件時のみ書く」ので、条件が引けば翌四半期からは上の3か所が従来どおり単独で目標を決める＝恒久的な上書きにはしない。
         ReactProtectiveTariff(w);
-        SetNavalUpkeepShare(w);// 陸海の維持費の割り振り（2026-08-04）＝地理が指針
+        SetNavalUpkeepShare(w);// 陸海の維持費の割り振り（2026-08-04）＝陸と海の必要量が指針（(151)・旧＝地理）
         TryTradeBias(w);       // 財ごとの売買方針（2026-08-04）＝プレイヤーと同じ動詞（World.SetTradeBias）
         TryBuildFacility(w);   // 工場/プランテーションの着工（2026-08-04）＝プレイヤーと同じ動詞（2026-08-10から World.SetStateTarget＝国営工場カウンター）
         StartMegaproject(w);   // 巨大建造物の着工（2026-08-02）＝恐慌の失業対策／平時は国庫に余裕がある時だけ
@@ -884,19 +884,23 @@ public sealed class UtilityAgent : INationAgent
     }
 
     /// <summary>陸海の維持費の割り振り（2026-08-04）。合計は各スタンスが決めるので、ここは**比だけ**を置く。
-    /// ★指針は<b>地理</b>（外洋に開くか・海外植民地をいくつ持つか）＝`Diplomacy.GeoNavalShare` を読む。
-    ///   海軍シェアは作者仕様(5)で「払った金の比」になったので、地理は**AIが金をどう割るかの指針**へ役割を移した。
+    /// ★2026-10-01 (151)（作者裁定 2026-09-29「陸軍は安全保障ベース、海軍は別のベースで、軍事費を分割するようにしよう」）：指針は<b>陸と海の必要量</b>
+    ///   ＝<see cref="ArmyShape.NavalSpendShareOf"/>（陸＝国境の長さ×地形×隣国の陸軍・同盟は0・属国は弱く＋国内の秩序／海＝艦隊の比と海路の接触＝守る海の交易）。
+    ///   旧＝地理（外洋に開けば+0.10・植民地の質量×0.05・下限0.05・上限0.60＝GeoNavalShare）＝陸続きの植民地格の州まで海軍に数え、清は上限の0.60に張り付いた。
+    ///   必要量がまだ一度も算出されていない（−1）ときは今の比のまま。
+    ///   海軍シェアは作者仕様(5)で「払った金の比」になったので、必要量は**AIとプレイヤーが金をどう割るかの指針**。
     /// ⚠これを配線し忘れていたため、全AI国が初期値10%の海軍シェアに永久固定され、1914年の海軍上位8国が
     ///   全てアジア・**英の艦隊が圏外**という実測になっていた（2026-08-04の実バグ・作者仕様(5)の実装漏れ）。
     /// ★2026-09-23（作者裁定「海軍の比率のレバーを撤去し、プレイヤーもAIと同じ地理由来の配分に乗せる」）：**プレイヤー国もこの関数を通る**。
     ///   呼び手は Simulation.QuarterStart（IsPlayer の枝＝NullAgent には DecideQuarter が無いため）＝AI とまったく同じ関数・同じ引数。
     ///   AI 国の経路（DecideQuarter の中のこの呼び出し）は1命令も変えていない＝AI挙動はビット恒等。internal＝同一アセンブリからの呼び出しのため。
     /// ⚠勢力の要求「海軍の増強」（PolicyAxis.NavyUpkeep・2026-08-10）とは**衝突しない**：要求は海軍維持費を上げる＝
-    ///   合計を押し上げ、ここは合計を保ったまま比だけを置く。AIでは「要求で金が増え、割り方は地理」となる。</summary>
+    ///   合計を押し上げ、ここは合計を保ったまま比だけを置く。AIでは「要求で金が増え、割り方は陸と海の必要量」となる。</summary>
     internal static void SetNavalUpkeepShare(World w)
     {
-        if (w.SelfPower is not { } sp || w.Diplomacy is not { } dip) return;   // 単一国（テスト・較正）では走らせない
-        double share = PoliticalQuantities.Clamp01(dip.GeoNavalShare(sp, w.Coef));
+        if (w.SelfPower is not { } sp || w.Diplomacy is null) return;   // 単一国（テスト・較正）では走らせない
+        double share = ArmyShape.NavalSpendShareOf(sp);
+        if (!(share >= 0)) return;   // 必要量が未定義（理想の形が一度も算出されていない）＝今の比のまま（否定形＝NaN も）
         var p = w.Policy;
         double total = PoliticalQuantities.Clamp01(p.ArmyUpkeepTarget + p.NavyUpkeepTarget);
         p.NavyUpkeepTarget = total * share;

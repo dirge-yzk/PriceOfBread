@@ -819,6 +819,9 @@ public sealed class Diplomacy
     public void Step(Coefficients c, DeterministicRng rng, int month)
     {
         Cost[CostLedger.DiploPowerMonths] += Powers.Count;   // 計算量の台帳（診断）：外交の月の歩は国×月に比例
+        // ★開幕（2026-10-01 (151)）＝経済を持つ国のどれもまだ艦隊を播いていない最初の同期（00一覧 §0-A の 11 の申し送り「開幕の陸海の維持費 0.27/0.03 が最初の四半期に跳ぶ」）。
+        bool opening = c.NavalPowerFromFleet > 0;
+        foreach (var p0 in Powers) if (p0.Nation is not null && p0._fleetSeeded) { opening = false; break; }
         // 経済を持つ国は軍/GDP/財庫を毎月同期（抽象的な外国は静的値のまま）
         foreach (var p in Powers)
         {
@@ -843,16 +846,13 @@ public sealed class Diplomacy
                 foreach (var mp in nw.AllPops()) if (!mp.IsSoldier && mp.MilitiaShare > 0) militiaMen += mp.Size * mp.MilitiaShare;
             p.Military = ((nw.SoldierSize() + c.MilitiaCombatValue * militiaMen) / c.SoldiersPerMilitary + c.ArmyShapeGauge * p.FleetGauge) * nw.MilitaryReadiness * (1 + c.MilitaryQualityBonus * nw.Region.MilitaryQualityFill + c.MilitaryTier3Bonus * nw.Region.MilitaryTier3Fill) * cohesion * militarism * techQuality;   // 上位軍需(tier2)＋tier3(戦車/弩級戦艦)＋民族の結束＋軍国＋技術＝戦力の質的乗数
             p.AirPower = p.Military * nw.Region.MilitaryAirFill;   // 1934拡張E2：空軍力＝陸海戦力×空軍装備充足（飛行機/戦闘機/化学兵器）。財の解禁(1910s)前はFill0＝空軍0＝恒等
-            // 海軍シェア＝地理から創発（新スライダーなし・B-1）：外洋海盆に開く国＋海外植民地を持つ帝国ほど海軍に振る。内陸寄り（露/普）は陸軍偏重。
-            double navalTarget = GeoNavalShare(p, c);   // ★AIの目標と同一の式（下の公開関数＝二重定義しない）
             // ★割り振りの廃止（2026-08-04・作者仕様(5)）：海軍シェアは**払った金の比**で決まる。
             //   旧＝地理（外洋に開くか・植民地数）から自動で決まり、プレイヤーもAIも直接は動かせなかった
             //   ＝「割り振り」という抽象レバーが実体のない場所に座っていた。
-            //   ⚠地理由来の navalTarget は**AIの目標**として下（AI側）で使う＝英が海軍へ寄る傾向は残る。
-            //   ⚠NavalShareFromUpkeep=0 で旧＝地理から創発（厳密恒等）。
-            double shareTarget = c.NavalShareFromUpkeep > 0
-                ? Math.Clamp(nw.NavalSpendShare, c.NavalShareMin, c.NavalShareMax)
-                : navalTarget;
+            //   ★払う金の陸海の比は陸と海の必要量が決める（2026-10-01 (151)・UtilityAgent.SetNavalUpkeepShare＝ArmyShape.NavalSpendShareOf・AI とプレイヤーが同じ関数）。
+            //   ★(151)：下限0.05・上限0.60 のクランプを外した（思想⑧ 天井の廃止＝選んだ比を削らない・陸を完全には捨てないことは陸と内の守りの必要量が担う）。
+            //   旧の地理の目標（GeoNavalShare）と旧式へ戻す旗（NavalShareFromUpkeep）は読み手ごと削除。
+            double shareTarget = nw.NavalSpendShare;   // 維持費の比∈[0,1]（World.NavalSpendShare＝海÷(陸＋海)）
             p.NavalShare = c.NavalBuildRate >= 1.0 ? shareTarget : p.NavalShare + c.NavalBuildRate * (shareTarget - p.NavalShare);   // 既定0.3＝建艦の時間遅れ（EMA）。1.0で即時＝旧挙動
             // ★艦隊ゲージ＝実際に買って保有している戦闘艦（EconomyStep が積む region.FleetStock）をゲージ単位へ。
             // ⚠国内の全州を足す＝造船した港がどこであれ艦隊は国のもの。0（既定）で旧式へ縮退＝厳密恒等。
@@ -873,7 +873,7 @@ public sealed class Diplomacy
                 if (!(denom > 0)) { p.FleetGauge = 0; p._fleetDriven = false; }   // ⚠否定形＝NaNなら旧式へ退避（海軍が消えない）。★是正（監査2026-09-02 #3）：continueを廃止＝この国の後段同期（NavalFuelMul・艦隊摩耗・Culture/Religion・BasinPresence・Skill・_year）を飛ばさない
                 else
                 {
-                    if (!p._fleetSeeded)
+                    if (!p._fleetSeeded && !opening)   // ★開幕（どの国もまだ播いていない）はループの後で陸と海の必要量から播く（下の OpeningNavalShares）
                     {
                         p._fleetSeeded = true;
                         if (nw.Regions.Count > 0)
@@ -913,6 +913,7 @@ public sealed class Diplomacy
             p.NavySkillMul = Military.SkillCombatMultiplier(nw.NavySkill, c);
             _year = nw.Year;
         }
+        if (opening) OpeningNavalShares(c);
 
         // 変名規則（統一・formable）：文化/宗教の同期後・四半期に1回（EnableFormations=1.0 live・0で不発）。
         if (c.EnableFormations > 0 && month % Calendar.MonthsPerQuarter == 0) Formations.Check(this, c);
@@ -961,18 +962,29 @@ public sealed class Diplomacy
 
     // 大国であること自体が周囲の緊張を生む（GDP・植民地・軍が平均超の国へ、皆の緊張が上がる→孤立＝覇権防止）
 
-    /// <summary>地理由来の海軍シェア（2026-08-04・公開）。外洋海盆に開く国＋海外植民地を持つ帝国ほど海軍に振る。
-    /// ★<b>AIの海軍維持費の目標</b>がこれを読む。旧はここで p.NavalShare を直接決めていたが、
-    /// 作者仕様(5)で海軍シェアは「払った金の比」になったため、地理は**AIが金をどう割るかの指針**へ役割を移した。
-    /// ⚠これを配線し忘れていたため、全AI国が初期値10%の海軍シェアに永久固定され、
-    ///   1914年の海軍上位8国が全てアジア・**英の艦隊が圏外**という実測になっていた（2026-08-04の実バグ）。
-    /// ★2026-08-10（作者裁定「陸軍と海軍の注力レバーは廃止し、海軍維持費と陸軍維持費で表現する」）：
-    ///   旧・政策傾斜項（NavalEmphasisWeight×(NavalEmphasis−0.5)）を撤去＝**純地理**。
-    ///   引数から World を落としたのは意図的で、この関数が政策スタンスを読めないことを署名で固定する。</summary>
-    public double GeoNavalShare(Power p, Coefficients c)
+    /// <summary>★開幕の陸海の比と艦隊の播種（2026-10-01 (151)・00一覧 §0-A の 11 の申し送り「開幕の陸海の維持費は全ての国で既定 0.27/0.03＝最初の四半期に跳ぶ
+    /// ＝構築の時に同じ関数（UtilityAgent.SetNavalUpkeepShare）で置く」）。陸と海の必要量は全ての国の同期した戦力と港の取扱高（最初の清算の後）を要する
+    /// ＝構築の時にはまだ定まらない＝最初の同期（全ての国の Military・海盆プレゼンスを同期した直後）で1度だけ：理想の形を算出し、
+    /// 同じ関数で陸海の維持費の比を置き（AI とプレイヤーが同じ）、海軍シェアをその比から始め（旧＝0 から建艦の時間遅れで比の3割）、艦隊をその比で播く
+    /// （播種式は旧と同じ FleetStock₀ = Military₀ × NavalShare₀ × 換算分母＝点火の瞬間の国別の恒等はそのまま）。
+    /// 開幕の艦隊は他国の艦隊がまだ無い＝海の必要量は守る海の交易（通商保護）だけ＝海の大きさは海路の接触で決まる。</summary>
+    private void OpeningNavalShares(Coefficients c)
     {
-        double oceanOpen = p.BasinPresence[(int)Basin.Atlantic] + p.BasinPresence[(int)Basin.Pacific];
-        return Math.Clamp(c.NavalShareBase + (oceanOpen > 1e-9 ? c.NavalShareOceanBonus : 0) + c.NavalShareColonyWeight * ColonyMass(p, c), c.NavalShareMin, c.NavalShareMax);   // 純地理（外10：ThreatUsesColonyValue>0で植民地数→Value合計）
+        ArmyShape.Compute(this, c);
+        foreach (var p in Powers)
+        {
+            if (p.Nation is not { } nw || p._fleetSeeded) continue;
+            UtilityAgent.SetNavalUpkeepShare(nw);   // 陸海の維持費の目標の比（AI とプレイヤーの同じ関数）
+            double s = ArmyShape.NavalSpendShareOf(p);
+            if (s >= 0) { nw.SetMilitarySpending(nw.MilitarySpending, s); p.NavalShare = s; }   // 未定義（−1・NaN）は今の比のまま（否定形）
+            double denom = nw.Regions.Count > 0 ? EconomyStep.FleetGaugeDenominator(nw.Regions[0], c) : double.NaN;
+            if (!(denom > 0) || !p._fleetDriven) continue;   // 換算分母が無い国は艦隊駆動の外（同期のループと同じ退避）
+            p._fleetSeeded = true;
+            nw.Regions[0].FleetStock = Math.Max(0, p.Military * p.NavalShare) * denom;
+            double stock = 0;
+            foreach (var rr in nw.Regions) if (rr.State == RegionState.Active) stock += rr.FleetStock;
+            p.FleetGauge = stock / denom;
+        }
     }
 
     /// <summary>★13l地政学（作者裁定2026-08-14「無理に経済で完結させず、地政学的な要素をキャッチアップする」・観測実証＝99_実装ログ§4-6）：
@@ -1009,6 +1021,7 @@ public sealed class Diplomacy
     private void ThreatTension(Coefficients c)
     {
         if (!ThreatAverages(c, out double avgG, out double avgC, out double avgM)) return;
+        List<Power>? ps = null; double[]? border = null; Dictionary<Power, int>? at = null;   // 国境の表は脅威を持つ国が1つでもあれば1回だけ（ArmyShape.Borders＝理想の軍隊の形と同じ1本）
         foreach (var big in Powers)
             if (big.Nation is not null)
             {
@@ -1020,10 +1033,34 @@ public sealed class Diplomacy
                 if (c.SkillTensionWeight > 0 && big.Nation is { } bnw)
                     threat *= 1.0 + c.SkillTensionWeight * Math.Max(bnw.ArmySkill, bnw.NavySkill);
                 if (threat <= 0) continue;
+                if (border is null)
+                {
+                    ps = []; at = [];
+                    foreach (var q in Powers) if (q.Nation is not null) { at[q] = ps.Count; ps.Add(q); }
+                    border = ArmyShape.Borders(ps, c);
+                }
+                int bi = at![big], n = ps!.Count;
+                Cost[CostLedger.ThreatReachPairs] += n - 1;   // 計算量の台帳（診断）：脅威の届き方は脅威を持つ国×国（自国を除く・交戦中の組も数える＝上限）
                 foreach (var other in Powers)
                     if (other.Nation is not null && other != big && !AtWar(big, other))
-                        AddTension(big, other, c.ThreatTensionRate * threat, TensionReason.Threat);
+                    {
+                        double reach = ThreatReach(big, other, border[bi * n + at[other]], c);
+                        if (reach > 0) AddTension(big, other, c.ThreatTensionRate * threat * reach, TensionReason.Threat);
+                    }
             }
+    }
+
+    /// <summary>★脅威の届き方∈[0,1)（2026-10-01 (151)・脅威の緊張（ThreatTension）は届く国だけ＝AI の推奨に作者 2026-09-29「推奨でよい。合わせて、同盟国は計上しないというギミックもあると良いか。属国は仮想敵国ほどではないが、脅威を与える。また、国境を接している国は脅威だが、そうでない国はあまり脅威ではない（国境線が長いほど軍事費が必要になる）」）。
+    /// 届く強さ r＝国境の長さ（陸路グラフで隣り合う州の組の数×地形の通りにくさ＝<see cref="ArmyShape.Borders"/>）＋投射（距離減衰×海越えの制海権＝<see cref="Projection"/>）＝理想の軍隊の形の陸の到達と同じ量
+    /// を有理飽和 r÷(1＋r) で [0,1) へ（国境の辺1本ぶん＝投射1で半分・長い国境ほど1へ近づく・接しない遠い国は小さい＝⚠上限下限のクランプを書かない）。
+    /// 同盟は0・宗主と属国の間は ×(1−AllyAttentionDiscount)（理想の軍隊の形の敵意と同じ割引の1本）。旧＝経済を持つ全ての国へ同じ強さ（届かない国にも・同盟国にも）。</summary>
+    internal double ThreatReach(Power big, Power other, double borderWeight, Coefficients c)   // internal＝番人テスト用（InternalsVisibleTo）
+    {
+        if (HasAlliance(big, other)) return 0;
+        double r = borderWeight + Projection(big, other, c);
+        double w = r > 0 ? r / (1.0 + r) : 0;
+        if (IsDependentOf(big, other) || IsDependentOf(other, big)) w *= 1.0 - c.AllyAttentionDiscount;
+        return w;
     }
 
     // 覇権の脅威超過＝経済規模(GDP)＋植民地帝国＋**軍事**の平均超過分（従属込み）。改修2026-06-28：軍事を復活（技術質乗数で軍が実体を持つようになったので、軍事覇権=普/露 も反覇権連合を呼ぶ死角を塞ぐ）。重みは和1.0で平均国=0。

@@ -2178,7 +2178,7 @@ public sealed class Coefficients
 
     // --- B-1 海軍力・制海権・距離（§B 軍事リアリティ）。海軍は新スライダーを足さず Power.Military（陸海合算）から地理で創発分離 ---
     // ★陸海の維持費と熟練度（2026-08-04・作者仕様(5)）
-    public double NavalShareFromUpkeep = 1.0;      // 1で海軍シェア＝払った金の比（作者仕様「割り振りは廃止」）。0で旧＝地理から創発（厳密恒等）
+    // 【削除2026-10-01 (151)】NavalShareFromUpkeep（1＝海軍シェアは払った金の比・0＝旧の地理から創発へ戻す旗）＝0 の枝の読み手（地理の比 GeoNavalShare）ごと削除。海軍シェア＝払った金の比（陸と海の必要量で分けた維持費の比）だけ
     public double SkillUpkeepThreshold = 0.5;      // 平時にこの維持費を超えると熟練度が育ち、下回ると錆びる（作者仕様「50%以上で増加、以下で減衰」）
     public double SkillGainRate = 0.02;            // 熟練度の四半期あたり獲得率（閾値超過分×これ）
     public double SkillWarGain = 0.05;             // 戦争中（内戦含む）の四半期あたり獲得率＝実戦は訓練に勝る
@@ -2196,14 +2196,13 @@ public sealed class Coefficients
     public double SkillMobilizationRelief = 0.5;   // 熟練度1.0で総動員のペナルティがこの割合だけ軽くなる
     public double WartimeUpkeepFloor = 0.8;        // 戦時の維持費の下限＝現在値のこの割合を下回れない（戦争中に軍を解散できない）。0で下限なし＝厳密恒等
     public double SkillTensionWeight = 0.5;        // 熟練度が生む緊張＝軍隊規模に**乗算**する形（作者指示）。0で恒等
-    public double NavalShareBase = 0.10;          // 海軍シェアの基礎（Military のうち海軍が占める割合。陸軍力=Military×(1−NavalShare)）
-    public double NavalShareOceanBonus = 0.10;    // 外洋海盆（大西洋・太平洋）に開く国の海軍シェア加点（内陸寄りは低い）
-    public double NavalShareColonyWeight = 0.05;  // 海外植民地1つあたりの海軍シェア加点（帝国は海軍を要する＝英が高く露/普が低い。植民地数が主信号）
-    public double NavalShareMin = 0.05;           // 海軍シェア下限
-    public double NavalShareMax = 0.60;           // 海軍シェア上限（陸軍を完全には捨てない）
+    // 【削除2026-10-01 (151)】NavalShareBase 0.10・NavalShareOceanBonus 0.10・NavalShareColonyWeight 0.05・NavalShareMax 0.60（地理の比＝基礎＋外洋＋植民地の質量・上限）＝
+    //   作者裁定 2026-09-29「陸軍は安全保障ベース、海軍は別のベースで、軍事費を分割するようにしよう」＝陸海の比は陸と海の必要量（ArmyShape.NavalSpendShareOf）。
+    //   ⚠旧の植民地の質量は陸続きの植民地格の州も数え、清は上限0.60に張り付いた（兵の6割を艦の乗員に数えた＝清÷英の海軍力 1914 が14.7倍の根の1つ）。
+    public double NavalShareMin = 0.05;           // 艦隊摩耗の床（摩耗で海軍シェアがこれを割らない）。⚠(151) 海軍シェアの目標の下限としては読まない（思想⑧＝選んだ比を削らない）
     // ★旧 NavalEmphasisWeight（海軍シェアへの政策傾斜＝これ×(NavalEmphasis−0.5)）は撤去（2026-08-10 作者裁定
-    //   「陸軍と海軍の注力レバーは廃止し、海軍維持費と陸軍維持費で表現する」）＝海軍シェアの入力は**払った金の比だけ**（NavalShareFromUpkeep=1）。
-    //   上の地理式は AI が維持費をどう割るかの指針にだけ残る＝政策スタンスは1つも読まない（GeoNavalShare の引数に World が無い＝構造的に読めない）。
+    //   「陸軍と海軍の注力レバーは廃止し、海軍維持費と陸軍維持費で表現する」）＝海軍シェアの入力は**払った金の比だけ**。
+    //   金の陸海の割り方は陸と海の必要量（(151)・ArmyShape.NavalSpendShareOf＝AI とプレイヤーが同じ関数）＝政策スタンスは1つも読まない（旧の地理式 GeoNavalShare は (151) で削除）。
     public double NavalBuildRate = 0.3;           // **点火2026-07-31（07_再設計 第3弾3a）**：海軍シェアの目標値への月次EMA収束率。1.0=即時(旧挙動)。0.3＝建艦の時間遅れ（90%到達に約7ヶ月）＝軍拡競争の蓄積とティルピッツ計画型の追い上げが出る
     // 艦隊摩耗＋修理需要（07_再設計 §6-1・A6裁定・2026-07-31点火）：交戦中に敵と接触した艦隊が沈み、建艦でしか戻らない＝トラファルガー後の制海権固定。
     public double NavalAttritionRate = 0.05;      // 月次の摩耗率＝これ×(自分の展開海盆での敵支配度)×現NavalShare。NavalShareMin が床
@@ -2219,9 +2218,9 @@ public sealed class Coefficients
     public double ArmyShapeEnabled = 1.0;   // ⚠コメント是正2026-08-08：**1.0がlive前提**＝NavalProcurementFromShape=1.0（軍需の陸海再配分）が ShapeNavalShare を読む＝0へ戻すと軍需陸海比が変わる（非恒等）。旧注記「既定0を厳守」は読み手ゼロ時代の陳腐化＝コメント側の消し忘れと確定（設計審査wf_e6c0be63）
     public double AttentionHostilityFloor = 0.15;  // 平時（緊張0）でも残る敵意＝「無政府状態では武力は武力」。⚠段1の分布を見て較正する
     public double AttentionTensionHalf = 40.0;     // 敵意が半分に達する緊張。★**既存の RivalTensionThreshold(40)＝「これ超＝ライバル」と同値**＝新しい水準を発明しない
-    public double AllyAttentionDiscount = 0.7;     // 同盟・従属への注意の割引（3割しか向けない）＝日英同盟型の軍拡緩和。⚠較正で決める
+    public double AllyAttentionDiscount = 0.7;     // 宗主と属国の間の敵意の割引（3割だけ向ける）＝作者裁定 2026-09-29 の5「属国は仮想敵国ほどではないが、脅威を与える」（ArmyShape.Hostility・脅威の緊張が同じ1本）。⚠(151) 同盟は割引でなく0（同「同盟国は計上しない」・旧＝同盟と従属の共用の3割）
     public double InternalGarrisonPerPop = 0.002;  // 不穏度1.0のとき国内秩序に要する兵÷人口。★清の八旗・緑営は約80万／人口3.8億＝約0.2%（1783〜1850の常備の内地守備）
-    public double SeaEscortPerTradeValue = 0.0;    // 守るべき海上価値1あたりの護衛艦隊（ゲージ）。⚠**この1本が「英の海軍が世界最大になるか」を決める唯一の較正点**＝段1の分布で同定する
+    // 【削除2026-10-01 (151)】SeaEscortPerTradeValue（守るべき海上価値1あたりの護衛艦隊・休眠0）＝通商保護は絶対量でなく「海に出ている経済の割合だけ軍の同じ割合を海に置く」（ArmyShape.SeaTradeShare＝新しい数なし）へ。絶対量は海の交易の大きい国の海軍を経済の規模で膨らませた（(151) の探索の腕＝清の艦隊が英の約15倍に戻った）
     public double NavalCrewPerGauge = 0.5;         // 同じ戦力ゲージあたりの乗員（海軍は資本集約・陸軍は労働集約）＝英の常備陸軍が人口比で小さいことの本質。⚠較正で決める
     public int[] FleetGoodIds = [Catalog.WarshipId, Catalog.IroncladId, Catalog.DreadnoughtId];   // 軍艦・装甲艦・弩級戦艦（＝戦闘艦。汽船85/帆船84は輸送・補助なので艦隊に数えない）
     // ★★段2（2026-08-01）：軍需の**内訳**を理想の軍隊の形の陸海比で再配分する。
@@ -2352,7 +2351,7 @@ public sealed class Coefficients
     // ⚠撤去2026-08-12（読み手ゼロ）: ArmyShapeMenWeight  【墓標2026-08-08＝R2a(0.25)で棄却】NeedMenの脅威項が相手の現在兵数を読む＝兵数→脅威→理想兵数の外側ループが開き
     //   順位相関 ρ0.79→0.43 へ崩壊（仏NeedMen 207→800）。**扶養限界方式（ArmySustainWeight＝作者設計2026-08-08）が代替**＝
     //   錨を「ゆっくりしか動かない量」（人口・歳入）に置く。再点火禁止。
-    // ⚠R1（SeaEscortPerTradeValue同定）は**保留**（2026-08-08 armyneed実測）＝海上価値の土台が 英110 vs オスマン776・日164 と
+    // ⚠R1（SeaEscortPerTradeValue同定・(151) で係数ごと削除＝割合の形へ）は**保留**（2026-08-08 armyneed実測）＝海上価値の土台が 英110 vs オスマン776・日164 と
     //   歪んでおり（英経済がGDP13位に沈む経済規模問題の写像）、この土台への点火はオスマン海軍を世界最大にする＝経済規模の是正が先。
     //   ρ=0.79（海項なし）で R2 の blocking ゲートは通過済み。英の NeedMen 過小（84 vs 史実相当≈250-400）は k≤0.5 の
     //   部分ブレンドなら人口駆動側が支える＝k=1.0 への到達は海項の再設計とセット。

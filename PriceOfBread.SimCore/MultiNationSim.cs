@@ -1891,7 +1891,7 @@ public static class CostLedger
 {
     public const int PriceGoods = 0, PriceDailyRuns = 1, ConstructionSeen = 2, CreditSpans = 3, ConsumePopGoods = 4, ProducerMonths = 5,
         ClaimProducers = 6, MonthlyPops = 7, ClearingRows = 8, ClearingFills = 9, DiploPowerMonths = 10, DiploHegemonScans = 11,
-        QuarterStartPops = 12, QuarterEndPops = 13, SharedNationQuarters = 14, GdpScans = 15, MigrationPairs = 16, DiscoveryNations = 17, Count = 18;
+        QuarterStartPops = 12, QuarterEndPops = 13, SharedNationQuarters = 14, GdpScans = 15, MigrationPairs = 16, DiscoveryNations = 17, ThreatReachPairs = 18, Count = 19;
 
     /// <summary>計数の名前（番人の表・測りのファイル・docs の「処理の刻みの表」の列が同じ名前を使う）。</summary>
     public static readonly string[] Names =
@@ -1899,7 +1899,7 @@ public static class CostLedger
         "価格：財の歩（州×財×旬）", "価格：日次の写像の回", "建設：見た生産者（旬）", "信用：国×旬", "消費：POP×財（月）", "生産：生産者×月",
         "請求：見た生産者（月）", "月次：POP×月（決算の残り）", "清算：見た買い手行", "清算：着値の充填", "外交：国×月", "外交：覇権の判定の国×国",
         "四半期首：POP×国（AI・議会・政府）", "四半期末：POP×国", "共有層：国×四半期（国力・移民・国際金融ほか）",
-        "GDP：州×生産者の和（取り直した分）", "移民：州×州の組（国内・越境）", "発見：国×四半期（点数の判定）",
+        "GDP：州×生産者の和（取り直した分）", "移民：州×州の組（国内・越境）", "発見：国×四半期（点数の判定）", "外交：脅威の届き方（脅威を持つ国×国）",
     ];
 
     /// <summary>単価（マイクロ秒/件）。census の処理の秒÷件数×計器の重さの割り戻し（0.9163）。算出の式は docs の「処理の刻みの表」。
@@ -1929,9 +1929,13 @@ public static class CostLedger
         0.015503,  // GDP：州×生産者の和（取り直した分）＝上の5本から外した GDP の推定 16.09 秒÷その区間の走査 10.38億件（(136) の census）
         0.016708,  // 移民：州×州の組（国内・越境）＝上の2本（月次・共有層）から外した移民の推定 1.3173 秒÷種1全長の組 7,884万（(146) の census）
         DiscoveryUnitMicros,   // 発見：国×四半期＝Discovery.Evaluate の1回（州×財の集計・生産者の走査・行の3項）＝(147) の discprobe の実測（下の定数の注記）
+        ThreatReachUnitMicros,   // 外交：脅威の届き方＝Diplomacy.ThreatReach の1組（同盟と従属の照会・投射・有理飽和）＋国境の表（月3回と四半期1回＝1回 0.046ms・1試合 約0.1秒＝この単価の中に含めない小さい分）＝(151) の実測（下の定数の注記）
     ];
     /// <summary>発見の判定の単価（マイクロ秒/国×四半期）＝(147) の Runner discprobe（種1・668四半期・全ての国の Discovery.Evaluate を Stopwatch で計った和÷回数＝76.0・41,373回〔割高さの参照を投入の費用へ直した後の木〕・直す前の木は 67.7）。</summary>
     public const double DiscoveryUnitMicros = 76.0;
+    /// <summary>★脅威の届き方の単価（マイクロ秒/組）＝(151) の実測（61カ国の開幕の盤面〔助走の後に1四半期〕で Diplomacy.ThreatReach を全ての組×20回 Stopwatch で計った平均 0.535µs・Release・テストの過程の中）。
+    /// 脅威の緊張（Diplomacy.ThreatTension＝月次〔四半期末の外交3回〕）が脅威を持つ国×経済を持つ国の組ごとに1回呼ぶ＝件数は「脅威を持つ国×国×月」。</summary>
+    public const double ThreatReachUnitMicros = 0.535;
 
     /// <summary>★予算の目標（1試合の CPU 秒・バッチの条件）＝10種の全長を5分で＝300 秒×働くコア 約12.9÷10（2026-09-30 作者裁定・推奨で決めた）。</summary>
     public const double BudgetTargetCpuSeconds = 387.0;

@@ -301,10 +301,9 @@ if (args.Length > 0 && args[0] == "armyshape")
             foreach (var rr in wA2.Regions) if (rr.State == RegionState.Active && rr.IsPort) portVal += rr.LastPortThroughput;
             foreach (var col in pA2.ColonyList) colVal += col.Value;
             double seaValue = portVal + colVal;
-            double escort = cA2.SeaEscortPerTradeValue * seaValue;   // 通商保護項＝**水準を担うはずの項**（既定0＝休眠）
-            double attention = pA2.NeedSea - escort;                 // 残り＝注意配分（設計書が「水準の根拠にするな」と書いた側）
-            double totNeed = pA2.NeedLand + pA2.NeedInternal + pA2.NeedSea;
-            double idealNaval = totNeed > 1e-9 ? pA2.NeedSea / totNeed : double.NaN;   // Simulation の ShapeNavalShare と同一式
+            double escort = pA2.Military * ArmyShape.SeaTradeShare(wA2);   // 通商保護項＝**水準を担う項**（(151) で点火＝海に出ている経済の割合×軍の総合ゲージ＝ArmyShape と同じ1本）
+            double attention = pA2.NeedSea - escort;                 // 残り＝注意配分＝艦隊の比（設計書が「水準の根拠にするな」と書いた側）
+            double idealNaval = ArmyShape.NavalSpendShareOf(pA2);   // 陸海の維持費の分け方と軍需の陸海の再配分が読む同じ1本（(151)・−1＝未定義）
             double forceTot = pA2.NavalPower + pA2.LandPower;
             double forceNaval = forceTot > 1e-9 ? pA2.NavalPower / forceTot : double.NaN;
             if (pA2.AttentionColSumMax > colMax) colMax = pA2.AttentionColSumMax;

@@ -1814,6 +1814,7 @@ public sealed class Simulation
         foreach (var pr in World.Regions) if (pr.State == RegionState.Active && pr.IsPort) { navalYard = true; break; }
         // 州非依存の国スカラー（州ループ前に1回だけ算出＝毎州の再計算を避ける。いずれも州ループ内で書き換わらない入力のみ読む）。
         double natSoldiers = World.SoldierSize();
+        double shapeNavalNat = World.SelfPower is { } shp0 ? ArmyShape.NavalSpendShareOf(shp0) : -1.0;   // ★(151) 陸海の分け方（州ループの外で1回・ループの中で必要量は書き換わらない）
         double warScareTensionNat = World.Diplomacy is { } wsDip && World.SelfPower is { } wsMe ? wsDip.MaxTension(wsMe) : 0;
         double monopolyRentFactorNat = World.Coef.AntitrustGate > 0
             ? World.Antitrust switch { AntitrustLaw.CartelBan => World.Coef.CartelBanRent, AntitrustLaw.Trustbust => World.Coef.TrustbustRent, _ => 1.0 }
@@ -1895,11 +1896,8 @@ public sealed class Simulation
                 if (World.Coef.WartimeBudgetFollowsNeed > 0 && warMult > 1.0)
                     milCap *= 1.0 + World.Coef.WartimeBudgetFollowsNeed * (warMult - 1.0);
                 // ★段2（2026-08-01）：理想の形の陸海比を州へ写す（軍需の内訳の再配分に使う）。ArmyShapeEnabled=0 では Need* が全て0＝-1のまま＝再配分しない＝厳密恒等。
-                if (World.SelfPower is { } shp)
-                {
-                    double tot = shp.NeedLand + shp.NeedInternal + shp.NeedSea;
-                    r.ShapeNavalShare = tot > 1e-9 ? shp.NeedSea / tot : -1.0;
-                }
+                // ★(151)：陸海の維持費の分け方と同じ1本（ArmyShape.NavalSpendShareOf＝州ループの外で1回）＝払う金の陸海と買う装備の陸海が同じ比（旧＝維持費は地理の比・軍需は必要量の比の2本）。
+                if (World.SelfPower is not null) r.ShapeNavalShare = shapeNavalNat;
                 r.MilitaryBudgetCeiling = World.Coef.GarrisonProcurement > 0 ? milCap * r.GarrisonShare : (r.Id == 0 ? milCap : 0);   // 駐屯州調達＝予算も需要と同じ配分（g=0で旧と厳密同値）   // 上限（必要額で切る前）＝恒常性の信号の分母側。S3a=0 では下の予算と同値＝厳密恒等
                 // ★S3a：必要額を超えて割り当てない（上限の意味どおり）。MilitaryBudgetNeedCapped=0 で従来＝厳密恒等。
                 // ⚠必要額は**全4段**（基本・上位・tier3・空軍）。基本段だけで打ち切ると残余が厳密0になり上位装備が全滅する（EconomyStep.MilitaryProcurementNeed の注記）。

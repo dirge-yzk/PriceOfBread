@@ -31,7 +31,7 @@ public partial class GameViewModel
     public LawRowVM? PollTaxLaw { get; private set; }
     public LawRowVM? LandTaxLaw { get; private set; }
     public LawRowVM? EduSpendLaw { get; private set; }
-    public LawRowVM? MilitaryLaw { get; private set; }   // 軍事費の**合計**（陸海の比は2026-09-23にレバーごと廃止＝地理が置く＝UtilityAgent.SetNavalUpkeepShare）
+    public LawRowVM? MilitaryLaw { get; private set; }   // 軍事費の**合計**（陸海の比は2026-09-23にレバーごと廃止＝陸と海の必要量が置く〔(151)・旧＝地理〕＝UtilityAgent.SetNavalUpkeepShare）
     /// <summary>社会保障の法（作者裁定2026-09-23＝法律タブから財政タブへ移設。金本位・資本移動と同じ扱い）。
     /// 法としての扱いは不変（議会の政治ゲートを通る＝LawRowVM そのもの）＝置き場所だけが違う。法律タブからは外した（同じ法を2箇所に出さない）。</summary>
     public LawRowVM? WelfareLaw { get; private set; }

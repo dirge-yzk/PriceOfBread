@@ -288,13 +288,16 @@ public static class Government
         //   **同じ係数 WartimeUpkeepFloor のまま**「その段には下がれない」門として持つ（旧クリップは 2026-09-20 の段の点火で削除）。
         //   ⚠係数は PowerShares の LockedSpending（鉄の予算＝年次審議の外の歳出）も読み取り専用の比として読む。
         double milArmyQ = Q5(p.ArmyUpkeepTarget), milNavyQ = Q5(p.NavyUpkeepTarget);
-        double milRawTotal = milArmyQ + milNavyQ;   // クランプ前の生和＝陸海比の分母はこちら（wave2b：クランプ後の1.0で割ると合計>1のとき比が歪む）
+        double milRawTotal = milArmyQ + milNavyQ;   // クランプ前の生和＝下の戦時段の失効の段の判定が読む（(151) から陸海比は丸めない目標の比＝下の navShareTarget）
         // ★軍事費の段（作者裁定2026-09-12 R2「低/中/高/戦時の4段。戦時経済は総動員とセットで、戦後は下の値に戻る」）。
         //   段は**合計にだけ**掛かる＝陸海比（navShareTarget）は連続のまま（D4：別々に段化すると平時0.25×海軍比上限0.60=0.15＜第1境界で
         //   全AIの海軍が段0・海洋国は陸も段0＝**英国に軍が無い**＝Diplomacy.cs が記録する2026-08-04のバグの再生産）。
         double milTotalTarget = MilitaryTotalTarget(w, p);
         double milTotal = Move(w.MilitarySpending, milTotalTarget, c, w, PolicyAxis.Coercion);  // 武力スライダー＝軍隊規模と治安維持力を一本で駆動。軍系ブロックの政治力で律速
-        double navShareTarget = milRawTotal > 1e-9 ? milNavyQ / milRawTotal : w.NavalSpendShare;
+        // ★(151)：陸海比は目標の生の比（0.05格子に丸めない）＝上の「連続のまま」のとおり。旧＝格子に丸めた2本の比＝合計0.75 なら比は 0.067 刻みで、
+        //   陸と海の必要量で分けた小さい海の比（清の 0.03 など）が0へ丸められて艦隊の乗員ごと消えた（陸海比は導出量＝2026-09-23 作者裁定・レバーは無い）。
+        double navRawA = p.ArmyUpkeepTarget, navRawN = p.NavyUpkeepTarget;
+        double navShareTarget = navRawA + navRawN > 1e-9 ? navRawN / (navRawA + navRawN) : w.NavalSpendShare;
         w.SetMilitarySpending(milTotal, navShareTarget);
         // ★戦時段の失効（作者裁定2026-09-19 M2「戦後は高へ戻る」）：段4の前提（交戦中かつ総動員中）は登れなさでなく**保てなさ**
         //   （LawPrereq の case Coercion には土地税・教育費にある「現在段以下は通す」の免除が無い）＝解禁が落ちた四半期に保存目標も段3へ戻す。

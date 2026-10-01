@@ -21,7 +21,7 @@ public class WarThemeTests
         Assert.Equal(0.5, c.WarMobilizationDepth);   // A-5有効化（WWI型総動員）
         // ★2026-08-10（作者裁定「陸軍と海軍の注力レバーは廃止し、海軍維持費と陸軍維持費で表現する」）：
         //   旧 NavalEmphasisWeight（海軍シェアへの政策傾斜）は係数ごと撤去＝海軍シェアの入力は払った金の比だけ。
-        Assert.Equal(1.0, c.NavalShareFromUpkeep);
+        //   ★(151)：旧式（地理の比）へ戻す旗 NavalShareFromUpkeep は読み手ごと削除＝常に払った金の比（下の「海軍シェアは払った金の比だけから決まる」が見る）。
         // 07_再設計 第3弾3a（2026-07-31・点火）：旧「B保留」を解除＝建艦の時間遅れ（90%到達に約7ヶ月）。
         // BasinPresence（03手順6）と艦隊摩耗（NavalAttritionRate）が揃い、維持費の増額が艦隊へ効くまでの遅れとして海軍レースが立つ。
         Assert.Equal(0.3, c.NavalBuildRate);
@@ -82,7 +82,7 @@ public class WarThemeTests
         foreach (var n in sim.Nations)
         {
             var p = n.World.SelfPower!;
-            double expected = Math.Clamp(n.World.NavalSpendShare, c.NavalShareMin, c.NavalShareMax);   // 維持費の比（クランプ内）＝唯一の入力
+            double expected = n.World.NavalSpendShare;   // 維持費の比＝唯一の入力（(151)：下限0.05・上限0.60 のクランプは外した＝思想⑧）
             Assert.True(Math.Abs(p.NavalShare - expected) < 0.05,
                 $"{p.BaseName}の海軍シェアが維持費比から外れた（実{p.NavalShare:F3} 期待{expected:F3}・陸{n.World.ArmyUpkeep:F3}/海{n.World.NavyUpkeep:F3}）");
         }
@@ -107,6 +107,11 @@ public class WarThemeTests
         var sim = new MultiNationSim([NationConfig.France(), NationConfig.Britain()], seed: 1789);
         sim.Coef.WarDeclareTension = 1e9;   // 自発的な宣戦を止める（戦線は手で1本だけ立てる）
         sim.Run(20);                        // 兵士POP・国庫・海軍が立つまで（構築直後は軍も金も無い）
+        // ★盤面の直し（2026-10-01 (151)・主張は同じ）：この2国の世界は英が1786〜88 に内戦を起こす（旧の木も Q15〜Q19・(151) の木は Q14〜Q20）＝
+        //   「20四半期後に他の戦争が無い」は内戦の終わる四半期の偶然に乗っていた。内戦が終わり2国に戻るまで四半期を足す（上限20）＝戦線は手で立てる1本だけ。
+        for (int extra = 0; extra < 20 && (sim.Diplomacy.Wars.Count > 0 || sim.Nations.Count != 2); extra++) sim.StepQuarter();
+        Assert.True(sim.Diplomacy.Wars.Count == 0 && sim.Nations.Count == 2, "前提が崩れた：内戦が終わらない");
+        foreach (var n in sim.Nations) n.World.SelfPower!.WarExhaustion = 0;   // 内戦の厭戦（英 約0.8）が残ると開いた月に崩れて講和する＝測る台帳（戦死・押し・戦費・財政の厭戦の差）の外の量を0から
         // ★2026-09-25：上陸ゲートを恒等値（0＝常に陸戦が起きる）へ固定。この盤面が測るのは台帳への配り方で、上陸の可否ではない。
         //   旧は「20四半期後のフランスの制海権が閾値0.65を超えている」という軌道の偶然に乗っていた（HEAD 72b9468 で 0.69）。
         //   満足度の分母を大衆へ揃えた回で軌道が動き 0.64 へ＝上陸ゲートが閉じて contact が0になり、3本が「前提が崩れた」で赤になった。

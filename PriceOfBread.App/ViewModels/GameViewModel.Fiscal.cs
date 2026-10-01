@@ -166,7 +166,7 @@ public partial class GameViewModel
     //   MilTargetTotal / NavalShare / NavalShareLine（2026-09-12 R2 で入れ直した「比」のスライダー1本）。
     //   経緯＝2026-08-04 作者仕様(5)「陸海の割り振りは**廃止**し『陸軍維持費』『海軍維持費』とする」・2026-08-10 作者裁定「陸軍と海軍の
     //   **注力レバーは廃止**」で一度消えたが、2026-09-20 に軍事費が段になった副作用（陸海2本の金額スライダーの撤去）で「比」1本が復活していた。
-    //   いまは**誰も比を振らない**＝地理が決める（UtilityAgent.SetNavalUpkeepShare を AI もプレイヤーも同じ引数で通る＝Simulation.QuarterStart）。
+    //   いまは**誰も比を振らない**＝陸と海の必要量が決める（(151)・旧＝地理・UtilityAgent.SetNavalUpkeepShare を AI もプレイヤーも同じ引数で通る＝Simulation.QuarterStart）。
     //   動かせるのは軍事費の**合計**（段ボタン＝MilitaryLaw）だけ＝レバーが1本減り、AI・プレイヤー等価が戻る。
     // ⚠3項目を1行に詰めると折り返す（他のレバー行と同じ書式＝2項目に留め、熟練度は右列へ）
     public string ArmyUpkeepLine => $"陸軍維持費 {_player.Policy.ArmyUpkeepTarget:P0}　実効 {_player.ArmyUpkeep:P0}";

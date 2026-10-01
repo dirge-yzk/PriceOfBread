@@ -317,9 +317,14 @@ public class WriterRatchetTests
     // ★2026-10-01 表の更新（(149) 合流＝線2〔(145) 兵の単位・(146) 恒等の手〕の載った main へ線1〔(147) 発見の作り替え・(148) 産地の発見〕を載せ直し・(148) の F4〔灯油の2本を1本へ〕は差し戻した木
     //   ＝軌道が動いた分の宣言・新しい計数の処理は無い）：請求 2,912→2,586（−11.2%＝10% を超えて下がった＝表を下げる）・覇権の判定 2,294,511→3,148,264（+37.2%＝同盟の候補が居る月の軌道＝(147) の +38.9% と同じ型・処理の形は同じ）。
     //   ＝どちらの線の単独の表とも違う軌道（線2 単独＝請求 2,692・覇権 2,175,698／線1 単独＝請求 2,912・覇権 2,294,511）。ほかの15本は許しの内。全長の10種の推定は実装ログ (149)。
+    // ★2026-10-01 表の更新（(151) 陸と海の軍事費の分割・脅威の作り直し＝軌道が動いた分の宣言・新しい計数の処理は無い〔国境の表は理想の軍隊の形〈四半期〉と脅威の緊張〈月〉の中の州×1回と陸路グラフの辺の走査＝「外交：国×月」の中〕）：
+    //   覇権の判定 3,148,264→1,864,716（−40.8%＝10% を超えて下がった＝表を下げる・同盟の候補が居る月の軌道＝脅威の緊張が届く国だけになり同盟の申し込みと離反の判定の月が減った）・
+    //   建設 8,200→7,066（−13.8%＝最初の40四半期の工事の軌道＝陸海の分け方が変わり軍需の買い方が変わった）。ほかの14本は許しの内。全長の10種の推定は実装ログ (151)。
+    //   ＋新しい計数1本の宣言＝「外交：脅威の届き方（脅威を持つ国×国）」＝脅威の緊張が組ごとに届き方（同盟・従属の照会・投射・有理飽和）を引く＝40四半期で 85,034 件
+    //   （単価 0.535µs＝(151) の実測・全長は実装ログ (151)＝推定 約0.8 秒＝目標より下の余りの中＝払う必要が無い〔全長の推定 239.9→235.1 秒〕）。国境の表（1回 0.046ms・1試合 約0.1 秒）は単価に含めない小さい分。
     [InlineData(CostLedger.PriceGoods, 14149727L)]
     [InlineData(CostLedger.PriceDailyRuns, 25283828L)]
-    [InlineData(CostLedger.ConstructionSeen, 8200L)]
+    [InlineData(CostLedger.ConstructionSeen, 7066L)]
     [InlineData(CostLedger.CreditSpans, 33282L)]
     [InlineData(CostLedger.ConsumePopGoods, 28595736L)]
     [InlineData(CostLedger.ProducerMonths, 8440020L)]
@@ -328,13 +333,14 @@ public class WriterRatchetTests
     [InlineData(CostLedger.ClearingRows, 5185642L)]
     [InlineData(CostLedger.ClearingFills, 27954050L)]
     [InlineData(CostLedger.DiploPowerMonths, 9954L)]
-    [InlineData(CostLedger.DiploHegemonScans, 3148264L)]
+    [InlineData(CostLedger.DiploHegemonScans, 1864716L)]
     [InlineData(CostLedger.QuarterStartPops, 235560L)]
     [InlineData(CostLedger.QuarterEndPops, 235560L)]
     [InlineData(CostLedger.SharedNationQuarters, 3698L)]
     [InlineData(CostLedger.GdpScans, 8670915L)]
     [InlineData(CostLedger.MigrationPairs, 4191142L)]
     [InlineData(CostLedger.DiscoveryNations, 2532L)]
+    [InlineData(CostLedger.ThreatReachPairs, 85034L)]
     public void 計算量の見た件数は宣言した表を超えない(int item, long declared)
     {
         long n = Cost40.Value[item];

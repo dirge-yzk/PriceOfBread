@@ -634,4 +634,206 @@ public class MilitaryTests
         Assert.True(b > 0, "前提が崩れた：兵士の給与の予算が0");
         Assert.True(e >= b * (1 - 1e-9), $"兵士の所得 {e} が給与の予算 {b} に届かない");
     }
+
+    // ===== (151) 陸と海の軍事費の分割・脅威の作り直し（作者裁定 2026-09-29「陸軍は安全保障ベース、海軍は別のベースで、軍事費を分割するようにしよう」・
+    //       脅威＝「同盟国は計上しない」「属国は仮想敵国ほどではないが、脅威を与える」「国境を接している国は脅威だが、そうでない国はあまり脅威ではない（国境線が長いほど軍事費が必要になる）」）=====
+
+    private static MultiNationSim Frozen152(params string[] names)
+        => new(System.Array.ConvertAll(names, WorldData.ByName), seed: 1789, coef: new Coefficients()) { DiplomacyFrozen = true };
+
+    /// <summary>同盟を張る（本体の締結は AI の確率の枝だけ＝番人は盤面へ直に置く・WarThemeTests と同じ作法）。</summary>
+    private static void Ally152(Diplomacy d, Power a, Power b)
+    {
+        var set = (System.Collections.Generic.HashSet<long>)typeof(Diplomacy).GetField("_alliance", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!.GetValue(d)!;
+        set.Add((long)typeof(Diplomacy).GetMethod("Key", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!.Invoke(null, [a, b])!);
+    }
+
+    /// <summary>★(151) 国境＝陸路グラフで隣り合う州の組の数×地形の通りにくさ（2÷両端の州の地形の陸運の費用の和）。対称・陸続きの隣国は正・海を挟む国（日本）は0。
+    /// 盤面＝仏・西・日（開幕）。仏の全ての州を山にすると仏西の国境の重みが下がる＝地形を読んでいる。⚠突然変異「地形を読まない（重み1）」で赤。</summary>
+    [Fact]
+    public void 国境は陸路グラフで隣り合う州の組を地形の通りにくさで重みづけて数える()
+    {
+        var sim = Frozen152("フランス", "スペイン", "日本");
+        var ps = sim.Nations.ConvertAll(n => n.World.SelfPower!);
+        var b = ArmyShape.Borders(ps, sim.Coef);
+        int n = ps.Count;
+        for (int i = 0; i < n; i++) for (int j = 0; j < n; j++) Assert.Equal(b[i * n + j], b[j * n + i]);
+        Assert.True(b[0 * n + 1] > 0, $"仏西の国境が0（{b[1]}）＝陸路グラフの隣り合う州を数えていない");
+        Assert.Equal(0.0, b[0 * n + 2]); Assert.Equal(0.0, b[1 * n + 2]);   // 日本＝海を挟む＝陸の国境なし
+        double before = b[0 * n + 1];
+        foreach (var r in sim.Nations[0].World.Regions) r.Terrain = Terrain.Mountain;   // 山（陸運の費用 2.5）
+        double after = ArmyShape.Borders(ps, sim.Coef)[0 * n + 1];
+        Assert.True(after > 0 && after < before * 0.9, $"仏を山にしても国境の重みが下がらない（{before:F3}→{after:F3}）＝地形の通りにくさを読んでいない");
+    }
+
+    /// <summary>★(151) 敵意＝緊張の有理飽和・同盟は0（旧＝3割）・宗主と属国の間は ×(1−AllyAttentionDiscount)。⚠突然変異「同盟も割引だけ」「属国を割り引かない」で赤。</summary>
+    [Fact]
+    public void 敵意は同盟で0で宗主と属国の間は割り引く()
+    {
+        var sim = Frozen152("フランス", "スペイン", "日本");
+        var dip = sim.Diplomacy; var c = sim.Coef;
+        var fr = sim.Nations[0].World.SelfPower!; var es = sim.Nations[1].World.SelfPower!; var jp = sim.Nations[2].World.SelfPower!;
+        static double H0(Diplomacy d, Power a, Power b, Coefficients c) { double t = System.Math.Max(0, d.Tension(a, b)); return c.AttentionHostilityFloor + (1 - c.AttentionHostilityFloor) * t / (t + c.AttentionTensionHalf); }
+        Assert.Equal(H0(dip, fr, jp, c), ArmyShape.Hostility(dip, fr, jp, c), 12);
+        Ally152(dip, fr, es);
+        Assert.Equal(0.0, ArmyShape.Hostility(dip, fr, es, c));
+        Assert.Equal(0.0, ArmyShape.Hostility(dip, es, fr, c));
+        dip.SetDependency(jp, es);   // 日本が宗主・西が属国（同盟とは別の組）
+        Assert.Equal(H0(dip, jp, es, c) * (1 - c.AllyAttentionDiscount), ArmyShape.Hostility(dip, es, jp, c), 12);
+        Assert.True(c.AllyAttentionDiscount > 0 && c.AllyAttentionDiscount < 1, "属国の割引が 0 か 1＝仮想敵ほどではないが脅威、が崩れた");
+    }
+
+    /// <summary>★(151) 陸と海の分け方＝海の必要量÷max(軍の総合ゲージ, 陸＋内の守り＋海の必要量)。軍が必要量の和より大きい国は海の任務の分だけ（残りの兵は陸）＝清の型、
+    /// 軍が足りない国は必要量の比。必要量が全て0（未算出）と NaN は −1（呼び手は今の比のまま）。⚠突然変異「必要量の比だけ（max を外す）」「未算出を0にする」で赤。</summary>
+    [Fact]
+    public void 海の割合は海の任務の分だけで軍が足りなければ必要量の比()
+    {
+        var big = new Power { Military = 100, NeedSea = 2, NeedLand = 3, NeedInternal = 1 };
+        Assert.Equal(0.02, ArmyShape.NavalSpendShareOf(big), 12);           // 海は任務の分だけ（2÷100）＝残り98%の兵は陸に立つ
+        var small = new Power { Military = 1, NeedSea = 2, NeedLand = 3, NeedInternal = 1 };
+        Assert.Equal(2.0 / 6.0, ArmyShape.NavalSpendShareOf(small), 12);    // 軍が足りない＝必要量の比
+        Assert.Equal(-1.0, ArmyShape.NavalSpendShareOf(new Power { Military = 5 }));
+        Assert.Equal(-1.0, ArmyShape.NavalSpendShareOf(new Power { Military = 5, NeedSea = double.NaN, NeedLand = 1 }));
+    }
+
+    /// <summary>★(151) 海を越えて来る陸軍は海で止める＝首都どうしが別の陸塊の投射は海の必要量へ（陸の必要量へ入れない）。盤面＝英日の2国（開幕・艦隊の注意配分0・守る海の交易0）
+    /// ＝陸の国境なし・海越え＝両国とも陸の必要量は0で海の必要量が正（⚠英仏は開幕から印度の州で陸の国境がある＝この盤面には使えない）。⚠突然変異「海越えも陸へ」で赤。</summary>
+    [Fact]
+    public void 海を越えて来る陸軍は海の必要量に入る()
+    {
+        var sim = Frozen152("イギリス", "日本");
+        var dip = sim.Diplomacy; var c = sim.Coef;
+        var uk = sim.Nations[0].World.SelfPower!; var jp = sim.Nations[1].World.SelfPower!;
+        Assert.True(dip.IsSeaCrossing(jp, uk, c) && dip.IsSeaCrossing(uk, jp, c), "前提が崩れた：英日が海越えでない");
+        foreach (var p in new[] { uk, jp }) { p.NavalShare = 0; Assert.True(p.Military > 0, "前提が崩れた：軍が無い"); }   // 艦隊の注意配分を0に（海の必要量＝海越えの陸軍だけ）
+        foreach (var r in sim.Nations[0].World.Regions) r.LastPortThroughput = 0;
+        foreach (var r in sim.Nations[1].World.Regions) r.LastPortThroughput = 0;
+        Assert.True(ArmyShape.Borders([uk, jp], c)[1] == 0, "前提が崩れた：英日に陸の国境がある");
+        ArmyShape.Compute(dip, c);
+        Assert.Equal(0.0, uk.NeedLand); Assert.Equal(0.0, jp.NeedLand);
+        Assert.True(uk.NeedSea > 0, $"英の海の必要量が0（{uk.NeedSea}）＝海を越えて来る日本の陸軍を海で数えていない");
+        Assert.True(jp.NeedSea > 0, $"日本の海の必要量が0（{jp.NeedSea}）");
+    }
+
+    /// <summary>★(151) 陸海の維持費の目標の比＝陸と海の必要量の分け方（AI とプレイヤーが同じ関数・合計は保つ）。必要量が未算出なら今の比のまま。⚠突然変異「旧の地理の比へ」で赤。</summary>
+    [Fact]
+    public void 陸海の維持費の目標は陸と海の必要量で分ける()
+    {
+        var sim = Frozen152("イギリス", "フランス");
+        var w = sim.Nations[0].World; var p = w.Policy; var sp = w.SelfPower!;
+        p.ArmyUpkeepTarget = 0.45; p.NavyUpkeepTarget = 0.30;
+        UtilityAgent.SetNavalUpkeepShare(w);   // 必要量が未算出＝今の比のまま
+        Assert.Equal(0.45, p.ArmyUpkeepTarget, 12); Assert.Equal(0.30, p.NavyUpkeepTarget, 12);
+        sp.Military = 4; sp.NeedSea = 3; sp.NeedLand = 2; sp.NeedInternal = 1;   // 軍が足りない＝必要量の比 3÷6
+        UtilityAgent.SetNavalUpkeepShare(w);
+        Assert.Equal(0.75, p.ArmyUpkeepTarget + p.NavyUpkeepTarget, 12);
+        Assert.Equal(0.5, p.NavyUpkeepTarget / (p.ArmyUpkeepTarget + p.NavyUpkeepTarget), 12);
+    }
+
+    /// <summary>★(151) 開幕（00一覧 §0-A の 11 の申し送り「開幕の陸海の維持費 0.27/0.03 が最初の四半期に跳ぶ」）＝最初の同期で陸と海の必要量を算出し、
+    /// 陸海の維持費の比・海軍シェア・艦隊の播種を同じ比で置く（旧＝海軍シェアは0から建艦の時間遅れで比の3割・艦隊もその3割で播いた）。
+    /// 盤面＝英仏日（構築の直後に外交を1か月）＝全ての国で 海軍シェア＝分け方・艦隊ゲージ＝軍×分け方・維持費の比＝分け方。⚠突然変異「開幕も旧の播種」で赤。</summary>
+    [Fact]
+    public void 開幕の艦隊は陸と海の必要量の比で播く()
+    {
+        var sim = new MultiNationSim([WorldData.ByName("イギリス"), WorldData.ByName("フランス"), WorldData.ByName("日本")], seed: 1789, coef: new Coefficients());
+        foreach (var n in sim.Nations) Assert.True(n.World.SelfPower!.FleetGauge == 0, "前提が崩れた：構築の時に艦隊がある");
+        sim.Diplomacy.Step(sim.Coef, sim.Rng, 1);
+        int seeded = 0;
+        foreach (var n in sim.Nations)
+        {
+            var w = n.World; var p = w.SelfPower!;
+            double s = ArmyShape.NavalSpendShareOf(p);
+            Assert.True(s >= 0, $"{p.Name}の分け方が未定義");
+            Assert.Equal(s, p.NavalShare, 12);
+            Assert.Equal(s, w.NavalSpendShare, 12);
+            Assert.True(System.Math.Abs(p.FleetGauge - p.Military * s) <= 1e-9 * System.Math.Max(1, p.Military), $"{p.Name}の艦隊ゲージ {p.FleetGauge} ≠ 軍×分け方 {p.Military * s}");
+            if (p.FleetGauge > 0) seeded++;
+        }
+        Assert.True(seeded >= 1, "どの国も艦隊を播いていない（海の必要量が全て0）");
+    }
+
+    /// <summary>★(151) 脅威の緊張の届き方＝(国境の長さ＋投射)÷(1＋同)・同盟は0・宗主と属国の間は ×(1−AllyAttentionDiscount)（作者裁定 2026-09-29 の5）。
+    /// 国境が長いほど1へ近づく・接しない国は投射だけ。⚠突然変異「届き方を1（旧＝全ての国へ同じ強さ）」「同盟も数える」で赤。</summary>
+    [Fact]
+    public void 脅威の緊張は届く国だけで同盟は0で国境が長いほど強い()
+    {
+        var sim = Frozen152("フランス", "スペイン", "日本");
+        var dip = sim.Diplomacy; var c = sim.Coef;
+        var fr = sim.Nations[0].World.SelfPower!; var es = sim.Nations[1].World.SelfPower!; var jp = sim.Nations[2].World.SelfPower!;
+        double pr = dip.Projection(fr, es, c);
+        Assert.Equal(pr / (1 + pr), dip.ThreatReach(fr, es, 0, c), 12);
+        Assert.Equal((5 + pr) / (6 + pr), dip.ThreatReach(fr, es, 5, c), 12);
+        Assert.True(dip.ThreatReach(fr, es, 5, c) > dip.ThreatReach(fr, es, 1, c) && dip.ThreatReach(fr, es, 1, c) > dip.ThreatReach(fr, es, 0, c), "国境が長いほど強くならない");
+        Assert.True(dip.ThreatReach(fr, jp, 0, c) < 1, "接しない国にも満額の脅威");
+        dip.SetDependency(fr, jp);
+        double pj = dip.Projection(fr, jp, c);
+        Assert.Equal(pj / (1 + pj) * (1 - c.AllyAttentionDiscount), dip.ThreatReach(fr, jp, 0, c), 12);
+        Ally152(dip, fr, es);
+        Assert.Equal(0.0, dip.ThreatReach(fr, es, 5, c));
+    }
+
+    /// <summary>★(151) 通商保護の割合＝海に出ている経済の割合＝港の州の取扱高（四半期・金建て）÷（為替×3×月の名目GDP）。港でない州の取扱高は数えない。
+    /// ⚠突然変異「港でない州も数える」で赤。</summary>
+    [Fact]
+    public void 海に出ている経済の割合は港の取扱高を名目GDPで割る()
+    {
+        var sim = Frozen152("イギリス", "フランス");
+        var w = sim.Nations[1].World;
+        int ports = 0;
+        foreach (var r in w.Regions) { r.LastPortThroughput = 1000.0; if (r.State == RegionState.Active && r.IsPort) ports++; }
+        Assert.True(ports > 0 && ports < w.Regions.Count, "前提が崩れた：仏に港の州と港でない州の両方が無い");
+        double expect = ports * 1000.0 / (w.FxRate * 3 * w.NominalGdp);
+        Assert.Equal(expect, ArmyShape.SeaTradeShare(w), 12);
+    }
+
+    /// <summary>★(151) 陸海の比は目標の生の比（0.05 格子に丸めない＝「陸海比は連続のまま」）。合計 0.75 で海 0.0225（3%）＝旧は丸めて海0（艦隊の乗員ごと消えた）。
+    /// ⚠突然変異「丸めた2本の比」で赤。</summary>
+    [Fact]
+    public void 陸海の比は目標の生の比で丸めない()
+    {
+        var sim = new Simulation(NationConfig.France().ToScenario(17), new NullAgent());
+        var w = sim.World; var p = w.Policy;
+        p.ArmyUpkeepTarget = 0.7275; p.NavyUpkeepTarget = 0.0225;
+        w.SetMilitarySpending(0.75, 0.5);
+        Government.Step(w, w.Coef);
+        Assert.Equal(0.03, w.NavalSpendShare, 9);
+    }
+
+    /// <summary>★(151) 呼び手の側：軍需の陸海の再配分（Simulation の月次の Region.ShapeNavalShare）は陸海の維持費と同じ分け方（ArmyShape.NavalSpendShareOf）を読む。
+    /// 盤面＝英仏（外交は止める＝必要量と軍の総合ゲージは手で置いたまま）＝軍が必要量の和より大きい（海は任務の分だけ）値を置いて30日回す。
+    /// ⚠突然変異「旧の必要量の比（海÷(陸＋内＋海)）」で赤（軍が大きい盤面では2つの式が違う値を出す）。</summary>
+    [Fact]
+    public void 軍需の陸海の再配分は陸海の維持費と同じ分け方を読む()
+    {
+        var sim = Frozen152("イギリス", "フランス");
+        var w = sim.Nations[0].World; var sp = w.SelfPower!;
+        sp.Military = 50; sp.NeedSea = 2; sp.NeedLand = 3; sp.NeedInternal = 1;
+        for (int d = 0; d < 30; d++) sim.StepDay();
+        Assert.True(sp.Military == 50 && sp.NeedSea == 2, "前提が崩れた：外交が走って必要量か軍の総合ゲージが書き換わった");
+        double s = ArmyShape.NavalSpendShareOf(sp);
+        Assert.Equal(0.04, s, 12);
+        int seen = 0;
+        foreach (var r in w.Regions) if (r.State == RegionState.Active) { Assert.Equal(s, r.ShapeNavalShare, 12); seen++; }
+        Assert.True(seen > 0, "前提が崩れた：稼働中の州が無い");
+    }
+
+    /// <summary>★(151) 呼び手の側：脅威の緊張（Diplomacy.ThreatTension）は届き方（ThreatReach）で配る＝同盟の組には立たない（作者裁定 2026-09-29 の5「同盟国は計上しない」）。
+    /// 盤面＝仏西日（開幕・脅威の緊張のほかの緊張の経路を黙らせ・四半期の境でない月）＝仏西を同盟にして外交を1か月＝仏西の緊張は動かず、脅威の緊張そのものはどこかの組に立つ。
+    /// ⚠突然変異「届き方を読まない（全ての国へ同じ強さ＝旧）」で赤。</summary>
+    [Fact]
+    public void 脅威の緊張は同盟の組に立たない()
+    {
+        var sim = Frozen152("フランス", "スペイン", "日本");
+        var dip = sim.Diplomacy; var c = sim.Coef;
+        var fr = sim.Nations[0].World.SelfPower!; var es = sim.Nations[1].World.SelfPower!; var jp = sim.Nations[2].World.SelfPower!;
+        c.IdeologyTensionRate = 0; c.IdeologyAffinityRelief = 0; c.EthnicTensionRate = 0; c.EthnicAffinityRelief = 0;
+        c.LawTensionRate = 0; c.ReligionTensionRate = 0; c.ReligionAffinityRelief = 0; c.OpiumBanTensionRate = 0;
+        c.TensionDecay = 0; c.ProtectorTensionRate = 0; c.ActionTensionStep = 0; c.RouteDependenceTensionRate = 0;
+        Ally152(dip, fr, es);
+        double fe0 = dip.Tension(fr, es), fj0 = dip.Tension(fr, jp), ej0 = dip.Tension(es, jp);
+        dip.Step(c, sim.Rng, 1);   // 四半期の境でない月＝AI・調停は走らない
+        Assert.Equal(fe0, dip.Tension(fr, es));
+        Assert.True(dip.Tension(fr, jp) + dip.Tension(es, jp) > fj0 + ej0, "前提が崩れた：脅威の緊張がどの組にも立たない（脅威を持つ国が無い）");
+    }
 }
