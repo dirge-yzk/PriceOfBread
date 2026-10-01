@@ -778,6 +778,30 @@ public class DiscoveryScoreTests
         Assert.True(moved > 0, "四半期を進めても平滑化した値段が1つも動かない");
     }
 
+    /// <summary>呼び手の側の番人（単独の世界・(160)＝(159) の反証役の指摘・低）＝単独の世界（StepsDiplomacy）の四半期末の判定の段も、平滑化した値段を四半期に1歩進める
+    /// （書き手は判定の段の頭の1か所）。多国の番人（上）は MultiNationSim の共有層だけを見る＝Simulation の呼び手を消しても緑だった。
+    /// 盤面＝英の単独の世界：最初の四半期の判定の段で瞬間の値から始まる（null でない）→ 平滑化した値段を2倍に置いてもう1四半期
+    /// ＝末尾の陸の輸送の値段（物価水準を読まない＝判定の後の物価水準の更新で動かない）が s ＋ 率×（瞬間 − s）にちょうど1歩。
+    /// ⚠壊し方＝Simulation が AdvancePrice を呼ばない（null のまま＝判定が瞬間の値段を読む）・2回進める → 赤。</summary>
+    [Fact]
+    public void 単独の世界の判定の段も平滑化した値段を四半期に1歩進める()
+    {
+        var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+        var w = sim.World; var c = w.Coef;
+        Assert.True(w.StepsDiplomacy, "前提が崩れた（単独の世界が判定の段を通らない）");
+        sim.StepQuarter();
+        Assert.NotNull(w.DiscoveryPrice);   // 最初の判定の段で瞬間の値から始まった（呼び手が無ければ null のまま）
+        int ng = Catalog.Goods.Length;
+        Assert.Equal(ng + 1, w.DiscoveryPrice!.Length);
+        var s0 = w.DiscoveryPrice!.Select(v => 2.0 * v).ToArray();
+        w.DiscoveryPrice = (double[])s0.Clone();
+        double a = Discovery.PriceSmoothingQ(c);
+        sim.StepQuarter();
+        double x = Discovery.InstantRealPrices(w)[ng];   // 陸の輸送の値段（判定の時点と同じ＝州の交易の潜在量と通した割合は四半期末に書かれない）
+        Assert.True(System.Math.Abs(x - s0[ng]) > 1e-6, "前提が崩れた（1歩と2歩が見分けられない）");
+        Assert.Equal(s0[ng] + a * (x - s0[ng]), w.DiscoveryPrice![ng], 12);
+    }
+
     /// <summary>製法の行の判定も一過性の値段の跳ねでは開かない（作者裁定 Q12・(150) の番人の穴 M6＝製法の行の判定が瞬間の値段を読む変異が緑だった・(159)）。
     /// 盤面＝英の人絹（技術水準＝難易度の2倍）：平滑化した値段＝瞬間の値段＝参照価格（必要性0＝門に届かない）→ 瞬間の値段だけを、瞬間なら門に届き平滑なら届かない倍へ跳ねさせて
     /// 判定の段（頭で平滑を1歩・判定）を1回＝開かない（平滑化した値段は1歩だけ動く）。⚠壊し方＝判定が瞬間の値段を読む → 開く＝赤。</summary>
@@ -790,7 +814,9 @@ public class DiscoveryScoreTests
         Assert.False(w.Discovered[row], "前提が崩れた（英が人絹を発見済み）");
         w.TechLevel = Discovery.Difficulty(row, c) * 2;
         double pl = w.NominalOf(1.0), rp = Catalog.RefPrices[g];
-        foreach (var rg in w.Regions) if (rg.State == RegionState.Active) rg.Markets[g].Price = rp * pl;   // 瞬間の値段＝参照価格
+        // ★(160) 盤面だけ直した（主張は同じ）：合わせた木（軍の回 (155)(156) の後）では物価水準の丸めで「参照価格ちょうど」の値段が参照を 1e-16 だけ超え、
+        //   必要性が 7.8e-14（前提の検査は0を求める）になった＝参照のすぐ下（相対 1e-12）へ置く＝必要性は厳密に0。
+        foreach (var rg in w.Regions) if (rg.State == RegionState.Active) rg.Markets[g].Price = rp * pl * (1.0 - 1e-12);   // 瞬間の値段＝参照価格（のすぐ下）
         var inst0 = Discovery.InstantRealPrices(w);
         Assert.Equal(rp, inst0[g], 9);
         w.DiscoveryPrice = (double[])inst0.Clone();   // 平滑化した値段＝瞬間の値段＝参照価格

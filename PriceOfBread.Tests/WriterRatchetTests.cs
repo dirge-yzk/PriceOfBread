@@ -347,7 +347,7 @@ public class WriterRatchetTests
     [InlineData(CostLedger.CreditSpans, 33282L)]
     [InlineData(CostLedger.ConsumePopGoods, 28595736L)]
     [InlineData(CostLedger.ProducerMonths, 8440020L)]
-    [InlineData(CostLedger.ClaimProducers, 2901L)]
+    [InlineData(CostLedger.ClaimProducers, 2584L)]
     [InlineData(CostLedger.MonthlyPops, 706680L)]
     [InlineData(CostLedger.ClearingRows, 5185642L)]
     [InlineData(CostLedger.ClearingFills, 28778490L)]
@@ -355,7 +355,10 @@ public class WriterRatchetTests
     // ★2026-10-02 表の更新（(159) 発見の必要性＝生み出す物の平滑化した値段÷参照価格・Q12 の入れ直し＝軌道が動いた分の宣言・新しい計数の処理は無い
     //   〔平滑の1歩は「発見：国×四半期」の判定の段の中〕）：覇権の判定 2,039,246→2,153,941（+5.6%＝同盟の候補が居る月の軌道・処理の形は同じ・単価 0.01035µs＝40四半期で +1.2ms）。
     //   ほかの15本は許しの内（+2%／−10%）。全長の10種の推定 231.6→235.9 秒（清算の着値の充填 +3.9 秒〔+10.4%＝交易の軌道〕・日次の写像 −1.8 秒＝予算の内・実装ログ (159) §8）。
-    [InlineData(CostLedger.DiploHegemonScans, 3376284L)]
+    // ★2026-10-02 表の更新（(160) 合流＝軍の回〔(155)(156)〕の載った main へ (158)(159)〔発見の必要性・Q12〕を載せ直した木＝軌道が動いた分の宣言・新しい計数の処理は無い）：
+    //   請求 2,901→2,584（−10.9%）・覇権の判定 3,376,284→2,324,066（−31.2%）＝どちらも10% を超えて下がった＝表を下げる（最初の40四半期の請求と同盟の候補が居る月の軌道・処理の形は同じ）。
+    //   (159) の単独の木の表（覇権の判定 2,153,941）とも軍の回の木の表とも違う軌道。ほかの14本は許しの内。全長の10種の推定は実装ログ (160)。
+    [InlineData(CostLedger.DiploHegemonScans, 2324066L)]
     [InlineData(CostLedger.QuarterStartPops, 235560L)]
     [InlineData(CostLedger.QuarterEndPops, 235560L)]
     [InlineData(CostLedger.SharedNationQuarters, 3698L)]
