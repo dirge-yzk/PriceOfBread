@@ -22,15 +22,19 @@ public class MultiNationTests
         public readonly double[] Base0;
         public readonly int ColoniesBefore;   // 清を含む全勢力（列強は清からも奪うため sim 国だけでは増える）
         public readonly System.Exception? Error;
-        public FourNations400()
+        public FourNations400(int quarters = 400)
         {
             Sim = new MultiNationSim(FourNations(), seed: 1789);
             Base0 = [.. Sim.Nations.Select(n => n.World.BaseMoney)];
             ColoniesBefore = Sim.Diplomacy.Powers.Sum(p => p.Colonies);
-            Error = Record.Exception(() => Sim.Run(400));   // §11.6 が全国・全ティックで保持（戦費還流・賠償の対外移転を含む）
+            Error = Record.Exception(() => Sim.Run(quarters));   // §11.6 が全国・全ティックで保持（戦費還流・賠償の対外移転を含む）
         }
     }
     private static readonly System.Lazy<FourNations400> Shared400 = new(() => new FourNations400());
+    // ★(149) 合流（盤面だけ・主張は同じ）：(147)(148) の発見の作り替え＋(145) の兵の単位を合わせた木では、この4カ国の閉じた世界の400四半期に国どうしの開戦が無い
+    //   （6つの種で0・英の首都の内戦だけ7〜9回＝装備の充足が 1803 の米で r144 0.26→0.06・即応度 0.23→0.06＝(147)(148) 単独でも開戦 9→2）。61カ国の帯では交戦ペアは 323→383〜424 で戦争は起きる
+    //   ＝植民地の保存を「戦争と講和を通して」確かめる盤面を全長（668四半期・最初の開戦 1920）にした。
+    private static readonly System.Lazy<FourNations400> Shared668 = new(() => new FourNations400(Coefficients.GameQuarters));
 
     // ★器 SilverParityFromRatio の ON/OFF 経路（2026-09-07）：注入される WorldSilverPrice が
     //   ON＝「同一市場内の 銀/金鉱 比の生きた Active 州の対数平均 ÷ RefPrice 比 × RefPrices[銀]」の手計算と一致（1e-9）し、
@@ -185,7 +189,7 @@ public class MultiNationTests
     [Fact]
     public void 緊張は戦争を生み講和で植民地と賠償が動く()
     {
-        var run = Shared400.Value;
+        var run = Shared668.Value;   // ★(149)：盤面を全長へ（Shared668 の注記）
         Assert.Null(run.Error);
         var sim = run.Sim;
         int coloniesBefore = run.ColoniesBefore;

@@ -142,7 +142,7 @@ public sealed class Simulation
         if (scenario.NationConfig is not null) World.FactionRng = new DeterministicRng(scenario.Seed ^ 0xFAC7_1035_EED5UL);   // F3変異の独立系列（実在国のみ＝較正/最小世界は null＝不発）
         foreach (var r0 in regions) if (r0.State == RegionState.Active) World.FoundingActiveProvinces++;   // 建国時のActive州数（2026-08-04・残余国判定の分母）
         World.FoundingPopulation = World.TotalPopulation;   // ★H-02（2026-09-03）：建国時人口＝残余国判定のもう一つの分母（州数と対）
-        // ★代替レシピ（坩堝鋼/錬鉄レール・石油灯油・冷蔵の加工肉・黄鉄鉱法）の注入は AddAlternateRecipes（州の構築経路）へ移した（2026-09-06）。
+        // ★代替レシピ（坩堝鋼/錬鉄レール・石油ケロシン・冷蔵の加工肉・黄鉄鉱法）の注入は AddAlternateRecipes（州の構築経路）へ移した（2026-09-06）。
         //   旧＝ここで World.Regions を走査＝**構築時に存在した州だけ**に注入され、昇格植民地・建国州は代替を持たなかった
         //   （実測＝E-13 で黄鉄鉱法を持たない州が硫黄34倍のルブラン法を回し、化学薬品の平均価格が16倍・中央値は2倍）。
         //   ★汽船(85)・機関車(88)の onset（リ5・SteamTransportOnset）も 2026-09-27 に AddAlternateRecipes へ移した（同じ穴＝植民地格の州は1783年から無ゲートだった）。
@@ -993,7 +993,7 @@ public sealed class Simulation
     /// <summary>職人の工房（工場との並存レシピ）：衣料・家具・革製品・陶磁器を手仕事で作る自営（全付加価値が職人の収入）。
     /// 1789年は職人が主役（操業規模1.0 vs 工場0.05）。工場が機械・電化で安くなるほど職人レシピは採算で負け、
     /// 没落して労働者へ転落する（ラッダイトの母体＝転落の闘争度が政治に流れ込む）。</summary>
-    /// <summary>★代替レシピ（並存レシピ）の注入＝州の構築経路で1回（2026-09-06）。坩堝鋼/錬鉄レール・石油灯油（★(148)：旧 石油ケロシン＝同じ変換の2本を1本へ）・冷蔵の加工肉・黄鉄鉱法。汽船・機関車の onset（2026-09-27）。
+    /// <summary>★代替レシピ（並存レシピ）の注入＝州の構築経路で1回（2026-09-06）。坩堝鋼/錬鉄レール・石油ケロシン（★(149)：(148) の F4＝石油灯油への畳み込みは差し戻した）・冷蔵の加工肉・黄鉄鉱法。汽船・機関車の onset（2026-09-27）。
     /// 旧＝Simulation のコンストラクタで構築時の州だけに注入していた（昇格植民地・建国州が代替を持たない穴）。各器=0 で1件も足さない＝恒等。</summary>
     private static void AddAlternateRecipes(List<Producer> producers, Coefficients coef)
     {
@@ -1047,21 +1047,28 @@ public sealed class Simulation
                 Productivity = cannonDefault.Productivity * coef.MusketProductivity, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa,
                 LaborPopIndex = cannonDefault.LaborPopIndex, OwnerPopIndex = cannonDefault.OwnerPopIndex, RentShare = 1.0, BuysLabor = true,
                 Inputs = [new Input(Catalog.IronId, 1.3), new Input(Catalog.LumberId, 0.3), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.ArtilleryId))] });
-        // ★石油灯油＝ケロシン（灯油doc・2026-08-13 の石油ケロシン）：灯油(68)の近代レシピ（既定は鯨油/魚油＝漁獲0.8）・発見の表の石油灯油（1850年代＝1859ドレーク油井〜）。
-        //   ★2026-10-01 (148)・設計 §5 F4：同じ原油→灯油の変換が2本並存していた（AddAdvancedProducers の石油灯油〔原油1.0・生産性1.9〕とこの石油ケロシン＝キューAUD-09 の記録）
-        //   ＝この1本へ畳んだ（全てのビルダーがこの注入を1回呼ぶ＝フルチェーンの世界にも同じ1本・名前は発見の行の「石油灯油」・旗 KeroseneFromOilEnabled は焼き込み）。
-        // ⚠新しい Good は1つも足さない——足すのは Producer 1件だけ。極性は鋼と逆で、**新レシピの方が安い**＝発見の後に自動で置き換わる。
+        // ★石油ケロシン（灯油doc・2026-08-13）：灯油(68)の**第2レシピ**。既定は鯨油/魚油（漁獲0.8）。
+        // ⚠★2026-09-03（キューAUD-09・監査「保存則・台帳」）：**追加根拠のコメントが事実と食い違っていた**。
+        //   「原油には買い手が1本も無い40年の空白があった」と書かれていたが、現物には AddAdvancedProducers 側に
+        //   同じ原油→灯油の近代レシピ（RecipeName="石油灯油"・同じ1850年代の発見の行〔旧 TechOnset=0.6〕）が**既にある**＝空白ではない。
+        //   ⇒ 実体は「同じ変換が2レシピ並存している」。⚠どちらを残すかは帯が動く（KeroseneFromOilEnabled=1 は点火済みで
+        //   列強+6.2/人口−5.7 の実測がある）ので、ここでは**事実の記録だけ**に留め、統合は測定とセットで行う（キューAUD-09）。
+        // ⚠新しい Good は1つも足さない——足すのは Producer 1件だけ。極性は鋼と逆で、**新レシピの方が安い**＝発見の後に自動で置き換わる（★2026-10-01 段2A・旧＝onset後）。
         //   史実の較正＝鯨油1.45ドル/ガロン(1856)に対しケロシンは0.58(1865)→0.08(1885)＝おおむね5〜10倍安い。
         //   投入は原油0.5（1870年代の精製収率45〜60%）＋生産性1.6（連続精製 vs 3〜4年の捕鯨航海）で表す＝倍率を書かない。
-        {
-            Producer? keroDefault = null;
-            foreach (var pr in producers) if (pr.GoodId == Catalog.LampOilId) { keroDefault = pr; break; }
-            if (keroDefault is not null)   // 灯油を作らない世界（最小シナリオ）は不発
-                producers.Add(new Producer { GoodId = Catalog.LampOilId, RecipeName = "石油灯油",
+        // ★解禁＝発見の表の石油ケロシン（1850年代・2026-10-01 段2A＝石油灯油と同じ年代・畳むのは設計 §5 F4）。⚠KeroseneFromOilEnabled=0 で不発＝厳密恒等。
+        if (coef.KeroseneFromOilEnabled > 0)
+            {
+                Producer? keroDefault = null;
+                foreach (var pr in producers) if (pr.GoodId == Catalog.LampOilId) { keroDefault = pr; break; }
+                if (keroDefault is not null)   // 灯油を作らない世界（最小シナリオ）は不発
+                {
+                producers.Add(new Producer { GoodId = Catalog.LampOilId, RecipeName = "石油ケロシン",
                     Productivity = coef.KeroseneOilProductivity * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa,
                     LaborPopIndex = keroDefault.LaborPopIndex, OwnerPopIndex = keroDefault.OwnerPopIndex, RentShare = 1.0, BuysLabor = true,
                     Inputs = [new Input(Catalog.CrudeOilId, coef.KeroseneOilInput), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.LampOilId))] });
-        }
+                }
+            }
 
         // ★冷蔵の加工肉（2026-09-04・作者提案「冷蔵庫という形にして、肉輸送+消費財でよいのでは」）＝**加工肉(63)の第2レシピ**。
         //   既定は 肉+小麦粉（塩漬け・ソーセージ）。⚠冷凍船（1877/1882）以後は**冷蔵**が主役になる。
@@ -1274,7 +1281,9 @@ public sealed class Simulation
         // 亜麻衣料（衣料57の代替）：綿布の代わりに帆布(麻織物)で仕立てる＝亜麻が安い地域・綿花が断たれた時の代替（市場が安い方を採る）。
         producers.Add(new Producer { GoodId = Catalog.ClothingId, RecipeName = "亜麻衣料", Productivity = 1.7 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
             Inputs = [new Input(Catalog.CanvasId, 0.6), new Input(Catalog.DyeId, 0.2), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.ClothingId))] });
-        // 【畳んだ 2026-10-01 (148)・設計 §5 F4】石油灯油（原油1.0・生産性1.9）＝同じ原油→灯油の変換は AddAlternateRecipes の1本（史実で較正した数の石油ケロシンを「石油灯油」の名で）。
+        // 石油灯油＝ケロシン（灯油68の近代レシピ・発見の表の1850年代＝1859ドレーク油井〜）：原油を精製。原油(安価RGO)は鯨油/魚油(漁獲)より安い＝onset後にコストで勝ち鯨油を駆逐（史実：ケロシンが捕鯨を終わらせた）。原油RGOも DefaultRecipeOnset(10)=0.6 でゲート＝早期に湧かないので原油の価格スパイクも起きない。
+        producers.Add(new Producer { GoodId = Catalog.LampOilId, RecipeName = "石油灯油", Productivity = 1.9 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
+            Inputs = [new Input(Catalog.CrudeOilId, 1.0), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.LampOilId))] });
         // === B6（2026-07-19ユーザー裁定）===
         // 人絹＝ビスコース（絹織物45の並存レシピ・発見の表の1890年代）：木材パルプ(製材)＋化学薬品から人造絹糸＝
         // 化学工業が生糸(14)経済を創造的破壊（"artificial silk"そのもの・ぼろ布製紙/クロムなめしと同型・RefPrice不変）。

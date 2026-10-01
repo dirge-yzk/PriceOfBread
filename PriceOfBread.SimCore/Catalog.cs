@@ -606,7 +606,8 @@ public static class Catalog
         new("木材パルプ製紙", PaperId, "", DiscoveryField.Process, 1840),                // 砕木1840s（その前はぼろ布製紙＝地理差）
         new("過リン酸石灰", FertilizerId, "", DiscoveryField.Process, 1840),             // ロース1842（その前は厩肥・グアノ＝地理差）
         new("転炉鋼", SteelId, "", DiscoveryField.Process, 1850),                        // ベッセマー1856（その前は坩堝鋼・錬鉄レール＝地理差）
-        new("石油灯油", LampOilId, "石油灯油", DiscoveryField.Process, 1850),            // ドレーク油井1859（★(148)：同じ変換の2本目「石油ケロシン」を畳んだ＝設計 §5 F4）
+        new("石油灯油", LampOilId, "石油灯油", DiscoveryField.Process, 1850),            // ドレーク油井1859
+        new("石油ケロシン", LampOilId, "石油ケロシン", DiscoveryField.Process, 1850),    // 同上（石油灯油と同じ変換の2本目＝設計 §5 F4 の重複・畳むのは次の段）　★(149) 合流：(148) の F4（この行を畳んで安い方の数〔原油0.5・生産性1.6〕を石油灯油の行で開く）は差し戻した＝挙動を変える畳み方だった（同じ種1〜5 で exact −5.9・near −6.6）＝畳み方は 00一覧
         new("鉄筋コンクリート", HousingId, "鉄筋コンクリート", DiscoveryField.Process, 1860),   // モニエ1867（§1A-5 の表）
         new("クロムなめし", LeatherId, "クロムなめし", DiscoveryField.Process, 1880),     // 商用1884（§1A-5 の表）
         new("無煙火薬", GunpowderId, "無煙火薬", DiscoveryField.Process, 1880),          // ヴィエイユ1884

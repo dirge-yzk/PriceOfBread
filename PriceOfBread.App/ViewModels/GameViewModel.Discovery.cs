@@ -118,9 +118,11 @@ public partial class GameViewModel
         }
         // ★産地の発見（2026-10-01 (148)・Catalog.Sites＝大鉱床と植林）＝自国の州にある行だけ。見つかった産地は100%・まだの産地は点数（技術力＋必要性）の割合
         //   ＝値は Discovery.SiteTerms＝エンジンが判定に読む同じ関数。ホバー＝2項と州の名前（データのみ）。並べ替えの第2キーは年代。
+        //   ★(149) 反証の指摘：エンジン（Discovery.Step）は稼働中の州だけを判定する＝画面も稼働中の州だけ（稼働していない州の産地は決して開かない点数を出していた）。
         foreach (var r in w.Regions)
             foreach (var p in r.Producers)
             {
+                if (r.State != RegionState.Active) break;
                 if (p.SiteRow < 0) continue;
                 var site = Catalog.Sites[p.SiteRow];
                 var st = Discovery.SiteTerms(w, r, p, c);
