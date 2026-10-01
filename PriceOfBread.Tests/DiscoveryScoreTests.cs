@@ -231,6 +231,77 @@ public class DiscoveryScoreTests
         var byCarrier = Discovery.RowsByCarrier(carriers);
         Assert.Contains(Row("蒸気機関"), byCarrier[Catalog.SteamEngineId]);
     }
+
+    // ===== ★新兵器の必要性の損耗の項（2026-10-01 (153)・設計 §1A-4 (4a)「その分野の脅威比＋交戦中のその分野の損耗の率」・作者裁定 2026-09-28 ⑤「陸・海・空で分ける」）=====
+
+    /// <summary>新兵器の必要性は交戦中の**その分野の**損耗で上がり、他の分野の損耗では動かない（陸＝機関銃・戦車・化学兵器／海＝装甲艦・弩級戦艦／空＝軍用機）。
+    /// 単位＝損耗の強さ（最大を1とした割合）は脅威の割合と同じ物差し＝強度は2つの和（換算の数を置かない）：損耗 x の必要性＝70×(脅威の割合＋x)÷(…＋半分点)。
+    /// ⚠壊し方＝損耗を読まない・分野を取り違える（海の行が陸の損耗を読む）・損耗に換算の数を掛ける → 赤。記帳の側（戦死・艦隊摩耗）は WarThemeTests。</summary>
+    [Fact]
+    public void 新兵器の必要性は交戦中のその分野の損耗で上がり他の分野では動かない()
+    {
+        var sim = Board();
+        int[] landRows = [Row("機関銃"), Row("戦車"), Row("化学兵器")], seaRows = [Row("装甲艦"), Row("弩級戦艦")];
+        int airRow = Row("軍用機");
+        int[] all = [.. landRows, .. seaRows, airRow];
+        World? w = null;
+        foreach (var n in sim.Nations)
+        {
+            var t = Discovery.Evaluate(n.World, null, n.World.Coef, includeKnown: true);
+            if (all.All(r => t[r].Tech > 0)) { w = n.World; break; }   // 6行とも代表の生産者が居る国
+        }
+        Assert.NotNull(w);
+        double half = w!.Coef.DiscoveryNeedHalfWeapon;
+        Discovery.Terms[] T(double land, double sea, double air)
+        {
+            var loss = new double[Discovery.LossDomains];
+            loss[(int)WarDomain.Land] = land; loss[(int)WarDomain.Sea] = sea; loss[(int)WarDomain.Air] = air;
+            return Discovery.Evaluate(w, new Discovery.WorldView(null, 0, loss), w.Coef, includeKnown: true);
+        }
+        var t0 = T(0, 0, 0); var tl = T(0.5, 0, 0); var ts = T(0, 0.5, 0); var ta = T(0, 0, 0.5);
+        var none = Discovery.Evaluate(w, null, w.Coef, includeKnown: true);
+        foreach (int r in all) Assert.Equal(none[r].Need, t0[r].Need);   // 損耗0＝損耗の無い判定と同じ
+        static double StrengthOf(double need, double h) => h * need / (Discovery.TermMax - need);   // 必要性→強度（70×s÷(s＋h) の逆）
+        static double NeedOf(double s, double h) => Discovery.TermMax * s / (s + h);
+        void Check(int[] rows, Discovery.Terms[] hit, Discovery.Terms[] miss1, Discovery.Terms[] miss2, string dom)
+        {
+            foreach (int r in rows)
+            {
+                string nm = Catalog.Discoveries[r].Name;
+                Assert.True(hit[r].Need > t0[r].Need, $"{nm}：{dom}の損耗で必要性が上がらない（{t0[r].Need:F3}→{hit[r].Need:F3}）");
+                Assert.Equal(t0[r].Need, miss1[r].Need);
+                Assert.Equal(t0[r].Need, miss2[r].Need);
+                Assert.Equal(NeedOf(StrengthOf(t0[r].Need, half) + 0.5, half), hit[r].Need, 9);   // 強度＝脅威の割合＋損耗の強さ（同じ単位＝換算の数なし）
+                Assert.True(hit[r].Tech == t0[r].Tech && hit[r].Transmit == t0[r].Transmit, $"{nm}：損耗で技術力か伝わりが動いた");
+            }
+        }
+        Check(landRows, tl, ts, ta, "陸");
+        Check(seaRows, ts, tl, ta, "海");
+        Check([airRow], ta, tl, ts, "空");
+    }
+
+    /// <summary>損耗の記帳（World.DiscoveryLossQ＝月ごとに積む）は判定で四半期の月の平均になり（画面と計器が同じ値を読む＝World.LastDiscoveryView.Loss）、記帳は捨てられる。
+    /// 多国の世界は四半期末の共有層も捨てる（助走は判定しない＝捨てるだけ）。⚠壊し方＝捨てない（次の四半期へ積み残す）・平均にしない（月の和のまま）→ 赤。</summary>
+    [Fact]
+    public void 損耗の記帳は判定で四半期の月の平均になり捨てられる()
+    {
+        var sim = Board();
+        var w = sim.Nations[0].World;
+        var lq = new double[Discovery.LossDomains];
+        lq[(int)WarDomain.Land] = 0.3; lq[(int)WarDomain.Sea] = 0.6; lq[(int)WarDomain.Air] = 0.9;
+        w.DiscoveryLossQ = lq;
+        Discovery.Step(w, new Discovery.WorldView(null, 0), w.Coef);
+        Assert.Null(w.DiscoveryLossQ);
+        var l = w.LastDiscoveryView?.Loss;
+        Assert.NotNull(l);
+        Assert.Equal(0.3 / Calendar.MonthsPerQuarter, l![(int)WarDomain.Land], 12);
+        Assert.Equal(0.6 / Calendar.MonthsPerQuarter, l[(int)WarDomain.Sea], 12);
+        Assert.Equal(0.9 / Calendar.MonthsPerQuarter, l[(int)WarDomain.Air], 12);
+        // 多国の四半期末（共有層）も捨てる＝四半期をまたいで積み残さない
+        foreach (var n in sim.Nations) n.World.DiscoveryLossQ = new double[Discovery.LossDomains];
+        sim.StepQuarter();
+        Assert.All(sim.Nations, n => Assert.Null(n.World.DiscoveryLossQ));
+    }
     // ===== ★産地の発見（2026-10-01 (148)・Catalog.Sites＝大鉱床と植林）の番人 =====
 
     /// <summary>産地の生産者を探す（州の名前＝表の場所・財＝表の財）。</summary>

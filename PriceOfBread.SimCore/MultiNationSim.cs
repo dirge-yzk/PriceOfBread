@@ -569,7 +569,7 @@ public sealed class MultiNationSim
             for (int i = 0; i < n; i++) Discovery.Step(Nations[i].World, new Discovery.WorldView(contacts[i], ww), _coef);
             ShareWorldDiscovered();
         }
-        foreach (var sim in Nations) sim.World.DiscoveryImportQ = null;
+        foreach (var sim in Nations) { sim.World.DiscoveryImportQ = null; sim.World.DiscoveryLossQ = null; }   // 損耗の記帳（(153)）も判定の後（助走は判定しない＝捨てるだけ）
         Market.DiscoveryGoodFlowQ = null;
         _recruitLog?.Clear();
     }

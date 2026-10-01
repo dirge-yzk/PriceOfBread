@@ -903,6 +903,10 @@ public sealed class Diplomacy
                 if (hostile > 1e-9)
                 {
                     double loss = System.Math.Min(p.NavalShare - c.NavalShareMin, c.NavalAttritionRate * hostile * p.NavalShare);
+                    // ★新兵器の必要性の海の損耗（2026-10-01 (153)・設計 §1A-4 (4a)）＝今月に沈んだ艦の割合（loss÷海軍シェア）÷艦隊摩耗の月の上限の割合
+                    //   （NavalAttritionRate＝全艦が敵の支配1の海盆に居る月）＝0〜1（陸と空は戦死の WarCasualties・単位は同じ「総力戦の月の上限を1とした割合」）。記帳だけ（摩耗の量は変えない）。
+                    double seaLoss = loss / p.NavalShare / c.NavalAttritionRate;
+                    if (seaLoss > 0) (nw.DiscoveryLossQ ??= new double[Discovery.LossDomains])[(int)WarDomain.Sea] += seaLoss;   // 否定形＝NaN と0は積まない
                     p.NavalShare -= loss;
                     nw.Region.NavalRepairUnits += c.NavalRepairPerLoss * loss * p.Military;   // 修理需要（軍艦財）＝戦争が造船業を潤す
                 }
@@ -2582,9 +2586,21 @@ public sealed class Diplomacy
         //   ⚠割合は上限・下限で削らない（思想⑧）＝押しに熟練・制空が乗るので1を超えうる。頭打ちは既存の兵士の月次上限だけ。
         //   ⚠自軍のゲージが0なら押しも0＝接触0＝出血0。`>` の比較で守る＝ゲージが NaN でも0の側へ倒れる（割合へ NaN を通さない）。
         double casForce = p.Military > 1e-9 ? c.WarCasualtyRate * soldierPop * (contactStrength / p.Military) : 0;
-        casForce *= 1.0 + c.AirCasualtyWeight * Math.Max(0.0, 1.0 - 2.0 * airControl);   // 1934拡張E2：制空劣勢＝上空からの観測砲爆撃で出血増（中立0.5＝×1.0恒等・優勢側は増えない）
+        double airMul = 1.0 + c.AirCasualtyWeight * Math.Max(0.0, 1.0 - 2.0 * airControl);   // 1934拡張E2：制空劣勢＝上空からの観測砲爆撃で出血増（中立0.5＝×1.0恒等・優勢側は増えない）
+        casForce *= airMul;
         double cas = Math.Min(casForce, soldierPop * c.WarCasualtyMonthlyCap);   // 1ヶ月最大で兵士の WarCasualtyMonthlyCap（改修2026-06-28：旧15%/月＝年率80%超は桁外れ→4%/月＝総力戦で年〜40%の史実水準へ）
         CasualtyProbe?.Invoke(casForce, soldierPop);   // 観測だけ（既定 null＝引数ごと評価しない）
+        // ★新兵器の必要性の陸と空の損耗（2026-10-01 (153)・設計 §1A-4 (4a) の第2項「交戦中のその分野の損耗の率」・作者裁定 2026-09-28 ⑤「陸・海・空で分ける」）
+        //   ＝今月の兵の損耗の割合（戦死÷兵士＝下の厭戦の casTerm と同じ割合）÷総力戦の月の上限（WarCasualtyMonthlyCap＝「総力戦で年〜40%の史実水準」）＝0〜1
+        //   （率を脅威の割合と同じ「最大を1とした割合」へ直す＝新しい数なし）。空＝制空劣勢で増えた分（敵の空から受けた損耗＝cas×(1−1÷増し)）・陸＝残り。記帳だけ（戦死の量は変えない）。
+        double lossI = c.WarCasualtyMonthlyCap > 0 ? cas / soldierPop / c.WarCasualtyMonthlyCap : 0;
+        if (lossI > 0)   // 否定形＝NaN と0は積まない
+        {
+            var lq = w.DiscoveryLossQ ??= new double[Discovery.LossDomains];
+            double airI = lossI * (1.0 - 1.0 / airMul);
+            lq[(int)WarDomain.Land] += lossI - airI;
+            lq[(int)WarDomain.Air] += airI;
+        }
         // 兵士に規模按分で戦死＝死の記帳の1本（World.KillPops・段4e J＝人口の台帳と戦死の累計）
         var soldiers = new List<Pop>(); var officers = new List<Pop>();
         foreach (var pop in w.AllPops()) { if (pop.IsSoldier) soldiers.Add(pop); else if (pop.Closed) officers.Add(pop); }

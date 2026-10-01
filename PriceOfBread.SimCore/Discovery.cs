@@ -123,8 +123,13 @@ public static class Discovery
         }
     }
 
-    /// <summary>国の外から見た値（<see cref="MultiNationSim"/> が四半期末に求めて渡す・単独の世界は null）＝行ごとの接触・人件費の世界の平均（働き手1人の月の所得÷物価水準）。</summary>
-    public sealed record WorldView(double[]? Contact, double Wage);
+    /// <summary>国の外から見た値（<see cref="MultiNationSim"/> が四半期末に求めて渡す・単独の世界は null）＝行ごとの接触・人件費の世界の平均（働き手1人の月の所得÷物価水準）。
+    /// ★<paramref name="Loss"/>＝この四半期の陸・海・空の損耗の強さ（添字は <see cref="WarDomain"/>・月の平均・0〜1＝<see cref="World.DiscoveryLossQ"/> を <see cref="Step"/> が直した値・2026-10-01 (153)）
+    /// ＝国の中の値だが、記帳は判定で捨てる＝画面と計器が判定と同じ3項を読むためにここへ載せる（<see cref="World.LastDiscoveryView"/>）。</summary>
+    public sealed record WorldView(double[]? Contact, double Wage, double[]? Loss = null);
+
+    /// <summary>損耗の記帳の長さ（<see cref="WarDomain"/> の数＝無・陸・海・空）。</summary>
+    public const int LossDomains = (int)WarDomain.Air + 1;
 
     /// <summary>点数の3項（技術力・必要性・伝わり）。</summary>
     public readonly record struct Terms(double Tech, double Need, double Transmit)
@@ -183,6 +188,7 @@ public static class Discovery
     {
         double[]? contact = view?.Contact;
         double worldWage = view?.Wage ?? 0;
+        double[]? loss = view?.Loss;
         var rows = Catalog.Discoveries;
         int nr = rows.Length, ng = Catalog.Goods.Length;
         var res = new Terms[nr];
@@ -245,6 +251,9 @@ public static class Discovery
         double gdpNom = w.NominalGdp;
         // 軍事の圧力（新兵器）＝その分野の脅威（相手の強さ）が自国の強さとの和に占める割合∈[0,1)＝理想の軍隊の形（ArmyShape）の陸と海の必要量 ÷（必要量＋自国の陸軍力・海軍力）。空は陸の膠着（設計 §1A-4）。
         //   ⚠比（相手÷自国）のままでは弱い国が数十倍になり必要性が70へ張り付く（1種の試走でダホメが1831年に機関銃・コンゴが1837年に弩級戦艦）＝割合にすれば最大は 70÷(1＋半分点)。
+        //   ★＋交戦中のその分野の損耗（2026-10-01 (153)・設計 §1A-4 (4a) の第2項・作者裁定 2026-09-28 ⑤「陸・海・空で分ける」）＝この四半期の損耗の強さ（<see cref="WorldView.Loss"/>＝
+        //   その月に失った割合÷総力戦の月の上限の割合の平均＝0〜1＝脅威の割合と同じ「最大を1とした割合」）。陸＝戦死（敵の空から受けた分を除く）・海＝艦隊摩耗・空＝制空劣勢で増えた戦死。
+        //   空の脅威は陸の割合のまま（理想の軍隊の形に空の必要量が無い＝AI の読み・(147) の⑤）＝空の損耗だけが空の分野の量。
         double landPress = 0, seaPress = 0;
         if (w.SelfPower is { } sp)
         {
@@ -322,9 +331,13 @@ public static class Discovery
                     break;
                 }
                 case DiscoveryField.Weapon:
-                    s = d.Domain == WarDomain.Sea ? seaPress : landPress;
+                {
+                    int dom = (int)d.Domain;
+                    double lossI = loss is not null && dom < loss.Length && loss[dom] > 0 ? loss[dom] : 0;   // 否定形＝NaN は0（損耗なし）の側へ
+                    s = (d.Domain == WarDomain.Sea ? seaPress : landPress) + lossI;
                     half = c.DiscoveryNeedHalfWeapon;
                     break;
+                }
                 case DiscoveryField.Product:
                     s = satThick;
                     half = c.DiscoveryNeedHalfProduct;
@@ -350,6 +363,14 @@ public static class Discovery
     {
         var known = w.Discovered;
         w.Cost[CostLedger.DiscoveryNations]++;   // 計算量の台帳（診断）：発見の判定は国×四半期
+        // ★損耗の記帳（(153)・World.DiscoveryLossQ）を四半期の月の平均へ直して判定の値に載せ、記帳は捨てる（伝わりの取引の記帳と同じ＝四半期に積み、判定で捨てる）。
+        if (w.DiscoveryLossQ is { } lq)
+        {
+            var avg = new double[lq.Length];
+            for (int i = 0; i < lq.Length; i++) avg[i] = lq[i] / Calendar.MonthsPerQuarter;
+            view = (view ?? new WorldView(null, 0)) with { Loss = avg };
+            w.DiscoveryLossQ = null;
+        }
         var terms = Evaluate(w, view, c);
         for (int row = 0; row < terms.Length && row < known.Length; row++)
         {

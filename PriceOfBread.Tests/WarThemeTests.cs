@@ -285,6 +285,64 @@ public class WarThemeTests
         }
     }
 
+    // ===== ★新兵器の必要性の損耗の記帳（2026-10-01 (153)・設計 §1A-4 (4a) の第2項「交戦中のその分野の損耗の率」・作者裁定 2026-09-28 ⑤「陸・海・空で分ける」）=====
+    // ⚠機構だけを見る：戦死（WarCasualties）はその月の兵の損耗の割合（戦死÷兵士）÷総力戦の月の上限（WarCasualtyMonthlyCap）を陸と空へ分けて
+    //   World.DiscoveryLossQ に積む（空＝制空劣勢で増えた分）。単位＝脅威の割合と同じ「最大を1とした割合」＝上限で頭打ちの月はちょうど1。
+    //   艦隊摩耗は沈んだ割合（摩耗÷海軍シェア）÷NavalAttritionRate を海へ積む。読み手（発見の判定）は DiscoveryScoreTests が見る。
+    [Fact]
+    public void 戦死は損耗の強さを総力戦の上限を1として陸と空に分けて記帳する()
+    {
+        var (sim, _, fr, _) = OneFront(new Coefficients().WarCivilianToll);
+        var c = sim.Coef; var p = fr.SelfPower!;
+        double m0 = p.Military;
+        Assert.True(fr.SoldierSize() > 0 && m0 > 0, "前提が崩れた：兵士POPか軍事ゲージが無い");
+        double[] Hit(double contact, double airCtl)
+        {
+            fr.DiscoveryLossQ = null; p.WarExhaustion = 0;
+            sim.Diplomacy.WarCasualties(p, c, contact, airCtl);
+            return fr.DiscoveryLossQ ?? new double[Discovery.LossDomains];
+        }
+        int land = (int)WarDomain.Land, sea = (int)WarDomain.Sea, air = (int)WarDomain.Air;
+        // (1) 上限で頭打ちの月（総力戦）＝陸＋空がちょうど1・制空が中立（0.5）なら空は0・海は戦死から積まない
+        var full = Hit(1e4 * m0, 0.5);
+        Assert.Equal(1.0, full[land] + full[air], 9);
+        Assert.Equal(0.0, full[air]);
+        Assert.Equal(0.0, full[sea]);
+        // (2) 上限の下：強さ＝戦死÷兵士÷上限＝Rate×接触した割合÷上限（接触した割合を上限の1/20 に置く＝0.05）
+        double share = 0.05 * c.WarCasualtyMonthlyCap / c.WarCasualtyRate;
+        var low = Hit(share * m0, 0.5);
+        Assert.Equal(0.05, low[land], 9);
+        // (3) 制空劣勢（0＝敵が空を握る）：戦死が (1＋AirCasualtyWeight) 倍・増えた分が空＝空÷(陸＋空)＝1−1÷(1＋AirCasualtyWeight)
+        var inf = Hit(share * m0, 0.0);
+        double tot = inf[land] + inf[air];
+        Assert.Equal(0.05 * (1.0 + c.AirCasualtyWeight), tot, 9);
+        Assert.Equal(1.0 - 1.0 / (1.0 + c.AirCasualtyWeight), inf[air] / tot, 9);
+        // (4) 月ごとに足す（四半期に積む・平均と捨てるのは発見の判定）
+        fr.DiscoveryLossQ = null;
+        sim.Diplomacy.WarCasualties(p, c, share * m0, 0.5);
+        sim.Diplomacy.WarCasualties(p, c, share * m0, 0.5);
+        Assert.Equal(0.10, fr.DiscoveryLossQ![land], 9);
+    }
+
+    [Fact]
+    public void 艦隊摩耗は沈んだ割合を摩耗の上限を1として海に記帳する()
+    {
+        var (sim, _, fr, br) = OneFront(new Coefficients().WarCivilianToll);
+        var c = sim.Coef;
+        double nru0 = fr.Region.NavalRepairUnits;
+        fr.DiscoveryLossQ = null; br.DiscoveryLossQ = null;
+        sim.Diplomacy.Step(c, sim.Rng, month: 60);   // 外交の1か月＝同期（艦隊摩耗）と戦争（戦死）を本物の呼び手で
+        var p = fr.SelfPower!;
+        // 沈んだ量＝修理の需要の増え÷（修理の係数×軍の総合ゲージ）（摩耗の行が書く同じ量）・摩耗の前の海軍シェア＝後＋沈んだ量
+        double loss = (fr.Region.NavalRepairUnits - nru0) / (c.NavalRepairPerLoss * p.Military);
+        Assert.True(loss > 0, $"前提が崩れた：仏の艦隊摩耗が走っていない（修理の需要 {nru0:G6}→{fr.Region.NavalRepairUnits:G6}）");
+        Assert.NotNull(fr.DiscoveryLossQ);
+        double expected = loss / (p.NavalShare + loss) / c.NavalAttritionRate;
+        Assert.Equal(expected, fr.DiscoveryLossQ![(int)WarDomain.Sea], 9);
+        Assert.True(expected > 0 && expected <= 1.0 + 1e-12, $"海の損耗の強さが0〜1の外（{expected:G6}）");
+        Assert.True(fr.DiscoveryLossQ[(int)WarDomain.Land] > 0, "前提が崩れた：同じ月の戦死（陸）が積まれていない");
+    }
+
     // ===== 押しの式は1か所（2026-09-28 回8-1・棚卸し mil-11）=====
     // ⚠機構だけを見る：戦線ごとの押しは月に1回だけ計算され、接触（戦死の入力＝各戦線の min(押しA, 押しB) の和）と
     //   戦勝点の押し合い（War.PushA/PushB に積む値）が**同じ値**を読む。旧＝同じ式を2か所に書いていた（片方だけ直す事故の型）。

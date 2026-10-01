@@ -1673,6 +1673,7 @@ public sealed class Simulation
         if (!warm) TechEducation.GrowTech(World, World.Coef);          // §2.8 技術＝社会の連続創発（カード廃止）。助走中は WarmupTech が別途担う＝ここで二重に進めない
         // ★発見（段2A・2026-10-01）：単独の世界だけここで判定する（伝わり＝0）。多国は MultiNationSim の四半期末の共有層が接触を求めてから判定する（同じ関数）。助走は判定しない（開幕の既知は助走の終わりに1度）。
         if (!warm && World.StepsDiplomacy) Discovery.Step(World, null, World.Coef);
+        else if (warm && World.StepsDiplomacy) World.DiscoveryLossQ = null;   // ★(153) 損耗の記帳は判定で捨てる（助走は判定しない＝捨てるだけ・多国は MultiNationSim の共有層が捨てる）
         Institutions.Step(World, World.Coef);               // 研究C＝制度の施行（社会の閾値で解禁・近代化の改革）
         Politics.Step(World, World.Coef);                   // §9-E
         Meritocracy.Step(World, World.Coef);                // 社会移動の全体（昇格・転落・聖職者の流入と下限＝①〜⑤）

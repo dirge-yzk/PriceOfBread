@@ -171,6 +171,11 @@ public sealed class World
     /// <summary>★発見の伝わりの取引の記帳（四半期・国際市場の成約が書く）＝行ごとに、その行を解禁済みの国から、まだの自国が買った運び手の財の額（金建て）。
     /// 四半期末の共有層（<see cref="MultiNationSim"/>）が接触へ直して0に戻す。⚠四半期の途中のセーブに載る（月の清算の分）。</summary>
     public double[]? DiscoveryImportQ;
+    /// <summary>★新兵器の必要性の損耗の記帳（四半期・2026-10-01 (153)・設計 §1A-4 (4a) の第2項「交戦中のその分野の損耗の率」・作者裁定 2026-09-28 ⑤「新兵器の軍事の圧力は陸・海・空で分ける」）
+    /// ＝添字は <see cref="WarDomain"/>（陸・海・空）。月ごとの損耗の強さ＝その月に失った割合÷総力戦の月の上限の割合（0〜1＝脅威の割合と同じ単位）を四半期に積む。
+    /// 書き手＝外交の月次（陸と空＝戦死〔Diplomacy.WarCasualties〕・海＝艦隊摩耗）・読み手＝発見の判定（<see cref="Discovery.Step"/> が四半期の平均へ直して0に戻す）。
+    /// ⚠四半期の途中のセーブに載る（<see cref="DiscoveryImportQ"/> と同じ）。</summary>
+    public double[]? DiscoveryLossQ;
     /// <summary>直近の四半期の発見の判定に使った国の外の値（接触・人件費の世界の平均・世界の値段＝画面と計器が同じ3項を出すため）。作業領域＝セーブに載らない（ロード直後は null）。</summary>
     [System.NonSerialized] internal Discovery.WorldView? LastDiscoveryView;
     // ★知識と人的資本（作者採用2026-09-06）：厚み＝専門人材率（近代エリート層の高等教育充足×人数÷全人口・毎四半期の導出量＝保存しない）・世界の先端・接触度
