@@ -813,8 +813,8 @@ public sealed class MultiNationSim
                     w.ExternalPressure = gap * (coastal ? 1.0 : _coef.ExternalPressureInlandFactor);
                 }
             // 政16（世界工業化の先端状態量・スカフォールド完成）：各国 MeanIndustrialization の最大値＝「世界最先端の工業化度」を
-            // 全 World.IndustrialFrontier へ注入（WorldTechLevel と同型）。Ideology の発展度ゲート（思想の解禁度）が
-            // 代理(WorldTechLevel との max)でなくこれを参照する（暦年ゲートとの混合は 2026-09-26 に削除＝解禁度は発展度だけ）。
+            // 全 World.IndustrialFrontier へ注入（WorldTechLevel と同型）。Ideology の発展度（ファシズムの支持の式・発見パネルのホバー）が
+            // 代理(WorldTechLevel との max)でなくこれを参照する（思想の門は 2026-10-01 (152) から発見の表の思想の行＝発展度の傾斜は削除）。
             double indFrontier = 0;
             foreach (var n in Nations) indFrontier = Math.Max(indFrontier, n.World.MeanIndustrialization);
             foreach (var n in Nations) n.World.IndustrialFrontier = indFrontier;
@@ -996,10 +996,12 @@ public sealed class MultiNationSim
     /// 政府勝利＝反乱国の全州を親へ返還し国家を除去／反乱勝利＝同じ返還の後に政体変更の実行部（Politics.SettleRevolt＝旧経路の内戦の決着と同じ1本・革命の成就）。
     /// 保存則＝反乱国の基礎貨幣（S=貯蓄和＋T=国庫−L=与信）と人口 P を親の台帳へ（貸借の仕分けは ReabsorbNations の★2026-09-22）。民族反転（建国時の 1−x）も戻す。
     /// 白紙講和はここへ来ない＝分断がそのまま残る（台湾・南北型）。</summary>
-    /// <summary>★発見・段7（2026-08-31）：思想の伝播。到達(A→B)＝貿易額(A,B)/買い手GDP×メディアA×メディアB×**前四半期の**到達A
+    /// <summary>★発見・段7（2026-08-31）：思想と制度の伝播。到達(A→B)＝貿易額(A,B)の世界の貿易に占める割合×メディアA×メディアB×**前四半期の**放射A
     /// （疫病の伝播と同型＝各到達国が新たな発信源・再放射。前四半期スナップショット＝同期読みの閉路禁止・原典§5-5）。
     /// メディア＝NewsFill×識字＋RadioFill（pop加重・全て既存量）。ペア行列は四半期で消費しゼロ化。
-    /// ⚠DiffusionWeight=0＝即return（ペア記帳側も同ゲート）＝厳密恒等。読者（思想eraゲート）は段8。</summary>
+    /// ★2026-10-01 (152)：到達の欄は発見の表の思想と制度の行（<see cref="Discovery.SpreadRows"/>・<see cref="World.SpreadReach"/>）＝発見の「伝わり」の項が読む（設計 §1A-7＝距離ではなく取引量）。
+    ///   放射＝max(自国に届いた到達, 自国の種)・種＝思想はその思想を持つ人の割合（国の思想の集計＝旧と同じ）・制度は解禁済みなら1（<see cref="Discovery.SpreadSource"/>）。
+    /// ⚠DiffusionWeight=0＝即return（ペア記帳側も同ゲート）。</summary>
     private void StepDiffusion()
     {
         var c = _coef;
@@ -1022,17 +1024,16 @@ public sealed class MultiNationSim
         for (int i2 = 0; i2 < n; i2++)
         {
             var wr = Nations[i2].World;
-            // ★段8の種（2026-09-04）：思想を**持つ**国が放射源＝到達を自国の National シェアで下支え（名前で起点を書かない・対称）。
-            //   IdeologyReachGate=0 でも DiffusionWeight>0 なら種は積まれるが読み手が無い＝世界は動かない（deadprobe の通り）。
-            // ★2026-09-04 E-12実測（差し戻し）：種を IdeologyReach に**書き戻す**と「自国シェア→自国到達→自国ゲート→自国シェア」の
-            //   正帰還が国内で閉じ、社会主義が61/61カ国へ1792〜95年に自家発火した。種は**放射側（prev）だけ**に使い、ゲートが読む
-            //   受信側 IdeologyReach には他国から届いた分しか積まない（＝伝播の定義）。
-            prev[i2] = (double[])wr.IdeologyReach.Clone();
-            if (_coef.IdeologyReachGate > 0)
+            // ★段8の種（2026-09-04）：思想を**持つ**国が放射源＝到達を自国の種で下支え（名前で起点を書かない・対称）。
+            // ★2026-09-04 E-12実測（差し戻し）：種を到達に**書き戻す**と「自国シェア→自国到達→自国の門→自国シェア」の
+            //   正帰還が国内で閉じ、社会主義が61/61カ国へ1792〜95年に自家発火した。種は**放射側（prev）だけ**に使い、発見が読む
+            //   受信側 SpreadReach には他国から届いた分しか積まない（＝伝播の定義）。
+            prev[i2] = (double[])wr.SpreadReach.Clone();
+            var nat = Ideologies.National(wr);
+            for (int k2 = 0; k2 < prev[i2].Length; k2++)
             {
-                var nat = Ideologies.National(wr);
-                for (int k2 = 0; k2 < prev[i2].Length && k2 < nat.Length; k2++)
-                    if (nat[k2] > prev[i2][k2]) prev[i2][k2] = nat[k2];
+                double src = Discovery.SpreadSource(wr, k2, nat);
+                if (src > prev[i2][k2]) prev[i2][k2] = src;
             }
         }
         // 正規化＝**世界総貿易に占めるペアのシェア**（実測2026-08-31：買い手GDP割は小国を過大評価し
@@ -1063,7 +1064,7 @@ public sealed class MultiNationSim
                 double link = c.DiffusionWeight * (pf[a][b] / worldFlow) * media[a] * media[b];
                 if (!(link > 0)) continue;
                 var ra = prev[a];
-                var rb = wB.IdeologyReach;
+                var rb = wB.SpreadReach;
                 for (int k = 0; k < ra.Length && k < rb.Length; k++)
                     if (ra[k] > 0) rb[k] = System.Math.Min(1.0, rb[k] + link * ra[k]);
             }

@@ -884,7 +884,6 @@ public sealed class Region
     public double ArableLand = 1e9;                   // 耕地賦存量（土地という固定生産要素）。農村人口がこれを超えると土地作物RGOが収穫逓減＝食料/人↓→所得↓→移民が止まる。未設定（合成較正・最小テスト世界）＝1e9＝制約なし
     public bool CapitalEnabled;                       // 工業化度（集約資本）を有効にするか（§2.4。フランス等で true）
     public double Industrialization;                  // 工業化度（地域集約の資本）。投資で積み、生産性と都市化上限を上げる
-    public double IndustrializationBoost = 1.0;       // 工業化投資の倍率（株式会社の制度で上がる＝研究C）
     public int InvestorPopIndex = -1;                 // 工業化投資の出し手（資本家階級）。-1＝投資なし
     public int MeritFromIndex = -1;                   // メリトクラシー昇格の出身階級（都市労働者）。-1＝昇格なし
     public int MeritToIndex = -1;                     // メリトクラシー昇格の到達階級（専門職・技師）
@@ -1063,8 +1062,8 @@ public sealed class Region
     public double[] StateSpent = new double[(int)TreasuryCat.Count];
     public double CumEducationCost;                   // 義務教育の国庫負担の累積（診断・UI予算表示用。リセットせず差分で期間値）
     public double CumStateMonopolyRevenue;                  // 専売益の累積（診断・UI予算表示用。同上）
-    public bool JointStockApplied;                    // 株式会社の州ブースト（IndustrializationBoost×1.6）適用済みか＝所有国のフラグと毎期整合（監査2026-07-11 二2：割譲との干渉＝二重適用/恒久未適用の是正。Institutions.Step が管理）
-    public double JointStockMulApplied = 1.0;         // ★研究・段2（2026-08-31）：株式会社ブーストの連続適用倍率（DiscoveryInstitutions>0でのみ書かれる。1.0＝未適用＝ゲート0で不読＝恒等）
+    // （株式会社の州の倍率 IndustrializationBoost と、その適用済みの印 JointStockApplied・JointStockMulApplied は 2026-10-01 (152) に削除
+    //   ＝所有国の発見の2値〔World.JointStock〕から導ける量＝EconomyStep が所有国の値を直に読む・割譲された州は次の月から新しい所有国の制度に従う）
     // 巨大建造物（2026-07-28）：国家建設とは**別キュー・別アキュムレータ**にする。理由＝StateBuildQueue に相乗りさせると
     // EconomyStep の州上限5.0のヘッドルーム（stateHeadroomUnits）に巻き込まれ、建造物が置かれる先進州（上限に張り付く州）で
     // ちょうど建設速度が0に落ちる（設計書§6 地雷#4）。建造物は工業化度に溶かさず専用の変換先を持つ。

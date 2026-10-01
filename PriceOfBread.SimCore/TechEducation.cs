@@ -181,11 +181,9 @@ public static class TechEducation
         if (absorptive)   // ＝FrontierCapable（その入力は①採用の間に変わらない）
         {
             double press = PressFactor(w.Censorship);   // 検閲のデバフ上限−50%（国家統制でも技術速度は半減まで）。初期が国家統制の国を序盤から壊滅させない
-            // ★研究・段2（DiscoveryInstitutions・2026-08-31）：特許の効きを bool の崖から傾斜へ＝**旧閾値と同じ量（EliteCore）のまま**崖だけ連続化
-            //   （旧フリップ点0.4がランプ中点）。⚠時計×適性の積の形は序盤を過小評価し英が停滞（実測）＝分野時計への移行は段4。0＝旧bool＝厳密恒等
-            double patentMul = c.DiscoveryInstitutions > 0
-                ? 1.0 + (c.PatentInnovationBonus - 1.0) * Discovery.Unlock(w.EliteCore, 1.0, c.PatentDiscoveryOnset, c.PatentDiscoverySpan)
-                : (w.PatentLaw ? c.PatentInnovationBonus : 1.0);
+            // 特許＝発見の表の制度の行の2値（2026-10-01 (152)・設計 §1A-6）＝見つけた国は革新×PatentInnovationBonus
+            //   （旧＝中核エリートの傾斜 Discovery.Unlock〔0.35〜0.45＝2026-08-31 段2〕＝世界のどこでも同じ量の閾値）。
+            double patentMul = w.PatentLaw ? c.PatentInnovationBonus : 1.0;
             double innov = c.InnovationRate * w.Elite * press * ResearchScale(w, c) * patentMul
                          / (1.0 + w.TechLevel / c.InnovationScale);
             if (c.InnovateExpertiseWeight > 0) innov *= Math.Pow(ExpertiseRel(w), c.InnovateExpertiseWeight);   // ★厚み（段3）：大学が無ければ先端は押せない。0 で不読

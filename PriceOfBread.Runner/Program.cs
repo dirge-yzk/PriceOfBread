@@ -341,7 +341,7 @@ if (args.Length > 0 && args[0] == "instprobe")
         int colReg = 0; foreach (var rr in wB.Regions) if (rr.Tier == RegionTier.Colonial) colReg++;
         Console.WriteLine($"ColoniesAreRegions={flag} SuffrageScopeGate={scope}　英：州{wB.Regions.Count}（うち植民地格{colReg}）　植民地オブジェクト{wB.SelfPower?.ColonyList.Count}");
         Console.WriteLine($"   Freedom {wB.Freedom:F3}（閾値 {cf.FrontierFreedomThreshold:F3}）　教育法 {wB.EducationLaw}");
-        Console.WriteLine($"   Elite {wB.Elite:F4}　EliteCore {wB.EliteCore:F4}（閾値 {cf.PatentEliteThreshold:F4}）");
+        Console.WriteLine($"   Elite {wB.Elite:F4}　EliteCore {wB.EliteCore:F4}");
         Console.WriteLine($"   特許 {wB.PatentLaw}　株式会社 {wB.JointStock}　鉄道 {wB.Railways}　技術 {wB.TechLevel:F2}");
         var (tr3, mo3, ma3) = InterestGroups.Blocs(wB);
         Console.WriteLine($"   参政権 {wB.Suffrage}　報道 {wB.Censorship}　政体 {wB.Polity}");
@@ -2149,7 +2149,7 @@ if (args.Length > 0 && args[0] == "poweraff")
 {
     ulong paSeed = ArgUlong(args, 1, 1789UL);
     int paEnd = ArgInt(args, 2, Calendar.EndYear);   // 既定＝終局暦年（全長 GameQuarters の年）
-    // ★戦間期を厚くした（2026-08-20）＝ファシズムの時代ゲートは (年−1919)/15 で**1.0に達するのは最終年1934年だけ**。
+    // ★戦間期を厚くした（2026-08-20）＝当時のファシズムの時代ゲートは (年−1919)/15 で**1.0に達するのは最終年1934年だけ**だった（2026-10-01 (152) から門は発見の表の思想の行）。
     //   ⚠旧は1917→1926→1934の3点しかなく、育つ軌跡が見えなかった。1919/1923/1929/1932を足して分解能を上げる。
     int[] paYears = [1783, 1800, 1815, 1832, 1848, 1867, 1871, 1889, 1900, 1912, 1917, 1919, 1923, 1926, 1929, 1932, 1934];
     string[] paWatch = ["イギリス", "フランス", "プロイセン", "ロシア", "オーストリア", "日本", "清", "アメリカ", "オスマン", "スペイン"];
@@ -2276,7 +2276,7 @@ if (args.Length > 0 && args[0] == "poweraff")
                 Console.WriteLine($"  ★計器 正統な担い手 {Q(lc2)}   ⚠これが文民制度を下回ると軍が指揮権を握る");
                 // ★★★思想シェアの実分布（2026-08-20）＝**機構を作る前に、材料が実際に立つのかを測る**。
                 //   ⚠「機構を入れたのに一度も発火しない」を本セッションで既に2件（軍事独裁・連合政治）踏んでいる。
-                //   ファシズム(9)は FascismGate=0 ならシェア常時0、しかも時代ゲートが1919年から15年＝**窓が最後の15年しかない**。
+                //   ファシズム(9)は FascismGate=0 ならシェア常時0、しかも当時の時代ゲートが1919年から15年＝**窓が最後の15年しかない**（2026-10-01 (152) から門は発見の2値）。
                 {
                     var lf = new List<double>(); var lk = new List<double>(); var lan = new List<double>(); var lre = new List<double>();
                     foreach (var n in pam.Nations)
@@ -2730,6 +2730,9 @@ if (args.Length > 0 && args[0] == "diffprobe")
     ulong dseed = ArgUlong(args, 1, 1789UL);
     string dOrigin = args.Length > 2 ? args[2] : "イギリス";
     int dIdeo = ArgInt(args, 3, 5);
+    // ★2026-10-01 (152)：到達は発見の表の思想と制度の行ごと（World.SpreadReach）＝思想の番号を思想の行の欄へ（門を持つ思想＝社会5・共産6・帝国8・ファシズム9 だけ）。
+    int dSlot = Discovery.SpreadSlot(Discovery.IdeaRow((Ideology)dIdeo));
+    if (dSlot < 0) { System.Console.WriteLine($"門を持たない思想（番号 {dIdeo}）＝到達の欄が無い（社会5・共産6・帝国8・ファシズム9）"); return; }
     int dq = ArgInt(args, 4, 120);
     var dsim = new PriceOfBread.SimCore.MultiNationSim(PriceOfBread.SimCore.WorldData.Nations(), dseed,
         _ => new PriceOfBread.SimCore.UtilityAgent(), coef: new PriceOfBread.SimCore.Coefficients { DiffusionWeight = 1.0 });
@@ -2743,18 +2746,18 @@ if (args.Length > 0 && args[0] == "diffprobe")
     var dArr = new int?[dn0];
     for (int q = 0; q < dq; q++)
     {
-        if (!dEmergent) dsim.Nations[dOi].World.IdeologyReach[dIdeo] = 1.0;   // 発信源は固定（再放射の種）。創発モードでは触らない
+        if (!dEmergent) dsim.Nations[dOi].World.SpreadReach[dSlot] = 1.0;   // 発信源は固定（再放射の種）。創発モードでは触らない
         dsim.StepQuarter();
         for (int i = 0; i < dn0; i++)
-            if (dArr[i] is null && dsim.Nations[i].World.IdeologyReach[dIdeo] >= 0.1) dArr[i] = q;
+            if (dArr[i] is null && dsim.Nations[i].World.SpreadReach[dSlot] >= 0.1) dArr[i] = q;
     }
     var reached = new System.Collections.Generic.List<(string Name, int Q, double R)>();
     var missing = new System.Collections.Generic.List<string>();
     for (int i = 0; i < dn0; i++)
     {
         var nm = dsim.Nations[i].World.SelfPower?.Name ?? $"#{i}";
-        if (dArr[i] is { } aq) reached.Add((nm, aq, dsim.Nations[i].World.IdeologyReach[dIdeo]));
-        else missing.Add($"{nm}({dsim.Nations[i].World.IdeologyReach[dIdeo]:F3})");
+        if (dArr[i] is { } aq) reached.Add((nm, aq, dsim.Nations[i].World.SpreadReach[dSlot]));
+        else missing.Add($"{nm}({dsim.Nations[i].World.SpreadReach[dSlot]:F3})");
     }
     reached.Sort((a, b) => a.Q.CompareTo(b.Q));
     System.Console.WriteLine($"=== diffprobe seed={dseed} 発信={dOrigin} イデオロギー={dIdeo} {dq}四半期 ===");
@@ -4344,7 +4347,7 @@ if (args.Length > 0 && args[0] == "discprobe")
     string[] keyRows = ["蒸気機関", "甜菜糖", "機関車", "汽船", "転炉鋼", "石炭火力", "電動機", "機関銃", "装甲艦", "自動車", "ラジオ", "合成ゴム", "窒素固定"];
     if (args.Length > 4) keyRows = args[4] == "all" ? rowsDp.Select(x => x.Name).ToArray() : args[4].Split(',');   // 断面に出す行（誰も発見しない行の3項を読む）
     string NameOf(World w) => w.SelfPower?.BaseName ?? w.Region.Name;
-    Console.WriteLine($"# discprobe seed={dpSeed} 四半期={dpQ}　Y={cDp.DiscoveryTechPerDecade}・半分点 製法{cDp.DiscoveryNeedHalfProcess}/新兵器{cDp.DiscoveryNeedHalfWeapon}/新製品{cDp.DiscoveryNeedHalfProduct}/伝わり{cDp.DiscoveryContactHalf}/産地{cDp.DiscoveryNeedHalfSite}");
+    Console.WriteLine($"# discprobe seed={dpSeed} 四半期={dpQ}　Y={cDp.DiscoveryTechPerDecade}・半分点 製法{cDp.DiscoveryNeedHalfProcess}/新兵器{cDp.DiscoveryNeedHalfWeapon}/新製品{cDp.DiscoveryNeedHalfProduct}/制度{cDp.DiscoveryNeedHalfInstitution}/思想{cDp.DiscoveryNeedHalfIdea}/伝わり{cDp.DiscoveryContactHalf}/産地{cDp.DiscoveryNeedHalfSite}");
     // ★(148) 産地の発見（Catalog.Sites）＝産地の生産者の2値の立ち上がり（年・国・州・行＜直前の四半期の 技術力/必要性＞）と、断面ごとのまだの産地の2項・人の厚み・財の実質の値段
     var siteSeen = new HashSet<Producer>();
     var siteLast = new Dictionary<Producer, Discovery.Terms>();
@@ -4466,7 +4469,7 @@ if (args.Length > 0 && args[0] == "discprobe")
                 double diff = Discovery.Difficulty(r, cDp);
                 double ratio = diff > 0 ? System.Math.Min(1, w.TechLevel / diff) : 1;
                 double push = ratio > 1e-9 ? tm[r].Tech / (Discovery.TermMax * ratio) : 0;
-                double half = rowsDp[r].Field switch { DiscoveryField.Process => cDp.DiscoveryNeedHalfProcess, DiscoveryField.Weapon => cDp.DiscoveryNeedHalfWeapon, _ => cDp.DiscoveryNeedHalfProduct };
+                double half = Discovery.NeedHalf(rowsDp[r].Field, cDp);
                 double s = tm[r].Need < Discovery.TermMax - 1e-9 ? half * tm[r].Need / (Discovery.TermMax - tm[r].Need) : double.PositiveInfinity;
                 double x = tm[r].Transmit < Discovery.TermMax - 1e-9 ? cDp.DiscoveryContactHalf * tm[r].Transmit / (Discovery.TermMax - tm[r].Transmit) : double.PositiveInfinity;
                 // 製法の行＝その財の国の需要（必要性0 が「需要が無い」か「割高さが0以下」かを分ける）
@@ -4543,7 +4546,8 @@ if (args.Length > 0 && args[0] == "refaudit")
     for (int row = 0; row < Catalog.Discoveries.Length; row++)
     {
         var d = Catalog.Discoveries[row];
-        Console.WriteLine($"- {d.Name}（{goods[d.Good].Name}・{(d.Recipe == "" ? "既定" : d.Recipe)}）{d.Field}{(d.Domain != WarDomain.None ? "・" + d.Domain : "")}　{d.Decade}年代　難易度 {Discovery.Difficulty(row, cfa):F2}");
+        string gname = d.Good >= 0 ? $"{goods[d.Good].Name}・{(d.Recipe == "" ? "既定" : d.Recipe)}" : "財なし";   // 制度と思想の行（財を持たない・(152)）
+        Console.WriteLine($"- {d.Name}（{gname}）{d.Field}{(d.Domain != WarDomain.None ? "・" + d.Domain : "")}　{d.Decade}年代　難易度 {Discovery.Difficulty(row, cfa):F2}");
     }
     return;
     static string DecadeText(int g, string recipe) => Catalog.DiscoveryRowOf(g, recipe) is int row and >= 0 ? $"{Catalog.Discoveries[row].Decade}年代" : "地理差";

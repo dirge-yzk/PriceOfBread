@@ -761,7 +761,9 @@ public static class EconomyStep
             // 株式市場のバブル（改修2026-06-28・金融改革②）：与信過熱→株高→投資ハードル↓→過剰投資→さらに過熱…→ある日Confidence崩壊で投資急停止＝ブーム→恐慌が新規倍率なしで創発。較正(Heat=0)では中立。
             double hurdle = coef.IndCapitalCost + coef.CrowdingOutWeight * region.CrowdingPremium - coef.EquityHeatEuphoria * region.FinancialHeat;
             double netReturn = marginalGain * (1.0 + coef.IndTechLeverage * techLev) - hurdle;
-            double desiredGrowth = coef.IndInvestmentSpeed * region.IndustrializationBoost * Math.Max(0, netReturn);
+            // 株式会社（発見の表の制度の行＝所有国の2値・2026-10-01 (152)）＝中産の資本が株で工業へ＝投資の速さ×JointStockInvestBonus（旧＝州の倍率 IndustrializationBoost を Institutions.Step が四半期ごとに整合した）。
+            double jointStock = world is not null && world.JointStock ? coef.JointStockInvestBonus : 1.0;
+            double desiredGrowth = coef.IndInvestmentSpeed * jointStock * Math.Max(0, netReturn);
             // ★私的投資の吸収ゲート（2026-08-04・作者指摘「工業化なくしてコストをかけられる方が根本問題」への機構側の対）。
             //   金と機械は輸入で手に入るが、据えて動かすには読める技師と自由な情報流通が要る（洋務運動＝輸入した最新機械が
             //   動かなかった）。**同じ病に対する吸収ゲートが技術（CatchupAbsorptionBlend）と外資（CapitalAbsorptionBlend）には

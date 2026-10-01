@@ -1,8 +1,8 @@
 ﻿// GameViewModel.Discovery.cs ＝ 発見パネル（F・2026-08-31作者指示「UIはFボタンに配置」／2026-09-03にF1→Fへ）。
-// 発見＝解禁の唯一の形の現在地をデータで見せる：制度の普及度（Discovery.Unlock）＋発見の表の行（Discovery.Evaluate＝2値・段2A）＋世界のゲートの進行。
+// 発見＝解禁の唯一の形の現在地をデータで見せる：発見の表の行（Discovery.Evaluate＝2値・段2A＝制度と思想の行も 2026-10-01 (152) から同じ表）＋産地＋報せの速さ。
 // 2026-09-07（作者要望11）：エンジンに在る解禁物を全部並べる（未解禁0%も解禁済み100%も載せる）＋パネル寸法を右ドックと一致させた。
 // ⚠UI規律＝説明文なし・データのみ・漢字1字略称なし（ツールチップもデータ）。
-// 2026-09-08（作者裁定）：思想の解禁（社会主義/共産主義/帝国主義/ファシズム）を同じ器で並べる＝Ideologies.EraGates を読む。
+// 2026-09-08（作者裁定）：思想の解禁（社会主義/共産主義/帝国主義/ファシズム）を同じ器で並べる（2026-10-01 (152) から発見の表の思想の行＝技術と同じ Discovery.Evaluate）。
 // 2026-09-23（作者裁定「閾値は出さないが、パーセントは出す」＋「政府・思想・技術でカテゴリ分け」「2段組みに」「バーは廃止」）：
 //   ①ホバーから発見の閾値を全て撤去（onset は並べ替えの第2キーとしてだけ残る）／②種別「制度」→「政府」／
 //   ③DiscoveryLeft・DiscoveryRight の2列（派生プロパティ＝状態は増やさない）／④バーは XAML 側で撤去（Pct は ByGate が読むので残す）。
@@ -46,45 +46,15 @@ public partial class GameViewModel
         var c = w.Coef;
         var rows = new List<DiscoveryRow>();
 
-        // 制度（発見・段2＝Institutions と同じ式）
-        double maxInd = 0;
-        foreach (var r in w.Regions) if (r.State == RegionState.Active && r.TotalIndustrialization > maxInd) maxInd = r.TotalIndustrialization;
-        double pat = c.DiscoveryInstitutions > 0
-            ? Discovery.Unlock(w.EliteCore, 1.0, c.PatentDiscoveryOnset, c.PatentDiscoverySpan)
-            : (w.PatentLaw ? 1.0 : 0.0);
-        double js = c.DiscoveryInstitutions > 0
-            ? Discovery.Unlock(maxInd, 1.0, c.JointStockDiscoveryOnset, c.JointStockDiscoverySpan)
-            : (w.JointStock ? 1.0 : 0.0);
-        // ★2026-09-23（作者指示「政府・思想・技術でカテゴリ分け」）：種別の呼び名を「制度」→「政府」へ。並びは既に 政府→思想→技術 の連続ブロック＝見出し行は足さない。
-        rows.Add(new DiscoveryRow("特許制度", "政府", pat, $"{pat:P0}", $"中核エリート {w.EliteCore:F2}"));
-        rows.Add(new DiscoveryRow("株式会社", "政府", js, $"{js:P0}", $"最大工業化度 {maxInd:F2}"));
-        rows.Add(new DiscoveryRow("鉄道", "政府", w.Railways ? 1.0 : 0.0, $"{(w.Railways ? 1.0 : 0.0):P0}", $"最大工業化度 {maxInd:F2}"));   // P0統一（「0 %」の空白混入を排除）
-
-        // 思想の解禁（2026-09-08作者裁定）＝後発イデオロギーの解禁度。値は Ideologies.EraGates＝
-        // Ideologies.UpdateShares が毎四半期に読む式そのもの（UIに第二の式を置かない）。
-        // 並べ替えの閾値は発展度のオンセット（解禁度は発展度だけで決まる＝暦年の混合は 2026-09-26 に削除）。
-        var era = Ideologies.EraGates(w);
-        var reach = w.IdeologyReach;
-        string Tip(Ideology k)
-        {
-            string t = $"年 {w.Year} ／ 発展度 {era.Dev:F2}";
-            if (c.IdeologyReachGate > 0 && reach is not null && (int)k < reach.Length) t += $" ／ 到達 {reach[(int)k]:F2}";
-            return t;
-        }
-        var ideo = new List<(string Name, double Pct, double Onset, string Tip)>
-        {
-            ("社会主義",   era.Socialism,   c.IdeologyGateSocOnset,  Tip(Ideology.Socialism)),
-            ("共産主義",   era.Communism,   c.IdeologyGateCommOnset, Tip(Ideology.Communism)),
-            ("帝国主義",   era.Imperialism, c.IdeologyGateImpOnset,  Tip(Ideology.Imperialism)),
-            ("ファシズム", era.Fascism,     c.IdeologyGateFascOnset, Tip(Ideology.Fascism)),
-        };
-        ideo.Sort(ByGate);
-        foreach (var t in ideo) rows.Add(new DiscoveryRow(t.Name, "思想", t.Pct, $"{t.Pct:P0}", t.Tip));
-
-        // ★2026-09-07（作者要望11「追加分をリストに追加」）＝エンジンに在る解禁物を漏れなく1つの物差しで並べる（未解禁0%も解禁済み100%も）。
+        // ★2026-10-01 (152)：制度（政府）と思想も発見の表の行（Catalog.Discoveries の財を持たない行・設計 §1A-6）＝技術と同じ1本（Discovery.Evaluate）で並べる。
+        //   旧＝制度は中核エリートと工業化度の傾斜（Discovery.Unlock）・鉄道は最大工業化度の閾値・思想は Ideologies.EraGates の発展度の傾斜を別の式で出していた。
+        //   鉄道（制度）は行を置かない＝技術の「機関車」の行（鉄道輸送と同じ行）。
         // ★2026-10-01 段2A：発見の表（Catalog.Discoveries＝行はレシピ）を全て並べる。発見は2値＝解禁済みは100%・まだの行は点数（技術力＋必要性＋伝わり）の割合
         //   ＝閾値は出さない・パーセントは出す（作者裁定 2026-09-23）。値は Discovery.Evaluate＝エンジンが判定に読む同じ関数（接触は直近の判定の値）。
         //   ホバー＝3項の値（データのみ）。並べ替えの第2キーは年代（旧＝onset）。
+        // ★2026-09-23（作者指示「政府・思想・技術でカテゴリ分け」）：種別の呼び名は 政府→思想→技術 の連続ブロック＝見出し行は足さない。
+        var gov = new List<(string Name, double Pct, double Onset, string Tip)>();
+        var ideo = new List<(string Name, double Pct, double Onset, string Tip)>();
         var tech = new List<(string Name, double Pct, double Onset, string Tip)>();
         var terms = Discovery.Evaluate(w, w.LastDiscoveryView, c);
         for (int row = 0; row < Catalog.Discoveries.Length; row++)
@@ -94,8 +64,14 @@ public partial class GameViewModel
             var tm = terms[row];
             double s = known ? 1.0 : System.Math.Clamp(tm.Score / Discovery.GateScore, 0, 1);
             if (!(s >= 0)) s = 0;
-            tech.Add((d.Name, s, d.Decade, known ? $"{d.Decade}年代" : $"技術力 {tm.Tech:F0} ／ 必要性 {tm.Need:F0} ／ 伝わり {tm.Transmit:F0}"));
+            var item = (d.Name, s, (double)d.Decade, known ? $"{d.Decade}年代" : $"技術力 {tm.Tech:F0} ／ 必要性 {tm.Need:F0} ／ 伝わり {tm.Transmit:F0}");
+            (d.Field == DiscoveryField.Institution ? gov : d.Field == DiscoveryField.Idea ? ideo : tech).Add(item);
         }
+        gov.Sort(ByGate);
+        foreach (var t in gov) rows.Add(new DiscoveryRow(t.Name, "政府", t.Pct, $"{t.Pct:P0}", t.Tip));
+        ideo.Sort(ByGate);
+        foreach (var t in ideo) rows.Add(new DiscoveryRow(t.Name, "思想", t.Pct, $"{t.Pct:P0}", t.Tip));
+
         // ③ 財に紐づかない世界のゲート。★2026-10-01 (150)：蒸気動力・近代港湾（「蒸気機関」の行）・鉄道輸送（「機関車」の行）・冷蔵（「冷蔵」の行）は発見の表の行が開く
         //   ＝上の発見の表の行そのもの（旧＝技術水準の時計と工業化度の傾斜の4行＝発見と関係なく開いた）＝別の行を出さない。
         // 電信・鉄道・汽船＝報せの速さ（News の距離ラグが読む世界技術のランプ＝TransportRevolutionOnset/Span・AUD-05）。新しい財を足さず同じ量を見せる。

@@ -107,7 +107,7 @@ public class Stage2Tests
         if (!(g1.Socialism > 0)) Assert.Equal(0.0, before[(int)Ideology.Socialism]);
         if (!(g1.Communism > 0)) Assert.Equal(0.0, before[(int)Ideology.Communism]);
         if (!(g1.Imperialism > 0)) Assert.Equal(0.0, before[(int)Ideology.Imperialism]);
-        Assert.Equal(0.0, g1.Fascism);                                             // 1793年＝ファシズムは暦年でも発展度でも到達でも開かない
+        Assert.Equal(0.0, g1.Fascism);                                             // 1793年＝ファシズムは見つかっていない（2026-10-01 (152) から門は発見の表の思想の行の2値）
         Assert.Equal(0.0, before[(int)Ideology.Fascism]);
     }
 

@@ -592,7 +592,7 @@ public static class Catalog
     ///   ＝旧の財の門（発明の行）と需要の門（需要の行）は行ごと消えた（財の門だけを持っていた財は既定のレシピの行へ）。
     /// ・難易度＝年代（10年刻み・作者裁定 2026-09-28 ③）を1本の Y（<see cref="Coefficients.DiscoveryTechPerDecade"/>）で技術水準へ写す＝<see cref="Discovery.Difficulty"/>。
     ///   ⚠暦は読まない（年代は行のデータ・コードは暦の年を読まない＝§1A-5 の注）。年代は §1A-5 の表・無い行は Q11（発見の年と実用の年の中間）で置いた。
-    /// ・分野＝作者裁定 2026-09-28 ⑤（制度・思想・製法・発明〔新兵器・新製品〕）。⚠この回は製法と発明の行だけ（制度＝特許・株式会社と思想は別の回＝設計 §1A-6「思想の解禁は政治の較正に広く効く＝別の回で単独に測る」）。
+    /// ・分野＝作者裁定 2026-09-28 ⑤（制度・思想・製法・発明〔新兵器・新製品〕）。制度（特許・株式会社）と思想（社会主義・共産主義・帝国主義・ファシズム）は 2026-10-01 (152) に同じ表へ（設計 §1A-6）＝財を持たない行。
     /// ・場所に結びついた発見（大鉱床・植林）は <see cref="Sites"/>（同じ骨組み・2項）。</summary>
     public const int DiscoveryBaseDecade = 1780;   // 難易度0の年代（1783年の開幕で既知の行＝坩堝鋼 1740年代・ワットの回転機関 1781＝設計 §1A-5 の注）
     public static readonly DiscoveryRow[] Discoveries =
@@ -640,7 +640,19 @@ public static class Catalog
         new("戦車", TankId, "", DiscoveryField.Weapon, 1910, WarDomain.Land),             // 1916
         new("軍用機", MilitaryAircraftId, "", DiscoveryField.Weapon, 1910, WarDomain.Air),
         new("化学兵器", ChemicalWeaponId, "", DiscoveryField.Weapon, 1910, WarDomain.Land), // イーペル1915
+        // --- 制度（社会の仕組み）・思想（考え方）＝財を持たない行（財 NoGood）・設計 §1A-6（2026-10-01 (152)）---
+        //   旧＝制度は中核エリートと工業化度の傾斜（特許＝中核エリート 0.35〜0.45・株式会社＝最大工業化度 0.25〜0.35・鉄道＝最大工業化度 0.8 の閾値）・
+        //   思想は世界の発展度（世界最先端の工業化度と都市の割合）の傾斜＝全ての国がほぼ同時に開いた（計器 (152)＝社会主義・共産主義・株式会社が1786〜1806年に主要国の全てで開いていた）。
+        //   必要性の強度は行ごとに読む量が違う（その制度が解く問題・その思想が答える社会の緊張＝Discovery.SpreadNeed）・伝わりは思想と制度の到達（World.SpreadReach＝MultiNationSim.StepDiffusion）。
+        new("特許", NoGood, "", DiscoveryField.Institution, 1780),        // 英1624（専売条例）・米1790・仏1791＝設計 §1A-6「1780年代以前」
+        new("株式会社", NoGood, "", DiscoveryField.Institution, 1850),    // 英1844・56（有限責任）・仏1867・普1870＝設計 §1A-6「1850年代」
+        new("社会主義", NoGood, "", DiscoveryField.Idea, 1830),           // オーウェン1820s・サン＝シモン派・チャーティスト1838
+        new("共産主義", NoGood, "", DiscoveryField.Idea, 1840),           // 共産党宣言1848
+        new("帝国主義", NoGood, "", DiscoveryField.Idea, 1860),           // 新帝国主義1870s〜（ディズレーリ1872・ベルリン会議1884）
+        new("ファシズム", NoGood, "", DiscoveryField.Idea, 1920),         // 伊1919〜22・独1933
     ];
+    /// <summary>財を持たない発見の行（制度と思想）の財の欄（<see cref="DiscoveryRowOf"/> は負の財を探さない＝名前で <see cref="DiscoveryRowNamed"/>）。</summary>
+    public const int NoGood = -1;
 
     /// <summary>退場（2026-09-27 回2-1 の続き）＝前期のレシピは後継の発見で退く（旧＝TechOnset＝−後継の onset・能力に 1−後継の解禁度）。
     /// 後継＝既定のレシピ（鋼の後装施条砲・鋼の小銃）を実用にした発見＝転炉鋼。⚠2値＝後継を発見した四半期に退く（普及のなめらかさは市場＝既定のレシピの工場が建つ速さ）。</summary>
@@ -653,9 +665,13 @@ public static class Catalog
     /// <summary>発見の表の行（財・レシピ）の添字。無ければ −1（地理差＝常にある）。⚠線形の走査＝構築と Producer の控え（<see cref="Producer.DiscoveryRow"/>）だけが呼ぶ。</summary>
     public static int DiscoveryRowOf(int good, string recipe)
     {
+        if (good < 0) return -1;   // 財を持たない行（制度と思想）は財で探さない
         for (int i = 0; i < Discoveries.Length; i++) if (Discoveries[i].Good == good && Discoveries[i].Recipe == recipe) return i;
         return -1;
     }
+
+    /// <summary>発見の表の行の添字を名前で（財を持たない制度と思想の行）。無ければ −1。</summary>
+    public static int DiscoveryRowNamed(string name) => System.Array.FindIndex(Discoveries, d => d.Name == name);
 
     /// <summary>このレシピを退かせる発見の行（無ければ −1）。</summary>
     public static int RetiredByRowOf(int good, string recipe)

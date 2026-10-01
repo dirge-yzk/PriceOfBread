@@ -105,7 +105,7 @@ public class HistoricalReferenceTests
                   > PoliticalQuantities.ServiceLength(ConscriptionLaw.Selective));
         Assert.True(PoliticalQuantities.ServiceLength(ConscriptionLaw.Selective)
                   > PoliticalQuantities.ServiceLength(ConscriptionLaw.Universal));
-        w.Bureaucracy = BureaucracyLaw.Spoils; w.Railways = false;
+        w.Bureaucracy = BureaucracyLaw.Spoils; w.Discovered[Discovery.LocomotiveRow] = false;   // 鉄道＝「機関車」の行の2値（2026-10-01 (152)）
         Assert.Equal(0.0, PoliticalQuantities.ArmyProfessionalism(w));   // 組織がなければ練度は立たない（識字だけでは軍にならない）
 
         // ② 軍の政治的優位は**給与を1度も読まない**（＝「金を積めば将校は黙る」が成り立たない）。

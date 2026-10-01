@@ -177,14 +177,13 @@ public sealed class Coefficients
     public double ResearchScaleWeight = 0.0;      // 革新の速さを研究基盤の**絶対規模**（世俗教育層の人数）でスケールする重み。0=旧挙動に厳密恒等（休眠）
     public double ResearchBaseRefPop = 0.0;       // 研究基盤の参照人数（この規模で倍率1.0＝恒等点）。0で機構ごと不走行。逓減は平方根＝人口10倍で研究速度3.2倍
 
-    // --- 制度・改革（研究C＝カードに代わる離散選択。社会の閾値で解禁し施行＝恒久ブースト）---
+    // --- 制度（発見の表の制度の行の2値＝2026-10-01 (152)・設計 §1A-6）---
     public double PatentInnovationBonus = 1.5;    // 特許制度：技術成長 ×これ（革新を加速）
     public double JointStockInvestBonus = 1.6;    // 株式会社：工業化投資 ×これ（中産の資本が株で工業へ＝資本調達の拡大の proxy）
     public double EquityHeatEuphoria = 0.05;      // 株式バブル（金融改革②）：与信過熱(FinancialHeat 0..1.5)×これ を投資ハードルから減じる＝過熱→株高→投資ブーム→Confidence崩壊で恐慌。較正(Heat=0)中立
-    // ⚠撤去2026-08-28（作者裁定④）: RailwayProductivityBonus(0.15)＝鉄道の州生産性ブースト＝輸送の代理（読み手ごと削除・Institutions.cs の墓標を参照）
-    public double PatentEliteThreshold = 0.4;     // 特許の解禁エリート水準
-    public double JointStockIndThreshold = 0.3;   // 株式会社の解禁工業化度
-    public double RailwayIndThreshold = 0.8;      // 鉄道の解禁工業化度
+    // ⚠撤去2026-08-28（作者裁定④）: RailwayProductivityBonus(0.15)＝鉄道の州生産性ブースト＝輸送の代理（読み手ごと削除）
+    // 【墓標2026-10-01 (152)】PatentEliteThreshold（0.4）・JointStockIndThreshold（0.3）・RailwayIndThreshold（0.8）＝制度の bool の閾値（旧の解禁の経路・DiscoveryInstitutions=0 の枝）
+    //   ＝発見の表の制度の行（特許・株式会社）と「機関車」の行（鉄道）へ（設計 §1A-6）。Institutions.cs ごと削除。
     // ★高等教育（2026-08-17・作者裁定「近代化投資は研究者や技師を増やす補助金として／まず高等教育から順に」）。
     //   研究者＝インテリ（医者/技師/研究者）の4人目。上流階級（Closed＝貴族・聖職者）とは別カテゴリ＝既存のブロック構造と一致するので
     //   機構は増えない（`intel × 係数` の行が1本増えるだけ）。**総量保存**＝教師/官僚/医者の取り分から切り出す（新しい人は湧かない）。
@@ -1772,7 +1771,7 @@ public sealed class Coefficients
     public double ArmyPcPressure = 0.02;           // 第6段6-2点火（2026-07-28）：4主体の欠けた腕＝軍。王権寄りの軍（lean>0）が文民統制の確立を毎期押し戻す（プロイセン統帥権・憲法紛争1862）。×lean×軍政治力。0で恒等
     // ★PolityLeverRanges は2026-08-19に**物理削除**（作者裁定「政体ごとの上限は全て廃止」）。旧＝参政権/報道/組合の上限＋軍事費の床（MilitaryFloorScaleも同時撤去）。
     //   ⚠再点火禁止（墓標）＝実測で7次元が改善し、政体exact は動かなかった＝この上限は忠実度を支えていなかった。読み手ゼロ（Government.cs/NationConfig.cs にコメント残置のみ）
-    public double DefeatNationalism = 1.0;         // 機能7-1点火（2026-07-28）：敗戦ショック→r[4]ナショナリズム（刺され伝説＝1871仏/1918独）。時代ゲート・ファシズム式の前に加算＝r[9]の燃料として自動で効く。裁定（未決1）＝Ideologyコアへ直接加算（P1は闘争度ポート＝置き場が意味を壊す）。0で恒等
+    public double DefeatNationalism = 1.0;         // 機能7-1点火（2026-07-28）：敗戦ショック→r[4]ナショナリズム（刺され伝説＝1871仏/1918独）。思想の門（発見の2値）・ファシズム式の前に加算＝r[9]の燃料として自動で効く。裁定（未決1）＝Ideologyコアへ直接加算（P1は闘争度ポート＝置き場が意味を壊す）。0で恒等
     public double LostLandNationalism = 0.1;       // 機能7-2点火（2026-07-28）：失地ストック×これ→r[4]の長期項。裁定（機能7-6）＝案A役割分担：RevanchismTension=特定の相手への対外敵意（緊張・ワンショット）／本項=国内イデオロギー分布（持続）＝出力先が異なり二重計上でない（[PORT:P1]台帳へ記録）。0で恒等
     // 【削除2026-09-30 段4e 後半 4e-3】LostLandHalflifeQuarters（失地・政権への失望・講和の遺恨の半減期80四半期）＝国の世代の置き換わり率（World.ReplacementRate・τ＝0）が置き換えた（1783年は四半期 約0.88%＝半減期 約20年）。
     public double WarRallyCoercion = 0.3;          // 機能6-1点火（2026-07-28）：戦時の結束（rally around the flag）＝保持力×(1+これ×max(0,1−厭戦/減衰点))。厭戦で減衰させないと二月革命型が構造的に消える＝恒常抑制にしない。0で旧＝ドレインのみ恒等
@@ -1790,10 +1789,10 @@ public sealed class Coefficients
     public double WarChainMaxDepth = 2;            // 機能5-④点火（2026-07-28）：同盟参戦の連鎖段数（WW1型）。0で1段のみ＝旧恒等。防壁＝段数減衰+到達可能性+訪問済み共有
     public double WarChainDepthPenalty = 1.5;      // 機能5-④-2：2段目以降の参戦閾値×これ^depth（連鎖は段ごとに渋る＝全世界戦争の防壁）。1.0で減衰なし
     public double VictoryNationalism = 0.5;        // 機能8-②点火（2026-07-28）：戦勝ショック→r[4]（戦勝→主戦論＝日清・日露後の日本型。敗戦のr[4]+r[1]に対する対称）。0で恒等
-    public double VictoryImperialism = 0.3;        // 機能8-②：戦勝ショック→r[8]（植民地熱。時代ゲートeraImpが早期を抑える）。0で恒等
+    public double VictoryImperialism = 0.3;        // 機能8-②：戦勝ショック→r[8]（植民地熱。帝国主義の門＝発見の2値が見つけるまでを抑える）。0で恒等
     public double VictoryShockDecay = 0.85;        // 機能8-②d：戦勝ショックの四半期減衰（DefeatShockDecayと同水準＝噴出は数年で消える＝連勝暴走の防壁。厭戦・反覇権合従が他の防壁）
     public double DepressionSocialism = 0.3;       // 機能8-③点火（2026-07-28）：恐慌（GdpDrawdown）→r[5]社会主義。恐慌は平均60.8回/試合＝小さく。0で恒等
-    public double DepressionCommunism = 0.15;      // 機能8-③：恐慌→r[6]共産（時代ゲートeraCommが早期を抑える）。0で恒等
+    public double DepressionCommunism = 0.15;      // 機能8-③：恐慌→r[6]共産（共産主義の門＝発見の2値が見つけるまでを抑える）。0で恒等
     public double DepressionReaction = 0.2;        // 機能8-③：恐慌→r[1]反動（両極化＝ワイマール型）。0で恒等
     public double FamineRepublicanism = 0.3;       // 機能8-④点火（2026-07-28）：飢えの記憶→r[3]共和（1789＝「パンの値段」の題名に最も近い機構）。0で恒等
     public double FamineSocialism = 0.3;           // 機能8-④：飢えの記憶→r[5]社会。0で恒等
@@ -1910,11 +1909,8 @@ public sealed class Coefficients
     // 【墓標2026-09-28・旗の焼き込み（支払い 段1-1）】CapturedColoniesAreRegions（実装・点火2026-08-31＝V1V2腕＝ハーネス0/10・植民地+2.5）★従属の一般化・第一切片（docs/202608/20260828_従属の一般化_部分完了.md §0）：講和奪取/無血併合で得た Colony をその場で植民地格の州（RegionTier.Colonial）へ実体化＝「開始時の植民地は州・プレイ中の獲得は Colony」という格差ある二重管理の解消。変換は既存の PromoteColonyToRegion（保存記帳込み）・保存検査は PromotedColonies へ計上。同名州ガードで不可なら旧経路（ColonyList）へフォールバック。0＝旧経路＝厳密恒等
     public double ColonialRegionCession = 1.0;        // ★実装2026-08-31・点火2026-08-31（V1V2腕＝植民地+10.9・列強+3.8・首位確定Q109→Q200/交代1.6→3.0＝ラウンドBの記録コストを戦争の意味の回復で相殺）★従属の一般化V2（講和量差の是正）：講和で敗者の**植民地格の州**を複数割譲できる器＝旧・植民地奪取（ColonyCaptureMax/Budget/コスト式）を州側へ移植。V1で戦利品の器がColony→州へ移ると州割譲は1戦争1州＝「七年戦争でカナダとインドを同時に」が消えるための対。reach条件＝colonialReachと同じ（海軍あり＋制海権≧SeaInvasionControlMin）・コストの人口はSumPopulation/ColonialPopScale＝Colony.Populationと同じ物差し。0＝不発＝厳密恒等
     // ==== 研究＝解禁の唯一の形（docs/202608/20260827・段1〜3実装2026-08-31）====
-    public double DiscoveryInstitutions = 1.0;    // ★点火2026-08-31（段2腕＝◎+1/法+2.2/植民地+3.3・列強−6.3はノイズ帯縁=#17答え合わせ対象）★段2ゲート：Institutions の bool 閾値（特許/株式会社）を Discovery.Unlock の傾斜へ置換。暫定時計=TechLevel×適性（特許=EliteCore・株式=最大工業化度）。boolは表示のみ（ramp≥0.5）へ。0＝旧bool閾値＝厳密恒等
-    public double PatentDiscoveryOnset = 0.35;    // 特許の傾斜開始＝EliteCoreのランプ（段2＝旧閾値0.4と同じ量・同じ中点のまま**崖だけ**連続化）。⚠幅0.2の広いランプは後発へ部分ボーナスを早配りし列強再現−7.5（実測2形で再現）＝**細いランプ（span0.1）で除去は不連続のみに限定**。広げ直しは段4（分野時計）で測定とセット。時期感は較正の目標＝年は書かない
-    public double PatentDiscoverySpan = 0.1;      // 特許の普及幅（旧閾値0.4を中点に±0.05＝形式は連続・分布は旧とほぼ同一）
-    public double JointStockDiscoveryOnset = 0.25; // 株式会社の傾斜開始＝maxIndのランプ（旧閾値0.3が中点・span0.1＝細いランプ）。時期感1850〜1870
-    public double JointStockDiscoverySpan = 0.1;  // 株式会社の普及幅（細いランプ＝除去は不連続のみ）
+    // 【墓標2026-10-01 (152)】DiscoveryInstitutions（1.0・2026-08-31 点火＝制度の bool 閾値を傾斜 Discovery.Unlock へ）・PatentDiscoveryOnset（0.35）・PatentDiscoverySpan（0.1）・
+    //   JointStockDiscoveryOnset（0.25）・JointStockDiscoverySpan（0.1）＝特許（中核エリート）と株式会社（最大工業化度）の傾斜＝発見の表の制度の行の2値へ（設計 §1A-6）。
     // ==== ★発見の作り替え（段2A・2026-10-01・設計 20260928_財の削減_連鎖の深さの撤去 §1A-2＝発見は2値・点数＝技術力＋必要性＋伝わり（各0〜70）が100に届いたら解禁）====
     //   半分点は分野ごとに1本（必要性×分野＋伝わり1本・設計 §1A-2「発見ごとには置かない＝行ごとの補正は倍率」）。どれも強度 s に対し 70×s÷(s＋半分点)＝世界の最大値で割らない。
     //   ⚠較正（推奨で進めた＝作者の恒久指示 2026-09-29）：初期値は1種の試走の計器（Runner discprobe＝国×行の3項）から、史実の導入の並び（紡績機＝英1760s〜・大陸1800s〜・清は入れない／
@@ -1929,9 +1925,13 @@ public sealed class Coefficients
     public double DiscoveryContactHalf = 0.05;      // 伝わりの半分点＝接触（その行を解禁済みの国から買った運び手の財の額÷世界のその財の取引額＋呼んだ技師÷自国の専門職）がこの値で35
     public double DiscoveryNeedHalfSite = 0.5;      // ★(148) 産地の発見（大鉱床・植林＝Catalog.Sites）の必要性の半分点＝強度（人の厚み N÷(N＋N0)×その財の実質の値段÷参照価格）がこの値で35。
                                                     //   N＝鉱床は入植者（中核民族の人数）・植林は住民・N0＝ColonyPromotionMinPop。2項（伝わりなし）＝技術力70なら強度 0.375 で届く（入植者 3.6万人×値段1）
+    public double DiscoveryNeedHalfInstitution = 0.5; // ★(152) 制度（特許・株式会社）の必要性の半分点＝強度（特許＝中核エリート・株式会社＝州の最大工業化度＝旧の閾値と同じ量）がこの値で35。
+                                                    //   0.5＝技術力70（特許＝1780年代＝難易度0）なら強度 0.375 で届く＝旧の特許の閾値（中核エリート 0.4・傾斜 0.35〜0.45）と同じ所（推奨で決めた）
+    public double DiscoveryNeedHalfIdea = 0.2;      // ★(152) 思想（社会主義・共産主義・帝国主義・ファシズム）の必要性の半分点＝強度（工場労働者の人数×闘争度÷人口・植民地に住む人の割合・危機）がこの値で35。
+                                                    //   0.2＝技術力70なら強度 0.15 で届く（初期値・(152) の試走で較正＝実装ログ (152)）
     // 【墓標2026-09-26】DiscoveryFieldSplit（分野時計の按分・休眠）＝時計 World.DiscoveryClocks に読み手が無かった＝時計ごと削除（x-03）。Discovery.PatronShares（呼び手0）と分野の定数も 0-3 で削除
-    public double DiffusionWeight = 1.0;   // ★点火2026-09-04（E-12b・IdeologyReachGate と同時＝読者が居て初めて世界が動く）         // ★発見・段7（思想の伝播・休眠）：到達(A→B)=貿易量(A,B)/買い手GDP×メディアA×メディアB×前四半期の到達A。メディア=NewsFill×識字+RadioFill（全て既存量＝「思想は商人と本と留学生を通じて広がった」＝貿易路がそのまま伝播路・原典§5-4）。0＝ペア記帳（PairFlowQ）も伝播も1命令も走らない＝厳密恒等。読者（思想eraゲートの置換）は段8＝絶対に混ぜない
-    public double IdeologyReachGate = 1.0;   // ★点火2026-09-04（E-12b・DiffusionWeight と同時）：batch10＝◎17→18・法58→64・列強再現27.5→30.0・開放度0.189→0.200・exact46維持。社会主義の創発到達＝1848〜1875の窓（自家発火は種の書き戻しが原因＝修正済み）。記録＝人口17→10（ゲート外7カ国）・欧州大陸の到達が遅い＝欧州内貿易の空洞化（既知）       // ★発見・段8（思想の読者・休眠）：解禁 era = max(era, これ×IdeologyReach[k])。到達は段7が貿易路×メディアで積む0..1（発展度と同じ物差し＝新閾値なし）。起点は名前で書かない＝自力で解禁した国が National シェアを種として放射する。0＝不読＝厳密恒等。⚠DiffusionWeight と同時点火（片方だけでは1ビットも動かない＝deadprobe 2026-09-04）
+    public double DiffusionWeight = 1.0;   // ★点火2026-09-04（E-12b・IdeologyReachGate と同時＝読者が居て初めて世界が動く）。★2026-10-01 (152)：到達は思想と制度の行（World.SpreadReach）＝発見の「伝わり」が読む         // ★発見・段7（思想の伝播・休眠）：到達(A→B)=貿易量(A,B)/買い手GDP×メディアA×メディアB×前四半期の到達A。メディア=NewsFill×識字+RadioFill（全て既存量＝「思想は商人と本と留学生を通じて広がった」＝貿易路がそのまま伝播路・原典§5-4）。0＝ペア記帳（PairFlowQ）も伝播も1命令も走らない＝厳密恒等。読者（思想eraゲートの置換）は段8＝絶対に混ぜない
+    // 【墓標2026-10-01 (152)】IdeologyReachGate（1.0・2026-09-04 点火）＝思想の門 era＝max(発展度の傾斜, これ×到達)＝門は発見の表の思想の行の2値へ・到達は発見の「伝わり」の項へ（設計 §1A-6・§1A-7）。
     public double IsolationExportWeight = 1.0;   // ★点火2026-08-31（T2腕＝欧州内50.3%/英世界工場復帰）   // ★鎖国の対称化（2026-08-31・pairprobe実測「関税100%の朝鮮が世界一の輸出国」＝輸入関税だけで鎖国を表現する構造穴）：売り側access×=(1−これ×関税²)。二乗＝新しい数を作らず**高関税レジームだけ**を閉じる（0.25→×0.94・0.8→×0.36・1.0→×0＝真の鎖国）。関税が政治で下がれば輸出も開く＝開国が貿易の両面を開く。0＝旧＝厳密恒等
     public double TariffExportOppositionWeight = 3.0;   // ★点火2026-08-31（T2腕＝英の自由貿易転換が政治から創発・純支持−0.41）   // ★関税の全員暴走の対（2026-08-31・pairprobe実測＝仏99%英高率で欧州相互貿易が絞殺）：近代エリートの関税選好へ**輸出利害の反対**を加える＝−これ×輸出/GDPシェア（マンチェスター学派＝輸出で食う資本は自由貿易を推す。反リカード側の保護利害 TariffInterestPref と対）。IsolationExportWeight とセット＝「高関税は輸出も殺す」物理ができて初めて政治の負帰還が史実の向きになる。0＝厳密恒等
     public double AiTariffRelaxation = 0.1;             // ★点火2026-08-31（T2腕＝AI目標が5-10%帯へ・保護と自由化の波の対称化）             // ★案A（作者裁定2026-08-31）＝AI保護関税ラチェットの対動詞：急増の無い平時に目標を毎四半期 TariffReactionMax×これ だけ漸減（保護の波→自由化の波の対称化。ReactProtectiveTariff の「下げはしない」の是正）。0＝厳密恒等（点火候補0.1＝約−10%/年）
@@ -2764,21 +2764,15 @@ public sealed class Coefficients
     // 【墓標2026-09-26（棚卸し dorm-50）】ModernizationTechGain（近代化投資の直接の技術加点・「0で確定」2026-08-04）＝削除。制度疲労が技術採用を律しているので近代化投資が疲労を削れば技術は伸びる＝直接の加点は二重計上（実測で公教育の普 vs 宗教教育の露の差が消えた）
     public double IndustryInvestRegionCap = 5.0;        /* Phase2 2026-07-08 */ // 近代化投資（World.ApplyModernizationInvestment）の州上限＝この工業化度に達した州へは国庫投資を注がない（プレイヤー/AI共通。富国の首都一極への無限投資＝工業化度30超の暴走を防ぐ）
     // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】StateRevenueAllTaxes＝国家の歳入要求を所得税・人頭税・土地税の純支持へ（政12・点火済み）
-    // ★2026-09-03（キューAUD-04・監査「暦年・台本」）：ファシズムだけ発展度ブレンドが無く**純暦年**（1919〜）だった＝規律①（台本禁止）違反。
-    //   ★発展度の閾値は他3つと同じ目盛り（IdeologyGateSpan を共用）＝新しい幅の係数を作らない。
     // 【墓標2026-09-26】FascismGateFromDevelopment（2026-09-05 に 1.0 へ点火）・IdeologyGateFromDevelopment（2026-09-06 に 1.0 へ点火）・IdeologyGateIndDynamic（休眠0・07-15 却下）
-    //   ＝暦年と発展度の混合比＝暦年の項は 0.0×有限値で1ビットも効かない＝思想の暦年ゲートごと削除（棚卸し pol-01・項目20 E）。解禁度は発展度だけ
-    // ファシズムが開く発展度（他3つ＝Soc/Comm/Imp の Onset と同じ目盛り。★最も遅く開く＝帝国主義より後）。
-    public double IdeologyGateFascOnset = 0.75;
-    // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】FascismCrisisWeight＝ファシズムの発展度ゲートに危機の条件（敗戦か恐慌×左派の脅威）を掛ける（2026-09-05 点火）
-    public double FascismCrisisSlumpRef = 0.20;   // 恐慌の物差し＝GDPドローダウンがこれで満額（0.20＝−20%＝史実の大恐慌級）。FascismCrisisWeight=0では不読
-    public double FascismCrisisLeftRef = 0.30;    // 左派の脅威の物差し＝社会主義＋共産主義のシェアがこれで満額。FascismCrisisWeight=0では不読
-    public double IdeologyGateIndScale = 3.0;   // 政16：発展度スカラーの工業化正規化スケール（frontierInd/これ をClamp01）。非0必須（0除算回避）
+    //   ＝暦年と発展度の混合比＝暦年の項は 0.0×有限値で1ビットも効かない＝思想の暦年ゲートごと削除（棚卸し pol-01・項目20 E）。
+    // 【墓標2026-10-01 (152)】IdeologyGateSocOnset（0.20）・IdeologyGateCommOnset（0.35）・IdeologyGateImpOnset（0.50）・IdeologyGateFascOnset（0.75）・IdeologyGateSpan（0.35）
+    //   ＝思想の門の発展度の傾斜（世界最先端の工業化度で全ての国がほぼ同時に開いた＝計器 (152) で社会主義の門 0.5 が1788〜93年）＝発見の表の思想の行の2値へ（設計 §1A-6）。
+    // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】FascismCrisisWeight＝ファシズムの発展度ゲートに危機の条件（敗戦か恐慌×左派の脅威）を掛ける（2026-09-05 点火）＝2026-10-01 (152) から危機はファシズムの発見の必要性（Ideologies.FascismCrisis）
+    public double FascismCrisisSlumpRef = 0.20;   // 恐慌の物差し＝GDPドローダウンがこれで満額（0.20＝−20%＝史実の大恐慌級）＝ファシズムの発見の必要性（危機）
+    public double FascismCrisisLeftRef = 0.30;    // 左派の脅威の物差し＝社会主義＋共産主義のシェアがこれで満額＝同上
+    public double IdeologyGateIndScale = 3.0;   // 政16：発展度スカラーの工業化正規化スケール（frontierInd/これ をClamp01）。非0必須（0除算回避）。発展度＝ファシズムの支持の式（UpdateShares）と発見パネルのホバー
     public double IdeologyGateUrbanWeight = 0.5;   // 政16：発展度スカラーにおける都市労働者シェアの加重（0=工業化度のみ・1=都市シェアのみ）
-    public double IdeologyGateSpan = 0.35;   // 政16：発展度ゲートがonsetから全開(1)まで開く幅。非0必須（0除算回避）。狭いほど閾値付近で急に開く
-    public double IdeologyGateSocOnset = 0.20;   // 政16：社会主義が発展度で開き始めるonset（最も早い＝史実の1830年代に当たる）
-    public double IdeologyGateCommOnset = 0.35;   // 政16：共産主義の発展度onset（社会主義より遅い＝史実の1848年に当たる）
-    public double IdeologyGateImpOnset = 0.50;   // 政16：帝国主義の発展度onset（最も遅い＝史実の1860年代に当たる）
     // 【墓標2026-09-27・旗の焼き込み（回2-1b・mil-01・x-01）】CasualtiesFromContact（外2・1.0で点火済み）＝戦死の基準を自軍の Military にする0の枝を削除。戦死の式は Diplomacy.WarCasualties（兵の頭数×接触÷自軍のゲージ×WarCasualtyRate）
     public double WarWearinessDecays = 1.0;   // 外3：非交戦国の厭戦の扱い。0=Step冒頭で即時0リセット（旧＝厭戦の開戦抑止が講和の翌月に消える）／>0=WarWearinessDecayRateで指数減衰（講和後も数年は厭戦が残り開戦抑止が効く）。バランス2026-07-07有効化：終戦翌月の再参戦（AI監査の愚行#5）を解消し敗戦国に回復期を与える＝首位交代を促す
     public double WarWearinessDecayRate = 0.97;   // 外3：WarWearinessDecays>0のときの非交戦国厭戦の月次残存率。WarWearinessDecays=0では未参照

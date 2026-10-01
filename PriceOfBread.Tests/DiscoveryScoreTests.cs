@@ -540,4 +540,150 @@ public class DiscoveryScoreTests
         Assert.True(off > 0, "前提が崩れた（肉が腐らない）");
         Assert.Equal(1.0 - new Coefficients().RefrigerationEffect, on / off, 9);
     }
+
+    // ===== ★制度と思想（2026-10-01 (152)・設計 §1A-6）＝財を持たない行・必要性は行ごとに読む量・伝わりは思想と制度の到達 =====
+
+    /// <summary>制度と思想の行は財を持たない＝技術の押しは1（技術力＝70×技術水準÷難易度）・伝わりは思想と制度の到達（World.SpreadReach）を読み、接触（運び手の財の輸入）は読まない。
+    /// ⚠壊し方＝伝わりに接触を読む・到達を読まない → 到達を半分点に置いても伝わりが35にならない＝赤。</summary>
+    [Fact]
+    public void 制度と思想の行は財を持たず伝わりは到達を読む()
+    {
+        var sim = Board();
+        var w = Nation(sim, "イギリス");
+        Assert.Equal(6, Discovery.SpreadRows.Length);
+        foreach (int row in Discovery.SpreadRows)
+        {
+            var d = Catalog.Discoveries[row];
+            Assert.Equal(Catalog.NoGood, d.Good);
+            Assert.True(Discovery.IsSpread(d.Field), $"{d.Name}：制度でも思想でもない");
+            int slot = Discovery.SpreadSlot(row);
+            w.SpreadReach[slot] = 0;
+            var contact = new double[Catalog.Discoveries.Length]; contact[row] = 1e6;
+            var t0 = Discovery.Evaluate(w, new Discovery.WorldView(contact, 0), w.Coef, includeKnown: true)[row];
+            Assert.Equal(0.0, t0.Transmit);   // 接触は読まない
+            double diff = Discovery.Difficulty(row, w.Coef);
+            Assert.Equal(Discovery.TermMax * (diff > 0 ? System.Math.Min(1, w.TechLevel / diff) : 1), t0.Tech, 9);   // 技術の押しは1
+            w.SpreadReach[slot] = w.Coef.DiscoveryContactHalf;
+            Assert.Equal(Discovery.TermMax / 2, Discovery.Evaluate(w, null, w.Coef, includeKnown: true)[row].Transmit, 9);
+        }
+        Assert.Equal(-1, Catalog.DiscoveryRowOf(Catalog.NoGood, ""));   // 財で探しても制度と思想の行は出てこない
+    }
+
+    /// <summary>制度と思想の必要性は行ごとに読む量（設計 §1A-4・§1A-6）＝特許は中核エリート・株式会社は州の最大工業化度・社会主義と共産主義は工場労働者の人数×闘争度÷人口・
+    /// 帝国主義は植民地の州に住む人の割合・ファシズムは危機（敗戦か恐慌×左派の脅威）×人々の闘争度。半分点は分野で1本。盤面の量をテストの側で数えて一致させる。
+    /// ⚠壊し方＝特許を最大工業化度で読む・社会主義を全ての人の闘争度で読む・ファシズムの危機を外す → 赤。</summary>
+    [Fact]
+    public void 制度と思想の必要性は行ごとの量を分野の半分点で読む()
+    {
+        var sim = Board();
+        var w = Nation(sim, "イギリス");
+        var c = w.Coef;
+        double maxInd = 0, pop = 0, wm = 0, col = 0, mil = 0;
+        foreach (var r in w.Regions)
+        {
+            if (r.State != RegionState.Active) continue;
+            if (r.TotalIndustrialization > maxInd) maxInd = r.TotalIndustrialization;
+            foreach (var p in r.Pops)
+            {
+                if (p.IsSoldier || !(p.Size > 0)) continue;
+                pop += p.Size;
+                if (p.Militancy > 0) { mil += p.Size * p.Militancy; if (p.ClassId == PopClass.Worker) wm += p.Size * p.Militancy; }
+                if (r.Tier == RegionTier.Colonial) col += p.Size;
+            }
+        }
+        // ファシズムの危機を立てる（敗戦1×左派の脅威1＝全ての人の思想を社会主義へ）
+        w.DefeatShock = 1.0;
+        foreach (var p in w.AllPops()) { System.Array.Clear(p.IdeologyShares); p.IdeologyShares[(int)Ideology.Socialism] = 1.0; }
+        Assert.Equal(1.0, Ideologies.FascismCrisis(w), 12);
+        Assert.True(wm > 0 && col > 0 && maxInd > 0 && mil > wm, $"前提が崩れた（工場労働者の闘争 {wm}・植民地 {col}・工業化 {maxInd}）");
+        double hI = c.DiscoveryNeedHalfInstitution, hD = c.DiscoveryNeedHalfIdea;
+        double N(double s, double h) => Discovery.TermMax * s / (s + h);
+        var t = Discovery.Evaluate(w, null, c, includeKnown: true);
+        Assert.Equal(N(w.EliteCore, hI), t[Discovery.PatentRow].Need, 9);
+        Assert.Equal(N(maxInd, hI), t[Discovery.JointStockRow].Need, 9);
+        Assert.Equal(N(wm / pop, hD), t[Discovery.SocialismRow].Need, 9);
+        Assert.Equal(N(wm / pop, hD), t[Discovery.CommunismRow].Need, 9);
+        Assert.Equal(N(col / pop, hD), t[Discovery.ImperialismRow].Need, 9);
+        Assert.Equal(N(mil / pop, hD), t[Discovery.FascismRow].Need, 9);
+        w.DefeatShock = 0;   // 危機が無ければファシズムの必要性は0（GDP の落ち込みが無い盤面）
+        if (!(w.GdpDrawdown > 0)) Assert.Equal(0.0, Discovery.Evaluate(w, null, c, includeKnown: true)[Discovery.FascismRow].Need);
+    }
+
+    /// <summary>思想の門は発見の表の思想の行の2値（旧＝世界の発展度の傾斜＝全ての国がほぼ同時に開いた・計器 (152)＝社会主義の門 0.5 が主要国の全てで1788〜93年）。
+    /// 双子の盤面＝社会主義の行を立てる／立てない → 門 1／0・思想の更新の後の社会主義の支持＞0／＝0。
+    /// ⚠壊し方＝門を発展度の傾斜へ戻す・門を読まずに支持を出す → 赤。</summary>
+    [Fact]
+    public void 思想の門は発見の2値_見つけるまで支持は0()
+    {
+        var w = Nation(Board(), "イギリス");   // 思想の更新は毎回はじめから＝同じ盤面で門だけを変えて2度通す
+        double Share(bool known, out double gate)
+        {
+            w.Discovered[Discovery.SocialismRow] = known;
+            gate = Ideologies.EraGates(w).Socialism;
+            Ideologies.UpdateShares(w);
+            double s = 0; foreach (var p in w.AllPops()) s += p.Size * p.IdeologyShares[(int)Ideology.Socialism];
+            return s;
+        }
+        double off = Share(false, out double g0), on = Share(true, out double g1);
+        Assert.Equal(0.0, g0); Assert.Equal(1.0, g1);
+        Assert.Equal(0.0, off);
+        Assert.True(on > 0, "社会主義を見つけた国に社会主義の支持が立たない");
+    }
+
+    /// <summary>制度は発見の2値を読むだけ（状態を持たない）＝特許・株式会社は表の行・鉄道は「機関車」の行（旧＝Institutions.Step の閾値の bool と州の倍率）。
+    /// 効き＝特許は革新（GrowTech）を×PatentInnovationBonus・株式会社は工業化の投資（EconomyStep）を×JointStockInvestBonus＝双子の盤面で発見の有無だけを変える。
+    /// ⚠壊し方＝特許を読まずに革新・株式会社を読まずに投資（所有国の値を読まない）→ 双子が同じ＝赤。</summary>
+    [Fact]
+    public void 制度は発見の2値を読む_特許は革新を株式会社は投資を速める()
+    {
+        var w0 = Grown().World;
+        foreach (bool k in new[] { false, true })
+        {
+            w0.Discovered[Discovery.PatentRow] = k; w0.Discovered[Discovery.JointStockRow] = !k; w0.Discovered[Discovery.LocomotiveRow] = k;
+            Assert.Equal(k, w0.PatentLaw); Assert.Equal(!k, w0.JointStock); Assert.Equal(k, w0.Railways);
+        }
+        double Tech(bool patent)
+        {
+            var w = Nation(Board(), "イギリス");
+            w.Freedom = 1.0; w.EducationLaw = EducationLaw.Public;   // 革新は自由＋公教育の国だけ（FrontierCapable）
+            w.Discovered[Discovery.PatentRow] = patent;
+            double t0 = w.TechLevel;
+            TechEducation.GrowTech(w, w.Coef);
+            return w.TechLevel - t0;
+        }
+        double tOff = Tech(false), tOn = Tech(true);
+        Assert.True(tOff > 0, "前提が崩れた（技術が伸びない）");
+        Assert.True(tOn > tOff * 1.0001, $"特許を見つけた国の技術の伸びが速くならない（{tOff}→{tOn}）");
+        double Ind(bool js)
+        {
+            var s = Grown(); var w = s.World; var r = w.Region;
+            w.Discovered[Discovery.JointStockRow] = js;
+            r.Pops[r.InvestorPopIndex].SetSavings(1e9);
+            double i0 = r.Industrialization;
+            EconomyStep.Run(r, w.Coef, 1.0, w.Bank, w);
+            return r.Industrialization - i0;
+        }
+        double iOff = Ind(false), iOn = Ind(true);
+        Assert.True(iOff > 0, $"前提が崩れた（工業化の投資が立たない {iOff}）");
+        Assert.True(iOn > iOff * 1.0001, $"株式会社を見つけた国の工業化の投資が速くならない（{iOff}→{iOn}）");
+    }
+
+    /// <summary>思想と制度の伝播（MultiNationSim.StepDiffusion）＝制度は解禁済みの国が1で放射し、取引のある国の到達が積まれる・自国の種は自国の到達へ書き戻さない
+    /// （2026-09-04 E-12＝書き戻すと国内で正帰還が閉じた）。盤面＝英だけが株式会社を見つけた世界で1四半期。
+    /// ⚠壊し方＝制度の放射を0にする（呼び手＝StepDiffusion の種）・自国の種を到達へ書き戻す → 赤。</summary>
+    [Fact]
+    public void 制度の到達は見つけた国から取引で届き_自国へは書き戻さない()
+    {
+        var sim = Board();
+        int js = Discovery.JointStockRow, slot = Discovery.SpreadSlot(js);
+        foreach (var n in sim.Nations) { n.World.Discovered[js] = false; System.Array.Clear(n.World.SpreadReach); }
+        var uk = Nation(sim, "イギリス");
+        uk.Discovered[js] = true;
+        Assert.Equal(1.0, Discovery.SpreadSource(uk, slot, Ideologies.National(uk)));
+        sim.StepQuarter();
+        Assert.Equal(1, sim.Nations.Count(n => n.World.Discovered[js]));   // 1四半期では誰も新たに見つけない（前提）
+        Assert.Equal(0.0, uk.SpreadReach[slot]);   // 自国の種は書き戻さない
+        int reached = sim.Nations.Count(n => n.World.SpreadReach[slot] > 0);
+        Assert.True(reached > 5, $"英の株式会社が取引のある国へ届かない（届いた国 {reached}）");
+    }
 }

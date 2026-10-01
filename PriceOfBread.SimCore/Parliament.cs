@@ -443,7 +443,7 @@ public static class Parliament
     /// <summary>★E3（選挙doc §3-0-0）：公示イベントの生成＝**その時点で支持上位3つの思想**が議題を掲げる。
     /// 議題＝その思想の族の要求top1（FactionSnapshot.ComputeDemands＝strength×Headroom の既存順位づけ・手書きの思想→議題表なし）。
     /// 族単位の看板は思想単位より粗いが台本ゼロ（docの例＝伝統→穀物法維持も保守族の要求として出る）。精緻化はE4点火後の実測を見て。
-    /// 時代ゲートは自動（§3-0-0b）＝ファシズム(9)は発展度と危機の門（Ideologies.EraGates）が開く前はシェア0＝上位3に入らない。</summary>
+    /// 時代ゲートは自動（§3-0-0b）＝ファシズム(9)はその国がファシズムを見つける（発見の表の思想の行・Ideologies.EraGates）前はシェア0＝上位3に入らない。</summary>
     internal static ElectionEvent BuildElectionEvent(World w, Coefficients c)
     {
         var eff = w.Suffrage;

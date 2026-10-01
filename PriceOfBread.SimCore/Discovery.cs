@@ -1,7 +1,7 @@
 ﻿namespace PriceOfBread.SimCore;
 
 /// <summary>発見の分野（作者裁定 2026-09-28 ⑤＝制度・思想・製法・発明。発明は新兵器と新製品の2つの規則）。
-/// ⚠この回（段2A の骨組み・2026-10-01）は製法と発明（新兵器・新製品）の行だけ＝制度（特許・株式会社）と思想は別の回（設計 §1A-6）。</summary>
+/// 制度（特許・株式会社）と思想（社会主義・共産主義・帝国主義・ファシズム）は 2026-10-01 (152) に同じ表へ（設計 §1A-6＝財を持たない行）。</summary>
 public enum DiscoveryField { Institution, Idea, Process, Weapon, Product }
 
 /// <summary>新兵器の軍事の圧力の分野（作者裁定 2026-09-28 ⑤＝陸・海・空で分ける）。</summary>
@@ -19,14 +19,10 @@ public readonly record struct DiscoveryRow(string Name, int Good, string Recipe,
 ///   「労働を代替する発明は、安い人件費の国では必要とされない、という認識でよい」。**世界で最初の発見は必ず技術力＋必要性**（誰も持っていなければ伝わりは0）。
 /// ・状態＝国×行の「解禁済み」の2値（<see cref="World.Discovered"/>）だけ＝設計思想⑩の「本当に必要な場合」（作者裁定 2026-09-28 で許可）。項はどれも今の盤面から導く。
 /// ⚠時期感は**較正の目標**であってコードに書かない（暦年ゲートの裏口を作らない）＝行の年代はデータ・難易度は1本の Y で技術水準へ写す（<see cref="Difficulty"/>）。
-/// ⚠制度（特許・株式会社）の傾斜 <see cref="Unlock"/> はこの回の外（設計 §1A-6＝別の回）。
+/// ★制度と思想（2026-10-01 (152)・設計 §1A-6）も同じ表の行（財を持たない）＝<see cref="SpreadRows"/>（旧＝制度は中核エリートと工業化度の傾斜 Unlock・思想は世界の発展度の傾斜）。
 /// ★場所に結びついた発見（大鉱床・植林＝<see cref="Catalog.Sites"/>・2026-10-01 (148)）も同じ関数で判定する（<see cref="SiteTerms"/>＝2項・状態は生産者の <see cref="Producer.SiteFound"/>）。</summary>
 public static class Discovery
 {
-    /// <summary>制度の解禁度（ramp・0..1）＝特許・株式会社だけが読む（設計 §1A-6 の別の回で2値の点数へ移す）。⚠span≤0 は設定ミス＝常に0。</summary>
-    public static double Unlock(double clock, double aptitude, double onset, double span)
-        => span > 0 ? PoliticalQuantities.Clamp01((clock * aptitude - onset) / span) : 0.0;
-
     /// <summary>各項の最大（技術力・必要性・伝わり）と門（作者裁定 2026-09-28 §1A-2「比率は仮」）。⚠較正で動かすときも「項の最大＜門≦項の最大×2」を保つ（番人）。</summary>
     public const double TermMax = 70.0, GateScore = 100.0;
 
@@ -75,6 +71,64 @@ public static class Discovery
     public static bool SteamPower(bool[]? known) => Known(known, SteamRow);
     public static bool RailTransport(bool[]? known) => Known(known, LocomotiveRow);
     public static bool Refrigeration(bool[]? known) => Known(known, ReeferRow);
+
+    /// <summary>★制度と思想（2026-10-01 (152)・設計 §1A-6・作者裁定 2026-09-28 ⑤＝4分野とも同じ骨組み）＝財を持たない行（<see cref="Catalog.NoGood"/>）。
+    /// 旧＝制度は中核エリート（特許）と最大工業化度（株式会社・鉄道の閾値 0.8）の傾斜・思想は世界の発展度（世界最先端の工業化度と都市の割合）の傾斜
+    /// ＝全ての国がほぼ同時に開いた（計器 (152) の種1〜5＝社会主義 1784〜88・共産主義 1787〜91・株式会社 1786〜91・鉄道 1788〜1808 に主要国の全てで）。
+    /// ・技術力＝発見の表と同じ（技術水準÷年代の難易度・技術の押しは1＝投入を持たない）。
+    /// ・必要性＝その制度が解く問題・その思想が答える社会の緊張（設計 §1A-4 の表・§1A-6）＝<see cref="SpreadNeed"/>。半分点は分野ごとに1本（制度・思想）。
+    /// ・伝わり＝思想と制度の到達（<see cref="World.SpreadReach"/>＝<see cref="MultiNationSim"/> の StepDiffusion＝国の組の取引の割合×両国の媒体〔新聞×識字＋ラジオ〕の積み上げ・設計 §1A-7）。
+    /// 効き：特許＝革新の加速（<see cref="World.PatentLaw"/>）・株式会社＝工業化の投資（<see cref="World.JointStock"/>）・思想＝その思想の支持の門（<see cref="Ideologies.EraGates(World)"/>）。
+    /// 鉄道（旧＝制度の行・最大工業化度 0.8 の閾値）は行を置かない＝「機関車」の行（<see cref="RailTransport"/>・(150) の鉄道輸送と同じ行）。</summary>
+    public static readonly int PatentRow = Catalog.DiscoveryRowNamed("特許");
+    public static readonly int JointStockRow = Catalog.DiscoveryRowNamed("株式会社");
+    public static readonly int SocialismRow = Catalog.DiscoveryRowNamed("社会主義");
+    public static readonly int CommunismRow = Catalog.DiscoveryRowNamed("共産主義");
+    public static readonly int ImperialismRow = Catalog.DiscoveryRowNamed("帝国主義");
+    public static readonly int FascismRow = Catalog.DiscoveryRowNamed("ファシズム");
+    /// <summary>思想の門の行（門を持たない思想＝伝統・自由・国民主義ほかは −1＝最初から在る）。</summary>
+    public static int IdeaRow(Ideology k) => k switch
+    {
+        Ideology.Socialism => SocialismRow, Ideology.Communism => CommunismRow,
+        Ideology.Imperialism => ImperialismRow, Ideology.Fascism => FascismRow, _ => -1,
+    };
+    /// <summary>制度と思想の行（表の順）＝思想と制度の到達の欄の並び（<see cref="World.SpreadReach"/>）。</summary>
+    public static readonly int[] SpreadRows = Enumerable.Range(0, Catalog.Discoveries.Length).Where(r => IsSpread(Catalog.Discoveries[r].Field)).ToArray();
+    private static readonly int[] SpreadSlots = Enumerable.Range(0, Catalog.Discoveries.Length).Select(r => System.Array.IndexOf(SpreadRows, r)).ToArray();
+    /// <summary>行 → 到達の欄（制度と思想の行でなければ −1）。</summary>
+    public static int SpreadSlot(int row) => row >= 0 && row < SpreadSlots.Length ? SpreadSlots[row] : -1;
+    public static bool IsSpread(DiscoveryField f) => f is DiscoveryField.Institution or DiscoveryField.Idea;
+
+    /// <summary>到達の放射の強さ（国 a の欄 slot）＝思想はその思想を持つ人の割合（国の思想の集計 <paramref name="nat"/>＝旧の StepDiffusion の種と同じ）・
+    /// 制度は国の法＝解禁済みなら1（推奨で決めた＝その国に住む全員がその制度の下にいる）。</summary>
+    internal static double SpreadSource(World a, int slot, double[] nat)
+    {
+        int row = SpreadRows[slot];
+        if (Catalog.Discoveries[row].Field == DiscoveryField.Institution) return Known(a.Discovered, row) ? 1.0 : 0.0;
+        int k = row == SocialismRow ? (int)Ideology.Socialism : row == CommunismRow ? (int)Ideology.Communism
+              : row == ImperialismRow ? (int)Ideology.Imperialism : row == FascismRow ? (int)Ideology.Fascism : -1;
+        return k >= 0 && k < nat.Length && nat[k] > 0 ? nat[k] : 0.0;
+    }
+
+    /// <summary>制度と思想の必要性の強度（行ごとに読む量＝設計 §1A-4 の表「(1) 制度＝制度が解く問題の大きさ」「(2) 思想＝思想が答える社会の緊張」・§1A-6）。
+    /// ・特許＝中核エリートの厚み（<see cref="World.EliteCore"/>＝発明する人＝旧の特許の閾値と同じ量）。
+    /// ・株式会社＝立っている工業資本の大きさ（州の最大工業化度＝旧の株式会社の閾値と同じ量・⚠工業化度の廃止〔作者裁定 2026-09-29 の8〕の回で盤面の量へ置き換える）。
+    /// ・社会主義・共産主義＝都市労働者の割合×労働者の闘争度＝Σ（工場労働者の人数×闘争度）÷人口（兵士を除く）。
+    /// ・帝国主義＝植民地（州の格が植民地）に住む人の割合（設計 §1A-6【推】の「植民地の数」を人で数えた・「列強の順位の争い」は入れていない）。
+    /// ・ファシズム＝危機（敗戦か恐慌×左派の脅威＝<see cref="Ideologies.FascismCrisis"/>＝旧の門に掛けていた条件・設計 §1A-6「そのまま適性へ」）×人々の闘争度（Σ人数×闘争度÷人口）
+    ///   ＝危機の中で闘う人の割合（思想の4行の強度を同じ単位＝人口の割合にそろえる＝半分点が分野で1本だから・推奨で決めた）。
+    ///   ⚠危機だけ（0〜1の国の指数）では負けた戦争1つで強度が 0.85 へ跳び、技術水準 3 の国が1870〜80年代に見つけた（(152) の試走 v1）。</summary>
+    private static double SpreadNeed(int row, World w, double maxInd, double workerMil, double colonialShare, double popMil, ref double crisis)
+    {
+        double s;
+        if (row == PatentRow) s = w.EliteCore;
+        else if (row == JointStockRow) s = maxInd;
+        else if (row == SocialismRow || row == CommunismRow) s = workerMil;
+        else if (row == ImperialismRow) s = colonialShare;
+        else if (row == FascismRow) { if (double.IsNaN(crisis)) crisis = Ideologies.FascismCrisis(w); s = crisis * popMil; }
+        else s = 0;
+        return !(s > 0) ? 0 : s;   // 否定形＝NaN・負は0
+    }
 
     /// <summary>ある州のある生産者（レシピ）の門∈{0,1}＝能力・未発明の判定・操業規模0・着工の可否・生産タブの灰色化が全てこの1本を読む
     /// （画面とエンジンで「作れるか」の定義が食い違わない）。表に無いレシピ（地理差）は常に1・退場のレシピは後継を発見したら0。
@@ -197,6 +251,7 @@ public static class Discovery
 
     /// <summary>国の点数の3項を全ての行について求める（読むだけ＝盤面を変えない）。AI とプレイヤーは同じ関数（発見の判定・画面・計器が同じ値を読む）。
     /// <paramref name="contact"/>＝行ごとの接触（<see cref="MultiNationSim"/> が四半期の取引と技師の移動から求める・単独の世界は null＝伝わり0）。
+    /// 制度と思想の行の伝わりは接触ではなく到達（<see cref="World.SpreadReach"/>＝単独の世界は0のまま）。
     /// 解禁済みの行と、この国に代表の生産者が居ない行（その国では使えないレシピ）は 0。</summary>
     public static Terms[] Evaluate(World w, WorldView? view, Coefficients c, bool includeKnown = false)
     {
@@ -213,10 +268,12 @@ public static class Discovery
         var stdRef = new double[ng];   // 財の既定のレシピ（RecipeName＝空）の投入を参照価格で積んだ費用＝割高さの参照の側（分子の「投入の費用」と同じ規則＝工場の自己費用 FactoryVa を含まない）
         var rep = new Producer?[nr];
         int nAct = 0;
+        double maxInd = 0;   // 州の最大工業化度（株式会社の必要性＝立っている工業資本の大きさ・旧の閾値と同じ量）
         foreach (var r in w.Regions)
         {
             if (r.State != RegionState.Active) continue;
             nAct++;
+            if (r.TotalIndustrialization > maxInd) maxInd = r.TotalIndustrialization;
             int mn = System.Math.Min(r.Markets.Length, ng);
             for (int g = 0; g < mn; g++)
             {
@@ -275,27 +332,50 @@ public static class Discovery
             seaPress = Share(sp.NeedSea, sp.NavalPower);
         }
         // 満足した消費者の厚み（新製品）＝Σ（人数×満足度）÷人口（作者裁定 Q13＝段や富裕層の述語で分けない連続量）。兵士は数えない。
-        double satSum = 0, popSum = 0;
+        // 同じ1巡で制度と思想の必要性の量（<see cref="SpreadNeed"/>）＝工場労働者の人数×闘争度・人々の闘争度・植民地の州に住む人。
+        double satSum = 0, popSum = 0, workerMilSum = 0, colonialPop = 0, milSum = 0;
         foreach (var r in w.Regions)
         {
             if (r.State != RegionState.Active) continue;
-            foreach (var p in r.Pops) { if (p.IsSoldier || !(p.Size > 0)) continue; satSum += p.Size * p.Satisfaction; popSum += p.Size; }
+            bool colonial = r.Tier == RegionTier.Colonial;
+            foreach (var p in r.Pops)
+            {
+                if (p.IsSoldier || !(p.Size > 0)) continue;
+                satSum += p.Size * p.Satisfaction; popSum += p.Size;
+                if (p.Militancy > 0) { milSum += p.Size * p.Militancy; if (p.ClassId == PopClass.Worker) workerMilSum += p.Size * p.Militancy; }
+                if (colonial) colonialPop += p.Size;
+            }
         }
         double satThick = popSum > 1e-12 ? satSum / popSum : 0;
+        double workerMil = popSum > 1e-12 ? workerMilSum / popSum : 0, colonialShare = popSum > 1e-12 ? colonialPop / popSum : 0, popMil = popSum > 1e-12 ? milSum / popSum : 0;
+        double crisis = double.NaN;   // ファシズムの必要性＝危機（国の思想の集計の1巡が要る＝その行を見るときだけ求める）
+        var reach = w.SpreadReach;
         // 人件費の世界比（労働を代替する発明）＝自国の1人の所得÷世界の平均（単独の世界・世界の平均が無い＝1）。
         double wageRel = 1.0;
         { var (ownWage, _) = LaborWage(w); if (worldWage > 0 && ownWage > 0) wageRel = ownWage / worldWage; }
         double pl = w.NominalOf(1.0);
         for (int row = 0; row < nr; row++)
         {
-            if ((!includeKnown && Known(w.Discovered, row)) || rep[row] is not { } rp) continue;   // includeKnown＝計器だけ（解禁済みの行の項も見る）
+            if (!includeKnown && Known(w.Discovered, row)) continue;   // includeKnown＝計器だけ（解禁済みの行の項も見る）
             var d = rows[row];
-            // 技術力＝70×min(1, 技術水準÷難易度)×技術の押し（設計 §1A-3＝投入のうち自国で作っている割合・参照価格で重み付け）
+            bool spread = IsSpread(d.Field);   // 制度と思想＝財と投入を持たない（技術の押しは1・伝わりは到達）
+            var rp = rep[row];
+            if (!spread && rp is null) continue;   // この国に代表の生産者が居ない行（その国では使えないレシピ）
+            // 技術力＝70×min(1, 技術水準÷難易度)×技術の押し（設計 §1A-3＝投入のうち自国で作っている割合・参照価格で重み付け・制度と思想は1）
             double diff = Difficulty(row, c);
             double ratio = !(diff > 0) ? 1.0 : w.TechLevel / diff;
             ratio = !(ratio > 0) ? 0 : ratio > 1 ? 1 : ratio;
+            if (spread)
+            {
+                double sNeed = SpreadNeed(row, w, maxInd, workerMil, colonialShare, popMil, ref crisis);
+                double hNeed = NeedHalf(d.Field, c);
+                int slot = SpreadSlot(row);
+                double xr = reach is not null && slot >= 0 && slot < reach.Length ? reach[slot] : 0;
+                res[row] = new Terms(TermMax * ratio, Saturate(sNeed, hNeed), Saturate(xr, c.DiscoveryContactHalf));
+                continue;
+            }
             double wSum = 0, wDom = 0;
-            foreach (var inp in rp.Inputs)
+            foreach (var inp in rp!.Inputs)
             {
                 int g = inp.GoodId;
                 if (g < 0 || g >= ng) continue;
@@ -367,6 +447,14 @@ public static class Discovery
 
         static double Share(double need, double own) => need > 1e-12 ? need / (need + (own > 0 ? own : 0)) : 0;
     }
+
+    /// <summary>分野の必要性の半分点（分野ごとに1本＝設計 §1A-2）。計器（Runner の discprobe）も同じ1本を読む。</summary>
+    public static double NeedHalf(DiscoveryField f, Coefficients c) => f switch
+    {
+        DiscoveryField.Process => c.DiscoveryNeedHalfProcess, DiscoveryField.Weapon => c.DiscoveryNeedHalfWeapon,
+        DiscoveryField.Institution => c.DiscoveryNeedHalfInstitution, DiscoveryField.Idea => c.DiscoveryNeedHalfIdea,
+        _ => c.DiscoveryNeedHalfProduct,
+    };
 
     /// <summary>項の飽和＝70×強度÷(強度＋半分点)（発見の表と産地の発見が共有）。否定形＝NaN・負は0。</summary>
     private static double Saturate(double s, double half) => s > 0 && half > 0 ? TermMax * s / (s + half) : 0;

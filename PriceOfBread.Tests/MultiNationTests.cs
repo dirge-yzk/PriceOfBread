@@ -22,9 +22,9 @@ public class MultiNationTests
         public readonly double[] Base0;
         public readonly int ColoniesBefore;   // 清を含む全勢力（列強は清からも奪うため sim 国だけでは増える）
         public readonly System.Exception? Error;
-        public FourNations400(int quarters = 400)
+        public FourNations400(int quarters = 400, bool world = false)
         {
-            Sim = new MultiNationSim(FourNations(), seed: 1789);
+            Sim = world ? new MultiNationSim(WorldData.Nations(), 1789, _ => new UtilityAgent()) : new MultiNationSim(FourNations(), seed: 1789);
             Base0 = [.. Sim.Nations.Select(n => n.World.BaseMoney)];
             ColoniesBefore = Sim.Diplomacy.Powers.Sum(p => p.Colonies);
             Error = Record.Exception(() => Sim.Run(quarters));   // §11.6 が全国・全ティックで保持（戦費還流・賠償の対外移転を含む）
@@ -34,7 +34,13 @@ public class MultiNationTests
     // ★(149) 合流（盤面だけ・主張は同じ）：(147)(148) の発見の作り替え＋(145) の兵の単位を合わせた木では、この4カ国の閉じた世界の400四半期に国どうしの開戦が無い
     //   （6つの種で0・英の首都の内戦だけ7〜9回＝装備の充足が 1803 の米で r144 0.26→0.06・即応度 0.23→0.06＝(147)(148) 単独でも開戦 9→2）。61カ国の帯では交戦ペアは 323→383〜424 で戦争は起きる
     //   ＝植民地の保存を「戦争と講和を通して」確かめる盤面を全長（668四半期・最初の開戦 1920）にした。
-    private static readonly System.Lazy<FourNations400> Shared668 = new(() => new FourNations400(Coefficients.GameQuarters));
+    // ★(152)（盤面だけ・主張と閾値は同じ）：制度と思想を発見の表へ移した木では、4カ国の閉じた世界で社会主義を誰も見つけない（技術水準と必要性が届かず・伝える国も無い）
+    //   ＝米が1793年に立憲君主・1818年にブルジョア独裁へ移り（自由 0.80→0.50＝革新の自由度の閾値 0.6 の下）、先頭の米の革新が止まって世界の技術水準が 1.07 で凍る
+    //   ＝4カ国の全長で開戦0・満足度の平均 0.238（旧 0.508）・400四半期で 0.224（旧 0.347）。旧は社会主義の門が世界の発展度で1790年代に全ての国で開いていた
+    //   （双子の試走＝社会主義だけを開幕から開くと米は共和のまま・満足度 0.368）＝4カ国の閉じた世界は思想の発見の担い手（技術の高い小国・伝える国）を持たない盤面になった。
+    //   ＝「戦争と講和を通した植民地の保存」と「マクロ層の健全性」は61カ国の世界（帯と同じ国の集合・種 1789）で確かめる（61カ国の400四半期＝満足度の平均 0.537・開戦 611）。
+    //   四半期は200（1833年）＝61カ国の1試合は4カ国の約15倍の重さ＝フルスイートの時間を保つ（400四半期ではフルスイートが 4分29秒→7分19秒）。
+    private static readonly System.Lazy<FourNations400> SharedWorld = new(() => new FourNations400(200, world: true));
 
     // ★器 SilverParityFromRatio の ON/OFF 経路（2026-09-07）：注入される WorldSilverPrice が
     //   ON＝「同一市場内の 銀/金鉱 比の生きた Active 州の対数平均 ÷ RefPrice 比 × RefPrices[銀]」の手計算と一致（1e-9）し、
@@ -89,7 +95,7 @@ public class MultiNationTests
     public void マクロ層の健全性が回帰しない()
     {
         // 健全なマクロ層を固定（回帰防止）。価格ミクロの二極化＝コブウェブ×損失吸収の脆さ は既知の構造課題で別扱い。
-        var run = Shared400.Value;
+        var run = SharedWorld.Value;   // ★(152)：盤面を61カ国の世界へ（SharedWorld の注記）
         Assert.Null(run.Error);
         var sim = run.Sim;
         var m = Metrics.Compute(sim);
@@ -189,7 +195,7 @@ public class MultiNationTests
     [Fact]
     public void 緊張は戦争を生み講和で植民地と賠償が動く()
     {
-        var run = Shared668.Value;   // ★(149)：盤面を全長へ（Shared668 の注記）
+        var run = SharedWorld.Value;   // ★(149)：盤面を全長へ→★(152)：61カ国の世界の200四半期へ（SharedWorld の注記）
         Assert.Null(run.Error);
         var sim = run.Sim;
         int coloniesBefore = run.ColoniesBefore;

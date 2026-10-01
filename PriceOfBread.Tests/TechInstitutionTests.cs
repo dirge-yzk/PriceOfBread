@@ -119,13 +119,18 @@ public class TechInstitutionTests
             $"宗教教育の日本({japan:F2})が公教育のイギリス({britain:F2})に追いつけてしまう（エリート律速の破れ）");
     }
 
+    /// <summary>★2026-10-01 (152)：制度は発見の表の行（特許・株式会社）＝点数＝技術力＋必要性＋伝わり（設計 §1A-6）。
+    /// 旧の主張「宗教教育の日本に特許が入らない」は旧の閾値（中核エリート 0.4）だけで決まる世界の主張＝新しい形では取引のある国から伝わる（史実の日本の特許法 1885＝米欧から学んだ）。
+    /// 残る主張＝宗教教育の国は**自力では**特許を見つけない（中核エリートが薄い＝必要性が技術力70と合わせても門に届かない）・公教育の英は見つける・株式会社は技術力で開く。</summary>
     [Fact]
-    public void 制度は社会の発展で施行され宗教国は特許から外れる()
+    public void 制度は社会の発展で施行され宗教国は特許を自力で見つけない()
     {
         var sim = RunWithJapanPinnedReligious(400);
-        Assert.True(sim.Nations[2].World.PatentLaw, "イギリス（自由＋公教育）は特許を施行するはず");
-        Assert.False(sim.Nations[1].World.PatentLaw, "宗教教育の日本に特許が入ってしまう（世界の技術水準不能のはず）");
-        Assert.True(sim.Nations[1].World.JointStock, "工業化した日本は株式会社が入るはず");
+        var uk = sim.Nations[2].World; var jp = sim.Nations[1].World;
+        Assert.True(uk.PatentLaw, "イギリス（自由＋公教育）は特許を施行するはず");
+        var tj = Discovery.Evaluate(jp, null, jp.Coef, includeKnown: true)[Discovery.PatentRow];
+        Assert.True(tj.Tech + tj.Need < Discovery.GateScore, $"宗教教育の日本が特許を自力で見つけられる（技術力 {tj.Tech:F1}＋必要性 {tj.Need:F1}・中核エリート {jp.EliteCore:F3}）");
+        Assert.True(uk.JointStock, $"工業化したイギリスに株式会社が入らない（技術水準 {uk.TechLevel:F2}）");
     }
 
     [Fact]

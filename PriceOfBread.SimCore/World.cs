@@ -183,7 +183,7 @@ public sealed class World
     public double WorldFrontierExpertise { get; internal set; }       // 世界の専門人材率の先端（MultiNationSim が配る）
     public double TradeContactShare { get; internal set; } = 1.0;     // 接触度＝自国のペア貿易の世界シェア÷平均（平均1.0・鎖国0）。MultiNationSim が四半期に書く。単国＝1.0
     public double SeigneurialDegree0 { get; internal set; } = -1;   // ★支配度の一般化 段1：1783年の未解放度（在地の目標の分母）。負＝未設定（最初の四半期に Politics が書く）
-    public double IndustrialFrontier { get; internal set; } // 政16：世界最先端の工業化度＝各国MeanIndustrializationの最大。MultiNationSimが四半期同期で全国に注入。読み手＝Ideology の発展度ゲート（点火1.0）・AIの近代化の包絡・金本位志向の前線比（休眠）。単一国/初四半期は0でIdeologyが自国値へフォールバック。★2026-09-26：同じ最大を持つ2つ目の欄 WorldFrontierIndustrialization（助走でも配っていた）を削除して1本にした（sweep-15）
+    public double IndustrialFrontier { get; internal set; } // 政16：世界最先端の工業化度＝各国MeanIndustrializationの最大。MultiNationSimが四半期同期で全国に注入。読み手＝Ideology の発展度（ファシズムの支持の式・2026-10-01 (152) から思想の門は発見の2値）・AIの近代化の包絡・金本位志向の前線比（休眠）。単一国/初四半期は0でIdeologyが自国値へフォールバック。★2026-09-26：同じ最大を持つ2つ目の欄 WorldFrontierIndustrialization（助走でも配っていた）を削除して1本にした（sweep-15）
     public double Elite { get; internal set; }        // エリート水準（識字×世俗度）。技術を駆動（教育2段階の到達点）
     // ★本国のエリート水準（2026-08-26・植民地の州昇格に伴う分母の是正）。植民地格の州を除いた同じ式。
     //   ⚠なぜ要るか＝Elite は**率**なので、植民地が州になると非識字の現地住民で薄まる。研究の産出は Elite×総人口＝
@@ -199,10 +199,11 @@ public sealed class World
     public double ScoreStanding { get; internal set; } = double.NaN;
     public double Meritocracy { get; internal set; }  // メリトクラシー値（0..1）。近代的利益団体の力＋政体で決まり、教育済みの昇格を司る
 
-    // --- 制度・改革（研究C＝カードに代わる離散選択。社会の閾値で解禁し施行＝対応分野を恒久的に底上げ）---
-    public bool PatentLaw { get; internal set; }      // 特許制度＝革新を加速（自由＋公教育でエリートが育った社会）
-    public bool JointStock { get; internal set; }     // 株式会社＝近代化投資を加速（資本市場が立つ）
-    public bool Railways { get; internal set; }       // 鉄道＝生産性を底上げ（成熟した工業のインフラ）
+    // --- 制度（2026-10-01 (152)＝発見の表の制度の行の2値を読むだけ＝状態を持たない・設計 §1A-6）---
+    //   旧＝Institutions.Step が毎四半期に書いた bool（特許＝中核エリートの傾斜・株式会社＝最大工業化度の傾斜・鉄道＝最大工業化度 0.8）と州の倍率（IndustrializationBoost）。
+    public bool PatentLaw => Discovery.Known(Discovered, Discovery.PatentRow);          // 特許制度＝革新を加速（TechEducation.GrowTech）
+    public bool JointStock => Discovery.Known(Discovered, Discovery.JointStockRow);     // 株式会社＝工業化の投資を加速（EconomyStep が所有国の値を読む）
+    public bool Railways => Discovery.RailTransport(Discovered);                        // 鉄道＝「機関車」の行（鉄道輸送と同じ行・軍の練度の組織が読む）
 
     // --- 政府・政策（介入レバー。Policy＝目標、以下は利益集団の力で律速された現在値）---
     public NationPolicy Policy { get; internal set; } = new();
@@ -502,7 +503,7 @@ public sealed class World
         foreach (var law in Government.RateLaws) law.Set(this, law.Get(src));
         Tariff = src.Tariff; InterestRate = src.InterestRate; AdminSpending = src.AdminSpending;
         SetMilitarySpending(src.MilitarySpending, src.NavalSpendShare);   // 陸海の維持費ごと（2026-08-04）
-        PatentLaw = src.PatentLaw; JointStock = src.JointStock; Railways = src.Railways; LandTaxUnlocked = src.LandTaxUnlocked;
+        LandTaxUnlocked = src.LandTaxUnlocked;   // 特許・株式会社・鉄道は発見の2値（Discovered＝建国は親の知識を継ぐ）を読むだけ＝写さない
         Pension = src.Pension; SocialSecurity = src.SocialSecurity; WorkHoursValue = src.WorkHoursValue;
         Policy.CopyFrom(src.Policy);
     }
@@ -1295,9 +1296,10 @@ public sealed class World
     // ★残骸国家の自然再併合（2026-08-31）：内戦の白紙分断で生まれた国の親の名前（BaseName）。空＝対象外。
     //   RumpReabsorbYears>0 のとき、親GDP1%未満が続いた分断国を MultiNationSim が平和的に親へ戻す（軌道は再統合キューと同じ）。
     public string RumpParentName = "";
-    // ★発見・段7（2026-08-31）：思想の到達度（イデオロギー別 0..1）。発明国で立ち（種まきは段8の思想発見・診断は diffprobe）、
-    //   貿易路×メディアで広がる（MultiNationSim.StepDiffusion）。読者は段8の思想eraゲート置換まで無し＝恒等。
-    public double[] IdeologyReach = new double[Ideologies.Count];
+    // ★思想と制度の到達（0..1・発見の表の制度と思想の行ごと＝Discovery.SpreadRows の順・2026-10-01 (152)）＝その行の発見の「伝わり」の接触。
+    //   貿易路×メディアで広がる（MultiNationSim.StepDiffusion＝国の組の取引の割合×両国の媒体×放射の強さ〔思想＝持つ人の割合・制度＝解禁済みなら1〕の積み上げ）。
+    //   旧＝思想の到達（IdeologyReach・イデオロギー別11欄・2026-08-31 段7）＝門を持つ4思想の欄だけが読まれた（思想の門の max）＝制度の行を足して6欄へ（読まれない7欄を消した）。
+    public double[] SpreadReach = new double[Discovery.SpreadRows.Length];
     public int RumpLowQuarters;
     public double PendingForeignBorrow;   // ★§1-4（ForeignLendingDebits>0のみ書かれる）：今四半期の対外借入元本＝四半期末に他国資本家から対称控除される待ち行列
     public void LogAdd(string s) => PendingLog.Add(s);
