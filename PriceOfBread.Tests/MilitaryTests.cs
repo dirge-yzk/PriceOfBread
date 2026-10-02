@@ -1476,4 +1476,79 @@ public class MilitaryTests
         Assert.True(lo.ceil > 0, $"前提が崩れた：装備の上限が0（{lo.ceil}）");
         Assert.True(Math.Abs(hi.ceil - lo.ceil) <= 1e-12 * lo.ceil, $"戦時の倍率で装備の上限が広がった（{lo.ceil:G17} → {hi.ceil:G17}）＝選んだ段の外で軍事費が上がる");
     }
+
+    // ===== (175) 戦時の財政＝戦時段の戦費を借入で賄う（戦時国債・推奨で進めた・作者の承認は未確認）=====
+
+    /// <summary>★(175) 戦時段の器（<see cref="Military.EnvelopeAt"/>）＝段×器の割合×使える歳入 ＋ 戦時段の割合×借入の1件の額（<see cref="Fiscal.BorrowTicket"/>）。
+    /// 足すのは交戦中かつ総動員中（戦時段を解禁する述語＝<see cref="Government.MilitaryTotalTarget"/> と同じ1本）で、施行が段3 を超えた分だけ（段3→段4 で 0→1・線形）。
+    /// 平時・総動員の旗だけ・交戦だけでは段4 の施行でも足さない（作者裁定 2026-09-19 の推奨の2「総動員は戦時段を解禁するだけで選んだ軍事費を黙って上げない」・R2「戦後は下の値に戻る」）。
+    /// 借入の門（<see cref="Fiscal.BorrowGateOpen"/>＝冷却・利払いの限界）が閉じれば足さない（実際に借りる門と同じ1本＝思想⑨）。施行中の器（EnvelopeOf）は施行の段の EnvelopeAt。
+    /// 盤面＝日英（開幕の1四半期の後・日本は国債が無い＝借入の門が開いている〔仏は開幕の利払いが歳入を超える〕）・値は同じ瞬間の同じ式で比べる（厳密一致）。
+    /// ⚠突然変異「戦時の器を足さない」「総動員を読まない」「段3 以下にも足す」「借入の門を読まない」で赤。</summary>
+    [Fact]
+    public void 戦時段の器は交戦かつ総動員の戦時段の割合だけ借入の1件の額を足し借入の門が閉じれば足さない()
+    {
+        var sim = new MultiNationSim([NationConfig.Japan(), NationConfig.Britain()], seed: 1789);
+        sim.StepQuarter();
+        sim.Diplomacy.Wars.Clear();
+        var w = sim.Nations[0].World; var c = w.Coef; var foe = sim.Nations[1].World.SelfPower!;
+        w.Mobilized = false;
+        Assert.True(Fiscal.BorrowGateOpen(w, c), $"前提が崩れた：借入の門が閉じている（冷却 {w.BorrowCooldown}・利払い {w.LastInterest:G6}・歳入 {w.LastRevenue:G6}）");
+        double ticket = Fiscal.BorrowTicket(w.NominalGdp, c);
+        double Base(double lv) => lv * c.MilitaryEnvelopeShare * System.Math.Max(0, w.SpendableRevenue());
+        Assert.True(ticket > 0 && Base(1.0) > 0, $"前提が崩れた：1件の額 {ticket}・器 {Base(1.0)}");
+
+        Assert.Equal(Base(1.0), Military.EnvelopeAt(w, c, 1.0));          // 平時＝段4 の施行でも足さない
+        w.Mobilized = true;
+        Assert.Equal(Base(1.0), Military.EnvelopeAt(w, c, 1.0));          // 総動員の旗だけ（交戦していない）
+        w.Mobilized = false;
+        sim.Diplomacy.Wars.Add(new War { A = w.SelfPower!, B = foe });
+        Assert.Equal(Base(1.0), Military.EnvelopeAt(w, c, 1.0));          // 交戦だけ（総動員なし）
+        w.Mobilized = true;                                                 // 交戦かつ総動員＝戦時段の解禁
+        Assert.Equal(Base(0.5), Military.EnvelopeAt(w, c, 0.5));          // 段2 の施行＝足さない
+        Assert.Equal(Base(0.75), Military.EnvelopeAt(w, c, 0.75));        // 段3 の施行＝足さない（総動員だけで1銭も増えない）
+        Assert.Equal(Base(0.875) + 0.5 * ticket, Military.EnvelopeAt(w, c, 0.875));   // 段3→段4 の中ほど＝1件の額の半分
+        Assert.Equal(Base(1.0) + 1.0 * ticket, Military.EnvelopeAt(w, c, 1.0));       // 段4＝1件の額
+        w.SetMilitarySpending(1.0, w.NavalSpendShare);
+        Assert.Equal(Military.EnvelopeAt(w, c, w.MilitarySpending), Military.EnvelopeOf(w, c));   // 施行中の器＝施行の段の EnvelopeAt
+
+        w.BorrowCooldown = 3;                                               // 冷却中（デフォルト後の信用喪失）＝借りられない
+        Assert.Equal(Base(1.0), Military.EnvelopeAt(w, c, 1.0));
+        w.BorrowCooldown = 0;
+        w.LastInterest = c.MaxInterestShareOfRevenue * w.LastRevenue;      // 利払いが歳入の限界に届いた＝借りられない
+        Assert.False(Fiscal.BorrowGateOpen(w, c));
+        Assert.Equal(Base(1.0), Military.EnvelopeAt(w, c, 1.0));
+    }
+
+    /// <summary>★(175) 呼び手の側＝月の予算（Simulation の月次決算）は戦時段の器で請求する＝装備の上限（給与の後に残る器・r を掛ける前）が借入の1件の額に比例して広がる。
+    /// 盤面＝日英（開幕の1四半期の後に交戦・日本は国債が無い＝借入の門が開いている）・器を大きく（装備の上限が正）・月の決算の直前に総動員と段4 の施行と1件の割合（BorrowFractionOfGdp）だけを替えた双子
+    /// ＝決算までの盤面は同じ（1件の割合は借入と戦時段の器だけが読む）。1件の割合 0.10→0.20 と 0.10→0.30 の差が 1:2（線形）・総動員なしの双子は1件の割合で動かない。
+    /// ⚠突然変異「月の予算が戦時の器を読まない（旧の式）」で赤。</summary>
+    [Fact]
+    public void 月の予算は戦時段の器で請求し装備の上限は借入の1件の額に比例して広がる()
+    {
+        double Twin(double frac, bool mobilized)
+        {
+            var sim = new MultiNationSim([NationConfig.Japan(), NationConfig.Britain()], seed: 1789);
+            sim.StepQuarter();
+            var w = sim.Nations[0].World; var c = w.Coef;
+            sim.Diplomacy.Wars.Add(new War { A = w.SelfPower!, B = sim.Nations[1].World.SelfPower! });
+            c.MilitaryEnvelopeShare = 1000;     // 器を大きく＝給与の後に装備の上限が残る
+            for (int d = 0; d < Calendar.DaysPerMonth - 1; d++) sim.StepDay();
+            w.Mobilized = mobilized; w.SetMilitarySpending(1.0, w.NavalSpendShare);   // 月の決算の直前に戦時段（段4 の施行）へ＝四半期の頭の施行は通らない
+            c.BorrowFractionOfGdp = frac;
+            Assert.True(Fiscal.BorrowGateOpen(w, c), $"前提が崩れた：借入の門が閉じている（冷却 {w.BorrowCooldown}・利払い {w.LastInterest:G6}・歳入 {w.LastRevenue:G6}）");
+            sim.StepDay();
+            double ceil = 0;
+            foreach (var r in w.Regions) if (r.State == RegionState.Active) ceil += r.MilitaryBudgetCeiling;
+            Assert.True(w.FiscalFundingRatio > 0, $"前提が崩れた：国家の支払い率 {w.FiscalFundingRatio}");
+            return ceil / w.FiscalFundingRatio;   // 請求（r を掛ける前）
+        }
+        double a = Twin(0.10, true), b = Twin(0.20, true), c3 = Twin(0.30, true);
+        double d20 = b - a, d30 = c3 - a;
+        Assert.True(a > 0 && d20 > 1e-6 * a, $"戦時段の装備の上限が1件の額で広がらない（{a:G17} → {b:G17}）＝月の予算が戦時の器を読んでいない");
+        Assert.True(System.Math.Abs(d30 - 2 * d20) <= 1e-9 * d30, $"装備の上限の広がりが1件の額に比例しない（0.20 で {d20:G17}・0.30 で {d30:G17}）");
+        double p1 = Twin(0.10, false), p2 = Twin(0.30, false);
+        Assert.True(p1 > 0 && System.Math.Abs(p2 - p1) <= 1e-12 * p1, $"総動員なしの装備の上限が1件の額で動いた（{p1:G17} → {p2:G17}）＝総動員の外で戦時の器が立つ");
+    }
 }

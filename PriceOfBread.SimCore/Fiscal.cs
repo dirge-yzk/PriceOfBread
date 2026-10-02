@@ -649,6 +649,17 @@ public static class Fiscal
         return n > 0 ? s / n : 1.0;
     }
 
+    /// <summary>★借入の門（2026-10-03 (175) に <see cref="Borrow"/> の3行を1本へ畳んだ＝挙動は同じ）＝冷却中でない（デフォルト後の信用喪失）・開始前の助走でない・
+    /// 直近の利払いが歳入の限界（<see cref="Coefficients.MaxInterestShareOfRevenue"/>）の下。読み手＝<see cref="Borrow"/> と戦時段の器（<see cref="Military.EnvelopeAt"/>＝戦時国債）の2つ
+    /// ＝戦時段が借りる余地と実際に借りる門が同じ1本（思想⑨＝借入の経路を2本にしない）。
+    /// ★助走の門（2026-09-29）＝国債の残高は時間が経って積み上がる量（減債・不履行の計数と同じ門・Step）。否定形＝NaN は借りない側（歳入0の国は利払い0でも借りられない＝返す財源の無い国に貸し手はいない）。</summary>
+    internal static bool BorrowGateOpen(World w, Coefficients c)
+        => !(w.BorrowCooldown > 0) && !w.WarmupFrozen && w.LastInterest < c.MaxInterestShareOfRevenue * w.LastRevenue;
+
+    /// <summary>★1件の額＝月次の名目GDP×<see cref="Coefficients.BorrowFractionOfGdp"/>（負の GDP は0）＝月に借りられる額の上限。
+    /// 読み手＝<see cref="Borrow"/>（払えない額と比べる）と戦時段の器（<see cref="Military.EnvelopeAt"/>）の2つ＝同じ1本（2026-10-03 (175)）。</summary>
+    internal static double BorrowTicket(double nominalGdp, Coefficients c) => Math.Max(0, nominalGdp) * c.BorrowFractionOfGdp;
+
     /// <summary>★借入（エンジンが自動で借りる・作者裁定 2026-09-28「借入は自動化・借金ボタンは不要」）：借入額＝min(1件の額, 月初の払えない額, 貸し手のプール)。
     /// **月初に Simulation が国家の支払い率 r を決める前に呼ぶ**＝払える額の中身の順＝税・歳入→借入（この関数）→それでも足りない分だけ切り下げ（作者裁定 2026-09-28 (b)）。
     /// 借りた金はその月の支払いに使う（呼び手が払える額へ足す）。返り値＝借りた額（国庫へ入った額）。呼び手は Simulation の月次決算の1か所だけ（AI とプレイヤーの経路は無い＝等価）。</summary>
@@ -677,14 +688,12 @@ public static class Fiscal
         //   分子と分母が別の時点・別の物差しだった＝2026-09-28 に削除（思想⑩・棚卸し fis-01「スタック数は残高から導ける」）。
         //   否定形＝NaN は借りない。歳入0の国は利払い0でも借りられない（返す財源の無い国に貸し手はいない）。
         double shortfall = spare < 0 ? -spare : 0;   // 否定形＝NaN は借りない
-        if (!(shortfall > 0) || w.BorrowCooldown > 0) return 0;   // 月に1件。デフォルト後のクールダウン中は借りられない（信用喪失）
-        if (w.WarmupFrozen) return 0;   // ★開始前の助走は借りない（2026-09-29）＝国債の残高は時間が経って積み上がる量（減債・不履行の計数と同じ門・Step）。払えない額は切り下げの余地か r＜1 のまま
-        if (!(w.LastInterest < c.MaxInterestShareOfRevenue * w.LastRevenue)) return 0;
+        if (!(shortfall > 0) || !BorrowGateOpen(w, c)) return 0;   // 月に1件。門（冷却・助走・利払いの限界）は戦時段の器（Military.EnvelopeAt）と同じ1本
         // 1件の額＝月次**名目**GDP×割合（2026-09-28・単位の対称）。旧＝実質GDP（参照価格の産出）＝払えない額・国債・プールは名目なので、
         //   物価水準が1から離れる国ほど1件の物差しがずれた（分子と分母の非対称）。下の外資のプールも同じ理由で名目。
         //   ⚠月初＝その月の産出の前＝名目GDP は直近の月の産出（Step が読むのと同じ産出）。GDP の走査は借りる月だけ。
         double nominalGdp = w.NominalGdp;
-        double borrowWant = Math.Min(Math.Max(0, nominalGdp) * c.BorrowFractionOfGdp, shortfall);
+        double borrowWant = Math.Min(BorrowTicket(nominalGdp, c), shortfall);
         var capitalists = new List<Pop>();
         foreach (var r in w.Regions) foreach (var p in r.Pops) if (CapitalMarket.IsInvestor(p, c)) capitalists.Add(p);   // 国内の買い手＝資本家/近代エリート（NobleInvests>0で貴族も。既定0＝旧述語と厳密恒等）
         double capSavings = 0; foreach (var p in capitalists) capSavings += Math.Max(0, p.Savings);

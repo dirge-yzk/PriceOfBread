@@ -56,16 +56,42 @@ public static class Military
     /// × <see cref="Coefficients.MilitaryEnvelopeShare"/> × 使える歳入。志願制の定員（払える予算÷1人あたりの費用＝<see cref="EstablishmentOf"/>）の分子。
     /// ★旧の扶養限界の経済の側（歳入×SustainMilShare 0.175）は軍事費の段を読まなかった＝(145) の「軍事費の段は平時の兵数を動かさない」の根。
     ///   係数の値は旧の段の既定（0.25）で旧と同じ額になる比（0.175÷0.25＝0.7）＝段を上げれば払える予算が比例して増える。
-    /// NaN と負は0（否定形）。</summary>
-    public static double EnvelopeOf(World w, Coefficients c)
+    /// NaN と負は0（否定形）。施行中の段（<see cref="World.MilitarySpending"/>）の器＝<see cref="EnvelopeAt"/> の1本。</summary>
+    public static double EnvelopeOf(World w, Coefficients c) => EnvelopeAt(w, c, w.MilitarySpending);
+
+    /// <summary>★段 <paramref name="level"/>∈[0,1] の軍事費の器（エンジンは施行中の段＝<see cref="EnvelopeOf"/>・画面の予算表は門を通った目標の段＝同じ1本）
+    /// ＝段×<see cref="Coefficients.MilitaryEnvelopeShare"/>×使える歳入 ＋ 戦時段の割合（<see cref="WarStageShare"/>）×借入の余地。
+    /// ★戦時段の戦費は借入で賄う（2026-10-03 (175)・戦時国債＝推奨で進めた・作者の承認は未確認）：作者裁定 R2（2026-09-12）「軍事費は『低/中/高/戦時』の4段とする。
+    ///   戦時経済は総動員とセットで、戦後は下の値に戻る」の「戦時経済」の中身＝戦時段（段3→段4 の間の施行の割合）の器に、借入の門（<see cref="Fiscal.BorrowGateOpen"/>＝冷却・助走・利払いの限界）が
+    ///   開いていれば1件の額（<see cref="Fiscal.BorrowTicket"/>＝月次の名目GDP×BorrowFractionOfGdp）を足す。作者裁定（2026-09-19・「全て推奨・歴史的に正しい方向で」で採った推奨の2）
+    ///   「総動員は戦時段を解禁するだけで選んだ軍事費を黙って上げない」の中＝段は選んだもの（AI もプレイヤーも同じ法の門）・総動員だけでは1銭も増えない（段3 までの施行には足さない）・
+    ///   交戦か総動員が落ちた月に0へ戻る（戦後は下の値に戻る＝新しいタイマーなし）。
+    ///   お金の出どころは既存の1本のまま（月初の払える額の中身の順＝国庫と歳入→借入〔<see cref="Fiscal.Borrow"/>＝同じ門・同じ1件の額〕→切り下げ・全ての行に同じ支払い率 r
+    ///   ＝作者裁定 2026-09-28「支払いは順序ではなく、比率の問題にしたい」）＝国庫に蓄えがあれば先に蓄えから払い、無ければ借りる。借入の経路を2本にしない（思想⑨）。
+    ///   史実【推】＝英のナポレオン戦争（1793〜1815 に国債 約2.4億→約7.5億ポンド）・第一次大戦の戦費の大半は借入（英 1914 年8月の戦費の議決・独の戦時公債）・利払いが歳入の限界に届けば借りられない＝戦費が細る。
+    ///   ⚠旧（〜(173)）＝戦時段の器は段3 の 1.33 倍の歳入だけ＝戦時の軍需の必要額（平時の約11倍）に対し装備の上限÷必要額 0.10〜0.17・戦時の借入はほぼ0（実装ログ (170) §1 ⑤・(175) §1）。
+    /// 新しい数・新しい状態は無い（段の写像・借入の門・1件の額は既存）。NaN と負は0（否定形）。</summary>
+    public static double EnvelopeAt(World w, Coefficients c, double level)
     {
-        double e = w.MilitarySpending * c.MilitaryEnvelopeShare * Math.Max(0, w.SpendableRevenue());
+        double e = level * c.MilitaryEnvelopeShare * Math.Max(0, w.SpendableRevenue());
+        double war = WarStageShare(w, level);
+        if (war > 0 && Fiscal.BorrowGateOpen(w, c)) e += war * Fiscal.BorrowTicket(w.NominalGdp, c);
         return e > 0 ? e : 0;
+    }
+
+    /// <summary>★戦時段の割合∈[0,1]（2026-10-03 (175)）＝交戦中かつ総動員中（<see cref="Government.MilitaryTotalTarget"/> が戦時段を解禁する述語と同じ1本）だけ、
+    /// 段 <paramref name="level"/> が段3（高＝(段数−1)/段数）を超えた分÷1段の幅（段4 で1）。解禁の外（平時・交戦だけ・総動員だけ）は0＝戦後に施行が段3 の上に残っていても戦時の器は立たない。
+    /// 線形＝段の器（段×器の割合×歳入）と同じ形（施行の途中の段は途中の割合）。否定形＝NaN は0。</summary>
+    internal static double WarStageShare(World w, double level)
+    {
+        if (!(w.AtWarNow && w.Mobilized)) return 0;
+        double s = (level - (Government.MilitaryLawStages - 1) / (double)Government.MilitaryLawStages) * Government.MilitaryLawStages;
+        return s > 0 ? (s < 1 ? s : 1.0) : 0;
     }
 
     /// <summary>★定員＝制度が開く兵の席の数（2026-10-02 (155)・作者承認 2026-10-01「それでよい。ただし兵士は他の職とは性質が違うので、多少の外科的な処置は許可する」
     /// ＝兵士を転職の仕組みの職の1つに・席の数は制度＝推奨で進めた）。旧の扶養限界（作者設計 2026-08-08＝経済の側と人口の側の小さい方）の形をそのまま使う：
-    /// ・経済の側＝払える予算（<see cref="EnvelopeOf"/>＝軍事費の段×器の割合×使える歳入）÷兵1人あたりの月の費用（給与＝徴募の母数の前月の働き盛り1人あたりの賃金×SoldierPayMult
+    /// ・経済の側＝払える予算（<see cref="EnvelopeOf"/>＝軍事費の段×器の割合×使える歳入〔＋戦時段の割合×借入の1件の額＝(175)〕）÷兵1人あたりの月の費用（給与＝徴募の母数の前月の働き盛り1人あたりの賃金×SoldierPayMult
     ///   ＝<see cref="RecruitWage"/> と同じ規則＋装備＝MilitaryUpkeepScale×Σ(rate×RefPrice)×自己費用の物価水準）＝英の陸軍予算の型（議会は金と兵の数を決めた）。
     /// ・人口の側＝兵役の母数（働き盛りの男＝<see cref="RegionManpower"/>）×MaxSoldierFraction＝徴兵法の割当て（平時の上限）。徴兵制も志願制も同じ1本（徴兵の拡大にも予算が要る
     ///   ＝普の1862 憲法紛争）。法が変えるのは席の埋め方（徴兵＝強制・志願＝転職の仕組み）と兵1人の給与の物差し（下）だけ。

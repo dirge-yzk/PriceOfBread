@@ -322,7 +322,8 @@ public partial class GameViewModel
         // ★(155) 軍事費の器（段×MilitaryEnvelopeShare×使える歳入＝エンジンの Military.EnvelopeOf と同じ基数）から兵士の給与の請求（LastSoldierPay＝規定の給与＋幹部の給与〔質〕）を引いた残り＝装備の上限
         //   （⚠(157) の注記＝旧の注記「装備と質の上限」は誤り＝質は LastSoldierPay の側で陸軍の行に入る＝陸と海の行の和〔mil＋pSoldier〕が器に一致する）
         //   （エンジンの吸い込みと同じ順・必要額で切る前＝上限の予測＝使い切れない器は実効に出ない）。旧＝段×MilitaryRevenueShare×税の予測（装備の上限）。
-        double mil = System.Math.Max(0, Government.MilitaryTotalTarget(_player, _player.Policy) * c.MilitaryEnvelopeShare * System.Math.Max(0, _player.SpendableRevenue()) - _player.LastSoldierPay);
+        //   ★(175)：器はエンジンと同じ1本（Military.EnvelopeAt＝段×器の割合×使える歳入＋戦時段の割合×借入の余地〔戦時国債〕）を目標の段で読む＝画面に第二の式を置かない。
+        double mil = System.Math.Max(0, Military.EnvelopeAt(_player, c, Government.MilitaryTotalTarget(_player, _player.Policy)) - _player.LastSoldierPay);
         double admin = c.AdminBudgetFrac * _player.Policy.AdminSpendingTarget * net * Fiscal.AdminDistanceMean(_player);   // 州の距離の割増の平均＝エンジンの行政の請求と同じ1本（2026-09-30 (135)）
         double welCap = c.WelfareRevenueShare * _player.FiscalCapacity;   // 裁量余剰の上限（請求の上限＝エンジンの Fiscal と同じ式・借入スタックの出費上限は 2026-09-28 に撤去）
         double wel = System.Math.Min(c.WelfareCostRate * _player.Policy.SocialSecurityTarget * massSize, welCap);
