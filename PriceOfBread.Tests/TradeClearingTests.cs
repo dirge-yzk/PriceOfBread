@@ -344,15 +344,37 @@ public class TradeClearingTests
         }
     }
 
+    /// <summary>★(166) 鉄道以前の陸の容量は人口×基礎の目標（Transport.PreRailCapacity＝人口×TransportTargetPerPop）＝国ごとの定数ではない・清算の内陸の州の容量はこの1本を読む（呼び手の側）：
+    /// 英の1国・鉄道0・船は十分（内陸の州の容量は陸で決まる）・港の容量の上乗せ0 → 内陸の州の容量（LastTransportCap）は基礎の目標を2倍にすると2倍・関数は人口×基礎の目標と同じ値。
+    /// ⚠壊し方＝清算が国ごとの定数を足す（旧 TransportBaseline の形）・関数が人口を読まない → 赤。</summary>
+    [Fact]
+    public void 鉄道以前の陸の容量は人口に比例し清算の内陸の州の容量はそれを読む()
+    {
+        double[] InlandCaps(double perPop)
+        {
+            var (sim, _, _, _, _) = Make(WorldData.ByName("イギリス"));
+            var w = sim.Nations[0].World;
+            sim.Coef.TransportTargetPerPop = perPop; sim.Coef.PortCapToThroughput = 0; w.RailCapacity = 0; w.ShipCapacity = 1e12;
+            Assert.Equal(w.TotalPopulation * perPop, Transport.PreRailCapacity(w, sim.Coef), 9);
+            sim.Market.Step(sim.Nations, sim.Coef);
+            return w.Regions.Where(r => r.State == RegionState.Active && !r.IsPort).Select(r => r.LastTransportCap).ToArray();
+        }
+        var a = InlandCaps(0.08); var b = InlandCaps(0.16);
+        Assert.True(a.Length > 0, "英に内陸の州が無い（テスト前提の破れ）");
+        Assert.True(a.All(x => x > 0), "内陸の州の容量が0（鉄道以前の陸の容量が清算に届いていない）");
+        for (int i = 0; i < a.Length; i++) Assert.Equal(2.0, b[i] / a[i], 9);
+    }
+
     /// <summary>潜在量は組ごとに1回：買い手の容量が尽きた行でも、同じ不足を次善の売り手ごとに数え直さない（作者裁定 2026-09-29 の2）＝行の潜在量は不足（X）を超えない。</summary>
     [Fact]
     public void 潜在量は同じ不足を売り手の数だけ重ねない()
     {
         // 盤面＝英の1国：鉄道と基礎の陸の容量を0にすると内陸の州は運べない（港の州は船で運べる）。売り手は港の2州（どちらも出す量が厚い）。
         //   内陸の買い手の行＝有効な売り手が2人・量は容量で0に切られる＝旧は同じ不足（X）を2人の売り手で2回数えた。
+        //   ★(166) 鉄道以前の陸の容量＝人口×TransportTargetPerPop（Transport.PreRailCapacity・旧＝TransportBaseline）＝その係数を0にする。
         var (sim, g, seller, seller2, _) = Make(WorldData.ByName("イギリス"));
         var w = sim.Nations[0].World;
-        sim.Coef.TransportBaseline = 0; sim.Coef.PortCapToThroughput = 0; w.RailCapacity = 0;
+        sim.Coef.TransportTargetPerPop = 0; sim.Coef.PortCapToThroughput = 0; w.RailCapacity = 0;
         foreach (var r in w.Regions) foreach (var m in r.Markets)   // ほかの財は欲しがらない（潜在量を財 g だけにする）
             if (!ReferenceEquals(m, r.Markets[g])) { m.LastDemand = 0; m.TargetStock = 0; m.LastProduced = 0; }
         foreach (var sr in new[] { seller, seller2 }) { var m = sr.Markets[g]; m.Stock = 5000; m.TargetStock = 10; m.LastDemand = 10; m.LastProduced = 5000; }
@@ -413,9 +435,10 @@ public class TradeClearingTests
     public void 月の清算は潜在量を書かず容量の尽きた行を回さない()
     {
         // 盤面＝英の1国：鉄道と基礎の陸の容量を0にすると内陸の州は運べない（容量が尽きた行）。売り手は港の2州・内陸の州だけが欲しがる（潜在量の番人と同じ盤面）。
+        //   ★(166) 鉄道以前の陸の容量＝人口×TransportTargetPerPop（Transport.PreRailCapacity）＝その係数を0にする。
         var (sim, g, seller, seller2, _) = Make(WorldData.ByName("イギリス"));
         var w = sim.Nations[0].World;
-        sim.Coef.TransportBaseline = 0; sim.Coef.PortCapToThroughput = 0; w.RailCapacity = 0;
+        sim.Coef.TransportTargetPerPop = 0; sim.Coef.PortCapToThroughput = 0; w.RailCapacity = 0;
         foreach (var r in w.Regions) foreach (var m in r.Markets)
             if (!ReferenceEquals(m, r.Markets[g])) { m.LastDemand = 0; m.TargetStock = 0; m.LastProduced = 0; }
         foreach (var sr in new[] { seller, seller2 }) { var m = sr.Markets[g]; m.Stock = 5000; m.TargetStock = 10; m.LastDemand = 10; m.LastProduced = 5000; }

@@ -400,7 +400,7 @@ public static class MarketFlow
     /// （ハードな Clamp と違い導関数が連続＝角が無い）。床/天井の倍率が非対称でも可。k が大きいほどハードクランプに近い。
     /// ★境界の**対数**を受け取る形（A-09）＝呼び手が定数なら Math.Log を巻き上げられる。
     /// lnFloorPos＝−ln(床倍率)（正）／lnCeilPos＝ln(天井倍率)（正）。</summary>
-    private static double SoftBandLn(double price, double rp, double lnFloorPos, double lnCeilPos, double sharpness)
+    internal static double SoftBandLn(double price, double rp, double lnFloorPos, double lnCeilPos, double sharpness)   // internal＝★(166) 陸の運賃の天井（Discovery.LandFreightPrice）も同じ漸近形を読む
     {
         double u = System.Math.Log(System.Math.Max(price, Eps) / rp);     // 参照価格からの対数距離
         double L = u >= 0 ? lnCeilPos : lnFloorPos;                       // その向きの境界までの対数距離（正）

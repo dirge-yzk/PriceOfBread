@@ -359,6 +359,11 @@ public class WriterRatchetTests
     //   着値の充填 28,778,490→29,450,927（+2.3%＝交易の軌道）・請求 2,742→2,994（+9.2%＝最初の40四半期の請求の軌道）・覇権の判定 2,148,613→1,846,422（−14.1%＝10% を超えて下がった＝表を下げる・同盟の候補が居る月の軌道）。
     //   処理の形は同じ。ほかの15本は許しの内。全長の10種では着値の充填 378,854,466→423,393,780・請求 767,695→575,463・覇権の判定 107,255,350→117,322,994・発見の単価の分 +0.63 秒
     //   ＝推定 235.9→238.7 秒（予算の内・目標より下の余りの中＝払っていない・実装ログ (165)）。
+    // ★2026-10-02 表の更新（(166) 鉄道以前の陸の容量を人口×基礎の目標へ〔Transport.PreRailCapacity・旧＝国ごとの定数 50〕＋陸の運賃の天井を漸近形へ＝軌道が動いた分の宣言・新しい計数の処理は無い
+    //   〔Transport.PreRailCapacity は清算の国ごとの1回の人口の和＝計数を持たない小さな分〕）：
+    //   着値の充填 29,450,927→42,375,697（+43.9%＝鉄道の前に絞られていた内陸の州の交易が通るようになった＝成約の充填が増えた・処理の形は同じ）・覇権の判定 1,846,422→1,941,249（+5.1%＝許しの外へ出た軌道）。
+    //   ほかの15本は許しの内。全長の10種では着値の充填 423,393,780→484,898,141（+14.5%）・覇権の判定 117,322,994→126,683,130＝推定 238.7→246.6 秒
+    //   （予算の内＝上限 248.5 秒・目標より下の余りの中＝払っていない・残りの余り 1.9 秒・実装ログ (166)）。
     [InlineData(CostLedger.ConstructionSeen, 7449L)]
     [InlineData(CostLedger.CreditSpans, 33282L)]
     [InlineData(CostLedger.ConsumePopGoods, 28595736L)]
@@ -366,9 +371,9 @@ public class WriterRatchetTests
     [InlineData(CostLedger.ClaimProducers, 2994L)]
     [InlineData(CostLedger.MonthlyPops, 706680L)]
     [InlineData(CostLedger.ClearingRows, 5185642L)]
-    [InlineData(CostLedger.ClearingFills, 29450927L)]
+    [InlineData(CostLedger.ClearingFills, 42375697L)]
     [InlineData(CostLedger.DiploPowerMonths, 9954L)]
-    [InlineData(CostLedger.DiploHegemonScans, 1846422L)]
+    [InlineData(CostLedger.DiploHegemonScans, 1941249L)]
     [InlineData(CostLedger.QuarterStartPops, 235560L)]
     [InlineData(CostLedger.QuarterEndPops, 235560L)]
     [InlineData(CostLedger.SharedNationQuarters, 3698L)]

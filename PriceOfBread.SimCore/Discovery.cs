@@ -479,7 +479,11 @@ public static class Discovery
     }
 
     /// <summary>★(165) 世界の平滑化した実質の値段（財ごと）＝その四半期に国内の市場が生きている国（瞬間の値段の観測がある国）の平滑化した値段を、その国の需要で重み付けた平均。
-    /// どの国にも市場が無い財は <see cref="NoPrice"/>。判定の段の頭（全ての国の <see cref="AdvancePrice"/> の後）で求める導出量＝状態ではない（<see cref="WorldView.WorldPrice"/>）。</summary>
+    /// どの国にも市場が無い財は <see cref="NoPrice"/>。判定の段の頭（全ての国の <see cref="AdvancePrice"/> の後）で求める導出量＝状態ではない（<see cref="WorldView.WorldPrice"/>）。
+    /// ⚠(166) 計器（種1）＝外へ売らない薄い市場（開幕の一律の在庫を少しの需要で捌く小国＝2四半期目のデンマークの蒸気機関の財〔産出 1.5e-8・需要 0.048・在庫 575・輸出0〕の 1.69＝参照の 0.44倍）が
+    ///   世界の値段になり、清・露・仏・日の蒸気の動力の費用が自国で作る費用の 1/10 前後へ落ちて、主要国の全てが開幕の年に蒸気機関を見つけた。
+    ///   重みを国の純輸出にする腕（D1＝外へ売っている国の値段だけ＝輸入すれば払う値段）は、清の蒸気機関を 1784→1793 年へ遅らせたが、合わせた木の10種で常勝の疑い（米 6/10）＝入れていない
+    ///   （パッチ measurements/m165_20261002_D1.diff・実装ログ (166)）。</summary>
     internal static double[] WorldPrices(IReadOnlyList<World> worlds, IReadOnlyList<(double[] Inst, double[] Dem)> obs)
     {
         int ng = Catalog.Goods.Length;
@@ -628,18 +632,22 @@ public static class Discovery
     /// 陸の運賃は市場の値段ではない（地形と鉄道の2値の係数）＝輸送力の不足（<see cref="LandFreightServed"/>＝潜在の交易のうち容量が通した割合）を、市場の値段の均衡と同じ規則
     /// （P*＝参照×(需要÷供給)^(1/2ε)・<see cref="Coefficients.PriceElasticity"/>）で値段へ直す＝(1÷通した割合)^(1/2ε)・天井は財の値段の上限と同じ値（<see cref="Coefficients.PriceCeilFactor"/>＝
     /// 通した割合0 の発散を止める＝思想⑧の例外「発散する量へのロック＝価格の上限」）。新しい係数は無い。平滑化した値段の末尾の1欄（判定と同じ遅れ）。
-    /// ⚠(160)（(159) の反証役の指摘・低）＝形は硬い上限（小さい方を取る）で、財の値段の SoftBand（対数空間で境界へ漸近する）とは違う。PriceElasticity 0.5 では値段＝1÷通した割合
-    ///   ＝鉄道の前の英・仏・清（通した割合 0.7〜0.9%＝値段 111〜143）では天井が効いている＝安全網ではなく実際に動く点（必要性は天井でも漸近形でも約61〜64で飽和＝実害は小さい）。
-    ///   漸近形へ替えるのは挙動の変更＝輸送の回へ申し送り（00一覧 §0-A の 5 の残り）。</summary>
+    /// ★(166) 天井は財の値段と同じ漸近形（<see cref="MarketFlow.SoftBandLn"/>＝対数空間で境界へ漸近・内側〔天井の対数の0.7倍＝100^0.7≈25 まで〕はほぼ恒等・鋭さ <see cref="Coefficients.SoftBandSharpness"/>）
+    ///   ＝(160)（(159) の反証役の指摘・低）の申し送り「硬い上限（小さい方を取る）を漸近形へ」。旧＝Math.Min の硬い上限（鉄道の前の英・仏・清は通した割合 0.3〜0.9%＝値段 111〜333 で天井に張り付いた）。
+    ///   必要性への効き（源から）＝通した割合 2%（値段 50）で 漸近形 44.5・硬い上限 50＝機関車の必要性 65.0 対 65.1（半分点 0.4・鉄道の費用 0.25）＝全域で 0.28 点以下（値段 25 で 24.5・10 で 10.0）。
+    ///   ★(166) 鉄道の前の陸の容量を人口に比例させた（<see cref="Transport.PreRailCapacity"/>）後は、大国の鉄道の前の通した割合は 0.3〜1（値段 1〜3）＝天井に届かない。
+    /// ⚠ 機関車の必要性は鉄道の前に飽和する（源から・(166)）＝通した割合 1（輸送の不足なし＝値段 1）でも ln(1÷鉄道の費用 0.25)＝1.39 → 必要性 54（地形の鉄道÷馬が1の州）
+    ///   ＝比べる相手が運転の費用だけ（鉄道の線路と機関車の資本の値段を読まない＝作者への確認③）＝「輸送力の不足」は ln(値段) の分だけ上に乗る。</summary>
     internal static double LandFreightPrice(World w)
     {
         var c = w.Coef;
         double cap = c.PriceCeilFactor > 1.0 ? c.PriceCeilFactor : 1.0;
         double e = c.PriceElasticity > 0 ? 1.0 / (2.0 * c.PriceElasticity) : 1.0;
         double served = LandFreightServed(w);
-        if (!(served > 0)) return cap;   // 否定形＝NaN と0（全く通らない）は天井
+        if (!(served > 0)) return cap;   // 否定形＝NaN と0（全く通らない）は天井（漸近の極限）
         double p = System.Math.Pow(1.0 / served, e);
-        return p < cap ? p : cap;
+        double lnCap = System.Math.Log(cap);
+        return MarketFlow.SoftBandLn(p, 1.0, lnCap, lnCap, c.SoftBandSharpness);   // 値段≧1（通した割合≦1）＝天井の側だけを使う
     }
 
     /// <summary>陸の輸送の通した割合（2026-10-02 (159)）＝国の内陸の州（港でない稼働中の州）で、潜在の交易（<see cref="Region.LastTradePotential"/>＝容量で切る前）のうち

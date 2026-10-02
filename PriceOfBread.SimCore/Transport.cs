@@ -68,6 +68,14 @@ public static class Transport
         if (c.ShipFuelRate > 0) BuyShipFuel(w, c, era);
     }
 
+    /// <summary>★鉄道以前の陸の容量（道路・河川・運河＝国の値・2026-10-02 (166)）＝人口×<see cref="Coefficients.TransportTargetPerPop"/>（経済規模に応じた基礎の目標容量と同じ物差し）。
+    /// 清算（BilateralMarket の内陸の容量＝鉄道の容量＋これ）と画面（貿易タブの「基本輸送力」）が同じ1本を読む。
+    /// ⚠旧＝国ごとの定数 TransportBaseline 50（デンマークも清も同じ 50）＝分子と分母の非対称（潜在の交易は国の規模で増えるのに容量は国の数で決まる）
+    ///   ＝鉄道の前の大国の内陸の州の通した割合が 0.3〜7%（1784 の5種の中央＝英 1.0%・仏 0.42%・清 0.26%・露 2.8%・墺 2.0%・普 6.6%＝(166) の計器・(165) の木）＝陸の運賃が天井（100）に張り付いた。
+    /// ★人口×基礎の目標（推奨で進めた）＝鉄道の前の通した割合 英 0.68・仏 0.36・普 0.71・墺 0.76・露 0.94・米 0.45・日 1.00・清 0.96・オスマン 0.69（同じ読み・10種の中央・1784）
+    ///   ＝史実の向き（仏の内陸の輸送は悪い・英は運河と有料道路が混む・日は沿岸の海運）。鉄道の時代の基礎の目標（人口×TransportTargetPerPop）と同じ物差し＝新しい係数を置かない（TransportBaseline は削除）。</summary>
+    internal static double PreRailCapacity(World w, Coefficients c) => w.TotalPopulation * c.TransportTargetPerPop;
+
     /// <summary>★州の取り分の規則の1本（2026-09-30 (118)）＝国の輸送の容量のうち州が使う割合の基底（国ごと）。
     /// 清算（BilateralMarket の港と鉄道の容量）と州の移し替え（<see cref="Territory.TransferRegion"/>＝容量が州と一緒に移る）が同じ規則を読む。
     /// 均等割り＝活動州の数の逆数・潜在量比例の度合い＝TransportShareByPotential（0..1）・潜在量の和＝活動州の LastTradePotential（負は0・四半期の最初の清算が書いた値＝2026-09-30 (130)）。

@@ -1,0 +1,162 @@
+diff --git a/PriceOfBread.SimCore/Discovery.cs b/PriceOfBread.SimCore/Discovery.cs
+index aa43b50..a47cc3d 100644
+--- a/PriceOfBread.SimCore/Discovery.cs
++++ b/PriceOfBread.SimCore/Discovery.cs
+@@ -177,8 +177,8 @@ public static class Discovery
+     /// <summary>国の外から見た値（<see cref="MultiNationSim"/> が四半期末に求めて渡す・単独の世界は null）＝行ごとの接触（★(159)：人件費の世界の平均〔(147)〕は削除＝必要性は生み出す物の値段だけを読む）。
+     /// ★<paramref name="Loss"/>＝この四半期の陸・海・空の損耗の強さ（添字は <see cref="WarDomain"/>・月の平均・0〜1＝<see cref="World.DiscoveryLossQ"/> を <see cref="Step"/> が直した値・2026-10-01 (153)）
+     /// ＝国の中の値だが、記帳は判定で捨てる＝画面と計器が判定と同じ3項を読むためにここへ載せる（<see cref="World.LastDiscoveryView"/>）。
+-    /// ★<paramref name="WorldPrice"/>（(165)）＝世界の平滑化した実質の値段（財ごと・<see cref="WorldPrices"/>＝その四半期に市場が生きている国の平滑化した値段を需要で重み付けた平均・
+-    /// どの国にも市場が無い財は <see cref="NoPrice"/>）＝自国に市場の値段が無い財（作らず輸入もしない）を「輸入すれば払う値段」で読む（<see cref="ReplacedStrength"/>）。
++    /// ★<paramref name="WorldPrice"/>（(165)）＝世界の平滑化した実質の値段（財ごと・<see cref="WorldPrices"/>＝★(166) その四半期に外へ売っている国〔国の純輸出が正〕の平滑化した値段を純輸出で重み付けた平均・
++    /// どの国も外へ売っていない財は <see cref="NoPrice"/>）＝自国に市場の値段が無い財（作らず輸入もしない）を「輸入すれば払う値段」で読む（<see cref="ReplacedStrength"/>）。
+     /// 判定の段の頭で全ての国の平滑化した値段を進めた直後に求める導出量（状態ではない）。単独の世界は null（他国が無い）。</summary>
+     public sealed record WorldView(double[]? Contact, double[]? Loss = null, double[]? WorldPrice = null);
+ 
+@@ -460,43 +460,53 @@ public static class Discovery
+     /// <summary>平滑化した値段を1歩（四半期に1回・判定の段の頭だけ＝<see cref="MultiNationSim"/> は全ての国を先に進めてから判定する・単独の世界は <see cref="Simulation"/> の四半期末）
+     /// ＝ s ← s ＋ 率×（瞬間 − s）。最初（null・建国した国）は瞬間の値で始める＝立ち上がりの跳躍なし。書き手はこの1か所だけ（画面と計器は読むだけ）。
+     /// ★(165)：観測なし（死んだ市場＝<see cref="NoPrice"/>）の財は動かさない（最後に生きていた値を保つ・一度も観測していない財は <see cref="NoPrice"/> のまま＝最初の観測で瞬間の値から始める）
+-    /// ＝旧（(159)）は参照価格へ寄せた。戻り値＝この四半期の瞬間の値段と国の需要（<see cref="WorldPrices"/> の入力・多国の判定の段が使う）。</summary>
+-    internal static (double[] Inst, double[] Dem) AdvancePrice(World w, Coefficients c)
++    /// ＝旧（(159)）は参照価格へ寄せた。戻り値＝この四半期の瞬間の値段と国の純輸出（★(166)・<see cref="WorldPrices"/> の重み・多国の判定の段が使う）。</summary>
++    internal static (double[] Inst, double[] Exp) AdvancePrice(World w, Coefficients c)
+     {
+         int ng = Catalog.Goods.Length;
+         var prod = new double[ng]; var imp = new double[ng]; var dem = new double[ng]; var pxd = new double[ng];
+         Aggregate(w, ng, prod, imp, dem, pxd);
+         var x = InstantReal(w, ng, prod, imp, dem, pxd);
++        var exp = NetExports(imp);
+         var s = w.DiscoveryPrice;
+-        if (s is null || s.Length != x.Length) { w.DiscoveryPrice = (double[])x.Clone(); return (x, dem); }
++        if (s is null || s.Length != x.Length) { w.DiscoveryPrice = (double[])x.Clone(); return (x, exp); }
+         double a = PriceSmoothingQ(c);
+         for (int g = 0; g < x.Length; g++)
+         {
+             if (!(x[g] >= 0)) continue;                                   // 観測なし＝動かさない（否定形＝NaN も）
+             s[g] = s[g] >= 0 ? s[g] + a * (x[g] - s[g]) : x[g];           // 最初の観測は瞬間の値から
+         }
+-        return (x, dem);
++        return (x, exp);
+     }
+ 
+-    /// <summary>★(165) 世界の平滑化した実質の値段（財ごと）＝その四半期に国内の市場が生きている国（瞬間の値段の観測がある国）の平滑化した値段を、その国の需要で重み付けた平均。
+-    /// どの国にも市場が無い財は <see cref="NoPrice"/>。判定の段の頭（全ての国の <see cref="AdvancePrice"/> の後）で求める導出量＝状態ではない（<see cref="WorldView.WorldPrice"/>）。
+-    /// ⚠(166) 計器（種1）＝外へ売らない薄い市場（開幕の一律の在庫を少しの需要で捌く小国＝2四半期目のデンマークの蒸気機関の財〔産出 1.5e-8・需要 0.048・在庫 575・輸出0〕の 1.69＝参照の 0.44倍）が
+-    ///   世界の値段になり、清・露・仏・日の蒸気の動力の費用が自国で作る費用の 1/10 前後へ落ちて、主要国の全てが開幕の年に蒸気機関を見つけた。
+-    ///   重みを国の純輸出にする腕（D1＝外へ売っている国の値段だけ＝輸入すれば払う値段）は、清の蒸気機関を 1784→1793 年へ遅らせたが、合わせた木の10種で常勝の疑い（米 6/10）＝入れていない
+-    ///   （パッチ measurements/m165_20261002_D1.diff・実装ログ (166)）。</summary>
+-    internal static double[] WorldPrices(IReadOnlyList<World> worlds, IReadOnlyList<(double[] Inst, double[] Dem)> obs)
++    /// <summary>★(166) 国の純輸出（財ごと）＝州の輸入−輸出の和（国の純輸入・同じ国の州どうしの積み出しは打ち消す）が負の分＝外へ売っている量（否定形＝NaN は0）。</summary>
++    internal static double[] NetExports(double[] netImports)
++    {
++        var e = new double[netImports.Length];
++        for (int g = 0; g < e.Length; g++) e[g] = netImports[g] < 0 ? -netImports[g] : 0;
++        return e;
++    }
++
++    /// <summary>★(165) 世界の平滑化した実質の値段（財ごと）＝「輸入すれば払う値段」。
++    /// ★(166) 重み＝国の純輸出（<see cref="NetExports"/>）＝その四半期に外へ売っている国（国内の市場が生きていて〔瞬間の値段の観測がある〕純輸出が正）の平滑化した値段を純輸出で重み付けた平均。
++    /// どの国も外へ売っていない財は <see cref="NoPrice"/>（＝買える相手が無い＝<see cref="PriceBook"/> は自国で作る費用で読む）。
++    /// ⚠旧（(165)）＝市場が生きている国の需要で重み付けた＝外へ売らない薄い市場（開幕の一律の在庫を少しの需要で捌く小国＝(166) の計器・種1 の2四半期目に
++    ///   デンマークの蒸気機関の財〔産出 1.5e-8・需要 0.048・在庫 575・輸出0〕の 1.69＝参照の 0.44倍）が世界の値段になり、清・露・仏・日の蒸気の動力の費用が
++    ///   自国で作る費用の 1/10 前後へ落ちて、主要国の全てが開幕の年に蒸気機関を見つけた）。
++    /// 判定の段の頭（全ての国の <see cref="AdvancePrice"/> の後）で求める導出量＝状態ではない（<see cref="WorldView.WorldPrice"/>）。</summary>
++    internal static double[] WorldPrices(IReadOnlyList<World> worlds, IReadOnlyList<(double[] Inst, double[] Exp)> obs)
+     {
+         int ng = Catalog.Goods.Length;
+         var num = new double[ng]; var den = new double[ng];
+         for (int i = 0; i < worlds.Count && i < obs.Count; i++)
+         {
+             var s = worlds[i].DiscoveryPrice;
+-            var (x, dem) = obs[i];
++            var (x, exp) = obs[i];
+             if (s is null) continue;
+-            for (int g = 0; g < ng && g < s.Length && g < x.Length; g++)
++            for (int g = 0; g < ng && g < s.Length && g < x.Length && g < exp.Length; g++)
+             {
+-                if (!(x[g] >= 0) || !(s[g] >= 0) || !(dem[g] > 0)) continue;
+-                num[g] += dem[g] * s[g]; den[g] += dem[g];
++                if (!(x[g] >= 0) || !(s[g] >= 0) || !(exp[g] > 0)) continue;
++                num[g] += exp[g] * s[g]; den[g] += exp[g];
+             }
+         }
+         var res = new double[ng];
+@@ -522,7 +532,7 @@ public static class Discovery
+     /// ・値段の読み方（その国に市場の値段が無い財の扱い＝理由で決めた・推奨で進めた・<see cref="PriceBook"/>）：
+     ///   ①代替する物＝国内に需要が無い財は0（使っていない物の代わりは要らない）。
+     ///   ②国内の市場が今の四半期に生きている財（代替する物・投入）＝自国の平滑化した値段。
+-    ///   ③死んでいる財＝手に入れる安い方＝世界の平滑化した値段（取引できる財＝輸入すれば払う値段）とこの国で作る費用（門の開いたレシピ・投入へ同じ読み方を繰り返す）の小さい方
++    ///   ③死んでいる財＝手に入れる安い方＝世界の平滑化した値段（取引できる財＝輸入すれば払う値段＝★(166) 外へ売っている国の値段）とこの国で作る費用（門の開いたレシピ・投入へ同じ読み方を繰り返す）の小さい方
+     ///     （⚠開幕は蒸気機関の財の市場が世界のどこにも無い＝作る費用で読む）。どちらも無い（取引できず作れない電力など）＝費用が立たない＝0（作れない投入を要するレシピは必要とされない）。
+     /// ・換算の比（新製品だけ・<see cref="ReplacedUnits"/>）＝新しい財1単位が置き換える代替する物の量（固定のデータ）。製法・蒸気機関・電動機・機関車は1（同じ物）。
+     /// ・背景・因果（人件費の世界比・豊かさ・脅威・軍）と他国の値段（自国に市場がある財）は読まない。対数＝値段の比は比で読む（(147) と同じ）。否定形＝NaN は0。</summary>
+diff --git a/PriceOfBread.SimCore/MultiNationSim.cs b/PriceOfBread.SimCore/MultiNationSim.cs
+index e167453..bc6a8f7 100644
+--- a/PriceOfBread.SimCore/MultiNationSim.cs
++++ b/PriceOfBread.SimCore/MultiNationSim.cs
+@@ -585,7 +585,7 @@ public sealed class MultiNationSim
+     private double[] AdvanceDiscoveryPrices()
+     {
+         var worlds = new World[Nations.Count];
+-        var obs = new (double[] Inst, double[] Dem)[Nations.Count];
++        var obs = new (double[] Inst, double[] Exp)[Nations.Count];   // ★(166) 世界の値段の重み＝国の純輸出
+         for (int i = 0; i < Nations.Count; i++) { worlds[i] = Nations[i].World; obs[i] = Discovery.AdvancePrice(worlds[i], _coef); }
+         return Discovery.WorldPrices(worlds, obs);
+     }
+diff --git a/PriceOfBread.Tests/DiscoveryScoreTests.cs b/PriceOfBread.Tests/DiscoveryScoreTests.cs
+index 9f2de75..8872da5 100644
+--- a/PriceOfBread.Tests/DiscoveryScoreTests.cs
++++ b/PriceOfBread.Tests/DiscoveryScoreTests.cs
+@@ -379,24 +379,29 @@ public class DiscoveryScoreTests
+         Assert.Equal(cap, Price(0.0), 9);            // 全く通らない＝天井（漸近の極限）
+     }
+ 
+-    /// <summary>★(165) 世界の平滑化した値段＝その四半期に国内の市場が生きている国（瞬間の値段の観測がある国）の平滑化した値段を、その国の需要で重み付けた平均・どの国にも市場が無い財は観測なし。
+-    /// ⚠壊し方＝市場の死んだ国の値段を入れる・需要で重み付けない → 赤。</summary>
++    /// <summary>★(165)→(166) 世界の平滑化した値段＝その四半期に外へ売っている国（国内の市場が生きていて純輸出が正）の平滑化した値段を、その国の純輸出で重み付けた平均
++    /// ＝「輸入すれば払う値段」・どの国も外へ売っていない財は観測なし（外へ売らない薄い市場の値段は読まない＝(166) の計器の型＝開幕の一律の在庫を捌く小国の値段）。
++    /// ⚠壊し方＝市場の死んだ国の値段を入れる・純輸出で重み付けない（需要で重み付ける＝(165) の形）・外へ売らない国を入れる → 赤。</summary>
+     [Fact]
+-    public void 世界の平滑化した値段は市場が生きている国の需要で重み付けた平均()
++    public void 世界の平滑化した値段は外へ売っている国の純輸出で重み付けた平均_売らない国の値段は読まない()
+     {
+         int ng = Catalog.Goods.Length;
+         var sim = Board();
+-        var a = sim.Nations[0].World; var b = sim.Nations[1].World;
++        var a = sim.Nations[0].World; var b = sim.Nations[1].World; var c = sim.Nations[2].World;
+         a.DiscoveryPrice = Enumerable.Repeat(2.0, ng + 1).ToArray();
+         b.DiscoveryPrice = Enumerable.Repeat(5.0, ng + 1).ToArray();
+-        var xa = Enumerable.Repeat(1.0, ng + 1).ToArray(); var xb = Enumerable.Repeat(1.0, ng + 1).ToArray();
+-        var da = Enumerable.Repeat(1.0, ng).ToArray(); var db = Enumerable.Repeat(3.0, ng).ToArray();
++        c.DiscoveryPrice = Enumerable.Repeat(0.5, ng + 1).ToArray();   // 外へ売らない薄い市場（安い）
++        var xa = Enumerable.Repeat(1.0, ng + 1).ToArray(); var xb = Enumerable.Repeat(1.0, ng + 1).ToArray(); var xc = Enumerable.Repeat(1.0, ng + 1).ToArray();
++        var ea = Enumerable.Repeat(1.0, ng).ToArray(); var eb = Enumerable.Repeat(3.0, ng).ToArray(); var ec = new double[ng];   // c は純輸出0（市場は生きている）
+         xb[7] = Discovery.NoPrice;   // b の財7 は市場が死んでいる
+-        xa[9] = Discovery.NoPrice; xb[9] = Discovery.NoPrice;   // 財9 はどの国にも市場が無い
+-        var wp = Discovery.WorldPrices([a, b], [(xa, da), (xb, db)]);
++        xa[9] = Discovery.NoPrice; xb[9] = Discovery.NoPrice;   // 財9 は外へ売る国の市場が無い（c だけが生きているが売らない）
++        var wp = Discovery.WorldPrices([a, b, c], [(xa, ea), (xb, eb), (xc, ec)]);
+         Assert.Equal((1.0 * 2.0 + 3.0 * 5.0) / 4.0, wp[0], 12);
+         Assert.Equal(2.0, wp[7], 12);
+         Assert.Equal(Discovery.NoPrice, wp[9]);
++        // 純輸出＝州の輸入−輸出の和（国の純輸入）が負の分
++        var ne = Discovery.NetExports([-2.0, 0.0, 3.0, double.NaN]);
++        Assert.Equal([2.0, 0.0, 0.0, 0.0], ne);
+     }
+ 
+     /// <summary>呼び手の側の番人（(165)）＝多国の判定の段は世界の平滑化した値段を判定へ渡す（画面と計器も同じ値＝LastDiscoveryView）＝四半期の後の値は全ての国の平滑化した値段と瞬間の値段から求めた値と同じ。
+@@ -412,9 +417,10 @@ public class DiscoveryScoreTests
+         var obs = worlds.Select(w =>
+         {
+             var x = Discovery.InstantRealPrices(w);
+-            var dem = new double[Catalog.Goods.Length];
+-            foreach (var rg in w.Regions) if (rg.State == RegionState.Active) for (int g = 0; g < dem.Length; g++) dem[g] += rg.Markets[g].LastDemand;
+-            return (x, dem);
++            var exp = new double[Catalog.Goods.Length];   // ★(166) 国の純輸出（州の輸出−輸入の和の正の分）
++            foreach (var rg in w.Regions) if (rg.State == RegionState.Active) for (int g = 0; g < exp.Length; g++) exp[g] += rg.Markets[g].LastExport - rg.Markets[g].LastImport;
++            for (int g = 0; g < exp.Length; g++) exp[g] = exp[g] > 0 ? exp[g] : 0;
++            return (x, exp);
+         }).ToArray();
+         var expect = Discovery.WorldPrices(worlds, obs);
+         Assert.Equal(expect.Length, view!.WorldPrice!.Length);

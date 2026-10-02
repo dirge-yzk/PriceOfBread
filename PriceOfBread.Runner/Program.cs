@@ -1844,7 +1844,7 @@ if (args.Length > 0 && args[0] == "tradewhy")
             int act = 0; var th = new List<double>();
             foreach (var r in w.Regions) if (r.State == RegionState.Active) { act++; th.Add(r.LastTradeThrottle); }
             th.Sort();
-            double perState = act > 0 ? (w.ShipCapacity / (1.0 + System.Math.Max(0, w.ColonialShipBurden)) + c1.TransportBaseline) / act : 0;
+            double perState = act > 0 ? (w.ShipCapacity / (1.0 + System.Math.Max(0, w.ColonialShipBurden)) + Transport.PreRailCapacity(w, c1)) / act : 0;   // ★(166) 鉄道以前の陸の容量＝人口×基礎の目標
             Console.WriteLine($"    {pw.Name,-8} 州{act,3}  船容量{w.ShipCapacity,10:F0}  州あたり容量{perState,9:F1}  律速率 min{(th.Count > 0 ? th[0] : 1):F3} 中央{(th.Count > 0 ? th[th.Count / 2] : 1):F3} max{(th.Count > 0 ? th[^1] : 1):F3}  対外アクセス{w.ExternalTradeAccess():F2}");
         }
     }

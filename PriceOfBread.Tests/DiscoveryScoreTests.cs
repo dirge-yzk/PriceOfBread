@@ -295,7 +295,8 @@ public class DiscoveryScoreTests
         pl[ng] = rail * 0.5;   // 鉄道の方が高い＝不足なし
         Assert.Equal(0.0, Needs(pl)[loco]);
         // ⑤陸の輸送の値段＝(1÷通した割合)^(1/2ε)・通した割合0 は天井（財の値段の安全網と同じ）
-        Assert.Equal(System.Math.Min(System.Math.Pow(1.0 / 0.25, e), w.Coef.PriceCeilFactor), Discovery.InstantRealPrices(w)[ng], 9);
+        //   ★(166) 天井は漸近形（MarketFlow.SoftBandLn＝内側はほぼ恒等＝値段 4 で相対 1.2e-5 だけ下がる）＝下の「陸の運賃は天井へ漸近し超えない」の番人
+        Assert.Equal(System.Math.Pow(1.0 / 0.25, e), Discovery.InstantRealPrices(w)[ng], 3);
         foreach (var rg in w.Regions) if (rg.State == RegionState.Active && !rg.IsPort) rg.LastTradeThrottle = 0;
         Assert.Equal(w.Coef.PriceCeilFactor, Discovery.InstantRealPrices(w)[ng], 12);
         // ④代替する物の需要が国内に無い＝値段が費用の2倍でも0
@@ -353,6 +354,29 @@ public class DiscoveryScoreTests
         var p2 = (double[])px.Clone(); p2[Catalog.LaborId] = 100.0;          // 動力がどれほど高くても
         var wp2 = (double[])px.Clone(); wp2[Catalog.ElectricityId] = 1e-6;   // 世界の電力がどれほど安くても
         Assert.Equal(0.0, Discovery.Evaluate(w, new Discovery.WorldView(null, null, wp2), w.Coef, includeKnown: true, realPrice: p2)[motor].Need);
+    }
+
+    /// <summary>★(166) 陸の運賃（機関車の必要性の入力）の天井は財の値段と同じ漸近形＝内側はほぼ 1÷通した割合（通した割合 0.5 で 2）・天井（PriceCeilFactor）へ漸近して超えない・
+    /// 通した割合が下がるほど高い（単調）・全く通らない（0）は天井。⚠壊し方＝硬い上限（小さい方を取る＝(165) の形）へ戻す → 通した割合 0.1%（1÷通した割合＝1000）が天井ちょうどになって赤。</summary>
+    [Fact]
+    public void 陸の運賃は天井へ漸近し超えない_内側は通した割合の逆数()
+    {
+        var sim = Board();
+        var w = sim.Nations.Select(n => n.World).First(x => x.Regions.Count(r => r.State == RegionState.Active && !r.IsPort) >= 2);
+        double cap = w.Coef.PriceCeilFactor;
+        double Price(double served)
+        {
+            foreach (var r in w.Regions) if (r.State == RegionState.Active && !r.IsPort) { r.LastTradePotential = 1.0; r.LastTradeThrottle = served; }
+            Assert.Equal(served, Discovery.LandFreightServed(w), 12);
+            return Discovery.LandFreightPrice(w);
+        }
+        Assert.Equal(2.0, Price(0.5), 6);           // 内側＝1÷通した割合（PriceElasticity 0.5）
+        Assert.Equal(1.0, Price(1.0), 9);
+        double p1 = Price(0.01), p2 = Price(0.001), p3 = Price(1e-6);
+        Assert.True(p1 < p2 && p2 < p3, $"通した割合が下がっても陸の運賃が上がらない（{p1}・{p2}・{p3}）");
+        Assert.True(p3 < cap && p2 < 0.99 * cap, $"天井に張り付いた（硬い上限の形）＝{p2}・{p3}（天井 {cap}）");
+        Assert.True(p2 > 0.9 * cap, $"天井へ漸近しない（{p2}）");
+        Assert.Equal(cap, Price(0.0), 9);            // 全く通らない＝天井（漸近の極限）
     }
 
     /// <summary>★(165) 世界の平滑化した値段＝その四半期に国内の市場が生きている国（瞬間の値段の観測がある国）の平滑化した値段を、その国の需要で重み付けた平均・どの国にも市場が無い財は観測なし。

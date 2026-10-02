@@ -126,7 +126,7 @@ public partial class GameViewModel
         // ★2026-08-15作者フィードバック(9)：「――陸上――」等のダッシュ区切りは廃止＝項目名だけで自明（鉄道=陸・海軍=海）
         var tRows = new List<TransportRow>
         {
-            new("基本輸送力", $"{w.Coef.TransportBaseline:F0}"),
+            new("基本輸送力", $"{Transport.PreRailCapacity(w, w.Coef):F0}"),   // ★(166) 鉄道以前の陸の容量＝人口×基礎の目標（清算と同じ1本）
             new("鉄道輸送量", $"{w.RailCapacity:F0}"),
             new("海軍輸送量", $"{w.ShipCapacity:F0}"),
         };

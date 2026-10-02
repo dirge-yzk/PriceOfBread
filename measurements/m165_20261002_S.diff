@@ -1,0 +1,15 @@
+diff --git a/PriceOfBread.SimCore/Discovery.cs b/PriceOfBread.SimCore/Discovery.cs
+index aa43b50..c5d3b8e 100644
+--- a/PriceOfBread.SimCore/Discovery.cs
++++ b/PriceOfBread.SimCore/Discovery.cs
+@@ -721,8 +721,8 @@ public static class Discovery
+         }
+         double n0 = c.ColonyPromotionMinPop;
+         double thick = people > 0 && n0 > 0 ? people / (people + n0) : 0;
+-        double s = thick * RealValue(w, site.Good, realPrice);
+-        return new Terms(TermMax * ratio, Saturate(s, c.DiscoveryNeedHalfSite), 0);
++        double s = RealValue(w, site.Good, realPrice);   // ★(166) 腕 S＝必要性は値段だけ・人の厚みは見つける力（技術力の側）へ
++        return new Terms(TermMax * ratio * thick, Saturate(s, c.DiscoveryNeedHalfSite), 0);
+     }
+ 
+     /// <summary>財の実質の値段÷参照価格＝発見の表と同じ平滑化した値段（<see cref="World.DiscoveryPrice"/>・作者裁定 Q12・判定の中では <see cref="Step"/> が同じ四半期に1歩進めた後）。
