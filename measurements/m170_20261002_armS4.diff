@@ -1,0 +1,13 @@
+diff --git a/PriceOfBread.SimCore/SelfPlay.cs b/PriceOfBread.SimCore/SelfPlay.cs
+--- a/PriceOfBread.SimCore/SelfPlay.cs
++++ b/PriceOfBread.SimCore/SelfPlay.cs
+@@ -553,8 +553,7 @@
+         if (w.Coef.RebelArmsMarketEnabled > 0) p.CivilianArmsBan = w.Suffrage < Suffrage.AdultMale;
+         // 【(162)「徴兵法の線を本国の陸の脅威で読む・平時に不安の多くが海の向こうと植民地から来る国は志願制」は (163) の合流で差し戻した 2026-10-02】＝戦時の装備の追随を外した木の10種で
+         //   常勝の疑い（英 8/10）＝パッチ measurements/m163_20261002_landthreat.diff。英の徴兵法の残る根＝法の門（徴兵の縮小に旧支配層が反対）＝作者への確認（実装ログ (162)(163)）。
+-        p.ConscriptionLaw = (SecurityShare(w) >= 0.5 || atWar) ? ConscriptionLaw.Selective
+-            : (w.Suffrage >= Suffrage.AdultMale ? ConscriptionLaw.Volunteer : p.ConscriptionLaw);   // ★(155) 徴兵法の政治＝安全保障の不安（届く敵意の養える軍が自国の養える軍以上＝脅威の割合が半分以上）か交戦中＝徴兵制／平時の自由民主国で不安が半分未満＝小さな職業軍（英米型）。他は現状維持（旧＝軍備スタンス＝脅威は効用を通って間接に）
++        p.ConscriptionLaw = SecurityShare(w) >= 0.5 || atWar ? ConscriptionLaw.Selective : p.ConscriptionLaw;   // ★(155) 徴兵法の政治＝安全保障の不安（届く敵意の養える軍が自国の養える軍以上＝脅威の割合が半分以上）か交戦中＝徴兵制／平時の自由民主国で不安が半分未満＝小さな職業軍（英米型）。他は現状維持（旧＝軍備スタンス＝脅威は効用を通って間接に）
+         if (w.Suffrage >= Suffrage.AdultMale) p.SecretBallot = SecretBallotLaw.Secret;   // 大衆選挙＝買収・威圧の排除が票の実在に直結
+         if (w.AdminEfficiency > ProfessionalBureaucracyAdminThreshold) p.Bureaucracy = BureaucracyLaw.Professional;   // 行政力が育った国＝専門官僚制へ（プロイセン文官改革）
+         if (w.MeanIndustrialization > AntitrustIndThreshold)

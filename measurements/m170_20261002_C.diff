@@ -1,0 +1,770 @@
+diff --git a/PriceOfBread.Runner/Program.cs b/PriceOfBread.Runner/Program.cs
+index 9187c74..3be16ff 100644
+--- a/PriceOfBread.Runner/Program.cs
++++ b/PriceOfBread.Runner/Program.cs
+@@ -1093,7 +1093,7 @@ if (args.Length > 0 && args[0] == "willprobe")
+ if (args.Length > 0 && args[0] == "threatprobe")
+ {
+     // ★安全保障の不安（(155) 2026-10-02 作り直し）の読み手＝エンジンが四半期末に書いた値を読むだけ（旧＝旧の式〔州の質量×距離の最大の和〕の写し＝エンジンと食い違う計器だった）。
+-    //   列＝受ける脅威（相手の養える軍のうち自国に向く注意配分の和・兵の頭数）・自国の養える軍の人口の側・脅威の割合（AI の軍事費の段と徴兵法の政治が読む）・AI の段の目標・軍事費の段・兵・定員。
++    //   列＝受ける脅威（相手の養える軍のうち自国に向く注意配分の和・兵の頭数）・自国の養える軍の人口の側・脅威の割合（AI の軍事費の段が読む・徴兵法の目標は (168) から本国の陸の成分の割合）・AI の段の目標・軍事費の段・兵・定員。
+     //   使い方：threatprobe [四半期=524] [間隔=160]
+     int thQ = ArgInt(args, 1, 524);
+     int thEvery = ArgInt(args, 2, 160);
+diff --git a/PriceOfBread.SimCore/ArmyShape.cs b/PriceOfBread.SimCore/ArmyShape.cs
+index a1a9ec4..8d1df2a 100644
+--- a/PriceOfBread.SimCore/ArmyShape.cs
++++ b/PriceOfBread.SimCore/ArmyShape.cs
+@@ -139,11 +139,14 @@ public static class ArmyShape
+     /// n×n の対称の表＝国 a の稼働中の州と国 b の稼働中の州が陸路グラフ（<see cref="PathGraph"/>）の辺で隣り合う組の数。峠を挟む組は峠の割増（PassCostMult）で割る。
+     /// 1組の重み＝地形の通りにくさの逆数＝2÷（両端の州の地形の陸運の費用の和）＝交易の陸運の地形の表（<see cref="Coefficients.TerrainHorseCost"/>）を読む＝新しい数を置かない
+     /// （平地1.0・丘1.5・森3.0・山2.5・荒地8.0＝山と砂漠の国境は守りやすい）。植民地格の州も州＝植民地の国境も数える。座標の無い州は陸路グラフに居ない＝数えない。
+-    /// 四半期に1回（<see cref="Compute"/>）＝州×1回の最寄りノード（座標の記憶つき）＋辺の走査（約840本）＋峠の隣りの組。</summary>
+-    internal static double[] Borders(List<Power> ps, Coefficients c)
++    /// 四半期に1回（<see cref="Compute"/>）＝州×1回の最寄りノード（座標の記憶つき）＋辺の走査（約840本）＋峠の隣りの組。
++    /// ★(168)（形は (162)①＝パッチ measurements/m163_20261002_landthreat.diff） <paramref name="toHome"/>（n×n・呼び手が0で渡す）＝同じ組のうち**守る側 b の州が本国（植民地格でない）**の組だけの和を [a*n+b] へ足す（向きつき＝b の本国の陸の国境）
++    /// ＝安全保障の不安の本国の陸の成分（徴兵法の目標が読む）の国境の項。植民地の国境は植民地の兵（英印軍・セネガル狙撃兵）が守る＝本国の徴兵の理由にしない（推奨で進めた）。</summary>
++    internal static double[] Borders(List<Power> ps, Coefficients c, double[]? toHome = null)
+     {
+         int n = ps.Count, nn = PathGraph.Nodes.Length;
+         var owner = new int[nn]; var terr = new double[nn];
++        var home = toHome is null ? null : new bool[nn];
+         System.Array.Fill(owner, -1);
+         for (int i = 0; i < n; i++)
+         {
+@@ -156,6 +159,7 @@ public static class ArmyShape
+                 int nd = PathGraph.NearestNode(cc.Lat, cc.Lon);
+                 if (nd < 0) continue;
+                 owner[nd] = i;
++                if (home is not null) home[nd] = r.Tier != RegionTier.Colonial;
+                 int ti = (int)r.Terrain;
+                 terr[nd] = ti < c.TerrainHorseCost.Length ? c.TerrainHorseCost[ti] : 1.0;
+             }
+@@ -176,6 +180,11 @@ public static class ArmyShape
+             if (ou < 0 || ov < 0 || ou == ov) return;
+             double w = mult * 2.0 / (terr[u] + terr[v]);
+             b[ou * n + ov] += w; b[ov * n + ou] += w;
++            if (home is not null)
++            {
++                if (home[v]) toHome![ou * n + ov] += w;   // ou の州が ov の本国の州と隣り合う
++                if (home[u]) toHome![ov * n + ou] += w;
++            }
+         }
+     }
+ 
+diff --git a/PriceOfBread.SimCore/Government.cs b/PriceOfBread.SimCore/Government.cs
+index e943d79..4623b2a 100644
+--- a/PriceOfBread.SimCore/Government.cs
++++ b/PriceOfBread.SimCore/Government.cs
+@@ -247,6 +247,18 @@ public static class Government
+         //   ⚠法でないもの＝専売の材・補助・売買方針・国営工場（生産の決断＝作者裁定 2026-09-20）・制度の解禁（特許・株式会社・鉄道・検地台帳＝社会の盤面から導く）・兌換の運転（信用の門）は助走でも動く＝経済の定常の一部。
+         if (w.WarmupFrozen) { w.AusterityIntensity = austerity; return; }
+ 
++        // ★(168) 戦時の非常の法（徴兵法・推奨で進めた）＝戦時に上げた徴兵法は、戦争が終わった四半期に戦前の段へ戻る（R2「戦時経済は総動員とセットで、戦後は下の値に戻る」と同じ形＝戦時の段は戦争が前提）。
++        //   史実＝英の兵役法（1916）は戦争の期間に限る法で 1920 に廃止・米の徴兵法（1863・1917）は戦後に終わった・仏の国民総動員（1793）の後は平時の法へ戻った。
++        //   平時から有った徴兵法（普・仏・露）は戻らない（戦前の段が徴兵なら徴兵のまま）＝戻すのは「今の段が戦前の段より上」のときだけ。平時の再制定は AI もプレイヤーも門を通す（下のループ）。
++        //   戦前の段は交戦に入った四半期に記録する（World.ConscriptionPreWar＝思想⑩の例外の理由はその注記）。クールダウンではない＝戦争の終わりという状態で決まる。
++        //   保存目標も同じ段へ戻す（R2 の戦時段の失効と同じ＝次の戦争で選び直さずに黙って上がらない）。全国が四半期頭に通る1箇所＝AI とプレイヤーの共通経路（IsPlayer を読まない）。
++        if (w.AtWarNow) { if (w.ConscriptionPreWar < 0) w.ConscriptionPreWar = (int)w.ConscriptionLaw; }
++        else if (w.ConscriptionPreWar >= 0)
++        {
++            if ((int)w.ConscriptionLaw > w.ConscriptionPreWar) { w.ConscriptionLaw = (ConscriptionLaw)w.ConscriptionPreWar; p.ConscriptionLaw = w.ConscriptionLaw; }
++            w.ConscriptionPreWar = -1;
++        }
++
+         // 法整備（離散）：力の均衡が許す向きに一歩ずつ。教育法・参政権・徴兵法は World が現在値を持ち効果に効く。
+         // ★段の法は表 <see cref="LevelLaws"/> を施行の順に1本のループで回す（2026-09-28 処理の一元化 段1＝旧は軸ごとに StepEnum/StepBool の1行・各軸の注記は表の行へ移した）。
+         foreach (var law in LevelLaws)
+diff --git a/PriceOfBread.SimCore/MultiNationSim.cs b/PriceOfBread.SimCore/MultiNationSim.cs
+index 0e0e07d..f971fb5 100644
+--- a/PriceOfBread.SimCore/MultiNationSim.cs
++++ b/PriceOfBread.SimCore/MultiNationSim.cs
+@@ -425,6 +425,7 @@ public sealed class MultiNationSim
+             InitialSuffrage = pw.Suffrage, InitialCensorship = pw.Censorship,
+             InitialCornLaws = pw.CornLaws, InitialSerfEmancipation = pw.SerfEmancipation,
+             InitialImmigration = pw.ImmigrationRestriction,   // 移民制限法の継承（E7・独立は制度を巻き戻さない＝他の法と同じ規則）
++            InitialConscription = pw.ConscriptionLaw,         // 徴兵法の継承（(168)・同じ規則＝この後の World.CopyLawsFrom も同じ値を写す）
+             InitialMonetaryLaw = pw.MonetaryLaw,              // 通貨制度の継承（F6・金の親から独立した国は金で始まる＝同じ規則）
+         };
+         // 新国家は常に効用AI（プレイヤー国から独立してもUI操作者はいない＝NullAgentのゾンビ国家を作らない）
+@@ -765,7 +766,7 @@ public sealed class MultiNationSim
+             ProbeSnap();                                              // 保存量プローブ（leakhunt・既定OFF＝実行ゼロ）
+             Cost[CostLedger.SharedNationQuarters] += Nations.Count;   // 計算量の台帳（診断）：四半期末の共有層は国×四半期に比例（国力・脅威・移民・国際金融ほか）
+             foreach (var n in Nations) NationalScore.StepStanding(n.World);   // 国力の在庫を1期ぶん寄せる（2026-08-02）＝序列は在庫で決まる。外交(ComputeRanks)より前
+-            StepSecurityThreat();   // ★安全保障の不安（(155) 作り直し）：読み手＝AI の軍事費の段・徴兵法の政治・戦略鉄道（旧＝鉄道の係数 ThreatRailTargetWeight が0なら走らなかった＝鉄道だけの読み手）
++            StepSecurityThreat();   // ★安全保障の不安（(155) 作り直し）：読み手＝AI の軍事費の段・徴兵法の目標（陸の成分）・戦略鉄道（旧＝鉄道の係数 ThreatRailTargetWeight が0なら走らなかった＝鉄道だけの読み手）
+             UpdateTradeWeights(); ProbeDiff("交易比重");                // 外1：交易比重を貿易取扱高のシェア（LastExportValue+LastImportValue の EMA）から四半期同期（TradeWeightDynamic=0 で1789固定値を維持＝恒等）
+             if (!DiplomacyFrozen)
+             {
+@@ -1469,7 +1470,7 @@ public sealed class MultiNationSim
+     /// ・u＝内向きに使われる軍（<see cref="ArmyShape.Unrest"/>）＝**(151) の理想の軍隊の形の陸の必要量と同じ物差しと同じ注意配分**（相手の軍は同時に全方位へ向けられない＝世界の脅威の和は世界の養える軍の和より小さい
+     /// ＝軍拡が縮小写像。⚠正規化しない総和は全ての国が全ての国から脅威を受け、61カ国の中央の国の脅威の割合が0.9を超えた＝(155) の試走）。
+     /// 自国の分母＝養える軍の人口の側（兵役の母数×MaxSoldierFraction＝自分の軍事費の段に依らない＝自国の段を上げても不安は下がらない＝段の往復を作らない）。
+-    /// 読み手＝AI の軍事費の段（唯一の入口・SelfPlay の脅威の割合）・徴兵法の政治（同）・戦略鉄道（Transport の目標・脅威÷自国の養える軍・前期の値）。旧＝州の経済質量×距離減衰の最大の和（同盟も国境も海も読まない）。
++    /// 読み手＝AI の軍事費の段（唯一の入口・SelfPlay の脅威の割合）・徴兵法の目標（(168) から本国の陸の成分 SecurityThreatLand の割合）・戦略鉄道（Transport の目標・脅威÷自国の養える軍・前期の値）。旧＝州の経済質量×距離減衰の最大の和（同盟も国境も海も読まない）。
+     /// 世界の中央との比（作者のメモ M4「100%を基本に」＝表示だけ）は UI の回で（導出＝持たない）。</summary>
+     private void StepSecurityThreat()
+     {
+@@ -1484,9 +1485,11 @@ public sealed class MultiNationSim
+             seats[i] = Military.EstablishmentOf(w, w.Coef, out double man);
+             own[i] = w.Coef.MaxSoldierFraction * man;
+         }
+-        var border = ArmyShape.Borders(ps, _coef);
++        var borderHome = new double[n * n];   // ★(168) 守る側 B の本国（植民地格でない州）の国境だけ（向きつき）
++        var border = ArmyShape.Borders(ps, _coef, borderHome);
+         var hr = new double[n * n];   // hr[a*n+b]＝A の軍が B に届く強さ×敵意
+-        var colSum = new double[n];   // A の注意配分の分母＝内向き u(A)＋Σ_B hr(A→B)
++        var hrLand = new double[n * n];   // ★(168) そのうち本国の陸の成分＝B の本国の国境＋陸続きの投射（海を越えて来る陸軍の投射と植民地の国境を除く）＝徴兵法の目標が読む
++        var colSum = new double[n];   // A の注意配分の分母＝内向き u(A)＋Σ_B hr(A→B)（陸と海越えの両方へ配る同じ1つの分母＝ArmyShape と同じ）
+         long pairs = 0;
+         for (int a = 0; a < n; a++)
+         {
+@@ -1498,20 +1501,27 @@ public sealed class MultiNationSim
+                 double h = ArmyShape.Hostility(Diplomacy, ps[b], ps[a], _coef);
+                 if (!(h > 0)) continue;   // 同盟＝0（否定形＝NaN も数えない）
+                 pairs++;
+-                double r = border[a * n + b] + Diplomacy.Projection(ps[a], ps[b], _coef);
++                double proj = Diplomacy.Projection(ps[a], ps[b], _coef);
++                double r = border[a * n + b] + proj;
+                 if (!(r > 0)) continue;
+                 hr[a * n + b] = h * r;
++                hrLand[a * n + b] = h * (borderHome[a * n + b] + (Diplomacy.IsSeaCrossing(ps[a], ps[b], _coef) ? 0 : proj));   // 首都どうしが別の陸塊＝海を越えて来る陸軍＝海で止める（陸の成分に数えない）
+                 sum += h * r;
+             }
+             colSum[a] = sum;
+         }
+         for (int b = 0; b < n; b++)
+         {
+-            double total = 0;
++            double total = 0, land = 0;
+             for (int a = 0; a < n; a++)
+-                if (a != b && colSum[a] > 1e-12 && seats[a] > 0) total += hr[a * n + b] / colSum[a] * seats[a];
++                if (a != b && colSum[a] > 1e-12 && seats[a] > 0)
++                {
++                    total += hr[a * n + b] / colSum[a] * seats[a];
++                    land += hrLand[a * n + b] / colSum[a] * seats[a];
++                }
+             var wb = Nations[b].World;
+             wb.SecurityThreat = total;
++            wb.SecurityThreatLand = land;
+             wb.SecurityThreatOwnMass = own[b];
+         }
+         Cost[CostLedger.ThreatReachPairs] += pairs;   // 計算量の台帳（診断）：脅威の届き方の組（安全保障の不安＝四半期1回・同盟の組を除く）
+diff --git a/PriceOfBread.SimCore/NationConfig.cs b/PriceOfBread.SimCore/NationConfig.cs
+index d5fc22a..b1efd6e 100644
+--- a/PriceOfBread.SimCore/NationConfig.cs
++++ b/PriceOfBread.SimCore/NationConfig.cs
+@@ -60,6 +60,10 @@ public sealed class NationConfig
+     public ReformLevel InitialCornLaws = ReformLevel.None;                 // 穀物法：地主保護の農業国＝全面（英の穀物法）／自由貿易・輸出国＝なし（蘭米）
+     public ReformLevel InitialSerfEmancipation = ReformLevel.None;         // 農奴解放：東欧の農奴制＝なし（露普墺日）／西欧の自由労働＝全面（英米蘭）／封建残滓＝限定（仏伊西土）
+     public ImmigrationLaw InitialImmigration = ImmigrationLaw.Open;        // ★移民制限法（作者裁定 2026-09-27 E7）：日本＝鎖国・朝鮮＝海禁で閉鎖／清＝広東一口通商と満洲の封禁で選別／他＝開放
++    // ★徴兵法の初期値（2026-10-02 (168)・推奨で進めた＝1783 年の史実のデータ・出典は実装ログ (168)）：常備軍が志願・世襲の武人・傭兵・部族の兵で、国家が平民を籤や割当てで
++    //   兵営へ取らない国＝志願制（英〔陸軍は志願・民兵の籤は本土の防衛で別〕・米・日〔世襲の武士〕・清〔八旗・緑営＝世襲と志願〕・蘭・オスマン〔イェニチェリとティマール・徴兵は1843/48〕ほか）／
++    //   国家が平民を籤・カントン・徴募の割当てで兵営へ取る国＝選抜（普のカントン制度・露の徴募・西のキンタ・墺の徴兵区・仏の民兵の籤〔国王の民兵＝軍の予備〕ほか＝既定）。
++    public ConscriptionLaw InitialConscription = ConscriptionLaw.Selective;
+     public MonetaryStandardLaw InitialMonetaryLaw = MonetaryStandardLaw.Silver;   // ★通貨制度（作者裁定 2026-09-28 F6）：英＝金（1717年以後の事実上の金本位・1816/21年に法）／他＝既定の銀（1783年の銀の世界＝銀貨は普遍的だった・Coefficients.SilverStandardIndThreshold の注記）。旧＝既定の不換→AI が助走の最初の四半期に銀へ上げた＝助走が法を動かしていた形（2026-09-30 (119) で助走は法を動かさない＝初期値そのものを史実へ）
+     // 国土を分ける州（代表都市＋人口Share〔合計1〕＋その州の強み資源 good.Id[]）。未指定なら単一地域。
+     // 列挙財＝増産（×3.5・地理的な得意＝輸出）／非列挙のRGOは減産（×0.4・要輸入。ただし主食 麦/米/野菜は食料安全保障で減産しない）。
+@@ -85,6 +89,7 @@ public sealed class NationConfig
+         InitialTariff = InitialTariff,  // 関税の初期値（日本＝鎖国）
+         InitialSuffrage = InitialSuffrage, InitialCensorship = InitialCensorship,
+         InitialCornLaws = InitialCornLaws, InitialSerfEmancipation = InitialSerfEmancipation, InitialImmigration = InitialImmigration,
++        InitialConscription = InitialConscription,
+         InitialMonetaryLaw = InitialMonetaryLaw,
+     };
+ 
+diff --git a/PriceOfBread.SimCore/Scenario.cs b/PriceOfBread.SimCore/Scenario.cs
+index 2ecab95..d9eb018 100644
+--- a/PriceOfBread.SimCore/Scenario.cs
++++ b/PriceOfBread.SimCore/Scenario.cs
+@@ -77,6 +77,7 @@ public sealed class Scenario
+     public CensorshipLaw InitialCensorship { get; init; } = CensorshipLaw.StatePressOnly; // 報道（米蘭＝自由／英＝検閲付／他＝国家報道のみ）
+     public ReformLevel InitialCornLaws { get; init; } = ReformLevel.None;                 // 穀物法（地主保護＝農業国は全面／自由貿易国＝なし）
+     public ImmigrationLaw InitialImmigration { get; init; } = ImmigrationLaw.Open;        // 移民制限法（日朝＝閉鎖／清＝選別／他＝開放・作者裁定 2026-09-27 E7）
++    public ConscriptionLaw InitialConscription { get; init; } = ConscriptionLaw.Selective; // ★徴兵法（2026-10-02 (168)・1783 の史実＝英米日清蘭ほかは志願／普露墺西仏ほかは選抜＝既定）。合成シナリオは既定の選抜＝旧と同じ
+     public MonetaryStandardLaw InitialMonetaryLaw { get; init; } = MonetaryStandardLaw.Fiat;   // 通貨制度（英＝金／他＝銀・作者裁定 2026-09-28 F6＝実国家は NationConfig が必ず明示値を渡す・2026-09-30 (119)）。既定＝不換＝合成シナリオは従来どおり
+     public ReformLevel InitialSerfEmancipation { get; init; } = ReformLevel.Full;         // 農奴解放。★既定=全面（2026-08-16・SerfMobilityGate点火に伴う）：この既定を読むのは合成シナリオ（テスト/較正の抽象世界＝賃金労働の世界）のみ。実国家は NationConfig.ToScenario / 分離独立の継承が必ず明示値を渡す＝既定不読。旧既定Noneは点火後「都市化が構造的に0」の世界を作っていた
+ 
+diff --git a/PriceOfBread.SimCore/SelfPlay.cs b/PriceOfBread.SimCore/SelfPlay.cs
+index b56d50a..2c59fb4 100644
+--- a/PriceOfBread.SimCore/SelfPlay.cs
++++ b/PriceOfBread.SimCore/SelfPlay.cs
+@@ -417,10 +417,11 @@ public sealed class UtilityAgent : INationAgent
+ 
+     /// <summary>★脅威の割合∈[0,1)（2026-10-02 (155)）＝安全保障の不安（届く敵意の養える軍の和＝<see cref="World.SecurityThreat"/>）÷(それ＋自国の養える軍の人口の側＝<see cref="World.SecurityThreatOwnMass"/>)
+     /// ＝新兵器の必要性の脅威の割合（必要量÷(必要量＋自国の力)・Discovery）と同じ形（有界＝上下を切らない）。小国が大国の隣で感じる不安は1へ近づき、周りに養える軍の少ない国（開国前の日本・清）は0へ近づく。
+-    /// 定まらない（単一国・分母0・NaN）は0。</summary>
+-    internal static double SecurityShare(World w)
++    /// 定まらない（単一国・分母0・NaN）は0。
++    /// ★(168) <paramref name="land"/>＝分子を本国の陸の成分（<see cref="World.SecurityThreatLand"/>＝本国の国境と陸続きの投射）に限る（同じ形・分母は同じ自国の養える軍）＝徴兵法の目標だけが読む。</summary>
++    internal static double SecurityShare(World w, bool land = false)
+     {
+-        double t = w.SecurityThreat, own = w.SecurityThreatOwnMass;
++        double t = land ? w.SecurityThreatLand : w.SecurityThreat, own = w.SecurityThreatOwnMass;
+         double x = t / (t + own);
+         return x >= 0 && x <= 1 ? x : 0;
+     }
+@@ -551,10 +552,13 @@ public sealed class UtilityAgent : INationAgent
+         // ★民間の武器購入の法（設計メモ§7 (a)・2026-09-11）：票を持たない大衆から武器を取り上げる＝男子普選前は禁止・普選後は許可
+         //   （英1819六法→普選期の解禁／FactionStrength の発言権と同じ物差し＝新しい閾値を作らない）。AI/プレイヤー対称（同じ1本の法）。ゲート0＝目標を書かない＝恒等。
+         if (w.Coef.RebelArmsMarketEnabled > 0) p.CivilianArmsBan = w.Suffrage < Suffrage.AdultMale;
+-        // 【(162)「徴兵法の線を本国の陸の脅威で読む・平時に不安の多くが海の向こうと植民地から来る国は志願制」は (163) の合流で差し戻した 2026-10-02】＝戦時の装備の追随を外した木の10種で
+-        //   常勝の疑い（英 8/10）＝パッチ measurements/m163_20261002_landthreat.diff。英の徴兵法の残る根＝法の門（徴兵の縮小に旧支配層が反対）＝作者への確認（実装ログ (162)(163)）。
+-        p.ConscriptionLaw = (SecurityShare(w) >= 0.5 || atWar) ? ConscriptionLaw.Selective
+-            : (w.Suffrage >= Suffrage.AdultMale ? ConscriptionLaw.Volunteer : p.ConscriptionLaw);   // ★(155) 徴兵法の政治＝安全保障の不安（届く敵意の養える軍が自国の養える軍以上＝脅威の割合が半分以上）か交戦中＝徴兵制／平時の自由民主国で不安が半分未満＝小さな職業軍（英米型）。他は現状維持（旧＝軍備スタンス＝脅威は効用を通って間接に）
++        // ★(168) 徴兵法の目標＝**本国の陸の脅威の割合**（SecurityShare の land＝本国の国境と陸続きの投射〔World.SecurityThreatLand〕÷(それ＋自国の養える軍)）が半分以上か交戦中＝徴兵制／他は現状維持（推奨で進めた）。
++        //   海の向こうと植民地から来る不安は徴兵法の目標に数えない＝植民地と海外の勤務は長期の志願兵が担い（徴兵の兵は短期で海外へ送らない）、島国の本国は海軍で守る（史実＝英・米）。
++        //   数えないだけで、海の向こうの不安を志願制の理由にもしない（(162)① の「陸の成分＜残りなら志願制」は島国の日本まで志願制の目標にした＝反証役 vb#2）。軍事費の段の入口（不安の全体＝SecurityStageTarget）は変えない。
++        //   旧 (155) の「平時の男子普選以上なら志願制」の枝は外した（r167 で日本が男子普選の後に志願へ〔1934-43 13%〕・仏の第三共和政〔男子普選と徴兵〕とも食い違う＝史実の向きは参政権でなく脅威と海外の勤務で決まる）。
++        //   志願制へ戻る道＝戦時に上げた徴兵法の失効（Government.Step＝戦争が終わった四半期に戦前の段へ）と開幕の法（world.json の initialConscription）。NaN は比較が偽＝現状維持の側。
++        //   【(162)① の「平時に不安の多くが海の向こうと植民地から来る国は志願制」は (163) の合流で差し戻した 2026-10-02】＝パッチ measurements/m163_20261002_landthreat.diff（陸の成分の数え方は (168) でそのまま使った）。
++        p.ConscriptionLaw = SecurityShare(w, land: true) >= 0.5 || atWar ? ConscriptionLaw.Selective : p.ConscriptionLaw;
+         if (w.Suffrage >= Suffrage.AdultMale) p.SecretBallot = SecretBallotLaw.Secret;   // 大衆選挙＝買収・威圧の排除が票の実在に直結
+         if (w.AdminEfficiency > ProfessionalBureaucracyAdminThreshold) p.Bureaucracy = BureaucracyLaw.Professional;   // 行政力が育った国＝専門官僚制へ（プロイセン文官改革）
+         if (w.MeanIndustrialization > AntitrustIndThreshold)
+diff --git a/PriceOfBread.SimCore/Simulation.cs b/PriceOfBread.SimCore/Simulation.cs
+index a7b8f51..55302e8 100644
+--- a/PriceOfBread.SimCore/Simulation.cs
++++ b/PriceOfBread.SimCore/Simulation.cs
+@@ -189,10 +189,12 @@ public sealed class Simulation
+             CornLaws = scenario.InitialCornLaws,            // 初期穀物法（農業国＝保護／自由貿易国＝なし）
+             SerfEmancipation = scenario.InitialSerfEmancipation,   // 初期農奴解放（東欧＝未解放／西欧＝全面）
+             ImmigrationRestriction = scenario.InitialImmigration,  // 初期移民制限法（日朝＝閉鎖／清＝選別／他＝開放）
++            ConscriptionLaw = scenario.InitialConscription,        // ★初期徴兵法（2026-10-02 (168)・英米日清蘭ほか＝志願／他＝選抜）
+             // 金本位の志向は AI/プレイヤーが決める（UtilityAgent は信用があれば志向＝史実の規範。NullAgent のテストは志向せず＝従来挙動）。実加入は信用ゲートが決める
+         };
+         World.Suffrage = World.Policy.Suffrage;       // 法整備の現在値＝初期は政策の初期値（利益集団のゲートで漸進）
+         World.Censorship = World.Policy.Censorship;   // 報道法の現在値＝初期値（米蘭＝自由／英＝検閲付／他＝国家報道のみ）
++        World.ConscriptionLaw = World.Policy.ConscriptionLaw;   // ★徴兵法の現在値＝初期値（2026-10-02 (168)）
+         // P2：登録簿（Crown/Seizure）を初期政体から構築（英CM→Crown=Absolutist・米Rep→None等）。flag=0ではdead write＝挙動恒等。
+         CrownParliament.ApplyRegime(World, World.Coef, World.Polity);
+         // 政体が含意する参政権・報道自由を初期化時に法へ一回畳み込む（倍率排除②：以後 Freedom/eff＝法律値。毎期の政体→スカラー写像を廃止）。
+diff --git a/PriceOfBread.SimCore/World.cs b/PriceOfBread.SimCore/World.cs
+index 2fcb69d..0f4d8f5 100644
+--- a/PriceOfBread.SimCore/World.cs
++++ b/PriceOfBread.SimCore/World.cs
+@@ -114,6 +114,11 @@ public sealed class World
+     public ReformLevel SerfEmancipation { get; internal set; }  // 農奴解放（現在値・なし/限定的/全面）：農奴制の地代取り分を小作へ
+     public ReformLevel Pension { get; internal set; }        // 年金（①年齢コホート）＝SocialSecurityLaw からの導出値（Government.Step が毎期 Pension段→Full／それ以外→None を代入。Limited は取らない）。Fiscal の年金給付が読む
+     public ConscriptionLaw ConscriptionLaw { get; internal set; } = ConscriptionLaw.Selective;   // 徴兵法（現在値・志願/選抜/全国の3値・2026-08-01）。既定 Selective＝選抜以上で戦時徴兵（Military）＝旧2値の「徴兵」と同値
++    //   ★(168) 戦前の徴兵法（戦時の非常の法・推奨で進めた）＝交戦に入った四半期の徴兵法の段（int）・-1＝平時（記録なし）。書き手＝Government.Step だけ
++    //   （交戦中で記録が無ければ今の段を記録・戦争が終わった四半期に、今の段が記録より上なら記録の段へ戻して消す）。読み手も Government.Step だけ。建国は親の記録を継ぐ（CopyLawsFrom）。
++    //   ⚠盤面から導けない（戦争が終わった時点で、今の段が戦時に上げたものか平時から有ったものかは法の値からは分からない＝英1916 の兵役法は戻り、普1814・日1873 の平時の法は戻らない）＝思想⑩の例外として1つ持つ。
++    //   クールダウンではない（戦争の終わりという状態で決まる）。R2（戦時段の失効）と同じ形＝戦時の段は戦争が前提。
++    public int ConscriptionPreWar { get; internal set; } = -1;
+     public SecretBallotLaw SecretBallot { get; internal set; } = SecretBallotLaw.Open;              // 秘密投票法（現在値・1934拡張E5）。発言権の鎮静効果を選挙の実在で変調（紙の参政権是正）。SecretBallotGate=0で恒等
+     // ★★★予算法・統帥法（作者設計 2026-08-20）＝**追加するものは法だけ**。予算権と統帥権は独立ストックを持たず、
+     //   王権正統性 Lc と議会正統性 Lp（合計1）に**法の重み**を掛けて正規化するだけで出す（<see cref="PowerAffinity"/>）。
+@@ -516,6 +521,7 @@ public sealed class World
+         Tariff = src.Tariff; InterestRate = src.InterestRate; AdminSpending = src.AdminSpending;
+         SetMilitarySpending(src.MilitarySpending, src.NavalSpendShare);   // 陸海の維持費ごと（2026-08-04）
+         LandTaxUnlocked = src.LandTaxUnlocked;   // 特許・株式会社・鉄道は発見の2値（Discovered＝建国は親の知識を継ぐ）を読むだけ＝写さない
++        ConscriptionPreWar = src.ConscriptionPreWar;   // ★(168) 戦時の非常の法は法と一緒に継ぐ（親が戦時に上げた徴兵法は、建国した国でも戦争が終われば戦前の段へ戻る）
+         Pension = src.Pension; SocialSecurity = src.SocialSecurity; WorkHoursValue = src.WorkHoursValue;
+         Policy.CopyFrom(src.Policy);
+     }
+@@ -1330,7 +1336,12 @@ public sealed class World
+     //   ⚠閉路禁止（doc 4-1）＝読み手（Transport の目標・AI の軍事費の段）は**前期に書かれた値**を読む（四半期末に書き、翌期に読む）。
+     public double SecurityThreat;
+     public double SecurityThreatOwnMass;   // 自国の養える軍の人口の側（兵役の母数×MaxSoldierFraction＝軍事費の段に依らない＝不安が自分の段で動かない）＝脅威比の分母（0なら脅威項は不発＝否定形ガード）。旧＝自国の総質量
+-    //   ★(155) 脅威の割合＝脅威÷(脅威＋自国の養える軍)∈[0,1)（UtilityAgent.SecurityShare＝導出・持たない）＝AI の軍事費の段と徴兵法の政治が読む。世界の中央との比（作者のメモ M4 の表示）は UI の回で（導出・持たない）。
++    //   ★(168) 本国の陸の成分（推奨で進めた・形は (162)①＝パッチ measurements/m163_20261002_landthreat.diff）＝SecurityThreat のうち**本国（植民地格でない州）の国境**と陸続きの投射から届く分（海を越えて来る陸軍〔首都どうしが別の陸塊＝Diplomacy.IsSeaCrossing〕の投射と
++    //   植民地の国境を除く＝(151) の理想の軍隊の形の陸の必要量〔ArmyShape の hrLand〕の分け方から植民地の国境を外した形・同じ注意配分の分母）。
++    //   読み手＝徴兵法の目標だけ（UtilityAgent.DecideModernLaws＝本国の陸の脅威に徴兵で応え、海の向こうと植民地から来る不安は数えない＝植民地と海外の勤務は長期の志願兵・島国の本国は海軍）。
++    //   軍事費の段の入口（SecurityThreat の全体）は変えない。書き手は StepSecurityThreat のみ（同じ四半期の同じループ・前期の値を読む）。⚠盤面から安く導けない（全ての国の注意配分の分母が要る）＝四半期の値を持つ（新しい状態＝思想⑩の代価・同じ四半期の同じループで SecurityThreat と並べて導出し直す＝貯めない）。
++    public double SecurityThreatLand;
++    //   ★(155) 脅威の割合＝脅威÷(脅威＋自国の養える軍)∈[0,1)（UtilityAgent.SecurityShare＝導出・持たない）＝AI の軍事費の段が読む（徴兵法の目標は (168) から陸の成分の割合を読む）。世界の中央との比（作者のメモ M4 の表示）は UI の回で（導出・持たない）。
+     public Power? SelfPower { get; internal set; }             // 多国シミュ：この国の外交上の代表（植民地・交戦の主体）
+     public bool StepsDiplomacy { get; internal set; } = true;  // 自前で外交を進めるか（多国では MultiNationSim が共有外交を進める＝false）
+     // ★旧 NavalEmphasis（海軍偏重の政策スタンス0..1）は撤去（2026-08-10 作者裁定「陸軍と海軍の注力レバーは廃止し、海軍維持費と陸軍維持費で表現する」）。
+diff --git a/PriceOfBread.SimCore/world.json b/PriceOfBread.SimCore/world.json
+index dc15e39..1e91070 100644
+--- a/PriceOfBread.SimCore/world.json
++++ b/PriceOfBread.SimCore/world.json
+@@ -204,6 +204,7 @@
+    "military": 1.2,
+    "ethnicUnity": 0.97,
+    "initialSuffrage": "None",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "StatePressOnly",
+    "initialCornLaws": "Full",
+    "initialSerfEmancipation": "None",
+@@ -503,6 +504,7 @@
+    "military": 4.5,
+    "ethnicUnity": 0.85,
+    "initialSuffrage": "Census",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "Censorship",
+    "initialCornLaws": "Full",
+    "initialSerfEmancipation": "Full",
+@@ -615,6 +617,7 @@
+    "military": 1,
+    "ethnicUnity": 0.45,
+    "initialSuffrage": "Census",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "FreePress",
+    "initialCornLaws": "None",
+    "initialSerfEmancipation": "Full",
+@@ -1169,6 +1172,7 @@
+    "military": 1.5,
+    "ethnicUnity": 0.4,
+    "initialSuffrage": "None",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "StatePressOnly",
+    "initialCornLaws": "Limited",
+    "initialSerfEmancipation": "Limited",
+@@ -1630,6 +1634,7 @@
+    "military": 1.5,
+    "ethnicUnity": 0.8,
+    "initialSuffrage": "Census",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "FreePress",
+    "initialCornLaws": "None",
+    "initialSerfEmancipation": "Full",
+@@ -2051,6 +2056,7 @@
+    "military": 0.9,
+    "ethnicUnity": 0.75,
+    "initialSuffrage": "None",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "StatePressOnly",
+    "initialCornLaws": "Full",
+    "initialSerfEmancipation": "None",
+@@ -2486,6 +2492,7 @@
+    "military": 1.5,
+    "ethnicUnity": 0.55,
+    "initialSuffrage": "None",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "StatePressOnly",
+    "initialCornLaws": "Full",
+    "initialSerfEmancipation": "None",
+@@ -2602,6 +2609,7 @@
+    "military": 1.2,
+    "ethnicUnity": 0.8,
+    "initialSuffrage": "None",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "StatePressOnly",
+    "initialCornLaws": "Full",
+    "initialSerfEmancipation": "None",
+@@ -2675,6 +2683,7 @@
+    "military": 1.0,
+    "ethnicUnity": 0.65,
+    "initialSuffrage": "None",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "StatePressOnly",
+    "initialCornLaws": "Full",
+    "initialSerfEmancipation": "None",
+@@ -2748,6 +2757,7 @@
+    "military": 1.1,
+    "ethnicUnity": 0.5,
+    "initialSuffrage": "None",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "StatePressOnly",
+    "initialCornLaws": "Full",
+    "initialSerfEmancipation": "None",
+@@ -2865,6 +2875,7 @@
+    "military": 0.8,
+    "ethnicUnity": 0.75,
+    "initialSuffrage": "None",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "StatePressOnly",
+    "initialCornLaws": "Full",
+    "initialSerfEmancipation": "None",
+@@ -3141,6 +3152,7 @@
+    "military": 0.9,
+    "ethnicUnity": 0.65,
+    "initialSuffrage": "None",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "StatePressOnly",
+    "initialCornLaws": "Full",
+    "initialSerfEmancipation": "None",
+@@ -3252,6 +3264,7 @@
+    "military": 0.6,
+    "ethnicUnity": 0.8,
+    "initialSuffrage": "None",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "StatePressOnly",
+    "initialCornLaws": "Full",
+    "initialSerfEmancipation": "None",
+@@ -3313,6 +3326,7 @@
+    "military": 0.5,
+    "ethnicUnity": 0.75,
+    "initialSuffrage": "None",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "StatePressOnly",
+    "initialCornLaws": "Full",
+    "initialSerfEmancipation": "None",
+@@ -3388,6 +3402,7 @@
+    "military": 0.6,
+    "ethnicUnity": 0.78,
+    "initialSuffrage": "None",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "StatePressOnly",
+    "initialCornLaws": "Full",
+    "initialSerfEmancipation": "None",
+@@ -3449,6 +3464,7 @@
+    "military": 1.2,
+    "ethnicUnity": 0.55,
+    "initialSuffrage": "None",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "StatePressOnly",
+    "initialCornLaws": "Full",
+    "initialSerfEmancipation": "None",
+@@ -3538,6 +3554,7 @@
+    "military": 0.6,
+    "ethnicUnity": 0.6,
+    "initialSuffrage": "None",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "StatePressOnly",
+    "initialCornLaws": "Full",
+    "initialSerfEmancipation": "None",
+@@ -3591,6 +3608,7 @@
+    "military": 0.4,
+    "ethnicUnity": 0.65,
+    "initialSuffrage": "None",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "StatePressOnly",
+    "initialCornLaws": "Full",
+    "initialSerfEmancipation": "None",
+@@ -3643,6 +3661,7 @@
+    "military": 0.5,
+    "ethnicUnity": 0.6,
+    "initialSuffrage": "None",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "StatePressOnly",
+    "initialCornLaws": "Full",
+    "initialSerfEmancipation": "None",
+@@ -3696,6 +3715,7 @@
+    "military": 0.8,
+    "ethnicUnity": 0.6,
+    "initialSuffrage": "None",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "StatePressOnly",
+    "initialCornLaws": "Full",
+    "initialSerfEmancipation": "None",
+@@ -3770,6 +3790,7 @@
+    "military": 0.7,
+    "ethnicUnity": 0.35,
+    "initialSuffrage": "None",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "StatePressOnly",
+    "initialCornLaws": "Full",
+    "initialSerfEmancipation": "None",
+@@ -3892,6 +3913,7 @@
+    "military": 1.0,
+    "ethnicUnity": 0.8,
+    "initialSuffrage": "None",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "StatePressOnly",
+    "initialCornLaws": "Full",
+    "initialSerfEmancipation": "None",
+@@ -4122,6 +4144,7 @@
+    "military": 0.7,
+    "ethnicUnity": 0.45,
+    "initialSuffrage": "None",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "StatePressOnly",
+    "initialCornLaws": "Full",
+    "initialSerfEmancipation": "None",
+@@ -4336,6 +4359,7 @@
+    "military": 0.4,
+    "ethnicUnity": 0.85,
+    "initialSuffrage": "None",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "StatePressOnly",
+    "initialCornLaws": "Full",
+    "initialSerfEmancipation": "None",
+@@ -4522,6 +4546,7 @@
+    "military": 0.5,
+    "ethnicUnity": 0.9,
+    "initialSuffrage": "None",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "StatePressOnly",
+    "initialCornLaws": "Full",
+    "initialSerfEmancipation": "None",
+@@ -4599,6 +4624,7 @@
+    "military": 0.4,
+    "ethnicUnity": 0.9,
+    "initialSuffrage": "None",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "StatePressOnly",
+    "initialCornLaws": "Full",
+    "initialSerfEmancipation": "None",
+@@ -5010,6 +5036,7 @@
+    "military": 0.4,
+    "ethnicUnity": 0.82,
+    "initialSuffrage": "None",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "StatePressOnly",
+    "initialCornLaws": "Full",
+    "initialSerfEmancipation": "None",
+@@ -5064,6 +5091,7 @@
+    "military": 0.5,
+    "ethnicUnity": 0.4,
+    "initialSuffrage": "None",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "StatePressOnly",
+    "initialCornLaws": "Full",
+    "initialSerfEmancipation": "None",
+@@ -5118,6 +5146,7 @@
+    "military": 0.8,
+    "ethnicUnity": 0.6,
+    "initialSuffrage": "None",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "StatePressOnly",
+    "initialCornLaws": "Full",
+    "initialSerfEmancipation": "None",
+@@ -5439,6 +5468,7 @@
+    "military": 0.9,
+    "ethnicUnity": 0.5,
+    "initialSuffrage": "None",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "StatePressOnly",
+    "initialCornLaws": "Limited",
+    "initialSerfEmancipation": "None",
+diff --git a/PriceOfBread.Tests/MilitaryTests.cs b/PriceOfBread.Tests/MilitaryTests.cs
+index 3a035ae..bcdf19f 100644
+--- a/PriceOfBread.Tests/MilitaryTests.cs
++++ b/PriceOfBread.Tests/MilitaryTests.cs
+@@ -1188,9 +1188,12 @@ public class MilitaryTests
+     }
+ 
+     /// <summary>★(155) AI の軍事費の段＝安全保障の不安の唯一の入口＝平時の段の幅（段1〜段3）を脅威の割合（脅威÷(脅威＋自国の養える軍)）で内分。軍備スタンスは段を書かない。
+-    /// 徴兵法の政治＝脅威の割合が半分以上（届く敵意の養える軍が自国の養える軍以上）か交戦中＝徴兵制。⚠突然変異「軍備スタンスが 0.7 を書く（旧）」「徴兵法を軍備スタンスで読む（旧）」で赤。</summary>
++    /// ★(168) 徴兵法の目標＝**本国の陸の脅威の割合**（陸の成分 SecurityThreatLand÷(それ＋自国の養える軍)）が半分以上か交戦中＝徴兵制／他は現状維持
++    /// （海の向こうと植民地から来る不安は数えない・数えないだけで志願制の理由にもしない・旧 (155) の「平時の男子普選以上なら志願制」の枝は外した）。軍事費の段は不安の全体を読む（陸の成分を読まない）。
++    /// 呼び手（UtilityAgent.Apply＝目標を書いて法の門へ通す）でも同じ。
++    /// ⚠突然変異「軍備スタンスが 0.7 を書く（旧）」「徴兵法を不安の全体で読む（旧）」「男子普選の枝を戻す（旧）」「海の向こうの不安を志願制の理由にする（(162)①）」「交戦中の枝を外す」「線を 0.3／&gt; 0.5 に」で赤。</summary>
+     [Fact]
+-    public void AIの軍事費の段は安全保障の不安で決まり徴兵法の政治も同じ不安を読む()
++    public void AIの軍事費の段は安全保障の不安の全体を読み徴兵法の目標は本国の陸の脅威だけを読む()
+     {
+         var w = France155().World;
+         w.SecurityThreat = 0; w.SecurityThreatOwnMass = 100;
+@@ -1206,22 +1209,215 @@ public class MilitaryTests
+         w.SecurityThreat = 0;
+         UtilityAgent.Apply(w, UtilityAgent.Stance.Militarize);
+         Assert.Equal(0.25, w.Policy.MilitarySpendingTarget, 12);
++        // ★(168) 段は不安の全体を読む＝陸の成分を0 にしても段の目標は変わらない（徴兵法の目標だけが陸の成分を読む）
++        w.SecurityThreat = 300; w.SecurityThreatLand = 0;
++        Assert.Equal(0.25 + 0.5 * 0.75, UtilityAgent.SecurityStageTarget(w), 12);
+         var decide = typeof(UtilityAgent).GetMethod("DecideModernLaws", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!;
+-        w.Policy.ConscriptionLaw = ConscriptionLaw.Volunteer;
+-        w.SecurityThreat = 150;   // 脅威の割合 0.6
+-        decide.Invoke(null, [w, w.Policy, UtilityAgent.Stance.Industrialize]);
+-        Assert.Equal(ConscriptionLaw.Selective, w.Policy.ConscriptionLaw);
+-        // ★(157) 線の両側（反証役の指摘＝線の下側が固定されていなかった）：割合 0.5（ちょうど線）は徴兵制・0.4（線の下・平時）は徴兵制にしない（志願制のまま）。
+-        //   ⚠突然変異「線を 0.3 へ下げる」「線を > 0.5 にする」で赤。
++        ConscriptionLaw Decide(World x, ConscriptionLaw from, double total, double land)
++        {
++            x.SecurityThreat = total; x.SecurityThreatLand = land; x.Policy.ConscriptionLaw = from;
++            decide.Invoke(null, [x, x.Policy, UtilityAgent.Stance.Industrialize]);
++            return x.Policy.ConscriptionLaw;
++        }
+         Assert.False(w.AtWarNow, "前提が崩れた：仏が交戦中（交戦中は割合に依らず徴兵制）");
+-        w.Policy.ConscriptionLaw = ConscriptionLaw.Volunteer;
+-        w.SecurityThreat = 100;   // 脅威の割合 0.5
+-        decide.Invoke(null, [w, w.Policy, UtilityAgent.Stance.Industrialize]);
++        Assert.True(w.Suffrage < Suffrage.AdultMale && !w.Mobilized, "前提が崩れた：仏1783 が男子普選以上か総動員中");
++        // 本国の陸の脅威の割合 0.6・0.5（ちょうど線）＝徴兵制（(157) の線の両側を陸の成分で）
++        Assert.Equal(ConscriptionLaw.Selective, Decide(w, ConscriptionLaw.Volunteer, 150, 150));
++        Assert.Equal(ConscriptionLaw.Selective, Decide(w, ConscriptionLaw.Volunteer, 100, 100));
++        // 本国の陸の脅威の割合 0.4（線の下・平時）＝現状維持（どちらの法からも動かない）
++        double l4 = 100.0 * 0.4 / 0.6;
++        Assert.Equal(ConscriptionLaw.Volunteer, Decide(w, ConscriptionLaw.Volunteer, l4, l4));
++        Assert.Equal(ConscriptionLaw.Selective, Decide(w, ConscriptionLaw.Selective, l4, l4));
++        // 不安の全体は大きい（割合 0.75）が陸の成分は0＝海の向こうと植民地から＝数えない＝現状維持（旧＝不安の全体を読み徴兵制／(162)①＝志願制）
++        Assert.Equal(ConscriptionLaw.Volunteer, Decide(w, ConscriptionLaw.Volunteer, 300, 0));
++        Assert.Equal(ConscriptionLaw.Selective, Decide(w, ConscriptionLaw.Selective, 300, 0));
++        // 陸の成分の割合が線の下でも全体が線の上（全体 0.75・陸 0.4）＝現状維持
++        Assert.Equal(ConscriptionLaw.Volunteer, Decide(w, ConscriptionLaw.Volunteer, 300, l4));
++        // NaN＝現状維持（比較が偽）
++        Assert.Equal(ConscriptionLaw.Volunteer, Decide(w, ConscriptionLaw.Volunteer, double.NaN, double.NaN));
++        // 男子普選以上でも陸の脅威が線の下なら現状維持（旧 (155)＝志願制へ）・線の上なら徴兵制
++        w.Suffrage = Suffrage.AdultMale;
++        Assert.Equal(ConscriptionLaw.Selective, Decide(w, ConscriptionLaw.Selective, l4, l4));
++        Assert.Equal(ConscriptionLaw.Selective, Decide(w, ConscriptionLaw.Selective, 0, 0));
++        Assert.Equal(ConscriptionLaw.Selective, Decide(w, ConscriptionLaw.Volunteer, 150, 150));
++        w.Suffrage = Suffrage.None;
++        // 呼び手（Apply＝目標を書き、法の門で今の段＋1 までに丸める）：志願制の国で陸の割合 0.6＝選抜・全体 0.75 で陸0＝志願のまま
++        w.ConscriptionLaw = ConscriptionLaw.Volunteer;
++        w.Policy.ConscriptionLaw = ConscriptionLaw.Volunteer; w.SecurityThreat = 150; w.SecurityThreatLand = 150;
++        UtilityAgent.Apply(w, UtilityAgent.Stance.Industrialize);
+         Assert.Equal(ConscriptionLaw.Selective, w.Policy.ConscriptionLaw);
+-        w.Policy.ConscriptionLaw = ConscriptionLaw.Volunteer;
+-        w.SecurityThreat = 100.0 * 0.4 / 0.6;   // 脅威の割合 0.4
+-        decide.Invoke(null, [w, w.Policy, UtilityAgent.Stance.Industrialize]);
++        w.Policy.ConscriptionLaw = ConscriptionLaw.Volunteer; w.SecurityThreat = 300; w.SecurityThreatLand = 0;
++        UtilityAgent.Apply(w, UtilityAgent.Stance.Industrialize);
+         Assert.Equal(ConscriptionLaw.Volunteer, w.Policy.ConscriptionLaw);
++        // 交戦中は陸の成分に依らず徴兵制（(155) の線のまま＝海の向こうの戦争でも交戦中は徴兵制の目標・戦後は Government.Step が戦前の段へ戻す＝下の番人）
++        var sim = Frozen152("フランス", "スペイン");
++        sim.StepQuarter();
++        var fr = sim.Nations[0].World;
++        sim.Diplomacy.Wars.Add(new War { A = fr.SelfPower!, B = sim.Nations[1].World.SelfPower! });
++        fr.SecurityThreatOwnMass = 100;
++        Assert.True(fr.AtWarNow, "前提が崩れた：仏が交戦中でない");
++        Assert.Equal(ConscriptionLaw.Selective, Decide(fr, ConscriptionLaw.Volunteer, 300, 0));
++    }
++
++    /// <summary>★(168)（形は (162)①）安全保障の不安の本国の陸の成分（World.SecurityThreatLand）＝同じ注意配分の分母のうち、守る側の**本国の州（植民地格でない）の国境**と
++    /// **陸続きの投射**（首都どうしが同じ陸塊）だけを数える。盤面＝仏・西・日（開幕・外交を止める）：(a) 式どおり（公開の部品で数え直して一致）(b) 陸の成分≦全体
++    /// (c) 日本（島国）は国境も陸続きの投射も無い＝陸の成分0（全体は正）(d) 西の州を全て植民地格にすると仏→西の本国の国境は0・西→仏の本国の国境は元のまま・
++    /// エンジンを回し直すと西の陸の成分は下がり（仏の陸続きの投射だけが残る）、数え直しと一致する。
++    /// ⚠突然変異「陸の成分に植民地の国境を数える」「海越えの投射を陸に数える」「本国の判定を読まない」で赤。</summary>
++    [Fact]
++    public void 安全保障の不安の本国の陸の成分は本国の国境と陸続きの投射だけを数える()
++    {
++        var sim = Frozen152("フランス", "スペイン", "日本");
++        var c = sim.Coef;
++        sim.StepQuarter();
++        var step = typeof(MultiNationSim).GetMethod("StepSecurityThreat", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!;
++        var ps = sim.Nations.ConvertAll(n => n.World.SelfPower!);
++        int n = ps.Count;
++        double[] ExpectLand()
++        {
++            var seats = new double[n];
++            for (int i = 0; i < n; i++) seats[i] = Military.EstablishmentOf(sim.Nations[i].World, sim.Nations[i].World.Coef, out _);
++            var home = new double[n * n];
++            var border = ArmyShape.Borders(ps, c, home);
++            var hl = new double[n * n]; var col = new double[n];
++            for (int a = 0; a < n; a++)
++            {
++                double sum = ArmyShape.Unrest(ps[a]);
++                for (int b = 0; b < n; b++)
++                {
++                    if (a == b) continue;
++                    double h = ArmyShape.Hostility(sim.Diplomacy, ps[b], ps[a], c);
++                    if (!(h > 0)) continue;
++                    double proj = sim.Diplomacy.Projection(ps[a], ps[b], c);
++                    double r = border[a * n + b] + proj;
++                    if (!(r > 0)) continue;
++                    sum += h * r;
++                    hl[a * n + b] = h * (home[a * n + b] + (sim.Diplomacy.IsSeaCrossing(ps[a], ps[b], c) ? 0 : proj));
++                }
++                col[a] = sum;
++            }
++            var land = new double[n];
++            for (int b = 0; b < n; b++)
++                for (int a = 0; a < n; a++) if (a != b && col[a] > 1e-12 && seats[a] > 0) land[b] += hl[a * n + b] / col[a] * seats[a];
++            return land;
++        }
++        step.Invoke(sim, null);
++        var e0 = ExpectLand();
++        for (int b = 0; b < n; b++)
++        {
++            var wb = sim.Nations[b].World;
++            Assert.Equal(e0[b], wb.SecurityThreatLand, 9);
++            Assert.True(wb.SecurityThreatLand <= wb.SecurityThreat * (1 + 1e-12), $"{wb.SelfPower!.Name} の陸の成分 {wb.SecurityThreatLand} が全体 {wb.SecurityThreat} を超える");
++        }
++        var jp = sim.Nations[2].World;
++        Assert.True(jp.SecurityThreat > 0, "前提が崩れた：日本に不安が無い（海越えの投射が届かない）");
++        Assert.Equal(0.0, jp.SecurityThreatLand);
++        var es = sim.Nations[1].World;
++        double esLand0 = es.SecurityThreatLand;
++        Assert.True(sim.Nations[0].World.SecurityThreatLand > 0 && esLand0 > 0, "前提が崩れた：仏西に陸の成分が無い（仏西の国境）");
++        // 西の州を全て植民地格に＝仏→西の本国の国境は0・全ての国境は変わらない・西→仏（仏の本国）は元のまま
++        var home1 = new double[n * n];
++        var border1 = ArmyShape.Borders(ps, c, home1);
++        double before = border1[0 * n + 1], frHome = home1[1 * n + 0];
++        Assert.True(before > 0 && Math.Abs(home1[0 * n + 1] - before) <= 1e-12 * before, "前提が崩れた：仏西の国境が本国どうしでない");
++        foreach (var r in es.Regions) r.Tier = RegionTier.Colonial;
++        var home2 = new double[n * n];
++        var border2 = ArmyShape.Borders(ps, c, home2);
++        Assert.Equal(before, border2[0 * n + 1], 12);
++        Assert.Equal(0.0, home2[0 * n + 1]);
++        Assert.Equal(frHome, home2[1 * n + 0], 12);
++        // エンジン（呼び手）を回し直す＝西の陸の成分は仏の陸続きの投射だけ＝下がり、数え直しと一致
++        step.Invoke(sim, null);
++        var e1 = ExpectLand();
++        for (int b = 0; b < n; b++) Assert.Equal(e1[b], sim.Nations[b].World.SecurityThreatLand, 9);
++        Assert.True(es.SecurityThreatLand < esLand0 * (1 - 1e-6), $"西の本国が植民地格になっても西の陸の成分が下がらない（{esLand0} → {es.SecurityThreatLand}）＝植民地の国境を数えた");
++    }
++
++    /// <summary>★(168) 戦時の非常の法＝戦時に上げた徴兵法は、戦争が終わった四半期に戦前の段へ戻る（R2 の戦時段の失効と同じ形・Government.Step＝AI とプレイヤーの共通経路）。
++    /// 盤面＝英（開幕の志願制）・仏（開幕の選抜）を外交を止めて並べ、戦争を盤面へ直に置く（NullAgent＝AI は目標を書かない）。
++    /// (a) 交戦に入った四半期に戦前の段を記録 (b) 戦時に上げた段は戦争の間は残る (c) 戦争が終わった四半期に戦前の段へ戻り、保存目標も同じ段・記録は消える
++    /// (d) 平時から有った徴兵法は戻らない（仏＝選抜のまま）・皆兵へ上げた分だけ選抜へ戻る (e) 戦時に下げた段は上げ戻さない (f) 建国は親の記録を継ぐ（CopyLawsFrom）
++    /// (g) 呼び手＝四半期の頭（MultiNationSim.StepQuarter → Simulation の QuarterStart → Government.Step）で同じことが起き、戻した段から翌期に上がらない。
++    /// ⚠突然変異「戻さない」「上げたか確かめずに戻す」「交戦中に毎期記録し直す」「保存目標を戻さない」「建国が記録を継がない」で赤。</summary>
++    [Fact]
++    public void 戦時に上げた徴兵法は戦争が終わった四半期に戦前の段へ戻る()
++    {
++        var sim = Frozen152("イギリス", "フランス");
++        sim.StepQuarter();
++        var uk = sim.Nations[0].World; var fr = sim.Nations[1].World;
++        Assert.Equal(ConscriptionLaw.Volunteer, uk.ConscriptionLaw);
++        Assert.Equal(ConscriptionLaw.Selective, fr.ConscriptionLaw);
++        Assert.Equal(-1, uk.ConscriptionPreWar);
++        Assert.Equal(-1, fr.ConscriptionPreWar);
++        var war = new War { A = uk.SelfPower!, B = fr.SelfPower! };
++        sim.Diplomacy.Wars.Add(war);
++        // (a) 交戦に入った四半期に記録
++        Government.Step(uk, uk.Coef); Government.Step(fr, fr.Coef);
++        Assert.Equal((int)ConscriptionLaw.Volunteer, uk.ConscriptionPreWar);
++        Assert.Equal((int)ConscriptionLaw.Selective, fr.ConscriptionPreWar);
++        // (b) 戦時に上げる（どの経路でも同じ＝ここでは法と目標を直に置く）＝戦争の間は残り、記録は戦前のまま
++        uk.ConscriptionLaw = ConscriptionLaw.Selective; uk.Policy.ConscriptionLaw = ConscriptionLaw.Selective;
++        fr.ConscriptionLaw = ConscriptionLaw.Universal; fr.Policy.ConscriptionLaw = ConscriptionLaw.Universal;
++        Government.Step(uk, uk.Coef); Government.Step(fr, fr.Coef);
++        Assert.Equal(ConscriptionLaw.Selective, uk.ConscriptionLaw);
++        Assert.Equal(ConscriptionLaw.Universal, fr.ConscriptionLaw);
++        Assert.Equal((int)ConscriptionLaw.Volunteer, uk.ConscriptionPreWar);
++        Assert.Equal((int)ConscriptionLaw.Selective, fr.ConscriptionPreWar);
++        // (f) 建国は親の記録を継ぐ（親の戦時の法と記録が一緒に移る）
++        var child = new Simulation(WorldData.ByName("デンマーク").ToScenario(5), new NullAgent()).World;
++        child.CopyLawsFrom(uk);
++        Assert.Equal(ConscriptionLaw.Selective, child.ConscriptionLaw);
++        Assert.Equal((int)ConscriptionLaw.Volunteer, child.ConscriptionPreWar);
++        // (c)(d) 戦争が終わった四半期＝英は志願へ・仏は皆兵から選抜へ（平時から有った選抜は残る）・保存目標も同じ段・記録は消える
++        sim.Diplomacy.Wars.Remove(war);
++        Government.Step(uk, uk.Coef); Government.Step(fr, fr.Coef);
++        Assert.Equal(ConscriptionLaw.Volunteer, uk.ConscriptionLaw);
++        Assert.Equal(ConscriptionLaw.Volunteer, uk.Policy.ConscriptionLaw);
++        Assert.Equal(ConscriptionLaw.Selective, fr.ConscriptionLaw);
++        Assert.Equal(ConscriptionLaw.Selective, fr.Policy.ConscriptionLaw);
++        Assert.Equal(-1, uk.ConscriptionPreWar);
++        Assert.Equal(-1, fr.ConscriptionPreWar);
++        Government.Step(child, child.Coef);   // 建国した国は交戦していない（外交なし）＝親の戦前の段へ
++        Assert.Equal(ConscriptionLaw.Volunteer, child.ConscriptionLaw);
++        // (e) 戦時に下げた段は上げ戻さない（仏＝選抜から志願へ下げた）
++        sim.Diplomacy.Wars.Add(war);
++        Government.Step(fr, fr.Coef);
++        Assert.Equal((int)ConscriptionLaw.Selective, fr.ConscriptionPreWar);
++        fr.ConscriptionLaw = ConscriptionLaw.Volunteer; fr.Policy.ConscriptionLaw = ConscriptionLaw.Volunteer;
++        sim.Diplomacy.Wars.Remove(war);
++        Government.Step(fr, fr.Coef);
++        Assert.Equal(ConscriptionLaw.Volunteer, fr.ConscriptionLaw);
++        Assert.Equal(-1, fr.ConscriptionPreWar);
++        // (g) 呼び手＝四半期の頭：交戦中に英を選抜へ上げ、交戦のまま1四半期回す（残る）→ 戦争を除いて1四半期回す（志願へ戻る）→ もう1四半期（上がらない）
++        sim.Diplomacy.Wars.Add(war);
++        sim.StepQuarter();
++        Assert.Equal((int)ConscriptionLaw.Volunteer, uk.ConscriptionPreWar);
++        uk.ConscriptionLaw = ConscriptionLaw.Selective; uk.Policy.ConscriptionLaw = ConscriptionLaw.Selective;
++        sim.StepQuarter();
++        Assert.Equal(ConscriptionLaw.Selective, uk.ConscriptionLaw);
++        sim.Diplomacy.Wars.Remove(war);
++        sim.StepQuarter();
++        Assert.Equal(ConscriptionLaw.Volunteer, uk.ConscriptionLaw);
++        Assert.Equal(ConscriptionLaw.Volunteer, uk.Policy.ConscriptionLaw);
++        sim.StepQuarter();
++        Assert.Equal(ConscriptionLaw.Volunteer, uk.ConscriptionLaw);
++    }
++
++    /// <summary>★(168) 開幕の徴兵法＝1783 年の史実のデータ（world.json の initialConscription・国名の分岐でなくデータ）。英・米・日・清・蘭・オスマン＝志願制／普・露・墺・西・仏＝選抜（既定）。
++    /// 現在値（World）と目標（Policy）が同じ値で始まる＝開幕の四半期に法の戦線が開かない。建国は親の法を継ぐ（MultiNationSim の Scenario と CopyLawsFrom）。
++    /// ⚠突然変異「NationConfig が Scenario へ渡さない」「現在値を目標から置かない（既定の選抜のまま）」で赤。</summary>
++    [Fact]
++    public void 開幕の徴兵法は1783年の史実のデータで始まる()
++    {
++        foreach (var (name, law) in new[] { ("イギリス", ConscriptionLaw.Volunteer), ("アメリカ", ConscriptionLaw.Volunteer), ("日本", ConscriptionLaw.Volunteer),
++                                            ("清", ConscriptionLaw.Volunteer), ("ネーデルラント", ConscriptionLaw.Volunteer), ("オスマン", ConscriptionLaw.Volunteer),
++                                            ("プロイセン", ConscriptionLaw.Selective), ("ロシア", ConscriptionLaw.Selective), ("オーストリア", ConscriptionLaw.Selective),
++                                            ("スペイン", ConscriptionLaw.Selective), ("フランス", ConscriptionLaw.Selective) })
++        {
++            Assert.Equal(law, WorldData.ByName(name).InitialConscription);
++            var w = new Simulation(WorldData.ByName(name).ToScenario(3), new NullAgent()).World;
++            Assert.True(w.ConscriptionLaw == law && w.Policy.ConscriptionLaw == law, $"{name} の開幕の徴兵法 {w.ConscriptionLaw}／目標 {w.Policy.ConscriptionLaw}（データ {law}）");
++        }
+     }
+ 
+     /// <summary>★(157) 呼び手の番人（反証役の指摘）：Fiscal の余剰（guns-vs-butter）は月初の予算（Simulation の軍事費の吸い込み）が書いた装備の請求 World.LastMilitaryClaim を読む

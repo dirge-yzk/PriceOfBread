@@ -1,0 +1,45 @@
+diff --git a/PriceOfBread.SimCore/Government.cs b/PriceOfBread.SimCore/Government.cs
+--- a/PriceOfBread.SimCore/Government.cs
++++ b/PriceOfBread.SimCore/Government.cs
+@@ -247,6 +247,18 @@
+         //   ⚠法でないもの＝専売の材・補助・売買方針・国営工場（生産の決断＝作者裁定 2026-09-20）・制度の解禁（特許・株式会社・鉄道・検地台帳＝社会の盤面から導く）・兌換の運転（信用の門）は助走でも動く＝経済の定常の一部。
+         if (w.WarmupFrozen) { w.AusterityIntensity = austerity; return; }
+ 
++        // ★(168) 戦時の非常の法（徴兵法・推奨で進めた）＝戦時に上げた徴兵法は、戦争が終わった四半期に戦前の段へ戻る（R2「戦時経済は総動員とセットで、戦後は下の値に戻る」と同じ形＝戦時の段は戦争が前提）。
++        //   史実＝英の兵役法（1916）は戦争の期間に限る法で 1920 に廃止・米の徴兵法（1863・1917）は戦後に終わった・仏の国民総動員（1793）の後は平時の法へ戻った。
++        //   平時から有った徴兵法（普・仏・露）は戻らない（戦前の段が徴兵なら徴兵のまま）＝戻すのは「今の段が戦前の段より上」のときだけ。平時の再制定は AI もプレイヤーも門を通す（下のループ）。
++        //   戦前の段は交戦に入った四半期に記録する（World.ConscriptionPreWar＝思想⑩の例外の理由はその注記）。クールダウンではない＝戦争の終わりという状態で決まる。
++        //   保存目標も同じ段へ戻す（R2 の戦時段の失効と同じ＝次の戦争で選び直さずに黙って上がらない）。全国が四半期頭に通る1箇所＝AI とプレイヤーの共通経路（IsPlayer を読まない）。
++        if (w.AtWarNow) { if (w.ConscriptionPreWar < 0) w.ConscriptionPreWar = (int)w.ConscriptionLaw; }
++        else if (w.ConscriptionPreWar >= 0)
++        {
++            if ((int)w.ConscriptionLaw > w.ConscriptionPreWar) { w.ConscriptionLaw = (ConscriptionLaw)w.ConscriptionPreWar; p.ConscriptionLaw = w.ConscriptionLaw; }
++            w.ConscriptionPreWar = -1;
++        }
++
+         // 法整備（離散）：力の均衡が許す向きに一歩ずつ。教育法・参政権・徴兵法は World が現在値を持ち効果に効く。
+         // ★段の法は表 <see cref="LevelLaws"/> を施行の順に1本のループで回す（2026-09-28 処理の一元化 段1＝旧は軸ごとに StepEnum/StepBool の1行・各軸の注記は表の行へ移した）。
+         foreach (var law in LevelLaws)
+diff --git a/PriceOfBread.SimCore/World.cs b/PriceOfBread.SimCore/World.cs
+--- a/PriceOfBread.SimCore/World.cs
++++ b/PriceOfBread.SimCore/World.cs
+@@ -114,6 +114,11 @@
+     public ReformLevel SerfEmancipation { get; internal set; }  // 農奴解放（現在値・なし/限定的/全面）：農奴制の地代取り分を小作へ
+     public ReformLevel Pension { get; internal set; }        // 年金（①年齢コホート）＝SocialSecurityLaw からの導出値（Government.Step が毎期 Pension段→Full／それ以外→None を代入。Limited は取らない）。Fiscal の年金給付が読む
+     public ConscriptionLaw ConscriptionLaw { get; internal set; } = ConscriptionLaw.Selective;   // 徴兵法（現在値・志願/選抜/全国の3値・2026-08-01）。既定 Selective＝選抜以上で戦時徴兵（Military）＝旧2値の「徴兵」と同値
++    //   ★(168) 戦前の徴兵法（戦時の非常の法・推奨で進めた）＝交戦に入った四半期の徴兵法の段（int）・-1＝平時（記録なし）。書き手＝Government.Step だけ
++    //   （交戦中で記録が無ければ今の段を記録・戦争が終わった四半期に、今の段が記録より上なら記録の段へ戻して消す）。読み手も Government.Step だけ。建国は親の記録を継ぐ（CopyLawsFrom）。
++    //   ⚠盤面から導けない（戦争が終わった時点で、今の段が戦時に上げたものか平時から有ったものかは法の値からは分からない＝英1916 の兵役法は戻り、普1814・日1873 の平時の法は戻らない）＝思想⑩の例外として1つ持つ。
++    //   クールダウンではない（戦争の終わりという状態で決まる）。R2（戦時段の失効）と同じ形＝戦時の段は戦争が前提。
++    public int ConscriptionPreWar { get; internal set; } = -1;
+     public SecretBallotLaw SecretBallot { get; internal set; } = SecretBallotLaw.Open;              // 秘密投票法（現在値・1934拡張E5）。発言権の鎮静効果を選挙の実在で変調（紙の参政権是正）。SecretBallotGate=0で恒等
+     // ★★★予算法・統帥法（作者設計 2026-08-20）＝**追加するものは法だけ**。予算権と統帥権は独立ストックを持たず、
+     //   王権正統性 Lc と議会正統性 Lp（合計1）に**法の重み**を掛けて正規化するだけで出す（<see cref="PowerAffinity"/>）。
+@@ -516,6 +521,7 @@
+         Tariff = src.Tariff; InterestRate = src.InterestRate; AdminSpending = src.AdminSpending;
+         SetMilitarySpending(src.MilitarySpending, src.NavalSpendShare);   // 陸海の維持費ごと（2026-08-04）
+         LandTaxUnlocked = src.LandTaxUnlocked;   // 特許・株式会社・鉄道は発見の2値（Discovered＝建国は親の知識を継ぐ）を読むだけ＝写さない
++        ConscriptionPreWar = src.ConscriptionPreWar;   // ★(168) 戦時の非常の法は法と一緒に継ぐ（親が戦時に上げた徴兵法は、建国した国でも戦争が終われば戦前の段へ戻る）
+         Pension = src.Pension; SocialSecurity = src.SocialSecurity; WorkHoursValue = src.WorkHoursValue;
+         Policy.CopyFrom(src.Policy);
+     }

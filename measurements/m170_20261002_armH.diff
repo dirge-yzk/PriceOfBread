@@ -1,0 +1,14 @@
+diff --git a/PriceOfBread.SimCore/ArmyShape.cs b/PriceOfBread.SimCore/ArmyShape.cs
+--- a/PriceOfBread.SimCore/ArmyShape.cs
++++ b/PriceOfBread.SimCore/ArmyShape.cs
+@@ -182,8 +182,8 @@
+             b[ou * n + ov] += w; b[ov * n + ou] += w;
+             if (home is not null)
+             {
+-                if (home[v]) toHome![ou * n + ov] += w;   // ou の州が ov の本国の州と隣り合う
+-                if (home[u]) toHome![ov * n + ou] += w;
++                if (home[v] && home[u]) toHome![ou * n + ov] += w;   // ou の州が ov の本国の州と隣り合う
++                if (home[u] && home[v]) toHome![ov * n + ou] += w;
+             }
+         }
+     }

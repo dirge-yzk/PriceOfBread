@@ -1,0 +1,303 @@
+diff --git a/PriceOfBread.SimCore/MultiNationSim.cs b/PriceOfBread.SimCore/MultiNationSim.cs
+--- a/PriceOfBread.SimCore/MultiNationSim.cs
++++ b/PriceOfBread.SimCore/MultiNationSim.cs
+@@ -425,6 +425,7 @@
+             InitialSuffrage = pw.Suffrage, InitialCensorship = pw.Censorship,
+             InitialCornLaws = pw.CornLaws, InitialSerfEmancipation = pw.SerfEmancipation,
+             InitialImmigration = pw.ImmigrationRestriction,   // 移民制限法の継承（E7・独立は制度を巻き戻さない＝他の法と同じ規則）
++            InitialConscription = pw.ConscriptionLaw,         // 徴兵法の継承（(168)・同じ規則＝この後の World.CopyLawsFrom も同じ値を写す）
+             InitialMonetaryLaw = pw.MonetaryLaw,              // 通貨制度の継承（F6・金の親から独立した国は金で始まる＝同じ規則）
+         };
+         // 新国家は常に効用AI（プレイヤー国から独立してもUI操作者はいない＝NullAgentのゾンビ国家を作らない）
+diff --git a/PriceOfBread.SimCore/NationConfig.cs b/PriceOfBread.SimCore/NationConfig.cs
+--- a/PriceOfBread.SimCore/NationConfig.cs
++++ b/PriceOfBread.SimCore/NationConfig.cs
+@@ -60,6 +60,10 @@
+     public ReformLevel InitialCornLaws = ReformLevel.None;                 // 穀物法：地主保護の農業国＝全面（英の穀物法）／自由貿易・輸出国＝なし（蘭米）
+     public ReformLevel InitialSerfEmancipation = ReformLevel.None;         // 農奴解放：東欧の農奴制＝なし（露普墺日）／西欧の自由労働＝全面（英米蘭）／封建残滓＝限定（仏伊西土）
+     public ImmigrationLaw InitialImmigration = ImmigrationLaw.Open;        // ★移民制限法（作者裁定 2026-09-27 E7）：日本＝鎖国・朝鮮＝海禁で閉鎖／清＝広東一口通商と満洲の封禁で選別／他＝開放
++    // ★徴兵法の初期値（2026-10-02 (168)・推奨で進めた＝1783 年の史実のデータ・出典は実装ログ (168)）：常備軍が志願・世襲の武人・傭兵・部族の兵で、国家が平民を籤や割当てで
++    //   兵営へ取らない国＝志願制（英〔陸軍は志願・民兵の籤は本土の防衛で別〕・米・日〔世襲の武士〕・清〔八旗・緑営＝世襲と志願〕・蘭・オスマン〔イェニチェリとティマール・徴兵は1843/48〕ほか）／
++    //   国家が平民を籤・カントン・徴募の割当てで兵営へ取る国＝選抜（普のカントン制度・露の徴募・西のキンタ・墺の徴兵区・仏の民兵の籤〔国王の民兵＝軍の予備〕ほか＝既定）。
++    public ConscriptionLaw InitialConscription = ConscriptionLaw.Selective;
+     public MonetaryStandardLaw InitialMonetaryLaw = MonetaryStandardLaw.Silver;   // ★通貨制度（作者裁定 2026-09-28 F6）：英＝金（1717年以後の事実上の金本位・1816/21年に法）／他＝既定の銀（1783年の銀の世界＝銀貨は普遍的だった・Coefficients.SilverStandardIndThreshold の注記）。旧＝既定の不換→AI が助走の最初の四半期に銀へ上げた＝助走が法を動かしていた形（2026-09-30 (119) で助走は法を動かさない＝初期値そのものを史実へ）
+     // 国土を分ける州（代表都市＋人口Share〔合計1〕＋その州の強み資源 good.Id[]）。未指定なら単一地域。
+     // 列挙財＝増産（×3.5・地理的な得意＝輸出）／非列挙のRGOは減産（×0.4・要輸入。ただし主食 麦/米/野菜は食料安全保障で減産しない）。
+@@ -85,6 +89,7 @@
+         InitialTariff = InitialTariff,  // 関税の初期値（日本＝鎖国）
+         InitialSuffrage = InitialSuffrage, InitialCensorship = InitialCensorship,
+         InitialCornLaws = InitialCornLaws, InitialSerfEmancipation = InitialSerfEmancipation, InitialImmigration = InitialImmigration,
++        InitialConscription = InitialConscription,
+         InitialMonetaryLaw = InitialMonetaryLaw,
+     };
+ 
+diff --git a/PriceOfBread.SimCore/Scenario.cs b/PriceOfBread.SimCore/Scenario.cs
+--- a/PriceOfBread.SimCore/Scenario.cs
++++ b/PriceOfBread.SimCore/Scenario.cs
+@@ -77,6 +77,7 @@
+     public CensorshipLaw InitialCensorship { get; init; } = CensorshipLaw.StatePressOnly; // 報道（米蘭＝自由／英＝検閲付／他＝国家報道のみ）
+     public ReformLevel InitialCornLaws { get; init; } = ReformLevel.None;                 // 穀物法（地主保護＝農業国は全面／自由貿易国＝なし）
+     public ImmigrationLaw InitialImmigration { get; init; } = ImmigrationLaw.Open;        // 移民制限法（日朝＝閉鎖／清＝選別／他＝開放・作者裁定 2026-09-27 E7）
++    public ConscriptionLaw InitialConscription { get; init; } = ConscriptionLaw.Selective; // ★徴兵法（2026-10-02 (168)・1783 の史実＝英米日清蘭ほかは志願／普露墺西仏ほかは選抜＝既定）。合成シナリオは既定の選抜＝旧と同じ
+     public MonetaryStandardLaw InitialMonetaryLaw { get; init; } = MonetaryStandardLaw.Fiat;   // 通貨制度（英＝金／他＝銀・作者裁定 2026-09-28 F6＝実国家は NationConfig が必ず明示値を渡す・2026-09-30 (119)）。既定＝不換＝合成シナリオは従来どおり
+     public ReformLevel InitialSerfEmancipation { get; init; } = ReformLevel.Full;         // 農奴解放。★既定=全面（2026-08-16・SerfMobilityGate点火に伴う）：この既定を読むのは合成シナリオ（テスト/較正の抽象世界＝賃金労働の世界）のみ。実国家は NationConfig.ToScenario / 分離独立の継承が必ず明示値を渡す＝既定不読。旧既定Noneは点火後「都市化が構造的に0」の世界を作っていた
+ 
+diff --git a/PriceOfBread.SimCore/Simulation.cs b/PriceOfBread.SimCore/Simulation.cs
+--- a/PriceOfBread.SimCore/Simulation.cs
++++ b/PriceOfBread.SimCore/Simulation.cs
+@@ -189,10 +189,12 @@
+             CornLaws = scenario.InitialCornLaws,            // 初期穀物法（農業国＝保護／自由貿易国＝なし）
+             SerfEmancipation = scenario.InitialSerfEmancipation,   // 初期農奴解放（東欧＝未解放／西欧＝全面）
+             ImmigrationRestriction = scenario.InitialImmigration,  // 初期移民制限法（日朝＝閉鎖／清＝選別／他＝開放）
++            ConscriptionLaw = scenario.InitialConscription,        // ★初期徴兵法（2026-10-02 (168)・英米日清蘭ほか＝志願／他＝選抜）
+             // 金本位の志向は AI/プレイヤーが決める（UtilityAgent は信用があれば志向＝史実の規範。NullAgent のテストは志向せず＝従来挙動）。実加入は信用ゲートが決める
+         };
+         World.Suffrage = World.Policy.Suffrage;       // 法整備の現在値＝初期は政策の初期値（利益集団のゲートで漸進）
+         World.Censorship = World.Policy.Censorship;   // 報道法の現在値＝初期値（米蘭＝自由／英＝検閲付／他＝国家報道のみ）
++        World.ConscriptionLaw = World.Policy.ConscriptionLaw;   // ★徴兵法の現在値＝初期値（2026-10-02 (168)）
+         // P2：登録簿（Crown/Seizure）を初期政体から構築（英CM→Crown=Absolutist・米Rep→None等）。flag=0ではdead write＝挙動恒等。
+         CrownParliament.ApplyRegime(World, World.Coef, World.Polity);
+         // 政体が含意する参政権・報道自由を初期化時に法へ一回畳み込む（倍率排除②：以後 Freedom/eff＝法律値。毎期の政体→スカラー写像を廃止）。
+diff --git a/PriceOfBread.SimCore/world.json b/PriceOfBread.SimCore/world.json
+--- a/PriceOfBread.SimCore/world.json
++++ b/PriceOfBread.SimCore/world.json
+@@ -204,6 +204,7 @@
+    "military": 1.2,
+    "ethnicUnity": 0.97,
+    "initialSuffrage": "None",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "StatePressOnly",
+    "initialCornLaws": "Full",
+    "initialSerfEmancipation": "None",
+@@ -503,6 +504,7 @@
+    "military": 4.5,
+    "ethnicUnity": 0.85,
+    "initialSuffrage": "Census",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "Censorship",
+    "initialCornLaws": "Full",
+    "initialSerfEmancipation": "Full",
+@@ -615,6 +617,7 @@
+    "military": 1,
+    "ethnicUnity": 0.45,
+    "initialSuffrage": "Census",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "FreePress",
+    "initialCornLaws": "None",
+    "initialSerfEmancipation": "Full",
+@@ -1169,6 +1172,7 @@
+    "military": 1.5,
+    "ethnicUnity": 0.4,
+    "initialSuffrage": "None",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "StatePressOnly",
+    "initialCornLaws": "Limited",
+    "initialSerfEmancipation": "Limited",
+@@ -1630,6 +1634,7 @@
+    "military": 1.5,
+    "ethnicUnity": 0.8,
+    "initialSuffrage": "Census",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "FreePress",
+    "initialCornLaws": "None",
+    "initialSerfEmancipation": "Full",
+@@ -2051,6 +2056,7 @@
+    "military": 0.9,
+    "ethnicUnity": 0.75,
+    "initialSuffrage": "None",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "StatePressOnly",
+    "initialCornLaws": "Full",
+    "initialSerfEmancipation": "None",
+@@ -2486,6 +2492,7 @@
+    "military": 1.5,
+    "ethnicUnity": 0.55,
+    "initialSuffrage": "None",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "StatePressOnly",
+    "initialCornLaws": "Full",
+    "initialSerfEmancipation": "None",
+@@ -2602,6 +2609,7 @@
+    "military": 1.2,
+    "ethnicUnity": 0.8,
+    "initialSuffrage": "None",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "StatePressOnly",
+    "initialCornLaws": "Full",
+    "initialSerfEmancipation": "None",
+@@ -2675,6 +2683,7 @@
+    "military": 1.0,
+    "ethnicUnity": 0.65,
+    "initialSuffrage": "None",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "StatePressOnly",
+    "initialCornLaws": "Full",
+    "initialSerfEmancipation": "None",
+@@ -2748,6 +2757,7 @@
+    "military": 1.1,
+    "ethnicUnity": 0.5,
+    "initialSuffrage": "None",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "StatePressOnly",
+    "initialCornLaws": "Full",
+    "initialSerfEmancipation": "None",
+@@ -2865,6 +2875,7 @@
+    "military": 0.8,
+    "ethnicUnity": 0.75,
+    "initialSuffrage": "None",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "StatePressOnly",
+    "initialCornLaws": "Full",
+    "initialSerfEmancipation": "None",
+@@ -3141,6 +3152,7 @@
+    "military": 0.9,
+    "ethnicUnity": 0.65,
+    "initialSuffrage": "None",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "StatePressOnly",
+    "initialCornLaws": "Full",
+    "initialSerfEmancipation": "None",
+@@ -3252,6 +3264,7 @@
+    "military": 0.6,
+    "ethnicUnity": 0.8,
+    "initialSuffrage": "None",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "StatePressOnly",
+    "initialCornLaws": "Full",
+    "initialSerfEmancipation": "None",
+@@ -3313,6 +3326,7 @@
+    "military": 0.5,
+    "ethnicUnity": 0.75,
+    "initialSuffrage": "None",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "StatePressOnly",
+    "initialCornLaws": "Full",
+    "initialSerfEmancipation": "None",
+@@ -3388,6 +3402,7 @@
+    "military": 0.6,
+    "ethnicUnity": 0.78,
+    "initialSuffrage": "None",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "StatePressOnly",
+    "initialCornLaws": "Full",
+    "initialSerfEmancipation": "None",
+@@ -3449,6 +3464,7 @@
+    "military": 1.2,
+    "ethnicUnity": 0.55,
+    "initialSuffrage": "None",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "StatePressOnly",
+    "initialCornLaws": "Full",
+    "initialSerfEmancipation": "None",
+@@ -3538,6 +3554,7 @@
+    "military": 0.6,
+    "ethnicUnity": 0.6,
+    "initialSuffrage": "None",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "StatePressOnly",
+    "initialCornLaws": "Full",
+    "initialSerfEmancipation": "None",
+@@ -3591,6 +3608,7 @@
+    "military": 0.4,
+    "ethnicUnity": 0.65,
+    "initialSuffrage": "None",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "StatePressOnly",
+    "initialCornLaws": "Full",
+    "initialSerfEmancipation": "None",
+@@ -3643,6 +3661,7 @@
+    "military": 0.5,
+    "ethnicUnity": 0.6,
+    "initialSuffrage": "None",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "StatePressOnly",
+    "initialCornLaws": "Full",
+    "initialSerfEmancipation": "None",
+@@ -3696,6 +3715,7 @@
+    "military": 0.8,
+    "ethnicUnity": 0.6,
+    "initialSuffrage": "None",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "StatePressOnly",
+    "initialCornLaws": "Full",
+    "initialSerfEmancipation": "None",
+@@ -3770,6 +3790,7 @@
+    "military": 0.7,
+    "ethnicUnity": 0.35,
+    "initialSuffrage": "None",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "StatePressOnly",
+    "initialCornLaws": "Full",
+    "initialSerfEmancipation": "None",
+@@ -3892,6 +3913,7 @@
+    "military": 1.0,
+    "ethnicUnity": 0.8,
+    "initialSuffrage": "None",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "StatePressOnly",
+    "initialCornLaws": "Full",
+    "initialSerfEmancipation": "None",
+@@ -4122,6 +4144,7 @@
+    "military": 0.7,
+    "ethnicUnity": 0.45,
+    "initialSuffrage": "None",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "StatePressOnly",
+    "initialCornLaws": "Full",
+    "initialSerfEmancipation": "None",
+@@ -4336,6 +4359,7 @@
+    "military": 0.4,
+    "ethnicUnity": 0.85,
+    "initialSuffrage": "None",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "StatePressOnly",
+    "initialCornLaws": "Full",
+    "initialSerfEmancipation": "None",
+@@ -4522,6 +4546,7 @@
+    "military": 0.5,
+    "ethnicUnity": 0.9,
+    "initialSuffrage": "None",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "StatePressOnly",
+    "initialCornLaws": "Full",
+    "initialSerfEmancipation": "None",
+@@ -4599,6 +4624,7 @@
+    "military": 0.4,
+    "ethnicUnity": 0.9,
+    "initialSuffrage": "None",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "StatePressOnly",
+    "initialCornLaws": "Full",
+    "initialSerfEmancipation": "None",
+@@ -5010,6 +5036,7 @@
+    "military": 0.4,
+    "ethnicUnity": 0.82,
+    "initialSuffrage": "None",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "StatePressOnly",
+    "initialCornLaws": "Full",
+    "initialSerfEmancipation": "None",
+@@ -5064,6 +5091,7 @@
+    "military": 0.5,
+    "ethnicUnity": 0.4,
+    "initialSuffrage": "None",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "StatePressOnly",
+    "initialCornLaws": "Full",
+    "initialSerfEmancipation": "None",
+@@ -5118,6 +5146,7 @@
+    "military": 0.8,
+    "ethnicUnity": 0.6,
+    "initialSuffrage": "None",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "StatePressOnly",
+    "initialCornLaws": "Full",
+    "initialSerfEmancipation": "None",
+@@ -5439,6 +5468,7 @@
+    "military": 0.9,
+    "ethnicUnity": 0.5,
+    "initialSuffrage": "None",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "StatePressOnly",
+    "initialCornLaws": "Limited",
+    "initialSerfEmancipation": "None",
