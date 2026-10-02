@@ -73,37 +73,54 @@ public class WarThemeTests
         Assert.True(w2.Policy.NavyUpkeepTarget > tgt0, $"要求が目標を置けない（{tgt0:F3}→{w2.Policy.NavyUpkeepTarget:F3}）");
     }
 
-    /// <summary>海軍シェアは払った金の比（維持費の 海÷(陸＋海)＝<see cref="World.NavalSpendShare"/>）だけから決まる（作者裁定 2026-08-10・(151)）。
-    /// ★(176) 盤面の直し（線は「同じ入力だけから決まる」のまま・許しは 0.05→1e-9 へ厳しくした）：旧＝既定の建艦の遅れ（月 0.3 の EMA）と交戦の艦隊摩耗のまま
-    ///   120 四半期の後に |海軍シェア−維持費の比|＜0.05 を見た＝遅れが収束している前提の盤面。(176) の軌道で立憲王政イギリスの維持費の比が最後の四半期に
-    ///   0.789→0.918 と跳ね（3か月の EMA の残り 0.7³＝0.343 → 0.054）前提が崩れた（機構は変わっていない）。
-    ///   ⇒ 盤面で遅れと摩耗を外す（建艦の遅れ 1＝即時・摩耗0）＝残る入力は維持費の比だけ＝全ての四半期の終わりで厳密に一致する（地理の比やクランプが混じれば赤）。
-    /// 建艦の遅れ（0.3）と摩耗の既定は「テーマE_既定係数が方針どおり」が見る。</summary>
     [Fact]
     public void 海軍シェアは払った金の比だけから決まる()
     {
         var sim = new MultiNationSim(FourNations(), seed: 1789);
         var c = sim.Coef;
-        c.NavalBuildRate = 1.0;       // 建艦の遅れを外す（即時＝Diplomacy の EMA の 1.0 の枝）
-        c.NavalAttritionRate = 0.0;   // 交戦の艦隊摩耗を外す（海軍シェアを削るもう1つの入力）
-        int seen = 0;
-        var before = new System.Collections.Generic.HashSet<Power>();
-        for (int q = 0; q < 120; q++)
+        sim.Run(120);   // 建艦EMA（NavalBuildRate=0.3・90%到達に約7ヶ月）が十分に落ち着く長さ
+        foreach (var n in sim.Nations)
         {
-            before.Clear();
-            foreach (var n0 in sim.Nations) before.Add(n0.World.SelfPower!);
+            var p = n.World.SelfPower!;
+            double expected = n.World.NavalSpendShare;   // 維持費の比＝唯一の入力（(151)：下限0.05・上限0.60 のクランプは外した＝思想⑧）
+            Assert.True(Math.Abs(p.NavalShare - expected) < 0.05,
+                $"{p.BaseName}の海軍シェアが維持費比から外れた（実{p.NavalShare:F3} 期待{expected:F3}・陸{n.World.ArmyUpkeep:F3}/海{n.World.NavyUpkeep:F3}）");
+        }
+    }
+
+    /// <summary>★(177)（反証役 vd2#1）既定の建艦の遅れ（<see cref="Coefficients.NavalBuildRate"/> 0.3＝月の EMA）の枝の入力も維持費の比だけ。
+    /// 摩耗0・目標＝維持費の比（四半期の頭の施行で決まり、四半期の中は一定）＝海軍シェアは月に 0.3 ずつ目標へ寄るだけ
+    /// ＝四半期の終わりのシェア＝目標＋(1−0.3)^3×(四半期の頭のシェア−目標)（厳密一致・許し 1e-9・各四半期）。上の盤面（120四半期の後に許し 0.05）より厳しく、EMA の枝の中を見る。
+    /// ⚠突然変異「EMA の枝だけ目標を差し替える（地理の比を混ぜる等）」で赤。</summary>
+    [Fact]
+    public void 海軍シェアは既定の建艦の遅れでも維持費の比へ月の割合で寄るだけ()
+    {
+        var sim = new MultiNationSim(FourNations(), seed: 1789);
+        var c = sim.Coef;
+        Assert.Equal(0.3, c.NavalBuildRate);   // 既定の EMA の枝
+        c.NavalAttritionRate = 0.0;            // 交戦の艦隊摩耗を外す（海軍シェアを削るもう1つの入力）
+        sim.Run(2);                            // 開幕の同期（陸海の維持費の比と海軍シェアを同じ比で置く1度だけの書き込み）を過ぎる
+        double keep = Math.Pow(1.0 - c.NavalBuildRate, Calendar.MonthsPerQuarter);
+        int seen = 0, apart = 0;
+        var head = new System.Collections.Generic.Dictionary<Power, double>();
+        for (int q = 0; q < 60; q++)
+        {
+            head.Clear();
+            foreach (var n0 in sim.Nations) head[n0.World.SelfPower!] = n0.World.SelfPower!.NavalShare;
             sim.Run(1);
             foreach (var n in sim.Nations)
             {
                 var p = n.World.SelfPower!;
-                if (!before.Contains(p)) continue;   // その四半期に建国した国（分離独立・内戦分裂）＝外交の月の歩をまだ通っていない
-                double expected = n.World.NavalSpendShare;   // 維持費の比＝唯一の入力（(151)：下限0.05・上限0.60 のクランプは外した＝思想⑧）
+                if (!head.TryGetValue(p, out double a)) continue;   // その四半期に建国した国
+                double t = n.World.NavalSpendShare;
+                double expected = t + keep * (a - t);
                 Assert.True(Math.Abs(p.NavalShare - expected) < 1e-9,
-                    $"Q{q + 1} {p.BaseName}の海軍シェアが維持費比から外れた（実{p.NavalShare:F6} 期待{expected:F6}・陸{n.World.ArmyUpkeep:F3}/海{n.World.NavyUpkeep:F3}）");
+                    $"Q{q + 3} {p.BaseName}の海軍シェアが維持費の比への EMA から外れた（実{p.NavalShare:F9} 期待{expected:F9}・頭{a:F6}・目標{t:F6}）");
                 seen++;
+                if (Math.Abs(a - t) > 1e-6) apart++;
             }
         }
-        Assert.True(seen >= 4 * 100, $"盤面が空回り（見た国×四半期 {seen}）");
+        Assert.True(seen >= 4 * 50 && apart > 0, $"盤面が空回り（見た国×四半期 {seen}・頭が目標から離れていた {apart}）");
     }
 
     // ===== 戦争タブの「犠牲者」と「戦費」の番人（2026-09-23）=====

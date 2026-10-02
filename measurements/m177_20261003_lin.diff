@@ -1,0 +1,703 @@
+diff --git a/PriceOfBread.Runner/Program.cs b/PriceOfBread.Runner/Program.cs
+index 07679a2..85e5ad4 100644
+--- a/PriceOfBread.Runner/Program.cs
++++ b/PriceOfBread.Runner/Program.cs
+@@ -6381,7 +6381,7 @@ if (args.Length > 0 && args[0] == "services")
+             if (p.GoodId == Catalog.LaborId)
+             {
+                 if (p.Inputs.Count == 0) humanL += p.Output;
+-                else if (p.RecipeName == "蒸気機関") steamL += p.Output;
++                else if (p.Inputs.Any(i => i.GoodId == Catalog.SteamEngineId)) steamL += p.Output;   // ★(174) 蒸気機関の系統の3つの段（蒸気機関・高圧機関・複式機関）＝蒸気機関の財を焚く動力
+                 else elecL += p.Output;
+             }
+         double massMil = Politics.AvgMassMilitancy(w);   // ★sweep-13：述語の写しをやめエンジンの1本へ
+diff --git a/PriceOfBread.SimCore/Catalog.cs b/PriceOfBread.SimCore/Catalog.cs
+index d313b6a..e122069 100644
+--- a/PriceOfBread.SimCore/Catalog.cs
++++ b/PriceOfBread.SimCore/Catalog.cs
+@@ -601,51 +601,58 @@ public static class Catalog
+     public static readonly DiscoveryRow[] Discoveries =
+     [
+         // --- 製法（同じ財を別の投入で作る方法＝時代差のレシピ）---
+-        new("蒸気機関", LaborId, "蒸気機関", DiscoveryField.Process, 1780),              // 工場に据える原動機（ワットの回転機関1781）＝動力（労働力の財）の別のレシピ（必要性＝作者 2026-10-02 の一般則＝「(間接的に人が生み出している)動力が高いか」＝動力の平滑化した値段÷蒸気の動力を新しいレシピで作る費用〔★(169) 他の行と同じ規則＝自己費用＋蒸気機関の財と石炭〕・旧＝人件費の世界比は (159)(165) で削除）。開幕の既知＝world.json の knownDiscoveries（英＝1783年に工場の原動機として使っていた唯一の国・実装ログ (169)）
++        //   ★(174) 蒸気機関の系統（作者 2026-10-02「すべて推奨でよい」＝AI の推奨「段1 ワット→段2 高圧→段3 複式・三段膨張」〔系統×段〕の承認）＝動力（労働力の財）の時代差のレシピ。
++        //     段の効き＝動力1単位あたりの石炭（燃費）の史実の比【推・記憶の概数・出典は未確認】＝ワットの凝縮機関（1800年ごろ）約10ポンド／馬力時 →
++        //     高圧の膨張の機関（ウルフの複式1804・コーンウォール機関〔1840年代の平均のデューティはワットの約3倍〕・普通の工場の機関 約5ポンド）＝約1/2 →
++        //     複式・三段膨張（鋼のボイラーの高い圧力・1880〜90年代の船の機関 約1.5〜2ポンド）＝約1/5
++        //     （出典の候補＝von Tunzelmann『Steam Power and British Industrialization to 1860』1978・Hills『Power from Steam』1989・Lean's Engine Reporter のデューティ）＝Simulation.AddServiceProducers の3本の石炭の量。
++        //     段2 は機関車・汽船・内燃機関・発電の前提（高い圧力の小さく軽い機関＝トレヴィシック1801〜04）。段3 は転炉鋼で開く（OpenedTiers＝行を持たない＝別の系統の発見で開く段・鋳鉄の機関〔蒸気機関の財〕も転炉鋼で退く）。
++        //     労働力の財のレシピは配分の外（階級全体が算出＝EconomyStep の fraction 1）＝同じ担い手の2つの段が並ぶと能力が2倍＝前の段は次の段で退く（Retirements）。
++        new("蒸気機関", LaborId, "蒸気機関", DiscoveryField.Process, 1780, Line: "蒸気機関", Tier: 1),   // 段1 ワット（鋳鉄・低圧・凝縮）＝工場に据える原動機（ワットの回転機関1781）＝動力（労働力の財）の別のレシピ（必要性＝作者 2026-10-02 の一般則＝「(間接的に人が生み出している)動力が高いか」＝動力の平滑化した値段÷蒸気の動力を新しいレシピで作る費用〔★(169) 他の行と同じ規則＝自己費用＋蒸気機関の財と石炭・★(174) 自己費用を生産性の比で割る形〔腕 P〕は入れていない＝実装ログ (174)〕・旧＝人件費の世界比は (159)(165) で削除）。開幕の既知＝world.json の knownDiscoveries（英＝1783年に工場の原動機として使っていた唯一の国・実装ログ (169)）
++        new("高圧機関", LaborId, "高圧機関", DiscoveryField.Process, 1800, Line: "蒸気機関", Tier: 2),   // ★(174) 段2 高圧（トレヴィシック1801・錬鉄のボイラー・膨張＝ウルフ1804）＝動力の燃費 約1/2
+         new("甜菜糖", SugarId, "甜菜糖", DiscoveryField.Process, 1800),                  // アシャール1801・大陸封鎖1806〜（作者 2026-09-28 提案①の採用＝地理差でなく発見）
+-        new("魚の缶詰", CannedFoodId, "魚の缶詰", DiscoveryField.Process, 1810),          // 缶詰の第2レシピ（アペール法1809）
++        new("魚の缶詰", CannedFoodId, "魚の缶詰", DiscoveryField.Process, 1810, Line: "缶詰", Tier: 2),   // 缶詰の第2レシピ（アペール法1809）＝★(174) 缶詰の系統の段2（同じ財の別のレシピ＝缶詰の既定のレシピの発見が前提）
+         new("キニーネの単離", QuinineId, "", DiscoveryField.Process, 1820),              // ペルティエ＝カヴァントゥ1820（単離の前は樹皮の粉末＝地理差）
+         new("黄鉄鉱法", ChemicalsId, "黄鉄鉱法", DiscoveryField.Process, 1830),          // 1838年の硫黄危機の後（旧 SulfurFromPyriteOnset）
+         new("木材パルプ製紙", PaperId, "", DiscoveryField.Process, 1840),                // 砕木1840s（その前はぼろ布製紙＝地理差）
+         new("過リン酸石灰", FertilizerId, "", DiscoveryField.Process, 1840),             // ロース1842（その前は厩肥・グアノ＝地理差）
+         new("転炉鋼", SteelId, "", DiscoveryField.Process, 1850),                        // ベッセマー1856（その前は坩堝鋼・錬鉄レール＝地理差）
+-        new("石油灯油", LampOilId, "石油灯油", DiscoveryField.Process, 1850),            // ドレーク油井1859
+-        new("石油ケロシン", LampOilId, "石油ケロシン", DiscoveryField.Process, 1850),    // 同上（石油灯油と同じ変換の2本目＝設計 §5 F4 の重複・畳むのは次の段）　★(149) 合流：(148) の F4（この行を畳んで安い方の数〔原油0.5・生産性1.6〕を石油灯油の行で開く）は差し戻した＝挙動を変える畳み方だった（同じ種1〜5 で exact −5.9・near −6.6）＝畳み方は 00一覧
++        new("石油灯油", LampOilId, "石油灯油", DiscoveryField.Process, 1850),            // ドレーク油井1859＝★(174) 石油ケロシン（同じ原油→灯油の変換の2本目＝設計 §5 F4 の重複）を畳んだ1行（数＝点火済みの安い方＝原油 KeroseneOilInput・生産性 KeroseneOilProductivity・作者 2026-10-02 に承認された推奨の「重複を畳む」）
+         new("鉄筋コンクリート", HousingId, "鉄筋コンクリート", DiscoveryField.Process, 1860),   // モニエ1867（§1A-5 の表）
+         new("クロムなめし", LeatherId, "クロムなめし", DiscoveryField.Process, 1880),     // 商用1884（§1A-5 の表）
+         new("無煙火薬", GunpowderId, "無煙火薬", DiscoveryField.Process, 1880),          // ヴィエイユ1884
+-        new("水力発電", ElectricityId, "水力発電", DiscoveryField.Process, 1880),         // アップルトン1882・ナイアガラ1895
+-        new("蒸気タービン", ElectricityId, "蒸気タービン", DiscoveryField.Process, 1880), // パーソンズ1884
+-        new("電動機", LaborId, "電動", DiscoveryField.Process, 1880),                    // 工場の電動機＝動力（労働力の財）の別のレシピ（必要性＝動力の値段÷電動の動力を新しいレシピで作る費用〔自己費用＋電力〕・蒸気機関の行と同じ規則・(165)(169)）
++        new("水力発電", ElectricityId, "水力発電", DiscoveryField.Process, 1880, After: "石炭火力"),   // アップルトン1882・ナイアガラ1895＝★(174) 発電（発電機）の枝
++        new("蒸気タービン", ElectricityId, "蒸気タービン", DiscoveryField.Process, 1880, After: "石炭火力"),   // パーソンズ1884＝★(174) 発電の枝
++        new("電動機", LaborId, "電動", DiscoveryField.Process, 1880, Line: "電気", Tier: 3),   // 工場の電動機＝動力（労働力の財）の別のレシピ（必要性＝動力の値段÷電動の動力を新しいレシピで作る費用〔自己費用＋電力〕・蒸気機関の行と同じ規則・(165)(169)）＝★(174) 電気の系統の段3（発電→送電→電動機）
+         new("人絹", SilkClothId, "人絹", DiscoveryField.Process, 1890),                  // シャルドネ1891・ビスコース1892
+-        new("石油火力", ElectricityId, "石油火力", DiscoveryField.Process, 1900),        // §1A-5 の表
+-        new("窒素固定", FertilizerId, "ハーバーボッシュ", DiscoveryField.Process, 1910), // ハーバー＝ボッシュ1913（旧＝肥料の既定の onset の流用＝設計 §5 F2 の半分・硝石へ移すのは次の段）
+-        new("合成ゴム", RubberId, "合成ゴム", DiscoveryField.Process, 1910),             // メチルゴム1916（§1A-5 の表）
++        new("石油火力", ElectricityId, "石油火力", DiscoveryField.Process, 1900, After: "石炭火力"),   // §1A-5 の表＝★(174) 発電の枝
++        new("窒素固定", FertilizerId, "ハーバーボッシュ", DiscoveryField.Process, 1910, After: "石炭火力"), // ハーバー＝ボッシュ1913（★(174) 投入に電力＝発電の枝）（旧＝肥料の既定の onset の流用＝設計 §5 F2 の半分・硝石へ移すのは次の段）
++        new("合成ゴム", RubberId, "合成ゴム", DiscoveryField.Process, 1910, Line: "ゴム", Tier: 2),   // メチルゴム1916（§1A-5 の表）＝★(174) ゴムの系統の段2（同じ財の別のレシピ）
+         // --- 発明・新製品（今までに無かった財＝既定のレシピの行）---
+         //   ★代替する物（Replaces・2026-10-02 (159)）＝作者 2026-10-02「その発見が生み出すものが代替するものが高いか、で判定する」の「代替するもの」＝新製品が置き換えた既存の財（AI の対応づけ＝推奨で進めた）。
+         //   機関車だけは財ではない（陸の輸送＝作者 2026-10-02「鉄道研究の必要性は、軍事力ではなく、輸送力の不足から導かれるべきだ」）。
+         //   ⚠(169) 物の単位の換算（新しい財1単位が置き換える代替する物の量のデータ・(167) 反証役 vd1#1 の処置）の腕は入れていない＝10種で電力・送電網・冷蔵・ゴム・自動車がどの国でも見つからない
+         //     （AI の対応づけ＝石炭火力と送電網→ガス・電化製品→家事奉仕のまま・作者への確認・パッチ measurements/m168_20261002_units.diff・実装ログ (169)）＝換算の比は参照価格の比のまま（Discovery.ReplacedUnits）。
+         new("ガス灯", GasId, "", DiscoveryField.Product, 1810, Replaces: LampOilId),      // マードック1792・商用1812＝灯油（鯨油・菜種油のランプ）とろうそくの灯りを置き換えた
+-        new("缶詰", CannedFoodId, "", DiscoveryField.Product, 1810, Replaces: PreservedMeatId),   // アペール法1809・ブリキ缶1810＝塩漬けの肉（艦隊と軍の糧食・1795 の懸賞）を置き換えた
+-        new("汽船", SteamshipId, "", DiscoveryField.Product, 1820, Replaces: SailingShipId),   // クラーモント1807〜外洋1830s（Q11＝中間）＝帆船
+-        new("機関車", LocomotiveId, "", DiscoveryField.Product, 1820, Replaces: LandFreight),   // ストックトン＝ダーリントン1825・ロケット号1829＝陸の輸送（馬車・運河の荷船＝内陸の輸送の容量）
+-        new("加硫ゴム", RubberId, "", DiscoveryField.Product, 1830, Replaces: LeatherId),  // グッドイヤー1839（ゴムに地理差のレシピは無い＝新しい財）＝革（ベルト・ホース・靴底・防水）
++        new("缶詰", CannedFoodId, "", DiscoveryField.Product, 1810, Replaces: PreservedMeatId, Line: "缶詰", Tier: 1),   // アペール法1809・ブリキ缶1810＝塩漬けの肉（艦隊と軍の糧食・1795 の懸賞）を置き換えた
++        new("汽船", SteamshipId, "", DiscoveryField.Product, 1820, Replaces: SailingShipId, After: "高圧機関"),   // クラーモント1807〜外洋1830s（Q11＝中間）＝帆船・★(174) 蒸気機関の段2（高圧）が前提
++        new("機関車", LocomotiveId, "", DiscoveryField.Product, 1820, Replaces: LandFreight, After: "高圧機関"),   // ストックトン＝ダーリントン1825・ロケット号1829＝陸の輸送（馬車・運河の荷船＝内陸の輸送の容量）・★(176) 必要性は陸の運賃のうち容量で切られた割高の分だけ（不足の無い国は0）・★(174) 蒸気機関の段2（高圧）が前提＝(172) の不具合（英以外の9か国で機関車が蒸気機関より先）を構造で直す
++        new("加硫ゴム", RubberId, "", DiscoveryField.Product, 1830, Replaces: LeatherId, Line: "ゴム", Tier: 1),  // グッドイヤー1839（ゴムに地理差のレシピは無い＝新しい財）＝革（ベルト・ホース・靴底・防水）
+         new("ダイナマイト", DynamiteId, "", DiscoveryField.Product, 1860, Replaces: GunpowderId),   // ノーベル1867＝発破の黒色火薬
+         new("冷蔵", RefrigeratorId, "", DiscoveryField.Product, 1870, Replaces: PreservedMeatId),   // リンデ1870s・冷凍船1877〜82（冷蔵庫の財は冷蔵の加工肉の投入も兼ねる）＝塩漬けの加工肉
+-        new("石炭火力", ElectricityId, "", DiscoveryField.Product, 1880, Replaces: GasId),   // パール街1882（電力の既定のレシピ）＝ガス灯
+-        new("送電網", GridId, "", DiscoveryField.Product, 1880, Replaces: GasId),          // 配電（パール街1882）・交流送電1890s＝ガスの導管の網
+-        new("電化製品", ApplianceId, "", DiscoveryField.Product, 1880, Replaces: DomesticServiceId),   // §1A-5 の表＝家事奉仕（家事使用人）
+-        new("自転車", BicycleId, "", DiscoveryField.Product, 1880, Replaces: HorseId),     // 安全型1885＝馬（個人の移動）
+-        new("内燃機関", CombustionEngineId, "", DiscoveryField.Product, 1880, Replaces: SteamEngineId),   // オットー1876・ダイムラー1885＝蒸気機関
+-        new("自動車", AutomobileId, "", DiscoveryField.Product, 1890, Replaces: HorseId),  // §1A-5 の表（自転車・自動車＝1880〜1890年代）＝馬（馬車・輜重）
+-        new("ラジオ", RadioId, "", DiscoveryField.Product, 1920, Replaces: NewspaperId),   // 放送の実用化1920＝新聞
++        new("石炭火力", ElectricityId, "", DiscoveryField.Product, 1880, Replaces: GasId, Line: "電気", Tier: 1, After: "高圧機関"),   // パール街1882（電力の既定のレシピ）＝ガス灯・★(174) 電気の系統の段1（発電）＝蒸気機関の段2（高速の高圧機関が発電機を回した）の枝
++        new("送電網", GridId, "", DiscoveryField.Product, 1880, Replaces: GasId, Line: "電気", Tier: 2),   // 配電（パール街1882）・交流送電1890s＝ガスの導管の網・★(174) 電気の系統の段2（送電）
++        new("電化製品", ApplianceId, "", DiscoveryField.Product, 1880, Replaces: DomesticServiceId, After: "送電網"),   // §1A-5 の表＝家事奉仕（家事使用人）・★(174) 送電の枝（投入に電力）
++        new("自転車", BicycleId, "", DiscoveryField.Product, 1880, Replaces: HorseId, After: "加硫ゴム"),   // 安全型1885＝馬（個人の移動）・★(174) 投入にゴム（空気入りタイヤ1888）＝ゴムの枝
++        new("内燃機関", CombustionEngineId, "", DiscoveryField.Product, 1880, Replaces: SteamEngineId, After: "高圧機関"),   // オットー1876・ダイムラー1885＝蒸気機関・★(174) 蒸気機関の系統の枝（別の財のまま・作者 2026-10-02 に承認された推奨＝シリンダーとピストンと弁と中ぐりを継いだ・前提＝段2）
++        new("自動車", AutomobileId, "", DiscoveryField.Product, 1890, Replaces: HorseId, After: "内燃機関"),   // §1A-5 の表（自転車・自動車＝1880〜1890年代）＝馬（馬車・輜重）・★(174) 投入に内燃機関＝内燃機関の枝
++        new("ラジオ", RadioId, "", DiscoveryField.Product, 1920, Replaces: NewspaperId, After: "電化製品"),   // 放送の実用化1920＝新聞・★(174) 投入に電化製品＝その枝
+         // --- 発明・新兵器（軍事の圧力は陸・海・空で分ける＝作者裁定 2026-09-28 ⑤）---
+-        new("装甲艦", IroncladId, "", DiscoveryField.Weapon, 1850, WarDomain.Sea),        // ラ・グロワール1859
++        new("装甲艦", IroncladId, "", DiscoveryField.Weapon, 1850, WarDomain.Sea, Line: "軍艦", Tier: 1, After: "汽船"),   // ラ・グロワール1859・★(174) 軍艦の系統の段1（投入に汽船＝汽船の枝・段の効きと財を畳むのは次の回②）
+         new("機関銃", MachineGunId, "", DiscoveryField.Weapon, 1880, WarDomain.Land),     // マキシム1884
+-        new("弩級戦艦", DreadnoughtId, "", DiscoveryField.Weapon, 1900, WarDomain.Sea),   // ドレッドノート1906
+-        new("戦車", TankId, "", DiscoveryField.Weapon, 1910, WarDomain.Land),             // 1916
+-        new("軍用機", MilitaryAircraftId, "", DiscoveryField.Weapon, 1910, WarDomain.Air),
++        new("弩級戦艦", DreadnoughtId, "", DiscoveryField.Weapon, 1900, WarDomain.Sea, Line: "軍艦", Tier: 2),   // ドレッドノート1906・★(174) 軍艦の系統の段2（投入に装甲艦）
++        new("戦車", TankId, "", DiscoveryField.Weapon, 1910, WarDomain.Land, After: "内燃機関"),   // 1916・★(174) 投入に内燃機関＝内燃機関の枝
++        new("軍用機", MilitaryAircraftId, "", DiscoveryField.Weapon, 1910, WarDomain.Air, After: "内燃機関"),   // ★(174) 投入に内燃機関＝内燃機関の枝
+         new("化学兵器", ChemicalWeaponId, "", DiscoveryField.Weapon, 1910, WarDomain.Land), // イーペル1915
+         // --- 制度（社会の仕組み）・思想（考え方）＝財を持たない行（財 NoGood）・設計 §1A-6（2026-10-01 (152)）---
+         //   旧＝制度は中核エリートと工業化度の傾斜（特許＝中核エリート 0.35〜0.45・株式会社＝最大工業化度 0.25〜0.35・鉄道＝最大工業化度 0.8 の閾値）・
+@@ -667,9 +674,74 @@ public static class Catalog
+     [
+         (RifleId, "マスケット", SteelId, ""),
+         (ArtilleryId, "鋳鉄砲", SteelId, ""),
+-        (SteamEngineId, "鋳鉄の機関", SteelId, ""),   // ★(169) 1780年代の蒸気機関（鋳鉄のシリンダーと梁・錬鉄と銅のボイラー）＝高圧・複式の鋼の機関（転炉鋼の後）で退く＝前期の軍需と同じ規則（性能で退く・Simulation.AddAlternateRecipes）
++        (SteamEngineId, "鋳鉄の機関", SteelId, ""),   // ★(169) 1780年代の蒸気機関（鋳鉄のシリンダーと梁・錬鉄と銅のボイラー）＝高圧・複式の鋼の機関（転炉鋼の後）で退く＝前期の軍需と同じ規則（性能で退く・Simulation.AddAlternateRecipes）＝★(174) 蒸気機関の系統の段3（鋼の機関）が開く形
++        (LaborId, "蒸気機関", LaborId, "高圧機関"),   // ★(174) 蒸気機関の系統＝段1（ワット）の動力のレシピは段2（高圧）で退く（労働力のレシピは配分の外＝並べると同じ担い手の能力が2倍になる）
++        (LaborId, "高圧機関", SteelId, ""),           // ★(174) 段2 は段3（複式・三段膨張＝転炉鋼で開く OpenedTiers）で退く
+     ];
+ 
++    /// <summary>★(174) 別の系統の発見で開く段（行を持たない段）＝（財・レシピ・系統・段・開く行の名前）。門＝開く行を知り、かつ同じ系統の段−1 の行を知っている（<see cref="Discovery.Gate(Region, Producer, bool[])"/>）。
++    /// 作者 2026-10-02「すべて推奨でよい」で承認された推奨（AI）の「段は同じ財の時代差のレシピで、別の系統の発見でも開く」＝(169) の「鋳鉄の機関は転炉鋼で退く」を段3 の形へ。</summary>
++    public static readonly (int Good, string Recipe, string Line, int Tier, string Opener)[] OpenedTiers =
++    [
++        (LaborId, "複式機関", "蒸気機関", 3, "転炉鋼"),   // 段3 複式・三段膨張（鋼のボイラーの高い圧力・1880年代）＝動力の燃費 約1/5（史実の比は Discoveries の蒸気機関の系統の注記）
++    ];
++
++    /// <summary>★(174) 行ごとの前提の行（−1＝前提なし）＝段 n（n≥2）は同じ系統の段 n−1・段1 は <see cref="DiscoveryRow.After"/> の行（枝）。
++    /// 解禁は各系統の次の段だけ（<see cref="Discovery.Step"/>＝前提がまだの行の点数が門に届いたら前提の鎖のまだの最初の段を開く＝引き）。表の誤り（段 n−1 が無い・2つある・前提の名前が無い）は構築で止める。</summary>
++    public static readonly int[] DiscoveryAfter = BuildDiscoveryAfter();
++    private static int[] BuildDiscoveryAfter()
++    {
++        var res = new int[Discoveries.Length];
++        for (int i = 0; i < Discoveries.Length; i++)
++        {
++            var d = Discoveries[i];
++            if (d.Tier < 1) throw new System.InvalidOperationException($"発見の表の行「{d.Name}」の段が1未満");
++            if (d.Tier == 1)
++            {
++                res[i] = -1;
++                if (d.After.Length > 0)
++                {
++                    res[i] = System.Array.FindIndex(Discoveries, x => x.Name == d.After);
++                    if (res[i] < 0 || res[i] == i) throw new System.InvalidOperationException($"発見の表の行「{d.Name}」の前提「{d.After}」が表に無い");
++                }
++                continue;
++            }
++            if (d.After.Length > 0) throw new System.InvalidOperationException($"発見の表の行「{d.Name}」は段{d.Tier}＝前提は系統の段{d.Tier - 1}（After は段1だけ）");
++            res[i] = TierRow(LineOf(d), d.Tier - 1, d.Name);
++        }
++        return res;
++    }
++    /// <summary>系統 <paramref name="line"/> の段 <paramref name="tier"/> の行（無い・2つあるは構築で止める）。</summary>
++    private static int TierRow(string line, int tier, string who)
++    {
++        int found = -1;
++        for (int j = 0; j < Discoveries.Length; j++)
++            if (LineOf(Discoveries[j]) == line && Discoveries[j].Tier == tier)
++            {
++                if (found >= 0) throw new System.InvalidOperationException($"発見の表の系統「{line}」に段{tier}が2つ（{who}）");
++                found = j;
++            }
++        if (found < 0) throw new System.InvalidOperationException($"発見の表の系統「{line}」に段{tier}が無い（{who}）");
++        return found;
++    }
++    /// <summary>行の系統の名前（""＝行の名前＝1行の系統）。</summary>
++    public static string LineOf(DiscoveryRow d) => d.Line.Length > 0 ? d.Line : d.Name;
++    /// <summary>系統の数（計器と番人＝行の数と並べて報告する）。</summary>
++    public static int DiscoveryLineCount => Discoveries.Select(LineOf).Distinct().Count();
++
++    /// <summary>★(174) 別の系統の発見で開く段のレシピの（開く行・同じ系統の段−1 の行）。表に無いレシピは (−1, −1)。⚠線形の走査＝Producer の控えだけが呼ぶ。</summary>
++    public static (int Opener, int After) OpenedTierOf(int good, string recipe)
++    {
++        foreach (var (g, r, line, tier, opener) in OpenedTiers)
++            if (g == good && r == recipe)
++            {
++                int op = DiscoveryRowNamed(opener);
++                if (op < 0) throw new System.InvalidOperationException($"開く段「{r}」の開く行「{opener}」が発見の表に無い");
++                return (op, tier > 1 ? TierRow(line, tier - 1, r) : -1);
++            }
++        return (-1, -1);
++    }
++
+     /// <summary>発見の表の行（財・レシピ）の添字。無ければ −1（地理差＝常にある）。⚠線形の走査＝構築と Producer の控え（<see cref="Producer.DiscoveryRow"/>）だけが呼ぶ。</summary>
+     public static int DiscoveryRowOf(int good, string recipe)
+     {
+diff --git a/PriceOfBread.SimCore/Coefficients.cs b/PriceOfBread.SimCore/Coefficients.cs
+index 1305f80..1af115d 100644
+--- a/PriceOfBread.SimCore/Coefficients.cs
++++ b/PriceOfBread.SimCore/Coefficients.cs
+@@ -2067,8 +2067,8 @@ public sealed class Coefficients
+     public double ChilledMeatEnabled = 1.0;   // ★点火2026-09-04：実測＝硬性ゲート全緑・**貿易/GDP 3.93%→7.10%（1.8倍）**・政体exact 43.9→46.4（当日最高）・法 57.6→60.7（当日最高）・列強+0.8／経済−1.3・near−1.8・◎17→14（記録）。★生肉を輸送不可にした時点で既に貿易が増えた＝**食肉加工が家畜のいる場所に集中し最終財が輸出される**（シカゴ／ブエノスアイレスの構造）      // ★2026-09-04（作者提案）：加工肉(63)の**第2レシピ**＝肉＋冷蔵庫（冷蔵）。⚠生肉は輸送不可にしたので、冷蔵以後の遠距離の食肉はこの経路が担う。★新しい財を作らない（「冷蔵肉」の新設は作者指摘で撤回）＝加工肉の需要は較正済みのまま使える。解禁は暦年でなく**冷蔵庫が作れるか**＝精密工作機械の連鎖に律速。0でProducerを1件も足さない＝厳密恒等
+     public double ChilledMeatProductivity = 1.4;  // 冷蔵レシピの生産性倍率（塩漬け比）。⚠史実＝冷蔵牛肉は塩漬けより高値で売れ、ラプラタ川の輸出を支えた。ChilledMeatEnabled=0では不読
+     public double ChilledMeatColdInput = 0.15;    // 加工肉1単位あたりの冷蔵庫の投入量（設備の摩耗＝機械と同じ扱い）。ChilledMeatEnabled=0では不読
+-    public double KeroseneFromOilEnabled = 1.0;   // ★点火2026-08-14（n22実測：列強再現率+6.2・領土植民地+5.8／人口−5.7・政体exact−2.1・◎20vs21＝混合。原油の40年の買い手ゼロは実在の穴＝正しい挙動＞バランスで採用・#17で見直す）
+-    public double KeroseneOilInput = 0.5;         // 灯油1単位あたりの原油。1870年代の精製収率45〜60%（残りは廃棄・ナフサ）
++    // 【削除 (174)】KeroseneFromOilEnabled（石油ケロシンの生産者を足す旗・2026-08-14 点火）＝同じ変換の2本を1本へ畳んで焼き込み（下の2本は畳んだ「石油灯油」の生産者の数）
++    public double KeroseneOilInput = 0.5;         // ★(174) 畳んだ「石油灯油」の生産者の数。灯油1単位あたりの原油。1870年代の精製収率45〜60%（残りは廃棄・ナフサ）
+     public double KeroseneOilProductivity = 1.6;  // 連続精製の生産性（既定＝鯨油レシピの相対。史実の価格差5〜10倍はこれと投入係数の合成で出す）
+     // 【削除2026-10-01 段2A】CrucibleSteelEnabled（坩堝鋼・錬鉄レールを並存させ鋼の既定のレシピへ onset を置く旗・2026-07-28 点火）＝鋼の既定のレシピ（転炉鋼）は発見の表の行（1850年代）が常に門を置く
+     //   ＝旗の0の側（坩堝鋼が無く、転炉鋼の発見まで鋼が作れない）は壊れた盤面になる＝旗ごと焼き込み（坩堝鋼・錬鉄レールは常に並存）。が時代を刻む（鋼原価+77%が機械〜工業財連鎖へ波及）。0で恒等
+diff --git a/PriceOfBread.SimCore/Discovery.cs b/PriceOfBread.SimCore/Discovery.cs
+index ce5c9dd..ac9a1ea 100644
+--- a/PriceOfBread.SimCore/Discovery.cs
++++ b/PriceOfBread.SimCore/Discovery.cs
+@@ -9,8 +9,12 @@ public enum WarDomain { None, Land, Sea, Air }
+ 
+ /// <summary>発見の表の1行（<see cref="Catalog.Discoveries"/>）＝名前・財・レシピ（""＝既定のレシピ）・分野・年代（10年刻み）・新兵器の分野・代替する物。
+ /// <paramref name="Replaces"/>＝その行が生み出す物が代替する物（作者 2026-10-02＝必要性はその値段の高さ・★(165) 新しいレシピで作る費用と比べる・<see cref="Discovery"/> の ReplacedStrength）＝<see cref="Catalog.ReplacesOwn"/>（製法＝その行の財そのもの）・
+-/// 新製品は代替する既存の財の id・<see cref="Catalog.LandFreight"/>（機関車＝陸の輸送＝財ではない）。新兵器・制度・思想の行は読まない。</summary>
+-public readonly record struct DiscoveryRow(string Name, int Good, string Recipe, DiscoveryField Field, int Decade, WarDomain Domain = WarDomain.None, int Replaces = Catalog.ReplacesOwn);
++/// 新製品は代替する既存の財の id・<see cref="Catalog.LandFreight"/>（機関車＝陸の輸送＝財ではない）。新兵器・制度・思想の行は読まない。
++/// ★(174) 系統と段（作者 2026-10-02「すべて推奨でよい」＝系統×段の推奨〔AI〕を承認）＝<paramref name="Line"/>（系統の名前・""＝行の名前＝1行の系統）・<paramref name="Tier"/>（段・1から）・
++/// <paramref name="After"/>（段1の行だけ＝枝の前提の行の名前・""＝前提なし）。段 n（n≥2）の前提は同じ系統の段 n−1 の行（<see cref="Catalog.DiscoveryAfter"/>）。
++/// 解禁は各系統の次の段だけ＝前提がまだの行の点数が門に届いたら、前提の鎖のまだの最初の段を開く（引き＝<see cref="Discovery.Step"/>）。別の系統の発見で開く段（行を持たない）は <see cref="Catalog.OpenedTiers"/>。</summary>
++public readonly record struct DiscoveryRow(string Name, int Good, string Recipe, DiscoveryField Field, int Decade, WarDomain Domain = WarDomain.None, int Replaces = Catalog.ReplacesOwn,
++                                           string Line = "", int Tier = 1, string After = "");
+ 
+ /// <summary>発見＝解禁の【唯一の形】（★命名の作者裁定2026-08-31＝「研究」はプレイヤーが方向を選ぶ動詞を連想させる・この機構は選べず社会から創発して見つかる＝「発見」）。
+ /// ★段2A（2026-10-01・設計 docs/202609/20260928/20260928_財の削減_連鎖の深さの撤去_設計 §1A-2）：**発見は2値**・国ごと・行（レシピ）ごとに毎四半期
+@@ -124,6 +128,9 @@ public static class Discovery
+         if (p.SiteRow >= 0 && !p.SiteFound) return 0.0;
+         int row = p.DiscoveryRow;
+         double g = row >= 0 ? (Known(known, row) ? 1.0 : 0.0) : 1.0;
++        // ★(174) 別の系統の発見で開く段（Catalog.OpenedTiers＝行を持たない段・例＝蒸気機関の段3〔複式〕は転炉鋼で開く）＝開く行と同じ系統の段−1 の行の両方を知っていること。
++        int op = p.OpenedByRow;
++        if (op >= 0 && !(Known(known, op) && (p.OpenedAfterRow < 0 || Known(known, p.OpenedAfterRow)))) g = 0.0;
+         int ret = p.RetiredByRow;
+         return ret >= 0 && Known(known, ret) ? 0.0 : g;
+     }
+@@ -429,6 +436,7 @@ public static class Discovery
+         for (int row = 0; row < nr; row++)
+         {
+             if (!includeKnown && Known(w.Discovered, row)) continue;   // includeKnown＝計器だけ（解禁済みの行の項も見る）
++            // ★(174) 前提の行（同じ系統の段−1・枝は段1 の After の行）を知らない行の点数も読む＝解禁は Step が前提の段へ回す（引き）。
+             var d = rows[row];
+             bool spread = IsSpread(d.Field);   // 制度と思想＝財と投入を持たない（技術の押しは1・伝わりは到達）
+             var rp = rep[row];
+@@ -592,7 +600,7 @@ public static class Discovery
+     /// （必要性の強度＝代替する物の値段÷その発見が出す物の値段〔同じ時期・同じ国の平滑化した投入の値段から新しいレシピで作る費用〕・固定の参照価格とは比べない）。
+     /// ＝ ln（代替する物の平滑化した値段×換算の比 ÷ 新しいレシピで作る費用）・1以下（新しいレシピの方が高いか同じ）は0。
+     /// ・代替する物（<see cref="DiscoveryRow.Replaces"/>）＝製法はその行の財そのもの（今の方法で作る値段＝その財の平滑化した値段）・新製品は代替する既存の財・
+-    ///   蒸気機関と電動機の行は労働力（動力）の財＝人と家畜の動力の値段（アレン）・機関車は陸の輸送の値段（<see cref="LandFreightPrice"/>＝普通の陸の運賃＝1）。
++    ///   蒸気機関と電動機の行は労働力（動力）の財＝人と家畜の動力の値段（アレン）・機関車は陸の輸送の値段（<see cref="LandFreightPrice"/>＝普通の陸の運賃＝1）のうち容量で切られた割高の分（値段−1＝★(176) 輸送の不足の分だけ）。
+     /// ・新しいレシピで作る費用＝代表の生産者（その国にある同じ財・同じレシピの生産者）の自己費用（<see cref="Producer.MarginalCost"/>＝規定の付加価値・参照価格の単位）×自己費用の物価水準÷物価水準
+     ///   ＋Σ投入の量（<see cref="Input.QtyPerOutput"/>）×その投入の平滑化した値段（労働は労働力の財の値段）＝工場の採算の限界費用（<see cref="EconomyStep.MineralSelfCost"/>＋<see cref="EconomyStep.InputCostPerUnit"/>）と同じ組み方
+     ///   （州の物価の乗数と電化・機械化の労働の節約は読まない＝国の値段の1本）。機関車＝鉄道の輸送の費用（<see cref="RailCostIndex"/>＝運転の費用〔清算の陸路の費用の鉄道÷馬〕＋線路と機関車の資本の費用）。
+@@ -613,7 +621,10 @@ public static class Discovery
+         v = NoPrice; cost = NoPrice;
+         if (d.Replaces == Catalog.LandFreight)
+         {
+-            v = book.LandFreight;   // 陸の輸送の値段（平滑化した値段の末尾の1欄）
++            // ★(176) 輸送の不足の分だけ（作者 2026-10-02「鉄道研究の必要性は、軍事力ではなく、輸送力の不足から導かれるべきだ」の字義＝輸送の不足が無い国では必要性0）
++            //   ＝陸の運賃（平滑化した値段の末尾の1欄・普通の馬の陸の運賃＝1）のうち容量で切られた割高の分（運賃−1）を、鉄道で同じ輸送を作る費用と比べる（推奨で進めた・作者の承認は未確認）。
++            //   旧（(165)〜(174)）＝陸の運賃の全体（不足が無くても1）÷鉄道の費用＝鉄道の1kmあたりの安さだけで必要性 36〜53（(169) §7）＝1790年代の機関車。
++            v = book.LandFreight - 1.0;
+             cost = railCost;
+         }
+         else
+@@ -702,6 +713,7 @@ public static class Discovery
+     ///   月に <see cref="Coefficients.TransportDecay"/> ずつ減る＝TransportDecay×(線路の値段＋機関車を作る費用)÷(2×TransportCapPerUnit)）を、同じ容量の荷を馬で運ぶ陸の運賃の金額
+     ///   （清算の陸の脚の運賃の倍率＝TransportMargin×DistanceMarginScale×LandSeaCostRatio×地形×最寄りの港までの陸の距離 <see cref="Region.PortLandKm"/>÷1万km×運賃革命・容量1あたりの荷の値打ちは1【推】）で割った値。
+     ///   旧（(165)〜(167)）＝運転の費用だけ＝輸送の不足が無くても（通した割合1）必要性 54（(166) §0・(167) の作者への確認③）。
++    ///   ★(176) 比べる相手は陸の運賃の全体ではなく割高の分（値段−1）＝(169)〜(174) の形（陸の運賃の全体÷この費用）は資本を入れても輸送の不足の無い国で必要性 36〜53（(169) §7）だった。
+     /// を国の内陸の州（港でない稼働中の州・陸の脚のある州）の潜在の交易で重み付けた平均（<see cref="LandFreightServed"/> と同じ重み）。
+     /// ★(169) 内陸の州の潜在の交易が無い国（陸の輸送を使っていない）は <see cref="NoPrice"/>＝必要性0（代替する物の需要が無ければ0＝他の行と同じ規則・旧＝RailCostFraction＝島国も必要性 54）。
+     /// 線路か機関車の値段が立たない（作れない投入）＝<see cref="NoPrice"/>＝必要性0（他の行と同じ規則）。</summary>
+@@ -741,8 +753,8 @@ public static class Discovery
+     ///   ＝(160)（(159) の反証役の指摘・低）の申し送り「硬い上限（小さい方を取る）を漸近形へ」。旧＝Math.Min の硬い上限（鉄道の前の英・仏・清は通した割合 0.3〜0.9%＝上限を掛ける前の値段 111〜333＝天井 100 に張り付いた）。
+     ///   必要性への効き（源から）＝通した割合 2%（値段 50）で 漸近形 44.5・硬い上限 50＝機関車の必要性 65.0 対 65.1（半分点 0.4・鉄道の費用 0.25）＝全域で 0.28 点以下（値段 25 で 24.5・10 で 10.0）。
+     ///   ★(166) 鉄道の前の陸の容量を人口に比例させた（<see cref="Transport.PreRailCapacity"/>）後は、大国の鉄道の前の通した割合は 0.36〜1.0（(166) の10種・1784 の種の中央＝仏 0.36・英 0.68・露 0.94・清 0.96）＝値段 1〜3＝天井に届かない。
+-    /// ⚠ 機関車の必要性は鉄道の前に飽和する（源から・(166)）＝通した割合 1（輸送の不足なし＝値段 1）でも ln(1÷鉄道の費用 0.25)＝1.39 → 必要性 54（地形の鉄道÷馬が1の州）
+-    ///   ＝比べる相手が運転の費用だけ（鉄道の線路と機関車の資本の値段を読まない＝作者への確認③）＝「輸送力の不足」は ln(値段) の分だけ上に乗る。</summary>
++    /// ⚠ (166)〜(174)：機関車の必要性は鉄道の前に飽和した（源から・(166)）＝通した割合 1（輸送の不足なし＝値段 1）でも ln(1÷鉄道の費用 0.25)＝1.39 → 必要性 54（地形の鉄道÷馬が1の州）
++    ///   ＝「輸送力の不足」は ln(値段) の分だけ上に乗った。★(176) 機関車の行は値段−1（割高の分）だけを読む＝通した割合 1 で必要性0（作者 2026-10-02「鉄道研究の必要性は、軍事力ではなく、輸送力の不足から導かれるべきだ」の字義）。</summary>
+     internal static double LandFreightPrice(World w)
+     {
+         var c = w.Coef;
+@@ -788,11 +800,19 @@ public static class Discovery
+         }
+         // 平滑化した値段（判定の段の頭で AdvancePrice が1歩進めた値・作者裁定 Q12）を読む。★(171) 産地の発見も同じ値段の帳を読む（下の SiteTerms）。
+         var terms = Score(w, view, c, includeKnown: false, null, null, out var book, out var dem);
++        // ★(174) 系統×段（作者 2026-10-02「すべて推奨でよい」で承認された推奨＝段 n は段 n−1 を知っていることが前提）＝解禁は各系統の次の段だけ。
++        //   門に届いた行の前提がまだなら、その行ではなく前提の鎖のまだの最初の段（自分の前提を知っている段）を開く＝引き（AI の推奨・作者の承認は未確認）
++        //   ＝後の段の必要性（例＝機関車の輸送の不足）が前提の段（高圧機関・蒸気機関）を連れてくる（史実＝鉄道の導入は機関と技師をまとめて入れた・仏 1828 セガン兄弟のスティーヴンソン機関車・日 1872）。
++        //   引きを入れない形（前提を知らない行は判定しない）は、(172) までの蒸気機関の伝わりの裏口（機関車の発見→蒸気機関の財の輸入→蒸気機関の伝わり）を閉じ、必要性0 の国へ蒸気が届かない
++        //   （腕 LP の5種＝仏 3/5 で 1950 まで蒸気機関なし・実装ログ (174)）。鎖は判定の頭の既知で読む（同じ四半期に段を連ねない＝1四半期に1段）。
++        var before = (bool[])known.Clone();
+         for (int row = 0; row < terms.Length && row < known.Length; row++)
+         {
+-            if (known[row] || !(terms[row].Score >= GateScore)) continue;
+-            known[row] = true;
+-            w.LogAdd($"{w.Year} {w.SelfPower?.Name ?? w.Region.Name}が{Catalog.Discoveries[row].Name}を発見");
++            if (before[row] || !(terms[row].Score >= GateScore)) continue;
++            int open = FirstUnknownOnPath(before, row);
++            if (known[open]) continue;
++            known[open] = true;
++            w.LogAdd($"{w.Year} {w.SelfPower?.Name ?? w.Region.Name}が{Catalog.Discoveries[open].Name}を発見");
+         }
+         // ★産地の発見（(148)・Catalog.Sites）＝この国の州にある、まだ見つかっていない産地（大鉱床・植林）を同じ門で判定する。
+         if (book is not null && dem is not null)
+@@ -808,6 +828,14 @@ public static class Discovery
+         w.LastDiscoveryView = view;
+     }
+ 
++    /// <summary>★(174) 行 <paramref name="row"/> へ至る前提の鎖（<see cref="Catalog.DiscoveryAfter"/>）のうち、まだ知らない最も上の段（その段の前提は知っている）。前提を全て知っていれば行そのもの。</summary>
++    internal static int FirstUnknownOnPath(bool[] known, int row)
++    {
++        int r = row;
++        for (int pre = Catalog.DiscoveryAfter[r]; pre >= 0 && !Known(known, pre); pre = Catalog.DiscoveryAfter[r]) r = pre;
++        return r;
++    }
++
+     /// <summary>★産地の発見の2項（(148)・<see cref="Catalog.Sites"/>）＝読むだけ（判定・画面・計器が同じ関数を読む）。伝わりは持たない（他国の発見は自分の土地の鉱床を見つけない）。
+     /// ★(171) 作者 2026-10-02 の発見の必要性の一般則（「発見の必要性は今後、その発見が必要とされた背景や因果ではなく、その発見が生み出すものが代替するものが高いか、で判定する」）と
+     ///   比べる相手（「2でよい」＝代替する物の値段÷その発見が出す物の値段〔同じ時期・同じ国の平滑化した投入の値段から新しいレシピで作る費用〕）を産地の行にも当てた（推奨で進めた・作者の承認は未確認）。⚠ 費用は国の今のレシピ（自己費用は全ての州で同じ＝RgoVa・産地の富み〔品位〕を読まない）＝実際に読むのは国の今の採算＝富みを費用に読むまでは候補2の「その発見が出す物の費用」と同じではない（(172) 反証役 vd4#3＝MineralCostFollowsGrade の器）：
+diff --git a/PriceOfBread.SimCore/Model.cs b/PriceOfBread.SimCore/Model.cs
+index 1ee0f3b..adf48d4 100644
+--- a/PriceOfBread.SimCore/Model.cs
++++ b/PriceOfBread.SimCore/Model.cs
+@@ -734,6 +734,7 @@ public sealed class Producer
+             {
+                 _discRow = Catalog.DiscoveryRowOf(GoodId, RecipeName);
+                 _retRow = Catalog.RetiredByRowOf(GoodId, RecipeName);
++                (_openRow, _openAfter) = Catalog.OpenedTierOf(GoodId, RecipeName);
+                 _discGood = GoodId; _discRecipe = RecipeName;
+             }
+             return _discRow;
+@@ -741,7 +742,10 @@ public sealed class Producer
+     }
+     /// <summary>このレシピを退かせる発見の行（−1＝退かない）＝前期の軍需（マスケット・鋳鉄砲）は転炉鋼の発見で退く（Catalog の退場の表）。</summary>
+     public int RetiredByRow { get { _ = DiscoveryRow; return _retRow; } }
+-    [System.NonSerialized] private int _discRow = -1, _retRow = -1, _discGood = int.MinValue;
++    /// <summary>★(174) 別の系統の発見で開く段（<see cref="Catalog.OpenedTiers"/>）＝開く行（−1＝表に無い）と同じ系統の段−1 の行。門は両方を知っていること（<see cref="Discovery.Gate(Region, Producer, bool[])"/>）。</summary>
++    public int OpenedByRow { get { _ = DiscoveryRow; return _openRow; } }
++    public int OpenedAfterRow { get { _ = DiscoveryRow; return _openAfter; } }
++    [System.NonSerialized] private int _discRow = -1, _retRow = -1, _openRow = -1, _openAfter = -1, _discGood = int.MinValue;
+     [System.NonSerialized] private string? _discRecipe;
+     public double ElecFill;        // 電化率（0..1・EMA）。電力を買えた工場は稼働率が上がり（夜間操業）労働投入が減る（機械化）。電力が高い/送電網が無いと0
+     public double SteamFill;       // 蒸気動力化率（0..1・EMA・電化と同型）。蒸気機関の発明後（SteamScale>0）採算が合えば石炭を焚き稼働率↑（SteamBoost）。1789年は水車/畜力＝0＝無ブースト・石炭を焚かない。電化が安くなると電力が蒸気を代替（(1−ElecFill)）
+diff --git a/PriceOfBread.SimCore/Simulation.cs b/PriceOfBread.SimCore/Simulation.cs
+index 2733cf2..4b1dae8 100644
+--- a/PriceOfBread.SimCore/Simulation.cs
++++ b/PriceOfBread.SimCore/Simulation.cs
+@@ -1068,28 +1068,9 @@ public sealed class Simulation
+                 Productivity = engineDefault.Productivity, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa,
+                 LaborPopIndex = engineDefault.LaborPopIndex, OwnerPopIndex = engineDefault.OwnerPopIndex, RentShare = 1.0, BuysLabor = true,
+                 Inputs = [new Input(Catalog.IronId, 1.832), new Input(Catalog.CopperId, 0.414), new Input(Catalog.CoalId, 0.4), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.SteamEngineId))] });
+-        // ★石油ケロシン（灯油doc・2026-08-13）：灯油(68)の**第2レシピ**。既定は鯨油/魚油（漁獲0.8）。
+-        // ⚠★2026-09-03（キューAUD-09・監査「保存則・台帳」）：**追加根拠のコメントが事実と食い違っていた**。
+-        //   「原油には買い手が1本も無い40年の空白があった」と書かれていたが、現物には AddAdvancedProducers 側に
+-        //   同じ原油→灯油の近代レシピ（RecipeName="石油灯油"・同じ1850年代の発見の行〔旧 TechOnset=0.6〕）が**既にある**＝空白ではない。
+-        //   ⇒ 実体は「同じ変換が2レシピ並存している」。⚠どちらを残すかは帯が動く（KeroseneFromOilEnabled=1 は点火済みで
+-        //   列強+6.2/人口−5.7 の実測がある）ので、ここでは**事実の記録だけ**に留め、統合は測定とセットで行う（キューAUD-09）。
+-        // ⚠新しい Good は1つも足さない——足すのは Producer 1件だけ。極性は鋼と逆で、**新レシピの方が安い**＝発見の後に自動で置き換わる（★2026-10-01 段2A・旧＝onset後）。
+-        //   史実の較正＝鯨油1.45ドル/ガロン(1856)に対しケロシンは0.58(1865)→0.08(1885)＝おおむね5〜10倍安い。
+-        //   投入は原油0.5（1870年代の精製収率45〜60%）＋生産性1.6（連続精製 vs 3〜4年の捕鯨航海）で表す＝倍率を書かない。
+-        // ★解禁＝発見の表の石油ケロシン（1850年代・2026-10-01 段2A＝石油灯油と同じ年代・畳むのは設計 §5 F4）。⚠KeroseneFromOilEnabled=0 で不発＝厳密恒等。
+-        if (coef.KeroseneFromOilEnabled > 0)
+-            {
+-                Producer? keroDefault = null;
+-                foreach (var pr in producers) if (pr.GoodId == Catalog.LampOilId) { keroDefault = pr; break; }
+-                if (keroDefault is not null)   // 灯油を作らない世界（最小シナリオ）は不発
+-                {
+-                producers.Add(new Producer { GoodId = Catalog.LampOilId, RecipeName = "石油ケロシン",
+-                    Productivity = coef.KeroseneOilProductivity * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa,
+-                    LaborPopIndex = keroDefault.LaborPopIndex, OwnerPopIndex = keroDefault.OwnerPopIndex, RentShare = 1.0, BuysLabor = true,
+-                    Inputs = [new Input(Catalog.CrudeOilId, coef.KeroseneOilInput), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.LampOilId))] });
+-                }
+-            }
++        // ★(174) 石油ケロシン（灯油doc・2026-08-13 の灯油の第2レシピ・旗 KeroseneFromOilEnabled＝2026-08-14 点火）は畳んだ＝AddAdvancedProducers の「石油灯油」と同じ原油→灯油の変換が2本並んでいた
++        //   （2026-09-03 AUD-09 の記録・設計 §5 F4・(148) の F4 は同じ種1〜5 で exact −5.9・near −6.6 で差し戻し・(150) の恒等の形は無い）＝発見の表の行1本・生産者1本（数は点火済みの安い方＝石油灯油の生産者へ）。
++        //   史実の較正（旧の注記）＝鯨油1.45ドル/ガロン(1856)に対しケロシンは0.58(1865)→0.08(1885)＝おおむね5〜10倍安い＝原油0.5（1870年代の精製収率45〜60%）＋生産性1.6（連続精製 vs 3〜4年の捕鯨航海）。
+ 
+         // ★冷蔵の加工肉（2026-09-04・作者提案「冷蔵庫という形にして、肉輸送+消費財でよいのでは」）＝**加工肉(63)の第2レシピ**。
+         //   既定は 肉+小麦粉（塩漬け・ソーセージ）。⚠冷凍船（1877/1882）以後は**冷蔵**が主役になる。
+@@ -1159,7 +1140,14 @@ public sealed class Simulation
+         producers.Add(new Producer { GoodId = Catalog.LaborId, RecipeName = "畜力", Productivity = LaborProductivity * FullChainProductivityScale * 1.3, Output = 0.5, Scale = 0.05, MarginalCost = 0.35, LaborPopIndex = workerIdx, OwnerPopIndex = workerIdx, RentShare = 0.0,
+             Inputs = [new Input(Catalog.HorseId, 0.05)] });   // 馬力＝荷駄・巻上機（馬が本当の生産投入になる）
+         producers.Add(new Producer { GoodId = Catalog.LaborId, RecipeName = "蒸気機関", Productivity = LaborProductivity * FullChainProductivityScale * 2.0, Output = 0.5, Scale = 0.05, MarginalCost = 0.35, LaborPopIndex = workerIdx, OwnerPopIndex = workerIdx, RentShare = 0.0,
+-            Inputs = [new Input(Catalog.SteamEngineId, 0.02), new Input(Catalog.CoalId, 0.3)] });   // 蒸気機関54＋石炭＝工場に据える原動機（54の第3の出口＝Runner診断が点灯）
++            Inputs = [new Input(Catalog.SteamEngineId, 0.02), new Input(Catalog.CoalId, 0.3)] });   // 蒸気機関54＋石炭＝工場に据える原動機（54の第3の出口＝Runner診断が点灯）＝★(174) 蒸気機関の系統の段1（ワット）
++        // ★(174) 蒸気機関の系統の段2（高圧＝発見の表の「高圧機関」）と段3（複式・三段膨張＝転炉鋼で開く Catalog.OpenedTiers）＝同じ動力の時代差のレシピ（作者 2026-10-02「すべて推奨でよい」で承認された推奨）。
++        //   段の効き＝動力1単位あたりの石炭の史実の比（ワット 約10 → 高圧の膨張 約5 → 複式・三段膨張 約2 ポンド／馬力時＝1/2・1/5【推・記憶の概数】・出典の候補は Catalog の蒸気機関の系統の注記）。
++        //   生産性（同じ人の働きが出す動力）と蒸気機関の財の量は段1 と同じ（史実の比を確かめていない＝変えない）。前の段は次の段で退く（Catalog の退場の表＝労働力のレシピは配分の外＝並べると能力が2倍）。
++        producers.Add(new Producer { GoodId = Catalog.LaborId, RecipeName = "高圧機関", Productivity = LaborProductivity * FullChainProductivityScale * 2.0, Output = 0.5, Scale = 0.05, MarginalCost = 0.35, LaborPopIndex = workerIdx, OwnerPopIndex = workerIdx, RentShare = 0.0,
++            Inputs = [new Input(Catalog.SteamEngineId, 0.02), new Input(Catalog.CoalId, 0.3 * 0.5)] });
++        producers.Add(new Producer { GoodId = Catalog.LaborId, RecipeName = "複式機関", Productivity = LaborProductivity * FullChainProductivityScale * 2.0, Output = 0.5, Scale = 0.05, MarginalCost = 0.35, LaborPopIndex = workerIdx, OwnerPopIndex = workerIdx, RentShare = 0.0,
++            Inputs = [new Input(Catalog.SteamEngineId, 0.02), new Input(Catalog.CoalId, 0.3 * 0.2)] });
+         producers.Add(new Producer { GoodId = Catalog.LaborId, RecipeName = "電動", Productivity = LaborProductivity * FullChainProductivityScale * 2.5, Output = 0.5, Scale = 0.05, MarginalCost = 0.35, LaborPopIndex = workerIdx, OwnerPopIndex = workerIdx, RentShare = 0.0,
+             Inputs = [new Input(Catalog.ElectricityId, 0.25)] });   // 電動機＝電力が安い国だけ採算が合う（発電機1.3以後）
+         // 水車（07_再設計 §2＋A2裁定・2026-07-31）：★裁定＝**水車は弱い動力（自家農場級）／山岳の強力な水力は巨大建造物**の2層に分ける。
+@@ -1303,8 +1291,9 @@ public sealed class Simulation
+         producers.Add(new Producer { GoodId = Catalog.ClothingId, RecipeName = "亜麻衣料", Productivity = 1.7 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
+             Inputs = [new Input(Catalog.CanvasId, 0.6), new Input(Catalog.DyeId, 0.2), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.ClothingId))] });
+         // 石油灯油＝ケロシン（灯油68の近代レシピ・発見の表の1850年代＝1859ドレーク油井〜）：原油を精製。原油(安価RGO)は鯨油/魚油(漁獲)より安い＝onset後にコストで勝ち鯨油を駆逐（史実：ケロシンが捕鯨を終わらせた）。原油RGOも DefaultRecipeOnset(10)=0.6 でゲート＝早期に湧かないので原油の価格スパイクも起きない。
+-        producers.Add(new Producer { GoodId = Catalog.LampOilId, RecipeName = "石油灯油", Productivity = 1.9 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
+-            Inputs = [new Input(Catalog.CrudeOilId, 1.0), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.LampOilId))] });
++        //   ★(174) 石油ケロシン（AddAlternateRecipes・同じ変換の2本目）を畳んだ＝数は点火済みの安い方（旧＝原油1.0・生産性1.9）。
++        producers.Add(new Producer { GoodId = Catalog.LampOilId, RecipeName = "石油灯油", Productivity = coef.KeroseneOilProductivity * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
++            Inputs = [new Input(Catalog.CrudeOilId, coef.KeroseneOilInput), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.LampOilId))] });
+         // === B6（2026-07-19ユーザー裁定）===
+         // 人絹＝ビスコース（絹織物45の並存レシピ・発見の表の1890年代）：木材パルプ(製材)＋化学薬品から人造絹糸＝
+         // 化学工業が生糸(14)経済を創造的破壊（"artificial silk"そのもの・ぼろ布製紙/クロムなめしと同型・RefPrice不変）。
+diff --git a/PriceOfBread.Tests/DiscoveryScoreTests.cs b/PriceOfBread.Tests/DiscoveryScoreTests.cs
+index fae6c14..68e5d05 100644
+--- a/PriceOfBread.Tests/DiscoveryScoreTests.cs
++++ b/PriceOfBread.Tests/DiscoveryScoreTests.cs
+@@ -230,6 +230,7 @@ public class DiscoveryScoreTests
+         foreach (var n in sim.Nations)
+         {
+             var w = n.World;
++            w.Discovered[Catalog.DiscoveryAfter[row]] = true;   // ★(174) 合成ゴムはゴムの系統の段2＝段1（加硫ゴム）を知った国だけ判定する＝前提を置く（ゴムの需要は盤面に無い＝必要性0 のまま）
+             if (w.Discovered[row] || !(Discovery.Evaluate(w, null, w.Coef)[row].Need == 0)) continue;
+             tried++;
+             w.TechLevel = 0;
+@@ -310,7 +311,7 @@ public class DiscoveryScoreTests
+     /// 必要性の強度＝ln（代替する物の平滑化した値段×換算の比÷新しいレシピで作る費用〔自己費用×自己費用の物価水準÷物価水準＋Σ投入×平滑化した値段〕）・1以下は0：
+     /// ①製法（人絹＝絹織物）＝絹が人絹の費用の2倍なら ln 2・費用と同じなら0・関係の無い財（馬）を高くしても動かない・投入（製材）を高くすると下がる＝参照価格ではなく今の費用と比べる
+     /// ②新製品（ガス灯＝灯油）＝換算の比（新しい財1単位が置き換える代替する物の量＝普通の値段で同じ値打ち＝ガスの参照価格÷灯油の参照価格）を掛けた灯油の値段がガスの費用の2倍なら ln 2
+-    /// ③機関車＝陸の輸送の値段÷鉄道の輸送の費用（運転の費用＝清算の陸路の費用の鉄道÷馬＋★(169) 線路と機関車の資本の費用÷馬の運賃・内陸の州の潜在量で重み付け）④代替する物の需要が国内に無いと0
++    /// ③機関車＝★(176) 陸の輸送の値段のうち割高の分（値段−1）÷鉄道の輸送の費用（運転の費用＝清算の陸路の費用の鉄道÷馬＋★(169) 線路と機関車の資本の費用÷馬の運賃・内陸の州の潜在量で重み付け）④代替する物の需要が国内に無いと0
+     /// ⑤陸の輸送の値段＝(1÷通した割合)^(1/2ε)・通した割合0 は財の値段の天井（PriceCeilFactor）。
+     /// ⚠壊し方＝参照価格と比べる（(159) の形）・代替する物の欄を読まない・換算の比を掛けない・投入の値段を読まない・機関車の比べる相手を1にする・機関車の資本の費用を読まない（★(169)）・
+     ///   陸の輸送を使っていない国の機関車を運転の費用で読む（★(169)）・需要の無い財を読む → 赤。
+@@ -389,7 +390,7 @@ public class DiscoveryScoreTests
+         Assert.True(rail > sumRun / pot && double.IsFinite(rail), $"前提が崩れた（鉄道の輸送の費用 {rail}・運転だけ {sumRun / pot}）");
+         // 資本の費用を読む＝線路の値段を上げると鉄道の輸送の費用が上がり必要性が下がる（陸の運賃は同じ）
+         {
+-            var pr = (double[])basePx.Clone(); pr[ng] = 2.0 * rail;
++            var pr = (double[])basePx.Clone(); pr[ng] = 1.0 + 2.0 * rail;   // ★(176) 割高の分（値段−1）＝鉄道の費用の2倍
+             foreach (var inp in repL.Inputs) if (inp.QtyPerOutput > 0 && inp.GoodId != Catalog.LaborId && inp.GoodId != Catalog.AdvLaborId) pr[inp.GoodId] *= 20.0;   // 機関車の資本財の投入を高くする
+             double pLocoDear = CostByHand(w, repL, pr);
+             double railDear = (sum - sumRun) / pot * (cc.TransportDecay * (RailPx(pr) + pLocoDear) / (2.0 * cc.TransportCapPerUnit)) / capital + sumRun / pot;
+@@ -397,9 +398,11 @@ public class DiscoveryScoreTests
+             Assert.Equal(sD > 0 ? NeedOf(loco, sD) : 0, Needs(pr)[loco], 9);
+             Assert.True(Needs(pr)[loco] < NeedOf(loco, System.Math.Log(2.0)) - 1e-9, "機関車の比べる相手が線路と機関車の資本の値段を読まない");
+         }
+-        var pl = (double[])basePx.Clone(); pl[ng] = 2.0 * rail;
++        var pl = (double[])basePx.Clone(); pl[ng] = 1.0 + 2.0 * rail;   // ★(176) 割高の分（値段−1）＝鉄道の費用の2倍
+         Assert.Equal(NeedOf(loco, System.Math.Log(2.0)), Needs(pl)[loco], 9);
+-        pl[ng] = rail * 0.5;   // 鉄道の方が高い＝不足なし
++        pl[ng] = 1.0 + rail * 0.5;   // 割高の分が鉄道の費用より小さい
++        Assert.Equal(0.0, Needs(pl)[loco]);
++        pl[ng] = 1.0;   // ★(176) 輸送の不足なし（陸の運賃＝普通の1）＝0（鉄道の方が安い盤面は下の「機関車の必要性は輸送の不足の分だけ」の番人）
+         Assert.Equal(0.0, Needs(pl)[loco]);
+         // ★(169) 陸の輸送を使っていない国（内陸の州の潜在の交易が0）は必要性0＝代替する物の需要が無ければ0（他の行と同じ規則・旧＝運転の費用だけ＝島国も必要性 54）
+         {
+@@ -525,6 +528,48 @@ public class DiscoveryScoreTests
+         Assert.Equal(baseNeed, NeedWith(dear), 12);
+     }
+ 
++    /// <summary>★(176) 機関車の必要性は輸送の不足の分だけ（作者 2026-10-02「鉄道研究の必要性は、軍事力ではなく、輸送力の不足から導かれるべきだ」の字義＝輸送の不足が無い国では必要性0・
++    /// 割高の分の読みは推奨で進めた＝作者の承認は未確認）＝判定の本線（内陸の州の律速率→陸の運賃〔<see cref="Discovery.InstantRealPrices"/> の末尾の1欄〕→判定）を通す盤面：
++    /// ①全ての内陸の州が通した割合1（輸送が交易を絞っていない）＝陸の運賃1＝鉄道の輸送の費用が馬より安くても必要性0（旧 (165)〜(174)＝ln(1÷鉄道の費用)＝必要性 36〜54）
++    /// ②通した割合 0.25（陸の運賃4）＝ln(割高の分3÷鉄道の輸送の費用)・判定の計器の2つの値（代替する物＝割高の分・費用＝鉄道の輸送の費用）が式と一致
++    /// ③不足が深いほど（通した割合 0.1）必要性が上がる。⚠壊し方＝陸の運賃の全体を読む（(174) の形）→ ①が赤・割高の分から1を引かない形の取り違え → ②が赤。</summary>
++    [Fact]
++    public void 機関車の必要性は輸送の不足の分だけ_通した割合1の国は0()
++    {
++        var sim = Board();
++        var w = Nation(sim, "イギリス");
++        int ng = Catalog.Goods.Length, loco = Row("機関車"), nr = Catalog.Discoveries.Length;
++        var repL = RepOf(w, loco);
++        var rgA = w.Regions.First(r => r.State == RegionState.Active);
++        foreach (int g0 in repL.Inputs.Where(i => i.QtyPerOutput > 0).Select(i => i.GoodId).Append(Catalog.RailId))
++        { rgA.Markets[g0].LastDemand = System.Math.Max(1.0, rgA.Markets[g0].LastDemand); rgA.Markets[g0].LastProduced = System.Math.Max(1.0, rgA.Markets[g0].LastProduced); }
++        var basePx = (double[])w.DiscoveryPrice!.Clone();
++        for (int i = 0; i < ng; i++) if (!(basePx[i] >= 0)) basePx[i] = Catalog.RefPrices[i];
++        // 線路と機関車の資本財を安くする＝鉄道の輸送の費用がほぼ運転の費用（馬の運賃の約1/4）＝鉄道の方が馬より安い盤面（旧の形なら不足が無くても必要性が立つ）
++        foreach (int g0 in repL.Inputs.Where(i => i.QtyPerOutput > 0 && i.GoodId != Catalog.LaborId && i.GoodId != Catalog.AdvLaborId).Select(i => i.GoodId).Append(Catalog.RailId)) basePx[g0] *= 0.01;
++        int inland = 0;
++        foreach (var rg in w.Regions) if (rg.State == RegionState.Active && !rg.IsPort) rg.LastTradePotential = 1.0 + ++inland;
++        Assert.True(inland > 0, "前提が崩れた（英に内陸の州が無い）");
++        (double Need, double Px, double V, double Cost) At(double throttle)
++        {
++            foreach (var rg in w.Regions) if (rg.State == RegionState.Active && !rg.IsPort) rg.LastTradeThrottle = throttle;
++            var px = (double[])basePx.Clone(); px[ng] = Discovery.InstantRealPrices(w)[ng];   // 本線の陸の運賃
++            var ro = new (double Replaced, double Cost)[nr];
++            var t = Discovery.Evaluate(w, new Discovery.WorldView(null, null, Discovery.WorldMarket.Flat(px)), w.Coef, includeKnown: true, realPrice: px, ratioOut: ro);
++            return (t[loco].Need, px[ng], ro[loco].Replaced, ro[loco].Cost);
++        }
++        var full = At(1.0);
++        Assert.Equal(1.0, full.Px, 12);
++        Assert.True(full.Cost > 0 && full.Cost < 1.0, $"前提が崩れた（鉄道の輸送の費用 {full.Cost} が馬の運賃以上＝旧の形でも0 の盤面）");
++        Assert.Equal(0.0, full.Need);
++        var q = At(0.25);
++        Assert.Equal(q.Px - 1.0, q.V, 12);
++        double s = System.Math.Log((q.Px - 1.0) / q.Cost);
++        Assert.True(s > 0, $"前提が崩れた（割高の分 {q.Px - 1.0} が鉄道の費用 {q.Cost} 以下）");
++        Assert.Equal(Discovery.TermMax * s / (s + Discovery.NeedHalf(DiscoveryField.Product, w.Coef)), q.Need, 9);
++        Assert.True(At(0.1).Need > q.Need, "不足が深いほど必要性が上がらない");
++    }
++
+     /// <summary>★(166) 陸の運賃（機関車の必要性の入力）の天井は財の値段と同じ漸近形＝内側はほぼ 1÷通した割合（通した割合 0.5 で 2）・天井（PriceCeilFactor）へ漸近して超えない・
+     /// 通した割合が下がるほど高い（単調）・全く通らない（0）は天井。⚠壊し方＝硬い上限（小さい方を取る＝(165) の形）へ戻す → 通した割合 0.1%（1÷通した割合＝1000）が天井ちょうどになって赤。</summary>
+     [Fact]
+@@ -1339,4 +1384,119 @@ public class DiscoveryScoreTests
+         Assert.False(p.SiteFound, "一過性の値段の跳ねで産地が開いた（判定が平滑化した値段を読んでいない）");
+         Assert.Equal(b.Cost + a * (v - b.Cost), w.DiscoveryPrice![g], 9);
+     }
++
++    // ===== ★(174) 系統×段（作者 2026-10-02「すべて推奨でよい」＝AI の推奨〔系統×段・蒸気機関の3段・内燃機関と電気は枝〕の承認）=====
++
++    /// <summary>★(174) 発見の表の行と系統の数は宣言した数（行を増やす回は理由を書いてここを上げる＝作者 2026-10-02「数自体は減らした方が良いかもしれない」）。
++    /// 段 n（n≥2）の前提は同じ系統の段 n−1 の行・段1 の枝は After の行（表の誤りは構築で止まる＝Catalog.DiscoveryAfter）。
++    /// ⚠壊し方＝前提の表を作らない（全て −1）→ 赤。</summary>
++    [Fact]
++    public void 発見の表は系統と段で持ち_段nの前提は同じ系統の段nマイナス1()
++    {
++        Assert.Equal(DeclaredRows, Catalog.Discoveries.Length);
++        Assert.Equal(DeclaredLines, Catalog.DiscoveryLineCount);
++        for (int r = 0; r < Catalog.Discoveries.Length; r++)
++        {
++            var d = Catalog.Discoveries[r]; int pre = Catalog.DiscoveryAfter[r];
++            if (d.Tier >= 2)
++            {
++                Assert.True(pre >= 0, $"{d.Name}：段{d.Tier}に前提が無い");
++                Assert.Equal(Catalog.LineOf(d), Catalog.LineOf(Catalog.Discoveries[pre]));
++                Assert.Equal(d.Tier - 1, Catalog.Discoveries[pre].Tier);
++            }
++            else Assert.Equal(d.After.Length > 0 ? Row(d.After) : -1, pre);
++        }
++        // 蒸気機関の系統＝段1 蒸気機関（ワット）→段2 高圧機関→段3（転炉鋼で開く・行を持たない）。機関車・汽船・内燃機関・発電は段2 の枝。
++        Assert.Equal(Row("蒸気機関"), Catalog.DiscoveryAfter[Row("高圧機関")]);
++        foreach (var child in new[] { "機関車", "汽船", "内燃機関", "石炭火力" }) Assert.Equal(Row("高圧機関"), Catalog.DiscoveryAfter[Row(child)]);
++        Assert.Equal(Row("石炭火力"), Catalog.DiscoveryAfter[Row("送電網")]);   // 電気＝発電→送電→電動機
++        Assert.Equal(Row("送電網"), Catalog.DiscoveryAfter[Row("電動機")]);
++        var t3 = Catalog.OpenedTiers.Single(t => t.Recipe == "複式機関");
++        Assert.Equal(("蒸気機関", 3, "転炉鋼"), (t3.Line, t3.Tier, t3.Opener));
++    }
++    /// <summary>宣言した行の数（(172) 46 行＝高圧機関 +1・石油ケロシンを石油灯油へ畳んで −1＝46）と系統の数（(172) は行ごとに1つ＝46 → 40）。</summary>
++    private const int DeclaredRows = 46, DeclaredLines = 40;
++
++    /// <summary>★(174) 解禁は各系統の次の段だけ（段 n は段 n−1 を知っていることが前提）＝(172) の不具合（英以外の9か国で機関車が蒸気機関より先）を構造で直す（機関車は高圧機関＝蒸気機関の段2 が前提）：
++    /// 機関車の点数が門に届いても、前提がまだなら機関車は開かず、前提の鎖のまだの最初の段（蒸気機関→高圧機関）が1四半期に1段ずつ開き、その後に機関車が開く（引き＝AI の推奨・作者の承認は未確認）。
++    /// 不変条件＝どの四半期の後も、知っている行の前提は知っている（子が親より先に開かない）。
++    /// ⚠壊し方＝前提を見ない（門に届いた行をそのまま開く）・引かない（前提の段を開かない）・同じ四半期に鎖を連ねる → 赤。</summary>
++    [Fact]
++    public void 前提の段を知らない行は開かず前提の段を1つずつ引く_機関車は高圧機関の後()
++    {
++        var sim = Board();
++        int loco = Row("機関車"), hp = Row("高圧機関"), st = Row("蒸気機関");
++        var contact = new double[Catalog.Discoveries.Length];
++        contact[loco] = 1e6;
++        var view = new Discovery.WorldView(contact);
++        int tried = 0, opened = 0;
++        foreach (var n in sim.Nations)
++        {
++            var w = n.World;
++            if (w.Discovered[loco] || w.Discovered[hp] || w.Discovered[st]) continue;
++            if (!w.Regions.Any(rg => rg.State == RegionState.Active && rg.Producers.Any(p => p.DiscoveryRow == loco))) continue;
++            w.TechLevel = Discovery.Difficulty(loco, w.Coef) * 3;
++            if (!(Discovery.Evaluate(w, view, w.Coef)[loco].Score >= Discovery.GateScore)) continue;   // 機関車の点数が門に届く国だけ（技術力と伝わり）
++            tried++;
++            void StepAndCheck()
++            {
++                Discovery.Step(w, view, w.Coef);
++                for (int r = 0; r < w.Discovered.Length; r++)
++                {
++                    int pre = Catalog.DiscoveryAfter[r];
++                    Assert.True(!w.Discovered[r] || pre < 0 || w.Discovered[pre], $"{w.SelfPower?.Name}：{Catalog.Discoveries[r].Name} が前提の {(pre >= 0 ? Catalog.Discoveries[pre].Name : "")} より先に開いた");
++                }
++            }
++            StepAndCheck();
++            Assert.True(w.Discovered[st] && !w.Discovered[hp] && !w.Discovered[loco], $"{w.SelfPower?.Name}：1四半期目に開くのは蒸気機関だけ（蒸気機関 {w.Discovered[st]}・高圧機関 {w.Discovered[hp]}・機関車 {w.Discovered[loco]}）");
++            StepAndCheck();
++            Assert.True(w.Discovered[hp] && !w.Discovered[loco], $"{w.SelfPower?.Name}：2四半期目に開くのは高圧機関（高圧機関 {w.Discovered[hp]}・機関車 {w.Discovered[loco]}）");
++            StepAndCheck();
++            Assert.True(w.Discovered[loco], $"{w.SelfPower?.Name}：前提を知った後に機関車が開かない");
++            opened++;
++        }
++        Assert.True(tried > 5 && opened == tried, $"盤面が空回り（試した国 {tried}・開いた国 {opened}）");
++    }
++
++    /// <summary>★(174) 蒸気機関の3段（段1 ワット→段2 高圧→段3 複式・三段膨張）＝同じ動力（労働力の財）の時代差のレシピ：
++    /// ①全ての州に3本が並び、蒸気機関の財と生産性は同じ・石炭は 0.3→×1/2→×1/5（史実の燃費の比【推】＝Catalog の注記）
++    /// ②段3 は転炉鋼と高圧機関の両方を知って開く（別の系統の発見で開く段）・段1 は段2 で・段2 は転炉鋼で退く
++    /// ③不変条件＝3つの発見（蒸気機関・高圧機関・転炉鋼）のどの組み合わせでも、開いている蒸気の動力のレシピは高々1本（労働力のレシピは配分の外＝並ぶと能力が2倍）。
++    /// ⚠壊し方＝段3 の門が転炉鋼だけを読む・段1 を退かせない・石炭の比を変えない → 赤。</summary>
++    [Fact]
++    public void 蒸気機関の3段は燃費の比で並び_開いている段は高々1本()
++    {
++        var sim = Board();
++        var w = Nation(sim, "フランス");
++        int s1 = Row("蒸気機関"), s2 = Row("高圧機関"), bes = Row("転炉鋼");
++        int regions = 0;
++        foreach (var rg in w.Regions)
++        {
++            if (rg.State != RegionState.Active) continue;
++            var t1 = rg.Producers.SingleOrDefault(p => p.GoodId == Catalog.LaborId && p.RecipeName == "蒸気機関");
++            if (t1 is null) continue;
++            regions++;
++            var t2 = rg.Producers.Single(p => p.GoodId == Catalog.LaborId && p.RecipeName == "高圧機関");
++            var t3 = rg.Producers.Single(p => p.GoodId == Catalog.LaborId && p.RecipeName == "複式機関");
++            double Coal(Producer p) => p.Inputs.Single(i => i.GoodId == Catalog.CoalId).QtyPerOutput;
++            double Eng(Producer p) => p.Inputs.Single(i => i.GoodId == Catalog.SteamEngineId).QtyPerOutput;
++            Assert.Equal(0.3, Coal(t1), 12); Assert.Equal(0.5, Coal(t2) / Coal(t1), 12); Assert.Equal(0.2, Coal(t3) / Coal(t1), 12);
++            Assert.Equal(Eng(t1), Eng(t2)); Assert.Equal(Eng(t1), Eng(t3));
++            Assert.Equal(t1.Productivity, t2.Productivity); Assert.Equal(t1.Productivity, t3.Productivity);
++            Assert.Equal((bes, s2), (t3.OpenedByRow, t3.OpenedAfterRow));
++            Assert.Equal(s2, t1.RetiredByRow); Assert.Equal(bes, t2.RetiredByRow);
++            var keep = (bool[])w.Discovered.Clone();
++            for (int mask = 0; mask < 8; mask++)
++            {
++                w.Discovered[s1] = (mask & 1) != 0; w.Discovered[s2] = (mask & 2) != 0; w.Discovered[bes] = (mask & 4) != 0;
++                double g1 = Discovery.Gate(rg, t1), g2 = Discovery.Gate(rg, t2), g3 = Discovery.Gate(rg, t3);
++                Assert.True(g1 + g2 + g3 <= 1.0, $"組み合わせ {mask}：蒸気の動力のレシピが2本以上開いた（{g1}・{g2}・{g3}）");
++                Assert.Equal(w.Discovered[s1] && !w.Discovered[s2] ? 1.0 : 0.0, g1);
++                Assert.Equal(w.Discovered[s2] && !w.Discovered[bes] ? 1.0 : 0.0, g2);
++                Assert.Equal(w.Discovered[s2] && w.Discovered[bes] ? 1.0 : 0.0, g3);   // 段3＝転炉鋼だけでは開かない（段2 が前提）
++            }
++            System.Array.Copy(keep, w.Discovered, keep.Length);
++        }
++        Assert.True(regions > 0, "前提が崩れた（仏に蒸気の動力のレシピが無い）");
++    }
+ }
+diff --git a/PriceOfBread.Tests/FullChainTests.cs b/PriceOfBread.Tests/FullChainTests.cs
+index 2679630..c7bd3bf 100644
+--- a/PriceOfBread.Tests/FullChainTests.cs
++++ b/PriceOfBread.Tests/FullChainTests.cs
+@@ -20,7 +20,7 @@ public class FullChainTests
+         var sim = new Simulation(Full(1), new NullAgent());
+         Assert.Equal(120, sim.World.Regions[0].Goods.Count);   // ★2026-09-30 (129)：119→120＝金鶏樹皮を戻した（作者裁定 2026-09-30）   // ★2026-09-30 段1（財の削減）：130→119＝11財を畳んだ（金鶏樹皮・茶葉・コーヒー豆・コークス・パルプ・機械部品・工具・発電機・包帯・精密工作機械・戦闘機）   // ★2026-09-04：129→130＝冷蔵庫（作者提案の冷蔵＝消費財かつ生肉の遠距離輸送を開く財）     // ＋1934拡張E2/E3の6財（飛行機・戦闘機・自動車・化学兵器・新聞・ラジオ＝2026-07-19）。上下水道/電化インフラはService＝国家世界のみ
+         // ★2026-09-06：126→127＝E-13 再開で黄鉄鉱法（化学薬品の第2レシピ）を点火＝フルチェーンにも1件。代替レシピの注入は AddAlternateRecipes（構築経路）へ移した（同日）。
+-        Assert.Equal(120, sim.World.Regions[0].Producers.Count);   // ★2026-10-02 (169)：119→120＝1780年代の蒸気機関「鋳鉄の機関」（蒸気機関の財の第2生産者・AddAlternateRecipes）   // ★2026-09-30 (129)：118→119＝キニーネが本国の工場へ戻った（樹皮は植民地の財＝フルチェーンに生産者は無い・早期の「樹皮の粉末」は国家世界のビルダー側）   // ★2026-09-30 段1（財の削減）：129→118＝畳んだ11財の既定の生産者   // ★2026-09-27：127→129＝前期の軍需レシピ（マスケット・鋳鉄砲）を回2-1 で旗ごと点火＝小銃・火砲の第2生産者   // ★2026-09-04：125→126＝冷蔵の加工肉レシピ（ChilledMeatEnabled 点火＝加工肉の第2生産者が全州に立つ）   // ★2026-09-04：124→125＝冷蔵庫の生産者（財の追加に伴う。⚠冷蔵の加工肉は ChilledMeatEnabled=0 で休眠＝この数には入らない）   // ★2026-08-14：123→124＝石油ケロシン（灯油の第2レシピ・KeroseneFromOilEnabled=1点火＝原油の40年の買い手ゼロの穴埋め） // 同6財の生産者＋水力発電（A-中1・2026-07-23＝電力の第3レシピ）＋坩堝鋼/錬鉄レール（CrucibleSteelEnabled=1・第7段第1波2026-07-28）。並存レシピ（人絹/鉄筋コンクリート/合成ゴム）は国家世界のビルダー側
++        Assert.Equal(119, sim.World.Regions[0].Producers.Count);   // ★(174)：120→119＝石油ケロシン（灯油の同じ変換の2本目）を石油灯油へ畳んだ   // ★2026-10-02 (169)：119→120＝1780年代の蒸気機関「鋳鉄の機関」（蒸気機関の財の第2生産者・AddAlternateRecipes）   // ★2026-09-30 (129)：118→119＝キニーネが本国の工場へ戻った（樹皮は植民地の財＝フルチェーンに生産者は無い・早期の「樹皮の粉末」は国家世界のビルダー側）   // ★2026-09-30 段1（財の削減）：129→118＝畳んだ11財の既定の生産者   // ★2026-09-27：127→129＝前期の軍需レシピ（マスケット・鋳鉄砲）を回2-1 で旗ごと点火＝小銃・火砲の第2生産者   // ★2026-09-04：125→126＝冷蔵の加工肉レシピ（ChilledMeatEnabled 点火＝加工肉の第2生産者が全州に立つ）   // ★2026-09-04：124→125＝冷蔵庫の生産者（財の追加に伴う。⚠冷蔵の加工肉は ChilledMeatEnabled=0 で休眠＝この数には入らない）   // ★2026-08-14：123→124＝石油ケロシン（灯油の第2レシピ・KeroseneFromOilEnabled=1点火＝原油の40年の買い手ゼロの穴埋め） // 同6財の生産者＋水力発電（A-中1・2026-07-23＝電力の第3レシピ）＋坩堝鋼/錬鉄レール（CrucibleSteelEnabled=1・第7段第1波2026-07-28）。並存レシピ（人絹/鉄筋コンクリート/合成ゴム）は国家世界のビルダー側
+ 
+         double base0 = sim.World.BaseMoney;
+         var ex = Record.Exception(() => sim.Run(400));
+diff --git a/PriceOfBread.Tests/WarThemeTests.cs b/PriceOfBread.Tests/WarThemeTests.cs
+index a75c2e6..080bd64 100644
+--- a/PriceOfBread.Tests/WarThemeTests.cs
++++ b/PriceOfBread.Tests/WarThemeTests.cs
+@@ -73,19 +73,37 @@ public class WarThemeTests
+         Assert.True(w2.Policy.NavyUpkeepTarget > tgt0, $"要求が目標を置けない（{tgt0:F3}→{w2.Policy.NavyUpkeepTarget:F3}）");
+     }
+ 
++    /// <summary>海軍シェアは払った金の比（維持費の 海÷(陸＋海)＝<see cref="World.NavalSpendShare"/>）だけから決まる（作者裁定 2026-08-10・(151)）。
++    /// ★(176) 盤面の直し（線は「同じ入力だけから決まる」のまま・許しは 0.05→1e-9 へ厳しくした）：旧＝既定の建艦の遅れ（月 0.3 の EMA）と交戦の艦隊摩耗のまま
++    ///   120 四半期の後に |海軍シェア−維持費の比|＜0.05 を見た＝遅れが収束している前提の盤面。(176) の軌道で立憲王政イギリスの維持費の比が最後の四半期に
++    ///   0.789→0.918 と跳ね（3か月の EMA の残り 0.7³＝0.343 → 0.054）前提が崩れた（機構は変わっていない）。
++    ///   ⇒ 盤面で遅れと摩耗を外す（建艦の遅れ 1＝即時・摩耗0）＝残る入力は維持費の比だけ＝全ての四半期の終わりで厳密に一致する（地理の比やクランプが混じれば赤）。
++    /// 建艦の遅れ（0.3）と摩耗の既定は「テーマE_既定係数が方針どおり」が見る。</summary>
+     [Fact]
+     public void 海軍シェアは払った金の比だけから決まる()
+     {
+         var sim = new MultiNationSim(FourNations(), seed: 1789);
+         var c = sim.Coef;
+-        sim.Run(120);   // 建艦EMA（NavalBuildRate=0.3・90%到達に約7ヶ月）が十分に落ち着く長さ
+-        foreach (var n in sim.Nations)
++        c.NavalBuildRate = 1.0;       // 建艦の遅れを外す（即時＝Diplomacy の EMA の 1.0 の枝）
++        c.NavalAttritionRate = 0.0;   // 交戦の艦隊摩耗を外す（海軍シェアを削るもう1つの入力）
++        int seen = 0;
++        var before = new System.Collections.Generic.HashSet<Power>();
++        for (int q = 0; q < 120; q++)
+         {
+-            var p = n.World.SelfPower!;
+-            double expected = n.World.NavalSpendShare;   // 維持費の比＝唯一の入力（(151)：下限0.05・上限0.60 のクランプは外した＝思想⑧）
+-            Assert.True(Math.Abs(p.NavalShare - expected) < 0.05,
+-                $"{p.BaseName}の海軍シェアが維持費比から外れた（実{p.NavalShare:F3} 期待{expected:F3}・陸{n.World.ArmyUpkeep:F3}/海{n.World.NavyUpkeep:F3}）");
++            before.Clear();
++            foreach (var n0 in sim.Nations) before.Add(n0.World.SelfPower!);
++            sim.Run(1);
++            foreach (var n in sim.Nations)
++            {
++                var p = n.World.SelfPower!;
++                if (!before.Contains(p)) continue;   // その四半期に建国した国（分離独立・内戦分裂）＝外交の月の歩をまだ通っていない
++                double expected = n.World.NavalSpendShare;   // 維持費の比＝唯一の入力（(151)：下限0.05・上限0.60 のクランプは外した＝思想⑧）
++                Assert.True(Math.Abs(p.NavalShare - expected) < 1e-9,
++                    $"Q{q + 1} {p.BaseName}の海軍シェアが維持費比から外れた（実{p.NavalShare:F6} 期待{expected:F6}・陸{n.World.ArmyUpkeep:F3}/海{n.World.NavyUpkeep:F3}）");
++                seen++;
++            }
+         }
++        Assert.True(seen >= 4 * 100, $"盤面が空回り（見た国×四半期 {seen}）");
+     }
+ 
+     // ===== 戦争タブの「犠牲者」と「戦費」の番人（2026-09-23）=====
+diff --git a/PriceOfBread.Tests/WriterRatchetTests.cs b/PriceOfBread.Tests/WriterRatchetTests.cs
+index b03276a..deeeae4 100644
+--- a/PriceOfBread.Tests/WriterRatchetTests.cs
++++ b/PriceOfBread.Tests/WriterRatchetTests.cs
+@@ -330,7 +330,7 @@ public class WriterRatchetTests
+     //   覇権の判定 3,215,273→2,889,352（−10.1%＝10% を超えて下がった＝表を下げる・同盟の候補が居る月の軌道＝(124)(128)(131) と同じ型・処理の形は同じ）。ほかの15本は許しの内（+2%／−10%）。
+     //   全長の10種では覇権の判定 193,798,917→202,766,449（+4.6%）・着値の充填 345,866,018→353,020,843（+2.1%）＝推定 233.1→234.4 秒（予算の内・目標より下の余りの中＝払っていない・実装ログ (152)）。
+     [InlineData(CostLedger.PriceGoods, 14149727L)]
+-    [InlineData(CostLedger.PriceDailyRuns, 25283828L)]
++    [InlineData(CostLedger.PriceDailyRuns, 25825091L)]
+     // ★2026-10-01 表の更新（(154) 合流＝線2〔(151)(153)〕の上へ線1〔(150)(152)〕を載せ直した木＝軌道が動いた分の宣言・新しい計数の処理は無い）：
+     //   建設 7,066→7,215（+2.1%）・覇権の判定 1,864,716→2,039,246（+9.4%）＝最初の40四半期の工事と同盟の候補の月の軌道（線ごとの表はそれぞれの木の値）。ほかの15本は許しの内。全長の10種は実装ログ (154)。
+     // ★2026-10-02 表の更新（(155) 軍の労働市場と安全保障の不安＝軌道が動いた分の宣言＋安全保障の不安の新しい組の宣言）：
+@@ -377,7 +377,7 @@ public class WriterRatchetTests
+     [InlineData(CostLedger.ClearingRows, 5185642L)]
+     [InlineData(CostLedger.ClearingFills, 42375697L)]
+     [InlineData(CostLedger.DiploPowerMonths, 9954L)]
+-    [InlineData(CostLedger.DiploHegemonScans, 2121720L)]
++    [InlineData(CostLedger.DiploHegemonScans, 1847226L)]
+     [InlineData(CostLedger.QuarterStartPops, 235560L)]
+     [InlineData(CostLedger.QuarterEndPops, 235560L)]
+     [InlineData(CostLedger.SharedNationQuarters, 3698L)]
+@@ -392,6 +392,11 @@ public class WriterRatchetTests
+     //   （予算の内＝上限 248.5 秒・目標より下の余りの中＝払っていない・実装ログ (170)）。
+     // ★2026-10-02 表の更新（(172) 合流＝線D〔(169)(171)〕と線M〔(168)(170)〕を合わせた木＋厭戦の基礎を作者 B11 の「兵士の数÷人口」へ直した〔反証役 vm3#1〕＝軌道が動いた分の宣言・新しい計数の処理は無い〔基礎の計算＝交戦国×月に全ての州の POP を2回（兵士と人口）＝「外交：国×月」の単価の中の小さい分＝(170) の入れた形と同じ桁〕）：
+     //   覇権の判定＝線D だけの木 2,877,181・線M だけの木 2,884,531（どちらも r167 の 1,941,249 から）→合わせた木 2,121,720（それぞれの宣言から −26%＝許しの外へ下がった軌道・処理の形は同じ）。ほかは許しの内（フルスイートで確かめた）。全長の10種の数は実装ログ (172)。
++    // ★2026-10-03 表の更新（(174) 線D 前半＝発見の表を系統×段へ〔前提の段・引き〕＋蒸気機関の3段〔労働力の動力のレシピ 段2・段3＝州ごとに生産者 +2〕＋石油ケロシンを石油灯油へ畳む〔州ごとに −1〕＝軌道が動いた分の宣言・新しい計数の処理は無い）：
++    //   日次の写像の回 25,283,828→25,825,091（+2.1%＝許し +2% を少し超えた・前提の段の引きで蒸気機関〔工場の蒸気動力〕と機関車を早く知る国が変わり最初の40四半期の値段の軌道が動いた・処理の形は同じ）・
++    //   覇権の判定 2,121,720→1,847,226（−12.9%＝10% を超えて下がった＝表を下げる・同盟の候補が居る月の軌道・処理の形は同じ）。ほかの13本は許しの内（+2%／−10%）。
++    //   生産者は州ごとに +1（蒸気の動力の段2・段3 の2本−石油ケロシン1本）＝「生産：生産者×月」は許しの内（全長の10種で 102,525,394→103,212,058＝+0.7%）。発見の判定は全ての行の点数を読む（引き＝後の段の点数が前提を連れてくる）＝件数（国×四半期）も単価も変わらない。
++    //   全長の10種の推定は 246.8→248.5 秒（+1.7 秒＝上限 248.5 秒の許し +2% の内・目標まで余り 0.0 秒＝生産者 +0.32 秒・ほかは軌道〔着値の充填 +0.70・価格の財の歩 +0.19・外交の国×月 +0.20〕・実装ログ (174)）。
+     public void 計算量の見た件数は宣言した表を超えない(int item, long declared)
+     {
+         long n = Cost40.Value[item];

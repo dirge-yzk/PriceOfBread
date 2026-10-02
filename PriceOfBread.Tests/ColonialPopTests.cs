@@ -85,7 +85,7 @@ public class ColonialPopTests
         w.Regions.First(r => r.State == RegionState.Active && r.Tier == RegionTier.Colonial && r.Producers.Any(p => p.GoodId == good && Colonial.AbsenteeRgo(r, p)));
 
     /// <summary>★(173) R1＋c6：植民地格の州の賦存の輸出作物（主食でない）は大農園＝地代の取り分は本国の賦存州と同じ PlantationRentShare・持ち主の口座は資本家・
-    /// 不在地主の判別が立つ。賦存の主食（トウモロコシ）は現地の地主のまま（自作農の床・持ち主は農民・不在地主でない）。盤面＝英西の構築の直後（西の中央メキシコ＝サトウキビ・トウモロコシの賦存）。
+    /// 不在地主の判別が立つ。賦存の主食（トウモロコシ）は現地の地主のまま（自作農の床・持ち主は農民・不在地主でない＝「現地の地主＝今の持ち主」は AI の読み・(177) 反証役 vc1#7）。盤面＝英西の構築の直後（西の中央メキシコ＝サトウキビ・トウモロコシの賦存）。
     /// ⚠突然変異「主食も上書き」「上書きを外す」で赤。</summary>
     [Fact]
     public void 植民地の賦存の輸出作物は不在地主の大農園で主食は現地の地主のまま()

@@ -1068,9 +1068,28 @@ public sealed class Simulation
                 Productivity = engineDefault.Productivity, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa,
                 LaborPopIndex = engineDefault.LaborPopIndex, OwnerPopIndex = engineDefault.OwnerPopIndex, RentShare = 1.0, BuysLabor = true,
                 Inputs = [new Input(Catalog.IronId, 1.832), new Input(Catalog.CopperId, 0.414), new Input(Catalog.CoalId, 0.4), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.SteamEngineId))] });
-        // ★(174) 石油ケロシン（灯油doc・2026-08-13 の灯油の第2レシピ・旗 KeroseneFromOilEnabled＝2026-08-14 点火）は畳んだ＝AddAdvancedProducers の「石油灯油」と同じ原油→灯油の変換が2本並んでいた
-        //   （2026-09-03 AUD-09 の記録・設計 §5 F4・(148) の F4 は同じ種1〜5 で exact −5.9・near −6.6 で差し戻し・(150) の恒等の形は無い）＝発見の表の行1本・生産者1本（数は点火済みの安い方＝石油灯油の生産者へ）。
-        //   史実の較正（旧の注記）＝鯨油1.45ドル/ガロン(1856)に対しケロシンは0.58(1865)→0.08(1885)＝おおむね5〜10倍安い＝原油0.5（1870年代の精製収率45〜60%）＋生産性1.6（連続精製 vs 3〜4年の捕鯨航海）。
+        // ★石油ケロシン（灯油doc・2026-08-13）：灯油(68)の**第2レシピ**。既定は鯨油/魚油（漁獲0.8）。
+        // ⚠★2026-09-03（キューAUD-09・監査「保存則・台帳」）：**追加根拠のコメントが事実と食い違っていた**。
+        //   「原油には買い手が1本も無い40年の空白があった」と書かれていたが、現物には AddAdvancedProducers 側に
+        //   同じ原油→灯油の近代レシピ（RecipeName="石油灯油"・同じ1850年代の発見の行〔旧 TechOnset=0.6〕）が**既にある**＝空白ではない。
+        //   ⇒ 実体は「同じ変換が2レシピ並存している」。⚠どちらを残すかは帯が動く（KeroseneFromOilEnabled=1 は点火済みで
+        //   列強+6.2/人口−5.7 の実測がある）ので、ここでは**事実の記録だけ**に留め、統合は測定とセットで行う（キューAUD-09）。
+        // ⚠新しい Good は1つも足さない——足すのは Producer 1件だけ。極性は鋼と逆で、**新レシピの方が安い**＝発見の後に自動で置き換わる（★2026-10-01 段2A・旧＝onset後）。
+        //   史実の較正＝鯨油1.45ドル/ガロン(1856)に対しケロシンは0.58(1865)→0.08(1885)＝おおむね5〜10倍安い。
+        //   投入は原油0.5（1870年代の精製収率45〜60%）＋生産性1.6（連続精製 vs 3〜4年の捕鯨航海）で表す＝倍率を書かない。
+        // ★解禁＝発見の表の石油ケロシン（1850年代・2026-10-01 段2A＝石油灯油と同じ年代・畳むのは設計 §5 F4）。⚠KeroseneFromOilEnabled=0 で不発＝厳密恒等。
+        if (coef.KeroseneFromOilEnabled > 0)
+            {
+                Producer? keroDefault = null;
+                foreach (var pr in producers) if (pr.GoodId == Catalog.LampOilId) { keroDefault = pr; break; }
+                if (keroDefault is not null)   // 灯油を作らない世界（最小シナリオ）は不発
+                {
+                producers.Add(new Producer { GoodId = Catalog.LampOilId, RecipeName = "石油ケロシン",
+                    Productivity = coef.KeroseneOilProductivity * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa,
+                    LaborPopIndex = keroDefault.LaborPopIndex, OwnerPopIndex = keroDefault.OwnerPopIndex, RentShare = 1.0, BuysLabor = true,
+                    Inputs = [new Input(Catalog.CrudeOilId, coef.KeroseneOilInput), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.LampOilId))] });
+                }
+            }
 
         // ★冷蔵の加工肉（2026-09-04・作者提案「冷蔵庫という形にして、肉輸送+消費財でよいのでは」）＝**加工肉(63)の第2レシピ**。
         //   既定は 肉+小麦粉（塩漬け・ソーセージ）。⚠冷凍船（1877/1882）以後は**冷蔵**が主役になる。
@@ -1140,14 +1159,7 @@ public sealed class Simulation
         producers.Add(new Producer { GoodId = Catalog.LaborId, RecipeName = "畜力", Productivity = LaborProductivity * FullChainProductivityScale * 1.3, Output = 0.5, Scale = 0.05, MarginalCost = 0.35, LaborPopIndex = workerIdx, OwnerPopIndex = workerIdx, RentShare = 0.0,
             Inputs = [new Input(Catalog.HorseId, 0.05)] });   // 馬力＝荷駄・巻上機（馬が本当の生産投入になる）
         producers.Add(new Producer { GoodId = Catalog.LaborId, RecipeName = "蒸気機関", Productivity = LaborProductivity * FullChainProductivityScale * 2.0, Output = 0.5, Scale = 0.05, MarginalCost = 0.35, LaborPopIndex = workerIdx, OwnerPopIndex = workerIdx, RentShare = 0.0,
-            Inputs = [new Input(Catalog.SteamEngineId, 0.02), new Input(Catalog.CoalId, 0.3)] });   // 蒸気機関54＋石炭＝工場に据える原動機（54の第3の出口＝Runner診断が点灯）＝★(174) 蒸気機関の系統の段1（ワット）
-        // ★(174) 蒸気機関の系統の段2（高圧＝発見の表の「高圧機関」）と段3（複式・三段膨張＝転炉鋼で開く Catalog.OpenedTiers）＝同じ動力の時代差のレシピ（作者 2026-10-02「すべて推奨でよい」で承認された推奨）。
-        //   段の効き＝動力1単位あたりの石炭の史実の比（ワット 約10 → 高圧の膨張 約5 → 複式・三段膨張 約2 ポンド／馬力時＝1/2・1/5【推・記憶の概数】・出典の候補は Catalog の蒸気機関の系統の注記）。
-        //   生産性（同じ人の働きが出す動力）と蒸気機関の財の量は段1 と同じ（史実の比を確かめていない＝変えない）。前の段は次の段で退く（Catalog の退場の表＝労働力のレシピは配分の外＝並べると能力が2倍）。
-        producers.Add(new Producer { GoodId = Catalog.LaborId, RecipeName = "高圧機関", Productivity = LaborProductivity * FullChainProductivityScale * 2.0, Output = 0.5, Scale = 0.05, MarginalCost = 0.35, LaborPopIndex = workerIdx, OwnerPopIndex = workerIdx, RentShare = 0.0,
-            Inputs = [new Input(Catalog.SteamEngineId, 0.02), new Input(Catalog.CoalId, 0.3 * 0.5)] });
-        producers.Add(new Producer { GoodId = Catalog.LaborId, RecipeName = "複式機関", Productivity = LaborProductivity * FullChainProductivityScale * 2.0, Output = 0.5, Scale = 0.05, MarginalCost = 0.35, LaborPopIndex = workerIdx, OwnerPopIndex = workerIdx, RentShare = 0.0,
-            Inputs = [new Input(Catalog.SteamEngineId, 0.02), new Input(Catalog.CoalId, 0.3 * 0.2)] });
+            Inputs = [new Input(Catalog.SteamEngineId, 0.02), new Input(Catalog.CoalId, 0.3)] });   // 蒸気機関54＋石炭＝工場に据える原動機（54の第3の出口＝Runner診断が点灯）
         producers.Add(new Producer { GoodId = Catalog.LaborId, RecipeName = "電動", Productivity = LaborProductivity * FullChainProductivityScale * 2.5, Output = 0.5, Scale = 0.05, MarginalCost = 0.35, LaborPopIndex = workerIdx, OwnerPopIndex = workerIdx, RentShare = 0.0,
             Inputs = [new Input(Catalog.ElectricityId, 0.25)] });   // 電動機＝電力が安い国だけ採算が合う（発電機1.3以後）
         // 水車（07_再設計 §2＋A2裁定・2026-07-31）：★裁定＝**水車は弱い動力（自家農場級）／山岳の強力な水力は巨大建造物**の2層に分ける。
@@ -1291,9 +1303,8 @@ public sealed class Simulation
         producers.Add(new Producer { GoodId = Catalog.ClothingId, RecipeName = "亜麻衣料", Productivity = 1.7 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
             Inputs = [new Input(Catalog.CanvasId, 0.6), new Input(Catalog.DyeId, 0.2), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.ClothingId))] });
         // 石油灯油＝ケロシン（灯油68の近代レシピ・発見の表の1850年代＝1859ドレーク油井〜）：原油を精製。原油(安価RGO)は鯨油/魚油(漁獲)より安い＝onset後にコストで勝ち鯨油を駆逐（史実：ケロシンが捕鯨を終わらせた）。原油RGOも DefaultRecipeOnset(10)=0.6 でゲート＝早期に湧かないので原油の価格スパイクも起きない。
-        //   ★(174) 石油ケロシン（AddAlternateRecipes・同じ変換の2本目）を畳んだ＝数は点火済みの安い方（旧＝原油1.0・生産性1.9）。
-        producers.Add(new Producer { GoodId = Catalog.LampOilId, RecipeName = "石油灯油", Productivity = coef.KeroseneOilProductivity * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
-            Inputs = [new Input(Catalog.CrudeOilId, coef.KeroseneOilInput), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.LampOilId))] });
+        producers.Add(new Producer { GoodId = Catalog.LampOilId, RecipeName = "石油灯油", Productivity = 1.9 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
+            Inputs = [new Input(Catalog.CrudeOilId, 1.0), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.LampOilId))] });
         // === B6（2026-07-19ユーザー裁定）===
         // 人絹＝ビスコース（絹織物45の並存レシピ・発見の表の1890年代）：木材パルプ(製材)＋化学薬品から人造絹糸＝
         // 化学工業が生糸(14)経済を創造的破壊（"artificial silk"そのもの・ぼろ布製紙/クロムなめしと同型・RefPrice不変）。
@@ -1358,7 +1369,7 @@ public sealed class Simulation
                 //   （ベンガル/ジャワ/カリブは大農園）。Colonial 格のとき賦存RGOに同じ上書き・持ち主の口座＝資本家（入植の農園主＝開いた階級・0から流入で育つ）。
                 // ★2026-10-02 (173)（R1＋c6＝植民地の損益の診断の c6「B5 点火」・推奨で進めた）：休眠の旗 ColonyPlantationRent を焼き込んだ＝係数ごと削除。
                 //   上書きは**輸出作物**（主食でない賦存＝Colonial.ExportCrop・Colonial.AbsenteeRgo と同じ判別）だけ＝主食は現地の地主のまま（作者 2026-09-29「主食の生産は現地の地主のまま」・
-                //   メモリの要約）＝自作農の床 0.3・持ち主は農民。輸出作物の地代は植民地格の間は不在地主（本国の首都の投資家）へ送る（EconomyStep の④・InternationalMarket.PaySales）。
+                //   メモリの要約）＝自作農の床 0.3・持ち主は農民（「現地の地主＝今の持ち主〔農民〕のまま」は AI の読み・(177) 反証役 vc1#7＝地代の記録〔LandRent〕を首都へ移すのも AI の設計＝植民地の州の地税の課税ベースから外れる）。輸出作物の地代は植民地格の間は不在地主（本国の首都の投資家）へ送る（EconomyStep の④・InternationalMarket.PaySales）。
                 if (tier == RegionTier.Colonial && pr.IsRgo && Colonial.ExportCrop(pr.GoodId) && coef.PlantationRentShare > pr.RentShare)
                 {
                     pr.RentShare = coef.PlantationRentShare; pr.OwnerPopIndex = 3;

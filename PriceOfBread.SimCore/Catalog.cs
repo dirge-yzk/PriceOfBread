@@ -601,58 +601,51 @@ public static class Catalog
     public static readonly DiscoveryRow[] Discoveries =
     [
         // --- 製法（同じ財を別の投入で作る方法＝時代差のレシピ）---
-        //   ★(174) 蒸気機関の系統（作者 2026-10-02「すべて推奨でよい」＝AI の推奨「段1 ワット→段2 高圧→段3 複式・三段膨張」〔系統×段〕の承認）＝動力（労働力の財）の時代差のレシピ。
-        //     段の効き＝動力1単位あたりの石炭（燃費）の史実の比【推・記憶の概数・出典は未確認】＝ワットの凝縮機関（1800年ごろ）約10ポンド／馬力時 →
-        //     高圧の膨張の機関（ウルフの複式1804・コーンウォール機関〔1840年代の平均のデューティはワットの約3倍〕・普通の工場の機関 約5ポンド）＝約1/2 →
-        //     複式・三段膨張（鋼のボイラーの高い圧力・1880〜90年代の船の機関 約1.5〜2ポンド）＝約1/5
-        //     （出典の候補＝von Tunzelmann『Steam Power and British Industrialization to 1860』1978・Hills『Power from Steam』1989・Lean's Engine Reporter のデューティ）＝Simulation.AddServiceProducers の3本の石炭の量。
-        //     段2 は機関車・汽船・内燃機関・発電の前提（高い圧力の小さく軽い機関＝トレヴィシック1801〜04）。段3 は転炉鋼で開く（OpenedTiers＝行を持たない＝別の系統の発見で開く段・鋳鉄の機関〔蒸気機関の財〕も転炉鋼で退く）。
-        //     労働力の財のレシピは配分の外（階級全体が算出＝EconomyStep の fraction 1）＝同じ担い手の2つの段が並ぶと能力が2倍＝前の段は次の段で退く（Retirements）。
-        new("蒸気機関", LaborId, "蒸気機関", DiscoveryField.Process, 1780, Line: "蒸気機関", Tier: 1),   // 段1 ワット（鋳鉄・低圧・凝縮）＝工場に据える原動機（ワットの回転機関1781）＝動力（労働力の財）の別のレシピ（必要性＝作者 2026-10-02 の一般則＝「(間接的に人が生み出している)動力が高いか」＝動力の平滑化した値段÷蒸気の動力を新しいレシピで作る費用〔★(169) 他の行と同じ規則＝自己費用＋蒸気機関の財と石炭・★(174) 自己費用を生産性の比で割る形〔腕 P〕は入れていない＝実装ログ (174)〕・旧＝人件費の世界比は (159)(165) で削除）。開幕の既知＝world.json の knownDiscoveries（英＝1783年に工場の原動機として使っていた唯一の国・実装ログ (169)）
-        new("高圧機関", LaborId, "高圧機関", DiscoveryField.Process, 1800, Line: "蒸気機関", Tier: 2),   // ★(174) 段2 高圧（トレヴィシック1801・錬鉄のボイラー・膨張＝ウルフ1804）＝動力の燃費 約1/2
+        new("蒸気機関", LaborId, "蒸気機関", DiscoveryField.Process, 1780),              // 工場に据える原動機（ワットの回転機関1781）＝動力（労働力の財）の別のレシピ（必要性＝作者 2026-10-02 の一般則＝「(間接的に人が生み出している)動力が高いか」＝動力の平滑化した値段÷蒸気の動力を新しいレシピで作る費用〔★(169) 他の行と同じ規則＝自己費用＋蒸気機関の財と石炭〕・旧＝人件費の世界比は (159)(165) で削除）。開幕の既知＝world.json の knownDiscoveries（英＝1783年に工場の原動機として使っていた唯一の国・実装ログ (169)）
         new("甜菜糖", SugarId, "甜菜糖", DiscoveryField.Process, 1800),                  // アシャール1801・大陸封鎖1806〜（作者 2026-09-28 提案①の採用＝地理差でなく発見）
-        new("魚の缶詰", CannedFoodId, "魚の缶詰", DiscoveryField.Process, 1810, Line: "缶詰", Tier: 2),   // 缶詰の第2レシピ（アペール法1809）＝★(174) 缶詰の系統の段2（同じ財の別のレシピ＝缶詰の既定のレシピの発見が前提）
+        new("魚の缶詰", CannedFoodId, "魚の缶詰", DiscoveryField.Process, 1810),          // 缶詰の第2レシピ（アペール法1809）
         new("キニーネの単離", QuinineId, "", DiscoveryField.Process, 1820),              // ペルティエ＝カヴァントゥ1820（単離の前は樹皮の粉末＝地理差）
         new("黄鉄鉱法", ChemicalsId, "黄鉄鉱法", DiscoveryField.Process, 1830),          // 1838年の硫黄危機の後（旧 SulfurFromPyriteOnset）
         new("木材パルプ製紙", PaperId, "", DiscoveryField.Process, 1840),                // 砕木1840s（その前はぼろ布製紙＝地理差）
         new("過リン酸石灰", FertilizerId, "", DiscoveryField.Process, 1840),             // ロース1842（その前は厩肥・グアノ＝地理差）
         new("転炉鋼", SteelId, "", DiscoveryField.Process, 1850),                        // ベッセマー1856（その前は坩堝鋼・錬鉄レール＝地理差）
-        new("石油灯油", LampOilId, "石油灯油", DiscoveryField.Process, 1850),            // ドレーク油井1859＝★(174) 石油ケロシン（同じ原油→灯油の変換の2本目＝設計 §5 F4 の重複）を畳んだ1行（数＝点火済みの安い方＝原油 KeroseneOilInput・生産性 KeroseneOilProductivity・作者 2026-10-02 に承認された推奨の「重複を畳む」）
+        new("石油灯油", LampOilId, "石油灯油", DiscoveryField.Process, 1850),            // ドレーク油井1859
+        new("石油ケロシン", LampOilId, "石油ケロシン", DiscoveryField.Process, 1850),    // 同上（石油灯油と同じ変換の2本目＝設計 §5 F4 の重複・畳むのは次の段）　★(149) 合流：(148) の F4（この行を畳んで安い方の数〔原油0.5・生産性1.6〕を石油灯油の行で開く）は差し戻した＝挙動を変える畳み方だった（同じ種1〜5 で exact −5.9・near −6.6）＝畳み方は 00一覧
         new("鉄筋コンクリート", HousingId, "鉄筋コンクリート", DiscoveryField.Process, 1860),   // モニエ1867（§1A-5 の表）
         new("クロムなめし", LeatherId, "クロムなめし", DiscoveryField.Process, 1880),     // 商用1884（§1A-5 の表）
         new("無煙火薬", GunpowderId, "無煙火薬", DiscoveryField.Process, 1880),          // ヴィエイユ1884
-        new("水力発電", ElectricityId, "水力発電", DiscoveryField.Process, 1880, After: "石炭火力"),   // アップルトン1882・ナイアガラ1895＝★(174) 発電（発電機）の枝
-        new("蒸気タービン", ElectricityId, "蒸気タービン", DiscoveryField.Process, 1880, After: "石炭火力"),   // パーソンズ1884＝★(174) 発電の枝
-        new("電動機", LaborId, "電動", DiscoveryField.Process, 1880, Line: "電気", Tier: 3),   // 工場の電動機＝動力（労働力の財）の別のレシピ（必要性＝動力の値段÷電動の動力を新しいレシピで作る費用〔自己費用＋電力〕・蒸気機関の行と同じ規則・(165)(169)）＝★(174) 電気の系統の段3（発電→送電→電動機）
+        new("水力発電", ElectricityId, "水力発電", DiscoveryField.Process, 1880),         // アップルトン1882・ナイアガラ1895
+        new("蒸気タービン", ElectricityId, "蒸気タービン", DiscoveryField.Process, 1880), // パーソンズ1884
+        new("電動機", LaborId, "電動", DiscoveryField.Process, 1880),                    // 工場の電動機＝動力（労働力の財）の別のレシピ（必要性＝動力の値段÷電動の動力を新しいレシピで作る費用〔自己費用＋電力〕・蒸気機関の行と同じ規則・(165)(169)）
         new("人絹", SilkClothId, "人絹", DiscoveryField.Process, 1890),                  // シャルドネ1891・ビスコース1892
-        new("石油火力", ElectricityId, "石油火力", DiscoveryField.Process, 1900, After: "石炭火力"),   // §1A-5 の表＝★(174) 発電の枝
-        new("窒素固定", FertilizerId, "ハーバーボッシュ", DiscoveryField.Process, 1910, After: "石炭火力"), // ハーバー＝ボッシュ1913（★(174) 投入に電力＝発電の枝）（旧＝肥料の既定の onset の流用＝設計 §5 F2 の半分・硝石へ移すのは次の段）
-        new("合成ゴム", RubberId, "合成ゴム", DiscoveryField.Process, 1910, Line: "ゴム", Tier: 2),   // メチルゴム1916（§1A-5 の表）＝★(174) ゴムの系統の段2（同じ財の別のレシピ）
+        new("石油火力", ElectricityId, "石油火力", DiscoveryField.Process, 1900),        // §1A-5 の表
+        new("窒素固定", FertilizerId, "ハーバーボッシュ", DiscoveryField.Process, 1910), // ハーバー＝ボッシュ1913（旧＝肥料の既定の onset の流用＝設計 §5 F2 の半分・硝石へ移すのは次の段）
+        new("合成ゴム", RubberId, "合成ゴム", DiscoveryField.Process, 1910),             // メチルゴム1916（§1A-5 の表）
         // --- 発明・新製品（今までに無かった財＝既定のレシピの行）---
         //   ★代替する物（Replaces・2026-10-02 (159)）＝作者 2026-10-02「その発見が生み出すものが代替するものが高いか、で判定する」の「代替するもの」＝新製品が置き換えた既存の財（AI の対応づけ＝推奨で進めた）。
         //   機関車だけは財ではない（陸の輸送＝作者 2026-10-02「鉄道研究の必要性は、軍事力ではなく、輸送力の不足から導かれるべきだ」）。
         //   ⚠(169) 物の単位の換算（新しい財1単位が置き換える代替する物の量のデータ・(167) 反証役 vd1#1 の処置）の腕は入れていない＝10種で電力・送電網・冷蔵・ゴム・自動車がどの国でも見つからない
         //     （AI の対応づけ＝石炭火力と送電網→ガス・電化製品→家事奉仕のまま・作者への確認・パッチ measurements/m168_20261002_units.diff・実装ログ (169)）＝換算の比は参照価格の比のまま（Discovery.ReplacedUnits）。
         new("ガス灯", GasId, "", DiscoveryField.Product, 1810, Replaces: LampOilId),      // マードック1792・商用1812＝灯油（鯨油・菜種油のランプ）とろうそくの灯りを置き換えた
-        new("缶詰", CannedFoodId, "", DiscoveryField.Product, 1810, Replaces: PreservedMeatId, Line: "缶詰", Tier: 1),   // アペール法1809・ブリキ缶1810＝塩漬けの肉（艦隊と軍の糧食・1795 の懸賞）を置き換えた
-        new("汽船", SteamshipId, "", DiscoveryField.Product, 1820, Replaces: SailingShipId, After: "高圧機関"),   // クラーモント1807〜外洋1830s（Q11＝中間）＝帆船・★(174) 蒸気機関の段2（高圧）が前提
-        new("機関車", LocomotiveId, "", DiscoveryField.Product, 1820, Replaces: LandFreight, After: "高圧機関"),   // ストックトン＝ダーリントン1825・ロケット号1829＝陸の輸送（馬車・運河の荷船＝内陸の輸送の容量）・★(176) 必要性は陸の運賃のうち容量で切られた割高の分だけ（不足の無い国は0）・★(174) 蒸気機関の段2（高圧）が前提＝(172) の不具合（英以外の9か国で機関車が蒸気機関より先）を構造で直す
-        new("加硫ゴム", RubberId, "", DiscoveryField.Product, 1830, Replaces: LeatherId, Line: "ゴム", Tier: 1),  // グッドイヤー1839（ゴムに地理差のレシピは無い＝新しい財）＝革（ベルト・ホース・靴底・防水）
+        new("缶詰", CannedFoodId, "", DiscoveryField.Product, 1810, Replaces: PreservedMeatId),   // アペール法1809・ブリキ缶1810＝塩漬けの肉（艦隊と軍の糧食・1795 の懸賞）を置き換えた
+        new("汽船", SteamshipId, "", DiscoveryField.Product, 1820, Replaces: SailingShipId),   // クラーモント1807〜外洋1830s（Q11＝中間）＝帆船
+        new("機関車", LocomotiveId, "", DiscoveryField.Product, 1820, Replaces: LandFreight),   // ストックトン＝ダーリントン1825・ロケット号1829＝陸の輸送（馬車・運河の荷船＝内陸の輸送の容量）
+        new("加硫ゴム", RubberId, "", DiscoveryField.Product, 1830, Replaces: LeatherId),  // グッドイヤー1839（ゴムに地理差のレシピは無い＝新しい財）＝革（ベルト・ホース・靴底・防水）
         new("ダイナマイト", DynamiteId, "", DiscoveryField.Product, 1860, Replaces: GunpowderId),   // ノーベル1867＝発破の黒色火薬
         new("冷蔵", RefrigeratorId, "", DiscoveryField.Product, 1870, Replaces: PreservedMeatId),   // リンデ1870s・冷凍船1877〜82（冷蔵庫の財は冷蔵の加工肉の投入も兼ねる）＝塩漬けの加工肉
-        new("石炭火力", ElectricityId, "", DiscoveryField.Product, 1880, Replaces: GasId, Line: "電気", Tier: 1, After: "高圧機関"),   // パール街1882（電力の既定のレシピ）＝ガス灯・★(174) 電気の系統の段1（発電）＝蒸気機関の段2（高速の高圧機関が発電機を回した）の枝
-        new("送電網", GridId, "", DiscoveryField.Product, 1880, Replaces: GasId, Line: "電気", Tier: 2),   // 配電（パール街1882）・交流送電1890s＝ガスの導管の網・★(174) 電気の系統の段2（送電）
-        new("電化製品", ApplianceId, "", DiscoveryField.Product, 1880, Replaces: DomesticServiceId, After: "送電網"),   // §1A-5 の表＝家事奉仕（家事使用人）・★(174) 送電の枝（投入に電力）
-        new("自転車", BicycleId, "", DiscoveryField.Product, 1880, Replaces: HorseId, After: "加硫ゴム"),   // 安全型1885＝馬（個人の移動）・★(174) 投入にゴム（空気入りタイヤ1888）＝ゴムの枝
-        new("内燃機関", CombustionEngineId, "", DiscoveryField.Product, 1880, Replaces: SteamEngineId, After: "高圧機関"),   // オットー1876・ダイムラー1885＝蒸気機関・★(174) 蒸気機関の系統の枝（別の財のまま・作者 2026-10-02 に承認された推奨＝シリンダーとピストンと弁と中ぐりを継いだ・前提＝段2）
-        new("自動車", AutomobileId, "", DiscoveryField.Product, 1890, Replaces: HorseId, After: "内燃機関"),   // §1A-5 の表（自転車・自動車＝1880〜1890年代）＝馬（馬車・輜重）・★(174) 投入に内燃機関＝内燃機関の枝
-        new("ラジオ", RadioId, "", DiscoveryField.Product, 1920, Replaces: NewspaperId, After: "電化製品"),   // 放送の実用化1920＝新聞・★(174) 投入に電化製品＝その枝
+        new("石炭火力", ElectricityId, "", DiscoveryField.Product, 1880, Replaces: GasId),   // パール街1882（電力の既定のレシピ）＝ガス灯
+        new("送電網", GridId, "", DiscoveryField.Product, 1880, Replaces: GasId),          // 配電（パール街1882）・交流送電1890s＝ガスの導管の網
+        new("電化製品", ApplianceId, "", DiscoveryField.Product, 1880, Replaces: DomesticServiceId),   // §1A-5 の表＝家事奉仕（家事使用人）
+        new("自転車", BicycleId, "", DiscoveryField.Product, 1880, Replaces: HorseId),     // 安全型1885＝馬（個人の移動）
+        new("内燃機関", CombustionEngineId, "", DiscoveryField.Product, 1880, Replaces: SteamEngineId),   // オットー1876・ダイムラー1885＝蒸気機関
+        new("自動車", AutomobileId, "", DiscoveryField.Product, 1890, Replaces: HorseId),  // §1A-5 の表（自転車・自動車＝1880〜1890年代）＝馬（馬車・輜重）
+        new("ラジオ", RadioId, "", DiscoveryField.Product, 1920, Replaces: NewspaperId),   // 放送の実用化1920＝新聞
         // --- 発明・新兵器（軍事の圧力は陸・海・空で分ける＝作者裁定 2026-09-28 ⑤）---
-        new("装甲艦", IroncladId, "", DiscoveryField.Weapon, 1850, WarDomain.Sea, Line: "軍艦", Tier: 1, After: "汽船"),   // ラ・グロワール1859・★(174) 軍艦の系統の段1（投入に汽船＝汽船の枝・段の効きと財を畳むのは次の回②）
+        new("装甲艦", IroncladId, "", DiscoveryField.Weapon, 1850, WarDomain.Sea),        // ラ・グロワール1859
         new("機関銃", MachineGunId, "", DiscoveryField.Weapon, 1880, WarDomain.Land),     // マキシム1884
-        new("弩級戦艦", DreadnoughtId, "", DiscoveryField.Weapon, 1900, WarDomain.Sea, Line: "軍艦", Tier: 2),   // ドレッドノート1906・★(174) 軍艦の系統の段2（投入に装甲艦）
-        new("戦車", TankId, "", DiscoveryField.Weapon, 1910, WarDomain.Land, After: "内燃機関"),   // 1916・★(174) 投入に内燃機関＝内燃機関の枝
-        new("軍用機", MilitaryAircraftId, "", DiscoveryField.Weapon, 1910, WarDomain.Air, After: "内燃機関"),   // ★(174) 投入に内燃機関＝内燃機関の枝
+        new("弩級戦艦", DreadnoughtId, "", DiscoveryField.Weapon, 1900, WarDomain.Sea),   // ドレッドノート1906
+        new("戦車", TankId, "", DiscoveryField.Weapon, 1910, WarDomain.Land),             // 1916
+        new("軍用機", MilitaryAircraftId, "", DiscoveryField.Weapon, 1910, WarDomain.Air),
         new("化学兵器", ChemicalWeaponId, "", DiscoveryField.Weapon, 1910, WarDomain.Land), // イーペル1915
         // --- 制度（社会の仕組み）・思想（考え方）＝財を持たない行（財 NoGood）・設計 §1A-6（2026-10-01 (152)）---
         //   旧＝制度は中核エリートと工業化度の傾斜（特許＝中核エリート 0.35〜0.45・株式会社＝最大工業化度 0.25〜0.35・鉄道＝最大工業化度 0.8 の閾値）・
@@ -674,73 +667,8 @@ public static class Catalog
     [
         (RifleId, "マスケット", SteelId, ""),
         (ArtilleryId, "鋳鉄砲", SteelId, ""),
-        (SteamEngineId, "鋳鉄の機関", SteelId, ""),   // ★(169) 1780年代の蒸気機関（鋳鉄のシリンダーと梁・錬鉄と銅のボイラー）＝高圧・複式の鋼の機関（転炉鋼の後）で退く＝前期の軍需と同じ規則（性能で退く・Simulation.AddAlternateRecipes）＝★(174) 蒸気機関の系統の段3（鋼の機関）が開く形
-        (LaborId, "蒸気機関", LaborId, "高圧機関"),   // ★(174) 蒸気機関の系統＝段1（ワット）の動力のレシピは段2（高圧）で退く（労働力のレシピは配分の外＝並べると同じ担い手の能力が2倍になる）
-        (LaborId, "高圧機関", SteelId, ""),           // ★(174) 段2 は段3（複式・三段膨張＝転炉鋼で開く OpenedTiers）で退く
+        (SteamEngineId, "鋳鉄の機関", SteelId, ""),   // ★(169) 1780年代の蒸気機関（鋳鉄のシリンダーと梁・錬鉄と銅のボイラー）＝高圧・複式の鋼の機関（転炉鋼の後）で退く＝前期の軍需と同じ規則（性能で退く・Simulation.AddAlternateRecipes）
     ];
-
-    /// <summary>★(174) 別の系統の発見で開く段（行を持たない段）＝（財・レシピ・系統・段・開く行の名前）。門＝開く行を知り、かつ同じ系統の段−1 の行を知っている（<see cref="Discovery.Gate(Region, Producer, bool[])"/>）。
-    /// 作者 2026-10-02「すべて推奨でよい」で承認された推奨（AI）の「段は同じ財の時代差のレシピで、別の系統の発見でも開く」＝(169) の「鋳鉄の機関は転炉鋼で退く」を段3 の形へ。</summary>
-    public static readonly (int Good, string Recipe, string Line, int Tier, string Opener)[] OpenedTiers =
-    [
-        (LaborId, "複式機関", "蒸気機関", 3, "転炉鋼"),   // 段3 複式・三段膨張（鋼のボイラーの高い圧力・1880年代）＝動力の燃費 約1/5（史実の比は Discoveries の蒸気機関の系統の注記）
-    ];
-
-    /// <summary>★(174) 行ごとの前提の行（−1＝前提なし）＝段 n（n≥2）は同じ系統の段 n−1・段1 は <see cref="DiscoveryRow.After"/> の行（枝）。
-    /// 解禁は各系統の次の段だけ（<see cref="Discovery.Step"/>＝前提がまだの行の点数が門に届いたら前提の鎖のまだの最初の段を開く＝引き）。表の誤り（段 n−1 が無い・2つある・前提の名前が無い）は構築で止める。</summary>
-    public static readonly int[] DiscoveryAfter = BuildDiscoveryAfter();
-    private static int[] BuildDiscoveryAfter()
-    {
-        var res = new int[Discoveries.Length];
-        for (int i = 0; i < Discoveries.Length; i++)
-        {
-            var d = Discoveries[i];
-            if (d.Tier < 1) throw new System.InvalidOperationException($"発見の表の行「{d.Name}」の段が1未満");
-            if (d.Tier == 1)
-            {
-                res[i] = -1;
-                if (d.After.Length > 0)
-                {
-                    res[i] = System.Array.FindIndex(Discoveries, x => x.Name == d.After);
-                    if (res[i] < 0 || res[i] == i) throw new System.InvalidOperationException($"発見の表の行「{d.Name}」の前提「{d.After}」が表に無い");
-                }
-                continue;
-            }
-            if (d.After.Length > 0) throw new System.InvalidOperationException($"発見の表の行「{d.Name}」は段{d.Tier}＝前提は系統の段{d.Tier - 1}（After は段1だけ）");
-            res[i] = TierRow(LineOf(d), d.Tier - 1, d.Name);
-        }
-        return res;
-    }
-    /// <summary>系統 <paramref name="line"/> の段 <paramref name="tier"/> の行（無い・2つあるは構築で止める）。</summary>
-    private static int TierRow(string line, int tier, string who)
-    {
-        int found = -1;
-        for (int j = 0; j < Discoveries.Length; j++)
-            if (LineOf(Discoveries[j]) == line && Discoveries[j].Tier == tier)
-            {
-                if (found >= 0) throw new System.InvalidOperationException($"発見の表の系統「{line}」に段{tier}が2つ（{who}）");
-                found = j;
-            }
-        if (found < 0) throw new System.InvalidOperationException($"発見の表の系統「{line}」に段{tier}が無い（{who}）");
-        return found;
-    }
-    /// <summary>行の系統の名前（""＝行の名前＝1行の系統）。</summary>
-    public static string LineOf(DiscoveryRow d) => d.Line.Length > 0 ? d.Line : d.Name;
-    /// <summary>系統の数（計器と番人＝行の数と並べて報告する）。</summary>
-    public static int DiscoveryLineCount => Discoveries.Select(LineOf).Distinct().Count();
-
-    /// <summary>★(174) 別の系統の発見で開く段のレシピの（開く行・同じ系統の段−1 の行）。表に無いレシピは (−1, −1)。⚠線形の走査＝Producer の控えだけが呼ぶ。</summary>
-    public static (int Opener, int After) OpenedTierOf(int good, string recipe)
-    {
-        foreach (var (g, r, line, tier, opener) in OpenedTiers)
-            if (g == good && r == recipe)
-            {
-                int op = DiscoveryRowNamed(opener);
-                if (op < 0) throw new System.InvalidOperationException($"開く段「{r}」の開く行「{opener}」が発見の表に無い");
-                return (op, tier > 1 ? TierRow(line, tier - 1, r) : -1);
-            }
-        return (-1, -1);
-    }
 
     /// <summary>発見の表の行（財・レシピ）の添字。無ければ −1（地理差＝常にある）。⚠線形の走査＝構築と Producer の控え（<see cref="Producer.DiscoveryRow"/>）だけが呼ぶ。</summary>
     public static int DiscoveryRowOf(int good, string recipe)

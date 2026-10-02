@@ -230,7 +230,6 @@ public class DiscoveryScoreTests
         foreach (var n in sim.Nations)
         {
             var w = n.World;
-            w.Discovered[Catalog.DiscoveryAfter[row]] = true;   // ★(174) 合成ゴムはゴムの系統の段2＝段1（加硫ゴム）を知った国だけ判定する＝前提を置く（ゴムの需要は盤面に無い＝必要性0 のまま）
             if (w.Discovered[row] || !(Discovery.Evaluate(w, null, w.Coef)[row].Need == 0)) continue;
             tried++;
             w.TechLevel = 0;
@@ -311,7 +310,7 @@ public class DiscoveryScoreTests
     /// 必要性の強度＝ln（代替する物の平滑化した値段×換算の比÷新しいレシピで作る費用〔自己費用×自己費用の物価水準÷物価水準＋Σ投入×平滑化した値段〕）・1以下は0：
     /// ①製法（人絹＝絹織物）＝絹が人絹の費用の2倍なら ln 2・費用と同じなら0・関係の無い財（馬）を高くしても動かない・投入（製材）を高くすると下がる＝参照価格ではなく今の費用と比べる
     /// ②新製品（ガス灯＝灯油）＝換算の比（新しい財1単位が置き換える代替する物の量＝普通の値段で同じ値打ち＝ガスの参照価格÷灯油の参照価格）を掛けた灯油の値段がガスの費用の2倍なら ln 2
-    /// ③機関車＝★(176) 陸の輸送の値段のうち割高の分（値段−1）÷鉄道の輸送の費用（運転の費用＝清算の陸路の費用の鉄道÷馬＋★(169) 線路と機関車の資本の費用÷馬の運賃・内陸の州の潜在量で重み付け）④代替する物の需要が国内に無いと0
+    /// ③機関車＝陸の輸送の値段÷鉄道の輸送の費用（運転の費用＝清算の陸路の費用の鉄道÷馬＋★(169) 線路と機関車の資本の費用÷馬の運賃・内陸の州の潜在量で重み付け）④代替する物の需要が国内に無いと0
     /// ⑤陸の輸送の値段＝(1÷通した割合)^(1/2ε)・通した割合0 は財の値段の天井（PriceCeilFactor）。
     /// ⚠壊し方＝参照価格と比べる（(159) の形）・代替する物の欄を読まない・換算の比を掛けない・投入の値段を読まない・機関車の比べる相手を1にする・機関車の資本の費用を読まない（★(169)）・
     ///   陸の輸送を使っていない国の機関車を運転の費用で読む（★(169)）・需要の無い財を読む → 赤。
@@ -390,7 +389,7 @@ public class DiscoveryScoreTests
         Assert.True(rail > sumRun / pot && double.IsFinite(rail), $"前提が崩れた（鉄道の輸送の費用 {rail}・運転だけ {sumRun / pot}）");
         // 資本の費用を読む＝線路の値段を上げると鉄道の輸送の費用が上がり必要性が下がる（陸の運賃は同じ）
         {
-            var pr = (double[])basePx.Clone(); pr[ng] = 1.0 + 2.0 * rail;   // ★(176) 割高の分（値段−1）＝鉄道の費用の2倍
+            var pr = (double[])basePx.Clone(); pr[ng] = 2.0 * rail;
             foreach (var inp in repL.Inputs) if (inp.QtyPerOutput > 0 && inp.GoodId != Catalog.LaborId && inp.GoodId != Catalog.AdvLaborId) pr[inp.GoodId] *= 20.0;   // 機関車の資本財の投入を高くする
             double pLocoDear = CostByHand(w, repL, pr);
             double railDear = (sum - sumRun) / pot * (cc.TransportDecay * (RailPx(pr) + pLocoDear) / (2.0 * cc.TransportCapPerUnit)) / capital + sumRun / pot;
@@ -398,11 +397,9 @@ public class DiscoveryScoreTests
             Assert.Equal(sD > 0 ? NeedOf(loco, sD) : 0, Needs(pr)[loco], 9);
             Assert.True(Needs(pr)[loco] < NeedOf(loco, System.Math.Log(2.0)) - 1e-9, "機関車の比べる相手が線路と機関車の資本の値段を読まない");
         }
-        var pl = (double[])basePx.Clone(); pl[ng] = 1.0 + 2.0 * rail;   // ★(176) 割高の分（値段−1）＝鉄道の費用の2倍
+        var pl = (double[])basePx.Clone(); pl[ng] = 2.0 * rail;
         Assert.Equal(NeedOf(loco, System.Math.Log(2.0)), Needs(pl)[loco], 9);
-        pl[ng] = 1.0 + rail * 0.5;   // 割高の分が鉄道の費用より小さい
-        Assert.Equal(0.0, Needs(pl)[loco]);
-        pl[ng] = 1.0;   // ★(176) 輸送の不足なし（陸の運賃＝普通の1）＝0（鉄道の方が安い盤面は下の「機関車の必要性は輸送の不足の分だけ」の番人）
+        pl[ng] = rail * 0.5;   // 鉄道の方が高い＝不足なし
         Assert.Equal(0.0, Needs(pl)[loco]);
         // ★(169) 陸の輸送を使っていない国（内陸の州の潜在の交易が0）は必要性0＝代替する物の需要が無ければ0（他の行と同じ規則・旧＝運転の費用だけ＝島国も必要性 54）
         {
@@ -526,48 +523,6 @@ public class DiscoveryScoreTests
         foreach (int g in repS.Inputs.Where(i => i.QtyPerOutput > 0).Select(i => i.GoodId).Append(gs)) { cheap[g] = 0.1 * px[g]; dear[g] = 10.0 * px[g]; }
         Assert.Equal(baseNeed, NeedWith(cheap), 12);
         Assert.Equal(baseNeed, NeedWith(dear), 12);
-    }
-
-    /// <summary>★(176) 機関車の必要性は輸送の不足の分だけ（作者 2026-10-02「鉄道研究の必要性は、軍事力ではなく、輸送力の不足から導かれるべきだ」の字義＝輸送の不足が無い国では必要性0・
-    /// 割高の分の読みは推奨で進めた＝作者の承認は未確認）＝判定の本線（内陸の州の律速率→陸の運賃〔<see cref="Discovery.InstantRealPrices"/> の末尾の1欄〕→判定）を通す盤面：
-    /// ①全ての内陸の州が通した割合1（輸送が交易を絞っていない）＝陸の運賃1＝鉄道の輸送の費用が馬より安くても必要性0（旧 (165)〜(174)＝ln(1÷鉄道の費用)＝必要性 36〜54）
-    /// ②通した割合 0.25（陸の運賃4）＝ln(割高の分3÷鉄道の輸送の費用)・判定の計器の2つの値（代替する物＝割高の分・費用＝鉄道の輸送の費用）が式と一致
-    /// ③不足が深いほど（通した割合 0.1）必要性が上がる。⚠壊し方＝陸の運賃の全体を読む（(174) の形）→ ①が赤・割高の分から1を引かない形の取り違え → ②が赤。</summary>
-    [Fact]
-    public void 機関車の必要性は輸送の不足の分だけ_通した割合1の国は0()
-    {
-        var sim = Board();
-        var w = Nation(sim, "イギリス");
-        int ng = Catalog.Goods.Length, loco = Row("機関車"), nr = Catalog.Discoveries.Length;
-        var repL = RepOf(w, loco);
-        var rgA = w.Regions.First(r => r.State == RegionState.Active);
-        foreach (int g0 in repL.Inputs.Where(i => i.QtyPerOutput > 0).Select(i => i.GoodId).Append(Catalog.RailId))
-        { rgA.Markets[g0].LastDemand = System.Math.Max(1.0, rgA.Markets[g0].LastDemand); rgA.Markets[g0].LastProduced = System.Math.Max(1.0, rgA.Markets[g0].LastProduced); }
-        var basePx = (double[])w.DiscoveryPrice!.Clone();
-        for (int i = 0; i < ng; i++) if (!(basePx[i] >= 0)) basePx[i] = Catalog.RefPrices[i];
-        // 線路と機関車の資本財を安くする＝鉄道の輸送の費用がほぼ運転の費用（馬の運賃の約1/4）＝鉄道の方が馬より安い盤面（旧の形なら不足が無くても必要性が立つ）
-        foreach (int g0 in repL.Inputs.Where(i => i.QtyPerOutput > 0 && i.GoodId != Catalog.LaborId && i.GoodId != Catalog.AdvLaborId).Select(i => i.GoodId).Append(Catalog.RailId)) basePx[g0] *= 0.01;
-        int inland = 0;
-        foreach (var rg in w.Regions) if (rg.State == RegionState.Active && !rg.IsPort) rg.LastTradePotential = 1.0 + ++inland;
-        Assert.True(inland > 0, "前提が崩れた（英に内陸の州が無い）");
-        (double Need, double Px, double V, double Cost) At(double throttle)
-        {
-            foreach (var rg in w.Regions) if (rg.State == RegionState.Active && !rg.IsPort) rg.LastTradeThrottle = throttle;
-            var px = (double[])basePx.Clone(); px[ng] = Discovery.InstantRealPrices(w)[ng];   // 本線の陸の運賃
-            var ro = new (double Replaced, double Cost)[nr];
-            var t = Discovery.Evaluate(w, new Discovery.WorldView(null, null, Discovery.WorldMarket.Flat(px)), w.Coef, includeKnown: true, realPrice: px, ratioOut: ro);
-            return (t[loco].Need, px[ng], ro[loco].Replaced, ro[loco].Cost);
-        }
-        var full = At(1.0);
-        Assert.Equal(1.0, full.Px, 12);
-        Assert.True(full.Cost > 0 && full.Cost < 1.0, $"前提が崩れた（鉄道の輸送の費用 {full.Cost} が馬の運賃以上＝旧の形でも0 の盤面）");
-        Assert.Equal(0.0, full.Need);
-        var q = At(0.25);
-        Assert.Equal(q.Px - 1.0, q.V, 12);
-        double s = System.Math.Log((q.Px - 1.0) / q.Cost);
-        Assert.True(s > 0, $"前提が崩れた（割高の分 {q.Px - 1.0} が鉄道の費用 {q.Cost} 以下）");
-        Assert.Equal(Discovery.TermMax * s / (s + Discovery.NeedHalf(DiscoveryField.Product, w.Coef)), q.Need, 9);
-        Assert.True(At(0.1).Need > q.Need, "不足が深いほど必要性が上がらない");
     }
 
     /// <summary>★(166) 陸の運賃（機関車の必要性の入力）の天井は財の値段と同じ漸近形＝内側はほぼ 1÷通した割合（通した割合 0.5 で 2）・天井（PriceCeilFactor）へ漸近して超えない・
@@ -1383,120 +1338,5 @@ public class DiscoveryScoreTests
         Discovery.AdvancePrice(w, c); Discovery.Step(w, w.LastDiscoveryView, c);   // 判定の段（頭で平滑を1歩・判定は読むだけ）
         Assert.False(p.SiteFound, "一過性の値段の跳ねで産地が開いた（判定が平滑化した値段を読んでいない）");
         Assert.Equal(b.Cost + a * (v - b.Cost), w.DiscoveryPrice![g], 9);
-    }
-
-    // ===== ★(174) 系統×段（作者 2026-10-02「すべて推奨でよい」＝AI の推奨〔系統×段・蒸気機関の3段・内燃機関と電気は枝〕の承認）=====
-
-    /// <summary>★(174) 発見の表の行と系統の数は宣言した数（行を増やす回は理由を書いてここを上げる＝作者 2026-10-02「数自体は減らした方が良いかもしれない」）。
-    /// 段 n（n≥2）の前提は同じ系統の段 n−1 の行・段1 の枝は After の行（表の誤りは構築で止まる＝Catalog.DiscoveryAfter）。
-    /// ⚠壊し方＝前提の表を作らない（全て −1）→ 赤。</summary>
-    [Fact]
-    public void 発見の表は系統と段で持ち_段nの前提は同じ系統の段nマイナス1()
-    {
-        Assert.Equal(DeclaredRows, Catalog.Discoveries.Length);
-        Assert.Equal(DeclaredLines, Catalog.DiscoveryLineCount);
-        for (int r = 0; r < Catalog.Discoveries.Length; r++)
-        {
-            var d = Catalog.Discoveries[r]; int pre = Catalog.DiscoveryAfter[r];
-            if (d.Tier >= 2)
-            {
-                Assert.True(pre >= 0, $"{d.Name}：段{d.Tier}に前提が無い");
-                Assert.Equal(Catalog.LineOf(d), Catalog.LineOf(Catalog.Discoveries[pre]));
-                Assert.Equal(d.Tier - 1, Catalog.Discoveries[pre].Tier);
-            }
-            else Assert.Equal(d.After.Length > 0 ? Row(d.After) : -1, pre);
-        }
-        // 蒸気機関の系統＝段1 蒸気機関（ワット）→段2 高圧機関→段3（転炉鋼で開く・行を持たない）。機関車・汽船・内燃機関・発電は段2 の枝。
-        Assert.Equal(Row("蒸気機関"), Catalog.DiscoveryAfter[Row("高圧機関")]);
-        foreach (var child in new[] { "機関車", "汽船", "内燃機関", "石炭火力" }) Assert.Equal(Row("高圧機関"), Catalog.DiscoveryAfter[Row(child)]);
-        Assert.Equal(Row("石炭火力"), Catalog.DiscoveryAfter[Row("送電網")]);   // 電気＝発電→送電→電動機
-        Assert.Equal(Row("送電網"), Catalog.DiscoveryAfter[Row("電動機")]);
-        var t3 = Catalog.OpenedTiers.Single(t => t.Recipe == "複式機関");
-        Assert.Equal(("蒸気機関", 3, "転炉鋼"), (t3.Line, t3.Tier, t3.Opener));
-    }
-    /// <summary>宣言した行の数（(172) 46 行＝高圧機関 +1・石油ケロシンを石油灯油へ畳んで −1＝46）と系統の数（(172) は行ごとに1つ＝46 → 40）。</summary>
-    private const int DeclaredRows = 46, DeclaredLines = 40;
-
-    /// <summary>★(174) 解禁は各系統の次の段だけ（段 n は段 n−1 を知っていることが前提）＝(172) の不具合（英以外の9か国で機関車が蒸気機関より先）を構造で直す（機関車は高圧機関＝蒸気機関の段2 が前提）：
-    /// 機関車の点数が門に届いても、前提がまだなら機関車は開かず、前提の鎖のまだの最初の段（蒸気機関→高圧機関）が1四半期に1段ずつ開き、その後に機関車が開く（引き＝AI の推奨・作者の承認は未確認）。
-    /// 不変条件＝どの四半期の後も、知っている行の前提は知っている（子が親より先に開かない）。
-    /// ⚠壊し方＝前提を見ない（門に届いた行をそのまま開く）・引かない（前提の段を開かない）・同じ四半期に鎖を連ねる → 赤。</summary>
-    [Fact]
-    public void 前提の段を知らない行は開かず前提の段を1つずつ引く_機関車は高圧機関の後()
-    {
-        var sim = Board();
-        int loco = Row("機関車"), hp = Row("高圧機関"), st = Row("蒸気機関");
-        var contact = new double[Catalog.Discoveries.Length];
-        contact[loco] = 1e6;
-        var view = new Discovery.WorldView(contact);
-        int tried = 0, opened = 0;
-        foreach (var n in sim.Nations)
-        {
-            var w = n.World;
-            if (w.Discovered[loco] || w.Discovered[hp] || w.Discovered[st]) continue;
-            if (!w.Regions.Any(rg => rg.State == RegionState.Active && rg.Producers.Any(p => p.DiscoveryRow == loco))) continue;
-            w.TechLevel = Discovery.Difficulty(loco, w.Coef) * 3;
-            if (!(Discovery.Evaluate(w, view, w.Coef)[loco].Score >= Discovery.GateScore)) continue;   // 機関車の点数が門に届く国だけ（技術力と伝わり）
-            tried++;
-            void StepAndCheck()
-            {
-                Discovery.Step(w, view, w.Coef);
-                for (int r = 0; r < w.Discovered.Length; r++)
-                {
-                    int pre = Catalog.DiscoveryAfter[r];
-                    Assert.True(!w.Discovered[r] || pre < 0 || w.Discovered[pre], $"{w.SelfPower?.Name}：{Catalog.Discoveries[r].Name} が前提の {(pre >= 0 ? Catalog.Discoveries[pre].Name : "")} より先に開いた");
-                }
-            }
-            StepAndCheck();
-            Assert.True(w.Discovered[st] && !w.Discovered[hp] && !w.Discovered[loco], $"{w.SelfPower?.Name}：1四半期目に開くのは蒸気機関だけ（蒸気機関 {w.Discovered[st]}・高圧機関 {w.Discovered[hp]}・機関車 {w.Discovered[loco]}）");
-            StepAndCheck();
-            Assert.True(w.Discovered[hp] && !w.Discovered[loco], $"{w.SelfPower?.Name}：2四半期目に開くのは高圧機関（高圧機関 {w.Discovered[hp]}・機関車 {w.Discovered[loco]}）");
-            StepAndCheck();
-            Assert.True(w.Discovered[loco], $"{w.SelfPower?.Name}：前提を知った後に機関車が開かない");
-            opened++;
-        }
-        Assert.True(tried > 5 && opened == tried, $"盤面が空回り（試した国 {tried}・開いた国 {opened}）");
-    }
-
-    /// <summary>★(174) 蒸気機関の3段（段1 ワット→段2 高圧→段3 複式・三段膨張）＝同じ動力（労働力の財）の時代差のレシピ：
-    /// ①全ての州に3本が並び、蒸気機関の財と生産性は同じ・石炭は 0.3→×1/2→×1/5（史実の燃費の比【推】＝Catalog の注記）
-    /// ②段3 は転炉鋼と高圧機関の両方を知って開く（別の系統の発見で開く段）・段1 は段2 で・段2 は転炉鋼で退く
-    /// ③不変条件＝3つの発見（蒸気機関・高圧機関・転炉鋼）のどの組み合わせでも、開いている蒸気の動力のレシピは高々1本（労働力のレシピは配分の外＝並ぶと能力が2倍）。
-    /// ⚠壊し方＝段3 の門が転炉鋼だけを読む・段1 を退かせない・石炭の比を変えない → 赤。</summary>
-    [Fact]
-    public void 蒸気機関の3段は燃費の比で並び_開いている段は高々1本()
-    {
-        var sim = Board();
-        var w = Nation(sim, "フランス");
-        int s1 = Row("蒸気機関"), s2 = Row("高圧機関"), bes = Row("転炉鋼");
-        int regions = 0;
-        foreach (var rg in w.Regions)
-        {
-            if (rg.State != RegionState.Active) continue;
-            var t1 = rg.Producers.SingleOrDefault(p => p.GoodId == Catalog.LaborId && p.RecipeName == "蒸気機関");
-            if (t1 is null) continue;
-            regions++;
-            var t2 = rg.Producers.Single(p => p.GoodId == Catalog.LaborId && p.RecipeName == "高圧機関");
-            var t3 = rg.Producers.Single(p => p.GoodId == Catalog.LaborId && p.RecipeName == "複式機関");
-            double Coal(Producer p) => p.Inputs.Single(i => i.GoodId == Catalog.CoalId).QtyPerOutput;
-            double Eng(Producer p) => p.Inputs.Single(i => i.GoodId == Catalog.SteamEngineId).QtyPerOutput;
-            Assert.Equal(0.3, Coal(t1), 12); Assert.Equal(0.5, Coal(t2) / Coal(t1), 12); Assert.Equal(0.2, Coal(t3) / Coal(t1), 12);
-            Assert.Equal(Eng(t1), Eng(t2)); Assert.Equal(Eng(t1), Eng(t3));
-            Assert.Equal(t1.Productivity, t2.Productivity); Assert.Equal(t1.Productivity, t3.Productivity);
-            Assert.Equal((bes, s2), (t3.OpenedByRow, t3.OpenedAfterRow));
-            Assert.Equal(s2, t1.RetiredByRow); Assert.Equal(bes, t2.RetiredByRow);
-            var keep = (bool[])w.Discovered.Clone();
-            for (int mask = 0; mask < 8; mask++)
-            {
-                w.Discovered[s1] = (mask & 1) != 0; w.Discovered[s2] = (mask & 2) != 0; w.Discovered[bes] = (mask & 4) != 0;
-                double g1 = Discovery.Gate(rg, t1), g2 = Discovery.Gate(rg, t2), g3 = Discovery.Gate(rg, t3);
-                Assert.True(g1 + g2 + g3 <= 1.0, $"組み合わせ {mask}：蒸気の動力のレシピが2本以上開いた（{g1}・{g2}・{g3}）");
-                Assert.Equal(w.Discovered[s1] && !w.Discovered[s2] ? 1.0 : 0.0, g1);
-                Assert.Equal(w.Discovered[s2] && !w.Discovered[bes] ? 1.0 : 0.0, g2);
-                Assert.Equal(w.Discovered[s2] && w.Discovered[bes] ? 1.0 : 0.0, g3);   // 段3＝転炉鋼だけでは開かない（段2 が前提）
-            }
-            System.Array.Copy(keep, w.Discovered, keep.Length);
-        }
-        Assert.True(regions > 0, "前提が崩れた（仏に蒸気の動力のレシピが無い）");
     }
 }

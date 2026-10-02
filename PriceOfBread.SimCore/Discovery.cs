@@ -9,12 +9,8 @@ public enum WarDomain { None, Land, Sea, Air }
 
 /// <summary>発見の表の1行（<see cref="Catalog.Discoveries"/>）＝名前・財・レシピ（""＝既定のレシピ）・分野・年代（10年刻み）・新兵器の分野・代替する物。
 /// <paramref name="Replaces"/>＝その行が生み出す物が代替する物（作者 2026-10-02＝必要性はその値段の高さ・★(165) 新しいレシピで作る費用と比べる・<see cref="Discovery"/> の ReplacedStrength）＝<see cref="Catalog.ReplacesOwn"/>（製法＝その行の財そのもの）・
-/// 新製品は代替する既存の財の id・<see cref="Catalog.LandFreight"/>（機関車＝陸の輸送＝財ではない）。新兵器・制度・思想の行は読まない。
-/// ★(174) 系統と段（作者 2026-10-02「すべて推奨でよい」＝系統×段の推奨〔AI〕を承認）＝<paramref name="Line"/>（系統の名前・""＝行の名前＝1行の系統）・<paramref name="Tier"/>（段・1から）・
-/// <paramref name="After"/>（段1の行だけ＝枝の前提の行の名前・""＝前提なし）。段 n（n≥2）の前提は同じ系統の段 n−1 の行（<see cref="Catalog.DiscoveryAfter"/>）。
-/// 解禁は各系統の次の段だけ＝前提がまだの行の点数が門に届いたら、前提の鎖のまだの最初の段を開く（引き＝<see cref="Discovery.Step"/>）。別の系統の発見で開く段（行を持たない）は <see cref="Catalog.OpenedTiers"/>。</summary>
-public readonly record struct DiscoveryRow(string Name, int Good, string Recipe, DiscoveryField Field, int Decade, WarDomain Domain = WarDomain.None, int Replaces = Catalog.ReplacesOwn,
-                                           string Line = "", int Tier = 1, string After = "");
+/// 新製品は代替する既存の財の id・<see cref="Catalog.LandFreight"/>（機関車＝陸の輸送＝財ではない）。新兵器・制度・思想の行は読まない。</summary>
+public readonly record struct DiscoveryRow(string Name, int Good, string Recipe, DiscoveryField Field, int Decade, WarDomain Domain = WarDomain.None, int Replaces = Catalog.ReplacesOwn);
 
 /// <summary>発見＝解禁の【唯一の形】（★命名の作者裁定2026-08-31＝「研究」はプレイヤーが方向を選ぶ動詞を連想させる・この機構は選べず社会から創発して見つかる＝「発見」）。
 /// ★段2A（2026-10-01・設計 docs/202609/20260928/20260928_財の削減_連鎖の深さの撤去_設計 §1A-2）：**発見は2値**・国ごと・行（レシピ）ごとに毎四半期
@@ -128,9 +124,6 @@ public static class Discovery
         if (p.SiteRow >= 0 && !p.SiteFound) return 0.0;
         int row = p.DiscoveryRow;
         double g = row >= 0 ? (Known(known, row) ? 1.0 : 0.0) : 1.0;
-        // ★(174) 別の系統の発見で開く段（Catalog.OpenedTiers＝行を持たない段・例＝蒸気機関の段3〔複式〕は転炉鋼で開く）＝開く行と同じ系統の段−1 の行の両方を知っていること。
-        int op = p.OpenedByRow;
-        if (op >= 0 && !(Known(known, op) && (p.OpenedAfterRow < 0 || Known(known, p.OpenedAfterRow)))) g = 0.0;
         int ret = p.RetiredByRow;
         return ret >= 0 && Known(known, ret) ? 0.0 : g;
     }
@@ -436,7 +429,6 @@ public static class Discovery
         for (int row = 0; row < nr; row++)
         {
             if (!includeKnown && Known(w.Discovered, row)) continue;   // includeKnown＝計器だけ（解禁済みの行の項も見る）
-            // ★(174) 前提の行（同じ系統の段−1・枝は段1 の After の行）を知らない行の点数も読む＝解禁は Step が前提の段へ回す（引き）。
             var d = rows[row];
             bool spread = IsSpread(d.Field);   // 制度と思想＝財と投入を持たない（技術の押しは1・伝わりは到達）
             var rp = rep[row];
@@ -600,7 +592,7 @@ public static class Discovery
     /// （必要性の強度＝代替する物の値段÷その発見が出す物の値段〔同じ時期・同じ国の平滑化した投入の値段から新しいレシピで作る費用〕・固定の参照価格とは比べない）。
     /// ＝ ln（代替する物の平滑化した値段×換算の比 ÷ 新しいレシピで作る費用）・1以下（新しいレシピの方が高いか同じ）は0。
     /// ・代替する物（<see cref="DiscoveryRow.Replaces"/>）＝製法はその行の財そのもの（今の方法で作る値段＝その財の平滑化した値段）・新製品は代替する既存の財・
-    ///   蒸気機関と電動機の行は労働力（動力）の財＝人と家畜の動力の値段（アレン）・機関車は陸の輸送の値段（<see cref="LandFreightPrice"/>＝普通の陸の運賃＝1）のうち容量で切られた割高の分（値段−1＝★(176) 輸送の不足の分だけ）。
+    ///   蒸気機関と電動機の行は労働力（動力）の財＝人と家畜の動力の値段（アレン）・機関車は陸の輸送の値段（<see cref="LandFreightPrice"/>＝普通の陸の運賃＝1）。
     /// ・新しいレシピで作る費用＝代表の生産者（その国にある同じ財・同じレシピの生産者）の自己費用（<see cref="Producer.MarginalCost"/>＝規定の付加価値・参照価格の単位）×自己費用の物価水準÷物価水準
     ///   ＋Σ投入の量（<see cref="Input.QtyPerOutput"/>）×その投入の平滑化した値段（労働は労働力の財の値段）＝工場の採算の限界費用（<see cref="EconomyStep.MineralSelfCost"/>＋<see cref="EconomyStep.InputCostPerUnit"/>）と同じ組み方
     ///   （州の物価の乗数と電化・機械化の労働の節約は読まない＝国の値段の1本）。機関車＝鉄道の輸送の費用（<see cref="RailCostIndex"/>＝運転の費用〔清算の陸路の費用の鉄道÷馬〕＋線路と機関車の資本の費用）。
@@ -621,10 +613,7 @@ public static class Discovery
         v = NoPrice; cost = NoPrice;
         if (d.Replaces == Catalog.LandFreight)
         {
-            // ★(176) 輸送の不足の分だけ（作者 2026-10-02「鉄道研究の必要性は、軍事力ではなく、輸送力の不足から導かれるべきだ」の字義＝輸送の不足が無い国では必要性0）
-            //   ＝陸の運賃（平滑化した値段の末尾の1欄・普通の馬の陸の運賃＝1）のうち容量で切られた割高の分（運賃−1）を、鉄道で同じ輸送を作る費用と比べる（推奨で進めた・作者の承認は未確認）。
-            //   旧（(165)〜(174)）＝陸の運賃の全体（不足が無くても1）÷鉄道の費用＝鉄道の1kmあたりの安さだけで必要性 36〜53（(169) §7）＝1790年代の機関車。
-            v = book.LandFreight - 1.0;
+            v = book.LandFreight;   // 陸の輸送の値段（平滑化した値段の末尾の1欄）
             cost = railCost;
         }
         else
@@ -713,7 +702,6 @@ public static class Discovery
     ///   月に <see cref="Coefficients.TransportDecay"/> ずつ減る＝TransportDecay×(線路の値段＋機関車を作る費用)÷(2×TransportCapPerUnit)）を、同じ容量の荷を馬で運ぶ陸の運賃の金額
     ///   （清算の陸の脚の運賃の倍率＝TransportMargin×DistanceMarginScale×LandSeaCostRatio×地形×最寄りの港までの陸の距離 <see cref="Region.PortLandKm"/>÷1万km×運賃革命・容量1あたりの荷の値打ちは1【推】）で割った値。
     ///   旧（(165)〜(167)）＝運転の費用だけ＝輸送の不足が無くても（通した割合1）必要性 54（(166) §0・(167) の作者への確認③）。
-    ///   ★(176) 比べる相手は陸の運賃の全体ではなく割高の分（値段−1）＝(169)〜(174) の形（陸の運賃の全体÷この費用）は資本を入れても輸送の不足の無い国で必要性 36〜53（(169) §7）だった。
     /// を国の内陸の州（港でない稼働中の州・陸の脚のある州）の潜在の交易で重み付けた平均（<see cref="LandFreightServed"/> と同じ重み）。
     /// ★(169) 内陸の州の潜在の交易が無い国（陸の輸送を使っていない）は <see cref="NoPrice"/>＝必要性0（代替する物の需要が無ければ0＝他の行と同じ規則・旧＝RailCostFraction＝島国も必要性 54）。
     /// 線路か機関車の値段が立たない（作れない投入）＝<see cref="NoPrice"/>＝必要性0（他の行と同じ規則）。</summary>
@@ -753,8 +741,8 @@ public static class Discovery
     ///   ＝(160)（(159) の反証役の指摘・低）の申し送り「硬い上限（小さい方を取る）を漸近形へ」。旧＝Math.Min の硬い上限（鉄道の前の英・仏・清は通した割合 0.3〜0.9%＝上限を掛ける前の値段 111〜333＝天井 100 に張り付いた）。
     ///   必要性への効き（源から）＝通した割合 2%（値段 50）で 漸近形 44.5・硬い上限 50＝機関車の必要性 65.0 対 65.1（半分点 0.4・鉄道の費用 0.25）＝全域で 0.28 点以下（値段 25 で 24.5・10 で 10.0）。
     ///   ★(166) 鉄道の前の陸の容量を人口に比例させた（<see cref="Transport.PreRailCapacity"/>）後は、大国の鉄道の前の通した割合は 0.36〜1.0（(166) の10種・1784 の種の中央＝仏 0.36・英 0.68・露 0.94・清 0.96）＝値段 1〜3＝天井に届かない。
-    /// ⚠ (166)〜(174)：機関車の必要性は鉄道の前に飽和した（源から・(166)）＝通した割合 1（輸送の不足なし＝値段 1）でも ln(1÷鉄道の費用 0.25)＝1.39 → 必要性 54（地形の鉄道÷馬が1の州）
-    ///   ＝「輸送力の不足」は ln(値段) の分だけ上に乗った。★(176) 機関車の行は値段−1（割高の分）だけを読む＝通した割合 1 で必要性0（作者 2026-10-02「鉄道研究の必要性は、軍事力ではなく、輸送力の不足から導かれるべきだ」の字義）。</summary>
+    /// ⚠ 機関車の必要性は鉄道の前に飽和する（源から・(166)）＝通した割合 1（輸送の不足なし＝値段 1）でも ln(1÷鉄道の費用 0.25)＝1.39 → 必要性 54（地形の鉄道÷馬が1の州）
+    ///   ＝比べる相手が運転の費用だけ（鉄道の線路と機関車の資本の値段を読まない＝作者への確認③）＝「輸送力の不足」は ln(値段) の分だけ上に乗る。</summary>
     internal static double LandFreightPrice(World w)
     {
         var c = w.Coef;
@@ -800,19 +788,11 @@ public static class Discovery
         }
         // 平滑化した値段（判定の段の頭で AdvancePrice が1歩進めた値・作者裁定 Q12）を読む。★(171) 産地の発見も同じ値段の帳を読む（下の SiteTerms）。
         var terms = Score(w, view, c, includeKnown: false, null, null, out var book, out var dem);
-        // ★(174) 系統×段（作者 2026-10-02「すべて推奨でよい」で承認された推奨＝段 n は段 n−1 を知っていることが前提）＝解禁は各系統の次の段だけ。
-        //   門に届いた行の前提がまだなら、その行ではなく前提の鎖のまだの最初の段（自分の前提を知っている段）を開く＝引き（AI の推奨・作者の承認は未確認）
-        //   ＝後の段の必要性（例＝機関車の輸送の不足）が前提の段（高圧機関・蒸気機関）を連れてくる（史実＝鉄道の導入は機関と技師をまとめて入れた・仏 1828 セガン兄弟のスティーヴンソン機関車・日 1872）。
-        //   引きを入れない形（前提を知らない行は判定しない）は、(172) までの蒸気機関の伝わりの裏口（機関車の発見→蒸気機関の財の輸入→蒸気機関の伝わり）を閉じ、必要性0 の国へ蒸気が届かない
-        //   （腕 LP の5種＝仏 3/5 で 1950 まで蒸気機関なし・実装ログ (174)）。鎖は判定の頭の既知で読む（同じ四半期に段を連ねない＝1四半期に1段）。
-        var before = (bool[])known.Clone();
         for (int row = 0; row < terms.Length && row < known.Length; row++)
         {
-            if (before[row] || !(terms[row].Score >= GateScore)) continue;
-            int open = FirstUnknownOnPath(before, row);
-            if (known[open]) continue;
-            known[open] = true;
-            w.LogAdd($"{w.Year} {w.SelfPower?.Name ?? w.Region.Name}が{Catalog.Discoveries[open].Name}を発見");
+            if (known[row] || !(terms[row].Score >= GateScore)) continue;
+            known[row] = true;
+            w.LogAdd($"{w.Year} {w.SelfPower?.Name ?? w.Region.Name}が{Catalog.Discoveries[row].Name}を発見");
         }
         // ★産地の発見（(148)・Catalog.Sites）＝この国の州にある、まだ見つかっていない産地（大鉱床・植林）を同じ門で判定する。
         if (book is not null && dem is not null)
@@ -826,14 +806,6 @@ public static class Discovery
                 }
             }
         w.LastDiscoveryView = view;
-    }
-
-    /// <summary>★(174) 行 <paramref name="row"/> へ至る前提の鎖（<see cref="Catalog.DiscoveryAfter"/>）のうち、まだ知らない最も上の段（その段の前提は知っている）。前提を全て知っていれば行そのもの。</summary>
-    internal static int FirstUnknownOnPath(bool[] known, int row)
-    {
-        int r = row;
-        for (int pre = Catalog.DiscoveryAfter[r]; pre >= 0 && !Known(known, pre); pre = Catalog.DiscoveryAfter[r]) r = pre;
-        return r;
     }
 
     /// <summary>★産地の発見の2項（(148)・<see cref="Catalog.Sites"/>）＝読むだけ（判定・画面・計器が同じ関数を読む）。伝わりは持たない（他国の発見は自分の土地の鉱床を見つけない）。

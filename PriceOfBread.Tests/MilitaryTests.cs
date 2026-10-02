@@ -1505,6 +1505,7 @@ public class MilitaryTests
         sim.Diplomacy.Wars.Add(new War { A = w.SelfPower!, B = foe });
         Assert.Equal(Base(1.0), Military.EnvelopeAt(w, c, 1.0));          // 交戦だけ（総動員なし）
         w.Mobilized = true;                                                 // 交戦かつ総動員＝戦時段の解禁
+        w.Policy.MilitarySpendingTarget = 1.0;                              // ★(177) 目標も戦時段（段4）＝選んだ段（目標の段で頭打ち＝下の新しい盤面）
         Assert.Equal(Base(0.5), Military.EnvelopeAt(w, c, 0.5));          // 段2 の施行＝足さない
         Assert.Equal(Base(0.75), Military.EnvelopeAt(w, c, 0.75));        // 段3 の施行＝足さない（総動員だけで1銭も増えない）
         Assert.Equal(Base(0.875) + 0.5 * ticket, Military.EnvelopeAt(w, c, 0.875));   // 段3→段4 の中ほど＝1件の額の半分
@@ -1527,7 +1528,7 @@ public class MilitaryTests
     [Fact]
     public void 月の予算は戦時段の器で請求し装備の上限は借入の1件の額に比例して広がる()
     {
-        double Twin(double frac, bool mobilized)
+        double Twin(double frac, bool mobilized, double target = 1.0)
         {
             var sim = new MultiNationSim([NationConfig.Japan(), NationConfig.Britain()], seed: 1789);
             sim.StepQuarter();
@@ -1536,6 +1537,7 @@ public class MilitaryTests
             c.MilitaryEnvelopeShare = 1000;     // 器を大きく＝給与の後に装備の上限が残る
             for (int d = 0; d < Calendar.DaysPerMonth - 1; d++) sim.StepDay();
             w.Mobilized = mobilized; w.SetMilitarySpending(1.0, w.NavalSpendShare);   // 月の決算の直前に戦時段（段4 の施行）へ＝四半期の頭の施行は通らない
+            w.Policy.MilitarySpendingTarget = target;                                 // ★(177) 選んだ目標の段（戦時段の割合は目標の段で頭打ち）
             c.BorrowFractionOfGdp = frac;
             Assert.True(Fiscal.BorrowGateOpen(w, c), $"前提が崩れた：借入の門が閉じている（冷却 {w.BorrowCooldown}・利払い {w.LastInterest:G6}・歳入 {w.LastRevenue:G6}）");
             sim.StepDay();
@@ -1550,5 +1552,37 @@ public class MilitaryTests
         Assert.True(System.Math.Abs(d30 - 2 * d20) <= 1e-9 * d30, $"装備の上限の広がりが1件の額に比例しない（0.20 で {d20:G17}・0.30 で {d30:G17}）");
         double p1 = Twin(0.10, false), p2 = Twin(0.30, false);
         Assert.True(p1 > 0 && System.Math.Abs(p2 - p1) <= 1e-12 * p1, $"総動員なしの装備の上限が1件の額で動いた（{p1:G17} → {p2:G17}）＝総動員の外で戦時の器が立つ");
+        // ★(177)（反証役 vc2#1）呼び手の側：交戦かつ総動員で施行は段4 でも、選んだ目標が段3 なら月の予算は1件の額で動かない（目標の段で頭打ち）。
+        double s1 = Twin(0.10, true, 0.75), s2 = Twin(0.30, true, 0.75);
+        Assert.True(s1 > 0 && System.Math.Abs(s2 - s1) <= 1e-12 * s1, $"目標が段3 の総動員で装備の上限が1件の額で動いた（{s1:G17} → {s2:G17}）＝選んでいない戦時段の借入が器に入る");
+    }
+
+    /// <summary>★(177)（反証役 vc2#1）戦時段の割合は選んだ目標の段（<see cref="Government.MilitaryTotalTarget"/>）で頭打ち＝戦時段の失効で目標が段3 へ戻った後、
+    /// 施行が段3 の上に残ったまま再び総動員しても、選び直さなければ戦時の器（借入の1件の額）は立たない（作者裁定 2026-09-19・「全て推奨・歴史的に正しい方向で」で採った推奨の2
+    /// 「総動員は戦時段を解禁するだけで選んだ軍事費を黙って上げない」）。画面（目標の段で予測）とエンジン（施行の段）が同じ値。
+    /// 盤面＝日英（開幕の1四半期の後に交戦・総動員）・施行 0.9・目標 段3 と段4 の双子（同じ瞬間の同じ式で厳密一致）。⚠突然変異「施行だけを読む（旧の式）」で赤。</summary>
+    [Fact]
+    public void 戦時段の割合は選んだ目標の段で頭打ちになり施行が残っても選び直さなければ足さない()
+    {
+        var sim = new MultiNationSim([NationConfig.Japan(), NationConfig.Britain()], seed: 1789);
+        sim.StepQuarter();
+        sim.Diplomacy.Wars.Clear();
+        var w = sim.Nations[0].World; var c = w.Coef;
+        sim.Diplomacy.Wars.Add(new War { A = w.SelfPower!, B = sim.Nations[1].World.SelfPower! });
+        w.Mobilized = true;
+        Assert.True(Fiscal.BorrowGateOpen(w, c), $"前提が崩れた：借入の門が閉じている（冷却 {w.BorrowCooldown}・利払い {w.LastInterest:G6}・歳入 {w.LastRevenue:G6}）");
+        double ticket = Fiscal.BorrowTicket(w.NominalGdp, c);
+        double Base(double lv) => lv * c.MilitaryEnvelopeShare * System.Math.Max(0, w.SpendableRevenue());
+        Assert.True(ticket > 0 && Base(1.0) > 0, $"前提が崩れた：1件の額 {ticket}・器 {Base(1.0)}");
+        w.SetMilitarySpending(0.9, w.NavalSpendShare);                     // 施行が段3 の上に残っている（戦後の下り途中）
+        w.Policy.MilitarySpendingTarget = 0.75;                             // 目標は段3（戦時段の失効の後＝選び直していない）
+        Assert.Equal(0.75, Government.MilitaryTotalTarget(w, w.Policy));
+        double lv = w.MilitarySpending;
+        Assert.True(lv > 0.75 + 1e-6, $"前提が崩れた：施行 {lv}");
+        Assert.Equal(Base(lv), Military.EnvelopeOf(w, c));                  // 施行の器に戦時の分を足さない
+        Assert.Equal(Base(0.75), Military.EnvelopeAt(w, c, Government.MilitaryTotalTarget(w, w.Policy)));   // 画面の予測（目標の段）も足さない
+        w.Policy.MilitarySpendingTarget = 1.0;                              // 選び直した＝戦時段
+        Assert.Equal(1.0, Government.MilitaryTotalTarget(w, w.Policy));
+        Assert.Equal(Base(lv) + (lv - 0.75) * Government.MilitaryLawStages * ticket, Military.EnvelopeOf(w, c), 9);   // 施行 0.9 の分＝1件の額の約 0.6
     }
 }
