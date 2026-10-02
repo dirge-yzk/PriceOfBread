@@ -4529,7 +4529,7 @@ if (args.Length > 0 && args[0] == "discprobe")
             double landSm = w.DiscoveryPrice is { } dpl && Catalog.Goods.Length < dpl.Length ? dpl[Catalog.Goods.Length] : double.NaN;
             double We(int cls) { double e = 0, z = 0; foreach (var rg in w.Regions) { if (rg.State != RegionState.Active) continue; var pp = rg.PopOf(cls); if (pp is null || !(pp.Size > 0)) continue; e += pp.Earned; z += pp.Size; } return z > 1e-12 ? e / z : double.NaN; }
             double coalNom = 0; { double pd = 0, dd = 0; foreach (var rg in w.Regions) { if (rg.State != RegionState.Active) continue; pd += rg.Markets[Catalog.CoalId].Price * rg.Markets[Catalog.CoalId].LastDemand; dd += rg.Markets[Catalog.CoalId].LastDemand; } coalNom = dd > 1e-12 ? pd / dd : double.NaN; }
-            Console.WriteLine($"    動力の物差し（値段÷参照×物価・瞬間／平滑）: 労働力 {Px(Catalog.LaborId):F2}/{Sm(Catalog.LaborId):F2}・石炭 {Px(Catalog.CoalId):F2}/{Sm(Catalog.CoalId):F2}・蒸気機関 {Px(Catalog.SteamEngineId):F2}/{Sm(Catalog.SteamEngineId):F2}・電力 {Px(Catalog.ElectricityId):F2}/{Sm(Catalog.ElectricityId):F2}　陸の輸送の値段（平滑・参照＝1） {landSm:F2}　1人の月の所得÷物価: 工場労働者 {We(PopClass.Worker) / w.NominalOf(1):F3}・農民 {We(PopClass.Peasant) / w.NominalOf(1):F3}　÷石炭の値段: 工場労働者 {We(PopClass.Worker) / coalNom:F3}・農民 {We(PopClass.Peasant) / coalNom:F3}　1人GDP {w.Gdp / System.Math.Max(1e-9, w.TotalPopulation):F4}");
+            Console.WriteLine($"    動力の物差し（値段÷参照×物価・瞬間／平滑）: 動力 {Px(Catalog.LaborId):F2}/{Sm(Catalog.LaborId):F2}・石炭 {Px(Catalog.CoalId):F2}/{Sm(Catalog.CoalId):F2}・蒸気機関 {Px(Catalog.SteamEngineId):F2}/{Sm(Catalog.SteamEngineId):F2}・電力 {Px(Catalog.ElectricityId):F2}/{Sm(Catalog.ElectricityId):F2}　陸の輸送の値段（平滑・参照＝1） {landSm:F2}　1人の月の所得÷物価: 工場労働者 {We(PopClass.Worker) / w.NominalOf(1):F3}・農民 {We(PopClass.Peasant) / w.NominalOf(1):F3}　÷石炭の値段: 工場労働者 {We(PopClass.Worker) / coalNom:F3}・農民 {We(PopClass.Peasant) / coalNom:F3}　1人GDP {w.Gdp / System.Math.Max(1e-9, w.TotalPopulation):F4}");
         }
     }
     Console.WriteLine("## 4. 行ごとの最初の国と年・主要国の年");
@@ -6358,7 +6358,7 @@ if (args.Length > 0 && args[0] == "services")
             var wp = sim4.Nations[0].World;
             var rp = wp.Region;
             double mil2 = Politics.AvgMassMilitancy(wp), satM2 = NationalScore.MeanSatisfaction(wp);   // ★sweep-13：大衆の平均はエンジンの1本（闘争度・満足度とも同じ母集団）
-            var lm = rp.Markets[Catalog.LaborId];
+            var lm = rp.Markets[Catalog.LaborId];   // ★(179) 賃金＝人力の動力の値段
             double unemp = UnemploymentOf(rp, Catalog.LaborId);
             var bk = wp.Bank;
             Console.WriteLine($"  巴里 {wp.Year} 闘争{mil2:F2} 満足{satM2:F2} 失業{unemp:P0} 不作{wp.HarvestFactor:F2} パン価格{rp.Markets[Catalog.BreadId].Price:F2} 賃金{lm.Price:F2}" +
@@ -6373,25 +6373,25 @@ if (args.Length > 0 && args[0] == "services")
         double pop = w.TotalPopulation;
         double lit = 0, ssz = 0;
         foreach (var p in w.AllPops()) { lit += p.Literacy * p.Size; ssz += p.Size; }
-        var laborM = r0.Markets[Catalog.LaborId];
+        var laborM = r0.Markets[Catalog.LaborId];   // ★(179) 賃金＝人力の動力の値段
         var eduM = r0.Markets[Catalog.EducationId];
         var medM = r0.Markets[Catalog.HealthcareId];
-        double humanL = 0, steamL = 0, elecL = 0;
+        double humanL = 0, steamL = 0, elecL = 0, otherL = 0;   // ★(179) 動力のレシピごとの産出（人力・蒸気機関・電動・畜力と水車）
         foreach (var p in r0.Producers)
             if (p.GoodId == Catalog.LaborId)
             {
-                if (p.Inputs.Count == 0) humanL += p.Output;
+                if (p.RecipeName.Length == 0) humanL += p.Output;
                 else if (p.RecipeName == "蒸気機関") steamL += p.Output;
-                else elecL += p.Output;
+                else if (p.RecipeName == "電動") elecL += p.Output;
+                else otherL += p.Output;
             }
+        double powAll = humanL + steamL + elecL + otherL;
         double massMil = Politics.AvgMassMilitancy(w);   // ★sweep-13：述語の写しをやめエンジンの1本へ
         Console.WriteLine($"\n--- {r0.Name}（{w.EducationLaw}/{w.Polity}/自由{w.Freedom:F1}） 技術{w.TechLevel:F2} 識字{lit / ssz:P0} 満足{NationalScore.MeanSatisfaction(w):F2} 国庫{w.Treasury:F0} 行政効率{w.AdminEfficiency:P0} 治安{w.PublicOrder:P0}（犯罪率{w.CrimeRate:P2}） 大衆闘争度{massMil:F2}");
         var advM = r0.Markets[Catalog.AdvLaborId];
         var farmM = r0.Markets[Catalog.FarmLaborId];
-        var facts = r0.Producers.Where(p => p.BuysLabor).ToList();
-        double elecFill = facts.Count > 0 ? facts.Sum(p => p.ElecFill * p.Output) / Math.Max(1e-9, facts.Sum(p => p.Output)) : 0;
-        Console.WriteLine($"  労働: 都市{laborM.Price:F2}（失業 {UnemploymentOf(r0, Catalog.LaborId):P0}） 農村{farmM.Price:F2}（失業 {UnemploymentOf(r0, Catalog.FarmLaborId):P0}） 技師{advM.Price:F2}");
-        Console.WriteLine($"  電化: 平均電化率{elecFill:P0} 送電容量{r0.GridCapacity:F0} 電力価格{r0.Markets[Catalog.ElectricityId].Price:F2} 石炭{r0.Markets[Catalog.CoalId].Price:F2}");
+        Console.WriteLine($"  労働: 都市{laborM.Price:F2}（失業 {UnemploymentOf(r0, Catalog.LaborId):P0}） 農村{farmM.Price:F2}（失業 {UnemploymentOf(r0, Catalog.FarmLaborId):P0}） 技師{advM.Price:F2}　動力（蒸気{(powAll > 0 ? steamL / powAll : 0):P0}・電動{(powAll > 0 ? elecL / powAll : 0):P0}）");
+        Console.WriteLine($"  電化: 送電容量{r0.GridCapacity:F0} 電力価格{r0.Markets[Catalog.ElectricityId].Price:F2} 石炭{r0.Markets[Catalog.CoalId].Price:F2}");
         Console.WriteLine($"  教育: 価格{eduM.Price:F2} 生産{eduM.LastProduced:F1} 販売{eduM.LastSold:F1}　医療: 価格{medM.Price:F2} 生産{medM.LastProduced:F1}");
         foreach (var p in r0.Pops)
             Console.WriteLine($"    {p.ClassName,-6} 規模{p.Size,8:F0} 貯蓄/人{(p.Size > 1 ? p.Savings / p.Size : 0),8:F1} 識字{p.Literacy:P0} 教育Fill{p.EducationFill:F2} 満足{p.Satisfaction:F2} 闘争{p.Militancy:F2}");
@@ -8385,7 +8385,7 @@ foreach (var g in brR.Goods)
     if (mk.Price > g.RefPrice * 0.051) continue;                       // 床財のみ
     var prod = brR.Producers.FirstOrDefault(p => p.GoodId == g.Id);
     if (prod == null) continue;                                        // 生産者なし（植民地財等）は除外
-    double mc = EconomyStep.MineralSelfCost(prod, brR, brC, sim.Nations[2].World) + EconomyStep.InputCostPerUnit(prod, brR, brR, brC);   // エンジンの①供給と同じ mc（同じ関数＝表示が静かに嘘にならない・旧＝素の MarginalCost＋素の原単位の写し）
+    double mc = EconomyStep.MineralSelfCost(prod, brR, brC, sim.Nations[2].World) + EconomyStep.InputCostPerUnit(prod, brR);   // エンジンの①供給と同じ mc（同じ関数＝表示が静かに嘘にならない・旧＝素の MarginalCost＋素の原単位の写し）
     if (mk.Price < mc) { lossFloor++; if (lossEx.Count < 6) lossEx.Add($"{g.Name}(P{mk.Price:F3}<mc{mc:F3} 産{mk.LastProduced:F0} 需{mk.LastDemand:F0} Sc{prod.Scale:F2})"); }
     else { profitFloor++; if (profitEx.Count < 6) profitEx.Add($"{g.Name}(P{mk.Price:F3}≥mc{mc:F3} 産{mk.LastProduced:F0} 需{mk.LastDemand:F0} Sc{prod.Scale:F2})"); }
 }

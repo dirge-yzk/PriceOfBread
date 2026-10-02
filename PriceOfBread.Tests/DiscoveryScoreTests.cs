@@ -71,12 +71,14 @@ public class DiscoveryScoreTests
         return c;
     }
 
-    /// <summary>★作者 2026-10-02 の番人（(159)→(165)→(169)）＝「蒸気機関は「人件費が高いか」ではなく「(間接的に人が生み出している)動力が高いか」を見る」＋比べる相手（作者「2でよい」＝代替する物の値段÷その発見が出す物の値段）
-    /// ＝蒸気機関の行の必要性の強度＝ln（動力〔労働力の財〕の平滑化した値段÷蒸気の動力を新しいレシピで作る費用〔★(169) 他の行と同じ規則＝自己費用＋蒸気機関の財と石炭の平滑化した値段×量〕）：
-    /// 同じ盤面・同じ技術で、動力が蒸気の動力の費用と同じか安い国は必要性0＝自力では発見しない（技術力だけでは門に届かない）・2倍なら ln 2・
-    /// 石炭を2倍にすると費用が上がって必要性が下がる（参照価格ではなく今の費用と比べる）・人件費（1人の所得）は読まない・自己費用の分だけ費用が高い（数えない形より必要性が低い）。
-    /// ⚠壊し方＝参照価格と比べる・自己費用（人の働き）を数えない（(165)〜(167) の形）・人件費を読む・技術力だけで解禁する（門を70へ）→ 赤。
-/// ★(172) 反証役 vd3#3：作者の言葉は一般則（「動力が高いか」）と比べる相手（「2でよい」）まで。自己費用（人の働き）を数える部分は AI の推奨（(169)・作者の承認は未確認＝作者への確認①）＝壊し方の「数えない形」を赤にするのは AI の推奨を守る部分（作者の答えで数えない形に決まれば、この部分の主張を作者の形へ書き直す）。</summary>
+    /// <summary>★作者 2026-10-02 の番人（(159)→(165)→(169)→(179)）＝「蒸気機関は「人件費が高いか」ではなく「(間接的に人が生み出している)動力が高いか」を見る」＋比べる相手（作者「2でよい」＝代替する物の値段÷その発見が出す物の値段）
+    /// ＝蒸気機関の行の必要性の強度＝ln（動力〔LaborId の財〕の平滑化した値段÷蒸気の動力を新しいレシピで作る費用〔他の行と同じ規則＝自己費用＋投入の平滑化した値段×量〕）。
+    /// ★(179) 動力の財＝蒸気機関のレシピは「蒸気機関の財＋石炭＋少しの労働（人力の動力を買う）」・自己費用0（人の働きは自己費用から少しの労働の投入へ移った）
+    /// ＝費用＝q×動力の値段＋X（X＝蒸気機関の財と石炭）＝動力の値段 P と費用の比 r にするには P＝r X÷(1−r q)（r q＜1＝蒸気の動力は人力の動力の 1÷q 倍より安くはならない）。
+    /// 同じ盤面・同じ技術で、比 1 と 0.5 の国は必要性0＝自力では発見しない（技術力だけでは門に届かない）・比 1.5 なら ln 1.5・
+    /// 石炭を2倍にすると費用が上がって必要性が下がる（参照価格ではなく今の費用と比べる）・人件費（1人の所得）は読まない・少しの労働を数える（数えない形〔X だけ〕より必要性が低い）。
+    /// ⚠壊し方＝参照価格と比べる・少しの労働を数えない・人件費を読む・技術力だけで解禁する（門を70へ）→ 赤。
+    /// ★(172) 反証役 vd3#3：作者の言葉は一般則（「動力が高いか」）と比べる相手（「2でよい」）まで。人の働き（少しの労働）を費用に数える部分は AI の推奨（(169)・作者の承認は未確認＝作者への確認①）。</summary>
     [Fact]
     public void 蒸気機関の行は他の行と同じ規則で自己費用と石炭と機械の動力の費用と比べる_人件費は読まない()
     {
@@ -98,52 +100,45 @@ public class DiscoveryScoreTests
         for (int i = 0; i < own.Length; i++) if (!(own[i] >= 0)) own[i] = 1.0;   // 盤面の観測なしを埋める
         own[Catalog.SteamEngineId] = 1e-3;   // 蒸気機関の財＝国内の市場が死んでいれば世界の値段（下の view）で読む＝どちらでも同じ値（作る費用より安い）
         var view = new Discovery.WorldView(null, null, Discovery.WorldMarket.Flat(own));   // 世界の平滑化した値段＝同じ値段（市場の死んだ投入を同じ値で読む・運賃と関税の無い市場）
-        double cost = CostByHand(w, rep, own);
-        double selfPart = rep.MarginalCost * w.CostPriceLevel / w.NominalOf(1.0);
-        Assert.True(selfPart > 0.1 * cost, $"前提が崩れた（蒸気の動力のレシピの自己費用 {selfPart}・費用 {cost}）");
-        Assert.True(cost > 0 && rep.Inputs.Any(i => i.GoodId == Catalog.CoalId) && rep.Inputs.Any(i => i.GoodId == Catalog.SteamEngineId), "前提が崩れた（蒸気の動力のレシピ）");
-        Discovery.Terms At(double overCost, double coalMul = 1.0)
+        double q = rep.Inputs.Where(i => i.GoodId == g).Sum(i => i.QtyPerOutput);
+        Assert.True(rep.MarginalCost == 0 && q > 0 && q < 1 && rep.Inputs.Any(i => i.GoodId == Catalog.CoalId) && rep.Inputs.Any(i => i.GoodId == Catalog.SteamEngineId), "前提が崩れた（蒸気の動力のレシピ＝蒸気機関の財＋石炭＋少しの労働・自己費用0）");
+        double X(double[] px) => CostByHand(w, rep, px) - q * px[g];   // 動力以外の投入の費用（自己費用は0）
+        double[] At(double ratio, double coalMul = 1.0)
         {
             var px = (double[])own.Clone(); px[Catalog.CoalId] *= coalMul;
-            px[g] = CostByHand(w, rep, px) * overCost;
-            return Discovery.Evaluate(w, view with { Market = Discovery.WorldMarket.Flat(px) }, w.Coef, includeKnown: true, realPrice: px)[steam];
+            px[g] = ratio * X(px) / (1.0 - ratio * q);
+            return px;
         }
-        var same = At(1.0); var cheap = At(0.5); var dear = At(2.0);
+        Discovery.Terms Eval(double[] px) => Discovery.Evaluate(w, view with { Market = Discovery.WorldMarket.Flat(px) }, w.Coef, includeKnown: true, realPrice: px)[steam];
+        double half = w.Coef.DiscoveryNeedHalfProcess;
+        double Need(double sv) => sv > 0 ? Discovery.TermMax * sv / (sv + half) : 0;
+        var same = Eval(At(1.0)); var cheap = Eval(At(0.5)); var dearPx = At(1.5); var dear = Eval(dearPx);
+        Assert.Equal(1.5, dearPx[g] / CostByHand(w, rep, dearPx), 9);   // 比の作り方の検算
         Assert.Equal(0.0, same.Need);
         Assert.Equal(0.0, cheap.Need);
         Assert.True(cheap.Score < Discovery.GateScore, $"動力が安い国が技術力だけで届く（{cheap.Score:F1}）");
-        Assert.Equal(Discovery.TermMax * System.Math.Log(2.0) / (System.Math.Log(2.0) + w.Coef.DiscoveryNeedHalfProcess), dear.Need, 9);   // 強度＝ln(動力÷自己費用と石炭と機械の費用)
-        // ★(169) 自己費用を数える＝動力が「石炭と機械だけ」の費用の2倍でも、自己費用を足した費用を超えなければ必要性0（数えない形なら ln 2）
-        {
-            var pxN = (double[])own.Clone(); pxN[g] = 2.0 * (cost - selfPart);
-            double needN = Discovery.Evaluate(w, view with { Market = Discovery.WorldMarket.Flat(pxN) }, w.Coef, includeKnown: true, realPrice: pxN)[steam].Need;
-            double sN = System.Math.Log(2.0 * (cost - selfPart) / cost);
-            Assert.Equal(sN > 0 ? Discovery.TermMax * sN / (sN + w.Coef.DiscoveryNeedHalfProcess) : 0, needN, 9);
-            Assert.True(needN < Discovery.TermMax * System.Math.Log(2.0) / (System.Math.Log(2.0) + w.Coef.DiscoveryNeedHalfProcess) - 1e-9, "動力の行が自己費用を数えていない（(165)〜(167) の形）");
-        }
+        Assert.Equal(Need(System.Math.Log(1.5)), dear.Need, 9);   // 強度＝ln(動力÷少しの労働と石炭と機械の費用)
+        // ★(179) 少しの労働を数える＝数えない形（動力÷石炭と機械だけ）より必要性が低い
+        Assert.True(dear.Need < Need(System.Math.Log(dearPx[g] / X(dearPx))) - 1e-9, "蒸気の動力のレシピの少しの労働（人力の動力）を費用に数えていない");
         // 今の費用と比べる＝動力の値段は同じで石炭だけ2倍＝費用が上がり必要性が下がる
-        var px2 = (double[])own.Clone(); px2[g] = 2.0 * cost;
-        var pxC = (double[])px2.Clone(); pxC[Catalog.CoalId] *= 2.0;
-        double needBase = Discovery.Evaluate(w, view with { Market = Discovery.WorldMarket.Flat(px2) }, w.Coef, includeKnown: true, realPrice: px2)[steam].Need, needCoal = Discovery.Evaluate(w, view with { Market = Discovery.WorldMarket.Flat(pxC) }, w.Coef, includeKnown: true, realPrice: pxC)[steam].Need;
-        Assert.Equal(Discovery.TermMax * System.Math.Log(2.0) / (System.Math.Log(2.0) + w.Coef.DiscoveryNeedHalfProcess), needBase, 9);
-        double s2 = System.Math.Log(2.0 * cost / CostByHand(w, rep, pxC));
-        Assert.Equal(s2 > 0 ? Discovery.TermMax * s2 / (s2 + w.Coef.DiscoveryNeedHalfProcess) : 0, needCoal, 9);
-        Assert.True(needCoal < needBase, "石炭が高くなっても必要性が下がらない（今の費用と比べていない）");
+        var pxC = (double[])dearPx.Clone(); pxC[Catalog.CoalId] *= 2.0;
+        double needCoal = Eval(pxC).Need;
+        Assert.Equal(Need(System.Math.Log(pxC[g] / CostByHand(w, rep, pxC))), needCoal, 9);
+        Assert.True(needCoal < dear.Need, "石炭が高くなっても必要性が下がらない（今の費用と比べていない）");
         Assert.True(dear.Tech == cheap.Tech, "動力の値段で技術力が変わった");
         // 人件費（働き手の所得）は読まない＝所得を10倍にしても必要性は同じ
         foreach (var rg in w.Regions) foreach (var p in rg.Pops) p.Earned *= 10;
-        Assert.Equal(dear.Need, At(2.0).Need);
+        Assert.Equal(dear.Need, Eval(At(1.5)).Need);
         // 判定の1本（Step）も同じ＝安い国は解禁しない・高い国は解禁する（判定は平滑化した値段を読む＝その値を置く）
         var keep = w.DiscoveryPrice!;
-        var pxCheap = (double[])own.Clone(); pxCheap[g] = 0.5 * cost;
+        var pxCheap = At(0.5);
         w.DiscoveryPrice = pxCheap;
         Discovery.Step(w, view with { Market = Discovery.WorldMarket.Flat(pxCheap) }, w.Coef);
         Assert.False(w.Discovered[steam]);
         if (dear.Score >= Discovery.GateScore)
         {
-            var pxDear = (double[])own.Clone(); pxDear[g] = 2.0 * cost;
-            w.DiscoveryPrice = pxDear;
-            Discovery.Step(w, view with { Market = Discovery.WorldMarket.Flat(pxDear) }, w.Coef);
+            w.DiscoveryPrice = dearPx;
+            Discovery.Step(w, view with { Market = Discovery.WorldMarket.Flat(dearPx) }, w.Coef);
             Assert.True(w.Discovered[steam]);
         }
         w.DiscoveryPrice = keep;
@@ -934,23 +929,23 @@ public class DiscoveryScoreTests
     }
 
     /// <summary>工場の蒸気動力は「蒸気機関」の発見が開き、技術水準では開かない（旧＝技術水準 SteamTechOnset 0.25 を越えれば発見と関係なく石炭を焚いた）。
-    /// 双子の盤面（同じ種）＝①技術水準5・未発見 ②技術水準0・発見済み → 月の経済を1回：①はどの工場も石炭を焚かない（SteamFill＝0）・②は焚く。
-    /// ⚠壊し方＝門を技術水準の時計へ戻す（①が焚く）・州へ国の解禁を読ませない（②が焚かない）→ 赤。</summary>
+    /// ★(179) 動力の財＝蒸気は工場の上乗せ（SteamFill）でなく動力の財の蒸気機関のレシピ＝その器（Capacity）が門で開く。
+    /// 双子の盤面（同じ種）＝①技術水準5・未発見 ②技術水準0・発見済み → 月の経済を1回：①は蒸気機関の動力の器が0・②は正。
+    /// ⚠壊し方＝門を技術水準の時計へ戻す（①が開く）・州へ国の解禁を読ませない（②が開かない）→ 赤。</summary>
     [Fact]
     public void 世界のゲート_工場の蒸気動力は蒸気機関の発見が開き技術水準では開かない()
     {
-        double Fill(double tech, bool known)
+        double Cap(double tech, bool known)
         {
             var s = Grown(); var w = s.World; var r = w.Region;
             w.Discovered[Discovery.SteamRow] = known;
             w.TechLevel = tech; r.TechLevel = tech;
-            foreach (var p in r.Producers) p.SteamFill = 0;
             EconomyStep.Run(r, w.Coef, 1.0, w.Bank, w);
-            double f = 0; foreach (var p in r.Producers) f += p.SteamFill;
+            double f = 0; foreach (var p in r.Producers) if (p.GoodId == Catalog.LaborId && p.RecipeName == "蒸気機関") f += p.Capacity;
             return f;
         }
-        Assert.Equal(0.0, Fill(5.0, false));
-        Assert.True(Fill(0.0, true) > 0, "蒸気機関を発見した国の工場が石炭を焚かない");
+        Assert.Equal(0.0, Cap(5.0, false));
+        Assert.True(Cap(0.0, true) > 0, "蒸気機関を発見した国の蒸気機関の動力のレシピが開かない");
     }
 
     /// <summary>鉄道の容量は「機関車」の発見が開き、技術水準では開かない（旧＝技術水準の傾斜 RailTechOnset 0.35〜0.85）。

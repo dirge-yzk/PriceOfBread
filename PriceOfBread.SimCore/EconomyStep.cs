@@ -23,7 +23,7 @@ public static class EconomyStep
         public double[] Produced = [], InputNeed = [], InputTrickle = [], InvestDemand = [], MilitaryDemand = [], RebelDemand = [],
                         Ration = [], EffDemand = [], EffRation = [], ClearPrice = [], Revenue = [];
         public int[] ProducerCount = [];
-        public double[] InputCost = [], ProdW = [], ElecNeed = [], SteamNeed = [], EffNeed = [];
+        public double[] InputCost = [], ProdW = [], EffNeed = [];
         public double[] TrickleFill = [];   // ★再点火の発注の充足率（生産者ごと・2026-09-29 段2-2 A3）＝需要の段で持ち主の予算から決め、決済が読む
         public int[] EffChosen = [];
         public double[] LaborTotalW = [];
@@ -56,13 +56,13 @@ public static class EconomyStep
         }
         if (s.InputCost.Length < np)
         {
-            s.InputCost = new double[np]; s.ProdW = new double[np]; s.ElecNeed = new double[np];
-            s.SteamNeed = new double[np]; s.EffNeed = new double[np]; s.EffChosen = new int[np]; s.TrickleFill = new double[np];
+            s.InputCost = new double[np]; s.ProdW = new double[np];
+            s.EffNeed = new double[np]; s.EffChosen = new int[np]; s.TrickleFill = new double[np];
         }
         else
         {
-            System.Array.Clear(s.InputCost); System.Array.Clear(s.ProdW); System.Array.Clear(s.ElecNeed);
-            System.Array.Clear(s.SteamNeed); System.Array.Clear(s.EffNeed); System.Array.Clear(s.EffChosen); System.Array.Clear(s.TrickleFill);
+            System.Array.Clear(s.InputCost); System.Array.Clear(s.ProdW);
+            System.Array.Clear(s.EffNeed); System.Array.Clear(s.EffChosen); System.Array.Clear(s.TrickleFill);
         }
         if (s.LaborTotalW.Length < npops) { s.LaborTotalW = new double[npops]; s.LaborCount = new int[npops]; s.LastSupply = new double[npops]; s.TrickleOwner = new double[npops]; }
         else { System.Array.Clear(s.LaborTotalW); System.Array.Clear(s.LaborCount); System.Array.Clear(s.TrickleOwner); }   // LastSupply は Run が月頭に全要素を上書きする
@@ -503,7 +503,7 @@ public static class EconomyStep
             //   ＝その労働自身の取り分なので、労働の行き先を決める式から引くと「所有者の残余利潤」で労働を配ることになる。実測の破綻＝投入財（紙等）の
             //   レント≤0→労働ゼロ→下流の役務（教育・行政）が投入切れで崩壊（教育産出1.3・行政力0.028＝テスト5本赤）。旧式は需要が直接労働を呼んで
             //   いた（松葉杖）ので見えなかった。付加価値なら「価格が投入費を上回る財は価値を生む」＝労働は価値を生むところへ行く。
-            double rentR = mkR.Price - InputCostPerUnit(s, region, region, coef);
+            double rentR = mkR.Price - InputCostPerUnit(s, region);
             if (!(rentR > 0)) rentR = 0;                                   // 否定形＝NaN も 0 側へ倒す（投入費も賄えない財は労働を取らない）
             // ★売れる量を掛ける（2026-08-23 是正3・作者仮説「食品価格＝農家が何に吸われているか」の実測）：付加価値×能力で配ると、需要15/月・在庫18,677の
             //   石灰石が農民労働の8.7%を取り続け（価格が床で止まり付加価値が消えない）、野菜も需要614に産出1,180＝**売れない量にまで労働が流れて主食が痩せる**
@@ -513,7 +513,7 @@ public static class EconomyStep
             double sellR = mkR.LastDemand > coef.TargetStockFloor ? mkR.LastDemand : coef.TargetStockFloor;
             s.LaborWeight += coef.SupplyAdjustSpeed * (rentR * sellR - s.LaborWeight);
             prodW[pi] = s.LaborWeight * s.Scale;
-            if (s.GoodId is Catalog.LaborId or Catalog.AdvLaborId or Catalog.FarmLaborId) continue;   // 労働力・高度労働力の生産者は配分競争の外（階級全体が役務を算出し、工場が市場で買う）
+            if (s.GoodId is Catalog.LaborId or Catalog.AdvLaborId or Catalog.FarmLaborId) continue;   // 動力・高度労働力の生産者は配分競争の外（階級全体が役務を算出し、工場が市場で買う・★(179) 機械の動力のレシピも旧の労働力の並存レシピと同じく外）
             laborTotalW[s.LaborPopIndex] += prodW[pi];
             laborCount[s.LaborPopIndex]++;
         }
@@ -552,8 +552,8 @@ public static class EconomyStep
             region.StrandedVintage = System.Math.Min(region.OldVintageCapital, coef.VintageObsolescence * region.OldVintageCapital * techGap);
         }
         double effInd = region.ProductiveIndustrialization;   // 生産性チャネル＝座礁控除後（休眠時はIndustrializationに恒等）
-        // 機械化度（技術的失業 no-labor-saving-tech-unemployment の駆動）：稼働資本の飽和カーブ∈[0,1)。LaborSaveRate=0で0固定＝EffectiveQtyで未使用＝中立。座礁した旧世代は稼働しない＝控除後を読む。
-        region.Mechanization = coef.LaborSaveRate > 0 ? Colonial.OutputCurve(effInd, coef.LaborSaveIndHalf) : 0.0;
+        // ★(179) 機械化度（Region.Mechanization・LaborSaveRate・LaborSaveIndHalf）と電化の労働の節約（ElecLaborSave）を削除＝技術的失業は動力のレシピの労働の少なさから出る
+        //   （設計 20260928 §2-2・§5「Mechanization・LaborSaveRate が要らない」＝同じ機械化を2度数えない＝思想⑨）。工場の動力の投入は原単位のまま（旧 EffectiveQty も削除）。
         // 工業化由来の生産性は逓減（飽和カーブ）。固定上限を持たずに頭打ちになるので、上限を外しても発散しない。
         double indMult = cap
             ? 1.0 + coef.IndProductivityGain * effInd / (1.0 + effInd / coef.IndProductivityScale)
@@ -577,6 +577,8 @@ public static class EconomyStep
         regionLandFactor = Territory.LandFactor(region, ruralPop, coef);
 
         // === ① 供給：能力＝労働（工業化度で生産性が上がる）。供給曲線。投入充足で律速（§9-A 注2）===
+        double gridForPower = region.GridCapacity * (1.0 + coef.ElecInfraGridBoost * region.ElecInfraFill);   // ★(179) 電動の動力に届く電力の上限（旧＝工場の電化の頭打ちと同じ式）
+        double powElecWant = 0;                                                                               // ★(179) 電動の動力が作りたい量の電力（頭打ちの前）＝送電網の増設の判断
         for (int pi = 0; pi < np; pi++)
         {
             var s = region.Producers[pi];
@@ -605,20 +607,20 @@ public static class EconomyStep
             double mineralMul = Catalog.IsMineral(s.GoodId) ? region.MineralGradeFactor : 1.0;   // ★鉱脈の品位（在庫由来・2026-08-14・掘るほど落ちる）。★(148)：抽選の枯渇と富鉱の州の倍率 MineralDepletion を削除＝富鉱は開いた産地の生産者の賦存（Discovery.OpenSite）
             // 役務（教育・医療・行政・高度労働力）＝労働集約のまま＝倍率に乗らない（ボーモルのコスト病）。
             // 人力労働＝工業化（indMult＝投資で買い積んだ機械・組織）でのみ伸びる＝裸の技術では人は増えない。
-            // 工場＝フル倍率＋**電化ブースト**（買えた電力に応じて稼働率↑＝夜間操業）。
+            // 工場＝フル倍率（★(179) 蒸気と電化の上乗せ SteamBoost・ElecBoost を撤去＝蒸気と電化は動力のレシピ＝工場は動力を買う・設計 20260928 §5）。
             // ※発見の門＝**発明の時期の表現**（外科的パッチではない・結論）。撤去実験を二度行い、
             //   一律参照価格でも費用連鎖の参照価格でも1790年代に電化が始まった（28%）＝価格は「高い」を表現できても
             //   「まだ発明されていない」を表現できない（カタログは全レシピを1789年から実働で持つ）。
             //   ★2026-10-01 段2A：門は技術水準の傾斜から**発見（2値）**へ（Discovery.Gate＝国が点数100に届いたレシピだけ1）＝普及のなめらかさは市場（操業規模の伸び）が持つ。
-            bool isLabor = s.GoodId is Catalog.LaborId or Catalog.FarmLaborId;   // 人力（工場労働・農業労働）＝工業化(indMult)でのみ伸びる
+            bool isLabor = s.GoodId is Catalog.LaborId or Catalog.FarmLaborId;   // 人力（工場労働・農業労働）＝工業化(indMult)でのみ伸びる。★(179) 動力のレシピ（旧の労働力の並存レシピ）は旧と同じ器
             bool baumol = isService[s.GoodId] && !isLabor;
             // ★2026-08-10（幻の生産）：技術ゲート2本を**変数に取る**だけ（式・値・掛順は不変＝厳密恒等）。
             //   下の産出スナップが「未発明か」を**この同じ値**で判定する＝能力の式と判定式が食い違わない。
             double gate = Discovery.Gate(region, s);   // 発見の門（レシピの行を国が発見したか・表に無いレシピ＝地理差は1・鉱床の後期の産地だけ傾斜・退場のレシピは後継の発見で0）
             double boost = baumol ? 1.0
-                : isLabor ? indMult * gate   // 04材化(c)：労働力の並存レシピ（畜力/蒸気/電動）の発見の門。人力・畜力・水車＝表に無い＝×1.0
-                : productivityMultiplier * region.ProductivityBonus * indMult * (1.0 + coef.SteamBoost * s.SteamFill) * (1.0 + coef.ElecBoost * s.ElecFill) * (1.0 + coef.EffBoost * s.EffFill)
-                  * gate;        // 工場は蒸気(SteamFill)→電化(ElecFill)、RGOは効率化材(EffFill)で増産。RGOはSteam/Elec=0、工場はEff=0なので各々の分だけ乗る
+                : isLabor ? indMult * gate   // 04材化(c)：動力の並存レシピ（蒸気機関/電動）の発見の門。人力・畜力・水車＝表に無い＝×1.0
+                : productivityMultiplier * region.ProductivityBonus * indMult * (1.0 + coef.EffBoost * s.EffFill)
+                  * gate;        // RGOは効率化材(EffFill)で増産（工場は Eff=0）
             // 05-A（2026-07-29）：戦災＝農業・畜産の産出減（劣勢側の戦場のみ・戦争終結で自然回復）。飢饉・食料充足・扶養力の丁寧な機構に
             // 戦争が一切影響しなかった欠落を閉じる（戦争→飢饉→闘争度→政変の連鎖）。畜産(19)は重め＝「馬は真っ先に持っていかれる」（徴発は市場価格経由で自動）。
             if (s.IsRgo && region.LastWarIntensity > 1e-12)
@@ -676,10 +678,18 @@ public static class EconomyStep
                 boost *= 1.0 + coef.ScaleEconomyGain * u / (u + coef.ScaleEconomyHalf);
             }
             s.Capacity = region.Pops[lp].Size * fraction * s.Productivity * boost * harvestMul * mineralMul;
-            double mc = MineralSelfCost(s, region, coef, world) + InputCostPerUnit(s, region, region, coef);   // 自己費用（×自己費用の物価水準＝P の遅い趨勢×州の乗数・2026-09-27 (73)）＋投入費（名目）
+            // ★(179) 送電容量（Region.GridCapacity・電化インフラの底上げ込み）＝電力はこの容量までしか届かない（旧＝工場の電化の需要に掛けた頭打ち）
+            //   ＝電力を投入に持つ動力のレシピ（電動）の器は 送電容量÷動力1単位あたりの電力 まで（設計 §2-3 の1「電動の動力は送電網の範囲の電力を使う」）。
+            //   送電網の増設の判断（LastElecWant）＝頭打ちの前の作りたい量の電力（旧＝頭打ちの前の工場の電化の需要）。
+            double powElecQ = 0;
+            if (s.GoodId == Catalog.LaborId) foreach (var inp in s.Inputs) if (inp.GoodId == Catalog.ElectricityId) powElecQ += inp.QtyPerOutput;
+            double capBeforeGrid = s.Capacity;
+            if (powElecQ > 0 && !(s.Capacity * powElecQ <= gridForPower)) s.Capacity = gridForPower / powElecQ;   // 否定形＝NaN も頭打ちの側へ
+            double mc = MineralSelfCost(s, region, coef, world) + InputCostPerUnit(s, region);   // 自己費用（×自己費用の物価水準＝P の遅い趨勢×州の乗数・2026-09-27 (73)）＋投入費（名目）
             double price = region.Markets[s.GoodId].Price;
             double profitFactor = price <= mc ? 0.0 : Math.Min(1.0, (price - mc) / (mc * coef.SupplySlope));
             s.DesiredOutput = s.Capacity * profitFactor;                  // 採算が合えば作りたい量（再点火トリクル用＝充足前）
+            if (powElecQ > 0) powElecWant += capBeforeGrid * profitFactor * powElecQ;
             // 経16：当期産出は前期充足率(LastInputFill)で決まる（作者裁定2026-08-01＝恒久。当期の在庫カバーでも律速する旗 CurrentInputFillGates は 2026-09-26 に削除＝dorm-50）。
             double target = s.Capacity * s.LastInputFill * profitFactor;   // 実産出目標＝能力×投入充足×採算（従来と同一）
             // メッツラー在庫循環（no-inventory-cycle・InventoryAdjustGain=0.1 で点火済み）：望ましい在庫との不足/過剰を自己有界な正規化ギャップで測り産出目標に加減。0で項が消え旧恒等。
@@ -1170,12 +1180,10 @@ public static class EconomyStep
         // ★(145) 兵力の市場（国家の需要・値・配給率・兵力の生産者）を削除＝(140) から給与は市場の外で払われ、市場の値と量の読み手が無かった（生産者への按分だけ＝兵士へ全額）。
         bool mpProc = region.SoldierPopIndex >= 0;
 
-        // === ② 工場の投入需要 ＋ 財ごとの生産者数。電化の意思決定もここ ===
+        // === ② 工場の投入需要 ＋ 財ごとの生産者数 ===
+        // ★(179) 工場の電化と蒸気動力の意思決定（ElecNeed・SteamNeed・ElecFill・SteamFill・ElecBoost・SteamBoost・ElecPerOutput・EnergyPerOutput）を削除＝蒸気と電化は動力のレシピ
+        //   （設計 20260928 §2・§5＝工場は動力を買い、動力は人力・畜力・水車・蒸気・電動のレシピで作る＝市場が安い方を選ぶ）。石炭と電力は蒸気機関と電動の動力のレシピが買う。
         bool elecOn = Catalog.ElectricityId < ng && isService.Length > Catalog.ElectricityId;   // 電力を持つ世界か（小シナリオは対象外）
-        bool energyOn = coef.EnergyPerOutput > 0 && Catalog.CoalId < ng;   // #9 石炭動力を持つ世界か（石炭good非搭載の最小テスト経済では inputNeed[CoalId] が範囲外になるので必須ガード＝電化の elecOn と同型）
-        bool steamOn = energyOn && Discovery.SteamPower(region.Discovered);   // ★蒸気動力の門＝発見の表の「蒸気機関」の行（2026-10-01 (150)・旧＝技術水準の時計 SteamGate(TechLevel)＝発見と関係なく開いた）。未発見＝石炭を焚かない（水車・畜力）＝作者 2026-09-30「労働を代替する発明は、安い人件費の国では必要とされない、という認識でよい」を工場の動力でも（AI の読み）
-        var elecNeed = scratch.ElecNeed;
-        var steamNeed = scratch.SteamNeed;  // 蒸気動力化した工場の石炭（燃料）購入量。電化分は電力が代替（(1−ElecFill)）。蒸気機関を発見した国（steamOn）でのみ立つ（旧：全機械化工場が無条件で焚いていた＝時代錯誤を是正）
         var effNeed = scratch.EffNeed;      // RGO効率化材の購入量
         var effChosen = scratch.EffChosen;  // 今期その産者が選んだ効率化材の good.Id（候補から最安を選択。-1＝買わない）
         for (int i = 0; i < np; i++) effChosen[i] = -1;
@@ -1186,7 +1194,7 @@ public static class EconomyStep
             producerCount[s.GoodId]++;
             foreach (var inp in s.Inputs)
             {
-                double eq = EffectiveQty(s, region, inp, coef);
+                double eq = inp.QtyPerOutput;
                 // 経1：Output ベースの投入は通常の需要＝配給され、消費され、支払われる。
                 // ⚠**旧コメントは誤り**（2026-08-01訂正）＝「トリクルは物量を持たない幽霊需要」と書かれていたが、
                 //   トリクルは coreDemand に**入っている**＝実際に在庫を食っている（価格シグナルだけに載せる旗 ReignitionTrickleConserves は 2026-09-26 に削除＝dorm-50）。
@@ -1200,18 +1208,6 @@ public static class EconomyStep
                 // ★これが現実の姿＝止まっている工場も、いつでも再開できるように少量を買い続け、それは持ち主の持ち出しである
                 //   （ボイラーを温め、原料庫を空にしない費用）。だから**持ち主が無一文なら再開の準備もできない**＝新しい制約が1つ増える。
             }
-            // 電化の意思決定：稼働率↑の価値が電力代を上回るなら買う＝高価格財の工場から電化が始まり、
-            // 電力が安くなるほど裾野（安い財）へ広がる＝**電化の波が価格から創発**（時代クランプなし）。
-            if (elecOn && s.BuysLabor && s.GoodId != Catalog.ElectricityId
-                && goodGate[Catalog.ElectricityId] > 0   // 電力が未発見なら電化しない（序盤の電力需要を断つ）＝電力の財の解禁（石炭火力・水力・蒸気タービン・石油火力のどれか）
-                && coef.ElecBoost * region.Markets[s.GoodId].Price > coef.ElecPerOutput * region.Markets[Catalog.ElectricityId].Price)
-                elecNeed[pi] = s.Output * coef.ElecPerOutput;
-            // 蒸気動力の意思決定（電化と完全に同型）：原動機(蒸気機関)が発見され(steamOn)、稼働率↑の価値が石炭代を上回るなら焚く＝
-            // 高価格財の工場から蒸気化が始まり、石炭が安いほど裾野へ広がる。電化分(ElecFill)は電力が蒸気を代替＝石炭需要が減る（市場的な燃料転換が創発）。
-            // 蒸気機関を発見していない国は石炭を焚かない＝水車/畜力（無ブースト）＝蒸気の普及は発見（人件費の高さ）と石炭の値段から創発（暦年クランプなし）。EnergyPerOutput=0で無効。
-            if (steamOn && s.BuysLabor && s.GoodId != Catalog.CoalId && s.GoodId != Catalog.ElectricityId
-                && coef.SteamBoost * region.Markets[s.GoodId].Price > coef.EnergyPerOutput * region.Markets[Catalog.CoalId].Price)
-                steamNeed[pi] = s.Output * coef.EnergyPerOutput * Math.Max(0, 1.0 - s.ElecFill);
             // RGO効率化の意思決定（電化のRGO版）：候補のうち profit-gate を通る**最安**を選ぶ（市場が安い増強材を採る＝並存レシピと同思想）。
             // profit-gateで「消費した効率化材＞増えた産出」が構造的に起きない（材が高騰すれば自動で買い控え＝工具が奪い合いなら火薬へ逃げ、両方高ければ買わない）。
             double outPrice = region.Markets[s.GoodId].Price;
@@ -1259,26 +1255,10 @@ public static class EconomyStep
             trickleFill[pi] = fill;   // 以後は生産者ごとの充足率（決済が同じ量を再現して請求する）
             if (!(fill > 0)) continue;
             foreach (var inp in s.Inputs)
-                inputTrickle[inp.GoodId] += Math.Max(0, coef.ReignitionDemandFrac * s.DesiredOutput - s.Output) * EffectiveQty(s, region, inp, coef) * fill;
+                inputTrickle[inp.GoodId] += Math.Max(0, coef.ReignitionDemandFrac * s.DesiredOutput - s.Output) * inp.QtyPerOutput * fill;
         }
-        // 蒸気動力（石炭）需要を加算（電化分は上で電力に置換済み＝石炭需要が自然に減る）。steamOn でのみ非ゼロ＝従来/最小経済/未発見の国は無効。
-        if (energyOn)
-            for (int pi = 0; pi < np; pi++) inputNeed[Catalog.CoalId] += steamNeed[pi];
-        // 送電容量で頭打ち：容量を超える電力は工場に届かない＝電化には送電網への投資が要る（§拡張・地域内インフラ）。
-        if (elecOn)
-        {
-            double elecWant = 0;
-            for (int pi = 0; pi < np; pi++) elecWant += elecNeed[pi];
-            region.LastElecWant = elecWant;
-            // 電化インフラの便益③：実効送電容量を底上げ（電化インフラ＝公共の配電網が工場の電化＝夜間操業を後押し。既存GridCapacityの stock は compound させない）
-            double effGrid = region.GridCapacity * (1.0 + coef.ElecInfraGridBoost * region.ElecInfraFill);
-            if (elecWant > effGrid && elecWant > Eps)
-            {
-                double gs = effGrid / elecWant;
-                for (int pi = 0; pi < np; pi++) elecNeed[pi] *= gs;
-            }
-            for (int pi = 0; pi < np; pi++) inputNeed[Catalog.ElectricityId] += elecNeed[pi];
-        }
+        // ★(179) 送電網の増設の判断＝電動の動力が作りたい量の電力（頭打ちの前・① で数えた）＝旧の工場の電化の需要（頭打ちの前）と同じ役。電力の需要そのものは電動の動力の投入（上の Output ベース）。
+        if (elecOn) region.LastElecWant = powElecWant;
 
         // === ③ 各財の取引（消費＝予算制約・優先度順 §9-B、＋工場投入需要＋投資需要）===
         // 消費順＝第1キー tier（エンゲル：生存→日用→贅沢は価格に依らず維持）／第2キー 同tier内の**安い順**。
@@ -1696,7 +1676,7 @@ public static class EconomyStep
             double trickleBill = 0;   // ★再点火発注の代金（2026-08-01）。持ち主の持ち出し＝工場の営業費用ではないので ic には入れない
             foreach (var inp in s.Inputs)
             {
-                double eq = EffectiveQty(s, region, inp, coef);
+                double eq = inp.QtyPerOutput;
                 double pay = clearPrice[inp.GoodId] * s.Output * eq * ration[inp.GoodId];
                 ic += pay;
                 revenue[inp.GoodId] += pay;
@@ -1709,27 +1689,6 @@ public static class EconomyStep
             // ★止まった工場の持ち主が再開準備の代金を払う（点火2026-08-01）。★段2-2（A3・2026-09-29）：月内の仮勘定 Paid で払う（旧＝期首の貯蓄を直接引いた）。
             //   発注は需要の段で持ち主の予算を通して控えてある＝請求は控えた額以下（値段は同じ・配給率≦1）＝払い切れる。持ち主の居ない生産者は充足率0＝請求0。
             if (trickleBill > 0) region.Pops[s.OwnerPopIndex].Paid += trickleBill;
-            // 電力の決済（任意の増強材＝リービッヒの必須投入ではない＝買えなくても操業は止まらない）。買えた率が電化率に積もる。
-            if (elecNeed[pi] > 0)
-            {
-                double pay = clearPrice[Catalog.ElectricityId] * elecNeed[pi] * ration[Catalog.ElectricityId];
-                ic += pay;
-                revenue[Catalog.ElectricityId] += pay;
-            }
-            // 蒸気動力（石炭）の決済：焚いた石炭の代金を input cost に算入（margin→規模→石炭ショックが蒸気産業へ波及）。電化分は上の電力代に置換済み。
-            if (steamNeed[pi] > 0)
-            {
-                double epay = clearPrice[Catalog.CoalId] * steamNeed[pi] * ration[Catalog.CoalId];
-                ic += epay;
-                revenue[Catalog.CoalId] += epay;
-            }
-            double fillTarget = elecNeed[pi] > 0 ? ration[Catalog.ElectricityId] : 0;
-            // 監査2026-07-05（E4）：電化の設備ロックイン＝下落側の速度を(1−ElecFillIrreversibility)倍に減速（投資済み発電設備は石炭安でも剥がさない＝史実の電化一方通行）。ElecFillIrreversibility=1.0 点火＝電化率は下がらない（0で旧恒等）。
-            double elecStep = coef.FillInertia * (fillTarget - s.ElecFill);
-            if (elecStep < 0) elecStep *= 1.0 - coef.ElecFillIrreversibility;
-            s.ElecFill += elecStep;   // 電化はゆっくり進み・剥がれる（設備の慣性）
-            double steamFillTarget = steamNeed[pi] > 0 ? ration[Catalog.CoalId] : 0;
-            s.SteamFill += coef.FillInertia * (steamFillTarget - s.SteamFill);   // 蒸気動力もゆっくり進み・剥がれる（電化と同型の設備慣性）
             // RGO効率化材の決済（任意＝買えなくても基礎産出は出る）。買えた率が効率(EffFill)に積もる。
             if (effNeed[pi] > 0)
             {
@@ -2309,7 +2268,7 @@ public static class EconomyStep
             s.LastRevenue = producerRevenue; s.LastCost = inputCost[pi] + wages;   // 工場別の収入・支出（損益＝収入−支出。UI表示用）
 
             // 操業規模の更新（参入退出）：採算（価格 vs 限界費用）で伸縮。採算良→拡張（労働を集める）・採算悪→縮小（≒閉鎖・労働を手放す）。
-            double mc = MineralSelfCost(s, region, coef, world) + InputCostPerUnit(s, region, region, coef);   // ①供給と同じ mc（自己費用×自己費用の物価水準＋投入費）
+            double mc = MineralSelfCost(s, region, coef, world) + InputCostPerUnit(s, region);   // ①供給と同じ mc（自己費用×自己費用の物価水準＋投入費）
             double margin = mc > Eps ? (clearPrice[gi] - mc) / mc : 0;
             // 倍率排除（長い裾）：補助金工場の操業床 floor=1.0（外科的）を撤去。補助金は赤字を国庫が肩代わり（上の赤字分岐の StateSpent）＝採算が実質 break-even。
             // よって「採算を非負に底上げ」＝補助の経済的意味そのものから操業維持が創発（scaleTarget≥1）。旧 floor=1.0 と挙動同値。
@@ -2417,8 +2376,9 @@ public static class EconomyStep
 
         // （退蔵の取り崩し＝HoardDishoardRate は 2026-09-26 に削除＝#66 で却下された休眠の枝）
 
-        // 失業＝自分の労働（労働力/農業/高度）の売れ残り率。職の喪失は所得の算術を超えて怒りを生む（Politics が参照。
+        // 失業＝自分の労働（動力〔人力〕/農業/高度）の売れ残り率。職の喪失は所得の算術を超えて怒りを生む（Politics が参照。
         // 賃金の下方硬直と対＝不況は価格でなく雇用量で調整される→失業が立つ→社会保障がこれを和らげる＝福祉の意味）。
+        // ★(179) 工場労働者の失業＝動力の財の売れ残り（人力と機械の動力は同じ市場＝売れ残りの割合は同じ1本）。
         foreach (var s in region.Producers)
             if (s.GoodId is Catalog.LaborId or Catalog.AdvLaborId or Catalog.FarmLaborId
                 && s.LaborPopIndex >= 0 && s.LaborPopIndex < region.Pops.Count)
@@ -2535,13 +2495,13 @@ public static class EconomyStep
         investDemand[gid] += want - use;                   // 不足分だけ新規購入（先月支払い済みの充当分は買い直さない）
     }
 
-    /// <summary>投入1単位あたりの費用（限界費用の投入分）。<paramref name="home"/>＝生産者の所属州（機械化度を読む）・<paramref name="market"/>＝価格を読む州。
-    /// エンジンは両方 region（同一州）。internal＝ProductionDiag が稼働率の採算項・生産コスト分解を**同じ式**で再評価する（UI は首都価格×他州の生産者＝2州が別・2026-09-11 M2）。</summary>
-    internal static double InputCostPerUnit(Producer s, Region home, Region market, Coefficients coef)
+    /// <summary>投入1単位あたりの費用（限界費用の投入分）＝Σ投入の量×<paramref name="market"/> の値段（エンジンは生産者の州）。
+    /// internal＝ProductionDiag が稼働率の採算項・生産コスト分解を**同じ式**で再評価する。★(179) 電化と機械化の労働の節約（旧 EffectiveQty・home の機械化度）を削除＝投入の量は原単位のまま。</summary>
+    internal static double InputCostPerUnit(Producer s, Region market)
     {
         double c = 0;
         foreach (var inp in s.Inputs)
-            c += market.Markets[inp.GoodId].Price * EffectiveQty(s, home, inp, coef);
+            c += market.Markets[inp.GoodId].Price * inp.QtyPerOutput;
         return c;
     }
 
@@ -2565,13 +2525,6 @@ public static class EconomyStep
         if (!(gm > Eps)) return own;   // 否定形＝NaN/非正の倍率は割らない側へ倒す（Clamp は NaN を消さない）
         return own / gm;
     }
-
-    /// <summary>投入の有効係数：電化した工場は労働力の投入が減る（機械化＝電力が人手を節約する）。他の投入は不変。
-    /// internal＝ProductionDiag が生産コストの内訳を**同じ式**で並べる（InputCostPerUnit と同じ理由）。<paramref name="home"/>＝生産者の所属州。</summary>
-    internal static double EffectiveQty(Producer s, Region home, Input inp, Coefficients c) =>
-        inp.GoodId == Catalog.LaborId && s.BuysLabor
-            ? inp.QtyPerOutput * (1.0 - c.ElecLaborSave * s.ElecFill) * (1.0 - c.LaborSaveRate * home.Mechanization)   // 電化＋工業化由来の機械化で労働投入↓。LaborSaveRate=0で第2因子=1.0＝恒等。機械化度は所属州の量（旧 Producer.Mechanization の写しは2026-09-11に削除＝home は生産者の所属州を渡す）
-            : inp.QtyPerOutput;
 
     /// <summary>役務（教育・医療）の購入優先順位：0=下層（農民・労働者）→ 1=中流（近代エリート）→ 2=上流・閉鎖階級・兵士。
     /// 下層が基礎教育を先に買い、余剰が中流へ届く＝高等教育（専門職への転職資格）の表現。</summary>

@@ -83,7 +83,7 @@ public static class ProductionDiag
     // ===== 生産コストの分解 =====
 
     /// <summary>限界費用の1項（投入1つ分）。
-    /// <paramref name="Qty"/>＝産出1単位あたりの必要量（<c>EconomyStep.EffectiveQty</c>＝電化・機械化による労働節約込み）、
+    /// <paramref name="Qty"/>＝産出1単位あたりの必要量（★(179) 原単位＝電化・機械化の労働の節約は削除＝機械化は動力のレシピ）、
     /// <paramref name="UnitPrice"/>＝その州の市場価格、<paramref name="Amount"/>＝Qty×UnitPrice。
     /// <paramref name="Fill"/>＝**その材の供給率**＝<c>Market.LastRation</c>（EconomyStep のクリアリングが決めた配給率そのもの・
     /// 生産タブが材ごとに「供給:n%」と出す唯一の出所）。集計値の <c>Producer.LastMaterialFill</c> は素材の**最小**1本しか持たず
@@ -110,11 +110,11 @@ public static class ProductionDiag
 
     /// <summary>労働（市場で買う3種の労働力）か。人件費の行はこの3つだけを集める＝他の役務が投入に混ざっても
     /// 「人件費」に紛れ込ませない（その役務は名前のついた材料行として出る）。</summary>
-    private static bool IsLaborGood(int gid) => gid == Catalog.LaborId || gid == Catalog.AdvLaborId || gid == Catalog.FarmLaborId;
+    private static bool IsLaborGood(int gid) => gid == Catalog.LaborId || gid == Catalog.AdvLaborId || gid == Catalog.FarmLaborId;   // ★(179) 動力（LaborId）＝人力の動力の値段＝賃金
 
     /// <summary>表示に使う生産者個体の規約＝**その州の先頭**（エンジンの動詞 SetSubsidy/BuildFactory と同じ個体）。
     /// その州に居なければ国内の active 州を順に探す（レシピと自己費用を実在の個体から取る）。
-    /// 所属州も返す＝機械化度（<see cref="Region.Mechanization"/>）は所属州の量で、価格の州（首都）と別（2026-09-11 M2）。</summary>
+    /// 所属州も返す（★(179) 機械化度は削除＝今は読み手が無い・形は残す）。</summary>
     private static (Region Home, Producer P)? FindProducer(World w, Region region, int goodId)
     {
         foreach (var p in region.Producers) if (p.GoodId == goodId) return (region, p);
@@ -144,7 +144,7 @@ public static class ProductionDiag
     /// ★純関数＝世界を1ビットも書かない（ProductionDiagTests の番人が固定）。</summary>
     public static CostParts[] ExplainCostByRecipe(World w, Region region, int goodId)
     {
-        var found = new List<(Region Home, Producer P)>(2);   // 所属州つき＝機械化度は所属州の量（M2）
+        var found = new List<(Region Home, Producer P)>(2);   // 所属州つき（★(179) 機械化度は削除＝今は読み手が無い・形は残す）
         void Collect(Region r)
         {
             foreach (var p in r.Producers)
@@ -205,14 +205,14 @@ public static class ProductionDiag
             }
             return new CostParts(rows, mat, 0.0, 0.0, mat, false, "");
         }
-        var (home, s) = f;   // home＝生産者の所属州（機械化度）・region＝価格の州
+        var (_, s) = f;   // region＝価格の州（★(179) 所属州の機械化度は削除）
         var items = new CostItem[s.Inputs.Count];
         double material = 0, labor = 0;
         bool inRange = true;   // 全投入がこの州の市場配列に収まるか（収まらないのは市場を切り詰めた小世界＝InputCostPerUnit は添字ガードを持たない）
         for (int i = 0; i < s.Inputs.Count; i++)
         {
             var inp = s.Inputs[i];
-            double qty = EconomyStep.EffectiveQty(s, home, inp, coef);      // 電化・機械化（所属州の度合）の労働節約込み
+            double qty = inp.QtyPerOutput;      // ★(179) 原単位（電化・機械化の労働の節約は削除）
             double unit = Price(inp.GoodId);
             double amount = qty * unit;
             bool lab = IsLaborGood(inp.GoodId);
@@ -222,7 +222,7 @@ public static class ProductionDiag
         }
         // EconomyStep ①供給の mc そのもの。範囲外の投入がある小世界だけは同じ和を自前で積む（Price が0を返す＝同値）。
         double own = EconomyStep.MineralSelfCost(s, region, coef, w);   // エンジンと同じ自己費用（MarginalCost×自己費用の物価水準×州の乗数・器 MineralCostFollowsGrade も同じ1本）
-        double mc = own + (inRange ? EconomyStep.InputCostPerUnit(s, home, region, coef) : material + labor);
+        double mc = own + (inRange ? EconomyStep.InputCostPerUnit(s, region) : material + labor);
         return new CostParts(items, material, labor, own, mc, true, s.RecipeName);
     }
 
@@ -312,7 +312,7 @@ public static class ProductionDiag
             {
                 if (s.GoodId != goodId || s.Bankrupt) continue;
                 nProd++;
-                double mc = EconomyStep.MineralSelfCost(s, region, coef, w) + EconomyStep.InputCostPerUnit(s, region, region, coef);      // EconomyStep ①供給の mc（同じ関数・生産者は region 所属＝home==market）
+                double mc = EconomyStep.MineralSelfCost(s, region, coef, w) + EconomyStep.InputCostPerUnit(s, region);      // EconomyStep ①供給の mc（同じ関数・生産者は region 所属＝home==market）
                 double price = region.Markets[s.GoodId].Price;
                 double profit = price <= mc ? 0.0 : Math.Min(1.0, (price - mc) / (mc * coef.SupplySlope));   // 同 profitFactor
                 double fill = s.LastInputFill;                                                    // 同（労働込み）
