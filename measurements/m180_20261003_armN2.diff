@@ -1,0 +1,13 @@
+diff --git a/PriceOfBread.SimCore/MultiNationSim.cs b/PriceOfBread.SimCore/MultiNationSim.cs
+index 6602392..ded2c2d 100644
+--- a/PriceOfBread.SimCore/MultiNationSim.cs
++++ b/PriceOfBread.SimCore/MultiNationSim.cs
+@@ -1502,7 +1502,7 @@ public sealed class MultiNationSim
+                 double r = border[a * n + b] + proj;
+                 if (!(r > 0)) continue;
+                 hr[a * n + b] = h * r;
+-                hrArmy[a * n + b] = h * (borderHome[a * n + b] + proj * Diplomacy.LandingGate(ps[a], ps[b], _coef));   // 上陸の門＝陸続き1・海越えは A の制海権が門に届けば1（B の海軍が防げる投射は陸軍の不安に数えない）
++                hrArmy[a * n + b] = h * (borderHome[a * n + b] + (Diplomacy.IsSeaCrossing(ps[a], ps[b], _coef) ? 0 : proj));   // 上陸の門＝陸続き1・海越えは A の制海権が門に届けば1（B の海軍が防げる投射は陸軍の不安に数えない）
+                 sum += h * r;
+             }
+             colSum[a] = sum;

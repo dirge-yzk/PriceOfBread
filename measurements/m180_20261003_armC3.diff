@@ -1,0 +1,13 @@
+diff --git a/PriceOfBread.SimCore/ArmyShape.cs b/PriceOfBread.SimCore/ArmyShape.cs
+index e3688df..1ea2910 100644
+--- a/PriceOfBread.SimCore/ArmyShape.cs
++++ b/PriceOfBread.SimCore/ArmyShape.cs
+@@ -160,7 +160,7 @@ public static class ArmyShape
+                 int nd = PathGraph.NearestNode(cc.Lat, cc.Lon);
+                 if (nd < 0) continue;
+                 owner[nd] = i;
+-                if (home is not null) home[nd] = r.Tier != RegionTier.Colonial;
++                if (home is not null) home[nd] = r.Tier != RegionTier.Colonial && Landmass.Same(w.Latitude, w.Longitude, cc.Lat, cc.Lon);
+                 int ti = (int)r.Terrain;
+                 terr[nd] = ti < c.TerrainHorseCost.Length ? c.TerrainHorseCost[ti] : 1.0;
+             }
