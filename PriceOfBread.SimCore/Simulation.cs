@@ -1799,7 +1799,7 @@ public sealed class Simulation
             }
             // 【削除 2026-10-01 (148)】鉱物の枯渇と発見の年次の抽選（国ごとに年3%の枯渇・年2.5%の鉱脈の発見〔全ての発見が frontierRush＝州の全ての鉱物を5倍〕・富鉱の年15%の戻り・
             //   シルバーラッシュ）と Region.MineralDepletion を削除＝①枯渇は採掘による品位（StepMineralDeposits・旗 DepletionFromExtraction を焼き込み）②大鉱床は産地の発見の表
-            //   （Catalog.Sites＝場所ごとの年代と入植者×財の値・Discovery.Step が四半期に判定・富鉱は開いた財の生産者だけ）＝検討 §10-3 項目10・Q13（計画の 2-2）。
+            //   （Catalog.Sites＝場所ごとの年代と入植者×財の値〔(171)：必要性＝財の値段÷掘る費用・入植者は見つける力〕・Discovery.Step が四半期に判定・富鉱は開いた財の生産者だけ）＝検討 §10-3 項目10・Q13（計画の 2-2）。
             //   年に4つ引いていた主系列の乱数（枯渇2・発見2）も消えた＝以後の乱数の列がずれる（挙動の変更＝10種で測った）。
             // 疫病（B-4・コレラ等）：発生は過密（都市化）が駆動し、衛生整備（工業化）は死亡率を下げる。専用RNG系列＝主系列を乱さない。発生＝感染窓を立て他国へ伝播しうる（MultiNationSim）。
             if (World.EpidemicActiveYears > 0) World.EpidemicActiveYears--;   // 感染窓の年次減衰

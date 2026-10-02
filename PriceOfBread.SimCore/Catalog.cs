@@ -693,15 +693,17 @@ public static class Catalog
     /// ・その場所の生産者は通常の賦存（Simulation の ResourceEndowment）で作り、**発見まで門0**（<see cref="Discovery.Gate(Region, Producer)"/>＝Producer.SiteFound）。
     /// ・判定は発見の表と同じ骨組み（<see cref="Discovery.Step"/>）＝点数＝技術力（0〜70・難易度＝年代×Y）＋必要性（0〜70）が一度でも100に届けば開く・失われない。
     ///   伝わりの項は持たない（他国の発見は自分の土地の鉱床を見つけない＝設計 §9-2 の提案③の読み＝2項・最大の和 140≧100）。
-    /// ・必要性＝人の厚み N÷(N＋N0)×その財の実質の値段÷参照価格（設計 §9-1 の提案③＝適性＝入植者×金の値・2026-09-28 作者が採用した提案＝文は AI の整理）。N0＝植民地の州昇格の人口（ColonyPromotionMinPop＝6万人＝(118) と同じ物差し）。
+    /// ・★(171) 必要性＝ln（その財の平滑化した値段÷その産地で掘る費用）（作者 2026-10-02 の発見の必要性の一般則と「2でよい」の物差し＝発見の表の製法の行と同じ形・推奨で進めた）・
+    ///   技術力（見つける力）＝70×min(1, 技術水準÷難易度)×人の厚み N÷(N＋N0)（N0＝<see cref="Coefficients.DiscoverySiteFindHalfPop"/>）＝<see cref="Discovery.SiteTerms"/>。
     ///   鉱床＝入植者（その国の中核民族の人数＝POP の大きさ×CoreEthnicShare）・植林＝住民（樹を植えて樹皮を剥ぐ働き手）。
+    ///   旧（(148)〜(169)）＝必要性＝人の厚み N÷(N＋ColonyPromotionMinPop)×その財の実質の値段÷参照価格（設計 §9-1 の提案③＝適性＝入植者×金の値・2026-09-28 作者が採用した提案＝文は AI の整理）。
     /// ・データは場所の一次データ（暦年ではない＝思想①②の「データはよい」）。旧＝ProvinceSpec.LateResources（西部の硫黄・銀・北九州の硫黄）＋技術水準の傾斜 DepositTechScale と、
     ///   年2.5%の抽選の鉱脈の発見（全ての発見が frontierRush＝州の全ての鉱物を5倍＝検討 §10-3 項目10(a)）とシルバーラッシュの枝＝この表の1本へ置き換えた。</summary>
     public enum SiteKind { Deposit, Plantation }
     public readonly record struct SiteRow(string Name, string Place, int Good, int Decade, SiteKind Kind);
     public static readonly SiteRow[] Sites =
     [
-        // --- 鉱床（入植者×財の値）---
+        // --- 鉱床（★(171) 入植者が見つける力・財の値段÷掘る費用が必要性）---
         new("カリフォルニアの金", "アルタ=カリフォルニア", GoldOreId, 1840, SiteKind.Deposit),   // サッターの製材所 1848
         new("ヴィクトリアの金", "オーストラリア", GoldOreId, 1850, SiteKind.Deposit),             // バララット・ベンディゴ 1851
         new("ラントの金", "南アフリカ", GoldOreId, 1880, SiteKind.Deposit),                       // ウィットウォーターズランド 1886
@@ -709,7 +711,7 @@ public static class Catalog
         new("コムストックの銀", "西部", SilverId, 1850, SiteKind.Deposit),                         // コムストック 1859（⚠SilverRushEnabled＝0 の間はこの行を置かない＝検討 Q13 (d)）
         new("ルイジアナの硫黄", "西部", SulfurId, 1890, SiteKind.Deposit),                         // フラッシュ法 1894（旧 LateResources＋SulfurLateDepositOnset）
         new("九州の硫黄", "北九州", SulfurId, 1880, SiteKind.Deposit),                             // 明治の近代採掘（旧 LateResources＋SulfurLateDepositOnset）
-        // --- 植林（住民×財の値）＝キナの樹はアンデスの外へ種子で運ばれて植えられた ---
+        // --- 植林（★(171) 住民が見つける力・財の値段÷植えて剥ぐ費用が必要性）＝キナの樹はアンデスの外へ種子で運ばれて植えられた ---
         new("ジャワのキナ", "バタヴィア", CinchonaBarkId, 1850, SiteKind.Plantation),               // ハスカール 1854
         new("ニルギリのキナ", "マドラス", CinchonaBarkId, 1860, SiteKind.Plantation),               // マーカム 1860〜
         new("セイロンのキナ", "セイロン", CinchonaBarkId, 1860, SiteKind.Plantation),               // 1860〜70年代（Q11＝中間）

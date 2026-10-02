@@ -344,7 +344,14 @@ public static class Discovery
 
     /// <summary>点数の本体（読むだけ）。平滑化した値段（<see cref="World.DiscoveryPrice"/>）は判定の段の頭で <see cref="AdvancePrice"/> が四半期に1歩進める（画面・計器・判定はここで読むだけ）。</summary>
     private static Terms[] Score(World w, WorldView? view, Coefficients c, bool includeKnown, double[]? realPrice = null, (double Replaced, double Cost)[]? ratioOut = null)
+        => Score(w, view, c, includeKnown, realPrice, ratioOut, out _, out _);
+
+    /// <summary>★(171) 点数の本体＋その判定の値段の帳と国の需要を返す（産地の発見の判定 <see cref="SiteTerms"/> が同じ帳を読む＝発見の表と同じ値段の読み方・1回の判定で帳を2度作らない）。
+    /// 稼働中の州が無い国は帳を作らない（null）。</summary>
+    private static Terms[] Score(World w, WorldView? view, Coefficients c, bool includeKnown, double[]? realPrice, (double Replaced, double Cost)[]? ratioOut,
+                                 out PriceBook? bookOut, out double[]? demOut)
     {
+        bookOut = null; demOut = null;
         double[]? contact = view?.Contact;
         double[]? loss = view?.Loss;
         var market = view?.Market;
@@ -389,6 +396,7 @@ public static class Discovery
         // ★(169) 買い手の関税の楔（清算の着値と同じ＝関税率の正の分×TariffProtect・穀物法は主食の連鎖だけ＝発見の行の財には掛けない）＝市場の値段が無い財の着値に足す。
         double duty = market is null ? 0 : System.Math.Max(0, InternationalMarket.TariffRate(w, w.Coef)) * w.Coef.TariffProtect;
         var book = new PriceBook(real, alive, market, recipes, selfScale, w, duty);
+        bookOut = book; demOut = dem;
         // 軍事の圧力（新兵器）＝その分野の脅威（相手の強さ）が自国の強さとの和に占める割合∈[0,1)＝理想の軍隊の形（ArmyShape）の陸と海の必要量 ÷（必要量＋自国の陸軍力・海軍力）。空は陸の膠着（設計 §1A-4）。
         //   ⚠比（相手÷自国）のままでは弱い国が数十倍になり必要性が70へ張り付く（1種の試走でダホメが1831年に機関銃・コンゴが1837年に弩級戦艦）＝割合にすれば最大は 70÷(1＋半分点)。
         //   ★＋交戦中のその分野の損耗（2026-10-01 (153)・設計 §1A-4 (4a) の第2項・作者裁定 2026-09-28 ⑤「陸・海・空で分ける」）＝この四半期の損耗の強さ（<see cref="WorldView.Loss"/>＝
@@ -778,7 +786,8 @@ public static class Discovery
             view = (view ?? new WorldView(null)) with { Loss = avg };
             w.DiscoveryLossQ = null;
         }
-        var terms = Score(w, view, c, includeKnown: false);   // 平滑化した値段（判定の段の頭で AdvancePrice が1歩進めた値・作者裁定 Q12）を読む
+        // 平滑化した値段（判定の段の頭で AdvancePrice が1歩進めた値・作者裁定 Q12）を読む。★(171) 産地の発見も同じ値段の帳を読む（下の SiteTerms）。
+        var terms = Score(w, view, c, includeKnown: false, null, null, out var book, out var dem);
         for (int row = 0; row < terms.Length && row < known.Length; row++)
         {
             if (known[row] || !(terms[row].Score >= GateScore)) continue;
@@ -786,25 +795,43 @@ public static class Discovery
             w.LogAdd($"{w.Year} {w.SelfPower?.Name ?? w.Region.Name}が{Catalog.Discoveries[row].Name}を発見");
         }
         // ★産地の発見（(148)・Catalog.Sites）＝この国の州にある、まだ見つかっていない産地（大鉱床・植林）を同じ門で判定する。
-        foreach (var r in w.Regions)
-        {
-            if (r.State != RegionState.Active) continue;
-            foreach (var p in r.Producers)
+        if (book is not null && dem is not null)
+            foreach (var r in w.Regions)
             {
-                if (!Unfound(p) || !(SiteTerms(w, r, p, c).Score >= GateScore)) continue;
-                OpenSite(w, r, p, c);
+                if (r.State != RegionState.Active) continue;
+                foreach (var p in r.Producers)
+                {
+                    if (!Unfound(p) || !(SiteTerms(w, r, p, c, book, dem, null).Score >= GateScore)) continue;
+                    OpenSite(w, r, p, c);
+                }
             }
-        }
         w.LastDiscoveryView = view;
     }
 
     /// <summary>★産地の発見の2項（(148)・<see cref="Catalog.Sites"/>）＝読むだけ（判定・画面・計器が同じ関数を読む）。伝わりは持たない（他国の発見は自分の土地の鉱床を見つけない）。
-    /// ・技術力＝70×min(1, 国の技術水準÷難易度)（難易度＝年代×Y＝発見の表と同じ1本）。
-    /// ・必要性＝70×強度÷(強度＋半分点 <see cref="Coefficients.DiscoveryNeedHalfSite"/>)・強度＝人の厚み N÷(N＋N0)×その財の実質の値段÷参照価格
-    ///   （設計 §9-1 の提案③＝適性＝入植者×金の値・2026-09-28 作者が採用した提案＝文は AI の整理）。N＝鉱床は入植者＝州の POP の大きさ×中核民族の割合（CoreEthnicShare・現地住民は0で作られ同化で育つ）・
-    ///   植林は住民（樹を植えて樹皮を剥ぐ働き手）。兵士は数えない。N0＝<see cref="Coefficients.ColonyPromotionMinPop"/>（州を名乗れる人の集まり＝(118) と同じ物差し）。
-    ///   実質の値段＝国の州の値段を需要で重み付けた値÷物価水準（死んだ市場＝参照価格＝1）＝デフレの世では金の実質の値打ちが上がり探鉱が進む（金本位の下で名目の金の値段は動かない）。</summary>
-    public static Terms SiteTerms(World w, Region r, Producer p, Coefficients c, double[]? realPrice = null)
+    /// ★(171) 作者 2026-10-02 の発見の必要性の一般則（「発見の必要性は今後、その発見が必要とされた背景や因果ではなく、その発見が生み出すものが代替するものが高いか、で判定する」）と
+    ///   比べる相手（「2でよい」＝代替する物の値段÷その発見が出す物の値段〔同じ時期・同じ国の平滑化した投入の値段から新しいレシピで作る費用〕）を産地の行にも当てた（推奨で進めた・作者の承認は未確認）：
+    /// ・必要性＝70×強度÷(強度＋産地の半分点 <see cref="Coefficients.DiscoveryNeedHalfSite"/>)・強度＝ln（その財の平滑化した値段÷その産地で掘る費用）・1以下は0
+    ///   ＝発見の表の製法の行と同じ形（産地が生み出す物＝その財そのもの＝代替する物も同じ財・半分点は分野ごとに1本）。値段と費用は発見の表と同じ値段の帳（<see cref="PriceBook"/>＝自国の平滑化した値段・
+    ///   市場が死んでいる財は着値か作る費用の安い方・費用＝その産地の生産者の自己費用×自己費用の物価水準÷物価水準＋Σ投入×投入の値段）。国内に需要の無い財は0（使っていない物の代わりは要らない）。
+    ///   ＝デフレの世では金の実質の値段が掘る費用（人の働き）に対して上がり探鉱が進む（金本位の下で名目の金の値段は動かない＝ロコフの金の発見の経済学）。参照価格は読まない。
+    /// ・技術力（見つける力）＝70×min(1, 国の技術水準÷難易度)×人の厚み N÷(N＋N0)（難易度＝年代×Y＝発見の表と同じ1本・N0＝<see cref="Coefficients.DiscoverySiteFindHalfPop"/>）
+    ///   ＝人の厚みは背景（探す人が居るか）＝必要性から外し、見つける力へ移した（発見の表の技術の押し＝自国で作る投入の割合と同じ置き場所）。
+    ///   N＝鉱床は入植者＝州の POP の大きさ×中核民族の割合（CoreEthnicShare・現地住民は0で作られ同化で育つ）・植林は住民（樹を植えて樹皮を剥ぐ働き手）。兵士は数えない。
+    /// ⚠ 旧（(148)〜(169)）＝技術力＝70×min(1, 技術水準÷難易度)・必要性の強度＝人の厚み×その財の実質の値段÷参照価格（設計 §9-1 の提案③＝適性＝入植者×金の値・2026-09-28 作者が採用した提案＝文は AI の整理）
+    ///   ＝作者 2026-10-02 の一般則の「今後」で上書きされると読んだ（AI の読み・作者の承認は未確認）。</summary>
+    /// <param name="realPrice">読む実質の値段の差し替え（計器だけ＝discprobe・既定 null＝エンジンと同じ平滑化した値段）。</param>
+    /// <param name="view">世界の市場（着値）を読む判定の値（既定 null＝その国の直前の判定の値 <see cref="World.LastDiscoveryView"/>＝エンジンが直前の判定に渡した値）。</param>
+    /// <param name="partsOut">計器だけ＝[0] 人の数 N・[1] その財の値段・[2] その産地で掘る費用（立たない値は <see cref="NoPrice"/>）。</param>
+    public static Terms SiteTerms(World w, Region r, Producer p, Coefficients c, double[]? realPrice = null, WorldView? view = null, double[]? partsOut = null)
+    {
+        Score(w, view ?? w.LastDiscoveryView, c, includeKnown: false, realPrice, null, out var book, out var dem);
+        if (book is null || dem is null) return default;   // 稼働中の州が無い国（判定もしない）
+        return SiteTerms(w, r, p, c, book, dem, partsOut);
+    }
+
+    /// <summary>産地の2項の本体（<see cref="Step"/> は判定の値段の帳をそのまま渡す）。</summary>
+    private static Terms SiteTerms(World w, Region r, Producer p, Coefficients c, PriceBook book, double[] dem, double[]? partsOut)
     {
         var site = Catalog.Sites[p.SiteRow];
         double diff = DifficultyOf(site.Decade, c);
@@ -816,41 +843,26 @@ public static class Discovery
             if (q.IsSoldier || !(q.Size > 0)) continue;
             people += site.Kind == Catalog.SiteKind.Deposit ? q.Size * PoliticalQuantities.Clamp01(q.CoreEthnicShare) : q.Size;
         }
-        double n0 = c.ColonyPromotionMinPop;
-        double thick = people > 0 && n0 > 0 ? people / (people + n0) : 0;
-        double s = thick * RealValue(w, site.Good, realPrice);
-        return new Terms(TermMax * ratio, Saturate(s, c.DiscoveryNeedHalfSite), 0);
-    }
-
-    /// <summary>財の実質の値段÷参照価格＝発見の表と同じ平滑化した値段（<see cref="World.DiscoveryPrice"/>・作者裁定 Q12・判定の中では <see cref="Step"/> が同じ四半期に1歩進めた後）。
-    /// 死んだ市場は参照価格＝1（<see cref="InstantReal"/>）。★(150)：生きた市場の判定を発見の表と1本にした（旧＝国内に残る供給〔産出＋輸入−輸出〕で読み、全て輸出する産地の国は1と読んだ）。
-    /// 判定の前（ロード直後・開幕の画面）は瞬間の値。
-    /// ★(165)：平滑化した値段は死んだ市場を観測なし（<see cref="NoPrice"/>）として動かさなくなった＝産地の行は今の四半期に国内の市場が死んでいる財を 1 と読む（(159) と同じ読み・<see cref="AliveNow"/>）。
-    /// 産地の行の物差し（値段÷参照価格・人の厚み）は (165) では変えていない（産地の行は 00一覧 §0-A の 5 の残り）。</summary>
-    private static double RealValue(World w, int g, double[]? realPrice = null)
-    {
-        int ng = Catalog.Goods.Length;
-        double rp = g >= 0 && g < Catalog.RefPrices.Length ? Catalog.RefPrices[g] : 0;
-        if (!(rp > 0) || g >= ng) return 1.0;
-        if (!AliveNow(w, g)) return 1.0;   // 死んだ市場＝普通の値打ち（(159) と同じ）
-        var s = realPrice is { } rpx && rpx.Length >= ng ? rpx : w.DiscoveryPrice;
-        if (s is null || s.Length < ng || !(s[g] >= 0)) s = InstantRealPrices(w);
-        double v = s[g] / rp;
-        return !(v > 0) ? 0 : v;   // 否定形＝NaN は「値打ちが無い」側（見つけない）へ倒す
-    }
-
-    /// <summary>今の四半期に国内のこの財の市場が生きているか（<see cref="Alive"/> の1本・1財だけ州を1周＝産地の行の判定が読む）。</summary>
-    private static bool AliveNow(World w, int g)
-    {
-        double prod = 0, imp = 0, dem = 0;
-        foreach (var r in w.Regions)
+        double n0 = c.DiscoverySiteFindHalfPop > 0 ? c.DiscoverySiteFindHalfPop : 0;   // 否定形＝NaN・負は0（人が居れば厚み1）
+        double thick = people > 0 ? people / (people + n0) : 0;
+        int g = site.Good;
+        double v = NoPrice, cost = NoPrice, s = 0;
+        bool used = g >= 0 && g < dem.Length && dem[g] > 1e-9;   // 使っていない物の代わりは要らない（発見の表の行と同じ）
+        if (used || partsOut is not null)   // 計器は需要の無い国でも値段と費用を読む（判定は読まない）
         {
-            if (r.State != RegionState.Active || g >= r.Markets.Length) continue;
-            var m = r.Markets[g];
-            prod += m.LastProduced; imp += m.LastImport - m.LastExport; dem += m.LastDemand;
+            v = book.Of(g);
+            cost = book.Cost(p);
         }
-        return Alive(dem, prod, imp);
+        if (used)
+        {
+            double x = v > 0 && cost > 0 ? v / cost : 0;
+            s = x > 1.0 ? System.Math.Log(x) : 0;   // 否定形＝NaN は0
+        }
+        if (partsOut is { Length: >= 3 }) { partsOut[0] = people; partsOut[1] = v; partsOut[2] = cost; }
+        return new Terms(TermMax * ratio * thick, Saturate(s, c.DiscoveryNeedHalfSite), 0);
     }
+
+    // ★(171) 旧 RealValue（財の実質の値段÷参照価格・死んだ市場は1）と AliveNow（1財の市場が生きているか）は削除＝産地の行も発見の表と同じ値段の帳（PriceBook）を読む。
 
     /// <summary>産地を開く（(148)）＝2値を立てる（失われない・州と一緒に移る）。鉱床は開口＝即産（操業規模≥1＝ラッシュの形・旧シルバーラッシュと同じ）と
     /// **富鉱**（浅い高品位の鉱脈＝<see cref="Coefficients.GoldRushEndowment"/> を開いた財の生産者だけに＝検討 Q13 (c)・旧＝州の全ての鉱物の MineralDepletion）と

@@ -735,9 +735,30 @@ public class DiscoveryScoreTests
             Assert.True(count[System.Array.FindIndex(Catalog.Sites, x => x.Name == name)] == 1, $"{name} が開始の盤面に無い");
     }
 
+    /// <summary>★(171) 盤面の道具：その国の稼働中の州で財 g の市場を生かし（需要と産出を1）、瞬間と平滑化した実質の値段を <paramref name="real"/> に置く。</summary>
+    private static void SiteMarket(World w, int g, double real)
+    {
+        double pl = w.NominalOf(1.0);
+        foreach (var rr in w.Regions)
+        {
+            if (rr.State != RegionState.Active) continue;
+            var m = rr.Markets[g]; m.Price = real * pl; m.LastDemand = 1; m.LastProduced = 1;
+        }
+        Assert.NotNull(w.DiscoveryPrice);
+        w.DiscoveryPrice![g] = real;
+    }
+
+    /// <summary>★(171) 産地の2項の部品（人の数・その財の値段・その産地で掘る費用）＝エンジンの関数が書く値。</summary>
+    private static (Discovery.Terms T, double People, double V, double Cost) SiteParts(World w, Region r, Producer p, double[]? realPrice = null, Discovery.WorldView? view = null)
+    {
+        var parts = new double[3];
+        var t = Discovery.SiteTerms(w, r, p, w.Coef, realPrice, view, parts);
+        return (t, parts[0], parts[1], parts[2]);
+    }
+
     /// <summary>見つかるまで産まない・見つかったら開く・失われない（2値）＋キナはアンデスだけが開始から（(129) の申し送り）：
-    /// ①アジアのキナ（バタヴィア）の生産者は門0・ペルーの樹皮は門1 ②技術水準0では入植者が厚くても届かない（技術力0＋必要性≦70）
-    /// ③技術水準を難易度へ上げると届いて開く（門1）④技術水準を0へ戻して判定を重ねても開いたまま。
+    /// ①アジアのキナ（バタヴィア）の生産者は門0・ペルーの樹皮は門1 ②技術水準0では住民が厚くても届かない（技術力0＋必要性≦70）
+    /// ③技術水準を難易度へ上げ、樹皮の値段を掘る費用の e³ 倍に置くと届いて開く（門1）④技術水準を0へ戻して判定を重ねても開いたまま。
     /// ⚠壊し方＝門が SiteFound を読まない（常に1）→ ①が赤／判定で SiteFound を戻す → ④が赤。</summary>
     [Fact]
     public void 産地は見つかるまで産まない_見つかったら開いて失われない()
@@ -765,9 +786,13 @@ public class DiscoveryScoreTests
         Assert.False(p.SiteFound, "技術力0で開いた");
 
         w.TechLevel = Discovery.DifficultyOf(Catalog.Sites[p.SiteRow].Decade, w.Coef) * 2;
+        int g = Catalog.Sites[p.SiteRow].Good;
+        var b = SiteParts(w, r, p);
+        Assert.True(b.Cost > 0 && b.People > 0, $"前提が崩れた（掘る費用 {b.Cost}・住民 {b.People}）");
+        SiteMarket(w, g, b.Cost * System.Math.Exp(3.0));
         var t1 = Discovery.SiteTerms(w, r, p, w.Coef);
-        Assert.Equal(Discovery.TermMax, t1.Tech);
-        Assert.True(t1.Score >= Discovery.GateScore, $"技術力70でも住民×樹皮の値で届かない（{t1}）");
+        Assert.True(t1.Tech > 0 && t1.Tech <= Discovery.TermMax, $"技術力が範囲の外（{t1}）");
+        Assert.True(t1.Score >= Discovery.GateScore, $"技術力と樹皮の値段（掘る費用の e³ 倍）で届かない（{t1}）");
         Discovery.Step(w, null, w.Coef);
         Assert.True(p.SiteFound);
         Assert.Equal(1.0, Discovery.Gate(r, p));
@@ -779,27 +804,99 @@ public class DiscoveryScoreTests
         w.TechLevel = tech0;
     }
 
-    /// <summary>鉱床の必要性は入植者（その国の中核民族の人数）×財の値（設計 §9-1 の提案③・2026-09-28 作者が採用した提案＝文は AI の整理）・植林は住民：
-    /// 同じ州の住民を全て中核民族でなくすと、鉱床（ルイジアナの硫黄）の必要性は0＝技術力70だけでは届かない／植林（ジャワのキナ）の必要性は変わらない。
-    /// ⚠壊し方＝鉱床の人の厚みを住民で数える → 鉱床の必要性が0にならない＝赤。</summary>
+    /// <summary>★(171) 人の厚みは見つける力（技術力の側）＝鉱床は入植者（その国の中核民族の人数）・植林は住民：
+    /// 同じ州の住民を全て中核民族でなくすと、鉱床（ルイジアナの硫黄）の技術力は0＝必要性（≦70）だけでは届かない・必要性は変わらない（人は必要性に入らない）／
+    /// 植林（ジャワのキナ）の技術力は変わらない。旧（(148)〜(169)）＝人の厚みは必要性の側（入植者×財の値＝2026-09-28 作者が採用した提案③＝文は AI の整理）。
+    /// ⚠壊し方＝鉱床の人の厚みを住民で数える → 鉱床の技術力が0にならない＝赤／技術力が人の厚みを掛けない → 赤。</summary>
     [Fact]
-    public void 鉱床は入植者が居なければ見つからない_植林は住民で見る()
+    public void 鉱床は入植者が居なければ見つけられない_植林は住民で見る()
     {
         var sim = Board();
         var (w, r, p) = Site(sim, "ルイジアナの硫黄");
         w.TechLevel = Discovery.DifficultyOf(Catalog.Sites[p.SiteRow].Decade, w.Coef) * 2;
-        Assert.True(Discovery.SiteTerms(w, r, p, w.Coef).Need > 0, "前提が崩れた（入植者が居るのに必要性0）");
+        var b = SiteParts(w, r, p);
+        SiteMarket(w, Catalog.Sites[p.SiteRow].Good, b.Cost * System.Math.Exp(3.0));   // 必要性を立てる（人が居なくても必要性は変わらないことを見る）
+        var t0 = Discovery.SiteTerms(w, r, p, w.Coef);
+        Assert.True(t0.Tech > 0 && t0.Need > 0, $"前提が崩れた（入植者が居るのに技術力か必要性が0・{t0}）");
         foreach (var q in r.Pops) q.CoreEthnicShare = 0;
         var t = Discovery.SiteTerms(w, r, p, w.Coef);
-        Assert.Equal(0.0, t.Need);
+        Assert.Equal(0.0, t.Tech);
+        Assert.Equal(t0.Need, t.Need);
         Discovery.Step(w, null, w.Coef);
         Assert.False(p.SiteFound, $"入植者0の鉱床が開いた（{t}）");
 
         var (wk, rk, pk) = Site(sim, "ジャワのキナ");
-        double before = Discovery.SiteTerms(wk, rk, pk, wk.Coef).Need;
-        Assert.True(before > 0, "前提が崩れた（植林の必要性0）");
+        wk.TechLevel = Discovery.DifficultyOf(Catalog.Sites[pk.SiteRow].Decade, wk.Coef) * 2;
+        double before = Discovery.SiteTerms(wk, rk, pk, wk.Coef).Tech;
+        Assert.True(before > 0, "前提が崩れた（植林の技術力0）");
         foreach (var q in rk.Pops) q.CoreEthnicShare = 0;
-        Assert.Equal(before, Discovery.SiteTerms(wk, rk, pk, wk.Coef).Need);
+        Assert.Equal(before, Discovery.SiteTerms(wk, rk, pk, wk.Coef).Tech);
+    }
+
+    /// <summary>★(171) 産地の必要性は作者 2026-10-02 の一般則と「2でよい」の物差し（推奨で進めた・作者の承認は未確認）＝ln（その財の平滑化した値段÷その産地で掘る費用）を
+    /// 産地の半分点で飽和（発見の表の製法の行と同じ形）・技術力（見つける力）＝70×min(1, 技術水準÷難易度)×N÷(N＋N0)。盤面＝ルイジアナの硫黄（技術水準＝難易度の2倍）：
+    /// ①硫黄の値段を掘る費用の2倍に置くと必要性＝70×ln2÷(ln2＋産地の半分点)（参照価格は読まない＝掘る費用は参照価格と1%以上違う）
+    /// ②掘る費用の0.9倍なら0 ③国内に需要が無ければ（世界の値段が掘る費用の2倍でも）0 ④入植者の数を半分にしても必要性は1ビットも変わらず、技術力は 70×N÷(N＋N0) のとおり
+    /// ⑤投入（農業労働力）の値段を2倍にすると掘る費用が上がり必要性が下がる ⑥判定（Step）は届けば開く＝呼び手も同じ値段の帳を読む。
+    /// ⚠壊し方＝必要性を参照価格と比べる／人の厚み×値段÷参照価格（旧の形）→ ①が赤／人の厚みを必要性に掛ける → ④が赤／投入を読まない → ⑤が赤／需要の門を外す → ③が赤。</summary>
+    [Fact]
+    public void 産地の必要性はその財の値段と産地で掘る費用の比_人の厚みは見つける力()
+    {
+        var sim = Board();
+        var (w, r, p) = Site(sim, "ルイジアナの硫黄");
+        var c = w.Coef;
+        int g = Catalog.Sites[p.SiteRow].Good;
+        w.TechLevel = Discovery.DifficultyOf(Catalog.Sites[p.SiteRow].Decade, c) * 2;
+        foreach (var q in r.Pops) q.CoreEthnicShare = 1;
+        var b = SiteParts(w, r, p);
+        Assert.True(b.Cost > 0 && b.People > 0, $"前提が崩れた（掘る費用 {b.Cost}・入植者 {b.People}）");
+        Assert.True(System.Math.Abs(b.Cost / Catalog.RefPrices[g] - 1.0) > 0.01, $"前提が崩れた（掘る費用が参照価格と同じ・{b.Cost}）");
+        double half = c.DiscoveryNeedHalfSite;
+        // ①
+        SiteMarket(w, g, 2.0 * b.Cost);
+        var t1 = SiteParts(w, r, p);
+        Assert.Equal(2.0 * b.Cost, t1.V, 12);
+        Assert.Equal(b.Cost, t1.Cost, 12);
+        Assert.Equal(Discovery.TermMax * System.Math.Log(2.0) / (System.Math.Log(2.0) + half), t1.T.Need, 9);
+        // ②
+        SiteMarket(w, g, 0.9 * b.Cost);
+        Assert.Equal(0.0, SiteParts(w, r, p).T.Need);
+        // ③ 国内に需要が無い（市場が死んでいる）＝世界の値段（運賃と関税の無い市場）が費用の2倍でも0
+        //   （盤面＝ジャワのキナ＝蘭は樹皮を作る門の開いた生産者を持たない＝手に入れる値段は世界の値段。硫黄は米の他の州が同じレシピで作る＝値段≦費用で門を見られない）
+        var (wj, rj, pj) = Site(sim, "ジャワのキナ");
+        int gj = Catalog.Sites[pj.SiteRow].Good;
+        var bj = SiteParts(wj, rj, pj);
+        Assert.True(bj.Cost > 0, $"前提が崩れた（植えて剥ぐ費用 {bj.Cost}）");
+        foreach (var rr in wj.Regions) if (rr.State == RegionState.Active) rr.Markets[gj].LastDemand = 0;
+        var px3 = (double[])wj.DiscoveryPrice!.Clone(); px3[gj] = 2.0 * bj.Cost;
+        var t3 = SiteParts(wj, rj, pj, null, new Discovery.WorldView(null, null, Discovery.WorldMarket.Flat(px3)));
+        Assert.True(t3.V > 1.5 * t3.Cost, $"前提が崩れた（需要の無い国で値段が費用を超えない＝需要の門を見られない・{t3.V}÷{t3.Cost}）");
+        Assert.Equal(0.0, t3.T.Need);
+        // ④
+        SiteMarket(w, g, 2.0 * b.Cost);
+        double n0 = c.DiscoverySiteFindHalfPop;
+        Assert.Equal(Discovery.TermMax * t1.People / (t1.People + n0), t1.T.Tech, 9);
+        foreach (var q in r.Pops) q.CoreEthnicShare = 0.5;
+        var t4 = SiteParts(w, r, p);
+        Assert.Equal(0.5 * t1.People, t4.People, 9);
+        Assert.Equal(t1.T.Need, t4.T.Need);
+        Assert.Equal(Discovery.TermMax * t4.People / (t4.People + n0), t4.T.Tech, 9);
+        foreach (var q in r.Pops) q.CoreEthnicShare = 1;
+        // ⑤ 投入の値段＝農業労働力の平滑化した値段（国内の市場を生かして2倍）
+        Assert.Contains(p.Inputs, i => i.GoodId == Catalog.FarmLaborId);
+        double fl = w.DiscoveryPrice![Catalog.FarmLaborId];
+        Assert.True(fl > 0, $"前提が崩れた（農業労働力の値段 {fl}）");
+        SiteMarket(w, Catalog.FarmLaborId, 2.0 * fl);
+        var t5 = SiteParts(w, r, p);
+        Assert.True(t5.Cost > b.Cost * 1.01 && t5.T.Need < t1.T.Need, $"投入の値段が掘る費用に入らない（費用 {b.Cost}→{t5.Cost}・必要性 {t1.T.Need}→{t5.T.Need}）");
+        SiteMarket(w, Catalog.FarmLaborId, fl);
+        // ⑥ 判定＝届けば開く（値段を掘る費用の e³ 倍・見つける力の人の半分点を入植者の 1/9 へ＝厚み 0.9）
+        c.DiscoverySiteFindHalfPop = t1.People / 9.0;
+        SiteMarket(w, g, b.Cost * System.Math.Exp(3.0));
+        var t6 = SiteParts(w, r, p);
+        Assert.True(t6.T.Score >= Discovery.GateScore, $"前提が崩れた（届かない・{t6.T}）");
+        Discovery.Step(w, w.LastDiscoveryView, c);
+        Assert.True(p.SiteFound, "判定が産地の2項で届いても開かない");
     }
 
     /// <summary>開いた鉱床の富鉱は開いた財の生産者だけ（検討 Q13 (c)・旧＝州の全ての鉱物の MineralDepletion）：同じ州の他の生産者の生産性は1ビットも変わらない・
@@ -1207,36 +1304,38 @@ public class DiscoveryScoreTests
     }
 
     /// <summary>判定は一過性の値段の跳ねでは開かない（作者裁定 Q12・(148) の申し送り＝値段の跳ねで必要性が飽和して樹皮と硫黄の産地が早く開いた）。
-    /// 盤面＝ルイジアナの硫黄（技術力70・入植者を薄く）：平滑化した値段を参照価格に置くと門に届かない・瞬間の値段だけを門の2倍の強度へ跳ねさせて判定を1回＝開かない
-    /// （平滑化した値段は1歩だけ動く）。⚠壊し方＝判定が瞬間の値段を読む → 開く＝赤。</summary>
+    /// 盤面＝ルイジアナの硫黄（技術水準＝難易度の2倍・★(171) 見つける力の人の半分点を入植者の 1/9＝厚み 0.9＝技術力 63）：平滑化した値段を掘る費用に置くと必要性0＝門に届かない・
+    /// 瞬間の値段だけを門の2倍の強度へ跳ねさせて判定を1回＝開かない（平滑化した値段は1歩だけ動く）。⚠壊し方＝判定が瞬間の値段を読む → 開く＝赤。</summary>
     [Fact]
     public void 判定は一過性の値段の跳ねでは開かない()
     {
         var sim = Board();
         var (w, r, p) = Site(sim, "ルイジアナの硫黄");
-        var c = w.Coef; int g = Catalog.Sites[p.SiteRow].Good; double rp = Catalog.RefPrices[g];
-        w.TechLevel = Discovery.DifficultyOf(Catalog.Sites[p.SiteRow].Decade, c) * 2;   // 技術力70
-        foreach (var q in r.Pops) q.CoreEthnicShare = 0.02;                               // 入植者を薄く
-        Assert.NotNull(w.DiscoveryPrice);
-        w.DiscoveryPrice![g] = rp;                                                          // 平滑化した値段＝参照価格（実質の値段1）
+        var c = w.Coef; int g = Catalog.Sites[p.SiteRow].Good;
+        w.TechLevel = Discovery.DifficultyOf(Catalog.Sites[p.SiteRow].Decade, c) * 2;
+        foreach (var q in r.Pops) q.CoreEthnicShare = 1;
+        var b = SiteParts(w, r, p);
+        Assert.True(b.Cost > 0 && b.People > 0, $"前提が崩れた（掘る費用 {b.Cost}・入植者 {b.People}）");
+        c.DiscoverySiteFindHalfPop = b.People / 9.0;                                        // 見つける力＝70×0.9＝63
+        SiteMarket(w, g, b.Cost);                                                           // 平滑化した値段＝掘る費用（強度0）
         var t1 = Discovery.SiteTerms(w, r, p, c);
-        Assert.True(t1.Score < Discovery.GateScore, $"前提が崩れた（値段が普通でも開く・{t1.Score:F1}）");
+        Assert.True(t1.Score < Discovery.GateScore && t1.Need == 0, $"前提が崩れた（値段が費用と同じでも開く・{t1}）");
         double half = c.DiscoveryNeedHalfSite;
-        double thick = half * t1.Need / (Discovery.TermMax - t1.Need);                      // 実質の値段1のときの強度＝人の厚み
         double need = Discovery.GateScore - t1.Tech;
+        Assert.True(need > 0 && need < Discovery.TermMax, $"前提が崩れた（技術力 {t1.Tech:F1}）");
         double sOpen = half * need / (Discovery.TermMax - need);                            // 門に届く強度
-        double v = 2.0 * sOpen / thick;                                                     // 瞬間の値段で門の2倍の強度になる実質の値段（参照価格の倍）
+        double v = b.Cost * System.Math.Exp(2.0 * sOpen);                                   // 瞬間の値段で門の2倍の強度になる値段
         double a = Discovery.PriceSmoothingQ(c);
-        Assert.True(thick * (1 + a * (v - 1)) < sOpen, "前提が崩れた（平滑でも届く跳ね）");
+        Assert.True(System.Math.Log((b.Cost + a * (v - b.Cost)) / b.Cost) < sOpen, "前提が崩れた（平滑でも届く跳ね）");
         double pl = w.NominalOf(1.0);
         foreach (var rr in w.Regions)
         {
             if (rr.State != RegionState.Active) continue;
-            var m = rr.Markets[g]; m.Price = v * rp * pl; m.LastDemand = 1; m.LastProduced = 1;   // 生きた市場で瞬間の値段だけ跳ねる
+            rr.Markets[g].Price = v * pl;                                                   // 生きた市場で瞬間の値段だけ跳ねる
         }
         Assert.True(Discovery.SiteTerms(w, r, p, c, Discovery.InstantRealPrices(w)).Score >= Discovery.GateScore, "前提が崩れた（瞬間の値段でも門に届かない）");
         Discovery.AdvancePrice(w, c); Discovery.Step(w, w.LastDiscoveryView, c);   // 判定の段（頭で平滑を1歩・判定は読むだけ）
         Assert.False(p.SiteFound, "一過性の値段の跳ねで産地が開いた（判定が平滑化した値段を読んでいない）");
-        Assert.Equal(rp + a * (v * rp - rp), w.DiscoveryPrice![g], 9);
+        Assert.Equal(b.Cost + a * (v - b.Cost), w.DiscoveryPrice![g], 9);
     }
 }

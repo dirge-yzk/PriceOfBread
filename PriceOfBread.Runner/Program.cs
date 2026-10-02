@@ -4306,8 +4306,8 @@ if (args.Length > 0 && args[0] == "discprobe")
     string[] keyRows = ["蒸気機関", "甜菜糖", "機関車", "汽船", "転炉鋼", "石炭火力", "電動機", "機関銃", "装甲艦", "自動車", "ラジオ", "合成ゴム", "窒素固定"];
     if (args.Length > 4) keyRows = args[4] == "all" ? rowsDp.Select(x => x.Name).ToArray() : args[4].Split(',');   // 断面に出す行（誰も発見しない行の3項を読む）
     string NameOf(World w) => w.SelfPower?.BaseName ?? w.Region.Name;
-    Console.WriteLine($"# discprobe seed={dpSeed} 四半期={dpQ}　Y={cDp.DiscoveryTechPerDecade}・半分点 製法{cDp.DiscoveryNeedHalfProcess}/新兵器{cDp.DiscoveryNeedHalfWeapon}/新製品{cDp.DiscoveryNeedHalfProduct}/制度{cDp.DiscoveryNeedHalfInstitution}/思想{cDp.DiscoveryNeedHalfIdea}/伝わり{cDp.DiscoveryContactHalf}/産地{cDp.DiscoveryNeedHalfSite}");
-    // ★(148) 産地の発見（Catalog.Sites）＝産地の生産者の2値の立ち上がり（年・国・州・行＜直前の四半期の 技術力/必要性＞）と、断面ごとのまだの産地の2項・人の厚み・財の実質の値段
+    Console.WriteLine($"# discprobe seed={dpSeed} 四半期={dpQ}　Y={cDp.DiscoveryTechPerDecade}・半分点 製法{cDp.DiscoveryNeedHalfProcess}/新兵器{cDp.DiscoveryNeedHalfWeapon}/新製品{cDp.DiscoveryNeedHalfProduct}/制度{cDp.DiscoveryNeedHalfInstitution}/思想{cDp.DiscoveryNeedHalfIdea}/伝わり{cDp.DiscoveryContactHalf}/産地{cDp.DiscoveryNeedHalfSite}・産地の見つける力の人の半分点{cDp.DiscoverySiteFindHalfPop}");
+    // ★(148) 産地の発見（Catalog.Sites）＝産地の生産者の2値の立ち上がり（年・国・州・行＜直前の四半期の 技術力/必要性＞）と、断面ごとのまだの産地の2項・人の数・財の値段÷掘る費用（(171)）
     // ★(150)→(159) 値段の跳ねで決まった解禁（作者裁定 Q12「平滑化した価格」・計器だけ）＝値段を読む行（製法・新製品＝(159) から生み出す物の値段）と産地の発見の出来事のうち、
     //   判定の値段（エンジンと同じ平滑化した値段）で点数が100以上だが、持続する値段（瞬間の実質の値段の直近 N 四半期の平均・その四半期を含む）で読むと100に届かない解禁（AI の定義）。
     //   ★(159)：N＝判定の平滑と同じ平均の遅れ（指数平滑の遅れ (1−率)÷率＝窓の平均の遅れ (N−1)÷2 → N＝2(1−率)÷率＋1 の四捨五入・(154) 反証の指摘「物差しの遅れ」をそろえた）。
@@ -4376,10 +4376,9 @@ if (args.Length > 0 && args[0] == "discprobe")
                 foreach (var p in rg.Producers)
                 {
                     if (p.SiteRow < 0 || p.SiteFound) continue;
-                    var st = Discovery.SiteTerms(w, rg, p, w.Coef);
-                    double half = w.Coef.DiscoveryNeedHalfSite;
-                    double sv = st.Need < Discovery.TermMax - 1e-9 ? half * st.Need / (Discovery.TermMax - st.Need) : double.PositiveInfinity;
-                    parts.Add($"{Catalog.Sites[p.SiteRow].Name}＠{rg.Name}（{NameOf(w)}・技術 {w.TechLevel:F2}）={st.Tech:F0}/{st.Need:F0}｜強度{sv:G3}");
+                    var sp3 = new double[3];   // ★(171) 人の数・その財の値段・その産地で掘る費用（エンジンの関数が書く＝式を写さない）
+                    var st = Discovery.SiteTerms(w, rg, p, w.Coef, partsOut: sp3);
+                    parts.Add($"{Catalog.Sites[p.SiteRow].Name}＠{rg.Name}（{NameOf(w)}・技術 {w.TechLevel:F2}）={st.Tech:F0}/{st.Need:F0}｜人{sp3[0]:G3}・値段{sp3[1]:G3}÷費用{sp3[2]:G3}");
                 }
         }
         Console.WriteLine("    産地（まだ）: " + (parts.Count > 0 ? string.Join("  ", parts) : "—"));
