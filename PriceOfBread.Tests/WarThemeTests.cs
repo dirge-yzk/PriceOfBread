@@ -73,19 +73,37 @@ public class WarThemeTests
         Assert.True(w2.Policy.NavyUpkeepTarget > tgt0, $"要求が目標を置けない（{tgt0:F3}→{w2.Policy.NavyUpkeepTarget:F3}）");
     }
 
+    /// <summary>海軍シェアは払った金の比（維持費の 海÷(陸＋海)＝<see cref="World.NavalSpendShare"/>）だけから決まる（作者裁定 2026-08-10・(151)）。
+    /// ★(176) 盤面の直し（線は「同じ入力だけから決まる」のまま・許しは 0.05→1e-9 へ厳しくした）：旧＝既定の建艦の遅れ（月 0.3 の EMA）と交戦の艦隊摩耗のまま
+    ///   120 四半期の後に |海軍シェア−維持費の比|＜0.05 を見た＝遅れが収束している前提の盤面。(176) の軌道で立憲王政イギリスの維持費の比が最後の四半期に
+    ///   0.789→0.918 と跳ね（3か月の EMA の残り 0.7³＝0.343 → 0.054）前提が崩れた（機構は変わっていない）。
+    ///   ⇒ 盤面で遅れと摩耗を外す（建艦の遅れ 1＝即時・摩耗0）＝残る入力は維持費の比だけ＝全ての四半期の終わりで厳密に一致する（地理の比やクランプが混じれば赤）。
+    /// 建艦の遅れ（0.3）と摩耗の既定は「テーマE_既定係数が方針どおり」が見る。</summary>
     [Fact]
     public void 海軍シェアは払った金の比だけから決まる()
     {
         var sim = new MultiNationSim(FourNations(), seed: 1789);
         var c = sim.Coef;
-        sim.Run(120);   // 建艦EMA（NavalBuildRate=0.3・90%到達に約7ヶ月）が十分に落ち着く長さ
-        foreach (var n in sim.Nations)
+        c.NavalBuildRate = 1.0;       // 建艦の遅れを外す（即時＝Diplomacy の EMA の 1.0 の枝）
+        c.NavalAttritionRate = 0.0;   // 交戦の艦隊摩耗を外す（海軍シェアを削るもう1つの入力）
+        int seen = 0;
+        var before = new System.Collections.Generic.HashSet<Power>();
+        for (int q = 0; q < 120; q++)
         {
-            var p = n.World.SelfPower!;
-            double expected = n.World.NavalSpendShare;   // 維持費の比＝唯一の入力（(151)：下限0.05・上限0.60 のクランプは外した＝思想⑧）
-            Assert.True(Math.Abs(p.NavalShare - expected) < 0.05,
-                $"{p.BaseName}の海軍シェアが維持費比から外れた（実{p.NavalShare:F3} 期待{expected:F3}・陸{n.World.ArmyUpkeep:F3}/海{n.World.NavyUpkeep:F3}）");
+            before.Clear();
+            foreach (var n0 in sim.Nations) before.Add(n0.World.SelfPower!);
+            sim.Run(1);
+            foreach (var n in sim.Nations)
+            {
+                var p = n.World.SelfPower!;
+                if (!before.Contains(p)) continue;   // その四半期に建国した国（分離独立・内戦分裂）＝外交の月の歩をまだ通っていない
+                double expected = n.World.NavalSpendShare;   // 維持費の比＝唯一の入力（(151)：下限0.05・上限0.60 のクランプは外した＝思想⑧）
+                Assert.True(Math.Abs(p.NavalShare - expected) < 1e-9,
+                    $"Q{q + 1} {p.BaseName}の海軍シェアが維持費比から外れた（実{p.NavalShare:F6} 期待{expected:F6}・陸{n.World.ArmyUpkeep:F3}/海{n.World.NavyUpkeep:F3}）");
+                seen++;
+            }
         }
+        Assert.True(seen >= 4 * 100, $"盤面が空回り（見た国×四半期 {seen}）");
     }
 
     // ===== 戦争タブの「犠牲者」と「戦費」の番人（2026-09-23）=====

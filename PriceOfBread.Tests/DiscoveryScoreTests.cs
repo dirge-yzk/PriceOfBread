@@ -311,7 +311,7 @@ public class DiscoveryScoreTests
     /// 必要性の強度＝ln（代替する物の平滑化した値段×換算の比÷新しいレシピで作る費用〔自己費用×自己費用の物価水準÷物価水準＋Σ投入×平滑化した値段〕）・1以下は0：
     /// ①製法（人絹＝絹織物）＝絹が人絹の費用の2倍なら ln 2・費用と同じなら0・関係の無い財（馬）を高くしても動かない・投入（製材）を高くすると下がる＝参照価格ではなく今の費用と比べる
     /// ②新製品（ガス灯＝灯油）＝換算の比（新しい財1単位が置き換える代替する物の量＝普通の値段で同じ値打ち＝ガスの参照価格÷灯油の参照価格）を掛けた灯油の値段がガスの費用の2倍なら ln 2
-    /// ③機関車＝陸の輸送の値段÷鉄道の輸送の費用（運転の費用＝清算の陸路の費用の鉄道÷馬＋★(169) 線路と機関車の資本の費用÷馬の運賃・内陸の州の潜在量で重み付け）④代替する物の需要が国内に無いと0
+    /// ③機関車＝★(176) 陸の輸送の値段のうち割高の分（値段−1）÷鉄道の輸送の費用（運転の費用＝清算の陸路の費用の鉄道÷馬＋★(169) 線路と機関車の資本の費用÷馬の運賃・内陸の州の潜在量で重み付け）④代替する物の需要が国内に無いと0
     /// ⑤陸の輸送の値段＝(1÷通した割合)^(1/2ε)・通した割合0 は財の値段の天井（PriceCeilFactor）。
     /// ⚠壊し方＝参照価格と比べる（(159) の形）・代替する物の欄を読まない・換算の比を掛けない・投入の値段を読まない・機関車の比べる相手を1にする・機関車の資本の費用を読まない（★(169)）・
     ///   陸の輸送を使っていない国の機関車を運転の費用で読む（★(169)）・需要の無い財を読む → 赤。
@@ -390,7 +390,7 @@ public class DiscoveryScoreTests
         Assert.True(rail > sumRun / pot && double.IsFinite(rail), $"前提が崩れた（鉄道の輸送の費用 {rail}・運転だけ {sumRun / pot}）");
         // 資本の費用を読む＝線路の値段を上げると鉄道の輸送の費用が上がり必要性が下がる（陸の運賃は同じ）
         {
-            var pr = (double[])basePx.Clone(); pr[ng] = 2.0 * rail;
+            var pr = (double[])basePx.Clone(); pr[ng] = 1.0 + 2.0 * rail;   // ★(176) 割高の分（値段−1）＝鉄道の費用の2倍
             foreach (var inp in repL.Inputs) if (inp.QtyPerOutput > 0 && inp.GoodId != Catalog.LaborId && inp.GoodId != Catalog.AdvLaborId) pr[inp.GoodId] *= 20.0;   // 機関車の資本財の投入を高くする
             double pLocoDear = CostByHand(w, repL, pr);
             double railDear = (sum - sumRun) / pot * (cc.TransportDecay * (RailPx(pr) + pLocoDear) / (2.0 * cc.TransportCapPerUnit)) / capital + sumRun / pot;
@@ -398,9 +398,11 @@ public class DiscoveryScoreTests
             Assert.Equal(sD > 0 ? NeedOf(loco, sD) : 0, Needs(pr)[loco], 9);
             Assert.True(Needs(pr)[loco] < NeedOf(loco, System.Math.Log(2.0)) - 1e-9, "機関車の比べる相手が線路と機関車の資本の値段を読まない");
         }
-        var pl = (double[])basePx.Clone(); pl[ng] = 2.0 * rail;
+        var pl = (double[])basePx.Clone(); pl[ng] = 1.0 + 2.0 * rail;   // ★(176) 割高の分（値段−1）＝鉄道の費用の2倍
         Assert.Equal(NeedOf(loco, System.Math.Log(2.0)), Needs(pl)[loco], 9);
-        pl[ng] = rail * 0.5;   // 鉄道の方が高い＝不足なし
+        pl[ng] = 1.0 + rail * 0.5;   // 割高の分が鉄道の費用より小さい
+        Assert.Equal(0.0, Needs(pl)[loco]);
+        pl[ng] = 1.0;   // ★(176) 輸送の不足なし（陸の運賃＝普通の1）＝0（鉄道の方が安い盤面は下の「機関車の必要性は輸送の不足の分だけ」の番人）
         Assert.Equal(0.0, Needs(pl)[loco]);
         // ★(169) 陸の輸送を使っていない国（内陸の州の潜在の交易が0）は必要性0＝代替する物の需要が無ければ0（他の行と同じ規則・旧＝運転の費用だけ＝島国も必要性 54）
         {
@@ -524,6 +526,48 @@ public class DiscoveryScoreTests
         foreach (int g in repS.Inputs.Where(i => i.QtyPerOutput > 0).Select(i => i.GoodId).Append(gs)) { cheap[g] = 0.1 * px[g]; dear[g] = 10.0 * px[g]; }
         Assert.Equal(baseNeed, NeedWith(cheap), 12);
         Assert.Equal(baseNeed, NeedWith(dear), 12);
+    }
+
+    /// <summary>★(176) 機関車の必要性は輸送の不足の分だけ（作者 2026-10-02「鉄道研究の必要性は、軍事力ではなく、輸送力の不足から導かれるべきだ」の字義＝輸送の不足が無い国では必要性0・
+    /// 割高の分の読みは推奨で進めた＝作者の承認は未確認）＝判定の本線（内陸の州の律速率→陸の運賃〔<see cref="Discovery.InstantRealPrices"/> の末尾の1欄〕→判定）を通す盤面：
+    /// ①全ての内陸の州が通した割合1（輸送が交易を絞っていない）＝陸の運賃1＝鉄道の輸送の費用が馬より安くても必要性0（旧 (165)〜(174)＝ln(1÷鉄道の費用)＝必要性 36〜54）
+    /// ②通した割合 0.25（陸の運賃4）＝ln(割高の分3÷鉄道の輸送の費用)・判定の計器の2つの値（代替する物＝割高の分・費用＝鉄道の輸送の費用）が式と一致
+    /// ③不足が深いほど（通した割合 0.1）必要性が上がる。⚠壊し方＝陸の運賃の全体を読む（(174) の形）→ ①が赤・割高の分から1を引かない形の取り違え → ②が赤。</summary>
+    [Fact]
+    public void 機関車の必要性は輸送の不足の分だけ_通した割合1の国は0()
+    {
+        var sim = Board();
+        var w = Nation(sim, "イギリス");
+        int ng = Catalog.Goods.Length, loco = Row("機関車"), nr = Catalog.Discoveries.Length;
+        var repL = RepOf(w, loco);
+        var rgA = w.Regions.First(r => r.State == RegionState.Active);
+        foreach (int g0 in repL.Inputs.Where(i => i.QtyPerOutput > 0).Select(i => i.GoodId).Append(Catalog.RailId))
+        { rgA.Markets[g0].LastDemand = System.Math.Max(1.0, rgA.Markets[g0].LastDemand); rgA.Markets[g0].LastProduced = System.Math.Max(1.0, rgA.Markets[g0].LastProduced); }
+        var basePx = (double[])w.DiscoveryPrice!.Clone();
+        for (int i = 0; i < ng; i++) if (!(basePx[i] >= 0)) basePx[i] = Catalog.RefPrices[i];
+        // 線路と機関車の資本財を安くする＝鉄道の輸送の費用がほぼ運転の費用（馬の運賃の約1/4）＝鉄道の方が馬より安い盤面（旧の形なら不足が無くても必要性が立つ）
+        foreach (int g0 in repL.Inputs.Where(i => i.QtyPerOutput > 0 && i.GoodId != Catalog.LaborId && i.GoodId != Catalog.AdvLaborId).Select(i => i.GoodId).Append(Catalog.RailId)) basePx[g0] *= 0.01;
+        int inland = 0;
+        foreach (var rg in w.Regions) if (rg.State == RegionState.Active && !rg.IsPort) rg.LastTradePotential = 1.0 + ++inland;
+        Assert.True(inland > 0, "前提が崩れた（英に内陸の州が無い）");
+        (double Need, double Px, double V, double Cost) At(double throttle)
+        {
+            foreach (var rg in w.Regions) if (rg.State == RegionState.Active && !rg.IsPort) rg.LastTradeThrottle = throttle;
+            var px = (double[])basePx.Clone(); px[ng] = Discovery.InstantRealPrices(w)[ng];   // 本線の陸の運賃
+            var ro = new (double Replaced, double Cost)[nr];
+            var t = Discovery.Evaluate(w, new Discovery.WorldView(null, null, Discovery.WorldMarket.Flat(px)), w.Coef, includeKnown: true, realPrice: px, ratioOut: ro);
+            return (t[loco].Need, px[ng], ro[loco].Replaced, ro[loco].Cost);
+        }
+        var full = At(1.0);
+        Assert.Equal(1.0, full.Px, 12);
+        Assert.True(full.Cost > 0 && full.Cost < 1.0, $"前提が崩れた（鉄道の輸送の費用 {full.Cost} が馬の運賃以上＝旧の形でも0 の盤面）");
+        Assert.Equal(0.0, full.Need);
+        var q = At(0.25);
+        Assert.Equal(q.Px - 1.0, q.V, 12);
+        double s = System.Math.Log((q.Px - 1.0) / q.Cost);
+        Assert.True(s > 0, $"前提が崩れた（割高の分 {q.Px - 1.0} が鉄道の費用 {q.Cost} 以下）");
+        Assert.Equal(Discovery.TermMax * s / (s + Discovery.NeedHalf(DiscoveryField.Product, w.Coef)), q.Need, 9);
+        Assert.True(At(0.1).Need > q.Need, "不足が深いほど必要性が上がらない");
     }
 
     /// <summary>★(166) 陸の運賃（機関車の必要性の入力）の天井は財の値段と同じ漸近形＝内側はほぼ 1÷通した割合（通した割合 0.5 で 2）・天井（PriceCeilFactor）へ漸近して超えない・

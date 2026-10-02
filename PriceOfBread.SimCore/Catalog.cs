@@ -636,7 +636,7 @@ public static class Catalog
         new("ガス灯", GasId, "", DiscoveryField.Product, 1810, Replaces: LampOilId),      // マードック1792・商用1812＝灯油（鯨油・菜種油のランプ）とろうそくの灯りを置き換えた
         new("缶詰", CannedFoodId, "", DiscoveryField.Product, 1810, Replaces: PreservedMeatId, Line: "缶詰", Tier: 1),   // アペール法1809・ブリキ缶1810＝塩漬けの肉（艦隊と軍の糧食・1795 の懸賞）を置き換えた
         new("汽船", SteamshipId, "", DiscoveryField.Product, 1820, Replaces: SailingShipId, After: "高圧機関"),   // クラーモント1807〜外洋1830s（Q11＝中間）＝帆船・★(174) 蒸気機関の段2（高圧）が前提
-        new("機関車", LocomotiveId, "", DiscoveryField.Product, 1820, Replaces: LandFreight, After: "高圧機関"),   // ストックトン＝ダーリントン1825・ロケット号1829＝陸の輸送（馬車・運河の荷船＝内陸の輸送の容量）・★(174) 蒸気機関の段2（高圧）が前提＝(172) の不具合（英以外の9か国で機関車が蒸気機関より先）を構造で直す
+        new("機関車", LocomotiveId, "", DiscoveryField.Product, 1820, Replaces: LandFreight, After: "高圧機関"),   // ストックトン＝ダーリントン1825・ロケット号1829＝陸の輸送（馬車・運河の荷船＝内陸の輸送の容量）・★(176) 必要性は陸の運賃のうち容量で切られた割高の分だけ（不足の無い国は0）・★(174) 蒸気機関の段2（高圧）が前提＝(172) の不具合（英以外の9か国で機関車が蒸気機関より先）を構造で直す
         new("加硫ゴム", RubberId, "", DiscoveryField.Product, 1830, Replaces: LeatherId, Line: "ゴム", Tier: 1),  // グッドイヤー1839（ゴムに地理差のレシピは無い＝新しい財）＝革（ベルト・ホース・靴底・防水）
         new("ダイナマイト", DynamiteId, "", DiscoveryField.Product, 1860, Replaces: GunpowderId),   // ノーベル1867＝発破の黒色火薬
         new("冷蔵", RefrigeratorId, "", DiscoveryField.Product, 1870, Replaces: PreservedMeatId),   // リンデ1870s・冷凍船1877〜82（冷蔵庫の財は冷蔵の加工肉の投入も兼ねる）＝塩漬けの加工肉
