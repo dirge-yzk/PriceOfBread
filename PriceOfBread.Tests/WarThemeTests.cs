@@ -179,23 +179,25 @@ public class WarThemeTests
         Assert.True(econ <= c.WarExhaustionEcon * pc0 + 1e-15, $"領土を失った総額の落ち込みが厭戦に入った（経済悪化 {econ:G6}・割譲の前 {c.WarExhaustionEcon * pc0:G6}）");
     }
 
-    // ★(170) 厭戦の基礎＝動員の負担（外部レビュー Q10＝作者 2026-09-26「全て推奨で」で採った「厭戦の基礎 0.03/月を「戦争の負担」（動員の深さか軍需支出÷GDP）へ置き換える」
-    //   ＝推奨で進めた・形は AI の選択）＝WarExhaustionRate×動員の深さ（兵士÷兵役の母数＝Military.RegionManpower の国の和）÷ConscriptionFraction。
-    //   統制盤面＝OneFront の仏英（交戦中・1戦線・平時の常備軍＝深さは通常の戦時の上限より小さい）。外交の1か月の説明台帳の「基礎の消耗」が両国それぞれの式と一致する
-    //   （旧の一律 0.03 なら赤・深さの母数を人口にすれば赤）。両国の深さは違う＝国ごとの量。実際の厭戦の更新も同じ値を使う＝最初の「上限クランプ」の項が0
+    // ★(170) 厭戦の基礎＝動員の負担（外部レビュー Q10＝作者 2026-09-26「全て推奨で」で採った「厭戦の基礎 0.03/月を「戦争の負担」（動員の深さか軍需支出÷GDP）へ置き換える」）。
+    //   ★物差しは作者の裁定（2026-09-26 §10-11-2 B11）＝「厭戦の物差しは「兵士の数÷人口」。」＝(172) で裁定の形へ直した（反証役 vm3#1＝(170) の入れた形は兵役の母数÷ConscriptionFraction）。
+    //   基礎＝WarExhaustionRate×（兵士の数÷人口）÷（MobilizationConscriptFrac×Military.WorkingMenStdShare）（割る数は [戦争⑤] の推奨「総動員の上限で今の0.03」を (145) の兵の単位で
+    //   読み替えた＝推奨で進めた・読み替えは AI＝作者の承認は未確認）。
+    //   統制盤面＝OneFront の仏英（交戦中・1戦線・平時の常備軍＝割合は総動員の上限より小さい）。外交の1か月の説明台帳の「基礎の消耗」が両国それぞれの式と一致する
+    //   （旧の一律 0.03 なら赤・(170) の入れた形〔兵役の母数・ConscriptionFraction〕なら赤）。両国の割合は違う＝国ごとの量。実際の厭戦の更新も同じ値を使う＝最初の「上限クランプ」の項が0
     //   （説明と更新が別の値を読めば、差がクランプの項に出る）。
     [Fact]
-    public void 厭戦の基礎は動員の深さに比例し通常の戦時の徴兵の上限で旧の値になる()
+    public void 厭戦の基礎は兵士の数を人口で割った割合に比例し総動員の上限で旧の値になる()
     {
         var (sim, _, fr, br) = OneFront(new Coefficients().WarCivilianToll);
         var c = sim.Coef;
-        double Depth(World w) { double man = 0; foreach (var r in w.Regions) if (r.State == RegionState.Active) man += Military.RegionManpower(r, c); return w.SoldierSize() / man; }
-        double dFr = Depth(fr), dBr = Depth(br);
-        Assert.True(dFr > 0 && dBr > 0 && dFr != dBr, $"前提が崩れた：両国の動員の深さ（仏 {dFr:G6}・英 {dBr:G6}）");
-        Assert.True(dFr < c.ConscriptionFraction && dBr < c.ConscriptionFraction, $"前提が崩れた：深さが通常の戦時の上限以上＝旧の値と見分けられない（仏 {dFr:G6}・英 {dBr:G6}）");
+        double Share(World w) => w.SoldierSize() / w.TotalPopulation;
+        double sFr = Share(fr), sBr = Share(br), full = c.MobilizationConscriptFrac * Military.WorkingMenStdShare;
+        Assert.True(sFr > 0 && sBr > 0 && sFr != sBr, $"前提が崩れた：両国の兵士の割合（仏 {sFr:G6}・英 {sBr:G6}）");
+        Assert.True(sFr < full && sBr < full, $"前提が崩れた：割合が総動員の上限以上＝旧の値と見分けられない（仏 {sFr:G6}・英 {sBr:G6}）");
         fr.Explain = new ExplainLedger(); br.Explain = new ExplainLedger();
         sim.Diplomacy.Step(sim.Coef, sim.Rng, month: 61);
-        foreach (var (w, d) in new[] { (fr, dFr), (br, dBr) })
+        foreach (var (w, s) in new[] { (fr, sFr), (br, sBr) })
         {
             double b = double.NaN, clamp = double.NaN;
             foreach (var t in w.Explain!.Get("Exhaustion"))
@@ -204,11 +206,35 @@ public class WarThemeTests
                 else if (t.Reason == "上限クランプ(100%)" && double.IsNaN(clamp)) clamp = t.Delta;   // 最初のクランプ＝厭戦の主の更新（2本目は戦死の衝撃の分）
             }
             Assert.False(double.IsNaN(b), "前提が崩れた：厭戦の内訳に基礎の項がない（戦争が回っていない）");
-            Assert.Equal(c.WarExhaustionRate * d / c.ConscriptionFraction, b);
+            Assert.Equal(c.WarExhaustionRate * s / full, b);
             Assert.True(b < c.WarExhaustionRate, $"基礎が旧の一律の値（{c.WarExhaustionRate}）のまま（{b:G6}）");
             Assert.True(w.SelfPower!.WarExhaustion < 1, "前提が崩れた：厭戦が上限に張り付いた（クランプが正しく0にならない）");
             Assert.Equal(0.0, clamp);
         }
+    }
+
+    // ★(172) 反証役 vm3#3＝設計 §10-5 Q10 の4 が求めた残りの2本：兵士の居ない国の基礎は0／国を持たない抽象の相手（兵も人口も持たない）は旧の値（[戦争⑤]）。
+    //   統制盤面＝OneFront の仏英に、交戦していない抽象の相手と仏の戦争を1本足す（優劣なし）。英の兵士 POP の大きさを0にする（外交の1か月の中では兵は補充されない）。
+    //   抽象の相手は経済の悪化・封鎖・財政・空襲・化学兵器・戦死の衝撃の項を持たない（国を持たない＝全て0）＝1か月の厭戦の増分＝基礎そのもの。
+    [Fact]
+    public void 兵士の居ない国の厭戦の基礎は0で抽象の相手は旧の値()
+    {
+        var (sim, _, fr, br) = OneFront(new Coefficients().WarCivilianToll);
+        var c = sim.Coef;
+        var ab = sim.Diplomacy.Powers.Find(p => p.Nation is null && !sim.Diplomacy.Wars.Exists(x => x.A == p || x.B == p));
+        Assert.True(ab is not null, "前提が崩れた：交戦していない抽象の相手がいない");
+        sim.Diplomacy.Wars.Add(new War { A = ab!, B = fr.SelfPower!, Score = 0 });
+        ab!.WarExhaustion = 0;
+        double sol = 0;
+        foreach (var pp in br.AllPops()) if (pp.IsSoldier) { sol += pp.Size; pp.Size = 0; }
+        Assert.True(sol > 0, "前提が崩れた：英に兵士がいない（0にする前）");
+        br.Explain = new ExplainLedger();
+        sim.Diplomacy.Step(sim.Coef, sim.Rng, month: 61);
+        double b = double.NaN;
+        foreach (var t in br.Explain!.Get("Exhaustion")) if (t.Reason == "基礎の消耗") b = t.Delta;
+        Assert.False(double.IsNaN(b), "前提が崩れた：英の厭戦の内訳に基礎の項がない（戦争が回っていない）");
+        Assert.Equal(0.0, b);
+        Assert.Equal(c.WarExhaustionRate, ab.WarExhaustion, 12);
     }
 
     // ★検証2026-09-23で追加：突然変異M4（`civShare = civToll` ＝戦線数で割らない）が上の3本を**全て緑のまま通した**。

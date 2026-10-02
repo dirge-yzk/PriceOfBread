@@ -2361,24 +2361,26 @@ public sealed class Diplomacy
             //   首都州の GDP の分だけ「不況」と数えられ、厭戦が四半期に最大 +0.67 積まれて兵が5〜15倍でも先に崩れた（(97) §8）。
             double exBefore = p.WarExhaustion, econEx = c.WarExhaustionEcon * (p.Nation?.GdpPcDrawdown ?? 0);
             // ★厭戦の基礎＝動員の負担（2026-10-02 (170)・外部レビュー Q10＝作者 2026-09-26「全て推奨で」で採った「厭戦の基礎 0.03/月を「戦争の負担」
-            //   （動員の深さか軍需支出÷GDP）へ置き換える」＝推奨で進めた・形〔動員の深さ・母数・抽象の相手〕は AI の選択＝作者の承認は未確認）。
+            //   （動員の深さか軍需支出÷GDP）へ置き換える」）。★物差しは作者の裁定（2026-09-26 §10-11-2 B11）＝「厭戦の物差しは「兵士の数÷人口」。」
+            //   ★(172) 合流で裁定の形へ直した（反証役 vm3#1＝(170) の入れた形は母数を兵役の母数〔Military.RegionManpower〕・割る数を ConscriptionFraction にした＝裁定から外れていた）。
             //   旧＝交戦の月ごとに一律 WarExhaustionRate（0.03）＝どの戦争も開戦から約34か月で必ず終わる時間の時計
             //   （r167 の10種で列強どうしの戦争の厭戦の増分の 78〜88% がこの項・列強どうしの戦争の長さの中央 8〜12 か月・最長 30 か月＝(170) §1）。
-            //   新＝WarExhaustionRate×動員の深さ÷ConscriptionFraction。動員の深さ＝兵士÷兵役の母数（働き盛りの男×支配度の届き方＝Military.RegionManpower の国の和
-            //   ＝戦時の徴兵の目標〔Military.Step の conscriptFrac×母数〕と同じ母数＝分子と分母を同じ規則で）。通常の戦時の徴兵の上限（ConscriptionFraction＝働き盛りの男の12%）まで
-            //   動員した国の基礎が旧の値＝新しい数なし。小さな軍で戦う戦争（植民地戦争・遠征）は長く続けられ、大きく動員した国ほど早く疲れる（Q10 の素案）。
-            //   国を持たない抽象の相手は動員の量（兵士・母数）を持たない＝旧の値のまま。⚠否定形＝母数が無い・NaN なら深さ0（基礎0＝他の項と押し合いで終わる）。
-            //   ⚠ Q10 の順序（封鎖〔項目7〕→戦1→mil-01・mil-04→置き換え）の封鎖は未着手＝基礎を外す（0にする）のでなく動員の深さで縮める
-            //   ＝交戦国は兵を持つ限り基礎が積もり、海を隔てた戦争も終わる（(170) の10種で2国間の戦争の最長 58 か月・60 か月以上 0 本）＝順序の理由は保たれる【推】。
-            //   ⚠ 国民皆兵（×2.5）で総動員した国は深さが大きく基礎が旧の約4.6倍＝総力戦ほど短い向き（第一次大戦 51 か月の錨と逆＝作者への確認・(170) §11）。
+            //   新＝WarExhaustionRate×（兵士の数÷人口）÷（MobilizationConscriptFrac×Military.WorkingMenStdShare）。兵士と人口はどちらも全ての州・全ての POP
+            //   （World.SoldierSize・World.TotalPopulation＝分子と分母を同じ規則で）。割る数＝[戦争⑤] の推奨「割る数は MobilizationConscriptFrac（総動員の上限で今の0.03になる）」を
+            //   (145) の兵の単位（MobilizationConscriptFrac の母数を大衆から働き盛りの男へ）で読み替えた＝総動員の上限（働き盛りの男の22%＝人口の約6%）まで動員した国の基礎が旧の値
+            //   （推奨で進めた・読み替えは AI＝作者の承認は未確認・新しい数なし）。小さな軍で戦う戦争（植民地戦争・遠征）は長く続けられ、大きく動員した国ほど早く疲れる。
+            //   国を持たない抽象の相手（兵も人口も持たない）は旧の値のまま（[戦争⑤]）。⚠否定形＝人口が無い・NaN なら割合0（基礎0＝他の項と押し合いで終わる）。
+            //   ⚠ Q10 の順序（封鎖〔項目7〕→戦1→mil-01・mil-04→置き換え）の封鎖は未着手＝基礎を外す（0にする）のでなく動員の割合で縮める＝交戦国は兵を持つ限り基礎が積もる
+            //   （海を隔てた戦争も終わるかは (172) の10種の終局で続く戦争の表で読む＝実装ログ (172)）。
+            //   ⚠ 国民皆兵（×2.5）で総動員した国は基礎が旧の約2.5倍＝総力戦ほど短い向き（第一次大戦 51 か月の錨と逆＝作者への確認・(170) §11）。
+            //   ⚠ 厭戦は徴兵の深さを上げる（Military.Step の ConscriptionExhaustionWeight）＝厭戦→兵士→基礎の正の輪がこの形で閉じる（反証役 vm3#4＝大きさは実装ログ (172) の記録）。
             double exBase = c.WarExhaustionRate;
             if (p.Nation is { } mobW)
             {
-                double man = 0;
-                foreach (var mr in mobW.Regions) if (mr.State == RegionState.Active) man += Military.RegionManpower(mr, c);
-                double depth = man > 1e-9 ? mobW.SoldierSize() / man : 0;
-                if (!(depth >= 0)) depth = 0;
-                exBase = c.WarExhaustionRate * depth / c.ConscriptionFraction;
+                double pop = mobW.TotalPopulation;
+                double share = pop > 1e-9 ? mobW.SoldierSize() / pop : 0;   // 兵士の数÷人口（B11）
+                if (!(share >= 0)) share = 0;
+                exBase = c.WarExhaustionRate * share / (c.MobilizationConscriptFrac * Military.WorkingMenStdShare);
             }
             p.WarExhaustion = Math.Min(1, p.WarExhaustion + exBase + econEx + blockade + fiscal + airRaid + chem);   // 厭戦も1回
             // 説明API（#63）：厭戦の内訳＝前期＋基礎（動員の負担・(170)）＋経済悪化＋封鎖＋財政＋空襲＋化学兵器−上限クランプ。Explain=nullでゼロコスト（player国のみ非null）。
@@ -2557,7 +2559,9 @@ public sealed class Diplomacy
             // 早期講和（革命圧力で前倒し）。★2026-09-26（項目20 E・Q9 と同じ回）：膠着の打ち切り（WarMaxMonths=60 か月で白紙講和）を削除した。
             //   交戦国は毎月 WarExhaustionRate（0.03）以上の厭戦を積み（他の項も全て非負・交戦中に厭戦を減らす書き手は無い）、34か月以内に両者が1.0へ届く
             //   ＝weary（両者 > 0.9×cut・cut≦1）が60か月より先に必ず立つ＝打ち切りは一度も効いていなかった。
-            //   ★(170)：厭戦の基礎は動員の深さに比例（上の動員の負担）＝34か月の保証は無くなった（兵の少ない国は基礎が小さい）。打ち切りは戻さない＝時間の時計を作らない（2026-09-06 恒久方針）。兵を持つ交戦国は基礎が積もり続ける（(170) の10種で2国間の戦争の最長 58 か月・60 か月以上 0 本・終局で続く戦争 37 本〔r167 26 本〕）。
+            //   ★(170)：厭戦の基礎は動員の負担に比例（上の動員の負担・(172) で作者 B11 の「兵士の数÷人口」へ直した）＝34か月の保証は無くなった（兵の少ない国は基礎が小さい）。
+            //   打ち切りは戻さない＝時間の時計を作らない（2026-09-06 恒久方針）。兵を持つ交戦国は基礎が積もり続ける（(170) の入れた形〔兵役の母数・(172) で直した〕の10種で
+            //   2国間の戦争の最長 58 か月・60 か月以上 0 本・終局で続く戦争 37 本〔r167 26 本〕＝終わった戦争だけの数・(172) の形の数は実装ログ (172)）。
             //   ⚠その代わり weary を否定形で書く＝厭戦が NaN になった側も「疲れた」側へ倒す（打ち切りが担っていた唯一の出口＝検討 §10-10［戦争⑪］）。有限の値では `x > t` と同値。
             bool weary = !(war.A.WarExhaustion <= c.WarPeaceExhaustion * aCut) && !(war.B.WarExhaustion <= c.WarPeaceExhaustion * bCut);
             if (decisive || weary || war.ForcedPeace)   // ForcedPeace＝列強の調停（Score は0に置かれている）

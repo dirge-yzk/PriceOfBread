@@ -4376,7 +4376,7 @@ if (args.Length > 0 && args[0] == "discprobe")
                 foreach (var p in rg.Producers)
                 {
                     if (p.SiteRow < 0 || p.SiteFound) continue;
-                    var sp3 = new double[3];   // ★(171) 人の数・その財の値段・その産地で掘る費用（エンジンの関数が書く＝式を写さない）
+                    var sp3 = new double[3];   // ★(171) 人の数・その財の値段・その国で今のレシピで掘る費用（エンジンの関数が書く＝式を写さない）
                     var st = Discovery.SiteTerms(w, rg, p, w.Coef, partsOut: sp3);
                     parts.Add($"{Catalog.Sites[p.SiteRow].Name}＠{rg.Name}（{NameOf(w)}・技術 {w.TechLevel:F2}）={st.Tech:F0}/{st.Need:F0}｜人{sp3[0]:G3}・値段{sp3[1]:G3}÷費用{sp3[2]:G3}");
                 }
