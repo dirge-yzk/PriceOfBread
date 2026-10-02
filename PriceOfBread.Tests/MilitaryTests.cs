@@ -1188,11 +1188,9 @@ public class MilitaryTests
     }
 
     /// <summary>★(155) AI の軍事費の段＝安全保障の不安の唯一の入口＝平時の段の幅（段1〜段3）を脅威の割合（脅威÷(脅威＋自国の養える軍)）で内分。軍備スタンスは段を書かない。
-    /// ★(162) 徴兵法の政治＝**本国の陸の脅威の割合**（陸の成分 SecurityThreatLand÷(それ＋自国の養える軍)）が半分以上か交戦中＝徴兵制／そうでない平時に男子普選以上か
-    /// 不安の多くが海の向こうと植民地から来る（陸の成分＜残り）＝志願制／他は現状維持。軍事費の段は不安の全体を読む（陸の成分を読まない）。
-    /// ⚠突然変異「軍備スタンスが 0.7 を書く（旧）」「徴兵法を不安の全体で読む（旧）」「海の向こうの枝を外す」「交戦中の枝を外す」「線を 0.3／&gt; 0.5 に」で赤。</summary>
+    /// 徴兵法の政治＝脅威の割合が半分以上（届く敵意の養える軍が自国の養える軍以上）か交戦中＝徴兵制。⚠突然変異「軍備スタンスが 0.7 を書く（旧）」「徴兵法を軍備スタンスで読む（旧）」で赤。</summary>
     [Fact]
-    public void AIの軍事費の段は安全保障の不安で決まり徴兵法の政治は本国の陸の脅威を読む()
+    public void AIの軍事費の段は安全保障の不安で決まり徴兵法の政治も同じ不安を読む()
     {
         var w = France155().World;
         w.SecurityThreat = 0; w.SecurityThreatOwnMass = 100;
@@ -1208,117 +1206,22 @@ public class MilitaryTests
         w.SecurityThreat = 0;
         UtilityAgent.Apply(w, UtilityAgent.Stance.Militarize);
         Assert.Equal(0.25, w.Policy.MilitarySpendingTarget, 12);
-        // ★(162) 段は不安の全体を読む＝陸の成分を0 にしても段の目標は変わらない（徴兵法だけが陸の成分を読む）
-        w.SecurityThreat = 300; w.SecurityThreatLand = 0;
-        Assert.Equal(0.25 + 0.5 * 0.75, UtilityAgent.SecurityStageTarget(w), 12);
         var decide = typeof(UtilityAgent).GetMethod("DecideModernLaws", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!;
-        ConscriptionLaw Decide(World x, ConscriptionLaw from, double total, double land)
-        {
-            x.SecurityThreat = total; x.SecurityThreatLand = land; x.Policy.ConscriptionLaw = from;
-            decide.Invoke(null, [x, x.Policy, UtilityAgent.Stance.Industrialize]);
-            return x.Policy.ConscriptionLaw;
-        }
-        Assert.False(w.AtWarNow, "前提が崩れた：仏が交戦中");
-        Assert.True(w.Suffrage < Suffrage.AdultMale && !w.Mobilized, "前提が崩れた：仏1783 が男子普選以上か総動員中");
-        // 本国の陸の脅威の割合 0.6・0.5（ちょうど線）＝徴兵制（(157) の線の両側を陸の成分で）
-        Assert.Equal(ConscriptionLaw.Selective, Decide(w, ConscriptionLaw.Volunteer, 150, 150));
-        Assert.Equal(ConscriptionLaw.Selective, Decide(w, ConscriptionLaw.Volunteer, 100, 100));
-        // 本国の陸の脅威の割合 0.4 で不安の全てが陸（海の向こうからでない）・男子普選なし＝現状維持（どちらの法からも動かない）
-        double l4 = 100.0 * 0.4 / 0.6;
-        Assert.Equal(ConscriptionLaw.Volunteer, Decide(w, ConscriptionLaw.Volunteer, l4, l4));
-        Assert.Equal(ConscriptionLaw.Selective, Decide(w, ConscriptionLaw.Selective, l4, l4));
-        // 不安の全体は大きい（割合 0.75）が陸の成分は0＝海の向こうと植民地から＝島国は徴兵しない（旧＝不安の全体を読み徴兵制）
-        Assert.Equal(ConscriptionLaw.Volunteer, Decide(w, ConscriptionLaw.Selective, 300, 0));
-        // 陸の成分がちょうど残りと同じ（海の向こうが多いとは言えない）＝現状維持
-        Assert.Equal(ConscriptionLaw.Selective, Decide(w, ConscriptionLaw.Selective, 60, 30));
-        // NaN＝現状維持（比較が偽）
-        Assert.Equal(ConscriptionLaw.Selective, Decide(w, ConscriptionLaw.Selective, double.NaN, double.NaN));
-        // 男子普選以上は陸の脅威が半分未満なら志願制（(155) の英米型のまま）
-        w.Suffrage = Suffrage.AdultMale;
-        Assert.Equal(ConscriptionLaw.Volunteer, Decide(w, ConscriptionLaw.Selective, l4, l4));
-        w.Suffrage = Suffrage.None;
-        // 交戦中は陸の成分に依らず徴兵制（(155) の線のまま＝(162) では変えていない・海の向こうの戦争でも交戦中は徴兵制の目標）
-        var sim = Frozen152("フランス", "スペイン");
-        sim.StepQuarter();
-        var fr = sim.Nations[0].World;
-        sim.Diplomacy.Wars.Add(new War { A = fr.SelfPower!, B = sim.Nations[1].World.SelfPower! });
-        fr.SecurityThreatOwnMass = 100;
-        Assert.True(fr.AtWarNow, "前提が崩れた：仏が交戦中でない");
-        Assert.Equal(ConscriptionLaw.Selective, Decide(fr, ConscriptionLaw.Volunteer, 300, 0));
-    }
-
-    /// <summary>★(162) 安全保障の不安の本国の陸の成分（World.SecurityThreatLand）＝同じ注意配分の分母のうち、守る側の**本国の州（植民地格でない）の国境**と
-    /// **陸続きの投射**（首都どうしが同じ陸塊）だけを数える。盤面＝仏・西・日（開幕・外交を止める）：(a) 式どおり（公開の部品で数え直して一致）(b) 陸の成分≦全体
-    /// (c) 日本（島国）は国境も陸続きの投射も無い＝陸の成分0（全体は正）(d) 西の州を全て植民地格にすると仏→西の本国の国境は0・西→仏の本国の国境は元のまま・
-    /// エンジンを回し直すと西の陸の成分は下がり（仏の陸続きの投射だけが残る）、数え直しと一致する。
-    /// ⚠突然変異「陸の成分に植民地の国境を数える」「海越えの投射を陸に数える」「本国の判定を読まない」で赤。</summary>
-    [Fact]
-    public void 安全保障の不安の本国の陸の成分は本国の国境と陸続きの投射だけを数える()
-    {
-        var sim = Frozen152("フランス", "スペイン", "日本");
-        var c = sim.Coef;
-        sim.StepQuarter();
-        var step = typeof(MultiNationSim).GetMethod("StepSecurityThreat", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!;
-        var ps = sim.Nations.ConvertAll(n => n.World.SelfPower!);
-        int n = ps.Count;
-        double[] ExpectLand()
-        {
-            var seats = new double[n];
-            for (int i = 0; i < n; i++) seats[i] = Military.EstablishmentOf(sim.Nations[i].World, sim.Nations[i].World.Coef, out _);
-            var home = new double[n * n];
-            var border = ArmyShape.Borders(ps, c, home);
-            var hl = new double[n * n]; var col = new double[n];
-            for (int a = 0; a < n; a++)
-            {
-                double sum = ArmyShape.Unrest(ps[a]);
-                for (int b = 0; b < n; b++)
-                {
-                    if (a == b) continue;
-                    double h = ArmyShape.Hostility(sim.Diplomacy, ps[b], ps[a], c);
-                    if (!(h > 0)) continue;
-                    double proj = sim.Diplomacy.Projection(ps[a], ps[b], c);
-                    double r = border[a * n + b] + proj;
-                    if (!(r > 0)) continue;
-                    sum += h * r;
-                    hl[a * n + b] = h * (home[a * n + b] + (sim.Diplomacy.IsSeaCrossing(ps[a], ps[b], c) ? 0 : proj));
-                }
-                col[a] = sum;
-            }
-            var land = new double[n];
-            for (int b = 0; b < n; b++)
-                for (int a = 0; a < n; a++) if (a != b && col[a] > 1e-12 && seats[a] > 0) land[b] += hl[a * n + b] / col[a] * seats[a];
-            return land;
-        }
-        step.Invoke(sim, null);
-        var e0 = ExpectLand();
-        for (int b = 0; b < n; b++)
-        {
-            var wb = sim.Nations[b].World;
-            Assert.Equal(e0[b], wb.SecurityThreatLand, 9);
-            Assert.True(wb.SecurityThreatLand <= wb.SecurityThreat * (1 + 1e-12), $"{wb.SelfPower!.Name} の陸の成分 {wb.SecurityThreatLand} が全体 {wb.SecurityThreat} を超える");
-        }
-        var jp = sim.Nations[2].World;
-        Assert.True(jp.SecurityThreat > 0, "前提が崩れた：日本に不安が無い（海越えの投射が届かない）");
-        Assert.Equal(0.0, jp.SecurityThreatLand);
-        var es = sim.Nations[1].World;
-        double esLand0 = es.SecurityThreatLand;
-        Assert.True(sim.Nations[0].World.SecurityThreatLand > 0 && esLand0 > 0, "前提が崩れた：仏西に陸の成分が無い（仏西の国境）");
-        // 西の州を全て植民地格に＝仏→西の本国の国境は0・全ての国境は変わらない・西→仏（仏の本国）は元のまま
-        var home1 = new double[n * n];
-        var border1 = ArmyShape.Borders(ps, c, home1);
-        double before = border1[0 * n + 1], frHome = home1[1 * n + 0];
-        Assert.True(before > 0 && Math.Abs(home1[0 * n + 1] - before) <= 1e-12 * before, "前提が崩れた：仏西の国境が本国どうしでない");
-        foreach (var r in es.Regions) r.Tier = RegionTier.Colonial;
-        var home2 = new double[n * n];
-        var border2 = ArmyShape.Borders(ps, c, home2);
-        Assert.Equal(before, border2[0 * n + 1], 12);
-        Assert.Equal(0.0, home2[0 * n + 1]);
-        Assert.Equal(frHome, home2[1 * n + 0], 12);
-        // エンジン（呼び手）を回し直す＝西の陸の成分は仏の陸続きの投射だけ＝下がり、数え直しと一致
-        step.Invoke(sim, null);
-        var e1 = ExpectLand();
-        for (int b = 0; b < n; b++) Assert.Equal(e1[b], sim.Nations[b].World.SecurityThreatLand, 9);
-        Assert.True(es.SecurityThreatLand < esLand0 * (1 - 1e-6), $"西の本国が植民地格になっても西の陸の成分が下がらない（{esLand0} → {es.SecurityThreatLand}）＝植民地の国境を数えた");
+        w.Policy.ConscriptionLaw = ConscriptionLaw.Volunteer;
+        w.SecurityThreat = 150;   // 脅威の割合 0.6
+        decide.Invoke(null, [w, w.Policy, UtilityAgent.Stance.Industrialize]);
+        Assert.Equal(ConscriptionLaw.Selective, w.Policy.ConscriptionLaw);
+        // ★(157) 線の両側（反証役の指摘＝線の下側が固定されていなかった）：割合 0.5（ちょうど線）は徴兵制・0.4（線の下・平時）は徴兵制にしない（志願制のまま）。
+        //   ⚠突然変異「線を 0.3 へ下げる」「線を > 0.5 にする」で赤。
+        Assert.False(w.AtWarNow, "前提が崩れた：仏が交戦中（交戦中は割合に依らず徴兵制）");
+        w.Policy.ConscriptionLaw = ConscriptionLaw.Volunteer;
+        w.SecurityThreat = 100;   // 脅威の割合 0.5
+        decide.Invoke(null, [w, w.Policy, UtilityAgent.Stance.Industrialize]);
+        Assert.Equal(ConscriptionLaw.Selective, w.Policy.ConscriptionLaw);
+        w.Policy.ConscriptionLaw = ConscriptionLaw.Volunteer;
+        w.SecurityThreat = 100.0 * 0.4 / 0.6;   // 脅威の割合 0.4
+        decide.Invoke(null, [w, w.Policy, UtilityAgent.Stance.Industrialize]);
+        Assert.Equal(ConscriptionLaw.Volunteer, w.Policy.ConscriptionLaw);
     }
 
     /// <summary>★(157) 呼び手の番人（反証役の指摘）：Fiscal の余剰（guns-vs-butter）は月初の予算（Simulation の軍事費の吸い込み）が書いた装備の請求 World.LastMilitaryClaim を読む

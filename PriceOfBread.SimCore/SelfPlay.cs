@@ -417,11 +417,10 @@ public sealed class UtilityAgent : INationAgent
 
     /// <summary>★脅威の割合∈[0,1)（2026-10-02 (155)）＝安全保障の不安（届く敵意の養える軍の和＝<see cref="World.SecurityThreat"/>）÷(それ＋自国の養える軍の人口の側＝<see cref="World.SecurityThreatOwnMass"/>)
     /// ＝新兵器の必要性の脅威の割合（必要量÷(必要量＋自国の力)・Discovery）と同じ形（有界＝上下を切らない）。小国が大国の隣で感じる不安は1へ近づき、周りに養える軍の少ない国（開国前の日本・清）は0へ近づく。
-    /// 定まらない（単一国・分母0・NaN）は0。
-    /// ★(162) <paramref name="land"/>＝分子を陸の成分（<see cref="World.SecurityThreatLand"/>＝国境と陸続きの投射）に限る＝徴兵法の政治だけが読む（同じ形・分母は同じ自国の養える軍）。</summary>
-    internal static double SecurityShare(World w, bool land = false)
+    /// 定まらない（単一国・分母0・NaN）は0。</summary>
+    internal static double SecurityShare(World w)
     {
-        double t = land ? w.SecurityThreatLand : w.SecurityThreat, own = w.SecurityThreatOwnMass;
+        double t = w.SecurityThreat, own = w.SecurityThreatOwnMass;
         double x = t / (t + own);
         return x >= 0 && x <= 1 ? x : 0;
     }
@@ -552,14 +551,10 @@ public sealed class UtilityAgent : INationAgent
         // ★民間の武器購入の法（設計メモ§7 (a)・2026-09-11）：票を持たない大衆から武器を取り上げる＝男子普選前は禁止・普選後は許可
         //   （英1819六法→普選期の解禁／FactionStrength の発言権と同じ物差し＝新しい閾値を作らない）。AI/プレイヤー対称（同じ1本の法）。ゲート0＝目標を書かない＝恒等。
         if (w.Coef.RebelArmsMarketEnabled > 0) p.CivilianArmsBan = w.Suffrage < Suffrage.AdultMale;
-        // ★(155) 徴兵法の政治＝安全保障の不安か交戦中＝徴兵制／平時の自由民主国で不安が半分未満＝小さな職業軍（英米型）。他は現状維持（旧＝軍備スタンス＝脅威は効用を通って間接に）。
-        // ★(162) 本国の陸の脅威で読む（推奨で進めた・(157) の作者への確認7＝英は平時のどの窓でも選抜だった＝英の不安の 0.64/0.66 は植民地の国境から）：
-        //   徴兵制＝本国の陸の脅威の割合（SecurityShare の land＝本国の国境と陸続きの投射〔World.SecurityThreatLand〕÷(それ＋自国の養える軍)）が半分以上か交戦中。
-        //   志願制＝そうでない平時に (a) 男子普選以上（(155) の英米型）か (b) **不安の多くが海の向こうと植民地から来る**（本国の陸の成分＜残り＝海軍と植民地の兵で応える＝島国は徴兵しない＝史実の英・米・日〔1873 以前〕）。
-        //   他は現状維持。軍事費の段の入口（不安の全体）は変えない。NaN は比較が偽＝現状維持の側。
-        bool beyondSea = w.SecurityThreatLand < w.SecurityThreat - w.SecurityThreatLand;
-        p.ConscriptionLaw = (SecurityShare(w, land: true) >= 0.5 || atWar) ? ConscriptionLaw.Selective
-            : (w.Suffrage >= Suffrage.AdultMale || beyondSea ? ConscriptionLaw.Volunteer : p.ConscriptionLaw);
+        // 【(162)「徴兵法の線を本国の陸の脅威で読む・平時に不安の多くが海の向こうと植民地から来る国は志願制」は (163) の合流で差し戻した 2026-10-02】＝戦時の装備の追随を外した木の10種で
+        //   常勝の疑い（英 8/10）＝パッチ measurements/m163_20261002_landthreat.diff。英の徴兵法の残る根＝法の門（徴兵の縮小に旧支配層が反対）＝作者への確認（実装ログ (162)(163)）。
+        p.ConscriptionLaw = (SecurityShare(w) >= 0.5 || atWar) ? ConscriptionLaw.Selective
+            : (w.Suffrage >= Suffrage.AdultMale ? ConscriptionLaw.Volunteer : p.ConscriptionLaw);   // ★(155) 徴兵法の政治＝安全保障の不安（届く敵意の養える軍が自国の養える軍以上＝脅威の割合が半分以上）か交戦中＝徴兵制／平時の自由民主国で不安が半分未満＝小さな職業軍（英米型）。他は現状維持（旧＝軍備スタンス＝脅威は効用を通って間接に）
         if (w.Suffrage >= Suffrage.AdultMale) p.SecretBallot = SecretBallotLaw.Secret;   // 大衆選挙＝買収・威圧の排除が票の実在に直結
         if (w.AdminEfficiency > ProfessionalBureaucracyAdminThreshold) p.Bureaucracy = BureaucracyLaw.Professional;   // 行政力が育った国＝専門官僚制へ（プロイセン文官改革）
         if (w.MeanIndustrialization > AntitrustIndThreshold)

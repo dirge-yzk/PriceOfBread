@@ -352,6 +352,8 @@ public class WriterRatchetTests
     //   ⚠安全保障の不安の組に本国の陸の成分（組ごとの IsSeaCrossing 1回・国境の本国の印）を足した＝組の数は同じ・単価は少し上がる【推】（計数「外交：脅威の届き方」の単価は次の census で取り直す）。
     // ★2026-10-02 表の更新（(163) 合流＝(162) の戦時の装備の追随を差し戻した〔作者裁定 R2・2026-09-19 の裁定2・思想⑨〕＝軌道が動いた分の宣言・新しい計数の処理は無い）：
     //   建設 8,441→7,449（−11.8%）・請求 3,141→2,742（−12.7%）＝10% を超えて下がった＝表を下げる（最初の40四半期の戦時の軍需の請求と工場の着工の軌道）。ほかの15本は許しの内（実装ログ (163)）。
+    // ★2026-10-02 表の更新（(163) 合流＝合わせた木の10種で常勝の疑い〔英 8/10〕＝(162) の残り〔徴兵法の線を本国の陸の脅威で読む〕も差し戻した＝コードは (161) と同じ挙動）：
+    //   覇権の判定 2,503,042→2,148,613（−14.2%＝(161) の値へ戻った・10% を超えて下がった＝表を下げる）。建設と請求は上の宣言のまま許しの内。
     [InlineData(CostLedger.ConstructionSeen, 7449L)]
     [InlineData(CostLedger.CreditSpans, 33282L)]
     [InlineData(CostLedger.ConsumePopGoods, 28595736L)]
@@ -361,7 +363,7 @@ public class WriterRatchetTests
     [InlineData(CostLedger.ClearingRows, 5185642L)]
     [InlineData(CostLedger.ClearingFills, 28778490L)]
     [InlineData(CostLedger.DiploPowerMonths, 9954L)]
-    [InlineData(CostLedger.DiploHegemonScans, 2503042L)]
+    [InlineData(CostLedger.DiploHegemonScans, 2148613L)]
     [InlineData(CostLedger.QuarterStartPops, 235560L)]
     [InlineData(CostLedger.QuarterEndPops, 235560L)]
     [InlineData(CostLedger.SharedNationQuarters, 3698L)]

@@ -1474,11 +1474,9 @@ public sealed class MultiNationSim
             seats[i] = Military.EstablishmentOf(w, w.Coef, out double man);
             own[i] = w.Coef.MaxSoldierFraction * man;
         }
-        var borderHome = new double[n * n];   // ★(162) 守る側 B の本国（植民地格でない州）の国境だけ（向きつき）
-        var border = ArmyShape.Borders(ps, _coef, borderHome);
+        var border = ArmyShape.Borders(ps, _coef);
         var hr = new double[n * n];   // hr[a*n+b]＝A の軍が B に届く強さ×敵意
-        var hrLand = new double[n * n];   // ★(162) そのうち本国の陸の成分＝B の本国の国境＋陸続きの投射（海を越えて来る陸軍の投射と植民地の国境を除く）＝徴兵法の政治が読む
-        var colSum = new double[n];   // A の注意配分の分母＝内向き u(A)＋Σ_B hr(A→B)（陸と海越えの両方へ配る同じ1つの分母＝ArmyShape と同じ）
+        var colSum = new double[n];   // A の注意配分の分母＝内向き u(A)＋Σ_B hr(A→B)
         long pairs = 0;
         for (int a = 0; a < n; a++)
         {
@@ -1490,27 +1488,20 @@ public sealed class MultiNationSim
                 double h = ArmyShape.Hostility(Diplomacy, ps[b], ps[a], _coef);
                 if (!(h > 0)) continue;   // 同盟＝0（否定形＝NaN も数えない）
                 pairs++;
-                double proj = Diplomacy.Projection(ps[a], ps[b], _coef);
-                double r = border[a * n + b] + proj;
+                double r = border[a * n + b] + Diplomacy.Projection(ps[a], ps[b], _coef);
                 if (!(r > 0)) continue;
                 hr[a * n + b] = h * r;
-                hrLand[a * n + b] = h * (borderHome[a * n + b] + (Diplomacy.IsSeaCrossing(ps[a], ps[b], _coef) ? 0 : proj));   // 首都どうしが別の陸塊＝海を越えて来る陸軍＝海で止める（陸の成分に数えない）
                 sum += h * r;
             }
             colSum[a] = sum;
         }
         for (int b = 0; b < n; b++)
         {
-            double total = 0, land = 0;
+            double total = 0;
             for (int a = 0; a < n; a++)
-                if (a != b && colSum[a] > 1e-12 && seats[a] > 0)
-                {
-                    total += hr[a * n + b] / colSum[a] * seats[a];
-                    land += hrLand[a * n + b] / colSum[a] * seats[a];
-                }
+                if (a != b && colSum[a] > 1e-12 && seats[a] > 0) total += hr[a * n + b] / colSum[a] * seats[a];
             var wb = Nations[b].World;
             wb.SecurityThreat = total;
-            wb.SecurityThreatLand = land;
             wb.SecurityThreatOwnMass = own[b];
         }
         Cost[CostLedger.ThreatReachPairs] += pairs;   // 計算量の台帳（診断）：脅威の届き方の組（安全保障の不安＝四半期1回・同盟の組を除く）
