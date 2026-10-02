@@ -116,7 +116,9 @@ public static class Transport
     // era＝機関の時代係数（Step の注記）＝容量あたりの燃料は era 倍（三段膨張の時代は半分）。
     private static void BuyShipFuel(World w, Coefficients c, double era)
     {
-        double totalWant = c.ShipFuelRate * era * w.ShipCapacity * w.ShipSteamShareEma;   // 帆走のみ（割合0）なら需要ゼロ
+        // ★R4（2026-10-02 (173)）：植民地の補給線が占有している船腹（Colonial.OccupiedShipCapacity）の燃料は国庫が補給線として買う（Colonial.Step）＝商人は交易に使える容量の分だけ焚く
+        //   （旧＝商人が全ての船腹を焚き、国庫も補給線の石炭を別の物差し〔400×距離×質量〕で買った＝同じ船腹を2度焚いた・思想⑨）。
+        double totalWant = c.ShipFuelRate * era * (w.ShipCapacity - Colonial.OccupiedShipCapacity(w)) * w.ShipSteamShareEma;   // 帆走のみ（割合0）なら需要ゼロ
         if (!(totalWant > 1e-9)) return;   // 否定形＝NaNも不走行側へ
         int regCount = 0;
         foreach (var r in w.Regions) if (r.State == RegionState.Active && (r.MerchantPopIndex >= 0 || r.InvestorPopIndex >= 0)) regCount++;

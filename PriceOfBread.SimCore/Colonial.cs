@@ -43,13 +43,19 @@ public static class Colonial
         //   R2＝距離の費用と海運占有は行（州）の数でなく**質量**（ColonyMassUnits の加数＝人口ウェイト）で数える＝行を分けただけで増えない（2026-08-28「行の数でなく中身」）。
         //       個数単位への換算は既存の錨（初期の 個数/質量＝NationalScore.Wealth・SelfPlay の植民地防衛と同じ）＝抽象標的を含む世界の全植民地の初期の総量は旧の行の数と同じ目盛り
         //       （実在国の植民地は平均より重い＝実在国の合計は旧の約1.19倍）・資源の無い前哨は小さく・大植民地は大きく。
-        const int foodG = Catalog.CannedFoodId;   // 缶詰糧食（駐留の携行食）。燃料（石炭/原油）は ChooseFuelGood が選ぶ
+        // ★R4（作者裁定 2026-09-29 の4「史実はもちろん、ゲーム的に植民地国家が汽船の発見を急ぐ必要がある程度には経済的なラインに」・2026-10-02 (173)・形は AI の推奨＝作者の承認は未確認）：
+        //   ①缶詰糧食（旧 ColonyUpkeepFoodPerDist＝180×距離×質量）を撤去＝植民地格の州に駐留する兵は兵士 POP で、給与（兵力の請求）で州の市場の食料を買って食べている
+        //     ＝同じ兵を2度食わせていた（思想⑨）。(173) の計器＝r172 の5種で英の植民地の補給財（ほぼ缶詰）が 1803-12 に国の税の 4.6倍・西 6.3倍・蘭 7.4倍
+        //     （段2A で缶詰の解禁が2値になり、解禁の年から満額＝旧の解禁度の連続の立ち上がりが消えた）。
+        //   ②海運占有は汽船の割合の分だけ軽い＝占有×((1−汽船の割合)＋汽船の割合÷汽船の容量倍)。容量倍＝民間の船の選び方と同じ1本（Transport.BuyToward＝ShipTier2CapMult×
+        //     首都の汽船の解禁度÷機関の時代係数＝汽船1単位は帆船の 2.5〜5 単位を運ぶ＝速さと大きさ）＝「船の占有・所要日数・隻数を減らす」。容量倍が1以下（未解禁）は帆船と同じ。
+        //   ③補給線の石炭＝占有された船腹の汽船の分の燃料（民間の汽船と同じ ShipFuelRate×時代係数×容量×汽船の割合・占有された容量＝海運の容量×占有÷(1＋占有)）
+        //     ＝「汽船は補給の石炭を足す」。旧の ColonyUpkeepCoalPerDist（400×距離×質量）は民間の船隊の燃料の数百倍の別の物差しだった＝係数ごと削除。
+        //     民間の燃料（Transport.BuyShipFuel）は交易に使える容量（÷(1＋占有)）の分だけ＝同じ船腹を2度焚かない（思想⑨）。
         // 海路距離：欧州→印/太平洋の補給線はアフリカ（喜望峰）を回る＝大圏直線の約2倍。スエズ(1869)/パナマ(1914)開通で短絡（史実の通商革命が維持費に効く）。
         bool suezOpen = w.Diplomacy?.ChokeOpenFor(Diplomacy.SuezId, w.SelfPower) ?? false;   // 2026-07-28：生文字列リテラルを廃止（表示名を変えると静かに false 固定＝維持費が永久にケープ迂回になる罠だった）
         bool panamaOpen = w.Diplomacy?.ChokeOpenFor(Diplomacy.PanamaId, w.SelfPower) ?? false;
-        double coalWant = 0, foodWant = 0, shipBurden = 0, quinineWant = 0;
-        double coalPerMassDist = c.ColonyUpkeepCoalPerDist * w.ShipSteamShareEma * c.EraFactor(w.WorldTechLevel, c.EraColonyCoal);   // c1：帆走（割合0）の補給線は石炭を焚かない
-        double foodPerMassDist = c.ColonyUpkeepFoodPerDist * Discovery.GoodGate(r, foodG);                                    // c1：缶詰の未発見の間は缶詰を食わない
+        double shipBurden = 0, quinineWant = 0;
         double countPerMass = w.Diplomacy is { } dipM && dipM.InitialColonyMass > 1e-9 ? dipM.InitialColonyCount / dipM.InitialColonyMass : 1.0;   // R2：質量→個数単位の錨
         // ★植民地の州昇格（2026-08-26・ColoniesAreRegions）：昇格した植民地は ColonyList に居ないので、
         //   **同じ式**を植民地格の州にも当てる＝帝国の過伸展のコストが昇格で消えない。
@@ -60,9 +66,7 @@ public static class Colonial
         {
             double km = (Math.Abs(clat) < 1e-9 && Math.Abs(clon) < 1e-9) ? 0 : Geo.SeaDistanceKm(w.Latitude, w.Longitude, clat, clon, suezOpen, panamaOpen);
             double massDist = km / Diplomacy.DistanceNormKm * Math.Max(0, popWeight) * countPerMass;   // R2：距離×質量（個数単位）
-            coalWant += coalPerMassDist * massDist;         // 距離×質量に比例の石炭（汽船補給線）
-            foodWant += foodPerMassDist * massDist;         // 距離×質量に比例の缶詰糧食（駐留）
-            shipBurden += c.ColonyShipOccupyPerDist * massDist;   // 距離×質量に比例の海運占有
+            shipBurden += c.ColonyShipOccupyPerDist * massDist;   // 距離×質量に比例の海運占有（帆船の船腹の目盛り＝下で汽船の分を軽くする）
             if (malarial) quinineWant += c.MalariaQuininePerColony;   // マラリア地は風土病鎮静にキニーネを要する（供給が実コスト）
         }
         if (c.ColoniesAreRegions > 0)
@@ -74,12 +78,17 @@ public static class Colonial
                 AccumUpkeep(ccr.Lat, ccr.Lon, pw, cr.Malarial);
             }
         foreach (var col in w.SelfPower!.ColonyList) AccumUpkeep(col.Latitude, col.Longitude, col.Population, col.Malarial);
+        double era = c.EraFactor(w.WorldTechLevel, c.EraColonyCoal);   // 機関の時代係数（民間の汽船と同じ1本＝Transport.Step）
+        double steam = w.ShipSteamShareEma;
+        double steamMult = c.ShipTier2CapMult * Discovery.GoodGate(r, c.ShipTier2GoodId) / era;   // R4②：汽船1単位の容量倍（Transport.BuyToward と同じ式・era≥0.05＝EraFactor の床で有限）
+        if (steamMult > 1.0) shipBurden *= (1.0 - steam) + steam / steamMult;                      // 汽船の分だけ占有が軽い（未解禁・容量倍≦1 は帆船と同じ）
         w.ColonialShipBurden = shipBurden;   // 交易の実効海運を絞る（InternationalMarket/Trade が ShipCapacity/(1+これ) で参照）
         w.LastColonialUpkeep = 0;   // 請求（r を掛ける前）＝下の補給財の請求（BuyUpkeepGood が足す）だけ＝翌月の月初の請求の見込み（Simulation）と予算表が読む。★(140) 不満の俸給は撤去（上の注記）
-        // 距離維持費の物理消費：国庫が本国市場から燃料・缶詰糧食を買う（在庫律速・需要計上で価格律速・産業と競合）。支払いは生産者へ（保存）。
+        // 補給線の燃料（R4③）：占有された船腹（海運の容量×占有÷(1＋占有)）の汽船の分が焚く＝民間の汽船の燃料と同じ式（Transport.BuyShipFuel）。国庫が本国市場から買う
+        //   （在庫律速・需要計上で価格律速・産業と競合）。支払いは生産者へ（保存）。帆走（割合0）は焚かない（c1 と同じ）。
+        double coalWant = c.ShipFuelRate * era * steam * OccupiedShipCapacity(w);
         var (fuelG, fuelWant) = ChooseFuelGood(r, c, coalWant);   // 石炭/原油の二択（海軍・民間汽船と同じ1本）
         BuyUpkeepGood(w, r, fuelG, fuelWant);
-        BuyUpkeepGood(w, r, foodG, foodWant);
         const int quinineG = Catalog.QuinineId;   // キニーネ（マラリア鎮静）
         double malariaFill = quinineWant > 1e-9 ? BuyUpkeepGood(w, r, quinineG, quinineWant) / quinineWant : 1.0;   // 本国市場から買えた割合＝鎮静度（キニーネ供給がコスト＝工業化＋キナ植民地が要る＝中後期）
 
@@ -277,6 +286,61 @@ public static class Colonial
                     if (w.Diplomacy is { } pdip) pdip.PromotedColonies++;   // 保存検査の台帳（植民地格の州が1つ減る）
                     w.LogAdd($"{w.Year} {cr.Name}が{w.SelfPower.Name}の州へ昇格（中核民族{Politics.AvgRegionCoreShare(cr):P0}・人口{cr.SumPopulation():F0}）");
                 }
+        }
+    }
+
+    /// <summary>★R4（2026-10-02 (173)）：植民地の補給線が占有している船腹＝海運の容量×占有÷(1＋占有)（交易に使える容量＝容量÷(1＋占有)の残り）。
+    /// 補給線の燃料（<see cref="Step"/>）と民間の汽船の燃料（<see cref="Transport"/> の BuyShipFuel＝容量−これ）が同じ1本を読む＝同じ船腹を2度焚かない。</summary>
+    internal static double OccupiedShipCapacity(World w)
+    {
+        double b = w.ColonialShipBurden;
+        return b > 0 ? w.ShipCapacity * b / (1.0 + b) : 0.0;   // 否定形でなく正の確かめ＝NaN と負は占有0
+    }
+
+    /// <summary>★R1（作者裁定 2026-09-28「R1 不在地主＝本国首都の投資家POP」・2026-09-29「輸出作物の生産は不在地主（本国の投資家）・主食の生産は現地の地主のまま」
+    /// 「判別は既存のデータ（州の生産が輸出作物か主食か）」・メモリの要約＝原文は手元に無い）＝植民地格の州の**輸出作物の大農園**か。
+    /// 判別（AI の読み・作者の承認は未確認）＝州の賦存（<see cref="Region.Resources"/>＝その州の輸出向け一次産品＝本国の大農園の地代の上書き〔Simulation の D6〕と同じ定義）に載る RGO で、
+    /// 主食でない（主食＝穀物法の客体と同じ集合＝主食の段か麦の連鎖）。⚠鉱山・畜産・果実・漁獲・木・毛皮も賦存なら「輸出作物」の側（D6 の「大農園/鉱山の経営」と同じ）。
+    /// 状態を持たない＝州の格が植民地格を出れば（入植者の州昇格）その場で在地の持ち主へ戻る。</summary>
+    internal static bool AbsenteeRgo(Region r, Producer s)
+        => r.Tier == RegionTier.Colonial && s.IsRgo && ExportCrop(s.GoodId) && Array.IndexOf(r.Resources, s.GoodId) >= 0;
+
+    /// <summary>★R1：主食でない財か（主食＝穀物法の客体と同じ集合＝主食の段か麦の連鎖＝BilateralMarket の穀物法の罰）。植民地格の州の賦存と合わせて「輸出作物」の判別に使う。</summary>
+    internal static bool ExportCrop(int goodId)
+        => goodId >= 0 && goodId < Catalog.Goods.Length && !(Catalog.Goods[goodId].Tier == GoodTier.Staple || Catalog.Goods[goodId].GrainChain);
+
+    /// <summary>★R1：不在地主＝本国の首都の投資家 POP（国の首都の州の <see cref="Region.InvestorPopIndex"/>）。首都そのものの州・投資家の居ない国は null（在地の持ち主のまま）。</summary>
+    internal static Pop? AbsenteeOwner(World w, Region r)
+    {
+        var cap = w.Region;
+        if (ReferenceEquals(cap, r) || cap.InvestorPopIndex < 0 || cap.InvestorPopIndex >= cap.Pops.Count) return null;
+        return cap.Pops[cap.InvestorPopIndex];
+    }
+
+    /// <summary>★R1：植民地格の州の月末の精算の後に、輸出作物の大農園の地代（<paramref name="net"/>＝在地の持ち主の口座ごとの符号つきの和・EconomyStep の④が積む）を
+    /// 不在地主へ送る（移し方の1本＝在地の口座→首都の投資家・所得にも書く）。国内の売上の地代は④で在地の持ち主の月内の仮勘定に入り、州の月末の精算で貯蓄になる
+    /// ＝首都の州はもう精算を終えている（州は順に回る）ので、④で直接首都の投資家の仮勘定へ書くと貯蓄に入らず消える＝精算の後に移す。
+    /// 所得と地代の記録（<see cref="Pop.Earned"/>・<see cref="Pop.LandRent"/>＝課税・票・思想の基数）も在地の口座から不在地主へ移す（金は移し方の1本が動かした額だけ）。
+    /// 赤字（負の地代）は不在地主が負う＝逆向きに移す。輸出代金の地代は清算（<see cref="InternationalMarket.PaySales"/>）で直接不在地主へ払う（精算の後の受け取り＝同じ規則）。
+    /// 使った <paramref name="net"/> の要素は0へ戻す。</summary>
+    internal static void RemitAbsenteeRent(World w, Region r, double[] net)
+    {
+        var owner = AbsenteeOwner(w, r);
+        for (int k = 0; k < r.Pops.Count && k < net.Length; k++)
+        {
+            double a = net[k]; net[k] = 0;
+            if (owner is null || !(Math.Abs(a) > 0)) continue;
+            var local = r.Pops[k];
+            // 黒字＝在地の口座→不在地主・赤字＝不在地主→在地の口座（在地の赤字を不在地主が埋める）。受け手は移し方の1本が所得にも書き、払い手の所得の記録は同じ額だけ下げる
+            //   ＝所得の記録がお金と一緒に動く（黒字なら在地の所得から地代が抜け不在地主へ・赤字なら在地の損の記録が消え不在地主の損になる）。
+            var (payer, payee) = a > 0 ? (local, owner) : (owner, local);
+            double moved = World.Transfer((w, [payer]), (w, [payee], [1.0]), Math.Abs(a), income: true);   // 受け手の重み1＝頭数に依らない（在地の資本家の口座は人数0のことがある）
+            payer.Earned -= moved;
+            if (a > 0)
+            {
+                double land = Math.Min(moved, Math.Max(0, local.LandRent));   // 地代（土地税の課税ベース）の記録も移す
+                local.LandRent -= land; owner.LandRent += land;
+            }
         }
     }
 

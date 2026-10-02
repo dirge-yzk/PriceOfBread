@@ -56,6 +56,7 @@ public class ColonialPopTests
         var sim = new MultiNationSim([NationConfig.Britain(), NationConfig.France()], seed: 83) { DiplomacyFrozen = true };
         var w = sim.Nations[0].World;
         w.ShipSteamShareEma = 1.0;   // 補給線が石炭を焚く状態（帆走の時代は距離の物理消費が0＝比べられない）
+        w.ShipCapacity = 10_000;     // ★(173) R4：補給線の燃料は占有された船腹（容量×占有÷(1＋占有)）の汽船の分＝船腹が要る（構築の直後は容量0）
         double Km(Region r) { var cc = Places.Coord(r.Name); return Geo.SeaDistanceKm(w.Latitude, w.Longitude, cc.Lat, cc.Lon, false, false); }
         var cols = w.Regions.Where(r => r.State == RegionState.Active && r.Tier == RegionTier.Colonial).ToList();
         var outpost = cols.Where(r => r.Resources.Length == 0).OrderByDescending(Km).First();
@@ -74,5 +75,142 @@ public class ColonialPopTests
         Assert.True(o.Burden > 0 && o.Upkeep > 0, $"前哨の維持費か海運占有が0（{o}）＝比べられない");
         Assert.True(o.Burden < b.Burden, $"遠い前哨 {outpost.Name} の海運占有 {o.Burden:G4} が近い大植民地 {big.Name} の {b.Burden:G4} 以上＝行の数で数えている");
         Assert.True(o.Upkeep < b.Upkeep, $"遠い前哨 {outpost.Name} の維持費の請求 {o.Upkeep:G4} が近い大植民地 {big.Name} の {b.Upkeep:G4} 以上＝行の数で数えている");
+    }
+
+    // ===== 2026-10-02 (173) 植民地の残り（R1・c6・R4）の番人 =====
+    // ⚠要約の出どころ：R1 の受け手（不在地主＝本国首都の投資家 POP）と作物で分けること・R4 の線（汽船を急ぐ程度に経済的・汽船は石炭を足すが占有を減らす）は作者の裁定
+    //   （2026-09-28・09-29）。輸出作物の判別（賦存かつ主食でない）・缶詰の撤去・占有の軽くし方（容量倍で割る）・燃料の分け方は AI の推奨（作者の承認は未確認）。
+
+    private static Region ColonyWith(World w, int good) =>
+        w.Regions.First(r => r.State == RegionState.Active && r.Tier == RegionTier.Colonial && r.Producers.Any(p => p.GoodId == good && Colonial.AbsenteeRgo(r, p)));
+
+    /// <summary>★(173) R1＋c6：植民地格の州の賦存の輸出作物（主食でない）は大農園＝地代の取り分は本国の賦存州と同じ PlantationRentShare・持ち主の口座は資本家・
+    /// 不在地主の判別が立つ。賦存の主食（トウモロコシ）は現地の地主のまま（自作農の床・持ち主は農民・不在地主でない）。盤面＝英西の構築の直後（西の中央メキシコ＝サトウキビ・トウモロコシの賦存）。
+    /// ⚠突然変異「主食も上書き」「上書きを外す」で赤。</summary>
+    [Fact]
+    public void 植民地の賦存の輸出作物は不在地主の大農園で主食は現地の地主のまま()
+    {
+        var sim = new MultiNationSim([NationConfig.Britain(), WorldData.ByName("スペイン")], seed: 83) { DiplomacyFrozen = true };
+        var w = sim.Nations[1].World;
+        var mex = w.Regions.First(r => r.Name == "中央メキシコ");
+        Assert.Equal(RegionTier.Colonial, mex.Tier);
+        var sugar = mex.Producers.First(p => p.IsRgo && p.GoodId == Catalog.SugarCaneId);
+        var maize = mex.Producers.First(p => p.IsRgo && p.GoodId == Catalog.MaizeId);
+        Assert.True(Colonial.AbsenteeRgo(mex, sugar), "サトウキビ（賦存・主食でない）が不在地主の大農園と判別されない");
+        Assert.Equal(w.Coef.PlantationRentShare, sugar.RentShare);
+        Assert.Equal(PopClass.Capitalist, mex.Pops[sugar.OwnerPopIndex].ClassId);
+        Assert.False(Colonial.AbsenteeRgo(mex, maize), "トウモロコシ（主食）が不在地主の大農園と判別された");
+        Assert.True(maize.RentShare < w.Coef.PlantationRentShare, $"主食の地代の取り分が大農園の値（{maize.RentShare}）＝現地の地主のままでない");
+        Assert.Equal(PopClass.Peasant, mex.Pops[maize.OwnerPopIndex].ClassId);
+    }
+
+    /// <summary>★(173) R1：輸出代金（清算の受け取り＝InternationalMarket.PaySales）のうち植民地の輸出作物の大農園の地代は本国の首都の投資家へ直接（所得にも書く）・
+    /// 在地の持ち主の口座は受け取らない・賃金は在地の労働へ。盤面＝英仏の英（ジャマイカのサトウキビ）。⚠突然変異「受け手を在地の持ち主へ戻す」で赤。</summary>
+    [Fact]
+    public void 植民地の輸出作物の輸出代金の地代は本国の首都の投資家が受け取る()
+    {
+        var sim = new MultiNationSim([NationConfig.Britain(), NationConfig.France()], seed: 83) { DiplomacyFrozen = true };
+        var w = sim.Nations[0].World;
+        var col = ColonyWith(w, Catalog.SugarCaneId);
+        var inv = w.Region.Pops[w.Region.InvestorPopIndex];
+        var pr = col.Producers.First(p => p.GoodId == Catalog.SugarCaneId && Colonial.AbsenteeRgo(col, p));
+        var local = col.Pops[pr.OwnerPopIndex];
+        double i0 = inv.Savings, ie0 = inv.Earned, l0 = local.Savings;
+        double paid = InternationalMarket.PaySales((null, null), col, Catalog.SugarCaneId, 1000.0, w);
+        Assert.Equal(1000.0, paid, 6);
+        Assert.True(inv.Savings - i0 > 1.0, $"本国の首都の投資家が地代を受け取らない（{inv.Savings - i0}）");
+        Assert.Equal(inv.Savings - i0, inv.Earned - ie0, 9);
+        Assert.Equal(l0, local.Savings, 9);
+    }
+
+    /// <summary>★(173) R1：国内の売上の地代は④で在地の口座に入り州の月末の精算で貯蓄になる＝精算の後に不在地主へ送る（Colonial.RemitAbsenteeRent）。
+    /// 黒字＝在地の口座→首都の投資家（貯蓄・所得・地代の記録が同じ額だけ移る）・赤字＝首都の投資家が在地の口座を埋める。⚠突然変異「送らない」「所得の記録を動かさない」で赤。</summary>
+    [Fact]
+    public void 植民地の輸出作物の国内の地代は精算の後に本国の首都の投資家へ送られる()
+    {
+        var sim = new MultiNationSim([NationConfig.Britain(), NationConfig.France()], seed: 83) { DiplomacyFrozen = true };
+        var w = sim.Nations[0].World;
+        var col = ColonyWith(w, Catalog.SugarCaneId);
+        var inv = w.Region.Pops[w.Region.InvestorPopIndex];
+        var local = col.Pops[PopClass.Capitalist];
+        local.SetSavings(500); local.LandRent = 200; local.Earned = 200;
+        double i0 = inv.Savings, ie0 = inv.Earned, il0 = inv.LandRent;
+        var net = new double[col.Pops.Count];
+        net[PopClass.Capitalist] = 200;
+        Colonial.RemitAbsenteeRent(w, col, net);
+        Assert.Equal(300, local.Savings, 9); Assert.Equal(0, local.Earned, 9); Assert.Equal(0, local.LandRent, 9);
+        Assert.Equal(i0 + 200, inv.Savings, 9); Assert.Equal(ie0 + 200, inv.Earned, 9); Assert.Equal(il0 + 200, inv.LandRent, 9);
+        Assert.Equal(0, net[PopClass.Capitalist]);
+        net[PopClass.Capitalist] = -50;   // 赤字＝不在地主が埋める
+        Colonial.RemitAbsenteeRent(w, col, net);
+        Assert.Equal(350, local.Savings, 9); Assert.Equal(50, local.Earned, 9);
+        Assert.Equal(i0 + 150, inv.Savings, 9); Assert.Equal(ie0 + 150, inv.Earned, 9);
+    }
+
+    /// <summary>★(173) R1（呼び手の側＝EconomyStep の④）：植民地格の州の月の決算で、輸出作物の大農園が国内で売った地代は首都の投資家の貯蓄へ着く
+    /// （＝不在地主の大農園の地代の和）・在地の資本家の口座には残らない。盤面＝英仏の英のジャマイカ（コーヒー＝州の住民が飲む）に住民の貯蓄を入れて1か月。
+    /// ⚠突然変異「④で積まない」「精算の後に送らない」で赤。</summary>
+    [Fact]
+    public void 植民地の月の決算で輸出作物の地代は首都の投資家へ着く()
+    {
+        var sim = new MultiNationSim([NationConfig.Britain(), NationConfig.France()], seed: 83) { DiplomacyFrozen = true };
+        var w = sim.Nations[0].World;
+        var col = ColonyWith(w, Catalog.CoffeeId);
+        foreach (var p in col.Pops) if (p.Size > 1e-9) p.SetSavings(p.Savings + 1e5);
+        var inv = w.Region.Pops[w.Region.InvestorPopIndex];
+        double i0 = inv.Savings;
+        EconomyStep.Run(col, w.Coef, 1.0, w.Bank, w);
+        double rent = 0;
+        foreach (var p in col.Producers) if (Colonial.AbsenteeRgo(col, p)) rent += p.LastRevenue - p.LastCost;
+        Assert.True(rent > 1e-6, $"前提が崩れた：不在地主の大農園に国内の地代が立たない（{rent}）");
+        Assert.Equal(rent, inv.Savings - i0, 6);
+    }
+
+    /// <summary>★(173) R4①：植民地の補給線は駐留の缶詰を買わない（駐留の兵は兵士 POP で給与から州の食料を買う＝2度食わせない・思想⑨）。
+    /// 盤面＝英仏の英・缶詰を発見済みにして植民地の月（Colonial.Step）を1回＝缶詰の需要が立たない。⚠突然変異「缶詰の請求を戻す」で赤。</summary>
+    [Fact]
+    public void 植民地の補給線は駐留の缶詰を買わない()
+    {
+        var sim = new MultiNationSim([NationConfig.Britain(), NationConfig.France()], seed: 83) { DiplomacyFrozen = true };
+        var w = sim.Nations[0].World;
+        var r = w.Region;
+        r.Discovered = w.Discovered;
+        foreach (var row in Enumerable.Range(0, Catalog.Discoveries.Length).Where(i => Catalog.Discoveries[i].Good == Catalog.CannedFoodId)) w.Discovered[row] = true;
+        Assert.Equal(1.0, Discovery.GoodGate(r, Catalog.CannedFoodId));
+        w.ShipCapacity = 10_000; w.ShipSteamShareEma = 1.0;
+        double d0 = r.Markets[Catalog.CannedFoodId].LastDemand;
+        Colonial.Step(w, w.Coef);
+        Assert.Equal(d0, r.Markets[Catalog.CannedFoodId].LastDemand);
+    }
+
+    /// <summary>★(173) R4②③：汽船は補給線の占有を軽くし（占有×((1−割合)＋割合÷容量倍)・容量倍＝ShipTier2CapMult×汽船の解禁度÷機関の時代係数＝民間の船の選び方と同じ）、
+    /// 占有された船腹の汽船の分の燃料を国庫が買う（ShipFuelRate×時代係数×割合×占有された容量）・商人は交易に使える容量の分だけ焚く（2つの和＝船隊の全ての燃料＝2度焚かない）。
+    /// 盤面＝英仏の英・汽船を発見済み・船腹 10,000・汽船の割合 0 と 1。⚠突然変異「占有を軽くしない」「旧の 400×距離×質量の石炭」「商人が全ての船腹を焚く」で赤。</summary>
+    [Fact]
+    public void 汽船は補給線の占有を軽くし占有された船腹の燃料だけを国庫が買う()
+    {
+        var sim = new MultiNationSim([NationConfig.Britain(), NationConfig.France()], seed: 83) { DiplomacyFrozen = true };
+        var w = sim.Nations[0].World; var c = w.Coef; var r = w.Region;
+        r.Discovered = w.Discovered;
+        foreach (var row in Enumerable.Range(0, Catalog.Discoveries.Length).Where(i => Catalog.Discoveries[i].Good == Catalog.SteamshipId)) w.Discovered[row] = true;
+        Assert.Equal(1.0, Discovery.GoodGate(r, Catalog.SteamshipId));
+        w.ShipCapacity = 10_000; w.FiscalFundingRatio = 1.0;
+        double era = c.EraFactor(w.WorldTechLevel, c.EraColonyCoal);
+        double mult = c.ShipTier2CapMult / era;
+        w.ShipSteamShareEma = 0.0; Colonial.Step(w, c); double b0 = w.ColonialShipBurden;
+        w.ShipSteamShareEma = 1.0;
+        double coal0 = r.Markets[Catalog.CoalId].LastDemand;
+        Colonial.Step(w, c); double b1 = w.ColonialShipBurden;
+        Assert.True(b0 > 0 && mult > 1, $"前提が崩れた（占有 {b0}・容量倍 {mult}）");
+        Assert.Equal(b0 / mult, b1, 9);
+        double occ = Colonial.OccupiedShipCapacity(w);
+        Assert.Equal(w.ShipCapacity * b1 / (1 + b1), occ, 9);
+        double want = c.ShipFuelRate * era * 1.0 * occ * EconomyStep.StatePriceAfford(r, c, Catalog.CoalId);
+        Assert.Equal(want, r.Markets[Catalog.CoalId].LastDemand - coal0, 9);
+        // 商人の燃料（Transport の BuyShipFuel）＝交易に使える容量の分だけ
+        double before = 0; foreach (var rg in w.Regions) if (rg.State == RegionState.Active) before += rg.Markets[Catalog.CoalId].LastDemand;
+        typeof(Transport).GetMethod("BuyShipFuel", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!.Invoke(null, [w, c, era]);
+        double after = 0; foreach (var rg in w.Regions) if (rg.State == RegionState.Active) after += rg.Markets[Catalog.CoalId].LastDemand;
+        Assert.Equal(c.ShipFuelRate * era * (w.ShipCapacity - occ) * 1.0, after - before, 6);
     }
 }

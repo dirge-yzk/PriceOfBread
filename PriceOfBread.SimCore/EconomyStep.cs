@@ -2246,6 +2246,9 @@ public static class EconomyStep
         // ★国家の支払い率 r（作者裁定 F3・R3・2026-09-28 支払いの一元化 段2-1）＝国営持分の赤字の肩代わりと民営の補助は r の分だけ（全ての国家の支払いと同じ1本の率）。
         //   世界の無い試験（world=null）は 1＝満額。
         double payRate = world?.FiscalFundingRatio ?? 1.0;
+        // ★R1（2026-10-02 (173)）：植民地格の州の輸出作物の大農園（Colonial.AbsenteeRgo）の地代は不在地主（本国の首都の投資家）のもの＝在地の持ち主の口座ごとに積み、
+        //   州の月末の精算の後に移し方の1本で送る（Colonial.RemitAbsenteeRent の注記）。植民地格でない州・世界の無い試験・不在地主の居ない国は null＝何もしない。
+        double[]? absentee = world is not null && region.Tier == RegionTier.Colonial && Colonial.AbsenteeOwner(world, region) is not null ? new double[region.Pops.Count] : null;
         for (int pi = 0; pi < np; pi++)
         {
             var s = region.Producers[pi];
@@ -2295,6 +2298,7 @@ public static class EconomyStep
             region.Pops[s.OwnerPopIndex].Earned += rent;
             region.Pops[s.LaborPopIndex].Earned += wages;
             if (s.IsRgo && rent > 0) region.Pops[s.OwnerPopIndex].LandRent += rent;   // RGOの地代（封建貢租）＝土地税の課税ベース（Fiscal）
+            if (absentee is not null && Colonial.AbsenteeRgo(region, s)) absentee[s.OwnerPopIndex] += rent;   // R1：不在地主の分（精算の後に送る・赤字も）
             if (s.IsRgo && rent > 0 && coef.PrivilegeLedgerEnabled > 0 && world is not null && region.Pops[s.OwnerPopIndex].ClassId == PopClass.Noble)
                 Privileges.Record(world, Privileges.Seigneurial, rent * Privileges.SeigneurialDegree(world));   // ★特権台帳（段1・観測）：領主権の取り分＝貴族が受ける地代×未解放度
             else if (!s.IsRgo && rent > 0 && s.OwnerPopIndex == region.InvestorPopIndex
@@ -2409,6 +2413,7 @@ public static class EconomyStep
             // 組合の非物質的厚生（LaborWellbeing＝UnionSatBonus×組織率・休眠0）：大衆POP（非特権・非エリート・非兵士）の満足度↑
             if (Politics.IsMassPop(p) && region.LaborWellbeing > 0) p.Satisfaction = PoliticalQuantities.Clamp01(p.Satisfaction + region.LaborWellbeing);
         }
+        if (absentee is not null) Colonial.RemitAbsenteeRent(world!, region, absentee);   // R1：精算の後に不在地主へ（④で積んだ在地の口座ごとの地代）
 
         // （退蔵の取り崩し＝HoardDishoardRate は 2026-09-26 に削除＝#66 で却下された休眠の枝）
 

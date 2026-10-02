@@ -101,7 +101,12 @@ public sealed partial class InternationalMarket
                     double wages = amt - rent;
                     double sc = rent * World.StateProfitShare(pr, rr, coef);
                     if (sc > 0) { stateCut += sc; rent -= sc; }
-                    if (rent > 0) { to.Add(rr.Pops[pr.OwnerPopIndex]); wt.Add(rent); }
+                    if (rent > 0)
+                    {
+                        // ★R1（2026-10-02 (173)）：植民地格の州の輸出作物の大農園の地代は不在地主（本国の首都の投資家）へ直接＝清算の受け取りは移し方の1本（貯蓄と所得を同じ額で書く）
+                        //   なので国内の売上（EconomyStep の④＝精算の後に送る）と違って直接払ってよい。
+                        to.Add(Colonial.AbsenteeRgo(rr, pr) && Colonial.AbsenteeOwner(w, rr) is { } ab ? ab : rr.Pops[pr.OwnerPopIndex]); wt.Add(rent);
+                    }
                     if (wages > 0) { to.Add(rr.Pops[pr.LaborPopIndex]); wt.Add(wages); }
                 }
             }
@@ -118,6 +123,9 @@ public sealed partial class InternationalMarket
         if (stateCut > 0)
             moved += World.Transfer(from, (w, null, null), stateCut, from.Pops is null && ReferenceEquals(from.W, w) ? cat : TreasuryCat.StateFactory, toCat: TreasuryCat.StateFactory, outside: minted ? World.Outside.Mint : World.Outside.Border);
         moved += World.Transfer(from, (w, to, wt), amount - stateCut, cat, income: true, outside: minted ? World.Outside.Mint : World.Outside.Border);
+        // ⚠(173) の確かめ：輸出代金の RGO の地代は地代（LandRent＝土地税の課税ベース）に書かない（c5 の後半は残り）＝清算は全ての国の月次決算（Fiscal）の後に着き、
+        //   LandRent は次の月の頭（EconomyStep の月頭）で0へ戻る＝ここで書いても土地税に一度も載らない。載せるには所得税の LastEarned（(108) 段3-1）と同じ
+        //   「前の月の全ての地代」を Fiscal が読む形が要る（新しい状態＝別の回）。
         return moved;
     }
 

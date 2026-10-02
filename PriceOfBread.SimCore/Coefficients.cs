@@ -2482,12 +2482,13 @@ public sealed class Coefficients
     public double ColonialInfraPerColony = 1.0;      // 【R13点火2026-07-15＝1.0】植民地開発度の州単位化：0=国家一律の開発度w.ColonialInfraで全植民地の産出（現行と厳密一致）・>0.5で植民地ごとのcol.Infra（所有国水準へ収束するが征服/独立で移動＝奪った開発済み植民地は産出を引き継ぎ・独立後も凍結せず新所有国水準へ調整）。投資決定は国家プールのまま＝影響は移転植民地の産出に局所化
     public double ColonialInfraConverge = 0.01;      // R13：col.Infra が所有国の国家開発度へ収束する月次率（0.01≒半減期6年）。低いほど征服/独立後の開発が長く保持され、高いほど速く新所有国水準へ均される。ColonialInfraPerColony=0では未使用
     // 【墓標2026-09-28（c2）】ColonyUpkeepBase（植民地1つの月次維持費の平場150）＝Fiscal の行政費×距離（UpkeepDistanceGeneral）と二重＝撤去。不満の上乗せは ColonyUpkeepMilitancyScale へ畳んだ（それも 2026-09-30 (140) に撤去）
-    // 帝国の過伸展は距離の金銭倍率でなく**物理消費**から創発：遠方植民地ほど補給線が長く、汽船が石炭(good1)を焚き駐留が缶詰糧食(good65)を食う。
-    // 国庫が本国市場から買う＝石炭が産業と競合し価格律速（LastDemand）＝遠方帝国ほど石炭・糧食が逼迫（イギリスの過伸展が物理コストに）。
-    public double ColonyUpkeepCoalPerDist = 400.0;   // 植民地の質量1個数単位・距離1万kmあたり汽船補給線が焚く石炭量（物理消費）。×汽船の割合（帆走は0）×機関の時代係数（EraColonyCoal）＝民間の汽船と同じ状態と物理（2026-09-28 c1・R2）。balance：仏英二強の安価な帝国を実コスト化（200→400）＝過伸展が石炭価格・国庫を圧迫
+    // 帝国の過伸展は距離の金銭倍率でなく**物理**から創発：遠方植民地ほど補給線が長く、交易の船腹を占有する（下の ColonyShipOccupyPerDist）。
+    // 【墓標2026-10-02 (173)・R4】ColonyUpkeepCoalPerDist（400×距離×質量の補給線の石炭）＝民間の船隊の燃料（ShipFuelRate×容量）の数百倍の別の物差しで、同じ船腹を商人も焚いていた（思想⑨）
+    //   ＝補給線の燃料は占有された船腹の汽船の分（ShipFuelRate×時代係数×汽船の割合×Colonial.OccupiedShipCapacity）＝民間の汽船と同じ式へ・係数ごと削除。
     public double ColonyFuelOilEnergyRatio = 1.5;    // B6重油二択（2026-07-19）：補給線燃料の石炭→石油転換。原油のエネルギー密度＝同熱量の必要量が石炭の1/これ。実効単価が安い方を焚く（原油は1859解禁まで供給ゼロ＝転換は価格から創発）。0で旧（石炭固定）
-    public double ColonyUpkeepFoodPerDist = 180.0;   // 植民地の質量1個数単位・距離1万kmあたり駐留が食う缶詰糧食量（物理消費）。×缶詰の解禁度（2026-09-28 c1）。同上（90→180）
-    public double ColonyShipOccupyPerDist = 0.12;    // 植民地の質量1個数単位・距離1万kmあたり海運に課す混雑（ShipCapacity/(1+Σ)＝補給航路が交易船を占有・スケールフリー・2026-09-28 R2＝行の数でなく質量）。同上（0.06→0.12）＝遠方帝国の交易収入を削る
+    // 【墓標2026-10-02 (173)・R4】ColonyUpkeepFoodPerDist（180×距離×質量の駐留の缶詰糧食）＝植民地格の州の駐留の兵は兵士 POP で給与から州の食料を買う＝同じ兵を2度食わせた（思想⑨）。
+    //   (173) の計器＝r172 の5種で英の植民地の補給財（ほぼ缶詰）が 1803-12 に国の税の 4.6倍（段2A で缶詰の解禁が2値になり解禁の年から満額）＝係数ごと削除。
+    public double ColonyShipOccupyPerDist = 0.12;    // 植民地の質量1個数単位・距離1万kmあたり海運に課す混雑（ShipCapacity/(1+Σ)＝補給航路が交易船を占有・スケールフリー・2026-09-28 R2＝行の数でなく質量）。同上（0.06→0.12）＝遠方帝国の交易収入を削る。★(173) R4：帆船の船腹の目盛り＝汽船の割合の分だけ容量倍（ShipTier2CapMult×解禁度÷時代係数）で割って軽くする（Colonial.Step）
     public double ColonialReturnScale = 0.01;        // 限界資源価値の換算係数（限界産出×固有資源価値×これ > 投資コスト で私的投資家が投資）
     public double ColonialDevStep = 0.02;            // 採算が合う時に1期で進める開発度の刻み
     public double ColonialInvestFrac = 0.03;         // 私的投資家が貯蓄からこの割合まで植民地開発に充てる（affordability 上限）
@@ -2743,8 +2744,7 @@ public sealed class Coefficients
     // ★実バグ21件 第3波（2026-09-07・群計測1本）。B9（州一揆の保持力を LocalizedHold で読む）は 2026-09-11 に点火＝係数を削除（CheckRegionalRevolt は常に州按分）。
     //   B16 通貨制度の目標を開いた戦線（CountOpenFronts）に数える係数 FrontsCountMonetary は 2026-09-28（処理の一元化 段2 束2）に削除した＝
     //   施行と戦線が法の軸の表（Government.LevelLaws）の同じ1行を読む＝通貨も他の法と同じく目標≠現在なら1戦線。
-    //   B5 植民地格（Colonial）へ昇格した州の賦存RGOに PlantationRentShare を当て所有＝資本家（本国と同じ大農園の物理・史実の逆を正す）。0＝自作農のまま＝旧。
-    public double ColonyPlantationRent = 0.0;
+    //   【墓標2026-10-02 (173)】B5 ColonyPlantationRent（植民地格の州の賦存RGOに PlantationRentShare）＝焼き込み（R1＋c6）＝輸出作物（主食でない賦存）だけ・地代は不在地主へ（Colonial.AbsenteeRgo）。
     //   B14 world.json の heldSince（併合年）を読む＝新領土は支配度が低く Integrated 格で始まる（E-06 の核心が開始盤面に効く）。0＝読まない＝全州 Core・支配度1＝旧。採用後は係数を消して常時読む。
     public double HeldSinceFromData = 0.0;
     // ★実バグ21件 第4波 B3（2026-09-07・単独計測）：「内戦中か」を World.InCivilWar の1本へ＝CivilWarAsWar の主経路（War で戦う）でも経済麻痺・軍需2倍・
@@ -3454,7 +3454,7 @@ public sealed class Coefficients
     public double EraTensionRange = 1.0;         // 近接の緊張が届く距離（★電信1870s＝遠方の危機が即座に本国へ届く）
     // 【墓標2026-08-29】EraRegionalHalf＝読み手ゼロ（力学読み手 RegionalDistanceWeight は2026-08-12撤去済み・残るはUI地図表示のみ）で撤去
     public double EraMigrationScale = 1.0;       // 移民の距離減衰（★大西洋横断が6週間→6日）
-    public double EraColonyCoal = -0.5;           // 植民地維持の距離あたり石炭（⚠負を入れる＝複式→三段膨張機関で燃費が改善し続けた）。★2026-09-27（回4-3 の再挑戦）：汽船の機関の時代係数の1本＝民間の汽船（Transport）も読む（容量あたりの燃料×era・1単位の容量÷era）。★2026-09-28（c1）：補給線は×汽船の割合も掛ける＝民間の汽船と同じ形
+    public double EraColonyCoal = -0.5;           // 汽船の機関の時代係数（旧名のまま＝植民地維持の距離あたり石炭の時代の改善として置いた・⚠負を入れる＝複式→三段膨張機関で燃費が改善し続けた）。★(173)：補給線の燃料も民間と同じ式（ShipFuelRate×これ）。★2026-09-27（回4-3 の再挑戦）：汽船の機関の時代係数の1本＝民間の汽船（Transport）も読む（容量あたりの燃料×era・1単位の容量÷era）。★2026-09-28（c1）：補給線は×汽船の割合も掛ける＝民間の汽船と同じ形
     // 【墓標2026-09-28（c1）】EraColonyFood（植民地維持の距離あたり糧食を缶詰・冷蔵で下げる時代係数）＝缶詰の財の解禁度（EquipUnlock）が置き換えた＝削除
 
     /// <summary>★距離定数の時代係数（掃討doc 第2波・2026-08-13）。前線技術のランプに沿って距離定数を伸縮させる。
@@ -3503,7 +3503,7 @@ public sealed class Coefficients
     // 保留（被服・港湾資材・巨大建造物維持・医薬品戦時段・馬飼料）＝docs/202608/20260816_運用コスト監査と燃料実装_部分完了.md に記録。
     // ⚠時代の表現は発見の門（汽船・機関車＝(150)・旧＝蒸気の時計 SteamTechOnset）・供給実在ガード（原油）・EraFactor のみ＝年号・経過年は読まない（恒久指示）。
     public double NavalFuelPerGauge = 0.0;      // #1 海軍の運用燃料：石炭需要/月 = これ×FleetGauge×NavyUpkeep×汽船の門（(150)・旧＝蒸気ゲート）×EraFactor(EraNavalFuel)。石炭→重油の二択と支払い経路は植民地補給線（Colonial.BuyUpkeepGood/ChooseFuelGood）と同一＝台帳は TreasuryCat.Navy（現在書き手ゼロの枠）。
-    //   点火目標の導出（目盛りの錨＝ColonyUpkeepCoalPerDist=400＝植民地1つ・1万kmの汽船補給線の月次石炭・既較正）：
+    //   点火目標の導出（目盛りの錨＝ColonyUpkeepCoalPerDist=400＝植民地1つ・1万kmの汽船補給線の月次石炭・既較正＝⚠(173) でその係数は削除＝点火時は錨を出し直す）：
     //   英1914≈植民地30・平均1.2万km→補給線石炭≈400×30×1.2≈14,400/月。艦隊の運用炊き（哨戒・演習）は史実で商船隊の1〜2割の石炭消費
     //   →目標≈2,000〜4,000/月。点火時は fidelity 走行で英1914の FleetGauge×NavyUpkeep を実測し NavalFuelPerGauge=目標石炭/(FleetGauge×NavyUpkeep) で逆算＝Search再較正ラウンドと同席。
     public double NavalFuelSortieFloor = 0.4;   // #1 燃料切れ艦隊の出撃能力の下限（港湾・沿岸防衛は残る）。NavalFuelPerGauge>0のときのみ読む。⚠形を緩くする理由＝NavalPowerFromFleet の急峻min は2026-08-01に硬性ゲート赤で一度差し戻された経路＝燃料は fill線形×下限フロアの緩い乗数にする

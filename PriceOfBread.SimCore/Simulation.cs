@@ -1355,8 +1355,11 @@ public sealed class Simulation
                 pr.SiteRow = site;
                 ApplyEndowment(pr, ScarceEndowment(pr.GoodId, coef, !w.StepsDiplomacy) * coef.ResourceEndowmentScale, coef);   // 植民地の固有資源＝そのまま州の賦存へ（一次データ）。BuildProvince(769)と同じ ScarceEndowment＝ScarceMineralGate=0 なら ResourceEndowment と厳密同値（⚠既定は点火済みの1.0＝2026-09-05・x-02 で注記を是正）
                 // ★B5（実バグ21件・2026-09-07）：本国の賦存州は PlantationRentShare（live 0.6）で大農園の地代を当てるのに、植民地格の昇格州は自作農のまま＝史実の逆
-                //   （ベンガル/ジャワ/カリブは大農園）。ColonyPlantationRent>0 かつ Colonial 格のとき賦存RGOに同じ上書き・所有＝資本家（入植の農園主＝開いた階級・0から流入で育つ）。0＝旧＝厳密恒等。
-                if (coef.ColonyPlantationRent > 0 && tier == RegionTier.Colonial && pr.IsRgo && coef.PlantationRentShare > pr.RentShare)
+                //   （ベンガル/ジャワ/カリブは大農園）。Colonial 格のとき賦存RGOに同じ上書き・持ち主の口座＝資本家（入植の農園主＝開いた階級・0から流入で育つ）。
+                // ★2026-10-02 (173)（R1＋c6＝植民地の損益の診断の c6「B5 点火」・推奨で進めた）：休眠の旗 ColonyPlantationRent を焼き込んだ＝係数ごと削除。
+                //   上書きは**輸出作物**（主食でない賦存＝Colonial.ExportCrop・Colonial.AbsenteeRgo と同じ判別）だけ＝主食は現地の地主のまま（作者 2026-09-29「主食の生産は現地の地主のまま」・
+                //   メモリの要約）＝自作農の床 0.3・持ち主は農民。輸出作物の地代は植民地格の間は不在地主（本国の首都の投資家）へ送る（EconomyStep の④・InternationalMarket.PaySales）。
+                if (tier == RegionTier.Colonial && pr.IsRgo && Colonial.ExportCrop(pr.GoodId) && coef.PlantationRentShare > pr.RentShare)
                 {
                     pr.RentShare = coef.PlantationRentShare; pr.OwnerPopIndex = 3;
                 }

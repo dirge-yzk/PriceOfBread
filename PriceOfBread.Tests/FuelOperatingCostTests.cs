@@ -386,6 +386,7 @@ public class FuelOperatingCostTests
         var w = sim.Nations[0].World;
         Assert.True(w.SelfPower!.ColonialRegions > 0, "前提が崩れている（英に植民地格の州が無い）");
         var r = w.Region;
+        w.ShipCapacity = 10_000;   // ★(173) R4：補給線の燃料は占有された船腹の汽船の分（Colonial.OccupiedShipCapacity）＝船腹が要る（構築の直後は容量0）
         double Fuel() => r.Markets[Catalog.CoalId].LastDemand + r.Markets[Catalog.CrudeOilId].LastDemand;
         w.ShipSteamShareEma = 0;   // 帆走だけ（1783年の盤面そのまま）
         double d0 = Fuel(), st0 = r.Markets[Catalog.CoalId].Stock;
