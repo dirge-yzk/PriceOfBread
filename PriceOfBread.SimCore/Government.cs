@@ -293,7 +293,15 @@ public static class Government
         //   段は**合計にだけ**掛かる＝陸海比（navShareTarget）は連続のまま（D4：別々に段化すると平時0.25×海軍比上限0.60=0.15＜第1境界で
         //   全AIの海軍が段0・海洋国は陸も段0＝**英国に軍が無い**＝Diplomacy.cs が記録する2026-08-04のバグの再生産）。
         double milTotalTarget = MilitaryTotalTarget(w, p);
-        double milTotal = Move(w.MilitarySpending, milTotalTarget, c, w, PolicyAxis.Coercion);  // 武力スライダー＝軍隊規模と治安維持力を一本で駆動。軍系ブロックの政治力で律速
+        // ★戦時段の戦費の失効（2026-10-03 (181)・推奨で進めた・作者の承認は未確認）＝作者裁定 R2（2026-09-12）「戦時経済は総動員とセットで、戦後は下の値に戻る」の施行の側。
+        //   解禁（交戦中かつ総動員中＝MilitaryTotalTarget が戦時段を開く述語と同じ）の外では、施行も段3（高）を超えて残らない＝戦費の議決が失効する
+        //   （英 1815-20 に軍事費を約3分の1へ【推】）。旧＝目標だけが段3 へ戻り、施行は下の Move で軍の側の抵抗に逆らって四半期 0.011〜0.016 しか下りず、
+        //   平時の国×四半期の 16〜19%（1784-1913）が段4 の水準に残った（実装ログ (175) §1-①）。失効は Move の前＝政治資本を燃やさない（議決が切れるだけ）。
+        //   段3 より下の施行は今のまま（Move＝軍の抵抗）。AI とプレイヤーは同じ1か所（IsPlayer を読まない）。新しい数・新しい状態は無い。否定形＝NaN の施行も段3。
+        //   ⚠思想⑧の天井ではない＝解禁の外では選べる目標が既に段3 以下（MilitaryTotalTarget）＝選んだ値は削らない（施行に残った戦時の上乗せが切れるだけ）。
+        double milFrom = w.MilitarySpending, milHigh = (MilitaryLawStages - 1) / (double)MilitaryLawStages;
+        if (!(w.AtWarNow && w.Mobilized) && !(milFrom <= milHigh)) milFrom = milHigh;
+        double milTotal = Move(milFrom, milTotalTarget, c, w, PolicyAxis.Coercion);  // 武力スライダー＝軍隊規模と治安維持力を一本で駆動。軍系ブロックの政治力で律速
         // ★(151)：陸海比は目標の生の比（0.05格子に丸めない）＝上の「連続のまま」のとおり。旧＝格子に丸めた2本の比＝合計0.75 なら比は 0.067 刻みで、
         //   陸と海の必要量で分けた小さい海の比（清の 0.03 など）が0へ丸められて艦隊の乗員ごと消えた（陸海比は導出量＝2026-09-23 作者裁定・レバーは無い）。
         double navRawA = p.ArmyUpkeepTarget, navRawN = p.NavyUpkeepTarget;
@@ -387,7 +395,8 @@ public static class Government
     /// ★作者裁定2026-09-19 M2：総動員は戦時段を**解禁するだけ**で、選んだ値を押し上げない。<c>AtWarNow &amp;&amp; Mobilized</c> の間だけ梯子の上限が段4になり、
     /// それ以外は段3（高）で止まる＝段は選ぶもの（戦費は兵の動員とは別の予算決定＝英1914-15は志願制のまま巨額を支出）。
     /// 旧（2026-09-12 R2）は同じ述語で段4を**強制**していた＝選んだ値を黙って最上段へ上げる（P8 天井の鏡像）。
-    /// 「戦後は下の値に戻る」＝新しいタイマーを作らない：交戦か総動員が落ちた同じ四半期に上限が段3へ戻り、施行は Min で「高」以下の段になる。
+    /// 「戦後は下の値に戻る」＝新しいタイマーを作らない：交戦か総動員が落ちた次の四半期の頭に上限が段3へ戻り、施行も段3（高）以下になる（<see cref="Step"/> の戦時段の戦費の失効＝(181)）。
+    /// ⚠(181) の前は施行に失効が無かった＝Move が軍の抵抗で四半期 0.011〜0.016 しか下りなかった（この注記は「施行は Min で」と書いていたが、git の初めのコミット 2026-09-21 から施行に Min は無い）。
     /// 保存されている目標（段4）も同じ四半期に <see cref="Step"/> が段3へ書き戻す（戦時段の失効・2026-09-19）＝次の総動員で選び直さずに段4へ登らない。</summary>
     internal static double MilitaryTotalTarget(World w, NationPolicy p)
     {

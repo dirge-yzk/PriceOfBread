@@ -1585,4 +1585,77 @@ public class MilitaryTests
         Assert.Equal(1.0, Government.MilitaryTotalTarget(w, w.Policy));
         Assert.Equal(Base(lv) + (lv - 0.75) * Government.MilitaryLawStages * ticket, Military.EnvelopeOf(w, c), 9);   // 施行 0.9 の分＝1件の額の約 0.6
     }
+
+    // ===== (181) 戦後の施行＝戦時段の戦費の失効（推奨で進めた・作者の承認は未確認）=====
+
+    /// <summary>★(181) 戦時段の戦費の失効（<see cref="Government.Step"/>）＝作者裁定 R2（2026-09-12）「戦時経済は総動員とセットで、戦後は下の値に戻る」の施行の側。
+    /// 解禁（交戦中かつ総動員中）の外では、四半期の頭に施行も段3（高）へ戻る（Move の前＝議決が切れるだけ）。段3 より下の施行は今のまま（Move＝軍の抵抗）。
+    /// 解禁の中は施行を削らない。効いた量そのもの＝施行中の器（<see cref="Military.EnvelopeOf"/>＝月の予算の請求の上限）が段3 の器になる。
+    /// 盤面＝日英（開幕の1四半期の後）・双子は同じ瞬間からの別の世界（各盤面で新しく作る）。
+    /// ⚠突然変異「失効を外す」「解禁の中でも削る」「交戦だけを読む」「総動員だけを読む」「目標へ飛ばす」で赤。</summary>
+    [Fact]
+    public void 戦時段の戦費は解禁の外で四半期の頭に施行も段3へ失効し段3より下は軍の抵抗のまま()
+    {
+        (double x, World w, Coefficients c) Run(bool war, bool mob, double x0, double target)
+        {
+            var sim = new MultiNationSim([NationConfig.Japan(), NationConfig.Britain()], seed: 1789);
+            sim.StepQuarter();
+            sim.Diplomacy.Wars.Clear();
+            var w = sim.Nations[0].World; var c = w.Coef;
+            if (war) sim.Diplomacy.Wars.Add(new War { A = w.SelfPower!, B = sim.Nations[1].World.SelfPower! });
+            w.Mobilized = mob;
+            w.SetMilitarySpending(x0, w.NavalSpendShare);
+            w.Policy.MilitarySpendingTarget = target;
+            Government.Step(w, c);
+            return (w.MilitarySpending, w, c);
+        }
+        const double High = 0.75;
+        // 平時・交戦だけ・総動員だけ＝解禁の外＝施行 0.95 は段3 へ失効（目標が段3＝失効の後の Move は動かない＝厳密に段3）
+        foreach (var (war, mob) in new[] { (false, false), (true, false), (false, true) })
+        {
+            var (x, w, c) = Run(war, mob, 0.95, 1.0);
+            Assert.Equal(High, Government.MilitaryTotalTarget(w, w.Policy));   // 前提＝解禁の外の目標は段3
+            Assert.True(x == High, $"解禁の外（交戦 {war}・総動員 {mob}）で施行 0.95 が段3 へ失効しない（{x:G17}）");
+            Assert.Equal(Military.EnvelopeAt(w, c, High), Military.EnvelopeOf(w, c));   // 効いた量＝施行中の器は段3 の器
+        }
+        // 解禁の中（交戦かつ総動員・目標は戦時段）＝削らない（施行は目標へ寄るか留まる）
+        {
+            var (x, w, _) = Run(true, true, 0.95, 1.0);
+            Assert.Equal(1.0, Government.MilitaryTotalTarget(w, w.Policy));
+            Assert.True(x >= 0.95 - 1e-12, $"解禁の中で施行が削られた（0.95 → {x:G17}）");
+        }
+        // 目標が段3 より下（段1）＝失効は段3 まで・その先は Move（軍の抵抗）のまま＝目標へは飛ばない
+        {
+            var (x, _, _) = Run(false, false, 0.95, 0.25);
+            Assert.True(x <= High && x > 0.25 + 1e-6, $"段3 より下の施行が Move でなく動いた（0.95 → {x:G17}・目標 0.25）");
+            var (y, _, _) = Run(false, false, 0.70, 0.25);
+            Assert.True(y <= 0.70 && y > 0.25 + 1e-6, $"段3 より下の施行が Move でなく動いた（0.70 → {y:G17}・目標 0.25）");
+        }
+    }
+
+    /// <summary>★(181) 呼び手の側＝四半期の頭（Simulation の QuarterStart＝AI の判断→<see cref="Government.Step"/>）を通ると、平時の国の施行は段3 を超えて残らない。
+    /// 盤面＝日英（開幕の1四半期の後・平時・総動員なし）・施行を 0.95 に置いて次の四半期の頭の1日だけ進める。双子＝交戦かつ総動員（AI は戦時段を選ぶ）＝段3 の上に残る。
+    /// ⚠突然変異「失効を外す」で赤。</summary>
+    [Fact]
+    public void 四半期の頭を通ると平時の施行は段3を超えて残らず交戦かつ総動員なら残る()
+    {
+        (double x, bool unlocked) Run(bool warMob)
+        {
+            var sim = new MultiNationSim([NationConfig.Japan(), NationConfig.Britain()], seed: 1789);
+            sim.StepQuarter();
+            sim.Diplomacy.Wars.Clear();
+            var w = sim.Nations[0].World;
+            if (warMob) sim.Diplomacy.Wars.Add(new War { A = w.SelfPower!, B = sim.Nations[1].World.SelfPower! });
+            w.Mobilized = warMob;
+            w.SetMilitarySpending(0.95, w.NavalSpendShare);
+            sim.StepDay();   // 次の四半期の頭（QuarterStart）
+            return (w.MilitarySpending, w.AtWarNow && w.Mobilized);
+        }
+        var (peace, pu) = Run(false);
+        Assert.False(pu);
+        Assert.True(peace <= 0.75, $"平時の施行が四半期の頭で段3 へ失効しない（0.95 → {peace:G17}）");
+        var (war, wu) = Run(true);
+        Assert.True(wu, "前提が崩れた：交戦かつ総動員のまま四半期の頭を通らない（AI が復員した）");
+        Assert.True(war > 0.75 + 1e-6, $"交戦かつ総動員の施行が段3 へ削られた（0.95 → {war:G17}）");
+    }
 }

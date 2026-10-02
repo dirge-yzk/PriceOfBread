@@ -1,0 +1,11 @@
+--- a/PriceOfBread.SimCore/Fiscal.cs	2026-10-03 06:50:30.133236700 +0900
++++ b/PriceOfBread.SimCore/Fiscal.cs	2026-10-03 06:50:30.205289000 +0900
+@@ -438,7 +438,7 @@
+         //   旧＝スタックが上限20に張り付いた月（r は見ない）。旧のスタックは r＜1 の月の借入でだけ積もり r＝1 の月の減債で離れた＝張り付きは「払えずに借り尽くした」だった。
+         //   利払い÷歳入は借りなくても歳入の落ち込みや金利の上昇で限界を越える＝r＝1 で全ての請求を払えている国（国庫の蓄え）は数えない＝払えている国を不履行にしない。
+         //   助走（World.WarmupFrozen）は数えない＝時間が経たない月に不履行へ届かない（国債の残高を動かさない＝減債・借入と同じ門）。
+-        if (payRate < 1 && w.GovDebt > 1e-9 && !underLimit && !w.WarmupFrozen) w.InsolvencyQuarters++; else w.InsolvencyQuarters = 0;
++        if (payRate < GoldSuspendMinFundingRatio && w.GovDebt > 1e-9 && !underLimit && !w.WarmupFrozen) w.InsolvencyQuarters++; else w.InsolvencyQuarters = 0;
+         if (w.InsolvencyQuarters >= c.DefaultTriggerQuarters)
+         {
+             // 債務消滅（請求権＝保存無影響）。致命的な代償＝兌換崩壊・**信用凍結（貸付消滅→工場が資本を得られず投資/工業化が崩落＝恐慌）**・正統性崩壊（革命リスク）・大衆の暴動・当面 借入不能。

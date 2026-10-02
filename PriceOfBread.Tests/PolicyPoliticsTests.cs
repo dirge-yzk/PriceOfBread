@@ -962,13 +962,14 @@ public class PolicyPoliticsTests
 
         // ★主張の書き直し（戦時段の失効・2026-09-19＝M2「戦後は高へ戻る」）：旧主張＝「選んだ1.0が保存されていても段3で止まる」＝施行だけが戻り、
         //   保存の1.0は残っていた＝次の総動員で選び直さずに段4へ登る（表示の目標段は3＝隠れた食い違い）。
-        //   新主張＝施行は同じ四半期に段3（上の Min）・保存目標も次の四半期頭（Government.Step＝全国が通る共通経路）で段3へ失効・
+        //   新主張＝施行も保存目標も次の四半期頭（Government.Step＝全国が通る共通経路）で段3へ失効（施行の失効は (181)＝旧の注記の「上の Min」はコードに無かった）・
         //   次の交戦と総動員では選び直さない限り段3のまま。IsPlayer は読まない（プレイヤー国として走らせる＝保存目標が残るのはプレイヤー側だったため）。
         dip.Wars.Clear(); w.Mobilized = false;                      // 講和＋復員
         Assert.Equal(0.75, Government.MilitaryTotalTarget(w, p));   // (f) 施行は段3で止まる＝戦後は下の値に戻る（新しいタイマーは要らない）
         w.SelfPower!.IsPlayer = true;
         Government.Step(w, w.Coef);
         Assert.Equal(Government.MilitaryLawStages - 1, Government.MilitaryStage(p.MilitarySpendingTarget));   // (f) 保存目標も段3へ失効（段4の前提は保てなさ）
+        Assert.True(w.MilitarySpending <= 0.75, $"(f) 施行が段3 の上に残った（{w.MilitarySpending:G17}）");   // ★(181) 施行も段3へ失効（戦費の議決が切れる）
         dip.Wars.Add(new War { A = w.SelfPower!, B = foe }); w.Mobilized = true;   // 次の戦争で再び総動員
         Assert.Equal(0.75, Government.MilitaryTotalTarget(w, p));   // (f) 選び直さない限り戦時段へ登らない（旧＝保存の1.0で黙って段4へ）
         p.MilitarySpendingTarget = Government.MilitaryLawStages / (double)Government.MilitaryLawStages;   // 選び直せば解禁どおり立つ
