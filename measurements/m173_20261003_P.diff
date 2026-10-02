@@ -1,0 +1,56 @@
+--- a/PriceOfBread.SimCore/Discovery.cs	2026-10-02 23:41:55.865427700 +0900
++++ b/PriceOfBread.SimCore/Discovery.cs	2026-10-02 23:41:56.120887400 +0900
+@@ -364,6 +364,7 @@
+         var canMake = new bool[ng];
+         var rep = new Producer?[nr];
+         var recipes = new List<Producer>?[ng];   // ★(165) 財ごとの、この国で門の開いたレシピ（レシピの名前ごとに最初の生産者）＝市場の値段が無い財を作る費用で読む（PriceBook）
++        var baseProd = new double[ng];           // ★(174) 財ごとの既定のレシピ（RecipeName ""）の生産性（最初の生産者・門は問わない）＝自分で働く生産者の自己費用を1単位あたりへ直す物差し（PriceBook.Cost）
+         int nAct = Aggregate(w, ng, prod, imp, dem, pxd);
+         double maxInd = 0;   // 州の最大工業化度（株式会社の必要性＝立っている工業資本の大きさ・旧の閾値と同じ量）
+         foreach (var r in w.Regions)
+@@ -374,6 +375,7 @@
+             {
+                 int row = p.DiscoveryRow;
+                 if (row >= 0 && rep[row] is null) rep[row] = p;
++                if (p.GoodId >= 0 && p.GoodId < ng && p.RecipeName.Length == 0 && !(baseProd[p.GoodId] > 0) && p.Productivity > 0) baseProd[p.GoodId] = p.Productivity;
+                 if (p.GoodId < 0 || p.GoodId >= ng || !(Gate(r, p) > 0)) continue;
+                 canMake[p.GoodId] = true;
+                 var lr = recipes[p.GoodId] ??= new List<Producer>(2);
+@@ -395,7 +397,7 @@
+         double railCost = double.NaN;   // 機関車の行を見るときだけ求める
+         // ★(169) 買い手の関税の楔（清算の着値と同じ＝関税率の正の分×TariffProtect・穀物法は主食の連鎖だけ＝発見の行の財には掛けない）＝市場の値段が無い財の着値に足す。
+         double duty = market is null ? 0 : System.Math.Max(0, InternationalMarket.TariffRate(w, w.Coef)) * w.Coef.TariffProtect;
+-        var book = new PriceBook(real, alive, market, recipes, selfScale, w, duty);
++        var book = new PriceBook(real, alive, market, recipes, selfScale, w, duty, baseProd);
+         bookOut = book; demOut = dem;
+         // 軍事の圧力（新兵器）＝その分野の脅威（相手の強さ）が自国の強さとの和に占める割合∈[0,1)＝理想の軍隊の形（ArmyShape）の陸と海の必要量 ÷（必要量＋自国の陸軍力・海軍力）。空は陸の膠着（設計 §1A-4）。
+         //   ⚠比（相手÷自国）のままでは弱い国が数十倍になり必要性が70へ張り付く（1種の試走でダホメが1831年に機関銃・コンゴが1837年に弩級戦艦）＝割合にすれば最大は 70÷(1＋半分点)。
+@@ -635,7 +637,7 @@
+     /// ②死んでいる財（作らず輸入もしない・需要が無い）＝手に入れる安い方＝世界の平滑化した値段（取引できる財＝輸入すれば払う値段）と、この国で門の開いたレシピで作る費用
+     ///   （自己費用×自己費用の物価水準÷物価水準＋Σ投入×その投入の値段〔同じ読み方を投入へ繰り返す〕＝市場の値段が無い財は作る費用で値打ちを測る）の小さい方。
+     ///   どちらも無い（取引できず作れない・世界のどこにも市場が無く作れない）＝<see cref="NoPrice"/>＝費用が立たない。投入の輪（自分の投入へ戻る）は <see cref="NoPrice"/>。</summary>
+-    private sealed class PriceBook(double[] real, bool[] alive, WorldMarket? market, List<Producer>?[] recipes, double selfScale, World buyer, double duty)
++    private sealed class PriceBook(double[] real, bool[] alive, WorldMarket? market, List<Producer>?[] recipes, double selfScale, World buyer, double duty, double[] baseProd)
+     {
+         private readonly double[] _memo = new double[alive.Length];
+         private double[]? _km;   // 売り手の国ごとの距離（着値の作業領域・NaN＝未計算）
+@@ -668,10 +670,18 @@
+         }
+ 
+         /// <summary>そのレシピで作る費用（実質）＝自己費用×自己費用の物価水準÷物価水準＋Σ投入の量×投入の値段。投入の値段が立たなければ <see cref="NoPrice"/>。
+-        /// ★(169) 製法・動力・機関車の行が同じ規則（旧＝動力のレシピだけ自己費用を外す引数があった・自己費用を数える形は AI の推奨＝作者の承認は未確認・(172) 反証役 vd3#3・vd3#8）。</summary>
++        /// ★(169) 製法・動力・機関車の行が同じ規則（旧＝動力のレシピだけ自己費用を外す引数があった・自己費用を数える形は AI の推奨＝作者の承認は未確認・(172) 反証役 vd3#3・vd3#8）。
++        /// ★(174) 出す物1単位あたりの費用＝自分で働く生産者（労働を買わない＝<see cref="Producer.BuysLabor"/> が偽）の別のレシピの自己費用は、担い手の生存線分（<see cref="Producer.MarginalCost"/>＝
++        ///   既定のレシピの1単位あたり）を生産性の比（既定のレシピの生産性÷このレシピの生産性・<see cref="Producer.Productivity"/>＝労働1あたり産出）で割る＝同じ人の働きが出す動力が2倍なら
++        ///   1単位あたりの人の費用は半分（蒸気×2.0・電動×2.5・畜力×1.3・水車×1.1・(172) の作者への確認①〔vd3#2〕の推奨＝AI の推奨・作者の承認は未確認）。
++        ///   投入は割らない＝エンジンの投入の需要は産出×1単位あたりの量（EconomyStep の inputNeed＝Output×EffectiveQty）＝生産性は能力だけに乗る。工場（労働を買う）の自己費用は割らない（人の働きは労働力の投入で買う）。
++        ///   既定のレシピ（RecipeName ""）は物差しそのもの＝割らない（産地の行の掘る費用は変わらない）。</summary>
+         public double Cost(Producer p)
+         {
+             double cost = p.MarginalCost * selfScale;
++            int pg = p.GoodId;
++            if (!p.BuysLabor && p.RecipeName.Length > 0 && pg >= 0 && pg < baseProd.Length && baseProd[pg] > 0 && p.Productivity > 0)
++                cost *= baseProd[pg] / p.Productivity;
+             foreach (var inp in p.Inputs)
+             {
+                 if (!(inp.QtyPerOutput > 0)) continue;

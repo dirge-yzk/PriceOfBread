@@ -6381,7 +6381,7 @@ if (args.Length > 0 && args[0] == "services")
             if (p.GoodId == Catalog.LaborId)
             {
                 if (p.Inputs.Count == 0) humanL += p.Output;
-                else if (p.RecipeName == "蒸気機関") steamL += p.Output;
+                else if (p.Inputs.Any(i => i.GoodId == Catalog.SteamEngineId)) steamL += p.Output;   // ★(174) 蒸気機関の系統の3つの段（蒸気機関・高圧機関・複式機関）＝蒸気機関の財を焚く動力
                 else elecL += p.Output;
             }
         double massMil = Politics.AvgMassMilitancy(w);   // ★sweep-13：述語の写しをやめエンジンの1本へ

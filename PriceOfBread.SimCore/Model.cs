@@ -734,6 +734,7 @@ public sealed class Producer
             {
                 _discRow = Catalog.DiscoveryRowOf(GoodId, RecipeName);
                 _retRow = Catalog.RetiredByRowOf(GoodId, RecipeName);
+                (_openRow, _openAfter) = Catalog.OpenedTierOf(GoodId, RecipeName);
                 _discGood = GoodId; _discRecipe = RecipeName;
             }
             return _discRow;
@@ -741,7 +742,10 @@ public sealed class Producer
     }
     /// <summary>このレシピを退かせる発見の行（−1＝退かない）＝前期の軍需（マスケット・鋳鉄砲）は転炉鋼の発見で退く（Catalog の退場の表）。</summary>
     public int RetiredByRow { get { _ = DiscoveryRow; return _retRow; } }
-    [System.NonSerialized] private int _discRow = -1, _retRow = -1, _discGood = int.MinValue;
+    /// <summary>★(174) 別の系統の発見で開く段（<see cref="Catalog.OpenedTiers"/>）＝開く行（−1＝表に無い）と同じ系統の段−1 の行。門は両方を知っていること（<see cref="Discovery.Gate(Region, Producer, bool[])"/>）。</summary>
+    public int OpenedByRow { get { _ = DiscoveryRow; return _openRow; } }
+    public int OpenedAfterRow { get { _ = DiscoveryRow; return _openAfter; } }
+    [System.NonSerialized] private int _discRow = -1, _retRow = -1, _openRow = -1, _openAfter = -1, _discGood = int.MinValue;
     [System.NonSerialized] private string? _discRecipe;
     public double ElecFill;        // 電化率（0..1・EMA）。電力を買えた工場は稼働率が上がり（夜間操業）労働投入が減る（機械化）。電力が高い/送電網が無いと0
     public double SteamFill;       // 蒸気動力化率（0..1・EMA・電化と同型）。蒸気機関の発明後（SteamScale>0）採算が合えば石炭を焚き稼働率↑（SteamBoost）。1789年は水車/畜力＝0＝無ブースト・石炭を焚かない。電化が安くなると電力が蒸気を代替（(1−ElecFill)）

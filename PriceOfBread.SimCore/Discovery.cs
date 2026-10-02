@@ -9,8 +9,12 @@ public enum WarDomain { None, Land, Sea, Air }
 
 /// <summary>発見の表の1行（<see cref="Catalog.Discoveries"/>）＝名前・財・レシピ（""＝既定のレシピ）・分野・年代（10年刻み）・新兵器の分野・代替する物。
 /// <paramref name="Replaces"/>＝その行が生み出す物が代替する物（作者 2026-10-02＝必要性はその値段の高さ・★(165) 新しいレシピで作る費用と比べる・<see cref="Discovery"/> の ReplacedStrength）＝<see cref="Catalog.ReplacesOwn"/>（製法＝その行の財そのもの）・
-/// 新製品は代替する既存の財の id・<see cref="Catalog.LandFreight"/>（機関車＝陸の輸送＝財ではない）。新兵器・制度・思想の行は読まない。</summary>
-public readonly record struct DiscoveryRow(string Name, int Good, string Recipe, DiscoveryField Field, int Decade, WarDomain Domain = WarDomain.None, int Replaces = Catalog.ReplacesOwn);
+/// 新製品は代替する既存の財の id・<see cref="Catalog.LandFreight"/>（機関車＝陸の輸送＝財ではない）。新兵器・制度・思想の行は読まない。
+/// ★(174) 系統と段（作者 2026-10-02「すべて推奨でよい」＝系統×段の推奨〔AI〕を承認）＝<paramref name="Line"/>（系統の名前・""＝行の名前＝1行の系統）・<paramref name="Tier"/>（段・1から）・
+/// <paramref name="After"/>（段1の行だけ＝枝の前提の行の名前・""＝前提なし）。段 n（n≥2）の前提は同じ系統の段 n−1 の行（<see cref="Catalog.DiscoveryAfter"/>）。
+/// 解禁は各系統の次の段だけ＝前提がまだの行の点数が門に届いたら、前提の鎖のまだの最初の段を開く（引き＝<see cref="Discovery.Step"/>）。別の系統の発見で開く段（行を持たない）は <see cref="Catalog.OpenedTiers"/>。</summary>
+public readonly record struct DiscoveryRow(string Name, int Good, string Recipe, DiscoveryField Field, int Decade, WarDomain Domain = WarDomain.None, int Replaces = Catalog.ReplacesOwn,
+                                           string Line = "", int Tier = 1, string After = "");
 
 /// <summary>発見＝解禁の【唯一の形】（★命名の作者裁定2026-08-31＝「研究」はプレイヤーが方向を選ぶ動詞を連想させる・この機構は選べず社会から創発して見つかる＝「発見」）。
 /// ★段2A（2026-10-01・設計 docs/202609/20260928/20260928_財の削減_連鎖の深さの撤去_設計 §1A-2）：**発見は2値**・国ごと・行（レシピ）ごとに毎四半期
@@ -124,6 +128,9 @@ public static class Discovery
         if (p.SiteRow >= 0 && !p.SiteFound) return 0.0;
         int row = p.DiscoveryRow;
         double g = row >= 0 ? (Known(known, row) ? 1.0 : 0.0) : 1.0;
+        // ★(174) 別の系統の発見で開く段（Catalog.OpenedTiers＝行を持たない段・例＝蒸気機関の段3〔複式〕は転炉鋼で開く）＝開く行と同じ系統の段−1 の行の両方を知っていること。
+        int op = p.OpenedByRow;
+        if (op >= 0 && !(Known(known, op) && (p.OpenedAfterRow < 0 || Known(known, p.OpenedAfterRow)))) g = 0.0;
         int ret = p.RetiredByRow;
         return ret >= 0 && Known(known, ret) ? 0.0 : g;
     }
@@ -429,6 +436,7 @@ public static class Discovery
         for (int row = 0; row < nr; row++)
         {
             if (!includeKnown && Known(w.Discovered, row)) continue;   // includeKnown＝計器だけ（解禁済みの行の項も見る）
+            // ★(174) 前提の行（同じ系統の段−1・枝は段1 の After の行）を知らない行の点数も読む＝解禁は Step が前提の段へ回す（引き）。
             var d = rows[row];
             bool spread = IsSpread(d.Field);   // 制度と思想＝財と投入を持たない（技術の押しは1・伝わりは到達）
             var rp = rep[row];
@@ -788,11 +796,19 @@ public static class Discovery
         }
         // 平滑化した値段（判定の段の頭で AdvancePrice が1歩進めた値・作者裁定 Q12）を読む。★(171) 産地の発見も同じ値段の帳を読む（下の SiteTerms）。
         var terms = Score(w, view, c, includeKnown: false, null, null, out var book, out var dem);
+        // ★(174) 系統×段（作者 2026-10-02「すべて推奨でよい」で承認された推奨＝段 n は段 n−1 を知っていることが前提）＝解禁は各系統の次の段だけ。
+        //   門に届いた行の前提がまだなら、その行ではなく前提の鎖のまだの最初の段（自分の前提を知っている段）を開く＝引き（AI の推奨・作者の承認は未確認）
+        //   ＝後の段の必要性（例＝機関車の輸送の不足）が前提の段（高圧機関・蒸気機関）を連れてくる（史実＝鉄道の導入は機関と技師をまとめて入れた・仏 1828 セガン兄弟のスティーヴンソン機関車・日 1872）。
+        //   引きを入れない形（前提を知らない行は判定しない）は、(172) までの蒸気機関の伝わりの裏口（機関車の発見→蒸気機関の財の輸入→蒸気機関の伝わり）を閉じ、必要性0 の国へ蒸気が届かない
+        //   （腕 LP の5種＝仏 3/5 で 1950 まで蒸気機関なし・実装ログ (174)）。鎖は判定の頭の既知で読む（同じ四半期に段を連ねない＝1四半期に1段）。
+        var before = (bool[])known.Clone();
         for (int row = 0; row < terms.Length && row < known.Length; row++)
         {
-            if (known[row] || !(terms[row].Score >= GateScore)) continue;
-            known[row] = true;
-            w.LogAdd($"{w.Year} {w.SelfPower?.Name ?? w.Region.Name}が{Catalog.Discoveries[row].Name}を発見");
+            if (before[row] || !(terms[row].Score >= GateScore)) continue;
+            int open = FirstUnknownOnPath(before, row);
+            if (known[open]) continue;
+            known[open] = true;
+            w.LogAdd($"{w.Year} {w.SelfPower?.Name ?? w.Region.Name}が{Catalog.Discoveries[open].Name}を発見");
         }
         // ★産地の発見（(148)・Catalog.Sites）＝この国の州にある、まだ見つかっていない産地（大鉱床・植林）を同じ門で判定する。
         if (book is not null && dem is not null)
@@ -806,6 +822,14 @@ public static class Discovery
                 }
             }
         w.LastDiscoveryView = view;
+    }
+
+    /// <summary>★(174) 行 <paramref name="row"/> へ至る前提の鎖（<see cref="Catalog.DiscoveryAfter"/>）のうち、まだ知らない最も上の段（その段の前提は知っている）。前提を全て知っていれば行そのもの。</summary>
+    internal static int FirstUnknownOnPath(bool[] known, int row)
+    {
+        int r = row;
+        for (int pre = Catalog.DiscoveryAfter[r]; pre >= 0 && !Known(known, pre); pre = Catalog.DiscoveryAfter[r]) r = pre;
+        return r;
     }
 
     /// <summary>★産地の発見の2項（(148)・<see cref="Catalog.Sites"/>）＝読むだけ（判定・画面・計器が同じ関数を読む）。伝わりは持たない（他国の発見は自分の土地の鉱床を見つけない）。
