@@ -1,0 +1,91 @@
+diff --git a/PriceOfBread.SimCore/NationConfig.cs b/PriceOfBread.SimCore/NationConfig.cs
+index d5fc22a..43cf51f 100644
+--- a/PriceOfBread.SimCore/NationConfig.cs
++++ b/PriceOfBread.SimCore/NationConfig.cs
+@@ -60,6 +60,7 @@ public sealed class NationConfig
+     public ReformLevel InitialCornLaws = ReformLevel.None;                 // 穀物法：地主保護の農業国＝全面（英の穀物法）／自由貿易・輸出国＝なし（蘭米）
+     public ReformLevel InitialSerfEmancipation = ReformLevel.None;         // 農奴解放：東欧の農奴制＝なし（露普墺日）／西欧の自由労働＝全面（英米蘭）／封建残滓＝限定（仏伊西土）
+     public ImmigrationLaw InitialImmigration = ImmigrationLaw.Open;        // ★移民制限法（作者裁定 2026-09-27 E7）：日本＝鎖国・朝鮮＝海禁で閉鎖／清＝広東一口通商と満洲の封禁で選別／他＝開放
++    public ConscriptionLaw InitialConscription = ConscriptionLaw.Selective; // ★(162) 徴兵法の初期値（推奨で進めた）：英米＝志願制（1783 の常備軍は志願の職業軍＝英の陸軍・米の大陸軍＝英は1916・米は1863 まで徴兵しない）／他＝選抜徴兵（旧の既定）
+     public MonetaryStandardLaw InitialMonetaryLaw = MonetaryStandardLaw.Silver;   // ★通貨制度（作者裁定 2026-09-28 F6）：英＝金（1717年以後の事実上の金本位・1816/21年に法）／他＝既定の銀（1783年の銀の世界＝銀貨は普遍的だった・Coefficients.SilverStandardIndThreshold の注記）。旧＝既定の不換→AI が助走の最初の四半期に銀へ上げた＝助走が法を動かしていた形（2026-09-30 (119) で助走は法を動かさない＝初期値そのものを史実へ）
+     // 国土を分ける州（代表都市＋人口Share〔合計1〕＋その州の強み資源 good.Id[]）。未指定なら単一地域。
+     // 列挙財＝増産（×3.5・地理的な得意＝輸出）／非列挙のRGOは減産（×0.4・要輸入。ただし主食 麦/米/野菜は食料安全保障で減産しない）。
+@@ -85,6 +86,7 @@ public sealed class NationConfig
+         InitialTariff = InitialTariff,  // 関税の初期値（日本＝鎖国）
+         InitialSuffrage = InitialSuffrage, InitialCensorship = InitialCensorship,
+         InitialCornLaws = InitialCornLaws, InitialSerfEmancipation = InitialSerfEmancipation, InitialImmigration = InitialImmigration,
++        InitialConscription = InitialConscription,
+         InitialMonetaryLaw = InitialMonetaryLaw,
+     };
+ 
+diff --git a/PriceOfBread.SimCore/Scenario.cs b/PriceOfBread.SimCore/Scenario.cs
+index 2ecab95..b67dc8b 100644
+--- a/PriceOfBread.SimCore/Scenario.cs
++++ b/PriceOfBread.SimCore/Scenario.cs
+@@ -77,6 +77,7 @@ public sealed class Scenario
+     public CensorshipLaw InitialCensorship { get; init; } = CensorshipLaw.StatePressOnly; // 報道（米蘭＝自由／英＝検閲付／他＝国家報道のみ）
+     public ReformLevel InitialCornLaws { get; init; } = ReformLevel.None;                 // 穀物法（地主保護＝農業国は全面／自由貿易国＝なし）
+     public ImmigrationLaw InitialImmigration { get; init; } = ImmigrationLaw.Open;        // 移民制限法（日朝＝閉鎖／清＝選別／他＝開放・作者裁定 2026-09-27 E7）
++    public ConscriptionLaw InitialConscription { get; init; } = ConscriptionLaw.Selective; // ★(162) 徴兵法（英米＝志願制／他＝選抜徴兵＝旧の既定）。建国は親の法を継ぐ（World.CopyLawsFrom）
+     public MonetaryStandardLaw InitialMonetaryLaw { get; init; } = MonetaryStandardLaw.Fiat;   // 通貨制度（英＝金／他＝銀・作者裁定 2026-09-28 F6＝実国家は NationConfig が必ず明示値を渡す・2026-09-30 (119)）。既定＝不換＝合成シナリオは従来どおり
+     public ReformLevel InitialSerfEmancipation { get; init; } = ReformLevel.Full;         // 農奴解放。★既定=全面（2026-08-16・SerfMobilityGate点火に伴う）：この既定を読むのは合成シナリオ（テスト/較正の抽象世界＝賃金労働の世界）のみ。実国家は NationConfig.ToScenario / 分離独立の継承が必ず明示値を渡す＝既定不読。旧既定Noneは点火後「都市化が構造的に0」の世界を作っていた
+ 
+diff --git a/PriceOfBread.SimCore/SelfPlay.cs b/PriceOfBread.SimCore/SelfPlay.cs
+index c3bbc20..4d9d5d1 100644
+--- a/PriceOfBread.SimCore/SelfPlay.cs
++++ b/PriceOfBread.SimCore/SelfPlay.cs
+@@ -554,11 +554,14 @@ public sealed class UtilityAgent : INationAgent
+         if (w.Coef.RebelArmsMarketEnabled > 0) p.CivilianArmsBan = w.Suffrage < Suffrage.AdultMale;
+         // ★(155) 徴兵法の政治＝安全保障の不安か交戦中＝徴兵制／平時の自由民主国で不安が半分未満＝小さな職業軍（英米型）。他は現状維持（旧＝軍備スタンス＝脅威は効用を通って間接に）。
+         // ★(162) 本国の陸の脅威で読む（推奨で進めた・(157) の作者への確認7＝英は平時のどの窓でも選抜だった＝英の不安の 0.64/0.66 は植民地の国境から）：
+-        //   徴兵制＝本国の陸の脅威の割合（SecurityShare の land＝本国の国境と陸続きの投射〔World.SecurityThreatLand〕÷(それ＋自国の養える軍)）が半分以上か交戦中。
+-        //   志願制＝そうでない平時に (a) 男子普選以上（(155) の英米型）か (b) **不安の多くが海の向こうと植民地から来る**（本国の陸の成分＜残り＝海軍と植民地の兵で応える＝島国は徴兵しない＝史実の英・米・日〔1873 以前〕）。
++        //   徴兵制＝本国の陸の脅威の割合（SecurityShare の land＝本国の国境と陸続きの投射〔World.SecurityThreatLand〕÷(それ＋自国の養える軍)）が半分以上か総動員中。
++        //   ⚠旧の「交戦中なら徴兵制」は外した＝交戦の相手の敵意は緊張を通って不安へ既に入る（本国に陸で届く敵なら陸の成分が上がる＝思想⑨の二重計上を避ける）。
++        //   海を越えた戦争（英の植民地戦争・米の1812/1846/1898）は志願で戦った＝史実。総動員（総力戦）だけは代議制の国も法を通して徴兵した
++        //   （作者裁定 2026-09-19「総動員は志願制の法を迂回しない」＝英1916年兵役法・米1863年と1917年の徴兵法＝総動員中の AI は徴兵の法を目標に置き、通るかは法の門）。
++        //   志願制＝そうでない時に (a) 男子普選以上（(155) の英米型）か (b) **不安の多くが海の向こうと植民地から来る**（本国の陸の成分＜残り＝海軍と植民地の兵で応える＝島国は徴兵しない＝史実の英・米・日〔1873 以前〕）。
+         //   他は現状維持。軍事費の段の入口（不安の全体）は変えない。NaN は比較が偽＝現状維持の側。
+         bool beyondSea = w.SecurityThreatLand < w.SecurityThreat - w.SecurityThreatLand;
+-        p.ConscriptionLaw = (SecurityShare(w, land: true) >= 0.5 || atWar) ? ConscriptionLaw.Selective
++        p.ConscriptionLaw = (SecurityShare(w, land: true) >= 0.5 || w.Mobilized) ? ConscriptionLaw.Selective
+             : (w.Suffrage >= Suffrage.AdultMale || beyondSea ? ConscriptionLaw.Volunteer : p.ConscriptionLaw);
+         if (w.Suffrage >= Suffrage.AdultMale) p.SecretBallot = SecretBallotLaw.Secret;   // 大衆選挙＝買収・威圧の排除が票の実在に直結
+         if (w.AdminEfficiency > ProfessionalBureaucracyAdminThreshold) p.Bureaucracy = BureaucracyLaw.Professional;   // 行政力が育った国＝専門官僚制へ（プロイセン文官改革）
+diff --git a/PriceOfBread.SimCore/Simulation.cs b/PriceOfBread.SimCore/Simulation.cs
+index 2d9b231..e3742d0 100644
+--- a/PriceOfBread.SimCore/Simulation.cs
++++ b/PriceOfBread.SimCore/Simulation.cs
+@@ -189,10 +189,12 @@ public sealed class Simulation
+             CornLaws = scenario.InitialCornLaws,            // 初期穀物法（農業国＝保護／自由貿易国＝なし）
+             SerfEmancipation = scenario.InitialSerfEmancipation,   // 初期農奴解放（東欧＝未解放／西欧＝全面）
+             ImmigrationRestriction = scenario.InitialImmigration,  // 初期移民制限法（日朝＝閉鎖／清＝選別／他＝開放）
++            ConscriptionLaw = scenario.InitialConscription,        // ★(162) 初期徴兵法（英米＝志願制／他＝選抜徴兵）
+             // 金本位の志向は AI/プレイヤーが決める（UtilityAgent は信用があれば志向＝史実の規範。NullAgent のテストは志向せず＝従来挙動）。実加入は信用ゲートが決める
+         };
+         World.Suffrage = World.Policy.Suffrage;       // 法整備の現在値＝初期は政策の初期値（利益集団のゲートで漸進）
+         World.Censorship = World.Policy.Censorship;   // 報道法の現在値＝初期値（米蘭＝自由／英＝検閲付／他＝国家報道のみ）
++        World.ConscriptionLaw = World.Policy.ConscriptionLaw;   // ★(162) 徴兵法の現在値＝初期値（英米＝志願制）
+         // P2：登録簿（Crown/Seizure）を初期政体から構築（英CM→Crown=Absolutist・米Rep→None等）。flag=0ではdead write＝挙動恒等。
+         CrownParliament.ApplyRegime(World, World.Coef, World.Polity);
+         // 政体が含意する参政権・報道自由を初期化時に法へ一回畳み込む（倍率排除②：以後 Freedom/eff＝法律値。毎期の政体→スカラー写像を廃止）。
+diff --git a/PriceOfBread.SimCore/world.json b/PriceOfBread.SimCore/world.json
+index dc15e39..e204734 100644
+--- a/PriceOfBread.SimCore/world.json
++++ b/PriceOfBread.SimCore/world.json
+@@ -503,6 +503,7 @@
+    "military": 4.5,
+    "ethnicUnity": 0.85,
+    "initialSuffrage": "Census",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "Censorship",
+    "initialCornLaws": "Full",
+    "initialSerfEmancipation": "Full",
+@@ -615,6 +616,7 @@
+    "military": 1,
+    "ethnicUnity": 0.45,
+    "initialSuffrage": "Census",
++   "initialConscription": "Volunteer",
+    "initialCensorship": "FreePress",
+    "initialCornLaws": "None",
+    "initialSerfEmancipation": "Full",

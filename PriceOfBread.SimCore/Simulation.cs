@@ -1829,7 +1829,7 @@ public sealed class Simulation
         //   → 使い切れない分は使わない（請求しない＝出費の頭打ち）** の順に吸わせる。旧＝給与は兵数×賃金を器の外で全額・装備は 軍事費×0.25×歳入（必要額で切る）の2本で、
         //   質（熟練）は払った金でなく維持費の段（ArmyUpkeep＞0.5）で育った＝支出から直接の効き（2026-08-17 の「支出から直接バフを排除する」の型）。
         //   ・給与（規定）＝州の兵数×徴募の母数の働き盛り1人あたりの賃金×SoldierPayMult（Military.RecruitWage＝市場で競り上がらない）。器が給与に届かない＝未払い（給与の充足 payFill＜1＝兵士の「失業」）。
-        //   ・戦時の器＝段のまま（戦時経済＝軍事費の段の最上段が戦時の器・旧の装備の上限の戦時の追随 WartimeBudgetFollowsNeed は削除＝Coefficients の注記）。
+        //   ・戦時の器＝段のまま（戦時経済＝軍事費の段の最上段が戦時の器）。★(162) 装備の上限（給与の後に残る器）だけは戦時の倍率に追随（WartimeBudgetFollowsNeed＝旧の形・州ループの milCap）。
         //   ・★(161) 徴兵は兵1人を安くする（作者に返した設計・承認済みの流れ＝推奨で進めた）＝徴兵制（選抜・皆兵）の兵卒の給与は徴兵の兵の手当（Military.RecruitWage の keep＝徴募の母数の
         //     頭数あたりの所得＝世帯の1人ぶんの暮らし＝糧食・被服と小遣い）・志願制は規定の給与（働き盛り1人あたり）。幹部の給与（質）の物差しはどちらも規定の給与（soldierRegularPay）。
         double milEnvelope = Military.EnvelopeOf(World, World.Coef);
@@ -1922,8 +1922,13 @@ public sealed class Simulation
                 // 軍需装備の財源：**軍事費の器の給与の後の残り**（★(155)＝吸い込みの2段目・旧＝軍事費×MilitaryRevenueShare（0.25）×粗歳入＝給与と別の2本目の器）。
                 //   粗歳入から確実に（裁量余剰でなく）＝**軍国（余剰0でも）が装備できる**＝武器を買えた軍だけが治安維持力＋対外武力を持つ（買えねば即応度0→治安維持力0→革命）。
                 // ⚠旧＝借入スタックの出費上限（SpendingCapFactor）を軍需にだけ掛けなかった（軍を最後まで維持する）。2026-09-28 に出費上限ごと撤去し、全ての行が同じ国家の支払い率 r（優先順位なし＝作者裁定 F3・Q9）。
-                // 課題5（2026-08-08）：戦時は必要額（MilitaryScale×warMult）に予算も追随＝赤字戦費＝★(155) 戦時経済の段（器の最上段）が担う。国庫が尽きれば国家の支払い率 r が自然に絞る。
+                // 課題5（2026-08-08）：戦時は必要額（MilitaryScale×warMult）に予算も追随＝赤字戦費。国庫が尽きれば国家の支払い率 r が自然に絞る。
+                // ★(162) 戦時の装備の追随を**装備の部分だけ**戻した（推奨で進めた・(155) の削除の後に戦時の装備の充足が下がった＝(157) の反証役の指摘 va#4）＝給与の後に残る器（装備の上限）を
+                //   1＋WartimeBudgetFollowsNeed×(戦時の倍率−1) 倍（旧の形＝旧の装備の上限 軍事費×0.25×歳入 に掛けた同じ式・同じ係数）。給与と質（幹部の給与）は追随しない
+                //   （質の残りは追随の前の装備の上限〔equipRoom〕から引く＝下の trainClaim）＝器ごと追随させた探索の腕 S2（戦時の器が歳入の約1.9倍・exact −6.9pt）とは別物。
                 double milCap = equipRoom;   // 請求（r を掛ける前）。支出反射（OpulenceSpendRate>0で国庫超過分も使える歳入へ＝戦争準備金）は器の側で効く
+                if (World.Coef.WartimeBudgetFollowsNeed > 0 && warMult > 1.0)
+                    milCap *= 1.0 + World.Coef.WartimeBudgetFollowsNeed * (warMult - 1.0);
                 // ★段2（2026-08-01）：理想の形の陸海比を州へ写す（軍需の内訳の再配分に使う）。ArmyShapeEnabled=0 では Need* が全て0＝-1のまま＝再配分しない＝厳密恒等。
                 // ★(151)：陸海の維持費の分け方と同じ1本（ArmyShape.NavalSpendShareOf＝州ループの外で1回）＝払う金の陸海と買う装備の陸海が同じ比（旧＝維持費は地理の比・軍需は必要量の比の2本）。
                 if (World.SelfPower is not null) r.ShapeNavalShare = shapeNavalNat;

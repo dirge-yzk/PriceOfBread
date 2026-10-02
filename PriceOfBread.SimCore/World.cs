@@ -1318,6 +1318,11 @@ public sealed class World
     //   ⚠閉路禁止（doc 4-1）＝読み手（Transport の目標・AI の軍事費の段）は**前期に書かれた値**を読む（四半期末に書き、翌期に読む）。
     public double SecurityThreat;
     public double SecurityThreatOwnMass;   // 自国の養える軍の人口の側（兵役の母数×MaxSoldierFraction＝軍事費の段に依らない＝不安が自分の段で動かない）＝脅威比の分母（0なら脅威項は不発＝否定形ガード）。旧＝自国の総質量
+    //   ★(162) 本国の陸の成分（推奨で進めた）＝SecurityThreat のうち**本国（植民地格でない州）の国境**と陸続きの投射から届く分（海を越えて来る陸軍〔首都どうしが別の陸塊＝Diplomacy.IsSeaCrossing〕の投射と
+    //   植民地の国境を除く＝(151) の理想の軍隊の形の陸の必要量〔ArmyShape の hrLand〕の分け方から植民地の国境を外した形・同じ注意配分の分母）。
+    //   読み手＝徴兵法の政治だけ（本国の陸の脅威に徴兵で応え、海の向こうと植民地から来る不安は海軍と植民地の兵で応える＝島国は徴兵しない）。
+    //   軍事費の段の入口（SecurityThreat の全体）は変えない。書き手は StepSecurityThreat のみ（同じ四半期の同じループ・前期の値を読む）。⚠盤面から安く導けない（全ての国の注意配分の分母が要る）＝四半期の値を持つ。
+    public double SecurityThreatLand;
     //   ★(155) 脅威の割合＝脅威÷(脅威＋自国の養える軍)∈[0,1)（UtilityAgent.SecurityShare＝導出・持たない）＝AI の軍事費の段と徴兵法の政治が読む。世界の中央との比（作者のメモ M4 の表示）は UI の回で（導出・持たない）。
     public Power? SelfPower { get; internal set; }             // 多国シミュ：この国の外交上の代表（植民地・交戦の主体）
     public bool StepsDiplomacy { get; internal set; } = true;  // 自前で外交を進めるか（多国では MultiNationSim が共有外交を進める＝false）
