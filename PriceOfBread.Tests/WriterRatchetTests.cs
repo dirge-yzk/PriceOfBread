@@ -354,16 +354,21 @@ public class WriterRatchetTests
     //   建設 8,441→7,449（−11.8%）・請求 3,141→2,742（−12.7%）＝10% を超えて下がった＝表を下げる（最初の40四半期の戦時の軍需の請求と工場の着工の軌道）。ほかの15本は許しの内（実装ログ (163)）。
     // ★2026-10-02 表の更新（(163) 合流＝合わせた木の10種で常勝の疑い〔英 8/10〕＝(162) の残り〔徴兵法の線を本国の陸の脅威で読む〕も差し戻した＝コードは (161) と同じ挙動）：
     //   覇権の判定 2,503,042→2,148,613（−14.2%＝(161) の値へ戻った・10% を超えて下がった＝表を下げる）。建設と請求は上の宣言のまま許しの内。
+    // ★2026-10-02 表の更新（(165) 発見の必要性の比べる相手＝代替する物の値段÷新しいレシピで作る費用・Q12＝軌道が動いた分の宣言・新しい計数の処理は無い
+    //   〔発見の判定の1回は重くなった＝単価 DiscoveryUnitMicros 76.0→91.0（件数は同じ「発見：国×四半期」）・世界の平滑化した値段は共有層の中の小さい分〕）：
+    //   着値の充填 28,778,490→29,450,927（+2.3%＝交易の軌道）・請求 2,742→2,994（+9.2%＝最初の40四半期の請求の軌道）・覇権の判定 2,148,613→1,846,422（−14.1%＝10% を超えて下がった＝表を下げる・同盟の候補が居る月の軌道）。
+    //   処理の形は同じ。ほかの15本は許しの内。全長の10種では着値の充填 378,854,466→423,393,780・請求 767,695→575,463・覇権の判定 107,255,350→117,322,994・発見の単価の分 +0.63 秒
+    //   ＝推定 235.9→238.7 秒（予算の内・目標より下の余りの中＝払っていない・実装ログ (165)）。
     [InlineData(CostLedger.ConstructionSeen, 7449L)]
     [InlineData(CostLedger.CreditSpans, 33282L)]
     [InlineData(CostLedger.ConsumePopGoods, 28595736L)]
     [InlineData(CostLedger.ProducerMonths, 8440020L)]
-    [InlineData(CostLedger.ClaimProducers, 2742L)]
+    [InlineData(CostLedger.ClaimProducers, 2994L)]
     [InlineData(CostLedger.MonthlyPops, 706680L)]
     [InlineData(CostLedger.ClearingRows, 5185642L)]
-    [InlineData(CostLedger.ClearingFills, 28778490L)]
+    [InlineData(CostLedger.ClearingFills, 29450927L)]
     [InlineData(CostLedger.DiploPowerMonths, 9954L)]
-    [InlineData(CostLedger.DiploHegemonScans, 2148613L)]
+    [InlineData(CostLedger.DiploHegemonScans, 1846422L)]
     [InlineData(CostLedger.QuarterStartPops, 235560L)]
     [InlineData(CostLedger.QuarterEndPops, 235560L)]
     [InlineData(CostLedger.SharedNationQuarters, 3698L)]
