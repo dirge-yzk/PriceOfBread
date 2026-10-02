@@ -116,7 +116,7 @@ public sealed partial class InternationalMarket
         {
             var w0 = nations[i].World;
             exRate[i] = w0.FxRate;
-            tar[i] = Math.Clamp(w0.Tariff * TreatyPortTariffScale(w0, c), c.TariffFloor, 1);
+            tar[i] = TariffRate(w0, c);
             corn[i] = CornFactor(w0.CornLaws);
             oban[i] = c.OpiumAddictionGrowth > 0 && w0.OpiumPossession != ReformLevel.None;
             oexban[i] = c.OpiumAddictionGrowth > 0 && w0.OpiumExportBan;
@@ -441,9 +441,7 @@ public sealed partial class InternationalMarket
         double frontierTech = 0;
         if (c.TransportRevolutionMax > 0)
             for (int i = 0; i < nn; i++) if (nations[i].World.TechLevel > frontierTech) frontierTech = nations[i].World.TechLevel;
-        double freightRevolution = c.TransportRevolutionMax > 0
-            ? 1.0 - c.TransportRevolutionMax * PoliticalQuantities.Clamp01((frontierTech - c.TransportRevolutionOnset) / c.TransportRevolutionSpan)
-            : 1.0;
+        double freightRevolution = FreightRevolution(frontierTech, c);   // ★(169) 式は InternationalMarket.FreightRevolution（発見の着値と同じ1本）
         // ★貿易復活②（2026-08-15・tradewhy分解＝99_実装ログ§4-15）：運賃革命を**ad valoremマージンにも**適用。
         //   旧＝従量成分（WeightMarginAdd）だけが半減し、TransportMargin×(1+距離)の従価部分は1783年から不変
         //   ＝蒸気船・スエズ・鉄道が「重い財」しか安くしない歪み（史実1870-1913の運賃崩落は全面的）。

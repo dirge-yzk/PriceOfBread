@@ -72,7 +72,7 @@ public static class ProductionDiag
         double stockRatio = m is not null && m.TargetStock > Eps ? m.Stock / m.TargetStock : double.NaN;
         double oli = coef.DomesticMarkupMax > 0 && region.EffFirms is { } ef && goodId < ef.Length && ef[goodId] >= 1.0
             ? coef.DomesticMarkupMax / ef[goodId] : 0.0;                                    // MarketFlow.StepDay の μ−1
-        double tariffWedge = Math.Clamp(w.Tariff * InternationalMarket.TreatyPortTariffScale(w, coef), coef.TariffFloor, 1) * coef.TariffProtect;   // BilateralMarket の wedge（protect×TariffProtect）と同式
+        double tariffWedge = InternationalMarket.TariffRate(w, coef) * coef.TariffProtect;   // BilateralMarket の wedge（protect×TariffProtect）と同式
         bool grain = g is not null && (g.Tier == GoodTier.Staple || g.GrainChain);
         double cornWedge = grain ? InternationalMarket.CornFactor(w.CornLaws) * coef.CornLawImportPenalty : 0.0;                                    // BilateralMarket/Trade の cornPen と同式
 

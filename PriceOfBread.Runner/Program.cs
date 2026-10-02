@@ -4406,11 +4406,11 @@ if (args.Length > 0 && args[0] == "discprobe")
                 for (int g = 0; g < Catalog.Goods.Length; g++) refArr[g] = Catalog.RefPrices[g];
                 refArr[Catalog.Goods.Length] = 1.0;
                 var roRef = new (double Replaced, double Cost)[rowsDp.Length];
-                Discovery.Evaluate(w0, new Discovery.WorldView(null, null, refArr), cDp, includeKnown: true, realPrice: refArr, ratioOut: roRef);
+                Discovery.Evaluate(w0, new Discovery.WorldView(null, null, Discovery.WorldMarket.Flat(refArr)), cDp, includeKnown: true, realPrice: refArr, ratioOut: roRef);
                 Console.WriteLine("      （計器）参照価格の世界の比（代替する物の値段×換算÷新しいレシピの費用）: " + string.Join("　", Enumerable.Range(0, rowsDp.Length).Where(r => rowsDp[r].Field is DiscoveryField.Process or DiscoveryField.Product)
                     .Select(r => $"{rowsDp[r].Name} {(roRef[r].Cost > 0 ? roRef[r].Replaced / roRef[r].Cost : double.NaN):F2}")));
             }
-            Console.WriteLine($"    （平滑化した値段÷参照）機械 {Sm0(Catalog.MachineryId):F2}・鋼 {Sm0(Catalog.SteelId):F2}・銅 {Sm0(Catalog.CopperId):F2}・鉄 {Sm0(Catalog.IronId):F2}・高度労働力 {Sm0(Catalog.AdvLaborId):F2}・石炭 {Sm0(Catalog.CoalId):F2}・蒸気機関の財 {Sm0(Catalog.SteamEngineId):F2}　世界の蒸気機関の財 {(view0?.WorldPrice is double[] wp0 ? wp0[Catalog.SteamEngineId] / Catalog.RefPrices[Catalog.SteamEngineId] : double.NaN):F2}・機械 {(view0?.WorldPrice is double[] wp1 ? wp1[Catalog.MachineryId] / Catalog.RefPrices[Catalog.MachineryId] : double.NaN):F2}");
+            Console.WriteLine($"    （平滑化した値段÷参照）機械 {Sm0(Catalog.MachineryId):F2}・鋼 {Sm0(Catalog.SteelId):F2}・銅 {Sm0(Catalog.CopperId):F2}・鉄 {Sm0(Catalog.IronId):F2}・高度労働力 {Sm0(Catalog.AdvLaborId):F2}・石炭 {Sm0(Catalog.CoalId):F2}・蒸気機関の財 {Sm0(Catalog.SteamEngineId):F2}　世界の蒸気機関の財 {(view0?.Market?.Average is double[] wp0 ? wp0[Catalog.SteamEngineId] / Catalog.RefPrices[Catalog.SteamEngineId] : double.NaN):F2}・機械 {(view0?.Market?.Average is double[] wp1 ? wp1[Catalog.MachineryId] / Catalog.RefPrices[Catalog.MachineryId] : double.NaN):F2}");
             Console.WriteLine($"  {NameOf(w0),-12} 技術 {w0.TechLevel:F2}　動力 {Sm0(Catalog.LaborId):F3}・砂糖 {Sm0(Catalog.SugarId):F3}　動力の値段 {Sx0(Catalog.LaborId):F3}÷蒸気の動力の費用 {steamCost0:F3}（蒸気機関の財 {Sx0(Catalog.SteamEngineId):F3}・石炭 {Sx0(Catalog.CoalId):F3}・自己費用の物価 {sc0:F3}）　蒸気機関 {t0[rSteam].Tech:F0}/{t0[rSteam].Need:F0}/{t0[rSteam].Transmit:F0}{(w0.Discovered[rSteam] ? "＝済" : "")}　甜菜糖 {t0[rBeet].Tech:F0}/{t0[rBeet].Need:F0}/{t0[rBeet].Transmit:F0}");
         }
     }

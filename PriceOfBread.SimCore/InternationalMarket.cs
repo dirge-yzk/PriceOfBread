@@ -155,6 +155,17 @@ public sealed partial class InternationalMarket
 
     internal static double CornFactor(ReformLevel lv) => lv switch { ReformLevel.Full => 1.0, ReformLevel.Limited => 0.5, _ => 0.0 };   // internal＝ProductionDiag が穀物法の楔を同式で読む
 
+    /// <summary>関税率（国の関税×条約港の低下を [TariffFloor, 1] に収めた値）＝清算の楔（BilateralMarket）・生産の診断（ProductionDiag）・発見の着値（Discovery＝★(169)）が同じ1本を読む
+    /// （(169) に清算と診断の同じ式2本をここへ畳んだ）。</summary>
+    internal static double TariffRate(World w, Coefficients c) => Math.Clamp(w.Tariff * TreatyPortTariffScale(w, c), c.TariffFloor, 1);
+
+    /// <summary>運賃革命の倍率（A-高2・2026-08-15 に従価の運賃へも）＝1−TransportRevolutionMax×clamp01((前線の技術水準−Onset)÷Span)・TransportRevolutionMax≦0 は1。
+    /// 清算（BilateralMarket の運賃の倍率）と発見の着値（Discovery.WorldMarket＝★(169)）が同じ1本を読む（(169) に清算の式をここへ移した）。</summary>
+    internal static double FreightRevolution(double frontierTech, Coefficients c)
+        => c.TransportRevolutionMax > 0
+            ? 1.0 - c.TransportRevolutionMax * PoliticalQuantities.Clamp01((frontierTech - c.TransportRevolutionOnset) / c.TransportRevolutionSpan)
+            : 1.0;
+
     // 【墓標2026-09-29・支払いの一元化 段3-1】Apply（国ごとの純流入を、黒字なら商人の仲介料＋残りを国の全POP の貯蓄比・赤字も全POP の貯蓄比で配る）を削除した。
     //   輸入代金は捌き手の商人・売り手の受取は④の持分・運賃は船の持ち主・仲介料は越境の輸出の受取から州の商人へ（黒字と赤字で対称）＝BilateralMarket.StepBilateral の清算の終わり。
 }

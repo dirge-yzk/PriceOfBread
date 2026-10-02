@@ -601,7 +601,7 @@ public static class Catalog
     public static readonly DiscoveryRow[] Discoveries =
     [
         // --- 製法（同じ財を別の投入で作る方法＝時代差のレシピ）---
-        new("蒸気機関", LaborId, "蒸気機関", DiscoveryField.Process, 1780),              // 工場に据える原動機（ワットの回転機関1781）＝動力（労働力の財）の別のレシピ（必要性＝作者 2026-10-02 の一般則＝「(間接的に人が生み出している)動力が高いか」＝動力の平滑化した値段÷石炭と機械の蒸気の動力の費用・(165)・旧＝人件費の世界比は (159)(165) で削除）
+        new("蒸気機関", LaborId, "蒸気機関", DiscoveryField.Process, 1780),              // 工場に据える原動機（ワットの回転機関1781）＝動力（労働力の財）の別のレシピ（必要性＝作者 2026-10-02 の一般則＝「(間接的に人が生み出している)動力が高いか」＝動力の平滑化した値段÷蒸気の動力を新しいレシピで作る費用〔★(169) 他の行と同じ規則＝自己費用＋蒸気機関の財と石炭〕・旧＝人件費の世界比は (159)(165) で削除）。開幕の既知＝world.json の knownDiscoveries（英＝1783年に工場の原動機として使っていた唯一の国・実装ログ (169)）
         new("甜菜糖", SugarId, "甜菜糖", DiscoveryField.Process, 1800),                  // アシャール1801・大陸封鎖1806〜（作者 2026-09-28 提案①の採用＝地理差でなく発見）
         new("魚の缶詰", CannedFoodId, "魚の缶詰", DiscoveryField.Process, 1810),          // 缶詰の第2レシピ（アペール法1809）
         new("キニーネの単離", QuinineId, "", DiscoveryField.Process, 1820),              // ペルティエ＝カヴァントゥ1820（単離の前は樹皮の粉末＝地理差）
@@ -616,7 +616,7 @@ public static class Catalog
         new("無煙火薬", GunpowderId, "無煙火薬", DiscoveryField.Process, 1880),          // ヴィエイユ1884
         new("水力発電", ElectricityId, "水力発電", DiscoveryField.Process, 1880),         // アップルトン1882・ナイアガラ1895
         new("蒸気タービン", ElectricityId, "蒸気タービン", DiscoveryField.Process, 1880), // パーソンズ1884
-        new("電動機", LaborId, "電動", DiscoveryField.Process, 1880),                    // 工場の電動機＝動力（労働力の財）の別のレシピ（必要性＝動力の値段÷電力と機械の動力の費用・蒸気機関の行と同じ規則・(165)）
+        new("電動機", LaborId, "電動", DiscoveryField.Process, 1880),                    // 工場の電動機＝動力（労働力の財）の別のレシピ（必要性＝動力の値段÷電動の動力を新しいレシピで作る費用〔自己費用＋電力〕・蒸気機関の行と同じ規則・(165)(169)）
         new("人絹", SilkClothId, "人絹", DiscoveryField.Process, 1890),                  // シャルドネ1891・ビスコース1892
         new("石油火力", ElectricityId, "石油火力", DiscoveryField.Process, 1900),        // §1A-5 の表
         new("窒素固定", FertilizerId, "ハーバーボッシュ", DiscoveryField.Process, 1910), // ハーバー＝ボッシュ1913（旧＝肥料の既定の onset の流用＝設計 §5 F2 の半分・硝石へ移すのは次の段）
@@ -624,6 +624,8 @@ public static class Catalog
         // --- 発明・新製品（今までに無かった財＝既定のレシピの行）---
         //   ★代替する物（Replaces・2026-10-02 (159)）＝作者 2026-10-02「その発見が生み出すものが代替するものが高いか、で判定する」の「代替するもの」＝新製品が置き換えた既存の財（AI の対応づけ＝推奨で進めた）。
         //   機関車だけは財ではない（陸の輸送＝作者 2026-10-02「鉄道研究の必要性は、軍事力ではなく、輸送力の不足から導かれるべきだ」）。
+        //   ⚠(169) 物の単位の換算（新しい財1単位が置き換える代替する物の量のデータ・(167) 反証役 vd1#1 の処置）の腕は入れていない＝10種で電力・送電網・冷蔵・ゴム・自動車がどの国でも見つからない
+        //     （AI の対応づけ＝石炭火力と送電網→ガス・電化製品→家事奉仕のまま・作者への確認・パッチ measurements/m168_20261002_units.diff・実装ログ (169)）＝換算の比は参照価格の比のまま（Discovery.ReplacedUnits）。
         new("ガス灯", GasId, "", DiscoveryField.Product, 1810, Replaces: LampOilId),      // マードック1792・商用1812＝灯油（鯨油・菜種油のランプ）とろうそくの灯りを置き換えた
         new("缶詰", CannedFoodId, "", DiscoveryField.Product, 1810, Replaces: PreservedMeatId),   // アペール法1809・ブリキ缶1810＝塩漬けの肉（艦隊と軍の糧食・1795 の懸賞）を置き換えた
         new("汽船", SteamshipId, "", DiscoveryField.Product, 1820, Replaces: SailingShipId),   // クラーモント1807〜外洋1830s（Q11＝中間）＝帆船
@@ -665,6 +667,7 @@ public static class Catalog
     [
         (RifleId, "マスケット", SteelId, ""),
         (ArtilleryId, "鋳鉄砲", SteelId, ""),
+        (SteamEngineId, "鋳鉄の機関", SteelId, ""),   // ★(169) 1780年代の蒸気機関（鋳鉄のシリンダーと梁・錬鉄と銅のボイラー）＝高圧・複式の鋼の機関（転炉鋼の後）で退く＝前期の軍需と同じ規則（性能で退く・Simulation.AddAlternateRecipes）
     ];
 
     /// <summary>発見の表の行（財・レシピ）の添字。無ければ −1（地理差＝常にある）。⚠線形の走査＝構築と Producer の控え（<see cref="Producer.DiscoveryRow"/>）だけが呼ぶ。</summary>

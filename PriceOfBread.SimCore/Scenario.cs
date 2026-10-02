@@ -78,6 +78,7 @@ public sealed class Scenario
     public ReformLevel InitialCornLaws { get; init; } = ReformLevel.None;                 // 穀物法（地主保護＝農業国は全面／自由貿易国＝なし）
     public ImmigrationLaw InitialImmigration { get; init; } = ImmigrationLaw.Open;        // 移民制限法（日朝＝閉鎖／清＝選別／他＝開放・作者裁定 2026-09-27 E7）
     public MonetaryStandardLaw InitialMonetaryLaw { get; init; } = MonetaryStandardLaw.Fiat;   // 通貨制度（英＝金／他＝銀・作者裁定 2026-09-28 F6＝実国家は NationConfig が必ず明示値を渡す・2026-09-30 (119)）。既定＝不換＝合成シナリオは従来どおり
+    public string[] InitialDiscoveries { get; init; } = [];   // ★(169) 開幕の既知の発見（発見の表の行の名前・NationConfig.KnownDiscoveries＝world.json）。既定＝なし（合成シナリオ）
     public ReformLevel InitialSerfEmancipation { get; init; } = ReformLevel.Full;         // 農奴解放。★既定=全面（2026-08-16・SerfMobilityGate点火に伴う）：この既定を読むのは合成シナリオ（テスト/較正の抽象世界＝賃金労働の世界）のみ。実国家は NationConfig.ToScenario / 分離独立の継承が必ず明示値を渡す＝既定不読。旧既定Noneは点火後「都市化が構造的に0」の世界を作っていた
 
     /// <summary>建国スポーン用：既存の Region 実体をそのまま新Worldに載せる（Kind switch を迂回・分離独立の物理移転）。null＝従来どおり構築。</summary>

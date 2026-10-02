@@ -209,6 +209,14 @@ public sealed class Simulation
         World.ImmigrationRestriction = World.Policy.ImmigrationRestriction;   // 移民制限法の現在値＝初期値
         World.MonetaryLaw = scenario.InitialMonetaryLaw;          // 通貨制度の現在値＝初期値（英＝金／他＝銀＝NationConfig の既定・2026-09-30 (119)＝助走は法を動かさない）
         World.Policy.MonetaryTarget = (int)World.MonetaryLaw;    // 目標も現在値に揃える（官僚制度と同じ＝翌期に巻き戻さない）
+        // ★(169) 開幕の既知の発見＝データ（NationConfig.KnownDiscoveries）＝1783年より前に史実でその国が使っていた発見。助走の前から持つ（助走の盤面も知った国の動力で均衡する）。
+        //   名前が発見の表に無いのはデータの誤り＝構築で止める（黙って捨てない）。
+        foreach (var name in scenario.InitialDiscoveries)
+        {
+            int row = Catalog.DiscoveryRowNamed(name);
+            if (row < 0) throw new System.InvalidOperationException($"開幕の既知の発見「{name}」は発見の表に無い（world.json の knownDiscoveries）");
+            World.Discovered[row] = true;
+        }
         // 軍事費の現在値＝初期目標（兵士の徴募/給与を駆動）。★陸海へ按分（2026-08-04）
         World.Policy.Bureaucracy = World.Bureaucracy;   // ★官僚制度の目標も初期値に揃える（Government が翌期に巻き戻さない・2026-08-04）
         World.SetMilitarySpending(PoliticalQuantities.Clamp01(World.Policy.ArmyUpkeepTarget + World.Policy.NavyUpkeepTarget),
@@ -1048,6 +1056,18 @@ public sealed class Simulation
                 Productivity = cannonDefault.Productivity * coef.MusketProductivity, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa,
                 LaborPopIndex = cannonDefault.LaborPopIndex, OwnerPopIndex = cannonDefault.OwnerPopIndex, RentShare = 1.0, BuysLabor = true,
                 Inputs = [new Input(Catalog.IronId, 1.3), new Input(Catalog.LumberId, 0.3), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.ArtilleryId))] });
+        // ★(169) 1780年代の蒸気機関＝「鋳鉄の機関」（時代のレシピ・前期の軍需と同じ型・推奨で進めた）。既定のレシピ（機械0.726＋石炭0.4）の機械は鋼（転炉鋼の前は坩堝鋼＝5倍高い）
+        //   ＝開幕の蒸気機関の財を作る費用が参照の3〜10倍（(165)(167) の腕A・B）＝時代錯誤の投入。史実＝ワットの機関（1776〜1800）は鋳鉄のシリンダー（ウィルキンソンの中ぐり盤1774）・
+        //   鋳鉄の梁と弾み車・錬鉄と銅のボイラーで、鋼は使わなかった（Dickinson & Jenkins 1927・Hills 1989）。投入＝既定の機械の中身（鋼1.10＋銅0.41）の鋼を鉄に置き換え、
+        //   重さはマスケット（鉄1.0 対 鋼0.6）と同じ比（鋳鉄・錬鉄は同じ強さに鋼の約1.7倍）＝鉄1.832＋銅0.414＋石炭0.4＝参照価格の世界で既定と同じ費用（3.81 対 3.80）。
+        //   退場＝転炉鋼の発見（Catalog の退場の表・高圧と複式の鋼の機関＝性能で退く）。国名の分岐を作らない（全ての州に同じ1本）。
+        Producer? engineDefault = null;
+        foreach (var pr in producers) if (pr.GoodId == Catalog.SteamEngineId) { engineDefault = pr; break; }
+        if (engineDefault is not null)   // 蒸気機関の無い世界（最小シナリオ）は不発
+            producers.Add(new Producer { GoodId = Catalog.SteamEngineId, RecipeName = "鋳鉄の機関",
+                Productivity = engineDefault.Productivity, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa,
+                LaborPopIndex = engineDefault.LaborPopIndex, OwnerPopIndex = engineDefault.OwnerPopIndex, RentShare = 1.0, BuysLabor = true,
+                Inputs = [new Input(Catalog.IronId, 1.832), new Input(Catalog.CopperId, 0.414), new Input(Catalog.CoalId, 0.4), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.SteamEngineId))] });
         // ★石油ケロシン（灯油doc・2026-08-13）：灯油(68)の**第2レシピ**。既定は鯨油/魚油（漁獲0.8）。
         // ⚠★2026-09-03（キューAUD-09・監査「保存則・台帳」）：**追加根拠のコメントが事実と食い違っていた**。
         //   「原油には買い手が1本も無い40年の空白があった」と書かれていたが、現物には AddAdvancedProducers 側に

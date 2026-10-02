@@ -62,21 +62,22 @@ public class DiscoveryScoreTests
     private static Producer RepOf(World w, int row)
         => w.Regions.SelectMany(rg => rg.Producers).First(p => p.DiscoveryRow == row);
 
-    /// <summary>番人の側で組んだ「新しいレシピで作る費用」＝自己費用（数えるなら）×自己費用の物価水準÷物価水準＋Σ投入の量×差し替えの値段（投入が全て国内で生きている盤面だけ）。</summary>
-    private static double CostByHand(World w, Producer rep, double[] px, bool selfCost = true)
+    /// <summary>番人の側で組んだ「新しいレシピで作る費用」＝自己費用×自己費用の物価水準÷物価水準＋Σ投入の量×差し替えの値段（投入が全て国内で生きている盤面だけ）。
+    /// ★(169) 全ての行が同じ規則（動力のレシピも自己費用を数える）。</summary>
+    private static double CostByHand(World w, Producer rep, double[] px)
     {
-        double c = selfCost ? rep.MarginalCost * w.CostPriceLevel / w.NominalOf(1.0) : 0;
+        double c = rep.MarginalCost * w.CostPriceLevel / w.NominalOf(1.0);
         foreach (var inp in rep.Inputs) if (inp.QtyPerOutput > 0) c += inp.QtyPerOutput * px[inp.GoodId];
         return c;
     }
 
-    /// <summary>★作者 2026-10-02 の番人（(159)→(165)）＝「蒸気機関は「人件費が高いか」ではなく「(間接的に人が生み出している)動力が高いか」を見る」＋比べる相手（作者「2でよい」＝代替する物の値段÷その発見が出す物の値段）
-    /// ＝蒸気機関の行の必要性の強度＝ln（動力〔労働力の財〕の平滑化した値段÷蒸気の動力の費用〔蒸気機関の財と石炭の平滑化した値段×量＝石炭と機械・人の働きの自己費用は数えない〕）：
+    /// <summary>★作者 2026-10-02 の番人（(159)→(165)→(169)）＝「蒸気機関は「人件費が高いか」ではなく「(間接的に人が生み出している)動力が高いか」を見る」＋比べる相手（作者「2でよい」＝代替する物の値段÷その発見が出す物の値段）
+    /// ＝蒸気機関の行の必要性の強度＝ln（動力〔労働力の財〕の平滑化した値段÷蒸気の動力を新しいレシピで作る費用〔★(169) 他の行と同じ規則＝自己費用＋蒸気機関の財と石炭の平滑化した値段×量〕）：
     /// 同じ盤面・同じ技術で、動力が蒸気の動力の費用と同じか安い国は必要性0＝自力では発見しない（技術力だけでは門に届かない）・2倍なら ln 2・
-    /// 石炭を2倍にすると費用が上がって必要性が下がる（参照価格ではなく今の費用と比べる）・人件費（1人の所得）は読まない。
-    /// ⚠壊し方＝参照価格と比べる・自己費用（人の働き）を数える・人件費を読む・技術力だけで解禁する（門を70へ）→ 赤。</summary>
+    /// 石炭を2倍にすると費用が上がって必要性が下がる（参照価格ではなく今の費用と比べる）・人件費（1人の所得）は読まない・自己費用の分だけ費用が高い（数えない形より必要性が低い）。
+    /// ⚠壊し方＝参照価格と比べる・自己費用（人の働き）を数えない（(165)〜(167) の形）・人件費を読む・技術力だけで解禁する（門を70へ）→ 赤。</summary>
     [Fact]
-    public void 蒸気機関の行は石炭と機械の動力の費用と比べる_人の働きと人件費は読まない()
+    public void 蒸気機関の行は他の行と同じ規則で自己費用と石炭と機械の動力の費用と比べる_人件費は読まない()
     {
         var sim = Board();
         int steam = Row("蒸気機関"), g = Catalog.LaborId;
@@ -95,26 +96,36 @@ public class DiscoveryScoreTests
         var own = (double[])w.DiscoveryPrice!.Clone();
         for (int i = 0; i < own.Length; i++) if (!(own[i] >= 0)) own[i] = 1.0;   // 盤面の観測なしを埋める
         own[Catalog.SteamEngineId] = 1e-3;   // 蒸気機関の財＝国内の市場が死んでいれば世界の値段（下の view）で読む＝どちらでも同じ値（作る費用より安い）
-        var view = new Discovery.WorldView(null, null, own);   // 世界の平滑化した値段＝同じ値段（市場の死んだ投入を同じ値で読む）
-        double cost = CostByHand(w, rep, own, selfCost: false);
+        var view = new Discovery.WorldView(null, null, Discovery.WorldMarket.Flat(own));   // 世界の平滑化した値段＝同じ値段（市場の死んだ投入を同じ値で読む・運賃と関税の無い市場）
+        double cost = CostByHand(w, rep, own);
+        double selfPart = rep.MarginalCost * w.CostPriceLevel / w.NominalOf(1.0);
+        Assert.True(selfPart > 0.1 * cost, $"前提が崩れた（蒸気の動力のレシピの自己費用 {selfPart}・費用 {cost}）");
         Assert.True(cost > 0 && rep.Inputs.Any(i => i.GoodId == Catalog.CoalId) && rep.Inputs.Any(i => i.GoodId == Catalog.SteamEngineId), "前提が崩れた（蒸気の動力のレシピ）");
         Discovery.Terms At(double overCost, double coalMul = 1.0)
         {
             var px = (double[])own.Clone(); px[Catalog.CoalId] *= coalMul;
-            px[g] = CostByHand(w, rep, px, selfCost: false) * overCost;
-            return Discovery.Evaluate(w, view with { WorldPrice = px }, w.Coef, includeKnown: true, realPrice: px)[steam];
+            px[g] = CostByHand(w, rep, px) * overCost;
+            return Discovery.Evaluate(w, view with { Market = Discovery.WorldMarket.Flat(px) }, w.Coef, includeKnown: true, realPrice: px)[steam];
         }
         var same = At(1.0); var cheap = At(0.5); var dear = At(2.0);
         Assert.Equal(0.0, same.Need);
         Assert.Equal(0.0, cheap.Need);
         Assert.True(cheap.Score < Discovery.GateScore, $"動力が安い国が技術力だけで届く（{cheap.Score:F1}）");
-        Assert.Equal(Discovery.TermMax * System.Math.Log(2.0) / (System.Math.Log(2.0) + w.Coef.DiscoveryNeedHalfProcess), dear.Need, 9);   // 強度＝ln(動力÷石炭と機械の費用)
+        Assert.Equal(Discovery.TermMax * System.Math.Log(2.0) / (System.Math.Log(2.0) + w.Coef.DiscoveryNeedHalfProcess), dear.Need, 9);   // 強度＝ln(動力÷自己費用と石炭と機械の費用)
+        // ★(169) 自己費用を数える＝動力が「石炭と機械だけ」の費用の2倍でも、自己費用を足した費用を超えなければ必要性0（数えない形なら ln 2）
+        {
+            var pxN = (double[])own.Clone(); pxN[g] = 2.0 * (cost - selfPart);
+            double needN = Discovery.Evaluate(w, view with { Market = Discovery.WorldMarket.Flat(pxN) }, w.Coef, includeKnown: true, realPrice: pxN)[steam].Need;
+            double sN = System.Math.Log(2.0 * (cost - selfPart) / cost);
+            Assert.Equal(sN > 0 ? Discovery.TermMax * sN / (sN + w.Coef.DiscoveryNeedHalfProcess) : 0, needN, 9);
+            Assert.True(needN < Discovery.TermMax * System.Math.Log(2.0) / (System.Math.Log(2.0) + w.Coef.DiscoveryNeedHalfProcess) - 1e-9, "動力の行が自己費用を数えていない（(165)〜(167) の形）");
+        }
         // 今の費用と比べる＝動力の値段は同じで石炭だけ2倍＝費用が上がり必要性が下がる
         var px2 = (double[])own.Clone(); px2[g] = 2.0 * cost;
         var pxC = (double[])px2.Clone(); pxC[Catalog.CoalId] *= 2.0;
-        double needBase = Discovery.Evaluate(w, view with { WorldPrice = px2 }, w.Coef, includeKnown: true, realPrice: px2)[steam].Need, needCoal = Discovery.Evaluate(w, view with { WorldPrice = pxC }, w.Coef, includeKnown: true, realPrice: pxC)[steam].Need;
+        double needBase = Discovery.Evaluate(w, view with { Market = Discovery.WorldMarket.Flat(px2) }, w.Coef, includeKnown: true, realPrice: px2)[steam].Need, needCoal = Discovery.Evaluate(w, view with { Market = Discovery.WorldMarket.Flat(pxC) }, w.Coef, includeKnown: true, realPrice: pxC)[steam].Need;
         Assert.Equal(Discovery.TermMax * System.Math.Log(2.0) / (System.Math.Log(2.0) + w.Coef.DiscoveryNeedHalfProcess), needBase, 9);
-        double s2 = System.Math.Log(2.0 * cost / CostByHand(w, rep, pxC, selfCost: false));
+        double s2 = System.Math.Log(2.0 * cost / CostByHand(w, rep, pxC));
         Assert.Equal(s2 > 0 ? Discovery.TermMax * s2 / (s2 + w.Coef.DiscoveryNeedHalfProcess) : 0, needCoal, 9);
         Assert.True(needCoal < needBase, "石炭が高くなっても必要性が下がらない（今の費用と比べていない）");
         Assert.True(dear.Tech == cheap.Tech, "動力の値段で技術力が変わった");
@@ -125,16 +136,82 @@ public class DiscoveryScoreTests
         var keep = w.DiscoveryPrice!;
         var pxCheap = (double[])own.Clone(); pxCheap[g] = 0.5 * cost;
         w.DiscoveryPrice = pxCheap;
-        Discovery.Step(w, view with { WorldPrice = pxCheap }, w.Coef);
+        Discovery.Step(w, view with { Market = Discovery.WorldMarket.Flat(pxCheap) }, w.Coef);
         Assert.False(w.Discovered[steam]);
         if (dear.Score >= Discovery.GateScore)
         {
             var pxDear = (double[])own.Clone(); pxDear[g] = 2.0 * cost;
             w.DiscoveryPrice = pxDear;
-            Discovery.Step(w, view with { WorldPrice = pxDear }, w.Coef);
+            Discovery.Step(w, view with { Market = Discovery.WorldMarket.Flat(pxDear) }, w.Coef);
             Assert.True(w.Discovered[steam]);
         }
         w.DiscoveryPrice = keep;
+    }
+
+    /// <summary>★(169) 開幕の既知の発見はデータ（world.json の knownDiscoveries＝NationConfig.KnownDiscoveries）＝1783年より前に史実でその国が使っていた発見：
+    /// ①データの名前は全て発見の表にある ②構築の直後（助走の前）から英は蒸気機関と特許を持ち、データに無い国は1つも持たない（ヴェネツィアは特許だけ）
+    /// ③助走（StartWarmup）は点数で開幕の既知を足さない＝助走の後も同じ集合（判定は最初の四半期の終わりから）。
+    /// ⚠壊し方＝データを読まない・助走の終わりに点数で判定する（旧 段2A〜(167) の形）→ 赤。</summary>
+    [Fact]
+    public void 開幕の既知の発見はデータで_助走は点数で足さない()
+    {
+        foreach (var cfg in WorldData.Nations())
+            foreach (var name in cfg.KnownDiscoveries)
+                Assert.True(Catalog.DiscoveryRowNamed(name) >= 0, $"{cfg.Name} の knownDiscoveries「{name}」が発見の表に無い");
+        var uk = WorldData.Nations().First(n => n.Name == "イギリス");
+        Assert.Contains("蒸気機関", uk.KnownDiscoveries);
+        var sim = new MultiNationSim(WorldData.Nations(), 3, _ => new UtilityAgent());
+        int steam = Discovery.SteamRow, patent = Discovery.PatentRow;
+        void Check(string when)
+        {
+            foreach (var n in sim.Nations)
+            {
+                var w = n.World; string name = w.SelfPower?.BaseName ?? "";
+                var cfg = WorldData.Nations().First(c => c.Name == name);
+                for (int r = 0; r < Catalog.Discoveries.Length; r++)
+                    Assert.True(w.Discovered[r] == cfg.KnownDiscoveries.Contains(Catalog.Discoveries[r].Name),
+                        $"{when}：{name} の {Catalog.Discoveries[r].Name} がデータと違う（{w.Discovered[r]}）");
+            }
+        }
+        Check("構築の直後");
+        Assert.True(Nation(sim, "イギリス").Discovered[steam] && Nation(sim, "イギリス").Discovered[patent]);
+        Assert.False(Nation(sim, "フランス").Discovered[steam]);
+        sim.StartWarmup();
+        Check("助走の後");
+    }
+
+    /// <summary>★(169) 1780年代の蒸気機関＝「鋳鉄の機関」（時代のレシピ・前期の軍需と同じ型）：蒸気機関の財の既定のレシピがある全ての州に並び、
+    /// 投入は鉄1.832＋銅0.414＋石炭0.4（＋労働力と高度労働力）＝鋼と機械を使わない・参照価格の世界で既定のレシピと同じ費用（1% 以内）・
+    /// 門は転炉鋼の発見までは開き、発見で退く（退場の表）。⚠壊し方＝足さない・鋼か機械を投入にする・退場させない → 赤。</summary>
+    [Fact]
+    public void 一七八〇年代の蒸気機関は鋳鉄の機関で作れ_転炉鋼の発見で退く()
+    {
+        var sim = Board();
+        var w = Nation(sim, "フランス");
+        int bessemer = Row("転炉鋼");
+        int withDefault = 0;
+        foreach (var rg in w.Regions)
+        {
+            var def = rg.Producers.FirstOrDefault(p => p.GoodId == Catalog.SteamEngineId && p.RecipeName == "");
+            if (def is null) continue;
+            withDefault++;
+            var ci = rg.Producers.SingleOrDefault(p => p.GoodId == Catalog.SteamEngineId && p.RecipeName == "鋳鉄の機関");
+            Assert.NotNull(ci);
+            Assert.DoesNotContain(ci!.Inputs, i => i.GoodId == Catalog.SteelId || i.GoodId == Catalog.MachineryId);
+            Assert.Equal(1.832, ci.Inputs.Single(i => i.GoodId == Catalog.IronId).QtyPerOutput, 12);
+            Assert.Equal(0.414, ci.Inputs.Single(i => i.GoodId == Catalog.CopperId).QtyPerOutput, 12);
+            Assert.Equal(0.4, ci.Inputs.Single(i => i.GoodId == Catalog.CoalId).QtyPerOutput, 12);
+            // 参照価格の世界の費用＝自己費用＋Σ投入×参照価格（労働力と高度労働力も参照価格）＝既定のレシピと同じ（1% 以内）
+            double RefCost(Producer p) => p.MarginalCost + p.Inputs.Sum(i => i.QtyPerOutput * Catalog.RefPrices[i.GoodId]);
+            Assert.Equal(1.0, RefCost(ci) / RefCost(def), 2);
+            Assert.Equal(bessemer, ci.RetiredByRow);
+            Assert.False(w.Discovered[bessemer], "前提が崩れた（開幕に転炉鋼）");
+            Assert.Equal(1.0, Discovery.Gate(rg, ci));
+            w.Discovered[bessemer] = true;
+            Assert.Equal(0.0, Discovery.Gate(rg, ci));   // 転炉鋼の発見で退く
+            w.Discovered[bessemer] = false;
+        }
+        Assert.True(withDefault > 0, "前提が崩れた（仏に蒸気機関の財の既定のレシピが無い）");
     }
 
     /// <summary>伝わりだけでは届かない・技術力と揃えば届く（設計 §1A-2 の性質）＝必要性の無い行（合成ゴム＝ゴムをまだ作れない国の製法は必要性0）で、
@@ -232,11 +309,13 @@ public class DiscoveryScoreTests
     /// 必要性の強度＝ln（代替する物の平滑化した値段×換算の比÷新しいレシピで作る費用〔自己費用×自己費用の物価水準÷物価水準＋Σ投入×平滑化した値段〕）・1以下は0：
     /// ①製法（人絹＝絹織物）＝絹が人絹の費用の2倍なら ln 2・費用と同じなら0・関係の無い財（馬）を高くしても動かない・投入（製材）を高くすると下がる＝参照価格ではなく今の費用と比べる
     /// ②新製品（ガス灯＝灯油）＝換算の比（新しい財1単位が置き換える代替する物の量＝普通の値段で同じ値打ち＝ガスの参照価格÷灯油の参照価格）を掛けた灯油の値段がガスの費用の2倍なら ln 2
-    /// ③機関車＝陸の輸送の値段÷鉄道の輸送の費用（清算の陸路の費用の鉄道÷馬・内陸の州の潜在量で重み付け）④代替する物の需要が国内に無いと0
+    /// ③機関車＝陸の輸送の値段÷鉄道の輸送の費用（運転の費用＝清算の陸路の費用の鉄道÷馬＋★(169) 線路と機関車の資本の費用÷馬の運賃・内陸の州の潜在量で重み付け）④代替する物の需要が国内に無いと0
     /// ⑤陸の輸送の値段＝(1÷通した割合)^(1/2ε)・通した割合0 は財の値段の天井（PriceCeilFactor）。
-    /// ⚠壊し方＝参照価格と比べる（(159) の形）・代替する物の欄を読まない・換算の比を掛けない・投入の値段を読まない・機関車の比べる相手を1にする・需要の無い財を読む → 赤。
+    /// ⚠壊し方＝参照価格と比べる（(159) の形）・代替する物の欄を読まない・換算の比を掛けない・投入の値段を読まない・機関車の比べる相手を1にする・機関車の資本の費用を読まない（★(169)）・
+    ///   陸の輸送を使っていない国の機関車を運転の費用で読む（★(169)）・需要の無い財を読む → 赤。
     /// ⚠(167) 反証役の指摘で名前を直した（旧「…_参照価格は読まない」）＝製法・動力・機関車は参照価格を読まないが、新製品は換算の比（参照価格の比）を掛ける
-    ///   ＝強度＝ln((代替する物の値段÷その参照価格)÷(新しいレシピの費用÷新しい財の参照価格))＝新製品の必要性の0点は参照価格の比が決める（作者への確認②）。</summary>
+    ///   ＝強度＝ln((代替する物の値段÷その参照価格)÷(新しいレシピの費用÷新しい財の参照価格))＝新製品の必要性の0点は参照価格の比が決める（作者への確認②）。
+    ///   ★(169) 物の単位の換算の腕は入れていない（電力・送電網・冷蔵・ゴム・自動車がどの国でも見つからない＝実装ログ (169)・作者への確認）。</summary>
     [Fact]
     public void 代替する物の値段は新しいレシピで作る費用と比べる_新製品だけ参照価格の比で単位を換える()
     {
@@ -248,7 +327,7 @@ public class DiscoveryScoreTests
         var basePx = (double[])w.DiscoveryPrice.Clone();
         for (int i = 0; i < ng; i++) if (!(basePx[i] >= 0)) basePx[i] = Catalog.RefPrices[i];   // 盤面の観測なしを埋める（下の view で世界の値段にも同じ値）
         basePx[ng] = 1.0;
-        double[] Needs(double[] px) => Discovery.Evaluate(w, new Discovery.WorldView(null, null, px), w.Coef, includeKnown: true, realPrice: px).Select(x => x.Need).ToArray();
+        double[] Needs(double[] px) => Discovery.Evaluate(w, new Discovery.WorldView(null, null, Discovery.WorldMarket.Flat(px)), w.Coef, includeKnown: true, realPrice: px).Select(x => x.Need).ToArray();
         double NeedOf(int row, double s) => s > 0 ? Discovery.TermMax * s / (s + Discovery.NeedHalf(Catalog.Discoveries[row].Field, w.Coef)) : 0;
         // ①製法＝人絹（代替する物＝絹織物そのもの）
         int silk = Row("人絹"), gs = Catalog.SilkClothId;
@@ -275,27 +354,60 @@ public class DiscoveryScoreTests
         double cG = CostByHand(w, repG, basePx);
         var pg = (double[])basePx.Clone(); pg[Catalog.LampOilId] = 2.0 * cG / k;
         Assert.Equal(NeedOf(gas, System.Math.Log(2.0)), Needs(pg)[gas], 9);
-        // ③機関車＝陸の輸送の値段÷鉄道の輸送の費用（内陸の州の潜在量で重み付けた 鉄道÷馬 の陸路の費用）
+        // ③機関車＝陸の輸送の値段÷鉄道の輸送の費用（内陸の州の潜在量で重み付けた 鉄道÷馬 の陸路の運転の費用＋★(169) 線路と機関車の資本の費用÷馬の陸の運賃）
         int loco = Row("機関車");
         Assert.Equal(Catalog.LandFreight, Catalog.Discoveries[loco].Replaces);
         double e = 1.0 / (2.0 * w.Coef.PriceElasticity);
-        int inland = 0; double pot = 0, sum = 0, f = w.Coef.RailCostFraction;
+        var cc = w.Coef;
+        var repL = RepOf(w, loco);
+        // 線路と機関車の投入の市場を英で生かす（値段の帳が与えた値段をそのまま読む盤面＝死んだ市場の着値と作る費用の安い方の規則は別の番人）
+        var rgA = w.Regions.First(r => r.State == RegionState.Active);
+        foreach (int g0 in repL.Inputs.Where(i => i.QtyPerOutput > 0).Select(i => i.GoodId).Append(Catalog.RailId))
+        { rgA.Markets[g0].LastDemand = System.Math.Max(1.0, rgA.Markets[g0].LastDemand); rgA.Markets[g0].LastProduced = System.Math.Max(1.0, rgA.Markets[g0].LastProduced); }
+        double RailPx(double[] px0) => px0[Catalog.RailId];
+        double pRail = RailPx(basePx);
+        double pLoco = CostByHand(w, repL, basePx);
+        Assert.True(AliveIn(w, Catalog.RailId) && repL.Inputs.All(i => !(i.QtyPerOutput > 0) || AliveIn(w, i.GoodId)), "前提が崩れた（英の線路か機関車の投入の市場）");
+        double capital = cc.TransportDecay * (pRail + pLoco) / (2.0 * cc.TransportCapPerUnit);
+        double horseUnit = cc.TransportMargin * cc.DistanceMarginScale * cc.LandSeaCostRatio / 10_000.0;   // 運賃革命の前（単独の判定＝市場が無いので1）
+        int inland = 0; double pot = 0, sum = 0, sumRun = 0, f = cc.RailCostFraction;
         foreach (var rg in w.Regions)
         {
             if (rg.State != RegionState.Active || rg.IsPort) continue;
             inland++; rg.LastTradePotential = 1.0 + inland; rg.LastTradeThrottle = 0.25;   // 内陸の州の潜在量と律速率を置く（通した割合 0.25）
             int ti = (int)rg.Terrain;
-            bool water = (rg.Terrain == Terrain.WaterMajor && w.Coef.TerrainWaterMajorCost > 0) || (rg.Terrain == Terrain.WaterMinor && w.Coef.TerrainWaterMinorCost > 0);
-            double kk = water ? f : f * w.Coef.TerrainRailCost[ti] / w.Coef.TerrainHorseCost[ti];
-            pot += rg.LastTradePotential; sum += rg.LastTradePotential * kk;
+            bool water = (rg.Terrain == Terrain.WaterMajor && cc.TerrainWaterMajorCost > 0) || (rg.Terrain == Terrain.WaterMinor && cc.TerrainWaterMinorCost > 0);
+            double m0 = water ? (rg.Terrain == Terrain.WaterMajor ? cc.TerrainWaterMajorCost : cc.TerrainWaterMinorCost) : cc.TerrainHorseCost[ti];
+            double hm = horseUnit * m0 * rg.PortLandKm;
+            if (!(hm > 0)) continue;
+            double kk = water ? f : f * cc.TerrainRailCost[ti] / cc.TerrainHorseCost[ti];
+            pot += rg.LastTradePotential; sum += rg.LastTradePotential * (kk + capital / hm); sumRun += rg.LastTradePotential * kk;
         }
-        Assert.True(inland > 0, "前提が崩れた（英に内陸の州が無い）");
+        Assert.True(inland > 0 && pot > 0, "前提が崩れた（英に陸の脚のある内陸の州が無い）");
         double rail = sum / pot;
-        Assert.True(rail > 0 && rail < 1, $"前提が崩れた（鉄道の輸送の費用 {rail}）");
+        Assert.True(rail > sumRun / pot && double.IsFinite(rail), $"前提が崩れた（鉄道の輸送の費用 {rail}・運転だけ {sumRun / pot}）");
+        // 資本の費用を読む＝線路の値段を上げると鉄道の輸送の費用が上がり必要性が下がる（陸の運賃は同じ）
+        {
+            var pr = (double[])basePx.Clone(); pr[ng] = 2.0 * rail;
+            foreach (var inp in repL.Inputs) if (inp.QtyPerOutput > 0 && inp.GoodId != Catalog.LaborId && inp.GoodId != Catalog.AdvLaborId) pr[inp.GoodId] *= 20.0;   // 機関車の資本財の投入を高くする
+            double pLocoDear = CostByHand(w, repL, pr);
+            double railDear = (sum - sumRun) / pot * (cc.TransportDecay * (RailPx(pr) + pLocoDear) / (2.0 * cc.TransportCapPerUnit)) / capital + sumRun / pot;
+            double sD = System.Math.Log(2.0 * rail / railDear);
+            Assert.Equal(sD > 0 ? NeedOf(loco, sD) : 0, Needs(pr)[loco], 9);
+            Assert.True(Needs(pr)[loco] < NeedOf(loco, System.Math.Log(2.0)) - 1e-9, "機関車の比べる相手が線路と機関車の資本の値段を読まない");
+        }
         var pl = (double[])basePx.Clone(); pl[ng] = 2.0 * rail;
         Assert.Equal(NeedOf(loco, System.Math.Log(2.0)), Needs(pl)[loco], 9);
         pl[ng] = rail * 0.5;   // 鉄道の方が高い＝不足なし
         Assert.Equal(0.0, Needs(pl)[loco]);
+        // ★(169) 陸の輸送を使っていない国（内陸の州の潜在の交易が0）は必要性0＝代替する物の需要が無ければ0（他の行と同じ規則・旧＝運転の費用だけ＝島国も必要性 54）
+        {
+            var keepPot = w.Regions.Select(rg => rg.LastTradePotential).ToArray();
+            foreach (var rg in w.Regions) if (rg.State == RegionState.Active && !rg.IsPort) rg.LastTradePotential = 0;
+            var pz = (double[])basePx.Clone(); pz[ng] = 100.0;   // 陸の運賃がどれほど高くても
+            Assert.Equal(0.0, Needs(pz)[loco]);
+            for (int i = 0; i < w.Regions.Count; i++) w.Regions[i].LastTradePotential = keepPot[i];
+        }
         // ⑤陸の輸送の値段＝(1÷通した割合)^(1/2ε)・通した割合0 は天井（財の値段の安全網と同じ）
         //   ★(166) 天井は漸近形（MarketFlow.SoftBandLn＝内側はほぼ恒等＝値段 4 で相対 1.2e-5 だけ下がる）＝下の「陸の運賃は天井へ漸近し超えない」の番人
         Assert.Equal(System.Math.Pow(1.0 / 0.25, e), Discovery.InstantRealPrices(w)[ng], 3);
@@ -307,13 +419,13 @@ public class DiscoveryScoreTests
         Assert.Equal(0.0, Needs(pd)[silk]);
     }
 
-    /// <summary>★(165) その国に市場の値段が無い財（作らず輸入もしない＝今の四半期に国内の市場が死んでいる）の読み方（理由で決めた・推奨で進めた）＝手に入れる安い方
-    /// ＝世界の平滑化した値段（取引できる財＝輸入すれば払う値段）とこの国で門の開いたレシピで作る費用の小さい方・どちらも無ければ費用が立たない＝0：
-    /// 盤面＝英の人絹（投入の製材の市場を英で殺す）→ ①世界の値段が作る費用より安ければ世界の値段で費用を組む ②高ければ英の製材のレシピで作る費用
-    /// ③死んだ市場の凍った値段は読まない ④取引できない投入（電力＝電動機）は世界の値段では読まない。
-    /// ⚠壊し方＝死んだ市場の凍った値段を読む・世界の値段を読まない・作る費用を読まない・取引できない財を世界の値段で読む → 赤。</summary>
+    /// <summary>★(165)→(169) その国に市場の値段が無い財（作らず輸入もしない＝今の四半期に国内の市場が死んでいる）の読み方（理由で決めた・推奨で進めた）＝手に入れる安い方
+    /// ＝着値（★(169) 売り手の平滑化した値段×(1＋運賃＋関税)＝運賃＝TransportMargin×(1＋DistanceMarginScale×距離÷1万km)×運賃革命・関税＝買い手の関税の楔）とこの国で門の開いたレシピで作る費用の小さい方・
+    /// どちらも無ければ費用が立たない＝0：盤面＝英の人絹（投入の製材の市場を英で殺す・売り手＝仏）→ ①着値が作る費用より安ければ着値で費用を組む ②高ければ英の製材のレシピで作る費用
+    /// ③死んだ市場の凍った値段は読まない ④取引できない投入（電力＝電動機）は世界の値段では読まない ⑤遠い売り手ほど・関税が高いほど着値が高い。
+    /// ⚠壊し方＝死んだ市場の凍った値段を読む・世界の値段を読まない・作る費用を読まない・取引できない財を世界の値段で読む・運賃か関税を足さない（(165)〜(167) の形）→ 赤。</summary>
     [Fact]
-    public void 市場の値段が無い財は世界の値段か作る費用の安い方で読む()
+    public void 市場の値段が無い財は着値か作る費用の安い方で読む_着値は運賃と関税を足す()
     {
         var sim = Board();
         var w = Nation(sim, "イギリス");
@@ -332,12 +444,27 @@ public class DiscoveryScoreTests
         foreach (var rg in w.Regions) { rg.Markets[gl].LastDemand = 0; rg.Markets[gl].LastProduced = 0; rg.Markets[gl].LastImport = 0; }
         Assert.False(AliveIn(w, gl));
         double qL = repS.Inputs.First(i => i.GoodId == gl).QtyPerOutput;
+        // 売り手＝仏（製材の市場が生きている1国・重み1）・買い手＝英（市場の死んだ国＝世界の市場に加わらない）
+        var fr = Nation(sim, "フランス");
+        var cw = w.Coef;
+        double km = Geo.DistanceKm(w.Latitude, w.Longitude, fr.Latitude, fr.Longitude);
+        Assert.True(km > 100, $"前提が崩れた（英仏の距離 {km}）");
+        double freight = 0.8;   // 運賃革命の倍率（任意の値を渡す）
+        double duty = System.Math.Max(0, InternationalMarket.TariffRate(w, cw)) * cw.TariffProtect;
+        double LandedFactor(double d) => 1.0 + cw.TransportMargin * (1.0 + cw.DistanceMarginScale * d / 10_000.0) * freight + duty;
+        Discovery.WorldMarket MarketOf(double wl)
+        {
+            var sp = Enumerable.Repeat(Discovery.NoPrice, ng + 1).ToArray(); sp[gl] = wl;
+            fr.DiscoveryPrice = sp;
+            var xa = Enumerable.Repeat(Discovery.NoPrice, ng + 1).ToArray(); var xb = (double[])xa.Clone(); xb[gl] = wl;
+            var one = Enumerable.Repeat(1.0, ng).ToArray();
+            return Discovery.WorldPrices([w, fr], [(xa, one), (xb, one)], freight);
+        }
         double NeedAt(double? worldLumber)
         {
             var p = (double[])px.Clone(); p[gl] = 1e6;   // 死んだ市場の凍った値段（読まれない）
-            double[]? wp = null;
-            if (worldLumber is { } wl) { wp = (double[])px.Clone(); wp[gl] = wl; }
-            return Discovery.Evaluate(w, new Discovery.WorldView(null, null, wp), w.Coef, includeKnown: true, realPrice: p)[silk].Need;
+            var mk = worldLumber is { } wl ? MarketOf(wl) : null;
+            return Discovery.Evaluate(w, new Discovery.WorldView(null, null, mk), cw, includeKnown: true, realPrice: p)[silk].Need;
         }
         double Expect(double lumberPrice)
         {
@@ -345,9 +472,22 @@ public class DiscoveryScoreTests
             double s = System.Math.Log(4.0 * cS / c);
             return s > 0 ? Discovery.TermMax * s / (s + w.Coef.DiscoveryNeedHalfProcess) : 0;
         }
-        Assert.Equal(Expect(make), NeedAt(null), 9);              // 世界の値段が無い＝作る費用
-        Assert.Equal(Expect(0.5 * make), NeedAt(0.5 * make), 9);  // 世界の値段が安い＝世界の値段
-        Assert.Equal(Expect(make), NeedAt(10 * make), 9);         // 世界の値段が高い＝作る費用
+        double fac = LandedFactor(km);
+        Assert.True(fac > 1.0 + 1e-6, $"前提が崩れた（着値の倍率 {fac}）");
+        Assert.Equal(Expect(make), NeedAt(null), 9);                              // 世界の市場が無い＝作る費用
+        Assert.Equal(Expect(0.5 * make), NeedAt(0.5 * make / fac), 9);            // 着値が安い＝着値（売り手の値段×運賃と関税の倍率）
+        Assert.Equal(Expect(make), NeedAt(10 * make), 9);                         // 着値が高い＝作る費用
+        Assert.True(NeedAt(0.5 * make) < NeedAt(0.5 * make / fac) - 1e-9, "着値に運賃と関税を足していない（(165)〜(167) の形）");
+        // ⑤遠い売り手ほど着値が高い＝売り手の位置を遠くへ（経済の中心の座標を置き直す）
+        {
+            double lat0 = fr.Latitude, lon0 = fr.Longitude;
+            fr.Latitude = -lat0; fr.Longitude = lon0 + 120.0;
+            double kmFar = Geo.DistanceKm(w.Latitude, w.Longitude, fr.Latitude, fr.Longitude);
+            Assert.True(kmFar > km + 1000, $"前提が崩れた（遠い売り手 {kmFar}）");
+            double v = 0.3 * make / LandedFactor(kmFar);
+            Assert.Equal(Expect(0.3 * make), NeedAt(v), 9);
+            fr.Latitude = lat0; fr.Longitude = lon0;
+        }
         // ④取引できない投入（電力＝電動機）は世界の値段では読まない＝英に電力の市場も門の開いた電力のレシピも無ければ費用が立たない＝0
         int motor = Row("電動機");
         Assert.True(Catalog.Goods[Catalog.ElectricityId].NonTradeable, "前提が崩れた（電力は取引できない財）");
@@ -355,7 +495,7 @@ public class DiscoveryScoreTests
             "前提が崩れた（開幕の英に電力がある）");
         var p2 = (double[])px.Clone(); p2[Catalog.LaborId] = 100.0;          // 動力がどれほど高くても
         var wp2 = (double[])px.Clone(); wp2[Catalog.ElectricityId] = 1e-6;   // 世界の電力がどれほど安くても
-        Assert.Equal(0.0, Discovery.Evaluate(w, new Discovery.WorldView(null, null, wp2), w.Coef, includeKnown: true, realPrice: p2)[motor].Need);
+        Assert.Equal(0.0, Discovery.Evaluate(w, new Discovery.WorldView(null, null, Discovery.WorldMarket.Flat(wp2)), w.Coef, includeKnown: true, realPrice: p2)[motor].Need);
     }
 
     /// <summary>★(167) 反証役の指摘（旧 (164) の低）＝値段の読み方の②（国内の市場が今の四半期に生きている財＝自国の平滑化した値段・他国の値段は読まない）の番人：
@@ -375,7 +515,7 @@ public class DiscoveryScoreTests
         Assert.True(AliveIn(w, gs) && repS.Inputs.All(i => AliveIn(w, i.GoodId)), "前提が崩れた（英の絹織物か人絹の投入の市場）");
         double cS = CostByHand(w, repS, px);
         px[gs] = 2.0 * cS;
-        double NeedWith(double[]? wp) => Discovery.Evaluate(w, new Discovery.WorldView(null, null, wp), w.Coef, includeKnown: true, realPrice: px)[silk].Need;
+        double NeedWith(double[]? wp) => Discovery.Evaluate(w, new Discovery.WorldView(null, null, wp is null ? null : Discovery.WorldMarket.Flat(wp)), w.Coef, includeKnown: true, realPrice: px)[silk].Need;
         double baseNeed = NeedWith(null);
         Assert.True(baseNeed > 0, $"前提が崩れた（人絹の必要性 {baseNeed}）");
         var cheap = (double[])px.Clone(); var dear = (double[])px.Clone();
@@ -407,10 +547,10 @@ public class DiscoveryScoreTests
         Assert.Equal(cap, Price(0.0), 9);            // 全く通らない＝天井（漸近の極限）
     }
 
-    /// <summary>★(165) 世界の平滑化した値段＝その四半期に国内の市場が生きている国（瞬間の値段の観測がある国）の平滑化した値段を、その国の需要で重み付けた平均・どの国にも市場が無い財は観測なし。
-    /// ⚠壊し方＝市場の死んだ国の値段を入れる・需要で重み付けない → 赤。</summary>
+    /// <summary>★(165)→(169) 世界の平滑化した値段＝その四半期に国内の市場が生きている国（瞬間の値段の観測がある国）の平滑化した値段を、渡した重み（★(169) 判定の段はその国の産出＝売っている量）で重み付けた平均・
+    /// どの国にも市場が無い財は観測なし・重み0の国（産出の無い国）は入らない。⚠壊し方＝市場の死んだ国の値段を入れる・重みで平均しない → 赤。呼び手が産出を渡すことは次の番人。</summary>
     [Fact]
-    public void 世界の平滑化した値段は市場が生きている国の需要で重み付けた平均()
+    public void 世界の平滑化した値段は市場が生きている国の重みで平均し重み0の国は入らない()
     {
         int ng = Catalog.Goods.Length;
         var sim = Board();
@@ -421,32 +561,43 @@ public class DiscoveryScoreTests
         var da = Enumerable.Repeat(1.0, ng).ToArray(); var db = Enumerable.Repeat(3.0, ng).ToArray();
         xb[7] = Discovery.NoPrice;   // b の財7 は市場が死んでいる
         xa[9] = Discovery.NoPrice; xb[9] = Discovery.NoPrice;   // 財9 はどの国にも市場が無い
-        var wp = Discovery.WorldPrices([a, b], [(xa, da), (xb, db)]);
+        db[11] = 0;   // b は財11 を売っていない（産出0）
+        var wp = Discovery.WorldPrices([a, b], [(xa, da), (xb, db)]).Average;
         Assert.Equal((1.0 * 2.0 + 3.0 * 5.0) / 4.0, wp[0], 12);
         Assert.Equal(2.0, wp[7], 12);
         Assert.Equal(Discovery.NoPrice, wp[9]);
+        Assert.Equal(2.0, wp[11], 12);
     }
 
-    /// <summary>呼び手の側の番人（(165)）＝多国の判定の段は世界の平滑化した値段を判定へ渡す（画面と計器も同じ値＝LastDiscoveryView）＝四半期の後の値は全ての国の平滑化した値段と瞬間の値段から求めた値と同じ。
-    /// ⚠壊し方＝共有層が世界の値段を渡さない → 赤。</summary>
+    /// <summary>呼び手の側の番人（(165)→(169)）＝多国の判定の段は世界の市場を判定へ渡す（画面と計器も同じ値＝LastDiscoveryView）＝四半期の後の平均は全ての国の平滑化した値段と瞬間の値段と
+    /// ★(169) 産出（売っている量＝重み）から求めた値と同じ・運賃革命の倍率は清算と同じ1本（前線＝全ての国の技術水準の最大）。
+    /// ⚠壊し方＝共有層が世界の市場を渡さない・重みを需要に戻す（(165)〜(167) の形）・運賃革命の倍率を渡さない → 赤。</summary>
     [Fact]
     public void 判定の段は世界の平滑化した値段を判定へ渡す()
     {
         var sim = Board();
         sim.StepQuarter();
         var view = sim.Nations[0].World.LastDiscoveryView;
-        Assert.NotNull(view?.WorldPrice);
+        Assert.NotNull(view?.Market);
         var worlds = sim.Nations.Select(n => n.World).ToArray();
         var obs = worlds.Select(w =>
         {
             var x = Discovery.InstantRealPrices(w);
             var dem = new double[Catalog.Goods.Length];
-            foreach (var rg in w.Regions) if (rg.State == RegionState.Active) for (int g = 0; g < dem.Length; g++) dem[g] += rg.Markets[g].LastDemand;
+            foreach (var rg in w.Regions) if (rg.State == RegionState.Active) for (int g = 0; g < dem.Length; g++) dem[g] += rg.Markets[g].LastProduced;   // ★(169) 重み＝産出
             return (x, dem);
         }).ToArray();
-        var expect = Discovery.WorldPrices(worlds, obs);
-        Assert.Equal(expect.Length, view!.WorldPrice!.Length);
-        for (int g = 0; g < expect.Length; g++) Assert.Equal(expect[g], view.WorldPrice[g], 9);
+        var expect = Discovery.WorldPrices(worlds, obs).Average;
+        Assert.Equal(expect.Length, view!.Market!.Average.Length);
+        for (int g = 0; g < expect.Length; g++) Assert.Equal(expect[g], view.Market.Average[g], 9);
+        double frontier = worlds.Max(x => x.TechLevel);
+        Assert.Equal(InternationalMarket.FreightRevolution(frontier, sim.Nations[0].World.Coef), view.Market.Freight, 12);
+        // 運賃革命の倍率が1でない盤面でも同じ1本を読む（前線の技術水準を上げる）
+        foreach (var n in sim.Nations) n.World.TechLevel = 3.0;
+        sim.StepQuarter();
+        var v2 = sim.Nations[0].World.LastDiscoveryView!.Market!;
+        Assert.True(v2.Freight < 1.0 - 1e-6, $"前提が崩れた（運賃革命の倍率 {v2.Freight}）");
+        Assert.Equal(InternationalMarket.FreightRevolution(sim.Nations.Max(n => n.World.TechLevel), sim.Nations[0].World.Coef), v2.Freight, 9);
         Assert.Contains(expect, v => v >= 0);
     }
 

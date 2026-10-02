@@ -1,0 +1,185 @@
+diff -ruN a/PriceOfBread.SimCore/Catalog.cs b/PriceOfBread.SimCore/Catalog.cs
+--- a/PriceOfBread.SimCore/Catalog.cs	2026-10-02 18:26:56.332733600 +0900
++++ b/PriceOfBread.SimCore/Catalog.cs	2026-10-02 18:26:56.365836400 +0900
+@@ -624,22 +624,23 @@
+         // --- 発明・新製品（今までに無かった財＝既定のレシピの行）---
+         //   ★代替する物（Replaces・2026-10-02 (159)）＝作者 2026-10-02「その発見が生み出すものが代替するものが高いか、で判定する」の「代替するもの」＝新製品が置き換えた既存の財（AI の対応づけ＝推奨で進めた）。
+         //   機関車だけは財ではない（陸の輸送＝作者 2026-10-02「鉄道研究の必要性は、軍事力ではなく、輸送力の不足から導かれるべきだ」）。
+-        //   ⚠(169) 物の単位の換算（新しい財1単位が置き換える代替する物の量のデータ・(167) 反証役 vd1#1 の処置）の腕は入れていない＝10種で電力・送電網・冷蔵・ゴム・自動車がどの国でも見つからない
+-        //     （AI の対応づけ＝石炭火力と送電網→ガス・電化製品→家事奉仕のまま・作者への確認・パッチ measurements/m168_20261002_units.diff・実装ログ (169)）＝換算の比は参照価格の比のまま（Discovery.ReplacedUnits）。
+-        new("ガス灯", GasId, "", DiscoveryField.Product, 1810, Replaces: LampOilId),      // マードック1792・商用1812＝灯油（鯨油・菜種油のランプ）とろうそくの灯りを置き換えた
+-        new("缶詰", CannedFoodId, "", DiscoveryField.Product, 1810, Replaces: PreservedMeatId),   // アペール法1809・ブリキ缶1810＝塩漬けの肉（艦隊と軍の糧食・1795 の懸賞）を置き換えた
+-        new("汽船", SteamshipId, "", DiscoveryField.Product, 1820, Replaces: SailingShipId),   // クラーモント1807〜外洋1830s（Q11＝中間）＝帆船
+-        new("機関車", LocomotiveId, "", DiscoveryField.Product, 1820, Replaces: LandFreight),   // ストックトン＝ダーリントン1825・ロケット号1829＝陸の輸送（馬車・運河の荷船＝内陸の輸送の容量）
+-        new("加硫ゴム", RubberId, "", DiscoveryField.Product, 1830, Replaces: LeatherId),  // グッドイヤー1839（ゴムに地理差のレシピは無い＝新しい財）＝革（ベルト・ホース・靴底・防水）
+-        new("ダイナマイト", DynamiteId, "", DiscoveryField.Product, 1860, Replaces: GunpowderId),   // ノーベル1867＝発破の黒色火薬
+-        new("冷蔵", RefrigeratorId, "", DiscoveryField.Product, 1870, Replaces: PreservedMeatId),   // リンデ1870s・冷凍船1877〜82（冷蔵庫の財は冷蔵の加工肉の投入も兼ねる）＝塩漬けの加工肉
+-        new("石炭火力", ElectricityId, "", DiscoveryField.Product, 1880, Replaces: GasId),   // パール街1882（電力の既定のレシピ）＝ガス灯
+-        new("送電網", GridId, "", DiscoveryField.Product, 1880, Replaces: GasId),          // 配電（パール街1882）・交流送電1890s＝ガスの導管の網
+-        new("電化製品", ApplianceId, "", DiscoveryField.Product, 1880, Replaces: DomesticServiceId),   // §1A-5 の表＝家事奉仕（家事使用人）
+-        new("自転車", BicycleId, "", DiscoveryField.Product, 1880, Replaces: HorseId),     // 安全型1885＝馬（個人の移動）
+-        new("内燃機関", CombustionEngineId, "", DiscoveryField.Product, 1880, Replaces: SteamEngineId),   // オットー1876・ダイムラー1885＝蒸気機関
+-        new("自動車", AutomobileId, "", DiscoveryField.Product, 1890, Replaces: HorseId),  // §1A-5 の表（自転車・自動車＝1880〜1890年代）＝馬（馬車・輜重）
+-        new("ラジオ", RadioId, "", DiscoveryField.Product, 1920, Replaces: NewspaperId),   // 放送の実用化1920＝新聞
++        //   ★換算の比 Units（(169)・物の単位＝新しい財1単位が置き換える代替する物の量・AI の推奨＝作者の承認は未確認）＝(167) 反証役 vd1#1 の処置（旧＝参照価格の比＝必要性の0点を参照価格が決めた）。
++        //     根拠の順＝①模型の中で2つの財が同じ用途に並ぶ所（同じレシピの枠・輸送の容量）の量の比 ②同じ人の同じ必要（どちらも消費財＝1人の必要量 BaseNeed の比＝同じ人の必要を満たす量）
++        //     ③模型に共通の用途が無い＝史実の働き（重さ・発破の力・運ぶ荷）の比【推・記憶の概数】。出典と数は実装ログ (169)。
++        new("ガス灯", GasId, "", DiscoveryField.Product, 1810, Replaces: LampOilId, Units: 0.10 / 0.03),      // マードック1792・商用1812＝灯油（鯨油・菜種油のランプ）とろうそくの灯りを置き換えた。換算②＝灯油の必要量0.10÷ガスの必要量0.03（同じ人の明かり）
++        new("缶詰", CannedFoodId, "", DiscoveryField.Product, 1810, Replaces: PreservedMeatId, Units: 0.12 / 0.10),   // アペール法1809・ブリキ缶1810＝塩漬けの肉（艦隊と軍の糧食・1795 の懸賞）を置き換えた。換算②＝加工肉の必要量0.12÷缶詰の必要量0.10（同じ人の保存肉・どちらも肉0.6）
++        new("汽船", SteamshipId, "", DiscoveryField.Product, 1820, Replaces: SailingShipId, Units: 2.5),   // クラーモント1807〜外洋1830s（Q11＝中間）＝帆船。換算①＝Transport の汽船1単位の容量の倍（Coefficients.ShipTier2CapMult＝2.5・史実「汽船1トンは帆船3〜5トン分を運ぶ」・番人で一致を確かめる）
++        new("機関車", LocomotiveId, "", DiscoveryField.Product, 1820, Replaces: LandFreight),   // ストックトン＝ダーリントン1825・ロケット号1829＝陸の輸送（馬車・運河の荷船＝内陸の輸送の容量）。換算＝陸の運賃の単位（1）
++        new("加硫ゴム", RubberId, "", DiscoveryField.Product, 1830, Replaces: LeatherId, Units: 1.0),  // グッドイヤー1839（ゴムに地理差のレシピは無い＝新しい財）＝革（ベルト・ホース・靴底・防水）。換算③＝同じ重さ（ベルト・ホース・靴底を同じ重さで置き換えた）【推】
++        new("ダイナマイト", DynamiteId, "", DiscoveryField.Product, 1860, Replaces: GunpowderId, Units: 2.0),   // ノーベル1867＝発破の黒色火薬。換算③＝発破の力は重さあたり黒色火薬の約2倍（TNT 換算の相対効率 黒色火薬 約0.55・ニトログリセリン系 約1〜1.5）【推・記憶の概数】
++        new("冷蔵", RefrigeratorId, "", DiscoveryField.Product, 1870, Replaces: PreservedMeatId, Units: 0.12 / 0.06),   // リンデ1870s・冷凍船1877〜82（冷蔵庫の財は冷蔵の加工肉の投入も兼ねる）＝塩漬けの加工肉。換算②＝加工肉の必要量0.12÷冷蔵庫の必要量0.06（同じ人の肉の保存）
++        new("石炭火力", ElectricityId, "", DiscoveryField.Product, 1880, Replaces: GasId, Units: 0.9 / 0.6),   // パール街1882（電力の既定のレシピ）＝ガス灯。換算③＝同じ石炭から作る量（電力1単位は石炭0.9・ガス1単位は石炭0.6）【推】
++        new("送電網", GridId, "", DiscoveryField.Product, 1880, Replaces: GasId, Units: 0.6 / 0.4),          // 配電（パール街1882）・交流送電1890s＝ガスの導管の網。換算①＝都市の照明の基盤（電化インフラ）1単位にガス灯式はガス0.6・電灯式は送電網0.4（Simulation の2つのレシピ）
++        new("電化製品", ApplianceId, "", DiscoveryField.Product, 1880, Replaces: DomesticServiceId, Units: 0.06 / 0.10),   // §1A-5 の表＝家事奉仕（家事使用人）。換算②＝家事奉仕の必要量0.06÷電化製品の必要量0.10（同じ人の家事）
++        new("自転車", BicycleId, "", DiscoveryField.Product, 1880, Replaces: HorseId, Units: 1.0),     // 安全型1885＝馬（個人の移動）。換算③＝1人の移動に1台＝乗用の馬1頭【推】
++        new("内燃機関", CombustionEngineId, "", DiscoveryField.Product, 1880, Replaces: SteamEngineId, Units: 1.0),   // オットー1876・ダイムラー1885＝蒸気機関。換算①＝乗り物1台の原動機の量（汽船・機関車の蒸気機関0.6・自動車の内燃機関0.6）
++        new("自動車", AutomobileId, "", DiscoveryField.Product, 1890, Replaces: HorseId, Units: 5.0),  // §1A-5 の表（自転車・自動車＝1880〜1890年代）＝馬（馬車・輜重）。換算③＝運ぶ荷＝貨物自動車1台は荷馬およそ5頭分（3トン車＝2頭立ての荷馬車2〜3台分）【推・記憶の概数】
++        new("ラジオ", RadioId, "", DiscoveryField.Product, 1920, Replaces: NewspaperId, Units: 0.06 / 0.03),   // 放送の実用化1920＝新聞。換算②＝新聞の必要量0.06÷ラジオの必要量0.03（同じ人の媒体＝思想と制度の到達・国民意識は新聞とラジオの充足を同じ重みで読む）
+         // --- 発明・新兵器（軍事の圧力は陸・海・空で分ける＝作者裁定 2026-09-28 ⑤）---
+         new("装甲艦", IroncladId, "", DiscoveryField.Weapon, 1850, WarDomain.Sea),        // ラ・グロワール1859
+         new("機関銃", MachineGunId, "", DiscoveryField.Weapon, 1880, WarDomain.Land),     // マキシム1884
+diff -ruN a/PriceOfBread.SimCore/Discovery.cs b/PriceOfBread.SimCore/Discovery.cs
+--- a/PriceOfBread.SimCore/Discovery.cs	2026-10-02 18:26:56.399321300 +0900
++++ b/PriceOfBread.SimCore/Discovery.cs	2026-10-02 18:26:56.439233700 +0900
+@@ -9,8 +9,10 @@
+ 
+ /// <summary>発見の表の1行（<see cref="Catalog.Discoveries"/>）＝名前・財・レシピ（""＝既定のレシピ）・分野・年代（10年刻み）・新兵器の分野・代替する物。
+ /// <paramref name="Replaces"/>＝その行が生み出す物が代替する物（作者 2026-10-02＝必要性はその値段の高さ・★(165) 新しいレシピで作る費用と比べる・<see cref="Discovery"/> の ReplacedStrength）＝<see cref="Catalog.ReplacesOwn"/>（製法＝その行の財そのもの）・
+-/// 新製品は代替する既存の財の id・<see cref="Catalog.LandFreight"/>（機関車＝陸の輸送＝財ではない）。新兵器・制度・思想の行は読まない。</summary>
+-public readonly record struct DiscoveryRow(string Name, int Good, string Recipe, DiscoveryField Field, int Decade, WarDomain Domain = WarDomain.None, int Replaces = Catalog.ReplacesOwn);
++/// 新製品は代替する既存の財の id・<see cref="Catalog.LandFreight"/>（機関車＝陸の輸送＝財ではない）。新兵器・制度・思想の行は読まない。
++/// <paramref name="Units"/>＝★(169) 換算の比（物の単位）＝新しい財1単位が置き換える代替する物の量（データ・行ごとの根拠は <see cref="Catalog.Discoveries"/> の注記）。
++/// 製法・動力・機関車は1（同じ物・陸の運賃の単位）。旧（(165)）＝新しい財の参照価格÷代替する物の参照価格＝必要性の0点を参照価格の比が決めた（(167) 反証役 vd1#1）。</summary>
++public readonly record struct DiscoveryRow(string Name, int Good, string Recipe, DiscoveryField Field, int Decade, WarDomain Domain = WarDomain.None, int Replaces = Catalog.ReplacesOwn, double Units = 1.0);
+ 
+ /// <summary>発見＝解禁の【唯一の形】（★命名の作者裁定2026-08-31＝「研究」はプレイヤーが方向を選ぶ動詞を連想させる・この機構は選べず社会から創発して見つかる＝「発見」）。
+ /// ★段2A（2026-10-01・設計 docs/202609/20260928/20260928_財の削減_連鎖の深さの撤去_設計 §1A-2）：**発見は2値**・国ごと・行（レシピ）ごとに毎四半期
+@@ -594,9 +596,8 @@
+     ///   ②国内の市場が今の四半期に生きている財（代替する物・投入）＝自国の平滑化した値段。
+     ///   ③死んでいる財＝手に入れる安い方＝その国の着値（★(169) 世界の売り手の値段＋運賃＋関税＝<see cref="WorldMarket.Landed"/>・取引できる財）とこの国で作る費用（門の開いたレシピ・投入へ同じ読み方を繰り返す）の小さい方
+     ///     （⚠開幕は蒸気機関の財の市場が世界のどこにも無い＝作る費用で読む）。どちらも無い（取引できず作れない電力など）＝費用が立たない＝0（作れない投入を要するレシピは必要とされない）。
+-    /// ・換算の比（新製品だけ・<see cref="ReplacedUnits"/>）＝新しい財1単位が置き換える代替する物の量（固定のデータ）。製法・蒸気機関・電動機・機関車は1（同じ物）。
+-    ///   ⚠(167) 新製品の行は換算の比（参照価格の比）が必要性の0点を決める＝参照価格と比べるのと同じ働き（作者への確認②）。
+-    ///   ⚠(169) 物の単位の換算の腕は入れていない（10種で電力・送電網・冷蔵・ゴム・自動車がどの国でも見つからない＝<see cref="ReplacedUnits"/> の注記）。
++    /// ・換算の比（<see cref="DiscoveryRow.Units"/>＝★(169) 物の単位のデータ）＝新しい財1単位が置き換える代替する物の量。製法・蒸気機関・電動機・機関車は1（同じ物）。
++    ///   旧（(165)〜(167)）＝新しい財の参照価格÷代替する物の参照価格＝新製品の必要性の0点を参照価格の比が決めた（(167) 反証役 vd1#1）。
+     /// ・背景・因果（人件費の世界比・豊かさ・脅威・軍）と他国の値段（自国に市場がある財）は読まない。対数＝値段の比は比で読む（(147) と同じ）。否定形＝NaN は0。</summary>
+     private static double ReplacedStrength(int row, Producer rep, PriceBook book, double[] dem, double railCost, out double v, out double cost)
+     {
+@@ -612,7 +613,7 @@
+         {
+             int g = d.Replaces == Catalog.ReplacesOwn ? d.Good : d.Replaces;
+             if (g < 0 || g >= ng || g >= dem.Length || !(dem[g] > 1e-9)) return 0;   // 使っていない物の代わりは要らない
+-            v = book.Of(g) * ReplacedUnits[row];
++            v = book.Of(g) * d.Units;
+             // ★(169) 動力（労働力の財）のレシピ（蒸気機関・電動機）も他の行と同じ規則＝自己費用（規定の付加価値＝人の働き）を数える（定義の本文「新しいレシピで作る費用」・分子の動力の値段も同じ自己費用を払う生産者の値段）。
+             //   旧（(165)〜(167)）＝動力の2行だけ自己費用を数えなかった（AI が出した例「石炭と機械の蒸気の動力の値段」の字義）＝分子と分母が別の規則（(167) 反証役 vd1#2）。
+             cost = book.Cost(rep);
+@@ -675,19 +676,6 @@
+         }
+     }
+ 
+-    /// <summary>★換算の比（(165)・新製品の行だけ）＝新しい財1単位が置き換える代替する物の量＝普通に出回ったときに同じ値打ちの量（新しい財の参照価格÷代替する物の参照価格）。
+-    /// 2つの財には共通の物の単位が無い＝値打ちで単位をそろえる固定のデータ（「高いか」の物差しではない＝高いかは今の代替する物の値段と今の新しいレシピの費用の比で読む）。
+-    /// 製法・蒸気機関・電動機・機関車・新兵器・制度・思想は1。⚠固定の換算に参照価格を使うのは AI の読み（作者への確認）。
+-    /// ⚠(167) 反証役の指摘＝新製品の強度＝ln((代替する物の値段÷その参照価格)÷(新しいレシピの費用÷新しい財の参照価格))＝必要性の0点は参照価格の比が決める
+-    ///   ＝働きは参照価格と比べるのと同じ＝作者 2026-10-02「ゲーム中に変化しない参照価格、という実装はあまり良くないように感じる」から外れうる（作者への確認②・代わりの案＝物の単位の換算をデータの欄に持つ）。
+-    /// ⚠(169) 物の単位の換算をデータの欄に持つ腕（同じ用途の枠の量の比・同じ人の同じ必要量の比・史実の働きの比＝AI の推奨）は10種で判定の線の内側（exact 51.3・near 86.1）だが、
+-    ///   電力（石炭火力・水力発電）・送電網・冷蔵・加硫ゴムと合成ゴム・自動車・電化製品がどの種のどの国でも見つからない（r167 は 石炭火力 103・送電網 172・冷蔵 116 件の解禁）
+-    ///   ＝AI の対応づけ（石炭火力と送電網→ガス・電化製品→家事奉仕）では、物の単位で比べると電気の明かりは同じ明かりのガスより安くない（史実の初期の電灯も同じ）＝必要性が立たない
+-    ///   ＝1950 年まで電気の無い世界＝史実と食い違う＝入れていない（作者への確認・パッチ measurements/m168_20261002_units.diff・実装ログ (169)）。</summary>
+-    public static readonly double[] ReplacedUnits = Catalog.Discoveries.Select(d =>
+-        d.Field == DiscoveryField.Product && d.Replaces >= 0 && d.Good >= 0 && Catalog.RefPrices[d.Replaces] > 0
+-            ? Catalog.RefPrices[d.Good] / Catalog.RefPrices[d.Replaces] : 1.0).ToArray();
+-
+     /// <summary>★鉄道の輸送の費用（(165)・機関車の行の比べる相手）＝陸の運賃と同じ単位（普通の馬の陸の運賃＝1）＝新しいレシピ（鉄道）で運ぶ費用＝運転の費用＋線路と機関車の資本の費用：
+     /// ・運転の費用＝清算の陸路の費用の鉄道÷馬（BilateralMarket の陸路の費用＝LandSeaCostRatio×地形の係数・鉄道の後は×<see cref="Coefficients.RailCostFraction"/>・地形は馬→鉄道の係数・水路の州は水運のまま）。
+     /// ・★(169) 資本の費用（AI の推奨・作者の承認は未確認）＝容量1あたりの月の減耗×財の値段（<see cref="Transport"/> が積む形＝線路と機関車を同じ単位数ずつ買い1単位が <see cref="Coefficients.TransportCapPerUnit"/> の容量・
+diff -ruN a/PriceOfBread.Tests/DiscoveryScoreTests.cs b/PriceOfBread.Tests/DiscoveryScoreTests.cs
+--- a/PriceOfBread.Tests/DiscoveryScoreTests.cs	2026-10-02 18:26:56.474001000 +0900
++++ b/PriceOfBread.Tests/DiscoveryScoreTests.cs	2026-10-02 18:26:56.511226800 +0900
+@@ -214,6 +214,41 @@
+         Assert.True(withDefault > 0, "前提が崩れた（仏に蒸気機関の財の既定のレシピが無い）");
+     }
+ 
++    /// <summary>★(169) 新製品の換算の比（物の単位・発見の表の Units）のデータの番人＝根拠ごとの値が模型の量と食い違わない：
++    /// ①同じ人の同じ必要（どちらも消費財）＝1人の必要量の比（灯油÷ガス・加工肉÷缶詰・加工肉÷冷蔵庫・家事奉仕÷電化製品・新聞÷ラジオ）
++    /// ②同じ用途の枠＝汽船は Transport の汽船1単位の容量の倍（ShipTier2CapMult）・送電網は電化インフラの2つのレシピのガスと送電網の量の比・内燃機関は乗り物のレシピの原動機の量の比
++    /// ③製法・動力・機関車・新兵器・制度・思想は1・新製品は全て正の有限・参照価格の比のままの行は無い。
++    /// ⚠壊し方＝参照価格の比へ戻す・係数や必要量を動かして欄を直さない → 赤。</summary>
++    [Fact]
++    public void 新製品の換算の比は物の単位のデータで模型の量と食い違わない()
++    {
++        double U(string name) => Catalog.Discoveries[Row(name)].Units;
++        double Need(int g) => Catalog.Goods[g].BaseNeed;
++        Assert.Equal(Need(Catalog.LampOilId) / Need(Catalog.GasId), U("ガス灯"), 12);
++        Assert.Equal(Need(Catalog.PreservedMeatId) / Need(Catalog.CannedFoodId), U("缶詰"), 12);
++        Assert.Equal(Need(Catalog.PreservedMeatId) / Need(Catalog.RefrigeratorId), U("冷蔵"), 12);
++        Assert.Equal(Need(Catalog.DomesticServiceId) / Need(Catalog.ApplianceId), U("電化製品"), 12);
++        Assert.Equal(Need(Catalog.NewspaperId) / Need(Catalog.RadioId), U("ラジオ"), 12);
++        Assert.Equal(new Coefficients().ShipTier2CapMult, U("汽船"), 12);
++        var sim = Board();
++        var rg0 = sim.Nations[0].World.Regions.First(r => r.Producers.Any(p => p.GoodId == Catalog.ElecInfraId && p.RecipeName == "ガス灯"));
++        double gasQ = rg0.Producers.First(p => p.GoodId == Catalog.ElecInfraId && p.RecipeName == "ガス灯").Inputs.Single(i => i.GoodId == Catalog.GasId).QtyPerOutput;
++        double gridQ = rg0.Producers.First(p => p.GoodId == Catalog.ElecInfraId && p.RecipeName == "電灯網").Inputs.Single(i => i.GoodId == Catalog.GridId).QtyPerOutput;
++        Assert.Equal(gasQ / gridQ, U("送電網"), 12);
++        double seQ = Catalog.Goods[Catalog.SteamshipId].Inputs.Single(i => i.GoodId == Catalog.SteamEngineId).QtyPerOutput;
++        double ceQ = Catalog.Goods[Catalog.AutomobileId].Inputs.Single(i => i.GoodId == Catalog.CombustionEngineId).QtyPerOutput;
++        Assert.Equal(seQ / ceQ, U("内燃機関"), 12);
++        foreach (var d in Catalog.Discoveries)
++        {
++            if (d.Field == DiscoveryField.Product && d.Replaces >= 0)
++            {
++                Assert.True(d.Units > 0 && double.IsFinite(d.Units), $"{d.Name}：換算の比が正の有限でない（{d.Units}）");
++                Assert.NotEqual(System.Math.Round(Catalog.RefPrices[d.Good] / Catalog.RefPrices[d.Replaces], 6), System.Math.Round(d.Units, 6));
++            }
++            else Assert.Equal(1.0, d.Units);
++        }
++    }
++
+     /// <summary>伝わりだけでは届かない・技術力と揃えば届く（設計 §1A-2 の性質）＝必要性の無い行（合成ゴム＝ゴムをまだ作れない国の製法は必要性0）で、
+     /// ①技術水準0・接触は最大（伝わり≈70）→ 届かない ②技術水準を難易度の2倍（技術力 70×押し）＋同じ接触 → 押しが半分以上の国は届く（そういう国が1つは在る）。
+     /// ⚠壊し方＝門を70へ（伝わりだけで届く）→ ①が赤。</summary>
+@@ -308,16 +343,14 @@
+     /// <summary>★物を生む行の比べる相手の規則（(165)・作者 2026-10-02「その発見が生み出すものが代替するものが高いか、で判定する」＋「2でよい」＝代替する物の値段÷その発見が出す物の値段）＝
+     /// 必要性の強度＝ln（代替する物の平滑化した値段×換算の比÷新しいレシピで作る費用〔自己費用×自己費用の物価水準÷物価水準＋Σ投入×平滑化した値段〕）・1以下は0：
+     /// ①製法（人絹＝絹織物）＝絹が人絹の費用の2倍なら ln 2・費用と同じなら0・関係の無い財（馬）を高くしても動かない・投入（製材）を高くすると下がる＝参照価格ではなく今の費用と比べる
+-    /// ②新製品（ガス灯＝灯油）＝換算の比（新しい財1単位が置き換える代替する物の量＝普通の値段で同じ値打ち＝ガスの参照価格÷灯油の参照価格）を掛けた灯油の値段がガスの費用の2倍なら ln 2
++    /// ②新製品（ガス灯＝灯油）＝換算の比（★(169) 物の単位のデータ＝新しい財1単位が置き換える代替する物の量＝発見の表の Units・参照価格の比ではない）を掛けた灯油の値段がガスの費用の2倍なら ln 2
+     /// ③機関車＝陸の輸送の値段÷鉄道の輸送の費用（運転の費用＝清算の陸路の費用の鉄道÷馬＋★(169) 線路と機関車の資本の費用÷馬の運賃・内陸の州の潜在量で重み付け）④代替する物の需要が国内に無いと0
+     /// ⑤陸の輸送の値段＝(1÷通した割合)^(1/2ε)・通した割合0 は財の値段の天井（PriceCeilFactor）。
+-    /// ⚠壊し方＝参照価格と比べる（(159) の形）・代替する物の欄を読まない・換算の比を掛けない・投入の値段を読まない・機関車の比べる相手を1にする・機関車の資本の費用を読まない（★(169)）・
+-    ///   陸の輸送を使っていない国の機関車を運転の費用で読む（★(169)）・需要の無い財を読む → 赤。
+-    /// ⚠(167) 反証役の指摘で名前を直した（旧「…_参照価格は読まない」）＝製法・動力・機関車は参照価格を読まないが、新製品は換算の比（参照価格の比）を掛ける
+-    ///   ＝強度＝ln((代替する物の値段÷その参照価格)÷(新しいレシピの費用÷新しい財の参照価格))＝新製品の必要性の0点は参照価格の比が決める（作者への確認②）。
+-    ///   ★(169) 物の単位の換算の腕は入れていない（電力・送電網・冷蔵・ゴム・自動車がどの国でも見つからない＝実装ログ (169)・作者への確認）。</summary>
++    /// ⚠壊し方＝参照価格と比べる（(159) の形）・代替する物の欄を読まない・換算の比を掛けない・換算の比を参照価格の比に戻す（(165)〜(167) の形）・投入の値段を読まない・機関車の比べる相手を1にする・
++    ///   機関車の資本の費用を読まない・需要の無い財を読む → 赤。
++    /// ⚠(167) 反証役の指摘で名前を直した（旧「…_参照価格は読まない」）→ ★(169) 新製品の換算の比を物の単位のデータへ（旧＝参照価格の比＝新製品の必要性の0点を参照価格の比が決めた）。</summary>
+     [Fact]
+-    public void 代替する物の値段は新しいレシピで作る費用と比べる_新製品だけ参照価格の比で単位を換える()
++    public void 代替する物の値段は新しいレシピで作る費用と比べる_新製品は物の単位で換える()
+     {
+         var sim = Board();
+         var w = Nation(sim, "イギリス");
+@@ -343,12 +376,13 @@
+         var dearIn = (double[])basePx.Clone(); dearIn[gs] = 2.0 * cS; dearIn[Catalog.LumberId] *= 3.0;   // 投入（製材）が高い＝費用が上がる
+         Assert.True(repS.Inputs.Any(i => i.GoodId == Catalog.LumberId), "前提が崩れた（人絹の投入に製材が無い）");
+         Assert.Equal(NeedOf(silk, System.Math.Log(2.0 * cS / CostByHand(w, repS, dearIn))), Needs(dearIn)[silk], 9);
+-        // ②新製品＝ガス灯（代替する物＝灯油・換算の比＝ガスの参照価格÷灯油の参照価格）
++        // ②新製品＝ガス灯（代替する物＝灯油・換算の比＝★(169) 物の単位のデータ＝同じ人の明かりの必要量の比＝灯油0.10÷ガス0.03）
+         int gas = Row("ガス灯");
+         Assert.Equal(Catalog.LampOilId, Catalog.Discoveries[gas].Replaces);
+-        double k = Catalog.RefPrices[Catalog.GasId] / Catalog.RefPrices[Catalog.LampOilId];
+-        Assert.Equal(k, Discovery.ReplacedUnits[gas], 12);
+-        Assert.Equal(1.0, Discovery.ReplacedUnits[silk]);
++        double k = Catalog.Discoveries[gas].Units;
++        Assert.Equal(Catalog.Goods[Catalog.LampOilId].BaseNeed / Catalog.Goods[Catalog.GasId].BaseNeed, k, 12);
++        Assert.NotEqual(Catalog.RefPrices[Catalog.GasId] / Catalog.RefPrices[Catalog.LampOilId], k, 3);   // 参照価格の比ではない
++        Assert.Equal(1.0, Catalog.Discoveries[silk].Units);
+         var repG = RepOf(w, gas);
+         Assert.True(AliveIn(w, Catalog.LampOilId) && repG.Inputs.All(i => AliveIn(w, i.GoodId)), "前提が崩れた（英の灯油かガスの投入の市場）");
+         double cG = CostByHand(w, repG, basePx);

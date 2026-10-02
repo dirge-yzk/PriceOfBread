@@ -517,15 +517,11 @@ public sealed class MultiNationSim
         if (quarters <= 0) return;   // 助走なし＝構築直後の盤面そのままで開始（厳密恒等の底）
         WarmupEconomy(quarters, onQuarter);
         WarmupTech(_coef.StartWarmupTechIterations);
-        // ★開幕の既知の集合（段2A・2026-10-01）＝助走の終わりの盤面（均衡の値段・助走で進めた技術水準）で1度だけ判定する（誰もまだ持たない＝伝わり0）。
-        //   1780年代の行（蒸気機関）は難易度0＝技術力は最大＝必要性（動力＝労働力の財の値段の高さ・(159)）が30に届く国だけが開幕から持つ。
-        //   ★(159) 判定の段の頭で全ての国の平滑化した値段（作者裁定 Q12）を1歩進めてから判定する（判定は読むだけ）。
-        //   ★(165) 世界の平滑化した値段（自国に市場の値段が無い財を輸入の値段で読む・導出量）も同じ段の頭で求める。
-        {
-            var view0 = new Discovery.WorldView(null, null, AdvanceDiscoveryPrices());
-            foreach (var n in Nations) Discovery.Step(n.World, view0, _coef);
-            ShareWorldDiscovered();
-        }
+        // ★開幕の既知の集合（(169)）＝データ（NationConfig.KnownDiscoveries＝world.json・1783年より前に史実でその国が使っていた発見）＝構築で置いた（Simulation のコンストラクタ）。
+        //   ここでは世界の解禁の和（需要の門）を配るだけ。判定は最初の四半期の終わりから（他の四半期と同じ1本）。
+        //   旧（段2A・2026-10-01〜(167)）＝助走の終わりの盤面で1度だけ点数を判定した＝1780年代の行は技術力が最大＝必要性が30に届く国が開幕から持った
+        //   （(165)＝主要国の全てが1784年に蒸気機関・データの史実〔英だけ〕と食い違った）。
+        ShareWorldDiscovered();
         RebaselineInvariants();
     }
     private bool _startWarmupDone;
@@ -573,21 +569,22 @@ public sealed class MultiNationSim
             }
             // ★(159) 平滑化した値段（作者裁定 Q12）を全ての国で先に1歩進めてから判定する（判定は読むだけ＝書き手は判定の段の頭の1か所）。
             //   ★(165) 世界の平滑化した値段（導出量）も同じ段の頭で1回だけ求めて全ての国の判定へ渡す。
-            var worldPx = AdvanceDiscoveryPrices();
-            for (int i = 0; i < n; i++) Discovery.Step(Nations[i].World, new Discovery.WorldView(contacts[i], null, worldPx), _coef);
+            var market = AdvanceDiscoveryPrices();
+            for (int i = 0; i < n; i++) Discovery.Step(Nations[i].World, new Discovery.WorldView(contacts[i], null, market), _coef);
             ShareWorldDiscovered();
         }
         foreach (var sim in Nations) { sim.World.DiscoveryImportQ = null; sim.World.DiscoveryLossQ = null; }   // 損耗の記帳（(153)）も判定の後（助走は判定しない＝捨てるだけ）
         Market.DiscoveryGoodFlowQ = null;
         _recruitLog?.Clear();
     }
-    /// <summary>判定の段の頭＝全ての国の平滑化した値段を1歩進め（<see cref="Discovery.AdvancePrice"/>・作者裁定 Q12）、世界の平滑化した値段を返す（★(165)・<see cref="Discovery.WorldPrices"/>＝導出量）。</summary>
-    private double[] AdvanceDiscoveryPrices()
+    /// <summary>判定の段の頭＝全ての国の平滑化した値段を1歩進め（<see cref="Discovery.AdvancePrice"/>・作者裁定 Q12）、世界の市場を返す（★(165)(169)・<see cref="Discovery.WorldPrices"/>＝導出量）。</summary>
+    private Discovery.WorldMarket AdvanceDiscoveryPrices()
     {
         var worlds = new World[Nations.Count];
-        var obs = new (double[] Inst, double[] Dem)[Nations.Count];
-        for (int i = 0; i < Nations.Count; i++) { worlds[i] = Nations[i].World; obs[i] = Discovery.AdvancePrice(worlds[i], _coef); }
-        return Discovery.WorldPrices(worlds, obs);
+        var obs = new (double[] Inst, double[] Sold)[Nations.Count];
+        double frontier = 0;   // ★(169) 運賃革命の倍率（清算と同じ1本＝前線の技術水準＝全ての国の技術水準の最大）
+        for (int i = 0; i < Nations.Count; i++) { worlds[i] = Nations[i].World; obs[i] = Discovery.AdvancePrice(worlds[i], _coef); if (worlds[i].TechLevel > frontier) frontier = worlds[i].TechLevel; }
+        return Discovery.WorldPrices(worlds, obs, InternationalMarket.FreightRevolution(frontier, _coef));
     }
     /// <summary>世界の解禁の和（需要の門が読む）を書き直して全ての国へ配る（同じ配列＝建国した国も親と同じものを参照）。</summary>
     private void ShareWorldDiscovered()
@@ -1951,8 +1948,10 @@ public static class CostLedger
     ];
     /// <summary>発見の判定の単価（マイクロ秒/国×四半期）＝(147) の Runner discprobe（種1・668四半期・全ての国の Discovery.Evaluate を Stopwatch で計った和÷回数＝76.0・41,373回〔割高さの参照を投入の費用へ直した後の木〕・直す前の木は 67.7）。
     /// ★(165) 91.0＝同じ計り方（種1・668四半期・41,468回・単独）＝比べる相手を新しいレシピで作る費用へ（門の開いたレシピの一覧・値段の帳＝市場の死んだ財を作る費用で読む繰り返し）。
-    /// 世界の平滑化した値段（国×財の和・四半期に1回）は「共有層：国×四半期」の中（1回 約8千の積和＝小さい分）。</summary>
-    public const double DiscoveryUnitMicros = 91.0;
+    /// 世界の平滑化した値段（国×財の和・四半期に1回）は「共有層：国×四半期」の中（1回 約8千の積和＝小さい分）。
+    /// ★(169) 98.1＝(165) の 91.0×1.078（線M のバッチと重なって単独で計れない＝同じ時刻に r167 の木と (169) の木を discprobe 1 200 で交互に2回ずつ＝r167 51.3・50.1µs／(169) 55.6・53.7µs の比）
+    ///   ＝動力の行の自己費用・機関車の資本の費用（線路と機関車の費用）・市場の死んだ財の着値（売り手ごとの距離と運賃＝呼ばれた財だけ）の分。</summary>
+    public const double DiscoveryUnitMicros = 98.1;
     /// <summary>★脅威の届き方の単価（マイクロ秒/組）＝(151) の実測（61カ国の開幕の盤面〔助走の後に1四半期〕で Diplomacy.ThreatReach を全ての組×20回 Stopwatch で計った平均 0.535µs・Release・テストの過程の中）。
     /// 脅威の緊張（Diplomacy.ThreatTension＝月次〔四半期末の外交3回〕）が脅威を持つ国×経済を持つ国の組ごとに1回呼ぶ＝件数は「脅威を持つ国×国×月」。</summary>
     public const double ThreatReachUnitMicros = 0.535;

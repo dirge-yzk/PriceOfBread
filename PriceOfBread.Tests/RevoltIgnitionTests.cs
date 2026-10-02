@@ -680,6 +680,9 @@ public class RevoltIgnitionTests
             sim.Run(20);
             sim.Coef.SeaInvasionControlMin = 0; // 上陸ゲートを恒等値へ（この盤面が測るのは死の配分で、上陸の可否ではない＝WarThemeTests.OneFront と同じ）
             sim.Coef.MilitiaCombatValue = a;
+            // ★(169) 測りの桁の守り（番人の線は変えない）：この盤面の戦場の接触は小さく（月の死亡率 約3e-8）、POP の規模の引き算の丸め（1e-16÷率）が比を 6e-9 ずらした
+            //   （(169) で英の開幕の蒸気機関〔データ〕が盤面を変えた）。率を100倍にして比を丸めの外で読む＝重みの比（1+a）は率の大きさに依らない。
+            sim.Coef.WarCivilianToll *= 100;
             var fr = sim.Nations[0].World; var br = sim.Nations[1].World;
             Pop? armed = null, athome = null;
             foreach (var p in fr.Regions[1].Pops)

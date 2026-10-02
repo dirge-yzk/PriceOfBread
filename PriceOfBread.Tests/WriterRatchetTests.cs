@@ -364,6 +364,9 @@ public class WriterRatchetTests
     //   着値の充填 29,450,927→42,375,697（+43.9%＝鉄道の前に絞られていた内陸の州の交易が通るようになった＝成約の充填が増えた・処理の形は同じ）・覇権の判定 1,846,422→1,941,249（+5.1%＝許しの外へ出た軌道）。
     //   ほかの15本は許しの内。全長の10種では着値の充填 423,393,780→484,898,141（+14.5%）・覇権の判定 117,322,994→126,683,130＝推定 238.7→246.6 秒
     //   （予算の内＝上限 248.5 秒・目標より下の余りの中＝払っていない・残りの余り 1.9 秒・実装ログ (166)）。
+    // ★2026-10-02 表の更新（(169) 線D：発見の物差しを候補2の定義へそろえた〔動力の行も自己費用・新製品の換算の比を物の単位・機関車の比べる相手に資本・市場の値段が無い財は着値・世界の値段の重みは産出〕＋開幕の既知をデータ〔英の蒸気機関〕＋1780年代の蒸気機関〔鋳鉄の機関〕＝軌道が動いた分の宣言・新しい計数の処理は無い〔着値は呼ばれた財だけ・発見の判定の1回の中＝単価 DiscoveryUnitMicros 91.0→98.1〕）：
+    //   覇権の判定 1,941,249→2,877,181（+48.2%＝最初の40四半期の同盟の候補が居る月の軌道＝(147)(149)(155) と同じ型・処理の形は同じ）。ほかの16本は許しの内（+2%／−10%）。
+    //   全長の10種では覇権の判定 126,683,130→127,129,422（+0.4%）・着値の充填 484,898,141→459,741,509（−5.2%）＝推定 246.6→243.9 秒（単価の更新の前・更新の後 約244.2 秒）＝予算の内（払う必要が無い・実装ログ (169)）。
     [InlineData(CostLedger.ConstructionSeen, 7449L)]
     [InlineData(CostLedger.CreditSpans, 33282L)]
     [InlineData(CostLedger.ConsumePopGoods, 28595736L)]
@@ -373,7 +376,7 @@ public class WriterRatchetTests
     [InlineData(CostLedger.ClearingRows, 5185642L)]
     [InlineData(CostLedger.ClearingFills, 42375697L)]
     [InlineData(CostLedger.DiploPowerMonths, 9954L)]
-    [InlineData(CostLedger.DiploHegemonScans, 1941249L)]
+    [InlineData(CostLedger.DiploHegemonScans, 2877181L)]
     [InlineData(CostLedger.QuarterStartPops, 235560L)]
     [InlineData(CostLedger.QuarterEndPops, 235560L)]
     [InlineData(CostLedger.SharedNationQuarters, 3698L)]
