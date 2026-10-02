@@ -1,0 +1,144 @@
+diff --git a/PriceOfBread.SimCore/ArmyShape.cs b/PriceOfBread.SimCore/ArmyShape.cs
+index a1a9ec4..897655b 100644
+--- a/PriceOfBread.SimCore/ArmyShape.cs
++++ b/PriceOfBread.SimCore/ArmyShape.cs
+@@ -139,11 +139,14 @@ public static class ArmyShape
+     /// n×n の対称の表＝国 a の稼働中の州と国 b の稼働中の州が陸路グラフ（<see cref="PathGraph"/>）の辺で隣り合う組の数。峠を挟む組は峠の割増（PassCostMult）で割る。
+     /// 1組の重み＝地形の通りにくさの逆数＝2÷（両端の州の地形の陸運の費用の和）＝交易の陸運の地形の表（<see cref="Coefficients.TerrainHorseCost"/>）を読む＝新しい数を置かない
+     /// （平地1.0・丘1.5・森3.0・山2.5・荒地8.0＝山と砂漠の国境は守りやすい）。植民地格の州も州＝植民地の国境も数える。座標の無い州は陸路グラフに居ない＝数えない。
+-    /// 四半期に1回（<see cref="Compute"/>）＝州×1回の最寄りノード（座標の記憶つき）＋辺の走査（約840本）＋峠の隣りの組。</summary>
+-    internal static double[] Borders(List<Power> ps, Coefficients c)
++    /// 四半期に1回（<see cref="Compute"/>）＝州×1回の最寄りノード（座標の記憶つき）＋辺の走査（約840本）＋峠の隣りの組。
++    /// ★(162) <paramref name="toHome"/>（n×n・呼び手が0で渡す）＝同じ組のうち**守る側 b の州が本国（植民地格でない）**の組だけの和を [a*n+b] へ足す（向きつき＝b の本国の陸の国境）
++    /// ＝安全保障の不安の本国の陸の成分（徴兵法の政治が読む）の国境の項。植民地の国境は植民地の兵（英印軍・セネガル狙撃兵）が守る＝本国の徴兵の理由にしない（推奨で進めた）。</summary>
++    internal static double[] Borders(List<Power> ps, Coefficients c, double[]? toHome = null)
+     {
+         int n = ps.Count, nn = PathGraph.Nodes.Length;
+         var owner = new int[nn]; var terr = new double[nn];
++        var home = toHome is null ? null : new bool[nn];
+         System.Array.Fill(owner, -1);
+         for (int i = 0; i < n; i++)
+         {
+@@ -156,6 +159,7 @@ public static class ArmyShape
+                 int nd = PathGraph.NearestNode(cc.Lat, cc.Lon);
+                 if (nd < 0) continue;
+                 owner[nd] = i;
++                if (home is not null) home[nd] = r.Tier != RegionTier.Colonial;
+                 int ti = (int)r.Terrain;
+                 terr[nd] = ti < c.TerrainHorseCost.Length ? c.TerrainHorseCost[ti] : 1.0;
+             }
+@@ -176,6 +180,11 @@ public static class ArmyShape
+             if (ou < 0 || ov < 0 || ou == ov) return;
+             double w = mult * 2.0 / (terr[u] + terr[v]);
+             b[ou * n + ov] += w; b[ov * n + ou] += w;
++            if (home is not null)
++            {
++                if (home[v]) toHome![ou * n + ov] += w;   // ou の州が ov の本国の州と隣り合う
++                if (home[u]) toHome![ov * n + ou] += w;
++            }
+         }
+     }
+ 
+diff --git a/PriceOfBread.SimCore/MultiNationSim.cs b/PriceOfBread.SimCore/MultiNationSim.cs
+index 52f5dfd..45d8a99 100644
+--- a/PriceOfBread.SimCore/MultiNationSim.cs
++++ b/PriceOfBread.SimCore/MultiNationSim.cs
+@@ -1474,9 +1474,11 @@ public sealed class MultiNationSim
+             seats[i] = Military.EstablishmentOf(w, w.Coef, out double man);
+             own[i] = w.Coef.MaxSoldierFraction * man;
+         }
+-        var border = ArmyShape.Borders(ps, _coef);
++        var borderHome = new double[n * n];   // ★(162) 守る側 B の本国（植民地格でない州）の国境だけ（向きつき）
++        var border = ArmyShape.Borders(ps, _coef, borderHome);
+         var hr = new double[n * n];   // hr[a*n+b]＝A の軍が B に届く強さ×敵意
+-        var colSum = new double[n];   // A の注意配分の分母＝内向き u(A)＋Σ_B hr(A→B)
++        var hrLand = new double[n * n];   // ★(162) そのうち本国の陸の成分＝B の本国の国境＋陸続きの投射（海を越えて来る陸軍の投射と植民地の国境を除く）＝徴兵法の政治が読む
++        var colSum = new double[n];   // A の注意配分の分母＝内向き u(A)＋Σ_B hr(A→B)（陸と海越えの両方へ配る同じ1つの分母＝ArmyShape と同じ）
+         long pairs = 0;
+         for (int a = 0; a < n; a++)
+         {
+@@ -1488,20 +1490,27 @@ public sealed class MultiNationSim
+                 double h = ArmyShape.Hostility(Diplomacy, ps[b], ps[a], _coef);
+                 if (!(h > 0)) continue;   // 同盟＝0（否定形＝NaN も数えない）
+                 pairs++;
+-                double r = border[a * n + b] + Diplomacy.Projection(ps[a], ps[b], _coef);
++                double proj = Diplomacy.Projection(ps[a], ps[b], _coef);
++                double r = border[a * n + b] + proj;
+                 if (!(r > 0)) continue;
+                 hr[a * n + b] = h * r;
++                hrLand[a * n + b] = h * (borderHome[a * n + b] + (Diplomacy.IsSeaCrossing(ps[a], ps[b], _coef) ? 0 : proj));   // 首都どうしが別の陸塊＝海を越えて来る陸軍＝海で止める（陸の成分に数えない）
+                 sum += h * r;
+             }
+             colSum[a] = sum;
+         }
+         for (int b = 0; b < n; b++)
+         {
+-            double total = 0;
++            double total = 0, land = 0;
+             for (int a = 0; a < n; a++)
+-                if (a != b && colSum[a] > 1e-12 && seats[a] > 0) total += hr[a * n + b] / colSum[a] * seats[a];
++                if (a != b && colSum[a] > 1e-12 && seats[a] > 0)
++                {
++                    total += hr[a * n + b] / colSum[a] * seats[a];
++                    land += hrLand[a * n + b] / colSum[a] * seats[a];
++                }
+             var wb = Nations[b].World;
+             wb.SecurityThreat = total;
++            wb.SecurityThreatLand = land;
+             wb.SecurityThreatOwnMass = own[b];
+         }
+         Cost[CostLedger.ThreatReachPairs] += pairs;   // 計算量の台帳（診断）：脅威の届き方の組（安全保障の不安＝四半期1回・同盟の組を除く）
+diff --git a/PriceOfBread.SimCore/SelfPlay.cs b/PriceOfBread.SimCore/SelfPlay.cs
+index b56d50a..89b378d 100644
+--- a/PriceOfBread.SimCore/SelfPlay.cs
++++ b/PriceOfBread.SimCore/SelfPlay.cs
+@@ -417,10 +417,11 @@ public sealed class UtilityAgent : INationAgent
+ 
+     /// <summary>★脅威の割合∈[0,1)（2026-10-02 (155)）＝安全保障の不安（届く敵意の養える軍の和＝<see cref="World.SecurityThreat"/>）÷(それ＋自国の養える軍の人口の側＝<see cref="World.SecurityThreatOwnMass"/>)
+     /// ＝新兵器の必要性の脅威の割合（必要量÷(必要量＋自国の力)・Discovery）と同じ形（有界＝上下を切らない）。小国が大国の隣で感じる不安は1へ近づき、周りに養える軍の少ない国（開国前の日本・清）は0へ近づく。
+-    /// 定まらない（単一国・分母0・NaN）は0。</summary>
+-    internal static double SecurityShare(World w)
++    /// 定まらない（単一国・分母0・NaN）は0。
++    /// ★(164) <paramref name="land"/>＝分子を本国の陸の成分（<see cref="World.SecurityThreatLand"/>＝本国の国境と陸続きの投射）に限る（同じ形・分母は同じ自国の養える軍）＝徴兵法の政治だけが読む。</summary>
++    internal static double SecurityShare(World w, bool land = false)
+     {
+-        double t = w.SecurityThreat, own = w.SecurityThreatOwnMass;
++        double t = land ? w.SecurityThreatLand : w.SecurityThreat, own = w.SecurityThreatOwnMass;
+         double x = t / (t + own);
+         return x >= 0 && x <= 1 ? x : 0;
+     }
+diff --git a/PriceOfBread.SimCore/World.cs b/PriceOfBread.SimCore/World.cs
+index fdb2f50..3c4ae8e 100644
+--- a/PriceOfBread.SimCore/World.cs
++++ b/PriceOfBread.SimCore/World.cs
+@@ -1318,6 +1318,11 @@ public sealed class World
+     //   ⚠閉路禁止（doc 4-1）＝読み手（Transport の目標・AI の軍事費の段）は**前期に書かれた値**を読む（四半期末に書き、翌期に読む）。
+     public double SecurityThreat;
+     public double SecurityThreatOwnMass;   // 自国の養える軍の人口の側（兵役の母数×MaxSoldierFraction＝軍事費の段に依らない＝不安が自分の段で動かない）＝脅威比の分母（0なら脅威項は不発＝否定形ガード）。旧＝自国の総質量
++    //   ★(162) 本国の陸の成分（推奨で進めた）＝SecurityThreat のうち**本国（植民地格でない州）の国境**と陸続きの投射から届く分（海を越えて来る陸軍〔首都どうしが別の陸塊＝Diplomacy.IsSeaCrossing〕の投射と
++    //   植民地の国境を除く＝(151) の理想の軍隊の形の陸の必要量〔ArmyShape の hrLand〕の分け方から植民地の国境を外した形・同じ注意配分の分母）。
++    //   読み手＝徴兵法の政治だけ（本国の陸の脅威に徴兵で応え、海の向こうと植民地から来る不安は海軍と植民地の兵で応える＝島国は徴兵しない）。
++    //   軍事費の段の入口（SecurityThreat の全体）は変えない。書き手は StepSecurityThreat のみ（同じ四半期の同じループ・前期の値を読む）。⚠盤面から安く導けない（全ての国の注意配分の分母が要る）＝四半期の値を持つ。
++    public double SecurityThreatLand;
+     //   ★(155) 脅威の割合＝脅威÷(脅威＋自国の養える軍)∈[0,1)（UtilityAgent.SecurityShare＝導出・持たない）＝AI の軍事費の段と徴兵法の政治が読む。世界の中央との比（作者のメモ M4 の表示）は UI の回で（導出・持たない）。
+     public Power? SelfPower { get; internal set; }             // 多国シミュ：この国の外交上の代表（植民地・交戦の主体）
+     public bool StepsDiplomacy { get; internal set; } = true;  // 自前で外交を進めるか（多国では MultiNationSim が共有外交を進める＝false）
+diff --git a/PriceOfBread.SimCore/PolicyPreferences.cs b/PriceOfBread.SimCore/PolicyPreferences.cs
+index c23b543..5aa2433 100644
+--- a/PriceOfBread.SimCore/PolicyPreferences.cs
++++ b/PriceOfBread.SimCore/PolicyPreferences.cs
+@@ -216,8 +216,13 @@ public static class PolicyPreferences
+                 double hoursConc = w.Coef.LaborMilitancyConcession * System.Math.Max(0, Politics.AvgMassMilitancy(w) - w.Coef.LaborConcessionThreshold);
+                 return mass ? -1.0 : modern ? 1.0 - hoursConc : 0;
+             case PolicyAxis.Coercion:         // 治安維持力＝それで地位を守る側（旧支配層）が賛成・抑圧される大衆が反対
+-            case PolicyAxis.ConscriptionLaw:   // 徴兵法（E5）＝旧支配層/軍が賛成（大軍＝権威）・大衆が反対（取られる）＝治安維持力と同型
+                 return trad ? 1.0 : mass ? -1.0 : 0;
++            case PolicyAxis.ConscriptionLaw:   // 徴兵法（E5）＝旧支配層が賛成・大衆が反対（取られる）
++                // ★(164) 旧支配層の賛成は**本国の陸の脅威の割合**（UtilityAgent.SecurityShare の land＝本国の国境と陸続きの投射÷(それ＋自国の養える軍)∈[0,1)）の強さだけ（推奨で進めた・政治の物差しの変更＝作者への確認）。
++                //   旧＝+1（大軍＝権威）＝本国が陸で脅かされない国でも地主が徴兵の縮小に反対し、英（制限選挙）は平時のどの窓でも選抜のままだった（(162)(164) の計器＝縮小の門の 97〜100% が政治資本の残りの不足・反対の大半が旧支配層）。
++                //   史実【推】＝陸の国境に領地を持つ地主は徴兵の軍を支えた（普のユンカー・露墺の貴族）・本国が陸で脅かされない地主は常備軍を嫌い、民兵の籤は平和とともに止めた（英 1831 以後）。
++                //   軍（統帥権＝ArmyStake）の賛成と大衆の反対は旧のまま。単一国（陸の成分0）は賛成0。
++                return trad ? UtilityAgent.SecurityShare(w, land: true) : mass ? -1.0 : 0;
+             case PolicyAxis.NavyUpkeep:        // 海軍維持費（2026-08-10 作者裁定＝旧「海軍偏重」の振り替え先）＝艦隊に払う金。旧支配層が賛成（艦隊の威信）・大衆は中立（徴兵と違い取られない）
+                 return trad ? 0.5 : 0;
+ 

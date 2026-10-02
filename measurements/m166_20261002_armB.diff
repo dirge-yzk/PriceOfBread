@@ -1,0 +1,25 @@
+diff --git a/PriceOfBread.SimCore/SelfPlay.cs b/PriceOfBread.SimCore/SelfPlay.cs
+index b56d50a..66be3de 100644
+--- a/PriceOfBread.SimCore/SelfPlay.cs
++++ b/PriceOfBread.SimCore/SelfPlay.cs
+@@ -1254,8 +1254,18 @@ public sealed class UtilityAgent : INationAgent
+         //   （GameViewModel.Law の `v / 段数`）と同じ書き込み口・同じ写像に v=最上段を入れる＝新しい数は置かない。総動員は段を解禁するだけで押し上げない
+         //   （Government.MilitaryTotalTarget）＝AIが自分で選ばなければ戦時経済に届かない。1段ずつの登坂と「総動員が前提」の門は GateAllLawTargets が
+         //   法律タブと同じ GateInfo で掛ける＝IsPlayer は読まない。講和の四半期は DecideQuarter の総動員分岐（Apply の前）が先に復員させる＝この行は不発で教義の値へ戻る。
+-        if (w.AtWarNow && w.Mobilized)
+-            p.MilitarySpendingTarget = Government.MilitaryLawStages / (double)Government.MilitaryLawStages;
++        // ★(164) 戦時の段は装備の充足の落ち込みを見て選ぶ（作者裁定 2026-09-19 の2「AI は総動員中に戦時段を選ぶ判断を持つ（対称）」の中・推奨で進めた）：
++        //   交戦中の目標＝平時の段（上の SecurityStageTarget＝安全保障の不安）と、いま選べる最上段（総動員中＝戦時経済の段4・それ以外＝高の段3＝「総動員が前提」の門）の間を
++        //   **装備の充足の不足（1−充足）**で内分＝充足が満ちていれば平時の段のまま・空なら最上段（SecurityStageTarget と同じ内分の形＝新しい数なし）。
++        //   読むのは軍事タブの「装備の充足」と同じ値（首都州の MilitaryEquipFill＝前の月の決算）＝プレイヤーが見て法律タブの段を選ぶのと同じ材料・同じ書き込み口・同じ門（GateAllLawTargets）。
++        //   旧（2026-09-19 M2）＝総動員中は充足を読まずに常に段4。⚠黙って上げない＝目標を置くだけ（1段ずつの登坂と政治の門は法律タブと同じ）・NaN の充足は不足なし側（平時の段のまま）。
++        if (w.AtWarNow)
++        {
++            double top = (w.Mobilized ? Government.MilitaryLawStages : Government.MilitaryLawStages - 1) / (double)Government.MilitaryLawStages;
++            double gap = 1.0 - w.Region.MilitaryEquipFill;
++            if (!(gap > 0)) gap = 0;   // 否定形＝NaN も不足なし側
++            if (top > p.MilitarySpendingTarget) p.MilitarySpendingTarget += (top - p.MilitarySpendingTarget) * Math.Min(1.0, gap);
++        }
+ 
+         // ★不満の社会保障圧力（2026-08-04・作者指示）：どのスタンスが勝っていても、不満が高いほど社会保障の目標に
+         //   床を敷く＝満足度の下落に福祉が**必ず**応答する（旧＝Welfareスタンスが選ばれない限り目標は0.1〜0.3で凍結）。

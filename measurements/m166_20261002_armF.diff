@@ -1,0 +1,15 @@
+diff --git a/PriceOfBread.SimCore/SelfPlay.cs b/PriceOfBread.SimCore/SelfPlay.cs
+index b56d50a..839332a 100644
+--- a/PriceOfBread.SimCore/SelfPlay.cs
++++ b/PriceOfBread.SimCore/SelfPlay.cs
+@@ -756,7 +756,9 @@ public sealed class UtilityAgent : INationAgent
+                 if (foe is null) continue;
+                 mAtWar = true;
+                 mLosing = Math.Max(mLosing, Math.Max(0, war.A == mSelf ? -war.Score : war.Score));
+-                if (mDip.SideMilitary(foe, mSelf, w.Coef) > mDip.SideMilitary(mSelf, foe, w.Coef) * MobilizeOutmatchRatio)
++                // ★(164) 劣勢で総動員するのは**本国に陸で届く敵**（首都どうしが同じ陸塊＝Diplomacy.IsSeaCrossing が偽）との戦争だけ（推奨で進めた）＝海を越えた相手だけの戦争は
++                //   敗色（存亡＝MobilizeLosingScore）でのみ総動員（英米の植民地戦争・海外遠征は志願兵と海軍で戦った＝総動員は本土の存亡か総力戦）。判定材料・閾値は増やさない（既存の陸塊の判定を読むだけ）。
++                if (!mDip.IsSeaCrossing(foe, mSelf, w.Coef) && mDip.SideMilitary(foe, mSelf, w.Coef) > mDip.SideMilitary(mSelf, foe, w.Coef) * MobilizeOutmatchRatio)
+                     mOutmatched = true;
+             }
+             if (!mAtWar) w.Mobilized = false;                                          // 講和＝復員（既存機構＝徴兵深度が平時へ・定員を超えた兵は転職の仕組みが民間の職へ戻す＝Meritocracy の ⑦・(155)）
