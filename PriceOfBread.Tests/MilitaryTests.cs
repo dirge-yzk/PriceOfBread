@@ -417,7 +417,8 @@ public class MilitaryTests
     /// **働き盛り（16〜59歳）1人あたり**＝世帯の子供の数に依らない（旧＝頭数あたり＝子供が増えると兵の賃金が下がった）。
     /// 盤面＝仏の首都の農民の頭数を倍にし、増えた分を全て0〜9歳に置く（働き盛りの人数と所得は同じ）＝請求の単価（RecruitWage）も扶養限界も変わらない。
     /// ⚠突然変異「頭数で割る（旧）」（請求の単価・扶養限界のどちらか）で赤。
-    /// ★(161)：これは**志願制の規定の給与**の物差し（盤面を志願制にした）。徴兵制の兵卒の手当は頭数あたり（世帯の1人ぶんの暮らし）＝下の「徴兵制の兵卒の給与は…」の番人。</summary>
+    /// ★(161)：これは**志願制の規定の給与**の物差し（盤面を志願制にした）。徴兵制の兵卒の手当は頭数あたり（世帯の1人ぶんの暮らし）＝下の「徴兵制の兵卒の給与は…」の番人。
+    /// ★(163)：徴兵制の兵卒の手当は子供の数で動く（(140) で外した依存を徴兵制の兵卒にだけ戻した）＝番人「徴兵制の兵卒の手当は…子供が増えると下がり…」。</summary>
     [Fact]
     public void 兵の賃金は徴募の母数の働き盛り1人あたりで子供の数に依らない()
     {
@@ -1445,7 +1446,7 @@ public class MilitaryTests
         Assert.True(Territory.Opportunity(r, c) < o0, "民間の失業が移民の引力を下げない");
     }
 
-    /// <summary>★(161) 徴兵は兵1人を安くする（作者に返した設計「徴兵は兵1人を安くする制度でもあった（仏・普が英より大きな軍を持てた理由）」・承認済みの流れ）：
+    /// <summary>★(161) 徴兵は兵1人を安くする（AI が作者に返した設計「徴兵は兵1人を安くする制度でもあった（仏・普が英より大きな軍を持てた理由）」・作者の承認は未確認）：
     /// 徴兵制（選抜・皆兵）の兵卒の給与＝徴兵の兵の手当＝徴募の母数の**頭数あたり**の所得（世帯の1人ぶんの暮らし＝糧食・被服と小遣い）・志願制＝**働き盛り1人あたり**（規定の給与）。
     /// 幹部の給与（質）の必要額は**どちらの法でも規定の給与**（将校と下士官は長期の職業軍人）。盤面＝仏（器を大きく＝給与の充足1・人口の側を0＝徴兵で兵が動かない）で1か月＝
     /// 兵士の給与の請求（LastSoldierPay）が Σ兵数×(兵卒の単価＋幹部の割合×規定の単価)×SoldierPayMult に一致（兵数と単価＝月の決算の直前に読む＝予算が読む値）。
@@ -1513,34 +1514,63 @@ public class MilitaryTests
         Assert.True(Math.Abs(estS - expectS) <= 1e-9 * expectS, $"徴兵制の定員 {estS} ≠ 器÷(手当＋装備) {expectS}");
     }
 
-    /// <summary>★(162) 戦時の装備の追随（WartimeBudgetFollowsNeed＝旧の形を装備の部分だけに戻した）：交戦中の月の予算で、給与の後に残る器（装備の上限＝MilitaryBudgetCeiling）だけが
-    /// 1＋WartimeBudgetFollowsNeed×(戦時の倍率−1) 倍になり、兵士の給与の請求（兵卒＋幹部の給与）と訓練の充足（質）は追随しない。盤面＝仏英（開幕の1四半期の後に仏英を交戦へ）で、
-    /// 係数だけを替えた双子の1か月（器を大きく＝装備の請求は必要額で切られて双子で同じ・幹部の給与の必要額を大きく＝質は器の残りをそのまま読む）。
-    /// ⚠突然変異「追随を外す」「器ごと追随（給与の前）」「質の残りを追随の後の上限から引く」で赤。</summary>
+    /// <summary>★(163) 合流（(161) の反証役の指摘 va#3）：徴兵制の兵卒の手当（<see cref="Military.RecruitWage"/> の keep）は徴募の母数の**頭数あたり**＝世帯の子供の数で動く
+    /// （(140) が外した依存を徴兵制の兵卒にだけ戻した＝AI の推奨・作者への確認）。規定の給与（働き盛り1人あたり）は動かない。盤面＝(140) の番人と同じ（仏の首都の農民と都市労働者の頭数を倍にし、
+    /// 増えた分を全て0〜9歳に置く＝働き盛りの人数と所得は同じ）＝手当はちょうど半分・規定の給与は同じ。⚠突然変異「手当も働き盛りで割る」で赤。</summary>
     [Fact]
-    public void 戦時は装備の上限だけが戦時の倍率に追随し給与と質は追随しない()
+    public void 徴兵制の兵卒の手当は徴募の母数の頭数あたりで子供が増えると下がり規定の給与は動かない()
     {
-        (double ceil, double claim, double pay, double train, double warMult) Twin(double follow)
+        (double keep, double regular) Arm(bool children)
+        {
+            var sim = new Simulation(NationConfig.France().ToScenario(17), new NullAgent());
+            sim.Run(1);
+            var w = sim.World; var c = w.Coef; var cap = w.Region;
+            w.ConscriptionLaw = ConscriptionLaw.Selective;
+            if (children)
+                foreach (var p in cap.Pops)
+                    if (!p.IsSoldier && (p.ClassId == c.SoldierRecruitClassA || p.ClassId == c.SoldierRecruitClassB) && p.Size > 0)
+                    {
+                        var a = (double[])p.Ages.Clone();
+                        for (int k = 0; k < a.Length; k++) a[k] *= 0.5;
+                        a[0] += 0.25; a[1] += 0.25;   // 0〜9歳の男女
+                        p.Ages = a; p.Size *= 2;
+                    }
+            return (Military.RecruitWage(cap, c, last: true, keep: true), Military.RecruitWage(cap, c, last: true));
+        }
+        var a0 = Arm(false); var a1 = Arm(true);
+        Assert.True(a0.keep > 0 && a0.regular > 0, $"前提が崩れた：手当 {a0.keep}・規定の給与 {a0.regular}");
+        Assert.True(a0.keep < a0.regular, $"前提が崩れた：頭数あたりの手当 {a0.keep} が働き盛り1人あたりの規定の給与 {a0.regular} 以上");
+        Assert.True(Math.Abs(a1.regular - a0.regular) <= 1e-9 * a0.regular, $"子供が増えると規定の給与が動いた（{a0.regular} → {a1.regular}）");
+        Assert.True(Math.Abs(a1.keep - 0.5 * a0.keep) <= 1e-9 * a0.keep, $"頭数が倍になっても手当が半分にならない（{a0.keep} → {a1.keep}）");
+    }
+
+    /// <summary>★(163) 合流（(162) の反証役の指摘 vb#1＝戦時の装備の追随を差し戻した）：交戦中の月の予算で、装備の上限（給与の後に残る器＝MilitaryBudgetCeiling）は
+    /// 戦時の倍率（MilitaryWarMult）で広がらない＝軍事費の器は選んだ段だけが決める（作者裁定 R2 2026-09-12「戦時経済は総動員とセット」・2026-09-19 の裁定2「選んだ軍事費を黙って上げない」）。
+    /// 盤面＝仏英（開幕の1四半期の後に仏英を交戦へ）で1か月を進め、月の決算（翌月の予算）の直前に戦時の倍率だけを替えた双子（器を大きく＝装備の上限は正）。兵士の給与の請求も同じ（前提）。
+    /// 上限は国家の支払い率 r を掛ける前（請求）で比べる（装備の必要額は戦時の倍率で違う＝r が双子で違う）。
+    /// ⚠突然変異「装備の上限を 1＋0.35×(戦時の倍率−1) 倍（(162) の形）」で赤＝戻す回はこの番人を作者の裁定と一緒に書き直す。</summary>
+    [Fact]
+    public void 交戦中も装備の上限は戦時の倍率で広がらず選んだ段の器のまま()
+    {
+        (double ceil, double pay, double warMult) Twin(double warMultCoef)
         {
             var sim = new MultiNationSim([NationConfig.France(), NationConfig.Britain()], seed: 1789);
             sim.StepQuarter();
             var w = sim.Nations[0].World; var c = w.Coef;
             sim.Diplomacy.Wars.Add(new War { A = w.SelfPower!, B = sim.Nations[1].World.SelfPower! });
-            c.WartimeBudgetFollowsNeed = follow;
-            c.MilitaryEnvelopeShare = 1000;     // 器を大きく＝装備の請求は必要額で切られる（双子で同じ＝国家の支払い率も同じ）
-            c.MilitaryCadrePayRatio = 1e6;      // 幹部の給与の必要額を大きく＝質は器の残りをそのまま読む（必要額で切られない）
-            for (int d = 0; d < Calendar.DaysPerMonth; d++) sim.StepDay();
+            c.MilitaryEnvelopeShare = 1000;     // 器を大きく＝給与の後に装備の上限が残る
+            for (int d = 0; d < Calendar.DaysPerMonth - 1; d++) sim.StepDay();
+            c.MilitaryWarMult = warMultCoef;    // 月の決算（月の最後の日＝翌月の予算）の直前に替える＝双子は予算までの盤面が同じ（戦時の倍率は日々の戦争の消耗も読む）
+            sim.StepDay();
             double ceil = 0;
             foreach (var r in w.Regions) if (r.State == RegionState.Active) ceil += r.MilitaryBudgetCeiling;
-            return (ceil, w.LastMilitaryClaim, w.LastSoldierPay, w.MilitaryTrainingFill, w.Region.MilitaryWarMultLast);
+            Assert.True(w.FiscalFundingRatio > 0, $"前提が崩れた：国家の支払い率 {w.FiscalFundingRatio}");
+            return (ceil / w.FiscalFundingRatio, w.LastSoldierPay, w.Region.MilitaryWarMultLast);   // 請求（r を掛ける前）＝装備の必要額は戦時の倍率で違う＝r が双子で違う
         }
-        var on = Twin(new Coefficients().WartimeBudgetFollowsNeed); var off = Twin(0.0);
-        double f = 1.0 + new Coefficients().WartimeBudgetFollowsNeed * (on.warMult - 1.0);
-        Assert.True(on.warMult > 1 && on.warMult == off.warMult, $"前提が崩れた：戦時の倍率 {on.warMult}／{off.warMult}");
-        Assert.True(f > 1, "前提が崩れた：追随の係数が0");
-        Assert.True(off.claim > 0 && Math.Abs(on.claim - off.claim) <= 1e-12 * off.claim, $"前提が崩れた：装備の請求が必要額で切られていない（{off.claim} → {on.claim}）");
-        Assert.True(off.ceil > 0 && Math.Abs(on.ceil - f * off.ceil) <= 1e-9 * on.ceil, $"装備の上限が 1＋係数×(戦時の倍率−1)＝{f:G6} 倍にならない（{off.ceil:G10} → {on.ceil:G10}）");
-        Assert.True(off.pay > 0 && Math.Abs(on.pay - off.pay) <= 1e-12 * off.pay, $"兵士の給与の請求（兵卒＋幹部の給与）が追随した（{off.pay:G17} → {on.pay:G17}）");
-        Assert.Equal(off.train, on.train, 12);
+        var hi = Twin(new Coefficients().MilitaryWarMult); var lo = Twin(1.0);
+        Assert.True(hi.warMult > lo.warMult && hi.warMult > 1, $"前提が崩れた：戦時の倍率 {hi.warMult}／{lo.warMult}");
+        Assert.True(lo.pay > 0 && Math.Abs(hi.pay - lo.pay) <= 1e-12 * lo.pay, $"前提が崩れた：兵士の給与の請求が双子で違う（{lo.pay:G17} → {hi.pay:G17}）");
+        Assert.True(lo.ceil > 0, $"前提が崩れた：装備の上限が0（{lo.ceil}）");
+        Assert.True(Math.Abs(hi.ceil - lo.ceil) <= 1e-12 * lo.ceil, $"戦時の倍率で装備の上限が広がった（{lo.ceil:G17} → {hi.ceil:G17}）＝選んだ段の外で軍事費が上がる");
     }
 }

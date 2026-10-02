@@ -1,0 +1,97 @@
+diff --git a/PriceOfBread.SimCore/Coefficients.cs b/PriceOfBread.SimCore/Coefficients.cs
+index ba6631f..3cdddc7 100644
+--- a/PriceOfBread.SimCore/Coefficients.cs
++++ b/PriceOfBread.SimCore/Coefficients.cs
+@@ -2379,6 +2379,11 @@ public sealed class Coefficients
+     // 【削除2026-10-02 (155)】WartimeBudgetFollowsNeed（0.35＝戦時は装備の上限 軍事費×0.25×歳入 を 1＋これ×(戦時の倍率−1) 倍＝最大で約3.8倍・課題5 2026-08-08＝開戦で afford が9分の1へ崩落していた）。
+     //   (155) の軍事費の器（軍事費の段×MilitaryEnvelopeShare×歳入）は旧の装備の上限の約2.8倍（段の既定で給与と装備の両方を含む）＝器ごと追随させた探索の腕（5種）は
+     //   戦時の器が歳入の約1.9倍まで膨らみ exact −6.9pt（捨てる線の外）。戦時の追随は戦時経済の段（軍事費の段の最上段＝総動員で解禁・作者裁定 2026-09-19 M2）が担う＝同じ働きの2本目（思想⑨）として削除。
++    // 【戻した2026-10-02 (162)・推奨で進めた】削除の後に戦時の装備の充足が下がった（(157) の反証役の指摘 va#4＝同じ種1〜5 の対外・総動員なし 1850-1913 0.66→0.49・総動員 0.30→0.19＝
++    //   戦時経済の段は旧の追随を埋めていない）＝**装備の部分だけ**（給与の後に残る器＝装備の上限）を旧と同じ式・同じ値で追随させる（給与と質＝幹部の給与は追随しない＝器ごとの S2 とは別物）。
++    //   倍率＝1＋0.35×(戦時の倍率−1)＝対外戦 3.8倍（総動員の深まり〔WarMobilizationDepth×厭戦〕で最大 約5.4倍）・内戦 約7.0倍（戦時の倍率 18）。必要額（全4段・戦時の倍率込み）で切る＝必要を超えて請求しない。
++    //   国庫が尽きれば国家の支払い率 r が全ての行を同じ率で絞る（赤字の戦費＝戦時国債の物理）。1.0 は硬性赤（2026-08-08＝各国独立経済テストで戦費が経済を焼き尽くす）。読み手＝Simulation の月初の予算だけ。
++    public double WartimeBudgetFollowsNeed = 0.35;
+     // ⚠撤去2026-08-12（任意R5未実装（読み手ゼロ））: MilEquipTreasuryDraw  任意R5：装備予算への国庫超過分ドロー率/月（R2-R4後も afford<0.5 の退蔵国が残る場合のみ。不要なら恒久0）
+     // ── 扶養限界方式（作者設計2026-08-08）：軍拡・建艦競争を**扶養限界の比較**で駆動する ──
+     //   扶養限界 SustainLimit = min(経済側, 人口側)。経済側＝持続可能な軍事支出（歳入×シェア）÷兵1人あたりコスト
+diff --git a/PriceOfBread.SimCore/Model.cs b/PriceOfBread.SimCore/Model.cs
+index 2b946b3..b6f91db 100644
+--- a/PriceOfBread.SimCore/Model.cs
++++ b/PriceOfBread.SimCore/Model.cs
+@@ -1007,7 +1007,7 @@ public sealed class Region
+     // ★耐久装備のストック（段2a・2026-08-13・doc 20260731/20260801_理想の軍隊の形 §2-9）。
+     //
+     // 旧＝上位段（機関銃・装甲艦）とtier3（戦車・弩級戦艦）も**毎期のフロー**として発注される。
+-    // 戦時は MilitaryScale が MilitaryWarMult=9.0 倍になるのに予算は 3.8 倍しか追随しない（⚠当時＝2026-08-13 の記録。WartimeBudgetFollowsNeed は 2026-10-02 (155) で削除＝今の戦時の予算は軍事費の器のまま〔戦時経済の段で器が広がる〕・(157) の注記）
++    // 戦時は MilitaryScale が MilitaryWarMult=9.0 倍になるのに予算は 3.8 倍しか追随しない（⚠当時＝2026-08-13 の記録。WartimeBudgetFollowsNeed は 2026-10-02 (155) で削除し、(162) で装備の部分〔給与の後に残る器〕だけに戻した＝同じ 3.8 倍）
+     // （WartimeBudgetFollowsNeed=0.35／1.0は既に硬性赤＝戦費が経済を焼き尽くす）ので予算充足が0.42倍へ落ち、
+     // 段別コスト比63%の基本段で使い切って**戦争中は上位段もtier3も厳密に0**になる（実測2026-08-13）。
+     // 塹壕も戦車も戦争中にしか読まれないので、平時に満額でも戦場では消えていた。
+diff --git a/PriceOfBread.SimCore/Simulation.cs b/PriceOfBread.SimCore/Simulation.cs
+index 2bfcc55..2d9b231 100644
+--- a/PriceOfBread.SimCore/Simulation.cs
++++ b/PriceOfBread.SimCore/Simulation.cs
+@@ -1829,7 +1829,7 @@ public sealed class Simulation
+         //   → 使い切れない分は使わない（請求しない＝出費の頭打ち）** の順に吸わせる。旧＝給与は兵数×賃金を器の外で全額・装備は 軍事費×0.25×歳入（必要額で切る）の2本で、
+         //   質（熟練）は払った金でなく維持費の段（ArmyUpkeep＞0.5）で育った＝支出から直接の効き（2026-08-17 の「支出から直接バフを排除する」の型）。
+         //   ・給与（規定）＝州の兵数×徴募の母数の働き盛り1人あたりの賃金×SoldierPayMult（Military.RecruitWage＝市場で競り上がらない）。器が給与に届かない＝未払い（給与の充足 payFill＜1＝兵士の「失業」）。
+-        //   ・戦時の器＝段のまま（戦時経済＝軍事費の段の最上段が戦時の器・旧の装備の上限の戦時の追随 WartimeBudgetFollowsNeed は削除＝Coefficients の注記）。
++        //   ・戦時の器＝段のまま（戦時経済＝軍事費の段の最上段が戦時の器）。★(162) 装備の上限（給与の後に残る器）だけは戦時の倍率に追随（WartimeBudgetFollowsNeed＝旧の形・州ループの milCap）。
+         //   ・★(161) 徴兵は兵1人を安くする（作者に返した設計・承認済みの流れ＝推奨で進めた）＝徴兵制（選抜・皆兵）の兵卒の給与は徴兵の兵の手当（Military.RecruitWage の keep＝徴募の母数の
+         //     頭数あたりの所得＝世帯の1人ぶんの暮らし＝糧食・被服と小遣い）・志願制は規定の給与（働き盛り1人あたり）。幹部の給与（質）の物差しはどちらも規定の給与（soldierRegularPay）。
+         double milEnvelope = Military.EnvelopeOf(World, World.Coef);
+@@ -1922,8 +1922,13 @@ public sealed class Simulation
+                 // 軍需装備の財源：**軍事費の器の給与の後の残り**（★(155)＝吸い込みの2段目・旧＝軍事費×MilitaryRevenueShare（0.25）×粗歳入＝給与と別の2本目の器）。
+                 //   粗歳入から確実に（裁量余剰でなく）＝**軍国（余剰0でも）が装備できる**＝武器を買えた軍だけが治安維持力＋対外武力を持つ（買えねば即応度0→治安維持力0→革命）。
+                 // ⚠旧＝借入スタックの出費上限（SpendingCapFactor）を軍需にだけ掛けなかった（軍を最後まで維持する）。2026-09-28 に出費上限ごと撤去し、全ての行が同じ国家の支払い率 r（優先順位なし＝作者裁定 F3・Q9）。
+-                // 課題5（2026-08-08）：戦時は必要額（MilitaryScale×warMult）に予算も追随＝赤字戦費＝★(155) 戦時経済の段（器の最上段）が担う。国庫が尽きれば国家の支払い率 r が自然に絞る。
++                // 課題5（2026-08-08）：戦時は必要額（MilitaryScale×warMult）に予算も追随＝赤字戦費。国庫が尽きれば国家の支払い率 r が自然に絞る。
++                // ★(162) 戦時の装備の追随を**装備の部分だけ**戻した（推奨で進めた・(155) の削除の後に戦時の装備の充足が下がった＝(157) の反証役の指摘 va#4）＝給与の後に残る器（装備の上限）を
++                //   1＋WartimeBudgetFollowsNeed×(戦時の倍率−1) 倍（旧の形＝旧の装備の上限 軍事費×0.25×歳入 に掛けた同じ式・同じ係数）。給与と質（幹部の給与）は追随しない
++                //   （質の残りは追随の前の装備の上限〔equipRoom〕から引く＝下の trainClaim）＝器ごと追随させた探索の腕 S2（戦時の器が歳入の約1.9倍・exact −6.9pt）とは別物。
+                 double milCap = equipRoom;   // 請求（r を掛ける前）。支出反射（OpulenceSpendRate>0で国庫超過分も使える歳入へ＝戦争準備金）は器の側で効く
++                if (World.Coef.WartimeBudgetFollowsNeed > 0 && warMult > 1.0)
++                    milCap *= 1.0 + World.Coef.WartimeBudgetFollowsNeed * (warMult - 1.0);
+                 // ★段2（2026-08-01）：理想の形の陸海比を州へ写す（軍需の内訳の再配分に使う）。ArmyShapeEnabled=0 では Need* が全て0＝-1のまま＝再配分しない＝厳密恒等。
+                 // ★(151)：陸海の維持費の分け方と同じ1本（ArmyShape.NavalSpendShareOf＝州ループの外で1回）＝払う金の陸海と買う装備の陸海が同じ比（旧＝維持費は地理の比・軍需は必要量の比の2本）。
+                 if (World.SelfPower is not null) r.ShapeNavalShare = shapeNavalNat;
+diff --git a/PriceOfBread.Tests/MilitaryTests.cs b/PriceOfBread.Tests/MilitaryTests.cs
+index 01efbda..29382b7 100644
+--- a/PriceOfBread.Tests/MilitaryTests.cs
++++ b/PriceOfBread.Tests/MilitaryTests.cs
+@@ -1415,4 +1512,35 @@ public class MilitaryTests
+         Assert.True(estS > estV, $"徴兵制の定員 {estS} が志願制 {estV} より大きくない");
+         Assert.True(Math.Abs(estS - expectS) <= 1e-9 * expectS, $"徴兵制の定員 {estS} ≠ 器÷(手当＋装備) {expectS}");
+     }
++
++    /// <summary>★(162) 戦時の装備の追随（WartimeBudgetFollowsNeed＝旧の形を装備の部分だけに戻した）：交戦中の月の予算で、給与の後に残る器（装備の上限＝MilitaryBudgetCeiling）だけが
++    /// 1＋WartimeBudgetFollowsNeed×(戦時の倍率−1) 倍になり、兵士の給与の請求（兵卒＋幹部の給与）と訓練の充足（質）は追随しない。盤面＝仏英（開幕の1四半期の後に仏英を交戦へ）で、
++    /// 係数だけを替えた双子の1か月（器を大きく＝装備の請求は必要額で切られて双子で同じ・幹部の給与の必要額を大きく＝質は器の残りをそのまま読む）。
++    /// ⚠突然変異「追随を外す」「器ごと追随（給与の前）」「質の残りを追随の後の上限から引く」で赤。</summary>
++    [Fact]
++    public void 戦時は装備の上限だけが戦時の倍率に追随し給与と質は追随しない()
++    {
++        (double ceil, double claim, double pay, double train, double warMult) Twin(double follow)
++        {
++            var sim = new MultiNationSim([NationConfig.France(), NationConfig.Britain()], seed: 1789);
++            sim.StepQuarter();
++            var w = sim.Nations[0].World; var c = w.Coef;
++            sim.Diplomacy.Wars.Add(new War { A = w.SelfPower!, B = sim.Nations[1].World.SelfPower! });
++            c.WartimeBudgetFollowsNeed = follow;
++            c.MilitaryEnvelopeShare = 1000;     // 器を大きく＝装備の請求は必要額で切られる（双子で同じ＝国家の支払い率も同じ）
++            c.MilitaryCadrePayRatio = 1e6;      // 幹部の給与の必要額を大きく＝質は器の残りをそのまま読む（必要額で切られない）
++            for (int d = 0; d < Calendar.DaysPerMonth; d++) sim.StepDay();
++            double ceil = 0;
++            foreach (var r in w.Regions) if (r.State == RegionState.Active) ceil += r.MilitaryBudgetCeiling;
++            return (ceil, w.LastMilitaryClaim, w.LastSoldierPay, w.MilitaryTrainingFill, w.Region.MilitaryWarMultLast);
++        }
++        var on = Twin(new Coefficients().WartimeBudgetFollowsNeed); var off = Twin(0.0);
++        double f = 1.0 + new Coefficients().WartimeBudgetFollowsNeed * (on.warMult - 1.0);
++        Assert.True(on.warMult > 1 && on.warMult == off.warMult, $"前提が崩れた：戦時の倍率 {on.warMult}／{off.warMult}");
++        Assert.True(f > 1, "前提が崩れた：追随の係数が0");
++        Assert.True(off.claim > 0 && Math.Abs(on.claim - off.claim) <= 1e-12 * off.claim, $"前提が崩れた：装備の請求が必要額で切られていない（{off.claim} → {on.claim}）");
++        Assert.True(off.ceil > 0 && Math.Abs(on.ceil - f * off.ceil) <= 1e-9 * on.ceil, $"装備の上限が 1＋係数×(戦時の倍率−1)＝{f:G6} 倍にならない（{off.ceil:G10} → {on.ceil:G10}）");
++        Assert.True(off.pay > 0 && Math.Abs(on.pay - off.pay) <= 1e-12 * off.pay, $"兵士の給与の請求（兵卒＋幹部の給与）が追随した（{off.pay:G17} → {on.pay:G17}）");
++        Assert.Equal(off.train, on.train, 12);
++    }
+ }

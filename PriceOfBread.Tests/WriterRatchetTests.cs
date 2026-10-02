@@ -350,11 +350,13 @@ public class WriterRatchetTests
     //   建設 7,807→8,441（+8.1%）・請求 2,901→3,141（+8.3%）・覇権の判定 2,148,613→2,503,042（+16.5%）＝最初の40四半期の戦時の軍需の請求と工場の着工・同盟の候補が居る月の軌道（処理の形は同じ）。ほかの14本は許しの内。
     //   全長の10種では建設 291,863→398,138・請求 767,695→1,194,094・覇権の判定 107,255,350→99,605,427・清算の着値の充填 378.9M→389.3M＝推定 235.9→238.3 秒（予算の内・目標より下の余りの中＝払っていない・実装ログ (162)）。
     //   ⚠安全保障の不安の組に本国の陸の成分（組ごとの IsSeaCrossing 1回・国境の本国の印）を足した＝組の数は同じ・単価は少し上がる【推】（計数「外交：脅威の届き方」の単価は次の census で取り直す）。
-    [InlineData(CostLedger.ConstructionSeen, 8441L)]
+    // ★2026-10-02 表の更新（(163) 合流＝(162) の戦時の装備の追随を差し戻した〔作者裁定 R2・2026-09-19 の裁定2・思想⑨〕＝軌道が動いた分の宣言・新しい計数の処理は無い）：
+    //   建設 8,441→7,449（−11.8%）・請求 3,141→2,742（−12.7%）＝10% を超えて下がった＝表を下げる（最初の40四半期の戦時の軍需の請求と工場の着工の軌道）。ほかの15本は許しの内（実装ログ (163)）。
+    [InlineData(CostLedger.ConstructionSeen, 7449L)]
     [InlineData(CostLedger.CreditSpans, 33282L)]
     [InlineData(CostLedger.ConsumePopGoods, 28595736L)]
     [InlineData(CostLedger.ProducerMonths, 8440020L)]
-    [InlineData(CostLedger.ClaimProducers, 3141L)]
+    [InlineData(CostLedger.ClaimProducers, 2742L)]
     [InlineData(CostLedger.MonthlyPops, 706680L)]
     [InlineData(CostLedger.ClearingRows, 5185642L)]
     [InlineData(CostLedger.ClearingFills, 28778490L)]
