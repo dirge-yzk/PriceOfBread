@@ -2360,19 +2360,39 @@ public sealed class Diplomacy
             //   GDP と人口が一緒に去った）。首都の分離独立・割譲・分離独立の全ての戦争に同じ1本。⚠旧＝総額の GdpDrawdown＝首都を失った政府は
             //   首都州の GDP の分だけ「不況」と数えられ、厭戦が四半期に最大 +0.67 積まれて兵が5〜15倍でも先に崩れた（(97) §8）。
             double exBefore = p.WarExhaustion, econEx = c.WarExhaustionEcon * (p.Nation?.GdpPcDrawdown ?? 0);
-            p.WarExhaustion = Math.Min(1, p.WarExhaustion + c.WarExhaustionRate + econEx + blockade + fiscal + airRaid + chem);   // 厭戦も1回
-            // 説明API（#63）：厭戦の内訳＝前期＋基礎＋経済悪化＋封鎖＋財政＋空襲＋化学兵器−上限クランプ。Explain=nullでゼロコスト（player国のみ非null）。
+            // ★厭戦の基礎＝動員の負担（2026-10-02 (170)・外部レビュー Q10＝作者 2026-09-26「全て推奨で」で採った「厭戦の基礎 0.03/月を「戦争の負担」
+            //   （動員の深さか軍需支出÷GDP）へ置き換える」＝推奨で進めた・形〔動員の深さ・母数・抽象の相手〕は AI の選択＝作者の承認は未確認）。
+            //   旧＝交戦の月ごとに一律 WarExhaustionRate（0.03）＝どの戦争も開戦から約34か月で必ず終わる時間の時計
+            //   （r167 の10種で列強どうしの戦争の厭戦の増分の 78〜88% がこの項・列強どうしの戦争の長さの中央 8〜12 か月・最長 30 か月＝(170) §1）。
+            //   新＝WarExhaustionRate×動員の深さ÷ConscriptionFraction。動員の深さ＝兵士÷兵役の母数（働き盛りの男×支配度の届き方＝Military.RegionManpower の国の和
+            //   ＝戦時の徴兵の目標〔Military.Step の conscriptFrac×母数〕と同じ母数＝分子と分母を同じ規則で）。通常の戦時の徴兵の上限（ConscriptionFraction＝働き盛りの男の12%）まで
+            //   動員した国の基礎が旧の値＝新しい数なし。小さな軍で戦う戦争（植民地戦争・遠征）は長く続けられ、大きく動員した国ほど早く疲れる（Q10 の素案）。
+            //   国を持たない抽象の相手は動員の量（兵士・母数）を持たない＝旧の値のまま。⚠否定形＝母数が無い・NaN なら深さ0（基礎0＝他の項と押し合いで終わる）。
+            //   ⚠ Q10 の順序（封鎖〔項目7〕→戦1→mil-01・mil-04→置き換え）の封鎖は未着手＝基礎を外す（0にする）のでなく動員の深さで縮める
+            //   ＝交戦国は兵を持つ限り基礎が積もり、海を隔てた戦争も終わる（(170) の10種で2国間の戦争の最長 58 か月・60 か月以上 0 本）＝順序の理由は保たれる【推】。
+            //   ⚠ 国民皆兵（×2.5）で総動員した国は深さが大きく基礎が旧の約4.6倍＝総力戦ほど短い向き（第一次大戦 51 か月の錨と逆＝作者への確認・(170) §11）。
+            double exBase = c.WarExhaustionRate;
+            if (p.Nation is { } mobW)
+            {
+                double man = 0;
+                foreach (var mr in mobW.Regions) if (mr.State == RegionState.Active) man += Military.RegionManpower(mr, c);
+                double depth = man > 1e-9 ? mobW.SoldierSize() / man : 0;
+                if (!(depth >= 0)) depth = 0;
+                exBase = c.WarExhaustionRate * depth / c.ConscriptionFraction;
+            }
+            p.WarExhaustion = Math.Min(1, p.WarExhaustion + exBase + econEx + blockade + fiscal + airRaid + chem);   // 厭戦も1回
+            // 説明API（#63）：厭戦の内訳＝前期＋基礎（動員の負担・(170)）＋経済悪化＋封鎖＋財政＋空襲＋化学兵器−上限クランプ。Explain=nullでゼロコスト（player国のみ非null）。
             if (p.Nation?.Explain is { } exl)
             {
                 exl.Reset("Exhaustion");
                 exl.Add("Exhaustion", "前期からの厭戦(累積)", exBefore);
-                exl.Add("Exhaustion", "基礎の消耗", c.WarExhaustionRate);
+                exl.Add("Exhaustion", "基礎の消耗", exBase);
                 exl.Add("Exhaustion", "経済悪化", econEx);
                 exl.Add("Exhaustion", "海上封鎖", blockade);
                 exl.Add("Exhaustion", "財政破綻", fiscal);
                 exl.Add("Exhaustion", "空襲", airRaid);
                 exl.Add("Exhaustion", "化学兵器", chem);
-                exl.Add("Exhaustion", "上限クランプ(100%)", p.WarExhaustion - (exBefore + c.WarExhaustionRate + econEx + blockade + fiscal + airRaid + chem));
+                exl.Add("Exhaustion", "上限クランプ(100%)", p.WarExhaustion - (exBefore + exBase + econEx + blockade + fiscal + airRaid + chem));
             }
             WarMilitancy(p, c);    // 闘争度も1回
             double casTotal = WarCasualties(p, c, contact.GetValueOrDefault(p), airCtl);   // 戦死も1回（件数ぶん人口が消える多重計上の解消）。外2：接触強度・E2：制空を渡す
@@ -2537,6 +2557,7 @@ public sealed class Diplomacy
             // 早期講和（革命圧力で前倒し）。★2026-09-26（項目20 E・Q9 と同じ回）：膠着の打ち切り（WarMaxMonths=60 か月で白紙講和）を削除した。
             //   交戦国は毎月 WarExhaustionRate（0.03）以上の厭戦を積み（他の項も全て非負・交戦中に厭戦を減らす書き手は無い）、34か月以内に両者が1.0へ届く
             //   ＝weary（両者 > 0.9×cut・cut≦1）が60か月より先に必ず立つ＝打ち切りは一度も効いていなかった。
+            //   ★(170)：厭戦の基礎は動員の深さに比例（上の動員の負担）＝34か月の保証は無くなった（兵の少ない国は基礎が小さい）。打ち切りは戻さない＝時間の時計を作らない（2026-09-06 恒久方針）。兵を持つ交戦国は基礎が積もり続ける（(170) の10種で2国間の戦争の最長 58 か月・60 か月以上 0 本・終局で続く戦争 37 本〔r167 26 本〕）。
             //   ⚠その代わり weary を否定形で書く＝厭戦が NaN になった側も「疲れた」側へ倒す（打ち切りが担っていた唯一の出口＝検討 §10-10［戦争⑪］）。有限の値では `x > t` と同値。
             bool weary = !(war.A.WarExhaustion <= c.WarPeaceExhaustion * aCut) && !(war.B.WarExhaustion <= c.WarPeaceExhaustion * bCut);
             if (decisive || weary || war.ForcedPeace)   // ForcedPeace＝列強の調停（Score は0に置かれている）

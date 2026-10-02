@@ -1,0 +1,45 @@
+diff --git a/PriceOfBread.SimCore/Diplomacy.cs b/PriceOfBread.SimCore/Diplomacy.cs
+index 0abf34e..ab3639c 100644
+--- a/PriceOfBread.SimCore/Diplomacy.cs
++++ b/PriceOfBread.SimCore/Diplomacy.cs
+@@ -2043,6 +2043,19 @@ public sealed class Diplomacy
+     /// 上陸は <see cref="LandBattleHappens"/>（どちらか一方でも上陸できれば陸戦は起きる＝両側に同じ値）。見通しと AI は開戦前の問い＝戦線1。
+     /// ★2026-09-30（支払いの一元化 段3-2・作者裁定 Q8 (a)）：戦費充足（0.3＋0.7×払えた割合）の乗数を削除＝払えない国の弱さは装備の充足と兵の補給
+     ///   （軍需の調達と兵士の給与×国家の支払い率＝即応度＝LandPower の中）に既に入っている＝もう一度掛けない（思想⑨）。</summary>
++    /// <summary>(170) 腕M：交戦の接触の割合＝Σ戦線 min(押しA, 押しB)÷自軍のゲージ（StepWars の接触と戦死の式と同じ比・その月の盤面から導く）。交戦していなければ0。</summary>
++    public double Engagement(Power p, Coefficients c)
++    {
++        if (!(p.Military > 1e-9)) return 0;
++        var fronts = new Dictionary<Power, int>();
++        foreach (var w in Wars) { fronts[w.A] = fronts.GetValueOrDefault(w.A) + 1; fronts[w.B] = fronts.GetValueOrDefault(w.B) + 1; }
++        double contact = 0;
++        foreach (var w in Wars)
++            if (w.A == p || w.B == p) contact += Math.Min(FrontPush(w.A, w.B, c, fronts[w.A]), FrontPush(w.B, w.A, c, fronts[w.B]));
++        double e = contact / p.Military;
++        return e > 0 ? e : 0;   // 否定形＝NaN は0
++    }
++
+     public double FrontPush(Power x, Power y, Coefficients c, int fronts = 1)
+         => x.LandPower / Math.Max(1, fronts) * Projection(x, y, c) * (LandBattleHappens(x, y, c) ? 1.0 : 0.0) * (1.0 + c.AirControlPushWeight * (AirCtl(x, y) - 0.5));
+ 
+diff --git a/PriceOfBread.SimCore/Simulation.cs b/PriceOfBread.SimCore/Simulation.cs
+index a7b8f51..28d6f49 100644
+--- a/PriceOfBread.SimCore/Simulation.cs
++++ b/PriceOfBread.SimCore/Simulation.cs
+@@ -1816,6 +1816,7 @@ public sealed class Simulation
+         foreach (var pr in World.Regions) if (pr.State == RegionState.Active && pr.IsPort) { navalYard = true; break; }
+         // 州非依存の国スカラー（州ループ前に1回だけ算出＝毎州の再計算を避ける。いずれも州ループ内で書き換わらない入力のみ読む）。
+         double natSoldiers = World.SoldierSize();
++        double warEngage = atWarNation && World.Diplomacy is { } dgE && World.SelfPower is { } spE ? dgE.Engagement(spE, World.Coef) : 0;   // (170) 腕M
+         double shapeNavalNat = World.SelfPower is { } shp0 ? ArmyShape.NavalSpendShareOf(shp0) : -1.0;   // ★(151) 陸海の分け方（州ループの外で1回・ループの中で必要量は書き換わらない）
+         double warScareTensionNat = World.Diplomacy is { } wsDip && World.SelfPower is { } wsMe ? wsDip.MaxTension(wsMe) : 0;
+         double monopolyRentFactorNat = World.Coef.AntitrustGate > 0
+@@ -1896,7 +1897,7 @@ public sealed class Simulation
+                 bool atWar = atWarNation;
+                 double warExh = atWar && World.SelfPower is { } wsp ? wsp.WarExhaustion : 0;   // 戦時動員の深まり＝厭戦%(長期戦・経済悪化・戦死)を総力戦進行度の代理に
+                 double mobilize = 1.0 + World.Coef.WarMobilizationDepth * warExh;   // WarMobilizationDepth=0 なら mobilize=1＝旧挙動（⚠既定は0.5＝live・x-02 で注記を是正）。>0で長期戦ほど軍需倍率↑（総動員）
+-                double warMult = World.InCivilWar ? World.Coef.MilitaryWarMult * 2.0 : (atWar ? World.Coef.MilitaryWarMult * mobilize : 1.0);   // 内戦＝対外戦争の2倍の軍需消費（火器需要↑）。対外戦は総力戦の深まりで漸増
++                double warMult = World.InCivilWar ? 1.0 + (World.Coef.MilitaryWarMult * 2.0 - 1.0) * warEngage : (atWar ? 1.0 + (World.Coef.MilitaryWarMult * mobilize - 1.0) * warEngage : 1.0);   // (170) 腕M   // 内戦＝対外戦争の2倍の軍需消費（火器需要↑）。対外戦は総力戦の深まりで漸増
+                 // 軍需＝**兵士の装備のみ**（治安維持力=軍の一本化2026-06-23：治安維持力は装備された軍の効果＝BaseCoercion を MilitaryScale に含めない＝二重計上を解消し装備コストを下げる）。軍隊規模(兵数)×戦時倍率に比例。
+                 // 課題6（駐屯州調達・2026-08-08）：装備需要の州配分＝首都一極と駐屯州比例のブレンド（総量保存）。
+                 // g=0＝旧（首都のみ）と厳密同値。兵士は自分の駐屯州の市場で装備を買う＝単一市場の物理律速を解く。

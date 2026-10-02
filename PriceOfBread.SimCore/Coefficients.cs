@@ -1463,7 +1463,8 @@ public sealed class Coefficients
     //   半分に置けば、宣戦までの折り返し地点で一度だけ知らせる＝まだ増減の操作が効く時点で選べる。
     //   ⚠一度出した相手は TensionRepromptDrop ぶん下がるまで再通知しない＝頻繁には出ない。
     // 【墓標2026-09-30・支払いの一元化 段3-2】WarCostPerMilitary（400＝軍ゲージ1あたりの月次戦費・国庫から全POP へ頭数で配った）を Diplomacy.Fund ごと削除（作者裁定 Q8 (a)＝軍需の調達と兵士の給与が実体・思想⑨）。
-    public double WarExhaustionRate = 0.03;       // 戦争疲弊（厭戦%）の蓄積：戦争の持続（月あたり基礎）
+    public double WarExhaustionRate = 0.03;       // 戦争疲弊（厭戦%）の蓄積の基礎（月）＝★(170) 動員の負担：通常の戦時の徴兵の上限（ConscriptionFraction）まで動員した国の月の基礎。
+                                                  //   実際の基礎＝これ×動員の深さ（兵士÷兵役の母数）÷ConscriptionFraction（Diplomacy.StepWars・外部レビュー Q10）。旧＝交戦の月ごとに一律（時間の時計＝約34か月で必ず終わる）。抽象の相手は一律のまま
     public double WarExhaustionEcon = 0.10;       // ＋経済悪化（1人あたりの落ち込み GdpPcDrawdown・2026-09-29＝領土を失った総額の落ち込みは数えない）に比例して厭戦が増す（月）
     public double WarExhaustionBlockade = 0.07;   // ＋通商破壊（海上封鎖）の度合い(1−CommerceRaidFactor)に比例して厭戦が増す（月）。改修2026-06-28：封鎖の即時の痛みを厭戦へ直結（兵糧攻め＝海軍劣勢国の士気を削る）
     public double WarExhaustionCasualty = 0.6;    // ＋戦死（兵士に対する戦死率）に比例して厭戦が増す
