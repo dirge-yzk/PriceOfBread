@@ -448,7 +448,7 @@ public sealed class Simulation
         var laborer = new Pop { ClassId = 0, ClassName = "一次労働者", IsUrban = false, Size = 500, Savings = 500_000, Satisfaction = 1.0 };
         var worker = new Pop { ClassId = 1, ClassName = "工員", IsUrban = true, Size = 450, Savings = 450_000, Satisfaction = 1.0 };
         var capitalist = new Pop { ClassId = 2, ClassName = "資本家", IsUrban = true, Size = 50, Savings = 100_000, Satisfaction = 1.0 };
-        // 動力（人力）：工員が自分の時間で作り工場が買う（賃金＝人力の動力の値段・★(179) 旧名 労働力）。生産性は工場と同じスケール＝供給が工場群と釣り合う。
+        // 労働力：工員が算出し工場が買う（賃金＝労働市場の価格）。生産性は工場と同じスケール＝供給が工場群と釣り合う。
         producers.Add(new Producer { GoodId = Catalog.LaborId, Productivity = LaborProductivity * FullChainProductivityScale, Output = worker.Size * 2.5, MarginalCost = 0.35, LaborPopIndex = 1, OwnerPopIndex = 1, RentShare = 0.0 });
         // 高度労働力：技師の居ない簡易世界＝工員が兼ねる（小さな供給）。石油火力も工員で。
         producers.Add(new Producer { GoodId = Catalog.AdvLaborId, Productivity = 0.5, Output = worker.Size * 0.2, MarginalCost = 0.5, LaborPopIndex = 1, OwnerPopIndex = 1, RentShare = 0.0 });
@@ -537,7 +537,7 @@ public sealed class Simulation
         var artisan      = new Pop { ClassId = 11, ClassName = "職人", IsUrban = true,  Size = 1500,  Savings = 1_050_000, Satisfaction = 1.0, Literacy = 0.45 };  // 手工業の自営（ギルド）。※この試験世界は銀行なし＋工場が成熟済＝初日から競争に負けるため、世紀を生き延びる蓄え（700/人）を持たせる
 
         var pops = new List<Pop> { nobility, peasant, worker, bourgeois, engineer, clergy, teacher, bureaucrat, doctor, merchant, artisan };
-        int eduIdx = AddServiceProducers(producers, pops, workerIdx: 2, peasantIdx: 1, teacherIdx: 6, bureaucratIdx: 7, doctorIdx: 8, ownerIdx: 3);
+        int eduIdx = AddServiceProducers(producers, pops, workerIdx: 2, peasantIdx: 1, teacherIdx: 6, bureaucratIdx: 7, doctorIdx: 8);
         AddAdvancedProducers(producers, pops, engineerIdx: 4, workerIdx: 2, ownerIdx: 3, new Coefficients());   // 高度労働力（技師）＋石油火力
         AddArtisanProducers(producers, artisanIdx: pops.Count - 1);   // 職人の工房（工場との並存レシピ）
         AddAlternateRecipes(producers, new Coefficients());   // ★代替レシピ（2026-09-06）：最小ビルダーも同じ1回（旧＝コンストラクタの走査が拾っていた）
@@ -888,7 +888,7 @@ public sealed class Simulation
         //   差分ゼロだった＝**原因は生産者でなくPOPの存在そのもの**と切り分け済み。
         //   ResearcherFrac=0 で pops に1件も足さない＝**厳密恒等**。>0 のとき researcher は index 13（大学の LaborPopIndex と一致）。
         if (resFrac > 0) pops.Add(researcher);
-        int eduIdx = AddServiceProducers(producers, pops, workerIdx: 2, peasantIdx: 1, teacherIdx: 7, bureaucratIdx: 8, doctorIdx: 9, coef: coef, researcherIdx: resFrac > 0 ? 13 : -1, clergyIdx: 6, ownerIdx: 3);   // clergyIdx＝段1 器 EduProducersCoexist の教区学校の担い手（0 では読まれない）
+        int eduIdx = AddServiceProducers(producers, pops, workerIdx: 2, peasantIdx: 1, teacherIdx: 7, bureaucratIdx: 8, doctorIdx: 9, coef: coef, researcherIdx: resFrac > 0 ? 13 : -1, clergyIdx: 6);   // clergyIdx＝段1 器 EduProducersCoexist の教区学校の担い手（0 では読まれない）
         // #12 家事奉仕の生産者：家事使用人(index12)が算出し富裕層が雇う（兵力と同型＝pop自身が役務を売り収入を得る）。
         producers.Add(new Producer { GoodId = Catalog.DomesticServiceId, Productivity = 1.0, Output = servant.Size * 0.5, MarginalCost = 0.3, LaborPopIndex = 12, OwnerPopIndex = 12, RentShare = 0.0 });
         AddAdvancedProducers(producers, pops, engineerIdx: 4, workerIdx: 2, ownerIdx: 3, coef);   // 高度労働力（技師）＋石油火力
@@ -1143,50 +1143,29 @@ public sealed class Simulation
         }
     }
 
-    /// <summary>役務の生産者（動力・教育・医療・行政）を追加し、教育の生産者の添字を返す。
+    /// <summary>役務の生産者（労働力・教育・医療・行政）を追加し、教育の生産者の添字を返す。
     /// 「生産が先にあり、売って収入を得る」：各役務popは自分の役務を算出し、売上が全て自分の収入になる（自営＝RentShare 0）。
     /// 教育の担い手（聖職者⇄教師）と生産性は毎月 StepMonth が教育法で切り替える。
     /// ★段1 器 <see cref="Coefficients.EduProducersCoexist"/>（2026-09-12）：>0 かつ clergyIdx≥0 なら教育の生産者を**常設2件**（[返値]=教区学校・[返値+1]=公立学校）として並置し、
-    /// StepMonth は差し替えず非活性側の Scale=0 だけを置く。0（既定）では従来の1件だけを add＝Producers の長さ・順序が不変＝厳密恒等。
-    /// ★(179) 動力の財（設計 20260928 §2・§6 段1・作者裁定 2026-09-28 ①「労働者が動力を生産し、それを工場に入れる。電気や機械も動力を生産する」）：工場が買う「動力」は5つのレシピ
-    /// （人力＝工場労働者が自分の時間で作る・畜力・蒸気機関・電動・水車）が作り、市場が安い方を選ぶ。機械の動力の「少しの労働」は人力の動力を市場で買う＝人の時間は人力の動力の1本
-    /// （賃金＝人力の動力の値段＝設計 §2-2「人力の動力の価格（＝賃金）」）。
-    /// <paramref name="ownerIdx"/>＝機械の動力（畜力・蒸気機関・電動・水車）の持ち主（資本家＝工場と同じ・残余は持ち主へ）。-1＝工場労働者（担い手の居ない小さな世界）。</summary>
-    private static int AddServiceProducers(List<Producer> producers, List<Pop> pops, int workerIdx, int peasantIdx, int teacherIdx, int bureaucratIdx, int doctorIdx, Coefficients? coef = null, int researcherIdx = -1, int clergyIdx = -1, int ownerIdx = -1)
+    /// StepMonth は差し替えず非活性側の Scale=0 だけを置く。0（既定）では従来の1件だけを add＝Producers の長さ・順序が不変＝厳密恒等。</summary>
+    private static int AddServiceProducers(List<Producer> producers, List<Pop> pops, int workerIdx, int peasantIdx, int teacherIdx, int bureaucratIdx, int doctorIdx, Coefficients? coef = null, int researcherIdx = -1, int clergyIdx = -1)
     {
-        // 人力の動力：工場労働者が自分の時間で作る（賃金＝この値段）。生産性は工場と同じスケール（×FullChainProductivityScale）＝労働供給が工場群の需要と釣り合う。
-        // 工業化・技術の倍率にも乗る（機械が労働の産出を増やす＝実質賃金の上昇余地）。★(179) 旧の労働力の人力の生産者のまま（財の名前が「動力」になった）。
+        // 労働力：工場労働者が算出。生産性は工場と同じスケール（×FullChainProductivityScale）＝労働供給が工場群の需要と釣り合う。
+        // 工業化・技術の倍率にも乗る（機械が労働の産出を増やす＝実質賃金の上昇余地）。
         producers.Add(new Producer { GoodId = Catalog.LaborId, Productivity = LaborProductivity * FullChainProductivityScale, Output = pops[workerIdx].Size * 0.3, MarginalCost = 0.35, LaborPopIndex = workerIdx, OwnerPopIndex = workerIdx, RentShare = 0.0 });
-        // ★(179) 機械の動力の4つのレシピ（設計 §2-1「畜力＝馬＋飼料＋少しの労働・水車＝機械＋少しの労働・蒸気＝機械＋石炭＋少しの労働・電動＝機械＋電力＋少しの労働」）。
-        //   **少しの労働＝人力の動力を市場で買う**（人の時間を2つの財に分けない＝工場労働者の時間は人力の動力の1本・賃金は1つ）。
-        //   数（推奨で進めた・作者の承認は未確認）：馬・蒸気機関の財・石炭・電力の量と器（担い手の人数×生産性 m＝畜力 1.3・水車 1.1・蒸気機関 2.0・電動 2.5）は 04材化(c)（2026-07-29）の並存レシピのまま
-        //   （蒸気機関の財 0.02＝据えた原動機を寿命の分だけ毎月消費する投入＝設計 §2-3 の3）・水車の普請の上乗せ 0.05（旧 0.40−人の生存線分 0.35）は自己費用のまま。
-        //   **動力1単位あたりの少しの労働＝参照価格で人力と同じ費用になる量**（コスト中立の入力重み＝E-15b〔2026-09-05〕と同じ作法＝開幕の物価で人力と並び、どれを選ぶかは値段の動き〔賃金・石炭・馬・電力〕が決める）
-        //   ＝（動力の参照価格−自己費用−Σ他の投入×参照価格）÷動力の参照価格（下の NeutralWork・データから導く＝数を直書きしない）＝畜力 0.909・水車 0.900・蒸気機関 0.524・電動 0.215。
-        //   ⚠旧は5つのレシピが同じ人数の全部の器を足し合い、どのレシピも1単位あたり人の生存線分 0.35 を払った（機械が労働を節約しなかった＝(174) §12-5）。
-        //   ・持ち主は資本家（工場と同じ＝残余は持ち主へ）・器は旧と同じ（担い手の人数×生産性）＝段2（能力は建てた分だけ）で建てた設備へ置き換わる。
-        //   ・市場が安いレシピを選ぶ＝賃金が高く石炭と機械が安い所で蒸気（設計 §2-2）。水車は立地の上限なし（A2 裁定 2026-07-31＝弱い動力・上限なしの微優位レシピ1本）。
-        //   ⚠別の財「労働」（人の時間）を人力の変換のレシピで動力へ移す形（設計 §2-1 の図）は入れていない＝(179) の腕 P で、変換の器を大きくすると変換の供給が値段に過敏で動力の値段が賃金の下へ崩れて振動し
-        //     （1種の試走の清の州で動力 0.14〜0.25・賃金 0.45〜0.63）、器を労働と同じにすると同じ人の時間に供給曲線の傾きが2度掛かり人力の動力が賃金の 1.07〜1.20倍になった（実装ログ (179)）。
-        int powOwner = ownerIdx >= 0 ? ownerIdx : workerIdx;
-        double powRent = ownerIdx >= 0 ? 1.0 : 0.0;
-        static double NeutralWork(double self, params Input[] others)
-        {
-            double c = Catalog.RefPrices[Catalog.LaborId] - self;
-            foreach (var x in others) c -= x.QtyPerOutput * Catalog.RefPrices[x.GoodId];
-            return c / Catalog.RefPrices[Catalog.LaborId];
-        }
-        Input horse = new(Catalog.HorseId, 0.05), engine = new(Catalog.SteamEngineId, 0.02), coal = new(Catalog.CoalId, 0.3), elec = new(Catalog.ElectricityId, 0.25);
-        producers.Add(new Producer { GoodId = Catalog.LaborId, RecipeName = "畜力", Productivity = LaborProductivity * FullChainProductivityScale * 1.3, Output = 0.5, Scale = 0.05, MarginalCost = 0.0, LaborPopIndex = workerIdx, OwnerPopIndex = powOwner, RentShare = powRent,
-            Inputs = [horse, new Input(Catalog.LaborId, NeutralWork(0.0, horse))] });   // 馬力＝荷駄・巻上機（馬の財＝家畜と飼料から作る＝飼料は馬の値段に入っている）
-        producers.Add(new Producer { GoodId = Catalog.LaborId, RecipeName = "蒸気機関", Productivity = LaborProductivity * FullChainProductivityScale * 2.0, Output = 0.5, Scale = 0.05, MarginalCost = 0.0, LaborPopIndex = workerIdx, OwnerPopIndex = powOwner, RentShare = powRent,
-            Inputs = [engine, coal, new Input(Catalog.LaborId, NeutralWork(0.0, engine, coal))] });   // 蒸気機関の財＋石炭＋少しの労働＝工場に据える原動機
-        producers.Add(new Producer { GoodId = Catalog.LaborId, RecipeName = "電動", Productivity = LaborProductivity * FullChainProductivityScale * 2.5, Output = 0.5, Scale = 0.05, MarginalCost = 0.0, LaborPopIndex = workerIdx, OwnerPopIndex = powOwner, RentShare = powRent,
-            Inputs = [elec, new Input(Catalog.LaborId, NeutralWork(0.0, elec))] });   // 電動機＝電力が安い国だけ採算が合う（送電容量の内＝EconomyStep）
+        // 04材化(c)（2026-07-29）：動力＝労働力の並存レシピ（Catalog.cs:14の設計を実体化）。同じ労働者popを担い手に持つ＝労働配分の
+        // 零和分割の内側＝採算が合う時だけ人力からシェアを奪う（機械化＝同じpopからより多くの労働力サービス）。馬・蒸気機関・石炭・電力に
+        // 「動力源」という新しい出口ができる（新財ゼロ＝§1の致命3障害を全回避）。水車はE1立地上限が未解決＝裁定待ちで見送り。
+        producers.Add(new Producer { GoodId = Catalog.LaborId, RecipeName = "畜力", Productivity = LaborProductivity * FullChainProductivityScale * 1.3, Output = 0.5, Scale = 0.05, MarginalCost = 0.35, LaborPopIndex = workerIdx, OwnerPopIndex = workerIdx, RentShare = 0.0,
+            Inputs = [new Input(Catalog.HorseId, 0.05)] });   // 馬力＝荷駄・巻上機（馬が本当の生産投入になる）
+        producers.Add(new Producer { GoodId = Catalog.LaborId, RecipeName = "蒸気機関", Productivity = LaborProductivity * FullChainProductivityScale * 2.0, Output = 0.5, Scale = 0.05, MarginalCost = 0.35, LaborPopIndex = workerIdx, OwnerPopIndex = workerIdx, RentShare = 0.0,
+            Inputs = [new Input(Catalog.SteamEngineId, 0.02), new Input(Catalog.CoalId, 0.3)] });   // 蒸気機関54＋石炭＝工場に据える原動機（54の第3の出口＝Runner診断が点灯）
+        producers.Add(new Producer { GoodId = Catalog.LaborId, RecipeName = "電動", Productivity = LaborProductivity * FullChainProductivityScale * 2.5, Output = 0.5, Scale = 0.05, MarginalCost = 0.35, LaborPopIndex = workerIdx, OwnerPopIndex = workerIdx, RentShare = 0.0,
+            Inputs = [new Input(Catalog.ElectricityId, 0.25)] });   // 電動機＝電力が安い国だけ採算が合う（発電機1.3以後）
         // 水車（07_再設計 §2＋A2裁定・2026-07-31）：★裁定＝**水車は弱い動力（自家農場級）／山岳の強力な水力は巨大建造物**の2層に分ける。
-        // したがって立地上限（案a/b/c）は全て破棄＝上限なしの微優位レシピ1本にする。投入は少しの労働だけ（落差は買えない）・維持費（堰・水路の普請）は自己費用 0.05（旧 0.40−人の生存線分 0.35）。
-        producers.Add(new Producer { GoodId = Catalog.LaborId, RecipeName = "水車", Productivity = LaborProductivity * FullChainProductivityScale * 1.1, Output = 0.5, Scale = 0.05, MarginalCost = 0.05, LaborPopIndex = workerIdx, OwnerPopIndex = powOwner, RentShare = powRent,
-            Inputs = [new Input(Catalog.LaborId, NeutralWork(0.05))] });
+        // したがって立地上限（案a/b/c）は全て破棄＝上限なしの微優位レシピ1本にする。投入ゼロ（落差は買えない）・維持費は人力より高い（堰・水路の普請）。
+        // 1789年から使えて蒸気(0.5)に駆逐される＝前産業の動力がカタログに存在する状態を作るのが目的。
+        producers.Add(new Producer { GoodId = Catalog.LaborId, RecipeName = "水車", Productivity = LaborProductivity * FullChainProductivityScale * 1.1, Output = 0.5, Scale = 0.05, MarginalCost = 0.40, LaborPopIndex = workerIdx, OwnerPopIndex = workerIdx, RentShare = 0.0 });
         // 農業労働力：農民が算出し自家農家（RGO）が買う＝農業も「労働を売る」同一ロジック。農村の留保賃金は都市より安い（都市化の誘因）。
         producers.Add(new Producer { GoodId = Catalog.FarmLaborId, Productivity = LaborProductivity * FullChainProductivityScale, Output = pops[peasantIdx].Size * 0.3, MarginalCost = 0.3, LaborPopIndex = peasantIdx, OwnerPopIndex = peasantIdx, RentShare = 0.0 });
         int eduIndex = producers.Count;
@@ -1449,7 +1428,7 @@ public sealed class Simulation
         var pops = new List<Pop> { nobility, peasant, worker, bourgeois, engineer, clergy, teacher, bureaucrat, doctor, merchant, artisan, servant, soldier };
         // ★段1 器 EduProducersCoexist（2026-09-12）：昇格植民地州も本国州と同じ2件並置を受ける（coef を渡す・researcherIdx は既定 -1 のままなので大学の枝は不変＝0 で厳密恒等）。
         //   渡さないと >0 の世界で StepMonth が [eduIdx+1] を公立学校と誤認する（実体は医療）＝型の統合が起こす静かな破損の型。
-        int eduIdx = AddServiceProducers(producers, pops, workerIdx: 2, peasantIdx: 1, teacherIdx: 6, bureaucratIdx: 7, doctorIdx: 8, coef: coef, clergyIdx: 5, ownerIdx: 3);
+        int eduIdx = AddServiceProducers(producers, pops, workerIdx: 2, peasantIdx: 1, teacherIdx: 6, bureaucratIdx: 7, doctorIdx: 8, coef: coef, clergyIdx: 5);
         AddAdvancedProducers(producers, pops, engineerIdx: 4, workerIdx: 2, ownerIdx: 3, coef);   // ★2026-09-26：渡された coef を使う（旧＝ここだけ既定の係数を新しく作っていた＝国ごとの係数・テストの w.Coef.X= が植民地州の高度な生産者に届かなかった・col-26）
         AddArtisanProducers(producers, artisanIdx: 10);
         producers.Add(new Producer { GoodId = Catalog.DomesticServiceId, Productivity = 1.0, Output = 0, MarginalCost = 0.3, LaborPopIndex = 11, OwnerPopIndex = 11, RentShare = 0.0 });

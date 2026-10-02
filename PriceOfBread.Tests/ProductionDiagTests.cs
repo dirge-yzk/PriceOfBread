@@ -426,13 +426,15 @@ public class ProductionDiagTests
         Assert.Equal(0.0, EconomyStep.MonopolyDegree(r, c, 1.0)); Assert.Equal(0.0, Privileges.MonopolyDegree(w, c));
     }
 
-    /// <summary>M2（2026-09-11）：ExplainCost が首都に生産者の無い財を他の Active 州の生産者で説明する（FindProducer は (Home, P) 返し）。
-    /// ★(179) 機械化度と電化の労働の節約は削除＝動力の投入は原単位のまま（首都の値段で積む）＝分解の行の量はレシピの量そのもの。</summary>
+    /// <summary>M2（2026-09-11）：ExplainCost が首都に生産者の無い財を他の Active 州の生産者で説明するとき、機械化度は**その生産者の所属州**の量
+    /// （FindProducer は (Home, P) 返し）。首都の機械化度を動かしても他州の生産者の労働投入は動かず、所属州の機械化度を動かすと動く
+    /// ＝元パッチ（呼び手の region＝首都を渡す形）では非恒等になる経路を固定する（SelfPlay の ExplainCost も同じ読み手）。</summary>
     [Fact]
     public void 生産コストの分解は他州の生産者を所属州の機械化度で評価する()
     {
         var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
-        var w = sim.World; var cap = w.Region;
+        var w = sim.World; var c = w.Coef; var cap = w.Region;
+        c.LaborSaveRate = 0.25; c.ElecLaborSave = 0;
         // FindProducer の規約（首都に無ければ首都以外の Active 州を Regions 順に・州内は先頭）で拾われる個体が労働を買う財を探し、
         // 首都からその財の生産者を外して「首都に無い財」を作る（診断は純関数＝この世界は以後動かさない。全州が同じ工場一式を持つので外さないと首都で見つかる）
         int good = -1; Region? home = null; Producer? prod = null;
@@ -458,8 +460,10 @@ public class ProductionDiagTests
             foreach (var it in cp.Items) if (it.GoodId == Catalog.LaborId) return it.Qty;
             return double.NaN;
         }
-        Assert.NotNull(home);
-        Assert.Equal(qty0, LaborQty());                          // ★(179) 動力の量は原単位（機械化の節約は動力のレシピの側）
+        home!.Mechanization = 0; cap.Mechanization = 0.8;
+        Assert.Equal(qty0, LaborQty());                          // 首都の機械化度は他州の生産者に効かない
+        home.Mechanization = 0.5; cap.Mechanization = 0;
+        Assert.Equal(qty0 * (1.0 - 0.25 * 0.5), LaborQty());     // 所属州の機械化度で節約
     }
 
     // ★★M5（2026-09-20）：生産タブの専売チェックボックスは**プレイヤーの唯一の専売レバー**なのに、

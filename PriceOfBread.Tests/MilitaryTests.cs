@@ -174,7 +174,7 @@ public class MilitaryTests
     {
         var sim = new Simulation(NationConfig.Britain().ToScenario(29), new NullAgent());
         var r = sim.World.Region; var c = sim.World.Coef;
-        double Mc(Producer p) => EconomyStep.MineralSelfCost(p, r, c, sim.World) + EconomyStep.InputCostPerUnit(p, r);
+        double Mc(Producer p) => EconomyStep.MineralSelfCost(p, r, c, sim.World) + EconomyStep.InputCostPerUnit(p, r, r, c);
         var musket = Assert.Single(r.Producers, p => p.GoodId == Catalog.RifleId && p.RecipeName == "マスケット");
         var rifle = Assert.Single(r.Producers, p => p.GoodId == Catalog.RifleId && p.Inputs.Any(inp => inp.GoodId == Catalog.SteelId));   // 既定（鋼）レシピ
         var bessemer = Assert.Single(r.Producers, p => p.GoodId == Catalog.SteelId && p.DiscoveryRow >= 0);                 // 既定の鋼＝ベッセマー転炉（発見の表の転炉鋼）
@@ -1657,5 +1657,34 @@ public class MilitaryTests
         var (war, wu) = Run(true);
         Assert.True(wu, "前提が崩れた：交戦かつ総動員のまま四半期の頭を通らない（AI が復員した）");
         Assert.True(war > 0.75 + 1e-6, $"交戦かつ総動員の施行が段3 へ削られた（0.95 → {war:G17}）");
+    }
+
+    /// <summary>★(182)（反証役 vm2#7）戦時段の戦費の失効は Move の前（<see cref="Government.Step"/>）＝段3 の上の施行は政治資本を使わずに段3 へ戻り、その先の一歩だけが軍の抵抗（Move）を通る。
+    /// 盤面＝日英（開幕の1四半期の後・平時・総動員なし）・目標 段1（0.25）。双子＝施行 0.95 と施行 0.75（段3 ちょうど）＝失効の後は同じ点から（ほぼ）同じ一歩＝施行も政治資本の使った量も ±5% で一致し、施行は段3 の下へ進む。
+    /// 効いた量そのもの＝施行と政治資本の目減り（<see cref="World.MandateSpent"/>）。⚠突然変異「Move の後で段3 へ削る」で赤（0.95 からの一歩は段3 の上で止まり段3 へ削られる＝施行が段3 の下へ進まない）。</summary>
+    [Fact]
+    public void 戦時段の戦費の失効はMoveの前で段3の上の施行は政治資本を使わずに戻る()
+    {
+        (double x, double spent) Run(double x0)
+        {
+            var sim = new MultiNationSim([NationConfig.Japan(), NationConfig.Britain()], seed: 1789);
+            sim.StepQuarter();
+            sim.Diplomacy.Wars.Clear();
+            var w = sim.Nations[0].World;
+            w.Mobilized = false;
+            w.SetMilitarySpending(x0, w.NavalSpendShare);
+            w.Policy.MilitarySpendingTarget = 0.25;
+            double before = w.MandateSpent;
+            Government.Step(w, w.Coef);
+            return (w.MilitarySpending, w.MandateSpent - before);
+        }
+        var (xb, sb) = Run(0.75);
+        Assert.True(xb < 0.75 - 1e-9, $"前提が崩れた：段3 からの Move が動かない盤面（0.75 → {xb:G17}）");
+        var (xa, sa) = Run(0.95);
+        Assert.True(xa < 0.75 - 1e-9, $"段3 の上の施行が失効の後に段3 の下へ進まない（0.95 → {xa:G17}）＝失効が Move の後");
+        // 一歩の大きさは双子で厳密には一致しない＝Move の中の立場の土台（PolicyPreferences.Build）が保存された施行（0.95 と 0.75）を読む＝速さが約0.1%違う。
+        //   突然変異「Move の後で削る」は 0.95 からの一歩（0.7×速さ）の分だけ政治資本を使う＝段3 からの一歩（0.5×速さ）の約1.4倍＝±5% の外。
+        Assert.InRange(xa, xb - 0.05 * (0.75 - xb), xb + 0.05 * (0.75 - xb));   // 失効の後は段3 から（ほぼ）同じ一歩
+        Assert.InRange(sa, sb * 0.95, sb * 1.05);                                 // 政治資本は段3 からの一歩の分だけ（失効の分は使わない）
     }
 }

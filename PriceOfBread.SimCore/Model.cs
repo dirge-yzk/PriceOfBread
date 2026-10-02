@@ -743,8 +743,9 @@ public sealed class Producer
     public int RetiredByRow { get { _ = DiscoveryRow; return _retRow; } }
     [System.NonSerialized] private int _discRow = -1, _retRow = -1, _discGood = int.MinValue;
     [System.NonSerialized] private string? _discRecipe;
+    public double ElecFill;        // 電化率（0..1・EMA）。電力を買えた工場は稼働率が上がり（夜間操業）労働投入が減る（機械化）。電力が高い/送電網が無いと0
+    public double SteamFill;       // 蒸気動力化率（0..1・EMA・電化と同型）。蒸気機関の発明後（SteamScale>0）採算が合えば石炭を焚き稼働率↑（SteamBoost）。1789年は水車/畜力＝0＝無ブースト・石炭を焚かない。電化が安くなると電力が蒸気を代替（(1−ElecFill)）
     public int[] EffGoods = [];    // RGOの効率化材の候補（肥料/帆船/飼料/工具/火薬…）。市場が安い・profit-gateを通る物を毎期選ぶ。空＝なし（工場・役務）。Catalog.RgoBoosterGoods で設定
-    // ★(179) 電化率 ElecFill・蒸気動力化率 SteamFill を削除＝工場の蒸気と電化の上乗せは動力のレシピへ（設計 20260928 §5）。
     public double EffFill;         // RGO効率化率（0..1・EMA）。効率化材を買えたRGOは産出が増える（電化のRGO版）。買えない/割に合わないと0
 }
 
@@ -939,6 +940,7 @@ public sealed class Region
     // **書き手が一度も走らない**＝常に0＝厳密恒等。
     public double SeizureChill;
     public double LaborWellbeing;                     // ⚠休眠（UnionSatBonus=0）：組合の非物質厚生の満足度上乗せ（大衆POPに加算・Simulation が設定）。時短/福祉/年金の成分は物理削除2026-08-21（思想⑨）
+    public double Mechanization;                      // 機械化度（no-labor-saving-tech-unemployment）：工業化度の飽和カーブ∈[0,1)。LaborSaveRate=0（対照腕）で0固定・既定0.25で EffectiveQty が読む
     public double OldVintageCapital;                  // 旧世代の工業化資本（no-vintage-capital-depreciation）。VintageMigrateRateで経年蓄積・技術差で座礁。0（対照腕）で単層恒等・既定0.005で二層live
     public double DevelopmentPeak;                    // 開発度の到達最高値（新旧合計の走行最大・2026-07-27）。「体化された技術・熟練・制度」の記憶＝DevelopmentMemory>0 のとき物理減価を緩める。0＝未到達・DevelopmentMemory=0では未使用
     public double VintageTechLevel;                   // 旧世代資本の据付時平均技術水準。現TechLevelとの差(techGap)が座礁度を決める。OldVintageCapital=0で未使用
@@ -946,7 +948,7 @@ public sealed class Region
     // ヴィンテージ資本有効化2026-07-10（キュー5）：新旧二層の読者を分離。
     //  ・TotalIndustrialization＝立っている資本の総量（新旧合計）。都市化天井・衛生proxy・スコア・投資上限・移民引力など「資本ストックの規模」を読む従来読者はこちら
     //    ＝旧世代もIndDepreciationで同率減価するため、合計は旧単層Industrializationと同一動学（分割そのものは恒等＝較正中立）。
-    //  ・ProductiveIndustrialization＝生産性に寄与する分（座礁分を控除）。indMult・投資の限界収益のみが読む（★(179) 機械化度は削除）＝座礁だけが現行との差分（意図した機構）。
+    //  ・ProductiveIndustrialization＝生産性に寄与する分（座礁分を控除）。indMult・機械化度・投資の限界収益のみが読む＝座礁だけが現行との差分（意図した機構）。
     //  両係数0（対照腕）では OldVintageCapital=StrandedVintage=0 で両者とも Industrialization に厳密恒等（既定 VintageMigrateRate=0.005 でlive）。
     public double TotalIndustrialization => Industrialization + OldVintageCapital;
     public double ProductiveIndustrialization => Industrialization + OldVintageCapital - StrandedVintage;

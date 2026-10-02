@@ -800,9 +800,6 @@ public class ConservationTests
             foreach (var n in sim.Nations) n.TelemetryEnabled = false;
             sim.Diplomacy.Log.Enabled = false;
             sim.StepQuarter();
-            // ★(179) 動力の財：建設の工賃は動力（LaborId）の売上として動力の生産者へ（PaySales＝産出の割合）＝機械の動力（畜力・蒸気機関・電動・水車）の持ち主は資本家
-            //   ＝工賃の一部は機械の動力の持ち主（＝投資家）へ戻る。この番人は「工賃が労働の持分へ届く」を人力の動力だけの盤面で確かめる（機械の動力の産出を0に置く）。
-            foreach (var n in sim.Nations) foreach (var r in n.World.Regions) foreach (var pr in r.Producers) if (pr.GoodId == Catalog.LaborId && pr.RecipeName.Length > 0) pr.Output = 0;
             return sim;
         }
         static (List<Pop> pops, double[] sav) Sav(World w) { var l = new List<Pop>(); foreach (var r in w.Regions) l.AddRange(r.Pops); return (l, l.ConvertAll(p => p.Savings).ToArray()); }

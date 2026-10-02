@@ -527,15 +527,23 @@ public sealed class Coefficients
     //   0＝生産者を1件も add せず月次差し替えの現行がそのまま走る＝Producers の長さ・順序・全書き込みが不変＝ビット恒等（DormantZeroFields 登録）。
     //   点火＝段3（batch30 単独＋savetest＝添字の互換）。
     public double EduProducersCoexist = 0.0;
-    // 【削除2026-10-03 (179) 動力の財】工場の電化と蒸気動力の上乗せ＝ElecPerOutput（0.25）・ElecBoost（0.3）・ElecLaborSave（0.4）・EnergyPerOutput（0.05）・SteamBoost（0.3）・
-    //   ElecFillIrreversibility（1.0）と機械化度の労働の節約 LaborSaveRate（0.25）・LaborSaveIndHalf（1.0）を削除（設計 20260928 生産の能力と効率を市場から導く §5・§6 段1・作者 2026-09-28「全て推奨で採択」）
-    //   ＝蒸気と電化は動力（LaborId）のレシピ（蒸気機関＝蒸気機関の財＋石炭＋少しの労働・電動＝電力＋少しの労働・送電容量の内）＝工場は動力を買い、市場が安いレシピを選ぶ・
-    //   技術的失業は動力のレシピの労働の少なさから出る（機械化を2度数えない＝思想⑨）。
+    // --- 電化（電力＝稼働率ブースト。時代クランプなし＝発電・送電の価格が下がると採算が立ち電化の波が創発）---
+    public double ElecPerOutput = 0.25;          // 産出1単位あたりの電力消費（電化を選んだ工場）
+    public double ElecBoost = 0.3;               // 完全電化時の能力上乗せ（夜間操業・機械駆動）。買えた電力の割合に比例
+    public double ElecLaborSave = 0.4;           // 完全電化時に労働力の投入が何割減るか（機械化＝人手の節約）
+    public double LaborSaveRate = 0.25;           // 技術的失業（no-labor-saving-tech-unemployment）：機械化工場の労働投入の最大逓減率。実効労働係数×=(1−これ×機械化度)。0で電化以外の労働節約なし（現行恒等）
+    public double LaborSaveIndHalf = 1.0;        // 機械化（労働節約）が半分に達する工業化度。飽和カーブで有界。LaborSaveRate=0なら未使用
     // RGO効率化（電化のRGO版）：作物→肥料／漁業→帆船／畜産→飼料／鉱山→工具。買えた率(EffFill)に比例して産出↑。
     public double EffPerOutput = 0.08;            // RGO産出1単位あたりの効率化材消費（profit-gateで割に合う時だけ買う）
     public double EffBoost     = 0.3;             // 完全充足時のRGO産出の上乗せ（肥料/飼料/漁船/工具が満たされた時）
-    public double GridBuildRate = 0.1;           // 送電容量の不足分を月に何割ずつ敷設するか（投資家の残予算の範囲で）。★(179) 不足＝電動の動力が作りたい量の電力−送電容量
-    public double FillInertia = 0.25;            // 効率化率(EffFill)が目標へ寄る月次速度（設備の慣性＝ゆっくり進み剥がれる）。★(179) 電化率 ElecFill は削除
+    public double GridBuildRate = 0.1;           // 送電容量の不足分を月に何割ずつ敷設するか（投資家の残予算の範囲で）
+    public double FillInertia = 0.25;            // 電化率(ElecFill)・効率化率(EffFill)が目標へ寄る月次速度（設備の慣性＝ゆっくり進み剥がれる）。旧・EconomyStep直書き0.25×2を集約（sweep対象化・DRY）
+    public double ElecFillIrreversibility = 1.0; // **1.0点火済み（稼働中）**（第2段2-8是正2026-07-27：旧注記「#17で有効化検討」は点火後も残った嘘）。監査2026-07-05（E4）：電化の不可逆性＝設備ロックイン。0=無効（採算で毎期進退）・1で電化率は下がらない（投資済み発電設備は石炭安でも剥がさない＝史実の電化一方通行）。中間は下落速度を(1−これ)倍に減速。緩和は裁定待ち（史実では電化はほぼ不可逆＝現状も擁護可）
+    // 蒸気動力（電化と完全に同型＝据付資本財）：原動機(蒸気機関)の発見後（発見の表の「蒸気機関」の行＝Discovery.SteamPower）、採算が合えば工場が石炭を焚いて稼働率↑（SteamBoost）。
+    // 未発見の国は水車/畜力＝無ブースト・石炭を焚かない。蒸気の普及は発見（人件費の高さ）と石炭価格から創発（暦年ゲートなし）。電化が安くなると電力が蒸気を代替（(1−ElecFill)）。
+    // 石炭需要は蒸気を採った工場にのみ立つ＝石炭価格＝工業活動の体温計（より忠実）／石炭ショックが費用→マージン→規模で蒸気産業に波及。EnergyPerOutput=0 or 石炭good非搭載で無効（較正中立）。
+    public double EnergyPerOutput = 0.05;        // 蒸気動力化した工場の産出1単位あたりの石炭（燃料）消費。energyOnガード(石炭good搭載時のみ)で安全。0=従来(中立)
+    public double SteamBoost = 0.3;              // 完全蒸気動力時の能力上乗せ（蒸気機関＝水車/畜力を超える出力。電化のElecBoostと対称）。買えた石炭の割合(SteamFill)に比例
     // 【削除2026-10-01 (150)】SteamTechOnset（0.25）・SteamTechWidth（0.5）・SteamGate(tech)＝蒸気の門の技術水準の時計（工場の蒸気動力・鉄道の石炭・艦隊の燃料）
     //   ＝発見の表へ移した（工場の蒸気動力と近代港湾＝「蒸気機関」の行・鉄道の石炭＝「機関車」の行・艦隊の燃料＝汽船の財の解禁＝Discovery の世界のゲート）。
     //   旧＝発見と関係なく技術水準が 0.25 を越えれば工場が石炭を焚いた（人件費の安い国でも）。

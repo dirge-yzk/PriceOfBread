@@ -10,7 +10,7 @@ public readonly record struct GoodDef(
 /// <summary>
 /// サプライチェーン（1780–1880・ユーザー設計）。基本は ≤2入力・最終財の入力ペアは固有・深さ優先だが、
 /// **意味のある所は3入力を許可**（例：缶詰＝肉+鉄+塩）。**複数レシピ＝同じ財に複数の生産者**
-/// （例：電力＝石炭火力 or 石油火力、動力＝人力 or 蒸気機関 or 電動）：市場が安いレシピを選ぶ
+/// （例：電力＝石炭火力 or 石油火力、労働力＝人力 or 蒸気機関 or 電化）：市場が安いレシピを選ぶ
 /// （採算の良い生産者が操業規模と売上シェアを奪う）＝「A+B+(C or D)」は燃料違いの並存レシピで表現。
 /// ハブ財（石炭・鋼・化学薬品）は相方を必ず変える（反モノカルチャー）。
 /// 気候ゲート財（IsColonial）は賦存州（Resources に列挙）だけが産する＝供給の偏在が地理から創発。
@@ -137,8 +137,8 @@ public static class Catalog
         new(OpiumId, "アヘン",   GoodTier.Luxury,       0.02, 0.8, 2.0, [], true),
 
         // === 役務（サービス財）：POPが算出し、輸送できない（地元市場のみ・NonTradeable）。在庫も持てない（Spoilage=1.0）===
-        // 「工場を除き、生産が先にあり、売って収入を得る」設計：労働者→動力（★(179) 人力の動力＝自分の時間・機械の動力のレシピも並ぶ）、教師/聖職者→教育、医者→医療、官僚→行政。
-        new(LaborId, "動力",   GoodTier.Service,      0.0,  0.5, 1.0, [],          NonTradeable: true),   // ★(179) 動力の財（設計 20260928 生産の能力と効率を市場から導く §2・作者裁定 2026-09-28 ①「労働者が動力を生産し、それを工場に入れる。電気や機械も動力を生産する」）＝工場が買う（運べない）。レシピ＝人力（工場労働者が自分の時間で作る＝人力の動力の値段＝賃金・設計 §2-2）・畜力・水車・蒸気機関・電動（機械の動力＝少しの労働は人力の動力を買う）＝市場が安い方を選ぶ。旧名「労働力」
+        // 「工場を除き、生産が先にあり、売って収入を得る」設計：労働者→労働力、教師/聖職者→教育、医者→医療、官僚→行政。
+        new(LaborId, "労働力",   GoodTier.Service,      0.0,  0.5, 1.0, [],          NonTradeable: true),   // 工場労働者が算出し工場が買う（賃金＝労働市場の価格）。生産性・担い手はビルダーが設定
         new(EducationId, "教育",     GoodTier.Service,      0.06, 0.8, 2.0, [I(PaperId,0.05)], NonTradeable: true),   // 教師（公教育）/聖職者（宗教学校）が算出。紙を消費（教材＝間接コスト）。識字の源泉
         new(HealthcareId, "医療",     GoodTier.Service,      0.05, 0.8, 3.0, [I(MedicineId,0.10), I(SoapId,0.05)], NonTradeable: true),   // 医者が算出。医薬品＋石鹸（衛生）を消費。人口扶養力に効く
         new(AdminId, "行政",     GoodTier.Service,      0.0,  0.5, 3.0, [I(PaperId,0.10)], NonTradeable: true),   // 官僚が算出し国家が買う。紙を消費（文書行政）。不足＝汚職
@@ -365,7 +365,7 @@ public static class Catalog
     public const int ElectricityId = 78;   // 電力（NonTradeable）。決済・revenue集計に絡むので生整数でなく名前付き定数で参照（貨幣保存の取りこぼし防止）
     public const int GoldOreId = 4;        // 金鉱（RGO）。産出が貨幣供給(Bank.Gold)に流入＝ゴールドラッシュ
     public const int SilverId = 110;       // 銀（銀本位doc G3・2026-08-13）。銀本位国の造幣局が買う本位金属＝法が変われば需要が現れ・消える
-    public const int CoalId = 1;           // 石炭（RGO）。蒸気動力の燃料＝★(179) 動力の財の蒸気機関のレシピが買う（旧＝蒸気化した工場が EnergyPerOutput で焚いた）
+    public const int CoalId = 1;           // 石炭（RGO）。蒸気動力の燃料（蒸気→電力で代替）＝発明後(SteamScale>0)に蒸気化した工場が EnergyPerOutput で消費（電化と同型）
     public const int DomesticServiceId = 114;  // 家事奉仕（役務）。家事使用人(ClassId12)が算出・富裕層が消費（#12）
     // マジックナンバー一掃2026-07-20：各所に散在していた裸の good-id リテラルを命名（値は据え置き＝挙動不変）。
     public const int LivestockId = 19;         // 畜産（RGO・牧場）。派生需要のみ（BaseNeed=0）＝羊毛/革/肉/チーズ/馬の上流
@@ -483,7 +483,7 @@ public static class Catalog
     /// 費用に錨を置き値幅を狭く取る（EconomyStep が ±3倍程度に制限）＝役務popの収入が暴落・暴騰で壊れない。</summary>
     public static double ServiceRefPrice(int id) => id switch
     {
-        LaborId or MilitaryPowerId or FarmLaborId => 0.5,   // 労働は一律の錨。農村が安い・技師が高い等の**格差は需給から創発**させる（値幅は発振防止のみ）。★(179) 動力（LaborId）＝人力の動力の値段＝賃金
+        LaborId or MilitaryPowerId or FarmLaborId => 0.5,   // 労働は一律の錨。農村が安い・技師が高い等の**格差は需給から創発**させる（値幅は発振防止のみ）
         AdvLaborId => 0.8,                 // 技師の役務は高い（希少な技能）
         _ => 0.6,
     };
@@ -499,7 +499,7 @@ public static class Catalog
     };
 
     // 生産レシピの共通定数（ビルダーと参照価格計算の単一の真実）：
-    public const double LaborPerOutput = 0.5;       // 工場の産出1単位あたりの動力の投入（★(179) 旧 労働力＝工場が買うのは動力）
+    public const double LaborPerOutput = 0.5;       // 工場の産出1単位あたりの労働力投入
     public const double FarmLaborPerOutput = 0.4;   // 自家農家（RGO）の産出1単位あたりの農業労働力
     public const double FactoryVa = 0.06;           // 工場の自己費用（管理・資本の付加価値＝MarginalCost）
     public const double RgoVa = 0.34;               // 自家農家の自己費用（土地・道具。＋農業労働0.16≈旧0.5＝損益分岐を維持）
@@ -525,7 +525,7 @@ public static class Catalog
     /// だぶついた在庫が永久に滞留して価格を床へ固定するのを防ぐ（穀物は早く腐り、鉄は長く保つ＝ユーザー指定）。</summary>
     public static double SpoilageOf(int id) => id switch
     {
-        LaborId or EducationId or HealthcareId or AdminId or MilitaryPowerId or AdvLaborId or FarmLaborId or DomesticServiceId or ElectricityId or GridId or HigherEducationId => 1.0,          // 役務（労働力・教育・医療・行政・兵力・高度/農業労働力・家事奉仕・高等教育136）＋電力(87)/送電網(99)＝NonTradeableの非貯蔵物理財。貯蔵不能で当期生産→当期消費（余剰は消える）。2026-07-19バグ監査：既定0.005で電力在庫が滞留し電化採算を歪めていたのを是正／136は94「教育」と同型のService財なのに欠落（監査2026-08-31）
+        LaborId or EducationId or HealthcareId or AdminId or MilitaryPowerId or AdvLaborId or FarmLaborId or DomesticServiceId or ElectricityId or GridId or HigherEducationId => 1.0,           // 役務（労働力・教育・医療・行政・兵力・高度/農業労働力・家事奉仕・高等教育136）＋電力(87)/送電網(99)＝NonTradeableの非貯蔵物理財。貯蔵不能で当期生産→当期消費（余剰は消える）。2026-07-19バグ監査：既定0.005で電力在庫が滞留し電化採算を歪めていたのを是正／136は94「教育」と同型のService財なのに欠落（監査2026-08-31）
         BreadId => 0.25,                                                                 // パン（数日）
         FruitId or FishId or VegetableId or PotatoId => 0.20,                                             // 果実・漁獲・野菜・ジャガイモ（生鮮塊茎）
         LivestockId or MeatId => 0.15,                                                           // 畜産・肉
@@ -601,7 +601,7 @@ public static class Catalog
     public static readonly DiscoveryRow[] Discoveries =
     [
         // --- 製法（同じ財を別の投入で作る方法＝時代差のレシピ）---
-        new("蒸気機関", LaborId, "蒸気機関", DiscoveryField.Process, 1780),              // 工場に据える原動機（ワットの回転機関1781）＝動力（LaborId の財）の別のレシピ（必要性＝作者 2026-10-02 の一般則＝「(間接的に人が生み出している)動力が高いか」＝動力の平滑化した値段÷蒸気の動力を新しいレシピで作る費用〔★(169) 他の行と同じ規則＝自己費用＋蒸気機関の財と石炭〕・旧＝人件費の世界比は (159)(165) で削除）。開幕の既知＝world.json の knownDiscoveries（英＝1783年に工場の原動機として使っていた唯一の国・実装ログ (169)）
+        new("蒸気機関", LaborId, "蒸気機関", DiscoveryField.Process, 1780),              // 工場に据える原動機（ワットの回転機関1781）＝動力（労働力の財）の別のレシピ（必要性＝作者 2026-10-02 の一般則＝「(間接的に人が生み出している)動力が高いか」＝動力の平滑化した値段÷蒸気の動力を新しいレシピで作る費用〔★(169) 他の行と同じ規則＝自己費用＋蒸気機関の財と石炭〕・旧＝人件費の世界比は (159)(165) で削除）。開幕の既知＝world.json の knownDiscoveries（英＝1783年に工場の原動機として使っていた唯一の国・実装ログ (169)）
         new("甜菜糖", SugarId, "甜菜糖", DiscoveryField.Process, 1800),                  // アシャール1801・大陸封鎖1806〜（作者 2026-09-28 提案①の採用＝地理差でなく発見）
         new("魚の缶詰", CannedFoodId, "魚の缶詰", DiscoveryField.Process, 1810),          // 缶詰の第2レシピ（アペール法1809）
         new("キニーネの単離", QuinineId, "", DiscoveryField.Process, 1820),              // ペルティエ＝カヴァントゥ1820（単離の前は樹皮の粉末＝地理差）
@@ -616,7 +616,7 @@ public static class Catalog
         new("無煙火薬", GunpowderId, "無煙火薬", DiscoveryField.Process, 1880),          // ヴィエイユ1884
         new("水力発電", ElectricityId, "水力発電", DiscoveryField.Process, 1880),         // アップルトン1882・ナイアガラ1895
         new("蒸気タービン", ElectricityId, "蒸気タービン", DiscoveryField.Process, 1880), // パーソンズ1884
-        new("電動機", LaborId, "電動", DiscoveryField.Process, 1880),                    // 工場の電動機＝動力（LaborId の財）の別のレシピ（必要性＝動力の値段÷電動の動力を新しいレシピで作る費用〔自己費用＋電力〕・蒸気機関の行と同じ規則・(165)(169)）
+        new("電動機", LaborId, "電動", DiscoveryField.Process, 1880),                    // 工場の電動機＝動力（労働力の財）の別のレシピ（必要性＝動力の値段÷電動の動力を新しいレシピで作る費用〔自己費用＋電力〕・蒸気機関の行と同じ規則・(165)(169)）
         new("人絹", SilkClothId, "人絹", DiscoveryField.Process, 1890),                  // シャルドネ1891・ビスコース1892
         new("石油火力", ElectricityId, "石油火力", DiscoveryField.Process, 1900),        // §1A-5 の表
         new("窒素固定", FertilizerId, "ハーバーボッシュ", DiscoveryField.Process, 1910), // ハーバー＝ボッシュ1913（旧＝肥料の既定の onset の流用＝設計 §5 F2 の半分・硝石へ移すのは次の段）

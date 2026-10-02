@@ -195,11 +195,9 @@ public class ServiceEconomyTests
         var sim = new Simulation(NationConfig.Russia().ToScenario(29), new NullAgent());   // 後進国＝電力が高いまま
         sim.Run(40);   // 1789-1799
         var r = sim.World.Regions[0];
-        // ★(179) 電化＝動力の財の電動のレシピの割合（旧＝工場の電化率 ElecFill）
-        double all = r.Producers.Where(p => p.GoodId == Catalog.LaborId).Sum(p => p.Output);
-        double elec = r.Producers.Where(p => p.GoodId == Catalog.LaborId && p.RecipeName == "電動").Sum(p => p.Output);
-        double share = all > 0 ? elec / all : 0;
-        Assert.True(share < 0.15, $"1790年代のロシアで工場が電化している（動力のうち電動 {share:P0}）");
+        var factories = r.Producers.Where(p => p.BuysLabor).ToList();
+        double avgFill = factories.Count > 0 ? factories.Average(p => p.ElecFill) : 0;
+        Assert.True(avgFill < 0.15, $"1790年代のロシアで工場が電化している（平均電化率 {avgFill:P0}）");
     }
 
     // ⚠★撤去2026-09-03（J-007）：「距離の遠い国は輸送マージンが嵩み交易が細い」を**この層から外した**。

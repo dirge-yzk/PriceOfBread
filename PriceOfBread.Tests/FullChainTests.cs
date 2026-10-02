@@ -58,9 +58,30 @@ public class FullChainTests
         Assert.True(sim.World.CumulativeGoldMinted > 0, "鋳造が一度も発生していない（金鉱の産出/在庫が無い？）");
     }
 
-    // ★(179) 旧「蒸気動力は蒸気機関の発見の後に石炭需要を工業へ連動させ保存則を保つ」を削除＝蒸気は工場の上乗せ（SteamFill・EnergyPerOutput）でなく動力の財の蒸気機関のレシピ
-    //   （国家の世界のビルダー＝AddServiceProducers だけが並べる・フルチェーンの小さな世界は人力の1本）。機構の番人は IndustryThemeTests の
-    //   「賃金が高い州は蒸気の動力を選び安い州は選ばない」と DiscoveryScoreTests の「世界のゲート_工場の蒸気動力は蒸気機関の発見が開き技術水準では開かない」。
+    [Fact]
+    public void 蒸気動力は蒸気機関の発見の後に石炭需要を工業へ連動させ保存則を保つ()   // 蒸気＝電化と同型の据付動力：未発見の国は石炭を焚かない（1789年の時代錯誤を解消）、発見の後は石炭需要が工業基盤に連動
+    {
+        // 蒸気機関が未発見（★2026-10-01 (150)：工場の蒸気動力の門＝発見の表の「蒸気機関」の行・旧＝技術水準の時計 SteamTechOnset）：機械化工場は石炭を「動力」として焚かない＝水車/畜力
+        //   （単独の世界も四半期末に判定する＝製法の必要性の半分点を無限にして開かない盤面にする）
+        var lockedSim = new Simulation(Full(1), new NullAgent());
+        lockedSim.World.Coef.EnergyPerOutput = 0.2;
+        lockedSim.World.Discovered[Discovery.SteamRow] = false;   // 蒸気機関が未発見
+        lockedSim.World.Coef.DiscoveryNeedHalfProcess = double.PositiveInfinity;   // 単独の世界の四半期の判定でも開かない（製法の必要性0＝技術力だけでは門に届かない）
+        lockedSim.Run(200);
+        double lockedCoalDemand = lockedSim.World.Regions[0].Markets[Catalog.CoalId].LastDemand;
+
+        // 蒸気機関を発見済み（技術水準に依らない＝NullAgentで技術が伸びなくても開く）：機械化工場が産出比例で動力(石炭)を焚く＝石炭需要が工業基盤に連動
+        var steamSim = new Simulation(Full(1), new NullAgent());
+        steamSim.World.Coef.EnergyPerOutput = 0.2;
+        steamSim.World.Discovered[Discovery.SteamRow] = true;   // 蒸気機関を発見済み
+        double base0 = steamSim.World.BaseMoney;
+        var ex = Record.Exception(() => steamSim.Run(200));
+        Assert.Null(ex);   // §11.6（保存・境界）が全ティックで保持
+        Assert.True(Math.Abs(steamSim.World.BaseMoney - base0 - steamSim.World.CumulativeTradeFlow - steamSim.World.CumulativeGoldMinted) < 1e-3 * Math.Max(1.0, base0), "蒸気動力込みの基礎貨幣保存の破れ");
+        // 蒸気解禁の方が石炭の総需要が高い（動力としての石炭消費が工業に連動＝解禁前は焚かない）
+        double steamCoalDemand = steamSim.World.Regions[0].Markets[Catalog.CoalId].LastDemand;
+        Assert.True(steamCoalDemand > lockedCoalDemand, $"蒸気解禁で石炭の総需要が増えていない（locked={lockedCoalDemand:F1} steam={steamCoalDemand:F1}）");
+    }
 
     [Fact]
     public void 同一シードで全50財チェーンは決定論的()
@@ -181,7 +202,7 @@ public class FullChainTests
             (Catalog.WatchId, "時計"),
             (Catalog.InstrumentId, "楽器"),
             (Catalog.OpiumId, "アヘン"),
-            (Catalog.LaborId, "動力"),   // ★(179) 旧名「労働力」＝工場が買う動力（人力＝工場労働者の時間・機械の動力のレシピ）
+            (Catalog.LaborId, "労働力"),
             (Catalog.EducationId, "教育"),
             (Catalog.HealthcareId, "医療"),
             (Catalog.AdminId, "行政"),

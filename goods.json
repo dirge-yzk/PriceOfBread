@@ -1571,7 +1571,7 @@
   },
   {
     "id": 84,
-    "name": "動力",
+    "name": "労働力",
     "tier": "Service",
     "baseNeed": 0,
     "elasticity": 0.5,

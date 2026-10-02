@@ -377,10 +377,6 @@ public class WriterRatchetTests
     //   （−20.7%＝10% を超えて下がった＝表を下げる・同盟の候補が居る月の軌道）。処理の形は同じ。ほかの15本は許しの内（フルスイートで確かめた）。
     //   全長の10種（b10_20261002_col175.cost）では着値の充填 468,394,059→486,726,433（+3.9%＝汽船の時代の占有が軽くなり交易の容量が増えた）・建設 422,114→338,635・
     //   覇権の判定 222,334,031→233,160,995＝推定 246.8→248.1 秒（予算の内＝上限 248.5 秒・余り 0.4 秒＝払っていない・実装ログ (173)）。
-    // ★2026-10-03 表の更新（(179) 線D 前半＝動力の財〔工場の蒸気と電化の上乗せ・機械化度を削除し動力のレシピへ＝財も生産者も足していない〕＝軌道が動いた分の宣言・新しい計数の処理は無い
-    //   〔電動の動力の送電容量の頭打ちは供給の段の生産者1件ごとの小さな述語＝「生産者×月」の単価の中・工場の蒸気と電化の決済の枝は消えた〕）：
-    //   覇権の判定 1,682,840→2,013,545（+19.7%＝最初の40四半期の同盟の候補が居る月の軌道＝(170)(173) と同じ型）・脅威の届き方 301,265→307,983（+2.2%＝許しの外へ少し出た軌道）。
-    //   処理の形は同じ。ほかの15本は許しの内（フルスイートで確かめた）。全長の10種（b10_20261003_pow178.cost）＝推定 247.5→247.6 秒（予算の内＝上限 248.5 秒・払っていない・実装ログ (179)）。
     [InlineData(CostLedger.ConstructionSeen, 7658L)]
     [InlineData(CostLedger.CreditSpans, 33282L)]
     [InlineData(CostLedger.ConsumePopGoods, 28595736L)]
@@ -390,14 +386,14 @@ public class WriterRatchetTests
     [InlineData(CostLedger.ClearingRows, 5185642L)]
     [InlineData(CostLedger.ClearingFills, 42375697L)]
     [InlineData(CostLedger.DiploPowerMonths, 9954L)]
-    [InlineData(CostLedger.DiploHegemonScans, 2013545L)]
+    [InlineData(CostLedger.DiploHegemonScans, 1682840L)]
     [InlineData(CostLedger.QuarterStartPops, 235560L)]
     [InlineData(CostLedger.QuarterEndPops, 235560L)]
     [InlineData(CostLedger.SharedNationQuarters, 3698L)]
     [InlineData(CostLedger.GdpScans, 8670915L)]
     [InlineData(CostLedger.MigrationPairs, 4191142L)]
     [InlineData(CostLedger.DiscoveryNations, 2532L)]
-    [InlineData(CostLedger.ThreatReachPairs, 307983L)]
+    [InlineData(CostLedger.ThreatReachPairs, 301265L)]
     // ★2026-10-02 表の更新（(170) 厭戦の基礎を動員の負担へ〔外部レビュー Q10〕＝軌道が動いた分の宣言・新しい計数の処理は無い
     //   〔基礎の計算＝交戦国×月に州×POP を1回（兵役の母数と兵士・(172) で兵士と人口へ）＝「外交：国×月」の単価の中の小さい分〕）：
     //   覇権の判定 1,941,249→2,884,531（+48.6%＝戦争が長くなり最初の40四半期の交戦と同盟の候補が居る月が増えた軌道・処理の形は同じ）。ほかは許しの内（フルスイートで確かめた）。
