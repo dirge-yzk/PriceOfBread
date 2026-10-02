@@ -1255,6 +1255,9 @@ public sealed class Coefficients
     public double InlandPortDistanceDecay = 1.0;    // 内陸州のrailToPort容量を最寄り港までの海路距離で減衰（trade-capacity-even-share-not-network）＝遠い内陸ほど鉄道を食い港集約が創発。減衰=1/(1+これ×NearestPortDistanceKm/10000)。0で均等割りそのまま（恒等）
     public double TransportDecay = 0.02;            // 鉄道/船容量の月次減耗（維持に投資が要る＝持続需要）
     public double TransportTargetPerPop = 0.08;     // 目標容量＝人口×これ（必要数を増やし鉄道供給網の構築を要求）
+                                                    //   ⚠読み手は2つ（2026-10-02 (167)・反証役の指摘）＝①鉄道の容量の目標（Transport.Step＝人口×これ×(1＋脅威の項)×(1＋混雑)）
+                                                    //   ②鉄道以前の陸の容量（Transport.PreRailCapacity＝人口×これ・(166)）＝同じ係数で2つの物理量を読む＝鉄道÷鉄道以前の比は脅威の項と混雑の項だけで決まる。
+                                                    //   ⚠この値を較正し直す（9-3）と鉄道以前の陸の容量も黙って動く・脅威の項を直す（安全保障の不安の回）と (166) の量の錨（英の鉄道以前÷1913 の鉄道 2.2%）も動く。
     public double TransportCapPerUnit = 30.0;       // 鉄道/船 1単位の購入が積む容量
     public double TransportBuildRate = 0.15;        // 容量ギャップを毎月詰める速さ（投資の上限割合）
     // T1（輸送doc §3-3・2026-07-31）：輸送財の**需要の計上**を買い手の支払い能力で頭打ちにする係数（1単位あたり＝手持ち貯蓄で買える単位数の倍率）。
@@ -1270,7 +1273,7 @@ public sealed class Coefficients
                                                    //   ⚠経済規模 16.3→26.3（+10.0）／列強再現率 18.8→27.5（+8.8）／政体exact 43.3→46.2／法 56.8→59.7／◎16→17。
                                                    //   ⚠記録＝領土植民地 35.0→30.0（−5.0）／人口 15.7→14.3。要注意フラグはモンゴル最下位6/10（既知の慢性観察）。差し戻し口＝この値を0へ。
     // 【削除2026-10-02 (166)】TransportBaseline（50.0＝前鉄道の基礎輸送＝国ごとの定数）＝鉄道以前の陸の容量は人口×TransportTargetPerPop（Transport.PreRailCapacity）へ
-    //   ＝国の数で決まる定数は分子と分母の非対称（潜在の交易は国の規模で増える）＝大国の内陸の州の通した割合が 0.3〜3% に絞られ陸の運賃が天井に張り付いた（実装ログ (166)）。
+    //   ＝国の数で決まる定数は分子と分母の非対称（潜在の交易は国の規模で増える）＝大国の内陸の州の通した割合が 0.26〜10% に絞られ陸の運賃が天井に張り付いた（(165) の木の5種・1784 の種の中央＝英 1.0・仏 0.42・清 0.26・米 10%・実装ログ (166) §3-1）。
     // 【削除2026-10-01 (150)】RailTechOnset（0.35）・RailTechWidth（0.5）・RailGate(tech)＝鉄道の門の技術水準の時計（鉄道の容量の目標・清算の陸路の費用）
     //   ＝発見の表の「機関車」の行へ移した（Discovery.RailTransport＝2値・敷設の速さは容量を買う予算と財＝市場）。
     public int[] ShipGoodIds = [Catalog.SailingShipId, Catalog.SteamshipId];            // 帆船(tier1)・汽船(tier2)。★2026-09-26（回4-3）：Transport が州ごとに容量あたりの総費用（船価＋汽船は寿命の間の燃料）の安い1財だけを買う

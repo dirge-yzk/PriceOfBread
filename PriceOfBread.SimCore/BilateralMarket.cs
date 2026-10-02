@@ -160,7 +160,7 @@ public sealed partial class InternationalMarket
             //   規則は1本（Transport.ShareBasis／RegionShare＝州の移し替えで容量が州と一緒に移るときも同じ割合・2026-09-30 (118)）。分母が痩せたら（開幕・実績なし）均等へ倒す＝立ち上がりの跳躍なし
             var shareBasis = Transport.ShareBasis(W, c);
             // ★B-06（2026-09-03 点火・旗 TransportBaselineIsLand は 2026-09-26 に焼き込み）：鉄道以前の基礎容量は**陸**（道路・河川）。
-            //   ★(166) 鉄道以前の陸の容量＝人口×基礎の目標（Transport.PreRailCapacity・旧＝国ごとの定数 TransportBaseline 50＝大国の内陸が通した割合 0.3〜3% に絞られた）。
+            //   ★(166) 鉄道以前の陸の容量＝人口×基礎の目標（Transport.PreRailCapacity・旧＝国ごとの定数 TransportBaseline 50＝大国の内陸が通した割合 0.26〜10% に絞られた〔(165) の木の5種・1784〕→ 0.36〜1.0〔(166) の10種〕）。
             double railCapNat = W.RailCapacity + Transport.PreRailCapacity(W, c);
             double shipCapNat = W.ShipCapacity / (1.0 + W.ColonialShipBurden);
             foreach (var r in W.Regions)

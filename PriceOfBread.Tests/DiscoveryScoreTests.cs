@@ -234,9 +234,11 @@ public class DiscoveryScoreTests
     /// ②新製品（ガス灯＝灯油）＝換算の比（新しい財1単位が置き換える代替する物の量＝普通の値段で同じ値打ち＝ガスの参照価格÷灯油の参照価格）を掛けた灯油の値段がガスの費用の2倍なら ln 2
     /// ③機関車＝陸の輸送の値段÷鉄道の輸送の費用（清算の陸路の費用の鉄道÷馬・内陸の州の潜在量で重み付け）④代替する物の需要が国内に無いと0
     /// ⑤陸の輸送の値段＝(1÷通した割合)^(1/2ε)・通した割合0 は財の値段の天井（PriceCeilFactor）。
-    /// ⚠壊し方＝参照価格と比べる（(159) の形）・代替する物の欄を読まない・換算の比を掛けない・投入の値段を読まない・機関車の比べる相手を1にする・需要の無い財を読む → 赤。</summary>
+    /// ⚠壊し方＝参照価格と比べる（(159) の形）・代替する物の欄を読まない・換算の比を掛けない・投入の値段を読まない・機関車の比べる相手を1にする・需要の無い財を読む → 赤。
+    /// ⚠(167) 反証役の指摘で名前を直した（旧「…_参照価格は読まない」）＝製法・動力・機関車は参照価格を読まないが、新製品は換算の比（参照価格の比）を掛ける
+    ///   ＝強度＝ln((代替する物の値段÷その参照価格)÷(新しいレシピの費用÷新しい財の参照価格))＝新製品の必要性の0点は参照価格の比が決める（作者への確認②）。</summary>
     [Fact]
-    public void 代替する物の値段は新しいレシピで作る費用と比べる_参照価格は読まない()
+    public void 代替する物の値段は新しいレシピで作る費用と比べる_新製品だけ参照価格の比で単位を換える()
     {
         var sim = Board();
         var w = Nation(sim, "イギリス");
@@ -354,6 +356,32 @@ public class DiscoveryScoreTests
         var p2 = (double[])px.Clone(); p2[Catalog.LaborId] = 100.0;          // 動力がどれほど高くても
         var wp2 = (double[])px.Clone(); wp2[Catalog.ElectricityId] = 1e-6;   // 世界の電力がどれほど安くても
         Assert.Equal(0.0, Discovery.Evaluate(w, new Discovery.WorldView(null, null, wp2), w.Coef, includeKnown: true, realPrice: p2)[motor].Need);
+    }
+
+    /// <summary>★(167) 反証役の指摘（旧 (164) の低）＝値段の読み方の②（国内の市場が今の四半期に生きている財＝自国の平滑化した値段・他国の値段は読まない）の番人：
+    /// 盤面＝英の人絹（代替する物の絹織物と人絹の投入の市場が英で生きている・絹は人絹の費用の2倍＝必要性が立つ）→ 世界の平滑化した値段だけを
+    /// 代替する物と投入について 0.1倍・10倍に変えても必要性は同じ（世界の値段が無いときとも同じ）。
+    /// ⚠壊し方＝生きた財でも世界の値段（またはその安い方）を読む → 赤。</summary>
+    [Fact]
+    public void 国内の市場が生きている財は自国の平滑化した値段を読み世界の値段では動かない()
+    {
+        var sim = Board();
+        var w = Nation(sim, "イギリス");
+        int ng = Catalog.Goods.Length, silk = Row("人絹"), gs = Catalog.SilkClothId;
+        var px = (double[])w.DiscoveryPrice!.Clone();
+        for (int i = 0; i < ng; i++) if (!(px[i] >= 0)) px[i] = Catalog.RefPrices[i];
+        px[ng] = 1.0;
+        var repS = RepOf(w, silk);
+        Assert.True(AliveIn(w, gs) && repS.Inputs.All(i => AliveIn(w, i.GoodId)), "前提が崩れた（英の絹織物か人絹の投入の市場）");
+        double cS = CostByHand(w, repS, px);
+        px[gs] = 2.0 * cS;
+        double NeedWith(double[]? wp) => Discovery.Evaluate(w, new Discovery.WorldView(null, null, wp), w.Coef, includeKnown: true, realPrice: px)[silk].Need;
+        double baseNeed = NeedWith(null);
+        Assert.True(baseNeed > 0, $"前提が崩れた（人絹の必要性 {baseNeed}）");
+        var cheap = (double[])px.Clone(); var dear = (double[])px.Clone();
+        foreach (int g in repS.Inputs.Where(i => i.QtyPerOutput > 0).Select(i => i.GoodId).Append(gs)) { cheap[g] = 0.1 * px[g]; dear[g] = 10.0 * px[g]; }
+        Assert.Equal(baseNeed, NeedWith(cheap), 12);
+        Assert.Equal(baseNeed, NeedWith(dear), 12);
     }
 
     /// <summary>★(166) 陸の運賃（機関車の必要性の入力）の天井は財の値段と同じ漸近形＝内側はほぼ 1÷通した割合（通した割合 0.5 で 2）・天井（PriceCeilFactor）へ漸近して超えない・
