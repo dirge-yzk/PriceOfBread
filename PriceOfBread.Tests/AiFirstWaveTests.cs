@@ -359,4 +359,47 @@ public class AiFirstWaveTests
         UtilityAgent.Apply(w, (UtilityAgent.Stance)stance);
         Assert.Equal(tab ? cur + 1 : cur, Target());   // AIだけが止まる門は無い（止まるのは法律タブでも押せない段だけ）
     }
+
+    // ============ ④ 農奴解放の目標（2026-10-03 (184)） ============
+
+    /// <summary>★(184) 農奴解放の盤面＝ロシア（開幕 なし）・主食は満ちている（飢饉の判定が立たない）・地代の余地0（なし＝上限1.0）。
+    /// openGate＝政治ロックを外して門だけを開く（AI の「望む」を政治の可否から切り離して見る）。</summary>
+    private static World SerfWorld(bool openGate)
+    {
+        var w = new Simulation(NationConfig.Russia().ToScenario(11), new NullAgent()).World;
+        w.FoodFill = 1.0;
+        if (openGate) w.PoliticalLockEnabled = false;
+        return w;
+    }
+
+    /// <summary>★(184) AI の農奴解放の目標は飢饉や地代の余地を読まない＝門（法律タブと同じ GateInfo）が通るなら次の段を置き、施行で領主権の残高が下がる。
+    /// 旧＝余地（今の法の上限に対して測る＝なしでは常に0）か飢饉の時だけ置いた＝腕A（(183) の木）の10種で段の動きの9割が飢饉の四半期（開幕の10年に多い）
+    /// ＝開幕の数十年に解放する種と1950年まで解放しない種に割れた。突然変異（旧の条件へ戻す）で赤。</summary>
+    [Fact]
+    public void AIは飢饉も地代の余地も無くても門が通れば農奴解放の次の段を置き施行で領主権が下がる()
+    {
+        var w = SerfWorld(openGate: true);
+        Assert.Equal(ReformLevel.None, w.SerfEmancipation);
+        Assert.True(w.FoodFill >= w.Coef.DynMandateFoodAnchor, "テスト前提が崩れた：飢饉の判定が立つ");
+        foreach (var r in w.Regions)
+            foreach (var pr in r.Producers)
+                if (pr.IsRgo) Assert.True(pr.RentShare <= r.FarmRentCap, "テスト前提が崩れた：地代の余地がある");
+        Assert.True(Government.GateInfo(w, PolicyAxis.SerfEmancipation, increasing: true, (int)ReformLevel.Limited).Ok, "テスト前提が崩れた：門が開かない");
+        UtilityAgent.Apply(w, UtilityAgent.Stance.Modernize);
+        Assert.Equal(ReformLevel.Limited, w.Policy.SerfEmancipation);   // 旧＝余地0・飢饉なし＝置かない（なしのまま）
+        Government.Step(w, w.Coef);
+        Assert.Equal(ReformLevel.Limited, w.SerfEmancipation);
+        Assert.Equal(0.5, Privileges.SeigneurialDegree(w));   // 効いた量＝領主権の残高（農村→都市の流れの門 SerfMobilityGate・皆兵の門〔(178) の設計〕が読む）
+    }
+
+    /// <summary>★(184) 門が通らない段は置かない（幽霊戦線を作らない）＝飢饉の判定が立つ四半期（旧の入口）でも、目標は門の1本で決まる。</summary>
+    [Fact]
+    public void 門が通らなければAIは飢饉の四半期でも農奴解放の目標を置かない()
+    {
+        var w = SerfWorld(openGate: false);
+        w.FoodFill = 0.5;   // 飢饉の判定が立つ
+        Assert.False(Government.GateInfo(w, PolicyAxis.SerfEmancipation, increasing: true, (int)ReformLevel.Limited).Ok, "テスト前提が崩れた：開幕のロシアで門が開く");
+        UtilityAgent.Apply(w, UtilityAgent.Stance.Modernize);
+        Assert.Equal(ReformLevel.None, w.Policy.SerfEmancipation);
+    }
 }

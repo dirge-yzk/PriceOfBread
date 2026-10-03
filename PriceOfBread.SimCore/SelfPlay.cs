@@ -174,7 +174,7 @@ public sealed class UtilityAgent : INationAgent
     public const double OpeningModernizationFrac = ModernizeInvestFrac;
     private const double CornUrbanRepeal = 0.35;     // 都市化がこれ超なら撤廃へ（都市が安いパンを要求＝反穀物法同盟）
     private const double CornAgrarianKeep = 0.15;    // 都市化がこれ未満なら維持へ（地主が支配的な農業国）
-    private const double EmancipationRentRoom = 0.05;// 地代の取り分が上限をこれ超で上回っていれば解放に余地がある
+    private const double EmancipationRentRoom = 0.05;// 地代の取り分が上限をこれ超で上回っていれば土地改革に余地がある（⚠農奴解放は読まない＝2026-10-03 (184)）
 
     /// <summary>★法の目標を**1段だけ**動かす（3法のAI・2026-08-02）。
     /// ⚠★置く前に <see cref="Government.GateInfo"/> を確認する＝**幽霊戦線の防壁**。
@@ -1367,7 +1367,8 @@ public sealed class UtilityAgent : INationAgent
                          : w.UrbanShare < CornAgrarianKeep ? 2 : (int)p.CornLaws;                // 全面＝地主保護
             StepLawToward(w, p, PolicyAxis.CornLaws, (int)p.CornLaws, cornWant, 2, v => p.CornLaws = (ReformLevel)v);
 
-            // 農奴解放・土地改革＝**地代の取り分が上限を超えている余地**が解放の効き。超えていなければ動かす意味がない。
+            // 土地改革＝**地代の取り分が上限を超えている余地**が改革の効き。超えていなければ動かす意味がない。
+            //   ⚠農奴解放はこの余地で動かさない（下の注記・2026-10-03 (184)）。
             // ★走査は RGO に限る（2026-08-02修正）。FarmRentCap が実際に律速するのは RGO だけ（EconomyStep.cs の
             //   `s.IsRgo ? Min(...) : s.RentShare`）なのに初版は全生産者を見ていた。全州に必ず居る RentShare=1.0 の
             //   非RGO工場（坩堝鋼・錬鉄レール）が常に上限超過として数えられ、法が1段でも動くと room が恒久的に立つ
@@ -1386,11 +1387,16 @@ public sealed class UtilityAgent : INationAgent
                 }
             }
             double room = rentN > 0 ? rentRoom / rentN : 0;
+            // ★農奴解放＝**次の段を毎四半期の目標に置く**（2026-10-03 (184)・推奨で進めた）＝可否は門（法律タブと同じ GateInfo＝旧支配層の反対と政治資本の在庫）が決める
+            //   ＝検閲の既定（「自由化を目指す・政治ゲートが可否を決める」）と同じ形。読む物質量＝領主権の残高そのもの（農奴の移動不能＝SerfMobilityGate で農村→都市の流れが止まる・
+            //   地代の上限・皆兵の門〔(178) の設計〕）＝残っている限り解く値打ちがある。
+            //   旧＝余地（上の room）か飢饉の時だけ置いた。⚠余地は**今の法の上限**に対して測る＝なし（上限1.0）では常に0＝「なし→限定」の入口は飢饉だけだった。
+            //   飢饉の判定は開幕の10年に多い（腕A の10種＝清32%・オスマン48%・スペイン28%・墺16%・露15% の四半期）＝門が開く窓（立憲か共和＝全ての国の門が開いた四半期の99.8%）と
+            //   開幕の飢饉が重なった種だけが開幕の数十年に解放し、他は1950年まで解放しなかった（日 1785/1787〔2/10〕・露 1790/1794〔2/10〕・仏 2/10）＝(178) の記録の二つの山の根。
+            //   ⚠段は1つずつ（StepLawToward）・門が通らない段は置かない（幽霊戦線を作らない）＝プレイヤーが法律タブで同じ段を押すのと同じ1本。
+            StepLawToward(w, p, PolicyAxis.SerfEmancipation, (int)p.SerfEmancipation, (int)p.SerfEmancipation + 1, 2, v => p.SerfEmancipation = (ReformLevel)v);
             if (room > EmancipationRentRoom || famine)
-            {
-                StepLawToward(w, p, PolicyAxis.SerfEmancipation, (int)p.SerfEmancipation, (int)p.SerfEmancipation + 1, 2, v => p.SerfEmancipation = (ReformLevel)v);
                 StepLawToward(w, p, PolicyAxis.LandReform, (int)p.LandReform, (int)p.LandReform + 1, 2, v => p.LandReform = (ReformLevel)v);
-            }
         }
 
         // 阿片の法のAI（禁制品doc C3・2026-07-30。旧＝bool の行政禁令を即時に立てるだけだった）：
