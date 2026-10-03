@@ -37,7 +37,7 @@ public class DormantIdentityTests
         "SerfGateCoversPool",           // C-03：農奴の移動制限を失業プール経路へも広げる
         // ★DomesticFlightHasHost は 2026-09-22 に**点火**（旗ごと削除＝逃避の受け皿が常に外資の負債を記帳）＝この表から外した。
         "NiterBedEnabled",              // 硝石丘＝硝石の低効率レシピ（財の3分類の再開）＝0で足さない
-        "ScarceCountsIncludeColonies",  // 希少鉱物の総量保存の k/N に植民地を数える（分子と分母の非対称の是正）＝0で従来
+        // ★ScarceCountsIncludeColonies（希少鉱物の総量保存の k/N に植民地を数える）は 2026-10-04 (197) で**点火**（反証役 vq2#1）＝この表から外した。
         "PrivilegeLedgerEnabled",       // 特権の台帳（段1・観測のみ）＝0で1命令も走らない
         "PrivilegeStripMilitancy",      // 特権システム 段3＝剥離の怒り（PrivilegeLedgerEnabled>0 が前提）＝0で加算なし
         "DecayFromPrivilege",           // 特権システム 段6＝制度疲労の導出（読み手3箇所は DecayForReaders・ゲート0で旧値）

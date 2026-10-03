@@ -383,11 +383,11 @@ public class WriterRatchetTests
     //   新しい計数「発見：平滑化した値段の歩（国×四半期）」＝数えていなかった Discovery.AdvancePrice（単価 19.63 µs）＝2,503（40四半期）。
     //   覇権の判定 1,682,840→1,801,994（+7.1%＝最初の40四半期の同盟の候補が居る月の軌道・処理の形は同じ）。ほかは許しの内（フルスイートで確かめた）。
     //   全長の10種（b10_20261003_cap186.cost）の推定は実装ログ (186)。
-    [InlineData(CostLedger.ConstructionSeen, 8204L)]
+    [InlineData(CostLedger.ConstructionSeen, 7000L)]
     [InlineData(CostLedger.CreditSpans, 33282L)]
     [InlineData(CostLedger.ConsumePopGoods, 28595736L)]
     [InlineData(CostLedger.ProducerMonths, 6495176L)]
-    [InlineData(CostLedger.ClaimProducers, 3013L)]
+    [InlineData(CostLedger.ClaimProducers, 2626L)]
     [InlineData(CostLedger.MonthlyPops, 706680L)]
     [InlineData(CostLedger.ClearingRows, 5185642L)]
     [InlineData(CostLedger.ClearingFills, 42375697L)]
@@ -420,9 +420,10 @@ public class WriterRatchetTests
     //   覇権の判定 1,978,652→1,614,601（−18.4%＝10% を超えて下がった＝表を下げる・処理が減った分＋軌道）。ほかの17本は許しの内（+2%／−10%・フルスイートで確かめた）。
     //   全長の10種（計器なしどうし＝`b10_20261003_cnl193`→`b10_20261004_cnl194`）では覇権の判定 154,097,975→119,118,134（−22.7%）＝推定 0.73→0.56 秒・全体 244.8→243.7 秒（上限 248.5 秒の内・実装ログ (195)・(197) 反証役 vp2#1＝旧の注記は計器つきの 211,521,208 と比べていた）。
     //   WarScale の走査（交戦中の国×四半期に戦争の数の2乗の組と投射）は計数の外（四半期首の AI の判断の中の小さい分＝実装ログ (195) §7）。
-    // ★2026-10-04 表の更新（(197) 合流＝(194) と (195) を合わせた木の実測・1種40四半期）：覇権の判定 1,916,631＝(194) の宣言 2,574,518 と (195) の宣言 1,614,601 の間
-    //   （(194) の海路の接触で動いた軌道と (195) の旧の判断の SideMilitary を消した分が重なった＝処理の形は (195) のまま）。建設 7,706・請求 2,970 は (194) の宣言の許しの内（表はそのまま）。全長の10種は実装ログ (197)。
-    [InlineData(CostLedger.DiploHegemonScans, 1916631L)]
+    // ★2026-10-04 表の更新（(197) 合流＝(194) と (195) を合わせ k/N に植民地を数える〔ScarceCountsIncludeColonies〕を点火した木の実測・1種40四半期）：
+    //   覇権の判定 1,801,372（(194) の宣言 2,574,518 と (195) の宣言 1,614,601 の間＝(194) の海路の接触で動いた軌道と (195) の旧の判断の SideMilitary を消した分が重なった・処理の形は (195) のまま）・
+    //   建設 8,204→7,000（−14.7%）・請求 3,013→2,626（−12.8%）＝10% を超えて下がった＝表を下げた（どちらも軌道＝処理の形は同じ）。合わせただけの木（点火の前）は 1,916,631・7,706・2,970。全長の10種は実装ログ (197)。
+    [InlineData(CostLedger.DiploHegemonScans, 1801372L)]
     [InlineData(CostLedger.QuarterStartPops, 235560L)]
     [InlineData(CostLedger.QuarterEndPops, 235560L)]
     [InlineData(CostLedger.SharedNationQuarters, 3698L)]
