@@ -1,7 +1,7 @@
-# (195) 線Q 前半＝海軍の残り（00一覧 §0-A の 0h の残り）・2026-10-03・枝 nvq（worktree D:/PoB_work/wt_nvq・腕A＝81d2782＝r192）
+# (194) 線Q 前半＝海軍の残り（00一覧 §0-A の 0h の残り）・2026-10-03・枝 nvq（worktree D:/PoB_work/wt_nvq・腕A＝81d2782＝r192）
 # 変更＝P（相手の陸軍を陸軍の大きさ ArmyShape.LandPotential で読む＝即応度なし・新兵器の陸の圧力も自国の陸軍の大きさ）＋L（海を越えて来る陸軍に遠征の技術の門 Diplomacy.ExpeditionLift）
-#   ＋V（艦隊の注意の重みに相手の越境の交易額 World.TradeValueSmoothed÷平均＝海路の接触）。1隻の乗員（NavalCrewPerGauge）は変えていない（測って変えない判断＝実装ログ (195)）。
-# 計器＝scratchpad/m195/batch.sh の fullX（(192) の fullX＋m195/inj_nvq195〔海の必要量の物差しの反実仮想・艦隊の移る出来事〕・m183/inj_need183 を (195) の木にも当てる写し m195/inj_need183x）。
+#   ＋V（艦隊の注意の重みに相手の越境の交易額 World.TradeValueSmoothed÷平均＝海路の接触）。1隻の乗員（NavalCrewPerGauge）は変えていない（測って変えない判断＝実装ログ (194)）。
+# 計器＝scratchpad/m195/batch.sh の fullX（(192) の fullX＋m195/inj_nvq195〔海の必要量の物差しの反実仮想・艦隊の移る出来事〕・m183/inj_need183 を (194) の木にも当てる写し m195/inj_need183x）。
 # 読み手＝scratchpad/m195/rd.sh（(192) の rd.sh）・rdq.sh・an_nvq195.py・NG の集合＝scratchpad/m192/ngset192.py（基準＝表 r192_20261003 の X10）。
 
 ## 1. 名乗り（SOURCE-HASH）と報告の一致

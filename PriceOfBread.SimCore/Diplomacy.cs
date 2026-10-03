@@ -43,8 +43,8 @@ public sealed class Power
     public double ArmySkillMul = 1.0, NavySkillMul = 1.0;   // Diplomacy の同期が毎期書く（Power は World を直接見ない設計に合わせる）
     public double LandPower => Military * (1 - NavalShare) * ArmySkillMul;  // 陸軍力（戦線の押し合いの主力）
     // ★理想の軍隊の形（2026-08-01）。ArmyShape.Compute が四半期に書く＝live。NeedSea は陸海の維持費の分け方（UtilityAgent.SetNavalUpkeepShare）と海軍の調達の目標の艦隊（EconomyStep.FleetOrder・(189)）が読む。設計書＝docs/202607/20260801_理想の軍隊の形_部分完了.md【一部】.md
-    public double NeedLand;       // 陸の必要量（自国に向けられた他国陸軍の注意配分の和・ゲージ単位・★(195) 相手の陸軍は陸軍の大きさ ArmyShape.LandPotential＝即応度なし）
-    public double NeedSea;        // 海の必要量（艦隊の比＝仮想敵国の艦隊の注意配分〔★(195) 重み＝自国の越境の交易額÷平均〕＋海を越えて来る陸軍の注意配分〔★(195) 相手の陸軍の大きさ×遠征の技術の門〕・(183) で通商保護の項〔自国の軍×海に出ている割合〕を外した）
+    public double NeedLand;       // 陸の必要量（自国に向けられた他国陸軍の注意配分の和・ゲージ単位・★(194) 相手の陸軍は陸軍の大きさ ArmyShape.LandPotential＝即応度なし）
+    public double NeedSea;        // 海の必要量（艦隊の比＝仮想敵国の艦隊の注意配分〔★(194) 重み＝自国の越境の交易額÷平均〕＋海を越えて来る陸軍の注意配分〔★(194) 相手の陸軍の大きさ×遠征の技術の門〕・(183) で通商保護の項〔自国の軍×海に出ている割合〕を外した）
     public double NeedInternal;   // 内的秩序の必要量（不穏度×統治人口・他国を参照しない外生アンカー＝不動点が0にならない土台）
     public double NeedMen;        // 理想の兵員数（陸＋内的＋海×乗員率 を質で割る）
     public double AttentionColSumMax;   // 診断：注意配分の列和の最大（★1未満であることが縮小写像＝発散しないことの実証）
@@ -2117,7 +2117,7 @@ public sealed class Diplomacy
     /// （TechMilLowFloor＝アヘン戦争の非対称、の遠征版＝前近代の大国は隣接にしか届かず、海洋帝国は技術とともに世界へ届く）。
     /// 旧＝制海権(SeaControl)だけが海越えの門で、相手海軍が皆無なら低技術の大陸国（清）でも大軍を海越しに投射でき、
     /// 印度・中央アジアの「従属はするが宗主が史実と違う」逸脱（宗主一致exact40%の主因）を生んでいた。
-    /// 陸続き標的は不変・戦争の押し合い（Projection本体）にも触れない＝植民地化の動詞と、★(195) 理想の軍隊の形の「海を越えて来る陸軍」（<see cref="ArmyShape.Compute"/>＝同じ海越えの遠征の可否を脅威の側でも読む）。ExpeditionTechLevel=0で恒等。</summary>
+    /// 陸続き標的は不変・戦争の押し合い（Projection本体）にも触れない＝植民地化の動詞と、★(194) 理想の軍隊の形の「海を越えて来る陸軍」（<see cref="ArmyShape.Compute"/>＝同じ海越えの遠征の可否を脅威の側でも読む）。ExpeditionTechLevel=0で恒等。</summary>
     internal double ExpeditionLift(Power great, Power target, Coefficients c)
         => great.Nation is { } gw && c.ExpeditionTechLevel > 0 && IsSeaCrossing(great, target, c)
            ? Math.Clamp(c.ExpeditionTechFloor + (1 - c.ExpeditionTechFloor) * gw.TechLevel / c.ExpeditionTechLevel, c.ExpeditionTechFloor, 1.0)
