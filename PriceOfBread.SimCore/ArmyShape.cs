@@ -6,8 +6,9 @@ namespace PriceOfBread.SimCore;
 ///
 /// ★理想の軍隊 ＝「**自国に向けられている他国の武力**」＋「**自力で守らねばならない資産**（国内の秩序）」。
 ///   ⚠2026-10-03 (183) で海上の交易の項（通商保護）を外した＝海の必要量は相手の艦隊と海を越えて来る陸軍だけ（<see cref="Compute"/> の注記）。
-///   ⚠作者の裁定 2026-08-01「海軍は戦艦ありきです。海軍の強さが海兵の数から決まるのはナンセンス」は現物で効いていない（(187) の反証役 va1#1）
-///   ＝乗員（軍の総合ゲージ×海の割合）が全ての主要国で海軍力の律速・軍艦の購入も兵の頭数×海の割合＝海は陸軍の大きさに付いて回る（00一覧 §0-A の 0h）。
+///   ⚠作者の裁定 2026-08-01「海軍は戦艦ありきです。海軍の強さが海兵の数から決まるのはナンセンス」は (187) まで現物で効いていなかった（反証役 va1#1）
+///   ＝乗員（軍の総合ゲージ×海の割合）が全ての主要国で海軍力の律速・軍艦の購入も兵の頭数×海の割合だった（00一覧 §0-A の 0h）。
+///   ★(189)（2026-10-03）：海軍力は艦の在庫×段の効き×乗員の充足×海の熟練（Power.NavalPower）・艦は海軍の予算と目標の艦隊（ここの海の必要量）の差で買う（EconomyStep.FleetOrder）。
 ///
 /// ★★★中核の装置＝**注意配分**。過去5回の試みが壊れたのは「自分に届く他国軍の**総和**」を必要量にしたためで、
 /// 現物の距離減衰（1万kmで0.5）と首都53件中46件が同一陸塊という実データでは行和が20を超え、**内点の均衡が存在しない**
@@ -18,8 +19,8 @@ namespace PriceOfBread.SimCore;
 /// 軍拡は構造的に縮小写像になる。⚠**減衰係数を1本も置かない。** 建艦競争（仮想敵国の艦隊が海軍の必要を押し上げる）を
 /// 入れても発散しないのは、この正規化があるからである。⚠**注意配分より先に対抗項を入れてはならない。**
 ///
-/// ★live（ArmyShapeEnabled=1.0）。読み手＝Simulation が Need* の陸海比を Region.ShapeNavalShare へ写し、EconomyStep が
-/// NavalProcurementFromShape で軍需の陸海配分に使う（0へ戻すと非恒等）。分布が外れたら係数を足さず**式を疑う**（armyshape プローブ）。
+/// ★live（ArmyShapeEnabled=1.0）。読み手＝陸海の維持費の分け方（<see cref="NavalSpendShareOf"/>＝AI とプレイヤーの同じ関数）・海軍の調達の目標の艦隊
+/// （EconomyStep.FleetOrder＝海の必要量÷海の熟練・(189)）（0へ戻すと非恒等）。分布が外れたら係数を足さず**式を疑う**（armyshape プローブ）。
 /// </summary>
 public static class ArmyShape
 {
@@ -93,9 +94,12 @@ public static class ArmyShape
             //   外生の内の守りは「要る人の頭数」＝自国の兵1人あたりの戦力（eff＝Military÷兵の頭数のゲージ）で同じ単位へ直す。
             //   旧＝兵の頭数のゲージ（÷SoldiersPerMilitary）のまま＝即応度が 0.01〜0.2 の開幕は内の守りが他の2つの5〜100倍に見え、
             //   陸海の分け方（<see cref="NavalSpendShareOf"/>）を内の守りが決めていた（当時の通商保護も同じ＝開幕だけ海が9割に見えた）。
-            double men = w.SoldierSize();
-            double eff = men > 1e-9 ? p.Military * c.SoldiersPerMilitary / men : 0;   // 自国の兵の頭数のゲージ1あたりの戦力
-            p.NeedInternal = garrisonMen / System.Math.Max(1e-9, c.SoldiersPerMilitary) * eff;
+            //   ★(189)：兵1人あたりの戦力は質（技術×結束×軍国＝<see cref="Quality"/>）だけ＝自国の即応度と装備の充足（症状）を掛けない（設計書 §2-7「理想は原因だけで作り、症状は結果側にだけ出す」）。
+            //   旧（(151)〜(187)）＝eff＝Military÷兵の頭数のゲージ（即応度と上位・最上位の充足つき）＝装備が買えない→内の守りの必要量が縮む→陸海の分け方で海が膨らむ→陸の装備の予算が細る→
+            //   さらに買えない、の正の帰還が閉じた（(189) で艦を海軍の予算で買うようにした腕の5種で、日本は 1815 年までに海の金の割合 1・陸の即応度 0.0006・軍の総合ゲージ 0＝陸軍が消えた・米も即応度 0.40→0.06）。
+            var (qTech, qCohesion, qMilitarism) = Quality(w, c);
+            double q = qTech * qCohesion * qMilitarism;
+            p.NeedInternal = garrisonMen / System.Math.Max(1e-9, c.SoldiersPerMilitary) * q;
             // ★海の必要量に自国の軍の大きさの項を置かない（2026-10-03 (183)・推奨で進めた〔作者の承認は未確認〕）。根拠＝作者 2026-09-29「その通り、推奨でよい。陸軍は安全保障ベース、
             //   海軍は別のベースで、軍事費を分割するようにしよう」（AI の提案〈陸軍は安全保障・海軍は別のベース＝艦隊の比と海路の接触〉への答え＝括弧の中は AI の言葉）。
             //   この項が「別のベース」と逆向き（海を自国の陸軍に比例させる）というのは AI の読み（(187) 反証役 va1#6）。
@@ -106,8 +110,6 @@ public static class ArmyShape
             //   海の必要量＝艦隊の比（海盆で接する相手の艦隊の注意配分）＋海路の接触（海を越えて来る陸軍の注意配分）＝どちらも相手の力で決まる（AI の提案〈艦隊の比と海路の接触〉の読み）。
             //   吸収状態（全ての海軍が0）にはならない＝海を越えて来る陸軍は相手の陸と内の守り（国境・不穏度）が支える（10種の計器で港の州を持つ主要国に海軍が残る・普は港の州を失った軌道で0に近づく）。棚卸し dorm-37 の推奨（削除寄り）と同じ向き。
             //   守る海の交易の絶対量（係数×取扱高）の形は (151) の腕 B2・B3 で清の艦隊を英の約15倍にした（清の取扱高が英を超える）＝戻さない。
-            var (qTech, qCohesion, qMilitarism) = Quality(w, c);
-            double q = qTech * qCohesion * qMilitarism;
             p.NeedMen = c.SoldiersPerMilitary * ((p.NeedLand + p.NeedInternal) + c.NavalCrewPerGauge * p.NeedSea) / System.Math.Max(0.05, q);
             p.AttentionColSumMax = maxColSum;
         }
@@ -190,21 +192,40 @@ public static class ArmyShape
 
     /// <summary>★陸と海の軍事費の分割（2026-10-01 (151)・作者 2026-09-29「その通り、推奨でよい。陸軍は安全保障ベース、海軍は別のベースで、軍事費を分割するようにしよう」・
     /// AI の提案＝陸軍は安全保障〈国境の長さ×地形の通りにくさ・植民地の国境も数える〉・海軍は別のベース〈艦隊の比と海路の接触〉で軍事費を陸と海に分割）。
-    /// 海の割合＝海の必要量 ÷ max(軍の総合ゲージ, 陸＋内の守り＋海の必要量)。
+    /// 海の割合＝海の必要量 ÷ (海の必要量 ＋ max(陸＋内の守りの必要量, 自国の軍の大きさ〔<see cref="ForcePotential"/>＝兵の頭数×質・即応度と装備の充足を掛けない〕))（★(189)）。
+    ///   旧（(151)〜(187)）＝海の必要量 ÷ max(軍の総合ゲージ, 陸＋内＋海の必要量)＝陸の必要量がほぼ0の島の国（ハワイ・マダガスカル・琉球・日本）は軍が海の必要量より小さいと海の割合がほぼ1
+    ///   ＝(189) で海の金の割合が艦の予算を分けるようになると、陸の装備の予算がほぼ0・即応度0のまま戻らない錠になった（10種で 2,894 国×年・旧の木 5種で 138）。
+    ///   今＝陸の側は「陸と内の守りの必要量」と「抱えている兵の頭数×質」の大きい方＝払っている兵の装備の分は陸に残る（海は任務の分だけ・残りの兵は陸に立つ・軍が足りない国は必要量の比＝旧と同じ）。
     /// ・海の必要量（<see cref="Power.NeedSea"/>）＝艦隊の比（海盆で接する仮想敵の艦隊の注意配分）＋海路の接触（海を越えて来る陸軍の注意配分）＝自国の軍の大きさを読まない
     ///   （(183)＝守る海の交易〔海に出ている経済の割合×自国の軍の総合ゲージ〕を外した）。
     /// ・陸と内の守り（<see cref="Power.NeedLand"/>・<see cref="Power.NeedInternal"/>）＝安全保障（国境の長さ×地形×隣国の陸軍・同盟は0・属国は弱く）＋国内の秩序。
     /// ・軍が必要量の和より大きい国＝海は任務の分だけ・残りの兵は陸に立つ（船は人で造れない＝海の大きさは海の任務が決める）＝**清は外洋艦隊を必要としない**が理由で出る
     ///   （旧＝地理の比＝外洋に開けば+0.10・植民地の質量×0.05＝陸続きの植民地格の州も数え、上限0.60に張り付いた清は兵の6割を艦の乗員に数えた）。
     ///   軍が足りない国＝必要量の比で分ける（陸も海も同じ割合で削る）。
-    /// ・必要量が一度も算出されていない（全て0）＝−1（未定義＝呼び手は今の比のまま・軍需の陸海の再配分もしない）。⚠NaN も −1（否定形）。
-    /// 読み手＝AI とプレイヤーの陸海の維持費の分け方（<see cref="UtilityAgent.SetNavalUpkeepShare"/>＝同じ関数）・軍需の陸海の再配分（Simulation の Region.ShapeNavalShare）・開幕の艦隊の播種（Diplomacy の初回の同期）。</summary>
+    /// ・必要量が一度も算出されていない（全て0）＝−1（未定義＝呼び手は今の比のまま）。⚠NaN も −1（否定形）。
+    /// 読み手＝AI とプレイヤーの陸海の維持費の分け方（<see cref="UtilityAgent.SetNavalUpkeepShare"/>＝同じ関数）・開幕の艦隊の播種（Diplomacy の初回の同期）。
+    /// ★(189)：施行された比（World.NavalSpendShare＝海軍維持費÷陸海の維持費）が装備の器のうち艦を買う額（Region.NavalBudget）を分ける（旧＝この比で軍需の内訳を再配分〔Region.ShapeNavalShare〕＝兵の頭数×割合で艦を買った）。</summary>
     internal static double NavalSpendShareOf(Power p)
     {
         double need = p.NeedSea + p.NeedLand + p.NeedInternal;
         if (!(need > 0)) return -1.0;
-        double s = p.NeedSea / System.Math.Max(p.Military, need);
+        double land = System.Math.Max(p.NeedLand + p.NeedInternal, ForcePotential(p));
+        double s = p.NeedSea / (p.NeedSea + land);
         return s >= 0 ? s : -1.0;
+    }
+
+    /// <summary>★自国の軍の大きさ（陸海の金の分け方の分母・2026-10-03 (189)）＝兵の頭数のゲージ×質（技術×結束×軍国＝<see cref="Quality"/>）＝自国の即応度と装備の充足（症状）を掛けない
+    /// （設計書 §2-7「理想は原因だけで作り、症状は結果側にだけ出す」・NeedMen の質と同じ q）。経済を持たない抽象標的は軍の総合ゲージ（Military）。
+    /// 旧（(151)〜(187)）＝軍の総合ゲージ（Military＝即応度と上位・最上位の充足つき）＝(189) で海の金の割合が艦の予算を分けるようになると、陸の装備の不足→即応度の低下→Military の縮み→海の割合の上昇→
+    ///   陸の装備の予算の縮み、の正の帰還が閉じた（5種で日本は 1815 年までに海の割合 1・陸軍が消えた＝ArmyShape.Compute の内の守りの注記）。
+    /// ⚠単位＝陸と海の必要量は他国の戦力（即応度つきの LandPower・NavalPower）・内の守りは自国の頭数×質＝分母の「軍が必要量より大きい国は海は任務の分だけ」は兵の頭数×質で読む
+    ///   （清は外洋艦隊を必要としない＝頭数×質が海の必要量の何倍か）。</summary>
+    internal static double ForcePotential(Power p)
+    {
+        if (p.Nation is not { } w) return p.Military;
+        var c = w.Coef;
+        var (t, co, mi) = Quality(w, c);
+        return w.SoldierSize() / System.Math.Max(1e-9, c.SoldiersPerMilitary) * (t * co * mi);
     }
 
     // 【墓標2026-10-03 (183)】SeaTradeShare（海に出ている経済の割合＝港の州の取扱高÷(為替×3×月の名目GDP)）＝読み手（通商保護の項・診断 armyneed の護衛項）ごと削除

@@ -22,24 +22,21 @@ public class WarThemeTests
         // ★2026-08-10（作者裁定「陸軍と海軍の注力レバーは廃止し、海軍維持費と陸軍維持費で表現する」）：
         //   旧 NavalEmphasisWeight（海軍シェアへの政策傾斜）は係数ごと撤去＝海軍シェアの入力は払った金の比だけ。
         //   ★(151)：旧式（地理の比）へ戻す旗 NavalShareFromUpkeep は読み手ごと削除＝常に払った金の比（下の「海軍シェアは払った金の比だけから決まる」が見る）。
-        // 07_再設計 第3弾3a（2026-07-31・点火）：旧「B保留」を解除＝建艦の時間遅れ（90%到達に約7ヶ月）。
-        // BasinPresence（03手順6）と艦隊摩耗（NavalAttritionRate）が揃い、維持費の増額が艦隊へ効くまでの遅れとして海軍レースが立つ。
-        Assert.Equal(0.3, c.NavalBuildRate);
-        Assert.Equal(0.05, c.NavalAttritionRate);    // 同3b：艦隊摩耗（A6裁定）＝沈んだ艦は建艦でしか戻らない
+        // 07_再設計 第3弾3a（2026-07-31・点火）の建艦の時間遅れ（NavalBuildRate＝海軍シェアの EMA）は (189) で削除＝建艦の遅れは艦の在庫そのもの（買えた分だけ積む）。
+        Assert.Equal(0.05, c.NavalAttritionRate);    // 同3b：艦隊摩耗（A6裁定）＝沈んだ艦は建艦でしか戻らない（(189) 艦の在庫を沈める）
     }
 
     [Fact]
     public void テーマE_海軍建艦と戦時動員の有効化でも保存則が保たれる()
     {
         var sim = new MultiNationSim(FourNations(), seed: 1789);
-        sim.Coef.NavalBuildRate = 0.3;        // 建艦の時間遅れ（EMA）
         foreach (var n in sim.Nations)
         {
             n.World.Coef.WarMobilizationDepth = 1.0;              // 戦時動員の段階性（各国の経済係数）
             n.World.SetMilitaryUpkeep(0.10, 0.30);               // 海軍に厚い維持費（2026-08-10：抽象スタンスでなく払う金で置く）
         }
         var ex = Record.Exception(() => sim.Run(200));
-        Assert.Null(ex);   // §11.6（貨幣・人口保存と境界）が全国・全ティック保持＝建艦EMA・総動員・海軍への高い維持費が保存則を破らない
+        Assert.Null(ex);   // §11.6（貨幣・人口保存と境界）が全国・全ティック保持＝艦の購入（海軍の予算）・総動員・海軍への高い維持費が保存則を破らない
         Assert.True(sim.Nations.TrueForAll(n => n.World.TotalPopulation > 0), "国/人口が消えた");
     }
 
@@ -73,54 +70,33 @@ public class WarThemeTests
         Assert.True(w2.Policy.NavyUpkeepTarget > tgt0, $"要求が目標を置けない（{tgt0:F3}→{w2.Policy.NavyUpkeepTarget:F3}）");
     }
 
+    /// <summary>★(189) 海軍シェア＝兵士のうち艦に乗る割合（乗員÷兵士）＝艦の在庫から導く量（作者の裁定 2026-08-01「海軍は戦艦ありきです」）。
+    /// 乗員＝min(隻数×1隻の乗員〔EconomyStep.FleetCrewPerHull＝艦の種類に依らない〕, 兵士)・乗員の充足＝乗員÷要る乗員。盤面＝4国を120四半期の後に外交の同期を1か月（四半期の境でない月）
+    /// ＝同期の直後に交戦していない国で厳密一致（許し 1e-9・交戦中の国は同じ月の戦死が同期の後に兵士を減らす＝比べない）。旧＝払った金の比への EMA（NavalBuildRate 0.3）＝兵の頭数×割合が乗員だった。
+    /// ⚠突然変異「乗員を艦の強さ（建造費×段の乗数）から数える」「海軍シェアを金の比に戻す」で赤。</summary>
     [Fact]
-    public void 海軍シェアは払った金の比だけから決まる()
+    public void 海軍シェアは艦の乗員と兵士の比から決まる()
     {
         var sim = new MultiNationSim(FourNations(), seed: 1789);
         var c = sim.Coef;
-        sim.Run(120);   // 建艦EMA（NavalBuildRate=0.3・90%到達に約7ヶ月）が十分に落ち着く長さ
+        sim.Run(120);
+        sim.Diplomacy.Step(c, sim.Rng, month: 1);   // 同期（四半期の境でない月）
+        int withFleet = 0;
         foreach (var n in sim.Nations)
         {
-            var p = n.World.SelfPower!;
-            double expected = n.World.NavalSpendShare;   // 維持費の比＝唯一の入力（(151)：下限0.05・上限0.60 のクランプは外した＝思想⑧）
-            Assert.True(Math.Abs(p.NavalShare - expected) < 0.05,
-                $"{p.BaseName}の海軍シェアが維持費比から外れた（実{p.NavalShare:F3} 期待{expected:F3}・陸{n.World.ArmyUpkeep:F3}/海{n.World.NavyUpkeep:F3}）");
+            var w = n.World; var p = w.SelfPower!;
+            if (sim.Diplomacy.Wars.Exists(x => x.A == p || x.B == p)) continue;   // 交戦中＝同期の後の戦死で兵士が動く
+            double denom = EconomyStep.FleetGaugeDenominator(w.Regions[0], w.Coef);
+            Assert.True(denom > 0, "前提が崩れた：換算分母が無い");
+            double hulls = 0; foreach (var u in EconomyStep.FleetHeldUnits(w, w.Coef)) hulls += u;
+            double need = hulls * EconomyStep.FleetCrewPerHull(w.Regions[0], w.Coef, denom), men = w.SoldierSize();
+            double crew = System.Math.Min(need, men);
+            Assert.True(System.Math.Abs(p.NavalShare - (men > 1e-9 ? crew / men : 0)) < 1e-9, $"{p.BaseName}の海軍シェア {p.NavalShare:G9} ≠ 乗員÷兵士 {crew / men:G9}");
+            Assert.True(System.Math.Abs(p.CrewFill - (need > 1e-12 ? crew / need : 1.0)) < 1e-9, $"{p.BaseName}の乗員の充足 {p.CrewFill:G9}");
+            Assert.True(System.Math.Abs(p.FleetGauge * denom - EconomyStep.FleetPowerValue(w)) <= 1e-9 * System.Math.Max(1, EconomyStep.FleetPowerValue(w)), $"{p.BaseName}の艦の強さのゲージが在庫と合わない");
+            if (hulls > 0) withFleet++;
         }
-    }
-
-    /// <summary>★(177)（反証役 vd2#1）既定の建艦の遅れ（<see cref="Coefficients.NavalBuildRate"/> 0.3＝月の EMA）の枝の入力も維持費の比だけ。
-    /// 摩耗0・目標＝維持費の比（四半期の頭の施行で決まり、四半期の中は一定）＝海軍シェアは月に 0.3 ずつ目標へ寄るだけ
-    /// ＝四半期の終わりのシェア＝目標＋(1−0.3)^3×(四半期の頭のシェア−目標)（厳密一致・許し 1e-9・各四半期）。上の盤面（120四半期の後に許し 0.05）より厳しく、EMA の枝の中を見る。
-    /// ⚠突然変異「EMA の枝だけ目標を差し替える（地理の比を混ぜる等）」で赤。</summary>
-    [Fact]
-    public void 海軍シェアは既定の建艦の遅れでも維持費の比へ月の割合で寄るだけ()
-    {
-        var sim = new MultiNationSim(FourNations(), seed: 1789);
-        var c = sim.Coef;
-        Assert.Equal(0.3, c.NavalBuildRate);   // 既定の EMA の枝
-        c.NavalAttritionRate = 0.0;            // 交戦の艦隊摩耗を外す（海軍シェアを削るもう1つの入力）
-        sim.Run(2);                            // 開幕の同期（陸海の維持費の比と海軍シェアを同じ比で置く1度だけの書き込み）を過ぎる
-        double keep = Math.Pow(1.0 - c.NavalBuildRate, Calendar.MonthsPerQuarter);
-        int seen = 0, apart = 0;
-        var head = new System.Collections.Generic.Dictionary<Power, double>();
-        for (int q = 0; q < 60; q++)
-        {
-            head.Clear();
-            foreach (var n0 in sim.Nations) head[n0.World.SelfPower!] = n0.World.SelfPower!.NavalShare;
-            sim.Run(1);
-            foreach (var n in sim.Nations)
-            {
-                var p = n.World.SelfPower!;
-                if (!head.TryGetValue(p, out double a)) continue;   // その四半期に建国した国
-                double t = n.World.NavalSpendShare;
-                double expected = t + keep * (a - t);
-                Assert.True(Math.Abs(p.NavalShare - expected) < 1e-9,
-                    $"Q{q + 3} {p.BaseName}の海軍シェアが維持費の比への EMA から外れた（実{p.NavalShare:F9} 期待{expected:F9}・頭{a:F6}・目標{t:F6}）");
-                seen++;
-                if (Math.Abs(a - t) > 1e-6) apart++;
-            }
-        }
-        Assert.True(seen >= 4 * 50 && apart > 0, $"盤面が空回り（見た国×四半期 {seen}・頭が目標から離れていた {apart}）");
+        Assert.True(withFleet >= 2, $"前提が崩れた：艦を持つ国が {withFleet}");
     }
 
     // ===== 戦争タブの「犠牲者」と「戦費」の番人（2026-09-23）=====
@@ -443,20 +419,22 @@ public class WarThemeTests
         Assert.Equal(0.10, fr.DiscoveryLossQ![land], 9);
     }
 
+    /// <summary>★(153) 新兵器の必要性の海の損耗＝その月に沈んだ艦の割合÷艦隊摩耗の月の上限の割合。★(189) 沈むのは艦の在庫（Region.FleetUnits・財ごとに同じ割合）
+    /// ＝沈んだ割合＝1−（摩耗の後の隻数÷前の隻数）。旧＝海軍シェアを削った量（修理の需要 NavalRepairUnits から逆算）。</summary>
     [Fact]
     public void 艦隊摩耗は沈んだ割合を摩耗の上限を1として海に記帳する()
     {
         var (sim, _, fr, br) = OneFront(new Coefficients().WarCivilianToll);
         var c = sim.Coef;
-        double nru0 = fr.Region.NavalRepairUnits;
+        double Hulls(World w) { double h = 0; foreach (var u in EconomyStep.FleetHeldUnits(w, w.Coef)) h += u; return h; }
+        double h0 = Hulls(fr);
+        Assert.True(h0 > 0, "前提が崩れた：仏に艦が無い");
         fr.DiscoveryLossQ = null; br.DiscoveryLossQ = null;
         sim.Diplomacy.Step(c, sim.Rng, month: 60);   // 外交の1か月＝同期（艦隊摩耗）と戦争（戦死）を本物の呼び手で
-        var p = fr.SelfPower!;
-        // 沈んだ量＝修理の需要の増え÷（修理の係数×軍の総合ゲージ）（摩耗の行が書く同じ量）・摩耗の前の海軍シェア＝後＋沈んだ量
-        double loss = (fr.Region.NavalRepairUnits - nru0) / (c.NavalRepairPerLoss * p.Military);
-        Assert.True(loss > 0, $"前提が崩れた：仏の艦隊摩耗が走っていない（修理の需要 {nru0:G6}→{fr.Region.NavalRepairUnits:G6}）");
+        double frac = 1.0 - Hulls(fr) / h0;   // 外交の1か月は艦を買わない・劣化させない（どちらも EconomyStep）＝隻数の減りは摩耗だけ
+        Assert.True(frac > 0, $"前提が崩れた：仏の艦隊摩耗が走っていない（隻数 {h0:G6}→{Hulls(fr):G6}）");
         Assert.NotNull(fr.DiscoveryLossQ);
-        double expected = loss / (p.NavalShare + loss) / c.NavalAttritionRate;
+        double expected = frac / c.NavalAttritionRate;
         Assert.Equal(expected, fr.DiscoveryLossQ![(int)WarDomain.Sea], 9);
         Assert.True(expected > 0 && expected <= 1.0 + 1e-12, $"海の損耗の強さが0〜1の外（{expected:G6}）");
         Assert.True(fr.DiscoveryLossQ[(int)WarDomain.Land] > 0, "前提が崩れた：同じ月の戦死（陸）が積まれていない");

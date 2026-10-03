@@ -919,7 +919,8 @@ public sealed class Region
     public double SoapFill;                           // 石鹸の消費充足率（市民＋病院が買えた率）。衛生に上下水道とは別に加算（公衆衛生＝清潔。医療品ほどではない）。石鹸の無い世界は0＝従来
     public double InsuranceCoverage;                  // 健康保険(#3)：国家が医薬品購入費を肩代わりする割合（社会保障×福祉充足×InsuranceCoverageMax）。Simulation が設定。popの実効医療費↓
     public double MonopolyRentFactor = 1.0;           // 独占禁止法（1934拡張E6）：独占レント(塩/茶)の実効倍率。規制なし=1.0／談合禁止=CartelBanRent／独占の解体=TrustbustRent。Simulation が国教法から設定。AntitrustGate=0で常に1.0＝恒等
-    public double NavalRepairUnits;                   // 艦隊摩耗の修理需要（07_再設計 §6-1・A6案i・2026-07-31）：沈んだ艦の補充＝軍艦財の追加需要。EconomyStep が消化してゼロ化
+    // 【墓標2026-10-03 (189)】NavalRepairUnits（艦隊摩耗の修理需要＝沈んだ艦の補充を軍艦財の追加需要に）＝艦隊摩耗は艦の在庫（FleetUnits）を沈め、
+    //   海軍の調達（EconomyStep.FleetOrder＝目標の艦隊と在庫の差を埋める）が補充を自分で発注する＝同じ需要を2度立てない（設計書 §3-2「NavalRepairUnits／NavalRepairPerLoss は機構ごと撤去」）。
     // 戦時備蓄＝B3自己成就期待の第1形（07_再設計 §5(a)・A5裁定・2026-07-31）。Simulation が四半期ごとに国の最大緊張を複製する。
     public double WarScareTension;                    // 直近の対外最大緊張（0..200）。戦争の匂いが在庫目標を押し上げる
     /// <summary>戦時備蓄の在庫目標倍率。緊張が閾値を超えるほど、まず主食と軍需を、次いで他の財を控えめに買い占める（A5裁定＝2層）。
@@ -997,9 +998,12 @@ public sealed class Region
     public double MilitaryScalePeace;                 // ★段2a：戦時倍率を除いた平時基準の規模（耐久品の目標在庫はこちら）
     public double MilitaryWarMultLast;                // ★段2a：その月の戦時倍率（耐久品の摩耗へ回す）
     public double MilitaryScale;                      // 軍需消費の規模（治安維持力×戦時倍率。Simulation が設定）
-    public double MilitaryBudget;                     // 軍需調達に充てられる国庫（Simulation が設定）
-    public double ShapeNavalShare = -1.0;             // ★理想の軍隊の形における海の割合（段2・2026-08-01）。-1＝未算出（＝再配分しない＝厳密恒等）。
-                                                      // Simulation が Power.NeedSea/(NeedLand+NeedInternal+NeedSea) を毎月写す。内陸国は 0 になる
+    public double MilitaryBudget;                     // 陸の装備の調達に充てられる国庫（Simulation が設定）。★(189) 艦は含まない（艦は下の NavalBudget）
+    // ★海軍の予算（2026-10-03 (189)・作者の裁定 2026-08-01「海軍は戦艦ありきです。海軍の強さが海兵の数から決まるのはナンセンス」・2026-09-29「陸軍は安全保障ベース、海軍は別のベースで、
+    //   軍事費を分割するようにしよう」）＝軍事費の器から給与を払った残り（装備の器）×海の金の割合（World.NavalSpendShare＝海軍維持費÷陸海の維持費＝AI とプレイヤーの同じ法の値）を、
+    //   海軍の調達の必要額（EconomyStep.NavalProcurementNeed＝目標の艦隊と在庫の差）で切った額。Simulation が月初に書き（国家の支払い率 r を掛ける）、EconomyStep の海軍の調達が読む。
+    //   月ごとに作り直す作業の値（陸の MilitaryBudget と同じ型）＝旧 ShapeNavalShare（陸海の再配分の比・軍需を兵の頭数×海の割合で買った）を置き換えた（状態の数は同じ）。
+    public double NavalBudget;
     public double MilitaryBudgetCeiling;              // 軍需予算の**上限**＝歳入シェア側の額（必要額で切る前。Simulation が設定）。恒常性の信号（MilitaryAffordRaw）はこちらから取る＝
                                                       // S3a で実支出を必要額に切っても「まだ払う余裕がある」が消えない。Simulation を経ない経路（テスト）は Budget と同時に設定すること（Budget ≤ Ceiling が不変条件・2026-09-11）
     // AtWar（戦時の建設投資抑制フラグ）＝機構は倍率排除バッチ2で撤去済み（軍需の価格競合が代替）・読み手ゼロにつきフィールドごと削除（監査2026-07-12 死37）
@@ -1021,6 +1025,7 @@ public sealed class Region
     // ★陸分の充足率（2026-08-13・塹壕の土台／既存の害の是正）：上位段とtier3は陸海が同居している
     //   （上位=[機関銃104, 装甲艦105]・tier3=[戦車122, 弩級戦艦123]）。合算の Fill が Power.Military に乗り、
     //   LandPower = Military×(1−NavalShare) なので **弩級戦艦しか持たない国の陸軍力が+120%される**。
+    //   ★(189)：陸の装備の段は艦を買わない（EconomyStep.LandMul）＝合算の Fill からも艦が外れた（Fill＝陸分）＝Power.Military の質の乗数は陸の装備だけ（艦の段の効きは海軍力の1か所）。
     //   分類は既存の Coefficients.FleetGoodIds=[86,105,123]（調達側 MilMul と同一の判定）＝新しい表を作らない。
     //   合算の Fill は据え置く（Power.Military の較正に触れない）＝陸戦の新項だけがこの陸分を読む。
     public double MilitaryQualityLandFill = 0.0;
@@ -1056,8 +1061,11 @@ public sealed class Region
     }
     public string[] ForeignRulers = [];
     public double[] ForeignShares = [];
-    public double FleetStock;                         // ★艦隊ストック（2026-08-01）：購入した戦闘艦の累積（RefPrice加重＝建造費ベース）。耐久財の劣化率で毎月減る。
-                                                      // Diplomacy の艦隊ゲージ（FleetGauge→Power.NavalPower）の源＝「海軍は戦艦ありき」
+    // ★艦の在庫（2026-10-03 (189)・作者の裁定 2026-08-01「陸軍は兵士ありきですが、海軍は戦艦ありきです。海軍の強さが海兵の数から決まるのはナンセンス」）＝
+    //   戦闘艦の財ごとの隻数（Coefficients.FleetGoodIds と同じ並び＝軍艦・装甲艦・弩級戦艦）。買えた艦（EconomyStep の海軍の調達）を積み、財の劣化率（Catalog.SpoilageOf）で毎月減り、交戦の海で沈む（Diplomacy の艦隊摩耗）。
+    //   null＝まだ艦を持ったことがない（0隻）。Diplomacy が艦の強さ（段の効き＝建造費×段の乗数）と乗員（隻数×1隻の乗員）を毎月ここから導く。
+    //   ⚠旧 FleetStock（建造費で重みを付けた1本の和）を置き換えた＝段の効き（強さ）と隻数（乗員）は1本の和からは導けない（思想⑩：本当に要る分だけ＝財ごとの隻数）。
+    public double[]? FleetUnits;
     public double MilitaryTier3Fill = 0.0;            // #16 tier3軍需(戦車・弩級戦艦)の充足率＝戦力の最上位乗数(Power.Military を +MilitaryTier3Bonus×これ)。更なる残余予算で届く＝富裕/軍国/晩期のみ
     public double MilitaryAirFill = 0.0;              // 1934拡張E2：空軍装備（飛行機・戦闘機・化学兵器）の充足率＝Power.AirPower=Military×これ。財の解禁(1910s)前は0＝空の概念ごと不走行
     // ★今月の未精算の国家の支払いを**区分ごと**に（添字＝TreasuryCat・正＝支出・負＝収入＝専売益・国営持分の利潤）。Simulation が月次に区分ごとに国庫へ精算する

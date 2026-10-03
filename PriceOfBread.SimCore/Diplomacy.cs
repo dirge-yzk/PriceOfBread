@@ -20,27 +20,29 @@ public sealed class Power
     [System.NonSerialized] internal double _syncGdp;
     [System.NonSerialized] internal Region[]? _syncGdpRegions;
     public double Military;       // 陸海軍の総合ゲージ
-    public double NavalShare;     // 海軍シェア（0..1。Military のうち海軍が占める割合＝地理から創発。陸軍力=Military×(1−NavalShare)。B-1）
-    // ★海軍力（点火2026-08-01・作者裁定「**陸軍は兵士ありきですが、海軍は戦艦ありきです。海軍の強さが海兵の数から決まるのはナンセンス**」）。
-    // 船と乗員の**弱い方**＝艦隊が上限、乗員が充足率。船を持たない国の海軍は0になる（旧＝兵数さえあれば海軍力が立った）。
-    // NavalPowerFromFleet=1.0（点火2026-08-02）。0に戻せば旧式（兵数駆動）へ縮退。
-    public double FleetGauge;     // 保有艦隊のゲージ換算（Diplomacy が毎月同期。艦隊ストック÷1ゲージあたりの艦価）
+    public double NavalShare;     // 海軍シェア∈[0,1]＝★(189) 兵士のうち艦に乗る割合（乗員÷兵士＝Diplomacy が毎月艦の在庫から導く）。陸軍力=Military×(1−NavalShare)。抽象標的は AbstractNavalShare（静的）
+    // ★海軍力（点火2026-08-01・作者裁定「**陸軍は兵士ありきですが、海軍は戦艦ありきです。海軍の強さが海兵の数から決まるのはナンセンス**」・★(189) 2026-10-03 で現物へ）。
+    // 海軍力＝艦の強さのゲージ（FleetGauge＝財ごとの隻数×建造費×段の乗数÷換算分母）×燃料×乗員の充足×海の熟練＝陸軍の即応度と陸の質（Military の乗数）は掛けない。
+    // 船を持たない国の海軍は0。乗員は艦に付く量（隻数×1隻の乗員）＝兵士から先に乗せ、足りなければ乗員の充足が下がる（艦はあっても兵が居なければ動かない）。
+    // ⚠旧（2026-08-02〜(187)）＝min(艦隊, 軍の総合ゲージ×海軍シェア)＝乗員の側（即応度と陸の質つきの兵の頭数×海の割合）が全ての主要国・全ての断面で律速＝海兵の数の形のままだった（(187) 反証役 va1#1・00一覧 §0-A の 0h）。
+    public double FleetGauge;     // 艦の強さのゲージ（Diplomacy が毎月同期。Σ財ごとの隻数×建造費×段の乗数〔EconomyStep.FleetUnitPower〕÷換算分母）
+    public double CrewFill = 1.0; // ★(189) 乗員の充足∈[0,1]＝min(兵士, 要る乗員)÷要る乗員（要る乗員＝隻数×1隻の乗員〔EconomyStep.FleetCrewPerHull〕）。Diplomacy が毎月同期
     // 運用コスト監査2026-08-16（#1 海軍の運用燃料・休眠）：燃料充足→出撃能力（燃料が切れた艦隊は港から出られない）。
     // Diplomacy の同期が NavalFuelPerGauge>0 のときだけ書く（World.NavalFuelFillEma を下限フロア付き線形で写す）＝既定は1.0のまま。
-    // ⚠形を min(FleetGauge×これ, 乗員) の**緩い乗数**にする理由＝NavalPowerFromFleet の急峻な min 経路は2026-08-01に
-    //   硬性ゲート赤（最小国の満足度）で一度差し戻された（NavalPowerFromFleet の係数コメント参照）。fill線形×フロア（NavalFuelSortieFloor）で崖を作らない。
+    // ⚠形を艦の強さへの**緩い乗数**にする理由＝艦隊駆動の急峻な min 経路は2026-08-01に
+    //   硬性ゲート赤（最小国の満足度）で一度差し戻された（2026-08-02 に点火・(189) で旗ごと削除）。fill線形×フロア（NavalFuelSortieFloor）で崖を作らない。
     // ⚠×1.0 は IEEE で厳密恒等（x*1.0==x）＝既定でビット不変。
     public double NavalFuelMul = 1.0;
-    public double NavalPower => FleetGauge > 0 || _fleetDriven
-        ? System.Math.Min(FleetGauge * NavalFuelMul, Military * NavalShare) * NavySkillMul   // 船と乗員（と燃料）の弱い方＝「戦艦ありき」かつ「乗員なしでは動かない」
-        : Military * NavalShare * NavySkillMul;                                // 旧式（艦隊駆動OFF＝厳密恒等）
-    internal bool _fleetDriven;   // 艦隊駆動が有効か（係数を Power が持たないので Diplomacy が毎月立てる）
-    internal bool _fleetSeeded;   // 開幕の播種を済ませたか（裁定③(i)＝1度だけ・国別ビット恒等の保証）
+    public double NavalPower => _fleetDriven
+        ? FleetGauge * NavalFuelMul * CrewFill * NavySkillMul   // 艦×燃料×乗員の充足×海の熟練＝「戦艦ありき」かつ「乗員なしでは動かない」（陸軍の即応度と陸の質を掛けない）
+        : Military * NavalShare * NavySkillMul;                 // 経済を持たない抽象標的（と換算分母の無い小さな盤面）＝静的な海軍
+    internal bool _fleetDriven;   // 艦の在庫から海軍力を立てるか（経済を持ち換算分母がある国＝Diplomacy が毎月立てる）
+    internal bool _fleetSeeded;   // 開幕の播種を済ませたか（1度だけ・国別ビット恒等の保証）。★(189) 開幕の後に生まれた国は播かない（艦は湧かない＝買うか州と一緒に来た艦だけ）
     public double[] BasinPresence = new double[Basins.Count];   // 03手順6：海盆別プレゼンス重み（正規化・D1裁定＝交易シェアで自動＝沿岸州取扱高0.5＋植民地価値0.5。空なら首都海盆1）
     // ★熟練度（2026-08-04・作者仕様(5)）＝同じ兵数でも訓練された軍は強い（最大2倍）。抽象勢力は1.0のまま。
     public double ArmySkillMul = 1.0, NavySkillMul = 1.0;   // Diplomacy の同期が毎期書く（Power は World を直接見ない設計に合わせる）
     public double LandPower => Military * (1 - NavalShare) * ArmySkillMul;  // 陸軍力（戦線の押し合いの主力）
-    // ★理想の軍隊の形（2026-08-01）。ArmyShape.Compute が四半期に書き、NeedSea は Simulation が Region.ShapeNavalShare（軍需の陸海再配分）へ写す＝live。設計書＝docs/202607/20260801_理想の軍隊の形_部分完了.md【一部】.md
+    // ★理想の軍隊の形（2026-08-01）。ArmyShape.Compute が四半期に書く＝live。NeedSea は陸海の維持費の分け方（UtilityAgent.SetNavalUpkeepShare）と海軍の調達の目標の艦隊（EconomyStep.FleetOrder・(189)）が読む。設計書＝docs/202607/20260801_理想の軍隊の形_部分完了.md【一部】.md
     public double NeedLand;       // 陸の必要量（自国に向けられた他国陸軍の注意配分の和・ゲージ単位）
     public double NeedSea;        // 海の必要量（艦隊の比＝仮想敵国の艦隊の注意配分＋海路の接触＝海を越えて来る陸軍の注意配分・(183) で通商保護の項〔自国の軍×海に出ている割合〕を外した）
     public double NeedInternal;   // 内的秩序の必要量（不穏度×統治人口・他国を参照しない外生アンカー＝不動点が0にならない土台）
@@ -820,7 +822,7 @@ public sealed class Diplomacy
     {
         Cost[CostLedger.DiploPowerMonths] += Powers.Count;   // 計算量の台帳（診断）：外交の月の歩は国×月に比例
         // ★開幕（2026-10-01 (151)）＝経済を持つ国のどれもまだ艦隊を播いていない最初の同期（00一覧 §0-A の 11 の申し送り「開幕の陸海の維持費 0.27/0.03 が最初の四半期に跳ぶ」）。
-        bool opening = c.NavalPowerFromFleet > 0;
+        bool opening = true;   // ★(189) 艦隊駆動の旗（NavalPowerFromFleet）は削除＝経済を持つ国は常に艦の在庫から
         foreach (var p0 in Powers) if (p0.Nation is not null && p0._fleetSeeded) { opening = false; break; }
         // 経済を持つ国は軍/GDP/財庫を毎月同期（抽象的な外国は静的値のまま）
         foreach (var p in Powers)
@@ -844,47 +846,20 @@ public sealed class Diplomacy
             double militiaMen = 0;
             if (c.MilitiaCombatValue > 0)
                 foreach (var mp in nw.AllPops()) if (!mp.IsSoldier && mp.MilitiaShare > 0) militiaMen += mp.Size * mp.MilitiaShare;
-            p.Military = ((nw.SoldierSize() + c.MilitiaCombatValue * militiaMen) / c.SoldiersPerMilitary + c.ArmyShapeGauge * p.FleetGauge) * nw.MilitaryReadiness * (1 + c.MilitaryQualityBonus * nw.Region.MilitaryQualityFill + c.MilitaryTier3Bonus * nw.Region.MilitaryTier3Fill) * cohesion * militarism * techQuality;   // 上位軍需(tier2)＋tier3(戦車/弩級戦艦)＋民族の結束＋軍国＋技術＝戦力の質的乗数
+            double soldiersNow = nw.SoldierSize();   // ★(189) 戦力と乗員（艦に乗る兵）が同じ兵士の数を読む
+            p.Military = ((soldiersNow + c.MilitiaCombatValue * militiaMen) / c.SoldiersPerMilitary + c.ArmyShapeGauge * p.FleetGauge) * nw.MilitaryReadiness * (1 + c.MilitaryQualityBonus * nw.Region.MilitaryQualityFill + c.MilitaryTier3Bonus * nw.Region.MilitaryTier3Fill) * cohesion * militarism * techQuality;   // 上位軍需(tier2)＋tier3(戦車/弩級戦艦)＋民族の結束＋軍国＋技術＝戦力の質的乗数
             p.AirPower = p.Military * nw.Region.MilitaryAirFill;   // 1934拡張E2：空軍力＝陸海戦力×空軍装備充足（飛行機/戦闘機/化学兵器）。財の解禁(1910s)前はFill0＝空軍0＝恒等
-            // ★割り振りの廃止（2026-08-04・作者仕様(5)）：海軍シェアは**払った金の比**で決まる。
-            //   旧＝地理（外洋に開くか・植民地数）から自動で決まり、プレイヤーもAIも直接は動かせなかった
-            //   ＝「割り振り」という抽象レバーが実体のない場所に座っていた。
+            // ★割り振りの廃止（2026-08-04・作者仕様(5)）：海軍は**払った金の比**で決まる。
             //   ★払う金の陸海の比は陸と海の必要量が決める（2026-10-01 (151)・UtilityAgent.SetNavalUpkeepShare＝ArmyShape.NavalSpendShareOf・AI とプレイヤーが同じ関数）。
-            //   ★(151)：下限0.05・上限0.60 のクランプを外した（思想⑧ 天井の廃止＝選んだ比を削らない・陸を完全には捨てないことは陸と内の守りの必要量が担う）。
-            //   旧の地理の目標（GeoNavalShare）と旧式へ戻す旗（NavalShareFromUpkeep）は読み手ごと削除。
-            double shareTarget = nw.NavalSpendShare;   // 維持費の比∈[0,1]（World.NavalSpendShare＝海÷(陸＋海)）
-            p.NavalShare = c.NavalBuildRate >= 1.0 ? shareTarget : p.NavalShare + c.NavalBuildRate * (shareTarget - p.NavalShare);   // 既定0.3＝建艦の時間遅れ（EMA）。1.0で即時＝旧挙動
-            // ★艦隊ゲージ＝実際に買って保有している戦闘艦（EconomyStep が積む region.FleetStock）をゲージ単位へ。
-            // ⚠国内の全州を足す＝造船した港がどこであれ艦隊は国のもの。0（既定）で旧式へ縮退＝厳密恒等。
-            p._fleetDriven = c.NavalPowerFromFleet > 0;
-            if (p._fleetDriven)
-            {
-                // ★★開幕の播種（ユーザー裁定③(i)・2026-08-01）。**これが無いと点火の瞬間に世界の海軍が消える。**
-                // ⚠Region.FleetStock は初期化を持たず購入累積だけで育つので、Q0 では全国 0 → FleetGauge 0 →
-                //   NavalPower = min(0, 乗員) = 0 ＝ **1783年の英海軍が存在しなくなり SeaControl が全ペアで壊れる**。
-                //   『理想の軍隊の形』§2-6 が空軍について却下したのと同じ吸収状態である。
-                // ★播種式：FleetStock₀ = Military₀ × NavalShare₀ × K
-                //   → Q0 で FleetGauge = Military₀ × NavalShare₀ ＝ **旧ゲージそのもの**＝点火の瞬間が
-                //     世界平均ではなく**国別に厳密恒等**（総量恒等式より強い保証）。以後の乖離は実際の建艦だけから積む。
-                // ⚠置き場は首都州（Regions[0]）。軍需調達と艦隊の減価が首都州でしか走らない（MilitaryScale が首都限定）ので、
-                //   他州へ播くとそのぶんが**永久に減価しない**死蔵ストックになる。艦の停泊地ではなく**国の台帳**である。
-                // 換算分母は**導出値**（EconomyStep.FleetGaugeDenominator）＝係数 FleetStockPerNavalGauge は撤去済み。
-                double denom = nw.Regions.Count > 0 ? EconomyStep.FleetGaugeDenominator(nw.Regions[0], c) : double.NaN;
-                if (!(denom > 0)) { p.FleetGauge = 0; p._fleetDriven = false; }   // ⚠否定形＝NaNなら旧式へ退避（海軍が消えない）。★是正（監査2026-09-02 #3）：continueを廃止＝この国の後段同期（NavalFuelMul・艦隊摩耗・Culture/Religion・BasinPresence・Skill・_year）を飛ばさない
-                else
-                {
-                    if (!p._fleetSeeded && !opening)   // ★開幕（どの国もまだ播いていない）はループの後で陸と海の必要量から播く（下の OpeningNavalShares）
-                    {
-                        p._fleetSeeded = true;
-                        if (nw.Regions.Count > 0)
-                            nw.Regions[0].FleetStock = Math.Max(0, p.Military * p.NavalShare) * denom;
-                    }
-                    double stock = 0;
-                    foreach (var rr in nw.Regions) if (rr.State == RegionState.Active) stock += rr.FleetStock;
-                    p.FleetGauge = stock / denom;
-                }
-            }
-            else p.FleetGauge = 0;   // 艦隊駆動OFF＝旧式（兵数駆動）
+            //   ★(189)：金の比（World.NavalSpendShare）は装備の器のうち艦を買う額（Region.NavalBudget）を分け、艦が海軍力になる（金→艦→強さ）。
+            //   海軍シェア（Power.NavalShare）は兵士のうち艦に乗る割合＝下の SyncFleet が艦の在庫から導く（旧＝金の比への EMA〔NavalBuildRate 0.3〕＝兵の頭数×割合が乗員だった）。
+            // ★艦の強さと乗員（2026-10-03 (189)）＝実際に買って保有している戦闘艦（EconomyStep が積む Region.FleetUnits）から。国内の全州を足す＝造船した港がどこであれ艦隊は国のもの。
+            //   換算分母は導出値（EconomyStep.FleetGaugeDenominator）。換算分母が無い（軍需財を持たない小さな盤面）＝静的な海軍（Military×海の金の割合）へ退避＝海軍が消えない。
+            // ★★開幕の播種（ユーザー裁定③(i)・2026-08-01）は下の OpeningNavalShares（どの国もまだ播いていない最初の同期）だけ＝開幕の後に生まれた国は播かない（艦は湧かない）。
+            double denom = nw.Regions.Count > 0 ? EconomyStep.FleetGaugeDenominator(nw.Regions[0], c) : double.NaN;
+            p._fleetDriven = denom > 0;
+            if (!p._fleetDriven) { p.FleetGauge = 0; p.CrewFill = 1.0; p.NavalShare = nw.NavalSpendShare; }   // ⚠否定形＝NaN の換算分母は退避。★是正（監査2026-09-02 #3）：continue を置かない＝この国の後段同期を飛ばさない
+            else SyncFleet(p, nw, c, denom, soldiersNow);
             // 運用コスト監査2026-08-16（#1 海軍の運用燃料・休眠）：燃料充足EMA→出撃能力。係数0では書き込みすらしない（Power既定1.0のまま）＝厳密恒等。
             if (c.NavalFuelPerGauge > 0)
             {
@@ -894,21 +869,25 @@ public sealed class Diplomacy
                 p.NavalFuelMul = floor + (1.0 - floor) * ff;
             }
             // 艦隊摩耗（07_再設計 §6-1・A6裁定「する」・2026-07-31）：交戦中は、自分が展開している海盆で敵艦隊と接触するほど艦が沈む。
-            // 摩耗は **NavalShare（持続量）** を削る＝建艦（上のEMA）で年単位でしか戻らない＝トラファルガー後の制海権固定が出る。
-            // 「戻し」＝A6案i（修理需要）：沈んだぶんは軍艦財の**追加需要**として造船業へ渡る（無から財を生まない＝保存規律に素直）。
-            if (c.NavalAttritionRate > 0 && p.NavalShare > c.NavalShareMin)
+            // ★(189) 摩耗は**艦の在庫**（Region.FleetUnits）を沈める＝財ごとに同じ割合（その月に沈む割合＝NavalAttritionRate×接触の濃さ）・床を置かない（思想⑧）。
+            //   建艦（海軍の調達＝目標の艦隊と在庫の差を海軍の予算の中で買う）で年単位でしか戻らない＝トラファルガー後の制海権固定が出る。払えない国は再建できない（負けた側は沈んだまま）。
+            //   旧＝海軍シェア（持続量）を削り床 NavalShareMin 0.05・沈んだぶんを軍艦財の追加需要（NavalRepairUnits）へ＝海軍シェアが 0.05 以下の国（清など）は艦が沈まなかった。
+            if (c.NavalAttritionRate > 0 && p._fleetDriven && p.FleetGauge > 0)
             {
                 double hostile = 0; var hos = BasinHostility(p);
                 for (int b = 0; b < hos.Length; b++) hostile += hos[b] * p.BasinPresence[b];   // 自分が居る海盆での敵支配度＝接触の濃さ
                 if (hostile > 1e-9)
                 {
-                    double loss = System.Math.Min(p.NavalShare - c.NavalShareMin, c.NavalAttritionRate * hostile * p.NavalShare);
-                    // ★新兵器の必要性の海の損耗（2026-10-01 (153)・設計 §1A-4 (4a)）＝今月に沈んだ艦の割合（loss÷海軍シェア）÷艦隊摩耗の月の上限の割合
+                    double frac = c.NavalAttritionRate * hostile;   // その月に沈む艦の割合
+                    if (frac > 1) frac = 1;
+                    foreach (var rr in nw.Regions)
+                        if (rr.State == RegionState.Active && rr.FleetUnits is { } fu)
+                            for (int k = 0; k < fu.Length; k++) fu[k] *= 1.0 - frac;
+                    // ★新兵器の必要性の海の損耗（2026-10-01 (153)・設計 §1A-4 (4a)）＝今月に沈んだ艦の割合÷艦隊摩耗の月の上限の割合
                     //   （NavalAttritionRate＝全艦が敵の支配1の海盆に居る月）＝0〜1（陸と空は戦死の WarCasualties・単位は同じ「総力戦の月の上限を1とした割合」）。記帳だけ（摩耗の量は変えない）。
-                    double seaLoss = loss / p.NavalShare / c.NavalAttritionRate;
+                    double seaLoss = frac / c.NavalAttritionRate;
                     if (seaLoss > 0) (nw.DiscoveryLossQ ??= new double[Discovery.LossDomains])[(int)WarDomain.Sea] += seaLoss;   // 否定形＝NaN と0は積まない
-                    p.NavalShare -= loss;
-                    nw.Region.NavalRepairUnits += c.NavalRepairPerLoss * loss * p.Military;   // 修理需要（軍艦財）＝戦争が造船業を潤す
+                    SyncFleet(p, nw, c, denom, soldiersNow);   // 沈んだ艦は今月の海軍力から（旧＝海軍シェアを削った月から）
                 }
             }
             (p.Culture, p.Religion) = MajorityCultureReligion(nw);   // 主流文化/宗教＝州ラベルの人口加重多数派（緊張の差分化に使う）
@@ -958,7 +937,7 @@ public sealed class Diplomacy
         StepWars(c);                   // 戦争の運は盤面非依存ハッシュ（A-3#8）＝rng不要
         CommerceRaidPrize(c);          // 拿捕賞金：制海権を握った側が敵の海上交易を拿捕（通商破壊を海軍国の戦略的利得に・改修2026-06-28）
         DriftTension(c);
-        // ★理想の軍隊の形（2026-08-01・ArmyShapeEnabled=1.0 live＝NeedSea が軍需の陸海再配分へ流れる）。四半期に1回で十分（形は年単位でしか動かない）＝53×53の対を毎月回さない。
+        // ★理想の軍隊の形（2026-08-01・ArmyShapeEnabled=1.0 live＝NeedSea が陸海の維持費の分け方と海軍の調達の目標の艦隊〔(189)〕へ流れる）。四半期に1回で十分（形は年単位でしか動かない）＝53×53の対を毎月回さない。
         // ArmyShapeEnabled=0 で1命令も実行しない。
         if (month % Calendar.MonthsPerQuarter == 0) ArmyShape.Compute(this, c);
         // （戦費・賠償・拿捕・貢納は World.Pay で国庫へ直接記帳する＝末尾の書き戻しの同期窓は 2026-09-28 に撤去）
@@ -969,9 +948,12 @@ public sealed class Diplomacy
     /// <summary>★開幕の陸海の比と艦隊の播種（2026-10-01 (151)・00一覧 §0-A の 11 の申し送り「開幕の陸海の維持費は全ての国で既定 0.27/0.03＝最初の四半期に跳ぶ
     /// ＝構築の時に同じ関数（UtilityAgent.SetNavalUpkeepShare）で置く」）。陸と海の必要量は全ての国の同期した戦力と港の取扱高（最初の清算の後）を要する
     /// ＝構築の時にはまだ定まらない＝最初の同期（全ての国の Military・海盆プレゼンスを同期した直後）で1度だけ：理想の形を算出し、
-    /// 同じ関数で陸海の維持費の比を置き（AI とプレイヤーが同じ）、海軍シェアをその比から始め（旧＝0 から建艦の時間遅れで比の3割）、艦隊をその比で播く
-    /// （播種式は旧と同じ FleetStock₀ = Military₀ × NavalShare₀ × 換算分母＝点火の瞬間の国別の恒等はそのまま）。
-    /// 開幕の艦隊は他国の艦隊がまだ無い＝海の必要量は海を越えて来る陸軍（投射）だけ（艦隊の比の項は0・(183) で通商保護の項を外した）。</summary>
+    /// 同じ関数で陸海の維持費の比を置き（AI とプレイヤーが同じ）、艦隊を播く。
+    /// ★(189)：開幕の艦隊＝目標の艦隊（EconomyStep.FleetTargetUnits＝海の必要量÷海の熟練を 1783 年に発見済みの艦〔帆船の軍艦〕で割り付けた隻数）＝陸の装備の開幕の武器庫と同じ規則
+    ///   （EconomyStep.ArmsHeld「未初期化は目標＝1783 年に既にある軍は既に装備を持つ」）。港の州が無い国は播かない（造船は港）。
+    ///   旧（(151)〜(187)）＝艦の強さ₀＝Military₀×海の割合₀（旧の min(艦隊, 乗員) の乗員の側と同じ値＝点火の瞬間の国別の恒等＝(189) で乗員の側が無くなり意味を失った）。
+    /// 開幕の艦隊は他国の艦隊がまだ無い＝海の必要量は海を越えて来る陸軍（投射）だけ（艦隊の比の項は0・(183) で通商保護の項を外した）＝以後の目標の伸びは海軍の調達が買う。
+    /// 海軍シェアは置かない（兵士のうち艦に乗る割合＝SyncFleet が播いた艦から導く）。播くのは開幕の国だけ（この後に生まれた国は買うか州と一緒に来た艦だけ）。</summary>
     private void OpeningNavalShares(Coefficients c)
     {
         ArmyShape.Compute(this, c);
@@ -980,15 +962,45 @@ public sealed class Diplomacy
             if (p.Nation is not { } nw || p._fleetSeeded) continue;
             UtilityAgent.SetNavalUpkeepShare(nw);   // 陸海の維持費の目標の比（AI とプレイヤーの同じ関数）
             double s = ArmyShape.NavalSpendShareOf(p);
-            if (s >= 0) { nw.SetMilitarySpending(nw.MilitarySpending, s); p.NavalShare = s; }   // 未定義（−1・NaN）は今の比のまま（否定形）
+            if (s >= 0) nw.SetMilitarySpending(nw.MilitarySpending, s);   // 未定義（−1・NaN）は今の比のまま（否定形）
             double denom = nw.Regions.Count > 0 ? EconomyStep.FleetGaugeDenominator(nw.Regions[0], c) : double.NaN;
-            if (!(denom > 0) || !p._fleetDriven) continue;   // 換算分母が無い国は艦隊駆動の外（同期のループと同じ退避）
+            if (!(denom > 0) || !p._fleetDriven) continue;   // 換算分母が無い国は艦の在庫の外（同期のループと同じ退避）
             p._fleetSeeded = true;
-            nw.Regions[0].FleetStock = Math.Max(0, p.Military * p.NavalShare) * denom;
-            double stock = 0;
-            foreach (var rr in nw.Regions) if (rr.State == RegionState.Active) stock += rr.FleetStock;
-            p.FleetGauge = stock / denom;
+            bool port = false;
+            foreach (var rr in nw.Regions) if (rr.State == RegionState.Active && rr.IsPort) { port = true; break; }
+            if (port && EconomyStep.FleetTargetUnits(nw.Regions[0], c, nw) is { } t0)
+            {
+                var fu = nw.Regions[0].FleetUnits ??= new double[c.FleetGoodIds.Length];
+                for (int k = 0; k < fu.Length && k < t0.Length; k++) fu[k] += t0[k];
+            }
+            SyncFleet(p, nw, c, denom, nw.SoldierSize());
         }
+    }
+
+    /// <summary>★艦の強さと乗員の同期（2026-10-03 (189)・作者の裁定 2026-08-01「陸軍は兵士ありきですが、海軍は戦艦ありきです。海軍の強さが海兵の数から決まるのはナンセンス」）。
+    /// 国の全ての稼働中の州の艦の在庫（Region.FleetUnits）から：艦の強さのゲージ（FleetGauge＝Σ隻数×1隻の強さ〔建造費×段の乗数〕÷換算分母）・
+    /// 要る乗員（Σ隻数×1隻の乗員〔EconomyStep.FleetCrewPerHull＝艦の種類に依らない〕）・乗員（兵士から先に乗せる＝min(要る乗員, 兵士)）・
+    /// 乗員の充足（CrewFill＝乗員÷要る乗員）・海軍シェア（NavalShare＝乗員÷兵士＝陸軍力から外れる兵の割合）。陸軍の即応度と陸の質は読まない。</summary>
+    private static void SyncFleet(Power p, World nw, Coefficients c, double denom, double soldiers)
+    {
+        double value = 0, hulls = 0;
+        var cap = nw.Regions[0];
+        foreach (var rr in nw.Regions)
+        {
+            if (rr.State != RegionState.Active || rr.FleetUnits is not { } fu) continue;
+            for (int k = 0; k < fu.Length && k < c.FleetGoodIds.Length; k++)
+            {
+                if (!(fu[k] > 0)) continue;
+                value += fu[k] * EconomyStep.FleetUnitPower(cap, c, k);
+                hulls += fu[k];
+            }
+        }
+        p.FleetGauge = value / denom;
+        double crewNeed = hulls * EconomyStep.FleetCrewPerHull(cap, c, denom);
+        double men = soldiers > 0 ? soldiers : 0;
+        double crew = crewNeed < men ? crewNeed : men;
+        p.CrewFill = crewNeed > 1e-12 ? crew / crewNeed : 1.0;
+        p.NavalShare = men > 1e-9 ? crew / men : 0;
     }
 
     /// <summary>★13l地政学（作者裁定2026-08-14「無理に経済で完結させず、地政学的な要素をキャッチアップする」・観測実証＝99_実装ログ§4-6）：

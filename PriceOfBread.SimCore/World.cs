@@ -477,8 +477,9 @@ public sealed class World
     //   ── 設計 ────────────────────────────────────────────────────────────────
     //   真の状態は**2本の維持費**。<see cref="MilitarySpending"/> はその**和**（派生）＝
     //   軍隊規模・軍需予算・軍国度（将校貴族の政治力）・治安維持力といった既存の読み手は**1行も変えずに**そのまま動く。
-    //   海軍シェア（Diplomacy.Power.NavalShare）は「地理から創発する割り振り」でなく
-    //   **払った金の比**から出す＝作者仕様「割り振りは廃止」の実体。地理は AI/初期値の目標に残る。
+    //   海軍は「地理から創発する割り振り」でなく**払った金の比**から出す＝作者仕様「割り振りは廃止」の実体。
+    //   ★(189)：金の比（<see cref="NavalSpendShare"/>）は装備の器のうち艦を買う額（Region.NavalBudget）を分け、買った艦が海軍力になる（Power.NavalPower）。
+    //   海軍シェア（Diplomacy.Power.NavalShare）は兵士のうち艦に乗る割合（乗員÷兵士）＝艦の在庫から導く量（旧＝この比への EMA）。
     //   ⚠和は1.0でクランプ＝旧レバーの定義域（0..1）を保つ＝既存の較正が意味を保てる。
     public double ArmyUpkeep { get; internal set; }   // 陸軍維持費（0..1）
     public double NavyUpkeep { get; internal set; }   // 海軍維持費（0..1）

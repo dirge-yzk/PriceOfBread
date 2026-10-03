@@ -1839,7 +1839,9 @@ public sealed class Simulation
         foreach (var pr in World.Regions) if (pr.State == RegionState.Active && pr.IsPort) { navalYard = true; break; }
         // 州非依存の国スカラー（州ループ前に1回だけ算出＝毎州の再計算を避ける。いずれも州ループ内で書き換わらない入力のみ読む）。
         double natSoldiers = World.SoldierSize();
-        double shapeNavalNat = World.SelfPower is { } shp0 ? ArmyShape.NavalSpendShareOf(shp0) : -1.0;   // ★(151) 陸海の分け方（州ループの外で1回・ループの中で必要量は書き換わらない）
+        // ★海の金の割合（2026-10-03 (189)）＝施行された陸海の維持費の比（World.NavalSpendShare＝海軍維持費÷陸海の維持費＝AI は ArmyShape.NavalSpendShareOf を目標に置く・プレイヤーは同じ法の値）。
+        //   装備の器（軍事費の器から給与を払った残り）を陸の装備と艦に分ける（下の州ループ・旧＝理想の海の割合〔ShapeNavalShare〕で軍需の内訳を再配分＝艦を兵の頭数×割合で買った）。
+        double navalSpendNat = World.NavalSpendShare;
         double warScareTensionNat = World.Diplomacy is { } wsDip && World.SelfPower is { } wsMe ? wsDip.MaxTension(wsMe) : 0;
         double monopolyRentFactorNat = World.Coef.AntitrustGate > 0
             ? World.Antitrust switch { AntitrustLaw.CartelBan => World.Coef.CartelBanRent, AntitrustLaw.Trustbust => World.Coef.TrustbustRent, _ => 1.0 }
@@ -1947,17 +1949,25 @@ public sealed class Simulation
                 //   粗歳入から確実に（裁量余剰でなく）＝**軍国（余剰0でも）が装備できる**＝武器を買えた軍だけが治安維持力＋対外武力を持つ（買えねば即応度0→治安維持力0→革命）。
                 // ⚠旧＝借入スタックの出費上限（SpendingCapFactor）を軍需にだけ掛けなかった（軍を最後まで維持する）。2026-09-28 に出費上限ごと撤去し、全ての行が同じ国家の支払い率 r（優先順位なし＝作者裁定 F3・Q9）。
                 // 課題5（2026-08-08）：戦時は必要額（MilitaryScale×warMult）に予算も追随＝赤字戦費＝★(155) 戦時経済の段（器の最上段）が担う。国庫が尽きれば国家の支払い率 r が自然に絞る。
-                double milCap = equipRoom;   // 請求（r を掛ける前）。支出反射（OpulenceSpendRate>0で国庫超過分も使える歳入へ＝戦争準備金）は器の側で効く
-                // ★段2（2026-08-01）：理想の形の陸海比を州へ写す（軍需の内訳の再配分に使う）。ArmyShapeEnabled=0 では Need* が全て0＝-1のまま＝再配分しない＝厳密恒等。
-                // ★(151)：陸海の維持費の分け方と同じ1本（ArmyShape.NavalSpendShareOf＝州ループの外で1回）＝払う金の陸海と買う装備の陸海が同じ比（旧＝維持費は地理の比・軍需は必要量の比の2本）。
-                if (World.SelfPower is not null) r.ShapeNavalShare = shapeNavalNat;
+                // ★陸海の分割（2026-10-03 (189)・作者 2026-09-29「陸軍は安全保障ベース、海軍は別のベースで、軍事費を分割するようにしよう」・2026-08-01「海軍は戦艦ありきです」）：
+                //   装備の器を海の金の割合（navalSpendNat）で陸の装備と艦に分ける＝艦は海軍の予算（Region.NavalBudget）で買い、陸の装備の段は艦を買わない（EconomyStep.LandMul）。
+                //   旧＝装備の器の全体を陸の装備の段の予算にし、艦も同じ段の中で兵の頭数×海の割合で買った（陸海の再配分 ShapeNavalShare）。
+                double seaShare = navalSpendNat;
+                if (!(seaShare >= 0)) seaShare = 0; else if (seaShare > 1) seaShare = 1;   // 否定形＝NaN は陸へ
+                double milCap = equipRoom * (1.0 - seaShare);   // 陸の装備の請求（r を掛ける前）。支出反射（OpulenceSpendRate>0で国庫超過分も使える歳入へ＝戦争準備金）は器の側で効く
+                double navalCap = equipRoom * seaShare;         // 艦の請求（r を掛ける前）
                 r.MilitaryBudgetCeiling = World.Coef.GarrisonProcurement > 0 ? milCap * r.GarrisonShare : (r.Id == 0 ? milCap : 0);   // 駐屯州調達＝予算も需要と同じ配分（g=0で旧と厳密同値）   // 上限（必要額で切る前）＝恒常性の信号の分母側。S3a=0 では下の予算と同値＝厳密恒等
                 // ★S3a：必要額を超えて割り当てない（上限の意味どおり）。MilitaryBudgetNeedCapped=0 で従来＝厳密恒等。
                 // ⚠必要額は**全4段**（基本・上位・tier3・空軍）。基本段だけで打ち切ると残余が厳密0になり上位装備が全滅する（EconomyStep.MilitaryProcurementNeed の注記）。
+                // ★(189) 艦も同じ規則（海軍の調達の必要額＝目標の艦隊と在庫の差・EconomyStep.NavalProcurementNeed）＝十分な艦隊が揃えば出費は伸びない（(155) の扶養限界と同じ形）。
                 if (World.Coef.MilitaryBudgetNeedCapped > 0 && r.Id == 0)
+                {
                     milCap = Math.Min(milCap, EconomyStep.MilitaryProcurementNeed(r, World.Coef));
+                    navalCap = Math.Min(navalCap, EconomyStep.NavalProcurementNeed(r, World.Coef, World));
+                }
                 r.MilitaryBudget = World.Coef.GarrisonProcurement > 0 ? milCap * r.GarrisonShare : (r.Id == 0 ? milCap : 0);   // 駐屯州調達＝予算も配分（r は下で全ての予算に同じく掛ける）
-                equipClaimNat += r.MilitaryBudget;   // ★(155) 吸い込みの2段目の請求（国の和）＝3段目（質）はこの残り
+                r.NavalBudget = r.Id == 0 ? navalCap : 0;   // 艦は国の調達（首都の州の1本・港の門は EconomyStep.FleetOrder）
+                equipClaimNat += r.MilitaryBudget + r.NavalBudget;   // ★(155) 吸い込みの2段目の請求（国の和）＝3段目（質）はこの残り
                 r.SocialSecurity = World.SocialSecurity;                 // 公共医療＝医薬品消費に使う（EconomyStep）
                 r.InsuranceCoverage = World.Coef.InsuranceCoverageMax * World.SocialSecurity;   // 健康保険(#3)：医薬品購入費の国家負担割合（r は下で掛ける＝旧 WelfareFunding は国家の支払い率へ畳んだ・2026-09-28）
                 r.StateMonopolyMargins = World.StateMonopolyMargins;       // 材ごとの専売の上乗せ率への参照（★2026-09-20＝これが専売の唯一の実体）
@@ -2108,7 +2118,7 @@ public sealed class Simulation
         foreach (var r in World.Regions)
             if (r.State == RegionState.Active)
             {
-                claims += r.MilitaryBudget + r.AdminBudget + r.InfraBudget + r.ElecInfraBudget + r.SoldierPayBudget
+                claims += r.MilitaryBudget + r.NavalBudget + r.AdminBudget + r.InfraBudget + r.ElecInfraBudget + r.SoldierPayBudget   // ★(189) 艦の請求（海軍の予算）も同じ1本
                         + r.StateBuildQueue + r.MonumentBuildQueue + r.HigherEduFunding
                         + regrow * (Math.Max(0, r.StateSpent[(int)TreasuryCat.Education]) + Math.Max(0, r.StateSpent[(int)TreasuryCat.Welfare])       // 先月の義務教育・健康保険
                                   + Math.Max(0, r.StateSpent[(int)TreasuryCat.FactoryBuild]) + Math.Max(0, r.StateSpent[(int)TreasuryCat.Subsidy]));   // 先月の工場の材料・民営の補助
@@ -2197,7 +2207,7 @@ public sealed class Simulation
             if (r.State == RegionState.Active)
             {
                 // 全ての予算と予約に同じ r（予算は量の上限＝買えた分だけ払う＝払えない分は量が減る）
-                r.MilitaryBudget *= payRate; r.MilitaryBudgetCeiling *= payRate;
+                r.MilitaryBudget *= payRate; r.MilitaryBudgetCeiling *= payRate; r.NavalBudget *= payRate;   // ★(189) 艦の予算にも同じ r
                 r.AdminBudget *= payRate; r.InfraBudget *= payRate; r.ElecInfraBudget *= payRate; r.SoldierPayBudget *= payRate;
                 // ★(155) 兵士の「失業」＝給与の未払いの割合（規定の給与のうち払われない分）＝失業プール（Meritocracy の ①''）の駆動（多年EMA＝未払いが長引くほど脱走が増える）
                 //   と志願の空き（払われない軍には志願しない）が読む。兵士は労働を市場で売らない＝EconomyStep の売れ残りの書き手は兵士に書かない（この行だけ）。

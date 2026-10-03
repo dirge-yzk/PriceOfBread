@@ -213,53 +213,29 @@ if (args.Length > 0 && args[0] == "popprobe")
     return;
 }
 
-// === 艦隊ゲージ定数の導出： dotnet run -- navalgauge ===
-// ★★ユーザー裁定③（2026-08-01）＝FleetStockPerNavalGauge は**選ぶ数ではなく、現行の調達式から出てくる数**である。
-//   定常状態（購入＝劣化）で書くと：
-//       定常ストック ＝ Σ_{艦艇財 g}(MilitaryScale × rate_g × RefPrice_g) ÷ Spoilage(軍艦)
-//       K            ＝ 定常ストック ÷ (Military × NavalShare)
-//   右辺はすべて既存データ（調達率・参照価格・劣化率）＝新しい値を1つも選ばない。
-// ⚠FleetGoodIds は軍艦86・装甲艦105・弩級戦艦123 で、tier が解禁されるたびに構成が変わる（4段カスケードの afford も段ごとに違う）。
-//   したがって比は時代で漂う。★**Q0／Q200／Q350／Q524 の4断面で測り、漂いを記録する**（裁定③の実務注意）。
-//   2倍を超えて漂うなら定数 K では正しくならず、Σ(原単位 × RefPrice) から導出する形（＝K という係数自体が消える形）へ移す。
+// === 艦の強さと乗員の断面： dotnet run -- navalgauge ===
+// ★(189)（2026-10-03・作者の裁定 2026-08-01「海軍は戦艦ありきです。海軍の強さが海兵の数から決まるのはナンセンス」）：海軍力＝艦の強さのゲージ×燃料×乗員の充足×海の熟練。
+//   断面ごとに国の 換算分母・艦の強さの値・艦の強さのゲージ・隻数・要る乗員・兵士・乗員の充足・海軍シェア（乗員÷兵士）・海の必要量・海軍力 を並べる（読むだけ）。
+//   旧（2026-08-01〜(187)）＝艦隊÷乗員（軍の総合ゲージ×海軍シェア）の比と min の律速の側を数えた（乗員の側が全ての主要国で律速だった＝この計器の旧版が示していた）。
 if (args.Length > 0 && args[0] == "navalgauge")
 {
     int[] cuts = [4, 200, 350, 524];   // ⚠Q0は MilitaryScale がまだ立っていない（月次Stepで設定される）ので最初の断面はQ4
     var msNG = new MultiNationSim(WorldData.Nations(), 1UL, _ => new UtilityAgent());
-    msNG.StartWarmup();   // ★2026-09-07 計器の助走統一：selfplay-batch/popprobe と同じ助走を通す＝「測る世界」を帯の世界と一致させる（旧＝助走なし＝chronicle が popprobe と食い違った構築時型の計器バグ）
-    foreach (var sNG in msNG.Nations) sNG.World.Coef.NavalPowerFromFleet = 1.0;   // 既定で点火済み（念のため明示。POB_COEFで0に上書きされていてもこの計器は艦隊駆動で測る）
-    Console.WriteLine("断面Q,国名,換算分母,艦隊ストック,艦隊ゲージ,乗員ゲージ,比(艦隊/乗員),律速");
-    var perCut = new List<(int Q, List<double> R)>();
+    msNG.StartWarmup();   // ★2026-09-07 計器の助走統一：selfplay-batch/popprobe と同じ助走を通す
+    Console.WriteLine("断面Q,国名,換算分母,艦の強さの値,艦の強さのゲージ,隻数,要る乗員,兵士,乗員の充足,海軍シェア,海の必要量,海軍力");
     int done = 0;
     foreach (int cut in cuts)
     {
         for (; done < cut; done++) msNG.StepQuarter();
-        var rs = new List<double>();
         foreach (var simNG in msNG.Nations)
         {
             var w = simNG.World;
             if (w.SelfPower is not { } pw || w.Regions.Count == 0) continue;
             double denom = EconomyStep.FleetGaugeDenominator(w.Regions[0], w.Coef);
-            double stock = 0; foreach (var rr in w.Regions) if (rr.State == RegionState.Active) stock += rr.FleetStock;
-            double fg = denom > 0 ? stock / denom : 0;
-            double crew = pw.Military * pw.NavalShare;
-            double ratio = crew > 1e-9 ? fg / crew : double.NaN;
-            if (!double.IsNaN(ratio) && ratio > 0) rs.Add(ratio);
-            Console.WriteLine($"{cut},{pw.Name},{denom:F1},{stock:F0},{fg:F3},{crew:F3},{ratio:F3},{(fg < crew ? "艦隊" : "乗員")}");
+            double hulls = 0; foreach (var rr in w.Regions) if (rr.State == RegionState.Active && rr.FleetUnits is { } fu) foreach (var u in fu) hulls += u;
+            double crewNeed = denom > 0 ? hulls * EconomyStep.FleetCrewPerHull(w.Regions[0], w.Coef, denom) : 0;
+            Console.WriteLine($"{cut},{pw.Name},{denom:F1},{EconomyStep.FleetPowerValue(w):F0},{pw.FleetGauge:F3},{hulls:F0},{crewNeed:F2},{w.SoldierSize():F1},{pw.CrewFill:F3},{pw.NavalShare:F4},{pw.NeedSea:F3},{pw.NavalPower:F3}");
         }
-        perCut.Add((cut, rs));
-    }
-    // ★裁定③(iii)：min のどちらも張り付かないこと。比＜1 なら艦隊側が律速、＞1 なら乗員側が律速。
-    //   目安＝両側の binding 率がそれぞれ30〜70%（＝比の分布が1をまたいで散っている）。
-    Console.WriteLine("\n=== 断面ごとの 艦隊/乗員 比（1をまたいで散っていれば両側が張り合う）===");
-    foreach (var (q, rs) in perCut)
-    {
-        if (rs.Count == 0) { Console.WriteLine($"  Q{q}: 標本0"); continue; }
-        rs.Sort();
-        int bindFleet = rs.Count(x => x < 1.0);
-        double share = (double)bindFleet / rs.Count;
-        Console.WriteLine($"  Q{q}: 中央値 {rs[rs.Count / 2]:F2}（四分位 {rs[rs.Count / 4]:F2}〜{rs[rs.Count * 3 / 4]:F2}・標本{rs.Count}）" +
-            $"　艦隊が律速 {share:P0} / 乗員が律速 {1 - share:P0}　{(share is >= 0.3 and <= 0.7 ? "合格" : "★両端に張り付き")}");
     }
     return;
 }
@@ -295,7 +271,7 @@ if (args.Length > 0 && args[0] == "armyshape")
             if (wA2.SelfPower is not { } pA2) continue;
             var cA2 = wA2.Coef;
             double sol = wA2.SoldierSize(), pop = wA2.TotalPopulation;
-            double fleet = 0; foreach (var rr in wA2.Regions) if (rr.State == RegionState.Active) fleet += rr.FleetStock;
+            double fleet = EconomyStep.FleetPowerValue(wA2);   // ★(189) 艦の強さの値（隻数×建造費×段の乗数の和）
             // ★守るべき海上価値の**分解**（ArmyShape.cs:77-82 と同一の絞り込み＝IsPort のみ）
             double portVal = 0, colVal = 0;
             foreach (var rr in wA2.Regions) if (rr.State == RegionState.Active && rr.IsPort) portVal += rr.LastPortThroughput;
@@ -6933,7 +6909,7 @@ if (args.Length > 0 && args[0] == "milstart")
     {
         for (; msDone < cut; msDone++) msSim.StepQuarter();
         Console.WriteLine($"━━ Q{cut}（{msSim.Year}年）━━");
-        Console.WriteLine("国名,兵士,MilScale,港,ShapeNaval,NeedLand,NeedInt,NeedSea,闘争度,正統性,flatShare,navalMul,landMul,afford,小銃fill,火砲fill,弾薬fill,軍艦fill,汽船fill,小銃ration,軍艦ration,小銃prod,軍艦prod,軍艦need,軍艦価格比");
+        Console.WriteLine("国名,兵士,MilScale,港,海の金の割合,NeedLand,NeedInt,NeedSea,闘争度,正統性,flatShare,navalMul,landMul,afford,小銃fill,火砲fill,弾薬fill,軍艦fill,汽船fill,小銃ration,軍艦ration,小銃prod,軍艦prod,軍艦need,軍艦価格比");
         int nNaval5 = 0, nLand05 = 0, nShape9 = 0, nShapeNone = 0, nTotal = 0;
         foreach (var nsim in msSim.Nations)
         {
@@ -6954,16 +6930,9 @@ if (args.Length > 0 && args[0] == "milstart")
             }
             if (flatAll <= 1e-9) continue;   // 小シナリオ（軍需財なし）は対象外
             double flatShare = flatNaval / flatAll;
-            double navalMul = 1.0, landMul = 1.0;
-            if (c.NavalProcurementNeedsPort > 0 && !r.NationHasPort)
-            { navalMul = 0.0; landMul = flatShare < 1 - 1e-9 ? 1.0 / (1.0 - flatShare) : 1.0; }
-            else if (c.NavalProcurementFromShape > 0 && r.ShapeNavalShare >= 0 && flatShare > 1e-9 && flatShare < 1 - 1e-9)
-            {
-                double want = Math.Clamp(r.ShapeNavalShare, 0, 1), k = c.NavalProcurementFromShape;
-                navalMul = Math.Max(0, 1.0 + k * (want / flatShare - 1.0));
-                landMul = Math.Max(0, 1.0 + k * ((1 - want) / (1 - flatShare) - 1.0));
-            }
-            double MilMul(int g) => Array.IndexOf(c.FleetGoodIds, g) >= 0 ? navalMul : landMul;
+            // ★(189) 陸の装備の段は艦を買わない（EconomyStep.LandMul＝艦は0・他は1）＝艦は海軍の調達（海軍の予算 Region.NavalBudget）。旧＝陸海の再配分（ShapeNavalShare）
+            double navalMul = 0.0, landMul = 1.0;
+            double MilMul(int g) => EconomyStep.LandMul(c, g);
             double afford = Math.Min(1.0, r.MilitaryAffordRaw);
             double Fill(int g) => afford * MilMul(g) * PriceAfford(g) * Ration(g);
             double ProdN(int g) { double s = 0; foreach (var rr in w.Regions) if (rr.State == RegionState.Active && g < rr.Markets.Length) s += rr.Markets[g].LastProduced; return s; }
@@ -6973,14 +6942,14 @@ if (args.Length > 0 && args[0] == "milstart")
             nTotal++;
             if (navalMul > 5) nNaval5++;
             if (landMul < 0.05) nLand05++;
-            if (r.ShapeNavalShare > 0.9) nShape9++;
-            if (r.ShapeNavalShare < 0) nShapeNone++;
-            Console.WriteLine($"{sp.Name},{w.SoldierSize():F0},{r.MilitaryScale:F1},{(r.NationHasPort ? 1 : 0)},{r.ShapeNavalShare:F3},{sp.NeedLand:F2},{sp.NeedInternal:F2},{sp.NeedSea:F3},{Politics.AvgMassMilitancy(w):F3},{w.Legitimacy:F3}," +
+            if (w.NavalSpendShare > 0.9) nShape9++;
+            if (r.NavalBudget <= 0) nShapeNone++;
+            Console.WriteLine($"{sp.Name},{w.SoldierSize():F0},{r.MilitaryScale:F1},{(r.NationHasPort ? 1 : 0)},{w.NavalSpendShare:F3},{sp.NeedLand:F2},{sp.NeedInternal:F2},{sp.NeedSea:F3},{Politics.AvgMassMilitancy(w):F3},{w.Legitimacy:F3}," +
                 $"{flatShare:F3},{navalMul:F2},{landMul:F2},{afford:F2}," +
                 $"{Fill(gRifle):P0},{Fill(gArty):P0},{Fill(gAmmo):P0},{Fill(gShip):P0},{Fill(gSteam):P0}," +
                 $"{Ration(gRifle):F2},{Ration(gShip):F2},{ProdN(gRifle):F1},{ProdN(gShip):F1},{NeedOf(gShip):F2},{(shipRef > 1e-9 ? Price(gShip) / shipRef : 0):F2}");
         }
-        Console.WriteLine($"# Q{cut} 集計: 全{nTotal}カ国　navalMul>5: {nNaval5}　landMul<0.05: {nLand05}　ShapeNaval>0.9: {nShape9}　Shape未算出(-1): {nShapeNone}");
+        Console.WriteLine($"# Q{cut} 集計: 全{nTotal}カ国　navalMul>5: {nNaval5}　landMul<0.05: {nLand05}　海の金の割合>0.9: {nShape9}　海軍の予算0: {nShapeNone}");
         // ---- 価格の解剖（首都州・主要国）：小銃が参照の何倍か＝入力（鋼/製材/火薬/硝石）のどれが高いかを分解 ----
         // 軍需労働シェア＝軍需7財の prodW（＝需要量×Scale・EconomyStep:300 と同一式）÷ 全生産者の prodW
         //   ＝**逆症状（軍需産業が他産業の労働を食う）の計器**。工業化後にこれが膨らんでいないかを見る。
@@ -7877,11 +7846,10 @@ if (args.Length > 0 && args[0] == "selfplay-batch")
     // ★史実の物差し＝1914年の主力艦保有は 英 ≫ 独 > 米 > 仏 ≒ 日 ≒ 露 ≒ 墺。**英が1位でなければ「富で海軍を持つ」が出ていない。**
     if (b.NavalRanking is { Count: > 0 } nav)
     {
-        Console.WriteLine($"\n海軍力の順位（1914断面・艦隊駆動＝min(艦隊,乗員)。NavalPowerFromFleet=0なら兵数駆動）: {string.Join("　", nav.Take(8).Select((x, i) => $"{i + 1}位 {x.Nation} {x.Naval:F1}"))}");
-        // ★艦隊ストックの順位（2026-08-01・段A＝読み手ゼロの計器）：買えた戦闘艦を建造費加重で積んだ量。**史実では英が圧倒的1位**。
-        // 上の「現行」と並べることで、「海軍は戦艦ありき」への差し替えが正しい姿を出すかを**繋ぐ前に**確認できる。
+        Console.WriteLine($"\n海軍力の順位（1914断面・艦の在庫×段の効き×乗員の充足×海の熟練）: {string.Join("　", nav.Take(8).Select((x, i) => $"{i + 1}位 {x.Nation} {x.Naval:F1}"))}");
+        // ★艦の強さの値の順位（2026-08-01 段A の計器・(189) 艦の強さの値＝隻数×建造費×段の乗数の和）。**史実では英が圧倒的1位**。
         var fleet = nav.OrderByDescending(x => x.Land).Take(8).ToList();
-        Console.WriteLine($"艦隊ストックの順位（同断面・段A計器）: {string.Join("　", fleet.Select((x, i) => $"{i + 1}位 {x.Nation} {x.Land:F0}"))}");
+        Console.WriteLine($"艦の強さの値の順位（同断面）: {string.Join("　", fleet.Select((x, i) => $"{i + 1}位 {x.Nation} {x.Land:F0}"))}");
     }
     // 同一ペアの再戦（2026-08-01）：作者指摘「同じ国が繰り返し開戦するのは不具合」を数で見る窓。合否には使わない（報告のみ）。
     Console.WriteLine($"\n同一ペアの再戦: 平均 最多{b.AvgWarMaxRepeat:F1}回 ／ 3回以上戦ったペア {b.AvgWarPairsGe3:F1}組 ／ 交戦ペア {b.AvgWarPairs:F1}組" +

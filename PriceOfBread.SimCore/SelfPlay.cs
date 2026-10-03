@@ -1566,7 +1566,7 @@ public sealed record NationStanding(
     double PopGrowth = 0,   // B-中7（史実検証2026-07-22）：1783年比の人口成長倍率。**領土不変な定義**＝本ゲームは国を消さないので絶対人口の±%は噛み合わない。0=初期人口不明（測定対象外）
                             // 案Y（2026-08-21）：宣言と実装の乖離を解消＝分子から併合の持ち込み人口（Region.AnnexBaggage）を除く。旧定義は PopGrowthGross（末尾）に併走
     int HomeProvinces = 0,  // 08の70%計器（2026-07-31）：本国州の保有数（Active な Region＝割譲/分離で減り征服で増える）。領土次元の分子
-    double NavalPower = 0, double LandPower = 0, double FleetStock = 0,   // ★2026-08-01（作者裁定「海軍の強さは測定するべき」）：陸海の内訳。現行の忠実度6次元は兵力も海軍も装備も測らない＝改修の効果が検証できない
+    double NavalPower = 0, double LandPower = 0, double FleetStock = 0,   // ★2026-08-01（作者裁定「海軍の強さは測定するべき」）：陸海の内訳（★(189) FleetStock＝艦の強さの値＝EconomyStep.FleetPowerValue）。現行の忠実度6次元は兵力も海軍も装備も測らない＝改修の効果が検証できない
     double TradeGdp = 0,   // ★貿易開放度次元（2026-08-15・作者承認「テスト速度に影響しないなら追加」）：(輸出+輸入)×年換算/GDP（国際のみ＝TariffBorderOnly点火後の定義）。照合＝HistoricalReference.TradeOpenness1913
     // ★計器のみ（2026-08-18）：Militarism＝軍の政治的優位の**内訳**。合成値だけを見て写像を2度誤った（旧弁＝国家の近代性／新弁＝露が沈む）ので、
     //   milgrade が分子と分母、さらに弁の2項を別々に印字できるようにする。⚠効果には一切接続しない＝挙動非接触。
@@ -1756,7 +1756,7 @@ public static class SelfPlayMatch
                     w.SelfPower?.Name ?? "",   // 表示名（変名の物語はこちら）
                     growth,   // B-中7：1783年比の人口成長倍率
                     HomeProvinceCount(w),   // 08の70%計器（2026-07-31）：本国州の保有数＝領土次元の分子
-                    w.SelfPower?.NavalPower ?? 0, w.SelfPower?.LandPower ?? 0, w.Regions.Where(rr => rr.State == RegionState.Active).Sum(rr => rr.FleetStock),   // ★2026-08-01：陸海の内訳（海軍力の測定＝作者裁定）
+                    w.SelfPower?.NavalPower ?? 0, w.SelfPower?.LandPower ?? 0, EconomyStep.FleetPowerValue(w),   // ★2026-08-01：陸海の内訳（海軍力の測定＝作者裁定）・★(189) 艦の強さの値（隻数×建造費×段の乗数の和）
                     // ★★物差し是正（2026-08-21・作者裁定「全て採用」）：旧＝分子（輸出入）は四半期フロー×4＝**年額**、分母 NominalGdp は**月次フロー**
                     //   ＝「年額÷月額」で**12倍過大**だった。⚠債務/GDPは同じ問題を DebtGdpAnnualized=1.0（2026-07-26点火）で是正済み＝
                     //   貿易だけ取り残された内部矛盾の修正（Fiscal.cs 財7「債務/GDPの単位整合」の注記が「NominalGdp は月次フロー」と明記）。

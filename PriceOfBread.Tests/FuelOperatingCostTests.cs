@@ -27,7 +27,7 @@ public class FuelOperatingCostTests
         var sim = new Simulation(new Scenario { Seed = 11, Kind = ScenarioKind.France }, new NullAgent());
         sim.Run(120);
         Assert.Equal(1.0, sim.World.NavalFuelFillEma);                              // 書き手（NavalFuelStep）が一度も走っていない
-        Assert.Equal(0.0, sim.World.TreasuryLedger[(int)TreasuryCat.Navy]);         // Navy枠の書き手は海軍燃料のみ＝休眠でゼロ
+        Assert.Equal(0.0, sim.World.TreasuryLedger[(int)TreasuryCat.Navy]);         // Navy枠の書き手は海軍燃料と艦の購入（(189) 海軍の調達）＝単一国の世界は SelfPower が無い＝艦を買わない・燃料は休眠でゼロ
     }
 
     [Fact]
@@ -79,6 +79,9 @@ public class FuelOperatingCostTests
         Assert.True(w.NavalFuelFillEma < 1.0, $"燃料不足なのに充足EMAが下がらない（{w.NavalFuelFillEma}）");
     }
 
+    /// <summary>★(189) 海軍力＝艦の強さのゲージ×燃料×乗員の充足×海の熟練（作者の裁定 2026-08-01「海軍の強さが海兵の数から決まるのはナンセンス」）。
+    /// 燃料は艦の強さに緩く噛む乗数（既定1.0＝×1.0 の IEEE 恒等）・軍の総合ゲージと海軍シェア（陸軍の即応度と質つきの兵の頭数×割合）は読まない。
+    /// ⚠旧＝min(艦隊×燃料, 軍の総合ゲージ×海軍シェア)＝乗員の側で律速する盤面では燃料が効かなかった。⚠突然変異「旧の min へ戻す」で赤（3つ目と4つ目の Equal）。</summary>
     [Fact]
     public void 海軍燃料_出撃能力は艦隊項に緩く噛む()
     {
@@ -86,10 +89,14 @@ public class FuelOperatingCostTests
         Assert.Equal(100.0, p.NavalPower);   // 既定 NavalFuelMul=1.0＝×1.0のIEEE恒等（従来と同値）
 
         p.NavalFuelMul = 0.5;
-        Assert.Equal(50.0, p.NavalPower);    // 艦隊律速側＝燃料半減で艦隊項が半分
+        Assert.Equal(50.0, p.NavalPower);    // 燃料半減で艦隊項が半分
 
         p.FleetGauge = 2000.0; p.NavalFuelMul = 0.9;
-        Assert.Equal(500.0, p.NavalPower);   // 乗員律速側＝min(1800, 500)＝燃料は効かない（港湾には艦が余っている）
+        Assert.Equal(1800.0, p.NavalPower);  // 艦が軍の総合ゲージ×海軍シェア（500）より大きくても艦の強さ×燃料（旧＝min(1800, 500)＝500）
+        p.Military = 1.0; p.NavalShare = 0.01;
+        Assert.Equal(1800.0, p.NavalPower);  // 軍の総合ゲージ（陸軍の即応度と質つき）と海軍シェアを読まない
+        p.CrewFill = 0.25;
+        Assert.Equal(450.0, p.NavalPower);   // 乗員が足りなければ動かない（乗員の充足が掛かる）
     }
 
     [Fact]

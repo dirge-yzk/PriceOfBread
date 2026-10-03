@@ -705,13 +705,14 @@ public class MilitaryTests
         Assert.True(c.AllyAttentionDiscount > 0 && c.AllyAttentionDiscount < 1, "属国の割引が 0 か 1＝仮想敵ほどではないが脅威、が崩れた");
     }
 
-    /// <summary>★(151) 陸と海の分け方＝海の必要量÷max(軍の総合ゲージ, 陸＋内の守り＋海の必要量)。軍が必要量の和より大きい国は海の任務の分だけ（残りの兵は陸）＝清の型、
-    /// 軍が足りない国は必要量の比。必要量が全て0（未算出）と NaN は −1（呼び手は今の比のまま）。⚠突然変異「必要量の比だけ（max を外す）」「未算出を0にする」で赤。</summary>
+    /// <summary>★(151) 陸と海の分け方＝軍が必要量の和より大きい国は海の任務の分だけ（残りの兵は陸）＝清の型、軍が足りない国は必要量の比。必要量が全て0（未算出）と NaN は −1（呼び手は今の比のまま）。
+    /// ★(189) 式＝海の必要量÷(海の必要量＋max(陸＋内の守りの必要量, 自国の軍の大きさ))（旧＝海÷max(軍, 必要量の和)＝陸の必要量0の島の国は海の割合がほぼ1の錠）＝軍が大きい国は 2÷(2＋100)。
+    /// 経済を持たない抽象標的の軍の大きさは軍の総合ゲージ。⚠突然変異「必要量の比だけ（max を外す）」「未算出を0にする」で赤。</summary>
     [Fact]
     public void 海の割合は海の任務の分だけで軍が足りなければ必要量の比()
     {
         var big = new Power { Military = 100, NeedSea = 2, NeedLand = 3, NeedInternal = 1 };
-        Assert.Equal(0.02, ArmyShape.NavalSpendShareOf(big), 12);           // 海は任務の分だけ（2÷100）＝残り98%の兵は陸に立つ
+        Assert.Equal(2.0 / 102.0, ArmyShape.NavalSpendShareOf(big), 12);    // 海は任務の分だけ（2÷(2＋100)）＝残りの兵は陸に立つ
         var small = new Power { Military = 1, NeedSea = 2, NeedLand = 3, NeedInternal = 1 };
         Assert.Equal(2.0 / 6.0, ArmyShape.NavalSpendShareOf(small), 12);    // 軍が足りない＝必要量の比
         Assert.Equal(-1.0, ArmyShape.NavalSpendShareOf(new Power { Military = 5 }));
@@ -737,7 +738,11 @@ public class MilitaryTests
         Assert.True(jp.NeedSea > 0, $"日本の海の必要量が0（{jp.NeedSea}）");
     }
 
-    /// <summary>★(151) 陸海の維持費の目標の比＝陸と海の必要量の分け方（AI とプレイヤーが同じ関数・合計は保つ）。必要量が未算出なら今の比のまま。⚠突然変異「旧の地理の比へ」で赤。</summary>
+    /// <summary>★(151) 陸海の維持費の目標の比＝陸と海の必要量の分け方（AI とプレイヤーが同じ関数・合計は保つ）。必要量が未算出なら今の比のまま。⚠突然変異「旧の地理の比へ」で赤。
+    /// ★(189) 分母の自国の軍の大きさ＝兵の頭数のゲージ×質（ArmyShape.ForcePotential）＝即応度と装備の充足（症状）を読まない（設計書 §2-7）。
+    /// ①軍が陸と内の必要量より小さい＝必要量の比 ②軍が陸と内の必要量より大きい＝海の必要量÷(海の必要量＋自国の軍の大きさ)＝払っている兵の装備の分は陸に残る（陸の必要量が0の島の国の錠を作らない）
+    /// ③即応度・上位の充足・軍の総合ゲージを変えても分け方は1ビットも動かない。
+    /// ⚠突然変異「分母を軍の総合ゲージ（Military＝即応度つき）へ戻す」で赤（③）。</summary>
     [Fact]
     public void 陸海の維持費の目標は陸と海の必要量で分ける()
     {
@@ -746,15 +751,31 @@ public class MilitaryTests
         p.ArmyUpkeepTarget = 0.45; p.NavyUpkeepTarget = 0.30;
         UtilityAgent.SetNavalUpkeepShare(w);   // 必要量が未算出＝今の比のまま
         Assert.Equal(0.45, p.ArmyUpkeepTarget, 12); Assert.Equal(0.30, p.NavyUpkeepTarget, 12);
-        sp.Military = 4; sp.NeedSea = 3; sp.NeedLand = 2; sp.NeedInternal = 1;   // 軍が足りない＝必要量の比 3÷6
+        double pot = ArmyShape.ForcePotential(sp);
+        Assert.True(pot > 0, "前提が崩れた：自国の軍の大きさが0");
+        // ① 軍が足りない＝必要量の比 3÷6
+        sp.NeedSea = 3 * pot; sp.NeedLand = 2 * pot; sp.NeedInternal = 1 * pot;
         UtilityAgent.SetNavalUpkeepShare(w);
         Assert.Equal(0.75, p.ArmyUpkeepTarget + p.NavyUpkeepTarget, 12);
         Assert.Equal(0.5, p.NavyUpkeepTarget / (p.ArmyUpkeepTarget + p.NavyUpkeepTarget), 12);
+        // ② 軍が陸と内の必要量より大きい＝海の必要量÷(海の必要量＋自国の軍の大きさ)（海は任務の分だけ・残りの兵は陸）
+        sp.NeedSea = 0.1 * pot; sp.NeedLand = 0.2 * pot; sp.NeedInternal = 0.1 * pot;
+        Assert.Equal(0.1 / 1.1, ArmyShape.NavalSpendShareOf(sp), 12);
+        // ②' 陸の必要量が0の島の国（海の必要量が軍より大きい）＝旧は海の割合 1（陸の装備の予算0の錠）・今は兵の装備の分が陸に残る
+        sp.NeedSea = 3 * pot; sp.NeedLand = 0; sp.NeedInternal = 0;
+        Assert.Equal(0.75, ArmyShape.NavalSpendShareOf(sp), 12);
+        // ③ 症状を読まない
+        double s0 = ArmyShape.NavalSpendShareOf(sp);
+        sp.Military = pot * 0.01; w.MilitaryReadiness = w.MilitaryReadiness * 0.1; w.Region.MilitaryQualityFill = 1.0;
+        Assert.Equal(s0, ArmyShape.NavalSpendShareOf(sp));
+        Assert.Equal(pot, ArmyShape.ForcePotential(sp));
     }
 
     /// <summary>★(151) 開幕（00一覧 §0-A の 11 の申し送り「開幕の陸海の維持費 0.27/0.03 が最初の四半期に跳ぶ」）＝最初の同期で陸と海の必要量を算出し、
-    /// 陸海の維持費の比・海軍シェア・艦隊の播種を同じ比で置く（旧＝海軍シェアは0から建艦の時間遅れで比の3割・艦隊もその3割で播いた）。
-    /// 盤面＝英仏日（構築の直後に外交を1か月）＝全ての国で 海軍シェア＝分け方・艦隊ゲージ＝軍×分け方・維持費の比＝分け方。⚠突然変異「開幕も旧の播種」で赤。</summary>
+    /// 陸海の維持費の比と艦隊の播種を同じ比で置く（旧＝海軍シェアは0から建艦の時間遅れで比の3割・艦隊もその3割で播いた）。
+    /// 盤面＝英仏日（構築の直後に外交を1か月）＝全ての国で 艦の強さのゲージ＝軍×分け方・維持費の比＝分け方。⚠突然変異「開幕も旧の播種」で赤。
+    /// ★(189)：開幕の艦隊＝目標の艦隊（海の必要量÷海の熟練を 1783 年に発見済みの艦＝帆船の軍艦で割り付け＝陸の装備の開幕の武器庫と同じ「未初期化は目標」）・港の州が無い国は播かない
+    ///   ・海軍シェアは置かない（乗員÷兵士＝播いた艦から導く・乗員の充足は1＝兵士は乗員より多い）。⚠突然変異「旧の軍×分け方で播く」で赤。</summary>
     [Fact]
     public void 開幕の艦隊は陸と海の必要量の比で播く()
     {
@@ -767,9 +788,13 @@ public class MilitaryTests
             var w = n.World; var p = w.SelfPower!;
             double s = ArmyShape.NavalSpendShareOf(p);
             Assert.True(s >= 0, $"{p.Name}の分け方が未定義");
-            Assert.Equal(s, p.NavalShare, 12);
             Assert.Equal(s, w.NavalSpendShare, 12);
-            Assert.True(System.Math.Abs(p.FleetGauge - p.Military * s) <= 1e-9 * System.Math.Max(1, p.Military), $"{p.Name}の艦隊ゲージ {p.FleetGauge} ≠ 軍×分け方 {p.Military * s}");
+            Assert.Equal(1.0, p.CrewFill);
+            Assert.True(p.NavalShare >= 0 && p.NavalShare < s + 1e-12, $"{p.Name}の海軍シェア（乗員÷兵士）{p.NavalShare} が分け方 {s} を超える");
+            double target = p.NeedSea / p.NavySkillMul;
+            Assert.True(System.Math.Abs(p.FleetGauge - target) <= 1e-9 * System.Math.Max(1, target), $"{p.Name}の艦の強さのゲージ {p.FleetGauge} ≠ 目標（海の必要量÷海の熟練）{target}");
+            if (w.Regions[0].FleetUnits is { } fu)
+                for (int k = 0; k < fu.Length; k++) if (w.Coef.FleetGoodIds[k] != Catalog.WarshipId) Assert.Equal(0.0, fu[k]);   // 1783 年＝装甲艦・弩級戦艦は未発見
             if (p.FleetGauge > 0) seeded++;
         }
         Assert.True(seeded >= 1, "どの国も艦隊を播いていない（海の必要量が全て0）");
@@ -810,22 +835,124 @@ public class MilitaryTests
         Assert.Equal(0.03, w.NavalSpendShare, 9);
     }
 
-    /// <summary>★(151) 呼び手の側：軍需の陸海の再配分（Simulation の月次の Region.ShapeNavalShare）は陸海の維持費と同じ分け方（ArmyShape.NavalSpendShareOf）を読む。
-    /// 盤面＝英仏（外交は止める＝必要量と軍の総合ゲージは手で置いたまま）＝軍が必要量の和より大きい（海は任務の分だけ）値を置いて30日回す。
-    /// ⚠突然変異「旧の必要量の比（海÷(陸＋内＋海)）」で赤（軍が大きい盤面では2つの式が違う値を出す）。</summary>
+    /// <summary>★(189) 呼び手の側：海軍の予算（Simulation の月次の Region.NavalBudget）＝装備の器（軍事費の器から給与を払った残り）×海の金の割合（World.NavalSpendShare＝施行された陸海の維持費の比）・
+    /// 陸の装備の上限（MilitaryBudgetCeiling）＝装備の器×(1−海の金の割合)＝作者 2026-09-29「陸軍は安全保障ベース、海軍は別のベースで、軍事費を分割するようにしよう」の金の分け方。
+    /// 盤面＝英仏（外交は止める＝艦は播かれない・海の必要量は手で大きく置く＝目標の艦隊は在庫より大きい＝必要額で切られない）＝30日回すと首都の 海軍の予算÷陸の装備の上限＝割合÷(1−割合)
+    /// （どちらも同じ装備の器と同じ国家の支払い率 r を掛ける＝比は r に依らない）。首都の外の州は0。
+    /// ⚠突然変異「陸の装備の上限を装備の器の全体のまま（旧）」「海軍の予算を分けない」で赤。</summary>
     [Fact]
-    public void 軍需の陸海の再配分は陸海の維持費と同じ分け方を読む()
+    public void 海軍の予算は装備の器を海の金の割合で分ける()
     {
         var sim = Frozen152("イギリス", "フランス");
         var w = sim.Nations[0].World; var sp = w.SelfPower!;
-        sp.Military = 50; sp.NeedSea = 2; sp.NeedLand = 3; sp.NeedInternal = 1;
+        sp.NeedSea = 50; sp.NeedLand = 3; sp.NeedInternal = 1;
         for (int d = 0; d < 30; d++) sim.StepDay();
-        Assert.True(sp.Military == 50 && sp.NeedSea == 2, "前提が崩れた：外交が走って必要量か軍の総合ゲージが書き換わった");
-        double s = ArmyShape.NavalSpendShareOf(sp);
-        Assert.Equal(0.04, s, 12);
-        int seen = 0;
-        foreach (var r in w.Regions) if (r.State == RegionState.Active) { Assert.Equal(s, r.ShapeNavalShare, 12); seen++; }
-        Assert.True(seen > 0, "前提が崩れた：稼働中の州が無い");
+        Assert.True(sp.NeedSea == 50, "前提が崩れた：外交が走って海の必要量が書き換わった");
+        double s = w.NavalSpendShare;
+        Assert.True(s > 0.01 && s < 0.99, $"前提が崩れた：海の金の割合 {s}");
+        var cap = w.Region;
+        Assert.True(cap.NavalBudget > 0 && cap.MilitaryBudgetCeiling > 0, $"前提が崩れた：海軍の予算 {cap.NavalBudget}・陸の装備の上限 {cap.MilitaryBudgetCeiling}");
+        Assert.Equal(s / (1 - s), cap.NavalBudget / cap.MilitaryBudgetCeiling, 9);
+        foreach (var r in w.Regions) if (!ReferenceEquals(r, cap)) Assert.Equal(0.0, r.NavalBudget);
+    }
+
+    /// <summary>★(189) 海軍力は艦の在庫×段の効き×乗員の充足×海の熟練から決まり、陸軍の即応度と陸の質（Military の乗数）を読まない
+    /// （作者の裁定 2026-08-01「陸軍は兵士ありきですが、海軍は戦艦ありきです。海軍の強さが海兵の数から決まるのはナンセンス」・(187) 反証役 va1#1＝00一覧 §0-A の 0h）。
+    /// 盤面＝英仏（構築の直後に外交を1か月＝開幕の播種）。①陸の質の充足と即応度を変えて外交をもう1か月＝軍の総合ゲージは動くが英の海軍力は1ビットも動かない
+    /// ②英の首都に装甲艦を1隻足して同期＝艦の強さのゲージが建造費×(1＋上位の乗数)÷換算分母だけ増える（段の効き）・弩級戦艦は×(1＋上位＋最上位)
+    /// ③要る乗員＝隻数×1隻の乗員（艦の種類に依らない）＝装甲艦1隻は帆船の軍艦1隻と同じ乗員。
+    /// ⚠突然変異「旧の min(艦隊, 軍×海軍シェア)」「段の乗数を1」「乗員を艦の強さから数える」で赤。</summary>
+    [Fact]
+    public void 海軍力は艦の在庫と段の効きから決まり陸軍の即応度と質を読まない()
+    {
+        var sim = new MultiNationSim([WorldData.ByName("イギリス"), WorldData.ByName("フランス")], seed: 1789, coef: new Coefficients());
+        var c = sim.Coef;
+        c.NavalAttritionRate = 0;   // 交戦の艦隊摩耗を外す（艦の在庫を変えるもう1つの入力）
+        sim.Diplomacy.Step(c, sim.Rng, 1);   // 開幕の同期＝艦の播種
+        var w = sim.Nations[0].World; var uk = w.SelfPower!;
+        Assert.True(uk.FleetGauge > 0 && uk.NavalPower > 0, "前提が崩れた：英に艦が無い");
+        double naval0 = uk.NavalPower, mil0 = uk.Military;
+        // ① 陸の質と即応度
+        w.Region.MilitaryQualityFill = 1.0; w.Region.MilitaryTier3Fill = 1.0;
+        w.MilitaryReadiness = w.MilitaryReadiness * 0.25;
+        sim.Diplomacy.Step(c, sim.Rng, 2);
+        Assert.NotEqual(mil0, uk.Military);   // 前提＝軍の総合ゲージは動いた
+        Assert.Equal(naval0, uk.NavalPower);  // 海軍力は動かない
+        // ② 段の効き
+        double denom = EconomyStep.FleetGaugeDenominator(w.Regions[0], w.Coef);
+        int ki = System.Array.IndexOf(c.FleetGoodIds, Catalog.IroncladId), kd = System.Array.IndexOf(c.FleetGoodIds, Catalog.DreadnoughtId), kw = System.Array.IndexOf(c.FleetGoodIds, Catalog.WarshipId);
+        double g0 = uk.FleetGauge, share0 = uk.NavalShare;
+        w.Regions[0].FleetUnits![ki] += 1.0;
+        sim.Diplomacy.Step(c, sim.Rng, 4);
+        Assert.Equal((Catalog.RefPrices[Catalog.IroncladId] * (1 + c.MilitaryQualityBonus)) / denom, uk.FleetGauge - g0, 9);
+        double g1 = uk.FleetGauge;
+        w.Regions[0].FleetUnits![kd] += 1.0;
+        sim.Diplomacy.Step(c, sim.Rng, 5);
+        Assert.Equal((Catalog.RefPrices[Catalog.DreadnoughtId] * (1 + c.MilitaryQualityBonus + c.MilitaryTier3Bonus)) / denom, uk.FleetGauge - g1, 9);
+        // ③ 乗員は隻数×1隻の乗員（2隻足した分＝帆船の軍艦2隻と同じ）
+        double perHull = EconomyStep.FleetCrewPerHull(w.Regions[0], w.Coef, denom);
+        Assert.Equal(c.NavalCrewPerGauge * c.SoldiersPerMilitary * Catalog.RefPrices[Catalog.WarshipId] / denom, perHull, 12);
+        Assert.Equal(share0 + 2.0 * perHull / w.SoldierSize(), uk.NavalShare, 9);
+        Assert.True(kw >= 0 && w.Regions[0].FleetUnits![kw] > 0, "前提が崩れた：開幕の艦が帆船の軍艦で無い");
+    }
+
+    /// <summary>★(189) 軍艦の購入（EconomyStep.FleetOrder＝海軍の調達）は兵の頭数（MilitaryScale）に比例せず、目標の艦隊（海の必要量÷海の熟練）と在庫の差で決まる
+    /// （(187) 反証役 va1#1「軍艦の購入も兵の頭数×海の割合」の直し）。盤面＝英仏（外交は止める＝艦は無い）。
+    /// ①兵の頭数を10倍にしても発注は1ビットも変わらない ②海の必要量を2倍にすると発注が2倍 ③在庫が目標に届けば発注しない ④港の州が無い国は買わない
+    /// ⑤まだ発見していない艦（装甲艦・弩級戦艦）は発注しない。⚠突然変異「発注に MilitaryScale を掛ける」「目標に在庫を引かない」で赤。</summary>
+    [Fact]
+    public void 軍艦の購入は兵の頭数に比例せず海の必要量と在庫の差で決まる()
+    {
+        var sim = Frozen152("イギリス", "フランス");
+        var w = sim.Nations[0].World; var sp = w.SelfPower!; var r = w.Region; var c = w.Coef;
+        r.NationHasPort = true;
+        sp.NeedSea = 0.4; sp.NavySkillMul = 1.0;
+        var q0 = EconomyStep.FleetOrder(r, c, w, out double cost0);
+        Assert.NotNull(q0);
+        Assert.True(cost0 > 0, "前提が崩れた：必要額0");
+        int kw = System.Array.IndexOf(c.FleetGoodIds, Catalog.WarshipId), ki = System.Array.IndexOf(c.FleetGoodIds, Catalog.IroncladId), kd = System.Array.IndexOf(c.FleetGoodIds, Catalog.DreadnoughtId);
+        Assert.True(q0![kw] > 0, "前提が崩れた：帆船の軍艦を発注しない");
+        Assert.Equal(0.0, q0[ki]); Assert.Equal(0.0, q0[kd]);   // ⑤ 1783 年＝装甲艦・弩級戦艦は未発見
+        // ① 兵の頭数
+        double ms = r.MilitaryScale, msp = r.MilitaryScalePeace;
+        r.MilitaryScale = ms * 10 + 1; r.MilitaryScalePeace = msp * 10 + 1;
+        var q1 = EconomyStep.FleetOrder(r, c, w, out double cost1);
+        Assert.Equal(q0[kw], q1![kw]); Assert.Equal(cost0, cost1);
+        // ② 海の必要量
+        sp.NeedSea = 0.8;
+        var q2 = EconomyStep.FleetOrder(r, c, w, out _);
+        Assert.Equal(2 * q0[kw], q2![kw], 9);
+        // ③ 在庫が目標に届く
+        (r.FleetUnits ??= new double[c.FleetGoodIds.Length])[kw] = q2[kw];
+        Assert.Null(EconomyStep.FleetOrder(r, c, w, out double cost3));
+        Assert.Equal(0.0, cost3);
+        r.FleetUnits[kw] = 0.5 * q2[kw];
+        Assert.Equal(0.5 * q2[kw], EconomyStep.FleetOrder(r, c, w, out _)![kw], 9);
+        // ④ 港の州が無い国
+        r.NationHasPort = false;
+        Assert.Null(EconomyStep.FleetOrder(r, c, w, out _));
+        Assert.Equal(0.0, EconomyStep.NavalProcurementNeed(r, c, w));
+    }
+
+    /// <summary>★(189) 陸の装備の段は艦を買わない（EconomyStep.LandMul＝艦は0）＝陸の装備の必要額は軍艦の値段に依らない・上位と最上位の充足は陸分と同じ
+    /// （艦の段の効きは海軍力の1か所＝思想⑨・旧＝陸海の再配分で艦も陸の段で買い、装甲艦・弩級戦艦が Power.Military の質の乗数に入った）。
+    /// 盤面＝英仏（外交は止める）を1か月＝首都の陸の装備の必要額を軍艦・装甲艦・弩級戦艦の値段を100倍にして測り直しても同じ・充足の合算＝陸分。
+    /// ⚠突然変異「LandMul を常に1（艦も陸の段で買う）」で赤。</summary>
+    [Fact]
+    public void 陸の装備の段は艦を買わない()
+    {
+        var sim = Frozen152("イギリス", "フランス");
+        var w = sim.Nations[0].World; var r = w.Region; var c = w.Coef;
+        for (int d = 0; d < 30; d++) sim.StepDay();
+        Assert.True(r.MilitaryScale > 0, "前提が崩れた：首都の軍需の規模が0");
+        double need0 = EconomyStep.MilitaryProcurementNeed(r, c);
+        Assert.True(need0 > 0, "前提が崩れた：陸の装備の必要額が0");
+        foreach (int g in c.FleetGoodIds) r.Markets[g].Price *= 100;
+        Assert.Equal(need0, EconomyStep.MilitaryProcurementNeed(r, c));
+        foreach (int g in c.FleetGoodIds) Assert.Equal(0.0, EconomyStep.LandMul(c, g));
+        Assert.Equal(1.0, EconomyStep.LandMul(c, Catalog.RifleId));
+        Assert.Equal(r.MilitaryQualityLandFill, r.MilitaryQualityFill);
+        Assert.Equal(r.MilitaryTier3LandFill, r.MilitaryTier3Fill);
     }
 
     /// <summary>★(151) 呼び手の側：脅威の緊張（Diplomacy.ThreatTension）は届き方（ThreatReach）で配る＝同盟の組には立たない（作者裁定 2026-09-29 の5「同盟国は計上しない」）。

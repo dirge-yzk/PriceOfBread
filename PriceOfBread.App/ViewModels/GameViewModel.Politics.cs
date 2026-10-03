@@ -503,7 +503,7 @@ public partial class GameViewModel
     // ★「必要量」と「実際」はエンジンの充足率の**分母と分子そのもの**を材ごとに開いたもの＝新しい物差しを作らない：
     //   ・消耗の段（基本装備・空軍装備）＝EconomyStep の want（MilitaryScale×レート×**陸海の再配分**＝afford前の必要量）と
     //     got（発注×配給率）。発注＝必要量×予算の充足×価格による買い控え。
-    //     ★2026-09-03（キューA-14）：**是正済み**＝エンジン側 equipWant（EconomyStep）は陸海の再配分 navalMul/landMul を掛けた
+    //     ★2026-09-03（キューA-14）：**是正済み**＝エンジン側 equipWant（EconomyStep）は陸海の乗数（(189) から LandMul＝艦は0・旧 navalMul/landMul）を掛けた
     //       材別加重の分母になっており、ここの材別行と同じ定義になっている。旧コメント（一律レート＝定義が違う）は現物と食い違っていた。
     //   ・耐久の段（上位装備・最上位装備／ArmsStockEnabled>0）＝EconomyStep の need（平時規模×レート÷摩耗率＝目標在庫）と
     //     Region.ArmsStock（保有）。⚠この段だけ「実際」は在庫であって今月買えた量ではない（エンジンの Fill の定義と同じ）。
@@ -556,28 +556,9 @@ public partial class GameViewModel
             double Ration(int g) => r.Markets[g].LastRation;
             // 価格による買い控え＝国家調達の価格の門の1本（EconomyStep.StatePriceAfford＝エンジンと同じ式・2026-09-30 段4e K）
             double PriceAfford(int g) => EconomyStep.StatePriceAfford(r, c, g);
-            // 陸海の再配分（EconomyStep）：港のない国は艦を発注せず、その分が陸へ回る。理想の形の海比（ShapeNavalShare）にも寄る。
-            double flatNaval = 0, flatAll = 0;
-            for (int b = 0; b < c.MilitaryGoods.Length; b++)
-            {
-                double cst = milRates[b] * Price(c.MilitaryGoods[b]);
-                flatAll += cst;
-                if (Array.IndexOf(c.FleetGoodIds, c.MilitaryGoods[b]) >= 0) flatNaval += cst;
-            }
-            double flatShare = flatAll > Eps ? flatNaval / flatAll : 0;
-            double navalMul = 1.0, landMul = 1.0;
-            if (c.NavalProcurementNeedsPort > 0 && !r.NationHasPort)
-            {
-                navalMul = 0.0;
-                landMul = flatShare < 1 - Eps ? 1.0 / (1.0 - flatShare) : 1.0;
-            }
-            else if (c.NavalProcurementFromShape > 0 && r.ShapeNavalShare >= 0 && flatShare > Eps && flatShare < 1 - Eps)
-            {
-                double want = Math.Clamp(r.ShapeNavalShare, 0, 1), k = c.NavalProcurementFromShape;
-                navalMul = Math.Max(0, 1.0 + k * (want / flatShare - 1.0));
-                landMul = Math.Max(0, 1.0 + k * ((1 - want) / (1 - flatShare) - 1.0));
-            }
-            double MilMul(int g) => Array.IndexOf(c.FleetGoodIds, g) >= 0 ? navalMul : landMul;
+            // ★(189) 陸の装備の段は艦を買わない（EconomyStep.LandMul＝艦は0・他は1＝エンジンと同じ1本）。艦は下の「艦隊」の節（海軍の調達＝目標の艦隊と在庫）。
+            //   旧＝陸海の再配分（理想の海の割合÷一律レートの海の割合・港の無い国は艦0で陸へ上乗せ）の写し。
+            double MilMul(int g) => EconomyStep.LandMul(c, g);
             // ★①基本段の耐久品（2026-08-26）＝財ごとの摩耗率。1.0＝消耗品＝従来のフロー行（弾薬・馬）。
             // ⚠**未初期化の在庫は目標**とみなす＝エンジンの EconomyStep.ArmsHeld と同一の定義（表示とエンジンで在庫の意味を割らない）。
             bool baseStock = c.BaseArmsStockEnabled > 0;
@@ -685,6 +666,29 @@ public partial class GameViewModel
                 }
             }
 
+            // ★艦隊（2026-10-03 (189)・作者の裁定 2026-08-01「海軍は戦艦ありきです」）＝海軍の調達（EconomyStep.FleetOrder）と同じ1本：
+            //   必要量＝目標の隻数（海の必要量÷海の熟練を艦の組み合わせで割り付け＝FleetTargetUnits）・実際＝国の艦の在庫（FleetHeldUnits）。今月の発注＝(目標−在庫)⁺×海軍の予算の充足。
+            //   港の州が1つも無い国は買えない（行は在庫だけ）。まだ発見していない艦は目標0＝行を作らない（世界にまだ存在しない財も同じ）。
+            {
+                var fleetT = EconomyStep.FleetTargetUnits(r, c, _player);
+                var fleetH = EconomyStep.FleetHeldUnits(_player, c);
+                var fleetQ = EconomyStep.FleetOrder(r, c, _player, out double fleetCost);
+                double fAfford = fleetCost > Eps ? Math.Min(1.0, r.NavalBudget / fleetCost) : 0.0;
+                var fleetRows = new List<ArmyNeedRow>();
+                for (int k = 0; k < c.FleetGoodIds.Length; k++)
+                {
+                    int g = c.FleetGoodIds[k];
+                    double need = fleetT is { } ft ? ft[k] : 0, have = fleetH[k];
+                    if (!(need > Eps) || Unavail(g)) continue;
+                    double order = fleetQ is { } fq ? fq[k] * fAfford * PriceAfford(g) : 0;
+                    string tip = $"単価 {Money(Price(g))}　今月の発注 {MilQty(order)}"
+                               + $"\n海軍の予算の充足 {fAfford:P0}　市場の配給 {Ration(g):P0}"
+                               + $"\n乗員の充足 {(_player.SelfPower?.CrewFill ?? 1.0):P0}　海軍維持費 {_player.NavyUpkeep:P0}";
+                    fleetRows.Add(NeedRow("艦隊" + g, Catalog.Goods[g].Name, need, have, Math.Min(1.0, have / need), tip, MilQty, "", need * Price(g)));
+                }
+                AddGroup(rows, "艦隊", fleetRows);
+            }
+
             // 艦隊の運用燃料（Military.NavalFuelStep・既定 NavalFuelPerGauge=0＝休眠＝行なし）。充足は炭庫のEMA
             if (c.NavalFuelPerGauge > 0)
             {
@@ -712,7 +716,7 @@ public partial class GameViewModel
                 for (int b = 0; b < goods.Length; b++)
                 {
                     int g = goods[b];
-                    if (Unavail(g)) continue;
+                    if (Unavail(g) || MilMul(g) == 0.0) continue;   // ★(189) 艦は陸の装備の段に出さない（艦隊の節）
                     if (stock)
                     {
                         double need = StockTarget(rates[b]);
