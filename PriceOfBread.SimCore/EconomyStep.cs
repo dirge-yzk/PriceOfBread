@@ -26,6 +26,7 @@ public static class EconomyStep
         public double[] InputCost = [], ProdW = [], ElecNeed = [], SteamNeed = [], EffNeed = [];
         public double[] TrickleFill = [];   // ★再点火の発注の充足率（生産者ごと・2026-09-29 段2-2 A3）＝需要の段で持ち主の予算から決め、決済が読む
         public int[] EffChosen = [];
+        public byte[] Sleep = [];   // ★(186) 眠り（生産者ごと）＝0 回す・1 眠った・2 目覚めた（<see cref="SleepState"/>）＝Run の頭で全要素を書く
         public double[] LaborTotalW = [];
         public double[] TrickleOwner = [];  // 同上の作業配列（持ち主POPごとの発注額の和→充足率）
         public int[] LaborCount = [];
@@ -58,6 +59,7 @@ public static class EconomyStep
         {
             s.InputCost = new double[np]; s.ProdW = new double[np]; s.ElecNeed = new double[np];
             s.SteamNeed = new double[np]; s.EffNeed = new double[np]; s.EffChosen = new int[np]; s.TrickleFill = new double[np];
+            s.Sleep = new byte[np];   // Run の頭で全要素を書く＝消さない
         }
         else
         {
@@ -341,13 +343,30 @@ public static class EconomyStep
         return rentShare;
     }
 
+    /// <summary>★(186) 生産者の眠り（計算量の予算・近似＝2026-10-03 推奨で進めた）＝0 回す・1 眠った・2 目覚めた。
+    /// 眠った＝発見の門が0（<see cref="Discovery.Gate(Region, Producer)"/>）で、門が0 の月に操業規模が0（<see cref="Coefficients.TechGatedScaleZero"/>）・産出が0（<see cref="Coefficients.PhantomOutputSnapFloor"/>）に
+    ///   置かれた工場と産地。その月の生産者の段（労働の重み・供給・投入の需要と決済・投入の充足・所得と操業規模と採算）を全て飛ばす
+    ///   ＝門が0 の間は能力が0（供給①の boost が門を掛ける）＝産出も投入も0 で、旧の段が動かしていたのは平滑の量（労働の重み・採算・蒸気と電化と効率化材の率・補助の依存）と、
+    ///   作り手の居ない月の売上の按分（生産者の数で割る）だけ＝按分は回した生産者だけで割る（全てが眠っていれば生産者の居ない財＝商人へ）。
+    /// 目覚めた＝門が開いた最初の月（操業規模0・産出0 のまま門が1）＝止めていた平滑の量を極限（入力が一定の指数平滑が着く値）へ追いつかせる
+    ///   ＝労働の重み＝今の付加価値×売れる量・採算の平滑＝今の採算・蒸気と電化と効率化材の率と補助の依存＝0（産出0 の月が続いた極限）。
+    /// 対象外（今のまま回す）＝役務（ボーモル＝門を持たない・教育法が操業規模0 を置く）・倒産中（再参入の判定を持つ）・国が建てた設備のある工場（休止と国営持分）・
+    ///   工事中・産地の発見の生産者（<see cref="Producer.SiteRow"/>＝見つかった瞬間に操業規模を1 へ置く＝目覚めを操業規模0 で見分けられない）。
+    /// 操業規模が0 ちょうどになるのは門が0 の月（TechGatedScaleZero）と倒産だけ（下限 ScaleFloor＞0・家畜の徴発は掛け算）＝門が開いていて操業規模0・倒産でない＝目覚めた月。</summary>
+    internal static byte SleepState(Region region, Producer s, Coefficients coef)
+    {
+        if (!(coef.TechGatedScaleZero > 0) || !(coef.PhantomOutputSnapFloor > 0) || s.Scale != 0 || s.Output != 0 || s.Bankrupt
+            || s.BuiltScale > Eps || s.ConstructionLeft > 0 || s.SiteRow >= 0
+            || s.GoodId < 0 || s.GoodId >= Catalog.Goods.Length || Catalog.Goods[s.GoodId].Tier == GoodTier.Service) return 0;
+        return Discovery.Gate(region, s) > 0 ? (byte)2 : (byte)1;
+    }
+
     public static void Run(Region region, Coefficients coef, double productivityMultiplier = 1.0, Bank? bank = null, World? world = null)
     {
         int ng = region.Markets.Length;
         int np = region.Producers.Count;
         // 計算量の台帳（診断・この国の台帳）：生産者×月・POP×月（月次決算の残り＝財政・犯罪・軍事・人口ほかは POP に比例）。world＝null（単国の直呼び）は数えない。
         long[]? costL = world?.Cost;
-        if (costL is not null) { costL[CostLedger.ProducerMonths] += np; costL[CostLedger.MonthlyPops] += region.Pops.Count; }
         bool cap = region.CapitalEnabled && coef.MachineGoodId < ng && coef.CementGoodId < ng;
         // ★開始前の助走の資本形成の凍結（作者裁定2026-08-10 追加分「価格のみ試走することはできない？　問題は開始時の振動なので」）。
         //   助走の目的は**価格が1783年の生産能力のまま均衡へ寄ること**。よってこの間は「能力が育つ経路」を全部止める。
@@ -358,6 +377,20 @@ public static class EconomyStep
         //   world==null（較正セル・単体テスト）は常に false＝厳密恒等。
         bool warmFrozen = world?.WarmupFrozen == true;
         var scratch = RentScratch(ng, np, region.Pops.Count);
+        // ★(186) 計算量の予算＝眠った生産者は今月の生産者の段を全て飛ばす（近似・<see cref="SleepState"/>）。目覚めた月は眠りの間に止めた平滑の量を極限へ追いつかせる。
+        //   計数「生産：生産者×月」は回した生産者だけ（眠った生産者は数えない）。
+        var sleep = scratch.Sleep;
+        int nRun = 0;
+        for (int pi = 0; pi < np; pi++)
+        {
+            var s = region.Producers[pi];
+            byte z = SleepState(region, s, coef);
+            sleep[pi] = z;
+            if (z == 1) { s.LastRevenue = 0; s.LastCost = 0; continue; }   // 眠った生産者に売上も費用も無い（旧＝作り手の居ない月の売上の按分を受けた）
+            nRun++;
+            if (z == 2) { s.SteamFill = 0; s.ElecFill = 0; s.EffFill = 0; s.SubsidyDependence = 0; }   // 目覚めた＝産出0 の月の平滑の極限（蒸気・電化・効率化材は買わない＝0・補助の依存は赤字でない月に減る＝0）
+        }
+        if (costL is not null) { costL[CostLedger.ProducerMonths] += nRun; costL[CostLedger.MonthlyPops] += region.Pops.Count; }
         var goodGate = scratch.GoodGate;
         Discovery.GoodGates(region, goodGate, ng, region.Discovered);   // ★財の解禁（段2A＝レシピの解禁の最大・生産者の居ない財は既定のレシピの行）＝電化・効率化材（作るか・使うかの国の判断）
         var demandGate = scratch.DemandGate;
@@ -480,6 +513,7 @@ public static class EconomyStep
         var prodW = scratch.ProdW;
         for (int pi = 0; pi < np; pi++)
         {
+            if (sleep[pi] == 1) continue;   // ★(186) 眠った生産者（重み0・労働の数にも入れない）
             var s = region.Producers[pi];
             // A-中1派生（2026-07-23）：**未発明のレシピは労働を雇わない**＝未発見（★2026-10-01 段2A＝発見の門 Discovery.Gate が0・旧 TechOnset 未解禁）の生産者は労働配分に参加しない
             //（旧＝解禁前でも prodW=需要×Scale の死ウェイトを持ち、労働を取るのに産出0＝純損失。onset レシピが増えるたびに
@@ -511,7 +545,8 @@ public static class EconomyStep
             //   物量バイアスは単価（付加価値）が、過剰生産は需要が、それぞれ抑える。需要0の財は TargetStockFloor（既存の「量として意味を持つ最小」）で
             //   種火を残す＝再点火の入口（床撤去後の bootstrap）。新定数ゼロ。墓標＝×UnitCapacity（能力）＝過剰生産・×LastInputFill＝自己参照デッドロック。
             double sellR = mkR.LastDemand > coef.TargetStockFloor ? mkR.LastDemand : coef.TargetStockFloor;
-            s.LaborWeight += coef.SupplyAdjustSpeed * (rentR * sellR - s.LaborWeight);
+            if (sleep[pi] == 2) s.LaborWeight = rentR * sellR;   // ★(186) 目覚めた月＝眠りの間に止めた平滑を極限へ
+            else s.LaborWeight += coef.SupplyAdjustSpeed * (rentR * sellR - s.LaborWeight);
             prodW[pi] = s.LaborWeight * s.Scale;
             if (s.GoodId is Catalog.LaborId or Catalog.AdvLaborId or Catalog.FarmLaborId) continue;   // 労働力・高度労働力の生産者は配分競争の外（階級全体が役務を算出し、工場が市場で買う）
             laborTotalW[s.LaborPopIndex] += prodW[pi];
@@ -579,6 +614,7 @@ public static class EconomyStep
         // === ① 供給：能力＝労働（工業化度で生産性が上がる）。供給曲線。投入充足で律速（§9-A 注2）===
         for (int pi = 0; pi < np; pi++)
         {
+            if (sleep[pi] == 1) continue;   // ★(186) 眠った生産者（産出0 のまま）
             var s = region.Producers[pi];
             if (s.Bankrupt) { s.Output = 0; continue; }   // 倒産工場は操業停止（産出0。Scale0で労働も配分されない）
             int lp = s.LaborPopIndex;
@@ -1182,6 +1218,7 @@ public static class EconomyStep
         // 効率化材の解禁判定＝財の解禁（Run の頭で1回求めた goodGate＝その州の生産者の門の最大・生産者の居ない財は既定のレシピの行）。
         for (int pi = 0; pi < np; pi++)
         {
+            if (sleep[pi] == 1) continue;   // ★(186) 眠った生産者（投入も蒸気も電化も0・財の生産者の数にも入れない）
             var s = region.Producers[pi];
             producerCount[s.GoodId]++;
             foreach (var inp in s.Inputs)
@@ -1691,6 +1728,7 @@ public static class EconomyStep
         // === 工場の投入支払い：同じ額を「投入費」と「投入財の売上」へ計上（相殺＝厳密保存）===
         for (int pi = 0; pi < np; pi++)
         {
+            if (sleep[pi] == 1) continue;   // ★(186) 眠った生産者（投入費0）
             var s = region.Producers[pi];
             double ic = 0;
             double trickleBill = 0;   // ★再点火発注の代金（2026-08-01）。持ち主の持ち出し＝工場の営業費用ではないので ic には入れない
@@ -2202,8 +2240,10 @@ public static class EconomyStep
         // 投入充足率を更新（次期の産出を制約。最も不足する投入が律速＝リービッヒ・§9-A 注2）。
         // 産出の床は撤廃（無から有を禁じる＝投入ゼロなら産出ゼロ）。デッドロックは入力需要の「再点火トリクル」で防ぐ
         // （死んだ工場も採算が合えば小さな入力需要を出す→入力財の価格が上がる→上流が蘇る。封鎖・独立からの回復）。
-        foreach (var s in region.Producers)
+        for (int pi = 0; pi < np; pi++)
         {
+            if (sleep[pi] == 1) continue;   // ★(186) 眠った生産者（充足は目覚めた月の終わりにここで書く）
+            var s = region.Producers[pi];
             if (s.Inputs.Count == 0) { s.LastInputFill = 1.0; s.LastMaterialFill = 1.0; continue; }
             double fill = 1.0, mfill = 1.0;
             foreach (var inp in s.Inputs)
@@ -2251,6 +2291,7 @@ public static class EconomyStep
         double[]? absentee = world is not null && region.Tier == RegionTier.Colonial && Colonial.AbsenteeOwner(world, region) is not null ? new double[region.Pops.Count] : null;
         for (int pi = 0; pi < np; pi++)
         {
+            if (sleep[pi] == 1) continue;   // ★(186) 眠った生産者（売上の按分を受けない・操業規模0 と採算の平滑は止めたまま）
             var s = region.Producers[pi];
             int gi = s.GoodId;
             double share = produced[gi] > Eps ? s.Output / produced[gi] : 1.0 / producerCount[gi];
@@ -2352,7 +2393,8 @@ public static class EconomyStep
                 s.Scale = 0;
 
             // 数期移動平均の採算で倒産/再参入（有限責任：慢性赤字の工場は退出し損失の垂れ流しを止める＝過剰在庫と床の固定を解消）
-            s.SmoothedMargin += coef.FactoryMarginSmoothing * (margin - s.SmoothedMargin);
+            if (sleep[pi] == 2) s.SmoothedMargin = margin;   // ★(186) 目覚めた月＝眠りの間に止めた平滑を極限へ
+            else s.SmoothedMargin += coef.FactoryMarginSmoothing * (margin - s.SmoothedMargin);
             if (s.Bankrupt)
             {
                 // 倒産中：採算回復 or 品薄（需要>供給＝数量ベース）なら操業再開。コブウェブで価格が希少性を反映しなくても数量で再開＝死のスパイラル防止・恐慌からの回復。

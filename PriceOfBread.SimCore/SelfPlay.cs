@@ -1598,7 +1598,7 @@ public sealed record MatchResult(
     int WarMaxRepeat = 0, int WarPairsGe3 = 0, int WarPairs = 0, string WarWorstPair = "",
     int InterveneChances = 0, int PeaceOffers = 0, int PeaceBlank = 0, int PeaceRefused = 0,   // ★診断2026-08-01：列強の介入（Probeでも埋まる）   // ★診断2026-08-01：同一ペアの再戦（最多回数・3回以上のペア数・交戦ペア総数・最多ペア名）
     int ElectionsHeld = 0, int ElectionQuarters = 0,   // ★E0計器（選挙doc §8-a・2026-08-15）：全国の総選挙回数と選挙政体在籍四半期（平均間隔＝Quarters/Held）
-    double TradeGdpMajors = 0,   // ★貿易復活計器（2026-08-15）：6大国の終局時 貿易(輸出+輸入・年換算)/GDP の平均。史実1913英≈0.4（輸出0.25+輸入）＝復活判定の物差し
+    double TradeGdpMajors = 0,   // ★貿易復活計器（2026-08-15）：6大国の終局時 貿易(輸出+輸入・年換算)/GDP の平均。史実の側＝同じ6国の1913年の平均（MajorsTradeGdpRef1913＝(186)・旧＝英1国の約0.4）
     // ★史実基準の恐慌計器（2026-08-22・作者指摘「恐慌回数・最大DDは史実基準ですか？」）：大国8（GdpRank1913参照国）の−20%級エピソード数と最大DD（産出床つき）。
     int MajorDepressionEpisodes = 0, double MajorMaxDrawdown = 0, string MajorDdNote = "",
     // ★2026-09-03（キューA-05／出典 トリアージ 2-A 10-2）：**跳躍ダイジェスト**＝7割帯は1914断面の一致率なので
@@ -1631,7 +1631,7 @@ public sealed record BatchSummary(
     double AvgInterveneChances = 0, double AvgPeaceOffers = 0, double AvgPeaceBlank = 0, double AvgPeaceRefused = 0,   // ★診断2026-08-01：同一ペアの再戦（平均最多回数・3回以上ペア数・交戦ペア数・全seed中の最悪ペア）
     IReadOnlyList<(string Nation, double Naval, double Land)>? NavalRanking = null,   // ★2026-08-01（作者裁定「海軍の強さは測定するべき」）：1914断面の海軍力の順位（全seed平均・上位のみ）
     double AvgElections = 0, double AvgElectionIntervalQ = 0,   // ★E0計器（選挙doc §8-a・2026-08-15）：1試合あたりの総選挙回数と平均間隔（四半期）。史実英1832-1914＝約15.6Q
-    double AvgTradeGdpMajors = 0,   // ★貿易復活計器（2026-08-15）：6大国の終局 貿易/GDP 平均（史実1913英≈0.4）
+    double AvgTradeGdpMajors = 0,   // ★貿易復活計器（2026-08-15）：6大国の終局 貿易/GDP 平均（史実の側＝同じ6国の1913年の平均＝MajorsTradeGdpRef1913・(186)）
     // ★史実基準の恐慌計器（2026-08-22・作者指摘「恐慌回数・最大DDは史実基準ですか？そうでないならハーネスが間違っている」）：
     //   大国8（GdpRank1913 参照国＝経済規模次元と同じ集合）の−20%級エピソード数（試合平均）と最大DD（全seed最大）＝Maddison系の史実と直接比較できる唯一の切り口。
     //   史実参照（実質GDP・1783-1934）＝大国8で計**5〜7回**・ほぼ全て1914-34の大戦/大恐慌型（露WWI+内戦≈40%・仏墺≈30%・米29-33≈27%）・
@@ -2009,6 +2009,16 @@ public static class SelfPlayMatch
     }
 
     private static readonly string[] TradeGdpMajorNames = ["イギリス", "フランス", "ロシア", "プロイセン", "清", "アメリカ"];
+    /// <summary>★(186) 貿易復活計器の史実の側＝同じ6国の 1913 年の (輸出＋輸入)÷GDP の平均（<see cref="HistoricalReference.TradeOpenness1913"/>＝貿易開放度の次元と同じ参照表）。
+    /// 旧＝報告の印字が英1国の約40% と比べていた（分母が1国＝申し送り vb#10）。表に無い国は数えない（読むだけ）。</summary>
+    internal static double MajorsTradeGdpRef1913()
+    {
+        double s = 0; int n = 0;
+        foreach (var name in TradeGdpMajorNames)
+            foreach (var (tn, op) in HistoricalReference.TradeOpenness1913)
+                if (tn == name) { s += op; n++; break; }
+        return n > 0 ? s / n : 0;
+    }
     // ★貿易復活計器：6大国の (輸出+輸入)×年換算/GDP の平均（終局断面・BaseName鍵＝変名不壊）。ExportsByGood/ImportsByGood は
     //   BilateralMarket が清算ごとに Array.Clear して書く清算単位の値（月次清算では直近1か月分＝ClearingsPerYear で年換算。TariffBorderOnly>0では国際のみ）。
     private static double MajorsTradeGdp(MultiNationSim sim)

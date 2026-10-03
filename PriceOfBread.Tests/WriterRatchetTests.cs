@@ -377,10 +377,16 @@ public class WriterRatchetTests
     //   （−20.7%＝10% を超えて下がった＝表を下げる・同盟の候補が居る月の軌道）。処理の形は同じ。ほかの15本は許しの内（フルスイートで確かめた）。
     //   全長の10種（b10_20261002_col175.cost）では着値の充填 468,394,059→486,726,433（+3.9%＝汽船の時代の占有が軽くなり交易の容量が増えた）・建設 422,114→338,635・
     //   覇権の判定 222,334,031→233,160,995＝推定 246.8→248.1 秒（予算の内＝上限 248.5 秒・余り 0.4 秒＝払っていない・実装ログ (173)）。
+    // ★2026-10-03 表の更新（(186) 計算量の払い＝眠った生産者〔発見の門が0 の工場と産地・EconomyStep.SleepState〕は月の生産者の段を飛ばし「生産：生産者×月」に数えない＝近似・推奨で進めた）：
+    //   生産 8,440,020→6,495,176（−23.0%＝10% を超えて下がった＝表を下げる・最初の40四半期は未発見のレシピが多い）。単価は同じ負荷の組の census の時間の比で取り直した
+    //   （0.45650→0.54106 µs＝件数だけ減らすと推定が実時間より約5倍下がる＝MultiNationSim.cs の CostLedger.UnitMicros の注記）。
+    //   新しい計数「発見：平滑化した値段の歩（国×四半期）」＝数えていなかった Discovery.AdvancePrice（単価 19.63 µs）＝2,503（40四半期）。
+    //   覇権の判定 1,682,840→1,801,994（+7.1%＝最初の40四半期の同盟の候補が居る月の軌道・処理の形は同じ）。ほかは許しの内（フルスイートで確かめた）。
+    //   全長の10種（b10_20261003_cap186.cost）の推定は実装ログ (186)。
     [InlineData(CostLedger.ConstructionSeen, 7658L)]
     [InlineData(CostLedger.CreditSpans, 33282L)]
     [InlineData(CostLedger.ConsumePopGoods, 28595736L)]
-    [InlineData(CostLedger.ProducerMonths, 8440020L)]
+    [InlineData(CostLedger.ProducerMonths, 6495176L)]
     [InlineData(CostLedger.ClaimProducers, 2994L)]
     [InlineData(CostLedger.MonthlyPops, 706680L)]
     [InlineData(CostLedger.ClearingRows, 5185642L)]
@@ -401,6 +407,7 @@ public class WriterRatchetTests
     [InlineData(CostLedger.MigrationPairs, 4191142L)]
     [InlineData(CostLedger.DiscoveryNations, 2532L)]
     [InlineData(CostLedger.ThreatReachPairs, 301265L)]
+    [InlineData(CostLedger.DiscoveryPriceNations, 2503L)]
     // ★2026-10-02 表の更新（(170) 厭戦の基礎を動員の負担へ〔外部レビュー Q10〕＝軌道が動いた分の宣言・新しい計数の処理は無い
     //   〔基礎の計算＝交戦国×月に州×POP を1回（兵役の母数と兵士・(172) で兵士と人口へ）＝「外交：国×月」の単価の中の小さい分〕）：
     //   覇権の判定 1,941,249→2,884,531（+48.6%＝戦争が長くなり最初の40四半期の交戦と同盟の候補が居る月が増えた軌道・処理の形は同じ）。ほかは許しの内（フルスイートで確かめた）。

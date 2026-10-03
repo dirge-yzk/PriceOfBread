@@ -552,6 +552,7 @@ public static class Discovery
     ///   （(166) の根＝外へ売らない薄い市場の値段が世界の値段になった＝(167) の申し送りの腕・推奨で進めた）。旧（(165)〜(167)）＝国の需要（買う国の値段で平均した）。</summary>
     internal static (double[] Inst, double[] Sold) AdvancePrice(World w, Coefficients c)
     {
+        w.Cost[CostLedger.DiscoveryPriceNations]++;   // 計算量の台帳（診断）：平滑化した値段の歩は国×四半期（(186)＝数えていなかった処理を数える）
         int ng = Catalog.Goods.Length;
         var prod = new double[ng]; var imp = new double[ng]; var dem = new double[ng]; var pxd = new double[ng];
         Aggregate(w, ng, prod, imp, dem, pxd);

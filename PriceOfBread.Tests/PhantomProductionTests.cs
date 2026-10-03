@@ -181,4 +181,78 @@ public class PhantomProductionTests
         Assert.True(ProductionDiag.UnavailableGoods(sim, japan.World.Coef)[mg],
             "機関銃が「まだ存在しない財」と判定されない＝輸出首位（トスカーナ99%）が出続ける");
     }
+
+    /// <summary>★(186) 計算量の予算＝眠った生産者（発見の門が0 の月に操業規模0・産出0 に置かれた工場と産地・<see cref="EconomyStep.SleepState"/>）は
+    /// 月の Run で生産者の段を全て飛ばす（近似・推奨で進めた＝作者の承認は未確認）。固定する＝①眠った生産者は平滑の量（労働の重み・採算の平滑・投入の充足）を書き換えず、
+    /// 売上の按分も受けない（売上と費用は0）②計数「生産：生産者×月」は回した生産者だけ（呼び手＝Simulation が月に1回呼ぶ Run そのものの盤面）。</summary>
+    [Fact]
+    public void 眠った生産者は月の段を回らず売上の按分も受けない()
+    {
+        var sim = RunWorld(1);
+        int seen = 0;
+        foreach (var n in sim.Nations)
+        {
+            var w = n.World;
+            foreach (var region in w.Regions)
+            {
+                if (region.State != RegionState.Active) continue;
+                var asleep = new List<Producer>();
+                foreach (var s in region.Producers) if (EconomyStep.SleepState(region, s, w.Coef) == 1) asleep.Add(s);
+                if (asleep.Count == 0) continue;
+                foreach (var s in asleep) { s.LaborWeight = 7.0; s.SmoothedMargin = -0.3; s.LastInputFill = 0.123; s.LastRevenue = 99; s.LastCost = 98; s.SteamFill = 0.4; s.ElecFill = 0.4; s.EffFill = 0.4; }
+                long before = w.Cost[CostLedger.ProducerMonths];
+                EconomyStep.Run(region, w.Coef, 1.0, w.Bank, w);
+                Assert.Equal(region.Producers.Count - asleep.Count, w.Cost[CostLedger.ProducerMonths] - before);   // 眠った生産者は数えない
+                foreach (var s in asleep)
+                {
+                    string who = $"{w.SelfPower?.Name}／{region.Name}／{Catalog.Goods[s.GoodId].Name}";
+                    Assert.True(s.LaborWeight == 7.0 && s.SmoothedMargin == -0.3 && s.LastInputFill == 0.123, $"{who}：眠った生産者の平滑の量が動いた（重み {s.LaborWeight}・採算 {s.SmoothedMargin}・充足 {s.LastInputFill}）");
+                    Assert.True(s.SteamFill == 0.4 && s.ElecFill == 0.4 && s.EffFill == 0.4, $"{who}：眠った生産者の率が動いた（蒸気 {s.SteamFill}・電化 {s.ElecFill}・効率 {s.EffFill}）");
+                    Assert.True(s.Output == 0 && s.Scale == 0, $"{who}：眠った生産者の産出 {s.Output}・操業規模 {s.Scale}");
+                    Assert.True(s.LastRevenue == 0 && s.LastCost == 0, $"{who}：眠った生産者が売上 {s.LastRevenue}・費用 {s.LastCost} を持った（按分を受けた）");
+                }
+                seen += asleep.Count;
+            }
+        }
+        Assert.True(seen > 100, $"眠った生産者が少なすぎる（{seen}）＝ハーネスが空回りしている");
+    }
+
+    /// <summary>★(186) 目覚めた月（発見の門が開いた最初の月＝操業規模0・産出0 のまま門が1）は、眠りの間に止めた平滑の量を極限へ追いつかせる
+    /// ＝労働の重み＝今の付加価値×売れる量（入力が一定の指数平滑が着く値）・採算の平滑＝今の採算・蒸気と電化と効率化材の率と補助の依存＝0（産出0 の月が続いた極限）。</summary>
+    [Fact]
+    public void 目覚めた月は止めていた平滑の量を極限へ追いつかせる()
+    {
+        var sim = RunWorld(1);
+        int woke = 0;
+        foreach (var n in sim.Nations)
+        {
+            var w = n.World; var c = w.Coef;
+            foreach (var region in w.Regions)
+            {
+                if (region.State != RegionState.Active || woke >= 5) continue;
+                foreach (var s in region.Producers)
+                {
+                    if (woke >= 5) break;
+                    if (EconomyStep.SleepState(region, s, c) != 1 || s.DiscoveryRow < 0 || w.Discovered[s.DiscoveryRow]) continue;
+                    w.Discovered[s.DiscoveryRow] = true;   // 門を開ける（州は国の解禁の配列を参照する）
+                    if (EconomyStep.SleepState(region, s, c) != 2) { w.Discovered[s.DiscoveryRow] = false; continue; }   // 退場のレシピ（後継を発見済み）は開かない
+                    s.SteamFill = 0; s.ElecFill = 0; s.EffFill = 0;   // 期待値は目覚めた率（0）で読む（投入の量が電化の率を読む）
+                    var m = region.Markets[s.GoodId];
+                    double rent = m.Price - EconomyStep.InputCostPerUnit(s, region, region, c);
+                    if (!(rent > 0)) rent = 0;
+                    double expectLw = rent * (m.LastDemand > c.TargetStockFloor ? m.LastDemand : c.TargetStockFloor);
+                    s.LaborWeight = 1e6; s.SmoothedMargin = 1000; s.SteamFill = 0.4; s.ElecFill = 0.4; s.EffFill = 0.4; s.SubsidyDependence = 0.5;
+                    EconomyStep.Run(region, c, 1.0, w.Bank, w);
+                    string who = $"{w.SelfPower?.Name}／{region.Name}／{Catalog.Goods[s.GoodId].Name}";
+                    Assert.True(Math.Abs(s.LaborWeight - expectLw) <= 1e-9 * Math.Max(1.0, Math.Abs(expectLw)), $"{who}：労働の重み {s.LaborWeight}（極限 {expectLw}・指数平滑なら 8.5e5 付近）");
+                    Assert.True(s.SmoothedMargin < 100, $"{who}：採算の平滑 {s.SmoothedMargin}（今の採算へ追いついていない・指数平滑なら 975 付近）");
+                    double noCatch = 0.4 * (1 - c.FillInertia);   // 追いつかせない旧の形の最小
+                    Assert.True(s.SteamFill < noCatch && s.ElecFill < noCatch && s.EffFill < noCatch, $"{who}：率 蒸気 {s.SteamFill}・電化 {s.ElecFill}・効率 {s.EffFill}（0 へ戻っていない）");
+                    Assert.True(s.SubsidyDependence < 0.1, $"{who}：補助の依存 {s.SubsidyDependence}（0 へ戻っていない）");
+                    woke++;
+                }
+            }
+        }
+        Assert.True(woke >= 5, $"目覚めた生産者を作れない（{woke}）＝ハーネスが空回りしている");
+    }
 }

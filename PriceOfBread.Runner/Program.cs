@@ -7860,7 +7860,9 @@ if (args.Length > 0 && args[0] == "selfplay-batch")
     Console.WriteLine($"金本位の強制離脱（兌換停止）: 総{b.GoldSuspensions}回（うちカバー率割れ {b.GoldCoverSuspensions}回）・発生試合 {b.GoldSuspensionMatches}/{b.N}");   // GoldCoverMin有効化2026-07-10
     Console.WriteLine($"国家の出入り: 分離独立の建国 {b.Independences}回　変名（統一/formable） {b.Formations}回　内戦分裂 {b.CivilWarSplits}回");
     Console.WriteLine($"選挙（E0計器）: 1試合あたり総選挙 {b.AvgElections:F0}回（全61カ国計）　平均間隔 {b.AvgElectionIntervalQ:F1}四半期（史実英1832-1914＝約15.6Q）");
-    Console.WriteLine($"貿易（復活計器）: 6大国の終局 貿易/GDP 平均 {b.AvgTradeGdpMajors:P2}（史実1913英≈40%＝輸出25%+輸入）");
+    // ★(186) 計器の分母（申し送り vb#10）＝史実の側も同じ6国の平均（HistoricalReference.TradeOpenness1913＝1913 年・旧＝英1国の約40% と比べていた）。⚠ シミュの値は終局（1950年）の断面の種の平均＝桁の判定は計器 inj_t186 の10年の窓×種の中央で読む（実装ログ (186)）。
+    double tradeRef = SelfPlayMatch.MajorsTradeGdpRef1913();
+    Console.WriteLine($"貿易（復活計器）: 6大国の終局 貿易/GDP 平均 {b.AvgTradeGdpMajors:P2}（史実＝同じ6国の1913年の平均 {tradeRef:P1}・比 {(tradeRef > 0 ? b.AvgTradeGdpMajors / tradeRef : 0):F3}）");
     Console.WriteLine("\n勝者分布:");
     foreach (var (nation, wins) in b.WinnerCounts) Console.WriteLine($"  {nation,-10} {wins,2} 勝");
     int polTot = b.PolityDistribution.Sum(x => x.Count);
