@@ -1580,11 +1580,16 @@ public sealed class Diplomacy
             Power? m = side.Contains(war.A) ? war.A : side.Contains(war.B) ? war.B : null;
             Power? f = m == war.A ? war.B : war.A;
             if (m is null || !foes.Contains(f) || f.Nation is null) continue;
+            // ⚠(197) 反証役 vp2#6：列強に限る枝はランクの札の0か1（同盟国が列強の枠を出入りすると存亡が跳ぶ）＝README §1-8 と逆の向き・列強に限る根拠は未記載
+            //   （AI の設計・作者の承認は未確認）＝重みの形（同盟国の敗色を陣営の陸の力の割合で重みづける等）か番人を次の回で（実装ログ (197) 申し送り）。
             if (m != p && RankOf(m) != PowerRank.Great) continue;
             if (!(LandingGate(f, m, c) > 0)) continue;
             double lose = m == war.A ? -war.Score : war.Score;
             if (lose > homeLosing) homeLosing = lose;
         }
+        // ⚠(197) 反証役 vp2#2：分母は自陣営の陸の力の全量・分子は p の直接の敵の届く陸の力だけ＝分子と分母が別の規則（自陣営の他の国だけが戦う相手〔例：英が独とだけ・
+        //   仏露が墺とも戦う〕は分子に入らず、その相手に割いた仏露の陸の力は分母に入る）＝英米の大戦の総動員が短い原因の候補【推】
+        //   ＝分子を「自陣営のどれかと交戦している陣営の外の国」にする腕を次の回で（実装ログ (197) 申し送り）。
         double own = 0;
         foreach (var m in side) { double l = m.LandPower; if (l > 0) own += l; }
         return own > 0 ? reach / own : reach > 0 ? double.PositiveInfinity : 0;

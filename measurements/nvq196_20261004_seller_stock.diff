@@ -1,12 +1,13 @@
 --- a/PriceOfBread.SimCore/BilateralMarket.cs	2026-10-04 00:41:11.801274300 +0900
 +++ b/PriceOfBread.SimCore/BilateralMarket.cs	2026-10-04 00:41:12.735032100 +0900
-@@ -760,7 +760,11 @@
+@@ -760,7 +760,12 @@
                      if (c.IsolationExportWeight > 0) sellAccB *= System.Math.Max(0, 1.0 - c.IsolationExportWeight * System.Math.Max(0, tar[siA]) * System.Math.Max(0, tar[siA]));   // ★鎖国の対称化（高関税レジーム＝輸出側も閉じる・0＝恒等）
                      if (g == c.OpiumGoodId && oexban[siA]) sellAccB *= Contraband.LeakFraction(tr[snA].r.AdminFill, c);
                      double rpS = gd.RefPrice * tr[snA].r.PriceLevel * exRate[siA];
 -                    double yPrice = rpS > 1e-9 ? (msA.LastProduced + msA.LastImport) * unitA / rpS - msA.LastDemand - msA.LastExport : 0.0;
 +                    // ★[腕Y・(196)] 売り手の供給にも作者裁定 2026-09-08「備蓄がある限り、それは生産できているものとみなす」の形（価格法則と同じ）＝供給＝max(流入, min(流入＋在庫, 需要))。
 +                    //   需要＝地元の需要＋この清算で既に出した量＋この買い手の不足 X。旧＝流入だけ＝産出が止まった産地の在庫は二度と売れなかった（ベンガルの硝石の死蔵）。
++                    //   ⚠(197) 反証役 vq2#6：売り手への当て方は AI の読み（裁定の言葉は価格法則についてのもの）・作者の承認は未確認・上限の X（買い手の不足）は裁定の外の AI の拡張。
 +                    double flowA = msA.LastProduced + msA.LastImport;
 +                    double supA = Math.Max(flowA, Math.Min(flowA + msA.Stock, msA.LastDemand + msA.LastExport + X));
 +                    double yPrice = rpS > 1e-9 ? supA * unitA / rpS - msA.LastDemand - msA.LastExport : 0.0;
