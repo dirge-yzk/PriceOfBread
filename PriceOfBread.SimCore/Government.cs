@@ -247,6 +247,18 @@ public static class Government
         //   ⚠法でないもの＝専売の材・補助・売買方針・国営工場（生産の決断＝作者裁定 2026-09-20）・制度の解禁（特許・株式会社・鉄道・検地台帳＝社会の盤面から導く）・兌換の運転（信用の門）は助走でも動く＝経済の定常の一部。
         if (w.WarmupFrozen) { w.AusterityIntensity = austerity; return; }
 
+        // ★(178) 戦時の非常の法（徴兵法・作者 2026-10-03「全て推奨でよい」で採った推奨「戦時に上げた徴兵法は戦後に戻る」・形は (168) のパッチ）＝戦時に上げた徴兵法は、戦争が終わった四半期に戦前の段へ戻る（R2「戦時経済は総動員とセットで、戦後は下の値に戻る」と同じ形＝戦時の段は戦争が前提）。
+        //   史実＝英の兵役法（1916）は戦争の期間に限る法で 1920 に廃止・米の徴兵法（1863・1917）は戦後に終わった・仏の国民総動員（1793）の後は平時の法へ戻った。
+        //   平時から有った徴兵法（普・仏・露）は戻らない（戦前の段が徴兵なら徴兵のまま）＝戻すのは「今の段が戦前の段より上」のときだけ。平時の再制定は AI もプレイヤーも門を通す（下のループ）。
+        //   戦前の段は交戦に入った四半期に記録する（World.ConscriptionPreWar＝思想⑩の例外の理由はその注記）。クールダウンではない＝戦争の終わりという状態で決まる。
+        //   保存目標も同じ段へ戻す（R2 の戦時段の失効と同じ＝次の戦争で選び直さずに黙って上がらない）。全国が四半期頭に通る1箇所＝AI とプレイヤーの共通経路（IsPlayer を読まない）。
+        if (w.AtWarNow) { if (w.ConscriptionPreWar < 0) w.ConscriptionPreWar = (int)w.ConscriptionLaw; }
+        else if (w.ConscriptionPreWar >= 0)
+        {
+            if ((int)w.ConscriptionLaw > w.ConscriptionPreWar) { w.ConscriptionLaw = (ConscriptionLaw)w.ConscriptionPreWar; p.ConscriptionLaw = w.ConscriptionLaw; }
+            w.ConscriptionPreWar = -1;
+        }
+
         // 法整備（離散）：力の均衡が許す向きに一歩ずつ。教育法・参政権・徴兵法は World が現在値を持ち効果に効く。
         // ★段の法は表 <see cref="LevelLaws"/> を施行の順に1本のループで回す（2026-09-28 処理の一元化 段1＝旧は軸ごとに StepEnum/StepBool の1行・各軸の注記は表の行へ移した）。
         foreach (var law in LevelLaws)
@@ -548,6 +560,14 @@ public static class Government
         return !(net < 0) || PoliticalCapitalAffords(w, -net * w.Coef.MandateSpendRate * ReversalCostMul(w, a, Regressive(a, increasing)));
     }
 
+    /// <summary>★(178) 国民皆兵の門＝身分の特権が無いこと＝領主権の残高（<see cref="Privileges.SeigneurialDegree"/>＝農奴解放 なし1／限定0.5／全面0・法から導く＝新しい状態なし）が0。
+    /// 作者 2026-10-03「全て推奨でよい。(1)は良いと思う。」で採った推奨①（封建の兵から国民の兵へ＝身分の特権〔農奴制・武士など戦う身分の特権〕がある間は徴兵は領主や共同体を通した選抜まで・
+    /// 廃止した国は国民皆兵を目標にできる＝法の上の平等＝等しい義務・国家が母数に直接届く）＝AI の整理。武士の特権は日本の開幕の農奴解放の法「なし」が持つ（world.json＝国名の分岐なし）。
+    /// 史実（身分の解放→国民皆兵）＝普 1807 十月勅令→1813/14 一般兵役義務・仏 1789 封建的特権の廃止→1798 ジュルダン法・露 1861 農奴解放令→1874 国民皆兵・墺 1848 農民解放→1868 一般兵役・
+    /// オスマン 1839 ギュルハネ勅令→1843 予備軍（1848 籤）・日 1871 廃藩置県と身分の解放→1873 徴兵令。英米は置き換える封建の兵が無く大戦の時だけ徴兵（門は開幕から開いている＝皆兵を止めるのは不安の側）。
+    /// 読み手＝<see cref="LawPrereq"/>（皆兵へ登る門）と AI の目標の上限（UtilityAgent.DecideModernLaws）。</summary>
+    internal static bool UniversalConscriptionOpen(World w) => Privileges.SeigneurialDegree(w) <= 0;
+
     /// <summary>前提法DAG（1934拡張E4・2026-07-19）：ある法軸をある目標段(0基点)へ上げる前提が満たされているか＋不足理由。
     /// 非循環（前提は必ず「より基礎の別法」を指す・相互ロックしない）。UIの可否表示・施行・バイパス（勢力譲歩）の**単一ソース**。
     /// targetLevel＝目標のenum序数（bool法は1）。低い段への後退は常に可（前提は上げる時だけ）。E5/E6が新法軸の前提をここへ追加する。</summary>
@@ -623,6 +643,13 @@ public static class Government
                 if (targetLevel >= (int)Suffrage.Universal && !w.WomenSuffrage) return (false, "女性の権利（選挙権）が前提");
                 break;
             // ★新しい前提（2026-08-04・作者指示「いくつかの法には前提条件を用意する」）。史実の順序に沿う。
+            case PolicyAxis.ConscriptionLaw:
+                // ★(178) 封建の兵から国民の兵へ（作者 2026-10-03「全て推奨でよい。(1)は良いと思う。」で採った推奨①＝00一覧の軍の裁定の表・AI の整理）：
+                //   国民皆兵（国家が適齢の男子の全てに直接届く等しい兵役の義務）は身分の特権がある間は登れない＝領主と共同体を通した選抜（割当て・籤）まで（<see cref="UniversalConscriptionOpen"/>）。
+                //   ⚠天井型の前提は登る側にしか掛けない（上の注記）＝既に皆兵の国はそのまま・下げはいつでも可。プレイヤー（法律タブ＝GateInfo）・AI（GateAllLawTargets と施行の StepEnum）・
+                //   勢力の要求（Parliament.TargetDemand＝GateInfo・Politics.ApplyDemand＝ここ）が同じ1本。
+                if (targetLevel >= (int)ConscriptionLaw.Universal && targetLevel > CurrentStage(w, a) && !UniversalConscriptionOpen(w)) return (false, "農奴解放（全面）が前提");
+                break;
             case PolicyAxis.SecretBallot:
                 // 秘密投票 ← 選挙があること。投票そのものが無い国で投票の秘密を論じられない（英1872年の秘密投票法は1832/1867の拡大の後）。
                 if (targetLevel >= (int)SecretBallotLaw.Secret && w.Suffrage < Suffrage.Census) return (false, "参政権（制限選挙以上）が前提");

@@ -150,11 +150,15 @@ public static class ArmyShape
     /// n×n の対称の表＝国 a の稼働中の州と国 b の稼働中の州が陸路グラフ（<see cref="PathGraph"/>）の辺で隣り合う組の数。峠を挟む組は峠の割増（PassCostMult）で割る。
     /// 1組の重み＝地形の通りにくさの逆数＝2÷（両端の州の地形の陸運の費用の和）＝交易の陸運の地形の表（<see cref="Coefficients.TerrainHorseCost"/>）を読む＝新しい数を置かない
     /// （平地1.0・丘1.5・森3.0・山2.5・荒地8.0＝山と砂漠の国境は守りやすい）。植民地格の州も州＝植民地の国境も数える。座標の無い州は陸路グラフに居ない＝数えない。
-    /// 四半期に1回（<see cref="Compute"/>）＝州×1回の最寄りノード（座標の記憶つき）＋辺の走査（約840本）＋峠の隣りの組。</summary>
-    internal static double[] Borders(List<Power> ps, Coefficients c)
+    /// 四半期に1回（<see cref="Compute"/>）＝州×1回の最寄りノード（座標の記憶つき）＋辺の走査（約840本）＋峠の隣りの組。
+    /// ★(178) <paramref name="toHome"/>（n×n・呼び手が0で渡す）＝同じ組のうち**両側とも本国の州（Core・Integrated＝植民地格でない）**の組だけの和（対称＝本国どうしの陸の国境）
+    /// ＝陸軍の不安（<see cref="World.SecurityThreatArmy"/>＝徴兵法の目標だけが読む）の国境の項。植民地の国境は植民地の兵（英印軍・セネガル狙撃兵）が守り、植民地から来る兵も本国の徴兵の理由にしない
+    /// （推奨で進めた＝(168) の作者への確認②〔米が英領カナダとの国境で開幕すぐ選抜に上がる型〕の両側版・形はパッチ measurements/m170_20261002_armH.diff）。割譲で得た州は Integrated＝本国の国境に数える。</summary>
+    internal static double[] Borders(List<Power> ps, Coefficients c, double[]? toHome = null)
     {
         int n = ps.Count, nn = PathGraph.Nodes.Length;
         var owner = new int[nn]; var terr = new double[nn];
+        var home = toHome is null ? null : new bool[nn];
         System.Array.Fill(owner, -1);
         for (int i = 0; i < n; i++)
         {
@@ -167,6 +171,7 @@ public static class ArmyShape
                 int nd = PathGraph.NearestNode(cc.Lat, cc.Lon);
                 if (nd < 0) continue;
                 owner[nd] = i;
+                if (home is not null) home[nd] = r.Tier != RegionTier.Colonial;
                 int ti = (int)r.Terrain;
                 terr[nd] = ti < c.TerrainHorseCost.Length ? c.TerrainHorseCost[ti] : 1.0;
             }
@@ -187,6 +192,7 @@ public static class ArmyShape
             if (ou < 0 || ov < 0 || ou == ov) return;
             double w = mult * 2.0 / (terr[u] + terr[v]);
             b[ou * n + ov] += w; b[ov * n + ou] += w;
+            if (home is not null && home[u] && home[v]) { toHome![ou * n + ov] += w; toHome[ov * n + ou] += w; }   // 両側とも本国の州の組だけ
         }
     }
 

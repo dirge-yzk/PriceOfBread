@@ -60,6 +60,10 @@ public sealed class NationConfig
     public ReformLevel InitialCornLaws = ReformLevel.None;                 // 穀物法：地主保護の農業国＝全面（英の穀物法）／自由貿易・輸出国＝なし（蘭米）
     public ReformLevel InitialSerfEmancipation = ReformLevel.None;         // 農奴解放：東欧の農奴制＝なし（露普墺日）／西欧の自由労働＝全面（英米蘭）／封建残滓＝限定（仏伊西土）
     public ImmigrationLaw InitialImmigration = ImmigrationLaw.Open;        // ★移民制限法（作者裁定 2026-09-27 E7）：日本＝鎖国・朝鮮＝海禁で閉鎖／清＝広東一口通商と満洲の封禁で選別／他＝開放
+    // ★徴兵法の初期値（(178)・作者 2026-10-03「全て推奨でよい」で採った推奨「開幕の徴兵法を史実のデータで」・分類は (168) の下調べ＝1783 年の制度・国ごとの制度と年と出典は実装ログ (178) の表）：常備軍が志願・世襲の武人・傭兵・部族の兵で、国家が平民を籤や割当てで
+    //   兵営へ取らない国＝志願制（英〔陸軍は志願・民兵の籤は本土の防衛で別〕・米・日〔世襲の武士〕・清〔八旗・緑営＝世襲と志願〕・蘭・オスマン〔イェニチェリとティマール・徴兵は1843/48〕ほか）／
+    //   国家が平民を籤・カントン・徴募の割当てで兵営へ取る国＝選抜（普のカントン制度・露の徴募・西のキンタ・墺の徴兵区・仏の民兵の籤〔国王の民兵＝軍の予備〕ほか＝既定）。
+    public ConscriptionLaw InitialConscription = ConscriptionLaw.Selective;
     public MonetaryStandardLaw InitialMonetaryLaw = MonetaryStandardLaw.Silver;   // ★通貨制度（作者裁定 2026-09-28 F6）：英＝金（1717年以後の事実上の金本位・1816/21年に法）／他＝既定の銀（1783年の銀の世界＝銀貨は普遍的だった・Coefficients.SilverStandardIndThreshold の注記）。旧＝既定の不換→AI が助走の最初の四半期に銀へ上げた＝助走が法を動かしていた形（2026-09-30 (119) で助走は法を動かさない＝初期値そのものを史実へ）
     // ★(169) 開幕の既知の発見（発見の表の行の名前・world.json の knownDiscoveries）＝1783年より前に史実でその国が使っていた発見（データ・国名の分岐を作らない）。
     //   旧＝助走の終わりの盤面で1度だけ点数を判定した（1780年代の行は技術力が最大＝必要性が30に届く国が開幕から持った＝(165) で主要国の全てが1784年に蒸気機関）。
@@ -90,6 +94,7 @@ public sealed class NationConfig
         InitialTariff = InitialTariff,  // 関税の初期値（日本＝鎖国）
         InitialSuffrage = InitialSuffrage, InitialCensorship = InitialCensorship,
         InitialCornLaws = InitialCornLaws, InitialSerfEmancipation = InitialSerfEmancipation, InitialImmigration = InitialImmigration,
+        InitialConscription = InitialConscription,
         InitialMonetaryLaw = InitialMonetaryLaw,
         InitialDiscoveries = KnownDiscoveries,
     };

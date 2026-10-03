@@ -189,10 +189,12 @@ public sealed class Simulation
             CornLaws = scenario.InitialCornLaws,            // 初期穀物法（農業国＝保護／自由貿易国＝なし）
             SerfEmancipation = scenario.InitialSerfEmancipation,   // 初期農奴解放（東欧＝未解放／西欧＝全面）
             ImmigrationRestriction = scenario.InitialImmigration,  // 初期移民制限法（日朝＝閉鎖／清＝選別／他＝開放）
+            ConscriptionLaw = scenario.InitialConscription,        // ★初期徴兵法（(178)・英米日清蘭ほか＝志願／他＝選抜）
             // 金本位の志向は AI/プレイヤーが決める（UtilityAgent は信用があれば志向＝史実の規範。NullAgent のテストは志向せず＝従来挙動）。実加入は信用ゲートが決める
         };
         World.Suffrage = World.Policy.Suffrage;       // 法整備の現在値＝初期は政策の初期値（利益集団のゲートで漸進）
         World.Censorship = World.Policy.Censorship;   // 報道法の現在値＝初期値（米蘭＝自由／英＝検閲付／他＝国家報道のみ）
+        World.ConscriptionLaw = World.Policy.ConscriptionLaw;   // ★徴兵法の現在値＝初期値（(178)）
         // P2：登録簿（Crown/Seizure）を初期政体から構築（英CM→Crown=Absolutist・米Rep→None等）。flag=0ではdead write＝挙動恒等。
         CrownParliament.ApplyRegime(World, World.Coef, World.Polity);
         // 政体が含意する参政権・報道自由を初期化時に法へ一回畳み込む（倍率排除②：以後 Freedom/eff＝法律値。毎期の政体→スカラー写像を廃止）。

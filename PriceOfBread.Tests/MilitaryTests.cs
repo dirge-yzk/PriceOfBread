@@ -1304,9 +1304,13 @@ public class MilitaryTests
     }
 
     /// <summary>★(155) AI の軍事費の段＝安全保障の不安の唯一の入口＝平時の段の幅（段1〜段3）を脅威の割合（脅威÷(脅威＋自国の養える軍)）で内分。軍備スタンスは段を書かない。
-    /// 徴兵法の政治＝脅威の割合が半分以上（届く敵意の養える軍が自国の養える軍以上）か交戦中＝徴兵制。⚠突然変異「軍備スタンスが 0.7 を書く（旧）」「徴兵法を軍備スタンスで読む（旧）」で赤。</summary>
+    /// ★(178) 徴兵法の目標（作者 2026-10-03「全て推奨でよい。(1)は良いと思う。」で採った推奨①②④＝00一覧の軍の裁定の表・AI の整理）＝**陸軍の不安の割合**（SecurityThreatArmy÷(それ＋自国の養える軍)）が
+    /// 半分以上か、交戦中かつ総動員中＝上限（皆兵の門〔身分の特権が無い＝農奴解放が全面〕が開いていれば国民皆兵・閉じていれば選抜・既に皆兵なら皆兵）／他は現状維持
+    /// （陸軍の不安に入らない海の不安と植民地の不安は数えない・志願制の理由にもしない・旧 (155) の「平時の男子普選以上なら志願制」の枝は外した・交戦だけでは上げない）。
+    /// 軍事費の段は不安の全体を読む（陸軍の不安を読まない）。呼び手（UtilityAgent.Apply＝目標を書いて法の門へ通す）でも同じ。
+    /// ⚠突然変異「徴兵法を不安の全体で読む（旧）」「男子普選の枝を戻す（旧）」「交戦だけで上げる（旧）」「上限を門に依らず選抜（旧）／皆兵に」「線を 0.3／&gt; 0.5 に」で赤。</summary>
     [Fact]
-    public void AIの軍事費の段は安全保障の不安で決まり徴兵法の政治も同じ不安を読む()
+    public void AIの軍事費の段は安全保障の不安の全体を読み徴兵法の目標は陸軍の不安と皆兵の門を読む()
     {
         var w = France155().World;
         w.SecurityThreat = 0; w.SecurityThreatOwnMass = 100;
@@ -1322,22 +1326,326 @@ public class MilitaryTests
         w.SecurityThreat = 0;
         UtilityAgent.Apply(w, UtilityAgent.Stance.Militarize);
         Assert.Equal(0.25, w.Policy.MilitarySpendingTarget, 12);
+        // ★(178) 段は不安の全体を読む＝陸軍の不安を0 にしても段の目標は変わらない（徴兵法の目標だけが陸軍の不安を読む）
+        w.SecurityThreat = 300; w.SecurityThreatArmy = 0;
+        Assert.Equal(0.25 + 0.5 * 0.75, UtilityAgent.SecurityStageTarget(w), 12);
         var decide = typeof(UtilityAgent).GetMethod("DecideModernLaws", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!;
-        w.Policy.ConscriptionLaw = ConscriptionLaw.Volunteer;
-        w.SecurityThreat = 150;   // 脅威の割合 0.6
-        decide.Invoke(null, [w, w.Policy, UtilityAgent.Stance.Industrialize]);
+        ConscriptionLaw Decide(World x, ConscriptionLaw from, double total, double army)
+        {
+            x.SecurityThreat = total; x.SecurityThreatArmy = army; x.Policy.ConscriptionLaw = from;
+            decide.Invoke(null, [x, x.Policy, UtilityAgent.Stance.Industrialize]);
+            return x.Policy.ConscriptionLaw;
+        }
+        Assert.False(w.AtWarNow, "前提が崩れた：仏が交戦中");
+        Assert.True(w.Suffrage < Suffrage.AdultMale && !w.Mobilized, "前提が崩れた：仏1783 が男子普選以上か総動員中");
+        Assert.True(w.SerfEmancipation == ReformLevel.Limited && w.ConscriptionLaw == ConscriptionLaw.Selective, "前提が崩れた：仏1783 の農奴解放が限定でないか徴兵法が選抜でない");
+        Assert.False(Government.UniversalConscriptionOpen(w), "前提が崩れた：限定の農奴解放で皆兵の門が開いている");
+        // 門が閉じている（限定）＝上限は選抜：陸軍の不安の割合 0.6・0.5（ちょうど線）＝選抜（(157) の線の両側）
+        Assert.Equal(ConscriptionLaw.Selective, Decide(w, ConscriptionLaw.Volunteer, 150, 150));
+        Assert.Equal(ConscriptionLaw.Selective, Decide(w, ConscriptionLaw.Volunteer, 100, 100));
+        Assert.Equal(ConscriptionLaw.Selective, Decide(w, ConscriptionLaw.Selective, 150, 150));
+        // 陸軍の不安の割合 0.4（線の下・平時）＝現状維持（どちらの法からも動かない）
+        double l4 = 100.0 * 0.4 / 0.6;
+        Assert.Equal(ConscriptionLaw.Volunteer, Decide(w, ConscriptionLaw.Volunteer, l4, l4));
+        Assert.Equal(ConscriptionLaw.Selective, Decide(w, ConscriptionLaw.Selective, l4, l4));
+        // 不安の全体は大きい（割合 0.75）が陸軍の不安は0（海軍で防げる海の不安と植民地の不安）＝現状維持（旧＝不安の全体を読み徴兵制／(162)①＝志願制）
+        Assert.Equal(ConscriptionLaw.Volunteer, Decide(w, ConscriptionLaw.Volunteer, 300, 0));
+        Assert.Equal(ConscriptionLaw.Selective, Decide(w, ConscriptionLaw.Selective, 300, 0));
+        Assert.Equal(ConscriptionLaw.Volunteer, Decide(w, ConscriptionLaw.Volunteer, 300, l4));
+        // NaN＝現状維持（比較が偽）
+        Assert.Equal(ConscriptionLaw.Volunteer, Decide(w, ConscriptionLaw.Volunteer, double.NaN, double.NaN));
+        // 門が開いている（全面）＝上限は国民皆兵（線の上だけ）・線の下は現状維持（門が開いても上げない＝英米型）
+        w.SerfEmancipation = ReformLevel.Full;
+        Assert.True(Government.UniversalConscriptionOpen(w));
+        Assert.Equal(ConscriptionLaw.Universal, Decide(w, ConscriptionLaw.Volunteer, 150, 150));
+        Assert.Equal(ConscriptionLaw.Universal, Decide(w, ConscriptionLaw.Selective, 100, 100));
+        Assert.Equal(ConscriptionLaw.Selective, Decide(w, ConscriptionLaw.Selective, l4, l4));
+        Assert.Equal(ConscriptionLaw.Volunteer, Decide(w, ConscriptionLaw.Volunteer, 300, 0));
+        // 既に皆兵の国は門が閉じても上限は皆兵（目標を下げる理由にしない）
+        w.SerfEmancipation = ReformLevel.None; w.ConscriptionLaw = ConscriptionLaw.Universal;
+        Assert.Equal(ConscriptionLaw.Universal, Decide(w, ConscriptionLaw.Universal, 150, 150));
+        w.SerfEmancipation = ReformLevel.Limited; w.ConscriptionLaw = ConscriptionLaw.Selective;
+        // 男子普選以上でも陸軍の不安が線の下なら現状維持（旧 (155)＝志願制へ）・線の上なら上限へ
+        w.Suffrage = Suffrage.AdultMale;
+        Assert.Equal(ConscriptionLaw.Selective, Decide(w, ConscriptionLaw.Selective, l4, l4));
+        Assert.Equal(ConscriptionLaw.Selective, Decide(w, ConscriptionLaw.Selective, 0, 0));
+        Assert.Equal(ConscriptionLaw.Selective, Decide(w, ConscriptionLaw.Volunteer, 150, 150));
+        w.Suffrage = Suffrage.None;
+        // 呼び手（Apply＝目標を書き、法の門で今の段＋1 までに丸める）：志願制の国で陸軍の割合 0.6＝選抜・全体 0.75 で陸軍0＝志願のまま
+        w.ConscriptionLaw = ConscriptionLaw.Volunteer;
+        w.Policy.ConscriptionLaw = ConscriptionLaw.Volunteer; w.SecurityThreat = 150; w.SecurityThreatArmy = 150;
+        UtilityAgent.Apply(w, UtilityAgent.Stance.Industrialize);
         Assert.Equal(ConscriptionLaw.Selective, w.Policy.ConscriptionLaw);
-        // ★(157) 線の両側（反証役の指摘＝線の下側が固定されていなかった）：割合 0.5（ちょうど線）は徴兵制・0.4（線の下・平時）は徴兵制にしない（志願制のまま）。
-        //   ⚠突然変異「線を 0.3 へ下げる」「線を > 0.5 にする」で赤。
-        Assert.False(w.AtWarNow, "前提が崩れた：仏が交戦中（交戦中は割合に依らず徴兵制）");
-        w.Policy.ConscriptionLaw = ConscriptionLaw.Volunteer;
-        w.SecurityThreat = 100;   // 脅威の割合 0.5
-        decide.Invoke(null, [w, w.Policy, UtilityAgent.Stance.Industrialize]);
-        Assert.Equal(ConscriptionLaw.Selective, w.Policy.ConscriptionLaw);
-        w.Policy.ConscriptionLaw = ConscriptionLaw.Volunteer;
-        w.SecurityThreat = 100.0 * 0.4 / 0.6;   // 脅威の割合 0.4
-        decide.Invoke(null, [w, w.Policy, UtilityAgent.Stance.Industrialize]);
+        w.Policy.ConscriptionLaw = ConscriptionLaw.Volunteer; w.SecurityThreat = 300; w.SecurityThreatArmy = 0;
+        UtilityAgent.Apply(w, UtilityAgent.Stance.Industrialize);
         Assert.Equal(ConscriptionLaw.Volunteer, w.Policy.ConscriptionLaw);
+        // 呼び手で門が閉じている（限定）＝選抜の国の陸軍の割合 0.6＝選抜のまま（皆兵を目標に残さない＝規則で届かない段は現行法へ畳む）
+        w.ConscriptionLaw = ConscriptionLaw.Selective;
+        w.Policy.ConscriptionLaw = ConscriptionLaw.Selective; w.SecurityThreat = 150; w.SecurityThreatArmy = 150;
+        UtilityAgent.Apply(w, UtilityAgent.Stance.Industrialize);
+        Assert.Equal(ConscriptionLaw.Selective, w.Policy.ConscriptionLaw);
+        // ④交戦の枝は総動員の時だけ（旧＝交戦中なら徴兵制）：交戦中で総動員していない＝現状維持・総動員中＝上限（仏＝限定＝選抜）
+        var sim = Frozen152("フランス", "スペイン");
+        sim.StepQuarter();
+        var fr = sim.Nations[0].World;
+        sim.Diplomacy.Wars.Add(new War { A = fr.SelfPower!, B = sim.Nations[1].World.SelfPower! });
+        fr.SecurityThreatOwnMass = 100;
+        Assert.True(fr.AtWarNow, "前提が崩れた：仏が交戦中でない");
+        fr.Mobilized = false;
+        Assert.Equal(ConscriptionLaw.Volunteer, Decide(fr, ConscriptionLaw.Volunteer, 300, 0));
+        fr.Mobilized = true;
+        Assert.Equal(ConscriptionLaw.Selective, Decide(fr, ConscriptionLaw.Volunteer, 300, 0));
+        fr.SerfEmancipation = ReformLevel.Full;
+        Assert.Equal(ConscriptionLaw.Universal, Decide(fr, ConscriptionLaw.Selective, 300, 0));
+    }
+
+    /// <summary>★(178) 陸軍の不安（World.SecurityThreatArmy・作者 2026-10-03 で採った推奨②「海と陸を完全に分けない」＝陸の不安＋海の不安のうち自国の海軍で防げない分）
+    /// ＝同じ注意配分の分母のうち、A が B に届く強さを「**両側とも本国の州（Core・Integrated）の国境**＋投射×**上陸の門**（Diplomacy.LandingGate＝陸続き1・海越えは A の制海権が門に届けば1）」に限った分。
+    /// 盤面＝仏・西・日（開幕・外交を止める）：(a) 式どおり（公開の部品で数え直して一致）(b) 陸軍の不安≦全体
+    /// (c) 日本（島国＝陸の国境なし）＝日本の海軍が優勢（相手の制海権が門の下）なら陸軍の不安0（全体は正）・日本が艦を持たないと相手の投射が上陸の門を通る＝陸軍の不安が正
+    /// (d) 西の州を全て植民地格にすると仏西の本国の国境は**両方の向きで**0（植民地から来る不安も植民地へ向かう不安も数えない）・全ての国境は変わらない・統合格は本国に数える
+    /// (e) エンジンを回し直すと仏と西の陸軍の不安は下がり、数え直しと一致する。
+    /// (f) ★(188) 植民地の国境を数えないのは徴兵法の目標（陸軍の不安）だけ＝同じ盤面で不安の全体（AI の軍事費の段が読む＝SecurityShare の全体）と
+    ///     理想の軍隊の形の陸の必要量（ArmyShape.Compute の NeedLand＝軍の大きさ）は植民地の国境を数えたまま動かない（作者 2026-10-03 README §1-7 で③を推奨の形へ＝
+    ///     「植民地の国境は軍事費と軍の大きさには数える（2026-09-29 (2) のまま）・徴兵法の目標にだけは数えない」・00一覧の軍の裁定の表）。
+    /// ⚠突然変異「陸軍の不安に植民地の国境を数える」「片側だけ本国（(168) の形）」「海越えの投射を上陸の門に依らず数える」「海越えの投射を全て除く（(168) の形）」
+    ///   「不安の全体も本国の国境だけを読む」「理想の軍隊の形の陸の必要量も本国の国境だけを読む」で赤。</summary>
+    [Fact]
+    public void 陸軍の不安は本国どうしの国境と上陸の門を通る投射だけを数える()
+    {
+        var sim = Frozen152("フランス", "スペイン", "日本");
+        var c = sim.Coef;
+        sim.StepQuarter();
+        var step = typeof(MultiNationSim).GetMethod("StepSecurityThreat", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!;
+        var ps = sim.Nations.ConvertAll(n => n.World.SelfPower!);
+        int n = ps.Count;
+        double[] ExpectArmy()
+        {
+            var seats = new double[n];
+            for (int i = 0; i < n; i++) seats[i] = Military.EstablishmentOf(sim.Nations[i].World, sim.Nations[i].World.Coef, out _);
+            var home = new double[n * n];
+            var border = ArmyShape.Borders(ps, c, home);
+            var ha = new double[n * n]; var col = new double[n];
+            for (int a = 0; a < n; a++)
+            {
+                double sum = ArmyShape.Unrest(ps[a]);
+                for (int b = 0; b < n; b++)
+                {
+                    if (a == b) continue;
+                    double h = ArmyShape.Hostility(sim.Diplomacy, ps[b], ps[a], c);
+                    if (!(h > 0)) continue;
+                    double proj = sim.Diplomacy.Projection(ps[a], ps[b], c);
+                    double r = border[a * n + b] + proj;
+                    if (!(r > 0)) continue;
+                    sum += h * r;
+                    ha[a * n + b] = h * (home[a * n + b] + proj * sim.Diplomacy.LandingGate(ps[a], ps[b], c));
+                }
+                col[a] = sum;
+            }
+            var army = new double[n];
+            for (int b = 0; b < n; b++)
+                for (int a = 0; a < n; a++) if (a != b && col[a] > 1e-12 && seats[a] > 0) army[b] += ha[a * n + b] / col[a] * seats[a];
+            return army;
+        }
+        void Check(string label)
+        {
+            step.Invoke(sim, null);
+            var e = ExpectArmy();
+            for (int b = 0; b < n; b++)
+            {
+                var wb = sim.Nations[b].World;
+                Assert.Equal(e[b], wb.SecurityThreatArmy, 9);
+                Assert.True(wb.SecurityThreatArmy <= wb.SecurityThreat * (1 + 1e-12), $"{label}：{wb.SelfPower!.Name} の陸軍の不安 {wb.SecurityThreatArmy} が全体 {wb.SecurityThreat} を超える");
+            }
+        }
+        var fr = sim.Nations[0].World; var es = sim.Nations[1].World; var jp = sim.Nations[2].World;
+        Check("開幕");
+        double fr0 = fr.SecurityThreatArmy, es0 = es.SecurityThreatArmy;
+        Assert.True(fr0 > 0 && es0 > 0, "前提が崩れた：仏西に陸軍の不安が無い（仏西の国境）");
+        // (c) 日本＝陸の国境なし。日本の海軍が圧倒（仏西の艦なし）＝上陸の門が閉じる＝陸軍の不安0・全体は正
+        //   艦隊は盤面へ直に置く（外交を止めた盤面は艦隊を播かない）＝海軍力＝min(艦隊, 総合ゲージ×海軍シェア)。
+        var keep = ps.ConvertAll(q => (q.Military, q.FleetGauge, q.NavalShare));
+        void Navy(int i, double share) { ps[i].Military = 100; ps[i].FleetGauge = 100; ps[i].NavalShare = share; }
+        //   日本の海軍が優勢（仏の制海権が上陸の門に届かない＝仏の投射は制海権の分だけ届くので不安の全体には入る）・西は艦なし
+        Navy(0, 0.4); Navy(1, 0); Navy(2, 0.6);
+        Check("日本の海軍が優勢");
+        double scFJ = sim.Diplomacy.SeaControl(ps[0], ps[2]);
+        Assert.True(scFJ > 0 && scFJ < c.SeaInvasionControlMin && sim.Diplomacy.LandingGate(ps[0], ps[2], c) == 0, $"前提が崩れた：仏→日の制海権 {scFJ} が門の下でない");
+        Assert.True(jp.SecurityThreat > 0, "前提が崩れた：日本に不安が無い（海越えの投射が届かない）");
+        Assert.Equal(0.0, jp.SecurityThreatArmy);
+        // 日本が艦を持たない＝仏西の制海権1＝上陸の門が開く＝仏西の海越えの投射が陸軍の不安に入る
+        Navy(0, 0.5); Navy(1, 0.5); Navy(2, 0);
+        Check("日本に艦が無い");
+        Assert.True(sim.Diplomacy.LandingGate(ps[0], ps[2], c) > 0, "前提が崩れた：仏→日の上陸の門が閉じている");
+        Assert.True(jp.SecurityThreatArmy > 0, $"日本に艦が無いのに陸軍の不安が0（{jp.SecurityThreatArmy}）＝海で防げない投射を数えていない");
+        for (int i = 0; i < n; i++) (ps[i].Military, ps[i].FleetGauge, ps[i].NavalShare) = keep[i];
+        Check("戻した");
+        double frTot0 = fr.SecurityThreat, esTot0 = es.SecurityThreat;   // (f) の前の値（不安の全体）
+        ArmyShape.Compute(sim.Diplomacy, c);
+        double frLand0 = ps[0].NeedLand, esLand0 = ps[1].NeedLand;        // (f) の前の値（理想の軍隊の形の陸の必要量）
+        Assert.True(frLand0 > 0 && esLand0 > 0, "前提が崩れた：仏西に陸の必要量が無い");
+        // (d) 西の州を全て植民地格に＝仏西の本国の国境は両方の向きで0・全ての国境は変わらない
+        var home1 = new double[n * n];
+        var border1 = ArmyShape.Borders(ps, c, home1);
+        double before = border1[0 * n + 1];
+        Assert.True(before > 0 && Math.Abs(home1[0 * n + 1] - before) <= 1e-12 * before && Math.Abs(home1[1 * n + 0] - before) <= 1e-12 * before, "前提が崩れた：仏西の国境が本国どうしでない");
+        var tiers = es.Regions.ConvertAll(r => r.Tier);
+        foreach (var r in es.Regions) r.Tier = RegionTier.Integrated;   // 統合格（割譲で得た州）は本国に数える
+        var homeI = new double[n * n];
+        ArmyShape.Borders(ps, c, homeI);
+        Assert.Equal(before, homeI[0 * n + 1], 12);
+        foreach (var r in es.Regions) r.Tier = RegionTier.Colonial;
+        var home2 = new double[n * n];
+        var border2 = ArmyShape.Borders(ps, c, home2);
+        Assert.Equal(before, border2[0 * n + 1], 12);
+        Assert.Equal(0.0, home2[0 * n + 1]);
+        Assert.Equal(0.0, home2[1 * n + 0]);
+        // (e) エンジン（呼び手）を回し直す＝仏も西も国境の分が抜けて下がり、数え直しと一致
+        Check("西が植民地格");
+        Assert.True(es.SecurityThreatArmy < es0 * (1 - 1e-6), $"西の本国が植民地格になっても西の陸軍の不安が下がらない（{es0} → {es.SecurityThreatArmy}）＝植民地の国境を数えた");
+        Assert.True(fr.SecurityThreatArmy < fr0 * (1 - 1e-6), $"西が植民地格になっても仏の陸軍の不安が下がらない（{fr0} → {fr.SecurityThreatArmy}）＝植民地から来る不安を数えた（(168) の片側の形）");
+        // (f) ★(188) 軍事費の段と軍の大きさは植民地の国境を数えたまま＝同じ盤面で不安の全体と陸の必要量は格を変えても動かない
+        Assert.Equal(frTot0, fr.SecurityThreat, 9);
+        Assert.Equal(esTot0, es.SecurityThreat, 9);
+        Assert.True(UtilityAgent.SecurityShare(fr) > UtilityAgent.SecurityShare(fr, army: true), "仏の不安の全体の割合が陸軍の不安の割合を超えない＝軍事費の段が植民地の国境を数えていない");
+        ArmyShape.Compute(sim.Diplomacy, c);
+        Assert.Equal(frLand0, ps[0].NeedLand, 9);
+        Assert.Equal(esLand0, ps[1].NeedLand, 9);
+        for (int i = 0; i < es.Regions.Count; i++) es.Regions[i].Tier = tiers[i];
+    }
+
+    /// <summary>★(178) 国民皆兵へ登る門（作者 2026-10-03「全て推奨でよい。(1)は良いと思う。」で採った推奨①「封建の兵から国民の兵へ」＝AI の整理）＝身分の特権（領主権の残高
+    /// Privileges.SeigneurialDegree＝農奴解放 なし1／限定0.5／全面0）がある間は皆兵へ登れない（Government.LawPrereq の1本）。下げはいつでも・既に皆兵の国は留まれる。
+    /// 同じ門を読む全ての経路で確かめる＝プレイヤー（法律タブ＝GateInfo）・勢力の要求の目標（Parliament.TargetDemand）・勝った運動の強制施行（Politics.ApplyDemand）・
+    /// AI の目標の整形（UtilityAgent.GateAllLawTargets＝規則で届かない段は現行法へ畳む）・施行（Government.Step の段の法のループ）。純支持の門は外す（主題は前提の門）。
+    /// ⚠突然変異「門を外す」「門を限定で開く（SeigneurialDegree&lt;1）」「下げる向きにも掛ける／現在段の免除を外す」で赤。</summary>
+    [Fact]
+    public void 国民皆兵へ登る門は身分の特権が無い時だけ開きプレイヤーとAIと勢力の要求が同じ門を読む()
+    {
+        var w = France155().World; var c = w.Coef;
+        w.PoliticalLockEnabled = false;
+        foreach (var (serf, open) in new[] { (ReformLevel.None, false), (ReformLevel.Limited, false), (ReformLevel.Full, true) })
+        {
+            w.SerfEmancipation = serf;
+            w.ConscriptionLaw = ConscriptionLaw.Selective; w.Policy.ConscriptionLaw = ConscriptionLaw.Selective;
+            Assert.Equal(open, Government.UniversalConscriptionOpen(w));
+            var (ok, why) = Government.LawPrereq(w, PolicyAxis.ConscriptionLaw, (int)ConscriptionLaw.Universal, c);
+            Assert.Equal(open, ok);
+            if (!open) Assert.Equal("農奴解放（全面）が前提", why);
+            Assert.True(Government.LawPrereq(w, PolicyAxis.ConscriptionLaw, (int)ConscriptionLaw.Volunteer, c).Ok, $"{serf}：志願へ下げる段が塞がれた");
+            // プレイヤー（法律タブ）
+            Assert.Equal(open, Government.GateInfo(w, PolicyAxis.ConscriptionLaw, true, (int)ConscriptionLaw.Universal).Ok);
+            Assert.True(Government.GateInfo(w, PolicyAxis.ConscriptionLaw, false, (int)ConscriptionLaw.Volunteer).Ok, $"{serf}：志願へ下げるボタンが塞がれた");
+            // 勢力の要求の目標
+            Parliament.TargetDemand(w, PolicyAxis.ConscriptionLaw, inc: true);
+            Assert.Equal(open ? ConscriptionLaw.Universal : ConscriptionLaw.Selective, w.Policy.ConscriptionLaw);
+            // 勝った運動の強制施行
+            w.Policy.ConscriptionLaw = ConscriptionLaw.Selective;
+            Assert.Equal(open ? 1 : 0, Politics.ApplyDemand(w, c, PolicyAxis.ConscriptionLaw, inc: true, 1));
+            Assert.Equal(open ? ConscriptionLaw.Universal : ConscriptionLaw.Selective, w.ConscriptionLaw);
+            // AI の目標の整形
+            w.ConscriptionLaw = ConscriptionLaw.Selective; w.Policy.ConscriptionLaw = ConscriptionLaw.Universal;
+            UtilityAgent.GateAllLawTargets(w, w.Policy);
+            Assert.Equal(open ? ConscriptionLaw.Universal : ConscriptionLaw.Selective, w.Policy.ConscriptionLaw);
+            // 施行（目標を皆兵に置いても門が閉じていれば上がらない）
+            w.ConscriptionLaw = ConscriptionLaw.Selective; w.Policy.ConscriptionLaw = ConscriptionLaw.Universal;
+            Government.Step(w, c);
+            Assert.Equal(open ? ConscriptionLaw.Universal : ConscriptionLaw.Selective, w.ConscriptionLaw);
+        }
+        // 既に皆兵の国は門が閉じても留まれる（天井型の前提は登る側だけ）・皆兵から選抜へ下げられる
+        w.SerfEmancipation = ReformLevel.None; w.ConscriptionLaw = ConscriptionLaw.Universal;
+        Assert.True(Government.LawPrereq(w, PolicyAxis.ConscriptionLaw, (int)ConscriptionLaw.Universal, c).Ok);
+        Assert.True(Government.GateInfo(w, PolicyAxis.ConscriptionLaw, false, (int)ConscriptionLaw.Selective).Ok);
+        w.Policy.ConscriptionLaw = ConscriptionLaw.Universal;
+        Government.Step(w, c);
+        Assert.Equal(ConscriptionLaw.Universal, w.ConscriptionLaw);
+    }
+
+    /// <summary>★(178) 戦時の非常の法（作者 2026-10-03「全て推奨でよい」で採った推奨「戦時に上げた徴兵法は戦後に戻る」・形は (168) のパッチ）＝戦時に上げた徴兵法は、戦争が終わった四半期に戦前の段へ戻る（R2 の戦時段の失効と同じ形・Government.Step＝AI とプレイヤーの共通経路）。
+    /// 盤面＝英（開幕の志願制）・仏（開幕の選抜）を外交を止めて並べ、戦争を盤面へ直に置く（NullAgent＝AI は目標を書かない）。
+    /// (a) 交戦に入った四半期に戦前の段を記録 (b) 戦時に上げた段は戦争の間は残る (c) 戦争が終わった四半期に戦前の段へ戻り、保存目標も同じ段・記録は消える
+    /// (d) 平時から有った徴兵法は戻らない（仏＝選抜のまま）・皆兵へ上げた分だけ選抜へ戻る (e) 戦時に下げた段は上げ戻さない (f) 建国は親の記録を継ぐ（CopyLawsFrom）
+    /// (g) 呼び手＝四半期の頭（MultiNationSim.StepQuarter → Simulation の QuarterStart → Government.Step）で同じことが起き、戻した段から翌期に上がらない。
+    /// ⚠突然変異「戻さない」「上げたか確かめずに戻す」「交戦中に毎期記録し直す」「保存目標を戻さない」「建国が記録を継がない」で赤。</summary>
+    [Fact]
+    public void 戦時に上げた徴兵法は戦争が終わった四半期に戦前の段へ戻る()
+    {
+        var sim = Frozen152("イギリス", "フランス");
+        sim.StepQuarter();
+        var uk = sim.Nations[0].World; var fr = sim.Nations[1].World;
+        Assert.Equal(ConscriptionLaw.Volunteer, uk.ConscriptionLaw);
+        Assert.Equal(ConscriptionLaw.Selective, fr.ConscriptionLaw);
+        Assert.Equal(-1, uk.ConscriptionPreWar);
+        Assert.Equal(-1, fr.ConscriptionPreWar);
+        var war = new War { A = uk.SelfPower!, B = fr.SelfPower! };
+        sim.Diplomacy.Wars.Add(war);
+        // (a) 交戦に入った四半期に記録
+        Government.Step(uk, uk.Coef); Government.Step(fr, fr.Coef);
+        Assert.Equal((int)ConscriptionLaw.Volunteer, uk.ConscriptionPreWar);
+        Assert.Equal((int)ConscriptionLaw.Selective, fr.ConscriptionPreWar);
+        // (b) 戦時に上げる（どの経路でも同じ＝ここでは法と目標を直に置く）＝戦争の間は残り、記録は戦前のまま
+        uk.ConscriptionLaw = ConscriptionLaw.Selective; uk.Policy.ConscriptionLaw = ConscriptionLaw.Selective;
+        fr.ConscriptionLaw = ConscriptionLaw.Universal; fr.Policy.ConscriptionLaw = ConscriptionLaw.Universal;
+        Government.Step(uk, uk.Coef); Government.Step(fr, fr.Coef);
+        Assert.Equal(ConscriptionLaw.Selective, uk.ConscriptionLaw);
+        Assert.Equal(ConscriptionLaw.Universal, fr.ConscriptionLaw);
+        Assert.Equal((int)ConscriptionLaw.Volunteer, uk.ConscriptionPreWar);
+        Assert.Equal((int)ConscriptionLaw.Selective, fr.ConscriptionPreWar);
+        // (f) 建国は親の記録を継ぐ（親の戦時の法と記録が一緒に移る）
+        var child = new Simulation(WorldData.ByName("デンマーク").ToScenario(5), new NullAgent()).World;
+        child.CopyLawsFrom(uk);
+        Assert.Equal(ConscriptionLaw.Selective, child.ConscriptionLaw);
+        Assert.Equal((int)ConscriptionLaw.Volunteer, child.ConscriptionPreWar);
+        // (c)(d) 戦争が終わった四半期＝英は志願へ・仏は皆兵から選抜へ（平時から有った選抜は残る）・保存目標も同じ段・記録は消える
+        sim.Diplomacy.Wars.Remove(war);
+        Government.Step(uk, uk.Coef); Government.Step(fr, fr.Coef);
+        Assert.Equal(ConscriptionLaw.Volunteer, uk.ConscriptionLaw);
+        Assert.Equal(ConscriptionLaw.Volunteer, uk.Policy.ConscriptionLaw);
+        Assert.Equal(ConscriptionLaw.Selective, fr.ConscriptionLaw);
+        Assert.Equal(ConscriptionLaw.Selective, fr.Policy.ConscriptionLaw);
+        Assert.Equal(-1, uk.ConscriptionPreWar);
+        Assert.Equal(-1, fr.ConscriptionPreWar);
+        Government.Step(child, child.Coef);   // 建国した国は交戦していない（外交なし）＝親の戦前の段へ
+        Assert.Equal(ConscriptionLaw.Volunteer, child.ConscriptionLaw);
+        // (e) 戦時に下げた段は上げ戻さない（仏＝選抜から志願へ下げた）
+        sim.Diplomacy.Wars.Add(war);
+        Government.Step(fr, fr.Coef);
+        Assert.Equal((int)ConscriptionLaw.Selective, fr.ConscriptionPreWar);
+        fr.ConscriptionLaw = ConscriptionLaw.Volunteer; fr.Policy.ConscriptionLaw = ConscriptionLaw.Volunteer;
+        sim.Diplomacy.Wars.Remove(war);
+        Government.Step(fr, fr.Coef);
+        Assert.Equal(ConscriptionLaw.Volunteer, fr.ConscriptionLaw);
+        Assert.Equal(-1, fr.ConscriptionPreWar);
+        // (g) 呼び手＝四半期の頭：交戦中に英を選抜へ上げ、交戦のまま1四半期回す（残る）→ 戦争を除いて1四半期回す（志願へ戻る）→ もう1四半期（上がらない）
+        sim.Diplomacy.Wars.Add(war);
+        sim.StepQuarter();
+        Assert.Equal((int)ConscriptionLaw.Volunteer, uk.ConscriptionPreWar);
+        uk.ConscriptionLaw = ConscriptionLaw.Selective; uk.Policy.ConscriptionLaw = ConscriptionLaw.Selective;
+        sim.StepQuarter();
+        Assert.Equal(ConscriptionLaw.Selective, uk.ConscriptionLaw);
+        sim.Diplomacy.Wars.Remove(war);
+        sim.StepQuarter();
+        Assert.Equal(ConscriptionLaw.Volunteer, uk.ConscriptionLaw);
+        Assert.Equal(ConscriptionLaw.Volunteer, uk.Policy.ConscriptionLaw);
+        sim.StepQuarter();
+        Assert.Equal(ConscriptionLaw.Volunteer, uk.ConscriptionLaw);
+    }
+
+    /// <summary>★(178) 開幕の徴兵法（作者 2026-10-03「全て推奨でよい」で採った推奨「開幕の徴兵法を史実のデータで」）＝1783 年の史実のデータ（world.json の initialConscription・国名の分岐でなくデータ・制度と年と出典は実装ログ (178)）。英・米・日・清・蘭・オスマン＝志願制／普・露・墺・西・仏＝選抜（既定）。
+    /// 現在値（World）と目標（Policy）が同じ値で始まる＝開幕の四半期に法の戦線が開かない。建国は親の法を継ぐ（MultiNationSim の Scenario と CopyLawsFrom）。
+    /// ⚠突然変異「NationConfig が Scenario へ渡さない」「現在値を目標から置かない（既定の選抜のまま）」で赤。</summary>
+    [Fact]
+    public void 開幕の徴兵法は1783年の史実のデータで始まる()
+    {
+        foreach (var (name, law) in new[] { ("イギリス", ConscriptionLaw.Volunteer), ("アメリカ", ConscriptionLaw.Volunteer), ("日本", ConscriptionLaw.Volunteer),
+                                            ("清", ConscriptionLaw.Volunteer), ("ネーデルラント", ConscriptionLaw.Volunteer), ("オスマン", ConscriptionLaw.Volunteer),
+                                            ("プロイセン", ConscriptionLaw.Selective), ("ロシア", ConscriptionLaw.Selective), ("オーストリア", ConscriptionLaw.Selective),
+                                            ("スペイン", ConscriptionLaw.Selective), ("フランス", ConscriptionLaw.Selective) })
+        {
+            Assert.Equal(law, WorldData.ByName(name).InitialConscription);
+            var w = new Simulation(WorldData.ByName(name).ToScenario(3), new NullAgent()).World;
+            Assert.True(w.ConscriptionLaw == law && w.Policy.ConscriptionLaw == law, $"{name} の開幕の徴兵法 {w.ConscriptionLaw}／目標 {w.Policy.ConscriptionLaw}（データ {law}）");
+        }
     }
 
     /// <summary>★(157) 呼び手の番人（反証役の指摘）：Fiscal の余剰（guns-vs-butter）は月初の予算（Simulation の軍事費の吸い込み）が書いた装備の請求 World.LastMilitaryClaim を読む

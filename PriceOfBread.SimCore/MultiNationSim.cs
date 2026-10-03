@@ -425,6 +425,7 @@ public sealed class MultiNationSim
             InitialSuffrage = pw.Suffrage, InitialCensorship = pw.Censorship,
             InitialCornLaws = pw.CornLaws, InitialSerfEmancipation = pw.SerfEmancipation,
             InitialImmigration = pw.ImmigrationRestriction,   // 移民制限法の継承（E7・独立は制度を巻き戻さない＝他の法と同じ規則）
+            InitialConscription = pw.ConscriptionLaw,         // 徴兵法の継承（(178)・同じ規則＝この後の World.CopyLawsFrom も同じ値を写す）
             InitialMonetaryLaw = pw.MonetaryLaw,              // 通貨制度の継承（F6・金の親から独立した国は金で始まる＝同じ規則）
         };
         // 新国家は常に効用AI（プレイヤー国から独立してもUI操作者はいない＝NullAgentのゾンビ国家を作らない）
@@ -762,7 +763,7 @@ public sealed class MultiNationSim
             ProbeSnap();                                              // 保存量プローブ（leakhunt・既定OFF＝実行ゼロ）
             Cost[CostLedger.SharedNationQuarters] += Nations.Count;   // 計算量の台帳（診断）：四半期末の共有層は国×四半期に比例（国力・脅威・移民・国際金融ほか）
             foreach (var n in Nations) NationalScore.StepStanding(n.World);   // 国力の在庫を1期ぶん寄せる（2026-08-02）＝序列は在庫で決まる。外交(ComputeRanks)より前
-            StepSecurityThreat();   // ★安全保障の不安（(155) 作り直し）：読み手＝AI の軍事費の段・徴兵法の政治・戦略鉄道（旧＝鉄道の係数 ThreatRailTargetWeight が0なら走らなかった＝鉄道だけの読み手）
+            StepSecurityThreat();   // ★安全保障の不安（(155) 作り直し）：読み手＝AI の軍事費の段・徴兵法の目標（陸軍の不安）・戦略鉄道（旧＝鉄道の係数 ThreatRailTargetWeight が0なら走らなかった＝鉄道だけの読み手）
             UpdateTradeWeights(); ProbeDiff("交易比重");                // 外1：交易比重を貿易取扱高のシェア（LastExportValue+LastImportValue の EMA）から四半期同期（TradeWeightDynamic=0 で1789固定値を維持＝恒等）
             if (!DiplomacyFrozen)
             {
@@ -1466,7 +1467,7 @@ public sealed class MultiNationSim
     /// ・u＝内向きに使われる軍（<see cref="ArmyShape.Unrest"/>）＝**(151) の理想の軍隊の形の陸の必要量と同じ物差しと同じ注意配分**（相手の軍は同時に全方位へ向けられない＝世界の脅威の和は世界の養える軍の和より小さい
     /// ＝軍拡が縮小写像。⚠正規化しない総和は全ての国が全ての国から脅威を受け、61カ国の中央の国の脅威の割合が0.9を超えた＝(155) の試走）。
     /// 自国の分母＝養える軍の人口の側（兵役の母数×MaxSoldierFraction＝自分の軍事費の段に依らない＝自国の段を上げても不安は下がらない＝段の往復を作らない）。
-    /// 読み手＝AI の軍事費の段（唯一の入口・SelfPlay の脅威の割合）・徴兵法の政治（同）・戦略鉄道（Transport の目標・脅威÷自国の養える軍・前期の値）。旧＝州の経済質量×距離減衰の最大の和（同盟も国境も海も読まない）。
+    /// 読み手＝AI の軍事費の段（唯一の入口・SelfPlay の脅威の割合）・徴兵法の目標（(178) から陸軍の不安 SecurityThreatArmy の割合＝本国の国境＋投射×上陸の門）・戦略鉄道（Transport の目標・脅威÷自国の養える軍・前期の値）。旧＝州の経済質量×距離減衰の最大の和（同盟も国境も海も読まない）。
     /// 世界の中央との比（作者のメモ M4「100%を基本に」＝表示だけ）は UI の回で（導出＝持たない）。</summary>
     private void StepSecurityThreat()
     {
@@ -1481,9 +1482,11 @@ public sealed class MultiNationSim
             seats[i] = Military.EstablishmentOf(w, w.Coef, out double man);
             own[i] = w.Coef.MaxSoldierFraction * man;
         }
-        var border = ArmyShape.Borders(ps, _coef);
+        var borderHome = new double[n * n];   // ★(178) 両側とも本国の州（Core・Integrated）の国境だけ（対称）
+        var border = ArmyShape.Borders(ps, _coef, borderHome);
         var hr = new double[n * n];   // hr[a*n+b]＝A の軍が B に届く強さ×敵意
-        var colSum = new double[n];   // A の注意配分の分母＝内向き u(A)＋Σ_B hr(A→B)
+        var hrArmy = new double[n * n];   // ★(178) そのうち陸軍の不安＝h×(本国の国境＋投射×上陸の門)＝B の海軍で防げない分（海越えで A の制海権が門に届く投射）だけを数える＝徴兵法の目標が読む
+        var colSum = new double[n];   // A の注意配分の分母＝内向き u(A)＋Σ_B hr(A→B)（陸と海越えの両方へ配る同じ1つの分母＝ArmyShape と同じ）
         long pairs = 0;
         for (int a = 0; a < n; a++)
         {
@@ -1495,20 +1498,27 @@ public sealed class MultiNationSim
                 double h = ArmyShape.Hostility(Diplomacy, ps[b], ps[a], _coef);
                 if (!(h > 0)) continue;   // 同盟＝0（否定形＝NaN も数えない）
                 pairs++;
-                double r = border[a * n + b] + Diplomacy.Projection(ps[a], ps[b], _coef);
+                double proj = Diplomacy.Projection(ps[a], ps[b], _coef);
+                double r = border[a * n + b] + proj;
                 if (!(r > 0)) continue;
                 hr[a * n + b] = h * r;
+                hrArmy[a * n + b] = h * (borderHome[a * n + b] + proj * Diplomacy.LandingGate(ps[a], ps[b], _coef));   // 上陸の門＝陸続き1・海越えは A の制海権が門に届けば1（B の海軍が防げる投射は陸軍の不安に数えない）
                 sum += h * r;
             }
             colSum[a] = sum;
         }
         for (int b = 0; b < n; b++)
         {
-            double total = 0;
+            double total = 0, army = 0;
             for (int a = 0; a < n; a++)
-                if (a != b && colSum[a] > 1e-12 && seats[a] > 0) total += hr[a * n + b] / colSum[a] * seats[a];
+                if (a != b && colSum[a] > 1e-12 && seats[a] > 0)
+                {
+                    total += hr[a * n + b] / colSum[a] * seats[a];
+                    army += hrArmy[a * n + b] / colSum[a] * seats[a];   // 同じ注意配分の分母・同じ養える軍（分子と分母を同じ規則で）
+                }
             var wb = Nations[b].World;
             wb.SecurityThreat = total;
+            wb.SecurityThreatArmy = army;
             wb.SecurityThreatOwnMass = own[b];
         }
         Cost[CostLedger.ThreatReachPairs] += pairs;   // 計算量の台帳（診断）：脅威の届き方の組（安全保障の不安＝四半期1回・同盟の組を除く）

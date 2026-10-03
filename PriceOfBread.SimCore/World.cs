@@ -114,6 +114,11 @@ public sealed class World
     public ReformLevel SerfEmancipation { get; internal set; }  // 農奴解放（現在値・なし/限定的/全面）：農奴制の地代取り分を小作へ
     public ReformLevel Pension { get; internal set; }        // 年金（①年齢コホート）＝SocialSecurityLaw からの導出値（Government.Step が毎期 Pension段→Full／それ以外→None を代入。Limited は取らない）。Fiscal の年金給付が読む
     public ConscriptionLaw ConscriptionLaw { get; internal set; } = ConscriptionLaw.Selective;   // 徴兵法（現在値・志願/選抜/全国の3値・2026-08-01）。既定 Selective＝選抜以上で戦時徴兵（Military）＝旧2値の「徴兵」と同値
+    //   ★(178) 戦前の徴兵法（戦時の非常の法＝作者 2026-10-03「全て推奨でよい」で採った推奨「戦時に上げた徴兵法は戦後に戻る」・形は (168) のパッチ）＝交戦に入った四半期の徴兵法の段（int）・-1＝平時（記録なし）。書き手＝Government.Step だけ
+    //   （交戦中で記録が無ければ今の段を記録・戦争が終わった四半期に、今の段が記録より上なら記録の段へ戻して消す）。読み手も Government.Step だけ。建国は親の記録を継ぐ（CopyLawsFrom）。
+    //   ⚠盤面から導けない（戦争が終わった時点で、今の段が戦時に上げたものか平時から有ったものかは法の値からは分からない＝英1916 の兵役法は戻り、普1814・日1873 の平時の法は戻らない）＝思想⑩の例外として1つ持つ。
+    //   クールダウンではない（戦争の終わりという状態で決まる）。R2（戦時段の失効）と同じ形＝戦時の段は戦争が前提。
+    public int ConscriptionPreWar { get; internal set; } = -1;
     public SecretBallotLaw SecretBallot { get; internal set; } = SecretBallotLaw.Open;              // 秘密投票法（現在値・1934拡張E5）。発言権の鎮静効果を選挙の実在で変調（紙の参政権是正）。SecretBallotGate=0で恒等
     // ★★★予算法・統帥法（作者設計 2026-08-20）＝**追加するものは法だけ**。予算権と統帥権は独立ストックを持たず、
     //   王権正統性 Lc と議会正統性 Lp（合計1）に**法の重み**を掛けて正規化するだけで出す（<see cref="PowerAffinity"/>）。
@@ -517,6 +522,7 @@ public sealed class World
         Tariff = src.Tariff; InterestRate = src.InterestRate; AdminSpending = src.AdminSpending;
         SetMilitarySpending(src.MilitarySpending, src.NavalSpendShare);   // 陸海の維持費ごと（2026-08-04）
         LandTaxUnlocked = src.LandTaxUnlocked;   // 特許・株式会社・鉄道は発見の2値（Discovered＝建国は親の知識を継ぐ）を読むだけ＝写さない
+        ConscriptionPreWar = src.ConscriptionPreWar;   // ★(178) 戦時の非常の法は法と一緒に継ぐ（親が戦時に上げた徴兵法は、建国した国でも戦争が終われば戦前の段へ戻る）
         Pension = src.Pension; SocialSecurity = src.SocialSecurity; WorkHoursValue = src.WorkHoursValue;
         Policy.CopyFrom(src.Policy);
     }
@@ -1331,7 +1337,15 @@ public sealed class World
     //   ⚠閉路禁止（doc 4-1）＝読み手（Transport の目標・AI の軍事費の段）は**前期に書かれた値**を読む（四半期末に書き、翌期に読む）。
     public double SecurityThreat;
     public double SecurityThreatOwnMass;   // 自国の養える軍の人口の側（兵役の母数×MaxSoldierFraction＝軍事費の段に依らない＝不安が自分の段で動かない）＝脅威比の分母（0なら脅威項は不発＝否定形ガード）。旧＝自国の総質量
-    //   ★(155) 脅威の割合＝脅威÷(脅威＋自国の養える軍)∈[0,1)（UtilityAgent.SecurityShare＝導出・持たない）＝AI の軍事費の段と徴兵法の政治が読む。世界の中央との比（作者のメモ M4 の表示）は UI の回で（導出・持たない）。
+    //   ★(178) 陸軍の不安（作者 2026-10-03「全て推奨でよい。(1)は良いと思う。」で採った推奨②＝「海と陸を完全に分けない」＝陸軍の目標＝陸の不安＋海の不安のうち自国の海軍で防げない分〔上陸の恐れ〕・00一覧の軍の裁定の表＝AI の整理）
+    //   ＝SecurityThreat のうち、A が B に届く強さを「B の本国の国境＋A の投射×上陸の門」に限った分（hrArmy＝h×(本国の国境＋投射×Diplomacy.LandingGate(A,B))・同じ注意配分の分母・同じ A の養える軍）。
+    //   上陸の門＝陸続き1・海越えは A が艦を持ち制海権が SeaInvasionControlMin 以上のときだけ1（作者裁定 2026-08-01「少なくとも海軍力で勝たないと、ブリテン島には乗れない」と同じ1本＝B の海軍が防げる海越えの投射は数えない）。
+    //   本国の国境＝両側とも本国の州（Core・Integrated＝植民地格でない州）の組だけ（ArmyShape.Borders の toHome）＝植民地から来る不安・植民地へ向かう不安は徴兵の目標に数えない（推奨で進めた＝(168) の作者への確認②の両側版・
+    //   割譲された州は Integrated になる〔Territory.Rehome〕＝朝鮮や満州を得た国の国境は本国の国境＝緩衝地帯の連鎖〔作者 2026-10-03 の日本の言葉〕は残る）。植民地の国境は軍事費の段（不安の全体）が読む。
+    //   読み手＝徴兵法の目標だけ（UtilityAgent.DecideModernLaws の SecurityShare(army)）。軍事費の段の入口（SecurityThreat の全体）と陸海の分割（ArmyShape）は変えない。旧＝(168) のパッチの SecurityThreatLand（海越えの投射を全て除く）をこの1本に置き換えた。
+    //   書き手は StepSecurityThreat のみ（同じ四半期の同じループ・読み手は前期の値）。⚠盤面から安く導けない（全ての国の注意配分の分母と全ての組の国境が要る）＝四半期の値を持つ（新しい状態1つ＝思想⑩の代価・同じループで SecurityThreat と並べて毎期導出し直す＝貯めない）。
+    public double SecurityThreatArmy;
+    //   ★(155) 脅威の割合＝脅威÷(脅威＋自国の養える軍)∈[0,1)（UtilityAgent.SecurityShare＝導出・持たない）＝AI の軍事費の段が読む（徴兵法の目標は (178) から陸軍の不安の割合を読む）。世界の中央との比（作者のメモ M4 の表示）は UI の回で（導出・持たない）。
     public Power? SelfPower { get; internal set; }             // 多国シミュ：この国の外交上の代表（植民地・交戦の主体）
     public bool StepsDiplomacy { get; internal set; } = true;  // 自前で外交を進めるか（多国では MultiNationSim が共有外交を進める＝false）
     // ★旧 NavalEmphasis（海軍偏重の政策スタンス0..1）は撤去（2026-08-10 作者裁定「陸軍と海軍の注力レバーは廃止し、海軍維持費と陸軍維持費で表現する」）。
