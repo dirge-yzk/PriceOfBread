@@ -312,7 +312,7 @@ public static class Government
         //   段3 より下の施行は今のまま（Move＝軍の抵抗）。AI とプレイヤーは同じ1か所（IsPlayer を読まない）。新しい数・新しい状態は無い。否定形＝NaN の施行も段3。
         //   ⚠思想⑧の天井ではない＝解禁の外では選べる目標が既に段3 以下（MilitaryTotalTarget）＝選んだ値は削らない（施行に残った戦時の上乗せが切れるだけ）。
         double milFrom = w.MilitarySpending, milHigh = (MilitaryLawStages - 1) / (double)MilitaryLawStages;
-        if (!(w.AtWarNow && w.Mobilized) && !(milFrom <= milHigh)) milFrom = milHigh;
+        if (!WarStageOpen(w) && !(milFrom <= milHigh)) milFrom = milHigh;
         double milTotal = Move(milFrom, milTotalTarget, c, w, PolicyAxis.Coercion);  // 武力スライダー＝軍隊規模と治安維持力を一本で駆動。軍系ブロックの政治力で律速
         // ★(151)：陸海比は目標の生の比（0.05格子に丸めない）＝上の「連続のまま」のとおり。旧＝格子に丸めた2本の比＝合計0.75 なら比は 0.067 刻みで、
         //   陸と海の必要量で分けた小さい海の比（清の 0.03 など）が0へ丸められて艦隊の乗員ごと消えた（陸海比は導出量＝2026-09-23 作者裁定・レバーは無い）。
@@ -400,6 +400,11 @@ public static class Government
     /// 貯蓄上限の連鎖に入り、抵抗の段階性＝<see cref="PolicyPreferences.OpposingPower"/> が二値の門に潰れる）。</summary>
     internal static double Q4(PolicyAxis a, double x) => TaxValue(a, TaxStage(a, x));
 
+    /// <summary>★戦時段（軍事費の段4＝戦時経済）の解禁の述語の1本（2026-10-04 (198)・削減＝旧は同じ式 <c>AtWarNow &amp;&amp; Mobilized</c> を5か所に書いていた）
+    /// ＝作者裁定 R2（2026-09-12）「戦時経済は総動員とセットで、戦後は下の値に戻る」＝交戦中かつ総動員中。読み手＝<see cref="MilitaryTotalTarget"/>（梯子の上限）・
+    /// <see cref="Step"/>（解禁の外の施行の失効）・<see cref="LawPrereq"/>（段4 の門）・<see cref="Military.WarStageShare"/>（戦時段の器＝借入）・AI の戦時段の選択（SelfPlay）。</summary>
+    internal static bool WarStageOpen(World w) => w.AtWarNow && w.Mobilized;
+
     /// <summary>★軍事費の合計目標（作者裁定2026-09-12 R2）＝**施行（<see cref="Step"/>）・戦線の数え上げ（<see cref="CountOpenFronts"/>）・
     /// 解隊の脅威（<see cref="PoliticalQuantities.MilitaryPush"/>）が読む唯一の式**。
     /// ⚠3箇所が別々の式を持つと、軍備教義の目標0.70に対し段は0.75＝恒久的なずれ0.05が居座り、(i) 戦線判定の閾値0.026を超えて
@@ -413,7 +418,7 @@ public static class Government
     internal static double MilitaryTotalTarget(World w, NationPolicy p)
     {
         double raw = Q5(p.ArmyUpkeepTarget) + Q5(p.NavyUpkeepTarget);
-        int stage = Math.Min(MilitaryStage(raw), w.AtWarNow && w.Mobilized ? MilitaryLawStages : MilitaryLawStages - 1);
+        int stage = Math.Min(MilitaryStage(raw), WarStageOpen(w) ? MilitaryLawStages : MilitaryLawStages - 1);
         return stage / (double)MilitaryLawStages;
     }
 
@@ -621,7 +626,7 @@ public static class Government
                 break;
             case PolicyAxis.Coercion:
                 // 軍事費（武力スライダーの合計）。最上段＝戦時経済＝総動員中かつ交戦中だけ選べる（R2・M2 2026-09-19＝総動員は解禁であって強制ではない）。最下段より下は存在しない＝「なし」が無い。
-                if (targetLevel >= MilitaryLawStages && !(w.AtWarNow && w.Mobilized)) return (false, "総動員が前提");
+                if (targetLevel >= MilitaryLawStages && !WarStageOpen(w)) return (false, "総動員が前提");
                 if (targetLevel < 1) return (false, "軍事費に「なし」は無い");
                 // ★裁定B（2026-09-12）：戦時の下限ロック（旧＝Step が p.ArmyUpkeepTarget/p.NavyUpkeepTarget を Max で黙って持ち上げていた）を門へ移す。
                 //   新しい量も新しい数もゼロ＝同じ c.WartimeUpkeepFloor を同じ現在値に掛けて段へ写すだけ（係数は PowerShares の LockedSpending と共有＝単一ソース）。

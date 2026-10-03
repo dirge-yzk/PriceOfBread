@@ -337,10 +337,10 @@ public sealed class UtilityAgent : INationAgent
     // ★撤去2026-08-16（AI第1波・掃除）：POP動詞①（2026-07-20全廃）の残骸4定数
     //   （ParliamentaryStanceThreshold/NonParliamentaryStanceThreshold/StanceHysteresis/ClassSlotCount）＝全域grepで読み手ゼロを確認し物理削除（理念違反監査§6-5計上済み）。
     // AI第1波②（2026-08-16）総動員のAI分岐の判定線（SelfPlay.DecideQuarter・2026-09-20 に段の点火で常時 live）：
-    private const double MobilizeOutmatchRatio = 1.2;   // 戦争の規模（Diplomacy.WarScale＝自陣営の本国へ届く敵の陸の力÷自陣営の陸の力）がこの倍以上＝総動員（上げる線）。
+    private const double MobilizeOutmatchRatio = 1.2;   // 戦争の規模（Diplomacy.WarScale＝相手の陣営の、自陣営の本国へ届く陸の力÷自陣営の陸の力）がこの倍以上＝総動員（上げる線）。
                                                         // ★(195) 下げる線＝この逆数（自陣営が相手の1.2倍）＝交戦中でも復員する。旧＝陣営戦力（SideMilitary＝届くかを読まない）の比。
                                                         // 屈服線（AISubmitMilRatio=3.0）・宥和線（AppeaseMilitaryRatio=2.5）よりずっと手前＝「戦えるが苦しい」帯で踏む
-    private const double MobilizeLosingScore = 0.5;     // 存亡（Diplomacy.WarScale の out＝自陣営の本国へ届く敵との戦争の敗色）がこれを超えたら総動員＝本土が蹂躙されている（★(195) 下げる線＝敗色0＝戦況が五分に戻る）
+    private const double MobilizeLosingScore = 0.5;     // 存亡（Diplomacy.WarScale の out＝自陣営の本国の敗色×味方の陸の力の重み）がこれを超えたら総動員＝本土が蹂躙されている（★(195) 下げる線＝敗色0＝戦況が五分に戻る）
                                                         // （レジームチェンジ1.0・割譲 TerritoryCessionScore=1.2 の手前で踏み込む＝間に合う総動員）
     // 【墓標2026-09-28（作者裁定 F5）】移民制限法のAI判定線3本（閉鎖1.0・選別0.4・開放へ戻す0.15）を削除。締める線は (63) の受入の上限の係数から導き、
     //   開放へ戻す枝は消した（DecideModernLaws の移民制限の段落）。
@@ -810,8 +810,8 @@ public sealed class UtilityAgent : INationAgent
             }
             // ★(195) 総動員の判断を戦争の規模で読む（00一覧 §0-A の 0e・README §1-8「入力の大きさに応じた判断・上げる線と下げる線を分ける＝状態で決める」・推奨で進めた＝作者の承認は未確認）：
             //   材料＝Diplomacy.WarScale の1本（画面の戦争タブも同じ1本を出す＝プレイヤーは自分で選ぶ）：
-            //   ・規模＝自陣営（自国＋同じ敵と戦う国）の本国へ届く敵の陸の力÷自陣営の陸の力＝植民地戦争と海の向こうへの遠征は0（攻める側が規模を選ぶ戦争）。
-            //   ・存亡（out）＝自国と同じ敵と戦う列強の本国へ届く敵との戦争の敗色の最大＝同じ敵と戦う列強の本国が蹂躙されていれば海の向こうの国も存亡（英 1916・米 1917）。
+            //   ・規模＝相手の陣営（自陣営のどれかと交戦している陣営の外の国）の、自陣営（自国＋同じ国を持つ敵と戦う国）の本国へ届く陸の力÷自陣営の陸の力＝植民地戦争と海の向こうへの遠征は0（攻める側が規模を選ぶ戦争）。
+            //   ・存亡（out）＝自陣営の国ごとの本国の敗色×重み（自国1・味方＝味方の陸の力÷自国と味方の大きい方）の最大＝自国以上の味方の本国が蹂躙されていれば海の向こうの国も存亡（英 1916・米 1917）＝(198) で列強の札から重みへ。
             //   上げる線＝規模が MobilizeOutmatchRatio（1.2＝相手が自陣営の1.2倍）以上か、存亡が MobilizeLosingScore（0.5）を超える。
             //   下げる線＝規模が 1/MobilizeOutmatchRatio（自陣営が相手の1.2倍）未満で、存亡が0（戦況が五分に戻った）＝交戦中でも復員する（戦時段は Government.Step が解禁の外で段3 へ失効させる＝R2）。
             //   線の間は現状維持（総動員の入り切りを状態で決める・タイマーにしない）。定まらない規模（NaN）は現状維持。新しい数・新しい状態は無い。
@@ -1318,7 +1318,7 @@ public sealed class UtilityAgent : INationAgent
         //   （GameViewModel.Law の `v / 段数`）と同じ書き込み口・同じ写像に v=最上段を入れる＝新しい数は置かない。総動員は段を解禁するだけで押し上げない
         //   （Government.MilitaryTotalTarget）＝AIが自分で選ばなければ戦時経済に届かない。1段ずつの登坂と「総動員が前提」の門は GateAllLawTargets が
         //   法律タブと同じ GateInfo で掛ける＝IsPlayer は読まない。講和の四半期は DecideQuarter の総動員分岐（Apply の前）が先に復員させる＝この行は不発で教義の値へ戻る。
-        if (w.AtWarNow && w.Mobilized)
+        if (Government.WarStageOpen(w))
             p.MilitarySpendingTarget = Government.MilitaryLawStages / (double)Government.MilitaryLawStages;
 
         // ★不満の社会保障圧力（2026-08-04・作者指示）：どのスタンスが勝っていても、不満が高いほど社会保障の目標に

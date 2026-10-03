@@ -125,18 +125,22 @@ public class AiFirstWaveTests
     /// <summary>番人の盤面：陸軍力を値で置く（海軍シェア0・熟練1＝LandPower＝Military・艦なし）。</summary>
     private static void PinLand(Power p, double land) { p.Military = land; p.NavalShare = 0; p.ArmySkillMul = 1.0; p.FleetGauge = 0; }
 
-    // ★番人（2026-10-03 (195)・00一覧 §0-A の 0e）：戦争の規模（Diplomacy.WarScale）＝自陣営の本国へ届く敵の陸の力÷自陣営の陸の力・存亡（out）＝自陣営の列強の本国へ届く敵との戦争の敗色。
+    // ★番人（2026-10-03 (195)・00一覧 §0-A の 0e・2026-10-04 (198) で相手の陣営と重みの形へ）：戦争の規模（Diplomacy.WarScale）＝相手の陣営の、自陣営の本国へ届く陸の力÷自陣営の陸の力・
+    //   存亡（out）＝自陣営の国ごとの本国の敗色×重み（自国1・味方＝味方の陸の力÷自国と味方の大きい方）の最大。
     //   (a) 交戦していない＝0 (b) 陸続きの敵＝陸軍力×投射×上陸の門÷自国の陸軍力 (c) 国を持たない相手（植民地戦争）は陸軍力が大きくても0
     //   (d) 海越えで艦を持たない敵は0（上陸の門）・その敗色は存亡に数えない (e) 同じ敵と戦う国＝分母に入り、その本国へ敵が届けば分子に入る（海の向こうの国の規模も上がる）
-    //   (f) 同じ敵と戦う列強の本国の敗色は自国の存亡に入る。
+    //   (f) 自国以上の陸の力の味方の本国の敗色は自国の存亡にそのまま入る
+    //   (g) ★(198) 味方だけが戦う相手（相手の陣営＝自陣営のどれかと交戦している陣営の外の国）も、味方の本国へ届けば分子に入る（分子と分母を同じ陣営の規則で＝反証役 vp2#2）
+    //   (h) ★(198) 自国より小さい味方の敗色は陸の力の比で小さく入る（列強の札の0か1をやめた＝vp2#6）
+    //   (i) ★(198) 同じ抽象標的（植民地化の相手）と戦う国は陣営にならない＝植民地戦争は味方の別の戦争でも規模0・存亡0。
     [Fact]
-    public void 戦争の規模は自陣営の本国へ届く敵の陸の力だけを数え存亡は自陣営の列強の本国の敗色を読む()
+    public void 戦争の規模は相手の陣営の本国へ届く陸の力を数え存亡は味方の本国の敗色を陸の力の比で読む()
     {
-        var sim = new MultiNationSim([NationConfig.France(), NationConfig.Prussia(), NationConfig.Britain()], seed: 1789);
+        var sim = new MultiNationSim([NationConfig.France(), NationConfig.Prussia(), NationConfig.Britain(), NationConfig.Austria()], seed: 1789);
         var c = sim.Nations[0].World.Coef;
         var dip = sim.Diplomacy;
-        var fr = sim.Nations[0].World.SelfPower!; var pr = sim.Nations[1].World.SelfPower!; var gb = sim.Nations[2].World.SelfPower!;
-        PinLand(fr, 2.0); PinLand(pr, 6.0); PinLand(gb, 1.0);
+        var fr = sim.Nations[0].World.SelfPower!; var pr = sim.Nations[1].World.SelfPower!; var gb = sim.Nations[2].World.SelfPower!; var au = sim.Nations[3].World.SelfPower!;
+        PinLand(fr, 2.0); PinLand(pr, 6.0); PinLand(gb, 1.0); PinLand(au, 0.5);
         // (a)
         Assert.Equal(0.0, dip.WarScale(fr, c, out double l0)); Assert.Equal(0.0, l0);
         // (b) 陸続き
@@ -163,13 +167,35 @@ public class AiFirstWaveTests
         double expE = 6.0 * dip.Projection(pr, fr, c) / (1.0 + 2.0);
         Assert.Equal(expE, dip.WarScale(gb, c, out _), 12);
         Assert.Equal(expB * 2.0 / 3.0, dip.WarScale(fr, c, out _), 12);   // 仏の側も英が分母に入る（同じ陣営の同じ物差し）
-        // (f) 同じ敵と戦う列強（仏）の本国の敗色は英の存亡に入る
+        // (f) 自国（英 1.0）以上の陸の力の味方（仏 2.0）の本国の敗色はそのまま英の存亡に入る
         dip.Wars.Clear();
         dip.Wars.Add(new War { A = gb, B = pr, Score = 0.0 });
         dip.Wars.Add(new War { A = fr, B = pr, Score = -0.7 });
-        Assert.Equal(PowerRank.Great, dip.RankOf(fr));   // 前提：1789 の仏は列強
         dip.WarScale(gb, c, out double lf);
         Assert.Equal(0.7, lf, 12);
+        // (g) 味方（仏）だけが戦う相手（墺）も、仏の本国へ届けば英の分子に入る＝相手の陣営の陸の力（分母は英＋仏のまま）
+        dip.Wars.Clear();
+        dip.Wars.Add(new War { A = gb, B = pr, Score = 0.0 });
+        dip.Wars.Add(new War { A = fr, B = pr, Score = 0.0 });
+        dip.Wars.Add(new War { A = fr, B = au, Score = 0.0 });
+        double rAu = dip.Projection(au, fr, c) * dip.LandingGate(au, fr, c);
+        Assert.True(rAu > 0, "前提：墺は仏の本国へ届く");
+        double expG = (6.0 * dip.Projection(pr, fr, c) + 0.5 * rAu) / (1.0 + 2.0);
+        Assert.Equal(expG, dip.WarScale(gb, c, out _), 12);
+        // (h) 自国（英 1.0）より小さい味方（墺 0.5）の本国の敗色 0.8 は陸の力の比 0.5 で入る＝0.4
+        dip.Wars.Clear();
+        dip.Wars.Add(new War { A = gb, B = pr, Score = 0.0 });
+        dip.Wars.Add(new War { A = au, B = pr, Score = -0.8 });
+        Assert.Equal(1.0, dip.LandingGate(pr, au, c));
+        dip.WarScale(gb, c, out double lh);
+        Assert.Equal(0.8 * 0.5 / 1.0, lh, 12);
+        // (i) 同じ抽象標的と戦う仏は英の陣営でない＝仏の別の戦争（プロイセンに敗色 0.9）は英の植民地戦争の規模にも存亡にも入らない
+        dip.Wars.Clear();
+        dip.Wars.Add(new War { A = gb, B = abs, Score = 0.0 });
+        dip.Wars.Add(new War { A = fr, B = abs, Score = 0.0 });
+        dip.Wars.Add(new War { A = fr, B = pr, Score = -0.9 });
+        Assert.Equal(0.0, dip.WarScale(gb, c, out double li));
+        Assert.Equal(0.0, li);
     }
 
     // ★番人（2026-10-03 (195)）：総動員の判断は上げる線と下げる線を分ける（README §1-8）＝規模 1.2 以上か存亡 0.5 超で入り、
@@ -193,6 +219,31 @@ public class AiFirstWaveTests
         Scale(0.1); war.Score = -0.6; Assert.True(Decide(), "存亡0.6（上げる線の上）で総動員しない");
         war.Score = -0.3; Assert.True(Decide(), "存亡0.3（線の間）で総動員が外れた＝現状維持でない");
         war.Score = 0.1; Assert.False(Decide(), "戦況が五分を越えた（存亡0）・規模0.1 なのに交戦中に復員しない");
+    }
+
+    // ★番人（2026-10-04 (198)・呼び手）：AI の総動員は WarScale の存亡（味方の陸の力の重み）を読む＝自国以上の陸の力の味方の本国が敗色 0.7 なら
+    //   海の向こうの英も総動員し、自国より小さい味方（陸の力の比 0.5）の敗色 0.8 は 0.4（線の間）＝入らない。規模は下げる線の下に置く（存亡の枝だけを見る）。
+    [Fact]
+    public void 総動員の存亡は味方の本国の敗色を陸の力の比で読む()
+    {
+        var sim = new MultiNationSim([NationConfig.France(), NationConfig.Prussia(), NationConfig.Britain(), NationConfig.Austria()], seed: 1789);
+        var c = sim.Nations[0].World.Coef;
+        var dip = sim.Diplomacy;
+        var fr = sim.Nations[0].World.SelfPower!; var pr = sim.Nations[1].World.SelfPower!; var w = sim.Nations[2].World; var gb = w.SelfPower!; var au = sim.Nations[3].World.SelfPower!;
+        PinLand(fr, 2.0); PinLand(pr, 0.1); PinLand(gb, 1.0); PinLand(au, 0.5);
+        bool Decide() { new UtilityAgent().DecideQuarter(w); return w.Mobilized; }
+        // 大きい味方（仏 2.0）の本国の敗色 0.7＝存亡 0.7＞0.5
+        dip.Wars.Add(new War { A = gb, B = pr, Score = 0.0 });
+        dip.Wars.Add(new War { A = fr, B = pr, Score = -0.7 });
+        Assert.True(dip.WarScale(gb, c, out _) < 1.0 / 1.2, "前提：規模は下げる線の下");
+        Assert.True(Decide(), "自国以上の陸の力の味方の本国の敗色 0.7 で総動員しない");
+        // 小さい味方（墺 0.5）の本国の敗色 0.8＝存亡 0.4（線の間）＝復員していた英は入らない
+        dip.Wars.Clear();
+        w.Mobilized = false;
+        dip.Wars.Add(new War { A = gb, B = pr, Score = 0.0 });
+        dip.Wars.Add(new War { A = au, B = pr, Score = -0.8 });
+        Assert.True(dip.WarScale(gb, c, out _) < 1.0 / 1.2, "前提：規模は下げる線の下");
+        Assert.False(Decide(), "自国より小さい味方の敗色 0.8（陸の力の比 0.5＝0.4）で総動員した＝重みを読んでいない");
     }
 
     // ============ ③ AiLawWriteCoverage＝移民制限法・国教法の書き手 ============

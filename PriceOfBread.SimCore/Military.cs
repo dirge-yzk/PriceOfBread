@@ -91,7 +91,7 @@ public static class Military
     ///   ⚠(181) から施行は解禁の外で次の四半期の頭に段3 へ失効する（<see cref="Government.Step"/>）＝段3 の上に残るのは講和か復員から次の四半期の頭までの月だけ。頭打ちはその月の盤面のために残す。</summary>
     internal static double WarStageShare(World w, double level)
     {
-        if (!(w.AtWarNow && w.Mobilized)) return 0;
+        if (!Government.WarStageOpen(w)) return 0;
         double target = Government.MilitaryTotalTarget(w, w.Policy);
         if (!(level <= target)) level = target;   // 否定形＝NaN の施行も目標の段へ（目標が NaN なら下の s も NaN＝0）
         double s = (level - (Government.MilitaryLawStages - 1) / (double)Government.MilitaryLawStages) * Government.MilitaryLawStages;

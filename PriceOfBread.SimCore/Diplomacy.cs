@@ -1529,15 +1529,17 @@ public sealed class Diplomacy
     }
 
     /// <summary>★戦争の規模（2026-10-03 (195)・00一覧 §0-A の 0e＝総動員の判断を戦争の規模で読む・推奨で進めた＝作者の承認は未確認）
-    /// ＝自陣営の本国へ届く敵の陸の力 ÷ 自陣営の陸の力。AI の総動員の判断（UtilityAgent.DecideQuarter）と画面の戦争タブ（プレイヤーが自分で選ぶ材料）が同じ1本を読む。
-    /// ・自陣営＝<paramref name="p"/> と、p の直接の敵のどれかと交戦している国（p とは交戦していない）＝同じ敵と戦う国。
-    /// ・敵の届く力＝直接の敵 f ごとに f の陸軍力×max（m＝自陣営のうち f と交戦している国）投射(f→m)×上陸の門(f,m)
+    /// ＝相手の陣営の、自陣営の本国へ届く陸の力 ÷ 自陣営の陸の力。AI の総動員の判断（UtilityAgent.DecideQuarter）と画面の戦争タブ（プレイヤーが自分で選ぶ材料）が同じ1本を読む。
+    /// ・自陣営＝<paramref name="p"/> と、p の直接の敵のうち国を持つ相手のどれかと交戦している国（p とは交戦していない）＝同じ敵と戦う国。★(198) 同じ抽象標的（植民地化の相手）と戦う国どうしは陣営にしない。
+    /// ・相手の陣営＝自陣営のどれかと交戦している陣営の外の国（直接の敵を含む）＝★(198) 分子と分母を同じ陣営の規則で（旧＝分子は p の直接の敵だけ＝反証役 vp2#2・推奨で進めた＝作者の承認は未確認）。
+    /// ・届く力＝相手の陣営の国 f ごとに f の陸軍力×max（m＝自陣営のうち f と交戦している国）投射(f→m)×上陸の門(f,m)
     ///   ＝f が陸で押し込める自陣営の本国（陸続き、または f が制海権を握る海越え＝<see cref="LandingGate"/>＝作者裁定 2026-08-01
     ///   「少なくとも海軍力で勝たないと、ブリテン島には乗れない」と同じ1本）。国を持たない相手（抽象標的＝自領で守るだけ）は0
     ///   ＝植民地戦争と海の向こうへの遠征は規模0（攻める側が規模を選ぶ戦争）。同じ敵と戦う国の本国へ敵が届けば、海の向こうの国の規模も上がる（英 1916・米 1917）。
     /// ・自陣営の陸の力＝Σ 陸軍力（自領で守る＝投射を掛けない）。
-    /// ・<paramref name="homeLosing"/>（存亡）＝p と自陣営の列強（同じ敵と戦う列強）が、本国へ届く直接の敵（国を持ち上陸の門が開く）と戦う戦争の敗色（戦勝点の負の側）の最大
-    ///   ＝自陣営の列強の本国が蹂躙されている深さ（仏の本国が攻め込まれれば同じ敵と戦う英も存亡＝英 1916・米 1917）。海の向こうへの遠征の負けは存亡に数えない。
+    /// ・<paramref name="homeLosing"/>（存亡）＝自陣営の国 m ごとの本国の敗色（m の本国へ届く相手の陣営の国〔国を持ち上陸の門が開く〕との戦争の戦勝点の負の側の最大）×重み の最大。
+    ///   重み＝自国 1・味方＝味方の陸の力÷（自国と味方の陸の力の大きい方）＝自国以上の味方の本国が蹂躙されていれば自国の本国と同じ（仏の本国が攻め込まれれば英も存亡＝英 1916・米 1917）・
+    ///   小さな味方は陸の力の比で小さく入る（★(198) 旧＝列強の札〔RankOf〕の0か1＝反証役 vp2#6・README §1-8）。海の向こうへの遠征の負けは存亡に数えない。
     /// 交戦していない＝0・自陣営の陸の力が0で敵が届く＝+∞。否定形＝NaN の項は数えない。読むだけ（状態を書かない）。
     /// ⚠旧の総動員の判断（<see cref="SideMilitary"/>＝海軍を含む軍の総合ゲージ×同盟の参戦見込み・届くかを読まない）は、海の向こうの相手や本国へ来られない相手でも劣勢と数えた
     ///   （r193 の10種で総動員の始まりの 95% が劣勢の枝・英の始まりの 97% は相手が全て海越え・交戦中の四半期の 74% が総動員）。</summary>
@@ -1556,40 +1558,57 @@ public sealed class Diplomacy
         var side = new List<Power> { p };
         foreach (var war in Wars)
         {
-            Power? m = foes.Contains(war.A) ? war.B : foes.Contains(war.B) ? war.A : null;
-            if (m is null || m == p || side.Contains(m) || AtWar(m, p)) continue;   // 自国の敵どうしの戦争は m も敵＝AtWar(m, p) で外れる
+            Power? f0 = foes.Contains(war.A) ? war.A : foes.Contains(war.B) ? war.B : null;
+            if (f0 is null || f0.Nation is null) continue;   // ★(198) 同じ敵は国を持つ相手だけ＝同じ抽象標的（植民地化の相手）と戦う国どうしは陣営にしない（抽象標的は誰の本国へも来ない）
+            Power m = f0 == war.A ? war.B : war.A;
+            if (m == p || side.Contains(m) || AtWar(m, p)) continue;   // 自国の敵どうしの戦争は m も敵＝AtWar(m, p) で外れる
             side.Add(m);
         }
+        // ★(198) 相手の陣営＝自陣営のどれかと交戦している陣営の外の国（直接の敵を含む）＝分子と分母を同じ陣営の規則で読む（反証役 vp2#2・推奨で進めた＝作者の承認は未確認）。
+        //   旧＝分子は p の直接の敵だけ（自陣営の他の国だけが戦う相手は分子に入らず、その相手に割いた味方の陸の力は分母に入った）。
+        var camp = new List<Power>(foes);
+        foreach (var war in Wars)
+        {
+            Power? e = side.Contains(war.A) ? war.B : side.Contains(war.B) ? war.A : null;
+            if (e is null || side.Contains(e) || camp.Contains(e)) continue;   // 自陣営どうしの戦争は相手の陣営に数えない
+            camp.Add(e);
+        }
         double reach = 0;
-        foreach (var f in foes)
+        foreach (var f in camp)
         {
             if (f.Nation is null) continue;   // 抽象標的は本国へ来ない（自領で守るだけ＝Projection の地の利）
             double best = 0;
             foreach (var m in side)
             {
-                if (m != p && !AtWar(f, m)) continue;
+                if (!AtWar(f, m)) continue;   // f が交戦している自陣営の国の本国だけ（直接の敵は p と交戦している）
                 double r = Projection(f, m, c) * LandingGate(f, m, c);
                 if (r > best) best = r;
             }
             double v = f.LandPower * best;
             if (v > 0) reach += v;
         }
-        // 存亡＝自国と、同じ敵と戦う列強の本国へ届く敵との戦争の敗色の最大（自陣営の本国が攻め込まれている深さ）。
+        // 存亡＝自陣営の国ごとの本国の敗色（本国へ届く相手の陣営の国との戦争の敗色の最大）×重み の最大。重み＝自国 1・味方＝味方の陸の力÷（自国と味方の陸の力の大きい方）。
+        // ★(198) 列強の札（RankOf＝0か1）をやめて陸の力の重みへ（反証役 vp2#6・README §1-8・推奨で進めた＝作者の承認は未確認）
+        //   ＝自国以上の陸の力の味方の本国が蹂躙されていれば自国の本国と同じ重みで存亡（英 1916・米 1917）・小さな味方の負けは陸の力の比で小さく効く。
+        //   旧＝自国と同じ敵と戦う列強の敗色の最大（同盟国が列強の枠を出入りすると存亡が跳んだ）。
+        var lose = new double[side.Count];
         foreach (var war in Wars)
         {
-            Power? m = side.Contains(war.A) ? war.A : side.Contains(war.B) ? war.B : null;
-            Power? f = m == war.A ? war.B : war.A;
-            if (m is null || !foes.Contains(f) || f.Nation is null) continue;
-            // ⚠(197) 反証役 vp2#6：列強に限る枝はランクの札の0か1（同盟国が列強の枠を出入りすると存亡が跳ぶ）＝README §1-8 と逆の向き・列強に限る根拠は未記載
-            //   （AI の設計・作者の承認は未確認）＝重みの形（同盟国の敗色を陣営の陸の力の割合で重みづける等）か番人を次の回で（実装ログ (197) 申し送り）。
-            if (m != p && RankOf(m) != PowerRank.Great) continue;
-            if (!(LandingGate(f, m, c) > 0)) continue;
-            double lose = m == war.A ? -war.Score : war.Score;
-            if (lose > homeLosing) homeLosing = lose;
+            int i = side.IndexOf(war.A); Power f = war.B; double l = -war.Score;
+            if (i < 0) { i = side.IndexOf(war.B); f = war.A; l = war.Score; }
+            if (i < 0 || !camp.Contains(f) || f.Nation is null) continue;
+            if (!(LandingGate(f, side[i], c) > 0)) continue;
+            if (l > lose[i]) lose[i] = l;   // 否定形＝NaN の戦勝点は数えない
         }
-        // ⚠(197) 反証役 vp2#2：分母は自陣営の陸の力の全量・分子は p の直接の敵の届く陸の力だけ＝分子と分母が別の規則（自陣営の他の国だけが戦う相手〔例：英が独とだけ・
-        //   仏露が墺とも戦う〕は分子に入らず、その相手に割いた仏露の陸の力は分母に入る）＝英米の大戦の総動員が短い原因の候補【推】
-        //   ＝分子を「自陣営のどれかと交戦している陣営の外の国」にする腕を次の回で（実装ログ (197) 申し送り）。
+        homeLosing = lose[0];   // side[0]＝p
+        double lp = p.LandPower;
+        for (int i = 1; i < side.Count; i++)
+        {
+            double lm = side[i].LandPower;
+            if (!(lm > 0) || !(lose[i] > 0)) continue;
+            double v = lose[i] * lm / (!(lp <= lm) ? lp : lm);   // 味方の陸の力÷（自国と味方の大きい方）＝自国以上の味方は自国の本国と同じ重み（否定形＝自国の陸の力が NaN なら v も NaN＝数えない）
+            if (v > homeLosing) homeLosing = v;
+        }
         double own = 0;
         foreach (var m in side) { double l = m.LandPower; if (l > 0) own += l; }
         return own > 0 ? reach / own : reach > 0 ? double.PositiveInfinity : 0;
