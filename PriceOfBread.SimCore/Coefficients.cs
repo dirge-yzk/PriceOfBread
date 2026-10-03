@@ -2258,7 +2258,7 @@ public sealed class Coefficients
     public double AttentionTensionHalf = 40.0;     // 敵意が半分に達する緊張。★**既存の RivalTensionThreshold(40)＝「これ超＝ライバル」と同値**＝新しい水準を発明しない
     public double AllyAttentionDiscount = 0.7;     // 宗主と属国の間の敵意の割引（3割だけ向ける）＝作者裁定 2026-09-29 の5「属国は仮想敵国ほどではないが、脅威を与える」（ArmyShape.Hostility・脅威の緊張が同じ1本）。⚠(151) 同盟は割引でなく0（同「同盟国は計上しない」・旧＝同盟と従属の共用の3割）
     public double InternalGarrisonPerPop = 0.002;  // 不穏度1.0のとき国内秩序に要する兵÷人口。★清の八旗・緑営は約80万／人口3.8億＝約0.2%（1783〜1850の常備の内地守備）
-    // 【削除2026-10-01 (151)】SeaEscortPerTradeValue（守るべき海上価値1あたりの護衛艦隊・休眠0）＝通商保護は絶対量でなく「海に出ている経済の割合だけ軍の同じ割合を海に置く」（ArmyShape.SeaTradeShare＝新しい数なし）へ。絶対量は海の交易の大きい国の海軍を経済の規模で膨らませた（(151) の探索の腕＝清の艦隊が英の約15倍に戻った）
+    // 【削除2026-10-01 (151)】SeaEscortPerTradeValue（守るべき海上価値1あたりの護衛艦隊・休眠0）＝通商保護は絶対量でなく「海に出ている経済の割合だけ軍の同じ割合を海に置く」（ArmyShape.SeaTradeShare＝新しい数なし）へ。絶対量は海の交易の大きい国の海軍を経済の規模で膨らませた（(151) の探索の腕＝清の艦隊が英の約15倍に戻った）（★2026-10-03 (183)：割合の形の通商保護の項も ArmyShape.SeaTradeShare ごと削除＝海の必要量に自国の軍の大きさの項を置かない）
     public double NavalCrewPerGauge = 0.5;         // 同じ戦力ゲージあたりの乗員（海軍は資本集約・陸軍は労働集約）＝英の常備陸軍が人口比で小さいことの本質。⚠較正で決める
     public int[] FleetGoodIds = [Catalog.WarshipId, Catalog.IroncladId, Catalog.DreadnoughtId];   // 軍艦・装甲艦・弩級戦艦（＝戦闘艦。汽船85/帆船84は輸送・補助なので艦隊に数えない）
     // ★★段2（2026-08-01）：軍需の**内訳**を理想の軍隊の形の陸海比で再配分する。

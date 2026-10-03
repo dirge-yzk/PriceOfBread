@@ -156,7 +156,7 @@ public class DormantIdentityTests
     /// ⚠点火して既定が0でなくなった係数はここから外すこと（残っていても赤にはならないが、台帳が嘘になる）。
     /// ★2026-09-26（fis-27・dorm-52）：点火済みの DevelopmentMemory（0.4）・PanicBuyWeight（0.5）・ScarceMineralGate（1.0）が残っていた＝外した。
     /// ★2026-09-27（回4-3 の再挑戦）：ShipFuelRate を点火（0.0016）＝外した。
-    /// ★2026-10-01 (151)：SeaEscortPerTradeValue を係数ごと削除（通商保護は割合の形＝ArmyShape.SeaTradeShare）＝外した。</summary>
+    /// ★2026-10-01 (151)：SeaEscortPerTradeValue を係数ごと削除（通商保護は割合の形＝ArmyShape.SeaTradeShare・2026-10-03 (183) に割合の形の項も関数ごと削除）＝外した。</summary>
     private static readonly string[] ZeroDefaultLedger =
     [
         // ★D-35 の反射走査が拾った「初期化子なし」の宣言（`public double X;`）＝静的なテキスト検索では見えない4本。

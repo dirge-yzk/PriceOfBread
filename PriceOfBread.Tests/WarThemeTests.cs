@@ -194,6 +194,10 @@ public class WarThemeTests
             if (Out(r) / r.SumPopulation() <= natPc) cede.Add(r);
         }
         Assert.True(cede.Count > 0, $"前提が崩れた：1人あたりが国の平均以下の州がない（国の平均 {natPc:G6}）");
+        // ★盤面の直し（2026-10-03 (183)・主張は同じ）：(183) の木の 20四半期後の仏は景気の上り（産出 89,033＞トレンド 86,290＝ピーク）＝平均以下の州を割っても
+        //   産出がトレンドより上に残り、8四半期の追跡で総額の落ち込みが立たなかった（総額 0・双子 0）。割譲の前に景気の追跡を両方の国で回し切ってトレンドを今の産出へ寄せる
+        //   （盤面は同じ・外交も市場も回さない＝産出は動かない）＝割譲した分だけ総額の落ち込みが立つ。
+        for (int i = 0; i < 60; i++) { fr.UpdateGdpCycle(); twin.UpdateGdpCycle(); }
         foreach (var r in cede) Territory.TransferRegion(fr, br, r, Territory.Rehoming.Ceded);
         for (int i = 0; i < 8; i++) { fr.UpdateGdpCycle(); twin.UpdateGdpCycle(); }
         double pc0 = twin.GdpPcDrawdown;

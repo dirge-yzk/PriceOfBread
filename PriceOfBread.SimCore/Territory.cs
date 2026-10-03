@@ -286,7 +286,8 @@ public static class Territory
     ///   ＝越境移民が受入国で core=0 になるのと同じ規約）。
     /// ・建国＝民族の割合を反転（旧少数派が新しい国の中核）。格と支配度は**独立が確定するまで動かさない**
     ///   （親が勝てば再併合で元の格のまま戻る＝失敗した植民地の蜂起で植民地が本土に化けない）。
-    /// ・再併合＝建国の反転を戻す。格・支配度は動かさない。
+    /// ・再併合＝建国の反転を戻す。★格は分離の時点の親の下の格（<see cref="Region.TierInParent"/>）へ戻す（2026-10-03 (183)・州の格の不変条件）＝
+    ///   分断の固定（内戦の白紙）で独立が確定した残骸が親へ平和的に戻るとき、独立の確定が本土へ上書きした植民地の格を戻す（旧＝本土の格のまま戻った）。支配度は動かさない。
     /// ・独立の確定＝新しい国の本土（Core・支配度1＝保有開始年0の州と同じ初期値）。
     /// 市場の月次台帳のリセット（財収支の恒等式を保つ）と植民地財の空化は移転の3種で共通。⚠植民地財を null にしない（col-02）：
     ///   null は単一国テストの旧経路（EconomyStep の else 枝）＝需要まで植民地財11種を代金なしに湧かせ、首都になれば
@@ -304,13 +305,17 @@ public static class Territory
             case Rehoming.Ceded:
                 if (r.Tier != RegionTier.Colonial) r.Tier = RegionTier.Integrated;
                 if (!sameCore) foreach (var p in r.Pops) p.CoreEthnicShare = 0.0;
+                r.TierInParent = null;   // ★(183) 第三の国へ渡った＝分離した親へ再併合で戻る州ではない
                 break;
             case Rehoming.Seceded:
                 foreach (var p in r.Pops) p.CoreEthnicShare = 1.0 - p.CoreEthnicShare;
+                r.TierInParent = r.Tier;   // ★(183) 分離の時点の親の下の格（再併合で戻す）
                 r.AnnexBaggage = 0;   // 案Y：建国の州は新しい国の「生まれの人口」＝併合の荷物ではない（親の下で付いた旧記帳もここで清算）
                 break;
             case Rehoming.Returned:
                 foreach (var p in r.Pops) p.CoreEthnicShare = 1.0 - p.CoreEthnicShare;   // 建国時の反転を戻す（親の中核定義へ復帰）
+                if (r.TierInParent is { } tp) r.Tier = tp;   // ★(183) 分離の時点の親の下の格へ（独立の確定で本土になった残骸の州も）
+                r.TierInParent = null;
                 break;
             case Rehoming.Sovereign:
                 r.Tier = RegionTier.Core;
@@ -373,7 +378,15 @@ public static class Territory
             Transport.Receive(to, rail, ship, from.ShipSteamShareEma);
         }
         if (wasCapital && NextCapital(from) is { } cap) from.SetCapital(cap);   // 首都を失った＝「首都を持つ」不変条件を維持
+        // ★(183) 植民地の保存の台帳：植民地格へ戻る州は、植民地格を出たときの出口（独立の確定＝本土・植民地の昇格＝編入）から1つ戻す
+        //   （Validation「植民地の保存」＝植民地格の州＋独立＋昇格＋吸収＝初期＝植民地格が1つ増えた分だけ出口を減らす）。
+        bool backToColony = how == Rehoming.Returned && r.TierInParent == RegionTier.Colonial && r.Tier != RegionTier.Colonial && r.State == RegionState.Active;
+        RegionTier tierLeft = r.Tier;
         Rehome(r, how, sameCore);
+        if (backToColony && to?.Diplomacy is { } dg)
+        {
+            if (tierLeft == RegionTier.Core) dg.SovereignColonialRegions--; else dg.PromotedColonies--;
+        }
         return (rail, ship);   // 建国（to＝null）は呼び手が新しい国の器を組んでから受け取る
     }
 

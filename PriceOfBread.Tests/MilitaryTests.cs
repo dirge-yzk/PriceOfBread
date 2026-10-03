@@ -795,19 +795,7 @@ public class MilitaryTests
         Assert.Equal(0.0, dip.ThreatReach(fr, es, 5, c));
     }
 
-    /// <summary>★(151) 通商保護の割合＝海に出ている経済の割合＝港の州の取扱高（四半期・金建て）÷（為替×3×月の名目GDP）。港でない州の取扱高は数えない。
-    /// ⚠突然変異「港でない州も数える」で赤。</summary>
-    [Fact]
-    public void 海に出ている経済の割合は港の取扱高を名目GDPで割る()
-    {
-        var sim = Frozen152("イギリス", "フランス");
-        var w = sim.Nations[1].World;
-        int ports = 0;
-        foreach (var r in w.Regions) { r.LastPortThroughput = 1000.0; if (r.State == RegionState.Active && r.IsPort) ports++; }
-        Assert.True(ports > 0 && ports < w.Regions.Count, "前提が崩れた：仏に港の州と港でない州の両方が無い");
-        double expect = ports * 1000.0 / (w.FxRate * 3 * w.NominalGdp);
-        Assert.Equal(expect, ArmyShape.SeaTradeShare(w), 12);
-    }
+    // （(151) の「海に出ている経済の割合は港の取扱高を名目GDPで割る」は 2026-10-03 (183) に関数 ArmyShape.SeaTradeShare ごと削除＝読み手〔通商保護の項〕を外した）
 
     /// <summary>★(151) 陸海の比は目標の生の比（0.05 格子に丸めない＝「陸海比は連続のまま」）。合計 0.75 で海 0.0225（3%）＝旧は丸めて海0（艦隊の乗員ごと消えた）。
     /// ⚠突然変異「丸めた2本の比」で赤。</summary>
@@ -859,7 +847,7 @@ public class MilitaryTests
         Assert.True(dip.Tension(fr, jp) + dip.Tension(es, jp) > fj0 + ej0, "前提が崩れた：脅威の緊張がどの組にも立たない（脅威を持つ国が無い）");
     }
 
-    // ===== (154) 呼び手の配線の番人（(151) の反証役の指摘＝Borders・SeaTradeShare・ThreatReach は単体で試しているが、Compute と ThreatTension が読む配線は見ていなかった） =====
+    // ===== (154) 呼び手の配線の番人（(151) の反証役の指摘＝Borders・SeaTradeShare・ThreatReach は単体で試しているが、Compute と ThreatTension が読む配線は見ていなかった・(183) で SeaTradeShare は削除） =====
 
     /// <summary>★(154) 理想の軍隊の形（<see cref="ArmyShape.Compute"/>）は国境の長さを陸の必要量に読む（作者裁定 2026-09-29「国境線が長いほど軍事費が必要になる」の配線）。
     /// 盤面＝仏・西・日（開幕・外交は止める）。仏の州を全て山にすると仏西の国境の重みだけが下がる（投射・敵意・不穏度は地形を読まない）＝西の陸軍のうち仏へ向く分が減り、仏の陸の必要量が下がる。
@@ -878,11 +866,13 @@ public class MilitaryTests
         Assert.True(fr.NeedLand < before * (1 - 1e-9), $"仏を山にしても陸の必要量が下がらない（{before:G17}→{fr.NeedLand:G17}）＝Compute が国境の長さを読んでいない");
     }
 
-    /// <summary>★(154) 理想の軍隊の形は守る海の交易（軍×海に出ている経済の割合）を海の必要量に足す（通商保護の配線）。
-    /// 盤面＝英日（開幕・外交は止める）。英の港の取扱高を0から正へ変えた差＝英の軍×<see cref="ArmyShape.SeaTradeShare"/>（他の項は取扱高を読まない）。
-    /// ⚠突然変異「通商保護の行を消す」で赤（海越えの陸軍だけでも海の必要量は正＝旧の番人は気づかない）。</summary>
+    /// <summary>★(183) 理想の軍隊の形の海の必要量は「自国の軍×海に出ている経済の割合」を足さない（海軍は陸軍とは別のベース＝作者 2026-09-29「陸軍は安全保障ベース、海軍は別のベースで、軍事費を分割するようにしよう」・推奨で進めた）。
+    /// 旧（(151)〜(182)・(154) の番人「守る海の交易を海の必要量に足す」）＝自国の軍の総合ゲージ×港の取扱高÷名目GDP を足した＝海の大きさが自国の陸軍の大きさに比例した（1913 の清の海の必要量の約68%・r182）。
+    /// 盤面＝英日（開幕・外交は止める・海を越えて来る日本の陸軍で英の海の必要量は正）。英の港の取扱高を0から正へ変えても英の海の必要量は1ビットも動かない
+    /// （海の必要量＝相手の艦隊の注意配分＋海を越えて来る相手の陸軍＝取扱高を読まない）。
+    /// ⚠突然変異「通商保護の行を戻す（軍×港の州の取扱高÷(為替×3×名目GDP)）」で赤。</summary>
     [Fact]
-    public void 理想の軍隊の形は守る海の交易を海の必要量に足す()
+    public void 理想の軍隊の形の海の必要量は自国の軍と海の交易の割合を足さない()
     {
         var sim = Frozen152("イギリス", "日本");
         var dip = sim.Diplomacy; var c = sim.Coef;
@@ -890,13 +880,12 @@ public class MilitaryTests
         foreach (var nn in sim.Nations) foreach (var r in nn.World.Regions) r.LastPortThroughput = 0;
         ArmyShape.Compute(dip, c);
         double sea0 = uk.NeedSea;
-        foreach (var r in ukw.Regions) r.LastPortThroughput = 1000.0;
-        double share = ArmyShape.SeaTradeShare(ukw);
-        Assert.True(share > 0 && uk.Military > 0, $"前提が崩れた：割合 {share}・軍 {uk.Military}");
+        Assert.True(sea0 > 0, $"前提が崩れた：英の海の必要量が0（{sea0}）＝海を越えて来る日本の陸軍が数えられていない");
+        int ports = 0;
+        foreach (var r in ukw.Regions) { r.LastPortThroughput = 1000.0; if (r.State == RegionState.Active && r.IsPort) ports++; }
+        Assert.True(ports > 0 && uk.Military > 0 && ukw.NominalGdp > 0, $"前提が崩れた：港の州 {ports}・軍 {uk.Military}・名目GDP {ukw.NominalGdp}（旧の項なら正の差が出る盤面）");
         ArmyShape.Compute(dip, c);
-        double expect = uk.Military * share;
-        Assert.True(System.Math.Abs(uk.NeedSea - sea0 - expect) <= 1e-9 * System.Math.Max(1.0, expect),
-            $"取扱高を入れた差 {uk.NeedSea - sea0:G17} ≠ 軍×割合 {expect:G17}＝Compute が守る海の交易を海の必要量に足していない");
+        Assert.Equal(sea0, uk.NeedSea);
     }
 
     /// <summary>★(154) 脅威の緊張（Diplomacy.ThreatTension）は国境の長さを届き方（<see cref="Diplomacy.ThreatReach"/>）へ渡す（「国境を接している国は脅威だが、そうでない国はあまり脅威ではない」の配線）。

@@ -287,7 +287,7 @@ if (args.Length > 0 && args[0] == "armyshape")
     {
         for (; aDone < cut; aDone++) msA2.StepQuarter();
         Console.WriteLine($"━━ Q{cut}（{msA2.Year}年）━━");
-        Console.WriteLine("国名,人口,兵数,理想兵数,陸の必要,内的秩序,海の必要,護衛項,注意項,海上価値,港取扱高,植民地価値(旧ColonyListのみ),理想海比,支出海比,戦力海比,列和最大,海軍力,陸軍力,艦隊ストック");
+        Console.WriteLine("国名,人口,兵数,理想兵数,陸の必要,内的秩序,海の必要,海上価値,港取扱高,植民地価値(旧ColonyListのみ),理想海比,支出海比,戦力海比,列和最大,海軍力,陸軍力,艦隊ストック");
         double colMax = 0; int nOver1 = 0, nRows = 0;
         foreach (var simA2 in msA2.Nations)
         {
@@ -301,8 +301,7 @@ if (args.Length > 0 && args[0] == "armyshape")
             foreach (var rr in wA2.Regions) if (rr.State == RegionState.Active && rr.IsPort) portVal += rr.LastPortThroughput;
             foreach (var col in pA2.ColonyList) colVal += col.Value;
             double seaValue = portVal + colVal;
-            double escort = pA2.Military * ArmyShape.SeaTradeShare(wA2);   // 通商保護項＝**水準を担う項**（(151) で点火＝海に出ている経済の割合×軍の総合ゲージ＝ArmyShape と同じ1本）
-            double attention = pA2.NeedSea - escort;                 // 残り＝注意配分＝艦隊の比（設計書が「水準の根拠にするな」と書いた側）
+            // （(183) 通商保護の項〔護衛項＝軍×海に出ている経済の割合〕を海の必要量から外した＝護衛項と注意項の列を削除）
             double idealNaval = ArmyShape.NavalSpendShareOf(pA2);   // 陸海の維持費の分け方と軍需の陸海の再配分が読む同じ1本（(151)・−1＝未定義）
             double forceTot = pA2.NavalPower + pA2.LandPower;
             double forceNaval = forceTot > 1e-9 ? pA2.NavalPower / forceTot : double.NaN;
@@ -312,7 +311,7 @@ if (args.Length > 0 && args[0] == "armyshape")
             if (pA2.AttentionColSumMax > 1.0 + 1e-6) nOver1++;
             nRows++;
             Console.WriteLine($"{pA2.Name},{pop:F0},{sol:F1},{pA2.NeedMen:F1},{pA2.NeedLand:F3},{pA2.NeedInternal:F3},{pA2.NeedSea:F3}," +
-                $"{escort:F3},{attention:F3},{seaValue:F1},{portVal:F1},{colVal:F1}," +
+                $"{seaValue:F1},{portVal:F1},{colVal:F1}," +
                 $"{idealNaval:F3},{wA2.NavalSpendShare:F3},{forceNaval:F3},{pA2.AttentionColSumMax:F4},{pA2.NavalPower:F2},{pA2.LandPower:F2},{fleet:F0}");
         }
         // ★設計書の blocking 条件＝「列和が1未満であること」が縮小写像の実証

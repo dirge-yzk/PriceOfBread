@@ -1027,6 +1027,10 @@ public sealed class Region
     public double MilitaryTier3LandFill = 0.0;
     public double MilitaryQualityFill = 0.0;          // 上位軍需（機関銃・装甲艦）の充足率＝戦力の質的乗数（Power.Military を 1+Bonus×これ で増幅。基本装備を整えた残余予算で届く＝富裕/軍国国の強み）
     public RegionTier Tier;                           // ★州の格（植民地のラベル化・2026-08-01）。Colonial は参政権・技術伝播・維持費・割譲到達が読む（Core/Integrated は同じ扱い）
+    // ★分離の時点の親の下の格（2026-10-03 (183)・州の格の不変条件＝「植民地格だった州は親へ戻れば植民地格」）。Territory.Rehome が書いて読む＝建国（Seceded）で今の格を写し、
+    //   再併合（Returned）でこの格へ戻して消す・割譲（Ceded）で消す・独立の確定（Sovereign）は残す（格は本土になるが、分断の残骸は親へ平和的に戻りうる）。null＝分離していない。
+    //   ⚠新しい状態（思想⑩）＝独立の確定が格を本土へ上書きする＝盤面から導けない（分断の固定〔内戦の白紙〕→残骸の自然再併合で、英の植民地格の州が本土の格のまま戻った＝(180) の反証役の指摘）。
+    public RegionTier? TierInParent;
     public Terrain Terrain;                           // ★地形タグ（(3)・2026-08-28）。既定 Plain。出所＝places.json の terrain 列（構築時に1回引く）。係数全1.0の間は読み手がいても恒等
     public bool Malarial;                             // ★マラリア地（同上）。旧 Colony.Malarial の移設先。植民地維持費（Colonial.AccumUpkeep）がキニーネ需要に読む
     // 【墓標2026-09-26】HeldSince（州の保有開始年）＝回1-1で削除（思想⑩・外部レビューの検討 §10-10［植民地8］）。書き手（構築と植民地の州化）だけで読み手が無かった。

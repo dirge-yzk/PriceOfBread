@@ -42,7 +42,7 @@ public sealed class Power
     public double LandPower => Military * (1 - NavalShare) * ArmySkillMul;  // 陸軍力（戦線の押し合いの主力）
     // ★理想の軍隊の形（2026-08-01）。ArmyShape.Compute が四半期に書き、NeedSea は Simulation が Region.ShapeNavalShare（軍需の陸海再配分）へ写す＝live。設計書＝docs/202607/20260801_理想の軍隊の形_部分完了.md【一部】.md
     public double NeedLand;       // 陸の必要量（自国に向けられた他国陸軍の注意配分の和・ゲージ単位）
-    public double NeedSea;        // 海の必要量（対抗項＝仮想敵国の艦隊の注意配分＋通商保護項＝守るべき海上価値）
+    public double NeedSea;        // 海の必要量（艦隊の比＝仮想敵国の艦隊の注意配分＋海路の接触＝海を越えて来る陸軍の注意配分・(183) で通商保護の項〔自国の軍×海に出ている割合〕を外した）
     public double NeedInternal;   // 内的秩序の必要量（不穏度×統治人口・他国を参照しない外生アンカー＝不動点が0にならない土台）
     public double NeedMen;        // 理想の兵員数（陸＋内的＋海×乗員率 を質で割る）
     public double AttentionColSumMax;   // 診断：注意配分の列和の最大（★1未満であることが縮小写像＝発散しないことの実証）
@@ -971,7 +971,7 @@ public sealed class Diplomacy
     /// ＝構築の時にはまだ定まらない＝最初の同期（全ての国の Military・海盆プレゼンスを同期した直後）で1度だけ：理想の形を算出し、
     /// 同じ関数で陸海の維持費の比を置き（AI とプレイヤーが同じ）、海軍シェアをその比から始め（旧＝0 から建艦の時間遅れで比の3割）、艦隊をその比で播く
     /// （播種式は旧と同じ FleetStock₀ = Military₀ × NavalShare₀ × 換算分母＝点火の瞬間の国別の恒等はそのまま）。
-    /// 開幕の艦隊は他国の艦隊がまだ無い＝海の必要量は守る海の交易（通商保護）と海を越えて来る陸軍（投射）の2つ（艦隊の比の項は0）＝(154) で注記を直した（旧の注記は通商保護だけと書いていた）。</summary>
+    /// 開幕の艦隊は他国の艦隊がまだ無い＝海の必要量は海を越えて来る陸軍（投射）だけ（艦隊の比の項は0・(183) で通商保護の項を外した）。</summary>
     private void OpeningNavalShares(Coefficients c)
     {
         ArmyShape.Compute(this, c);

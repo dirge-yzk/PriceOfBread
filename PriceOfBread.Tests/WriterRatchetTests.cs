@@ -386,7 +386,11 @@ public class WriterRatchetTests
     [InlineData(CostLedger.ClearingRows, 5185642L)]
     [InlineData(CostLedger.ClearingFills, 42375697L)]
     [InlineData(CostLedger.DiploPowerMonths, 9954L)]
-    [InlineData(CostLedger.DiploHegemonScans, 1682840L)]
+    // ★2026-10-03 表の更新（(183) 線A＝海の必要量から通商保護の項〔自国の軍×海に出ている経済の割合〕を外した＋州の格の不変条件＝軌道が動いた分の宣言・新しい計数の処理は無い
+    //   〔1行の掛け算を消しただけ・再併合の格の戻しは州×移し替えの1回の小さな分岐〕）：覇権の判定 1,682,840→2,552,996（+51.7%＝最初の40四半期の同盟の候補が居る月の軌道
+    //   ＝(147)(149)(155)(169) と同じ型・処理の形は同じ）。ほかの16本は許しの内（+2%／−10%）。
+    //   全長の10種（計器つきの腕 C）では覇権の判定 218,661,366→213,465,134（−2.4%）＝推定 248.7→247.9 秒（上限 248.5 秒の内へ戻った＝軌道の分・払っていない・実装ログ (183)）。
+    [InlineData(CostLedger.DiploHegemonScans, 2552996L)]
     [InlineData(CostLedger.QuarterStartPops, 235560L)]
     [InlineData(CostLedger.QuarterEndPops, 235560L)]
     [InlineData(CostLedger.SharedNationQuarters, 3698L)]

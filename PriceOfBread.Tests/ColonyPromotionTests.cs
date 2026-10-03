@@ -163,4 +163,58 @@ public class ColonyPromotionTests
             }
         }
     }
+
+    /// <summary>★(183) 州の格の不変条件（(180) の反証役の指摘・2026-10-03）：分離した州が親へ戻る（再併合）ときは分離の時点の親の下の格へ戻る。
+    /// 分断の固定（分離独立の戦争の白紙＝残骸）は独立の確定で州を本土にする（col-03）＝その残骸が親へ平和的に戻るとき、植民地格だった州は植民地格・本土の州は本土。
+    /// 旧＝本土の格のまま戻った（英の植民地格の州＝ボンベイ・ベンガル・マドラス・カナダほかが 1794〜1904 年に本土の格で英へ戻った＝10種の帯の種3）。
+    /// 植民地の保存の台帳（植民地格の州＋独立＋昇格＋吸収＝初期）は往復で閉じる＝植民地格へ戻った州は独立の出口から1つ戻す。</summary>
+    [Fact]
+    public void 回183_分断で独立が確定した州は親へ戻れば分離の時点の格へ戻る()
+    {
+        foreach (string name in new[] { "カナダ", "" })
+        {
+            var sim = new MultiNationSim([NationConfig.Britain(), NationConfig.France()], seed: 83) { DiplomacyFrozen = true };
+            var pw = sim.Nations[0].World;
+            // 植民地格の州（カナダ）と、首都でない本土の州（最初に見つかった Core）
+            var reg = name.Length > 0 ? pw.Regions.First(r => r.Name == name) : pw.Regions.First(r => r.Id != 0 && r.Tier == RegionTier.Core && r.State == RegionState.Active);
+            var tier0 = reg.Tier;
+            Assert.Equal(name.Length > 0 ? RegionTier.Colonial : RegionTier.Core, tier0);
+            bool Conserved() { var m = Metrics.Compute(sim); return m.TotalColonies + m.IndependentColonies + m.PromotedColonies + m.AbsorbedColonies == m.InitialColonies; }
+            Assert.True(Conserved(), "前提が崩れた：開幕で植民地の保存が閉じない");
+            pw.PendingSecessionWars = [reg];   // 分離独立の戦争（開戦時に建国）
+            sim.StepQuarter();
+            var rw = sim.Nations.First(n => n.World.Regions.Contains(reg)).World;
+            Assert.NotSame(pw, rw);
+            Assert.Equal(tier0, reg.TierInParent);   // 分離の時点の親の下の格を写した
+            var war = sim.Diplomacy.Wars.Single(x => x.CivilWarParent == pw.SelfPower && (x.A == rw.SelfPower || x.B == rw.SelfPower));
+            Assert.True(war.CivilWarSecession && !war.ForcedPeace, "前提が崩れた：調停でない分離独立の戦争になっていない");
+            war.Score = 0;   // 白紙＝分断の固定（残骸）＝独立の確定＋残骸の親の記し
+            sim.Diplomacy.ResolvePeace(sim.Coef, war);
+            Assert.True(rw.RumpParentName.Length > 0, "前提が崩れた：分断の枝を通っていない");
+            Assert.Equal(RegionTier.Core, reg.Tier);   // 独立の確定＝新しい国の本土（col-03）
+            Assert.True(Conserved(), "独立の確定で植民地の保存が閉じない");
+            int sov0 = sim.Diplomacy.SovereignColonialRegions;
+            // 残骸の平和的復帰（ReabsorbNations の残骸の枝と同じ予約）
+            sim.Diplomacy.PendingReintegrations.Add((pw.SelfPower!, rw.SelfPower!, false, pw.Polity));
+            sim.ReabsorbNations();
+            Assert.Contains(reg, pw.Regions);
+            Assert.Equal(tier0, reg.Tier);   // ★植民地格だった州は植民地格・本土の州は本土
+            Assert.Null(reg.TierInParent);
+            Assert.Equal(name.Length > 0 ? sov0 - 1 : sov0, sim.Diplomacy.SovereignColonialRegions);   // 植民地格へ戻った分だけ独立の出口を戻す
+            Assert.True(Conserved(), "再併合で植民地の保存が閉じない");
+        }
+    }
+
+    /// <summary>★(183) 割譲（第三の国へ渡る）は分離の時点の親の下の格を消す＝その州が後で別の反乱国ごと再併合されても、古い親の格を戻さない。</summary>
+    [Fact]
+    public void 回183_割譲は分離の時点の親の下の格を消す()
+    {
+        var sim = new MultiNationSim([NationConfig.Britain(), NationConfig.France()], seed: 83) { DiplomacyFrozen = true };
+        var uk = sim.Nations[0].World; var fr = sim.Nations[1].World;
+        var reg = uk.Regions.First(r => r.Name == "カナダ");
+        reg.TierInParent = RegionTier.Colonial;   // どこかの親から分離した州
+        Territory.TransferRegion(uk, fr, reg, Territory.Rehoming.Ceded);
+        Assert.Null(reg.TierInParent);
+        Assert.Equal(RegionTier.Colonial, reg.Tier);   // 割譲の規則のまま（植民地格は植民地）
+    }
 }
