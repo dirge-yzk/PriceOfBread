@@ -426,6 +426,33 @@ public sealed class UtilityAgent : INationAgent
         return x >= 0 && x <= 1 ? x : 0;
     }
 
+    /// <summary>★(193) 陸軍の不安の割合（<see cref="SecurityShare"/> の army と同じ式）。定まらない（分母0・NaN・単一国）は NaN＝徴兵法の下げる線が「不安なし」と読まない
+    /// （<see cref="SecurityShare"/> は定まらないを0へ倒す＝上げる比較〔≧線〕では偽で同じだが、下げる比較では0が「不安なし」になる）。</summary>
+    internal static double ArmyShareOrNaN(World w)
+    {
+        double x = w.SecurityThreatArmy / (w.SecurityThreatArmy + w.SecurityThreatOwnMass);
+        return x >= 0 && x <= 1 ? x : double.NaN;
+    }
+
+    /// <summary>★(193) AI が徴兵法を上限へ上げる線（陸軍の不安の割合・値は (155) の 0.5 のまま＝新しい数ではない）。</summary>
+    internal const double ConscriptionRaiseShare = 0.5;
+    /// <summary>★(193) 下げる線の幅（深さの単位＝<see cref="PoliticalQuantities.ConscriptionDepth"/>：志願0／選抜0.5／皆兵1）＝今の段の深さが求める深さ（割合÷上げる線）を
+    /// この幅より超えたら下げる。1/3＝皆兵の下げる線が割合 1/3（上げる線 0.5 の 2/3＝00一覧 §0-A の 0d の例の値・推奨で進めた）・選抜の下げる線が 1/12。
+    /// 上げる線との間（皆兵 1/3〜1/2）が現状維持の帯＝入力の小さな揺れで段が往復しない（README §1-8）。</summary>
+    internal const double ConscriptionLowerMargin = 1.0 / 3.0;
+
+    /// <summary>★(193) 徴兵法の下げる目標＝入力の大きさで段を選ぶ。求める深さ d＝割合÷<see cref="ConscriptionRaiseShare"/>。
+    /// 今の段（<paramref name="cur"/>）から、深さが d＋<see cref="ConscriptionLowerMargin"/> を超えない一番深い段まで（今の段より深くはしない＝上げは上げる線だけ）。
+    /// 下げる理由が無い（今の段がその範囲）なら <paramref name="hold"/>（前の目標＝現状維持）。</summary>
+    internal static ConscriptionLaw ConscriptionLowerTarget(ConscriptionLaw cur, double share, ConscriptionLaw hold)
+    {
+        double keep = share / ConscriptionRaiseShare + ConscriptionLowerMargin;   // この深さまでは保つ
+        if (!(PoliticalQuantities.ConscriptionDepth(cur) > keep)) return hold;   // 否定形＝NaN は保つ側
+        var k = cur;
+        while (k > ConscriptionLaw.Volunteer && PoliticalQuantities.ConscriptionDepth(k) > keep) k--;
+        return k;
+    }
+
     /// <summary>★AI の軍事費の段の目標＝安全保障の不安の唯一の入口（2026-10-02 (155)・作者 2026-10-01＝脅威の入口を軍事費の段の1つにする案に異議なし・推奨で進めた）。
     /// 目標＝平時の段の幅（最下段 段1〜平時の最上段 段3＝戦時経済の段4 の手前）を脅威の割合（<see cref="SecurityShare"/>）で内分＝不安のない国は段1・届く敵意が自国の養える軍と同じなら段2・
     /// 圧倒されるほど段3 へ近づく。段への丸めと1段ずつの登坂と戦時経済の門（総動員）は法の門（Government・GateAllLawTargets）が掛ける＝ここで上下を切らない（思想⑧＝割合が有界）。
@@ -555,14 +582,30 @@ public sealed class UtilityAgent : INationAgent
         // ★(178) 徴兵法の目標（作者 2026-10-03「全て推奨でよい。(1)は良いと思う。」＝00一覧の軍の裁定の表「徴兵法＝封建の兵から国民の兵へ」で採った推奨①②④・AI の整理）：
         //   ①封建の兵から国民の兵へ＝目標の上限は皆兵の門（Government.UniversalConscriptionOpen＝身分の特権〔領主権の残高＝農奴解放が全面でない〕がある間は閉じる）が開いていれば国民皆兵・閉じていれば選抜。
         //     門の判定は Government.LawPrereq の1本（プレイヤーの法律タブ・勢力の要求・施行も同じ門）＝ここはどの段を目標に置くかだけ（既に皆兵なら皆兵のまま）。
-        //   ②陸軍の不安の割合（SecurityShare の army＝本国の国境＋投射×上陸の門〔World.SecurityThreatArmy〕÷(それ＋自国の養える軍)）が半分以上＝上限まで／他は現状維持（線 0.5 は (155) のまま）。
+        //   ②陸軍の不安の割合（SecurityShare の army＝本国の国境＋投射×上陸の門〔World.SecurityThreatArmy〕÷(それ＋自国の養える軍)）が半分以上＝上限まで／他は現状維持（線 0.5 は (155) のまま）→ ★(193) 下げる線を分けた（下の段落＝線の間だけが現状維持）。
         //     海の不安のうち自国の海軍で防げる分（海越えで相手の制海権が上陸の門に届かない投射）と植民地の国境は数えない＝英は海軍で防げるので志願・海軍の弱い国は海の向こうの陸軍も数える。
         //   ④交戦の枝は総動員の時だけ（総動員は劣勢と存亡で入る＝DecideQuarter の上の段落・旧＝交戦中なら徴兵制＝英の戦時の法の上げ下げ 36回/試合〔史実 1916・1939 の2回〕）。
         //     旧 (155) の「平時の男子普選以上なら志願制」の枝は外した（史実の向きは参政権でなく脅威と身分の特権で決まる＝仏の第三共和政は男子普選と国民皆兵）。
-        //   志願制へ戻る道＝戦時に上げた徴兵法の失効（Government.Step＝戦争が終わった四半期に戦前の段へ）と開幕の法（world.json の initialConscription）。NaN は比較が偽＝現状維持の側。
+        //   志願制へ戻る道＝戦時に上げた徴兵法の失効（Government.Step＝戦争が終わった四半期に戦前の段へ）と開幕の法（world.json の initialConscription）と下の (193) の下げる線。NaN は比較が偽＝現状維持の側。
         //   【(162)① の「平時に不安の多くが海の向こうと植民地から来る国は志願制」は (163) の合流で差し戻した 2026-10-02】＝パッチ measurements/m163_20261002_landthreat.diff。
+        // ★(193) 上げる線と下げる線を分けた（00一覧 §0-A の 0d・0e の徴兵法の分・README §1-8「上げる線と下げる線を分ける＝状態で決める・片方向の錠を作らない」・推奨で進めた＝作者の承認は未確認）：
+        //   旧（(188) の C）＝線の下は現状維持＝平時に上げた段は不安が去っても下がらない片方向の錠（平時に下げた件数 0.0／種・r192）。
+        //   ・上げる線＝陸軍の不安の割合 ConscriptionRaiseShare（0.5＝(155) のまま）以上で上限（上の①②のまま）。
+        //   ・下げる線＝**段は入力の大きさで選ぶ**：求める深さ＝割合÷上げる線（上げる線で 1＝皆兵の深さ・PoliticalQuantities.ConscriptionDepth と同じ物差し＝志願0／選抜0.5／皆兵1）。
+        //     今の段の深さが求める深さを幅 ConscriptionLowerMargin（1/3）より超えたら、超えない一番深い段まで下げる＝皆兵は割合 1/3 未満で選抜へ・選抜は 1/12 未満で志願へ
+        //     （上げる線と下げる線の間は現状維持＝反転を状態で決める・タイマーにしない）。下げるのは交戦していない四半期だけ（戦時の下げは作らない＝平時に置いて門で止まっていた下げの目標も交戦中は今の段へ畳む）。
+        //     開幕の選抜（大陸の旧体制の割当て）は不安が0に近い時だけ下げの目標に入る（開幕の仏 0.17・西 0.13 は 1/12 より上）。
+        //   ・戻しも上げと同じ門＝目標を置くだけ（GateAllLawTargets の GateLaw＝法律タブと同じ照会・施行は Government.Step の StepLevel＝純支持が負なら政治資本で払う）
+        //     ＝下げに反対する旧支配層と軍（PolicyPreferences の徴兵法の立場）が強い国では下げは通らない（支持の構成で残る）。無償の失効（(190) の L）にはしない。
+        //   ・割合が定まらない（分母0・NaN・単一国）＝現状維持（SecurityShare の 0 を「不安なし」と読まない＝下げの目標を置かない）。
+        //   ・戦争が終わった最初の四半期（戦前の記録 ConscriptionPreWar がまだ残る＝この四半期の Government.Step が失効を掛ける）は、読む不安が交戦中に計算した値
+        //     （MultiNationSim の四半期末の StepSecurityThreat は外交の前＝戦争の終わる前）＝目標は今の段に置く（戦時の値で上げも下げもしない）＝戦時でない四半期の不安を次の四半期に読む。
         var csTop = w.ConscriptionLaw == ConscriptionLaw.Universal || Government.UniversalConscriptionOpen(w) ? ConscriptionLaw.Universal : ConscriptionLaw.Selective;
-        p.ConscriptionLaw = SecurityShare(w, army: true) >= 0.5 || (atWar && w.Mobilized) ? csTop : p.ConscriptionLaw;
+        double armyShare = ArmyShareOrNaN(w);
+        if (!atWar && w.ConscriptionPreWar >= 0) p.ConscriptionLaw = w.ConscriptionLaw;   // 戦争が終わった最初の四半期＝戦時の値で動かさない
+        else if (armyShare >= ConscriptionRaiseShare || (atWar && w.Mobilized)) p.ConscriptionLaw = csTop;
+        else if (!atWar && armyShare >= 0) p.ConscriptionLaw = ConscriptionLowerTarget(w.ConscriptionLaw, armyShare, p.ConscriptionLaw);
+        else if (atWar && p.ConscriptionLaw < w.ConscriptionLaw) p.ConscriptionLaw = w.ConscriptionLaw;   // 交戦中は下げない＝平時に置いて門で止まっていた下げの目標も戦争の間は今の段へ畳む（上げの目標は従来どおり保つ）
         if (w.Suffrage >= Suffrage.AdultMale) p.SecretBallot = SecretBallotLaw.Secret;   // 大衆選挙＝買収・威圧の排除が票の実在に直結
         if (w.AdminEfficiency > ProfessionalBureaucracyAdminThreshold) p.Bureaucracy = BureaucracyLaw.Professional;   // 行政力が育った国＝専門官僚制へ（プロイセン文官改革）
         if (w.MeanIndustrialization > AntitrustIndThreshold)

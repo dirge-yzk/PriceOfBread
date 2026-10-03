@@ -1415,6 +1415,7 @@ public class MilitaryTests
     /// <summary>★(155) AI の軍事費の段＝安全保障の不安の唯一の入口＝平時の段の幅（段1〜段3）を脅威の割合（脅威÷(脅威＋自国の養える軍)）で内分。軍備スタンスは段を書かない。
     /// ★(178) 徴兵法の目標（作者 2026-10-03「全て推奨でよい。(1)は良いと思う。」で採った推奨①②④＝00一覧の軍の裁定の表・AI の整理）＝**陸軍の不安の割合**（SecurityThreatArmy÷(それ＋自国の養える軍)）が
     /// 半分以上か、交戦中かつ総動員中＝上限（皆兵の門〔身分の特権が無い＝農奴解放が全面〕が開いていれば国民皆兵・閉じていれば選抜・既に皆兵なら皆兵）／他は現状維持
+    /// （★(193) 下げる線を分けた＝線の間だけが現状維持・下げる線の下は下げの目標＝下の (193) の番人。この番人の割合 0 の行は (193) で志願へ直した）
     /// （陸軍の不安に入らない海の不安と植民地の不安は数えない・志願制の理由にもしない・旧 (155) の「平時の男子普選以上なら志願制」の枝は外した・交戦だけでは上げない）。
     /// 軍事費の段は不安の全体を読む（陸軍の不安を読まない）。呼び手（UtilityAgent.Apply＝目標を書いて法の門へ通す）でも同じ。
     /// ⚠突然変異「徴兵法を不安の全体で読む（旧）」「男子普選の枝を戻す（旧）」「交戦だけで上げる（旧）」「上限を門に依らず選抜（旧）／皆兵に」「線を 0.3／&gt; 0.5 に」で赤。</summary>
@@ -1453,17 +1454,18 @@ public class MilitaryTests
         Assert.Equal(ConscriptionLaw.Selective, Decide(w, ConscriptionLaw.Volunteer, 150, 150));
         Assert.Equal(ConscriptionLaw.Selective, Decide(w, ConscriptionLaw.Volunteer, 100, 100));
         Assert.Equal(ConscriptionLaw.Selective, Decide(w, ConscriptionLaw.Selective, 150, 150));
-        // 陸軍の不安の割合 0.4（線の下・平時）＝現状維持（どちらの法からも動かない）
+        // 陸軍の不安の割合 0.4（線の下・平時）＝現状維持（どちらの法からも動かない）＝★(193) 上げる線と下げる線（選抜 1/12・皆兵 1/3）の間
         double l4 = 100.0 * 0.4 / 0.6;
         Assert.Equal(ConscriptionLaw.Volunteer, Decide(w, ConscriptionLaw.Volunteer, l4, l4));
         Assert.Equal(ConscriptionLaw.Selective, Decide(w, ConscriptionLaw.Selective, l4, l4));
-        // 不安の全体は大きい（割合 0.75）が陸軍の不安は0（海軍で防げる海の不安と植民地の不安）＝現状維持（旧＝不安の全体を読み徴兵制／(162)①＝志願制）
+        // 不安の全体は大きい（割合 0.75）が陸軍の不安は0（海軍で防げる海の不安と植民地の不安）＝上げない（旧＝不安の全体を読み徴兵制／(162)①＝志願制）
+        //   ★(193) 下げも陸軍の不安だけを読む＝陸軍の不安0 は選抜の下げる線（1/12）の下＝志願を目標に（不安の全体 0.75 では保たない）。(178)〜(192) はここが現状維持（片方向の錠）
         Assert.Equal(ConscriptionLaw.Volunteer, Decide(w, ConscriptionLaw.Volunteer, 300, 0));
-        Assert.Equal(ConscriptionLaw.Selective, Decide(w, ConscriptionLaw.Selective, 300, 0));
+        Assert.Equal(ConscriptionLaw.Volunteer, Decide(w, ConscriptionLaw.Selective, 300, 0));
         Assert.Equal(ConscriptionLaw.Volunteer, Decide(w, ConscriptionLaw.Volunteer, 300, l4));
         // NaN＝現状維持（比較が偽）
         Assert.Equal(ConscriptionLaw.Volunteer, Decide(w, ConscriptionLaw.Volunteer, double.NaN, double.NaN));
-        // 門が開いている（全面）＝上限は国民皆兵（線の上だけ）・線の下は現状維持（門が開いても上げない＝英米型）
+        // 門が開いている（全面）＝上限は国民皆兵（線の上だけ）・線の下は上げない（門が開いても上げない＝英米型・★(193) 下げる線〔選抜 1/12〕の下＝割合0 の行は志願の目標）
         w.SerfEmancipation = ReformLevel.Full;
         Assert.True(Government.UniversalConscriptionOpen(w));
         Assert.Equal(ConscriptionLaw.Universal, Decide(w, ConscriptionLaw.Volunteer, 150, 150));
@@ -1475,9 +1477,15 @@ public class MilitaryTests
         Assert.Equal(ConscriptionLaw.Universal, Decide(w, ConscriptionLaw.Universal, 150, 150));
         w.SerfEmancipation = ReformLevel.Limited; w.ConscriptionLaw = ConscriptionLaw.Selective;
         // 男子普選以上でも陸軍の不安が線の下なら現状維持（旧 (155)＝志願制へ）・線の上なら上限へ
+        //   ★(193) 参政権は読まない＝選抜の下げる線（1/12）より上の割合 0.2 は現状維持・割合0 は参政権に依らず志願を目標に（下げる線は不安だけ）
         w.Suffrage = Suffrage.AdultMale;
+        double l2 = 100.0 * 0.2 / 0.8;
         Assert.Equal(ConscriptionLaw.Selective, Decide(w, ConscriptionLaw.Selective, l4, l4));
-        Assert.Equal(ConscriptionLaw.Selective, Decide(w, ConscriptionLaw.Selective, 0, 0));
+        Assert.Equal(ConscriptionLaw.Selective, Decide(w, ConscriptionLaw.Selective, l2, l2));
+        Assert.Equal(ConscriptionLaw.Volunteer, Decide(w, ConscriptionLaw.Selective, 0, 0));
+        w.Suffrage = Suffrage.None;
+        Assert.Equal(ConscriptionLaw.Volunteer, Decide(w, ConscriptionLaw.Selective, 0, 0));
+        w.Suffrage = Suffrage.AdultMale;
         Assert.Equal(ConscriptionLaw.Selective, Decide(w, ConscriptionLaw.Volunteer, 150, 150));
         w.Suffrage = Suffrage.None;
         // 呼び手（Apply＝目標を書き、法の門で今の段＋1 までに丸める）：志願制の国で陸軍の割合 0.6＝選抜・全体 0.75 で陸軍0＝志願のまま
@@ -1501,11 +1509,100 @@ public class MilitaryTests
         fr.SecurityThreatOwnMass = 100;
         Assert.True(fr.AtWarNow, "前提が崩れた：仏が交戦中でない");
         fr.Mobilized = false;
+        fr.ConscriptionLaw = ConscriptionLaw.Volunteer;   // ★(193) 今の段を志願に置く（交戦中は今の段より下の目標を畳む＝下げの目標と上げないことを分けて見るため）
         Assert.Equal(ConscriptionLaw.Volunteer, Decide(fr, ConscriptionLaw.Volunteer, 300, 0));
         fr.Mobilized = true;
         Assert.Equal(ConscriptionLaw.Selective, Decide(fr, ConscriptionLaw.Volunteer, 300, 0));
         fr.SerfEmancipation = ReformLevel.Full;
         Assert.Equal(ConscriptionLaw.Universal, Decide(fr, ConscriptionLaw.Selective, 300, 0));
+    }
+
+    /// <summary>★(193) 徴兵法の上げる線と下げる線を分けた（00一覧 §0-A の 0d・0e の徴兵法の分・README §1-8・推奨で進めた＝作者の承認は未確認）。
+    /// (188) の C の目標の式（線の下は現状維持）は平時に上げた段が不安が去っても下がらない片方向の錠を作った（r192 の平時に下げた件数 0.0／種）。
+    /// (a) 段は入力の大きさで選ぶ＝求める深さ（割合÷上げる線 0.5）＋幅 1/3 を今の段の深さ（志願0／選抜0.5／皆兵1）が超えたら、超えない一番深い段まで
+    ///     （皆兵は割合 1/3 未満で選抜・1/12 未満で志願・選抜は 1/12 未満で志願）・線の間は前の目標（現状維持）
+    /// (b) 呼び手（DecideModernLaws）：上げる線（0.5）は今のまま・下げる線の下は下げの目標・割合が定まらない（分母0・NaN）は現状維持（0 を「不安なし」と読まない）
+    /// (c) 交戦中は下げない（平時に置いた下げの目標も畳む）／戦争が終わった最初の四半期（戦前の記録が残る）は読む不安が交戦中の値＝目標は今の段（上げも下げもしない）・次の四半期は平時の値で上げも下げもする
+    /// (d) 下げも上げと同じ門＝AI の目標の整形（GateAllLawTargets）は支持が足りないだけの下げの一歩を目標に残し（上げと同じ）、施行（Government.Step の StepLevel）は
+    ///     純支持が負なら政治資本で払う＝残りが代価に届かなければ下がらない（無償の失効にしない＝(190) の L と違う）・純支持の門を外せば同じ経路で1段下がる。
+    /// ⚠突然変異「線の下は現状維持（旧 C）」「下げを1段ずつ（大きさで選ばない）」「下げる線＝上げる線」「交戦中も下げる」「交戦中に下げの目標を畳まない」「戦争が終わった最初の四半期も読む」
+    ///   「定まらない割合を0と読む」「下げを施行で無償にする」で赤。</summary>
+    [Fact]
+    public void 徴兵法の目標は上げる線と下げる線を分け下げる段を不安の大きさで選び戦争が終わった四半期は動かさない()
+    {
+        var V = ConscriptionLaw.Volunteer; var S = ConscriptionLaw.Selective; var U = ConscriptionLaw.Universal;
+        // (a) 下げる目標（純粋な関数）
+        Assert.Equal(0.5, UtilityAgent.ConscriptionRaiseShare, 12);
+        Assert.Equal(U, UtilityAgent.ConscriptionLowerTarget(U, 0.40, U));   // 線の間＝前の目標
+        Assert.Equal(S, UtilityAgent.ConscriptionLowerTarget(U, 0.40, S));   // 線の間＝保留中の下げの目標も保つ
+        Assert.Equal(U, UtilityAgent.ConscriptionLowerTarget(U, 0.34, U));   // 皆兵の下げる線 1/3 の上
+        Assert.Equal(S, UtilityAgent.ConscriptionLowerTarget(U, 0.32, U));   // 1/3 の下＝選抜（1段）
+        Assert.Equal(S, UtilityAgent.ConscriptionLowerTarget(U, 0.09, U));   // 1/12 の上＝選抜で止まる
+        Assert.Equal(V, UtilityAgent.ConscriptionLowerTarget(U, 0.08, U));   // 1/12 の下＝志願まで（段は大きさで選ぶ）
+        Assert.Equal(S, UtilityAgent.ConscriptionLowerTarget(S, 0.09, S));   // 選抜は 1/12 の上なら保つ（開幕の大陸の割当て＝仏 0.17・西 0.13）
+        Assert.Equal(V, UtilityAgent.ConscriptionLowerTarget(S, 0.08, S));
+        Assert.Equal(V, UtilityAgent.ConscriptionLowerTarget(V, 0.0, V));
+        Assert.Equal(U, UtilityAgent.ConscriptionLowerTarget(U, double.NaN, U));   // NaN＝保つ
+        // (b) 呼び手（平時・単一国の盤面に不安を直に置く）
+        var w = France155().World;
+        var decide = typeof(UtilityAgent).GetMethod("DecideModernLaws", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!;
+        ConscriptionLaw Decide(World x, ConscriptionLaw cur, ConscriptionLaw from, double share, double own = 100)
+        {
+            x.ConscriptionLaw = cur; x.Policy.ConscriptionLaw = from;
+            x.SecurityThreatOwnMass = own; x.SecurityThreatArmy = own * share / (1 - share);
+            decide.Invoke(null, [x, x.Policy, UtilityAgent.Stance.Industrialize]);
+            return x.Policy.ConscriptionLaw;
+        }
+        w.SerfEmancipation = ReformLevel.Full;   // 皆兵の門を開く（上げの上限＝皆兵）
+        Assert.False(w.AtWarNow, "前提が崩れた：仏が交戦中");
+        Assert.Equal(-1, w.ConscriptionPreWar);
+        Assert.Equal(U, Decide(w, S, S, 0.5));    // 上げる線ちょうど＝上限
+        Assert.Equal(U, Decide(w, U, U, 0.45));   // 線の間＝現状維持
+        Assert.Equal(S, Decide(w, U, U, 0.30));   // 下げる線の下＝選抜
+        Assert.Equal(V, Decide(w, U, U, 0.02));   // ずっと下＝志願
+        Assert.Equal(S, Decide(w, S, S, 0.20));   // 選抜は線の間
+        Assert.Equal(V, Decide(w, S, S, 0.0));    // 陸軍の不安0（分母は正＝定まっている）＝志願を目標
+        Assert.Equal(S, Decide(w, S, S, 0.0, own: 0));   // 分母0（定まらない＝単一国）＝現状維持（0 を「不安なし」と読まない）
+        w.SecurityThreatOwnMass = 100; w.SecurityThreatArmy = double.NaN; w.ConscriptionLaw = U; w.Policy.ConscriptionLaw = U;
+        decide.Invoke(null, [w, w.Policy, UtilityAgent.Stance.Industrialize]);
+        Assert.Equal(U, w.Policy.ConscriptionLaw);   // NaN＝現状維持
+        // (c) 交戦中は下げない・戦争が終わった最初の四半期は動かさない
+        var sim = Frozen152("フランス", "スペイン");
+        sim.StepQuarter();
+        var fr = sim.Nations[0].World;
+        fr.SerfEmancipation = ReformLevel.Full;
+        var war = new War { A = fr.SelfPower!, B = sim.Nations[1].World.SelfPower! };
+        sim.Diplomacy.Wars.Add(war);
+        fr.Mobilized = false;
+        Assert.True(fr.AtWarNow, "前提が崩れた：仏が交戦中でない");
+        Assert.Equal(U, Decide(fr, U, U, 0.02));   // 交戦中＝下げない
+        Assert.Equal(U, Decide(fr, U, S, 0.40));   // 交戦中＝平時に置いて門で止まっていた下げの目標も今の段へ畳む
+        Assert.Equal(U, Decide(fr, S, U, 0.40));   // 交戦中でも上げの目標は保つ（従来どおり）
+        fr.ConscriptionLaw = S; fr.Policy.ConscriptionLaw = S;
+        Government.Step(fr, fr.Coef);   // 交戦に入った四半期＝戦前の段（選抜）を記録
+        Assert.Equal((int)S, fr.ConscriptionPreWar);
+        sim.Diplomacy.Wars.Remove(war);
+        Assert.False(fr.AtWarNow);
+        Assert.Equal(S, Decide(fr, S, U, 0.9));    // 戦争が終わった最初の四半期＝戦時の値で上げない（前の目標の皆兵も畳む）
+        Assert.Equal(U, Decide(fr, U, U, 0.02));   // 同じ四半期＝戦時の値で下げない（戦時に上げた分は失効が戻す）
+        Government.Step(fr, fr.Coef);   // 失効＝戦前の段へ・記録は消える
+        Assert.Equal(S, fr.ConscriptionLaw);
+        Assert.Equal(-1, fr.ConscriptionPreWar);
+        Assert.Equal(U, Decide(fr, S, S, 0.9));    // 次の四半期＝平時の値を読む（上げる線の上なら上げる）
+        Assert.Equal(V, Decide(fr, S, S, 0.02));   // 下げる線の下なら下げる
+        // (d) 下げも上げと同じ門（AI の目標の整形と施行）
+        fr.ConscriptionLaw = U; fr.Policy.ConscriptionLaw = S;   // AI が下げる線の下で置いた目標（選抜）
+        var gi = Government.GateInfo(fr, PolicyAxis.ConscriptionLaw, false, (int)S);
+        Assert.True(gi.Cost > 0, $"前提が崩れた：仏の下げる一歩が無償（純支持が負でない・代価 {gi.Cost}）");
+        UtilityAgent.GateAllLawTargets(fr, fr.Policy);
+        Assert.Equal(S, fr.Policy.ConscriptionLaw);   // 支持が足りないだけ＝規則の段ではない＝下げの一歩を目標に残す（上げと同じ）
+        fr.MandateSpent = 1e9;   // 政治資本の残りなし
+        Government.Step(fr, fr.Coef);
+        Assert.Equal(U, fr.ConscriptionLaw);   // 純支持が負で払えない＝下がらない（無償の失効にしない）
+        fr.PoliticalLockEnabled = false;   // 純支持の門を外す（政治の均衡に依らず通す）
+        fr.Policy.ConscriptionLaw = S;
+        Government.Step(fr, fr.Coef);
+        Assert.Equal(S, fr.ConscriptionLaw);   // 同じ施行の経路（StepLevel）で1段下がる
     }
 
     /// <summary>★(178) 陸軍の不安（World.SecurityThreatArmy・作者 2026-10-03 で採った推奨②「海と陸を完全に分けない」＝陸の不安＋海の不安のうち自国の海軍で防げない分）
