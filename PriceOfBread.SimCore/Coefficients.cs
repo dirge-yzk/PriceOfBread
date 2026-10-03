@@ -972,7 +972,7 @@ public sealed class Coefficients
     public double FrontierUnlockThreshold = 1.0;    // インフラがこれを超えたら active 化
     public double RegionMobility = 0.03;            // 地域間移民の緩和速度
     // 【墓標2026-10-01 (141)】MigrationSecondDestShare（0.3＝州間移民の第2目的地への分岐率・監査2026-07-05 D2）＝行き先は機会の差の比で全ての州へ（越境移民と同じ規則・Territory.Step）。
-    public double TransportFriction = 0.15;         // 州間移民の差から差し引く摩擦（★(141)：距離の減衰は別に Territory.MigrationDecay＝越境移民と同じ1本）。★(158)：同じ民族の州へ移る費用＝閾値の1本 Territory.MigrationThreshold の親和1の端（言葉と民族の違う州へは CrossBorderOppGapThreshold）・★(191)：本国どうし（格 Core）は言葉と民族が違ってもこの値
+    public double TransportFriction = 0.15;         // 州間移民の差から差し引く摩擦（★(141)：距離の減衰は別に Territory.MigrationDecay＝越境移民と同じ1本）
     // 民族統一度（倍率排除⑧で POP属性化＝各popの CoreEthnicShare 加重平均から創発。EthnicEnabled の国のみ・較正＝無効）。移民（国家間移民）で希釈→同化で回復、低統一度は移民を引き低教育は排斥で阻む。
     // ★段2で削除（設計メモ §7-3）：UnityMilitancyRelief（上昇鈍化）と UnitySecessionMilitancy（国項）。
     //   EthnicUnity は **CoreEthnicShare の人口加重平均そのもの**＝同じ民族統一度を闘争度の中で3度読んでいた
@@ -2656,7 +2656,7 @@ public sealed class Coefficients
     public double EducationGateUsesEma = 0.0;   // 人13：昇格の高等教育ゲート（Meritocracy）に多年EMAを使う（0=当月EducationFillの瞬間フロー＝現行／1=EducationEmaストックで判定＝一時的な教育の途絶で資格が消えない）
     public double EducationEmaRate = 0.05;   // 人13：EducationEmaの当月Fillへの月次収束率。EducationGateUsesEma=0の既定では未使用＝挙動非依存。値は#17で較正
     public double CrossBorderMigrationByOpportunity = 1.0;   // 人3/外14：国家間移民を州の機会で判定する（★回1-2・2026-09-27＝全ての Active 州が送出州・★(141) 他の国の全ての Active 州が受入州・差＝受入州の機会−送出州の機会×持ち分×食料充足−閾値＝MultiNationSim.MigrateBetweenNations の5段）。0で越境移民なし（旧・満足度ベース経路は2026-07-28に係数ごと削除済み）
-    public double CrossBorderOppGapThreshold = 0.5;    // 州機会gapの発火閾値（機会スケール1〜3に合わせた初期値＝要batch測定。旧EmigrationGapThreshold=満足度スケール0.15は不適合）。★(158)：言葉と民族の違う土地へ移る費用＝閾値の1本 Territory.MigrationThreshold の親和0の端＝越境移民と、国内の移民のうち異民族の州への分（民族の親和で TransportFriction と結ぶ）
+    public double CrossBorderOppGapThreshold = 0.5;    // 州機会gapの発火閾値（機会スケール1〜3に合わせた初期値＝要batch測定。旧EmigrationGapThreshold=満足度スケール0.15は不適合）
     // R3 移民の距離減衰＋渡航コスト財化（2026-07-13・残タスク表 最高インパクト）。移民3関数がGeo/距離を一切読まない＝欧州の農民が米も豪も同確率だった。
     // 大圏距離 Geo.DistanceKm（首都間・海路運河は移民には過剰精緻＝陸海両用の距離近似）。両係数とも既定0で厳密恒等（scale=0→減衰1.0・fare=0→運賃なし）。
     public double MigrationDistanceScale = 10000.0;   // 【点火2026-07-13(2)＝10000km】0=距離無感応（厳密恒等）。>0で越境移民（★(141) 国内の移民も＝Territory.MigrationDecay の1本・州の座標の間）の引力gapに距離減衰 1/(1+DistanceKm/これ) を乗じる＝近い行き先を選ぶ（史実の距離逓減：欧州内・北大西洋が主流で遠距離は運賃/情報で細る）。10000＝欧州→米6000km:0.63/アルゼンチン11000km:0.48/豪16000km:0.38＝機会の大きい米が距離でも勝ち残る緩い減衰。要batch調律

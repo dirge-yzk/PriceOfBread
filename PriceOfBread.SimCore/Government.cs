@@ -252,13 +252,7 @@ public static class Government
         //   平時から有った徴兵法（普・仏・露）は戻らない（戦前の段が徴兵なら徴兵のまま）＝戻すのは「今の段が戦前の段より上」のときだけ。平時の再制定は AI もプレイヤーも門を通す（下のループ）。
         //   戦前の段は交戦に入った四半期に記録する（World.ConscriptionPreWar＝思想⑩の例外の理由はその注記）。クールダウンではない＝戦争の終わりという状態で決まる。
         //   保存目標も同じ段へ戻す（R2 の戦時段の失効と同じ＝次の戦争で選び直さずに黙って上がらない）。全国が四半期頭に通る1箇所＝AI とプレイヤーの共通経路（IsPlayer を読まない）。
-        // ★(190) 法の錠を対称に（00一覧 §0-A の 0d・作者 2026-10-03「他は推奨でよい」・推奨で進めた＝作者の承認は未確認）＝**非常時に上げた徴兵法は非常時が去れば戻る**へ広げた。
-        //   非常時＝交戦中 **または** 陸軍の不安の割合（UtilityAgent.SecurityShare の army）が AI が徴兵法を上げる線（UtilityAgent.ConscriptionThreatLine＝(155) の 0.5 のまま）以上。
-        //   上げる線と戻す線が同じ1本＝上げは支持（純支持が正なら無償）・戻しは失効（議決の要らない非常の法の終わり＝無償）＝同じ門・同じ費用（README §1-8「上げると下げるを同じ費用で」）。
-        //   旧（(178)）＝戦争だけ＝平時に陸軍の不安が線を越えて上げた段は、不安が去っても下がらなかった（AI の目標は線の下で現状維持・下げる一歩は旧支配層と軍の支持の逆向き＝
-        //   英の下げる一歩が門を通ったのは平時の国×四半期の 6.0%〔平均の代価 0.347＞政治資本の最大量〕・(190) の計器）＝英が平時に皆兵のまま 4/10 の種（(188)）。
-        //   戦争が終わっても不安が線の上なら戻さない（普1814・仏1872・露1874＝脅威が続く間の平時の法）・不安が線の下なら戻す（英1920・米1865）。状態は戦前の段の1つのまま（新しい状態なし）・クールダウンではない（不安と戦争という状態で決まる）。
-        if (w.AtWarNow || UtilityAgent.SecurityShare(w, army: true) >= UtilityAgent.ConscriptionThreatLine) { if (w.ConscriptionPreWar < 0) w.ConscriptionPreWar = (int)w.ConscriptionLaw; }
+        if (w.AtWarNow) { if (w.ConscriptionPreWar < 0) w.ConscriptionPreWar = (int)w.ConscriptionLaw; }
         else if (w.ConscriptionPreWar >= 0)
         {
             if ((int)w.ConscriptionLaw > w.ConscriptionPreWar) { w.ConscriptionLaw = (ConscriptionLaw)w.ConscriptionPreWar; p.ConscriptionLaw = w.ConscriptionLaw; }
@@ -571,7 +565,8 @@ public static class Government
     /// 廃止した国は国民皆兵を目標にできる＝法の上の平等＝等しい義務・国家が母数に直接届く）＝AI の整理。武士の特権は日本の開幕の農奴解放の法「なし」が持つ（world.json＝国名の分岐なし）。
     /// 史実（身分の解放→国民皆兵）＝普 1807 十月勅令→1813/14 一般兵役義務・仏 1789 封建的特権の廃止→1798 ジュルダン法・露 1861 農奴解放令→1874 国民皆兵・墺 1848 農民解放→1868 一般兵役・
     /// オスマン 1839 ギュルハネ勅令→1843 予備軍（1848 籤）・日 1871 廃藩置県と身分の解放→1873 徴兵令。英米は置き換える封建の兵が無く大戦の時だけ徴兵（門は開幕から開いている＝皆兵を止めるのは不安の側）。
-    /// 読み手＝<see cref="LawPrereq"/>（皆兵へ登る門）と AI の目標の上限（UtilityAgent.DecideModernLaws）。</summary>
+    /// 読み手＝<see cref="LawPrereq"/>（皆兵へ登る門）と AI の目標の上限（UtilityAgent.DecideModernLaws）。
+    /// ⚠ 門をプレイヤーの法（法律タブ・勢力の要求）の前提にも掛ける形は AI の設計（AI とプレイヤーは同じ関数＝思想⑤）＝作者の承認は未確認（(192) 反証役 vm1#5）。</summary>
     internal static bool UniversalConscriptionOpen(World w) => Privileges.SeigneurialDegree(w) <= 0;
 
     /// <summary>前提法DAG（1934拡張E4・2026-07-19）：ある法軸をある目標段(0基点)へ上げる前提が満たされているか＋不足理由。

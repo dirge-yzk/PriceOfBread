@@ -955,6 +955,35 @@ public class MilitaryTests
         Assert.Equal(r.MilitaryTier3LandFill, r.MilitaryTier3Fill);
     }
 
+    /// <summary>★(192)（反証役 vn1#5＝呼び手の側の番人の穴）艦の購入の決済（EconomyStep.Run の海軍の調達）：発注（FleetOrder）を海軍の予算（Region.NavalBudget）で切った量だけ買い、
+    /// 買えた艦を首都の州の艦の在庫（Region.FleetUnits）に積み、支払いを海軍の区分（TreasuryCat.Navy）へ入れる（国庫→造船の売上）。
+    /// 盤面＝英仏（外交は止める）を1か月→艦の在庫を空にし、海の必要量を置いて Run を直に呼ぶ（月次の予算の書き手 Simulation は通さない＝予算を手で置く）。
+    /// ①予算＝必要額の1%＝積み増しは正で発注×1% 以下 ②同じ盤面をもう1つ作り予算を2% にすると積み増しが増える（予算で切られる＝供給で切られない範囲）③海軍の区分に支払いが立つ。
+    /// ⚠突然変異「艦の発注の充足を陸の装備の予算（MilitaryBudget）で切る」「買えた艦を在庫に積まない」「支払いを陸軍の区分へ」で赤。</summary>
+    [Fact]
+    public void 艦の購入は海軍の予算で切った発注を首都の艦の在庫に積み海軍の区分で払う()
+    {
+        static (double Got, double Paid, double Want) One(double frac)
+        {
+            var sim = Frozen152("イギリス", "フランス");
+            var w = sim.Nations[0].World; var sp = w.SelfPower!; var r = w.Region; var c = w.Coef;
+            for (int d = 0; d < 30; d++) sim.StepDay();
+            sp.NeedSea = 0.4; sp.NavySkillMul = 1.0; r.NationHasPort = true;
+            foreach (var rr in w.Regions) rr.FleetUnits = null;
+            int kw = System.Array.IndexOf(c.FleetGoodIds, Catalog.WarshipId);
+            var q = EconomyStep.FleetOrder(r, c, w, out double cost);
+            Assert.True(q is not null && q[kw] > 0 && cost > 0, "前提が崩れた：帆船の軍艦の発注が無い");
+            r.NavalBudget = frac * cost;
+            EconomyStep.Run(r, c, 1.0, w.Bank, w);
+            return (r.FleetUnits?[kw] ?? 0, r.StateSpent[(int)TreasuryCat.Navy], q![kw]);
+        }
+        var a = One(0.01); var b = One(0.02);
+        Assert.True(a.Got > 0, "買えた艦が首都の艦の在庫に積まれない");
+        Assert.True(a.Got <= 0.01 * a.Want * (1 + 1e-6), $"海軍の予算で切られていない：積み増し {a.Got}＞発注×1% {0.01 * a.Want}");
+        Assert.True(b.Got > 1.5 * a.Got, $"積み増しが海軍の予算で切られていない：1% {a.Got}・2% {b.Got}");
+        Assert.True(a.Paid > 0, "艦の支払いが海軍の区分に入らない");
+    }
+
     /// <summary>★(151) 呼び手の側：脅威の緊張（Diplomacy.ThreatTension）は届き方（ThreatReach）で配る＝同盟の組には立たない（作者裁定 2026-09-29 の5「同盟国は計上しない」）。
     /// 盤面＝仏西日（開幕・脅威の緊張のほかの緊張の経路を黙らせ・四半期の境でない月）＝仏西を同盟にして外交を1か月＝仏西の緊張は動かず、脅威の緊張そのものはどこかの組に立つ。
     /// ⚠突然変異「届き方を読まない（全ての国へ同じ強さ＝旧）」で赤。</summary>
@@ -1406,8 +1435,8 @@ public class MilitaryTests
     /// (d) 西の州を全て植民地格にすると仏西の本国の国境は**両方の向きで**0（植民地から来る不安も植民地へ向かう不安も数えない）・全ての国境は変わらない・統合格は本国に数える
     /// (e) エンジンを回し直すと仏と西の陸軍の不安は下がり、数え直しと一致する。
     /// (f) ★(188) 植民地の国境を数えないのは徴兵法の目標（陸軍の不安）だけ＝同じ盤面で不安の全体（AI の軍事費の段が読む＝SecurityShare の全体）と
-    ///     理想の軍隊の形の陸の必要量（ArmyShape.Compute の NeedLand＝軍の大きさ）は植民地の国境を数えたまま動かない（作者 2026-10-03 README §1-7 で③を推奨の形へ＝
-    ///     「植民地の国境は軍事費と軍の大きさには数える（2026-09-29 (2) のまま）・徴兵法の目標にだけは数えない」・00一覧の軍の裁定の表）。
+    ///     理想の軍隊の形の陸の必要量（ArmyShape.Compute の NeedLand＝軍の大きさ）は植民地の国境を数えたまま動かない（AI の推奨・README §1-7 で進めた・作者の承認は未確認＝
+    ///     植民地の国境は軍事費と軍の大きさには数える〔2026-09-29 (2) のまま〕・徴兵法の目標にだけは数えない・00一覧の軍の裁定の表・(192) 反証役 vm1#5）。
     /// ⚠突然変異「陸軍の不安に植民地の国境を数える」「片側だけ本国（(168) の形）」「海越えの投射を上陸の門に依らず数える」「海越えの投射を全て除く（(168) の形）」
     ///   「不安の全体も本国の国境だけを読む」「理想の軍隊の形の陸の必要量も本国の国境だけを読む」で赤。</summary>
     [Fact]
@@ -1629,70 +1658,6 @@ public class MilitaryTests
         Assert.Equal(ConscriptionLaw.Volunteer, uk.Policy.ConscriptionLaw);
         sim.StepQuarter();
         Assert.Equal(ConscriptionLaw.Volunteer, uk.ConscriptionLaw);
-    }
-
-    /// <summary>★(190) 法の錠を対称に（00一覧 §0-A の 0d・作者 2026-10-03「他は推奨でよい」・推奨で進めた＝作者の承認は未確認）＝**非常時に上げた徴兵法は非常時が去れば戻る**
-    /// （(178) の「戦時に上げた徴兵法は戦後に戻る」を非常時へ広げた＝非常時＝交戦中 または 陸軍の不安の割合が AI の上げる線〔UtilityAgent.ConscriptionThreatLine〕以上）。
-    /// 上げる線と戻す線は同じ1本（AI の目標がちょうど線の上で上限へ上げる＝上の AI の番人・戻すのはその線の下）。盤面＝英（開幕の志願制）・外交を止めて不安を盤面へ直に置く。
-    /// (a) 平時に不安が線の上になった四半期に今の段を記録 (b) 線の上の間は上げた段が残り記録はそのまま (c) ちょうど線の上（割合＝線）は非常時＝戻さない
-    /// (d) 線の下へ戻り交戦もしていない四半期に記録の段へ戻り・保存目標も同じ段・記録は消える (e) 非常時でない間に上げた段（記録なし）は戻さない
-    /// (f) 戦争が終わっても不安が線の上なら戻さず（普1814・仏1872 型）、線の下へ戻った四半期に戻す（英1920・米1865 型）。
-    /// ⚠突然変異「非常時を交戦だけで読む（(178) の旧）」「戻す線を上げる線と別にする（線ちょうどを非常時に数えない）」で赤。</summary>
-    [Fact]
-    public void 平時に不安で上げた徴兵法は不安が線の下へ戻れば非常時の前の段へ戻る()
-    {
-        var sim = Frozen152("イギリス", "フランス");
-        sim.StepQuarter();
-        var uk = sim.Nations[0].World; var fr = sim.Nations[1].World;
-        double line = UtilityAgent.ConscriptionThreatLine;
-        void Share(double s) { uk.SecurityThreatOwnMass = 100; uk.SecurityThreatArmy = 100 * s / (1 - s); }
-        void Set(ConscriptionLaw l) { uk.ConscriptionLaw = l; uk.Policy.ConscriptionLaw = l; }
-        Assert.False(uk.AtWarNow, "前提が崩れた：英が交戦中");
-        Assert.Equal(ConscriptionLaw.Volunteer, uk.ConscriptionLaw);
-        Assert.Equal(-1, uk.ConscriptionPreWar);
-        Share(line);
-        Assert.Equal(line, UtilityAgent.SecurityShare(uk, army: true), 12);   // 盤面の作り方の確かめ（ちょうど線）
-        // (a) 平時に不安が線の上＝非常時に入った四半期に記録
-        Share(0.6);
-        Government.Step(uk, uk.Coef);
-        Assert.Equal((int)ConscriptionLaw.Volunteer, uk.ConscriptionPreWar);
-        // (b) 線の上の間に上げた段は残る（どの経路でも同じ＝ここでは法と目標を直に置く）
-        Set(ConscriptionLaw.Selective);
-        Government.Step(uk, uk.Coef);
-        Assert.Equal(ConscriptionLaw.Selective, uk.ConscriptionLaw);
-        Assert.Equal((int)ConscriptionLaw.Volunteer, uk.ConscriptionPreWar);
-        // (c) ちょうど線の上＝非常時（AI が上げる線と同じ）＝戻さない
-        Share(line);
-        Government.Step(uk, uk.Coef);
-        Assert.Equal(ConscriptionLaw.Selective, uk.ConscriptionLaw);
-        Assert.Equal((int)ConscriptionLaw.Volunteer, uk.ConscriptionPreWar);
-        // (d) 線の下へ戻り交戦もしていない＝非常時の前の段へ・保存目標も・記録は消える
-        Share(0.4);
-        Government.Step(uk, uk.Coef);
-        Assert.Equal(ConscriptionLaw.Volunteer, uk.ConscriptionLaw);
-        Assert.Equal(ConscriptionLaw.Volunteer, uk.Policy.ConscriptionLaw);
-        Assert.Equal(-1, uk.ConscriptionPreWar);
-        // (e) 非常時でない間に上げた段（記録なし）は戻さない＝平時の法（法律タブで置いた法・平時から有った法）
-        Set(ConscriptionLaw.Selective);
-        Government.Step(uk, uk.Coef);
-        Assert.Equal(ConscriptionLaw.Selective, uk.ConscriptionLaw);
-        Assert.Equal(-1, uk.ConscriptionPreWar);
-        // (f) 戦争が終わっても不安が線の上なら戻さず、線の下へ戻った四半期に戻す
-        Set(ConscriptionLaw.Volunteer);
-        var war = new War { A = uk.SelfPower!, B = fr.SelfPower! };
-        sim.Diplomacy.Wars.Add(war);
-        Government.Step(uk, uk.Coef);
-        Assert.Equal((int)ConscriptionLaw.Volunteer, uk.ConscriptionPreWar);
-        Set(ConscriptionLaw.Selective);
-        sim.Diplomacy.Wars.Remove(war);
-        Share(0.6);
-        Government.Step(uk, uk.Coef);
-        Assert.Equal(ConscriptionLaw.Selective, uk.ConscriptionLaw);
-        Assert.Equal((int)ConscriptionLaw.Volunteer, uk.ConscriptionPreWar);
-        Share(0.4);
-        Government.Step(uk, uk.Coef);
-        Assert.Equal(ConscriptionLaw.Volunteer, uk.ConscriptionLaw);
-        Assert.Equal(-1, uk.ConscriptionPreWar);
     }
 
     /// <summary>★(178) 開幕の徴兵法（作者 2026-10-03「全て推奨でよい」で採った推奨「開幕の徴兵法を史実のデータで」）＝1783 年の史実のデータ（world.json の initialConscription・国名の分岐でなくデータ・制度と年と出典は実装ログ (178)）。英・米・日・清・蘭・オスマン＝志願制／普・露・墺・西・仏＝選抜（既定）。

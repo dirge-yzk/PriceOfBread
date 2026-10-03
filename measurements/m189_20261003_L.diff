@@ -1,0 +1,158 @@
+diff --git a/PriceOfBread.SimCore/Government.cs b/PriceOfBread.SimCore/Government.cs
+index e5eb824..8a867a9 100644
+--- a/PriceOfBread.SimCore/Government.cs
++++ b/PriceOfBread.SimCore/Government.cs
+@@ -252,7 +252,13 @@ public static class Government
+         //   平時から有った徴兵法（普・仏・露）は戻らない（戦前の段が徴兵なら徴兵のまま）＝戻すのは「今の段が戦前の段より上」のときだけ。平時の再制定は AI もプレイヤーも門を通す（下のループ）。
+         //   戦前の段は交戦に入った四半期に記録する（World.ConscriptionPreWar＝思想⑩の例外の理由はその注記）。クールダウンではない＝戦争の終わりという状態で決まる。
+         //   保存目標も同じ段へ戻す（R2 の戦時段の失効と同じ＝次の戦争で選び直さずに黙って上がらない）。全国が四半期頭に通る1箇所＝AI とプレイヤーの共通経路（IsPlayer を読まない）。
+-        if (w.AtWarNow) { if (w.ConscriptionPreWar < 0) w.ConscriptionPreWar = (int)w.ConscriptionLaw; }
++        // ★(190) 法の錠を対称に（00一覧 §0-A の 0d・作者 2026-10-03「他は推奨でよい」・推奨で進めた＝作者の承認は未確認）＝**非常時に上げた徴兵法は非常時が去れば戻る**へ広げた。
++        //   非常時＝交戦中 **または** 陸軍の不安の割合（UtilityAgent.SecurityShare の army）が AI が徴兵法を上げる線（UtilityAgent.ConscriptionThreatLine＝(155) の 0.5 のまま）以上。
++        //   上げる線と戻す線が同じ1本＝上げは支持（純支持が正なら無償）・戻しは失効（議決の要らない非常の法の終わり＝無償）＝同じ門・同じ費用（README §1-8「上げると下げるを同じ費用で」）。
++        //   旧（(178)）＝戦争だけ＝平時に陸軍の不安が線を越えて上げた段は、不安が去っても下がらなかった（AI の目標は線の下で現状維持・下げる一歩は旧支配層と軍の支持の逆向き＝
++        //   英の下げる一歩が門を通ったのは平時の国×四半期の 6.0%〔平均の代価 0.347＞政治資本の最大量〕・(190) の計器）＝英が平時に皆兵のまま 4/10 の種（(188)）。
++        //   戦争が終わっても不安が線の上なら戻さない（普1814・仏1872・露1874＝脅威が続く間の平時の法）・不安が線の下なら戻す（英1920・米1865）。状態は戦前の段の1つのまま（新しい状態なし）・クールダウンではない（不安と戦争という状態で決まる）。
++        if (w.AtWarNow || UtilityAgent.SecurityShare(w, army: true) >= UtilityAgent.ConscriptionThreatLine) { if (w.ConscriptionPreWar < 0) w.ConscriptionPreWar = (int)w.ConscriptionLaw; }
+         else if (w.ConscriptionPreWar >= 0)
+         {
+             if ((int)w.ConscriptionLaw > w.ConscriptionPreWar) { w.ConscriptionLaw = (ConscriptionLaw)w.ConscriptionPreWar; p.ConscriptionLaw = w.ConscriptionLaw; }
+diff --git a/PriceOfBread.SimCore/SelfPlay.cs b/PriceOfBread.SimCore/SelfPlay.cs
+index 28ce1a0..48ee8d1 100644
+--- a/PriceOfBread.SimCore/SelfPlay.cs
++++ b/PriceOfBread.SimCore/SelfPlay.cs
+@@ -419,6 +419,10 @@ public sealed class UtilityAgent : INationAgent
+     /// ＝新兵器の必要性の脅威の割合（必要量÷(必要量＋自国の力)・Discovery）と同じ形（有界＝上下を切らない）。小国が大国の隣で感じる不安は1へ近づき、周りに養える軍の少ない国（開国前の日本・清）は0へ近づく。
+     /// 定まらない（単一国・分母0・NaN）は0。
+     /// ★(178) <paramref name="army"/>＝分子を陸軍の不安（<see cref="World.SecurityThreatArmy"/>＝本国の国境＋投射×上陸の門＝自国の海軍で防げない分）に限る（同じ形・分母は同じ自国の養える軍）＝徴兵法の目標だけが読む。</summary>
++    /// <summary>★(190) AI が徴兵法を上限へ上げる線（陸軍の不安の割合・値は (155) の 0.5 のまま＝新しい数ではない）＝**非常時の徴兵法が戻る線と同じ1本**
++    /// （<see cref="Government.Step"/> の非常時の判定が読む＝上げる線と戻す線が同じ＝README §1-8「上げると下げるを同じ費用で」）。</summary>
++    internal const double ConscriptionThreatLine = 0.5;
++
+     internal static double SecurityShare(World w, bool army = false)
+     {
+         double t = army ? w.SecurityThreatArmy : w.SecurityThreat, own = w.SecurityThreatOwnMass;
+@@ -560,9 +564,11 @@ public sealed class UtilityAgent : INationAgent
+         //   ④交戦の枝は総動員の時だけ（総動員は劣勢と存亡で入る＝DecideQuarter の上の段落・旧＝交戦中なら徴兵制＝英の戦時の法の上げ下げ 36回/試合〔史実 1916・1939 の2回〕）。
+         //     旧 (155) の「平時の男子普選以上なら志願制」の枝は外した（史実の向きは参政権でなく脅威と身分の特権で決まる＝仏の第三共和政は男子普選と国民皆兵）。
+         //   志願制へ戻る道＝戦時に上げた徴兵法の失効（Government.Step＝戦争が終わった四半期に戦前の段へ）と開幕の法（world.json の initialConscription）。NaN は比較が偽＝現状維持の側。
++        //   ★(190) 戻る道を非常時へ広げた＝線（ConscriptionThreatLine）の上で上げた段は、不安が線の下へ戻り交戦もしていない四半期に非常時の前の段へ戻る（Government.Step）＝目標は線の下では現状維持のまま
++        //     （目標を下げても下げる一歩は旧支配層と軍の支持の逆向き＝政治資本の門が止める＝下げの目標は戦線を開くだけ・(190) の腕 B〔線の下を段の幅で内分〕で英の平時の皆兵 3/5→5/5 の種・米の平時の選抜 0→28〜87%〔1804 年以後の10年の窓〕）。
+         //   【(162)① の「平時に不安の多くが海の向こうと植民地から来る国は志願制」は (163) の合流で差し戻した 2026-10-02】＝パッチ measurements/m163_20261002_landthreat.diff。
+         var csTop = w.ConscriptionLaw == ConscriptionLaw.Universal || Government.UniversalConscriptionOpen(w) ? ConscriptionLaw.Universal : ConscriptionLaw.Selective;
+-        p.ConscriptionLaw = SecurityShare(w, army: true) >= 0.5 || (atWar && w.Mobilized) ? csTop : p.ConscriptionLaw;
++        p.ConscriptionLaw = SecurityShare(w, army: true) >= ConscriptionThreatLine || (atWar && w.Mobilized) ? csTop : p.ConscriptionLaw;
+         if (w.Suffrage >= Suffrage.AdultMale) p.SecretBallot = SecretBallotLaw.Secret;   // 大衆選挙＝買収・威圧の排除が票の実在に直結
+         if (w.AdminEfficiency > ProfessionalBureaucracyAdminThreshold) p.Bureaucracy = BureaucracyLaw.Professional;   // 行政力が育った国＝専門官僚制へ（プロイセン文官改革）
+         if (w.MeanIndustrialization > AntitrustIndThreshold)
+diff --git a/PriceOfBread.SimCore/World.cs b/PriceOfBread.SimCore/World.cs
+index d3b29e8..a36b36d 100644
+--- a/PriceOfBread.SimCore/World.cs
++++ b/PriceOfBread.SimCore/World.cs
+@@ -118,6 +118,8 @@ public sealed class World
+     //   （交戦中で記録が無ければ今の段を記録・戦争が終わった四半期に、今の段が記録より上なら記録の段へ戻して消す）。読み手も Government.Step だけ。建国は親の記録を継ぐ（CopyLawsFrom）。
+     //   ⚠盤面から導けない（戦争が終わった時点で、今の段が戦時に上げたものか平時から有ったものかは法の値からは分からない＝英1916 の兵役法は戻り、普1814・日1873 の平時の法は戻らない）＝思想⑩の例外として1つ持つ。
+     //   クールダウンではない（戦争の終わりという状態で決まる）。R2（戦時段の失効）と同じ形＝戦時の段は戦争が前提。
++    //   ★(190) 記録の条件を**非常時**（交戦中 または 陸軍の不安の割合が AI の上げる線 UtilityAgent.ConscriptionThreatLine 以上）へ広げた＝非常時の前の段（名前は旧のまま）。
++    //     非常時が去った四半期（交戦せず不安が線の下）に、今の段が記録より上なら記録の段へ戻して消す＝平時に不安で上げた段も不安が去れば戻る（英が平時に皆兵のまま＝(188) の片方向の錠）。
+     public int ConscriptionPreWar { get; internal set; } = -1;
+     public SecretBallotLaw SecretBallot { get; internal set; } = SecretBallotLaw.Open;              // 秘密投票法（現在値・1934拡張E5）。発言権の鎮静効果を選挙の実在で変調（紙の参政権是正）。SecretBallotGate=0で恒等
+     // ★★★予算法・統帥法（作者設計 2026-08-20）＝**追加するものは法だけ**。予算権と統帥権は独立ストックを持たず、
+diff --git a/PriceOfBread.Tests/MilitaryTests.cs b/PriceOfBread.Tests/MilitaryTests.cs
+index 73c858d..ef46eff 100644
+--- a/PriceOfBread.Tests/MilitaryTests.cs
++++ b/PriceOfBread.Tests/MilitaryTests.cs
+@@ -1631,6 +1631,70 @@ public class MilitaryTests
+         Assert.Equal(ConscriptionLaw.Volunteer, uk.ConscriptionLaw);
+     }
+ 
++    /// <summary>★(190) 法の錠を対称に（00一覧 §0-A の 0d・作者 2026-10-03「他は推奨でよい」・推奨で進めた＝作者の承認は未確認）＝**非常時に上げた徴兵法は非常時が去れば戻る**
++    /// （(178) の「戦時に上げた徴兵法は戦後に戻る」を非常時へ広げた＝非常時＝交戦中 または 陸軍の不安の割合が AI の上げる線〔UtilityAgent.ConscriptionThreatLine〕以上）。
++    /// 上げる線と戻す線は同じ1本（AI の目標がちょうど線の上で上限へ上げる＝上の AI の番人・戻すのはその線の下）。盤面＝英（開幕の志願制）・外交を止めて不安を盤面へ直に置く。
++    /// (a) 平時に不安が線の上になった四半期に今の段を記録 (b) 線の上の間は上げた段が残り記録はそのまま (c) ちょうど線の上（割合＝線）は非常時＝戻さない
++    /// (d) 線の下へ戻り交戦もしていない四半期に記録の段へ戻り・保存目標も同じ段・記録は消える (e) 非常時でない間に上げた段（記録なし）は戻さない
++    /// (f) 戦争が終わっても不安が線の上なら戻さず（普1814・仏1872 型）、線の下へ戻った四半期に戻す（英1920・米1865 型）。
++    /// ⚠突然変異「非常時を交戦だけで読む（(178) の旧）」「戻す線を上げる線と別にする（線ちょうどを非常時に数えない）」で赤。</summary>
++    [Fact]
++    public void 平時に不安で上げた徴兵法は不安が線の下へ戻れば非常時の前の段へ戻る()
++    {
++        var sim = Frozen152("イギリス", "フランス");
++        sim.StepQuarter();
++        var uk = sim.Nations[0].World; var fr = sim.Nations[1].World;
++        double line = UtilityAgent.ConscriptionThreatLine;
++        void Share(double s) { uk.SecurityThreatOwnMass = 100; uk.SecurityThreatArmy = 100 * s / (1 - s); }
++        void Set(ConscriptionLaw l) { uk.ConscriptionLaw = l; uk.Policy.ConscriptionLaw = l; }
++        Assert.False(uk.AtWarNow, "前提が崩れた：英が交戦中");
++        Assert.Equal(ConscriptionLaw.Volunteer, uk.ConscriptionLaw);
++        Assert.Equal(-1, uk.ConscriptionPreWar);
++        Share(line);
++        Assert.Equal(line, UtilityAgent.SecurityShare(uk, army: true), 12);   // 盤面の作り方の確かめ（ちょうど線）
++        // (a) 平時に不安が線の上＝非常時に入った四半期に記録
++        Share(0.6);
++        Government.Step(uk, uk.Coef);
++        Assert.Equal((int)ConscriptionLaw.Volunteer, uk.ConscriptionPreWar);
++        // (b) 線の上の間に上げた段は残る（どの経路でも同じ＝ここでは法と目標を直に置く）
++        Set(ConscriptionLaw.Selective);
++        Government.Step(uk, uk.Coef);
++        Assert.Equal(ConscriptionLaw.Selective, uk.ConscriptionLaw);
++        Assert.Equal((int)ConscriptionLaw.Volunteer, uk.ConscriptionPreWar);
++        // (c) ちょうど線の上＝非常時（AI が上げる線と同じ）＝戻さない
++        Share(line);
++        Government.Step(uk, uk.Coef);
++        Assert.Equal(ConscriptionLaw.Selective, uk.ConscriptionLaw);
++        Assert.Equal((int)ConscriptionLaw.Volunteer, uk.ConscriptionPreWar);
++        // (d) 線の下へ戻り交戦もしていない＝非常時の前の段へ・保存目標も・記録は消える
++        Share(0.4);
++        Government.Step(uk, uk.Coef);
++        Assert.Equal(ConscriptionLaw.Volunteer, uk.ConscriptionLaw);
++        Assert.Equal(ConscriptionLaw.Volunteer, uk.Policy.ConscriptionLaw);
++        Assert.Equal(-1, uk.ConscriptionPreWar);
++        // (e) 非常時でない間に上げた段（記録なし）は戻さない＝平時の法（法律タブで置いた法・平時から有った法）
++        Set(ConscriptionLaw.Selective);
++        Government.Step(uk, uk.Coef);
++        Assert.Equal(ConscriptionLaw.Selective, uk.ConscriptionLaw);
++        Assert.Equal(-1, uk.ConscriptionPreWar);
++        // (f) 戦争が終わっても不安が線の上なら戻さず、線の下へ戻った四半期に戻す
++        Set(ConscriptionLaw.Volunteer);
++        var war = new War { A = uk.SelfPower!, B = fr.SelfPower! };
++        sim.Diplomacy.Wars.Add(war);
++        Government.Step(uk, uk.Coef);
++        Assert.Equal((int)ConscriptionLaw.Volunteer, uk.ConscriptionPreWar);
++        Set(ConscriptionLaw.Selective);
++        sim.Diplomacy.Wars.Remove(war);
++        Share(0.6);
++        Government.Step(uk, uk.Coef);
++        Assert.Equal(ConscriptionLaw.Selective, uk.ConscriptionLaw);
++        Assert.Equal((int)ConscriptionLaw.Volunteer, uk.ConscriptionPreWar);
++        Share(0.4);
++        Government.Step(uk, uk.Coef);
++        Assert.Equal(ConscriptionLaw.Volunteer, uk.ConscriptionLaw);
++        Assert.Equal(-1, uk.ConscriptionPreWar);
++    }
++
+     /// <summary>★(178) 開幕の徴兵法（作者 2026-10-03「全て推奨でよい」で採った推奨「開幕の徴兵法を史実のデータで」）＝1783 年の史実のデータ（world.json の initialConscription・国名の分岐でなくデータ・制度と年と出典は実装ログ (178)）。英・米・日・清・蘭・オスマン＝志願制／普・露・墺・西・仏＝選抜（既定）。
+     /// 現在値（World）と目標（Policy）が同じ値で始まる＝開幕の四半期に法の戦線が開かない。建国は親の法を継ぐ（MultiNationSim の Scenario と CopyLawsFrom）。
+     /// ⚠突然変異「NationConfig が Scenario へ渡さない」「現在値を目標から置かない（既定の選抜のまま）」で赤。</summary>
+diff --git a/PriceOfBread.Tests/WriterRatchetTests.cs b/PriceOfBread.Tests/WriterRatchetTests.cs
+index 23b4f7e..90f74a6 100644
+--- a/PriceOfBread.Tests/WriterRatchetTests.cs
++++ b/PriceOfBread.Tests/WriterRatchetTests.cs
+@@ -387,7 +387,7 @@ public class WriterRatchetTests
+     [InlineData(CostLedger.CreditSpans, 33282L)]
+     [InlineData(CostLedger.ConsumePopGoods, 28595736L)]
+     [InlineData(CostLedger.ProducerMonths, 6495176L)]
+-    [InlineData(CostLedger.ClaimProducers, 2994L)]
++    [InlineData(CostLedger.ClaimProducers, 2668L)]
+     [InlineData(CostLedger.MonthlyPops, 706680L)]
+     [InlineData(CostLedger.ClearingRows, 5185642L)]
+     [InlineData(CostLedger.ClearingFills, 42375697L)]
+@@ -408,6 +408,9 @@ public class WriterRatchetTests
+     // ★2026-10-03 表の更新（(189) 線N＝海軍は戦艦ありき〔海軍力を艦の在庫から・艦は海軍の予算で買う・陸の装備の段は艦を買わない・陸海の金の分け方と内の守りの単位から症状を外す・開幕の艦隊は目標の艦隊〕＝軌道が動いた分の宣言・新しい計数の処理は無い
+     //   〔海軍の調達＝国×月に艦の3財の割り付け・艦の強さと乗員の同期＝国×月に州の艦の在庫＝どちらも「外交：国×月」「生産：生産者×月」の単価の中の小さい分・陸の装備の段の艦の行は需要0〕）：
+     //   覇権の判定 2,440,976→1,882,256（−22.9%＝最初の40四半期の同盟の候補が居る月の軌道・処理の形は同じ）。ほかの16本は許しの内（+2%／−10%）。全長の10種の推定は実装ログ (189)。
++    // ★2026-10-03 表の更新（(190) 線M 後半＝法の錠を対称に〔非常時（交戦中 または 陸軍の不安の割合が AI の上げる線以上）に上げた徴兵法は非常時が去れば戻る〕＝軌道が動いた分の宣言・新しい計数の処理は無い
++    //   〔非常時の判定は国×四半期に陸軍の不安の割合を1回読むだけ＝計数を持たない小さな分〕）：請求 2,994→2,668（−10.9%＝10% を超えて下がった＝表を下げる・最初の40四半期の軍需の請求の軌道・処理の形は同じ）。
++    //   ほかの16本は許しの内（+2%／−10%・フルスイートで確かめた）。全長の10種（計器つきの腕 L）の推定 243.5→243.9 秒（上限 248.5 秒の内・実装ログ (190)）。
+     // ★2026-10-03 表の更新（(191) 線N 後半＝国内の移民の閾値を民族の親和で〔Territory.MigrationThreshold・EthnicAffinity＝(158) のパッチの入れ直し〕＝軌道が動いた分の宣言・新しい計数の処理は無い
+     //   〔民族の親和は国内の移民の州×州の組の中の掛け算・州の中核の割合は州×POP の1周＝「移民：州×州の組」と「月次：POP×月」の中〕）：
+     //   覇権の判定 1,882,256→2,034,073（+8.1%＝最初の40四半期の同盟の候補が居る月の軌道・処理の形は同じ）。ほかの16本は許しの内（+2%／−10%）。全長の10種の推定は実装ログ (191)。

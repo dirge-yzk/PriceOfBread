@@ -64,11 +64,6 @@ public static class Territory
         //   （越境の段3〜4 と同じ形）。受け入れる州ごとに上限で縮め（(125)・縮んだ分は出る州に残る）、決まった人数を移す（越境の段5 と同じ）。
         //   旧＝最大の機会の1州（と第2の州に MigrationSecondDestShare＝0.3）だけへ、距離に依らず流した＝上位2州の受け入れの上限が国の移民の総量を決め
         //   （(125) の後の国内の移民＝州の間の出÷州の人口 四半期 0.2‰）、征服された遠い州からも大陸を越えて首都圏へ流れた（(137) の 4e-2b の移民の1/10 の1件＝バルナウル→プーナ）。
-        // ★2026-10-02 (158)：差から引く移る費用（閾値）は**民族の親和**で決める（<see cref="MigrationThreshold"/>＝越境と同じ1本）。同じ民族の州へは国内の摩擦、
-        //   言葉と民族の違う州へは越境の閾値＝国の中でも「言葉の通じない土地へ移る」費用は国境を越える移民と同じ。
-        //   旧＝国内の全ての組に国内の摩擦＝征服した異民族の州と本国の間を、本国どうしと同じ費用で人が流れた（計器 (158)＝r154＋Q12 の5種で国内の移民の 62〜68% が 1000km 超・
-        //   上位＝米のニューヨーク→中核ベンガル 12,744km・ペルー→西部 5,794km・両シチリアのバーミンガム→パレルモ 1,985km〔1/4 の空洞化〕・(150) の Q12 の5種のリヴォルノ→タブリーズ 3,063km〔1/10〕）。
-        // ★2026-10-03 (191)：本国どうし（どちらも格 Core）は親和1＝国内の摩擦（言葉と民族で費用が上がるのは征服地と植民地が絡む組だけ・EthnicAffinity）。
         var active = new List<Region>();
         foreach (var r in w.Regions) if (r.State == RegionState.Active) active.Add(r);
         int k = active.Count;
@@ -77,7 +72,7 @@ public static class Territory
         // 月初の盤面で全て決める（出る州・行き先の順に依らない）：機会・残る値打ち・座標・行き先に居る階級（兵士を除く＝MoveRegion が移せる相手＝PopOf と同じ述語）。
         // ★非有限の遮断（2026-07-31・潜在NaNの封じ込め）：機会が評価できない州（NaN/∞）は行き先にも出る州にもしない＝fail-closed
         //   （旧＝先頭州の NaN が最大値として居座り、全ての出る州の差が NaN になって国内全州の Size/Savings が一括で NaN 化した）。有限値だけの世界では何も変えない。
-        var opp = new double[k]; var stay = new double[k]; var lat = new double[k]; var lon = new double[k]; var classes = new int[k]; var core = new double[k];
+        var opp = new double[k]; var stay = new double[k]; var lat = new double[k]; var lon = new double[k]; var classes = new int[k];
         for (int i = 0; i < k; i++)
         {
             var r = active[i];
@@ -85,7 +80,6 @@ public static class Territory
             stay[i] = opp[i] * Holding(r, c);   // ★(125)：出る側は「残る値打ち」＝機会×残る人の土地の持ち分（人が抜けるほど増え、流出が止まる＝州の空洞化の根の2つ目）
             (lat[i], lon[i]) = Places.Coord(r.Name);
             foreach (var p in r.Pops) if (!p.IsSoldier) classes[i] |= 1 << p.ClassId;
-            core[i] = Politics.AvgRegionCoreShare(r);   // ★(158)：州の中核民族の割合（兵士を除く住民・民族の機構が無い世界は1）
         }
         var plan = new List<(int S, int D, double F)>();
         var inflow = new double[k];
@@ -101,7 +95,7 @@ public static class Territory
             {
                 gap[d] = 0;
                 if (d == s || !double.IsFinite(opp[d])) continue;
-                double g = opp[d] - stay[s] - MigrationThreshold(EthnicAffinity(active[s], core[s], active[d], core[d]), c);   // ★(158)：移る費用は民族の親和で
+                double g = opp[d] - stay[s] - c.TransportFriction;
                 if (!(g > 0)) continue;   // ★否定形＝NaN も弾く。差が0以下の州へは1人も行かない
                 g *= MigrationDecay(Geo.DistanceKm(lat[s], lon[s], lat[d], lon[d]), w.WorldTechLevel, c);
                 if (!(g > 0)) continue;
@@ -139,36 +133,6 @@ public static class Territory
     /// 旧＝越境だけが国の座標の間で読み（MultiNationSim の中の式）、国内の移民は距離を読まなかった（棚卸し pop-24「同じ移動で規則が2つ」）。</summary>
     internal static double MigrationDecay(double km, double worldTech, Coefficients c)
         => c.MigrationDistanceScale > 0 ? 1.0 / (1.0 + km / (c.MigrationDistanceScale * c.EraFactor(worldTech, c.EraMigrationScale))) : 1.0;
-
-    /// <summary>★2026-10-02 (158)：移民の閾値（機会の差から引く移る費用）の1本＝国内の移民（<see cref="Step"/>）と越境移民（MultiNationSim.MigrateBetweenNations）が読む。
-    /// 民族の親和 a（<see cref="EthnicAffinity"/>・0〜1）で国内の摩擦 <see cref="Coefficients.TransportFriction"/>（同じ民族の土地へ移る費用）と
-    /// 越境の閾値 <see cref="Coefficients.CrossBorderOppGapThreshold"/>（言葉と民族の違う土地へ移る費用）を結ぶ＝(1−a)×越境＋a×国内（両端で厳密にそれぞれの値）。
-    /// 越境移民は a＝0（移民は着いた国で中核民族ではない＝MoveAbroad の規約）＝越境の閾値のまま。
-    /// ⚠ 距離の減衰（<see cref="MigrationDecay"/>）は差に掛かる＝流れの速さと行き先の配分だけを変え、止まる位置（差の符号）を変えない（(125) の見立て・(158) の計器で国内の移民の
-    ///   平均の減衰 0.87〜0.90）＝言葉の通じない遠い併合地への吸い出しを止めるのは閾値の側。状態も係数も増やさない（既存の2つの閾値と POP の中核民族の割合だけ）。</summary>
-    internal static double MigrationThreshold(double affinity, Coefficients c)
-        => (1.0 - affinity) * c.CrossBorderOppGapThreshold + affinity * c.TransportFriction;
-
-    /// <summary>★2026-10-02 (158)：民族の親和＝出る州の住民が行き先で同じ民族に会う割合（既存の民族の量＝州の中核民族の割合 <see cref="Pop.CoreEthnicShare"/> の住民の平均）。
-    /// 中核民族の人は行き先の中核の割合 c_d に会い、中核でない人は行き先の中核でない人が同じ民族のとき（州の文化のラベル <see cref="Region.Culture"/> が同じ）だけ会う
-    /// ＝a＝c_s×c_d＋(1−c_s)×(1−c_d)×[文化が同じ]。本国どうし（c≈1）＝1・本国と征服した異民族の州（c≈0）＝0・征服した同じ民族の州どうし（どちらも c≈0・同じラベル）＝1
-    /// （分離した国は割合を反転する＝同じラベルの本国どうしは1のまま）。同化（MultiNationSim.StepAssimilation）で c が育てば親和も育つ。
-    /// ⚠ 昇格した植民地の州は宗主国の首都の文化のラベルを写す（Simulation.PromoteColonyToRegion）＝同じ宗主国の植民地どうしの中核でない人は同じ民族と読む（申し送り）。
-    /// 民族の機構が無い世界（合成較正・最小テスト）は全ての POP が c＝1＝a＝1＝国内の摩擦（旧と厳密に同じ）。
-    /// ★2026-10-03 (191)：**本国どうし（どちらも格が <see cref="RegionTier.Core"/>＝開幕から持つ本土・独立を確定した国の本土）は 1**＝国内の摩擦。
-    ///   本国の中の言葉と民族の違いは移る費用にしない（史実＝アイルランドから英の工業都市へ〔大ブリテンに住むアイルランド生まれ＝国勢調査 1841 約42万・1861 約81万人〕・
-    ///   ウクライナからシベリアと極東へ・漢人の満洲への移住〔Gottschang & Lary の概数＝1891〜1942 に約2,500万人が渡り約800万人が残った〕・チェコ人のウィーン・ポーランド人のルール）。
-    ///   費用が言葉と民族で上がるのは、征服で得た州（割譲＝格 Integrated・中核の割合0）と植民地（格 Colonial）が絡む組だけ＝(150)(158) の遠い併合地への吸い出し
-    ///   （リヴォルノ→タブリーズ・植民地の住民が本国の都市へ）は残さず止める。⚠ (191) の計器＝本国の中も中核の割合で読むと、英の本国の中の移民
-    ///   （ダブリン・グラスゴー→ロンドン・マンチェスター 1783〜1849 の1種あたり約100万人）・漢→奉天とハルビン（約650万→13万人）・ロシアとウクライナ→シベリアが止まった
-    ///   （開幕の中核の割合＝州の文化のラベルが主流でない本国の州は0・文化の無い辺境は国の統一度＝データの置き場の値）。格は既存の状態（新しい状態も係数も無い）。</summary>
-    internal static double EthnicAffinity(Region src, double coreSrc, Region dst, double coreDst)
-    {
-        if (src.Tier == RegionTier.Core && dst.Tier == RegionTier.Core) return 1.0;   // ★(191)：本国どうし＝国内の摩擦
-        double a = coreSrc * coreDst;
-        if (coreSrc < 1.0 && coreDst < 1.0 && string.Equals(src.Culture, dst.Culture, StringComparison.Ordinal)) a += (1.0 - coreSrc) * (1.0 - coreDst);
-        return a;
-    }
 
     /// <summary>★(125)：src から行き先へ動ける人数＝閉鎖階級と兵士を除き、行き先に同じ階級（兵士を除く POP＝<paramref name="dstClasses"/> のビット）が居る POP の規模の和
     /// ＝<see cref="MoveRegion"/> が実際に動かす母集団（★(141)：行き先の階級は PopOf と同じ述語＝旧は兵士の POP も「居る」に数えた）。</summary>

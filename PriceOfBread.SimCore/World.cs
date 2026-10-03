@@ -118,8 +118,6 @@ public sealed class World
     //   （交戦中で記録が無ければ今の段を記録・戦争が終わった四半期に、今の段が記録より上なら記録の段へ戻して消す）。読み手も Government.Step だけ。建国は親の記録を継ぐ（CopyLawsFrom）。
     //   ⚠盤面から導けない（戦争が終わった時点で、今の段が戦時に上げたものか平時から有ったものかは法の値からは分からない＝英1916 の兵役法は戻り、普1814・日1873 の平時の法は戻らない）＝思想⑩の例外として1つ持つ。
     //   クールダウンではない（戦争の終わりという状態で決まる）。R2（戦時段の失効）と同じ形＝戦時の段は戦争が前提。
-    //   ★(190) 記録の条件を**非常時**（交戦中 または 陸軍の不安の割合が AI の上げる線 UtilityAgent.ConscriptionThreatLine 以上）へ広げた＝非常時の前の段（名前は旧のまま）。
-    //     非常時が去った四半期（交戦せず不安が線の下）に、今の段が記録より上なら記録の段へ戻して消す＝平時に不安で上げた段も不安が去れば戻る（英が平時に皆兵のまま＝(188) の片方向の錠）。
     public int ConscriptionPreWar { get; internal set; } = -1;
     public SecretBallotLaw SecretBallot { get; internal set; } = SecretBallotLaw.Open;              // 秘密投票法（現在値・1934拡張E5）。発言権の鎮静効果を選挙の実在で変調（紙の参政権是正）。SecretBallotGate=0で恒等
     // ★★★予算法・統帥法（作者設計 2026-08-20）＝**追加するものは法だけ**。予算権と統帥権は独立ストックを持たず、
@@ -1343,7 +1341,7 @@ public sealed class World
     //   ＝SecurityThreat のうち、A が B に届く強さを「B の本国の国境＋A の投射×上陸の門」に限った分（hrArmy＝h×(本国の国境＋投射×Diplomacy.LandingGate(A,B))・同じ注意配分の分母・同じ A の養える軍）。
     //   上陸の門＝陸続き1・海越えは A が艦を持ち制海権が SeaInvasionControlMin 以上のときだけ1（作者裁定 2026-08-01「少なくとも海軍力で勝たないと、ブリテン島には乗れない」と同じ1本＝B の海軍が防げる海越えの投射は数えない）。
     //   本国の国境＝両側とも本国の州（Core・Integrated＝植民地格でない州）の組だけ（ArmyShape.Borders の toHome）＝植民地から来る不安・植民地へ向かう不安は徴兵の目標に数えない（推奨で進めた＝(168) の作者への確認②の両側版・
-    //   割譲された州は Integrated になる〔Territory.Rehome〕＝朝鮮や満州を得た国の国境は本国の国境＝緩衝地帯の連鎖〔作者 2026-10-03 の日本の言葉〕は残る）。植民地の国境は軍事費の段（不安の全体）が読む。
+    //   割譲された州は Integrated になる〔Territory.Rehome〕＝朝鮮や満州を得た国の国境は本国の国境＝緩衝地帯の連鎖〔作者 2026-10-03 の日本の言葉〕の入口は残る・現物で連鎖が起きたかは未確認＝(192) 反証役 vm1#3）。植民地の国境は軍事費の段（不安の全体）が読む。
     //   読み手＝徴兵法の目標だけ（UtilityAgent.DecideModernLaws の SecurityShare(army)）。軍事費の段の入口（SecurityThreat の全体）と陸海の分割（ArmyShape）は変えない。旧＝(168) のパッチの SecurityThreatLand（海越えの投射を全て除く）をこの1本に置き換えた。
     //   書き手は StepSecurityThreat のみ（同じ四半期の同じループ・読み手は前期の値）。⚠盤面から安く導けない（全ての国の注意配分の分母と全ての組の国境が要る）＝四半期の値を持つ（新しい状態1つ＝思想⑩の代価・同じループで SecurityThreat と並べて毎期導出し直す＝貯めない）。
     public double SecurityThreatArmy;

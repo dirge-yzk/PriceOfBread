@@ -427,27 +427,6 @@ public class ConservationTests
         Assert.Equal(p0, MigrationWorldTotals(sim).Pop);
     }
 
-    /// <summary>★(191) 越境移民の閾値は民族の親和0の端＝越境の閾値だけを読み、国内の摩擦（同じ民族の州へ移る費用＝親和1の端）を読まない
-    /// （越境の移民は着いた国で中核民族ではない＝MoveAbroad の規約・Territory.MigrationThreshold の1本を a＝0 で読む）。
-    /// 盤面の初めの四半期を回した後、国内の摩擦だけを 0 と越境の閾値の直前（0.45）へ変えても、越境移民の段の流れは1ビットも変わらない（どちらも流れが正）。
-    /// ⚠壊し方＝越境の呼び手が親和1で読む（閾値＝国内の摩擦）→ 摩擦0 の方が多く流れる＝赤。</summary>
-    [Fact]
-    public void 越境移民の閾値は国内の摩擦を読まない()
-    {
-        double Emigrated(double friction)
-        {
-            var sim = MigrationBoard();
-            Assert.True(friction < sim.Coef.CrossBorderOppGapThreshold, "前提が崩れた：摩擦が越境の閾値以上");
-            sim.Coef.TransportFriction = friction;   // 初めの四半期（国内の移民を含む）の後に変える＝越境移民の段だけが読む
-            sim.MigrateBetweenNations();
-            double m = 0; foreach (var n in sim.Nations) m += n.World.LastEmigration;
-            return m;
-        }
-        double e0 = Emigrated(0.0), e1 = Emigrated(0.45);
-        Assert.True(e0 > 0 && e1 > 0, $"越境移民が流れていない（摩擦0 {e0}・0.45 {e1}）＝番人が何も検査していない");
-        Assert.Equal(e1, e0);
-    }
-
     /// <summary>★(141) 越境移民の行き先は受入国の全ての州（国内の移民と同じ規則）・受け入れの上限は州ごと（その州の人口×受入の上限率×移民制限法×その州の受入能力）。
     /// 米の全ての州の機会を盤面の全ての州より十分に高く揃える（生産性で合わせる）＝米の州は出ない（米の州の増分＝流入）・米の全ての州が行き先になる。
     /// 上限率を小さくして州の上限が効く盤面にする。⚠突然変異「国の最良の1州だけへ」で赤（受け入れた州が1つ）・「上限を国の人口で」で赤（州の上限を超える）。</summary>

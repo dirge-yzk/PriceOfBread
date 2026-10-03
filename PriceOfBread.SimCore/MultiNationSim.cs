@@ -1593,7 +1593,6 @@ public sealed class MultiNationSim
     //   1 行き先 x＝全ての国の稼働中の州（機会が評価できる州）＝機会 O_x・座標・受入国 d の重み a_d（民族：低統一度は引く・低識字は差別で阻む）・
     //     州の受入の上限 C_x（州の人口×受入の上限率×移民制限法×州の受入能力）
     //   2 送出州 r（全ての Active 州）＝残る値打ち P_r＝機会×持ち分×州の食料充足。差 g_rx＝(O_x−P_r−閾値)×距離の減衰（正のものだけ）・重み w_rx＝g_rx×a_d
-    //     （閾値＝国内の移民と同じ1本 Territory.MigrationThreshold の民族の親和0の端＝越境の移民は着いた国で中核民族ではない・★(158)）
     //   3 階級ごとの流出 F＝min(EmigrationRate×最良の行き先の差, 上限×(1＋飢え))×人数。**流出の上限はここで1回だけ**＝行き先がいくつあっても同じ
     //     （旧＝「最悪の1州→最良の1国」の1組だけ動かしていた。全組で上限まで抜くと1国が多重に排水される＝プロイセン技術0.38への空洞化を実測したため。
     //     上限を1回だけ掛ければ、1つの州が多くの州へ同時に上限まで流れ出ることが構造的に起きない）。
@@ -1656,7 +1655,7 @@ public sealed class MultiNationSim
                 {
                     gap[x] = 0;
                     if (dst[x].D == s) continue;
-                    double g = dst[x].O - push - Territory.MigrationThreshold(0.0, _coef);   // ★(158)：国内の移民と同じ閾値の1本・越境の移民は着いた国で中核民族ではない＝親和0＝越境の閾値（値は旧と厳密に同じ）
+                    double g = dst[x].O - push - _coef.CrossBorderOppGapThreshold;
                     if (!(g > 0)) continue;   // 差が0以下の州へは1人も行かない
                     g *= Territory.MigrationDecay(Geo.DistanceKm(sla, slo, dst[x].Lat, dst[x].Lon), src.WorldTechLevel, _coef);   // ★時代関数化：大西洋横断が6週間→6日
                     if (!(g > 0)) continue;
