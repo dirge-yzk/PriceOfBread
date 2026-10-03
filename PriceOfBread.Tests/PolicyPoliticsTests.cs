@@ -1050,9 +1050,9 @@ public class PolicyPoliticsTests
     [Fact]
     public void 戦時段はAIも総動員中に選び講和で下がる()   // (f') AI＝プレイヤー等価：段4の入口（World.Mobilized）の書き手がプレイヤーだけにならない
     {
-        var sim = new MultiNationSim([NationConfig.France(), NationConfig.Japan(), NationConfig.Britain(), NationConfig.America()], seed: 1789);
+        var sim = new MultiNationSim([NationConfig.France(), NationConfig.Japan(), NationConfig.Britain(), NationConfig.America(), NationConfig.Prussia()], seed: 1789);
         var w = sim.Nations[0].World;
-        var foe = sim.Nations[2].World.SelfPower!;
+        var foe = sim.Nations[4].World.SelfPower!;   // ★(195) 存亡は本国へ届く敵との戦争の敗色だけ＝陸続きのプロイセン（旧＝英＝海越えで制海権が門に届かない相手の敗色は存亡に数えない）
         // ★2026-09-20 段の点火：総動員のAI分岐（旧 AiMobilization／FiscalLawStages の2本のゲート）は係数ごと削除＝常時 live（さもなくば段4がプレイヤー専用）
         w.SetMilitarySpending(0.75, w.NavalSpendShare);   // 段3＝戦時段は隣の段（StagePrereq＝AIも1段ずつ登る）
         w.Diplomacy!.Wars.Add(new War { A = w.SelfPower!, B = foe, Score = -0.8 });   // 敗色0.8＞存亡線0.5＝既存の判定材料（新しい閾値を置かない）
@@ -1070,9 +1070,9 @@ public class PolicyPoliticsTests
     [Fact]
     public void 総動員中の戦時段はプレイヤーとAIで同じ門と同じ写像を通る()   // (d) M2＋P5：IsPlayer を読まない
     {
-        var sim = new MultiNationSim([NationConfig.France(), NationConfig.Japan(), NationConfig.Britain(), NationConfig.America()], seed: 1789);
+        var sim = new MultiNationSim([NationConfig.France(), NationConfig.Japan(), NationConfig.Britain(), NationConfig.America(), NationConfig.Prussia()], seed: 1789);
         var w = sim.Nations[0].World; var p = w.Policy;
-        var foe = sim.Nations[2].World.SelfPower!;
+        var foe = sim.Nations[4].World.SelfPower!;   // ★(195) 本国へ届く敵（陸続き）
         w.SetMilitarySpending(0.75, w.NavalSpendShare);
         w.Diplomacy!.Wars.Add(new War { A = w.SelfPower!, B = foe, Score = -0.8 });
 

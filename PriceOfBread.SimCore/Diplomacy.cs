@@ -1528,6 +1528,68 @@ public sealed class Diplomacy
         return m;
     }
 
+    /// <summary>★戦争の規模（2026-10-03 (195)・00一覧 §0-A の 0e＝総動員の判断を戦争の規模で読む・推奨で進めた＝作者の承認は未確認）
+    /// ＝自陣営の本国へ届く敵の陸の力 ÷ 自陣営の陸の力。AI の総動員の判断（UtilityAgent.DecideQuarter）と画面の戦争タブ（プレイヤーが自分で選ぶ材料）が同じ1本を読む。
+    /// ・自陣営＝<paramref name="p"/> と、p の直接の敵のどれかと交戦している国（p とは交戦していない）＝同じ敵と戦う国。
+    /// ・敵の届く力＝直接の敵 f ごとに f の陸軍力×max（m＝自陣営のうち f と交戦している国）投射(f→m)×上陸の門(f,m)
+    ///   ＝f が陸で押し込める自陣営の本国（陸続き、または f が制海権を握る海越え＝<see cref="LandingGate"/>＝作者裁定 2026-08-01
+    ///   「少なくとも海軍力で勝たないと、ブリテン島には乗れない」と同じ1本）。国を持たない相手（抽象標的＝自領で守るだけ）は0
+    ///   ＝植民地戦争と海の向こうへの遠征は規模0（攻める側が規模を選ぶ戦争）。同じ敵と戦う国の本国へ敵が届けば、海の向こうの国の規模も上がる（英 1916・米 1917）。
+    /// ・自陣営の陸の力＝Σ 陸軍力（自領で守る＝投射を掛けない）。
+    /// ・<paramref name="homeLosing"/>（存亡）＝p と自陣営の列強（同じ敵と戦う列強）が、本国へ届く直接の敵（国を持ち上陸の門が開く）と戦う戦争の敗色（戦勝点の負の側）の最大
+    ///   ＝自陣営の列強の本国が蹂躙されている深さ（仏の本国が攻め込まれれば同じ敵と戦う英も存亡＝英 1916・米 1917）。海の向こうへの遠征の負けは存亡に数えない。
+    /// 交戦していない＝0・自陣営の陸の力が0で敵が届く＝+∞。否定形＝NaN の項は数えない。読むだけ（状態を書かない）。
+    /// ⚠旧の総動員の判断（<see cref="SideMilitary"/>＝海軍を含む軍の総合ゲージ×同盟の参戦見込み・届くかを読まない）は、海の向こうの相手や本国へ来られない相手でも劣勢と数えた
+    ///   （r193 の10種で総動員の始まりの 95% が劣勢の枝・英の始まりの 97% は相手が全て海越え・交戦中の四半期の 74% が総動員）。</summary>
+    public double WarScale(Power p, Coefficients c, out double homeLosing)
+    {
+        homeLosing = 0;
+        List<Power>? foes = null;
+        foreach (var war in Wars)
+        {
+            Power? f = war.A == p ? war.B : war.B == p ? war.A : null;
+            if (f is null) continue;
+            foes ??= new List<Power>();
+            if (!foes.Contains(f)) foes.Add(f);
+        }
+        if (foes is null) return 0;
+        var side = new List<Power> { p };
+        foreach (var war in Wars)
+        {
+            Power? m = foes.Contains(war.A) ? war.B : foes.Contains(war.B) ? war.A : null;
+            if (m is null || m == p || side.Contains(m) || AtWar(m, p)) continue;   // 自国の敵どうしの戦争は m も敵＝AtWar(m, p) で外れる
+            side.Add(m);
+        }
+        double reach = 0;
+        foreach (var f in foes)
+        {
+            if (f.Nation is null) continue;   // 抽象標的は本国へ来ない（自領で守るだけ＝Projection の地の利）
+            double best = 0;
+            foreach (var m in side)
+            {
+                if (m != p && !AtWar(f, m)) continue;
+                double r = Projection(f, m, c) * LandingGate(f, m, c);
+                if (r > best) best = r;
+            }
+            double v = f.LandPower * best;
+            if (v > 0) reach += v;
+        }
+        // 存亡＝自国と、同じ敵と戦う列強の本国へ届く敵との戦争の敗色の最大（自陣営の本国が攻め込まれている深さ）。
+        foreach (var war in Wars)
+        {
+            Power? m = side.Contains(war.A) ? war.A : side.Contains(war.B) ? war.B : null;
+            Power? f = m == war.A ? war.B : war.A;
+            if (m is null || !foes.Contains(f) || f.Nation is null) continue;
+            if (m != p && RankOf(m) != PowerRank.Great) continue;
+            if (!(LandingGate(f, m, c) > 0)) continue;
+            double lose = m == war.A ? -war.Score : war.Score;
+            if (lose > homeLosing) homeLosing = lose;
+        }
+        double own = 0;
+        foreach (var m in side) { double l = m.LandPower; if (l > 0) own += l; }
+        return own > 0 ? reach / own : reach > 0 ? double.PositiveInfinity : 0;
+    }
+
     /// <summary>開戦（唯一の入口＝WarsStarted の加算点）。<paramref name="soleInitiator"/>＝一方的に開戦を選んだ側
     /// （侵略・植民地化の拒否への開戦・調停拒否への参戦）。null＝緊張の積み上がりで双方が引かずに戦争へ落ちた場合。</summary>
     private void StartWar(Power a, Power b, Coefficients c, Power? soleInitiator = null)

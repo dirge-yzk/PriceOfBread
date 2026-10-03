@@ -668,7 +668,8 @@ public partial class GameViewModel
         OnPropertyChanged(nameof(ArmyAllegianceText));   // 王権と議会の観測軸（政治タブ）。政治資本(MandateSpent)・世論の王権支持率はヘッダーへ移動
         OnPropertyChanged(nameof(PolityAttractorText)); OnPropertyChanged(nameof(PolityAttractorTip)); OnPropertyChanged(nameof(ChallengeText)); OnPropertyChanged(nameof(ChallengeTip)); OnPropertyChanged(nameof(ChallengeBrush));   // 反体制派の強さ比は戦争タブ（色は国内勢力行と同一規則）。分離リスクは撤去2026-08-16＝国内勢力の一覧が同じことを行ごとに出す
         OnPropertyChanged(nameof(PolityEconControlText)); OnPropertyChanged(nameof(PolityBondDiscountText));
-        OnPropertyChanged(nameof(PolityMobilizationText)); OnPropertyChanged(nameof(PolityRollbackText));   // 政体パネル（2026-07-24）。総動員時の兵士割合
+        OnPropertyChanged(nameof(PolityMobilizationText)); OnPropertyChanged(nameof(PolityRollbackText));
+        OnPropertyChanged(nameof(WarScaleText)); OnPropertyChanged(nameof(WarHomeLosingText));   // ★(195) 総動員の判断の材料（AI と同じ Diplomacy.WarScale）   // 政体パネル（2026-07-24）。総動員時の兵士割合
         OnPropertyChanged(nameof(ParliamentText));
         OnPropertyChanged(nameof(PriceLevelText)); OnPropertyChanged(nameof(ExchangeRateText));
         OnPropertyChanged(nameof(MobilizeButtonText)); OnPropertyChanged(nameof(CoverVisible));

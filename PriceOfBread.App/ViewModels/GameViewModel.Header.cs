@@ -116,6 +116,26 @@ public partial class GameViewModel
             return $"{Math.Max(1.0, target / soldiers):F1}倍";   // 徴募は max(現状, 総動員目標)＝総動員で軍が減ることはない＝下限1.0倍
         }
     }
+    // ★(195) 総動員の判断の材料＝AI と同じ1本（Diplomacy.WarScale・00一覧 §0-A の 0e）＝プレイヤーは同じ材料を見て自分で選ぶ（AI の線は出さない＝2026-09-23 裁定「閾値は出さない」）。
+    //   戦争の規模＝自陣営（自国＋同じ敵と戦う国）の本国へ届く敵の陸の力÷自陣営の陸の力・陣営の本国の敗色＝自国と同じ敵と戦う列強の本国へ届く敵との戦争の敗色の最大。交戦していない＝—。
+    public string WarScaleText
+    {
+        get
+        {
+            if (!PlayerAtWar) return "—";
+            double s = _sim.Diplomacy.WarScale(Me, _player.Coef, out _);
+            return double.IsPositiveInfinity(s) ? "∞" : s >= 0 ? $"{s:F2}倍" : "—";
+        }
+    }
+    public string WarHomeLosingText
+    {
+        get
+        {
+            if (!PlayerAtWar) return "—";
+            _sim.Diplomacy.WarScale(Me, _player.Coef, out double lose);
+            return lose >= 0 ? $"{lose:F2}" : "—";
+        }
+    }
     public string PolityRollbackText => _player.Polity is Polity.ConstitutionalMonarchy or Polity.Republic ? "不可" : "可能";
     // 政体の支持と挑戦（革命の予兆・2026-07-11）：国民イデオロギー集計→各政体の支持（純関数の再計算＝表示のみ）と
     // 動員（改革派＋急進派＝Politicsが今期保存）対 実効保持力（治安維持力×人口スケール）。

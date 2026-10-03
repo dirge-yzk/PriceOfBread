@@ -337,9 +337,10 @@ public sealed class UtilityAgent : INationAgent
     // ★撤去2026-08-16（AI第1波・掃除）：POP動詞①（2026-07-20全廃）の残骸4定数
     //   （ParliamentaryStanceThreshold/NonParliamentaryStanceThreshold/StanceHysteresis/ClassSlotCount）＝全域grepで読み手ゼロを確認し物理削除（理念違反監査§6-5計上済み）。
     // AI第1波②（2026-08-16）総動員のAI分岐の判定線（SelfPlay.DecideQuarter・2026-09-20 に段の点火で常時 live）：
-    private const double MobilizeOutmatchRatio = 1.2;   // 陣営戦力（Diplomacy.SideMilitary＝同盟込み）で相手がこの倍を超えたら劣勢＝総動員。
+    private const double MobilizeOutmatchRatio = 1.2;   // 戦争の規模（Diplomacy.WarScale＝自陣営の本国へ届く敵の陸の力÷自陣営の陸の力）がこの倍以上＝総動員（上げる線）。
+                                                        // ★(195) 下げる線＝この逆数（自陣営が相手の1.2倍）＝交戦中でも復員する。旧＝陣営戦力（SideMilitary＝届くかを読まない）の比。
                                                         // 屈服線（AISubmitMilRatio=3.0）・宥和線（AppeaseMilitaryRatio=2.5）よりずっと手前＝「戦えるが苦しい」帯で踏む
-    private const double MobilizeLosingScore = 0.5;     // 敗色（自国視点の war.Score 負側）がこれを超えたら存亡＝本土が蹂躙されている
+    private const double MobilizeLosingScore = 0.5;     // 存亡（Diplomacy.WarScale の out＝自陣営の本国へ届く敵との戦争の敗色）がこれを超えたら総動員＝本土が蹂躙されている（★(195) 下げる線＝敗色0＝戦況が五分に戻る）
                                                         // （レジームチェンジ1.0・割譲 TerritoryCessionScore=1.2 の手前で踏み込む＝間に合う総動員）
     // 【墓標2026-09-28（作者裁定 F5）】移民制限法のAI判定線3本（閉鎖1.0・選別0.4・開放へ戻す0.15）を削除。締める線は (63) の受入の上限の係数から導き、
     //   開放へ戻す枝は消した（DecideModernLaws の移民制限の段落）。
@@ -787,31 +788,39 @@ public sealed class UtilityAgent : INationAgent
             w.Policy.CapitalControlTarget = cover < w.Coef.GoldCoverMin;
         }
         // ★AI第1波②（2026-08-16）：総動員のAI分岐＝プレイヤーと同じレバー（World.Mobilized＝Military.cs:128 の徴兵深度0.12→0.22＝徴兵法≥選抜の国だけ・M1 2026-09-19）。
-        // 入れる条件＝交戦中かつ（陣営戦力比で劣勢 or 敗色が深い＝存亡）。判定材料は既存量のみ（Diplomacy.SideMilitary＝同盟込み陣営戦力・war.Score）。
-        // 交戦中で条件を満たさない間は現状維持＝戦中のON/OFFチャタリングを作らない（プレイヤーも一度入れたら講和まで戻さないのが実際の運用）。
+        // ★(195) 入る条件と出る条件＝下の段落（戦争の規模 Diplomacy.WarScale と存亡＝上げる線と下げる線・線の間は現状維持）。旧＝陣営戦力比（SideMilitary）で劣勢 or 敗色が深い で入り、講和まで戻さない。
         // 復員＝参戦中の戦争が消えた最初の四半期に false。プレイヤーは GameViewModel.Refresh（WarRows が空になった時）が講和で復員＝経路は分離・挙動は対称
         //（SimCore の講和処理 Diplomacy.EndWar には復員が無く、本ラウンドは Diplomacy.cs 不可侵＝AI側の唯一の書き手であるここに置く。設計判断は docs/20260816_AI第1波実装.md）。
         // ⚠NaNの war.Score/戦力は比較が偽に落ちる＝動員しない（fail-closed）。
         // ★軍事費の段（作者裁定2026-09-12 R2）＝最上段「戦時」は World.Mobilized が**解禁する**（M2 2026-09-19＝押し上げない・段は Apply が選ぶ）。その書き手はプレイヤー側3経路と
         //   ここ（AI）だけ＝ここが無いと**段4がプレイヤー専用になる**（AI＝プレイヤー等価の直接違反）。旧の2本のゲート（AiMobilization／FiscalLawStages）は
         //   2026-09-20 の段の点火で係数ごと削除＝この分岐は常時 live（戦時段とAI総動員は1テーマ）。
-        //   ⚠判定材料・閾値は1つも増やさない（既存の MobilizeOutmatchRatio / MobilizeLosingScore をそのまま使う）。
+        //   ⚠判定の線は既存の MobilizeOutmatchRatio / MobilizeLosingScore の2本（(195) の下げる線はその逆数と敗色0＝新しい数は無い）。
         // ★位置（2026-09-19 M2）：Apply の**前**＝総動員した同じ四半期に Apply が戦時段を選べる（LawPrereq の「総動員が前提」が同じ四半期に真）。
         //   後ろ（旧位置）ではAIだけ1四半期遅れる＝プレイヤーは同じポーズ中にトグルと段ボタンを両方押せる（反応速度の非対称）。
         if (w.SelfPower is { } mSelf && w.Diplomacy is { } mDip)
         {
-            bool mAtWar = false, mOutmatched = false; double mLosing = 0;
+            bool mAtWar = false;
             foreach (var war in mDip.Wars)
             {
                 Power? foe = war.A == mSelf ? war.B : war.B == mSelf ? war.A : null;
                 if (foe is null) continue;
                 mAtWar = true;
-                mLosing = Math.Max(mLosing, Math.Max(0, war.A == mSelf ? -war.Score : war.Score));
-                if (mDip.SideMilitary(foe, mSelf, w.Coef) > mDip.SideMilitary(mSelf, foe, w.Coef) * MobilizeOutmatchRatio)
-                    mOutmatched = true;
             }
+            // ★(195) 総動員の判断を戦争の規模で読む（00一覧 §0-A の 0e・README §1-8「入力の大きさに応じた判断・上げる線と下げる線を分ける＝状態で決める」・推奨で進めた＝作者の承認は未確認）：
+            //   材料＝Diplomacy.WarScale の1本（画面の戦争タブも同じ1本を出す＝プレイヤーは自分で選ぶ）：
+            //   ・規模＝自陣営（自国＋同じ敵と戦う国）の本国へ届く敵の陸の力÷自陣営の陸の力＝植民地戦争と海の向こうへの遠征は0（攻める側が規模を選ぶ戦争）。
+            //   ・存亡（out）＝自国と同じ敵と戦う列強の本国へ届く敵との戦争の敗色の最大＝同じ敵と戦う列強の本国が蹂躙されていれば海の向こうの国も存亡（英 1916・米 1917）。
+            //   上げる線＝規模が MobilizeOutmatchRatio（1.2＝相手が自陣営の1.2倍）以上か、存亡が MobilizeLosingScore（0.5）を超える。
+            //   下げる線＝規模が 1/MobilizeOutmatchRatio（自陣営が相手の1.2倍）未満で、存亡が0（戦況が五分に戻った）＝交戦中でも復員する（戦時段は Government.Step が解禁の外で段3 へ失効させる＝R2）。
+            //   線の間は現状維持（総動員の入り切りを状態で決める・タイマーにしない）。定まらない規模（NaN）は現状維持。新しい数・新しい状態は無い。
+            //   旧＝劣勢（SideMilitary＝海軍を含む軍の総合ゲージ×同盟の参戦見込み・届くかを読まない）か存亡で入り、講和まで戻さない（片方向の錠）
+            //   ＝r193 の10種で交戦中の四半期の 74% が総動員・始まりの 95% が劣勢の枝・英の始まりの 97% は相手が全て海越え・英の戦時の徴兵法の上げ 45.8 四半期／種。
+            double mLosing = 0;
+            double mScale = mAtWar ? mDip.WarScale(mSelf, w.Coef, out mLosing) : 0;
             if (!mAtWar) w.Mobilized = false;                                          // 講和＝復員（既存機構＝徴兵深度が平時へ・定員を超えた兵は転職の仕組みが民間の職へ戻す＝Meritocracy の ⑦・(155)）
-            else if (mOutmatched || mLosing > MobilizeLosingScore) w.Mobilized = true; // 劣勢/存亡＝総動員（levée en masse 1793・独ソの総力戦動員の型）
+            else if (mScale >= MobilizeOutmatchRatio || mLosing > MobilizeLosingScore) w.Mobilized = true;   // 規模が大きい戦争/存亡＝総動員（levée en masse 1793・独ソの総力戦動員の型）
+            else if (mScale < 1.0 / MobilizeOutmatchRatio && !(mLosing > 0)) w.Mobilized = false;   // 規模が小さくなった＝交戦中でも復員
         }
         Apply(w, ChooseStance(w));
         // （借入は 2026-09-28 に Fiscal の1行＝国家の支払い率 r＜1 の月にエンジンが自動で借りる形へ＝ここの予約の2行〔r＜1 と恐慌の谷の前倒し AiCrisisBorrow〕を削除。作者裁定「借入は自動化・借金ボタンは不要」）

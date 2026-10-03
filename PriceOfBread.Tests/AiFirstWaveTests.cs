@@ -94,9 +94,9 @@ public class AiFirstWaveTests
     [Fact]
     public void 敗色の深い交戦AIは総動員し講和で復員する()
     {
-        var sim = new MultiNationSim([NationConfig.France(), NationConfig.Japan(), NationConfig.Britain(), NationConfig.America()], seed: 1789);
+        var sim = new MultiNationSim([NationConfig.France(), NationConfig.Japan(), NationConfig.Britain(), NationConfig.America(), NationConfig.Prussia()], seed: 1789);
         var w = sim.Nations[0].World;                       // フランス
-        var foe = sim.Nations[2].World.SelfPower!;          // イギリス
+        var foe = sim.Nations[4].World.SelfPower!;          // プロイセン（★(195) 存亡は本国へ届く敵＝陸続き）
         var dip = w.Diplomacy!;
         dip.Wars.Add(new War { A = w.SelfPower!, B = foe, Score = -0.8 });   // 自国（A側）視点の敗色0.8＞存亡線0.5
         new UtilityAgent().DecideQuarter(w);
@@ -106,18 +106,93 @@ public class AiFirstWaveTests
         Assert.False(w.Mobilized, "講和したのに復員しない");
     }
 
+    // ★(195) 旧「陣営戦力比で劣勢の交戦AIも総動員する」（SideMilitary＝届くかを読まない陣営戦力の比）を、戦争の規模（Diplomacy.WarScale）の上げる線の主張へ書き直した。
     [Fact]
-    public void 陣営戦力比で劣勢の交戦AIも総動員する()
+    public void 戦争の規模が上げる線を超えた交戦AIは総動員する()
     {
-        var sim = new MultiNationSim([NationConfig.France(), NationConfig.Japan(), NationConfig.Britain(), NationConfig.America()], seed: 1789);
-        var w = sim.Nations[1].World;                       // 日本
+        var sim = new MultiNationSim([NationConfig.France(), NationConfig.Prussia()], seed: 1789);
+        var w = sim.Nations[0].World;                       // フランス
         var self = w.SelfPower!;
-        var foe = sim.Nations[3].World.SelfPower!;          // アメリカ
-        foe.Military = (self.Military + 1.0) * 10.0;        // 陣営戦力比10倍＝劣勢線1.2を確実に超える
+        var foe = sim.Nations[1].World.SelfPower!;          // プロイセン（陸続き＝上陸の門1）
+        PinLand(self, 1.0); PinLand(foe, 10.0);             // 陸軍力10倍＝規模（10×投射）が上げる線1.2を確実に超える
         var dip = w.Diplomacy!;
-        dip.Wars.Add(new War { A = foe, B = self, Score = 0.0 });   // 戦勝点は互角＝存亡線は踏まない＝劣勢比の枝だけで点火
+        dip.Wars.Add(new War { A = foe, B = self, Score = 0.0 });   // 戦勝点は互角＝存亡の枝は踏まない＝規模の枝だけで点火
+        Assert.True(dip.WarScale(self, w.Coef, out _) >= 1.2, "前提：規模が上げる線の上");
         new UtilityAgent().DecideQuarter(w);
-        Assert.True(w.Mobilized, "陣営戦力10倍差の交戦中なのに総動員しない");
+        Assert.True(w.Mobilized, "本国へ届く10倍の陸軍との交戦中なのに総動員しない");
+    }
+
+    /// <summary>番人の盤面：陸軍力を値で置く（海軍シェア0・熟練1＝LandPower＝Military・艦なし）。</summary>
+    private static void PinLand(Power p, double land) { p.Military = land; p.NavalShare = 0; p.ArmySkillMul = 1.0; p.FleetGauge = 0; }
+
+    // ★番人（2026-10-03 (195)・00一覧 §0-A の 0e）：戦争の規模（Diplomacy.WarScale）＝自陣営の本国へ届く敵の陸の力÷自陣営の陸の力・存亡（out）＝自陣営の列強の本国へ届く敵との戦争の敗色。
+    //   (a) 交戦していない＝0 (b) 陸続きの敵＝陸軍力×投射×上陸の門÷自国の陸軍力 (c) 国を持たない相手（植民地戦争）は陸軍力が大きくても0
+    //   (d) 海越えで艦を持たない敵は0（上陸の門）・その敗色は存亡に数えない (e) 同じ敵と戦う国＝分母に入り、その本国へ敵が届けば分子に入る（海の向こうの国の規模も上がる）
+    //   (f) 同じ敵と戦う列強の本国の敗色は自国の存亡に入る。
+    [Fact]
+    public void 戦争の規模は自陣営の本国へ届く敵の陸の力だけを数え存亡は自陣営の列強の本国の敗色を読む()
+    {
+        var sim = new MultiNationSim([NationConfig.France(), NationConfig.Prussia(), NationConfig.Britain()], seed: 1789);
+        var c = sim.Nations[0].World.Coef;
+        var dip = sim.Diplomacy;
+        var fr = sim.Nations[0].World.SelfPower!; var pr = sim.Nations[1].World.SelfPower!; var gb = sim.Nations[2].World.SelfPower!;
+        PinLand(fr, 2.0); PinLand(pr, 6.0); PinLand(gb, 1.0);
+        // (a)
+        Assert.Equal(0.0, dip.WarScale(fr, c, out double l0)); Assert.Equal(0.0, l0);
+        // (b) 陸続き
+        dip.Wars.Add(new War { A = fr, B = pr, Score = 0.0 });
+        Assert.Equal(1.0, dip.LandingGate(pr, fr, c));
+        double expB = 6.0 * dip.Projection(pr, fr, c) / 2.0;
+        Assert.True(expB > 0);
+        Assert.Equal(expB, dip.WarScale(fr, c, out _), 12);
+        // (c) 国を持たない相手（抽象標的）は陸軍力が100でも本国へ来ない
+        dip.Wars.Clear();
+        var abs = new Power { Id = dip.Powers.Max(p => p.Id) + 1, Name = "抽象", BaseName = "抽象", Military = 100.0 };
+        dip.Wars.Add(new War { A = fr, B = abs, Score = -0.9 });
+        Assert.Equal(0.0, dip.WarScale(fr, c, out double lc));
+        Assert.Equal(0.0, lc);   // 植民地戦争の負けは存亡でない（国を持たない相手は本国へ来ない）
+        // (d) 海越えで艦の無い敵＝上陸の門0＝規模0・敗色は存亡に数えない
+        dip.Wars.Clear();
+        Assert.True(dip.IsSeaCrossing(pr, gb, c), "前提：プロイセン→英は海越え");
+        Assert.Equal(0.0, dip.LandingGate(pr, gb, c));
+        dip.Wars.Add(new War { A = gb, B = pr, Score = -0.9 });
+        Assert.Equal(0.0, dip.WarScale(gb, c, out double ld));
+        Assert.Equal(0.0, ld);
+        // (e) 同じ敵と戦う国（仏）＝分母に入り、その本国へプロイセンが届く＝英の規模も上がる
+        dip.Wars.Add(new War { A = fr, B = pr, Score = 0.0 });
+        double expE = 6.0 * dip.Projection(pr, fr, c) / (1.0 + 2.0);
+        Assert.Equal(expE, dip.WarScale(gb, c, out _), 12);
+        Assert.Equal(expB * 2.0 / 3.0, dip.WarScale(fr, c, out _), 12);   // 仏の側も英が分母に入る（同じ陣営の同じ物差し）
+        // (f) 同じ敵と戦う列強（仏）の本国の敗色は英の存亡に入る
+        dip.Wars.Clear();
+        dip.Wars.Add(new War { A = gb, B = pr, Score = 0.0 });
+        dip.Wars.Add(new War { A = fr, B = pr, Score = -0.7 });
+        Assert.Equal(PowerRank.Great, dip.RankOf(fr));   // 前提：1789 の仏は列強
+        dip.WarScale(gb, c, out double lf);
+        Assert.Equal(0.7, lf, 12);
+    }
+
+    // ★番人（2026-10-03 (195)）：総動員の判断は上げる線と下げる線を分ける（README §1-8）＝規模 1.2 以上か存亡 0.5 超で入り、
+    //   規模 1/1.2 未満かつ存亡0（戦況が五分）で交戦中でも出る・線の間は現状維持（入り切りを状態で決める）。
+    [Fact]
+    public void 総動員は規模と存亡の上げる線で入り下げる線で交戦中でも出て線の間は現状維持()
+    {
+        var sim = new MultiNationSim([NationConfig.France(), NationConfig.Prussia()], seed: 1789);
+        var w = sim.Nations[0].World;
+        var fr = w.SelfPower!; var pr = sim.Nations[1].World.SelfPower!;
+        var dip = w.Diplomacy!;
+        var war = new War { A = fr, B = pr, Score = 0.0 };
+        dip.Wars.Add(war);
+        double proj = dip.Projection(pr, fr, w.Coef);
+        void Scale(double s) { PinLand(fr, 1.0); PinLand(pr, s / proj); }   // 規模＝pr の陸軍力×投射÷fr の陸軍力
+        bool Decide() { new UtilityAgent().DecideQuarter(w); return w.Mobilized; }
+        Scale(1.3); Assert.True(Decide(), "規模1.3（上げる線の上）で総動員しない");
+        Scale(1.0); Assert.True(Decide(), "規模1.0（線の間）で総動員が外れた＝現状維持でない");
+        Scale(0.7); Assert.False(Decide(), "規模0.7（下げる線の下）・存亡0 なのに交戦中に復員しない");
+        Scale(1.0); Assert.False(Decide(), "規模1.0（線の間）で総動員が入った＝現状維持でない");
+        Scale(0.1); war.Score = -0.6; Assert.True(Decide(), "存亡0.6（上げる線の上）で総動員しない");
+        war.Score = -0.3; Assert.True(Decide(), "存亡0.3（線の間）で総動員が外れた＝現状維持でない");
+        war.Score = 0.1; Assert.False(Decide(), "戦況が五分を越えた（存亡0）・規模0.1 なのに交戦中に復員しない");
     }
 
     // ============ ③ AiLawWriteCoverage＝移民制限法・国教法の書き手 ============

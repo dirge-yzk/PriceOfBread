@@ -21,6 +21,15 @@
                 <TextBlock Text="総動員規模" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontBody}"/>
                 <TextBlock Grid.Column="1" Text="{Binding PolityMobilizationText}" Classes="val" VerticalAlignment="Center"/>
             </Grid>
+            <!-- ★(195) 総動員の判断の材料＝AI と同じ1本（Diplomacy.WarScale）。交戦中だけ出す（線は出さない）。 -->
+            <Grid ColumnDefinitions="*,Auto" Margin="0,2,0,2" IsVisible="{Binding PlayerAtWar}">
+                <TextBlock Text="戦争の規模" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontBody}"/>
+                <TextBlock Grid.Column="1" Text="{Binding WarScaleText}" Classes="val" VerticalAlignment="Center"/>
+            </Grid>
+            <Grid ColumnDefinitions="*,Auto" Margin="0,2,0,2" IsVisible="{Binding PlayerAtWar}">
+                <TextBlock Text="陣営の本国の敗色" Foreground="{StaticResource InkSoftBrush}" FontSize="{StaticResource FontBody}"/>
+                <TextBlock Grid.Column="1" Text="{Binding WarHomeLosingText}" Classes="val" VerticalAlignment="Center"/>
+            </Grid>
             <!-- #106 総動員：開戦ポップアップで選び損ねても、戦争中はここで後から追加できる -->
             <!-- ★スイッチ式。総動員中は「復員」に変わる -->
             <Button Classes="dialog" Content="{Binding MobilizeButtonText}" Command="{Binding ToggleMobilizeCommand}" IsVisible="{Binding PlayerAtWar}" FontSize="{StaticResource FontBody}" Margin="0,2,0,2"/>
