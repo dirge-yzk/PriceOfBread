@@ -1454,15 +1454,16 @@ public class MilitaryTests
         Assert.Equal(ConscriptionLaw.Selective, Decide(w, ConscriptionLaw.Volunteer, 150, 150));
         Assert.Equal(ConscriptionLaw.Selective, Decide(w, ConscriptionLaw.Volunteer, 100, 100));
         Assert.Equal(ConscriptionLaw.Selective, Decide(w, ConscriptionLaw.Selective, 150, 150));
-        // 陸軍の不安の割合 0.4（線の下・平時）＝現状維持（どちらの法からも動かない）＝★(193) 上げる線と下げる線（選抜 1/12・皆兵 1/3）の間
+        // 陸軍の不安の割合 0.4（線の下・平時）＝現状維持＝★(193) 上げる線と下げる線（選抜 1/12・皆兵 1/3）の間
+        //   ★(199) 今の段（選抜）より下の前の目標（志願＝前に下げる線の下で置いた下げの目標）は今の段へ戻す（旧＝前の目標を保った＝門で止まった下げの目標が開いた戦線として残った）
         double l4 = 100.0 * 0.4 / 0.6;
-        Assert.Equal(ConscriptionLaw.Volunteer, Decide(w, ConscriptionLaw.Volunteer, l4, l4));
+        Assert.Equal(ConscriptionLaw.Selective, Decide(w, ConscriptionLaw.Volunteer, l4, l4));
         Assert.Equal(ConscriptionLaw.Selective, Decide(w, ConscriptionLaw.Selective, l4, l4));
         // 不安の全体は大きい（割合 0.75）が陸軍の不安は0（海軍で防げる海の不安と植民地の不安）＝上げない（旧＝不安の全体を読み徴兵制／(162)①＝志願制）
         //   ★(193) 下げも陸軍の不安だけを読む＝陸軍の不安0 は選抜の下げる線（1/12）の下＝志願を目標に（不安の全体 0.75 では保たない）。(178)〜(192) はここが現状維持（片方向の錠）
         Assert.Equal(ConscriptionLaw.Volunteer, Decide(w, ConscriptionLaw.Volunteer, 300, 0));
         Assert.Equal(ConscriptionLaw.Volunteer, Decide(w, ConscriptionLaw.Selective, 300, 0));
-        Assert.Equal(ConscriptionLaw.Volunteer, Decide(w, ConscriptionLaw.Volunteer, 300, l4));
+        Assert.Equal(ConscriptionLaw.Selective, Decide(w, ConscriptionLaw.Volunteer, 300, l4));   // ★(199) 陸軍の不安 0.4＝線の間＝今の段（選抜）へ戻す
         // NaN＝現状維持（比較が偽）
         Assert.Equal(ConscriptionLaw.Volunteer, Decide(w, ConscriptionLaw.Volunteer, double.NaN, double.NaN));
         // 門が開いている（全面）＝上限は国民皆兵（線の上だけ）・線の下は上げない（門が開いても上げない＝英米型・★(193) 下げる線〔選抜 1/12〕の下＝割合0 の行は志願の目標）
@@ -1520,13 +1521,14 @@ public class MilitaryTests
     /// <summary>★(193) 徴兵法の上げる線と下げる線を分けた（00一覧 §0-A の 0d・0e の徴兵法の分・README §1-8・推奨で進めた＝作者の承認は未確認）。
     /// (188) の C の目標の式（線の下は現状維持）は平時に上げた段が不安が去っても下がらない片方向の錠を作った（r192 の平時に下げた件数 0.0／種）。
     /// (a) 段は入力の大きさで選ぶ＝求める深さ（割合÷上げる線 0.5）＋幅 1/3 を今の段の深さ（志願0／選抜0.5／皆兵1）が超えたら、超えない一番深い段まで
-    ///     （皆兵は割合 1/3 未満で選抜・1/12 未満で志願・選抜は 1/12 未満で志願）・線の間は前の目標（現状維持）
+    ///     （皆兵は割合 1/3 未満で選抜・1/12 未満で志願・選抜は 1/12 未満で志願）・線の間は現状維持＝上限への上げの続き（前の目標が今の段より上）は保ち、
+    ///     ★(199) 前に下げる線の下で置いた下げの目標（前の目標が今の段より下）は今の段へ戻す（門で止まった下げの目標を線の間で開いた戦線として残さない＝(197) 反証役 vp1#4）
     /// (b) 呼び手（DecideModernLaws）：上げる線（0.5）は今のまま・下げる線の下は下げの目標・割合が定まらない（分母0・NaN）は現状維持（0 を「不安なし」と読まない）
     /// (c) 交戦中は下げない（平時に置いた下げの目標も畳む）／戦争が終わった最初の四半期（戦前の記録が残る）は読む不安が交戦中の値＝目標は今の段（上げも下げもしない）・次の四半期は平時の値で上げも下げもする
     /// (d) 下げも上げと同じ門＝AI の目標の整形（GateAllLawTargets）は支持が足りないだけの下げの一歩を目標に残し（上げと同じ）、施行（Government.Step の StepLevel）は
     ///     純支持が負なら政治資本で払う＝残りが代価に届かなければ下がらない（無償の失効にしない＝(190) の L と違う）・純支持の門を外せば同じ経路で1段下がる。
     /// ⚠突然変異「線の下は現状維持（旧 C）」「下げを1段ずつ（大きさで選ばない）」「下げる線＝上げる線」「交戦中も下げる」「交戦中に下げの目標を畳まない」「戦争が終わった最初の四半期も読む」
-    ///   「定まらない割合を0と読む」「下げを施行で無償にする」で赤。</summary>
+    ///   「定まらない割合を0と読む」「下げを施行で無償にする」「(199) 線の間で保留中の下げの目標を保つ（旧）」「(199) 線の間で上げの続きも今の段へ戻す」で赤。</summary>
     [Fact]
     public void 徴兵法の目標は上げる線と下げる線を分け下げる段を不安の大きさで選び戦争が終わった四半期は動かさない()
     {
@@ -1534,7 +1536,10 @@ public class MilitaryTests
         // (a) 下げる目標（純粋な関数）
         Assert.Equal(0.5, UtilityAgent.ConscriptionRaiseShare, 12);
         Assert.Equal(U, UtilityAgent.ConscriptionLowerTarget(U, 0.40, U));   // 線の間＝前の目標
-        Assert.Equal(S, UtilityAgent.ConscriptionLowerTarget(U, 0.40, S));   // 線の間＝保留中の下げの目標も保つ
+        Assert.Equal(U, UtilityAgent.ConscriptionLowerTarget(U, 0.40, S));   // ★(199) 線の間＝保留中の下げの目標は今の段へ戻す（旧＝保った）
+        Assert.Equal(U, UtilityAgent.ConscriptionLowerTarget(U, 0.40, V));
+        Assert.Equal(U, UtilityAgent.ConscriptionLowerTarget(S, 0.40, U));   // ★(199) 線の間＝上限への上げの続き（前の目標が今の段より上）は保つ
+        Assert.Equal(S, UtilityAgent.ConscriptionLowerTarget(U, 0.30, V));   // 線の下＝前の目標に依らずその時の大きさで選ぶ
         Assert.Equal(U, UtilityAgent.ConscriptionLowerTarget(U, 0.34, U));   // 皆兵の下げる線 1/3 の上
         Assert.Equal(S, UtilityAgent.ConscriptionLowerTarget(U, 0.32, U));   // 1/3 の下＝選抜（1段）
         Assert.Equal(S, UtilityAgent.ConscriptionLowerTarget(U, 0.09, U));   // 1/12 の上＝選抜で止まる
@@ -1558,6 +1563,8 @@ public class MilitaryTests
         Assert.Equal(-1, w.ConscriptionPreWar);
         Assert.Equal(U, Decide(w, S, S, 0.5));    // 上げる線ちょうど＝上限
         Assert.Equal(U, Decide(w, U, U, 0.45));   // 線の間＝現状維持
+        Assert.Equal(U, Decide(w, U, S, 0.45));   // ★(199) 線の間＝前の四半期に置いた下げの目標（選抜）は今の段へ戻す＝開いた戦線を残さない
+        Assert.Equal(U, Decide(w, S, U, 0.45));   // ★(199) 線の間＝上限への上げの続きは保つ
         Assert.Equal(S, Decide(w, U, U, 0.30));   // 下げる線の下＝選抜
         Assert.Equal(V, Decide(w, U, U, 0.02));   // ずっと下＝志願
         Assert.Equal(S, Decide(w, S, S, 0.20));   // 選抜は線の間

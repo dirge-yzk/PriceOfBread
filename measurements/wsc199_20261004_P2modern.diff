@@ -1,0 +1,82 @@
+# (199) 線W 後半の腕 P2（入れていない）＝徴兵法の立場に近代エリートの反対（平時 −1・総動員中 0）＋番人。d43bc79＋この回の G2（SelfPlay・MilitaryTests）の木に当たる。
+# 入れなかった理由＝10種（P2＋G2）で仏の平時の徴兵法の一致 58→46・墺の 1868 年以後の皆兵 54〜62→37〜50%・仏が志願へ下がる種（1884 年以後 9〜19%）＝史実の向きに全ての国がそろわない（実装ログ (199) §4）。AI の推奨（作者の承認は未確認）。
+diff --git a/PriceOfBread.SimCore/PolicyPreferences.cs b/PriceOfBread.SimCore/PolicyPreferences.cs
+index c23b543..18013fb 100644
+--- a/PriceOfBread.SimCore/PolicyPreferences.cs
++++ b/PriceOfBread.SimCore/PolicyPreferences.cs
+@@ -17,7 +17,7 @@ public enum PolicyAxis
+     WomenRights,                                                                   // ★女性の権利（統合法・2026-08-10）。なし→財産権→教育権→選挙権の**1本の梯子**。旧3軸（WomenProperty/WomenSuffrage/WomenEducation）を畳んだ
+                                                                                    // ＝3軸とも選好の式が**完全に同一**（家父長制の旧支配層が抵抗・近代/大衆が賛成）だったので、賛否連合の情報は1つも失われない
+     CornLaws, LandReform, SerfEmancipation,                                        // 議会の法案（段5・第4増分）
+-    ConscriptionLaw,                                                                // 徴兵法（1934拡張E5・末尾追加＝列挙順保存）。旧支配層/軍が徴兵制を支持（大軍＝権威）・大衆が反対（取られる）
++    ConscriptionLaw,                                                                // 徴兵法（1934拡張E5・末尾追加＝列挙順保存）。旧支配層/軍が徴兵制を支持（大軍＝権威）・大衆が反対（取られる）・近代エリートも反対（(199)・常備軍と徴兵への反対）
+     SecretBallot,                                                                   // 秘密投票法（1934拡張E5・末尾追加）。旧支配層が反対（票の買収/脅迫を失う）・近代/大衆が賛成
+     Bureaucracy,                                                                    // 官僚制度（1934拡張E5・末尾追加）。専門化＝旧支配層が反対（縁故任用の特権を失う）・近代/大衆が賛成
+     StateReligion,                                                                // 国教法の寛容化（1934拡張E6・末尾追加）。教会（旧支配層）が抵抗（十分の一税/地位を失う）・近代/大衆が賛成（信仰の自由）
+@@ -216,8 +216,18 @@ public static class PolicyPreferences
+                 double hoursConc = w.Coef.LaborMilitancyConcession * System.Math.Max(0, Politics.AvgMassMilitancy(w) - w.Coef.LaborConcessionThreshold);
+                 return mass ? -1.0 : modern ? 1.0 - hoursConc : 0;
+             case PolicyAxis.Coercion:         // 治安維持力＝それで地位を守る側（旧支配層）が賛成・抑圧される大衆が反対
+-            case PolicyAxis.ConscriptionLaw:   // 徴兵法（E5）＝旧支配層/軍が賛成（大軍＝権威）・大衆が反対（取られる）＝治安維持力と同型
+                 return trad ? 1.0 : mass ? -1.0 : 0;
++            case PolicyAxis.ConscriptionLaw:   // 徴兵法（E5）＝旧支配層/軍が賛成（大軍＝権威）・大衆が反対（取られる）
++                // ★(199) 近代エリート（商業層・自由主義）も**平時は**反対する（大衆と同じ強さ＝地位/権力軸の単位 ±1）＝常備軍と徴兵への反対
++                //   （働き手を市場から取られる・個人の自由と議会の財布＝国王の軍への警戒）。旧＝0（治安維持力と同型＝秩序で財産を守る側は中立）。
++                //   **総動員中（World.Mobilized）は反対しない（0）**＝国の存亡を賭けた戦争では自由主義の側も徴兵を通した（英の兵役法 1916 は自由党の首相の連立が通した・
++                //   米の選抜徴兵法 1917）。総動員は上げる線と下げる線を分けた状態（UtilityAgent.DecideQuarter・Diplomacy.WarScale）＝タイマーではない。
++                //   ⚠総動員中も反対する形（腕 P＝探索の5種）は大戦の徴兵が門で止まった（1939-45 の兵士÷人口の頂点 英 4.3→1.2%・米 5.5→0.9%・仏 6.4→1.7%＝実装ログ (199)）。
++                //   史実【推】＝英の自由党と商業層（1902〜14 の国民兵役同盟〔National Service League〕は平時の徴兵を通せなかった・兵役法 1916 は戦時だけ）・
++                //   米の反常備軍の伝統（平時の徴兵は 1940 まで無い）・普の自由主義の多数派は軍制改革（1860〜62）に反対して憲法紛争（王権と軍が押し切った）・
++                //   仏の名士は代人の購入（籤と代人＝1818・1832）を守り、ニエル法（1868）を議会で骨抜きにした（皆兵は敗戦の後 1872）。
++                //   ＝向きはどの国でも同じ（近代エリートは反対）・通るかは政治力の構成で決まる（旧支配層と軍の強い国では押し切られる）＝国名の分岐は書かない。
++                return trad ? 1.0 : mass ? -1.0 : w.Mobilized ? 0.0 : -1.0;
+             case PolicyAxis.NavyUpkeep:        // 海軍維持費（2026-08-10 作者裁定＝旧「海軍偏重」の振り替え先）＝艦隊に払う金。旧支配層が賛成（艦隊の威信）・大衆は中立（徴兵と違い取られない）
+                 return trad ? 0.5 : 0;
+ 
+diff --git a/PriceOfBread.Tests/MilitaryTests.cs b/PriceOfBread.Tests/MilitaryTests.cs
+index ab9748e..c48351b 100644
+--- a/PriceOfBread.Tests/MilitaryTests.cs
++++ b/PriceOfBread.Tests/MilitaryTests.cs
+@@ -1612,6 +1612,42 @@ public class MilitaryTests
+         Assert.Equal(S, fr.ConscriptionLaw);   // 同じ施行の経路（StepLevel）で1段下がる
+     }
+ 
++    /// <summary>★(199) 徴兵法の立場（PolicyPreferences の選好）＝旧支配層が賛成・大衆が反対・**近代エリートは平時は反対し、総動員中（World.Mobilized）は反対しない**
++    /// （00一覧 §0-A の 0d・0e の徴兵法の門の支持の構成・(197) の作者への確認②の推奨・推奨で進めた＝作者の承認は未確認）。
++    /// (a) 選好の式（3勢力・上げる向きと下げる向き）・治安維持力の近代エリートは0のまま（同じ case から分けた）
++    /// (b) 呼び手＝純支持（NetSupport＝法の門 GateInfo と施行 MandateGate が読む1本）：下げる一歩の純支持は、平時が総動員中より
++    ///     「近代エリートの政治力×街頭の割合＋議会の自由党の議席×重み」（SupportBreakdown のその2行）だけ大きく、上げる一歩は同じだけ小さい＝門の代価も平時の下げが安い。
++    /// ⚠突然変異「近代エリートは0（旧）」「総動員中も反対する（腕 P）」「交戦中で読む（総動員でなく）」「治安維持力の近代エリートも反対」「近代エリートは賛成」で赤。</summary>
++    [Fact]
++    public void 徴兵法の立場は近代エリートも平時は反対し総動員中は反対しない()
++    {
++        var w = France155().World;
++        var cs = PolicyAxis.ConscriptionLaw;
++        Assert.False(w.AtWarNow, "前提が崩れた：仏が交戦中");
++        // (a) 選好の式
++        w.Mobilized = false;
++        var up = PolicyPreferences.Stance(w, cs, true);
++        Assert.Equal(1.0, up.Trad, 12); Assert.Equal(-1.0, up.Modern, 12); Assert.Equal(-1.0, up.Mass, 12);
++        Assert.Equal(1.0, PolicyPreferences.Stance(w, cs, false).Modern, 12);   // 下げる向き＝近代エリートが押す
++        Assert.Equal(0.0, PolicyPreferences.Stance(w, PolicyAxis.Coercion, true).Modern, 12);   // 治安維持力は旧のまま（秩序で財産を守る側は中立）
++        // (b) 純支持（平時）
++        Assert.True(PolicyPreferences.Build(w).Power[1] > 1e-6, "前提が崩れた：近代エリートの政治力が0");
++        double peaceDn = PolicyPreferences.NetSupport(w, cs, false), peaceUp = PolicyPreferences.NetSupport(w, cs, true);
++        double modernRows = 0;
++        foreach (var (who, wt) in PolicyPreferences.SupportBreakdown(w, cs, false)) if (who is "近代エリート" or "議会・自由党") modernRows += wt;
++        Assert.True(modernRows > 1e-6, $"前提が崩れた：近代エリートの行が無い（{modernRows}）");
++        var gPeace = Government.GateInfo(w, cs, false, (int)w.ConscriptionLaw - 1);
++        // 総動員中
++        w.Mobilized = true;
++        var mob = PolicyPreferences.Stance(w, cs, true);
++        Assert.Equal(0.0, mob.Modern, 12); Assert.Equal(1.0, mob.Trad, 12); Assert.Equal(-1.0, mob.Mass, 12);
++        double mobDn = PolicyPreferences.NetSupport(w, cs, false), mobUp = PolicyPreferences.NetSupport(w, cs, true);
++        Assert.Equal(modernRows, peaceDn - mobDn, 9);    // 効いた量そのもの＝近代エリートの行の分だけ下げが押される
++        Assert.Equal(-modernRows, peaceUp - mobUp, 9);   // 上げは同じだけ押し戻される
++        var gMob = Government.GateInfo(w, cs, false, (int)w.ConscriptionLaw - 1);
++        Assert.True(mobDn < 0 && gPeace.Cost < gMob.Cost, $"平時の下げの代価 {gPeace.Cost} が総動員中 {gMob.Cost} より安くない（純支持 {peaceDn}／{mobDn}）");
++    }
++
+     /// <summary>★(178) 陸軍の不安（World.SecurityThreatArmy・作者 2026-10-03 で採った推奨②「海と陸を完全に分けない」＝陸の不安＋海の不安のうち自国の海軍で防げない分）
+     /// ＝同じ注意配分の分母のうち、A が B に届く強さを「**両側とも本国の州（Core・Integrated）の国境**＋投射×**上陸の門**（Diplomacy.LandingGate＝陸続き1・海越えは A の制海権が門に届けば1）」に限った分。
+     /// 盤面＝仏・西・日（開幕・外交を止める）：(a) 式どおり（公開の部品で数え直して一致）(b) 陸軍の不安≦全体

@@ -445,11 +445,15 @@ public sealed class UtilityAgent : INationAgent
 
     /// <summary>★(193) 徴兵法の下げる目標＝入力の大きさで段を選ぶ。求める深さ d＝割合÷<see cref="ConscriptionRaiseShare"/>。
     /// 今の段（<paramref name="cur"/>）から、深さが d＋<see cref="ConscriptionLowerMargin"/> を超えない一番深い段まで（今の段より深くはしない＝上げは上げる線だけ）。
-    /// 下げる理由が無い（今の段がその範囲）なら <paramref name="hold"/>（前の目標＝現状維持）。</summary>
+    /// 下げる理由が無い（今の段がその範囲＝線の間）なら現状維持＝<paramref name="hold"/>（前の目標）が今の段より上（上げる線で決めた上限への上げの続き）ならそれを保ち、
+    /// ★(199) 今の段より下（前に下げる線の下で置いた下げの目標）なら**今の段へ戻す**＝下げる理由が去った目標を残さない
+    /// （旧＝前の目標を保った＝門で止まった下げの目標が、割合が線の間へ戻った後も開いた戦線として残った＝平時の国×四半期の 1.1%〔5種〕・その四半期は他の全ての段の法とスライダーの押しが約6%遅い〔Government.Step の PoliticalPushBudget〕・
+    ///   門が後で開くと線の間で下がった〔下げた時の割合の最大 0.48〕＝(197) 反証役 vp1#4・実装ログ (199)。直した後＝線の間の下げの目標0・下げた時の割合の最大 0.33〔10種〕）。
+    /// 下げる段は毎四半期その時の割合で選び直す（上の while）＝線の間の下げの目標は「その時の大きさ」が置かない＝上げ（上限という決まった段への上げ）の続きとは形が違う。</summary>
     internal static ConscriptionLaw ConscriptionLowerTarget(ConscriptionLaw cur, double share, ConscriptionLaw hold)
     {
         double keep = share / ConscriptionRaiseShare + ConscriptionLowerMargin;   // この深さまでは保つ
-        if (!(PoliticalQuantities.ConscriptionDepth(cur) > keep)) return hold;   // 否定形＝NaN は保つ側
+        if (!(PoliticalQuantities.ConscriptionDepth(cur) > keep)) return hold < cur ? cur : hold;   // 否定形＝NaN は保つ側（線の間の保留中の下げの目標は今の段へ）
         var k = cur;
         while (k > ConscriptionLaw.Volunteer && PoliticalQuantities.ConscriptionDepth(k) > keep) k--;
         return k;
@@ -595,7 +599,7 @@ public sealed class UtilityAgent : INationAgent
         //   ・上げる線＝陸軍の不安の割合 ConscriptionRaiseShare（0.5＝(155) のまま）以上で上限（上の①②のまま）。
         //   ・下げる線＝**段は入力の大きさで選ぶ**：求める深さ＝割合÷上げる線（上げる線で 1＝皆兵の深さ・PoliticalQuantities.ConscriptionDepth と同じ物差し＝志願0／選抜0.5／皆兵1）。
         //     今の段の深さが求める深さを幅 ConscriptionLowerMargin（1/3）より超えたら、超えない一番深い段まで下げる＝皆兵は割合 1/3 未満で選抜へ・選抜は 1/12 未満で志願へ
-        //     （上げる線と下げる線の間は現状維持＝反転を状態で決める・タイマーにしない）。下げるのは交戦していない四半期だけ（戦時の下げは作らない＝平時に置いて門で止まっていた下げの目標も交戦中は今の段へ畳む）。
+        //     （上げる線と下げる線の間は現状維持＝反転を状態で決める・タイマーにしない・★(199) 線の間では前に置いた下げの目標を今の段へ戻す＝ConscriptionLowerTarget の注記）。下げるのは交戦していない四半期だけ（戦時の下げは作らない＝平時に置いて門で止まっていた下げの目標も交戦中は今の段へ畳む）。
         //     開幕の選抜（大陸の旧体制の割当て）は不安が0に近い時だけ下げの目標に入る（開幕の仏 0.17・西 0.13 は 1/12 より上）。
         //   ・戻しも上げと同じ門＝目標を置くだけ（GateAllLawTargets の GateLaw＝法律タブと同じ照会・施行は Government.Step の StepLevel＝純支持が負なら政治資本で払う）
         //     ＝下げに反対する旧支配層と軍（PolicyPreferences の徴兵法の立場）が強い国では下げは通らない（支持の構成で残る）。無償の失効（(190) の L）にはしない。
