@@ -240,6 +240,49 @@ public class SteelMarketAiTests
         throw new InvalidOperationException("テスト前提が崩れた：首都州に『材料を国内で作れる下流財』が1つも無い");
     }
 
+    // ============ (e2) 眠った生産者の採算は着工の門で読まない（(187) 反証役 vb2#1） ============
+
+    /// <summary>★(187) 眠った生産者（<see cref="EconomyStep.SleepState"/>＝1＝発見の門が0 で操業規模0・産出0）は (186) の眠りの間に採算の平滑が止まる
+    /// ＝退場したレシピは退場した月の値で凍る。AI の着工の門（採算&gt;0）はその凍った値を読まない＝動いている個体が赤字の財を、凍った正の採算で建てない。
+    /// 対照＝同じ盤面で産出をわずかに残す（眠りの条件から外れる＝今のまま採算を読む）と建つ＝門が読んでいるのは眠りの判定そのもの。
+    /// 世界の着値の経路（採算を読まない）と連鎖の目（上流を選ぶ）は外してピンする。</summary>
+    [Fact]
+    public void 眠った生産者の凍った採算では着工しない()
+    {
+        foreach (bool asleep in new[] { true, false })
+        {
+            var w = FourNations().Nations[0].World;   // フランス
+            GiveBuildRoom(w, 1.5);
+            Assert.Equal(0.0, UtilityAgent.FiscalStressOf(w));   // 前提：財政の門は通る
+            Assert.Equal(0, WilledCount(w));                     // 前提：未達の意志ゼロ
+            w.Coef.AiSupplyChainEyes = 0.0;                      // 連鎖の目は外す（上流を選ぶと下流の着工が見えない）
+            w.WorldGoodsPrices = null;                           // 世界の着値の経路は閉じる（採算の門を通る候補だけを見る）
+            Region? rg = null; Producer? pr = null;
+            foreach (var r in w.Regions)
+            {
+                if (r.State != RegionState.Active) continue;
+                foreach (var p in r.Producers)
+                {
+                    if (p.GoodId < 0 || p.GoodId >= Catalog.Goods.Length || Catalog.Goods[p.GoodId].Tier == GoodTier.Service) continue;
+                    if (p.Bankrupt || p.ConstructionLeft > 0 || p.BuiltScale > 1e-9 || p.SiteRow >= 0 || Discovery.Gate(r, p) > 0) continue;
+                    if (!(Catalog.RefPrices[p.GoodId] > 0) || Catalog.FactorySpec(p.GoodId).Cost > UtilityAgent.FiscalBufferOf(w)) continue;
+                    rg = r; pr = p; break;
+                }
+                if (pr is not null) break;
+            }
+            Assert.True(pr is not null && rg is not null, "テスト前提が崩れた：発見の門が0 の工場が1つも無い");
+            pr!.Scale = 0; pr.Output = asleep ? 0 : 1e-6;   // 眠った個体／対照＝産出を残す（眠りの条件から外れる）
+            Assert.Equal(asleep ? 1 : 0, EconomyStep.SleepState(rg!, pr, w.Coef));
+            rg!.Markets[pr.GoodId].Price = 100.0 * RefAnchor(rg, pr.GoodId);   // 不足の深さは突出（他の財に負けない）
+            pr.SmoothedMargin = 0.5;                                             // 凍った正の採算
+            foreach (var q in rg.Producers) if (q.GoodId == pr.GoodId && !ReferenceEquals(q, pr)) q.SmoothedMargin = -0.5;   // 動いている後継は赤字
+            new UtilityAgent().DecideQuarter(w);
+            int willed = rg.Producers.Where(q => q.GoodId == pr.GoodId).Sum(q => q.StateTarget);
+            if (asleep) Assert.Equal(0, willed);                               // 凍った採算を読まない
+            else Assert.True(willed >= 1, $"対照で建たない（{willed}）＝盤面が着工できない＝番人が空回りしている");
+        }
+    }
+
     // ============ (f) #5 AiProtectiveTariff＝保護関税の反射 ============
 
     /// <summary>「自国産業が赤字」×「その財の輸入が急増」＝壁を作る（1879年独の鉄と穀物・1861年米モリル関税の型）。
