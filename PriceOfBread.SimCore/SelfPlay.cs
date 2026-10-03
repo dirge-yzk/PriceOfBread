@@ -419,6 +419,10 @@ public sealed class UtilityAgent : INationAgent
     /// ＝新兵器の必要性の脅威の割合（必要量÷(必要量＋自国の力)・Discovery）と同じ形（有界＝上下を切らない）。小国が大国の隣で感じる不安は1へ近づき、周りに養える軍の少ない国（開国前の日本・清）は0へ近づく。
     /// 定まらない（単一国・分母0・NaN）は0。
     /// ★(178) <paramref name="army"/>＝分子を陸軍の不安（<see cref="World.SecurityThreatArmy"/>＝本国の国境＋投射×上陸の門＝自国の海軍で防げない分）に限る（同じ形・分母は同じ自国の養える軍）＝徴兵法の目標だけが読む。</summary>
+    /// <summary>★(190) AI が徴兵法を上限へ上げる線（陸軍の不安の割合・値は (155) の 0.5 のまま＝新しい数ではない）＝**非常時の徴兵法が戻る線と同じ1本**
+    /// （<see cref="Government.Step"/> の非常時の判定が読む＝上げる線と戻す線が同じ＝README §1-8「上げると下げるを同じ費用で」）。</summary>
+    internal const double ConscriptionThreatLine = 0.5;
+
     internal static double SecurityShare(World w, bool army = false)
     {
         double t = army ? w.SecurityThreatArmy : w.SecurityThreat, own = w.SecurityThreatOwnMass;
@@ -560,9 +564,11 @@ public sealed class UtilityAgent : INationAgent
         //   ④交戦の枝は総動員の時だけ（総動員は劣勢と存亡で入る＝DecideQuarter の上の段落・旧＝交戦中なら徴兵制＝英の戦時の法の上げ下げ 36回/試合〔史実 1916・1939 の2回〕）。
         //     旧 (155) の「平時の男子普選以上なら志願制」の枝は外した（史実の向きは参政権でなく脅威と身分の特権で決まる＝仏の第三共和政は男子普選と国民皆兵）。
         //   志願制へ戻る道＝戦時に上げた徴兵法の失効（Government.Step＝戦争が終わった四半期に戦前の段へ）と開幕の法（world.json の initialConscription）。NaN は比較が偽＝現状維持の側。
+        //   ★(190) 戻る道を非常時へ広げた＝線（ConscriptionThreatLine）の上で上げた段は、不安が線の下へ戻り交戦もしていない四半期に非常時の前の段へ戻る（Government.Step）＝目標は線の下では現状維持のまま
+        //     （目標を下げても下げる一歩は旧支配層と軍の支持の逆向き＝政治資本の門が止める＝下げの目標は戦線を開くだけ・(190) の腕 B〔線の下を段の幅で内分〕で英の平時の皆兵 3/5→5/5 の種・米の平時の選抜 0→28〜87%〔1804 年以後の10年の窓〕）。
         //   【(162)① の「平時に不安の多くが海の向こうと植民地から来る国は志願制」は (163) の合流で差し戻した 2026-10-02】＝パッチ measurements/m163_20261002_landthreat.diff。
         var csTop = w.ConscriptionLaw == ConscriptionLaw.Universal || Government.UniversalConscriptionOpen(w) ? ConscriptionLaw.Universal : ConscriptionLaw.Selective;
-        p.ConscriptionLaw = SecurityShare(w, army: true) >= 0.5 || (atWar && w.Mobilized) ? csTop : p.ConscriptionLaw;
+        p.ConscriptionLaw = SecurityShare(w, army: true) >= ConscriptionThreatLine || (atWar && w.Mobilized) ? csTop : p.ConscriptionLaw;
         if (w.Suffrage >= Suffrage.AdultMale) p.SecretBallot = SecretBallotLaw.Secret;   // 大衆選挙＝買収・威圧の排除が票の実在に直結
         if (w.AdminEfficiency > ProfessionalBureaucracyAdminThreshold) p.Bureaucracy = BureaucracyLaw.Professional;   // 行政力が育った国＝専門官僚制へ（プロイセン文官改革）
         if (w.MeanIndustrialization > AntitrustIndThreshold)

@@ -1,0 +1,23 @@
+--- a/PriceOfBread.SimCore/Coefficients.cs	2026-10-03 18:38:32.710529800 +0900
++++ b/PriceOfBread.SimCore/Coefficients.cs	2026-10-03 18:38:32.930039100 +0900
+@@ -1782,7 +1782,7 @@
+     // ★段2で削除（設計メモ §7-3）：MiddleLayerMilitancy＝危険な中間の闘争度加算。中間層は**原因ではなく層**（誰がどう動くか）であり、
+     //   3層の振る舞い分け（⑤＝政治／自ら暴力／合流）が担う。層の重み wMid=識字−min(意識,識字) は他の読み手が保持している。
+     public double RevolutionConsciousness = 0.25;  // 第5段5-6点火（2026-07-28）：暴力革命の成立→国民意識へ NC+=これ×(1−NC)（ナポレオンの鎖①＝臣民が国民になる・学校天井をバイパス＝直接回路化）。受け皿＝Military徴兵深度の国民意識ゲート（既配線）。0で旧恒等
+-    public double IrreversibleLaws = 1.0;          // 第6段6-7点火（2026-07-28）：支持層を作る法の不可逆＝参政権/女性の権利（★2026-08-10 統合＝梯子の全段）/社会保障制度は平時に後退不能・労働時間/児童労働は戦時のみ緩和可（英1915軍需品法）。報道/国教は可逆。水準スライダーは常に自由（制度と水準で割れる史実）。0で旧恒等（農奴解放のみ既存不可逆）
++    public double IrreversibleLaws = 0.0;          // 第6段6-7点火（2026-07-28）：支持層を作る法の不可逆＝参政権/女性の権利（★2026-08-10 統合＝梯子の全段）/社会保障制度は平時に後退不能・労働時間/児童労働は戦時のみ緩和可（英1915軍需品法）。報道/国教は可逆。水準スライダーは常に自由（制度と水準で割れる史実）。0で旧恒等（農奴解放のみ既存不可逆）
+     //   ★支配度doc §13（2026-09-07 器）：0..1 の連続へ。1.0＝bool 禁止（現行・厳密恒等）／<1＝禁止せず純支持ゲートを倍率 1/(1−g) で通す／0＝純支持だけ（既得層の怒り＝ReversalAnger は裁定C2 に反する不到達の枝として 2026-09-26 に削除＝pol-27）。段階点火の腕＝0.5
+     public double RuptureWindowQuartersOnCrush = 8;   // 第6段6-8点火（2026-07-28）：断裂の窓の長さ＝革命鎮圧・内戦制圧・弾圧の直後この四半期数だけ6-7を解除（反動の後退はこの窓のみ＝仏1850・ストルイピン1907）。0で窓なし
+     public double LawEnforcementAdminGate = 0.5;   // 第6段6-8点火（2026-07-28）：執行の飢餓＝先進方向の法浸透（労働時間短縮・児童労働禁止・女性賃金保持）の追従速度×min(1, 行政力/これ)。法は残して監督官を切る反動（1802徒弟法の空文化）。緩和方向は即時（規制撤廃に監督官は不要）。0で旧恒等
+--- a/PriceOfBread.SimCore/SelfPlay.cs	2026-10-03 18:38:32.821163200 +0900
++++ b/PriceOfBread.SimCore/SelfPlay.cs	2026-10-03 18:38:32.931544800 +0900
+@@ -562,7 +562,8 @@
+         //   志願制へ戻る道＝戦時に上げた徴兵法の失効（Government.Step＝戦争が終わった四半期に戦前の段へ）と開幕の法（world.json の initialConscription）。NaN は比較が偽＝現状維持の側。
+         //   【(162)① の「平時に不安の多くが海の向こうと植民地から来る国は志願制」は (163) の合流で差し戻した 2026-10-02】＝パッチ measurements/m163_20261002_landthreat.diff。
+         var csTop = w.ConscriptionLaw == ConscriptionLaw.Universal || Government.UniversalConscriptionOpen(w) ? ConscriptionLaw.Universal : ConscriptionLaw.Selective;
+-        p.ConscriptionLaw = SecurityShare(w, army: true) >= 0.5 || (atWar && w.Mobilized) ? csTop : p.ConscriptionLaw;
++        int csWant = (int)System.Math.Floor(SecurityShare(w, army: true) / 0.5 * (int)ConscriptionLaw.Universal);
++        p.ConscriptionLaw = atWar && w.Mobilized ? csTop : (ConscriptionLaw)System.Math.Min((int)csTop, csWant);
+         if (w.Suffrage >= Suffrage.AdultMale) p.SecretBallot = SecretBallotLaw.Secret;   // 大衆選挙＝買収・威圧の排除が票の実在に直結
+         if (w.AdminEfficiency > ProfessionalBureaucracyAdminThreshold) p.Bureaucracy = BureaucracyLaw.Professional;   // 行政力が育った国＝専門官僚制へ（プロイセン文官改革）
+         if (w.MeanIndustrialization > AntitrustIndThreshold)
