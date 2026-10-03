@@ -1,0 +1,1304 @@
+diff --git a/PriceOfBread.App/ViewModels/GameViewModel.Production.cs b/PriceOfBread.App/ViewModels/GameViewModel.Production.cs
+index 40bebfa..032fe4b 100644
+--- a/PriceOfBread.App/ViewModels/GameViewModel.Production.cs
++++ b/PriceOfBread.App/ViewModels/GameViewModel.Production.cs
+@@ -1030,10 +1030,8 @@ public partial class GameViewModel
+                 () => StepStateTargetAt(rgRef, gi, -1))
+             {
+                 Name = rg.Name,
+-                // 接17（監査2026-07-11・2026-07-25実装）：新旧資本の内訳＝旧式資本を抱えた産業と新鋭産業の区別（売却・補助金判断の材料）。休眠（旧世代0）なら出さない
+-                CapitalTip = rg.OldVintageCapital > 1e-9
+-                    ? $"工業化資本 {rg.TotalIndustrialization:F1}=新鋭 {rg.Industrialization:F1}+旧世代 {rg.OldVintageCapital:F1}\n座礁 {rg.StrandedVintage:F1}　旧世代の据付技術 {rg.VintageTechLevel:F1}/現行 {rg.TechLevel:F1}"
+-                    : null,
++                // 接17（監査2026-07-11）の新旧資本の内訳＝★(185) 段2 でヴィンテージ資本を撤去（工業化度は1層）＝出さない
++                CapitalTip = null,
+                 // ★国営工場の列＝「− 現在/目標 ＋」1本（作者フィードバック2026-08-10 項目5＝カウンター列を統合）。
+                 //   現在＝実際に建っている国営の棟数（World.StateUnits）／目標＝カウンター（Producer.StateTarget）。
+                 //   単位は棟（小数の Scale は使わない）。民営工場の列はそのまま残す。
+diff --git a/PriceOfBread.Runner/Program.cs b/PriceOfBread.Runner/Program.cs
+index 07679a2..84f55f2 100644
+--- a/PriceOfBread.Runner/Program.cs
++++ b/PriceOfBread.Runner/Program.cs
+@@ -916,7 +916,7 @@ if (args.Length > 0 && args[0] == "indprobe")
+         cfg => playerName.Length > 0 && cfg.Name == playerName ? new NullAgent() : new UtilityAgent());
+     string[] targets = ["イギリス", "フランス", "両シチリア", "日本", "プロイセン"];
+     var ipc = new Coefficients();
+-    System.Console.WriteLine($"建設束: 鋼{ipc.SteelGoodId} 機械{ipc.MachineGoodId} セメント{ipc.CementGoodId} 製材{ipc.LumberGoodId}　IndInvestmentSpeed={ipc.IndInvestmentSpeed} IndPerConstruction={ipc.IndPerConstruction} IndInvestmentFrac={ipc.IndInvestmentFrac} IndProductivityScale={ipc.IndProductivityScale} IndCapitalCost={ipc.IndCapitalCost}");
++    System.Console.WriteLine($"建設束: 鋼{ipc.SteelGoodId} 機械{ipc.MachineGoodId} セメント{ipc.CementGoodId} 製材{ipc.LumberGoodId}　IndInvestmentSpeed={ipc.IndInvestmentSpeed} IndPerConstruction={ipc.IndPerConstruction} IndInvestmentFrac={ipc.IndInvestmentFrac} IndProductivityScale={ipc.IndProductivityScale} CapitalOutputRatio={ipc.CapitalOutputRatio}");
+     void Dump(int q)
+     {
+         foreach (var n in ipm.Nations)
+@@ -928,7 +928,7 @@ if (args.Length > 0 && args[0] == "indprobe")
+             double inv = r.InvestorPopIndex >= 0 ? r.Pops[r.InvestorPopIndex].Savings : -1;
+             double sP = r.Markets[ipc.SteelGoodId].Price, sS = r.Markets[ipc.SteelGoodId].Stock;
+             double mP = r.Markets[ipc.MachineGoodId].Price, mS = r.Markets[ipc.MachineGoodId].Stock;
+-            System.Console.WriteLine($"Q{q,3} {name,-6} {r.Name,-8} Ind={r.Industrialization:F3} 民間累積={r.CumPrivateIndustrialization:F3} 国家累積={r.CumStateIndustrialization:F3} 投資家貯蓄={inv:F0} 鋼(価格{sP:F2}/在庫{sS:F0}) 機械(価格{mP:F2}/在庫{mS:F0})");
++            System.Console.WriteLine($"Q{q,3} {name,-6} {r.Name,-8} Ind={r.Industrialization:F3} 国家累積={r.CumStateIndustrialization:F3} 投資家貯蓄={inv:F0} 鋼(価格{sP:F2}/在庫{sS:F0}) 機械(価格{mP:F2}/在庫{mS:F0})");
+         }
+         System.Console.WriteLine();
+     }
+diff --git a/PriceOfBread.SimCore/Coefficients.cs b/PriceOfBread.SimCore/Coefficients.cs
+index ffd3e43..6d34cf6 100644
+--- a/PriceOfBread.SimCore/Coefficients.cs
++++ b/PriceOfBread.SimCore/Coefficients.cs
+@@ -111,10 +111,13 @@ public sealed class Coefficients
+        労働配分が動くので帯は揺れるが「作れない財に労働者が張り付かない」＝正しい挙動を優先（0で旧挙動へ戻せる）。 */
+     public double TechGatedScaleZero = 1.0;
+     // ⚠撤去2026-08-22: LaborFloorMix（均等床0.15）＝準レント配分では不要（価格上昇が重みを自動で戻す）・作者裁定「ラッダイトは必須」＝職人と工場の27倍の非対称も同時に消える。墓標は上の準レント注記。
+-    // --- 企業の操業規模（参入退出。採算で伸縮し供給を需要へ寄せる＝価格二極化の是正・§9-A 仕組み4）---
+-    public double ScaleAdjustSpeed = 0.05;   // 操業規模が採算の目標へ寄る速さ（緩やか＝供給の振動を防ぐ）
+-    public double ScaleFloor = 0.1;          // 採算が悪い工場の最小規模（≒閉鎖。0でなく＝需要回復で再開できる）
+-    public double ScaleMax = 3.0;            // 採算が良い工場の最大規模（拡張＝希少財へ労働を集める）
++    // --- 産地（RGO）の操業規模（参入退出。採算で伸縮し供給を需要へ寄せる＝価格二極化の是正・§9-A 仕組み4）---
++    // ★2026-10-03 (185) 段2（生産を市場から導く・能力は建てた分だけ・作者 2026-09-28「全て推奨で採択」）：工場（労働を市場で買う RGO でない生産者）は
++    //   この3本を読まない＝工場の Scale は建てた設備（職場の数）そのもの（EconomyStep.IsFactory）。読み手は産地（RGO）の作付の取り分だけ
++    //   （設計 §3 の注＝産地の能力は土地と賦存で決まる＝この段の外）。
++    public double ScaleAdjustSpeed = 0.05;   // 産地の操業規模が採算の目標へ寄る速さ（緩やか＝供給の振動を防ぐ）
++    public double ScaleFloor = 0.1;          // 採算が悪い産地の最小規模（≒閉鎖。0でなく＝需要回復で再開できる）
++    public double ScaleMax = 3.0;            // 採算が良い産地の最大規模（拡張＝希少財へ労働を集める）
+     // 工場の倒産・有限責任（数期移動平均の採算で退出）。有効化済み（旧・既定オフの理由＝床は過剰供給(グルット)の症状であり、
+     // 本来黒字（参照価格なら採算可）の財まで、しかも工業化前で需要の低い必須資本財まで倒産させ、工業化が崩壊するため＝
+     // グルット是正後に true 化。保存則は不変＝倒産は産出0で損失を出さない）。
+@@ -128,7 +131,7 @@ public sealed class Coefficients
+     public double FactoryMarginSmoothing = 0.025;  // 採算EMAの平滑係数（小＝長い移動平均＝一過性の赤字では潰れない。0.025≒3年＝持続的危機のみ倒産）
+     public double FactoryBankruptcyMargin = -0.85; // 平滑採算がこれ未満で倒産（原価の15%以下で売り続け＝極度の慢性赤字のみ。死のスパイラル防止）
+     public double FactoryReentryMargin = -0.05;    // 倒産中、現採算がこれ超で新規参入（やや赤字でも再開＝恐慌からの早い回復）
+-    public double FactoryReentryScale = 0.3;       // 新規参入時の操業規模（小さく入って採算が良ければ拡張）
++    public double FactoryReentryScale = 0.3;       // 新規参入時の操業規模（小さく入って採算が良ければ拡張）。★(185) 段2＝工場は倒産しない（変動費を賄えない間は止まり、設備は寿命で減る）＝読み手は産地の再参入だけ
+ 
+     // --- pop 意思決定（§9-D・段1）---
+     public double Mobility = 0.02;            // 階級間の再配分速度（緩和）
+@@ -1135,13 +1138,12 @@ public sealed class Coefficients
+     // 恐慌が『ストック』を削る＝覇権の構造的先行（工業化）を大恐慌が巻き戻す。閾値超のドローダウンにのみ効く。
+     public double DepressionScrapRate = 0.06;       // 閾値超ドローダウン1あたりの月次・追加工業化減価（0で無効）。大恐慌(DD50%・閾値0.2→超過0.3)で月1.8%の資本廃棄。※深め過ぎは逆効果（挑戦者をより壊す）＝中庸0.06が最適
+     public double DepressionScrapThreshold = 0.20;  // これ未満のドローダウンでは資本廃棄なし（通常の景気循環では工場は壊さない・大恐慌のみ）
+-    // 〔7-1〕恐慌の資本破壊を BuiltScale へ（2026-09-06・作者裁定§4-1「工場が1棟も消えないのは史実に反する」）：恐慌の同じ月に、床（BuiltScale）に
+-    //   支えられて操業している工場＝床が無ければ閉鎖している工場だけ、BuiltScale を同じ scrapKeep で廃棄する（RGO は対象外）。0＝従来（厳密恒等）。
+-    public double DepressionScrapsBuiltScale = 1.0;   /* ★点火2026-09-06＝0.0→1.0・〔7-1〕恐慌の資本破壊を BuiltScale へ（採算割れの工場だけ閉鎖） */
+-    // ヴィンテージ資本有効化2026-07-10（キュー5＝2026-07-08承認の工程(1)）：技術先行国の旧資本が後年に足枷となり後発が新鋭資本で競り勝つ（実力ベース首位交代の本命）。
+-    // 配線＝新旧合計(TotalIndustrialization)を従来読者へ・座礁控除(ProductiveIndustrialization)は生産性チャネルのみ＝座礁だけが現行との差分（較正中立の分割・Model.cs Region参照）。
+-    public double VintageMigrateRate = 0.005;     // ヴィンテージ資本（no-vintage-capital-depreciation）：現世代→旧世代の月次経年率。0.005＝半減期約11.6年（19世紀設備の世代交代）。0で二層化せずOldVintageCapital=0（現行恒等）
+-    public double VintageObsolescence = 0.5;      // 旧世代の生産性寄与を技術差で割り引く座礁の強さ（座礁分＝これ×techGap・techGap=2で全損）。トリアージ/承認工程に推奨値なし＝配線テスト値0.5を採用（保守側はここから半減）。0で割引なし＝Industrialization単一スカラーの現行に恒等
++    // 【墓標2026-10-03 (185) 段2】DepressionScrapsBuiltScale（〔7-1〕恐慌の同じ月に休止中の床〔BuiltScale×MothballFrac〕を scrapKeep で解体・2026-09-06 点火）＝削除：
++    //   休止を撤去し、工場の設備は寿命（IndDepreciation）で減り採算の無い工場に投資が来ない＝恐慌で設備は戻らずに減る（作者裁定§4-1「工場が1棟も消えないのは史実に反する」の形は保たれる）。
++    //   遊んでいる設備の解体に写すと寿命の減りと二重に減らす（思想⑨）＝(185) の1種の試走で設備の減り→産出の減り→ドローダウン→解体の正帰還。
++    // 【墓標2026-10-03 (185) 段2】ヴィンテージ資本（VintageMigrateRate 0.005・VintageObsolescence 0.5＝旧世代の工業化資本が技術差で座礁）＝撤去
++    //   （設計 §5「旧世代の陳腐化 → 撤去。古い製法の工場は変動費を賄える間は残り、賄えなくなれば止まる＝市場が陳腐化を決める」・作者 2026-09-28「全て推奨で採択」）。
++    //   Region.OldVintageCapital・VintageTechLevel・StrandedVintage も削除＝工業化度は1層（TotalIndustrialization は Industrialization そのもの）。
+     // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】RevolutionLandReform＝革命が土地権力を壊す＝共和革命で限定・プロ独裁で全面の土地改革を floor-raise（2026-08-04 点火）
+     // BlockedLawGrievance（阻止された要求の不満）は 2026-09-20 に係数ごと削除＝裁定C2（PushedLawGrievance と対・段の点火で不到達になった）。
+     public double OpulenceTaxRelief = 1.0;         // ★2026-08-04（P4）：国庫が月次義務の8四半期分を超えたら超過に比例してAIの税目標を縮める（床0.25）。旧＝スタンスの税目標が固定率で、黒字国が経済から貨幣を吸い上げ続けデフレ螺旋（プロイセン国庫1.3M/GDP17k・米38M）。0で厳密恒等
+@@ -1151,8 +1153,18 @@ public sealed class Coefficients
+     // ⚠撤去2026-08-12（再点火禁止・読み手ごと削除）: MilitarizeSpendThreatSpan  【墓標2026-08-08＝「形が先・金が後」（SpendFromNeedWeight）が代替済み・再点火禁止】★2026-08-04：Militarize の軍事費0.7を脅威で連続化＝0.7−これ×(1−脅威)。**0.4はA/B実測で棄却＝休眠確定**（政体exact−4.3・法−3.8・列強−3.8・経済−2.5＝軍縮した列強の軍事項が痩せて順位が崩れる。多様性は土地の政治力による教義の是正が既に担う）。0で旧＝0.7固定（厳密恒等）。⚠2026-10-02 (155)：同じ系統（脅威の連続値で軍事費の段）を作者の承認の形（脅威の入口を軍事費の段の1つ・作者 2026-10-01 に異議なし）で再導入＝UtilityAgent.SecurityStageTarget（前回の棄却と同じ向きの結果は実装ログ (157) の作者への確認・(157) の注記）
+     public double ClosedWealthMultiple = 1.0;     // ★2026-08-04（統一根）：貴族・聖職の初期資産の倍率＝**土地**。旧＝3000/人で資本家3200/人とほぼ同額＝旧支配層の政治力が英3%（blocprobe実測）＝法の門番が全員素通り＝全国1783年に近代法＝工業化の全球収束。1.0で旧と厳密恒等
+     // 【墓標2026-09-26（棚卸し dorm-50）】IndInvestFromIncome（私的投資の原資を貯蓄でなく所得にする器・「0で確定＝休眠」2026-08-04）＝削除。0.4×所得で点火すると世界が崩壊した（英GDP 290,733→2）＝資本コストの較正が貯蓄ストック（所得の175〜300年分）を前提に組まれている。再挑戦は建設費・減価・貯蓄を同じ回で動かす大改修と一緒に（検討 §10-10［金融1］）
+-    public double IndInvestmentFrac = 0.05;       // 投資家（資本家）が貯蓄からこの割合まで投資に回せる（affordability 上限）
+-    public double IndInvestmentSpeed = 0.012;     // 投資の速さ（純収益→建設需要への換算）
++    public double IndInvestmentFrac = 0.05;       // 投資家（資本家）が貯蓄からこの割合まで投資に回せる（affordability 上限）。★(185) 段2＝国の池（作者裁定 P5「国全体で1つの池」）＝各州の投資家のこの割合の和が月の上限
++    // ★(185) 段2（投資は採算の高い所へ・設計 §3A・作者裁定 P6）：工場の設備の望む伸び（月）＝これ×(見込みの採算−ハードル)×基準の設備
++    //   （見込みの採算＝平滑化した採算＋InvestExtrapolationWeight×(今の採算−平滑化した採算)・基準の設備＝(max(今の産出, 州の需要)×投入の充足＋種火の床 TargetStockFloor)÷1職場の産出＝EconomyStep.InvestSlots）。
++    //   旧＝工業化度の限界収益（飽和カーブの傾き×(1+IndTechLeverage×技術)−IndCapitalCost）→建設の束（読み手を撤去・IndCapitalCost と IndTechLeverage は削除）。
++    //   値は旧のまま（推奨で進めた）＝寿命で減る分（IndDepreciation 0.003/月）を賄う採算＝0.003÷0.012＝0.25 が今の工場の平滑化した採算の帯（0.2〜0.4・(185) の下調べ）の中に来る。
++    public double IndInvestmentSpeed = 0.012;     // 投資の速さ（見込みの採算の超過1あたり・月あたりの設備の伸び）
++    // ★(185) 段2（能力は建てた分だけ）：1職場（工場の Scale の単位＝1783年の労働の取り分の人数）の設備の値段＝これ×12か月×生産性×参照価格（参照価格の金額）。
++    //   ＝工業の資本÷年の産出の価額。出典＝米国の製造業の国勢調査（75都市の集計・1892年12月6日の大統領教書〔FRUS 1892〕が引く数）＝1880年 資本 12.33億ドル÷製品の価額 27.12億ドル＝0.45・
++    //   1890年 29.01億÷48.60億＝0.60（資本は運転資本を含む）＝0.5（間の丸めた値）。
++    //   読み手＝私的投資の束の換算（EconomyStep）と1棟の大きさ（World.BuildingSize＝工場の建設費÷1職場の値段＝国家と資本家が同じ値段で設備を買う＝作者 2026-09-08
++    //   「国家建設も資本家の投資も同等に建設コストを支払う」）。
++    public double CapitalOutputRatio = 0.5;
+     public double IndPerConstruction = 0.01;      // 建設1単位が工業化度を上げる量（要較正）
+     public double StateBuildCost = 40_000;        // 手動工場建設1回の国庫予約額。資本家と同じ建設の束（鋼/機械/セメント/製材）を国庫負担で買い工業化度に変換
+     public double RgoCapitalShare = 0.5;   // ★2026-08-04（作者指示「投資家もプランテーションや鉱山に投資するように」）：資本家の建設が生む工業化度のうち、最も採算の良いRGO（農園/鉱山/牧場）の作付面積（BuiltScale＝Scaleの下限）へも回る比。旧＝資本家の建設は工業化度にしか変わらず、RGOは採算によるScaleの伸縮だけで**面積を増やす資本がどこからも来なかった**（工場はBuiltScaleが下限を押し上げるのにRGOには無い）。史実の農園・鉱山は資本を吸って規模を広げる（囲い込み・カリブの砂糖・南アの金）。同じ建設束・同じ予算から出す＝新しい資源も市場も作らない。0で厳密恒等（休眠）／StateShareCounterOnly=1.0 点火（2026-08-30）により既定ではこの枝は不走行＝rgoprobe 対照実験用に残置
+@@ -1172,10 +1184,8 @@ public sealed class Coefficients
+     public double MilitaryBuildCostCapScale = 1.0;
+     public double FactoryBuildAffordSteep = 4;   // ★点火2026-08-31＝16→4（清レポ＝16は「逓減の衣を着た崖」。4で束比3倍でも進捗が細く残る＝壁でなく逓減。ラウンドA実測でハーネス末端財の死蔵も解消）
+     public double FactoryStartAffordFloor = 0.15; // ★点火2026-08-31＝0.5→0.15（清レポ4-1「建設の壁」＝後発国の束比3〜5倍で着工が離散的に不可能だった崖の是正。進捗側が同じ採算率で連続に絞るので床は低くて良い。旧World定数の係数化と同時）
+-    // ★休止（mothball・AI審査2-6・2026-08-31）：建てた工場（倒産免除）の慢性赤字を止める欠けていた第4の動詞（施設は残る/倒産する/★休止する/国有化される）。
+-    public double FactoryMothballRate = 0.05;    // ★点火2026-08-31（ラウンドB）＝月次の休止/再開の速度（床割合/月）。建てた工場（倒産免除）の慢性赤字の垂れ流しを止める第4の動詞（施設は残る/倒産/★休止/国有化）。0で休止なし
+-    public double FactoryMothballMarginIn = 0.15; // 休止に入る慢性赤字の深さ（SmoothedMargin<−これ）。再開は採算回復（>0）＝閾値を増やさない
+-    public double FactoryMothballCap = 0.9;      // 休止できる床の上限割合（×民営持分。国営持分は休止しない＝国庫が支える既存設計の維持）
++    // 【墓標2026-10-03 (185) 段2】休止（FactoryMothballRate 0.05・MarginIn 0.15・Cap 0.9・Producer.MothballFrac）＝撤去（設計 §5「赤字の工場は月5%で休止 →
++    //   価格が変動費を下回れば止め、上回れば動かす」＝短期の供給曲線〔採算の割合＝(価格−変動費)÷(変動費×SupplySlope)〕がそのまま止める・作者 2026-09-28「全て推奨で採択」）。
+     // ★塊1 飢饉の深さ（AI審査2-1/2-2・docs/20260830/20260830_塊1）。段0と段1bは**別々に測る**（符号の是正と参加者追加は別の帯）。
+     public double StapleElasticityZero = 1.0;        // ★点火2026-08-31（ラウンドB）＝段0：主食の自己価格弾力を0に＝必要量は生理的に決まり、買えるかは予算制約が決める（符号の是正＝正しい挙動枠）。主食どうしの乗り換え（CrossElasticity）は残る。実測＝経済+3.8/領土+3.3/貿易+5.6/英常勝6→4勝・◎−3は記録コスト。0で旧データ弾力
+     public double FoodIncludesAnimalProtein = 0.0;   // 段1b：動物性タンパク（加工肉63/干物64・Nutrition=1）を食料に数え、交差弾力の食卓に参加させ、主食の必要量を AnimalNutritionNeedRatio で譲る（総食料需要は中立）。ギッフェン＝肉高騰→需要がパン/芋へ流れる、が既存の交差弾力から創発。0＝厳密恒等
+@@ -1218,9 +1228,8 @@ public sealed class Coefficients
+     public double RefrigerationEffect = 0.7;      // 完全な冷蔵で生鮮の腐敗が下がる最大割合（0で無効）
+     public double RefrigerationIndOnset = 1.0;    // 冷蔵が立ち上がる工業化度（これ未満＝冷蔵なし＝従来の腐敗）
+     public double RefrigerationIndSpan = 1.5;     // 冷蔵が完全に効くまでの工業化度の幅（onset+spanで満額）
+-    // 収益駆動の投資：限界収益(逓減)×(1+Leverage×技術) − CapitalCost > 0 の間だけ投資＝固定上限なしで均衡が創発。
+-    public double IndCapitalCost = 0.7;           // 投資の資本コスト（D1腕=0.45の顛末は IndDepreciation の注記を参照）
+-    public double IndTechLeverage = 2.4;          // 技術が工業化の収益を高める強さ（高技術国ほど高工業化＝国ごとの差を生む）
++    // 【墓標2026-10-03 (185) 段2】IndCapitalCost 0.7・IndTechLeverage 2.4（工業化度の限界収益×(1+Leverage×技術)−CapitalCost＝私的投資の収益）＝削除
++    //   ＝私的投資はレシピごとの見込みの採算へ（IndInvestmentSpeed の注記）。ハードル＝クラウディングアウト（CrowdingOutWeight）−株式の熱狂（EquityHeatEuphoria）のまま。
+     public double BaseUrbanCap = 0.20;            // 前工業の都市化上限（1789≈20%）
+     public double UrbanCapFollowSpeed = 0.02;   // 【点火0.02・2026-08-16＝S級梯子r4単独37/71/56】都市化天井の工業化追従に建設時間（時定数≈4年）＝天井ジャンプ時の史実比8-10倍速い都市化を律速。      // 監査2026-07-05（D3）：都市化天井の工業化追従速度（月次）。1=即時追従（現行と厳密一致）・0.02程度で住宅/インフラの建設時間＝天井が数年遅れて追いつく。#17で有効化検討
+     public double UrbanPerInd = 0.08;             // 工業化度1あたり都市化上限の上乗せ（史実：1890で都市≈37%）
+@@ -1242,11 +1251,9 @@ public sealed class Coefficients
+     public int LumberGoodId = Catalog.LumberId;
+     // ★段1（2026-09-30・財の削減＝作者裁定 Q2）：工場建設費の素材階層+α FactoryTierMachinePerDepth（出力財の連鎖の深さ×機械の上乗せ・2026-08-09 点火）を撤去＝
+     //   深さで時代や難しさを表さない（発見が表す）。建設費の差は FactorySpec（カテゴリの建設費）と建設の束の価格が持つ。
+-    // 工業化に伴うインフラ敷設（鉄道）＝建設に比例して消費。資本財段（機関車→蒸気機関→機械部品）へ需要が波及し死蔵を解消。
++    // 鉄道の財（保守の線路・機関車・運行の石炭）。【(185) 段2】資本家の建設の束の線路・機関車（ConsRail 0.25・ConsLoco 0.12）＝削除（工場の設備の束に線路は要らない・鉄道の容量は Transport が自分で買う）。
+     public int RailGoodId = Catalog.RailId;                   // 線路
+     public int LocoGoodId = Catalog.LocomotiveId;                   // 機関車
+-    public double ConsRail = 0.25;
+-    public double ConsLoco = 0.12;
+     // 敷設済みインフラの保守需要＝工業化度×これ。成長（建設）が止まってもセメント/線路/機関車を毎期消費＝定常でも消費先が持続（死蔵解消）。
+     public double InfraMaintRate = 0.4;
+ 
+@@ -2515,10 +2522,8 @@ public sealed class Coefficients
+     /* 【墓標2026-09-26（棚卸し dorm-50）】CurrentInputFillGates＝★★★**恒久的に0（作者裁定2026-08-01）＝上と同じ理由で「意図した実装」**＝旗と逆側の枝を削除。
+     // 当期投入が涸れても前期充足率で産出できることが、**上位工場を先に建ててから下流を整備する**プレイの余地を作っている。
+     // 実測（2026-07-31・参考）：単独点火でテスト6本失敗（MultiNation/Tax 系）＝産出水準そのものが下がり較正の土台が動く。⚠**再点火の検討をしないこと。** */
+-    public double ConstructionMaterialCarryover = 1.0;   /* ★**点火2026-08-01（作者裁定＝リアリティ優先・帯とは切り分ける）**：
+-    // 「無から生成したものを翌月から引く／余った素材を市場に返す」＝買ったのに律速で使い切れなかった非律速資材を翌月の需要から差し引く。
+-    // ⚠実測（2026-07-31・単独）＝硬性ゲートは全緑だが◎7割帯 21→13・固着4→8・逸脱過多13→17。★**帯の劣化は較正で取り戻す対象であって、機構の可否の判断材料にはしない**（作者裁定）。
+-    // ⚠既知の限界＝繰越は**1段（翌月まで）で上書き**＝2ヶ月使わなかった資材は廃棄される。完全な物量管理にするなら累積へ（有界性の設計が要る） */
++    // 【墓標2026-10-03 (185) 段2】ConstructionMaterialCarryover（経17・建設の束の Leontief の端数の繰越・2026-08-01 点火）＝撤去：私的投資の束は買えた資材と工賃の
++    //   参照価格の価値で数える（EconomyStep の投資の決済）＝律速で使い残す資材が出ない＝繰越は常に0だった（Region.ConstructionCarryover・AddConsWithCarry も削除）。
+     public double EuphoriaUsesStableReserve = 1.0;   // 金利doc B7（2026-07-30・点火＝0→1）。経8（Heat符号逆転）：株式ユーフォリア項が参照する与信過熱Heatの分母を、取り付けで縮む実効上限(0)か準備縮小前の安定上限maxLoans(1)かでブレンド切替。0で従来の縮小後基準を厳密再現・1で取り付け中の偽の過熱スパイク→投資刺激の符号逆転を防ぐ
+     // 【墓標2026-09-26・旗の焼き込み（x-01・0-4）】CapitalOutflowFromInvestors（経9・既定1.0）＝配当/逃避の流出は投資家貯蓄から（不足分のみ全pop按分）に固定。⚠B4裁定2026-07-31の「0..1の連続化」は未実装のまま（旗は2値だった）
+     // 資金逃避（07_再設計 §5(b)・2026-07-31点火）：国債への不信が閾値を超えると自国の資本家も対外資産へ逃げる。保存＝金は受け皿の国の投資家へ・請求権は逃げた側の CapitalAbroad と受け皿の ForeignCapitalIn の対（2026-09-22）
+diff --git a/PriceOfBread.SimCore/Diplomacy.cs b/PriceOfBread.SimCore/Diplomacy.cs
+index 771642b..8fdac16 100644
+--- a/PriceOfBread.SimCore/Diplomacy.cs
++++ b/PriceOfBread.SimCore/Diplomacy.cs
+@@ -2415,7 +2415,7 @@ public sealed class Diplomacy
+                     foreach (var rz in wz.Regions)
+                         if (rz.State == RegionState.Active)
+                         {
+-                            rz.Industrialization *= 1.0 - wear; rz.OldVintageCapital *= 1.0 - wear; rz.PortCapacity *= 1.0 - wear;
++                            rz.Industrialization *= 1.0 - wear; rz.PortCapacity *= 1.0 - wear;
+                             rz.GridCapacity *= 1.0 - wear;                    // 05-A：送電網も戦災（インフラ）
+                             rz.LastWarIntensity = losing * contactNorm;       // 05-A：RGO産出の戦災乗数（EconomyStep）が読む（0..1・月次リセット済み）
+                         }
+diff --git a/PriceOfBread.SimCore/EconomyStep.cs b/PriceOfBread.SimCore/EconomyStep.cs
+index 62f385c..d42fa0e 100644
+--- a/PriceOfBread.SimCore/EconomyStep.cs
++++ b/PriceOfBread.SimCore/EconomyStep.cs
+@@ -17,13 +17,14 @@ public static class EconomyStep
+     // Array.Clear のゼロ化は new と同値＝ビット恒等。ThreadStatic＝スレッドごとに1組（⚠ 2026-09-26 訂正：旧注記の「並列は試合単位」は古い＝今は試合の中でも
+     //   日次の相2を国ごとに並列で回す。ただし Run の呼び手は月次決算（MonthSettle＝逐次の締め境界）だけで、並列の相の中では呼ばれない。
+     //   1つのスレッドが複数の国・試合の Run を順に呼ぶが、呼ぶたびに消してから使う＝持ち越しなし＝決定論不変）、
+-    // Region に持たせない＝SaveGame（リフレクション全フィールド直列化）にも乗らない。conCarryApplied は null をフラグとして読むため対象外（従来どおり都度確保）。
++    // Region に持たせない＝SaveGame（リフレクション全フィールド直列化）にも乗らない。
+     private sealed class Scratch
+     {
+         public double[] Produced = [], InputNeed = [], InputTrickle = [], InvestDemand = [], MilitaryDemand = [], RebelDemand = [],
+                         Ration = [], EffDemand = [], EffRation = [], ClearPrice = [], Revenue = [];
+         public int[] ProducerCount = [];
+         public double[] InputCost = [], ProdW = [], ElecNeed = [], SteamNeed = [], EffNeed = [];
++        public double[] InvMNow = [], InvPerSlot = [], InvWant = [];   // ★(185) 段2：工場の今の採算・1職場の産出・望む投資（束）＝供給①で書き投資の段と決済が読む
+         public double[] TrickleFill = [];   // ★再点火の発注の充足率（生産者ごと・2026-09-29 段2-2 A3）＝需要の段で持ち主の予算から決め、決済が読む
+         public int[] EffChosen = [];
+         public double[] LaborTotalW = [];
+@@ -58,11 +59,13 @@ public static class EconomyStep
+         {
+             s.InputCost = new double[np]; s.ProdW = new double[np]; s.ElecNeed = new double[np];
+             s.SteamNeed = new double[np]; s.EffNeed = new double[np]; s.EffChosen = new int[np]; s.TrickleFill = new double[np];
++            s.InvMNow = new double[np]; s.InvPerSlot = new double[np]; s.InvWant = new double[np];
+         }
+         else
+         {
+             System.Array.Clear(s.InputCost); System.Array.Clear(s.ProdW); System.Array.Clear(s.ElecNeed);
+             System.Array.Clear(s.SteamNeed); System.Array.Clear(s.EffNeed); System.Array.Clear(s.EffChosen); System.Array.Clear(s.TrickleFill);
++            System.Array.Clear(s.InvMNow); System.Array.Clear(s.InvPerSlot); System.Array.Clear(s.InvWant);
+         }
+         if (s.LaborTotalW.Length < npops) { s.LaborTotalW = new double[npops]; s.LaborCount = new int[npops]; s.LastSupply = new double[npops]; s.TrickleOwner = new double[npops]; }
+         else { System.Array.Clear(s.LaborTotalW); System.Array.Clear(s.LaborCount); System.Array.Clear(s.TrickleOwner); }   // LastSupply は Run が月頭に全要素を上書きする
+@@ -379,6 +382,8 @@ public static class EconomyStep
+         var inputCost = scratch.InputCost;         // 生産者ごとの投入支払い
+ 
+         region.LastSubsistenceOutput = 0;   // 人2補完：自給産出の月次アキュムレータ（FoodMet/FoodNeedと同じ月次リセット）
++        region.InvestSpentMonth = 0;        // ★(185) 段2：この州の投資家が今月立て替えた工場の設備の建設費（池の後段が読む）
++        var invMNow = scratch.InvMNow; var invPerSlot = scratch.InvPerSlot; var invWant = scratch.InvWant;
+         // ★前月の補給の充足を撮る（2026-09-22）＝台帳（FoodMet/NeedMet…）は下のループで0へ戻る＝その前に読む。読み手＝労働供給（LaborSupply）と阿片の困窮ゲート。
+         //   ⚠旧はこの2つが p.Satisfaction（前月の値が月末まで残る）を読んでいた＝同じ「前月」の時点をそのまま保つ。
+         var lastSupply = scratch.LastSupply;
+@@ -481,6 +486,11 @@ public static class EconomyStep
+         for (int pi = 0; pi < np; pi++)
+         {
+             var s = region.Producers[pi];
++            // ★(185) 段2（能力は建てた分だけ）：工場は工場労働者の取り分を競わない（能力＝建てた設備・供給①）。助走の間だけ1783年の設備を
++            //   労働の取り分（旧の能力）で置くために重みを数える＝発見の門が開いた工場の配分信念（付加価値×売れる量の EMA）だけ（旧の ×Scale は掛けない＝設備そのものを置くので）。
++            //   助走の外は配分信念も要らない＝投入費の評価（InputCostPerUnit）を回さない。
++            bool facW = IsFactory(s);
++            if (facW && !warmFrozen) { prodW[pi] = 0; continue; }
+             // A-中1派生（2026-07-23）：**未発明のレシピは労働を雇わない**＝未発見（★2026-10-01 段2A＝発見の門 Discovery.Gate が0・旧 TechOnset 未解禁）の生産者は労働配分に参加しない
+             //（旧＝解禁前でも prodW=需要×Scale の死ウェイトを持ち、労働を取るのに産出0＝純損失。onset レシピが増えるたびに
+             // 見えない損失が積もる構造で、水力発電の追加が4カ国テスト世界の米Techアンカーを割って発覚）。onset≤0＝×1.0＝厳密恒等。
+@@ -512,7 +522,7 @@ public static class EconomyStep
+             //   種火を残す＝再点火の入口（床撤去後の bootstrap）。新定数ゼロ。墓標＝×UnitCapacity（能力）＝過剰生産・×LastInputFill＝自己参照デッドロック。
+             double sellR = mkR.LastDemand > coef.TargetStockFloor ? mkR.LastDemand : coef.TargetStockFloor;
+             s.LaborWeight += coef.SupplyAdjustSpeed * (rentR * sellR - s.LaborWeight);
+-            prodW[pi] = s.LaborWeight * s.Scale;
++            prodW[pi] = facW ? (Discovery.Gate(region, s) > 0 ? s.LaborWeight : 0) : s.LaborWeight * s.Scale;
+             if (s.GoodId is Catalog.LaborId or Catalog.AdvLaborId or Catalog.FarmLaborId) continue;   // 労働力・高度労働力の生産者は配分競争の外（階級全体が役務を算出し、工場が市場で買う）
+             laborTotalW[s.LaborPopIndex] += prodW[pi];
+             laborCount[s.LaborPopIndex]++;
+@@ -530,28 +540,25 @@ public static class EconomyStep
+             double dep = coef.IndDepreciation;
+             if (coef.DevelopmentMemory > 0)
+             {
+-                double totNow = region.Industrialization + region.OldVintageCapital;
++                double totNow = region.Industrialization;
+                 if (totNow > region.DevelopmentPeak) region.DevelopmentPeak = totNow;
+                 if (region.DevelopmentPeak > 1e-9)
+                     dep *= 1.0 - coef.DevelopmentMemory * (1.0 - PoliticalQuantities.Clamp01(totNow / region.DevelopmentPeak));
+             }
+             region.Industrialization *= 1.0 - dep;
+-            region.OldVintageCapital *= 1.0 - dep;   // ヴィンテージ有効化2026-07-10：旧世代も同率の物理減価＝新旧合計(TotalIndustrialization)は旧単層と同一動学（分割は恒等・座礁だけが差分）
+-        }
+-        // ヴィンテージ資本（no-vintage-capital-depreciation・有効化2026-07-10キュー5）：現世代の一部を旧世代へ経年させ、旧世代は現Techとの差(techGap)に比例して座礁＝生産性に寄与しない。
+-        // 技術先行国ほど据付時Techと現Techの乖離が積み上がり旧資本が足枷に・後発は新鋭資本で競り勝つ（実力ベース首位交代の本命機構）。
+-        // 両係数0でOldVintageCapital=StrandedVintage=0・effInd=Industrialization＝現行と厳密恒等。座礁は月次再計算の割引（ストック破壊ではない）＝Tech停滞国では旧資本がフル寄与のまま。
+-        if (cap && coef.VintageMigrateRate > 0 && !warmFrozen)
+-        {
+-            double migrate = region.Industrialization * coef.VintageMigrateRate;
+-            double newOld = region.OldVintageCapital + migrate;
+-            region.VintageTechLevel = newOld > Eps ? (region.VintageTechLevel * region.OldVintageCapital + region.TechLevel * migrate) / newOld : region.TechLevel;
+-            region.OldVintageCapital = newOld;
+-            region.Industrialization -= migrate;
+-            double techGap = System.Math.Max(0.0, region.TechLevel - region.VintageTechLevel);
+-            region.StrandedVintage = System.Math.Min(region.OldVintageCapital, coef.VintageObsolescence * region.OldVintageCapital * techGap);
++            // ★(185) 段2：工場の設備は寿命で減る（設計 §3「設備は物理的な寿命で減る」）＝工業資本の減価 IndDepreciation（0.3%/月＝平均の寿命 約28年＝建屋の数十年と機械の十数年の間）。
++            //   国営の棟（BuiltScale）も同じ率＝持分の比は変わらない（棟数が目標を割れば StepStateTargets が建て替える）。開発度の記憶（DevelopmentMemory）は工業化度だけ＝設備には掛けない。
++            for (int pd = 0; pd < np; pd++)
++            {
++                var sd = region.Producers[pd];
++                if (!IsFactory(sd)) continue;
++                sd.Scale *= 1.0 - coef.IndDepreciation;
++                if (sd.BuiltScale > 0) sd.BuiltScale *= 1.0 - coef.IndDepreciation;
++            }
+         }
+-        double effInd = region.ProductiveIndustrialization;   // 生産性チャネル＝座礁控除後（休眠時はIndustrializationに恒等）
++        // 【(185) 段2】ヴィンテージ資本（現世代→旧世代の経年と技術差の座礁）＝撤去（設計 §5「旧世代の陳腐化 → 撤去。古い製法の工場は変動費を賄える間は残り、
++        //   賄えなくなれば止まる＝市場が陳腐化を決める」）＝工業化度は1層。
++        double effInd = region.Industrialization;   // 生産性チャネル＝工業化度
+         // 機械化度（技術的失業 no-labor-saving-tech-unemployment の駆動）：稼働資本の飽和カーブ∈[0,1)。LaborSaveRate=0で0固定＝EffectiveQtyで未使用＝中立。座礁した旧世代は稼働しない＝控除後を読む。
+         region.Mechanization = coef.LaborSaveRate > 0 ? Colonial.OutputCurve(effInd, coef.LaborSaveIndHalf) : 0.0;
+         // 工業化由来の生産性は逓減（飽和カーブ）。固定上限を持たずに頭打ちになるので、上限を外しても発散しない。
+@@ -675,9 +682,16 @@ public static class EconomyStep
+                 double u = s.Output / demand;
+                 boost *= 1.0 + coef.ScaleEconomyGain * u / (u + coef.ScaleEconomyHalf);
+             }
+-            s.Capacity = region.Pops[lp].Size * fraction * s.Productivity * boost * harvestMul * mineralMul;
++            // ★(185) 段2（能力は建てた分だけ・設計 §3・作者 2026-09-28「全て推奨で採択」）：工場の能力＝建てた設備（Scale＝職場の数）×1職場の産出（生産性×倍率）。
++            //   工場労働者の人数も取り分も読まない＝労働の需要は建てた資本が決める（労働は市場で買う＝投入の労働力）。
++            //   助走の間だけ設備を労働の取り分（旧の能力＝人数×取り分）で置く＝1783年の設備（助走の外では投資と寿命と国営の棟だけが動かす）。
++            bool facS = IsFactory(s);
++            double perSlot = facS ? s.Productivity * boost * harvestMul * mineralMul : 0;
++            if (facS && warmFrozen) s.Scale = region.Pops[lp].Size * fraction;
++            s.Capacity = facS ? s.Scale * perSlot : region.Pops[lp].Size * fraction * s.Productivity * boost * harvestMul * mineralMul;
+             double mc = MineralSelfCost(s, region, coef, world) + InputCostPerUnit(s, region, region, coef);   // 自己費用（×自己費用の物価水準＝P の遅い趨勢×州の乗数・2026-09-27 (73)）＋投入費（名目）
+             double price = region.Markets[s.GoodId].Price;
++            if (facS) { invPerSlot[pi] = perSlot; invMNow[pi] = mc > Eps ? (price - mc) / mc : 0; }   // 投資の段が読む（今の採算＝下の採算の割合と同じ価格と変動費）
+             double profitFactor = price <= mc ? 0.0 : Math.Min(1.0, (price - mc) / (mc * coef.SupplySlope));
+             s.DesiredOutput = s.Capacity * profitFactor;                  // 採算が合えば作りたい量（再点火トリクル用＝充足前）
+             // 経16：当期産出は前期充足率(LastInputFill)で決まる（作者裁定2026-08-01＝恒久。当期の在庫カバーでも律速する旗 CurrentInputFillGates は 2026-09-26 に削除＝dorm-50）。
+@@ -709,8 +723,10 @@ public static class EconomyStep
+             produced[s.GoodId] += s.Output;
+         }
+ 
++        if (warmFrozen) SetBuildingSlots(region, coef);   // ★(185) 段2：助走は設備を労働の取り分で置き直した＝1棟の大きさも置き直す（助走の終わりの値が残る）
+         // 地域の工業化投資：投資家（資本家）が貯蓄から「建設の束」を買い工業化度を積む（→生産性↑・都市化上限↑）
+         double construction = 0;
++        double invWantSum = 0;          // ★(185) 段2：工場の設備の望む投資（束）の和＝決済が建った束を望みの比で配る
+         double maintenance = 0;
+         double gridBuild = 0;           // 送電網の敷設（電化のインフラ投資）
+         double monumentConstruction = 0, monumentLaborUnits = 0;
+@@ -720,84 +736,67 @@ public static class EconomyStep
+         double railCoalGate = 0;         // 運用コスト監査2026-08-16 #2：鉄道の運行石炭の門＝機関車の発見（(150)・RailCoalRate>0のときのみ>0＝決済側と需要側で同値を共有）。★2026-08-29点火＝既定0.22（0なら1命令も足さない）
+         double airFuelNeed = 0, airFuelWant = 0, motorFuelWant = 0;   // 運用コスト監査2026-08-16 #4：空軍・輜重の燃料（原油）。need=afford前の必要量（充足率の分母）・want=発注量（決済はこの量×ration＝militaryDemandの他の書き手と混ざらない）
+         double stateConLaborUnits = 0;   // 経5：国家建設ぶんの同・労働需要量（国庫負担）
+-        // 経17：資本家建設束のうち先月から繰越した資材（律速で使い残した非律速成分）を今月適用した量（good.Id添字）。決済で built の計算に足し戻す。ConstructionMaterialCarryover=1.0（点火2026-08-01）。0なら確保せず null＝繰越適用0で旧恒等
+-        double[]? conCarryApplied = null;
+         int conWorker = -1;   // 建設の工賃の受け手（工場労働者）
+         foreach (var pw in region.Producers) if (pw.GoodId == Catalog.LaborId) { conWorker = pw.LaborPopIndex; break; }
+         if (cap && region.InvestorPopIndex >= 0)
+         {
+             double costPerUnit = BundleCost(region, coef);   // 建設の資材の束の費用（K の1本）
+             double cP = Math.Max(region.Markets[coef.CementGoodId].Price, Eps);   // インフラ保守の単価（下の maintCostPerUnit）
+-            // 経4：建設1単位に付随する鉄道・機関車（下段の鉄道インフラ需要で construction 比例に消費）も本来は予算の律速に入る。
+-            // costPerUnit 自体は「材料束の純価格」（下段の stateConstruction が StateBuildQueue の割り算に使う＝鉄道を含めない）ので別変数 buildCostPerUnit で資本家建設の予算律速だけに算入。
+-            // 予算に算入し貯蓄が負に振れるのを防ぐ（点火2026-07-31・2026-09-28 に旗 InvestBudgetIncludesAllInputs ごと焼き込み）。
+-            double buildCostPerUnit = costPerUnit;
+-            if (coef.RailGoodId < ng && coef.LocoGoodId < ng)
+-                buildCostPerUnit += coef.ConsRail * Math.Max(region.Markets[coef.RailGoodId].Price, Eps)
+-                              + coef.ConsLoco * Math.Max(region.Markets[coef.LocoGoodId].Price, Eps);
+-            // ★投資に回せるのは**いま稼いでいるフロー**（2026-08-04・作者指摘「根本問題はコストをかければ工業化できることよりも、
+-            //   工業化なくしてコストをかけられる方」）。
+-            //   ── 実測（powertrace・1800年）───────────────────────────────────────
+-            //   投資家の**所得**はGDPの約20%＝妥当（英17,198 / GDP86,742）。異常なのは**貯蓄ストックだけ**で、
+-            //   所得の700〜1200倍＝175〜300年分が積み上がっている（英2,127万・清8,724万・ビルマ688万）。
+-            //   旧式 `0.05 × 貯蓄` は英で106万/四半期＝**投資家階級の四半期所得の62倍**＝予算が制約として全く効かず、
+-            //   律速は材料だけ（それも国際市場から輸入で埋まる）。だから工業化していない国が工業化の金を出せた。
+-            //   ── 直し方 ──────────────────────────────────────────────────────────
+-            //   投資の原資を**所得（Earned）**にする案（器 IndInvestFromIncome）は、0.4×所得で点火すると旧式の約1/150になり世界が崩壊した
+-            //   （英GDP 290,733→2）＝資本コストの較正が巨大な貯蓄ストックを前提に組まれている＝建設費・減価・貯蓄を一緒に動かす大改修が要る。
+-            //   ★2026-09-26（棚卸し dorm-50）：「0で確定＝休眠」だった器を削除（再挑戦はその大改修と一緒に設計し直す＝検討 §10-10［金融1］）。
++            double fullCostPerUnit = costPerUnit * (1.0 + coef.ConstructionLaborWageFrac);   // 束1本＋工賃（今の値段）
++            double bundleAllInRef = BundleRef(coef) * (1.0 + coef.ConstructionLaborWageFrac);  // 同（参照価格）＝1職場の設備の値段を束へ換算する分母
++            // ★投資家の投資枠＝貯蓄の IndInvestmentFrac（★(185) 段2＝国の池への出資・保守と送電網の予算はこの州のまま）。
++            //   ── 実測（powertrace・1800年）＝投資家の**所得**はGDPの約20%＝妥当。異常なのは**貯蓄ストックだけ**で所得の175〜300年分（英2,127万・清8,724万）。
++            //   投資の原資を所得にする器（IndInvestFromIncome）は 0.4×所得で世界が崩壊した＝2026-09-26 に削除（検討 §10-10［金融1］）。
+             double budget = coef.IndInvestmentFrac * Math.Max(0, region.Pops[region.InvestorPopIndex].Savings);
+-            // （退蔵結晶化 段4a/段2の予算配線は Stage1 中止で2026-08-29撤去＝休眠削除・厳密恒等）
+-            // 接収の代償②＝資本逃避（作者裁定2026-08-10）。無補償で工場を取られた資本家は次の投資を控える。
+-            // 書き手は World.StepStateTargets の接収が成立した月だけ（★2026-08-29点火＝既定0.05。=0なら一度も走らない）。
++            // 接収の代償②＝資本逃避（作者裁定2026-08-10）。無補償で工場を取られた資本家は次の投資を控える（書き手は World.StepStateTargets の接収）。
+             if (region.SeizureChill > 0) budget *= Math.Max(0, 1.0 - region.SeizureChill);
+-            // 収益駆動の投資：工業化の限界収益（飽和カーブの傾き＝逓減）が資本コストを上回る限り投資する。
+-            // 技術が高いほど工業の収益が大きい（教育→技術→工業化の創発的因果）＝固定上限なしで国ごとに均衡水準が分かれる。
+-            double techLev = Math.Max(0, productivityMultiplier - 1.0);
+-            double sat = 1.0 + region.ProductiveIndustrialization / coef.IndProductivityScale;   // indMultと同じ飽和点（座礁控除後）＝座礁が限界収益の余地を空ける（先行国の再装備投資が立つ・ヴィンテージ2026-07-10）
+-            double marginalGain = coef.IndProductivityGain / (sat * sat);
+-            // クラウディングアウト（金利チャネル）：政府の借入で上がった国債金利プレミアムが民間投資のハードルを上げる
+-            // ＝高債務国ほど民間投資が締め出され工業化が鈍る（資本希少国で強く・金本位の信用国は弱い＝条件付き）。
+-            // 株式市場のバブル（改修2026-06-28・金融改革②）：与信過熱→株高→投資ハードル↓→過剰投資→さらに過熱…→ある日Confidence崩壊で投資急停止＝ブーム→恐慌が新規倍率なしで創発。較正(Heat=0)では中立。
+-            double hurdle = coef.IndCapitalCost + coef.CrowdingOutWeight * region.CrowdingPremium - coef.EquityHeatEuphoria * region.FinancialHeat;
+-            double netReturn = marginalGain * (1.0 + coef.IndTechLeverage * techLev) - hurdle;
+-            // 株式会社（発見の表の制度の行＝所有国の2値・2026-10-01 (152)）＝中産の資本が株で工業へ＝投資の速さ×JointStockInvestBonus（旧＝州の倍率 IndustrializationBoost を Institutions.Step が四半期ごとに整合した）。
++            // ★(185) 段2 投資は採算の高い所へ（設計 §3A・作者裁定 P5「国全体で1つの池・州の間の摩擦は資材の輸送費だけ」・P6「そのレシピの今の採算の平滑化した値・
++            //   期待の形は既存の外挿的な期待」・2026-09-28「全て推奨で採択」）：工場の設備（Producer.Scale）を見込みの採算の高いレシピへ積む。
++            //   ・見込みの採算＝平滑化した採算＋InvestExtrapolationWeight×(今の採算−平滑化した採算)（旧の操業規模の目標と同じ外挿の期待）。
++            //   ・望む伸び（月・職場の数）＝IndInvestmentSpeed×(見込みの採算−ハードル)×基準の設備＝max(今の設備, この州の需要を満たす設備)（設備0のレシピも需要があれば入る）。
++            //     寿命で減る分（IndDepreciation）と釣り合う採算＝ハードル＋0.003÷0.012＝ハードル＋0.25（推奨で進めた＝IndInvestmentSpeed の注記）。
++            //   ・束の換算＝1職場の設備の値段（CapitalOutputRatio×12×生産性×参照価格）÷束1本と工賃の参照の値段＝国営の棟と同じ値段（World.BuildingSize）。
++            //   ・池＝国全体で1つ＝州の望みを国の池の充足（前月の望みの和に対する池・Simulation の池の前段）で一律に縮める。州の投資家が立て替え、月末に池への出資の比で
++            //     負担し直す（後段）。束はこの州の値段で買う＝州の間の摩擦は資材の輸送費だけ。世界の無い試験（world=null）は州の投資枠が池。
++            //   ・旧＝工業化度の限界収益（飽和カーブの傾き×(1+IndTechLeverage×技術)−IndCapitalCost）で束を買い工業化度を積み（実測＝国家建設の 0.17〜2.3%）、
++            //     束に線路と機関車（ConsRail・ConsLoco）が付いていた＝工場の設備に線路は要らない＝外した（鉄道は Transport が自分で買う）。
++            // ハードル：クラウディングアウト（政府の借入で上がった国債金利プレミアム×CrowdingOutWeight）−株式バブル（与信過熱×EquityHeatEuphoria）＝旧のまま（IndCapitalCost は削除）。
++            double hurdle = coef.CrowdingOutWeight * region.CrowdingPremium - coef.EquityHeatEuphoria * region.FinancialHeat;
++            // 株式会社（発見の表の制度の行＝所有国の2値・2026-10-01 (152)）＝中産の資本が株で工業へ＝投資の速さ×JointStockInvestBonus。
+             double jointStock = world is not null && world.JointStock ? coef.JointStockInvestBonus : 1.0;
+-            double desiredGrowth = coef.IndInvestmentSpeed * jointStock * Math.Max(0, netReturn);
+-            // ★私的投資の吸収ゲート（2026-08-04・作者指摘「工業化なくしてコストをかけられる方が根本問題」への機構側の対）。
+-            //   金と機械は輸入で手に入るが、据えて動かすには読める技師と自由な情報流通が要る（洋務運動＝輸入した最新機械が
+-            //   動かなかった）。**同じ病に対する吸収ゲートが技術（CatchupAbsorptionBlend）と外資（CapitalAbsorptionBlend）には
+-            //   既にあり、国内の私的投資にだけ無かった**＝この非対称が「農業国の資本家が工場を無限に建てる」の穴。
+-            //   ⚠**同じ写像**（TechEducation.AbsorptionOf）・**同じ床**（CapitalCreditFloor）を使う＝新しい写像を作らない
+-            //     （敵対審査2026-08-04の推奨形＝天井でなく速度を絞る＝州上限に触れずデッドロックを作らない）。
+-            //   ⚠world=null（単体テスト・較正セル）は素通り＝厳密恒等。PrivateAbsorptionBlend=1.0（live・0で恒等）。
++            double speed = coef.IndInvestmentSpeed * jointStock;
++            // ★私的投資の吸収ゲート（2026-08-04）：金と機械は輸入で手に入るが、据えて動かすには読める技師と自由な情報流通が要る（洋務運動）。
++            //   技術（CatchupAbsorptionBlend）・外資（CapitalAbsorptionBlend）と**同じ写像**（TechEducation.AbsorptionOf）・**同じ床**（CapitalCreditFloor）で速さを絞る（天井を作らない）。
++            //   world=null（単体テスト・較正セル）は素通り。PrivateAbsorptionBlend=1.0（live・0で恒等）。
+             if (coef.PrivateAbsorptionBlend > 0 && world is not null)
+             {
+                 double pabs = coef.CapitalCreditFloor + (1.0 - coef.CapitalCreditFloor) * TechEducation.AbsorptionOf(world, coef);
+-                desiredGrowth *= 1.0 + (pabs - 1.0) * coef.PrivateAbsorptionBlend;
+-            }
+-            construction = Math.Min(desiredGrowth / Math.Max(Eps, coef.IndPerConstruction), budget / (buildCostPerUnit * (1.0 + coef.ConstructionLaborWageFrac)));   // 予算は材料（経4で鉄道/機関車も可）＋工賃で按分
++                speed *= 1.0 + (pabs - 1.0) * coef.PrivateAbsorptionBlend;
++            }
++            for (int pk = 0; pk < np; pk++)
++            {
++                var sk = region.Producers[pk];
++                if (!IsFactory(sk)) continue;
++                double slots = InvestSlots(sk, region.Markets[sk.GoodId], invPerSlot[pk], invMNow[pk], hurdle, speed, coef, warmFrozen);
++                if (!(slots > 0)) continue;
++                // 投資の額＝望む職場の数×1職場の設備の値段（参照価格×物価水準）＝買う束の数＝額÷束1本と工賃の今の値段（素材が高い月は同じ額で建つ設備が少ない＝
++                //   投資の収益は今の資本財の値段で読む）。建つ設備＝建った束÷1職場の束の数（物の量の換算＝決済）。
++                double bundles = slots * CapitalCostRef(sk, coef) * Math.Max(region.PriceLevel, Eps) / Math.Max(fullCostPerUnit, Eps);
++                if (!(bundles > 0)) continue;
++                invWant[pk] = bundles; invWantSum += bundles;
++            }
++            double fill = world is not null ? world.PrivateInvestFill
++                : invWantSum * fullCostPerUnit > Eps ? Math.Min(1.0, budget / (invWantSum * fullCostPerUnit)) : 1.0;
++            if (!(fill >= 0)) fill = 0; else if (fill > 1) fill = 1;   // 否定形＝NaN は買わない側
++            if (world is not null) world.PrivateInvestWantAcc += invWantSum * fullCostPerUnit;   // 池の前段が来月の充足に読む（今の値段の金額）
++            construction = invWantSum * fill;
+             // 戦時の建設縮小は固定倍率でなく価格競合から創発：軍需（warMult で戦時増）が同じ鋼・機械・セメント・製材を食い価格を押し上げ、
+             // costPerUnit↑→budget/costPerUnit↓＆FactoryBuildAfford↓で資本家の建設が自然に縮む（平時=建設優先・戦時=軍優先が市場で決まる）。
+-            // 経17（建設Leontief端数の繰越・点火1.0 2026-08-01）：先月の建設で律速成分に律速され「買ったのに使い切れなかった非律速資材」を Region.ConstructionCarryover に累積し（市場在庫と同じ腐敗率で減衰＝決済側の KeepMaterial）、
+-            // 今月はその手持ち分だけ investDemand を控除＝新規購入を減らす（既に先月支払い済み＝金銭は先月に計上済み・二重支払いなし）。控除した量は決済で built に足し戻す（手持ち資材が工業化に結実）。
+-            // 0 では region.ConstructionCarryover を確保せず・conCarryApplied=null＝控除も足し戻しも0＝旧恒等。
+-            if (coef.ConstructionMaterialCarryover > 0)
+-            {
+-                region.ConstructionCarryover ??= new double[ng];
+-                conCarryApplied ??= new double[ng];
+-                AddConsWithCarry(investDemand, conCarryApplied, region.ConstructionCarryover, coef.SteelGoodId, coef.ConsSteel * construction);
+-                AddConsWithCarry(investDemand, conCarryApplied, region.ConstructionCarryover, coef.MachineGoodId, coef.ConsMachine * construction);
+-                AddConsWithCarry(investDemand, conCarryApplied, region.ConstructionCarryover, coef.CementGoodId, coef.ConsCement * construction);
+-                AddConsWithCarry(investDemand, conCarryApplied, region.ConstructionCarryover, coef.LumberGoodId, coef.ConsLumber * construction);
+-            }
+-            else
+-            {
+-                investDemand[coef.SteelGoodId] += coef.ConsSteel * construction;
+-                investDemand[coef.MachineGoodId] += coef.ConsMachine * construction;
+-                investDemand[coef.CementGoodId] += coef.ConsCement * construction;
+-                investDemand[coef.LumberGoodId] += coef.ConsLumber * construction;
+-            }
++            // 【(185) 段2】経17 の束の繰越（Region.ConstructionCarryover・Leontief の端数）＝撤去＝決済は買えた資材を全て参照価格の価値で数える＝余りが出ない。
++            investDemand[coef.SteelGoodId] += coef.ConsSteel * construction;
++            investDemand[coef.MachineGoodId] += coef.ConsMachine * construction;
++            investDemand[coef.CementGoodId] += coef.ConsCement * construction;
++            investDemand[coef.LumberGoodId] += coef.ConsLumber * construction;
+             // 経5（労働の二重雇用・点火2026-07-28・2026-09-28 に旗 ConstructionLaborViaMarket と旧経路を削除）：建設工賃を労働力財の investDemand（保守要員と同経路）へ回し、
+             // 建設ブームが労働需給を逼迫させ賃金クランプ・失業に効く。労働量＝工賃予算/労働価格で換算（材料cost比例の工賃を労働財の量へ）。
+             // 決済（下段）では conLaborUnits×ration[Labor]×労働価格を投資家/国庫が支払い revenue[Labor] へ計上＝インフラ保守の決済と同型（支払い＝労働pop受取で保存）。
+@@ -860,12 +859,7 @@ public static class EconomyStep
+             // CapitalEnabled=true の州ではビット恒等。材料需要は国庫負担の物理＝資本区画の有無と無関係（非cap州は下のelse分岐が同じ式で積む）。
+             AccumulateFactoryBuild(region, coef, investDemand, ref factoryBuildUnits, world);
+             bool railLoco = coef.RailGoodId < ng && coef.LocoGoodId < ng;
+-            // 鉄道インフラ：工業化に伴い敷設（線路・機関車を消費）。死蔵解消＋資本財段へ波及（機関車←蒸気機関←機械部品）
+-            if (railLoco)
+-            {
+-                investDemand[coef.RailGoodId] += coef.ConsRail * construction;
+-                investDemand[coef.LocoGoodId] += coef.ConsLoco * construction;
+-            }
++            // 【(185) 段2】資本家の建設の束の線路・機関車（ConsRail 0.25・ConsLoco 0.12）＝削除（工場の設備の束に線路は要らない・鉄道の容量は Transport が自分で買う）。
+             // インフラ保守：敷設済みインフラは工業化水準に比例して毎期保守材を食う（成長が止まっても消費先が持続＝死蔵解消）。
+             // 建設で使った残りの投資予算で賄える分だけに制限＝投資家の資金繰りを超えない（貯蓄が負にならない）。
+             double railP = railLoco ? Math.Max(region.Markets[coef.RailGoodId].Price, Eps) : 0;
+@@ -884,7 +878,7 @@ public static class EconomyStep
+                 railCoalGate = Discovery.RailTransport(region.Discovered) ? 1.0 : 0.0;   // 機関車の発見（2値）
+                 maintCostPerUnit += coef.RailCoalRate * railCoalGate * Math.Max(region.Markets[Catalog.CoalId].Price, Eps);
+             }
+-            double maintBudget = Math.Max(0, budget - construction * buildCostPerUnit);
++            double maintBudget = Math.Max(0, budget - (world is null ? construction * fullCostPerUnit : 0));   // ★(185) 段2：工場の設備は国の池が負担（後段）＝この州の保守の予算から引かない（池の無い試験は州の投資枠が池）
+             maintenance = coef.InfraMaintRate * region.TotalIndustrialization;   // 保守は立っている資本の総量に比例（座礁設備も維持費を食う＝先行国の足枷。ヴィンテージ2026-07-10）
+             if (maintCostPerUnit > Eps) maintenance = Math.Min(maintenance, maintBudget / maintCostPerUnit);
+             investDemand[coef.CementGoodId] += maintenance;                          // 構造物（建屋・橋梁）の保守
+@@ -906,7 +900,7 @@ public static class EconomyStep
+             if (Catalog.GridId < ng)
+             {
+                 double gridP = Math.Max(region.Markets[Catalog.GridId].Price, Eps);
+-                double gridBudget = Math.Max(0, budget - construction * buildCostPerUnit - maintenance * maintCostPerUnit);
++                double gridBudget = Math.Max(0, budget - (world is null ? construction * fullCostPerUnit : 0) - maintenance * maintCostPerUnit);
+                 double gridWant = coef.GridBuildRate * Math.Max(0, region.LastElecWant - region.GridCapacity) + coef.GridReplaceRate * region.GridCapacity;   // 経18：送電網の置換需要（既定0.002＝旧直書きと同値・中立。GridDecayRate=0.998 の劣化と対＝二重表現。notes参照）
+                 gridBuild = Math.Min(gridWant, gridBudget / gridP);
+                 investDemand[Catalog.GridId] += gridBuild;
+@@ -1747,25 +1741,23 @@ public static class EconomyStep
+         if (cap && construction > 0)
+         {
+             int sg = coef.SteelGoodId, mg = coef.MachineGoodId, cg = coef.CementGoodId, lg = coef.LumberGoodId;
+-            // 経17：新規購入量(*Got)は「今月立てた需要＝Cons×construction−充当繰越」×配給＝investDemand と厳密に一致させる（充当分を引かないと支払いが需要を上回り金銭が漏れる）。conCarryApplied=null（係数0）なら控除0＝旧恒等。
+-            double sApp = conCarryApplied?[sg] ?? 0, mApp = conCarryApplied?[mg] ?? 0, cApp = conCarryApplied?[cg] ?? 0, lApp = conCarryApplied?[lg] ?? 0;
+-            double sGot = Math.Max(0, coef.ConsSteel * construction - sApp) * ration[sg];
+-            double mGot = Math.Max(0, coef.ConsMachine * construction - mApp) * ration[mg];
+-            double cGot = Math.Max(0, coef.ConsCement * construction - cApp) * ration[cg];
+-            double lGot = Math.Max(0, coef.ConsLumber * construction - lApp) * ration[lg];
+-            // 経17：手持ち繰越(今月控除して充当した分)を各成分に足し戻して built を測る＝手持ち資材が工業化に結実（過小計上と繰越の暴走を防ぐ）。充当0なら加算0＝旧恒等。
+-            double sEff = sGot + sApp;
+-            double mEff = mGot + mApp;
+-            double cEff = cGot + cApp;
+-            double lEff = lGot + lApp;
+-            double built = Math.Min(Math.Min(sEff / Math.Max(Eps, coef.ConsSteel), mEff / Math.Max(Eps, coef.ConsMachine)),
+-                                    Math.Min(cEff / Math.Max(Eps, coef.ConsCement), lEff / Math.Max(Eps, coef.ConsLumber)));
+-            // 巨大建造物§3-2（2026-07-28）：**労働もリービッヒ律速に入れる**。従来は労働を買っても built に一切入らず「買えた分だけ払う」だけで、
+-            // 「資本があっても人がいないと工場は建たない」が成立していなかった。各資材項は sEff/ConsSteel = construction×ration[財] に等しいので、
+-            // 労働も同型で construction×ration[労働]。★資材は繰り越せるが**労働は繰り越せない**（今月雇えなかった大工は今月働いていない）＝
+-            // *App の足し戻しを持たないのが正しい非対称。
+-            if (conLaborUnits > 0 && Catalog.LaborId < ng)
+-                built = Math.Min(built, construction * ration[Catalog.LaborId]);
++            // 新規購入量(*Got)＝今月立てた需要（Cons×construction）×配給＝investDemand と厳密に一致（支払いが需要を上回らない）。
++            double sGot = coef.ConsSteel * construction * ration[sg];
++            double mGot = coef.ConsMachine * construction * ration[mg];
++            double cGot = coef.ConsCement * construction * ration[cg];
++            double lGot = coef.ConsLumber * construction * ration[lg];
++            double sEff = sGot, mEff = mGot, cEff = cGot, lEff = lGot;
++            // ★(185) 段2：建った束＝買えた資材と工賃の**参照価格の価値**÷束1本と工賃の参照の価値（Leontief の最小をやめた＝足りない素材は他の素材と人手で補う）。
++            //   旧＝最も不足する成分が律速（巨大建造物§3-2 で労働も律速に）。(185) の1種の試走＝鋼・セメント・機械が乏しい1780〜1840年代は束が律速のまま
++            //   工場の設備の置き換え（寿命の分）すら建たず、英の設備が 1783→1843 に 3,032→462 職場・清は 6,232→728 へ縮んだ（資本財の工場も自分の設備を建てられない）。
++            //   国営の棟（World.StepConstruction）も資材の配給を待たずに工賃と採算率の日数で完成する＝同じ扱い。高い素材は参照の価値でしか数えない＝資本が割高になる。
++            double built = 0;
++            {
++                double val = sEff * Catalog.RefPrices[sg] + mEff * Catalog.RefPrices[mg] + cEff * Catalog.RefPrices[cg] + lEff * Catalog.RefPrices[lg];
++                if (conLaborUnits > 0 && Catalog.LaborId < ng) val += conLaborUnits * ration[Catalog.LaborId] * Catalog.RefPrices[Catalog.LaborId];
++                double perBundleRef = BundleRef(coef) * (1.0 + coef.ConstructionLaborWageFrac);
++                if (perBundleRef > Eps && val > 0) built = val / perBundleRef;
++            }
+             double cost = sGot * clearPrice[sg] + mGot * clearPrice[mg] + cGot * clearPrice[cg] + lGot * clearPrice[lg];   // 支払いは新規購入(*Got)のみ＝充当した繰越は先月支払い済み（保存）
+             // 経5：建設工賃の決済＝労働力財市場から工賃分の労働（conLaborUnits）を買う一本化＝インフラ保守の決済と同型
+             // （投資家が支払い・revenue[Labor] へ計上→income で労働pop の賃金に変換＝支払い総額＝労働pop受取で保存）。二重雇用（工場へ全量売りつつ建設賃金も別途受領）を解消。
+@@ -1785,10 +1777,18 @@ public static class EconomyStep
+             // ★助走：材料は買って払った（上の決済で完了）が、**能力にはしない**＝1783年の生産能力のまま価格だけ均衡へ寄る。
+             //   ⚠`built` そのものを0にしてはいけない＝下の建設端数の繰越（KeepMaterial の eff−built×Cons）が全量繰越に化けて
+             //     翌月の新規購入が消え、結局は建設需要が抜ける（＝止めたかった副作用が裏口から入る）。加算だけを止める。
+-            if (!warmFrozen)
++            region.InvestSpentMonth += cost;   // ★(185) 段2：この州の投資家が立て替えた工場の設備の建設費（材料＋工賃）＝池の後段が出資の比で負担し直す
++            if (!warmFrozen && invWantSum > Eps)
+             {
+-                region.Industrialization += built * coef.IndPerConstruction;
+-                region.CumPrivateIndustrialization += built * coef.IndPerConstruction;   // 弧3-1（2026-07-24）：成長の出所＝資本家投資分の累積（純カウンタ・力学は読まない）
++                // ★(185) 段2：建った束を望みの比で工場の設備へ（職場の数＝束×束1本と工賃の参照の値段÷1職場の設備の値段）＝工業化度は積まない。
++                double perBundle = BundleRef(coef) * (1.0 + coef.ConstructionLaborWageFrac);
++                for (int pk = 0; pk < np; pk++)
++                {
++                    if (!(invWant[pk] > 0)) continue;
++                    var sk = region.Producers[pk];
++                    double cRef = CapitalCostRef(sk, coef);
++                    if (cRef > Eps) sk.Scale += built * (invWant[pk] / invWantSum) * perBundle / cRef;
++                }
+             }
+             // ★投資家がプランテーション・鉱山にも投資する（2026-08-04・作者指示「投資家もプランテーションや鉱山に投資するように」）。
+             //   旧＝資本家の建設は region.Industrialization（工業化度）にしか変わらず、RGO（農園・鉱山・牧場）は
+@@ -1835,24 +1835,7 @@ public static class EconomyStep
+             //   ・耐久財は実質スタックでき、生鮮なら数か月で消える＝**財の性質が保管期間を決める**（新しい分類も新しい定数も置かない）
+             //   ・手持ちが増えるほど新規購入（investDemand）が減る＝**自己制限的で有界**（新しい上限を置く必要がない）
+             //   ・腐敗は手持ちを減らすだけで支払いを伴わない＝**ロスは金を生まない**（市場側の腐敗と同一の会計。財収支にも触れない＝市場外のバッファ）
+-            if (coef.ConstructionMaterialCarryover > 0 && region.ConstructionCarryover is { } carry)
+-            {
+-                void KeepMaterial(int gid, double eff, double cons)
+-                    => carry[gid] = (carry[gid] + coef.ConstructionMaterialCarryover * Math.Max(0, eff - built * cons)) * (1.0 - Catalog.SpoilageOf(gid));
+-                KeepMaterial(sg, sEff, coef.ConsSteel);
+-                KeepMaterial(mg, mEff, coef.ConsMachine);
+-                KeepMaterial(cg, cEff, coef.ConsCement);
+-                KeepMaterial(lg, lEff, coef.ConsLumber);
+-            }
+-            // 鉄道インフラの決済：投資家が線路・機関車を買って敷設（消費＝死蔵解消・投資家→生産者で保存）
+-            if (coef.RailGoodId < ng && coef.LocoGoodId < ng)
+-            {
+-                double railGot = coef.ConsRail * construction * ration[coef.RailGoodId];
+-                double locoGot = coef.ConsLoco * construction * ration[coef.LocoGoodId];
+-                region.Pops[region.InvestorPopIndex].Paid += railGot * clearPrice[coef.RailGoodId] + locoGot * clearPrice[coef.LocoGoodId];
+-                revenue[coef.RailGoodId] += railGot * clearPrice[coef.RailGoodId];
+-                revenue[coef.LocoGoodId] += locoGot * clearPrice[coef.LocoGoodId];
+-            }
++            // 【(185) 段2】資本家の建設の線路・機関車の決済＝削除（需要の側と対）。
+         }
+ 
+         // 国家の手動建設の決済：買えた建設の束だけ工業化度に変換。支払いは国庫（StateSpent＝国庫→生産者で保存）＝資本家と同じ経路。
+@@ -2318,29 +2301,22 @@ public static class EconomyStep
+             // 経3：BuiltScale が ScaleMax を超えると floor>ScaleMax で Math.Clamp が min>max→ArgumentException（工場を多数建てると BuiltScale が累積して踏む）。floor を ScaleMax でキャップして例外を防ぐ（BuiltScale≤ScaleMax の通常域では不変＝テスト不変）。
+             // ★カテゴリ別の供給弾力性（2026-08-14・作者裁定）：鉱山・畑は工場のようには伸びない。
+             //   上限＝鉱脈/土地の有限性（均衡の制約）・速度＝坑道/開墾の年単位（時定数）。ゲート0で catMax=ScaleMax・catSpeed=ScaleAdjustSpeed＝厳密恒等。
+-            double catMax = coef.ScaleMax, catSpeed = coef.ScaleAdjustSpeed;
+-            if (coef.RgoElasticityGate > 0 && s.IsRgo && s.GoodId != Catalog.FishId)
+-            {
+-                catMax = Catalog.IsMineral(s.GoodId) ? coef.MineralScaleCap : coef.FarmScaleCap;
+-                catSpeed = coef.ScaleAdjustSpeed * coef.RgoScaleSpeedFactor;
+-            }
+-            // ★休止（mothball・AI審査2-6・2026-08-31・★live同日点火 Rate=0.05）：建てた工場（BuiltScale>0）は倒産免除＋床の全稼働強制で
+-            //   慢性赤字を垂れ流す。深い慢性赤字（SmoothedMargin<−FactoryMothballMarginIn）で床のうち FactoryMothballRate/月 ずつ
+-            //   休止し、採算が戻れば（SmoothedMargin>0）同率で再開＝設備（BuiltScale）は不変・操業と維持労働だけ縮む。
+-            //   上限＝FactoryMothballCap×（国庫が支えない持分＝1−国営持分×r）（国営持分は国庫が支える分だけ休止しない＝倒産免除の維持・
+-            //   国庫が払えない分は休止する＝作者裁定 R3「払えない分は休止」・2026-09-28 段2-1。r=1 で旧＝民営持分）。
+-            //   margin は補助金で緩和済み（subEff）＝補助されている工場は休止しない（会計と同じ率を読む）。
+-            //   ⚠FactoryMothballRate を0へ戻せば frac が0のまま＝×1.0＝床はビット恒等。
+-            if (coef.FactoryMothballRate > 0 && s.BuiltScale > Eps && !s.IsRgo && Catalog.Goods[gi].Tier != GoodTier.Service)
+-            {
+-                double mbDir = s.SmoothedMargin < -coef.FactoryMothballMarginIn ? 1.0 : s.SmoothedMargin > 0 ? -1.0 : 0.0;
+-                if (mbDir != 0) s.MothballFrac = Math.Clamp(s.MothballFrac + mbDir * coef.FactoryMothballRate, 0, coef.FactoryMothballCap * (1.0 - stateCover));
+-            }
+-            double floor = Math.Min(Math.Max(coef.ScaleFloor, s.BuiltScale * (1.0 - s.MothballFrac)), catMax);   // 建設した工場容量＝Scaleの下限（建てた工場は操業を続ける・休止分は除く）。⚠catMaxで抑える＝経3のmin>max例外を防ぐ
+-            // 05-B2（2026-07-29）：外挿的期待＝採算の勢い（margin−平滑margin）を投資判断に加算。「上がったから更に上がる」と確信して拡張し、
+-            // 外れて過剰能力＝バブルと崩壊がこの1項から出る（予見的期待は入れない＝歴史を平坦にする側・05 §2-2）。Weight=0で厳密恒等。
+-            double scaleTarget = Math.Clamp(1.0 + margin + (s.BuysLabor ? coef.InvestExtrapolationWeight * (margin - s.SmoothedMargin) : 0.0), floor, catMax);   // ★カテゴリ上限（ゲート0＝ScaleMax＝恒等）
+-            s.Scale += catSpeed * (scaleTarget - s.Scale);   // ★カテゴリ速度（ゲート0＝ScaleAdjustSpeed＝恒等）
++            // ★(185) 段2（能力は建てた分だけ）：工場は操業規模を追わない＝設備（Scale）は投資・寿命・国営の棟だけが動かす。旧の追従（月5%で1+採算へ・下限0.1・上限3）・
++            //   休止（MothballFrac）は撤去（設計 §5）＝変動費を賄えない間は短期の供給曲線（上の採算の割合）が産出を止める。産地（RGO）と職人は旧のまま。
++            bool facI = IsFactory(s);
++            if (!facI)
++            {
++                double catMax = coef.ScaleMax, catSpeed = coef.ScaleAdjustSpeed;
++                if (coef.RgoElasticityGate > 0 && s.IsRgo && s.GoodId != Catalog.FishId)
++                {
++                    catMax = Catalog.IsMineral(s.GoodId) ? coef.MineralScaleCap : coef.FarmScaleCap;
++                    catSpeed = coef.ScaleAdjustSpeed * coef.RgoScaleSpeedFactor;
++                }
++                double floor = Math.Min(Math.Max(coef.ScaleFloor, s.BuiltScale), catMax);   // 建設した容量＝Scaleの下限。⚠catMaxで抑える＝経3のmin>max例外を防ぐ
++                // 05-B2（2026-07-29）：外挿的期待＝採算の勢い（margin−平滑margin）。工場（BuysLabor）は (185) で投資の見込みへ移った＝ここでは掛からない。
++                double scaleTarget = Math.Clamp(1.0 + margin, floor, catMax);
++                s.Scale += catSpeed * (scaleTarget - s.Scale);
++            }
+             // ★幻の工場（**live**・2026-08-11点火／係数 TechGatedScaleZero に由来の全文）＝技術ゲートが0の財は操業規模も0。
+             // 上の scaleTarget は 1+利幅 が基底なので、**作れない財でも Scale が1.0付近へ育つ**（1783年に機関銃工場が7つ）。
+             // ゲートは供給側①が能力（boost）に掛けているのと同じ1本（Discovery.Gate＝発見の門・2026-10-01 段2A）＝定義を分岐させない。
+@@ -2364,7 +2340,7 @@ public static class EconomyStep
+             // 連鎖断絶（軍需上流＝火薬/鉛/帆布の死蔵・永続的脱工業化）は手法B（下の品薄数量再開）＋再点火トリクル（閉鎖しても下流の投入需要は価格シグナルに残る）が受ける＝
+             // 本当に必要な中間財は在庫が尽きた時点で shortage 再開・要らない工場だけが退出したままになる。負債帳消しなし・貨幣非接触（Scale=0のみ）＝保存則不変。
+             // Service（役務＝学校・病院・役所・労働）は常に免除。国営（BuiltScale>0）も倒産しない＝国庫が支える。AllTiers=0で旧挙動（消費最終財 Staple/Daily/Luxury のみ倒産）。
+-            else if (coef.FactoryBankruptcyEnabled && s.SmoothedMargin < coef.FactoryBankruptcyMargin && s.BuiltScale <= Eps
++            else if (coef.FactoryBankruptcyEnabled && !facI && s.SmoothedMargin < coef.FactoryBankruptcyMargin && s.BuiltScale <= Eps   // ★(185) 段2：工場は倒産しない（止まって寿命で減る）
+                      && Catalog.Goods[gi].Tier != GoodTier.Service
+                      && (coef.FactoryBankruptcyAllTiers > 0
+                          || (Catalog.Goods[gi].Tier != GoodTier.Producer && Catalog.Goods[gi].Tier != GoodTier.Intermediate)))
+@@ -2496,6 +2472,67 @@ public static class EconomyStep
+     /// 素材の月次支出（<see cref="World.ConstructionMaterialPerMonth"/>）・巨大建造物の見積り（<see cref="Megaprojects.EstimateCost"/>）＝全て**建てる州**の価格を読む。
+     /// ⚠旧＝同じ束を7か所で手書き（価格の床が Eps・1e-9・床なしとばらばら）＝床は Eps（1e-9）の1つ。参照の束は <see cref="BundleRef"/>。
+     /// ⚠資材の市場が無い試験世界（財が少ない）は呼び手が id の範囲を確かめる。</summary>
++    /// <summary>★(185) 段2（生産を市場から導く・能力は建てた分だけ）：工場＝労働を市場で買う RGO でない生産者＝能力は建てた設備（<see cref="Producer.Scale"/>）。
++    /// 職人（自営）・産地（RGO）・役務は旧のまま（担い手 POP の人数×取り分）。</summary>
++    internal static bool IsFactory(Producer s) => s.BuysLabor && !s.IsRgo;
++
++    /// <summary>★(185) 段2：1職場の設備の値段（参照価格の金額）＝<see cref="Coefficients.CapitalOutputRatio"/>×12か月×生産性×参照価格
++    /// ＝1職場の年の産出の価額×資本係数。私的投資の束の換算と1棟の大きさ（<see cref="World.BuildingSize"/>）が同じ1本を読む。生産性か参照価格が無ければ0。</summary>
++    internal static double CapitalCostRef(Producer s, Coefficients c)
++    {
++        double rp = s.GoodId >= 0 && s.GoodId < Catalog.RefPrices.Length ? Catalog.RefPrices[s.GoodId] : 0;
++        double v = c.CapitalOutputRatio * Calendar.MonthsPerYear * s.Productivity * rp;
++        return v > 0 ? v : 0;   // NaN は0
++    }
++
++    /// <summary>★(185) 段2：作った州の工場の設備の初期値＝担い手 POP（工場労働者）の人数を同じ担い手の工場の数で等分
++    /// ＝旧の能力の最初の月（配分信念が0の月の均等割り）と同じ。助走を通る世界は助走の間に労働の取り分（旧の能力）で置き直す（供給①）。
++    /// 呼び手＝州を作る所（Simulation の構築・植民地の州への昇格）。</summary>
++    internal static void SeedFactoryCapital(Region r, Coefficients c)
++    {
++        int npop = r.Pops.Count;
++        var cnt = new int[npop];
++        foreach (var s in r.Producers) if (IsFactory(s) && s.LaborPopIndex >= 0 && s.LaborPopIndex < npop) cnt[s.LaborPopIndex]++;
++        foreach (var s in r.Producers)
++            if (IsFactory(s) && s.LaborPopIndex >= 0 && s.LaborPopIndex < npop)
++                s.Scale = r.Pops[s.LaborPopIndex].Size / cnt[s.LaborPopIndex];
++        SetBuildingSlots(r, c);
++    }
++
++    /// <summary>★(185) 段2：州の工場の1棟の大きさ（<see cref="Producer.BuildingSlots"/>）＝FactoryBuildScale×設備を持つ工場の平均の設備（職場の数）を全ての工場へ置く。
++    /// 呼び手＝設備を置く所だけ（州を作った時・助走の各月＝助走の終わりの値が残る）。設備を持つ工場が無ければ置かない（旧の FactoryBuildScale）。</summary>
++    internal static void SetBuildingSlots(Region r, Coefficients c)
++    {
++        double sum = 0; int nk = 0;
++        foreach (var s in r.Producers) if (IsFactory(s) && s.Scale > 1e-9) { sum += s.Scale; nk++; }
++        if (nk == 0) return;
++        double size = c.FactoryBuildScale * sum / nk;
++        foreach (var s in r.Producers) if (IsFactory(s)) s.BuildingSlots = size;
++    }
++
++    /// <summary>★(185) 段2（投資は採算の高い所へ・設計 §3A・作者裁定 P6）：工場の設備の望む伸び（月・職場の数）。
++    /// ＝IndInvestmentSpeed（×株式会社×吸収）×(見込みの採算−ハードル)×基準の設備×投入の充足。
++    /// ・見込みの採算＝平滑化した採算＋InvestExtrapolationWeight×(今の採算−平滑化した採算)（P6＝既存の外挿の期待）。
++    /// ・基準の設備＝(max(今の産出, 州の需要)×投入の充足＋種火の床 TargetStockFloor)÷1職場の産出＝今の商いと満たしていない需要に比例（遊んでいる設備に比例させない＝(185) の1種の試走で、
++    ///   平滑化した採算〔約3年の EMA〕が高いまま値段が費用を割った財〔ロンドンのガス・缶詰・無煙火薬・合成ゴム＝需要 14〜300 に能力 3万〜260万〕へ設備が指数で積もった）。
++    /// ・投入の充足（前月の LastInputFill）＝新しい設備も同じ投入の不足に当たる（投入が入らず産出0の工場〔ゴムの無い州の防水布〕が値段の高さだけで設備を吸った）。種火の床には掛けない。
++    /// ・助走（warm）＝設備は1783年のまま（凍結は両側）＝建てる需要は寿命の分の置き換え（IndDepreciation×設備×投入の充足）だけ（旧の「建てる需要と支払いは止めない」）。
++    /// 1職場の産出が0（発見の門が0）・否定形の NaN は0。</summary>
++    internal static double InvestSlots(Producer s, Market m, double perSlot, double mNow, double hurdle, double speed, Coefficients c, bool warm)
++    {
++        if (!(perSlot > Eps)) return 0;
++        double inFill = s.LastInputFill > 0 ? Math.Min(1.0, s.LastInputFill) : 0;
++        if (warm) return c.IndDepreciation * s.Scale * inFill;
++        double excess = s.SmoothedMargin + c.InvestExtrapolationWeight * (mNow - s.SmoothedMargin) - hurdle;
++        if (!(excess > 0)) return 0;
++        // 種火＝TargetStockFloor（旧の配分信念の売れる量の床＝「量として意味を持つ最小」）の分は投入の充足を掛けない＝新しい財の入口と、投入の市場がまだ無い産業の
++        //   再点火の発注（DesiredOutput のトリクル＝上流を起こす）を立てる設備（需要が無いから作られず作られないから値段が下がらず買われない、
++        //   投入が無いから設備が建たず設備が無いから投入が発注されない、の2つの鶏と卵を割る）。(185) の10種で、種火に充足を掛けると内燃機関（原油0.2）が
++        //   1950年まで設備0＝戦車・軍用機・原油・クロム・錫鉱が「下流の無い財」になった（10/10）。
++        double kref = (Math.Max(s.Output, m.LastDemand) * inFill + c.TargetStockFloor) / perSlot;
++        return speed * excess * kref;
++    }
++
+     internal static double BundleCost(Region r, Coefficients c)
+         => c.ConsSteel * Math.Max(r.Markets[c.SteelGoodId].Price, Eps) + c.ConsMachine * Math.Max(r.Markets[c.MachineGoodId].Price, Eps)
+          + c.ConsCement * Math.Max(r.Markets[c.CementGoodId].Price, Eps) + c.ConsLumber * Math.Max(r.Markets[c.LumberGoodId].Price, Eps);
+@@ -2525,16 +2562,6 @@ public static class EconomyStep
+         => c.ConsSteel * Catalog.RefPrices[c.SteelGoodId] + c.ConsMachine * Catalog.RefPrices[c.MachineGoodId]
+          + c.ConsCement * Catalog.RefPrices[c.CementGoodId] + c.ConsLumber * Catalog.RefPrices[c.LumberGoodId];
+ 
+-    /// <summary>経17：建設束の1資材について、手持ち繰越(carry)を want まで充当し、新規需要は不足分だけ investDemand へ積む。
+-    /// 充当量を applied[gid] に記録（決済で built に足し戻す）し、手持ち carry からは充当分を差し引く（消費）。係数0（呼び出されない）で全経路0＝中立。</summary>
+-    private static void AddConsWithCarry(double[] investDemand, double[] applied, double[] carry, int gid, double want)
+-    {
+-        double use = System.Math.Min(carry[gid], want);   // 手持ちで賄える分（≤want・≤手持ち）
+-        applied[gid] += use;                               // 今月充当した繰越量（決済で built に加算）
+-        carry[gid] -= use;                                 // 手持ちから消費（残余は決済の KeepMaterial で今月の端数を累積し腐敗率で減衰）
+-        investDemand[gid] += want - use;                   // 不足分だけ新規購入（先月支払い済みの充当分は買い直さない）
+-    }
+-
+     /// <summary>投入1単位あたりの費用（限界費用の投入分）。<paramref name="home"/>＝生産者の所属州（機械化度を読む）・<paramref name="market"/>＝価格を読む州。
+     /// エンジンは両方 region（同一州）。internal＝ProductionDiag が稼働率の採算項・生産コスト分解を**同じ式**で再評価する（UI は首都価格×他州の生産者＝2州が別・2026-09-11 M2）。</summary>
+     internal static double InputCostPerUnit(Producer s, Region home, Region market, Coefficients coef)
+diff --git a/PriceOfBread.SimCore/Model.cs b/PriceOfBread.SimCore/Model.cs
+index 1ee0f3b..0b8e8fe 100644
+--- a/PriceOfBread.SimCore/Model.cs
++++ b/PriceOfBread.SimCore/Model.cs
+@@ -666,7 +666,14 @@ public sealed class Producer
+     // UI診断用の純記帳（2026-07-19・力学は一切読まない）：素材のみの充足率。
+     // LastInputFill は労働（役務）込みの最小値なので「原料不足」の根拠に使えない（労働不足を原料不足と誤帰属していた）。
+     public double LastMaterialFill = 1.0;   // 素材（非役務投入）だけの最小配給率。素材投入なし＝1.0
+-    public double Scale = 1.0;     // 操業規模（企業の参入退出）。採算で伸縮：採算良→拡張・採算悪→縮小（≒閉鎖）。労働配分の重みに掛かり、閉鎖工場は労働を採算の良い財へ解放（§9-A 仕組み4）
++    /// <summary>★2026-10-03 (185) 段2（生産を市場から導く・能力は建てた分だけ）：**工場**（<see cref="EconomyStep.IsFactory"/>＝労働を市場で買う RGO でない生産者）は
++    /// **建てた設備＝職場の数**（1783年の労働の取り分の人数と同じ単位）＝能力＝これ×生産性×倍率（工場労働者の人数と取り分を読まない）。
++    /// 増えるのは私的投資（採算の高い所へ・国の池）と国営の棟の完成（<see cref="World.BuildingSize"/>）だけ・寿命で減る（IndDepreciation）・恐慌で遊んでいる分が廃棄される。
++    /// 助走の間は労働の取り分（旧の能力）で置く＝1783年の設備。**産地（RGO）と職人**は旧のまま＝採算で伸縮する操業規模（労働配分の重み・§9-A 仕組み4）。</summary>
++    public double Scale = 1.0;
++    /// <summary>★(185) 段2：工場の1棟の大きさ（職場の数）＝設備を置いた時（州を作った時か助走の終わり）のその州の工場の平均の設備×FactoryBuildScale（<see cref="World.BuildingSize"/>）。
++    /// 0＝置いていない（産地・職人・役務・手で作った試験の生産者）＝旧の FactoryBuildScale。国営の棟の完成・払い下げ・棟数の換算だけが読む。</summary>
++    public double BuildingSlots;
+     public double SmoothedMargin;  // 数期移動平均の採算＝(価格−限界費用)/限界費用 のEMA。倒産判定に使う（一過性の赤字では潰れない）
+     public bool Bankrupt;          // 倒産（操業停止・産出0・労働解放）。慢性赤字で倒産し、価格が原価を上回れば新規参入で再開＝有限責任（§9-A 仕組み4 拡張）
+     /// <summary>プレイヤーが建設した工場容量（Scaleの下限＝離散工場・Vic2型）。建設で増え、建てた工場は操業を続ける。
+@@ -683,11 +690,7 @@ public sealed class Producer
+     private double _builtScale;
+     /// <summary>作業領域（[NonSerialized]・セーブに載らない）：この生産者を持つ州（一覧を作った時と GDP の和を取った時に付ける・生産者は州をまたがない）＝印と版の宛先。</summary>
+     [System.NonSerialized] internal Region? _siteRegion;
+-    // ★休止（mothball・AI審査2-6・2026-08-31）：BuiltScale のうち操業を止めている割合（0..FactoryMothballCap×民営持分）。
+-    //   建てた工場は倒産免除＋床で全稼働を強制されるため、慢性赤字が資本家の負債へ垂れ流しになる欠落の是正＝
+-    //   設備は残る（BuiltScale不変）が床が (1−MothballFrac) 倍に縮む＝維持労働と産出だけ止まり、採算が戻れば同率で再開。
+-    //   FactoryMothballRate=0（測定OFF腕）では一度も書かれず0のまま＝床はビット恒等（★既定0.05でlive・2026-08-31点火）。
+-    public double MothballFrac;
++    // 【墓標2026-10-03 (185) 段2】休止の割合 MothballFrac＝撤去（工場は変動費を賄えない間は短期の供給曲線で止まる・Coefficients の休止の墓標）。
+     // 国営工場カウンター（作者裁定2026-08-10）＝**目標の棟数**（0..StateTargetMax）。1カウント＝1回の建設完成＝Coefficients.FactoryBuildScale。
+     // 現在の棟数は BuiltScale/FactoryBuildScale（World.StateUnitsOf）＝これは「意志」であって「実現」ではない。
+     // 目標>現在なら World.StepStateTargets が着工を試み（国庫・建材採算・技術ゲートが速度を決める）、
+@@ -912,7 +915,10 @@ public sealed class Region
+     // 弧3-1（2026-07-24）：成長の出所内訳＝工業化増分の累積を建て手別に分離（国家建設 vs 資本家投資）。純カウンタ・力学は読まない。
+     // 「エンジンが国家から民間へ移る瞬間」を数字で見る＝発展段階の可視化の本体
+     public double CumStateIndustrialization;
+-    public double CumPrivateIndustrialization;
++    // 【(185) 段2】CumPrivateIndustrialization（資本家投資の工業化度の累積）＝削除＝私的投資は工業化度でなく工場の設備（Producer.Scale）を積む。
++    /// <summary>★(185) 段2 国の投資の池の作業領域（[NonSerialized]＝月次決算の中だけ＝Simulation の池の前段が書き・EconomyStep と後段が読む）：
++    /// 月初の投資枠（IndInvestmentFrac×max(0, 投資家の貯蓄)×(1−接収の萎縮)＝池への出資）と、この州の投資家が立て替えた工場の設備の建設費（材料＋工賃）。</summary>
++    [System.NonSerialized] internal double InvestPoolShare, InvestSpentMonth;
+     public double AdminBudget;                        // 今期の行政調達の予算（行政費スライダー×国庫。Simulation が設定）
+     public double InfraFill = 1.0;                    // 上下水道（衛生インフラ）の充足率（買えた÷必要）。衛生＝これ。低い＝過密の疫病（#4施設化＝旧「工業化proxy」を置換）。施設の無い世界は1.0＝従来
+     public double InfraBudget;                        // 今期の上下水道調達の予算（行政費スライダー×国庫×都市人口比。Simulation が設定）
+@@ -941,17 +947,10 @@ public sealed class Region
+     public double SeizureChill;
+     public double LaborWellbeing;                     // ⚠休眠（UnionSatBonus=0）：組合の非物質厚生の満足度上乗せ（大衆POPに加算・Simulation が設定）。時短/福祉/年金の成分は物理削除2026-08-21（思想⑨）
+     public double Mechanization;                      // 機械化度（no-labor-saving-tech-unemployment）：工業化度の飽和カーブ∈[0,1)。LaborSaveRate=0（対照腕）で0固定・既定0.25で EffectiveQty が読む
+-    public double OldVintageCapital;                  // 旧世代の工業化資本（no-vintage-capital-depreciation）。VintageMigrateRateで経年蓄積・技術差で座礁。0（対照腕）で単層恒等・既定0.005で二層live
+-    public double DevelopmentPeak;                    // 開発度の到達最高値（新旧合計の走行最大・2026-07-27）。「体化された技術・熟練・制度」の記憶＝DevelopmentMemory>0 のとき物理減価を緩める。0＝未到達・DevelopmentMemory=0では未使用
+-    public double VintageTechLevel;                   // 旧世代資本の据付時平均技術水準。現TechLevelとの差(techGap)が座礁度を決める。OldVintageCapital=0で未使用
+-    public double StrandedVintage;                    // 今月の座礁量＝VintageObsolescence×OldVintageCapital×techGap（EconomyStepが月次更新・OldVintageCapital以下）。生産性チャネルのみが差し引く。OldVintageCapital=0で0
+-    // ヴィンテージ資本有効化2026-07-10（キュー5）：新旧二層の読者を分離。
+-    //  ・TotalIndustrialization＝立っている資本の総量（新旧合計）。都市化天井・衛生proxy・スコア・投資上限・移民引力など「資本ストックの規模」を読む従来読者はこちら
+-    //    ＝旧世代もIndDepreciationで同率減価するため、合計は旧単層Industrializationと同一動学（分割そのものは恒等＝較正中立）。
+-    //  ・ProductiveIndustrialization＝生産性に寄与する分（座礁分を控除）。indMult・機械化度・投資の限界収益のみが読む＝座礁だけが現行との差分（意図した機構）。
+-    //  両係数0（対照腕）では OldVintageCapital=StrandedVintage=0 で両者とも Industrialization に厳密恒等（既定 VintageMigrateRate=0.005 でlive）。
+-    public double TotalIndustrialization => Industrialization + OldVintageCapital;
+-    public double ProductiveIndustrialization => Industrialization + OldVintageCapital - StrandedVintage;
++    public double DevelopmentPeak;                    // 開発度の到達最高値（走行最大・2026-07-27）。「体化された技術・熟練・制度」の記憶＝DevelopmentMemory>0 のとき物理減価を緩める。0＝未到達・DevelopmentMemory=0では未使用
++    // 【(185) 段2】ヴィンテージ資本（OldVintageCapital・VintageTechLevel・StrandedVintage＝旧世代の座礁）＝削除（設計 §5「旧世代の陳腐化 → 撤去」）。
++    //   工業化度は1層＝TotalIndustrialization は旧の新旧合計の読み口の名前を残しただけ（Industrialization そのもの・工業化度の廃止の設計で読み手ごと消える）。
++    public double TotalIndustrialization => Industrialization;
+     public double[]? EffFirms;                        // 財別の有効生産者数（no-market-power-monopoly）。EconomyStepがproducerCountを複製・MarketFlowが国内マークアップに使用。DomesticMarkupMax=0でnullのまま
+     public double HousingFill = 1.0;                  // 住居役務の充足率（housing-urban-rent-absent）。移民摩擦に使用。住居財なし/HousingNeedPerUrban=0では1.0＝摩擦なし（従来）
+     public double ElecInfraFill;                      // 電化インフラ（上位＝近代都市インフラ）の充足率。満足度＋衛生追加＋送電容量↑。便益は加算なので既定0＝施設の無い世界は便益なし（従来挙動）
+@@ -977,7 +976,7 @@ public sealed class Region
+     public double OpiumAddiction;                     // アヘン中毒度（1人あたり需要の上乗せ）。消費するほど増える＝供給が需要を生む正のフィードバック（実験）
+     public double[]? ColonialSupply;                  // 各財の植民地産出（供給駆動・毎期）。保有植民地×固有資源×産出率。需要と無関係に流入＝過剰なら価格暴落
+     public double[]? ColonialImportPipeline;          // 経19（海上リードタイム）：前月発注済み未着の植民地輸入量（good.Id添字・1段）。null または ColonialImportLagMonths=0 で従来の即時加算＝中立
+-    public double[]? ConstructionCarryover;           // 経17（建設Leontief端数の繰越・good.Id添字・1段）：先月の建設束で律速成分に律速され使い残した非律速資材。null または ConstructionMaterialCarryover=0 で従来どおり全消費＝中立
++    // 【(185) 段2】ConstructionCarryover（経17 の束の繰越）＝削除（Coefficients の墓標）。
+     public double SocialSecurity;                     // 社会保障（公共医療）の水準（World から複製。医薬品消費に使う）
+     public double HarvestFactor = 1.0;                // 今年の豊作/不作（World から複製。主食RGO産出と自給に乗算）
+     public double LastSubsistenceOutput;   // 人2補完（2026-07-11）：この州の今月の主食**自給**産出Σ（市場外・無償＝Market.LastProducedに載らない）。扶養力の生産アンカーの分子欠落（自給7割の農業国で分子過小→capacity崩落）を埋める。EconomyStep月初にリセット
+diff --git a/PriceOfBread.SimCore/SelfPlay.cs b/PriceOfBread.SimCore/SelfPlay.cs
+index b56d50a..7c03d76 100644
+--- a/PriceOfBread.SimCore/SelfPlay.cs
++++ b/PriceOfBread.SimCore/SelfPlay.cs
+@@ -887,7 +887,8 @@ public sealed class UtilityAgent : INationAgent
+     }
+ 
+     /// <summary>#5の材料：その財の国内生産者の採算が**生産規模で加重した平均**で赤字か。
+-    /// 加重＝Scale（現在の操業規模）＝止まっている棟の採算に世論を作らせない。倒産中は除外（既に退出している）。
++    /// 加重＝産出（★(185) 段2＝工場の Scale は建てた設備〔職場の数〕・職人と産地は操業規模の重み＝単位が違う＝実際に作っている量で重みを付ける）
++    /// ＝止まっている棟の採算に世論を作らせない（旧の意図のまま）。倒産中は除外（既に退出している）。
+     /// 生産者が1人もいない財は false＝「自国財でない」＝壁を作らない。NaN採算は num&lt;0 が偽＝fail-closed。</summary>
+     private static bool DomesticMarginNegative(World w, int goodId)
+     {
+@@ -898,7 +899,7 @@ public sealed class UtilityAgent : INationAgent
+             foreach (var pr in rg.Producers)
+                 if (pr.GoodId == goodId && !pr.Bankrupt)
+                 {
+-                    double sc = Math.Max(0, pr.Scale);
++                    double sc = Math.Max(0, pr.Output);
+                     num += pr.SmoothedMargin * sc; den += sc;
+                 }
+         }
+diff --git a/PriceOfBread.SimCore/Simulation.cs b/PriceOfBread.SimCore/Simulation.cs
+index 1700c6a..b7df7fd 100644
+--- a/PriceOfBread.SimCore/Simulation.cs
++++ b/PriceOfBread.SimCore/Simulation.cs
+@@ -81,6 +81,9 @@ public sealed class Simulation
+                 ?? throw new ArgumentException("Kind=Nation には NationConfig が要る"), scenario.Coef, scenario.SharedWorld),
+             _ => BuildSelfSufficientFarm(),
+         };
++        // ★(185) 段2（能力は建てた分だけ）：作った州の工場の設備の初期値（工場労働者の人数を工場の数で等分＝旧の最初の月と同じ）。助走を通る世界は助走が置き直す。
++        //   既存の州を受け取る構築（分離独立の建国＝PrebuiltRegions）は設備を持っている＝置かない。
++        if (scenario.PrebuiltRegions is null) foreach (var r0 in regions) EconomyStep.SeedFactoryCapital(r0, scenario.Coef);
+         World = new World(regions, scenario.Coef)
+         {
+             Year = scenario.StartYear,
+@@ -1466,6 +1469,7 @@ public sealed class Simulation
+         // 以後この州はこの国の故地扱い（OriginPowerId）＝将来の喪失→再征服の往復で二重記帳しない。観測専用＝力学は読まない。
+         region.OriginPowerId = w.SelfPower?.Id ?? -1;
+         region.AnnexBaggage = P;
++        EconomyStep.SeedFactoryCapital(region, coef);   // ★(185) 段2：新しい州の工場の設備の初期値（構築と同じ1本）
+         return region;
+     }
+ 
+@@ -1759,6 +1763,33 @@ public sealed class Simulation
+         }
+     }
+ 
++    /// <summary>★(185) 段2 国の投資の池の後段（作者裁定 P5「国全体で1つの池」）：各州の投資家が立て替えた工場の設備の建設費（材料＋工賃）の和を、
++    /// 池への出資（月初の投資枠）の比で負担し直す＝出資より多く立て替えた州の投資家へ、出資より少なかった州の投資家から（不足の額の比で）移す（移し方の1本＝保存）。
++    /// 払い手の貯蓄が足りなければ移せるだけ（Pop.Take）＝立て替えた州に残る。精算した額は0へ戻す（精算済み＝同じ月を2度精算しない）。</summary>
++    internal static void SettleInvestPool(World w)
++    {
++        double spent = 0, pool = 0;
++        foreach (var r in w.Regions) { if (r.State != RegionState.Active) continue; spent += r.InvestSpentMonth; pool += r.InvestPoolShare; }
++        if (spent > 1e-9 && pool > 1e-9)
++        {
++            List<Pop>? payers = null; List<double>? owe = null;
++            foreach (var r in w.Regions)
++            {
++                if (r.State != RegionState.Active || r.InvestorPopIndex < 0 || r.InvestorPopIndex >= r.Pops.Count) continue;
++                double net = r.InvestSpentMonth - spent * (r.InvestPoolShare / pool);
++                if (net < -1e-12) { (payers ??= []).Add(r.Pops[r.InvestorPopIndex]); (owe ??= []).Add(-net); }
++            }
++            if (payers is not null)
++                foreach (var r in w.Regions)
++                {
++                    if (r.State != RegionState.Active || r.InvestorPopIndex < 0 || r.InvestorPopIndex >= r.Pops.Count) continue;
++                    double net = r.InvestSpentMonth - spent * (r.InvestPoolShare / pool);
++                    if (net > 1e-12) World.Transfer((w, payers), (w, [r.Pops[r.InvestorPopIndex]], null), net, fromWeights: owe);
++                }
++        }
++        foreach (var r in w.Regions) r.InvestSpentMonth = 0;
++    }
++
+     private void MonthSettle()
+     {
+         // 四半期の締め月（_dayInQuarter==89＝quarterDone と同時に走る月次決算）だけ true・他2回（29/59日目）は false。
+@@ -2193,6 +2224,22 @@ public sealed class Simulation
+         double payRate = claims > 0 ? payable / claims : 1.0;
+         if (!(payRate >= 0)) payRate = 0; else if (payRate > 1) payRate = 1;   // 否定形＝NaN は払わない側
+         World.FiscalFundingRatio = payRate;
++        // ★(185) 段2 国の投資の池の前段（設計 §3A・作者裁定 P5「国全体で1つの池・州の間の摩擦は資材の輸送費だけ」）：各州の投資家の投資枠
++        //   （IndInvestmentFrac×max(0,貯蓄)×(1−接収の萎縮)＝旧の州の予算の式）を池への出資として撮り、池の充足＝min(1, 池÷前月の望み)（前月の全ての州の
++        //   工場の設備の望む投資の和＝EconomyStep が今の値段で足した額）を置く＝州ごとの望み（採算はその州で読む）を国の池の大きさで一律に縮める。
++        double investPool = 0;
++        foreach (var r in World.Regions)
++        {
++            r.InvestPoolShare = 0;
++            if (r.State != RegionState.Active || !r.CapitalEnabled || r.InvestorPopIndex < 0 || r.InvestorPopIndex >= r.Pops.Count) continue;
++            double share = World.Coef.IndInvestmentFrac * Math.Max(0, r.Pops[r.InvestorPopIndex].Savings);
++            if (r.SeizureChill > 0) share *= Math.Max(0, 1.0 - r.SeizureChill);
++            r.InvestPoolShare = share; investPool += share;
++        }
++        double investWantLast = World.PrivateInvestWantLast;
++        double investFill = investWantLast > 1e-9 ? Math.Min(1.0, investPool / investWantLast) : 1.0;
++        World.PrivateInvestFill = investFill >= 0 ? investFill : 0;   // NaN は買わない側
++        World.PrivateInvestWantAcc = 0;
+         foreach (var r in World.Regions)
+             if (r.State == RegionState.Active)
+             {
+@@ -2241,18 +2288,18 @@ public sealed class Simulation
+                 {
+                     double scrapKeep = 1.0 - World.Coef.DepressionScrapRate * Math.Max(0, World.GdpDrawdown - World.Coef.DepressionScrapThreshold);
+                     r.Industrialization *= scrapKeep;
+-                    r.OldVintageCapital *= scrapKeep;   // ヴィンテージ2026-07-10：恐慌の資本廃棄は新旧両層に同率（合計＝旧単層と同一動学）。StrandedVintageも比例縮小（座礁≤旧世代の不変条件を保つ・次月に再計算）
+-                    r.StrandedVintage *= scrapKeep;
+-                    if (World.Coef.DepressionScrapsBuiltScale > 0 && scrapKeep < 1)
+-                        foreach (var fp in r.Producers)
+-                            if (!fp.IsRgo && fp.BuiltScale > 1e-9 && fp.MothballFrac > 1e-9)
+-                                fp.BuiltScale *= scrapKeep * fp.MothballFrac + (1.0 - fp.MothballFrac);   // 〔7-1〕第2版（2026-09-06）：**休止中の分だけ**解体（第1版＝採算割れ全部は batch10 硬性赤＝バイエルン最下位固定＝小国の工場が戻らない）。休止率0＝不変
++                    // 〔7-1〕恐慌の工場の解体（DepressionScrapsBuiltScale・作者裁定§4-1「工場が1棟も消えないのは史実に反する」）＝★(185) 段2 で撤去：
++                    //   工場の設備は寿命で減り（IndDepreciation）、採算の無い工場には投資が来ない＝恐慌で設備は戻らずに減る（作者の裁定の形は保たれる）。
++                    //   旧の休止の床の解体（第2版）を遊んでいる設備の解体に写すと、寿命の減りと二重に減らす（思想⑨）・(185) の1種の試走で
++                    //   設備の減り→産出の減り→ドローダウン→解体の正帰還が見えた。
+                 }
+                 // 国家の調達・国営の損益・専売の精算を**区分ごとに**（2026-09-28 段2-1 D1〜D3）。旧＝1本の StateSpent を OtherOut へ呑ませ、
+                 //   専売益だけを別の欄 LastStateMonopolyRevenue に二重に積んで割り戻していた＝財政タブで軍需・行政・教育・建設・補助・国営の損益の区分が出なかった。
+                 World.SettleStateSpent(r);   // 国庫→生産者（支出）／生産者・消費者→国庫（専売益・国営持分の利潤）で保存（World の中の1本・2026-09-30 段4g）
+                 // （植民地の採取費の対外流出と、その一部を植民地の蓄えへ渡す枝は 2026-09-28 に削除＝旗 TradeColonialGoods=1 で常に0だった）
+             }
++        World.PrivateInvestWantLast = World.PrivateInvestWantAcc;   // ★(185) 段2：来月の池の充足の分母
++        SettleInvestPool(World);
+         ProbeCheck("月次経済");
+         Transport.Step(World, World.Coef);                               // §5.1拡張 輸送容量（鉄道/船を積む→Tradeで交易量を律速）
+         ProbeCheck("月次輸送");
+diff --git a/PriceOfBread.SimCore/World.cs b/PriceOfBread.SimCore/World.cs
+index b8d8b5d..3c56d1e 100644
+--- a/PriceOfBread.SimCore/World.cs
++++ b/PriceOfBread.SimCore/World.cs
+@@ -1036,6 +1036,11 @@ public sealed class World
+     /// 借入は r＜1 の月だけ・減債は r＝1 の月の余剰から（Fiscal）。AI の逼迫度＝1−r（UtilityAgent.FiscalStressOf）。
+     /// 旧＝維持費を払えた割合（Fiscal の滝の2番目）＝治安維持力・兌換の門・最後の貸し手・同盟参戦は今は支払い全般の不足に反応する。</summary>
+     public double FiscalFundingRatio { get; internal set; } = 1.0;
++    /// <summary>★(185) 段2 国の投資の池（設計 §3A・作者裁定 P5「国全体で1つの池」）：前月の全ての州の工場の設備の望む投資（今の値段の金額・材料＋工賃）の和。
++    /// 今月の池の充足＝min(1, 池÷これ)（Simulation の池の前段）＝州ごとの決定（EconomyStep・採算はその州で読む）を国の池の大きさで一律に縮める。0＝前月の望みが無い＝充足1。</summary>
++    public double PrivateInvestWantLast;
++    /// <summary>作業領域（[NonSerialized]＝月次決算の中だけ）：今月の池の充足（前段が書き EconomyStep が読む）と今月の望む投資の和（EconomyStep が足し・後段が <see cref="PrivateInvestWantLast"/> へ写す）。</summary>
++    [System.NonSerialized] internal double PrivateInvestFill = 1.0, PrivateInvestWantAcc;
+     public double FiscalCapacity { get; internal set; }   // 直近の税収フロー（EMA）。公共サービス予算（行政/福祉/インフラ/軍需）の基準＝国庫ストックでなく歳入から支弁＝国庫0でも機能（funding修正2026-06-18）
+     public double LastRevenue { get; internal set; }       // 診断：直近四半期の純税収（汚職漏れ控除後）
+     public double LastInterest { get; internal set; }      // 診断：直近四半期の利払い
+@@ -1868,7 +1873,9 @@ public sealed class World
+                 // （BuildFactory を直に呼ぶ経路＝テスト/Runner も同じ扱いになる＝1箇所で閉じる）。
+                 if (p.ConstructionLeft <= 1e-9)
+                 {
+-                    p.ConstructionLeft = 0; p.BuiltScale += Coef.FactoryBuildScale; p.StateTarget = Math.Max(p.StateTarget, StateUnitsOf(p));
++                    // ★(185) 段2（能力は建てた分だけ）：工場の棟は設備（Scale）そのものを足す＝1棟＝建設費÷1職場の設備の値段（BuildingSize＝資本家の投資と同じ値段）。産地（RGO）は旧の床。
++                    double unitB = BuildingSize(p, Coef);
++                    p.ConstructionLeft = 0; p.BuiltScale += unitB; if (EconomyStep.IsFactory(p)) p.Scale += unitB; p.StateTarget = Math.Max(p.StateTarget, StateUnitsOf(p));
+                     EconomyStep.ApplyEnclosure(r, p, Coef.FactoryBuildScale, Coef);   // rank5第2段：RGO（大農園/鉱区）完成1棟ぶんの自給侵食（EnclosureRate=0で即return＝恒等・非RGOはヘルパ先頭で不発）
+                 }
+             }
+@@ -2334,7 +2341,8 @@ public sealed class World
+     /// 国営持分が1棟以下なら比＝1＝丸ごと＝旧「全部売り」と同額（単棟しか建てていない世界では従来と厳密に同じ）。</summary>
+     private double UnitSalePrice(Producer p, double profit)
+     {
+-        double unit = Coef.FactoryBuildScale > 1e-9 ? Math.Min(Coef.FactoryBuildScale, p.BuiltScale) : p.BuiltScale;
++        double bs = BuildingSize(p, Coef);
++        double unit = bs > 1e-9 ? Math.Min(bs, p.BuiltScale) : p.BuiltScale;
+         double frac = p.BuiltScale > 1e-9 ? PoliticalQuantities.Clamp01(unit / p.BuiltScale) : 1.0;
+         return profit * Calendar.MonthsPerYear * Coef.SoeSaleYears * frac;
+     }
+@@ -2351,7 +2359,7 @@ public sealed class World
+         var r = Regions[regionIndex];
+         var p = FindFactory(r, goodId)!;
+         Transfer((this, [r.Pops[r.InvestorPopIndex]]), (this, null, null), price, TreasuryCat.StateFactory);   // 資本家→国庫（移し方の1本・2026-09-30 段4g＝旧は貯蓄の手書きと国庫の片側の記帳。買えることは CanSellFactory が確かめた）
+-        p.BuiltScale = Math.Max(0, p.BuiltScale - Coef.FactoryBuildScale);   // 1棟ぶん民営化（残る棟は国営のまま）
++        p.BuiltScale = Math.Max(0, p.BuiltScale - BuildingSize(p, Coef));   // 1棟ぶん民営化（残る棟は国営のまま・(185) 段2＝工場の設備は Scale に残る＝持ち主だけが変わる）
+         if (p.BuiltScale <= 1e-9) { p.BuiltScale = 0; p.SubsidyRate = 0; }   // 売り切った時だけ補助金も外れる（旧挙動と同値）
+         p.StateTarget = Math.Min(p.StateTarget, StateUnitsOf(p));
+         return true;
+@@ -2380,20 +2388,36 @@ public sealed class World
+         return operable ?? first;
+     }
+ 
+-    /// <summary>その生産者の国営持分の**棟数**＝BuiltScale ÷ <see cref="Coefficients.FactoryBuildScale"/>（1棟＝建設1回の完成）。</summary>
++    /// <summary>★(185) 段2（能力は建てた分だけ）：1棟の大きさ（Scale の単位）。工場＝<see cref="Coefficients.FactoryBuildScale"/>×その州の工場の設備の平均
++    /// （設備を置いた時＝州を作った時か助走の終わりの、設備を持つ工場の平均の職場の数＝<see cref="Producer.BuildingSlots"/>）＝旧の意味（1棟＝平均的な工場の操業規模1の半分）を
++    /// 職場の数へ写したもの。生産者ごとに固定＝州の設備が育っても棟数の換算がずれない（国営の持分は州の成長とともに薄まる）。
++    /// ⚠建設費（<see cref="Catalog.FactorySpec"/>＝3万〜32万）で買える職場の数（資本家の投資と同じ値段＝<see cref="EconomyStep.CapitalCostRef"/>）にすると1棟が州の工場の全ての職場の
++    ///   数倍になった（(185) の1種の試走＝ロンドンの化学薬品の1棟 約760職場・工場労働者 約590人＝国営が工業の大半を持つ）＝建設費の物差しが私的投資と2桁違う（工業化度の廃止の設計 §7-4 の断層）
++    ///   ＝作者 2026-09-08「国家建設も資本家の投資も同等に建設コストを支払う」は建設の一本化の段（その設計の段2）でそろえる＝この段は旧の大きさのまま（作者への確認）。
++    /// 産地（RGO）＝FactoryBuildScale（旧の操業規模の床の単位のまま）。</summary>
++    public static double BuildingSize(Producer p, Coefficients c)
++        => EconomyStep.IsFactory(p) && p.BuildingSlots > 1e-9 ? p.BuildingSlots : c.FactoryBuildScale;
++
++    /// <summary>その生産者の国営持分の**棟数**＝BuiltScale ÷ 1棟の大きさ（<see cref="BuildingSize"/>・1棟＝建設1回の完成。寿命で減ると端数が丸めで落ちる＝目標を割れば建て替える）。</summary>
+     public static int StateUnits(Producer p, Coefficients c)
+-        => c.FactoryBuildScale > 1e-9
+-            ? (int)Math.Round(p.BuiltScale / c.FactoryBuildScale, MidpointRounding.AwayFromZero)
++    {
++        double bs = BuildingSize(p, c);
++        return bs > 1e-9
++            ? (int)Math.Round(p.BuiltScale / bs, MidpointRounding.AwayFromZero)
+             : (p.BuiltScale > 1e-9 ? 1 : 0);
++    }
+     public int StateUnitsOf(Producer p) => StateUnits(p, Coef);
+ 
+     /// <summary>その生産者の民営持分の**棟数**＝(Scale − BuiltScale) ÷ <see cref="Coefficients.FactoryBuildScale"/>（<see cref="StateUnits"/> の対）。
+     /// ★2026-09-07：生産タブ（カード・一覧表・州別）と <see cref="StepFactoryTargets"/> が同じ1本を読む＝
+     ///   同じ棟数を UI とエンジンが別式で作らない（分子と分母の非対称の再発防止）。</summary>
+     public static int PrivateUnits(Producer p, Coefficients c)
+-        => c.FactoryBuildScale > 1e-9
+-            ? (int)Math.Round(Math.Max(0, p.Scale - p.BuiltScale) / c.FactoryBuildScale, MidpointRounding.AwayFromZero)
++    {
++        double bs = BuildingSize(p, c);   // ★(185) 段2：工場の民営の設備は私的投資が連続に積む＝棟の数は1棟の大きさで丸めた換算
++        return bs > 1e-9
++            ? (int)Math.Round(Math.Max(0, p.Scale - p.BuiltScale) / bs, MidpointRounding.AwayFromZero)
+             : (p.Scale - p.BuiltScale > 1e-9 ? 1 : 0);
++    }
+     public int PrivateUnitsOf(Producer p) => PrivateUnits(p, Coef);
+ 
+     /// <summary>財カードの工場カウンター（作者仕様2026-09-07 (1)）＝「10/12」の中身を**一巡で**数える
+diff --git a/PriceOfBread.Tests/IndustryThemeTests.cs b/PriceOfBread.Tests/IndustryThemeTests.cs
+index 38a61ef..87618c5 100644
+--- a/PriceOfBread.Tests/IndustryThemeTests.cs
++++ b/PriceOfBread.Tests/IndustryThemeTests.cs
+@@ -19,8 +19,7 @@ public class IndustryThemeTests
+         Assert.Equal(0.1, c.InventoryAdjustGain);       // 05-B1点火（2026-07-29）＝期待導入の第一歩。0.2は放任経済テーゼ（過少消費）を消したため0.1へ減量（bisect実測）
+         Assert.Equal(0.25, c.LaborSaveRate);            // 休眠復旧2026-07-09 第(iv)段採用（bisect＝挙動4テスト・較正とも無害）
+         Assert.Equal(0.5, c.UnionWageRiseBoost);        // 第(iii)段有効化（組合の賃金交渉＝賃上げに速く賃下げに抗う）
+-        Assert.Equal(0.005, c.VintageMigrateRate);      // ヴィンテージ資本有効化2026-07-10（キュー5＝承認済み別作業項目(1)。半減期約11.6年の世代交代）
+-        Assert.Equal(0.5, c.VintageObsolescence);       // 同上（座礁＝0.5×techGap・gap2で全損）
++        Assert.Equal(0.5, c.CapitalOutputRatio);        // ★(185) 段2（能力は建てた分だけ）：1職場の設備の値段＝これ×年の産出の価額（米国の製造業の国勢調査 1880 0.45・1890 0.60）。ヴィンテージ資本は撤去
+         Assert.Equal(0.0, c.DomesticMarkupMax);         // B保留（国内clearing直撃）
+         Assert.Equal(0.03, c.HousingNeedPerUrban);      // リアリティ群採用2026-07-18＝家賃(住居財追加済み)。旧0.0番人を新採用値へ
+         Assert.Equal(0.5, c.HousingMigrationFriction);  // B6点火2026-07-19＝鉄筋コンクリート（住居の晩期レシピ）とセット＝過密で流入飽和・鉄筋コンクリが収容力を解放
+@@ -34,7 +33,6 @@ public class IndustryThemeTests
+         c.InventoryAdjustGain = 0.3;                       // メッツラー在庫循環
+         c.LaborSaveRate = 0.3; c.LaborSaveIndHalf = 1.0;  // 技術的失業
+         c.UnionWageRiseBoost = 0.5;                       // 組合賃金
+-        c.VintageMigrateRate = 0.02; c.VintageObsolescence = 0.5;  // ヴィンテージ資本
+         c.DomesticMarkupMax = 0.5;                        // 国内寡占
+         c.HousingMigrationFriction = 0.5;                 // 住宅(財はinertだが摩擦経路は走る・HousingFill=1で無効果)
+         double p0 = sim.World.TotalPopulation;
+@@ -43,9 +41,7 @@ public class IndustryThemeTests
+         Assert.True(Math.Abs(sim.World.TotalPopulation - (p0 + sim.World.PopulationDelta)) < 1e-6 * p0, "テーマH有効化で人口保存が破れた");
+         // 配線確認：機械化度・旧世代資本が立つ（工業化が進む実国で）
+         bool mechWired = sim.World.Regions.Any(r => r.State == RegionState.Active && r.Mechanization > 0);
+-        bool vintageWired = sim.World.Regions.Any(r => r.OldVintageCapital > 0);
+         Assert.True(mechWired, "LaborSaveRate>0でも機械化度が立たない＝EffectiveQtyへの配線不全");
+-        Assert.True(vintageWired, "VintageMigrateRate>0でも旧世代資本が積まれない＝二層化の配線不全");
+     }
+ 
+     [Fact]
+@@ -72,4 +68,162 @@ public class IndustryThemeTests
+         c.LaborSaveRate = 0;
+         Assert.Equal(2.0, EconomyStep.EffectiveQty(s, home, s.Inputs[0], c));   // 対照腕＝恒等
+     }
++
++    // ===== ★(185) 段2（生産を市場から導く・能力は建てた分だけ・設計 §3・§3A・作者 2026-09-28「全て推奨で採択」）の番人 =====
++    private static Simulation Fr185() => new Simulation(NationConfig.France().ToScenario(185), new NullAgent());
++    private static Producer Fac185(Region r, int gid)
++        => r.Producers.First(p => p.GoodId == gid && EconomyStep.IsFactory(p) && Discovery.Gate(r, p) > 0);
++
++    /// <summary>工場の能力＝建てた設備（Scale＝職場の数）×1職場の産出＝工場労働者の人数を読まない（旧＝人数×取り分×生産性）。
++    /// 双子の盤面＝設備を同じに置き、片方だけ工場労働者を倍にする＝能力は1ビットも違わない。</summary>
++    [Fact]
++    public void 段2_工場の能力は建てた設備で決まり工場労働者の人数を読まない()
++    {
++        var a = Fr185(); var b = Fr185();
++        var ra = a.World.Regions[0]; var rb = b.World.Regions[0];
++        var pa = Fac185(ra, Catalog.BreadId); var pb = Fac185(rb, Catalog.BreadId);
++        pa.Scale = 10; pb.Scale = 10;
++        rb.Pops[pb.LaborPopIndex].Size *= 2;   // 工場労働者だけ倍
++        EconomyStep.Run(ra, a.World.Coef, 1.0, a.World.Bank, a.World);
++        EconomyStep.Run(rb, b.World.Coef, 1.0, b.World.Bank, b.World);
++        Assert.True(pa.Capacity > 0, "設備10職場の工場に能力が無い");
++        Assert.Equal(pa.Capacity, pb.Capacity);
++    }
++
++    /// <summary>設備の無い工場は能力0＝「設備なしの生産」は立たない（産出は前月から減るだけ）。</summary>
++    [Fact]
++    public void 段2_設備の無い工場は能力0で産出は減るだけ()
++    {
++        var a = Fr185(); var r = a.World.Regions[0];
++        var p = Fac185(r, Catalog.BreadId);
++        p.Scale = 0; p.Output = 50;
++        EconomyStep.Run(r, a.World.Coef, 1.0, a.World.Bank, a.World);
++        Assert.Equal(0.0, p.Capacity);
++        Assert.True(p.Output < 50, $"設備0の工場の産出が減らない（{p.Output:F2}）");
++    }
++
++    /// <summary>望む伸び（月・職場の数）＝速さ×(見込みの採算−ハードル)×max(産出, 需要)÷1職場の産出×投入の充足（P6＝平滑化した採算＋外挿の期待）。
++    /// 遊んでいる設備（Scale）は読まない・採算がハードルを割れば0・投入が入らなければ0・助走は寿命の分の置き換えだけ。</summary>
++    [Fact]
++    public void 段2_望む伸びは使っている設備と需要に比例し採算と投入の充足で決まる()
++    {
++        var c = new Coefficients();
++        var m = new Market { LastDemand = 40 };
++        var s = new Producer { BuysLabor = true, Scale = 1000, Output = 100, SmoothedMargin = 0.5, LastInputFill = 1.0 };
++        double perSlot = 10, mNow = 0.5, hurdle = 0.1, speed = 0.012;
++        double expect = 0.5 + c.InvestExtrapolationWeight * (mNow - 0.5) - hurdle;
++        double fl = c.TargetStockFloor;   // 種火の床（投入の充足を掛けない）
++        Assert.Equal(speed * expect * ((100 + fl) / perSlot), EconomyStep.InvestSlots(s, m, perSlot, mNow, hurdle, speed, c, false), 12);
++        s.Scale = 10;   // 設備の大きさは読まない
++        Assert.Equal(speed * expect * ((100 + fl) / perSlot), EconomyStep.InvestSlots(s, m, perSlot, mNow, hurdle, speed, c, false), 12);
++        m.LastDemand = 300;   // 需要が産出より大きければ需要を満たす設備
++        Assert.Equal(speed * expect * ((300 + fl) / perSlot), EconomyStep.InvestSlots(s, m, perSlot, mNow, hurdle, speed, c, false), 12);
++        s.LastInputFill = 0.25;   // 投入の充足を掛ける（種火の床には掛けない）
++        Assert.Equal(speed * expect * ((300 * 0.25 + fl) / perSlot), EconomyStep.InvestSlots(s, m, perSlot, mNow, hurdle, speed, c, false), 12);
++        s.LastInputFill = 0;   // 投入が全く入らない工場には種火だけ
++        Assert.Equal(speed * expect * (fl / perSlot), EconomyStep.InvestSlots(s, m, perSlot, mNow, hurdle, speed, c, false), 12);
++        s.LastInputFill = 1; s.SmoothedMargin = 0.05;   // 見込みの採算がハードルを割る
++        Assert.Equal(0.0, EconomyStep.InvestSlots(s, m, perSlot, 0.05, hurdle, speed, c, false));
++        Assert.Equal(0.0, EconomyStep.InvestSlots(s, m, 0, mNow, hurdle, speed, c, false));   // 1職場の産出0（発見の門が0）
++        s.SmoothedMargin = 0.5; s.Output = 0; m.LastDemand = 0;   // 需要も産出も無い新しい財＝種火の床（TargetStockFloor）
++        Assert.Equal(speed * expect * (fl / perSlot), EconomyStep.InvestSlots(s, m, perSlot, mNow, hurdle, speed, c, false), 12);
++        Assert.Equal(c.IndDepreciation * 10 * 1.0, EconomyStep.InvestSlots(s, m, perSlot, mNow, hurdle, speed, c, true), 12);   // 助走＝置き換えだけ
++    }
++
++    /// <summary>私的投資は見込みの採算の高い工場へ積まれ、採算の無い工場には積まれず、投入の入らない工場には種火（TargetStockFloor の分）だけ。設備は寿命（IndDepreciation）で減る。
++    /// 呼び手の盤面（EconomyStep.Run）＝望む伸びが決済で設備に積まれることまで確かめる。</summary>
++    [Fact]
++    public void 段2_私的投資は採算の高い工場へ積まれ採算の無い工場には積まれず投入の入らない工場には種火だけで寿命で減る()
++    {
++        var a = Fr185(); var w = a.World; var r = w.Regions[0];
++        var hi = Fac185(r, Catalog.BreadId); var lo = Fac185(r, Catalog.FurnitureId); var starved = Fac185(r, Catalog.ClothingId);
++        foreach (var p in new[] { hi, lo, starved }) { p.Scale = 10; p.LastInputFill = 1; p.Output = 100; }
++        hi.SmoothedMargin = 1.0; starved.SmoothedMargin = 1.0; lo.SmoothedMargin = -0.5;
++        starved.LastInputFill = 0;
++        r.Markets[lo.GoodId].Price = 1e-6;   // 今の採算も赤字
++        r.Pops[r.InvestorPopIndex].SetSavings(1e9);
++        double d = 1.0 - w.Coef.IndDepreciation;
++        EconomyStep.Run(r, w.Coef, 1.0, w.Bank, w);
++        Assert.Equal(10 * d, lo.Scale, 9);
++        Assert.True(hi.Scale > 10 * d + 1e-6, $"採算の高い工場に設備が積まれない（{hi.Scale:F6}）");
++        Assert.True(starved.Scale >= 10 * d - 1e-12 && starved.Scale - 10 * d < 0.05 * (hi.Scale - 10 * d),
++            $"投入の入らない工場に種火を超える設備が積まれた（{starved.Scale - 10 * d:E3} 対 {hi.Scale - 10 * d:E3}）");
++        Assert.True(r.InvestSpentMonth > 0, "投資家が建設費を立て替えていない");
++    }
++
++    /// <summary>国の池（作者裁定 P5「国全体で1つの池」）：州の投資家が立て替えた建設費を、池への出資（月初の投資枠）の比で負担し直す＝お金は移るだけ。</summary>
++    [Fact]
++    public void 段2_国の池は立て替えた建設費を出資の比で負担し直しお金は移るだけ()
++    {
++        var a = Fr185(); var w = a.World;
++        Assert.True(w.Regions.Count >= 2);
++        var r0 = w.Regions[0]; var r1 = w.Regions[1];
++        foreach (var r in w.Regions) { r.InvestSpentMonth = 0; r.InvestPoolShare = 0; }
++        r0.InvestSpentMonth = 1000; r0.InvestPoolShare = 1; r1.InvestPoolShare = 3;
++        var i0 = r0.Pops[r0.InvestorPopIndex]; var i1 = r1.Pops[r1.InvestorPopIndex];
++        i0.SetSavings(5000); i1.SetSavings(5000);
++        Simulation.SettleInvestPool(w);
++        Assert.Equal(5750, i0.Savings, 6);   // 出資 1/4 だけ負担＝750 を受け取る
++        Assert.Equal(4250, i1.Savings, 6);   // 出資 3/4＝立て替えていない分 750 を払う
++        Assert.Equal(10000, i0.Savings + i1.Savings, 6);
++        Assert.Equal(0.0, r0.InvestSpentMonth);   // 精算済み＝同じ月を2度精算しない
++    }
++
++    /// <summary>呼び手の側：月の決算（Simulation.MonthSettle）の中で池の前段（出資を撮る）と後段（立て替えを精算して0へ戻す）が走る。</summary>
++    [Fact]
++    public void 段2_国の池は月の決算の中で出資を撮り立て替えを精算する()
++    {
++        var a = Fr185(); var w = a.World;
++        a.Run(2);
++        double share = w.Regions.Sum(r => r.InvestPoolShare);
++        Assert.True(share > 0, "池の前段が出資を撮っていない");
++        Assert.True(w.PrivateInvestWantLast > 0, "工場の設備の望む投資が池の分母に届いていない");
++        foreach (var r in w.Regions) Assert.Equal(0.0, r.InvestSpentMonth);   // 後段が精算した
++    }
++
++    /// <summary>国営の棟の完成は設備（Scale）と国営持分（BuiltScale）を1棟の大きさ（World.BuildingSize＝設備を置いた時の州の工場の平均の半分）だけ足す。</summary>
++    [Fact]
++    public void 段2_国営の棟の完成は設備と国営持分を1棟の大きさだけ足す()
++    {
++        var a = Fr185(); var w = a.World; var r = w.Regions[0];
++        var p = Fac185(r, Catalog.BreadId);
++        double bs = World.BuildingSize(p, w.Coef);
++        Assert.True(bs > w.Coef.FactoryBuildScale, $"1棟の大きさが置かれていない（{bs}）");
++        double k0 = p.Scale, b0 = p.BuiltScale;
++        p.ConstructionLeft = 1e-3; p.ConstructionPayPerDay = 1;   // 残り1日の端（採算率×支払い率の1日の進みで完成する）
++        w.StepConstruction(1);
++        Assert.Equal(0.0, p.ConstructionLeft);
++        Assert.Equal(k0 + bs, p.Scale, 9);
++        Assert.Equal(b0 + bs, p.BuiltScale, 9);
++        Assert.Equal(1, World.StateUnits(p, w.Coef));
++    }
++
++    /// <summary>工場は倒産しない（変動費を賄えない間は短期の供給曲線が止め、設備は寿命で減る）。産地（RGO）は旧の倒産のまま。</summary>
++    [Fact]
++    public void 段2_工場は倒産しないが産地は旧の倒産のまま()
++    {
++        var a = Fr185(); var w = a.World; var r = w.Regions[0];
++        var f = Fac185(r, Catalog.FurnitureId);
++        var g = r.Producers.First(p => p.IsRgo && p.GoodId == Catalog.WheatId);
++        foreach (var p in new[] { f, g }) { p.SmoothedMargin = -0.95; p.BuiltScale = 0; r.Markets[p.GoodId].Price = 1e-6; }
++        EconomyStep.Run(r, w.Coef, 1.0, w.Bank, w);
++        Assert.False(f.Bankrupt);
++        Assert.True(g.Bankrupt, "産地の倒産の経路が死んでいる（対照）");
++    }
++
++    /// <summary>助走（WarmupFrozen）の間は工場の設備を労働の取り分（旧の能力＝人数×取り分）で置き直す＝1783年の設備、1棟の大きさも置き直す。</summary>
++    [Fact]
++    public void 段2_助走の間は設備を労働の取り分で置き1棟の大きさも置く()
++    {
++        var a = Fr185(); var w = a.World; var r = w.Regions[0];
++        var facs = r.Producers.Where(EconomyStep.IsFactory).ToList();
++        int lp = facs[0].LaborPopIndex;
++        foreach (var p in facs) p.Scale = 1.0;
++        w.WarmupFrozen = true;
++        EconomyStep.Run(r, w.Coef, 1.0, w.Bank, w);
++        double sum = facs.Where(p => p.LaborPopIndex == lp).Sum(p => p.Scale);
++        Assert.Equal(r.Pops[lp].Size, sum, 6);
++        var on = facs.Where(p => p.Scale > 1e-9).ToList();
++        Assert.Equal(w.Coef.FactoryBuildScale * on.Sum(p => p.Scale) / on.Count, facs[0].BuildingSlots, 9);
++    }
+ }
+diff --git a/PriceOfBread.Tests/StateFactoryTests.cs b/PriceOfBread.Tests/StateFactoryTests.cs
+index f818cbb..b554b62 100644
+--- a/PriceOfBread.Tests/StateFactoryTests.cs
++++ b/PriceOfBread.Tests/StateFactoryTests.cs
+@@ -76,7 +76,7 @@ public class StateFactoryTests
+         var w = sim.World;
+         var p = Steel(w.Regions[0]);
+         // 2棟の国営持分を直に置く（建設の時間を待たずに「複数棟から1棟だけ売る」枝を単離する）
+-        p.BuiltScale = 2 * w.Coef.FactoryBuildScale;
++        p.BuiltScale = 2 * World.BuildingSize(p, w.Coef);   // ★(185) 段2：1棟＝その工場の1棟の大きさ（World.BuildingSize）
+         p.StateTarget = 2;
+         p.LastRevenue = 10_000; p.LastCost = 1_000; p.SmoothedMargin = 0.2;   // 黒字（売却の前提）
+         w.Regions[0].Pops[w.Regions[0].InvestorPopIndex].SetSavings(1e9);        // 資本家は買える
+@@ -153,7 +153,8 @@ public class StateFactoryTests
+         var w = sim.World;
+         var r = w.Regions[0];
+         var p = Steel(r);
+-        p.BuiltScale = w.Coef.FactoryBuildScale;
++        double unit = World.BuildingSize(p, w.Coef);   // ★(185) 段2：1棟の大きさ
++        p.BuiltScale = unit;
+         p.LastRevenue = 10_000; p.LastCost = 1_000; p.SmoothedMargin = 0.2;
+         r.Pops[r.InvestorPopIndex].SetSavings(1e9);
+         r.Pops[r.InvestorPopIndex].Militancy = 0.6;
+@@ -166,7 +167,7 @@ public class StateFactoryTests
+         Assert.False(no.Ok);
+         Assert.Equal("資本家が政府に不満", no.Reason);          // 理由が読める（売れない月を無言にしない）
+         Assert.False(w.SellFactory(0, Catalog.SteelId));
+-        Assert.Equal(w.Coef.FactoryBuildScale, p.BuiltScale);   // 拒否は副作用を残さない
++        Assert.Equal(unit, p.BuiltScale);   // 拒否は副作用を残さない
+     }
+ 
+     [Fact]
+@@ -176,7 +177,7 @@ public class StateFactoryTests
+         var w = sim.World;
+         var r = w.Regions[0];
+         var p = r.Producers.Find(x => x.GoodId == Catalog.CoalId)!;
+-        p.BuiltScale = w.Coef.FactoryBuildScale;
++        p.BuiltScale = World.BuildingSize(p, w.Coef);
+         p.LastRevenue = 10_000; p.LastCost = 1_000; p.SmoothedMargin = 0.2;
+         r.Pops[r.InvestorPopIndex].SetSavings(1e9);
+         Assert.True(w.CanSellFactory(0, Catalog.CoalId).Ok);    // 法がなければ売れる
+@@ -249,6 +250,7 @@ public class StateFactoryTests
+         //   国営持分の赤字は既に国庫が全額負っている（stateFrac 経路）ので、そこへ補助金を重ねるのは同じ支援の二重計上。
+         //   会計は元から民営持分にしか乗っていなかったが、**採算の底上げ**だけが持分を無視して全量に効いていた。
+         // 国営持分を **ScaleMax** に置く＝Scale の上限＝下限なので操業規模がそこへ張り付き、走行中ずっと stateFrac=1 が保たれる
++        // ★(185) 段2：工場の Scale は建てた設備（職場の数）＝上限が無く、私的投資で伸びる＝工場は（設備＋1棟）の2倍を国営持分に置く（4四半期の私的投資で超えない・設備0の工場も種火の投資で民営持分が生まれない）。産地は旧のまま ScaleMax。
+         //（Scale と同値に置くだけだと、黒字の生産者が Scale を伸ばした瞬間に民営持分が生まれて条件が崩れる）。
+         static Simulation Make(ulong seed, double subsidy, bool stateOwned)
+         {
+@@ -256,7 +258,7 @@ public class StateFactoryTests
+             foreach (var r in s.World.Regions)
+                 foreach (var p in r.Producers)
+                 {
+-                    if (stateOwned) { p.BuiltScale = s.World.Coef.ScaleMax; p.StateTarget = World.StateUnits(p, s.World.Coef); }
++                    if (stateOwned) { p.BuiltScale = EconomyStep.IsFactory(p) ? 2 * (p.Scale + World.BuildingSize(p, s.World.Coef)) : s.World.Coef.ScaleMax; p.StateTarget = World.StateUnits(p, s.World.Coef); }
+                     p.SubsidyRate = subsidy;
+                 }
+             s.Run(4);
+@@ -412,7 +414,7 @@ public class StateFactoryTests
+         var sim = Warm(2043);
+         var w = sim.World;
+         var p = Steel(w.Regions[0]);
+-        p.BuiltScale = w.Coef.FactoryBuildScale * 2;          // 国営2棟が既に建っている
++        p.BuiltScale = World.BuildingSize(p, w.Coef) * 2;     // 国営2棟が既に建っている（★(185) 段2：1棟＝World.BuildingSize）
+         p.StateTarget = World.StateUnits(p, w.Coef);
+         w.SetFactoryTarget(Catalog.SteelId, 1);                            // 全国目標を現在より下へ
+         w.StepStateTargets();
+diff --git a/PriceOfBread.Tests/WriterRatchetTests.cs b/PriceOfBread.Tests/WriterRatchetTests.cs
+index 623562d..ec43a6a 100644
+--- a/PriceOfBread.Tests/WriterRatchetTests.cs
++++ b/PriceOfBread.Tests/WriterRatchetTests.cs
+@@ -333,7 +333,7 @@ public class WriterRatchetTests
+     //   覇権の判定 3,215,273→2,889,352（−10.1%＝10% を超えて下がった＝表を下げる・同盟の候補が居る月の軌道＝(124)(128)(131) と同じ型・処理の形は同じ）。ほかの15本は許しの内（+2%／−10%）。
+     //   全長の10種では覇権の判定 193,798,917→202,766,449（+4.6%）・着値の充填 345,866,018→353,020,843（+2.1%）＝推定 233.1→234.4 秒（予算の内・目標より下の余りの中＝払っていない・実装ログ (152)）。
+     [InlineData(CostLedger.PriceGoods, 14149727L)]
+-    [InlineData(CostLedger.PriceDailyRuns, 25283828L)]
++    [InlineData(CostLedger.PriceDailyRuns, 26591736L)]
+     // ★2026-10-01 表の更新（(154) 合流＝線2〔(151)(153)〕の上へ線1〔(150)(152)〕を載せ直した木＝軌道が動いた分の宣言・新しい計数の処理は無い）：
+     //   建設 7,066→7,215（+2.1%）・覇権の判定 1,864,716→2,039,246（+9.4%）＝最初の40四半期の工事と同盟の候補の月の軌道（線ごとの表はそれぞれの木の値）。ほかの15本は許しの内。全長の10種は実装ログ (154)。
+     // ★2026-10-02 表の更新（(155) 軍の労働市場と安全保障の不安＝軌道が動いた分の宣言＋安全保障の不安の新しい組の宣言）：
+@@ -377,16 +377,16 @@ public class WriterRatchetTests
+     //   （−20.7%＝10% を超えて下がった＝表を下げる・同盟の候補が居る月の軌道）。処理の形は同じ。ほかの15本は許しの内（フルスイートで確かめた）。
+     //   全長の10種（b10_20261002_col175.cost）では着値の充填 468,394,059→486,726,433（+3.9%＝汽船の時代の占有が軽くなり交易の容量が増えた）・建設 422,114→338,635・
+     //   覇権の判定 222,334,031→233,160,995＝推定 246.8→248.1 秒（予算の内＝上限 248.5 秒・余り 0.4 秒＝払っていない・実装ログ (173)）。
+-    [InlineData(CostLedger.ConstructionSeen, 7658L)]
++    [InlineData(CostLedger.ConstructionSeen, 1931L)]
+     [InlineData(CostLedger.CreditSpans, 33282L)]
+     [InlineData(CostLedger.ConsumePopGoods, 28595736L)]
+     [InlineData(CostLedger.ProducerMonths, 8440020L)]
+-    [InlineData(CostLedger.ClaimProducers, 2994L)]
++    [InlineData(CostLedger.ClaimProducers, 730L)]
+     [InlineData(CostLedger.MonthlyPops, 706680L)]
+     [InlineData(CostLedger.ClearingRows, 5185642L)]
+     [InlineData(CostLedger.ClearingFills, 42375697L)]
+     [InlineData(CostLedger.DiploPowerMonths, 9954L)]
+-    [InlineData(CostLedger.DiploHegemonScans, 1682840L)]
++    [InlineData(CostLedger.DiploHegemonScans, 3130619L)]
+     [InlineData(CostLedger.QuarterStartPops, 235560L)]
+     [InlineData(CostLedger.QuarterEndPops, 235560L)]
+     [InlineData(CostLedger.SharedNationQuarters, 3698L)]
+@@ -401,6 +401,12 @@ public class WriterRatchetTests
+     //   （予算の内＝上限 248.5 秒・目標より下の余りの中＝払っていない・実装ログ (170)）。
+     // ★2026-10-02 表の更新（(172) 合流＝線D〔(169)(171)〕と線M〔(168)(170)〕を合わせた木＋厭戦の基礎を作者 B11 の「兵士の数÷人口」へ直した〔反証役 vm3#1〕＝軌道が動いた分の宣言・新しい計数の処理は無い〔基礎の計算＝交戦国×月に全ての州の POP を2回（兵士と人口）＝「外交：国×月」の単価の中の小さい分＝(170) の入れた形と同じ桁〕）：
+     //   覇権の判定＝線D だけの木 2,877,181・線M だけの木 2,884,531（どちらも r167 の 1,941,249 から）→合わせた木 2,121,720（それぞれの宣言から −26%＝許しの外へ下がった軌道・処理の形は同じ）。ほかは許しの内（フルスイートで確かめた）。全長の10種の数は実装ログ (172)。
++    // ★2026-10-03 表の更新（(185) 線B 前半＝生産を市場から導く段2〔能力は建てた分だけ・投資は採算の高い所へ・国全体で1つの池〕＝パッチ measurements/m185_20261003_cap.diff の中だけ
++    //   〔コードは入れていない〕・軌道が動いた分の宣言・新しい計数の処理は無い〔池の前段と後段は州×月に1回＝「生産者×月」「POP×月」の単価の中の小さい分・生産者は足していない〕）：
++    //   日次の写像 25,283,828→26,591,736（+5.2%＝許しの外へ増えた）・覇権の判定 1,682,840→3,130,619（+86%＝同盟の候補が居る月の軌道＝(147)(149)(155)(169) と同じ型・処理の形は同じ）・
++    //   建設 7,658→1,931（−74.8%）・請求 2,994→730（−75.6%）＝最初の40四半期の国営の棟の着工と請求の軌道（工場の倒産と休止が無くなり国営の棟の建て替えが減った【推】）。ほかの13本は許しの内。
++    //   ★払った場所＝全長の10種（パッチの木 B4）で清算の着値の充填 53.91→40.12 秒（件数 ×0.744）・生産 −1.80 秒ほか＝推定 248.7→231.0 秒（日次の写像 +0.54 秒・覇権の判定 +0.31 秒を含む）
++    //   ＝予算の内（上限 248.5 秒・目標にも届いた・実装ログ (185) §4）。
+     public void 計算量の見た件数は宣言した表を超えない(int item, long declared)
+     {
+         long n = Cost40.Value[item];

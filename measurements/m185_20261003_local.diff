@@ -1,0 +1,43 @@
+diff -ru a/PriceOfBread.SimCore/EconomyStep.cs b/PriceOfBread.SimCore/EconomyStep.cs
+--- a/PriceOfBread.SimCore/EconomyStep.cs	2026-10-03 11:09:14.399638300 +0900
++++ b/PriceOfBread.SimCore/EconomyStep.cs	2026-10-03 11:09:14.576276500 +0900
+@@ -785,8 +785,7 @@
+                 if (!(bundles > 0)) continue;
+                 invWant[pk] = bundles; invWantSum += bundles;
+             }
+-            double fill = world is not null ? world.PrivateInvestFill
+-                : invWantSum * fullCostPerUnit > Eps ? Math.Min(1.0, budget / (invWantSum * fullCostPerUnit)) : 1.0;
++            double fill = invWantSum * fullCostPerUnit > Eps ? Math.Min(1.0, budget / (invWantSum * fullCostPerUnit)) : 1.0;   // 腕 L：州の投資枠だけ
+             if (!(fill >= 0)) fill = 0; else if (fill > 1) fill = 1;   // 否定形＝NaN は買わない側
+             if (world is not null) world.PrivateInvestWantAcc += invWantSum * fullCostPerUnit;   // 池の前段が来月の充足に読む（今の値段の金額）
+             construction = invWantSum * fill;
+@@ -878,7 +877,7 @@
+                 railCoalGate = Discovery.RailTransport(region.Discovered) ? 1.0 : 0.0;   // 機関車の発見（2値）
+                 maintCostPerUnit += coef.RailCoalRate * railCoalGate * Math.Max(region.Markets[Catalog.CoalId].Price, Eps);
+             }
+-            double maintBudget = Math.Max(0, budget - (world is null ? construction * fullCostPerUnit : 0));   // ★(185) 段2：工場の設備は国の池が負担（後段）＝この州の保守の予算から引かない（池の無い試験は州の投資枠が池）
++            double maintBudget = Math.Max(0, budget - construction * fullCostPerUnit);   // 腕 L   // ★(185) 段2：工場の設備は国の池が負担（後段）＝この州の保守の予算から引かない（池の無い試験は州の投資枠が池）
+             maintenance = coef.InfraMaintRate * region.TotalIndustrialization;   // 保守は立っている資本の総量に比例（座礁設備も維持費を食う＝先行国の足枷。ヴィンテージ2026-07-10）
+             if (maintCostPerUnit > Eps) maintenance = Math.Min(maintenance, maintBudget / maintCostPerUnit);
+             investDemand[coef.CementGoodId] += maintenance;                          // 構造物（建屋・橋梁）の保守
+@@ -900,7 +899,7 @@
+             if (Catalog.GridId < ng)
+             {
+                 double gridP = Math.Max(region.Markets[Catalog.GridId].Price, Eps);
+-                double gridBudget = Math.Max(0, budget - (world is null ? construction * fullCostPerUnit : 0) - maintenance * maintCostPerUnit);
++                double gridBudget = Math.Max(0, budget - construction * fullCostPerUnit - maintenance * maintCostPerUnit);   // 腕 L
+                 double gridWant = coef.GridBuildRate * Math.Max(0, region.LastElecWant - region.GridCapacity) + coef.GridReplaceRate * region.GridCapacity;   // 経18：送電網の置換需要（既定0.002＝旧直書きと同値・中立。GridDecayRate=0.998 の劣化と対＝二重表現。notes参照）
+                 gridBuild = Math.Min(gridWant, gridBudget / gridP);
+                 investDemand[Catalog.GridId] += gridBuild;
+diff -ru a/PriceOfBread.SimCore/Simulation.cs b/PriceOfBread.SimCore/Simulation.cs
+--- a/PriceOfBread.SimCore/Simulation.cs	2026-10-03 11:09:14.478432000 +0900
++++ b/PriceOfBread.SimCore/Simulation.cs	2026-10-03 11:09:14.577277100 +0900
+@@ -2299,7 +2299,7 @@
+                 // （植民地の採取費の対外流出と、その一部を植民地の蓄えへ渡す枝は 2026-09-28 に削除＝旗 TradeColonialGoods=1 で常に0だった）
+             }
+         World.PrivateInvestWantLast = World.PrivateInvestWantAcc;   // ★(185) 段2：来月の池の充足の分母
+-        SettleInvestPool(World);
++        // 腕 L：池の後段を使わない
+         ProbeCheck("月次経済");
+         Transport.Step(World, World.Coef);                               // §5.1拡張 輸送容量（鉄道/船を積む→Tradeで交易量を律速）
+         ProbeCheck("月次輸送");
