@@ -666,6 +666,32 @@ public class DiscoveryScoreTests
         Check([airRow], ta, tl, ts, "空");
     }
 
+    /// <summary>★(195) 陸の新兵器の必要性の脅威の割合＝陸の必要量÷(陸の必要量＋自国の陸軍の大きさ〔ArmyShape.LandPotential＝兵の頭数×質×(1−海軍シェア)〕)＝陸の必要量（相手の陸軍を同じ1本で読む）と同じ物差し
+    /// （(192) 反証役 vn1#1 の推奨で陸の必要量を即応度なしへ移した＝自国の側も移す・推奨で進めた＝作者の承認は未確認）。盤面＝1四半期の世界で機関銃の行の技術力が立つ国。
+    /// ①陸の必要量＝自国の陸軍の大きさ＝脅威の割合 0.5（必要性から強度へ戻した値） ②自国の軍の総合ゲージ・即応度・熟練（症状）を変えても必要性は1ビットも動かない。
+    /// ⚠突然変異「自国の LandPower を読む（旧）」で赤。</summary>
+    [Fact]
+    public void 陸の新兵器の必要性は自国の陸軍の大きさと比べ即応度を読まない()
+    {
+        var sim = Board();
+        int mg = Row("機関銃");
+        World? w = null;
+        foreach (var n in sim.Nations)
+        {
+            var t = Discovery.Evaluate(n.World, null, n.World.Coef, includeKnown: true);
+            if (t[mg].Tech > 0 && n.World.SelfPower is { } sp0 && ArmyShape.LandPotential(sp0) > 0) { w = n.World; break; }
+        }
+        Assert.NotNull(w);
+        var sp = w!.SelfPower!;
+        double half = w.Coef.DiscoveryNeedHalfWeapon;
+        sp.NeedLand = ArmyShape.LandPotential(sp);
+        var a = Discovery.Evaluate(w, null, w.Coef, includeKnown: true);
+        Assert.Equal(0.5, half * a[mg].Need / (Discovery.TermMax - a[mg].Need), 9);   // 必要性→強度（70×s÷(s＋h) の逆）＝脅威の割合
+        sp.Military *= 0.01; w.MilitaryReadiness *= 0.01; sp.ArmySkillMul = 2.0;   // 症状だけを動かす
+        var b = Discovery.Evaluate(w, null, w.Coef, includeKnown: true);
+        Assert.Equal(a[mg].Need, b[mg].Need);
+    }
+
     /// <summary>損耗の記帳（World.DiscoveryLossQ＝月ごとに積む）は判定で四半期の月の平均になり（画面と計器が同じ値を読む＝World.LastDiscoveryView.Loss）、記帳は捨てられる。
     /// 多国の世界でも四半期をまたいで積み残さない（判定の Discovery.Step が捨てる＝共有層と助走の捨てる行はこの番人では見ていない＝(154) の反証役の指摘・今は助走中に外交が止まり記帳が積まれない）。⚠壊し方＝捨てない（次の四半期へ積み残す）・平均にしない（月の和のまま）→ 赤。</summary>
     [Fact]

@@ -402,10 +402,12 @@ public static class Discovery
         //   ★＋交戦中のその分野の損耗（2026-10-01 (153)・設計 §1A-4 (4a) の第2項・作者裁定 2026-09-28 ⑤「陸・海・空で分ける」）＝この四半期の損耗の強さ（<see cref="WorldView.Loss"/>＝
         //   その月に失った割合÷総力戦の月の上限の割合の平均＝0〜1＝脅威の割合と同じ「最大を1とした割合」）。陸＝戦死（敵の空から受けた分を除く）・海＝艦隊摩耗・空＝制空劣勢で増えた戦死。
         //   空の脅威は陸の割合のまま（理想の軍隊の形に空の必要量が無い＝AI の読み・(147) の⑤）＝空の損耗だけが空の分野の量。
+        //   ★(195) 陸の自国の強さは陸軍の大きさ（<see cref="ArmyShape.LandPotential"/>＝兵の頭数×質−艦に乗る兵・即応度なし）＝陸の必要量（相手の陸軍を同じ1本で読む）と同じ物差し
+        //   （旧＝自国の LandPower〔即応度つき〕＝相手の LandPower で読んだ陸の必要量と対だった・(195) で陸の必要量を即応度なしへ移したので自国の側も移す＝分子と分母を同じ規則で）。
         double landPress = 0, seaPress = 0;
         if (w.SelfPower is { } sp)
         {
-            landPress = Share(sp.NeedLand, sp.LandPower);
+            landPress = Share(sp.NeedLand, ArmyShape.LandPotential(sp));
             seaPress = Share(sp.NeedSea, sp.NavalPower);
         }
         // 制度と思想の必要性の量（<see cref="SpreadNeed"/>）＝工場労働者の人数×闘争度・人々の闘争度・植民地の州に住む人。兵士は数えない。

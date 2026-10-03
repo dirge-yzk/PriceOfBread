@@ -1044,6 +1044,86 @@ public class MilitaryTests
         Assert.Equal(sea0, uk.NeedSea);
     }
 
+    /// <summary>★(195) 理想の軍隊の形は相手の陸軍を陸軍の大きさ（<see cref="ArmyShape.LandPotential"/>＝兵の頭数×質×(1−海軍シェア)）で読み、相手の即応度・装備の質の充足・熟練
+    /// （LandPower の症状）を読まない＝陸と海の必要量・内の守り・自国の軍の大きさ（陸海の金の分け方の分母）が同じ物差し（(192) 反証役 vn1#1・推奨で進めた＝作者の承認は未確認）。
+    /// 盤面＝仏・西・英（開幕・外交は止める・海軍シェア0＝艦隊の注意配分0）＝仏西は陸の国境・仏英は海越え。
+    /// ①仏の軍の総合ゲージ（即応度つき）・即応度・熟練を変えても西の陸の必要量と英の海の必要量は1ビットも動かない ②仏の兵の半分が艦に乗ると西の陸の必要量が下がる（陸に立つ兵が減る）。
+    /// ⚠突然変異「相手の LandPower を読む（旧）」で赤（①）。</summary>
+    [Fact]
+    public void 相手の陸軍は即応度を読まず陸軍の大きさで読む()
+    {
+        var sim = Frozen152("フランス", "スペイン", "イギリス");
+        var dip = sim.Diplomacy; var c = sim.Coef;
+        var frw = sim.Nations[0].World;
+        var fr = frw.SelfPower!; var es = sim.Nations[1].World.SelfPower!; var uk = sim.Nations[2].World.SelfPower!;
+        foreach (var p in new[] { fr, es, uk }) p.NavalShare = 0;   // 静的な海軍＝軍×海軍シェア＝0（艦隊の注意配分を0に）
+        Assert.True(ArmyShape.Borders([fr, es], c)[1] > 0 && dip.IsSeaCrossing(fr, uk, c), "前提が崩れた：仏西が陸の国境で接し仏英が海越え、でない");
+        ArmyShape.Compute(dip, c);
+        double esLand0 = es.NeedLand, ukSea0 = uk.NeedSea;
+        Assert.True(esLand0 > 0 && ukSea0 > 0, $"前提が崩れた：西の陸の必要量 {esLand0}・英の海の必要量 {ukSea0}");
+        fr.Military *= 0.01; frw.MilitaryReadiness *= 0.01; fr.ArmySkillMul = 2.0;   // 症状だけを動かす（兵の頭数と質は同じ）
+        ArmyShape.Compute(dip, c);
+        Assert.Equal(esLand0, es.NeedLand);
+        Assert.Equal(ukSea0, uk.NeedSea);
+        fr.NavalShare = 0.5;   // 兵の半分が艦に乗る
+        ArmyShape.Compute(dip, c);
+        Assert.True(es.NeedLand < esLand0 * (1 - 1e-9), $"仏の兵の半分が艦に乗っても西の陸の必要量が下がらない（{esLand0:G17}→{es.NeedLand:G17}）");
+    }
+
+    /// <summary>★(195) 海を越えて来る陸軍は相手の遠征の技術の分だけ（<see cref="Diplomacy.ExpeditionLift"/>＝海越えの植民地化遠征の可否と同じ1本・推奨で進めた＝作者の承認は未確認）。
+    /// 盤面＝仏・西・英（開幕・外交は止める・海軍シェア0）。遠征技術の門を外した（ExpeditionTechLevel＝0＝届く量は投射だけ）盤面と、全ての国の門を床にした（ExpeditionTechLevel を巨大に）盤面を比べる
+    /// ＝英の海の必要量（海を越えて来る仏と西の陸軍）が下がり、西の陸の必要量（仏の陸軍の注意が同じ1つの分母で陸の国境へ寄る）が上がる。陸続きの組の門は1。
+    /// ⚠突然変異「海越えの重みに門を掛けない」で赤。</summary>
+    [Fact]
+    public void 海を越えて来る陸軍は相手の遠征の技術の分だけ()
+    {
+        var sim = Frozen152("フランス", "スペイン", "イギリス");
+        var dip = sim.Diplomacy; var c = sim.Coef;
+        var fr = sim.Nations[0].World.SelfPower!; var es = sim.Nations[1].World.SelfPower!; var uk = sim.Nations[2].World.SelfPower!;
+        foreach (var p in new[] { fr, es, uk }) p.NavalShare = 0;
+        c.ExpeditionTechLevel = 0;   // 門なし（旧と同じ）
+        Assert.Equal(1.0, dip.ExpeditionLift(fr, uk, c));
+        ArmyShape.Compute(dip, c);
+        double ukSea1 = uk.NeedSea, esLand1 = es.NeedLand;
+        Assert.True(ukSea1 > 0 && esLand1 > 0, $"前提が崩れた：英の海の必要量 {ukSea1}・西の陸の必要量 {esLand1}");
+        c.ExpeditionTechLevel = 1e12;   // 全ての国の門が床（技術0の遠征）
+        Assert.Equal(c.ExpeditionTechFloor, dip.ExpeditionLift(fr, uk, c), 12);
+        Assert.Equal(1.0, dip.ExpeditionLift(fr, es, c));   // 陸続きは門の外
+        ArmyShape.Compute(dip, c);
+        Assert.True(uk.NeedSea < ukSea1 * (1 - 1e-9), $"遠征の技術が床でも英の海の必要量が下がらない（{ukSea1:G17}→{uk.NeedSea:G17}）＝海越えの重みに門が掛かっていない");
+        Assert.True(es.NeedLand > esLand1 * (1 + 1e-12), $"海を越えられない仏の陸軍の注意が陸の国境へ寄らない（{esLand1:G17}→{es.NeedLand:G17}）");
+    }
+
+    /// <summary>★(195) 艦隊の注意は相手の越境の交易額（World.TradeValueSmoothed＝交易比重と同じ平滑の量）÷全ての国の平均で向く＝海路の接触（推奨で進めた＝作者の承認は未確認）。
+    /// 盤面＝英・仏・西（開幕・外交は止める）を同じ1つの海盆に置き、英だけが静的な海軍を持つ（海軍シェア1＝陸に立つ兵0＝海越えの陸軍も0＝仏と西の海の必要量は英の艦隊の注意だけ）。
+    /// ①交易額が全て等しい＝全て0（重み1）と1ビットも同じ ②西の交易が0＝西の海の必要量0・仏が増える ③仏の交易が4倍＝仏が増え西が減る。
+    /// ⚠突然変異「重みに交易額を掛けない（旧＝分布だけ）」で赤（②③）。</summary>
+    [Fact]
+    public void 艦隊の注意は相手の越境の交易額で向く()
+    {
+        var sim = Frozen152("イギリス", "フランス", "スペイン");
+        var dip = sim.Diplomacy; var c = sim.Coef;
+        var ws = sim.Nations.ConvertAll(n => n.World);
+        var ps = ws.ConvertAll(w => w.SelfPower!);
+        foreach (var p in ps) { System.Array.Clear(p.BasinPresence); p.BasinPresence[0] = 1.0; p.NavalShare = 0; }
+        ps[0].NavalShare = 1.0;   // 英の兵は全て艦に（静的な海軍＝軍×1・陸に立つ兵0）
+        Assert.True(ps[0].NavalPower > 0 && ArmyShape.LandPotential(ps[0]) == 0, "前提が崩れた：英の艦隊が無いか陸に兵が立つ");
+        (double Fr, double Es) Sea(double tUk, double tFr, double tEs)
+        {
+            ws[0].TradeValueSmoothed = tUk; ws[1].TradeValueSmoothed = tFr; ws[2].TradeValueSmoothed = tEs;
+            ArmyShape.Compute(dip, c);
+            return (ps[1].NeedSea, ps[2].NeedSea);
+        }
+        var none = Sea(0, 0, 0); var eq = Sea(1, 1, 1);
+        Assert.True(eq.Fr > 0 && eq.Es > 0, $"前提が崩れた：英の艦隊の注意が仏西に向かない（{eq.Fr}・{eq.Es}）");
+        Assert.Equal(none.Fr, eq.Fr); Assert.Equal(none.Es, eq.Es);
+        var esZero = Sea(1, 1, 0);
+        Assert.Equal(0.0, esZero.Es);
+        Assert.True(esZero.Fr > eq.Fr, $"西の交易が0でも仏へ向く注意が増えない（{eq.Fr:G17}→{esZero.Fr:G17}）");
+        var fr4 = Sea(1, 4, 1);
+        Assert.True(fr4.Fr > eq.Fr && fr4.Es < eq.Es, $"仏の交易が4倍でも注意が仏へ寄らない（仏 {eq.Fr:G17}→{fr4.Fr:G17}・西 {eq.Es:G17}→{fr4.Es:G17}）");
+    }
+
     /// <summary>★(154) 脅威の緊張（Diplomacy.ThreatTension）は国境の長さを届き方（<see cref="Diplomacy.ThreatReach"/>）へ渡す（「国境を接している国は脅威だが、そうでない国はあまり脅威ではない」の配線）。
     /// 盤面＝仏・西・日を2つ（開幕・他の緊張の源を0）。片方は仏の州を全て山にする（仏西の国境の重みだけが下がる）＝仏西の組に立つ脅威の緊張が小さくなる。
     /// ⚠突然変異「国境に0を渡す」で赤（2つの盤面で同じ緊張が立つ）。</summary>
