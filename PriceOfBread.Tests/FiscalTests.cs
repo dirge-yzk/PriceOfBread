@@ -24,7 +24,7 @@ public class FiscalTests
     // ★主張の書き直し（作者裁定B・2026-09-12「今までの『上限/下限を削る』挙動は全て廃止する」＝2026-09-20 の段の点火で実装）：
     //   旧主張「低税では緊縮が逆進課税を**上げて**連合を養う」＝緊縮が人頭税・専売の実効値を Max で持ち上げる挙動（選んだ値を黙って書き換える＝P8違反）。
     //   新主張＝緊縮は**選ばせない**（Government.LawPrereq の「緊縮の下限」＝その段より下は選べない）だけで、上げる力は持たない。
-    //   赤字は増税でなく国家の支払い率 r の低下（全ての行に同じ r・2026-09-28）→借入→デフォルト（DefaultTriggerQuarters）で閉じる。
+    //   赤字は増税でなく国家の支払い率 r の低下（全ての行に同じ r・2026-09-28）→借入→デフォルト（払えなかった大きさの累計が DefaultArrearsMonths に届く・(204)）で閉じる。
     [Fact]
     public void 低税では緊縮が発火し逆進課税の下限の門になる()   // §6.2（赤字→借入→債務→緊縮：債権者が奪うのは法を選ぶ自由であって値ではない）
     {
@@ -294,7 +294,7 @@ public class FiscalTests
         Assert.True(H > 0, "前提が崩れた：持ち手がいない");
         double treasury0 = w.Treasury, base0 = w.BaseMoney;
         w.Coef.MaxInterestShareOfRevenue = 0;                 // 借入上限に張り付き（利払い÷歳入≧限界＝借りられない）
-        w.InsolvencyQuarters = w.Coef.DefaultTriggerQuarters; // 返せない期間が尽きた＝この月にデフォルト
+        w.InsolvencyQuarters = w.Coef.DefaultArrearsMonths;   // 払えなかった大きさの累計が線に届いている＝この月にデフォルト（(204)）
         FiscalMonth(w, Short);                                // 払えない月（r＜1）＝借りられずに払えない月が続いた
         Assert.True(w.HadSovereignDefault, "前提が崩れた：デフォルトが起きていない");
         Assert.Equal(0.0, w.GovDebt);
@@ -952,10 +952,70 @@ public class FiscalTests
         // ③ 不履行の計数（借入の上限の上＝限界0・払えない月）
         var warm3 = Board(true); warm3.Coef.MaxInterestShareOfRevenue = 0;
         warm3.FiscalFundingRatio = Short; Fiscal.Step(warm3, warm3.Coef, -Ample);
-        Assert.Equal(0, warm3.InsolvencyQuarters);
+        Assert.Equal(0.0, warm3.InsolvencyQuarters);
         var ctl3 = Board(false); ctl3.Coef.MaxInterestShareOfRevenue = 0;
         ctl3.FiscalFundingRatio = Short; Fiscal.Step(ctl3, ctl3.Coef, -Ample);
-        Assert.Equal(1, ctl3.InsolvencyQuarters);
+        Assert.Equal(1.0 - Short, ctl3.InsolvencyQuarters);   // ★(204) 計数は払えなかった大きさ（r＝0.5 の月＝0.5）
+    }
+
+    /// <summary>★(204) 不履行は**払えなかった大きさの累計**で決まる（2026-10-04・README §1-8・推奨で進めた＝作者の承認は未確認）。
+    /// 旧＝借入の門が閉じたまま r＜1 の月を大きさに関係なく1つと数え8か月で国債を全て否認＝兌換停止の後に0 へ漸近する兌換の残り・銀の改鋳の窓の残り・
+    /// 浮動小数の端（r＝1−1e-10）が毎月1か月に数えられ、ほぼ全てを払えていた国が前触れなく不履行になった（(203) の10種で148件中67件）。
+    /// 盤面＝静かな英に国債（年名目GDP の1倍・国内の持ち手）を置き、借入の門を閉じて（限界0）同じ r の月を Fiscal.Step で踏む（不履行そのもの＝国債0・回数を読む）。
+    /// ①r＝0.5 の月は2つで不履行（累計 0.5＋0.5＝月の請求1か月分）・1つ目では不履行にならない　②r＝0.99 の月を60続けても不履行にならない（累計 0.6）
+    /// ③r＝1−1e-10 の月を120続けても不履行にならない　④払えた月（r＝1）で累計は0 に戻る＝0.5 の月・1 の月・0.5 の月では不履行にならない
+    /// ⑤門が開いた月（利払い÷歳入が限界の下）も0 に戻る。
+    /// 突然変異（scratchpad/m204/mut204.py）：重みを1 へ（大きさを見ない＝旧の ++）→①が赤／線を旧の8 へ→①が赤／払えた月に0 へ戻さない→④が赤／門が開いた月に0 へ戻さない→⑤が赤・M0 緑。</summary>
+    [Fact]
+    public void 不履行は払えなかった大きさの累計が月の請求1か月分に届くと起きる()
+    {
+        static World Board()
+        {
+            var w = QuietBritain();
+            w.GovDebt = 1.0 * w.NominalGdp * Calendar.MonthsPerYear; w.ForeignDebt = 0;
+            Fiscal.SeedBondHoldings(w);
+            w.WarmupFrozen = false;
+            w.Coef.MaxInterestShareOfRevenue = 0;   // 借入の門が閉じている（利払い÷歳入≧限界）
+            w.Coef.BondRepayFrac = 0;
+            return w;
+        }
+        static void Month(World w, double r) { w.FiscalFundingRatio = r; Fiscal.Step(w, w.Coef, r < 1 ? -Ample : 0); }
+        Assert.Equal(1.0, new Coefficients().DefaultArrearsMonths);
+        // ① r＝0.5 の月が2つ
+        var a = Board(); double d0 = a.GovDebt;
+        Assert.True(d0 > 0 && HeldOf(a) > 0, "前提が崩れた：国債と持ち手がいない");
+        Month(a, 0.5);
+        Assert.False(a.HadSovereignDefault, "r＝0.5 の月1つ（累計 0.5）で不履行になった");
+        Assert.Equal(0.5, a.InsolvencyQuarters);
+        Month(a, 0.5);
+        Assert.True(a.HadSovereignDefault, "r＝0.5 の月2つ（累計 1.0＝月の請求1か月分）で不履行にならない");
+        Assert.Equal(1, a.SovereignDefaultCount);
+        Assert.Equal(0.0, a.GovDebt);
+        // ② r＝0.99 の月を60
+        var b = Board();
+        for (int m = 0; m < 60; m++) Month(b, 0.99);
+        Assert.False(b.HadSovereignDefault, "ほぼ払えている月（r＝0.99）の60か月で不履行になった＝大きさを見ていない");
+        Assert.InRange(b.InsolvencyQuarters, 0.59, 0.61);
+        Assert.True(b.GovDebt >= d0 * 0.99, "前提が崩れた：国債が消えた");
+        // ③ 浮動小数の端
+        var c = Board();
+        for (int m = 0; m < 120; m++) Month(c, 1.0 - 1e-10);
+        Assert.False(c.HadSovereignDefault, "r＝1−1e-10 の月の120か月で不履行になった");
+        // ④ 払えた月で0
+        var e = Board();
+        Month(e, 0.5); Month(e, 1.0);
+        Assert.Equal(0.0, e.InsolvencyQuarters);
+        Month(e, 0.5);
+        Assert.False(e.HadSovereignDefault, "払えた月を挟んだのに累計が残った（0.5・1・0.5 で不履行）");
+        // ⑤ 門が開いた月で0
+        var g = Board();
+        Month(g, 0.5);
+        g.Coef.MaxInterestShareOfRevenue = 1e9; g.LastInterest = 0; g.LastRevenue = g.NominalGdp;   // 利払い÷歳入が限界の下＝借りられる
+        Month(g, 0.5);
+        Assert.Equal(0.0, g.InsolvencyQuarters);
+        g.Coef.MaxInterestShareOfRevenue = 0;
+        Month(g, 0.5);
+        Assert.False(g.HadSovereignDefault, "門が開いた月を挟んだのに累計が残った");
     }
 
     /// <summary>★外資の貸し手は**低金利の国ほど深い**（2026-09-29・向きの是正）：外資のプール＝開放度×ForeignBondCapacity×月次名目GDP×（基礎金利÷国債の金利・上限3）。

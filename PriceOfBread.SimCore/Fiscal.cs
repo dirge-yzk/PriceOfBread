@@ -431,15 +431,21 @@ public static class Fiscal
         // === ソブリン・デフォルト：借入上限に張り付き返済できない＝信用が尽き支払不能→**債務不履行（致命的）** ===
         // 借入の逃げ道（革命による債務帳消し）が無くなった分、過剰債務は「破滅的なデフォルト」で決着する＝借りすぎた覇権/軍国が崩れて上位が入れ替わる。
         // 財3（cadence）：BorrowCooldown（減算）・InsolvencyQuarters（加算）は**月**で進むカウンタ（Fiscal.Step は月次実行）。
-        //   ⚠名前は「Quarters」だが単位は月＝DefaultTriggerQuarters=8 は8か月の支払不能・DefaultCooldownQuarters=24 は2年の借入禁止。
+        //   ⚠名前は「Quarters」だが単位は月＝InsolvencyQuarters は払えなかった請求の割合の月ごとの累計（月の請求の何か月分・(204)）・DefaultCooldownQuarters=24 は2年の借入禁止。
         //   ★2026-09-26（dorm-29）：四半期の締め月だけ進める休眠の器 FiscalQuarterlyGating（既定0＝毎月）を削除し、単位の書き方を月へ直した（挙動は1ビットも変わらない）。
         if (w.BorrowCooldown > 0) w.BorrowCooldown--;
         // ★張り付き＝今月の借入の門が閉じていた（直近の利払い≧限界×直近の歳入＝月初の Borrow と同じ1本＝上の underLimit の外）のに、払えない（r＜1）月（2026-09-28）。
         //   旧＝スタックが上限20に張り付いた月（r は見ない）。旧のスタックは r＜1 の月の借入でだけ積もり r＝1 の月の減債で離れた＝張り付きは「払えずに借り尽くした」だった。
         //   利払い÷歳入は借りなくても歳入の落ち込みや金利の上昇で限界を越える＝r＝1 で全ての請求を払えている国（国庫の蓄え）は数えない＝払えている国を不履行にしない。
         //   助走（World.WarmupFrozen）は数えない＝時間が経たない月に不履行へ届かない（国債の残高を動かさない＝減債・借入と同じ門）。
-        if (payRate < 1 && w.GovDebt > 1e-9 && !underLimit && !w.WarmupFrozen) w.InsolvencyQuarters++; else w.InsolvencyQuarters = 0;
-        if (w.InsolvencyQuarters >= c.DefaultTriggerQuarters)
+        // ★(204) 2026-10-04＝**払えなかった大きさで数える**（README §1-8「閾値で0か1に反転する判断より入力の大きさに応じた判断」・推奨で進めた＝作者の承認は未確認）。
+        //   1か月の重み＝払えなかった請求の割合（1−r）＝累計は「月の請求の何か月分を払えなかったか」＝Coefficients.DefaultArrearsMonths（1.0）に届いたら不履行。
+        //   旧＝r＜1 の月を大きさに関係なく1つと数え8か月で不履行（AI の実装＝2026-09-28 (93) でスタックの張り付きを置き換えた形・作者の裁定は Q3「利子の未払いは元本へ繰り入れ＋既存の不履行の計数」）。
+        //   兌換停止の後の兌換は四半期 ConvertibilityDropSpeed で0 へ漸近するだけで0 にならない＝切り下げの余地＝払えない額×(1−兌換) の残り（払えない額×兌換）・
+        //   銀の改鋳の窓の残り（×(1−正貨比率)）・浮動小数の端（r＝1−1e-10）が毎月1か月に数えられ、ほぼ全てを払えていた国が8か月で国債を全て否認した
+        //   （(203) の10種で148件中67件・英5件中4件・計器 scratchpad/m204/inj_d204）。重みは入力に比例＝天井も床も足していない（思想⑧）。戻りは旧と同じ（払えた月・門が開いた月に0）。
+        if (payRate < 1 && w.GovDebt > 1e-9 && !underLimit && !w.WarmupFrozen) w.InsolvencyQuarters += 1.0 - payRate; else w.InsolvencyQuarters = 0;
+        if (w.InsolvencyQuarters >= c.DefaultArrearsMonths)
         {
             // 債務消滅（請求権＝保存無影響）。致命的な代償＝兌換崩壊・**信用凍結（貸付消滅→工場が資本を得られず投資/工業化が崩落＝恐慌）**・正統性崩壊（革命リスク）・大衆の暴動・当面 借入不能。
             RepudiateDebt(w, c);   // 債務・保有・兌換・借入の停止＝急進革命の否認と同じ中身（1か所）。以下はデフォルトだけの代償
