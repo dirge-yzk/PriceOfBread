@@ -1,0 +1,23 @@
+--- a/PriceOfBread.SimCore/Government.cs	2026-10-04 13:46:41.053543600 +0900
++++ b/PriceOfBread.SimCore/Government.cs	2026-10-04 13:46:41.855296000 +0900
+@@ -403,7 +403,7 @@
+     /// <summary>★戦時段（軍事費の段4＝戦時経済）の解禁の述語の1本（2026-10-04 (198)・削減＝旧は同じ式 <c>AtWarNow &amp;&amp; Mobilized</c> を5か所に書いていた）
+     /// ＝作者裁定 R2（2026-09-12）「戦時経済は総動員とセットで、戦後は下の値に戻る」＝交戦中かつ総動員中。読み手＝<see cref="MilitaryTotalTarget"/>（梯子の上限）・
+     /// <see cref="Step"/>（解禁の外の施行の失効）・<see cref="LawPrereq"/>（段4 の門）・<see cref="Military.WarStageShare"/>（戦時段の器＝借入）・AI の戦時段の選択（SelfPlay）。</summary>
+-    internal static bool WarStageOpen(World w) => w.AtWarNow && w.Mobilized;
++    internal static bool WarStageOpen(World w) => w.AtWarNow;   // [腕 S＝(203) R2 の確かめ] 交戦中なら解禁（総動員から切り離す）
+ 
+     /// <summary>★軍事費の合計目標（作者裁定2026-09-12 R2）＝**施行（<see cref="Step"/>）・戦線の数え上げ（<see cref="CountOpenFronts"/>）・
+     /// 解隊の脅威（<see cref="PoliticalQuantities.MilitaryPush"/>）が読む唯一の式**。
+--- a/PriceOfBread.SimCore/SelfPlay.cs	2026-10-04 13:46:41.379090800 +0900
++++ b/PriceOfBread.SimCore/SelfPlay.cs	2026-10-04 13:46:41.855296000 +0900
+@@ -1326,7 +1326,8 @@
+         //   （GameViewModel.Law の `v / 段数`）と同じ書き込み口・同じ写像に v=最上段を入れる＝新しい数は置かない。総動員は段を解禁するだけで押し上げない
+         //   （Government.MilitaryTotalTarget）＝AIが自分で選ばなければ戦時経済に届かない。1段ずつの登坂と「総動員が前提」の門は GateAllLawTargets が
+         //   法律タブと同じ GateInfo で掛ける＝IsPlayer は読まない。講和の四半期は DecideQuarter の総動員分岐（Apply の前）が先に復員させる＝この行は不発で教義の値へ戻る。
+-        if (Government.WarStageOpen(w))
++        if (Government.WarStageOpen(w) && w.SelfPower is { } wsSelf && w.Diplomacy is { } wsDip
++            && (wsDip.WarScale(wsSelf, w.Coef, out double wsLosing) >= 1.0 / MobilizeOutmatchRatio || wsLosing > 0))   // [腕 S] 総動員の下げる線より上の戦争だけ
+             p.MilitarySpendingTarget = Government.MilitaryLawStages / (double)Government.MilitaryLawStages;
+ 
+         // ★不満の社会保障圧力（2026-08-04・作者指示）：どのスタンスが勝っていても、不満が高いほど社会保障の目標に

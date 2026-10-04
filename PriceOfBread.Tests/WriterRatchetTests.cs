@@ -383,11 +383,15 @@ public class WriterRatchetTests
     //   新しい計数「発見：平滑化した値段の歩（国×四半期）」＝数えていなかった Discovery.AdvancePrice（単価 19.63 µs）＝2,503（40四半期）。
     //   覇権の判定 1,682,840→1,801,994（+7.1%＝最初の40四半期の同盟の候補が居る月の軌道・処理の形は同じ）。ほかは許しの内（フルスイートで確かめた）。
     //   全長の10種（b10_20261003_cap186.cost）の推定は実装ログ (186)。
-    [InlineData(CostLedger.ConstructionSeen, 7000L)]
+    // ★2026-10-04 表の更新（(203) 線F＝潤沢線を「戦費予備−借りられる額」へ〔UtilityAgent.OpulenceLineOf〕＝軌道が動いた分の宣言・新しい計数の処理は無い
+    //   〔潤沢線の式に借入の余地の掛け算と引き算を足しただけ＝国×月の数回の算術〕）：建設 7,000→7,518（+7.4%）・請求 2,626→2,719（+3.5%）
+    //   ＝潤沢線が下がり、国庫の厚い国（普・日・墺・清）の支出反射（SpendableRevenue＝歳入＋0.6×線の上の国庫÷12）が最初の40四半期から乗る＝行政と国家の建設の予算が増えた軌道（処理の形は同じ）。
+    //   ほかの17本は許しの内（+2%／−10%・フルスイートで確かめた）。全長の10種（計器なし `b10_20261004_fsc203`）の推定 241.2→242.2 秒（上限 248.5 秒の内・払っていない・実装ログ (203)）。
+    [InlineData(CostLedger.ConstructionSeen, 7518L)]
     [InlineData(CostLedger.CreditSpans, 33282L)]
     [InlineData(CostLedger.ConsumePopGoods, 28595736L)]
     [InlineData(CostLedger.ProducerMonths, 6495176L)]
-    [InlineData(CostLedger.ClaimProducers, 2626L)]
+    [InlineData(CostLedger.ClaimProducers, 2719L)]
     [InlineData(CostLedger.MonthlyPops, 706680L)]
     [InlineData(CostLedger.ClearingRows, 5185642L)]
     [InlineData(CostLedger.ClearingFills, 42375697L)]

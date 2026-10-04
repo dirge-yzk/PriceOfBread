@@ -1058,7 +1058,7 @@ public sealed class World
     public double LastTariffRevenue { get; internal set; } // 診断：直近四半期の関税収入（国庫へ実収）
 
     /// <summary>支出反射（露普歳入是正・2026-08-08）＝月次予算の基数。OpulenceSpendRate>0 のとき、潤沢線
-    /// （RelieveOpulence と同一＝FiscalBufferOf×8四半期）を超える国庫の一部を予算基数へ翻訳する＝減税反射の対。
+    /// （RelieveOpulence と同一＝戦費予備〔FiscalBufferOf×8＝月の義務の約40か月分〕から借りられる分を引いた残り＝(203)）を超える国庫の一部を予算基数へ翻訳する＝減税反射の対。
     /// 旧＝全支出がフロー歳入比例で**国庫ストックを誰も使えず**、初期国庫の大きい国（普190k・墺・清）が
     /// 床0.25の減税に開幕から永久ロックされていた（普の歳入=GDP比1.0-1.4%の根）。
     /// ⚠既定0＝LastRevenue をそのまま返す（浮動小数点演算を足さない厳密恒等）。金の経路は既存の保存チャネルのみ。</summary>

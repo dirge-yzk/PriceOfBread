@@ -403,9 +403,39 @@ public sealed class UtilityAgent : INationAgent
     //   ＝清の「軍の請求書を見ない潤沢判定→減税」の嘘だけを閉じ、austerity側は不変。
 
     /// <summary>潤沢線＝「これを超える国庫は取り過ぎ」の物差し（RelieveOpulence と SpendableRevenue が共有＝減税反射と支出反射の対）。
-    /// 兵士給与（LastSoldierPay＝国庫minで切る前の真の請求書）を FiscalBufferSoldierPayWeight で算入＝大軍国は潤沢と誤判定されない。</summary>
+    /// 兵士給与（LastSoldierPay＝国庫minで切る前の真の請求書）を FiscalBufferSoldierPayWeight で算入＝大軍国は潤沢と誤判定されない。
+    /// ★(203) 戦費予備は**借りられない分だけ**（00一覧 §0-A の 0g・推奨で進めた＝作者の承認は未確認）：
+    ///   戦費予備＝(財政バッファ＋兵士給与の分)×<see cref="OpulenceBufferQuarters"/>（旧の潤沢線そのもの＝月の義務の約40か月分）から、
+    ///   同じ月数のうちに借りられる額（<see cref="BorrowableForChest"/>）を引く。下は財政バッファ（運転の資金＝月の義務の5か月分）。
+    ///   ＝値段（国債の金利）と費用（利払いが歳入を食う限界＝借入の門と同じ1本）で予備の大きさが決まる＝信用の厚い国（英）は蓄えず借りて戦い、
+    ///   借りられない国（冷却中・利払いが限界の近く・金利の高い国）は旧のとおり戦費を蓄える。
+    ///   旧＝借入の余地を読まない＝全ての国が信用の無い国の戦費予備を持った＝英の国庫 1850-1950 年GDP の 0.33〜0.41（月の歳入の 40〜48 か月・潤沢線の 1.15〜1.29倍に張り付き）
+    ///   ＝戦争は国庫の蓄えで払われ、借りない（英の 1824 年以後の借入 0・国債÷年GDP 1910-1950 は史実の 1/25〜1/100）（実装ログ (203)）。
+    ///   史実＝英の国庫の残高は歳入の数週間分【推】・黒字は減債へ（1829 年の減債基金法＝実際の剰余だけを国債の償還へ）・戦費は借入（クリミア・ボーア・第一次大戦）。</summary>
     public static double OpulenceLineOf(World w)
-        => (FiscalBufferOf(w) + w.Coef.FiscalBufferSoldierPayWeight * w.Coef.FiscalStressBufferMonths * w.LastSoldierPay) * OpulenceBufferQuarters;
+    {
+        double fb = FiscalBufferOf(w);
+        double chest = (fb + w.Coef.FiscalBufferSoldierPayWeight * w.Coef.FiscalStressBufferMonths * w.LastSoldierPay) * OpulenceBufferQuarters;
+        double line = chest - BorrowableForChest(w);
+        return line >= fb ? line : fb;   // 否定形＝NaN は財政バッファ（運転の資金）
+    }
+
+    /// <summary>★(203) 戦費予備が賄う月数（<see cref="Coefficients.FiscalStressBufferMonths"/>×<see cref="OpulenceBufferQuarters"/>＝戦費予備と同じ月数）のうちに借りられる額
+    /// ＝min(元本の余地, 1件の額×月数)。元本の余地＝利払いの余地（<see cref="Coefficients.MaxInterestShareOfRevenue"/>×直近の歳入−直近の利払い＝<see cref="Fiscal.BorrowGateOpen"/> と同じ1本）÷国債の金利（年率）。
+    /// 1件の額＝<see cref="Fiscal.BorrowTicket"/>（月に借りられる額の上限）。借入の冷却中と開始前の助走は0（借りられない＝戦費予備のまま）。
+    /// 新しい数・新しい状態は無い（全て借入の既存の1本から）。否定形＝NaN の余地は0（借りられない側）。金利が0以下なら元本の余地は無限（1件の額×月数で決まる）。</summary>
+    internal static double BorrowableForChest(World w)
+    {
+        if (w.BorrowCooldown > 0 || w.WarmupFrozen) return 0;
+        var c = w.Coef;
+        double roomI = c.MaxInterestShareOfRevenue * w.LastRevenue - w.LastInterest;   // 月の利払いの余地
+        if (!(roomI > 0)) return 0;
+        double rate = w.GovBondRate;
+        double principal = rate > 1e-9 ? roomI * Calendar.MonthsPerYear / rate : double.PositiveInfinity;
+        double pace = Fiscal.BorrowTicket(w.NominalGdp, c) * c.FiscalStressBufferMonths * OpulenceBufferQuarters;
+        double b = principal < pace ? principal : pace;
+        return b > 0 ? b : 0;
+    }
 
     /// <summary>財政逼迫度∈[0,1]＝1−国家の支払い率 r（作者裁定 R4・2026-09-28 支払いの一元化 段2-1）＝全ての国家の支払いの請求のうち払えない割合（0=十分・1=1銭も払えない）。
     /// 旧＝国庫が財政バッファ（月次義務の何か月分か）を下回る度合い＝r と別の物差しで、請求の一部（維持費・利払い・行政・軍装備）しか見なかった。
@@ -891,7 +921,7 @@ public sealed class UtilityAgent : INationAgent
         //   ⚠新しい床（「段1未満へは落とさない」）は作らない＝それは新しい天井の裏返し（思想⑧）。
         //   ⚠退蔵デフレの是正（2026-08-04 のこの関数の目的）は所得税・人頭税・土地税・累進・関税の5本が従来どおり担う＝instrument は失わない。
     }
-    internal const double OpulenceBufferQuarters = 8.0;   // 月次義務の8四半期分＝2年分の戦費予備を超えたら「取り過ぎ」
+    internal const double OpulenceBufferQuarters = 8.0;   // 財政バッファ（月の義務の FiscalStressBufferMonths＝5か月分）の8倍＝月の義務の約40か月分＝戦費予備（旧の注記「8四半期分＝2年分」は単位の誤り＝(203)）。(203) から借りられる分を引いた残りが潤沢線
     private const double OpulenceTaxFloor = 0.25;        // 減税の床（無税国家にはしない＝行政・軍の最低限は回る）
 
     /// <summary>★鋼市場診断#5（2026-08-16・<see cref="Coefficients.AiProtectiveTariff"/>>0 のみ）：**保護関税の反射**＝防衛側の第二幕。

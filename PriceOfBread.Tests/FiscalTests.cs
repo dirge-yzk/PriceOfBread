@@ -1563,4 +1563,67 @@ public class FiscalTests
         Assert.True(Math.Abs(shortM.clergyEarned - shortM.tithe) <= 1e-9, "聖職の所得（Earned）が受け取った十分の一税と一致しない");
     }
 
+    /// <summary>★(203) 潤沢線（戦費予備）は**借りられない分だけ**（00一覧 §0-A の 0g・推奨で進めた＝作者の承認は未確認）。
+    /// 潤沢線＝max(財政バッファ, 戦費予備−借りられる額)・戦費予備＝(財政バッファ＋兵士給与の分)×8（旧の潤沢線）・
+    /// 借りられる額＝min(利払いの余地÷国債の金利, 1件の額×戦費予備の月数)・利払いの余地＝限界×歳入−利払い（借入の門と同じ1本）・冷却中と助走は0。
+    /// 盤面＝静かな英に直近の歳入・利払い・行政と軍の請求・兵士給与・金利を置き、潤沢線そのもの（と呼び手の SpendableRevenue＝支出反射）を読む。
+    /// ①元本の余地が戦費予備より小さい盤面＝戦費予備−元本の余地 ②金利が倍＝元本の余地が半分＝潤沢線が上がる（値段の向き）
+    /// ③利払いが限界＝余地0＝戦費予備のまま ④冷却中・助走＝戦費予備のまま ⑤余地が大きい＝財政バッファで止まる ⑥金利0＝1件の額×月数で決まる
+    /// ⑦歳入が NaN＝借りられない側＝戦費予備 ⑧呼び手：同じ国庫で、信用のある国は支出反射が乗り、冷却中の国は乗らない。
+    /// 突然変異：引き算を外す→①②⑤⑥⑧が赤／下を外す→⑤が赤／冷却を読まない→④⑧が赤／金利を読まない→②が赤／1件の額を読まない→⑥が赤。</summary>
+    [Fact]
+    public void 潤沢線は戦費予備から借りられる分を引いた残りで下は財政バッファ()
+    {
+        static World Board(double interestShare, double rate)
+        {
+            var w = QuietBritain();
+            double r = 0.1 * w.NominalGdp;   // 直近の月の歳入＝月の名目GDP の1割
+            w.LastRevenue = r; w.LastInterest = interestShare * r; w.LastAdminClaim = 0.3 * r; w.LastMilitaryClaim = 0.3 * r; w.LastSoldierPay = 0.2 * r;
+            w.GovBondRate = rate; w.BorrowCooldown = 0; w.WarmupFrozen = false;
+            return w;
+        }
+        static double Fb(World w) => Math.Max(1.0, w.Coef.FiscalStressBufferMonths * (w.LastInterest + w.LastAdminClaim + w.LastMilitaryClaim));
+        static double Chest(World w) => (Fb(w) + w.Coef.FiscalBufferSoldierPayWeight * w.Coef.FiscalStressBufferMonths * w.LastSoldierPay) * UtilityAgent.OpulenceBufferQuarters;
+        static double Months(World w) => w.Coef.FiscalStressBufferMonths * UtilityAgent.OpulenceBufferQuarters;
+        static void Near(double want, double got, string what) => Assert.True(Math.Abs(want - got) <= 1e-9 * Math.Max(1.0, Math.Abs(want)), $"{what}：期待 {want:R}・実際 {got:R}");
+
+        // ① 利払い＝歳入の5割（余地＝0.05×歳入）・金利4%＝元本の余地 15か月分の歳入＜1件の額×40か月（40か月分の歳入）＝戦費予備−元本の余地
+        var a = Board(0.5, 0.04);
+        double principalA = (a.Coef.MaxInterestShareOfRevenue * a.LastRevenue - a.LastInterest) * Calendar.MonthsPerYear / a.GovBondRate;
+        Assert.True(principalA < Fiscal.BorrowTicket(a.NominalGdp, a.Coef) * Months(a), "前提が崩れた：元本の余地が1件の額×月数より大きい");
+        Assert.True(Chest(a) - principalA > Fb(a), "前提が崩れた：戦費予備−元本の余地が財政バッファの下");
+        Near(Chest(a) - principalA, UtilityAgent.OpulenceLineOf(a), "① 戦費予備−元本の余地");
+        // ② 金利が倍＝元本の余地が半分＝潤沢線は元本の余地の半分だけ上がる
+        var a8 = Board(0.5, 0.08);
+        Near(Chest(a8) - principalA / 2, UtilityAgent.OpulenceLineOf(a8), "② 金利8%");
+        Assert.True(UtilityAgent.OpulenceLineOf(a8) > UtilityAgent.OpulenceLineOf(a), "② 金利が高いのに潤沢線（蓄える戦費）が上がらない");
+        // ③ 利払いが限界（歳入の MaxInterestShareOfRevenue）以上＝余地0＝戦費予備のまま
+        var cap = Board(a.Coef.MaxInterestShareOfRevenue, 0.04);
+        Near(Chest(cap), UtilityAgent.OpulenceLineOf(cap), "③ 利払いが限界");
+        // ④ 冷却中・助走＝借りられない＝戦費予備のまま
+        var cool = Board(0.5, 0.04); cool.BorrowCooldown = 12;
+        Near(Chest(cool), UtilityAgent.OpulenceLineOf(cool), "④ 冷却中");
+        var warm = Board(0.5, 0.04); warm.WarmupFrozen = true;
+        Near(Chest(warm), UtilityAgent.OpulenceLineOf(warm), "④ 助走");
+        // ⑤ 利払い＝歳入の1割（余地が大きい）＝借りられる額が戦費予備を超える＝財政バッファで止まる
+        var wide = Board(0.1, 0.04);
+        Assert.True(Chest(wide) < Math.Min((wide.Coef.MaxInterestShareOfRevenue * wide.LastRevenue - wide.LastInterest) * Calendar.MonthsPerYear / wide.GovBondRate,
+                                           Fiscal.BorrowTicket(wide.NominalGdp, wide.Coef) * Months(wide)), "前提が崩れた：借りられる額が戦費予備より小さい");
+        Near(Fb(wide), UtilityAgent.OpulenceLineOf(wide), "⑤ 財政バッファ");
+        // ⑥ 金利0＝元本の余地は無限＝借りられる額は1件の額×月数（利払い＝歳入の5割＝戦費予備はそれより大きい盤面）
+        var free = Board(0.5, 0.0);
+        double pace = Fiscal.BorrowTicket(free.NominalGdp, free.Coef) * Months(free);
+        Assert.True(Chest(free) - pace > Fb(free), "前提が崩れた：戦費予備−1件の額×月数が財政バッファの下");
+        Near(Chest(free) - pace, UtilityAgent.OpulenceLineOf(free), "⑥ 金利0");
+        // ⑦ 歳入が NaN＝余地は NaN＝借りられない側（戦費予備）
+        var nan = Board(0.5, 0.04); nan.LastRevenue = double.NaN;
+        Assert.Equal(0.0, UtilityAgent.BorrowableForChest(nan));
+        // ⑧ 呼び手（支出反射 World.SpendableRevenue）：同じ国庫（戦費予備と潤沢線の間）で、信用のある国は上乗せが乗り、冷却中の国は乗らない
+        var credit = Board(0.5, 0.04); var frozen = Board(0.5, 0.04); frozen.BorrowCooldown = 12;
+        double t = 0.5 * (UtilityAgent.OpulenceLineOf(credit) + Chest(credit));
+        credit.SetTreasuryRaw(t); frozen.SetTreasuryRaw(t);
+        Near(credit.LastRevenue + credit.Coef.OpulenceSpendRate * (t - UtilityAgent.OpulenceLineOf(credit)) / Calendar.MonthsPerYear, credit.SpendableRevenue(), "⑧ 信用のある国の支出反射");
+        Assert.True(credit.SpendableRevenue() > credit.LastRevenue, "⑧ 信用のある国で戦費予備の下の国庫が支出反射に乗らない");
+        Near(frozen.LastRevenue, frozen.SpendableRevenue(), "⑧ 冷却中の国の支出反射");
+    }
 }
