@@ -827,38 +827,37 @@ public sealed class MultiNationSim
             foreach (var n in Nations) indFrontier = Math.Max(indFrontier, n.World.MeanIndustrialization);
             foreach (var n in Nations) n.World.IndustrialFrontier = indFrontier;
             // ★銀の世界価格（銀本位doc G6・2026-08-13）：銀本位国の平価は「銀の価値」に縛られる。World は国際市場を見られないので、
-            //   ここで各国へ配る（IndustrialFrontier と同型の共有スカラー）。⚠新しい価格を作らない——既存の世界価格をそのまま渡すだけ。
+            //   ここで各国へ配る（IndustrialFrontier と同型の共有スカラー）。
             //   SilverStandardGate=0（旧既定・点火1.0=2026-08-21銀本位ラウンド）では World 側が読まない＝注入しても挙動中立。
-            if (_coef.SilverStandardGate > 0 && Catalog.SilverId < Market.Price.Count)
+            // ★2026-10-04 (205) R1＝dorm-32 の器A の点火（作者裁定 2026-09-28 英の交易の R1〜R7 に「全て推奨」・旗 SilverParityFromRatio ごと焼き込み）：
+            //   平価の元を同じ州の中の 銀÷金鉱 の比から作る＝生きた Active 州の比の**対数平均** R を参照の比（RefPrices[銀]÷RefPrices[金鉱]）で割り、
+            //   RefPrices[銀] の単位へ戻す（R÷参照の比×RefPrices[銀]）。同じ州の比は物価も為替も約分される＝単位を持たない＝自己参照もクランプも要らない。
+            //   旧＝表示用の統計 Market.Price[銀]（各州の局所価格×為替の単純平均・参照の0.1〜10倍でクランプ＝BilateralMarket）＝銀本位国の為替がこの平均から作られ、
+            //   平均はその為替を含む（E→平均→E の自己参照）＝州の銀の価格が参照より安い世界では一周ごとに為替が縮み、下限 ExchangeRateFloor に張り付いた
+            //   （(205) の計器＝r202 の5種で銀本位国の国×四半期の多くが下限・英の輸入の売り手の金建ての値段が英の州の値段の数分の一）。
+            //   ⚠平均は対数平均・両方の市場が生きている州だけ（2026-09-07 の器A の是正）：局所価格は参照の床と天井の帯を持つ＝片側が死んだ州の凍った比が
+            //   算術平均を1州で独占する（フォートユーコンの金鉱）。対数平均なら1州の票は ln(天井÷床)÷N で有界。走査順＝Nations 順×Regions 順（決定論）。
+            //   有効な州が無い（試験の小さな世界）・比が不正なら参照価格（比1＝平価は金の平価のまま）へ倒す＝旧の統計へは倒さない（自己参照を残さない）。
+            //   読み手（World の平価・Fiscal の金建て債務・PolicyPreferences の銀の下落）は WorldSilverPrice÷RefPrices[銀] のまま。
+            if (_coef.SilverStandardGate > 0 && Catalog.SilverId < Catalog.RefPrices.Length && Catalog.GoldOreId < Catalog.RefPrices.Length)
             {
-                double silverWorld = Market.Price[Catalog.SilverId];
-                // ★器 SilverParityFromRatio（2026-09-07・休眠既定0）：Market.Price[銀] は「局所価格×ExchangeRate」の平均＝銀本位国の E がこの平均から
-                //   作られ、平均は E を含む（E→平均→E の正帰還・silverprobe で天井近傍に乗数2.8）。1＝同一市場内の 銀/金鉱 比の全 Active 州平均 R を
-                //   RefPrice 比で正規化して RefPrices[銀] の単位へ戻す（比は PriceLevel と ExchangeRate が約分される＝単位無し・クランプ不要）。
-                //   ⚠平均は**対数平均**・両市場が生きている州だけ（レビュー是正2026-09-07）：局所価格は rp×[PriceFloorFactor,PriceCeilFactor] の帯を持つので
-                //   片側が死んだ州（需要も産出も無い＝MarketFlow が価格を動かさない）の凍った比が最大10⁴＝算術平均を1州で独占する（seed1 実測＝フォートユーコンの
-                //   金鉱 0.0088 が R を 1.18→1.34 へ押した・中央値は 0.99〜1.02）。対数平均なら1州の票は ln(天井/床)/N で有界＝クランプも新定数も要らない。
-                //   走査順＝Nations 順×Regions 順（決定論）。有効な州が無い／比が不正なら旧統計へ倒す。0（既定）ではこの分岐に入らない＝厳密恒等。
-                if (_coef.SilverParityFromRatio > 0)
-                {
-                    double ratioSum = 0; int ratioCnt = 0;
-                    foreach (var n in Nations)
-                        foreach (var r in n.World.Regions)
-                        {
-                            if (r.State != RegionState.Active) continue;
-                            if (Catalog.SilverId >= r.Markets.Length || Catalog.GoldOreId >= r.Markets.Length) continue;
-                            var mAg = r.Markets[Catalog.SilverId]; var mAu = r.Markets[Catalog.GoldOreId];
-                            if (!(mAg.LastDemand > 1e-9 || mAg.LastProduced > 1e-9) || !(mAu.LastDemand > 1e-9 || mAu.LastProduced > 1e-9)) continue;   // 死んだ市場（MarketFlow と同じ条件）は除外
-                            double pAg = mAg.Price, pAu = mAu.Price;
-                            if (!(pAg > 1e-9) || !(pAu > 1e-9)) continue;   // 否定形＝NaN も除外
-                            ratioSum += System.Math.Log(pAg / pAu); ratioCnt++;   // 対数平均
-                        }
-                    double refAu = Catalog.RefPrices[Catalog.GoldOreId];
-                    double refRatio = refAu > 1e-9 ? Catalog.RefPrices[Catalog.SilverId] / refAu : 0;
-                    double meanRatio = ratioCnt > 0 ? System.Math.Exp(ratioSum / ratioCnt) : 0;
-                    if (ratioCnt == 0 || !(meanRatio > 1e-9) || !(refRatio > 1e-9)) { /* 旧統計のまま */ }
-                    else silverWorld = meanRatio / refRatio * Catalog.RefPrices[Catalog.SilverId];
-                }
+                double silverWorld = Catalog.RefPrices[Catalog.SilverId];
+                double ratioSum = 0; int ratioCnt = 0;
+                foreach (var n in Nations)
+                    foreach (var r in n.World.Regions)
+                    {
+                        if (r.State != RegionState.Active) continue;
+                        if (Catalog.SilverId >= r.Markets.Length || Catalog.GoldOreId >= r.Markets.Length) continue;
+                        var mAg = r.Markets[Catalog.SilverId]; var mAu = r.Markets[Catalog.GoldOreId];
+                        if (!(mAg.LastDemand > 1e-9 || mAg.LastProduced > 1e-9) || !(mAu.LastDemand > 1e-9 || mAu.LastProduced > 1e-9)) continue;   // 死んだ市場（MarketFlow と同じ条件）は除外
+                        double pAg = mAg.Price, pAu = mAu.Price;
+                        if (!(pAg > 1e-9) || !(pAu > 1e-9)) continue;   // 否定形＝NaN も除外
+                        ratioSum += System.Math.Log(pAg / pAu); ratioCnt++;   // 対数平均
+                    }
+                double refAu = Catalog.RefPrices[Catalog.GoldOreId];
+                double refRatio = refAu > 1e-9 ? Catalog.RefPrices[Catalog.SilverId] / refAu : 0;
+                double meanRatio = ratioCnt > 0 ? System.Math.Exp(ratioSum / ratioCnt) : 0;
+                if (ratioCnt > 0 && meanRatio > 1e-9 && refRatio > 1e-9 && double.IsFinite(meanRatio)) silverWorld = meanRatio / refRatio * Catalog.RefPrices[Catalog.SilverId];
                 foreach (var n in Nations) n.World.WorldSilverPrice = silverWorld;
             }
             // ★交易網の引力（タスク#75再開・2026-08-21）：TradeGoldPull_i ＝（世界貿易の金建て比率）×（自国の貿易開放度）。

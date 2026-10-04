@@ -1,0 +1,158 @@
+# (205) R3＝影の運送と運賃を運んだ国へ（越境の海路の成約の運賃＝着値の運送の楔そのもの・受け手は E2 の実効の船腹の比）のパッチ＝入れていない（2026-10-04・枝 trd の (205) のコミットの上で git apply できる）
+# 入れていない理由＝10種 b10_20261004_t205R3 は F1 の内側（exact 49.3・near 84.3）だが、英の運賃の受け取り÷GDP 0.05〜0.34%・英が払う運賃 1793〜1872 年 4.6〜11.4%＝英の貿易外収支を史実と逆へ（受け手の割合＝船腹の目標が人口で決まる・英は植民地の補給線の占有で交易の船腹が約1/9）＋R1 と合わせると分離独立の建国 10→52。
+# 入れ直しの条件（推奨【推】）＝船腹の目標を運びたい量へ（README §4 の6・TransportPotentialWeight）と植民地の占有（ColonialShipBurden）の物差しの後。番人 TradeClearingTests.越境の海路の運賃は着値の運送の楔で同じ国の州どうしは旧の率（突然変異 M1「越境の海路も旧の率」・M2「国内にも楔」赤・M0 緑）。実装ログ (205) §3。
+--- a/PriceOfBread.SimCore/BilateralMarket.cs
++++ b/PriceOfBread.SimCore/BilateralMarket.cs
+@@ -453,6 +453,12 @@
+             double rp = goodById[g] is { } gd0 ? gd0.RefPrice : 0.0;
+             return rp > 1e-9 ? c.TransportWeightMarginScale * Catalog.TransportWeight(g) / rp * freightRevolution : 0.0;
+         }
++        // ★着値の運送の楔（従価＝距離で嵩む運送の楔×運賃革命＋従量＝重さ÷値段×距離）＝着値の倍率の運送の分（危険料と封鎖の上乗せと関税は含まない）。
++        //   ★2026-10-04 (205) R3：着値（下の mar2）と越境の海路の運賃（下の frA）が同じ1本を読む＝運賃は着値に入っている運送の値段そのもの。
++        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
++        double TransportWedge(double km, double wAdd)
++            => c.TransportMargin * (1.0 + c.DistanceMarginScale * km / Diplomacy.DistanceNormKm) * adValoremRev
++               + wAdd * (km / Diplomacy.DistanceNormKm);
+ 
+         // ---- S4 のプール ----
+         double twoEps = 2.0 * c.PriceElasticity;   // X_price の指数（ε=0.5 なら 1＝D·rp/d−P−I）
+@@ -724,8 +730,7 @@
+                             double km2 = KmOf(sellers[s2].Node, t);
+                             double risk2 = PairRisk(sellers[s2].Node, t);
+                             double bb2 = gd.Tier == GoodTier.Staple ? c.BlockadeStapleBias * risk2 : 0.0;
+-                            double mar2 = c.TransportMargin * (1.0 + c.DistanceMarginScale * km2 / Diplomacy.DistanceNormKm) * adValoremRev
+-                                        + weightAdd * (km2 / Diplomacy.DistanceNormKm) + risk2;
++                            double mar2 = TransportWedge(km2, weightAdd) + risk2;   // 運送の楔＋危険料（旧と同じ式・同じ評価順＝(従価＋従量)＋危険料）
+                             double fac2 = 1 + mar2 + wS2 + bb2;   // 着値の倍率（段3-1＝売り手の受取を割り戻す分母）
+                             double del2 = sellers[s2].Price * fac2;
+                             if (del2 < double.MaxValue)
+@@ -762,16 +767,24 @@
+                     double rpS = gd.RefPrice * tr[snA].r.PriceLevel * exRate[siA];
+                     double yPrice = rpS > 1e-9 ? (msA.LastProduced + msA.LastImport) * unitA / rpS - msA.LastDemand - msA.LastExport : 0.0;
+                     double Y = sellAccB * Math.Max(0, Math.Min(yPrice, left[bestA]));   // 物理上限＝avail（=Stock−TargetStock・left が消化を追う）
+-                    double frA = freightRate > 1e-12 ? freightRate * bestKmA / Diplomacy.DistanceNormKm : 0.0;
+                     // ★段3-1（econ-07/B21）：売り手の受取＝次善の着値（単価 unitA）を最良の売り手の着値の倍率（1＋運賃＋楔＋封鎖）で割り戻した積出し価格。
+                     //   旧＝単価を丸ごと売り手に払った＝輸入国の関税・穀物法と影の運送（従価の運送の楔・危険料）が外国の売り手の収入になっていた
+-                    //   （関税を上げるほど輸出国への支払いが増える＝帰着が逆）。関税と穀物法の分は通関で輸入国の国庫へ・影の運送は誰にも払わない
+-                    //   （捌き手の商人が国内で売る値との差として残る）・運賃は積出し価格に掛かり船の持ち主へ。
++                    //   （関税を上げるほど輸出国への支払いが増える＝帰着が逆）。関税と穀物法の分は通関で輸入国の国庫へ・運賃は積出し価格に掛かり船の持ち主へ。
+                     bool crossA = siA != ni;   // 同国取引は輸入の統計と関税の基礎に数えない（国境の税）
+                     double sA = unitA / candF![bestPos];
+                     double dutyA = crossA ? duty : 0.0;
+                     // 港湾料と保険料の率（海路の成約だけ＝港の取扱高と同じ印・上の段3-4 の注記）
+                     bool seaA = !LandNow(snA * tc + t);
++                    // ★2026-10-04 (205) R3（作者裁定 2026-09-28 英の交易の R1〜R7 に「全て推奨」＝影の運送と運賃を運んだ国へ・英は債権国）：
++                    //   **越境の海路の成約の運賃＝着値に入っている運送の楔そのもの**（上の TransportWedge＝従価の距離の楔×運賃革命＋従量）。
++                    //   受け手は今の運賃と同じ＝世界の船腹の比で各国の船の持ち主（E2 裁定 2026-07＝英の商船隊が見えない輸出）＝運んだ国の貿易外の受け取り。
++                    //   旧（(108) 段3-1）＝運賃は別の率 FreightRatePer10Mm（荷価の10%÷1万km）で、着値の運送の楔の残り（影の運送）は誰にも払わず、
++                    //   捌き手の商人が国内で売る値との差として残った＝運送の値段が着値には入るのに運んだ国の収入にならなかった。
++                    //   危険料と封鎖の上乗せは運送の役務でない（運び手を問わない摩擦＝封鎖破りの差益は捌き手に残る）＝払わない。
++                    //   同じ国の州どうしと陸路の越境は旧のまま（FreightRatePer10Mm）＝国内の沿岸の運送は自国の船（沿岸の運送の独占）・陸路の運び手は船の持ち主でない。
++                    double frA = freightRate > 1e-12
++                        ? (crossA && seaA ? TransportWedge(bestKmA, weightAdd) : freightRate * bestKmA / Diplomacy.DistanceNormKm)
++                        : 0.0;
+                     double portT = seaA && portOwner[t] is not null ? c.PortFeeRate : 0.0, portS = seaA && portOwner[snA] is not null ? c.PortFeeRate : 0.0;
+                     double premA = seaA && underwriters[ni] is not null ? c.MarinePremiumRate : 0.0;
+                     double costA = sA * (1 + dutyA + frA + portT + portS + premA) / exRate[ni];   // 払い手が1単位に払う額（積出し価格＋関税＋運賃＋港湾料＋保険料・自国通貨＝A7）
+--- a/PriceOfBread.SimCore/Coefficients.cs
++++ b/PriceOfBread.SimCore/Coefficients.cs
+@@ -2589,7 +2589,7 @@
+     public double WarLivestockRequisition = 0.03; // ★点火2026-08-31（ラウンドB）＝戦争被害のストック化（AI審査3-11）：戦場強度1.0で家畜RGOの操業規模を3%/月で徴発（軍馬・輓獣・食肉＝flowでなくstock）。回復は既存のRGO供給弾力（年単位）から自然に出る＝回復コードなし（鉱脈在庫と同じ思想）。0で徴発なし
+     public double WarLivestockOutputDamage = 0.5; // 05-A：畜産(19)は重め＝役畜・軍馬の徴発が市場価格経由で農業を締める。缶詰→軍需の自己制限も創発
+     public double InvestExtrapolationWeight = 0.3; // 05-B2：投資の外挿期待の重み（採算の勢い項）。バブルと深い崩壊を生む増幅側の期待。0で厳密恒等
+-    public double FreightRatePer10Mm = 0.10;     // 04材化(b)（2026-07-29）：運賃率＝荷価の10%/10,000km（ロンドン→ボンベイ18,000kmで約18%）。荷主（輸入国）が払い実効海運容量シェアで各国へ按分（E2裁定）。0で完全恒等
++    public double FreightRatePer10Mm = 0.10;     // 04材化(b)（2026-07-29）：運賃率＝荷価の10%/10,000km（ロンドン→ボンベイ18,000kmで約18%）。荷主（輸入国）が払い実効海運容量シェアで各国へ按分（E2裁定）。0で完全恒等。★2026-10-04 (205) R3 から**同じ国の州どうしと陸路の越境だけ**＝越境の海路の運賃は着値の運送の楔そのもの（BilateralMarket.TransportWedge）・受け手の按分は同じ
+     // ★貿易復活プログラム（2026-08-15・作者裁定「貿易を先に挟む」・tradewhy分解＝99_実装ログ§4-15）：
+     //   1914年の世界貿易/GDP 0.2%（史実の英は輸出だけで約25%）の壁＝①関税wedgeが同国ペアにも掛かる内国関税 ②運賃革命が従量成分にしか効かない。
+     // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】TariffBorderOnly＝関税・穀物法の楔を国境だけに＝同国の売り手には掛けない・同国取引を輸入統計と関税の基礎から除く（2026-08-15 点火）
+--- a/PriceOfBread.Tests/TradeClearingTests.cs
++++ b/PriceOfBread.Tests/TradeClearingTests.cs
+@@ -266,6 +266,88 @@
+         Assert.True(Math.Abs(goldNet) <= 1e-9 * Math.Max(1.0, owners), $"港湾料の払いと受け取りが金の値打ちで閉じない（{goldNet}）");
+     }
+ 
++    /// <summary>★(205) R3（作者裁定 2026-09-28 英の交易の R1〜R7 に「全て推奨」＝影の運送と運賃を運んだ国へ）：**越境の海路の成約の運賃は着値の運送の楔そのもの**
++    /// （BilateralMarket.TransportWedge＝従価の距離の楔×運賃革命＋従量）＝輸入の CIF−FOB＝積出し価格×楔。受け手は今の運賃と同じ船腹の比（E2）。
++    /// **同じ国の州どうしは旧の率**（FreightRatePer10Mm×距離÷1万km）のまま＝国内の沿岸の運送は自国の船。
++    /// 盤面＝①英の港1州が売り手・ポルトガルの港1州だけが買い手（海路の越境）②英1国で港1州が売り手・別の港1州だけが買い手（国内）。港湾料と保険料は0・ほかの財は取引しない。
++    /// ⚠突然変異「越境の海路も旧の率」「国内にも楔」「運送の楔に危険料を含める（交戦の無い盤面では同値＝この盤面では捕まえない）」のうち前の2つで赤。</summary>
++    [Fact]
++    public void 越境の海路の運賃は着値の運送の楔で同じ国の州どうしは旧の率()
++    {
++        static (MultiNationSim sim, int g, Region seller, Region buyer) Setup(NationConfig[] cfg, Func<MultiNationSim, Region, Region, Region?> pickBuyer)
++        {
++            var (sim, g, seller, seller2, _) = Make(cfg);
++            seller2.Markets[g].Stock = 0;   // 売り手は1州だけ
++            sim.Coef.PortFeeRate = 0; sim.Coef.MarinePremiumRate = 0;
++            var buyer = pickBuyer(sim, seller, seller2);
++            Assert.NotNull(buyer);
++            foreach (var n in sim.Nations)
++            {
++                n.World.SetTradeBias(g, 0);   // 売買方針の補助を立てない
++                foreach (var r in n.World.Regions)
++                    foreach (var m in r.Markets)
++                    {
++                        if (ReferenceEquals(m, r.Markets[g]) && (ReferenceEquals(r, buyer) || ReferenceEquals(r, seller))) continue;
++                        m.LastDemand = 0; m.TargetStock = 0; m.LastProduced = 0;   // ほかの州とほかの財は買わない
++                    }
++            }
++            return (sim, g, seller, buyer!);
++        }
++        var c0 = new Coefficients();
++        Assert.True(c0.FreightRatePer10Mm > 0 && c0.TransportMargin > 0, "前提＝運賃の率と運送の楔が正");
++        double Wedge(MultiNationSim sim, int g, double km)
++        {
++            var c = sim.Coef;
++            double frontier = 0;
++            if (c.TransportRevolutionMax > 0) foreach (var n in sim.Nations) frontier = Math.Max(frontier, n.World.TechLevel);
++            double adV = InternationalMarket.FreightRevolution(frontier, c);
++            double rp = Catalog.RefPrices[g];
++            double wAdd = c.TransportWeightMarginScale > 0 && rp > 1e-9 ? c.TransportWeightMarginScale * Catalog.TransportWeight(g) / rp * adV : 0.0;
++            return c.TransportMargin * (1.0 + c.DistanceMarginScale * km / Diplomacy.DistanceNormKm) * adV + wAdd * (km / Diplomacy.DistanceNormKm);
++        }
++
++        // ① 越境の海路：英→ポルトガル（陸続きでない＝海路）
++        {
++            var (sim, g, seller, buyer) = Setup([WorldData.ByName("イギリス"), WorldData.ByName("ポルトガル")],
++                (s, s1, s2) => s.Nations[1].World.Regions.FirstOrDefault(r => r.State == RegionState.Active && r.IsPort));
++            var uk = sim.Nations[0].World; var pt = sim.Nations[1].World;
++            Assert.Contains(seller, uk.Regions);
++            sim.Market.Step(sim.Nations, sim.Coef);
++            Assert.True(uk.LastExportValue > 1e-9 && buyer.Markets[g].LastImport > 1e-9, "前提が崩れた：英からポルトガルの港への越境の輸出が立っていない");
++            Assert.True(buyer.LastPortThroughput > 1e-9, "前提が崩れた：成約が海路でない（港の取扱高が無い）");
++            double km = buyer.LastTradeDistanceKm;
++            double rate = (pt.LastImportValue - uk.LastExportValue) / uk.LastExportValue;   // CIF−FOB＝運賃（港湾料と保険料は0）
++            double want = Wedge(sim, g, km);
++            double old = sim.Coef.FreightRatePer10Mm * km / Diplomacy.DistanceNormKm;
++            Assert.True(Math.Abs(want - old) > 1e-6, $"盤面の前提：楔 {want} と旧の率 {old} が同じ＝突然変異を捕まえられない");
++            Assert.True(Math.Abs(rate - want) <= 1e-9 * Math.Max(1.0, want), $"越境の海路の運賃の率 {rate} ≠ 着値の運送の楔 {want}（旧の率 {old}・距離 {km}km）");
++        }
++
++        // ② 国内（英1国）：運賃は旧の率（受け手は英の船の持ち主＝商人の頭数）
++        {
++            var (sim, g, seller, buyer) = Setup([WorldData.ByName("イギリス")],
++                (s, s1, s2) => s.Nations[0].World.Regions.FirstOrDefault(r => r.State == RegionState.Active && r.IsPort && !ReferenceEquals(r, s1) && !ReferenceEquals(r, s2) && r.MerchantPopIndex >= 0));
++            var uk = sim.Nations[0].World;
++            var mers = uk.Regions.Where(r => r.State == RegionState.Active && r.MerchantPopIndex >= 0 && r.MerchantPopIndex < r.Pops.Count).Select(r => (R: r, P: r.Pops[r.MerchantPopIndex])).ToList();
++            double S = mers.Sum(x => x.P.Size);
++            var bm = buyer.Pops[buyer.MerchantPopIndex];
++            bm.SetSavings(1e12);   // 手形を振り出さない（貯蓄で払う）
++            var third = mers.First(x => !ReferenceEquals(x.R, buyer) && !ReferenceEquals(x.R, seller) && x.P.Size > 1e-9);
++            double b0 = bm.Savings, k0 = third.P.Savings;
++            sim.Market.Step(sim.Nations, sim.Coef);
++            Assert.True(buyer.Markets[g].LastImport > 1e-9, "前提が崩れた：国内の成約が立っていない");
++            double fLoc = (third.P.Savings - k0) * S / third.P.Size;                       // 船の持ち主の受け取り（頭数）から運賃の総額
++            double vLoc = -(bm.Savings - b0) - fLoc + fLoc * bm.Size / S;                   // 払い手の払い（積出し価格＋運賃）−自分の受け取り
++            Assert.True(fLoc > 1e-12 && vLoc > 1e-12, $"前提が崩れた：運賃 {fLoc}・積出し価格の額 {vLoc}");
++            double km = buyer.LastTradeDistanceKm;
++            double rate = fLoc / vLoc;
++            double want = sim.Coef.FreightRatePer10Mm * km / Diplomacy.DistanceNormKm;
++            double wedge = Wedge(sim, g, km);
++            Assert.True(Math.Abs(want - wedge) > 1e-6, $"盤面の前提：旧の率 {want} と楔 {wedge} が同じ＝突然変異を捕まえられない");
++            Assert.True(Math.Abs(rate - want) <= 1e-7 * Math.Max(1.0, want), $"国内の運賃の率 {rate} ≠ 旧の率 {want}（楔 {wedge}・距離 {km}km）");
++        }
++    }
++
+     /// <summary>★為替手形（2026-09-29 S3b・補給の鎖の緩衝）：貯蓄の無い捌き手の商人も、積荷を担保に自国の銀行で手形を割り引いて輸入し
+     /// （債務の記録・預金・家計の与信が同じ額＝国ごとの D が閉じる）、国内で売った代金で次の清算の始めに返す。
+     /// 旧＝支払能力は商人の貯蓄だけ＝貯蓄の尽きた州は何十年も輸入できなかった（S3a）。⚠突然変異「手形なし（貯蓄だけ）」「返さない」で赤。</summary>

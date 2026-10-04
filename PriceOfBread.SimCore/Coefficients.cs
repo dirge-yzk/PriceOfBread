@@ -83,7 +83,7 @@ public sealed class Coefficients
     //   1＝買い手も unitA で解く。0＝旧式＝厳密恒等。単独腕 tradeunit で計測。
     // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】TradeBuyerSolvesAtUnitPrice＝買い手の静止点を実際に払う単価で解く（2026-09-08 点火・PriceLawSupplyIncludesStock と対）
     // ★計器（同日）：表示用「世界価格」統計（BilateralMarket の平均価格）の [0.1,10]×参照 クランプ＝偏在財（硫黄・銀）で常に振り切れ、画面の値が嘘になる。
-    //   1＝クランプなしの生の平均。⚠SilverParityFromRatio=0 の旧経路ではこの統計が銀本位国の平価にも流れる＝両者を合わせて測る。0＝旧式＝厳密恒等。
+    //   1＝クランプなしの生の平均。0＝旧式＝厳密恒等。★2026-10-04 (205) から銀本位国の平価はこの統計を読まない（MultiNationSim の注入の行＝同じ州の 銀÷金鉱 の比）＝表示と需給の正規化だけ。
     public double WorldPriceStatUnclamped = 0.0;
     public double PriceLawSeesExports = 1.0;   // ★点火2026-08-30（単独では清/西の人口コスト＝S4と同時なら消滅を実測・記録doc参照）
     public int ClearingsPerYear => TradeMonthlyClearing > 0 ? Calendar.MonthsPerYear : Calendar.QuartersPerYear;   // 国際清算の年あたり回数（年換算の単位ヘルパー）
@@ -3437,14 +3437,9 @@ public sealed class Coefficients
     //   アフガニスタン・中央アジア3・アラビア・イエメン・オマーン・エチオピア・ラオス・西山朝）。休眠時は銀0/14・1803年に金16の氾濫だった。
     //   ⚠差し戻すときはこの4係数を戻せば旧挙動へ完全に帰る（SilverStandardGate=0;SilverLightDiscipline=0;GoldStandardIndThreshold=1.5;MonetaryPeerPullScale=0）】
     public double SilverStandardGate = 1.0;            // **主フラグ**：0で中段（銀）に入らず旧2値と厳密恒等／1（live）で不換→銀→金の3段の梯子が開く
-    // ★器 SilverParityFromRatio（2026-09-07・休眠既定0）：銀本位国の平価の元 WorldSilverPrice は現状 Market.Price[銀]＝「各州の局所価格×ExchangeRate」の
-    //   連結州平均（表示統計・RefPrice×[0.1,10]でクランプ）。銀本位国の E はその平均から作られ、平均は E を含む＝**E→平均→E の自己参照（正帰還）**。
-    //   silverprobe 実測で天井 ExchangeRateCeil(3.0) 近傍に乗数2.8で張り付いた根。
-    //   1＝同一市場内の比（州の 銀価格/金鉱価格 の全 Active 州の算術平均 R）を RefPrice 比（RefPrices[銀]/RefPrices[金鉱]）で割り
-    //   RefPrices[銀] の単位へ戻す（R/refRatio×RefPrices[銀]）。同一市場の比は PriceLevel も ExchangeRate も約分され単位を持たない＝
-    //   クランプ不要・自己参照無し。読み手（World 平価／Fiscal 金建て債務／PolicyPreferences 銀下落）は WorldSilverPrice/RefPrices[銀] のまま不変。
-    //   0（既定・休眠）＝旧統計をそのまま注入＝厳密恒等。有効な州（両価格>0）が無い／比が不正のときは旧統計へ倒す。
-    public double SilverParityFromRatio = 0.0;
+    // 【墓標2026-10-04・旗の焼き込み（(205) R1＝dorm-32 の器A・作者裁定 2026-09-28「全て推奨」）】SilverParityFromRatio（器 2026-09-07・休眠既定0）
+    //   ＝銀本位国の平価の元 WorldSilverPrice を同じ州の中の 銀÷金鉱 の比の対数平均から作る（旧＝表示用の統計 Market.Price[銀]＝E→平均→E の自己参照）。
+    //   式と理由は MultiNationSim の注入の行。有効な州が無いときは参照価格へ倒す（旧の統計へは倒さない）。
     public double SilverStandardIndThreshold = 0.0;    // 銀本位に届く工業化。0＝★銀は誰でも持てる（銀貨は普遍的だった＝1783年の銀世界の前提。0.15案は19-10の金利レバー問題対策だったが SilverLightDiscipline が構造で解決）。金は GoldStandardIndThreshold ＝交易経済の制度
     public double StandardMetalMintGate = 1.0;         // **主フラグ**★点火2026-08-29（夜間R20造幣3本クラスタA/B batch30）：0で造幣は旧来どおり金鉱だけを買う／1で**本位金属**（銀本位なら銀）を買う＝需要が法に従って現れ・消える。⚠銀価格暴落の線は閉鎖のまま（20-3打ち切り線）
     // ★銀本位の再開（作者裁定2026-09-06「一時的に壊れるのは問題ない。その後に復旧する仕組みが必要」・銀本位doc §7）。
