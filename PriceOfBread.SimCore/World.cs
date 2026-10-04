@@ -1142,7 +1142,7 @@ public sealed class World
 
     /// <summary>通貨改革の予約（プレイヤーのボタンもAIも**この同じ口**を通る）。parity＝新平価。</summary>
     public void RequestCurrencyReform(double parity) => PendingCurrencyReform = Math.Clamp(parity, Coef.ExchangeRateFloor, 1.0);   // 新平価を [ExchangeRateFloor,1.0] にクランプして予約（月次で消化・CurrencyReformCooldown）
-    public int InsolvencyQuarters { get; internal set; }          // 借りられない（利払い÷歳入≧MaxInterestShareOfRevenue）まま払えない（r＜1）連続**月数**（⚠名前は Quarters だが Fiscal.Step が月次で進める）。閾値超で**ソブリン・デフォルト**（致命的）
+    public double InsolvencyQuarters { get; internal set; }       // 借りられない（利払い÷歳入≧MaxInterestShareOfRevenue）まま払えない（r＜1）月の**払えない大きさの和**（1か月の重み＝Fiscal.InsolvencyWeight＝(1−r)÷(1−0.7)＝r＝0.7 の月が1・(201)・⚠名前は Quarters だが Fiscal.Step が月次で進める）。DefaultTriggerQuarters に届くと**ソブリン・デフォルト**（致命的）
     public int BorrowCooldown { get; internal set; }              // デフォルト後の借入禁止の残り**月数**（信用喪失）。0になるまで借りられない
     public bool HadSovereignDefault { get; internal set; }        // 過去にデフォルトしたか（年表・診断）
 

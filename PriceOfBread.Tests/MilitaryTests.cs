@@ -54,9 +54,12 @@ public class MilitaryTests
         var w = sim.World;
         static double D(World w) => w.BaseMoney - w.CumulativeTradeFlow - w.CumulativeGoldMinted - w.CumulativeFiatIssued;
         double p0 = w.TotalPopulation - w.PopulationDelta, d0 = D(w);
-        var ex = Record.Exception(() => sim.Run(6));
+        // ★(201) 盤面の直し：解錠するまで四半期ずつ回す（上限 12）＝旧は6四半期の固定＝(201) の開幕の兌換（英は兌換の中から始まる）で軍需の買える量が少し変わり、
+        //   6四半期で進み 0.989 の際に止まった（番人の主張は保存則＝解錠の速さではない・規則と閾値は変えない）。
+        int q = 0;
+        var ex = Record.Exception(() => { while (locked.State != RegionState.Active && q < 12) { sim.Run(1); q++; } });
         Assert.Null(ex);
-        Assert.True(locked.State == RegionState.Active, $"前提が崩れた：6四半期で解錠していない（進み {locked.Infra:F3}）");
+        Assert.True(locked.State == RegionState.Active, $"前提が崩れた：12四半期で解錠していない（進み {locked.Infra:F3}）");
         Assert.True(Math.Abs(w.TotalPopulation - w.PopulationDelta - p0) < 1e-6 * p0, "人口保存の破れ");
         Assert.True(Math.Abs(D(w) - d0) <= 1e-9 * Math.Max(1.0, Math.Abs(d0)), $"保存量 D の破れ（{d0} → {D(w)}）");
     }

@@ -436,6 +436,9 @@ public sealed class MultiNationSim
         // ★為替は親の値から始まる（2026-09-30 段3-3）＝生まれた瞬間の通貨は親の通貨（州の貯蓄も物価も親の通貨のまま移る）。国境をまたぐ払いは為替で換算する
         //   （振り替えた保有の債権もここで換算される）＝旧の既定値1（平価）から始めると、銀の親から離れた州の請求権と資本移動が生まれた月に約2倍に跳ねた。以後は自国の月次の為替の式で動く。
         sim.World.ExchangeRate = pw.ExchangeRate;
+        // ★(201) 兌換も親の通貨のまま生まれる（為替と同じ規則）＝金本位の資格と兌換の信認を親から（旧＝構築の既定〔兌換0・資格なし〕から最初の月に資格を得て立ち上がった）。
+        sim.World.OnGoldStandard = pw.OnGoldStandard; sim.World.GoldStandardSuspendedInCrisis = pw.GoldStandardSuspendedInCrisis;
+        sim.World.Convertibility = pw.Convertibility;
         foreach (var rr in regs) foreach (var p in rr.Pops) Fiscal.BookForeignDebt(p, p.BondHoldings, pw, sim.World);
 
         // --- 5) Scenario に載らない現在値の継承（技術・法・行政の到達＝独立は文明を巻き戻さない。正統性は既定＝新政権の蜜月）---
@@ -1386,8 +1389,11 @@ public sealed class MultiNationSim
         return paid;
     }
 
-    // 港湾の建設（改修2026-06-28）：StepCanals の雛形を Region に移植＝各国の港州を、交易が容量で律速（混雑）している時に**資本家が主導・国家が上乗せ**して拡張する。
-    // 保存：投資（資本家貯蓄＋国庫）→ 港の州の労働の④（建設の工賃＝StepCanals と同じ・BaseMoney不変）。
+    // 港湾の建設（改修2026-06-28）：StepCanals の雛形を Region に移植＝各国の港州を、交易が容量で律速（混雑）している時に**資本家が主導**して拡張する。
+    // 保存：投資（資本家貯蓄）→ 港の州の労働の④（建設の工賃＝StepCanals と同じ・BaseMoney不変）。
+    // ★(201) 国家の上乗せは月初の予算の行へ移した（Simulation の Region.PortStateBudget＝上下水道と同じ物差し〔行政費×InfraBudgetScale×財政の余力×人口比〕・
+    //   請求に入って r で払う＝作者裁定 F3「先に予算を元に、支払い率を決めたい」）。旧＝ここで PortStateFrac（0.5）×資本家の投資×その月の r を国庫から＝r の後に出る予算の外の支出で、
+    //   額の物差しが**州の投資家の貯蓄**（ストック）だった＝英は開幕の最初の四半期に国庫 2.1万に対し 14.2万（月の名目GDP の 2.4倍）を払い国庫が −12万（(186) §4 の入口・(201) の計器 inj_c201）。
     // ★2026-09-30（段3-4・C10）：港湾料は成約の時点の上乗せへ移した（BilateralMarket.StepBilateral＝荷主〔輸入の捌き手〕が払い、港の州の投資家が受け取る）＝ここは容量だけ。
     private void StepPorts()
     {
@@ -1407,13 +1413,10 @@ public sealed class MultiNationSim
                 if (r.InvestorPopIndex < 0 || r.InvestorPopIndex >= r.Pops.Count) continue;
                 var ip = r.Pops[r.InvestorPopIndex];
                 double cCap = _coef.PortInvestFrac * Math.Max(0, ip.Savings);          // 資本家ルート
-                double cState = _coef.PortStateFrac * cCap * w.FiscalFundingRatio;   // 国家ルート＝資本家投資に上乗せ（公共インフラ＝国家プロジェクト）×国家の支払い率 r（2026-09-28 段2-1）
-                double invest = cCap + cState;
-                if (invest <= 1e-9) continue;   // ★判定→引落の順（wave2b是正）：引落してから捨てると微小額が pop へ還流されず消える片側記帳になる
+                if (cCap <= 1e-9) continue;   // ★判定→引落の順（wave2b是正）：引落してから捨てると微小額が pop へ還流されず消える片側記帳になる
                 // ★支払いの一元化 段3-2（2026-09-30・C9）：建設の工賃は**港の州の労働の④の持分**（労働力の生産者の産出の比・賃金は労働者・Earned を通す＝InternationalMarket.PaySales）。
-                //   旧＝自国の全POP へ頭数（財を買わない）。進捗は動いた額（資本家の分＋国庫の分）。
-                invest = InternationalMarket.PaySales((w, [ip]), r, Catalog.LaborId, cCap, w)
-                       + InternationalMarket.PaySales((w, null), r, Catalog.LaborId, cState, w, TreasuryCat.OtherOut);
+                //   旧＝自国の全POP へ頭数（財を買わない）。進捗は動いた額。
+                double invest = InternationalMarket.PaySales((w, [ip]), r, Catalog.LaborId, cCap, w);
                 r.PortCapacity += invest / _coef.PortBuildCostPerUnit;
             }
         }

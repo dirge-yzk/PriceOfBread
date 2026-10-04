@@ -925,6 +925,9 @@ public sealed class Region
     public double AdminBudget;                        // 今期の行政調達の予算（行政費スライダー×国庫。Simulation が設定）
     public double InfraFill = 1.0;                    // 上下水道（衛生インフラ）の充足率（買えた÷必要）。衛生＝これ。低い＝過密の疫病（#4施設化＝旧「工業化proxy」を置換）。施設の無い世界は1.0＝従来
     public double InfraBudget;                        // 今期の上下水道調達の予算（行政費スライダー×国庫×都市人口比。Simulation が設定）
+    /// <summary>★(201) 港の国家の上乗せの今月の予算（[NonSerialized]＝月次決算の中だけ＝Simulation が月初に立て〔請求に入る〕・r を掛けて港の州の労働へ払い港湾容量を積む）。
+    /// 物差しは上下水道と同じ（行政費×InfraBudgetScale×財政の余力×人口比×潤沢の倍）・門は混雑した港（律速率＜PortCongestionTarget）と近代港湾の発見（蒸気機関）と助走の外。</summary>
+    [System.NonSerialized] internal double PortStateBudget;
     public double SoapFill;                           // 石鹸の消費充足率（市民＋病院が買えた率）。衛生に上下水道とは別に加算（公衆衛生＝清潔。医療品ほどではない）。石鹸の無い世界は0＝従来
     public double InsuranceCoverage;                  // 健康保険(#3)：国家が医薬品購入費を肩代わりする割合（社会保障×福祉充足×InsuranceCoverageMax）。Simulation が設定。popの実効医療費↓
     public double MonopolyRentFactor = 1.0;           // 独占禁止法（1934拡張E6）：独占レント(塩/茶)の実効倍率。規制なし=1.0／談合禁止=CartelBanRent／独占の解体=TrustbustRent。Simulation が国教法から設定。AntitrustGate=0で常に1.0＝恒等

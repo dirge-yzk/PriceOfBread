@@ -214,6 +214,12 @@ public sealed class Simulation
         World.ImmigrationRestriction = World.Policy.ImmigrationRestriction;   // 移民制限法の現在値＝初期値
         World.MonetaryLaw = scenario.InitialMonetaryLaw;          // 通貨制度の現在値＝初期値（英＝金／他＝銀＝NationConfig の既定・2026-09-30 (119)＝助走は法を動かさない）
         World.Policy.MonetaryTarget = (int)World.MonetaryLaw;    // 目標も現在値に揃える（官僚制度と同じ＝翌期に巻き戻さない）
+        // ★(201) 開幕の兌換＝データ（法と同じ規則・推奨で進めた）：金属本位の法で始まる国は兌換の中から始まる（英＝1717年以後の事実上の金本位・他＝銀貨の世界）。
+        //   旧＝金本位の資格 OnGoldStandard は false・兌換 Convertibility は0 から始まり、最初の月に資格を得て兌換が四半期 ConvertibilityRiseSpeed で立ち上がった
+        //   （開幕 1783 年に約0.66）＝金本位の中で赤字×(1−兌換) を切り下げで払えた＝英は 1783 年の最初の四半期から切り下げの記憶 broken が立ち（累積÷月の名目GDP 1.6〜2.5）、
+        //   通貨改革まで兌換へ戻れなかった（(186) §4・(201) の計器 inj_c201）。⚠ 建国の国は親の通貨のまま生まれる（為替と同じ＝MultiNationSim の建国）。
+        World.OnGoldStandard = World.MonetaryEnabled && World.MetallicStandardLaw;
+        World.Convertibility = World.OnGoldStandard ? 1.0 : 0.0;
         // ★(169) 開幕の既知の発見＝データ（NationConfig.KnownDiscoveries）＝1783年より前に史実でその国が使っていた発見。助走の前から持つ（助走の盤面も知った国の動力で均衡する）。
         //   名前が発見の表に無いのはデータの誤り＝構築で止める（黙って捨てない）。
         foreach (var name in scenario.InitialDiscoveries)
@@ -1897,6 +1903,7 @@ public sealed class Simulation
         //     頭数あたりの所得＝世帯の1人ぶんの暮らし＝糧食・被服と小遣い）・志願制は規定の給与（働き盛り1人あたり）。幹部の給与（質）の物差しはどちらも規定の給与（soldierRegularPay）。
         double milEnvelope = Military.EnvelopeOf(World, World.Coef);
         bool keepPay = World.ConscriptionLaw >= ConscriptionLaw.Selective;
+        bool portTech = Discovery.SteamPower(World.Discovered);   // ★(201) 港の国家の上乗せの門（近代港湾＝蒸気の浚渫・埠頭＝MultiNationSim.StepPorts の資本家の門と同じ1本）
         var soldierBasePay = new double[World.Regions.Count];   // 州の給与の満額（請求の単価×兵数×SoldierPayMult・r と充足を掛ける前）＝徴兵制は手当・志願制は規定の給与
         var soldierRegularPay = new double[World.Regions.Count];   // ★(161) 州の規定の給与の満額（働き盛り1人あたり）＝幹部の給与（質）の物差し（志願制では soldierBasePay と同じ）
         double payFull = 0, regularFull = 0;
@@ -2095,6 +2102,11 @@ public sealed class Simulation
                     ? World.AdminSpending * World.Coef.InfraBudgetScale * World.FiscalCapacity * (r.SumPopulation() / nationPop) * HoardSpendScale() : 0;
                 r.ElecInfraBudget = nationPop > 1e-9
                     ? World.AdminSpending * World.Coef.ElecInfraBudgetScale * World.FiscalCapacity * (r.SumPopulation() / nationPop) * HoardSpendScale() : 0;
+                // ★(201) 港の国家の上乗せ＝月初の予算の行（作者裁定 F3「先に予算を元に、支払い率を決めたい」・推奨で進めた＝(186) の申し送り (a)）。物差しは上下水道と同じ
+                //   （行政費×InfraBudgetScale×財政の余力×人口比×潤沢の倍＝国家の予算）・門は旧の MultiNationSim.StepPorts と同じ（混雑した港・近代港湾の発見・助走の外）。
+                //   請求に入って r で払う（下）。旧＝四半期末に PortStateFrac×資本家の投資（州の投資家の貯蓄の4%）×r を国庫から＝r の後に出る予算の外の支出（StepPorts の注記）。
+                r.PortStateBudget = nationPop > 1e-9 && portTech && r.IsPort && !World.WarmupFrozen && r.LastTradeThrottle < World.Coef.PortCongestionTarget
+                    ? World.AdminSpending * World.Coef.InfraBudgetScale * World.FiscalCapacity * (r.SumPopulation() / nationPop) * HoardSpendScale() : 0;
                 // 兵力（兵士の給与）の予算＝★(155) 州ループの後（吸い込みの1段目と3段目＝装備の請求が立ってから）。
             }
         // ★(155) 軍事費の吸い込みの1段目（給与・糧食）と3段目（質＝幹部の給与＝訓練）を州へ：
@@ -2127,7 +2139,8 @@ public sealed class Simulation
         //   置き場所＝既存の FiscalFundingRatio（旧＝維持費の充足率）。逼迫度＝1−r（UtilityAgent.FiscalStressOf）。
         //   撤去したもの＝国庫の現金クランプ StateBudgetCashScale（係数 StateSpendTreasuryClamp）・兵士の給与の州ごとの min(国庫)・日次の工賃の丸休みの門・
         //   材料の門・Fiscal の滝（利払い→維持費→福祉/年金→減債）・WelfarePensionClampToTreasury・SpendingCapFactor（Q9）・手書きの Min(Max(0,国庫)) の門。
-        //   ⚠出来事（選挙資金・賠償・武力解錠の軍需・通行料・港・売買方針の代金・外資の拠出・燃料）は月初に額が分からない＝請求の見込みに入らず、起きた時点の r で払う（拿捕は 2026-09-30 から私人の間＝国庫を通らない）。
+        //   ⚠出来事（選挙資金・賠償・武力解錠の軍需・通行料・売買方針の代金・外資の拠出・燃料）は月初に額が分からない＝請求の見込みに入らず、起きた時点の r で払う（拿捕は 2026-09-30 から私人の間＝国庫を通らない）。
+        //   （港の国家の上乗せは 2026-10-04 (201) に月初の予算の行へ＝Region.PortStateBudget＝請求に入る）
         //   ⚠四半期の支払い（貢納・招聘の支度金・外資の利回り）は四半期末の外交と共有層がまとめて払う＝四半期の締め月の請求に入れる。
         //   （戦費 Fund の請求の見込みは 2026-09-30 に Fund ごと削除＝支払いの段3-2・戦争の費用の実体は上の軍需の予算と兵士の給与）
         double claims = World.LastInterest + World.LastWelfareCost + World.LastPensionCost + World.LastColonialUpkeep;   // （連合維持費 LastUpkeep は 2026-09-30 (135) に撤去＝兵力と行政の購買の1本）
@@ -2155,7 +2168,7 @@ public sealed class Simulation
         foreach (var r in World.Regions)
             if (r.State == RegionState.Active)
             {
-                claims += r.MilitaryBudget + r.NavalBudget + r.AdminBudget + r.InfraBudget + r.ElecInfraBudget + r.SoldierPayBudget   // ★(189) 艦の請求（海軍の予算）も同じ1本
+                claims += r.MilitaryBudget + r.NavalBudget + r.AdminBudget + r.InfraBudget + r.ElecInfraBudget + r.SoldierPayBudget + r.PortStateBudget   // ★(189) 艦の請求（海軍の予算）も同じ1本・★(201) 港の国家の上乗せも
                         + r.StateBuildQueue + r.MonumentBuildQueue + r.HigherEduFunding
                         + regrow * (Math.Max(0, r.StateSpent[(int)TreasuryCat.Education]) + Math.Max(0, r.StateSpent[(int)TreasuryCat.Welfare])       // 先月の義務教育・健康保険
                                   + Math.Max(0, r.StateSpent[(int)TreasuryCat.FactoryBuild]) + Math.Max(0, r.StateSpent[(int)TreasuryCat.Subsidy]));   // 先月の工場の材料・民営の補助
@@ -2262,6 +2275,13 @@ public sealed class Simulation
                 // 全ての予算と予約に同じ r（予算は量の上限＝買えた分だけ払う＝払えない分は量が減る）
                 r.MilitaryBudget *= payRate; r.MilitaryBudgetCeiling *= payRate; r.NavalBudget *= payRate;   // ★(189) 艦の予算にも同じ r
                 r.AdminBudget *= payRate; r.InfraBudget *= payRate; r.ElecInfraBudget *= payRate; r.SoldierPayBudget *= payRate;
+                // ★(201) 港の国家の上乗せ＝予算×r を港の州の労働の④の持分へ（建設の工賃＝資本家の分と同じ移し方の1本・区分は旧と同じ その他の支出）＝動いた額で港湾容量を積む。
+                if (r.PortStateBudget > 1e-9)
+                {
+                    double portPaid = InternationalMarket.PaySales((World, null), r, Catalog.LaborId, r.PortStateBudget * payRate, World, TreasuryCat.OtherOut);
+                    r.PortCapacity += portPaid / World.Coef.PortBuildCostPerUnit;
+                }
+                r.PortStateBudget = 0;
                 // ★(155) 兵士の「失業」＝給与の未払いの割合（規定の給与のうち払われない分）＝失業プール（Meritocracy の ①''）の駆動（多年EMA＝未払いが長引くほど脱走が増える）
                 //   と志願の空き（払われない軍には志願しない）が読む。兵士は労働を市場で売らない＝EconomyStep の売れ残りの書き手は兵士に書かない（この行だけ）。
                 if (r.SoldierPopIndex >= 0 && r.SoldierPopIndex < r.Pops.Count && r.Pops[r.SoldierPopIndex].IsSoldier)

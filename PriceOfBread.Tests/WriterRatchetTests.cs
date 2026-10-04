@@ -388,11 +388,15 @@ public class WriterRatchetTests
     //   建設 7,000→855（−87.8%）・請求 2,626→336（−87.2%）・清算の着値の充填 42,375,697→36,183,198（−14.6%）＝10% を超えて下がった＝表を下げる。
     //   計画（PlanPrivateInvest）は月初に工場ごとに変動費を1回評価し、供給①が同じ値を使う（①の評価を前へ移した＝評価の数は同じ）＝「生産：生産者×月」の中（新しい計数なし）。
     //   どこで払ったか＝全長の10種（`b10_G_10.cost`）で日次の写像の回 24.52→31.16 秒（+6.6）を清算の着値の充填 48.75→40.08 秒（−8.7）ほかの軌道が払った＝推定 241.5→236.4 秒（上限 248.5 秒の内・実装ログ (200)）。
-    [InlineData(CostLedger.ConstructionSeen, 855L)]
+    // ★2026-10-04 表の更新（(201) 線E 後半＝財政の鎖の入口〔開幕の兌換・港の国家の上乗せを月初の予算へ〕と不履行の計数＝軌道が動いた分の宣言・新しい計数の処理は無い
+    //   〔港の予算は月初の予算の州の輪の中の1行＝上下水道と同じ走査〕）：建設 855→0・請求 336→0（−100%＝10% を超えて下がった＝表を下げる）＝最初の40四半期（1783〜1792・種1）に
+    //   国営の着工が1件も立たなくなった軌道（旧は開幕の港の上乗せが予算の外で国庫を −12万にした＝その後の軌道とは別物）。処理の形は同じ。
+    //   全長の10種（`b10_G_10.cost`）では建設 193,120→206,558（+7.0%）・請求 348,180→373,483（+7.3%）＝推定 236.4→237.7 秒（上限 248.5 秒の内・払う必要が無い・実装ログ (201)）。
+    [InlineData(CostLedger.ConstructionSeen, 0L)]
     [InlineData(CostLedger.CreditSpans, 33282L)]
     [InlineData(CostLedger.ConsumePopGoods, 28595736L)]
     [InlineData(CostLedger.ProducerMonths, 6495176L)]
-    [InlineData(CostLedger.ClaimProducers, 336L)]
+    [InlineData(CostLedger.ClaimProducers, 0L)]
     [InlineData(CostLedger.MonthlyPops, 706680L)]
     [InlineData(CostLedger.ClearingRows, 5185642L)]
     [InlineData(CostLedger.ClearingFills, 36183198L)]
