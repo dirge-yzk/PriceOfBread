@@ -410,6 +410,7 @@ public sealed partial class InternationalMarket
         //   関税と穀物法の分は通関の時点で輸入国の国庫へ（econ-07）／金建ての額は各国の通貨へ為替で換算（A7）。
         //   清算所＝世界の外（払い手は清算所へ払い、受け手は清算所から受け取る）＝同じ国の州どうしの取引は同じ国の台帳に −x と +x が入って打ち消す（国内の決済）。
         var importVal = new double[nn]; var exportVal = new double[nn];   // 越境の輸入額（CIF＝積出し価格＋運賃）・輸出額（FOB＝積出し価格）・金建て（同じ国の州どうしは数えない＝分子と分母を同じ規則で）
+        var seaVal = new double[nn];   // ★(206) そのうち海路の成約（港の取扱高と同じ印 seaA）の輸入＋輸出＝World.LastSeaTradeValue
         double freightPool = 0;   // 運賃（金建て）＝船腹の比で各国の船の持ち主へ
         var shipShare = new double[nn];
         // ★段3-1（C3）：運賃の受け手＝船の持ち主＝その国の商人POP（船を買うのは州の商人＝Transport.BuyToward）。旧＝運賃は各国の純流入に混ぜて国の全POP の貯蓄比（Apply）。
@@ -826,6 +827,7 @@ public sealed partial class InternationalMarket
                     //   から輸入額を引いて輸出額にしていた＝同じ国の州どうしの取引が2回入り、輸出額＝本当の輸出＋国内の州間取引の2倍だった。
                     //   ★段3-1：輸出＝積出し価格（FOB）・輸入＝積出し価格＋運賃（CIF）＝史実の貿易統計の慣行（旧＝どちらも単価＝次善の着値）。
                     if (crossA) { importVal[ni] += vA + frG; impByGood[ni][g] += vA + frG; exportVal[siA] += vA; expByGood[siA][g] += vA; }
+                    if (crossA && seaA) { seaVal[ni] += vA + frG; seaVal[siA] += vA; }   // ★(206) 海路の越境の成約（同じ額・同じ向き＝輸入 CIF・輸出 FOB）
                     // ★2026-09-27（回4-1・項目12②）：港の取扱高は海路の成約だけ（この組の着値を決めた経路＝KmOf(snA, t) が書いた向きの印）。
                     //   陸路の直行は港を通らない。同じ国の沿岸の海路（英のニューカッスル→ロンドンの石炭）は積む＝国境でなく経路で分ける。
                     if (seaA) { tr[t].r.LastPortThroughput += vA; tr[snA].r.LastPortThroughput += vA; }
@@ -918,6 +920,7 @@ public sealed partial class InternationalMarket
             var w0 = nations[i].World;
             w0.LastImportValue = importVal[i];
             w0.LastExportValue = exportVal[i];   // ＝ExportsByGood の和（同じ成約を同じ条件で積む）
+            w0.LastSeaTradeValue = seaVal[i];
             // ダンピングの輸出補助（負の関税）＝国庫→輸出を捌いた州の商人（越境の輸出の受取の比）・国家の支払い率 r の分だけ・関税の純額から減算。
             //   旧＝全州の商人の頭数で等分・輸出額は単価の和・TariffRevenueRate（削除）を掛けた。
             if (tar[i] < 0 && exportVal[i] > 0)

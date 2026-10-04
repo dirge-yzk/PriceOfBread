@@ -148,6 +148,36 @@ public class TradeClearingTests
         Assert.True(tuscany.LastImportValue - genoa.LastExportValue <= genoa.LastExportValue * sea.Coef.FreightRatePer10Mm * 2.0, "運賃が積出し価格×運賃率×(距離÷1万km) の桁を超えた");
     }
 
+    // ★(206) 海路の越境の交易額（World.LastSeaTradeValue＝海路の接触の分子）は越境の成約のうち海路の分だけ（輸入 CIF＋輸出 FOB＝LastImportValue＋LastExportValue と同じ規則）。
+    //   ①陸の単価を極小にして陸で繋がる組（ジェノヴァとトスカーナ）を全て陸路の直行にする＝越境の成約は立つが海路の越境の交易額は0
+    //   ②海を挟む組（日本と清）＝越境の成約は全て海路＝海路の越境の交易額＝輸入＋輸出（累積の順だけが違う）
+    //   ③どの国でも 0≦海路の越境の交易額≦輸入＋輸出。⚠突然変異「越境の成約を全て数える」「陸路の成約を数える」で赤（①・②）。
+    [Fact]
+    public void 海路の越境の交易額は越境の成約のうち海路の分だけ()
+    {
+        var (land, _, _, _, _) = Make();
+        land.Coef.LandSeaCostRatio = 1e-6;
+        land.Market.Step(land.Nations, land.Coef);
+        double cross = 0, sea = 0;
+        foreach (var n in land.Nations) { cross += n.World.LastImportValue + n.World.LastExportValue; sea += n.World.LastSeaTradeValue; }
+        Assert.True(cross > 1e-9, "陸路の越境の成約が1件も立っていない（テスト前提の破れ）");
+        Assert.Equal(0.0, sea);
+
+        var (isl, _, _, _, _) = Make(WorldData.ByName("日本"), WorldData.ByName("清"));
+        isl.Market.Step(isl.Nations, isl.Coef);
+        var jp = isl.Nations[0].World;
+        double jpCross = jp.LastImportValue + jp.LastExportValue;
+        Assert.True(jpCross > 1e-9, "日本と清の越境の成約が立っていない（テスト前提の破れ）");
+        Assert.Equal(jpCross, jp.LastSeaTradeValue, 9);
+        foreach (var sim in new[] { land, isl })
+            foreach (var n in sim.Nations)
+            {
+                var w = n.World;
+                Assert.True(w.LastSeaTradeValue >= 0 && w.LastSeaTradeValue <= (w.LastImportValue + w.LastExportValue) * (1 + 1e-12),
+                    $"{w.SelfPower?.Name}：海路の越境の交易額 {w.LastSeaTradeValue:G17} が越境の交易額 {w.LastImportValue + w.LastExportValue:G17} の外");
+            }
+    }
+
     // ================================================================================================
     // ★支払いの一元化 段3-1（貿易・2026-09-29）の番人。清算の払い手と受け手（計画 §10-12-9 の 3-1・econ-07・A7・作者裁定 2026-09-29 の2・3）。
 
