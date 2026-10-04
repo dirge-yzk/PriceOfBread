@@ -103,11 +103,16 @@ public class FranceTests
     [Fact]
     public void 工業化はゆるやかに進むが都市化は史実的な範囲に縛られる()
     {
+        // ★(200) 段2：私的投資は工業化度を積まず工場の設備（Producer.Scale）を積む＝国家の建設をしない（NullAgent）この盤面では工業化度は動かない
+        //   ＝「工業化が進む」を工場の能力（建てた設備×1職場の産出）の伸びで読む（開幕の1年の後と比べる＝構築の直後の産出の立ち上がりを外す）。
         var sim = new Simulation(Fr(1789), new NullAgent());
-        sim.Run(400);
         var r = sim.World.Regions[0];
+        static double FacCap(Region rg) { double k = 0; foreach (var f in rg.Producers) if (EconomyStep.IsFactory(f)) k += f.Capacity; return k; }
+        sim.Run(4);
+        double cap0 = FacCap(r);
+        sim.Run(396);
         double urban = r.SumUrbanPopulation() / r.SumPopulation();
-        Assert.True(r.TotalIndustrialization > 0.3, "工業化が進んでいない");   // ヴィンテージ2026-07-10：新旧合計（旧単層と同一動学＝基準は据え置き）
+        Assert.True(FacCap(r) > 1.3 * cap0, $"工業化が進んでいない（工場の能力 {cap0:F0}→{FacCap(r):F0}）");
         Assert.True(urban < 0.6, $"都市化が過剰（{urban:P0}）＝工業化に縛られていない（資本ゲートの破れ）");
     }
 

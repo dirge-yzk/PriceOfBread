@@ -2513,7 +2513,7 @@ public sealed class Diplomacy
                     foreach (var rz in wz.Regions)
                         if (rz.State == RegionState.Active)
                         {
-                            rz.Industrialization *= 1.0 - wear; rz.OldVintageCapital *= 1.0 - wear; rz.PortCapacity *= 1.0 - wear;
+                            rz.Industrialization *= 1.0 - wear; rz.PortCapacity *= 1.0 - wear;
                             rz.GridCapacity *= 1.0 - wear;                    // 05-A：送電網も戦災（インフラ）
                             rz.LastWarIntensity = losing * contactNorm;       // 05-A：RGO産出の戦災乗数（EconomyStep）が読む（0..1・月次リセット済み）
                         }

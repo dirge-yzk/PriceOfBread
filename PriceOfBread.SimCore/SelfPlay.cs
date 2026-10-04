@@ -952,7 +952,8 @@ public sealed class UtilityAgent : INationAgent
     }
 
     /// <summary>#5の材料：その財の国内生産者の採算が**生産規模で加重した平均**で赤字か。
-    /// 加重＝Scale（現在の操業規模）＝止まっている棟の採算に世論を作らせない。倒産中は除外（既に退出している）。
+    /// 加重＝産出（★(200) 段2＝工場の Scale は建てた設備〔職場の数〕・職人と産地は操業規模の重み＝単位が違う＝実際に作っている量で重みを付ける）
+    /// ＝止まっている棟の採算に世論を作らせない（旧の意図のまま）。倒産中は除外（既に退出している）。
     /// 生産者が1人もいない財は false＝「自国財でない」＝壁を作らない。NaN採算は num&lt;0 が偽＝fail-closed。</summary>
     private static bool DomesticMarginNegative(World w, int goodId)
     {
@@ -963,7 +964,7 @@ public sealed class UtilityAgent : INationAgent
             foreach (var pr in rg.Producers)
                 if (pr.GoodId == goodId && !pr.Bankrupt)
                 {
-                    double sc = Math.Max(0, pr.Scale);
+                    double sc = Math.Max(0, pr.Output);
                     num += pr.SmoothedMargin * sc; den += sc;
                 }
         }

@@ -330,6 +330,11 @@ public class ConservationTests
         foreach (var n in sim.Nations) n.TelemetryEnabled = false;
         sim.Diplomacy.Log.Enabled = false;
         sim.StepQuarter();
+        // ★(200) 段2（工場の能力は建てた設備）：1四半期では州の機会の差が閾値の縁に届かない（(185) の記録＝英の送り出しの州 0.569 対 行き先 0.970＝差 0.40・閾値 0.5）
+        //   ＝行き先（米）の州の賃金のプレミアムを上限（4）へ置いて差を開く＝盤面の前提だけ（番人の閾値は変えない・回す四半期を延ばすと為替が1から離れ、
+        //   国の基礎貨幣を為替なしで足すこの盤面の保存の物差しが崩れる）。
+        foreach (var n in sim.Nations)
+            if (n.World.SelfPower?.BaseName == "アメリカ") foreach (var r in n.World.Regions) r.WagePremium = 4.0;
         return sim;
     }
 

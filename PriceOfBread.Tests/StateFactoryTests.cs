@@ -203,13 +203,15 @@ public class StateFactoryTests
         Assert.Equal(1.0, all.PrivateShare, 9);
 
         // ② 半分だけ国営＝**崖を作らない**（1棟建てただけでボタンが死なない）。効くのは民営持分だけ
-        p.Scale = 2.0; p.BuiltScale = 1.0;
+        //   ★(200) 段2：工場の Scale は職場の数・国営持分 BuiltScale は旧の単位＝国営の割合＝BuiltScale×換算（SlotsPerScaleUnit）÷Scale。
+        double sus = EconomyStep.SlotsPerScaleUnit(p, w.Regions[0]);
+        p.Scale = 2.0 * sus; p.BuiltScale = 1.0;
         var half = w.CanSubsidize(0, Catalog.SteelId);
         Assert.True(half.Ok);
         Assert.Equal(0.5, half.PrivateShare, 9);
 
         // ③ 国営100%＝対象外。プレイヤーの動詞もAIの動詞（SelfPlay の SetSubsidy）も同じここを通る＝対称
-        p.BuiltScale = p.Scale;
+        p.BuiltScale = p.Scale / sus;
         var no = w.CanSubsidize(0, Catalog.SteelId);
         Assert.False(no.Ok);
         Assert.Equal("国営100%", no.Reason);
@@ -256,7 +258,8 @@ public class StateFactoryTests
             foreach (var r in s.World.Regions)
                 foreach (var p in r.Producers)
                 {
-                    if (stateOwned) { p.BuiltScale = s.World.Coef.ScaleMax; p.StateTarget = World.StateUnits(p, s.World.Coef); }
+                    // ★(200) 段2：工場の設備は私的投資で上限なく育つ＝国営持分を十分に大きく置いて国営の割合1 を保つ（産地は旧の ScaleMax のまま）
+                    if (stateOwned) { p.BuiltScale = EconomyStep.IsFactory(p) ? 1e6 : s.World.Coef.ScaleMax; p.StateTarget = World.StateUnits(p, s.World.Coef); }
                     p.SubsidyRate = subsidy;
                 }
             s.Run(4);
@@ -287,26 +290,17 @@ public class StateFactoryTests
     [Fact]
     public void 自動拡張は止まりRGOの能力は痩せない()
     {
-        // ★作者裁定2026-08-10「国営工場に自動的な拡張なし」。⚠是正2026-08-30：この裁定の点火は実際には2026-08-30まで行われていなかった（帰還構造調査§1-3）＝現在は既定1.0で点火済み。
-        //   止めた経路＝資本家の建設予算が最も採算の良いRGOの BuiltScale（＝Scaleの下限であり、同時に国営持分）を押し上げていたもの。
-        //   ⚠副作用の番人＝止めたせいでRGOの能力（Scale）と産出が痩せないこと。能力は採算駆動（scaleTarget=1+margin）で決まり、
-        //     BuiltScale はラチェットを与えていただけ、という読みをここで固定する。
-        static Simulation RunSim(ulong seed, double counterOnly, int quarters)
-        {
-            var sim = new Simulation(Fr(seed), new NullAgent());
-            sim.World.Coef.StateShareCounterOnly = counterOnly;
-            sim.Run(quarters);
-            return sim;
-        }
-        var on = Rgo(RunSim(2034, 1.0, 120));    // 点火（現行の既定）
-        var off = Rgo(RunSim(2034, 0.0, 120));   // 旧経路（対照）
+        // ★作者裁定2026-08-10「国営工場に自動的な拡張なし」。止めた経路＝資本家の建設予算が最も採算の良いRGOの BuiltScale（＝Scaleの下限であり、同時に国営持分）を
+        //   押し上げていたもの（RgoCapitalShare の枝）＝★(200) 段2 で枝ごと削除（私的な建設は工場の設備を積み工業化度を積まない＝枝の入力の意味が無くなった・
+        //   対照の腕〔旧経路〕は (185)(200) の木で RGO の床が約2倍に膨らみ、比べる物差しにならなくなった）。
+        //   残る番人＝①誰も建てていないのに RGO の国営持分が湧かない ②RGO の能力（Scale）と産出は採算駆動で立つ（痩せて0 にならない）。
+        var sim = new Simulation(Fr(2034), new NullAgent());
+        var rgo0 = Rgo(sim);
+        sim.Run(120);
+        var on = Rgo(sim);
         Assert.Equal(0.0, on.Built);             // ★誰も建てていないのに国営持分が湧かない
-        Assert.True(off.Built > 0, "対照でも国営持分が増えない＝この番人は何も測っていない（旧経路が動いていない）");
-        Assert.True(on.Scale > off.Scale * 0.9, $"自動拡張を止めたらRGOの能力が痩せた（点火 {on.Scale:F1} vs 旧 {off.Scale:F1}）");
-        // 産出は能力×稼働＝稼働は需要と作柄（1か月の断面）で動く。2本の軌道は120四半期で分かれるので、産出の比は
-        //   国内価格の刻み h を 1/2/3/5/6/10/15 と振ると 0.93/1.31/0.74/0.86/0.99/0.75/0.81 と非単調に散る（能力の比は 0.99〜1.01 で安定）。
-        //   2026-09-26 ㊽：産出の線を 0.9→0.5 へ＝「痩せる」（能力が残っても産出が半分を割る）だけを見る。能力の線（上の 0.9）は据え置き。
-        Assert.True(on.Output > off.Output * 0.5, $"自動拡張を止めたらRGOの産出が痩せた（点火 {on.Output:F0} vs 旧 {off.Output:F0}）");
+        Assert.True(on.Scale > 0.5 * rgo0.Scale, $"RGOの能力が痩せた（{on.Scale:F1}・開幕 {rgo0.Scale:F1}）");
+        Assert.True(on.Output > 0, "RGOの産出が0");
     }
 
     [Fact]
@@ -450,7 +444,7 @@ public class StateFactoryTests
                 if (p.GoodId != Catalog.SteelId) continue;
                 if (!(Discovery.Gate(r, p) > ProductionDiag.TechGateClosed)) continue;
                 st += World.StateUnits(p, w.Coef);
-                if (!p.Bankrupt) pv += World.PrivateUnits(p, w.Coef);
+                if (!p.Bankrupt) pv += World.PrivateUnits(p, r, w.Coef);
             }
         }
         Assert.Equal((st, pv), w.NationFactoryUnits(Catalog.SteelId));   // カードの分子＝全国工場目標の分子（式は1本）
@@ -468,7 +462,7 @@ public class StateFactoryTests
         foreach (var q in r.Producers) if (q.GoodId == Catalog.SteelId) q.Output = 0;   // 按分を1本に閉じる（この生産者が全額の取り分）
         p.Output = 1.0;
         if (!(p.Scale > 1e-6)) p.Scale = 1.0;
-        p.BuiltScale = 0.5 * p.Scale;                                         // 国営持分 1/2
+        p.BuiltScale = 0.5 * p.Scale / EconomyStep.SlotsPerScaleUnit(p, r);   // 国営持分 1/2（★(200) 段2：BuiltScale は旧の単位・Scale は職場の数）
         double f = World.StateProfitShare(p, r, w.Coef);
         Assert.True(Math.Abs(f - 0.5) < 1e-12, $"前提が崩れた：国営持分が 1/2 でない（{f}）");
         double amount = 1000.0;

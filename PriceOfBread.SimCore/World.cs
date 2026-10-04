@@ -1046,6 +1046,10 @@ public sealed class World
     /// 借入は r＜1 の月だけ・減債は r＝1 の月の余剰から（Fiscal）。AI の逼迫度＝1−r（UtilityAgent.FiscalStressOf）。
     /// 旧＝維持費を払えた割合（Fiscal の滝の2番目）＝治安維持力・兌換の門・最後の貸し手・同盟参戦は今は支払い全般の不足に反応する。</summary>
     public double FiscalFundingRatio { get; internal set; } = 1.0;
+    /// <summary>★(200) 段2 作業領域（[NonSerialized]＝月次決算の中だけ）：今月の国の投資の池の充足（設計 §3A・作者裁定 P5「国全体で1つの池」）
+    /// ＝min(1, 池〔全ての州の投資枠の和〕÷今月の計画の和〔<see cref="EconomyStep.PlanPrivateInvest"/>＝月初の盤面から〕)＝Simulation の池の前段が書き EconomyStep が読む。
+    /// ⚠(185) は前の月の望みの和を状態（PrivateInvestWantLast）に貯めて分母にした＝盤面から導く形へ（思想⑩・反証役 vb1#4）。</summary>
+    [System.NonSerialized] internal double PrivateInvestFill = 1.0;
     public double FiscalCapacity { get; internal set; }   // 直近の税収フロー（EMA）。公共サービス予算（行政/福祉/インフラ/軍需）の基準＝国庫ストックでなく歳入から支弁＝国庫0でも機能（funding修正2026-06-18）
     public double LastRevenue { get; internal set; }       // 診断：直近四半期の純税収（汚職漏れ控除後）
     public double LastInterest { get; internal set; }      // 診断：直近四半期の利払い
@@ -1576,6 +1580,16 @@ public sealed class World
         else GdpPeak += Coef.GdpPeakDecay * (GdpTrend - GdpPeak);
     }
 
+    /// <summary>★(200) 助走の終わりに景気の物差しのピークをトレンドへ置き直す（<see cref="MultiNationSim.WarmupEconomy"/> が1回だけ呼ぶ）＝暦の外（助走）で付いた
+    /// ピーク（構築の直後の値段と産出が落ち着く前の GDP）を覚えない＝国庫の置き直し（<see cref="RebaseTreasury"/>＝「暦の外で動いた金は歴史に属さない」）と同じ理由。
+    /// 旧＝助走の初めの GDP がピークに残り、開幕の 1783〜1784 年に主な国の8割の国×四半期でドローダウンが 0.2 を超えた（清 0.68）＝ピークの忘却（GdpPeakDecay 2%/四半期）が
+    /// 追いつくまで約14年「恐慌」と読まれていた＝(200) の計器（1種の試走）。読み手＝恐慌の資本破壊・信用の恐慌・最後の貸し手・思想・ファシズム・巨大建造物・AI の財政の構え。</summary>
+    internal void RebaseGdpCycle()
+    {
+        GdpPeak = GdpTrend;
+        GdpPcPeak = GdpPcTrend;
+    }
+
     // 物価水準（名目スカラー・段4-貨幣 第1段）。広義マネー(金+信用)が実質産出(Gdp＝参照価格建て)より速く伸びるとインフレ、遅いとデフレ（1873-96の長期デフレ等）。
     // 金は厳密保存・Pは名目のヴェール＝保存則に無関係（pop貯蓄は金＝名目のままなので、P上昇で実質購買力が目減り＝インフレ税が創発）。
     // MonetaryEnabled の国だけ動く（合成較正/最小テスト世界は P≡1＝MarketFlow が rp×1 で従来同値＝較正世界で恒等）。
@@ -1886,7 +1900,10 @@ public sealed class World
                 // （BuildFactory を直に呼ぶ経路＝テスト/Runner も同じ扱いになる＝1箇所で閉じる）。
                 if (p.ConstructionLeft <= 1e-9)
                 {
+                    // ★(200) 段2（能力は建てた分だけ）：工場の棟は設備（Scale＝職場の数）そのものを足す＝1棟＝FactoryBuildScale×旧の操業規模1の職場の数
+                    //   （EconomyStep.SlotsPerScaleUnit＝担い手の人数÷同じ担い手の工場の数＝盤面から導く）。国営の持分 BuiltScale は旧の単位（棟×FactoryBuildScale）のまま。
                     p.ConstructionLeft = 0; p.BuiltScale += Coef.FactoryBuildScale; p.StateTarget = Math.Max(p.StateTarget, StateUnitsOf(p));
+                    if (EconomyStep.IsFactory(p)) p.Scale += Coef.FactoryBuildScale * EconomyStep.SlotsPerScaleUnit(p, r);
                     EconomyStep.ApplyEnclosure(r, p, Coef.FactoryBuildScale, Coef);   // rank5第2段：RGO（大農園/鉱区）完成1棟ぶんの自給侵食（EnclosureRate=0で即return＝恒等・非RGOはヘルパ先頭で不発）
                 }
             }
@@ -2284,10 +2301,11 @@ public sealed class World
 
     /// <summary>国営持分（利潤も赤字も国庫が受け取る割合）＝<see cref="EconomyStep"/> が所得分配で読む式**そのもの**。
     /// 唯一の定義をここに置き、エンジンも動詞もUIも同じこの関数を読む（第二の式を置かない）。
-    /// BuiltScale（国家が建てた容量）÷ Scale（今月の操業規模）。国有化法（接収が休眠のとき）はその下限を課す。</summary>
+    /// BuiltScale（国家が建てた容量）÷ Scale（今月の操業規模）。国有化法（接収が休眠のとき）はその下限を課す。
+    /// ★(200) 段2：工場は BuiltScale（旧の単位）×<see cref="EconomyStep.SlotsPerScaleUnit"/>（職場の数）÷ Scale（建てた設備＝職場の数）。産地は旧のまま（換算1）。</summary>
     public static double StateProfitShare(Producer p, Region r, Coefficients c)
     {
-        double f = p.BuiltScale > 1e-9 ? Math.Min(1.0, p.BuiltScale / Math.Max(p.Scale, 1e-9)) : 0.0;
+        double f = p.BuiltScale > 1e-9 ? Math.Min(1.0, p.BuiltScale * EconomyStep.SlotsPerScaleUnit(p, r) / Math.Max(p.Scale, 1e-9)) : 0.0;
         if (c.NationalizationSeizureRate <= 0 && r.NationalizedMask != 0 && Nationalization.IsNationalized(p.GoodId, r.NationalizedMask))
             f = Math.Max(f, c.NationalizationStateShare);
         return f;
@@ -2407,12 +2425,21 @@ public sealed class World
 
     /// <summary>その生産者の民営持分の**棟数**＝(Scale − BuiltScale) ÷ <see cref="Coefficients.FactoryBuildScale"/>（<see cref="StateUnits"/> の対）。
     /// ★2026-09-07：生産タブ（カード・一覧表・州別）と <see cref="StepFactoryTargets"/> が同じ1本を読む＝
-    ///   同じ棟数を UI とエンジンが別式で作らない（分子と分母の非対称の再発防止）。</summary>
-    public static int PrivateUnits(Producer p, Coefficients c)
-        => c.FactoryBuildScale > 1e-9
-            ? (int)Math.Round(Math.Max(0, p.Scale - p.BuiltScale) / c.FactoryBuildScale, MidpointRounding.AwayFromZero)
-            : (p.Scale - p.BuiltScale > 1e-9 ? 1 : 0);
-    public int PrivateUnitsOf(Producer p) => PrivateUnits(p, Coef);
+    ///   同じ棟数を UI とエンジンが別式で作らない（分子と分母の非対称の再発防止）。
+    /// ★(200) 段2：工場の Scale は職場の数＝旧の単位へ戻してから引く（Scale÷<see cref="EconomyStep.SlotsPerScaleUnit"/>）＝州が要る。担い手が居ない工場は0。</summary>
+    public static int PrivateUnits(Producer p, Region r, Coefficients c)
+    {
+        double scaleUnits = p.Scale;
+        if (EconomyStep.IsFactory(p))
+        {
+            double sus = EconomyStep.SlotsPerScaleUnit(p, r);
+            scaleUnits = sus > 1e-12 ? p.Scale / sus : 0;
+        }
+        return c.FactoryBuildScale > 1e-9
+            ? (int)Math.Round(Math.Max(0, scaleUnits - p.BuiltScale) / c.FactoryBuildScale, MidpointRounding.AwayFromZero)
+            : (scaleUnits - p.BuiltScale > 1e-9 ? 1 : 0);
+    }
+    public int PrivateUnitsOf(Region r, Producer p) => PrivateUnits(p, r, Coef);
 
     /// <summary>財カードの工場カウンター（作者仕様2026-09-07 (1)）＝「10/12」の中身を**一巡で**数える
     /// ＝分子と分母を別の集合・別の式から作らない。
@@ -2437,7 +2464,7 @@ public sealed class World
                 int units = StateUnitsOf(p);
                 st += units;
                 pd += Math.Max(0, p.StateTarget - units);
-                if (!p.Bankrupt) pv += PrivateUnitsOf(p);
+                if (!p.Bankrupt) pv += PrivateUnitsOf(r, p);
             }
         }
         return (st, pv, pd, Math.Max(FactoryTargetOf(goodId), st + pv + pd));
@@ -2555,15 +2582,18 @@ public sealed class World
     /// NationalizationSeizureRate=0 なら呼び手の条件が偽＝1命令も走らない（⚠既定は点火済みの0.05＝2026-08-29・live・x-02 で注記を是正）。</summary>
     private void Seize(Region r, Producer p, double suppress, double capitalPower)
     {
-        double want = Coef.NationalizationStateShare * p.Scale;
+        // ★(200) 段2：持分の単位をそろえる＝工場の Scale（職場の数）を旧の単位（BuiltScale の単位）へ戻して比べる（換算＝EconomyStep.SlotsPerScaleUnit・産地は1）。
+        double sus = EconomyStep.SlotsPerScaleUnit(p, r);
+        double scaleU = sus > 1e-12 ? p.Scale / sus : 0;
+        double want = Coef.NationalizationStateShare * scaleU;
         double gap = want - p.BuiltScale;
-        if (!(gap > 1e-9) || !(p.Scale > 1e-9)) return;
-        double resist = Coef.SeizureResistanceWeight * capitalPower * (gap / p.Scale);   // 奪われる持分が大きいほど強く抵抗する
+        if (!(gap > 1e-9) || !(scaleU > 1e-9)) return;
+        double resist = Coef.SeizureResistanceWeight * capitalPower * (gap / scaleU);   // 奪われる持分が大きいほど強く抵抗する
         if (!(suppress > resist)) return;                                                // 否定形＝NaN も「進まない」側へ落とす
-        double take = Math.Min(gap, Coef.NationalizationSeizureRate * p.Scale);
+        double take = Math.Min(gap, Coef.NationalizationSeizureRate * scaleU);
         p.BuiltScale += take;
         p.StateTarget = Math.Max(p.StateTarget, StateUnitsOf(p));   // 接収した持分をカウンターが翌月に売り戻さない
-        double share = take / p.Scale;
+        double share = take / scaleU;
         if (r.InvestorPopIndex >= 0 && r.InvestorPopIndex < r.Pops.Count)
             r.Pops[r.InvestorPopIndex].Militancy = PoliticalQuantities.Clamp01(r.Pops[r.InvestorPopIndex].Militancy + Coef.SeizureMilitancyCost * share);
         r.SeizureChill = PoliticalQuantities.Clamp01(r.SeizureChill + Coef.SeizureInvestmentChill * share);

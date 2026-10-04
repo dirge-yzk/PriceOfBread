@@ -641,6 +641,7 @@ public sealed class MultiNationSim
         {
             Nations[i].World.WarmupFrozen = false;
             if (i < prevPolitics.Length) Nations[i].World.PoliticsEnabled = prevPolitics[i];
+            Nations[i].World.RebaseGdpCycle();   // ★(200) 助走で付いた景気のピークを覚えない（暦の外の量＝国庫の置き直しと同じ理由）
         }
     }
 

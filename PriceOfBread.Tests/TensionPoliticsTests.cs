@@ -242,7 +242,8 @@ public class TensionPoliticsTests(ITestOutputHelper output)
             SetTension(dip, p, q, 0);    // 初期の係争を打ち消す＝目標の内訳は非目標の分の符号反転（≦0）
             double n0 = -Goal(dip, p, q);
             // 波及だけで「目標に数えれば線を超える」量を置く（波及を目標に数える取り違えを捕まえる）
-            dip.AddTension(p, q, c.RivalTensionThreshold + 5 + n0, TensionReason.ProvocationSpread); dip.AddTension(p, q, 20, TensionReason.Threat); dip.AddTension(p, q, 10, TensionReason.Provocation);
+            //   ★(200)：挑発を 10→20＝盤面の非目標の緊張 n0 が 5 を割る木（(200) の段2 の軌道で n0≈0.6）でも「線を大きく超える」前提が立つ（番人の規則は変えない）
+            dip.AddTension(p, q, c.RivalTensionThreshold + 5 + n0, TensionReason.ProvocationSpread); dip.AddTension(p, q, 20, TensionReason.Threat); dip.AddTension(p, q, 20, TensionReason.Provocation);
             Assert.True(dip.Tension(p, q) > c.RivalTensionThreshold + 40 && dip.Tension(p, q) < 200, $"前提が崩れた：緊張 {dip.Tension(p, q):G6}");
             Assert.False(Goal(dip, p, q) > c.RivalTensionThreshold, $"前提が崩れた：目標の内訳が既に線を超えている（{Goal(dip, p, q):G6}）");
             dip.Step(c, sim.Rng, month: 3);   // 四半期の月＝AI が動く

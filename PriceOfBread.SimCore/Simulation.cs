@@ -81,6 +81,9 @@ public sealed class Simulation
                 ?? throw new ArgumentException("Kind=Nation には NationConfig が要る"), scenario.Coef, scenario.SharedWorld),
             _ => BuildSelfSufficientFarm(),
         };
+        // ★(200) 段2（能力は建てた分だけ）：作った州の工場の設備の初期値（工場労働者の人数を工場の数で等分＝旧の最初の月と同じ）。助走を通る世界は助走が置き直す。
+        //   既存の州を受け取る構築（分離独立の建国＝PrebuiltRegions）は設備を持っている＝置かない。
+        if (scenario.PrebuiltRegions is null) foreach (var r0 in regions) EconomyStep.SeedFactoryCapital(r0);
         World = new World(regions, scenario.Coef)
         {
             Year = scenario.StartYear,
@@ -1471,6 +1474,7 @@ public sealed class Simulation
         // 以後この州はこの国の故地扱い（OriginPowerId）＝将来の喪失→再征服の往復で二重記帳しない。観測専用＝力学は読まない。
         region.OriginPowerId = w.SelfPower?.Id ?? -1;
         region.AnnexBaggage = P;
+        EconomyStep.SeedFactoryCapital(region);   // ★(200) 段2：新しい州の工場の設備の初期値（構築と同じ1本）
         return region;
     }
 
@@ -1762,6 +1766,34 @@ public sealed class Simulation
                 }
             }
         }
+    }
+
+    /// <summary>★(200) 段2 国の投資の池の後段（作者裁定 P5「国全体で1つの池」）：各州の投資家が立て替えた私的投資（工場の設備の材料と工賃・インフラの保守・送電網）の和を、
+    /// 池への出資（月初の投資枠）の比で負担し直す＝出資より多く立て替えた州の投資家へ、出資より少なかった州の投資家から（不足の額の比で）移す（移し方の1本＝保存）。
+    /// 払い手の貯蓄が足りなければ移せるだけ（Pop.Take）＝立て替えた州に残る。精算した額は0へ戻す（精算済み＝同じ月を2度精算しない）・計画の印も戻す。
+    /// ⚠(185) は工場の設備だけを池で精算し、保守と送電網は州の投資枠から引かずに払った（投資枠を最大2倍に使った＝反証役 vb1#5）＝3つとも同じ池へ。</summary>
+    internal static void SettleInvestPool(World w)
+    {
+        double spent = 0, pool = 0;
+        foreach (var r in w.Regions) { if (r.State != RegionState.Active) continue; spent += r.InvestSpentMonth; pool += r.InvestPoolShare; }
+        if (spent > 1e-9 && pool > 1e-9)
+        {
+            List<Pop>? payers = null; List<double>? owe = null;
+            foreach (var r in w.Regions)
+            {
+                if (r.State != RegionState.Active || r.InvestorPopIndex < 0 || r.InvestorPopIndex >= r.Pops.Count) continue;
+                double net = r.InvestSpentMonth - spent * (r.InvestPoolShare / pool);
+                if (net < -1e-12) { (payers ??= []).Add(r.Pops[r.InvestorPopIndex]); (owe ??= []).Add(-net); }
+            }
+            if (payers is not null)
+                foreach (var r in w.Regions)
+                {
+                    if (r.State != RegionState.Active || r.InvestorPopIndex < 0 || r.InvestorPopIndex >= r.Pops.Count) continue;
+                    double net = r.InvestSpentMonth - spent * (r.InvestPoolShare / pool);
+                    if (net > 1e-12) World.Transfer((w, payers), (w, [r.Pops[r.InvestorPopIndex]], null), net, fromWeights: owe);
+                }
+        }
+        foreach (var r in w.Regions) { r.InvestSpentMonth = 0; r.InvestPlanned = false; }
     }
 
     private void MonthSettle()
@@ -2208,6 +2240,22 @@ public sealed class Simulation
         double payRate = claims > 0 ? payable / claims : 1.0;
         if (!(payRate >= 0)) payRate = 0; else if (payRate > 1) payRate = 1;   // 否定形＝NaN は払わない側
         World.FiscalFundingRatio = payRate;
+        // ★(200) 段2 国の投資の池の前段（設計 §3A・作者裁定 P5「国全体で1つの池・州の間の摩擦は資材の輸送費だけ」）：各州の投資家の投資枠
+        //   （IndInvestmentFrac×max(0,貯蓄)×(1−接収の萎縮)＝旧の州の予算の式）を池への出資として撮り、全ての州の私的投資の計画（EconomyStep.PlanPrivateInvest＝
+        //   工場の設備・インフラの保守・送電網＝月初の盤面から）を先に足して、池の充足＝min(1, 池÷計画の和)を置く＝州ごとの計画（採算はその州で読む）を国の池の大きさで一律に縮める。
+        //   ⚠(185) は前の月の望みの和を状態（World.PrivateInvestWantLast）に貯めて分母にした＝この月の盤面から導く形へ（思想⑩・反証役 vb1#4）。
+        double investPool = 0, investPlan = 0;
+        foreach (var r in World.Regions)
+        {
+            r.InvestPoolShare = 0; r.InvestPlanned = false;
+            if (r.State != RegionState.Active || !r.CapitalEnabled || r.InvestorPopIndex < 0 || r.InvestorPopIndex >= r.Pops.Count) continue;
+            double share = EconomyStep.InvestBudget(r, World.Coef, r.Pops[r.InvestorPopIndex].Earned, true);   // Run の前＝Earned は前の月の所得
+            r.InvestPoolShare = share; investPool += share;
+            investPlan += EconomyStep.PlanPrivateInvest(r, World.Coef, World);
+            r.InvestPlanned = true;
+        }
+        double investFill = investPlan > 1e-9 ? Math.Min(1.0, investPool / investPlan) : 1.0;
+        World.PrivateInvestFill = investFill >= 0 ? investFill : 0;   // NaN は買わない側
         foreach (var r in World.Regions)
             if (r.State == RegionState.Active)
             {
@@ -2256,18 +2304,15 @@ public sealed class Simulation
                 {
                     double scrapKeep = 1.0 - World.Coef.DepressionScrapRate * Math.Max(0, World.GdpDrawdown - World.Coef.DepressionScrapThreshold);
                     r.Industrialization *= scrapKeep;
-                    r.OldVintageCapital *= scrapKeep;   // ヴィンテージ2026-07-10：恐慌の資本廃棄は新旧両層に同率（合計＝旧単層と同一動学）。StrandedVintageも比例縮小（座礁≤旧世代の不変条件を保つ・次月に再計算）
-                    r.StrandedVintage *= scrapKeep;
-                    if (World.Coef.DepressionScrapsBuiltScale > 0 && scrapKeep < 1)
-                        foreach (var fp in r.Producers)
-                            if (!fp.IsRgo && fp.BuiltScale > 1e-9 && fp.MothballFrac > 1e-9)
-                                fp.BuiltScale *= scrapKeep * fp.MothballFrac + (1.0 - fp.MothballFrac);   // 〔7-1〕第2版（2026-09-06）：**休止中の分だけ**解体（第1版＝採算割れ全部は batch10 硬性赤＝バイエルン最下位固定＝小国の工場が戻らない）。休止率0＝不変
+                    // 〔7-1〕恐慌で遊んでいる設備の解体（作者裁定 2026-09-06 §4-1「工場が1棟も消えないのは史実に反する」）＝★(200) 段2＝慢性の赤字で止まっている設備だけ（EconomyStep.ScrapIdleCapital）。
+                    if (World.Coef.DepressionScrapsIdleCapital > 0 && scrapKeep < 1) EconomyStep.ScrapIdleCapital(r, scrapKeep, World.Coef);
                 }
                 // 国家の調達・国営の損益・専売の精算を**区分ごとに**（2026-09-28 段2-1 D1〜D3）。旧＝1本の StateSpent を OtherOut へ呑ませ、
                 //   専売益だけを別の欄 LastStateMonopolyRevenue に二重に積んで割り戻していた＝財政タブで軍需・行政・教育・建設・補助・国営の損益の区分が出なかった。
                 World.SettleStateSpent(r);   // 国庫→生産者（支出）／生産者・消費者→国庫（専売益・国営持分の利潤）で保存（World の中の1本・2026-09-30 段4g）
                 // （植民地の採取費の対外流出と、その一部を植民地の蓄えへ渡す枝は 2026-09-28 に削除＝旗 TradeColonialGoods=1 で常に0だった）
             }
+        SettleInvestPool(World);   // ★(200) 段2：国の投資の池の後段（立て替えを出資の比で負担し直す）
         ProbeCheck("月次経済");
         Transport.Step(World, World.Coef);                               // §5.1拡張 輸送容量（鉄道/船を積む→Tradeで交易量を律速）
         ProbeCheck("月次輸送");

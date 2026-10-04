@@ -111,10 +111,13 @@ public sealed class Coefficients
        労働配分が動くので帯は揺れるが「作れない財に労働者が張り付かない」＝正しい挙動を優先（0で旧挙動へ戻せる）。 */
     public double TechGatedScaleZero = 1.0;
     // ⚠撤去2026-08-22: LaborFloorMix（均等床0.15）＝準レント配分では不要（価格上昇が重みを自動で戻す）・作者裁定「ラッダイトは必須」＝職人と工場の27倍の非対称も同時に消える。墓標は上の準レント注記。
-    // --- 企業の操業規模（参入退出。採算で伸縮し供給を需要へ寄せる＝価格二極化の是正・§9-A 仕組み4）---
-    public double ScaleAdjustSpeed = 0.05;   // 操業規模が採算の目標へ寄る速さ（緩やか＝供給の振動を防ぐ）
-    public double ScaleFloor = 0.1;          // 採算が悪い工場の最小規模（≒閉鎖。0でなく＝需要回復で再開できる）
-    public double ScaleMax = 3.0;            // 採算が良い工場の最大規模（拡張＝希少財へ労働を集める）
+    // --- 産地（RGO）の操業規模（参入退出。採算で伸縮し供給を需要へ寄せる＝価格二極化の是正・§9-A 仕組み4）---
+    // ★2026-10-04 (200) 段2（生産を市場から導く・能力は建てた分だけ・作者 2026-09-28「全て推奨で採択」）：工場（労働を市場で買う RGO でない生産者）は
+    //   この3本を読まない＝工場の Scale は建てた設備（職場の数）そのもの（EconomyStep.IsFactory）。読み手は産地（RGO）の作付の取り分だけ
+    //   （設計 §3 の注＝産地の能力は土地と賦存で決まる＝この段の外）。
+    public double ScaleAdjustSpeed = 0.05;   // 産地の操業規模が採算の目標へ寄る速さ（緩やか＝供給の振動を防ぐ）
+    public double ScaleFloor = 0.1;          // 採算が悪い産地の最小規模（≒閉鎖。0でなく＝需要回復で再開できる）
+    public double ScaleMax = 3.0;            // 採算が良い産地の最大規模（拡張＝希少財へ労働を集める）
     // 工場の倒産・有限責任（数期移動平均の採算で退出）。有効化済み（旧・既定オフの理由＝床は過剰供給(グルット)の症状であり、
     // 本来黒字（参照価格なら採算可）の財まで、しかも工業化前で需要の低い必須資本財まで倒産させ、工業化が崩壊するため＝
     // グルット是正後に true 化。保存則は不変＝倒産は産出0で損失を出さない）。
@@ -128,7 +131,7 @@ public sealed class Coefficients
     public double FactoryMarginSmoothing = 0.025;  // 採算EMAの平滑係数（小＝長い移動平均＝一過性の赤字では潰れない。0.025≒3年＝持続的危機のみ倒産）
     public double FactoryBankruptcyMargin = -0.85; // 平滑採算がこれ未満で倒産（原価の15%以下で売り続け＝極度の慢性赤字のみ。死のスパイラル防止）
     public double FactoryReentryMargin = -0.05;    // 倒産中、現採算がこれ超で新規参入（やや赤字でも再開＝恐慌からの早い回復）
-    public double FactoryReentryScale = 0.3;       // 新規参入時の操業規模（小さく入って採算が良ければ拡張）
+    public double FactoryReentryScale = 0.3;       // 新規参入時の操業規模（小さく入って採算が良ければ拡張）。★(200) 段2＝工場も倒産で退出する（民営の設備は清算されて0）が、再参入は設備0のまま（能力は建てた分だけ＝私的投資が種火から建てる）＝読み手は産地の再参入だけ
 
     // --- pop 意思決定（§9-D・段1）---
     public double Mobility = 0.02;            // 階級間の再配分速度（緩和）
@@ -1135,13 +1138,14 @@ public sealed class Coefficients
     // 恐慌が『ストック』を削る＝覇権の構造的先行（工業化）を大恐慌が巻き戻す。閾値超のドローダウンにのみ効く。
     public double DepressionScrapRate = 0.06;       // 閾値超ドローダウン1あたりの月次・追加工業化減価（0で無効）。大恐慌(DD50%・閾値0.2→超過0.3)で月1.8%の資本廃棄。※深め過ぎは逆効果（挑戦者をより壊す）＝中庸0.06が最適
     public double DepressionScrapThreshold = 0.20;  // これ未満のドローダウンでは資本廃棄なし（通常の景気循環では工場は壊さない・大恐慌のみ）
-    // 〔7-1〕恐慌の資本破壊を BuiltScale へ（2026-09-06・作者裁定§4-1「工場が1棟も消えないのは史実に反する」）：恐慌の同じ月に、床（BuiltScale）に
-    //   支えられて操業している工場＝床が無ければ閉鎖している工場だけ、BuiltScale を同じ scrapKeep で廃棄する（RGO は対象外）。0＝従来（厳密恒等）。
-    public double DepressionScrapsBuiltScale = 1.0;   /* ★点火2026-09-06＝0.0→1.0・〔7-1〕恐慌の資本破壊を BuiltScale へ（採算割れの工場だけ閉鎖） */
-    // ヴィンテージ資本有効化2026-07-10（キュー5＝2026-07-08承認の工程(1)）：技術先行国の旧資本が後年に足枷となり後発が新鋭資本で競り勝つ（実力ベース首位交代の本命）。
-    // 配線＝新旧合計(TotalIndustrialization)を従来読者へ・座礁控除(ProductiveIndustrialization)は生産性チャネルのみ＝座礁だけが現行との差分（較正中立の分割・Model.cs Region参照）。
-    public double VintageMigrateRate = 0.005;     // ヴィンテージ資本（no-vintage-capital-depreciation）：現世代→旧世代の月次経年率。0.005＝半減期約11.6年（19世紀設備の世代交代）。0で二層化せずOldVintageCapital=0（現行恒等）
-    public double VintageObsolescence = 0.5;      // 旧世代の生産性寄与を技術差で割り引く座礁の強さ（座礁分＝これ×techGap・techGap=2で全損）。トリアージ/承認工程に推奨値なし＝配線テスト値0.5を採用（保守側はここから半減）。0で割引なし＝Industrialization単一スカラーの現行に恒等
+    // 〔7-1〕恐慌で遊んでいる設備の解体（2026-09-06・作者裁定§4-1「工場が1棟も消えないのは史実に反する」・旧名 DepressionScrapsBuiltScale＝休止中の床〔BuiltScale×MothballFrac〕を解体）。
+    //   ★(200) 段2：休止（MothballFrac）を撤去した＝解体の対象を「慢性の赤字で止まっている設備」（止まっている割合＝平滑化した採算の負の深さ÷SupplySlope・0〜1）へ写した
+    //   （Simulation の恐慌の資本破壊の段）。寿命（IndDepreciation＝全ての月・全ての設備）とは別の原因＝閾値超のドローダウンの月だけ・採算が正の工場は壊さない
+    //   （二重計上でない＝(185) が消したのを戻した・反証役 vb1#2）。＝これ×(1−scrapKeep)×止まっている割合を解体（国営の持分も同じ割合）。0で解体なし。
+    public double DepressionScrapsIdleCapital = 1.0;
+    // 【墓標2026-10-04 (200) 段2】ヴィンテージ資本（VintageMigrateRate 0.005・VintageObsolescence 0.5＝旧世代の工業化資本が技術差で座礁）＝撤去
+    //   （設計 §5「旧世代の陳腐化 → 撤去。古い製法の工場は変動費を賄える間は残り、賄えなくなれば止まる＝市場が陳腐化を決める」・作者 2026-09-28「全て推奨で採択」）。
+    //   Region.OldVintageCapital・VintageTechLevel・StrandedVintage も削除＝工業化度は1層（TotalIndustrialization は Industrialization そのもの）。
     // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】RevolutionLandReform＝革命が土地権力を壊す＝共和革命で限定・プロ独裁で全面の土地改革を floor-raise（2026-08-04 点火）
     // BlockedLawGrievance（阻止された要求の不満）は 2026-09-20 に係数ごと削除＝裁定C2（PushedLawGrievance と対・段の点火で不到達になった）。
     public double OpulenceTaxRelief = 1.0;         // ★2026-08-04（P4）：国庫が月次義務の8四半期分を超えたら超過に比例してAIの税目標を縮める（床0.25）。旧＝スタンスの税目標が固定率で、黒字国が経済から貨幣を吸い上げ続けデフレ螺旋（プロイセン国庫1.3M/GDP17k・米38M）。0で厳密恒等
@@ -1151,11 +1155,31 @@ public sealed class Coefficients
     // ⚠撤去2026-08-12（再点火禁止・読み手ごと削除）: MilitarizeSpendThreatSpan  【墓標2026-08-08＝「形が先・金が後」（SpendFromNeedWeight）が代替済み・再点火禁止】★2026-08-04：Militarize の軍事費0.7を脅威で連続化＝0.7−これ×(1−脅威)。**0.4はA/B実測で棄却＝休眠確定**（政体exact−4.3・法−3.8・列強−3.8・経済−2.5＝軍縮した列強の軍事項が痩せて順位が崩れる。多様性は土地の政治力による教義の是正が既に担う）。0で旧＝0.7固定（厳密恒等）。⚠2026-10-02 (155)：同じ系統（脅威の連続値で軍事費の段）を作者の承認の形（脅威の入口を軍事費の段の1つ・作者 2026-10-01 に異議なし）で再導入＝UtilityAgent.SecurityStageTarget（前回の棄却と同じ向きの結果は実装ログ (157) の作者への確認・(157) の注記）
     public double ClosedWealthMultiple = 1.0;     // ★2026-08-04（統一根）：貴族・聖職の初期資産の倍率＝**土地**。旧＝3000/人で資本家3200/人とほぼ同額＝旧支配層の政治力が英3%（blocprobe実測）＝法の門番が全員素通り＝全国1783年に近代法＝工業化の全球収束。1.0で旧と厳密恒等
     // 【墓標2026-09-26（棚卸し dorm-50）】IndInvestFromIncome（私的投資の原資を貯蓄でなく所得にする器・「0で確定＝休眠」2026-08-04）＝削除。0.4×所得で点火すると世界が崩壊した（英GDP 290,733→2）＝資本コストの較正が貯蓄ストック（所得の175〜300年分）を前提に組まれている。再挑戦は建設費・減価・貯蓄を同じ回で動かす大改修と一緒に（検討 §10-10［金融1］）
-    public double IndInvestmentFrac = 0.05;       // 投資家（資本家）が貯蓄からこの割合まで投資に回せる（affordability 上限）
-    public double IndInvestmentSpeed = 0.012;     // 投資の速さ（純収益→建設需要への換算）
+    public double IndInvestmentFrac = 0.05;       // 投資家（資本家）が貯蓄からこの割合まで投資に回せる（affordability 上限）。★(200) 段2＝国の池（作者裁定 P5「国全体で1つの池」）＝各州の投資家の投資枠の和が月の上限
+    // ★(200) 段2：投資枠＝IndInvestmentFrac×貯蓄（ストック）＋これ×前の月の所得（フロー）（上限＝貯蓄・EconomyStep.InvestBudget）。消費の予算からは投資枠の全額を控除する
+    //   （消費と投資が同じ貯蓄を二重に使わない）。旧の器 IndInvestFromIncome（0.4×所得で原資を**置き換え**＝英GDP 290,733→2・2026-09-26 削除）は原資を所得だけにした＝
+    //   旧の工業化度の資本の値段（貯蓄のストックを前提に組んだ）で世界が崩れた。ここは**足す**（ストックの枠は残す）・資本の値段は資本係数（CapitalOutputRatio）で産出に比例。
+    //   理由（(200) の腕 NP＝池で縮めない帰属の腕）：投資家の貯蓄は時代とともに細る（腕A でも米 1883・日 1903・英 1923 に0 近く＝貯蓄のストックだけの枠では
+    //   国の池の充足が 仏 0.22・米 0.04〜0.14（1883〜1922）＝寿命の減りに投資が追いつかず西欧と米の工場の設備が 1860 年代から縮み、経済規模 57→25%・列強・再現率 41→24%）。
+    //   値は旧の器の値（0.4＝所得の4割まで再投資）＝推奨で進めた（作者の承認は未確認）。
+    public double IndInvestIncomeFrac = 0.4;
+    // ★(200) 段2（投資は採算の高い所へ・設計 §3A・作者裁定 P6・(185) の式）：工場の能力の望む伸び（月・産出の単位）＝これ×(見込みの採算−ハードル)×基準
+    //   （見込みの採算＝平滑化した採算＋InvestExtrapolationWeight×(今の採算−平滑化した採算)・基準＝(自分の産出＋州の誰も作っていない需要)×投入の充足＋種火の床 TargetStockFloor＝EconomyStep.PlanPrivateInvest）。
+    //   旧＝工業化度の限界収益（飽和カーブの傾き×(1+IndTechLeverage×技術)−IndCapitalCost）→建設の束（読み手を撤去・IndCapitalCost と IndTechLeverage は削除）。
+    //   定常＝寿命の減り（IndDepreciation×能力）＝これ×超過×基準＝稼働（基準÷能力）×超過＝IndDepreciation÷これ（0.012 で 0.25）＝稼働と採算の釣り合いの点を決める。
+    //   ★(200) 0.012→0.15（推奨で進めた）＝同じ種の5種の腕で速さを 0.012・0.05・0.15・0.3・0.6 に分けた（腕 C1〜C5）：0.012 は exact 39.7・near 62.0（腕A 52.5・86.9）
+    //   ＝定常の稼働×超過が 0.25 で設備が寿命に追いつかず縮んだ（(185) の反証役 vb1#1 の根）・0.05 は 45.6・82.6・0.15 は 48.5・86.2・0.3 は 51.1・84.6・0.6 は 50.5・79.7
+    //   （清の工業化が 1820 年代に英を越える）＝判定の線の内側で清の 19 世紀半ばの向きが史実に近い 0.15（定常の稼働×超過＝0.02）。
+    public double IndInvestmentSpeed = 0.15;      // 投資の速さ（見込みの採算の超過1あたり・月あたりの能力の伸び÷基準）
+    // ★(200) 段2（能力は建てた分だけ）：月に1単位の産出の能力を据える設備の値段＝これ×12か月×参照価格（参照価格の金額・EconomyStep.CapitalPerOutputRef）。
+    //   ＝工業の資本÷年の産出の価額。出典＝米国の製造業の国勢調査（75都市の集計・1892年12月6日の大統領教書〔FRUS 1892〕が引く数）＝1880年 資本 12.33億ドル÷製品の価額 27.12億ドル＝0.45・
+    //   1890年 29.01億÷48.60億＝0.60（資本は運転資本を含む）＝0.5（間の丸めた値）。読み手＝私的投資の計画の金額と決済（建った価値→能力）。
+    //   ⚠(185) は1職場あたり（×生産性・倍率なし）＝倍率の高い国ほど能力あたりが安かった＝産出の単位へ直した。国営の棟は旧の大きさ（FactoryBuildScale×旧の操業規模1の職場の数）
+    //   ＝建設費（FactorySpec）と私的投資の値段はそろえていない（作者 2026-09-08「国家建設も資本家の投資も同等に建設コストを支払う」は工業化度の廃止の設計の段で）。
+    public double CapitalOutputRatio = 0.5;
     public double IndPerConstruction = 0.01;      // 建設1単位が工業化度を上げる量（要較正）
     public double StateBuildCost = 40_000;        // 手動工場建設1回の国庫予約額。資本家と同じ建設の束（鋼/機械/セメント/製材）を国庫負担で買い工業化度に変換
-    public double RgoCapitalShare = 0.5;   // ★2026-08-04（作者指示「投資家もプランテーションや鉱山に投資するように」）：資本家の建設が生む工業化度のうち、最も採算の良いRGO（農園/鉱山/牧場）の作付面積（BuiltScale＝Scaleの下限）へも回る比。旧＝資本家の建設は工業化度にしか変わらず、RGOは採算によるScaleの伸縮だけで**面積を増やす資本がどこからも来なかった**（工場はBuiltScaleが下限を押し上げるのにRGOには無い）。史実の農園・鉱山は資本を吸って規模を広げる（囲い込み・カリブの砂糖・南アの金）。同じ建設束・同じ予算から出す＝新しい資源も市場も作らない。0で厳密恒等（休眠）／StateShareCounterOnly=1.0 点火（2026-08-30）により既定ではこの枝は不走行＝rgoprobe 対照実験用に残置
+    // 【墓標2026-10-04 (200) 段2】RgoCapitalShare 0.5（資本家の建設の工業化度の一部を最も採算の良い RGO の BuiltScale へ・2026-08-04）＝削除（EconomyStep の墓標・StateShareCounterOnly=1 で走らなかった）
     public double FactoryBuildScale = 0.5;        // 離散工場1棟の建設で増える生産者のScale下限（工場容量＝Vic2型）
     public double FactoryMaterialFrac = 0.6;      // プレイヤーの工場建設費のうち材料（鋼・機械・セメント・製材）に充てる割合。残り(0.4)は工賃（StepConstructionで工員へ）。材料は建設期間で徐々に消費
     public double ConstructionLaborWageFrac = 0.67; // 投資家/国家の建設：材料費×これを工賃として工員へ（材料6:工賃4の比＝投資にも工賃が乗る）
@@ -1172,10 +1196,8 @@ public sealed class Coefficients
     public double MilitaryBuildCostCapScale = 1.0;
     public double FactoryBuildAffordSteep = 4;   // ★点火2026-08-31＝16→4（清レポ＝16は「逓減の衣を着た崖」。4で束比3倍でも進捗が細く残る＝壁でなく逓減。ラウンドA実測でハーネス末端財の死蔵も解消）
     public double FactoryStartAffordFloor = 0.15; // ★点火2026-08-31＝0.5→0.15（清レポ4-1「建設の壁」＝後発国の束比3〜5倍で着工が離散的に不可能だった崖の是正。進捗側が同じ採算率で連続に絞るので床は低くて良い。旧World定数の係数化と同時）
-    // ★休止（mothball・AI審査2-6・2026-08-31）：建てた工場（倒産免除）の慢性赤字を止める欠けていた第4の動詞（施設は残る/倒産する/★休止する/国有化される）。
-    public double FactoryMothballRate = 0.05;    // ★点火2026-08-31（ラウンドB）＝月次の休止/再開の速度（床割合/月）。建てた工場（倒産免除）の慢性赤字の垂れ流しを止める第4の動詞（施設は残る/倒産/★休止/国有化）。0で休止なし
-    public double FactoryMothballMarginIn = 0.15; // 休止に入る慢性赤字の深さ（SmoothedMargin<−これ）。再開は採算回復（>0）＝閾値を増やさない
-    public double FactoryMothballCap = 0.9;      // 休止できる床の上限割合（×民営持分。国営持分は休止しない＝国庫が支える既存設計の維持）
+    // 【墓標2026-10-04 (200) 段2】休止（FactoryMothballRate 0.05・MarginIn 0.15・Cap 0.9・Producer.MothballFrac）＝撤去（設計 §5「赤字の工場は月5%で休止 →
+    //   価格が変動費を下回れば止め、上回れば動かす」＝短期の供給曲線〔採算の割合＝(価格−変動費)÷(変動費×SupplySlope)〕がそのまま止める・作者 2026-09-28「全て推奨で採択」）。
     // ★塊1 飢饉の深さ（AI審査2-1/2-2・docs/20260830/20260830_塊1）。段0と段1bは**別々に測る**（符号の是正と参加者追加は別の帯）。
     public double StapleElasticityZero = 1.0;        // ★点火2026-08-31（ラウンドB）＝段0：主食の自己価格弾力を0に＝必要量は生理的に決まり、買えるかは予算制約が決める（符号の是正＝正しい挙動枠）。主食どうしの乗り換え（CrossElasticity）は残る。実測＝経済+3.8/領土+3.3/貿易+5.6/英常勝6→4勝・◎−3は記録コスト。0で旧データ弾力
     public double FoodIncludesAnimalProtein = 0.0;   // 段1b：動物性タンパク（加工肉63/干物64・Nutrition=1）を食料に数え、交差弾力の食卓に参加させ、主食の必要量を AnimalNutritionNeedRatio で譲る（総食料需要は中立）。ギッフェン＝肉高騰→需要がパン/芋へ流れる、が既存の交差弾力から創発。0＝厳密恒等
@@ -1218,9 +1240,8 @@ public sealed class Coefficients
     public double RefrigerationEffect = 0.7;      // 完全な冷蔵で生鮮の腐敗が下がる最大割合（0で無効）
     public double RefrigerationIndOnset = 1.0;    // 冷蔵が立ち上がる工業化度（これ未満＝冷蔵なし＝従来の腐敗）
     public double RefrigerationIndSpan = 1.5;     // 冷蔵が完全に効くまでの工業化度の幅（onset+spanで満額）
-    // 収益駆動の投資：限界収益(逓減)×(1+Leverage×技術) − CapitalCost > 0 の間だけ投資＝固定上限なしで均衡が創発。
-    public double IndCapitalCost = 0.7;           // 投資の資本コスト（D1腕=0.45の顛末は IndDepreciation の注記を参照）
-    public double IndTechLeverage = 2.4;          // 技術が工業化の収益を高める強さ（高技術国ほど高工業化＝国ごとの差を生む）
+    // 【墓標2026-10-04 (200) 段2】IndCapitalCost 0.7・IndTechLeverage 2.4（工業化度の限界収益×(1+Leverage×技術)−CapitalCost＝私的投資の収益）＝削除
+    //   ＝私的投資はレシピごとの見込みの採算へ（IndInvestmentSpeed の注記）。ハードル＝クラウディングアウト（CrowdingOutWeight）−株式の熱狂（EquityHeatEuphoria）のまま。
     public double BaseUrbanCap = 0.20;            // 前工業の都市化上限（1789≈20%）
     public double UrbanCapFollowSpeed = 0.02;   // 【点火0.02・2026-08-16＝S級梯子r4単独37/71/56】都市化天井の工業化追従に建設時間（時定数≈4年）＝天井ジャンプ時の史実比8-10倍速い都市化を律速。      // 監査2026-07-05（D3）：都市化天井の工業化追従速度（月次）。1=即時追従（現行と厳密一致）・0.02程度で住宅/インフラの建設時間＝天井が数年遅れて追いつく。#17で有効化検討
     public double UrbanPerInd = 0.08;             // 工業化度1あたり都市化上限の上乗せ（史実：1890で都市≈37%）
@@ -1242,11 +1263,9 @@ public sealed class Coefficients
     public int LumberGoodId = Catalog.LumberId;
     // ★段1（2026-09-30・財の削減＝作者裁定 Q2）：工場建設費の素材階層+α FactoryTierMachinePerDepth（出力財の連鎖の深さ×機械の上乗せ・2026-08-09 点火）を撤去＝
     //   深さで時代や難しさを表さない（発見が表す）。建設費の差は FactorySpec（カテゴリの建設費）と建設の束の価格が持つ。
-    // 工業化に伴うインフラ敷設（鉄道）＝建設に比例して消費。資本財段（機関車→蒸気機関→機械部品）へ需要が波及し死蔵を解消。
+    // 鉄道の財（保守の線路・機関車・運行の石炭）。【(200) 段2】資本家の建設の束の線路・機関車（ConsRail 0.25・ConsLoco 0.12）＝削除（工場の設備の束に線路は要らない・鉄道の容量は Transport が自分で買う）。
     public int RailGoodId = Catalog.RailId;                   // 線路
     public int LocoGoodId = Catalog.LocomotiveId;                   // 機関車
-    public double ConsRail = 0.25;
-    public double ConsLoco = 0.12;
     // 敷設済みインフラの保守需要＝工業化度×これ。成長（建設）が止まってもセメント/線路/機関車を毎期消費＝定常でも消費先が持続（死蔵解消）。
     public double InfraMaintRate = 0.4;
 
@@ -2530,10 +2549,8 @@ public sealed class Coefficients
     /* 【墓標2026-09-26（棚卸し dorm-50）】CurrentInputFillGates＝★★★**恒久的に0（作者裁定2026-08-01）＝上と同じ理由で「意図した実装」**＝旗と逆側の枝を削除。
     // 当期投入が涸れても前期充足率で産出できることが、**上位工場を先に建ててから下流を整備する**プレイの余地を作っている。
     // 実測（2026-07-31・参考）：単独点火でテスト6本失敗（MultiNation/Tax 系）＝産出水準そのものが下がり較正の土台が動く。⚠**再点火の検討をしないこと。** */
-    public double ConstructionMaterialCarryover = 1.0;   /* ★**点火2026-08-01（作者裁定＝リアリティ優先・帯とは切り分ける）**：
-    // 「無から生成したものを翌月から引く／余った素材を市場に返す」＝買ったのに律速で使い切れなかった非律速資材を翌月の需要から差し引く。
-    // ⚠実測（2026-07-31・単独）＝硬性ゲートは全緑だが◎7割帯 21→13・固着4→8・逸脱過多13→17。★**帯の劣化は較正で取り戻す対象であって、機構の可否の判断材料にはしない**（作者裁定）。
-    // ⚠既知の限界＝繰越は**1段（翌月まで）で上書き**＝2ヶ月使わなかった資材は廃棄される。完全な物量管理にするなら累積へ（有界性の設計が要る） */
+    // 【墓標2026-10-04 (200) 段2】ConstructionMaterialCarryover（経17・建設の束の Leontief の端数の繰越・2026-08-01 点火）＝撤去：私的投資の束は買えた資材と工賃の
+    //   参照価格の価値で数える（EconomyStep の投資の決済）＝律速で使い残す資材が出ない＝繰越は常に0だった（Region.ConstructionCarryover・AddConsWithCarry も削除）。
     public double EuphoriaUsesStableReserve = 1.0;   // 金利doc B7（2026-07-30・点火＝0→1）。経8（Heat符号逆転）：株式ユーフォリア項が参照する与信過熱Heatの分母を、取り付けで縮む実効上限(0)か準備縮小前の安定上限maxLoans(1)かでブレンド切替。0で従来の縮小後基準を厳密再現・1で取り付け中の偽の過熱スパイク→投資刺激の符号逆転を防ぐ
     // 【墓標2026-09-26・旗の焼き込み（x-01・0-4）】CapitalOutflowFromInvestors（経9・既定1.0）＝配当/逃避の流出は投資家貯蓄から（不足分のみ全pop按分）に固定。⚠B4裁定2026-07-31の「0..1の連続化」は未実装のまま（旗は2値だった）
     // 資金逃避（07_再設計 §5(b)・2026-07-31点火）：国債への不信が閾値を超えると自国の資本家も対外資産へ逃げる。保存＝金は受け皿の国の投資家へ・請求権は逃げた側の CapitalAbroad と受け皿の ForeignCapitalIn の対（2026-09-22）
@@ -3200,15 +3217,8 @@ public sealed class Coefficients
     //   AIの投げ売り（fiscalStress）も同じ CanSellFactory を通る＝対称。
     public double SoeSaleMilitancyCeil = 0.0;
     public int StateTargetMax = 99;                    // 国営工場カウンターの上限（作者仕様＝0〜99）
-    // ★「国営持分が勝手に増えるのを止める」（作者裁定2026-08-10 B節「自動的な拡張なし」）。唯一の自動拡張＝EconomyStep の RgoCapitalShare
-    //   （資本家の建設予算の一部を最も採算の良いRGOの BuiltScale へ回す）。BuiltScale は同時に stateFrac でもあるので、
-    //   **私的な資本が農園/鉱山の地代を静かに国庫へ移していた**（国が何もしていないのに国営部門が育ち、地代が静かに国庫へ流れる）。
-    //   >0 でこの拡張を止め、国営持分はカウンター（World.SetStateTarget）経由でのみ増える。0で厳密恒等（旧挙動）。
-    // ★★点火＝1.0（2026-08-10）。副作用「RGOの能力が痩せないか」は rgoprobe で実測して確認した＝
-    //   RGO の能力（Scale）は採算駆動（scaleTarget=1+margin を ScaleAdjustSpeed で追う・上限 ScaleMax）で決まり、
-    //   BuiltScale はその**下限（ラチェット）**を与えていただけ。旧経路が131年で積む国営持分はRGO全体の数%規模＝
-    //   能力の主因ではない（番人＝StateFactoryTests「自動拡張が止まってもRGOの能力は痩せない」）。
-    public double StateShareCounterOnly = 1.0;   // ★点火2026-08-30（合成先行300Q＝経済+10.0/列強+7.6/法+3.5/exact+1.5/破綻0。604Q受け入れbatch30で最終確認・記録は20260830doc）＝作者裁定2026-08-10「自動的な拡張なし」をようやく実装どおりに（§1-3の嘘コメント事件）
+    // 【墓標2026-10-04 (200) 段2】StateShareCounterOnly 1.0（作者裁定2026-08-10 B節「自動的な拡張なし」＝RgoCapitalShare の枝を止める旗・2026-08-30 点火）＝枝ごと削除（EconomyStep の墓標）。
+    //   国営持分はカウンター（World.SetStateTarget）と接収でだけ増える（裁定の形のまま）。
     // ==== 参政権の範囲2法（作者裁定2026-08-16・docs/202608/20260815_失業プールと社会移動_部分完了.md 末尾「参政権の範囲2法」節）====
     // 植民地参政権（なし/自国民のみ/全面）＋移民原住民参政権（なし/あり）＝「誰が政治的国民か」を法にする。
     public double SuffrageScopeGate = 1.0;   /* ★点火2026-09-06＝0.0→1.0・E-11 参政権の範囲法（再測で採用） */             // **主フラグ・点火済み**：0へ戻せば全効果が1命令も走らない厳密恒等（法選好Pref=0＝要求にも載らない・UIの2行も非表示＝natVis と同型）。
@@ -3511,7 +3521,7 @@ public sealed class Coefficients
     public double RentScarcityElasticity = 1.0;   // ★点火2026-08-31（清レポ3-4＝成長→地代→旧支配層強化の負帰還・ラウンドA実測＝◎8→11/固着38→31/列強+6.2/経済+8.8）   // 地代の土地稀少弾力（EconomyStep §④）：RGOの実効RentShare=RentShare×(1+これ×稀少度)。稀少度=max(0, 農村人口/ArableLand−1)＝landFactorと同一入力（ArableLand÷農村人口）の逆数側・センチネルArableLand≥1e8は除外（LandFactorと同じ）。clamp上限＝既存の物差しFarmRentCap（土地改革/農奴解放の法上限・≤1.0＝賃金非負も保存）。土地が稀少なほど地主の取り分↑→農民のEarned↓＝プッシュ型離農の駆動。0で×1.0＝IEEE恒等（ゲート内でのみ計算＝分岐ごと不読）
     public double ParliamentStreetSupersede = 0.5;   // ★点火2026-08-31＝議会の二重票の是正（清レポ3-6）：議会がある国では3ブロックの街頭力の半分を議席チャネルへ譲る（党の選好表＝ブロックの選好表なので旧は二重加算＝共和国化で教育法が2.7倍通りにくくなった実測。1.0全譲は法一致−6.2で0.5に裁定＝ラウンドA腕2）。未代表（小営業・軍・国庫）は街頭のまま。0＝旧二重加算
     public double RumpReabsorbYears = 5.0;           // ★点火2026-08-31＝残骸国家の自然再併合：内戦の白紙分断で生まれた国が親GDP1%未満を5年続けたら平和的に再統合（ReabsorbNationsの既存機構＝保存両建て）。親が交戦中/消滅なら持ち越し。0で無効
-    public double EnclosureRate = 0.0;   // rank5第2段（別A/B）＝囲い込みの自給侵食（EconomyStep.ApplyEnclosure）：RGOの資本拡張（BuiltScale増分）1単位あたり当該州農民pop（RGOの労働pop）のSubsistenceをこれ×増分だけ微減（下限0）＝プランテーション・囲い込みが自給地を市場向けに転換する物理。増分の発生源＝World.StepConstruction完成（1棟=FactoryBuildScale）とEconomyStep.RgoCapitalShare枝（休眠対照）。接収（NationalizationSeizure）は所有移転であって資本拡張でないため対象外。0で1命令も走らない＝厳密恒等
+    public double EnclosureRate = 0.0;   // rank5第2段（別A/B）＝囲い込みの自給侵食（EconomyStep.ApplyEnclosure）：RGOの資本拡張（BuiltScale増分）1単位あたり当該州農民pop（RGOの労働pop）のSubsistenceをこれ×増分だけ微減（下限0）＝プランテーション・囲い込みが自給地を市場向けに転換する物理。増分の発生源＝World.StepConstruction完成（1棟=FactoryBuildScale）（EconomyStep.RgoCapitalShare枝は (200) 段2 で削除）。接収（NationalizationSeizure）は所有移転であって資本拡張でないため対象外。0で1命令も走らない＝厳密恒等
     // 出生配分の凍結分母の是正（docs/202608/20260815_失業プールと社会移動_部分完了.md「点火直後の回帰＝聖職者爆発」節・作者裁定＝年代スケール禁止・確立した形で）：
     // BirthWeight の popごと t=0 凍結分母（InitialFertileShare）は、初期構成が偏ったpop（聖職者F=0.10）が新生児蓄積で構成正常化すると
     // 分母凍結のまま分子が育ち恒久出生倍率（実測2.1倍）になる罠＝「比のガードは絶対値で書かない」と同族。

@@ -1163,18 +1163,20 @@ public class DiscoveryScoreTests
         double tOff = Tech(false), tOn = Tech(true);
         Assert.True(tOff > 0, "前提が崩れた（技術が伸びない）");
         Assert.True(tOn > tOff * 1.0001, $"特許を見つけた国の技術の伸びが速くならない（{tOff}→{tOn}）");
+        // ★(200) 段2：私的投資は工業化度を積まず工場の設備（Scale＝職場の数）を積む＝投資の量＝月の後の設備−月の前の設備×(1−寿命の減り)。
         double Ind(bool js)
         {
             var s = Grown(); var w = s.World; var r = w.Region;
             w.Discovered[Discovery.JointStockRow] = js;
             r.Pops[r.InvestorPopIndex].SetSavings(1e9);
-            double i0 = r.Industrialization;
+            double k0 = 0; foreach (var f in r.Producers) if (EconomyStep.IsFactory(f)) k0 += f.Scale;
             EconomyStep.Run(r, w.Coef, 1.0, w.Bank, w);
-            return r.Industrialization - i0;
+            double k1 = 0; foreach (var f in r.Producers) if (EconomyStep.IsFactory(f)) k1 += f.Scale;
+            return k1 - k0 * (1.0 - w.Coef.IndDepreciation);
         }
         double iOff = Ind(false), iOn = Ind(true);
-        Assert.True(iOff > 0, $"前提が崩れた（工業化の投資が立たない {iOff}）");
-        Assert.True(iOn > iOff * 1.0001, $"株式会社を見つけた国の工業化の投資が速くならない（{iOff}→{iOn}）");
+        Assert.True(iOff > 0, $"前提が崩れた（私的投資が立たない {iOff}）");
+        Assert.True(iOn > iOff * 1.0001, $"株式会社を見つけた国の私的投資が速くならない（{iOff}→{iOn}）");
     }
 
     /// <summary>思想と制度の伝播（MultiNationSim.StepDiffusion）＝制度は解禁済みの国が1で放射し、取引のある国の到達が積まれる・自国の種は自国の到達へ書き戻さない
