@@ -293,15 +293,15 @@ public class TreasuryLedgerTests
         double gotA = Month(a, below, 0.5);
         Assert.True(gotA > 0, $"利払い÷歳入 {share:F4} が限界 {below:F4} の下なのに借りない");
         Assert.True(System.Math.Abs(gotA - unitA) <= 1e-9 * unitA, $"大きな不足で1件の額（名目GDP×割合）{unitA:F3} で止まっていない（{gotA:F3}＝1件の額の物差しが名目でないか、プールが先に尽きた）");
-        Assert.Equal(0.0, a.InsolvencyQuarters);
+        Assert.Equal(0, a.InsolvencyQuarters);
 
         // ② 限界に届いた＝借りない・払えない月は不履行の計数が進む・払えている月は進まない
         var x = Twin();
         Assert.Equal(0.0, Month(x, above, 0.5));
-        Assert.Equal(Fiscal.InsolvencyWeight(0.5), x.InsolvencyQuarters);   // ★(201) 計数は払えない大きさ（r＝0.5 の月の重み）
+        Assert.Equal(1, x.InsolvencyQuarters);
         var y = Twin();
         Assert.Equal(0.0, Month(y, above, 1.0));
-        Assert.Equal(0.0, y.InsolvencyQuarters);
+        Assert.Equal(0, y.InsolvencyQuarters);
 
         // ③ 物価水準2倍の双子：門の判定は同じ・借りる額はちょうど2倍
         var b2 = Twin();
@@ -313,7 +313,7 @@ public class TreasuryLedgerTests
         var z2 = Twin();
         DoubleNominal(z2);
         Assert.Equal(0.0, Month(z2, above, 0.5));
-        Assert.Equal(Fiscal.InsolvencyWeight(0.5), z2.InsolvencyQuarters);
+        Assert.Equal(1, z2.InsolvencyQuarters);
     }
 
     /// <summary>★借入はエンジンの1行だけ（2026-09-28 作者裁定「借入は自動化・借金ボタンは不要」）＝AI とプレイヤーの経路が無い。

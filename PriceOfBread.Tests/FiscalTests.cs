@@ -305,91 +305,6 @@ public class FiscalTests
         Assert.True(Math.Abs(w.BaseMoney - base0) <= 1e-9 * Math.Max(1.0, Math.Abs(base0)), $"デフォルトで基礎貨幣が動いた（{base0}→{w.BaseMoney}）");
     }
 
-    /// <summary>★(201) 不履行の計数は払えない大きさで数える（README §1-8「閾値で0か1に反転する判断より入力の大きさに応じた判断」）：借入の門が閉じた月の重み＝
-    /// Fiscal.InsolvencyWeight＝(1−r)÷(1−0.7)。盤面＝静かな英に国債（年名目GDP の1倍・国内の持ち手）を置き、借入の門を閉じて（限界0）同じ r の月を踏む。
-    /// ①r＝0.7（兌換停止の「財政不足」の線）の月は旧と同じ8か月で不履行 ②r＝0.99（ほぼ払えている月）は5年踏んでも不履行にならない（旧＝8か月）
-    /// ③r＝0.1（ほとんど払えない月）は3か月で不履行（旧＝8か月）。突然変異：Step の加算を1へ戻す（旧の ++）→②③が赤／重みの分母を1 にする→①が赤。</summary>
-    [Fact]
-    public void 不履行の計数は払えない大きさで数える()
-    {
-        static int MonthsToDefault(double r, int max)
-        {
-            var w = QuietBritain();
-            w.Coef.BondRepayFrac = 0;
-            w.GovDebt = 1.0 * w.NominalGdp * Calendar.MonthsPerYear; w.ForeignDebt = 0;
-            Fiscal.SeedBondHoldings(w);
-            w.Coef.MaxInterestShareOfRevenue = 0;   // 借入の門が閉じている（利払い÷歳入≧限界）
-            for (int m = 1; m <= max; m++)
-            {
-                w.FiscalFundingRatio = r; Fiscal.Step(w, w.Coef, -Ample);
-                if (w.HadSovereignDefault) return m;
-            }
-            return -1;
-        }
-        Assert.Equal(8, MonthsToDefault(0.7, 60));
-        Assert.Equal(-1, MonthsToDefault(0.99, 60));
-        Assert.Equal(3, MonthsToDefault(0.1, 60));
-        Assert.Equal(0.0, Fiscal.InsolvencyWeight(1.0));
-        Assert.Equal(0.0, Fiscal.InsolvencyWeight(double.NaN));   // 否定形＝NaN は数えない
-    }
-
-    /// <summary>★(201) 開幕の兌換＝データ：金属本位の法（金・銀）で始まる国は兌換の中（金本位の資格・兌換 1）から始まる（不換の法の国は資格なし・兌換0＝同じ1行）。
-    /// 旧＝資格なし・兌換0 から最初の月に資格を得て四半期 5% で立ち上がった＝開幕に兌換約0.66＝金本位の中で赤字×(1−兌換) を切り下げで払えた
-    /// （英は 1783 年の最初の四半期から切り下げの記憶が立ち、通貨改革まで兌換へ戻れなかった）。突然変異：初期化の行を外す→赤。</summary>
-    [Fact]
-    public void 開幕の金属本位の国は兌換の中から始まる()
-    {
-        var gold = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent()).World;
-        Assert.True(gold.MetallicStandardLaw, "前提が崩れた：英が金属本位で始まらない");
-        Assert.True(gold.OnGoldStandard);
-        Assert.Equal(1.0, gold.Convertibility);
-        // 銀の法の国（仏＝NationConfig の既定の銀）も同じ＝金属本位の法（MetallicStandardLaw）を読む
-        //   ⚠ NationConfig.Britain() は world.json の共有の設定（WorldData.ByName）＝番人の中で書き換えない（同じ工程の他の番人へ漏れる）
-        var silver = new Simulation(NationConfig.France().ToScenario(41), new NullAgent()).World;
-        Assert.Equal(MonetaryStandardLaw.Silver, silver.MonetaryLaw);
-        Assert.True(silver.OnGoldStandard);
-        Assert.Equal(1.0, silver.Convertibility);
-    }
-
-    /// <summary>★(201) 港の国家の上乗せは月初の予算の行（Region.PortStateBudget・物差しは上下水道と同じ＝行政費×InfraBudgetScale×財政の余力×人口比）＝請求に入って r で払う。
-    /// 旧＝四半期末に MultiNationSim が PortStateFrac×資本家の投資（州の投資家の貯蓄の4%）×その月の r を国庫から＝r の後に出る予算の外の支出（英は開幕の最初の四半期に国庫 2.1万に対し 14.2万）。
-    /// 盤面＝英（開幕に蒸気機関を知る）の港の州を混雑させた双子（律速率 0.5）と混雑させない双子（1.0）で1か月。
-    /// ①混雑した双子だけ港湾容量が伸び、国庫の台帳「その他の支出」の差＝容量の差×建設費（払った額だけ積む）
-    /// ②財政の余力を大きく置くと混雑した双子の支払い率 r が下がり（港の予算が請求に入る）、港へ払った額は月初の払える額を超えない（r を掛けて払う）
-    /// ③財政の余力0 なら港の国家の上乗せは立たない（物差しは国家の予算＝投資家の貯蓄ではない）。
-    /// 突然変異：請求に足さない→②の r が赤／r を掛けずに払う→②の払った額が赤／物差しを財政の余力から外す→③が赤。</summary>
-    [Fact]
-    public void 港の国家の上乗せは月初の請求に入りrで払う()
-    {
-        static (double DCap, double Paid, double R, double Payable, double Cost) Month(double throttle, double fiscalCapacity)
-        {
-            var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
-            sim.Run(1);
-            var w = sim.World;
-            Assert.True(Discovery.SteamPower(w.Discovered), "前提が崩れた：英が開幕に蒸気機関を知らない");
-            var rp = w.Regions.First(x => x.State == RegionState.Active && x.IsPort);
-            rp.LastTradeThrottle = throttle;
-            w.FiscalCapacity = fiscalCapacity;   // 財政の余力（月初の予算の物差し）を盤面で置く（この盤面の英は歳入が請求に届かず余力0）
-            double cap0 = rp.PortCapacity, oth0 = w.TreasuryLedger[(int)TreasuryCat.OtherOut];
-            double payable0 = Math.Max(0, w.Treasury) + w.LastRevenue;
-            for (int d = 0; d < Calendar.DaysPerMonth; d++) sim.StepDay();
-            return (rp.PortCapacity - cap0, -(w.TreasuryLedger[(int)TreasuryCat.OtherOut] - oth0), w.FiscalFundingRatio, payable0, w.Coef.PortBuildCostPerUnit);
-        }
-        // ①
-        var c = Month(0.5, 1e4); var n = Month(1.0, 1e4);
-        Assert.True(c.DCap > 0, "混雑した港で国家の上乗せが立たない");
-        Assert.Equal(0.0, n.DCap);
-        double paidDiff = c.Paid - n.Paid;
-        Assert.True(Math.Abs(paidDiff - c.DCap * c.Cost) <= 1e-6 * Math.Max(1.0, Math.Abs(paidDiff)), $"国庫から出た額の差 {paidDiff} と積んだ容量×建設費 {c.DCap * c.Cost} が合わない");
-        // ②（上下水道の予算も同じだけ立つ＝双子の差は港の予算だけ）
-        var cb = Month(0.5, 1e12); var nb = Month(1.0, 1e12);
-        Assert.True(cb.R < nb.R, $"港の予算が請求に入っていない（r 混雑 {cb.R} ≧ 混雑なし {nb.R}）");
-        Assert.True(cb.DCap * cb.Cost <= cb.Payable, $"港へ払った額 {cb.DCap * cb.Cost} が月初の払える額 {cb.Payable} を超えた（r を掛けずに払った）");
-        // ③
-        var z = Month(0.5, 0.0);
-        Assert.Equal(0.0, z.DCap);
-    }
-
     [Fact]
     public void 国債台帳_台帳は金を動かさず誰に渡るかだけを決める()
     {
@@ -1037,10 +952,10 @@ public class FiscalTests
         // ③ 不履行の計数（借入の上限の上＝限界0・払えない月）
         var warm3 = Board(true); warm3.Coef.MaxInterestShareOfRevenue = 0;
         warm3.FiscalFundingRatio = Short; Fiscal.Step(warm3, warm3.Coef, -Ample);
-        Assert.Equal(0.0, warm3.InsolvencyQuarters);
+        Assert.Equal(0, warm3.InsolvencyQuarters);
         var ctl3 = Board(false); ctl3.Coef.MaxInterestShareOfRevenue = 0;
         ctl3.FiscalFundingRatio = Short; Fiscal.Step(ctl3, ctl3.Coef, -Ample);
-        Assert.Equal(Fiscal.InsolvencyWeight(Short), ctl3.InsolvencyQuarters);   // ★(201) 計数は払えない大きさ（r＝0.5 の月の重み＝(1−0.5)÷(1−0.7)）
+        Assert.Equal(1, ctl3.InsolvencyQuarters);
     }
 
     /// <summary>★外資の貸し手は**低金利の国ほど深い**（2026-09-29・向きの是正）：外資のプール＝開放度×ForeignBondCapacity×月次名目GDP×（基礎金利÷国債の金利・上限3）。

@@ -129,9 +129,7 @@ public class CreditTests
         // (1) 好況
         bank.Confidence = 1.0;
         double peak = 0;
-        // ★(200) 段2：助走を通らない盤面は開幕の工場の設備が均等割り＝最初の年に満足度と物価が落ち、銀行の信頼が日ごとに下がって好況の前提が立たない
-        //   ＝信頼を毎日1に置く（「信頼1の好況」＝この部の前提そのもの・与信の上限の規則は変えない）。
-        for (int d = 0; d < 2000; d++) { bank.Confidence = 1.0; Day(w); peak = Math.Max(peak, bank.Loans); }
+        for (int d = 0; d < 2000; d++) { Day(w); peak = Math.Max(peak, bank.Loans); }
         Assert.True(peak <= repay * (1 + 1e-12), $"好況の与信が返せる額を越えた（最大 {peak} ＞ {repay}）");
         Assert.True(bank.Loans > 0.2 * repay, $"前提が崩れた：好況で与信が伸びていない（{bank.Loans}・返せる額 {repay}）");
         // (2) 国内の金が流出＝国庫を0へ・全POPの正の貯蓄を同じ割合で減らし、基礎貨幣＝−与信/2 に置く（与信の残高は動かさない）

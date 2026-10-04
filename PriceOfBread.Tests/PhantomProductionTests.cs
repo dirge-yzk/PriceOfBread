@@ -121,13 +121,7 @@ public class PhantomProductionTests
         for (int q = 0; q < 8; q++) off.StepQuarter();
         var on = new MultiNationSim(WorldData.Nations(), 1789, _ => new UtilityAgent());
         foreach (var n in on.Nations) n.World.Coef.TechGatedScaleZero = 1.0;   // 係数インスタンスは国ごと（重複は上書きで冪等）
-        for (int q = 0; q < 7; q++) on.StepQuarter();
-        // ★(200) 段2：工場の Scale は建てた設備＝門の開いた工場でも設備が無ければ0（倒産の清算・設備を持ったことが無い＝門のせいではない）
-        //   ＝最後の四半期の頭に設備のあった鋼の工場だけを③で見る（門の開いた工場の設備を0 にするのは倒産だけ＝倒産中は外す）。
-        var prevSteel = new System.Collections.Generic.HashSet<Producer>();
-        foreach (var n in on.Nations) foreach (var region in n.World.Regions) foreach (var s in region.Producers)
-            if (s.GoodId == steel && EconomyStep.IsFactory(s) && s.Scale > 0) prevSteel.Add(s);
-        on.StepQuarter();
+        for (int q = 0; q < 8; q++) on.StepQuarter();
 
         // ①OFFは旧挙動＝作れない財に操業規模が立っている（これが画面の「機関銃工場7つ」の実体）
         int phantom = 0;
@@ -150,7 +144,7 @@ public class PhantomProductionTests
                     if (Catalog.Goods[s.GoodId].Tier == GoodTier.Service) continue;
                     if (Discovery.Gate(region, s) > 0)
                     {
-                        if (s.GoodId == steel && !s.Bankrupt && (!EconomyStep.IsFactory(s) || prevSteel.Contains(s))) { Assert.True(s.Scale > 0, $"{region.Name}の鋼が誤って0にされた"); kept++; }
+                        if (s.GoodId == steel && !s.Bankrupt) { Assert.True(s.Scale > 0, $"{region.Name}の鋼が誤って0にされた"); kept++; }
                         continue;
                     }
                     zeroed++;
@@ -250,9 +244,7 @@ public class PhantomProductionTests
                     s.LaborWeight = 1e6; s.SmoothedMargin = 1000; s.SteamFill = 0.4; s.ElecFill = 0.4; s.EffFill = 0.4; s.SubsidyDependence = 0.5;
                     EconomyStep.Run(region, c, 1.0, w.Bank, w);
                     string who = $"{w.SelfPower?.Name}／{region.Name}／{Catalog.Goods[s.GoodId].Name}";
-                    // ★(200) 段2：工場は助走の外で労働の取り分を競わない（労働の重みを読まない・更新しない＝設備が能力）＝重みは工場でない生産者だけ見る
-                    if (!EconomyStep.IsFactory(s))
-                        Assert.True(Math.Abs(s.LaborWeight - expectLw) <= 1e-9 * Math.Max(1.0, Math.Abs(expectLw)), $"{who}：労働の重み {s.LaborWeight}（極限 {expectLw}・指数平滑なら 8.5e5 付近）");
+                    Assert.True(Math.Abs(s.LaborWeight - expectLw) <= 1e-9 * Math.Max(1.0, Math.Abs(expectLw)), $"{who}：労働の重み {s.LaborWeight}（極限 {expectLw}・指数平滑なら 8.5e5 付近）");
                     Assert.True(s.SmoothedMargin < 100, $"{who}：採算の平滑 {s.SmoothedMargin}（今の採算へ追いついていない・指数平滑なら 975 付近）");
                     double noCatch = 0.4 * (1 - c.FillInertia);   // 追いつかせない旧の形の最小
                     Assert.True(s.SteamFill < noCatch && s.ElecFill < noCatch && s.EffFill < noCatch, $"{who}：率 蒸気 {s.SteamFill}・電化 {s.ElecFill}・効率 {s.EffFill}（0 へ戻っていない）");

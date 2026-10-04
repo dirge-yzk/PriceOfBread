@@ -1013,7 +1013,7 @@ public partial class GameViewModel
             //     この州の技術で1単位も作れない財は棟数を0にする（エンジン側の是正は休眠 Coefficients.TechGatedScaleZero。
             //     点火すれば Scale 自体が0になりここは自然に0＝**表示は点火の前後どちらでも同じ数**を出す）。
             int stateUnits = pr is not null && !cantMakeHere ? World.StateUnits(pr, _player.Coef) : 0;
-            int privUnits = pr is not null && !pr.Bankrupt && !cantMakeHere ? _player.PrivateUnitsOf(rg, pr) : 0;   // 換算はエンジンの1本（棟数の式をUIに持たない）
+            int privUnits = pr is not null && !pr.Bankrupt && !cantMakeHere ? _player.PrivateUnitsOf(pr) : 0;   // 換算はエンジンの1本（棟数の式をUIに持たない）
             int target = pr?.StateTarget ?? 0;
             // ★進まない月は理由を必ず出す（作者裁定2026-08-10 C節「無言にしない」）。常時ツールチップ＝
             //   目標＞現在は着工のゲート（建設中／技術／国庫／建材の採算）、目標＜現在は払い下げのゲート（CanSellFactory の理由）。
@@ -1030,8 +1030,10 @@ public partial class GameViewModel
                 () => StepStateTargetAt(rgRef, gi, -1))
             {
                 Name = rg.Name,
-                // 接17（監査2026-07-11）の新旧資本の内訳＝★(200) 段2 でヴィンテージ資本を撤去（工業化度は1層）＝出さない
-                CapitalTip = null,
+                // 接17（監査2026-07-11・2026-07-25実装）：新旧資本の内訳＝旧式資本を抱えた産業と新鋭産業の区別（売却・補助金判断の材料）。休眠（旧世代0）なら出さない
+                CapitalTip = rg.OldVintageCapital > 1e-9
+                    ? $"工業化資本 {rg.TotalIndustrialization:F1}=新鋭 {rg.Industrialization:F1}+旧世代 {rg.OldVintageCapital:F1}\n座礁 {rg.StrandedVintage:F1}　旧世代の据付技術 {rg.VintageTechLevel:F1}/現行 {rg.TechLevel:F1}"
+                    : null,
                 // ★国営工場の列＝「− 現在/目標 ＋」1本（作者フィードバック2026-08-10 項目5＝カウンター列を統合）。
                 //   現在＝実際に建っている国営の棟数（World.StateUnits）／目標＝カウンター（Producer.StateTarget）。
                 //   単位は棟（小数の Scale は使わない）。民営工場の列はそのまま残す。

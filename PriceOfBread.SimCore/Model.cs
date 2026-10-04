@@ -666,15 +666,7 @@ public sealed class Producer
     // UI診断用の純記帳（2026-07-19・力学は一切読まない）：素材のみの充足率。
     // LastInputFill は労働（役務）込みの最小値なので「原料不足」の根拠に使えない（労働不足を原料不足と誤帰属していた）。
     public double LastMaterialFill = 1.0;   // 素材（非役務投入）だけの最小配給率。素材投入なし＝1.0
-    /// <summary>★2026-10-04 (200) 段2（生産を市場から導く・能力は建てた分だけ・(185) の形の作り直し）：**工場**（<see cref="EconomyStep.IsFactory"/>＝労働を市場で買う RGO でない生産者）は
-    /// **建てた設備＝職場の数**（1783年の労働の取り分の人数と同じ単位）＝能力＝これ×生産性×倍率（工場労働者の人数と取り分を読まない）。
-    /// 増えるのは私的投資（採算の高い所へ・国の池）と国営の棟の完成（1棟＝FactoryBuildScale×<see cref="EconomyStep.SlotsPerScaleUnit"/>）だけ・
-    /// 減るのは寿命（IndDepreciation）・恐慌で遊んでいる設備の解体（Simulation・DepressionScrapsIdleCapital）・倒産の清算（0）・発見の門が閉じた月（0）。
-    /// 助走の間は労働の取り分（旧の能力）で置く＝1783年の設備。**産地（RGO）と職人**は旧のまま＝採算で伸縮する操業規模（労働配分の重み・§9-A 仕組み4）。</summary>
-    public double Scale = 1.0;
-    /// <summary>★(200) 段2 作業領域（[NonSerialized]＝月次決算の中だけ）：月初の私的投資の計画（<see cref="EconomyStep.PlanPrivateInvest"/>）が書く
-    /// この工場の望む投資の金額（今の物価水準）と、見込みに使った変動費（自己費用＋投入費＝供給①が同じ月に同じ値を使う・計画していない月は −1）。</summary>
-    [System.NonSerialized] internal double InvestWant, PlanMc = -1;
+    public double Scale = 1.0;     // 操業規模（企業の参入退出）。採算で伸縮：採算良→拡張・採算悪→縮小（≒閉鎖）。労働配分の重みに掛かり、閉鎖工場は労働を採算の良い財へ解放（§9-A 仕組み4）
     public double SmoothedMargin;  // 数期移動平均の採算＝(価格−限界費用)/限界費用 のEMA。倒産判定に使う（一過性の赤字では潰れない）
     public bool Bankrupt;          // 倒産（操業停止・産出0・労働解放）。慢性赤字で倒産し、価格が原価を上回れば新規参入で再開＝有限責任（§9-A 仕組み4 拡張）
     /// <summary>プレイヤーが建設した工場容量（Scaleの下限＝離散工場・Vic2型）。建設で増え、建てた工場は操業を続ける。
@@ -691,7 +683,11 @@ public sealed class Producer
     private double _builtScale;
     /// <summary>作業領域（[NonSerialized]・セーブに載らない）：この生産者を持つ州（一覧を作った時と GDP の和を取った時に付ける・生産者は州をまたがない）＝印と版の宛先。</summary>
     [System.NonSerialized] internal Region? _siteRegion;
-    // 【墓標2026-10-04 (200) 段2】休止の割合 MothballFrac＝撤去（工場は変動費を賄えない間は短期の供給曲線で止まる・Coefficients の休止の墓標）。
+    // ★休止（mothball・AI審査2-6・2026-08-31）：BuiltScale のうち操業を止めている割合（0..FactoryMothballCap×民営持分）。
+    //   建てた工場は倒産免除＋床で全稼働を強制されるため、慢性赤字が資本家の負債へ垂れ流しになる欠落の是正＝
+    //   設備は残る（BuiltScale不変）が床が (1−MothballFrac) 倍に縮む＝維持労働と産出だけ止まり、採算が戻れば同率で再開。
+    //   FactoryMothballRate=0（測定OFF腕）では一度も書かれず0のまま＝床はビット恒等（★既定0.05でlive・2026-08-31点火）。
+    public double MothballFrac;
     // 国営工場カウンター（作者裁定2026-08-10）＝**目標の棟数**（0..StateTargetMax）。1カウント＝1回の建設完成＝Coefficients.FactoryBuildScale。
     // 現在の棟数は BuiltScale/FactoryBuildScale（World.StateUnitsOf）＝これは「意志」であって「実現」ではない。
     // 目標>現在なら World.StepStateTargets が着工を試み（国庫・建材採算・技術ゲートが速度を決める）、
@@ -916,18 +912,10 @@ public sealed class Region
     // 弧3-1（2026-07-24）：成長の出所内訳＝工業化増分の累積を建て手別に分離（国家建設 vs 資本家投資）。純カウンタ・力学は読まない。
     // 「エンジンが国家から民間へ移る瞬間」を数字で見る＝発展段階の可視化の本体
     public double CumStateIndustrialization;
-    // 【(200) 段2】CumPrivateIndustrialization（資本家投資の工業化度の累積）＝削除＝私的投資は工業化度でなく工場の設備（Producer.Scale）を積む。
-    /// <summary>★(200) 段2 国の投資の池の作業領域（[NonSerialized]＝月次決算の中だけ＝Simulation の池の前段が書き・EconomyStep と後段が読む）：
-    /// 月初の投資枠（IndInvestmentFrac×max(0, 投資家の貯蓄)×(1−接収の萎縮)＝池への出資）と、この州の投資家が立て替えた私的投資（工場の設備の材料と工賃・保守・送電網）の金額・
-    /// 月初の計画のインフラの保守と送電網の量（<see cref="EconomyStep.PlanPrivateInvest"/>）・前段が今月の計画を立てたか（Run が自分で計画しない印・後段が戻す）。</summary>
-    [System.NonSerialized] internal double InvestPoolShare, InvestSpentMonth, InvestMaintQty, InvestGridQty;
-    [System.NonSerialized] internal bool InvestPlanned;
+    public double CumPrivateIndustrialization;
     public double AdminBudget;                        // 今期の行政調達の予算（行政費スライダー×国庫。Simulation が設定）
     public double InfraFill = 1.0;                    // 上下水道（衛生インフラ）の充足率（買えた÷必要）。衛生＝これ。低い＝過密の疫病（#4施設化＝旧「工業化proxy」を置換）。施設の無い世界は1.0＝従来
     public double InfraBudget;                        // 今期の上下水道調達の予算（行政費スライダー×国庫×都市人口比。Simulation が設定）
-    /// <summary>★(201) 港の国家の上乗せの今月の予算（[NonSerialized]＝月次決算の中だけ＝Simulation が月初に立て〔請求に入る〕・r を掛けて港の州の労働へ払い港湾容量を積む）。
-    /// 物差しは上下水道と同じ（行政費×InfraBudgetScale×財政の余力×人口比×潤沢の倍）・門は混雑した港（律速率＜PortCongestionTarget）と近代港湾の発見（蒸気機関）と助走の外。</summary>
-    [System.NonSerialized] internal double PortStateBudget;
     public double SoapFill;                           // 石鹸の消費充足率（市民＋病院が買えた率）。衛生に上下水道とは別に加算（公衆衛生＝清潔。医療品ほどではない）。石鹸の無い世界は0＝従来
     public double InsuranceCoverage;                  // 健康保険(#3)：国家が医薬品購入費を肩代わりする割合（社会保障×福祉充足×InsuranceCoverageMax）。Simulation が設定。popの実効医療費↓
     public double MonopolyRentFactor = 1.0;           // 独占禁止法（1934拡張E6）：独占レント(塩/茶)の実効倍率。規制なし=1.0／談合禁止=CartelBanRent／独占の解体=TrustbustRent。Simulation が国教法から設定。AntitrustGate=0で常に1.0＝恒等
@@ -954,10 +942,17 @@ public sealed class Region
     public double SeizureChill;
     public double LaborWellbeing;                     // ⚠休眠（UnionSatBonus=0）：組合の非物質厚生の満足度上乗せ（大衆POPに加算・Simulation が設定）。時短/福祉/年金の成分は物理削除2026-08-21（思想⑨）
     public double Mechanization;                      // 機械化度（no-labor-saving-tech-unemployment）：工業化度の飽和カーブ∈[0,1)。LaborSaveRate=0（対照腕）で0固定・既定0.25で EffectiveQty が読む
-    public double DevelopmentPeak;                    // 開発度の到達最高値（走行最大・2026-07-27）。「体化された技術・熟練・制度」の記憶＝DevelopmentMemory>0 のとき物理減価を緩める。0＝未到達・DevelopmentMemory=0では未使用
-    // 【(200) 段2】ヴィンテージ資本（OldVintageCapital・VintageTechLevel・StrandedVintage＝旧世代の座礁）＝削除（設計 §5「旧世代の陳腐化 → 撤去」）。
-    //   工業化度は1層＝TotalIndustrialization は旧の新旧合計の読み口の名前を残しただけ（Industrialization そのもの・工業化度の廃止の設計で読み手ごと消える）。
-    public double TotalIndustrialization => Industrialization;
+    public double OldVintageCapital;                  // 旧世代の工業化資本（no-vintage-capital-depreciation）。VintageMigrateRateで経年蓄積・技術差で座礁。0（対照腕）で単層恒等・既定0.005で二層live
+    public double DevelopmentPeak;                    // 開発度の到達最高値（新旧合計の走行最大・2026-07-27）。「体化された技術・熟練・制度」の記憶＝DevelopmentMemory>0 のとき物理減価を緩める。0＝未到達・DevelopmentMemory=0では未使用
+    public double VintageTechLevel;                   // 旧世代資本の据付時平均技術水準。現TechLevelとの差(techGap)が座礁度を決める。OldVintageCapital=0で未使用
+    public double StrandedVintage;                    // 今月の座礁量＝VintageObsolescence×OldVintageCapital×techGap（EconomyStepが月次更新・OldVintageCapital以下）。生産性チャネルのみが差し引く。OldVintageCapital=0で0
+    // ヴィンテージ資本有効化2026-07-10（キュー5）：新旧二層の読者を分離。
+    //  ・TotalIndustrialization＝立っている資本の総量（新旧合計）。都市化天井・衛生proxy・スコア・投資上限・移民引力など「資本ストックの規模」を読む従来読者はこちら
+    //    ＝旧世代もIndDepreciationで同率減価するため、合計は旧単層Industrializationと同一動学（分割そのものは恒等＝較正中立）。
+    //  ・ProductiveIndustrialization＝生産性に寄与する分（座礁分を控除）。indMult・機械化度・投資の限界収益のみが読む＝座礁だけが現行との差分（意図した機構）。
+    //  両係数0（対照腕）では OldVintageCapital=StrandedVintage=0 で両者とも Industrialization に厳密恒等（既定 VintageMigrateRate=0.005 でlive）。
+    public double TotalIndustrialization => Industrialization + OldVintageCapital;
+    public double ProductiveIndustrialization => Industrialization + OldVintageCapital - StrandedVintage;
     public double[]? EffFirms;                        // 財別の有効生産者数（no-market-power-monopoly）。EconomyStepがproducerCountを複製・MarketFlowが国内マークアップに使用。DomesticMarkupMax=0でnullのまま
     public double HousingFill = 1.0;                  // 住居役務の充足率（housing-urban-rent-absent）。移民摩擦に使用。住居財なし/HousingNeedPerUrban=0では1.0＝摩擦なし（従来）
     public double ElecInfraFill;                      // 電化インフラ（上位＝近代都市インフラ）の充足率。満足度＋衛生追加＋送電容量↑。便益は加算なので既定0＝施設の無い世界は便益なし（従来挙動）
@@ -983,7 +978,7 @@ public sealed class Region
     public double OpiumAddiction;                     // アヘン中毒度（1人あたり需要の上乗せ）。消費するほど増える＝供給が需要を生む正のフィードバック（実験）
     public double[]? ColonialSupply;                  // 各財の植民地産出（供給駆動・毎期）。保有植民地×固有資源×産出率。需要と無関係に流入＝過剰なら価格暴落
     public double[]? ColonialImportPipeline;          // 経19（海上リードタイム）：前月発注済み未着の植民地輸入量（good.Id添字・1段）。null または ColonialImportLagMonths=0 で従来の即時加算＝中立
-    // 【(200) 段2】ConstructionCarryover（経17 の束の繰越）＝削除（Coefficients の墓標）。
+    public double[]? ConstructionCarryover;           // 経17（建設Leontief端数の繰越・good.Id添字・1段）：先月の建設束で律速成分に律速され使い残した非律速資材。null または ConstructionMaterialCarryover=0 で従来どおり全消費＝中立
     public double SocialSecurity;                     // 社会保障（公共医療）の水準（World から複製。医薬品消費に使う）
     public double HarvestFactor = 1.0;                // 今年の豊作/不作（World から複製。主食RGO産出と自給に乗算）
     public double LastSubsistenceOutput;   // 人2補完（2026-07-11）：この州の今月の主食**自給**産出Σ（市場外・無償＝Market.LastProducedに載らない）。扶養力の生産アンカーの分子欠落（自給7割の農業国で分子過小→capacity崩落）を埋める。EconomyStep月初にリセット

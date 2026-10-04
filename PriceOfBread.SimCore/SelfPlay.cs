@@ -454,6 +454,10 @@ public sealed class UtilityAgent : INationAgent
     {
         double keep = share / ConscriptionRaiseShare + ConscriptionLowerMargin;   // この深さまでは保つ
         if (!(PoliticalQuantities.ConscriptionDepth(cur) > keep)) return hold < cur ? cur : hold;   // 否定形＝NaN は保つ側（線の間の保留中の下げの目標は今の段へ）
+        // ⚠(202) の訂正（反証役 vw2#7）：呼び手（DecideModernLaws）は割合が NaN〔定まらない＝単一国など〕のときこの関数を呼ばない（`armyShare >= 0` が偽）
+        //   ＝その四半期は前の目標がそのまま残る（線の間の下げの目標も今の段へ戻らない）＝この関数の NaN の枝は呼び手からは通らない。
+        // ⚠(202) の訂正（反証役 vw2#1）：上げの続き（前の目標が今の段より上）は割合が下げる線の上なら保つ＝今の段が志願（下げる線が無い）なら割合が0に近くても次の戦争が終わるまで残る
+        //   （(199) の表 wsc199_20261004 §4＝平時に門で止まった上げの目標が5種で 122〔同じ種の腕A 7〕・10種で 135・原因は未特定）＝上げと下げで形が違う（README §1-8 の対称から外れる）＝申し送り（実装ログ (202)）。
         var k = cur;
         while (k > ConscriptionLaw.Volunteer && PoliticalQuantities.ConscriptionDepth(k) > keep) k--;
         return k;
@@ -952,8 +956,7 @@ public sealed class UtilityAgent : INationAgent
     }
 
     /// <summary>#5の材料：その財の国内生産者の採算が**生産規模で加重した平均**で赤字か。
-    /// 加重＝産出（★(200) 段2＝工場の Scale は建てた設備〔職場の数〕・職人と産地は操業規模の重み＝単位が違う＝実際に作っている量で重みを付ける）
-    /// ＝止まっている棟の採算に世論を作らせない（旧の意図のまま）。倒産中は除外（既に退出している）。
+    /// 加重＝Scale（現在の操業規模）＝止まっている棟の採算に世論を作らせない。倒産中は除外（既に退出している）。
     /// 生産者が1人もいない財は false＝「自国財でない」＝壁を作らない。NaN採算は num&lt;0 が偽＝fail-closed。</summary>
     private static bool DomesticMarginNegative(World w, int goodId)
     {
@@ -964,7 +967,7 @@ public sealed class UtilityAgent : INationAgent
             foreach (var pr in rg.Producers)
                 if (pr.GoodId == goodId && !pr.Bankrupt)
                 {
-                    double sc = Math.Max(0, pr.Output);
+                    double sc = Math.Max(0, pr.Scale);
                     num += pr.SmoothedMargin * sc; den += sc;
                 }
         }

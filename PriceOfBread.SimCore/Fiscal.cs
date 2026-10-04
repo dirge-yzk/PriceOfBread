@@ -438,12 +438,7 @@ public static class Fiscal
         //   旧＝スタックが上限20に張り付いた月（r は見ない）。旧のスタックは r＜1 の月の借入でだけ積もり r＝1 の月の減債で離れた＝張り付きは「払えずに借り尽くした」だった。
         //   利払い÷歳入は借りなくても歳入の落ち込みや金利の上昇で限界を越える＝r＝1 で全ての請求を払えている国（国庫の蓄え）は数えない＝払えている国を不履行にしない。
         //   助走（World.WarmupFrozen）は数えない＝時間が経たない月に不履行へ届かない（国債の残高を動かさない＝減債・借入と同じ門）。
-        // ★(201) 張り付きの月は**払えない大きさ**で数える（InsolvencyWeight＝(1−r)÷(1−0.7)・推奨で進めた＝README §1-8「閾値で0か1に反転する判断より入力の大きさに応じた判断」）。
-        //   旧＝r＜1 の月を1つずつ数えた＝請求の 99.9% を払えた月も 0.1% しか払えない月と同じ1か月＝(201) の計器（r197 の上の (200) の10種）で不履行 90件のうち 57件は
-        //   直前8か月の r の平均が 0.99 以上（ほぼ払えていた月の積み重ねで国債が消えた＝仏・米・墺の 20世紀の不履行の大半＝史実の仏・米は国債を不履行にしていない）。
-        //   新＝r＝0.7（兌換停止の「財政不足」の線 GoldSuspendMinFundingRatio＝同じ物差し）の月が1・r＝0.99 の月は 1/30・r＝0.4 の月は2＝深く払えない国ほど早く不履行へ届く。
-        //   r＝1 の月と借入の門が開いた月は0 へ戻る（旧と同じ＝状態で決める）。閾値 DefaultTriggerQuarters（8）はそのまま。
-        if (payRate < 1 && w.GovDebt > 1e-9 && !underLimit && !w.WarmupFrozen) w.InsolvencyQuarters += InsolvencyWeight(payRate); else w.InsolvencyQuarters = 0;
+        if (payRate < 1 && w.GovDebt > 1e-9 && !underLimit && !w.WarmupFrozen) w.InsolvencyQuarters++; else w.InsolvencyQuarters = 0;
         if (w.InsolvencyQuarters >= c.DefaultTriggerQuarters)
         {
             // 債務消滅（請求権＝保存無影響）。致命的な代償＝兌換崩壊・**信用凍結（貸付消滅→工場が資本を得られず投資/工業化が崩落＝恐慌）**・正統性崩壊（革命リスク）・大衆の暴動・当面 借入不能。
@@ -652,14 +647,6 @@ public static class Fiscal
             s += rp * AdminDistanceMul(w, r); n += rp;
         }
         return n > 0 ? s / n : 1.0;
-    }
-
-    /// <summary>★(201) 不履行の計数の1か月の重み＝払えない大きさ（1−r）÷兌換停止の「財政不足」の線の不足（1−0.7）＝r＝0.7 の月が1。
-    /// 読み手＝<see cref="Step"/> の張り付きの計数と画面の「デフォルトまで」（同じ1本）。r≧1 は0・NaN は0（否定形）。</summary>
-    public static double InsolvencyWeight(double payRate)
-    {
-        double s = 1.0 - payRate;
-        return s > 0 ? s / (1.0 - GoldSuspendMinFundingRatio) : 0.0;
     }
 
     /// <summary>★借入の門（2026-10-03 (175) に <see cref="Borrow"/> の3行を1本へ畳んだ＝挙動は同じ）＝冷却中でない（デフォルト後の信用喪失）・開始前の助走でない・

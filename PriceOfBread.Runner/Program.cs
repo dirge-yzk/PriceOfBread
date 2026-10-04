@@ -891,7 +891,7 @@ if (args.Length > 0 && args[0] == "indprobe")
         cfg => playerName.Length > 0 && cfg.Name == playerName ? new NullAgent() : new UtilityAgent());
     string[] targets = ["イギリス", "フランス", "両シチリア", "日本", "プロイセン"];
     var ipc = new Coefficients();
-    System.Console.WriteLine($"建設束: 鋼{ipc.SteelGoodId} 機械{ipc.MachineGoodId} セメント{ipc.CementGoodId} 製材{ipc.LumberGoodId}　IndInvestmentSpeed={ipc.IndInvestmentSpeed} IndPerConstruction={ipc.IndPerConstruction} IndInvestmentFrac={ipc.IndInvestmentFrac} IndProductivityScale={ipc.IndProductivityScale} CapitalOutputRatio={ipc.CapitalOutputRatio}");
+    System.Console.WriteLine($"建設束: 鋼{ipc.SteelGoodId} 機械{ipc.MachineGoodId} セメント{ipc.CementGoodId} 製材{ipc.LumberGoodId}　IndInvestmentSpeed={ipc.IndInvestmentSpeed} IndPerConstruction={ipc.IndPerConstruction} IndInvestmentFrac={ipc.IndInvestmentFrac} IndProductivityScale={ipc.IndProductivityScale} IndCapitalCost={ipc.IndCapitalCost}");
     void Dump(int q)
     {
         foreach (var n in ipm.Nations)
@@ -903,7 +903,7 @@ if (args.Length > 0 && args[0] == "indprobe")
             double inv = r.InvestorPopIndex >= 0 ? r.Pops[r.InvestorPopIndex].Savings : -1;
             double sP = r.Markets[ipc.SteelGoodId].Price, sS = r.Markets[ipc.SteelGoodId].Stock;
             double mP = r.Markets[ipc.MachineGoodId].Price, mS = r.Markets[ipc.MachineGoodId].Stock;
-            System.Console.WriteLine($"Q{q,3} {name,-6} {r.Name,-8} Ind={r.Industrialization:F3} 国家累積={r.CumStateIndustrialization:F3} 投資家貯蓄={inv:F0} 鋼(価格{sP:F2}/在庫{sS:F0}) 機械(価格{mP:F2}/在庫{mS:F0})");
+            System.Console.WriteLine($"Q{q,3} {name,-6} {r.Name,-8} Ind={r.Industrialization:F3} 民間累積={r.CumPrivateIndustrialization:F3} 国家累積={r.CumStateIndustrialization:F3} 投資家貯蓄={inv:F0} 鋼(価格{sP:F2}/在庫{sS:F0}) 機械(価格{mP:F2}/在庫{mS:F0})");
         }
         System.Console.WriteLine();
     }
@@ -2007,8 +2007,7 @@ if (args.Length > 0 && args[0] == "silverprobe")
     return;
 }
 
-// === RGO（農園・鉱山・牧場）の能力の診断： dotnet run -- rgoprobe <四半期> [_] [seed] ===
-// ★(200) 段2：対照の旧経路（RgoCapitalShare の枝と止め旗 StateShareCounterOnly）は削除＝第2引数は読まない（互換のため位置だけ残す）。
+// === RGO（農園・鉱山・牧場）の能力の診断： dotnet run -- rgoprobe <四半期> <StateShareCounterOnly 0|1> [seed] ===
 // 作者裁定2026-08-10「国営工場に自動的な拡張なし」＝StateShareCounterOnly は既定1.0で点火済み（Coefficients.cs:2538・2026-08-30）。
 // 点火時は資本家の建設予算からRGOの BuiltScale（＝Scaleの下限＝恒久の作付面積、同時に国営持分）を押し上げる唯一の経路
 // （EconomyStep の RgoCapitalShare）が止まる。
@@ -2016,9 +2015,10 @@ if (args.Length > 0 && args[0] == "silverprobe")
 if (args.Length > 0 && args[0] == "rgoprobe")
 {
     int rqQ = ArgInt(args, 1, 120);
+    double rqOnly = ArgDouble(args, 2, new Coefficients().StateShareCounterOnly) ?? new Coefficients().StateShareCounterOnly;
     ulong rqSeed = args.Length > 3 && ulong.TryParse(args[3], out var rqs) ? rqs : 1789UL;
     var rqm = new MultiNationSim(WorldData.Nations(), rqSeed, _ => new UtilityAgent());
-    foreach (var nn in rqm.Nations) nn.TelemetryEnabled = false;
+    foreach (var nn in rqm.Nations) { nn.TelemetryEnabled = false; nn.World.Coef.StateShareCounterOnly = rqOnly; }
     rqm.Diplomacy.Log.Enabled = false;
     rqm.StartWarmup();   // 自己対戦バッチ・App と同じ開始盤面から測る
     string[] rqTargets = ["イギリス", "フランス", "アメリカ", "清", "ロシア"];
@@ -2046,7 +2046,7 @@ if (args.Length > 0 && args[0] == "rgoprobe")
         Console.WriteLine($"Q{q,3} 世界計 RGO {wN}件 Scale計={wScale:F1} 国営持分={(wScale > 1e-9 ? wBuilt / wScale : 0):P1} RGO産出={wOut:F0} 工場産出={wFacOut:F0} 工場国営持分={(wFacScale > 1e-9 ? wFacBuilt / wFacScale : 0):P1}");
         Console.WriteLine();
     }
-    Console.WriteLine($"=== RGOの能力と国営持分（seed {rqSeed}／ScaleMax={new Coefficients().ScaleMax}） ===");
+    Console.WriteLine($"=== RGOの能力と国営持分（seed {rqSeed}／StateShareCounterOnly={rqOnly}／RgoCapitalShare={new Coefficients().RgoCapitalShare}／ScaleMax={new Coefficients().ScaleMax}） ===");
     RgoDump(0);
     for (int q = 1; q <= rqQ; q++) { rqm.StepQuarter(); if (q % 20 == 0 || q == rqQ) RgoDump(q); }
     return;

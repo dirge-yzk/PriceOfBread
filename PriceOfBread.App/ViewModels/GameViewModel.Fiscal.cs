@@ -423,8 +423,7 @@ public partial class GameViewModel
 
         // 国債（借入）＝ヘッダーへ移動（借金ボタン廃止・2026-07-21ユーザー指示／借入はエンジンが r＜1 の月に自動・2026-09-28）。中核データ（残高・対GDP・借入数・信認）＋デフォルト予兆。ホバーで内訳。
         DebtHeaderText = $"国債:{Money(_player.GovDebt)}"   /* ★2026-08-02：借入数は非表示（ホバーの内訳で足りる） */
-                       + (_player.InsolvencyQuarters > 0 && Fiscal.InsolvencyWeight(_player.FiscalFundingRatio) > 0
-                          ? $"　デフォルトまで{Math.Ceiling(Math.Max(0, c.DefaultTriggerQuarters - _player.InsolvencyQuarters) / Fiscal.InsolvencyWeight(_player.FiscalFundingRatio)):F0}か月" : "");   /* ★2026-09-26：カウンタは月次で進む（dorm-29）＝旧「四半期」は3倍ずれていた・★(201) 計数は払えない大きさの和＝今の r の重みで割った月数 */
+                       + (_player.InsolvencyQuarters > 0 ? $"　デフォルトまで{Math.Max(0, c.DefaultTriggerQuarters - _player.InsolvencyQuarters)}か月" : "");   /* ★2026-09-26：カウンタは月次で進む（dorm-29）＝旧「四半期」は3倍ずれていた */
         // 財7単位フリップ（2026-07-26）：エンジンの金本位資格/金利プレミアムが年換算GDP基準になったのに合わせ、表示も対年GDP（史実の債務比率と直接比較できる単位）
         // 分母＝**年次名目**（月次 NominalGdp×12）＝エンジン Fiscal.cs の兌換停止/国債金利の閾値と同じ単位（旧＝年次実質 Gdp×12 で表示だけ別物差し・2026-09-11 #10）
         DebtHeaderTip = $"国債 {Money(_player.GovDebt)}　対年GDP {(_player.NominalGdp > 1e-9 ? System.Math.Min(9.99, _player.GovDebt / (_player.NominalGdp * (double)Calendar.MonthsPerYear)) : 0):P0}　金利 {_player.GovBondRate:P0}　債券価格 {_player.BondPrice:P0}"
