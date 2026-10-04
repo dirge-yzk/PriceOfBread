@@ -24,7 +24,7 @@ public class FiscalTests
     // ★主張の書き直し（作者裁定B・2026-09-12「今までの『上限/下限を削る』挙動は全て廃止する」＝2026-09-20 の段の点火で実装）：
     //   旧主張「低税では緊縮が逆進課税を**上げて**連合を養う」＝緊縮が人頭税・専売の実効値を Max で持ち上げる挙動（選んだ値を黙って書き換える＝P8違反）。
     //   新主張＝緊縮は**選ばせない**（Government.LawPrereq の「緊縮の下限」＝その段より下は選べない）だけで、上げる力は持たない。
-    //   赤字は増税でなく国家の支払い率 r の低下（全ての行に同じ r・2026-09-28）→借入→デフォルト（払えなかった大きさの累計が DefaultArrearsMonths に届く・(204)）で閉じる。
+    //   赤字は増税でなく国家の支払い率 r の低下（全ての行に同じ r・2026-09-28）→借入→デフォルト（払えなかった大きさの累計が DefaultArrearsMonths に届く・(205)）で閉じる。
     [Fact]
     public void 低税では緊縮が発火し逆進課税の下限の門になる()   // §6.2（赤字→借入→債務→緊縮：債権者が奪うのは法を選ぶ自由であって値ではない）
     {
@@ -294,7 +294,7 @@ public class FiscalTests
         Assert.True(H > 0, "前提が崩れた：持ち手がいない");
         double treasury0 = w.Treasury, base0 = w.BaseMoney;
         w.Coef.MaxInterestShareOfRevenue = 0;                 // 借入上限に張り付き（利払い÷歳入≧限界＝借りられない）
-        w.InsolvencyQuarters = w.Coef.DefaultArrearsMonths;   // 払えなかった大きさの累計が線に届いている＝この月にデフォルト（(204)）
+        w.InsolvencyQuarters = w.Coef.DefaultArrearsMonths;   // 払えなかった大きさの累計が線に届いている＝この月にデフォルト（(205)）
         FiscalMonth(w, Short);                                // 払えない月（r＜1）＝借りられずに払えない月が続いた
         Assert.True(w.HadSovereignDefault, "前提が崩れた：デフォルトが起きていない");
         Assert.Equal(0.0, w.GovDebt);
@@ -955,10 +955,10 @@ public class FiscalTests
         Assert.Equal(0.0, warm3.InsolvencyQuarters);
         var ctl3 = Board(false); ctl3.Coef.MaxInterestShareOfRevenue = 0;
         ctl3.FiscalFundingRatio = Short; Fiscal.Step(ctl3, ctl3.Coef, -Ample);
-        Assert.Equal(1.0 - Short, ctl3.InsolvencyQuarters);   // ★(204) 計数は払えなかった大きさ（r＝0.5 の月＝0.5）
+        Assert.Equal(1.0 - Short, ctl3.InsolvencyQuarters);   // ★(205) 計数は払えなかった大きさ（r＝0.5 の月＝0.5）
     }
 
-    /// <summary>★(204) 不履行は**払えなかった大きさの累計**で決まる（2026-10-04・README §1-8・推奨で進めた＝作者の承認は未確認）。
+    /// <summary>★(205) 不履行は**払えなかった大きさの累計**で決まる（2026-10-04・README §1-8・推奨で進めた＝作者の承認は未確認）。
     /// 旧＝借入の門が閉じたまま r＜1 の月を大きさに関係なく1つと数え8か月で国債を全て否認＝兌換停止の後に0 へ漸近する兌換の残り・銀の改鋳の窓の残り・
     /// 浮動小数の端（r＝1−1e-10）が毎月1か月に数えられ、ほぼ全てを払えていた国が前触れなく不履行になった（(203) の10種で148件中67件）。
     /// 盤面＝静かな英に国債（年名目GDP の1倍・国内の持ち手）を置き、借入の門を閉じて（限界0）同じ r の月を Fiscal.Step で踏む（不履行そのもの＝国債0・回数を読む）。

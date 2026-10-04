@@ -83,7 +83,7 @@ public sealed class Coefficients
     //   1＝買い手も unitA で解く。0＝旧式＝厳密恒等。単独腕 tradeunit で計測。
     // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】TradeBuyerSolvesAtUnitPrice＝買い手の静止点を実際に払う単価で解く（2026-09-08 点火・PriceLawSupplyIncludesStock と対）
     // ★計器（同日）：表示用「世界価格」統計（BilateralMarket の平均価格）の [0.1,10]×参照 クランプ＝偏在財（硫黄・銀）で常に振り切れ、画面の値が嘘になる。
-    //   1＝クランプなしの生の平均。0＝旧式＝厳密恒等。★2026-10-04 (205) から銀本位国の平価はこの統計を読まない（MultiNationSim の注入の行＝同じ州の 銀÷金鉱 の比）＝表示と需給の正規化だけ。
+    //   1＝クランプなしの生の平均。⚠SilverParityFromRatio=0 の旧経路ではこの統計が銀本位国の平価にも流れる＝両者を合わせて測る。0＝旧式＝厳密恒等。
     public double WorldPriceStatUnclamped = 0.0;
     public double PriceLawSeesExports = 1.0;   // ★点火2026-08-30（単独では清/西の人口コスト＝S4と同時なら消滅を実測・記録doc参照）
     public int ClearingsPerYear => TradeMonthlyClearing > 0 ? Calendar.MonthsPerYear : Calendar.QuartersPerYear;   // 国際清算の年あたり回数（年換算の単位ヘルパー）
@@ -484,7 +484,7 @@ public sealed class Coefficients
     //   ＝借りられる線は歳入の約5〜6割＝その中央。同じ線から、歳入の厚い国と金利の安い国（金本位・議会の信認割引）ほど深く借りられる＝英1815 の国債÷GDP≒2.5 と仏1789 の0.6〜0.8 が同じ線から出る。
     public double MaxInterestShareOfRevenue = 0.55;
     // ソブリン・デフォルト（2026-06-23）：借入上限に張り付き返済できない国は信用が尽き**債務不履行**＝致命的ペナルティ（安易な逃げ道でない＝破滅）。
-    // ★不履行の線＝払えなかった大きさの累計（(204)・2026-10-04・推奨で進めた＝作者の承認は未確認）：借りられない（利払い÷歳入≧MaxInterestShareOfRevenue）まま払えなかった請求の割合（1−r）を月ごとに足し、
+    // ★不履行の線＝払えなかった大きさの累計（(205)・2026-10-04・推奨で進めた＝作者の承認は未確認）：借りられない（利払い÷歳入≧MaxInterestShareOfRevenue）まま払えなかった請求の割合（1−r）を月ごとに足し、
     //   その累計が**月の請求の何か月分**に届いたら不履行（1.0＝国の全ての支払いの1か月分を払えなかった）。r＝0.5 の月が2つ・r＝0.75 の月が4つ・r＝0.99 の月は100 で届く。
     //   旧 DefaultTriggerQuarters（int 8）＝r＜1 の月を大きさに関係なく1つと数え8か月で不履行＝兌換停止の後に兌換が0 へ漸近する残り（払えない額×兌換）・銀の改鋳の窓の残り（×(1−正貨比率)）・
     //   浮動小数の端（r＝1−1e-10）が毎月1か月に数えられ、前触れのない不履行（直前8か月の r の平均 0.99 以上）が (203) の10種で148件中67件（英の5件中4件）＝README §1-8 の「因果が読めない」。
@@ -493,12 +493,12 @@ public sealed class Coefficients
     //   ⚠(207)（反証役 vf2#3・#4・#9）＝1.0 は**較正で選んだ値**（史実の錨から出る値ではない）＝思考実験 cf204 の2つの境の間（0.5 では英の開幕の窓〔r 0.54〜0.77 が4か月〕が不履行・
     //   1.5 以上では頻度が少なすぎの NG）・10種の平均の比 3.3÷31＝0.106 は NG の線 0.1 の際（中央の比 0.13 は種ごとの整数の中央から）・英の 1788〜95 の不履行はこの線の位置で決まる
     //   ＝線の感度（0.8・1.2）は 9-3 の較正で読む。ここまでの数字は (203) の木（潤沢線の改修つき・(207) でコードを差し戻した）で測った。
-    //   ⚠(207) 合流の木（r202＋(204)）の10種＝主要10か国 28件（種あたり 2.8・中央 2.5＝比 0.081＝**少なすぎの NG**・r202 の旧の計数は 41件＝4.1／種＝比 0.13）・
+    //   ⚠(207) 合流の木（r202＋(205)）の10種＝主要10か国 28件（種あたり 2.8・中央 2.5＝比 0.081＝**少なすぎの NG**・r202 の旧の計数は 41件＝4.1／種＝比 0.13）・
     //   前触れのない不履行（本当の直前8か月の r の平均 0.99 以上）115件中3件（r202 147件中64件）・英 2（1791・1795＝開幕の窓）＝頻度は「財政の危機に入る国」の側と単位の違い（下）で読む（作者への報告）。
     //   累計は「続いた窓の和」＝払えた月（r＝1）か借入の門が開いた月に0 へ戻る（戻りの形＝腕 W1。門が閉じている間は払えた月を挟んでも保つ形＝腕 W2 は5種で比 0.097 で入れていない）。
     //   R&R の表は対外債務の不履行と組み替え（部分的なものを含む）を数える＝シムの不履行は国内と対外の国債を全て否認する＝重さの違う出来事を同じ件数で比べている（単位の違い）。
     public double DefaultArrearsMonths = 1.0;
-    // 【墓標2026-10-04】DefaultTriggerQuarters（int 8＝r＜1 の月を1つずつ8か月）＝DefaultArrearsMonths（払えなかった大きさの累計）へ置き換えた（(204)）
+    // 【墓標2026-10-04】DefaultTriggerQuarters（int 8＝r＜1 の月を1つずつ8か月）＝DefaultArrearsMonths（払えなかった大きさの累計）へ置き換えた（(205)）
     public double DefaultLegitimacyHit = 0.5;    // デフォルト時の正統性崩壊（→闘争度↑・革命リスク）。信用と威信の喪失
     public double DefaultMilitancyHit = 0.25;    // デフォルト時の大衆の闘争度スパイク（経済混乱→暴動）
     public int DefaultCooldownQuarters = 24;     // デフォルト後の借入禁止の**月数**（信用回復まで＝2年。⚠名前は Quarters だが月次で減る・2026-09-26 に書き方を是正）。この間は赤字を切り下げ/薄給で凌ぐしかない
@@ -3437,9 +3437,14 @@ public sealed class Coefficients
     //   アフガニスタン・中央アジア3・アラビア・イエメン・オマーン・エチオピア・ラオス・西山朝）。休眠時は銀0/14・1803年に金16の氾濫だった。
     //   ⚠差し戻すときはこの4係数を戻せば旧挙動へ完全に帰る（SilverStandardGate=0;SilverLightDiscipline=0;GoldStandardIndThreshold=1.5;MonetaryPeerPullScale=0）】
     public double SilverStandardGate = 1.0;            // **主フラグ**：0で中段（銀）に入らず旧2値と厳密恒等／1（live）で不換→銀→金の3段の梯子が開く
-    // 【墓標2026-10-04・旗の焼き込み（(205) R1＝dorm-32 の器A・作者裁定 2026-09-28「全て推奨」）】SilverParityFromRatio（器 2026-09-07・休眠既定0）
-    //   ＝銀本位国の平価の元 WorldSilverPrice を同じ州の中の 銀÷金鉱 の比の対数平均から作る（旧＝表示用の統計 Market.Price[銀]＝E→平均→E の自己参照）。
-    //   式と理由は MultiNationSim の注入の行。有効な州が無いときは参照価格へ倒す（旧の統計へは倒さない）。
+    // ★器 SilverParityFromRatio（2026-09-07・休眠既定0）：銀本位国の平価の元 WorldSilverPrice は現状 Market.Price[銀]＝「各州の局所価格×ExchangeRate」の
+    //   連結州平均（表示統計・RefPrice×[0.1,10]でクランプ）。銀本位国の E はその平均から作られ、平均は E を含む＝**E→平均→E の自己参照（正帰還）**。
+    //   silverprobe 実測で天井 ExchangeRateCeil(3.0) 近傍に乗数2.8で張り付いた根。
+    //   1＝同一市場内の比（州の 銀価格/金鉱価格 の全 Active 州の算術平均 R）を RefPrice 比（RefPrices[銀]/RefPrices[金鉱]）で割り
+    //   RefPrices[銀] の単位へ戻す（R/refRatio×RefPrices[銀]）。同一市場の比は PriceLevel も ExchangeRate も約分され単位を持たない＝
+    //   クランプ不要・自己参照無し。読み手（World 平価／Fiscal 金建て債務／PolicyPreferences 銀下落）は WorldSilverPrice/RefPrices[銀] のまま不変。
+    //   0（既定・休眠）＝旧統計をそのまま注入＝厳密恒等。有効な州（両価格>0）が無い／比が不正のときは旧統計へ倒す。
+    public double SilverParityFromRatio = 0.0;
     public double SilverStandardIndThreshold = 0.0;    // 銀本位に届く工業化。0＝★銀は誰でも持てる（銀貨は普遍的だった＝1783年の銀世界の前提。0.15案は19-10の金利レバー問題対策だったが SilverLightDiscipline が構造で解決）。金は GoldStandardIndThreshold ＝交易経済の制度
     public double StandardMetalMintGate = 1.0;         // **主フラグ**★点火2026-08-29（夜間R20造幣3本クラスタA/B batch30）：0で造幣は旧来どおり金鉱だけを買う／1で**本位金属**（銀本位なら銀）を買う＝需要が法に従って現れ・消える。⚠銀価格暴落の線は閉鎖のまま（20-3打ち切り線）
     // ★銀本位の再開（作者裁定2026-09-06「一時的に壊れるのは問題ない。その後に復旧する仕組みが必要」・銀本位doc §7）。

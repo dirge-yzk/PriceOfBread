@@ -1111,8 +1111,6 @@ public class MilitaryTests
         (double Fr, double Es) Sea(double tUk, double tFr, double tEs)
         {
             ws[0].TradeValueSmoothed = tUk; ws[1].TradeValueSmoothed = tFr; ws[2].TradeValueSmoothed = tEs;
-            // ★(206) 越境の交易は全て海路（直近の清算の海路の割合 1）＝この番人は交易額の重みだけを見る（陸路の分は下の番人）
-            for (int k = 0; k < 3; k++) { ws[k].LastImportValue = ws[k].TradeValueSmoothed; ws[k].LastExportValue = 0; ws[k].LastSeaTradeValue = ws[k].TradeValueSmoothed; }
             ArmyShape.Compute(dip, c);
             return (ps[1].NeedSea, ps[2].NeedSea);
         }
@@ -1124,41 +1122,6 @@ public class MilitaryTests
         Assert.True(esZero.Fr > eq.Fr, $"西の交易が0でも仏へ向く注意が増えない（{eq.Fr:G17}→{esZero.Fr:G17}）");
         var fr4 = Sea(1, 4, 1);
         Assert.True(fr4.Fr > eq.Fr && fr4.Es < eq.Es, $"仏の交易が4倍でも注意が仏へ寄らない（仏 {eq.Fr:G17}→{fr4.Fr:G17}・西 {eq.Es:G17}→{fr4.Es:G17}）");
-    }
-
-    /// <summary>★(206) 海路の接触は越境の交易のうち海路の成約の分だけ（World.LastSeaTradeValue÷(輸入＋輸出)×平滑の交易額）＝陸路の直行の荷は艦隊と接しない（推奨で進めた＝作者の承認は未確認）。
-    /// 盤面＝上と同じ（英・仏・西を同じ海盆・英だけが静的な海軍）。平滑の交易額は3国とも1（同じ）にして、西の越境の交易の海路の割合だけを変える。
-    /// ①西の交易が全て海路＝上の番人の「全て等しい」と1ビットも同じ ②西の交易が全て陸路＝西の海の必要量0・仏が増える（交易額0と同じ）
-    /// ③半分が海路＝西は①と②の間（交易額 0.5 と1ビットも同じ）。⚠突然変異「海路の割合を読まない（越境の全ての交易）」で赤（②③）。</summary>
-    [Fact]
-    public void 海路の接触は陸路の越境の交易を数えない()
-    {
-        var sim = Frozen152("イギリス", "フランス", "スペイン");
-        var dip = sim.Diplomacy; var c = sim.Coef;
-        var ws = sim.Nations.ConvertAll(n => n.World);
-        var ps = ws.ConvertAll(w => w.SelfPower!);
-        foreach (var p in ps) { System.Array.Clear(p.BasinPresence); p.BasinPresence[0] = 1.0; p.NavalShare = 0; }
-        ps[0].NavalShare = 1.0;
-        (double Fr, double Es) Sea(double esSeaShare, double esSmoothed = 1.0)
-        {
-            for (int k = 0; k < 3; k++)
-            {
-                ws[k].TradeValueSmoothed = k == 2 ? esSmoothed : 1.0;
-                ws[k].LastImportValue = 0.75; ws[k].LastExportValue = 0.25;   // 越境の交易額（輸入＋輸出＝1）
-                ws[k].LastSeaTradeValue = k == 2 ? esSeaShare : 1.0;          // そのうち海路の額
-            }
-            ArmyShape.Compute(dip, c);
-            return (ps[1].NeedSea, ps[2].NeedSea);
-        }
-        var allSea = Sea(1.0);
-        Assert.True(allSea.Fr > 0 && allSea.Es > 0, $"前提が崩れた：英の艦隊の注意が仏西に向かない（{allSea.Fr}・{allSea.Es}）");
-        var allLand = Sea(0.0);
-        Assert.Equal(0.0, allLand.Es);
-        Assert.True(allLand.Fr > allSea.Fr, $"西の越境の交易が全て陸路でも仏へ向く注意が増えない（{allSea.Fr:G17}→{allLand.Fr:G17}）＝陸路の荷が海路の接触に入っている");
-        Assert.Equal(Sea(1.0, 0.0), allLand);   // 陸路だけ＝交易額0と同じ
-        var half = Sea(0.5);
-        Assert.True(half.Es > 0 && half.Es < allSea.Es, $"西の越境の交易の半分が陸路でも西へ向く注意が減らない（{allSea.Es:G17}→{half.Es:G17}）");
-        Assert.Equal(Sea(1.0, 0.5), half);       // 海路の割合 0.5＝平滑の交易額 0.5 と同じ
     }
 
     /// <summary>★(154) 脅威の緊張（Diplomacy.ThreatTension）は国境の長さを届き方（<see cref="Diplomacy.ThreatReach"/>）へ渡す（「国境を接している国は脅威だが、そうでない国はあまり脅威ではない」の配線）。

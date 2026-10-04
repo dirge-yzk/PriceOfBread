@@ -1920,7 +1920,7 @@ if (args.Length > 0 && args[0] == "silverprobe")
         double pAu = Catalog.GoldOreId < svm.Market.Price.Count ? svm.Market.Price[Catalog.GoldOreId] : -1;
         int lFiat = 0, lAg = 0, lAu = 0, onStd = 0, t0 = 0, t1 = 0, t2 = 0, indHi = 0, susp = 0;
         double agOut = 0, agStock = 0, auOut = 0, agLocal = 0, minted = 0, baseM = 0, broadM = 0, agRes = 0, auRes = 0; int agMkt = 0;
-        // ★器 SilverParityFromRatio の診断列（2026-09-07・2026-10-04 (205) R1 で点火＝旗ごと焼き込み）：局所比R（同一市場内 銀/金鉱 比の Active 州平均＝注入する量の元）・
+        // ★器 SilverParityFromRatio の診断列（2026-09-07）：局所比R（同一市場内 銀/金鉱 比の Active 州平均＝器が注入する量の元）・
         //   E銀/E金（本位別の平均為替＝自己参照ループの観測点）・床拘束州（銀価格≤RefPrice＝造幣局の床が効いている州数）。
         double svRatioSum = 0; int svRatioCnt = 0, svFloorCnt = 0;
         double svEAg = 0, svEAu = 0; int svEAgCnt = 0, svEAuCnt = 0;

@@ -1,0 +1,185 @@
+(207) 合流で差し戻した (203) 線F 前半のコード＝潤沢線＝max(財政バッファ, 戦費予備−借りられる額)（UtilityAgent.OpulenceLineOf・BorrowableForChest）＋番人（FiscalTests）＋計算量の番人の表（建設 7,000→7,518・請求 2,626→2,719）。
+基＝main（(207) の後）→ (203) の形。`git apply --check` が通る（(207) の木で確かめた）。
+差し戻した理由（反証役 vf1#1＝高・合流の中で直せない）：
+  ①主張と測りの食い違い＝(203) の10種で潤沢線÷月の歳入は 22〜40→2.4〜6.8＝ほぼ全ての国で線が床（財政バッファ）＝値段の項は利払い÷歳入が限界 0.55 の近くの国だけで効く（債務の小さい国の元本の余地は月の歳入の約165か月分・1件の額×40か月は年GDP の約1/3＝戦費予備をいつも上回る）。
+  ②分子と分母の非対称＝借りられる額は実際の借入の経路と別の規則（Fiscal.Borrow は払えない額がある月しか借りない・戦時の軍事費が借入へ出る道は戦時段の器〔WarStageShare＝WarStageOpen＝交戦かつ総動員＝R2 の門の中〕だけ・貸し手のプール〔資本家の貯蓄×BondAppetite＋外資〕を読まない）＝軍事費÷年GDP の新しい NG 3（普 1910-19・日と米 1940-50）の入口。
+入れ直しの条件（推奨【推】・作者の承認は未確認）：
+  1. 借りられる額を実際に借りる経路と同じ規則で数える（貸し手のプール・払えない額の発生・戦時段の器）か、そこを読む腕を作る。⚠ 潤沢線は州の輪（Simulation の行政の予算）から州ごとに呼ばれる＝プールの走査を足すなら計算量の予算と一緒に決める。
+  2. 主張を測りどおりに書く（ほぼ全ての国が床・値段の項は限界の近くだけ）・普と日の軍事費の NG 3 をこの非対称の鎖として報告の先頭に。
+  3. R2 の腕（S2・解禁だけ）をこの形の上で回し直す（r202 の上の判定は英の国庫の蓄えが隠した＝反証役 vf1#2）。
+  4. 開幕の段差（助走が終わると線が戦費予備から床へ一度に落ち、初期国庫の厚い国が減税の床 0.25 に張り付く＝1784-1814 の倍率の中央 普 0.43→0.25・露 0.93→0.25〔露は平時の歳入÷請求 0.88 で98% の四半期に税の目標を4分の1〕・墺・米・日・清）と冷却の段差（線が床から戦費予備へ跳ね24か月後に戻る）を入力の大きさに応じた形へ（README §1-8・反証役 vf1#4・#9）。米の関税の目標（RelieveOpulence が関税にも同じ倍率）を計器で読む。
+  5. RelieveOpulence が新しい線を読む突然変異・線が床に当たる国×四半期の割合の記録（反証役 vf1#8）。
+測り＝帯 measurements/b10_20261004_fsc203・表 measurements/fsc203_20261004（実装ログ (203)・(207)）。
+
+diff --git a/PriceOfBread.SimCore/SelfPlay.cs b/PriceOfBread.SimCore/SelfPlay.cs
+index c6f7ac3..a7e6028 100644
+--- a/PriceOfBread.SimCore/SelfPlay.cs
++++ b/PriceOfBread.SimCore/SelfPlay.cs
+@@ -403,9 +403,39 @@ public sealed class UtilityAgent : INationAgent
+     //   ＝清の「軍の請求書を見ない潤沢判定→減税」の嘘だけを閉じ、austerity側は不変。
+ 
+     /// <summary>潤沢線＝「これを超える国庫は取り過ぎ」の物差し（RelieveOpulence と SpendableRevenue が共有＝減税反射と支出反射の対）。
+-    /// 兵士給与（LastSoldierPay＝国庫minで切る前の真の請求書）を FiscalBufferSoldierPayWeight で算入＝大軍国は潤沢と誤判定されない。</summary>
++    /// 兵士給与（LastSoldierPay＝国庫minで切る前の真の請求書）を FiscalBufferSoldierPayWeight で算入＝大軍国は潤沢と誤判定されない。
++    /// ★(203) 戦費予備は**借りられない分だけ**（00一覧 §0-A の 0g・推奨で進めた＝作者の承認は未確認）：
++    ///   戦費予備＝(財政バッファ＋兵士給与の分)×<see cref="OpulenceBufferQuarters"/>（旧の潤沢線そのもの＝月の義務の約40か月分）から、
++    ///   同じ月数のうちに借りられる額（<see cref="BorrowableForChest"/>）を引く。下は財政バッファ（運転の資金＝月の義務の5か月分）。
++    ///   ＝値段（国債の金利）と費用（利払いが歳入を食う限界＝借入の門と同じ1本）で予備の大きさが決まる＝信用の厚い国（英）は蓄えず借りて戦い、
++    ///   借りられない国（冷却中・利払いが限界の近く・金利の高い国）は旧のとおり戦費を蓄える。
++    ///   旧＝借入の余地を読まない＝全ての国が信用の無い国の戦費予備を持った＝英の国庫 1850-1950 年GDP の 0.33〜0.41（月の歳入の 40〜48 か月・潤沢線の 1.15〜1.29倍に張り付き）
++    ///   ＝戦争は国庫の蓄えで払われ、借りない（英の 1824 年以後の借入 0・国債÷年GDP 1910-1950 は史実の 1/25〜1/100）（実装ログ (203)）。
++    ///   史実＝英の国庫の残高は歳入の数週間分【推】・黒字は減債へ（1829 年の減債基金法＝実際の剰余だけを国債の償還へ）・戦費は借入（クリミア・ボーア・第一次大戦）。</summary>
+     public static double OpulenceLineOf(World w)
+-        => (FiscalBufferOf(w) + w.Coef.FiscalBufferSoldierPayWeight * w.Coef.FiscalStressBufferMonths * w.LastSoldierPay) * OpulenceBufferQuarters;
++    {
++        double fb = FiscalBufferOf(w);
++        double chest = (fb + w.Coef.FiscalBufferSoldierPayWeight * w.Coef.FiscalStressBufferMonths * w.LastSoldierPay) * OpulenceBufferQuarters;
++        double line = chest - BorrowableForChest(w);
++        return line >= fb ? line : fb;   // 否定形＝NaN は財政バッファ（運転の資金）
++    }
++
++    /// <summary>★(203) 戦費予備が賄う月数（<see cref="Coefficients.FiscalStressBufferMonths"/>×<see cref="OpulenceBufferQuarters"/>＝戦費予備と同じ月数）のうちに借りられる額
++    /// ＝min(元本の余地, 1件の額×月数)。元本の余地＝利払いの余地（<see cref="Coefficients.MaxInterestShareOfRevenue"/>×直近の歳入−直近の利払い＝<see cref="Fiscal.BorrowGateOpen"/> と同じ1本）÷国債の金利（年率）。
++    /// 1件の額＝<see cref="Fiscal.BorrowTicket"/>（月に借りられる額の上限）。借入の冷却中と開始前の助走は0（借りられない＝戦費予備のまま）。
++    /// 新しい数・新しい状態は無い（全て借入の既存の1本から）。否定形＝NaN の余地は0（借りられない側）。金利が0以下なら元本の余地は無限（1件の額×月数で決まる）。</summary>
++    internal static double BorrowableForChest(World w)
++    {
++        if (w.BorrowCooldown > 0 || w.WarmupFrozen) return 0;
++        var c = w.Coef;
++        double roomI = c.MaxInterestShareOfRevenue * w.LastRevenue - w.LastInterest;   // 月の利払いの余地
++        if (!(roomI > 0)) return 0;
++        double rate = w.GovBondRate;
++        double principal = rate > 1e-9 ? roomI * Calendar.MonthsPerYear / rate : double.PositiveInfinity;
++        double pace = Fiscal.BorrowTicket(w.NominalGdp, c) * c.FiscalStressBufferMonths * OpulenceBufferQuarters;
++        double b = principal < pace ? principal : pace;
++        return b > 0 ? b : 0;
++    }
+ 
+     /// <summary>財政逼迫度∈[0,1]＝1−国家の支払い率 r（作者裁定 R4・2026-09-28 支払いの一元化 段2-1）＝全ての国家の支払いの請求のうち払えない割合（0=十分・1=1銭も払えない）。
+     /// 旧＝国庫が財政バッファ（月次義務の何か月分か）を下回る度合い＝r と別の物差しで、請求の一部（維持費・利払い・行政・軍装備）しか見なかった。
+@@ -867,8 +897,7 @@ public sealed class UtilityAgent : INationAgent
+     /// natprobe/powertrace＝プロイセンの国庫1.3M（GDP約30四半期分）・米38M（128四半期分）・日15M。
+     /// スタンスの税目標は固定率で、**国庫がいくら積み上がっても下げる反射が無い**＝黒字国は経済から貨幣を
+     /// 吸い上げ続け、需要（＝貯蓄駆動）が痩せてデフレ螺旋に入る（プロイセンのGDP 34k→17k の主因）。
+-    /// 税は潤沢線（<see cref="OpulenceLineOf"/>＝(財政バッファ〔月の義務の FiscalStressBufferMonths＝5か月分〕＋兵士給与の分)×OpulenceBufferQuarters＝8＝月の義務の約40か月分）を超える国庫を「取り過ぎ」とみなし、超過に比例して
+-    /// （⚠旧の注記「月次義務の OpulenceBufferQuarters 四半期分」は単位の誤り＝(181) §7-1・(203) で見つけ (207) で注記だけ直した）
++    /// 税は月次義務の OpulenceBufferQuarters 四半期分を超える国庫を「取り過ぎ」とみなし、超過に比例して
+     /// スタンスの税目標を連続に縮める（グラッドストン流の減税）。⚠増税側はいじらない＝財政逼迫の既存反射（uFis）が担う。
+     /// ⚠プレイヤー国（NullAgent）はこの関数を通らない＝プレイヤーの税は自由。OpulenceTaxRelief=0 で厳密恒等。
+     /// ⚠呼び手は Apply の末尾（GateAllLawTargets の前）だけ＝縮めた目標も法律タブと同じ門で段へ整形される（2026-09-28 (85)）。</summary>
+@@ -892,7 +921,7 @@ public sealed class UtilityAgent : INationAgent
+         //   ⚠新しい床（「段1未満へは落とさない」）は作らない＝それは新しい天井の裏返し（思想⑧）。
+         //   ⚠退蔵デフレの是正（2026-08-04 のこの関数の目的）は所得税・人頭税・土地税・累進・関税の5本が従来どおり担う＝instrument は失わない。
+     }
+-    internal const double OpulenceBufferQuarters = 8.0;   // 財政バッファ（月の義務の FiscalStressBufferMonths＝5か月分）の8倍＝月の義務の約40か月分の戦費予備を超えたら「取り過ぎ」（旧の注記「月次義務の8四半期分＝2年分」は単位の誤り＝(203) で見つけ (207) で注記だけ直した）
++    internal const double OpulenceBufferQuarters = 8.0;   // 財政バッファ（月の義務の FiscalStressBufferMonths＝5か月分）の8倍＝月の義務の約40か月分＝戦費予備（旧の注記「8四半期分＝2年分」は単位の誤り＝(203)）。(203) から借りられる分を引いた残りが潤沢線
+     private const double OpulenceTaxFloor = 0.25;        // 減税の床（無税国家にはしない＝行政・軍の最低限は回る）
+ 
+     /// <summary>★鋼市場診断#5（2026-08-16・<see cref="Coefficients.AiProtectiveTariff"/>>0 のみ）：**保護関税の反射**＝防衛側の第二幕。
+diff --git a/PriceOfBread.SimCore/World.cs b/PriceOfBread.SimCore/World.cs
+index 7a543fc..5f0d8e0 100644
+--- a/PriceOfBread.SimCore/World.cs
++++ b/PriceOfBread.SimCore/World.cs
+@@ -1058,7 +1058,7 @@ public sealed class World
+     public double LastTariffRevenue { get; internal set; } // 診断：直近四半期の関税収入（国庫へ実収）
+ 
+     /// <summary>支出反射（露普歳入是正・2026-08-08）＝月次予算の基数。OpulenceSpendRate>0 のとき、潤沢線
+-    /// （RelieveOpulence と同一＝(FiscalBufferOf＋兵士給与の分)×8＝月の義務の約40か月分・旧の注記「×8四半期」は単位の誤り＝(207) で注記だけ直した）を超える国庫の一部を予算基数へ翻訳する＝減税反射の対。
++    /// （RelieveOpulence と同一＝戦費予備〔FiscalBufferOf×8＝月の義務の約40か月分〕から借りられる分を引いた残り＝(203)）を超える国庫の一部を予算基数へ翻訳する＝減税反射の対。
+     /// 旧＝全支出がフロー歳入比例で**国庫ストックを誰も使えず**、初期国庫の大きい国（普190k・墺・清）が
+     /// 床0.25の減税に開幕から永久ロックされていた（普の歳入=GDP比1.0-1.4%の根）。
+     /// ⚠既定0＝LastRevenue をそのまま返す（浮動小数点演算を足さない厳密恒等）。金の経路は既存の保存チャネルのみ。</summary>
+diff --git a/PriceOfBread.Tests/FiscalTests.cs b/PriceOfBread.Tests/FiscalTests.cs
+index 5fcf9a2..60c55fb 100644
+--- a/PriceOfBread.Tests/FiscalTests.cs
++++ b/PriceOfBread.Tests/FiscalTests.cs
+@@ -1623,4 +1623,67 @@ public class FiscalTests
+         Assert.True(Math.Abs(shortM.clergyEarned - shortM.tithe) <= 1e-9, "聖職の所得（Earned）が受け取った十分の一税と一致しない");
+     }
+ 
++    /// <summary>★(203) 潤沢線（戦費予備）は**借りられない分だけ**（00一覧 §0-A の 0g・推奨で進めた＝作者の承認は未確認）。
++    /// 潤沢線＝max(財政バッファ, 戦費予備−借りられる額)・戦費予備＝(財政バッファ＋兵士給与の分)×8（旧の潤沢線）・
++    /// 借りられる額＝min(利払いの余地÷国債の金利, 1件の額×戦費予備の月数)・利払いの余地＝限界×歳入−利払い（借入の門と同じ1本）・冷却中と助走は0。
++    /// 盤面＝静かな英に直近の歳入・利払い・行政と軍の請求・兵士給与・金利を置き、潤沢線そのもの（と呼び手の SpendableRevenue＝支出反射）を読む。
++    /// ①元本の余地が戦費予備より小さい盤面＝戦費予備−元本の余地 ②金利が倍＝元本の余地が半分＝潤沢線が上がる（値段の向き）
++    /// ③利払いが限界＝余地0＝戦費予備のまま ④冷却中・助走＝戦費予備のまま ⑤余地が大きい＝財政バッファで止まる ⑥金利0＝1件の額×月数で決まる
++    /// ⑦歳入が NaN＝借りられない側＝戦費予備 ⑧呼び手：同じ国庫で、信用のある国は支出反射が乗り、冷却中の国は乗らない。
++    /// 突然変異：引き算を外す→①②⑤⑥⑧が赤／下を外す→⑤が赤／冷却を読まない→④⑧が赤／金利を読まない→②が赤／1件の額を読まない→⑥が赤。</summary>
++    [Fact]
++    public void 潤沢線は戦費予備から借りられる分を引いた残りで下は財政バッファ()
++    {
++        static World Board(double interestShare, double rate)
++        {
++            var w = QuietBritain();
++            double r = 0.1 * w.NominalGdp;   // 直近の月の歳入＝月の名目GDP の1割
++            w.LastRevenue = r; w.LastInterest = interestShare * r; w.LastAdminClaim = 0.3 * r; w.LastMilitaryClaim = 0.3 * r; w.LastSoldierPay = 0.2 * r;
++            w.GovBondRate = rate; w.BorrowCooldown = 0; w.WarmupFrozen = false;
++            return w;
++        }
++        static double Fb(World w) => Math.Max(1.0, w.Coef.FiscalStressBufferMonths * (w.LastInterest + w.LastAdminClaim + w.LastMilitaryClaim));
++        static double Chest(World w) => (Fb(w) + w.Coef.FiscalBufferSoldierPayWeight * w.Coef.FiscalStressBufferMonths * w.LastSoldierPay) * UtilityAgent.OpulenceBufferQuarters;
++        static double Months(World w) => w.Coef.FiscalStressBufferMonths * UtilityAgent.OpulenceBufferQuarters;
++        static void Near(double want, double got, string what) => Assert.True(Math.Abs(want - got) <= 1e-9 * Math.Max(1.0, Math.Abs(want)), $"{what}：期待 {want:R}・実際 {got:R}");
++
++        // ① 利払い＝歳入の5割（余地＝0.05×歳入）・金利4%＝元本の余地 15か月分の歳入＜1件の額×40か月（40か月分の歳入）＝戦費予備−元本の余地
++        var a = Board(0.5, 0.04);
++        double principalA = (a.Coef.MaxInterestShareOfRevenue * a.LastRevenue - a.LastInterest) * Calendar.MonthsPerYear / a.GovBondRate;
++        Assert.True(principalA < Fiscal.BorrowTicket(a.NominalGdp, a.Coef) * Months(a), "前提が崩れた：元本の余地が1件の額×月数より大きい");
++        Assert.True(Chest(a) - principalA > Fb(a), "前提が崩れた：戦費予備−元本の余地が財政バッファの下");
++        Near(Chest(a) - principalA, UtilityAgent.OpulenceLineOf(a), "① 戦費予備−元本の余地");
++        // ② 金利が倍＝元本の余地が半分＝潤沢線は元本の余地の半分だけ上がる
++        var a8 = Board(0.5, 0.08);
++        Near(Chest(a8) - principalA / 2, UtilityAgent.OpulenceLineOf(a8), "② 金利8%");
++        Assert.True(UtilityAgent.OpulenceLineOf(a8) > UtilityAgent.OpulenceLineOf(a), "② 金利が高いのに潤沢線（蓄える戦費）が上がらない");
++        // ③ 利払いが限界（歳入の MaxInterestShareOfRevenue）以上＝余地0＝戦費予備のまま
++        var cap = Board(a.Coef.MaxInterestShareOfRevenue, 0.04);
++        Near(Chest(cap), UtilityAgent.OpulenceLineOf(cap), "③ 利払いが限界");
++        // ④ 冷却中・助走＝借りられない＝戦費予備のまま
++        var cool = Board(0.5, 0.04); cool.BorrowCooldown = 12;
++        Near(Chest(cool), UtilityAgent.OpulenceLineOf(cool), "④ 冷却中");
++        var warm = Board(0.5, 0.04); warm.WarmupFrozen = true;
++        Near(Chest(warm), UtilityAgent.OpulenceLineOf(warm), "④ 助走");
++        // ⑤ 利払い＝歳入の1割（余地が大きい）＝借りられる額が戦費予備を超える＝財政バッファで止まる
++        var wide = Board(0.1, 0.04);
++        Assert.True(Chest(wide) < Math.Min((wide.Coef.MaxInterestShareOfRevenue * wide.LastRevenue - wide.LastInterest) * Calendar.MonthsPerYear / wide.GovBondRate,
++                                           Fiscal.BorrowTicket(wide.NominalGdp, wide.Coef) * Months(wide)), "前提が崩れた：借りられる額が戦費予備より小さい");
++        Near(Fb(wide), UtilityAgent.OpulenceLineOf(wide), "⑤ 財政バッファ");
++        // ⑥ 金利0＝元本の余地は無限＝借りられる額は1件の額×月数（利払い＝歳入の5割＝戦費予備はそれより大きい盤面）
++        var free = Board(0.5, 0.0);
++        double pace = Fiscal.BorrowTicket(free.NominalGdp, free.Coef) * Months(free);
++        Assert.True(Chest(free) - pace > Fb(free), "前提が崩れた：戦費予備−1件の額×月数が財政バッファの下");
++        Near(Chest(free) - pace, UtilityAgent.OpulenceLineOf(free), "⑥ 金利0");
++        // ⑦ 歳入が NaN＝余地は NaN＝借りられない側（戦費予備）
++        var nan = Board(0.5, 0.04); nan.LastRevenue = double.NaN;
++        Assert.Equal(0.0, UtilityAgent.BorrowableForChest(nan));
++        // ⑧ 呼び手（支出反射 World.SpendableRevenue）：同じ国庫（戦費予備と潤沢線の間）で、信用のある国は上乗せが乗り、冷却中の国は乗らない
++        var credit = Board(0.5, 0.04); var frozen = Board(0.5, 0.04); frozen.BorrowCooldown = 12;
++        double t = 0.5 * (UtilityAgent.OpulenceLineOf(credit) + Chest(credit));
++        credit.SetTreasuryRaw(t); frozen.SetTreasuryRaw(t);
++        Near(credit.LastRevenue + credit.Coef.OpulenceSpendRate * (t - UtilityAgent.OpulenceLineOf(credit)) / Calendar.MonthsPerYear, credit.SpendableRevenue(), "⑧ 信用のある国の支出反射");
++        Assert.True(credit.SpendableRevenue() > credit.LastRevenue, "⑧ 信用のある国で戦費予備の下の国庫が支出反射に乗らない");
++        Near(frozen.LastRevenue, frozen.SpendableRevenue(), "⑧ 冷却中の国の支出反射");
++    }
+ }
+diff --git a/PriceOfBread.Tests/WriterRatchetTests.cs b/PriceOfBread.Tests/WriterRatchetTests.cs
+index 083c4e1..bb880b8 100644
+--- a/PriceOfBread.Tests/WriterRatchetTests.cs
++++ b/PriceOfBread.Tests/WriterRatchetTests.cs
+@@ -383,11 +383,15 @@ public class WriterRatchetTests
+     //   新しい計数「発見：平滑化した値段の歩（国×四半期）」＝数えていなかった Discovery.AdvancePrice（単価 19.63 µs）＝2,503（40四半期）。
+     //   覇権の判定 1,682,840→1,801,994（+7.1%＝最初の40四半期の同盟の候補が居る月の軌道・処理の形は同じ）。ほかは許しの内（フルスイートで確かめた）。
+     //   全長の10種（b10_20261003_cap186.cost）の推定は実装ログ (186)。
+-    [InlineData(CostLedger.ConstructionSeen, 7000L)]
++    // ★2026-10-04 表の更新（(203) 線F＝潤沢線を「戦費予備−借りられる額」へ〔UtilityAgent.OpulenceLineOf〕＝軌道が動いた分の宣言・新しい計数の処理は無い
++    //   〔潤沢線の式に借入の余地の掛け算と引き算を足しただけ＝国×月の数回の算術〕）：建設 7,000→7,518（+7.4%）・請求 2,626→2,719（+3.5%）
++    //   ＝潤沢線が下がり、国庫の厚い国（普・日・墺・清）の支出反射（SpendableRevenue＝歳入＋0.6×線の上の国庫÷12）が最初の40四半期から乗る＝行政と国家の建設の予算が増えた軌道（処理の形は同じ）。
++    //   ほかの17本は許しの内（+2%／−10%・フルスイートで確かめた）。全長の10種（計器なし `b10_20261004_fsc203`）の推定 241.2→242.2 秒（上限 248.5 秒の内・払っていない・実装ログ (203)）。
++    [InlineData(CostLedger.ConstructionSeen, 7518L)]
+     [InlineData(CostLedger.CreditSpans, 33282L)]
+     [InlineData(CostLedger.ConsumePopGoods, 28595736L)]
+     [InlineData(CostLedger.ProducerMonths, 6495176L)]
+-    [InlineData(CostLedger.ClaimProducers, 2626L)]
++    [InlineData(CostLedger.ClaimProducers, 2719L)]
+     [InlineData(CostLedger.MonthlyPops, 706680L)]
+     [InlineData(CostLedger.ClearingRows, 5185642L)]
+     [InlineData(CostLedger.ClearingFills, 42375697L)]

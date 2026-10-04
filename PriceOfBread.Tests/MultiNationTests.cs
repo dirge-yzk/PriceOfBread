@@ -44,15 +44,16 @@ public class MultiNationTests
     //   （閾値 0.24・0.20・1）。4カ国の閉じた世界の停滞（社会主義を誰も見つけない）は作者への確認（政体の引力）の回で4カ国の盤面へ戻すかを決める（00一覧）。
     private static readonly System.Lazy<FourNations400> SharedWorld = new(() => new FourNations400(200, world: true));
 
-    // ★(205) R1＝dorm-32 の器A の点火（2026-10-04・旗 SilverParityFromRatio ごと焼き込み・作者裁定 2026-09-28「全て推奨」）：
-    //   注入される WorldSilverPrice（銀本位国の平価の元）が「同じ州の中の 銀/金鉱 比の生きた Active 州の対数平均 ÷ 参照の比 × RefPrices[銀]」の
-    //   手計算と一致（1e-9）し、表示用の統計 Market.Price[銀]（各州の局所価格×為替の単純平均＝為替がこの平均から作られ平均が為替を含む＝自己参照）とは
-    //   別の値であること（4国の世界の3四半期で統計と比の値は 1e-6 以上離れる＝統計へ戻す突然変異が赤になる盤面）。
-    //   ⚠突然変異「旧の統計へ戻す」「算術平均」「死んだ市場も数える」で赤。
-    [Fact]
-    public void 銀の世界価格は同じ州の銀と金鉱の比から作り表示用の統計を読まない()
+    // ★器 SilverParityFromRatio の ON/OFF 経路（2026-09-07）：注入される WorldSilverPrice が
+    //   ON＝「同一市場内の 銀/金鉱 比の生きた Active 州の対数平均 ÷ RefPrice 比 × RefPrices[銀]」の手計算と一致（1e-9）し、
+    //   既定0＝旧統計 Market.Price[銀] と同一であること。⚠この係数は sim 側 _coef の読み手＝コンストラクタ coef: で渡すのが正しい
+    //   （World.Coef は国ごと別インスタンスで、ここでは読まれない）。
+    [Theory]
+    [InlineData(0.0)]
+    [InlineData(1.0)]
+    public void 銀平価の器は同一市場内の銀金比から世界銀価格を作る(double gate)
     {
-        var coef = new Coefficients();
+        var coef = new Coefficients { SilverParityFromRatio = gate };
         Assert.True(coef.SilverStandardGate > 0, "前提＝SilverStandardGate が live（0なら注入自体が無い）");
         var sim = new MultiNationSim(FourNations(), seed: 1789, coef: coef);
         sim.Run(3);
@@ -71,49 +72,10 @@ public class MultiNationTests
             }
         Assert.True(cnt > 0, "銀と金鉱の両方に価格のある Active 州が無い（世界データが変わった）");
         double refRatio = refAg / refAu;
-        double expected = System.Math.Exp(sum / cnt) / refRatio * refAg;
-        Assert.True(System.Math.Abs(sim.Market.Price[Catalog.SilverId] - expected) > 1e-6,
-            $"盤面の前提：表示用の統計 {sim.Market.Price[Catalog.SilverId]} と比の値 {expected} が同じ＝統計へ戻す突然変異を捕まえられない");
+        double expected = gate > 0 ? System.Math.Exp(sum / cnt) / refRatio * refAg : sim.Market.Price[Catalog.SilverId];
         foreach (var n in sim.Nations)
             Assert.True(System.Math.Abs(n.World.WorldSilverPrice - expected) <= 1e-9,
-                $"{n.World.SelfPower?.Name}：WorldSilverPrice={n.World.WorldSilverPrice} 期待={expected}");
-    }
-
-    // ★(205) R1 の番人の2本目＝61カ国の世界（SharedWorld＝200四半期）には片側の市場が死んだ州（需要も産出も無い＝MarketFlow が値段を動かさない＝凍った値段が残る）がある
-    //   ＝死んだ市場を除いた対数平均と除かない対数平均が 1e-6 以上離れる盤面で、注入値が除いた方と一致する。⚠突然変異「死んだ市場も数える」で赤（4国の盤面には死んだ市場が無い＝1本目では捕まえない）。
-    [Fact]
-    public void 銀の世界価格は片側の市場が死んだ州を数えない()
-    {
-        var run = SharedWorld.Value;   // ★(152)：盤面を61カ国の世界へ（SharedWorld の注記）
-        Assert.Null(run.Error);
-        var sim = run.Sim;
-        double refAg = Catalog.RefPrices[Catalog.SilverId], refAu = Catalog.RefPrices[Catalog.GoldOreId];
-        double sLive = 0, sAll = 0; int nLive = 0, nAll = 0;
-        foreach (var n in sim.Nations)
-            foreach (var r in n.World.Regions)
-            {
-                if (r.State != RegionState.Active) continue;
-                if (Catalog.SilverId >= r.Markets.Length || Catalog.GoldOreId >= r.Markets.Length) continue;
-                var mAg = r.Markets[Catalog.SilverId]; var mAu = r.Markets[Catalog.GoldOreId];
-                double pAg = mAg.Price, pAu = mAu.Price;
-                if (!(pAg > 1e-9) || !(pAu > 1e-9)) continue;
-                double l = System.Math.Log(pAg / pAu);
-                sAll += l; nAll++;
-                if ((mAg.LastDemand > 1e-9 || mAg.LastProduced > 1e-9) && (mAu.LastDemand > 1e-9 || mAu.LastProduced > 1e-9)) { sLive += l; nLive++; }
-            }
-        Assert.True(nLive > 0 && nAll > nLive, $"盤面の前提：死んだ市場の州が無い（生きた {nLive}・全て {nAll}）");
-        double refRatio = refAg / refAu;
-        double eLive = System.Math.Exp(sLive / nLive) / refRatio * refAg, eAll = System.Math.Exp(sAll / nAll) / refRatio * refAg;
-        Assert.True(System.Math.Abs(eLive - eAll) > 1e-6, $"盤面の前提：死んだ市場を数えても数えなくても同じ（{eLive}・{eAll}）＝突然変異を捕まえられない");
-        int seen = 0;
-        foreach (var n in sim.Nations)
-        {
-            if (!(n.World.WorldSilverPrice > 0)) continue;   // 最後の注入の後に建った国は注入を受けていない
-            seen++;
-            Assert.True(System.Math.Abs(n.World.WorldSilverPrice - eLive) <= 1e-9,
-                $"{n.World.SelfPower?.Name}：WorldSilverPrice={n.World.WorldSilverPrice} 期待（生きた市場だけ）={eLive}・死んだ市場も数えた値={eAll}");
-        }
-        Assert.True(seen > 0, "注入を受けた国が無い");
+                $"{n.World.SelfPower?.Name}：WorldSilverPrice={n.World.WorldSilverPrice} 期待={expected}（gate={gate}）");
     }
 
     [Fact]

@@ -1,0 +1,442 @@
+(207) 合流で差し戻した線T のコード＝(204) 線T 前半〔仮番号 (205)〕R1（dorm-32 の器A＝銀本位国の平価を同じ州の 銀÷金鉱 の比の対数平均から・旗 SilverParityFromRatio ごと焼き込み）＋(206) 線T 後半（海路の接触を海路の越境の交易だけに＝World.LastSeaTradeValue）＋番人と計算量の番人の表。
+基＝main（(207) の後）→ 線T の2つの回の形。`git apply --check` が通る（(207) の木で確かめた）。R3（影の運送と運賃を運んだ国へ）は別のパッチ measurements/t205_20261004_R3.diff（R1 の上で当てる）。
+差し戻した理由（(207) の合わせた木 XI＝main の木〔r202＋(205)〕＋線T と、線T を除いた木 FI の10種・同じ種1〜10）：判定の線（F1）は内側（exact 48.7→46.1・near 84.4→84.4）だが正しい挙動が全体として悪くなった＝
+  1913 年の金本位の国 26→10（普が金の種 9/10→1/10・墺 4/10→0/10）・工場の蒸気動力の NG 17 が新しく（銀本位国の 1813〜1853 年）・スペイン領アメリカから建った国 種あたり 3.1→7.0（最初の年の中央 1812→1799・史実 1810〜1816）・補給崩壊 国×四半期 90→775（千件級は 0/10）・日の海軍力と艦隊 1815-24 の新しい NG（26.4・24.7倍）・史実比較の桁の NG 66→74。線T の担当も R1 を 0-A の 10（先に銀の暴落の経路）と同じ合流で入れると推奨した（(204)・(206) の申し送り①）。
+入れ直しの条件（推奨【推】・作者の承認は未確認）：
+  1. 0-A の 10（銀の暴落の経路）を先に作る＝金への入力（PolicyPreferences の銀の下落）は r202 で表示用の統計の自己参照の人工物（1803 年から約0.7）に乗っていた＝R1 がそれを外すと金への入力が欠ける（反証役 vt1#4＝原因は「前倒し」の時期でなく、承認した推奨 R1 が人工物を外して欠けが見えた【推】）。その上で R1 を測り、金本位の波が r202 の水準（1913 年 28・主要6国 26/60）へ戻らなければ作者へ。
+  2. 蒸気の伝わり（金建ての取引の割合で測る＝為替で重みが動く）を為替で重みが変わらない比で読む・開幕に蒸気機関を知る国（マイソール・ソコト・ポルトガル）のデータを先にソースで確かめる（反証役 vt1#2）。
+  3. (206) は R1 の木で測った＝単独で今の main に載せて10種で読み直す（機構の効きは同じ盤面の反実仮想で清の重み −13%・清÷英の海の必要量 −12% だけ・残りは軌道＝反証役 vt2#1）。露÷英と仏÷英の陸軍力の落ち（vt2#2）・同じ種の清と日の交易の桁（vt2#3）・注記「平滑の量」と直近1か月の海路の割合の食い違い（vt2#5）を一緒に。
+  4. 英の 1783〜1802 年の州の値段の跳ね（2.62→6.76・国境の台帳は出超＝鎖③と向きが逆）の原因を計器で特定してから英の資本収支の負のフィードバックを決める（反証役 vt1#1）。R3 の入れ直しの条件に「払う運賃÷輸入（FOB）」の史実の桁を足す（vt1#3）。
+測り＝帯 measurements/b10_20261004_trd205（(204)）・b10_20261004_trd206（(206)）・表 measurements/t205_20261004・t206_20261004・(207) の表 measurements/m207_20261004（XI10）。
+
+diff --git a/PriceOfBread.Runner/Program.cs b/PriceOfBread.Runner/Program.cs
+index 5528373..c2699cb 100644
+--- a/PriceOfBread.Runner/Program.cs
++++ b/PriceOfBread.Runner/Program.cs
+@@ -1920,7 +1920,7 @@ if (args.Length > 0 && args[0] == "silverprobe")
+         double pAu = Catalog.GoldOreId < svm.Market.Price.Count ? svm.Market.Price[Catalog.GoldOreId] : -1;
+         int lFiat = 0, lAg = 0, lAu = 0, onStd = 0, t0 = 0, t1 = 0, t2 = 0, indHi = 0, susp = 0;
+         double agOut = 0, agStock = 0, auOut = 0, agLocal = 0, minted = 0, baseM = 0, broadM = 0, agRes = 0, auRes = 0; int agMkt = 0;
+-        // ★器 SilverParityFromRatio の診断列（2026-09-07）：局所比R（同一市場内 銀/金鉱 比の Active 州平均＝器が注入する量の元）・
++        // ★器 SilverParityFromRatio の診断列（2026-09-07・2026-10-04 (204) R1 で点火＝旗ごと焼き込み）：局所比R（同一市場内 銀/金鉱 比の Active 州平均＝注入する量の元）・
+         //   E銀/E金（本位別の平均為替＝自己参照ループの観測点）・床拘束州（銀価格≤RefPrice＝造幣局の床が効いている州数）。
+         double svRatioSum = 0; int svRatioCnt = 0, svFloorCnt = 0;
+         double svEAg = 0, svEAu = 0; int svEAgCnt = 0, svEAuCnt = 0;
+diff --git a/PriceOfBread.SimCore/ArmyShape.cs b/PriceOfBread.SimCore/ArmyShape.cs
+index 73a2956..38a6c53 100644
+--- a/PriceOfBread.SimCore/ArmyShape.cs
++++ b/PriceOfBread.SimCore/ArmyShape.cs
+@@ -48,11 +48,21 @@ public static class ArmyShape
+         //   ⚠(197) 反証役 vq1#9：列の分母は u(j)＋Σ重みつきの値＝重みを平均で割っても内向きの u との比は動く＝交易の大きい国の近くの艦隊ほど外向きの注意の総量が増える（総量は「変えない」ではない）。
+         //   TradeValueSmoothed は TradeWeightDynamic>0 のときだけ更新される（MultiNationSim.UpdateTradeWeights）＝その係数を0にすると平均が0＝重み1（旧）へ黙って戻る。
+         //   平滑の量（1四半期の禁輸・封鎖で跳ねない）・国内の沿岸の海路（港の取扱高に入る清と日の州どうしの海の荷）は数えない＝他国と接しない。
++        //   ★(206)（2026-10-04・推奨で進めた〔作者の承認は未確認〕）越境の成約のうち陸路の直行の分も数えない＝下の接触＝平滑の交易額×直近の清算の海路の割合（World.LastSeaTradeValue）。
++        //   旧（(194)〜(204)）＝陸の国境の荷（清と露・朝鮮・ラオス、普と墺・露・ポーランド、仏と西・墺）も艦隊の注意を引いた＝分子（越境の全ての交易）と重なり（港の取扱高＝海路の成約の分布）が別の規則。
++        //   (206) の計器（5種・r205 の木）＝越境の交易のうち海路の割合 清 0.57〜0.89・仏 0.42〜0.97・普 0.47〜0.96・露 0.32〜0.71・英 0.88〜0.98・米 0.96〜1・日 1。
++        //   ⚠清の海の必要量の主な入口はこの重みではない（(206) の計器＝重みを全て1にしても清÷英の海の必要量は 0.77→0.62 にしか下がらない）＝英の海軍の予算が海の必要量に届かない（1815-24 の海軍力÷海の必要量＝種の中央 0.32）・
++        //   清は巨大な軍事の器の小さな割合で目標の艦隊を買う（同 0.74）・清の越境の交易が英の 0.5〜1.8倍（史実 約0.07〜0.12【推】）＝実装ログ (206)。
+         var contact = new double[n];
+         double contactSum = 0;
+         for (int i = 0; i < n; i++)
+         {
+-            double x = ps[i].Nation!.TradeValueSmoothed;   // ps は Nation 非null に絞ってある
++            var wi = ps[i].Nation!;   // ps は Nation 非null に絞ってある
++            // ★(206) 海路の越境の交易だけ＝平滑の交易額×直近の清算の海路の割合（World.LastSeaTradeValue÷(輸入＋輸出)）。陸路の直行の成約（清と露・朝鮮・ラオスの国境の荷）は
++            //   艦隊と接しない＝数えない（重なり BasinPresence は港の取扱高〔海路の成約〕の分布＝分子と平均を同じ海の規則で）。
++            double tot = wi.LastImportValue + wi.LastExportValue;
++            double seaShare = tot > 0 && wi.LastSeaTradeValue > 0 ? wi.LastSeaTradeValue / tot : 0;   // 否定形＝NaN と0は0（海路の額は越境の額の部分和＝1を超えない）
++            double x = wi.TradeValueSmoothed * seaShare;
+             contact[i] = x > 0 ? x : 0;   // 否定形＝NaN と負は0
+             contactSum += contact[i];
+         }
+@@ -79,7 +89,7 @@ public static class ArmyShape
+                 // ⚠BasinPresence は L1 正規化済み＝この内積を「海軍需要の水準」の根拠にしてはならない（分散する国ほど内積が小さく符号が逆転する）。
+                 //   ここでは「j の艦隊のうち i に向く分」を決める**相対重み**としてのみ使い、水準は相手の艦隊の大きさ（NavalPower）と海を越えて来る陸軍が担う
+                 //   （(154) で注記を直した・(183) で通商保護の項〔自国の軍×海に出ている経済の割合〕を外した＝下の注記）。
+-                //   ★(194) 重みに i の海路の接触（越境の交易額÷平均）を掛ける（上の注記）。交易が1つも無い世界（開幕の清算の前）は平均が0＝重み1（旧と同じ）。
++                //   ★(194) 重みに i の海路の接触（★(206) 海路の越境の交易額÷平均）を掛ける（上の注記）。交易が1つも無い世界（開幕の清算の前）は平均が0＝重み1（旧と同じ）。
+                 hrSea[j * n + i] = h * sea * (contactMean > 0 ? contact[i] / contactMean : 1.0);
+             }
+ 
+@@ -136,7 +146,7 @@ public static class ArmyShape
+             //   （(151) が「清は外洋艦隊を必要としない」を出すために置いた max〔海は任務の分だけ〕の意図とも逆向き）。計器（(183) の need183・r182 の10種の中央）＝1913 年の清の海の必要量の約45%がこの項
+             //   （艦隊の比の項の方が大きい・清の軍は英の約31倍＝海の割合 0.020 でも艦隊は英の数倍＝史実比較の桁の NG〔清÷英の海軍力 1904-13 142倍〕の入口の1つ）。
+             //   ⚠(183) の10種で清÷英の海軍力が 142→54倍に下がった分の大半は清の軍の総合ゲージの縮み（191→46）＝勝者の軌道（清 7→1/10）で、海の割合の縮みは 0.020→0.013（(187) 反証役 va1#3）。
+-            //   海の必要量＝艦隊の比（海盆で接する相手の艦隊の注意配分・★(194) 重みに海路の接触＝自国の越境の交易額÷平均）＋海を越えて来る陸軍の注意配分＝どちらも相手の力で決まる
++            //   海の必要量＝艦隊の比（海盆で接する相手の艦隊の注意配分・★(194) 重みに海路の接触＝自国の海路の越境の交易額〔(206)〕÷平均）＋海を越えて来る陸軍の注意配分＝どちらも相手の力で決まる
+             //   （AI の提案〈艦隊の比と海路の接触〉の読み・(197) 反証役 vq1#8 で語の定義を (194) にそろえた＝旧の注記は「海路の接触＝海を越えて来る陸軍」と書いていた）。
+             //   吸収状態（全ての海軍が0）にはならない＝海を越えて来る陸軍は相手の陸と内の守り（国境・不穏度）が支える（10種の計器で港の州を持つ主要国に海軍が残る・普は港の州を失った軌道で0に近づく）。棚卸し dorm-37 の推奨（削除寄り）と同じ向き。
+             //   守る海の交易の絶対量（係数×取扱高）の形は (151) の腕 B2・B3 で清の艦隊を英の約15倍にした（清の取扱高が英を超える）＝戻さない。
+@@ -232,7 +242,7 @@ public static class ArmyShape
+     ///   旧（(151)〜(187)）＝海の必要量 ÷ max(軍の総合ゲージ, 陸＋内＋海の必要量)＝陸の必要量がほぼ0の島の国（ハワイ・マダガスカル・琉球・日本）は軍が海の必要量より小さいと海の割合がほぼ1
+     ///   ＝(189) で海の金の割合が艦の予算を分けるようになると、陸の装備の予算がほぼ0・即応度0のまま戻らない錠になった（10種で 2,894 国×年・旧の木 5種で 138）。
+     ///   今＝陸の側は「陸と内の守りの必要量」と「抱えている兵の頭数×質」の大きい方＝払っている兵の装備の分は陸に残る（海は任務の分だけ・残りの兵は陸に立つ・軍が足りない国は必要量の比＝旧と同じ）。
+-    /// ・海の必要量（<see cref="Power.NeedSea"/>）＝艦隊の比（海盆で接する仮想敵の艦隊の注意配分・★(194) 重み＝自国の越境の交易額÷平均＝海路の接触）＋海を越えて来る陸軍の注意配分（★(194) 相手の陸軍の大きさ×遠征の技術の門）＝自国の軍の大きさを読まない
++    /// ・海の必要量（<see cref="Power.NeedSea"/>）＝艦隊の比（海盆で接する仮想敵の艦隊の注意配分・★(194) 重み＝自国の海路の越境の交易額〔(206)〕÷平均＝海路の接触）＋海を越えて来る陸軍の注意配分（★(194) 相手の陸軍の大きさ×遠征の技術の門）＝自国の軍の大きさを読まない
+     ///   （(183)＝守る海の交易〔海に出ている経済の割合×自国の軍の総合ゲージ〕を外した）。
+     /// ・陸と内の守り（<see cref="Power.NeedLand"/>・<see cref="Power.NeedInternal"/>）＝安全保障（国境の長さ×地形×隣国の陸軍・同盟は0・属国は弱く）＋国内の秩序。
+     /// ・軍が必要量の和より大きい国＝海は任務の分だけ・残りの兵は陸に立つ（船は人で造れない＝海の大きさは海の任務が決める）＝**清は外洋艦隊を必要としない**が理由で出る
+diff --git a/PriceOfBread.SimCore/BilateralMarket.cs b/PriceOfBread.SimCore/BilateralMarket.cs
+index be81107..cb8b5d7 100644
+--- a/PriceOfBread.SimCore/BilateralMarket.cs
++++ b/PriceOfBread.SimCore/BilateralMarket.cs
+@@ -410,6 +410,7 @@ public sealed partial class InternationalMarket
+         //   関税と穀物法の分は通関の時点で輸入国の国庫へ（econ-07）／金建ての額は各国の通貨へ為替で換算（A7）。
+         //   清算所＝世界の外（払い手は清算所へ払い、受け手は清算所から受け取る）＝同じ国の州どうしの取引は同じ国の台帳に −x と +x が入って打ち消す（国内の決済）。
+         var importVal = new double[nn]; var exportVal = new double[nn];   // 越境の輸入額（CIF＝積出し価格＋運賃）・輸出額（FOB＝積出し価格）・金建て（同じ国の州どうしは数えない＝分子と分母を同じ規則で）
++        var seaVal = new double[nn];   // ★(206) そのうち海路の成約（港の取扱高と同じ印 seaA）の輸入＋輸出＝World.LastSeaTradeValue
+         double freightPool = 0;   // 運賃（金建て）＝船腹の比で各国の船の持ち主へ
+         var shipShare = new double[nn];
+         // ★段3-1（C3）：運賃の受け手＝船の持ち主＝その国の商人POP（船を買うのは州の商人＝Transport.BuyToward）。旧＝運賃は各国の純流入に混ぜて国の全POP の貯蓄比（Apply）。
+@@ -826,6 +827,7 @@ public sealed partial class InternationalMarket
+                     //   から輸入額を引いて輸出額にしていた＝同じ国の州どうしの取引が2回入り、輸出額＝本当の輸出＋国内の州間取引の2倍だった。
+                     //   ★段3-1：輸出＝積出し価格（FOB）・輸入＝積出し価格＋運賃（CIF）＝史実の貿易統計の慣行（旧＝どちらも単価＝次善の着値）。
+                     if (crossA) { importVal[ni] += vA + frG; impByGood[ni][g] += vA + frG; exportVal[siA] += vA; expByGood[siA][g] += vA; }
++                    if (crossA && seaA) { seaVal[ni] += vA + frG; seaVal[siA] += vA; }   // ★(206) 海路の越境の成約（同じ額・同じ向き＝輸入 CIF・輸出 FOB）
+                     // ★2026-09-27（回4-1・項目12②）：港の取扱高は海路の成約だけ（この組の着値を決めた経路＝KmOf(snA, t) が書いた向きの印）。
+                     //   陸路の直行は港を通らない。同じ国の沿岸の海路（英のニューカッスル→ロンドンの石炭）は積む＝国境でなく経路で分ける。
+                     if (seaA) { tr[t].r.LastPortThroughput += vA; tr[snA].r.LastPortThroughput += vA; }
+@@ -918,6 +920,7 @@ public sealed partial class InternationalMarket
+             var w0 = nations[i].World;
+             w0.LastImportValue = importVal[i];
+             w0.LastExportValue = exportVal[i];   // ＝ExportsByGood の和（同じ成約を同じ条件で積む）
++            w0.LastSeaTradeValue = seaVal[i];
+             // ダンピングの輸出補助（負の関税）＝国庫→輸出を捌いた州の商人（越境の輸出の受取の比）・国家の支払い率 r の分だけ・関税の純額から減算。
+             //   旧＝全州の商人の頭数で等分・輸出額は単価の和・TariffRevenueRate（削除）を掛けた。
+             if (tar[i] < 0 && exportVal[i] > 0)
+diff --git a/PriceOfBread.SimCore/Coefficients.cs b/PriceOfBread.SimCore/Coefficients.cs
+index c036d57..1f4e5f6 100644
+--- a/PriceOfBread.SimCore/Coefficients.cs
++++ b/PriceOfBread.SimCore/Coefficients.cs
+@@ -83,7 +83,7 @@ public sealed class Coefficients
+     //   1＝買い手も unitA で解く。0＝旧式＝厳密恒等。単独腕 tradeunit で計測。
+     // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】TradeBuyerSolvesAtUnitPrice＝買い手の静止点を実際に払う単価で解く（2026-09-08 点火・PriceLawSupplyIncludesStock と対）
+     // ★計器（同日）：表示用「世界価格」統計（BilateralMarket の平均価格）の [0.1,10]×参照 クランプ＝偏在財（硫黄・銀）で常に振り切れ、画面の値が嘘になる。
+-    //   1＝クランプなしの生の平均。⚠SilverParityFromRatio=0 の旧経路ではこの統計が銀本位国の平価にも流れる＝両者を合わせて測る。0＝旧式＝厳密恒等。
++    //   1＝クランプなしの生の平均。0＝旧式＝厳密恒等。★2026-10-04 (204) から銀本位国の平価はこの統計を読まない（MultiNationSim の注入の行＝同じ州の 銀÷金鉱 の比）＝表示と需給の正規化だけ。
+     public double WorldPriceStatUnclamped = 0.0;
+     public double PriceLawSeesExports = 1.0;   // ★点火2026-08-30（単独では清/西の人口コスト＝S4と同時なら消滅を実測・記録doc参照）
+     public int ClearingsPerYear => TradeMonthlyClearing > 0 ? Calendar.MonthsPerYear : Calendar.QuartersPerYear;   // 国際清算の年あたり回数（年換算の単位ヘルパー）
+@@ -3437,14 +3437,9 @@ public sealed class Coefficients
+     //   アフガニスタン・中央アジア3・アラビア・イエメン・オマーン・エチオピア・ラオス・西山朝）。休眠時は銀0/14・1803年に金16の氾濫だった。
+     //   ⚠差し戻すときはこの4係数を戻せば旧挙動へ完全に帰る（SilverStandardGate=0;SilverLightDiscipline=0;GoldStandardIndThreshold=1.5;MonetaryPeerPullScale=0）】
+     public double SilverStandardGate = 1.0;            // **主フラグ**：0で中段（銀）に入らず旧2値と厳密恒等／1（live）で不換→銀→金の3段の梯子が開く
+-    // ★器 SilverParityFromRatio（2026-09-07・休眠既定0）：銀本位国の平価の元 WorldSilverPrice は現状 Market.Price[銀]＝「各州の局所価格×ExchangeRate」の
+-    //   連結州平均（表示統計・RefPrice×[0.1,10]でクランプ）。銀本位国の E はその平均から作られ、平均は E を含む＝**E→平均→E の自己参照（正帰還）**。
+-    //   silverprobe 実測で天井 ExchangeRateCeil(3.0) 近傍に乗数2.8で張り付いた根。
+-    //   1＝同一市場内の比（州の 銀価格/金鉱価格 の全 Active 州の算術平均 R）を RefPrice 比（RefPrices[銀]/RefPrices[金鉱]）で割り
+-    //   RefPrices[銀] の単位へ戻す（R/refRatio×RefPrices[銀]）。同一市場の比は PriceLevel も ExchangeRate も約分され単位を持たない＝
+-    //   クランプ不要・自己参照無し。読み手（World 平価／Fiscal 金建て債務／PolicyPreferences 銀下落）は WorldSilverPrice/RefPrices[銀] のまま不変。
+-    //   0（既定・休眠）＝旧統計をそのまま注入＝厳密恒等。有効な州（両価格>0）が無い／比が不正のときは旧統計へ倒す。
+-    public double SilverParityFromRatio = 0.0;
++    // 【墓標2026-10-04・旗の焼き込み（(204) R1＝dorm-32 の器A・作者裁定 2026-09-28「全て推奨」）】SilverParityFromRatio（器 2026-09-07・休眠既定0）
++    //   ＝銀本位国の平価の元 WorldSilverPrice を同じ州の中の 銀÷金鉱 の比の対数平均から作る（旧＝表示用の統計 Market.Price[銀]＝E→平均→E の自己参照）。
++    //   式と理由は MultiNationSim の注入の行。有効な州が無いときは参照価格へ倒す（旧の統計へは倒さない）。
+     public double SilverStandardIndThreshold = 0.0;    // 銀本位に届く工業化。0＝★銀は誰でも持てる（銀貨は普遍的だった＝1783年の銀世界の前提。0.15案は19-10の金利レバー問題対策だったが SilverLightDiscipline が構造で解決）。金は GoldStandardIndThreshold ＝交易経済の制度
+     public double StandardMetalMintGate = 1.0;         // **主フラグ**★点火2026-08-29（夜間R20造幣3本クラスタA/B batch30）：0で造幣は旧来どおり金鉱だけを買う／1で**本位金属**（銀本位なら銀）を買う＝需要が法に従って現れ・消える。⚠銀価格暴落の線は閉鎖のまま（20-3打ち切り線）
+     // ★銀本位の再開（作者裁定2026-09-06「一時的に壊れるのは問題ない。その後に復旧する仕組みが必要」・銀本位doc §7）。
+diff --git a/PriceOfBread.SimCore/Diplomacy.cs b/PriceOfBread.SimCore/Diplomacy.cs
+index a071dd8..b4cd4c8 100644
+--- a/PriceOfBread.SimCore/Diplomacy.cs
++++ b/PriceOfBread.SimCore/Diplomacy.cs
+@@ -44,7 +44,7 @@ public sealed class Power
+     public double LandPower => Military * (1 - NavalShare) * ArmySkillMul;  // 陸軍力（戦線の押し合いの主力）
+     // ★理想の軍隊の形（2026-08-01）。ArmyShape.Compute が四半期に書く＝live。NeedSea は陸海の維持費の分け方（UtilityAgent.SetNavalUpkeepShare）と海軍の調達の目標の艦隊（EconomyStep.FleetOrder・(189)）が読む。設計書＝docs/202607/20260801_理想の軍隊の形_部分完了.md【一部】.md
+     public double NeedLand;       // 陸の必要量（自国に向けられた他国陸軍の注意配分の和・ゲージ単位・★(194) 相手の陸軍は陸軍の大きさ ArmyShape.LandPotential＝即応度なし）
+-    public double NeedSea;        // 海の必要量（艦隊の比＝仮想敵国の艦隊の注意配分〔★(194) 重み＝自国の越境の交易額÷平均〕＋海を越えて来る陸軍の注意配分〔★(194) 相手の陸軍の大きさ×遠征の技術の門〕・(183) で通商保護の項〔自国の軍×海に出ている割合〕を外した）
++    public double NeedSea;        // 海の必要量（艦隊の比＝仮想敵国の艦隊の注意配分〔★(194) 重み＝自国の海路の越境の交易額〔(206)〕÷平均〕＋海を越えて来る陸軍の注意配分〔★(194) 相手の陸軍の大きさ×遠征の技術の門〕・(183) で通商保護の項〔自国の軍×海に出ている割合〕を外した）
+     public double NeedInternal;   // 内的秩序の必要量（不穏度×統治人口・他国を参照しない外生アンカー＝不動点が0にならない土台）
+     public double NeedMen;        // 理想の兵員数（陸＋内的＋海×乗員率 を質で割る）
+     public double AttentionColSumMax;   // 診断：注意配分の列和の最大（★1未満であることが縮小写像＝発散しないことの実証）
+diff --git a/PriceOfBread.SimCore/MultiNationSim.cs b/PriceOfBread.SimCore/MultiNationSim.cs
+index 7bc858d..9917af2 100644
+--- a/PriceOfBread.SimCore/MultiNationSim.cs
++++ b/PriceOfBread.SimCore/MultiNationSim.cs
+@@ -827,38 +827,37 @@ public sealed class MultiNationSim
+             foreach (var n in Nations) indFrontier = Math.Max(indFrontier, n.World.MeanIndustrialization);
+             foreach (var n in Nations) n.World.IndustrialFrontier = indFrontier;
+             // ★銀の世界価格（銀本位doc G6・2026-08-13）：銀本位国の平価は「銀の価値」に縛られる。World は国際市場を見られないので、
+-            //   ここで各国へ配る（IndustrialFrontier と同型の共有スカラー）。⚠新しい価格を作らない——既存の世界価格をそのまま渡すだけ。
++            //   ここで各国へ配る（IndustrialFrontier と同型の共有スカラー）。
+             //   SilverStandardGate=0（旧既定・点火1.0=2026-08-21銀本位ラウンド）では World 側が読まない＝注入しても挙動中立。
+-            if (_coef.SilverStandardGate > 0 && Catalog.SilverId < Market.Price.Count)
++            // ★2026-10-04 (204) R1＝dorm-32 の器A の点火（作者裁定 2026-09-28 英の交易の R1〜R7 に「全て推奨」・旗 SilverParityFromRatio ごと焼き込み）：
++            //   平価の元を同じ州の中の 銀÷金鉱 の比から作る＝生きた Active 州の比の**対数平均** R を参照の比（RefPrices[銀]÷RefPrices[金鉱]）で割り、
++            //   RefPrices[銀] の単位へ戻す（R÷参照の比×RefPrices[銀]）。同じ州の比は物価も為替も約分される＝単位を持たない＝自己参照もクランプも要らない。
++            //   旧＝表示用の統計 Market.Price[銀]（各州の局所価格×為替の単純平均・参照の0.1〜10倍でクランプ＝BilateralMarket）＝銀本位国の為替がこの平均から作られ、
++            //   平均はその為替を含む（E→平均→E の自己参照）＝州の銀の価格が参照より安い世界では一周ごとに為替が縮み、下限 ExchangeRateFloor に張り付いた
++            //   （(204) の計器＝r202 の5種で銀本位国の国×四半期の多くが下限・英の輸入の売り手の金建ての値段が英の州の値段の数分の一）。
++            //   ⚠平均は対数平均・両方の市場が生きている州だけ（2026-09-07 の器A の是正）：局所価格は参照の床と天井の帯を持つ＝片側が死んだ州の凍った比が
++            //   算術平均を1州で独占する（フォートユーコンの金鉱）。対数平均なら1州の票は ln(天井÷床)÷N で有界。走査順＝Nations 順×Regions 順（決定論）。
++            //   有効な州が無い（試験の小さな世界）・比が不正なら参照価格（比1＝平価は金の平価のまま）へ倒す＝旧の統計へは倒さない（自己参照を残さない）。
++            //   読み手（World の平価・Fiscal の金建て債務・PolicyPreferences の銀の下落）は WorldSilverPrice÷RefPrices[銀] のまま。
++            if (_coef.SilverStandardGate > 0 && Catalog.SilverId < Catalog.RefPrices.Length && Catalog.GoldOreId < Catalog.RefPrices.Length)
+             {
+-                double silverWorld = Market.Price[Catalog.SilverId];
+-                // ★器 SilverParityFromRatio（2026-09-07・休眠既定0）：Market.Price[銀] は「局所価格×ExchangeRate」の平均＝銀本位国の E がこの平均から
+-                //   作られ、平均は E を含む（E→平均→E の正帰還・silverprobe で天井近傍に乗数2.8）。1＝同一市場内の 銀/金鉱 比の全 Active 州平均 R を
+-                //   RefPrice 比で正規化して RefPrices[銀] の単位へ戻す（比は PriceLevel と ExchangeRate が約分される＝単位無し・クランプ不要）。
+-                //   ⚠平均は**対数平均**・両市場が生きている州だけ（レビュー是正2026-09-07）：局所価格は rp×[PriceFloorFactor,PriceCeilFactor] の帯を持つので
+-                //   片側が死んだ州（需要も産出も無い＝MarketFlow が価格を動かさない）の凍った比が最大10⁴＝算術平均を1州で独占する（seed1 実測＝フォートユーコンの
+-                //   金鉱 0.0088 が R を 1.18→1.34 へ押した・中央値は 0.99〜1.02）。対数平均なら1州の票は ln(天井/床)/N で有界＝クランプも新定数も要らない。
+-                //   走査順＝Nations 順×Regions 順（決定論）。有効な州が無い／比が不正なら旧統計へ倒す。0（既定）ではこの分岐に入らない＝厳密恒等。
+-                if (_coef.SilverParityFromRatio > 0)
+-                {
+-                    double ratioSum = 0; int ratioCnt = 0;
+-                    foreach (var n in Nations)
+-                        foreach (var r in n.World.Regions)
+-                        {
+-                            if (r.State != RegionState.Active) continue;
+-                            if (Catalog.SilverId >= r.Markets.Length || Catalog.GoldOreId >= r.Markets.Length) continue;
+-                            var mAg = r.Markets[Catalog.SilverId]; var mAu = r.Markets[Catalog.GoldOreId];
+-                            if (!(mAg.LastDemand > 1e-9 || mAg.LastProduced > 1e-9) || !(mAu.LastDemand > 1e-9 || mAu.LastProduced > 1e-9)) continue;   // 死んだ市場（MarketFlow と同じ条件）は除外
+-                            double pAg = mAg.Price, pAu = mAu.Price;
+-                            if (!(pAg > 1e-9) || !(pAu > 1e-9)) continue;   // 否定形＝NaN も除外
+-                            ratioSum += System.Math.Log(pAg / pAu); ratioCnt++;   // 対数平均
+-                        }
+-                    double refAu = Catalog.RefPrices[Catalog.GoldOreId];
+-                    double refRatio = refAu > 1e-9 ? Catalog.RefPrices[Catalog.SilverId] / refAu : 0;
+-                    double meanRatio = ratioCnt > 0 ? System.Math.Exp(ratioSum / ratioCnt) : 0;
+-                    if (ratioCnt == 0 || !(meanRatio > 1e-9) || !(refRatio > 1e-9)) { /* 旧統計のまま */ }
+-                    else silverWorld = meanRatio / refRatio * Catalog.RefPrices[Catalog.SilverId];
+-                }
++                double silverWorld = Catalog.RefPrices[Catalog.SilverId];
++                double ratioSum = 0; int ratioCnt = 0;
++                foreach (var n in Nations)
++                    foreach (var r in n.World.Regions)
++                    {
++                        if (r.State != RegionState.Active) continue;
++                        if (Catalog.SilverId >= r.Markets.Length || Catalog.GoldOreId >= r.Markets.Length) continue;
++                        var mAg = r.Markets[Catalog.SilverId]; var mAu = r.Markets[Catalog.GoldOreId];
++                        if (!(mAg.LastDemand > 1e-9 || mAg.LastProduced > 1e-9) || !(mAu.LastDemand > 1e-9 || mAu.LastProduced > 1e-9)) continue;   // 死んだ市場（MarketFlow と同じ条件）は除外
++                        double pAg = mAg.Price, pAu = mAu.Price;
++                        if (!(pAg > 1e-9) || !(pAu > 1e-9)) continue;   // 否定形＝NaN も除外
++                        ratioSum += System.Math.Log(pAg / pAu); ratioCnt++;   // 対数平均
++                    }
++                double refAu = Catalog.RefPrices[Catalog.GoldOreId];
++                double refRatio = refAu > 1e-9 ? Catalog.RefPrices[Catalog.SilverId] / refAu : 0;
++                double meanRatio = ratioCnt > 0 ? System.Math.Exp(ratioSum / ratioCnt) : 0;
++                if (ratioCnt > 0 && meanRatio > 1e-9 && refRatio > 1e-9 && double.IsFinite(meanRatio)) silverWorld = meanRatio / refRatio * Catalog.RefPrices[Catalog.SilverId];
+                 foreach (var n in Nations) n.World.WorldSilverPrice = silverWorld;
+             }
+             // ★交易網の引力（タスク#75再開・2026-08-21）：TradeGoldPull_i ＝（世界貿易の金建て比率）×（自国の貿易開放度）。
+diff --git a/PriceOfBread.SimCore/World.cs b/PriceOfBread.SimCore/World.cs
+index 7a543fc..3c31699 100644
+--- a/PriceOfBread.SimCore/World.cs
++++ b/PriceOfBread.SimCore/World.cs
+@@ -1070,6 +1070,7 @@ public sealed class World
+     }
+     public double LastImportValue { get; internal set; }   // 診断：直近四半期の輸入額（世界価格建て）＝関税予想の課税ベース
+     public double LastExportValue { get; internal set; }   // 直近の清算の越境の輸出額（ExportsByGood の和・同じ国の州どうしは数えない＝2026-09-27 回4-1）＝ダンピング補助の対象・交易比重・輸出利害
++    public double LastSeaTradeValue { get; internal set; }   // ★(206) 直近の清算の越境の成約のうち海路の額（輸入 CIF＋輸出 FOB＝LastImportValue＋LastExportValue と同じ規則・陸路の直行は数えない）＝海路の接触（ArmyShape.Compute）が割合で読む
+     public double TradeValueSmoothed { get; internal set; }   // A-中6（史実検証2026-07-22）：貿易取扱高（輸出+輸入額）のEMA＝動的TradeWeightの駆動変数（TradeWeightDynamic>0でのみ更新）
+     // 国債（§財政）：赤字を借金で賄う。国内＝資本家の余剰貯蓄（工場投資とクラウディングアウト）、海外＝開放度に応じ。
+     // 売り切れない＝部分的債務不履行（焦げ付き）。対外債の不履行＝介入（正統性↓＋貸し手有利の緊縮）。
+diff --git a/PriceOfBread.Tests/DormantIdentityTests.cs b/PriceOfBread.Tests/DormantIdentityTests.cs
+index 8c9c890..3cdd937 100644
+--- a/PriceOfBread.Tests/DormantIdentityTests.cs
++++ b/PriceOfBread.Tests/DormantIdentityTests.cs
+@@ -91,7 +91,7 @@ public class DormantIdentityTests
+         //   ⇒ 反射で数え上げる形にした甲斐がそのまま出た1件目。
+         "PopDebtDriven",                // POP個人債務の主フラグ（0＝誰も読み書きしない厳密恒等）
+         "UnionSatBonus",                // 作者裁定2026-08-19「労働組合は団体交渉権などに使うので休眠」（思想⑨＝法→満足度の直接加算を避ける）
+-        "SilverParityFromRatio",        // ★器（2026-09-07）＝世界銀価格を同一市場内の 銀/金鉱 比から作る（E→平均→E の自己参照を断つ）。0＝旧統計 Market.Price[銀] を注入＝厳密恒等
++        // ★SilverParityFromRatio（器 2026-09-07）は 2026-10-04 (204) R1 で**点火**（旗ごと削除）＝この表から外した。
+         "DiscontentLawGap",             // ★二量分離 段1（2026-09-09）＝不満度（導出量）の「法の隔たり」の物差しを PolicyPreferences.LawGap へ（0＝旧＝4軸座標の距離）。
+                                         //   ⚠段1は Politics.Discontent の**読み手がゼロ**なので、この係数はどちらの値でも世界を動かさない（点火は段2＝読み手を付けるとき）
+         // ★B-03（WarFeverUsesBudgetShare）は 2026-09-03 に 1.0 で**点火**＝この表から外した。
+diff --git a/PriceOfBread.Tests/MilitaryTests.cs b/PriceOfBread.Tests/MilitaryTests.cs
+index ab9748e..1215609 100644
+--- a/PriceOfBread.Tests/MilitaryTests.cs
++++ b/PriceOfBread.Tests/MilitaryTests.cs
+@@ -1111,6 +1111,8 @@ public class MilitaryTests
+         (double Fr, double Es) Sea(double tUk, double tFr, double tEs)
+         {
+             ws[0].TradeValueSmoothed = tUk; ws[1].TradeValueSmoothed = tFr; ws[2].TradeValueSmoothed = tEs;
++            // ★(206) 越境の交易は全て海路（直近の清算の海路の割合 1）＝この番人は交易額の重みだけを見る（陸路の分は下の番人）
++            for (int k = 0; k < 3; k++) { ws[k].LastImportValue = ws[k].TradeValueSmoothed; ws[k].LastExportValue = 0; ws[k].LastSeaTradeValue = ws[k].TradeValueSmoothed; }
+             ArmyShape.Compute(dip, c);
+             return (ps[1].NeedSea, ps[2].NeedSea);
+         }
+@@ -1124,6 +1126,41 @@ public class MilitaryTests
+         Assert.True(fr4.Fr > eq.Fr && fr4.Es < eq.Es, $"仏の交易が4倍でも注意が仏へ寄らない（仏 {eq.Fr:G17}→{fr4.Fr:G17}・西 {eq.Es:G17}→{fr4.Es:G17}）");
+     }
+ 
++    /// <summary>★(206) 海路の接触は越境の交易のうち海路の成約の分だけ（World.LastSeaTradeValue÷(輸入＋輸出)×平滑の交易額）＝陸路の直行の荷は艦隊と接しない（推奨で進めた＝作者の承認は未確認）。
++    /// 盤面＝上と同じ（英・仏・西を同じ海盆・英だけが静的な海軍）。平滑の交易額は3国とも1（同じ）にして、西の越境の交易の海路の割合だけを変える。
++    /// ①西の交易が全て海路＝上の番人の「全て等しい」と1ビットも同じ ②西の交易が全て陸路＝西の海の必要量0・仏が増える（交易額0と同じ）
++    /// ③半分が海路＝西は①と②の間（交易額 0.5 と1ビットも同じ）。⚠突然変異「海路の割合を読まない（越境の全ての交易）」で赤（②③）。</summary>
++    [Fact]
++    public void 海路の接触は陸路の越境の交易を数えない()
++    {
++        var sim = Frozen152("イギリス", "フランス", "スペイン");
++        var dip = sim.Diplomacy; var c = sim.Coef;
++        var ws = sim.Nations.ConvertAll(n => n.World);
++        var ps = ws.ConvertAll(w => w.SelfPower!);
++        foreach (var p in ps) { System.Array.Clear(p.BasinPresence); p.BasinPresence[0] = 1.0; p.NavalShare = 0; }
++        ps[0].NavalShare = 1.0;
++        (double Fr, double Es) Sea(double esSeaShare, double esSmoothed = 1.0)
++        {
++            for (int k = 0; k < 3; k++)
++            {
++                ws[k].TradeValueSmoothed = k == 2 ? esSmoothed : 1.0;
++                ws[k].LastImportValue = 0.75; ws[k].LastExportValue = 0.25;   // 越境の交易額（輸入＋輸出＝1）
++                ws[k].LastSeaTradeValue = k == 2 ? esSeaShare : 1.0;          // そのうち海路の額
++            }
++            ArmyShape.Compute(dip, c);
++            return (ps[1].NeedSea, ps[2].NeedSea);
++        }
++        var allSea = Sea(1.0);
++        Assert.True(allSea.Fr > 0 && allSea.Es > 0, $"前提が崩れた：英の艦隊の注意が仏西に向かない（{allSea.Fr}・{allSea.Es}）");
++        var allLand = Sea(0.0);
++        Assert.Equal(0.0, allLand.Es);
++        Assert.True(allLand.Fr > allSea.Fr, $"西の越境の交易が全て陸路でも仏へ向く注意が増えない（{allSea.Fr:G17}→{allLand.Fr:G17}）＝陸路の荷が海路の接触に入っている");
++        Assert.Equal(Sea(1.0, 0.0), allLand);   // 陸路だけ＝交易額0と同じ
++        var half = Sea(0.5);
++        Assert.True(half.Es > 0 && half.Es < allSea.Es, $"西の越境の交易の半分が陸路でも西へ向く注意が減らない（{allSea.Es:G17}→{half.Es:G17}）");
++        Assert.Equal(Sea(1.0, 0.5), half);       // 海路の割合 0.5＝平滑の交易額 0.5 と同じ
++    }
++
+     /// <summary>★(154) 脅威の緊張（Diplomacy.ThreatTension）は国境の長さを届き方（<see cref="Diplomacy.ThreatReach"/>）へ渡す（「国境を接している国は脅威だが、そうでない国はあまり脅威ではない」の配線）。
+     /// 盤面＝仏・西・日を2つ（開幕・他の緊張の源を0）。片方は仏の州を全て山にする（仏西の国境の重みだけが下がる）＝仏西の組に立つ脅威の緊張が小さくなる。
+     /// ⚠突然変異「国境に0を渡す」で赤（2つの盤面で同じ緊張が立つ）。</summary>
+diff --git a/PriceOfBread.Tests/MultiNationTests.cs b/PriceOfBread.Tests/MultiNationTests.cs
+index cf905d7..5493a71 100644
+--- a/PriceOfBread.Tests/MultiNationTests.cs
++++ b/PriceOfBread.Tests/MultiNationTests.cs
+@@ -44,16 +44,15 @@ public class MultiNationTests
+     //   （閾値 0.24・0.20・1）。4カ国の閉じた世界の停滞（社会主義を誰も見つけない）は作者への確認（政体の引力）の回で4カ国の盤面へ戻すかを決める（00一覧）。
+     private static readonly System.Lazy<FourNations400> SharedWorld = new(() => new FourNations400(200, world: true));
+ 
+-    // ★器 SilverParityFromRatio の ON/OFF 経路（2026-09-07）：注入される WorldSilverPrice が
+-    //   ON＝「同一市場内の 銀/金鉱 比の生きた Active 州の対数平均 ÷ RefPrice 比 × RefPrices[銀]」の手計算と一致（1e-9）し、
+-    //   既定0＝旧統計 Market.Price[銀] と同一であること。⚠この係数は sim 側 _coef の読み手＝コンストラクタ coef: で渡すのが正しい
+-    //   （World.Coef は国ごと別インスタンスで、ここでは読まれない）。
+-    [Theory]
+-    [InlineData(0.0)]
+-    [InlineData(1.0)]
+-    public void 銀平価の器は同一市場内の銀金比から世界銀価格を作る(double gate)
++    // ★(204) R1＝dorm-32 の器A の点火（2026-10-04・旗 SilverParityFromRatio ごと焼き込み・作者裁定 2026-09-28「全て推奨」）：
++    //   注入される WorldSilverPrice（銀本位国の平価の元）が「同じ州の中の 銀/金鉱 比の生きた Active 州の対数平均 ÷ 参照の比 × RefPrices[銀]」の
++    //   手計算と一致（1e-9）し、表示用の統計 Market.Price[銀]（各州の局所価格×為替の単純平均＝為替がこの平均から作られ平均が為替を含む＝自己参照）とは
++    //   別の値であること（4国の世界の3四半期で統計と比の値は 1e-6 以上離れる＝統計へ戻す突然変異が赤になる盤面）。
++    //   ⚠突然変異「旧の統計へ戻す」「算術平均」「死んだ市場も数える」で赤。
++    [Fact]
++    public void 銀の世界価格は同じ州の銀と金鉱の比から作り表示用の統計を読まない()
+     {
+-        var coef = new Coefficients { SilverParityFromRatio = gate };
++        var coef = new Coefficients();
+         Assert.True(coef.SilverStandardGate > 0, "前提＝SilverStandardGate が live（0なら注入自体が無い）");
+         var sim = new MultiNationSim(FourNations(), seed: 1789, coef: coef);
+         sim.Run(3);
+@@ -72,10 +71,49 @@ public class MultiNationTests
+             }
+         Assert.True(cnt > 0, "銀と金鉱の両方に価格のある Active 州が無い（世界データが変わった）");
+         double refRatio = refAg / refAu;
+-        double expected = gate > 0 ? System.Math.Exp(sum / cnt) / refRatio * refAg : sim.Market.Price[Catalog.SilverId];
++        double expected = System.Math.Exp(sum / cnt) / refRatio * refAg;
++        Assert.True(System.Math.Abs(sim.Market.Price[Catalog.SilverId] - expected) > 1e-6,
++            $"盤面の前提：表示用の統計 {sim.Market.Price[Catalog.SilverId]} と比の値 {expected} が同じ＝統計へ戻す突然変異を捕まえられない");
+         foreach (var n in sim.Nations)
+             Assert.True(System.Math.Abs(n.World.WorldSilverPrice - expected) <= 1e-9,
+-                $"{n.World.SelfPower?.Name}：WorldSilverPrice={n.World.WorldSilverPrice} 期待={expected}（gate={gate}）");
++                $"{n.World.SelfPower?.Name}：WorldSilverPrice={n.World.WorldSilverPrice} 期待={expected}");
++    }
++
++    // ★(204) R1 の番人の2本目＝61カ国の世界（SharedWorld＝200四半期）には片側の市場が死んだ州（需要も産出も無い＝MarketFlow が値段を動かさない＝凍った値段が残る）がある
++    //   ＝死んだ市場を除いた対数平均と除かない対数平均が 1e-6 以上離れる盤面で、注入値が除いた方と一致する。⚠突然変異「死んだ市場も数える」で赤（4国の盤面には死んだ市場が無い＝1本目では捕まえない）。
++    [Fact]
++    public void 銀の世界価格は片側の市場が死んだ州を数えない()
++    {
++        var run = SharedWorld.Value;   // ★(152)：盤面を61カ国の世界へ（SharedWorld の注記）
++        Assert.Null(run.Error);
++        var sim = run.Sim;
++        double refAg = Catalog.RefPrices[Catalog.SilverId], refAu = Catalog.RefPrices[Catalog.GoldOreId];
++        double sLive = 0, sAll = 0; int nLive = 0, nAll = 0;
++        foreach (var n in sim.Nations)
++            foreach (var r in n.World.Regions)
++            {
++                if (r.State != RegionState.Active) continue;
++                if (Catalog.SilverId >= r.Markets.Length || Catalog.GoldOreId >= r.Markets.Length) continue;
++                var mAg = r.Markets[Catalog.SilverId]; var mAu = r.Markets[Catalog.GoldOreId];
++                double pAg = mAg.Price, pAu = mAu.Price;
++                if (!(pAg > 1e-9) || !(pAu > 1e-9)) continue;
++                double l = System.Math.Log(pAg / pAu);
++                sAll += l; nAll++;
++                if ((mAg.LastDemand > 1e-9 || mAg.LastProduced > 1e-9) && (mAu.LastDemand > 1e-9 || mAu.LastProduced > 1e-9)) { sLive += l; nLive++; }
++            }
++        Assert.True(nLive > 0 && nAll > nLive, $"盤面の前提：死んだ市場の州が無い（生きた {nLive}・全て {nAll}）");
++        double refRatio = refAg / refAu;
++        double eLive = System.Math.Exp(sLive / nLive) / refRatio * refAg, eAll = System.Math.Exp(sAll / nAll) / refRatio * refAg;
++        Assert.True(System.Math.Abs(eLive - eAll) > 1e-6, $"盤面の前提：死んだ市場を数えても数えなくても同じ（{eLive}・{eAll}）＝突然変異を捕まえられない");
++        int seen = 0;
++        foreach (var n in sim.Nations)
++        {
++            if (!(n.World.WorldSilverPrice > 0)) continue;   // 最後の注入の後に建った国は注入を受けていない
++            seen++;
++            Assert.True(System.Math.Abs(n.World.WorldSilverPrice - eLive) <= 1e-9,
++                $"{n.World.SelfPower?.Name}：WorldSilverPrice={n.World.WorldSilverPrice} 期待（生きた市場だけ）={eLive}・死んだ市場も数えた値={eAll}");
++        }
++        Assert.True(seen > 0, "注入を受けた国が無い");
+     }
+ 
+     [Fact]
+diff --git a/PriceOfBread.Tests/TradeClearingTests.cs b/PriceOfBread.Tests/TradeClearingTests.cs
+index 4c891ec..9f4e81f 100644
+--- a/PriceOfBread.Tests/TradeClearingTests.cs
++++ b/PriceOfBread.Tests/TradeClearingTests.cs
+@@ -148,6 +148,36 @@ public class TradeClearingTests
+         Assert.True(tuscany.LastImportValue - genoa.LastExportValue <= genoa.LastExportValue * sea.Coef.FreightRatePer10Mm * 2.0, "運賃が積出し価格×運賃率×(距離÷1万km) の桁を超えた");
+     }
+ 
++    // ★(206) 海路の越境の交易額（World.LastSeaTradeValue＝海路の接触の分子）は越境の成約のうち海路の分だけ（輸入 CIF＋輸出 FOB＝LastImportValue＋LastExportValue と同じ規則）。
++    //   ①陸の単価を極小にして陸で繋がる組（ジェノヴァとトスカーナ）を全て陸路の直行にする＝越境の成約は立つが海路の越境の交易額は0
++    //   ②海を挟む組（日本と清）＝越境の成約は全て海路＝海路の越境の交易額＝輸入＋輸出（累積の順だけが違う）
++    //   ③どの国でも 0≦海路の越境の交易額≦輸入＋輸出。⚠突然変異「越境の成約を全て数える」「陸路の成約を数える」で赤（①・②）。
++    [Fact]
++    public void 海路の越境の交易額は越境の成約のうち海路の分だけ()
++    {
++        var (land, _, _, _, _) = Make();
++        land.Coef.LandSeaCostRatio = 1e-6;
++        land.Market.Step(land.Nations, land.Coef);
++        double cross = 0, sea = 0;
++        foreach (var n in land.Nations) { cross += n.World.LastImportValue + n.World.LastExportValue; sea += n.World.LastSeaTradeValue; }
++        Assert.True(cross > 1e-9, "陸路の越境の成約が1件も立っていない（テスト前提の破れ）");
++        Assert.Equal(0.0, sea);
++
++        var (isl, _, _, _, _) = Make(WorldData.ByName("日本"), WorldData.ByName("清"));
++        isl.Market.Step(isl.Nations, isl.Coef);
++        var jp = isl.Nations[0].World;
++        double jpCross = jp.LastImportValue + jp.LastExportValue;
++        Assert.True(jpCross > 1e-9, "日本と清の越境の成約が立っていない（テスト前提の破れ）");
++        Assert.Equal(jpCross, jp.LastSeaTradeValue, 9);
++        foreach (var sim in new[] { land, isl })
++            foreach (var n in sim.Nations)
++            {
++                var w = n.World;
++                Assert.True(w.LastSeaTradeValue >= 0 && w.LastSeaTradeValue <= (w.LastImportValue + w.LastExportValue) * (1 + 1e-12),
++                    $"{w.SelfPower?.Name}：海路の越境の交易額 {w.LastSeaTradeValue:G17} が越境の交易額 {w.LastImportValue + w.LastExportValue:G17} の外");
++            }
++    }
++
+     // ================================================================================================
+     // ★支払いの一元化 段3-1（貿易・2026-09-29）の番人。清算の払い手と受け手（計画 §10-12-9 の 3-1・econ-07・A7・作者裁定 2026-09-29 の2・3）。
+ 
+diff --git a/PriceOfBread.Tests/WriterRatchetTests.cs b/PriceOfBread.Tests/WriterRatchetTests.cs
+index 083c4e1..2fe90c1 100644
+--- a/PriceOfBread.Tests/WriterRatchetTests.cs
++++ b/PriceOfBread.Tests/WriterRatchetTests.cs
+@@ -423,7 +423,12 @@ public class WriterRatchetTests
+     // ★2026-10-04 表の更新（(197) 合流＝(194) と (195) を合わせ k/N に植民地を数える〔ScarceCountsIncludeColonies〕を点火した木の実測・1種40四半期）：
+     //   覇権の判定 1,801,372（(194) の宣言 2,574,518 と (195) の宣言 1,614,601 の間＝(194) の海路の接触で動いた軌道と (195) の旧の判断の SideMilitary を消した分が重なった・処理の形は (195) のまま）・
+     //   建設 8,204→7,000（−14.7%）・請求 3,013→2,626（−12.8%）＝10% を超えて下がった＝表を下げた（どちらも軌道＝処理の形は同じ）。合わせただけの木（点火の前）は 1,916,631・7,706・2,970。全長の10種は実装ログ (197)。
+-    [InlineData(CostLedger.DiploHegemonScans, 1801372L)]
++    // ★2026-10-04 表の更新（(204) 線T 前半＝R1＝銀本位国の平価を同じ州の銀と金の比から〔dorm-32 の器A の点火〕＝軌道が動いた分の宣言・新しい計数の処理は無い
++    //   〔銀の世界価格の注入は四半期末の共有層で州を1回走査＝計数の外・機能一覧 §2-5 に行〕）：覇権の判定 1,801,372→2,033,256（+12.9%＝銀本位国の為替が下限 0.30 から1へ戻り
++    //   最初の40四半期の同盟の候補が居る月の軌道が変わった・処理の形は同じ）。ほかの17本は許しの内（+2%／−10%）。全長の10種（計器なし `b10_20261004_trd205`）では
++    //   覇権の判定 119,252,473→132,099,323（+10.8%・0.56→0.62 秒）＝推定 241.2→239.1 秒（上限 248.5 秒の内・払っていない・実装ログ (204) §8）。
++    // ★2026-10-04 表の更新（(206) 線T 後半＝海路の接触を海路の越境の交易だけで読む〔World.LastSeaTradeValue〕＝軌道が動いた分の宣言・新しい計数の処理は無い〔海路の越境の額は清算の成約ごとの O(1) の足し算・接触は四半期の国ごとに1回＝計数の外〕）：覇権の判定 2,033,256→1,573,197（−22.6%＝10% を超えて下がった＝最初の40四半期の同盟の候補が居る月の軌道・処理の形は同じ）。ほかの17本は許しの内。全長の10種（計器なし `b10_20261004_trd206`）では覇権の判定 132,099,323→141,799,488（+7.3%・0.62→0.67 秒）＝推定 239.1→238.0 秒（上限 248.5 秒の内・払っていない・実装ログ (206) §8）。
++    [InlineData(CostLedger.DiploHegemonScans, 1573197L)]
+     [InlineData(CostLedger.QuarterStartPops, 235560L)]
+     [InlineData(CostLedger.QuarterEndPops, 235560L)]
+     [InlineData(CostLedger.SharedNationQuarters, 3698L)]

@@ -1070,7 +1070,6 @@ public sealed class World
     }
     public double LastImportValue { get; internal set; }   // 診断：直近四半期の輸入額（世界価格建て）＝関税予想の課税ベース
     public double LastExportValue { get; internal set; }   // 直近の清算の越境の輸出額（ExportsByGood の和・同じ国の州どうしは数えない＝2026-09-27 回4-1）＝ダンピング補助の対象・交易比重・輸出利害
-    public double LastSeaTradeValue { get; internal set; }   // ★(206) 直近の清算の越境の成約のうち海路の額（輸入 CIF＋輸出 FOB＝LastImportValue＋LastExportValue と同じ規則・陸路の直行は数えない）＝海路の接触（ArmyShape.Compute）が割合で読む
     public double TradeValueSmoothed { get; internal set; }   // A-中6（史実検証2026-07-22）：貿易取扱高（輸出+輸入額）のEMA＝動的TradeWeightの駆動変数（TradeWeightDynamic>0でのみ更新）
     // 国債（§財政）：赤字を借金で賄う。国内＝資本家の余剰貯蓄（工場投資とクラウディングアウト）、海外＝開放度に応じ。
     // 売り切れない＝部分的債務不履行（焦げ付き）。対外債の不履行＝介入（正統性↓＋貸し手有利の緊縮）。
@@ -1139,7 +1138,7 @@ public sealed class World
 
     /// <summary>通貨改革の予約（プレイヤーのボタンもAIも**この同じ口**を通る）。parity＝新平価。</summary>
     public void RequestCurrencyReform(double parity) => PendingCurrencyReform = Math.Clamp(parity, Coef.ExchangeRateFloor, 1.0);   // 新平価を [ExchangeRateFloor,1.0] にクランプして予約（月次で消化・CurrencyReformCooldown）
-    public double InsolvencyQuarters { get; internal set; }       // 借りられない（利払い÷歳入≧MaxInterestShareOfRevenue）まま払えなかった請求の割合（1−r）の月ごとの**累計**（月の請求の何か月分・(204) 2026-10-04＝旧 int の連続月数）。払えた月（r＝1）・門が開いた月に0。Coefficients.DefaultArrearsMonths に届くと**ソブリン・デフォルト**（致命的）（⚠名前は Quarters だが Fiscal.Step が月次で進める）
+    public double InsolvencyQuarters { get; internal set; }       // 借りられない（利払い÷歳入≧MaxInterestShareOfRevenue）まま払えなかった請求の割合（1−r）の月ごとの**累計**（月の請求の何か月分・(205) 2026-10-04＝旧 int の連続月数）。払えた月（r＝1）・門が開いた月に0。Coefficients.DefaultArrearsMonths に届くと**ソブリン・デフォルト**（致命的）（⚠名前は Quarters だが Fiscal.Step が月次で進める）
     public int BorrowCooldown { get; internal set; }              // デフォルト後の借入禁止の残り**月数**（信用喪失）。0になるまで借りられない
     public bool HadSovereignDefault { get; internal set; }        // 過去にデフォルトしたか（年表・診断）
 

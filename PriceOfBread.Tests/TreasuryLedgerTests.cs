@@ -298,7 +298,7 @@ public class TreasuryLedgerTests
         // ② 限界に届いた＝借りない・払えない月は不履行の計数が進む・払えている月は進まない
         var x = Twin();
         Assert.Equal(0.0, Month(x, above, 0.5));
-        Assert.Equal(0.5, x.InsolvencyQuarters);   // ★(204) 計数は払えなかった大きさ（r＝0.5 の月＝1−0.5）
+        Assert.Equal(0.5, x.InsolvencyQuarters);   // ★(205) 計数は払えなかった大きさ（r＝0.5 の月＝1−0.5）
         var y = Twin();
         Assert.Equal(0.0, Month(y, above, 1.0));
         Assert.Equal(0.0, y.InsolvencyQuarters);
@@ -313,7 +313,7 @@ public class TreasuryLedgerTests
         var z2 = Twin();
         DoubleNominal(z2);
         Assert.Equal(0.0, Month(z2, above, 0.5));
-        Assert.Equal(0.5, z2.InsolvencyQuarters);   // ★(204) 同じ（物価水準2倍の双子でも r は同じ）
+        Assert.Equal(0.5, z2.InsolvencyQuarters);   // ★(205) 同じ（物価水準2倍の双子でも r は同じ）
     }
 
     /// <summary>★借入はエンジンの1行だけ（2026-09-28 作者裁定「借入は自動化・借金ボタンは不要」）＝AI とプレイヤーの経路が無い。
