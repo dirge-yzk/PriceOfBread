@@ -1,5 +1,5 @@
-(208) 線S 前半で測って入れなかった床の予算＝自由鋳造（床）の持ち込みを貨幣の不足（World.MoneyShortfall＝M/Y の趨勢×実質産出−今の貨幣・物価の式と同じ量）までに切る（金と銀に対称・国1本の予算を州をまたいで消費）＋番人 MoneyThemeTests.床の持ち込みは貨幣の不足までで州をまたいで1本。
-基＝枝 slv の (208) のコミット（政治の入力の作り直しの上）→ 床の予算の形。`git apply --check` が通る（(208) の木で確かめた）。
+(210) 線S 前半で測って入れなかった床の予算＝自由鋳造（床）の持ち込みを貨幣の不足（World.MoneyShortfall＝M/Y の趨勢×実質産出−今の貨幣・物価の式と同じ量）までに切る（金と銀に対称・国1本の予算を州をまたいで消費）＋番人 MoneyThemeTests.床の持ち込みは貨幣の不足までで州をまたいで1本。
+基＝枝 slv の (210) のコミット（政治の入力の作り直しの上）→ 床の予算の形。`git apply --check` が通る（(210) の木で確かめた）。
 入れなかった理由（10種・同じ種1〜10・計器 fullS）：r207＋床の予算だけの木 H＝移民による州の空洞化（ピークの1/10 未満）1件＝判定の線（F1）の差し戻し・工場の蒸気動力の新しい NG 8（仏・普 1813／露・日・清・オスマン 1833-53＝FI と同じ8セル）・
   英の金本位の月の割合 1822-49 1.00→0.85（政治の入力と合わせた FI 0.60・英の兌換停止 23→36 回＝史実の英は 1821 年に戻り以後は金）・清が金の種（1913）3→8。床の予算は銀の比を動かさなかった（造幣の銀の買い 1853-62 年 4.18e4→1.8e4／四半期・銀の準備 1883 年 7.5e6→2.1e6 でも同じ州の銀と金の比 0.97）。
 入れ直しの条件（推奨【推】・作者の承認は未確認）：
@@ -13,11 +13,11 @@
              if (World.Coef.MintBuysAtMarket > 0 && shortfall > 1e-9)
                  gapLeft = Math.Max(0, coverTarget * World.BroadMoney - World.BaseMoney) * PoliticalQuantities.Clamp01(World.Coef.MintReserveSellRate);   // 買い戻しの歩調＝投げ売りと同じ率（独1873-79の逆向き）
          }
--        // 【削除 2026-10-09 (208)】器 MintFloorRespectsReserve（跛行本位＝床の standing offer をカバー率〔基礎貨幣/広義マネー〕が目標×余白を超えたら閉じる・休眠 0）
+-        // 【削除 2026-10-09 (210)】器 MintFloorRespectsReserve（跛行本位＝床の standing offer をカバー率〔基礎貨幣/広義マネー〕が目標×余白を超えたら閉じる・休眠 0）
 -        //   ＝閉じる条件が誤り（信用の薄い 1783 年から常に真＝造幣が一度も買わない・メモリ pob-silver-crash-lines）。
--        //   置き換えの候補＝床の持ち込みを貨幣の不足（M/Y の趨勢×実質産出−今の貨幣）までに切る形は (208) で測って**入れていない**
+-        //   置き換えの候補＝床の持ち込みを貨幣の不足（M/Y の趨勢×実質産出−今の貨幣）までに切る形は (210) で測って**入れていない**
 -        //   （r207＋その形だけの10種＝移民による州の空洞化1件〔判定の線〕・工場の蒸気動力の NG +8・英の金本位の月 1822-49 1.00→0.85＝パッチ measurements/s208_20261009_floor.diff）。
-+        // ★(208) 床の持ち込みは貨幣の不足まで（00一覧 §0-A の 10＝銀の暴落の経路・推奨で進めた＝作者の承認は未確認）：
++        // ★(210) 床の持ち込みは貨幣の不足まで（00一覧 §0-A の 10＝銀の暴落の経路・推奨で進めた＝作者の承認は未確認）：
 +        //   自由鋳造の standing offer は持ち込まれた地金を平価で買い新しい貨幣を出す＝貨幣が需要（M/Y の趨勢×実質産出＝World.MoneyShortfall）に足りれば
 +        //   貨幣の値打ちが地金を下回り誰も持ち込まない（史実＝インドの造幣は1893 年まで開いていたが、吸ったのは経済が求める貨幣の分で、余った銀は値を下げた）。
 +        //   旧＝床は市場の値段が平価より下なら月に在庫の MintFloorBuyRate を無限に買った＝物価の式は趨勢が M/Y を追う（貨幣の量が長い先の物価を決めない）ので
@@ -35,10 +35,10 @@
              if (!floor && m.LastProduced <= 0) continue;   // 旧来＝産出のある月しか買わない／★床＝在庫があれば買う（自由鋳造は持ち込み制＝産出と無関係）
 -            if (m.Price > parity && !atMarket) continue;   // 市場価格＞平価なら鋳造停止（宝飾/工業へ流れる＝正帰還の遮断・史実の固定平価）。★MintBuysAtMarket=0 で従来
 +            if (m.Price > parity && !atMarket) continue;
-+            if (floor && !atMarket && !(floorLeft > 1e-12)) continue;   // ★(208) 貨幣が需要に足りた造幣は平価で買わない（準備不足の市場買いだけは残る）。市場価格＞平価なら鋳造停止は上の行（宝飾/工業へ流れる＝正帰還の遮断・史実の固定平価）
++            if (floor && !atMarket && !(floorLeft > 1e-12)) continue;   // ★(210) 貨幣が需要に足りた造幣は平価で買わない（準備不足の市場買いだけは残る）。市場価格＞平価なら鋳造停止は上の行（宝飾/工業へ流れる＝正帰還の遮断・史実の固定平価）
              double qty = atMarket ? Math.Min(m.Stock * PoliticalQuantities.Clamp01(World.Coef.MintFloorBuyRate), gapLeft / m.Price)   // 市場買い＝床と同じ在庫上限×今月の予算（第1版の産出比例は銀鉱州にしか買い手が立たなかった）
 -                               : floor ? m.Stock * PoliticalQuantities.Clamp01(World.Coef.MintFloorBuyRate)
-+                               : floor ? Math.Min(m.Stock * PoliticalQuantities.Clamp01(World.Coef.MintFloorBuyRate), floorLeft / parity)   // ★(208) 床＝在庫の月次率と貨幣の不足の小さい方
++                               : floor ? Math.Min(m.Stock * PoliticalQuantities.Clamp01(World.Coef.MintFloorBuyRate), floorLeft / parity)   // ★(210) 床＝在庫の月次率と貨幣の不足の小さい方
                                 : Math.Min(frac * mintScale * m.LastProduced, m.Stock);
              if (qty <= 1e-12) continue;
              double totOut = 0;
@@ -46,7 +46,7 @@
              if (paid < want) qty *= paid / want;   // 受け手のいない分は引き取らない（量を減らす）
              double value = paid;
              if (atMarket) gapLeft -= value;   // 予算を消費（国の準備ギャップは州をまたいで1本）
-+            else if (floor) floorLeft -= value;   // ★(208) 床の予算（貨幣の不足）を消費＝州をまたいで1本
++            else if (floor) floorLeft -= value;   // ★(210) 床の予算（貨幣の不足）を消費＝州をまたいで1本
              m.Stock -= qty; m.LastSold += qty;        // 造幣局への引き取り＝GoodsBalance不変（Stock−／LastSold＋で対称）
              // ★★準備需要を**需要として計上する**（2026-08-13・実測で発見した会計の欠落）。
              // ⚠旧＝Stock と LastSold しか書かず `LastDemand` を書いていなかった。`MarketFlow.StepDay` は
@@ -57,7 +57,7 @@
      public double Convertibility { get; internal set; }   // 兌換可能性 0..1（倍率排除②）。1=完全兌換(金)・0=不換。OnGoldStandard(資格)を非対称速度で滑らかに追従し、通貨レジームの効果(money集計/為替/切下げ/金利/対外信用)を連続lerpで出す
      private double _moTrend;   // 広義マネー/実質産出 のゆっくりなトレンド（secular な産出成長を吸収＝残りが信用循環の成分）
 +
-+    /// <summary>★(208) 貨幣の不足＝貨幣の需要（M/Y の趨勢×実質産出）−今の貨幣（<see cref="UpdatePriceLevel"/> と同じ量＝兌換で基礎貨幣と広義マネーを補間）。
++    /// <summary>★(210) 貨幣の不足＝貨幣の需要（M/Y の趨勢×実質産出）−今の貨幣（<see cref="UpdatePriceLevel"/> と同じ量＝兌換で基礎貨幣と広義マネーを補間）。
 +    /// 造幣の自由鋳造（床）が持ち込まれた地金を買う上限＝貨幣が需要に足りている間は、貨幣の値打ちが地金を下回るので誰も持ち込まない
 +    /// （物価の式は趨勢が M/Y を追う＝貨幣の量が長い先の物価を決めない形なので、持ち込みを止める値段の信号の代わりに同じ比で量を読む）。
 +    /// 趨勢がまだ無い世界（貨幣の機構が無い・最初の四半期の前）は +∞（旧＝床は無限に吸う）。NaN は0（持ち込まない側へ倒す）。新しい状態は無い。</summary>
@@ -78,9 +78,9 @@
      //   CumulativeGoldMinted に同額計上＝保存）。これで貨幣需要が産出の主要な買い手になり、demonetization で需要曲線が下へずれる（暴落）。
      //   復旧は既存の3経路（交易網の引力で金へ・鉱脈発見・兌換停止）に任せ、新しい機構は足さない。0＝従来（平価以下でしか買わない）＝厳密恒等。
      public double MintBuysAtMarket = 1.0;   /* ★点火2026-09-06＝0.0→1.0・銀本位の再開＝準備ギャップの月割りを市場価格で買う（第2版） */
--    // 【削除 2026-10-09 (208)】MintFloorRespectsReserve（跛行本位＝床の standing offer をカバー率〔準備/基礎貨幣〕が目標×余白を超えたら閉じる・休眠）
+-    // 【削除 2026-10-09 (210)】MintFloorRespectsReserve（跛行本位＝床の standing offer をカバー率〔準備/基礎貨幣〕が目標×余白を超えたら閉じる・休眠）
 -    //   ＝閉じる条件が誤り（信用の薄い1783 年から常に真＝造幣が一度も買わない）。置き換えの候補（床の持ち込みを貨幣の不足まで）は測って入れていない（Simulation.MintGold の注記・パッチ measurements/s208_20261009_floor.diff）。
-+    // 【削除 2026-10-04 (208)】MintFloorRespectsReserve（跛行本位＝床の standing offer をカバー率〔準備/基礎貨幣〕が目標×余白を超えたら閉じる・休眠）
++    // 【削除 2026-10-04 (210)】MintFloorRespectsReserve（跛行本位＝床の standing offer をカバー率〔準備/基礎貨幣〕が目標×余白を超えたら閉じる・休眠）
 +    //   ＝閉じる条件が誤り（信用の薄い1783 年から常に真＝造幣が一度も買わない）。床の持ち込みは貨幣の不足まで（World.MoneyShortfall＝Simulation.MintGold）の1本へ置き換えた。
      // ★器 MintParitySells（2026-09-07・休眠既定0）：造幣局の standing offer を**両側**にする＝市場価格が平価の**上**なら本位金属の準備を平価で**売る**
      //   （平価買いの厳密な逆操作＝史実の固定平価は買い支えと売り支えの両側で成り立つ。silverprobe 実測＝平価0.54に対し銀本位国の銀が0.65〜0.90で浮いたまま＝片側だけでは平価が効かない根）。
@@ -91,7 +91,7 @@
          Assert.True(Math.Abs((minted0 - w.CumulativeGoldMinted) - sold * price) <= 1e-9 * Math.Max(1.0, sav0), "鋳造の台帳が払った額だけ減っていない（貨幣の回収）");
          Assert.True(Math.Abs(D(w) - d0) <= 1e-9 * Math.Max(1.0, Math.Abs(d0)), $"保存量Dが動いた {d0}→{D(w)}");
      }
-+    /// <summary>★(208) 床（自由鋳造）の持ち込みは貨幣の不足まで（World.MoneyShortfall＝M/Y の趨勢×実質産出−今の貨幣・物価の式と同じ量）。
++    /// <summary>★(210) 床（自由鋳造）の持ち込みは貨幣の不足まで（World.MoneyShortfall＝M/Y の趨勢×実質産出−今の貨幣・物価の式と同じ量）。
 +    /// 盤面＝密閉1国の仏を銀本位に置き、銀の州を2つ（平価の下・在庫は月次率で十分）にして MintGold を1回：
 +    /// 趨勢を「今の比×(1＋δ)」へ置く＝不足 S＝δ×今の貨幣（物価の式の money を手計算）→ 鋳造の額（CumulativeGoldMinted の増え）＝min(S, 在庫×率×平価の和)。
 +    /// δ＝0（不足0）なら1銭も鋳造しない。⚠突然変異「床の数量を不足で切らない」「州をまたいで予算を減らさない」「不足の式の兌換の補間を落とす」で赤。
@@ -148,7 +148,7 @@
          var sim = new Simulation(NationConfig.France().ToScenario(1), new NullAgent());   // MoneyThemeTests の造幣局の盤面と同じ（密閉1国）
          var w = sim.World;
          Assert.True(w.Coef.MintPriceFloorGate > 0 && w.Coef.StandardMetalMintGate > 0, "前提＝床モードと本位金属が live");
--        w.Coef.MintBuysAtMarket = 0; w.Coef.MintParitySells = 0;   // 隔離＝平価の持ち込み（床）だけ（器 MintFloorRespectsReserve は 2026-10-09 (208) に削除）
+-        w.Coef.MintBuysAtMarket = 0; w.Coef.MintParitySells = 0;   // 隔離＝平価の持ち込み（床）だけ（器 MintFloorRespectsReserve は 2026-10-09 (210) に削除）
 +        w.Coef.MintBuysAtMarket = 0; w.Coef.MintParitySells = 0;   // 隔離＝平価の持ち込み（床）だけ（構築の直後＝M/Y の趨勢がまだ無い＝床の予算は無限＝World.MoneyShortfall）
          w.MonetaryLaw = MonetaryStandardLaw.Silver;
          int ag = Catalog.SilverId;

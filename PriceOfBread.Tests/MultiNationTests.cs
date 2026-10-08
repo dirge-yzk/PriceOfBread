@@ -77,13 +77,13 @@ public class MultiNationTests
         {
             Assert.True(System.Math.Abs(n.World.WorldSilverPrice - expected) <= 1e-9,
                 $"{n.World.SelfPower?.Name}：WorldSilverPrice={n.World.WorldSilverPrice} 期待={expected}（gate={gate}）");
-            // ★(208) 銀と金の比（通貨制度の選好の入力）は器の有無によらず同じ走査の R（表示用の統計に乗せない）
+            // ★(210) 銀と金の比（通貨制度の選好の入力）は器の有無によらず同じ走査の R（表示用の統計に乗せない）
             Assert.True(System.Math.Abs(n.World.SilverGoldRatio - System.Math.Exp(sum / cnt) / refRatio) <= 1e-9,
                 $"{n.World.SelfPower?.Name}：SilverGoldRatio={n.World.SilverGoldRatio} 期待={System.Math.Exp(sum / cnt) / refRatio}（gate={gate}）");
         }
     }
 
-    /// <summary>★(208) 通貨制度の選好（銀の国の金への一歩）は**同じ州の比**（World.SilverGoldRatio）と**組ごとの相手**（TradeGoldPull）で読む＝表示用の統計（WorldSilverPrice）を読まない。
+    /// <summary>★(210) 通貨制度の選好（銀の国の金への一歩）は**同じ州の比**（World.SilverGoldRatio）と**組ごとの相手**（TradeGoldPull）で読む＝表示用の統計（WorldSilverPrice）を読まない。
     /// 盤面＝1国の仏を銀に置き、統計を参照の 0.1 倍（r207 の人工物の型）・インフレ0：①比が平価（1）なら相手が金の過半（引力 +1）でも3ブロックとも選好0
     /// （銀の下落0・比が平価から外れていない＝揃える理由が無い）②比 0.8 なら持てる側の選好は相手が金（+1）のほうが銀（−1）より大きい＝差＝尺度×富×2×引力の尺度×|1−比|。
     /// ⚠突然変異「銀の下落を統計から読む」「引力に |1−比| を掛けない」で①が赤／「引力の符号を捨てる（旧＝負は0）」で②の差が半分＝赤。</summary>
@@ -108,7 +108,7 @@ public class MultiNationTests
         Assert.True(System.Math.Abs((mGold - mSilver) - expect) <= 1e-9 * System.Math.Max(1.0, expect), $"相手の金と銀の差 {mGold - mSilver} ≠ {expect}");
     }
 
-    /// <summary>★(208) 取引の相手の本位（World.TradePartnerStandardBalance）＝越境の成約（積出し価格）を買い手と売り手の両方に、**相手の**本位の符号（金＋1・銀−1・不換0）で積んだ差÷越境の額。
+    /// <summary>★(210) 取引の相手の本位（World.TradePartnerStandardBalance）＝越境の成約（積出し価格）を買い手と売り手の両方に、**相手の**本位の符号（金＋1・銀−1・不換0）で積んだ差÷越境の額。
     /// 盤面＝4カ国（英＝金・仏日米＝銀）の3四半期の後に、清算1回を本位を置き換えて回す：①全ての国を銀＝越境の取引のある国は全て −1 ②全ての国を金＝全て +1
     /// ③英だけ金＝英は −1（相手は全て銀）・英と取引した銀の国は −1 より大きい・**量の恒等**＝運賃0（輸入額も積出し価格）なら銀の国 X の英との取引 T_X×(1＋b_X)/2 の和が英の越境の取引 T_英（輸入＋輸出）に等しい（1つの成約を両側に積む）。
     /// 交易網の引力 TradeGoldPull は相手の差×min(1, 開放度÷平均)＝符号が相手の差と同じ。

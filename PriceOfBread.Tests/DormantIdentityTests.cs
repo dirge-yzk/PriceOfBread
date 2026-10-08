@@ -183,7 +183,7 @@ public class DormantIdentityTests
         "PreemptiveSeizeWeight", "PromotionGateHigherEdu", "ReactionFromLoss",
         "ResearchBaseRefPop", "ResearchScaleWeight",
         "ResearcherFrac", "RuralPromotionRate",
-        // SeaEscortPerTradeValue は 2026-10-01 (151) に係数ごと削除（通商保護は割合の形）＝外した・SilverStandardIndThreshold は 2026-10-04 (208) に係数ごと削除＝外した
+        // SeaEscortPerTradeValue は 2026-10-01 (151) に係数ごと削除（通商保護は割合の形）＝外した・SilverStandardIndThreshold は 2026-10-04 (210) に係数ごと削除＝外した
         "SoeSaleMilitancyCeil", "SpecialistExitBanPrefScale",
         "SubmitProbabilistic",
         "TransportDemandAffordCap", "TransportPotentialWeight",

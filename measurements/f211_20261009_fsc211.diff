@@ -1,5 +1,5 @@
-(211) 線F 後半で入れなかった (203) の入れ直しのコード＝潤沢線＝max(財政バッファ, 戦費予備−実際の借入と同じ規則で借りられる額)（UtilityAgent.OpulenceLineOf・OpulenceChestOf・BorrowableForChest・Fiscal.LenderPool）＋減税の傾きを戦費予備で測る（OpulenceReliefMul）＋月初の予算の支出反射を兵士給与の請求書を0にする前に読む（Simulation の spendRevNat）＋番人4本（FiscalTests）。
-基＝枝 fs2 の 244b093（(210)・コードは main 4f73d13＝r207 と同じ）→ この形。`git apply --check` が通る（244b093 の木で確かめた）。
+(209) 線F 後半で入れなかった (203) の入れ直しのコード＝潤沢線＝max(財政バッファ, 戦費予備−実際の借入と同じ規則で借りられる額)（UtilityAgent.OpulenceLineOf・OpulenceChestOf・BorrowableForChest・Fiscal.LenderPool）＋減税の傾きを戦費予備で測る（OpulenceReliefMul）＋月初の予算の支出反射を兵士給与の請求書を0にする前に読む（Simulation の spendRevNat）＋番人4本（FiscalTests）。
+基＝枝 fs2 の 244b093（(208)・コードは main 4f73d13＝r207 と同じ）→ この形。`git apply --check` が通る（244b093 の木で確かめた）。
 入れなかった理由（事前に決めた判定 judge_D3 の (2) を満たさない）：
   D3（この形）の10種＝英の国庫÷年GDP 1850-1913 0.30→0.09〜0.10・1914-1950 0.27〜0.33→0.13〜0.14 と半分以下になったが、英の戦時の借入は 1910-19・1940-50 とも 0.00 のまま・英の国債÷年GDP の NG 4セルは外れない（比 0.03・0.02・0.02・0.02）。
   鎖＝線を国庫より下へ置いても英は借りない＝国庫が「超過」に名前を変えるだけ。超過を減らす経路は減税だけ（支出反射は需要で頭打ち）・減る速さは傾きの尺に比例・戦争は超過を先に食い、借入は超過が尽きてから。
@@ -12,7 +12,7 @@
   3. 計算量＝潤沢線が貸し手のプール（投資家の貯蓄＝全 POP の走査）を月に3〜4回読む（州の輪の中の呼び出しは spendRevNat で1回へ）＝census は採るときに scratchpad/m211/inj_c211.py で。
   4. 番人＝この差分の4本（突然変異 M1〜M10 で全て赤＝scratchpad/m211/mut211.py）。
   5. spendRevNat の順の直し（支出反射の線が兵士給与を0で数えた非対称）は線と独立の直し＝単独の10種を測っていない＝入れるなら1変更の腕で。
-測り＝帯 measurements/b10_20261009_f211D3・b10_20261009_f211D2・b5_20261009_f211D2・b5_20261009_f211D2S2（計器つき）・表 measurements/f211_20261009（実装ログ (211)）。
+測り＝帯 measurements/b10_20261009_f211D3・b10_20261009_f211D2・b5_20261009_f211D2・b5_20261009_f211D2S2（計器つき）・表 measurements/f211_20261009（実装ログ (209)）。
 
 diff --git a/PriceOfBread.SimCore/Fiscal.cs b/PriceOfBread.SimCore/Fiscal.cs
 index efea7e0..a181e63 100644
@@ -52,7 +52,7 @@ index efea7e0..a181e63 100644
      }
  
 +    /// <summary>★貸し手のプール（月に借りられる額の上限のうち貸し手の側）＝国内（資本家の余剰貯蓄 <paramref name="capSavings"/>×<see cref="Coefficients.BondAppetite"/>）＋外資（開放度×月次の名目GDP×ForeignBondCapacity×信認・他国の投資家のプールまで）。
-+    /// 読み手＝<see cref="Borrow"/>（実際に借りる月の上限）と潤沢線の借りられる額（<see cref="UtilityAgent.BorrowableForChest"/>）の2つ＝同じ1本（★(211)・分子と分母を同じ規則で＝旧は Borrow の中にだけ書いた式・式と演算の順は同じ）。
++    /// 読み手＝<see cref="Borrow"/>（実際に借りる月の上限）と潤沢線の借りられる額（<see cref="UtilityAgent.BorrowableForChest"/>）の2つ＝同じ1本（★(209)・分子と分母を同じ規則で＝旧は Borrow の中にだけ書いた式・式と演算の順は同じ）。
 +    /// <paramref name="foreignPool"/>＝外資の分（Borrow が国内と外資の脚へ按分する）。</summary>
 +    internal static double LenderPool(World w, Coefficients c, double nominalGdp, double capSavings, out double foreignPool)
 +    {
@@ -92,7 +92,7 @@ index c6f7ac3..1db8c7b 100644
      /// <summary>潤沢線＝「これを超える国庫は取り過ぎ」の物差し（RelieveOpulence と SpendableRevenue が共有＝減税反射と支出反射の対）。
 -    /// 兵士給与（LastSoldierPay＝国庫minで切る前の真の請求書）を FiscalBufferSoldierPayWeight で算入＝大軍国は潤沢と誤判定されない。</summary>
 +    /// 兵士給与（LastSoldierPay＝国庫minで切る前の真の請求書）を FiscalBufferSoldierPayWeight で算入＝大軍国は潤沢と誤判定されない。
-+    /// ★(211) 戦費予備は**借りられない分だけ**（00一覧 §0-A の 0g・(203) の入れ直し・推奨で進めた＝作者の承認は未確認）：
++    /// ★(209) 戦費予備は**借りられない分だけ**（00一覧 §0-A の 0g・(203) の入れ直し・推奨で進めた＝作者の承認は未確認）：
 +    ///   戦費予備＝(財政バッファ＋兵士給与の分)×<see cref="OpulenceBufferQuarters"/>（旧の潤沢線そのもの＝月の義務の約40か月分）から、
 +    ///   同じ月数のうちに**実際の借入の経路と同じ規則で**借りられる額（<see cref="BorrowableForChest"/>）を引く。下は財政バッファ（運転の資金＝月の義務の5か月分）。
 +    ///   ＝貸し手の深さ（プール）・値段（国債の金利）・費用（利払いが歳入を食う限界＝借入の門と同じ1本）・信用の喪失（不履行の後の冷却の残りの月）で予備の大きさが決まる
@@ -110,12 +110,12 @@ index c6f7ac3..1db8c7b 100644
 +        return line >= fb ? line : fb;
 +    }
 +
-+    /// <summary>★(211) 戦費予備＝(財政バッファ＋兵士給与の分)×<see cref="OpulenceBufferQuarters"/>＝月の義務の約40か月分（(203) までの潤沢線そのもの）。
++    /// <summary>★(209) 戦費予備＝(財政バッファ＋兵士給与の分)×<see cref="OpulenceBufferQuarters"/>＝月の義務の約40か月分（(203) までの潤沢線そのもの）。
 +    /// 読み手＝潤沢線（<see cref="OpulenceLineOf"/>＝ここから借りられる分を引く）と潤沢の減税（<see cref="RelieveOpulence"/>＝減税の傾きの物差し）。</summary>
 +    internal static double OpulenceChestOf(World w)
          => (FiscalBufferOf(w) + w.Coef.FiscalBufferSoldierPayWeight * w.Coef.FiscalStressBufferMonths * w.LastSoldierPay) * OpulenceBufferQuarters;
  
-+    /// <summary>★(211) 戦費予備 <paramref name="chest"/> が賄う月数（<see cref="Coefficients.FiscalStressBufferMonths"/>×<see cref="OpulenceBufferQuarters"/>＝40か月）のうちに、
++    /// <summary>★(209) 戦費予備 <paramref name="chest"/> が賄う月数（<see cref="Coefficients.FiscalStressBufferMonths"/>×<see cref="OpulenceBufferQuarters"/>＝40か月）のうちに、
 +    /// **実際の借入（<see cref="Fiscal.Borrow"/>）と同じ規則で**借りられる額＝min(元本の余地, 開いた月数×min(1件の額, 貸し手のプール, 月の取り崩し))。
 +    /// <list type="bullet">
 +    /// <item>月の取り崩し＝戦費予備÷月数（予備が1か月に払う額）＝予備の代わりに借りる月の「払えない額」（Borrow の min(1件の額, 払えない額, プール) の払えない額）。</item>
@@ -173,7 +173,7 @@ index c6f7ac3..1db8c7b 100644
 +    {
 +        double buffer = OpulenceLineOf(w);   // R3安定形（2026-08-08）＝給与算入は潤沢判定のみ（緊縮反射は不変）
 +        if (!(buffer > 1e-9) || w.Treasury <= buffer) return 1.0;
-+        // ★(211) 減税の傾きは超過（国庫−潤沢線）を戦費予備（月の義務の約40か月分＝財政の規模）で測る＝超過が戦費予備と同じなら税目標×0.5（連続・床つき）。
++        // ★(209) 減税の傾きは超過（国庫−潤沢線）を戦費予備（月の義務の約40か月分＝財政の規模）で測る＝超過が戦費予備と同じなら税目標×0.5（連続・床つき）。
 +        //   潤沢線が戦費予備に等しい国（借りられない国）は旧の式 戦費予備÷国庫 と同じ値（chest÷(chest＋国庫−chest)）。
 +        //   旧の式 潤沢線÷国庫 のまま潤沢線だけを下げると、線が財政バッファ（戦費予備の約1/8）まで下がった国で傾きが約8倍になり、
 +        //   初めの国庫が厚い国・黒字の構造の国が減税の床 0.25 に何十年も張り付いた（(203) の反証役 vf1#4・この回の腕 D2＝1784-1814 の床の割合 普 0.86・露 0.66・墺 0.73・米 0.61・日 1.00・清 0.91・オスマン 0.99〔r207 は 0〜0.05〕）
@@ -194,7 +194,7 @@ index 59d4453..735c90f 100644
              ? World.Antitrust switch { AntitrustLaw.CartelBan => World.Coef.CartelBanRent, AntitrustLaw.Trustbust => World.Coef.TrustbustRent, _ => 1.0 }
              : 1.0;
          int nationalizedMaskNat = World.Coef.NationalizationGate > 0 ? World.NationalizedMask() : 0;
-+        // ★(211) 使える歳入（SpendableRevenue＝潤沢線の支出反射）は兵士給与の請求書を0にする**前**に読む＝前の月の給与を数える（軍事費の器と行政の予算の基数）。
++        // ★(209) 使える歳入（SpendableRevenue＝潤沢線の支出反射）は兵士給与の請求書を0にする**前**に読む＝前の月の給与を数える（軍事費の器と行政の予算の基数）。
 +        //   旧＝下の行で LastSoldierPay を0にしてから器と州ループの行政の予算が潤沢線を読んだ＝この月の予算の潤沢線は兵士給与の分を0で数え、
 +        //   AI の減税（RelieveOpulence＝四半期首・前の月の給与）は給与を数えた＝同じ潤沢線が支出反射と減税反射で別の値（分子と分母の非対称・(155) から）。
 +        //   R3安定形（2026-08-08 作者裁定「不具合として解決・安定するように」）は給与を両方の反射の線に入れる形。
@@ -230,7 +230,7 @@ index 7bd52f0..6caaa73 100644
          Assert.True(Math.Abs(shortM.clergyEarned - shortM.tithe) <= 1e-9, "聖職の所得（Earned）が受け取った十分の一税と一致しない");
      }
  
-+    /// <summary>★(211) 潤沢線（戦費予備）は**実際の借入と同じ規則で**借りられない分だけ（00一覧 §0-A の 0g・(203) の入れ直し・推奨で進めた＝作者の承認は未確認）。
++    /// <summary>★(209) 潤沢線（戦費予備）は**実際の借入と同じ規則で**借りられない分だけ（00一覧 §0-A の 0g・(203) の入れ直し・推奨で進めた＝作者の承認は未確認）。
 +    /// 潤沢線＝max(財政バッファ, 戦費予備−借りられる額)・戦費予備＝(財政バッファ＋兵士給与の分)×8（旧の潤沢線）・月数＝40・月の取り崩し d＝戦費予備÷40・
 +    /// 借りられる額＝min(元本の余地, 開いた月×min(1件の額, 貸し手のプール, d))・元本の余地＝(限界×歳入−利払い)×12÷金利（借入の門と同じ限界）・開いた月＝40−冷却の残りの月（助走は引かない）。
 +    /// 盤面＝静かな英（外資0・国内の投資家の貯蓄だけ）に直近の歳入・利払い・行政と軍の請求・兵士給与・金利を置き、潤沢線そのもの（と呼び手の SpendableRevenue＝支出反射）を読む。
@@ -308,7 +308,7 @@ index 7bd52f0..6caaa73 100644
 +        Near(frozen.LastRevenue, frozen.SpendableRevenue(), "⑨ 冷却中の国の支出反射");
 +    }
 +
-+    /// <summary>★(211) 月初の予算の支出反射（使える歳入＝潤沢線）は**前の月の兵士給与**を数える＝AI の減税（RelieveOpulence）と同じ線（R3安定形＝給与は両方の反射の線に入る）。
++    /// <summary>★(209) 月初の予算の支出反射（使える歳入＝潤沢線）は**前の月の兵士給与**を数える＝AI の減税（RelieveOpulence）と同じ線（R3安定形＝給与は両方の反射の線に入る）。
 +    /// 旧（(155)〜(207)）＝月初の予算が兵士給与の請求書を0にしてから軍事費の器と行政の予算が潤沢線を読んだ＝支出反射の線だけ給与を0で数えた（分子と分母の非対称）。
 +    /// 盤面＝静かな英の双子（同じ国庫・同じ直近の歳入と請求・1件の額が取り崩しより小さい＝潤沢線が兵士給与で動く盤面）で、月の頭の兵士給与だけを変えて1か月＝
 +    /// 給与の大きい双子は潤沢線が高い＝支出反射の上乗せが小さい＝行政の予算（州の和）が小さい。⚠突然変異「給与を0にしてから読む（旧の順）」で双子の行政の予算が等しくなり赤。</summary>
@@ -334,7 +334,7 @@ index 7bd52f0..6caaa73 100644
 +        Assert.True(high < low * (1 - 1e-9), $"兵士給与の大きい双子の行政の予算が小さくならない（給与0 {low:R} / 給与大 {high:R}）＝月初の予算の潤沢線が前の月の兵士給与を数えていない");
 +    }
 +
-+    /// <summary>★(211) 潤沢の減税（AI の RelieveOpulence）は新しい潤沢線を読む＝国庫が潤沢線と戦費予備の間の国にも減税が掛かる（旧の線＝戦費予備なら掛からない）。
++    /// <summary>★(209) 潤沢の減税（AI の RelieveOpulence）は新しい潤沢線を読む＝国庫が潤沢線と戦費予備の間の国にも減税が掛かる（旧の線＝戦費予備なら掛からない）。
 +    /// 盤面＝多国の世界を1四半期（両腕は同じ種＝同じ盤面）→全ての国の国庫を戦費予備の0.95倍に置き、AI の1四半期の判断（DecideQuarter）を減税あり／なしで比べる。
 +    /// 潤沢線が戦費予備より十分に下の国（国庫÷潤沢線＞1.1）の中に、減税ありの腕で税の目標（5軸の和）が下がる国がある。
 +    /// ⚠突然変異「RelieveOpulence が旧の線（戦費予備）を読む」で、国庫が線の下になり1国も下がらず赤。</summary>
@@ -373,7 +373,7 @@ index 7bd52f0..6caaa73 100644
 +        Assert.True(lowered > 0, $"国庫が潤沢線の上（戦費予備の下）の国 {above} のどれにも減税が掛からない＝減税反射が新しい潤沢線を読んでいない");
 +    }
 +
-+    /// <summary>★(211) 潤沢の減税の傾き＝超過（国庫−潤沢線）を戦費予備で測る＝倍率 max(0.25, 戦費予備÷(戦費予備＋超過))（適用率でブレンド）。
++    /// <summary>★(209) 潤沢の減税の傾き＝超過（国庫−潤沢線）を戦費予備で測る＝倍率 max(0.25, 戦費予備÷(戦費予備＋超過))（適用率でブレンド）。
 +    /// 線（どこから取り過ぎか）は借りられる額で下がるが、傾き（どれだけ返すか）は財政の規模（戦費予備）のまま
 +    /// ＝線が財政バッファ（戦費予備の約1/8）まで下がった国でも、わずかな超過で減税の床 0.25 に張り付かない（(203) の反証役 vf1#4・腕 D2 の床の割合 0.6〜1.0）。
 +    /// 盤面＝静かな英（1件の額を5倍＝借りられる額が戦費予備を覆う＝潤沢線は財政バッファ）。

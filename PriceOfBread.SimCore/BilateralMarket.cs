@@ -410,7 +410,7 @@ public sealed partial class InternationalMarket
         //   関税と穀物法の分は通関の時点で輸入国の国庫へ（econ-07）／金建ての額は各国の通貨へ為替で換算（A7）。
         //   清算所＝世界の外（払い手は清算所へ払い、受け手は清算所から受け取る）＝同じ国の州どうしの取引は同じ国の台帳に −x と +x が入って打ち消す（国内の決済）。
         var importVal = new double[nn]; var exportVal = new double[nn];   // 越境の輸入額（CIF＝積出し価格＋運賃）・輸出額（FOB＝積出し価格）・金建て（同じ国の州どうしは数えない＝分子と分母を同じ規則で）
-        // ★(208) 取引の相手の本位（World.TradePartnerStandardBalance）＝越境の成約の積出し価格を買い手と売り手の両方に、相手の本位の符号（金＋1・銀−1・不換0）で積む。
+        // ★(210) 取引の相手の本位（World.TradePartnerStandardBalance）＝越境の成約の積出し価格を買い手と売り手の両方に、相手の本位の符号（金＋1・銀−1・不換0）で積む。
         //   本位は清算の間に変わらない＝前もって国ごとに1回引く（成約の行で World を引かない）。
         var partnerStd = new double[nn]; var partnerBal = new double[nn]; var partnerTot = new double[nn];
         for (int i = 0; i < nn; i++) partnerStd[i] = nations[i].World.MonetaryLaw switch { MonetaryStandardLaw.Gold => 1.0, MonetaryStandardLaw.Silver => -1.0, _ => 0.0 };
@@ -830,7 +830,7 @@ public sealed partial class InternationalMarket
                     //   から輸入額を引いて輸出額にしていた＝同じ国の州どうしの取引が2回入り、輸出額＝本当の輸出＋国内の州間取引の2倍だった。
                     //   ★段3-1：輸出＝積出し価格（FOB）・輸入＝積出し価格＋運賃（CIF）＝史実の貿易統計の慣行（旧＝どちらも単価＝次善の着値）。
                     if (crossA) { importVal[ni] += vA + frG; impByGood[ni][g] += vA + frG; exportVal[siA] += vA; expByGood[siA][g] += vA; }
-                    if (crossA) { partnerBal[ni] += partnerStd[siA] * vA; partnerTot[ni] += vA; partnerBal[siA] += partnerStd[ni] * vA; partnerTot[siA] += vA; }   // ★(208) 相手の本位（買い手と売り手の両方）
+                    if (crossA) { partnerBal[ni] += partnerStd[siA] * vA; partnerTot[ni] += vA; partnerBal[siA] += partnerStd[ni] * vA; partnerTot[siA] += vA; }   // ★(210) 相手の本位（買い手と売り手の両方）
                     // ★2026-09-27（回4-1・項目12②）：港の取扱高は海路の成約だけ（この組の着値を決めた経路＝KmOf(snA, t) が書いた向きの印）。
                     //   陸路の直行は港を通らない。同じ国の沿岸の海路（英のニューカッスル→ロンドンの石炭）は積む＝国境でなく経路で分ける。
                     if (seaA) { tr[t].r.LastPortThroughput += vA; tr[snA].r.LastPortThroughput += vA; }
@@ -923,7 +923,7 @@ public sealed partial class InternationalMarket
             var w0 = nations[i].World;
             w0.LastImportValue = importVal[i];
             w0.LastExportValue = exportVal[i];   // ＝ExportsByGood の和（同じ成約を同じ条件で積む）
-            w0.TradePartnerStandardBalance = partnerTot[i] > 1e-12 ? partnerBal[i] / partnerTot[i] : 0;   // ★(208) 取引の相手の本位の差（越境の成約が無い清算は0＝相手の過半が無い）
+            w0.TradePartnerStandardBalance = partnerTot[i] > 1e-12 ? partnerBal[i] / partnerTot[i] : 0;   // ★(210) 取引の相手の本位の差（越境の成約が無い清算は0＝相手の過半が無い）
             // ダンピングの輸出補助（負の関税）＝国庫→輸出を捌いた州の商人（越境の輸出の受取の比）・国家の支払い率 r の分だけ・関税の純額から減算。
             //   旧＝全州の商人の頭数で等分・輸出額は単価の和・TariffRevenueRate（削除）を掛けた。
             if (tar[i] < 0 && exportVal[i] > 0)

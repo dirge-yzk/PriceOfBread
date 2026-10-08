@@ -64,7 +64,7 @@ public sealed class NationConfig
     //   兵営へ取らない国＝志願制（英〔陸軍は志願・民兵の籤は本土の防衛で別〕・米・日〔世襲の武士〕・清〔八旗・緑営＝世襲と志願〕・蘭・オスマン〔イェニチェリとティマール・徴兵は1843/48〕ほか）／
     //   国家が平民を籤・カントン・徴募の割当てで兵営へ取る国＝選抜（普のカントン制度・露の徴募・西のキンタ・墺の徴兵区・仏の民兵の籤〔国王の民兵＝軍の予備〕ほか＝既定）。
     public ConscriptionLaw InitialConscription = ConscriptionLaw.Selective;
-    public MonetaryStandardLaw InitialMonetaryLaw = MonetaryStandardLaw.Silver;   // ★通貨制度（作者裁定 2026-09-28 F6）：英＝金（1717年以後の事実上の金本位・1816/21年に法）／他＝既定の銀（1783年の銀の世界＝銀貨は普遍的だった・SelfPlay.DecideQuarter の注記〔(208) で係数 SilverStandardIndThreshold は削除〕）。旧＝既定の不換→AI が助走の最初の四半期に銀へ上げた＝助走が法を動かしていた形（2026-09-30 (119) で助走は法を動かさない＝初期値そのものを史実へ）
+    public MonetaryStandardLaw InitialMonetaryLaw = MonetaryStandardLaw.Silver;   // ★通貨制度（作者裁定 2026-09-28 F6）：英＝金（1717年以後の事実上の金本位・1816/21年に法）／他＝既定の銀（1783年の銀の世界＝銀貨は普遍的だった・SelfPlay.DecideQuarter の注記〔(210) で係数 SilverStandardIndThreshold は削除〕）。旧＝既定の不換→AI が助走の最初の四半期に銀へ上げた＝助走が法を動かしていた形（2026-09-30 (119) で助走は法を動かさない＝初期値そのものを史実へ）
     // ★(169) 開幕の既知の発見（発見の表の行の名前・world.json の knownDiscoveries）＝1783年より前に史実でその国が使っていた発見（データ・国名の分岐を作らない）。
     //   旧＝助走の終わりの盤面で1度だけ点数を判定した（1780年代の行は技術力が最大＝必要性が30に届く国が開幕から持った＝(165) で主要国の全てが1784年に蒸気機関）。
     //   英＝蒸気機関（工場の原動機＝ワットの回転機関〔特許1781・最初の据え付け1782〜83〕と水車へ水を戻すニューコメンの揚水機関＝1783年に工場の動力として蒸気を使っていた唯一の国）・
