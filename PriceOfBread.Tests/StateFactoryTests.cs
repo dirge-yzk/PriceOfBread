@@ -520,7 +520,7 @@ public class StateFactoryTests
         var sim = new Simulation(NationConfig.France().ToScenario(1), new NullAgent());   // MoneyThemeTests の造幣局の盤面と同じ（密閉1国）
         var w = sim.World;
         Assert.True(w.Coef.MintPriceFloorGate > 0 && w.Coef.StandardMetalMintGate > 0, "前提＝床モードと本位金属が live");
-        w.Coef.MintBuysAtMarket = 0; w.Coef.MintFloorRespectsReserve = 0; w.Coef.MintParitySells = 0;   // 隔離＝平価の持ち込み（床）だけ
+        w.Coef.MintBuysAtMarket = 0; w.Coef.MintParitySells = 0;   // 隔離＝平価の持ち込み（床）だけ（器 MintFloorRespectsReserve は 2026-10-09 (208) に削除）
         w.MonetaryLaw = MonetaryStandardLaw.Silver;
         int ag = Catalog.SilverId;
         Region? r = null; Producer? p = null;

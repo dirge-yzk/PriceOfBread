@@ -829,48 +829,50 @@ public sealed class MultiNationSim
             // ★銀の世界価格（銀本位doc G6・2026-08-13）：銀本位国の平価は「銀の価値」に縛られる。World は国際市場を見られないので、
             //   ここで各国へ配る（IndustrialFrontier と同型の共有スカラー）。⚠新しい価格を作らない——既存の世界価格をそのまま渡すだけ。
             //   SilverStandardGate=0（旧既定・点火1.0=2026-08-21銀本位ラウンド）では World 側が読まない＝注入しても挙動中立。
+            // ★銀と金の比（(208)・00一覧 §0-A の 10＝金への入力を同じ州の比の世界で＝表示用の統計に乗せない）：同一市場内の 銀/金鉱 比の全 Active 州の対数平均 R
+            //   を RefPrice 比で正規化（比は PriceLevel と ExchangeRate が約分される＝単位無し・クランプ不要）＝World.SilverGoldRatio（通貨制度の選好の入力）。
+            //   器 SilverParityFromRatio（R1・休眠）は同じ R を銀本位国の平価の元へ使う＝走査はこの1本（旧＝器の枝の中だけで数えた）。
+            //   ⚠平均は**対数平均**・両市場が生きている州だけ（レビュー是正2026-09-07）：局所価格は rp×[PriceFloorFactor,PriceCeilFactor] の帯を持つので
+            //   片側が死んだ州（需要も産出も無い＝MarketFlow が価格を動かさない）の凍った比が最大10⁴＝算術平均を1州で独占する（seed1 実測＝フォートユーコンの
+            //   金鉱 0.0088 が R を 1.18→1.34 へ押した・中央値は 0.99〜1.02）。対数平均なら1州の票は ln(天井/床)/N で有界＝クランプも新定数も要らない。
+            //   走査順＝Nations 順×Regions 順（決定論）。有効な州が無い／比が不正なら 1（平価どおり）・R1 は旧統計へ倒す。
             if (_coef.SilverStandardGate > 0 && Catalog.SilverId < Market.Price.Count)
             {
-                double silverWorld = Market.Price[Catalog.SilverId];
+                double ratioSum = 0; int ratioCnt = 0;
+                foreach (var n in Nations)
+                    foreach (var r in n.World.Regions)
+                    {
+                        if (r.State != RegionState.Active) continue;
+                        if (Catalog.SilverId >= r.Markets.Length || Catalog.GoldOreId >= r.Markets.Length) continue;
+                        var mAg = r.Markets[Catalog.SilverId]; var mAu = r.Markets[Catalog.GoldOreId];
+                        if (!(mAg.LastDemand > 1e-9 || mAg.LastProduced > 1e-9) || !(mAu.LastDemand > 1e-9 || mAu.LastProduced > 1e-9)) continue;   // 死んだ市場（MarketFlow と同じ条件）は除外
+                        double pAg = mAg.Price, pAu = mAu.Price;
+                        if (!(pAg > 1e-9) || !(pAu > 1e-9)) continue;   // 否定形＝NaN も除外
+                        ratioSum += System.Math.Log(pAg / pAu); ratioCnt++;   // 対数平均
+                    }
+                double refAu = Catalog.RefPrices[Catalog.GoldOreId];
+                double refRatio = refAu > 1e-9 ? Catalog.RefPrices[Catalog.SilverId] / refAu : 0;
+                double meanRatio = ratioCnt > 0 ? System.Math.Exp(ratioSum / ratioCnt) : 0;
+                bool ratioOk = ratioCnt > 0 && meanRatio > 1e-9 && refRatio > 1e-9;
+                double rel = ratioOk ? meanRatio / refRatio : 1.0;
+                // ★銀の世界価格（銀本位doc G6・2026-08-13）：銀本位国の平価は「銀の価値」に縛られる。World は国際市場を見られないので、
+                //   ここで各国へ配る（IndustrialFrontier と同型の共有スカラー）。⚠新しい価格を作らない——既存の世界価格をそのまま渡すだけ。
                 // ★器 SilverParityFromRatio（2026-09-07・休眠既定0）：Market.Price[銀] は「局所価格×ExchangeRate」の平均＝銀本位国の E がこの平均から
-                //   作られ、平均は E を含む（E→平均→E の正帰還・silverprobe で天井近傍に乗数2.8）。1＝同一市場内の 銀/金鉱 比の全 Active 州平均 R を
-                //   RefPrice 比で正規化して RefPrices[銀] の単位へ戻す（比は PriceLevel と ExchangeRate が約分される＝単位無し・クランプ不要）。
-                //   ⚠平均は**対数平均**・両市場が生きている州だけ（レビュー是正2026-09-07）：局所価格は rp×[PriceFloorFactor,PriceCeilFactor] の帯を持つので
-                //   片側が死んだ州（需要も産出も無い＝MarketFlow が価格を動かさない）の凍った比が最大10⁴＝算術平均を1州で独占する（seed1 実測＝フォートユーコンの
-                //   金鉱 0.0088 が R を 1.18→1.34 へ押した・中央値は 0.99〜1.02）。対数平均なら1州の票は ln(天井/床)/N で有界＝クランプも新定数も要らない。
-                //   走査順＝Nations 順×Regions 順（決定論）。有効な州が無い／比が不正なら旧統計へ倒す。0（既定）ではこの分岐に入らない＝厳密恒等。
-                if (_coef.SilverParityFromRatio > 0)
-                {
-                    double ratioSum = 0; int ratioCnt = 0;
-                    foreach (var n in Nations)
-                        foreach (var r in n.World.Regions)
-                        {
-                            if (r.State != RegionState.Active) continue;
-                            if (Catalog.SilverId >= r.Markets.Length || Catalog.GoldOreId >= r.Markets.Length) continue;
-                            var mAg = r.Markets[Catalog.SilverId]; var mAu = r.Markets[Catalog.GoldOreId];
-                            if (!(mAg.LastDemand > 1e-9 || mAg.LastProduced > 1e-9) || !(mAu.LastDemand > 1e-9 || mAu.LastProduced > 1e-9)) continue;   // 死んだ市場（MarketFlow と同じ条件）は除外
-                            double pAg = mAg.Price, pAu = mAu.Price;
-                            if (!(pAg > 1e-9) || !(pAu > 1e-9)) continue;   // 否定形＝NaN も除外
-                            ratioSum += System.Math.Log(pAg / pAu); ratioCnt++;   // 対数平均
-                        }
-                    double refAu = Catalog.RefPrices[Catalog.GoldOreId];
-                    double refRatio = refAu > 1e-9 ? Catalog.RefPrices[Catalog.SilverId] / refAu : 0;
-                    double meanRatio = ratioCnt > 0 ? System.Math.Exp(ratioSum / ratioCnt) : 0;
-                    if (ratioCnt == 0 || !(meanRatio > 1e-9) || !(refRatio > 1e-9)) { /* 旧統計のまま */ }
-                    else silverWorld = meanRatio / refRatio * Catalog.RefPrices[Catalog.SilverId];
-                }
-                foreach (var n in Nations) n.World.WorldSilverPrice = silverWorld;
+                //   作られ、平均は E を含む（E→平均→E の正帰還・silverprobe で天井近傍に乗数2.8）。1＝上の R を RefPrices[銀] の単位へ戻して平価の元にする。0（既定）＝旧統計。
+                double silverWorld = Market.Price[Catalog.SilverId];
+                if (_coef.SilverParityFromRatio > 0 && ratioOk) silverWorld = rel * Catalog.RefPrices[Catalog.SilverId];
+                foreach (var n in Nations) { n.World.WorldSilverPrice = silverWorld; n.World.SilverGoldRatio = rel; }
             }
-            // ★交易網の引力（タスク#75再開・2026-08-21）：TradeGoldPull_i ＝（世界貿易の金建て比率）×（自国の貿易開放度）。
-            //   貿易額＝ExportsByGood/ImportsByGood（BilateralMarket が決済ごとに書く四半期値）・開放度＝(輸出+輸入)×年換算/年GDP
-            //   （MajorsTradeGdp と同一の物差し）。**新しい量を1つも作らない**——既存の帳簿の比率だけ。
-            //   「交易加重の相手の本位」の実装形＝ペア別行列は持たない設計（54×136×54 の理由で BilateralMarket が全対を捨てる）ため、
-            //   世界共通の金建て比率×自国の開放度で近似する：貿易の大きい国が金へ移るほど比率が跳ね（英→独の正帰還＝雪崩）、
-            //   開放度の低い国（アジア内陸・自給経済）は引力を感じない＝銀圏に残る。⚠国名も年号も書かない。
-            //   MonetaryPeerPullScale=0（旧既定・点火5.0=2026-08-21銀本位ラウンド）では注入自体をスキップ（TradeGoldPull は0のまま）＝旧挙動と厳密恒等。
+            // ★交易網の引力（タスク#75再開・2026-08-21・(208) で組ごとの相手へ）：TradeGoldPull_i ＝（自国の取引の相手の本位の差）×（自国の貿易開放度）。
+            //   相手の本位の差＝World.TradePartnerStandardBalance（BilateralMarket が越境の成約ごとに相手の本位の符号で積む＝金＋1・銀−1・不換0・−1..1）。
+            //   開放度＝(輸出+輸入)×年換算/年GDP（MajorsTradeGdp と同一の物差し）。
+            //   ★(208) 作者裁定 2026-09-28 F6「金本位の波は組ごとの相手で作り直す」と §10-11-7「比が平価から外れている間だけ取引の過半の相手へ揃える」（どちらも承認した推奨）：
+            //   旧＝世界共通の金建て比率×自国の開放度（ペア別の行列を持たないための近似）＝自分の相手が銀の国ばかりでも世界の金の割合で引かれた（全ての国に同じ向き）。
+            //   新＝相手が金の過半なら＋・銀の過半なら−＝貿易の大きい国が金へ移るほどその相手の差が金へ傾く（英→独の正帰還＝雪崩）・相手が銀の国（アジア内陸）は銀圏に残る。
+            //   比が平価から外れている大きさは読み手（PolicyPreferences）が掛ける。⚠国名も年号も書かない。
+            //   MonetaryPeerPullScale=0（旧既定・点火5.0=2026-08-21銀本位ラウンド）では注入自体をスキップ（TradeGoldPull は0のまま）。
             if (_coef.MonetaryPeerPullScale > 0)
             {
-                double goldTrade = 0, worldTrade = 0;
                 Span<double> natTrade = Nations.Count <= 128 ? stackalloc double[Nations.Count] : new double[Nations.Count];
                 for (int i = 0; i < Nations.Count; i++)
                 {
@@ -879,11 +881,8 @@ public sealed class MultiNationSim
                     if (wn.ExportsByGood is { } eg) foreach (var v in eg) if (v > 0) t += v;
                     if (wn.ImportsByGood is { } ig) foreach (var v in ig) if (v > 0) t += v;
                     if (!(t >= 0)) t = 0;   // NaNは0へ倒す（否定形）
-                    natTrade[i] = t; worldTrade += t;
-                    if (wn.MonetaryLaw == MonetaryStandardLaw.Gold) goldTrade += t;
+                    natTrade[i] = t;
                 }
-                double goldShare = worldTrade > 1e-9 ? goldTrade / worldTrade : 0;
-                if (!(goldShare >= 0 && goldShare <= 1)) goldShare = 0;   // NaN/発散は0へ（否定形）
                 // 開放度は**世界平均との比**で正規化する（min(1, 自国開放度/世界平均)）：貿易/GDPの絶対水準は時代と較正で桁が動く
                 //（世界貿易の消滅の記録＝1914英0.2%）ので、絶対値に目盛りを彫ると尺度が壊れる。平均以上＝引力を満額感じる／
                 //   平均未満＝比例で弱く＝「対外に開いた経済ほど相手に本位を合わせたい」だけを尺度不変に取り出す。⚠新しい定数ゼロ（capの1は正規化の定義）。
@@ -903,7 +902,9 @@ public sealed class MultiNationSim
                     var wn = Nations[i].World;
                     double rel = openMean > 1e-12 ? natOpen[i] / openMean : 0;
                     if (!(rel >= 0)) rel = 0;   // 否定形
-                    wn.TradeGoldPull = goldShare * Math.Min(1.0, rel);
+                    double bal = wn.TradePartnerStandardBalance;
+                    if (!(bal >= -1 && bal <= 1)) bal = 0;   // 否定形＝NaN は相手の過半なしへ倒す
+                    wn.TradeGoldPull = bal * Math.Min(1.0, rel);
                 }
             }
             // ★鋼市場診断#2（2026-08-16・AiWorldPriceEntry>0のみ）：国際市場の平均価格（Market.Price＝BilateralMarket が成約から書く265州平均）を

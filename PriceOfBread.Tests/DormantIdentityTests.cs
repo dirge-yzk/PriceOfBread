@@ -45,8 +45,6 @@ public class DormantIdentityTests
         "GuildLawGate",                 // 特権システム 段4＝同業組合法の主ゲート（法が動かない）
         "GuildRentPremium",             // 特権システム 段4＝職人の上乗せ（0＝なし）
         "GuildMobilityDrag",            // 特権システム 段4＝工場への移動の遅れ（0＝なし）
-        "GoldStandardFrontierRatio",    // 金本位志向を前線比へ（08-40）＝0で絶対閾（従来）
-        "MintFloorRespectsReserve",     // 跛行本位＝床の standing offer を準備過剰で閉じる（銀暴落の線）＝0で従来
         "MintParitySells",             // ★器（2026-09-07）＝床の standing offer を両側に（平価の上で準備を平価売り＝平価買いの逆操作）＝0で従来（片側）
         "RuleSharesEnabled",            // 支配度の一般化 段1＝州の4区分の積分（観測のみ）＝0で従来
         "ProjectionUsesLand",           // 支配度doc §14b＝陸路の起点（ProjectionRuleMin=1.1 が主ゲート＝既定で集合={首都}）
@@ -185,7 +183,7 @@ public class DormantIdentityTests
         "PreemptiveSeizeWeight", "PromotionGateHigherEdu", "ReactionFromLoss",
         "ResearchBaseRefPop", "ResearchScaleWeight",
         "ResearcherFrac", "RuralPromotionRate",
-        "SilverStandardIndThreshold",   // SeaEscortPerTradeValue は 2026-10-01 (151) に係数ごと削除（通商保護は割合の形）＝外した
+        // SeaEscortPerTradeValue は 2026-10-01 (151) に係数ごと削除（通商保護は割合の形）＝外した・SilverStandardIndThreshold は 2026-10-04 (208) に係数ごと削除＝外した
         "SoeSaleMilitancyCeil", "SpecialistExitBanPrefScale",
         "SubmitProbabilistic",
         "TransportDemandAffordCap", "TransportPotentialWeight",

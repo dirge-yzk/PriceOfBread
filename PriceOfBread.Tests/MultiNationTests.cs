@@ -74,8 +74,81 @@ public class MultiNationTests
         double refRatio = refAg / refAu;
         double expected = gate > 0 ? System.Math.Exp(sum / cnt) / refRatio * refAg : sim.Market.Price[Catalog.SilverId];
         foreach (var n in sim.Nations)
+        {
             Assert.True(System.Math.Abs(n.World.WorldSilverPrice - expected) <= 1e-9,
                 $"{n.World.SelfPower?.Name}：WorldSilverPrice={n.World.WorldSilverPrice} 期待={expected}（gate={gate}）");
+            // ★(208) 銀と金の比（通貨制度の選好の入力）は器の有無によらず同じ走査の R（表示用の統計に乗せない）
+            Assert.True(System.Math.Abs(n.World.SilverGoldRatio - System.Math.Exp(sum / cnt) / refRatio) <= 1e-9,
+                $"{n.World.SelfPower?.Name}：SilverGoldRatio={n.World.SilverGoldRatio} 期待={System.Math.Exp(sum / cnt) / refRatio}（gate={gate}）");
+        }
+    }
+
+    /// <summary>★(208) 通貨制度の選好（銀の国の金への一歩）は**同じ州の比**（World.SilverGoldRatio）と**組ごとの相手**（TradeGoldPull）で読む＝表示用の統計（WorldSilverPrice）を読まない。
+    /// 盤面＝1国の仏を銀に置き、統計を参照の 0.1 倍（r207 の人工物の型）・インフレ0：①比が平価（1）なら相手が金の過半（引力 +1）でも3ブロックとも選好0
+    /// （銀の下落0・比が平価から外れていない＝揃える理由が無い）②比 0.8 なら持てる側の選好は相手が金（+1）のほうが銀（−1）より大きい＝差＝尺度×富×2×引力の尺度×|1−比|。
+    /// ⚠突然変異「銀の下落を統計から読む」「引力に |1−比| を掛けない」で①が赤／「引力の符号を捨てる（旧＝負は0）」で②の差が半分＝赤。</summary>
+    [Fact]
+    public void 通貨制度の選好は同じ州の比と組ごとの相手で読み表示用の統計を読まない()
+    {
+        var w = new Simulation(NationConfig.France().ToScenario(1), new NullAgent()).World;
+        w.MonetaryLaw = MonetaryStandardLaw.Silver;
+        w.WorldSilverPrice = 0.1 * Catalog.RefPrices[Catalog.SilverId];   // 人工物の型（旧の読み手なら銀の下落 0.9）
+        w.ExpectedInflation = 0;
+        w.SilverGoldRatio = 1.0; w.TradeGoldPull = 1.0;
+        var (t0, m0, s0, _) = PolicyPreferences.Stance(w, PolicyAxis.MonetaryStandard, true);
+        Assert.Equal(0.0, t0, 12); Assert.Equal(0.0, m0, 12); Assert.Equal(0.0, s0, 12);
+        w.SilverGoldRatio = 0.8;
+        var (_, mGold, _, _) = PolicyPreferences.Stance(w, PolicyAxis.MonetaryStandard, true);
+        w.TradeGoldPull = -1.0;
+        var (_, mSilver, _, _) = PolicyPreferences.Stance(w, PolicyAxis.MonetaryStandard, true);
+        double wealthM = 0, total = 0;
+        foreach (var p in w.AllPops()) { double sv = System.Math.Max(0, p.Savings); total += sv; if (PolicyPreferences.BlocOf(p) == 1) wealthM += sv; }
+        Assert.True(total > 0 && wealthM > 0, "前提が崩れた：近代エリートの富が無い");
+        double expect = w.Coef.MonetaryPrefScale * (wealthM / total) * 2 * w.Coef.MonetaryPeerPullScale * 0.2;
+        Assert.True(System.Math.Abs((mGold - mSilver) - expect) <= 1e-9 * System.Math.Max(1.0, expect), $"相手の金と銀の差 {mGold - mSilver} ≠ {expect}");
+    }
+
+    /// <summary>★(208) 取引の相手の本位（World.TradePartnerStandardBalance）＝越境の成約（積出し価格）を買い手と売り手の両方に、**相手の**本位の符号（金＋1・銀−1・不換0）で積んだ差÷越境の額。
+    /// 盤面＝4カ国（英＝金・仏日米＝銀）の3四半期の後に、清算1回を本位を置き換えて回す：①全ての国を銀＝越境の取引のある国は全て −1 ②全ての国を金＝全て +1
+    /// ③英だけ金＝英は −1（相手は全て銀）・英と取引した銀の国は −1 より大きい・**量の恒等**＝運賃0（輸入額も積出し価格）なら銀の国 X の英との取引 T_X×(1＋b_X)/2 の和が英の越境の取引 T_英（輸入＋輸出）に等しい（1つの成約を両側に積む）。
+    /// 交易網の引力 TradeGoldPull は相手の差×min(1, 開放度÷平均)＝符号が相手の差と同じ。
+    /// ⚠突然変異（2026-10-09 に確かめた）「自国の本位で積む」で③の英が +1＝赤／「買い手の側だけ積む」で③の量の恒等が赤／「引力に相手の差の絶対値を使う」で符号が赤。</summary>
+    [Fact]
+    public void 取引の相手の本位の差は相手の本位で積み交易網の引力の符号になる()
+    {
+        var sim = new MultiNationSim(FourNations(), seed: 1789);
+        sim.Run(3);
+        var uk = sim.Nations.First(n => n.World.SelfPower?.Name == "イギリス").World;
+        sim.Coef.FreightRatePer10Mm = 0;   // 運賃0＝LastImportValue も積出し価格（FOB）＝下の量の恒等を輸入額と輸出額から書ける
+        void ClearWith(System.Func<World, MonetaryStandardLaw> law)
+        {
+            // 法と政府の目標を一緒に置く（⚠目標を置かないと、四半期の頭に Government が前の四半期の目標〔銀＝1〕へ法を1段戻す＝
+            //   2026-10-09 の1回目のフルスイートで「全ての国を金」の仏日米が銀へ戻り、相手の差が仏 0.72・日 0.17・米 0.52・英 −0.19 になった）。
+            foreach (var n in sim.Nations) { n.World.MonetaryLaw = law(n.World); n.World.Policy.MonetaryTarget = (int)law(n.World); }
+            sim.Run(1);   // 清算は四半期の中で回る＝相手の本位は清算の頭で引く
+            foreach (var n in sim.Nations) n.World.MonetaryLaw = law(n.World);   // AI の施行が法を動かしても読みは上の清算の値
+        }
+        bool Traded(World w) => w.LastImportValue + w.LastExportValue > 1e-9;
+        ClearWith(_ => MonetaryStandardLaw.Silver);
+        foreach (var n in sim.Nations)
+            if (Traded(n.World)) Assert.Equal(-1.0, n.World.TradePartnerStandardBalance, 9);
+        ClearWith(_ => MonetaryStandardLaw.Gold);
+        foreach (var n in sim.Nations)
+            if (Traded(n.World)) Assert.Equal(1.0, n.World.TradePartnerStandardBalance, 9);
+        ClearWith(w => ReferenceEquals(w, uk) ? MonetaryStandardLaw.Gold : MonetaryStandardLaw.Silver);
+        Assert.True(Traded(uk), "前提が崩れた：英に越境の取引が無い");
+        Assert.Equal(-1.0, uk.TradePartnerStandardBalance, 9);
+        Assert.Contains(sim.Nations, n => !ReferenceEquals(n.World, uk) && n.World.TradePartnerStandardBalance > -1.0 + 1e-9);   // 英と取引した銀の国
+        double TX(World w) => w.LastImportValue + w.LastExportValue;   // 越境の取引（運賃0＝どちらも積出し価格）
+        double withUk = 0;
+        foreach (var n in sim.Nations) if (!ReferenceEquals(n.World, uk)) withUk += TX(n.World) * (1 + n.World.TradePartnerStandardBalance) / 2;
+        Assert.True(System.Math.Abs(withUk - TX(uk)) <= 1e-9 * System.Math.Max(1.0, TX(uk)), $"銀の国の英との取引の和 {withUk} ≠ 英の越境の取引 {TX(uk)}（1つの成約を両側に積んでいない）");
+        foreach (var n in sim.Nations)
+        {
+            double b = n.World.TradePartnerStandardBalance, p = n.World.TradeGoldPull;
+            Assert.InRange(b, -1.0, 1.0);
+            Assert.True(System.Math.Sign(p) == System.Math.Sign(b) || p == 0, $"{n.World.SelfPower?.Name}：引力 {p} の符号が相手の差 {b} と違う");
+        }
     }
 
     [Fact]

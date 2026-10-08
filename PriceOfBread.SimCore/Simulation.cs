@@ -2760,16 +2760,10 @@ public sealed class Simulation
             if (World.Coef.MintBuysAtMarket > 0 && shortfall > 1e-9)
                 gapLeft = Math.Max(0, coverTarget * World.BroadMoney - World.BaseMoney) * PoliticalQuantities.Clamp01(World.Coef.MintReserveSellRate);   // 買い戻しの歩調＝投げ売りと同じ率（独1873-79の逆向き）
         }
-        // ★跛行本位（2026-09-06・器 MintFloorRespectsReserve）：床モードの standing offer は準備が目標を十分超えたら**閉じる**（ラテン通貨同盟 1873-78＝銀の自由鋳造停止）。
-        //   これが無いと、金へ移った国が投げ売る銀を残りの銀本位国の造幣局が平価で無限に吸い、銀/金比が1.0に釘付けになる（goldwave 腕で実測＝金圏49/61でも比1.0）。
-        //   閾＝目標カバー率×GoldRejoinCoverMargin（再加入と同じ余白＝新しい数なし）。0＝従来（無限の standing offer）。
-        bool floorClosed = false;
-        if (floor && World.Coef.MintFloorRespectsReserve > 0)
-        {
-            double cov = World.BroadMoney > 1e-9 ? World.BaseMoney / World.BroadMoney : 1.0;
-            double covTarget = World.Coef.GoldCoverMin * World.Coef.GoldRejoinCoverMargin;
-            floorClosed = cov >= covTarget * World.Coef.GoldRejoinCoverMargin;   // 目標×余白を超えたら自由鋳造を停止
-        }
+        // 【削除 2026-10-09 (208)】器 MintFloorRespectsReserve（跛行本位＝床の standing offer をカバー率〔基礎貨幣/広義マネー〕が目標×余白を超えたら閉じる・休眠 0）
+        //   ＝閉じる条件が誤り（信用の薄い 1783 年から常に真＝造幣が一度も買わない・メモリ pob-silver-crash-lines）。
+        //   置き換えの候補＝床の持ち込みを貨幣の不足（M/Y の趨勢×実質産出−今の貨幣）までに切る形は (208) で測って**入れていない**
+        //   （r207＋その形だけの10種＝移民による州の空洞化1件〔判定の線〕・工場の蒸気動力の NG +8・英の金本位の月 1822-49 1.00→0.85＝パッチ measurements/s208_20261009_floor.diff）。
         if (!floor && mintScale <= 1e-12) return;   // ⚠床モードは mintScale を読まない（床＝無制限の standing offer に「準備が足りたら買わない」を混ぜると床が消える＝罠の記録どおり）
         double parity = Catalog.RefPrices[metal];   // 造幣平価（固定・RefPrice建て）＝史実の固定平価。市場価格がこれを超えれば誰も持ち込まない
         // ★器 MintParitySells の売り予算（2026-09-07・休眠既定0・レビュー是正）：国の状態で1本に決める。準備不足（coverShort>0＝市場買い gapLeft の根）の月は**売らない**
@@ -2798,8 +2792,7 @@ public sealed class Simulation
             }
             if (m.Stock <= 1e-12) continue;
             if (!floor && m.LastProduced <= 0) continue;   // 旧来＝産出のある月しか買わない／★床＝在庫があれば買う（自由鋳造は持ち込み制＝産出と無関係）
-            if (m.Price > parity && !atMarket) continue;
-            if (floorClosed && !atMarket) continue;   // ★跛行本位：閉じた造幣局は平価で買わない（準備不足の市場買いだけは残る）   // 市場価格＞平価なら鋳造停止（宝飾/工業へ流れる＝正帰還の遮断・史実の固定平価）。★MintBuysAtMarket=0 で従来
+            if (m.Price > parity && !atMarket) continue;   // 市場価格＞平価なら鋳造停止（宝飾/工業へ流れる＝正帰還の遮断・史実の固定平価）。★MintBuysAtMarket=0 で従来
             double qty = atMarket ? Math.Min(m.Stock * PoliticalQuantities.Clamp01(World.Coef.MintFloorBuyRate), gapLeft / m.Price)   // 市場買い＝床と同じ在庫上限×今月の予算（第1版の産出比例は銀鉱州にしか買い手が立たなかった）
                                : floor ? m.Stock * PoliticalQuantities.Clamp01(World.Coef.MintFloorBuyRate)
                                : Math.Min(frac * mintScale * m.LastProduced, m.Stock);

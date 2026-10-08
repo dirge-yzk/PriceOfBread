@@ -303,22 +303,26 @@ public static class PolicyPreferences
                 //   ⚠金へ移りたいのは**債権者・輸入業者**——彼らにとって銀安は輸入価格の上昇であり債権の目減りである。
                 //   ⚠新しい選好の型を作らない：既存の「持てる側／持たざる側」の1行に、銀の下落を**インフレと同じ入力**として足すだけ。
                 //   銀本位でなければ silverDrop=0＝この項は消える（銀の段はlive=2026-08-21点火。gate=0に戻せば到達しない＝厳密恒等）。
+                //   ★(208) 銀の下落は**同じ州の銀と金の比**（World.SilverGoldRatio＝1 が平価）から読む（00一覧 §0-A の 10・(207) の申し送り①）。
+                //   旧＝銀の世界価格（WorldSilverPrice＝表示用の統計 Market.Price[銀]＝「局所価格×為替」の平均＝銀本位国の為替の自己参照）÷参照
+                //   ＝r207 では 1803 年から約 0.28（下落 0.72）に張り付いた人工物（同じ時期の同じ州の比は 1.0〜1.1＝銀はむしろ高い）。
                 double silverDrop = 0;
-                if (w.MonetaryLaw == MonetaryStandardLaw.Silver && w.WorldSilverPrice > 1e-9)
+                if (w.MonetaryLaw == MonetaryStandardLaw.Silver)
                 {
-                    double refSilver = Catalog.RefPrices[Catalog.SilverId];
-                    silverDrop = refSilver > 1e-9 ? PoliticalQuantities.Clamp01(1.0 - w.WorldSilverPrice / refSilver) : 0;
+                    silverDrop = PoliticalQuantities.Clamp01(1.0 - w.SilverGoldRatio);
                     if (!(silverDrop >= 0 && silverDrop <= 1)) silverDrop = 0;   // NaNは中立へ倒す（否定形＝Clampは NaN を消さない）
                 }
-                // ★交易網の引力（タスク#75再開・2026-08-21）：世界貿易が金建てへ移るほど、対外に開いた経済の「持てる側」
-                //   （債権者・大商人）は自国も相手に本位を合わせることを要求する（決済の摩擦と借入条件＝独1871→1870年代の雪崩の網目）。
-                //   入力は TradeGoldPull（＝世界貿易の金建て比率×自国の貿易開放度・MultiNationSim 注入）だけ＝新しい量ゼロ。
-                //   ⚠既に金なら0（引力は「揃える」力であって金を賛美する値ではない）。MonetaryPeerPullScale=0（旧既定・点火5.0=2026-08-21）でこの項は0＝旧挙動と厳密恒等。
+                // ★交易網の引力（タスク#75再開・2026-08-21）：対外に開いた経済の「持てる側」（債権者・大商人）は自国も取引の相手に本位を合わせることを要求する
+                //   （決済の摩擦と借入条件＝独1871→1870年代の雪崩の網目）。
+                // ★(208) 作者裁定 2026-09-28 §10-11-7「比が平価から外れている間だけ取引の過半の相手へ揃える」（承認した推奨）の形＝
+                //   引力＝MonetaryPeerPullScale×|1−比|（比が平価から外れている大きさ）×TradeGoldPull（取引の相手の本位の差×開放度・−1..1）。
+                //   比が平価どおり（1）なら金と銀の国の間の為替は動かない＝揃える理由が無い＝0。相手が金の過半なら金へ・銀の過半なら銀に留まる向き（負＝金への一歩に反対）。
+                //   旧＝世界の金建て比率×開放度（比を読まない・相手を読まない・正だけ）。銀の国だけ（金の国は自分から降りない＝F6・不換の国の戻りはインフレの項が持つ）。
                 double peerPull = 0;
-                if (w.Coef.MonetaryPeerPullScale > 0 && w.MonetaryLaw != MonetaryStandardLaw.Gold)
+                if (w.Coef.MonetaryPeerPullScale > 0 && w.MonetaryLaw == MonetaryStandardLaw.Silver)
                 {
-                    peerPull = w.Coef.MonetaryPeerPullScale * w.TradeGoldPull;
-                    if (!(peerPull >= 0)) peerPull = 0;   // NaNは中立へ倒す（否定形＝ClampはNaNを消さない）。上限は掛けない（インフレ入力と同格＝Scaleが目盛り）
+                    peerPull = w.Coef.MonetaryPeerPullScale * Math.Abs(1.0 - w.SilverGoldRatio) * w.TradeGoldPull;
+                    if (!(peerPull >= -w.Coef.MonetaryPeerPullScale && peerPull <= w.Coef.MonetaryPeerPullScale)) peerPull = 0;   // NaNは中立へ倒す（否定形＝ClampはNaNを消さない）
                 }
                 return w.Coef.MonetaryPrefScale
                      * (e.Wealth[b] * (Math.Max(0, w.ExpectedInflation) + silverDrop + peerPull)   // 持てる側：インフレ／銀安／交易網の引力→金の規律を要求

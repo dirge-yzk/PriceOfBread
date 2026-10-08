@@ -771,22 +771,20 @@ public sealed class UtilityAgent : INationAgent
     {
         // 金本位は**発展した交易経済の制度**＝AIは工業化が一定以上で志向（信用→安い外資・貿易円滑の実利が金の足枷の損を上回る）。
         // 未発展の農業経済では足枷（切下げ封印→危機で underfunding）の損が勝るので志向しない＝1789から即移行する不自然を解消（金本位era=19c後半が工業化から創発）。実加入は信用ゲートが決める。
-        // ★3値化（銀本位doc G4・2026-08-13）：★金は工業化した交易経済だけが持てる／⚠銀は誰でも持てる（銀貨は普遍的だった＝清もインドも独も1783年に銀）。
-        // ⚠国名も暦年も書かない——工業化という既存の量だけが段を決める。SilverStandardGate=0（旧既定・点火1.0=2026-08-21銀本位ラウンド）では中段が消え旧2値と厳密一致。
         // ★2026-08-21点火後の形：金閾3.5＝前線だけが自力で金を志向（1853年前後）。残りの金への移行は MonetaryPeerPullScale の交易網の引力が
         //   **政治側**（PolicyPreferences→議会の要求/強制施行）から運ぶ＝この式は「自力の願望」のみを書く（願望と政治の分業）。
-        // ★前線比（2026-09-06・銀本位の史実度 doc §6#1＝「全球収束の世界では絶対閾が氾濫する」）：GoldStandardFrontierRatio>0 では
-        //   「自国の工業化 ≥ 比×世界の先端」で金を志向する（先端との距離＝交易網への参加資格）。0＝従来の絶対閾（厳密恒等）。
-        //   ★先端＝World.IndustrialFrontier（2026-09-26：同じ最大の2つ目の欄を1本へ＝助走の直後の最初の四半期だけは0＝絶対閾へ倒れる・この枝は休眠）。
+        // ★(208) 計器（scratchpad/m208/inj_s208）で読んだ事実：r207 の5種の金への移り 158 件中 154 件がこの閾の0か1（閾を越えた国が金へ移り、下の「降りない」で錠になる）
+        //   ＝金本位の波を運んでいるのは政治の側（表示用の統計の銀の下落）ではなくこの閾。R1（平価を同じ州の比から）で 1913 年の金の国が 29→9 に減る（5種・同じ種1〜5）のは、
+        //   銀の国の工業化が閾に届かなくなるため（閾を越えた国 5〜9→1〜3）。⚠ 作者裁定 §10-11-7「比が平価から外れている間だけ取引の過半の相手へ揃える」を
+        //   **AI の願望**として入れた6つの形（純支持＞0／相手が金の過半／銀が平価より安い／揃える線 0.5／R1 の上）は全て、比の雑音（四半期の |Δ比| の中央 1.4%）で
+        //   始まる連鎖になった（1793〜1833 年に全ての国が金）＝README §1-8 で入れず、揃えるは政治の側の連続の圧力（PolicyPreferences の交易網の引力）に置いた（§1-7・推奨の形）。
+        //   相対の線（工業化≥0.875×先端）は R1 の上でも 1913 年の金の国 29 を保つが波が早すぎる（1833 年に 21）＝入れない。
         // ★金の国は自分から金を降りない（作者裁定 2026-09-28 F6 の2歩目）：史実で金から銀へ法で戻った国は無い。離脱は危機と政治の側が持つ
         //   （兌換停止＝Fiscal の OnGoldStandard／法を下げる要求＝PolicyPreferences の債務者の側→議会・蜂起の強制施行 Politics）。
         //   ⚠これが無いと、初期値で金に置いた英（工業化が閾値に遠い）は最初の四半期に銀へ戻る。
-        bool goldWish = w.MonetaryLaw == MonetaryStandardLaw.Gold
-            || (w.Coef.GoldStandardFrontierRatio > 0 && w.IndustrialFrontier > 0
-                ? w.MeanIndustrialization >= w.Coef.GoldStandardFrontierRatio * w.IndustrialFrontier
-                : w.MeanIndustrialization > w.Coef.GoldStandardIndThreshold);
-        w.Policy.MonetaryTarget = goldWish ? 2
-                                : w.Coef.SilverStandardGate > 0 && w.MeanIndustrialization >= w.Coef.SilverStandardIndThreshold ? 1 : 0;
+        // ★銀は誰でも持てる（銀本位doc G4・銀貨は普遍的だった＝清もインドも独も1783年に銀）＝不換の国は銀を志向する（旧の銀の閾 SilverStandardIndThreshold＝0 は常に真＝(208) で削除）。⚠国名も暦年も書かない。
+        bool goldWish = w.MonetaryLaw == MonetaryStandardLaw.Gold || w.MeanIndustrialization > w.Coef.GoldStandardIndThreshold;
+        w.Policy.MonetaryTarget = goldWish ? 2 : w.Coef.SilverStandardGate > 0 ? 1 : 0;
         // ★資本移動（トリレンマdoc・2026-08-13）：国庫の立場は状況で割れる——**借りたいときは自由・正貨が逃げているときは規制**。
         // 逃避の測り方は既存の量だけ＝正貨準備カバー率が兌換維持の下限を割っている（＝金が出ていく）。★史実＝1931年独の為替管理は
         // 金流出が止まらなくなってから敷かれた。⚠実際に法が通るかは資本の反対（PolicyPreferences）が決める＝プレイヤーと同じ政治ゲート。

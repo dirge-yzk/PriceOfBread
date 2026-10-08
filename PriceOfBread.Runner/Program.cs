@@ -1911,7 +1911,7 @@ if (args.Length > 0 && args[0] == "silverprobe")
     string svOv = Coefficients.OverrideSummary();
     Console.WriteLine($"=== 銀本位プローブ seed={svSeed}／上書き={(svOv.Length > 0 ? svOv : "なし")} ===");
     Console.WriteLine($"    SilverStandardGate={svc.SilverStandardGate} StandardMetalMintGate={svc.StandardMetalMintGate}"
-                    + $" 銀閾={svc.SilverStandardIndThreshold} 金閾={svc.GoldStandardIndThreshold} GoldMintFraction={svc.GoldMintFraction} MintReserveTargetWeight={svc.MintReserveTargetWeight}");
+                    + $" 金閾={svc.GoldStandardIndThreshold} GoldMintFraction={svc.GoldMintFraction} MintReserveTargetWeight={svc.MintReserveTargetWeight}");
     Console.WriteLine($"    RefPrice: 銀({Catalog.SilverId})={Catalog.RefPrices[Catalog.SilverId]:F3}　金鉱({Catalog.GoldOreId})={Catalog.RefPrices[Catalog.GoldOreId]:F3}");
     var svEverAg = new List<string>(); var svEverAu = new List<string>();
     void SvDump(int q)

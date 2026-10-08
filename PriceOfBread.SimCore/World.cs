@@ -1148,10 +1148,19 @@ public sealed class World
     // ★銀の世界価格（銀本位doc G6・2026-08-13）。MultiNationSim が四半期ごとに配る共有スカラー（World は国際市場を見られない）。
     // 0＝未注入＝銀本位の平価補正を行わない（単独国シナリオ・休眠時）。⚠この値は診断でなく為替の入力なので、読む側は必ず有限性を確かめる。
     public double WorldSilverPrice { get; internal set; }
-    // ★交易網の引力（タスク#75再開・2026-08-21・**live**＝MonetaryPeerPullScale=5）＝「世界貿易のうち金本位国が担う比率」×min(1, 自国開放度/世界平均)。
+    // ★交易網の引力（タスク#75再開・2026-08-21・**live**＝MonetaryPeerPullScale=5）＝取引の相手の本位の差（<see cref="TradePartnerStandardBalance"/>）×min(1, 自国開放度/世界平均)。
+    // ★(208) 組ごとの相手へ作り直した（作者裁定 2026-09-28 F6「金本位の波は組ごとの相手で作り直す」の推奨）：旧＝「世界貿易のうち金本位国が担う比率」（全ての国に同じ値・0..1）
+    //   ＝自分の相手が銀の国ばかりでも世界の金の割合で引かれた。新＝自国の越境の成約の相手が金なら＋・銀なら−（−1..1）。
     // MultiNationSim が四半期同期で注入（WorldSilverPrice と同型）。読み手＝PolicyPreferences の通貨制度選好（持てる側の入力）のみ。
-    // 0＝未注入（単一国シナリオ・MonetaryPeerPullScale=0 に戻したとき）＝選好に足される値が0＝旧挙動と厳密恒等。
+    // 0＝未注入（単一国シナリオ・MonetaryPeerPullScale=0 に戻したとき）＝選好に足される値が0。
     public double TradeGoldPull { get; internal set; }
+    /// <summary>★(208) 直近の清算の越境の成約（積出し価格＝FOB・金建て）の相手の本位の差＝(相手が金の額−相手が銀の額)÷越境の成約の額（−1..1・不換の相手は分母だけ）。
+    /// 買い手と売り手の両方に積む（輸入も輸出も相手との取引）。BilateralMarket が清算ごとに書く（<see cref="LastImportValue"/> と同じ作法）＝「取引の過半の相手」（00一覧 §0-A の 10）の物差し。</summary>
+    public double TradePartnerStandardBalance { get; internal set; }
+    /// <summary>★(208) 銀と金の比＝同じ州の中の銀÷金の値段の全ての生きた州の対数平均÷参照の比（1＝平価・1 未満＝銀が金に対して安い）。
+    /// MultiNationSim が四半期同期で注入（器A SilverParityFromRatio と同じ量＝同じ走査の1本・表示用の統計〔Market.Price〕に乗せない）。
+    /// 読み手＝PolicyPreferences の通貨制度選好（銀の下落・比が平価から外れている大きさ）。未注入（単一国シナリオ）は1＝平価どおり。</summary>
+    public double SilverGoldRatio { get; internal set; } = 1.0;
     // ★鋼市場診断#2（2026-08-16・AiWorldPriceEntry>0のみ）：国際市場の平均価格（InternationalMarket.Price＝BilateralMarket が成約から書く265州平均）の写し。
     // MultiNationSim が四半期同期で注入（WorldTechLevel/IndustrialFrontier/WorldSilverPrice と同型＝World は国際市場を直接見られない層の分離）。
     // null＝未注入（単一国シナリオ・係数0のとき）＝読み手（UtilityAgent.TryBuildFacility＝AIの参入判断のみ）は国内チャネルだけで判断＝恒等。
