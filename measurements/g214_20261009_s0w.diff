@@ -1,0 +1,92 @@
+diff --git a/PriceOfBread.SimCore/Coefficients.cs b/PriceOfBread.SimCore/Coefficients.cs
+index 97cc76d..30e0c35 100644
+--- a/PriceOfBread.SimCore/Coefficients.cs
++++ b/PriceOfBread.SimCore/Coefficients.cs
+@@ -2372,6 +2372,12 @@ public sealed class Coefficients
+     //   ＝産地の発見の表（Catalog.Sites＝カリフォルニア1840s・豪1850s・ラント1880s・クロンダイク1890s・難易度＝年代×Y・必要性＝入植者×金の値）へ置き換えた（設計 §9-1 の提案③＝2026-09-28 作者が採用した提案）。〔(171)：必要性＝金の値段÷掘る費用・入植者は見つける力へ〕
+     //   ⚠2026-09-04 の点火の記録（辺境の州で出る）は辺境の廃止（2026-08-26）の後＝成り立っていなかった（検討 §10-3 項目10(a)・新23）。
+     public double GoldRushEndowment = 5.0;                   // 開いた大鉱床の富鉱倍率（浅い高品位の鉱脈＝通常の賦存4.0に掛ける＝開いた財の生産者だけ・Discovery.OpenSite）。衰えは採掘による品位（鉱脈在庫）
++    // ★(214) 産地の必要性は「開いた後の費用」で読む：Discovery.SiteTerms の費用を ÷GoldRushEndowment^これ（鉱床の行だけ）・OpenSite の MarginalCost も同じ門で畳む。
++    //   発見が生み出す物（安い金属）が代替する物より高いか＝作者 2026-10-02 の一般則（(171) 申し送り2 の推奨 (a)・作者の承認は未確認）。全域の EndowmentCostFollowsAbundance は別（§0-A の 6）。
++    //   0＝厳密恒等（Pow を通らない）。
++    public double SiteCostFollowsBonanza = 0.0;
++    // ★(214) 通貨制度の願いの帯（SelfPlay.DecideQuarter）：>0＝支配ブロックの立場（PolicyPreferences.Stance の MonetaryStandard）が帯を超えたら ±1 段・0＝旧（工業化度の崖＋金の国は降りない）。
++    public double MonetaryWishBand = 0.0;
+     // === 兵士POP軍制（Part 2）：軍隊規模＝兵士POP数。軍事費が徴募し給与を払う。治安維持力（警察）とは別レバー。 ===
+     // 兵士POP は IsSoldier フラグで識別（ClassId は貴族0/農民1/労働者2/ブルジョワ3/専門職4/兵士5）。
+     public int SoldierRecruitClassA = 1;                     // 徴募/復員プールその1＝農民
+diff --git a/PriceOfBread.SimCore/Discovery.cs b/PriceOfBread.SimCore/Discovery.cs
+index 1d94bd6..54e72bb 100644
+--- a/PriceOfBread.SimCore/Discovery.cs
++++ b/PriceOfBread.SimCore/Discovery.cs
+@@ -855,6 +855,11 @@ public static class Discovery
+         {
+             v = book.Of(g);
+             cost = book.Cost(p);
++            // ★(214) 産地の必要性は「開いた後の費用」で読む（作者 2026-10-02 の一般則「生み出すものが代替するものより高いか」＝発見が生み出す物は安い金属・(171) 申し送り2 の推奨 (a)）：
++            //   旧＝未発見の生産者の費用（参照費用＝富鉱の前）を読む＝銀は値段≈費用で ln≈0＝見つからない穴（金のヴィクトリアが 1863→1874・カリフォルニアが 1903〜09 へ遠ざかったのと同じ）。
++            //   開いた後は OpenSite が MarginalCost を GoldRushEndowment^門 で割る（同じ門）。門0＝この行は走らない＝厳密恒等。立たない費用（負）は触らない。
++            if (cost >= 0 && site.Kind == Catalog.SiteKind.Deposit && c.SiteCostFollowsBonanza > 0 && c.GoldRushEndowment > 0)
++                cost /= System.Math.Pow(c.GoldRushEndowment, c.SiteCostFollowsBonanza);
+         }
+         if (used)
+         {
+@@ -878,7 +883,7 @@ public static class Discovery
+         string gname = Catalog.Goods[site.Good].Name, who = w.SelfPower?.Name ?? w.Region.Name;
+         if (site.Kind == Catalog.SiteKind.Deposit)
+         {
+-            Simulation.ApplyEndowment(p, c.GoldRushEndowment, c);
++            Simulation.ApplyEndowment(p, c.GoldRushEndowment, c, c.SiteCostFollowsBonanza > 0 ? c.SiteCostFollowsBonanza : null);   // ★(214) 門>0＝富鉱の分だけ単位費用も下がる（SiteTerms の必要性が読む「開いた後の費用」と同じ）
+             if (p.Scale < 1.0) p.Scale = 1.0;
+             if (r.MineralDepositInitial > 0)
+                 r.MineralDeposit += c.BonanzaDepositYears * r.MineralDepositInitial / System.Math.Max(1e-9, c.DepositYearsAtBirth);
+diff --git a/PriceOfBread.SimCore/SelfPlay.cs b/PriceOfBread.SimCore/SelfPlay.cs
+index 7eeb29d..abbefa8 100644
+--- a/PriceOfBread.SimCore/SelfPlay.cs
++++ b/PriceOfBread.SimCore/SelfPlay.cs
+@@ -784,8 +784,26 @@ public sealed class UtilityAgent : INationAgent
+         //   （兌換停止＝Fiscal の OnGoldStandard／法を下げる要求＝PolicyPreferences の債務者の側→議会・蜂起の強制施行 Politics）。
+         //   ⚠これが無いと、初期値で金に置いた英（工業化が閾値に遠い）は最初の四半期に銀へ戻る。
+         // ★銀は誰でも持てる（銀本位doc G4・銀貨は普遍的だった＝清もインドも独も1783年に銀）＝不換の国は銀を志向する（旧の銀の閾 SilverStandardIndThreshold＝0 は常に真＝(210) で削除）。⚠国名も暦年も書かない。
+-        bool goldWish = w.MonetaryLaw == MonetaryStandardLaw.Gold || w.MeanIndustrialization > w.Coef.GoldStandardIndThreshold;
+-        w.Policy.MonetaryTarget = goldWish ? 2 : w.Coef.SilverStandardGate > 0 ? 1 : 0;
++        if (w.Coef.MonetaryWishBand > 0)
++        {
++            // ★(214) 通貨制度の願いを**支配ブロックの立場**から読む（選挙の AI〔DecideElection〕と同じ関数・同じ写像）：
++            //   旧＝工業化度の崖（> GoldStandardIndThreshold）＋「金の国は降りない」の錠＝金への移り 314 件中 305 件がこの崖の0か1・崖を越える国を押し上げていたのは
++            //   銀本位国の為替の下限 0.30 の人工物（(213) 相談役の診断）。新＝上げの立場が帯を超えれば +1 段・下げの立場が帯を超えれば −1 段・間は現状維持
++            //   （上げる線と下げる線は同じ帯＝同じ門で戻れる・README §1-8）。下げの立場＝上げの符号反転（Stance は Pref×符号）＝1回の Stance で足りる。
++            //   NaN は否定形で現状維持。不換の国は銀を志向する（旧と同じ＝銀は誰でも持てる）。実加入は信用ゲートが決める（Government）。
++            var (tU, mU, sU, _) = PolicyPreferences.Stance(w, PolicyAxis.MonetaryStandard, true);
++            int wb = DoctrineFrom(w) switch { Doctrine.Industrialist => 1, Doctrine.Modernizer => 2, _ => 0 };   // 教義→支配ブロック（DecideElection と同じ写像）
++            double wUp = wb == 0 ? tU : wb == 1 ? mU : sU;
++            int wCur = (int)w.MonetaryLaw, wLo = w.Coef.SilverStandardGate > 0 ? 1 : 0;
++            int wTarget = wUp > w.Coef.MonetaryWishBand ? System.Math.Min(wCur + 1, 2)
++                        : -wUp > w.Coef.MonetaryWishBand ? System.Math.Max(wCur - 1, wLo) : wCur;   // NaN は両方の比較が偽＝現状維持
++            w.Policy.MonetaryTarget = System.Math.Max(wTarget, wLo);
++        }
++        else
++        {
++            bool goldWish = w.MonetaryLaw == MonetaryStandardLaw.Gold || w.MeanIndustrialization > w.Coef.GoldStandardIndThreshold;
++            w.Policy.MonetaryTarget = goldWish ? 2 : w.Coef.SilverStandardGate > 0 ? 1 : 0;
++        }
+         // ★資本移動（トリレンマdoc・2026-08-13）：国庫の立場は状況で割れる——**借りたいときは自由・正貨が逃げているときは規制**。
+         // 逃避の測り方は既存の量だけ＝正貨準備カバー率が兌換維持の下限を割っている（＝金が出ていく）。★史実＝1931年独の為替管理は
+         // 金流出が止まらなくなってから敷かれた。⚠実際に法が通るかは資本の反対（PolicyPreferences）が決める＝プレイヤーと同じ政治ゲート。
+diff --git a/PriceOfBread.SimCore/Simulation.cs b/PriceOfBread.SimCore/Simulation.cs
+index db09b17..4a8a6e1 100644
+--- a/PriceOfBread.SimCore/Simulation.cs
++++ b/PriceOfBread.SimCore/Simulation.cs
+@@ -729,10 +729,10 @@ public sealed class Simulation
+     /// ⚠豊富側（倍率>1）と希少側（倍率<1＝非産地の 0.4）は別ゲート＝非対称を選べる：希少側は費用を上げる方向で、
+     ///   効きが強すぎると石炭・鉄の非産地が死ぬ（2026-09-07 の MineralCostFollowsGrade 点火で人口21.8→7.1 の前例）。
+     /// ゲート0では Math.Pow を1度も通らない＝×1.0 すら掛けない＝厳密恒等。倍率が NaN・非正なら費用を触らない（否定形の番人）。</summary>
+-    internal static void ApplyEndowment(Producer pr, double endowment, Coefficients c)
++    internal static void ApplyEndowment(Producer pr, double endowment, Coefficients c, double? costGate = null)
+     {
+         pr.Productivity *= endowment;
+-        double gate = endowment > 1.0 ? c.EndowmentCostFollowsAbundance : endowment < 1.0 ? c.EndowmentCostFollowsScarcity : 0.0;
++        double gate = costGate ?? (endowment > 1.0 ? c.EndowmentCostFollowsAbundance : endowment < 1.0 ? c.EndowmentCostFollowsScarcity : 0.0);   // ★(214) costGate＝産地を開くときの門（Discovery.OpenSite・SiteCostFollowsBonanza）
+         if (!(gate > 0) || !(endowment > 0)) return;
+         pr.MarginalCost /= System.Math.Pow(endowment, gate);
+     }
