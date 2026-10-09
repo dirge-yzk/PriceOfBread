@@ -40,7 +40,7 @@
 - 制度疲労（world.json の institutionalDecay・清 0.8・オスマン 0.6・露 0.4）：汚職と制度疲労のスカラーは廃止の方針（特権と実経路へ）。NationBrief の難易度も読む〔K の読み・未確認〕。特権システムの回で消す。
 
 ## 5. 外せない（史実として置く）
-- 植民地の人口ウェイト（initialColonies の population・abstractTargets の colonies）：人口は史実。C1 の案どおり州ごとに 1780 年代の人数を千人単位で置けば換算の係数 ColonialPopScale は人口の換算には要らなくなる。⚠ ColonialPopScale は講和の州割譲のコストの物差し（Coefficients.cs の ColonialRegionCession の注記・Colonial.cs:64）にも使われている〔確認 (225)〕＝消すならそちらの物差しも同じ回で置き換える。段4。
+- 植民地の人口ウェイト（initialColonies の population・abstractTargets の colonies）：人口は史実。C1 の案どおり州ごとに 1780 年代の人数を千人単位で置けば換算の係数 ColonialPopScale は人口の換算には要らなくなる。〔2026-10-10 (229)：ColonialPopScale は (227) で廃止＝人口は world.json の popK〔千人〕・州割譲のコストも質量の単位 ColonyUnitPop へ〕⚠ ColonialPopScale は講和の州割譲のコストの物差し（Coefficients.cs の ColonialRegionCession の注記・Colonial.cs:64）にも使われている〔確認 (225)〕＝消すならそちらの物差しも同じ回で置き換える。段4。
 - 階級の人数・州の share：導く元が無い。段1（英）→段3（全国）→段4（州）で値を直す。
 - 法と政体（polity・education・bureaucracy・initialSuffrage・Censorship・CornLaws・SerfEmancipation・Immigration・Conscription・MonetaryLaw・税の段・knownDiscoveries）・farmLordShare・rule・関税：助走は法を動かさない＝置く必要がある。段6（関税・税）と段7（F2）で値を直す。
 - 国債（world.json の govDebt・7国の絶対額）：比は史実（英 1.1・仏 0.6・蘭 1.6 ほか【推】）＝絶対額は比×助走の終わりの年名目GDP へ（段6）。保有の起票（Fiscal.SeedBondHoldings）は今は構築時＝助走の後へ動かすなら番人（Σ保有＝国内元本）を取り直す〔K の読み・未確認〕。
@@ -49,9 +49,9 @@
 
 ## 6. 段への割り当て（修正一覧 4章の各段と 00一覧 §0-A の行 00 に書き足した）
 - 段1：聖職者の比（英の分）・使用人を総数の内側へ（式の側）
-- 段2：階級の貯蓄の定数（英）＋broadMoneyToGdp・InitMoneyMode／InitMoneyScale／InitInvestorMoneyShare・ClosedWealthMultiple を畳む
+- 段2：階級の貯蓄の定数（英）＋broadMoneyToGdp・InitMoneyMode／InitMoneyScale／InitInvestorMoneyShare・ClosedWealthMultiple を畳む〔2026-10-10 (229)：まだ畳んでいない＝(226) で畳んだコードは main に入れていない（パッチ measurements/sav_20261010_stage12_5613d84.patch）〕
 - 段3：市場の在庫 200・階級の貯蓄の定数（全国）・聖職者の比（全国）・使用人の決まりを全国で揃える
-- 段4：ColonialPopScale（人口の換算・州割譲のコストの物差しと同じ回で）
+- ~~段4：ColonialPopScale（人口の換算・州割譲のコストの物差しと同じ回で）~~〔外した 2026-10-10 (227)→(229)：Diplomacy.ColonyUnitPop の1本へ・InitialColonyMass も〕
 - 段5：国の military を消す・治安維持力を導く・艦隊と兵士は入力を直す（表を足さない）
 - 段6：国庫を導く（普は比で残す）・国債を比で持つ・initialInterestRate のキーを消す
 - 段7：識字を国の基準1本へ（NationConfig の既定値をテンプレへ揃えてから）・ethnicUnity を消す
