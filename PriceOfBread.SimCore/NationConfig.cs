@@ -14,9 +14,10 @@ public sealed class NationConfig
     public double Nobility, Peasant, Worker, Bourgeois, Professional;
     public double Merchant = 400;   // 商人（流通マージン＋貿易の仲立ち。商の国＝日本・英国は厚い）
     public double Artisan = 800;    // 職人（手工業の自営＝衣料・家具・革・陶磁。1789年の主役で、工場に敗れて没落する＝ラッダイトの母体）
-    public double NobLit = 0.95, PeasLit = 0.15, WorkLit = 0.40, BourgLit = 0.80, ProfLit = 0.85;
+    // ★(232) 階級の識字の既定＝世界の大半の国（41〜45国）がデータに置いていたテンプレの値（旧の既定 0.95/0.15/0.40/0.80/0.85/0.90/0.92 は world.json を通らない経路にしか効かなかった）。
+    public double NobLit = 0.85, PeasLit = 0.08, WorkLit = 0.25, BourgLit = 0.60, ProfLit = 0.80;
     public double ClergyFrac = 0.40, IntelligentsiaFrac = 0.35;   // 貴族→聖職者・専門職→インテリ を分離する初期割合（聖職者・知識人）
-    public double ClergyLit = 0.90, IntelLit = 0.92;              // 聖職者・インテリの識字（高め）
+    public double ClergyLit = 0.80, IntelLit = 0.85;              // 聖職者・インテリの識字
     public double PeasantSubsistence = 0.7;
     public Polity Polity = Polity.Absolutist;
     public EducationLaw Education = EducationLaw.Religious;
