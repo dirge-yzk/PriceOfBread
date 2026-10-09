@@ -49,6 +49,19 @@ public class OpeningForcesTests
     }
 
     [Fact]
+    public void 回231_開幕の軍の確定は軍事費の合計を動かさない_動くのは陸海の比だけ()
+    {
+        var sim = new MultiNationSim(WorldData.Nations(), 1789UL, _ => new UtilityAgent());
+        foreach (var n in sim.Nations) n.TelemetryEnabled = false;
+        sim.Diplomacy.Log.Enabled = false;
+        var before = sim.Nations.Select(n => n.World.MilitarySpending).ToArray();
+        sim.StartWarmup(null, 4);
+        for (int i = 0; i < sim.Nations.Count; i++)
+            Assert.Equal(before[i], sim.Nations[i].World.MilitarySpending, 12);   // 助走も開幕の軍の確定も合計の段は置かない（段は AI が毎四半期置く）
+        Assert.True(sim.Nations.Select(n => System.Math.Round(n.World.NavalSpendShare, 6)).Distinct().Count() > 10, "陸海の比が国ごとに置かれていない");
+    }
+
+    [Fact]
     public void 回231_開幕の治安維持力は_兵数と即応度から導く()
     {
         var sim = Warmed();

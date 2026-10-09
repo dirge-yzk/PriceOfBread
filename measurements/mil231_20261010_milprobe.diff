@@ -1,0 +1,44 @@
+--- a/PriceOfBread.Runner/Program.cs
++++ b/PriceOfBread.Runner/Program.cs
+@@ -2079,6 +2079,41 @@
+ //   ③ ★★★ラチェットの検査＝議会シェアが時代とともに単調増加していないか（作者の最大の懸念）
+ //   ④ 硬性条件（英・米・蘭・白・丁・諾・瑞西の軍部シェアがほぼ0か）
+ //   ⑤ 検証点（英1815穀物法／普1867／露1917／日1936）
++// === 軍の探査（読むだけ・2026-10-10 (231)・コミットしない）： dotnet run -- milprobe <出力TSV> [seed] [quartersAfter] ===
++if (args.Length > 0 && args[0] == "milprobe")
++{
++    string mpOut = args.Length > 1 ? args[1] : "milprobe.tsv";
++    ulong mpSeed = ArgUlong(args, 2, 1789UL);
++    int mpAfter = (int)ArgUlong(args, 3, 1UL);
++    var mpSim = new MultiNationSim(WorldData.Nations(), mpSeed, _ => new UtilityAgent());
++    foreach (var nn in mpSim.Nations) nn.TelemetryEnabled = false;
++    mpSim.Diplomacy.Log.Enabled = false;
++    var mb = new System.Text.StringBuilder();
++    mb.Append("time	nation	homePopK	allPopK	soldK	sold/home	sold/all	milSpend	armyUp	navyUp	navalShare	ships	gauge	envelope	payFull	equipRoom	rev	gdpY	nomGdpY	conscr	coerc	coercTgt	seats	manLimitK	needSea	needLand	needInt	secShare	stageTgt	secThreat	secOwn	hullPrice	refPrice	navalPower	landPower	denom	warCap	warOut	sailOut	warStock	ready	soldSize\n");
++    void MSnap(string tm)
++    {
++        foreach (var n in mpSim.Nations)
++        {
++            var w = n.World; var sp = w.SelfPower; string nm = sp is null ? "?" : (sp.BaseName.Length > 0 ? sp.BaseName : sp.Name);
++            double home = 0, all = 0, sold = 0;
++            foreach (var r in w.Regions) { if (r.State != RegionState.Active) continue; double sz = r.SumPopulation(); all += sz; if (r.Tier != RegionTier.Colonial) home += sz; foreach (var p in r.Pops) if (p.IsSoldier) sold += p.Size; }
++            double ships = 0; foreach (var r in w.Regions) if (r.State == RegionState.Active && r.FleetUnits is { } fa) foreach (var x in fa) ships += x;
++            double env = Military.EnvelopeOf(w, w.Coef);
++            double payFull = 0; bool keep = w.ConscriptionLaw >= ConscriptionLaw.Selective;
++            foreach (var r in w.Regions) { if (r.State != RegionState.Active || r.SoldierPopIndex < 0) continue; payFull += r.Pops[r.SoldierPopIndex].Size * Military.RecruitWage(r, w.Coef, last: false, keep: keep) * w.Coef.SoldierPayMult; }
++            double seats = Military.EstablishmentOf(w, w.Coef, out double man);
++            double room = System.Math.Max(0, env - payFull);
++            mb.Append(string.Join("	", new object[] { tm, nm, home, all, sold, home > 0 ? sold / home : 0, all > 0 ? sold / all : 0, w.MilitarySpending, w.ArmyUpkeep, w.NavyUpkeep, w.NavalSpendShare, ships, sp?.FleetGauge ?? 0, env, payFull, room, w.LastRevenue, w.Gdp * 12, w.NominalGdp * 12, w.ConscriptionLaw, w.BaseCoercion, w.Policy.CoercionTarget, seats, man * w.Coef.MaxSoldierFraction, sp?.NeedSea ?? 0, sp?.NeedLand ?? 0, sp?.NeedInternal ?? 0, UtilityAgent.SecurityShare(w), UtilityAgent.SecurityStageTarget(w), w.SecurityThreat, w.SecurityThreatOwnMass, w.Regions.Count > 0 ? w.Regions[0].Markets[Catalog.WarshipId].Price : 0, Catalog.RefPrices[Catalog.WarshipId], sp?.NavalPower ?? 0, sp?.LandPower ?? 0, w.Regions.Count > 0 ? EconomyStep.FleetGaugeDenominator(w.Regions[0], w.Coef) : 0, w.Regions.Where(r => r.State == RegionState.Active).Sum(r => r.Producers.Where(pr => pr.GoodId == Catalog.WarshipId).Sum(pr => pr.Capacity)), w.Regions.Where(r => r.State == RegionState.Active).Sum(r => r.Producers.Where(pr => pr.GoodId == Catalog.WarshipId).Sum(pr => pr.Output)), w.Regions.Where(r => r.State == RegionState.Active).Sum(r => r.Producers.Where(pr => pr.GoodId == Catalog.SailingShipId).Sum(pr => pr.Output)), w.Regions.Count > 0 ? w.Regions[0].Markets[Catalog.WarshipId].Stock : 0, w.MilitaryReadiness, w.SoldierSize() })).Append((char)10);
++        }
++    }
++    MSnap("open");
++    mpSim.StartWarmup();
++    MSnap("warm");
++    for (int q = 1; q <= mpAfter; q++) { mpSim.StepQuarter(); MSnap("q" + q); }
++    System.IO.File.WriteAllText(mpOut, mb.ToString(), new System.Text.UTF8Encoding(false));
++    Console.WriteLine($"milprobe: {mpSim.Nations.Count}国 → {mpOut}");
++    return;
++}
+ if (args.Length > 0 && args[0] == "poweraff")
+ {
+     ulong paSeed = ArgUlong(args, 1, 1789UL);
