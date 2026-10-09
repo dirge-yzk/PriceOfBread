@@ -1062,6 +1062,25 @@ public sealed class World
     /// 旧＝全支出がフロー歳入比例で**国庫ストックを誰も使えず**、初期国庫の大きい国（普190k・墺・清）が
     /// 床0.25の減税に開幕から永久ロックされていた（普の歳入=GDP比1.0-1.4%の根）。
     /// ⚠既定0＝LastRevenue をそのまま返す（浮動小数点演算を足さない厳密恒等）。金の経路は既存の保存チャネルのみ。</summary>
+    /// <summary>★(223) 国家の港建設の請求（四半期・自国の通貨）＝行政費スライダー×PortStateFrac（裁量余剰のシェア）×裁量余剰の流れ（FiscalCapacity＝純税収から利払い・行政・軍需を引いた余りの EMA・月次）×3か月×この港の州の取扱高÷国の港の取扱高の和
+    /// （<see cref="PortThroughputTotal"/>）。門＝助走でない・蒸気機関の発見・混雑（LastTradeThrottle＜PortCongestionTarget）・投資家 POP がある港の州だけ（資本家ルートと同じ門）。
+    /// 読み手＝Simulation の四半期の締め月の請求（貢納・招聘の支度金と同じ位置）と MultiNationSim.StepPorts の支払い（×国家の支払い率 r）＝国家の払える額と無関係に国庫を空にしない。
+    /// 旧＝PortStateFrac(0.5)×資本家の投資×r を請求の外で払った（民間の貯蓄に比例し、英の開幕で国庫 2.1万 に対し 14.3万・r=1）。</summary>
+    internal double PortStateRequest(Region r, double nationThroughput)
+    {
+        if (WarmupFrozen || r.State != RegionState.Active || !r.IsPort || !Discovery.SteamPower(Discovered)) return 0;
+        if (!(r.LastTradeThrottle < Coef.PortCongestionTarget) || r.InvestorPopIndex < 0 || r.InvestorPopIndex >= r.Pops.Count) return 0;
+        if (!(nationThroughput > 1e-9) || !(r.LastPortThroughput > 0)) return 0;   // 否定形＝NaN は請求しない
+        return AdminSpending * Coef.PortStateFrac * FiscalCapacity * Calendar.MonthsPerQuarter * (r.LastPortThroughput / nationThroughput);
+    }
+    /// <summary>国の港の州の取扱高の和（<see cref="PortStateRequest"/> の分母）。</summary>
+    internal double PortThroughputTotal()
+    {
+        double t = 0;
+        foreach (var r in Regions) if (r.State == RegionState.Active && r.IsPort && r.LastPortThroughput > 0) t += r.LastPortThroughput;
+        return t;
+    }
+
     public double SpendableRevenue()
     {
         if (Coef.OpulenceSpendRate <= 0) return LastRevenue;

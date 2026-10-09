@@ -863,6 +863,68 @@ public class ConservationTests
         Assert.True(Math.Abs(gotC - moved) <= 1e-9 * moved && Math.Abs(paidC - moved) <= 1e-9 * moved, $"運河：労働者の受け取り {gotC}・投資家の払い {paidC}・進捗 {moved} が一致しない");
     }
 
+    /// <summary>★(223) 国家の港建設は国家の予算の行（行政費スライダー×PortStateFrac×裁量余剰 FiscalCapacity×3か月×取扱高の比）＝民間の貯蓄に比例して国庫を空にしない。
+    /// 旧＝PortStateFrac(0.5)×資本家の投資（州の投資家の貯蓄の 4%）×r を月初の請求の外で払った＝英の開幕に国庫 2.1万 に対し 14.3万・r=1 のまま（国庫 −12.5万・翌四半期に切り下げ 9万）。
+    /// 盤面＝英の1国・蒸気機関の発見を開き・1つの港だけ混雑させ・裁量余剰を小さく置く＝国庫の減りは予算の行の額ちょうど（r＝1）で、投資家の貯蓄の比（旧式）とは桁が違う（資本家ルートは投資家の貯蓄から払う＝国庫は動かない）。
+    /// 払いは国家の支払い率 r を掛ける（r＝0.5 で半分）。⚠突然変異「PortStateFrac×資本家の投資の旧式」で赤。</summary>
+    [Fact]
+    public void 国家の港建設は裁量余剰の予算の額だけ払い支払い率を掛ける()
+    {
+        static (double spent, double want, double oldWay) Run(double r)
+        {
+            var sim = new MultiNationSim([WorldData.ByName("イギリス")], seed: 1789, coef: new Coefficients()) { DiplomacyFrozen = true };
+            foreach (var n in sim.Nations) n.TelemetryEnabled = false;
+            sim.Diplomacy.Log.Enabled = false;
+            sim.StepQuarter();
+            var w = sim.Nations[0].World;
+            w.Discovered[Discovery.SteamRow] = true;
+            foreach (var x in w.Regions) { x.LastTradeThrottle = 1.0; x.LastPortThroughput = 0; }
+            var port = w.Regions.Find(x => x.State == RegionState.Active && x.IsPort && x.InvestorPopIndex >= 0)!;
+            port.LastTradeThrottle = 0; port.LastPortThroughput = 1000;
+            w.FiscalFundingRatio = r; w.FiscalCapacity = 100;
+            double invSav = port.Pops[port.InvestorPopIndex].Savings;
+            double want = w.AdminSpending * w.Coef.PortStateFrac * 100 * Calendar.MonthsPerQuarter * r;   // 単独の混雑した港＝取扱高の比 1
+            double oldWay = 0.5 * 0.04 * invSav * r;   // 旧式＝PortStateFrac(0.5)×資本家の投資(PortInvestFrac 0.04×投資家の貯蓄)×r
+            double t0 = w.Treasury;
+            typeof(MultiNationSim).GetMethod("StepPorts", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!.Invoke(sim, null);
+            return (t0 - w.Treasury, want, oldWay);
+        }
+        var full = Run(1.0); var half = Run(0.5);
+        Assert.True(full.want > 0 && full.oldWay > 100 * full.want, $"前提が崩れた：旧式 {full.oldWay} が予算の行 {full.want} の100倍に届かない");
+        Assert.Equal(full.want, full.spent, 6);
+        Assert.Equal(half.want, half.spent, 6);
+        Assert.Equal(full.spent * 0.5, half.spent, 6);   // 支払い率の分だけ（量を減らす）
+    }
+
+    /// <summary>★(223) 国家の港建設の請求は四半期の締め月の請求（払える額と比べて国家の支払い率 r を決める）に入る＝貢納・招聘の支度金・外資の利回りと同じ位置。請求に入れないと
+    /// （旧）r＝1 のまま国庫を超えて払う。盤面＝英の1国を次の四半期の最後の日の手前まで進め・締め月の直前に蒸気機関の発見・混雑した港・大きな裁量余剰を置き、PortStateFrac の有無だけを変える
+    /// ＝請求が大きいほど締め月の払えない額が増え、借りられない英では切り下げの額（払える額を埋める＝Fiscal の月初）が増える（r は切り下げで埋まるので切り下げの額で読む）。⚠突然変異「港の請求を足さない」で赤。</summary>
+    [Fact]
+    public void 国家の港建設の請求は四半期の締め月の請求に入る()
+    {
+        static double Rate(double frac)  // 返り値＝締め月の切り下げの額
+        {
+            var sim = new MultiNationSim([WorldData.ByName("イギリス")], seed: 1789, coef: new Coefficients()) { DiplomacyFrozen = true };
+            foreach (var n in sim.Nations) n.TelemetryEnabled = false;
+            sim.Diplomacy.Log.Enabled = false;
+            sim.StepQuarter();
+            var w = sim.Nations[0].World;
+            for (int d = 0; d < Calendar.DaysPerQuarter - 4; d++) sim.StepDay();   // 次の四半期の最後の数日の手前
+            double b0 = w.TreasuryLedger[(int)TreasuryCat.Devalue];
+            for (int d = 0; d < 4; d++)   // 最後の4日（その中に締め月の月決算が1回）：毎日、盤面を置き直す（清算が混雑の旗と取扱高を書き換える）
+            {
+                w.Coef.PortStateFrac = frac; w.Discovered[Discovery.SteamRow] = true;
+                foreach (var x in w.Regions) { x.LastTradeThrottle = 0; x.LastPortThroughput = x.IsPort ? 1000 : 0; }
+                w.FiscalCapacity = 1e6;
+                sim.StepDay();
+            }
+            return w.TreasuryLedger[(int)TreasuryCat.Devalue] - b0;   // 払えない額（請求−払える額）は借りられない国（英は利払いが歳入を食う）では切り下げ（インフレ税）で払える額へ入れる＝請求が大きいほど切り下げが大きい
+        }
+        double without = Rate(0), with = Rate(0.15);
+        Assert.True(without > 0, $"前提が崩れた：港の請求なしでも切り下げが立たない（請求が払える額を超えていない）devalue={without}");
+        Assert.True(with > without + 1e4, $"港の請求が締め月の請求に入っていない：切り下げ（請求なし）={without:F0}・切り下げ（請求あり）={with:F0}");
+    }
+
     /// <summary>★人と動くお金の換算（2026-09-30 処理の一元化 段4e＝(120) の残り）：越境移民の持参金と債務は受入国の通貨へ換算して運ぶ（移し方の1本と同じ規則
     /// ＝払い手の為替÷受け手の為替）。差は換算の台帳へ＝世界の名目の基礎貨幣の動き＝換算の台帳の動き・国ごとの D は各自の通貨で閉じる。
     /// 盤面＝英（為替1）→仏（為替0.5）＝仏は2倍の名目で受け取る（運賃0）。⚠突然変異「持参金を換算しない」「債務を換算しない」で赤。</summary>

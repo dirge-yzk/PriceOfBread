@@ -1398,6 +1398,7 @@ public sealed class MultiNationSim
             var w = sim.World;
             double natPop = 0; foreach (var r in w.Regions) if (r.State == RegionState.Active) foreach (var p in r.Pops) natPop += p.Size;
             if (natPop <= 1e-9) continue;
+            double natThr = w.PortThroughputTotal();   // ★(223) 国家ルートの請求の分母（World.PortStateRequest）
             bool techOk = Discovery.SteamPower(w.Discovered);   // ★近代港湾（蒸気の浚渫・埠頭）の門＝発見の表の「蒸気機関」の行（2026-10-01 (150)・旧＝技術水準の閾値 PortTechOnset 0.2）
             foreach (var r in w.Regions)
             {
@@ -1409,7 +1410,7 @@ public sealed class MultiNationSim
                 if (r.InvestorPopIndex < 0 || r.InvestorPopIndex >= r.Pops.Count) continue;
                 var ip = r.Pops[r.InvestorPopIndex];
                 double cCap = _coef.PortInvestFrac * Math.Max(0, ip.Savings);          // 資本家ルート
-                double cState = _coef.PortStateFrac * cCap * w.FiscalFundingRatio;   // 国家ルート＝資本家投資に上乗せ（公共インフラ＝国家プロジェクト）×国家の支払い率 r（2026-09-28 段2-1）
+                double cState = w.PortStateRequest(r, natThr) * w.FiscalFundingRatio;   // 国家ルート＝国家の予算の行（四半期の締め月の請求に入っている額）×国家の支払い率 r（2026-09-28 段2-1・(223) 旧＝PortStateFrac×資本家の投資×r を請求の外で）
                 double invest = cCap + cState;
                 if (invest <= 1e-9) continue;   // ★判定→引落の順（wave2b是正）：引落してから捨てると微小額が pop へ還流されず消える片側記帳になる
                 // ★支払いの一元化 段3-2（2026-09-30・C9）：建設の工賃は**港の州の労働の④の持分**（労働力の生産者の産出の比・賃金は労働者・Earned を通す＝InternationalMarket.PaySales）。

@@ -2102,6 +2102,7 @@ public sealed class Simulation
         double claims = World.LastInterest + World.LastWelfareCost + World.LastPensionCost + World.LastColonialUpkeep;   // （連合維持費 LastUpkeep は 2026-09-30 (135) に撤去＝兵力と行政の購買の1本）
         bool payQuarter = World.IsQuarterEndMonth;
         if (payQuarter) claims += World.LastTributeOut + World.RecruitBudget;   // 四半期の請求（貢納・招聘の支度金）
+        double portThr = payQuarter ? World.PortThroughputTotal() : 0;   // ★(223) 国家の港建設も四半期の請求（混雑した港の州だけ・World.PortStateRequest）
         if (payQuarter && World.SelfPower is not null && World.Diplomacy is { } payDip)
         {
             if (World.Coef.MegaprojectForeignYield > 0)
@@ -2124,6 +2125,7 @@ public sealed class Simulation
         foreach (var r in World.Regions)
             if (r.State == RegionState.Active)
             {
+                if (payQuarter) claims += World.PortStateRequest(r, portThr);
                 claims += r.MilitaryBudget + r.NavalBudget + r.AdminBudget + r.InfraBudget + r.ElecInfraBudget + r.SoldierPayBudget   // ★(189) 艦の請求（海軍の予算）も同じ1本
                         + r.StateBuildQueue + r.MonumentBuildQueue + r.HigherEduFunding
                         + regrow * (Math.Max(0, r.StateSpent[(int)TreasuryCat.Education]) + Math.Max(0, r.StateSpent[(int)TreasuryCat.Welfare])       // 先月の義務教育・健康保険

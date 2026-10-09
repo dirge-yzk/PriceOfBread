@@ -1576,7 +1576,7 @@ public sealed class Coefficients
     // 倍率排除：旧 SuezDetourPenalty（交易の一律迂回加算）は撤去。迂回距離は Geo.SeaDistanceKm（喜望峰/スエズ/パナマ経由）が距離そのものとして表現する。
     // === 港湾容量（国家プロジェクト＋資本家参入・改修2026-06-28）。運河(StepCanals)を雛形に、港州の取扱容量を投資で積む。港0なら従来挙動＝較正中立。多国シム専用（StepPorts）===
     public double PortInvestFrac = 0.04;       // 資本家が毎四半期 港へ投じる州投資家貯蓄の割合（混雑時のみ＝採算ゲート）
-    public double PortStateFrac = 0.5;         // 国家が港建設に投じる割合＝行政費予算の一部（国家プロジェクト＝資本家より大きな出し手）
+    public double PortStateFrac = 0.15;        // 国家が港建設に投じる裁量余剰（FiscalCapacity＝純税収から利払い・行政・軍需の請求を引いた余り）のシェア＝行政費予算の一部（混雑した港の州の取扱高の比で配る・四半期の締め月の請求に入り r で払う＝World.PortStateRequest）。(223) 旧＝資本家の投資の 0.5 倍の上乗せ（民間の貯蓄に比例＝国家の払える額と無関係で、英の開幕に国庫 2.1万 に対し 14.3万 を r=1 のまま払った）。値は InfraBudgetScale（上下水道＝裁量余剰のシェア 0.15）と同じ【推・出典なし】。利払いが歳入を食う国〔英〕は余剰≒0＝国家の港建設も≒0（余剰の無い国は公共サービスを約束しない）
     public double PortBuildCostPerUnit = 40.0; // 港容量1単位の建設費（資本/国庫→自州popへ還流＝保存）
     public double PortDecay = 0.008;           // 港湾の四半期減耗（維持に再投資が要る＝持続需要）
     // 【削除2026-10-01 (150)】PortTechOnset（0.2）＝近代港湾（蒸気埠頭・浚渫）の技術水準の閾値＝発見の表の「蒸気機関」の行へ移した（Discovery.SteamPower）。
