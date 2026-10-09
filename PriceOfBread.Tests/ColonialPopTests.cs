@@ -156,7 +156,10 @@ public class ColonialPopTests
         var sim = new MultiNationSim([NationConfig.Britain(), NationConfig.France()], seed: 83) { DiplomacyFrozen = true };
         var w = sim.Nations[0].World;
         var col = ColonyWith(w, Catalog.CoffeeId);
-        foreach (var p in col.Pops) if (p.Size > 1e-9) p.SetSavings(p.Savings + 1e5);
+        // ★(227)：ジャマイカの住民を史実の約25万人へ直したら（旧 100万人）、コーヒーの国内の売り先が4分の1になり大農園の地代が赤字（-3.3）になった＝この番人が見るのは地代の送り先で住民数ではない。
+        //   盤面を旧の規模（100万人）へ戻して測る（住民の人数を一括で掛ける・貯蓄は旧と同じ1POPあたり 1e5）。
+        double upscale = 1000.0 / col.SumPopulation();
+        foreach (var p in col.Pops) if (p.Size > 1e-9) { p.Size *= upscale; p.SetSavings(p.Savings + 1e5); }
         var inv = w.Region.Pops[w.Region.InvestorPopIndex];
         double i0 = inv.Savings;
         EconomyStep.Run(col, w.Coef, 1.0, w.Bank, w);

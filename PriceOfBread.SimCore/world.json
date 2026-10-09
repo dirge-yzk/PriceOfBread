@@ -38,7 +38,7 @@
       24,
       67
      ],
-     "popK": 1250
+     "popK": 220
     },
     {
      "name": "南部サン=ドマング",
@@ -46,7 +46,7 @@
       24,
       67
      ],
-     "popK": 1000
+     "popK": 300
     },
     {
      "name": "マルティニーク",
@@ -54,7 +54,7 @@
       24,
       25
      ],
-     "popK": 750
+     "popK": 100
     },
     {
      "name": "マスカリン諸島",
@@ -62,7 +62,7 @@
       24,
       67
      ],
-     "popK": 500
+     "popK": 95
     },
     {
      "name": "ポンディシェリ",
@@ -71,7 +71,7 @@
       26,
       12
      ],
-     "popK": 1000
+     "popK": 170
     },
     {
      "name": "セネガル",
@@ -79,7 +79,7 @@
       23,
       17
      ],
-     "popK": 500
+     "popK": 15
     }
    ],
    "military": 1.8,
@@ -344,14 +344,14 @@
       24,
       67
      ],
-     "popK": 1000
+     "popK": 250
     },
     {
      "name": "小アンティル",
      "resources": [
       24
      ],
-     "popK": 750
+     "popK": 170
     },
     {
      "name": "ウィンドワード諸島",
@@ -359,7 +359,7 @@
       24,
       25
      ],
-     "popK": 500
+     "popK": 80
     },
     {
      "name": "カナダ",
@@ -368,7 +368,7 @@
       20,
       109
      ],
-     "popK": 500
+     "popK": 125
     },
     {
      "name": "中核ベンガル",
@@ -378,7 +378,7 @@
       17,
       108
      ],
-     "popK": 3000
+     "popK": 15600
     },
     {
      "name": "内陸ベンガル",
@@ -388,7 +388,7 @@
       66,
       108
      ],
-     "popK": 2000
+     "popK": 10400
     },
     {
      "name": "マドラス",
@@ -397,7 +397,7 @@
       17,
       127
      ],
-     "popK": 2500
+     "popK": 4000
     },
     {
      "name": "ボンベイ",
@@ -405,7 +405,7 @@
       12,
       83
      ],
-     "popK": 2000
+     "popK": 250
     },
     {
      "name": "沿岸西アフリカ",
@@ -415,7 +415,7 @@
       22,
       21
      ],
-     "popK": 1000
+     "popK": 20
     },
     {
      "name": "オーストラリア",
@@ -427,52 +427,52 @@
     {
      "name": "ジブラルタル",
      "resources": [],
-     "popK": 50
+     "popK": 8
     },
     {
      "name": "セントジョンズ",
      "resources": [],
-     "popK": 150
+     "popK": 12
     },
     {
      "name": "ナイン",
      "resources": [],
-     "popK": 25
+     "popK": 1.5
     },
     {
      "name": "チャーチル",
      "resources": [],
-     "popK": 25
+     "popK": 4
     },
     {
      "name": "フォートウィリアム",
      "resources": [],
-     "popK": 25
+     "popK": 8
     },
     {
      "name": "エドモントン",
      "resources": [],
-     "popK": 25
+     "popK": 20
     },
     {
      "name": "バンクーバー",
      "resources": [],
-     "popK": 25
+     "popK": 50
     },
     {
      "name": "フォートシンプソン",
      "resources": [],
-     "popK": 15
+     "popK": 5
     },
     {
      "name": "イカルイト",
      "resources": [],
-     "popK": 10
+     "popK": 2
     },
     {
      "name": "フリータウン",
      "resources": [],
-     "popK": 50
+     "popK": 15
     },
     {
      "name": "パース",
@@ -502,7 +502,7 @@
     {
      "name": "ホバート",
      "resources": [],
-     "popK": 25
+     "popK": 5
     }
    ],
    "military": 4.5,
@@ -730,22 +730,22 @@
      "resources": [
       109
      ],
-     "popK": 100
+     "popK": 45
     },
     {
      "name": "セントマイケル",
      "resources": [],
-     "popK": 15
+     "popK": 30
     },
     {
      "name": "フォートユーコン",
      "resources": [],
-     "popK": 15
+     "popK": 12
     },
     {
      "name": "バロー",
      "resources": [],
-     "popK": 10
+     "popK": 5
     }
    ],
    "military": 2,
@@ -758,7 +758,7 @@
     {
      "city": "モスクワ",
      "rule": [0.65, 0.33, 0.0, 0.02],
-     "share": 0.15044732,
+     "share": 0.16898757,
      "resources": [
       36,
       11
@@ -770,7 +770,7 @@
     {
      "city": "サンクトペテルブルク",
      "rule": [0.8, 0.18, 0.0, 0.02],
-     "share": 0.09439452,
+     "share": 0.10602715,
      "resources": [
       11,
       28
@@ -783,7 +783,7 @@
      "city": "リガ",
      "rule": [0.35, 0.6, 0.0, 0.05],
      "heldSince": 1710,
-     "share": 0.06607616,
+     "share": 0.074219,
      "resources": [
       11,
       15,
@@ -797,7 +797,7 @@
      "city": "キエフ",
      "rule": [0.45, 0.5, 0.0, 0.05],
      "heldSince": 1667,
-     "share": 0.09410257,
+     "share": 0.10569922,
      "resources": [
       15,
       19
@@ -810,7 +810,7 @@
      "city": "ハリコフ",
      "rule": [0.4, 0.55, 0.0, 0.05],
      "heldSince": 1654,
-     "share": 0.07522367,
+     "share": 0.0844938,
      "resources": [
       15,
       19
@@ -821,7 +821,7 @@
     },
     {
      "city": "カザン",
-     "share": 0.09439452,
+     "share": 0.10602715,
      "resources": [
       15,
       11
@@ -833,7 +833,7 @@
     {
      "city": "ニジニ・ノヴゴロド",
      "rule": [0.5, 0.48, 0.0, 0.02],
-     "share": 0.08495506,
+     "share": 0.09542443,
      "resources": [
       13,
       11,
@@ -847,7 +847,7 @@
     {
      "city": "アルハンゲリスク",
      "rule": [0.6, 0.3, 0.0, 0.1],
-     "share": 0.05663671,
+     "share": 0.00586207,
      "resources": [
       11,
       20,
@@ -860,7 +860,7 @@
     {
      "city": "エカテリンブルク",
      "heldSince": 1723,
-     "share": 0.07551561,
+     "share": 0.08482171,
      "resources": [
       0,
       2,
@@ -874,7 +874,7 @@
      "city": "ロストフ",
      "rule": [0.35, 0.55, 0.0, 0.1],
      "heldSince": 1739,
-     "share": 0.06607616,
+     "share": 0.074219,
      "resources": [
       15,
       19
@@ -887,7 +887,7 @@
      "city": "オムスク",
      "rule": [0.45, 0.35, 0.0, 0.2],
      "heldSince": 1716,
-     "share": 0.04719726,
+     "share": 0.05301358,
      "resources": [
       11,
       4,
@@ -899,23 +899,10 @@
      "coastal": false
     },
     {
-     "city": "バクー",
-     "rule": [0.05, 0.9, 0.0, 0.05],
-     "heldSince": 1783,
-     "share": 0.02919418,
-     "resources": [
-      10,
-      19
-     ],
-     "culture": "アゼルバイジャン",
-     "religion": "イスラム",
-     "coastal": true
-    },
-    {
      "city": "トビリシ",
      "rule": [0.05, 0.85, 0.0, 0.1],
      "heldSince": 1783,
-     "share": 0.03892558,
+     "share": 0.01103448,
      "resources": [],
      "culture": "グルジア",
      "religion": "正教",
@@ -924,7 +911,7 @@
     {
      "city": "ウラル",
      "rule": [0.25, 0.6, 0.0, 0.15],
-     "share": 0.00179025,
+     "share": 0.00201087,
      "resources": [],
      "coastal": false,
      "culture": "",
@@ -934,7 +921,7 @@
     {
      "city": "シベリア",
      "rule": [0.2, 0.35, 0.0, 0.45],
-     "share": 0.00145467,
+     "share": 0.00163394,
      "resources": [],
      "coastal": false,
      "culture": "",
@@ -944,7 +931,7 @@
     {
      "city": "ウラジオストク",
      "rule": [0.05, 0.25, 0.0, 0.7],
-     "share": 0.00061576,
+     "share": 0.00069164,
      "resources": [],
      "coastal": true,
      "culture": "",
@@ -954,7 +941,7 @@
     {
      "city": "ヤクーツク",
      "rule": [0.2, 0.5, 0.0, 0.3],
-     "share": 0.004,
+     "share": 0.00449294,
      "resources": [],
      "coastal": false,
      "culture": "",
@@ -963,7 +950,7 @@
     {
      "city": "オホーツク",
      "rule": [0.2, 0.35, 0.0, 0.45],
-     "share": 0.002,
+     "share": 0.00224647,
      "resources": [],
      "coastal": true,
      "culture": "",
@@ -972,7 +959,7 @@
     {
      "city": "ペトロパヴロフスク",
      "rule": [0.25, 0.35, 0.0, 0.4],
-     "share": 0.002,
+     "share": 0.00224647,
      "resources": [],
      "coastal": true,
      "culture": "",
@@ -981,7 +968,7 @@
     {
      "city": "スレドネコリムスク",
      "rule": [0.1, 0.3, 0.0, 0.6],
-     "share": 0.001,
+     "share": 0.00112323,
      "resources": [],
      "coastal": false,
      "culture": "",
@@ -990,7 +977,7 @@
     {
      "city": "アナディリ",
      "rule": [0.05, 0.25, 0.0, 0.7],
-     "share": 0.001,
+     "share": 0.00112323,
      "resources": [],
      "coastal": true,
      "culture": "",
@@ -999,7 +986,7 @@
     {
      "city": "トゥルハンスク",
      "rule": [0.15, 0.35, 0.0, 0.5],
-     "share": 0.002,
+     "share": 0.00224647,
      "resources": [],
      "coastal": false,
      "culture": "",
@@ -1008,7 +995,7 @@
     {
      "city": "オブドルスク",
      "rule": [0.1, 0.4, 0.0, 0.5],
-     "share": 0.002,
+     "share": 0.00224647,
      "resources": [],
      "coastal": false,
      "culture": "",
@@ -1017,7 +1004,7 @@
     {
      "city": "バルナウル",
      "rule": [0.55, 0.3, 0.0, 0.15],
-     "share": 0.006,
+     "share": 0.00673941,
      "resources": [],
      "coastal": false,
      "culture": "",
@@ -1026,7 +1013,7 @@
     {
      "city": "グリエフ",
      "rule": [0.2, 0.45, 0.0, 0.35],
-     "share": 0.003,
+     "share": 0.0033697,
      "resources": [],
      "coastal": true,
      "culture": "",
@@ -1080,7 +1067,7 @@
     {
      "city": "ベルリン",
      "rule": [0.85, 0.15, 0.0, 0.0],
-     "share": 0.3,
+     "share": 0.36,
      "resources": [
       28,
       46
@@ -1093,7 +1080,7 @@
      "city": "シュテッティン",
      "rule": [0.62, 0.36, 0.0, 0.02],
      "heldSince": 1720,
-     "share": 0.25,
+     "share": 0.09,
      "resources": [
       15,
       19
@@ -1105,7 +1092,7 @@
     {
      "city": "ケーニヒスベルク",
      "rule": [0.6, 0.38, 0.0, 0.02],
-     "share": 0.18,
+     "share": 0.15,
      "resources": [
       15,
       13,
@@ -1118,7 +1105,7 @@
     {
      "city": "ブレスラウ",
      "heldSince": 1742,
-     "share": 0.16,
+     "share": 0.3,
      "resources": [
       1,
       3,
@@ -1132,7 +1119,7 @@
      "city": "ダンツィヒ",
      "rule": [0.3, 0.7, 0.0, 0.0],
      "heldSince": 1793,
-     "share": 0.11,
+     "share": 0.1,
      "resources": [
       15,
       11
@@ -1188,7 +1175,7 @@
     {
      "city": "イスタンブール",
      "rule": [0.72, 0.28, 0.0, 0.0],
-     "share": 0.14,
+     "share": 0.15159275,
      "resources": [
       20,
       16
@@ -1200,7 +1187,7 @@
     {
      "city": "カイロ",
      "rule": [0.1, 0.85, 0.0, 0.05],
-     "share": 0.13,
+     "share": 0.14076468,
      "resources": [
       15,
       12,
@@ -1213,7 +1200,7 @@
     {
      "city": "スミルナ",
      "rule": [0.5, 0.5, 0.0, 0.0],
-     "share": 0.08,
+     "share": 0.08662442,
      "resources": [
       16,
       18
@@ -1225,7 +1212,7 @@
     {
      "city": "アンカラ",
      "rule": [0.5, 0.45, 0.0, 0.05],
-     "share": 0.09,
+     "share": 0.09745247,
      "resources": [
       19,
       15,
@@ -1238,7 +1225,7 @@
     {
      "city": "エルズルム",
      "rule": [0.3, 0.55, 0.0, 0.15],
-     "share": 0.05,
+     "share": 0.05414026,
      "resources": [
       19,
       15,
@@ -1251,7 +1238,7 @@
     {
      "city": "ダマスカス",
      "rule": [0.4, 0.5, 0.0, 0.1],
-     "share": 0.08,
+     "share": 0.08662442,
      "resources": [
       14,
       40
@@ -1263,7 +1250,7 @@
     {
      "city": "エルサレム",
      "rule": [0.35, 0.5, 0.0, 0.15],
-     "share": 0.05,
+     "share": 0.01140684,
      "resources": [
       16,
       19
@@ -1276,7 +1263,7 @@
      "city": "バグダード",
      "rule": [0.15, 0.65, 0.0, 0.2],
      "heldSince": 1638,
-     "share": 0.08,
+     "share": 0.08662442,
      "resources": [
       15,
       16
@@ -1289,7 +1276,7 @@
      "city": "バスラ",
      "rule": [0.1, 0.65, 0.0, 0.25],
      "heldSince": 1668,
-     "share": 0.05,
+     "share": 0.01330798,
      "resources": [
       16,
       20
@@ -1302,7 +1289,7 @@
      "city": "ベオグラード",
      "rule": [0.4, 0.45, 0.0, 0.15],
      "heldSince": 1739,
-     "share": 0.06,
+     "share": 0.06496831,
      "resources": [
       15,
       19,
@@ -1314,7 +1301,7 @@
     },
     {
      "city": "ソフィア",
-     "share": 0.06,
+     "share": 0.06496831,
      "resources": [
       15,
       16,
@@ -1327,7 +1314,7 @@
     {
      "city": "サロニカ",
      "rule": [0.4, 0.5, 0.0, 0.1],
-     "share": 0.05,
+     "share": 0.05414026,
      "resources": [
       18,
       16
@@ -1339,7 +1326,7 @@
     {
      "city": "アテネ",
      "rule": [0.25, 0.6, 0.0, 0.15],
-     "share": 0.04,
+     "share": 0.04331221,
      "resources": [
       16,
       20
@@ -1351,7 +1338,7 @@
     {
      "city": "ブカレスト",
      "rule": [0.05, 0.9, 0.0, 0.05],
-     "share": 0.04,
+     "share": 0.04331221,
      "resources": [
       15,
       19,
@@ -1361,6 +1348,15 @@
      "culture": "ルーマニア",
      "religion": "正教",
      "coastal": false
+    },
+    {
+     "city": "マサワ",
+     "rule": [0.0, 0.25, 0.65, 0.1],
+     "share": 0.00076046,
+     "resources": [],
+     "culture": "アラブ",
+     "religion": "イスラム",
+     "coastal": true
     }
    ],
    "initialInterestRate": 0.25,
@@ -1410,7 +1406,7 @@
     {
      "city": "ウィーン",
      "rule": [0.85, 0.15, 0.0, 0.0],
-     "share": 0.1457,
+     "share": 0.15742142,
      "resources": [
       0,
       28,
@@ -1422,7 +1418,7 @@
     },
     {
      "city": "グラーツ",
-     "share": 0.0521,
+     "share": 0.05629139,
      "resources": [
       0,
       19
@@ -1433,7 +1429,7 @@
     },
     {
      "city": "プラハ",
-     "share": 0.1042,
+     "share": 0.11258279,
      "resources": [
       1,
       0,
@@ -1446,7 +1442,7 @@
     },
     {
      "city": "ブリュン",
-     "share": 0.0521,
+     "share": 0.05629139,
      "resources": [
       36,
       1
@@ -1459,7 +1455,7 @@
      "city": "ブダペスト",
      "rule": [0.35, 0.62, 0.0, 0.03],
      "heldSince": 1686,
-     "share": 0.1562,
+     "share": 0.16876615,
      "resources": [
       15,
       19,
@@ -1472,7 +1468,7 @@
     {
      "city": "プレスブルク",
      "rule": [0.38, 0.6, 0.0, 0.02],
-     "share": 0.0625,
+     "share": 0.06752806,
      "resources": [
       15,
       19
@@ -1485,7 +1481,7 @@
      "city": "レンベルク",
      "rule": [0.5, 0.48, 0.0, 0.02],
      "heldSince": 1772,
-     "share": 0.0729,
+     "share": 0.07876473,
      "resources": [
       15,
       19,
@@ -1498,7 +1494,7 @@
     {
      "city": "ザグレブ",
      "rule": [0.5, 0.47, 0.0, 0.03],
-     "share": 0.0417,
+     "share": 0.04505472,
      "resources": [
       15,
       11
@@ -1511,7 +1507,7 @@
      "city": "クラウゼンブルク",
      "rule": [0.35, 0.6, 0.0, 0.05],
      "heldSince": 1699,
-     "share": 0.0521,
+     "share": 0.05629139,
      "resources": [
       15,
       19,
@@ -1525,7 +1521,7 @@
      "city": "ミラノ",
      "rule": [0.8, 0.2, 0.0, 0.0],
      "heldSince": 1714,
-     "share": 0.0938,
+     "share": 0.05105948,
      "resources": [
       14,
       40,
@@ -1539,7 +1535,7 @@
      "city": "ブリュッセル",
      "rule": [0.35, 0.65, 0.0, 0.0],
      "heldSince": 1714,
-     "share": 0.125,
+     "share": 0.13505613,
      "resources": [
       36,
       1
@@ -1551,7 +1547,7 @@
     {
      "city": "トリエステ",
      "rule": [0.85, 0.15, 0.0, 0.0],
-     "share": 0.0417,
+     "share": 0.01489235,
      "resources": [
       7
      ],
@@ -1616,7 +1612,7 @@
       16,
       19
      ],
-     "popK": 500
+     "popK": 60
     },
     {
      "name": "セイロン",
@@ -1625,7 +1621,7 @@
       66,
       127
      ],
-     "popK": 750
+     "popK": 817
     },
     {
      "name": "スリナム",
@@ -1633,7 +1629,7 @@
       24,
       67
      ],
-     "popK": 500
+     "popK": 55
     },
     {
      "name": "マカッサル",
@@ -1717,7 +1713,7 @@
      "resources": [
       110
      ],
-     "popK": 1500
+     "popK": 1600
     },
     {
      "name": "中央メキシコ",
@@ -1727,7 +1723,7 @@
       18,
       106
      ],
-     "popK": 2500
+     "popK": 3100
     },
     {
      "name": "キューバ",
@@ -1735,7 +1731,7 @@
       24,
       18
      ],
-     "popK": 1500
+     "popK": 220
     },
     {
      "name": "ペルー",
@@ -1747,7 +1743,7 @@
       111,
       127
      ],
-     "popK": 2000
+     "popK": 1300
     },
     {
      "name": "ヌエバ・グラナダ",
@@ -1755,7 +1751,7 @@
       4,
       67
      ],
-     "popK": 1500
+     "popK": 540
     },
     {
      "name": "ラ・プラタ",
@@ -1765,7 +1761,7 @@
       106,
       108
      ],
-     "popK": 1500
+     "popK": 330
     },
     {
      "name": "フィリピン",
@@ -1781,7 +1777,7 @@
      "resources": [
       24
      ],
-     "popK": 750
+     "popK": 105
     },
     {
      "name": "カラカス",
@@ -1790,7 +1786,7 @@
       17,
       19
      ],
-     "popK": 500
+     "popK": 650
     },
     {
      "name": "ルイジアナ・フロリダ",
@@ -1798,7 +1794,7 @@
       18,
       11
      ],
-     "popK": 500
+     "popK": 40
     },
     {
      "name": "チリ",
@@ -1807,22 +1803,22 @@
       2,
       15
      ],
-     "popK": 750
+     "popK": 500
     },
     {
      "name": "サンタフェ",
      "resources": [],
-     "popK": 100
+     "popK": 35
     },
     {
      "name": "エルパソ",
      "resources": [],
-     "popK": 50
+     "popK": 6
     },
     {
      "name": "ロレート",
      "resources": [],
-     "popK": 25
+     "popK": 5
     },
     {
      "name": "レオン",
@@ -1837,12 +1833,12 @@
     {
      "name": "キト",
      "resources": [],
-     "popK": 300
+     "popK": 400
     },
     {
      "name": "イキトス",
      "resources": [],
-     "popK": 50
+     "popK": 25
     },
     {
      "name": "ラパス",
@@ -1857,17 +1853,17 @@
     {
      "name": "アスンシオン",
      "resources": [],
-     "popK": 150
+     "popK": 100
     },
     {
      "name": "カルメン・デ・パタゴネス",
      "resources": [],
-     "popK": 25
+     "popK": 15
     },
     {
      "name": "プンタアレナス",
      "resources": [],
-     "popK": 15
+     "popK": 10
     },
     {
      "name": "サンボアンガ",
@@ -2596,13 +2592,13 @@
    "name": "マイソール",
    "broadMoneyToGdp": 0.1,
    "rule": [0.72, 0.23, 0.0, 0.05],
-   "nobility": 700,
-   "peasant": 5500,
-   "worker": 120,
-   "bourgeois": 120,
-   "professional": 100,
-   "merchant": 300,
-   "artisan": 700,
+   "nobility": 557,
+   "peasant": 4377,
+   "worker": 95,
+   "bourgeois": 95,
+   "professional": 80,
+   "merchant": 239,
+   "artisan": 557,
    "nobLit": 0.85,
    "peasLit": 0.08,
    "workLit": 0.25,
@@ -2616,7 +2612,7 @@
    "polity": "Despotic",
    "education": "Religious",
    "coercion": 400,
-   "treasury": 2700,
+   "treasury": 2149,
    "pollTaxStage": 0,
    "landTaxStage": 3,
    "initialTariff": 0.5,
@@ -2978,13 +2974,13 @@
    "name": "西山朝",
    "broadMoneyToGdp": 0.1,
    "rule": [0.25, 0.52, 0.0, 0.23],
-   "nobility": 650,
-   "peasant": 4550,
-   "worker": 130,
-   "bourgeois": 165,
-   "professional": 130,
-   "merchant": 325,
-   "artisan": 780,
+   "nobility": 531,
+   "peasant": 3718,
+   "worker": 106,
+   "bourgeois": 135,
+   "professional": 106,
+   "merchant": 266,
+   "artisan": 637,
    "nobLit": 0.85,
    "peasLit": 0.1,
    "workLit": 0.25,
@@ -2998,7 +2994,7 @@
    "polity": "Despotic",
    "education": "Religious",
    "coercion": 400,
-   "treasury": 3300,
+   "treasury": 2697,
    "initialTariff": 0.4,
    "industrialization": 0,
    "initialColonies": [],
@@ -3012,7 +3008,7 @@
     {
      "city": "ハノイ",
      "rule": [0.2, 0.55, 0.0, 0.25],
-     "share": 0.69,
+     "share": 0.73,
      "resources": [
       93,
       14
@@ -3024,7 +3020,7 @@
     {
      "city": "フエ",
      "rule": [0.35, 0.45, 0.0, 0.2],
-     "share": 0.31,
+     "share": 0.27,
      "resources": [
       93,
       26
@@ -3044,13 +3040,13 @@
    "name": "カンボジア",
    "broadMoneyToGdp": 0.1,
    "rule": [0.15, 0.55, 0.2, 0.1],
-   "nobility": 250,
-   "peasant": 1600,
-   "worker": 40,
-   "bourgeois": 40,
-   "professional": 40,
-   "merchant": 100,
-   "artisan": 250,
+   "nobility": 86,
+   "peasant": 552,
+   "worker": 14,
+   "bourgeois": 14,
+   "professional": 14,
+   "merchant": 34,
+   "artisan": 86,
    "nobLit": 0.85,
    "peasLit": 0.08,
    "workLit": 0.25,
@@ -3064,7 +3060,7 @@
    "polity": "Absolutist",
    "education": "Religious",
    "coercion": 400,
-   "treasury": 990,
+   "treasury": 341,
    "initialTariff": 0.4,
    "industrialization": 0,
    "initialColonies": [],
@@ -3150,13 +3146,13 @@
    "name": "ペルシャ",
    "broadMoneyToGdp": 0.1,
    "rule": [0.2, 0.65, 0.0, 0.15],
-   "nobility": 524,
-   "peasant": 3275,
-   "worker": 131,
-   "bourgeois": 197,
-   "professional": 131,
-   "merchant": 459,
-   "artisan": 983,
+   "nobility": 533,
+   "peasant": 3332,
+   "worker": 133,
+   "bourgeois": 200,
+   "professional": 133,
+   "merchant": 467,
+   "artisan": 1000,
    "nobLit": 0.85,
    "peasLit": 0.08,
    "workLit": 0.25,
@@ -3170,7 +3166,7 @@
    "polity": "Despotic",
    "education": "Religious",
    "coercion": 400,
-   "treasury": 2100,
+   "treasury": 2137,
    "initialTariff": 0.05,
    "industrialization": 0,
    "initialColonies": [],
@@ -3185,7 +3181,7 @@
     {
      "city": "テヘラン",
      "rule": [0.1, 0.8, 0.0, 0.1],
-     "share": 0.25,
+     "share": 0.24568817,
      "resources": [
       12,
       16,
@@ -3198,7 +3194,7 @@
     {
      "city": "イスファハン",
      "rule": [0.4, 0.5, 0.0, 0.1],
-     "share": 0.22,
+     "share": 0.21620559,
      "resources": [
       14,
       17
@@ -3210,7 +3206,7 @@
     {
      "city": "シーラーズ",
      "rule": [0.35, 0.55, 0.0, 0.1],
-     "share": 0.13,
+     "share": 0.12775785,
      "resources": [
       16,
       14
@@ -3222,7 +3218,7 @@
     {
      "city": "タブリーズ",
      "rule": [0.1, 0.8, 0.0, 0.1],
-     "share": 0.2,
+     "share": 0.19655053,
      "resources": [
       14,
       15
@@ -3234,7 +3230,7 @@
     {
      "city": "メシェッド",
      "rule": [0.05, 0.75, 0.0, 0.2],
-     "share": 0.15,
+     "share": 0.1474129,
      "resources": [
       16,
       12
@@ -3246,10 +3242,23 @@
     {
      "city": "ブーシェフル",
      "rule": [0.1, 0.8, 0.0, 0.1],
-     "share": 0.05,
+     "share": 0.04913763,
      "resources": [],
      "culture": "ペルシア",
      "religion": "シーア派",
+     "coastal": true
+    },
+    {
+     "city": "バクー",
+     "rule": [0.05, 0.9, 0.0, 0.05],
+     "heldSince": 1783,
+     "share": 0.01724733,
+     "resources": [
+      10,
+      19
+     ],
+     "culture": "アゼルバイジャン",
+     "religion": "イスラム",
      "coastal": true
     }
    ],
@@ -3389,13 +3398,13 @@
    "name": "オマーン",
    "broadMoneyToGdp": 0.1,
    "rule": [0.4, 0.5, 0.0, 0.1],
-   "nobility": 150,
-   "peasant": 700,
-   "worker": 40,
-   "bourgeois": 120,
-   "professional": 40,
-   "merchant": 400,
-   "artisan": 200,
+   "nobility": 36,
+   "peasant": 170,
+   "worker": 10,
+   "bourgeois": 29,
+   "professional": 10,
+   "merchant": 97,
+   "artisan": 48,
    "nobLit": 0.85,
    "peasLit": 0.08,
    "workLit": 0.25,
@@ -3409,7 +3418,7 @@
    "polity": "Absolutist",
    "education": "Religious",
    "coercion": 400,
-   "treasury": 1100,
+   "treasury": 267,
    "initialTariff": 0.05,
    "industrialization": 0,
    "initialColonies": [
@@ -3419,7 +3428,7 @@
       26,
       23
      ],
-     "popK": 500
+     "popK": 100
     },
     {
      "name": "モガディシュ",
@@ -3831,7 +3840,7 @@
    "provinces": [
     {
      "city": "ゴンダール",
-     "share": 0.85,
+     "share": 1,
      "resources": [
       67,
       19
@@ -3839,15 +3848,6 @@
      "culture": "アムハラ",
      "religion": "エチオピア正教",
      "coastal": false
-    },
-    {
-     "city": "マサワ",
-     "rule": [0.0, 0.25, 0.65, 0.1],
-     "share": 0.15,
-     "resources": [],
-     "culture": "アムハラ",
-     "religion": "エチオピア正教",
-     "coastal": true
     }
    ],
    "initialInterestRate": 0.25,
@@ -4038,7 +4038,7 @@
     {
      "name": "ヌーク",
      "resources": [],
-     "popK": 25
+     "popK": 6
     }
    ],
    "military": 0.8,
@@ -4284,7 +4284,7 @@
       4,
       106
      ],
-     "popK": 2500
+     "popK": 1500
     },
     {
      "name": "アマゾン",
@@ -4293,32 +4293,32 @@
       11,
       127
      ],
-     "popK": 250
+     "popK": 100
     },
     {
      "name": "マナウス",
      "resources": [],
-     "popK": 50
+     "popK": 20
     },
     {
      "name": "サルヴァドール",
      "resources": [],
-     "popK": 400
+     "popK": 350
     },
     {
      "name": "サンルイス",
      "resources": [],
-     "popK": 150
+     "popK": 100
     },
     {
      "name": "ゴイアス",
      "resources": [],
-     "popK": 150
+     "popK": 55
     },
     {
      "name": "クイアバ",
      "resources": [],
-     "popK": 100
+     "popK": 25
     },
     {
      "name": "ルアンダ",
@@ -5009,13 +5009,13 @@
    "name": "阮氏",
    "broadMoneyToGdp": 0.1,
    "rule": [0.25, 0.45, 0.0, 0.3],
-   "nobility": 350,
-   "peasant": 2450,
-   "worker": 70,
-   "bourgeois": 85,
-   "professional": 70,
-   "merchant": 175,
-   "artisan": 420,
+   "nobility": 77,
+   "peasant": 541,
+   "worker": 15,
+   "bourgeois": 19,
+   "professional": 15,
+   "merchant": 39,
+   "artisan": 93,
    "nobLit": 0.85,
    "peasLit": 0.1,
    "workLit": 0.25,
@@ -5029,7 +5029,7 @@
    "polity": "Despotic",
    "education": "Religious",
    "coercion": 400,
-   "treasury": 1700,
+   "treasury": 376,
    "initialTariff": 0.4,
    "industrialization": 0,
    "initialColonies": [],
@@ -5062,13 +5062,13 @@
    "name": "ラヘジ",
    "broadMoneyToGdp": 0.1,
    "rule": [0.35, 0.55, 0.0, 0.1],
-   "nobility": 90,
-   "peasant": 600,
-   "worker": 18,
-   "bourgeois": 30,
-   "professional": 18,
-   "merchant": 120,
-   "artisan": 120,
+   "nobility": 9,
+   "peasant": 60,
+   "worker": 2,
+   "bourgeois": 3,
+   "professional": 2,
+   "merchant": 12,
+   "artisan": 12,
    "nobLit": 0.85,
    "peasLit": 0.08,
    "workLit": 0.25,
@@ -5082,7 +5082,7 @@
    "polity": "Absolutist",
    "education": "Religious",
    "coercion": 400,
-   "treasury": 370,
+   "treasury": 37,
    "initialTariff": 0.4,
    "industrialization": 0,
    "initialColonies": [],
@@ -5116,13 +5116,13 @@
    "name": "デリー",
    "broadMoneyToGdp": 0.1,
    "rule": [0.1, 0.55, 0.15, 0.2],
-   "nobility": 400,
-   "peasant": 2500,
-   "worker": 70,
-   "bourgeois": 120,
-   "professional": 70,
-   "merchant": 250,
-   "artisan": 400,
+   "nobility": 189,
+   "peasant": 1181,
+   "worker": 33,
+   "bourgeois": 57,
+   "professional": 33,
+   "merchant": 118,
+   "artisan": 189,
    "nobLit": 0.85,
    "peasLit": 0.08,
    "workLit": 0.25,
@@ -5136,7 +5136,7 @@
    "polity": "Despotic",
    "education": "Religious",
    "coercion": 150,
-   "treasury": 1500,
+   "treasury": 709,
    "pollTaxStage": 0,
    "landTaxStage": 3,
    "initialTariff": 0.4,
@@ -5779,7 +5779,7 @@
       19,
       11
      ],
-     "popK": 750
+     "popK": 200
     }
    ]
   },
@@ -5812,7 +5812,7 @@
       21,
       107
      ],
-     "popK": 750
+     "popK": 550
     }
    ]
   },
@@ -5842,7 +5842,7 @@
      "resources": [
       11
      ],
-     "popK": 500
+     "popK": 60
     }
    ]
   },
@@ -5866,17 +5866,17 @@
     {
      "name": "ドンゴラ",
      "resources": [],
-     "popK": 50
+     "popK": 100
     },
     {
      "name": "センナール",
      "resources": [],
-     "popK": 200
+     "popK": 500
     },
     {
      "name": "ファショダ",
      "resources": [],
-     "popK": 50
+     "popK": 300
     }
    ]
   },
@@ -5903,7 +5903,7 @@
     {
      "name": "タマンラセット",
      "resources": [],
-     "popK": 50
+     "popK": 15
     },
     {
      "name": "アベシェ",
@@ -5920,7 +5920,7 @@
     {
      "name": "カンパラ",
      "resources": [],
-     "popK": 250
+     "popK": 700
     }
    ]
   },
@@ -5932,7 +5932,7 @@
     {
      "name": "ウジジ",
      "resources": [],
-     "popK": 100
+     "popK": 500
     }
    ]
   },
@@ -5944,7 +5944,7 @@
     {
      "name": "ブラワヨ",
      "resources": [],
-     "popK": 150
+     "popK": 250
     }
    ]
   },
@@ -5956,7 +5956,7 @@
     {
      "name": "ダーバン",
      "resources": [],
-     "popK": 150
+     "popK": 250
     }
    ]
   },
@@ -5992,7 +5992,7 @@
     {
      "name": "キサンガニ",
      "resources": [],
-     "popK": 100
+     "popK": 3000
     }
    ]
   },
@@ -6004,7 +6004,7 @@
     {
      "name": "ヤウンデ",
      "resources": [],
-     "popK": 100
+     "popK": 500
     }
    ]
   },
@@ -6016,7 +6016,7 @@
     {
      "name": "アクモラ",
      "resources": [],
-     "popK": 250
+     "popK": 800
     }
    ]
   },
@@ -6040,12 +6040,12 @@
     {
      "name": "ポートモレスビー",
      "resources": [],
-     "popK": 100
+     "popK": 1000
     },
     {
      "name": "マノクワリ",
      "resources": [],
-     "popK": 50
+     "popK": 300
     }
    ]
   },
@@ -6057,12 +6057,12 @@
     {
      "name": "オークランド",
      "resources": [],
-     "popK": 150
+     "popK": 70
     },
     {
      "name": "ダニーデン",
      "resources": [],
-     "popK": 100
+     "popK": 4
     }
    ]
   }

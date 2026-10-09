@@ -86,9 +86,15 @@ class W:
         return sum(v for _, v in self.class_lines(rng).values())
 
     def scale_classes(self, rng, f):
+        """階級の人数を f 倍。規模に比例する絶対額（国庫・国債）も同じ f 倍＝GDP に対する比を保つ（人口だけ縮めると国庫÷GDP が膨らむ＝StartWarmupTests が赤になる）。"""
         for k, (i, v) in self.class_lines(rng).items():
             nv = max(1, int(round(v * f))) if v > 0 else 0
             self.L[i] = '   "%s": %d,' % (k, nv)
+        s, e = rng
+        for i in range(s, e):
+            m = re.match(r'^   "(treasury|govDebt)": ([0-9.]+),$', self.L[i])
+            if m and float(m.group(2)) > 0:
+                self.L[i] = '   "%s": %s,' % (m.group(1), fmt(max(1.0, round(float(m.group(2)) * f))))
 
     # --- 州（provinces） ---
     def provs(self, rng):

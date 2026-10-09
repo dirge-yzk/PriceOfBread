@@ -217,4 +217,62 @@ public class ColonyPromotionTests
         Assert.Null(reg.TierInParent);
         Assert.Equal(RegionTier.Colonial, reg.Tier);   // 割譲の規則のまま（植民地格は植民地）
     }
+
+    /// <summary>★(227) 初期の植民地の住民数（千人）が出典の幅の内（measurements/pop227_20261010_spec.py の主要な行）。
+    /// 旧＝人口ウェイト×500 の手置き（ベンガル 5,000・コンゴ盆地 100 など史実と 3〜100 倍ずれていた）。⚠突然変異「ベンガルを旧値 3000+2000 へ戻す」で赤になる。</summary>
+    [Fact]
+    public void 回227_初期の植民地の住民数は出典の幅の内()
+    {
+        double Sum(string nation, params string[] names)
+        {
+            var cfg = WorldData.ByName(nation);
+            return names.Sum(n => cfg.InitialColonies.Single(c => c.Name == n).PopK);
+        }
+        // (国, 植民地, 下限, 上限)　幅は spec.py の下限・上限（千人）。ベンガル＝Colebrooke 1794 の 30.3 百万と徴税官 1798 の 22 百万、メキシコ＝Humboldt 1803 の 5.84 百万を 1783 へ戻した幅、ほか
+        var rows = new (string Nation, string[] Names, double Lo, double Hi)[]
+        {
+            ("イギリス", new[] { "中核ベンガル", "内陸ベンガル" }, 22000, 30300),
+            ("イギリス", new[] { "マドラス" }, 2500, 5000),
+            ("イギリス", new[] { "ボンベイ" }, 150, 400),
+            ("イギリス", new[] { "ジャマイカ" }, 209, 291),
+            ("フランス", new[] { "北部サン=ドマング", "南部サン=ドマング" }, 480, 600),
+            ("スペイン", new[] { "ヌエバ・エスパーニャ銀地帯", "中央メキシコ" }, 4300, 5300),
+            ("スペイン", new[] { "キューバ" }, 190, 250),
+            ("スペイン", new[] { "フィリピン" }, 1500, 1900),
+            ("ネーデルラント", new[] { "セイロン" }, 750, 900),
+            ("ポルトガル", new[] { "ブラジル", "サルヴァドール", "アマゾン", "マナウス", "サンルイス", "ゴイアス", "クイアバ" }, 1900, 2500),
+        };
+        foreach (var (nation, names, lo, hi) in rows)
+        {
+            double v = Sum(nation, names);
+            Assert.True(v >= lo && v <= hi, $"{nation} {string.Join("+", names)} の住民数 {v:F0} 千人が史実の幅 {lo}〜{hi} の外");
+        }
+        // 抽象標的（C5）：コンゴ盆地は旧の 100 千人（史実の 50〜100 倍の過少）
+        var congo = WorldData.Setup().Targets.Single(t => t.Name == "コンゴ盆地").Colonies.Single();
+        Assert.InRange(congo.PopK, 2000, 5000);
+    }
+
+    /// <summary>★(227) 時代錯誤の領土：バクーは 1806 まで露領でない（ペルシャの封臣へ）・マサワは 1557 からオスマンの海岸州（エチオピアは内陸国）。全国の州の share の和は 1。</summary>
+    [Fact]
+    public void 回227_時代錯誤の領土は元の国に無く_州のshareの和は1()
+    {
+        bool Has(string nation, string city) => WorldData.ByName(nation).Provinces.Any(p => p.City == city);
+        Assert.False(Has("ロシア", "バクー")); Assert.True(Has("ペルシャ", "バクー"));
+        Assert.False(Has("エチオピア", "マサワ")); Assert.True(Has("オスマン", "マサワ"));
+        foreach (var cfg in WorldData.Nations())
+            Assert.True(System.Math.Abs(cfg.Provinces.Sum(p => p.Share) - 1.0) < 1e-6, $"{cfg.Name} の州の share の和が 1 でない（{cfg.Provinces.Sum(p => p.Share):F8}）");
+    }
+
+    /// <summary>★(227) 質量の単位 Diplomacy.ColonyUnitPop ＝初期の全ての植民地の住民数の平均＝質量の和が個数に一致（旧の錨 InitialColonyMass が1になった）。
+    /// ⚠突然変異「単位を定数 500 に戻す」で赤になる。</summary>
+    [Fact]
+    public void 回227_質量の単位は初期の植民地の住民数の平均で質量の和が個数に一致する()
+    {
+        var cfgs = new[] { NationConfig.Britain(), NationConfig.France(), NationConfig.Iberia() };
+        var sim = new MultiNationSim(cfgs, seed: 83) { DiplomacyFrozen = true };
+        var all = cfgs.SelectMany(c => c.InitialColonies.Select(x => x.PopK)).Concat(WorldData.Setup().Targets.SelectMany(t => t.Colonies.Select(x => x.PopK))).ToArray();
+        Assert.Equal(all.Average(), sim.Diplomacy.ColonyUnitPop, 9);
+        double mass = sim.Diplomacy.Powers.Sum(p => p.ColonyMassUnits());
+        Assert.Equal(sim.Diplomacy.InitialColonyCount, mass, 6);
+    }
 }
