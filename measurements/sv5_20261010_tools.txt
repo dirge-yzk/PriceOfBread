@@ -1,0 +1,565 @@
+(230) 読み手と道具の写し（canary の表 measurements/sv5_20261010 の数字の出どころ・作業フォルダ D:/PoB_work/r230/tools は回の終わりに消す）
+計器の本体は measurements/sv5_20261010_inj_sav230.py（隔離の写しにだけ当てる・読むだけ）。mk_inj230＝前の計器 sav_20261010_inj_sav226.py から作る変換。an_can230＝線と四半期表／an_chain230＝鎖（台帳・借入の門・助走の所得）／edit_device・edit_tests＝器と番人を当てた編集（コミット ac60f28 に入っている）／go.ps1＝同時起動（Start-Process で bash を絶対パスで起動し Wait-Process を1回）／batch.sh＝(226) の batch.sh の写し（REPO・W・計器名を直した）。
+読み方：python -X utf8 -I an_can230.py <w> 1_s3_q40 B,S,A s3（-I は PYTHON* の環境変数を無視する＝出力の文字コードは -X utf8 で指定）。
+
+#################### mk_inj230.py
+# 前の計器 sav_20261010_inj_sav226.py から (230) の計器を作る（読むだけ・隔離の写しにだけ当てる）
+import sys
+src = open('C:/Users/dirge/Documents/PriceOfBread/measurements/sav_20261010_inj_sav226.py', encoding='utf-8', newline='').read()
+src = src.replace('\r\n', '\n')
+
+
+def rep(old, new, cnt=1):
+    global src
+    assert src.count(old) == cnt, (old[:80], src.count(old))
+    src = src.replace(old, new)
+
+
+# 1) 旗 → m
+rep("sb.Append('|').Append(w.SavingsFromIncome ? 1 : 0);", "sb.Append('|').Append(F(w.BroadMoneyToIncome));") if False else None
+rep("Append('|').Append(w.SavingsFromIncome ? 1 : 0);", "Append('|').Append(F(w.BroadMoneyToIncome));")
+rep("if 'SavingsFromIncome' not in open(root + '/PriceOfBread.SimCore/World.cs', encoding='utf-8-sig').read(): NEWFILE = NEWFILE.replace('w.SavingsFromIncome ? 1 : 0', '0')",
+    "if 'BroadMoneyToIncome' not in open(root + '/PriceOfBread.SimCore/World.cs', encoding='utf-8-sig').read(): NEWFILE = NEWFILE.replace('w.BroadMoneyToIncome', '0.0')")
+
+# 2) R 行に λ まわりを足す（配分の k は B の木に係数が無いので計器側に写す）
+rep("        sb.Append('\\n');\n    }\n\n    public static void Consume",
+    """        {   // (230) 置き直しの規則の再計算（読むだけ・B の木にも同じ式を当てる）：inc＝Σ正の LastEarned・shape＝Σ k×正の LastEarned・M/Y＝ΣSavings/(12 inc)・λ実＝ΣSavings/(12 shape)・λ予＝0.5×inc/shape（m が 0 の木は仮に 0.5）
+            double inc = 0, shape = 0, money = 0;
+            foreach (var r in w.Regions) foreach (var p in r.Pops)
+            {
+                money += p.Savings;
+                if (!(p.LastEarned > 0)) continue;
+                inc += p.LastEarned; double k = (uint)p.ClassId < (uint)KT.Length ? KT[p.ClassId] : 0.0; if (k > 0) shape += k * p.LastEarned;
+            }
+            double m = w.BroadMoneyToIncome > 0 ? w.BroadMoneyToIncome : 0.5;
+            foreach (var v in new[] { inc, shape, inc > 0 ? money / (12 * inc) : double.NaN, shape > 0 ? money / (12 * shape) : double.NaN, shape > 0 ? m * inc / shape : double.NaN })
+                sb.Append('|').Append(F(v));
+        }
+        sb.Append('\\n');
+        if (phase == 3) { var s = V(w); s.PrevT = w.Treasury; s.PrevL = (double[])w.TreasuryLedger.Clone(); s.Have = true; }
+    }
+
+    static readonly double[] KT = [2.0, 0.2, 0.2, 4.5, 1.0, 0.2, 2.0, 1.0, 1.0, 1.0, 1.5, 0.5, 0.2, 1.0];
+
+    public static void Consume""")
+rep("        public double InvN, InvBound, InvDes, InvAff;",
+    "        public double InvN, InvBound, InvDes, InvAff; public double PrevT; public double[] PrevL = new double[64]; public bool Have;")
+
+# 3) Paid は貯蓄0の POP も数える（予算の比は貯蓄が正の POP だけのまま）
+rep("""            if (!(p.Size > 0) || !(p.Savings > 0)) continue;   // 貯蓄が正の POP だけ（貯蓄0の植民地の現地住民は予算の比に入れない）
+            int c = (uint)p.ClassId < (uint)NC ? p.ClassId : NC - 1;
+            s.ConsSize[c] += p.Size; s.PaidC[c] += p.Paid;""",
+    """            if (!(p.Size > 0)) continue;
+            int c = (uint)p.ClassId < (uint)NC ? p.ClassId : NC - 1;
+            s.PaidC[c] += p.Paid;
+            if (!(p.Savings > 0)) continue;   // 予算の比は貯蓄が正の POP だけ（貯蓄0の植民地の現地住民は予算の比に入れない）
+            s.ConsSize[c] += p.Size;""")
+
+# 4) T 行（英だけ・毎四半期）：国庫の帳尻を台帳で閉じる
+rep("            G.TryGetValue(w, out var s);\n            if (uk || q % 4 == 3)",
+    """            G.TryGetValue(w, out var s);
+            if (uk)
+            {   // (230) 国庫の帳尻：Δ国庫 ＝ ΣΔ台帳（区分別）。残差＝Δ国庫−ΣΔ台帳（本番では構成上 0）。歳入＝Tax+Tariff+StateMonopoly+StateFactory+TributeIn+OtherIn（四半期の和）
+                var t = V(w);
+                double[] L = w.TreasuryLedger; double dsum = 0; var d = new double[L.Length];
+                for (int c = 0; c < L.Length; c++) { d[c] = L[c] - (t.Have ? t.PrevL[c] : 0); dsum += d[c]; }
+                double dT = w.Treasury - (t.Have ? t.PrevT : double.NaN);
+                int[] inc = [(int)TreasuryCat.Tax, (int)TreasuryCat.Tariff, (int)TreasuryCat.StateMonopoly, (int)TreasuryCat.StateFactory, (int)TreasuryCat.TributeIn, (int)TreasuryCat.OtherIn];
+                double rev = 0; foreach (int c in inc) rev += d[c];
+                double K = 0, sumLast = 0;
+                foreach (var r in w.Regions)
+                {
+                    foreach (var p in r.Pops) if (p.LastEarned > 0) sumLast += p.LastEarned;
+                    if (r.State != RegionState.Active) continue;
+                    foreach (var pr in r.Producers) if (!pr.IsRgo && pr.Inputs.Count > 0 && Catalog.Goods[pr.GoodId].Tier != GoodTier.Service) K += pr.Scale;
+                }
+                sb.Append("T|").Append(q).Append('|').Append(w.Year);
+                foreach (var v in new[] { w.Treasury, dT, dT - dsum, rev, K, sumLast, (double)w.SovereignDefaultCount, (double)w.GoldSuspensions, w.OnGoldStandard ? 1 : 0, w.Convertibility, w.GovDebt, w.FiscalFundingRatio, w.LastRevenue, w.LastInterest })
+                    sb.Append('|').Append(F(v));
+                foreach (double v in d) sb.Append('|').Append(F(v));
+                sb.Append('\\n');
+                t.PrevT = w.Treasury; t.PrevL = (double[])L.Clone(); t.Have = true;
+            }
+            if (uk || q % 4 == 3)""")
+rep('W.Write("#R|name|phase|flag|', 'W.Write("#T|q|yr|treasury|dTreasury|resid|revQ|K|sumLastEarnedMonthly|defaults|goldSusp|onGold|conv|govDebt|fundingRatio|lastRevenue|lastInterest|ledgerDelta[cat…]\\n");\n        W.Write("#R|phase 0=中点の前 1=中点の後 2=終わりの前 3=終わりの後|name|phase|m|')
+rep("zeroIncomeSize|sav[14]|earned[14]|lastEarned[14]|size[14]\\n\");",
+    "zeroIncomeSize|sav[14]|earned[14]|lastEarned[14]|size[14]|inc|shape|M/Y|lambdaImplied|lambdaPred\\n\");")
+
+# 5) MultiNationSim：中点（loop の中）と終わり
+old_tail = src[src.index("# --- MultiNationSim: 置き直しの前後"):src.index("edit('PriceOfBread.SimCore/SelfPlay.cs'")]
+new_tail = '''# --- MultiNationSim: 置き直しの前後（中点＝助走のループの中・終わり＝StartWarmup の中）
+p = root + '/PriceOfBread.SimCore/MultiNationSim.cs'
+raw = open(p, 'rb').read(); bom = raw.startswith(bytes([0xef, 0xbb, 0xbf])); s = raw.decode('utf-8-sig')
+NL = '\\r\\n' if '\\r\\n' in s else '\\n'
+# 終わり（行頭 8 空白の呼び出しだけ）
+key = NL + '        foreach (var n in Nations) n.World.RebaseOpeningMoney();'
+assert s.count(key) == 1, s.count(key)
+i = s.index(key) + len(NL)
+j = s.index(NL, i)
+line = s[i:j]
+new = '        if (Sav226.On) foreach (var n in Nations) Sav226.Rebase(this, n.World, 2);' + NL + line + NL + '        if (Sav226.On) foreach (var n in Nations) Sav226.Rebase(this, n.World, 3);'
+s = s[:i] + new + s[j:]
+# 中点
+rt = 'Nations[i].World.RebaseTreasury(treasury0[i]);'
+assert s.count(rt) == 1
+i = s.index(rt); j = s.index(NL, i)
+cond = 'q + 1 == (quarters >= 3 ? quarters * 2 / 3 : -1)'
+pre = NL + '            if (Sav226.On && ' + cond + ') foreach (var n in Nations) Sav226.Rebase(this, n.World, 0);'
+s = s[:j] + pre + s[j:]
+mid = '            if (q + 1 == midQuarter) foreach (var n in Nations) n.World.RebaseOpeningMoney();'
+k = s.find(mid)
+post = '            if (Sav226.On && ' + cond + ') foreach (var n in Nations) Sav226.Rebase(this, n.World, 1);'
+if k >= 0:
+    e = s.index(NL, k)
+    # コメント付きの行の後ろへ
+    s = s[:e] + NL + post + s[e:]
+else:
+    j2 = s.index(pre) + len(pre)
+    s = s[:j2] + NL + post + s[j2:]
+open(p, 'wb').write((b'\\xef\\xbb\\xbf' if bom else b'') + s.encode('utf-8'))
+
+'''
+src = src.replace(old_tail, new_tail)
+open('D:/PoB_work/r230/tools/inj_sav230.py', 'w', encoding='utf-8', newline='').write(src)
+print('inj_sav230 written', len(src))
+
+#################### an_can230.py
+import sys, math
+# (230) canary の読み手：英の T 行（国庫の帳尻＝台帳）・R 行（置き直し）・S 行（物価・階級別）を B/S/A で並べ、事前登録の線を全四半期で読む
+d = sys.argv[1] if len(sys.argv) > 1 else 'D:/PoB_work/r230/w'
+tag = sys.argv[2] if len(sys.argv) > 2 else '1_s3_q40'
+arms = sys.argv[3].split(',') if len(sys.argv) > 3 else ['B', 'S', 'A']
+seed = sys.argv[4] if len(sys.argv) > 4 else 's3'
+UK = 'イギリス'
+MASS = [1, 2, 11]   # 農民・工場労働者・職人
+
+
+def fl(y):
+    return float('nan') if y == 'nan' else float(y)
+
+
+def load(a):
+    T, R, S = {}, [], {}
+    for ln in open('%s/out_%s_%s/sav226/%s.txt' % (d, a, tag, seed), encoding='utf-8'):
+        x = ln.rstrip('\n').split('|')
+        if x[0] == 'T':
+            T[int(x[1])] = [fl(y) for y in x[3:]]
+        elif x[0] == 'R' and x[1] == UK:
+            R.append(x)
+        elif x[0] == 'S' and x[4] == UK:
+            S[int(x[1])] = [fl(y) for y in x[5:]]
+    return T, R, S
+
+
+D = {a: load(a) for a in arms}
+print('=== 帳尻（Δ国庫−ΣΔ台帳の残差 ÷ 歳入の四半期和）')
+for a in arms:
+    T = D[a][0]
+    worst = 0
+    for q, v in sorted(T.items()):
+        dT, res, rev = v[1], v[2], v[3]
+        if dT == dT and rev > 0: worst = max(worst, abs(res) / rev)
+    nan0 = [q for q, v in T.items() if v[1] != v[1]]
+    print(a, '最大 |残差|/歳入 = %.2e' % worst, '（dT が NaN の四半期:', nan0, '）')
+
+print('\n=== R 行（置き直し）: phase0=中点前 1=中点後 2=終わり前 3=終わり後')
+for a in arms:
+    for x in D[a][1]:
+        v = [fl(y) for y in x[4:]]
+        print(a, 'phase', x[2], 'm=%s' % x[3], 'M/Y=%.3f' % v[76 - 4 + 2], 'lambdaImpl=%.4f' % v[76 - 4 + 3], 'lambdaPred(m or .5)=%.4f' % v[76 - 4 + 4], 'inc/mo=%.0f' % v[76 - 4], 'treasury=%.0f' % v[4], 'cov=%.3f' % v[5], 'P=%.3f' % v[8], 'conv=%.2f' % v[9], 'onGold=%d' % v[10], 'annNomGdp=%.0f' % v[6], 'bankL=%.0f hhL=%.0f' % (v[2], v[3]))
+
+print('\n=== 四半期表（Qn＝n番目の本番の四半期＝計器の q=n−1）')
+hdr = 'Q  ' + ''.join('| %-3s rev/mo  tr  tr/rev  rev/ΣLast gold conv def  K    P   mass%% ' % a for a in arms)
+print(hdr)
+tab = {}
+for q in range(0, 40):
+    row = 'Q%-2d' % (q + 1)
+    for a in arms:
+        T, R, S = D[a]
+        v = T.get(q); s = S.get(q)
+        if not v: row += '| (なし)'; continue
+        tr, rev, K, sl, defs, gold, conv = v[0], v[3] / 3, v[4], v[5], v[6], v[8], v[9]
+        P = s[8] if s else float('nan')
+        mass = float('nan')
+        if s:
+            paid = sum(s[149 + c] for c in MASS) / 3; inc = sum(s[28 + c] for c in MASS)
+            mass = paid / inc if inc > 0 else float('nan')
+        tab[(a, q)] = dict(tr=tr, rev=rev, K=K, sl=sl, defs=defs, gold=gold, conv=conv, P=P, mass=mass, trrev=tr / rev if rev > 0 else float('nan'), revsl=rev / sl if sl > 0 else float('nan'))
+        row += '| %-3s %7.0f %6.0f %5.2f %6.3f %d %.2f %d %6.0f %.2f %5.2f ' % (a, rev, tr, tr / rev if rev > 0 else float('nan'), rev / sl if sl > 0 else float('nan'), gold, conv, defs, K, P, mass)
+    print(row)
+
+print('\n=== 線（B と比べる腕＝', [a for a in arms if a != 'B'], '）')
+for a in arms:
+    if a == 'B': continue
+    c2 = []; l_tax = []; gold_fail = []; p_out = []; cons_out = []
+    for q in range(0, 40):
+        x = tab.get((a, q)); b = tab.get(('B', q))
+        if not x or not b: continue
+        # C2' 国庫÷歳入（月数）が B の 1/3 以上
+        if b['trrev'] == b['trrev'] and b['trrev'] > 0:
+            if not (x['trrev'] >= b['trrev'] / 3): c2.append(q + 1)
+        else:
+            if not (x['tr'] > 0) and b['tr'] > 0: c2.append(q + 1)
+        if q < 8 and b['revsl'] == b['revsl']: l_tax.append(x['revsl'] / b['revsl'])
+        if x['gold'] < b['gold']: gold_fail.append(q + 1)
+        if not (0.7 <= x['P'] <= 1.4): p_out.append((q + 1, round(x['P'], 3)))
+        if q >= 3 and not (0.8 <= x['mass'] <= 1.2): cons_out.append((q + 1, round(x['mass'], 2)))
+    print(a, "C2' 外れの四半期:", c2[:40], '| L-tax(Q1〜Q8 の最小/B) = %.2f' % (min(l_tax) if l_tax else float('nan')), '| C5(Bより金本位が少ない四半期):', gold_fail[:10], '| C3 外れ:', p_out[:8], '| L-cons(Q4〜) 外れ:', cons_out[:12])
+    d_end = tab.get((a, 39), {}).get('defs'); k0 = D[a][0].get(0, [0, 0, 0, 0, 0])[4]
+    print('   不履行(Q40末) =', d_end, '| 国庫が尽きた(<=0)四半期:', [q + 1 for q in range(40) if (a, q) in tab and not (tab[(a, q)]['tr'] > 0)], '| Q1 歳入/B = %.2f' % (tab[(a, 0)]['rev'] / tab[('B', 0)]['rev']))
+
+#################### an_chain230.py
+import sys
+# (230) 鎖の読み手：英の Q1〜Qn の財政の帳尻（台帳）・借入の門・兌換と、助走の中の所得の動き（階級別）
+d = sys.argv[1]; tag = sys.argv[2]; arms = sys.argv[3].split(','); seed = sys.argv[4]; nq = int(sys.argv[5])
+UK = 'イギリス'
+CATS = 'Tax Tariff StateMonopoly Borrow Devalue StateFactory TributeIn OtherIn Army Navy Admin Education Welfare Pension Modernization AntiCorruption Interest DebtRepay FactoryBuild Subsidy Megaproject ColonialUpkeep TributeOut WarCost OtherOut'.split()
+CL = '貴 農 工 資 技 兵 聖 教 官 医 商 職 使 研'.split()
+
+
+def fl(y):
+    return float('nan') if y == 'nan' else float(y)
+
+
+def load(a):
+    T, R, S = {}, [], {}
+    for ln in open('%s/out_%s_%s/sav226/%s.txt' % (d, a, tag, seed), encoding='utf-8'):
+        x = ln.rstrip('\n').split('|')
+        if x[0] == 'T': T[int(x[1])] = [fl(y) for y in x[3:]]
+        elif x[0] == 'R' and x[1] == UK: R.append(x)
+        elif x[0] == 'S' and x[4] == UK: S[int(x[1])] = [fl(y) for y in x[5:]]
+    return T, R, S
+
+
+D = {a: load(a) for a in arms}
+print('=== 助走の中の所得（月次・階級別 LastEarned）と貯蓄 : phase0=中点前 / phase2=終わり前（置き直し直前）')
+for a in arms:
+    for x in D[a][1]:
+        if x[2] not in ('0', '2', '3'): continue
+        v = [fl(y) for y in x[4:]]
+        last = v[44:58]; sav = v[16:30]; size = v[58:72]
+        print(a, 'ph', x[2], 'ΣLast/mo %.0f' % sum(max(0, z) for z in last), ' '.join('%s%.0f' % (c, z) for c, z in zip(CL, last) if abs(z) > 1), '| Σsav %.0f' % sum(sav), '| sav ' + ' '.join('%s%.0f' % (c, z) for c, z in zip(CL, sav) if abs(z) > 1))
+print()
+print('=== Q 別の帳尻（月平均）  rev=Tax+Tariff+Monopoly+Factory+Tribute+OtherIn / spend=Army以下 / int=Interest / bor=Borrow / dev=Devalue')
+for q in range(0, nq):
+    for a in arms:
+        T, R, S = D[a]; v = T.get(q)
+        if not v: continue
+        L = v[14:]; mo = lambda i: L[i] / 3
+        rev = sum(mo(i) for i in (0, 1, 2, 5, 6, 7)); out = -sum(mo(i) for i in range(8, 25)); intr = -mo(16)
+        s = S.get(q); bw = ''
+        if s:
+            b = s[62:75]
+            bw = 'shortMonths %d gateClosed %d ticket %d pool %d full %d | shortGate %.0f borrowed %.0f' % (b[0], b[1], b[2], b[3], b[4], b[5], b[9])
+        print('Q%-2d %s tr %7.0f dT/mo %6.0f resid %.0e | rev %6.0f out %6.0f(int %5.0f mil %5.0f adm %5.0f wel %5.0f) bor %5.0f dev %5.0f | gold %d conv %.2f funding %.2f lastInt/lastRev %.2f def %d | %s' % (
+            q + 1, a, v[0], v[1] / 3, v[2], rev, out, intr, -(mo(8) + mo(9)), -mo(10), -(mo(12) + mo(13)), mo(3), mo(4), v[8], v[9], v[11], v[13] / v[12] if v[12] > 0 else float('nan'), v[6], bw))
+    print()
+
+#################### edit_device.py
+import sys, re
+root = sys.argv[1]
+
+
+def EOL(s):
+    return chr(13) + chr(10) if (chr(13) + chr(10)) in s else chr(10)
+
+
+def load(rel):
+    raw = open(root + '/' + rel, 'rb').read()
+    bom = raw.startswith(b'\xef\xbb\xbf')
+    s = raw.decode('utf-8-sig')
+    return s, bom
+
+
+def save(rel, s, bom):
+    open(root + '/' + rel, 'wb').write((b'\xef\xbb\xbf' if bom else b'') + s.encode('utf-8'))
+
+
+def rep(rel, old, new):
+    s, bom = load(rel)
+    crlf = '\r\n' in s
+    if crlf:
+        old = old.replace('\n', '\r\n'); new = new.replace('\n', '\r\n')
+    assert s.count(old) == 1, (rel, old[:80], s.count(old))
+    save(rel, s.replace(old, new), bom)
+
+
+def lines(rel, a, b, new):
+    """行 a..b（1始まり・両端含む）を new（改行つき複数行）で置き換える。先頭行の先頭が old_head と一致することを呼び手が確かめる。"""
+    s, bom = load(rel)
+    crlf = '\r\n' in s
+    ls = s.split('\r\n' if crlf else '\n')
+    nl = new.split('\n')
+    ls[a - 1:b] = nl
+    save(rel, ('\r\n' if crlf else '\n').join(ls), bom)
+
+
+# ---- NationConfig.cs（73〜76 行）
+s, _ = load('PriceOfBread.SimCore/NationConfig.cs')
+ls = s.split(EOL(s))
+assert ls[72].lstrip().startswith('// ★(226) 開幕の貯蓄を「階級の年所得'), ls[72][:50]
+assert ls[75].strip() == 'public bool SavingsFromIncome = false;', ls[75]
+lines('PriceOfBread.SimCore/NationConfig.cs', 73, 76,
+"""    // ★(230) 開幕の貯蓄の規則＝「広義の貨幣÷年所得 m」（world.json の broadMoneyToIncome・0＝置かない＝構築の1000人あたりの定数のまま）。
+    //   m ＝ ΣSavings ÷ (12 × Σ正の LastEarned)（所得は Earned＝賃金＋地代＋粗利潤の分配面・World.Gdp〔総産出〕は分母に使わない）。階級の配分は
+    //   <see cref="Coefficients.SavingsYearsByClass"/>（相対値だけ）。置き直しは助走の中の 2/3 点と終わりの2回（<see cref="World.RebaseOpeningMoney"/>）。
+    //   段3 で全国の式に置き換える時に消す（作者の順＝英を先に・その後に他の国。旧 (220)(221) の broadMoneyToGdp〔比の表・全61国〕は導ける量なので外した）。
+    public double BroadMoneyToIncome = 0;""")
+
+# ---- World.cs
+rep('PriceOfBread.SimCore/World.cs',
+"""    /// <summary>★(226) 開幕の貯蓄を 階級の k×年所得 で置き直す国（<see cref="NationConfig.SavingsFromIncome"/>）。読み手＝<see cref="RebaseOpeningMoney"/> だけ。</summary>
+    public bool SavingsFromIncome { get; init; }""",
+"""    /// <summary>★(230) 開幕の広義の貨幣÷年所得 m（<see cref="NationConfig.BroadMoneyToIncome"/>・0＝置き直さない）。読み手＝<see cref="RebaseOpeningMoney"/> だけ。</summary>
+    public double BroadMoneyToIncome { get; init; }""")
+
+s, _ = load('PriceOfBread.SimCore/World.cs')
+ls = s.split(EOL(s))
+assert ls[1670].lstrip().startswith('/// <summary>★(226) 開幕の貯蓄を階級の年所得で置き直す'), ls[1670][:60]
+assert ls[1689].strip() == '}' and ls[1688].lstrip().startswith('_moTrend'), (ls[1688][:60], ls[1689])
+lines('PriceOfBread.SimCore/World.cs', 1671, 1690,
+"""    /// <summary>★(230) 開幕の貯蓄を「広義の貨幣÷年所得 m」の規則で置き直す（<see cref="BroadMoneyToIncome"/> が正の国だけ・呼び手＝<see cref="MultiNationSim.WarmupEconomy"/> の 2/3 点と <see cref="MultiNationSim.StartWarmup"/> の助走の後・基準線の取り直しの前）。
+    /// 階級 c の所得 inc_c ＝ LastEarned が正の POP の LastEarned の和（月次）・配分の形 base ＝ Σ_c k_c × inc_c（k＝<see cref="Coefficients.SavingsYearsByClass"/>＝相対値）・
+    /// 目標 target ＝ m × Σ_c inc_c。倍率 λ ＝ target ÷ base（導ける量＝状態に持たない・思想⑩）として、全ての POP（州の全ての階級・兵士を含む）の貯蓄を <c>λ × k[階級] × 12 × LastEarned</c> へ置く。
+    /// ⇒ 置き直し直後の ΣSavings ÷ (12 × Σ正の LastEarned) ＝ m（定義上・冪等＝2回目も同じ m に入る）。分子の貨幣は Σ全POP の Savings（<see cref="BroadMoney"/>）・分母の所得は Earned の分配面
+    /// （<see cref="Gdp"/> は中間財を重ねる総産出で付加価値でない＝比の分母に使わない）。構築の「1000人あたりの定数」（3000/200/300/3200…）は助走を回すための種としてだけ残る。
+    /// base と target が正でない（NaN を含む）なら何もしない（否定形）。所得が正でない POP と k が正でない階級は 0。
+    /// 置くのは貯蓄だけ＝国債の保有台帳・国庫・与信は触らない。貯蓄の増減は基礎貨幣へ記帳なしに出入りする＝呼び手が保存則の基準線を取り直す（国庫を開幕の値へ戻す助走の作法と同じ）。
+    /// 貨幣の厚み（M/Y）の趨勢 <see cref="_moTrend"/> も取り直す（取り直さないと趨勢との比が崩れ、物価水準が床へ向かって落ちる＝(218) の番人 M2）。</summary>
+    internal void RebaseOpeningMoney()
+    {
+        if (!(BroadMoneyToIncome > 0)) return;   // 否定形：0・負・NaN は置かない
+        var years = Coef.SavingsYearsByClass;
+        double inc = 0, shape = 0;
+        foreach (var r in Regions) foreach (var p in r.Pops)
+        {
+            if (!(p.LastEarned > 0)) continue;
+            double k = (uint)p.ClassId < (uint)years.Length ? years[p.ClassId] : 0.0;
+            inc += p.LastEarned; if (k > 0) shape += k * p.LastEarned;
+        }
+        double target = BroadMoneyToIncome * inc;
+        if (!(shape > 0) || !(target > 0)) return;   // 配分の形も目標も正でなければ何もしない
+        double lambda = target / shape;
+        foreach (var r in Regions) foreach (var p in r.Pops)
+        {
+            double k = (uint)p.ClassId < (uint)years.Length ? years[p.ClassId] : 0.0;
+            p.SetSavings(k > 0 && p.LastEarned > 0 ? lambda * k * Calendar.MonthsPerYear * p.LastEarned : 0.0);
+        }
+        // 貨幣の厚み（M/Y）の趨勢を取り直す：UpdatePriceLevel の「物価 ＝ 厚み ÷ 趨勢」の関係を、置き直した後の厚みで今の物価水準のまま保つ（趨勢 ＝ 厚み ÷ 物価水準）。
+        //   旧（(218)）＝趨勢を0へ（次の更新で趨勢 ＝ 厚み ＝ 物価が1へ引かれる）＝助走で物価水準が1から離れた国（清 2.3・露 1.2）の物価が置き直しだけで動いた（実測＝8四半期で対照の0.6〜0.7倍）。
+        double money = BroadMoney + (BaseMoney - BroadMoney) * Convertibility;
+        double ratio = money / Math.Max(1e-9, Gdp);
+        _moTrend = ratio > 1e-9 && PriceLevel > 1e-9 ? ratio / PriceLevel : 0;
+    }""")
+
+# ---- Simulation.cs
+rep('PriceOfBread.SimCore/Simulation.cs',
+"            SavingsFromIncome = scenario.NationConfig?.SavingsFromIncome ?? false,   // ★(226) 開幕の貯蓄を 階級の k×年所得 で置き直す国（world.json の savingsFromIncome）",
+"            BroadMoneyToIncome = scenario.NationConfig?.BroadMoneyToIncome ?? 0,   // ★(230) 開幕の広義の貨幣÷年所得 m（world.json の broadMoneyToIncome・0＝置き直さない）")
+
+# ---- Coefficients.cs の注記
+s, _ = load('PriceOfBread.SimCore/Coefficients.cs')
+ls = s.split(EOL(s))
+i = next(n for n, l in enumerate(ls) if '読み手＝<see cref="World.RebaseOpeningMoney"/> だけ' in l)
+ls[i] = '    //   読み手＝<see cref="World.RebaseOpeningMoney"/> だけ（★(230) 配分の形＝相対値だけ・絶対値は m〔world.json の broadMoneyToIncome〕から導く倍率 λ が決める＝助走の中の 2/3 点と終わりに 貯蓄 ＝ λ × k × 12 × 前月の所得 LastEarned で置き直す）。'
+j = next(n for n, l in enumerate(ls) if l.lstrip().startswith('// ★(226) 開幕の貯蓄の式＝階級ごとの'))
+ls[j] = ls[j].replace('開幕の貯蓄の式＝階級ごとの 年所得 × k 年', '開幕の貯蓄の配分の形＝階級ごとの 年所得 × k 年（(230) で絶対値は m から導く）')
+save('PriceOfBread.SimCore/Coefficients.cs', EOL(s).join(ls), True)
+
+# ---- world.json
+rep('PriceOfBread.SimCore/world.json', '   "savingsFromIncome": true,\n', '   "broadMoneyToIncome": 0.5,\n')
+
+# ---- MultiNationSim.cs
+rep('PriceOfBread.SimCore/MultiNationSim.cs',
+"""        foreach (var n in Nations) n.World.RebaseOpeningMoney();   // ★(226) 開幕の貯蓄を 階級の k×年所得 へ（world.json の savingsFromIncome が真の国だけ）＝貯蓄の増減の基準線は下の RebaselineInvariants で取り直す""",
+"""        foreach (var n in Nations) n.World.RebaseOpeningMoney();   // ★(230) 2回目（終わり）＝開幕の貯蓄を m（広義の貨幣÷年所得）へ（world.json の broadMoneyToIncome が正の国だけ・置き直し後の LastEarned で取り直す＝λ で M/Y は同じ値＝冪等）＝貯蓄の増減の基準線は下の RebaselineInvariants で取り直す""")
+rep('PriceOfBread.SimCore/MultiNationSim.cs',
+"""        for (int q = 0; q < quarters; q++)
+        {
+            StepQuarter();
+            for (int i = 0; i < treasury0.Length && i < Nations.Count; i++) Nations[i].World.RebaseTreasury(treasury0[i]);
+            RebaselineInvariants();
+            onQuarter?.Invoke();
+        }""",
+"""        // ★(230) 開幕の貯蓄の置き直し（m＞0 の国だけ）の1回目＝助走の 2/3 点：置き直しで需要が所得の桁へ落ちる谷（q1〜q3 の歳入の落ち）を助走に吸わせる
+        //   （助走中は借入の門が閉じ〔Fiscal.BorrowGateOpen の !WarmupFrozen〕、国庫は毎四半期 world.json の値へ戻る）。2回目は StartWarmup の助走の後。N<3 は終わりの1回だけ。
+        //   m＝0 の国は RebaseOpeningMoney の先頭で return＝何も動かない。⚠ 助走中も切り下げと金本位の強制離脱は止まらない（Fiscal.cs:489）＝開幕の onGold は計器で読む。
+        int midQuarter = quarters >= 3 ? quarters * 2 / 3 : -1;   // 四半期 midQuarter を終えた後（1始まりの数え）
+        for (int q = 0; q < quarters; q++)
+        {
+            StepQuarter();
+            for (int i = 0; i < treasury0.Length && i < Nations.Count; i++) Nations[i].World.RebaseTreasury(treasury0[i]);
+            if (q + 1 == midQuarter) foreach (var n in Nations) n.World.RebaseOpeningMoney();   // 貯蓄の増減の基準線は次の行で取り直す
+            RebaselineInvariants();
+            onQuarter?.Invoke();
+        }""")
+print('device ok')
+
+#################### edit_tests.py
+import sys
+p = sys.argv[1] + '/PriceOfBread.Tests/StartWarmupTests.cs'
+raw = open(p, 'rb').read()
+bom = raw.startswith(b'\xef\xbb\xbf')
+s = raw.decode('utf-8-sig')
+nl = '\r\n' if '\r\n' in s else '\n'
+ls = s.split(nl)
+a = next(i for i, l in enumerate(ls) if l.strip().startswith('// === (226) 開幕の貯蓄の式'))
+b = next(i for i, l in enumerate(ls) if l.strip().startswith('/// <summary>★(223) 助走は時間が経たない四半期'))
+new = '''    // === (230) 開幕の貯蓄の規則（world.json の broadMoneyToIncome＝NationConfig.BroadMoneyToIncome＝m・係数 SavingsYearsByClass は配分の形だけ）===
+    //   m＞0 の国（今は英だけ）の助走の中の 2/3 点と終わりに、全ての POP の貯蓄が λ × k[階級] × 12 × LastEarned で置かれる（λ ＝ m × Σ正の LastEarned ÷ Σ k×LastEarned＝導ける量）。
+    //   ⇒ 置き直し直後の ΣSavings ÷ (12 × Σ正の LastEarned) ＝ m。旧 (220) の 比×年名目GDP の表（broadMoneyToGdp・InitMoneyMode）は導ける量なので外した。
+    //   助走を4四半期に縮めた盤面で見る（中点は 4×2/3＝2 四半期目の終わり・規則は助走の長さに依らない）。
+
+    /// <summary>m を world.json のまま（null）か、全ての国で同じ値に揃えた世界を作る。</summary>
+    private static MultiNationSim BuildSavings(double? mAll = null)
+    {
+        var cfgs = WorldData.Nations().Select(c => { if (mAll is null) return c; var c2 = c.ShallowClone(); c2.BroadMoneyToIncome = mAll.Value; return c2; });
+        return new MultiNationSim([.. cfgs], 1789UL, _ => new UtilityAgent());
+    }
+
+    /// <summary>★(230) m＞0 の国だけ、助走の直後の ΣSavings ÷ (12 × Σ正の LastEarned) が m に（相対差 1e-9）入り、全ての POP の 貯蓄 ÷ (k × 12 × LastEarned) が同じ倍率 λ（k が正で所得が正の POP）・
+    /// 所得が正でない POP は貯蓄 0。置き直しは冪等（もう一度呼んでも全 POP の貯蓄が変わらない＝2回目も同じ M/Y）。m＝0 の国は置き直しを呼んでも何も動かない（構築の値のまま）。
+    /// データの m は英だけ（国名の分岐はコードに無い）。置かない対照では英の M/Y は m の3倍を超える（ON 経路の確認＝構築の定数は英で年GDPの16倍）。
+    /// ⚠壊し方＝λ を 1 に固定する（M/Y が m から外れて赤）・k の表の添字を階級 id でなく固定にする（λ が POP でばらついて赤）・助走の後の2回目を呼ばない（中点から終わりの流れで M/Y が m から外れて赤）・
+    /// 所得が正でない POP の貯蓄を 0 にしない（赤）・m を見ずに全ての国へ掛ける（m＝0 の国が動いて赤）。</summary>
+    [Fact]
+    public void 開幕の貯蓄はmの国だけ階級の配分の形で置かれ_M_Yがmに入り_冪等()
+    {
+        var ctl = BuildSavings(0.0); ctl.StartWarmup(null, 4);
+        var sim = BuildSavings(); sim.StartWarmup(null, 4);
+        var years = sim.Nations[0].World.Coef.SavingsYearsByClass;
+        Assert.Equal(14, years.Length);
+        int flagged = 0; string flaggedName = ""; double moneyOn = 0, moneyOff = 0;
+        for (int i = 0; i < sim.Nations.Count; i++)
+        {
+            var w = sim.Nations[i].World; var w0 = ctl.Nations[i].World;
+            Assert.Equal(0.0, w0.BroadMoneyToIncome);
+            var pops = w.Regions.SelectMany(r => r.Pops).ToArray();
+            double[] before = pops.Select(p => p.Savings).ToArray();
+            w.RebaseOpeningMoney();   // 2回目（冪等）／m＝0 の国は何もしない
+            for (int j = 0; j < pops.Length; j++) Assert.Equal(before[j], pops[j].Savings, 9);
+            if (!(w.BroadMoneyToIncome > 0)) continue;
+            flagged++; flaggedName = w.SelfPower?.BaseName ?? "?";
+            double inc = pops.Where(p => p.LastEarned > 0).Sum(p => p.LastEarned);
+            double money = pops.Sum(p => p.Savings);
+            Assert.True(inc > 0);
+            Assert.Equal(w.BroadMoneyToIncome, money / (Calendar.MonthsPerYear * inc), 9);
+            double lambda = double.NaN;
+            foreach (var p in pops)
+            {
+                double k = years[p.ClassId];
+                if (!(k > 0 && p.LastEarned > 0)) { Assert.Equal(0.0, p.Savings); continue; }
+                double l = p.Savings / (k * Calendar.MonthsPerYear * p.LastEarned);
+                if (double.IsNaN(lambda)) lambda = l; else Assert.Equal(lambda, l, 9);
+            }
+            Assert.True(lambda > 0);
+            moneyOn += money / (Calendar.MonthsPerYear * inc);
+            var w0pops = w0.Regions.SelectMany(r => r.Pops).ToArray();
+            double inc0 = w0pops.Where(p => p.LastEarned > 0).Sum(p => p.LastEarned);
+            moneyOff += w0pops.Sum(p => p.Savings) / (Calendar.MonthsPerYear * Math.Max(1e-9, inc0));
+        }
+        Assert.Equal(1, flagged);
+        Assert.Equal("イギリス", flaggedName);   // m＞0 の国は英だけ（段3 で全国にして旗ごと消す）
+        Assert.True(moneyOff > 3 * moneyOn, $"英の M/Y 置かない対照 {moneyOff:F2} / 置いた {moneyOn:F2}（構築の定数は m の3倍を超えるはず）");
+    }
+
+    /// <summary>★(230) 置き直した後も保存則が保たれ（毎月の検査が投げない）、貨幣の厚みの趨勢の取り直しで物価水準が床へ落ちない（m＝0 の対照と同じ種・英仏露清）：
+    /// 英の貯蓄を大きく減らすと広義の貨幣÷産出が下がる＝趨勢を取り直さなければ物価水準が趨勢との比へ向かって落ちる（(218) 実測＝英で8四半期で 0.61 倍）。
+    /// 物価水準は m を全て 0 にした同じ種の対照と比べる（水準そのものは国ごとに助走の後も動く）。2回の置き直し（中点と終わり）の後の軌道で見る。
+    /// ⚠壊し方＝趨勢 _moTrend を取り直さない → 8四半期で対照の0.65倍を割る（赤）。</summary>
+    [Fact]
+    public void 置き直しの後も保存則が保たれ_物価水準は置かない対照と比べて床へ向かわない()
+    {
+        var sim = BuildSavings(); var ctl = BuildSavings(0.0);
+        sim.StartWarmup(null, 4); ctl.StartWarmup(null, 4);
+        string[] watch = ["イギリス", "フランス", "ロシア", "清"];
+        var idx = Enumerable.Range(0, sim.Nations.Count).Where(i => watch.Contains(sim.Nations[i].World.SelfPower?.BaseName ?? "")).ToArray();
+        Assert.Equal(watch.Length, idx.Length);
+        for (int q = 0; q < 8; q++) { sim.StepQuarter(); ctl.StepQuarter(); }   // 毎月の不変条件の検査が投げれば赤（基準線の取り直しが要る）
+        foreach (int i in idx)
+        {
+            double ratio = sim.Nations[i].World.PriceLevel / ctl.Nations[i].World.PriceLevel;
+            Assert.True(ratio is >= 0.65 and <= 1.5, $"{sim.Nations[i].World.SelfPower?.BaseName} の物価水準 / 対照 = {ratio:F3}");
+        }
+    }
+'''
+ls[a:b] = new.split('\n')
+out = nl.join(ls)
+open(p, 'wb').write((b'\xef\xbb\xbf' if bom else b'') + out.encode('utf-8'))
+print('tests ok', nl == '\r\n')
+
+#################### go.ps1
+param(
+  [string]$Arms,
+  [int]$Seeds = 1,
+  [int]$SeedBegin = 1,
+  [string]$Quarters = "",
+  [string]$Coef = ""
+)
+$bash = "C:/Program Files/Git/bin/bash.exe"
+$procs = @()
+foreach ($a in $Arms.Split(",")) {
+  if ($Quarters -ne "") { $env:QUARTERS = $Quarters } else { Remove-Item Env:QUARTERS -ErrorAction SilentlyContinue }
+  if ($a -eq "AL" -and $Coef -ne "") { $env:POB_COEF = $Coef } else { Remove-Item Env:POB_COEF -ErrorAction SilentlyContinue }
+  $p = Start-Process -FilePath $bash -ArgumentList @("D:/PoB_work/r230/tools/batch.sh", "run", $a, "$Seeds", "$SeedBegin") -PassThru -WindowStyle Hidden -RedirectStandardOutput "D:/PoB_work/r230/w/go_$a.out" -RedirectStandardError "D:/PoB_work/r230/w/go_$a.err"
+  $procs += $p
+}
+Wait-Process -Id ($procs | ForEach-Object { $_.Id })
+foreach ($a in $Arms.Split(",")) { Write-Output "== $a"; Get-Content "D:/PoB_work/r230/w/go_$a.out" -Tail 6 }
+
+#################### batch.sh
+#!/usr/bin/env bash
+# (230) 線S：写しの木＋読むだけの計器で measure.sh を1本（前面・1本ずつ・腕ごとに基線の写し）
+#   bash batch.sh prep <腕> <commit:<sha>|dir:<path>> <計器 fullS|probe|plain> [編集の python（m208/ の下・引数に木の根）...]
+#      fullS＝(207) の fullX＋m208/inj_s208（金本位の波の入力）／probe＝s3b/inj_s3a＋u4e/inj_ghost＋m205/inj_fx205＋m208/inj_s208／plain＝計器なし
+#      fullX＝(202) の fullM＋m205/inj_fx205（英の対外資産と運賃・為替）＋m206/inj_c206（海の必要量の内訳）＋m203/inj_t203（潤沢の減税と税の段）＋m204/inj_d204（不履行の判定の鎖）＋m204/inj_rv204（蜂起の漏斗）／plain＝計器なし
+#   bash batch.sh run <腕> [種の数=10] [種の起点=1]
+export AVALONIA_TELEMETRY_OPTOUT=1
+export PATH="/usr/bin:/c/Program Files/Git/usr/bin:/c/Program Files/Git/cmd:/c/Program Files/dotnet:$PATH"
+export PYTHONUTF8=1
+SP="C:/Users/dirge/AppData/Local/Temp/claude/C--Users-dirge-Documents-Codex-2026-05-29-files-mentioned-by-the-user-godot-2/547b4775-4876-4a0f-a208-25555bddfa65/scratchpad"
+REPO=/d/PoB_work/wt_sv5
+W=/d/PoB_work/r230/w; ARM=$2; SRC=$W/src_$ARM
+if [ "$1" = prep ]; then
+  FROM=$3; INST=$4; shift 4
+  rm -rf $SRC && mkdir -p $SRC
+  case "$FROM" in
+    dir:*) tar -cf - -C ${FROM#dir:} --exclude=bin --exclude=obj --exclude=.git --exclude=docs --exclude=measurements --exclude=uishot --exclude=.vs . | tar -xf - -C $SRC || exit 1 ;;
+    commit:*) (cd $REPO && git archive ${FROM#commit:}) | tar -x -C $SRC || exit 1 ;;
+  esac
+  for e in "$@"; do python /d/PoB_work/r230/tools/$e $SRC || { echo "EDITFAIL $e"; exit 1; }; done
+  case "$INST" in
+    probe)
+      for inj in s3b/inj_s3a.py u4e/inj_ghost.py m205/inj_fx205.py m208/inj_s208.py; do
+        python $SP/$inj $SRC > /dev/null || { echo "INJFAIL $inj"; exit 1; }
+      done ;;
+    fullS)
+      for inj in s3b/inj_s3a.py u4e/inj_ghost.py gate/inj_gate.py m149/inj_disc.py m190/inj_navy_n.py m160/inj_need.py army/inj_fc3.py m194/inj_mil8x.py m190/fix_mil4.py; do
+        python $SP/$inj $SRC > /dev/null || { echo "INJFAIL $inj"; exit 1; }
+      done
+      python $SP/wpn/inj_wpn.py $SRC eq > /dev/null || { echo "INJFAIL wpn"; exit 1; }
+      for inj in cas156/inj_cas.py m168/inj_d165.py m190/inj_war171n.py m177/inj_col177.py m181/inj_war181.py m207/inj_fin181y.py m183/inj_tier.py m195/inj_need183x.py m188/inj_sec188.py m184/inj_serf184.py m186/inj_g186.py m201/inj_c201.py m205/inj_fx205.py m186/inj_t186.py m190/inj_nvy190n.py need/inj_mig.py m199/inj_cnl199.py m194/inj_mob194.py m195/inj_nvq195.py m178/inj_pow178.py m185/inj_cap185.py m206/inj_c206.py m203/inj_t203.py m204/inj_d204.py m204/inj_rv204.py m208/inj_s208.py; do
+        python $SP/$inj $SRC > /dev/null || { echo "INJFAIL $inj"; exit 1; }
+      done ;;
+    plain) ;;
+    *) echo "BADINST $INST"; exit 1 ;;
+  esac
+  python /d/PoB_work/r230/tools/inj_sav230.py $SRC > /dev/null || { echo "INJFAIL sav226"; exit 1; }
+  echo PREPDONE $ARM $FROM $INST "$@"
+elif [ "$1" = run ]; then
+  N=${3:-10}; SB=${4:-1}; TAG=${ARM}_$N; XARGS=""
+  if [ "$SB" != "1" ]; then TAG=${ARM}_${N}_s$SB; XARGS="$N - 0 $SB"; fi
+  if [ -n "${QUARTERS:-}" ]; then XARGS="$N - 0 $SB $QUARTERS"; TAG=${TAG}_q$QUARTERS; fi
+  O=$W/out_$TAG
+  rm -rf $O $W/snap_$TAG && mkdir -p $O/sav226 $O/s3a $O/ghost $O/gate $O/disc $O/navy $O/need $O/hist $O/wpn $O/cas $O/d165 $O/w171 $O/col $O/w176 $O/f181 $O/tier $O/need183 $O/sec183 $O/serf184 $O/g186 $O/t186 $O/nvy190 $O/mig $O/cnl $O/mob $O/nvq $O/pow $O/cap $O/l186 $O/c201 $O/fx205 $O/c206 $O/t203 $O/d204 $O/rv204 $O/s208
+  (cd $REPO && git show 1a3c227:.pob-fidelity-baseline.tsv) > $W/fid_$TAG.tsv
+  echo "START $(date +%T) selfplay-batch N=$N SRC=$SRC" > $W/ms_$TAG.log
+  SEEDS=$N SNAP_DIR=$W/snap_$TAG POB_FIDELITY_BASELINE=$W/fid_$TAG.tsv POB_SAV226_DIR=$O/sav226 POB_S3A_DIR=$O/s3a POB_GHOST_DIR=$O/ghost POB_GATE_DIR=$O/gate POB_DISC_DIR=$O/disc POB_NAVY_DIR=$O/navy POB_NEED_DIR=$O/need POB_FC_DIR=$O/hist POB_MIL_DIR=$O/hist POB_WPN_DIR=$O/wpn POB_CAS_DIR=$O/cas POB_D165_DIR=$O/d165 POB_W171_DIR=$O/w171 POB_COL175_DIR=$O/col POB_W176_DIR=$O/w176 POB_F181_DIR=$O/f181 POB_TIER_DIR=$O/tier POB_NEED183_DIR=$O/need183 POB_SEC183_DIR=$O/sec183 POB_SERF184_DIR=$O/serf184 POB_G186_DIR=$O/g186 POB_T186_DIR=$O/t186 POB_NVY190_DIR=$O/nvy190 POB_MIG_DIR=$O/mig POB_CNL193_DIR=$O/cnl POB_MOB194_DIR=$O/mob POB_NVQ195_DIR=$O/nvq POB_POW_DIR=$O/pow POB_CAP_DIR=$O/cap POB_L186_DIR=$O/l186 POB_C201_DIR=$O/c201 POB_FX205_DIR=$O/fx205 POB_C206_DIR=$O/c206 POB_T203_DIR=$O/t203 POB_D204_DIR=$O/d204 POB_RV204_DIR=$O/rv204 POB_S208_DIR=$O/s208 \
+    bash $SRC/measure.sh $W/b${N}_$TAG.txt selfplay-batch $XARGS >> $W/ms_$TAG.log 2>&1
+  echo "rc=$? END $(date +%T)" >> $W/ms_$TAG.log
+  rm -rf $W/snap_$TAG
+  tail -4 $W/ms_$TAG.log
+  echo BATCHDONE $TAG
+fi
+
+

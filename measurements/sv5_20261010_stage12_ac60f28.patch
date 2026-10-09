@@ -1,0 +1,1059 @@
+diff --git a/PriceOfBread.Runner/Program.cs b/PriceOfBread.Runner/Program.cs
+index cf11904..0629ac6 100644
+--- a/PriceOfBread.Runner/Program.cs
++++ b/PriceOfBread.Runner/Program.cs
+@@ -6134,7 +6134,7 @@ if (args.Length > 0 && args[0] == "initsavprobe")
+ 
+ // === (220) 開幕の建設の急増の診断（読むだけ・(218) の英専用を全国へ）： dotnet run -- earlyprobe220 [seed] [四半期数] [国名,国名,…|ALL] ===
+ // 国ごとに 労働の需要÷器（労働力の財の需要 ÷ 労働力の生産者の産出の和）・労働の実質の値段・工場の設備 ΣScale・投資家の貯蓄÷年名目GDP・全貯蓄÷年名目GDP・国庫・国債・物価水準を、
+-// 助走の終わり（w0）と 1,4,8,12,16,28 四半期後に数える。開幕の貨幣の腕は POB_COEF（InitMoneyMode=1 など）で切り替える。
++// 助走の終わり（w0）と 1,4,8,12,16,28 四半期後に数える。開幕の貯蓄の規則の腕は world.json の broadMoneyToIncome（隔離した写しで切り替える・(226) で POB_COEF の InitMoneyMode は廃止・(230) で旗から m へ）。
+ if (args.Length > 0 && args[0] == "earlyprobe220")
+ {
+     ulong epSeed = args.Length > 1 && ulong.TryParse(args[1], out var eps) ? eps : 1UL;
+diff --git a/PriceOfBread.SimCore/Coefficients.cs b/PriceOfBread.SimCore/Coefficients.cs
+index 26c1698..0bbf816 100644
+--- a/PriceOfBread.SimCore/Coefficients.cs
++++ b/PriceOfBread.SimCore/Coefficients.cs
+@@ -1166,7 +1166,6 @@ public sealed class Coefficients
+     public double PrivateAbsorptionBlend = 1.0;   // ★2026-08-04：私的建設の desiredGrowth に吸収能力（AbsorptionOf＝技術/外資と同じ写像・床は CapitalCreditFloor 共有）を掛ける適用率。速度を絞る＝天井なし＝デッドロックなし（敵対審査の推奨形）。0で厳密恒等
+     // 【墓標2026-09-26（棚卸し econ-16・dorm-16）】StateAbsorptionBlend（国庫の近代化投資の吸収ゲート・休眠0）＝E-16 で差し戻し（09-21 作者裁定で棄却の側へ閉じた）＝枝ごと削除
+     // ⚠撤去2026-08-12（再点火禁止・読み手ごと削除）: MilitarizeSpendThreatSpan  【墓標2026-08-08＝「形が先・金が後」（SpendFromNeedWeight）が代替済み・再点火禁止】★2026-08-04：Militarize の軍事費0.7を脅威で連続化＝0.7−これ×(1−脅威)。**0.4はA/B実測で棄却＝休眠確定**（政体exact−4.3・法−3.8・列強−3.8・経済−2.5＝軍縮した列強の軍事項が痩せて順位が崩れる。多様性は土地の政治力による教義の是正が既に担う）。0で旧＝0.7固定（厳密恒等）。⚠2026-10-02 (155)：同じ系統（脅威の連続値で軍事費の段）を作者の承認の形（脅威の入口を軍事費の段の1つ・作者 2026-10-01 に異議なし）で再導入＝UtilityAgent.SecurityStageTarget（前回の棄却と同じ向きの結果は実装ログ (157) の作者への確認・(157) の注記）
+-    public double ClosedWealthMultiple = 1.0;     // ★2026-08-04（統一根）：貴族・聖職の初期資産の倍率＝**土地**。旧＝3000/人で資本家3200/人とほぼ同額＝旧支配層の政治力が英3%（blocprobe実測）＝法の門番が全員素通り＝全国1783年に近代法＝工業化の全球収束。1.0で旧と厳密恒等
+     // 【墓標2026-09-26（棚卸し dorm-50）】IndInvestFromIncome（私的投資の原資を貯蓄でなく所得にする器・「0で確定＝休眠」2026-08-04）＝削除。0.4×所得で点火すると世界が崩壊した（英GDP 290,733→2）＝資本コストの較正が貯蓄ストック（所得の175〜300年分）を前提に組まれている。再挑戦は建設費・減価・貯蓄を同じ回で動かす大改修と一緒に（検討 §10-10［金融1］）
+     public double IndInvestmentFrac = 0.05;       // 投資家（資本家）が貯蓄からこの割合まで投資に回せる（affordability 上限）
+     public double IndInvestmentSpeed = 0.012;     // 投資の速さ（純収益→建設需要への換算）
+@@ -2349,12 +2348,11 @@ public sealed class Coefficients
+     // 助走は**暦を進めない**（World.WarmupFrozen）＝何四半期回しても開始は1783/Q1。1914断面(Q524)・全長 GameQuarters・TechOnset の年ゲートは不動。
+     public int StartWarmupQuarters = 20;        // 助走の長さ（四半期）。4＝1年（2026-08-10以前の App と同じ長さ）／20＝5年／40＝10年。0で助走なし。★帯はバッチで測って選ぶ
+     public int StartWarmupTechIterations = 8;  // 技術の助走の反復回数（旧 GameViewModel のハードコード8）。識字×世俗水路の差を技術差へ実体化（暦も人口も動かさない）
+-    // ★(220) 開幕の貨幣の置き直し（NationConfig.BroadMoneyToGdp〔世界の貨幣化の史実の統計〕を助走の終わりに当てる）。0＝置かない（旧＝構築の1人あたりの富のリテラルのまま＝全国で貯蓄が年GDPの16〜82倍）。
+-    //   1＝投資家（近代エリート）の貯蓄だけを 比 × InitInvestorMoneyShare × 年名目GDP へ按分／2＝1 に加えて他の階級の貯蓄も 比 ×（1−取り分）× 年名目GDP へ按分（合計＝比 × 年名目GDP）。
+-    //   採否未定（2026-10-09 (220)）＝休眠で入れ、POB_COEF で腕を切り替えて測る（既定0＝旧と同じ軌道）。
+-    public int InitMoneyMode = 0;
+-    public double InitInvestorMoneyShare = 0.67;   // 投資家の貨幣の取り分（英の構築時の投資家の貯蓄 8.64M ÷ 全貯蓄 12.41M〔initsavprobe〕＝0.70・助走後 0.78・全61国の中央は 0.6〜0.7）
+-    public double InitMoneyScale = 1.0;            // 比の倍率（1＝貨幣の読み。「投資可能な金融資産」の読み〔年GDPの1〜3倍【推】〕を腕で測るときだけ 1 でなくする・採否の規則の中の係数調整ではない）
++    // ★(226) 開幕の貯蓄の配分の形＝階級ごとの 年所得 × k 年（(230) で絶対値は m から導く）（作者 2026-10-10「全て推奨で、進めてください」で採った推奨＝貯蓄は「貨幣」として扱う・k の値はすべて【推】＝家計の現金保有の桁・幅は 資本家 3〜6・貴族 1〜3・商人 1〜2・農民と使用人 0.1〜0.3）。
++    //   読み手＝<see cref="World.RebaseOpeningMoney"/> だけ（★(230) 配分の形＝相対値だけ・絶対値は m〔world.json の broadMoneyToIncome〕から導く倍率 λ が決める＝助走の中の 2/3 点と終わりに 貯蓄 ＝ λ × k × 12 × 前月の所得 LastEarned で置き直す）。
++    //   階級 id 順（0 貴族・1 農民・2 工場労働者・3 資本家・4 技師・5 兵士・6 聖職者・7 教師・8 官僚・9 医者・10 商人・11 職人・12 使用人・13 研究者）。国名を含まない・階級の違いだけ。
++    //   聖職者は貴族と同じ（教会領も土地）・専門職は 1.0・兵士は大衆と同じ。出典の取り直しと根拠は measurements/sav_20261010_prereg.txt。
++    public double[] SavingsYearsByClass = [2.0, 0.2, 0.2, 4.5, 1.0, 0.2, 2.0, 1.0, 1.0, 1.0, 1.5, 0.5, 0.2, 1.0];
+ 
+     public const int GameQuarters = 668;                     // ゲーム全期間＝四半期数（1783/01/01→1950/01/01＝167年・1950延長2026-09-21作者裁定＝旧604（1934拡張2026-07-19）から+64四半期。selfplay/プローブの正準の長さ）
+     public const int FidelityQuarters = 524;                 // 史実忠実度の主指標の断面＝Q524（1914年1月1日＝1913年の締め）。裁定2026-07-19：主指標は1914固定（1950延長でも動かさない）
+diff --git a/PriceOfBread.SimCore/Model.cs b/PriceOfBread.SimCore/Model.cs
+index 1af05d2..38e54fc 100644
+--- a/PriceOfBread.SimCore/Model.cs
++++ b/PriceOfBread.SimCore/Model.cs
+@@ -352,8 +352,8 @@ public sealed class Pop
+     /// <summary>★月末の精算（月内の仮勘定＝1本の月内の形・計画 §10-12-2-3）＝その月の所得と支払いの差を貯蓄へ（EconomyStep の月の終わり・2026-09-30 段4g に Pop の中へ移した）。</summary>
+     internal void SettleMonth() => _savings += Earned - Paid;
+ 
+-    /// <summary>★(218) 貯蓄を比で置き直す（開幕の投資家の流動資産・<see cref="World.RebaseOpeningMoney"/> だけが呼ぶ）。貨幣の増減は呼び手が基準線ごと取り直す。</summary>
+-    internal void ScaleSavings(double f) => _savings *= f;
++    /// <summary>★(226) 貯蓄を値で置き直す（開幕の貯蓄の式・<see cref="World.RebaseOpeningMoney"/> だけが呼ぶ）。貨幣の増減は呼び手が基準線ごと取り直す。旧 (218)(220) の ScaleSavings〔倍率〕を置き換えた。</summary>
++    internal void SetSavings(double v) => _savings = v;
+ 
+     /// <summary>★人の移し方の1本（2026-09-30 処理の一元化 段4e I＝設計の <c>PopTransfer.Blend</c>・Pop の中の1本）：<paramref name="from"/> から <paramref name="to"/> へ
+     /// <paramref name="n"/> 人を移し、移る組の属性を受け手へ人数で混ぜ、人と動くお金（貯蓄・債務・国債の保有＝1人あたりの按分）を <see cref="Carry"/> で運ぶ。
+diff --git a/PriceOfBread.SimCore/MultiNationSim.cs b/PriceOfBread.SimCore/MultiNationSim.cs
+index ff93449..ef15441 100644
+--- a/PriceOfBread.SimCore/MultiNationSim.cs
++++ b/PriceOfBread.SimCore/MultiNationSim.cs
+@@ -523,7 +523,7 @@ public sealed class MultiNationSim
+         int quarters = quartersOverride ?? _coef.StartWarmupQuarters;
+         if (quarters <= 0) return;   // 助走なし＝構築直後の盤面そのままで開始（厳密恒等の底）
+         WarmupEconomy(quarters, onQuarter);
+-        foreach (var n in Nations) n.World.RebaseOpeningMoney();   // ★(220) 開幕の貨幣を史実の比へ（係数 InitMoneyMode>0 かつデータ>0 の国だけ）＝減らした貨幣の基準線は下の RebaselineInvariants で取り直す
++        foreach (var n in Nations) n.World.RebaseOpeningMoney();   // ★(230) 2回目（終わり）＝開幕の貯蓄を m（広義の貨幣÷年所得）へ（world.json の broadMoneyToIncome が正の国だけ・置き直し後の LastEarned で取り直す＝λ で M/Y は同じ値＝冪等）＝貯蓄の増減の基準線は下の RebaselineInvariants で取り直す
+         WarmupTech(_coef.StartWarmupTechIterations);
+         // ★開幕の既知の集合（(169)）＝データ（NationConfig.KnownDiscoveries＝world.json・1783年より前に史実でその国が使っていた発見）＝構築で置いた（Simulation のコンストラクタ）。
+         //   ここでは世界の解禁の和（需要の門）を配るだけ。判定は最初の四半期の終わりから（他の四半期と同じ1本）。
+@@ -634,10 +634,15 @@ public sealed class MultiNationSim
+         foreach (var n in Nations) { n.World.PoliticsEnabled = false; n.World.WarmupFrozen = true; }
+         DiplomacyFrozen = true;
+         _calendarFrozen = true;
++        // ★(230) 開幕の貯蓄の置き直し（m＞0 の国だけ）の1回目＝助走の 2/3 点：置き直しで需要が所得の桁へ落ちる谷（q1〜q3 の歳入の落ち）を助走に吸わせる
++        //   （助走中は借入の門が閉じ〔Fiscal.BorrowGateOpen の !WarmupFrozen〕、国庫は毎四半期 world.json の値へ戻る）。2回目は StartWarmup の助走の後。N<3 は終わりの1回だけ。
++        //   m＝0 の国は RebaseOpeningMoney の先頭で return＝何も動かない。⚠ 助走中も切り下げと金本位の強制離脱は止まらない（Fiscal.cs:489）＝開幕の onGold は計器で読む。
++        int midQuarter = quarters >= 3 ? quarters * 2 / 3 : -1;   // 四半期 midQuarter を終えた後（1始まりの数え）
+         for (int q = 0; q < quarters; q++)
+         {
+             StepQuarter();
+             for (int i = 0; i < treasury0.Length && i < Nations.Count; i++) Nations[i].World.RebaseTreasury(treasury0[i]);
++            if (q + 1 == midQuarter) foreach (var n in Nations) n.World.RebaseOpeningMoney();   // 貯蓄の増減の基準線は次の行で取り直す
+             RebaselineInvariants();
+             onQuarter?.Invoke();
+         }
+diff --git a/PriceOfBread.SimCore/NationConfig.cs b/PriceOfBread.SimCore/NationConfig.cs
+index 7a055c5..85d7c0a 100644
+--- a/PriceOfBread.SimCore/NationConfig.cs
++++ b/PriceOfBread.SimCore/NationConfig.cs
+@@ -70,14 +70,11 @@ public sealed class NationConfig
+     //   英＝蒸気機関（工場の原動機＝ワットの回転機関〔特許1781・最初の据え付け1782〜83〕と水車へ水を戻すニューコメンの揚水機関＝1783年に工場の動力として蒸気を使っていた唯一の国）・
+     //   特許（専売条例1624）／ヴェネツィア＝特許（特許法1474）。出典と除外の理由（大陸と米のニューコメン機関は鉱山の排水＝工場の動力ではない）は実装ログ (169)。
+     public string[] KnownDiscoveries = [];
+-    // ★(220) 開幕の広義の貨幣 ÷ 年名目GDP（世界の貨幣化の史実の統計・world.json の broadMoneyToGdp）。0＝置かない（旧＝構築の1人あたりの富 3200/1500/800/300/200… のまま）。
+-    //   >0 の国は、係数 <see cref="Coefficients.InitMoneyMode"/> が1以上のとき、助走の終わりに投資家（近代エリート）の貯蓄を「この比 × 投資家の取り分 × 年名目GDP」へ按分で置き直す（モード2は他の階級も同じ規則で
+-    //   残りの取り分へ）。★旧（(218)）＝投資家の年所得の年数（英 0.5）だったが、投資家の年所得は GDP の 0.6〜3.1 倍で国ごとに桁が違う（取引の総額が混ざる）ので分母を年名目GDP にした。
+-    //   値は貨幣化の段（4段・【推】＝全て記憶から読んだ桁・幅が広い）：①英・蘭 0.5（広義の貨幣÷名目GDP 英 0.4〜0.6【推・Capie & Webber 1985 *A Monetary History of the United Kingdom 1870-1982*・Cameron 編 1967 *Banking in the Early Stages of Industrialization*〔本文の数字は未取得〕】・
+-    //   蘭 0.6〜1.0【推・de Vries & van der Woude 1997 *The First Modern Economy*】）②仏・伊北部・イベリア・北欧・スイス 0.35（仏 0.35〜0.45【推・ネッケル 1784 の正貨 約22億リーヴル ÷ 名目GDP 50〜60億】）
+-    //   ③独の諸邦・墺・東欧・露・オスマン・米・日・清・朝鮮 0.2（普墺 0.15〜0.25・清 0.15〜0.3【推・von Glahn 1996 *Fountain of Fortune* から読んだ桁】・米 1790 0.15〜0.25【推・Sylla〈Historical Statistics of the United States〉】）
+-    //   ④南アジア・東南アジア・中央アジア・アラビア・アフリカ・ハワイ 0.1（貨幣化の低い地域 0.05〜0.3【推】）。個々の国を手で振らない（階の割り当てだけがデータ）。
+-    public double BroadMoneyToGdp = 0;
++    // ★(230) 開幕の貯蓄の規則＝「広義の貨幣÷年所得 m」（world.json の broadMoneyToIncome・0＝置かない＝構築の1000人あたりの定数のまま）。
++    //   m ＝ ΣSavings ÷ (12 × Σ正の LastEarned)（所得は Earned＝賃金＋地代＋粗利潤の分配面・World.Gdp〔総産出〕は分母に使わない）。階級の配分は
++    //   <see cref="Coefficients.SavingsYearsByClass"/>（相対値だけ）。置き直しは助走の中の 2/3 点と終わりの2回（<see cref="World.RebaseOpeningMoney"/>）。
++    //   段3 で全国の式に置き換える時に消す（作者の順＝英を先に・その後に他の国。旧 (220)(221) の broadMoneyToGdp〔比の表・全61国〕は導ける量なので外した）。
++    public double BroadMoneyToIncome = 0;
+     // 国土を分ける州（代表都市＋人口Share〔合計1〕＋その州の強み資源 good.Id[]）。未指定なら単一地域。
+     // 列挙財＝増産（×3.5・地理的な得意＝輸出）／非列挙のRGOは減産（×0.4・要輸入。ただし主食 麦/米/野菜は食料安全保障で減産しない）。
+     public ProvinceSpec[] Provinces = [];
+diff --git a/PriceOfBread.SimCore/Simulation.cs b/PriceOfBread.SimCore/Simulation.cs
+index d0febc4..a3a4c46 100644
+--- a/PriceOfBread.SimCore/Simulation.cs
++++ b/PriceOfBread.SimCore/Simulation.cs
+@@ -123,7 +123,7 @@ public sealed class Simulation
+             InitialNationalConsciousness = scenario.InitialNationalConsciousness,   // P9：国民意識v2の初期値（蓄積初回に採用・−1=係数既定）
+             Latitude = scenario.NationConfig?.Latitude ?? 0,    // 首都の座標（多国＝距離で輸送マージンが嵩む）
+             Longitude = scenario.NationConfig?.Longitude ?? 0,
+-            BroadMoneyToGdp = scenario.NationConfig?.BroadMoneyToGdp ?? 0,   // ★(220) 開幕の広義の貨幣÷年名目GDP（0＝置かない）
++            BroadMoneyToIncome = scenario.NationConfig?.BroadMoneyToIncome ?? 0,   // ★(230) 開幕の広義の貨幣÷年所得 m（world.json の broadMoneyToIncome・0＝置き直さない）
+             EthnicEnabled = scenario.NationConfig is not null,   // 民族統一度（倍率排除⑧）は各popの CoreEthnicShare 加重平均から創発。NationConfig 由来の国だけ有効化＝合成較正/最小世界は無効で較正不変
+             MonetaryEnabled = scenario.NationConfig is not null,       // 物価水準（インフレ/デフレ）も実在国だけ＝合成較正/最小世界は P≡1 で従来同値
+             ParliamentEnabled = scenario.NationConfig is not null,     // 議会・選挙も実在国だけ＝合成較正は従来の政治モデルのまま（33/33/33不変）
+@@ -834,9 +834,8 @@ public sealed class Simulation
+         //   ── 帰結の連鎖（これが「制度の階段が立たない」の統一根）───────────────
+         //   旧支配層に富が無い → DoctrineFrom が近代化派に倒れる → 法の門番（旧 ModernizationLawsGated＝伝統教義のみ発動・2026-09-26 に削除＝回5-1 項目19）が
+         //   全員素通り → 教育/官僚/検閲が全国1783年に通る（lawtiming実測）→ 識字・技術・吸収能力が収束 → 工業化が全球収束。
+-        //   ⚠ClosedWealthMultiple=1.0 で旧と厳密恒等（×1.0はIEEE754で恒等）。
+-        var nobility     = MkPop(0, "貴族",       false, cfg.Nobility * (1 - cfg.ClergyFrac) * share, cfg.NobLit,  3000 * coef.ClosedWealthMultiple, closed: true);
+-        var clergy       = MkPop(6, "聖職者",     false, cfg.Nobility * cfg.ClergyFrac * share,       cfg.ClergyLit, 3000 * coef.ClosedWealthMultiple, closed: true);   // 宗教学校の教育を算出（世俗化＝公教育で収入を失い没落）。教会領も土地＝貴族と同じ倍率
++        var nobility     = MkPop(0, "貴族",       false, cfg.Nobility * (1 - cfg.ClergyFrac) * share, cfg.NobLit,  3000, closed: true);
++        var clergy       = MkPop(6, "聖職者",     false, cfg.Nobility * cfg.ClergyFrac * share,       cfg.ClergyLit, 3000, closed: true);   // 宗教学校の教育を算出（世俗化＝公教育で収入を失い没落）。教会領も土地＝貴族と同じ倍率
+         var peasant      = MkPop(1, "農民",       false, cfg.Peasant * share,      cfg.PeasLit, 200,  subs: cfg.PeasantSubsistence);
+         var worker       = MkPop(2, "工場労働者", true,  cfg.Worker * share,       cfg.WorkLit, 300);
+         var bourgeois    = MkPop(3, "資本家",     true,  cfg.Bourgeois * share,    cfg.BourgLit, 3200, modern: true);
+@@ -2099,7 +2098,7 @@ public sealed class Simulation
+         //   置き場所＝既存の FiscalFundingRatio（旧＝維持費の充足率）。逼迫度＝1−r（UtilityAgent.FiscalStressOf）。
+         //   撤去したもの＝国庫の現金クランプ StateBudgetCashScale（係数 StateSpendTreasuryClamp）・兵士の給与の州ごとの min(国庫)・日次の工賃の丸休みの門・
+         //   材料の門・Fiscal の滝（利払い→維持費→福祉/年金→減債）・WelfarePensionClampToTreasury・SpendingCapFactor（Q9）・手書きの Min(Max(0,国庫)) の門。
+-        //   ⚠出来事（選挙資金・賠償・武力解錠の軍需・通行料・港・売買方針の代金・外資の拠出・燃料）は月初に額が分からない＝請求の見込みに入らず、起きた時点の r で払う（拿捕は 2026-09-30 から私人の間＝国庫を通らない）。
++        //   ⚠出来事（選挙資金・賠償・武力解錠の軍需・通行料・売買方針の代金・外資の拠出・燃料）は月初に額が分からない＝請求の見込みに入らず、起きた時点の r で払う（拿捕は 2026-09-30 から私人の間＝国庫を通らない）。
+         //   ⚠四半期の支払い（貢納・招聘の支度金・外資の利回り）は四半期末の外交と共有層がまとめて払う＝四半期の締め月の請求に入れる。
+         //   （戦費 Fund の請求の見込みは 2026-09-30 に Fund ごと削除＝支払いの段3-2・戦争の費用の実体は上の軍需の予算と兵士の給与）
+         double claims = World.LastInterest + World.LastWelfareCost + World.LastPensionCost + World.LastColonialUpkeep;   // （連合維持費 LastUpkeep は 2026-09-30 (135) に撤去＝兵力と行政の購買の1本）
+diff --git a/PriceOfBread.SimCore/World.cs b/PriceOfBread.SimCore/World.cs
+index d351dc7..818544f 100644
+--- a/PriceOfBread.SimCore/World.cs
++++ b/PriceOfBread.SimCore/World.cs
+@@ -1383,8 +1383,8 @@ public sealed class World
+     //   陸海の配分は ArmyUpkeep / NavyUpkeep（払う金）で既に表現済み＝注力度はその上に乗る二重表現だった。
+     //   ⚠状態が1つ減る＝POBSIM1 セーブは読めない（v2 以後はフィールドの増減を名前表で吸収＝<see cref="SaveGame"/>）。
+ 
+-    /// <summary>★(220) 開幕の広義の貨幣 ÷ 年名目GDP（<see cref="NationConfig.BroadMoneyToGdp"/>・0＝置かない）。読み手＝<see cref="RebaseOpeningMoney"/> だけ。</summary>
+-    public double BroadMoneyToGdp { get; init; }
++    /// <summary>★(230) 開幕の広義の貨幣÷年所得 m（<see cref="NationConfig.BroadMoneyToIncome"/>・0＝置き直さない）。読み手＝<see cref="RebaseOpeningMoney"/> だけ。</summary>
++    public double BroadMoneyToIncome { get; init; }
+     public double Latitude { get; internal set; }    // ★**経済中心地**の緯度（度）＝エンジンの距離計算はすべてこれを読む。⚠CenterIsFirstProvince>0 では1番目の州の座標へ差し替わる（J-003）
+     public double Longitude { get; internal set; }   // 首都の経度（度）。日本の遠さ＝交易の天然の障壁
+ 
+@@ -1668,28 +1668,32 @@ public sealed class World
+     public double CreditFxTerm { get; internal set; } = 1.0;      // 内訳③為替（減価＝対外信用の低下）
+     public double CreditBondTerm { get; internal set; } = 1.0;    // 内訳④国債の利回りスプレッド
+     public double Convertibility { get; internal set; }   // 兌換可能性 0..1（倍率排除②）。1=完全兌換(金)・0=不換。OnGoldStandard(資格)を非対称速度で滑らかに追従し、通貨レジームの効果(money集計/為替/切下げ/金利/対外信用)を連続lerpで出す
+-    /// <summary>★(220) 開幕の貨幣を史実の比で置き直す（係数 <see cref="Coefficients.InitMoneyMode"/> が1以上かつ <see cref="BroadMoneyToGdp"/> が正の国だけ・呼び手＝<see cref="MultiNationSim.StartWarmup"/> の助走の後）。
+-    /// 目標の合計 = 比 × <see cref="Coefficients.InitMoneyScale"/> × 年名目GDP（月次 NominalGdp × 12・助走の終わりの値）。投資家（近代エリートの全階級）の貯蓄を 取り分 × 目標 へ按分で置き直す（州・階級の配分の形は変えない）。
+-    /// モード2は他の階級（兵士を含む）の貯蓄を (1−取り分) × 目標 へ同じ規則で按分する。分母が年名目GDP なのは、投資家の年所得が GDP の 0.6〜3.1 倍で国ごとに桁が違うため（取引の総額が混ざる・(218) §6）。
+-    /// 減らした貨幣は基礎貨幣から消えるので、呼び手が保存則の基準線を取り直す（国庫を開幕の値へ戻す助走の作法と同じ）。貨幣の厚み（M/Y）の趨勢 <see cref="_moTrend"/> も取り直す
+-    /// （取り直さないと趨勢との比が崩れ、物価水準が床へ向かって落ちる＝(218) の番人 M2）。否定形：分母・分子が正でなければ何もしない（NaN も素通しにしない）。</summary>
++    /// <summary>★(230) 開幕の貯蓄を「広義の貨幣÷年所得 m」の規則で置き直す（<see cref="BroadMoneyToIncome"/> が正の国だけ・呼び手＝<see cref="MultiNationSim.WarmupEconomy"/> の 2/3 点と <see cref="MultiNationSim.StartWarmup"/> の助走の後・基準線の取り直しの前）。
++    /// 階級 c の所得 inc_c ＝ LastEarned が正の POP の LastEarned の和（月次）・配分の形 base ＝ Σ_c k_c × inc_c（k＝<see cref="Coefficients.SavingsYearsByClass"/>＝相対値）・
++    /// 目標 target ＝ m × Σ_c inc_c。倍率 λ ＝ target ÷ base（導ける量＝状態に持たない・思想⑩）として、全ての POP（州の全ての階級・兵士を含む）の貯蓄を <c>λ × k[階級] × 12 × LastEarned</c> へ置く。
++    /// ⇒ 置き直し直後の ΣSavings ÷ (12 × Σ正の LastEarned) ＝ m（定義上・冪等＝2回目も同じ m に入る）。分子の貨幣は Σ全POP の Savings（<see cref="BroadMoney"/>）・分母の所得は Earned の分配面
++    /// （<see cref="Gdp"/> は中間財を重ねる総産出で付加価値でない＝比の分母に使わない）。構築の「1000人あたりの定数」（3000/200/300/3200…）は助走を回すための種としてだけ残る。
++    /// base と target が正でない（NaN を含む）なら何もしない（否定形）。所得が正でない POP と k が正でない階級は 0。
++    /// 置くのは貯蓄だけ＝国債の保有台帳・国庫・与信は触らない。貯蓄の増減は基礎貨幣へ記帳なしに出入りする＝呼び手が保存則の基準線を取り直す（国庫を開幕の値へ戻す助走の作法と同じ）。
++    /// 貨幣の厚み（M/Y）の趨勢 <see cref="_moTrend"/> も取り直す（取り直さないと趨勢との比が崩れ、物価水準が床へ向かって落ちる＝(218) の番人 M2）。</summary>
+     internal void RebaseOpeningMoney()
+     {
+-        if (!(Coef.InitMoneyMode > 0) || !(BroadMoneyToGdp > 0)) return;
+-        double share = Coef.InitInvestorMoneyShare;
+-        if (!(share > 0) || !(share < 1)) return;
+-        double gdpY = NominalGdp * Calendar.MonthsPerYear;
+-        if (!(gdpY > 1e-9)) return;
+-        double target = BroadMoneyToGdp * Coef.InitMoneyScale * gdpY;
+-        if (!(target > 0)) return;
+-        double invSav = 0, othSav = 0;
+-        foreach (var r in Regions) foreach (var p in r.Pops) { if (!(p.Savings > 0)) continue; if (CapitalMarket.IsInvestor(p, Coef)) invSav += p.Savings; else othSav += p.Savings; }
+-        double fInv = invSav > 1e-9 ? share * target / invSav : 1.0;
+-        double fOth = Coef.InitMoneyMode >= 2 && othSav > 1e-9 ? (1.0 - share) * target / othSav : 1.0;
++        if (!(BroadMoneyToIncome > 0)) return;   // 否定形：0・負・NaN は置かない
++        var years = Coef.SavingsYearsByClass;
++        double inc = 0, shape = 0;
+         foreach (var r in Regions) foreach (var p in r.Pops)
+         {
+-            if (!(p.Savings > 0)) continue;
+-            if (CapitalMarket.IsInvestor(p, Coef)) p.ScaleSavings(fInv); else if (fOth != 1.0) p.ScaleSavings(fOth);
++            if (!(p.LastEarned > 0)) continue;
++            double k = (uint)p.ClassId < (uint)years.Length ? years[p.ClassId] : 0.0;
++            inc += p.LastEarned; if (k > 0) shape += k * p.LastEarned;
++        }
++        double target = BroadMoneyToIncome * inc;
++        if (!(shape > 0) || !(target > 0)) return;   // 配分の形も目標も正でなければ何もしない
++        double lambda = target / shape;
++        foreach (var r in Regions) foreach (var p in r.Pops)
++        {
++            double k = (uint)p.ClassId < (uint)years.Length ? years[p.ClassId] : 0.0;
++            p.SetSavings(k > 0 && p.LastEarned > 0 ? lambda * k * Calendar.MonthsPerYear * p.LastEarned : 0.0);
+         }
+         // 貨幣の厚み（M/Y）の趨勢を取り直す：UpdatePriceLevel の「物価 ＝ 厚み ÷ 趨勢」の関係を、置き直した後の厚みで今の物価水準のまま保つ（趨勢 ＝ 厚み ÷ 物価水準）。
+         //   旧（(218)）＝趨勢を0へ（次の更新で趨勢 ＝ 厚み ＝ 物価が1へ引かれる）＝助走で物価水準が1から離れた国（清 2.3・露 1.2）の物価が置き直しだけで動いた（実測＝8四半期で対照の0.6〜0.7倍）。
+diff --git a/PriceOfBread.SimCore/world.json b/PriceOfBread.SimCore/world.json
+index 914329a..659fa08 100644
+--- a/PriceOfBread.SimCore/world.json
++++ b/PriceOfBread.SimCore/world.json
+@@ -2,7 +2,6 @@
+  "nations": [
+   {
+    "name": "フランス",
+-   "broadMoneyToGdp": 0.35,
+    "rule": [0.7, 0.28, 0.0, 0.02],
+    "nobility": 467,
+    "peasant": 18666,
+@@ -175,7 +174,6 @@
+   },
+   {
+    "name": "日本",
+-   "broadMoneyToGdp": 0.2,
+    "rule": [0.4, 0.58, 0.0, 0.02],
+    "nobility": 1749,
+    "peasant": 22740,
+@@ -308,22 +306,22 @@
+   },
+   {
+    "name": "イギリス",
+-   "broadMoneyToGdp": 0.5,
++   "broadMoneyToIncome": 0.5,
+    "knownDiscoveries": ["蒸気機関", "特許"],
+    "rule": [0.9, 0.1, 0.0, 0.0],
+-   "nobility": 193,
+-   "peasant": 3210,
+-   "worker": 5780,
+-   "bourgeois": 2248,
+-   "professional": 963,
+-   "merchant": 450,
+-   "artisan": 1156,
++   "nobility": 228,
++   "peasant": 7809,
++   "worker": 3823,
++   "bourgeois": 184,
++   "professional": 370,
++   "merchant": 409,
++   "artisan": 841,
+    "nobLit": 0.95,
+    "peasLit": 0.15,
+    "workLit": 0.55,
+    "bourgLit": 0.9,
+    "profLit": 0.85,
+-   "clergyFrac": 0.4,
++   "clergyFrac": 0.332,
+    "intelligentsiaFrac": 0.35,
+    "clergyLit": 0.9,
+    "intelLit": 0.92,
+@@ -591,7 +589,6 @@
+   },
+   {
+    "name": "アメリカ",
+-   "broadMoneyToGdp": 0.2,
+    "rule": [0.35, 0.55, 0.0, 0.1],
+    "nobility": 18,
+    "peasant": 2148,
+@@ -695,7 +692,6 @@
+   },
+   {
+    "name": "ロシア",
+-   "broadMoneyToGdp": 0.2,
+    "rule": [0.5, 0.45, 0.0, 0.05],
+    "nobility": 566,
+    "peasant": 24922,
+@@ -1028,7 +1024,6 @@
+   },
+   {
+    "name": "プロイセン",
+-   "broadMoneyToGdp": 0.2,
+    "rule": [0.7, 0.28, 0.0, 0.02],
+    "bureaucracy": "MeritExam",
+    "nobility": 166,
+@@ -1137,7 +1132,6 @@
+   },
+   {
+    "name": "オスマン",
+-   "broadMoneyToGdp": 0.2,
+    "rule": [0.5, 0.4, 0.0, 0.1],
+    "nobility": 800,
+    "peasant": 21000,
+@@ -1367,7 +1361,6 @@
+   },
+   {
+    "name": "オーストリア",
+-   "broadMoneyToGdp": 0.2,
+    "rule": [0.6, 0.37, 0.0, 0.03],
+    "nobility": 474,
+    "peasant": 17350,
+@@ -1564,7 +1557,6 @@
+   },
+   {
+    "name": "ネーデルラント",
+-   "broadMoneyToGdp": 0.5,
+    "rule": [0.55, 0.45, 0.0, 0.0],
+    "nobility": 31,
+    "peasant": 461,
+@@ -1679,7 +1671,6 @@
+   },
+   {
+    "name": "スペイン",
+-   "broadMoneyToGdp": 0.35,
+    "rule": [0.65, 0.32, 0.0, 0.03],
+    "nobility": 327,
+    "peasant": 7428,
+@@ -1951,7 +1942,6 @@
+   },
+   {
+    "name": "サルデーニャ＝ピエモンテ",
+-   "broadMoneyToGdp": 0.35,
+    "rule": [0.75, 0.22, 0.0, 0.03],
+    "nobility": 96,
+    "peasant": 2318,
+@@ -2031,7 +2021,6 @@
+   },
+   {
+    "name": "清",
+-   "broadMoneyToGdp": 0.2,
+    "rule": [0.6, 0.35, 0.0, 0.05],
+    "bureaucracy": "MeritExam",
+    "nobility": 14000,
+@@ -2378,7 +2367,6 @@
+   },
+   {
+    "name": "朝鮮",
+-   "broadMoneyToGdp": 0.2,
+    "rule": [0.58, 0.39, 0.0, 0.03],
+    "nobility": 1200,
+    "peasant": 11000,
+@@ -2472,7 +2460,6 @@
+   },
+   {
+    "name": "マラータ同盟",
+-   "broadMoneyToGdp": 0.1,
+    "rule": [0.15, 0.75, 0.0, 0.1],
+    "nobility": 4500,
+    "peasant": 38000,
+@@ -2590,7 +2577,6 @@
+   },
+   {
+    "name": "マイソール",
+-   "broadMoneyToGdp": 0.1,
+    "rule": [0.72, 0.23, 0.0, 0.05],
+    "nobility": 557,
+    "peasant": 4377,
+@@ -2665,7 +2651,6 @@
+   },
+   {
+    "name": "ハイデラバード",
+-   "broadMoneyToGdp": 0.1,
+    "rule": [0.32, 0.6, 0.0, 0.08],
+    "nobility": 1200,
+    "peasant": 9000,
+@@ -2740,7 +2725,6 @@
+   },
+   {
+    "name": "シク連邦",
+-   "broadMoneyToGdp": 0.1,
+    "rule": [0.1, 0.8, 0.0, 0.1],
+    "nobility": 600,
+    "peasant": 4500,
+@@ -2796,7 +2780,6 @@
+   },
+   {
+    "name": "ビルマ",
+-   "broadMoneyToGdp": 0.1,
+    "rule": [0.45, 0.47, 0.0, 0.08],
+    "nobility": 500,
+    "peasant": 3500,
+@@ -2862,7 +2845,6 @@
+   },
+   {
+    "name": "ネパール",
+-   "broadMoneyToGdp": 0.1,
+    "rule": [0.4, 0.5, 0.0, 0.1],
+    "nobility": 400,
+    "peasant": 2700,
+@@ -2916,7 +2898,6 @@
+   },
+   {
+    "name": "シャム",
+-   "broadMoneyToGdp": 0.1,
+    "rule": [0.4, 0.5, 0.0, 0.1],
+    "nobility": 395,
+    "peasant": 2636,
+@@ -2972,7 +2953,6 @@
+   },
+   {
+    "name": "西山朝",
+-   "broadMoneyToGdp": 0.1,
+    "rule": [0.25, 0.52, 0.0, 0.23],
+    "nobility": 531,
+    "peasant": 3718,
+@@ -3038,7 +3018,6 @@
+   },
+   {
+    "name": "カンボジア",
+-   "broadMoneyToGdp": 0.1,
+    "rule": [0.15, 0.55, 0.2, 0.1],
+    "nobility": 86,
+    "peasant": 552,
+@@ -3091,7 +3070,6 @@
+   },
+   {
+    "name": "ラオス",
+-   "broadMoneyToGdp": 0.1,
+    "rule": [0.2, 0.65, 0.0, 0.15],
+    "nobility": 150,
+    "peasant": 900,
+@@ -3144,7 +3122,6 @@
+   },
+   {
+    "name": "ペルシャ",
+-   "broadMoneyToGdp": 0.1,
+    "rule": [0.2, 0.65, 0.0, 0.15],
+    "nobility": 533,
+    "peasant": 3332,
+@@ -3270,7 +3247,6 @@
+   },
+   {
+    "name": "アラビア",
+-   "broadMoneyToGdp": 0.1,
+    "rule": [0.4, 0.45, 0.0, 0.15],
+    "nobility": 120,
+    "peasant": 600,
+@@ -3333,7 +3309,6 @@
+   },
+   {
+    "name": "イエメン",
+-   "broadMoneyToGdp": 0.1,
+    "rule": [0.3, 0.55, 0.0, 0.15],
+    "nobility": 210,
+    "peasant": 1400,
+@@ -3396,7 +3371,6 @@
+   },
+   {
+    "name": "オマーン",
+-   "broadMoneyToGdp": 0.1,
+    "rule": [0.4, 0.5, 0.0, 0.1],
+    "nobility": 36,
+    "peasant": 170,
+@@ -3473,7 +3447,6 @@
+   },
+   {
+    "name": "アフガニスタン",
+-   "broadMoneyToGdp": 0.1,
+    "rule": [0.2, 0.6, 0.0, 0.2],
+    "nobility": 700,
+    "peasant": 5000,
+@@ -3564,7 +3537,6 @@
+   },
+   {
+    "name": "ブハラ",
+-   "broadMoneyToGdp": 0.1,
+    "rule": [0.25, 0.6, 0.0, 0.15],
+    "nobility": 300,
+    "peasant": 1600,
+@@ -3619,7 +3591,6 @@
+   },
+   {
+    "name": "ヒヴァ",
+-   "broadMoneyToGdp": 0.1,
+    "rule": [0.2, 0.55, 0.0, 0.25],
+    "nobility": 100,
+    "peasant": 500,
+@@ -3673,7 +3644,6 @@
+   },
+   {
+    "name": "コーカンド",
+-   "broadMoneyToGdp": 0.1,
+    "rule": [0.3, 0.5, 0.0, 0.2],
+    "nobility": 200,
+    "peasant": 1000,
+@@ -3728,7 +3698,6 @@
+   },
+   {
+    "name": "モロッコ",
+-   "broadMoneyToGdp": 0.1,
+    "rule": [0.38, 0.32, 0.0, 0.3],
+    "nobility": 500,
+    "peasant": 3500,
+@@ -3804,7 +3773,6 @@
+   },
+   {
+    "name": "エチオピア",
+-   "broadMoneyToGdp": 0.1,
+    "rule": [0.1, 0.7, 0.0, 0.2],
+    "nobility": 600,
+    "peasant": 3000,
+@@ -3858,7 +3826,6 @@
+   },
+   {
+    "name": "マダガスカル",
+-   "broadMoneyToGdp": 0.1,
+    "rule": [0.1, 0.65, 0.0, 0.25],
+    "nobility": 300,
+    "peasant": 1500,
+@@ -3920,7 +3887,6 @@
+   },
+   {
+    "name": "スウェーデン",
+-   "broadMoneyToGdp": 0.35,
+    "rule": [0.78, 0.18, 0.0, 0.04],
+    "nobility": 282,
+    "peasant": 1549,
+@@ -4009,7 +3975,6 @@
+   },
+   {
+    "name": "デンマーク",
+-   "broadMoneyToGdp": 0.35,
+    "rule": [0.7, 0.28, 0.0, 0.02],
+    "nobility": 245,
+    "peasant": 1258,
+@@ -4101,7 +4066,6 @@
+   },
+   {
+    "name": "スイス",
+-   "broadMoneyToGdp": 0.35,
+    "rule": [0.35, 0.65, 0.0, 0.0],
+    "nobility": 134,
+    "peasant": 801,
+@@ -4154,7 +4118,6 @@
+   },
+   {
+    "name": "ポーランド",
+-   "broadMoneyToGdp": 0.2,
+    "rule": [0.25, 0.7, 0.0, 0.05],
+    "nobility": 900,
+    "peasant": 7000,
+@@ -4248,7 +4211,6 @@
+   },
+   {
+    "name": "ポルトガル",
+-   "broadMoneyToGdp": 0.35,
+    "rule": [0.68, 0.3, 0.0, 0.02],
+    "nobility": 89,
+    "peasant": 2066,
+@@ -4371,7 +4333,6 @@
+   },
+   {
+    "name": "ジェノヴァ",
+-   "broadMoneyToGdp": 0.35,
+    "rule": [0.7, 0.3, 0.0, 0.0],
+    "nobility": 9,
+    "peasant": 212,
+@@ -4425,7 +4386,6 @@
+   },
+   {
+    "name": "ライン諸邦",
+-   "broadMoneyToGdp": 0.2,
+    "rule": [0.35, 0.65, 0.0, 0.0],
+    "nobility": 100,
+    "peasant": 1600,
+@@ -4478,7 +4438,6 @@
+   },
+   {
+    "name": "両シチリア",
+-   "broadMoneyToGdp": 0.2,
+    "rule": [0.4, 0.5, 0.0, 0.1],
+    "nobility": 500,
+    "peasant": 5000,
+@@ -4561,7 +4520,6 @@
+   },
+   {
+    "name": "教皇領",
+-   "broadMoneyToGdp": 0.2,
+    "rule": [0.45, 0.45, 0.0, 0.1],
+    "nobility": 181,
+    "peasant": 1808,
+@@ -4640,7 +4598,6 @@
+   },
+   {
+    "name": "トスカーナ",
+-   "broadMoneyToGdp": 0.35,
+    "rule": [0.8, 0.17, 0.0, 0.03],
+    "nobility": 62,
+    "peasant": 620,
+@@ -4702,7 +4659,6 @@
+   },
+   {
+    "name": "ヴェネツィア",
+-   "broadMoneyToGdp": 0.35,
+    "knownDiscoveries": ["特許"],
+    "rule": [0.65, 0.32, 0.0, 0.03],
+    "nobility": 133,
+@@ -4782,7 +4738,6 @@
+   },
+   {
+    "name": "バイエルン",
+-   "broadMoneyToGdp": 0.2,
+    "rule": [0.55, 0.45, 0.0, 0.0],
+    "nobility": 91,
+    "peasant": 727,
+@@ -4836,7 +4791,6 @@
+   },
+   {
+    "name": "ザクセン",
+-   "broadMoneyToGdp": 0.2,
+    "rule": [0.65, 0.35, 0.0, 0.0],
+    "nobility": 108,
+    "peasant": 1031,
+@@ -4891,7 +4845,6 @@
+   },
+   {
+    "name": "ハノーファー",
+-   "broadMoneyToGdp": 0.2,
+    "rule": [0.55, 0.45, 0.0, 0.0],
+    "nobility": 58,
+    "peasant": 527,
+@@ -4954,7 +4907,6 @@
+   },
+   {
+    "name": "ヴュルテンベルク",
+-   "broadMoneyToGdp": 0.2,
+    "rule": [0.5, 0.5, 0.0, 0.0],
+    "nobility": 44,
+    "peasant": 356,
+@@ -5007,7 +4959,6 @@
+   },
+   {
+    "name": "阮氏",
+-   "broadMoneyToGdp": 0.1,
+    "rule": [0.25, 0.45, 0.0, 0.3],
+    "nobility": 77,
+    "peasant": 541,
+@@ -5060,7 +5011,6 @@
+   },
+   {
+    "name": "ラヘジ",
+-   "broadMoneyToGdp": 0.1,
+    "rule": [0.35, 0.55, 0.0, 0.1],
+    "nobility": 9,
+    "peasant": 60,
+@@ -5114,7 +5064,6 @@
+   },
+   {
+    "name": "デリー",
+-   "broadMoneyToGdp": 0.1,
+    "rule": [0.1, 0.55, 0.15, 0.2],
+    "nobility": 189,
+    "peasant": 1181,
+@@ -5170,7 +5119,6 @@
+   },
+   {
+    "name": "アワド",
+-   "broadMoneyToGdp": 0.1,
+    "rule": [0.2, 0.55, 0.15, 0.1],
+    "nobility": 700,
+    "peasant": 5500,
+@@ -5226,7 +5174,6 @@
+   },
+   {
+    "name": "ダホメ王国",
+-   "broadMoneyToGdp": 0.1,
+    "rule": [0.5, 0.45, 0.0, 0.05],
+    "nobility": 30,
+    "peasant": 250,
+@@ -5291,7 +5238,6 @@
+   },
+   {
+    "name": "アシャンティ王国",
+-   "broadMoneyToGdp": 0.1,
+    "rule": [0.3, 0.6, 0.0, 0.1],
+    "nobility": 250,
+    "peasant": 2500,
+@@ -5356,7 +5302,6 @@
+   },
+   {
+    "name": "ソコト",
+-   "broadMoneyToGdp": 0.1,
+    "rule": [0.35, 0.47, 0.0, 0.18],
+    "nobility": 700,
+    "peasant": 8000,
+@@ -5434,7 +5379,6 @@
+   },
+   {
+    "name": "コンゴ王国",
+-   "broadMoneyToGdp": 0.1,
+    "rule": [0.1, 0.7, 0.0, 0.2],
+    "nobility": 60,
+    "peasant": 500,
+@@ -5499,7 +5443,6 @@
+   },
+   {
+    "name": "アルジェ摂政国",
+-   "broadMoneyToGdp": 0.1,
+    "rule": [0.4, 0.4, 0.0, 0.2],
+    "nobility": 200,
+    "peasant": 2000,
+@@ -5578,7 +5521,6 @@
+   },
+   {
+    "name": "オヨ帝国",
+-   "broadMoneyToGdp": 0.1,
+    "rule": [0.25, 0.6, 0.0, 0.15],
+    "nobility": 150,
+    "peasant": 1500,
+@@ -5643,7 +5585,6 @@
+   },
+   {
+    "name": "ボルヌ帝国",
+-   "broadMoneyToGdp": 0.1,
+    "rule": [0.3, 0.5, 0.0, 0.2],
+    "nobility": 120,
+    "peasant": 1200,
+@@ -5697,7 +5638,6 @@
+   },
+   {
+    "name": "ハワイ王国",
+-   "broadMoneyToGdp": 0.1,
+    "rule": [0.15, 0.8, 0.0, 0.05],
+    "nobility": 25,
+    "peasant": 200,
+diff --git a/PriceOfBread.Tests/ConservationTests.cs b/PriceOfBread.Tests/ConservationTests.cs
+index c7c6eec..e725eda 100644
+--- a/PriceOfBread.Tests/ConservationTests.cs
++++ b/PriceOfBread.Tests/ConservationTests.cs
+@@ -323,6 +323,10 @@ public class ConservationTests
+     //   段を単離して1回だけ呼ぶ（MultiNationSim.MigrateBetweenNations は internal）。6か国（英・仏・米・普・露・西）＝行き先が複数ある盤面。
+     //   外交は止める（戦争で州が動くと移民の前後が比べられない）。1四半期だけ回して州の食料充足と機会を実体化してから測る。
+ 
++    // (224) 盤面の機会の差の閾値：既定 0.5 のままだと、英の階級の構成が出典（農業が最大の部門）へ直った盤面では1783年の1四半期の目に見える差が閾値に届かず
++    //   誰も移らない（番人が何も検査しない）。次の番人が見るのは保存・上限・床の規則＝閾値を下げて必ず流れが立つ盤面にする（差が0以下の国へ行かない番人だけは 1e9 のまま）。
++    private const double MigrationGapForBoard = 0.2;
++
+     private static MultiNationSim MigrationBoard(Coefficients? coef = null)
+     {
+         var sim = new MultiNationSim([WorldData.ByName("イギリス"), WorldData.ByName("フランス"), WorldData.ByName("アメリカ"),
+@@ -343,7 +347,7 @@ public class ConservationTests
+     [Fact]
+     public void 国家間移民の段の前後で世界の総人口と基礎貨幣は変わらない()
+     {
+-        var sim = MigrationBoard();
++        var sim = MigrationBoard(new Coefficients { CrossBorderOppGapThreshold = MigrationGapForBoard });
+         var (p0, m0) = MigrationWorldTotals(sim);
+         sim.MigrateBetweenNations();
+         var (p1, m1) = MigrationWorldTotals(sim);
+@@ -359,7 +363,7 @@ public class ConservationTests
+     [Fact]
+     public void 国家間移民の流出は行き先の数によらず上限を1回だけ()
+     {
+-        var sim = MigrationBoard(new Coefficients { ImmigrationReceiveCapFrac = 1e9, ImmigrationAbsorbExponent = 0, EmigrationRate = 1.0 });
++        var sim = MigrationBoard(new Coefficients { ImmigrationReceiveCapFrac = 1e9, ImmigrationAbsorbExponent = 0, EmigrationRate = 1.0, CrossBorderOppGapThreshold = MigrationGapForBoard });
+         var c = sim.Coef;
+         var bound = new List<(Pop Pop, double Size0, double Cap)>();
+         foreach (var n in sim.Nations)
+@@ -397,7 +401,7 @@ public class ConservationTests
+     {
+         double Inflow(string name, ImmigrationLaw law, out double capNoAbsorb)
+         {
+-            var sim = MigrationBoard(new Coefficients { ImmigrationReceiveCapFrac = 1e-7 });
++            var sim = MigrationBoard(new Coefficients { ImmigrationReceiveCapFrac = 1e-7, CrossBorderOppGapThreshold = MigrationGapForBoard });
+             var dst = sim.Nations.First(n => n.World.SelfPower?.BaseName == name).World;
+             dst.ImmigrationRestriction = law;
+             capNoAbsorb = sim.Coef.ImmigrationReceiveCapFrac * dst.TotalPopulation * (law == ImmigrationLaw.Closed ? sim.Coef.ImmigrationClosedFrac : 1.0);
+@@ -477,7 +481,7 @@ public class ConservationTests
+     {
+         (Region R, double Size0, double Size1) Run(bool wideLand)
+         {
+-            var sim = MigrationBoard();
++            var sim = MigrationBoard(new Coefficients { CrossBorderOppGapThreshold = MigrationGapForBoard });
+             var c = sim.Coef;
+             // 送出州＝盤面で最も残る値打ちの低い州（農民の居る稼働中の州）
+             Region? src = null; World? sw = null; double low = double.PositiveInfinity;
+diff --git a/PriceOfBread.Tests/FiscalTests.cs b/PriceOfBread.Tests/FiscalTests.cs
+index 7bd52f0..57e1fd1 100644
+--- a/PriceOfBread.Tests/FiscalTests.cs
++++ b/PriceOfBread.Tests/FiscalTests.cs
+@@ -136,7 +136,7 @@ public class FiscalTests
+             w.TaxRate = 0.1; w.Coef.TitheRate = 0;
+             foreach (var r in w.Regions) foreach (var q in r.Pops) { q.Earned = 0; q.LastEarned = 0; }
+             Pop? p = null;
+-            foreach (var r in w.Regions) foreach (var q in r.Pops) if (p is null && !q.IsSoldier && q.Size > 1 && q.Savings > 1e6) p = q;
++            foreach (var r in w.Regions) foreach (var q in r.Pops) if (p is null && !q.IsSoldier && q.Size > 1 && q.Savings > 1e4) p = q;   // (224) 旧 1e6＝旧の英の資本家の厚み。課税の額（1000×0.1）を払える貯蓄があれば足りる
+             Assert.True(p is not null, "前提が崩れた：貯蓄の厚い POP が無い");
+             if (last) p!.LastEarned = 1000; else p!.Earned = 1000;
+             double t0 = w.TreasuryLedger[(int)TreasuryCat.Tax];
+diff --git a/PriceOfBread.Tests/MobilityTests.cs b/PriceOfBread.Tests/MobilityTests.cs
+index 6f7e172..f4cfd1f 100644
+--- a/PriceOfBread.Tests/MobilityTests.cs
++++ b/PriceOfBread.Tests/MobilityTests.cs
+@@ -77,12 +77,13 @@ public class MobilityTests
+         var r = sim.World.Region;
+         r.Markets[Catalog.PaperId].Stock = 1e6;   // ★2026-08-23：閉じた英国は綿花なし→紙（教育の投入）が立たない＝多国世界の交易/植民地財の代替として紙を外生供給（検証対象は就学需要→教師の補充）
+         r.Markets[Catalog.Goods.First(g => g.Name == "書籍").Id].Stock = 1e6;   // 教育の投入は技術で紙→書籍へ切り替わる＝書籍も外生供給
++        double teacher0 = r.Pops[7].Size;   // (224) 教育の生産の床はこの州の教師の数に比例させる（旧の絶対の床 50 ＝旧の英の教師 31.6千人〔首都州〕の 1.58 倍・本物の構成では教師 12.2千人）
+         sim.Run(240);
+         double childShare = r.Pops[2].AgeShare(0, 15);   // 工場労働者の15歳未満の割合（粗出生で補充され続ける・年齢の層）
+         Assert.True(childShare > 0.2, $"成熟社会で子供が払底した（子供比率 {childShare:P0}）＝粗出生の補充が機能していない");
+         var edu = r.Markets[Catalog.EducationId];
+-        Assert.True(edu.LastProduced > 50, $"教育の生産が崩壊した（{edu.LastProduced:F1}）＝就学需要に教師の供給が応えていない");
+-        Assert.True(r.Pops[7].Size > 8, $"教師が枯渇した（{r.Pops[7].Size:F0}人）＝給与シグナルが教師に志望者を呼べていない");
++        Assert.True(edu.LastProduced > 1.58 * teacher0, $"教育の生産が崩壊した（{edu.LastProduced:F1}・教師 {teacher0:F1}千人あたり床 {1.58 * teacher0:F1}）＝就学需要に教師の供給が応えていない");
++        Assert.True(r.Pops[7].Size > 0.25 * teacher0, $"教師が枯渇した（{r.Pops[7].Size:F0}千人・始め {teacher0:F1}）＝給与シグナルが教師に志望者を呼べていない");   // (224) 旧＝絶対の床 8（旧の始めの教師 31.6千人の 1/4）
+     }
+ 
+     [Fact]
+diff --git a/PriceOfBread.Tests/MultiNationTests.cs b/PriceOfBread.Tests/MultiNationTests.cs
+index a6564fe..74e320d 100644
+--- a/PriceOfBread.Tests/MultiNationTests.cs
++++ b/PriceOfBread.Tests/MultiNationTests.cs
+@@ -262,9 +262,14 @@ public class MultiNationTests
+         Assert.Equal(0.0, japan.Industrialization);
+         Assert.True(britain.Industrialization > 0.0, "イギリスは工業先進のはず");
+         double japanPeasantShare = japan.Pops[1].Size / japan.SumPopulation();
++        double britainPeasantShare = britain.Pops[1].Size / britain.SumPopulation();
++        double japanWorkerShare = japan.Pops[2].Size / japan.SumPopulation();
+         double britainWorkerShare = britain.Pops[2].Size / britain.SumPopulation();
+         Assert.True(japanPeasantShare > 0.6, "日本は農民が多数のはず");
+-        Assert.True(britainWorkerShare > britain.Pops[1].Size / britain.SumPopulation(), "イギリスは農民より労働者が多いはず");
++        // (224) 旧＝「イギリスは農民より労働者が多い」は旧の構成（工場労働者 41%・農民 23%）の主張。出典（Allen 2017 の改訂 Colquhoun・1798）では農業が最大の部門
++        //   （農民 49〜56%・工場労働者 27〜31%）なので、主張を「日本より農民が少なく工場労働者が多い＝工業先進」へ（差別化の主題は同じ）。
++        Assert.True(britainPeasantShare < japanPeasantShare, "イギリスは日本より農民が少ないはず");
++        Assert.True(britainWorkerShare > 2 * japanWorkerShare, "イギリスは日本より工場労働者が多いはず");
+     }
+ 
+     [Fact]
+diff --git a/PriceOfBread.Tests/NationModelTests.cs b/PriceOfBread.Tests/NationModelTests.cs
+index bbf332e..64e2f6f 100644
+--- a/PriceOfBread.Tests/NationModelTests.cs
++++ b/PriceOfBread.Tests/NationModelTests.cs
+@@ -114,4 +114,46 @@ public class NationModelTests
+         m.StepQuarter();
+         Assert.Equal(MonetaryStandardLaw.Gold, m.Nations[0].World.MonetaryLaw);
+     }
++
++    /// <summary>
++    /// (224) 段1：英の本国（植民地格の州を除く）の階級の構成は出典の写しの線の内に置く。
++    /// 出典＝Allen (2017) NYUAD WP 0002 Appendix Table 3（Colquhoun を Lindert &amp; Williamson 1982 が改訂・England and Wales 1798）に、
++    /// スコットランド（E&amp;W と同じ形）とアイルランド（農業 0.70【推】）を人口で混ぜた写し（measurements/ini3_20261009_mix.py）。
++    /// 旧（資本家が設定人口の16%・工場労働者41%・本国の人口＝設定 14.0M＋使用人 2.36M）は線の外＝突然変異（旧の値へ戻す）で赤。
++    /// 使用人は設定の総数の内側（欄の和＋使用人＝14,000千人）＝二重に数えない。
++    /// </summary>
++    [Fact]
++    public void 英の本国の階級の構成は出典の写しの線の内にあり使用人は総数の内側にある()
++    {
++        var sim = new MultiNationSim([NationConfig.Britain()], 1789UL, _ => new UtilityAgent());
++        var w = sim.Nations[0].World;
++        var by = new Dictionary<string, double>();
++        double tot = 0;
++        foreach (var r in w.Regions)
++        {
++            if (r.State != RegionState.Active || r.Tier == RegionTier.Colonial) continue;
++            foreach (var p in r.Pops) { by[p.ClassName] = by.GetValueOrDefault(p.ClassName) + p.Size; tot += p.Size; }
++        }
++        double Share(string cls) => by.GetValueOrDefault(cls) / tot;
++        Assert.InRange(tot, 13_860.0, 14_140.0);          // 設定の和＋使用人＝14,000千人の±1%（使用人を総数の外へ上乗せしない）
++        Assert.InRange(Share("資本家"), 0.010, 0.035);    // 雇用して資本を回す人 1.3〜1.7%・Allen の bourgeoisie 3.2%
++        Assert.InRange(Share("農民"), 0.45, 0.60);        // E&W 日付合わせ後 48.7%・アイルランド込み 55.8%
++        Assert.InRange(Share("工場労働者"), 0.20, 0.35);  // E&W 31.0%・混ぜた後 27.3%
++    }
++}
++
++/// <summary>
++/// (224) 機構の番人の盤面用：階級の構成が出典へ直る前（資本家が設定人口の16%・工場労働者41%・専門職 6.9%・使用人を設定の外へ上乗せ）の英。
++/// 貯蓄は階級の1000人あたり定数（Simulation.cs:837-857・段2 で置き換える）なので、人数を史実へ直すと富の順（資本家の厚み）が変わる。
++/// 次の番人は**資本の厚い工業国**を前提に機構（政党の選好・法の通りやすさ・制度の施行）を見る＝構成のデータの値には依らない。
++/// 前提を持ち込む番人にだけ使う（他の英の番人は本物の英のまま）。段2 で貯蓄の式が直ったら本物の英へ戻せるか確かめる。
++/// </summary>
++internal static class LegacyBritain
++{
++    internal static NationConfig Config()
++    {
++        var c = NationConfig.Britain().ShallowClone();
++        c.Nobility = 193; c.Peasant = 3210; c.Worker = 5780; c.Bourgeois = 2248; c.Professional = 963; c.Merchant = 450; c.Artisan = 1156; c.ClergyFrac = 0.4;
++        return c;
++    }
+ }
+diff --git a/PriceOfBread.Tests/PartyTests.cs b/PriceOfBread.Tests/PartyTests.cs
+index 5dde72d..56b8cd0 100644
+--- a/PriceOfBread.Tests/PartyTests.cs
++++ b/PriceOfBread.Tests/PartyTests.cs
+@@ -80,7 +80,7 @@ public class PartyTests
+     /// <summary>英（開幕＝立憲君主制）に議席を直接置いた世界。選挙も不信任も公示も走らない四半期に合わせる（QuartersSinceElection=0→Step 内で1）。</summary>
+     private static World SeatedBritain(ulong seed, int gov, double govSeat)
+     {
+-        var w = new Simulation(NationConfig.Britain().ToScenario(seed), new NullAgent()).World;
++        var w = new Simulation(LegacyBritain.Config().ToScenario(seed), new NullAgent()).World;   // (224) 資本の厚い英を前提にする番人（LegacyBritain の注記）
+         Assert.Equal(Polity.ConstitutionalMonarchy, w.Polity);   // 前提＝選挙のある政体（旧＝綱領が走った政体）
+         double rest = 1.0 - govSeat;
+         w.PartySeats[gov] = govSeat;
+diff --git a/PriceOfBread.Tests/RevoltIgnitionTests.cs b/PriceOfBread.Tests/RevoltIgnitionTests.cs
+index ed23006..708f8be 100644
+--- a/PriceOfBread.Tests/RevoltIgnitionTests.cs
++++ b/PriceOfBread.Tests/RevoltIgnitionTests.cs
+@@ -412,7 +412,7 @@ public class RevoltIgnitionTests
+     // ============================================================================================
+     private static (World W, FactionState F) 段4_絶望した州に小さな運動を置く(double regionMilitancy, double fight, double rejections)
+     {
+-        var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
++        var sim = new Simulation(LegacyBritain.Config().ToScenario(41), new NullAgent());   // (224) 資本の厚い英を前提にする番人（LegacyBritain の注記）
+         // 初期の国債（world.json の govDebt＝1783年の英 年GDP の約1.1・2026-09-29）を構築の直後に消す＝旧の盤面（英の初期国債0）と同じ状態から回す。
+         //   ⚠初期の国債があると「緊縮の下限／上限」の門が人頭税と社会保障の段を塞ぎ、この盤面が測る法の経路（受諾・施行・通らない段）の前提が崩れる（門そのものの番人は別）。
+         //   2026-09-29 に緊縮の物差しを年の名目GDP へ直した後も戻さない＝英の1783年の国債（年GDP の約1.1）は満額（AusterityStartDebt＋AusterityRange＝1.0）を越える
+diff --git a/PriceOfBread.Tests/StartWarmupTests.cs b/PriceOfBread.Tests/StartWarmupTests.cs
+index 761628f..24c2143 100644
+--- a/PriceOfBread.Tests/StartWarmupTests.cs
++++ b/PriceOfBread.Tests/StartWarmupTests.cs
+@@ -355,64 +355,72 @@ public class StartWarmupTests
+         Assert.True(Turbulence(4) < Turbulence(0), "助走は開幕の価格の荒れを減らすはず");
+     }
+ 
+-    // === (220) 開幕の貨幣の置き直し（world.json の broadMoneyToGdp＝NationConfig.BroadMoneyToGdp・係数 InitMoneyMode / InitInvestorMoneyShare / InitMoneyScale）===
+-    //   ★採否未定の間は既定の InitMoneyMode=0（置かない・旧と同じ軌道）＝番人は係数を明示して ON 経路で回す（「何もしない機構は必ず緑」の轍を踏まない）。
+-    //   助走を4四半期に縮めた盤面で見る（置き直しは助走の終わりに1回・規則は助走の長さに依らない）。
++    // === (230) 開幕の貯蓄の規則（world.json の broadMoneyToIncome＝NationConfig.BroadMoneyToIncome＝m・係数 SavingsYearsByClass は配分の形だけ）===
++    //   m＞0 の国（今は英だけ）の助走の中の 2/3 点と終わりに、全ての POP の貯蓄が λ × k[階級] × 12 × LastEarned で置かれる（λ ＝ m × Σ正の LastEarned ÷ Σ k×LastEarned＝導ける量）。
++    //   ⇒ 置き直し直後の ΣSavings ÷ (12 × Σ正の LastEarned) ＝ m。旧 (220) の 比×年名目GDP の表（broadMoneyToGdp・InitMoneyMode）は導ける量なので外した。
++    //   助走を4四半期に縮めた盤面で見る（中点は 4×2/3＝2 四半期目の終わり・規則は助走の長さに依らない）。
+ 
+-    private static MultiNationSim BuildWithMoney(int mode, double scale = 1.0, Func<NationConfig, NationConfig>? edit = null)
++    /// <summary>m を world.json のまま（null）か、全ての国で同じ値に揃えた世界を作る。</summary>
++    private static MultiNationSim BuildSavings(double? mAll = null)
+     {
+-        var sim = new MultiNationSim([.. WorldData.Nations().Select(c => edit is null ? c : edit(c))], 1789UL, _ => new UtilityAgent());
+-        foreach (var n in sim.Nations) { n.World.Coef.InitMoneyMode = mode; n.World.Coef.InitMoneyScale = scale; }
+-        return sim;
++        var cfgs = WorldData.Nations().Select(c => { if (mAll is null) return c; var c2 = c.ShallowClone(); c2.BroadMoneyToIncome = mAll.Value; return c2; });
++        return new MultiNationSim([.. cfgs], 1789UL, _ => new UtilityAgent());
+     }
+ 
+-    private static (double Inv, double Oth, double GdpY) MoneySplit(World w)
+-    {
+-        double inv = 0, oth = 0;
+-        foreach (var r in w.Regions) foreach (var p in r.Pops) { double s = System.Math.Max(0, p.Savings); if (CapitalMarket.IsInvestor(p, w.Coef)) inv += s; else oth += s; }
+-        return (inv, oth, w.NominalGdp * Calendar.MonthsPerYear);
+-    }
+-
+-    /// <summary>★(220) データ（broadMoneyToGdp）を持つ全ての国で、モード1は投資家の貯蓄が 比×取り分×年名目GDP の規則の値になり他の階級は不変、モード2は他の階級も 比×(1−取り分)×年名目GDP になる。
+-    /// 比が0の国（データを外した対照）は置き直さない。置かない対照（モード0）は規則の値の何倍もある（ON 経路の確認）。
+-    /// ⚠壊し方＝助走の後の置き直しを呼ばない（規則の値が出ず赤）・モードを見ずに他の階級まで掛ける（モード1の「他の階級は不変」が赤）・比0の国にも掛ける（赤）。</summary>
++    /// <summary>★(230) m＞0 の国だけ、助走の直後の ΣSavings ÷ (12 × Σ正の LastEarned) が m に（相対差 1e-9）入り、全ての POP の 貯蓄 ÷ (k × 12 × LastEarned) が同じ倍率 λ（k が正で所得が正の POP）・
++    /// 所得が正でない POP は貯蓄 0。置き直しは冪等（もう一度呼んでも全 POP の貯蓄が変わらない＝2回目も同じ M/Y）。m＝0 の国は置き直しを呼んでも何も動かない（構築の値のまま）。
++    /// データの m は英だけ（国名の分岐はコードに無い）。置かない対照では英の M/Y は m の3倍を超える（ON 経路の確認＝構築の定数は英で年GDPの16倍）。
++    /// ⚠壊し方＝λ を 1 に固定する（M/Y が m から外れて赤）・k の表の添字を階級 id でなく固定にする（λ が POP でばらついて赤）・助走の後の2回目を呼ばない（中点から終わりの流れで M/Y が m から外れて赤）・
++    /// 所得が正でない POP の貯蓄を 0 にしない（赤）・m を見ずに全ての国へ掛ける（m＝0 の国が動いて赤）。</summary>
+     [Fact]
+-    public void 開幕の貨幣は史実の比の規則の値で置かれる_モード1は投資家だけ_モード2は全階級()
++    public void 開幕の貯蓄はmの国だけ階級の配分の形で置かれ_M_Yがmに入り_冪等()
+     {
+-        var ctl = BuildWithMoney(0); ctl.StartWarmup(null, 4);
+-        var m1 = BuildWithMoney(1); m1.StartWarmup(null, 4);
+-        var m2 = BuildWithMoney(2); m2.StartWarmup(null, 4);
+-        const double share = 0.67;
+-        int checkedNations = 0;
+-        for (int i = 0; i < m1.Nations.Count; i++)
++        var ctl = BuildSavings(0.0); ctl.StartWarmup(null, 4);
++        var sim = BuildSavings(); sim.StartWarmup(null, 4);
++        var years = sim.Nations[0].World.Coef.SavingsYearsByClass;
++        Assert.Equal(14, years.Length);
++        int flagged = 0; string flaggedName = ""; double moneyOn = 0, moneyOff = 0;
++        for (int i = 0; i < sim.Nations.Count; i++)
+         {
+-            var w1 = m1.Nations[i].World; var w2 = m2.Nations[i].World; var w0 = ctl.Nations[i].World;
+-            string name = w1.SelfPower?.BaseName ?? "?";
+-            Assert.True(w1.BroadMoneyToGdp > 0, $"{name} に broadMoneyToGdp が無い（データの穴）");
+-            var (inv1, oth1, gdp1) = MoneySplit(w1); var (inv2, oth2, gdp2) = MoneySplit(w2); var (inv0, oth0, gdp0) = MoneySplit(w0);
+-            Assert.Equal(gdp0, gdp1, 6);   // 置き直しは助走の終わりの産出に触れない（分母が腕で変わらない）
+-            Assert.Equal(w1.BroadMoneyToGdp * share, inv1 / gdp1, 6);
+-            Assert.Equal(oth0, oth1, 6);   // モード1は他の階級に触れない
+-            Assert.Equal(w2.BroadMoneyToGdp * share, inv2 / gdp2, 6);
+-            Assert.Equal(w2.BroadMoneyToGdp * (1 - share), oth2 / gdp2, 6);
+-            Assert.True(inv0 / gdp0 > 3 * w1.BroadMoneyToGdp, $"{name} 置かない対照の投資家の貯蓄÷年GDP {inv0 / gdp0:F2}");
+-            checkedNations++;
++            var w = sim.Nations[i].World; var w0 = ctl.Nations[i].World;
++            Assert.Equal(0.0, w0.BroadMoneyToIncome);
++            var pops = w.Regions.SelectMany(r => r.Pops).ToArray();
++            double[] before = pops.Select(p => p.Savings).ToArray();
++            w.RebaseOpeningMoney();   // 2回目（冪等）／m＝0 の国は何もしない
++            for (int j = 0; j < pops.Length; j++) Assert.Equal(before[j], pops[j].Savings, 9);
++            if (!(w.BroadMoneyToIncome > 0)) continue;
++            flagged++; flaggedName = w.SelfPower?.BaseName ?? "?";
++            double inc = pops.Where(p => p.LastEarned > 0).Sum(p => p.LastEarned);
++            double money = pops.Sum(p => p.Savings);
++            Assert.True(inc > 0);
++            Assert.Equal(w.BroadMoneyToIncome, money / (Calendar.MonthsPerYear * inc), 9);
++            double lambda = double.NaN;
++            foreach (var p in pops)
++            {
++                double k = years[p.ClassId];
++                if (!(k > 0 && p.LastEarned > 0)) { Assert.Equal(0.0, p.Savings); continue; }
++                double l = p.Savings / (k * Calendar.MonthsPerYear * p.LastEarned);
++                if (double.IsNaN(lambda)) lambda = l; else Assert.Equal(lambda, l, 9);
++            }
++            Assert.True(lambda > 0);
++            moneyOn += money / (Calendar.MonthsPerYear * inc);
++            var w0pops = w0.Regions.SelectMany(r => r.Pops).ToArray();
++            double inc0 = w0pops.Where(p => p.LastEarned > 0).Sum(p => p.LastEarned);
++            moneyOff += w0pops.Sum(p => p.Savings) / (Calendar.MonthsPerYear * System.Math.Max(1e-9, inc0));
+         }
+-        Assert.Equal(61, checkedNations);
+-
+-        var off = BuildWithMoney(1, 1.0, c => { var c2 = c.ShallowClone(); c2.BroadMoneyToGdp = 0; return c2; }); off.StartWarmup(null, 4);
+-        for (int i = 0; i < off.Nations.Count; i++)
+-            Assert.Equal(MoneySplit(ctl.Nations[i].World).Inv, MoneySplit(off.Nations[i].World).Inv, 6);   // 比0の国は置き直さない
++        Assert.Equal(1, flagged);
++        Assert.Equal("イギリス", flaggedName);   // m＞0 の国は英だけ（段3 で全国にして旗ごと消す）
++        Assert.True(moneyOff > 3 * moneyOn, $"英の M/Y 置かない対照 {moneyOff:F2} / 置いた {moneyOn:F2}（構築の定数は m の3倍を超えるはず）");
+     }
+ 
+-    /// <summary>★(220) 置き直した後も保存則が保たれ（毎月の検査が投げない）、貨幣の厚みの趨勢の取り直しで物価水準が床へ落ちない（置かない対照と同じ種・英仏露清でモード1）：
+-    /// 投資家の貯蓄を減らすと広義の貨幣÷産出が下がる＝趨勢を取り直さなければ物価水準が趨勢との比へ向かって落ちる（(218) 実測＝英で8四半期で 0.61 倍）。
+-    /// 物価水準は置かない対照の同じ国と比べる（水準そのものは国ごとに助走の後も動く）。
+-    /// ⚠壊し方＝趨勢 _moTrend を取り直さない → 8四半期で対照の0.65倍を割る国が出る（赤）。</summary>
++    /// <summary>★(230) 置き直した後も保存則が保たれ（毎月の検査が投げない）、貨幣の厚みの趨勢の取り直しで物価水準が床へ落ちない（m＝0 の対照と同じ種・英仏露清）：
++    /// 英の貯蓄を大きく減らすと広義の貨幣÷産出が下がる＝趨勢を取り直さなければ物価水準が趨勢との比へ向かって落ちる（(218) 実測＝英で8四半期で 0.61 倍）。
++    /// 物価水準は m を全て 0 にした同じ種の対照と比べる（水準そのものは国ごとに助走の後も動く）。2回の置き直し（中点と終わり）の後の軌道で見る。
++    /// ⚠壊し方＝趨勢 _moTrend を取り直さない → 8四半期で対照の0.65倍を割る（赤）。</summary>
+     [Fact]
+     public void 置き直しの後も保存則が保たれ_物価水準は置かない対照と比べて床へ向かわない()
+     {
+-        var sim = BuildWithMoney(1); var ctl = BuildWithMoney(0);
++        var sim = BuildSavings(); var ctl = BuildSavings(0.0);
+         sim.StartWarmup(null, 4); ctl.StartWarmup(null, 4);
+         string[] watch = ["イギリス", "フランス", "ロシア", "清"];
+         var idx = Enumerable.Range(0, sim.Nations.Count).Where(i => watch.Contains(sim.Nations[i].World.SelfPower?.BaseName ?? "")).ToArray();
+diff --git a/PriceOfBread.Tests/TechInstitutionTests.cs b/PriceOfBread.Tests/TechInstitutionTests.cs
+index 1f045fd..2a56443 100644
+--- a/PriceOfBread.Tests/TechInstitutionTests.cs
++++ b/PriceOfBread.Tests/TechInstitutionTests.cs
+@@ -16,7 +16,7 @@ namespace PriceOfBread.Tests;
+ public class TechInstitutionTests
+ {
+     private static NationConfig[] Four() =>
+-        [NationConfig.France(), NationConfig.Japan(), NationConfig.Britain(), NationConfig.America()];
++        [NationConfig.France(), NationConfig.Japan(), LegacyBritain.Config(), NationConfig.America()];   // (224) 資本の厚い英を前提にする番人（LegacyBritain の注記）
+ 
+     /// <summary>主張＝「自由な報道と公教育を持つ国は、世界の技術水準へ届く（停滞帯の床 t&gt;1.10 を越え、宗教教育に固定した国の1.3倍を超える）」。
+     /// これは**機構**の主張（<see cref="TechEducation.GrowTech"/> の革新項は 自由≥閾値 × 公教育 × 報道の自由 で開く）なので、
+diff --git a/PriceOfBread.Tests/WriterRatchetTests.cs b/PriceOfBread.Tests/WriterRatchetTests.cs
+index 49033c3..10bac33 100644
+--- a/PriceOfBread.Tests/WriterRatchetTests.cs
++++ b/PriceOfBread.Tests/WriterRatchetTests.cs
+@@ -426,7 +426,10 @@ public class WriterRatchetTests
+     // ★2026-10-04 表の更新（(197) 合流＝(194) と (195) を合わせ k/N に植民地を数える〔ScarceCountsIncludeColonies〕を点火した木の実測・1種40四半期）：
+     //   覇権の判定 1,801,372（(194) の宣言 2,574,518 と (195) の宣言 1,614,601 の間＝(194) の海路の接触で動いた軌道と (195) の旧の判断の SideMilitary を消した分が重なった・処理の形は (195) のまま）・
+     //   建設 8,204→7,000（−14.7%）・請求 3,013→2,626（−12.8%）＝10% を超えて下がった＝表を下げた（どちらも軌道＝処理の形は同じ）。合わせただけの木（点火の前）は 1,916,631・7,706・2,970。全長の10種は実装ログ (197)。
+-    [InlineData(CostLedger.DiploHegemonScans, 1801372L)]
++    // ★2026-10-09 表の更新（(224) 段1＝英の階級の構成を出典へ〔world.json の英の欄だけ〕＝軌道が動いた分の宣言・新しい計数の処理は無い〔データの値だけ〕）：
++    //   覇権の判定 1,801,372→1,871,823（+3.9%＝最初の40四半期の同盟の候補が居る月の軌道・処理の形は同じ）。ほかの16本は許しの内（+2%／−10%・フルスイートで確かめた）。
++    //   全長の10種（計器つきの腕）の推定は 242.1→243.5 秒（上限 248.5 秒の内・払っていない・実装ログ (224)）。
++    [InlineData(CostLedger.DiploHegemonScans, 1871823L)]
+     [InlineData(CostLedger.QuarterStartPops, 235560L)]
+     [InlineData(CostLedger.QuarterEndPops, 235560L)]
+     [InlineData(CostLedger.SharedNationQuarters, 3698L)]
