@@ -383,7 +383,7 @@ public class WriterRatchetTests
     //   新しい計数「発見：平滑化した値段の歩（国×四半期）」＝数えていなかった Discovery.AdvancePrice（単価 19.63 µs）＝2,503（40四半期）。
     //   覇権の判定 1,682,840→1,801,994（+7.1%＝最初の40四半期の同盟の候補が居る月の軌道・処理の形は同じ）。ほかは許しの内（フルスイートで確かめた）。
     //   全長の10種（b10_20261003_cap186.cost）の推定は実装ログ (186)。
-    [InlineData(CostLedger.ConstructionSeen, 7000L)]
+    [InlineData(CostLedger.ConstructionSeen, 7299L)]
     [InlineData(CostLedger.CreditSpans, 34146L)]
     [InlineData(CostLedger.ConsumePopGoods, 28595736L)]
     [InlineData(CostLedger.ProducerMonths, 6495176L)]
@@ -434,7 +434,11 @@ public class WriterRatchetTests
     // ★2026-10-10 表の更新（(232) 線M 後半＝段7 識字と制度〔識字を国の基準1本×階級のオッズの比で・法の区分 F2・ethnicUnity を外す〕＝軌道が動いた分の宣言・新しい計数の処理は無い
     //   〔識字の式は構築時に州ごと1回の四則・60回の二分法〕）：覇権の判定 3,253,171→3,476,619（+6.9%＝最初の40四半期の同盟の候補が居る月の軌道・処理の形は同じ）・発見：国×四半期 2,532→2,585（+2.1%＝許しの +2% を僅かに超えた軌道）。
     //   ほかの17本は許しの内（+2%／−10%・フルスイートで確かめた）。全長の10種（計器つきの腕 ALL）の推定は測定の表 measurements/lit232_20261010（上限 248.5 秒の内・払っていない）。
-    [InlineData(CostLedger.DiploHegemonScans, 3476619L)]
+    // ★2026-10-10 表の更新（(233) 合流＝線M を main へ・開幕の治安維持力の導出 C とロシアの地主の取り分 0.54 を差し戻した木〔反証役の高2件〕＝軌道が動いた分の宣言・新しい計数の処理は無い
+    //   〔差し戻しは e17b691 の値と式へ戻すだけ〕）：覇権の判定 3,476,619→2,104,027（−39.5%＝10% を超えて下がった＝表を下げる・C で増えていた分離独立の国が減った最初の40四半期の軌道）・
+    //   建設：見た生産者（旬）7,000→7,299（+4.3%＝許しの +2% を超えた軌道・処理の形は同じ＝(197) の 8,204 より下）。ほかの17本は許しの内（+2%／−10%・フルスイートで確かめた）。
+    //   全長の10種（計器なし `b10_20261010_r233`）の推定 243.0 秒＝r229 と同じ（上限 248.5 秒の内・払っていない・実装ログ (233)）。
+    [InlineData(CostLedger.DiploHegemonScans, 2104027L)]
     [InlineData(CostLedger.QuarterStartPops, 235560L)]
     [InlineData(CostLedger.QuarterEndPops, 235560L)]
     [InlineData(CostLedger.SharedNationQuarters, 3794L)]

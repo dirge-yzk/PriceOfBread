@@ -131,13 +131,16 @@ public class LiteracyTests
     }
 
     [Fact]
-    public void 回232_法の区分_スウェーデンの農奴制は無く割当兵制_墺は1781年に人格的な農奴制を廃止_露の私有農奴は5割強()
+    public void 回232_法の区分_スウェーデンの農奴制は無く割当兵制_墺は1781年に人格的な農奴制を廃止_露は農奴制の目盛りのまま()
     {
         var by = WorldData.Nations().ToDictionary(c => c.Name);
         Assert.Equal(ReformLevel.Full, by["スウェーデン"].InitialSerfEmancipation);          // 農奴制は無かった
         Assert.Equal(ConscriptionLaw.Selective, by["スウェーデン"].InitialConscription);     // 割当兵制（indelningsverket）
         Assert.InRange(by["スウェーデン"].FarmLordShare, 0.30, 0.36);                        // 貴族の免税地 約33%（Karl XI の大減封の後）
         Assert.Equal(ReformLevel.Limited, by["オーストリア"].InitialSerfEmancipation);       // 1781 農奴制廃止令（賦役は残る）
-        Assert.InRange(by["ロシア"].FarmLordShare, 0.5, 0.58);                               // 私有農奴 約54%（1796）・国有地農民は地主を持たない
+        // ★(233) 露の 0.54（私有農奴の人口比）は差し戻した＝FarmLordShare は「農場の残余のうち地主が取る割合」で目盛りは 1.0 農奴制・0.8 領主農場・0.5 小作（NationConfig の注記）。
+        //   0.54 は英仏の小作と並び普・オスマン 0.8 より低い＝順位の逆転（規則11 の次元違い・反証役 vm2#1）。国有地農民の地代を国庫へ流す経路ができるまで 1.0。
+        Assert.Equal(1.0, by["ロシア"].FarmLordShare);
+        Assert.True(by["ロシア"].FarmLordShare >= by["プロイセン"].FarmLordShare, "露の地主の取り分が普の領主農場より低い＝目盛りの順位の逆転");
     }
 }
