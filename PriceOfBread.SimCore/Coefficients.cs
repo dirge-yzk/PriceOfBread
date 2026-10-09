@@ -2349,6 +2349,12 @@ public sealed class Coefficients
     // 助走は**暦を進めない**（World.WarmupFrozen）＝何四半期回しても開始は1783/Q1。1914断面(Q524)・全長 GameQuarters・TechOnset の年ゲートは不動。
     public int StartWarmupQuarters = 20;        // 助走の長さ（四半期）。4＝1年（2026-08-10以前の App と同じ長さ）／20＝5年／40＝10年。0で助走なし。★帯はバッチで測って選ぶ
     public int StartWarmupTechIterations = 8;  // 技術の助走の反復回数（旧 GameViewModel のハードコード8）。識字×世俗水路の差を技術差へ実体化（暦も人口も動かさない）
+    // ★(220) 開幕の貨幣の置き直し（NationConfig.BroadMoneyToGdp〔世界の貨幣化の史実の統計〕を助走の終わりに当てる）。0＝置かない（旧＝構築の1人あたりの富のリテラルのまま＝全国で貯蓄が年GDPの16〜82倍）。
+    //   1＝投資家（近代エリート）の貯蓄だけを 比 × InitInvestorMoneyShare × 年名目GDP へ按分／2＝1 に加えて他の階級の貯蓄も 比 ×（1−取り分）× 年名目GDP へ按分（合計＝比 × 年名目GDP）。
+    //   採否未定（2026-10-09 (220)）＝休眠で入れ、POB_COEF で腕を切り替えて測る（既定0＝旧と同じ軌道）。
+    public int InitMoneyMode = 0;
+    public double InitInvestorMoneyShare = 0.67;   // 投資家の貨幣の取り分（英の構築時の投資家の貯蓄 8.64M ÷ 全貯蓄 12.41M〔initsavprobe〕＝0.70・助走後 0.78・全61国の中央は 0.6〜0.7）
+    public double InitMoneyScale = 1.0;            // 比の倍率（1＝貨幣の読み。「投資可能な金融資産」の読み〔年GDPの1〜3倍【推】〕を腕で測るときだけ 1 でなくする・採否の規則の中の係数調整ではない）
 
     public const int GameQuarters = 668;                     // ゲーム全期間＝四半期数（1783/01/01→1950/01/01＝167年・1950延長2026-09-21作者裁定＝旧604（1934拡張2026-07-19）から+64四半期。selfplay/プローブの正準の長さ）
     public const int FidelityQuarters = 524;                 // 史実忠実度の主指標の断面＝Q524（1914年1月1日＝1913年の締め）。裁定2026-07-19：主指標は1914固定（1950延長でも動かさない）

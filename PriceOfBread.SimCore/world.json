@@ -2,6 +2,7 @@
  "nations": [
   {
    "name": "フランス",
+   "broadMoneyToGdp": 0.35,
    "rule": [0.7, 0.28, 0.0, 0.02],
    "nobility": 467,
    "peasant": 18666,
@@ -174,6 +175,7 @@
   },
   {
    "name": "日本",
+   "broadMoneyToGdp": 0.2,
    "rule": [0.4, 0.58, 0.0, 0.02],
    "nobility": 1749,
    "peasant": 22740,
@@ -306,6 +308,7 @@
   },
   {
    "name": "イギリス",
+   "broadMoneyToGdp": 0.5,
    "knownDiscoveries": ["蒸気機関", "特許"],
    "rule": [0.9, 0.1, 0.0, 0.0],
    "nobility": 193,
@@ -588,6 +591,7 @@
   },
   {
    "name": "アメリカ",
+   "broadMoneyToGdp": 0.2,
    "rule": [0.35, 0.55, 0.0, 0.1],
    "nobility": 18,
    "peasant": 2148,
@@ -691,6 +695,7 @@
   },
   {
    "name": "ロシア",
+   "broadMoneyToGdp": 0.2,
    "rule": [0.5, 0.45, 0.0, 0.05],
    "nobility": 566,
    "peasant": 24922,
@@ -1036,6 +1041,7 @@
   },
   {
    "name": "プロイセン",
+   "broadMoneyToGdp": 0.2,
    "rule": [0.7, 0.28, 0.0, 0.02],
    "bureaucracy": "MeritExam",
    "nobility": 166,
@@ -1144,6 +1150,7 @@
   },
   {
    "name": "オスマン",
+   "broadMoneyToGdp": 0.2,
    "rule": [0.5, 0.4, 0.0, 0.1],
    "nobility": 800,
    "peasant": 21000,
@@ -1364,6 +1371,7 @@
   },
   {
    "name": "オーストリア",
+   "broadMoneyToGdp": 0.2,
    "rule": [0.6, 0.37, 0.0, 0.03],
    "nobility": 474,
    "peasant": 17350,
@@ -1560,6 +1568,7 @@
   },
   {
    "name": "ネーデルラント",
+   "broadMoneyToGdp": 0.5,
    "rule": [0.55, 0.45, 0.0, 0.0],
    "nobility": 31,
    "peasant": 461,
@@ -1674,6 +1683,7 @@
   },
   {
    "name": "スペイン",
+   "broadMoneyToGdp": 0.35,
    "rule": [0.65, 0.32, 0.0, 0.03],
    "nobility": 327,
    "peasant": 7428,
@@ -1945,6 +1955,7 @@
   },
   {
    "name": "サルデーニャ＝ピエモンテ",
+   "broadMoneyToGdp": 0.35,
    "rule": [0.75, 0.22, 0.0, 0.03],
    "nobility": 96,
    "peasant": 2318,
@@ -2024,6 +2035,7 @@
   },
   {
    "name": "清",
+   "broadMoneyToGdp": 0.2,
    "rule": [0.6, 0.35, 0.0, 0.05],
    "bureaucracy": "MeritExam",
    "nobility": 14000,
@@ -2370,6 +2382,7 @@
   },
   {
    "name": "朝鮮",
+   "broadMoneyToGdp": 0.2,
    "rule": [0.58, 0.39, 0.0, 0.03],
    "nobility": 1200,
    "peasant": 11000,
@@ -2463,6 +2476,7 @@
   },
   {
    "name": "マラータ同盟",
+   "broadMoneyToGdp": 0.1,
    "rule": [0.15, 0.75, 0.0, 0.1],
    "nobility": 4500,
    "peasant": 38000,
@@ -2580,6 +2594,7 @@
   },
   {
    "name": "マイソール",
+   "broadMoneyToGdp": 0.1,
    "rule": [0.72, 0.23, 0.0, 0.05],
    "nobility": 700,
    "peasant": 5500,
@@ -2654,6 +2669,7 @@
   },
   {
    "name": "ハイデラバード",
+   "broadMoneyToGdp": 0.1,
    "rule": [0.32, 0.6, 0.0, 0.08],
    "nobility": 1200,
    "peasant": 9000,
@@ -2728,6 +2744,7 @@
   },
   {
    "name": "シク連邦",
+   "broadMoneyToGdp": 0.1,
    "rule": [0.1, 0.8, 0.0, 0.1],
    "nobility": 600,
    "peasant": 4500,
@@ -2783,6 +2800,7 @@
   },
   {
    "name": "ビルマ",
+   "broadMoneyToGdp": 0.1,
    "rule": [0.45, 0.47, 0.0, 0.08],
    "nobility": 500,
    "peasant": 3500,
@@ -2848,6 +2866,7 @@
   },
   {
    "name": "ネパール",
+   "broadMoneyToGdp": 0.1,
    "rule": [0.4, 0.5, 0.0, 0.1],
    "nobility": 400,
    "peasant": 2700,
@@ -2901,6 +2920,7 @@
   },
   {
    "name": "シャム",
+   "broadMoneyToGdp": 0.1,
    "rule": [0.4, 0.5, 0.0, 0.1],
    "nobility": 395,
    "peasant": 2636,
@@ -2956,6 +2976,7 @@
   },
   {
    "name": "西山朝",
+   "broadMoneyToGdp": 0.1,
    "rule": [0.25, 0.52, 0.0, 0.23],
    "nobility": 650,
    "peasant": 4550,
@@ -3021,6 +3042,7 @@
   },
   {
    "name": "カンボジア",
+   "broadMoneyToGdp": 0.1,
    "rule": [0.15, 0.55, 0.2, 0.1],
    "nobility": 250,
    "peasant": 1600,
@@ -3073,6 +3095,7 @@
   },
   {
    "name": "ラオス",
+   "broadMoneyToGdp": 0.1,
    "rule": [0.2, 0.65, 0.0, 0.15],
    "nobility": 150,
    "peasant": 900,
@@ -3125,6 +3148,7 @@
   },
   {
    "name": "ペルシャ",
+   "broadMoneyToGdp": 0.1,
    "rule": [0.2, 0.65, 0.0, 0.15],
    "nobility": 524,
    "peasant": 3275,
@@ -3237,6 +3261,7 @@
   },
   {
    "name": "アラビア",
+   "broadMoneyToGdp": 0.1,
    "rule": [0.4, 0.45, 0.0, 0.15],
    "nobility": 120,
    "peasant": 600,
@@ -3299,6 +3324,7 @@
   },
   {
    "name": "イエメン",
+   "broadMoneyToGdp": 0.1,
    "rule": [0.3, 0.55, 0.0, 0.15],
    "nobility": 210,
    "peasant": 1400,
@@ -3361,6 +3387,7 @@
   },
   {
    "name": "オマーン",
+   "broadMoneyToGdp": 0.1,
    "rule": [0.4, 0.5, 0.0, 0.1],
    "nobility": 150,
    "peasant": 700,
@@ -3437,6 +3464,7 @@
   },
   {
    "name": "アフガニスタン",
+   "broadMoneyToGdp": 0.1,
    "rule": [0.2, 0.6, 0.0, 0.2],
    "nobility": 700,
    "peasant": 5000,
@@ -3527,6 +3555,7 @@
   },
   {
    "name": "ブハラ",
+   "broadMoneyToGdp": 0.1,
    "rule": [0.25, 0.6, 0.0, 0.15],
    "nobility": 300,
    "peasant": 1600,
@@ -3581,6 +3610,7 @@
   },
   {
    "name": "ヒヴァ",
+   "broadMoneyToGdp": 0.1,
    "rule": [0.2, 0.55, 0.0, 0.25],
    "nobility": 100,
    "peasant": 500,
@@ -3634,6 +3664,7 @@
   },
   {
    "name": "コーカンド",
+   "broadMoneyToGdp": 0.1,
    "rule": [0.3, 0.5, 0.0, 0.2],
    "nobility": 200,
    "peasant": 1000,
@@ -3688,6 +3719,7 @@
   },
   {
    "name": "モロッコ",
+   "broadMoneyToGdp": 0.1,
    "rule": [0.38, 0.32, 0.0, 0.3],
    "nobility": 500,
    "peasant": 3500,
@@ -3763,6 +3795,7 @@
   },
   {
    "name": "エチオピア",
+   "broadMoneyToGdp": 0.1,
    "rule": [0.1, 0.7, 0.0, 0.2],
    "nobility": 600,
    "peasant": 3000,
@@ -3825,6 +3858,7 @@
   },
   {
    "name": "マダガスカル",
+   "broadMoneyToGdp": 0.1,
    "rule": [0.1, 0.65, 0.0, 0.25],
    "nobility": 300,
    "peasant": 1500,
@@ -3886,6 +3920,7 @@
   },
   {
    "name": "スウェーデン",
+   "broadMoneyToGdp": 0.35,
    "rule": [0.78, 0.18, 0.0, 0.04],
    "nobility": 282,
    "peasant": 1549,
@@ -3974,6 +4009,7 @@
   },
   {
    "name": "デンマーク",
+   "broadMoneyToGdp": 0.35,
    "rule": [0.7, 0.28, 0.0, 0.02],
    "nobility": 245,
    "peasant": 1258,
@@ -4065,6 +4101,7 @@
   },
   {
    "name": "スイス",
+   "broadMoneyToGdp": 0.35,
    "rule": [0.35, 0.65, 0.0, 0.0],
    "nobility": 134,
    "peasant": 801,
@@ -4117,6 +4154,7 @@
   },
   {
    "name": "ポーランド",
+   "broadMoneyToGdp": 0.2,
    "rule": [0.25, 0.7, 0.0, 0.05],
    "nobility": 900,
    "peasant": 7000,
@@ -4210,6 +4248,7 @@
   },
   {
    "name": "ポルトガル",
+   "broadMoneyToGdp": 0.35,
    "rule": [0.68, 0.3, 0.0, 0.02],
    "nobility": 89,
    "peasant": 2066,
@@ -4332,6 +4371,7 @@
   },
   {
    "name": "ジェノヴァ",
+   "broadMoneyToGdp": 0.35,
    "rule": [0.7, 0.3, 0.0, 0.0],
    "nobility": 9,
    "peasant": 212,
@@ -4385,6 +4425,7 @@
   },
   {
    "name": "ライン諸邦",
+   "broadMoneyToGdp": 0.2,
    "rule": [0.35, 0.65, 0.0, 0.0],
    "nobility": 100,
    "peasant": 1600,
@@ -4437,6 +4478,7 @@
   },
   {
    "name": "両シチリア",
+   "broadMoneyToGdp": 0.2,
    "rule": [0.4, 0.5, 0.0, 0.1],
    "nobility": 500,
    "peasant": 5000,
@@ -4519,6 +4561,7 @@
   },
   {
    "name": "教皇領",
+   "broadMoneyToGdp": 0.2,
    "rule": [0.45, 0.45, 0.0, 0.1],
    "nobility": 181,
    "peasant": 1808,
@@ -4597,6 +4640,7 @@
   },
   {
    "name": "トスカーナ",
+   "broadMoneyToGdp": 0.35,
    "rule": [0.8, 0.17, 0.0, 0.03],
    "nobility": 62,
    "peasant": 620,
@@ -4658,6 +4702,7 @@
   },
   {
    "name": "ヴェネツィア",
+   "broadMoneyToGdp": 0.35,
    "knownDiscoveries": ["特許"],
    "rule": [0.65, 0.32, 0.0, 0.03],
    "nobility": 133,
@@ -4737,6 +4782,7 @@
   },
   {
    "name": "バイエルン",
+   "broadMoneyToGdp": 0.2,
    "rule": [0.55, 0.45, 0.0, 0.0],
    "nobility": 91,
    "peasant": 727,
@@ -4790,6 +4836,7 @@
   },
   {
    "name": "ザクセン",
+   "broadMoneyToGdp": 0.2,
    "rule": [0.65, 0.35, 0.0, 0.0],
    "nobility": 108,
    "peasant": 1031,
@@ -4844,6 +4891,7 @@
   },
   {
    "name": "ハノーファー",
+   "broadMoneyToGdp": 0.2,
    "rule": [0.55, 0.45, 0.0, 0.0],
    "nobility": 58,
    "peasant": 527,
@@ -4906,6 +4954,7 @@
   },
   {
    "name": "ヴュルテンベルク",
+   "broadMoneyToGdp": 0.2,
    "rule": [0.5, 0.5, 0.0, 0.0],
    "nobility": 44,
    "peasant": 356,
@@ -4958,6 +5007,7 @@
   },
   {
    "name": "阮氏",
+   "broadMoneyToGdp": 0.1,
    "rule": [0.25, 0.45, 0.0, 0.3],
    "nobility": 350,
    "peasant": 2450,
@@ -5010,6 +5060,7 @@
   },
   {
    "name": "ラヘジ",
+   "broadMoneyToGdp": 0.1,
    "rule": [0.35, 0.55, 0.0, 0.1],
    "nobility": 90,
    "peasant": 600,
@@ -5063,6 +5114,7 @@
   },
   {
    "name": "デリー",
+   "broadMoneyToGdp": 0.1,
    "rule": [0.1, 0.55, 0.15, 0.2],
    "nobility": 400,
    "peasant": 2500,
@@ -5118,6 +5170,7 @@
   },
   {
    "name": "アワド",
+   "broadMoneyToGdp": 0.1,
    "rule": [0.2, 0.55, 0.15, 0.1],
    "nobility": 700,
    "peasant": 5500,
@@ -5173,6 +5226,7 @@
   },
   {
    "name": "ダホメ王国",
+   "broadMoneyToGdp": 0.1,
    "rule": [0.5, 0.45, 0.0, 0.05],
    "nobility": 30,
    "peasant": 250,
@@ -5237,6 +5291,7 @@
   },
   {
    "name": "アシャンティ王国",
+   "broadMoneyToGdp": 0.1,
    "rule": [0.3, 0.6, 0.0, 0.1],
    "nobility": 250,
    "peasant": 2500,
@@ -5301,6 +5356,7 @@
   },
   {
    "name": "ソコト",
+   "broadMoneyToGdp": 0.1,
    "rule": [0.35, 0.47, 0.0, 0.18],
    "nobility": 700,
    "peasant": 8000,
@@ -5378,6 +5434,7 @@
   },
   {
    "name": "コンゴ王国",
+   "broadMoneyToGdp": 0.1,
    "rule": [0.1, 0.7, 0.0, 0.2],
    "nobility": 60,
    "peasant": 500,
@@ -5442,6 +5499,7 @@
   },
   {
    "name": "アルジェ摂政国",
+   "broadMoneyToGdp": 0.1,
    "rule": [0.4, 0.4, 0.0, 0.2],
    "nobility": 200,
    "peasant": 2000,
@@ -5520,6 +5578,7 @@
   },
   {
    "name": "オヨ帝国",
+   "broadMoneyToGdp": 0.1,
    "rule": [0.25, 0.6, 0.0, 0.15],
    "nobility": 150,
    "peasant": 1500,
@@ -5584,6 +5643,7 @@
   },
   {
    "name": "ボルヌ帝国",
+   "broadMoneyToGdp": 0.1,
    "rule": [0.3, 0.5, 0.0, 0.2],
    "nobility": 120,
    "peasant": 1200,
@@ -5637,6 +5697,7 @@
   },
   {
    "name": "ハワイ王国",
+   "broadMoneyToGdp": 0.1,
    "rule": [0.15, 0.8, 0.0, 0.05],
    "nobility": 25,
    "peasant": 200,

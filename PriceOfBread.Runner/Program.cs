@@ -6132,43 +6132,45 @@ if (args.Length > 0 && args[0] == "initsavprobe")
     return;
 }
 
-// === (218) 英の開幕の建設の急増の診断（読むだけ）： dotnet run -- earlyprobe218 [seed] [四半期数] ===
-// 労働の需要÷器（労働力の財の需要 ÷ 労働力の生産者の産出の和）・労働の実質の値段・工場の設備 ΣScale・投資家の貯蓄（英の全体とロンドン）・国庫・国債・物価水準・為替を、
-// 助走の終わり（w0）と 1,4,8,16,28,40,48 四半期後に数える。
-if (args.Length > 0 && args[0] == "earlyprobe218")
+// === (220) 開幕の建設の急増の診断（読むだけ・(218) の英専用を全国へ）： dotnet run -- earlyprobe220 [seed] [四半期数] [国名,国名,…|ALL] ===
+// 国ごとに 労働の需要÷器（労働力の財の需要 ÷ 労働力の生産者の産出の和）・労働の実質の値段・工場の設備 ΣScale・投資家の貯蓄÷年名目GDP・全貯蓄÷年名目GDP・国庫・国債・物価水準を、
+// 助走の終わり（w0）と 1,4,8,12,16,28 四半期後に数える。開幕の貨幣の腕は POB_COEF（InitMoneyMode=1 など）で切り替える。
+if (args.Length > 0 && args[0] == "earlyprobe220")
 {
     ulong epSeed = args.Length > 1 && ulong.TryParse(args[1], out var eps) ? eps : 1UL;
-    int epQ = ArgInt(args, 2, 48);
-    var epCfgs = WorldData.Nations();
-    if (Environment.GetEnvironmentVariable("POB_INVLIQ") is { } epEnv && double.TryParse(epEnv, System.Globalization.CultureInfo.InvariantCulture, out var epK))   // 診断だけ：英の年数を上書き（0＝旧）
-        epCfgs = [.. epCfgs.Select(c => { if (c.Name != "イギリス") return c; var c2 = c.ShallowClone(); c2.InvestorLiquidYears = epK; return c2; })];
-    var epm = new MultiNationSim(epCfgs, epSeed, _ => new UtilityAgent());
+    int epQ = ArgInt(args, 2, 28);
+    string[] epNames = args.Length > 3 ? args[3].Split(',') : ["ALL"];
+    var epm = new MultiNationSim(WorldData.Nations(), epSeed, _ => new UtilityAgent());
     foreach (var nn in epm.Nations) nn.TelemetryEnabled = false;
     epm.Diplomacy.Log.Enabled = false;
     epm.StartWarmup();
-    var epw = epm.Nations.First(n => n.World.SelfPower?.BaseName == "イギリス").World;
     void EpDump(string tag)
     {
-        double ldem = 0, lcap = 0, lpxN = 0, lpxD = 0, K = 0;
-        foreach (var r in epw.Regions)
+        foreach (var n in epm.Nations)
         {
-            if (r.State != RegionState.Active) continue;
-            ldem += r.Markets[Catalog.LaborId].LastDemand;
-            double rp = 0; foreach (var g in r.Goods) if (g.Id == Catalog.LaborId) { rp = g.RefPrice; break; }
-            if (rp > 1e-9) { lpxN += r.Markets[Catalog.LaborId].Price / (rp * Math.Max(1e-9, r.PriceLevel)); lpxD += 1; }
-            foreach (var pr in r.Producers)
+            var epw = n.World;
+            string name = epw.SelfPower?.BaseName ?? "";
+            if (epNames[0] != "ALL" && System.Array.IndexOf(epNames, name) < 0) continue;
+            double ldem = 0, lcap = 0, lpxN = 0, lpxD = 0, K = 0, sav = 0;
+            foreach (var r in epw.Regions)
             {
-                if (pr.GoodId == Catalog.LaborId) lcap += pr.Output;
-                if (!pr.IsRgo && pr.Inputs.Count > 0 && Catalog.Goods[pr.GoodId].Tier != GoodTier.Service) K += pr.Scale;
+                if (r.State != RegionState.Active) continue;
+                ldem += r.Markets[Catalog.LaborId].LastDemand;
+                double rp = 0; foreach (var g in r.Goods) if (g.Id == Catalog.LaborId) { rp = g.RefPrice; break; }
+                if (rp > 1e-9) { lpxN += r.Markets[Catalog.LaborId].Price / (rp * Math.Max(1e-9, r.PriceLevel)); lpxD += 1; }
+                foreach (var pr in r.Producers)
+                {
+                    if (pr.GoodId == Catalog.LaborId) lcap += pr.Output;
+                    if (!pr.IsRgo && pr.Inputs.Count > 0 && Catalog.Goods[pr.GoodId].Tier != GoodTier.Service) K += pr.Scale;
+                }
+                foreach (var p in r.Pops) sav += p.Savings;
             }
+            double gdpY = Math.Max(1e-9, epw.NominalGdp * Calendar.MonthsPerYear);
+            Console.WriteLine($"E	{name}	{tag}	yr{epw.Year}	ldem={ldem:F0}	lcap={lcap:F0}	ratio={(lcap > 1e-9 ? ldem / lcap : 0):F2}	lpx={(lpxD > 0 ? lpxN / lpxD : 0):F3}	K={K:F0}	inv/gdp={CapitalMarket.InvestorSavings(epw) / gdpY:F3}	sav/gdp={sav / gdpY:F3}	国庫/gdp={epw.Treasury / gdpY:F3}	国債/gdp={epw.GovDebt / gdpY:F3}	P={epw.PriceLevel:F3}	Fx={epw.FxRate:F3}	基礎貨幣={epw.BaseMoney:F0}");
         }
-        var r0 = epw.Regions[0];
-        double inv0 = r0.InvestorPopIndex >= 0 ? r0.Pops[r0.InvestorPopIndex].Savings : -1;
-        double invEarn = 0; foreach (var r in epw.Regions) foreach (var p in r.Pops) if (CapitalMarket.IsInvestor(p, epw.Coef)) invEarn += p.LastEarned;
-        Console.WriteLine($"E {tag} yr{epw.Year} ldem={ldem:F0} lcap={lcap:F0} ratio={(lcap > 1e-9 ? ldem / lcap : 0):F2} lpx={(lpxD > 0 ? lpxN / lpxD : 0):F3} K={K:F0} inv0={inv0:F0} invAll={CapitalMarket.InvestorSavings(epw):F0} invEarn(月)={invEarn:F0} 国庫={epw.Treasury:F0} 国債={epw.GovDebt:F0} P={epw.PriceLevel:F3} Fx={epw.FxRate:F3} 基礎貨幣={epw.BaseMoney:F0}");
     }
     EpDump("w0");
-    for (int q = 1; q <= epQ; q++) { epm.StepQuarter(); if (q == 1 || q == 4 || q == 8 || q == 16 || q == 28 || q == 40 || q == 48 || q == epQ) EpDump($"q{q}"); }
+    for (int q = 1; q <= epQ; q++) { epm.StepQuarter(); if (q == 1 || q == 4 || q == 8 || q == 12 || q == 16 || q == 28 || q == epQ) EpDump($"q{q}"); }
     return;
 }
 
