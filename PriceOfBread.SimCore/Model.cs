@@ -352,6 +352,9 @@ public sealed class Pop
     /// <summary>★月末の精算（月内の仮勘定＝1本の月内の形・計画 §10-12-2-3）＝その月の所得と支払いの差を貯蓄へ（EconomyStep の月の終わり・2026-09-30 段4g に Pop の中へ移した）。</summary>
     internal void SettleMonth() => _savings += Earned - Paid;
 
+    /// <summary>★(218) 貯蓄を比で置き直す（開幕の投資家の流動資産・<see cref="World.RebaseInvestorLiquidity"/> だけが呼ぶ）。貨幣の増減は呼び手が基準線ごと取り直す。</summary>
+    internal void ScaleSavings(double f) => _savings *= f;
+
     /// <summary>★人の移し方の1本（2026-09-30 処理の一元化 段4e I＝設計の <c>PopTransfer.Blend</c>・Pop の中の1本）：<paramref name="from"/> から <paramref name="to"/> へ
     /// <paramref name="n"/> 人を移し、移る組の属性を受け手へ人数で混ぜ、人と動くお金（貯蓄・債務・国債の保有＝1人あたりの按分）を <see cref="Carry"/> で運ぶ。
     /// 呼び手＝徴兵と復員と階級の移動（Military.MoveCohort）・州の中の移動（PopDecision）・社会移動（Meritocracy）・州の間の移民と入植（Territory.MoveBetweenRegions）・

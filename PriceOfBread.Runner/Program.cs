@@ -6085,6 +6085,88 @@ if (args.Length > 0 && args[0] == "warmtest")
 //     ②助走長ごとに「開幕直後の価格の荒れ」を数値化する（帯そのものは measure.sh でメインが測る＝ここは単走の診断）。
 //     荒れの物差し＝首都市場の実勢財バスケットについて、四半期ごとの |ln(価格比の変化)| の平均（%／四半期）。
 //     併せて開幕時点の参照価格からの乖離（|ln(価格/参照価格)| の平均）と、安全網（床/天井）に張り付いた財数を出す。 ===
+// === (218) 初期の貯蓄の診断（読むだけ）： dotnet run -- initsavprobe [seed] [国名,国名,…] ===
+// 構築直後・助走の終わり・1790 年（28 四半期）の3点で、国ごとに階級別の Size・Savings・前期の所得（LastEarned）と国全体の名目 GDP・国庫・国債を数える。
+if (args.Length > 0 && args[0] == "initsavprobe")
+{
+    ulong isSeed = args.Length > 1 && ulong.TryParse(args[1], out var iss) ? iss : 1UL;
+    string[] isNames = args.Length > 2 ? args[2].Split(',') : ["イギリス", "フランス", "プロイセン", "オーストリア", "ロシア", "アメリカ", "清", "日本", "オスマン", "スペイン", "ネーデルラント"];
+    var ism = new MultiNationSim(WorldData.Nations(), isSeed, _ => new UtilityAgent());
+    foreach (var nn in ism.Nations) nn.TelemetryEnabled = false;
+    ism.Diplomacy.Log.Enabled = false;
+    void IsDump(string stage)
+    {
+        Console.WriteLine($"--- {stage} ---");
+        foreach (var n in ism.Nations)
+        {
+            var w = n.World;
+            string name = w.SelfPower?.BaseName ?? "";
+            if (System.Array.IndexOf(isNames, name) < 0) continue;
+            var sz = new Dictionary<string, double>(); var sv = new Dictionary<string, double>(); var ea = new Dictionary<string, double>();
+            double popTotal = 0, savTotal = 0;
+            foreach (var r in w.Regions)
+            {
+                if (r.State != RegionState.Active) continue;
+                foreach (var p in r.Pops)
+                {
+                    sz[p.ClassName] = sz.GetValueOrDefault(p.ClassName) + p.Size; sv[p.ClassName] = sv.GetValueOrDefault(p.ClassName) + p.Savings; ea[p.ClassName] = ea.GetValueOrDefault(p.ClassName) + p.LastEarned;
+                    popTotal += p.Size; savTotal += p.Savings;
+                }
+            }
+            { var r0 = w.Regions[0]; if (r0.InvestorPopIndex >= 0) { var ip = r0.Pops[r0.InvestorPopIndex]; Console.WriteLine($"   [{name} 州0 {r0.Name}] 投資家POP {ip.ClassName} Size {ip.Size:F1} Savings {ip.Savings:F0} 前期所得(月) {ip.LastEarned:F1} 貯蓄÷月所得 {ip.Savings / Math.Max(1e-9, ip.LastEarned):F1} 貯蓄÷年所得 {ip.Savings / Math.Max(1e-9, ip.LastEarned * 12):F1}"); } }
+            double invSav = CapitalMarket.InvestorSavings(w); double invEarn = 0; foreach (var r in w.Regions) foreach (var p in r.Pops) if (CapitalMarket.IsInvestor(p, w.Coef)) invEarn += p.LastEarned;
+            Console.WriteLine($"{name}	人口(千) {popTotal:F0}	名目GDP(年) {w.NominalGdp * 4:F0}	国庫 {w.Treasury:F0}	国債 {w.GovDebt:F0}	全貯蓄 {savTotal:F0}	投資家貯蓄(述語) {invSav:F0}	物価水準 {w.PriceLevel:F3}	Fx {w.FxRate:F3}	基礎貨幣 {w.BaseMoney:F0}	広義 {w.BroadMoney:F0}	与信残高 {w.OutstandingLoans:F0}	収益の月次(投資家) {invEarn:F0}");
+            foreach (var kv in sv.OrderByDescending(x => x.Value))
+                Console.WriteLine($"   {kv.Key,-8}	Size {sz[kv.Key]:F1}	Savings {kv.Value:F0}	(1人あたり {(sz[kv.Key] > 1e-9 ? kv.Value / sz[kv.Key] : 0):F1})	前期所得 {ea[kv.Key]:F1}");
+        }
+    }
+    IsDump("構築直後");
+    ism.StartWarmup();
+    IsDump("助走の終わり（1783 Q1）");
+    for (int q = 1; q <= 28; q++) { ism.StepQuarter(); if (q == 4 || q == 28) IsDump($"{q} 四半期後"); }
+    return;
+}
+
+// === (218) 英の開幕の建設の急増の診断（読むだけ）： dotnet run -- earlyprobe218 [seed] [四半期数] ===
+// 労働の需要÷器（労働力の財の需要 ÷ 労働力の生産者の産出の和）・労働の実質の値段・工場の設備 ΣScale・投資家の貯蓄（英の全体とロンドン）・国庫・国債・物価水準・為替を、
+// 助走の終わり（w0）と 1,4,8,16,28,40,48 四半期後に数える。
+if (args.Length > 0 && args[0] == "earlyprobe218")
+{
+    ulong epSeed = args.Length > 1 && ulong.TryParse(args[1], out var eps) ? eps : 1UL;
+    int epQ = ArgInt(args, 2, 48);
+    var epCfgs = WorldData.Nations();
+    if (Environment.GetEnvironmentVariable("POB_INVLIQ") is { } epEnv && double.TryParse(epEnv, System.Globalization.CultureInfo.InvariantCulture, out var epK))   // 診断だけ：英の年数を上書き（0＝旧）
+        epCfgs = [.. epCfgs.Select(c => { if (c.Name != "イギリス") return c; var c2 = c.ShallowClone(); c2.InvestorLiquidYears = epK; return c2; })];
+    var epm = new MultiNationSim(epCfgs, epSeed, _ => new UtilityAgent());
+    foreach (var nn in epm.Nations) nn.TelemetryEnabled = false;
+    epm.Diplomacy.Log.Enabled = false;
+    epm.StartWarmup();
+    var epw = epm.Nations.First(n => n.World.SelfPower?.BaseName == "イギリス").World;
+    void EpDump(string tag)
+    {
+        double ldem = 0, lcap = 0, lpxN = 0, lpxD = 0, K = 0;
+        foreach (var r in epw.Regions)
+        {
+            if (r.State != RegionState.Active) continue;
+            ldem += r.Markets[Catalog.LaborId].LastDemand;
+            double rp = 0; foreach (var g in r.Goods) if (g.Id == Catalog.LaborId) { rp = g.RefPrice; break; }
+            if (rp > 1e-9) { lpxN += r.Markets[Catalog.LaborId].Price / (rp * Math.Max(1e-9, r.PriceLevel)); lpxD += 1; }
+            foreach (var pr in r.Producers)
+            {
+                if (pr.GoodId == Catalog.LaborId) lcap += pr.Output;
+                if (!pr.IsRgo && pr.Inputs.Count > 0 && Catalog.Goods[pr.GoodId].Tier != GoodTier.Service) K += pr.Scale;
+            }
+        }
+        var r0 = epw.Regions[0];
+        double inv0 = r0.InvestorPopIndex >= 0 ? r0.Pops[r0.InvestorPopIndex].Savings : -1;
+        double invEarn = 0; foreach (var r in epw.Regions) foreach (var p in r.Pops) if (CapitalMarket.IsInvestor(p, epw.Coef)) invEarn += p.LastEarned;
+        Console.WriteLine($"E {tag} yr{epw.Year} ldem={ldem:F0} lcap={lcap:F0} ratio={(lcap > 1e-9 ? ldem / lcap : 0):F2} lpx={(lpxD > 0 ? lpxN / lpxD : 0):F3} K={K:F0} inv0={inv0:F0} invAll={CapitalMarket.InvestorSavings(epw):F0} invEarn(月)={invEarn:F0} 国庫={epw.Treasury:F0} 国債={epw.GovDebt:F0} P={epw.PriceLevel:F3} Fx={epw.FxRate:F3} 基礎貨幣={epw.BaseMoney:F0}");
+    }
+    EpDump("w0");
+    for (int q = 1; q <= epQ; q++) { epm.StepQuarter(); if (q == 1 || q == 4 || q == 8 || q == 16 || q == 28 || q == 40 || q == 48 || q == epQ) EpDump($"q{q}"); }
+    return;
+}
+
 if (args.Length > 0 && args[0] == "warmupprobe")
 {
     ulong wpSeed = args.Length > 1 && ulong.TryParse(args[1], out var wps) ? wps : 1789UL;

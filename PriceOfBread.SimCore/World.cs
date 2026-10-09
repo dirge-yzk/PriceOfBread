@@ -1364,6 +1364,8 @@ public sealed class World
     //   陸海の配分は ArmyUpkeep / NavyUpkeep（払う金）で既に表現済み＝注力度はその上に乗る二重表現だった。
     //   ⚠状態が1つ減る＝POBSIM1 セーブは読めない（v2 以後はフィールドの増減を名前表で吸収＝<see cref="SaveGame"/>）。
 
+    /// <summary>★(218) 開幕の投資家の流動資産の年数（<see cref="NationConfig.InvestorLiquidYears"/>・0＝置かない）。読み手＝<see cref="RebaseInvestorLiquidity"/> だけ。</summary>
+    public double InvestorLiquidYears { get; init; }
     public double Latitude { get; internal set; }    // ★**経済中心地**の緯度（度）＝エンジンの距離計算はすべてこれを読む。⚠CenterIsFirstProvince>0 では1番目の州の座標へ差し替わる（J-003）
     public double Longitude { get; internal set; }   // 首都の経度（度）。日本の遠さ＝交易の天然の障壁
 
@@ -1647,6 +1649,21 @@ public sealed class World
     public double CreditFxTerm { get; internal set; } = 1.0;      // 内訳③為替（減価＝対外信用の低下）
     public double CreditBondTerm { get; internal set; } = 1.0;    // 内訳④国債の利回りスプレッド
     public double Convertibility { get; internal set; }   // 兌換可能性 0..1（倍率排除②）。1=完全兌換(金)・0=不換。OnGoldStandard(資格)を非対称速度で滑らかに追従し、通貨レジームの効果(money集計/為替/切下げ/金利/対外信用)を連続lerpで出す
+    /// <summary>★(218) 開幕の投資家の貯蓄を「年数 × 12 × 助走の終わりの月の所得」へ按分で置き直す（<see cref="InvestorLiquidYears"/> が正の国だけ・呼び手＝<see cref="MultiNationSim.StartWarmup"/> の助走の後）。
+    /// 按分＝投資家の全POPに同じ比を掛ける（州・階級の配分の形は変えない）。減らした貨幣は基礎貨幣から消えるので、呼び手が保存則の基準線を取り直す（国庫の置き直しと同じ作法）。
+    /// 貨幣の厚み（M/Y）の趨勢 <see cref="_moTrend"/> も取り直す＝開幕の厚みを新しい基準にする（取り直さないと趨勢との比が崩れ、物価水準が床へ向かって落ちる）。
+    /// 否定形：貯蓄の和か所得の和が正でなければ何もしない（NaN も素通しにしない）。</summary>
+    internal void RebaseInvestorLiquidity()
+    {
+        if (!(InvestorLiquidYears > 0)) return;
+        double sav = 0, earn = 0;
+        foreach (var r in Regions) foreach (var p in r.Pops) if (CapitalMarket.IsInvestor(p, Coef)) { sav += Math.Max(0, p.Savings); earn += Math.Max(0, p.LastEarned); }
+        if (!(sav > 1e-9) || !(earn > 1e-9)) return;
+        double f = InvestorLiquidYears * Calendar.MonthsPerYear * earn / sav;
+        foreach (var r in Regions) foreach (var p in r.Pops) if (CapitalMarket.IsInvestor(p, Coef) && p.Savings > 0) p.ScaleSavings(f);
+        _moTrend = 0;
+    }
+
     private double _moTrend;   // 広義マネー/実質産出 のゆっくりなトレンド（secular な産出成長を吸収＝残りが信用循環の成分）
     public void UpdatePriceLevel(Coefficients c)
     {

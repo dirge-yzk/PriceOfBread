@@ -123,6 +123,7 @@ public sealed class Simulation
             InitialNationalConsciousness = scenario.InitialNationalConsciousness,   // P9：国民意識v2の初期値（蓄積初回に採用・−1=係数既定）
             Latitude = scenario.NationConfig?.Latitude ?? 0,    // 首都の座標（多国＝距離で輸送マージンが嵩む）
             Longitude = scenario.NationConfig?.Longitude ?? 0,
+            InvestorLiquidYears = scenario.NationConfig?.InvestorLiquidYears ?? 0,   // ★(218) 開幕の投資家の流動資産（年数・0＝置かない）
             EthnicEnabled = scenario.NationConfig is not null,   // 民族統一度（倍率排除⑧）は各popの CoreEthnicShare 加重平均から創発。NationConfig 由来の国だけ有効化＝合成較正/最小世界は無効で較正不変
             MonetaryEnabled = scenario.NationConfig is not null,       // 物価水準（インフレ/デフレ）も実在国だけ＝合成較正/最小世界は P≡1 で従来同値
             ParliamentEnabled = scenario.NationConfig is not null,     // 議会・選挙も実在国だけ＝合成較正は従来の政治モデルのまま（33/33/33不変）
