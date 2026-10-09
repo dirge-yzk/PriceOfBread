@@ -78,7 +78,7 @@ index 5d43466..798d0a6 100644
 +                }
 +            }
 +            Row(nm, "人口/総数", tm, popK * 1000, "人");
-+            Row(nm, "人口/都市人口比", tm, popK > 0 ? urbanK / popK : 0, "比");
++            Row(nm, "人口/都市階級の人口比", tm, popK > 0 ? urbanK / popK : 0, "比");
 +            Row(nm, "人口/識字率(人口加重)", tm, popK > 0 ? litSum / popK : 0, "比");
 +            Row(nm, "人口/兵士", tm, sold * 1000, "人");
 +            Row(nm, "人口/兵士÷総人口", tm, popK > 0 ? sold / popK : 0, "比");
@@ -165,7 +165,7 @@ index 5d43466..798d0a6 100644
 +                string rk = "州/" + r.Name + "/";
 +                double rp = 0, ru = 0; foreach (var p in r.Pops) { rp += p.Size; if (p.IsUrban) ru += p.Size; }
 +                Row(nm, rk + "人口", tm, rp * 1000, "人");
-+                Row(nm, rk + "都市人口比", tm, rp > 0 ? ru / rp : 0, "比");
++                Row(nm, rk + "都市階級の人口比", tm, rp > 0 ? ru / rp : 0, "比");
 +                Row(nm, rk + "格", tm, r.Tier.ToString(), "区分");
 +                Row(nm, rk + "工業化度", tm, r.Industrialization, "度");
 +                if (r.ArableLand < 1e8) Row(nm, rk + "耕地賦存量", tm, r.ArableLand, "千人収容");

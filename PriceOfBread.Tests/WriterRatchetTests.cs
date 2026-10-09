@@ -431,13 +431,16 @@ public class WriterRatchetTests
     //   国×月 9,954→10,242（+2.9%）・脅威の届き方 308,407→318,001（+3.1%）・価格 26,940,860→27,979,627（+3.9%）・信用 33,282→34,146（+2.6%）・共有層 3,698→3,794・発見 2,503→2,574
     //   ＝治安維持力を導くと兵が少なく即応度の低い国の治安維持力が下がり、分離独立の国が増えた軌道（1種40四半期の国の数が増える。10種で分離独立 5→13 回・実装ログ (231)）。
     //   全長の10種（計器つきの腕 NOT10・基線 r229 に対して）の推定 243.0→243.1 秒（上限 248.5 秒の内・払っていない・測定の表 measurements/mil231_20261010）。
-    [InlineData(CostLedger.DiploHegemonScans, 3253171L)]
+    // ★2026-10-10 表の更新（(232) 線M 後半＝段7 識字と制度〔識字を国の基準1本×階級のオッズの比で・法の区分 F2・ethnicUnity を外す〕＝軌道が動いた分の宣言・新しい計数の処理は無い
+    //   〔識字の式は構築時に州ごと1回の四則・60回の二分法〕）：覇権の判定 3,253,171→3,476,619（+6.9%＝最初の40四半期の同盟の候補が居る月の軌道・処理の形は同じ）・発見：国×四半期 2,532→2,585（+2.1%＝許しの +2% を僅かに超えた軌道）。
+    //   ほかの17本は許しの内（+2%／−10%・フルスイートで確かめた）。全長の10種（計器つきの腕 ALL）の推定は測定の表 measurements/lit232_20261010（上限 248.5 秒の内・払っていない）。
+    [InlineData(CostLedger.DiploHegemonScans, 3476619L)]
     [InlineData(CostLedger.QuarterStartPops, 235560L)]
     [InlineData(CostLedger.QuarterEndPops, 235560L)]
     [InlineData(CostLedger.SharedNationQuarters, 3794L)]
     [InlineData(CostLedger.GdpScans, 8670915L)]
     [InlineData(CostLedger.MigrationPairs, 4191142L)]
-    [InlineData(CostLedger.DiscoveryNations, 2532L)]
+    [InlineData(CostLedger.DiscoveryNations, 2585L)]
     [InlineData(CostLedger.ThreatReachPairs, 318001L)]
     [InlineData(CostLedger.DiscoveryPriceNations, 2574L)]
     // ★2026-10-02 表の更新（(170) 厭戦の基礎を動員の負担へ〔外部レビュー Q10〕＝軌道が動いた分の宣言・新しい計数の処理は無い
