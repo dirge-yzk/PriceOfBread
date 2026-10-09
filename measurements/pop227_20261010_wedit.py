@@ -2,9 +2,9 @@
 """world.json を行単位で書き換える（整形し直さない＝合流の衝突を小さく）。LF のみ・BOM なし・インデントは元のまま。
 使い方：python wedit.py <world.json の入力> <出力> <腕の名前をカンマ区切り: C1,C2,C3,C45> [<変更表の TSV 出力>]
 """
-import sys, re, json
-sys.path.insert(0, 'D:/PoB_work/r227')
-import spec
+import sys, re, json, os
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import pop227_20261010_spec as spec
 
 CLASSES = ['nobility', 'peasant', 'worker', 'bourgeois', 'professional', 'merchant', 'artisan']
 
