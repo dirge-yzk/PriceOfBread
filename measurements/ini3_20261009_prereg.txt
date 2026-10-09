@@ -71,3 +71,8 @@
 - 作業フォルダ D:/PoB_work/ini3（隔離ビルド・写し・基線の写し・計器の生出力・PDF）は回の終わりに消す（worktree wt_ini2 は残す）。止めた枝 rev・ref・フォークの worktree とブランチ・D:/PoB_work の他のフォルダには触れない。
 - 計器（initdump＋本国の行）は隔離した写しにだけある＝枝には入れない（measurements/init_20261009_initdump.diff は既存）。
 - 保留の候補：(a) 技師と知識人の比（intelligentsiaFrac）の写し先／(b) スコットランドの形とアイルランドの農業 0.70／(c) 軍と貧民の按分／(d) 職人と工場の境（腕C）。
+
+[追記1：測る前の訂正（2026-10-09・initdump の構築直後の行を1回読んだ後・帯の測りの前）]
+- 腕Aの欄の数字を訂正した。使用人は「貴族の人数〔聖職者を除く nobility×(1−clergyFrac)〕＋資本家」（Simulation.cs:857 の `nobility.Size + bourgeois.Size`）で、上の本文は聖職者を含めて 410 と書いたが、実際の式では 336（構築直後の本国の行〔seed 1789〕で 334,636 人と確かめた）。欄の和＋使用人＝14,000 になるよう尺度を直した。
+- 訂正後の腕A（千人）：nobility 228・peasant 7809・worker 3823・bourgeois 184・professional 370・merchant 409・artisan 841・clergyFrac 0.332（使用人は式で約 336＝2.4%・出典の domestic servants は 3.9%〔E&W 日付合わせ後〕〜3.4%〔混ぜた後〕＝式のまま置くと出典より低い・記録）。構成比＝農民 55.8%・工場労働者 27.3%・職人 6.0%・商人 2.9%・専門職 2.6%・貴族と聖職者 1.6%・資本家 1.3%・使用人 2.4%。腕C（半分を職人へ）：worker 1912・artisan 2753（他は A と同じ・peasant 7808）。
+- 線 L1〜L4 と他の規則は変えない。再現用の計算 measurements/ini3_20261009_mix.py は訂正後の版へ更新した。

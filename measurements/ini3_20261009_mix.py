@@ -32,15 +32,16 @@ def build(ag_irl=0.70, weights=(7.54,1.5,4.0), half_workers_to_artisans=False, t
     W_ew,W_sc,W_ir=weights; T=W_ew+W_sc+W_ir
     mix={k:((W_ew+W_sc)*e[k]+W_ir*ir[k])/T for k in e}            # スコットランドは E&W と同じ形【仮置き】
     hN=mix['N']+mix['C']; hK=mix['K']; hS=mix['S']
-    a=1/(1-hS+hN+hK)      # 使用人＝（貴族欄＋資本家欄）の式のまま・欄の和＋使用人＝total になる尺度
+    a=1/(1-hS+mix['N']+hK)      # 使用人＝（貴族の人数〔聖職者を除く〕＋資本家）の式のまま（Simulation.cs:857）・欄の和＋使用人＝total になる尺度
     cfg={'nobility':a*hN*total,'peasant':a*mix['F']*total,'worker':a*mix['W']*total,'bourgeois':a*hK*total,
          'professional':a*(mix['P']+mix['E'])*total,'merchant':a*mix['M']*total,'artisan':a*mix['A']*total}
     if half_workers_to_artisans:
         h=cfg['worker']/2; cfg['worker']-=h; cfg['artisan']+=h
+    r_cf=round(mix['C']/hN,3)
     out={k:round(v) for k,v in cfg.items()}
-    serv=out['nobility']+out['bourgeois']
+    serv=round(out['nobility']*(1-r_cf))+out['bourgeois']
     out['peasant']+= total-(sum(out.values())+serv)            # 端数は農民へ
-    return dict(e_w=ew, e_w1783=e, irl=ir, mix=mix, cfg=out, servants=serv, clergyFrac=mix['C']/hN, w=weights, ag_irl=ag_irl)
+    return dict(e_w=ew, e_w1783=e, irl=ir, mix=mix, cfg=out, servants=serv, clergyFrac=r_cf, w=weights, ag_irl=ag_irl)
 if __name__=='__main__':
     for half in (False,True):
         r=build(half_workers_to_artisans=half)
