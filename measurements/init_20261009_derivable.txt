@@ -17,10 +17,10 @@
 | world.json の broadMoneyToGdp（61/61）・係数 InitMoneyMode／InitMoneyScale／InitInvestorMoneyShare・ClosedWealthMultiple | 上の〔所得×k〕を採るなら国の貨幣÷GDP は階級の所得の構成から出る＝国ごとの比の表は要らない（比の値は全て【推】） | 既定 InitMoneyMode=0 では読まれない＝消しても恒等 | 段2 で一緒に畳む（削減方向） |
 | 市場の在庫（Stock=200・TargetStock=200・全財・全州で一律） | 既存の在庫目標の規則（MarketFlow.cs の TargetStock＝max(TargetStockFloor, TargetStockBuffer×総需要)×StockpileFactor）で開幕を置く。需要は構築時に無い＝①人口×BaseNeed で月の需要を見積もる（先例 InitialArsenalMonths）②最初の月の TargetStock を置く。修正一覧の案（k＝2〜4か月・主食4〜6）は新しい定数になるので既存の1本を使う方を勧める | 恒等でない | 段3 |
 | 国庫（world.json の treasury・61国の絶対額） | 助走の終わりの歳入×m か月（置く場所は助走の国庫の戻し RebaseTreasury）。普の戦時財宝は史実の例外＝比として残す。UI の難易度（NationBrief.TreasuryMonths）が c.Treasury を読む＝つなぎ直しが要る〔K の読み・未確認〕 | わずかに変わる | 段6 |
-| 識字の7項目（nobLit・peasLit・workLit・bourgLit・profLit・clergyLit・intelLit×61国） | 国の基準1本（史実の国全体の識字【推】）×階級の倍率（全国共通の係数）。倍率をテンプレ÷基準に合わせれば、テンプレの約41国はほぼ恒等 | 恒等でない（技術の助走が識字を読む） | 段7 |
+| ~~識字の7項目（nobLit・peasLit・workLit・bourgLit・profLit・clergyLit・intelLit×61国）~~〔済 2026-10-10 (232)：world.json は literacy 1本・階級の識字は Simulation.ClassLiteracy が国の基準×オッズの比で導く。商人・職人・使用人の直書きも同じ式へ〕 | 国の基準1本（史実の国全体の識字【推】）×階級の倍率（全国共通の係数）。倍率をテンプレ÷基準に合わせれば、テンプレの約41国はほぼ恒等 | 恒等でない（技術の助走が識字を読む） | 段7 |
 | ~~治安維持力（world.json の coercion・34国が 400〔確認 (225)〕）~~〔済 2026-10-10 (231)：国の欄 61 を外した・開幕は Government.SetOpeningCoercion が助走の直後に置く〕 | 多国シムは CoercionFollowsForce＝目標が兵数×即応度×CoercionPerSoldier で毎期上書き（Government.cs:292-294〔確認 (225)〕）＝置いた値は出発点だけ。開幕を同じ式で置く。単一国の較正（Calibration.cs）は別に掃引するので残す | 恒等でない（助走中は政治が止まる＝今は置いた値で開幕に入る） | 段5（兵士を直した後） |
 | ~~国の military（world.json の nations の military）~~〔済 2026-10-10 (231)：国の欄 61 を外した・NationConfig.Military を削除・UI の難易度は NationBrief.OpeningSoldiers〕 | 初期の兵は兵士 POP から導いている。nations の military を読むのは UI の難易度（NationBrief の安全の項）だけ〔K の読み・未確認〕。抽象勢力（abstractTargets）の military は POP が無いので残す | シムは恒等〔K の読み〕・UI の難易度が変わる | 段5 |
-| 民族統一度（world.json の ethnicUnity） | CoreInitByRegionCulture=1.0（既定）で州の中核度は州の文化ラベルだけで決まる。u0 が効くのは文化ラベルが空の州だけ（日 0.2%・米 1.8%・露 2.7%・清 2.8% の人口）〔K の読み・未確認〕。米の 0.45（奴隷と移民）は州のラベルで表せず既に失われている | ほぼ恒等（ラベルが空の州だけ変わる） | 段7 |
+| ~~民族統一度（world.json の ethnicUnity）~~〔済 2026-10-10 (232)：外した・空ラベルの州は自国の文化として始める。米の 0.45 は州のラベルで表せず失われていた〕 | CoreInitByRegionCulture=1.0（既定）で州の中核度は州の文化ラベルだけで決まる。u0 が効くのは文化ラベルが空の州だけ（日 0.2%・米 1.8%・露 2.7%・清 2.8% の人口）〔K の読み・未確認〕。米の 0.45（奴隷と移民）は州のラベルで表せず既に失われている | ほぼ恒等（ラベルが空の州だけ変わる） | 段7 |
 | 聖職者の比（world.json の clergyFrac・59国が 0.4〔確認 (225)〕） | 州の宗教ラベル（データにある）×宗教ごとの比（全国共通の係数：清 0.05〜0.1・イスラム 0.1・上座仏教 0.4・エチオピア 0.5【推】＝修正一覧 B2） | 恒等でない | 段1（B2・英の分）→段3（全国） |
 | 金利の目盛り（world.json の initialInterestRate・61/61 が 0.25＝NationConfig の既定 0.25 と同じ〔確認 (225)〕） | AI は四半期ごとに InterestRateTarget を4つの値のどれかに置く（SelfPlay.cs〔K の読み・未確認〕）。国ごとの目盛りを逆算する E4 の案は導かれる結果を初期値で合わせる台本になる | キーを消すのは恒等 | 段6 |
 
@@ -54,5 +54,5 @@
 - ~~段4：ColonialPopScale（人口の換算・州割譲のコストの物差しと同じ回で）~~〔外した 2026-10-10 (227)→(229)：Diplomacy.ColonyUnitPop の1本へ・InitialColonyMass も〕
 - 段5：国の military を消す・治安維持力を導く・艦隊と兵士は入力を直す（表を足さない）
 - 段6：国庫を導く（普は比で残す）・国債を比で持つ・initialInterestRate のキーを消す
-- 段7：識字を国の基準1本へ（NationConfig の既定値をテンプレへ揃えてから）・ethnicUnity を消す
+- ~~段7：識字を国の基準1本へ（NationConfig の既定値をテンプレへ揃えてから）・ethnicUnity を消す~~〔済 2026-10-10 (232)〕
 - 段1〜7 の外：工業化度・制度疲労（廃止の回）・首都の座標（露の Regions[0]）
