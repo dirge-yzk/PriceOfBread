@@ -58,16 +58,16 @@ public static class Colonial
         bool suezOpen = w.Diplomacy?.ChokeOpenFor(Diplomacy.SuezId, w.SelfPower) ?? false;   // 2026-07-28：生文字列リテラルを廃止（表示名を変えると静かに false 固定＝維持費が永久にケープ迂回になる罠だった）
         bool panamaOpen = w.Diplomacy?.ChokeOpenFor(Diplomacy.PanamaId, w.SelfPower) ?? false;
         double shipBurden = 0, quinineWant = 0;
-        double countPerMass = w.Diplomacy is { } dipM && dipM.InitialColonyMass > 1e-9 ? dipM.InitialColonyCount / dipM.InitialColonyMass : 1.0;   // R2：質量→個数単位の錨
+        double colUnitPop = w.Diplomacy is { } dipM && dipM.ColonyUnitPop > 1e-9 ? dipM.ColonyUnitPop : 1.0;   // 質量の単位（千人）＝初期の植民地の平均の住民数（旧＝質量→個数の錨 InitialColonyMass ÷ 係数 ColonialPopScale）
         // ★植民地の州昇格（2026-08-26・ColoniesAreRegions）：昇格した植民地は ColonyList に居ないので、
         //   **同じ式**を植民地格の州にも当てる＝帝国の過伸展のコストが昇格で消えない。
-        //   ⚠単位を揃える：人口ウェイトは col.Population と同じ物差しへ戻す（PopSize = Population × ColonialPopScale の逆）。
+        //   ⚠単位を揃える：人口ウェイトは col.Population と同じ物差しへ戻す（PopSize = Population × ColonyUnitPop の逆）。
         //   ⚠二重計上は起きない＝昇格の瞬間に ColonyList から Remove されるので、どちらか一方にしか居ない。
         //   座標未設定(0,0)の抽象植民地は距離項を中立に＝幻の遠距離コストを防ぐ（A-2#5。例：仏首都→(0,0)＝ギニア湾沖の幻の5400km）。
         void AccumUpkeep(double clat, double clon, double popWeight, bool malarial)
         {
             double km = (Math.Abs(clat) < 1e-9 && Math.Abs(clon) < 1e-9) ? 0 : Geo.SeaDistanceKm(w.Latitude, w.Longitude, clat, clon, suezOpen, panamaOpen);
-            double massDist = km / Diplomacy.DistanceNormKm * Math.Max(0, popWeight) * countPerMass;   // R2：距離×質量（個数単位）
+            double massDist = km / Diplomacy.DistanceNormKm * Math.Max(0, popWeight);   // R2：距離×質量（個数単位＝質量の単位が平均の植民地1つ）
             shipBurden += c.ColonyShipOccupyPerDist * massDist;   // 距離×質量に比例の海運占有（帆船の船腹の目盛り＝下で汽船の分を軽くする）
             if (malarial) quinineWant += c.MalariaQuininePerColony;   // マラリア地は風土病鎮静にキニーネを要する（供給が実コスト）
         }
@@ -76,7 +76,7 @@ public static class Colonial
             {
                 if (cr.State != RegionState.Active || cr.Tier != RegionTier.Colonial) continue;
                 var ccr = Places.Coord(cr.Name);
-                double pw = c.ColonialPopScale > 1e-9 ? cr.SumPopulation() / c.ColonialPopScale : 0;   // col.Population と同じ物差しへ戻す
+                double pw = cr.SumPopulation() / colUnitPop;   // col.Population と同じ物差しへ戻す
                 AccumUpkeep(ccr.Lat, ccr.Lon, pw, cr.Malarial);
             }
         foreach (var col in w.SelfPower!.ColonyList) AccumUpkeep(col.Latitude, col.Longitude, col.Population, col.Malarial);
@@ -175,7 +175,7 @@ public static class Colonial
             //   colPopSum≈0 でこのブロックごと素通り＝**反帝世論が厳密に0**（インド大反乱もボーア戦争も本国に一切響かない）。
             //   ⚠維持費（上の AccumUpkeep）は 2026-08-26 に両方を見るよう直されており、**ここだけ取り残されていた**
             //   ＝「型の統合が起こす静かな破損」の再発（旧型の読み手が残る）。
-            //   ★単位：col.PopSize = Population×ColonialPopScale なので、州側は SumPopulation 相当（Σ Pops.Size）がそのまま同じ物差し。
+            //   ★単位：col.PopSize = Population×ColonyUnitPop なので、州側は SumPopulation 相当（Σ Pops.Size）がそのまま同じ物差し。
             //   ⚠0で厳密恒等（休眠）。
             if (c.AntiImperialCoversRegions > 0)
                 foreach (var cr in w.Regions)

@@ -56,16 +56,16 @@ public sealed class Power
     //   ここで**両方を数える**。⚠二重計上は起きない＝昇格の瞬間に ColonyList から Remove されるので、どちらか一方にしか居ない。
     public int Colonies => ColonyList.Count + ColonialRegions;
     /// <summary>★植民地の質量（2026-08-28）＝**行の数でなく中身**。単位＝元の Colony.Population（人口ウェイト）。
-    /// Colony オブジェクトは Population をそのまま、植民地格の州は実人口を ColonialPopScale で同じ単位へ逆算して足す。
+    /// Colony オブジェクトは Population をそのまま、植民地格の州は実人口を ColonyUnitPop で同じ単位へ逆算して足す。
     /// ⚠なぜ要るか＝州追加トランシェ1で植民地を細分化した結果、**個数ベースの国力スコアが「行を分けただけで増える」**
     ///   単位の非対称になった（実測＝スペイン常勝22/30＝植民地数10→22の直接の帰結）。質量は細分化で不変。</summary>
-    public double ColonyMassUnits(double colonialPopScale)
+    public double ColonyMassUnits()
     {
         double m = 0;
         foreach (var col in ColonyList) m += System.Math.Max(0, col.Population);
-        if (Nation is { } nw && colonialPopScale > 1e-9)
+        if (Nation is { Diplomacy: { } dipU } nw && dipU.ColonyUnitPop > 1e-9)
             foreach (var r in nw.Regions)
-                if (r.State == RegionState.Active && r.Tier == RegionTier.Colonial) m += r.SumPopulation() / colonialPopScale;
+                if (r.State == RegionState.Active && r.Tier == RegionTier.Colonial) m += r.SumPopulation() / dipU.ColonyUnitPop;
         return m;
     }
 
@@ -336,9 +336,10 @@ public sealed class Diplomacy
     public int SovereignColonialRegions;   // ★回1-1（2026-09-26）：独立の確定（RegisterIndependence）で本土になった植民地格の州の累計＝植民地保存検査の「独立」の出口の州版（Colony の独立＝IndependentColonies と同じ出口）。検査の台帳だけ＝力学は読まない
     public int AbsorbedColonies;   // ★J-006（2026-09-05）：同名の州を既に持つ国へ渡った植民地＝Colony オブジェクトが消滅（領土は州として保有済み・★回1-2＝住民はその州へ運ぶ）。保存検査の第4の出口（実測＋独立＋昇格＋吸収＝初期）
     public int InitialColonyCount;   // 構築時の植民地総数（監査2026-07-12 死12：Validationの保存検査の基準線＝保有合計＋独立数が常にこれと一致するはず）
-    /// <summary>★初期の植民地質量（2026-08-28）＝質量→個数単位の換算の錨（構築時に1回）。忠実度の参照値は旧個数単位なので
-    /// 質量×(初期個数/初期質量) で同じ目盛りへ写す＝1783年で両計測が厳密一致・以後の増減だけが単位差を持つ（データで錨づけ）。</summary>
-    public double InitialColonyMass;
+    /// <summary>★植民地の質量の単位（千人）＝構築時の全ての初期の植民地の住民数の平均（国の植民地と抽象標的の全部・構築時に1回）。
+    /// 質量＝住民数÷これ＝「平均的な植民地1つ＝1」＝個数の単位と同じ目盛り（忠実度の参照値の目盛り・価値と奪取コストの係数の較正の目盛り）。
+    /// ★(227)：旧＝係数 ColonialPopScale（500 千人の定数）と質量→個数の錨 InitialColonyMass を廃止して1本へ（住民数を史実の千人で直接置くと、定数は初期値の換算でなく質量の単位だけになった）。</summary>
+    public double ColonyUnitPop = 1.0;
     private readonly Dictionary<long, double> _tension = [];
     // === 緊張の内訳台帳（2026-08-10 作者FB①）===
     // 理由別の寄与（配列の添字＝TensionReason）。**合計は常に現在の緊張に一致する**（Explain と同じ会計の作法）＝
@@ -400,10 +401,10 @@ public sealed class Diplomacy
         //   live 枝が**全国で常に0**＝脅威評価の植民地35%成分が欠落（床0.5により−0.35バイアス）＝「首位交代が起きない」の直接機序・
         //   NavalShareColonyWeight の帝国プレミアムも同死。単位の一本化＝昇格州を Colony.Value と同じ物差しで数える
         //   （資源項は昇格で実経済＝GDP成分に移った＝ここでは 0.5+人口/2 の帝国質量分のみ＝二重計上しない。人口単位は ColonyMassUnits と同じ換算）。
-        if (p.Nation is { } nw && c.ColonialPopScale > 1e-9)
+        if (p.Nation is { Diplomacy: { } dipU } nw && dipU.ColonyUnitPop > 1e-9)
             foreach (var r in nw.Regions)
                 if (r.State == RegionState.Active && r.Tier == RegionTier.Colonial)
-                    v += 0.5 + r.SumPopulation() / c.ColonialPopScale * 0.5;
+                    v += 0.5 + r.SumPopulation() / dipU.ColonyUnitPop * 0.5;
         return v;
     }
 
@@ -2936,7 +2937,7 @@ public sealed class Diplomacy
                 foreach (var r in lcw.Regions)
                 {
                     if (r.State != RegionState.Active || r.Tier != RegionTier.Colonial || r.Id == 0) continue;
-                    double units = System.Math.Max(0, r.SumPopulation()) / System.Math.Max(1e-9, c.ColonialPopScale);   // Colony.Population と同じ物差し
+                    double units = System.Math.Max(0, r.SumPopulation()) / System.Math.Max(1e-9, ColonyUnitPop);   // Colony.Population と同じ物差し
                     // ★B2（実バグ21件・2026-09-07）：lcw.ColonialInfra は ColoniesAreRegions=1 で書き手が死に（Colonial.Step の投資ブロックは ColonialResources 空で常に偽）
                     //   恒等的に0＝「開発された帝国ほど植民地が堅い」の柱が黙って抜けていた。ColonyDevCostFromRegion>0 でその州の開発度（Industrialization＝州パネルの
                     //   州開発度と同じ量。⚠Region.Infra は解錠の駆動量で Active 州では止まる＝doc の r.Infra は不適）を読む。0＝旧（国スカラー＝0）＝厳密恒等。
@@ -3326,12 +3327,12 @@ public sealed class Diplomacy
             cv[(int)b] += System.Math.Max(1, col.Value); cvSum += System.Math.Max(1, col.Value);
         }
         // ★是正（型統合後の旧読み手・監査2026-09-02 #28）：ColoniesAreRegions=1 で州へ昇格した植民地はColonyListに居ない＝D1裁定の0.5/0.5配分から漏れる。
-        //   ColonyMass（Diplomacy.cs）と同じ物差し（units=0.5+人口/ColonialPopScale*0.5）で足す。州は自前のSeaBasinを持つ＝座標参照が要らない。
-        if (c.ColonialPopScale > 1e-9)
+        //   ColonyMass（Diplomacy.cs）と同じ物差し（units=0.5+人口/ColonyUnitPop*0.5）で足す。州は自前のSeaBasinを持つ＝座標参照が要らない。
+        if (nw.Diplomacy is { } dipU && dipU.ColonyUnitPop > 1e-9)
             foreach (var r in nw.Regions)
             {
                 if (r.State != RegionState.Active || r.Tier != RegionTier.Colonial) continue;
-                double units = 0.5 + r.SumPopulation() / c.ColonialPopScale * 0.5;
+                double units = 0.5 + r.SumPopulation() / dipU.ColonyUnitPop * 0.5;
                 cv[(int)r.SeaBasin] += units; cvSum += units;
             }
         var w = p.BasinPresence;

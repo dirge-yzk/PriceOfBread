@@ -1901,7 +1901,7 @@ public sealed class Simulation
                     foreach (var col in selfP.ColonyList)
                     {
                         // 産出は住民の数と不満で変わる：人口が育てば増え、不満（怠業・反乱）で減る＝搾取しすぎは産出を蝕む。
-                        double colScale = (col.PopSize > 0 ? col.PopSize / Math.Max(1e-9, col.Population * World.Coef.ColonialPopScale) : 1.0)
+                        double colScale = (col.PopSize > 0 ? col.PopSize / Math.Max(1e-9, col.Population * (World.Diplomacy?.ColonyUnitPop ?? 1.0)) : 1.0)
                                         * (1.0 - World.Coef.ColonialUnrestSupplyHit * col.Militancy);
                         foreach (int res in col.Resources)
                             if (res >= 0 && res < r.ColonialSupply.Length)
@@ -1916,7 +1916,7 @@ public sealed class Simulation
                         double myShare = twSum > 1e-9 ? (selfP.TradeWeight / twSum) : 0;
                         foreach (var col in dipC.IndependentColonies)
                         {
-                            double colScale = (col.PopSize > 0 ? col.PopSize / Math.Max(1e-9, col.Population * World.Coef.ColonialPopScale) : 1.0) * 0.8;   // 独立後＝外資なしでやや低い産出
+                            double colScale = (col.PopSize > 0 ? col.PopSize / Math.Max(1e-9, col.Population * (World.Diplomacy?.ColonyUnitPop ?? 1.0)) : 1.0) * 0.8;   // 独立後＝外資なしでやや低い産出
                             // 独立ショック（B-4）：独立直後は産出が崩壊し IndependenceShockYears 年かけて回復（ハイチ1804型＝独立はショック）。
                             double recovery = col.FreedYear < 0 ? 1.0 : PoliticalQuantities.Clamp01((World.Year - col.FreedYear) / (double)Math.Max(1, World.Coef.IndependenceShockYears));
                             foreach (int res in col.Resources)

@@ -64,7 +64,7 @@ public class ColonyPromotionTests
         double natives = 0;
         foreach (var col in cols)
         {
-            Assert.Equal(col.Population * sim.Coef.ColonialPopScale, col.PopSize);   // 住民数は作成時に人口ウェイト×換算（1か所）
+            Assert.Equal(col.PopSize, col.Population * sim.Diplomacy.ColonyUnitPop, 9);   // 住民数（千人）は作成時に1か所で置く＝質量＝住民数÷質量の単位（初期の植民地の平均の住民数）
             natives += col.PopSize;
         }
         Assert.True(natives > 0, "前提が崩れた：抽象標的の植民地に住民がいない");

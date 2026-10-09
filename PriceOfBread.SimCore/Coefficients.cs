@@ -701,7 +701,7 @@ public sealed class Coefficients
     public double ClergyFloorShare = 0.002;      // 聖職者の下限（地域人口比0.2%）。世俗化で没落しても教会は消えない
 
     // --- 植民地POP（現地住民の実体）と独立 ---
-    public double ColonialPopScale = 500;        // 人口ウェイト→住民数の換算（ベンガル8→4000単位=400万・代表スケール）
+    // （★(227)：係数 ColonialPopScale〔人口ウェイト→住民数の換算 500 千人〕は廃止＝住民数は world.json の popK〔千人〕で史実を直接置く。質量の単位は Diplomacy.ColonyUnitPop〔初期の植民地の平均の住民数〕）
     public double ColonialPopGrowth = 0.0008;    // 住民の月次成長
     public double ColonialPayShare = 0.3;        // 植民地の上がりのうち現地住民の手に渡る分け前（1−これ＝搾取の度合い＝Colonial の住民の死亡に効く）。★旧・採取費の分配の読み手は 2026-09-28 に削除
     public double ColonialExploitMortality = 0.002; // B-4：搾取×(0.5+不満)が住民の死亡を高める＝搾取が成長を上回ると人口減（ベンガル飢饉型の負ループ。人口減→産出減→…）
@@ -1957,7 +1957,7 @@ public sealed class Coefficients
     public double AISubmitMilRatio = 3.0;   // **2026-07-25採用（第3群C-高6）**：軍事3倍差で弱い側が屈服（緊張解消＋正統性コスト＝戦わずに折れる外交）＝exact37/near70。WarDeclareTension下げ戻しは次段バッチで実施
     public double SubmitProbabilistic = 0.0;   // ★屈服の確率化（AI審査3-1・2026-08-31休眠）：3.0倍の決定論的な崖（2.9倍で戦争・3.1倍で無血屈服）を逓減へ。屈服確率=clamp((陣営比−1)/(AISubmitMilRatio−1),0,1)＝互角0%・崖の線で100%（新しい数は作らない＝既存の線が確実点になる）。ファショダで引いた英仏と引かなかった日露が同じ機構から出る。専用RNG系列（SubmitRng）＝0では未消費＝厳密恒等
     // 【墓標2026-09-28・旗の焼き込み（支払い 段1-1）】CapturedColoniesAreRegions（実装・点火2026-08-31＝V1V2腕＝ハーネス0/10・植民地+2.5）★従属の一般化・第一切片（docs/202608/20260828_従属の一般化_部分完了.md §0）：講和奪取/無血併合で得た Colony をその場で植民地格の州（RegionTier.Colonial）へ実体化＝「開始時の植民地は州・プレイ中の獲得は Colony」という格差ある二重管理の解消。変換は既存の PromoteColonyToRegion（保存記帳込み）・保存検査は PromotedColonies へ計上。同名州ガードで不可なら旧経路（ColonyList）へフォールバック。0＝旧経路＝厳密恒等
-    public double ColonialRegionCession = 1.0;        // ★実装2026-08-31・点火2026-08-31（V1V2腕＝植民地+10.9・列強+3.8・首位確定Q109→Q200/交代1.6→3.0＝ラウンドBの記録コストを戦争の意味の回復で相殺）★従属の一般化V2（講和量差の是正）：講和で敗者の**植民地格の州**を複数割譲できる器＝旧・植民地奪取（ColonyCaptureMax/Budget/コスト式）を州側へ移植。V1で戦利品の器がColony→州へ移ると州割譲は1戦争1州＝「七年戦争でカナダとインドを同時に」が消えるための対。reach条件＝colonialReachと同じ（海軍あり＋制海権≧SeaInvasionControlMin）・コストの人口はSumPopulation/ColonialPopScale＝Colony.Populationと同じ物差し。0＝不発＝厳密恒等
+    public double ColonialRegionCession = 1.0;        // ★実装2026-08-31・点火2026-08-31（V1V2腕＝植民地+10.9・列強+3.8・首位確定Q109→Q200/交代1.6→3.0＝ラウンドBの記録コストを戦争の意味の回復で相殺）★従属の一般化V2（講和量差の是正）：講和で敗者の**植民地格の州**を複数割譲できる器＝旧・植民地奪取（ColonyCaptureMax/Budget/コスト式）を州側へ移植。V1で戦利品の器がColony→州へ移ると州割譲は1戦争1州＝「七年戦争でカナダとインドを同時に」が消えるための対。reach条件＝colonialReachと同じ（海軍あり＋制海権≧SeaInvasionControlMin）・コストの人口はSumPopulation/Diplomacy.ColonyUnitPop＝Colony.Populationと同じ物差し。0＝不発＝厳密恒等
     // ==== 研究＝解禁の唯一の形（docs/202608/20260827・段1〜3実装2026-08-31）====
     // 【墓標2026-10-01 (152)】DiscoveryInstitutions（1.0・2026-08-31 点火＝制度の bool 閾値を傾斜 Discovery.Unlock へ）・PatentDiscoveryOnset（0.35）・PatentDiscoverySpan（0.1）・
     //   JointStockDiscoveryOnset（0.25）・JointStockDiscoverySpan（0.1）＝特許（中核エリート）と株式会社（最大工業化度）の傾斜＝発見の表の制度の行の2値へ（設計 §1A-6）。
