@@ -152,7 +152,7 @@ public sealed class Simulation
         // 露のポーランドが「どの州か」を持つ＝分離圧力の地理的局在）。加重平均はデータ u0 と州構成のブレンド＝0で国一律u0＝厳密恒等。
         if (World.EthnicEnabled && scenario.PrebuiltRegions is null)
         {
-            double u0 = scenario.NationConfig?.EthnicUnity ?? 1.0;
+            const double u0 = 1.0;   // ★(232) 民族統一度の国の初期値 ethnicUnity（61）を廃止＝文化ラベルのある州は州のラベルだけで決まり（下）、ラベルが空の州は自国の文化（POP の既定 1.0）として始める（旧＝国の値 u0：日 0.97・米 0.45・露 0.55・清 0.75 ほか・空ラベルの州は人口の0.2〜5%だけ）
             double g = scenario.Coef.CoreInitByRegionCulture;
             string majority = "";
             if (g > 0)
