@@ -354,4 +354,61 @@ public class StartWarmupTests
         }
         Assert.True(Turbulence(4) < Turbulence(0), "助走は開幕の価格の荒れを減らすはず");
     }
+
+    // === (218) 開幕の投資家の流動資産（world.json の investorLiquidYears＝NationConfig.InvestorLiquidYears）===
+    //   ★採否未定（事前登録の線 L4 に触れた＝英の財政が崩れる・実装ログ (218)）＝既定のデータでは全ての国が0（置かない・旧と同じ軌道）。
+    //   番人は器を ON にした盤面（英の年数を明示した設定）で回す＝「何もしない機構は必ず緑」の轍を踏まない。
+
+    private static MultiNationSim BuildWithUkYears(double years)
+        => new([.. WorldData.Nations().Select(c => { if (c.Name != "イギリス") return c; var c2 = c.ShallowClone(); c2.InvestorLiquidYears = years; return c2; })], 1789UL, _ => new UtilityAgent());
+
+    private static double InvestorRatio(World w)
+    {
+        double sav = 0, earn = 0;
+        foreach (var r in w.Regions) foreach (var p in r.Pops) if (CapitalMarket.IsInvestor(p, w.Coef)) { sav += System.Math.Max(0, p.Savings); earn += System.Math.Max(0, p.LastEarned); }
+        return earn > 0 ? sav / (Calendar.MonthsPerYear * earn) : double.NaN;
+    }
+
+    /// <summary>★(218) 年数を持つ国だけ投資家の貯蓄が「年数×12×月の所得」の規則の値で置かれ、持たない国は旧のまま：
+    /// ①助走の後の英の投資家の貯蓄÷年所得が規則の値 ②置かない対照ではその何倍もある（ON 経路）③年数が0の国の投資家の貯蓄は消えていない。
+    /// ⚠壊し方＝助走の後の置き直しを呼ばない（①②が赤）・年数が0の国にも掛ける（③が赤）。</summary>
+    [Fact]
+    public void 年数を持つ国だけ投資家の貯蓄が年所得の規則の値で置かれる()
+    {
+        const double k = 0.5;
+        var sim = BuildWithUkYears(k);
+        sim.StartWarmup(null, 4);
+        var uk = sim.Nations.First(n => n.World.SelfPower?.BaseName == "イギリス").World;
+        Assert.Equal(k, uk.InvestorLiquidYears);
+        Assert.Equal(k, InvestorRatio(uk), 9);
+
+        var ctl = BuildWithUkYears(0);
+        ctl.StartWarmup(null, 4);
+        var ukCtl = ctl.Nations.First(n => n.World.SelfPower?.BaseName == "イギリス").World;
+        Assert.True(InvestorRatio(ukCtl) > 5 * k, $"置かない対照の英の投資家の貯蓄÷年所得 {InvestorRatio(ukCtl):F2}");
+
+        foreach (var n in sim.Nations)
+        {
+            if (ReferenceEquals(n.World, uk)) continue;
+            Assert.Equal(0.0, n.World.InvestorLiquidYears);
+            Assert.True(CapitalMarket.InvestorSavings(n.World) > 1e4, $"{n.World.SelfPower?.BaseName} の投資家の貯蓄が消えている");
+        }
+    }
+
+    /// <summary>★(218) 置き直した後も保存則が保たれ（毎月の検査が投げない）、英の物価水準が貨幣の厚みの趨勢の取り直しで床へ落ちない：
+    /// 投資家の貯蓄を減らすと広義の貨幣÷産出が下がる＝趨勢を取り直さなければ物価水準が趨勢との比へ向かって落ちる（実測＝8四半期で 0.61 倍）。
+    /// ⚠壊し方＝趨勢 _moTrend を取り直さない → 英の物価水準が8四半期で2割以上動く（赤）。</summary>
+    [Fact]
+    public void 置き直しの後も保存則が保たれ_英の物価水準は床へ向かわない()
+    {
+        var sim = BuildWithUkYears(0.5);
+        sim.StartWarmup(null, 4);
+        var uk = sim.Nations.First(n => n.World.SelfPower?.BaseName == "イギリス").World;
+        double p0 = uk.PriceLevel;
+        for (int q = 0; q < 8; q++)
+        {
+            sim.StepQuarter();   // 毎月の不変条件の検査が投げれば赤（基準線の取り直しが要る）
+            Assert.InRange(uk.PriceLevel, p0 * 0.8, p0 * 1.2);
+        }
+    }
 }

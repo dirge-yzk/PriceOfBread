@@ -6101,7 +6101,7 @@ if (args.Length > 0 && args[0] == "initsavprobe")
         {
             var w = n.World;
             string name = w.SelfPower?.BaseName ?? "";
-            if (System.Array.IndexOf(isNames, name) < 0) continue;
+            if (isNames[0] != "ALL" && System.Array.IndexOf(isNames, name) < 0) continue;
             var sz = new Dictionary<string, double>(); var sv = new Dictionary<string, double>(); var ea = new Dictionary<string, double>();
             double popTotal = 0, savTotal = 0;
             foreach (var r in w.Regions)
@@ -6114,7 +6114,12 @@ if (args.Length > 0 && args[0] == "initsavprobe")
                 }
             }
             { var r0 = w.Regions[0]; if (r0.InvestorPopIndex >= 0) { var ip = r0.Pops[r0.InvestorPopIndex]; Console.WriteLine($"   [{name} 州0 {r0.Name}] 投資家POP {ip.ClassName} Size {ip.Size:F1} Savings {ip.Savings:F0} 前期所得(月) {ip.LastEarned:F1} 貯蓄÷月所得 {ip.Savings / Math.Max(1e-9, ip.LastEarned):F1} 貯蓄÷年所得 {ip.Savings / Math.Max(1e-9, ip.LastEarned * 12):F1}"); } }
-            double invSav = CapitalMarket.InvestorSavings(w); double invEarn = 0; foreach (var r in w.Regions) foreach (var p in r.Pops) if (CapitalMarket.IsInvestor(p, w.Coef)) invEarn += p.LastEarned;
+            double invSav = CapitalMarket.InvestorSavings(w); double invEarnAll = 0; foreach (var r in w.Regions) foreach (var p in r.Pops) if (CapitalMarket.IsInvestor(p, w.Coef)) invEarnAll += p.LastEarned; double invEarn = 0; foreach (var r in w.Regions) foreach (var p in r.Pops) if (CapitalMarket.IsInvestor(p, w.Coef)) invEarn += p.LastEarned;
+            if (isNames[0] == "ALL" && stage.StartsWith("助走の終わり"))
+            {
+                double gdpY = w.NominalGdp * Calendar.MonthsPerYear;
+                Console.WriteLine($"SUM	{name}	人口千 {popTotal:F0}	年GDP {gdpY:F0}	GDP/人 {(popTotal > 0 ? gdpY / popTotal : 0):F2}	全貯蓄/年GDP {(gdpY > 0 ? savTotal / gdpY : 0):F2}	投資家貯蓄/年GDP {(gdpY > 0 ? CapitalMarket.InvestorSavings(w) / gdpY : 0):F2}	投資家貯蓄/投資家年所得 {(invEarnAll > 0 ? CapitalMarket.InvestorSavings(w) / (invEarnAll * 12) : 0):F1}	投資家年所得/年GDP {(gdpY > 0 ? invEarnAll * 12 / gdpY : 0):F2}	国債/年GDP {(gdpY > 0 ? w.GovDebt / gdpY : 0):F2}	国庫/年GDP {(gdpY > 0 ? w.Treasury / gdpY : 0):F3}");
+            }
             Console.WriteLine($"{name}	人口(千) {popTotal:F0}	名目GDP(年) {w.NominalGdp * 4:F0}	国庫 {w.Treasury:F0}	国債 {w.GovDebt:F0}	全貯蓄 {savTotal:F0}	投資家貯蓄(述語) {invSav:F0}	物価水準 {w.PriceLevel:F3}	Fx {w.FxRate:F3}	基礎貨幣 {w.BaseMoney:F0}	広義 {w.BroadMoney:F0}	与信残高 {w.OutstandingLoans:F0}	収益の月次(投資家) {invEarn:F0}");
             foreach (var kv in sv.OrderByDescending(x => x.Value))
                 Console.WriteLine($"   {kv.Key,-8}	Size {sz[kv.Key]:F1}	Savings {kv.Value:F0}	(1人あたり {(sz[kv.Key] > 1e-9 ? kv.Value / sz[kv.Key] : 0):F1})	前期所得 {ea[kv.Key]:F1}");
