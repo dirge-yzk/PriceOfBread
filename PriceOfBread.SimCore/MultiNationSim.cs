@@ -535,16 +535,13 @@ public sealed class MultiNationSim
     }
     private bool _startWarmupDone;
 
-    /// <summary>★(231) 開幕の軍の確定（助走の直後・初期値の整備の段5）＝構築の一律の播種（治安維持力・艦 0）を、助走で出そろった入力（歳入・賃金・参照価格・即応度）から既存の式で置き直す。新しい表は無い。
-    /// 順＝艦（陸海の比と播種・払える側の上限）→治安維持力（兵数×即応度）。人と金は動かさない。
-    /// 置き直さないもの（測って落とした）：兵＝助走の直後の兵は構築の播種から軍の定員の式（<see cref="Military.EstablishmentOf"/>）と徴兵・志願の動きで寄った、シム自身の釣り合い
+    /// <summary>★(231) 開幕の軍の確定（助走の直後・初期値の整備の段5）＝構築の一律の播種（艦 0）を、助走で出そろった入力（歳入・賃金・参照価格）から既存の式で置き直す。新しい表は無い。
+    /// 艦（陸海の比と播種・払える側の上限）。人と金は動かさない。
+    /// 置き直さないもの：治安維持力＝(233) で差し戻した（兵数×即応度×CoercionPerSoldier は絶対の兵数に比例し、使う側 PoliticalQuantities.EffectiveCoerce は人口あたりの強度として読む＝単位が合わない・world.json の国の coercion 欄に戻した）／
+    /// 測って落としたもの：兵＝助走の直後の兵は構築の播種から軍の定員の式（<see cref="Military.EstablishmentOf"/>）と徴兵・志願の動きで寄った、シム自身の釣り合い
     /// （志願制の国は定員の一部しか埋まらない＝定員まで置くと英が釣り合いの約3倍・史実の約5倍）／軍事費の段＝AI の関数（UtilityAgent.SecurityStageTarget）で置いても史実との差は縮まらず
     /// 史実比較の桁の NG が増えた（測定の表 measurements/mil231_20261010）。</summary>
-    private void OpenForces()
-    {
-        Diplomacy.OpenGame(_coef);
-        foreach (var n in Nations) Government.SetOpeningCoercion(n.World, n.World.Coef);
-    }
+    private void OpenForces() => Diplomacy.OpenGame(_coef);
 
     /// <summary>★発見の段（段2A・2026-10-01・設計 §1A-2・§1A-7）＝四半期末の共有層。
     /// 接触（行ごと）＝①取引：その行を解禁済みの国から、まだの自国が買った運び手の財の額 ÷ 世界のその運び手の財の取引額の和（思想の伝播 StepDiffusion と同じ「世界の取引に占める割合」＝小国を過大に見ない）

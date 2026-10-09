@@ -6,7 +6,7 @@ using Xunit;
 namespace PriceOfBread.Tests;
 
 /// <summary>
-/// 開幕の軍の確定（初期値の整備 段5・実装ログ (231)）の番人。助走の直後に、構築の播種（治安維持力は置いた値・艦は 0）を
+/// 開幕の軍の確定（初期値の整備 段5・実装ログ (231)）の番人。助走の直後に、構築の播種（艦は 0）を
 /// 助走で出そろった入力から既存の式で置き直す（MultiNationSim.OpenForces）。表を足さず、式の入力を直した。
 /// <para>⚠これは ON 経路のテスト（助走を実際に回して置いた値を式と突き合わせる）＝「何もしない機構は必ず緑」の轍を踏まない。</para>
 /// </summary>
@@ -62,22 +62,6 @@ public class OpeningForcesTests
     }
 
     [Fact]
-    public void 回231_開幕の治安維持力は_兵数と即応度から導く()
-    {
-        var sim = Warmed();
-        foreach (var n in sim.Nations)
-        {
-            var w = n.World;
-            if (!w.CoercionFollowsForce) continue;
-            double want = Government.CoercionTargetFromForce(w.SoldierSize() * w.MilitaryReadiness * w.Coef.CoercionPerSoldier, w.Coef);
-            Assert.Equal(want, w.BaseCoercion, 6);
-            Assert.Equal(want, w.Policy.CoercionTarget, 6);
-        }
-        // world.json の置いた値（400 のテンプレなど）のままの国ばかりではない
-        Assert.True(sim.Nations.Select(n => System.Math.Round(n.World.BaseCoercion)).Distinct().Count() > 20);
-    }
-
-    [Fact]
     public void 回231_艦の目標は払える側を超えない()
     {
         var sim = Warmed();
@@ -110,7 +94,7 @@ public class OpeningForcesTests
     }
 
     [Fact]
-    public void 回231_world_jsonの国の欄から_兵と治安維持力の手置きを外した()
+    public void 回231_world_jsonの国の欄から_兵の手置きを外した()
     {
         var asm = typeof(WorldData).Assembly;
         string name = System.Array.Find(asm.GetManifestResourceNames(), x => x.EndsWith("world.json", System.StringComparison.Ordinal))!;
@@ -121,7 +105,8 @@ public class OpeningForcesTests
         foreach (var n in nations.EnumerateArray())
         {
             Assert.False(n.TryGetProperty("military", out _), "国の military 欄が残っている（シムは兵士 POP から導く）");
-            Assert.False(n.TryGetProperty("coercion", out _), "国の coercion 欄が残っている（開幕は兵数×即応度で導く）");
+            // ★(233) coercion 欄は残す（開幕の治安維持力の導出 C は差し戻した＝兵数に比例する目標と人口あたりの強度の単位が合わない・実装ログ (233)）
+            Assert.True(n.TryGetProperty("coercion", out _), "国の coercion 欄が無い（(233) で戻した手置きの値）");
         }
         // 抽象標的（POP を持たない勢力）の military は残す
         Assert.All(doc.RootElement.GetProperty("abstractTargets").EnumerateArray(), t => Assert.True(t.TryGetProperty("military", out _)));
