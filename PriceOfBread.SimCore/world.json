@@ -983,7 +983,7 @@
    "initialInterestRate": 0.25,
    "latitude": 59.9,
    "longitude": 30.3,
-   "farmLordShare": 1,
+   "farmLordShare": 0.54,
    "culturalGoodId": 94
   },
   {
@@ -1337,7 +1337,7 @@
    "initialSuffrage": "None",
    "initialCensorship": "StatePressOnly",
    "initialCornLaws": "Full",
-   "initialSerfEmancipation": "None",
+   "initialSerfEmancipation": "Limited",
    "provinces": [
     {
      "city": "ウィーン",
@@ -3669,10 +3669,9 @@
    "initialColonies": [],
    "ethnicUnity": 0.8,
    "initialSuffrage": "None",
-   "initialConscription": "Volunteer",
    "initialCensorship": "StatePressOnly",
    "initialCornLaws": "Full",
-   "initialSerfEmancipation": "None",
+   "initialSerfEmancipation": "Full",
    "provinces": [
     {
      "city": "ストックホルム",
@@ -3724,7 +3723,7 @@
    "initialInterestRate": 0.25,
    "latitude": 59.33,
    "longitude": 18.07,
-   "farmLordShare": 0.6,
+   "farmLordShare": 0.33,
    "culturalGoodId": 54
   },
   {
