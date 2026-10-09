@@ -13,17 +13,17 @@ namespace PriceOfBread.SimCore;
 public static class WorldData
 {
     // 州は ProvinceSpec record＝System.Text.Json が {city,share,resources,culture,religion} を名前付きで自動シリアライズ（専用 converter 不要）。
-    // 植民地タプル (Name, Resources[], Population) を {name,resources,population} へ。
-    internal sealed record ColonyDto(string Name, int[] Resources, double Population);
-    private sealed class ColonyArrayConverter : JsonConverter<(string Name, int[] Resources, double Population)[]>
+    // 植民地タプル (Name, Resources[], PopK) を {name,resources,popK} へ。★(227)：popK＝1780年代の住民数〔千人〕（旧 population＝ウェイト×500）。
+    internal sealed record ColonyDto(string Name, int[] Resources, double PopK);
+    private sealed class ColonyArrayConverter : JsonConverter<(string Name, int[] Resources, double PopK)[]>
     {
-        public override (string Name, int[] Resources, double Population)[] Read(ref Utf8JsonReader r, System.Type t, JsonSerializerOptions o)
+        public override (string Name, int[] Resources, double PopK)[] Read(ref Utf8JsonReader r, System.Type t, JsonSerializerOptions o)
         {
             var dtos = JsonSerializer.Deserialize<ColonyDto[]>(ref r, o) ?? [];
-            return System.Array.ConvertAll(dtos, d => (d.Name, d.Resources, d.Population));
+            return System.Array.ConvertAll(dtos, d => (d.Name, d.Resources, d.PopK));
         }
-        public override void Write(Utf8JsonWriter w, (string Name, int[] Resources, double Population)[] v, JsonSerializerOptions o)
-            => JsonSerializer.Serialize(w, System.Array.ConvertAll(v, t => new ColonyDto(t.Name, t.Resources, t.Population)), o);
+        public override void Write(Utf8JsonWriter w, (string Name, int[] Resources, double PopK)[] v, JsonSerializerOptions o)
+            => JsonSerializer.Serialize(w, System.Array.ConvertAll(v, t => new ColonyDto(t.Name, t.Resources, t.PopK)), o);
     }
 
     // === 国際層の初期条件（§6.1）＝データ化（旧 MultiNationSim コンストラクタのハードコード表）。world.json に本節があればそれが真実源、無ければ BootstrapSetup（コード）へフォールバック＝常に動作。===
@@ -118,16 +118,16 @@ public static class WorldData
     /// <summary>国際層初期条件のコード定義（真実源の種＝dumpworld で world.json に書き出す。旧 MultiNationSim コンストラクタのリテラルを値据え置きで移設）。順序厳守＝Power.Id は Powers.Count で連番付与されるため配列順が挙動を決める。</summary>
     internal static WorldSetup BootstrapSetup() => new(
         [   // 抽象標的（AddTarget 順）：目玉資源は被りを避ける（史実＋やや誇張）
-            new TargetDto("琉球", 0.1, false, [new ColonyDto("琉球", [Catalog.SugarCaneId, Catalog.DyeId, Catalog.FishId], 0.5)]),
-            new TargetDto("アルタ=カリフォルニア", 0.4, false, [new ColonyDto("アルタ=カリフォルニア", [Catalog.GoldOreId, Catalog.WheatId, Catalog.LivestockId, Catalog.TimberId], 1.5)]),
-            new TargetDto("ボルネオ", 0.5, false, [new ColonyDto("ボルネオ", [Catalog.RawRubberId, Catalog.CrudeOilId, Catalog.SpiceId, Catalog.TimberId], 2)]),
-            new TargetDto("マレー", 0.4, false, [new ColonyDto("マレー", [Catalog.SpiceId, Catalog.RawRubberId], 1.5)]),
-            new TargetDto("バルバリ", 0.6, false, [new ColonyDto("アルジェ", [Catalog.WheatId, Catalog.FruitId, Catalog.LivestockId], 3)]),
-            new TargetDto("アシャンティ", 0.6, true, [new ColonyDto("アシャンティ", [Catalog.GoldOreId, Catalog.CocoaId, Catalog.PalmOilId], 2)]),
-            new TargetDto("ソコト", 0.6, true, [new ColonyDto("ソコト", [Catalog.DyeId, Catalog.LivestockId, Catalog.IvoryId], 3)]),
-            new TargetDto("コンゴ", 0.6, true, [new ColonyDto("コンゴ", [Catalog.RawRubberId, Catalog.IvoryId, Catalog.CopperOreId, Catalog.PalmOilId], 3)]),
-            new TargetDto("南アフリカ", 0.5, false, [new ColonyDto("南アフリカ", [Catalog.GoldOreId, Catalog.CopperOreId, Catalog.LivestockId], 2)]),
-            new TargetDto("パナマ", 0.4, false, [new ColonyDto("パナマ", [Catalog.TimberId], 1)]),
+            new TargetDto("琉球", 0.1, false, [new ColonyDto("琉球", [Catalog.SugarCaneId, Catalog.DyeId, Catalog.FishId], 250)]),
+            new TargetDto("アルタ=カリフォルニア", 0.4, false, [new ColonyDto("アルタ=カリフォルニア", [Catalog.GoldOreId, Catalog.WheatId, Catalog.LivestockId, Catalog.TimberId], 750)]),
+            new TargetDto("ボルネオ", 0.5, false, [new ColonyDto("ボルネオ", [Catalog.RawRubberId, Catalog.CrudeOilId, Catalog.SpiceId, Catalog.TimberId], 1000)]),
+            new TargetDto("マレー", 0.4, false, [new ColonyDto("マレー", [Catalog.SpiceId, Catalog.RawRubberId], 750)]),
+            new TargetDto("バルバリ", 0.6, false, [new ColonyDto("アルジェ", [Catalog.WheatId, Catalog.FruitId, Catalog.LivestockId], 1500)]),
+            new TargetDto("アシャンティ", 0.6, true, [new ColonyDto("アシャンティ", [Catalog.GoldOreId, Catalog.CocoaId, Catalog.PalmOilId], 1000)]),
+            new TargetDto("ソコト", 0.6, true, [new ColonyDto("ソコト", [Catalog.DyeId, Catalog.LivestockId, Catalog.IvoryId], 1500)]),
+            new TargetDto("コンゴ", 0.6, true, [new ColonyDto("コンゴ", [Catalog.RawRubberId, Catalog.IvoryId, Catalog.CopperOreId, Catalog.PalmOilId], 1500)]),
+            new TargetDto("南アフリカ", 0.5, false, [new ColonyDto("南アフリカ", [Catalog.GoldOreId, Catalog.CopperOreId, Catalog.LivestockId], 1000)]),
+            new TargetDto("パナマ", 0.4, false, [new ColonyDto("パナマ", [Catalog.TimberId], 500)]),
         ],
         [   // 初期史実ライバルの緊張（SeedRivalries 順）
             new RivalryDto("フランス", "イギリス", 50),

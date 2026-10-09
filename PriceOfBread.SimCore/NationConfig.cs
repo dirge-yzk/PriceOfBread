@@ -45,7 +45,7 @@ public sealed class NationConfig
     public double InitialMassMilitancy = 0;      // P6 乾隆帝の遺産：非特権大衆の初期闘争度（清＝白蓮教乱前夜の慢性的混乱。既定0=恒等・盛りすぎない）
     public double InitialTariff = 0.0;   // 関税の初期値（0..1）。日本＝鎖国で極めて高い
     public double Industrialization = 0.0;
-    public (string Name, int[] Resources, double Population)[] InitialColonies = [];   // 初期の植民地（名前＋固有資源 good.Id＋人口規模ウェイト。史実・1780）。征服で本国間を移る
+    public (string Name, int[] Resources, double PopK)[] InitialColonies = [];   // 初期の植民地（名前＋固有資源 good.Id＋1780年代の住民数〔千人〕。史実）。征服で本国間を移る。★(227)：旧＝人口規模ウェイト（×ColonialPopScale 500 で千人）→千人を直接置く
     // 倍率排除⑤：国一律の生産性倍率 ProductivityBonus は撤去。生産性差は工業化度(Industrialization)・技術・資源賦存(州Resources/ArableLand)から創発する。
     // 資源は州ごとに割り当てる（下記 Provinces の各州の Resources）。国一律の旧 ResourceBonus は廃止＝
     // 全州が同じ物を産み世界価格が均等化して交易が死ぬのを避け、州ごとに産地を分けて価格を分化させ交易を生かす。

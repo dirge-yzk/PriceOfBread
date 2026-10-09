@@ -38,7 +38,7 @@
       24,
       67
      ],
-     "population": 2.5
+     "popK": 1250
     },
     {
      "name": "南部サン=ドマング",
@@ -46,7 +46,7 @@
       24,
       67
      ],
-     "population": 2
+     "popK": 1000
     },
     {
      "name": "マルティニーク",
@@ -54,7 +54,7 @@
       24,
       25
      ],
-     "population": 1.5
+     "popK": 750
     },
     {
      "name": "マスカリン諸島",
@@ -62,7 +62,7 @@
       24,
       67
      ],
-     "population": 1
+     "popK": 500
     },
     {
      "name": "ポンディシェリ",
@@ -71,7 +71,7 @@
       26,
       12
      ],
-     "population": 2
+     "popK": 1000
     },
     {
      "name": "セネガル",
@@ -79,7 +79,7 @@
       23,
       17
      ],
-     "population": 1
+     "popK": 500
     }
    ],
    "military": 1.8,
@@ -344,14 +344,14 @@
       24,
       67
      ],
-     "population": 2
+     "popK": 1000
     },
     {
      "name": "小アンティル",
      "resources": [
       24
      ],
-     "population": 1.5
+     "popK": 750
     },
     {
      "name": "ウィンドワード諸島",
@@ -359,7 +359,7 @@
       24,
       25
      ],
-     "population": 1
+     "popK": 500
     },
     {
      "name": "カナダ",
@@ -368,7 +368,7 @@
       20,
       109
      ],
-     "population": 1
+     "popK": 500
     },
     {
      "name": "中核ベンガル",
@@ -378,7 +378,7 @@
       17,
       108
      ],
-     "population": 6
+     "popK": 3000
     },
     {
      "name": "内陸ベンガル",
@@ -388,7 +388,7 @@
       66,
       108
      ],
-     "population": 4
+     "popK": 2000
     },
     {
      "name": "マドラス",
@@ -397,7 +397,7 @@
       17,
       127
      ],
-     "population": 5
+     "popK": 2500
     },
     {
      "name": "ボンベイ",
@@ -405,7 +405,7 @@
       12,
       83
      ],
-     "population": 4
+     "popK": 2000
     },
     {
      "name": "沿岸西アフリカ",
@@ -415,94 +415,94 @@
       22,
       21
      ],
-     "population": 2
+     "popK": 1000
     },
     {
      "name": "オーストラリア",
      "resources": [
       19
      ],
-     "population": 0.5
+     "popK": 250
     },
     {
      "name": "ジブラルタル",
      "resources": [],
-     "population": 0.1
+     "popK": 50
     },
     {
      "name": "セントジョンズ",
      "resources": [],
-     "population": 0.3
+     "popK": 150
     },
     {
      "name": "ナイン",
      "resources": [],
-     "population": 0.05
+     "popK": 25
     },
     {
      "name": "チャーチル",
      "resources": [],
-     "population": 0.05
+     "popK": 25
     },
     {
      "name": "フォートウィリアム",
      "resources": [],
-     "population": 0.05
+     "popK": 25
     },
     {
      "name": "エドモントン",
      "resources": [],
-     "population": 0.05
+     "popK": 25
     },
     {
      "name": "バンクーバー",
      "resources": [],
-     "population": 0.05
+     "popK": 25
     },
     {
      "name": "フォートシンプソン",
      "resources": [],
-     "population": 0.03
+     "popK": 15
     },
     {
      "name": "イカルイト",
      "resources": [],
-     "population": 0.02
+     "popK": 10
     },
     {
      "name": "フリータウン",
      "resources": [],
-     "population": 0.1
+     "popK": 50
     },
     {
      "name": "パース",
      "resources": [],
-     "population": 0.1
+     "popK": 50
     },
     {
      "name": "アデレード",
      "resources": [],
-     "population": 0.1
+     "popK": 50
     },
     {
      "name": "ブリスベン",
      "resources": [],
-     "population": 0.1
+     "popK": 50
     },
     {
      "name": "ダーウィン",
      "resources": [],
-     "population": 0.03
+     "popK": 15
     },
     {
      "name": "アリススプリングス",
      "resources": [],
-     "population": 0.02
+     "popK": 10
     },
     {
      "name": "ホバート",
      "resources": [],
-     "population": 0.05
+     "popK": 25
     }
    ],
    "military": 4.5,
@@ -730,22 +730,22 @@
      "resources": [
       109
      ],
-     "population": 0.2
+     "popK": 100
     },
     {
      "name": "セントマイケル",
      "resources": [],
-     "population": 0.03
+     "popK": 15
     },
     {
      "name": "フォートユーコン",
      "resources": [],
-     "population": 0.03
+     "popK": 15
     },
     {
      "name": "バロー",
      "resources": [],
-     "population": 0.02
+     "popK": 10
     }
    ],
    "military": 2,
@@ -1608,7 +1608,7 @@
       107,
       127
      ],
-     "population": 5
+     "popK": 2500
     },
     {
      "name": "ケープタウン",
@@ -1616,7 +1616,7 @@
       16,
       19
      ],
-     "population": 1
+     "popK": 500
     },
     {
      "name": "セイロン",
@@ -1625,7 +1625,7 @@
       66,
       127
      ],
-     "population": 1.5
+     "popK": 750
     },
     {
      "name": "スリナム",
@@ -1633,12 +1633,12 @@
       24,
       67
      ],
-     "population": 1
+     "popK": 500
     },
     {
      "name": "マカッサル",
      "resources": [],
-     "population": 0.3
+     "popK": 150
     }
    ],
    "military": 1.5,
@@ -1717,7 +1717,7 @@
      "resources": [
       110
      ],
-     "population": 3
+     "popK": 1500
     },
     {
      "name": "中央メキシコ",
@@ -1727,7 +1727,7 @@
       18,
       106
      ],
-     "population": 5
+     "popK": 2500
     },
     {
      "name": "キューバ",
@@ -1735,7 +1735,7 @@
       24,
       18
      ],
-     "population": 3
+     "popK": 1500
     },
     {
      "name": "ペルー",
@@ -1747,7 +1747,7 @@
       111,
       127
      ],
-     "population": 4
+     "popK": 2000
     },
     {
      "name": "ヌエバ・グラナダ",
@@ -1755,7 +1755,7 @@
       4,
       67
      ],
-     "population": 3
+     "popK": 1500
     },
     {
      "name": "ラ・プラタ",
@@ -1765,7 +1765,7 @@
       106,
       108
      ],
-     "population": 3
+     "popK": 1500
     },
     {
      "name": "フィリピン",
@@ -1774,14 +1774,14 @@
       24,
       11
      ],
-     "population": 3
+     "popK": 1500
     },
     {
      "name": "プエルトリコ",
      "resources": [
       24
      ],
-     "population": 1.5
+     "popK": 750
     },
     {
      "name": "カラカス",
@@ -1790,7 +1790,7 @@
       17,
       19
      ],
-     "population": 1
+     "popK": 500
     },
     {
      "name": "ルイジアナ・フロリダ",
@@ -1798,7 +1798,7 @@
       18,
       11
      ],
-     "population": 1
+     "popK": 500
     },
     {
      "name": "チリ",
@@ -1807,72 +1807,72 @@
       2,
       15
      ],
-     "population": 1.5
+     "popK": 750
     },
     {
      "name": "サンタフェ",
      "resources": [],
-     "population": 0.2
+     "popK": 100
     },
     {
      "name": "エルパソ",
      "resources": [],
-     "population": 0.1
+     "popK": 50
     },
     {
      "name": "ロレート",
      "resources": [],
-     "population": 0.05
+     "popK": 25
     },
     {
      "name": "レオン",
      "resources": [],
-     "population": 0.3
+     "popK": 150
     },
     {
      "name": "ボゴタ",
      "resources": [],
-     "population": 0.8
+     "popK": 400
     },
     {
      "name": "キト",
      "resources": [],
-     "population": 0.6
+     "popK": 300
     },
     {
      "name": "イキトス",
      "resources": [],
-     "population": 0.1
+     "popK": 50
     },
     {
      "name": "ラパス",
      "resources": [],
-     "population": 0.5
+     "popK": 250
     },
     {
      "name": "トゥクマン",
      "resources": [],
-     "population": 0.3
+     "popK": 150
     },
     {
      "name": "アスンシオン",
      "resources": [],
-     "population": 0.3
+     "popK": 150
     },
     {
      "name": "カルメン・デ・パタゴネス",
      "resources": [],
-     "population": 0.05
+     "popK": 25
     },
     {
      "name": "プンタアレナス",
      "resources": [],
-     "population": 0.03
+     "popK": 15
     },
     {
      "name": "サンボアンガ",
      "resources": [],
-     "population": 0.1
+     "popK": 50
     }
    ],
    "military": 2,
@@ -3419,12 +3419,12 @@
       26,
       23
      ],
-     "population": 1
+     "popK": 500
     },
     {
      "name": "モガディシュ",
      "resources": [],
-     "population": 0.2
+     "popK": 100
     }
    ],
    "military": 0.6,
@@ -4038,7 +4038,7 @@
     {
      "name": "ヌーク",
      "resources": [],
-     "population": 0.05
+     "popK": 25
     }
    ],
    "military": 0.8,
@@ -4284,7 +4284,7 @@
       4,
       106
      ],
-     "population": 5
+     "popK": 2500
     },
     {
      "name": "アマゾン",
@@ -4293,42 +4293,42 @@
       11,
       127
      ],
-     "population": 0.5
+     "popK": 250
     },
     {
      "name": "マナウス",
      "resources": [],
-     "population": 0.1
+     "popK": 50
     },
     {
      "name": "サルヴァドール",
      "resources": [],
-     "population": 0.8
+     "popK": 400
     },
     {
      "name": "サンルイス",
      "resources": [],
-     "population": 0.3
+     "popK": 150
     },
     {
      "name": "ゴイアス",
      "resources": [],
-     "population": 0.3
+     "popK": 150
     },
     {
      "name": "クイアバ",
      "resources": [],
-     "population": 0.2
+     "popK": 100
     },
     {
      "name": "ルアンダ",
      "resources": [],
-     "population": 0.5
+     "popK": 250
     },
     {
      "name": "テテ",
      "resources": [],
-     "population": 0.1
+     "popK": 50
     }
    ],
    "military": 0.8,
@@ -5762,7 +5762,7 @@
       17,
       20
      ],
-     "population": 0.5
+     "popK": 250
     }
    ]
   },
@@ -5779,7 +5779,7 @@
       19,
       11
      ],
-     "population": 1.5
+     "popK": 750
     }
    ]
   },
@@ -5796,7 +5796,7 @@
       26,
       11
      ],
-     "population": 2
+     "popK": 1000
     }
    ]
   },
@@ -5812,7 +5812,7 @@
       21,
       107
      ],
-     "population": 1.5
+     "popK": 750
     }
    ]
   },
@@ -5828,7 +5828,7 @@
       2,
       19
      ],
-     "population": 2
+     "popK": 1000
     }
    ]
   },
@@ -5842,7 +5842,7 @@
      "resources": [
       11
      ],
-     "population": 1
+     "popK": 500
     }
    ]
   },
@@ -5854,7 +5854,7 @@
     {
      "name": "ソルトレークシティ",
      "resources": [],
-     "population": 0.1
+     "popK": 50
     }
    ]
   },
@@ -5866,17 +5866,17 @@
     {
      "name": "ドンゴラ",
      "resources": [],
-     "population": 0.1
+     "popK": 50
     },
     {
      "name": "センナール",
      "resources": [],
-     "population": 0.4
+     "popK": 200
     },
     {
      "name": "ファショダ",
      "resources": [],
-     "population": 0.1
+     "popK": 50
     }
    ]
   },
@@ -5888,27 +5888,27 @@
     {
      "name": "トンブクトゥ",
      "resources": [],
-     "population": 0.3
+     "popK": 150
     },
     {
      "name": "シンゲッティ",
      "resources": [],
-     "population": 0.1
+     "popK": 50
     },
     {
      "name": "ムルズク",
      "resources": [],
-     "population": 0.15
+     "popK": 75
     },
     {
      "name": "タマンラセット",
      "resources": [],
-     "population": 0.1
+     "popK": 50
     },
     {
      "name": "アベシェ",
      "resources": [],
-     "population": 0.2
+     "popK": 100
     }
    ]
   },
@@ -5920,7 +5920,7 @@
     {
      "name": "カンパラ",
      "resources": [],
-     "population": 0.5
+     "popK": 250
     }
    ]
   },
@@ -5932,7 +5932,7 @@
     {
      "name": "ウジジ",
      "resources": [],
-     "population": 0.2
+     "popK": 100
     }
    ]
   },
@@ -5944,7 +5944,7 @@
     {
      "name": "ブラワヨ",
      "resources": [],
-     "population": 0.3
+     "popK": 150
     }
    ]
   },
@@ -5956,7 +5956,7 @@
     {
      "name": "ダーバン",
      "resources": [],
-     "population": 0.3
+     "popK": 150
     }
    ]
   },
@@ -5968,7 +5968,7 @@
     {
      "name": "クルマン",
      "resources": [],
-     "population": 0.1
+     "popK": 50
     }
    ]
   },
@@ -5980,7 +5980,7 @@
     {
      "name": "ウォルビスベイ",
      "resources": [],
-     "population": 0.05
+     "popK": 25
     }
    ]
   },
@@ -5992,7 +5992,7 @@
     {
      "name": "キサンガニ",
      "resources": [],
-     "population": 0.2
+     "popK": 100
     }
    ]
   },
@@ -6004,7 +6004,7 @@
     {
      "name": "ヤウンデ",
      "resources": [],
-     "population": 0.2
+     "popK": 100
     }
    ]
   },
@@ -6016,7 +6016,7 @@
     {
      "name": "アクモラ",
      "resources": [],
-     "population": 0.5
+     "popK": 250
     }
    ]
   },
@@ -6028,7 +6028,7 @@
     {
      "name": "バンダアチェ",
      "resources": [],
-     "population": 0.5
+     "popK": 250
     }
    ]
   },
@@ -6040,12 +6040,12 @@
     {
      "name": "ポートモレスビー",
      "resources": [],
-     "population": 0.2
+     "popK": 100
     },
     {
      "name": "マノクワリ",
      "resources": [],
-     "population": 0.1
+     "popK": 50
     }
    ]
   },
@@ -6057,12 +6057,12 @@
     {
      "name": "オークランド",
      "resources": [],
-     "population": 0.3
+     "popK": 150
     },
     {
      "name": "ダニーデン",
      "resources": [],
-     "population": 0.2
+     "popK": 100
     }
    ]
   }

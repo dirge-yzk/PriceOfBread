@@ -71,7 +71,7 @@ public sealed class MultiNationSim
                 Gdp = sim.World.Gdp,
                 TradeWeight = DefaultTradeWeightBase + TradeWeightIndustrializationSlope * cfg.Industrialization,   // 倍率排除⑤：工業先進国ほど交易比重が大きい（旧 ProductivityBonus 駆動→工業化度へ。発展度の状態変数から創発）
             };
-            foreach (var (cname, cres, cpop) in cfg.InitialColonies) { var cc = Geo.ColonyCoord(cname); power.ColonyList.Add(new Colony { Name = cname, Resources = [.. cres], Population = cpop, PopSize = cpop * _coef.ColonialPopScale, Latitude = cc.Lat, Longitude = cc.Lon }); }   // 名前＋固有資源＋人口規模＋座標（史実1780）。住民数は人口ウェイト×換算＝作成時の1か所（回1-1・col-01）
+            foreach (var (cname, cres, cpopK) in cfg.InitialColonies) { var cc = Geo.ColonyCoord(cname); power.ColonyList.Add(new Colony { Name = cname, Resources = [.. cres], Population = cpopK / _coef.ColonialPopScale, PopSize = cpopK, Latitude = cc.Lat, Longitude = cc.Lon }); }   // 名前＋固有資源＋人口規模＋座標（史実1780）。住民数は人口ウェイト×換算＝作成時の1か所（回1-1・col-01）
             sim.World.Diplomacy = Diplomacy;     // 読み取り用（植民地アクセス・交易）
             sim.World.SelfPower = power;
             // ★近代化投資レバーの出発点を全国で揃える（2026-08-02・UtilityAgent.OpeningModernizationFrac を見よ）。
@@ -95,7 +95,7 @@ public sealed class MultiNationSim
         foreach (var t in setup.Targets)
         {
             var p = new Power { Id = Diplomacy.Powers.Count, Name = t.Name, BaseName = t.Name, Military = t.Military, Gdp = 0, TradeWeight = 0.0, RequiresQuinine = t.Quinine };
-            foreach (var c in t.Colonies) { var cc = Geo.ColonyCoord(c.Name); p.ColonyList.Add(new Colony { Name = c.Name, Resources = [.. c.Resources], Population = c.Population, PopSize = c.Population * _coef.ColonialPopScale, Latitude = cc.Lat, Longitude = cc.Lon, Malarial = t.Quinine }); }   // ★回1-1（col-01）：住民数も作成時に置く（旧＝未設定のまま侵略で州化され、住民0・耕地1.8の州になった＝約650万人分が消えた）。熱帯(Quinine)標的の州はマラリア地＝征服で本国へ風土病が付いて回る。Resourcesは試合ごとに複製（キャッシュ共有回避）
+            foreach (var c in t.Colonies) { var cc = Geo.ColonyCoord(c.Name); p.ColonyList.Add(new Colony { Name = c.Name, Resources = [.. c.Resources], Population = c.PopK / _coef.ColonialPopScale, PopSize = c.PopK, Latitude = cc.Lat, Longitude = cc.Lon, Malarial = t.Quinine }); }   // ★回1-1（col-01）：住民数も作成時に置く（旧＝未設定のまま侵略で州化され、住民0・耕地1.8の州になった＝約650万人分が消えた）。熱帯(Quinine)標的の州はマラリア地＝征服で本国へ風土病が付いて回る。Resourcesは試合ごとに複製（キャッシュ共有回避）
             Diplomacy.Powers.Add(p);
         }
         _nextPowerId = Diplomacy.Powers.Count;   // ★建国スポーンはここから単調採番（起動時のId=Powers.Countの連番と同じ値で始まり、以後は欠番があっても戻らない）
