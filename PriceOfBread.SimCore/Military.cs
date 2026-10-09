@@ -174,6 +174,20 @@ public static class Military
         return pa > 1e-9 ? pe / pa : 0;
     }
 
+    /// <summary>★(231) 兵士の請求書の満額（月）＝州の兵数×徴募の母数の働き盛り1人あたりの賃金×SoldierPayMult（徴兵制は頭数あたりの手当）。Simulation の給与の請求（soldierBasePay の和）と同じ式
+    /// ＝装備に回せる器（<see cref="EnvelopeOf"/>−これ）を艦の目標の払える側（<see cref="EconomyStep.FleetTargetUnits"/>）が読む。</summary>
+    internal static double SoldierPayFull(World w, Coefficients c)
+    {
+        bool keep = w.ConscriptionLaw >= ConscriptionLaw.Selective;
+        double pay = 0;
+        foreach (var r in w.Regions)
+        {
+            if (r.State != RegionState.Active || r.SoldierPopIndex < 0) continue;
+            pay += r.Pops[r.SoldierPopIndex].Size * RecruitWage(r, c, last: false, keep: keep) * c.SoldierPayMult;
+        }
+        return pay;
+    }
+
     public static void Step(World w, Coefficients c, bool atWar)
     {
         // 外12：戦時徴兵率を戦争の規模でスケール（一律12%総動員→限定戦争は数%）。⚠**ConscriptionScalesWithWar は 1.0 で点火済み**（旧コメントの「0（既定）」は誤り・2026-08-01訂正）＝戦時徴兵は一律ではない。0 なら mobilizeFrac=ConscriptionFraction＝現行と厳密恒等。

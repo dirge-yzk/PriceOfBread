@@ -875,7 +875,7 @@ public sealed class Simulation
         //   ＝最初の1〜2年で定員へ寄る（徴兵制＝強制の徴募が月 SoldierMigrationRate で・志願制＝転職の仕組みの志願・定員の超過は転職の仕組みが民間の職へ戻す）。
         //   旧＝「Military.cs の desired と完全一致」（軍事費の段×上限割合×頭数＝旧の平時の目標）。
         //   富の乗数（SoldierWealthExponent）は世界平均を要るので播種時には掛けない＝最初の数四半期で自然に効く。
-        // ⚠ cfg.Military は抽象勢力（Nation を持たない標的）と Power の初期ゲージ表示に残る（次の Diplomacy.Step で再導出）。
+        // ⚠ 国の初期ゲージ（Power.Military）は兵士 POP から導く（MultiNationSim）。world.json の国の military 欄は (231) で外した（抽象標的 TargetDto の military だけが残る＝POP を持たない勢力）。
         double pw = peasant.Size + worker.Size;
         var soldier = new Pop { ClassId = 5, ClassName = "兵士", IsUrban = false, Satisfaction = 1.0, IsSoldier = true, Ages = Pop.SoldierAges(),
             Literacy = pw > 1e-9 ? (peasant.Literacy * peasant.Size + worker.Literacy * worker.Size) / pw : 0.3 };

@@ -204,7 +204,27 @@ public static class EconomyStep
         if (!(wp > 0)) return null;
         var t = new double[n];
         for (int k = 0; k < n; k++) t[k] = w[k] > 0 ? want * denom * w[k] / wp : 0;
+        // ★(231) 払える側の上限＝陸の定員（<see cref="Military.EstablishmentOf"/>＝min(経済の側, 人口の側)）と同じ形の min(必要側, 払える側)：艦の在庫が定常で保てる額
+        //   （月の海軍の予算 ÷ 月の劣化率）を参照価格建てで超える分は目標に入れない。海軍の予算＝軍事費の器（Military.EnvelopeOf）から兵の給与の請求を引いた残り×海の金の割合
+        //   （Simulation の equipRoom×seaShare の写し・必要額で切る前＝循環しない）。歳入・段・陸海比・徴兵法だけを読む（ゆっくり動く量）。
+        double cost = 0;
+        for (int k = 0; k < n; k++) cost += t[k] * (region.GoodOf(coef.FleetGoodIds[k])?.RefPrice ?? 0);
+        double afford = FleetAffordableCost(world, coef);
+        if (cost > afford)
+        {
+            double scale = afford / cost;
+            for (int k = 0; k < n; k++) t[k] *= scale;
+        }
         return t;
+    }
+
+    /// <summary>★(231) 艦の在庫が定常で保てる額（参照価格建て）＝月の海軍の予算 ÷ 艦の月の劣化率。海軍の予算＝軍事費の器（<see cref="Military.EnvelopeOf"/>）から兵の給与の請求（<see cref="Military.SoldierPayFull"/>）を引いた残り
+    /// ×海の金の割合（Simulation の equipRoom×seaShare の写し・必要額で切る前＝目標から導く必要額に依らず循環しない）。0以下・NaN は払えない（0）。</summary>
+    internal static double FleetAffordableCost(World world, Coefficients coef)
+    {
+        double spoil = Catalog.SpoilageOf(coef.WarshipGoodId);
+        double room = Military.EnvelopeOf(world, coef) - Military.SoldierPayFull(world, coef);
+        return room > 0 && spoil > 1e-12 ? room * world.NavalSpendShare / spoil : 0;   // 否定形＝NaN は払えない側（艦を目標に入れない）
     }
 
     /// <summary>国の財ごとの艦の在庫（全ての稼働中の州の和・<see cref="Coefficients.FleetGoodIds"/> の並び）。</summary>

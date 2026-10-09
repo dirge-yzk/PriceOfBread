@@ -819,13 +819,9 @@ public sealed class Diplomacy
         return g;
     }
 
-    public void Step(Coefficients c, DeterministicRng rng, int month)
+    /// <summary>経済を持つ国の軍/GDP/艦の強さ/海盆プレゼンス/熟練を同期する（<see cref="Step"/> の頭〔毎月〕と <see cref="OpenGame"/>〔助走の直後〕が同じ1本を呼ぶ・(231) で Step から抽出＝本体は無変更）。</summary>
+    private void SyncPowers(Coefficients c)
     {
-        Cost[CostLedger.DiploPowerMonths] += Powers.Count;   // 計算量の台帳（診断）：外交の月の歩は国×月に比例
-        // ★開幕（2026-10-01 (151)）＝経済を持つ国のどれもまだ艦隊を播いていない最初の同期（00一覧 §0-A の 11 の申し送り「開幕の陸海の維持費 0.27/0.03 が最初の四半期に跳ぶ」）。
-        bool opening = true;   // ★(189) 艦隊駆動の旗（NavalPowerFromFleet）は削除＝経済を持つ国は常に艦の在庫から
-        foreach (var p0 in Powers) if (p0.Nation is not null && p0._fleetSeeded) { opening = false; break; }
-        // 経済を持つ国は軍/GDP/財庫を毎月同期（抽象的な外国は静的値のまま）
         foreach (var p in Powers)
         {
             if (p.Nation is not { } nw) { p.NavalShare = c.AbstractNavalShare; continue; }   // 抽象標的＝弱小海軍（陸の守りが主・B-1）
@@ -897,6 +893,26 @@ public sealed class Diplomacy
             p.NavySkillMul = Military.SkillCombatMultiplier(nw.NavySkill, c);
             _year = nw.Year;
         }
+    }
+
+    /// <summary>★(231) 開幕の艦隊を助走の直後（プレイヤーが最初に見る盤面）に播く。旧＝最初の四半期の終わりの外交の同期（助走中は外交が凍結＝助走の直後も最初の四半期の間も艦は 0 隻）。
+    /// 同期（<see cref="SyncPowers"/>）を1度かけてから <see cref="OpeningNavalShares"/>（陸海の維持費の比と艦の播種）＝最初の同期と同じ順。播いた後は Step の開幕の判定（誰も播いていない）が偽になる。
+    /// 助走の長さが0（構築直後のまま開始）では呼ばれない＝旧と同じ。</summary>
+    internal void OpenGame(Coefficients c)
+    {
+        foreach (var p0 in Powers) if (p0.Nation is not null && p0._fleetSeeded) return;
+        SyncPowers(c);
+        OpeningNavalShares(c);
+    }
+
+    public void Step(Coefficients c, DeterministicRng rng, int month)
+    {
+        Cost[CostLedger.DiploPowerMonths] += Powers.Count;   // 計算量の台帳（診断）：外交の月の歩は国×月に比例
+        // ★開幕（2026-10-01 (151)）＝経済を持つ国のどれもまだ艦隊を播いていない最初の同期（00一覧 §0-A の 11 の申し送り「開幕の陸海の維持費 0.27/0.03 が最初の四半期に跳ぶ」）。
+        bool opening = true;   // ★(189) 艦隊駆動の旗（NavalPowerFromFleet）は削除＝経済を持つ国は常に艦の在庫から
+        foreach (var p0 in Powers) if (p0.Nation is not null && p0._fleetSeeded) { opening = false; break; }
+        // 経済を持つ国は軍/GDP/財庫を毎月同期（抽象的な外国は静的値のまま）
+        SyncPowers(c);
         if (opening) OpeningNavalShares(c);
 
         // 変名規則（統一・formable）：文化/宗教の同期後・四半期に1回（EnableFormations=1.0 live・0で不発）。

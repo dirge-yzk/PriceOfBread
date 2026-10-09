@@ -210,8 +210,9 @@ public class StartWarmupTests
             for (int k = 0; k < Government.LevelLaws.Length; k++) v.Add(($"{Government.LevelLaws[k].Axis}#{k}", Government.LevelLaws[k].Get(w)));
             foreach (var law in Government.RateLaws) v.Add((law.Axis.ToString(), System.BitConverter.DoubleToInt64Bits(law.Get(w))));
             void D(string name, double x) => v.Add((name, System.BitConverter.DoubleToInt64Bits(x)));
-            D("陸軍維持費", w.ArmyUpkeep); D("海軍維持費", w.NavyUpkeep); D("関税", w.Tariff); D("金利", w.InterestRate); D("行政費", w.AdminSpending);
-            D("治安維持力", w.BaseCoercion); D("福祉水準", w.SocialSecurity); D("実労働時間", w.WorkHoursValue); D("賃金保持", w.WomenWageRetention); D("児童労働の合法度", w.ChildLaborLegal);
+            // ★(231) 陸海の維持費の比と治安維持力は外す＝助走の直後に開幕の軍の確定（MultiNationSim.OpenForces：艦の播種〔OpeningNavalShares が陸海の比を置く〕・兵数×即応度で治安維持力）が置く（助走の動きではなく開幕の置き方・OpeningForcesTests が式と突き合わせる）
+            D("関税", w.Tariff); D("金利", w.InterestRate); D("行政費", w.AdminSpending);
+            D("福祉水準", w.SocialSecurity); D("実労働時間", w.WorkHoursValue); D("賃金保持", w.WomenWageRetention); D("児童労働の合法度", w.ChildLaborLegal);
             v.Add(("年金", (long)w.Pension));
             return v;
         }

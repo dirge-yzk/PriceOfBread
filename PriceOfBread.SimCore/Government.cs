@@ -44,6 +44,17 @@ public static class Government
     internal const int MilitaryLawStages = 4;
     internal const int SocialSecurityMaxLevel = 3;    // 社会保障法の最上段（Pension）＝4段（PoorLaw..Pension）の最大序数。internal（2026-09-11）＝Parliament.TargetDemand が法の段で目標を置く。2026-07-21「なし」廃止で救貧法が最下段（序数0＝福祉水準0）
 
+    /// <summary>★(231) 開幕の治安維持力＝多国シム（<see cref="World.CoercionFollowsForce"/>）が毎期やっている上書きの式（<see cref="Step"/>）を、助走の直後に1度だけ先に当てる
+    /// （助走中は政治が止まる＝開幕は world.json の置いた値のまま入っていた）。兵数×即応度×CoercionPerSoldier。目標も同じ値＝最初の四半期に置いた値へ動かない。</summary>
+    internal static void SetOpeningCoercion(World w, Coefficients c)
+    {
+        if (!w.CoercionFollowsForce) return;
+        double t = CoercionTargetFromForce(w.SoldierSize() * w.MilitaryReadiness * c.CoercionPerSoldier, c);
+        if (!(t >= 0)) return;   // 否定形＝NaN は置いた値のまま
+        w.Policy.CoercionTarget = t;
+        w.BaseCoercion = t;
+    }
+
     /// <summary>R1 蜂起R群2026-08-16（診断A1・本丸）：軍事力→治安維持力目標。CoercionSoftCap=0＝旧 min(x, CoercionMax)＝**ビット恒等**／
     /// >0＝漸近逓減 x/(1+x/CoercionMax)（SelfPlay.Score.Military と同じ既存の逓減形・x→∞でCoercionMaxへ漸近）。
     /// 壁の何が悪いか：旧 CoercionMax=4000 は挑戦力の理論最大（BaseCoercion換算 ≈ PoliticalReferencePop×1.25 ≈ 1250）の3.2倍＝

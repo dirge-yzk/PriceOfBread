@@ -781,6 +781,7 @@ public class MilitaryTests
     {
         var sim = new MultiNationSim([WorldData.ByName("イギリス"), WorldData.ByName("フランス"), WorldData.ByName("日本")], seed: 1789, coef: new Coefficients());
         foreach (var n in sim.Nations) Assert.True(n.World.SelfPower!.FleetGauge == 0, "前提が崩れた：構築の時に艦隊がある");
+        foreach (var n in sim.Nations) n.World.LastRevenue = 1e12;   // ★(231) 艦の目標は払える側で切る＝この試験の主張（開幕の艦隊は必要量の比で播く）を見るために予算を拘束させない
         sim.Diplomacy.Step(sim.Coef, sim.Rng, 1);
         int seeded = 0;
         foreach (var n in sim.Nations)
@@ -906,6 +907,7 @@ public class MilitaryTests
         var sim = Frozen152("イギリス", "フランス");
         var w = sim.Nations[0].World; var sp = w.SelfPower!; var r = w.Region; var c = w.Coef;
         r.NationHasPort = true;
+        w.LastRevenue = 1e12;   // ★(231) 艦の目標は払える側（軍事費の器−兵の給与）で切る＝この試験の主張（目標は必要量で決まる）を見るために予算を拘束させない
         sp.NeedSea = 0.4; sp.NavySkillMul = 1.0;
         var q0 = EconomyStep.FleetOrder(r, c, w, out double cost0);
         Assert.NotNull(q0);

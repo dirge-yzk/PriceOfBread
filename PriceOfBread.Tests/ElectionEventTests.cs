@@ -24,6 +24,8 @@ public class ElectionEventTests
         //   飢餓の駆動で1786年に内戦へ入り選挙が止まる＝この番人の前提（選挙のある英が4年続く）が世界の偶然になる。測るのは選挙の公示の機構だけ。
         w.Coef.FamineDriveGain = 0;
         sim.StartWarmup();
+        //   ★(231) 開幕の治安維持力は助走の直後に兵数×即応度で導く（英だけの世界は即応度が低く 380→約270）。ここで測るのは選挙の公示の機構だけ＝前提（選挙のある英が続く）を旧の置いた値で固定する。
+        w.BaseCoercion = 380; w.Policy.CoercionTarget = 380;
         for (int q = 0; q < (int)w.Coef.ElectionIntervalQuarters + 2; q++) sim.StepQuarter();   // 定期選挙を1回跨ぐ
         Assert.Null(w.PendingElection);
         Assert.True(w.ElectionsHeld > 0, "選挙が1回も起きていない＝テスト前提の破れ（政体が非選挙へ転げた可能性）");
@@ -40,6 +42,7 @@ public class ElectionEventTests
         //   飢餓の駆動で1786年に内戦へ入り選挙が止まる＝この番人の前提（選挙のある英が4年続く）が世界の偶然になる。測るのは選挙の公示の機構だけ。
         c.FamineDriveGain = 0;
         sim.StartWarmup();
+        w.BaseCoercion = 380; w.Policy.CoercionTarget = 380;   // ★(231) 上の OFF の試験と同じ前提の固定（開幕の治安維持力を導くようにした分）
         c.ElectionEventEnabled = 1.0;
         ElectionEvent? seen = null;
         for (int q = 0; q < (int)c.ElectionIntervalQuarters + 2 && seen is null; q++)

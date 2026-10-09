@@ -82,6 +82,10 @@ public static class NationBrief
     // 【削除2026-09-26（棚卸し x-04）】IsIsolated（本国州が他国と陸続きでないか）＝呼び手がテストだけだった。
     //   陸続きの判定の実体は下の NeighborMilitary（同じ陸塊の他国の軍＝島国と大洋の向こうは0）が難易度に使っている。
 
+    /// <summary>★(231) 開始時の兵の数の見積り（千人）＝シムが兵を播く母数（徴募元の農民＋都市労働者）に比例（構築の播種〔Simulation〕と同じ比例＝全ての国で軍事費の段×MaxSoldierFraction が同じ）。
+    /// 旧＝world.json の国別の military 欄（手置きの 0.3〜4.5・シムでは使われず難易度だけが読んでいた）。欄は外した。実際の兵（助走の後の定員）は世界を組まないと分からない＝ここは構築の播種と同じ比例の写し。</summary>
+    internal static double OpeningSoldiers(NationConfig c) => c.Peasant + c.Worker;
+
     /// <summary>同じ陸塊に本国州を持つ他国の軍のうち、上位3つの和（＝取り囲まれの度合い）。
     /// 最大1つでは足りない＝プロイセンは墺2.6・露2.0・仏1.8に**同時に**面しており、最大値だけ見ると
     /// 「墺だけの隣国」に見えて実態より安全に出る。海を隔てた国は数えない（英・米・日はここで0になる）。</summary>
@@ -98,7 +102,7 @@ public static class NationBrief
                 foreach (var p in other.Provinces)
                     if (Landmass.IsRegistered(p.City) && mine.Contains(Landmass.LandmassOf(p.City))) { touches = true; break; }
                 if (!touches) continue;
-                double m = other.Military;
+                double m = OpeningSoldiers(other);
                 if (m > a) { d = b; b = a; a = m; } else if (m > b) { d = b; b = m; } else if (m > d) d = m;
             }
         return a + b + d;
@@ -113,7 +117,7 @@ public static class NationBrief
         // ②人口による分離圧に抗う力（Politics の保持力と同式）。
         double hold = SecessionHold(c, coef);
         // ③安全＝陸続きの隣国の軍（上位3和）に対する自国の軍。海に隔てられていれば隣国0＝1.0（英・米・日）。
-        double safety = 1.0 / (1.0 + NeighborMilitary(c, all) / Math.Max(0.3, c.Military));
+        double safety = 1.0 / (1.0 + NeighborMilitary(c, all) / Math.Max(1e-9, OpeningSoldiers(c)));
         // ④操作量＝**プレイヤーが毎期見る対象の数**（本国州＋植民地＋工業の厚み）。
         //   ★作者指摘2026-08-11「イギリスは操作量が多く簡単でない」＝資源が豊かでも、州5＋植民地11＋世界一の工業は
         //   最も忙しい盤面になる。難易度は「生き残れるか」だけでなく「回せるか」でもある。

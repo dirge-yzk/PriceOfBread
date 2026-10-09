@@ -20,7 +20,7 @@ public sealed class NationConfig
     public double PeasantSubsistence = 0.7;
     public Polity Polity = Polity.Absolutist;
     public EducationLaw Education = EducationLaw.Religious;
-    public double Coercion = 400;   // 人口正規化後＝基準人口1000あたりの治安維持力強度。Coercion/1000 が「革命に要る平均意識」の閾値（0.4＝公教育で到達・宗教教育では届かず権威主義のまま）
+    public double Coercion = 400;   // ★(231) world.json の国別の値は外した（全ての国が既定 400 で構築し、助走の直後に兵数×即応度×CoercionPerSoldier で置く〔Government.SetOpeningCoercion〕＝助走中は政治が止まり読まれない）。以下は旧の注記：人口正規化後＝基準人口1000あたりの治安維持力強度。Coercion/1000 が「革命に要る平均意識」の閾値（0.4＝公教育で到達・宗教教育では届かず権威主義のまま）
     public double Treasury = 200_000;
     public double GovDebt = 0;      // 初期国債残高（国内債＝利払いは国庫→資本家の内部移転・保有は Fiscal.SeedBondHoldings が購入と同じ規則で起票）
     // ★1783年の国債÷年GDP の史実（2026-09-29・world.json の govDebt＝開幕〔助走の後〕の年名目GDP×比）：英 約1.1（1783 約2.4億ポンド÷GDP 約2億）・仏 約0.6（米独立戦争の後・1789 0.6〜0.8）・
@@ -49,7 +49,6 @@ public sealed class NationConfig
     // 倍率排除⑤：国一律の生産性倍率 ProductivityBonus は撤去。生産性差は工業化度(Industrialization)・技術・資源賦存(州Resources/ArableLand)から創発する。
     // 資源は州ごとに割り当てる（下記 Provinces の各州の Resources）。国一律の旧 ResourceBonus は廃止＝
     // 全州が同じ物を産み世界価格が均等化して交易が死ぬのを避け、州ごとに産地を分けて価格を分化させ交易を生かす。
-    public double Military = 1.5;
     public double EthnicUnity = 0.85;   // 民族統一度（0..1・史実1789）。高＝同質（不満が鈍い・軍が結束・近代化が通る）／低＝多民族（移民を引く坩堝・分離圧力）。移民（国家間移民）で希釈→同化で回復
     // ★Militarism（軍部優位の初期値）は2026-08-18に撤去（作者裁定「厳密には法ではなく政治機構だ」）。
     //   プロイセン/ロシアの軍国性は初期フラグでなく**振る舞いの帰結**として出す＝軍事費（政体の軍事床 MilitaryFloorScale・脅威応答）と

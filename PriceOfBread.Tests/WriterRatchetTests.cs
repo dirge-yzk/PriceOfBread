@@ -333,7 +333,7 @@ public class WriterRatchetTests
     //   覇権の判定 3,215,273→2,889,352（−10.1%＝10% を超えて下がった＝表を下げる・同盟の候補が居る月の軌道＝(124)(128)(131) と同じ型・処理の形は同じ）。ほかの15本は許しの内（+2%／−10%）。
     //   全長の10種では覇権の判定 193,798,917→202,766,449（+4.6%）・着値の充填 345,866,018→353,020,843（+2.1%）＝推定 233.1→234.4 秒（予算の内・目標より下の余りの中＝払っていない・実装ログ (152)）。
     [InlineData(CostLedger.PriceGoods, 14149727L)]
-    [InlineData(CostLedger.PriceDailyRuns, 26940860L)]
+    [InlineData(CostLedger.PriceDailyRuns, 27979627L)]
     // ★2026-10-01 表の更新（(154) 合流＝線2〔(151)(153)〕の上へ線1〔(150)(152)〕を載せ直した木＝軌道が動いた分の宣言・新しい計数の処理は無い）：
     //   建設 7,066→7,215（+2.1%）・覇権の判定 1,864,716→2,039,246（+9.4%）＝最初の40四半期の工事と同盟の候補の月の軌道（線ごとの表はそれぞれの木の値）。ほかの15本は許しの内。全長の10種は実装ログ (154)。
     // ★2026-10-02 表の更新（(155) 軍の労働市場と安全保障の不安＝軌道が動いた分の宣言＋安全保障の不安の新しい組の宣言）：
@@ -384,7 +384,7 @@ public class WriterRatchetTests
     //   覇権の判定 1,682,840→1,801,994（+7.1%＝最初の40四半期の同盟の候補が居る月の軌道・処理の形は同じ）。ほかは許しの内（フルスイートで確かめた）。
     //   全長の10種（b10_20261003_cap186.cost）の推定は実装ログ (186)。
     [InlineData(CostLedger.ConstructionSeen, 7000L)]
-    [InlineData(CostLedger.CreditSpans, 33282L)]
+    [InlineData(CostLedger.CreditSpans, 34146L)]
     [InlineData(CostLedger.ConsumePopGoods, 28595736L)]
     [InlineData(CostLedger.ProducerMonths, 6495176L)]
     [InlineData(CostLedger.ClaimProducers, 2626L)]
@@ -394,7 +394,7 @@ public class WriterRatchetTests
     //   清算：着値の充填 42,375,697→43,891,020（+3.6%）・価格：日次の写像の回 25,895,308→26,940,860（+4.0%）＝人口の大きい植民地の州で市場の動く財・州×月が増えた（処理の形は同じ）。
     //   覇権の判定は 1,801,372→1,807,688（+0.4%＝許しの内）。全長の10種（計器つきの腕 ALL）の推定 241.7→245.1 秒（上限 248.5 秒の内・払っていない・実装ログ (227)）。
     [InlineData(CostLedger.ClearingFills, 43891020L)]
-    [InlineData(CostLedger.DiploPowerMonths, 9954L)]
+    [InlineData(CostLedger.DiploPowerMonths, 10242L)]
     // ★2026-10-03 表の更新（(183) 線A＝海の必要量から通商保護の項〔自国の軍×海に出ている経済の割合〕を外した＋州の格の不変条件＝軌道が動いた分の宣言・新しい計数の処理は無い
     //   〔1行の掛け算を消しただけ・再併合の格の戻しは州×移し替えの1回の小さな分岐〕）：覇権の判定 1,682,840→2,552,996（+51.7%＝最初の40四半期の同盟の候補が居る月の軌道
     //   ＝(147)(149)(155)(169) と同じ型・処理の形は同じ）。ほかの16本は許しの内（+2%／−10%）。
@@ -426,15 +426,20 @@ public class WriterRatchetTests
     // ★2026-10-04 表の更新（(197) 合流＝(194) と (195) を合わせ k/N に植民地を数える〔ScarceCountsIncludeColonies〕を点火した木の実測・1種40四半期）：
     //   覇権の判定 1,801,372（(194) の宣言 2,574,518 と (195) の宣言 1,614,601 の間＝(194) の海路の接触で動いた軌道と (195) の旧の判断の SideMilitary を消した分が重なった・処理の形は (195) のまま）・
     //   建設 8,204→7,000（−14.7%）・請求 3,013→2,626（−12.8%）＝10% を超えて下がった＝表を下げた（どちらも軌道＝処理の形は同じ）。合わせただけの木（点火の前）は 1,916,631・7,706・2,970。全長の10種は実装ログ (197)。
-    [InlineData(CostLedger.DiploHegemonScans, 1801372L)]
+    // ★2026-10-10 表の更新（(231) 線M 前半＝開幕の軍の確定〔艦を助走の直後に播く・艦の目標の払える側の上限・開幕の治安維持力を兵数×即応度で〕＝軌道が動いた分の宣言・新しい計数の処理は無い
+    //   〔助走の直後に1度、国ごとに艦の播種と治安維持力を置くだけ＝計数の外の1回〕）：覇権の判定 1,801,372→3,253,171（+80.6%＝最初の40四半期の同盟の候補が居る月の軌道・(170) と同じ型）・
+    //   国×月 9,954→10,242（+2.9%）・脅威の届き方 308,407→318,001（+3.1%）・価格 26,940,860→27,979,627（+3.9%）・信用 33,282→34,146（+2.6%）・共有層 3,698→3,794・発見 2,503→2,574
+    //   ＝治安維持力を導くと兵が少なく即応度の低い国の治安維持力が下がり、分離独立の国が増えた軌道（1種40四半期の国の数が増える。10種で分離独立 5→13 回・実装ログ (231)）。
+    //   全長の10種（計器つきの腕 NOT10・基線 r229 に対して）の推定 243.0→243.1 秒（上限 248.5 秒の内・払っていない・測定の表 measurements/mil231_20261010）。
+    [InlineData(CostLedger.DiploHegemonScans, 3253171L)]
     [InlineData(CostLedger.QuarterStartPops, 235560L)]
     [InlineData(CostLedger.QuarterEndPops, 235560L)]
-    [InlineData(CostLedger.SharedNationQuarters, 3698L)]
+    [InlineData(CostLedger.SharedNationQuarters, 3794L)]
     [InlineData(CostLedger.GdpScans, 8670915L)]
     [InlineData(CostLedger.MigrationPairs, 4191142L)]
     [InlineData(CostLedger.DiscoveryNations, 2532L)]
-    [InlineData(CostLedger.ThreatReachPairs, 308407L)]
-    [InlineData(CostLedger.DiscoveryPriceNations, 2503L)]
+    [InlineData(CostLedger.ThreatReachPairs, 318001L)]
+    [InlineData(CostLedger.DiscoveryPriceNations, 2574L)]
     // ★2026-10-02 表の更新（(170) 厭戦の基礎を動員の負担へ〔外部レビュー Q10〕＝軌道が動いた分の宣言・新しい計数の処理は無い
     //   〔基礎の計算＝交戦国×月に州×POP を1回（兵役の母数と兵士・(172) で兵士と人口へ）＝「外交：国×月」の単価の中の小さい分〕）：
     //   覇権の判定 1,941,249→2,884,531（+48.6%＝戦争が長くなり最初の40四半期の交戦と同盟の候補が居る月が増えた軌道・処理の形は同じ）。ほかは許しの内（フルスイートで確かめた）。
