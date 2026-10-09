@@ -835,12 +835,13 @@ public sealed class Simulation
         //   旧支配層に富が無い → DoctrineFrom が近代化派に倒れる → 法の門番（旧 ModernizationLawsGated＝伝統教義のみ発動・2026-09-26 に削除＝回5-1 項目19）が
         //   全員素通り → 教育/官僚/検閲が全国1783年に通る（lawtiming実測）→ 識字・技術・吸収能力が収束 → 工業化が全球収束。
         //   ⚠ClosedWealthMultiple=1.0 で旧と厳密恒等（×1.0はIEEE754で恒等）。
-        var nobility     = MkPop(0, "貴族",       false, cfg.Nobility * (1 - cfg.ClergyFrac) * share, cfg.NobLit,  3000 * coef.ClosedWealthMultiple, closed: true);
-        var clergy       = MkPop(6, "聖職者",     false, cfg.Nobility * cfg.ClergyFrac * share,       cfg.ClergyLit, 3000 * coef.ClosedWealthMultiple, closed: true);   // 宗教学校の教育を算出（世俗化＝公教育で収入を失い没落）。教会領も土地＝貴族と同じ倍率
-        var peasant      = MkPop(1, "農民",       false, cfg.Peasant * share,      cfg.PeasLit, 200,  subs: cfg.PeasantSubsistence);
-        var worker       = MkPop(2, "工場労働者", true,  cfg.Worker * share,       cfg.WorkLit, 300);
-        var bourgeois    = MkPop(3, "資本家",     true,  cfg.Bourgeois * share,    cfg.BourgLit, 3200, modern: true);
-        var engineer     = MkPop(4, "技師",       true,  cfg.Professional * (1 - cfg.IntelligentsiaFrac) * share, cfg.ProfLit, 800, modern: true);
+        var lit = ClassLiteracy(cfg, coef);   // ★(232) 階級の識字＝国の基準 cfg.Literacy×全国共通のオッズの比（旧＝cfg.NobLit ほか7項目＋直書きの商人 0.70・職人 0.45・使用人 0.30）
+        var nobility     = MkPop(0, "貴族",       false, cfg.Nobility * (1 - cfg.ClergyFrac) * share, lit[0],  3000 * coef.ClosedWealthMultiple, closed: true);
+        var clergy       = MkPop(6, "聖職者",     false, cfg.Nobility * cfg.ClergyFrac * share,       lit[1], 3000 * coef.ClosedWealthMultiple, closed: true);   // 宗教学校の教育を算出（世俗化＝公教育で収入を失い没落）。教会領も土地＝貴族と同じ倍率
+        var peasant      = MkPop(1, "農民",       false, cfg.Peasant * share,      lit[2], 200,  subs: cfg.PeasantSubsistence);
+        var worker       = MkPop(2, "工場労働者", true,  cfg.Worker * share,       lit[3], 300);
+        var bourgeois    = MkPop(3, "資本家",     true,  cfg.Bourgeois * share,    lit[4], 3200, modern: true);
+        var engineer     = MkPop(4, "技師",       true,  cfg.Professional * (1 - cfg.IntelligentsiaFrac) * share, lit[5], 800, modern: true);
         // 旧インテリPOPを専門職に分解（利益団体「インテリ」＝教師・官僚・医者・技師の政治的まとまり。実体は職業別POP）。
         double intel = cfg.Professional * cfg.IntelligentsiaFrac * share;
         // ★研究者（2026-08-17・作者裁定「上流階級と別カテゴリでインテリ（医者/技師/研究者）を置く」）＝インテリの4人目。
@@ -848,14 +849,14 @@ public sealed class Simulation
         //   ResearcherFrac=0（既定）で keep=1.0＝旧の 0.40/0.35/0.25 と厳密一致・研究者Size=0＝**ビット恒等**。
         double resFrac = System.Math.Clamp(coef.ResearcherFrac, 0, 0.9);
         double keep = 1.0 - resFrac;
-        var teacher    = MkPop(7, "教師", true, intel * 0.40 * keep, cfg.IntelLit, 800, modern: true);   // 公教育・義務教育の教育を算出
-        var bureaucrat = MkPop(8, "官僚", true, intel * 0.35 * keep, cfg.IntelLit, 800, modern: true);   // 行政を算出（不足＝汚職）
-        var doctor     = MkPop(9, "医者", true, intel * 0.25 * keep, cfg.IntelLit, 800, modern: true);   // 医療を算出（人口扶養力）
-        var researcher = MkPop(13, "研究者", true, intel * resFrac, cfg.IntelLit, 800, modern: true);   // 大学の高等教育を算出（技師・上位POPの母体）
-        var merchant   = MkPop(10, "商人", true, cfg.Merchant * share, 0.70, 1500, modern: true); // 流通マージン＋貿易の仲立ち。商船を買い海運を支える
-        var artisan    = MkPop(11, "職人", true, cfg.Artisan * share, 0.45, 400);   // 手工業の自営（大衆ブロック＝ラッダイトの母体）
+        var teacher    = MkPop(7, "教師", true, intel * 0.40 * keep, lit[6], 800, modern: true);   // 公教育・義務教育の教育を算出
+        var bureaucrat = MkPop(8, "官僚", true, intel * 0.35 * keep, lit[6], 800, modern: true);   // 行政を算出（不足＝汚職）
+        var doctor     = MkPop(9, "医者", true, intel * 0.25 * keep, lit[6], 800, modern: true);   // 医療を算出（人口扶養力）
+        var researcher = MkPop(13, "研究者", true, intel * resFrac, lit[6], 800, modern: true);   // 大学の高等教育を算出（技師・上位POPの母体）
+        var merchant   = MkPop(10, "商人", true, cfg.Merchant * share, lit[7], 1500, modern: true); // 流通マージン＋貿易の仲立ち。商船を買い海運を支える
+        var artisan    = MkPop(11, "職人", true, cfg.Artisan * share, lit[8], 400);   // 手工業の自営（大衆ブロック＝ラッダイトの母体）
         // #12 家事使用人：富裕層(貴族＋資本家)の世帯規模に比例して雇われる（家事奉仕を算出）。女性がなりやすい（高FemaleShare＝紡績/家事奉公）。低識字・低富。
-        var servant    = MkPop(12, "使用人", true, (nobility.Size + bourgeois.Size) * 1.0, 0.30, 150);   // 表示名は「使用人」（2026-07-04ユーザー指示）
+        var servant    = MkPop(12, "使用人", true, (nobility.Size + bourgeois.Size) * 1.0, lit[9], 150);   // 表示名は「使用人」（2026-07-04ユーザー指示）
         servant.SetAdultFemaleShare(0.75);   // 女性が多数（19世紀の家事使用人＝女性就労の主要な受け皿）
         // 職業POPの成人女性比（1789・ユーザー指示2026-07-04）：聖職/専門職は男性が支配的（貴族・農民・労働者は世帯階級＝0.5のまま）。
         //   ★年齢の層（2026-09-30 段4e 後半）＝20歳以上の層の男女を職業の女性比で分ける（0〜19 は半々）。
@@ -1328,6 +1329,36 @@ public sealed class Simulation
         // C-高8（2026-07-23）：旧1.10は統一尺度で1815年前後＝実用合成ゴム（ブナ1930s）より約120年早い。ラジオ(1.60)の後へ。
         producers.Add(new Producer { GoodId = Catalog.RubberId, RecipeName = "合成ゴム", Productivity = 1.8 * FullChainProductivityScale, Output = 0.5, Scale = 0.05, MarginalCost = Catalog.FactoryVa, LaborPopIndex = workerIdx, OwnerPopIndex = ownerIdx, RentShare = 1.0, BuysLabor = true,
             Inputs = [new Input(Catalog.ChemicalsId, 0.5), new Input(Catalog.CoalId, 0.3), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.RubberId))] });
+    }
+
+    /// <summary>
+    /// ★(232) 階級の識字（貴族・聖職者・農民・工場労働者・資本家・技師・インテリ・商人・職人・使用人の順）＝国の基準 <see cref="NationConfig.Literacy"/> ×階級のオッズの比 <see cref="Coefficients.LiteracyOddsByClass"/>。
+    /// 階級 c の識字は ρ_c z / (1 + ρ_c z)。尺度 z は国ごとに1つで、「Σ 人数×識字 ÷ Σ 人数 ＝ その国の基準」を満たす値（単調なので二分法 60 回・四則だけ＝決定的）。
+    /// 上限の切り落としは無い（思想⑧）＝高識字の国は農民も上がり、貴族は 1 に漸近する。階級の間の順序と隔たりは全国共通（国名の分岐なし）。重みは BuildProvince の階級の人数と同じ
+    /// （使用人は貴族＋資本家）。基準が (0,1) の外なら全階級 0／1（否定形で書く＝NaN も 0）。
+    /// </summary>
+    internal static double[] ClassLiteracy(NationConfig cfg, Coefficients coef)
+    {
+        double[] rho = coef.LiteracyOddsByClass;
+        double noble = cfg.Nobility * (1 - cfg.ClergyFrac);
+        double[] w = [noble, cfg.Nobility * cfg.ClergyFrac, cfg.Peasant, cfg.Worker, cfg.Bourgeois,
+                      cfg.Professional * (1 - cfg.IntelligentsiaFrac), cfg.Professional * cfg.IntelligentsiaFrac,
+                      cfg.Merchant, cfg.Artisan, noble + cfg.Bourgeois];
+        double total = 0; for (int c = 0; c < w.Length; c++) total += w[c];
+        var lit = new double[w.Length];
+        double target = cfg.Literacy;
+        if (!(total > 1e-9) || !(target > 1e-9)) return lit;
+        if (!(target < 1 - 1e-9)) { for (int c = 0; c < lit.Length; c++) lit[c] = 1; return lit; }
+        double lo = 0, hi = 1;   // t = z/(1+z)∈(0,1)：識字 = ρ t / ((1−t) + ρ t)
+        for (int it = 0; it < 60; it++)
+        {
+            double t = 0.5 * (lo + hi), m = 0;
+            for (int c = 0; c < w.Length; c++) m += w[c] * (rho[c] * t / ((1 - t) + rho[c] * t));
+            if (m / total < target) lo = t; else hi = t;
+        }
+        double tt = 0.5 * (lo + hi);
+        for (int c = 0; c < lit.Length; c++) lit[c] = rho[c] * tt / ((1 - tt) + rho[c] * tt);
+        return lit;
     }
 
     // 階級（代表スケール 1単位＝1000人）。貯蓄＝サイズ×階級別の一人当たり富。識字・自給は設定から。

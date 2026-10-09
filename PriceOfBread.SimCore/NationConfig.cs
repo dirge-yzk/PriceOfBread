@@ -14,10 +14,11 @@ public sealed class NationConfig
     public double Nobility, Peasant, Worker, Bourgeois, Professional;
     public double Merchant = 400;   // 商人（流通マージン＋貿易の仲立ち。商の国＝日本・英国は厚い）
     public double Artisan = 800;    // 職人（手工業の自営＝衣料・家具・革・陶磁。1789年の主役で、工場に敗れて没落する＝ラッダイトの母体）
-    // ★(232) 階級の識字の既定＝世界の大半の国（41〜45国）がデータに置いていたテンプレの値（旧の既定 0.95/0.15/0.40/0.80/0.85/0.90/0.92 は world.json を通らない経路にしか効かなかった）。
-    public double NobLit = 0.85, PeasLit = 0.08, WorkLit = 0.25, BourgLit = 0.60, ProfLit = 0.80;
+    // ★(232) 識字＝国の基準1本（その国の成人の読み書きの割合・史実の国全体の統計か推計・出典と確からしさは measurements/lit232_20261010_prereg.txt）。
+    //   階級ごとの識字は全国共通のオッズの比 Coefficients.LiteracyOddsByClass から導く（Simulation.ClassLiteracy）＝旧の7項目（貴族・農民・労働者・資本家・専門職・聖職者・インテリ）は
+    //   開発初期に国ごとに手で置いた値で、農民だけ下げても他の階級がテンプレのまま残った（修正一覧 F1：アフリカの識字が史実の10〜50倍）。既定＝テンプレの国（世界の大半）の人口加重の値。
+    public double Literacy = 0.23;
     public double ClergyFrac = 0.40, IntelligentsiaFrac = 0.35;   // 貴族→聖職者・専門職→インテリ を分離する初期割合（聖職者・知識人）
-    public double ClergyLit = 0.80, IntelLit = 0.85;              // 聖職者・インテリの識字
     public double PeasantSubsistence = 0.7;
     public Polity Polity = Polity.Absolutist;
     public EducationLaw Education = EducationLaw.Religious;
