@@ -1,0 +1,43 @@
+diff --git a/PriceOfBread.Runner/Program.cs b/PriceOfBread.Runner/Program.cs
+index cf11904..db45561 100644
+--- a/PriceOfBread.Runner/Program.cs
++++ b/PriceOfBread.Runner/Program.cs
+@@ -2079,6 +2079,38 @@ if (args.Length > 0 && args[0] == "parlprobe")
+ //   ③ ★★★ラチェットの検査＝議会シェアが時代とともに単調増加していないか（作者の最大の懸念）
+ //   ④ 硬性条件（英・米・蘭・白・丁・諾・瑞西の軍部シェアがほぼ0か）
+ //   ⑤ 検証点（英1815穀物法／普1867／露1917／日1936）
++// === 識字の探査（読むだけ・2026-10-10 (232)・コミットしない）： dotnet run -- litprobe <出力TSV> [seed] [quartersAfter] ===
++if (args.Length > 0 && args[0] == "litprobe")
++{
++    string lpOut = args.Length > 1 ? args[1] : "litprobe.tsv";
++    ulong lpSeed = ArgUlong(args, 2, 1789UL);
++    int lpAfter = (int)ArgUlong(args, 3, 0UL);
++    var lpSim = new MultiNationSim(WorldData.Nations(), lpSeed, _ => new UtilityAgent());
++    foreach (var nn in lpSim.Nations) nn.TelemetryEnabled = false;
++    lpSim.Diplomacy.Log.Enabled = false;
++    var lb = new System.Text.StringBuilder();
++    lb.Append("time\tnation\tlitCore\tlitAll\ttech\tethnicUnity\tpopK\tnob\tclergy\tpeas\twork\tbourg\teng\tintel\tmerch\tartis\tserv\tsold\tmaxcell\tcells99\n");
++    void LSnap(string tm)
++    {
++        foreach (var n in lpSim.Nations)
++        {
++            var w = n.World; var sp = w.SelfPower; string nm = sp is null ? "?" : (sp.BaseName.Length > 0 ? sp.BaseName : sp.Name);
++            var byCls = new double[14]; var szCls = new double[14]; double pop = 0;
++            foreach (var r in w.Regions) { if (r.State != RegionState.Active || r.Tier == RegionTier.Colonial) continue; foreach (var p in r.Pops) { if (p.ClassId >= 0 && p.ClassId < 14) { byCls[p.ClassId] += p.Literacy * p.Size; szCls[p.ClassId] += p.Size; } pop += p.Size; } }
++            double L(int id) => szCls[id] > 1e-9 ? byCls[id] / szCls[id] : 0;
++            double mx = 0; int c99 = 0; foreach (int id in new[] { 0, 1, 2, 3, 4, 6, 7, 10, 11, 12 }) { double v = L(id); if (v > mx) mx = v; if (v >= 0.99) c99++; }
++            lb.Append(string.Join("\t", new object[] { tm, nm, PoliticalQuantities.AvgLiteracy(w, true), PoliticalQuantities.AvgLiteracy(w), w.TechLevel, w.EthnicUnity, pop,
++                L(0), L(6), L(1), L(2), L(3), L(4), L(7), L(10), L(11), L(12), L(5), mx, c99 }.Select(o => o is double d ? d.ToString("R", System.Globalization.CultureInfo.InvariantCulture) : o.ToString()))).Append('\n');
++        }
++    }
++    LSnap("open");
++    lpSim.StartWarmup();
++    LSnap("warm");
++    for (int q = 1; q <= lpAfter; q++) { lpSim.StepQuarter(); LSnap("q" + q); }
++    System.IO.File.WriteAllText(lpOut, lb.ToString(), new System.Text.UTF8Encoding(false));
++    Console.WriteLine($"litprobe: {lpSim.Nations.Count}国 → {lpOut}");
++    return;
++}
+ if (args.Length > 0 && args[0] == "poweraff")
+ {
+     ulong paSeed = ArgUlong(args, 1, 1789UL);
