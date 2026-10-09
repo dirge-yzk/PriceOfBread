@@ -33,7 +33,8 @@ public static class Sav226
     {
         public double InvN, InvBound, InvDes, InvAff;
         public double ConsMonths; public double[] ConsSize = new double[NC], ConsBound = new double[NC];
-        public double[] TaxClaim = new double[NC], TaxPaid = new double[NC], RentC = new double[NC], WageC = new double[NC];
+        public double[] TaxClaim = new double[NC], TaxPaid = new double[NC], RentC = new double[NC], WageC = new double[NC], TithePaid = new double[NC], PaidC = new double[NC], DesC = new double[NC * 3], DemC = new double[NC * 3];
+        public double BDirect, BIndirect, BLeak, BBase;
         public double BShortMonths, BGate, BTicket, BPool, BFull, BShortGate, BShortTicket, BShortPool, BShortFull, BBorrowed, BDomPool, BForPool, BTicketSum;
     }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<World, S> G = new();
@@ -69,9 +70,9 @@ public static class Sav226
         var s = V(w); s.ConsMonths += 1;
         foreach (var p in region.Pops)
         {
-            if (!(p.Size > 0) || (!(p.Savings > 0) && !(p.LastEarned > 0))) continue;   // 活きた POP だけ（貯蓄も所得も無い植民地の現地住民は予算の比に入れない）
+            if (!(p.Size > 0) || !(p.Savings > 0)) continue;   // 貯蓄が正の POP だけ（貯蓄0の植民地の現地住民は予算の比に入れない）
             int c = (uint)p.ClassId < (uint)NC ? p.ClassId : NC - 1;
-            s.ConsSize[c] += p.Size;
+            s.ConsSize[c] += p.Size; s.PaidC[c] += p.Paid;
             if (p.RemainingBudget <= 0.01 * System.Math.Max(p.Savings, 1e-9)) s.ConsBound[c] += p.Size;
         }
     }
@@ -82,10 +83,21 @@ public static class Sav226
         s.RentC[(uint)owner.ClassId < (uint)NC ? owner.ClassId : NC - 1] += rent; s.WageC[(uint)labor.ClassId < (uint)NC ? labor.ClassId : NC - 1] += wages;
     }
 
-    public static void Tax(World w, Pop p, double claims, double paid)
+    public static void Tax(World w, Pop p, double claims, double tax, double tithe)
     {
         var s = V(w); int c = (uint)p.ClassId < (uint)NC ? p.ClassId : NC - 1;
-        s.TaxClaim[c] += claims; s.TaxPaid[c] += paid;
+        s.TaxClaim[c] += claims; s.TaxPaid[c] += tax; s.TithePaid[c] += tithe;
+    }
+
+    public static void Budget(World w, double direct, double indirect, double leak, double budgetBase)
+    {
+        var s = V(w); s.BDirect += direct; s.BIndirect += indirect; s.BLeak += leak; s.BBase += budgetBase;
+    }
+
+    public static void Row(World w, Pop p, int tier, double desired, double demand)
+    {
+        var s = V(w); int c = (uint)p.ClassId < (uint)NC ? p.ClassId : NC - 1;
+        s.DesC[c * 3 + tier] += desired; s.DemC[c * 3 + tier] += demand;
     }
 
     public static void Invest(World w, double desired, double afford)
@@ -134,19 +146,24 @@ public static class Sav226
                     foreach (var v in s.TaxPaid) sb.Append('|').Append(F(v));
                     foreach (var v in s.RentC) sb.Append('|').Append(F(v));
                     foreach (var v in s.WageC) sb.Append('|').Append(F(v));
+                    foreach (var v in s.TithePaid) sb.Append('|').Append(F(v));
+                    foreach (var v in new[] { s.BDirect, s.BIndirect, s.BLeak, s.BBase }) sb.Append('|').Append(F(v));
+                    foreach (var v in s.PaidC) sb.Append('|').Append(F(v));
+                    foreach (var v in s.DesC) sb.Append('|').Append(F(v));
+                    foreach (var v in s.DemC) sb.Append('|').Append(F(v));
                 }
                 sb.Append('\n');
             }
             if (s is not null)
             {   // 四半期の計数は毎四半期ゼロへ（英以外は年末の行に出る分が直近の1四半期ぶんだけ＝記録の粒度）
                 s.InvN = s.InvBound = s.InvDes = s.InvAff = 0; s.ConsMonths = 0; System.Array.Clear(s.ConsSize); System.Array.Clear(s.ConsBound);
-                s.BShortMonths = s.BGate = s.BTicket = s.BPool = s.BFull = s.BShortGate = s.BShortTicket = s.BShortPool = s.BShortFull = s.BBorrowed = s.BDomPool = s.BForPool = s.BTicketSum = 0; System.Array.Clear(s.TaxClaim); System.Array.Clear(s.TaxPaid); System.Array.Clear(s.RentC); System.Array.Clear(s.WageC);
+                s.BShortMonths = s.BGate = s.BTicket = s.BPool = s.BFull = s.BShortGate = s.BShortTicket = s.BShortPool = s.BShortFull = s.BBorrowed = s.BDomPool = s.BForPool = s.BTicketSum = 0; System.Array.Clear(s.TaxClaim); System.Array.Clear(s.TaxPaid); System.Array.Clear(s.RentC); System.Array.Clear(s.WageC); System.Array.Clear(s.TithePaid); System.Array.Clear(s.PaidC); System.Array.Clear(s.DesC); System.Array.Clear(s.DemC); s.BDirect = s.BIndirect = s.BLeak = s.BBase = 0;
             }
         }
         if (q != quarters - 1) return;
         using var W = new System.IO.StreamWriter(System.IO.Path.Combine(Dir!, $"s{seed}.txt"), false, new System.Text.UTF8Encoding(false), 1 << 16);
         W.Write("#R|name|phase|flag|broadMoney|baseMoney|bankLoans|hhLoans|treasury|coverage|annNomGdp|annGdp|P|conv|onGold|landedW|moneyW|zeroIncomePops|zeroIncomeSav|zeroIncomeSize|sav[14]|earned[14]|lastEarned[14]|size[14]\n");
-        W.Write("#S|q|yr|idx|name|annNomGdp|annGdp|broadMoney|baseMoney|bankLoans|hhLoans|treasury|govDebt|P|conv|onGold|coverage|landedW|moneyW|sav[14]|lastEarned[14]|progTaxNetSupport|invMonths|invBound|invDesired|invAfford|consMonths|consBoundShare[14]|borrowShortMonths|gateClosed|ticketBound|poolBound|full|shortGate|shortTicket|shortPool|shortFull|borrowed|domPool|forPool|ticketSum|taxClaim[14]|taxPaid[14]|rentEarned[14]|wageEarned[14]\n");
+        W.Write("#S|q|yr|idx|name|annNomGdp|annGdp|broadMoney|baseMoney|bankLoans|hhLoans|treasury|govDebt|P|conv|onGold|coverage|landedW|moneyW|sav[14]|lastEarned[14]|progTaxNetSupport|invMonths|invBound|invDesired|invAfford|consMonths|consBoundShare[14]|borrowShortMonths|gateClosed|ticketBound|poolBound|full|shortGate|shortTicket|shortPool|shortFull|borrowed|domPool|forPool|ticketSum|taxClaim[14]|taxPaid[14]|rentEarned[14]|wageEarned[14]|tithePaid[14]|budgetDirect|budgetIndirect|budgetLeak|budgetBase|paid[14]|desired[14x3tier]|demand[14x3tier]\n");
         W.Write(sb.ToString());
     }
 }
@@ -177,14 +194,18 @@ edit('PriceOfBread.SimCore/SelfPlay.cs', [
 edit('PriceOfBread.SimCore/EconomyStep.cs', [
     ("        // === 工場の投入支払い：同じ額を「投入費」と「投入財の売上」へ計上（相殺＝厳密保存）===\n",
      "        if (Sav226.On && world is not null) Sav226.Consume(world, region);\n        // === 工場の投入支払い：同じ額を「投入費」と「投入財の売上」へ計上（相殺＝厳密保存）===\n"),
+    ("                    if (BudgetBindDiag.On) BudgetBindDiag.Row(world, staple ? 0 : good.Tier == GoodTier.Daily ? 1 : 2, !good.NonTradeable && !good.IsColonial, desired, demand, buyerPrice);\n",
+     "                    if (BudgetBindDiag.On) BudgetBindDiag.Row(world, staple ? 0 : good.Tier == GoodTier.Daily ? 1 : 2, !good.NonTradeable && !good.IsColonial, desired, demand, buyerPrice);\n                    if (Sav226.On && world is not null) Sav226.Row(world, p, staple ? 0 : good.Tier == GoodTier.Daily ? 1 : 2, desired * buyerPrice, demand * buyerPrice);\n"),
     ("            region.Pops[s.LaborPopIndex].Earned += wages;\n",
      "            region.Pops[s.LaborPopIndex].Earned += wages;\n            if (Sav226.On && world is not null) Sav226.Prod(world, region.Pops[s.OwnerPopIndex], rent, region.Pops[s.LaborPopIndex], wages);\n"),
     ("            construction = Math.Min(desiredGrowth / Math.Max(Eps, coef.IndPerConstruction), budget / (buildCostPerUnit * (1.0 + coef.ConstructionLaborWageFrac)));",
      "            if (Sav226.On && world is not null) Sav226.Invest(world, desiredGrowth / Math.Max(Eps, coef.IndPerConstruction), budget / (buildCostPerUnit * (1.0 + coef.ConstructionLaborWageFrac)));\n            construction = Math.Min(desiredGrowth / Math.Max(Eps, coef.IndPerConstruction), budget / (buildCostPerUnit * (1.0 + coef.ConstructionLaborWageFrac)));"),
 ])
 edit('PriceOfBread.SimCore/Fiscal.cs', [
+    ("        double budgetBase = revenue + c.IndirectTaxInBudgetBase * indirectRevenue;\n",
+     "        double budgetBase = revenue + c.IndirectTaxInBudgetBase * indirectRevenue;\n        if (Sav226.On) Sav226.Budget(w, revenue, indirectRevenue, leak, budgetBase);\n"),
     ("            titheCollected += tithe;\n            revenue += tax;\n",
-     "            titheCollected += tithe;\n            if (Sav226.On) Sav226.Tax(w, p, claims, tax + tithe);\n            revenue += tax;\n"),
+     "            titheCollected += tithe;\n            if (Sav226.On) Sav226.Tax(w, p, claims, tax, tithe);\n            revenue += tax;\n"),
     ("        if (!(shortfall > 0) || !BorrowGateOpen(w, c)) return 0;",
      "        if (Sav226.On && shortfall > 0 && !BorrowGateOpen(w, c)) Sav226.Gate(w, shortfall);\n        if (!(shortfall > 0) || !BorrowGateOpen(w, c)) return 0;"),
     ("        double borrowed = Math.Min(borrowWant, pool);\n        if (!(borrowed > 1e-9)) return 0;",

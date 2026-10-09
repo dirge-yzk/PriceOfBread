@@ -196,3 +196,35 @@ s = s[:i] + blk + s[j:]
 open(p, 'wb').write(s.encode('utf-8'))
 print('oldcomp ok')
 
+#################### an_rev226.py
+import sys
+cls='貴 農 工 資 技 兵 聖 教 官 医 商 職 使 研'.split()
+mx=int(sys.argv[1]); tags=sys.argv[2:]
+def rows(t):
+    d={}
+    for ln in open('can_%s/s3.txt'%t,encoding='utf-8'):
+        x=ln.rstrip('\n').split('|')
+        if x[0]=='S' and x[4]=='イギリス': d[int(x[1])]=[float(y) if y!='nan' else float('nan') for y in x[5:]]
+    return d
+D={t:rows(t) for t in tags}
+print('--- 歳入の分解（月平均・q1〜）  直接税（漏れ後・国庫へ）／漏れ／間接税（関税＋専売）／予算基数  ＋ 十分の一税（国庫外）')
+for q in range(1,mx+1):
+    for t in tags:
+        v=D[t].get(q)
+        if not v: continue
+        tp=sum(v[89:103])/3; tc=sum(v[75:89])/3; tith=sum(v[131:145])/3
+        print('q%d %s direct %6.0f leak %5.0f indirect %6.0f base %6.0f | 直接税の請求 %6.0f 払い %6.0f 十分の一 %5.0f'%(q,t,v[145]/3,v[147]/3,v[146]/3,v[148]/3,tc,tp,tith))
+print()
+print('--- 消費（月平均・q1〜q3の平均）  階級別 Paid と 希望／需要（主食・日用・奢侈）')
+for t in tags:
+    acc=[0]*(14+42+42); n=0
+    for q in (1,2,3):
+        v=D[t].get(q)
+        if not v: continue
+        n+=1
+        for i in range(14): acc[i]+=v[149+i]
+        for i in range(42): acc[14+i]+=v[163+i]; acc[56+i]+=v[205+i]
+    print(t,'Paid/mo '+' '.join('%s%7.0f'%(c,acc[i]/n/3) for i,c in enumerate(cls) if acc[i]>0))
+    for tier,nm in enumerate(['主食','日用','奢侈']):
+        print('   %s 希望→需要(/mo) '%nm+' '.join('%s %6.0f→%6.0f'%(c,acc[14+i*3+tier]/n/3,acc[56+i*3+tier]/n/3) for i,c in enumerate(cls) if acc[14+i*3+tier]>1))
+
