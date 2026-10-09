@@ -1568,7 +1568,7 @@ public sealed class Simulation
         }
         ProbeCheck("日次信用");
         // 助走中は暦を進めない（World.WarmupFrozen・2026-08-10）。Tick は「開始からの経過日数」＝年境界の唯一の読み手が
-        // 豊凶ロール（MonthSettle の harvestYear）なので、止めれば助走が何年ぶんでも天候は1783年の1回きり＝時間が経たない。
+        // 豊凶ロール（MonthSettle の harvestYear）なので、止めれば助走が何年ぶんでも天候を引かない＝時間が経たない（(223) 旧＝1783年の1回きり引いていた・MonthSettle の年次ブロックの注記）。
         if (!World.WarmupFrozen) World.Tick++;
     }
 
@@ -1776,7 +1776,10 @@ public sealed class Simulation
         // 1ヶ月ずれる系統誤差（忠実度の史実年突合を汚す）。1ヶ月ぶん引いて年境界を1月の月次決算に合わせる＝ロールは当年ラベルで当年に適用。
         // 初回ロール（Tick=30）は不変・各ロールのRNG消費数も不変（消費「時点」だけが月次1つ後ろへ＝決定論は保たれ軌道は再抽選）。
         int harvestYear = (int)((World.Tick - Calendar.DaysPerMonth) / Calendar.DaysPerYear);
-        if (harvestYear != _lastHarvestYear)
+        //（(223)）助走（World.WarmupFrozen）は時間が経たない＝年次の乱数を引かない。旧＝助走中は Tick が 0 のまま進まないのに harvestYear＝(0−30)/360 の整数除算＝0 が _lastHarvestYear(−1) と違い、
+        //   助走の最初の月決算で豊凶・作物の病害・疫病の発生を1度引いた（開幕の豊凶が全61カ国で 1.0 でない・疫病の死者が助走で出る国が1種あたり1〜4国・人口 −0.2〜−5%）。
+        //   初回のロールは最初の実月（Tick=30）＝上の「初回ロール（Tick=30）は不変」の設計どおり。乱数の消費の位置が助走から実月へ移る（軌道は再抽選）。
+        if (!World.WarmupFrozen && harvestYear != _lastHarvestYear)
         {
             _lastHarvestYear = harvestYear;
             // AR(1)（B harvest-iid-no-persistence）：ρ=0 で純IID（現行恒等）。ε のRNG消費は1回のまま＝決定論系列不変。

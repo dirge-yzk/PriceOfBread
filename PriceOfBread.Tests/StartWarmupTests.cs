@@ -424,4 +424,31 @@ public class StartWarmupTests
             Assert.True(ratio is >= 0.65 and <= 1.5, $"{sim.Nations[i].World.SelfPower?.BaseName} の物価水準 / 対照 = {ratio:F3}");
         }
     }
+
+    /// <summary>★(223) 助走は時間が経たない四半期＝年次の乱数（豊凶・作物の病害・疫病の発生と感染窓の減衰）も引かない。
+    /// 旧＝助走の Tick は 0 のまま進まないのに MonthSettle の年次ブロックの年（(Tick−30)/360 の整数除算＝0）が _lastHarvestYear(−1) と違い、助走の最初の月決算で1度発火した
+    /// （全61カ国の開幕の豊凶が 1.0 でない＝0.73〜1.19・疫病の死者が助走で出る国が1種あたり1〜4国・ライン諸邦 −4.8% ほか）。初回のロールは設計どおり最初の実月（Tick=30）。
+    /// 盤面＝seed 1789 の全61カ国。助走の前後で豊凶が 1.0 のまま・粗死亡（DiagDeaths）が 0・総人口が助走なしと一致、30日目に初回ロール（豊凶が 1.0 でなくなる）。
+    /// ⚠突然変異「年次ブロックの WarmupFrozen の門を外す」で赤。</summary>
+    [Fact]
+    public void 助走は豊凶と疫病を引かず初回のロールは最初の実月に走る()
+    {
+        var sim = Build();
+        double[] pop0 = sim.Nations.Select(n => n.World.TotalPopulation).ToArray();
+        sim.StartWarmup(null, 4);
+        for (int i = 0; i < sim.Nations.Count; i++)
+        {
+            var w = sim.Nations[i].World;
+            string nm = w.SelfPower?.BaseName ?? "?";
+            Assert.True(w.HarvestFactor == 1.0, $"{nm} の開幕の豊凶 {w.HarvestFactor}（助走で引いている）");
+            Assert.True(w.DiagDeaths == 0, $"{nm} が助走で疫病の死者 {w.DiagDeaths}");
+            Assert.Equal(pop0[i], w.TotalPopulation, 9);
+            Assert.Equal(0, w.EpidemicActiveYears);
+        }
+        for (int d = 0; d < Calendar.DaysPerMonth - 1; d++) sim.StepDay();
+        Assert.All(sim.Nations, n => Assert.True(n.World.HarvestFactor == 1.0, "29日目までは豊凶を引かない"));
+        sim.StepDay();   // 30日目＝最初の月決算＝初回ロール（Tick=30）
+        Assert.Equal(Calendar.DaysPerMonth, (int)sim.Nations[0].World.Tick);
+        Assert.True(sim.Nations.Count(n => n.World.HarvestFactor != 1.0) >= sim.Nations.Count - 1, "初回のロールが最初の実月に走らない");
+    }
 }
