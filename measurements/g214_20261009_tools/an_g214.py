@@ -1,5 +1,5 @@
 import sys,glob,statistics as st,os
-"""(214) 計器の読み手：python an_g214.py <out_dir> ...  W 行＝世界×四半期（比・産出・金の国の数）・O 行＝産地の開いた年"""
+"""(213) 計器の読み手：python an_g214.py <out_dir> ...  W 行＝世界×四半期（比・産出・金の国の数）・O 行＝産地の開いた年"""
 def f(x):
     try: return float(x)
     except: return float('nan')

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# (214) 線G：作業ツリー（または指定のコミット）の写し＋読むだけの計器で measure.sh を1本。
+# (213) 線G：作業ツリー（または指定のコミット）の写し＋読むだけの計器で measure.sh を1本。
 #   bash batch.sh prep <腕> <tree:dir|commit:sha> <inst yes|no>
 #   bash batch.sh run <腕> <種の数> [POB_COEF の文字列]
 export AVALONIA_TELEMETRY_OPTOUT=1

@@ -1,0 +1,263 @@
+# 2026-10-09 相談役（fable）の方針の原文＝回す前に事前に決めた判定の線とやめる条件（(217) 合流で保存・反証役 vg1#1・vp2 の「原文がディスク上に無い」への処置）
+# 出典＝この回のワークフローの記録（journal）の相談の段の結果をそのまま書き出した（文字は変えていない）。番号は当時の仮番号（(213)→(215)・(214)→(213)・(215)→(216)・(216)→(214)＝実装ログ (217) §2）。
+# ⚠ 相談役の方針は AI の推奨＝作者の承認は未確認。
+
+==================== planP1（段2「能力は建てた分だけ」の3度目＝実装ログ (215)）  sha256(JSON)=1142fbf556c32b5c
+--- cause
+## 過去2回（(185)・(200)/(202)）が失敗した根＝1本の鎖（出典つき）
+
+**根1：工場の短期供給の形を変えずに能力を設備にした＝稼働 0.2〜0.4 が構造で決まる**
+- main も (200) も `EconomyStep.cs:809` `profitFactor = min(1, (p−mc)/(mc×SupplySlope))`・`SupplySlope = 0.5`（Coefficients.cs:30）。設備が全部動くのは値段が変動費の 1.5 倍の時だけ。
+- main では能力＝担い手の人数×取り分（`EconomyStep.cs:806` `Capacity = Pops[lp].Size×fraction×…`）なので、この傾きは「人のうち働く割合」の意味で害が無かった。(200) は能力＝建てた設備にしたまま同じ傾きを読んだ（(200) §1「変動費で動かす＝旧の式のまま」）＝設備の 6〜8 割が常に遊ぶ。実測＝稼働 英 0.20〜0.27・清 0.16〜0.67（(200) §4）・(185) 英 0.27〜0.41（§3）。
+- 設計 §3 は「価格が変動費を下回れば止め、上回れば動かす」（0か1）と書いている＝実装は設計から外れていた。
+
+**根2：投資と寿命の単位が別（分子と分母の非対称の型）**
+- 投資＝速さ×(見込みの採算−ハードル)×（自分の産出＋…）＝**使った設備**に比例（m202 の `PlanPrivateInvest`・diff 912〜954 行）。寿命＝`IndDepreciation` 0.003×**全ての設備**。
+- 定常は 速さ×採算×稼働＝寿命、稼働＝採算÷0.5 なので **採算² ＝ 寿命×傾き÷速さ ＝ 0.003×0.5÷0.15 ＝ 0.01 → 採算 0.10・稼働 0.20**（観測と一致）。池の充足 f＜1 なら必要な採算は 0.1÷√f（f 0.1 で 0.32）。
+- 工業国は 1860 年代以後に競争と投入の値上がりで採算が 0.1 を割る→設備が縮む（英 12,600〔1883〕→6,220〔1913〕・露 14,200→5,990・(202) §5）。(200) の根1「速さ」は不動点をずらしただけで、採算²の依存は残った。この恒等式はソースだけから導けた＝回す前の必要性の確認を飛ばした。
+
+**根3：原資の上限＝貯蓄・投資家の貯蓄が 0 へ**
+- m202 diff 897 行 `if (!(b <= sav)) b = sav`。投資家の貯蓄は腕A でも米 1883・日 1903・英 1923 に 0 近く（(200) 先頭①・計器 dbgSav）＝金利生活者のポンプ（逃避と配当・memory pob-rentier-pump-collapse）。→ 池の充足 仏 0.22・米 0.04〜0.14 → 投資＜寿命。所得の項 0.4 を足しても経済規模 25→33%（r197 57%）。
+
+**根4：成長の機関を外した（段3 が無いまま工業化度の私的な積み上げを止めた）**
+- main は私的建設が `region.Industrialization += built×IndPerConstruction`（EconomyStep.cs:1916）→ `indMult = 1+1.2×I/(1+I/scale)`（685 行）で1人あたりの産出が伸びる。(200) は「工業化度は積まない（国家の建設だけ）」（§1）。学習曲線（段3）は未着手＝私的な資本が生産性を上げる経路が消えた。英の 1783→1913 の伸び ×4.9→×2.85（(200) 先頭③）。読み手 約40か所（都市化・賃金の天井ほか）も国家分だけを読む（ve1#5）。
+
+**根5：国営持分の単位**＝`BuiltScale` は棟×0.5（World.cs:2411）・`Scale` は職場の数→割合＝BuiltScale×SlotsPerScaleUnit÷Scale が担い手の人数で動く（ve1#3・diff 1429 行）。
+
+**根6：基準に州の未充足の需要を入れた**＝清の望みが人口で膨らみ 1860 年代に英を越える（(200) 根4・§4）。英÷清 月収の逆転（0.46〜0.48）は根1+2 で英の設備が縮んだ結果の症状。
+
+**進め方の根**：2回とも 8〜10 の変更を1枚で入れて帯で判定・帰属は1種の使い捨て計器＝切り分けできず「合流の中で直せない」で差し戻し（(202) §5）。
+
+--- policy
+## 今回の方針（3度目を同じ形にしない＝紙の門→1段ずつ番人→腕を同時に）
+
+**何を変えるか（全て【推】・作者の承認は未確認）**
+1. **工場の短期供給＝変動費の上の狭い幅で全稼働**：IsFactory だけ `profitFactor = clamp01((p−mc)/(mc×FactorySupplySlope))`・幅 0.05【推】（既存の `FactoryReentryMargin = −0.05` と同じ「縁の帯」の意味＝錨の候補・決めるのは腕）。産地・職人は 0.5 のまま。P3 の減衰の定数ではない（設計 §3 の文字どおり）。
+2. **投資の規則を資本の単位で**：設備1職場の収益率 ROI＝採算×mc×稼働÷(6×参照価格×物価)（月）・ハードル＝寿命 0.003＋利子（銀行の貸出の率÷12＋CrowdingOutWeight×CrowdingPremium）−株の熱狂。望む伸び＝InvestSpeed×max(0, ROI÷ハードル−1)×Scale（＋種火の床）。定常＝ROI＝ハードル×(1＋寿命÷速さ)：速さ 0.012 で 1.25 倍・0.03 で 1.1 倍＝速さは決定的でない（旧は採算²＝寿命×傾き÷速さで速さが決定的）＝§1-8 の読める因果。InvestSpeed 0.03【推】。基準から「州の未充足の需要」を外す（高い採算が ROI に出る）。
+3. **工業化度の私的な積み上げは main のまま残す**（段3 までの橋）。⚠思想⑨の疑い＝同じ束が Scale と indMult の両方を上げる→腕 B′（積まない＝(200) の形）を同時に回して要否を数で決める。
+4. **原資＝内部留保→与信**：投資枠＝所得の項（今の工場の利益・貯蓄の上限は外す・消費の予算から控除）→足りない分だけ `Bank.Lend(投資家)` で借りる（ΔBaseMoney=0）。上限＝銀行の余地(maxLoans−Loans) と 返せる額（`DebtRuinRatio×12×Earned−Debt`・Meritocracy.cs:358 の線）。返済＝`RepayHouseholdDebt` の式（Simulation.cs:2889）を投資家の債務にも通す。⚠A16 と衝突の疑い＝pending へ。腕 C として B と同時に回す（B は所得の項だけ）。
+5. **国営持分を職場の単位で**：完成時に `BuiltScale += FactoryBuildScale×SlotsPerScaleUnit`・割合＝BuiltScale÷Scale・寿命と解体は同じ率。棟数の表示だけ換算で導く。
+6. **残す**＝(200) の寿命・恐慌の解体（慢性の赤字の止まっている割合）・倒産・池 P5・P6・助走の景気の置き直し。⚠解体の `idle = −SmoothedMargin/slope` は新しい幅を読む＝感度 10 倍→紙の門で確かめる。
+7. **入れない**＝(201)（財政の鎖は別線）・工業化度の廃止・工期（(185)(200) で値段の暴れは増えなかった＝P3 の答えが出ている）・国営の棟の建設費。戦場の摩耗（WarZoneCapitalDamage）を Scale にも掛けるのは1行＝入れる。
+
+**入れる前の前提条件（紙の門・シミュ無し）**
+- 定常の恒等式を書く：設備の増減＝Scale×[速さ×(ROI÷h−1)−寿命]。採算が通常の上乗せ（5〜10%）で縮まないことを数で示す。
+- 恐慌の場面：DD 0.5・採算 −0.05・36 か月で失う設備の割合を手計算（史実の大恐慌の固定資本の損失は1桁〜15%【推】）。半分を失うなら幅か解体の式を直してから回す。
+- r212 に cap185 の計器を当て C 行を取る（条件⑥）。報告は `b10_20261009_r212` と全行バイト一致を確認。線は全てこの C 行に対する相対。
+- (200) の骨格を r212 に手で移し（m202 は 2830ecf に当たらない）、段2_ の 14 本＋FullLength 3＋savetest＋leakhunt が緑＝恒等の台。
+
+**腕の組み方**（同時に回す・5種・基線 `b5_20261009_r212`）
+- A＝r212。B＝1+2+3+5+6（原資は所得の項のみ）。B′＝B から 3 を外す。C＝B＋4。
+- 5種で全ての線から標準誤差の2倍以上なら採否、縁なら10種（README §1-2）。
+
+**事前に決める判定の線**（10種の中央・r212 の C 行に対して）
+- F1 の線そのまま（破綻0・補給崩壊 千件級 ≤2/10・移民の空洞化 0・exact/near −10pt・近似 3pt）。
+- 英 ΣScale 1913 ≥ 1883（中央）。英 1人あたり工場の産出 1913 ≥ r212×0.8。英の稼働（産出÷能力）1843〜1913 の中央 ≥ 0.6。英÷清 工場労働者1人の月収 1903-13 ≥ r212 の値。経済規模 ≥ r212−10pt・列強再現率 ≥ r212−5pt。史実比較の桁の NG＝新しい ≤ 外れた。計算量 ≤ 248.5 秒。
+- 記録だけ＝不履行・下流の無い財・常勝・清の工業の桁（器の側＝今回の線にしない）。
+
+**やめる条件**
+- B の5種で英の設備が 1883→1913 に縮む種が 3/5 以上→止めて国×年の帰属（寿命・投資・池の充足・解体・倒産・門＝条件⑤）を先に読む。速さを動かして通さない。
+- C で借入が返されずに与信の総額が伸び続ける（leakhunt か世界の与信÷GDP が r212 の2倍超）→ C を捨てて B で進む。
+- 紙の門で恐慌の損失が半分を超える形しか作れない→幅の案を作者に戻す。
+
+--- brief
+## 実装の担当（sonnet）への指示＝順番どおり・1段ごとに番人を足して緑にしてから次へ。全て【推】＝注記や docs に「承認済み」と書かない。
+
+**0. 台を作る（挙動を変えない移植）**
+- worktree を r212（2830ecf）から。`measurements/m202_20261004_cpe.diff` は当たらない＝参考に手で移す。移すもの＝SimCore の `EconomyStep.IsFactory`・`SeedFactoryCapital`・`SlotsPerScaleUnit`・`CapitalPerOutputRef`・`ScrapIdleCapital`・`PlanPrivateInvest`・`InvestBudget`・Run の建った束→Scale・`Simulation.MonthSettle` の前段と `SettleInvestPool`・`World.RebaseGdpCycle`・倒産の工場の退出・Coefficients の削除と墓標・Runner の indprobe/rgoprobe・App の生産タブ・Tests 13 ファイル（`IndustryThemeTests` の段2_ 14 本ほか）。
+- 移さないもの＝(201) の hunk（`Fiscal` の InsolvencyWeight・港の予算・開幕の兌換・App Fiscal の表示）。**「工業化度は積まない」の変更も移さない**（EconomyStep.cs:1916 の `Industrialization += built×IndPerConstruction` は私的建設でも残す）。
+- 緑の条件＝隔離ビルド 0警告・段2_ 14 本・FullLength 3・`savetest 1789 300 12` 0.0E+000・`leakhunt 1789 200` 違反なし。ここで1種の試走（計器 `scratchpad/m185/inj_cap185.py`）を取り、(200) の G と同じ形（稼働 0.2〜0.4・設備の縮み）が再現することを記録＝台の証拠。
+
+**1. 工場の短期供給（EconomyStep.Run 供給①・809 行）**
+- `Coefficients.FactorySupplySlope = 0.05`（新・【推】・注記に錨の候補＝FactoryReentryMargin）。`IsFactory(s)` のとき `profitFactor = clamp01((price−mc)/(mc×FactorySupplySlope))`。産地・職人・役務は `SupplySlope` のまま。
+- `ScrapIdleCapital` の `slope` も同じ幅を読む（定義を分岐させない）。
+- 番人（IndustryThemeTests）＝「採算 0.06 の工場は全稼働・同じ採算の産地は 0.12」。突然変異＝工場が SupplySlope を読む→赤。
+
+**2. 投資の規則（`PlanPrivateInvest`）**
+- 工場ごと：`roi = margin×mc×u/(CapitalPerOutputRef×pl)`（u＝前月の profitFactor×LastInputFill）。`hurdle = IndDepreciation + rate/12 + CrowdingOutWeight×CrowdingPremium − EquityHeatEuphoria×FinancialHeat`（rate＝銀行が家計の与信に課す利子の率＝`Credit.Step` の利息の行を grep して同じ1本を読む）。`grow = InvestSpeed×max(0, roi/hurdle−1)×Scale + 種火の床（TargetStockFloor÷1職場の産出）`。「州の誰も作っていない需要」の項は削除。`IndInvestmentSpeed` は削除し `InvestSpeed = 0.03`（新・【推】）。
+- 番人＝「定常の恒等式」：roi＝hurdle×(1+寿命÷速さ) の工場は1か月で Scale が不変（投資＝寿命・許し 1e-9 相対）。突然変異＝投資が産出に比例→赤・寿命を引かない→赤。
+
+**3. 工業化度の橋**＝0 で残した行をそのまま。番人＝既存 `FranceTests.工業化は…`・`DiscoveryScoreTests` を (200) の盤面に書き換えずに緑。腕 B′ の編集スクリプト（1916-1917 行を IsFactory で止める）を `scratchpad/<回>/arm_noind.py` に置く。
+
+**4. 国営持分の単位（World.cs `BuildFactory` 完成・`StateUnits`・`PrivateUnits`・`StateProfitShare`・接収）**
+- 完成＝`slots = FactoryBuildScale×SlotsPerScaleUnit(p,r)`；`Scale += slots; BuiltScale += slots`。割合＝`min(1, BuiltScale/Scale)`。`StateUnits = round(BuiltScale/(FactoryBuildScale×SlotsPerScaleUnit))`（表示と目標の比較だけ）。寿命・解体・倒産は Scale と BuiltScale を同じ率で。
+- 番人（StateFactoryTests）＝「担い手の人数を2倍にしても StateProfitShare が不変」。突然変異＝割合が換算を読む→赤。
+
+**5. 原資（腕 C）**
+- `InvestBudget` ＝ `IndInvestIncomeFrac×max(0, Earned)`（貯蓄の上限と IndInvestmentFrac の項を外す・消費の予算から同額を控除）。池の充足が 1 未満の州の投資家は不足分 `need` を借りる：`room = min(bank.MaxLoans−Loans, DebtRuinRatio×12×Earned−Debt)`；`Bank.Lend(World, inv, min(need, room))`。
+- 返済＝先に grep：`BilateralMarket` の手形（Pop.Debt の商人）がどこで返されるか・`RepayHouseholdDebt`（Simulation.cs:2886・門 PopDebtDriven）。既存の1本に投資家の債務を通す（新しい関数を作らない・門は `Debt>0` だけに緩める場合はその影響を1種で記録）。
+- 番人（CreditTests）＝「借入は ΔBaseMoney=0・余地 0 なら借りない・返済は貯蓄から DebtRepayFrac」。FullLength 3・leakhunt は必須。
+
+**6. 戦場の摩耗**＝`WarZoneCapitalDamage` の読み手で `Scale` と `BuiltScale` にも同じ率（1行）。番人＝戦場の州の工場の設備が減る。
+
+**7. 計測**（README の手順・PowerShell の Start-Process/Wait-Process・`&`/sleep 禁止・SNAP は腕ごと）
+- r212＋cap185 計器の5種＝`b5_20261009_r212` と全行バイト一致を確かめ C 行を `measurements/<回>_r212C` へ。
+- 1種の試走（B）で紙の門の数（稼働・採算・設備の増減の帰属＝dbgCause を計器化して国×年）を確かめてから、B・B′・C の5種を同時に。
+- 読み手＝`an_cap185.py` に「英 ΣScale 1883/1913」「稼働の中央 1843-1913」「英÷清 月収 1903-13」を足す。
+- 採否は policy の線。10種は縁の腕だけ。報告の先頭＝§1-7 で直した所（あれば）・史実比較の桁。
+- 突然変異は `mut200.py` の M1〜M18 ＋ 新 M19（投資∝産出）M20（工場が 0.5 を読む）M21（持分が換算を読む）M22（借入が返されない）＝全て赤・M0 緑。計算量＝`.cost` で ≤ 248.5 秒。
+
+--- pending
+1. **与信で投資を賄う形と裁定 A16 の関係**（`20260926_外部レビューの検討.md` 4307 行「与信の需要駆動の器は点火せず、『返せる額』を与信の上限に加える」）。旧の器は「貯蓄の5%−貯蓄＝常に0」の人工物だったが、今回の「計画の不足分を借りる」も需要駆動の与信に当たる。推奨＝進める（返せる額＝A16 の線そのものを上限に・返済は利益から・ΔBaseMoney=0）。ただし推奨の形で進めた旨を報告の先頭に書く。⚠「内部留保→与信」を作者へ出した記録は log に無い＝この回で初めて問いとして書く。
+2. **工業化度の私的な積み上げを段3 まで残すか**（同じ束が設備と生産性の両方を上げる＝思想⑨の疑い）。推奨＝残す（腕 B′ で要否を数で確かめ、段3 で設備の総量＝経験へ置き換える）。
+3. **工場の短期供給の幅**＝設計 §3 の「0か1」を幅 0.05 で読む。推奨＝0.05【推】（FactoryReentryMargin と同じ縁の帯）。1か 0.5 かは作者の言葉が無い。
+4. **恐慌の解体の深さ**＝新しい幅で感度が 10 倍。推奨＝紙の門で大恐慌の損失が 1桁〜15% に収まる形（解体は scrapKeep×止まっている割合のまま・幅を読む）を先に確かめ、収まらなければ作者へ。
+5. **清の工業が英を越える**＝今回の線にしない（人力の器＝段1 の側・(185)(200) で診断済み）。推奨＝記録だけ・段1 の入れ直しの回で。
+6. **国営の棟数の表示が担い手の人数で動く**（割合は不変）。推奨＝受け入れる（職場を貯めると新しい状態＝思想⑩）。
+
+==================== planP2（0g（英の国庫の退蔵）の3度目＝実装ログ (216)）  sha256(JSON)=3b0cf15ce4c333bf
+--- cause
+## 過去2回（(203)→(207) 差し戻し・(209) 入れなかった）が失敗した根
+
+**根1＝線は借入の回路に入っていない（台帳の事実）。**
+- `Simulation.cs:2150` `spare = max(0,Treasury) + LastRevenue − claims + min(0,Treasury)`。`Fiscal.Borrow`（`Fiscal.cs:655〜`）は `spare < 0` の月しか借りない。潤沢線はこの式のどこにも無い。国庫の蓄えが先に払い、尽きてから借りる＝線をどこに置いても「蓄えが先」は変わらない。
+- 2回とも変えたのは `RelieveOpulence`（税目標の倍率）と `SpendableRevenue`（予算の基数）＝税と支出の回路。借入の回路とは別の回路を動かして借入の変化を判定に置いた。
+
+**根2＝戦時段の外では赤字が構造的に起きない。**
+- 請求は歳入の割合（`AdminBudgetFrac × SpendableRevenue`・`Military.EnvelopeAt` ＝ 段×`MilitaryEnvelopeShare`×使える歳入）。`WarStageShare > 0`（交戦かつ総動員かつ施行が段3を超えた分）のときだけ `BorrowTicket` が器に乗る（`Military.cs:77-83`）。
+- 英の戦時段の四半期は判定の窓（1914-1950）で **0**（(209) §4）。交戦の月は 49〜68%（`measurements/m207_20261004` 4042行 uk_FI10）なのに借入÷年GDP は 1823〜1950 年の全窓で **0.0000**。
+- ⇒ 「英の国債の NG 4セル」は戦時段に届くかどうかを測る計器で、国庫の退蔵の計器ではない。`judge_D3 (2)` は変更が触れない量を判定に置いた＝D3 は退蔵を 0.30→0.09〜0.14 に半減させたのに、その判定で落とした（誤った判定の割り当て）。
+
+**根3＝退蔵の源は構造的な黒字で、出口が2本とも上限つき。**
+- 英の歳入÷年GDP 1783-1862 は 0.19〜0.28（史実 約0.11・(203) §2-1④＝関税の施行 0.95 対 目標 0.2〜0.3＝メモリ「関税の錠」）。1873 年以後は 0.10〜0.15 で史実の桁。
+- 出口①減債＝`BondRepayFrac` 0.01/12（`Coefficients.cs:456`）＝国債の年1%が上限。黒字がそれを超える分は国庫へ（1814-23 の 0.06 → 1844-53 の 0.48 ＝ 年約1.4% GDP）。
+- 出口②減税＝`RelieveOpulence`（`SelfPlay.cs:874`）は倍率を4段の法に最も近い段で丸める（`Government.TaxStage` 380行）＝倍率 0.75 を切るまで段が落ちない → 定常は線の 1/0.75≈1.33 倍＝実測の 1.15〜1.29 倍（(203) §2-1②③）。線の高さを変えても「線×約1.3」が残る。
+- 出口③支出反射 `OpulenceSpendRate` 0.6 は需要で頭打ち・インフラ `HoardSpendScale` は休眠（`Simulation.cs:2664`）。
+
+**根4＝英が借りた途端の増幅器（D2 で不履行 2→7）。**
+- r<0.7 で金本位から強制離脱（`Fiscal.cs:489` `GoldSuspendMinFundingRatio`）→ `convDiscount` 0.6→1.0 ＋ 切り下げの信認の喪失（`BondRateDistrustScale`）→ 金利 8.9〜20.4%（(203) 27966行）→ 利払い÷歳入 0.55 の門が閉じる → `InsolvencyQuarters` が 1.0 か月分で全額否認（`RepudiateDebt`・`DefaultArrearsMonths`=1.0）。史実の英＝0。
+
+**まとめの鎖**：黒字（歳入＞請求）→ 出口が上限つき → 国庫に積もる → 戦争は国庫から払う（spare≧0 のまま）→ 借入0。線を下げる（203/209）→ 国庫は減るが請求≦歳入のままなので借入は起きない（D3）／傾きを立てると国庫が尽きて借りる（D2）→ 根4 で不履行＋開幕の国庫が厚い7か国が床 0.25 に張り付く。「線の高さ・傾き」はこの鎖のどの環にも入っていない。
+
+--- policy
+## 今回の方針（3度目を線にしない）
+
+**何を変えるか**：0g を2つの根に分ける。
+- **0g-A 退蔵の出口**：黒字→減債（史実＝1829 年の減債基金法「実際の剰余を償還へ」＋1875 年の固定の負担）。`Fiscal.Step` の減債を `repay = min(GovDebt, spare, BondRepayFrac×GovDebt + flowSurplus)` へ。`flowSurplus = max(0, LastRevenue − claims)`（**流れ**の剰余。`spare` は国庫の蓄えを含むので使わない＝使うと助走明けに国庫が一月で国債へ落ちる段差・§1-8）。条件 `payRate ≥ 1 && spare > 0 && !WarmupFrozen` は据え置き。新しい状態なし・走査なし・既定値0でビット恒等。国債0の国（普 1784-1849・日）の退蔵はこの出口では吸えない＝最初から明記（反証役 vf2#3）。
+- **0g-B 戦時の赤字の入口**：戦時段の施行が `Move`（政治の抵抗で律速）を通るため英は戦時段に届かない。R2 の言葉（4段・戦時経済は総動員とセット・戦後に戻る）は守ったまま、解禁中の段3→目標の登りを「議決＝四半期内」にする腕を **次の回**に単独で。今回は束ねない。
+- **触らないもの**：`OpulenceLineOf`・`RelieveOpulence`・`SpendableRevenue`・`spendRevNat` の順・`LenderPool`・流れの黒字に税を反射させる形（2回の失敗と同族）。関税の錠（根3の上流・2回差し戻し済み）は名指しだけで開けない。
+
+**入れる前の前提条件（必要性の確認・コードを変えない）**：`scratchpad/m211/inj_f211.py` の P 行に 請求・flowSurplus・減債の実額（TreasuryCat.DebtRepay）を足し、r212 の木で5種。英の 1815-1880 の四半期の 50% 超で flowSurplus > BondRepayFrac×GovDebt なら黒字が退蔵の源＝腕へ。そうでなければ退蔵の源は別（開幕の国庫・切り下げの収入・関税）＝腕を回さず計器を読み直す。
+
+**腕の組み方**：A＝r212（`b10_20261009_r212`・既存）／B＝A＋この1変更。同じ種で5種（計器つき）→10種（計器なし・SOURCE-HASH 一致）。名乗り行の突き合わせを先に（メモリ「バッチ比較はヘッダーから」）。計算量の census は `inj_c211`。
+
+**回す前に実装ログへ書く予測**（結果が鎖を検証する形にする）：英の流れの黒字 約1.4〜2% GDP/年 → 国債 0.46（1853）は 1880 年前後に0 → 1880〜1900 年代の国債のセルは比≈0（記録・想定内）→ 国債0の後は退蔵が年約1%で再び積もり 1913 年に約0.3。この通りなら **0g-B の合図であって失敗ではない**。
+
+**事前に決める判定の線**：
+(1) 英の国庫÷年GDP が国債>0 の間（1815-1880）≦0.10（月の歳入 12 か月以下）。
+(2) 英の不履行（10種の和）が 2 を超えない（減債は不履行を増やせない＝増えたらバグ＝止める）。
+(3) F1 の内側（破綻0・空洞化0・exact −10pt 以内・補給崩壊 2/10 以内）。
+(4) 計算量 ±0（上限 248.5 秒・いま 240.5）。
+(5) 国債が 1900 年より前に0になる種が 5/10 以上 → 記録し 0g-B へ（差し戻しの理由にしない）。
+(6) 国債のセル 1870-1900 年代の新しい NG → 記録（この変更の判定に使わない）。
+
+**やめる条件**：前提条件が立たない／(1) が外れる（黒字以外が源）／(2) が増える／F1 の外。やめたらパッチと計器の表を measurements へ残し、根1〜4 をそのまま報告。
+
+--- brief
+## 実装の担当（sonnet）への指示（順番どおり・1変更）
+
+**0. 読むだけ（必要性の確認）**
+- `C:/Users/dirge/Documents/PriceOfBread/PriceOfBread.SimCore/Simulation.cs` 2060〜2150行：`claims` の中身を確認（利子 `LastInterest`・福祉・年金・植民地維持・州の予算・貢納・外資の利回り・交易の請求が入っていることは確認済み）。`flowSurplus = max(0, World.LastRevenue − claims)` が「その月の歳入の見込み − 全ての国家の請求」になることを確かめる。
+- `scratchpad/m211/inj_f211.py` の P 行に 請求（claims）・flowSurplus・減債の実額（`TreasuryCat.DebtRepay` の月の額）・`BondRepayFrac×GovDebt` を足す（読むだけの計器）。r212 の木で5種（種1〜5）。読み手で英の 1815-1880 の四半期の「flowSurplus > 固定の減債」の割合を出す。50% 超なら 1 へ。未満なら止めて報告。
+
+**1. `Simulation.cs` ≈2150行**（`spare` の直後）：`double flowSurplus = Math.Max(0, World.LastRevenue - claims);`（否定形＝NaN は0）。2284行の呼び出しを `Fiscal.Step(World, World.Coef, spare, devalued, flowSurplus)` へ。
+
+**2. `Fiscal.cs`**：`Step` の引数に `double surplus = 0` を足す（既定0＝今と1ビットも変わらない）。≈386〜391行の減債：
+`double repay = Math.Min(w.GovDebt, Math.Min(spare, w.GovDebt * c.BondRepayFrac + surplus));`
+条件 `w.GovDebt > 1e-9 && payRate >= 1 && spare > 0 && !w.WarmupFrozen` は据え置き。注記＝1829 年の減債基金法（実際の剰余を償還へ）＋1875 年の固定の負担（年1%＝`BondRepayFrac`）の和・流れの剰余で国庫の蓄えは動かさない（段差なし）・推奨で進めた＝作者の承認は未確認。按分（foreign/domestic・保有の比）は既存の `repay` の下流をそのまま。
+
+**3. 番人（`PriceOfBread.Tests/FiscalTests.cs`・既存の減債の番人 111〜270行の盤面の作り方を踏む）**
+- (a) 剰余のある月（r＝1・spare>0・surplus>0）：国債の減りが `BondRepayFrac×国債 + surplus` に等しい。
+- (b) surplus＝0：既存の減債の番人が全て緑のまま（ビット恒等）。
+- (c) 助走（`WarmupFrozen`）：減債0。
+- (d) 返す額は `min(spare, GovDebt)` を超えない（surplus が spare より大きい盤面）。
+- (e) 国庫の蓄え：surplus＝0 なら固定の1%だけ（国庫の蓄えが大きくても減債は増えない）。
+- 突然変異：M1 surplus の項を外す→(a) 赤／M2 `surplus` の代わりに `spare` を渡す→(e) 赤／M3 助走の門を外す→(c) 赤。全て赤を確かめて記録。
+
+**4. 腕**：A＝r212（既存 `b10_20261009_r212`）／B＝A＋この変更。5種（計器つき・種1〜5）→10種（計器なし・SOURCE-HASH が計器つきと全行バイト一致を確かめる）。隔離ビルド `--artifacts-path`・作業は D:/PoB_work。名乗り行を先に突き合わせる。計算量の census を採る（0 増が期待）。
+
+**5. 判定**：policy の (1)〜(6) を回す前に実装ログへ書く。予測（英の国債が 1880 年前後に0・退蔵の再蓄積・1870-1900 年代の国債のセルが比≈0）も先に書く。結果は予測と並べて書く。
+
+**6. 入れない形**：`OpulenceLineOf`・`RelieveOpulence`・`SpendableRevenue`・`spendRevNat`・`LenderPool` に触らない。税を流れの黒字で反射させる形を作らない。関税の錠は開けない。
+
+**7. 記録**：00一覧の 0g の行を 0g-A（退蔵の出口）と 0g-B（戦時の赤字の入口＝戦時段の施行が `Move` を通る）に分ける（打消し線＋日付・行は消さない）。0g-B は次の回の単独の腕として申し送り（英の 総動員・`WarStageOpen`・目標の段・施行の四半期ごとの登りを計器で読む所から）。
+
+--- pending
+① **不履行の頻度の比べ方**（作者への確認）＝R&R は部分的な組み替えも数え、シムは全額の否認だけ＝単位が違う。推奨＝計器だけ：深い滞り（`InsolvencyQuarters ≥ 0.5`、または門が閉じたまま r<0.9 が3か月連続）を「部分の不履行」として数え、国ごとに R&R の31件と比べる。全額の否認は史実の否認（露1918 など）とだけ比べる。コードは変えない。
+
+② **不履行の形**＝今は滞り1か月分で全額否認（`RepudiateDebt`）。英が借りる腕はどれも根4の増幅器（r<0.7 で金本位の強制離脱→金利→0.55→否認）に当たる。推奨＝今は記録だけ・部分の不履行（利払いの停止→組み替え）の設計は A/B の後に別件で。
+
+③ **0g の行を2つに分けること**（退蔵の出口／戦時の赤字の入口）。推奨＝分ける（英の国債の NG 4セルは 0g-B の計器）。
+
+④ **減債の形**＝固定の1%と剰余の和（1875 年の形）か、大きい方か。推奨＝和。
+
+⑤ **上流の根**＝英の歳入が 1783-1862 に史実の約2倍（関税の施行の錠・2回差し戻し済み）。推奨＝原因に名指しするだけで今回は開けない。黒字→減債で英の国債が 1880 年代に0になるなら、次に問うのは「請求が歳入に届かない構造（割合の予算＋4段の税）」の側。
+
+⑥ **R2 は確かめられていない**。0g-B（戦時段の登りを解禁中は議決＝四半期内に）は R2 の実装に触れ言葉には触れない。推奨＝次の腕として単独で進める（計器を先に）。
+
+==================== planG（金本位の波・R1＝実装ログ (213)(214)）  sha256(JSON)=1de24ac7d5e715c4
+--- cause
+【根＝波の運び手が「崖×人工物」で、判定の線がその人工物の上で引かれていた。2回とも「比が動く」前提の信号源が無いまま回した】
+
+1. 今の金本位の波は AI の崖だけが運ぶ。金への移り 314 件中 305 件が `SelfPlay.DecideQuarter`（`SelfPlay.cs:787`）の `MeanIndustrialization > GoldStandardIndThreshold(3.5)`＋「金の国は降りない」の錠。議会の要求と強制施行は 0〜2 件（計器 `scratchpad/m208/inj_s208`・表 `measurements/s208_20261009` ②）。
+2. 崖を越える国を押し上げていたのが人工物。銀本位国の為替 E は `WorldSilverPrice`（表示用の統計 `Market.Price[銀]`＝局所価格×E の平均→平価→E の自己参照・`MultiNationSim.cs:860`→`World.cs:1700-1708`）で下限 0.30 に張り付く（1813-42 年に銀の国×四半期の 97%）。E=0.30 で銀の国の輸出÷輸入 2.45（金建てで 0.3 倍）→ 2.5 の台を抜けて 3.5 を越える。1893 年に 3.5 を越えた国×種 92 のうち 64 は非工業地域（ラオス 4.00・イエメン 4.04 ほか・表 `s209_20261009`）。
+3. (204)(207) の失敗＝R1（`SilverParityFromRatio`）はこの人工物を消す（E 0.30→0.98〜1.00）→ 台を抜ける国 1893 年 8→2 → 1913 年の金の国 28→8・主要6国 16/30→3/30。「r202 の 26〜28 へ戻らなければ差し戻し」の線①（パッチ `measurements/m207_20261004_trd.diff` 頭書き）は人工物が作った数なので、R1 は定義上この線に落ちる。線は作者の原文でなく AI が置いた数。
+4. (210)(211) の失敗＝政治の入力を「同じ州の銀÷金の比」と「相手の本位×|1−比|」へ直したが、比は 0.96〜1.13 で釘付け。根＝両金属とも造幣の standing offer（`Simulation.MintGold` 床モード・`MintPriceFloorGate=1`）が平価に錨を打ち、供給は参照費用に追従して縮む（腕 A3＝全 62 か国が金・造幣の銀の買い 0 でも比 0.98・銀産出 1.88e4→1.37e4 と減って値段が動かない）。結果、G10 の銀の国の通貨の立場の中央は伝統/近代/大衆とも −0.9〜+0.3（r207 の 10〜19 は人工物 silverDrop 0.72×`MonetaryPrefScale` 20）＝信号が無い→政治経路 11/416,471→崖が唯一の運び手のまま→R1 は線①に再び落ちた。
+5. 共通の型＝「比が動けば効く経路」は既に3本ある（`PolicyPreferences.cs:318-326` の silverDrop/peerPull・`Fiscal.cs:250` の金建て利払い b=ref/WorldSilverPrice・`Simulation.cs:2740-2850` の本位金属の造幣需要の消失と `SellDemonetizedReserves` の投げ売り）のに、比を動かす供給側が無い。産地の表のコムストック（`Catalog.cs:711`・`SilverRushEnabled=0`）は行があっても見つからない穴がある＝`Discovery.SiteTerms` の必要性 ln(値段÷費用) が `PriceBook.Cost(p)`＝未発見の生産者の `MarginalCost`（`ApplyEndowment` 前＝参照費用）を読む→銀は値段≈費用で ln≈0。金のヴィクトリアが 1863→1874・カリフォルニアが 1903〜09 へ遠ざかったのと同じ穴（99_実装ログ 22852 の (171) 申し送り2・推奨 (a) 未実施）。
+6. (210) で削除した係数3つは `GoldStandardFrontierRatio`・`SilverStandardIndThreshold`・`MintFloorRespectsReserve`（`Coefficients.cs:343`・`:3452`・`:3461` の墓標）＝要約の「未確認」は消してよい。
+
+--- policy
+【何を変えるか＝信号源（銀の供給側）を1本だけ足し、崖と錠を既存の立場の関数へ置き換え、R1 を同じ回で焼き込む。(211) 推奨の「値段の差3候補」は今回作らない（既存3経路が比さえ動けば効く・3候補同時は vs1#1 の帰属不能の3倍＝思想⑨⑩）】
+
+S（供給側・1テーマ）：
+- S0＝産地の発見の費用を「開いた後の費用」で読む。`Discovery.SiteTerms` の cost を Deposit 行かつ門>0 のとき ÷`GoldRushEndowment^gate`（発見が生み出す物＝安い銀/金。作者 2026-10-02 の一般則「生み出すものが代替するものより高いか」そのもの・(171) 推奨 (a)）。`OpenSite` の `ApplyEndowment` でも同じ門で `MarginalCost` を畳む。新しい休眠係数1本 `SiteCostFollowsBonanza`（0＝厳密恒等・Pow を通らない）。全域の `EndowmentCostFollowsAbundance` は §0-A の 6 の回へ（混ぜない）。
+- S1＝S0＋`SilverRushEnabled` 0→1（コムストックの行が置かれる）。
+- 期待する鎖（既存の物理だけ）：1850 年代に見つかる→洪水→銀の国の造幣（床）が平価で吸う→基礎貨幣↑→`ExpectedInflation`>0→持てる側が金を要求（PolicyPreferences）→最初の国が金へ→その国の造幣需要が消え `SellDemonetizedReserves`（月 0.08）が投げ売る→床が減る→比が安い費用まで落ちる→silverDrop・peerPull・金建て利払いが生きる→雪崩。比が落ちるのは金への移りの「後」＝史実の順（独 1871→銀安 1873〜）。
+
+W（AI の願い＝崖と錠の置き換え・0d の形）：
+- `SelfPlay.DecideQuarter` の goldWish 行を削除。願い＝選挙の AI と同じ関数＝`PolicyPreferences.Stance(w, MonetaryStandard, inc)` の支配ブロック成分（`DoctrineFrom(w)` の写像を再利用）。上げ（inc=true）の立場 > 帯なら +1 段、下げ（inc=false）の立場 > 帯なら −1 段、間は現状維持、NaN は保持。下限は銀（不換は願わない＝今と同じ）。帯＝係数1本 `MonetaryWishBand`、値は事前登録＝r212 の計器で 1783-1842 年の銀の国の |ブロック立場| の中央（G10 ≈0.35）の3倍≈1.0（測ってから固定・記録）。`GoldStandardIndThreshold` と錠は削除。英は錠でなく結果として留まる（1783 年の立場≈0＝保持）。
+
+R1：`SilverParityFromRatio` を焼き込み（ratioOk のとき rel×RefPrices[銀]・不正は旧統計へ倒す枝は残す）。R3 は入れない。
+
+【入れる前の前提条件（必要性の確認＝ソースで）】①`PriceBook.Cost(p)` が `p.MarginalCost` を読み `OpenSite` 前に賦存が畳まれていないことを grep で確認 ②`Stance` の戻り (trad, modern, mass, net) と `DoctrineFrom` の写像が SelfPlay の選挙コードと同じであること ③`GoldStandardIndThreshold` の読み手が SelfPlay:787 と NationModelTests:100 だけ ④計算量の余白 8.0 秒（240.5/248.5）＝追加は O(国) の数行で足りる。
+
+【腕（5種は同時に回す・採否は K の10種）】
+- S0 単独・S1 単独・R1 単独（r212 の上）・K＝S1＋W＋R1。帰属＝S1 が供給側、R1 単独が (207) 条件②③④（蒸気 NG +17・スペイン領アメリカ 3.1→7.0・補給崩壊 90→775）の読み直し、K−S1−R1 の差が W。
+- 計器＝`inj_s208` を直し（申し送り2）、N 行に DecideQuarter 時点のブロック立場・帯・願いを、W 行に比・銀の造幣の買い・`SilverReserveQty` の和・産地の開いた年（ログ「大鉱脈が見つかった」）を記録。
+
+【事前に決める判定の線（10種の中央）】
+- S1 の信号（これが外れたら W も R1 も建てない）：(a) コムストックの発見年 1850〜1875 (b) 世界の銀産出の増分 ≥ +50%（史実 1870→90 で約2倍） (c) 洪水の20年で銀の国の `ExpectedInflation` 中央 > 0 (d) 最初の金への移りの後、同じ州の比が単調減で 1893 年 ≤ 0.80（史実≈0.6）・1843 年は 0.85〜1.15・下限 0.25（桁の線）。
+- K の顔ぶれ（線①の置き換え）：主要6国（普1873 米1879 仏1878 墺1892 露1897 日1897）の金の年が ±20 年に 4/6 以上・順位相関 ≥0.6（届かない種は最後＝1950 扱いで固定）・英の法が金 1783-1913 で 9/10（危機の兌換停止は可）・1843 年の金の国 ≤3 が 8/10・清の 1913 年は銀 7/10・1913 年の金の国の数は記録のみ（NG は <4 の桁だけ）。
+- F1 はいつもの線＝破綻0・補給崩壊 千件級 0/10・移民の空洞化 0・exact/near が r212（52.0/85.4）に対し −2SE（−1.8/−3.0）の内・計算量 ≤248.5・フルスイート・savetest・leakhunt。史実比較の桁＝新しい NG ≤ +11（線の際の入れ替わりの大きさ）かつ通貨のセル（兌換停止・金の年）に新しい NG 0。
+
+【やめる条件】(1) S1 で (b) か (d) が外れる→報告して止める（次の梃子＝床の閉鎖・`MintParitySells` は測定済みで壊した＝3度目の同形にしない）(2) K で 1833 年の金の国 ≥6→帯を2倍で1回だけ再測・それでも出たら止める (3) 国ごとの法の往復が 20 年に3回以上（中央）→止める (4) 金の産出が r212 の3倍超（トリレンマ回の較正破壊の型）(5) 英が 1850 年前に自分から金を降りる種 ≥2/10→英だけデータの旗（作者へ）。
+
+--- brief
+【順番厳守・1コミット1段・計測は worktree（D:/PoB_work）・`&`/`sleep` 禁止・パスは絶対】
+
+0. 必要性の確認（回さない）：grep で `GoldStandardIndThreshold`（SelfPlay.cs:787・Tests/NationModelTests.cs:100・注記）、`SilverParityFromRatio`（MultiNationSim.cs:834,860-863・Tests/MultiNationTests.cs:47-56・Tests/DormantIdentityTests.cs:92）、`SiteRowFor` の銀の門（Simulation.cs:747）、`PriceBook.Cost`（Discovery.cs:675）、`PolicyPreferences.Stance` の戻りと `DoctrineFrom`（SelfPlay.cs 選挙コード）を確認し、ログに行番号を書く。
+
+1. S0（C:/Users/dirge/Documents/PriceOfBread/PriceOfBread.SimCore）
+ - `Coefficients.cs`：`SiteCostFollowsBonanza = 0.0`（休眠・注記は「発見が生み出す物＝安い金属＝一般則」）。
+ - `Simulation.ApplyEndowment(pr, endowment, c)` に省略可の `double? costGate = null` を足す（gate = costGate ?? 既存の分岐・`!(gate>0)` なら Pow を通らない）。新ヘルパー禁止。
+ - `Discovery.OpenSite`：`ApplyEndowment(p, c.GoldRushEndowment, c, c.SiteCostFollowsBonanza)`。
+ - `Discovery.SiteTerms`（本体）：`cost = book.Cost(p)` の後、`site.Kind==Deposit && c.SiteCostFollowsBonanza>0 && c.GoldRushEndowment>0` なら `cost /= Math.Pow(c.GoldRushEndowment, c.SiteCostFollowsBonanza)`。`partsOut[2]` も同じ値。
+ - 番人：(i) gate=0 で `SiteTerms` の Score/partsOut が旧と 1e-12 一致 (ii) gate=1 で partsOut[2]＝旧÷5 の手計算一致 (iii) `OpenSite` 後の `MarginalCost` が旧÷5、前は不変 (iv) `DormantIdentityTests` の表に `SiteCostFollowsBonanza` を足す。
+2. S1：`Coefficients.SilverRushEnabled` 0→1。番人：`SiteRowFor("西部", SilverId, c, true)` が ≥0、`SilverRushEnabled=0` で −1（既存テストがあれば流用）。
+3. W（`SelfPlay.DecideQuarter`）
+ - 787-788 行を置き換え：`var (tU,mU,sU,_) = PolicyPreferences.Stance(w, PolicyAxis.MonetaryStandard, true); var (tD,mD,sD,_) = Stance(..., false);` ブロック成分を選挙コードと同じ `bloc = DoctrineFrom(w) switch {Industrialist=>1, Modernizer=>2, _=>0}` で取り、`up = bloc==0?tU:bloc==1?mU:sU`（down も同じ）。`int cur=(int)w.MonetaryLaw, lo = w.Coef.SilverStandardGate>0?1:0;` `target = up > band ? Math.Min(cur+1,2) : down > band ? Math.Max(cur-1,lo) : cur;` NaN は否定形で保持（`!(up>band)`）。`w.Policy.MonetaryTarget = Math.Max(target, lo)`（不換の国は銀を願う＝今と同じ）。
+ - `Coefficients.cs`：`GoldStandardIndThreshold` を削除（墓標に (210)(211) の数字）・`MonetaryWishBand` を足す（値は手順5の計器で決めてから書く・仮 1.0）。SelfPlay:776-786 の注記を書き直す（錠を削除した理由＝README §1-8・英は結果）。
+ - 番人（`Tests/NationModelTests.cs:100` を書き直し）：(a) 英 1783 の盤面で `DecideQuarter` 後も target 2（錠なし・立場が帯の内） (b) 同じ盤面を銀に置き `ExpectedInflation` を正に置く（持てる側の立場 > 帯）→ target 2 (c) 金の国で下げの立場 > 帯 → target 1（上げと下げが同じ帯） (d) 立場 NaN → 保持 (e) 不換の国 → 1。
+4. R1（`MultiNationSim.cs:860-863`）：`if (ratioOk) silverWorld = rel*RefPrices[銀]`（係数読みを外す）。`Coefficients.cs:3444-3451` は墓標へ。`Tests/MultiNationTests.cs` の Theory を gate=1 の1本に（0 の枝を削除）・`DormantIdentityTests.cs:92` から外す。R3 は触らない。
+5. 計器：`scratchpad/m208/inj_s208.py` を写して m213 へ。N 行に DecideQuarter 時点の up/down/帯/願い、W 行に `SilverGoldRatio`・銀の造幣の買い量・`SilverReserveQty` の和・`ExpectedInflation`（銀の国の中央）・産地の開いた年。まず r212 の木で5種を回し、1783-1842 年の銀の国の |ブロック立場| の中央を読み、`MonetaryWishBand`＝その3倍を固定して記録（10-2 の事前登録）。
+6. 腕（5種・同時に Start-Process -Wait・残留プロセス 0 を確認）：S0・S1・R1 単独・K（S1+W+R1）。判定は policy の線。S1 の (b)(d) が外れたら K の結果は読まずに報告。
+7. 採否：K を10種（`b10_<日付>_k213`）。F1・顔ぶれ・史実比較の桁（`ngset192.py` 基準＝G10）・`.cost`。合格なら係数の既定を 1 に固定して DormantIdentity の表から外す・フルスイート・savetest・leakhunt。
+8. docs（新規 .md 禁止）：00一覧 §0-A の 10 と (207) 線T の条件①の行に打消し線＋日付で「線①を顔ぶれ＋金の年へ」、99_実装ログに1本、`measurements/k213_<日付>` の表。コミット1つ・メッセージ末尾に Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>。
+
+--- pending
+1. 判定の線①（1913 年の金の国 26〜28・主要6国 26/60）を顔ぶれ＋主要6国の金の年（±20 年に 4/6・順位相関 ≥0.6）＋英 9/10＋1843 年 ≤3＋清は銀 7/10 へ置き換えてよいか。推奨＝置き換える（26〜28 は人工物が作った数で、作者の原文は「推奨でよい」だけ）。
+2. F6「英は金で始まり自分からは降りない」＝錠を外し英は結果として留まる形にしてよいか（全ての金の国への錠は (79) の AI の意図・README §1-8 の片方向の錠）。推奨＝外す。英が 1850 年前に自分から降りる種が 2/10 以上なら英だけ world.json のデータの旗（コードに国名を書かない）。
+3. 発見した鉱床の費用の門は産地だけ（`SiteCostFollowsBonanza`）か、全域（`EndowmentCostFollowsAbundance`＝作者裁定 2026-09-08「同一生産コスト辺りの産出能力が正しい」）か。推奨＝今回は産地だけ・全域は §0-A の 6 の単独の回（2026-09-07 の MineralCostFollowsGrade で人口 21.8→7.1 の前例）。
+4. 比の判定の線＝1893 年の同じ州の銀÷金の比 ≤0.80（史実≈0.6）・下限 0.25。推奨＝この線。
+5. (211) 推奨の「値段の差3候補（清算の費用・信用の印・準備の値段）」は今回入れない（既存3経路で足りる想定）。S1 で比が動いたのに雪崩が出ない場合だけ、次の回に「信用の印」1本を候補にする。推奨＝今回は入れない。
+
