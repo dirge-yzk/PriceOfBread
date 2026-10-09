@@ -6166,11 +6166,11 @@ if (args.Length > 0 && args[0] == "earlyprobe220")
                 foreach (var p in r.Pops) sav += p.Savings;
             }
             double gdpY = Math.Max(1e-9, epw.NominalGdp * Calendar.MonthsPerYear);
-            Console.WriteLine($"E	{name}	{tag}	yr{epw.Year}	ldem={ldem:F0}	lcap={lcap:F0}	ratio={(lcap > 1e-9 ? ldem / lcap : 0):F2}	lpx={(lpxD > 0 ? lpxN / lpxD : 0):F3}	K={K:F0}	inv/gdp={CapitalMarket.InvestorSavings(epw) / gdpY:F3}	sav/gdp={sav / gdpY:F3}	国庫/gdp={epw.Treasury / gdpY:F3}	国債/gdp={epw.GovDebt / gdpY:F3}	P={epw.PriceLevel:F3}	Fx={epw.FxRate:F3}	基礎貨幣={epw.BaseMoney:F0}");
+            Console.WriteLine($"E	{name}	{tag}	yr{epw.Year}	ldem={ldem:F0}	lcap={lcap:F0}	ratio={(lcap > 1e-9 ? ldem / lcap : 0):F2}	lpx={(lpxD > 0 ? lpxN / lpxD : 0):F3}	K={K:F0}	inv/gdp={CapitalMarket.InvestorSavings(epw) / gdpY:F3}	sav/gdp={sav / gdpY:F3}	gdpY={gdpY:F0}	国庫/gdp={epw.Treasury / gdpY:F3}	国債/gdp={epw.GovDebt / gdpY:F3}	P={epw.PriceLevel:F3}	Fx={epw.FxRate:F3}	基礎貨幣={epw.BaseMoney:F0}");
         }
     }
     EpDump("w0");
-    for (int q = 1; q <= epQ; q++) { epm.StepQuarter(); if (q == 1 || q == 4 || q == 8 || q == 12 || q == 16 || q == 28 || q == epQ) EpDump($"q{q}"); }
+    for (int q = 1; q <= epQ; q++) { epm.StepQuarter(); if (q == 1 || q == 4 || q == 8 || q == 12 || q == 16 || q == 28 || (q % 20 == 0 && epNames[0] != "ALL") || q == epQ) EpDump($"q{q}"); }
     return;
 }
 
