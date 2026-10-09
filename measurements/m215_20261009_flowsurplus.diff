@@ -1,0 +1,148 @@
+(215) 線P 後半＝0g の最初の形（相談役の方針）＝「減債＝固定の負担＋max(0, 前の月の歳入−全ての国家の支払いの請求)」（腕は回さなかった）。
+r212（2830ecf）の上で `git apply`。中身＝Simulation が流れの剰余 flowSurplus を求め Fiscal.Step の引数に渡す。減債＝min(国債, min(spare, 固定の負担＋flowSurplus))。
+必要性の確認（計器 inj_i215）で 英 1815-1880 の四半期の 1.7%（5種 2.3%）でしか 剰余＞固定の減債 にならず（線 50% 超）、原因は請求が予算の上限で実際の支払いの 1.6〜2.8 倍（台帳の出÷Σ請求 0.36〜0.62）＝腕を回さなかった。
+このパッチは参考（番人の盤面の作り方・テスト2本）。実際の剰余の形は m215_20261009_sweep.diff。
+diff --git a/PriceOfBread.SimCore/Fiscal.cs b/PriceOfBread.SimCore/Fiscal.cs
+index efea7e0..b1157e6 100644
+--- a/PriceOfBread.SimCore/Fiscal.cs
++++ b/PriceOfBread.SimCore/Fiscal.cs
+@@ -20,7 +20,9 @@ public static class Fiscal
+     /// <param name="spare">月初の払える額（借入と切り下げの後）−国家の支払いの請求（Simulation が r と同時に求める）。＞0＝ r＝1 の月の余剰＝減債の原資。
+     /// 借入と切り下げは月初に Simulation が払える額の側へ入れて取る（借入＝<see cref="Borrow"/>・2026-09-28）＝ここでは借りも取りもしない。単体で呼ぶ試験の既定0＝減債もしない。</param>
+     /// <param name="devalued">この月の月初に Simulation が取った切り下げの額（国庫の台帳の区分 Devalue へ入った額）＝国債の金利の信認の喪失が読む「直近の切り下げの速さ」（2026-09-29）。単体で呼ぶ試験の既定0＝この月は切り下げていない。</param>
+-    public static void Step(World w, Coefficients c, double spare = 0, double devalued = 0)
++    /// <param name="flowSurplus">★(215) 0g-A 月初の**流れの剰余**＝max(0, 前の月の歳入 − 全ての国家の支払いの請求)（Simulation が spare と同時に求める）＝減債の原資のうち国庫の蓄えでない側。
++    /// 減債は 固定の負担（国債×BondRepayFrac）＋この流れの剰余、ただし余剰 spare と国債の残高まで。単体で呼ぶ試験の既定0＝固定の負担だけ（旧と1ビットも変わらない）。</param>
++    public static void Step(World w, Coefficients c, double spare = 0, double devalued = 0, double flowSurplus = 0)
+     {
+         if (!w.FiscalEnabled) return;
+         double payRate = w.FiscalFundingRatio;   // 国家の支払い率 r（月初に Simulation が決めた1本）
+@@ -389,7 +391,13 @@ public static class Fiscal
+         //   旧＝助走の5年（60か月）の余剰で初期の国債を返した＝仏の米独立戦争債務（年GDP の約0.76）が開幕に0.04 へ痩せていた。
+         if (w.GovDebt > 1e-9 && payRate >= 1 && spare > 0 && !w.WarmupFrozen)
+         {
+-            double repay = Math.Min(w.GovDebt * c.BondRepayFrac, spare);
++            // ★(215) 0g-A（推奨で進めた＝作者の承認は未確認）：減債＝固定の負担（年1%）＋**流れの剰余**（その月の歳入が請求を超えた分）。
++            //   旧＝固定の年1%だけ＝歳入が請求を恒常的に超える国（英の歳入÷年GDP は 1783-1862 に史実の約2倍）の黒字は上限つきの出口を溢れて国庫に積もった（英の国庫÷年GDP 0.30〜0.48）。
++            //   史実＝英 1829 年の減債基金法（名目の基金をやめ「実際の剰余」を国債の償還へ）＋1875 年の新減債基金（固定の年額の負担）＝固定の負担＋実際の剰余の和。
++            //   ⚠剰余は**流れ**（歳入−請求）であって国庫の蓄え（spare は蓄えを含む）ではない＝蓄えを使うと助走明けや大戦の後に国庫が一月で国債へ落ちる段差になる（README §1-8）。
++            //   返す額は余剰 spare と国債の残高を超えない（浮動小数の端でも国庫を負にしない）。NaN は0（否定形）。新しい状態なし・走査なし。
++            double extra = flowSurplus > 0 ? flowSurplus : 0.0;
++            double repay = Math.Min(Math.Min(w.GovDebt, w.GovDebt * c.BondRepayFrac + extra), spare);
+             // ★AUD-09（監査2026-09-02 low・2026-09-03投入）：⚠ここは**元本**の按分なのに、上で作った**利払い**の按分
+             //   （foreignDebtFrac＝金建て負担 goldDebtBurden で分子だけ膨らませた比）を流用していた＝分子と分母が別規則。
+             //   元本の台帳 `ForeignDebt` は自国通貨建てなので、正しい按分は膨らませていない `foreignShare`。
+diff --git a/PriceOfBread.SimCore/Simulation.cs b/PriceOfBread.SimCore/Simulation.cs
+index db09b17..572ebea 100644
+--- a/PriceOfBread.SimCore/Simulation.cs
++++ b/PriceOfBread.SimCore/Simulation.cs
+@@ -2148,6 +2148,7 @@ public sealed class Simulation
+         // ＞0＝ r＝1 の月の余剰（減債の原資＝Fiscal）・＜0＝払えない請求（＋借越）。負の国庫（記録されない当座借越）は余剰から先に埋める
+         //   ＝借越のまま国債を返さない・埋められない借越は赤字（r は Q1 のとおり max(0,国庫) で決める＝国庫0の国の率0→行政0→税収0の行き詰まりを作らない）。
+         double spare = payable - claims + Math.Min(0, World.Treasury);
++        double flowSurplus = World.LastRevenue - claims;   // ★(215) 0g-A 流れの剰余（＞0＝歳入が全ての請求を超える分）＝Fiscal の減債が固定の負担に足す（国庫の蓄えは含まない）。NaN と負は Fiscal が0 に読む
+         // ★切り下げ（インフレ税）は**払える額の側**（2026-09-28・(87) の申し送り iii・作者裁定 F4「不足は量を減らすか未払いの記録＝他人から取らない」・思想⑨）。
+         //   旧（段2-1）＝ここで r を決めて請求を r で切って払い、月末の Fiscal が「払えなかった請求の全額」（spare＜0）を全POPから国庫へ移した
+         //   ＝不足を量で減らした上に同じ額を他人からも取る二重（切り下げの収入が税収の 0.1%→22〜41%・取った金は翌月の余剰＝減債へ回った）。
+@@ -2281,7 +2282,7 @@ public sealed class Simulation
+         StepMineralDeposits();   // ★鉱脈在庫（2026-08-14）：掘った分だけ減る・減れば品位が落ちる。ゲート0＝即return＝恒等
+         MintGold();                                                      // 鋳造（金鉱→正貨）：金産出の一部が基礎貨幣に（ゴールドラッシュ＝マネー膨張）。GoldMintFraction=0で無効＝較正中立
+         ProbeCheck("月次鋳造");
+-        Fiscal.Step(World, World.Coef, spare, devalued);                 // §9-F/§6.2（全 pop に課税）。spare＝月初の払える額（借入と切り下げの後）−請求（＞0＝減債の原資）・devalued＝この月の切り下げ（国債の金利の信認の喪失）
++        Fiscal.Step(World, World.Coef, spare, devalued, flowSurplus);                 // §9-F/§6.2（全 pop に課税）。spare＝月初の払える額（借入と切り下げの後）−請求（＞0＝減債の原資）・devalued＝この月の切り下げ（国債の金利の信認の喪失）
+         ProbeCheck("月次財政");
+         // 国営工場カウンター（作者裁定2026-08-10）：目標と現在の差を1歩ずつ埋める（着工の再挑戦・1棟ずつの払い下げ）＋
+         // 国有化法の接収。★財政の**後**に置く＝払い下げ代金と国庫の残高が同じ月の中で前後しない
+diff --git a/PriceOfBread.Tests/FiscalTests.cs b/PriceOfBread.Tests/FiscalTests.cs
+index 7bd52f0..f94d90e 100644
+--- a/PriceOfBread.Tests/FiscalTests.cs
++++ b/PriceOfBread.Tests/FiscalTests.cs
+@@ -921,6 +921,77 @@ public class FiscalTests
+         new BondLedger().Check(w);
+     }
+ 
++    /// <summary>★(215) 0g-A 減債＝固定の負担（国債×BondRepayFrac）＋**流れの剰余**（その月の歳入が請求を超えた分）（2026-10-09・推奨で進めた＝作者の承認は未確認）。
++    /// 史実＝英 1829 年の減債基金法（実際の剰余を償還へ）＋1875 年の新減債基金（固定の年額の負担）。蓄えを使わない＝助走明けや大戦の後に国庫が一月で国債へ落ちる段差を作らない。
++    /// 盤面＝静かな英に国債（年名目GDP の1倍・国内の持ち手）を置いた双子（r＝1・余剰は十分）を、剰余だけ変えて同じ月を踏む。
++    /// ①剰余0＝固定の負担だけ（国庫の蓄えが桁違いに大きくても増えない）②剰余S＝固定＋S（国庫の減りの差も S）③余剰 spare が小さければ spare まで④国債の残高まで⑤助走中は返さない
++    /// ⑥負と NaN の剰余は0 に読む。
++    /// 突然変異：剰余の項を外す→②が赤／固定の負担を外す→①が赤／余剰の上限を外す→③が赤／国債の上限を外す→④が赤／助走の門を外す→⑤が赤／負の剰余を足す→⑥が赤。</summary>
++    [Fact]
++    public void 減債は固定の負担に流れの剰余を足し国庫の蓄えでは増えない()
++    {
++        static World Board(bool warm = false)
++        {
++            var w = QuietBritain();
++            w.GovDebt = 1.0 * w.NominalGdp * Calendar.MonthsPerYear; w.ForeignDebt = 0;
++            Fiscal.SeedBondHoldings(w);
++            w.LastInterest = 0; w.LastRevenue = w.NominalGdp;
++            w.WarmupFrozen = warm;
++            return w;
++        }
++        // 1か月踏んで（減債の額, 国庫の減り）を返す。双子は同じ盤面なので差が剰余の分だけを表す。
++        static (double repaid, double treasuryDrop) Month(double spare, double surplus, bool warm = false)
++        {
++            var w = Board(warm); double d0 = w.GovDebt, t0 = w.Treasury;
++            w.FiscalFundingRatio = 1; Fiscal.Step(w, w.Coef, spare, 0, surplus);
++            return (d0 - w.GovDebt, t0 - w.Treasury);
++        }
++        double fixedPart = Board().GovDebt * Board().Coef.BondRepayFrac;
++        Assert.True(fixedPart > 0, "前提が崩れた：固定の負担が0");
++        // ① 剰余0＝固定の負担だけ（蓄えが桁違いに大きい＝spare が巨大でも）
++        var z = Month(Ample, 0);
++        Assert.Equal(fixedPart, z.repaid, 6);
++        Assert.Equal(fixedPart, Month(Ample * 1000, 0).repaid, 6);
++        // ② 剰余S＝固定＋S（国庫は同じ S だけ余計に減る）
++        double S = 3 * fixedPart;
++        var s = Month(Ample, S);
++        Assert.Equal(fixedPart + S, s.repaid, 6);
++        Assert.Equal(S, s.treasuryDrop - z.treasuryDrop, 6);
++        // ③ 余剰 spare が固定の負担より小さい月は spare まで
++        Assert.Equal(0.5 * fixedPart, Month(0.5 * fixedPart, S).repaid, 6);
++        // ④ 国債の残高まで（剰余が残高より大きくても負の国債にならない）
++        var all = Month(Ample, 1e30);
++        Assert.Equal(Board().GovDebt, all.repaid, 6);
++        // ⑤ 助走中は返さない
++        Assert.Equal(0.0, Month(Ample, S, warm: true).repaid);
++        // ⑥ 負と NaN の剰余は0 に読む
++        Assert.Equal(fixedPart, Month(Ample, -S).repaid, 6);
++        Assert.Equal(fixedPart, Month(Ample, double.NaN).repaid, 6);
++    }
++
++    /// <summary>★(215) 0g-A 月初の流れの剰余は**歳入−請求**であって国庫の蓄えではない（Simulation を通す）。
++    /// 盤面＝英（初期国庫を桁違いに大きく・共有の設定を複製して）を1四半期温め、国債を年名目GDP の1倍にし、固定の負担を0 にして1四半期（3か月）踏む。
++    /// 正しくは減債の額が歳入の桁（月の歳入以下×3か月）にとどまり国債の半分に届かない。蓄えを剰余として渡せば最初の月に国債の全額を返す。
++    /// 突然変異：剰余に spare（蓄えを含む）を渡す→赤。</summary>
++    [Fact]
++    public void 流れの剰余は国庫の蓄えを含まない_Simulationを通す()
++    {
++        var cfg = NationConfig.Britain().ShallowClone(); cfg.Treasury = 1e13;   // 共有の設定を書き換えない（他の試験の国庫が変わる）
++        var sim = new Simulation(cfg.ToScenario(41), new NullAgent());
++        sim.Run(1);
++        var w = sim.World;
++        Assert.True(w.NominalGdp > 0 && w.Treasury > 1e4 * w.NominalGdp, "前提が崩れた：名目GDPが立っていないか、国庫が桁違いに大きくない");
++        w.Coef.BondRepayFrac = 0;
++        w.GovDebt = 1.0 * w.NominalGdp * Calendar.MonthsPerYear; w.ForeignDebt = 0;
++        foreach (var r in w.Regions) foreach (var p in r.Pops) p.BondHoldings = 0;   // 開幕の台帳を消してから新しい国債の持ち手を起こす
++        Fiscal.SeedBondHoldings(w);
++        w.WarmupFrozen = false;
++        double d0 = w.GovDebt;
++        sim.Run(1);
++        double repaid = d0 - w.GovDebt;
++        Assert.True(repaid < 0.5 * d0, $"蓄えが剰余として渡っている疑い：1四半期の減債 {repaid:G4} が国債 {d0:G4} の半分に届く");
++    }
++
+     /// <summary>★開始前の助走（World.WarmupFrozen）は国債の残高を動かさない（2026-09-29）＝借りない・返さない・不履行へ数えない（人口・資本と同じ「年月が経って積み上がる量」）。
+     /// 盤面＝静かな英に国債（年名目GDP の1倍・国内の持ち手）を置き、助走の印を立てた国と立てない双子で同じ月を踏む。
+     /// ①払えない額があっても借りない ②余剰があっても返さない ③借入の上限の上で払えない月でも不履行の計数は進まない。対照（印なし）では①②③が起きる。
+@@ -1440,8 +1511,8 @@ public class FiscalTests
+         sim.StepQuarter();
+         Assert.True(sim.Nations.Count > n0, "前提が崩れた：反乱国家が建っていない");
+         var rw = sim.Nations[^1].World;
+-        FiscalMonth(rw, Short);
+-        sim.StepQuarter();   // 反乱国が自国の投資家から借りる
++        sim.StepQuarter();   // 反乱国の経済が1四半期回る（★(215) 減債は固定の負担に流れの剰余を足す＝借りた小さな国債はその四半期の内に返される＝借りるのは回した後）
++        FiscalMonth(rw, Short);   // 反乱国が自国の投資家から借りる
+         double fd = 0.05 * Math.Max(1.0, rw.TotalMoney);   // 反乱国の対外債（仏が持つ）
+         rw.ForeignDebt += fd; rw.GovDebt += fd; rw.PrevForeignDebt += fd; fw.ForeignBondClaims += fd;
+         new BondLedger().Check(rw);
