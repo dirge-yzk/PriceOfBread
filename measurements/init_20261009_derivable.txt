@@ -1,0 +1,58 @@
+# 導ける初期値の分類（2026-10-09・(225) 合流の回でコミット・分類は読むだけの担当 K〔ファイルの変更・ビルド・シミュなし〕）
+# 作者の指示（2026-10-09・原文）：「このうち、「初期値かとして持つ必要がないもの」があれば、初期値テーブルから外す処理もしてほしいです(なければ問題ありません)」
+# この表は AI の分類と推奨（作者の承認は未確認）。外す処理そのものは段1〜7 の各回で行う（この回は分類と、修正一覧の各段への割り当てだけ）。
+# 確かめの印：〔確認 (225)〕＝合流の担当が grep / world.json の読みで確かめた。〔K の読み・未確認〕＝担当 K のコード読みのまま。
+# gen_world.py はリポジトリに無い（git ls-files で確認 (225)）＝テンプレの元は world.json だけ。
+
+## 0. 結論
+- 外せる（導ける）9 つ：階級の貯蓄の定数・市場の在庫 200・国庫・識字の7項目・治安維持力（coercion）・国の military・民族統一度（ethnicUnity）・聖職者の比（clergyFrac）・金利の目盛りのキー（initialInterestRate）。
+- 既に導かれている量を表へ戻す案は勧めない：修正一覧の D1（艦隊の表）と D2（兵士÷人口の表）＝設計思想⑩と作者の依頼の逆向き。表を足さず、式の入力（予算の側・軍事費の段）を直す。
+- 外せない（史実として置く）：人口と階級の人数・州の share・植民地の人口・法と政体・関税・国債の比・farmLordShare・rule・資源・地形。国債は比で持ち、絶対額は助走後の GDP から出す形へ（段6）。
+- 工業化度（industrialization）と制度疲労（institutionalDecay）は廃止の裁定が既にある＝導くのでなく消す側＝段1〜7 とは別の回。
+
+## 1. 外せる（導ける）
+| 量 | 導き方 | 恒等か | 段 |
+|---|---|---|---|
+| 階級の貯蓄の定数（Simulation.cs の MkPop の wealthPer＝1000人あたり 3000×ClosedWealthMultiple/200/300/3200/800/1500/400/150） | 前期の所得 Pop.LastEarned×k。置く場所は助走の終わり（World.RebaseOpeningMoney の場所＝新しい状態変数なし）。k の物差し（貨幣か富か）は修正一覧 1章(1) の作者の答え待ち | 恒等でない（(221) の M2 は exact −27＝腕で測る） | 段2（英）→段3（全国） |
+| world.json の broadMoneyToGdp（61/61）・係数 InitMoneyMode／InitMoneyScale／InitInvestorMoneyShare・ClosedWealthMultiple | 上の〔所得×k〕を採るなら国の貨幣÷GDP は階級の所得の構成から出る＝国ごとの比の表は要らない（比の値は全て【推】） | 既定 InitMoneyMode=0 では読まれない＝消しても恒等 | 段2 で一緒に畳む（削減方向） |
+| 市場の在庫（Stock=200・TargetStock=200・全財・全州で一律） | 既存の在庫目標の規則（MarketFlow.cs の TargetStock＝max(TargetStockFloor, TargetStockBuffer×総需要)×StockpileFactor）で開幕を置く。需要は構築時に無い＝①人口×BaseNeed で月の需要を見積もる（先例 InitialArsenalMonths）②最初の月の TargetStock を置く。修正一覧の案（k＝2〜4か月・主食4〜6）は新しい定数になるので既存の1本を使う方を勧める | 恒等でない | 段3 |
+| 国庫（world.json の treasury・61国の絶対額） | 助走の終わりの歳入×m か月（置く場所は助走の国庫の戻し RebaseTreasury）。普の戦時財宝は史実の例外＝比として残す。UI の難易度（NationBrief.TreasuryMonths）が c.Treasury を読む＝つなぎ直しが要る〔K の読み・未確認〕 | わずかに変わる | 段6 |
+| 識字の7項目（nobLit・peasLit・workLit・bourgLit・profLit・clergyLit・intelLit×61国） | 国の基準1本（史実の国全体の識字【推】）×階級の倍率（全国共通の係数）。倍率をテンプレ÷基準に合わせれば、テンプレの約41国はほぼ恒等 | 恒等でない（技術の助走が識字を読む） | 段7 |
+| 治安維持力（world.json の coercion・34国が 400〔確認 (225)〕） | 多国シムは CoercionFollowsForce＝目標が兵数×即応度×CoercionPerSoldier で毎期上書き（Government.cs:292-294〔確認 (225)〕）＝置いた値は出発点だけ。開幕を同じ式で置く。単一国の較正（Calibration.cs）は別に掃引するので残す | 恒等でない（助走中は政治が止まる＝今は置いた値で開幕に入る） | 段5（兵士を直した後） |
+| 国の military（world.json の nations の military） | 初期の兵は兵士 POP から導いている。nations の military を読むのは UI の難易度（NationBrief の安全の項）だけ〔K の読み・未確認〕。抽象勢力（abstractTargets）の military は POP が無いので残す | シムは恒等〔K の読み〕・UI の難易度が変わる | 段5 |
+| 民族統一度（world.json の ethnicUnity） | CoreInitByRegionCulture=1.0（既定）で州の中核度は州の文化ラベルだけで決まる。u0 が効くのは文化ラベルが空の州だけ（日 0.2%・米 1.8%・露 2.7%・清 2.8% の人口）〔K の読み・未確認〕。米の 0.45（奴隷と移民）は州のラベルで表せず既に失われている | ほぼ恒等（ラベルが空の州だけ変わる） | 段7 |
+| 聖職者の比（world.json の clergyFrac・59国が 0.4〔確認 (225)〕） | 州の宗教ラベル（データにある）×宗教ごとの比（全国共通の係数：清 0.05〜0.1・イスラム 0.1・上座仏教 0.4・エチオピア 0.5【推】＝修正一覧 B2） | 恒等でない | 段1（B2・英の分）→段3（全国） |
+| 金利の目盛り（world.json の initialInterestRate・61/61 が 0.25＝NationConfig の既定 0.25 と同じ〔確認 (225)〕） | AI は四半期ごとに InterestRateTarget を4つの値のどれかに置く（SelfPlay.cs〔K の読み・未確認〕）。国ごとの目盛りを逆算する E4 の案は導かれる結果を初期値で合わせる台本になる | キーを消すのは恒等 | 段6 |
+
+## 2. 既に導かれている（表を足さない）
+- 兵士の数（D2）：開幕の兵は既定の軍事費の段×MaxSoldierFraction×兵役の母数で播かれ、助走で定員へ寄る。国ごとに違わないのは陸軍維持費・海軍維持費が全国一律の既定だから。直すなら軍事費の段（政策＝史実で置ける）を国ごとに置くか、開幕の安全保障の不安から AI と同じ関数で置く（OpeningNavalShares と同じ作法）〔K の読み・未確認〕。兵士÷人口の表は勧めない（思想⑩の逆）。
+- 艦隊（D1）：開幕の艦＝目標の艦隊（Diplomacy の OpeningNavalShares→EconomyStep.FleetTargetUnits＝海の必要量÷海の熟練・Regions[0] を見る〔Diplomacy.cs:966-975 を確認 (225)〕）。港の州があれば経済の規模に関係なく 200〜555 隻。直すなら目標に予算の側（海軍維持費×歳入÷1隻の費用）を入れる。艦の表は勧めない。海軍の台帳が0（艦がただで出る）は台帳の問題で表を置いても直らない（別の担当）。
+- 使用人・兵士の播種・教師／官僚／医者の比・成人女性比・地代の種：他の初期値から式で出る。使用人は総数の外に上乗せ＝二重計上（B3）＝式の側を総数の内側へ（段1）。⚠ (224) の段1 の腕は英だけ使用人を総数の内側へ入れた（データで）＝全国で決まりを揃えるのは段3（反証役 vj2 の中）。
+- 物価（参照価格）・満足度・国債金利 0.04・GDP・都市化・1人あたり GDP・耕地：中立の値から助走で導かれるか式で出る。外す初期値はない。
+
+## 3. 外せる（キーとして）・ただし今は恒等でない
+- テンプレと同じ値のキー（peasantSubsistence・intelligentsiaFrac・profLit 45国・intelLit 45・clergyLit 43・bourgLit 42・nobLit 41・workLit 40・coercion 34 ほか〔識字と coercion の国数を確認 (225)〕）。
+- NationConfig.cs の既定値がテンプレと違う〔確認 (225)・NationConfig.cs:17・19〕：NobLit 0.95（テンプレ 0.85）・PeasLit 0.15（0.08）・WorkLit 0.40（0.25）・BourgLit 0.80（0.60）・ProfLit 0.85（0.80）・ClergyLit 0.90（0.80）・IntelLit 0.92（0.85）。
+- 先に C# の既定値をテンプレへ揃えてからキーを消せば恒等。識字を段7 で導く式に置き換えるなら、そこで一緒に消える。peasantSubsistence と intelligentsiaFrac は導く元が無いので既定値として残す。
+
+## 4. 廃止の裁定済み（段1〜7 の外の回）
+- 工業化度（world.json の industrialization・7国が0以外）と州の indShare（5州）：2026-09-29 の裁定で完全廃止（00一覧 §0-A の 7）。⚠ 修正一覧 4章の末尾〔問屋制の工場労働者と工業化の初期値を置くか〕はこの裁定と食い違う＝(225) で注記した（工業化の初期値は置かない・問屋制の工場労働者は階級の構成〔段1・段3〕の問題）。
+- 制度疲労（world.json の institutionalDecay・清 0.8・オスマン 0.6・露 0.4）：汚職と制度疲労のスカラーは廃止の方針（特権と実経路へ）。NationBrief の難易度も読む〔K の読み・未確認〕。特権システムの回で消す。
+
+## 5. 外せない（史実として置く）
+- 植民地の人口ウェイト（initialColonies の population・abstractTargets の colonies）：人口は史実。C1 の案どおり州ごとに 1780 年代の人数を千人単位で置けば換算の係数 ColonialPopScale は人口の換算には要らなくなる。⚠ ColonialPopScale は講和の州割譲のコストの物差し（Coefficients.cs の ColonialRegionCession の注記・Colonial.cs:64）にも使われている〔確認 (225)〕＝消すならそちらの物差しも同じ回で置き換える。段4。
+- 階級の人数・州の share：導く元が無い。段1（英）→段3（全国）→段4（州）で値を直す。
+- 法と政体（polity・education・bureaucracy・initialSuffrage・Censorship・CornLaws・SerfEmancipation・Immigration・Conscription・MonetaryLaw・税の段・knownDiscoveries）・farmLordShare・rule・関税：助走は法を動かさない＝置く必要がある。段6（関税・税）と段7（F2）で値を直す。
+- 国債（world.json の govDebt・7国の絶対額）：比は史実（英 1.1・仏 0.6・蘭 1.6 ほか【推】）＝絶対額は比×助走の終わりの年名目GDP へ（段6）。保有の起票（Fiscal.SeedBondHoldings）は今は構築時＝助走の後へ動かすなら番人（Σ保有＝国内元本）を取り直す〔K の読み・未確認〕。
+- 首都の座標（latitude・longitude）・州の coastal・resources・places.json の地形：地理。座標だけは places.json の首都から導ける。⚠ 露は world.json の座標がペテルブルク（59.9・30.3）だが、最初の州（Regions[0]＝エンジンが首都として扱う州）はモスクワ〔確認 (225)・world.json の露の provinces の1番目がモスクワ・2番目がサンクトペテルブルク〕＝今あるずれ。段1〜7 の外（首都の州の並びを先に確かめる）。coastal は河港があるので残す。
+- 国民意識の初期値（nationalConsciousness0・米 0.32・仏 0.1）・InitialMassMilitancy（清）：史実の置き値（2〜1国だけ）。culturalGoodId は表示の錨だけ（任意）。
+
+## 6. 段への割り当て（修正一覧 4章の各段と 00一覧 §0-A の行 00 に書き足した）
+- 段1：聖職者の比（英の分）・使用人を総数の内側へ（式の側）
+- 段2：階級の貯蓄の定数（英）＋broadMoneyToGdp・InitMoneyMode／InitMoneyScale／InitInvestorMoneyShare・ClosedWealthMultiple を畳む
+- 段3：市場の在庫 200・階級の貯蓄の定数（全国）・聖職者の比（全国）・使用人の決まりを全国で揃える
+- 段4：ColonialPopScale（人口の換算・州割譲のコストの物差しと同じ回で）
+- 段5：国の military を消す・治安維持力を導く・艦隊と兵士は入力を直す（表を足さない）
+- 段6：国庫を導く（普は比で残す）・国債を比で持つ・initialInterestRate のキーを消す
+- 段7：識字を国の基準1本へ（NationConfig の既定値をテンプレへ揃えてから）・ethnicUnity を消す
+- 段1〜7 の外：工業化度・制度疲労（廃止の回）・首都の座標（露の Regions[0]）

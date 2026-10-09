@@ -1,0 +1,278 @@
+From ce80292afb1dd9f90f51d755a7ae9086cc9379fb Mon Sep 17 00:00:00 2001
+From: dirge <dirge069@gmail.com>
+Date: Fri, 9 Oct 2026 22:25:37 +0900
+Subject: [PATCH] =?UTF-8?q?(224)=20=E6=AE=B51=EF=BC=9A=E8=8B=B1=E3=81=AE?=
+ =?UTF-8?q?=E9=9A=8E=E7=B4=9A=E3=81=AE=E6=A7=8B=E6=88=90=E3=82=92=E5=87=BA?=
+ =?UTF-8?q?=E5=85=B8=EF=BC=88=E6=94=B9=E8=A8=82=20Colquhoun=E3=83=BBAllen?=
+ =?UTF-8?q?=202017=EF=BC=89=E3=81=AE=E5=86=99=E3=81=97=E3=81=B8=EF=BC=8B?=
+ =?UTF-8?q?=E7=95=AA=E4=BA=BA?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+world.json の英の欄だけ：資本家 2248→184千人・工場労働者 5780→3823・農民 3210→7809・
+専門職 963→370・貴族欄 193→228（clergyFrac 0.4→0.332）・商人 450→409・職人 1156→841。
+使用人（貴族＋資本家の式）は設定の総数の内側＝本国 16.36M→14.0M。コードは触らない。
+番人 NationModelTests に1本（構成の線・総数・突然変異で赤）。
+旧の構成の英を前提にする番人6本は LegacyBritain を使い、データの大きさに比例する床3本・
+閾値1本・計算量の表1本・主張1本を直した（理由はコメント）。
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ PriceOfBread.SimCore/world.json            | 16 ++++-----
+ PriceOfBread.Tests/ConservationTests.cs    | 12 ++++---
+ PriceOfBread.Tests/FiscalTests.cs          |  2 +-
+ PriceOfBread.Tests/MobilityTests.cs        |  5 +--
+ PriceOfBread.Tests/MultiNationTests.cs     |  7 +++-
+ PriceOfBread.Tests/NationModelTests.cs     | 42 ++++++++++++++++++++++
+ PriceOfBread.Tests/PartyTests.cs           |  2 +-
+ PriceOfBread.Tests/RevoltIgnitionTests.cs  |  2 +-
+ PriceOfBread.Tests/TechInstitutionTests.cs |  2 +-
+ PriceOfBread.Tests/WriterRatchetTests.cs   |  5 ++-
+ 10 files changed, 75 insertions(+), 20 deletions(-)
+
+diff --git a/PriceOfBread.SimCore/world.json b/PriceOfBread.SimCore/world.json
+index 2b922c3..3219371 100644
+--- a/PriceOfBread.SimCore/world.json
++++ b/PriceOfBread.SimCore/world.json
+@@ -311,19 +311,19 @@
+    "broadMoneyToGdp": 0.5,
+    "knownDiscoveries": ["蒸気機関", "特許"],
+    "rule": [0.9, 0.1, 0.0, 0.0],
+-   "nobility": 193,
+-   "peasant": 3210,
+-   "worker": 5780,
+-   "bourgeois": 2248,
+-   "professional": 963,
+-   "merchant": 450,
+-   "artisan": 1156,
++   "nobility": 228,
++   "peasant": 7809,
++   "worker": 3823,
++   "bourgeois": 184,
++   "professional": 370,
++   "merchant": 409,
++   "artisan": 841,
+    "nobLit": 0.95,
+    "peasLit": 0.15,
+    "workLit": 0.55,
+    "bourgLit": 0.9,
+    "profLit": 0.85,
+-   "clergyFrac": 0.4,
++   "clergyFrac": 0.332,
+    "intelligentsiaFrac": 0.35,
+    "clergyLit": 0.9,
+    "intelLit": 0.92,
+diff --git a/PriceOfBread.Tests/ConservationTests.cs b/PriceOfBread.Tests/ConservationTests.cs
+index 8acb558..bbc3448 100644
+--- a/PriceOfBread.Tests/ConservationTests.cs
++++ b/PriceOfBread.Tests/ConservationTests.cs
+@@ -323,6 +323,10 @@ public class ConservationTests
+     //   段を単離して1回だけ呼ぶ（MultiNationSim.MigrateBetweenNations は internal）。6か国（英・仏・米・普・露・西）＝行き先が複数ある盤面。
+     //   外交は止める（戦争で州が動くと移民の前後が比べられない）。1四半期だけ回して州の食料充足と機会を実体化してから測る。
+ 
++    // (224) 盤面の機会の差の閾値：既定 0.5 のままだと、英の階級の構成が出典（農業が最大の部門）へ直った盤面では1783年の1四半期の目に見える差が閾値に届かず
++    //   誰も移らない（番人が何も検査しない）。次の番人が見るのは保存・上限・床の規則＝閾値を下げて必ず流れが立つ盤面にする（差が0以下の国へ行かない番人だけは 1e9 のまま）。
++    private const double MigrationGapForBoard = 0.2;
++
+     private static MultiNationSim MigrationBoard(Coefficients? coef = null)
+     {
+         var sim = new MultiNationSim([WorldData.ByName("イギリス"), WorldData.ByName("フランス"), WorldData.ByName("アメリカ"),
+@@ -343,7 +347,7 @@ public class ConservationTests
+     [Fact]
+     public void 国家間移民の段の前後で世界の総人口と基礎貨幣は変わらない()
+     {
+-        var sim = MigrationBoard();
++        var sim = MigrationBoard(new Coefficients { CrossBorderOppGapThreshold = MigrationGapForBoard });
+         var (p0, m0) = MigrationWorldTotals(sim);
+         sim.MigrateBetweenNations();
+         var (p1, m1) = MigrationWorldTotals(sim);
+@@ -359,7 +363,7 @@ public class ConservationTests
+     [Fact]
+     public void 国家間移民の流出は行き先の数によらず上限を1回だけ()
+     {
+-        var sim = MigrationBoard(new Coefficients { ImmigrationReceiveCapFrac = 1e9, ImmigrationAbsorbExponent = 0, EmigrationRate = 1.0 });
++        var sim = MigrationBoard(new Coefficients { ImmigrationReceiveCapFrac = 1e9, ImmigrationAbsorbExponent = 0, EmigrationRate = 1.0, CrossBorderOppGapThreshold = MigrationGapForBoard });
+         var c = sim.Coef;
+         var bound = new List<(Pop Pop, double Size0, double Cap)>();
+         foreach (var n in sim.Nations)
+@@ -397,7 +401,7 @@ public class ConservationTests
+     {
+         double Inflow(string name, ImmigrationLaw law, out double capNoAbsorb)
+         {
+-            var sim = MigrationBoard(new Coefficients { ImmigrationReceiveCapFrac = 1e-7 });
++            var sim = MigrationBoard(new Coefficients { ImmigrationReceiveCapFrac = 1e-7, CrossBorderOppGapThreshold = MigrationGapForBoard });
+             var dst = sim.Nations.First(n => n.World.SelfPower?.BaseName == name).World;
+             dst.ImmigrationRestriction = law;
+             capNoAbsorb = sim.Coef.ImmigrationReceiveCapFrac * dst.TotalPopulation * (law == ImmigrationLaw.Closed ? sim.Coef.ImmigrationClosedFrac : 1.0);
+@@ -477,7 +481,7 @@ public class ConservationTests
+     {
+         (Region R, double Size0, double Size1) Run(bool wideLand)
+         {
+-            var sim = MigrationBoard();
++            var sim = MigrationBoard(new Coefficients { CrossBorderOppGapThreshold = MigrationGapForBoard });
+             var c = sim.Coef;
+             // 送出州＝盤面で最も残る値打ちの低い州（農民の居る稼働中の州）
+             Region? src = null; World? sw = null; double low = double.PositiveInfinity;
+diff --git a/PriceOfBread.Tests/FiscalTests.cs b/PriceOfBread.Tests/FiscalTests.cs
+index 7bd52f0..57e1fd1 100644
+--- a/PriceOfBread.Tests/FiscalTests.cs
++++ b/PriceOfBread.Tests/FiscalTests.cs
+@@ -136,7 +136,7 @@ public class FiscalTests
+             w.TaxRate = 0.1; w.Coef.TitheRate = 0;
+             foreach (var r in w.Regions) foreach (var q in r.Pops) { q.Earned = 0; q.LastEarned = 0; }
+             Pop? p = null;
+-            foreach (var r in w.Regions) foreach (var q in r.Pops) if (p is null && !q.IsSoldier && q.Size > 1 && q.Savings > 1e6) p = q;
++            foreach (var r in w.Regions) foreach (var q in r.Pops) if (p is null && !q.IsSoldier && q.Size > 1 && q.Savings > 1e4) p = q;   // (224) 旧 1e6＝旧の英の資本家の厚み。課税の額（1000×0.1）を払える貯蓄があれば足りる
+             Assert.True(p is not null, "前提が崩れた：貯蓄の厚い POP が無い");
+             if (last) p!.LastEarned = 1000; else p!.Earned = 1000;
+             double t0 = w.TreasuryLedger[(int)TreasuryCat.Tax];
+diff --git a/PriceOfBread.Tests/MobilityTests.cs b/PriceOfBread.Tests/MobilityTests.cs
+index 6f7e172..f735e58 100644
+--- a/PriceOfBread.Tests/MobilityTests.cs
++++ b/PriceOfBread.Tests/MobilityTests.cs
+@@ -77,12 +77,13 @@ public class MobilityTests
+         var r = sim.World.Region;
+         r.Markets[Catalog.PaperId].Stock = 1e6;   // ★2026-08-23：閉じた英国は綿花なし→紙（教育の投入）が立たない＝多国世界の交易/植民地財の代替として紙を外生供給（検証対象は就学需要→教師の補充）
+         r.Markets[Catalog.Goods.First(g => g.Name == "書籍").Id].Stock = 1e6;   // 教育の投入は技術で紙→書籍へ切り替わる＝書籍も外生供給
++        double teacher0 = r.Pops[7].Size;   // (224) 教育の生産の床はこの州の教師の数に比例させる（旧の絶対の床 50 ＝旧の英の教師 31.6千人〔首都州〕の 1.58 倍・本物の構成では教師 12.2千人）
+         sim.Run(240);
+         double childShare = r.Pops[2].AgeShare(0, 15);   // 工場労働者の15歳未満の割合（粗出生で補充され続ける・年齢の層）
+         Assert.True(childShare > 0.2, $"成熟社会で子供が払底した（子供比率 {childShare:P0}）＝粗出生の補充が機能していない");
+         var edu = r.Markets[Catalog.EducationId];
+-        Assert.True(edu.LastProduced > 50, $"教育の生産が崩壊した（{edu.LastProduced:F1}）＝就学需要に教師の供給が応えていない");
+-        Assert.True(r.Pops[7].Size > 8, $"教師が枯渇した（{r.Pops[7].Size:F0}人）＝給与シグナルが教師に志望者を呼べていない");
++        Assert.True(edu.LastProduced > 1.5 * teacher0, $"教育の生産が崩壊した（{edu.LastProduced:F1}・教師 {teacher0:F1}千人あたり床 {1.5 * teacher0:F1}）＝就学需要に教師の供給が応えていない");
++        Assert.True(r.Pops[7].Size > 0.25 * teacher0, $"教師が枯渇した（{r.Pops[7].Size:F0}千人・始め {teacher0:F1}）＝給与シグナルが教師に志望者を呼べていない");   // (224) 旧＝絶対の床 8（旧の始めの教師 31.6千人の 1/4）
+     }
+ 
+     [Fact]
+diff --git a/PriceOfBread.Tests/MultiNationTests.cs b/PriceOfBread.Tests/MultiNationTests.cs
+index a6564fe..74e320d 100644
+--- a/PriceOfBread.Tests/MultiNationTests.cs
++++ b/PriceOfBread.Tests/MultiNationTests.cs
+@@ -262,9 +262,14 @@ public class MultiNationTests
+         Assert.Equal(0.0, japan.Industrialization);
+         Assert.True(britain.Industrialization > 0.0, "イギリスは工業先進のはず");
+         double japanPeasantShare = japan.Pops[1].Size / japan.SumPopulation();
++        double britainPeasantShare = britain.Pops[1].Size / britain.SumPopulation();
++        double japanWorkerShare = japan.Pops[2].Size / japan.SumPopulation();
+         double britainWorkerShare = britain.Pops[2].Size / britain.SumPopulation();
+         Assert.True(japanPeasantShare > 0.6, "日本は農民が多数のはず");
+-        Assert.True(britainWorkerShare > britain.Pops[1].Size / britain.SumPopulation(), "イギリスは農民より労働者が多いはず");
++        // (224) 旧＝「イギリスは農民より労働者が多い」は旧の構成（工場労働者 41%・農民 23%）の主張。出典（Allen 2017 の改訂 Colquhoun・1798）では農業が最大の部門
++        //   （農民 49〜56%・工場労働者 27〜31%）なので、主張を「日本より農民が少なく工場労働者が多い＝工業先進」へ（差別化の主題は同じ）。
++        Assert.True(britainPeasantShare < japanPeasantShare, "イギリスは日本より農民が少ないはず");
++        Assert.True(britainWorkerShare > 2 * japanWorkerShare, "イギリスは日本より工場労働者が多いはず");
+     }
+ 
+     [Fact]
+diff --git a/PriceOfBread.Tests/NationModelTests.cs b/PriceOfBread.Tests/NationModelTests.cs
+index bbf332e..64e2f6f 100644
+--- a/PriceOfBread.Tests/NationModelTests.cs
++++ b/PriceOfBread.Tests/NationModelTests.cs
+@@ -114,4 +114,46 @@ public class NationModelTests
+         m.StepQuarter();
+         Assert.Equal(MonetaryStandardLaw.Gold, m.Nations[0].World.MonetaryLaw);
+     }
++
++    /// <summary>
++    /// (224) 段1：英の本国（植民地格の州を除く）の階級の構成は出典の写しの線の内に置く。
++    /// 出典＝Allen (2017) NYUAD WP 0002 Appendix Table 3（Colquhoun を Lindert &amp; Williamson 1982 が改訂・England and Wales 1798）に、
++    /// スコットランド（E&amp;W と同じ形）とアイルランド（農業 0.70【推】）を人口で混ぜた写し（measurements/ini3_20261009_mix.py）。
++    /// 旧（資本家が設定人口の16%・工場労働者41%・本国の人口＝設定 14.0M＋使用人 2.36M）は線の外＝突然変異（旧の値へ戻す）で赤。
++    /// 使用人は設定の総数の内側（欄の和＋使用人＝14,000千人）＝二重に数えない。
++    /// </summary>
++    [Fact]
++    public void 英の本国の階級の構成は出典の写しの線の内にあり使用人は総数の内側にある()
++    {
++        var sim = new MultiNationSim([NationConfig.Britain()], 1789UL, _ => new UtilityAgent());
++        var w = sim.Nations[0].World;
++        var by = new Dictionary<string, double>();
++        double tot = 0;
++        foreach (var r in w.Regions)
++        {
++            if (r.State != RegionState.Active || r.Tier == RegionTier.Colonial) continue;
++            foreach (var p in r.Pops) { by[p.ClassName] = by.GetValueOrDefault(p.ClassName) + p.Size; tot += p.Size; }
++        }
++        double Share(string cls) => by.GetValueOrDefault(cls) / tot;
++        Assert.InRange(tot, 13_860.0, 14_140.0);          // 設定の和＋使用人＝14,000千人の±1%（使用人を総数の外へ上乗せしない）
++        Assert.InRange(Share("資本家"), 0.010, 0.035);    // 雇用して資本を回す人 1.3〜1.7%・Allen の bourgeoisie 3.2%
++        Assert.InRange(Share("農民"), 0.45, 0.60);        // E&W 日付合わせ後 48.7%・アイルランド込み 55.8%
++        Assert.InRange(Share("工場労働者"), 0.20, 0.35);  // E&W 31.0%・混ぜた後 27.3%
++    }
++}
++
++/// <summary>
++/// (224) 機構の番人の盤面用：階級の構成が出典へ直る前（資本家が設定人口の16%・工場労働者41%・専門職 6.9%・使用人を設定の外へ上乗せ）の英。
++/// 貯蓄は階級の1000人あたり定数（Simulation.cs:837-857・段2 で置き換える）なので、人数を史実へ直すと富の順（資本家の厚み）が変わる。
++/// 次の番人は**資本の厚い工業国**を前提に機構（政党の選好・法の通りやすさ・制度の施行）を見る＝構成のデータの値には依らない。
++/// 前提を持ち込む番人にだけ使う（他の英の番人は本物の英のまま）。段2 で貯蓄の式が直ったら本物の英へ戻せるか確かめる。
++/// </summary>
++internal static class LegacyBritain
++{
++    internal static NationConfig Config()
++    {
++        var c = NationConfig.Britain().ShallowClone();
++        c.Nobility = 193; c.Peasant = 3210; c.Worker = 5780; c.Bourgeois = 2248; c.Professional = 963; c.Merchant = 450; c.Artisan = 1156; c.ClergyFrac = 0.4;
++        return c;
++    }
+ }
+diff --git a/PriceOfBread.Tests/PartyTests.cs b/PriceOfBread.Tests/PartyTests.cs
+index 5dde72d..56b8cd0 100644
+--- a/PriceOfBread.Tests/PartyTests.cs
++++ b/PriceOfBread.Tests/PartyTests.cs
+@@ -80,7 +80,7 @@ public class PartyTests
+     /// <summary>英（開幕＝立憲君主制）に議席を直接置いた世界。選挙も不信任も公示も走らない四半期に合わせる（QuartersSinceElection=0→Step 内で1）。</summary>
+     private static World SeatedBritain(ulong seed, int gov, double govSeat)
+     {
+-        var w = new Simulation(NationConfig.Britain().ToScenario(seed), new NullAgent()).World;
++        var w = new Simulation(LegacyBritain.Config().ToScenario(seed), new NullAgent()).World;   // (224) 資本の厚い英を前提にする番人（LegacyBritain の注記）
+         Assert.Equal(Polity.ConstitutionalMonarchy, w.Polity);   // 前提＝選挙のある政体（旧＝綱領が走った政体）
+         double rest = 1.0 - govSeat;
+         w.PartySeats[gov] = govSeat;
+diff --git a/PriceOfBread.Tests/RevoltIgnitionTests.cs b/PriceOfBread.Tests/RevoltIgnitionTests.cs
+index ed23006..708f8be 100644
+--- a/PriceOfBread.Tests/RevoltIgnitionTests.cs
++++ b/PriceOfBread.Tests/RevoltIgnitionTests.cs
+@@ -412,7 +412,7 @@ public class RevoltIgnitionTests
+     // ============================================================================================
+     private static (World W, FactionState F) 段4_絶望した州に小さな運動を置く(double regionMilitancy, double fight, double rejections)
+     {
+-        var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
++        var sim = new Simulation(LegacyBritain.Config().ToScenario(41), new NullAgent());   // (224) 資本の厚い英を前提にする番人（LegacyBritain の注記）
+         // 初期の国債（world.json の govDebt＝1783年の英 年GDP の約1.1・2026-09-29）を構築の直後に消す＝旧の盤面（英の初期国債0）と同じ状態から回す。
+         //   ⚠初期の国債があると「緊縮の下限／上限」の門が人頭税と社会保障の段を塞ぎ、この盤面が測る法の経路（受諾・施行・通らない段）の前提が崩れる（門そのものの番人は別）。
+         //   2026-09-29 に緊縮の物差しを年の名目GDP へ直した後も戻さない＝英の1783年の国債（年GDP の約1.1）は満額（AusterityStartDebt＋AusterityRange＝1.0）を越える
+diff --git a/PriceOfBread.Tests/TechInstitutionTests.cs b/PriceOfBread.Tests/TechInstitutionTests.cs
+index 1f045fd..2a56443 100644
+--- a/PriceOfBread.Tests/TechInstitutionTests.cs
++++ b/PriceOfBread.Tests/TechInstitutionTests.cs
+@@ -16,7 +16,7 @@ namespace PriceOfBread.Tests;
+ public class TechInstitutionTests
+ {
+     private static NationConfig[] Four() =>
+-        [NationConfig.France(), NationConfig.Japan(), NationConfig.Britain(), NationConfig.America()];
++        [NationConfig.France(), NationConfig.Japan(), LegacyBritain.Config(), NationConfig.America()];   // (224) 資本の厚い英を前提にする番人（LegacyBritain の注記）
+ 
+     /// <summary>主張＝「自由な報道と公教育を持つ国は、世界の技術水準へ届く（停滞帯の床 t&gt;1.10 を越え、宗教教育に固定した国の1.3倍を超える）」。
+     /// これは**機構**の主張（<see cref="TechEducation.GrowTech"/> の革新項は 自由≥閾値 × 公教育 × 報道の自由 で開く）なので、
+diff --git a/PriceOfBread.Tests/WriterRatchetTests.cs b/PriceOfBread.Tests/WriterRatchetTests.cs
+index 083c4e1..60539fa 100644
+--- a/PriceOfBread.Tests/WriterRatchetTests.cs
++++ b/PriceOfBread.Tests/WriterRatchetTests.cs
+@@ -423,7 +423,10 @@ public class WriterRatchetTests
+     // ★2026-10-04 表の更新（(197) 合流＝(194) と (195) を合わせ k/N に植民地を数える〔ScarceCountsIncludeColonies〕を点火した木の実測・1種40四半期）：
+     //   覇権の判定 1,801,372（(194) の宣言 2,574,518 と (195) の宣言 1,614,601 の間＝(194) の海路の接触で動いた軌道と (195) の旧の判断の SideMilitary を消した分が重なった・処理の形は (195) のまま）・
+     //   建設 8,204→7,000（−14.7%）・請求 3,013→2,626（−12.8%）＝10% を超えて下がった＝表を下げた（どちらも軌道＝処理の形は同じ）。合わせただけの木（点火の前）は 1,916,631・7,706・2,970。全長の10種は実装ログ (197)。
+-    [InlineData(CostLedger.DiploHegemonScans, 1801372L)]
++    // ★2026-10-09 表の更新（(224) 段1＝英の階級の構成を出典へ〔world.json の英の欄だけ〕＝軌道が動いた分の宣言・新しい計数の処理は無い〔データの値だけ〕）：
++    //   覇権の判定 1,801,372→1,871,823（+3.9%＝最初の40四半期の同盟の候補が居る月の軌道・処理の形は同じ）。ほかの16本は許しの内（+2%／−10%・フルスイートで確かめた）。
++    //   全長の10種（計器つきの腕）の推定は 242.1→243.5 秒（上限 248.5 秒の内・払っていない・実装ログ (224)）。
++    [InlineData(CostLedger.DiploHegemonScans, 1871823L)]
+     [InlineData(CostLedger.QuarterStartPops, 235560L)]
+     [InlineData(CostLedger.QuarterEndPops, 235560L)]
+     [InlineData(CostLedger.SharedNationQuarters, 3698L)]
+-- 
+2.54.0.windows.1
+
