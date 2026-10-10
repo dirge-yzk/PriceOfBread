@@ -9,6 +9,8 @@ namespace PriceOfBread.Tests;
 /// 「人口の側の定員（MaxSoldierFraction×Σ RegionManpower）×MilitaryUpkeepScale×レート×InitialArsenalMonths」で、
 /// 市場の在庫 200（CatalogEconomy）は床のまま（Max）。国名を読まず、人口（母数）に比例する。
 /// <para>⚠ON 経路のテスト（構築した世界の首都の在庫を式と突き合わせる）。</para>
+/// <para>⚠(241) 限界（反証役 va1#7）：1本目は本体の式の写し（式どおりかだけを見る）・2本目は旧の底（構築時の兵＝定員の 0.30 倍）でも緑＝底の選び方そのものは守らない。
+/// 開幕（助走の直後）の在庫が史実の桁かは帯と probe が見る（実装ログ (241)）。</para>
 /// </summary>
 public class ArsenalOpeningTests
 {
