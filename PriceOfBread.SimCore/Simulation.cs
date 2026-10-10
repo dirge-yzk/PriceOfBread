@@ -591,14 +591,12 @@ public sealed class Simulation
         //   その前に EconomyStep が期首で PrevStock=Stock を取り直すため（旧来の一律200も同じ構造で成立している）。
         if (coef.InitialArsenalMonths > 0)
         {
-            double natSoldiers = 0;
-            foreach (var r in regions) foreach (var pp in r.Pops) if (pp.IsSoldier) natSoldiers += pp.Size;
-            if (coef.InitialArsenalBasis > 0.5)   // ★(239) 腕の旗：底を人口の側の定員へ（Military.EstablishmentOf の manLimit と同じ式）
-            {
-                double man = 0;
-                foreach (var r in regions) man += Military.RegionManpower(r, coef);
-                natSoldiers = coef.MaxSoldierFraction * man;
-            }
+            // ★(239) 底＝構築時に読める**人口の側の定員**（<see cref="Military.EstablishmentOf"/> の manLimit と同じ式＝MaxSoldierFraction×Σ <see cref="Military.RegionManpower"/>）。
+            //   旧＝構築時の兵士POPの和（助走で約2.1倍になる＝旧の12か月は実質6か月分）。経済の側の定員は歳入を読み助走の前はほぼ0（構築時の EstablishmentOf は人口の側の約7分の1）なので使えない。
+            //   月数は史実の兵器庫の桁（Coefficients.InitialArsenalMonths の注記）。国名を読まない＝人口（母数）に比例する。
+            double manpower = 0;
+            foreach (var r in regions) manpower += Military.RegionManpower(r, coef);
+            double natSoldiers = coef.MaxSoldierFraction * manpower;
             var capReg = regions[0];
             for (int b = 0; b < coef.MilitaryGoods.Length; b++)
             {

@@ -1,0 +1,21 @@
+months 0: q0 stock 200.0 price 1.978 target 200.0
+  q4: stock 0.0 price 1.674 cumOutput 0.00 stateSpentArmy 139
+  q8: stock 31.4 price 1.832 cumOutput 36.04 stateSpentArmy 125
+  q12: stock 4.0 price 2.284 cumOutput 95.36 stateSpentArmy 140
+  q16: stock 0.0 price 3.242 cumOutput 147.30 stateSpentArmy 160
+  q20: stock 0.0 price 3.402 cumOutput 228.57 stateSpentArmy 167
+  q24: stock 0.0 price 4.023 cumOutput 308.42 stateSpentArmy 203
+months 12: q0 stock 776.7 price 1.978 target 200.0
+  q4: stock 528.3 price 1.228 cumOutput 0.00 stateSpentArmy 152
+  q8: stock 156.9 price 1.011 cumOutput 0.00 stateSpentArmy 104
+  q12: stock 8.7 price 3.179 cumOutput 15.43 stateSpentArmy 139
+  q16: stock 0.0 price 3.215 cumOutput 61.28 stateSpentArmy 150
+  q20: stock 0.0 price 3.458 cumOutput 135.89 stateSpentArmy 192
+  q24: stock 0.0 price 4.065 cumOutput 208.93 stateSpentArmy 201
+months 60: q0 stock 3883.7 price 1.978 target 200.0
+  q4: stock 3453.6 price 1.199 cumOutput 0.00 stateSpentArmy 151
+  q8: stock 2911.1 price 0.925 cumOutput 0.00 stateSpentArmy 101
+  q12: stock 2435.6 price 0.893 cumOutput 0.00 stateSpentArmy 117
+  q16: stock 1984.3 price 0.922 cumOutput 0.00 stateSpentArmy 133
+  q20: stock 1514.8 price 0.986 cumOutput 0.00 stateSpentArmy 151
+  q24: stock 988.9 price 1.129 cumOutput 0.00 stateSpentArmy 190

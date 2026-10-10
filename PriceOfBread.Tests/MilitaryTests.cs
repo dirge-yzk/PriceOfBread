@@ -151,7 +151,11 @@ public class MilitaryTests
     [Fact]
     public void 前期の軍需レシピは鋼の無い時代に小銃を作る()
     {
-        var sim = new Simulation(NationConfig.Britain().ToScenario(29), new NullAgent());
+        // ★(239) 首都の備蓄（InitialArsenalMonths＝人口の側の定員×60か月）を外す＝この試験が見るのはレシピの注入と投入の足り方で、軍需の開幕の在庫ではない
+        //   （備蓄があると国家の調達が在庫を引き下げる間は価格が参照より下がったままでマスケットの産出が立たない＝英では60か月の備蓄が24四半期たっても残る〔rifprobe〕＝備蓄の試験は ArsenalOpeningTests）。
+        var sc = NationConfig.Britain().ToScenario(29);
+        sc.Coef.InitialArsenalMonths = 0;
+        var sim = new Simulation(sc, new NullAgent());
         var r = sim.World.Region;
         var musket = Assert.Single(r.Producers, p => p.GoodId == Catalog.RifleId && p.RecipeName == "マスケット");
         var castGun = Assert.Single(r.Producers, p => p.GoodId == Catalog.ArtilleryId && p.RecipeName == "鋳鉄砲");

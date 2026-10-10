@@ -2200,11 +2200,13 @@ public sealed class Coefficients
     //   ＝「fill を改善しないのに帯だけ動かす因子は落として単純化」（例外のつぎ足し禁止）。
     //   ★機構は残置＝再点火が意味を持つのは**需要側（StateProcurePriceGate の崖）を直した後**。
     // 【墓標2026-09-26（棚卸し mil-21・dorm-36）】InitialArmsIndustryScale（初期の軍需産業の操業規模・休眠0）＝上の実測で棄却＝削除（初期の工廠備蓄 InitialArsenalMonths は別の器）
-    // ★採用（2026-08-22）。首都市場に置く軍需最終財の初期在庫＝平時消費（MilitaryUpkeepScale×初期兵×レート）の月数。0＝休眠（旧＝全財一律200＝清の小銃で6日分）。
+    // ★採用（2026-08-22）。首都市場に置く軍需最終財の初期在庫＝平時消費（MilitaryUpkeepScale×人口の側の定員〔(239) 旧＝構築時の兵〕×レート）の月数。0＝休眠（旧＝全財一律200＝清の小銃で6日分）。
     //   効く経路＝**在庫→価格が参照帯に留まる→StateProcurePriceGate が開く→国家が実際に買う**（ration は元から1.0・生産は0.0＝どちらも経路ではない）。
-    public double InitialArsenalMonths = 12.0;
-    // ★(239) 腕のための一時の旗（採否が決まったら畳む）。首都の軍需品の備蓄の底（兵の数）：0＝構築時の兵士POPの和（旧）／1＝人口の側の定員（MaxSoldierFraction×Σ Military.RegionManpower＝EstablishmentOf の manLimit と同じ1本・構築時に読める定員はこの側だけ〔経済の側は歳入を読み助走前はほぼ0〕）。
-    public double InitialArsenalBasis = 0.0;
+    // ★(239) 月数＝史実の兵器庫の在庫の桁【推・二次資料・確からしさ低】：英 1793 年に国内の武器庫（ロンドン塔を含む）の小銃が約 6 万丁・陸軍の定員 44,432 人＝軍の約 1.35 倍／仏 同年に 70 万丁超・平時の軍は十数万人＝約 4 倍
+    //   （1783 年でなく 1793 年・原典未取得）。耐久品（小銃・火砲）は摩耗 月 0.02 ＝装備 1 式は平時消費の 50 か月分＝軍の 1.35 倍は約 68 か月・4 倍は約 200 か月。史実の下限（英）より少し下の 60 か月（5 年）を採った。
+    //   底は人口の側の定員（Simulation.BuildNation）。旧＝構築時の兵×12 か月。市場の在庫 200（Simulation.CatalogEconomy）は床のまま（Max）＝この式が勝つのは monthly×月数 > 200 の国だけ。
+    //   測定は measurements/ars239_20261010（5種で 底だけ／底＋60／月数だけ／底＋36 を並べた・10種は底＋60）。
+    public double InitialArsenalMonths = 60.0;
     public double MilitaryWarMult = 9.0;                      // 交戦中の軍需消費の倍率（武器需要ブーム）。元3.0の3倍＝9.0（5倍は軍が溶けすぎたため3倍に決定）
     public double WarMobilizationDepth = 0.5;                 // 戦時動員の段階性（wartime-economy-field-dead）：対外戦の軍需倍率＝MilitaryWarMult×(1+これ×WarExhaustion)。長期戦ほど総動員(WWI型)。0で旧の固定倍率（恒等）
     // 監査2026-07-12 死19：MilitaryBudgetFrac（国庫比の軍需上限）は歳入フロー基準（MilitaryRevenueShare）への置換後の残骸＝参照ゼロにつき削除。軍需上限を調整する係数は MilitaryRevenueShare
