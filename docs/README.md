@@ -214,11 +214,13 @@ PYTHONUTF8=1 python <script>
 - ★ **名前に時間の基準と規模を入れる**：`…PerMonth`・`…PerQuarter`・`…PerYear`（流れ）／接尾辞なしは在庫（ストック）／`…K`（千人）／`…Share`（0〜1 の割合）／`…ToGdpYear`（年GDP 比）／`…PerCapita`（1人あたり）。計器と読み手の出力の列名にも同じ規則を当てる。
 - ★ **主要な量の単位の表**（単位・時間の基準・定義＝何を含むか〔例：`World.GdpPerMonth` は中間財を重ねる総産出で付加価値ではない・資本家の `EarnedPerMonth` は粗利潤の全額〕）を1枚に置き、史実の統計と比べるときは定義を揃えてから比べる。
   - ★ 初版の表＝`measurements/units_20261010.tsv`（(243) 線U・1,918 行＝係数 1,288・World 347・Region 149・Pop 64・NationConfig 36・Power 34）。⚠**「手で確認」の行〔使用箇所を読んだ 63 行〕以外は名前と注記の語から機械的に読んだ推定**（確度の列）＝時間の基準が読めない 816 本は「不明」と書いてある（推測で埋めていない）。直すときは表の行を手で確認した行に置き換えていく。
-  - ★ **時間の単位**（AI の推奨・作者の承認は未確認）＝量の単位は月（市場の刻みだけ日）・四半期は「3か月ごと」の実行の刻み・年は史実との比較の入口と出口（係数の出典・計器・画面）。換算は `Calendar.PerYearToPerMonth`／`PerMonthToPerYear`／`PerQuarterToPerMonth`／`PerMonthToPerQuarter`／`PerQuarterToPerYear`／`PerYearToPerDay`／`PerMonthToPerDay`／`PerDayToPerMonth`／`YearsToMonths` の名前のある関数だけ（裸の `/12`・`*12` を書かない＝`CalendarTests` の番人。⚠番人が数えるのは SimCore の「`Calendar` の暦の定数を掛けるか割る」形だけ〔被演算子の左右どちらでも・ファイルごとの宣言＝(244) で広げた〕＝裸のリテラル〔`*12`・`/12.0`・`*4.0`〕と Runner／App は数えない）。
+  - ★ **時間の単位**（作者 2026-10-10「時間単位は推奨でよい」＝承認）＝量の単位は月（市場の刻みだけ日）・四半期は「3か月ごと」の実行の刻み・年は史実との比較の入口と出口（係数の出典・計器・画面）。換算は `Calendar.PerYearToPerMonth`／`PerMonthToPerYear`／`PerQuarterToPerMonth`／`PerMonthToPerQuarter`／`PerQuarterToPerYear`／`PerYearToPerDay`／`PerMonthToPerDay`／`PerDayToPerMonth`／`YearsToMonths` の名前のある関数だけ（裸の `/12`・`*12` を書かない＝`CalendarTests` の番人。⚠番人が数えるのは SimCore の「`Calendar` の暦の定数を掛けるか割る」形だけ〔被演算子の左右どちらでも・ファイルごとの宣言＝(244) で広げた〕＝裸のリテラル〔`*12`・`/12.0`・`*4.0`〕と Runner／App は数えない）。
   - ★ 名前の規則を入れた中心（(243)）＝所得（Pop の `EarnedPerMonth` ほか）・国の規模と財政（World の `GdpPerMonth`・`NominalGdpPerMonth`・`LastRevenuePerMonth`・`GovBondRatePerYear` ほか）・軍の規模（`SoldierSizeK`）・係数 16。残りの量は表の「不明」の行から順に。
 - ★ **専用の値型**（`readonly record struct`・中身は double 1つ＝速度は変わらない）を、失敗が繰り返し出た中心（財政・貯蓄・所得・軍の規模）から入れる。候補＝在庫のお金・月の流れのお金・期間（月）・人口（千人）・割合・1人あたり。異なる型どうしの加算と比較はコンパイルが通らない形にし、月と年の換算は名前のある関数だけにする。
 - ⚠ 型の導入は挙動を変えない変更＝計算の順序を変えずに包み、10種の全行バイト一致で証明する（§1-3）。セーブの書き出しは値の型ごとの分岐＝新しい型は分岐を足して savetest で往復を確かめる。
 - ⚠ 型は「次元の誤り」（在庫と流れ・月と年・千人と人・絶対量と人口あたり）を防ぐ。「定義の誤り」（総産出と付加価値など）は型では防げない＝名前と単位の表で防ぐ。
+
+- ★ **財は番号でなく名前で引く**（作者 2026-10-10「材名がNo指定で削減でズレる不具合は他にもありそうだ。これを予防するための仕組みを組み込んでおいてほしい。」）＝財の削減で番号がずれ、直書きの番号が別の財を読んだ（(244)＝初期値の書き出しの「軍/首都の在庫」が時計・楽器・アヘン・医療を読んでいた）。C# は `Catalog` の名前つきの定数だけ・計器と道具（Python）は財の名前から番号を引く・出力の表は財の名前を列に出す。予防の仕組み（番人）は 00一覧の行 00-R。
 
 ## 1-10. ★ ヘルパーは不必要に作らない（必要なら作ってよい）（★ 2026-10-10 作者）
 
