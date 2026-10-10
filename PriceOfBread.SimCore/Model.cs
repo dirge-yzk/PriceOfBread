@@ -139,7 +139,7 @@ public sealed class Pop
     /// ★入口は2つ（損失の記憶＝backstop／消費者信用＝主食が買えないときの借入）、出口は1つ（返済規律）。
     /// ★既定0＝誰も読み書きしない厳密恒等（NationalConsciousness のPOP属性化と同型）。
     /// ⚠**POPを按分する6箇所では無条件に運ぶこと**（主フラグでゲートしない＝0×比=0.0 で自動的に恒等）。</summary>
-    public double Debt;
+    public MoneyStock Debt;
     /// <summary>★国債の保有台帳（2026-09-21裁定＝P10の唯一の例外・作者が明示許可）＝このPOPが持つ**自国の国内債**の額面。
     /// ⚠**貨幣ではない**——金は Fiscal の起債・利払い・償還の経路どおりに動き、これは「誰がどれだけ持つか」の記録だけ（<see cref="Debt"/> と同型）。
     /// ★入口＝起債の購入（払った額だけ増える）。出口＝償還（保有比例で減る）／デフォルト・革命的否認（0へ＝損は持ち手）／
@@ -147,7 +147,7 @@ public sealed class Pop
     /// ★利払いと償還の受け取りは**この保有に比例**（旧＝貯蓄比で買い・頭数で償還＝往復ごとに富裕な資本家から貧しい資本家へ移っていた）。
     /// ★不変条件＝国の全POPの和＝国内元本残高 GovDebt−ForeignDebt（<see cref="BondLedger"/>・相対1e-8）。
     /// ⚠**POPを按分する全経路で Savings と同じ規則で運ぶこと**（主フラグでゲートしない＝0×比=0.0 で自動的に恒等）。</summary>
-    public double BondHoldings;
+    public MoneyStock BondHoldings;
     public double Satisfaction = 1.0;
     public double Literacy;          // 識字（連続・0..1・§A-1／§C）。教育で伸び、革新能力に効く
     public double Consciousness;     // 政治意識（0..1・§9-E）。識字×世俗の水路×都市化で伸びる
@@ -282,15 +282,15 @@ public sealed class Pop
     /// 国債の保有 0（保有は発行国の対外債へ振り替える＝<see cref="Fiscal.BookForeignDebt"/>）。旧＝州の間の移民と入植（Territory.MoveBetweenRegions）・社会移動（Meritocracy）・
     /// 徴兵と復員（Military.MoveCohort）・州の中の移動（PopDecision）・越境移民と招聘（MultiNationSim）の6か所が同じ2行を写していた（式と順は同じ＝移しただけ）。
     /// ★2026-09-30 段4e I：人数と属性の混ぜ方は <see cref="Blend"/> の1本（これを呼ぶ）。</summary>
-    internal static void Carry(Pop from, Pop to, double savings, double debt, double bond) => Carry(from, to, savings, debt, bond, savings, debt);
+    internal static void Carry(Pop from, Pop to, MoneyStock savings, MoneyStock debt, MoneyStock bond) => Carry(from, to, savings, debt, bond, savings, debt);
 
     /// <summary>★国境をまたぐ運搬（2026-09-30 段4e＝人と動くお金の換算・(120) の残り）：送り手からは自国の通貨の額（<paramref name="savings"/>・<paramref name="debt"/>）、
     /// 受け手へは受け手の通貨へ換算した額（<paramref name="savingsIn"/>・<paramref name="debtIn"/>＝呼び手が <see cref="World.CrossFx"/> で換算して差を換算の台帳へ）。
     /// 国内（同じ通貨）は同じ額（上の5引数）。国債の保有は国内だけ運ぶ（越境は発行国の対外債へ振り替えて 0）。</summary>
-    internal static void Carry(Pop from, Pop to, double savings, double debt, double bond, double savingsIn, double debtIn)
+    internal static void Carry(Pop from, Pop to, MoneyStock savings, MoneyStock debt, MoneyStock bond, MoneyStock savingsIn, MoneyStock debtIn)
     {
-        from._savings -= new MoneyStock(savings); from.Debt -= debt; from.BondHoldings -= bond;
-        to._savings += new MoneyStock(savingsIn); to.Debt += debtIn; to.BondHoldings += bond;
+        from._savings -= savings; from.Debt -= debt; from.BondHoldings -= bond;
+        to._savings += savingsIn; to.Debt += debtIn; to.BondHoldings += bond;
     }
 
     /// <summary>★按分の1本（支払いの一元化 段1-2・2026-09-28＝旧 Fiscal.Distribute の本体・2026-09-30 段4g に World から Pop へ移した＝貯蓄の書き手を Pop の中へ）。
@@ -392,7 +392,7 @@ public sealed class Pop
         for (int i = 0; i < ti.Length && i < fi.Length; i++) ti[i] = (ti[i] * t0 + fi[i] * n) / t1;
         // お金（1人あたりの按分＝ストック×(運ぶ人数÷規模)・E3）は人と一緒に（越境は呼び手が換算して運ぶ）
         double frac = n / s0;
-        double sav = from.Savings.Value * frac, debt = from.Debt * frac, bond = from.BondHoldings * frac;
+        MoneyStock sav = from.Savings * frac, debt = from.Debt * frac, bond = from.BondHoldings * frac;
         from.Size -= n; to.Size += n;
         if (money) Carry(from, to, sav, debt, bond);
         return n;
@@ -434,7 +434,7 @@ public sealed class Pop
     /// 受け手の国の通貨へ（換算の1本 <see cref="World.CrossFx"/>・差は換算の台帳へ・債務は負の額として換算）。国債の保有は発行国の対外債へ振り替える（呼び手）。</summary>
     internal void Rebase(World from, World to)
     {
-        _savings = new MoneyStock(World.CrossFx(from, to, _savings.Value));
+        _savings = World.CrossFx(from, to, _savings);
         Debt = -World.CrossFx(from, to, -Debt);
     }
 

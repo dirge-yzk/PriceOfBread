@@ -2409,7 +2409,7 @@ if (args.Length > 0 && args[0] == "initdump")
                 {
                     popK += p.Size; if (p.IsUrban) urbanK += p.Size; litSum += p.Literacy * p.Size; if (p.IsSoldier) sold += p.Size;
                     if (!cls.TryGetValue(p.ClassName, out var c)) { c = (0, 0, 0, 0, 0, 0, 0); order.Add(p.ClassName); }
-                    cls[p.ClassName] = (c.size + p.Size, c.sav + p.Savings.Value, c.earned + p.LastEarnedPerMonth.Value, c.lit + p.Literacy * p.Size, c.sat + p.Satisfaction * p.Size, c.debt + p.Debt, c.bond + p.BondHoldings);
+                    cls[p.ClassName] = (c.size + p.Size, c.sav + p.Savings.Value, c.earned + p.LastEarnedPerMonth.Value, c.lit + p.Literacy * p.Size, c.sat + p.Satisfaction * p.Size, c.debt + p.Debt, c.bond + p.BondHoldings.Value);
                     if (CapitalMarket.IsInvestor(p, w.Coef)) { invSav += p.Savings.Value; invEarn += p.LastEarnedPerMonth.Value; invSize += p.Size; }
                 }
             }
@@ -2449,7 +2449,7 @@ if (args.Length > 0 && args[0] == "initdump")
             // 財政
             Row(nm, "財政/国庫", tm, w.Treasury.Value, "貨幣");
             Row(nm, "財政/国債", tm, w.GovDebt.Value, "貨幣");
-            Row(nm, "財政/うち対外債", tm, w.ForeignDebt, "貨幣");
+            Row(nm, "財政/うち対外債", tm, w.ForeignDebt.Value, "貨幣");
             Row(nm, "財政/国債÷年名目GDP", tm, w.NominalGdpPerMonth.Value > 0 ? w.GovDebt.Value / (Calendar.PerMonthToPerYear(w.NominalGdpPerMonth)).Value : 0, "比");
             Row(nm, "財政/国庫÷年名目GDP", tm, w.NominalGdpPerMonth.Value > 0 ? w.Treasury.Value / (Calendar.PerMonthToPerYear(w.NominalGdpPerMonth)).Value : 0, "比");
             Row(nm, "財政/直近の月の純税収", tm, w.LastRevenuePerMonth.Value, "貨幣/月");

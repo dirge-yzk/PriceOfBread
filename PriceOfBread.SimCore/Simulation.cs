@@ -233,8 +233,8 @@ public sealed class Simulation
                 if (Politics.IsMassPop(p)) p.Militancy = scenario.InitialMassMilitancy;
         // ★全ての世界に銀行（2026-09-29 段2-2・作者裁定 Q11＝旧 Scenario.CreditEnabled を削除）。家計の与信は POP の債務の和から始まる
         //   （建国＝親から運んだ州の POP の輸入の為替手形・Territory.TransferRegion が親の銀行から外した分＝2026-09-29 S3b。開幕は0）。
-        double popDebt = 0; foreach (var rg in World.Regions) foreach (var p in rg.Pops) popDebt += p.Debt;
-        World.Bank = new Bank { Gold = World.TotalMoney, Loans = 0, Confidence = 1.0, HouseholdLoans = popDebt };
+        MoneyStock popDebt = default; foreach (var rg in World.Regions) foreach (var p in rg.Pops) popDebt += p.Debt;
+        World.Bank = new Bank { Gold = World.TotalMoney, Loans = default, Confidence = 1.0, HouseholdLoans = popDebt };
 
         Fiscal.SeedBondHoldings(World);   // ★国債の保有台帳（2026-09-21）：初期国債（仏）の持ち主を購入と同じ規則で起票（金は動かない・国内債0の国は何もしない）
         _invariants = [];
@@ -2941,8 +2941,8 @@ public sealed class Simulation
         if (!(World.Coef.PopDebtDriven > 0) || !(World.Coef.DebtRepayFrac > 0) || World.Bank is null) return;
         foreach (var p in r.Pops)
         {
-            if (!(p.Debt > 0)) continue;   // ⚠否定形＝NaN も飛ばす
-            double pay = Math.Min(p.Debt, Math.Max(0, p.Savings.Value) * World.Coef.DebtRepayFrac);
+            if (!(p.Debt.Value > 0)) continue;   // ⚠否定形＝NaN も飛ばす
+            double pay = Math.Min(p.Debt.Value, Math.Max(0, p.Savings.Value) * World.Coef.DebtRepayFrac);
             if (!(pay > 0)) continue;
             Bank.Lend(World, p, -pay);   // 返済＝貸しの逆（Bank.Lend の1本）
             World.HouseholdDebtRepaid += pay;   // 診断。⚠LossFinanced とは**別カウンタ**（硬性ゲートの分子を汚さない・設計§6-1）
@@ -2981,7 +2981,7 @@ public sealed class Simulation
                     // ★入口A（損失の記憶・2026-08-02）：**記録を併記するだけ**＝貸し手側（Bank.Loans）は1ビットも変えない。
                     //   PopDebtLossShare は「消えた赤字のうち個人が背負う割合」＝有限責任の度合い（1.0で無限責任）。
                     //   ⚠これが無いと、赤字は毎月0へ均されて**誰の記憶にも残らず**、デレバレッジが起きない。
-                    if (World.Coef.PopDebtDriven > 0) p.Debt += need * World.Coef.PopDebtLossShare;
+                    if (World.Coef.PopDebtDriven > 0) p.Debt += new MoneyStock(need * World.Coef.PopDebtLossShare);
                 }
         // ★E6：負の分だけ与信を償却（基礎貨幣は償却の額だけ上がり、非常発行が同じ額だけ台帳に積まれる＝保存量は動かない）。
         //   ⚠NaN は比較が偽＝何もしない（否定形の門）。償却の後の基礎貨幣＝0（与信が足りれば）か国庫の負の分（与信を全部消しても残る分）。

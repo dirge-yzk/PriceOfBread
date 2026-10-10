@@ -1574,7 +1574,7 @@ public static class EconomyStep
                         double shortfall = (desired - p.RemainingBudget / buyerPrice) * buyerPrice;
                         if (shortfall > 0)
                         {
-                            double creditCap = coef.HouseholdCreditMonths * Math.Max(0, p.LastEarnedPerMonth.Value) - p.Debt;   // 枠＝前月所得の倍数（既存債務を差し引く）。★当月 Earned は Run 冒頭でゼロ化済み＝前月の LastEarnedPerMonth を読む
+                            double creditCap = coef.HouseholdCreditMonths * Math.Max(0, p.LastEarnedPerMonth.Value) - p.Debt.Value;   // 枠＝前月所得の倍数（既存債務を差し引く）。★当月 Earned は Run 冒頭でゼロ化済み＝前月の LastEarnedPerMonth を読む
                             double borrow = Math.Min(shortfall, Math.Max(0, creditCap));
                             if (borrow > 0)
                             {

@@ -1875,8 +1875,8 @@ public class MilitaryTests
         (double fc, double room, double smooth) Twin(double claim)
         {
             var w = France155().World; var c = w.Coef;
-            w.GovDebt = new MoneyStock(0); w.ForeignDebt = 0;   // 利払いを消す（仏1789 は利払いと行政で余剰0＝余剰が正の範囲の盤面にする・QuietBritain と同じ作法）
-            foreach (var r in w.Regions) foreach (var p in r.Pops) p.BondHoldings = 0;
+            w.GovDebt = new MoneyStock(0); w.ForeignDebt = new MoneyStock(0);   // 利払いを消す（仏1789 は利払いと行政で余剰0＝余剰が正の範囲の盤面にする・QuietBritain と同じ作法）
+            foreach (var r in w.Regions) foreach (var p in r.Pops) p.BondHoldings = new MoneyStock(0);
             w.FiscalCapacityPerMonth = new MoneyPerMonth(1.0);              // 平滑化の枝（前の値が正）に置く
             w.LastMilitaryClaimPerMonth = new MoneyPerMonth(claim);
             Fiscal.Step(w, c);

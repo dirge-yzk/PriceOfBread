@@ -756,12 +756,12 @@ public class ConservationTests
     [Fact]
     public void 州間の移住のお金の運搬はストック掛ける人数の比()
     {
-        var sp = new Pop { Size = 7, Savings = new MoneyStock(100), Debt = 100, BondHoldings = 100 };
-        var dp = new Pop { Size = 1, Savings = new MoneyStock(0), Debt = 0, BondHoldings = 0 };
+        var sp = new Pop { Size = 7, Savings = new MoneyStock(100), Debt = 100, BondHoldings = new MoneyStock(100) };
+        var dp = new Pop { Size = 1, Savings = new MoneyStock(0), Debt = 0, BondHoldings = new MoneyStock(0) };
         Territory.MoveBetweenRegions(sp, dp, 3, new Coefficients());
         double want = 100.0 * (3.0 / 7.0);
         Assert.NotEqual(100.0 / 7.0 * 3.0, want);   // 盤面の前提＝2つの結合順が倍精度で違う
-        Assert.Equal(want, dp.Savings.Value); Assert.Equal(want, dp.Debt); Assert.Equal(want, dp.BondHoldings);
+        Assert.Equal(want, dp.Savings.Value); Assert.Equal(want, dp.Debt); Assert.Equal(want, dp.BondHoldings.Value);
     }
 
     /// <summary>★人と動くお金の運搬の1本（2026-09-30 段4f・作者裁定 Q13＝書き手を Pop の中へ）＝<c>Pop.Carry</c> は送り手と受け手を同じ額で書く
@@ -770,19 +770,19 @@ public class ConservationTests
     [Fact]
     public void 人と動くお金は送り手と受け手を同じ額で書く()
     {
-        var sp = new Pop { Size = 7, Savings = new MoneyStock(100), Debt = 50, BondHoldings = 30 };
-        var dp = new Pop { Size = 1, Savings = new MoneyStock(5), Debt = 2, BondHoldings = 1 };
+        var sp = new Pop { Size = 7, Savings = new MoneyStock(100), Debt = 50, BondHoldings = new MoneyStock(30) };
+        var dp = new Pop { Size = 1, Savings = new MoneyStock(5), Debt = 2, BondHoldings = new MoneyStock(1) };
         Territory.MoveBetweenRegions(sp, dp, 3, new Coefficients());
         double f = 3.0 / 7.0;
         Assert.Equal(100 - 100 * f, sp.Savings.Value); Assert.Equal(5 + 100 * f, dp.Savings.Value);
         Assert.Equal(50 - 50 * f, sp.Debt); Assert.Equal(2 + 50 * f, dp.Debt);
-        Assert.Equal(30 - 30 * f, sp.BondHoldings); Assert.Equal(1 + 30 * f, dp.BondHoldings);
-        var a = new Pop { Savings = new MoneyStock(10), Debt = 4, BondHoldings = 3 };
-        var b = new Pop { Savings = new MoneyStock(1), Debt = 0, BondHoldings = 2 };
-        Pop.Carry(a, b, 6, 4, 0);   // 越境の形＝運賃を引いた持参金と債務を運び、保有は運ばない
+        Assert.Equal(30 - 30 * f, sp.BondHoldings.Value); Assert.Equal(1 + 30 * f, dp.BondHoldings.Value);
+        var a = new Pop { Savings = new MoneyStock(10), Debt = 4, BondHoldings = new MoneyStock(3) };
+        var b = new Pop { Savings = new MoneyStock(1), Debt = 0, BondHoldings = new MoneyStock(2) };
+        Pop.Carry(a, b, 6, 4, new MoneyStock(0));   // 越境の形＝運賃を引いた持参金と債務を運び、保有は運ばない
         Assert.Equal(4.0, a.Savings.Value); Assert.Equal(7.0, b.Savings.Value);
         Assert.Equal(0.0, a.Debt); Assert.Equal(4.0, b.Debt);
-        Assert.Equal(3.0, a.BondHoldings); Assert.Equal(2.0, b.BondHoldings);
+        Assert.Equal(3.0, a.BondHoldings.Value); Assert.Equal(2.0, b.BondHoldings.Value);
     }
 
     // ── 支払いの一元化 段3-2 の番人（2026-09-30・C9）──

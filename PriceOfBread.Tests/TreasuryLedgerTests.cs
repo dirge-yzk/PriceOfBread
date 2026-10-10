@@ -194,9 +194,9 @@ public class TreasuryLedgerTests
         return sim;
     }
 
-    private static double HeldSum(World w)
+    private static MoneyStock HeldSum(World w)
     {
-        double s = 0; foreach (var rg in w.Regions) foreach (var p in rg.Pops) s += p.BondHoldings;
+        MoneyStock s = default; foreach (var rg in w.Regions) foreach (var p in rg.Pops) s += p.BondHoldings;
         return s;
     }
 

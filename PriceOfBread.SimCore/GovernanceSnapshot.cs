@@ -68,7 +68,7 @@ public sealed class GovernanceSnapshot
         w.LandTaxUnlocked = _landTaxUnlocked; w.AdminPowerSmoothed = _adminPowerSmoothed;
         w.RebaseTreasury(_treasury);   // 助走で動いた分は台帳ごと捨てる（暦の外＝歴史に属さない）
         w.Policy.CopyFrom(_policy);
-        if (w.Bank is { } bank) { bank.Loans = 0; bank.HouseholdLoans = 0; bank.Confidence = 1.0; bank.Heat = 0; }   // 1783＝負債なし・健全な信用（HouseholdLoansも同じOutstandingLoans恒等式の片割れ＝wave2b）
-        foreach (var r in w.Regions) foreach (var p in r.Pops) p.Debt = 0;   // 債務の記録も同じく（家計の与信＝POP の債務の和・S3b の輸入の為替手形）
+        if (w.Bank is { } bank) { bank.Loans = default; bank.HouseholdLoans = default; bank.Confidence = 1.0; bank.Heat = 0; }   // 1783＝負債なし・健全な信用（HouseholdLoansも同じOutstandingLoans恒等式の片割れ＝wave2b）
+        foreach (var r in w.Regions) foreach (var p in r.Pops) p.Debt = default;   // 債務の記録も同じく（家計の与信＝POP の債務の和・S3b の輸入の為替手形）
     }
 }

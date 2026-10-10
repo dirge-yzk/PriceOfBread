@@ -355,7 +355,7 @@ public static class Meritocracy
                     //   (a) 分母 avgPerCap（Σmax(0,Savings)）と基準が食い違い、(b) レバレッジの高い黒字資本家を
                     //   BankruptcyFallRate=0.15 で大量に落として較正を壊す。債務の帰結は**別の判定**として足すのが正しい。
                     bool debtRuined = c.PopDebtDriven > 0 && c.DebtRuinRatio > 0
-                                   && p.Debt > c.DebtRuinRatio * Math.Max(Eps, Calendar.PerMonthToPerYear(p.EarnedPerMonth).Value);
+                                   && p.Debt.Value > c.DebtRuinRatio * Math.Max(Eps, Calendar.PerMonthToPerYear(p.EarnedPerMonth).Value);
                     if (!debtRuined && pc >= c.UpperFallThreshold * anchor) continue;
                     // rank7(c)（点火0.3）：転落率の深さ連続化＝浅い割れはゆっくり・深い割れ（恐慌）は速い。debtRuined は素通し（債務破滅は速いまま）。f=0で1.0＝ビット恒等
                     double depth = FallDepth(pc, c.UpperFallThreshold * anchor, debtRuined, c);

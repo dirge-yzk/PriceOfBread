@@ -1350,7 +1350,7 @@ public sealed class Diplomacy
                     World.Transfer((d.Nation, null), (s.Nation, null, null), tribute, TreasuryCat.TributeOut, toCat: TreasuryCat.TributeIn);   // 従属＝対外流出・宗主＝対外流入（保存）
                     s.Nation.LastTributeInPerQuarter += tribute * d.Nation.FxRate / s.Nation.FxRate;   // 診断（予算表・接1）＝宗主が受け取った額（移し方の1本と同じ式）
                 }
-                Fiscal.BookForeignDebt(null, tributeClaim - tribute, d.Nation, s.Nation);
+                Fiscal.BookForeignDebt(null, new MoneyStock(tributeClaim - tribute), d.Nation, s.Nation);
             }
 
             // 離反独立：属国の軍が**宗主の投射陸軍力**を上回り、かつ属国民の闘争度が高いと従属を脱する（植民地の独立判定 Colonial と同型）。
@@ -2997,7 +2997,7 @@ public sealed class Diplomacy
             // 賠償＝国家間の対外移転（区分＝戦費＝作者裁定 Q14）。★段3-3（2026-09-30）：移し方の1本（国境をまたぐ＝為替で換算・両国の台帳も移し方が書く）。
             //   払えない分（1−r）は敗者の対外債＝勝者の国の対外債権（作者裁定 Q6・旧は消えた＝B5）。★史実＝仏の1871年の賠償50億フランは国債（ティエールの公債）で払われた。
             World.Transfer((lw, null), (ww, null, null), rep, TreasuryCat.WarCost);
-            Fiscal.BookForeignDebt(null, repBase - rep, lw, ww);
+            Fiscal.BookForeignDebt(null, new MoneyStock(repBase - rep), lw, ww);
         }
         Log.Add($"{_year} {winner.Name}が{loser.Name}に勝利（戦勝点{sa:0.00}）:{(captured > 0 ? $"植民地+{captured}[{string.Join("/", captNames)}]・" : "")}賠償{rep:F0}");   // 3桁区切りは全廃（作者裁定2026-08-10・外交ログはUIの出来事へそのまま出る）
 

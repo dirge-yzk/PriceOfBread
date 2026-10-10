@@ -482,8 +482,8 @@ public sealed partial class InternationalMarket
             var r2 = tr[t2].r;
             var w2 = nations[tr[t2].nation].World;   // 全ての世界に銀行（段2-2）
             foreach (var p2 in r2.Pops)
-                if (p2.Debt > 0) { double back = Math.Min(p2.Debt, Math.Max(0, p2.Savings.Value)); if (back > 0) Bank.Lend(w2, p2, -back); }   // ①手形の決済（否定形の門＝NaN は返さない）
-            if (r2.MerchantPopIndex >= 0 && r2.MerchantPopIndex < r2.Pops.Count) { payerOf[t2] = [r2.Pops[r2.MerchantPopIndex]]; bill[t2] = !(r2.Pops[r2.MerchantPopIndex].Debt > 0); }
+                if (p2.Debt.Value > 0) { double back = Math.Min(p2.Debt.Value, Math.Max(0, p2.Savings.Value)); if (back > 0) Bank.Lend(w2, p2, -back); }   // ①手形の決済（否定形の門＝NaN は返さない）
+            if (r2.MerchantPopIndex >= 0 && r2.MerchantPopIndex < r2.Pops.Count) { payerOf[t2] = [r2.Pops[r2.MerchantPopIndex]]; bill[t2] = !(r2.Pops[r2.MerchantPopIndex].Debt.Value > 0); }
             else if (r2.Pops.Count > 0) payerOf[t2] = r2.Pops;
             if (payerOf[t2] is { } pl) foreach (var p2 in pl) budget[t2] += Math.Max(0, p2.Savings.Value);
             if (bill[t2]) budget[t2] = double.PositiveInfinity;   // ③積荷が担保（量は X が決める）

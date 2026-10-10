@@ -995,7 +995,7 @@ public sealed class MultiNationSim
                     double back = unmet > 0 ? unmet : 0;
                     if (back > 0)
                     {
-                        bw.GovDebt -= new MoneyStock(back); bw.ForeignDebt -= back; bw.PrevForeignDebt -= back;
+                        var backStock = new MoneyStock(back); bw.GovDebt -= backStock; bw.ForeignDebt -= backStock; bw.PrevForeignDebt -= backStock;
                         World.Transfer((bw, null), (null, null, null), back, TreasuryCat.Borrow);
                     }
                     fxLend += (owe - back) - paid;   // 借り手が受け取ったまま残る額（借り手の通貨）−貸し手が払った額
@@ -1146,13 +1146,13 @@ public sealed class MultiNationSim
             // ★国債の保有台帳（2026-09-21）：政府の勝ち＝反乱国の国債は誰にも継承されない＝国が払うのを止めた割合（全額）だけ保有を消す＝損は持ち手（金は動かない）。
             //   rw.GovDebt も同額下げる＝消える直前まで反乱国側の不変条件も厳密。★史実：合衆国憲法修正14条4節（1868）は南部連合の債務の継承・支払いを明文で禁じた。
             //   反乱の勝ち＝保有を預かり（0へ）、決着の当てはめ（急進革命の否認・恐怖政治の没収＝旧政府と旧支配層に掛かる）の後に持ち手へ戻し、親の国債へ足す。
-            List<(Pop Pop, double Held)>? inherit = rebelWon ? [] : null;
+            List<(Pop Pop, MoneyStock Held)>? inherit = rebelWon ? [] : null;
             foreach (var rr in moving)
                 foreach (var pp in rr.Pops)
                 {
-                    if (inherit is not null) { if (pp.BondHoldings > 0) inherit.Add((pp, pp.BondHoldings)); }
-                    else rw.GovDebt -= new MoneyStock(pp.BondHoldings);
-                    pp.BondHoldings = 0;
+                    if (inherit is not null) { if (pp.BondHoldings.Value > 0) inherit.Add((pp, pp.BondHoldings)); }
+                    else rw.GovDebt -= pp.BondHoldings;
+                    pp.BondHoldings = default;
                 }
             // 州は移し替えの1本（Territory.TransferRegion の再併合・2026-09-28 処理の一元化 段2 B）＝貯蓄と人口は州ごとに両国の台帳へ（同一値を両辺）・
             //   建国時の反転を戻す（親の中核定義へ復帰）・市場の台帳のリセット・植民地財の空化（null にしない＝col-02）。
@@ -1174,17 +1174,17 @@ public sealed class MultiNationSim
             double Tin = World.CrossFx(rw, pw, T, book: false);   // 換算の目安（台帳には積まない＝移し方の1本が積む）
             if (T > 0) World.Transfer((rw, null), (pw, null, null), T, TreasuryCat.OtherOut, toCat: TreasuryCat.OtherIn);
             else if (T < 0) World.Transfer((pw, null), (rw, null, null), -Tin, TreasuryCat.OtherOut, toCat: TreasuryCat.OtherIn);
-            double L = 0;
+            MoneyStock L = default;
             if (pw.Bank is { } pb && rw.Bank is { } rb)
             {
-                double loansIn = -World.CrossFx(rw, pw, -rb.Loans), hhIn = -World.CrossFx(rw, pw, -rb.HouseholdLoans);
+                MoneyStock loansIn = -World.CrossFx(rw, pw, -rb.Loans), hhIn = -World.CrossFx(rw, pw, -rb.HouseholdLoans);
                 pb.Loans += loansIn; pb.HouseholdLoans += hhIn; L = loansIn + hhIn;
             }
-            pw.CumulativeTradeFlow -= L;   // 与信（負債）の合算＝基礎貨幣の −L（親の通貨）。貯蓄 S は州ごとに上で記帳済み・国庫は上の移し方の1本＝合わせて反乱国の基礎貨幣（S＋T−L）＝親の per-nation 保存が閉じ、世界の和の差は換算の台帳（建国時の −(S+T) の鏡映＋反乱国として積んだ分）
+            pw.CumulativeTradeFlow -= L.Value;   // 与信（負債）の合算＝基礎貨幣の −L（親の通貨）。貯蓄 S は州ごとに上で記帳済み・国庫は上の移し方の1本＝合わせて反乱国の基礎貨幣（S＋T−L）＝親の per-nation 保存が閉じ、世界の和の差は換算の台帳（建国時の −(S+T) の鏡映＋反乱国として積んだ分）
             pw.ForeignCapitalIn += World.CrossFx(rw, pw, rw.ForeignCapitalIn, book: false); pw.CapitalAbroad += World.CrossFx(rw, pw, rw.CapitalAbroad, book: false);
             // 反乱国の対外債の否認（政府の勝ち）：債権へ繰り上げ済みの額（PrevForeignDebt）を、反乱国以外の債権の比で落とす（債権の増減の1本＝CapitalMarket.AdjustClaims・
             //   四半期の償還と同じ規則）。反乱国自身の債権は次の行で親へ。
-            if (!rebelWon && rw.PrevForeignDebt > 1e-9) CapitalMarket.AdjustClaims(Nations, ri, -rw.PrevForeignDebt);
+            if (!rebelWon && rw.PrevForeignDebt.Value > 1e-9) CapitalMarket.AdjustClaims(Nations, ri, -rw.PrevForeignDebt.Value);
             pw.ForeignBondClaims += World.CrossFx(rw, pw, rw.ForeignBondClaims, book: false);
             pw.ForeignIntPaidThisQuarter += World.CrossFx(rw, pw, rw.ForeignIntPaidThisQuarter, book: false); pw.PendingForeignBorrow += World.CrossFx(rw, pw, rw.PendingForeignBorrow, book: false);
             pw.SilverReserveQty += rw.SilverReserveQty; pw.GoldReserveQty += rw.GoldReserveQty;
@@ -1209,9 +1209,9 @@ public sealed class MultiNationSim
             {
                 // ★人と動くお金の換算（段4e）：反乱国の国債の元本と保有は反乱国の通貨＝親の通貨へ（名目の残高＝換算の台帳に積まない・Σ保有＝国内元本の不変条件は同じ比で保つ）。
                 foreach (var (hp, h) in inherit) hp.BondHoldings += World.CrossFx(rw, pw, h, book: false);
-                double debt0 = pw.GovDebt.Value, rwDebt = World.CrossFx(rw, pw, rw.GovDebt.Value, book: false);
-                pw.GovDebt += new MoneyStock(rwDebt); pw.ForeignDebt += World.CrossFx(rw, pw, rw.ForeignDebt, book: false); pw.PrevForeignDebt += World.CrossFx(rw, pw, rw.PrevForeignDebt, book: false);
-                if (pw.GovDebt.Value > 1e-9) pw.GovAvgCouponPerYear = (debt0 * pw.GovAvgCouponPerYear + rwDebt * rw.GovAvgCouponPerYear) / pw.GovDebt.Value;   // 既往債の利率は元本の加重（起債の R9 の混ぜ方と同じ）
+                double debt0 = pw.GovDebt.Value; MoneyStock rwDebt = World.CrossFx(rw, pw, rw.GovDebt, book: false);
+                pw.GovDebt += rwDebt; pw.ForeignDebt += World.CrossFx(rw, pw, rw.ForeignDebt, book: false); pw.PrevForeignDebt += World.CrossFx(rw, pw, rw.PrevForeignDebt, book: false);
+                if (pw.GovDebt.Value > 1e-9) pw.GovAvgCouponPerYear = (debt0 * pw.GovAvgCouponPerYear + rwDebt.Value * rw.GovAvgCouponPerYear) / pw.GovDebt.Value;   // 既往債の利率は元本の加重（起債の R9 の混ぜ方と同じ）
             }
             // ★作者裁定 f（2026-09-28）：反乱側に乗り換えたプレイヤーの国が吸収された＝親の国で続ける（操作者と外交の IsPlayer を親へ・画面は GameViewModel が追従して通知）。
             //   ⚠AI の国は何もしない（操作者が居ない）＝エンジンの規則は同じ。
@@ -1762,16 +1762,16 @@ public sealed class MultiNationSim
         double frac = flow / sp.Size;
         double sav = sp.Savings.Value * frac;   // 持参金＝1人あたり貯蓄ぶん
         // ★支払いの一元化 段2-3（C17・2026-09-29）：運賃は**持っている正の持参金から**だけ払う（min(max(0,持参金), 運賃×人数)）＝負の貯蓄（借越）は運賃の有無に関わらず移民に付いて行く。
-        double savOut = fare > 1e-9 && double.IsFinite(fare) ? sav - Math.Min(Math.Max(0, sav), fare * flow) : sav;
-        double debtOut = sp.Debt * frac;
+        MoneyStock savOut = new MoneyStock(fare > 1e-9 && double.IsFinite(fare) ? sav - Math.Min(Math.Max(0, sav), fare * flow) : sav);
+        MoneyStock debtOut = sp.Debt * frac;
         Fiscal.BookForeignDebt(sp, sp.BondHoldings * frac, src, dst);   // ★国債の保有台帳（2026-09-21）：発行国（src）の対外債へ振替＝受入国の対外債権
         double moved = Pop.Blend(sp, dp, flow, coreAtDest: dst.EthnicEnabled ? 0.0 : dp.CoreEthnicShare, money: false);
         if (!(moved > 0)) return 0;
-        double savIn = World.CrossFx(src, dst, savOut);     // 換算（差は換算の台帳へ）
-        double debtIn = -World.CrossFx(src, dst, -debtOut); // 負債は負の額として換算＝台帳の差の符号が基礎貨幣（貯蓄−与信）と揃う
-        Pop.Carry(sp, dp, savOut, debtOut, 0, savIn, debtIn);   // お金（運賃を引いた持参金・債務）＝国債の保有は上で振り替えた＝運ばない
+        MoneyStock savIn = World.CrossFx(src, dst, savOut);     // 換算（差は換算の台帳へ）
+        MoneyStock debtIn = -World.CrossFx(src, dst, -debtOut); // 負債は負の額として換算＝台帳の差の符号が基礎貨幣（貯蓄−与信）と揃う
+        Pop.Carry(sp, dp, savOut, debtOut, default, savIn, debtIn);   // お金（運賃を引いた持参金・債務）＝国債の保有は上で振り替えた＝運ばない
         src.PopulationDelta -= moved; dst.PopulationDelta += moved;                      // 人口台帳（両国で相殺）
-        src.CumulativeTradeFlow -= savOut - debtOut; dst.CumulativeTradeFlow += savIn - debtIn;   // 持参金−債務＝対外移転（基礎貨幣の台帳が閉じる・各自の通貨）
+        src.CumulativeTradeFlow -= (savOut - debtOut).Value; dst.CumulativeTradeFlow += (savIn - debtIn).Value;   // 持参金−債務＝対外移転（基礎貨幣の台帳が閉じる・各自の通貨）
         src.Bank!.Carry(dst.Bank, debtOut, debtIn);                                      // 家計の与信も債務について行く（S3b・受入国の通貨）
         return moved;
     }

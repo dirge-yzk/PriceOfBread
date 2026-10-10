@@ -183,9 +183,9 @@ public class PrivilegeDisplayTests
         c.TitheRate = 0.05; c.StateReligionGate = 0; c.CorruptionMax = 0;
         w.TaxRate = 0; w.PollTax = 0; w.LandTax = 0; w.ProgressiveTax = 0;
         w.SocialSecurity = 0; w.Pension = ReformLevel.None;
-        w.GovDebt = new MoneyStock(0); w.ForeignDebt = 0;
+        w.GovDebt = new MoneyStock(0); w.ForeignDebt = new MoneyStock(0);
         var pops = new System.Collections.Generic.List<Pop>(w.AllPops());
-        foreach (var p in pops) p.BondHoldings = 0;
+        foreach (var p in pops) p.BondHoldings = new MoneyStock(0);
         double clergySize = 0; foreach (var p in pops) if (p.ClassId == PopClass.Clergy) clergySize += p.Size;
         Assert.True(clergySize > 1e-9, "聖職者のいない世界では移転を測れない");
         double expected = 0;

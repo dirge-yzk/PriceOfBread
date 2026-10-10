@@ -104,7 +104,7 @@ public class StartWarmupTests
         var bare = Build();
         var warmed = Build();
         warmed.StartWarmup();
-        static double Held(World w) { double h = 0; foreach (var r in w.Regions) foreach (var p in r.Pops) h += p.BondHoldings; return h; }
+        static double Held(World w) { double h = 0; foreach (var r in w.Regions) foreach (var p in r.Pops) h += p.BondHoldings.Value; return h; }
         for (int i = 0; i < bare.Nations.Count; i++)
         {
             var a = bare.Nations[i].World; var b = warmed.Nations[i].World;

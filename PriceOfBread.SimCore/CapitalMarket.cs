@@ -246,7 +246,7 @@ public static class CapitalMarket
         //     旧＝新規の借入を翌四半期の投資家の貯蓄の比で配った（払った比と債権の比が一致しない）・減りは自国の債権も含む全ての債権の比（増えは自国を除く＝C14）。
         for (int i = 0; i < n; i++)
         {
-            double delta = w[i].ForeignDebt - w[i].PrevForeignDebt;
+            double delta = (w[i].ForeignDebt - w[i].PrevForeignDebt).Value;
             w[i].PrevForeignDebt = w[i].ForeignDebt;
             if (System.Math.Abs(delta) < 1e-9) continue;
             AdjustClaims(nations, i, delta);

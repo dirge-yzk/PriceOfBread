@@ -1957,7 +1957,7 @@ public static class Politics
         // 穏健革命は対象外＝過剰適用を避ける。RevolutionTerror=0 で terror=false＝不発（現行0.25採用）。
         bool terror = c.RevolutionTerror > 0
                    && w.Polity is Polity.Republic or Polity.ProletarianDictatorship or Polity.Anarchy;
-        double confiscated = 0, confiscatedBonds = 0;
+        double confiscated = 0; MoneyStock confiscatedBonds = default;
         List<Pop>? seizedPops = null; List<double>? seizedAmt = null;   // 没収の払い手と自分の請求（下で移し方の1本へ・2026-09-30 段4g）
         List<Pop>? purgedPops = null; double purgeTotal = 0;   // 粛清・亡命の死は死の記帳の1本へ（段4e J）
         foreach (var p in w.AllPops())
@@ -1973,7 +1973,7 @@ public static class Politics
                     (purgedPops ??= []).Add(p); purgeTotal += p.Size * c.RevolutionTerror;   // 粛清・亡命＝失脚した層の RevolutionTerror の割合（下で死の記帳の1本へ）
                     double seized = Math.Max(0, p.Savings.Value) * c.RevolutionTerror;   // 資産没収（貴族の所領・資本の没収）＝自分の請求（下で移し方の1本が取る）
                     if (seized > 0) { (seizedPops ??= []).Add(p); (seizedAmt ??= []).Add(seized); confiscated += seized; }
-                    double seizedBonds = p.BondHoldings * c.RevolutionTerror;   // ★保有台帳（2026-09-21）：国債も貯蓄と同じ規則で没収（請求権は国内に残る＝下で大衆へ）
+                    MoneyStock seizedBonds = p.BondHoldings * c.RevolutionTerror;   // ★保有台帳（2026-09-21）：国債も貯蓄と同じ規則で没収（請求権は国内に残る＝下で大衆へ）
                     p.BondHoldings -= seizedBonds; confiscatedBonds += seizedBonds;
                 }
             }
@@ -1986,7 +1986,7 @@ public static class Politics
         // ★2026-09-30 段4g：貯蓄は移し方の1本（失脚した層＝払い手の重みは自分の没収の額→大衆＝頭数・端数は最後の受け手）。旧＝粛清の走査の中で貯蓄を引き、
         //   全popの頭数も0なら按分の本体の戻り（配れなかった額）を国庫へ入れた（国庫の片側の記帳）＝今は受け手不在なら動かない（払い手に残る＝没収は起きなかった）。
         //   粛清の死（上の死の記帳の1本）は没収の後の規模の和を変えない＝払い手の貯蓄はそのまま＝没収の額は走査の時点の値と同じ。
-        if (confiscated > 0 || confiscatedBonds > 0)
+        if (confiscated > 0 || confiscatedBonds.Value > 0)
         {
             var masses = new List<Pop>(); double ms = 0;
             foreach (var p in w.AllPops()) if (IsMassPop(p)) { masses.Add(p); ms += p.Size; }
