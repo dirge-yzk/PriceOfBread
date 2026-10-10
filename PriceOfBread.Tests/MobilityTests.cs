@@ -229,42 +229,6 @@ public class MobilityTests
     }
 
     [Fact]
-    public void 世代ゲートは昇格流量を新成人率で頭打ちにする()   // rank8（休眠 CohortGateK・作者裁定2026-08-16）のON経路
-    {
-        var off = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
-        var on = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
-        off.Run(20); on.Run(20);
-        on.World.Coef.CohortGateK = 1.0;
-        double gateExp = 0, movedOff = 0, movedOn = 0;
-        foreach (var sim in new[] { off, on })
-        {
-            var w = sim.World; var c = w.Coef; var r = w.Region;
-            // ①昇格だけを残して隔離（他の移動機構は率0）＝主題は昇格流量の律速のみ
-            c.JobSearchRate = 0; c.PettyEntryRate = 0; c.ArtisanDeclineRate = 0;
-            c.MiddleFallRate = 0; c.UpperFallRate = 0; c.BankruptcyFallRate = 0; c.CapitalRiseRate = 0;
-            var worker = r.Pops[r.MeritFromIndex];
-            worker.Literacy = 1.0;   // 識字満点＝選抜運搬でも識字が動かない（残留も1のまま＝流量が線形）
-            worker.EarnedPerMonth = new MoneyPerMonth(1.0 * worker.Size);
-            foreach (var p in r.Pops) if (p.IsModernElite) { p.EducationFill = 1.0; p.EducationEma = 1.0; }   // 資格ゲートを開ける
-            foreach (var idx in new[] { r.MeritToIndex, r.TeacherPopIndex, r.BureaucratPopIndex, r.DoctorPopIndex })
-                if (idx >= 0 && r.Pops[idx].Size > 1e-9) r.Pops[idx].EarnedPerMonth = new MoneyPerMonth(10.0 * r.Pops[idx].Size);   // attract≫1＝流量は率×Sizeで決まる
-            if (ReferenceEquals(sim, on))
-                gateExp = System.Math.Min(1.0, c.CohortGateK * worker.EnteringAdultsMonthly() * Calendar.MonthsPerQuarter);   // 四半期の新成人率（年齢の層の加齢と同じ流れ）
-            double before = worker.Size;
-            Meritocracy.Step(w, c);
-            double moved = before - r.Pops[r.MeritFromIndex].Size;
-            if (ReferenceEquals(sim, off)) movedOff = moved; else movedOn = moved;
-        }
-        Assert.True(movedOff > 1e-6, $"OFF側で昇格が起きない（{movedOff:F6}）＝前提が崩れた");
-        Assert.True(gateExp > 0 && gateExp < 0.02, $"ゲート期待値が異常（{gateExp:F5}）＝新成人率の物差しが壊れた");
-        Assert.True(movedOn > 1e-12, "ゲートONで昇格が完全に止まった（律速であって遮断ではない）");
-        Assert.True(movedOn < movedOff * gateExp * 1.5,
-            $"昇格流量が新成人率で頭打ちになっていない（OFF {movedOff:F5} / ON {movedOn:F7} / ゲート {gateExp:F5}）");
-        Assert.True(movedOn > movedOff * gateExp * 0.5,
-            $"ゲートが期待の半分未満まで流量を削った（OFF {movedOff:F5} / ON {movedOn:F7} / ゲート {gateExp:F5}）");
-    }
-
-    [Fact]
     public void 性別運搬は閉じた専門職へ女性を運ばず教師へは運ぶ()   // rank12（点火1.0・2026-08-16）のON経路
     {
         var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());

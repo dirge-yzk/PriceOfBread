@@ -4,19 +4,18 @@ using Xunit;
 namespace PriceOfBread.Tests;
 
 /// <summary>
-/// rank5 囲い込みプッシュ（社会移動リアリティ監査 2026-08-15・作者裁定 2026-08-16・全て休眠）のON経路検証。
+/// rank5 囲い込みプッシュ（社会移動リアリティ監査 2026-08-15・作者裁定 2026-08-16）のON経路検証。
 /// ①地代の土地稀少弾力（RentScarcityElasticity）：土地が混んだ州ほど地主の取り分↑→農民のEarned↓＝プッシュ型離農の駆動。
-/// ②囲い込みの自給侵食（EnclosureRate）：RGOの資本拡張1単位あたり当該州農民の Subsistence 微減。
-/// ⚠作者条件＝新しい移動経路・移動補助は作らない（押し出しは所得低下→既存機構経由のみ）＝この2係数は所得・自給しか触らない。
+/// （②囲い込みの自給侵食 EnclosureRate は 2026-10-11 (253) に削除＝2026-09-21 作者裁定で「棄却」側を正として閉じた。）
+/// ⚠作者条件＝新しい移動経路・移動補助は作らない（押し出しは所得低下→既存機構経由のみ）＝この係数は所得・自給しか触らない。
 /// </summary>
 public class MobilityPushTests
 {
     [Fact]
-    public void 既定係数が方針どおり()   // RentScarcityElasticity=1.0（★2026-08-31点火＝ラウンドA）・EnclosureRateは休眠のまま
+    public void 既定係数が方針どおり()   // RentScarcityElasticity=1.0（★2026-08-31点火＝ラウンドA）
     {
         var c = new Coefficients();
         Assert.Equal(1.0, c.RentScarcityElasticity);
-        Assert.Equal(0.0, c.EnclosureRate);
     }
 
     [Fact]
@@ -43,26 +42,5 @@ public class MobilityPushTests
             $"土地が混んだ州で農民所得が下がらない（OFF {ro.Pops[1].EarnedPerMonth:F1} / ON {rn.Pops[1].EarnedPerMonth:F1}）");
         Assert.True(rn.Pops[0].LandRentPerMonth > ro.Pops[0].LandRentPerMonth,
             $"土地が混んだ州で地主のLandRentが増えない（OFF {ro.Pops[0].LandRentPerMonth:F1} / ON {rn.Pops[0].LandRentPerMonth:F1}）");
-    }
-
-    [Fact]
-    public void ON経路_RGOの資本拡張は当該州農民の自給を侵食し既定0では恒等()   // rank5第2段：EnclosureRate
-    {
-        var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
-        sim.Run(20);
-        var r = sim.World.Region;
-        var rgo = r.Producers.Find(p => p.IsRgo);
-        Assert.NotNull(rgo);
-        var farm = r.Pops[rgo!.LaborPopIndex];   // RGOの労働pop＝農民（Subsistence=0.7で開始）
-        double sub0 = farm.Subsistence;
-        Assert.True(sub0 > 0, "前提が崩れた：農民に自給がない");
-        EconomyStep.ApplyEnclosure(r, rgo, 1.0, sim.World.Coef);   // 既定 EnclosureRate=0 ＝1ビットも動かない
-        Assert.Equal(sub0, farm.Subsistence);
-        sim.World.Coef.EnclosureRate = 0.1;
-        EconomyStep.ApplyEnclosure(r, rgo, 1.0, sim.World.Coef);   // 資本拡張1単位＝自給0.1侵食（囲い込み＝自給地の市場向け転換）
-        Assert.Equal(sub0 - 0.1, farm.Subsistence, 12);
-        farm.Subsistence = 0.05;
-        EconomyStep.ApplyEnclosure(r, rgo, 1.0, sim.World.Coef);   // 下限0クランプ＝自給は負にならない
-        Assert.Equal(0.0, farm.Subsistence);
     }
 }

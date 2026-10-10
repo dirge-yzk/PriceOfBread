@@ -313,7 +313,6 @@ Coefficients	JobSearchRate	double	0.025	不明（率・速度・期間の語は�
 Coefficients	JobPoolTemperature	double	0.15	不明	不明	不明	★【点火0.15・2026-08-15】①''の着地温度（リアリティ監査rank2）：>0で着地を最良職総取りから「所得×資格×空き(1−受け皿失業率)の低温softmax按分」へ軟化（PopDecision MigrationTemperatureと同じ言語・£単位）。0＝総取りウォーターフォールに厳密一致（総取りはA/B実測で near−4＝差し戻し済み。softmaxで exact+2 を実	不明		884
 Coefficients	MerchantArtisanCapitalRise	double	1.0	不明	不明	不明	【点火1.0・2026-08-16＝S級梯子r1単独37/71/58・合成で帯中立】rank1：商業・手工業資本→産業資本（③の対象を商人・職人へ一般化＝Crouzet「第一世代工場主の過半が商人・職人出自」）。閾値/率は既存CapitalRiseThreshold/CapitalRiseRateを共用（これは率の乗数・1で専門職と同率）。>0で商人の転落（⑤同型）も解凍＝凍結を両方向解く。職人の	不明		886
 Coefficients	PettyEntryRate	double	0.02	不明（率・速度・期間の語はあるが基準の記載なし）	率［名前から推定］	不明	【点火0.02・2026-08-16＝出口ArtisanDeclineRateと対】rank6：小営業（職人・商人）への参入階段＝徒弟→親方・行商→店舗。労働者から所得差駆動（①'と対称・識字ゲート不要＝腕と元手の職）×元手ゲート（1人あたり貯蓄≥地域平均avgPerCap＝新自由度なし）。>0でプールJobGate(職人)にも同じ元手ゲート＝「無一文の失業者が工房主」の非一貫を閉鎖。⚠Artis	不明		887
-Coefficients	RuralPromotionRate	double	0.0	不明（率・速度・期間の語はあるが基準の記載なし）	率［名前から推定］	不明	【差し戻し2026-08-16＝単独でexact−7（29/68/58）＝教師の過剰供給が識字→政治の梯子を早回し。休眠温存】rank16：農村識字の直行便＝村の秀才→師範（教師）/聖職（識字先行国＝北欧・明治日本型で都市化天井が①の二段経路を塞ぐのを迂回する小水路）。ゲートは①と同一（m×識字×高等教育×世俗・本人就学PromotionGateOwnSchooling込み）	不明		888
 Coefficients	SerfGateCoversPool	double	0.0	不明	不明	不明	＝**農奴が「職探し」なら都市へ入れる**。同じ法が2経路のうち片方しか縛らない＝「ゲート緑≠機構が働いた」の型。 //   ★1で同じ式 (1−g)+g×serfFree を同じ向き（農村→都市）にだけ掛ける＝新しい強さも新しい梯子も作らない。 //   ⚠0＝既定＝1命令も走らない厳密恒等。点火は単独A/B。	不明		894
 Coefficients	SerfMobilityGate	double	1.0	不明	不明	不明	【点火1.0・2026-08-16＝S級梯子r3単独37/70/58】rank3：農奴の移動不能＝都市化フロー（PopDecision 農村→都市方向のみ）に (1−これ)+これ×serfFree を乗算（serfFree=農奴解放 None:0/Limited:0.5/Full:1＝Colonial.cs入植と同じ梯子）。都市→農村は自由＝非対称。露普の都市化が解放後に始まる順序が法から出る。地	不明		895
 Coefficients	ServiceUnemployment	double	1.0	不明	不明	不明	【点火1.0・2026-08-16＝S級梯子r11単独37/72/55】rank11：役務専任popの失業＝教育→教師/医療→医者/行政→官僚/家事奉仕→使用人にも売れ残り率でUnemploymentRateを立てる（式は労働3財と同一・これは強度乗数）。使用人の袋小路（U恒0＝プール対象外・出口ゼロ）の解消。U→闘争度/福祉targetingにも効く＝較正非中立・A/B必須	不明		896
@@ -321,7 +320,6 @@ Coefficients	JobSearchLiteracyWeight	double	0.5	時間に依らない（推定�
 Coefficients	JobSearchUsesEma	double	0.02	月	不明	不明	【点火0.02・2026-08-16＝S級梯子r10b単独35/71/61】rank10b：>0＝月次EMA率（例0.02≈4年記憶）。プール流入の駆動を瞬間UでなくU多年EMAへ＝循環失業は滞留して闘争度になり（Politics既存）、慢性失業だけが職業転換を駆動（手織工の遅さと恐慌の怒りが同じ係数から分岐）。Pop.UnemploymentEmaを月次更新（0では読み書きなし＝恒等）	注記の語から（未確認）	注記:月「月次」	898
 Coefficients	MinorityPenaltyModernBlend	double	0.5	不明	不明	不明	【点火0.5・2026-08-16＝S級梯子r17単独37/73/61=単独帯最良（Search手掛かり）】rank17：ガラスの天井の時代ブレンド＝実効ペナルティ=MinorityPromotionPenalty×(1−これ×M)（M=メリトクラシー値）。開かれた社会ほど法的障壁が畳まれ慣行が残る（ユダヤ人解放の年代差が政体・社会構成から出る＝国名条件なし）。①とプールJobGateの物差しも統	不明		899
 Coefficients	FallAnchorReform	double	0.3	月	不明	不明	【点火0.3・2026-08-16】A/B＝1.0はexact39.7/法57.3だが小国満足度で硬性赤／0.5はバッチ緑(exact38.0・法58.1)だが**TaxTestsが赤＝英の行政成熟が止まる**（所得税の実効上限が238四半期で0.085→0.100・要求+0.1）＝中流（官僚）が転落で痩せる。カナリア二分探索で崖は0.4と0.5の間＝**崖の直下を避けて0.3**（テスト緑側の余	注記の語から（未確認）	注記:月「当月」	901
-Coefficients	CohortGateK	double	0.0	四半期	不明	不明	rank8：世代ゲート＝非ショックの大流量移動（①昇格・①*小営業参入・①'手工業没落・①''失業プール）に flow×=min(1, K×四半期新成人率)。新成人率＝10〜19 の層から 20〜29 へ出ていく四半期の流れ（Pop.EnteringAdultsMonthly×3＝年齢の層の加齢と同じ物差し・★2026-09-30 段4e 後半・旧＝ChildShare×3/(AgingYears	注記の語から（未確認）	注記:四半期「/四半期」	902
 Coefficients	ProfessionGenderGate	double	1.0	不明	不明	不明	【点火1.0・2026-08-16＝A/B単独で exact36.2→37.2・near/法ほぼ中立・硬性緑】rank12：職業の性別運搬＝Moveの移動コホートの女性比＝src×access(行き先)（★2026-09-30 段4e 後半＝年齢の層の20歳以上の女性・Pop.Blend の femaleAccess）（識字選抜PromotionLiteracySelectionと同型＝残留側で質	不明		903
 Coefficients	CreditMultiplier	double	3.0	時間に依らない（推定）	無次元（重み・指数・倍率）［名前から推定］	不明	信用乗数（1/準備率）。広義マネー上限 ＝ 金×これ	名前の語から推定		906
 Coefficients	CreditMultiplierDevWeight	double	1.0	時間に依らない（推定）	無次元（重み・指数・倍率）［名前から推定］	不明	【点火1.0】0=一律CreditMultiplier（厳密恒等）／>0で発展度(工業化)スケール（1で完全発展度依存）。maxLoans×=1+(target-1)×これ	名前の語から推定		908
@@ -434,7 +432,6 @@ Coefficients	LiteracyOddsByClass	double[]	[0.85 / 0.15, 0.80 / 0.20, 0.08 / 0.92
 Coefficients	IndInvestmentFrac	double	0.05	時間に依らない（推定）	割合［名前から推定］	割合［名前］	投資家（資本家）が貯蓄からこの割合まで投資に回せる（affordability 上限）	名前の語から推定		1175
 Coefficients	IndInvestmentSpeed	double	0.012	不明（率・速度・期間の語はあるが基準の記載なし）	率［名前から推定］	不明	投資の速さ（純収益→建設需要への換算）	不明		1176
 Coefficients	IndPerConstruction	double	0.01	不明	不明	不明	建設1単位が工業化度を上げる量（要較正）	不明		1177
-Coefficients	StateBuildCost	double	40_000	不明	不明	不明	手動工場建設1回の国庫予約額。資本家と同じ建設の束（鋼/機械/セメント/製材）を国庫負担で買い工業化度に変換	不明		1178
 Coefficients	RgoCapitalShare	double	0.5	時間に依らない（推定）	割合［名前から推定］	割合［名前］	★2026-08-04（作者指示「投資家もプランテーションや鉱山に投資するように」）：資本家の建設が生む工業化度のうち、最も採算の良いRGO（農園/鉱山/牧場）の作付面積（BuiltScale＝Scaleの下限）へも回る比。旧＝資本家の建設は工業化度にしか変わらず、RGOは採算によるScaleの伸縮だけで**面積を増やす資本がどこからも来なかった**（工場はBuiltScaleが下限を押し上げるの	名前の語から推定		1179
 Coefficients	FactoryBuildScale	double	0.5	時間に依らない（推定）	無次元（重み・指数・倍率）［名前から推定］	不明	離散工場1棟の建設で増える生産者のScale下限（工場容量＝Vic2型）	名前の語から推定		1180
 Coefficients	FactoryMaterialFrac	double	0.6	時間に依らない（推定）	無次元（重み・指数・倍率）［名前から推定］	割合［名前］	プレイヤーの工場建設費のうち材料（鋼・機械・セメント・製材）に充てる割合。残り(0.4)は工賃（StepConstructionで工員へ）。材料は建設期間で徐々に消費	名前の語から推定		1181
@@ -442,7 +439,6 @@ Coefficients	ConstructionLaborWageFrac	double	0.67	時間に依らない（推�
 Coefficients	FactoryBuildPriceCeil	double	2.5	時間に依らない（推定）	無次元（重み・指数・倍率）［名前から推定］	不明	建設率の半減点：素材束価格/参照 がこの倍率で建設可能率=0.5（崖でなく中心）	名前の語から推定		1186
 Coefficients	StateProcurePriceGate	double	1.0	不明	不明	不明	★2026-08-03（作者指示「全ての政府支出で、価格を無視しないよう修正。これは全て同じ計算式でよい」）：国家調達の価格感応の適用率。旧＝どの政府支出も予算の制約だけで、参照価格との比を見ずに**何倍の高値でも買い切る**買い手が市場に居座り品薄財の価格を押し上げていた。式は私的な工場建設と同一（FactoryBuildAfford＝現在価格/参照価格の連続減衰）＝新しい定数を置かない。適用先	不明		1187
 Coefficients	MilitaryProcurePriceGateScale	double	1.0	時間に依らない（推定）	無次元（重み・指数・倍率）［名前から推定］	不明	★軍需財の価格ゲート倍率（2026-09-07・英の軍が立たない根）：MilitaryGoods の国家発注に掛かる StateProcurePriceGate の倍率。1.0＝現行（厳密恒等）／0＝軍需は価格を見ずに発注 //   （小銃価格が基準の3〜5倍で発注が13%に絞られ、労働配分の重み（前期需要）が細って生産が伸びず価格が下がらない自己ロックを解く）。単独計測（腕 armsgate）。	名前の語から推定		1190
-Coefficients	MilitaryBuildCostCapScale	double	1.0	時間に依らない（推定）	無次元（重み・指数・倍率）［名前から推定］	不明	★軍需の身の丈ゲート倍率（2026-09-07・第2の根）：AI の着工で軍需カテゴリ（小銃/弾薬/火砲/帆船＝9万）の総費用上限＝財政バッファ×これ。1.0＝現行（厳密恒等）。 //   実測＝英は1783〜1836年に軍需工場の建設0（バッファ未満で候補に上がれない）→1837年の初建設で価格が基準へ落ち即応が立つ。単独計測（腕 armscap）。	名前の語から推定		1193
 Coefficients	FactoryBuildAffordSteep	double	4	時間に依らない（推定）	無次元（重み・指数・倍率）［名前から推定］	不明	★点火2026-08-31＝16→4（清レポ＝16は「逓減の衣を着た崖」。4で束比3倍でも進捗が細く残る＝壁でなく逓減。ラウンドA実測でハーネス末端財の死蔵も解消）	名前の語から推定		1194
 Coefficients	FactoryStartAffordFloor	double	0.15	時間に依らない（推定）	無次元（重み・指数・倍率）［名前から推定］	不明	★点火2026-08-31＝0.5→0.15（清レポ4-1「建設の壁」＝後発国の束比3〜5倍で着工が離散的に不可能だった崖の是正。進捗側が同じ採算率で連続に絞るので床は低くて良い。旧World定数の係数化と同時）	名前の語から推定		1195
 Coefficients	FactoryMothballRate	double	0.05	月	無次元（重み・指数・倍率）［名前から推定］	不明	★点火2026-08-31（ラウンドB）＝月次の休止/再開の速度（床割合/月）。建てた工場（倒産免除）の慢性赤字の垂れ流しを止める第4の動詞（施設は残る/倒産/★休止/国有化）。0で休止なし	注記の語から（未確認）	注記:月「/月」	1197
@@ -922,7 +918,6 @@ Coefficients	MilitaryEnvelopeShare	double	0.7	月	割合［名前から推定］
 Coefficients	OpulenceSpendRatePerYear	double	0.6	年	割合	割合/年	潤沢線を超える国庫の、年あたりに予算基数へ回す割合（月の基数へは ÷12）	手で確認（使用箇所を読んだ）	World.cs:1088。旧名 OpulenceSpendRate	2489
 Coefficients	MilitarizeAgrarianTaxes	double	1.0	不明	不明	不明	【L3点火測定中2026-08-08】Militarizeスタンスに土地税0.4・関税0.3の目標を追記（軍国が地租と関税で軍を養った史実＝地租改正・Grundsteuer）。0=恒等・1=有効	不明		2490
 Coefficients	MilitarizeEducationDrive	double	1.0	不明	不明	不明	【L4点火測定中2026-08-08】Militarizeスタンスに公教育＋教育費0.4の目標を追記（義務教育は兵営国家の発明＝プロイセン1763・明治学制）。露のElite封鎖の解錠。0=恒等	不明		2491
-Coefficients	OpulenceInfraChannel	double	0.0	不明	不明	不明	支出反射のインフラ拡張（退蔵→鉄道国家の建設）。0.6同時点火で硬性赤（公教育テスト）＝分離休眠2026-08-08。単独再測定用	不明		2492
 Coefficients	PanicBuyWeight	double	0.5	時間に依らない（推定）	無次元（重み・指数・倍率）［名前から推定］	不明	【休眠2026-08-08＝0.5は閾値0.5/0.75とも小世界の慢性低在庫で常時発動し輸出/税テスト3本の前提を崩す＝在庫閾値では分離不能→危機ゲート（戦争/飢饉文脈）付きの再設計が必要】B3自己成就的期待（2026-08-08作者裁定「入れてみよう」・docs/202607/05§B）：主食の棚が	名前の語から推定		2495
 Coefficients	SovietTaxProfile	double	1.0	不明	不明	不明	ソ連風税制（2026-08-08作者裁定＝完全な計画経済の代替）：プロレタリア独裁は	不明		2498
 Coefficients	NationalismFromConsciousness	double	0.0	不明	不明	不明	【休眠2026-08-08＝0.03/0.01ともcanary赤。ただし割れたのは「NY産出財数」＝0.01の微小加算でも割れる軌道ピン＝#17期待値再導出の筆頭対象。B自体の再点火は#17とセット】独統一トリガー解錠B：国民意識→ナショナリズムの平時底上げ（統一運動の燃料）。0=厳密恒等・点火帯0.02-0.05	不明		2500
@@ -1246,7 +1241,6 @@ Coefficients	BonanzaDepositYears	double	60.0	年	不明	不明	大鉱床の発�
 Coefficients	OversightPressCensored	double	0.4	不明	不明	不明	検閲付き報道の監視力（自由報道=1.0・国家報道のみ=0.0）	不明		3442
 Coefficients	OversightMeritExam	double	0.6	不明	不明	不明	科挙型（資格任用）の監視力（専門官僚=1.0・猟官=0.0）	不明		3443
 Coefficients	OversightFactorScale	double	1.0	時間に依らない（推定）	無次元（重み・指数・倍率）［名前から推定］	不明	★監視3因子の強度（2026-08-15・uishotで発覚した「報道の自由だけで汚職ゼロ」の是正レバー）。1.0＝旧とビット恒等（press自由1.0→noisy-or飽和→汚職0）。<1で「どの制度も単独では監視を完成させない」＝金ぴか時代の米（自由な報道×猟官制×汚職）が表現できる。設計値0.6（3つ揃えて0.94・単独0.6）。点火はA/B	名前の語から推定		3444
-Coefficients	CorruptionCoreV2	double	1.0	不明	不明	不明	★点火2026-08-15（ign_corr・同一ソースA/B seeds1-10）：汚職＝(1−行政)×(1−監視noisy-or)・漏れは官職地代（99_実装ログ§4-11/§4-13）。帯＝exact+0.9/本国+4.2/列強−6.2/経済−3.8（列強はノイズ床±3-5をやや超過＝Search再較正キューで回収・方針「帯の悪化だけでは差し戻さない」）。副信号＝変名33→45・分離43→3	不明		3445
 Coefficients	NobleInvests	double	0.0	不明	不明	不明		不明		3446
 Coefficients	RgoElasticityGate	double	1.0	時間に依らない（推定）	無次元（重み・指数・倍率）［名前から推定］	不明	★点火2026-08-14（n24同一ソースA/B：経済規模+15.0・列強再現率+7.5・領土植民地+5.8・人口+4.3／政体exact−1.6・⚠逸脱過多9→15＝記録）。0で全カテゴリ従来（上限・速度一律）＝厳密恒等	名前の語から推定		3447
 Coefficients	MineralScaleCap	double	1.5	時間に依らない（推定）	無次元（重み・指数・倍率）［名前から推定］	不明	鉱物RGOの操業規模上限（ScaleMax=3.0の半分＝既存鉱脈の増産余地は+50%まで。大増産は発見と新州の仕事）	名前の語から推定		3448
@@ -1273,7 +1267,6 @@ Coefficients	TrilemmaRateResponse	double	0.5	不明（率・速度・期間の�
 Coefficients	RentScarcityElasticity	double	1.0	時間に依らない（推定）	無次元（重み・指数・倍率）［名前から推定］	不明	★点火2026-08-31（清レポ3-4＝成長→地代→旧支配層強化の負帰還・ラウンドA実測＝◎8→11/固着38→31/列強+6.2/経済+8.8）   // 地代の土地稀少弾力（EconomyStep §④）：RGOの実効RentShare=RentShare×(1+これ×稀少度)。稀少度=max(0, 農村人口/ArableLand−1)＝landFactorと同一入力（ArableLand÷	名前の語から推定		3552
 Coefficients	ParliamentStreetSupersede	double	0.5	不明	不明	不明	★点火2026-08-31＝議会の二重票の是正（清レポ3-6）：議会がある国では3ブロックの街頭力の半分を議席チャネルへ譲る（党の選好表＝ブロックの選好表なので旧は二重加算＝共和国化で教育法が2.7倍通りにくくなった実測。1.0全譲は法一致−6.2で0.5に裁定＝ラウンドA腕2）。未代表（小営業・軍・国庫）は街頭のまま。0＝旧二重加算	不明		3553
 Coefficients	RumpReabsorbYears	double	5.0	年	不明	不明	★点火2026-08-31＝残骸国家の自然再併合：内戦の白紙分断で生まれた国が親GDP1%未満を5年続けたら平和的に再統合（ReabsorbNationsの既存機構＝保存両建て）。親が交戦中/消滅なら持ち越し。0で無効	名前・式で確定	名:年	3554
-Coefficients	EnclosureRate	double	0.0	不明（率・速度・期間の語はあるが基準の記載なし）	率［名前から推定］	不明	rank5第2段（別A/B）＝囲い込みの自給侵食（EconomyStep.ApplyEnclosure）：RGOの資本拡張（BuiltScale増分）1単位あたり当該州農民pop（RGOの労働pop）のSubsistenceをこれ×増分だけ微減（下限0）＝プランテーション・囲い込みが自給地を市場向けに転換する物理。増分の発生源＝World.StepConstruction完成（1棟=Factory	不明		3555
 Coefficients	FertileAbsoluteBlend	double	0.0	不明	不明	不明	★差し戻し2026-08-30（点火bisect＝幕府転換テスト赤の単独犯・英人口が停滞→縮小0.73×へ）：凍結分母ポンプ（出生2.1倍）は較正の暗黙の土台だった＝是正は**出生率の実再較正とセット**でのみ再点火（AI工業化バーストと同型の扱い）	不明		3559
 Coefficients	NavalFuelPerGauge	double	0.0	月	不明	不明	#1 海軍の運用燃料：石炭需要/月 = これ×FleetGauge×NavyUpkeep×汽船の門（(150)・旧＝蒸気ゲート）×EraFactor(EraNavalFuel)。石炭→重油の二択と支払い経路は植民地補給線（Colonial.BuyUpkeepGood/ChooseFuelGood）と同一＝台帳は TreasuryCat.Navy（現在書き手ゼロの枠）。	注記の語から（未確認）	注記:月「/月」	3566
 Coefficients	NavalFuelSortieFloor	double	0.4	月	不明	不明	#1 燃料切れ艦隊の出撃能力の下限（港湾・沿岸防衛は残る）。NavalFuelPerGauge>0のときのみ読む。⚠形を緩くする理由＝NavalPowerFromFleet の急峻min は2026-08-01に硬性ゲート赤で一度差し戻された経路＝燃料は fill線形×下限フロアの緩い乗数にする	注記の語から（未確認）	注記:月「/月」	3570

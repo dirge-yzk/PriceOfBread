@@ -392,10 +392,6 @@ public sealed class UtilityAgent : INationAgent
     /// 財政逼迫の物差し（監査2026-07-11 リ4）：旧＝国庫50,000の絶対額固定を53カ国（初期国庫約370倍差）へ一律適用＝
     /// 小経済の国は恒久破産モード（福祉ほぼゼロ・汚職根絶が永久0・逆進課税の高止まり）・大経済の国は無風、という規模非中立の是正。
     /// 公開（2026-08-04・UI）：財政タブが「国庫の余裕＝月次義務の何か月分か」を表示する（AIと同じ物差し）。</summary>
-    /// <summary>★軍需の身の丈ゲート倍率（2026-09-07）：FactorySpec が「軍需」の財だけ MilitaryBuildCostCapScale（既定1.0＝恒等）。</summary>
-    private static double BuildCapMul(World w, int goodId)
-        => w.Coef.MilitaryBuildCostCapScale > 1.0 && Catalog.FactorySpec(goodId).Category == "軍需" ? w.Coef.MilitaryBuildCostCapScale : 1.0;
-
     public static double FiscalBufferOf(World w)
         => Math.Max(1.0, (w.Coef.FiscalStressBufferMonths * (w.LastInterestPerMonth + w.LastAdminClaimPerMonth + w.LastMilitaryClaimPerMonth)).Value);   // （連合維持費は 2026-09-30 (135) に撤去＝行政と兵力の購買の1本）
     // ⚠R3安定形（2026-08-08作者裁定「不具合として解決・安定するように」）：兵士給与は**ここ（緊縮反射の分母）には入れない**
@@ -1155,7 +1151,7 @@ public sealed class UtilityAgent : INationAgent
                     if (starved >= 0 && starved < Catalog.Goods.Length && starved < Catalog.RefPrices.Length
                         && Catalog.Goods[starved].Tier != GoodTier.Service
                         && World.FindFactory(rg, starved) is { ConstructionLeft: <= 0, Bankrupt: false }
-                        && Catalog.FactorySpec(starved).Cost <= FacilityBuildCostCap * buffer * BuildCapMul(w, starved))
+                        && Catalog.FactorySpec(starved).Cost <= FacilityBuildCostCap * buffer)
                         Consider(ri, starved, eff * (1.0 + w.Coef.AiSupplyChainEyes * (1.0 - minFill)));
                 }
                 // ★身の丈ゲート（2026-08-04・R19の赤＝ジェノヴァ6/10最下位の是正）：FactorySpec の建設費は**絶対額**
@@ -1163,10 +1159,8 @@ public sealed class UtilityAgent : INationAgent
                 //   総費用が財政バッファ（月次義務のNか月分＝規模中立の物差し）を超える工場は建てない
                 //   ＝大国は何でも建てられ、小国は軽工業から（史実＝造船所や製鉄所は大国の事業）。
                 //   ⚠#4の連鎖の目は上（このゲートの前）で走らせ済み＝高価で建てられない下流でも、安価な上流の律速は明かせる。
-                // ★軍需の身の丈ゲート倍率（2026-09-07・英の軍が立たない第2の根）：軍需（9万）は1783年の財政バッファ（月次義務×数か月）を超えて**半世紀建たない**
-                //   （armsdebug 実測＝ロンドンの小銃工場は建設0のまま1837年に初めて建つ）。史実の国家は貧しくても兵器廠を持った。
-                //   MilitaryBuildCostCapScale=1.0＝現行（厳密恒等）／>1 で軍需カテゴリの上限をその倍率で緩める（対象は AI の着工判断のみ＝プレイヤーは元から自由）。
-                if (Catalog.FactorySpec(pr.GoodId).Cost > FacilityBuildCostCap * buffer * BuildCapMul(w, pr.GoodId)) continue;
+                // （軍需の身の丈ゲート倍率 MilitaryBuildCostCapScale は 2026-10-11 (253) に削除＝armscap 単独で基線とビット同一〔費用上限は軍需工場が建たない律速ではなかった〕）
+                if (Catalog.FactorySpec(pr.GoodId).Cost > FacilityBuildCostCap * buffer) continue;
                 if (!(eff > FacilityBuildMinMargin)) continue;   // 否定形＝NaNは建てない
                 // 採算>0 は残す（2026-08-04の設計）。★#2の例外＝世界チャネルが開いた候補は国内 margin で拒まない：輸入州の価格は
                 //   自国の限界費用に錨（診断δ）＝margin≈0以下に潰されているのが「安い輸入に押されている」状態そのもので、
