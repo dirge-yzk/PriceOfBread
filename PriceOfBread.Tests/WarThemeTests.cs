@@ -686,7 +686,7 @@ public class WarThemeTests
     {
         // 旧＝戦争の形の革命の勝ちは登録簿と建国制度の2行だけ＝戦争で勝ったプロレタリア革命が国債を引き継ぎ、地代も旧支配層も無傷で残った。
         var (sim, fr, rebel, _) = CivilWarBoard();
-        Assert.True(fr.GovDebt > 0, "前提が崩れた：親に国債が無い＝否認を見分けられない");
+        Assert.True(fr.GovDebt.Value > 0, "前提が崩れた：親に国債が無い＝否認を見分けられない");
         Assert.NotEqual(Polity.ProletarianDictatorship, fr.Polity);
         Assert.NotEqual(ReformLevel.Full, fr.LandReform);
         foreach (var p in fr.AllPops()) p.Militancy = 0.2;
@@ -696,7 +696,7 @@ public class WarThemeTests
         sim.ReabsorbNations();
 
         Assert.Equal(Polity.ProletarianDictatorship, fr.Polity);
-        Assert.Equal(0.0, fr.GovDebt);                   // 急進革命だけ否認（即時の政変と同じ規則）
+        Assert.Equal(0.0, fr.GovDebt.Value);                   // 急進革命だけ否認（即時の政変と同じ規則）
         Assert.Equal(ReformLevel.Full, fr.LandReform);   // プロレタリア独裁＝全面の土地改革
         Assert.Contains(fr.AllPops(), p => p.Closed && p.Militancy > 0.2);   // 失脚＝旧支配層の反革命の不満
     }
@@ -706,7 +706,7 @@ public class WarThemeTests
     {
         // 既定は継承（史実＝自由主義の革命は旧債務を引き継いだ）。否認は急進革命だけ＝規則は変えていない。
         var (sim, fr, rebel, _) = CivilWarBoard();
-        double debt0 = fr.GovDebt;
+        double debt0 = fr.GovDebt.Value;
         Assert.True(debt0 > 0, "前提が崩れた：親に国債が無い");
         Assert.NotEqual(Polity.Republic, fr.Polity);
 
@@ -714,7 +714,7 @@ public class WarThemeTests
         sim.ReabsorbNations();
 
         Assert.Equal(Polity.Republic, fr.Polity);
-        Assert.Equal(debt0, fr.GovDebt);                         // 継承
+        Assert.Equal(debt0, fr.GovDebt.Value);                         // 継承
         Assert.True((int)fr.LandReform >= (int)ReformLevel.Limited, "共和革命の土地改革（限定）が走っていない");
     }
 
@@ -1099,8 +1099,8 @@ public class WarThemeTests
             fr.SelfPower!.Military = 0; fr.SelfPower!.FleetGauge = 0;   // 仏の海軍0＝英が制海権を握る（拿捕の門＝制海権＞0.5）
             typeof(Diplomacy).GetMethod("CollectPrize", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!
                 .Invoke(s.Diplomacy, [br.SelfPower!, fr.SelfPower!, s.Coef]);
-            static double[] Sav(World w) { var l = new System.Collections.Generic.List<double>(); foreach (var r in w.Regions) foreach (var p in r.Pops) l.Add(p.Savings); return [.. l]; }
-            return (fr, br, Sav(fr), Sav(br), fr.Treasury, br.Treasury, fr.CumulativeTradeFlow, br.CumulativeTradeFlow);
+            static double[] Sav(World w) { var l = new System.Collections.Generic.List<double>(); foreach (var r in w.Regions) foreach (var p in r.Pops) l.Add(p.Savings.Value); return [.. l]; }
+            return (fr, br, Sav(fr), Sav(br), fr.Treasury.Value, br.Treasury.Value, fr.CumulativeTradeFlow, br.CumulativeTradeFlow);
         }
         var zero = Arm(0.0); var arm = Arm(new Coefficients().PrizeMoneyRatePerMonth.Value);
         var merchants = new System.Collections.Generic.HashSet<Pop>();

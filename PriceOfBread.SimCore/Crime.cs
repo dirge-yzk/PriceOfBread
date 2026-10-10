@@ -50,7 +50,7 @@ public static class Crime
             var stolen = new List<double>(r.Pops.Count);
             foreach (var p in r.Pops)
             {
-                double steal = Math.Max(0, p.Savings) * crimeRate;
+                double steal = Math.Max(0, p.Savings.Value) * crimeRate;
                 stolen.Add(steal);
                 pool += steal;
             }
@@ -72,11 +72,11 @@ public static class Crime
             if (c.CrimeSatPenalty > 0 || c.CrimeWealthFearWeight > 0)
             {
                 double sumW = 0, sumSz = 0;
-                foreach (var pp in r.Pops) { sumW += Math.Max(0, pp.Savings); sumSz += pp.Size; }
+                foreach (var pp in r.Pops) { sumW += Math.Max(0, pp.Savings.Value); sumSz += pp.Size; }
                 double meanWpc = sumSz > 1e-9 ? sumW / sumSz : 0;
                 foreach (var pp in r.Pops)
                 {
-                    double wpc = pp.Size > 1e-9 ? Math.Max(0, pp.Savings) / pp.Size : 0;
+                    double wpc = pp.Size > 1e-9 ? Math.Max(0, pp.Savings.Value) / pp.Size : 0;
                     double wealthRel = meanWpc > 1e-9 ? wpc / meanWpc : 1;
                     double penalty = crimeRate * (c.CrimeSatPenalty + c.CrimeWealthFearWeight * Math.Max(0, wealthRel - 1));
                     pp.Satisfaction = PoliticalQuantities.Clamp01(pp.Satisfaction - penalty);

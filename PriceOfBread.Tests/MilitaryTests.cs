@@ -141,7 +141,7 @@ public class MilitaryTests
         a.Run(100);
         b.Run(100);
         Assert.Equal(a.World.Regions[1].SumPopulation(), b.World.Regions[1].SumPopulation());
-        Assert.Equal(a.World.Treasury, b.World.Treasury);
+        Assert.Equal(a.World.Treasury.Value, b.World.Treasury.Value);
     }
 
     /// <summary>★前期の軍需レシピ（2026-09-07 器・2026-09-27 回2-1 で旗ごと点火）：小銃(82)・火砲(81)に鋼を要しない並存レシピ（マスケット・鋳鉄砲）が
@@ -365,7 +365,7 @@ public class MilitaryTests
     {
         var l = new List<Pop>();
         foreach (var r in w.Regions) l.AddRange(r.Pops);
-        return (l, l.ConvertAll(p => p.Savings).ToArray());
+        return (l, l.ConvertAll(p => p.Savings.Value).ToArray());
     }
 
     /// <summary>★(140)（2026-09-30・col-16）：植民地の不満は兵への俸給を立てない＝駐留の兵は兵力の購買（兵数×民間の賃金）で払われている＝旧の不満の俸給
@@ -495,7 +495,7 @@ public class MilitaryTests
             cap.Markets[good].Stock = 1e9;
             Colonial.BuyUpkeepGood(w, cap, good, scale * best, TreasuryCat.ColonialUpkeep);
             var (pops, sav) = SavingsOf(w);
-            return (w, pops, sav, w.Treasury, good);
+            return (w, pops, sav, w.Treasury.Value, good);
         }
         var zero = Arm(0); var arm = Arm(1.0);
         var sellers = new HashSet<Pop>();
@@ -1875,7 +1875,7 @@ public class MilitaryTests
         (double fc, double room, double smooth) Twin(double claim)
         {
             var w = France155().World; var c = w.Coef;
-            w.GovDebt = 0; w.ForeignDebt = 0;   // 利払いを消す（仏1789 は利払いと行政で余剰0＝余剰が正の範囲の盤面にする・QuietBritain と同じ作法）
+            w.GovDebt = new MoneyStock(0); w.ForeignDebt = 0;   // 利払いを消す（仏1789 は利払いと行政で余剰0＝余剰が正の範囲の盤面にする・QuietBritain と同じ作法）
             foreach (var r in w.Regions) foreach (var p in r.Pops) p.BondHoldings = 0;
             w.FiscalCapacityPerMonth = new MoneyPerMonth(1.0);              // 平滑化の枝（前の値が正）に置く
             w.LastMilitaryClaimPerMonth = new MoneyPerMonth(claim);

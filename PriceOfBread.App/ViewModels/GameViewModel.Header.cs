@@ -290,7 +290,7 @@ public partial class GameViewModel
         _histLeg.Add(_player.Legitimacy);
         _histCons.Add(Math.Max(0, _player.NationalConsciousness));   // 初期−1（未捕捉）はグラフを歪めないよう0でクランプ（他系列と同年数に揃える）
         _histMandate.Add(_player.MandateSpent);   // 上限廃止（2026-07-26）＝生値を採取
-        _histTreasury.Add(_player.Treasury);
+        _histTreasury.Add(_player.Treasury.Value);
         // ジニ係数（全POPの1人あたり貯蓄から読むときに計算＝Politics.GiniIndex・2026-09-26 に World の欄を廃止）。
         //   0（貯蓄が全く無い開始直後の世界）を起点に残すと折れ線が毎回そこまで落ちる＝測れた年から始める（起点の年は系列長から逆算＝RangeText）。
         double gini = Politics.GiniIndex(_player);

@@ -46,7 +46,7 @@ public sealed class GovernanceSnapshot
             _military = w.MilitarySpending, _navalUpkeepShare = w.NavalSpendShare, _tariff = w.Tariff, _interestRate = w.InterestRate,
             _eduSpending = w.EducationSpending, _taxRate = w.TaxRate, _fiscalFunding = w.FiscalFundingRatio,
             _landTaxUnlocked = w.LandTaxUnlocked, _adminPowerSmoothed = w.AdminPowerSmoothed,
-            _treasury = w.Treasury,
+            _treasury = w.Treasury.Value,
             _policy = w.Policy.Clone(),
         };
         return s;

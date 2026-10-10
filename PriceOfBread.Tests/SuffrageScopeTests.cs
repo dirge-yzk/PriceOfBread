@@ -58,14 +58,14 @@ public class SuffrageScopeTests
             w.Coef.TaxConsentWeight = 0.5;   // 課税への同意を明示的に有効化（双子とも）
             w.TaxRate = 0.2;                 // 所得税（同意が効く税）
             foreach (var p in w.Regions[1].Pops)
-                if (!p.IsSoldier) { p.EarnedPerMonth = new MoneyPerMonth(1_000); p.SetSavings(System.Math.Max(p.Savings, 100_000)); }   // 課税ベースを確保（双子とも同額）
+                if (!p.IsSoldier) { p.EarnedPerMonth = new MoneyPerMonth(1_000); p.SetSavings(System.Math.Max(p.Savings.Value, 100_000)); }   // 課税ベースを確保（双子とも同額）
             Fiscal.Step(w, w.Coef);
         }
         // 算入された植民地pop＝声がある＝同意が立つ＝所得税が多く取れる（貯蓄がより減る）。
         // 算入されない（なし）＝「発言権のない者からは取りきれない」側＝税が薄い。
         double savOff = 0, savOn = 0;
-        foreach (var p in off.World.Regions[1].Pops) if (!p.IsSoldier) savOff += p.Savings;
-        foreach (var p in on.World.Regions[1].Pops) if (!p.IsSoldier) savOn += p.Savings;
+        foreach (var p in off.World.Regions[1].Pops) if (!p.IsSoldier) savOff += p.Savings.Value;
+        foreach (var p in on.World.Regions[1].Pops) if (!p.IsSoldier) savOn += p.Savings.Value;
         Assert.True(savOn < savOff,
             $"全面算入なのに植民地州の徴税力が上がらない（なし後貯蓄 {savOff:F0} / 全面後貯蓄 {savOn:F0}）");
     }

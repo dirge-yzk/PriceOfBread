@@ -102,7 +102,7 @@ public class MultiNationTests
         w.TradeGoldPull = -1.0;
         var (_, mSilver, _, _) = PolicyPreferences.Stance(w, PolicyAxis.MonetaryStandard, true);
         double wealthM = 0, total = 0;
-        foreach (var p in w.AllPops()) { double sv = System.Math.Max(0, p.Savings); total += sv; if (PolicyPreferences.BlocOf(p) == 1) wealthM += sv; }
+        foreach (var p in w.AllPops()) { double sv = System.Math.Max(0, p.Savings.Value); total += sv; if (PolicyPreferences.BlocOf(p) == 1) wealthM += sv; }
         Assert.True(total > 0 && wealthM > 0, "前提が崩れた：近代エリートの富が無い");
         double expect = w.Coef.MonetaryPrefScale * (wealthM / total) * 2 * w.Coef.MonetaryPeerPullScale * 0.2;
         Assert.True(System.Math.Abs((mGold - mSilver) - expect) <= 1e-9 * System.Math.Max(1.0, expect), $"相手の金と銀の差 {mGold - mSilver} ≠ {expect}");

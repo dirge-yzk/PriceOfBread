@@ -338,7 +338,7 @@ public class PoorPopBriberyTests
             foreach (var n in sim.Nations)
             {
                 var w = n.World;
-                sb.Append(w.Treasury.ToString("R")).Append('|')
+                sb.Append(w.Treasury.Value.ToString("R")).Append('|')
                   .Append(w.TotalMoney.ToString("R")).Append('|')
                   .Append(w.TotalPopulation.ToString("R")).Append('|')
                   .Append(w.EffectiveCorruption.ToString("R")).Append('|')

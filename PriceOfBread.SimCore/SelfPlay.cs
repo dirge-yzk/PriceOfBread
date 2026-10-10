@@ -855,7 +855,7 @@ public sealed class UtilityAgent : INationAgent
         // 02断線走査2026-07-28：再征服（武力解錠）のAI判断。分離/凍結州の唯一の復帰経路（Territory.cs）なのに書き手ゼロ＝分離が「州の恒久消滅」だった。
         // 国庫に余裕があり大衆闘争が低い時だけON（制圧は毎月の国庫出血＋全pop闘争度↑＝革命前夜に強行しない）＝南北戦争の再統合・カルリスタ戦争型。
         w.ForceUnlock = w.Regions.Any(r => r.State == RegionState.Locked)
-            && w.Treasury > ForceUnlockBufferMult * FiscalBufferOf(w)
+            && w.Treasury.Value > ForceUnlockBufferMult * FiscalBufferOf(w)
             && Politics.AvgMassMilitancy(w) < ForceUnlockMilitancyCeiling;
         // ※国家主導の工業化（AIが1棟単位の手動建設＝旧 BuildIndustry で後発を追い上げる）は実験した結果、ロシアが工業化すると
         //   規模(人口→GDP)で常勝になり競争バランスを壊したため不採用。再採用にはスコアの規模偏重の是正が前提。
@@ -875,8 +875,8 @@ public sealed class UtilityAgent : INationAgent
     {
         if (w.Coef.OpulenceTaxRelief <= 0 || w.SelfPower is null) return;
         double buffer = OpulenceLineOf(w);   // R3安定形（2026-08-08）＝給与算入は潤沢判定のみ（緊縮反射は不変）
-        if (!(buffer > 1e-9) || w.Treasury <= buffer) return;
-        double mul = Math.Max(OpulenceTaxFloor, buffer / w.Treasury);   // 国庫が予備の2倍なら税目標×0.5（連続・床つき）
+        if (!(buffer > 1e-9) || w.Treasury.Value <= buffer) return;
+        double mul = Math.Max(OpulenceTaxFloor, buffer / w.Treasury.Value);   // 国庫が予備の2倍なら税目標×0.5（連続・床つき）
         mul = 1.0 - w.Coef.OpulenceTaxRelief * (1.0 - mul);             // 適用率でブレンド（1=満額）
         var p = w.Policy;
         p.IncomeTaxTarget *= mul; p.PollTaxTarget *= mul;
@@ -1236,7 +1236,7 @@ public sealed class UtilityAgent : INationAgent
             case Stance.Modernize:
                 p.EducationLaw = EducationLaw.Public;
                 // 豊かな近代化国は義務教育へ＝popが買えない教育を国庫が買い全民就学（多大な財政コスト＝豊かさが前提）。
-                if (w.EducationLaw >= EducationLaw.Public && w.TechLevel > CompulsoryEduTechThreshold && w.Treasury > CompulsoryEduBufferMult * FiscalBufferOf(w))   // 旧150,000固定＝旧閾値50,000の3倍→バッファの3倍へ規模中立化（監査2026-07-11 リ4：小型先進国が義務教育を目標に置けなかった）
+                if (w.EducationLaw >= EducationLaw.Public && w.TechLevel > CompulsoryEduTechThreshold && w.Treasury.Value > CompulsoryEduBufferMult * FiscalBufferOf(w))   // 旧150,000固定＝旧閾値50,000の3倍→バッファの3倍へ規模中立化（監査2026-07-11 リ4：小型先進国が義務教育を目標に置けなかった）
                     p.EducationLaw = EducationLaw.Compulsory;
                 p.EducationSpendingTarget = Government.EducationSpendingTop;   // ★錨2026-09-18＝この軸の教義最大＝段の最上段（値は Government へ移設・ここは参照）
                 p.AdminSpendingTarget = 0.6;    // 近代国家＝行政を整備（汚職を抑える＝税の漏れが減る→検地台帳のアンロックにも繋がる）
@@ -1409,7 +1409,7 @@ public sealed class UtilityAgent : INationAgent
         {
             int curTier = w.StateMonopolyTier;
             if (fiscalStress > 0) stateMonopTier = Math.Max(stateMonopTier, curTier + 1);
-            else if (w.Treasury > FiscalBufferOf(w)) stateMonopTier = Math.Max(stateMonopTier, curTier - 1);
+            else if (w.Treasury.Value > FiscalBufferOf(w)) stateMonopTier = Math.Max(stateMonopTier, curTier - 1);
             else stateMonopTier = Math.Max(stateMonopTier, curTier);
         }
         // ★専売の書き込み口（作者裁定2026-09-20）＝**プレイヤーの生産タブのチェックボックスと同じ1本**（World.SetStateMonopolyOn 経由）。

@@ -62,7 +62,7 @@ public static class Credit
         // 国債二次流通の評価損（no-bond-secondary-market）：BondPrice下落(利回り上昇)で国内債を抱える銀行が評価損→信頼↓→与信収縮（平時のマーク・トゥ・マーケット）。既存診断値BondPriceを配線。BondLossConfWeight=0で恒等（既定0.5）。
         // [単位・B13] 債務/GDP＝**年次名目**（GovDebt÷(月次NominalGdpPerMonth×12)・Clamp 0..1）＝Fiscal の国債の金利・CapitalMarket・Government の緊縮と同じ物差し（2026-09-29・棚卸し fis-02 の残り）。
         //   旧＝**月次**名目（年次の約12倍の値）＝国債が年GDP の1割（8.3%）を越えた国は全て1で飽和＝国債の多さが評価損の大きさに効かなかった。
-        double bondLoss = w.FiscalEnabled ? c.BondLossConfWeight * Math.Max(0, 1.0 - w.BondPrice) * PoliticalQuantities.Clamp01(w.GovDebt / Math.Max(1.0, Calendar.PerMonthToPerYear(month?.NominalGdp ?? w.NominalGdpPerMonth.Value))) : 0;
+        double bondLoss = w.FiscalEnabled ? c.BondLossConfWeight * Math.Max(0, 1.0 - w.BondPrice) * PoliticalQuantities.Clamp01(w.GovDebt.Value / Math.Max(1.0, Calendar.PerMonthToPerYear(month?.NominalGdp ?? w.NominalGdpPerMonth.Value))) : 0;
         // シティ型恐慌（A・最終調整2026-06-29）：与信過熱(Heat・前期＝持ち越したレバレッジ)が閾値を超えると、満足度が高くても信頼が脆くなる＝
         // 最も金融化した経済（深い与信＝高Heat＝覇権の金融中心）ほど好況の絶頂でミンスキー暴落を起こす。着火後は既存 DrawdownPanic が暴落へ増幅。OverheatFragility=0で恒等（既定1.1）。
         double overheatFragility = c.OverheatFragility * Math.Max(0, bank.Heat - c.OverheatFragilityThreshold);
@@ -158,7 +158,7 @@ public static class Credit
         if (home.InvestorPopIndex >= 0 && home.InvestorPopIndex < home.Pops.Count)
         {
             var inv = home.Pops[home.InvestorPopIndex];
-            double lent = Math.Max(delta, -Math.Max(0, inv.Savings));   // 回収は投資家の貯蓄まで（負債で保存）
+            double lent = Math.Max(delta, -Math.Max(0, inv.Savings.Value));   // 回収は投資家の貯蓄まで（負債で保存）
             if (lent > 0) World.Transfer((null, null), (w, [inv], [1.0]), lent, outside: World.Outside.Credit);   // 受け手は重み1（頭数0でも借りる＝旧と同じ）
             else if (lent < 0) World.Transfer((w, [inv]), (null, null, null), -lent, outside: World.Outside.Credit);
         }
@@ -168,7 +168,7 @@ public static class Credit
             //   **受け手がいるときだけ与信**（配れなかった額は与信に積まない＝移し方の1本は受け手不在なら動かさない）・回収は預金の合計まで（負の貯蓄を作らない＝貯蓄の比で取る）。
             var pops = Pops();
             var held = new List<double>(pops.Count); double heldSum = 0;
-            foreach (var p in pops) { double h = Math.Max(0, p.Savings); held.Add(h); heldSum += h; }
+            foreach (var p in pops) { double h = Math.Max(0, p.Savings.Value); held.Add(h); heldSum += h; }
             double lent = Math.Max(delta, -heldSum);
             if (lent > 0) World.Transfer((null, null), (w, pops, held), lent, outside: World.Outside.Credit);
             else if (lent < 0) World.Transfer((w, pops), (null, null, null), -lent, outside: World.Outside.Credit);
@@ -205,13 +205,13 @@ public static class Credit
             {
                 borrower = home.Pops[home.InvestorPopIndex];
                 double profitDaily = Calendar.PerMonthToPerDay(Math.Max(0, (borrower.EarnedPerMonth - borrower.PaidPerMonth).Value)) * days;   // h 日ぶんの利潤（旬次）
-                paid = Math.Min(interestDue, Math.Min(profitDaily, Math.Max(0, borrower.Savings)));
+                paid = Math.Min(interestDue, Math.Min(profitDaily, Math.Max(0, borrower.Savings.Value)));
             }
             else
             {
                 var pops = Pops();
                 double tot = 0, profitTot = 0;
-                foreach (var p in pops) { tot += Math.Max(0, p.Savings); profitTot += Math.Max(0, (p.EarnedPerMonth - p.PaidPerMonth).Value); }
+                foreach (var p in pops) { tot += Math.Max(0, p.Savings.Value); profitTot += Math.Max(0, (p.EarnedPerMonth - p.PaidPerMonth).Value); }
                 paid = Math.Min(interestDue, Math.Min(Calendar.PerMonthToPerDay(profitTot) * days, tot));
             }
             // 【案B】払えなかった分は**消えない**＝残高へ繰り入れる（複利化）。
@@ -232,7 +232,7 @@ public static class Credit
                 // 重み＝払った後の預金（旧と同じ時点）＝借り手の枝は借り手の預金から払う額を除いて数える（全POP の枝は払い手と受け手が同じ預金の比＝払う前の比のまま）。
                 var pops = Pops();
                 var held = new List<double>(pops.Count); double heldSum = 0;
-                foreach (var p in pops) { double h = Math.Max(0, ReferenceEquals(p, borrower) ? p.Savings - paid : p.Savings); held.Add(h); heldSum += h; }
+                foreach (var p in pops) { double h = Math.Max(0, ReferenceEquals(p, borrower) ? p.Savings.Value - paid : p.Savings.Value); held.Add(h); heldSum += h; }
                 // ★段2-2（2026-09-29）：預金の合計≈0（預金者不在）なら頭数で配る（受け手不在の保存の穴を作らない）。
                 var weights = heldSum > 1e-9 ? held : null;
                 // 払い手→預金者（移し方の1本）・繰入＝銀行が不足分を借り手に貸し、借り手がそれを預金者へ払う＝銀行の与信→預金者（世界の外の側＝銀行の与信）。

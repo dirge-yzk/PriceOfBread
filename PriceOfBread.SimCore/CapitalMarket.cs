@@ -57,7 +57,7 @@ public static class CapitalMarket
             // [単位・B13] 債務/GDP＝**年次名目**（GovDebt÷(月次NominalGdpPerMonth×12)）＝Fiscal の国債の金利の dGdp と同じ物差し（2026-09-29・棚卸し fis-02）。
             //   旧＝月次名目（GovDebt÷月次NominalGdpPerMonth）＝閾値 DebtDistressRatio 2.0 は年に直すと約0.17＝国債÷年GDP が史実の水準（英1815 約2.5・仏1789 0.6〜0.8）へ
             //   立った国は対外信用の債務の項が0＝外資が逃げた。NoGdpDistressDebtRatio・信用の閾値はこの単位。
-            double debtR = ngdp[i] > 1e-9 ? w[i].GovDebt / Calendar.PerMonthToPerYear(ngdp[i]) : (w[i].GovDebt > 0 ? NoGdpDistressDebtRatio : 0);
+            double debtR = ngdp[i] > 1e-9 ? w[i].GovDebt.Value / Calendar.PerMonthToPerYear(ngdp[i]) : (w[i].GovDebt.Value > 0 ? NoGdpDistressDebtRatio : 0);
             // ★AUD-09（Fiscal.cs の dGdp と同じ規律・同じ書き方）：分母の絶対値ガードだけでは微小非ゼロで比が発散し、
             //   NaN は `Math.Clamp` を素通りして CreditDebtTerm を毒する。⚠否定形で番兵へ倒す。
             //   ★有限値では厳密同値：読み手は下2行の `Clamp(1−debtR/DebtDistressRatio, 0, 1)` だけで、
@@ -297,7 +297,7 @@ public static class CapitalMarket
     internal static double InvestorSavings(World w)
     {
         double s = 0;
-        foreach (var r in w.Regions) foreach (var p in r.Pops) if (IsInvestor(p, w.Coef)) s += System.Math.Max(0, p.Savings);   // ★NobleInvests（既定0＝旧述語と恒等）
+        foreach (var r in w.Regions) foreach (var p in r.Pops) if (IsInvestor(p, w.Coef)) s += System.Math.Max(0, p.Savings.Value);   // ★NobleInvests（既定0＝旧述語と恒等）
         return s;
     }
 
@@ -314,7 +314,7 @@ public static class CapitalMarket
     {
         var pops = Investors(w);
         var held = new List<double>(pops.Count); double heldSum = 0;
-        foreach (var p in pops) { double h = System.Math.Max(0, p.Savings); held.Add(h); heldSum += h; }   // 重み＝貨幣の保有（貯蓄比）
+        foreach (var p in pops) { double h = System.Math.Max(0, p.Savings.Value); held.Add(h); heldSum += h; }   // 重み＝貨幣の保有（貯蓄比）
         double moved = World.Transfer(from, (w, pops, heldSum > 1e-9 ? held : null), amount, cat);
         if (moved < amount) moved += World.Transfer(from, (w, null, null), amount - moved, cat, toCat: TreasuryCat.OtherIn);   // 投資家不在＝国庫
         return moved;

@@ -131,7 +131,7 @@ public static class Metrics
                 ng > 0 ? (double)ceil / ng : 0,
                 ng > 0 ? (double)mid / ng : 0,
                 w.UrbanShare, popS > 0 ? litS / popS : 0,
-                w.TotalPopulation, w.Treasury, w.SelfPower?.Colonies ?? 0,
+                w.TotalPopulation, w.Treasury.Value, w.SelfPower?.Colonies ?? 0,
                 // ★最小満足度検査の対象外＝(a)プレイ中に生まれた国（分離建国・従来） (b)**戦争で建国時の州の半分以上を
                 //   失った残余国**（2026-08-04・実測＝ベルリンを失いシュテッティンだけ残ったプロイセンが満足0.15で赤）。
                 //   どちらも困窮は戦争/分裂の帰結であってエンジンの欠陥ではない。

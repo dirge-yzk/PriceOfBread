@@ -136,7 +136,7 @@ public class TransitTests
         bm.LastProduced = 20000; bm.LastDemand = 0; bm.LastExport = 0;
         gm.LastDemand = 20000; gm.LastProduced = 0; gm.LastImport = 0; gm.Stock = 0;
         genoa.RailCapacity = 1e6; genoa.ShipCapacity = 1e6;
-        double tA0 = swiss.Treasury, tB0 = genoa.Treasury, tC0 = tuscany.Treasury;
+        double tA0 = swiss.Treasury.Value, tB0 = genoa.Treasury.Value, tC0 = tuscany.Treasury.Value;
         double D(World w) => w.BaseMoney - w.CumulativeTradeFlow - w.CumulativeGoldMinted - w.CumulativeFiatIssued;
         double dA0 = D(swiss), dB0 = D(genoa), dC0 = D(tuscany);
         sim.Market.Step(sim.Nations, sim.Coef);
@@ -144,9 +144,9 @@ public class TransitTests
         Assert.True(bern.LastPortThroughput > 0, "トランジット州の交易が立たなかった（テスト前提の破れ）");
         double toll = sim.Coef.TransitTollShare * bern.LastPortThroughput;
         Assert.True(toll > 0);
-        Assert.True(Math.Abs(genoa.Treasury - (tB0 + toll)) < 1e-6, $"港所有国の受取が通行料と一致しない（Δ={genoa.Treasury - tB0:F6} 期待={toll:F6}）");
-        Assert.True(Math.Abs(swiss.Treasury - (tA0 - toll)) < 1e-6, $"利用国の支払が通行料と一致しない（Δ={swiss.Treasury - tA0:F6} 期待={-toll:F6}）");
-        Assert.True(Math.Abs(tuscany.Treasury - tC0) < 1e-9, "無関係国の国庫が動いた");
+        Assert.True(Math.Abs(genoa.Treasury.Value - (tB0 + toll)) < 1e-6, $"港所有国の受取が通行料と一致しない（Δ={genoa.Treasury.Value - tB0:F6} 期待={toll:F6}）");
+        Assert.True(Math.Abs(swiss.Treasury.Value - (tA0 - toll)) < 1e-6, $"利用国の支払が通行料と一致しない（Δ={swiss.Treasury.Value - tA0:F6} 期待={-toll:F6}）");
+        Assert.True(Math.Abs(tuscany.Treasury.Value - tC0) < 1e-9, "無関係国の国庫が動いた");
         // 保存則（leakhunt の D ブラケット）：通行料は Treasury と CumulativeTradeFlow の両建て＝D不変
         Assert.True(Math.Abs(D(swiss) - dA0) < 1e-6, $"利用国のDが動いた（{D(swiss) - dA0:E2}）");
         Assert.True(Math.Abs(D(genoa) - dB0) < 1e-6, $"所有国のDが動いた（{D(genoa) - dB0:E2}）");
@@ -168,7 +168,7 @@ public class TransitTests
         Assert.Equal("リヴォルノ", bern.LastTransitPortName);
         // 第2候補の所有国とも開戦→港を借りない（陸路の直行だけ）＝鎖国はしない・通行料も発生しない
         sim.Diplomacy.Wars.Add(new War { A = swiss.SelfPower!, B = tuscany.SelfPower! });
-        double tB0 = genoa.Treasury, tC0 = tuscany.Treasury;
+        double tB0 = genoa.Treasury.Value, tC0 = tuscany.Treasury.Value;
         swiss.Tariff = 0; genoa.Tariff = 0; tuscany.Tariff = 0;   // 国庫の動き＝通行料だけにして「不発」を金でも確認
         // ★2026-09-26（棚卸し econ-15＝旧経路の削除）：S4 の水準式で交易を1本立てる（ベルン＝産出のある激安の売り手・ジェノヴァ＝需要のある高値の買い手）
         var gd = swiss.Region.Goods.First(g => !g.IsColonial && !g.NonTradeable && g.Tier != GoodTier.Staple && !g.GrainChain
@@ -180,6 +180,6 @@ public class TransitTests
         sim.Market.Step(sim.Nations, sim.Coef);
         Assert.Equal("", bern.LastTransitPortName);
         Assert.True(bern.LastTradeDistanceKm > 0);   // 陸路の直行は生きている＝交易は死なない
-        Assert.True(Math.Abs(genoa.Treasury - tB0) < 1e-9 && Math.Abs(tuscany.Treasury - tC0) < 1e-9, "フォールバック時に通行料が発生した");
+        Assert.True(Math.Abs(genoa.Treasury.Value - tB0) < 1e-9 && Math.Abs(tuscany.Treasury.Value - tC0) < 1e-9, "フォールバック時に通行料が発生した");
     }
 }

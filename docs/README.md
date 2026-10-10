@@ -217,18 +217,21 @@ PYTHONUTF8=1 python <script>
   - ★ **時間の単位**（作者 2026-10-10「時間単位は推奨でよい」＝承認）＝量の単位は月（市場の刻みだけ日）・四半期は「3か月ごと」の実行の刻み・年は史実との比較の入口と出口（係数の出典・計器・画面）。換算は `Calendar.PerYearToPerMonth`／`PerMonthToPerYear`／`PerQuarterToPerMonth`／`PerMonthToPerQuarter`／`PerQuarterToPerYear`／`PerYearToPerDay`／`PerMonthToPerDay`／`PerDayToPerMonth`／`YearsToMonths` の名前のある関数だけ（裸の `/12`・`*12` を書かない＝`CalendarTests` の番人。⚠番人が数えるのは SimCore の「`Calendar` の暦の定数を掛けるか割る」形だけ〔被演算子の左右どちらでも・ファイルごとの宣言＝(244) で広げた〕＝裸のリテラル〔`*12`・`/12.0`・`*4.0`〕と Runner／App は数えない）。
   - ★ 名前の規則を入れた中心（(243)）＝所得（Pop の `EarnedPerMonth` ほか）・国の規模と財政（World の `GdpPerMonth`・`NominalGdpPerMonth`・`LastRevenuePerMonth`・`GovBondRatePerYear` ほか）・軍の規模（`SoldierSizeK`）・係数 16。残りの量は表の「不明」の行から順に。
 - ★ **専用の値型**（`readonly record struct`・中身は double 1つ＝速度は変わらない）を、失敗が繰り返し出た中心（財政・貯蓄・所得・軍の規模）から入れる。候補＝在庫のお金・月の流れのお金・期間（月）・人口（千人）・割合・1人あたり。異なる型どうしの加算と比較はコンパイルが通らない形にし、月と年の換算は名前のある関数だけにする。
-  - ★ **入れた型の一覧**（2026-10-10 (246) 線T・(248) で main へ・推奨で進めた〔作者の承認は未確認〕）＝`SimCore/Units.cs` の1ファイル：
+  - ★ **入れた型の一覧**（2026-10-10 (246) 線T・(248) で main へ・★(250) 線M で在庫のお金と実質GDP を足した・推奨で進めた〔作者の承認は未確認〕）＝`SimCore/Units.cs` の1ファイル：
 
     | 型 | 意味 | 主な宣言 |
     |---|---|---|
     | `RatePerYear` | 年率（1年あたりの割合） | World の `GovBondRatePerYear`・`GovAvgCouponPerYear`・`ExpectedInflationPerYear`・係数 `BondBaseRatePerYear`・`BondRateMaxPerYear`・`LoanSpreadPerYear`・`OpulenceSpendRatePerYear` |
     | `RatePerMonth` | 月率（1か月あたりの割合） | 係数 `BondRolloverFracPerMonth`・`BondRepayFracPerMonth`・`PrizeMoneyRatePerMonth`・`SubsidyDependenceRatePerMonth`・`SoldierMigrationRatePerMonth`・`MintFloorBuyRatePerMonth`・`MintReserveSellRatePerMonth` |
-    | `MoneyPerMonth` | 月の流れのお金 | Pop の `EarnedPerMonth`・`LastEarnedPerMonth`・`LandRentPerMonth`・`PaidPerMonth`・`IndustrialRentPerMonth`／World の `GdpPerMonth`・`NominalGdpPerMonth`・`FiscalCapacityPerMonth`・`LastRevenuePerMonth`・`LastInterestPerMonth` ほか流れ 11 本／Power の GDP／係数 `ForceUnlockTreasuryCostPerMonth` |
+    | `MoneyPerMonth` | 月の流れのお金 | Pop の `EarnedPerMonth`・`LastEarnedPerMonth`・`LandRentPerMonth`・`PaidPerMonth`・`IndustrialRentPerMonth`／World の `NominalGdpPerMonth`・`FiscalCapacityPerMonth`・`LastRevenuePerMonth`・`LastInterestPerMonth` ほか流れ 11 本／係数 `ForceUnlockTreasuryCostPerMonth`（★(250) 実質GDP は下の `RealGdpPerMonth` へ分けた） |
     | `MoneyPerYear` | 年の流れのお金 | ⚠ 宣言は無い（`Calendar` の型つきの換算の戻り値だけ） |
+    | `MoneyStock` | ★(250) 在庫のお金（ある時点の残高） | World の `Treasury`（国庫）・`GovDebt`（国債の残高）／Pop の `Savings`（貯蓄）。⚠`NationConfig.Treasury`／`GovDebt` は入力（world.json の数値・initdump の列）なので double のまま |
+    | `RealGdpPerMonth` | ★(250) 実質の月の産出（参照価格×量・貨幣ではない物差し） | World の `GdpPerMonth`／Power の `GdpPerMonth`。名目は `NominalGdpPerMonth`（`MoneyPerMonth`）＝実質→名目は `World.NominalOf`（double を受ける）の1本だけ |
 
     - 許す演算＝同じ型どうしの加減・符号反転・スカラー（double）倍と除算・同じ型どうしの比（double）・同じ型どうしの比較。暗黙の double 変換は無い（取り出しは `.Value`）。型つきの月と年の換算は `Calendar` の多重定義だけ。`IComparable`・`IFormattable`・`==` は double と同じ（NaN は等しくない）。
     - セーブ＝`SaveGame` の `Tag.Unit`（型名＋ double 1つ）。係数の名前引き（`POB_COEF`・Runner の反射）＝`UnitValues.TryToDouble`／`FromDouble` の1本。番人＝`UnitTypeTests`（演算子の署名・セーブの往復・反射の橋）。
-    - ⚠ **型の限界**（(248) 反証役 vt2#3・vt2#4）：①スカラー倍と除算は型を変えない＝`x * 12`（月→年）・`* monthsPerQuarter`・`/ pop`（1人あたり）・`/ price`（数量）が `MoneyPerMonth` のまま通る（番人は演算子の署名しか見ない＝裸の `* 12` は捕まえない）。②実質の `GdpPerMonth`（参照価格×量）と名目の `NominalGdpPerMonth`（貨幣）が同じ型＝実質と名目の取り違えは型では防げない。どちらも③の残りの候補（00一覧 00-R）。
+    - ★ **在庫と流れ**（(250)）＝在庫（`MoneyStock`）と流れ（`MoneyPerMonth`）の加減・比較は書けない。月の決算で1か月分の流れを在庫へ足す所は `Calendar.OneMonthOf(MoneyPerMonth) → MoneyStock` の1本だけ（Pop の月末の精算 `SettleMonth` の1か所・値をそのまま包む＝掛け算も丸めも無い）。在庫を `x * 12` のように換算しない。番人＝`UnitTypeTests`（異なる型の間に演算子も変換も無いことを全ての組で・`OneMonthOf` が在庫を返す唯一の口であること）。
+    - ⚠ **型の限界**（(248) 反証役 vt2#3・vt2#4）：①スカラー倍と除算は型を変えない＝`x * 12`（月→年）・`* monthsPerQuarter`・`/ pop`（1人あたり）・`/ price`（数量）が `MoneyPerMonth` のまま通る（番人は演算子の署名しか見ない＝裸の `* 12` は捕まえない）。★(250)：在庫の型に触れた所の `x * Calendar.MonthsPerYear`・`x * 12` は `Calendar.PerMonthToPerYear` へ寄せた（Tests 16 行・Runner 2 行）。残る裸の `* 12`／`/ 12` の候補は SimCore 0（コメントだけ＝CalendarTests が止めている）・App 0・Runner 13・Tests 12 行（grep の件数・時間でない 12 も含む・次の回に精査）。②実質の `GdpPerMonth` と名目の `NominalGdpPerMonth` ＝★(250) で別の型に分けた（呼び元は 3 か所だけ型が合わず直った＝Runner の診断2行〔名目の歳入÷実質GDP・名目GDP÷実質GDP〕と Tests 1 行・値は変えていない）。⚠`Diplomacy` の賠償金の基準 `loser.GdpPerMonth * 係数` など、実質GDP を貨幣の額として使う所は `.Value` で型を外しているだけ（定義の誤りは型では防げない）。
     - ⚠ 型を入れた木では旧式の注入（fullS・probe・fullX）が当たらない＝計器つきの帯は標準の計器（`INS=1`）で回す（§1-2・(248)）。
 - ⚠ 型の導入は挙動を変えない変更＝計算の順序を変えずに包み、10種の全行バイト一致で証明する（§1-3）。セーブの書き出しは値の型ごとの分岐＝新しい型は分岐を足して savetest で往復を確かめる。
 - ⚠ 型は「次元の誤り」（在庫と流れ・月と年・千人と人・絶対量と人口あたり）を防ぐ。「定義の誤り」（総産出と付加価値など）は型では防げない＝名前と単位の表で防ぐ。

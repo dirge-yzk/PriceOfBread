@@ -522,7 +522,7 @@ public partial class GameViewModel
             double fMet = 0, fNeed = 0, nMet = 0, nTot = 0;
             foreach (var (rg, p) in members)
             {
-                size += p.Size; sav += p.Savings; earned += p.EarnedPerMonth.Value; debt += p.Debt;
+                size += p.Size; sav += p.Savings.Value; earned += p.EarnedPerMonth.Value; debt += p.Debt;
                 fMet += p.FoodMet; fNeed += p.FoodNeed; nMet += p.NeedMet; nTot += p.NeedTotal;
                 satW += p.Satisfaction * p.Size; milW += p.Militancy * p.Size; litW += p.Literacy * p.Size;
                 double a20 = p.AgeShare(20, double.PositiveInfinity);   // 年齢の層（段4e 後半）：女性比＝20歳以上のうちの女性・子供比＝15歳未満・老年比＝60歳以上
@@ -631,7 +631,7 @@ public partial class GameViewModel
         // ★力の源泉ホバー（2026-08-04）：旧支配層の力＝流動資産＋土地（地代の資本化）。何が力を支えているかの分解（データのみ）
         double nobSav = 0, nobLand = 0;
         foreach (var pp in _player.AllPops())
-            if (pp.Closed) { nobSav += System.Math.Max(0, pp.Savings); nobLand += _player.Coef.LandedPowerCapitalization * System.Math.Max(0, pp.LandRentPerMonth.Value); }
+            if (pp.Closed) { nobSav += System.Math.Max(0, pp.Savings.Value); nobLand += _player.Coef.LandedPowerCapitalization * System.Math.Max(0, pp.LandRentPerMonth.Value); }
         double nobTot = nobSav + nobLand;
         // ★括弧書きの内訳（貴族と聖職／ブルジョワと専門職／労働者と農民）は削除（2026-08-23作者指示）
         Blocs.Add(new BlocRow { Name = "旧支配層", Percent = (trad / bsum).ToString("P0"),

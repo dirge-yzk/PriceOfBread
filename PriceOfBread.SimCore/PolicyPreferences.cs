@@ -128,7 +128,7 @@ public static class PolicyPreferences
         foreach (var p in w.AllPops())
         {
             int b = BlocOf(p);
-            double sv = System.Math.Max(0, p.Savings);
+            double sv = System.Math.Max(0, p.Savings.Value);
             wealth[b] += sv; tw += sv;
             double rn = System.Math.Max(0, p.LandRentPerMonth.Value); rent[b] += rn; tr += rn;
             double inc = System.Math.Max(0, p.EarnedPerMonth.Value); income[b] += inc; ti += inc;
@@ -143,7 +143,7 @@ public static class PolicyPreferences
         double stress = w.FiscalEnabled
             // [単位・B13] 債務/GDP＝**年次名目**（GovDebt÷(月次NominalGdpPerMonth×12)・Min 1）＝Fiscal の国債の金利・CapitalMarket・Government の緊縮と同じ物差し（2026-09-29・棚卸し fis-02 の残り）。
             //   旧＝**月次実質**（年次の約12倍の値）＝国債が年GDP の1割（8.3%）を越えた国は全て1で飽和＝国債の多さが歳入の要求に効かなかった。
-            ? PoliticalQuantities.Clamp01((1.0 - w.FiscalFundingRatio) + (ngdp > 1e-9 ? System.Math.Min(1.0, w.GovDebt / Calendar.PerMonthToPerYear(ngdp)) : 0))
+            ? PoliticalQuantities.Clamp01((1.0 - w.FiscalFundingRatio) + (ngdp > 1e-9 ? System.Math.Min(1.0, w.GovDebt.Value / Calendar.PerMonthToPerYear(ngdp)) : 0))
             : 0;
         return new Profile(power, wealth, rent, income, poll, old, 0.5 + stress,
             pettyM, pettyS, ti > 1e-9 ? pettyInc / ti : 0, ti > 1e-9 ? pettyIncM / ti : 0, ngdp);
@@ -284,7 +284,7 @@ public static class PolicyPreferences
                     foreach (var q in rr.Pops)
                     {
                         // ⚠物差しは**富**（規模でなく政治力）。資本家は数が少なく富が大きいので初期は優越する＝史実の順序が出る。
-                        double wealth = Math.Max(0, q.Savings);
+                        double wealth = Math.Max(0, q.Savings.Value);
                         if (q.ClassId == PopClass.Capitalist) capW += wealth;
                         else if (q.ClassId == PopClass.Engineer || q.ClassId == PopClass.Researcher) proW += wealth;
                     }

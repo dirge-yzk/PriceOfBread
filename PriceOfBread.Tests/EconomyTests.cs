@@ -547,7 +547,7 @@ public class EconomyTests
         var staple = new Good { Id = 0, Name = "主食", Tier = GoodTier.Staple, BaseNeed = 0.8, RefPrice = 1.0, Elasticity = 0.3 };
         var daily = new Good { Id = 1, Name = "日用品", Tier = GoodTier.Daily, BaseNeed = 0.5, RefPrice = 1.0, Elasticity = 0.3, Nutrition = dailyNutrition };
         var luxury = new Good { Id = 2, Name = "嗜好品", Tier = GoodTier.Luxury, BaseNeed = 0.3, RefPrice = 1.0, Elasticity = 0.3 };
-        var worker = new Pop { ClassId = 0, ClassName = "労働者", IsUrban = false, Size = 1000, Savings = savings };
+        var worker = new Pop { ClassId = 0, ClassName = "労働者", IsUrban = false, Size = 1000, Savings = new MoneyStock(savings) };
         return new Region
         {
             Id = 0,
@@ -564,8 +564,8 @@ public class EconomyTests
     private static Region TwoClassRegion()
     {
         var food = new Good { Id = 0, Name = "食料", Tier = GoodTier.Staple, BaseNeed = 0.8, RefPrice = 1.0, Elasticity = 0.3 };
-        var laborer = new Pop { ClassId = 0, ClassName = "農業労働者", IsUrban = false, Size = 1000, Savings = 500_000 };
-        var landlord = new Pop { ClassId = 1, ClassName = "地主", IsUrban = false, Size = 50, Savings = 500_000 };
+        var laborer = new Pop { ClassId = 0, ClassName = "農業労働者", IsUrban = false, Size = 1000, Savings = new MoneyStock(500_000) };
+        var landlord = new Pop { ClassId = 1, ClassName = "地主", IsUrban = false, Size = 50, Savings = new MoneyStock(500_000) };
         var rgo = new Producer { GoodId = 0, Productivity = 0.85, Output = 800, MarginalCost = 0.5, OwnerPopIndex = 1, LaborPopIndex = 0, RentShare = 0.3 };
         var market = new Market { Price = 1.0, Stock = 1200, TargetStock = 1200 };
         return new Region { Id = 0, Goods = [food], Pops = [laborer, landlord], Producers = [rgo], Markets = [market] };
@@ -583,20 +583,20 @@ public class EconomyTests
         sim.Run(6);
         var w = sim.World; var region = w.Region;
         var stopped = region.Producers.FirstOrDefault(p => p.Inputs.Count > 0 && !p.IsRgo && p.OwnerPopIndex >= 0 && p.OwnerPopIndex < region.Pops.Count
-                                                         && region.Pops[p.OwnerPopIndex].Savings > 0 && p.DesiredOutput > 0);
+                                                         && region.Pops[p.OwnerPopIndex].Savings.Value > 0 && p.DesiredOutput > 0);
         Assert.True(stopped is not null, "前提が崩れた：止められる工場（投入あり・持ち主の貯蓄が正・採算あり）が無い");
         stopped!.Output = 0;   // 止まった工場＝再点火の発注（ReignitionDemandFrac×DesiredOutput−Output）が立つ
         w.Coef.ReignitionDemandFrac = 2.0;   // 盤面の係数（この国の係数だけ）＝産出が採算の量の2倍に届かない全ての生産者に発注が立つ（月初に産出が引き直されても請求が立つ）
         var owner = region.Pops[stopped.OwnerPopIndex];
-        owner.SetSavings(Math.Max(owner.Savings, 1e9));   // 持ち主の予算が発注を満たす（充足率1）
+        owner.SetSavings(Math.Max(owner.Savings.Value, 1e9));   // 持ち主の予算が発注を満たす（充足率1）
         foreach (var inp in stopped.Inputs) region.Markets[inp.GoodId].Stock = Math.Max(region.Markets[inp.GoodId].Stock, 1e6);   // 投入の在庫＝配給率が正＝請求が立つ
-        var s0 = region.Pops.Select(p => p.Savings).ToArray();
+        var s0 = region.Pops.Select(p => p.Savings.Value).ToArray();
         EconomyStep.Run(region, w.Coef, 1.0, w.Bank, w);
         Assert.True(w.Coef.ReignitionDemandFrac * stopped.DesiredOutput > 0, "前提が崩れた：止めた工場に再点火の発注が立たない");
         for (int i = 0; i < region.Pops.Count; i++)
         {
             var p = region.Pops[i];
-            Assert.Equal(s0[i] + (p.EarnedPerMonth - p.PaidPerMonth).Value, p.Savings);   // 月内に貯蓄を書くのは月末の精算だけ
+            Assert.Equal(s0[i] + (p.EarnedPerMonth - p.PaidPerMonth).Value, p.Savings.Value);   // 月内に貯蓄を書くのは月末の精算だけ
         }
     }
 

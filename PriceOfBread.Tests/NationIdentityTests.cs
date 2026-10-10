@@ -146,7 +146,7 @@ public class NationIdentityTests
         Assert.Equal(0, brussels.Id);
         Assert.DoesNotContain(brussels, w.Regions);       // 親からは消えた
         Assert.True(belgium.TotalPopulation > pop * 0.9); // 人は州ごと移った
-        Assert.True(belgium.Treasury > 0);                // 国庫の人口比分与
+        Assert.True(belgium.Treasury.Value > 0);                // 国庫の人口比分与
         Assert.True(savings > 0);
         // 双方が翌四半期も正常に鼓動する（Invariants例外なし）
         sim.StepQuarter();

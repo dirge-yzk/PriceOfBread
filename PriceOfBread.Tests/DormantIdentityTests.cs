@@ -113,7 +113,7 @@ public class DormantIdentityTests
         {
             var f = typeof(Coefficients).GetField(name);
             Assert.True(f is not null, $"休眠係数「{name}」が Coefficients に無い（改名したら本テストの表も直す）");
-            Assert.True(f!.GetValue(c) is double d && d == 1.0, $"scale型の休眠係数「{name}」の既定が1.0でない（点火したなら表から外す）");
+            Assert.True(f!.FieldType != typeof(int) && UnitValues.TryToDouble(f.GetValue(c), out double d) && d == 1.0, $"scale型の休眠係数「{name}」の既定が1.0でない（点火したなら表から外す）");   // ★(250) 取り出しは橋の1本（double・専用の値型。int は従来どおり対象外）
         }
         // ★2026-09-26（fis-27・dorm-52）：投射の起点を州の支配へ広げる旗は「到達しない値」（>1.0）で休眠＝支配の国家区分 Rule[0] は1を超えない。
         //   点火（≦1.0）は dorm-09（支配の4区分）の後＝回6-4。値が1のちょうど上なので上の表（==1.0）にも既定ゼロの表にも載らない＝ここで見る。

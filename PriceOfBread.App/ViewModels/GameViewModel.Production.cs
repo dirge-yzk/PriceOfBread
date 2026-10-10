@@ -934,7 +934,7 @@ public partial class GameViewModel
             buildCostTip = $"{facilityWord}　建設費 {Money(spec.Cost)}" + mats
                 + $"\n合計コスト {Money(wageTotal + matCostSum)}"
                 + $"\n完成まで {spec.Quarters / (double)Calendar.QuartersPerYear:F1}年"
-                + $"\n国庫 {Money(_player.Treasury)}（着工{(wageTotal + matCostSum > 1e-9 ? System.Math.Floor(System.Math.Max(0, _player.Treasury) / (wageTotal + matCostSum)) : 0):F0}回分）";   // ★2026-08-31（清レポート4-4＝60連打で国庫271の無警告）：一括着工の帰結を事前に読める
+                + $"\n国庫 {Money(_player.Treasury.Value)}（着工{(wageTotal + matCostSum > 1e-9 ? System.Math.Floor(System.Math.Max(0, _player.Treasury.Value) / (wageTotal + matCostSum)) : 0):F0}回分）";   // ★2026-08-31（清レポート4-4＝60連打で国庫271の無警告）：一括着工の帰結を事前に読める
         }
         // 州に依存しないループ不変量（州ループの外で1回だけ求める＝buildAfford と同じ場所）。
         double days = Math.Max(1, spec.Quarters) * (double)Calendar.DaysPerQuarter;
@@ -995,14 +995,14 @@ public partial class GameViewModel
             // 建てられる条件は「その州にRGOの生産者が立っている」＝ pr is not null に既に畳み込まれている
             // （気候ゲート＝米/綿花/植民地財は非適地で生産者ごと除去済み・非賦存州は Productivity×0.4＝市場が採算で判断）。
             bool canBuild = pr is not null && pr.ConstructionLeft <= 0
-                         && _player.Treasury >= payPerDay && !cantMakeHere   // 技術で産出0の工場・国庫不足の空クリックは無効化
+                         && _player.Treasury.Value >= payPerDay && !cantMakeHere   // 技術で産出0の工場・国庫不足の空クリックは無効化
                          && buildAfford >= _player.Coef.FactoryStartAffordFloor;    // 建材が高すぎる間はエンジンが拒む＝ボタンも押せない（原因A）
             // 建設できない理由（ボタンにカーソルを合わせた時に表示）。建設可能なら null＝ツールチップ無し
             string? buildReason = canBuild ? null
                 : pr is null ? "この州に産地なし"
                 : pr.ConstructionLeft > 0 ? $"建設中 あと{pr.ConstructionLeft / (double)Calendar.DaysPerYear:F1}年"
                 : cantMakeHere ? "技術不足"
-                : _player.Treasury < payPerDay ? $"国庫不足(初日の労務費 {Money(payPerDay)} が必要)"
+                : _player.Treasury.Value < payPerDay ? $"国庫不足(初日の労務費 {Money(payPerDay)} が必要)"
                 : buildAfford < _player.Coef.FactoryStartAffordFloor ? $"建材の採算 {buildAfford:P0}/必要 {_player.Coef.FactoryStartAffordFloor:P0}"
                 : "建設不可";
             var sale = pr is not null && pr.BuiltScale > 1e-9 ? _player.CanSellFactory(ri, gi) : (Ok: false, Price: 0.0, Reason: "");

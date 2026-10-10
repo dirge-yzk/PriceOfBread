@@ -16,9 +16,9 @@ public class UnderconsumptionTests
         sim.Run(400);
 
         var r = sim.World.Regions[0];
-        double workerPc = r.Pops[1].Savings / Math.Max(1, r.Pops[1].Size);
-        double farmerPc = r.Pops[0].Savings / Math.Max(1, r.Pops[0].Size);
-        double capPc = r.Pops[2].Savings / Math.Max(1, r.Pops[2].Size);
+        double workerPc = r.Pops[1].Savings.Value / Math.Max(1, r.Pops[1].Size);
+        double farmerPc = r.Pops[0].Savings.Value / Math.Max(1, r.Pops[0].Size);
+        double capPc = r.Pops[2].Savings.Value / Math.Max(1, r.Pops[2].Size);
 
         Assert.True(workerPc < farmerPc, $"労働者が窮乏していない（労働 {workerPc:F0} vs 農民 {farmerPc:F0}）");
         Assert.True(capPc > workerPc * 10, $"格差が出ていない（資本家 {capPc:F0} vs 労働 {workerPc:F0}）");
@@ -37,8 +37,8 @@ public class UnderconsumptionTests
         mild.Run(400);
         harsh.Run(400);
 
-        double mildWorker = mild.World.Regions[0].Pops[1].Savings / Math.Max(1, mild.World.Regions[0].Pops[1].Size);
-        double harshWorker = harsh.World.Regions[0].Pops[1].Savings / Math.Max(1, harsh.World.Regions[0].Pops[1].Size);
+        double mildWorker = mild.World.Regions[0].Pops[1].Savings.Value / Math.Max(1, mild.World.Regions[0].Pops[1].Size);
+        double harshWorker = harsh.World.Regions[0].Pops[1].Savings.Value / Math.Max(1, harsh.World.Regions[0].Pops[1].Size);
 
         Assert.True(harshWorker < mildWorker, $"搾取が強い方が労働者が貧しくない（強 {harshWorker:F0} vs 弱 {mildWorker:F0}）");
         Assert.True(harsh.World.UrbanShare < mild.World.UrbanShare, $"搾取が強い方が工業が縮まない（強 {harsh.World.UrbanShare:P1} vs 弱 {mild.World.UrbanShare:P1}）");

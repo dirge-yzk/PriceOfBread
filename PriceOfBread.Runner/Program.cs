@@ -734,8 +734,8 @@ if (args.Length > 0 && args[0] == "transportdump")
         {
             if (rT.State != RegionState.Active) continue;
             thrSum += rT.LastTradeThrottle; thrN++;
-            if (rT.MerchantPopIndex >= 0) merSav += rT.Pops[rT.MerchantPopIndex].Savings;
-            if (rT.InvestorPopIndex >= 0) invSav += rT.Pops[rT.InvestorPopIndex].Savings;
+            if (rT.MerchantPopIndex >= 0) merSav += rT.Pops[rT.MerchantPopIndex].Savings.Value;
+            if (rT.InvestorPopIndex >= 0) invSav += rT.Pops[rT.InvestorPopIndex].Savings.Value;
         }
         System.Console.WriteLine($"{wT.SelfPower?.Name},{wT.TotalPopulation:F0},{wT.GdpPerMonth:F0},{wT.RailCapacity:F1},{wT.ShipCapacity:F1},{capT:F1}," +
             $"{(wT.TotalPopulation > 1e-9 ? capT / wT.TotalPopulation : 0):F5},{(wT.GdpPerMonth.Value > 1e-9 ? capT / wT.GdpPerMonth.Value : 0):F5}," +
@@ -902,7 +902,7 @@ if (args.Length > 0 && args[0] == "indprobe")
             string name = w.SelfPower?.BaseName ?? "";
             if (System.Array.IndexOf(targets, name) < 0) continue;
             var r = w.Regions[0];
-            double inv = r.InvestorPopIndex >= 0 ? r.Pops[r.InvestorPopIndex].Savings : -1;
+            double inv = r.InvestorPopIndex >= 0 ? r.Pops[r.InvestorPopIndex].Savings.Value : -1;
             double sP = r.Markets[ipc.SteelGoodId].Price, sS = r.Markets[ipc.SteelGoodId].Stock;
             double mP = r.Markets[ipc.MachineGoodId].Price, mS = r.Markets[ipc.MachineGoodId].Stock;
             System.Console.WriteLine($"Q{q,3} {name,-6} {r.Name,-8} Ind={r.Industrialization:F3} 民間累積={r.CumPrivateIndustrialization:F3} 国家累積={r.CumStateIndustrialization:F3} 投資家貯蓄={inv:F0} 鋼(価格{sP:F2}/在庫{sS:F0}) 機械(価格{mP:F2}/在庫{mS:F0})");
@@ -1618,7 +1618,7 @@ if (args.Length > 0 && args[0] == "accprobe")
         thr = n > 0 ? thr / n : 1.0;
         thrW = wsum > 1e-9 ? thrW / wsum : thr;
         double tp = TradeGdp(w) * 100;
-        return (acc, warLost, hegRes, thr, thrW, w.GdpPerMonth.Value > 1 ? w.NominalGdpPerMonth / w.GdpPerMonth : 0, tp, linked, n);
+        return (acc, warLost, hegRes, thr, thrW, w.GdpPerMonth.Value > 1 ? w.NominalGdpPerMonth.Value / w.GdpPerMonth.Value : 0, tp, linked, n);
     }
 
     Console.WriteLine("年,Q,世界貿易GDP%,世界外交acc(GDP加重),世界律速(潜在加重),世界実効acc,交戦数,世界貿易額(年),世界名目GDP,世界実GDP,名目÷実," +
@@ -1882,7 +1882,7 @@ if (args.Length > 0 && args[0] == "nobleprobe")
                 foreach (var p in r.Pops)
                 {
                     int g = p.Closed ? 0 : p.IsModernElite ? 1 : 2;
-                    size[g] += p.Size; rent[g] += System.Math.Max(0, p.LandRentPerMonth.Value); earned[g] += System.Math.Max(0, p.EarnedPerMonth.Value); sav[g] += System.Math.Max(0, p.Savings);
+                    size[g] += p.Size; rent[g] += System.Math.Max(0, p.LandRentPerMonth.Value); earned[g] += System.Math.Max(0, p.EarnedPerMonth.Value); sav[g] += System.Math.Max(0, p.Savings.Value);
                 }
             double savAll = System.Math.Max(1e-9, sav[0] + sav[1] + sav[2]);
             string[] gn = ["貴族聖職", "近代エリ", "その他"];
@@ -2238,7 +2238,7 @@ if (args.Length > 0 && args[0] == "poweraff")
                             {
                                 if (pp.Closed) { mC += pp.Militancy * pp.Size; sC += pp.Size; }
                                 if (pp.IsSoldier) { mS += pp.Militancy * pp.Size; sS += pp.Size; }
-                                sv += System.Math.Max(0, pp.Savings); tp += pp.Size;
+                                sv += System.Math.Max(0, pp.Savings.Value); tp += pp.Size;
                             }
                             lmC.Add(sC > 1e-9 ? mC / sC : 0);
                             lmS.Add(sS > 1e-9 ? mS / sS : 0);
@@ -2247,7 +2247,7 @@ if (args.Length > 0 && args[0] == "poweraff")
                             double cvW = 0;
                             foreach (var pp in w4.AllPops())
                             {
-                                double wpc = pp.Size > 1e-9 ? System.Math.Max(0, pp.Savings) / pp.Size : 0;
+                                double wpc = pp.Size > 1e-9 ? System.Math.Max(0, pp.Savings.Value) / pp.Size : 0;
                                 double rel = meanW > 1e-9 ? wpc / meanW : 1;
                                 double rich = System.Math.Clamp((rel - 1) / 3.0, 0, 1) * 3.0;
                                 cvW += System.Math.Clamp(rich / 2.0, 0, 1) * pp.Size;
@@ -2409,8 +2409,8 @@ if (args.Length > 0 && args[0] == "initdump")
                 {
                     popK += p.Size; if (p.IsUrban) urbanK += p.Size; litSum += p.Literacy * p.Size; if (p.IsSoldier) sold += p.Size;
                     if (!cls.TryGetValue(p.ClassName, out var c)) { c = (0, 0, 0, 0, 0, 0, 0); order.Add(p.ClassName); }
-                    cls[p.ClassName] = (c.size + p.Size, c.sav + p.Savings, c.earned + p.LastEarnedPerMonth.Value, c.lit + p.Literacy * p.Size, c.sat + p.Satisfaction * p.Size, c.debt + p.Debt, c.bond + p.BondHoldings);
-                    if (CapitalMarket.IsInvestor(p, w.Coef)) { invSav += p.Savings; invEarn += p.LastEarnedPerMonth.Value; invSize += p.Size; }
+                    cls[p.ClassName] = (c.size + p.Size, c.sav + p.Savings.Value, c.earned + p.LastEarnedPerMonth.Value, c.lit + p.Literacy * p.Size, c.sat + p.Satisfaction * p.Size, c.debt + p.Debt, c.bond + p.BondHoldings);
+                    if (CapitalMarket.IsInvestor(p, w.Coef)) { invSav += p.Savings.Value; invEarn += p.LastEarnedPerMonth.Value; invSize += p.Size; }
                 }
             }
             Row(nm, "人口/総数", tm, popK * 1000, "人");
@@ -2447,11 +2447,11 @@ if (args.Length > 0 && args[0] == "initdump")
             Row(nm, "GDP/1人あたり(実質・年)", tm, popK > 0 ? gdp * 12 / (popK * 1000) : 0, "参照価格/人/年");
             Row(nm, "GDP/1人あたり(名目・年)", tm, popK > 0 ? (Calendar.PerMonthToPerYear(w.NominalGdpPerMonth) / (popK * 1000)).Value : 0, "貨幣/人/年");
             // 財政
-            Row(nm, "財政/国庫", tm, w.Treasury, "貨幣");
-            Row(nm, "財政/国債", tm, w.GovDebt, "貨幣");
+            Row(nm, "財政/国庫", tm, w.Treasury.Value, "貨幣");
+            Row(nm, "財政/国債", tm, w.GovDebt.Value, "貨幣");
             Row(nm, "財政/うち対外債", tm, w.ForeignDebt, "貨幣");
-            Row(nm, "財政/国債÷年名目GDP", tm, w.NominalGdpPerMonth.Value > 0 ? w.GovDebt / (Calendar.PerMonthToPerYear(w.NominalGdpPerMonth)).Value : 0, "比");
-            Row(nm, "財政/国庫÷年名目GDP", tm, w.NominalGdpPerMonth.Value > 0 ? w.Treasury / (Calendar.PerMonthToPerYear(w.NominalGdpPerMonth)).Value : 0, "比");
+            Row(nm, "財政/国債÷年名目GDP", tm, w.NominalGdpPerMonth.Value > 0 ? w.GovDebt.Value / (Calendar.PerMonthToPerYear(w.NominalGdpPerMonth)).Value : 0, "比");
+            Row(nm, "財政/国庫÷年名目GDP", tm, w.NominalGdpPerMonth.Value > 0 ? w.Treasury.Value / (Calendar.PerMonthToPerYear(w.NominalGdpPerMonth)).Value : 0, "比");
             Row(nm, "財政/直近の月の純税収", tm, w.LastRevenuePerMonth.Value, "貨幣/月");
             Row(nm, "財政/直近の月の純税収÷年名目GDP", tm, w.NominalGdpPerMonth.Value > 0 ? Calendar.PerMonthToPerYear(w.LastRevenuePerMonth) / (Calendar.PerMonthToPerYear(w.NominalGdpPerMonth)) : 0, "比");
             Row(nm, "財政/直近の清算1回の関税収入", tm, w.LastTariffRevenuePerClearing, "貨幣/清算1回");
@@ -2508,9 +2508,9 @@ if (args.Length > 0 && args[0] == "initdump")
                 if (r.InvestorPopIndex >= 0 && r.InvestorPopIndex < r.Pops.Count)
                 {
                     var ip = r.Pops[r.InvestorPopIndex];
-                    Row(nm, rk + "資本家の貯蓄", tm, ip.Savings, "貨幣");
+                    Row(nm, rk + "資本家の貯蓄", tm, ip.Savings.Value, "貨幣");
                     Row(nm, rk + "資本家の前月所得", tm, ip.LastEarnedPerMonth.Value, "貨幣/月");
-                    Row(nm, rk + "資本家の貯蓄÷年所得", tm, ip.LastEarnedPerMonth.Value > 0 ? ip.Savings / (ip.LastEarnedPerMonth * 12).Value : double.NaN, "年");
+                    Row(nm, rk + "資本家の貯蓄÷年所得", tm, ip.LastEarnedPerMonth.Value > 0 ? ip.Savings.Value / Calendar.PerMonthToPerYear(ip.LastEarnedPerMonth).Value : double.NaN, "年");
                 }
                 double ro = 0; foreach (var pr in r.Producers) ro += pr.Output * Catalog.RefPrices[pr.GoodId];
                 Row(nm, rk + "産出額(参照価格・全生産者)", tm, ro, "参照価格×量/月");
@@ -5257,10 +5257,10 @@ if (args.Length > 0 && args[0] == "captrace")
         {
             if (r.State != RegionState.Active || r.InvestorPopIndex < 0) continue;
             double totalSav = 0, total = 0;
-            foreach (var p in r.Pops) { total += p.Size; totalSav += System.Math.Max(0, p.Savings); }
+            foreach (var p in r.Pops) { total += p.Size; totalSav += System.Math.Max(0, p.Savings.Value); }
             double avg = total > 1e-9 ? totalSav / total : 0;
             var cap = r.Pops[r.InvestorPopIndex];
-            double capPc = cap.Size > 1e-9 ? cap.Savings / cap.Size : 0;
+            double capPc = cap.Size > 1e-9 ? cap.Savings.Value / cap.Size : 0;
             var art = r.ArtisanPopIndex >= 0 ? r.Pops[r.ArtisanPopIndex] : null;
             bool fires = capPc < upperThr * avg;
             Console.WriteLine($"  {r.Name,-14} 資本家 規模{cap.Size,7:F0} 貯蓄/人{capPc,9:F1}  平均/人{avg,7:F1} 閾値{upperThr * avg,7:F1} 降格発火={(fires ? "○" : "×")}  職人規模{(art != null ? art.Size : 0),7:F0}");
@@ -5918,8 +5918,8 @@ if (args.Length > 0 && args[0] == "deficit")
                 if (p.Size < 1) continue;
                 var k = p.ClassName;
                 var v = byClass.GetValueOrDefault(k);
-                double pc = p.Savings / p.Size;
-                byClass[k] = (v.sumPcSav + pc * p.Size, v.sumSize + p.Size, v.floored + (p.Savings < 1.0 ? 1 : 0), v.total + 1);
+                double pc = p.Savings.Value / p.Size;
+                byClass[k] = (v.sumPcSav + pc * p.Size, v.sumSize + p.Size, v.floored + (p.Savings.Value < 1.0 ? 1 : 0), v.total + 1);
             }
         }
     Console.WriteLine("階級           一人あたり貯蓄(加重平均)   貯蓄ゼロ床の州割合");
@@ -6000,7 +6000,7 @@ if (args.Length > 0 && args[0] == "migprobe")
             var w = s.World;
             // 農民(1)・労働者(2)の1人当たり貯蓄（運賃係数の目安）＝最良/最悪州の平均
             double pcSavPeasant = 0, pcSavWorker = 0; int rc = 0;
-            foreach (var r in w.Regions) { if (r.State != RegionState.Active) continue; var pe = r.Pops.Find(x => x.ClassId == 1); var wo = r.Pops.Find(x => x.ClassId == 2); if (pe is { Size: > 1e-9 }) pcSavPeasant += pe.Savings / pe.Size; if (wo is { Size: > 1e-9 }) pcSavWorker += wo.Savings / wo.Size; rc++; }
+            foreach (var r in w.Regions) { if (r.State != RegionState.Active) continue; var pe = r.Pops.Find(x => x.ClassId == 1); var wo = r.Pops.Find(x => x.ClassId == 2); if (pe is { Size: > 1e-9 }) pcSavPeasant += pe.Savings.Value / pe.Size; if (wo is { Size: > 1e-9 }) pcSavWorker += wo.Savings.Value / wo.Size; rc++; }
             if (rc > 0) { pcSavPeasant /= rc; pcSavWorker /= rc; }
             Console.WriteLine($"  {name,-8} 人口{w.TotalPopulation,9:N0}  流入{w.LastImmigration,7:N0}/流出{w.LastEmigration,7:N0}  農民貯蓄/人{pcSavPeasant,7:F2}  労働者貯蓄/人{pcSavWorker,7:F2}");
         }
@@ -6199,7 +6199,7 @@ if (args.Length > 0 && args[0] == "startboard")
             int bid = r.CulturalGoodId >= 0 ? r.CulturalGoodId : Catalog.BreadId;
             double brp = r.Goods.First(x => x.Id == bid).RefPrice;
             breadMax = System.Math.Max(breadMax, brp > 1e-9 ? r.Markets[bid].Price / brp : 1);
-            treasMin = System.Math.Min(treasMin, w.Treasury);
+            treasMin = System.Math.Min(treasMin, w.Treasury.Value);
             indMax = System.Math.Max(indMax, r.TotalIndustrialization);
             foreach (var good in r.Goods)
             {
@@ -6381,11 +6381,11 @@ if (args.Length > 0 && args[0] == "initsavprobe")
                 if (r.State != RegionState.Active) continue;
                 foreach (var p in r.Pops)
                 {
-                    sz[p.ClassName] = sz.GetValueOrDefault(p.ClassName) + p.Size; sv[p.ClassName] = sv.GetValueOrDefault(p.ClassName) + p.Savings; ea[p.ClassName] = ea.GetValueOrDefault(p.ClassName) + p.LastEarnedPerMonth.Value;
-                    popTotal += p.Size; savTotal += p.Savings;
+                    sz[p.ClassName] = sz.GetValueOrDefault(p.ClassName) + p.Size; sv[p.ClassName] = sv.GetValueOrDefault(p.ClassName) + p.Savings.Value; ea[p.ClassName] = ea.GetValueOrDefault(p.ClassName) + p.LastEarnedPerMonth.Value;
+                    popTotal += p.Size; savTotal += p.Savings.Value;
                 }
             }
-            { var r0 = w.Regions[0]; if (r0.InvestorPopIndex >= 0) { var ip = r0.Pops[r0.InvestorPopIndex]; Console.WriteLine($"   [{name} 州0 {r0.Name}] 投資家POP {ip.ClassName} Size {ip.Size:F1} Savings {ip.Savings:F0} 前期所得(月) {ip.LastEarnedPerMonth:F1} 貯蓄÷月所得 {ip.Savings / Math.Max(1e-9, ip.LastEarnedPerMonth.Value):F1} 貯蓄÷年所得 {ip.Savings / Math.Max(1e-9, (ip.LastEarnedPerMonth * 12).Value):F1}"); } }
+            { var r0 = w.Regions[0]; if (r0.InvestorPopIndex >= 0) { var ip = r0.Pops[r0.InvestorPopIndex]; Console.WriteLine($"   [{name} 州0 {r0.Name}] 投資家POP {ip.ClassName} Size {ip.Size:F1} Savings {ip.Savings:F0} 前期所得(月) {ip.LastEarnedPerMonth:F1} 貯蓄÷月所得 {ip.Savings / Math.Max(1e-9, ip.LastEarnedPerMonth.Value):F1} 貯蓄÷年所得 {ip.Savings / Math.Max(1e-9, Calendar.PerMonthToPerYear(ip.LastEarnedPerMonth).Value):F1}"); } }
             double invSav = CapitalMarket.InvestorSavings(w); double invEarnAll = 0; foreach (var r in w.Regions) foreach (var p in r.Pops) if (CapitalMarket.IsInvestor(p, w.Coef)) invEarnAll += p.LastEarnedPerMonth.Value; double invEarn = 0; foreach (var r in w.Regions) foreach (var p in r.Pops) if (CapitalMarket.IsInvestor(p, w.Coef)) invEarn += p.LastEarnedPerMonth.Value;
             if (isNames[0] == "ALL" && stage.StartsWith("助走の終わり"))
             {
@@ -6435,7 +6435,7 @@ if (args.Length > 0 && args[0] == "earlyprobe220")
                     if (pr.GoodId == Catalog.LaborId) lcap += pr.Output;
                     if (!pr.IsRgo && pr.Inputs.Count > 0 && Catalog.Goods[pr.GoodId].Tier != GoodTier.Service) K += pr.Scale;
                 }
-                foreach (var p in r.Pops) sav += p.Savings;
+                foreach (var p in r.Pops) sav += p.Savings.Value;
             }
             double gdpY = Math.Max(1e-9, Calendar.PerMonthToPerYear(epw.NominalGdpPerMonth).Value);
             Console.WriteLine($"E	{name}	{tag}	yr{epw.Year}	ldem={ldem:F0}	lcap={lcap:F0}	ratio={(lcap > 1e-9 ? ldem / lcap : 0):F2}	lpx={(lpxD > 0 ? lpxN / lpxD : 0):F3}	K={K:F0}	inv/gdp={CapitalMarket.InvestorSavings(epw) / gdpY:F3}	sav/gdp={sav / gdpY:F3}	gdpY={gdpY:F0}	国庫/gdp={epw.Treasury / gdpY:F3}	国債/gdp={epw.GovDebt / gdpY:F3}	P={epw.PriceLevel:F3}	Fx={epw.FxRate:F3}	基礎貨幣={epw.BaseMoney:F0}");
@@ -6507,10 +6507,10 @@ if (args.Length > 0 && args[0] == "warmupprobe")
             popSum += n.World.TotalPopulation;
             frontier = Math.Max(frontier, n.World.TechLevel);
             indMax = Math.Max(indMax, n.World.MeanIndustrialization);   // 助走で「時間なしに工業化が進む」度合いの見張り（延長の主な副作用）
-            treasMin = Math.Min(treasMin, n.World.Treasury);
+            treasMin = Math.Min(treasMin, n.World.Treasury.Value);
             foreach (var rr in n.World.Regions)   // 投資家の貯蓄の総額＝「建設を止めたら金が積み上がって解凍直後にバーストしないか」の見張り
                 if (rr.State == RegionState.Active && rr.InvestorPopIndex >= 0 && rr.InvestorPopIndex < rr.Pops.Count)
-                    invSav += Math.Max(0, rr.Pops[rr.InvestorPopIndex].Savings);
+                    invSav += Math.Max(0, rr.Pops[rr.InvestorPopIndex].Savings.Value);
         }
 
         // ② 助走直後の断面（参照価格からの乖離・安全網の張り付き）＋以後 wpObs 四半期の荒れ
@@ -6661,7 +6661,7 @@ if (args.Length > 0 && args[0] == "jobs")
             if (p.Size < 0.5) { Console.WriteLine($"  {p.ClassName,-8} 規模ほぼ0（不在）"); continue; }
             double incPer = (p.EarnedPerMonth / p.Size).Value;
             double rentPer = (p.LandRentPerMonth / p.Size).Value;
-            double savPer = p.Savings / p.Size;
+            double savPer = p.Savings.Value / p.Size;
             var staffs = r.Producers.Where(x => x.LaborPopIndex == i && x.Output > 0.5).Select(x => Catalog.Goods[x.GoodId].Name).Distinct().ToList();
             bool owns = r.Producers.Any(x => x.OwnerPopIndex == i && x.Output > 0.5);
             string role = staffs.Count > 0 ? string.Join("/", staffs) : (owns ? "(所有=地代/利潤)" : "(無役)");
@@ -6836,7 +6836,7 @@ if (args.Length > 0 && args[0] == "crimecorrupt")
         {
             var w = cm.Nations[i].World;
             double burSav = 0, burSz = 0;
-            foreach (var p in w.AllPops()) if (p.ClassId == 8) { burSav += p.Savings; burSz += p.Size; }
+            foreach (var p in w.AllPops()) if (p.ClassId == 8) { burSav += p.Savings.Value; burSz += p.Size; }
             Console.WriteLine($"  {w.SelfPower?.Name,-8} 秩序{w.PublicOrder:P0} 犯罪率{w.CrimeRate:P2}（最大{maxCrime[i]:P2}） 治安維持力{w.Coercion:F0} | 行政効率{w.AdminEfficiency:P0} 汚職漏れ{w.LastTaxLeak,8:F0} 官僚貯蓄/人{(burSz > 0.01 ? burSav / burSz : 0),8:F0}");
         }
     }
@@ -6884,7 +6884,7 @@ if (args.Length > 0 && args[0] == "milfund")
         var w = n.World; var r = w.Region; var coef = w.Coef;
         double estCost = EconomyStep.MilitaryProcurementNeed(r, coef);   // 装備の必要額＝エンジンの1本（全4段・発見込み）。旧＝MilitaryUpkeepScale×MilitaryScale の二重掛け（MilitaryScale は Simulation で既に UpkeepScale 込み）・2026-09-11 #1
         double afford = Math.Min(1.0, r.MilitaryAffordRaw);               // エンジンが書いた支払能力（上限÷必要額）を1で切る＝EconomyStep と同じ読み方
-        double dGdp = w.NominalGdpPerMonth.Value > 1e-9 ? w.GovDebt / w.NominalGdpPerMonth.Value : 0;
+        double dGdp = w.NominalGdpPerMonth.Value > 1e-9 ? w.GovDebt.Value / w.NominalGdpPerMonth.Value : 0;
         Console.WriteLine($"  {w.SelfPower?.Name,-8} {w.LastRevenuePerMonth,7:F0} {w.LastAdminClaimPerMonth,7:F0} {w.LastInterestPerMonth,7:F0} ｜ {w.GovDebt,9:F0} {dGdp,6:F2} {w.GovBondRatePerYear.Value,5:F2} ｜ {w.FiscalCapacityPerMonth,6:F0} {r.MilitaryBudget,6:F0} {estCost,7:F0} {afford,6:F2} {r.MilitaryEquipFill,6:F2} ｜ {w.SoldierSizeK(),5:F0} {w.MilitarySpending,5:F2}");
     }
     return;
@@ -7043,7 +7043,7 @@ if (args.Length > 0 && args[0] == "natprobe")
         var w = ns.World; var sp = w.SelfPower!;
         int wars = 0; foreach (var war in npsim.Diplomacy.Wars) if (war.A == sp || war.B == sp) wars++;
         double invSav = 0;
-        foreach (var r in w.Regions) { if (r.State != RegionState.Active) continue; foreach (var pp in r.Pops) if (pp.IsModernElite) invSav += Math.Max(0, pp.Savings); }
+        foreach (var r in w.Regions) { if (r.State != RegionState.Active) continue; foreach (var pp in r.Pops) if (pp.IsModernElite) invSav += Math.Max(0, pp.Savings.Value); }
         double mpPool = 0;
         double mpDesired = Military.EstablishmentOf(w, w.Coef, out _);   // ★(155) 定員（州の和と一致）
         foreach (var r in w.Regions)
@@ -7120,7 +7120,7 @@ if (args.Length > 0 && args[0] == "blocprobe")
         var (t, m, ms) = InterestGroups.Blocs(w);
         double tot = t + m + ms; if (tot < 1e-9) tot = 1;
         double nobSav = 0, nobSize = 0, capSav = 0, capSize = 0, allSav = 0;
-        foreach (var r in w.Regions) { if (r.State != RegionState.Active) continue; foreach (var p in r.Pops) { allSav += Math.Max(0, p.Savings); if (p.Closed) { nobSav += Math.Max(0, p.Savings); nobSize += p.Size; } else if (p.IsModernElite) { capSav += Math.Max(0, p.Savings); capSize += p.Size; } } }
+        foreach (var r in w.Regions) { if (r.State != RegionState.Active) continue; foreach (var p in r.Pops) { allSav += Math.Max(0, p.Savings.Value); if (p.Closed) { nobSav += Math.Max(0, p.Savings.Value); nobSize += p.Size; } else if (p.IsModernElite) { capSav += Math.Max(0, p.Savings.Value); capSize += p.Size; } } }
         Console.WriteLine($"{nm}	{t / tot:P0}	{m / tot:P0}	{ms / tot:P0}	{(nobSize > 1e-9 ? nobSav / nobSize : 0):N0}	{(capSize > 1e-9 ? capSav / capSize : 0):N0}	{(allSav > 1e-9 ? nobSav / allSav : 0):P0}");
     }
     return;
@@ -7156,7 +7156,7 @@ if (args.Length > 0 && args[0] == "powertrace")
                 if (r.State != RegionState.Active) continue;
                 foreach (var pp in r.Pops)
                 {
-                    pop += pp.Size; if (pp.IsModernElite) { invSav += Math.Max(0, pp.Savings); invSize += pp.Size; invEarn += Math.Max(0, pp.EarnedPerMonth.Value); }
+                    pop += pp.Size; if (pp.IsModernElite) { invSav += Math.Max(0, pp.Savings.Value); invSize += pp.Size; invEarn += Math.Max(0, pp.EarnedPerMonth.Value); }
                     if (r.InvestorPopIndex >= 0 && pp == r.Pops[r.InvestorPopIndex]) { capEarn += Math.Max(0, pp.EarnedPerMonth.Value); indRent += Math.Max(0, pp.IndustrialRentPerMonth.Value); }
                 }
             }
@@ -7192,8 +7192,8 @@ if (args.Length > 0 && args[0] == "fisprobe")
             if (ns is null) continue;
             var w = ns.World;
             double line = UtilityAgent.FiscalBufferOf(w) * 8.0;
-            double mul = w.Treasury > line && line > 1e-9 ? Math.Max(0.25, line / w.Treasury) : 1.0;
-            double extract = w.GdpPerMonth.Value > 1e-9 ? w.LastRevenuePerMonth / w.GdpPerMonth : 0;
+            double mul = w.Treasury.Value > line && line > 1e-9 ? Math.Max(0.25, line / w.Treasury.Value) : 1.0;
+            double extract = w.GdpPerMonth.Value > 1e-9 ? w.LastRevenuePerMonth.Value / w.GdpPerMonth.Value : 0;   // ⚠名目の歳入を実質GDP（参照価格×量）で割る＝物価水準を含む比（(250) 型を分けて見つかった・値は変えない）
             Console.WriteLine($"{nm}	{w.LastRevenuePerMonth:N0}	{extract:P1}	{w.Treasury:N0}	{line:N0}	×{mul:F2}	{w.AdminPowerSmoothed:F2}	{w.PollTax:F2}/{w.LandTax:F2}/{w.StateMonopolyBreadth * w.Coef.StateMonopolyMargin:F2}/{w.Tariff:F2}/{w.TaxRate:F2}	{Math.Max(0, w.LastTariffRevenuePerClearing):N0}");
         }
         Console.WriteLine();
@@ -7425,7 +7425,7 @@ if (args.Length > 0 && args[0] == "incomeprobe")
                     var pp = r.Pops[pi];
                     int slot = pp.ClassId == 1 ? 0 : pp.ClassId == 2 ? 1 : (r.InvestorPopIndex == pi ? 2 : -1);
                     if (slot < 0) continue;
-                    earn[slot] += Math.Max(0, pp.LastEarnedPerMonth.Value); size[slot] += pp.Size; sav[slot] += Math.Max(0, pp.Savings);
+                    earn[slot] += Math.Max(0, pp.LastEarnedPerMonth.Value); size[slot] += pp.Size; sav[slot] += Math.Max(0, pp.Savings.Value);
                 }
             }
             string[] names = ["農民", "労働者", "資本家"];
@@ -7664,7 +7664,7 @@ if (args.Length > 0 && args[0] == "noviceprobe")
                             if (p.StateTarget > u) { bestG = -1; break; }   // この州に未消化の意志あり＝今期は待つ（節度）
                             if (u < bestUnits) { bestUnits = u; bestG = g; bestP = p; }
                         }
-                        if (bestG >= 0 && pw.Treasury > Catalog.FactorySpec(bestG).Cost * 4
+                        if (bestG >= 0 && pw.Treasury.Value > Catalog.FactorySpec(bestG).Cost * 4
                             && pw.SetStateTarget(ri, bestG, bestP!.StateTarget + 1)) stateBuilds++;
                     }
                 if (!nvOff.Contains(5))
@@ -8052,9 +8052,9 @@ if (args.Length > 0 && args[0] == "cost-test")
     // 定常状態の財政（建設しない場合の四半期黒字）を測る
     var b = new Simulation(Fr(), new NullAgent());
     b.Run(40);
-    double t0 = b.World.Treasury, g0 = b.World.GdpPerMonth.Value;
+    double t0 = b.World.Treasury.Value, g0 = b.World.GdpPerMonth.Value;
     b.Run(16);
-    double surplusPerQ = (b.World.Treasury - t0) / 16.0;
+    double surplusPerQ = (b.World.Treasury.Value - t0) / 16.0;
     Console.WriteLine($"=== 建設コスト妥当性テスト（フランス・税20%）===");
     Console.WriteLine($"定常：国庫 {b.World.Treasury:N0}　四半期黒字 {surplusPerQ:N0}/Q　GDP {b.World.GdpPerMonth:N0}\n");
 
@@ -8071,12 +8071,12 @@ if (args.Length > 0 && args[0] == "cost-test")
     // 鋼工場を実建設して国庫・工業化への影響を見る
     var s2 = new Simulation(Fr(), new NullAgent());
     s2.Run(40);
-    double tb = s2.World.Treasury, indb = s2.World.Region.TotalIndustrialization;
+    double tb = s2.World.Treasury.Value, indb = s2.World.Region.TotalIndustrialization;
     var steel = s2.World.Regions[0].Producers.Find(p => p.GoodId == Catalog.SteelId)!;
     s2.World.BuildFactory(0, Catalog.SteelId);
     double minT = tb;
-    int guard = 0; while (steel.ConstructionLeft > 0 && guard++ < 40) { s2.Run(1); minT = Math.Min(minT, s2.World.Treasury); }
-    double tDone = s2.World.Treasury;
+    int guard = 0; while (steel.ConstructionLeft > 0 && guard++ < 40) { s2.Run(1); minT = Math.Min(minT, s2.World.Treasury.Value); }
+    double tDone = s2.World.Treasury.Value;
     s2.Run(40);
     Console.WriteLine($"\n鋼工場の実建設（70k・2年）:");
     Console.WriteLine($"  着工前国庫 {tb:N0} → 建設中最低 {minT:N0} → 完成時 {tDone:N0} → 10年後 {s2.World.Treasury:N0}");

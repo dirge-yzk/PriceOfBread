@@ -359,7 +359,7 @@ public static class Territory
         if (to is not null && to.FxRate != from.FxRate)
         {
             double Sin = 0; Din = 0;
-            foreach (var p in r.Pops) { p.Rebase(from, to); Sin += p.Savings; Din += p.Debt; }
+            foreach (var p in r.Pops) { p.Rebase(from, to); Sin += p.Savings.Value; Din += p.Debt; }
             Bin = Sin - Din;
         }
         from.Bank!.Carry(to?.Bank, D, Din);

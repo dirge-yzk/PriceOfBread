@@ -56,8 +56,8 @@ public class ElectionAiTests
     /// <summary>貨幣の総量（国庫＋全popの貯蓄）＝保存検査の物差し（leakhunt と同じ言語の最小版）。</summary>
     private static double TotalMoneyOf(World w)
     {
-        double m = w.Treasury;
-        foreach (var p in w.AllPops()) m += p.Savings;
+        double m = w.Treasury.Value;
+        foreach (var p in w.AllPops()) m += p.Savings.Value;
         return m;
     }
 
@@ -337,7 +337,7 @@ public class ElectionAiTests
     {
         var pops = new List<Pop>(w.AllPops());
         var sav = new double[pops.Count];
-        for (int i = 0; i < pops.Count; i++) sav[i] = pops[i].Savings;
+        for (int i = 0; i < pops.Count; i++) sav[i] = pops[i].Savings.Value;
         return (pops, sav);
     }
     private static void RestoreSavings((List<Pop> Pops, double[] Savings) snap)
@@ -357,7 +357,7 @@ public class ElectionAiTests
         Assert.True(net < 0, "テスト前提の破れ：値段のつく看板が無い");
         OpenMandateWindow(w, net);
 
-        double money0 = TotalMoneyOf(w), treasury0 = w.Treasury, fc = w.FiscalCapacityPerMonth.Value;
+        double money0 = TotalMoneyOf(w), treasury0 = w.Treasury.Value, fc = w.FiscalCapacityPerMonth.Value;
         Assert.True(fc > 0, "テスト前提の破れ：裁量余剰が0");
         w.PendingElection = Agenda(0, axis, inc);
         w.ResolveElection(0, 0.5);
@@ -365,7 +365,7 @@ public class ElectionAiTests
 
         // ① 金の代価＝投入額そのもの（曲げない）
         Assert.Equal(0.5 * fc, w.ElectionLastSpend, 9);
-        Assert.Equal(treasury0 - w.ElectionLastSpend, w.Treasury, 6);
+        Assert.Equal(treasury0 - w.ElectionLastSpend, w.Treasury.Value, 6);
         // ② 貨幣は湧かず消えない＝国庫の減少がそのまま pop の増加（leakhunt が見るのと同じ保存）
         double money1 = TotalMoneyOf(w);
         Assert.True(Math.Abs(money1 - money0) <= 1e-6 * Math.Max(1.0, Math.Abs(money0)),
@@ -377,10 +377,10 @@ public class ElectionAiTests
         //   （A16 の後の英＝人頭税↑の純支持が正統性1.0 で −0.0098・0.5 で +0.0015＝逆風でない看板は余白0でも門を通る＝この節の前提が崩れる）。
         (axis, inc, net) = FindPricedAgenda(w);
         Assert.True(net < 0, "テスト前提の破れ：③の時点で値段のつく看板が無い");
-        double t0 = w.Treasury, m0 = TotalMoneyOf(w);
+        double t0 = w.Treasury.Value, m0 = TotalMoneyOf(w);
         w.PendingElection = Agenda(0, axis, inc);
         w.ResolveElection(0, 1.0);
-        Assert.Equal(t0, w.Treasury, 9);
+        Assert.Equal(t0, w.Treasury.Value, 9);
         Assert.Equal(m0, TotalMoneyOf(w), 6);
     }
 
@@ -410,7 +410,7 @@ public class ElectionAiTests
         Assert.True(net < 0, "テスト前提の破れ：前提を置いた後に純支持の符号が反転した");
 
         // ① AI経路：同じ看板にAIが答える
-        double legit0 = w.Legitimacy, fc = w.FiscalCapacityPerMonth.Value, treasury0 = w.Treasury;
+        double legit0 = w.Legitimacy, fc = w.FiscalCapacityPerMonth.Value, treasury0 = w.Treasury.Value;
         var snap = SnapshotSavings(w);
         w.PendingElection = Agenda(0, axis, inc);
         UtilityAgent.DecideElection(w);
@@ -420,7 +420,7 @@ public class ElectionAiTests
         double effAi = w.ElectionPushStrength, legitAi = w.Legitimacy;
         Assert.Equal(w.ElectionPushEffectOf(0.5), effAi, 12);    // 記帳は効き（投入額の逓減）
         Assert.Equal(-net * effAi, legit0 - legitAi, 12);        // 正統性＝|純支持|×効き（World.ResolveElection の式）
-        Assert.Equal(treasury0 - 0.5 * fc, w.Treasury, 6);
+        Assert.Equal(treasury0 - 0.5 * fc, w.Treasury.Value, 6);
 
         // ② プレイヤー経路：同じレバーを人が渡すと**ビット一致**（＝AIが別式で払っていない）
         //    ⚠盤面を完全に戻す＝選挙資金の還流はpopの貯蓄（＝富の分布＝純支持）を動かすので、戻さないと2回目は別の盤面になる
@@ -432,7 +432,7 @@ public class ElectionAiTests
         Assert.Equal(legitAi, w.Legitimacy, 12);
         Assert.Equal(0, w.ElectionPushIdeology);
         Assert.Equal(effAi, w.ElectionPushStrength, 12);
-        Assert.Equal(treasury0 - 0.5 * fc, w.Treasury, 6);
+        Assert.Equal(treasury0 - 0.5 * fc, w.Treasury.Value, 6);
     }
 
     // ============ (h) AIの機会費用（平時は控えめ・存亡時に厚い） ============
@@ -455,12 +455,12 @@ public class ElectionAiTests
         // ① 平時＝与党の得票が不信任線から十分離れている（線の2倍以上）→ 1銭も注がない
         w.Coef.NoConfidenceThreshold = 0.2;
         w.VoteShares[w.GoverningParty] = 0.5;
-        double treasury0 = w.Treasury;
+        double treasury0 = w.Treasury.Value;
         w.PendingElection = Agenda(0, axis, inc);
         UtilityAgent.DecideElection(w);
         Assert.Null(w.PendingElection);
         Assert.Equal(-1, w.ElectionPushIdeology);   // 静観（平時に軍と学校の予算を選挙へ回すのは狂気）
-        Assert.Equal(treasury0, w.Treasury, 9);
+        Assert.Equal(treasury0, w.Treasury.Value, 9);
 
         // ② 存亡＝得票が不信任線に触れる → 裁量余剰を厚く注ぐ
         w.VoteShares[w.GoverningParty] = w.Coef.NoConfidenceThreshold;
@@ -474,12 +474,12 @@ public class ElectionAiTests
         w.Legitimacy = 1.0; w.ElectionPushIdeology = -1; w.ElectionPushStrength = 0; w.ElectionLastSpend = 0;
         w.FiscalFundingRatio = 0.0;    // 国家の支払いの請求を1銭も払えない月（逼迫＝1−r＝1）
         Assert.True(UtilityAgent.FiscalStressOf(w) > 0.9, "テスト前提の破れ：逼迫を作れていない");
-        double t2 = w.Treasury;
+        double t2 = w.Treasury.Value;
         w.PendingElection = Agenda(0, axis, inc);
         UtilityAgent.DecideElection(w);
         Assert.Equal(-1, w.ElectionPushIdeology);
         Assert.Equal(0.0, w.ElectionLastSpend, 12);
-        Assert.Equal(t2, w.Treasury, 9);
+        Assert.Equal(t2, w.Treasury.Value, 9);
     }
 
     [Fact]
@@ -587,7 +587,7 @@ public class ElectionAiTests
                 trace.Add(w.VoteShares[0]); trace.Add(w.VoteShares[1]); trace.Add(w.VoteShares[2]);
                 trace.Add(w.Legitimacy); trace.Add(w.ElectionPushStrength); trace.Add(w.ElectionLastSpend);
                 trace.Add(w.ElectionPushIdeology); trace.Add(w.ElectionCalls); trace.Add(w.ElectionsBacked);
-                trace.Add(w.Treasury); trace.Add(w.GdpPerMonth.Value); trace.Add(w.TotalPopulation);
+                trace.Add(w.Treasury.Value); trace.Add(w.GdpPerMonth.Value); trace.Add(w.TotalPopulation);
             }
             return trace;
         }

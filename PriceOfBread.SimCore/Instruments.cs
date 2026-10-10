@@ -103,7 +103,7 @@ public static class Instruments
         st.Active = !w.WarmupFrozen; st.Armed = true;
         if (!st.Active) { st.HaveLedger = false; return; }
         Array.Clear(st.Claim);
-        st.Treasury0 = w.Treasury; st.Payable0 = st.Spare0 = st.Payable1 = st.Borrowed = st.Devalued = st.ClaimsTotal = st.PayRate = double.NaN;
+        st.Treasury0 = w.Treasury.Value; st.Payable0 = st.Spare0 = st.Payable1 = st.Borrowed = st.Devalued = st.ClaimsTotal = st.PayRate = double.NaN;
         st.BorrowCode = -1; st.Shortfall = st.Ticket = st.DomPool = st.ForPool = double.NaN;
     }
     static WState? Live(World w) { var st = S(w); return st.Active && st.Armed ? st : null; }
@@ -209,7 +209,7 @@ public static class Instruments
             FiscalRow(w, st, sb, header: false);
             st.Rows.Add(sb.ToString());
         }
-        st.PrevTreasury = w.Treasury; Array.Copy(led, st.PrevLedger, NCat); st.HaveLedger = true;
+        st.PrevTreasury = w.Treasury.Value; Array.Copy(led, st.PrevLedger, NCat); st.HaveLedger = true;
     }
 
     static void FiscalRow(World w, WState st, System.Text.StringBuilder sb, bool header)
@@ -227,12 +227,12 @@ public static class Instruments
         T("borrowBinder", st.BorrowCode switch { 0 => "gateClosed", 1 => "full", 2 => "ticket", 3 => "pool", 4 => "none", _ => "noShortfall" });
         C("borrowCooldownMonths", w.BorrowCooldownMonths); C("interestToRevenueShareNow", w.LastRevenuePerMonth.Value > 0 ? w.LastInterestPerMonth / w.LastRevenuePerMonth : double.NaN);
         C("devaluedPerMonth", st.Devalued); C("payableAfterBorrowStock", st.Payable1); C("payRateShare", st.PayRate);
-        C("convertibilityShare", w.Convertibility); C("onGold", w.OnGoldStandard ? 1 : 0); C("govDebtStock", w.GovDebt);
+        C("convertibilityShare", w.Convertibility); C("onGold", w.OnGoldStandard ? 1 : 0); C("govDebtStock", w.GovDebt.Value);
         C("govBondRatePerYear", w.GovBondRatePerYear.Value); C("govAvgCouponPerYear", w.GovAvgCouponPerYear.Value); C("insolvencyMonths", w.InsolvencyQuarters); C("defaultCount", w.SovereignDefaultCount);
         var led = w.TreasuryLedger; double dSum = 0;
         for (int k = 0; k < NCat; k++) { double d = led[k] - st.PrevLedger[k]; dSum += d; C("ledger" + ((TreasuryCat)k) + "PerMonth", d); }
-        double dT = w.Treasury - st.PrevTreasury;
-        C("treasuryEndStock", w.Treasury); C("treasuryDeltaPerMonth", dT); C("ledgerSumPerMonth", dSum); C("ledgerResidualPerMonth", dT - dSum);
+        double dT = w.Treasury.Value - st.PrevTreasury;
+        C("treasuryEndStock", w.Treasury.Value); C("treasuryDeltaPerMonth", dT); C("ledgerSumPerMonth", dSum); C("ledgerResidualPerMonth", dT - dSum);
         if (sb.Length > 0) sb.Length--;   // 末尾のタブ
     }
 
@@ -327,7 +327,7 @@ public static class Instruments
         cols.Add(F(threat + own > 0 ? threat / (threat + own) : 0)); cols.Add(F(army + own > 0 ? army / (army + own) : 0)); cols.Add(I((int)w.SerfEmancipation));
         cols.Add(I(core)); cols.Add(I(integrated)); cols.Add(I(colonial)); cols.Add(nonCore.ToString());
         cols.Add(F(led[(int)TreasuryCat.Borrow])); cols.Add(F(led[(int)TreasuryCat.Devalue])); cols.Add(F(led[(int)TreasuryCat.Army])); cols.Add(F(led[(int)TreasuryCat.Navy]));
-        cols.Add(F(w.GovDebt)); cols.Add(F(exports)); cols.Add(F(imports)); cols.Add(I(w.Coef.ClearingsPerYear));
+        cols.Add(F(w.GovDebt.Value)); cols.Add(F(exports)); cols.Add(F(imports)); cols.Add(I(w.Coef.ClearingsPerYear));
         sk.Nation ??= Open("nation", seed);
         if (!sk.NationHeader)
         {
@@ -345,7 +345,7 @@ public static class Instruments
         foreach (var r in w.Regions) foreach (var p in r.Pops)
         {
             int c = (uint)p.ClassId < (uint)NC ? p.ClassId : NC - 1;
-            size[c] += p.Size; sav[c] += p.Savings; if (p.Savings < 0) negSav[c] += p.Savings; if (names[c] is null) names[c] = p.ClassName;
+            size[c] += p.Size; sav[c] += p.Savings.Value; if (p.Savings.Value < 0) negSav[c] += p.Savings.Value; if (names[c] is null) names[c] = p.ClassName;
         }
         sk.Class ??= Open("class", seed);
         if (!sk.ClassHeader) { sk.Class.WriteLine("time\tnation\tyear\tclassId\tclassName\tsizeK\tsavingsStock\tnegativeSavingsStock\tearnedPerMonth\tpaidPerMonth\tsavingsToEarnedMonths"); sk.ClassHeader = true; }
@@ -385,13 +385,13 @@ public static class Instruments
         }
         var cap = w.Regions.Count > 0 ? w.Regions[0] : null; var sp = w.SelfPower;
         double Stk(int g) => cap is not null && g < cap.Markets.Length ? cap.Markets[g].Stock : double.NaN;
-        double gdpYear = readGdp ? Calendar.PerMonthToPerYear(w.GdpPerMonth).Value : double.NaN;
+        double gdpYear = readGdp ? Calendar.PerMonthToPerYear(w.GdpPerMonth.Value) : double.NaN;
         var cols = new List<(string Name, string Value)>();
         void C(string name, double v) => cols.Add((name, F(v)));
         cols.Add(("time", time)); cols.Add(("nation", NameOf(w))); C("year", w.Year);
         C("populationK", popK); C("homePopulationK", homePopK); C("soldierK", soldierK); C("soldierToPopulationShare", popK > 0 ? soldierK / popK : double.NaN);
         C("totalPopulationK", w.TotalPopulation); C("totalMoneyStock", w.TotalMoney);   // 階級の表の合計との突き合わせ用（合計＝分母）
-        C("treasuryStock", w.Treasury); C("govDebtStock", w.GovDebt); C("gdpRealPerYear", gdpYear);
+        C("treasuryStock", w.Treasury.Value); C("govDebtStock", w.GovDebt.Value); C("gdpRealPerYear", gdpYear);
         C("goodsStockValueStock", stockValue); C("goodsStockToGdpYear", gdpYear > 0 ? stockValue / gdpYear : double.NaN);
         C("stapleStockValueStock", tier[0]); C("dailyStockValueStock", tier[1]); C("luxuryStockValueStock", tier[2]);
         C("capitalArtilleryStock", Stk(Catalog.ArtilleryId)); C("capitalRifleStock", Stk(Catalog.RifleId)); C("capitalAmmunitionStock", Stk(Catalog.AmmunitionId)); C("capitalWarshipStock", Stk(Catalog.WarshipId));

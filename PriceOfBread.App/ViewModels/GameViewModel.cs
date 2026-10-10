@@ -320,7 +320,7 @@ public partial class GameViewModel : ViewModelBase
         foreach (var n in _sim.Nations) n.TelemetryEnabled = false;   // UIはTelemetryを読まない＝四半期スナップショットの割当/保持（セーブ肥大の一因）を止める
         _player.Explain = new ExplainLedger();   // 説明API（#63）：プレイヤー国だけに台帳を常設装着＝毎四半期のPolitics.Stepが正統性の内訳を記帳（本計算はビット恒等・ゼロコスト・SaveGameは非直列化なのでロード後もここで再装着）
         _player.ForceUnlock = true;              // ★再征服は常時ON（作者指示2026-08-24＝レバーを撤去）。実費は Territory.Step が持つ（国庫1000/月と全popの闘争度）＝国庫が尽きれば自動で止まる
-        _treasuryMStart = _player.Treasury;      // 月次収支の基準（新規/ロード共通）
+        _treasuryMStart = _player.Treasury.Value;      // 月次収支の基準（新規/ロード共通）
         PlayerName = _player.SelfPower?.Name ?? _player.Region.Name;   // 国名（首都州名ではなく国名）
         foreach (var rg in _player.Regions) { _prevEduCum += rg.CumEducationCost; _prevStateMonopCum += rg.CumStateMonopolyRevenue; }   // 累積カウンタの基準化（初回表示が過去合計にならない）
         _prevForeignNet = _player.ForeignCapitalIn - _player.CapitalAbroad;   // 外資純フローの基準化
@@ -451,7 +451,7 @@ public partial class GameViewModel : ViewModelBase
             }
             if (monthCrossed)
             {
-                _monthDelta = _player.Treasury - _treasuryMStart; _treasuryMStart = _player.Treasury;
+                _monthDelta = _player.Treasury.Value - _treasuryMStart; _treasuryMStart = _player.Treasury.Value;
                 // ★戦争タブの「戦費」はエンジンが実際に払った軍の支出を読む＝UIで係数から再計算しない。
                 //   2026-09-30（支払いの一元化 段3-2）から戦費の独自の支払い（旧 Diplomacy.Fund）は無い＝戦争の費用は軍需の調達と兵士の給与（区分 陸軍・海軍）＋賠償（区分 戦費）。
                 //   SampleTreasuryLedger が _ledgerPrev を「今」へ上書きする前に、その直前の月次差分を取る（符号は支出が負＝反転）。
@@ -500,7 +500,7 @@ public partial class GameViewModel : ViewModelBase
     // 日次の描写：価格層だけ（物価・国庫・生産タブの詳細パネルの価格）。重いグラフ本体・地図・国家・POPは触らない＝軽量。
     private void RefreshDaily()
     {
-        TreasuryText = $"国庫:{Money(_player.Treasury)}";
+        TreasuryText = $"国庫:{Money(_player.Treasury.Value)}";
         BalanceText = $"収支:{(_monthDelta >= 0 ? "＋" : "−")}{Money(Math.Abs(_monthDelta))}/月";
         OnPropertyChanged(nameof(PriceLevelText)); OnPropertyChanged(nameof(ExchangeRateText));   // 物価・為替（計算プロパティ）を再読込
         RefreshProdDetail();                        // 生産タブの詳細パネルの価格（選択財のみ・軽い）。グラフ本体は月次

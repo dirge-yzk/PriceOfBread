@@ -35,7 +35,7 @@ public class InvariantTests
         var sim = new Simulation(new Scenario { Seed = 9 }, new NullAgent());
         var inv = new MoneyConservation(sim.World);
 
-        sim.World.Region.Pops[0].SetSavings(sim.World.Region.Pops[0].Savings + (1.0));   // 人為的に総マネーを変える
+        sim.World.Region.Pops[0].SetSavings(sim.World.Region.Pops[0].Savings.Value + (1.0));   // 人為的に総マネーを変える
 
         Assert.Throws<InvariantViolationException>(() => inv.Check(sim.World));
     }
@@ -51,8 +51,8 @@ public class InvariantTests
         Region? other = null;
         foreach (var r in w.Regions) if (!ReferenceEquals(r, w.Region) && r.SumPopulation() > 1 && (other is null || r.SumPopulation() > other.SumPopulation())) other = r;
         Assert.NotNull(other);
-        double SumSavings() { double s = 0; foreach (var r in w.Regions) foreach (var p in r.Pops) s += p.Savings; return s; }
-        double OtherSavings() { double s = 0; foreach (var p in other!.Pops) s += p.Savings; return s; }
+        double SumSavings() { double s = 0; foreach (var r in w.Regions) foreach (var p in r.Pops) s += p.Savings.Value; return s; }
+        double OtherSavings() { double s = 0; foreach (var p in other!.Pops) s += p.Savings.Value; return s; }
 
         double before = SumSavings();
         Assert.Equal(0.0, Pop.Distribute(new List<Pop>(w.AllPops()), 1000.0));
@@ -90,7 +90,7 @@ public class InvariantTests
         foreach (var p in poor!.Pops) p.SetSavings(0);
         poor.Pops[0].SetSavings(-8.881784197001252e-16);
         double natSav = 0, natPop = 0;
-        foreach (var r in w.Regions) if (r.State == RegionState.Active) foreach (var p in r.Pops) { natSav += p.Savings; natPop += p.Size; }
+        foreach (var r in w.Regions) if (r.State == RegionState.Active) foreach (var p in r.Pops) { natSav += p.Savings.Value; natPop += p.Size; }
         Assert.True(natSav / natPop > 1e-9, "比の分母（国の1人あたり貯蓄）が生きている前提＝分子だけが負に転ぶ形");
 
         sim.UpdateRegionalPriceLevels();
@@ -107,8 +107,8 @@ public class InvariantTests
         {
             Assert.False(Bad(r.LocalPriceMultiplier) || Bad(r.PriceLevel), $"州物価が NaN／∞（{r.Name}）");
             foreach (var m in r.Markets) Assert.False(Bad(m.Price) || Bad(m.Stock), $"価格／在庫が NaN／∞（{r.Name}）");
-            foreach (var p in r.Pops) Assert.False(Bad(p.Savings) || Bad(p.Size), $"貯蓄／規模が NaN／∞（{r.Name}・{p.ClassName}）");
+            foreach (var p in r.Pops) Assert.False(Bad(p.Savings.Value) || Bad(p.Size), $"貯蓄／規模が NaN／∞（{r.Name}・{p.ClassName}）");
         }
-        Assert.False(Bad(w.Treasury) || Bad(w.PriceLevel), "国庫／物価水準が NaN／∞");
+        Assert.False(Bad(w.Treasury.Value) || Bad(w.PriceLevel), "国庫／物価水準が NaN／∞");
     }
 }

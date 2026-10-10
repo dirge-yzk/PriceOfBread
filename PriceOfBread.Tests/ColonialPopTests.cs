@@ -115,12 +115,12 @@ public class ColonialPopTests
         var inv = w.Region.Pops[w.Region.InvestorPopIndex];
         var pr = col.Producers.First(p => p.GoodId == Catalog.SugarCaneId && Colonial.AbsenteeRgo(col, p));
         var local = col.Pops[pr.OwnerPopIndex];
-        double i0 = inv.Savings, ie0 = inv.EarnedPerMonth.Value, l0 = local.Savings;
+        double i0 = inv.Savings.Value, ie0 = inv.EarnedPerMonth.Value, l0 = local.Savings.Value;
         double paid = InternationalMarket.PaySales((null, null), col, Catalog.SugarCaneId, 1000.0, w);
         Assert.Equal(1000.0, paid, 6);
-        Assert.True(inv.Savings - i0 > 1.0, $"本国の首都の投資家が地代を受け取らない（{inv.Savings - i0}）");
-        Assert.Equal(inv.Savings - i0, inv.EarnedPerMonth.Value - ie0, 9);
-        Assert.Equal(l0, local.Savings, 9);
+        Assert.True(inv.Savings.Value - i0 > 1.0, $"本国の首都の投資家が地代を受け取らない（{inv.Savings.Value - i0}）");
+        Assert.Equal(inv.Savings.Value - i0, inv.EarnedPerMonth.Value - ie0, 9);
+        Assert.Equal(l0, local.Savings.Value, 9);
     }
 
     /// <summary>★(173) R1：国内の売上の地代は④で在地の口座に入り州の月末の精算で貯蓄になる＝精算の後に不在地主へ送る（Colonial.RemitAbsenteeRent）。
@@ -134,17 +134,17 @@ public class ColonialPopTests
         var inv = w.Region.Pops[w.Region.InvestorPopIndex];
         var local = col.Pops[PopClass.Capitalist];
         local.SetSavings(500); local.LandRentPerMonth = new MoneyPerMonth(200); local.EarnedPerMonth = new MoneyPerMonth(200);
-        double i0 = inv.Savings, ie0 = inv.EarnedPerMonth.Value, il0 = inv.LandRentPerMonth.Value;
+        double i0 = inv.Savings.Value, ie0 = inv.EarnedPerMonth.Value, il0 = inv.LandRentPerMonth.Value;
         var net = new double[col.Pops.Count];
         net[PopClass.Capitalist] = 200;
         Colonial.RemitAbsenteeRent(w, col, net);
-        Assert.Equal(300, local.Savings, 9); Assert.Equal(0, local.EarnedPerMonth.Value, 9); Assert.Equal(0, local.LandRentPerMonth.Value, 9);
-        Assert.Equal(i0 + 200, inv.Savings, 9); Assert.Equal(ie0 + 200, inv.EarnedPerMonth.Value, 9); Assert.Equal(il0 + 200, inv.LandRentPerMonth.Value, 9);
+        Assert.Equal(300, local.Savings.Value, 9); Assert.Equal(0, local.EarnedPerMonth.Value, 9); Assert.Equal(0, local.LandRentPerMonth.Value, 9);
+        Assert.Equal(i0 + 200, inv.Savings.Value, 9); Assert.Equal(ie0 + 200, inv.EarnedPerMonth.Value, 9); Assert.Equal(il0 + 200, inv.LandRentPerMonth.Value, 9);
         Assert.Equal(0, net[PopClass.Capitalist]);
         net[PopClass.Capitalist] = -50;   // 赤字＝不在地主が埋める
         Colonial.RemitAbsenteeRent(w, col, net);
-        Assert.Equal(350, local.Savings, 9); Assert.Equal(50, local.EarnedPerMonth.Value, 9);
-        Assert.Equal(i0 + 150, inv.Savings, 9); Assert.Equal(ie0 + 150, inv.EarnedPerMonth.Value, 9);
+        Assert.Equal(350, local.Savings.Value, 9); Assert.Equal(50, local.EarnedPerMonth.Value, 9);
+        Assert.Equal(i0 + 150, inv.Savings.Value, 9); Assert.Equal(ie0 + 150, inv.EarnedPerMonth.Value, 9);
     }
 
     /// <summary>★(173) R1（呼び手の側＝EconomyStep の④）：植民地格の州の月の決算で、輸出作物の大農園が国内で売った地代は首都の投資家の貯蓄へ着く
@@ -159,14 +159,14 @@ public class ColonialPopTests
         // ★(227)：ジャマイカの住民を史実の約25万人へ直したら（旧 100万人）、コーヒーの国内の売り先が4分の1になり大農園の地代が赤字（-3.3）になった＝この番人が見るのは地代の送り先で住民数ではない。
         //   盤面を旧の規模（100万人）へ戻して測る（住民の人数を一括で掛ける・貯蓄は旧と同じ1POPあたり 1e5）。
         double upscale = 1000.0 / col.SumPopulation();
-        foreach (var p in col.Pops) if (p.Size > 1e-9) { p.Size *= upscale; p.SetSavings(p.Savings + 1e5); }
+        foreach (var p in col.Pops) if (p.Size > 1e-9) { p.Size *= upscale; p.SetSavings(p.Savings.Value + 1e5); }
         var inv = w.Region.Pops[w.Region.InvestorPopIndex];
-        double i0 = inv.Savings;
+        double i0 = inv.Savings.Value;
         EconomyStep.Run(col, w.Coef, 1.0, w.Bank, w);
         double rent = 0;
         foreach (var p in col.Producers) if (Colonial.AbsenteeRgo(col, p)) rent += p.LastRevenue - p.LastCost;
         Assert.True(rent > 1e-6, $"前提が崩れた：不在地主の大農園に国内の地代が立たない（{rent}）");
-        Assert.Equal(rent, inv.Savings - i0, 6);
+        Assert.Equal(rent, inv.Savings.Value - i0, 6);
     }
 
     /// <summary>★(173) R4①：植民地の補給線は駐留の缶詰を買わない（駐留の兵は兵士 POP で給与から州の食料を買う＝2度食わせない・思想⑨）。

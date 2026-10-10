@@ -29,7 +29,7 @@ public static class InterestGroups
         //   土地の価値＝**地代（既存の物理フロー LandRent）の資本化**＝新しい状態を置かない。Closed階級のみ＝
         //   資本家の工場は流動資産側が既に表す。⚠地代は月次でゼロ化→再集計される生きたフロー＝土地改革・農奴解放で
         //   地代が削られれば政治力も一緒に痩せる（貴族の没落が法から創発する）。LandedPowerCapitalization=0 で厳密恒等。
-        double LandedWealth(Pop p) => Math.Max(0, p.Savings)
+        double LandedWealth(Pop p) => Math.Max(0, p.Savings.Value)
             + (p.Closed && w.Coef.LandedPowerCapitalization > 0 ? w.Coef.LandedPowerCapitalization * Math.Max(0, p.LandRentPerMonth.Value) : 0);
         // 参政権の範囲2法（作者裁定2026-08-16）：政治的国民への算入率でpopを加重（植民地格の州＝植民地参政権・本国州の非中核分＝移民原住民参政権）。
         // ループは AllPops と同じ走査順（w.Regions→r.Pops・Seceded スキップ）の入れ子＝州の格が読める形。

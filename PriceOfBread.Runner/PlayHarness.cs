@@ -208,10 +208,10 @@ internal static class PlayHarness
             {
                 pop += p.Size; if (p.IsUrban) urbanPop += p.Size;
                 lit += p.Literacy * p.Size; cons += p.Consciousness * p.Size;
-                savings += p.Savings;
+                savings += p.Savings.Value;
                 byClass.TryGetValue(p.ClassId, out var acc);
                 byClass[p.ClassId] = (acc.size + p.Size, acc.lit + p.Literacy * p.Size,
-                                      acc.sat + p.Satisfaction * p.Size, acc.mil + p.Militancy * p.Size, acc.sav + p.Savings);
+                                      acc.sat + p.Satisfaction * p.Size, acc.mil + p.Militancy * p.Size, acc.sav + p.Savings.Value);
             }
         }
         double N = Math.Max(1, pop);
