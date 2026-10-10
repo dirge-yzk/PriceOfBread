@@ -988,5 +988,5 @@ internal static class Board
         ?? throw new System.InvalidOperationException("Pop の貯蓄の欄（_savings）が見つからない");
 
     /// <summary>盤面の貯蓄を <paramref name="v"/> にする（複合代入は呼び手が <c>p.SetSavings(p.Savings + x)</c> と書く）。</summary>
-    internal static void SetSavings(this Pop p, double v) => SavingsField.SetValue(p, v);
+    internal static void SetSavings(this Pop p, double v) => SavingsField.SetValue(p, new MoneyStock(v));
 }
