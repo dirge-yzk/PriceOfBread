@@ -28,8 +28,8 @@ public partial class NationSelectViewModel : ViewModelBase
     {
         var all = WorldData.Nations();
         var coef = new Coefficients();
-        var diff = NationBrief.Difficulties(all, coef);
-        var (rank, score) = NationBrief.RanksAndScores(all, coef);   // 世界を1つ組んでエンジンに数えさせる(実測 約0.5秒・開始時のランクと国力は不変)
+        var (rank, score, soldiers) = NationBrief.Opening(all, coef);   // 世界を1つ組んでエンジンに数えさせる(実測 約0.5秒・開始時のランクと国力と兵の数は不変)＝難易度の安全の項も同じ世界の兵を読む
+        var diff = NationBrief.Difficulties(all, coef, soldiers);
         var reco = new List<(NationChoice Card, double Ease)>();
         var others = new List<(NationChoice Card, double Score)>();
         for (int i = 0; i < all.Length; i++)
@@ -37,7 +37,7 @@ public partial class NationSelectViewModel : ViewModelBase
             string name = all[i].Name, strength = rank.GetValueOrDefault(name, "");
             if (diff.TryGetValue(name, out var d))
                 reco.Add((new NationChoice(i, name, _onSelect, strength, d, NationBrief.Description(name)),
-                          NationBrief.Ease(all[i], all, coef)));
+                          NationBrief.Ease(all[i], all, coef, soldiers)));
             else others.Add((new NationChoice(i, name, _onSelect, strength), score.GetValueOrDefault(name)));
         }
         // その他の国＝国力の降順（作者指示2026-08-11）。同点は名前順＝決定論。

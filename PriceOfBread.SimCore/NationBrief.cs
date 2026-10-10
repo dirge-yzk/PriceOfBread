@@ -82,14 +82,14 @@ public static class NationBrief
     // 【削除2026-09-26（棚卸し x-04）】IsIsolated（本国州が他国と陸続きでないか）＝呼び手がテストだけだった。
     //   陸続きの判定の実体は下の NeighborMilitary（同じ陸塊の他国の軍＝島国と大洋の向こうは0）が難易度に使っている。
 
-    /// <summary>★(231) 開始時の兵の数の見積り（千人）＝シムが兵を播く母数（徴募元の農民＋都市労働者）に比例（構築の播種〔Simulation〕と同じ比例＝全ての国で軍事費の段×MaxSoldierFraction が同じ）。
-    /// 旧＝world.json の国別の military 欄（手置きの 0.3〜4.5・シムでは使われず難易度だけが読んでいた）。欄は外した。実際の兵（助走の後の定員）は世界を組まないと分からない＝ここは構築の播種と同じ比例の写し。</summary>
-    internal static double OpeningSoldiers(NationConfig c) => c.Peasant + c.Worker;
+    /// <summary>★(235) 開始時の兵の数（千人）＝**構築した世界**の兵士POPの和（World.SoldierSize）。(231) で military 欄を外したあと、安全の項は人口（農民＋都市労働者）に比例する写しを読んでいた
+    /// ＝構築の播種の式と第二の式を抱えていた。世界を1つ組んで実数を読む（ランクと国力と同じ1本の構築＝<see cref="Opening"/>）。呼び手が同じ世界を何度も組まないよう、引数で受け取れる。</summary>
+    public static Dictionary<string, double> OpeningSoldiers(NationConfig[] all, Coefficients coef) => Opening(all, coef).Soldiers;
 
     /// <summary>同じ陸塊に本国州を持つ他国の軍のうち、上位3つの和（＝取り囲まれの度合い）。
     /// 最大1つでは足りない＝プロイセンは墺2.6・露2.0・仏1.8に**同時に**面しており、最大値だけ見ると
     /// 「墺だけの隣国」に見えて実態より安全に出る。海を隔てた国は数えない（英・米・日はここで0になる）。</summary>
-    private static double NeighborMilitary(NationConfig c, NationConfig[] all)
+    private static double NeighborMilitary(NationConfig c, NationConfig[] all, IReadOnlyDictionary<string, double> soldiers)
     {
         var mine = new HashSet<string>();
         foreach (var p in c.Provinces) if (Landmass.IsRegistered(p.City)) mine.Add(Landmass.LandmassOf(p.City));
@@ -102,7 +102,7 @@ public static class NationBrief
                 foreach (var p in other.Provinces)
                     if (Landmass.IsRegistered(p.City) && mine.Contains(Landmass.LandmassOf(p.City))) { touches = true; break; }
                 if (!touches) continue;
-                double m = OpeningSoldiers(other);
+                double m = soldiers.GetValueOrDefault(other.Name);
                 if (m > a) { d = b; b = a; a = m; } else if (m > b) { d = b; b = m; } else if (m > d) d = m;
             }
         return a + b + d;
@@ -110,14 +110,15 @@ public static class NationBrief
 
     /// <summary>難易度の素点の内訳（0..1／素点は加重和）。UIと診断（selectprobe）が同じ1本を読む。</summary>
     public static (double Ease, double Resource, double Hold, double Safety, double Load, double Decay)
-        Terms(NationConfig c, NationConfig[] all, Coefficients coef)
+        Terms(NationConfig c, NationConfig[] all, Coefficients coef, IReadOnlyDictionary<string, double>? soldiers = null)
     {
+        soldiers ??= OpeningSoldiers(all, coef);   // 呼び手が渡さなければ世界を1つ組んで読む（国ごとに繰り返し呼ぶ側は渡すこと）
         // ①資源の余裕＝国庫が行政費だけで持つ月数。桁で効く（仏4・米5 と 普274＝2026-09-29 に開幕の国庫を史実の桁へ直した後・旧＝清4 と 蘭6667）ので対数で圧縮（1ヶ月=0／10000ヶ月=1）。
         double resource = PoliticalQuantities.Clamp01(Math.Log10(Math.Max(1.0, TreasuryMonths(c, coef))) / 4.0);
         // ②人口による分離圧に抗う力（Politics の保持力と同式）。
         double hold = SecessionHold(c, coef);
         // ③安全＝陸続きの隣国の軍（上位3和）に対する自国の軍。海に隔てられていれば隣国0＝1.0（英・米・日）。
-        double safety = 1.0 / (1.0 + NeighborMilitary(c, all) / Math.Max(1e-9, OpeningSoldiers(c)));
+        double safety = 1.0 / (1.0 + NeighborMilitary(c, all, soldiers) / Math.Max(1e-9, soldiers.GetValueOrDefault(c.Name)));
         // ④操作量＝**プレイヤーが毎期見る対象の数**（本国州＋植民地＋工業の厚み）。
         //   ★作者指摘2026-08-11「イギリスは操作量が多く簡単でない」＝資源が豊かでも、州5＋植民地11＋世界一の工業は
         //   最も忙しい盤面になる。難易度は「生き残れるか」だけでなく「回せるか」でもある。
@@ -130,17 +131,18 @@ public static class NationBrief
     /// <summary>難易度の素点（高いほど易しい）。★エンジンが実際に課す量だけで作る（docs §3 ＋作者指摘2026-08-11の操作量）。
     /// ⚠識字は入れていない＝序列が識字を入れても変わらないため（入れると Simulation の13階級の初期識字を
     /// 組み直す第二の式を抱えることになる。序列が変わる日が来たら、世界を1つ組んで実測値を読む形で足すこと）。</summary>
-    public static double Ease(NationConfig c, NationConfig[] all, Coefficients coef) => Terms(c, all, coef).Ease;
+    public static double Ease(NationConfig c, NationConfig[] all, Coefficients coef, IReadOnlyDictionary<string, double>? soldiers = null) => Terms(c, all, coef, soldiers).Ease;
 
     /// <summary>おすすめ国の難易度ラベルを**素点の順位**で割り当てる（簡単2／普通4／挑戦的1・作者指示2026-08-11）。
     /// ★絶対値の閾値でなく順位にする理由＝閾値は係数が動くと全員が同じ側へ寄って空の列ができる。</summary>
-    public static Dictionary<string, string> Difficulties(NationConfig[] all, Coefficients coef)
+    public static Dictionary<string, string> Difficulties(NationConfig[] all, Coefficients coef, IReadOnlyDictionary<string, double>? soldiers = null)
     {
+        soldiers ??= OpeningSoldiers(all, coef);
         var scored = new List<(string Name, double Ease)>();
         foreach (var name in Recommended)
         {
             var c = Array.Find(all, n => n.Name == name);
-            if (c is not null) scored.Add((name, Ease(c, all, coef)));
+            if (c is not null) scored.Add((name, Ease(c, all, coef, soldiers)));
         }
         scored.Sort((a, b) => b.Ease != a.Ease ? b.Ease.CompareTo(a.Ease) : string.CompareOrdinal(a.Name, b.Name));   // 同点は名前順＝決定論
         var map = new Dictionary<string, string>();
@@ -163,13 +165,24 @@ public static class NationBrief
     public static (Dictionary<string, string> Ranks, Dictionary<string, double> Scores)
         RanksAndScores(NationConfig[] all, Coefficients coef)
     {
+        var o = Opening(all, coef);
+        return (o.Ranks, o.Scores);
+    }
+
+    /// <summary>★(235) 構築した世界の読み＝開始時のランク・国力・兵の数（千人）。世界の構築は1回だけ（3つを別々に組むと遅いうえ食い違いうる）。選択画面は1度これを呼んで、
+    /// 難易度（<see cref="Difficulties"/>）と素点（<see cref="Ease"/>）へ兵の数を渡す。</summary>
+    public static (Dictionary<string, string> Ranks, Dictionary<string, double> Scores, Dictionary<string, double> Soldiers)
+        Opening(NationConfig[] all, Coefficients coef)
+    {
         var sim = new MultiNationSim(all, 1789UL, _ => new NullAgent());
         var map = new Dictionary<string, string>();
         var score = new Dictionary<string, double>();
+        var soldiers = new Dictionary<string, double>();
         foreach (var p in sim.Diplomacy.Powers)
         {
             if (p.Nation is null) continue;
             score[p.Name] = NationalScore.Of(p.Nation);
+            soldiers[p.Name] = p.Nation.SoldierSize();
             map[p.Name] = sim.Diplomacy.RankOf(p) switch
             {
                 PowerRank.Great => "列強",
@@ -178,6 +191,6 @@ public static class NationBrief
                 _ => "弱小",
             };
         }
-        return (map, score);
+        return (map, score, soldiers);
     }
 }

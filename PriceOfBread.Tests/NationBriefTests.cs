@@ -31,6 +31,29 @@ public class NationBriefTests
     /// 米 1,709→5ヶ月（年GDP の0.5%）・蘭 6,667→48ヶ月（年GDP の3%）・普 1,131→274ヶ月（フリードリヒ2世の戦時財宝＝年GDP の3割）・日 167→21ヶ月
     /// ＝簡単が 米・蘭→普・日（米・蘭は普通へ）。史実とも合う＝1783年の米は連合規約の下で課税権を持たない破産した政府・蘭は第4次英蘭戦争の敗戦の直後で
     /// 国債は年GDP の約1.6・普は列強で最大の蓄え・日は海に隔てられた安全。</summary>
+    /// <summary>★(235) 安全の項は**構築した世界の兵の数**を読む（旧＝world.json の人口の階級〔農民＋都市労働者〕の写し）。読み手は渡された兵の数だけで決まり、config の人口は読まない。
+    /// ⚠突然変異＝安全の項を c.Peasant＋c.Worker へ戻すと、兵の数を入れ替えても素点が動かず赤になる。</summary>
+    [Fact]
+    public void 安全の項は構築した世界の兵の数を読む()
+    {
+        var all = WorldData.Nations();
+        var coef = new Coefficients();
+        var prussia = System.Array.Find(all, n => n.Name == "プロイセン")!;
+        var open = NationBrief.Opening(all, coef);
+        Assert.Equal(all.Length, open.Soldiers.Count);
+        foreach (var n in all) Assert.True(open.Soldiers[n.Name] > 0, $"{n.Name} の兵が0");   // 構築の播種は全ての国で兵を置く
+        double real = NationBrief.Terms(prussia, all, coef, open.Soldiers).Safety;
+        // 同じ config・同じ人口のまま、プロイセンの兵だけを 1000 倍にすると安全の項は上がる（人口を読んでいれば動かない）
+        var boosted = new Dictionary<string, double>(open.Soldiers) { [prussia.Name] = open.Soldiers[prussia.Name] * 1000.0 };
+        Assert.True(NationBrief.Terms(prussia, all, coef, boosted).Safety > real + 0.5, "兵の数を変えても安全の項が動かない＝人口を読んでいる");
+        // 隣国の兵だけを 0 にすると（陸続きの脅威なし）安全の項は 1.0
+        var calm = new Dictionary<string, double>(open.Soldiers);
+        foreach (var n in all) if (n.Name != prussia.Name) calm[n.Name] = 0;
+        Assert.Equal(1.0, NationBrief.Terms(prussia, all, coef, calm).Safety, 9);
+        // 渡さなくても同じ世界を組んで同じ値（選択画面と診断が同じ1本）
+        Assert.Equal(real, NationBrief.Terms(prussia, all, coef).Safety, 12);
+    }
+
     [Theory]
     [InlineData("アメリカ", "普通")]
     [InlineData("ネーデルラント", "普通")]

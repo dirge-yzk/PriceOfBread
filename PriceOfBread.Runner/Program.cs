@@ -3040,17 +3040,17 @@ if (args.Length > 0 && args[0] == "selectprobe")
     var cfgs0 = WorldData.Nations();
     long tCfg = sw.ElapsedMilliseconds;
     var coef0 = new Coefficients();   // ★1本だけ構築して使い回す（POB_COEF反映後は全呼び出しで値が同一）
-    var ranks = NationBrief.Ranks(cfgs0, coef0);
+    var (ranks, _, soldiers0) = NationBrief.Opening(cfgs0, coef0);   // ★(235) 世界の構築は1回（ランク・国力・兵の数）
     long tRank = sw.ElapsedMilliseconds;
-    var diff = NationBrief.Difficulties(cfgs0, coef0);
+    var diff = NationBrief.Difficulties(cfgs0, coef0, soldiers0);
     System.Console.WriteLine($"world.json読込 {tCfg}ms／ランク算出（世界の構築込み）{tRank - tCfg}ms");
     System.Console.WriteLine($"{"国",-14}{"強さ",-6}{"難易度",-8}{"素点",8}{"資源",7}{"分離",7}{"安全",7}{"負荷",7}{"疲労",7}");
     var order = new List<NationConfig>(cfgs0);
-    var easeByName = cfgs0.ToDictionary(c => c.Name, c => NationBrief.Ease(c, cfgs0, coef0));   // ★Sort中に再計算しない
+    var easeByName = cfgs0.ToDictionary(c => c.Name, c => NationBrief.Ease(c, cfgs0, coef0, soldiers0));   // ★Sort中に再計算しない
     order.Sort((a, b) => easeByName[b.Name].CompareTo(easeByName[a.Name]));
     foreach (var c in order)
     {
-        var t = NationBrief.Terms(c, cfgs0, coef0);
+        var t = NationBrief.Terms(c, cfgs0, coef0, soldiers0);
         System.Console.WriteLine($"{c.Name,-14}{ranks.GetValueOrDefault(c.Name, ""),-6}{diff.GetValueOrDefault(c.Name, "―"),-8}"
             + $"{t.Ease,8:F3}{t.Resource,7:F2}{t.Hold,7:F2}{t.Safety,7:F2}{t.Load,7:F2}{t.Decay,7:F2}");
     }
