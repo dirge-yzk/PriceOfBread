@@ -335,7 +335,7 @@ public partial class GameViewModel
                 // ⚠陸脚の流通量＝州の決済額 <c>Region.LastPortThroughput</c>（名前に反して内陸州にも立つ＝
                 //   その州が海路で取引した額＝港まで運んだ荷・陸路の直行は積まない〔2026-09-27 回4-1〕・四半期ごとに BilateralMarket が 0 から積み直す）。
                 //   月額へ直して貿易一覧と同じ丸め（£0.0k）で切る＝一覧に1行も出ない州の道は地図にも出さない。
-                if (!FlowShown(rr.LastPortThroughput / Calendar.MonthsPerQuarter)) continue;
+                if (!FlowShown(Calendar.PerQuarterToPerMonth(rr.LastPortThroughput))) continue;
                 // ★トランジット州の陸路も描く（作者指摘2026-08-11「内陸国が直接、海に接続している」）。
                 //   旧＝NearestPortName が空なら飛ばしていた＝**それはまさにトランジット利用州の条件**で、
                 //   借りた港までの陸脚が1本も描かれず、海の区間だけが残って「内陸から直接海へ」に見えていた。
@@ -358,7 +358,7 @@ public partial class GameViewModel
             foreach (var rr in sim.World.Regions)
             {
                 if (rr.State != RegionState.Active || rr.LastLandPartnerName.Length == 0) continue;
-                if (!FlowShown(rr.LastLandPartnerFlow / Calendar.MonthsPerQuarter)) continue;
+                if (!FlowShown(Calendar.PerQuarterToPerMonth(rr.LastLandPartnerFlow))) continue;
                 var ccL = SimCore.Climate.CityCoord(rr.Name);
                 var pcL = SimCore.Climate.CityCoord(rr.LastLandPartnerName);
                 if ((System.Math.Abs(ccL.Lat) < 1e-9 && System.Math.Abs(ccL.Lon) < 1e-9)
@@ -514,7 +514,7 @@ public partial class GameViewModel
                 if (rr.State != RegionState.Active || !rr.IsPort) continue;
                 // ★★2026-08-16：**取扱高が £0.0k に丸まる港の接ぎ木は描かない**（作者指示＝貿易一覧と同じ規則）。
                 //   接ぎ木は「この港はここから海へ出る」を示す線＝出入りする荷が無ければ示すものが無い。
-                if (!FlowShown(rr.LastPortThroughput / Calendar.MonthsPerQuarter)) continue;
+                if (!FlowShown(Calendar.PerQuarterToPerMonth(rr.LastPortThroughput))) continue;
                 var pc = SimCore.Climate.CityCoord(rr.Name);
                 if (System.Math.Abs(pc.Lat) < 1e-9 && System.Math.Abs(pc.Lon) < 1e-9) continue;
                 int sn = SimCore.SeaGraph.NearestSeaNode(pc.Lat, pc.Lon);
@@ -869,7 +869,7 @@ public partial class GameViewModel
             }
         }
         if (rg.IsPort)
-            info.Lines.Add(new MapHoverLine { Text = $"港 容量:{rg.PortCapacity:F0} 取引額:{Money(rg.LastPortThroughput / Calendar.MonthsPerQuarter)}/月", Brush = HoverText, Weight = FontWeight.Bold });   // 3桁区切りは全廃（作者裁定2026-08-10）。取扱高は四半期累計（BilateralMarket が第1清算のみリセット）＝月割して他タブの/月と物差しを揃える（2026-08-23）
+            info.Lines.Add(new MapHoverLine { Text = $"港 容量:{rg.PortCapacity:F0} 取引額:{Money(Calendar.PerQuarterToPerMonth(rg.LastPortThroughput))}/月", Brush = HoverText, Weight = FontWeight.Bold });   // 3桁区切りは全廃（作者裁定2026-08-10）。取扱高は四半期累計（BilateralMarket が第1清算のみリセット）＝月割して他タブの/月と物差しを揃える（2026-08-23）
         AppendChokepoint(info, rg.Name);   // 海峡/運河のhost州はここに統合表示
         AppendMegaprojects(info, rg.Name);   // ★A-13：巨大建造物も同じ州の情報として統合表示
         AppendWorldShare(info, rg, ownerWorld);

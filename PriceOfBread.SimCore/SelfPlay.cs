@@ -1095,7 +1095,7 @@ public sealed class UtilityAgent : INationAgent
             {
                 if (pr0.ConstructionLeft > 0)
                 {
-                    monthlyBuild += pr0.ConstructionPayPerDay * Calendar.DaysPerMonth;
+                    monthlyBuild += Calendar.PerDayToPerMonth(pr0.ConstructionPayPerDay);
                     monthlyBuild += World.ConstructionMaterialPerMonth(rg0, pr0, w.Coef);   // ★裁定②の安全弁＝素材も律速に数える（2026-09-27 焼き込み＝工事費の6割が律速から漏れていた）
                 }
                 int pw = Math.Max(0, pr0.StateTarget - World.StateUnits(pr0, w.Coef));
@@ -1202,7 +1202,7 @@ public sealed class UtilityAgent : INationAgent
             w.SetStateTarget(ri, bestGr[ri], World.StateUnits(bp, w.Coef) + 1);
             if (bp.ConstructionLeft > 0)
             {
-                monthlyBuild += bp.ConstructionPayPerDay * Calendar.DaysPerMonth;
+                monthlyBuild += Calendar.PerDayToPerMonth(bp.ConstructionPayPerDay);
                 monthlyBuild += World.ConstructionMaterialPerMonth(w.Regions[ri], bp, w.Coef);
             }   // その月に始まった工事だけを律速へ（拒まれた月は目標が残り月次で再挑戦＝従来どおり）
         }
@@ -1831,7 +1831,7 @@ public static class SelfPlayMatch
                     //   貿易だけ取り残された内部矛盾の修正（Fiscal.cs 財7「債務/GDPの単位整合」の注記が「NominalGdp は月次フロー」と明記）。
                     //   分母を ×MonthsPerYear で年換算＝英1913 の実測は 0.43%→0.034%＝史実25%との差は×17でなく**×190**
                     //   ＝「較正で届く段階ではなく構造をもう一段変える段階」と物差しが正しく教えるようになる。
-                    ((w.ExportsByGood?.Sum() ?? 0) + (w.ImportsByGood?.Sum() ?? 0)) * w.Coef.ClearingsPerYear / System.Math.Max(1.0, w.NominalGdp * Calendar.MonthsPerYear),   // 清算単位→年換算（月次清算に追随）
+                    ((w.ExportsByGood?.Sum() ?? 0) + (w.ImportsByGood?.Sum() ?? 0)) * w.Coef.ClearingsPerYear / System.Math.Max(1.0, Calendar.PerMonthToPerYear(w.NominalGdp)),   // 清算単位→年換算（月次清算に追随）
                     PoliticalQuantities.MilitaryPush(w), PoliticalQuantities.CivilianValve(w),   // ★計器（2026-08-18）：軍の政治的優位の分子と分母。⚠合成値だけを見て2度誤ったので内訳を運ぶ
                     PoliticalQuantities.AppointmentAtCourt(w), w.Legitimacy,                      //   弁の2項（任免の所在・正統性）＝弁が飽和しているのか片方が死んでいるのかを分ける
                     PowerAffinity.PolityFromShares(w),                                            // ★導出政体（2026-08-21）＝忠実度の政体次元の新しい物差し
@@ -2104,7 +2104,7 @@ public static class SelfPlayMatch
             double ex = 0, im = 0;
             if (w.ExportsByGood is { } eg) foreach (var v in eg) ex += v;
             if (w.ImportsByGood is { } ig) foreach (var v in ig) im += v;
-            sum += (ex + im) * w.Coef.ClearingsPerYear / System.Math.Max(1.0, w.NominalGdp * Calendar.MonthsPerYear); n++;   // ★物差し是正（2026-08-21）＝分母を年換算（上の TradeGdp と同一の是正・単位＝年額÷年額）。分子は清算単位→年換算（月次清算に追随）
+            sum += (ex + im) * w.Coef.ClearingsPerYear / System.Math.Max(1.0, Calendar.PerMonthToPerYear(w.NominalGdp)); n++;   // ★物差し是正（2026-08-21）＝分母を年換算（上の TradeGdp と同一の是正・単位＝年額÷年額）。分子は清算単位→年換算（月次清算に追随）
         }
         return n > 0 ? sum / n : 0;
     }

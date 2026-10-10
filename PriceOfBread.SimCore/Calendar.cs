@@ -16,4 +16,20 @@ public static class Calendar
     public const int MonthsPerYear = 12;                        // 1年＝12ヶ月（年↔月換算）
     public const int StartYear = 1783;                          // ゲーム開始暦年（Scenario.StartYear の既定と一致）
     public const int EndYear = StartYear + Coefficients.GameQuarters / QuartersPerYear;   // 終局暦年＝1950（1783+668/4＝167年＝1950年1月1日に終局）。1914は忠実度の主指標の断面であって終局ではない
+
+    // === 時間の単位の換算（README §1-9・2026-10-10 作者）===
+    // 量の単位は月（市場の刻みだけ日）・四半期は「3か月ごと」の実行の刻み・年は史実との比較の入口と出口（係数の出典・計器・画面）。
+    // ⚠名前は「何あたりの量を何あたりへ直すか」＝割り算と掛け算を裸で書かない。中身は呼び元が書いていた式そのまま（1回の除算か乗算＝丸めを変えない）。
+    // ⚠合成するときは1本ずつ通す（PerYearToPerMonth(PerQuarterToPerYear(x)) は x×4÷12 であって x÷3 とビット一致するとは限らない）。
+    // ⚠流れ（円/月）にも率（/月）にも同じ関数を使う＝掛け算と割り算の向きが同じため。在庫（残高）は換算しない。
+    public static double PerYearToPerMonth(double perYear) => perYear / MonthsPerYear;
+    public static double PerMonthToPerYear(double perMonth) => perMonth * MonthsPerYear;
+    public static double PerQuarterToPerMonth(double perQuarter) => perQuarter / MonthsPerQuarter;
+    public static double PerMonthToPerQuarter(double perMonth) => perMonth * MonthsPerQuarter;
+    public static double PerQuarterToPerYear(double perQuarter) => perQuarter * QuartersPerYear;
+    public static double PerYearToPerDay(double perYear) => perYear / DaysPerYear;
+    public static double PerMonthToPerDay(double perMonth) => perMonth / DaysPerMonth;
+    public static double PerDayToPerMonth(double perDay) => perDay * DaysPerMonth;
+    /// <summary>期間の換算（年数→月数）。割合の換算ではない。</summary>
+    public static double YearsToMonths(double years) => years * MonthsPerYear;
 }

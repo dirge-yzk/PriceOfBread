@@ -1715,7 +1715,7 @@ public sealed class Simulation
     /// （2つの足し算を同じ順で＝和は1ビットも変わらない）。</summary>
     private static void AddStateClaim(Producer pr, Region r, World w, ref double claims)
     {
-        if (pr.ConstructionLeft > 0) claims += pr.ConstructionPayPerDay * Calendar.DaysPerMonth;   // 工事の工賃の1か月分（World.StepConstruction）
+        if (pr.ConstructionLeft > 0) claims += Calendar.PerDayToPerMonth(pr.ConstructionPayPerDay);   // 工事の工賃の1か月分（World.StepConstruction）
         double loss = pr.LastCost - pr.LastRevenue;
         if (loss > 0) claims += World.StateProfitShare(pr, r, w.Coef) * loss;   // 国営持分の赤字の見込み（先月の損益）
     }
@@ -2601,7 +2601,7 @@ public sealed class Simulation
         //     豊かな POP の死がその分だけ減った＝飢えた州の減りが国の中の他の州の伸びに付け替わった（分子と分母の非対称）。
         //     加えて局地飢饉（旧 RegionalFamineStep＝国平均からの相対の不足×0.025／月）が同じ飢えを2本目の死として数えていた（思想⑨）＝植民地の州が開幕から
         //     飢えの死で年3%ずつ痩せ、ピークの1/10 未満へ落ちた（(125) の10種で532件・(131) の計器＝局地飢饉 32.5‰・寄せた分 5.5‰／年）。
-        double totalBirths = c.CrudeBirthRate / Calendar.MonthsPerYear * fertility * massBirthWeight;   // 既定 massBirthWeight==massPop ＝現行と厳密一致
+        double totalBirths = Calendar.PerYearToPerMonth(c.CrudeBirthRate) * fertility * massBirthWeight;   // 既定 massBirthWeight==massPop ＝現行と厳密一致
         bool noMothers = !(massBirthKey > 1e-12);   // 産む人が居ない（全 POP の出産可能のプール≈0）＝出生0（否定形＝NaN も0）
         if (noMothers) totalBirths = 0;
         bool recovering = net >= totalBirths;
@@ -2667,7 +2667,7 @@ public sealed class Simulation
                     //   国の死の予算の外＝豊かな POP の死は減らない。子供と老年に厚く（災害死と同じ運搬＝リ10）。否定形＝NaN の上乗せは殺さない側。
                     double fill = p.FoodFill;   // 主食の充足の1本
                     double floorF = c.FamineDeathFillFloor;
-                    double excess = fill < floorF ? c.FamineExcessMortality / Calendar.MonthsPerYear * Math.Pow((floorF - fill) / floorF, c.FamineExcessMortalityExponent) * size0 : 0.0;
+                    double excess = fill < floorF ? Calendar.PerYearToPerMonth(c.FamineExcessMortality) * Math.Pow((floorF - fill) / floorF, c.FamineExcessMortalityExponent) * size0 : 0.0;
                     if (excess > 0 && p.Size > 0)
                     {
                         double d = Math.Min(excess, p.Size);
@@ -2749,7 +2749,7 @@ public sealed class Simulation
             if (r.MineralDepositInitial <= 0)
             {
                 // 初回捕捉：この州の初期鉱脈＝現在の年率×DepositYearsAtBirth
-                r.MineralDepositInitial = outSum * Calendar.MonthsPerYear * c.DepositYearsAtBirth;
+                r.MineralDepositInitial = Calendar.PerMonthToPerYear(outSum) * c.DepositYearsAtBirth;
                 r.MineralDeposit = r.MineralDepositInitial;
             }
             r.MineralDeposit = System.Math.Max(0, r.MineralDeposit - outSum);   // 掘った分だけ減る

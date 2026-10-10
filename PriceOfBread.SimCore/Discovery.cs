@@ -785,7 +785,7 @@ public static class Discovery
         if (w.DiscoveryLossQ is { } lq)
         {
             var avg = new double[lq.Length];
-            for (int i = 0; i < lq.Length; i++) avg[i] = lq[i] / Calendar.MonthsPerQuarter;
+            for (int i = 0; i < lq.Length; i++) avg[i] = Calendar.PerQuarterToPerMonth(lq[i]);
             view = (view ?? new WorldView(null)) with { Loss = avg };
             w.DiscoveryLossQ = null;
         }

@@ -355,7 +355,7 @@ public static class Meritocracy
                     //   (a) 分母 avgPerCap（Σmax(0,Savings)）と基準が食い違い、(b) レバレッジの高い黒字資本家を
                     //   BankruptcyFallRate=0.15 で大量に落として較正を壊す。債務の帰結は**別の判定**として足すのが正しい。
                     bool debtRuined = c.PopDebtDriven > 0 && c.DebtRuinRatio > 0
-                                   && p.Debt > c.DebtRuinRatio * Math.Max(Eps, p.Earned * Calendar.MonthsPerYear);
+                                   && p.Debt > c.DebtRuinRatio * Math.Max(Eps, Calendar.PerMonthToPerYear(p.Earned));
                     if (!debtRuined && pc >= c.UpperFallThreshold * anchor) continue;
                     // rank7(c)（点火0.3）：転落率の深さ連続化＝浅い割れはゆっくり・深い割れ（恐慌）は速い。debtRuined は素通し（債務破滅は速いまま）。f=0で1.0＝ビット恒等
                     double depth = FallDepth(pc, c.UpperFallThreshold * anchor, debtRuined, c);
@@ -665,7 +665,7 @@ public static class Meritocracy
     {
         double f = c.FallAnchorReform;
         if (f <= 0) return avgAsset;
-        double annualPerCap = Math.Max(0, Math.Max(p.Earned, p.LastEarned)) * Calendar.MonthsPerYear / Math.Max(Eps, p.Size);
+        double annualPerCap = Calendar.PerMonthToPerYear(Math.Max(0, Math.Max(p.Earned, p.LastEarned))) / Math.Max(Eps, p.Size);
         return (1.0 - f) * avgAsset + f * annualPerCap;
     }
 
@@ -686,7 +686,7 @@ public static class Meritocracy
     /// 均衡は不変・時定数だけ世代スケールへ。④⑤⑥の転落・戦争・破産（BankruptcyFallRate経路）は素通し＝「破産は速い」が史実。
     /// 呼び出し側が K&gt;0 のときだけ乗算する（K=0＝1命令も走らない厳密恒等）。新成人率≈0.5%/四半期なのでK≈数十〜百が実効目盛り。</summary>
     private static double CohortGate(Pop src, Coefficients c)
-        => Math.Min(1.0, c.CohortGateK * src.EnteringAdultsMonthly() * Calendar.MonthsPerQuarter);
+        => Math.Min(1.0, Calendar.PerMonthToPerQuarter(c.CohortGateK * src.EnteringAdultsMonthly()));
 
     /// <summary>rank12（点火 ProfessionGenderGate=1.0）：行き先職の女性アクセス（1.0＝制約なし）。**新しい法は作らない**（作者裁定）＝
     /// 既存の「女性の権利」梯子（なし0／財産権1/3／教育権2/3／選挙権1＝FactionSnapshotと同じ物差し）×WomenWageRetention

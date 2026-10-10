@@ -240,7 +240,7 @@ public static class Fiscal
         // BondRolloverFrac=1.0（既定）で GovAvgCoupon=GovBondRate にビット一致＝浮動永久債＝旧式 GovDebt*GovBondRate/12 と厳密一致。
         double rollover = PoliticalQuantities.Clamp01(c.BondRolloverFrac);
         w.GovAvgCoupon = (1.0 - rollover) * w.GovAvgCoupon + rollover * w.GovBondRate;
-        double interest = w.GovDebt * w.GovAvgCoupon / Calendar.MonthsPerYear;   // 月次（クーポンは年率。Fiscal.Step は月次実行なので /12）
+        double interest = Calendar.PerYearToPerMonth(w.GovDebt * w.GovAvgCoupon);   // 月次（クーポンは年率。Fiscal.Step は月次実行なので /12）
         // ★金建て債務の実質負担（銀本位doc G8・2026-08-13）＝**史実で銀本位国を金へ追い込んだ最大の力**。
         //   対外債務はロンドン建て＝金建てである（★インドの Home Charges・清の庚子賠款）。銀が下がれば、同じ利払いに
         //   より多くの自国通貨が要る＝⚠実質負担が膨らむ。膨らんだ分は【債権者が受け取る】——移転であって、湧いてはならない
@@ -458,7 +458,7 @@ public static class Fiscal
         }
         // 財7（債務/GDPの単位整合）：NominalGdp は月次フロー、GovBondRate は年率（利払いを/12）。分母は年の名目GDP（月次×12）。
         //   ★2026-09-29：旗 DebtGdpAnnualized（2026-07-26 点火＝既定1.0）を焼き込み＝国債の金利の2つの上乗せ（債務比・信認の喪失）を史実の年の単位で出し直した（下）＝旧の月次の枝（0）は較正の意味を失った。
-        double gdpDenom = nominalGdp * Calendar.MonthsPerYear;   // 年の名目GDP
+        double gdpDenom = Calendar.PerMonthToPerYear(nominalGdp);   // 年の名目GDP
         // [単位・B13] 債務/GDP＝**年次名目**（GovDebt÷(月次NominalGdp×12)）。国債金利の債務比プレミアム・CapitalMarket の対外信用の債務の項・
         //   Government の緊縮の強度・Credit の銀行の評価損・PolicyPreferences の国家の歳入要求（どれも 2026-09-29 から）はこの単位（旧＝Credit は月次名目・Government/PolicyPreferences は月次実質）。
         //   台帳（2026-09-11 #10）：PowerShares.cs の debtGrip＝月次名目の Clamp（物理・用途別に別＝触らない）／Runner milfund・hangtest の dGdp＝月次名目（計器）／App のヘッダー「対年GDP」＝この行と同じ年次名目（旧＝年次実質＝表示だけ別物差しだったのを統一）
@@ -522,7 +522,7 @@ public static class Fiscal
         //   BondRolloverFrac だけ乗り換わる）が時間とともに薄まる＝新しい状態を作らない。⚠累積の切り下げ CumulativeDevaluation は資本逃避（CapitalMarket）・
         //   通貨改革と兌換の再加入の門（broken）・AI の改革の判断が読むまま（金利生活者のポンプの歯止め＝2026-09-27）＝国債の金利だけが読まなくなった。
         //   ⚠否定形＝NaN の切り下げは0・年GDP が0で切り下げありは番兵（BondRateMax で頭打ち）。
-        double devalSpeed = devalued > 0 ? (gdpDenom > 1e-9 ? devalued * Calendar.MonthsPerYear / gdpDenom : DebtRatioUnbounded) : 0;
+        double devalSpeed = devalued > 0 ? (gdpDenom > 1e-9 ? Calendar.PerMonthToPerYear(devalued) / gdpDenom : DebtRatioUnbounded) : 0;
         if (!(devalSpeed <= DebtRatioUnbounded)) devalSpeed = DebtRatioUnbounded;
         double distrust = c.BondRateDistrustScale * devalSpeed;
         // ★債務比の上乗せ（BondRateDebtScale×債務÷年名目GDP）は史実から（2026-09-29）＝英のコンソル（国債÷年GDP 約2.5 の1815〜20年に利回り約4.5%）を信認のある国

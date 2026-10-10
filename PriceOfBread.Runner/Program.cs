@@ -15,7 +15,7 @@ static double TradeGdp(World w)
 {
     double ex = w.ExportsByGood is { } eg ? eg.Sum() : 0;
     double im = w.ImportsByGood is { } ig ? ig.Sum() : 0;
-    return (ex + im) * w.Coef.ClearingsPerYear / System.Math.Max(1.0, w.NominalGdp * Calendar.MonthsPerYear);
+    return (ex + im) * w.Coef.ClearingsPerYear / System.Math.Max(1.0, Calendar.PerMonthToPerYear(w.NominalGdp));
 }
 
 // 失業率＝エンジンが pop に書いた値（EconomyStep：労働財の売れ残り率・農業労働は自給分を除く）を、その労働財の生産者の LaborPopIndex から読む
@@ -1406,7 +1406,7 @@ if (args.Length > 0 && args[0] == "monoprobe")
         {
             var w = sim.World;
             if (w.ExportsByGood is { } eg2 && w.ImportsByGood is { } ig2) wTrade += (eg2.Sum() + ig2.Sum()) * mpc.ClearingsPerYear;
-            wGdp += System.Math.Max(0, w.NominalGdp) * Calendar.MonthsPerYear;   // NominalGdpは月次＝年換算は×12（旧×4は四半期扱いの誤り）
+            wGdp += Calendar.PerMonthToPerYear(System.Math.Max(0, w.NominalGdp));   // NominalGdpは月次＝年換算は×12（旧×4は四半期扱いの誤り）
             double sImp = 0, sDem = 0;
             foreach (var r in w.Regions)
             {
@@ -1993,7 +1993,7 @@ if (args.Length > 0 && args[0] == "silverprobe")
                 double svEx = 0, svIm = 0;
                 if (w.ExportsByGood is { } svEg) foreach (var v in svEg) if (v > 0) svEx += v;
                 if (w.ImportsByGood is { } svIg) foreach (var v in svIg) if (v > 0) svIm += v;
-                double svOpen = w.NominalGdp > 1e-9 ? (svEx + svIm) * w.Coef.ClearingsPerYear / (w.NominalGdp * Calendar.MonthsPerYear) : 0;   // MajorsTradeGdp と同じ物差し
+                double svOpen = w.NominalGdp > 1e-9 ? (svEx + svIm) * w.Coef.ClearingsPerYear / Calendar.PerMonthToPerYear(w.NominalGdp) : 0;   // MajorsTradeGdp と同じ物差し
                 svLine.Append($"{w.SelfPower?.BaseName ?? "?"}:{law}({w.MeanIndustrialization:F2}/{w.Policy.MonetaryTarget}/{w.Convertibility:F2}/開{svOpen:F3}/引{w.TradeGoldPull:F3})  ");
                 if (++svCol % 6 == 0) { Console.WriteLine("      " + svLine); svLine.Clear(); }
             }
@@ -3876,7 +3876,7 @@ if (args.Length > 0 && args[0] == "reachprobe")
             for (int i = 0; i < rpm.Nations.Count; i++) if (NameOf(i) == wn) { idx = i; break; }
             if (idx < 0) continue;
             var w = rpm.Nations[idx].World;
-            double gdp = System.Math.Max(1.0, w.NominalGdp * Calendar.MonthsPerYear);   // NominalGdpは月次＝年換算は×MonthsPerYear（TradeGdp と同じ物差し）
+            double gdp = System.Math.Max(1.0, Calendar.PerMonthToPerYear(w.NominalGdp));   // NominalGdpは月次＝年換算は×MonthsPerYear（TradeGdp と同じ物差し）
             double stat = TradeGdp(w) * 100;
             double cross = TradeReachDiag.CrossByNation[idx] * 4.0 / gdp * 100;
             double dom = TradeReachDiag.DomByNation[idx] * 4.0 / gdp * 100;
@@ -6117,7 +6117,7 @@ if (args.Length > 0 && args[0] == "initsavprobe")
             double invSav = CapitalMarket.InvestorSavings(w); double invEarnAll = 0; foreach (var r in w.Regions) foreach (var p in r.Pops) if (CapitalMarket.IsInvestor(p, w.Coef)) invEarnAll += p.LastEarned; double invEarn = 0; foreach (var r in w.Regions) foreach (var p in r.Pops) if (CapitalMarket.IsInvestor(p, w.Coef)) invEarn += p.LastEarned;
             if (isNames[0] == "ALL" && stage.StartsWith("助走の終わり"))
             {
-                double gdpY = w.NominalGdp * Calendar.MonthsPerYear;
+                double gdpY = Calendar.PerMonthToPerYear(w.NominalGdp);
                 Console.WriteLine($"SUM	{name}	人口千 {popTotal:F0}	年GDP {gdpY:F0}	GDP/人 {(popTotal > 0 ? gdpY / popTotal : 0):F2}	全貯蓄/年GDP {(gdpY > 0 ? savTotal / gdpY : 0):F2}	投資家貯蓄/年GDP {(gdpY > 0 ? CapitalMarket.InvestorSavings(w) / gdpY : 0):F2}	投資家貯蓄/投資家年所得 {(invEarnAll > 0 ? CapitalMarket.InvestorSavings(w) / (invEarnAll * 12) : 0):F1}	投資家年所得/年GDP {(gdpY > 0 ? invEarnAll * 12 / gdpY : 0):F2}	国債/年GDP {(gdpY > 0 ? w.GovDebt / gdpY : 0):F2}	国庫/年GDP {(gdpY > 0 ? w.Treasury / gdpY : 0):F3}");
             }
             Console.WriteLine($"{name}	人口(千) {popTotal:F0}	名目GDP(年) {w.NominalGdp * 4:F0}	国庫 {w.Treasury:F0}	国債 {w.GovDebt:F0}	全貯蓄 {savTotal:F0}	投資家貯蓄(述語) {invSav:F0}	物価水準 {w.PriceLevel:F3}	Fx {w.FxRate:F3}	基礎貨幣 {w.BaseMoney:F0}	広義 {w.BroadMoney:F0}	与信残高 {w.OutstandingLoans:F0}	収益の月次(投資家) {invEarn:F0}");
@@ -6165,7 +6165,7 @@ if (args.Length > 0 && args[0] == "earlyprobe220")
                 }
                 foreach (var p in r.Pops) sav += p.Savings;
             }
-            double gdpY = Math.Max(1e-9, epw.NominalGdp * Calendar.MonthsPerYear);
+            double gdpY = Math.Max(1e-9, Calendar.PerMonthToPerYear(epw.NominalGdp));
             Console.WriteLine($"E	{name}	{tag}	yr{epw.Year}	ldem={ldem:F0}	lcap={lcap:F0}	ratio={(lcap > 1e-9 ? ldem / lcap : 0):F2}	lpx={(lpxD > 0 ? lpxN / lpxD : 0):F3}	K={K:F0}	inv/gdp={CapitalMarket.InvestorSavings(epw) / gdpY:F3}	sav/gdp={sav / gdpY:F3}	gdpY={gdpY:F0}	国庫/gdp={epw.Treasury / gdpY:F3}	国債/gdp={epw.GovDebt / gdpY:F3}	P={epw.PriceLevel:F3}	Fx={epw.FxRate:F3}	基礎貨幣={epw.BaseMoney:F0}");
         }
     }

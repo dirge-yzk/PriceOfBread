@@ -57,7 +57,7 @@ public static class CapitalMarket
             // [単位・B13] 債務/GDP＝**年次名目**（GovDebt÷(月次NominalGdp×12)）＝Fiscal の国債の金利の dGdp と同じ物差し（2026-09-29・棚卸し fis-02）。
             //   旧＝月次名目（GovDebt÷月次NominalGdp）＝閾値 DebtDistressRatio 2.0 は年に直すと約0.17＝国債÷年GDP が史実の水準（英1815 約2.5・仏1789 0.6〜0.8）へ
             //   立った国は対外信用の債務の項が0＝外資が逃げた。NoGdpDistressDebtRatio・信用の閾値はこの単位。
-            double debtR = ngdp[i] > 1e-9 ? w[i].GovDebt / (ngdp[i] * Calendar.MonthsPerYear) : (w[i].GovDebt > 0 ? NoGdpDistressDebtRatio : 0);
+            double debtR = ngdp[i] > 1e-9 ? w[i].GovDebt / Calendar.PerMonthToPerYear(ngdp[i]) : (w[i].GovDebt > 0 ? NoGdpDistressDebtRatio : 0);
             // ★AUD-09（Fiscal.cs の dGdp と同じ規律・同じ書き方）：分母の絶対値ガードだけでは微小非ゼロで比が発散し、
             //   NaN は `Math.Clamp` を素通りして CreditDebtTerm を毒する。⚠否定形で番兵へ倒す。
             //   ★有限値では厳密同値：読み手は下2行の `Clamp(1−debtR/DebtDistressRatio, 0, 1)` だけで、

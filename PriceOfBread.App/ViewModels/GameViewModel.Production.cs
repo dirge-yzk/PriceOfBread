@@ -1125,7 +1125,7 @@ public partial class GameViewModel
         //   「廃棄率 12,543,372%」（分子＝初期在庫200の腐敗＝実量）になっていた。
         // ⚠分子（直近12ヶ月合計）と分母（今月の生産×12ヶ月）は別窓＝生産が今月だけ落ちた財では分母が痩せて跳ねる（cross_file_needs参照）。
         //   当面の最小修正：裸の12だけ Calendar.MonthsPerYear に置換。
-        double spoilRate = !unavail && prod[gi] > QtyEps ? spoilYr / (prod[gi] * Calendar.MonthsPerYear) : double.NaN;
+        double spoilRate = !unavail && prod[gi] > QtyEps ? spoilYr / Calendar.PerMonthToPerYear(prod[gi]) : double.NaN;
 
         // ★補助金は国営持分に効かない（作者裁定2026-08-10「国営工場は補助金の対象外」）＝可否と理由はエンジンの
         //   World.CanSubsidize から取る（UIに第二の式を置かない）。品目のボタンは全 active 州へ一括で効くので、

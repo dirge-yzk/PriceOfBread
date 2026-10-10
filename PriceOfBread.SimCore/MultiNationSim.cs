@@ -908,7 +908,7 @@ public sealed class MultiNationSim
                 for (int i = 0; i < Nations.Count; i++)
                 {
                     var wn = Nations[i].World;
-                    double annualGdp = wn.NominalGdp * Calendar.MonthsPerYear;
+                    double annualGdp = Calendar.PerMonthToPerYear(wn.NominalGdp);
                     double openness = annualGdp > 1e-9 ? natTrade[i] * _coef.ClearingsPerYear / annualGdp : 0;   // 清算単位→年換算（単位ヘルパー）
                     if (!(openness >= 0)) openness = 0;   // 否定形（分母が痩せた比の暴走もここで抑える）
                     natOpen[i] = openness; openSum += openness; openN++;

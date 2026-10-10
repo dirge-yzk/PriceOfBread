@@ -148,7 +148,7 @@ public static class Territory
     /// 計画が上限以下なら1）。上限が NaN なら0の側へ倒す（fail-closed＝MultiNationSim の段4と同じ）。</summary>
     private static double ReceiveScale(Region dst, double planned, Coefficients c)
     {
-        double cap = c.ImmigrationReceiveCapFrac / Calendar.MonthsPerQuarter * dst.SumPopulation() * AbsorbCap(dst, c);
+        double cap = Calendar.PerQuarterToPerMonth(c.ImmigrationReceiveCapFrac) * dst.SumPopulation() * AbsorbCap(dst, c);
         return planned <= cap ? 1.0 : cap > 0 ? cap / planned : 0.0;
     }
 

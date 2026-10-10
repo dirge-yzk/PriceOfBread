@@ -479,9 +479,9 @@ public partial class GameViewModel
             double fNet = _player.ForeignCapitalIn - _player.CapitalAbroad;   // 外資の純フロー：正＝流入（収入側）・負＝流出（支出側）。片方は£0
             if (_prevQuarterStamp >= 0)
             {
-                _eduMonthly = System.Math.Max(0, eduCum - _prevEduCum) / (double)Calendar.MonthsPerQuarter;
-                _stateMonopMonthly = System.Math.Max(0, stateMonopCum - _prevStateMonopCum) / (double)Calendar.MonthsPerQuarter;
-                double fFlow = (fNet - _prevForeignNet) / (double)Calendar.MonthsPerQuarter;
+                _eduMonthly = Calendar.PerQuarterToPerMonth(System.Math.Max(0, eduCum - _prevEduCum));
+                _stateMonopMonthly = Calendar.PerQuarterToPerMonth(System.Math.Max(0, stateMonopCum - _prevStateMonopCum));
+                double fFlow = Calendar.PerQuarterToPerMonth(fNet - _prevForeignNet);
                 _fInMonthly = System.Math.Max(0, fFlow);
                 _fOutMonthly = System.Math.Max(0, -fFlow);
             }

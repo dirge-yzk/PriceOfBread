@@ -316,7 +316,7 @@ public partial class GameViewModel
         // 接14（監査2026-07-11・2026-07-25実装）：実効はUIの自前近似でなくエンジンの実績診断を読む（国際市場は清算単位＝MonthsPerClearing で月割。負値＝ダンピングの補助金支出）
         double tariffActMonthly = _player.LastTariffRevenue / (double)c.MonthsPerClearing;
         // （連合維持費＝治安維持と行政の人頭割りは 2026-09-30 (135) に撤去＝軍と官僚の給与は兵力と行政の購買の1本＝下の軍事費と行政費の行）
-        double interest = _player.GovDebt * _player.GovBondRate / (double)Calendar.MonthsPerYear;
+        double interest = Calendar.PerYearToPerMonth(_player.GovDebt * _player.GovBondRate);
         // ★予測はエンジンが実際に施行する目標を読む（2026-09-12 反証・接14と同じ作法＝UIに第二の式を置かない）。
         //   旧は生の陸海の和（Policy.MilitarySpendingTarget）で、段（R2）では段へ丸められる前の値＝開幕0.30に対し施行は段1の0.25＝予測が**2割過大**だった。
         // ★(155) 軍事費の器（段×MilitaryEnvelopeShare×使える歳入＝エンジンの Military.EnvelopeOf と同じ基数）から兵士の給与の請求（LastSoldierPay＝規定の給与＋幹部の給与〔質〕）を引いた残り＝装備の上限
@@ -333,7 +333,7 @@ public partial class GameViewModel
         //   （現行は ModernizationCostGdpShare>0＝GDP比の凸コスト×制度疲労/技術の遅れ×旧体制の反対）。すぐ下の IndTip は
         //   新式の内訳を出していたので、**倍率の説明だけ新しく金額は古い**という食い違いにもなっていた。
         //   予算表の他の行と同じ作法（接14＝UIの自前近似をやめエンジンの式を読む）に揃える＝World.ModernizationBudget が唯一の出所。
-        double ind = _player.ModernizationBudget() / (double)Calendar.MonthsPerQuarter;   // 四半期→月割
+        double ind = Calendar.PerQuarterToPerMonth(_player.ModernizationBudget());   // 四半期→月割
 
         // 実効額（税行のみ現在の実効レート×同じ課税ベース）。支出側の実効は接14（監査2026-07-11・2026-07-25実装）＝
         // UIの自前近似をやめ、エンジンが予算表向けに書く実績診断（World.LastMilitaryClaim等・Fiscalは月次実行＝当月値）を読む。
@@ -369,8 +369,8 @@ public partial class GameViewModel
         PensionLine = "年金"; PensionAct = Money(aPen); PensionAmt = Money(pen);
         // 見えない出費の可視化（監査2026-07-11 接1）：国庫を実際に動かすのに予算表に現れず「黒字表示なのに国庫が減る」原因だった3項目。
         double colonialUp = _player.LastColonialUpkeep * _player.FiscalFundingRatio;   // 植民地維持費（補給財〔石炭/糧食/キニーネ〕の請求×国家の支払い率 r・2026-09-28／不満の俸給は 2026-09-30 (140) に撤去）
-        double tribOut = _player.LastTributeOut * _player.FiscalFundingRatio / (double)Calendar.MonthsPerQuarter;   // 属国貢納（支払＝請求×r・四半期→月割）
-        double tribIn = _player.LastTributeIn / (double)Calendar.MonthsPerQuarter;                    // 属国貢納（受取・同）
+        double tribOut = Calendar.PerQuarterToPerMonth(_player.LastTributeOut * _player.FiscalFundingRatio);   // 属国貢納（支払＝請求×r・四半期→月割）
+        double tribIn = Calendar.PerQuarterToPerMonth(_player.LastTributeIn);                    // 属国貢納（受取・同）
         ColonialRowVisible = colonialUp > 1e-9;
         ColonialLine = "植民地維持費"; ColonialAmt = Money(colonialUp);
         TributeRowVisible = tribOut > 1e-9;
@@ -427,7 +427,7 @@ public partial class GameViewModel
                           ? $"　デフォルトまで{Math.Ceiling(Math.Max(0, c.DefaultArrearsMonths - _player.InsolvencyQuarters) / (1.0 - _player.FiscalFundingRatio)):F0}か月" : "");   /* ★2026-09-26：カウンタは月次で進む（dorm-29）・★(205) 計数は払えなかった大きさの累計＝残りを今の r の払えない割合で割った月数 */
         // 財7単位フリップ（2026-07-26）：エンジンの金本位資格/金利プレミアムが年換算GDP基準になったのに合わせ、表示も対年GDP（史実の債務比率と直接比較できる単位）
         // 分母＝**年次名目**（月次 NominalGdp×12）＝エンジン Fiscal.cs の兌換停止/国債金利の閾値と同じ単位（旧＝年次実質 Gdp×12 で表示だけ別物差し・2026-09-11 #10）
-        DebtHeaderTip = $"国債 {Money(_player.GovDebt)}　対年GDP {(_player.NominalGdp > 1e-9 ? System.Math.Min(9.99, _player.GovDebt / (_player.NominalGdp * (double)Calendar.MonthsPerYear)) : 0):P0}　金利 {_player.GovBondRate:P0}　債券価格 {_player.BondPrice:P0}"
+        DebtHeaderTip = $"国債 {Money(_player.GovDebt)}　対年GDP {(_player.NominalGdp > 1e-9 ? System.Math.Min(9.99, _player.GovDebt / Calendar.PerMonthToPerYear(_player.NominalGdp)) : 0):P0}　金利 {_player.GovBondRate:P0}　債券価格 {_player.BondPrice:P0}"
                        + (_player.ForeignDebt > 1 ? $"\nうち対外 {Money(_player.ForeignDebt)}" : "")
                        + (_player.AusterityIntensity > 0 ? $"\n緊縮 {_player.AusterityIntensity:P0}" : "")
                        + (_player.CumulativeDevaluation > 1 ? $"\n切下げ累計 {Money(_player.CumulativeDevaluation)}" : "")

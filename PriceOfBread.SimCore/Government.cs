@@ -236,7 +236,7 @@ public static class Government
         //   ⚠導出をここ（施行の前）に置いても値は同じ＝材料の国債と名目GDP（州×生産者の産出×参照価格×物価水準）を下の施行は書かない。
         double austGdp = w.FiscalEnabled && w.GovDebt > 0 ? w.NominalGdp : 0;   // 州×生産者の走査は債務のある国だけ・1回（旧は条件と割り算で2回）
         double austerity = austGdp > 1e-9
-            ? PoliticalQuantities.Clamp01((w.GovDebt / (austGdp * Calendar.MonthsPerYear) - c.AusterityStartDebt) / c.AusterityRange) : 0;
+            ? PoliticalQuantities.Clamp01((w.GovDebt / Calendar.PerMonthToPerYear(austGdp) - c.AusterityStartDebt) / c.AusterityRange) : 0;
 
         // ★助走は法を動かさない（2026-09-30 (119)・(109) の申し送り3）＝施行（下の段の法・税と支出の段・治安維持力・軍事費と陸海の維持費・関税・金利・行政費）は
         //   開始前の助走（World.WarmupFrozen）では走らない＝開幕の法は world.json と史実の初期値のまま始まる。法の施行は「年月をかけて起きること」＝国庫・国債・人口・資本と同じ門。

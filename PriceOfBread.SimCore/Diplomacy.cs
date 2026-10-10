@@ -530,7 +530,7 @@ public sealed class Diplomacy
                         for (int k = 0; k < r.ForeignShares.Length; k++) if (r.ForeignShares[k] > 0) r.ForeignShares[k] = System.Math.Max(0, r.ForeignShares[k] * (1.0 - fade));
                 }
         }
-        int spanMonths = System.Math.Max(1, (int)(c.TreatyPortLapseYears * Calendar.MonthsPerYear));
+        int spanMonths = System.Math.Max(1, (int)Calendar.YearsToMonths(c.TreatyPortLapseYears));
         if (month <= 0 || month % spanMonths != 0) return;   // month0（開幕）は検査しない＝初期盤面に条約港は無く、開幕跳躍も作らない
         double top = 0;
         foreach (var p in Powers)

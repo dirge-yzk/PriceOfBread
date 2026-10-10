@@ -1071,7 +1071,7 @@ public sealed class World
         if (WarmupFrozen || r.State != RegionState.Active || !r.IsPort || !Discovery.SteamPower(Discovered)) return 0;
         if (!(r.LastTradeThrottle < Coef.PortCongestionTarget) || r.InvestorPopIndex < 0 || r.InvestorPopIndex >= r.Pops.Count) return 0;
         if (!(nationThroughput > 1e-9) || !(r.LastPortThroughput > 0)) return 0;   // 否定形＝NaN は請求しない
-        return AdminSpending * Coef.PortStateFrac * FiscalCapacity * Calendar.MonthsPerQuarter * (r.LastPortThroughput / nationThroughput);
+        return Calendar.PerMonthToPerQuarter(AdminSpending * Coef.PortStateFrac * FiscalCapacity) * (r.LastPortThroughput / nationThroughput);
     }
     /// <summary>国の港の州の取扱高の和（<see cref="PortStateRequest"/> の分母）。</summary>
     internal double PortThroughputTotal()
@@ -1085,7 +1085,7 @@ public sealed class World
     {
         if (Coef.OpulenceSpendRate <= 0) return LastRevenue;
         double line = UtilityAgent.OpulenceLineOf(this);   // RelieveOpulence と同一の潤沢線（R3安定形2026-08-08＝兵士給与算入込み）
-        return LastRevenue + Coef.OpulenceSpendRate * Math.Max(0, Treasury - line) / (double)Calendar.MonthsPerYear;
+        return LastRevenue + Calendar.PerYearToPerMonth(Coef.OpulenceSpendRate * Math.Max(0, Treasury - line));
     }
     public double LastImportValue { get; internal set; }   // 診断：直近四半期の輸入額（世界価格建て）＝関税予想の課税ベース
     public double LastExportValue { get; internal set; }   // 直近の清算の越境の輸出額（ExportsByGood の和・同じ国の州どうしは数えない＝2026-09-27 回4-1）＝ダンピング補助の対象・交易比重・輸出利害
@@ -1678,7 +1678,7 @@ public sealed class World
         if (!(Coef.InitMoneyMode > 0) || !(BroadMoneyToGdp > 0)) return;
         double share = Coef.InitInvestorMoneyShare;
         if (!(share > 0) || !(share < 1)) return;
-        double gdpY = NominalGdp * Calendar.MonthsPerYear;
+        double gdpY = Calendar.PerMonthToPerYear(NominalGdp);
         if (!(gdpY > 1e-9)) return;
         double target = BroadMoneyToGdp * Coef.InitMoneyScale * gdpY;
         if (!(target > 0)) return;
@@ -1736,7 +1736,7 @@ public sealed class World
         PriceLevel = Math.Clamp(PriceLevel, c.PriceLevelFloor, c.PriceLevelCeil);
         CostPriceLevel += c.MonetaryTrendSpeed * (PriceLevel - CostPriceLevel);   // ★自己費用の物価＝P の遅い趨勢（M/Y の趨勢と同じ速さ・(73)）
         // #2 期待インフレ（年率・平滑）＝直近の物価騰落。名目金利が乗せる（Fisher）。
-        double infl = before > 1e-9 ? (PriceLevel / before - 1.0) * Calendar.QuartersPerYear : 0;   // 四半期→年率
+        double infl = before > 1e-9 ? Calendar.PerQuarterToPerYear(PriceLevel / before - 1.0) : 0;   // 四半期→年率
         ExpectedInflation += Coef.InflationExpectationSmoothing * (infl - ExpectedInflation);   // EMA
 
         // 為替レート（第3a段・兌換連続化）：完全兌換は平価1.0／不換は PPP(1/P)＋貿易収支でオーバーシュート。兌換可能性で目標を補間（部分兌換＝平価に半ば縛られる）。
@@ -2414,7 +2414,7 @@ public sealed class World
     {
         double unit = Coef.FactoryBuildScale > 1e-9 ? Math.Min(Coef.FactoryBuildScale, p.BuiltScale) : p.BuiltScale;
         double frac = p.BuiltScale > 1e-9 ? PoliticalQuantities.Clamp01(unit / p.BuiltScale) : 1.0;
-        return profit * Calendar.MonthsPerYear * Coef.SoeSaleYears * frac;
+        return Calendar.PerMonthToPerYear(profit) * Coef.SoeSaleYears * frac;
     }
 
     /// <summary>国営工場の民間売却（レッセフェール移行）＝**1棟ずつ**（作者裁定2026-08-10。旧は全部売り）。
