@@ -1,0 +1,1 @@
+InitialArsenalBasis=1;InitialArsenalMonths=60
