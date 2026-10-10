@@ -43,3 +43,24 @@ def year_end(r):
     """stock 表の年末の行（time が q<番号> で 番号%4==3）か。開幕・助走の断面と、挙げた国の途中の四半期の行を除く。"""
     t = r['time']
     return t.startswith('q') and int(t[1:]) % 4 == 3
+
+
+_GOODS = None
+
+
+def goods():
+    """財の表 {名前: 番号}（SimCore/goods.json＝財の番号の唯一の実体・BOM つき UTF-8）。
+    ★財は番号でなく名前で引く（作者 2026-10-10・00一覧 00-R2）＝財の削減で番号がずれても追いつく。goods.json が BuiltinGoods と一致することは
+    BreakDetectionTests.埋め込みgoodsJsonはBuiltinGoodsと内容一致する が守る。道具に財の番号を数字で書かない（GoodIdGuardTests.道具のPythonは財の番号を数字で書かない が見張る）。"""
+    global _GOODS
+    if _GOODS is None:
+        import json
+        p = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'PriceOfBread.SimCore', 'goods.json')
+        with open(p, encoding='utf-8-sig') as fh:
+            _GOODS = {g['name']: g['id'] for g in json.load(fh)}
+    return _GOODS
+
+
+def good_id(name):
+    """財の名前（例：'小麦粉'）から番号を引く。名前が無ければ KeyError（黙って別の財を読まない）。"""
+    return goods()[name]
