@@ -593,6 +593,12 @@ public sealed class Simulation
         {
             double natSoldiers = 0;
             foreach (var r in regions) foreach (var pp in r.Pops) if (pp.IsSoldier) natSoldiers += pp.Size;
+            if (coef.InitialArsenalBasis > 0.5)   // ★(239) 腕の旗：底を人口の側の定員へ（Military.EstablishmentOf の manLimit と同じ式）
+            {
+                double man = 0;
+                foreach (var r in regions) man += Military.RegionManpower(r, coef);
+                natSoldiers = coef.MaxSoldierFraction * man;
+            }
             var capReg = regions[0];
             for (int b = 0; b < coef.MilitaryGoods.Length; b++)
             {

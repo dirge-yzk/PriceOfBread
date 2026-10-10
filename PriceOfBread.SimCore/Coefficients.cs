@@ -2203,6 +2203,8 @@ public sealed class Coefficients
     // ★採用（2026-08-22）。首都市場に置く軍需最終財の初期在庫＝平時消費（MilitaryUpkeepScale×初期兵×レート）の月数。0＝休眠（旧＝全財一律200＝清の小銃で6日分）。
     //   効く経路＝**在庫→価格が参照帯に留まる→StateProcurePriceGate が開く→国家が実際に買う**（ration は元から1.0・生産は0.0＝どちらも経路ではない）。
     public double InitialArsenalMonths = 12.0;
+    // ★(239) 腕のための一時の旗（採否が決まったら畳む）。首都の軍需品の備蓄の底（兵の数）：0＝構築時の兵士POPの和（旧）／1＝人口の側の定員（MaxSoldierFraction×Σ Military.RegionManpower＝EstablishmentOf の manLimit と同じ1本・構築時に読める定員はこの側だけ〔経済の側は歳入を読み助走前はほぼ0〕）。
+    public double InitialArsenalBasis = 0.0;
     public double MilitaryWarMult = 9.0;                      // 交戦中の軍需消費の倍率（武器需要ブーム）。元3.0の3倍＝9.0（5倍は軍が溶けすぎたため3倍に決定）
     public double WarMobilizationDepth = 0.5;                 // 戦時動員の段階性（wartime-economy-field-dead）：対外戦の軍需倍率＝MilitaryWarMult×(1+これ×WarExhaustion)。長期戦ほど総動員(WWI型)。0で旧の固定倍率（恒等）
     // 監査2026-07-12 死19：MilitaryBudgetFrac（国庫比の軍需上限）は歳入フロー基準（MilitaryRevenueShare）への置換後の残骸＝参照ゼロにつき削除。軍需上限を調整する係数は MilitaryRevenueShare
