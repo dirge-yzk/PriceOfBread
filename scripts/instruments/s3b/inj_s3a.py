@@ -92,7 +92,7 @@ public static class S3aDiag
                     {
                         if (!(pr.Capacity > 0)) continue;
                         if (pr.GoodId >= 0 && pr.GoodId < Catalog.Goods.Length && Catalog.Goods[pr.GoodId].Tier == GoodTier.Staple) { sCap += pr.Capacity; sDes += pr.DesiredOutput; }
-                        else if (pr.GoodId == 15 || pr.GoodId == 47) { gCap += pr.Capacity; gDes += pr.DesiredOutput; }
+                        else if (pr.GoodId == Catalog.WheatId || pr.GoodId == Catalog.FlourId) { gCap += pr.Capacity; gDes += pr.DesiredOutput; }
                     }
                 }
                 wBud += bud; wRes += res;
