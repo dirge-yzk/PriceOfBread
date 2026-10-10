@@ -200,7 +200,7 @@ public static class Transport
                 // 0（既定）＝上限なし＝分岐に入らず**厳密恒等**。
                 double want = perGood / mult;   // 同じ容量に要る単位数（汽船は1/steamMult）
                 if (c.TransportDemandAffordCap > 0 && m.Price > 1e-9)
-                    want = System.Math.Min(want, c.TransportDemandAffordCap * System.Math.Max(0, investor.Savings) / m.Price);
+                    want = System.Math.Min(want, c.TransportDemandAffordCap * System.Math.Max(0, investor.Savings.Value) / m.Price);
                 // 買い付けは燃料と同じ1本（InternationalMarket.Procure・段4e K）＝需要の計上（在庫が無くても＝生産を駆動＝鉄道/船の需要が上がる＝史実・ブートストラップ）・
                 //   買い手の貯蓄まで・販売（LastSold＝在庫減を販売として記録し§11.6財収支を保つ）・代金は④の持分（econ-12・段3-1 の C4）。
                 double buy = InternationalMarket.Procure(w, r, gi, want, investor);

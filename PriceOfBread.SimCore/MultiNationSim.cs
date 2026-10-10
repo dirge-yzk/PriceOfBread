@@ -101,7 +101,7 @@ public sealed class MultiNationSim
         var setup = WorldData.Setup();
         foreach (var t in setup.Targets)
         {
-            var p = new Power { Id = Diplomacy.Powers.Count, Name = t.Name, BaseName = t.Name, Military = t.Military, GdpPerMonth = new MoneyPerMonth(0), TradeWeight = 0.0, RequiresQuinine = t.Quinine };
+            var p = new Power { Id = Diplomacy.Powers.Count, Name = t.Name, BaseName = t.Name, Military = t.Military, GdpPerMonth = new RealGdpPerMonth(0), TradeWeight = 0.0, RequiresQuinine = t.Quinine };
             foreach (var c in t.Colonies) { var cc = Geo.ColonyCoord(c.Name); p.ColonyList.Add(new Colony { Name = c.Name, Resources = [.. c.Resources], Population = c.PopK / Diplomacy.ColonyUnitPop, PopSize = c.PopK, Latitude = cc.Lat, Longitude = cc.Lon, Malarial = t.Quinine }); }   // ★回1-1（col-01）：住民数も作成時に置く（旧＝未設定のまま侵略で州化され、住民0・耕地1.8の州になった＝約650万人分が消えた）。熱帯(Quinine)標的の州はマラリア地＝征服で本国へ風土病が付いて回る。Resourcesは試合ごとに複製（キャッシュ共有回避）
             Diplomacy.Powers.Add(p);
         }
@@ -382,7 +382,7 @@ public sealed class MultiNationSim
         double P = 0;
         foreach (var rr in regs) P += rr.SumPopulation();
         double parentPop = pw.TotalPopulation;   // 移転前（reg込み）
-        double T = Math.Max(0, pw.Treasury) * (parentPop > 1e-9 ? P / parentPop : 0);   // 国庫の人口比分与（新国家の運転資金）
+        double T = Math.Max(0, pw.Treasury.Value) * (parentPop > 1e-9 ? P / parentPop : 0);   // 国庫の人口比分与（新国家の運転資金）
 
         // --- 2) 親から外す＋付け直し（州の移し替えの1本 Territory.TransferRegion の建国＝新しい国の器は下で州から組む・2026-09-28 処理の一元化 段2 B）---
         //   親の台帳（割譲の送り手と同じ「同一値を両辺に使う」作法）・首都を失えば遷都（首都の分離独立＝政府は残る州の最大GDPの州へ・2026-09-28 段2 束3）・
@@ -638,7 +638,7 @@ public sealed class MultiNationSim
     {
         if (quarters <= 0) return;   // 助走なし＝素の構築直後の盤面と厳密恒等（フラグの上げ下げすらしない）
         var prevPolitics = Nations.Select(n => n.World.PoliticsEnabled).ToArray();
-        var treasury0 = Nations.Select(n => n.World.Treasury).ToArray();   // 助走の前の国庫（world.json の初期値）
+        var treasury0 = Nations.Select(n => n.World.Treasury.Value).ToArray();   // 助走の前の国庫（world.json の初期値）
         bool prevDiplomacy = DiplomacyFrozen;
         foreach (var n in Nations) { n.World.PoliticsEnabled = false; n.World.WarmupFrozen = true; }
         DiplomacyFrozen = true;
@@ -977,7 +977,7 @@ public sealed class MultiNationSim
                     for (int li = 0; li < Nations.Count; li++)
                     {
                         if (li == bi) continue;
-                        foreach (var p2 in lenders[li]) heldBy[li] += Math.Max(0, p2.Savings);
+                        foreach (var p2 in lenders[li]) heldBy[li] += Math.Max(0, p2.Savings.Value);
                         heldBy[li] *= Nations[li].World.FxRate;
                         lendTotal += heldBy[li];
                     }
@@ -995,7 +995,7 @@ public sealed class MultiNationSim
                     double back = unmet > 0 ? unmet : 0;
                     if (back > 0)
                     {
-                        bw.GovDebt -= back; bw.ForeignDebt -= back; bw.PrevForeignDebt -= back;
+                        bw.GovDebt -= new MoneyStock(back); bw.ForeignDebt -= back; bw.PrevForeignDebt -= back;
                         World.Transfer((bw, null), (null, null, null), back, TreasuryCat.Borrow);
                     }
                     fxLend += (owe - back) - paid;   // 借り手が受け取ったまま残る額（借り手の通貨）−貸し手が払った額
@@ -1141,7 +1141,7 @@ public sealed class MultiNationSim
             //     政府の勝ち（と残骸の平和的復帰）＝反乱国の国債は消える＝国内の保有（下の BondHoldings）と対外債（ForeignDebt）の両方。対外債は債権国の
             //     ForeignBondClaims を債権の比で落とす（損は持ち手。落とさないと相手のいない債権が元利の配当を吸う）。★史実＝米の南部連合の債務は修正14条4節（1868）で否認。
             //   Bank.Gold は導出量（Credit.Step が毎日 BaseMoney から上書き）＝貨幣の行ではない（返還の1行も 2026-09-28 に削除）。
-            double T = rw.Treasury;
+            double T = rw.Treasury.Value;
             var moving = new System.Collections.Generic.List<Region>(rw.Regions);
             // ★国債の保有台帳（2026-09-21）：政府の勝ち＝反乱国の国債は誰にも継承されない＝国が払うのを止めた割合（全額）だけ保有を消す＝損は持ち手（金は動かない）。
             //   rw.GovDebt も同額下げる＝消える直前まで反乱国側の不変条件も厳密。★史実：合衆国憲法修正14条4節（1868）は南部連合の債務の継承・支払いを明文で禁じた。
@@ -1151,7 +1151,7 @@ public sealed class MultiNationSim
                 foreach (var pp in rr.Pops)
                 {
                     if (inherit is not null) { if (pp.BondHoldings > 0) inherit.Add((pp, pp.BondHoldings)); }
-                    else rw.GovDebt -= pp.BondHoldings;
+                    else rw.GovDebt -= new MoneyStock(pp.BondHoldings);
                     pp.BondHoldings = 0;
                 }
             // 州は移し替えの1本（Territory.TransferRegion の再併合・2026-09-28 処理の一元化 段2 B）＝貯蓄と人口は州ごとに両国の台帳へ（同一値を両辺）・
@@ -1209,9 +1209,9 @@ public sealed class MultiNationSim
             {
                 // ★人と動くお金の換算（段4e）：反乱国の国債の元本と保有は反乱国の通貨＝親の通貨へ（名目の残高＝換算の台帳に積まない・Σ保有＝国内元本の不変条件は同じ比で保つ）。
                 foreach (var (hp, h) in inherit) hp.BondHoldings += World.CrossFx(rw, pw, h, book: false);
-                double debt0 = pw.GovDebt, rwDebt = World.CrossFx(rw, pw, rw.GovDebt, book: false);
-                pw.GovDebt += rwDebt; pw.ForeignDebt += World.CrossFx(rw, pw, rw.ForeignDebt, book: false); pw.PrevForeignDebt += World.CrossFx(rw, pw, rw.PrevForeignDebt, book: false);
-                if (pw.GovDebt > 1e-9) pw.GovAvgCouponPerYear = (debt0 * pw.GovAvgCouponPerYear + rwDebt * rw.GovAvgCouponPerYear) / pw.GovDebt;   // 既往債の利率は元本の加重（起債の R9 の混ぜ方と同じ）
+                double debt0 = pw.GovDebt.Value, rwDebt = World.CrossFx(rw, pw, rw.GovDebt.Value, book: false);
+                pw.GovDebt += new MoneyStock(rwDebt); pw.ForeignDebt += World.CrossFx(rw, pw, rw.ForeignDebt, book: false); pw.PrevForeignDebt += World.CrossFx(rw, pw, rw.PrevForeignDebt, book: false);
+                if (pw.GovDebt.Value > 1e-9) pw.GovAvgCouponPerYear = (debt0 * pw.GovAvgCouponPerYear + rwDebt * rw.GovAvgCouponPerYear) / pw.GovDebt.Value;   // 既往債の利率は元本の加重（起債の R9 の混ぜ方と同じ）
             }
             // ★作者裁定 f（2026-09-28）：反乱側に乗り換えたプレイヤーの国が吸収された＝親の国で続ける（操作者と外交の IsPlayer を親へ・画面は GameViewModel が追従して通知）。
             //   ⚠AI の国は何もしない（操作者が居ない）＝エンジンの規則は同じ。
@@ -1317,7 +1317,7 @@ public sealed class MultiNationSim
                 if (_coef.CanalInvestReturns > 0 && cp.Owner is { Nation: not null } cpo && w.SelfPower is { } wsp && Diplomacy.IsAtWar(wsp, cpo)) continue;
                 // ★段3-3（C13・2026-09-30）：出資者＝投資家の述語の1本（CapitalMarket.Investors＝配当の受け手と同じ集合）。旧＝各州の資本家1人（InvestorPopIndex・活きた州）。
                 var investors = CapitalMarket.Investors(w);
-                double pool = 0; foreach (var ip in investors) pool += Math.Max(0, ip.Savings);
+                double pool = 0; foreach (var ip in investors) pool += Math.Max(0, ip.Savings.Value);
                 if (pool <= 1e-6) continue;
                 // ★支払いの一元化 段2-3（E1・2026-09-29）：投資家（貯蓄の比）→建設の工賃を移し方の1本で＝動いた額が進捗と持分になる。
                 // ★段3-2（2026-09-30・C9）：工賃は**自国の労働の④の持分**（全ての活きた州の労働力の生産者の産出の比・賃金は労働者・Earned を通す＝InternationalMarket.PaySales の国の枝）。
@@ -1424,7 +1424,7 @@ public sealed class MultiNationSim
                 if (_calendarFrozen || !techOk || r.LastTradeThrottle >= _coef.PortCongestionTarget) continue;   // ★助走：港湾も「年月をかけて広がる」能力＝凍結
                 if (r.InvestorPopIndex < 0 || r.InvestorPopIndex >= r.Pops.Count) continue;
                 var ip = r.Pops[r.InvestorPopIndex];
-                double cCap = _coef.PortInvestFrac * Math.Max(0, ip.Savings);          // 資本家ルート
+                double cCap = _coef.PortInvestFrac * Math.Max(0, ip.Savings.Value);          // 資本家ルート
                 double cState = w.PortStateRequest(r, natThr) * w.FiscalFundingRatio;   // 国家ルート＝国家の予算の行（四半期の締め月の請求に入っている額）×国家の支払い率 r（2026-09-28 段2-1・(223) 旧＝PortStateFrac×資本家の投資×r を請求の外で）
                 double invest = cCap + cState;
                 if (invest <= 1e-9) continue;   // ★判定→引落の順（wave2b是正）：引落してから捨てると微小額が pop へ還流されず消える片側記帳になる
@@ -1706,7 +1706,7 @@ public sealed class MultiNationSim
                             double fare = _coef.MigrationFarePerkKm * Geo.DistanceKm(src.Latitude, src.Longitude, dw.Latitude, dw.Longitude) / MigrationFareDistanceUnitKm;
                             if (fare > 1e-9)
                             {
-                                double perCap = sp.Size > 1e-9 ? sp.Savings / sp.Size : 0;
+                                double perCap = sp.Size > 1e-9 ? sp.Savings.Value / sp.Size : 0;
                                 double af = (perCap - fare) / fare;
                                 // 安全弁：fare/perCap が非有限（座標NaN／貯蓄NaN）ならゲートを飛ばす（割り当て据え置き）＝NaN を Size に伝播させない。
                                 f *= double.IsFinite(af) ? PoliticalQuantities.Clamp01(af) : 1.0;
@@ -1760,7 +1760,7 @@ public sealed class MultiNationSim
     private static double MoveAbroad(World src, World dst, Pop sp, Pop dp, double flow, double fare)
     {
         double frac = flow / sp.Size;
-        double sav = sp.Savings * frac;   // 持参金＝1人あたり貯蓄ぶん
+        double sav = sp.Savings.Value * frac;   // 持参金＝1人あたり貯蓄ぶん
         // ★支払いの一元化 段2-3（C17・2026-09-29）：運賃は**持っている正の持参金から**だけ払う（min(max(0,持参金), 運賃×人数)）＝負の貯蓄（借越）は運賃の有無に関わらず移民に付いて行く。
         double savOut = fare > 1e-9 && double.IsFinite(fare) ? sav - Math.Min(Math.Max(0, sav), fare * flow) : sav;
         double debtOut = sp.Debt * frac;

@@ -112,7 +112,7 @@ public static class Colonial
             if (economic)   // 採算が合う間だけ＝市場任せ
             {
                 var inv = r.Pops[r.InvestorPopIndex];
-                double budget = c.ColonialInvestFrac * Math.Max(0, inv.Savings);
+                double budget = c.ColonialInvestFrac * Math.Max(0, inv.Savings.Value);
                 double affordableDev = devCost > 1e-9 ? budget / devCost : 0;
                 double byStock = Math.Min(r.Markets[ship].Stock / Math.Max(1e-9, c.ColonialShipPerInfra),
                                           r.Markets[rail].Stock / Math.Max(1e-9, c.ColonialRailPerInfra));

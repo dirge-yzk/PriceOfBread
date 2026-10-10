@@ -134,3 +134,51 @@ public readonly record struct MoneyPerYear(double Value) : IUnitValue, IFormatta
     public override string ToString() => Value.ToString();
     public string ToString(string? format, IFormatProvider? formatProvider) => Value.ToString(format, formatProvider);
 }
+
+/// <summary>在庫のお金（ある時点の残高：国庫・国債の残高・貯蓄）。MoneyStock どうしの加減・スカラー倍・比だけが書ける。流れ（MoneyPerMonth）との加減は書けない＝1か月分を足すときは Calendar.OneMonthOf を通す。</summary>
+public readonly record struct MoneyStock(double Value) : IUnitValue, IFormattable, IComparable<MoneyStock>
+{
+    public static MoneyStock operator +(MoneyStock a, MoneyStock b) => new(a.Value + b.Value);
+    public static MoneyStock operator -(MoneyStock a, MoneyStock b) => new(a.Value - b.Value);
+    public static MoneyStock operator -(MoneyStock a) => new(-a.Value);
+    public static MoneyStock operator *(MoneyStock a, double k) => new(a.Value * k);
+    public static MoneyStock operator *(double k, MoneyStock a) => new(k * a.Value);
+    public static MoneyStock operator /(MoneyStock a, double k) => new(a.Value / k);
+    /// <summary>同じ型どうしの比＝無次元（double）。</summary>
+    public static double operator /(MoneyStock a, MoneyStock b) => a.Value / b.Value;
+    public static bool operator <(MoneyStock a, MoneyStock b) => a.Value < b.Value;
+    public static bool operator >(MoneyStock a, MoneyStock b) => a.Value > b.Value;
+    public static bool operator <=(MoneyStock a, MoneyStock b) => a.Value <= b.Value;
+    public static bool operator >=(MoneyStock a, MoneyStock b) => a.Value >= b.Value;
+    /// <summary>record の == と != はこの Equals を呼ぶ＝double の == と同じ（NaN は等しくない）。</summary>
+    public bool Equals(MoneyStock other) => Value == other.Value;
+    public override int GetHashCode() => Value.GetHashCode();
+    /// <summary>並べ替え・最大最小（OrderBy・Max・Min が実行時に要る）。double と同じ順序。</summary>
+    public int CompareTo(MoneyStock other) => Value.CompareTo(other.Value);
+    public override string ToString() => Value.ToString();
+    public string ToString(string? format, IFormatProvider? formatProvider) => Value.ToString(format, formatProvider);
+}
+
+/// <summary>実質の月の産出（参照価格×量・貨幣ではない物差し。World.GdpPerMonth と Power の GDP）。RealGdpPerMonth どうしの加減・スカラー倍・比だけが書ける。名目の月の流れのお金（MoneyPerMonth）との加減は書けない＝名目への換算は World.NominalOf の1本だけを通す。</summary>
+public readonly record struct RealGdpPerMonth(double Value) : IUnitValue, IFormattable, IComparable<RealGdpPerMonth>
+{
+    public static RealGdpPerMonth operator +(RealGdpPerMonth a, RealGdpPerMonth b) => new(a.Value + b.Value);
+    public static RealGdpPerMonth operator -(RealGdpPerMonth a, RealGdpPerMonth b) => new(a.Value - b.Value);
+    public static RealGdpPerMonth operator -(RealGdpPerMonth a) => new(-a.Value);
+    public static RealGdpPerMonth operator *(RealGdpPerMonth a, double k) => new(a.Value * k);
+    public static RealGdpPerMonth operator *(double k, RealGdpPerMonth a) => new(k * a.Value);
+    public static RealGdpPerMonth operator /(RealGdpPerMonth a, double k) => new(a.Value / k);
+    /// <summary>同じ型どうしの比＝無次元（double）。</summary>
+    public static double operator /(RealGdpPerMonth a, RealGdpPerMonth b) => a.Value / b.Value;
+    public static bool operator <(RealGdpPerMonth a, RealGdpPerMonth b) => a.Value < b.Value;
+    public static bool operator >(RealGdpPerMonth a, RealGdpPerMonth b) => a.Value > b.Value;
+    public static bool operator <=(RealGdpPerMonth a, RealGdpPerMonth b) => a.Value <= b.Value;
+    public static bool operator >=(RealGdpPerMonth a, RealGdpPerMonth b) => a.Value >= b.Value;
+    /// <summary>record の == と != はこの Equals を呼ぶ＝double の == と同じ（NaN は等しくない）。</summary>
+    public bool Equals(RealGdpPerMonth other) => Value == other.Value;
+    public override int GetHashCode() => Value.GetHashCode();
+    /// <summary>並べ替え・最大最小（OrderBy・Max・Min が実行時に要る）。double と同じ順序。</summary>
+    public int CompareTo(RealGdpPerMonth other) => Value.CompareTo(other.Value);
+    public override string ToString() => Value.ToString();
+    public string ToString(string? format, IFormatProvider? formatProvider) => Value.ToString(format, formatProvider);
+}

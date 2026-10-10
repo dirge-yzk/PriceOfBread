@@ -108,12 +108,12 @@ public class StartWarmupTests
         for (int i = 0; i < bare.Nations.Count; i++)
         {
             var a = bare.Nations[i].World; var b = warmed.Nations[i].World;
-            Assert.Equal(a.GovDebt, b.GovDebt);
+            Assert.Equal(a.GovDebt.Value, b.GovDebt.Value);
             Assert.Equal(a.ForeignDebt, b.ForeignDebt);
             Assert.Equal(Held(a), Held(b), 6);
         }
         var names = WorldData.Nations().Select(n => n.Name).ToList();
-        double Ratio(string name) { var w = warmed.Nations[names.IndexOf(name)].World; return w.GovDebt / (w.NominalGdpPerMonth * Calendar.MonthsPerYear).Value; }
+        double Ratio(string name) { var w = warmed.Nations[names.IndexOf(name)].World; return w.GovDebt.Value / Calendar.PerMonthToPerYear(w.NominalGdpPerMonth).Value; }
         Assert.InRange(Ratio("イギリス"), 0.9, 1.4);
         Assert.InRange(Ratio("フランス"), 0.45, 0.8);
         Assert.InRange(Ratio("ネーデルラント"), 1.2, 2.2);
@@ -133,9 +133,9 @@ public class StartWarmupTests
         var warmed = Build();
         warmed.StartWarmup();
         for (int i = 0; i < bare.Nations.Count; i++)
-            Assert.Equal(bare.Nations[i].World.Treasury, warmed.Nations[i].World.Treasury);
+            Assert.Equal(bare.Nations[i].World.Treasury.Value, warmed.Nations[i].World.Treasury.Value);
         var names = WorldData.Nations().Select(n => n.Name).ToList();
-        double Ratio(int i) { var w = warmed.Nations[i].World; return w.Treasury / (w.NominalGdpPerMonth * Calendar.MonthsPerYear).Value; }
+        double Ratio(int i) { var w = warmed.Nations[i].World; return w.Treasury.Value / Calendar.PerMonthToPerYear(w.NominalGdpPerMonth).Value; }
         double R(string name) => Ratio(names.IndexOf(name));
         Assert.InRange(R("イギリス"), 0.01, 0.06);
         Assert.InRange(R("フランス"), 0.0, 0.02);
@@ -370,8 +370,8 @@ public class StartWarmupTests
     private static (double Inv, double Oth, double GdpY) MoneySplit(World w)
     {
         double inv = 0, oth = 0;
-        foreach (var r in w.Regions) foreach (var p in r.Pops) { double s = System.Math.Max(0, p.Savings); if (CapitalMarket.IsInvestor(p, w.Coef)) inv += s; else oth += s; }
-        return (inv, oth, (w.NominalGdpPerMonth * Calendar.MonthsPerYear).Value);
+        foreach (var r in w.Regions) foreach (var p in r.Pops) { double s = System.Math.Max(0, p.Savings.Value); if (CapitalMarket.IsInvestor(p, w.Coef)) inv += s; else oth += s; }
+        return (inv, oth, Calendar.PerMonthToPerYear(w.NominalGdpPerMonth).Value);
     }
 
     /// <summary>★(220) データ（broadMoneyToGdp）を持つ全ての国で、モード1は投資家の貯蓄が 比×取り分×年名目GDP の規則の値になり他の階級は不変、モード2は他の階級も 比×(1−取り分)×年名目GDP になる。

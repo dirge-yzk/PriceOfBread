@@ -482,10 +482,10 @@ public sealed partial class InternationalMarket
             var r2 = tr[t2].r;
             var w2 = nations[tr[t2].nation].World;   // 全ての世界に銀行（段2-2）
             foreach (var p2 in r2.Pops)
-                if (p2.Debt > 0) { double back = Math.Min(p2.Debt, Math.Max(0, p2.Savings)); if (back > 0) Bank.Lend(w2, p2, -back); }   // ①手形の決済（否定形の門＝NaN は返さない）
+                if (p2.Debt > 0) { double back = Math.Min(p2.Debt, Math.Max(0, p2.Savings.Value)); if (back > 0) Bank.Lend(w2, p2, -back); }   // ①手形の決済（否定形の門＝NaN は返さない）
             if (r2.MerchantPopIndex >= 0 && r2.MerchantPopIndex < r2.Pops.Count) { payerOf[t2] = [r2.Pops[r2.MerchantPopIndex]]; bill[t2] = !(r2.Pops[r2.MerchantPopIndex].Debt > 0); }
             else if (r2.Pops.Count > 0) payerOf[t2] = r2.Pops;
-            if (payerOf[t2] is { } pl) foreach (var p2 in pl) budget[t2] += Math.Max(0, p2.Savings);
+            if (payerOf[t2] is { } pl) foreach (var p2 in pl) budget[t2] += Math.Max(0, p2.Savings.Value);
             if (bill[t2]) budget[t2] = double.PositiveInfinity;   // ③積荷が担保（量は X が決める）
         }
         var payHouse = new double[tc];   // 払い手が清算所へ払う額（輸入代金＋運賃＋港湾料＋保険料・自国通貨）
@@ -911,7 +911,7 @@ public sealed partial class InternationalMarket
             if (paySub[t] > 0 && payerOf[t] is { } ps) World.Transfer((w0, null), (w0, ps, null), paySub[t] * w0.FiscalFundingRatio, TreasuryCat.Subsidy);   // 売買方針の補助＝国家の支払い率 r の分だけ（区分 Subsidy・作者裁定 Q14）
             if (bill[t] && payerOf[t] is [var mer])
             {   // ③手形の振り出し＝貯蓄（補助の後）で足りない分だけ自国の銀行で割り引く（払いの前＝関税と代金を満額払える）
-                double due = payTariff[t] + payHouse[t], have = Math.Max(0, mer.Savings);
+                double due = payTariff[t] + payHouse[t], have = Math.Max(0, mer.Savings.Value);
                 if (due > have) Bank.Lend(w0, mer, due - have);
             }
             if (payTariff[t] > 0 && payerOf[t] is { } pt) w0.LastTariffRevenuePerClearing += World.Transfer((w0, pt), (w0, null, null), payTariff[t], TreasuryCat.Tariff);   // 関税と穀物法＝輸入者から通関の時点で（econ-07）

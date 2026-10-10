@@ -71,7 +71,7 @@ public sealed class NonNegativeBounds : IInvariant
     {
         foreach (var p in world.AllPops())
         {
-            Require(p.Savings, $"貯蓄[{p.ClassName}]");
+            Require(p.Savings.Value, $"貯蓄[{p.ClassName}]");
             Require(p.Size, "規模");
             if (double.IsNaN(p.Satisfaction) || double.IsInfinity(p.Satisfaction))
                 throw new InvariantViolationException($"{Name}：充足度が NaN／∞");
@@ -88,9 +88,9 @@ public sealed class NonNegativeBounds : IInvariant
                 Require(m.Stock, "在庫");
             }
         // 国庫・国債・基礎貨幣は負値が正当（債務）なので非負は課さず NaN／∞ のみ検出（Pay は有限性を確かめず加算するため）。
-        if (double.IsNaN(world.Treasury) || double.IsInfinity(world.Treasury))
+        if (double.IsNaN(world.Treasury.Value) || double.IsInfinity(world.Treasury.Value))
             throw new InvariantViolationException($"{Name}：国庫が NaN／∞");
-        if (double.IsNaN(world.GovDebt) || double.IsInfinity(world.GovDebt))
+        if (double.IsNaN(world.GovDebt.Value) || double.IsInfinity(world.GovDebt.Value))
             throw new InvariantViolationException($"{Name}：国債残高が NaN／∞");
         if (double.IsNaN(world.BaseMoney) || double.IsInfinity(world.BaseMoney))
             throw new InvariantViolationException($"{Name}：基礎貨幣が NaN／∞");
@@ -128,7 +128,7 @@ public sealed class BondLedger : IInvariant
             }
         if (!Balanced(world, held))
             throw new InvariantViolationException(
-                $"{Name}：[{world.Region.Name}・{world.Year}年] 保有の和 {held} ≠ 国内元本 {world.GovDebt - world.ForeignDebt}（国債{world.GovDebt}−対外{world.ForeignDebt}）・ズレ{held - (world.GovDebt - world.ForeignDebt):G6}");
+                $"{Name}：[{world.Region.Name}・{world.Year}年] 保有の和 {held} ≠ 国内元本 {world.GovDebt.Value - world.ForeignDebt}（国債{world.GovDebt}−対外{world.ForeignDebt}）・ズレ{held - (world.GovDebt.Value - world.ForeignDebt):G6}");
     }
 
     /// <summary>Σ保有と国内元本の一致（相対1e-8）。起票（<see cref="Fiscal.SeedBondHoldings"/>）も同じ判定を使う＝検査が割れる時だけ起票する（判定は1本）。
@@ -141,8 +141,8 @@ public sealed class BondLedger : IInvariant
     internal static bool Balanced(World world, double held)
     {
         double flow = Math.Abs(world.TreasuryLedger[(int)TreasuryCat.Borrow]) + Math.Abs(world.TreasuryLedger[(int)TreasuryCat.DebtRepay]);
-        double scale = Math.Max(Math.Max(held, flow), Math.Max(Math.Abs(world.GovDebt), Math.Abs(world.ForeignDebt)));
-        return Math.Abs(held - (world.GovDebt - world.ForeignDebt)) <= 1e-8 * Math.Max(1.0, scale);   // NaN は偽＝割れた側へ倒れる
+        double scale = Math.Max(Math.Max(held, flow), Math.Max(Math.Abs(world.GovDebt.Value), Math.Abs(world.ForeignDebt)));
+        return Math.Abs(held - (world.GovDebt.Value - world.ForeignDebt)) <= 1e-8 * Math.Max(1.0, scale);   // NaN は偽＝割れた側へ倒れる
     }
 }
 

@@ -123,8 +123,8 @@ public static class Megaprojects
                 && hw.GdpDrawdown > coef.MegaprojectCrisisDrawdown
                 && hw.LastInterestPerMonth < coef.MaxInterestShareOfRevenue * hw.LastRevenuePerMonth && hw.BorrowCooldownMonths <= 0)   // Fiscal.Borrow の門と同じ「まだ借りられる」2条件（利払い÷歳入が限界の下・冷却中でない＝LastInterestPerMonth・LastRevenue は直近の月次決算の量＝翌月初の借入の門が読む量）
                 cyc += coef.MegaprojectCounterCyclical;
-            double claim = share * cyc * hw.Treasury;
-            if (claim <= 1e-9 || hw.Treasury <= 0) continue;
+            double claim = share * cyc * hw.Treasury.Value;
+            if (claim <= 1e-9 || hw.Treasury.Value <= 0) continue;
             // 段5 外資（2026-07-28）：**単一パートナー**を決定論のargmaxで1度だけ選び latch する。毎期再選定すると
             // 貯蓄の揺らぎで受取国が点滅し、配当先が振動して604四半期で軌道が発散する。
             if (coef.MegaprojectForeignShare > 0 && mp.ForeignPartnerId < 0 && mp.Owner is { } own)
@@ -143,7 +143,7 @@ public static class Megaprojects
                     if (fw.SelfPower is not { } fp || fp.Id != mp.ForeignPartnerId) continue;
                     // 1件が1四半期に引ける額を投資家の貯蓄の一定比で頭打ち＝1国が全世界の事業を同時に賄えない（資本の希少性）。
                     var investors = CapitalMarket.Investors(fw);
-                    double cap = 0; foreach (var ip in investors) cap += Math.Max(0, ip.Savings);
+                    double cap = 0; foreach (var ip in investors) cap += Math.Max(0, ip.Savings.Value);
                     double ask = Math.Min(want * hw.FxRate / fw.FxRate, coef.MegaprojectForeignDrawFrac * cap);   // 外資国の通貨
                     if (!(ask > 1e-9)) break;
                     double give = World.Transfer((fw, investors), (hw, null, null), ask, TreasuryCat.OtherIn);   // 外資国＝対外流出・保有国＝対外流入（保存・為替で換算）

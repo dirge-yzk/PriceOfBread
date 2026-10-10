@@ -98,7 +98,7 @@ public sealed class Simulation
             LandTaxUnlocked = scenario.InitialLandTax > 0,   // 台帳がある＝開始から解禁（admin ゲートは無から台帳を作る場合の関門）
             ForceUnlock = scenario.ForceUnlock,
             // 国庫は Pay 経由でしか動かせない（World の台帳・2026-08-13）＝生成時の初期化は下の SetTreasuryRaw で行う。
-            GovDebt = scenario.InitialGovDebt,   // P5：初期国債（仏＝米独立戦争債務）。純負債＝貨幣非移動・保存中立。GovAvgCouponPerYearはrollover=1で初回Fiscalが市場金利へ上書き
+            GovDebt = new MoneyStock(scenario.InitialGovDebt),   // P5：初期国債（仏＝米独立戦争債務）。純負債＝貨幣非移動・保存中立。GovAvgCouponPerYearはrollover=1で初回Fiscalが市場金利へ上書き
             // ★★予算法・統帥法の初期値（2026-08-20）。⚠**開始時の制度の写し取り**であって実行時の分岐ではない
             //   （作者裁定「政体は表示専用」＝政体が**上限を決める**のをやめたのであり、**初期条件の略記**としては人口や識字と同じ）。
             //   ★以後は法が一次量として独立に動く＝政体を読み直すことは無い。
@@ -257,7 +257,7 @@ public sealed class Simulation
     private static List<Region> BuildSelfSufficientFarm()
     {
         var food = new Good { Id = 0, Name = "食料", Tier = GoodTier.Staple, BaseNeed = 0.8, RefPrice = 1.0, Elasticity = 0.3 };
-        var farmer = new Pop { ClassId = 0, ClassName = "自作農", IsUrban = false, Size = 1000, Savings = 1_000_000, Satisfaction = 1.0 };
+        var farmer = new Pop { ClassId = 0, ClassName = "自作農", IsUrban = false, Size = 1000, Savings = new MoneyStock(1_000_000), Satisfaction = 1.0 };
         var rgo = new Producer { GoodId = 0, Productivity = 0.85, Output = 800, MarginalCost = 0.5, OwnerPopIndex = 0, LaborPopIndex = 0, RentShare = 0.0 };
         var market = new Market { Price = 1.0, Stock = 1200, TargetStock = 1200 };
         return [new Region { Id = 0, Name = "本土", IsPort = true, Goods = [food], Pops = [farmer], Producers = [rgo], Markets = [market] }];   // 港ゲート後：交易デモは海上交易できる沿岸州（IsPort）。較正はAgrarianToUrban別シナリオなので無影響
@@ -268,8 +268,8 @@ public sealed class Simulation
         var food = new Good { Id = 0, Name = "食料", Tier = GoodTier.Staple, BaseNeed = 0.8, RefPrice = 1.0, Elasticity = 0.3 };
         var manuf = new Good { Id = 1, Name = "工業品", Tier = GoodTier.Daily, BaseNeed = 0.5, RefPrice = 1.0, Elasticity = 0.6 };
 
-        var farmer = new Pop { ClassId = 0, ClassName = "農民", IsUrban = false, Size = 900, Savings = 900_000, Satisfaction = 1.0 };
-        var worker = new Pop { ClassId = 1, ClassName = "工場労働者", IsUrban = true, Size = 100, Savings = 100_000, Satisfaction = 1.0 };
+        var farmer = new Pop { ClassId = 0, ClassName = "農民", IsUrban = false, Size = 900, Savings = new MoneyStock(900_000), Satisfaction = 1.0 };
+        var worker = new Pop { ClassId = 1, ClassName = "工場労働者", IsUrban = true, Size = 100, Savings = new MoneyStock(100_000), Satisfaction = 1.0 };
 
         var rgo = new Producer { GoodId = 0, Productivity = 0.85, Output = 720, MarginalCost = 0.5, OwnerPopIndex = 0, LaborPopIndex = 0, RentShare = 0.0 };
         var factory = new Producer { GoodId = 1, Productivity = 1.5, Output = 120, MarginalCost = 0.6, OwnerPopIndex = 1, LaborPopIndex = 1, RentShare = 0.0 };
@@ -291,7 +291,7 @@ public sealed class Simulation
         Region MakeRegion(int id, string name, RegionState state, double bonus, double capacity, double farmerSize, double savings)
         {
             var food = new Good { Id = 0, Name = "食料", Tier = GoodTier.Staple, BaseNeed = 0.8, RefPrice = 1.0, Elasticity = 0.3 };
-            var farmer = new Pop { ClassId = 0, ClassName = "農民", IsUrban = false, Size = farmerSize, Savings = savings, Satisfaction = 1.0 };
+            var farmer = new Pop { ClassId = 0, ClassName = "農民", IsUrban = false, Size = farmerSize, Savings = new MoneyStock(savings), Satisfaction = 1.0 };
             var rgo = new Producer { GoodId = 0, Productivity = 0.85, Output = farmerSize * 0.85 * bonus, MarginalCost = 0.5, OwnerPopIndex = 0, LaborPopIndex = 0, RentShare = 0.0 };
             var market = new Market { Price = 1.0, Stock = 1000, TargetStock = 1000 };
             var region = new Region
@@ -314,8 +314,8 @@ public sealed class Simulation
         Region Make(int id, string name, double farmerSize, double workerSize, double foodOutput)
         {
             var food = new Good { Id = 0, Name = "食料", Tier = GoodTier.Staple, BaseNeed = 0.8, RefPrice = 1.0, Elasticity = 0.3 };
-            var farmer = new Pop { ClassId = 0, ClassName = "農民", IsUrban = false, Size = farmerSize, Savings = farmerSize * 1000, Satisfaction = 1.0 };
-            var worker = new Pop { ClassId = 1, ClassName = "工場労働者", IsUrban = true, Size = workerSize, Savings = workerSize * 1000, Satisfaction = 1.0 };
+            var farmer = new Pop { ClassId = 0, ClassName = "農民", IsUrban = false, Size = farmerSize, Savings = new MoneyStock(farmerSize * 1000), Satisfaction = 1.0 };
+            var worker = new Pop { ClassId = 1, ClassName = "工場労働者", IsUrban = true, Size = workerSize, Savings = new MoneyStock(workerSize * 1000), Satisfaction = 1.0 };
             var rgo = new Producer { GoodId = 0, Productivity = 0.85, Output = foodOutput, MarginalCost = 0.5, OwnerPopIndex = 0, LaborPopIndex = 0, RentShare = 0.0 };
             var mkt = new Market { Price = 1.0, Stock = foodOutput, TargetStock = foodOutput };
             return new Region { Id = id, Name = name, State = RegionState.Active, Goods = [food], Pops = [farmer, worker], Producers = [rgo], Markets = [mkt] };
@@ -335,9 +335,9 @@ public sealed class Simulation
         var food = new Good { Id = 0, Name = "食料", Tier = GoodTier.Staple, BaseNeed = 0.8, RefPrice = 1.0, Elasticity = 0.3 };
         var manuf = new Good { Id = 1, Name = "工業品", Tier = GoodTier.Daily, BaseNeed = 0.6, RefPrice = 1.0, Elasticity = 0.6 };
 
-        var farmer = new Pop { ClassId = 0, ClassName = "農民", IsUrban = false, Size = 700, Savings = 700_000, Satisfaction = 1.0 };
-        var worker = new Pop { ClassId = 1, ClassName = "工場労働者", IsUrban = true, Size = 250, Savings = 50_000, Satisfaction = 1.0 };
-        var capitalist = new Pop { ClassId = 2, ClassName = "資本家", IsUrban = true, Size = 50, Savings = 50_000, Satisfaction = 1.0 };
+        var farmer = new Pop { ClassId = 0, ClassName = "農民", IsUrban = false, Size = 700, Savings = new MoneyStock(700_000), Satisfaction = 1.0 };
+        var worker = new Pop { ClassId = 1, ClassName = "工場労働者", IsUrban = true, Size = 250, Savings = new MoneyStock(50_000), Satisfaction = 1.0 };
+        var capitalist = new Pop { ClassId = 2, ClassName = "資本家", IsUrban = true, Size = 50, Savings = new MoneyStock(50_000), Satisfaction = 1.0 };
 
         var rgo = new Producer { GoodId = 0, Productivity = 0.85, Output = 560, MarginalCost = 0.5, OwnerPopIndex = 0, LaborPopIndex = 0, RentShare = 0.0 };       // 自営農
         var factory = new Producer { GoodId = 1, Productivity = 1.5, Output = 200, MarginalCost = 0.6, OwnerPopIndex = 2, LaborPopIndex = 1, RentShare = factoryRentShare };    // 資本家が取る利潤割合＝搾取度
@@ -369,11 +369,11 @@ public sealed class Simulation
         var wood = new Good { Id = 5, Name = "木", Tier = GoodTier.Intermediate, BaseNeed = 0, RefPrice = 1.0, Elasticity = 0.4 };
         var ore = new Good { Id = 6, Name = "鉄鉱石", Tier = GoodTier.Intermediate, BaseNeed = 0, RefPrice = 1.0, Elasticity = 0.4 };
 
-        var farmer = new Pop { ClassId = 0, ClassName = "農民", IsUrban = false, Size = 400, Savings = 400_000, Satisfaction = 1.0 };
-        var woodcutter = new Pop { ClassId = 1, ClassName = "木こり", IsUrban = false, Size = 100, Savings = 100_000, Satisfaction = 1.0 };
-        var miner = new Pop { ClassId = 2, ClassName = "鉱夫", IsUrban = false, Size = 100, Savings = 100_000, Satisfaction = 1.0 };
-        var worker = new Pop { ClassId = 3, ClassName = "工員", IsUrban = true, Size = 350, Savings = 200_000, Satisfaction = 1.0 };
-        var capitalist = new Pop { ClassId = 4, ClassName = "資本家", IsUrban = true, Size = 50, Savings = 100_000, Satisfaction = 1.0 };
+        var farmer = new Pop { ClassId = 0, ClassName = "農民", IsUrban = false, Size = 400, Savings = new MoneyStock(400_000), Satisfaction = 1.0 };
+        var woodcutter = new Pop { ClassId = 1, ClassName = "木こり", IsUrban = false, Size = 100, Savings = new MoneyStock(100_000), Satisfaction = 1.0 };
+        var miner = new Pop { ClassId = 2, ClassName = "鉱夫", IsUrban = false, Size = 100, Savings = new MoneyStock(100_000), Satisfaction = 1.0 };
+        var worker = new Pop { ClassId = 3, ClassName = "工員", IsUrban = true, Size = 350, Savings = new MoneyStock(200_000), Satisfaction = 1.0 };
+        var capitalist = new Pop { ClassId = 4, ClassName = "資本家", IsUrban = true, Size = 50, Savings = new MoneyStock(100_000), Satisfaction = 1.0 };
 
         var pFood = new Producer { GoodId = 0, Productivity = 2.2, Output = 800, MarginalCost = 0.5, OwnerPopIndex = 0, LaborPopIndex = 0, RentShare = 0.0 };
         var pWood = new Producer { GoodId = 5, Productivity = 3.0, Output = 200, MarginalCost = 0.5, OwnerPopIndex = 1, LaborPopIndex = 1, RentShare = 0.0 };
@@ -448,9 +448,9 @@ public sealed class Simulation
         //   id を第2キーに置くと全順序になり、以後は新財を足しても既存財の順序が不変になる。
         goodsList.Sort((a, b) => { int t = ((int)a.Tier).CompareTo((int)b.Tier); return t != 0 ? t : a.Id.CompareTo(b.Id); });   // 消費優先順
 
-        var laborer = new Pop { ClassId = 0, ClassName = "一次労働者", IsUrban = false, Size = 500, Savings = 500_000, Satisfaction = 1.0 };
-        var worker = new Pop { ClassId = 1, ClassName = "工員", IsUrban = true, Size = 450, Savings = 450_000, Satisfaction = 1.0 };
-        var capitalist = new Pop { ClassId = 2, ClassName = "資本家", IsUrban = true, Size = 50, Savings = 100_000, Satisfaction = 1.0 };
+        var laborer = new Pop { ClassId = 0, ClassName = "一次労働者", IsUrban = false, Size = 500, Savings = new MoneyStock(500_000), Satisfaction = 1.0 };
+        var worker = new Pop { ClassId = 1, ClassName = "工員", IsUrban = true, Size = 450, Savings = new MoneyStock(450_000), Satisfaction = 1.0 };
+        var capitalist = new Pop { ClassId = 2, ClassName = "資本家", IsUrban = true, Size = 50, Savings = new MoneyStock(100_000), Satisfaction = 1.0 };
         // 労働力：工員が算出し工場が買う（賃金＝労働市場の価格）。生産性は工場と同じスケール＝供給が工場群と釣り合う。
         producers.Add(new Producer { GoodId = Catalog.LaborId, Productivity = LaborProductivity * FullChainProductivityScale, Output = worker.Size * 2.5, MarginalCost = 0.35, LaborPopIndex = 1, OwnerPopIndex = 1, RentShare = 0.0 });
         // 高度労働力：技師の居ない簡易世界＝工員が兼ねる（小さな供給）。石油火力も工員で。
@@ -527,17 +527,17 @@ public sealed class Simulation
         goodsList.Sort((a, b) => { int t = ((int)a.Tier).CompareTo((int)b.Tier); return t != 0 ? t : a.Id.CompareTo(b.Id); });   // 消費優先順
 
         // 身分・階級（代表スケール 1単位＝1000人・計≈28,000＝人口2800万）。識字は階級で大差。
-        var nobility     = new Pop { ClassId = 0, ClassName = "貴族",       IsUrban = false, Size = 300,   Savings = 900_000,   Satisfaction = 1.0, Literacy = 0.95, Closed = true };       // 世襲＝移民しない
-        var clergy       = new Pop { ClassId = 6, ClassName = "聖職者",     IsUrban = false, Size = 200,   Savings = 600_000,   Satisfaction = 1.0, Literacy = 0.92, Closed = true };       // 宗教学校の教育を算出（世俗化で没落）
-        var peasant      = new Pop { ClassId = 1, ClassName = "農民",       IsUrban = false, Size = 20000, Savings = 4_000_000, Satisfaction = 1.0, Literacy = 0.15, Subsistence = 0.7 };   // 食料の多くを自給
-        var worker       = new Pop { ClassId = 2, ClassName = "工場労働者", IsUrban = true,  Size = 4200,  Savings = 1_260_000, Satisfaction = 1.0, Literacy = 0.40 };   // 労働力を算出し工場に売る
-        var bourgeois    = new Pop { ClassId = 3, ClassName = "資本家",     IsUrban = true,  Size = 2500,  Savings = 8_000_000, Satisfaction = 1.0, Literacy = 0.80, IsModernElite = true };   // 深い連鎖の投資元手（§8較正までのバッファ）
-        var engineer     = new Pop { ClassId = 4, ClassName = "技師",       IsUrban = true,  Size = 520,   Savings = 416_000,   Satisfaction = 1.0, Literacy = 0.85, IsModernElite = true };  // 工場の生産性（近代エリート）
-        var teacher      = new Pop { ClassId = 7, ClassName = "教師",       IsUrban = true,  Size = 112,   Savings = 89_600,    Satisfaction = 1.0, Literacy = 0.92, IsModernElite = true };  // 公教育の教育を算出
-        var bureaucrat   = new Pop { ClassId = 8, ClassName = "官僚",       IsUrban = true,  Size = 98,    Savings = 78_400,    Satisfaction = 1.0, Literacy = 0.92, IsModernElite = true };  // 行政を算出
-        var doctor       = new Pop { ClassId = 9, ClassName = "医者",       IsUrban = true,  Size = 70,    Savings = 56_000,    Satisfaction = 1.0, Literacy = 0.92, IsModernElite = true };  // 医療を算出
-        var merchant     = new Pop { ClassId = 10, ClassName = "商人",      IsUrban = true,  Size = 500,   Savings = 750_000,   Satisfaction = 1.0, Literacy = 0.70, IsModernElite = true };  // 流通マージン＋貿易の仲立ち
-        var artisan      = new Pop { ClassId = 11, ClassName = "職人", IsUrban = true,  Size = 1500,  Savings = 1_050_000, Satisfaction = 1.0, Literacy = 0.45 };  // 手工業の自営（ギルド）。※この試験世界は銀行なし＋工場が成熟済＝初日から競争に負けるため、世紀を生き延びる蓄え（700/人）を持たせる
+        var nobility     = new Pop { ClassId = 0, ClassName = "貴族",       IsUrban = false, Size = 300,   Savings = new MoneyStock(900_000),   Satisfaction = 1.0, Literacy = 0.95, Closed = true };       // 世襲＝移民しない
+        var clergy       = new Pop { ClassId = 6, ClassName = "聖職者",     IsUrban = false, Size = 200,   Savings = new MoneyStock(600_000),   Satisfaction = 1.0, Literacy = 0.92, Closed = true };       // 宗教学校の教育を算出（世俗化で没落）
+        var peasant      = new Pop { ClassId = 1, ClassName = "農民",       IsUrban = false, Size = 20000, Savings = new MoneyStock(4_000_000), Satisfaction = 1.0, Literacy = 0.15, Subsistence = 0.7 };   // 食料の多くを自給
+        var worker       = new Pop { ClassId = 2, ClassName = "工場労働者", IsUrban = true,  Size = 4200,  Savings = new MoneyStock(1_260_000), Satisfaction = 1.0, Literacy = 0.40 };   // 労働力を算出し工場に売る
+        var bourgeois    = new Pop { ClassId = 3, ClassName = "資本家",     IsUrban = true,  Size = 2500,  Savings = new MoneyStock(8_000_000), Satisfaction = 1.0, Literacy = 0.80, IsModernElite = true };   // 深い連鎖の投資元手（§8較正までのバッファ）
+        var engineer     = new Pop { ClassId = 4, ClassName = "技師",       IsUrban = true,  Size = 520,   Savings = new MoneyStock(416_000),   Satisfaction = 1.0, Literacy = 0.85, IsModernElite = true };  // 工場の生産性（近代エリート）
+        var teacher      = new Pop { ClassId = 7, ClassName = "教師",       IsUrban = true,  Size = 112,   Savings = new MoneyStock(89_600),    Satisfaction = 1.0, Literacy = 0.92, IsModernElite = true };  // 公教育の教育を算出
+        var bureaucrat   = new Pop { ClassId = 8, ClassName = "官僚",       IsUrban = true,  Size = 98,    Savings = new MoneyStock(78_400),    Satisfaction = 1.0, Literacy = 0.92, IsModernElite = true };  // 行政を算出
+        var doctor       = new Pop { ClassId = 9, ClassName = "医者",       IsUrban = true,  Size = 70,    Savings = new MoneyStock(56_000),    Satisfaction = 1.0, Literacy = 0.92, IsModernElite = true };  // 医療を算出
+        var merchant     = new Pop { ClassId = 10, ClassName = "商人",      IsUrban = true,  Size = 500,   Savings = new MoneyStock(750_000),   Satisfaction = 1.0, Literacy = 0.70, IsModernElite = true };  // 流通マージン＋貿易の仲立ち
+        var artisan      = new Pop { ClassId = 11, ClassName = "職人", IsUrban = true,  Size = 1500,  Savings = new MoneyStock(1_050_000), Satisfaction = 1.0, Literacy = 0.45 };  // 手工業の自営（ギルド）。※この試験世界は銀行なし＋工場が成熟済＝初日から競争に負けるため、世紀を生き延びる蓄え（700/人）を持たせる
 
         var pops = new List<Pop> { nobility, peasant, worker, bourgeois, engineer, clergy, teacher, bureaucrat, doctor, merchant, artisan };
         int eduIdx = AddServiceProducers(producers, pops, workerIdx: 2, peasantIdx: 1, teacherIdx: 6, bureaucratIdx: 7, doctorIdx: 8);
@@ -1368,7 +1368,7 @@ public sealed class Simulation
 
     // 階級（代表スケール 1単位＝1000人）。貯蓄＝サイズ×階級別の一人当たり富。識字・自給は設定から。
     private static Pop MkPop(int id, string name, bool urban, double size, double lit, double wealthPer, bool closed = false, bool modern = false, double subs = 0)
-        => new() { ClassId = id, ClassName = name, IsUrban = urban, Size = size, Savings = size * wealthPer, Satisfaction = 1.0, Literacy = lit, Closed = closed, IsModernElite = modern, Subsistence = subs };
+        => new() { ClassId = id, ClassName = name, IsUrban = urban, Size = size, Savings = new MoneyStock(size * wealthPer), Satisfaction = 1.0, Literacy = lit, Closed = closed, IsModernElite = modern, Subsistence = subs };
 
 
     /// <summary>植民地の州昇格（2026-08-09・作者裁定2026-08-08「植民地州昇格＝実装」・設計原典＝docs/202607/20260731_植民地のラベル化_部分完了.md §3-3d）。
@@ -1682,14 +1682,14 @@ public sealed class Simulation
         bool priceOn = c.RegionalPriceLevelWeight > 0;   // 無効＝全州一律（従来挙動・較正中立）。労働価格プレミアムの簿記は常に更新（使用は OpportunityWageWeight でゲート）
         double natSav = 0, natEarn = 0, natPop = 0;
         foreach (var r in World.Regions) if (r.State == RegionState.Active)
-            foreach (var p in r.Pops) { natSav += p.Savings; natEarn += p.EarnedPerMonth.Value; natPop += p.Size; }
+            foreach (var p in r.Pops) { natSav += p.Savings.Value; natEarn += p.EarnedPerMonth.Value; natPop += p.Size; }
         double natPerCap = natPop > 1e-9 ? natSav / natPop : 0;
         double natEarnPerCap = natPop > 1e-9 ? natEarn / natPop : 0;   // 国平均の1人あたり月次所得（QuarterStart時点＝直前月）
         foreach (var r in World.Regions)
         {
             if (r.State != RegionState.Active) { r.LocalPriceMultiplier = 1.0; r.WagePremium = 1.0; continue; }
             double rSav = 0, rEarn = 0, rPop = 0;
-            foreach (var p in r.Pops) { rSav += p.Savings; rEarn += p.EarnedPerMonth.Value; rPop += p.Size; }
+            foreach (var p in r.Pops) { rSav += p.Savings.Value; rEarn += p.EarnedPerMonth.Value; rPop += p.Size; }
             double mult = 1.0;
             if (priceOn && natPerCap > 1e-9 && rPop > 1e-9)
             {
@@ -2195,10 +2195,10 @@ public sealed class Simulation
                     foreach (var pr in sites) AddStateClaim(pr, r, World, ref claims);
                 }
             }
-        double payable = Math.Max(0, World.Treasury) + World.LastRevenuePerMonth.Value;
+        double payable = Math.Max(0, World.Treasury.Value) + World.LastRevenuePerMonth.Value;
         // ＞0＝ r＝1 の月の余剰（減債の原資＝Fiscal）・＜0＝払えない請求（＋借越）。負の国庫（記録されない当座借越）は余剰から先に埋める
         //   ＝借越のまま国債を返さない・埋められない借越は赤字（r は Q1 のとおり max(0,国庫) で決める＝国庫0の国の率0→行政0→税収0の行き詰まりを作らない）。
-        double spare = payable - claims + Math.Min(0, World.Treasury);
+        double spare = payable - claims + Math.Min(0, World.Treasury.Value);
         // ★切り下げ（インフレ税）は**払える額の側**（2026-09-28・(87) の申し送り iii・作者裁定 F4「不足は量を減らすか未払いの記録＝他人から取らない」・思想⑨）。
         //   旧（段2-1）＝ここで r を決めて請求を r で切って払い、月末の Fiscal が「払えなかった請求の全額」（spare＜0）を全POPから国庫へ移した
         //   ＝不足を量で減らした上に同じ額を他人からも取る二重（切り下げの収入が税収の 0.1%→22〜41%・取った金は翌月の余剰＝減債へ回った）。
@@ -2232,7 +2232,7 @@ public sealed class Simulation
             }
             if (devalueRoom > 1e-9)
             {
-                double totalSav = 0; foreach (var dr in World.Regions) foreach (var dp in dr.Pops) totalSav += Math.Max(0, dp.Savings);
+                double totalSav = 0; foreach (var dr in World.Regions) foreach (var dp in dr.Pops) totalSav += Math.Max(0, dp.Savings.Value);
                 // DevaluationCapFrac は**月あたり**の上限（月次決算＝月に1回）。超過は r＜1＝量の減少で劣化（連合の薄給→治安維持力↓）
                 double devalue = Math.Min(devalueRoom, totalSav * World.Coef.DevaluationCapFrac);
                 if (devalue > 1e-9)
@@ -2942,7 +2942,7 @@ public sealed class Simulation
         foreach (var p in r.Pops)
         {
             if (!(p.Debt > 0)) continue;   // ⚠否定形＝NaN も飛ばす
-            double pay = Math.Min(p.Debt, Math.Max(0, p.Savings) * World.Coef.DebtRepayFrac);
+            double pay = Math.Min(p.Debt, Math.Max(0, p.Savings.Value) * World.Coef.DebtRepayFrac);
             if (!(pay > 0)) continue;
             Bank.Lend(World, p, -pay);   // 返済＝貸しの逆（Bank.Lend の1本）
             World.HouseholdDebtRepaid += pay;   // 診断。⚠LossFinanced とは**別カウンタ**（硬性ゲートの分子を汚さない・設計§6-1）
@@ -2970,9 +2970,9 @@ public sealed class Simulation
         List<Pop>? one = null; List<double>? unit = null;   // 受け手1人の並び（使い回す＝POP ごとに確保しない）
         foreach (var r in World.Regions)
             foreach (var p in r.Pops)
-                if (p.Savings < 0)
+                if (p.Savings.Value < 0)
                 {
-                    double need = -p.Savings;
+                    double need = -p.Savings.Value;
                     // ★2026-09-30 段4g：不足を借入（負債↑）＝移し方の1本（世界の外の側＝銀行の与信 Outside.Credit）＝貯蓄は 0 ちょうどへ（x+(−x)＝0）・与信が同じ額だけ増える
                     //   （旧＝与信と貯蓄を手で書いた2行＝下げ止まり＝TotalMoney＋不足, Loans＋不足 で相殺＝保存）。受け手は重み1（頭数0の POP でも受ける＝旧と同じ）。
                     (one ??= new List<Pop>(1)).Clear(); one.Add(p);
@@ -3078,7 +3078,7 @@ public sealed class Simulation
             (int)World.Polity, conscSum * inv, milSum * inv,
             World.ReformistPower, World.Coercion,
             World.BroadMoney, World.OutstandingLoans, World.Bank?.Confidence ?? 1.0,
-            World.Treasury, World.FiscalFundingRatio,
+            World.Treasury.Value, World.FiscalFundingRatio,
             World.Regions[0].SumPopulation(), World.Regions.Count > 1 ? World.Regions[1].SumPopulation() : 0.0,
             World.Bank?.Gold ?? 0.0, World.CumulativeTradeFlow));
     }

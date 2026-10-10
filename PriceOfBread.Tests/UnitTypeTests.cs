@@ -20,7 +20,7 @@ namespace PriceOfBread.Tests;
 public class UnitTypeTests
 {
     /// <summary>専用の値型の一覧（新しい型を足したらここへ。Units.cs の型と一致することを下で確かめる）。</summary>
-    private static readonly Type[] UnitTypes = [typeof(RatePerYear), typeof(RatePerMonth), typeof(MoneyPerMonth), typeof(MoneyPerYear)];
+    private static readonly Type[] UnitTypes = [typeof(RatePerYear), typeof(RatePerMonth), typeof(MoneyPerMonth), typeof(MoneyPerYear), typeof(MoneyStock), typeof(RealGdpPerMonth)];
 
     [Fact]
     public void 型の一覧は宣言された専用の値型の全部である()
@@ -95,7 +95,7 @@ public class UnitTypeTests
         (typeof(Coefficients), "MintFloorBuyRatePerMonth", typeof(RatePerMonth)),
         (typeof(Coefficients), "MintReserveSellRatePerMonth", typeof(RatePerMonth)),
         (typeof(Coefficients), "ForceUnlockTreasuryCostPerMonth", typeof(MoneyPerMonth)),
-        (typeof(World), "GdpPerMonth", typeof(MoneyPerMonth)),
+        (typeof(World), "GdpPerMonth", typeof(RealGdpPerMonth)),   // ★(250) 実質（参照価格×量）。名目は NominalGdpPerMonth（貨幣）＝別の型
         (typeof(World), "NominalGdpPerMonth", typeof(MoneyPerMonth)),
         (typeof(World), "LastRevenuePerMonth", typeof(MoneyPerMonth)),
         (typeof(World), "LastInterestPerMonth", typeof(MoneyPerMonth)),
@@ -111,7 +111,11 @@ public class UnitTypeTests
         (typeof(Pop), "LandRentPerMonth", typeof(MoneyPerMonth)),
         (typeof(Pop), "PaidPerMonth", typeof(MoneyPerMonth)),
         (typeof(Pop), "IndustrialRentPerMonth", typeof(MoneyPerMonth)),
-        (typeof(Power), "GdpPerMonth", typeof(MoneyPerMonth)),
+        (typeof(Power), "GdpPerMonth", typeof(RealGdpPerMonth)),
+        // ★(250) 在庫のお金（国庫・国債の残高・貯蓄）。流れ（MoneyPerMonth）とは足せない
+        (typeof(World), "Treasury", typeof(MoneyStock)),
+        (typeof(World), "GovDebt", typeof(MoneyStock)),
+        (typeof(Pop), "Savings", typeof(MoneyStock)),
     ];
 
     [Fact]
@@ -189,6 +193,8 @@ public class UnitTypeTests
         var w1 = sim1.Nations[0].World;
         w1.GovBondRatePerYear = new RatePerYear(0.0625); w1.GovAvgCouponPerYear = new RatePerYear(1.0 / 3.0); w1.ExpectedInflationPerYear = new RatePerYear(-0.0125);
         w1.Coef.LoanSpreadPerYear = new RatePerYear(0.05); w1.Coef.BondRepayFracPerMonth = new RatePerMonth(0.0175);
+        w1.SetTreasuryRaw(1234.5678); w1.GovDebt = new MoneyStock(2.0 / 3.0);   // ★(250) 在庫のお金（国庫・国債の残高・貯蓄）
+        w1.Regions[0].Pops[0].ScaleSavings(1.0 / 3.0);
         using var ms = new System.IO.MemoryStream();
         SaveGame.Save(sim1, ms);
         ms.Position = 0;
@@ -198,6 +204,10 @@ public class UnitTypeTests
         Assert.Equal(w1.ExpectedInflationPerYear, w2.ExpectedInflationPerYear);
         Assert.Equal(w1.Coef.LoanSpreadPerYear, w2.Coef.LoanSpreadPerYear);
         Assert.Equal(w1.Coef.BondRepayFracPerMonth, w2.Coef.BondRepayFracPerMonth);
+        Assert.Equal(BitConverter.DoubleToInt64Bits(w1.Treasury.Value), BitConverter.DoubleToInt64Bits(w2.Treasury.Value));
+        Assert.Equal(BitConverter.DoubleToInt64Bits(w1.GovDebt.Value), BitConverter.DoubleToInt64Bits(w2.GovDebt.Value));
+        Assert.Equal(BitConverter.DoubleToInt64Bits(w1.Regions[0].Pops[0].Savings.Value), BitConverter.DoubleToInt64Bits(w2.Regions[0].Pops[0].Savings.Value));
+        Assert.NotEqual(0.0, w1.Regions[0].Pops[0].Savings.Value);   // 対照：0を往復して緑になる空の番人にしない
     }
 
     [Fact]
@@ -217,4 +227,70 @@ public class UnitTypeTests
         f.SetValue(c, UnitValues.FromDouble(f.FieldType, 0.2));
         Assert.Equal(new RatePerYear(0.2), c.BondRateMaxPerYear);
     }
+
+    [Fact]
+    public void 異なる型の間には演算子も変換も無い_在庫と流れ_実質と名目()
+    {
+        // 反射で全ての組を確かめる：型 A が型 B（A と違う専用の値型）を引数に取る演算子・変換を持たない（(250) ③在庫のお金）。
+        // 在庫（MoneyStock）＋流れ（MoneyPerMonth）・実質（RealGdpPerMonth）＋名目（MoneyPerMonth）はコンパイルが通らない。
+        foreach (var a in UnitTypes)
+            foreach (var b in UnitTypes)
+            {
+                if (a == b) continue;
+                var ops = a.GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
+                    .Where(m => m.Name.StartsWith("op_", StringComparison.Ordinal) && m.GetParameters().Any(p => p.ParameterType == b)).Select(m => m.Name).ToArray();
+                Assert.True(ops.Length == 0, $"{a.Name} が {b.Name} を取る演算子を持つ: {string.Join(",", ops)}");
+            }
+        // 月の決算で1か月分の流れを在庫へ足す口は Calendar.OneMonthOf の1本だけ（MoneyPerMonth を受けて MoneyStock を返す）。
+        var toStock = typeof(Calendar).GetMethods(BindingFlags.Public | BindingFlags.Static).Where(m => m.ReturnType == typeof(MoneyStock)).ToArray();
+        Assert.Single(toStock);
+        Assert.Equal("OneMonthOf", toStock[0].Name);
+        Assert.Equal([typeof(MoneyPerMonth)], toStock[0].GetParameters().Select(p => p.ParameterType).ToArray());
+        // 実質から名目へは World.NominalOf（double を受ける）だけ。名目GDP は貨幣の型・実質GDP は別の型。
+        Assert.Equal(typeof(MoneyPerMonth), typeof(World).GetProperty("NominalGdpPerMonth")!.PropertyType);
+        Assert.NotEqual(typeof(World).GetProperty("GdpPerMonth")!.PropertyType, typeof(World).GetProperty("NominalGdpPerMonth")!.PropertyType);
+    }
+
+    [Fact]
+    public void 月の決算は1か月分をそのまま在庫へ足す()
+    {
+        double[] savings = [0.0, 1234.5678, -77.7, 1e9 + 0.1];
+        double[] earned = [0.0, 3.3, 1e-9, 98765.4321];
+        double[] paid = [0.0, 3.1, 2.5e-9, 98000.0001];
+        foreach (var s in savings) foreach (var e in earned) foreach (var p in paid)
+        {
+            var pop = new Pop { Savings = new MoneyStock(s), EarnedPerMonth = new MoneyPerMonth(e), PaidPerMonth = new MoneyPerMonth(p) };
+            pop.SettleMonth();
+            Assert.Equal(BitConverter.DoubleToInt64Bits(s + (e - p)), BitConverter.DoubleToInt64Bits(pop.Savings.Value));   // 旧の式 _savings += (Earned − Paid) と同じビット
+        }
+        Assert.Equal(BitConverter.DoubleToInt64Bits(0.1 - 0.3), BitConverter.DoubleToInt64Bits(Calendar.OneMonthOf(new MoneyPerMonth(0.1) - new MoneyPerMonth(0.3)).Value));
+    }
+
+    [Fact]
+    public void 型にした係数を1本0にできる_Runnerの年代記とアブレーションと同じ反射()
+    {
+        // Runner の chronicle --zero と politics-ablation は UnitValues.FromDouble で係数を0にする。型を持つ係数の全部で、型が残って値が0になることを確かめる。
+        var typed = typeof(Coefficients).GetFields().Where(f => UnitValues.IsUnit(f.FieldType) && !f.IsStatic && !f.IsInitOnly).ToArray();
+        Assert.NotEmpty(typed);
+        foreach (var f in typed)
+        {
+            var c = new Coefficients();
+            f.SetValue(c, UnitValues.FromDouble(f.FieldType, 0.0));
+            var after = f.GetValue(c);
+            Assert.True(after is not null && after.GetType() == f.FieldType, $"{f.Name} の型が0にしたあと {after?.GetType().Name} になった");
+            Assert.True(UnitValues.TryToDouble(after, out double d) && d == 0.0, $"{f.Name} が0にならない");
+        }
+        // 対照（何もしない番人は必ず緑）：double の係数も同じ橋で0にできる
+        var df = typeof(Coefficients).GetFields().First(f => f.FieldType == typeof(double) && !f.IsStatic && !f.IsInitOnly);
+        var c2 = new Coefficients();
+        df.SetValue(c2, UnitValues.FromDouble(df.FieldType, 0.0));
+        Assert.Equal(0.0, (double)df.GetValue(c2)!);
+        // Runner のソースで、係数への書き込みと0化は UnitValues を通す（SetValue に素の double を渡さない）
+        var runner = System.IO.File.ReadAllLines(System.IO.Path.Combine(RepoRoot(), "PriceOfBread.Runner", "Program.cs"));
+        Assert.Contains(runner, l => l.Contains("fi.SetValue(co, UnitValues.FromDouble(fi.FieldType, 0.0))"));   // politics-ablation
+        Assert.Contains(runner, l => l.Contains("done.Add(co); fi.SetValue(co, UnitValues.FromDouble(fi.FieldType, 0.0))"));   // chronicle --zero
+    }
+
+    private static string RepoRoot([System.Runtime.CompilerServices.CallerFilePath] string self = "")
+        => System.IO.Path.GetDirectoryName(System.IO.Path.GetDirectoryName(self))!;
 }

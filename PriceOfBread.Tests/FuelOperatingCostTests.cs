@@ -40,11 +40,11 @@ public class FuelOperatingCostTests
         w.SelfPower = new Power { FleetGauge = 100.0 };
         w.SetMilitaryUpkeep(0.2, 0.4);
         var m = w.Region.Markets[Catalog.CoalId];
-        double treasury0 = w.Treasury, stock0 = m.Stock, demand0 = m.LastDemand;
+        double treasury0 = w.Treasury.Value, stock0 = m.Stock, demand0 = m.LastDemand;
 
         Military.NavalFuelStep(w, coef);
 
-        Assert.Equal(treasury0, w.Treasury);
+        Assert.Equal(treasury0, w.Treasury.Value);
         Assert.Equal(stock0, m.Stock);
         Assert.Equal(demand0, m.LastDemand);
         Assert.Equal(1.0, w.NavalFuelFillEma);
@@ -63,14 +63,14 @@ public class FuelOperatingCostTests
         var m = w.Region.Markets[Catalog.CoalId];
         m.Stock = 1_000_000; m.Price = Catalog.RefPrices[Catalog.CoalId];   // 価格ゲートを中立化（相場＝参照価格）
         World.Transfer((null, null), (w, null, null), 1_000_000, TreasuryCat.OtherIn);   // 国庫へ注入（移し方の1本・2026-09-30 段4g＝国庫の口は private）
-        double treasury0 = w.Treasury, stock0 = m.Stock, demand0 = m.LastDemand;
+        double treasury0 = w.Treasury.Value, stock0 = m.Stock, demand0 = m.LastDemand;
         double navy0 = w.TreasuryLedger[(int)TreasuryCat.Navy];
 
         Military.NavalFuelStep(w, coef);   // 需要 = 5.0×100×0.4×蒸気1.0×Era1.0 = 200石炭
 
         Assert.True(m.LastDemand > demand0, "石炭需要が立っていない");
         Assert.True(m.Stock < stock0, "石炭在庫が減っていない（焚いていない）");
-        Assert.True(w.Treasury < treasury0, "国庫が燃料代を払っていない");
+        Assert.True(w.Treasury.Value < treasury0, "国庫が燃料代を払っていない");
         Assert.True(w.TreasuryLedger[(int)TreasuryCat.Navy] < navy0, "TreasuryCat.Navy に記帳されていない");
 
         // 燃料が払底すると充足EMAが下がる（＝出撃能力の入力が動く）
@@ -296,7 +296,7 @@ public class FuelOperatingCostTests
         {
             if (r.State != RegionState.Active) continue;
             stock0 += r.Markets[Catalog.SteamshipId].Stock; money0 += r.SumSavings();
-            if (r.InvestorPopIndex >= 0) buyers0 += r.Pops[r.MerchantPopIndex >= 0 ? r.MerchantPopIndex : r.InvestorPopIndex].Savings;
+            if (r.InvestorPopIndex >= 0) buyers0 += r.Pops[r.MerchantPopIndex >= 0 ? r.MerchantPopIndex : r.InvestorPopIndex].Savings.Value;
         }
         Transport.Step(w, coef);
         double stock1 = 0, money1 = 0, buyers1 = 0;
@@ -304,7 +304,7 @@ public class FuelOperatingCostTests
         {
             if (r.State != RegionState.Active) continue;
             stock1 += r.Markets[Catalog.SteamshipId].Stock; money1 += r.SumSavings();
-            if (r.InvestorPopIndex >= 0) buyers1 += r.Pops[r.MerchantPopIndex >= 0 ? r.MerchantPopIndex : r.InvestorPopIndex].Savings;
+            if (r.InvestorPopIndex >= 0) buyers1 += r.Pops[r.MerchantPopIndex >= 0 ? r.MerchantPopIndex : r.InvestorPopIndex].Savings.Value;
         }
         double bought = stock0 - stock1;
         Assert.True(bought > 0, "汽船を買っていない");
@@ -482,15 +482,15 @@ public class FuelOperatingCostTests
             r.Pops[r.InvestorPopIndex].SetSavings(1e9);
         }
         Assert.NotEmpty(regs);
-        var inv0 = regs.Select(r => r.Pops[r.InvestorPopIndex].Savings).ToArray();
-        var mer0 = regs.Select(r => r.Pops[r.MerchantPopIndex].Savings).ToArray();
+        var inv0 = regs.Select(r => r.Pops[r.InvestorPopIndex].Savings.Value).ToArray();
+        var mer0 = regs.Select(r => r.Pops[r.MerchantPopIndex].Savings.Value).ToArray();
         var stock0 = regs.Select(r => r.Markets[coef.RailGoodId].Stock).ToArray();
         Transport.Step(w, coef);
         double paidSum = 0;
         for (int i = 0; i < regs.Count; i++)
         {
             var r = regs[i];
-            double paid = inv0[i] - r.Pops[r.InvestorPopIndex].Savings, got = r.Pops[r.MerchantPopIndex].Savings - mer0[i];
+            double paid = inv0[i] - r.Pops[r.InvestorPopIndex].Savings.Value, got = r.Pops[r.MerchantPopIndex].Savings.Value - mer0[i];
             Assert.True(Math.Abs(paid - got) <= 1e-9 * Math.Max(1.0, inv0[i]), $"{r.Name}：投資家の払い {paid} ≠ 商人の受け取り {got}");
             if (r.Markets[coef.RailGoodId].Stock < stock0[i]) Assert.True(paid > 0, $"{r.Name}：線路を持ち去ったのに投資家が払っていない");
             paidSum += paid;

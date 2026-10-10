@@ -142,7 +142,7 @@ public sealed partial class InternationalMarket
         if (m.Stock <= 1e-9 || m.Price <= 1e-9) return 0;
         double buy = Math.Min(m.Stock, want);  // 在庫超は買えない（物理の律速）
         double pay = buy * m.Price;
-        if (buyer is not null && pay > buyer.Savings) { pay = Math.Max(0, buyer.Savings); buy = pay / m.Price; }   // 買い手の貯蓄まで
+        if (buyer is not null && pay > buyer.Savings.Value) { pay = Math.Max(0, buyer.Savings.Value); buy = pay / m.Price; }   // 買い手の貯蓄まで
         if (buy <= 1e-9) return 0;
         m.Stock -= buy;
         if (buyer is null) m.LastExport += buy;   // 国家の調達＝域外（植民地・艦隊・遠征）へ出る

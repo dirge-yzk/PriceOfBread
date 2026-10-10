@@ -1897,7 +1897,7 @@ public static class Politics
     public static double GiniIndex(World w)
     {
         var wpcList = new List<(double pc, double size)>();
-        foreach (var gp in w.AllPops()) { if (gp.Size <= 1e-9) continue; wpcList.Add((Math.Max(0, gp.Savings) / gp.Size, gp.Size)); }
+        foreach (var gp in w.AllPops()) { if (gp.Size <= 1e-9) continue; wpcList.Add((Math.Max(0, gp.Savings.Value) / gp.Size, gp.Size)); }
         double gini = 0;
         if (wpcList.Count > 1)
         {
@@ -1971,7 +1971,7 @@ public static class Politics
                 if (terror && !p.IsSoldier && p.Size > 0)
                 {
                     (purgedPops ??= []).Add(p); purgeTotal += p.Size * c.RevolutionTerror;   // 粛清・亡命＝失脚した層の RevolutionTerror の割合（下で死の記帳の1本へ）
-                    double seized = Math.Max(0, p.Savings) * c.RevolutionTerror;   // 資産没収（貴族の所領・資本の没収）＝自分の請求（下で移し方の1本が取る）
+                    double seized = Math.Max(0, p.Savings.Value) * c.RevolutionTerror;   // 資産没収（貴族の所領・資本の没収）＝自分の請求（下で移し方の1本が取る）
                     if (seized > 0) { (seizedPops ??= []).Add(p); (seizedAmt ??= []).Add(seized); confiscated += seized; }
                     double seizedBonds = p.BondHoldings * c.RevolutionTerror;   // ★保有台帳（2026-09-21）：国債も貯蓄と同じ規則で没収（請求権は国内に残る＝下で大衆へ）
                     p.BondHoldings -= seizedBonds; confiscatedBonds += seizedBonds;

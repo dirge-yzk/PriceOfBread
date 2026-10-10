@@ -164,7 +164,7 @@ public static class Fiscal
             double tithe = clergy is not null && Politics.IsMassPop(p) && p.LastEarnedPerMonth.Value > 0 ? (titheRate * p.LastEarnedPerMonth).Value : 0;   // 十分の一税の請求（大衆の前の月の所得＝所得税と同じ基数）
             double claims = tax + cut + tithe;
             if (!(claims > 0)) continue;   // 否定形＝NaN の請求は立てない
-            double held = Math.Max(0, p.Savings);
+            double held = Math.Max(0, p.Savings.Value);
             double rp = held >= claims ? 1.0 : held / claims;   // 1本の率（払える額が足りれば 1＝全額）
             tax *= rp; cut *= rp; tithe *= rp;
             if (lord is not null && cut > 0)
@@ -240,7 +240,7 @@ public static class Fiscal
         // BondRolloverFracPerMonth=1.0（既定）で GovAvgCouponPerYear=GovBondRatePerYear にビット一致＝浮動永久債＝旧式 GovDebt*GovBondRatePerYear/12 と厳密一致。
         double rollover = PoliticalQuantities.Clamp01(c.BondRolloverFracPerMonth.Value);
         w.GovAvgCouponPerYear = (1.0 - rollover) * w.GovAvgCouponPerYear + rollover * w.GovBondRatePerYear;
-        double interest = Calendar.PerYearToPerMonth(w.GovDebt * w.GovAvgCouponPerYear.Value);   // 月次（クーポンは年率。Fiscal.Step は月次実行なので /12）
+        double interest = Calendar.PerYearToPerMonth(w.GovDebt.Value * w.GovAvgCouponPerYear.Value);   // 月次（クーポンは年率。Fiscal.Step は月次実行なので /12）
         // ★金建て債務の実質負担（銀本位doc G8・2026-08-13）＝**史実で銀本位国を金へ追い込んだ最大の力**。
         //   対外債務はロンドン建て＝金建てである（★インドの Home Charges・清の庚子賠款）。銀が下がれば、同じ利払いに
         //   より多くの自国通貨が要る＝⚠実質負担が膨らむ。膨らんだ分は【債権者が受け取る】——移転であって、湧いてはならない
@@ -255,7 +255,7 @@ public static class Fiscal
             if (!(b >= 1.0 && b <= c.GoldDebtBurdenCap)) b = 1.0;   // NaNは負担なしへ倒す（否定形＝Clampは NaN を消さない）
             goldDebtBurden = b;
         }
-        double foreignShare = w.GovDebt > 1e-9 ? PoliticalQuantities.Clamp01(w.ForeignDebt / w.GovDebt) : 0;
+        double foreignShare = w.GovDebt.Value > 1e-9 ? PoliticalQuantities.Clamp01(w.ForeignDebt / w.GovDebt.Value) : 0;
         if (goldDebtBurden > 1.0) interest *= 1.0 + foreignShare * (goldDebtBurden - 1.0);   // 対外分だけが金建て＝国内債は自国通貨のまま
         // 裁量余剰（EMA）＝公共サービスの財源。**純税収から強制義務（利払い・行政・軍需の請求）を引いた余り**から支弁する（funding修正の核心）：
         // 余剰の無い国は自然にサービス≈0＝赤字を作らない／余剰のある国（英）は歳入からサービスが機能。
@@ -309,7 +309,7 @@ public static class Fiscal
                 && w.FiscalFundingRatio >= c.GoldStandardMinFunding
                 && w.CurrencyReformCooldown <= 0)
             {
-                double sav = 0; foreach (var p in pops) sav += Math.Max(0, p.Savings);
+                double sav = 0; foreach (var p in pops) sav += Math.Max(0, p.Savings.Value);
                 // ①記憶の代価＝累積切下げの一定割合 ②平価の代価＝その平価を維持するのに要る貨幣の収縮
                 double burnMem = c.CurrencyReformBurnShare * w.CumulativeDevaluation;
                 double kp = parity * Math.Max(1e-9, w.PriceLevel);
@@ -318,7 +318,7 @@ public static class Fiscal
                 // 自己制限：焼却は正貨カバー率を悪化させる（Mが減りLは減らせない）。改革が自分で金本位復帰の
                 // ゲート（GoldCoverMin×GoldRejoinCoverMargin）を閉じては本末転倒なので、そこまでで止める。既存係数の再利用。
                 double lo = c.GoldCoverMin * c.GoldRejoinCoverMargin;
-                double loans = w.OutstandingLoans, tre = Math.Max(0, w.Treasury);
+                double loans = w.OutstandingLoans, tre = Math.Max(0, w.Treasury.Value);
                 if (loans > tre && lo < 1.0) burn = Math.Min(burn, Math.Max(0, w.TotalMoney - (loans - tre) / (1.0 - lo)));
                 if (burn > 1e-12 && sav > 1e-9)
                 {
@@ -368,13 +368,13 @@ public static class Fiscal
         {
             double unpaidForeign = unpaidInt * foreignDebtFrac;
             double unpaidDom = unpaidInt - unpaidForeign;
-            w.GovDebt += unpaidForeign; w.ForeignDebt += unpaidForeign;
+            w.GovDebt += new MoneyStock(unpaidForeign); w.ForeignDebt += unpaidForeign;
             double held = 0; foreach (var p in pops) if (p.BondHoldings > 0) held += p.BondHoldings;
             if (held > 0 && unpaidDom > 0)
             {
                 double grow = 1.0 + unpaidDom / held;
                 foreach (var p in pops) if (p.BondHoldings > 0) p.BondHoldings *= grow;
-                w.GovDebt += unpaidDom;
+                w.GovDebt += new MoneyStock(unpaidDom);
             }
         }
 
@@ -387,9 +387,9 @@ public static class Fiscal
         //   借入は月初の払えない額（spare＜0）の分だけ（Borrow）＝借りた後の spare は0以下＝同じ月に借りながら返すことが構造的に起きない（旧＝借入の線 国庫＜LastUpkeep＋LastInterestPerMonth に揃えた2026-09-27 の形の一般形）。
         //   ★開始前の助走（World.WarmupFrozen）は返さない（2026-09-29）＝国債の残高は「年月が経って積み上がる/減る量」（人口・資本と同じ・借入 Borrow と不履行の計数も同じ門）。
         //   旧＝助走の5年（60か月）の余剰で初期の国債を返した＝仏の米独立戦争債務（年GDP の約0.76）が開幕に0.04 へ痩せていた。
-        if (w.GovDebt > 1e-9 && payRate >= 1 && spare > 0 && !w.WarmupFrozen)
+        if (w.GovDebt.Value > 1e-9 && payRate >= 1 && spare > 0 && !w.WarmupFrozen)
         {
-            double repay = Math.Min(w.GovDebt * c.BondRepayFracPerMonth.Value, spare);
+            double repay = Math.Min(w.GovDebt.Value * c.BondRepayFracPerMonth.Value, spare);
             // ★AUD-09（監査2026-09-02 low・2026-09-03投入）：⚠ここは**元本**の按分なのに、上で作った**利払い**の按分
             //   （foreignDebtFrac＝金建て負担 goldDebtBurden で分子だけ膨らませた比）を流用していた＝分子と分母が別規則。
             //   元本の台帳 `ForeignDebt` は自国通貨建てなので、正しい按分は膨らませていない `foreignShare`。
@@ -400,10 +400,10 @@ public static class Fiscal
             //   同じ月に起債すると新発債の構成が按分に入らない：全額対外で借りた月に「国内分」を償還して ForeignDebt>GovDebt（国内元本が負）
             //   になり、持ち手がいなければ対外債務が国庫残置でタダで消え、いれば払っていない国内の持ち手へ対外の元本が渡っていた。
             //   利払い（上）は月初の残高に掛かる＝月初の比のままが正しい。起債の無い月は shareNow＝foreignShare（ビット同値）。
-            double shareNow = PoliticalQuantities.Clamp01(w.ForeignDebt / w.GovDebt);
+            double shareNow = PoliticalQuantities.Clamp01(w.ForeignDebt / w.GovDebt.Value);
             double frForeign = repay * shareNow;   // ★2026-09-26：旗 DebtRepayUsesPrincipalShare（点火2026-09-05）を焼き込み（x-01）＝元本の比
-            double domBefore = w.GovDebt - w.ForeignDebt;
-            w.GovDebt -= repay; w.ForeignDebt = Math.Max(0, w.ForeignDebt - frForeign);
+            double domBefore = w.GovDebt.Value - w.ForeignDebt;
+            w.GovDebt -= new MoneyStock(repay); w.ForeignDebt = Math.Max(0, w.ForeignDebt - frForeign);
             // ★保有台帳（2026-09-21裁定）：国内分の償還は**保有に比例**して払い、同じ比で保有を減らす
             //   （旧＝貯蓄比で買い・頭数比で償還＝往復ごとに富裕な資本家から貧しい資本家へ富が移る分子と分母の非対称）。
             //   減らす額＝国内元本の実減（GovDebt−ForeignDebt の差分）＝台帳と元本が同じ量で動く。持ち手不在＝国庫残置（債権者の消えた国内債は実質帳消し・保存）。
@@ -412,7 +412,7 @@ public static class Fiscal
             var (holders, held) = BondHolders(pops);
             double heldTotal = 0; foreach (var h in held) heldTotal += h;
             World.Transfer((w, null), (w, holders, held), Math.Max(0, repay - frForeign), TreasuryCat.DebtRepay);
-            double principal = domBefore - (w.GovDebt - w.ForeignDebt);
+            double principal = domBefore - (w.GovDebt.Value - w.ForeignDebt);
             if (principal > 0 && heldTotal > 0)
             {
                 double keep = principal < heldTotal ? 1.0 - principal / heldTotal : 0.0;   // 同じ比で減らす＝和は total−principal（負にしない）
@@ -444,7 +444,7 @@ public static class Fiscal
         //   兌換停止の後の兌換は四半期 ConvertibilityDropSpeed で0 へ漸近するだけで0 にならない＝切り下げの余地＝払えない額×(1−兌換) の残り（払えない額×兌換）・
         //   銀の改鋳の窓の残り（×(1−正貨比率)）・浮動小数の端（r＝1−1e-10）が毎月1か月に数えられ、ほぼ全てを払えていた国が8か月で国債を全て否認した
         //   （(203) の10種で148件中67件・英5件中4件・計器 scratchpad/m204/inj_d204）。重みは入力に比例＝天井も床も足していない（思想⑧）。戻りは旧と同じ（払えた月・門が開いた月に0）。
-        if (payRate < 1 && w.GovDebt > 1e-9 && !underLimit && !w.WarmupFrozen) w.InsolvencyQuarters += 1.0 - payRate; else w.InsolvencyQuarters = 0;
+        if (payRate < 1 && w.GovDebt.Value > 1e-9 && !underLimit && !w.WarmupFrozen) w.InsolvencyQuarters += 1.0 - payRate; else w.InsolvencyQuarters = 0;
         if (w.InsolvencyQuarters >= c.DefaultArrearsMonths)
         {
             // 債務消滅（請求権＝保存無影響）。致命的な代償＝兌換崩壊・**信用凍結（貸付消滅→工場が資本を得られず投資/工業化が崩落＝恐慌）**・正統性崩壊（革命リスク）・大衆の暴動・当面 借入不能。
@@ -462,7 +462,7 @@ public static class Fiscal
         // [単位・B13] 債務/GDP＝**年次名目**（GovDebt÷(月次NominalGdpPerMonth×12)）。国債金利の債務比プレミアム・CapitalMarket の対外信用の債務の項・
         //   Government の緊縮の強度・Credit の銀行の評価損・PolicyPreferences の国家の歳入要求（どれも 2026-09-29 から）はこの単位（旧＝Credit は月次名目・Government/PolicyPreferences は月次実質）。
         //   台帳（2026-09-11 #10）：PowerShares.cs の debtGrip＝月次名目の Clamp（物理・用途別に別＝触らない）／Runner milfund・hangtest の dGdp＝月次名目（計器）／App のヘッダー「対年GDP」＝この行と同じ年次名目（旧＝年次実質＝表示だけ別物差しだったのを統一）
-        double dGdp = gdpDenom > 1e-9 ? w.GovDebt / gdpDenom : (w.GovDebt > 0 ? DebtRatioUnbounded : 0);   // #1 名目GDP基準＝デフレ国は実質債務が膨らみ国債金利が上がる（負債デフレ）
+        double dGdp = gdpDenom > 1e-9 ? w.GovDebt.Value / gdpDenom : (w.GovDebt.Value > 0 ? DebtRatioUnbounded : 0);   // #1 名目GDP基準＝デフレ国は実質債務が膨らみ国債金利が上がる（負債デフレ）
         // ★AUD-09（監査2026-09-02 low・規律「比のガードは絶対値で書かない」）：分母の絶対値ガード（1e-9）だけでは、
         //   分母が**微小だが非ゼロ**のとき比が番兵を何桁も飛び越える（GDPが消えかけた残余国で万%＝WorstLossRate と同型）。
         //   ⚠**否定形**で書く＝NaN も同じ枝へ落ちる（`Math.Min` では NaN が素通りして GovBondRatePerYear を毒する）。
@@ -703,7 +703,7 @@ public static class Fiscal
         double borrowWant = Math.Min(BorrowTicket(nominalGdp, c), shortfall);
         var capitalists = new List<Pop>();
         foreach (var r in w.Regions) foreach (var p in r.Pops) if (CapitalMarket.IsInvestor(p, c)) capitalists.Add(p);   // 国内の買い手＝資本家/近代エリート（NobleInvests>0で貴族も。既定0＝旧述語と厳密恒等）
-        double capSavings = 0; foreach (var p in capitalists) capSavings += Math.Max(0, p.Savings);
+        double capSavings = 0; foreach (var p in capitalists) capSavings += Math.Max(0, p.Savings.Value);
         // 財6（資本開放度の脱・関税連動）：openness の関税連動を CapitalOpennessTariffWeight で連続化。既定1.0＝openness=Clamp(1−1.0×Tariff,0,1)＝旧 Clamp(1−Tariff,0,1) と代数的に厳密一致（数値中立）。
         // 0で関税と独立（19世紀の資本移動は関税と別＝高関税の米/露も外債を発行）→兌換性/信認ベースの開放度へ。中間で部分連動。
         // ★トリレンマを閉じる①（2026-08-13）：資本開放度を**法**から導出し、関税との連動を切る。
@@ -745,12 +745,12 @@ public static class Fiscal
         World.Transfer((null, null), (w, null, null), foreignPortion, TreasuryCat.Borrow);   // 海外＝対外資本流入（BaseMoney+CumulativeTradeFlow同時＝保存）
         w.PendingForeignBorrow += foreignPortion;   // ★§1-4：貸し手側の引き落とし予約（四半期末に MultiNationSim が他国資本家から対称に控除＝両建て）。旗 ForeignLendingDebits は2026-09-26に焼き込み（x-01）
         double added = domesticMoved + foreignPortion;   // 国庫へ入った額（国内は動いた額＝払い手ごとの額の和）＝国債の元本も同じ額
-        w.GovDebt += added; w.ForeignDebt += foreignPortion;
+        w.GovDebt += new MoneyStock(added); w.ForeignDebt += foreignPortion;
         // ★段3-3（C13・2026-09-30）：対外分の債権は四半期末の貸し手の引き落とし（MultiNationSim）が**払った額そのもの**で貸し手の国へ付ける＝
         //   CapitalMarket の繰上げ（ForeignDebt−PrevForeignDebt）で数え直さない（払えなかった分は引き落としが両方から戻す）。
         w.PrevForeignDebt += foreignPortion;
         // R9：新発債を現行市場金利で既往クーポンへ加重平均で混ぜる（BondRolloverFracPerMonth<1の時のみ意味を持つ。既定1.0では月末の Step の rollover で GovBondRatePerYear に上書き＝ビット一致）。残高0からの借入はdebtBefore=0で現行金利へ自然収束
-        { double debtBefore = w.GovDebt - added; w.GovAvgCouponPerYear = (debtBefore * w.GovAvgCouponPerYear + added * w.GovBondRatePerYear) / System.Math.Max(1e-9, w.GovDebt); }
+        { double debtBefore = w.GovDebt.Value - added; w.GovAvgCouponPerYear = (debtBefore * w.GovAvgCouponPerYear + added * w.GovBondRatePerYear) / System.Math.Max(1e-9, w.GovDebt.Value); }
         // 返り値＝借りた額（貸し手に割り当てた額）＝呼び手（月初の Simulation）が払える額の見込みへ足す。国内の脚の動いた額は払い手ごとの額の和＝割り当てた額と端数の丸め
         //   （1ulp）だけ違う＝払える額の見込み（歳入の見込みと同じ見込みの量）は割り当てた額で数える＝「払えない額をちょうど借りた月の r は 1」を保つ（2026-09-30 段4g）。
         return domesticMoved > 0 ? borrowed : foreignPortion;
@@ -779,7 +779,7 @@ public static class Fiscal
     internal static void BookForeignDebt(Pop? p, double h, World issuer, World holderNation)
     {
         if (!(h > 0)) return;
-        if (p is null) issuer.GovDebt += h; else p.BondHoldings -= h;
+        if (p is null) issuer.GovDebt += new MoneyStock(h); else p.BondHoldings -= h;
         issuer.ForeignDebt += h; issuer.PrevForeignDebt += h;
         holderNation.ForeignBondClaims += h * issuer.FxRate / holderNation.FxRate;
     }
@@ -794,7 +794,7 @@ public static class Fiscal
     /// ※制度疲労ショック（HadSovereignDefault/SovereignDefaultCount）・信用凍結・正統性はデフォルトの側だけが足す（革命そのものが既に体制転換＝二重計上を避ける）。（旗 RepudiationCreditPenalty は 2026-09-26 に焼き込み）</summary>
     internal static void RepudiateDebt(World w, Coefficients c)
     {
-        w.GovDebt = 0; w.ForeignDebt = 0;
+        w.GovDebt = new MoneyStock(0); w.ForeignDebt = 0;
         foreach (var r in w.Regions) foreach (var p in r.Pops) p.BondHoldings = 0;   // ★保有台帳（2026-09-21）
         w.OnGoldStandard = false; w.GoldStandardSuspendedInCrisis = true;
         w.BorrowCooldownMonths = c.DefaultCooldownMonths;
@@ -805,11 +805,11 @@ public static class Fiscal
     /// 台帳が立っている国・国内債0（検査の許容内）の国では何もしない＝通常の走では構築時に1回だけ効く。投資家の貯蓄が0なら全POPの頭数比（<see cref="World.Distribute"/> と同じ最後の受け皿）。</summary>
     internal static void SeedBondHoldings(World w)
     {
-        double dom = w.GovDebt - w.ForeignDebt, held = 0, invSav = 0, size = 0;
-        foreach (var r in w.Regions) foreach (var p in r.Pops) { held += p.BondHoldings; size += p.Size; if (CapitalMarket.IsInvestor(p, w.Coef)) invSav += Math.Max(0, p.Savings); }
+        double dom = w.GovDebt.Value - w.ForeignDebt, held = 0, invSav = 0, size = 0;
+        foreach (var r in w.Regions) foreach (var p in r.Pops) { held += p.BondHoldings; size += p.Size; if (CapitalMarket.IsInvestor(p, w.Coef)) invSav += Math.Max(0, p.Savings.Value); }
         if (held > 0 || !(dom > 0) || BondLedger.Balanced(w, held)) return;   // 検査が割れない（端数の残差だけ）なら起票しない＝台帳入りのセーブはビット不変
         foreach (var r in w.Regions)
             foreach (var p in r.Pops)
-                p.BondHoldings += dom * (invSav > 0 ? (CapitalMarket.IsInvestor(p, w.Coef) ? Math.Max(0, p.Savings) / invSav : 0) : (size > 0 ? p.Size / size : 0));
+                p.BondHoldings += dom * (invSav > 0 ? (CapitalMarket.IsInvestor(p, w.Coef) ? Math.Max(0, p.Savings.Value) / invSav : 0) : (size > 0 ? p.Size / size : 0));
     }
 }

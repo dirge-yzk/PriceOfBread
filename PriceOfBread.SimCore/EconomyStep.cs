@@ -534,7 +534,7 @@ public static class EconomyStep
             p.LastEarnedPerMonth = p.EarnedPerMonth;
             p.LastEducationFill = p.EducationFill;   // ★段②：前月の就学を写す（財ループが EducationFill を潰す前＝処理順に依存しない。読み手が居なければ書くだけ＝恒等）
             p.LastSatisfaction = p.Satisfaction;      // ★前月の満足度を写す（当月の Satisfaction は §消費の後で上書きされる＝同一ティックの閉路を作らない。読み手が居なければ書くだけ＝恒等）
-            p.PaidPerMonth = new MoneyPerMonth(0); p.EarnedPerMonth = new MoneyPerMonth(0); p.LandRentPerMonth = new MoneyPerMonth(0); p.IndustrialRentPerMonth = new MoneyPerMonth(0); p.RemainingBudget = p.Savings; p.NeedMet = 0; p.NeedTotal = 0; p.FoodMet = 0; p.FoodNeed = 0;
+            p.PaidPerMonth = new MoneyPerMonth(0); p.EarnedPerMonth = new MoneyPerMonth(0); p.LandRentPerMonth = new MoneyPerMonth(0); p.IndustrialRentPerMonth = new MoneyPerMonth(0); p.RemainingBudget = p.Savings.Value; p.NeedMet = 0; p.NeedTotal = 0; p.FoodMet = 0; p.FoodNeed = 0;
         }
         // 投資家は投資枠（貯蓄の IndInvestmentFrac）を消費予算から控除＝消費と投資が同じ貯蓄を二重に使わない（貯蓄が負にならない）。
         if (cap && region.InvestorPopIndex >= 0)
@@ -894,7 +894,7 @@ public static class EconomyStep
             //   投資の原資を**所得（Earned）**にする案（器 IndInvestFromIncome）は、0.4×所得で点火すると旧式の約1/150になり世界が崩壊した
             //   （英GDP 290,733→2）＝資本コストの較正が巨大な貯蓄ストックを前提に組まれている＝建設費・減価・貯蓄を一緒に動かす大改修が要る。
             //   ★2026-09-26（棚卸し dorm-50）：「0で確定＝休眠」だった器を削除（再挑戦はその大改修と一緒に設計し直す＝検討 §10-10［金融1］）。
-            double budget = coef.IndInvestmentFrac * Math.Max(0, region.Pops[region.InvestorPopIndex].Savings);
+            double budget = coef.IndInvestmentFrac * Math.Max(0, region.Pops[region.InvestorPopIndex].Savings.Value);
             // （退蔵結晶化 段4a/段2の予算配線は Stage1 中止で2026-08-29撤去＝休眠削除・厳密恒等）
             // 接収の代償②＝資本逃避（作者裁定2026-08-10）。無補償で工場を取られた資本家は次の投資を控える。
             // 書き手は World.StepStateTargets の接収が成立した月だけ（★2026-08-29点火＝既定0.05。=0なら一度も走らない）。
@@ -1206,7 +1206,7 @@ public static class EconomyStep
                     var (bloc, ideo) = FactionSnapshot.BlocIdeo(p, ctx.Value.Petty);
                     if (bloc != f.Bloc || ideo != f.Ideo) continue;
                     size += p.Size * part;
-                    double cash = Math.Max(0, p.Savings) * part;
+                    double cash = Math.Max(0, p.Savings.Value) * part;
                     funds += cash;
                     payers.Add((p, cash));
                 }

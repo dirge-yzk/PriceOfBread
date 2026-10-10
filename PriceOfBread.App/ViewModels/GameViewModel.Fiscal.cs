@@ -316,7 +316,7 @@ public partial class GameViewModel
         // 接14（監査2026-07-11・2026-07-25実装）：実効はUIの自前近似でなくエンジンの実績診断を読む（国際市場は清算単位＝MonthsPerClearing で月割。負値＝ダンピングの補助金支出）
         double tariffActMonthly = _player.LastTariffRevenuePerClearing / (double)c.MonthsPerClearing;
         // （連合維持費＝治安維持と行政の人頭割りは 2026-09-30 (135) に撤去＝軍と官僚の給与は兵力と行政の購買の1本＝下の軍事費と行政費の行）
-        double interest = Calendar.PerYearToPerMonth(_player.GovDebt * _player.GovBondRatePerYear.Value);
+        double interest = Calendar.PerYearToPerMonth(_player.GovDebt.Value * _player.GovBondRatePerYear.Value);
         // ★予測はエンジンが実際に施行する目標を読む（2026-09-12 反証・接14と同じ作法＝UIに第二の式を置かない）。
         //   旧は生の陸海の和（Policy.MilitarySpendingTarget）で、段（R2）では段へ丸められる前の値＝開幕0.30に対し施行は段1の0.25＝予測が**2割過大**だった。
         // ★(155) 軍事費の器（段×MilitaryEnvelopeShare×使える歳入＝エンジンの Military.EnvelopeOf と同じ基数）から兵士の給与の請求（LastSoldierPayPerMonth＝規定の給与＋幹部の給与〔質〕）を引いた残り＝装備の上限
@@ -422,12 +422,12 @@ public partial class GameViewModel
         BudgetBalanceText = (bal >= 0 ? "+" : "-") + Money(Math.Abs(bal));
 
         // 国債（借入）＝ヘッダーへ移動（借金ボタン廃止・2026-07-21ユーザー指示／借入はエンジンが r＜1 の月に自動・2026-09-28）。中核データ（残高・対GDP・借入数・信認）＋デフォルト予兆。ホバーで内訳。
-        DebtHeaderText = $"国債:{Money(_player.GovDebt)}"   /* ★2026-08-02：借入数は非表示（ホバーの内訳で足りる） */
+        DebtHeaderText = $"国債:{Money(_player.GovDebt.Value)}"   /* ★2026-08-02：借入数は非表示（ホバーの内訳で足りる） */
                        + (_player.InsolvencyQuarters > 0 && 1.0 - _player.FiscalFundingRatio > 0
                           ? $"　デフォルトまで{Math.Ceiling(Math.Max(0, c.DefaultArrearsMonths - _player.InsolvencyQuarters) / (1.0 - _player.FiscalFundingRatio)):F0}か月" : "");   /* ★2026-09-26：カウンタは月次で進む（dorm-29）・★(205) 計数は払えなかった大きさの累計＝残りを今の r の払えない割合で割った月数 */
         // 財7単位フリップ（2026-07-26）：エンジンの金本位資格/金利プレミアムが年換算GDP基準になったのに合わせ、表示も対年GDP（史実の債務比率と直接比較できる単位）
         // 分母＝**年次名目**（月次 NominalGdpPerMonth×12）＝エンジン Fiscal.cs の兌換停止/国債金利の閾値と同じ単位（旧＝年次実質 Gdp×12 で表示だけ別物差し・2026-09-11 #10）
-        DebtHeaderTip = $"国債 {Money(_player.GovDebt)}　対年GDP {(_player.NominalGdpPerMonth.Value > 1e-9 ? System.Math.Min(9.99, _player.GovDebt / Calendar.PerMonthToPerYear(_player.NominalGdpPerMonth).Value) : 0):P0}　金利 {_player.GovBondRatePerYear:P0}　債券価格 {_player.BondPrice:P0}"
+        DebtHeaderTip = $"国債 {Money(_player.GovDebt.Value)}　対年GDP {(_player.NominalGdpPerMonth.Value > 1e-9 ? System.Math.Min(9.99, _player.GovDebt.Value / Calendar.PerMonthToPerYear(_player.NominalGdpPerMonth).Value) : 0):P0}　金利 {_player.GovBondRatePerYear:P0}　債券価格 {_player.BondPrice:P0}"
                        + (_player.ForeignDebt > 1 ? $"\nうち対外 {Money(_player.ForeignDebt)}" : "")
                        + (_player.AusterityIntensity > 0 ? $"\n緊縮 {_player.AusterityIntensity:P0}" : "")
                        + (_player.CumulativeDevaluation > 1 ? $"\n切下げ累計 {Money(_player.CumulativeDevaluation)}" : "")

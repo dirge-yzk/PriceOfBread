@@ -417,7 +417,7 @@ public class RevoltIgnitionTests
         //   ⚠初期の国債があると「緊縮の下限／上限」の門が人頭税と社会保障の段を塞ぎ、この盤面が測る法の経路（受諾・施行・通らない段）の前提が崩れる（門そのものの番人は別）。
         //   2026-09-29 に緊縮の物差しを年の名目GDP へ直した後も戻さない＝英の1783年の国債（年GDP の約1.1）は満額（AusterityStartDebt＋AusterityRange＝1.0）を越える
         //   ＝史実のピットの緊縮（1783-92）そのもの（物差しの誤りではない）。金は動かない＝請求権と保有の記録だけを消す。
-        sim.World.GovDebt = 0; sim.World.ForeignDebt = 0;
+        sim.World.GovDebt = new MoneyStock(0); sim.World.ForeignDebt = 0;
         foreach (var r in sim.World.Regions) foreach (var p in r.Pops) p.BondHoldings = 0;
         sim.Run(20);
         var w = sim.World;
@@ -1149,9 +1149,9 @@ public class RevoltIgnitionTests
         payer!.Militancy = 0.9;
         // 参加者の財布を厚くする＝**州の他POPの貯蓄の半分を移す**（金を湧かせない＝貨幣保存の番人が黙ったまま通しで走れる）
         double pool = 0;
-        foreach (var p in r.Pops) if (!ReferenceEquals(p, payer) && p.Savings > 0) { pool += p.Savings * 0.5; p.SetSavings(p.Savings * (0.5)); }
-        payer.SetSavings(payer.Savings + (pool));
-        Assert.True(payer.Savings > 1e3, $"前提が崩れた：参加者の財布が薄い（{payer.Savings:F1}）");
+        foreach (var p in r.Pops) if (!ReferenceEquals(p, payer) && p.Savings.Value > 0) { pool += p.Savings.Value * 0.5; p.SetSavings(p.Savings.Value * (0.5)); }
+        payer.SetSavings(payer.Savings.Value + (pool));
+        Assert.True(payer.Savings.Value > 1e3, $"前提が崩れた：参加者の財布が薄い（{payer.Savings:F1}）");
         var (petty, _, _) = FactionSnapshot.MembershipContext(w);
         var (bloc, ideo) = FactionSnapshot.BlocIdeo(payer, petty);
         var f = new FactionState { Region = r, Bloc = bloc, Ideo = ideo, Size = payer.Size, AvgMilitancy = 0.9, Cohesion = 1.0 };
@@ -1281,7 +1281,7 @@ public class RevoltIgnitionTests
     {
         var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
         // 初期の国債を構築の直後に消す＝旧の盤面と同じ状態から回す（理由は 段4_絶望した州に小さな運動を置く と同じ＝緊縮の門が法の経路の前提を塞ぐ）
-        sim.World.GovDebt = 0; sim.World.ForeignDebt = 0;
+        sim.World.GovDebt = new MoneyStock(0); sim.World.ForeignDebt = 0;
         foreach (var r in sim.World.Regions) foreach (var p in r.Pops) p.BondHoldings = 0;
         sim.Run(20);
         var w = sim.World; var c = w.Coef;

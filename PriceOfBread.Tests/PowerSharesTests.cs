@@ -87,7 +87,7 @@ public class PowerSharesTests
         Assert.Equal(PowerShares.ParliamentControl(rep) * PowerShares.ParliamentGrip(rep) * (1.0 - PowerShares.LockedSpending(rep)),
             PowerShares.ParliamentEffective(rep), 12);
         rep.TaxRate = 0; rep.ProgressiveTax = 0; rep.LandTax = 1.0;    // 常設の税だけ＝第109条の逃げ道
-        rep.GovDebt = 0;                                                // 起債への依存も無い
+        rep.GovDebt = new MoneyStock(0);                                                // 起債への依存も無い
         Assert.Equal(0.0, PowerShares.ParliamentGrip(rep), 9);
     }
 

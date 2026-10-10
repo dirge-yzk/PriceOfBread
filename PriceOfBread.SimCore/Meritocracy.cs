@@ -38,9 +38,9 @@ public static class Meritocracy
             double total = 0, modern = 0, totalSav = 0, totalAsset = 0, closed = 0;
             foreach (var p in r.Pops)
             {
-                total += p.Size; totalSav += Math.Max(0, p.Savings); if (p.IsModernElite) modern += p.Size;
+                total += p.Size; totalSav += Math.Max(0, p.Savings.Value); if (p.IsModernElite) modern += p.Size;
                 if (p.Closed) closed += p.Size;   // ★AUD-07：身分（貴族・聖職）の人口シェア＝政体ラベルの代わりに読む実体
-                if (fallReform) totalAsset += Math.Max(0, p.Savings);   // rank7(a)：分母も判定資産と同じ定義＝対称（結晶資産は2026-09-26に削除＝常に0だった）
+                if (fallReform) totalAsset += Math.Max(0, p.Savings.Value);   // rank7(a)：分母も判定資産と同じ定義＝対称（結晶資産は2026-09-26に削除＝常に0だった）
             }
             if (total <= Eps) continue;
             double avgPerCap = totalSav / total;   // 地域の1人あたり平均貯蓄＝閾値の経済規模スケール
@@ -166,7 +166,7 @@ public static class Meritocracy
             // 実史の下層上昇路の中段。所得差駆動（①と同じ言語・識字ゲート不要＝腕と元手の職）×元手ゲート（1人あたり貯蓄≥地域平均）。
             // ⚠出口（①' ArtisanDeclineRate）と同時点火が条件＝出口単独では職人が単調消滅（1848急進主義の母体が消える）。
             if (c.PettyEntryRate > 0 && avgPerCap > Eps && from.Size > Eps
-                && from.Savings / from.Size >= avgPerCap)
+                && from.Savings.Value / from.Size >= avgPerCap)
             {
                 for (int pi = 0; pi < 2; pi++)   // 候補2つ＝職人・商人（stackallocは州ループ内でCA2014＝素朴な2択で書く）
                 {
@@ -237,7 +237,7 @@ public static class Meritocracy
             if (w.EducationLaw == EducationLaw.Religious && r.ClergyPopIndex >= 0 && avgPerCap > Eps)
             {
                 var clergy = r.Pops[r.ClergyPopIndex];
-                double clergyPerCap = clergy.Size > Eps ? clergy.Savings / clergy.Size : 0;
+                double clergyPerCap = clergy.Size > Eps ? clergy.Savings.Value / clergy.Size : 0;
                 double attract = clergyPerCap / avgPerCap;   // 平均比の豊かさ＝魅力
                 if (attract > c.ClergyAttractThreshold)
                     Move(from, clergy, c.ClergyJoinRate * from.Literacy * from.Size * Math.Min(1.0, attract / c.ClergyAttractThreshold - 1.0), c, selectLiteracy: true);   // 人1：聖職者昇格も識字比例＝選抜
@@ -252,7 +252,7 @@ public static class Meritocracy
                 var clergyOut = r.Pops[r.ClergyPopIndex];
                 if (clergyOut.Size > Eps)
                 {
-                    double poverty = 1.0 - (clergyOut.Savings / clergyOut.Size) / avgPerCap;   // 平均より貧しいほど強く退出（豊かなら0＝壁でなく逓減）
+                    double poverty = 1.0 - (clergyOut.Savings.Value / clergyOut.Size) / avgPerCap;   // 平均より貧しいほど強く退出（豊かなら0＝壁でなく逓減）
                     if (poverty > 0)
                     {
                         Pop? dest = r.TeacherPopIndex >= 0 ? r.Pops[r.TeacherPopIndex] : null;
@@ -291,7 +291,7 @@ public static class Meritocracy
                     if (w.EducationLaw == EducationLaw.Religious && r.ClergyPopIndex >= 0 && avgPerCap > Eps)
                     {
                         var clergy = r.Pops[r.ClergyPopIndex];
-                        double clergyPerCap = clergy.Size > Eps ? clergy.Savings / clergy.Size : 0;
+                        double clergyPerCap = clergy.Size > Eps ? clergy.Savings.Value / clergy.Size : 0;
                         double attract = clergyPerCap / avgPerCap;
                         if (attract > c.ClergyAttractThreshold)
                             Move(pz, clergy, Math.Min(c.RuralPromotionRate * pz.Literacy * pz.Size * Math.Min(1.0, attract / c.ClergyAttractThreshold - 1.0), pz.Size), c, selectLiteracy: true);
@@ -338,7 +338,7 @@ public static class Meritocracy
                 for (int i = 0; i < tn; i++)
                 {
                     var t = r.Pops[targets[i]];
-                    double pc = t.Size > Eps ? t.Savings / t.Size : 0;
+                    double pc = t.Size > Eps ? t.Savings.Value / t.Size : 0;
                     if (pc > bestPc) { bestPc = pc; best = targets[i]; }
                 }
                 foreach (var p in r.Pops)
@@ -639,7 +639,7 @@ public static class Meritocracy
     {
         if (jobClass != 1) return 1.0;
         if (target == r.ArtisanPopIndex)
-            return c.PettyEntryRate > 0 && avgPerCap > Eps && src.Size > Eps && src.Savings / src.Size < avgPerCap ? 0.0 : 1.0;
+            return c.PettyEntryRate > 0 && avgPerCap > Eps && src.Size > Eps && src.Savings.Value / src.Size < avgPerCap ? 0.0 : 1.0;
         double minorityF = w.EthnicEnabled
             ? Math.Max(0, 1.0 - c.MinorityPromotionPenalty * (1.0 - c.MinorityPenaltyModernBlend * m) * (1.0 - src.CoreEthnicShare))
             : 1.0;
@@ -655,7 +655,7 @@ public static class Meritocracy
     /// <summary>rank7(a)：③④⑤⑥の判定資産（1人あたり）＝Savings/Size。
     /// ⚠旧の f&gt;0 の枝は (Savings+IlliquidWealth)/Size だったが、結晶資産は休眠の枝だけが書き常に0だった＝2026-09-26 に欄ごと削除（dorm-24）。</summary>
     private static double AssetPerCap(Pop p)
-        => p.Savings / Math.Max(Eps, p.Size);
+        => p.Savings.Value / Math.Max(Eps, p.Size);
 
     /// <summary>rank7(b)（点火 FallAnchorReform=0.3）：③④⑤⑥の判定アンカー。f=0＝地域平均資産（avgAsset＝従来avgPerCap）＝
     /// 「他人の平均」相対で、富の裾が膨れるほど健全な中流を機械的に転落させる因果の逆転を持つ。f=1＝**自分の平滑所得×1年**

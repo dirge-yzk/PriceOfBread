@@ -995,7 +995,7 @@ public sealed class World
     // 新＝**国庫を動かせるのは Pay(区分, 額) だけ**にする（setter を private に落とす）。
     // カテゴリを名乗らないと**コンパイルが通らない**＝記帳漏れが構造的に起きえない。番人はテストでなく型システム。
     // UI はヘッダーと同じ瞬間に台帳の差分を取るので Σ台帳の差分 ≡ ΔTreasury が構成上成立する。
-    public double Treasury { get; private set; }
+    public MoneyStock Treasury { get; private set; }
     // ★段④（2026-08-17）：招聘の**予約額**（StateBuildQueue と同型＝請求権であってカネはまだ国庫にある）。
     //   ⚠MultiNationSim.RecruitSpecialists が**実際に呼べた人数の分だけ** Pay(Modernization, -費用) する＝
     //   空振りは国庫に残る（作者裁定2026-08-16「呼びたい技師を現在のコストで呼べない場合、空振りしたコストは国庫に戻す」）。
@@ -1015,7 +1015,7 @@ public sealed class World
     /// 呼び手は移し方の1本（<see cref="Transfer"/>＝相手を名乗る）と国家の仮勘定の月末の精算（<see cref="SettleStateSpent"/>）だけ。</summary>
     private void Pay(TreasuryCat cat, double delta)
     {
-        Treasury += delta;
+        Treasury += new MoneyStock(delta);
         TreasuryLedger[(int)cat] += delta;
     }
 
@@ -1030,7 +1030,7 @@ public sealed class World
 
     /// <summary>国庫の**代入**（フローでない＝台帳に載せない）。同期・助走のリベース・生成時の初期化だけが使う。
     /// ⚠ここを増やすときは「本当にフローでないか」を確かめること。フローなら <see cref="Pay"/> を使う。</summary>
-    internal void SetTreasuryRaw(double v) => Treasury = v;
+    internal void SetTreasuryRaw(double v) => Treasury = new MoneyStock(v);
 
     /// <summary>助走（ウォームアップ）明けのリベース＝国庫を開始年の値へ戻すと同時に**台帳も捨てる**。
     /// 助走は暦の外なので、そこで動いた金は歴史に属さない。片方だけ戻すと台帳と国庫がずれる
@@ -1038,7 +1038,7 @@ public sealed class World
     /// 呼び手＝本番の助走（<see cref="MultiNationSim.WarmupEconomy"/> の各四半期の終わり・2026-09-29）と Runner の freshboard（<see cref="GovernanceSnapshot"/>）。</summary>
     internal void RebaseTreasury(double v)
     {
-        Treasury = v;
+        Treasury = new MoneyStock(v);
         System.Array.Clear(TreasuryLedger);
     }
     /// <summary>★国家の支払い率 r∈[0,1]（作者裁定 F3・2026-09-28 支払いの一元化 段2-1）＝その月の全ての国家の支払いの請求に対して払える額（max(0,国庫)＋当月の歳入の見込み）の割合。
@@ -1085,14 +1085,14 @@ public sealed class World
     {
         if (Coef.OpulenceSpendRatePerYear.Value <= 0) return LastRevenuePerMonth.Value;
         double line = UtilityAgent.OpulenceLineOf(this);   // RelieveOpulence と同一の潤沢線（R3安定形2026-08-08＝兵士給与算入込み）
-        return LastRevenuePerMonth.Value + Calendar.PerYearToPerMonth(Coef.OpulenceSpendRatePerYear.Value * Math.Max(0, Treasury - line));
+        return LastRevenuePerMonth.Value + Calendar.PerYearToPerMonth(Coef.OpulenceSpendRatePerYear.Value * Math.Max(0, Treasury.Value - line));
     }
     public double LastImportValue { get; internal set; }   // 診断：直近四半期の輸入額（世界価格建て）＝関税予想の課税ベース
     public double LastExportValue { get; internal set; }   // 直近の清算の越境の輸出額（ExportsByGood の和・同じ国の州どうしは数えない＝2026-09-27 回4-1）＝ダンピング補助の対象・交易比重・輸出利害
     public double TradeValueSmoothed { get; internal set; }   // A-中6（史実検証2026-07-22）：貿易取扱高（輸出+輸入額）のEMA＝動的TradeWeightの駆動変数（TradeWeightDynamic>0でのみ更新）
     // 国債（§財政）：赤字を借金で賄う。国内＝資本家の余剰貯蓄（工場投資とクラウディングアウト）、海外＝開放度に応じ。
     // 売り切れない＝部分的債務不履行（焦げ付き）。対外債の不履行＝介入（正統性↓＋貸し手有利の緊縮）。
-    public double GovDebt { get; internal set; }       // 国債残高
+    public MoneyStock GovDebt { get; internal set; }       // 国債残高
     // P7 制度疲労（2026-07-17・一般機構＝清専用コードなし）：改革を阻む構造的硬直のストック（0..1）。初期値＝world.jsonデータ（清0.8/オスマン0.6/露0.4/西欧0/日本0明示）。
     // 天井＝初期値（構造的硬直の上限＝初期より悪化しない・初期0の国は恒久0のハード保証）。下げ＝ショックのみ／再成長＝反動／ロックインで停止（Politics.Step）。読み3チャネルは各休眠係数（Decay*Weight=0で恒等）
     public double InstitutionalDecay { get; internal set; }
@@ -1462,7 +1462,7 @@ public sealed class World
     ///   産出（<see cref="Producer.Output"/>）・財の参照価格と種類（構築の後に書く行が無い）だけ＝前の和の後にどれも変わっていなければ前の値を返す。
     ///   産出の書き込みは州の版（<see cref="Region.GdpVersion"/>）を進める（宛先はこの走査が付ける）。変わっていれば旧の式を同じ順で回す＝同じビット。
     ///   版は走査の前に撮る＝走査と並んで書かれた産出は次の読みで版の違いとして拾う（画面のスレッドが読んでも捨てる側に倒れる）。</summary>
-    public MoneyPerMonth GdpPerMonth
+    public RealGdpPerMonth GdpPerMonth
     {
         get
         {
@@ -1477,7 +1477,7 @@ public sealed class World
                     same = ReferenceEquals(memo.Regions[i], r) && act == memo.Active[i]
                         && (!act || (memo.Versions[i] == r.GdpVersion && ReferenceEquals(memo.Lists[i], r.Producers) && memo.Counts[i] == r.Producers.Count));
                 }
-                if (same) return new MoneyPerMonth(memo.Value);
+                if (same) return new RealGdpPerMonth(memo.Value);
             }
             var m2 = new GdpMemo(regs.Count);
             double g = 0;
@@ -1500,7 +1500,7 @@ public sealed class World
             m2.Value = g;
             _gdpMemo = m2;
             Cost[CostLedger.GdpScans] += seen;   // 計算量の台帳（診断）：取り直した和で見た州×生産者
-            return new MoneyPerMonth(g);
+            return new RealGdpPerMonth(g);
         }
     }
     /// <summary>GDP の使い回しの控え（作業領域＝セーブに載らない）。和を取った時の州の並び・稼働・版・生産者の一覧と、その和。</summary>
@@ -1683,12 +1683,12 @@ public sealed class World
         double target = BroadMoneyToGdp * Coef.InitMoneyScale * gdpY;
         if (!(target > 0)) return;
         double invSav = 0, othSav = 0;
-        foreach (var r in Regions) foreach (var p in r.Pops) { if (!(p.Savings > 0)) continue; if (CapitalMarket.IsInvestor(p, Coef)) invSav += p.Savings; else othSav += p.Savings; }
+        foreach (var r in Regions) foreach (var p in r.Pops) { if (!(p.Savings.Value > 0)) continue; if (CapitalMarket.IsInvestor(p, Coef)) invSav += p.Savings.Value; else othSav += p.Savings.Value; }
         double fInv = invSav > 1e-9 ? share * target / invSav : 1.0;
         double fOth = Coef.InitMoneyMode >= 2 && othSav > 1e-9 ? (1.0 - share) * target / othSav : 1.0;
         foreach (var r in Regions) foreach (var p in r.Pops)
         {
-            if (!(p.Savings > 0)) continue;
+            if (!(p.Savings.Value > 0)) continue;
             if (CapitalMarket.IsInvestor(p, Coef)) p.ScaleSavings(fInv); else if (fOth != 1.0) p.ScaleSavings(fOth);
         }
         // 貨幣の厚み（M/Y）の趨勢を取り直す：UpdatePriceLevel の「物価 ＝ 厚み ÷ 趨勢」の関係を、置き直した後の厚みで今の物価水準のまま保つ（趨勢 ＝ 厚み ÷ 物価水準）。
@@ -1841,7 +1841,7 @@ public sealed class World
         var spec0 = Catalog.FactorySpec(goodId);
         double days0 = Math.Max(1, spec0.Quarters) * (double)Calendar.DaysPerQuarter;
         double pay0 = (1.0 - Coef.FactoryMaterialFrac) * spec0.Cost / days0;
-        if (Treasury < pay0) return (false, $"国庫不足(初日の労務費{pay0:F0})");
+        if (Treasury.Value < pay0) return (false, $"国庫不足(初日の労務費{pay0:F0})");
         return (true, "");
     }
 
@@ -1869,7 +1869,7 @@ public sealed class World
         var spec = Catalog.FactorySpec(goodId);
         double days = Math.Max(1, spec.Quarters) * (double)Calendar.DaysPerQuarter;
         double payPerDay = (1.0 - Coef.FactoryMaterialFrac) * spec.Cost / days;   // 工賃ぶん（残りの材料は建設中にEconomyStepが市場から買う）
-        if (Treasury < payPerDay) return false;                           // 初日の労務費すら払えない
+        if (Treasury.Value < payPerDay) return false;                           // 初日の労務費すら払えない
         p.ConstructionLeft = days;                                        // 着工（即時には立たない・日数で数える）
         p.ConstructionPayPerDay = payPerDay;
         return true;
@@ -1984,7 +1984,7 @@ public sealed class World
     /// frac=0（既定）や国庫が空なら0＝AI/テストは従来どおり無影響。</summary>
     public double ModernizationBudget()
     {
-        if (ModernizationFrac <= 1e-4 || Treasury <= 0) return 0;
+        if (ModernizationFrac <= 1e-4 || Treasury.Value <= 0) return 0;
         // ★近代化投資（2026-08-04・作者指示「工業化投資を近代化投資に変更」）。
         //   ── 予算の基礎を変えた理由 ────────────────────────────────────────────
         //   旧＝`frac × 国庫 × 0.5` は**国庫比**なので、frac=1.0 は常に「国庫の半分」＝**どの国でも必ず払える**。
@@ -2007,7 +2007,7 @@ public sealed class World
         if (Coef.ModernizationCostGdpShare > 0)
         {
             double demand = Coef.ModernizationCostGdpShare * Math.Max(0, NominalGdpPerMonth.Value) * costMul * convex;   // 要求額（frac→1で発散）
-            double half = Math.Max(0, Treasury) * 0.5;                 // 国庫の半分/四半期は依然として上限（暴走防止）
+            double half = Math.Max(0, Treasury.Value) * 0.5;                 // 国庫の半分/四半期は依然として上限（暴走防止）
             // ★R4 蜂起R群2026-08-16（診断B3・ModernizationBudgetSoftCap=0＝旧minと**ビット恒等**）：minクランプ→漸近逓減。
             //   旧＝min(demand, half) が上の凸コスト frac/(1−frac) を食い、frac≳0.5で**コストも効果もフラット＝0.6と1.0の区別が消滅**
             //  （設計コメント「100%はほとんどの国で不可能」が実挙動に不存在）。ソフト形＝demand/(1+demand/half)
@@ -2020,7 +2020,7 @@ public sealed class World
                 ? half / (1.0 + half / demand)
                 : Math.Min(demand, half);
         }
-        else budget = ModernizationFrac * Math.Max(0, Treasury) * 0.5;  // ModernizationCostGdpShare=0＝旧式（既定1.0＝この枝は通らない）
+        else budget = ModernizationFrac * Math.Max(0, Treasury.Value) * 0.5;  // ModernizationCostGdpShare=0＝旧式（既定1.0＝この枝は通らない）
         // ★旧体制の反対（2026-08-04・作者指示「旧体制がこれらに反対するようにする」）。
         //   近代化投資は鉄道の免許・検地・工場の認可を要する＝**それを握っているのが旧支配層**なので、
         //   彼らの政治力が強いほど話が進まない。新しい状態も新しい軸も置かず、既存のブロック政治力から導く。
@@ -2403,7 +2403,7 @@ public sealed class World
         if (Coef.SoeSaleMilitancyCeil > 0 && r.Pops[r.InvestorPopIndex].Militancy > Coef.SoeSaleMilitancyCeil)
             return (false, 0, "資本家が政府に不満");
         double price = UnitSalePrice(p, profit);
-        if (r.Pops[r.InvestorPopIndex].Savings < price) return (false, price, "資本家の資金不足");   // 育っていないと買えない
+        if (r.Pops[r.InvestorPopIndex].Savings.Value < price) return (false, price, "資本家の資金不足");   // 育っていないと買えない
         return (true, price, "売却可");
     }
 
@@ -2654,5 +2654,5 @@ public sealed class World
     }
 
     // 基礎貨幣＝広義マネー ＋ 国庫 − 与信（保存量＝金。§A-7／§11.6）
-    public double BaseMoney => TotalMoney + Treasury - OutstandingLoans;
+    public double BaseMoney => TotalMoney + Treasury.Value - OutstandingLoans;
 }

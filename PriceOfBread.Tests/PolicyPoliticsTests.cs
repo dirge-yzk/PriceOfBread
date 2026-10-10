@@ -26,7 +26,7 @@ public class PolicyPoliticsTests
     {
         var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
         foreach (var rg in sim.World.Regions) foreach (var pp in rg.Pops) pp.BondHoldings = 0;   // ★2026-09-21：国債を手で消すなら持ち手の記録（保有台帳）も消す＝Σ保有＝国内元本の不変条件
-        sim.World.GovDebt = 0;   // P5：仏は重債務開始＝デフォルト→闘争度→譲歩で法が動く（それ自体が仏革命の創発＝設計どおり）。本テストは不動性の機構検証なので中立財政で隔離
+        sim.World.GovDebt = new MoneyStock(0);   // P5：仏は重債務開始＝デフォルト→闘争度→譲歩で法が動く（それ自体が仏革命の創発＝設計どおり）。本テストは不動性の機構検証なので中立財政で隔離
         var ex = Record.Exception(() => sim.Run(200));
         Assert.Null(ex);
         Assert.Equal(Suffrage.None, sim.World.Suffrage);   // 目標＝現状なので動かない
@@ -496,7 +496,7 @@ public class PolicyPoliticsTests
     {
         var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
         var w = sim.World;
-        w.GovDebt = 0;                       // 緊縮の逆進フロア（人頭税の下限）を隔離＝Move の漸進だけを見る
+        w.GovDebt = new MoneyStock(0);                       // 緊縮の逆進フロア（人頭税の下限）を隔離＝Move の漸進だけを見る
         w.PoliticalLockEnabled = false;      // 政治的可否と直交な機構の単体検証（Move が自身で読む隔離弁）
         w.PollTax = 0;
         w.Policy.PollTaxTarget = 1.0;        // 目標＝最上段
@@ -811,7 +811,7 @@ public class PolicyPoliticsTests
             foreach (var n in sim.Nations)
             {
                 double line = UtilityAgent.OpulenceLineOf(n.World);
-                if (line > 1e-9 && n.World.Treasury > line) opulent++;
+                if (line > 1e-9 && n.World.Treasury.Value > line) opulent++;
                 if (!relief) n.World.Coef.OpulenceTaxRelief = 0;   // ⚠World.Coef は国ごと別インスタンス＝1国ずつ書く
             }
             sim.StepQuarter();
@@ -855,7 +855,7 @@ public class PolicyPoliticsTests
                 var w = ws[i] = sim.Nations[i].World;
                 double line = UtilityAgent.OpulenceLineOf(w);
                 if (!relief) w.Coef.OpulenceTaxRelief = 0;   // ⚠World.Coef は国ごと別インスタンス
-                if (line > 1e-9) w.SetTreasuryRaw(System.Math.Max(w.Treasury, 8 * line));   // 両腕とも同じ国庫＝反射を深く効かせる（倍率0.25＝床）＝段を跨ぐ減税を確実に作る
+                if (line > 1e-9) w.SetTreasuryRaw(System.Math.Max(w.Treasury.Value, 8 * line));   // 両腕とも同じ国庫＝反射を深く効かせる（倍率0.25＝床）＝段を跨ぐ減税を確実に作る
                 new UtilityAgent().DecideQuarter(w);
             }
             return ws;
@@ -914,7 +914,7 @@ public class PolicyPoliticsTests
             Assert.Equal((false, "緊縮の下限"), Government.LawPrereq(w, a, lowest - 1, w.Coef));
         }
         Assert.True(Government.LawPrereq(w, PolicyAxis.PollTax, Government.TaxLawStages, w.Coef).Ok);
-        w.GovDebt = 0; Government.Step(w, w.Coef);                                   // 抜け道は債務を減らすこと1本
+        w.GovDebt = new MoneyStock(0); Government.Step(w, w.Coef);                                   // 抜け道は債務を減らすこと1本
         Assert.Equal(0.0, w.AusterityIntensity);
         Assert.True(Government.LawPrereq(w, PolicyAxis.PollTax, 0, w.Coef).Ok);
     }
@@ -1143,7 +1143,7 @@ public class PolicyPoliticsTests
         w.PoliticalLockEnabled = false;   // 政治的可否と直交な機構の単体検証（Move/MandateGate/GateInfo が共有する隔離弁）
         w.FiscalEnabled = true;
         Assert.True(w.NominalGdpPerMonth.Value > 1e-9, "前提が崩れた：GDPが無い世界では緊縮強度を立てられない");
-        w.GovDebt = (w.NominalGdpPerMonth * Calendar.MonthsPerYear * (w.Coef.AusterityStartDebt + w.Coef.AusterityRange)).Value;   // 緊縮強度＝満額1.0
+        w.GovDebt = new MoneyStock((Calendar.PerMonthToPerYear(w.NominalGdpPerMonth) * (w.Coef.AusterityStartDebt + w.Coef.AusterityRange)).Value);   // 緊縮強度＝満額1.0
         return w;
     }
 
@@ -1169,7 +1169,7 @@ public class PolicyPoliticsTests
         // ⚠天井は「登れなさ」であって「降ろす力」ではない＝既に年金の段に居る国は同じ照会で止まらない（2026-09-12 の実バグと同型の封じ）
         w.SocialSecurityLaw = SocialSecurityLaw.Pension;
         Assert.True(Government.LawPrereq(w, PolicyAxis.SocialSecurity, (int)SocialSecurityLaw.WorkersComp, w.Coef).Ok);
-        w.GovDebt = 0; Government.Step(w, w.Coef);   // 抜け道は債務を減らすこと1本＝債務が消えれば門も開く
+        w.GovDebt = new MoneyStock(0); Government.Step(w, w.Coef);   // 抜け道は債務を減らすこと1本＝債務が消えれば門も開く
         Assert.Equal(0.0, w.AusterityIntensity);
         Assert.True(Government.LawPrereq(w, PolicyAxis.PollTax, 0, w.Coef).Ok);
     }
@@ -1276,7 +1276,7 @@ public class PolicyPoliticsTests
             w.Coef.AusterityStartDebt = 99;   // 緊縮の逆進フロアを隔離＝「選んだ税率」だけを対照にする（旧クリップが低税側を押し上げると対照が壊れる）
             // 開幕の国債（仏1783＝world.json の govDebt）を消す＝国債の流れを隔離（2026-09-30 (135)）：連合維持費を撤去した後は、軽税の世界が国債を払えず不履行
             //   （大衆の暴動・信用の凍結）へ・重税の世界は利子を資本家へ払う＝税の差でなく国債の差が充足を動かし、鎖の向きが逆に見えた（充足 0.1068→0.1084）。
-            w.GovDebt = 0; w.ForeignDebt = 0; foreach (var rg in w.Regions) foreach (var pp in rg.Pops) pp.BondHoldings = 0;
+            w.GovDebt = new MoneyStock(0); w.ForeignDebt = 0; foreach (var rg in w.Regions) foreach (var pp in rg.Pops) pp.BondHoldings = 0;
             w.PollTax = pollTax; w.Policy.PollTaxTarget = pollTax;
             double satAvg = 0, milAvg = 0; int k = 0;
             for (int q = 0; q < 60; q++)
@@ -1305,7 +1305,7 @@ public class PolicyPoliticsTests
             var w = sim.Nations[0].World;
             w.PoliticalLockEnabled = false;
             w.FiscalEnabled = true;
-            w.GovDebt = (w.NominalGdpPerMonth * Calendar.MonthsPerYear * (w.Coef.AusterityStartDebt + w.Coef.AusterityRange)).Value;   // 緊縮＝満額（債務÷年の名目GDP）
+            w.GovDebt = new MoneyStock((Calendar.PerMonthToPerYear(w.NominalGdpPerMonth) * (w.Coef.AusterityStartDebt + w.Coef.AusterityRange)).Value);   // 緊縮＝満額（債務÷年の名目GDP）
             w.SelfPower!.IsPlayer = isPlayer;                                          // 同じ盤面で「プレイヤーである」ことだけを変える
             w.Policy.PollTaxTarget = 0; w.PollTax = 0;
             w.Policy.SocialSecurityTarget = 1.0; w.SocialSecurityLaw = SocialSecurityLaw.Pension;

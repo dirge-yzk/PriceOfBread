@@ -20,10 +20,10 @@ public class ServiceEconomyTests
         markets[Catalog.EducationId].Price = 0.6;
 
         var edu = new Good { Id = Catalog.EducationId, Name = "教育", Tier = GoodTier.Service, BaseNeed = 0.06, RefPrice = 0.6, Elasticity = 0.8, Spoilage = 1.0, NonTradeable = true };
-        var teacher  = new Pop { ClassId = 7, ClassName = "教師", IsUrban = true, Size = 10, Savings = 0, Satisfaction = 1.0, IsModernElite = true };
-        var worker   = new Pop { ClassId = 2, ClassName = "労働者", IsUrban = true, Size = 100, Savings = workerSavings, Satisfaction = 1.0 };
-        var engineer = new Pop { ClassId = 4, ClassName = "技師", IsUrban = true, Size = 100, Savings = 10_000, Satisfaction = 1.0, IsModernElite = true };
-        var noble    = new Pop { ClassId = 0, ClassName = "貴族", IsUrban = false, Size = 100, Savings = 10_000, Satisfaction = 1.0, Closed = true };
+        var teacher  = new Pop { ClassId = 7, ClassName = "教師", IsUrban = true, Size = 10, Savings = new MoneyStock(0), Satisfaction = 1.0, IsModernElite = true };
+        var worker   = new Pop { ClassId = 2, ClassName = "労働者", IsUrban = true, Size = 100, Savings = new MoneyStock(workerSavings), Satisfaction = 1.0 };
+        var engineer = new Pop { ClassId = 4, ClassName = "技師", IsUrban = true, Size = 100, Savings = new MoneyStock(10_000), Satisfaction = 1.0, IsModernElite = true };
+        var noble    = new Pop { ClassId = 0, ClassName = "貴族", IsUrban = false, Size = 100, Savings = new MoneyStock(10_000), Satisfaction = 1.0, Closed = true };
         // 教育の生産者（教師・投入なし＝紙の市場価格に依存しない純粋な供給制約）。
         var producer = new Producer { GoodId = Catalog.EducationId, Productivity = supplyPerTeacher, Output = supplyPerTeacher * 10, MarginalCost = 0.4, LaborPopIndex = 0, OwnerPopIndex = 0, RentShare = 0.0 };
 
@@ -120,7 +120,7 @@ public class ServiceEconomyTests
         Assert.True(m.LastSold <= m.LastProduced + m.PrevStock + 1e-6, "労働力の販売が供給を超えている");
         Assert.InRange(m.Price, 0.5 * 0.3 - 1e-9, 0.5 * 3.0 + 1e-9);   // 参照価格0.5の±3倍の値幅
         var worker = sim.World.Regions[0].Pops[1];
-        Assert.True(worker.Savings > 0, "労働者が労働力の売上で収入を得ていない");
+        Assert.True(worker.Savings.Value > 0, "労働者が労働力の売上で収入を得ていない");
     }
 
     [Fact]
@@ -131,9 +131,9 @@ public class ServiceEconomyTests
         var capitalist = r.Pops[r.InvestorPopIndex];
         var teacher = r.Pops[r.TeacherPopIndex];
         // 資本家の富を教師へ移す（恐慌で資本が溶け中流に金が残った状況の再現。総貨幣は不変＝保存則を破らない）
-        double transfer = capitalist.Savings - capitalist.Size * 0.5;
-        capitalist.SetSavings(capitalist.Savings - (transfer));
-        teacher.SetSavings(teacher.Savings + (transfer));
+        double transfer = capitalist.Savings.Value - capitalist.Size * 0.5;
+        capitalist.SetSavings(capitalist.Savings.Value - (transfer));
+        teacher.SetSavings(teacher.Savings.Value + (transfer));
         double cap0 = capitalist.Size;
         double mil0 = teacher.Militancy;
         sim.StepQuarter();
@@ -158,13 +158,13 @@ public class ServiceEconomyTests
     public void 兵士は国家の給与で収入を得る()
     {
         var sim = new Simulation(NationConfig.France().ToScenario(17), new NullAgent());
-        sim.World.GovDebt = 0;   // P5：仏は重債務開始＝利払いが軍事費を圧迫するため中立財政で隔離
+        sim.World.GovDebt = new MoneyStock(0);   // P5：仏は重債務開始＝利払いが軍事費を圧迫するため中立財政で隔離
         foreach (var rg in sim.World.Regions) foreach (var pp in rg.Pops) pp.BondHoldings = 0;   // ★2026-09-21：国債を手で消すなら持ち手の記録（保有台帳）も消す＝Σ保有＝国内元本の不変条件
         sim.Run(20);
         var r = sim.World.Regions[0];
         var soldier = r.Pops[r.SoldierPopIndex];
         Assert.True(soldier.LastEarnedPerMonth.Value > 0, "国家が兵士に給与を払っていない（兵士の所得が0）");
-        Assert.True(soldier.Savings > 0, "兵士が給与で収入を得ていない");
+        Assert.True(soldier.Savings.Value > 0, "兵士が給与で収入を得ていない");
     }
 
     [Fact]

@@ -17,7 +17,7 @@ public static class Ideologies
     {
         // 国民平均の1人あたり富（相対的富＝イデオロギーの導出に使う）。富で「失う物」が決まる＝保守/急進の分岐。
         double totSav = 0, totPop = 0, urbanPop = 0;
-        foreach (var p in w.AllPops()) { totSav += System.Math.Max(0, p.Savings); totPop += p.Size; if (p.IsUrban) urbanPop += p.Size; }
+        foreach (var p in w.AllPops()) { totSav += System.Math.Max(0, p.Savings.Value); totPop += p.Size; if (p.IsUrban) urbanPop += p.Size; }
         double meanWealth = totPop > 1e-9 ? totSav / totPop : 1;
 
         var era = EraGates(w, totPop, urbanPop);
@@ -175,7 +175,7 @@ public static class Ideologies
         System.Array.Clear(r, 0, r.Length);
         double rent = System.Math.Max(0, p.LandRentPerMonth.Value), earned = System.Math.Max(0, p.EarnedPerMonth.Value);
         double rentier = (rent + earned) > 1e-9 ? rent / (rent + earned) : 0;          // 地代への依存度（地主＝旧秩序）
-        double wpc = p.Size > 1e-9 ? System.Math.Max(0, p.Savings) / p.Size : 0;
+        double wpc = p.Size > 1e-9 ? System.Math.Max(0, p.Savings.Value) / p.Size : 0;
         double wealthRel = meanWealth > 1e-9 ? wpc / meanWealth : 1;                    // 相対的富（1=平均）
         double rich = PoliticalQuantities.Clamp01((wealthRel - 1) / WealthExcessCap) * WealthExcessCap;                             // 平均超の富（0..3＝失う物）
         double poor = PoliticalQuantities.Clamp01(1 - wealthRel);                                           // 平均未満の窮乏（0..1）

@@ -36,7 +36,7 @@ public class TaxTests
     {
         var baseline = new Simulation(NationConfig.France().ToScenario(13), new NullAgent());
         var taxed = new Simulation(NationConfig.France().ToScenario(13), new NullAgent());
-        baseline.World.GovDebt = taxed.World.GovDebt = 0;   // P5：仏は重債務開始＝利払いが両系の国庫を0まで枯渇させ税収差が埋もれる（課税0 vs 基準0）ため中立財政で税機構を隔離
+        baseline.World.GovDebt = taxed.World.GovDebt = new MoneyStock(0);   // P5：仏は重債務開始＝利払いが両系の国庫を0まで枯渇させ税収差が埋もれる（課税0 vs 基準0）ため中立財政で税機構を隔離
         foreach (var w0 in new[] { baseline.World, taxed.World }) foreach (var rg in w0.Regions) foreach (var pp in rg.Pops) pp.BondHoldings = 0;   // ★2026-09-21：国債を手で消すなら持ち手の記録（保有台帳）も消す＝Σ保有＝国内元本の不変条件
         taxed.World.PoliticalLockEnabled = false;   // 税の歳入・保存機構を検証＝政治ロック（大衆の人頭税反対等）とは直交なので隔離
         // ★主張の書き直し（作者裁定2026-09-20＝率の廃止）：腕は率でなく**対象の広さ**（段2＝史実の物品税の財＋奢侈品・2026-09-30 (127) の梯子）。率はエンジンの標準率1本。
@@ -45,7 +45,7 @@ public class TaxTests
         baseline.Run(80);
         var ex = Record.Exception(() => taxed.Run(80));   // 新税の金流（pop→国庫）が保存則（§11.6）を破らない
         Assert.Null(ex);
-        Assert.True(taxed.World.Treasury > baseline.World.Treasury,
+        Assert.True(taxed.World.Treasury.Value > baseline.World.Treasury.Value,
             $"課税しても国庫が増えない（課税{taxed.World.Treasury:F0} vs 基準{baseline.World.Treasury:F0}）");
     }
 
@@ -65,8 +65,8 @@ public class TaxTests
             w.TaxRate = 0; w.LandTax = 0; w.ProgressiveTax = 0; w.PollTax = poll;
             w.Coef.TitheRate = 0; w.Coef.CorruptionMax = 0;
             w.SocialSecurity = 0; w.Pension = ReformLevel.None;
-            w.GovDebt = 0; w.ForeignDebt = 0;
-            foreach (var rg in w.Regions) foreach (var pp in rg.Pops) { pp.BondHoldings = 0; pp.SetSavings(System.Math.Max(pp.Savings, 0) + 1e3 * pp.Size); }   // 全員が払える＝率 r_p は1
+            w.GovDebt = new MoneyStock(0); w.ForeignDebt = 0;
+            foreach (var rg in w.Regions) foreach (var pp in rg.Pops) { pp.BondHoldings = 0; pp.SetSavings(System.Math.Max(pp.Savings.Value, 0) + 1e3 * pp.Size); }   // 全員が払える＝率 r_p は1
             w.FiscalFundingRatio = 1.0;
             Fiscal.Step(w, w.Coef);
             return w;
@@ -83,7 +83,7 @@ public class TaxTests
         {
             var p = tp[i];
             if (!(p.Size > 1)) continue;
-            double paidPerHead = (np[i].Savings - p.Savings) / p.Size;
+            double paidPerHead = (np[i].Savings.Value - p.Savings.Value) / p.Size;
             if (p.Closed) { closed++; Assert.True(System.Math.Abs(paidPerHead) <= 1e-9 * perHead, $"免除のはずの閉鎖階級（{p.ClassName}）が1人あたり {paidPerHead} 払った"); continue; }
             if (p.IsSoldier) { soldiers++; Assert.True(System.Math.Abs(paidPerHead) <= 1e-9 * perHead, $"対象外のはずの兵士が1人あたり {paidPerHead} 払った"); continue; }
             Assert.True(System.Math.Abs(paidPerHead - perHead) <= 1e-9 * perHead, $"{p.ClassName} の1人あたりの人頭税 {paidPerHead} が一律の額 {perHead} でない");
@@ -157,7 +157,7 @@ public class TaxTests
         Assert.Null(ex);     // 所得への課税（pop→国庫）が保存則を破らない
         // 目標1.0へ率が実際に上がっている（天井の廃止後は Move の漸進と政治ロックの隔離だけが律速）＝下の歳入比較の前提。
         Assert.True(taxed.World.TaxRate > 0.25, $"所得税の率が上がっていない（{taxed.World.TaxRate:F3}）＝歳入を比べる前提が立たない");
-        Assert.True(taxed.World.Treasury > baseline.World.Treasury,
+        Assert.True(taxed.World.Treasury.Value > baseline.World.Treasury.Value,
             $"所得税が歳入を生んでいない（課税{taxed.World.Treasury:F0} vs 基準{baseline.World.Treasury:F0}）");
     }
 

@@ -30,10 +30,10 @@ public class TreasuryLedgerTests
     public void 単一国で台帳の合計は国庫の変化に一致する()
     {
         var sim = new Simulation(NationConfig.Britain().ToScenario(19), new NullAgent());
-        double start = sim.World.Treasury;
+        double start = sim.World.Treasury.Value;
         Assert.Equal(0.0, LedgerSum(sim.World));   // 生成直後＝1件も動いていない（初期国庫はフローでない）
         sim.Run(240);
-        double moved = sim.World.Treasury - start;
+        double moved = sim.World.Treasury.Value - start;
         // 相対許容＝浮動小数の累積誤差のみ（240四半期ぶんの加算の桁落ち）。1e-6 は取引額に対して十分に厳しい。
         double scale = System.Math.Max(1.0, System.Math.Abs(moved));
         Assert.True(System.Math.Abs(LedgerSum(sim.World) - moved) / scale < 1e-6,
@@ -47,7 +47,7 @@ public class TreasuryLedgerTests
     {
         var sim = new MultiNationSim(WorldData.Nations(), 1789, _ => new UtilityAgent());
         var start = new System.Collections.Generic.Dictionary<string, double>();
-        foreach (var n in sim.Nations) start[n.World.SelfPower!.Name] = n.World.Treasury;
+        foreach (var n in sim.Nations) start[n.World.SelfPower!.Name] = n.World.Treasury.Value;
         for (int q = 0; q < 120; q++) sim.StepQuarter();
 
         int checkedCount = 0;
@@ -55,7 +55,7 @@ public class TreasuryLedgerTests
         {
             var w = n.World;
             if (w.SelfPower is not { } sp || !start.TryGetValue(sp.Name, out double s0)) continue;   // 途中で建国した国は基準が無い
-            double moved = w.Treasury - s0;
+            double moved = w.Treasury.Value - s0;
             double scale = System.Math.Max(1.0, System.Math.Abs(moved));
             Assert.True(System.Math.Abs(LedgerSum(w) - moved) / scale < 1e-6,
                 $"{sp.Name}：台帳 {LedgerSum(w):F3} と国庫の変化 {moved:F3} が一致しない");
@@ -75,7 +75,7 @@ public class TreasuryLedgerTests
         sim.StartWarmup();
         int n = sim.Nations.Count;
         var prevT = new double[n]; var prevL = new double[n][]; var lastMonth = new long[n];
-        for (int i = 0; i < n; i++) { var w = sim.Nations[i].World; prevT[i] = w.Treasury; prevL[i] = (double[])w.TreasuryLedger.Clone(); lastMonth[i] = w.Tick / Calendar.DaysPerMonth; }
+        for (int i = 0; i < n; i++) { var w = sim.Nations[i].World; prevT[i] = w.Treasury.Value; prevL[i] = (double[])w.TreasuryLedger.Clone(); lastMonth[i] = w.Tick / Calendar.DaysPerMonth; }
         int checkedMonths = 0; double worst = 0;
         for (int day = 0; day < 20 * Calendar.DaysPerQuarter; day++)
         {
@@ -86,12 +86,12 @@ public class TreasuryLedgerTests
                 long m = w.Tick / Calendar.DaysPerMonth;
                 if (m == lastMonth[i]) continue;
                 lastMonth[i] = m;
-                double dT = w.Treasury - prevT[i], dL = 0, flow = 0;
+                double dT = w.Treasury.Value - prevT[i], dL = 0, flow = 0;
                 for (int k = 0; k < w.TreasuryLedger.Length; k++) { double d = w.TreasuryLedger[k] - prevL[i][k]; dL += d; flow += System.Math.Abs(d); }
                 double rel = System.Math.Abs(dT - dL) / System.Math.Max(1.0, flow);
                 worst = System.Math.Max(worst, rel);
                 Assert.True(rel < 1e-9, $"{w.SelfPower!.Name} 月{m}：Δ国庫 {dT:F6} とΣ台帳の差分 {dL:F6} が合わない（相対 {rel:E2}）＝Pay を通さない書き手か、台帳を捨てずに国庫だけ置いた箇所がある");
-                prevT[i] = w.Treasury; Array.Copy(w.TreasuryLedger, prevL[i], prevL[i].Length);
+                prevT[i] = w.Treasury.Value; Array.Copy(w.TreasuryLedger, prevL[i], prevL[i].Length);
                 checkedMonths++;
             }
         }
@@ -124,19 +124,19 @@ public class TreasuryLedgerTests
         sim.Run(4);
         sim.StepDay();   // 四半期首（政策の反映）を先に済ませる＝以後の29日で月次決算が1回だけ走る
         var w = sim.World;
-        Assert.True(w.GovDebt > 0, "前提：国債が無い");
+        Assert.True(w.GovDebt.Value > 0, "前提：国債が無い");
         // 国庫を空に＝払える額は当月の歳入の見込みだけ。国庫の現金は1つの POP へ移す（保存則を割らない＝台帳の区分 OtherOut で記帳）。
         // 行政費を歳入の3倍へ＝行政の予算（行政費×AdminBudgetFrac×歳入）が歳入を超える＝r＜1 の月を作る（四半期首の政策の反映の後なので月内は保たれる）
-        double drain = w.Treasury + 3 * System.Math.Max(1.0, w.LastRevenuePerMonth.Value);
+        double drain = w.Treasury.Value + 3 * System.Math.Max(1.0, w.LastRevenuePerMonth.Value);
         World.Transfer((w, null), (w, [w.Regions[0].Pops[0]], [1.0]), drain, TreasuryCat.OtherOut);   // 移し方の1本（2026-09-30 段4g＝国庫の口は private）
         w.AdminSpending = 3.0;
         w.Coef.DevaluationCapFrac = 0;   // 切り下げの余地を閉じる（2026-09-28 から切り下げは払える額の側＝仏は不換で、余地が払えない分を埋めて r＝1 になる・切り下げは下の番人が見る）
         w.BorrowCooldownMonths = 1;            // 借りられない月（2026-09-28 (b) から借入は月初の払える額の側＝借りられる月は借りて r＝1 になる・借入と切り下げの順は下の番人が見る）
         for (int d = 0; d < 28; d++) sim.StepDay();
         sim.StepDayOpen(); sim.StepDayDaily();   // 日29の日次まで＝次の締め（月次決算）の直前＝r を決める時点と同じ国庫と見込み
-        double payable = System.Math.Max(0, w.Treasury) + w.LastRevenuePerMonth.Value;
+        double payable = System.Math.Max(0, w.Treasury.Value) + w.LastRevenuePerMonth.Value;
         double spent0 = SpentOf(w);
-        double intL0 = w.TreasuryLedger[(int)TreasuryCat.Interest], admL0 = w.TreasuryLedger[(int)TreasuryCat.Admin], debt0 = w.GovDebt, bor0 = w.TreasuryLedger[(int)TreasuryCat.Borrow];
+        double intL0 = w.TreasuryLedger[(int)TreasuryCat.Interest], admL0 = w.TreasuryLedger[(int)TreasuryCat.Admin], debt0 = w.GovDebt.Value, bor0 = w.TreasuryLedger[(int)TreasuryCat.Borrow];
         sim.StepDayClose(); w.FlushLog();        // 月次決算（r を決める→予算→精算→財政）
         double r = w.FiscalFundingRatio;
         Assert.True(r > 0 && r < 1, $"前提：r が (0,1) に無い（{r:F4}）＝この盤面では規則を測れない");
@@ -146,7 +146,7 @@ public class TreasuryLedgerTests
         Assert.True(w.LastInterestPerMonth.Value > 0, "前提：利子の請求が0");
         Assert.True(System.Math.Abs(intPaid - (r * w.LastInterestPerMonth).Value) <= (1e-9 * w.LastInterestPerMonth).Value, $"利子の支払い {intPaid:F6} ≠ r×請求 {r * w.LastInterestPerMonth:F6}（r={r:F4}）");
         double borrowed = w.TreasuryLedger[(int)TreasuryCat.Borrow] - bor0;   // 借入（冷却中＝0 のはず）は元本の増分から除く
-        Assert.True(System.Math.Abs((w.GovDebt - debt0 - borrowed) - ((1 - r) * w.LastInterestPerMonth).Value) <= 1e-9 * System.Math.Max(1.0, w.GovDebt), $"元本の増分（借入を除く）{w.GovDebt - debt0 - borrowed:F6} ≠ 利子の未払い {(1 - r) * w.LastInterestPerMonth:F6}");
+        Assert.True(System.Math.Abs((w.GovDebt.Value - debt0 - borrowed) - ((1 - r) * w.LastInterestPerMonth).Value) <= 1e-9 * System.Math.Max(1.0, w.GovDebt.Value), $"元本の増分（借入を除く）{w.GovDebt.Value - debt0 - borrowed:F6} ≠ 利子の未払い {(1 - r) * w.LastInterestPerMonth:F6}");
         Assert.True(BondLedger.Balanced(w, HeldSum(w)), "繰り入れの後に保有台帳（Σ保有＝国内元本）が割れた");
         // 行政：区分 Admin の減り＝行政の調達（StateSpent の Admin）だけ（連合維持費の人頭割りは 2026-09-30 (135) に撤去＝官僚と兵士の給与は購買の1本）
         double stateAdmin = 0; foreach (var rg in w.Regions) if (rg.State == RegionState.Active) stateAdmin += rg.StateSpent[(int)TreasuryCat.Admin];
@@ -235,7 +235,7 @@ public class TreasuryLedgerTests
         Assert.Equal(d0, w.TreasuryLedger[rp]);
         // (d) r＝1 かつ余剰あり：返す（額は余剰まで）
         w.FiscalFundingRatio = 1.0;
-        double spare = 0.5 * w.GovDebt * c.BondRepayFracPerMonth.Value;
+        double spare = 0.5 * w.GovDebt.Value * c.BondRepayFracPerMonth.Value;
         double d1 = w.TreasuryLedger[rp];
         Fiscal.Step(w, c, spare);
         double repaid = d1 - w.TreasuryLedger[rp];
@@ -304,7 +304,7 @@ public class TreasuryLedgerTests
             foreach (var r in w.Regions)
             {
                 r.StateSpent[(int)TreasuryCat.StateMonopoly] *= 2;
-                foreach (var p in r.Pops) { p.SetSavings(p.Savings * (2)); p.EarnedPerMonth *= 2; p.LandRentPerMonth *= 2; p.BondHoldings *= 2; }
+                foreach (var p in r.Pops) { p.SetSavings(p.Savings.Value * (2)); p.EarnedPerMonth *= 2; p.LandRentPerMonth *= 2; p.BondHoldings *= 2; }
             }
         }
         const double Big = 1e18;
@@ -362,7 +362,7 @@ public class TreasuryLedgerTests
         sim.Run(4);
         sim.StepDay();
         var w = sim.World;
-        double drain = w.Treasury + 3 * System.Math.Max(1.0, w.LastRevenuePerMonth.Value);
+        double drain = w.Treasury.Value + 3 * System.Math.Max(1.0, w.LastRevenuePerMonth.Value);
         World.Transfer((w, null), (w, [w.Regions[0].Pops[0]], [1.0]), drain, TreasuryCat.OtherOut);   // 移し方の1本（2026-09-30 段4g＝国庫の口は private）
         w.AdminSpending = 3.0;
         w.Coef.DevaluationCapFrac = 0;   // 切り下げの余地を閉じる（仏は不換＝余地が払えない分を埋めて r＝1 になる・切り下げは下の番人が見る）
@@ -415,7 +415,7 @@ public class TreasuryLedgerTests
             sim.Run(4);
             sim.StepDay();
             var w = sim.World;
-            double t0 = w.Treasury;
+            double t0 = w.Treasury.Value;
             World.Transfer((w, null), (w, [w.Regions[0].Pops[0]], [1.0]), t0, TreasuryCat.OtherOut);   // 国庫を0へ（現金は1つの POP へ移す＝保存則を割らない・移し方の1本）
             w.AdminSpending = 3.0;                                                    // 行政の予算が歳入を超える＝r＜1 の月を作る
             w.BorrowCooldownMonths = 1;                                                     // 借りられない月（この月の締めの月初は冷却中）
@@ -423,7 +423,7 @@ public class TreasuryLedgerTests
             for (int d = 0; d < 28; d++) sim.StepDay();
             sim.StepDayOpen(); sim.StepDayDaily();   // 締めの直前＝r を決める時点と同じ国庫と見込み
             w.Convertibility = conv;                 // 部分兌換＝余地は払えない分の半分（月の上限 DevaluationCapFrac の手前）
-            double payable = System.Math.Max(0, w.Treasury) + w.LastRevenuePerMonth.Value, overdraft = System.Math.Min(0, w.Treasury);
+            double payable = System.Math.Max(0, w.Treasury.Value) + w.LastRevenuePerMonth.Value, overdraft = System.Math.Min(0, w.Treasury.Value);
             double dv0 = w.TreasuryLedger[(int)TreasuryCat.Devalue];
             sim.StepDayClose(); w.FlushLog();        // 月次決算（切り下げ→r→予算→精算→財政）
             return (w, payable, overdraft, w.TreasuryLedger[(int)TreasuryCat.Devalue] - dv0);
@@ -448,7 +448,7 @@ public class TreasuryLedgerTests
         // ③ その月の国債の金利に、この月の切り下げの速さ（×12÷年名目GDP）が信認の喪失として乗る（2026-09-29＝月次決算が月末の Fiscal.Step へこの月の切り下げを渡す）。
         //   G との差＝BondRateDistrustScale×速さ×兌換の割引×議会の割引（G は同じ月に未払いの利子が元本へ入った分だけ債務比が大きい＝その差は桁違いに小さい）。
         //   突然変異：月次決算が切り下げを渡さない（0）→赤。
-        double speed = dev * Calendar.MonthsPerYear / (wf.NominalGdpPerMonth * Calendar.MonthsPerYear).Value;
+        double speed = dev * Calendar.MonthsPerYear / Calendar.PerMonthToPerYear(wf.NominalGdpPerMonth).Value;
         double disc = (1.0 - conv * (1.0 - wf.Coef.GoldStandardRateDiscount)) * (1.0 - wf.Coef.BondRateRepresentationDiscount * PoliticalQuantities.Clamp01(wf.ParliamentControl));
         double want = wf.Coef.BondRateDistrustScale * speed * disc;
         double got = (wf.GovBondRatePerYear - wg.GovBondRatePerYear).Value;
@@ -475,14 +475,14 @@ public class TreasuryLedgerTests
             sim.Run(4);
             sim.StepDay();
             var w = sim.World;
-            double t0 = w.Treasury;
+            double t0 = w.Treasury.Value;
             World.Transfer((w, null), (w, [w.Regions[0].Pops[0]], [1.0]), t0, TreasuryCat.OtherOut);   // 国庫を0へ（現金は1つの POP へ移す＝保存則を割らない・移し方の1本）
             w.AdminSpending = 3.0;                                                    // 行政の予算が歳入を超える＝払えない月を作る
             for (int d = 0; d < 28; d++) sim.StepDay();
             sim.StepDayOpen(); sim.StepDayDaily();   // 締めの直前＝r を決める時点と同じ国庫と見込み
             w.Convertibility = conv;
             setup(w);
-            double payable = System.Math.Max(0, w.Treasury) + w.LastRevenuePerMonth.Value, overdraft = System.Math.Min(0, w.Treasury);
+            double payable = System.Math.Max(0, w.Treasury.Value) + w.LastRevenuePerMonth.Value, overdraft = System.Math.Min(0, w.Treasury.Value);
             double unit = System.Math.Max(0, w.NominalGdpPerMonth.Value) * w.Coef.BorrowFractionOfGdp;   // 1件の額（Fiscal.Borrow と同じ式・締めの月初は産出の前＝同じ値）
             double dv0 = w.TreasuryLedger[(int)TreasuryCat.Devalue], bo0 = w.TreasuryLedger[(int)TreasuryCat.Borrow];
             sim.StepDayClose(); w.FlushLog();        // 月次決算（借入→切り下げ→r→予算→精算→財政）

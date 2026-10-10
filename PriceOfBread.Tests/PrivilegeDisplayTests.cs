@@ -183,7 +183,7 @@ public class PrivilegeDisplayTests
         c.TitheRate = 0.05; c.StateReligionGate = 0; c.CorruptionMax = 0;
         w.TaxRate = 0; w.PollTax = 0; w.LandTax = 0; w.ProgressiveTax = 0;
         w.SocialSecurity = 0; w.Pension = ReformLevel.None;
-        w.GovDebt = 0; w.ForeignDebt = 0;
+        w.GovDebt = new MoneyStock(0); w.ForeignDebt = 0;
         var pops = new System.Collections.Generic.List<Pop>(w.AllPops());
         foreach (var p in pops) p.BondHoldings = 0;
         double clergySize = 0; foreach (var p in pops) if (p.ClassId == PopClass.Clergy) clergySize += p.Size;
@@ -195,15 +195,15 @@ public class PrivilegeDisplayTests
             if (!p.Closed && !p.IsModernElite && !p.IsSoldier) { p.LastEarnedPerMonth = new MoneyPerMonth(100); p.SetSavings(100); expected += 0.05 * 100; }   // 払い手に確実に原資を持たせる
         }
 
-        double Sum(System.Func<Pop, bool> pick) { double s = 0; foreach (var p in pops) if (pick(p)) s += p.Savings; return s; }
-        double before = Sum(_ => true), clergyBefore = Sum(p => p.ClassId == PopClass.Clergy), t0 = w.Treasury;
+        double Sum(System.Func<Pop, bool> pick) { double s = 0; foreach (var p in pops) if (pick(p)) s += p.Savings.Value; return s; }
+        double before = Sum(_ => true), clergyBefore = Sum(p => p.ClassId == PopClass.Clergy), t0 = w.Treasury.Value;
         w.FiscalFundingRatio = 1.0;
         Fiscal.Step(w, c);
         double after = Sum(_ => true), clergyAfter = Sum(p => p.ClassId == PopClass.Clergy);
 
         Assert.True(expected > 0, "十分の一税の請求が立っていない＝移転を測れていない");
         Assert.True(System.Math.Abs(after - before) <= 1e-9 * System.Math.Max(1, before), $"貯蓄の総和が動いた＝移転でなく生成/消滅（{before:R}→{after:R}）");
-        Assert.Equal(t0, w.Treasury);   // 国庫を通さない
+        Assert.Equal(t0, w.Treasury.Value);   // 国庫を通さない
         Assert.True(System.Math.Abs((clergyAfter - clergyBefore) - expected) <= 1e-9 * System.Math.Max(1, expected), $"請求の額と聖職者の受取が一致しない（{expected:R}/{clergyAfter - clergyBefore:R}）");
     }
 

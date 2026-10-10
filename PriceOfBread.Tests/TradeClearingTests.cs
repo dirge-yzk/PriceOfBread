@@ -184,7 +184,7 @@ public class TradeClearingTests
         var (sim, g, seller, seller2, _) = Make();
         foreach (var n in sim.Nations) n.World.Tariff = 0.2;
         var before = new Dictionary<Pop, double>();
-        foreach (var n in sim.Nations) foreach (var r in n.World.Regions) foreach (var p in r.Pops) before[p] = p.Savings;
+        foreach (var n in sim.Nations) foreach (var r in n.World.Regions) foreach (var p in r.Pops) before[p] = p.Savings.Value;
         sim.Market.Step(sim.Nations, sim.Coef);
         int checkedRegions = 0;
         foreach (var n in sim.Nations)
@@ -193,8 +193,8 @@ public class TradeClearingTests
                 if (r.State != RegionState.Active || ReferenceEquals(r, seller) || ReferenceEquals(r, seller2) || !(r.Markets[g].LastImport > 1e-9)) continue;
                 Assert.True(r.MerchantPopIndex >= 0, "前提が崩れた：買い手の州に商人が居ない");
                 for (int i = 0; i < r.Pops.Count; i++)
-                    if (i != r.MerchantPopIndex) Assert.Equal(before[r.Pops[i]], r.Pops[i].Savings);   // 商人以外は払わない
-                Assert.True(r.Pops[r.MerchantPopIndex].Savings < before[r.Pops[r.MerchantPopIndex]], "輸入した州の商人の貯蓄が減っていない");
+                    if (i != r.MerchantPopIndex) Assert.Equal(before[r.Pops[i]], r.Pops[i].Savings.Value);   // 商人以外は払わない
+                Assert.True(r.Pops[r.MerchantPopIndex].Savings.Value < before[r.Pops[r.MerchantPopIndex]], "輸入した州の商人の貯蓄が減っていない");
                 checkedRegions++;
             }
         Assert.True(checkedRegions > 0, "輸入した買い手の州が無い（テスト前提の破れ）");
@@ -241,26 +241,26 @@ public class TradeClearingTests
         for (int k = 0; k < o.Count; k++)
         {
             var (n, r, i, p) = o[k];
-            double d = pp[k].p.Savings - p.Savings;
-            if (i != r.MerchantPopIndex) { Assert.Equal(p.Savings, pp[k].p.Savings); continue; }   // 荷主でも引受手でもない
+            double d = pp[k].p.Savings.Value - p.Savings.Value;
+            if (i != r.MerchantPopIndex) { Assert.Equal(p.Savings.Value, pp[k].p.Savings.Value); continue; }   // 荷主でも引受手でもない
             double paid = r.Markets[off.g].LastImport > 1e-12 ? premRate * r.LastPortThroughput / off.sim.Nations[n].World.FxRate : 0;
             double got = premPool[n] * p.Size / merSize[n];
-            Assert.True(Math.Abs(d - (got - paid)) <= 1e-9 * Math.Max(1.0, Math.Abs(p.Savings)), $"{r.Name} の商人：保険料の差し引き {d} ≠ 受け取り {got}−払い {paid}");
+            Assert.True(Math.Abs(d - (got - paid)) <= 1e-9 * Math.Max(1.0, Math.Abs(p.Savings.Value)), $"{r.Name} の商人：保険料の差し引き {d} ≠ 受け取り {got}−払い {paid}");
         }
         // 港湾料だけ：港の州の投資家が 取扱高×率 を受け取る・払うのは荷主の商人だけ＝ほかの POP は動かない・払いと受け取りは金の値打ちで閉じる
         double owners = 0, goldNet = 0;
         for (int k = 0; k < o.Count; k++)
         {
             var (n, r, i, p) = o[k];
-            double fx = off.sim.Nations[n].World.FxRate, d = pt[k].p.Savings - p.Savings;
+            double fx = off.sim.Nations[n].World.FxRate, d = pt[k].p.Savings.Value - p.Savings.Value;
             goldNet += d * fx;
             if (r.IsPort && i == r.InvestorPopIndex)
             {
                 double want = portRate * r.LastPortThroughput / fx;
-                Assert.True(Math.Abs(d - want) <= 1e-9 * Math.Max(1.0, Math.Abs(p.Savings)), $"{r.Name} の港の持ち主：港湾料 {d} ≠ 取扱高×率 {want}");
+                Assert.True(Math.Abs(d - want) <= 1e-9 * Math.Max(1.0, Math.Abs(p.Savings.Value)), $"{r.Name} の港の持ち主：港湾料 {d} ≠ 取扱高×率 {want}");
                 owners += want;
             }
-            else if (i != r.MerchantPopIndex) Assert.Equal(p.Savings, pt[k].p.Savings);
+            else if (i != r.MerchantPopIndex) Assert.Equal(p.Savings.Value, pt[k].p.Savings.Value);
         }
         Assert.True(owners > 1e-9, "前提が崩れた：港湾料が立っていない（港の州の海路の成約が無い）");
         Assert.True(Math.Abs(goldNet) <= 1e-9 * Math.Max(1.0, owners), $"港湾料の払いと受け取りが金の値打ちで閉じない（{goldNet}）");
@@ -282,14 +282,14 @@ public class TradeClearingTests
                 { r.Pops[r.MerchantPopIndex].SetSavings(0); buyers.Add(r); }
         Assert.True(buyers.Count > 0, "前提が崩れた：買い手の州に商人が居ない");
         var before = new Dictionary<Pop, double>();
-        foreach (var r in buyers) foreach (var p in r.Pops) before[p] = p.Savings;
+        foreach (var r in buyers) foreach (var p in r.Pops) before[p] = p.Savings.Value;
         var bm0 = sim.Nations.ConvertAll(n => n.World.BaseMoney); var tf0 = sim.Nations.ConvertAll(n => n.World.CumulativeTradeFlow);
         sim.Market.Step(sim.Nations, sim.Coef);
         var drew = new List<Region>();
         foreach (var r in buyers)
         {
             var mer = r.Pops[r.MerchantPopIndex];
-            for (int i = 0; i < r.Pops.Count; i++) if (i != r.MerchantPopIndex) Assert.Equal(before[r.Pops[i]], r.Pops[i].Savings);   // 払うのは商人だけ
+            for (int i = 0; i < r.Pops.Count; i++) if (i != r.MerchantPopIndex) Assert.Equal(before[r.Pops[i]], r.Pops[i].Savings.Value);   // 払うのは商人だけ
             if (r.Markets[g].LastImport > 1e-9) { Assert.True(mer.Debt > 0, $"{r.Name}：輸入したのに手形の債務が立っていない"); drew.Add(r); }
         }
         Assert.True(drew.Count > 0, "貯蓄の無い商人の州が1つも輸入していない（手形を割り引けていない）");
@@ -306,8 +306,8 @@ public class TradeClearingTests
         foreach (var r in drew)
         {
             var mer = r.Pops[r.MerchantPopIndex]; debts[mer] = mer.Debt;
-            Pop rich = r.Pops[0]; foreach (var p in r.Pops) if (p.Savings > rich.Savings) rich = p;
-            double proceeds = 2 * mer.Debt; rich.SetSavings(rich.Savings - (proceeds)); mer.SetSavings(mer.Savings + (proceeds));
+            Pop rich = r.Pops[0]; foreach (var p in r.Pops) if (p.Savings.Value > rich.Savings.Value) rich = p;
+            double proceeds = 2 * mer.Debt; rich.SetSavings(rich.Savings.Value - (proceeds)); mer.SetSavings(mer.Savings.Value + (proceeds));
         }
         foreach (var r in buyers) r.Markets[g].Stock = 1e6;
         sim.Market.Step(sim.Nations, sim.Coef);
@@ -315,7 +315,7 @@ public class TradeClearingTests
         {
             var mer = r.Pops[r.MerchantPopIndex];
             Assert.True(mer.Debt == 0, $"{r.Name}：売った代金が入ったのに手形を返していない（債務 {mer.Debt}）");
-            Assert.True(Math.Abs(mer.Savings - debts[mer]) <= 1e-9 * Math.Max(1.0, debts[mer]), $"{r.Name}：返した後の貯蓄 {mer.Savings} ≠ 代金−手形 {debts[mer]}");
+            Assert.True(Math.Abs(mer.Savings.Value - debts[mer]) <= 1e-9 * Math.Max(1.0, debts[mer]), $"{r.Name}：返した後の貯蓄 {mer.Savings} ≠ 代金−手形 {debts[mer]}");
         }
         foreach (var n in sim.Nations) Assert.True(Math.Abs(n.World.Bank!.HouseholdLoans) <= 1e-9 * Math.Max(1.0, debts.Values.Sum()), $"{n.World.SelfPower?.Name}：返した後も家計の与信が残る（{n.World.Bank.HouseholdLoans}）");
     }

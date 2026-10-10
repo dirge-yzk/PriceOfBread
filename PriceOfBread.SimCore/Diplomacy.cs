@@ -49,7 +49,7 @@ public sealed class Power
     public double NeedMen;        // 理想の兵員数（陸＋内的＋海×乗員率 を質で割る）
     public double AttentionColSumMax;   // 診断：注意配分の列和の最大（★1未満であることが縮小写像＝発散しないことの実証）
     public double AirPower;       // 空軍力（1934拡張E2）＝Military×空軍装備充足。制空＝押し合い/戦死/空襲厭戦に効く。1910s以前は0＝恒等
-    public MoneyPerMonth GdpPerMonth;
+    public RealGdpPerMonth GdpPerMonth;
     public List<Colony> ColonyList = [];   // 保有する植民地（各々が固有資源を持つ。征服で本国間を移る・§6.1）
     // ★植民地の州昇格（2026-08-26・ColoniesAreRegions）：昇格した植民地は ColonyList から消えて**植民地格の州**になる。
     //   個数を読む全ての場所（国力スコア・威信・植民地防衛効用・脅威評価・忠実度の植民地次元）が同じ数を見続けるよう、
@@ -825,7 +825,7 @@ public sealed class Diplomacy
         foreach (var p in Powers)
         {
             if (p.Nation is not { } nw) { p.NavalShare = c.AbstractNavalShare; continue; }   // 抽象標的＝弱小海軍（陸の守りが主・B-1）
-            p.GdpPerMonth = new MoneyPerMonth(SyncGdp(p, nw));   // 四半期末の窓の中で州の並びが同じなら1回目の値（上の SyncGdp の注記）
+            p.GdpPerMonth = new RealGdpPerMonth(SyncGdp(p, nw));   // 四半期末の窓の中で州の並びが同じなら1回目の値（上の SyncGdp の注記）
             // 軍隊規模＝兵士POP数（軍事費が徴募）。即応度（兵士の充足）が乗数＝給与/補給が切れた軍は大幅に弱い。
             // 扶養限界＝大軍は給与（民間賃金×兵数）を要し、払えなければ充足が落ち戦力が下がる（経済が要る）。治安維持力（警察）とは分離。
             // 軍の質の3因子＝ArmyShape.Quality の1本（★2026-09-26 棚卸し mil-13＝旧＝同じ式の写しがここにあり、制度疲労の門だけが食い違っていた）：
