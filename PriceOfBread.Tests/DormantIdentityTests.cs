@@ -189,15 +189,16 @@ public class DormantIdentityTests
     ];
 
     /// <summary>★休眠の棚卸し（2026-10-11 (253)・measurements/dormant_20261011.tsv の行き先「消す」）で削除した係数の名簿＝**再び入れたら赤**。
-    /// 期待値の出所は台帳（tsv の「消す」の行）であって Coefficients ではない（同語反復にしない）。消した理由は各名前の注記。
+    /// 期待値の出所は measurements/dormant_20261011.tsv の「消す（済み）」の行を手で写した名簿であって Coefficients ではない（同語反復にしない・tsv を読みはしない）。消した理由は各名前の注記。
+    /// ★(254) 反証役 vz#1：CohortGateK・EnclosureRate・OpulenceInfraChannel・RuralPromotionRate の削除は担当の推奨（作者の承認は未確認）＝作者の 2026-09-21 の言葉は「生きた一覧の矛盾は棄却側で閉じる」（一覧の付け方）で削除の指示ではない・再測は git の履歴から。
     /// 消す前の恒等は帯3本の全行バイト一致で示した（(253)）。復活させたいときは、この名簿から外す前に tsv と docs の裁定を読むこと。</summary>
     private static readonly string[] RetiredFields =
     [
         "StateBuildCost",             // 読み手0（手動工場建設は削除済み）
-        "CohortGateK",                // 世代ゲート＝2026-09-21 作者裁定で「棄却」側を正として閉じた（00一覧 :605・:1344）
-        "EnclosureRate",              // 囲い込みの自給侵食＝同上
-        "RuralPromotionRate",         // 農村の直行便＝2026-08-16 差し戻し（exact−7・棚卸し dorm-16）
-        "OpulenceInfraChannel",       // 支出反射のインフラ拡張＝2026-08-08 同時点火で硬性赤（棚卸し dorm-51）
+        "CohortGateK",                // 世代ゲート＝2026-09-21 作者が一覧の矛盾を「棄却」側で閉じた（00一覧）・削除は担当の推奨（作者の承認は未確認）
+        "EnclosureRate",              // 囲い込みの自給侵食＝同上（削除は担当の推奨・作者の承認は未確認）
+        "RuralPromotionRate",         // 農村の直行便＝2026-08-16 差し戻し（exact−7・棚卸し dorm-16）・削除は担当の推奨（作者の承認は未確認）
+        "OpulenceInfraChannel",       // 支出反射のインフラ拡張＝2026-08-08 同時点火で硬性赤・08-08 は「単独再測定可能な形で温存」＝削除は棚卸し dorm-51（AI の推奨）に従った担当の推奨（作者の承認は未確認）
         "MilitaryBuildCostCapScale",  // 軍需の身の丈ゲート倍率＝armscap 単独で基線とビット同一（実装ログ 2026-09-07）
         "CorruptionCoreV2",           // 汚職V2の点火の記録＝読み手0（2026-08-16 C2-C5 で旧式の分岐を撤去した後は係数だけが残っていた）
     ];
@@ -205,21 +206,19 @@ public class DormantIdentityTests
     /// <summary>★読み手のない係数の番人（2026-10-11 (253)・休眠の棚卸しで <c>StateBuildCost</c>〔手動工場建設の削除の後に残った死蔵〕と <c>CorruptionCoreV2</c>〔点火の記録だけ〕が見つかった型）：
     /// Coefficients の全ての公開の欄が、コメントと文字列を除いた SimCore・App・Runner のソースのどこかで宣言以外にも1回は現れる。
     /// 期待値の出所は欄の列挙（反射）とソースの走査であって手書きの表ではない。⚠限界：補間文字列の穴の中の読みは見ない（<see cref="GoodIdGuardTests.StripCode"/> と同じ）・
-    /// 名前が同じ別の欄の読みと区別しない・書き込みだけの欄は通る。Tests だけが読む欄は通さない（テストだけが読む係数は本体では死んでいる）。</summary>
+    /// 名前が同じ別の欄の読みと区別しない・書き込みだけの欄は通る・Runner の計器（診断）だけが読む欄も通る・既定の世界で決して通らない枝の中だけで読まれる欄も通る（字句の出現しか見ない＝到達は見ない）。
+    /// Tests だけが読む欄は通さない（テストだけが読む係数は本体では死んでいる）。</summary>
     [Fact]
     public void 係数は全て本体のどこかで読まれる()
     {
-        string root = Path.GetDirectoryName(Path.GetDirectoryName(RepoRootOf()))!;
         var counts = new System.Collections.Generic.Dictionary<string, int>();
         var word = new System.Text.RegularExpressions.Regex(@"[A-Za-z_][A-Za-z0-9_]*");
-        foreach (var proj in new[] { "PriceOfBread.SimCore", "PriceOfBread.Runner", "PriceOfBread.App" })
-            foreach (var f in Directory.EnumerateFiles(Path.Combine(root, proj), "*.cs", SearchOption.AllDirectories))
-            {
-                string rel = Path.GetRelativePath(root, f).Replace('\\', '/');
-                if (rel.Contains("/obj/") || rel.Contains("/bin/")) continue;
-                foreach (System.Text.RegularExpressions.Match m in word.Matches(GoodIdGuardTests.StripCode(File.ReadAllText(f))))
-                    counts[m.Value] = counts.GetValueOrDefault(m.Value) + 1;
-            }
+        foreach (var (f, rel) in GoodIdGuardTests.CsFiles())   // SimCore・Runner・App・Tests の .cs（obj・bin を除く）＝Tests は外す
+        {
+            if (rel.StartsWith("PriceOfBread.Tests/")) continue;
+            foreach (System.Text.RegularExpressions.Match m in word.Matches(GoodIdGuardTests.StripCode(File.ReadAllText(f))))
+                counts[m.Value] = counts.GetValueOrDefault(m.Value) + 1;
+        }
         var unread = new System.Collections.Generic.List<string>();
         foreach (var fld in typeof(Coefficients).GetFields())
         {
@@ -229,8 +228,6 @@ public class DormantIdentityTests
         Assert.True(unread.Count == 0,
             $"読み手のない係数 {string.Join(", ", unread)}。使わないなら削除する（記録は墓標のコメントと docs へ）。休眠の器なら読む枝を置くこと");
     }
-
-    private static string RepoRootOf([System.Runtime.CompilerServices.CallerFilePath] string self = "") => self;
 
     [Fact]
     public void 削除した休眠の係数は戻っていない()

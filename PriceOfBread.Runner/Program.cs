@@ -2545,12 +2545,12 @@ if (args.Length > 0 && args[0] == "initdump")
             Row(nm, "土地/耕地賦存量の和(明示の州のみ)", tm, arable, "千人収容");
             Row(nm, "土地/耕地賦存量が明示された州の数", tm, arableSet, "件");
             // 貨幣
-            Row(nm, "貨幣/基礎貨幣", tm, w.BaseMoney, "貨幣");
-            Row(nm, "貨幣/広義(全POPの貯蓄)", tm, w.TotalMoney, "貨幣");
-            Row(nm, "貨幣/与信残高(銀行)", tm, w.OutstandingLoans, "貨幣");
+            Row(nm, "貨幣/基礎貨幣", tm, w.BaseMoney.Value, "貨幣");
+            Row(nm, "貨幣/広義(全POPの貯蓄)", tm, w.TotalMoney.Value, "貨幣");
+            Row(nm, "貨幣/与信残高(銀行)", tm, w.OutstandingLoans.Value, "貨幣");
             Row(nm, "貨幣/準備の金", tm, w.GoldReserveQty, "量");
             Row(nm, "貨幣/準備の銀", tm, w.SilverReserveQty, "量");
-            Row(nm, "貨幣/貯蓄÷年名目GDP", tm, w.NominalGdpPerMonth.Value > 0 ? w.TotalMoney / (Calendar.PerMonthToPerYear(w.NominalGdpPerMonth)).Value : 0, "比");
+            Row(nm, "貨幣/貯蓄÷年名目GDP", tm, w.NominalGdpPerMonth.Value > 0 ? (w.TotalMoney / (Calendar.PerMonthToPerYear(w.NominalGdpPerMonth)).Value).Value : 0, "比");
             Row(nm, "貨幣/通貨制度", tm, w.MonetaryLaw.ToString(), "区分");
             Row(nm, "物価/物価水準", tm, w.PriceLevel, "指数");
             Row(nm, "物価/自己費用の物価水準", tm, w.CostPriceLevel, "指数");
@@ -7492,7 +7492,7 @@ if (args.Length > 0 && args[0] == "genderprobe")
     return;
 }
 
-// === 階級シェアの検証（CohortGateK点火A/Bの計器・2026-08-16）： dotnet run -- classprobe [シード] ===
+// === 階級シェアの検証（旧 CohortGateK 点火A/Bの計器・2026-08-16・CohortGateK は 2026-10-11 (253) に削除＝今は階級シェアの読むだけの印字）： dotnet run -- classprobe [シード] ===
 // 読み取り専用：国別の上流/中流/下流シェア（Meritocracy.ClassOf＝失業プールと同じ物差し・兵士除外）を3断面で印字。
 // 史実アンカーの目安＝英中流は19世紀を通じ拡大（rank14の2.5%→4.4%は上層中流のみ・広義中流は15〜25%へ）。
 if (args.Length > 0 && args[0] == "classprobe")
@@ -7983,7 +7983,7 @@ if (args.Length > 0 && args[0] == "hangtest")
     int civilWars = hs.Nations.Count(n => n.World.HadCivilWar);
     int defaults = hs.Nations.Count(n => n.World.HadSovereignDefault);
     Console.WriteLine($"seed {sd}: 開戦{wars}回 内戦経験{civilWars}国 デフォルト経験{defaults}国");
-    foreach (var n in hs.Nations) { var w = n.World; double ir = w.LastRevenuePerMonth.Value > 0 ? w.LastInterestPerMonth / w.LastRevenuePerMonth : 0; if (w.HadSovereignDefault || ir > 0.25 * w.Coef.MaxInterestShareOfRevenue) Console.WriteLine($"  {w.Region.Name,-10} 利払い/歳入{ir,5:F2} 債務/GDP{(w.NominalGdpPerMonth.Value > 1 ? w.GovDebt / w.NominalGdpPerMonth.Value : 0),5:F2} default={w.HadSovereignDefault} cooldown{w.BorrowCooldownMonths}"); }
+    foreach (var n in hs.Nations) { var w = n.World; double ir = w.LastRevenuePerMonth.Value > 0 ? w.LastInterestPerMonth / w.LastRevenuePerMonth : 0; if (w.HadSovereignDefault || ir > 0.25 * w.Coef.MaxInterestShareOfRevenue) Console.WriteLine($"  {w.Region.Name,-10} 利払い/歳入{ir,5:F2} 債務/GDP{(w.NominalGdpPerMonth.Value > 1 ? w.GovDebt.Value / Calendar.PerMonthToPerYear(w.NominalGdpPerMonth).Value : 0),5:F2} default={w.HadSovereignDefault} cooldown{w.BorrowCooldownMonths}"); }
     if (args.Length > 2 && args[2] == "log")
         foreach (var l in hs.Diplomacy.Log.Where(l => l.Contains("開戦") || l.Contains("講和") || l.Contains("独立"))) Console.WriteLine("  " + l);
     return;

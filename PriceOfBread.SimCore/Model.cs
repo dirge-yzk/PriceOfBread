@@ -518,7 +518,7 @@ public sealed class Pop
         double inflow = crudeBirthRate;
         for (int b = 0; b < AgeBands; b++)
         {
-            double outflow = b < AgeBands - 1 ? 12.0 * AgingOutflow(StdPyramid[b]) : 0.0;
+            double outflow = b < AgeBands - 1 ? Calendar.PerMonthToPerYear(AgingOutflow(StdPyramid[b])) : 0.0;
             double mu = (inflow - outflow) / StdPyramid[b] - StdPyramidGrowth;
             if (!(mu > 0)) mu = 0;   // 死亡率は負にならない（否定形＝NaN も0）
             w[2 * b] = w[2 * b + 1] = mu;

@@ -23,7 +23,7 @@ namespace PriceOfBread.Tests;
 /// </summary>
 public class GoodIdGuardTests
 {
-    private static string RepoRoot([CallerFilePath] string self = "")
+    internal static string RepoRoot([CallerFilePath] string self = "")
         => Path.GetDirectoryName(Path.GetDirectoryName(self))!;
 
     // ─────────────────────────────────────────────────────────────────────────────
@@ -422,7 +422,7 @@ public class GoodIdGuardTests
         }
     }
 
-    private static IEnumerable<(string Full, string Rel)> CsFiles()
+    internal static IEnumerable<(string Full, string Rel)> CsFiles()
     {
         string root = RepoRoot();
         foreach (var proj in new[] { "PriceOfBread.SimCore", "PriceOfBread.Runner", "PriceOfBread.App", "PriceOfBread.Tests" })

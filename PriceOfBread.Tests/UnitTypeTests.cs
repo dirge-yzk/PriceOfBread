@@ -308,7 +308,7 @@ public class UnitTypeTests
         df.SetValue(c2, UnitValues.FromDouble(df.FieldType, 0.0));
         Assert.Equal(0.0, (double)df.GetValue(c2)!);
         // Runner のソースで、係数への書き込みと0化は UnitValues を通す（SetValue に素の double を渡さない）
-        var runner = System.IO.File.ReadAllLines(System.IO.Path.Combine(RepoRoot(), "PriceOfBread.Runner", "Program.cs"));
+        var runner = System.IO.File.ReadAllLines(System.IO.Path.Combine(GoodIdGuardTests.RepoRoot(), "PriceOfBread.Runner", "Program.cs"));
         Assert.Contains(runner, l => l.Contains("fi.SetValue(co, UnitValues.FromDouble(fi.FieldType, 0.0))"));   // politics-ablation
         Assert.Contains(runner, l => l.Contains("done.Add(co); fi.SetValue(co, UnitValues.FromDouble(fi.FieldType, 0.0))"));   // chronicle --zero
     }
@@ -326,7 +326,7 @@ public class UnitTypeTests
         //   Fiscal +2＝減債で減る対外債（Math.Max の結果）・起債で資本家が払った額の保有（(251) の GovDebt 側の1件は対外債の側と共有して増やしていない・BookForeignDebt の引数は型になり −1）／
         //   Simulation +2＝損失の負債化で個人債務へ足す額・負の国の与信の償却／World +3＝世界の外の側の台帳（与信・家計の与信の動いた額）の2行と CrossFx の在庫の型の版（国境をまたぐ在庫の換算の1本）／
         //   MultiNationSim −1＝越境移民の持参金を型に（+1）・反乱国の国債の保有を預かる行と按分の行（−2）が型のまま足し引きになった／Model −3＝人と動くお金の運搬の引数と州の再換算が型のまま（Pop.Carry の包み2・Rebase 1）
-        var dir = System.IO.Path.Combine(RepoRoot(), "PriceOfBread.SimCore");
+        var dir = System.IO.Path.Combine(GoodIdGuardTests.RepoRoot(), "PriceOfBread.SimCore");
         var per = System.IO.Directory.EnumerateFiles(dir, "*.cs", System.IO.SearchOption.AllDirectories)
             .Where(f => !f.Replace('\\', '/').Contains("/obj/") && !f.Replace('\\', '/').Contains("/bin/"))
             .Select(f => (File: System.IO.Path.GetFileName(f), N: System.Text.RegularExpressions.Regex.Matches(GoodIdGuardTests.StripCode(System.IO.File.ReadAllText(f)), @"\bnew\s+MoneyStock\s*\(").Count))
@@ -335,7 +335,4 @@ public class UnitTypeTests
         Assert.True(total == Declared, $"SimCore の `new MoneyStock(` が {total} 件（宣言 {Declared}）：" + string.Join("、", per.Select(x => $"{x.File} {x.N}"))
             + "＝増えたなら月の流れを在庫へ直に足していないか確かめる（Pop の月末の精算は Calendar.OneMonthOf）・減ったなら宣言を下げる");
     }
-
-    private static string RepoRoot([System.Runtime.CompilerServices.CallerFilePath] string self = "")
-        => System.IO.Path.GetDirectoryName(System.IO.Path.GetDirectoryName(self))!;
 }

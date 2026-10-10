@@ -833,7 +833,7 @@ public sealed class Coefficients
     public double CorruptionMax = 0.25;          // 行政が全く無い時に税収が漏れる最大割合（漏れは官僚の懐へ＝移転で保存）
     public double CorruptionPoorOfficialWeight = 0.0; // ★暮らせない官僚は汚職に手を染めやすい（作者要望2026-08-17・休眠）。実効汚職＝(1−行政)×(1−監視)×(1+これ×max(0,1−World.OfficialWelfareFill))。**物差しは俸給でなく満足度**（作者裁定＝「嗜好品を購入できているか」）＝官僚popの前月満足度の規模加重平均。俸給比を採らない理由＝(a)**全員が貧しい国では 官僚所得÷平均所得 が1.0（適正）になるのに官僚は飢えている**＝絶対的な窮乏を取り逃す (b)満足度は[0,1]に有界＝**比でないので分母の下限が要らない**（『比のガードは絶対値で書かない』の罠を構造的に踏まない） (c)闘争度・犯罪率と同じ物差しに合流＝**汚職はエリート版の同じ不満**＝式を2つ作らない。史実＝清の**養廉銀**（官位にふさわしい暮らしを保たせて汚職を減らす＝俸給の額でなく生活の充足の制度）／英の**ノースコート＝トレヴェリアン改革**。⚠**前月**の満足度を読む（Pop.LastSatisfaction）＝汚職の分け前→貯蓄→消費→満足度→汚職 の環を**同一ティックで閉じない**（設計側 20260817_開発速度の根本修正 §1）。0＝World.EffectiveCorruption が否定形ガードで即return＝旧式そのもの（ビット恒等・経路を作らない）。⚠設計側への申し送り＝汚職を予算の余りへ畳む改修が入ったら、この項は「余り×(1−監視)」の**分配率**へ移す（同じ導出量を読み替えるだけ）。点火は単独A/B
     // ★撤去2026-08-16（掃除キューC2-C5・棚卸C群）：汚職根絶レバー（2026-07-06）の係数8本＝AntiCorruptionSpeed/CostRate/DebtLock/DebtFree/GraftLock/Floor/SpanPopWeight/SpanRegionWeight を物理削除。
-    //   汚職V2（CorruptionCoreV2＝(1−行政)×(1−監視noisy-or)）恒久ONの裁定済み＝読者は Fiscal の清廉度更新・根絶費請求のみで、いずれも同日撤去＝読者ゼロを確認。
+    //   汚職V2（旧係数 CorruptionCoreV2＝(1−行政)×(1−監視noisy-or)・2026-10-11 (253) に係数ごと削除）恒久ONの裁定済み＝読者は Fiscal の清廉度更新・根絶費請求のみで、いずれも同日撤去＝読者ゼロを確認。
     // ★専売の標準率（作者裁定2026-09-20「専売の率を法律から完全に消す。材を選ぶのみにする」）＝**新設ではなく移設**。
     //   旧＝App の GameViewModel.Production.cs の TaxOnRate=0.30（チェックした材に乗る唯一の率）。率を決めるのはエンジンなのでここへ移した。
     //   ⚠0.6（旧 World の Clamp と SelfPlay の LuxuryConsumptionTaxCap）と 0.8（旧 Government.StateMonopolyTop）は**率ではなく天井**＝
@@ -2483,7 +2483,7 @@ public sealed class Coefficients
     public RatePerYear OpulenceSpendRatePerYear = new(0.6);         // 【梯子測定中2026-08-08＝0.6】支出反射（減税反射の対）：月次予算基数を 歳入 → 歳入＋これ×max(0,国庫−潤沢線)/12 へ（行政・軍需・扶養限界の3箇所）。0=厳密恒等。梯子0.3→0.6→1.2/年
     public double MilitarizeAgrarianTaxes = 1.0;   // 【L3点火測定中2026-08-08】Militarizeスタンスに土地税0.4・関税0.3の目標を追記（軍国が地租と関税で軍を養った史実＝地租改正・Grundsteuer）。0=恒等・1=有効
     public double MilitarizeEducationDrive = 1.0;  // 【L4点火測定中2026-08-08】Militarizeスタンスに公教育＋教育費0.4の目標を追記（義務教育は兵営国家の発明＝プロイセン1763・明治学制）。露のElite封鎖の解錠。0=恒等
-    // 【墓標2026-10-11 (253) 休眠の棚卸し】削除した休眠の係数＝StateBuildCost（読み手0）・CohortGateK／EnclosureRate（2026-09-21 作者裁定で「棄却」側を正として閉じた）・RuralPromotionRate（2026-08-16 差し戻し・棚卸し dorm-16）・OpulenceInfraChannel（2026-08-08 硬性赤で分離休眠・dorm-51）・MilitaryBuildCostCapScale（armscap 単独で効かない・基線とビット同一＝実装ログ 2026-09-07）・CorruptionCoreV2（点火の記録だけで読み手0・2026-08-16 C2-C5 で分岐は撤去済み）。名簿と行き先＝measurements/dormant_20261011.tsv
+    // 【墓標2026-10-11 (253) 休眠の棚卸し】削除した休眠の係数＝StateBuildCost（読み手0）・CohortGateK／EnclosureRate（2026-09-21 作者が一覧の矛盾を「棄却」側で閉じた）・RuralPromotionRate（2026-08-16 差し戻し・棚卸し dorm-16）・OpulenceInfraChannel（2026-08-08 硬性赤で分離休眠・dorm-51）・MilitaryBuildCostCapScale（armscap 単独で効かない・基線とビット同一＝実装ログ 2026-09-07）・CorruptionCoreV2（点火の記録だけで読み手0・2026-08-16 C2-C5 で分岐は撤去済み）。読み手0 の2本と armscap 以外の4本の削除は担当の推奨（作者の承認は未確認・(254)）。名簿と行き先＝measurements/dormant_20261011.tsv
     // 【墓標2026-09-26】退蔵結晶化（HoardCrystallizeRate・WealthAnchorYears・WealthAnchorFloorPerCapita）と結晶資産 Pop.IlliquidWealth＝休眠の枝だけが書き常に0を運んでいた（dorm-24・思想⑩）。再挑戦するなら §30 レールごと設計し直すこと
     // 【墓標2026-08-29】InvestIncomeFloor/InvestFloorUsesIndustrialRent/InvestReadsLiquid/ConsumeReadsLiquid＝Stage1中止の予算配線4本を撤去
     public double PanicBuyWeight = 0.5;   /* ★点火2026-09-06＝0.0→0.5・〔6-2〕主食の買占め（B3 自己成就期待の残り半分） */            // 【休眠2026-08-08＝0.5は閾値0.5/0.75とも小世界の慢性低在庫で常時発動し輸出/税テスト3本の前提を崩す＝在庫閾値では分離不能→危機ゲート（戦争/飢饉文脈）付きの再設計が必要】B3自己成就的期待（2026-08-08作者裁定「入れてみよう」・docs/202607/05§B）：主食の棚が
