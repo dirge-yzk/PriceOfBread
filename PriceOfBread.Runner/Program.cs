@@ -836,6 +836,8 @@ if (args.Length > 0 && args[0] == "cpdump")
 }
 
 // === 世界データの外部化：現C#設定から world.json を自動生成（一時dump・挙動同値の移行用）： dotnet run -- dumpworld <出力パス> ===
+// ⚠(248) 移行用の旧い道具：WorldData.Serialize は全ての欄を書く（DefaultIgnoreCondition.Never）＝(247) の「国は既定と違う値のキーだけを書く」形と合わない。
+//   書き出した world.json は読めば同じ挙動だが、番人 InitialDefaultsTests が数百件で赤になる＝そのまま置き換えない（既定と同じ値のキーを外してから使う）。
 if (args.Length > 0 && args[0] == "dumpworld")
 {
     NationConfig[] all = WorldData.Nations();
@@ -3518,8 +3520,7 @@ if (args.Length > 0 && args[0] == "portledger")
     foreach (var fi in typeof(Coefficients).GetFields(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public))
     {
         if (fi.FieldType != typeof(double) && fi.FieldType != typeof(int) && !UnitValues.IsUnit(fi.FieldType)) continue;   // ★(246) 専用の値型の係数も台帳に載せる
-        object? craw = fi.GetValue(cobj);
-        double v = craw is IUnitValue cu ? cu.Value : System.Convert.ToDouble(craw);
+        UnitValues.TryToDouble(fi.GetValue(cobj), out double v);   // ★(248) 取り出しは橋の1本（double・int・専用の値型）
         (v == 0 ? dormant : live).Add($"{fi.Name} = {v}");
     }
     // ★決定論（原則⑥）：Type.GetFields の返却順は仕様上未規定＝台帳をバイト再現させるため名前で整列する。
@@ -4906,7 +4907,7 @@ if (args.Length > 0 && args[0] == "politics-ablation")
     int PaRun(string? flag)
     {
         var sim = new MultiNationSim(WorldData.Nations(), paSeed, _ => new UtilityAgent());
-        var saved = new List<(Coefficients c, double v)>();
+        var saved = new List<(Coefficients c, object v)>();   // ★(248) 専用の値型の係数も扱う＝元の値は型のまま戻す
         System.Reflection.FieldInfo? fi = null;
         if (flag is not null)
         {
@@ -4915,8 +4916,8 @@ if (args.Length > 0 && args[0] == "politics-ablation")
             {
                 var co = n0.World.Coef;
                 if (co is null || saved.Exists(x => ReferenceEquals(x.c, co))) continue;
-                saved.Add((co, (double)fi.GetValue(co)!));
-                fi.SetValue(co, 0.0);
+                saved.Add((co, fi.GetValue(co)!));
+                fi.SetValue(co, UnitValues.FromDouble(fi.FieldType, 0.0));
             }
         }
         var prevP = sim.Nations.Select(n0 => n0.World.Polity).ToArray();
@@ -4960,7 +4961,7 @@ if (args.Length > 0 && args[0] == "chronicle")
             {
                 var co = n0.World.Coef;
                 if (co is null || done.Exists(x => ReferenceEquals(x, co))) continue;
-                done.Add(co); fi.SetValue(co, 0.0);
+                done.Add(co); fi.SetValue(co, UnitValues.FromDouble(fi.FieldType, 0.0));   // ★(248) 専用の値型の係数も0にできる
             }
         }
     m.StartWarmup();   // ★2026-09-07：selfplay-batch/popprobe と同じ助走を通す＝「年代記の世界」を帯の世界と一致させる（旧＝助走なし＝英の領土崩壊が年代記に出ず、popprobe（州31→1）と食い違った＝計器の構築時バグ）（--zero の後＝ゼロ化した係数で助走する）
@@ -8189,7 +8190,7 @@ if (args.Length > 0 && args[0] == "selfplay-batch")
     Console.WriteLine($"金本位の強制離脱（兌換停止）: 総{b.GoldSuspensions}回（うちカバー率割れ {b.GoldCoverSuspensions}回）・発生試合 {b.GoldSuspensionMatches}/{b.N}");   // GoldCoverMin有効化2026-07-10
     Console.WriteLine($"国家の出入り: 分離独立の建国 {b.Independences}回　変名（統一/formable） {b.Formations}回　内戦分裂 {b.CivilWarSplits}回");
     Console.WriteLine($"選挙（E0計器）: 1試合あたり総選挙 {b.AvgElections:F0}回（全61カ国計）　平均間隔 {b.AvgElectionIntervalQ:F1}四半期（史実英1832-1914＝約15.6Q）");
-    // ★(186) 計器の分母（申し送り vb#10）＝史実の側も同じ6国の平均（HistoricalReference.TradeOpenness1913＝1913 年・旧＝英1国の約40% と比べていた）。⚠ シミュの値は終局（1950年）の断面の種の平均＝桁の判定は計器 inj_t186 の10年の窓×種の中央で読む（実装ログ (186)）。
+    // ★(186) 計器の分母（申し送り vb#10）＝史実の側も同じ6国の平均（HistoricalReference.TradeOpenness1913＝1913 年・旧＝英1国の約40% と比べていた）。⚠ シミュの値は終局（1950年）の断面の種の平均＝桁の判定は計器（(245) から標準の計器の nation 表＝`ng.sh` の `an_trade186`・旧の注入 inj_t186 は消した）の10年の窓×種の中央で読む（実装ログ (186)(245)）。
     double tradeRef = SelfPlayMatch.MajorsTradeGdpRef1913();
     Console.WriteLine($"貿易（復活計器）: 6大国の終局 貿易/GDP 平均 {b.AvgTradeGdpMajors:P2}（史実＝同じ6国の1913年の平均 {tradeRef:P1}・比 {(tradeRef > 0 ? b.AvgTradeGdpMajors / tradeRef : 0):F3}）");
     Console.WriteLine("\n勝者分布:");

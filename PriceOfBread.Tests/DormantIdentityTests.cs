@@ -131,8 +131,7 @@ public class DormantIdentityTests
         {
             var f = typeof(Coefficients).GetField(name);
             Assert.True(f is not null, $"休眠係数「{name}」が Coefficients に無い（改名したら本テストの表も直す）");
-            object? raw = f!.GetValue(c);
-            double v = raw is IUnitValue uv ? uv.Value : System.Convert.ToDouble(raw);   // ★(246) 専用の値型の係数も読む
+            Assert.True(UnitValues.TryToDouble(f!.GetValue(c), out double v), $"休眠係数「{name}」が double・int・専用の値型でない");   // ★(246)(248) 専用の値型の係数も読む（取り出しは橋の1本）
             Assert.True(v == 0.0,
                 $"休眠のはずの「{name}」が既定 {v}＝**点火されている**。点火したなら本テストの表からも外すこと（表が休眠の一覧である）");
         }

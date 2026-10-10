@@ -5,6 +5,9 @@
 #   ＝`INS=1 bash batch.sh run <腕>` が `POB_INSTRUMENTS=<出力>/ins` を立てて回し、`bash ng.sh <出力>/ins <タグ> <読み手の出力フォルダ>` が読む（注入は要らない）。
 #   ここに残る fullS の注入は NG の入力ではない（rd.sh の他の読み手と、過去の回の再現のため）。単独の読み手しか無かった gate・wpn・t186 の注入は消した。
 #   ⚠注入は木のソースの形に依存する（assert で止まる）＝HEAD で通るか先に確かめる。
+#   ⚠⚠(248) **(246) 以後の木（専用の値型 MoneyPerMonth・RatePerYear ほか）では fullS・probe・fullX の注入は当たらない**＝錨が消えた（army/inj_fc3・mil 連鎖〔m194/inj_mil8x→…→mil2/inj_mil4〕・m190/fix_mil4）・
+#     注入した式が double と型を混ぜてコンパイルが通らない（m204/inj_d204・m205/inj_fx205 ほか約40件）。計器つきの帯は `INS=1 … run`（標準の計器）で回す。
+#     注入の読み手を使う回は、その量を標準の計器（SimCore/Instruments.cs）へ畳んでから読む（注入を直さない）。
 #   環境変数：POB_WORK＝作業フォルダ（必須・D: 側）／POB_REPO＝リポジトリ（既定＝この scripts/instruments の2つ上）
 # (209) 線S：写しの木＋読むだけの計器で measure.sh を1本（前面・1本ずつ・腕ごとに基線の写し）
 #   bash batch.sh prep <腕> <commit:<sha>|dir:<path>> <計器 fullS|probe|plain> [編集の python（パス・引数に木の根）...]

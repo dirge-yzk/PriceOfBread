@@ -35,6 +35,8 @@ if [ "${1:-}" = "selfplay-batch" ]; then
   fi
   case "$2" in 10) RUN_NOTE="（10種＝採否）" ;; 5) RUN_NOTE="（5種＝探索）" ;; *) RUN_NOTE="（${2}種）" ;; esac
 fi
+# ★(248) 標準の計器を出した走行はマニフェストの RUN 行に名乗る（帯の本体は計器の有無で1バイトも変わらない＝本体からは区別できない）。
+if [ -n "${POB_INSTRUMENTS:-}" ]; then RUN_NOTE="$RUN_NOTE（計器 POB_INSTRUMENTS=$POB_INSTRUMENTS${POB_INSTRUMENTS_NATIONS:+ NATIONS=$POB_INSTRUMENTS_NATIONS}）"; fi
 # dotnet と隔離先は環境ごとに違う（機体を跨ぐと旧既定は存在しない）。明示指定＞既定パス＞PATH の順で解決する。
 DOTNET="${DOTNET:-}"
 if [ -z "$DOTNET" ] || [ ! -x "$DOTNET" ]; then

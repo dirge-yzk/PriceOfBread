@@ -19,5 +19,6 @@ python $SP/m182/an_wardead182.py $I > $R/wardead_$T.txt 2>&1
 python $SP/m182/an_mil182.py $T=$I > $R/mil180_$T.txt 2>&1
 python $SP/m186/an_trade186.py t $I $T > $R/trade_$T.txt 2>&1
 python $SP/m192/an_warlaw192.py $I > $R/warlaw_$T.txt 2>&1
-for f in navy rail steam fin hist171 hist sold wardead mil180 trade warlaw; do echo "${f}_$T.txt $(wc -l < $R/${f}_$T.txt) $(grep -c -i 'Traceback\|Error' $R/${f}_$T.txt)"; done
+python $SP/m192/an_lawmatch192.py $T=$R/mil180_$T.txt > $R/lawmatch_$T.txt 2>&1   # (248) rd.sh から移した（mil180 と同じフォルダ・タグで読む）
+for f in navy rail steam fin hist171 hist sold wardead mil180 trade warlaw lawmatch; do echo "${f}_$T.txt $(wc -l < $R/${f}_$T.txt) $(grep -c -i 'Traceback\|Error' $R/${f}_$T.txt)"; done
 if [ -n "${4:-}" ]; then python $SP/m192/ngset192.py "$4" rd:$R:$T; fi
