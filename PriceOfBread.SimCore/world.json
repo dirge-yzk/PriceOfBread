@@ -12,12 +12,6 @@
    "merchant": 467,
    "artisan": 1400,
    "literacy": 0.37,
-   "clergyFrac": 0.4,
-   "intelligentsiaFrac": 0.35,
-   "peasantSubsistence": 0.7,
-   "polity": "Absolutist",
-   "education": "Religious",
-   "coercion": 400,
    "treasury": 3700,
    "pollTaxStage": 2,
    "landTaxStage": 2,
@@ -76,8 +70,6 @@
      "popK": 15
     }
    ],
-   "initialSuffrage": "None",
-   "initialCensorship": "StatePressOnly",
    "initialCornLaws": "Limited",
    "initialSerfEmancipation": "Limited",
    "provinces": [
@@ -159,11 +151,9 @@
      "coastal": false
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": 48.9,
    "longitude": 2.3,
-   "farmLordShare": 0.5,
-   "culturalGoodId": 54
+   "farmLordShare": 0.5
   },
   {
    "name": "日本",
@@ -177,23 +167,12 @@
    "merchant": 700,
    "artisan": 1050,
    "literacy": 0.27,
-   "clergyFrac": 0.4,
-   "intelligentsiaFrac": 0.35,
-   "peasantSubsistence": 0.7,
    "polity": "Shogunate",
-   "education": "Religious",
    "coercion": 450,
    "treasury": 19000,
-   "pollTaxStage": 1,
    "landTaxStage": 3,
    "initialTariff": 0.95,
-   "industrialization": 0,
-   "initialColonies": [],
-   "initialSuffrage": "None",
    "initialConscription": "Volunteer",
-   "initialCensorship": "StatePressOnly",
-   "initialCornLaws": "Full",
-   "initialSerfEmancipation": "None",
    "initialImmigration": "Closed",
    "provinces": [
     {
@@ -284,7 +263,6 @@
      "arableLand": 8000
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": 35.7,
    "longitude": 139.7,
    "farmLordShare": 0.5,
@@ -303,9 +281,6 @@
    "merchant": 450,
    "artisan": 1156,
    "literacy": 0.54,
-   "clergyFrac": 0.4,
-   "intelligentsiaFrac": 0.35,
-   "peasantSubsistence": 0.7,
    "polity": "ConstitutionalMonarchy",
    "education": "Public",
    "coercion": 380,
@@ -486,7 +461,6 @@
    "initialSuffrage": "Census",
    "initialConscription": "Volunteer",
    "initialCensorship": "Censorship",
-   "initialCornLaws": "Full",
    "initialSerfEmancipation": "Full",
    "initialMonetaryLaw": "Gold",
    "provinces": [
@@ -559,7 +533,6 @@
      "indShare": 0.06
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": 51.5,
    "longitude": -0.1,
    "farmLordShare": 0.5,
@@ -577,9 +550,6 @@
    "merchant": 125,
    "artisan": 143,
    "literacy": 0.65,
-   "clergyFrac": 0.4,
-   "intelligentsiaFrac": 0.35,
-   "peasantSubsistence": 0.7,
    "polity": "Republic",
    "education": "Public",
    "coercion": 180,
@@ -588,7 +558,6 @@
    "nationalConsciousness0": 0.32,
    "initialTariff": 0.1,
    "industrialization": 0.2,
-   "initialColonies": [],
    "initialSuffrage": "Census",
    "initialConscription": "Volunteer",
    "initialCensorship": "FreePress",
@@ -655,7 +624,6 @@
      "religion": ""
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": 40.7,
    "longitude": -74,
    "farmLordShare": 0,
@@ -673,19 +641,13 @@
    "merchant": 227,
    "artisan": 453,
    "literacy": 0.05,
-   "clergyFrac": 0.4,
-   "intelligentsiaFrac": 0.35,
-   "peasantSubsistence": 0.7,
    "polity": "Despotic",
-   "education": "Religious",
    "coercion": 700,
    "treasury": 12000,
-   "pollTaxStage": 1,
    "landTaxStage": 0,
    "govDebt": 20000,
    "institutionalDecay": 0.4,
    "initialTariff": 0.3,
-   "industrialization": 0,
    "initialColonies": [
     {
      "name": "アラスカ",
@@ -710,10 +672,6 @@
      "popK": 5
     }
    ],
-   "initialSuffrage": "None",
-   "initialCensorship": "StatePressOnly",
-   "initialCornLaws": "Full",
-   "initialSerfEmancipation": "None",
    "provinces": [
     {
      "city": "モスクワ",
@@ -980,7 +938,6 @@
      "religion": ""
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": 59.9,
    "longitude": 30.3,
    "farmLordShare": 1,
@@ -999,10 +956,6 @@
    "merchant": 122,
    "artisan": 377,
    "literacy": 0.45,
-   "clergyFrac": 0.4,
-   "intelligentsiaFrac": 0.35,
-   "peasantSubsistence": 0.7,
-   "polity": "Absolutist",
    "education": "Public",
    "coercion": 600,
    "treasury": 46000,
@@ -1010,11 +963,6 @@
    "landTaxStage": 2,
    "initialTariff": 0.2,
    "industrialization": 0.3,
-   "initialColonies": [],
-   "initialSuffrage": "None",
-   "initialCensorship": "StatePressOnly",
-   "initialCornLaws": "Full",
-   "initialSerfEmancipation": "None",
    "provinces": [
     {
      "city": "ベルリン",
@@ -1081,7 +1029,6 @@
      "coastal": true
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": 52.5,
    "longitude": 13.4,
    "farmLordShare": 0.8,
@@ -1099,20 +1046,11 @@
    "merchant": 600,
    "artisan": 900,
    "literacy": 0.03,
-   "clergyFrac": 0.4,
-   "intelligentsiaFrac": 0.35,
-   "peasantSubsistence": 0.7,
-   "polity": "Absolutist",
-   "education": "Religious",
    "coercion": 500,
    "treasury": 12000,
    "institutionalDecay": 0.6,
    "initialTariff": 0.1,
-   "industrialization": 0,
-   "initialColonies": [],
-   "initialSuffrage": "None",
    "initialConscription": "Volunteer",
-   "initialCensorship": "StatePressOnly",
    "initialCornLaws": "Limited",
    "initialSerfEmancipation": "Limited",
    "provinces": [
@@ -1303,7 +1241,6 @@
      "coastal": true
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": 41,
    "longitude": 29,
    "farmLordShare": 0.8,
@@ -1321,22 +1258,12 @@
    "merchant": 315,
    "artisan": 946,
    "literacy": 0.3,
-   "clergyFrac": 0.4,
-   "intelligentsiaFrac": 0.35,
-   "peasantSubsistence": 0.7,
-   "polity": "Absolutist",
-   "education": "Religious",
    "coercion": 500,
    "treasury": 13000,
-   "pollTaxStage": 1,
    "landTaxStage": 3,
    "govDebt": 90000,
    "initialTariff": 0.3,
    "industrialization": 0.2,
-   "initialColonies": [],
-   "initialSuffrage": "None",
-   "initialCensorship": "StatePressOnly",
-   "initialCornLaws": "Full",
    "initialSerfEmancipation": "Limited",
    "provinces": [
     {
@@ -1492,7 +1419,6 @@
      "coastal": true
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": 48.2,
    "longitude": 16.4,
    "farmLordShare": 0.5,
@@ -1510,9 +1436,6 @@
    "merchant": 277,
    "artisan": 246,
    "literacy": 0.85,
-   "clergyFrac": 0.4,
-   "intelligentsiaFrac": 0.35,
-   "peasantSubsistence": 0.7,
    "polity": "Republic",
    "education": "Public",
    "coercion": 250,
@@ -1599,7 +1522,6 @@
      "religion": "プロテスタント"
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": 52.4,
    "longitude": 4.9,
    "farmLordShare": 0.5,
@@ -1617,18 +1539,11 @@
    "merchant": 232,
    "artisan": 511,
    "literacy": 0.08,
-   "clergyFrac": 0.4,
-   "intelligentsiaFrac": 0.35,
-   "peasantSubsistence": 0.7,
-   "polity": "Absolutist",
-   "education": "Religious",
    "coercion": 500,
    "treasury": 9800,
    "pollTaxStage": 0,
-   "landTaxStage": 1,
    "govDebt": 95000,
    "initialTariff": 0.3,
-   "industrialization": 0,
    "initialColonies": [
     {
      "name": "ヌエバ・エスパーニャ銀地帯",
@@ -1793,9 +1708,6 @@
      "popK": 50
     }
    ],
-   "initialSuffrage": "None",
-   "initialCensorship": "StatePressOnly",
-   "initialCornLaws": "Full",
    "initialSerfEmancipation": "Limited",
    "provinces": [
     {
@@ -1863,11 +1775,9 @@
      "coastal": true
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": 40.4,
    "longitude": -3.7,
-   "farmLordShare": 0.5,
-   "culturalGoodId": 54
+   "farmLordShare": 0.5
   },
   {
    "name": "サルデーニャ＝ピエモンテ",
@@ -1881,21 +1791,12 @@
    "merchant": 66,
    "artisan": 306,
    "literacy": 0.35,
-   "clergyFrac": 0.4,
-   "intelligentsiaFrac": 0.35,
-   "peasantSubsistence": 0.7,
-   "polity": "Absolutist",
-   "education": "Religious",
    "coercion": 450,
    "treasury": 2400,
    "pollTaxStage": 0,
    "landTaxStage": 3,
    "initialTariff": 0.2,
    "industrialization": 0.1,
-   "initialColonies": [],
-   "initialSuffrage": "None",
-   "initialCensorship": "StatePressOnly",
-   "initialCornLaws": "Full",
    "initialSerfEmancipation": "Limited",
    "provinces": [
     {
@@ -1935,11 +1836,9 @@
      "coastal": false
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": 45.1,
    "longitude": 7.7,
-   "farmLordShare": 0.5,
-   "culturalGoodId": 54
+   "farmLordShare": 0.5
   },
   {
    "name": "清",
@@ -1954,11 +1853,7 @@
    "merchant": 6000,
    "artisan": 16000,
    "literacy": 0.2,
-   "clergyFrac": 0.4,
-   "intelligentsiaFrac": 0.35,
-   "peasantSubsistence": 0.7,
    "polity": "Despotic",
-   "education": "Religious",
    "coercion": 500,
    "treasury": 160000,
    "pollTaxStage": 0,
@@ -1966,13 +1861,7 @@
    "initialMassMilitancy": 0.25,
    "institutionalDecay": 0.8,
    "initialTariff": 0.8,
-   "industrialization": 0,
-   "initialColonies": [],
-   "initialSuffrage": "None",
    "initialConscription": "Volunteer",
-   "initialCensorship": "StatePressOnly",
-   "initialCornLaws": "Full",
-   "initialSerfEmancipation": "None",
    "initialImmigration": "Selective",
    "provinces": [
     {
@@ -2274,7 +2163,6 @@
      "religion": ""
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": 39.9,
    "longitude": 116.4,
    "farmLordShare": 0.5,
@@ -2292,20 +2180,9 @@
    "merchant": 300,
    "artisan": 600,
    "literacy": 0.1,
-   "clergyFrac": 0.4,
-   "intelligentsiaFrac": 0.35,
-   "peasantSubsistence": 0.7,
-   "polity": "Absolutist",
-   "education": "Religious",
    "coercion": 450,
    "treasury": 4500,
    "initialTariff": 0.9,
-   "industrialization": 0,
-   "initialColonies": [],
-   "initialSuffrage": "None",
-   "initialCensorship": "StatePressOnly",
-   "initialCornLaws": "Full",
-   "initialSerfEmancipation": "None",
    "initialImmigration": "Closed",
    "provinces": [
     {
@@ -2360,10 +2237,8 @@
      "coastal": false
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": 37.5,
    "longitude": 127.0,
-   "farmLordShare": 0.6,
    "culturalGoodId": 93
   },
   {
@@ -2378,23 +2253,11 @@
    "merchant": 1200,
    "artisan": 3000,
    "literacy": 0.05,
-   "clergyFrac": 0.4,
-   "intelligentsiaFrac": 0.35,
-   "peasantSubsistence": 0.7,
    "polity": "Despotic",
-   "education": "Religious",
-   "coercion": 400,
    "treasury": 18000,
    "pollTaxStage": 0,
    "landTaxStage": 3,
-   "initialTariff": 0.4,
-   "industrialization": 0,
-   "initialColonies": [],
-   "initialSuffrage": "None",
    "initialConscription": "Volunteer",
-   "initialCensorship": "StatePressOnly",
-   "initialCornLaws": "Full",
-   "initialSerfEmancipation": "None",
    "provinces": [
     {
      "city": "プーナ",
@@ -2470,10 +2333,8 @@
      "coastal": true
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": 18.52,
    "longitude": 73.86,
-   "farmLordShare": 0.6,
    "culturalGoodId": 93
   },
   {
@@ -2488,23 +2349,12 @@
    "merchant": 239,
    "artisan": 557,
    "literacy": 0.05,
-   "clergyFrac": 0.4,
-   "intelligentsiaFrac": 0.35,
-   "peasantSubsistence": 0.7,
    "polity": "Despotic",
-   "education": "Religious",
-   "coercion": 400,
    "treasury": 2149,
    "pollTaxStage": 0,
    "landTaxStage": 3,
    "initialTariff": 0.5,
-   "industrialization": 0,
-   "initialColonies": [],
-   "initialSuffrage": "None",
    "initialConscription": "Volunteer",
-   "initialCensorship": "StatePressOnly",
-   "initialCornLaws": "Full",
-   "initialSerfEmancipation": "None",
    "provinces": [
     {
      "city": "シュリーランガパトナ",
@@ -2537,10 +2387,8 @@
      "coastal": true
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": 12.42,
    "longitude": 76.69,
-   "farmLordShare": 0.6,
    "culturalGoodId": 93
   },
   {
@@ -2552,26 +2400,13 @@
    "worker": 200,
    "bourgeois": 200,
    "professional": 150,
-   "merchant": 400,
    "artisan": 1000,
    "literacy": 0.05,
-   "clergyFrac": 0.4,
-   "intelligentsiaFrac": 0.35,
-   "peasantSubsistence": 0.7,
    "polity": "Despotic",
-   "education": "Religious",
-   "coercion": 400,
    "treasury": 4500,
    "pollTaxStage": 0,
    "landTaxStage": 3,
-   "initialTariff": 0.4,
-   "industrialization": 0,
-   "initialColonies": [],
-   "initialSuffrage": "None",
    "initialConscription": "Volunteer",
-   "initialCensorship": "StatePressOnly",
-   "initialCornLaws": "Full",
-   "initialSerfEmancipation": "None",
    "provinces": [
     {
      "city": "ハイデラバード",
@@ -2604,10 +2439,8 @@
      "coastal": false
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": 17.4,
    "longitude": 78.5,
-   "farmLordShare": 0.6,
    "culturalGoodId": 93
   },
   {
@@ -2622,23 +2455,12 @@
    "merchant": 300,
    "artisan": 600,
    "literacy": 0.05,
-   "clergyFrac": 0.4,
-   "intelligentsiaFrac": 0.35,
-   "peasantSubsistence": 0.7,
    "polity": "Republic",
-   "education": "Religious",
    "coercion": 250,
    "treasury": 2500,
    "pollTaxStage": 0,
    "landTaxStage": 3,
-   "initialTariff": 0.4,
-   "industrialization": 0,
-   "initialColonies": [],
-   "initialSuffrage": "None",
    "initialConscription": "Volunteer",
-   "initialCensorship": "StatePressOnly",
-   "initialCornLaws": "Full",
-   "initialSerfEmancipation": "None",
    "provinces": [
     {
      "city": "ラホール",
@@ -2652,10 +2474,8 @@
      "coastal": false
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": 31.5,
    "longitude": 74.3,
-   "farmLordShare": 0.6,
    "culturalGoodId": 93
   },
   {
@@ -2670,20 +2490,8 @@
    "merchant": 200,
    "artisan": 500,
    "literacy": 0.2,
-   "clergyFrac": 0.4,
-   "intelligentsiaFrac": 0.35,
-   "peasantSubsistence": 0.7,
    "polity": "Despotic",
-   "education": "Religious",
-   "coercion": 400,
    "treasury": 2500,
-   "initialTariff": 0.4,
-   "industrialization": 0,
-   "initialColonies": [],
-   "initialSuffrage": "None",
-   "initialCensorship": "StatePressOnly",
-   "initialCornLaws": "Full",
-   "initialSerfEmancipation": "None",
    "provinces": [
     {
      "city": "ラングーン",
@@ -2710,10 +2518,8 @@
      "coastal": false
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": 21.9,
    "longitude": 96.0,
-   "farmLordShare": 0.6,
    "culturalGoodId": 93
   },
   {
@@ -2728,21 +2534,8 @@
    "merchant": 120,
    "artisan": 350,
    "literacy": 0.04,
-   "clergyFrac": 0.4,
-   "intelligentsiaFrac": 0.35,
-   "peasantSubsistence": 0.7,
-   "polity": "Absolutist",
-   "education": "Religious",
-   "coercion": 400,
    "treasury": 1700,
-   "initialTariff": 0.4,
-   "industrialization": 0,
-   "initialColonies": [],
-   "initialSuffrage": "None",
    "initialConscription": "Volunteer",
-   "initialCensorship": "StatePressOnly",
-   "initialCornLaws": "Full",
-   "initialSerfEmancipation": "None",
    "provinces": [
     {
      "city": "カトマンズ",
@@ -2756,10 +2549,8 @@
      "coastal": false
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": 27.7,
    "longitude": 85.3,
-   "farmLordShare": 0.6,
    "culturalGoodId": 93
   },
   {
@@ -2774,20 +2565,7 @@
    "merchant": 264,
    "artisan": 461,
    "literacy": 0.12,
-   "clergyFrac": 0.4,
-   "intelligentsiaFrac": 0.35,
-   "peasantSubsistence": 0.7,
-   "polity": "Absolutist",
-   "education": "Religious",
-   "coercion": 400,
    "treasury": 2200,
-   "initialTariff": 0.4,
-   "industrialization": 0,
-   "initialColonies": [],
-   "initialSuffrage": "None",
-   "initialCensorship": "StatePressOnly",
-   "initialCornLaws": "Full",
-   "initialSerfEmancipation": "None",
    "provinces": [
     {
      "city": "バンコク",
@@ -2804,10 +2582,8 @@
      "coastal": true
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": 13.75,
    "longitude": 100.5,
-   "farmLordShare": 0.6,
    "culturalGoodId": 93
   },
   {
@@ -2822,20 +2598,8 @@
    "merchant": 266,
    "artisan": 637,
    "literacy": 0.08,
-   "clergyFrac": 0.4,
-   "intelligentsiaFrac": 0.35,
-   "peasantSubsistence": 0.7,
    "polity": "Despotic",
-   "education": "Religious",
-   "coercion": 400,
    "treasury": 2697,
-   "initialTariff": 0.4,
-   "industrialization": 0,
-   "initialColonies": [],
-   "initialSuffrage": "None",
-   "initialCensorship": "StatePressOnly",
-   "initialCornLaws": "Full",
-   "initialSerfEmancipation": "None",
    "provinces": [
     {
      "city": "ハノイ",
@@ -2862,10 +2626,8 @@
      "coastal": true
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": 16.47,
    "longitude": 107.58,
-   "farmLordShare": 0.6,
    "culturalGoodId": 93
   },
   {
@@ -2880,20 +2642,7 @@
    "merchant": 34,
    "artisan": 86,
    "literacy": 0.1,
-   "clergyFrac": 0.4,
-   "intelligentsiaFrac": 0.35,
-   "peasantSubsistence": 0.7,
-   "polity": "Absolutist",
-   "education": "Religious",
-   "coercion": 400,
    "treasury": 341,
-   "initialTariff": 0.4,
-   "industrialization": 0,
-   "initialColonies": [],
-   "initialSuffrage": "None",
-   "initialCensorship": "StatePressOnly",
-   "initialCornLaws": "Full",
-   "initialSerfEmancipation": "None",
    "provinces": [
     {
      "city": "プノンペン",
@@ -2907,10 +2656,8 @@
      "coastal": true
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": 11.55,
    "longitude": 104.9,
-   "farmLordShare": 0.6,
    "culturalGoodId": 93
   },
   {
@@ -2925,20 +2672,7 @@
    "merchant": 60,
    "artisan": 150,
    "literacy": 0.1,
-   "clergyFrac": 0.4,
-   "intelligentsiaFrac": 0.35,
-   "peasantSubsistence": 0.7,
-   "polity": "Absolutist",
-   "education": "Religious",
-   "coercion": 400,
    "treasury": 450,
-   "initialTariff": 0.4,
-   "industrialization": 0,
-   "initialColonies": [],
-   "initialSuffrage": "None",
-   "initialCensorship": "StatePressOnly",
-   "initialCornLaws": "Full",
-   "initialSerfEmancipation": "None",
    "provinces": [
     {
      "city": "ヴィエンチャン",
@@ -2952,10 +2686,8 @@
      "coastal": false
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": 17.97,
    "longitude": 102.6,
-   "farmLordShare": 0.6,
    "culturalGoodId": 93
   },
   {
@@ -2970,21 +2702,10 @@
    "merchant": 467,
    "artisan": 1000,
    "literacy": 0.03,
-   "clergyFrac": 0.4,
-   "intelligentsiaFrac": 0.35,
-   "peasantSubsistence": 0.7,
    "polity": "Despotic",
-   "education": "Religious",
-   "coercion": 400,
    "treasury": 2137,
    "initialTariff": 0.05,
-   "industrialization": 0,
-   "initialColonies": [],
-   "initialSuffrage": "None",
    "initialConscription": "Volunteer",
-   "initialCensorship": "StatePressOnly",
-   "initialCornLaws": "Full",
-   "initialSerfEmancipation": "None",
    "provinces": [
     {
      "city": "テヘラン",
@@ -3070,11 +2791,8 @@
      "coastal": true
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": 35.7,
-   "longitude": 51.4,
-   "farmLordShare": 0.6,
-   "culturalGoodId": 54
+   "longitude": 51.4
   },
   {
    "name": "アラビア",
@@ -3088,21 +2806,10 @@
    "merchant": 150,
    "artisan": 120,
    "literacy": 0.04,
-   "clergyFrac": 0.4,
-   "intelligentsiaFrac": 0.35,
-   "peasantSubsistence": 0.7,
    "polity": "Despotic",
-   "education": "Religious",
-   "coercion": 400,
    "treasury": 450,
    "initialTariff": 0.1,
-   "industrialization": 0,
-   "initialColonies": [],
-   "initialSuffrage": "None",
    "initialConscription": "Volunteer",
-   "initialCensorship": "StatePressOnly",
-   "initialCornLaws": "Full",
-   "initialSerfEmancipation": "None",
    "provinces": [
     {
      "city": "ディルイーヤ",
@@ -3125,11 +2832,8 @@
      "coastal": true
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": 24.73,
-   "longitude": 46.57,
-   "farmLordShare": 0.6,
-   "culturalGoodId": 54
+   "longitude": 46.57
   },
   {
    "name": "イエメン",
@@ -3143,21 +2847,9 @@
    "merchant": 210,
    "artisan": 280,
    "literacy": 0.04,
-   "clergyFrac": 0.4,
-   "intelligentsiaFrac": 0.35,
-   "peasantSubsistence": 0.7,
-   "polity": "Absolutist",
-   "education": "Religious",
-   "coercion": 400,
    "treasury": 890,
    "initialTariff": 0.1,
-   "industrialization": 0,
-   "initialColonies": [],
-   "initialSuffrage": "None",
    "initialConscription": "Volunteer",
-   "initialCensorship": "StatePressOnly",
-   "initialCornLaws": "Full",
-   "initialSerfEmancipation": "None",
    "provinces": [
     {
      "city": "サヌア",
@@ -3180,11 +2872,8 @@
      "coastal": true
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": 15.35,
-   "longitude": 44.2,
-   "farmLordShare": 0.6,
-   "culturalGoodId": 54
+   "longitude": 44.2
   },
   {
    "name": "オマーン",
@@ -3198,15 +2887,8 @@
    "merchant": 97,
    "artisan": 48,
    "literacy": 0.04,
-   "clergyFrac": 0.4,
-   "intelligentsiaFrac": 0.35,
-   "peasantSubsistence": 0.7,
-   "polity": "Absolutist",
-   "education": "Religious",
-   "coercion": 400,
    "treasury": 267,
    "initialTariff": 0.05,
-   "industrialization": 0,
    "initialColonies": [
     {
      "name": "ザンジバル",
@@ -3222,11 +2904,7 @@
      "popK": 100
     }
    ],
-   "initialSuffrage": "None",
    "initialConscription": "Volunteer",
-   "initialCensorship": "StatePressOnly",
-   "initialCornLaws": "Full",
-   "initialSerfEmancipation": "None",
    "provinces": [
     {
      "city": "マスカット",
@@ -3249,11 +2927,8 @@
      "religion": ""
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": 23.6,
-   "longitude": 58.5,
-   "farmLordShare": 0.6,
-   "culturalGoodId": 54
+   "longitude": 58.5
   },
   {
    "name": "アフガニスタン",
@@ -3267,21 +2942,10 @@
    "merchant": 500,
    "artisan": 1000,
    "literacy": 0.02,
-   "clergyFrac": 0.4,
-   "intelligentsiaFrac": 0.35,
-   "peasantSubsistence": 0.7,
    "polity": "Despotic",
-   "education": "Religious",
-   "coercion": 400,
    "treasury": 2900,
    "initialTariff": 0.1,
-   "industrialization": 0,
-   "initialColonies": [],
-   "initialSuffrage": "None",
    "initialConscription": "Volunteer",
-   "initialCensorship": "StatePressOnly",
-   "initialCornLaws": "Full",
-   "initialSerfEmancipation": "None",
    "provinces": [
     {
      "city": "カブール",
@@ -3332,11 +2996,8 @@
      "coastal": false
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": 34.5,
-   "longitude": 69.2,
-   "farmLordShare": 0.6,
-   "culturalGoodId": 54
+   "longitude": 69.2
   },
   {
    "name": "ブハラ",
@@ -3347,24 +3008,10 @@
    "worker": 50,
    "bourgeois": 120,
    "professional": 60,
-   "merchant": 400,
    "artisan": 500,
    "literacy": 0.03,
-   "clergyFrac": 0.4,
-   "intelligentsiaFrac": 0.35,
-   "peasantSubsistence": 0.7,
-   "polity": "Absolutist",
-   "education": "Religious",
-   "coercion": 400,
    "treasury": 1200,
-   "initialTariff": 0.4,
-   "industrialization": 0,
-   "initialColonies": [],
-   "initialSuffrage": "None",
    "initialConscription": "Volunteer",
-   "initialCensorship": "StatePressOnly",
-   "initialCornLaws": "Full",
-   "initialSerfEmancipation": "None",
    "provinces": [
     {
      "city": "ブハラ",
@@ -3379,11 +3026,8 @@
      "coastal": false
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": 39.77,
-   "longitude": 64.42,
-   "farmLordShare": 0.6,
-   "culturalGoodId": 54
+   "longitude": 64.42
   },
   {
    "name": "ヒヴァ",
@@ -3397,21 +3041,8 @@
    "merchant": 120,
    "artisan": 150,
    "literacy": 0.03,
-   "clergyFrac": 0.4,
-   "intelligentsiaFrac": 0.35,
-   "peasantSubsistence": 0.7,
-   "polity": "Absolutist",
-   "education": "Religious",
-   "coercion": 400,
    "treasury": 290,
-   "initialTariff": 0.4,
-   "industrialization": 0,
-   "initialColonies": [],
-   "initialSuffrage": "None",
    "initialConscription": "Volunteer",
-   "initialCensorship": "StatePressOnly",
-   "initialCornLaws": "Full",
-   "initialSerfEmancipation": "None",
    "provinces": [
     {
      "city": "ヒヴァ",
@@ -3425,11 +3056,8 @@
      "coastal": false
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": 41.38,
-   "longitude": 60.36,
-   "farmLordShare": 0.6,
-   "culturalGoodId": 54
+   "longitude": 60.36
   },
   {
    "name": "コーカンド",
@@ -3443,21 +3071,8 @@
    "merchant": 250,
    "artisan": 300,
    "literacy": 0.03,
-   "clergyFrac": 0.4,
-   "intelligentsiaFrac": 0.35,
-   "peasantSubsistence": 0.7,
-   "polity": "Absolutist",
-   "education": "Religious",
-   "coercion": 400,
    "treasury": 660,
-   "initialTariff": 0.4,
-   "industrialization": 0,
-   "initialColonies": [],
-   "initialSuffrage": "None",
    "initialConscription": "Volunteer",
-   "initialCensorship": "StatePressOnly",
-   "initialCornLaws": "Full",
-   "initialSerfEmancipation": "None",
    "provinces": [
     {
      "city": "タシュケント",
@@ -3472,11 +3087,8 @@
      "coastal": false
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": 40.52,
-   "longitude": 70.94,
-   "farmLordShare": 0.6,
-   "culturalGoodId": 54
+   "longitude": 70.94
   },
   {
    "name": "モロッコ",
@@ -3490,21 +3102,9 @@
    "merchant": 500,
    "artisan": 900,
    "literacy": 0.03,
-   "clergyFrac": 0.4,
-   "intelligentsiaFrac": 0.35,
-   "peasantSubsistence": 0.7,
-   "polity": "Absolutist",
-   "education": "Religious",
-   "coercion": 400,
    "treasury": 2200,
    "initialTariff": 0.1,
-   "industrialization": 0,
-   "initialColonies": [],
-   "initialSuffrage": "None",
    "initialConscription": "Volunteer",
-   "initialCensorship": "StatePressOnly",
-   "initialCornLaws": "Full",
-   "initialSerfEmancipation": "None",
    "provinces": [
     {
      "city": "フェズ",
@@ -3540,11 +3140,8 @@
      "coastal": true
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": 34.0,
-   "longitude": -6.8,
-   "farmLordShare": 0.6,
-   "culturalGoodId": 54
+   "longitude": -6.8
   },
   {
    "name": "エチオピア",
@@ -3558,21 +3155,10 @@
    "merchant": 200,
    "artisan": 500,
    "literacy": 0.03,
-   "clergyFrac": 0.4,
-   "intelligentsiaFrac": 0.35,
-   "peasantSubsistence": 0.7,
    "polity": "Despotic",
-   "education": "Religious",
    "coercion": 150,
    "treasury": 1800,
-   "initialTariff": 0.4,
-   "industrialization": 0,
-   "initialColonies": [],
-   "initialSuffrage": "None",
    "initialConscription": "Volunteer",
-   "initialCensorship": "StatePressOnly",
-   "initialCornLaws": "Full",
-   "initialSerfEmancipation": "None",
    "provinces": [
     {
      "city": "ゴンダール",
@@ -3586,10 +3172,8 @@
      "coastal": false
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": 12.6,
    "longitude": 37.5,
-   "farmLordShare": 0.6,
    "culturalGoodId": 67
   },
   {
@@ -3604,20 +3188,7 @@
    "merchant": 150,
    "artisan": 300,
    "literacy": 0.01,
-   "clergyFrac": 0.4,
-   "intelligentsiaFrac": 0.35,
-   "peasantSubsistence": 0.7,
-   "polity": "Absolutist",
-   "education": "Religious",
-   "coercion": 400,
    "treasury": 1100,
-   "initialTariff": 0.4,
-   "industrialization": 0,
-   "initialColonies": [],
-   "initialSuffrage": "None",
-   "initialCensorship": "StatePressOnly",
-   "initialCornLaws": "Full",
-   "initialSerfEmancipation": "None",
    "provinces": [
     {
      "city": "アンタナナリヴ",
@@ -3640,10 +3211,8 @@
      "coastal": true
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": -18.9,
    "longitude": 47.5,
-   "farmLordShare": 0.6,
    "culturalGoodId": 93
   },
   {
@@ -3658,19 +3227,7 @@
    "merchant": 282,
    "artisan": 564,
    "literacy": 0.48,
-   "clergyFrac": 0.4,
-   "intelligentsiaFrac": 0.35,
-   "peasantSubsistence": 0.7,
-   "polity": "Absolutist",
-   "education": "Religious",
-   "coercion": 400,
    "treasury": 1200,
-   "initialTariff": 0.4,
-   "industrialization": 0,
-   "initialColonies": [],
-   "initialSuffrage": "None",
-   "initialCensorship": "StatePressOnly",
-   "initialCornLaws": "Full",
    "initialSerfEmancipation": "Full",
    "provinces": [
     {
@@ -3720,11 +3277,9 @@
      "coastal": true
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": 59.33,
    "longitude": 18.07,
-   "farmLordShare": 0.33,
-   "culturalGoodId": 54
+   "farmLordShare": 0.33
   },
   {
    "name": "デンマーク",
@@ -3738,15 +3293,8 @@
    "merchant": 315,
    "artisan": 490,
    "literacy": 0.5,
-   "clergyFrac": 0.4,
-   "intelligentsiaFrac": 0.35,
-   "peasantSubsistence": 0.7,
-   "polity": "Absolutist",
-   "education": "Religious",
-   "coercion": 400,
    "treasury": 1300,
    "initialTariff": 0.25,
-   "industrialization": 0,
    "initialColonies": [
     {
      "name": "ヌーク",
@@ -3754,10 +3302,6 @@
      "popK": 6
     }
    ],
-   "initialSuffrage": "None",
-   "initialCensorship": "StatePressOnly",
-   "initialCornLaws": "Full",
-   "initialSerfEmancipation": "None",
    "provinces": [
     {
      "city": "コペンハーゲン",
@@ -3804,11 +3348,8 @@
      "religion": ""
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": 55.68,
-   "longitude": 12.57,
-   "farmLordShare": 0.6,
-   "culturalGoodId": 54
+   "longitude": 12.57
   },
   {
    "name": "スイス",
@@ -3822,20 +3363,9 @@
    "merchant": 200,
    "artisan": 401,
    "literacy": 0.45,
-   "clergyFrac": 0.4,
-   "intelligentsiaFrac": 0.35,
-   "peasantSubsistence": 0.7,
    "polity": "Republic",
-   "education": "Religious",
-   "coercion": 400,
    "treasury": 740,
    "initialTariff": 0.05,
-   "industrialization": 0,
-   "initialColonies": [],
-   "initialSuffrage": "None",
-   "initialCensorship": "StatePressOnly",
-   "initialCornLaws": "Full",
-   "initialSerfEmancipation": "None",
    "provinces": [
     {
      "city": "ベルン",
@@ -3849,11 +3379,8 @@
      "coastal": false
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": 46.95,
-   "longitude": 7.45,
-   "farmLordShare": 0.6,
-   "culturalGoodId": 54
+   "longitude": 7.45
   },
   {
    "name": "ポーランド",
@@ -3864,24 +3391,12 @@
    "worker": 150,
    "bourgeois": 200,
    "professional": 150,
-   "merchant": 400,
    "artisan": 900,
    "literacy": 0.05,
-   "clergyFrac": 0.4,
-   "intelligentsiaFrac": 0.35,
-   "peasantSubsistence": 0.7,
    "polity": "Republic",
-   "education": "Religious",
    "coercion": 250,
    "treasury": 2900,
-   "initialTariff": 0.4,
-   "industrialization": 0,
-   "initialColonies": [],
-   "initialSuffrage": "None",
    "initialConscription": "Volunteer",
-   "initialCensorship": "StatePressOnly",
-   "initialCornLaws": "Full",
-   "initialSerfEmancipation": "None",
    "provinces": [
     {
      "city": "ワルシャワ",
@@ -3935,11 +3450,8 @@
      "coastal": false
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": 52.23,
-   "longitude": 21.0,
-   "farmLordShare": 0.6,
-   "culturalGoodId": 54
+   "longitude": 21.0
   },
   {
    "name": "ポルトガル",
@@ -3953,17 +3465,9 @@
    "merchant": 148,
    "artisan": 148,
    "literacy": 0.06,
-   "clergyFrac": 0.4,
-   "intelligentsiaFrac": 0.35,
-   "peasantSubsistence": 0.7,
-   "polity": "Absolutist",
-   "education": "Religious",
-   "coercion": 400,
    "treasury": 3000,
    "pollTaxStage": 0,
    "landTaxStage": 2,
-   "initialTariff": 0.4,
-   "industrialization": 0,
    "initialColonies": [
     {
      "name": "ブラジル",
@@ -4020,9 +3524,6 @@
      "popK": 50
     }
    ],
-   "initialSuffrage": "None",
-   "initialCensorship": "StatePressOnly",
-   "initialCornLaws": "Full",
    "initialSerfEmancipation": "Limited",
    "provinces": [
     {
@@ -4050,11 +3551,9 @@
      "coastal": true
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": 38.7,
    "longitude": -9.1,
-   "farmLordShare": 0.5,
-   "culturalGoodId": 54
+   "farmLordShare": 0.5
   },
   {
    "name": "ジェノヴァ",
@@ -4068,21 +3567,11 @@
    "merchant": 75,
    "artisan": 60,
    "literacy": 0.35,
-   "clergyFrac": 0.4,
-   "intelligentsiaFrac": 0.35,
-   "peasantSubsistence": 0.7,
    "polity": "Republic",
-   "education": "Religious",
    "coercion": 300,
    "treasury": 310,
    "initialTariff": 0.2,
-   "industrialization": 0,
-   "initialColonies": [],
-   "initialSuffrage": "None",
    "initialConscription": "Volunteer",
-   "initialCensorship": "StatePressOnly",
-   "initialCornLaws": "Full",
-   "initialSerfEmancipation": "None",
    "provinces": [
     {
      "city": "ジェノヴァ",
@@ -4096,11 +3585,9 @@
      "coastal": true
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": 44.41,
    "longitude": 8.93,
-   "farmLordShare": 0.5,
-   "culturalGoodId": 54
+   "farmLordShare": 0.5
   },
   {
    "name": "ライン諸邦",
@@ -4114,20 +3601,9 @@
    "merchant": 80,
    "artisan": 220,
    "literacy": 0.38,
-   "clergyFrac": 0.4,
-   "intelligentsiaFrac": 0.35,
-   "peasantSubsistence": 0.7,
-   "polity": "Absolutist",
-   "education": "Religious",
    "coercion": 350,
    "treasury": 2100,
    "initialTariff": 0.2,
-   "industrialization": 0,
-   "initialColonies": [],
-   "initialSuffrage": "None",
-   "initialCensorship": "StatePressOnly",
-   "initialCornLaws": "Full",
-   "initialSerfEmancipation": "None",
    "provinces": [
     {
      "city": "ケルン",
@@ -4141,10 +3617,8 @@
      "coastal": true
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": 50.9,
    "longitude": 6.96,
-   "farmLordShare": 0.6,
    "culturalGoodId": 58
   },
   {
@@ -4156,23 +3630,8 @@
    "worker": 200,
    "bourgeois": 300,
    "professional": 150,
-   "merchant": 400,
-   "artisan": 800,
    "literacy": 0.13,
-   "clergyFrac": 0.4,
-   "intelligentsiaFrac": 0.35,
-   "peasantSubsistence": 0.7,
-   "polity": "Absolutist",
-   "education": "Religious",
-   "coercion": 400,
    "treasury": 2800,
-   "initialTariff": 0.4,
-   "industrialization": 0,
-   "initialColonies": [],
-   "initialSuffrage": "None",
-   "initialCensorship": "StatePressOnly",
-   "initialCornLaws": "Full",
-   "initialSerfEmancipation": "None",
    "provinces": [
     {
      "city": "ナポリ",
@@ -4216,11 +3675,8 @@
      "coastal": true
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": 40.85,
-   "longitude": 14.27,
-   "farmLordShare": 0.6,
-   "culturalGoodId": 54
+   "longitude": 14.27
   },
   {
    "name": "教皇領",
@@ -4234,21 +3690,8 @@
    "merchant": 120,
    "artisan": 301,
    "literacy": 0.25,
-   "clergyFrac": 0.4,
-   "intelligentsiaFrac": 0.35,
-   "peasantSubsistence": 0.7,
-   "polity": "Absolutist",
-   "education": "Religious",
-   "coercion": 400,
    "treasury": 890,
-   "initialTariff": 0.4,
-   "industrialization": 0,
-   "initialColonies": [],
-   "initialSuffrage": "None",
    "initialConscription": "Volunteer",
-   "initialCensorship": "StatePressOnly",
-   "initialCornLaws": "Full",
-   "initialSerfEmancipation": "None",
    "provinces": [
     {
      "city": "ローマ",
@@ -4287,11 +3730,8 @@
      "coastal": true
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": 41.9,
-   "longitude": 12.5,
-   "farmLordShare": 0.6,
-   "culturalGoodId": 54
+   "longitude": 12.5
   },
   {
    "name": "トスカーナ",
@@ -4305,21 +3745,9 @@
    "merchant": 103,
    "artisan": 155,
    "literacy": 0.25,
-   "clergyFrac": 0.4,
-   "intelligentsiaFrac": 0.35,
-   "peasantSubsistence": 0.7,
-   "polity": "Absolutist",
-   "education": "Religious",
-   "coercion": 400,
    "treasury": 440,
    "initialTariff": 0.05,
-   "industrialization": 0,
-   "initialColonies": [],
-   "initialSuffrage": "None",
    "initialConscription": "Volunteer",
-   "initialCensorship": "StatePressOnly",
-   "initialCornLaws": "Full",
-   "initialSerfEmancipation": "None",
    "provinces": [
     {
      "city": "フィレンツェ",
@@ -4341,11 +3769,8 @@
      "coastal": true
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": 43.77,
-   "longitude": 11.25,
-   "farmLordShare": 0.6,
-   "culturalGoodId": 54
+   "longitude": 11.25
   },
   {
    "name": "ヴェネツィア",
@@ -4360,20 +3785,9 @@
    "merchant": 334,
    "artisan": 334,
    "literacy": 0.28,
-   "clergyFrac": 0.4,
-   "intelligentsiaFrac": 0.35,
-   "peasantSubsistence": 0.7,
    "polity": "Republic",
-   "education": "Religious",
    "coercion": 300,
    "treasury": 1100,
-   "initialTariff": 0.4,
-   "industrialization": 0,
-   "initialColonies": [],
-   "initialSuffrage": "None",
-   "initialCensorship": "StatePressOnly",
-   "initialCornLaws": "Full",
-   "initialSerfEmancipation": "None",
    "provinces": [
     {
      "city": "ヴェネツィア",
@@ -4413,11 +3827,8 @@
      "coastal": true
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": 45.44,
-   "longitude": 12.34,
-   "farmLordShare": 0.6,
-   "culturalGoodId": 54
+   "longitude": 12.34
   },
   {
    "name": "バイエルン",
@@ -4431,20 +3842,8 @@
    "merchant": 73,
    "artisan": 182,
    "literacy": 0.35,
-   "clergyFrac": 0.4,
-   "intelligentsiaFrac": 0.35,
-   "peasantSubsistence": 0.7,
-   "polity": "Absolutist",
-   "education": "Religious",
-   "coercion": 400,
    "treasury": 440,
    "initialTariff": 0.25,
-   "industrialization": 0,
-   "initialColonies": [],
-   "initialSuffrage": "None",
-   "initialCensorship": "StatePressOnly",
-   "initialCornLaws": "Full",
-   "initialSerfEmancipation": "None",
    "provinces": [
     {
      "city": "ミュンヘン",
@@ -4459,10 +3858,8 @@
      "coastal": false
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": 48.14,
    "longitude": 11.58,
-   "farmLordShare": 0.6,
    "culturalGoodId": 58
   },
   {
@@ -4477,20 +3874,9 @@
    "merchant": 135,
    "artisan": 325,
    "literacy": 0.5,
-   "clergyFrac": 0.4,
-   "intelligentsiaFrac": 0.35,
-   "peasantSubsistence": 0.7,
-   "polity": "Absolutist",
    "education": "Public",
-   "coercion": 400,
    "treasury": 890,
    "initialTariff": 0.25,
-   "industrialization": 0,
-   "initialColonies": [],
-   "initialSuffrage": "None",
-   "initialCensorship": "StatePressOnly",
-   "initialCornLaws": "Full",
-   "initialSerfEmancipation": "None",
    "provinces": [
     {
      "city": "ドレスデン",
@@ -4506,10 +3892,8 @@
      "coastal": false
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": 51.34,
    "longitude": 12.37,
-   "farmLordShare": 0.6,
    "culturalGoodId": 58
   },
   {
@@ -4524,20 +3908,8 @@
    "merchant": 58,
    "artisan": 146,
    "literacy": 0.4,
-   "clergyFrac": 0.4,
-   "intelligentsiaFrac": 0.35,
-   "peasantSubsistence": 0.7,
-   "polity": "Absolutist",
-   "education": "Religious",
-   "coercion": 400,
    "treasury": 390,
    "initialTariff": 0.25,
-   "industrialization": 0,
-   "initialColonies": [],
-   "initialSuffrage": "None",
-   "initialCensorship": "StatePressOnly",
-   "initialCornLaws": "Full",
-   "initialSerfEmancipation": "None",
    "provinces": [
     {
      "city": "ハノーファー",
@@ -4561,10 +3933,8 @@
      "coastal": true
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": 52.37,
    "longitude": 9.73,
-   "farmLordShare": 0.6,
    "culturalGoodId": 58
   },
   {
@@ -4579,20 +3949,8 @@
    "merchant": 44,
    "artisan": 109,
    "literacy": 0.5,
-   "clergyFrac": 0.4,
-   "intelligentsiaFrac": 0.35,
-   "peasantSubsistence": 0.7,
-   "polity": "Absolutist",
-   "education": "Religious",
-   "coercion": 400,
    "treasury": 250,
    "initialTariff": 0.25,
-   "industrialization": 0,
-   "initialColonies": [],
-   "initialSuffrage": "None",
-   "initialCensorship": "StatePressOnly",
-   "initialCornLaws": "Full",
-   "initialSerfEmancipation": "None",
    "provinces": [
     {
      "city": "シュトゥットガルト",
@@ -4606,10 +3964,8 @@
      "coastal": false
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": 48.78,
    "longitude": 9.18,
-   "farmLordShare": 0.6,
    "culturalGoodId": 58
   },
   {
@@ -4624,20 +3980,8 @@
    "merchant": 39,
    "artisan": 93,
    "literacy": 0.08,
-   "clergyFrac": 0.4,
-   "intelligentsiaFrac": 0.35,
-   "peasantSubsistence": 0.7,
    "polity": "Despotic",
-   "education": "Religious",
-   "coercion": 400,
    "treasury": 376,
-   "initialTariff": 0.4,
-   "industrialization": 0,
-   "initialColonies": [],
-   "initialSuffrage": "None",
-   "initialCensorship": "StatePressOnly",
-   "initialCornLaws": "Full",
-   "initialSerfEmancipation": "None",
    "provinces": [
     {
      "city": "サイゴン",
@@ -4651,10 +3995,8 @@
      "coastal": true
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": 10.78,
    "longitude": 106.7,
-   "farmLordShare": 0.6,
    "culturalGoodId": 93
   },
   {
@@ -4669,21 +4011,8 @@
    "merchant": 12,
    "artisan": 12,
    "literacy": 0.04,
-   "clergyFrac": 0.4,
-   "intelligentsiaFrac": 0.35,
-   "peasantSubsistence": 0.7,
-   "polity": "Absolutist",
-   "education": "Religious",
-   "coercion": 400,
    "treasury": 37,
-   "initialTariff": 0.4,
-   "industrialization": 0,
-   "initialColonies": [],
-   "initialSuffrage": "None",
    "initialConscription": "Volunteer",
-   "initialCensorship": "StatePressOnly",
-   "initialCornLaws": "Full",
-   "initialSerfEmancipation": "None",
    "provinces": [
     {
      "city": "アデン",
@@ -4697,11 +4026,8 @@
      "coastal": true
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": 12.8,
-   "longitude": 44.9,
-   "farmLordShare": 0.6,
-   "culturalGoodId": 54
+   "longitude": 44.9
   },
   {
    "name": "デリー",
@@ -4715,23 +4041,12 @@
    "merchant": 118,
    "artisan": 189,
    "literacy": 0.05,
-   "clergyFrac": 0.4,
-   "intelligentsiaFrac": 0.35,
-   "peasantSubsistence": 0.7,
    "polity": "Despotic",
-   "education": "Religious",
    "coercion": 150,
    "treasury": 709,
    "pollTaxStage": 0,
    "landTaxStage": 3,
-   "initialTariff": 0.4,
-   "industrialization": 0,
-   "initialColonies": [],
-   "initialSuffrage": "None",
    "initialConscription": "Volunteer",
-   "initialCensorship": "StatePressOnly",
-   "initialCornLaws": "Full",
-   "initialSerfEmancipation": "None",
    "provinces": [
     {
      "city": "デリー",
@@ -4745,10 +4060,8 @@
      "coastal": false
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": 28.6,
    "longitude": 77.2,
-   "farmLordShare": 0.6,
    "culturalGoodId": 93
   },
   {
@@ -4760,26 +4073,13 @@
    "worker": 130,
    "bourgeois": 200,
    "professional": 130,
-   "merchant": 400,
    "artisan": 700,
    "literacy": 0.05,
-   "clergyFrac": 0.4,
-   "intelligentsiaFrac": 0.35,
-   "peasantSubsistence": 0.7,
    "polity": "Despotic",
-   "education": "Religious",
-   "coercion": 400,
    "treasury": 3500,
    "pollTaxStage": 0,
    "landTaxStage": 3,
-   "initialTariff": 0.4,
-   "industrialization": 0,
-   "initialColonies": [],
-   "initialSuffrage": "None",
    "initialConscription": "Volunteer",
-   "initialCensorship": "StatePressOnly",
-   "initialCornLaws": "Full",
-   "initialSerfEmancipation": "None",
    "provinces": [
     {
      "city": "ラクナウ",
@@ -4793,10 +4093,8 @@
      "coastal": false
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": 26.85,
    "longitude": 80.95,
-   "farmLordShare": 0.6,
    "culturalGoodId": 93
   },
   {
@@ -4811,20 +4109,8 @@
    "merchant": 40,
    "artisan": 40,
    "literacy": 0.01,
-   "clergyFrac": 0.4,
-   "intelligentsiaFrac": 0.35,
-   "peasantSubsistence": 0.7,
-   "polity": "Absolutist",
-   "education": "Religious",
    "coercion": 80,
    "treasury": 210,
-   "initialTariff": 0.4,
-   "industrialization": 0,
-   "initialColonies": [],
-   "initialSuffrage": "None",
-   "initialCensorship": "StatePressOnly",
-   "initialCornLaws": "Full",
-   "initialSerfEmancipation": "None",
    "provinces": [
     {
      "city": "アボメイ",
@@ -4850,10 +4136,8 @@
      "coastal": true
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": 7.19,
    "longitude": 1.99,
-   "farmLordShare": 0.6,
    "culturalGoodId": 106
   },
   {
@@ -4868,20 +4152,8 @@
    "merchant": 350,
    "artisan": 300,
    "literacy": 0.02,
-   "clergyFrac": 0.4,
-   "intelligentsiaFrac": 0.35,
-   "peasantSubsistence": 0.7,
-   "polity": "Absolutist",
-   "education": "Religious",
    "coercion": 100,
    "treasury": 1200,
-   "initialTariff": 0.4,
-   "industrialization": 0,
-   "initialColonies": [],
-   "initialSuffrage": "None",
-   "initialCensorship": "StatePressOnly",
-   "initialCornLaws": "Full",
-   "initialSerfEmancipation": "None",
    "provinces": [
     {
      "city": "クマシ",
@@ -4907,10 +4179,8 @@
      "coastal": true
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": 6.69,
    "longitude": -1.62,
-   "farmLordShare": 0.6,
    "culturalGoodId": 106
   },
   {
@@ -4923,22 +4193,10 @@
    "bourgeois": 200,
    "professional": 120,
    "merchant": 900,
-   "artisan": 800,
    "literacy": 0.04,
    "clergyFrac": 0.45,
-   "intelligentsiaFrac": 0.35,
-   "peasantSubsistence": 0.7,
-   "polity": "Absolutist",
-   "education": "Religious",
    "coercion": 300,
    "treasury": 3900,
-   "initialTariff": 0.4,
-   "industrialization": 0,
-   "initialColonies": [],
-   "initialSuffrage": "None",
-   "initialCensorship": "StatePressOnly",
-   "initialCornLaws": "Full",
-   "initialSerfEmancipation": "None",
    "provinces": [
     {
      "city": "ソコト",
@@ -4977,7 +4235,6 @@
      "coastal": false
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": 13.06,
    "longitude": 5.24,
    "farmLordShare": 0.7,
@@ -4995,20 +4252,10 @@
    "merchant": 70,
    "artisan": 60,
    "literacy": 0.01,
-   "clergyFrac": 0.4,
    "intelligentsiaFrac": 0.3,
    "peasantSubsistence": 0.75,
-   "polity": "Absolutist",
-   "education": "Religious",
    "coercion": 60,
    "treasury": 290,
-   "initialTariff": 0.4,
-   "industrialization": 0,
-   "initialColonies": [],
-   "initialSuffrage": "None",
-   "initialCensorship": "StatePressOnly",
-   "initialCornLaws": "Full",
-   "initialSerfEmancipation": "None",
    "provinces": [
     {
      "city": "ンバンザ=コンゴ",
@@ -5034,10 +4281,8 @@
      "coastal": true
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": -6.27,
    "longitude": 14.24,
-   "farmLordShare": 0.6,
    "culturalGoodId": 106
   },
   {
@@ -5052,21 +4297,12 @@
    "merchant": 600,
    "artisan": 500,
    "literacy": 0.05,
-   "clergyFrac": 0.4,
-   "intelligentsiaFrac": 0.35,
    "peasantSubsistence": 0.65,
-   "polity": "Absolutist",
-   "education": "Religious",
    "coercion": 250,
    "treasury": 1500,
    "initialTariff": 0.3,
-   "industrialization": 0,
-   "initialColonies": [],
-   "initialSuffrage": "None",
    "initialConscription": "Volunteer",
-   "initialCensorship": "StatePressOnly",
    "initialCornLaws": "Limited",
-   "initialSerfEmancipation": "None",
    "provinces": [
     {
      "city": "アルジェ",
@@ -5105,11 +4341,8 @@
      "coastal": true
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": 36.75,
-   "longitude": 3.06,
-   "farmLordShare": 0.6,
-   "culturalGoodId": 54
+   "longitude": 3.06
   },
   {
    "name": "オヨ帝国",
@@ -5123,20 +4356,9 @@
    "merchant": 250,
    "artisan": 200,
    "literacy": 0.01,
-   "clergyFrac": 0.4,
    "intelligentsiaFrac": 0.3,
-   "peasantSubsistence": 0.7,
-   "polity": "Absolutist",
-   "education": "Religious",
    "coercion": 120,
    "treasury": 710,
-   "initialTariff": 0.4,
-   "industrialization": 0,
-   "initialColonies": [],
-   "initialSuffrage": "None",
-   "initialCensorship": "StatePressOnly",
-   "initialCornLaws": "Full",
-   "initialSerfEmancipation": "None",
    "provinces": [
     {
      "city": "オヨ=イレ",
@@ -5162,10 +4384,8 @@
      "coastal": true
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": 8.13,
    "longitude": 4.24,
-   "farmLordShare": 0.6,
    "culturalGoodId": 106
   },
   {
@@ -5183,17 +4403,8 @@
    "clergyFrac": 0.45,
    "intelligentsiaFrac": 0.3,
    "peasantSubsistence": 0.72,
-   "polity": "Absolutist",
-   "education": "Religious",
    "coercion": 100,
    "treasury": 570,
-   "initialTariff": 0.4,
-   "industrialization": 0,
-   "initialColonies": [],
-   "initialSuffrage": "None",
-   "initialCensorship": "StatePressOnly",
-   "initialCornLaws": "Full",
-   "initialSerfEmancipation": "None",
    "provinces": [
     {
      "city": "ンガザルガム",
@@ -5208,7 +4419,6 @@
      "coastal": false
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": 12.9,
    "longitude": 13.4,
    "farmLordShare": 0.7,
@@ -5226,20 +4436,11 @@
    "merchant": 25,
    "artisan": 30,
    "literacy": 0.01,
-   "clergyFrac": 0.4,
    "intelligentsiaFrac": 0.25,
    "peasantSubsistence": 0.8,
-   "polity": "Absolutist",
-   "education": "Religious",
    "coercion": 40,
    "treasury": 130,
    "initialTariff": 0.3,
-   "industrialization": 0,
-   "initialColonies": [],
-   "initialSuffrage": "None",
-   "initialCensorship": "StatePressOnly",
-   "initialCornLaws": "Full",
-   "initialSerfEmancipation": "None",
    "provinces": [
     {
      "city": "ホノルル",
@@ -5253,7 +4454,6 @@
      "coastal": true
     }
    ],
-   "initialInterestRate": 0.25,
    "latitude": 21.31,
    "longitude": -157.86,
    "farmLordShare": 0.5,

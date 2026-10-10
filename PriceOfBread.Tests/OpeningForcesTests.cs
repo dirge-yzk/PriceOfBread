@@ -105,9 +105,10 @@ public class OpeningForcesTests
         foreach (var n in nations.EnumerateArray())
         {
             Assert.False(n.TryGetProperty("military", out _), "国の military 欄が残っている（シムは兵士 POP から導く）");
-            // ★(233) coercion 欄は残す（開幕の治安維持力の導出 C は差し戻した＝兵数に比例する目標と人口あたりの強度の単位が合わない・実装ログ (233)）
-            Assert.True(n.TryGetProperty("coercion", out _), "国の coercion 欄が無い（(233) で戻した手置きの値）");
         }
+        // ★(233) coercion は手置きの値のまま（開幕の治安維持力の導出 C は差し戻した＝兵数に比例する目標と人口あたりの強度の単位が合わない・実装ログ (233)）。
+        //   ★(247) キーは既定〔400〕と違う国だけが持つ（既定と同じ値のキーは書かない）＝キーの有無でなく、読み込んだ実効の値で確かめる。
+        Assert.All(WorldData.Nations(), c => Assert.True(c.Coercion > 0, $"{c.Name} の治安維持力の手置きの値が無い"));
         // 抽象標的（POP を持たない勢力）の military は残す
         Assert.All(doc.RootElement.GetProperty("abstractTargets").EnumerateArray(), t => Assert.True(t.TryGetProperty("military", out _)));
     }
