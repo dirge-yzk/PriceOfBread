@@ -1,9 +1,11 @@
 """(186) 貿易/GDP の読み手（読むだけ）＝史実の側を「同じ6国の平均」にした比（README §1-2 の式＝シミュ÷max(史実, 床)・10種の中央×10年の窓）。
-  python an_trade186.py t <out_dir/t186> [ラベル]     … 計器 inj_t186 の T 行から10年の窓×種の中央（6大国の平均・国ごと）
+  python an_trade186.py t <計器の出力ディレクトリ> [ラベル]     … nation 表（輸出・輸入・名目GDP・年の清算の回数）から10年の窓×種の中央（6大国の平均・国ごと）（(245) 旧の注入の行を標準の計器 SimCore/Instruments.cs の表へ畳んだ）
   python an_trade186.py rejudge <帯の報告> ...          … 印字された「6大国の終局 貿易/GDP 平均」（種の平均・終局の断面）を同じ6国の史実の平均で読み直す
 史実（1913・(輸出＋輸入)÷GDP）＝HistoricalReference.TradeOpenness1913（2026-08-15 作者承認の次元の参照表・出典＝Findlay & O'Rourke ほか通説の概数）の同じ6国。
 1950 の値は記憶の概数【推】（出典の候補＝Mitchell, International Historical Statistics の貿易額と国民所得・Maddison）＝判定には使わず並べるだけ。"""
 import sys, os, re, statistics as st
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
+from instr import rows
 
 MAJ = ["イギリス", "フランス", "ロシア", "プロイセン", "清", "アメリカ"]   # SelfPlay.TradeGdpMajorNames と同じ6国
 H1913 = {"イギリス": 0.45, "フランス": 0.35, "プロイセン": 0.37, "ロシア": 0.16, "アメリカ": 0.11, "清": 0.08}   # HistoricalReference.TradeOpenness1913
@@ -22,19 +24,12 @@ WIN = [(1783, 1792), (1793, 1802), (1813, 1822), (1843, 1852), (1873, 1882), (19
 
 if sys.argv[1] == 't':
     d = sys.argv[2]; lab = sys.argv[3] if len(sys.argv) > 3 else d
-    per = {}   # seed -> {(q,yr): {name: tg}}
-    for fn in sorted(os.listdir(d)):
-        m = re.match(r't(\d+)\.txt$', fn)
-        if not m: continue
-        seed = int(m.group(1)); rows = {}
-        for ln in open(os.path.join(d, fn), encoding='utf-8'):
-            if not ln.startswith('T|'): continue
-            p = ln.rstrip('\n').split('|')
-            q, yr, name = int(p[1]), int(p[2]), p[4]
-            ex, im, ng, cpy = float(p[5]), float(p[6]), float(p[7]), float(p[8])
-            tg = (ex + im) * cpy / max(1.0, ng * 12)
-            rows.setdefault((q, yr), {})[name] = tg
-        per[seed] = rows
+    per = {}   # seed -> {(q,yr): {name: tg}}　q は 0 始まり
+    for seed, r in rows(d, 'nation'):
+        q, yr, name = int(r['quarter']), int(r['year']), r['nation']
+        ex, im, ng, cpy = float(r['exportsPerClearing']), float(r['importsPerClearing']), float(r['nominalGdpPerYear']), float(r['clearingsPerYear'])
+        tg = (ex + im) * cpy / max(1.0, ng)
+        per.setdefault(seed, {}).setdefault((q, yr), {})[name] = tg
     seeds = sorted(per)
     print(f'# {lab}：貿易/GDP（(輸出＋輸入)×清算/年÷年の名目GDP＝SelfPlay.MajorsTradeGdp と同じ物差し）・{len(seeds)}種')
     print(f'# 史実＝同じ6国の平均 1913 {AVG1913 * 100:.1f}%（HistoricalReference.TradeOpenness1913）・1950 {AVG1950 * 100:.1f}%【推】・床 {FLOOR * 100:.0f}%')

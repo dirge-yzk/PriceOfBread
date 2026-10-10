@@ -1672,6 +1672,7 @@ public sealed class Diplomacy
     private void AddBelligerent(War war, Coefficients c, int depth, HashSet<(long, int)>? visited = null)
     {
         Wars.Add(war);
+        if (Instruments.On) Instruments.WarStarted(this, war, _year);   // 計器（読むだけ）
         _embargo.Add(Key(war.A, war.B));   // 戦争中は強制禁輸
         if (depth > (int)c.WarChainMaxDepth) return;
         JoinAllies(war.A, war.B, c, depth, visited);
@@ -2733,6 +2734,7 @@ public sealed class Diplomacy
         double airMul = 1.0 + c.AirCasualtyWeight * Math.Max(0.0, 1.0 - 2.0 * airControl);   // 1934拡張E2：制空劣勢＝上空からの観測砲爆撃で出血増（中立0.5＝×1.0恒等・優勢側は増えない）
         casForce *= airMul;
         double cas = Math.Min(casForce, soldierPop * c.WarCasualtyMonthlyCap);   // 1ヶ月最大で兵士の WarCasualtyMonthlyCap（改修2026-06-28：旧15%/月＝年率80%超は桁外れ→4%/月＝総力戦で年〜40%の史実水準へ）
+        if (Instruments.On) Instruments.Casualty(this, _year, p, soldierPop, cas);   // 計器（読むだけ）
         CasualtyProbe?.Invoke(casForce, soldierPop);   // 観測だけ（既定 null＝引数ごと評価しない）
         // ★新兵器の必要性の陸と空の損耗（2026-10-01 (153)・設計 §1A-4 (4a) の第2項「交戦中のその分野の損耗の率」・作者裁定 2026-09-28 ⑤「陸・海・空で分ける」）
         //   ＝今月の兵の損耗の割合（戦死÷兵士＝下の厭戦の casTerm と同じ割合）÷総力戦の月の上限（WarCasualtyMonthlyCap＝「総力戦で年〜40%の史実水準」）＝0〜1

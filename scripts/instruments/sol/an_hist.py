@@ -1,7 +1,9 @@
 """(147) 史実比較の桁の読み手：国×時代（10年の窓）の兵士÷人口と軍事費÷年GDP（平時の四半期・戦時は別）＝種ごとの窓の平均の中央値を史実と比べる。
-  python an_hist.py <出力dir（a*.txt と c*.txt）> [ラベル]
+  python an_hist.py <計器の出力dir（nation_s*.tsv）> [ラベル]　＝(245) 旧の注入の A／C 行を標準の計器の nation 表へ畳んだ
   判定＝比（シミュ÷史実）が 10 倍以上か 1/10 以下で NG・3〜10 倍は記録。史実がほぼ0の量は床（兵÷人口 0.1%・軍÷GDP 1%）＝両方が床の下なら可。"""
-import sys, os, glob, statistics as st, collections
+import sys, os, statistics as st, collections
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
+from instr import rows, num
 D = sys.argv[1]; LAB = sys.argv[2] if len(sys.argv) > 2 else D
 WIN = [(1784, 1793), (1815, 1824), (1855, 1864), (1904, 1913)]
 # 史実の概数（平時の常備軍＝陸海・人口比%／平時の軍事費÷GDP%）【推】＝実装ログ (147) §0 の表
@@ -10,24 +12,12 @@ HS = {'イギリス': [0.5, 1.0, 1.0, 0.9], 'フランス': [0.6, 0.6, 1.6, 2.2]
 HM = {'イギリス': [3.5, 3.0, 3.0, 3.1], 'フランス': [3.0, 3.0, 3.0, 4.5], 'プロイセン': [5.0, 4.0, 2.5, 3.5], 'ロシア': [4.0, 4.0, 3.5, 5.0],
       '清': [1.0, 1.0, 1.0, 1.0], '日本': [1.0, 1.0, 1.0, 4.5], 'アメリカ': [0.5, 1.0, 0.5, 0.8]}
 FLOOR_S, FLOOR_M = 0.1, 1.0
-def fl(x):
-    try: return float(x)
-    except Exception: return float('nan')
-A = {}
-for f in sorted(glob.glob(os.path.join(D, 'a*.txt'))):
-    sd = int(os.path.basename(f)[1:-4])
-    for ln in open(f, encoding='utf-8'):
-        t = ln.rstrip('\n').split('|')
-        if t[0] != 'A': continue
-        A[(sd, int(t[1]), int(t[3]))] = (int(t[2]), t[4], int(t[5]), fl(t[6]), fl(t[7]), fl(t[8]), fl(t[9]), fl(t[10]))
-C = {}
-for f in sorted(glob.glob(os.path.join(D, 'c*.txt'))):
-    sd = int(os.path.basename(f)[1:-4])
-    for ln in open(f, encoding='utf-8'):
-        t = ln.rstrip('\n').split('|')
-        if t[0] != 'C': continue
-        led = [fl(x) for x in t[24].split(',')]
-        C[(sd, int(t[1]), int(t[3]))] = -(led[8] + led[9])   # 陸＋海の四半期の支出
+A = {}; C = {}; prev = {}   # 四半期の番号は 1 始まり（旧の A／C 行の q+1）・台帳は累計＝四半期の差分は前の四半期の累計を引く（最初の四半期は0から）
+for sd, r in rows(D, 'nation'):
+    k = (sd, int(r['quarter']) + 1, int(r['nationIndex']))
+    A[k] = (int(r['year']), r['nation'], 1 if num(r['totalPopulationK']) > 0 else 0, num(r['nominalGdpPerYear']), num(r['populationK']), num(r['soldierK']), num(r['atWarMonths']), num(r['civilWarMonths']))
+    cum = (num(r['ledgerArmyCumulative']), num(r['ledgerNavyCumulative'])); pv = prev.get((sd, k[2]), (0.0, 0.0)); prev[(sd, k[2])] = cum
+    C[k] = -((cum[0] - pv[0]) + (cum[1] - pv[1]))   # 陸＋海の四半期の支出
 seeds = sorted({k[0] for k in A})
 def ratio_judge(sim, hist, floor):
     if sim != sim or hist != hist: return 'nan', '—'

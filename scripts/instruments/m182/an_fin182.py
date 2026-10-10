@@ -3,8 +3,10 @@
     ①軍事費÷年GDP（全ての四半期）②同・戦時の四半期だけ（交戦か内戦の月>0）③借入÷年GDP（全）④同・戦時 ⑤切り下げ÷年GDP（戦時）
     ⑥国債÷年GDP（窓の最後の四半期）
   史実比較の桁（10年の窓の平均・史実は記憶の概数【推】）＝下の H 表のセルだけ判定（比10倍以上か1/10以下で NG・3〜10倍は記録・床 1%・国債は床 5%）。
-python an_fin176.py <out_dir（hist を含む）> [ラベル] [--seeds N]"""
-import sys, os, glob, statistics as st, collections
+python an_fin176.py <計器の出力ディレクトリ（nation 表）> [ラベル] [--seeds N]（(245) 旧の注入の行を標準の計器 SimCore/Instruments.cs の表へ畳んだ）"""
+import sys, os, statistics as st, collections
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
+from instr import rows as table_rows, num
 args = sys.argv[1:]; maxsd = 99
 if '--seeds' in args:
     i = args.index('--seeds'); maxsd = int(args[i + 1]); del args[i:i + 2]
@@ -28,46 +30,35 @@ HD = {('イギリス', 1810): 240, ('イギリス', 1820): 210, ('イギリス',
       ('フランス', 1910): 170, ('アメリカ', 1860): 30, ('アメリカ', 1940): 120, ('日本', 1940): 200}
 
 
-def fl(x):
-    try: return float(x)
-    except Exception: return float('nan')
-
-
 def win(y):
     for i, (a, b) in enumerate(WIN):
         if a <= y <= b: return i
     return None
 
 
-A = {}   # (sd, q, idx) -> (yr, name, alive, gdp, war)
-for f in glob.glob(os.path.join(D, 'hist', 'a*.txt')):
-    sd = int(os.path.basename(f)[1:-4])
-    if sd > maxsd: continue
-    for ln in open(f, encoding='utf-8'):
-        t = ln.rstrip('\n').split('|')
-        if t[0] != 'A' or t[4] not in NAT: continue
-        A[(sd, int(t[1]), int(t[3]))] = (int(t[2]), t[4], int(t[5]), fl(t[6]), fl(t[9]) > 0 or fl(t[10]) > 0)
+A = {}   # (sd, q, idx) -> (yr, name, alive, gdp, war)　q は 1 始まり（旧の A 行の q+1）
+for sd, r in table_rows(D, 'nation', maxsd):
+    if r['nation'] not in NAT: continue
+    A[(sd, int(r['quarter']) + 1, int(r['nationIndex']))] = (int(r['year']), r['nation'], 1 if num(r['totalPopulationK']) > 0 else 0, num(r['nominalGdpPerYear']), num(r['atWarMonths']) > 0 or num(r['civilWarMonths']) > 0)
 # acc[name][sd][wi] = [gdpAll, milAll, borAll, gdpWar, milWar, borWar, devWar, lastQ, debtLast, gdpLast, warQ, nQ]
 acc = collections.defaultdict(lambda: collections.defaultdict(lambda: collections.defaultdict(lambda: [0.0] * 12)))
-for f in glob.glob(os.path.join(D, 'hist', 'c*.txt')):
-    sd = int(os.path.basename(f)[1:-4])
-    if sd > maxsd: continue
-    for ln in open(f, encoding='utf-8'):
-        t = ln.rstrip('\n').split('|')
-        if t[0] != 'C': continue
-        k = (sd, int(t[1]), int(t[3]))
-        a = A.get(k)
-        if a is None: continue
-        yr, name, alive, gdp, war = a
-        if alive != 1 or not (gdp > 0): continue
-        wi = win(yr)
-        if wi is None: continue
-        led = [fl(x) for x in t[24].split(',')]
-        mil = -(led[8] + led[9]); bor = led[3]; dev = led[4]; debt = fl(t[25])
-        v = acc[name][sd][wi]; g = gdp / 4
-        v[0] += g; v[1] += mil; v[2] += bor; v[11] += 1
-        if war: v[3] += g; v[4] += mil; v[5] += bor; v[6] += dev; v[10] += 1
-        if int(t[1]) >= v[7]: v[7] = int(t[1]); v[8] = debt; v[9] = gdp
+prev = {}   # (sd, idx) -> 前の四半期の台帳の累計（借入・切り下げ・陸・海）＝四半期の差分は累計の差（最初の四半期は0から）
+for sd, r in table_rows(D, 'nation', maxsd):
+    idx = int(r['nationIndex'])
+    cum = (num(r['ledgerBorrowCumulative']), num(r['ledgerDevalueCumulative']), num(r['ledgerArmyCumulative']), num(r['ledgerNavyCumulative']))
+    pv = prev.get((sd, idx), (0.0, 0.0, 0.0, 0.0)); prev[(sd, idx)] = cum
+    q = int(r['quarter']) + 1
+    a = A.get((sd, q, idx))
+    if a is None: continue
+    yr, name, alive, gdp, war = a
+    if alive != 1 or not (gdp > 0): continue
+    wi = win(yr)
+    if wi is None: continue
+    bor = cum[0] - pv[0]; dev = cum[1] - pv[1]; mil = -((cum[2] - pv[2]) + (cum[3] - pv[3])); debt = num(r['govDebtStock'])
+    v = acc[name][sd][wi]; g = gdp / 4
+    v[0] += g; v[1] += mil; v[2] += bor; v[11] += 1
+    if war: v[3] += g; v[4] += mil; v[5] += bor; v[6] += dev; v[10] += 1
+    if q >= v[7]: v[7] = q; v[8] = debt; v[9] = gdp
 
 
 def med(x):

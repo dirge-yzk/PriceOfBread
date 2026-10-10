@@ -2345,6 +2345,7 @@ public sealed class Simulation
         Crime.Step(World, World.Coef);                                   // 犯罪と抑止：秩序（治安維持力の人口カバレッジ）が崩れると窃盗＝闇の再分配（純移転）
         ProbeCheck("月次犯罪");
         // 兵士POP軍制（Part 2）：軍事費で徴募し給与を払う（国庫→兵士で保存）。戦時は徴兵。財政の後・外交ゲージ集計の前。
+        if (Instruments.On) Instruments.WarMonth(World, atWarNation);   // 計器（読むだけ）：交戦と内戦の月を数える（軍の更新の直前）
         Military.Step(World, World.Coef, atWarNation);   // 交戦判定はループ前に算出済み（atWarNation）を共用
         if (World.IsQuarterEndMonth) Military.StepSkill(World, World.Coef, atWarNation);   // ★熟練度は四半期に1回（係数の時定数は四半期で書いてある・2026-08-04）
         ProbeCheck("月次軍事");
