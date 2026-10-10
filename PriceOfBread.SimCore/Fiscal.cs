@@ -694,6 +694,7 @@ public static class Fiscal
         //   分子と分母が別の時点・別の物差しだった＝2026-09-28 に削除（思想⑩・棚卸し fis-01「スタック数は残高から導ける」）。
         //   否定形＝NaN は借りない。歳入0の国は利払い0でも借りられない（返す財源の無い国に貸し手はいない）。
         double shortfall = spare < 0 ? -spare : 0;   // 否定形＝NaN は借りない
+        if (Instruments.On && shortfall > 0 && !BorrowGateOpen(w, c)) Instruments.Gate(w, shortfall);   // 計器（読むだけ）
         if (!(shortfall > 0) || !BorrowGateOpen(w, c)) return 0;   // 月に1件。門（冷却・助走・利払いの限界）は戦時段の器（Military.EnvelopeAt）と同じ1本
         // 1件の額＝月次**名目**GDP×割合（2026-09-28・単位の対称）。旧＝実質GDP（参照価格の産出）＝払えない額・国債・プールは名目なので、
         //   物価水準が1から離れる国ほど1件の物差しがずれた（分子と分母の非対称）。下の外資のプールも同じ理由で名目。
@@ -725,6 +726,7 @@ public static class Fiscal
         foreignPool = Math.Min(foreignPool, Math.Max(0.0, w.ForeignBondInvestorPool));   // 実引き当て：他国投資家プールを超えて対外債を発行できない（保存）
         double pool = domesticPool + foreignPool;
         double borrowed = Math.Min(borrowWant, pool);
+        if (Instruments.On) Instruments.Borrow(w, shortfall, BorrowTicket(nominalGdp, c), domesticPool, foreignPool, borrowed);   // 計器（読むだけ）
         if (!(borrowed > 1e-9)) return 0;
         double foreignPortion = pool > 1e-9 ? borrowed * (foreignPool / pool) : 0;
         double domesticPortion = borrowed - foreignPortion;

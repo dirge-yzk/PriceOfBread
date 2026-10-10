@@ -1763,7 +1763,9 @@ public static class SelfPlayMatch
         //   「遊ぶ世界」と「測る世界」の初期条件が別物だった（帯は、プレイヤーが決して見ない開始価格を測っていた）。
         // 助走は暦を進めない（World.WarmupFrozen）＝1783/Q1 のまま開始＝1914断面(Q524)も全長 GameQuarters も不変。
         // Telemetry を切った**後**に呼ぶ＝助走の四半期でスナップショットを積まない（バッチのメモリを増やさない）。
+        if (Instruments.On) Instruments.Phase(sim, seed, "open");   // 計器（読むだけ）：開幕の断面
         sim.StartWarmup();
+        if (Instruments.On) Instruments.Phase(sim, seed, "warm");   // 助走の直後の断面
         // ★異常リストの有界化（2026-08-01・docs/20260801「最終調整ハーネスの設計」§1-4）。
         // ⚠旧＝**非有界の文字列リスト**。異常②（工業化度の逸脱）は条件が続くかぎり毎四半期×毎国で1行積むので
         //   最悪 54カ国×604四半期＝約3.2万行／試合。96シードでは数百万の文字列が同時に生存する＝OOM の主因だった
@@ -1882,6 +1884,7 @@ public static class SelfPlayMatch
             for (int q = 0; q < quarters; q++)
             {
                 sim.StepQuarter();
+                if (Instruments.On) Instruments.Quarter(sim, seed, q);   // 計器（読むだけ）
                 if (sim.Nations.Count > gdpPeak.Length)   // 建国スポーン（SecessionSpawnsNation）＝末尾拡張のみ・既存添字は不変＝決定論不変
                 {
                     int nn = sim.Nations.Count;
@@ -2032,6 +2035,7 @@ public static class SelfPlayMatch
             anomalies.Add($"例外/保存則違反: {ex.GetType().Name}: {ex.Message}");
             return new MatchResult(seed, quarters, "(中断)", 0, -1, [], [.. sim.Diplomacy.Log], anomalies, false, 0, 0, 0, 0, [], worstDrawdown, depressionEpisodes, overheatDepressions, harvestDepressions, Cost: sim.CostTotals());
         }
+        finally { if (Instruments.On) Instruments.Close(sim); }   // 計器（読むだけ）：書き出しを閉じる（例外の経路も）
 
         bool deadlocked = frozen > DeadlockFrozenQuarters;   // ★構造フィールドへ（文字列一致をやめる）
         if (deadlocked) anomalies.Add($"デッドロックの疑い：スコアが{frozen}四半期不変");

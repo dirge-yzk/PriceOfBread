@@ -64,6 +64,40 @@ public class TreasuryLedgerTests
         Assert.True(checkedCount > 40, $"検査した国が少なすぎる（{checkedCount}）＝ハーネスが空回りしている");
     }
 
+    /// <summary>★月の境ごとの帳尻（2026-10-10 (242)・計器に依らない独立の番人）：各月の決算の後で「Δ国庫＝Σ台帳の月の差分」が閉じる。
+    /// 旧の2本は終わりに1度だけ（累積）比べる＝月々の食い違いが相殺するか、助走明けの置き直し（台帳を捨てる）の位置で起きたずれは見えない。
+    /// (226) の F 行の「国庫の帳尻が合わない・残差が歳入の4割」は、計器の別々の累算器を足し合わせた誤りだった（(230) の計器で台帳に直して 3e-14 で閉じた）＝
+    /// 本体は閉じている。ここで月ごとに固定する（計器に依らず、4国の短い走行〔助走の後〕で国庫と台帳を直接読む）。許し＝月の流れの絶対値の和に対し 1e-9。</summary>
+    [Fact]
+    public void 多国でも月の境ごとに全ての国で国庫の変化は台帳の変化に一致する()
+    {
+        var sim = new MultiNationSim([NationConfig.France(), NationConfig.Prussia(), NationConfig.Britain(), NationConfig.Austria()], 1789UL, _ => new UtilityAgent());
+        sim.StartWarmup();
+        int n = sim.Nations.Count;
+        var prevT = new double[n]; var prevL = new double[n][]; var lastMonth = new long[n];
+        for (int i = 0; i < n; i++) { var w = sim.Nations[i].World; prevT[i] = w.Treasury; prevL[i] = (double[])w.TreasuryLedger.Clone(); lastMonth[i] = w.Tick / Calendar.DaysPerMonth; }
+        int checkedMonths = 0; double worst = 0;
+        for (int day = 0; day < 20 * Calendar.DaysPerQuarter; day++)
+        {
+            sim.StepDay();
+            for (int i = 0; i < n; i++)
+            {
+                var w = sim.Nations[i].World;
+                long m = w.Tick / Calendar.DaysPerMonth;
+                if (m == lastMonth[i]) continue;
+                lastMonth[i] = m;
+                double dT = w.Treasury - prevT[i], dL = 0, flow = 0;
+                for (int k = 0; k < w.TreasuryLedger.Length; k++) { double d = w.TreasuryLedger[k] - prevL[i][k]; dL += d; flow += System.Math.Abs(d); }
+                double rel = System.Math.Abs(dT - dL) / System.Math.Max(1.0, flow);
+                worst = System.Math.Max(worst, rel);
+                Assert.True(rel < 1e-9, $"{w.SelfPower!.Name} 月{m}：Δ国庫 {dT:F6} とΣ台帳の差分 {dL:F6} が合わない（相対 {rel:E2}）＝Pay を通さない書き手か、台帳を捨てずに国庫だけ置いた箇所がある");
+                prevT[i] = w.Treasury; Array.Copy(w.TreasuryLedger, prevL[i], prevL[i].Length);
+                checkedMonths++;
+            }
+        }
+        Assert.True(checkedMonths >= 4 * 55, $"検査した月が少なすぎる（{checkedMonths}）＝ハーネスが空回りしている");
+    }
+
     /// <summary>台帳が**実際に使われている**（全部ゼロのまま通っていない）。
     /// 何もしない番人は必ず緑になるので、主要な区分に値が立つことを確かめる。</summary>
     [Fact]

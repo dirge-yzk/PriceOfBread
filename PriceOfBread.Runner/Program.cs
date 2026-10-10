@@ -2339,6 +2339,275 @@ if (args.Length > 0 && args[0] == "poweraff")
 //     支えの実体は**教育市場の供給力**。⇒ 助走直後の実勢を測り、識字との差＝**支えの無い識字**（＝減衰で失われる分）を国別に警告する。
 //   ⚠第2段（支えの逆算配置＝教師POPの規模づけ等）は Pops.Count の罠（POP追加＝全世界の軌道が動く）があるため、
 //     この検算で不整合の大きさを見てから設計する（再較正級）。
+// === 初期値の抽出（読むだけ・標準の計器 (242)＝2026-10-09 に注入のパッチ measurements/init_20261009_initdump.diff で作り、2026-10-10 に本体へ入れた）： dotnet run -- initdump <出力TSV> [seed] ===
+// 開幕（構築直後＝StartWarmup の前）と助走の終わり（StartWarmup の直後）の2点で、国ごとの量を書き出す。
+if (args.Length > 0 && args[0] == "initdump")
+{
+    string idOut = args.Length > 1 ? args[1] : "initdump.tsv";
+    ulong idSeed = ArgUlong(args, 2, 1789UL);
+    var idCfgs = WorldData.Nations();
+    var idSim = new MultiNationSim(idCfgs, idSeed, _ => new UtilityAgent());
+    foreach (var nn in idSim.Nations) nn.TelemetryEnabled = false;
+    idSim.Diplomacy.Log.Enabled = false;
+    var idSb = new System.Text.StringBuilder();
+    idSb.Append("nation\tquantity\ttime\tvalue\tunit\n");
+    string[]? idOnly = null;
+    void Row(string nat, string q, string t, object v, string unit)
+    {
+        if (idOnly is not null && !idOnly.Any(pf => q.StartsWith(pf))) return;
+        string s = v is double d ? (double.IsNaN(d) ? "NaN" : d.ToString("R", System.Globalization.CultureInfo.InvariantCulture)) : System.Convert.ToString(v, System.Globalization.CultureInfo.InvariantCulture) ?? "";
+        idSb.Append(nat).Append('\t').Append(q).Append('\t').Append(t).Append('\t').Append(s).Append('\t').Append(unit).Append('\n');
+    }
+    string NatName(Simulation n) => n.World.SelfPower is { } sp ? (sp.BaseName.Length > 0 ? sp.BaseName : sp.Name) : n.World.Region.Name;
+    // --- 置いた値（NationConfig の公開フィールドを反射で全部＝world.json から読んだ値）。時点は「置いた(world.json)」 ---
+    foreach (var cfg in idCfgs)
+    {
+        string nm = cfg.Name;
+        foreach (var f in typeof(NationConfig).GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance))
+        {
+            var fv = f.GetValue(cfg);
+            if (fv is double or int or bool or string || f.FieldType.IsEnum)
+            {
+                if (f.Name == "Name") continue;
+                Row(nm, "設定/" + f.Name, "置いた", fv!, f.FieldType.IsEnum ? "区分" : (fv is string ? "文字" : "数"));
+            }
+            else if (fv is double[] da) Row(nm, "設定/" + f.Name, "置いた", string.Join(",", da.Select(x => x.ToString("R"))), "配列");
+            else if (fv is string[] sa) Row(nm, "設定/" + f.Name, "置いた", string.Join("|", sa), "配列");
+        }
+        Row(nm, "設定/州の数", "置いた", cfg.Provinces.Length, "件");
+        Row(nm, "設定/州shareの和", "置いた", cfg.Provinces.Sum(p => p.Share), "比");
+        Row(nm, "設定/州のarableLand明示の数", "置いた", cfg.Provinces.Count(p => p.ArableLand > 0), "件");
+        Row(nm, "設定/州のindShare明示の数", "置いた", cfg.Provinces.Count(p => p.IndShare >= 0), "件");
+        Row(nm, "設定/階級人数の和(商人・職人を含む)", "置いた", (cfg.Nobility + cfg.Peasant + cfg.Worker + cfg.Bourgeois + cfg.Professional + cfg.Merchant + cfg.Artisan) * 1000.0, "人");
+        Row(nm, "設定/植民地の数", "置いた", cfg.InitialColonies.Length, "件");
+        Row(nm, "設定/植民地の住民数の和", "置いた", cfg.InitialColonies.Sum(c => c.PopK), "千人");   // (227) から千人を直接置く
+        foreach (var p in cfg.Provinces)
+        {
+            Row(nm, "州/" + p.City + "/share", "置いた", p.Share, "比");
+            if (p.ArableLand > 0) Row(nm, "州/" + p.City + "/arableLand", "置いた", p.ArableLand, "千人収容");
+            if (p.IndShare >= 0) Row(nm, "州/" + p.City + "/indShare", "置いた", p.IndShare, "比");
+        }
+    }
+    var fleetIds = idSim.Nations.Count > 0 ? idSim.Nations[0].World.Coef.FleetGoodIds : [];
+    void Snap(string tm)
+    {
+        foreach (var n in idSim.Nations)
+        {
+            var w = n.World; string nm = NatName(n);
+            var sp = w.SelfPower;
+            double popK = 0, urbanK = 0, litSum = 0, sold = 0;
+            var cls = new System.Collections.Generic.Dictionary<string, (double size, double sav, double earned, double lit, double sat, double debt, double bond)>();
+            var order = new List<string>();
+            double invSav = 0, invEarn = 0, invSize = 0;
+            foreach (var r in w.Regions)
+            {
+                if (r.State != RegionState.Active) continue;
+                foreach (var p in r.Pops)
+                {
+                    popK += p.Size; if (p.IsUrban) urbanK += p.Size; litSum += p.Literacy * p.Size; if (p.IsSoldier) sold += p.Size;
+                    if (!cls.TryGetValue(p.ClassName, out var c)) { c = (0, 0, 0, 0, 0, 0, 0); order.Add(p.ClassName); }
+                    cls[p.ClassName] = (c.size + p.Size, c.sav + p.Savings, c.earned + p.LastEarnedPerMonth, c.lit + p.Literacy * p.Size, c.sat + p.Satisfaction * p.Size, c.debt + p.Debt, c.bond + p.BondHoldings);
+                    if (CapitalMarket.IsInvestor(p, w.Coef)) { invSav += p.Savings; invEarn += p.LastEarnedPerMonth; invSize += p.Size; }
+                }
+            }
+            Row(nm, "人口/総数", tm, popK * 1000, "人");
+            Row(nm, "人口/都市階級の人口比", tm, popK > 0 ? urbanK / popK : 0, "比");
+            Row(nm, "人口/識字率(人口加重)", tm, popK > 0 ? litSum / popK : 0, "比");
+            Row(nm, "人口/兵士", tm, sold * 1000, "人");
+            Row(nm, "人口/兵士÷総人口", tm, popK > 0 ? sold / popK : 0, "比");
+            Row(nm, "人口/稼働の州の数", tm, w.Regions.Count(r => r.State == RegionState.Active), "件");
+            Row(nm, "人口/州の数(全)", tm, w.Regions.Count, "件");
+            Row(nm, "人口/植民地格の州の人口", tm, w.Regions.Where(r => r.State == RegionState.Active && r.Tier == RegionTier.Colonial).Sum(r => r.SumPopulation()) * 1000, "人");
+            Row(nm, "人口/本国(植民地格の州を除く)", tm, w.Regions.Where(r => r.State == RegionState.Active && r.Tier != RegionTier.Colonial).Sum(r => r.SumPopulation()) * 1000, "人");
+            Row(nm, "人口/植民地格の州の数", tm, w.Regions.Count(r => r.State == RegionState.Active && r.Tier == RegionTier.Colonial), "件");
+            foreach (var cn in order)
+            {
+                var c = cls[cn];
+                Row(nm, $"階級/{cn}/人数", tm, c.size * 1000, "人");
+                Row(nm, $"階級/{cn}/貯蓄", tm, c.sav, "貨幣");
+                Row(nm, $"階級/{cn}/貯蓄÷人(1000人あたり)", tm, c.size > 0 ? c.sav / c.size : 0, "貨幣/千人");
+                Row(nm, $"階級/{cn}/前月の所得", tm, c.earned, "貨幣/月");
+                Row(nm, $"階級/{cn}/識字", tm, c.size > 0 ? c.lit / c.size : 0, "比");
+                Row(nm, $"階級/{cn}/満足度", tm, c.size > 0 ? c.sat / c.size : 0, "比");
+                if (c.debt != 0) Row(nm, $"階級/{cn}/個人債務", tm, c.debt, "貨幣");
+                if (c.bond != 0) Row(nm, $"階級/{cn}/国債保有", tm, c.bond, "貨幣");
+            }
+            Row(nm, "投資家/貯蓄の和", tm, invSav, "貨幣");
+            Row(nm, "投資家/前月の所得の和", tm, invEarn, "貨幣/月");
+            Row(nm, "投資家/貯蓄÷年所得", tm, invEarn > 0 ? invSav / (invEarn * 12) : double.NaN, "年");
+            Row(nm, "投資家/人数", tm, invSize * 1000, "人");
+            // GDP
+            double gdp = w.GdpPerMonth;
+            Row(nm, "GDP/実質(月)", tm, gdp, "参照価格×量/月");
+            Row(nm, "GDP/実質(年換算)", tm, gdp * 12, "参照価格×量/年");
+            Row(nm, "GDP/名目(年換算)", tm, Calendar.PerMonthToPerYear(w.NominalGdpPerMonth), "貨幣/年");
+            Row(nm, "GDP/1人あたり(実質・年)", tm, popK > 0 ? gdp * 12 / (popK * 1000) : 0, "参照価格/人/年");
+            Row(nm, "GDP/1人あたり(名目・年)", tm, popK > 0 ? Calendar.PerMonthToPerYear(w.NominalGdpPerMonth) / (popK * 1000) : 0, "貨幣/人/年");
+            // 財政
+            Row(nm, "財政/国庫", tm, w.Treasury, "貨幣");
+            Row(nm, "財政/国債", tm, w.GovDebt, "貨幣");
+            Row(nm, "財政/うち対外債", tm, w.ForeignDebt, "貨幣");
+            Row(nm, "財政/国債÷年名目GDP", tm, w.NominalGdpPerMonth > 0 ? w.GovDebt / (Calendar.PerMonthToPerYear(w.NominalGdpPerMonth)) : 0, "比");
+            Row(nm, "財政/国庫÷年名目GDP", tm, w.NominalGdpPerMonth > 0 ? w.Treasury / (Calendar.PerMonthToPerYear(w.NominalGdpPerMonth)) : 0, "比");
+            Row(nm, "財政/直近の月の純税収", tm, w.LastRevenuePerMonth, "貨幣/月");
+            Row(nm, "財政/直近の月の純税収÷年名目GDP", tm, w.NominalGdpPerMonth > 0 ? Calendar.PerMonthToPerYear(w.LastRevenuePerMonth) / (Calendar.PerMonthToPerYear(w.NominalGdpPerMonth)) : 0, "比");
+            Row(nm, "財政/直近の清算1回の関税収入", tm, w.LastTariffRevenuePerClearing, "貨幣/清算1回");
+            Row(nm, "財政/人頭税", tm, w.PollTax, "率");
+            Row(nm, "財政/土地税", tm, w.LandTax, "率");
+            Row(nm, "財政/所得税", tm, w.TaxRate, "率");
+            Row(nm, "財政/関税", tm, w.Tariff, "率");
+            Row(nm, "財政/国債金利", tm, w.GovBondRatePerYear, "年率");
+            Row(nm, "財政/金利(政策)", tm, w.InterestRate, "年率");
+            Row(nm, "財政/行政費", tm, w.AdminSpending, "0..1");
+            Row(nm, "財政/教育費", tm, w.EducationSpending, "0..1");
+            Row(nm, "財政/陸軍維持費", tm, w.ArmyUpkeep, "0..1");
+            Row(nm, "財政/海軍維持費", tm, w.NavyUpkeep, "0..1");
+            if (tm == "最初の四半期の後")
+                for (int k = 0; k < w.TreasuryLedger.Length; k++)
+                {
+                    string cn2 = ((TreasuryCat)k).ToString();
+                    Row(nm, $"財政/第1四半期の台帳/{cn2}", tm, w.TreasuryLedger[k], "貨幣/四半期(収入+・支出−)");
+                    Row(nm, $"財政/第1四半期の台帳÷年名目GDP/{cn2}", tm, w.NominalGdpPerMonth > 0 ? w.TreasuryLedger[k] * 4 / (Calendar.PerMonthToPerYear(w.NominalGdpPerMonth)) : 0, "年換算の比");
+                }
+            // 軍
+            if (sp is not null)
+            {
+                Row(nm, "軍/総合ゲージ", tm, sp.Military, "ゲージ");
+                Row(nm, "軍/陸軍力", tm, sp.LandPower, "ゲージ");
+                Row(nm, "軍/海軍力", tm, sp.NavalPower, "ゲージ");
+                Row(nm, "軍/艦の強さのゲージ", tm, sp.FleetGauge, "ゲージ");
+                Row(nm, "軍/海軍シェア", tm, sp.NavalShare, "比");
+                Row(nm, "軍/乗員の充足", tm, sp.CrewFill, "比");
+                Row(nm, "軍/国力ランク", tm, idSim.Diplomacy.RankOf(sp).ToString(), "区分");
+                Row(nm, "植民地/ColonyListの数", tm, sp.ColonyList.Count, "件");
+                Row(nm, "植民地/ColonyListの人口ウェイト和", tm, sp.ColonyList.Sum(c => c.Population), "ウェイト");
+                Row(nm, "植民地/ColonyListの住民数", tm, sp.ColonyList.Sum(c => c.PopSize) * 1000, "人");
+                Row(nm, "植民地/植民地の質量", tm, sp.ColonyMassUnits(), "ウェイト");
+                Row(nm, "植民地/州に昇格した植民地の数", tm, sp.ColonialRegions, "件");
+            }
+            double[] fu = new double[fleetIds.Length];
+            foreach (var r in w.Regions) if (r.State == RegionState.Active && r.FleetUnits is { } fa) for (int k = 0; k < fu.Length && k < fa.Length; k++) fu[k] += fa[k];
+            for (int k = 0; k < fu.Length; k++) Row(nm, $"軍/艦の隻数/{Catalog.Goods[fleetIds[k]].Name}", tm, fu[k], "隻");
+            var capR = w.Regions.Count > 0 ? w.Regions[0] : null;
+            if (capR is not null)
+                foreach (int g in new[] { Catalog.ArtilleryId, Catalog.RifleId, Catalog.AmmunitionId, Catalog.WarshipId }) if (g < capR.Markets.Length) Row(nm, $"軍/首都の在庫/{Catalog.Goods[g].Name}", tm, capR.Markets[g].Stock, "量");
+            // 州ごと（資本家＝州の投資家の貯蓄と所得・人口・工業化度・産出）
+            foreach (var r in w.Regions)
+            {
+                if (r.State != RegionState.Active) continue;
+                string rk = "州/" + r.Name + "/";
+                double rp = 0, ru = 0; foreach (var p in r.Pops) { rp += p.Size; if (p.IsUrban) ru += p.Size; }
+                Row(nm, rk + "人口", tm, rp * 1000, "人");
+                Row(nm, rk + "都市階級の人口比", tm, rp > 0 ? ru / rp : 0, "比");
+                Row(nm, rk + "格", tm, r.Tier.ToString(), "区分");
+                Row(nm, rk + "工業化度", tm, r.Industrialization, "度");
+                if (r.ArableLand < 1e8) Row(nm, rk + "耕地賦存量", tm, r.ArableLand, "千人収容");
+                if (r.InvestorPopIndex >= 0 && r.InvestorPopIndex < r.Pops.Count)
+                {
+                    var ip = r.Pops[r.InvestorPopIndex];
+                    Row(nm, rk + "資本家の貯蓄", tm, ip.Savings, "貨幣");
+                    Row(nm, rk + "資本家の前月所得", tm, ip.LastEarnedPerMonth, "貨幣/月");
+                    Row(nm, rk + "資本家の貯蓄÷年所得", tm, ip.LastEarnedPerMonth > 0 ? ip.Savings / (ip.LastEarnedPerMonth * 12) : double.NaN, "年");
+                }
+                double ro = 0; foreach (var pr in r.Producers) ro += pr.Output * Catalog.RefPrices[pr.GoodId];
+                Row(nm, rk + "産出額(参照価格・全生産者)", tm, ro, "参照価格×量/月");
+            }
+            // 設備
+            double fBuilt = 0, fCap = 0, fOutV = 0, fN = 0, rgoCap = 0, rgoOutV = 0, rgoN = 0, svOutV = 0, indSum = 0, portCap = 0, arable = 0, arableSet = 0;
+            foreach (var r in w.Regions)
+            {
+                if (r.State != RegionState.Active) continue;
+                indSum += r.Industrialization; portCap += r.PortCapacity;
+                if (r.ArableLand < 1e8) { arable += r.ArableLand; arableSet++; }
+                foreach (var pr in r.Producers)
+                {
+                    double v = pr.Output * Catalog.RefPrices[pr.GoodId];
+                    if (Catalog.Goods[pr.GoodId].Tier == GoodTier.Service) svOutV += v;
+                    else if (pr.IsRgo) { rgoCap += pr.Capacity; rgoOutV += v; rgoN++; }
+                    else { fBuilt += pr.BuiltScale; fCap += pr.Capacity; fOutV += v; fN++; }
+                }
+            }
+            Row(nm, "設備/工業化度の州の和", tm, indSum, "度");
+            Row(nm, "設備/建てた工場の規模の和(BuiltScale)", tm, fBuilt, "棟規模");
+            Row(nm, "設備/工場の能力の和", tm, fCap, "量/月");
+            Row(nm, "設備/工場の産出額(参照価格)", tm, fOutV, "参照価格×量/月");
+            Row(nm, "設備/工場の生産者の数", tm, fN, "件");
+            Row(nm, "設備/産地(RGO)の能力の和", tm, rgoCap, "量/月");
+            Row(nm, "設備/産地(RGO)の産出額(参照価格)", tm, rgoOutV, "参照価格×量/月");
+            Row(nm, "設備/産地(RGO)の数", tm, rgoN, "件");
+            Row(nm, "設備/役務の産出額(参照価格)", tm, svOutV, "参照価格×量/月");
+            Row(nm, "設備/港の取扱容量の和", tm, portCap, "容量");
+            Row(nm, "設備/鉄道容量", tm, w.RailCapacity, "容量");
+            Row(nm, "設備/海運容量", tm, w.ShipCapacity, "容量");
+            Row(nm, "土地/耕地賦存量の和(明示の州のみ)", tm, arable, "千人収容");
+            Row(nm, "土地/耕地賦存量が明示された州の数", tm, arableSet, "件");
+            // 貨幣
+            Row(nm, "貨幣/基礎貨幣", tm, w.BaseMoney, "貨幣");
+            Row(nm, "貨幣/広義(全POPの貯蓄)", tm, w.TotalMoney, "貨幣");
+            Row(nm, "貨幣/与信残高(銀行)", tm, w.OutstandingLoans, "貨幣");
+            Row(nm, "貨幣/準備の金", tm, w.GoldReserveQty, "量");
+            Row(nm, "貨幣/準備の銀", tm, w.SilverReserveQty, "量");
+            Row(nm, "貨幣/貯蓄÷年名目GDP", tm, w.NominalGdpPerMonth > 0 ? w.TotalMoney / (Calendar.PerMonthToPerYear(w.NominalGdpPerMonth)) : 0, "比");
+            Row(nm, "貨幣/通貨制度", tm, w.MonetaryLaw.ToString(), "区分");
+            Row(nm, "物価/物価水準", tm, w.PriceLevel, "指数");
+            Row(nm, "物価/自己費用の物価水準", tm, w.CostPriceLevel, "指数");
+            if (capR is not null)
+            {
+                foreach (var (gid, gl) in new[] { (Catalog.WheatId, "小麦"), (Catalog.RiceId, "米"), (Catalog.LaborId, "労働"), (Catalog.CoalId, "石炭") })
+                    if (gid < capR.Markets.Length) { Row(nm, $"物価/首都の{gl}の値段", tm, capR.Markets[gid].Price, "貨幣"); Row(nm, $"物価/首都の{gl}の値段÷参照価格", tm, capR.Markets[gid].Price / Catalog.RefPrices[gid], "比"); }
+                double sr = 0; int cnt = 0;
+                for (int g = 0; g < capR.Markets.Length && g < Catalog.RefPrices.Length; g++) if (Catalog.RefPrices[g] > 0 && capR.Markets[g].Price > 0) { sr += System.Math.Log(capR.Markets[g].Price / Catalog.RefPrices[g]); cnt++; }
+                Row(nm, "物価/首都の全財の値段÷参照価格の幾何平均", tm, cnt > 0 ? System.Math.Exp(sr / cnt) : 0, "比");
+            }
+            // 市場の在庫（初期値の置き方：一律200など）
+            {
+                double stkV = 0, capV = 0; int n200 = 0, nGoods = 0; var cs = new List<double>();
+                foreach (var r in w.Regions)
+                {
+                    if (r.State != RegionState.Active) continue;
+                    for (int g = 0; g < r.Markets.Length && g < Catalog.RefPrices.Length; g++) { double v = r.Markets[g].Stock * Catalog.RefPrices[g]; stkV += v; if (ReferenceEquals(r, capR)) { capV += v; nGoods++; if (System.Math.Abs(r.Markets[g].Stock - 200) < 1e-6) n200++; cs.Add(r.Markets[g].Stock); } }
+                }
+                cs.Sort();
+                Row(nm, "市場/全州の在庫の価値(参照価格)", tm, stkV, "参照価格×量");
+                Row(nm, "市場/全州の在庫の価値÷年実質GDP", tm, gdp > 0 ? stkV / (gdp * 12) : 0, "年");
+                Row(nm, "市場/首都の在庫の価値(参照価格)", tm, capV, "参照価格×量");
+                Row(nm, "市場/首都の財の数", tm, nGoods, "件");
+                Row(nm, "市場/首都で在庫がちょうど200の財の数", tm, n200, "件");
+                Row(nm, "市場/首都の在庫の中央値", tm, cs.Count > 0 ? cs[cs.Count / 2] : 0, "量");
+            }
+            // 技術・制度
+            Row(nm, "制度/技術水準", tm, w.TechLevel, "指数");
+            Row(nm, "制度/専門人材率", tm, w.Expertise, "比");
+            Row(nm, "制度/教育法", tm, w.EducationLaw.ToString(), "区分");
+            Row(nm, "制度/政体", tm, w.Polity.ToString(), "区分");
+            Row(nm, "制度/国民意識", tm, w.NationalConsciousness, "0..1");
+            Row(nm, "制度/発見の解禁の数", tm, w.Discovered is { } dv ? dv.Count(b => b) : 0, "件");
+        }
+    }
+    Snap("開幕");
+    int wq = idSim.Nations.Count > 0 ? idSim.Nations[0].World.Coef.StartWarmupQuarters : 0;
+    int wt = idSim.Nations.Count > 0 ? idSim.Nations[0].World.Coef.StartWarmupTechIterations : 0;
+    idSim.StartWarmup();
+    Snap("助走後");
+    idSim.StepQuarter();   // 外交の凍結が解けて最初の四半期（艦隊の播種・軍のゲージの再導出がここ）
+    idOnly = ["軍/", "植民地/", "人口/兵士", "財政/", "貨幣/", "投資家/", "GDP/", "人口/総数", "物価/"];
+    Snap("最初の四半期の後");
+    idOnly = null;
+    Row("全体", "助走/StartWarmupQuarters", "係数", wq, "四半期");
+    Row("全体", "助走/StartWarmupTechIterations", "係数", wt, "回");
+    Row("全体", "国数(Nations)", "開幕", idSim.Nations.Count, "件");
+    Row("全体", "勢力数(Powers・抽象含む)", "開幕", idSim.Diplomacy.Powers.Count, "件");
+    foreach (var p in idSim.Diplomacy.Powers.Where(p => p.Nation is null))
+    {
+        string nm = p.BaseName.Length > 0 ? p.BaseName : p.Name;
+        Row(nm, "抽象/軍ゲージ", "助走後", p.Military, "ゲージ"); Row(nm, "抽象/海軍シェア", "助走後", p.NavalShare, "比");
+        Row(nm, "抽象/GDP", "助走後", p.GdpPerMonth, "参照価格×量/月"); Row(nm, "抽象/植民地ウェイト", "助走後", p.ColonyList.Sum(c => c.Population), "ウェイト");
+    }
+    System.IO.File.WriteAllText(idOut, idSb.ToString(), new System.Text.UTF8Encoding(false));
+    Console.WriteLine($"initdump: {idSim.Nations.Count}国・{idSim.Diplomacy.Powers.Count}勢力 → {idOut}");
+    return;
+}
+
 if (args.Length > 0 && args[0] == "initcheck")
 {
     ulong icSeed = ArgUlong(args, 1, 1789UL);

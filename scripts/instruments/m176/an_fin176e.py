@@ -1,0 +1,104 @@
+"""(176) 戦時の財政の読み手（時代の窓の版＝1784-1849・1850-1913・1914-1950・史実の判定はしない）（読むだけ）＝hist の A 行（GDP・人口・兵士・交戦の月）と C 行（台帳の四半期差分・国債）。
+  国×10年の窓（1783-89・1790年代…1940年代）・種ごとの和の比→種の中央：
+    ①軍事費÷年GDP（全ての四半期）②同・戦時の四半期だけ（交戦か内戦の月>0）③借入÷年GDP（全）④同・戦時 ⑤切り下げ÷年GDP（戦時）
+    ⑥国債÷年GDP（窓の最後の四半期）
+  史実比較の桁（10年の窓の平均・史実は記憶の概数【推】）＝下の H 表のセルだけ判定（比10倍以上か1/10以下で NG・3〜10倍は記録・床 1%・国債は床 5%）。
+python an_fin176.py <out_dir（hist を含む）> [ラベル] [--seeds N]"""
+import sys, os, glob, statistics as st, collections
+args = sys.argv[1:]; maxsd = 99
+if '--seeds' in args:
+    i = args.index('--seeds'); maxsd = int(args[i + 1]); del args[i:i + 2]
+D = args[0]; LAB = args[1] if len(args) > 1 else D
+NAT = ['イギリス', 'フランス', 'プロイセン', 'ロシア', 'オーストリア', 'アメリカ', '日本']
+WIN = [(1784, 1849), (1850, 1913), (1914, 1950)]
+
+# 史実【推・記憶の概数】＝10年の窓の平均（%）：軍事費÷年GDP・借入÷年GDP／国債÷年GDP（窓の終わり）
+HM = {('イギリス', 1800): 13, ('イギリス', 1810): 12, ('イギリス', 1910): 20, ('イギリス', 1940): 25,
+      ('フランス', 1800): 8, ('フランス', 1910): 25, ('フランス', 1940): 15,
+      ('プロイセン', 1810): 6, ('プロイセン', 1910): 25, ('プロイセン', 1940): 25,
+      ('ロシア', 1910): 15, ('ロシア', 1940): 25, ('オーストリア', 1910): 15,
+      ('アメリカ', 1860): 6, ('アメリカ', 1910): 4, ('アメリカ', 1940): 17, ('日本', 1900): 8, ('日本', 1940): 20}
+HB = {('イギリス', 1800): 5, ('イギリス', 1810): 4, ('イギリス', 1910): 15, ('イギリス', 1940): 12,
+      ('フランス', 1910): 15, ('プロイセン', 1910): 15, ('ロシア', 1910): 8, ('オーストリア', 1910): 10,
+      ('アメリカ', 1860): 5, ('アメリカ', 1910): 4, ('アメリカ', 1940): 8, ('日本', 1940): 15}
+HD = {('イギリス', 1810): 200, ('イギリス', 1820): 220, ('イギリス', 1900): 30, ('イギリス', 1910): 130, ('イギリス', 1940): 250,
+      ('フランス', 1910): 170, ('アメリカ', 1860): 30, ('アメリカ', 1940): 120, ('日本', 1940): 200}
+
+
+def fl(x):
+    try: return float(x)
+    except Exception: return float('nan')
+
+
+def win(y):
+    for i, (a, b) in enumerate(WIN):
+        if a <= y <= b: return i
+    return None
+
+
+A = {}   # (sd, q, idx) -> (yr, name, alive, gdp, war)
+for f in glob.glob(os.path.join(D, 'hist', 'a*.txt')):
+    sd = int(os.path.basename(f)[1:-4])
+    if sd > maxsd: continue
+    for ln in open(f, encoding='utf-8'):
+        t = ln.rstrip('\n').split('|')
+        if t[0] != 'A' or t[4] not in NAT: continue
+        A[(sd, int(t[1]), int(t[3]))] = (int(t[2]), t[4], int(t[5]), fl(t[6]), fl(t[9]) > 0 or fl(t[10]) > 0)
+# acc[name][sd][wi] = [gdpAll, milAll, borAll, gdpWar, milWar, borWar, devWar, lastQ, debtLast, gdpLast, warQ, nQ]
+acc = collections.defaultdict(lambda: collections.defaultdict(lambda: collections.defaultdict(lambda: [0.0] * 12)))
+for f in glob.glob(os.path.join(D, 'hist', 'c*.txt')):
+    sd = int(os.path.basename(f)[1:-4])
+    if sd > maxsd: continue
+    for ln in open(f, encoding='utf-8'):
+        t = ln.rstrip('\n').split('|')
+        if t[0] != 'C': continue
+        k = (sd, int(t[1]), int(t[3]))
+        a = A.get(k)
+        if a is None: continue
+        yr, name, alive, gdp, war = a
+        if alive != 1 or not (gdp > 0): continue
+        wi = win(yr)
+        if wi is None: continue
+        led = [fl(x) for x in t[24].split(',')]
+        mil = -(led[8] + led[9]); bor = led[3]; dev = led[4]; debt = fl(t[25])
+        v = acc[name][sd][wi]; g = gdp / 4
+        v[0] += g; v[1] += mil; v[2] += bor; v[11] += 1
+        if war: v[3] += g; v[4] += mil; v[5] += bor; v[6] += dev; v[10] += 1
+        if int(t[1]) >= v[7]: v[7] = int(t[1]); v[8] = debt; v[9] = gdp
+
+
+def med(x):
+    x = [y for y in x if y == y]
+    return st.median(x) if x else float('nan')
+
+
+def judge(s, h, floor):
+    if s != s: return 'nan', '—'
+    if s < floor and h < floor: return '床の下', '可'
+    r = max(s, floor) / max(h, floor)
+    return f'{r:.2f}', ('NG' if (r >= 10 or r <= 0.1) else '記録' if (r >= 3 or r <= 1 / 3) else '可')
+
+
+seeds = sorted({k[0] for k in A})
+print(f'######## {LAB}（種 {len(seeds)}・10年の窓・種ごとの和の比→種の中央・%）')
+print('国 | 窓 | 軍÷GDP 全 | 軍÷GDP 戦時 | 戦時の四半期の割合 | 借入÷GDP 全 | 借入÷GDP 戦時 | 切り下げ÷GDP 戦時 | 国債÷GDP（窓の終わり）')
+ngs = []
+for n in NAT:
+    for wi, (y0, y1) in enumerate(WIN):
+        rows = [acc[n][sd][wi] for sd in seeds if acc[n][sd][wi][11] > 0]
+        if not rows: continue
+        mA = med([100 * v[1] / v[0] for v in rows if v[0] > 0]); mW = med([100 * v[4] / v[3] for v in rows if v[3] > 0])
+        bA = med([100 * v[2] / v[0] for v in rows if v[0] > 0]); bW = med([100 * v[5] / v[3] for v in rows if v[3] > 0])
+        dW = med([100 * v[6] / v[3] for v in rows if v[3] > 0]); wq = med([v[10] / v[11] for v in rows])
+        dl = med([100 * v[8] / v[9] for v in rows if v[9] > 0])
+        cells = []
+        for H, val, fl_, lab in ((HM, mA, 1.0, '軍÷GDP'), (HB, bA, 1.0, '借入÷GDP'), (HD, dl, 5.0, '国債÷GDP')):
+            h = H.get((n, y0 if y0 != 1783 else 1780))
+            if h is None: continue
+            r, j = judge(val, h, fl_)
+            cells.append(f'{lab} 史実{h}→比{r} {j}')
+            if j == 'NG': ngs.append(f'{n} {y0}-{y1} {lab} {val:.2f}%（史実 {h}%・比 {r}）')
+        print(f'{n} | {y0}-{y1} | {mA:.2f} | {mW:.2f} | {wq:.2f} | {bA:.2f} | {bW:.2f} | {dW:.2f} | {dl:.1f}' + ('  ← ' + '・'.join(cells) if cells else ''))
+print('\n# 史実比較の桁の NG（10年の窓の平均・史実【推】）')
+for x in ngs: print('  ' + x)
+if not ngs: print('  なし')

@@ -1716,8 +1716,10 @@ public sealed class Simulation
     private static void AddStateClaim(Producer pr, Region r, World w, ref double claims)
     {
         if (pr.ConstructionLeft > 0) claims += Calendar.PerDayToPerMonth(pr.ConstructionPayPerDay);   // 工事の工賃の1か月分（World.StepConstruction）
+        if (Instruments.On && pr.ConstructionLeft > 0) Instruments.Claim(w, Instruments.Item.StateConstruction, Calendar.PerDayToPerMonth(pr.ConstructionPayPerDay));
         double loss = pr.LastCost - pr.LastRevenue;
         if (loss > 0) claims += World.StateProfitShare(pr, r, w.Coef) * loss;   // 国営持分の赤字の見込み（先月の損益）
+        if (Instruments.On && loss > 0) Instruments.Claim(w, Instruments.Item.StateLoss, World.StateProfitShare(pr, r, w.Coef) * loss);
     }
 
     /// <summary>稼働中の州の POP の件数（計算量の台帳の四半期の計数だけが読む＝診断）。</summary>
@@ -2138,10 +2140,14 @@ public sealed class Simulation
         //   ⚠出来事（選挙資金・賠償・武力解錠の軍需・通行料・港・売買方針の代金・外資の拠出・燃料）は月初に額が分からない＝請求の見込みに入らず、起きた時点の r で払う（拿捕は 2026-09-30 から私人の間＝国庫を通らない）。
         //   ⚠四半期の支払い（貢納・招聘の支度金・外資の利回り）は四半期末の外交と共有層がまとめて払う＝四半期の締め月の請求に入れる。
         //   （戦費 Fund の請求の見込みは 2026-09-30 に Fund ごと削除＝支払いの段3-2・戦争の費用の実体は上の軍需の予算と兵士の給与）
+        if (Instruments.On) Instruments.Begin(World);   // 計器（読むだけ）：今月の請求の写しを始める
         double claims = World.LastInterestPerMonth + World.LastWelfareCostPerMonth + World.LastPensionCostPerMonth + World.LastColonialUpkeepPerMonth;   // （連合維持費 LastUpkeep は 2026-09-30 (135) に撤去＝兵力と行政の購買の1本）
+        if (Instruments.On) Instruments.ClaimsBase(World);
         bool payQuarter = World.IsQuarterEndMonth;
         if (payQuarter) claims += World.LastTributeOutPerQuarter + World.RecruitBudget;   // 四半期の請求（貢納・招聘の支度金）
+        if (Instruments.On && payQuarter) Instruments.ClaimsQuarter(World);
         double portThr = payQuarter ? World.PortThroughputTotal() : 0;   // ★(223) 国家の港建設も四半期の請求（混雑した港の州だけ・World.PortStateRequest）
+        double megaMark = claims;   // 計器（読むだけ）：外資の利回りの項の前の請求
         if (payQuarter && World.SelfPower is not null && World.Diplomacy is { } payDip)
         {
             if (World.Coef.MegaprojectForeignYield > 0)
@@ -2156,7 +2162,9 @@ public sealed class Simulation
         double tradeClaim = World.Tariff < 0 ? World.LastExportValue / erClaim * -World.Tariff : 0;
         if (World.ImportsByGood is { } payImp)
             for (int g = 0; g < payImp.Length; g++) if (World.TradeBiasOf(g) > 0) tradeClaim += World.Coef.TradeBiasStrength * payImp[g] / erClaim;
+        if (Instruments.On) Instruments.Claim(World, Instruments.Item.MegaForeignYieldQ, claims - megaMark);
         claims += tradeClaim / World.Coef.MonthsPerClearing;
+        if (Instruments.On) Instruments.Claim(World, Instruments.Item.TradePolicy, tradeClaim / World.Coef.MonthsPerClearing);
         // 先月の区分つき StateSpent で見込む行（義務教育・健康保険・工場の材料・民営の補助）は先月の r で払った額＝請求へ戻すには先月の r で割る
         //   （この時点の FiscalFundingRatio＝先月の r。先月 0 なら先月は払っていない＝見込みも 0）。
         double lastRate = World.FiscalFundingRatio;
@@ -2169,6 +2177,7 @@ public sealed class Simulation
                         + r.StateBuildQueue + r.MonumentBuildQueue + r.HigherEduFunding
                         + regrow * (Math.Max(0, r.StateSpent[(int)TreasuryCat.Education]) + Math.Max(0, r.StateSpent[(int)TreasuryCat.Welfare])       // 先月の義務教育・健康保険
                                   + Math.Max(0, r.StateSpent[(int)TreasuryCat.FactoryBuild]) + Math.Max(0, r.StateSpent[(int)TreasuryCat.Subsidy]));   // 先月の工場の材料・民営の補助
+                if (Instruments.On) Instruments.ClaimRegion(World, r, regrow, payQuarter, portThr);
                 // ★国営持分の請求の一覧（2026-09-30 作者裁定「計算量の予算」・恒等）：旧＝州の全ての生産者を毎月走査した（census＝請求に効いた生産者は10.2%）。
                 //   一覧 Region.StateSites＝工事中か BuiltScale>1e-9 の生産者を州の生産者の順に。一覧の外の生産者は StateProfitShare＝0.0（BuiltScale≦1e-9・国有化の枝が死んでいる）
                 //   ＝赤字（有限）に 0.0 を掛けた +0.0 を足すだけ＝請求は1ビットも変わらない（請求は正の予算の和から始まる＝−0.0 にならない）。和の順（州→生産者）も同じ。
@@ -2204,8 +2213,10 @@ public sealed class Simulation
         double devalued = 0;   // この月の切り下げの額＝通貨改革の発動の門（切下げゼロの連続月数）と、月末の Fiscal.Step の国債の金利の信認の喪失（直近の切り下げの速さ・2026-09-29）が読む
         if (World.FiscalEnabled)
         {
+            if (Instruments.On) Instruments.PreBorrow(World, payable, spare);
             double borrowed = Fiscal.Borrow(World, World.Coef, spare);
             payable += borrowed; spare += borrowed;   // 借りた金はこの月の払える額＝r に入る（切り下げと同じ扱い）
+            if (Instruments.On) Instruments.PostBorrow(World, borrowed);
             double deficit = spare < 0 ? -spare : 0;   // 否定形＝NaN は0（借りた後に残った払えない額＝借りられない月は全額）
             // 兌換可能性で切り下げ可能量を連続スケール（倍率排除②）：完全兌換(Conv=1)＝切り下げ封印（金の規律）／不換(Conv=0)＝赤字全額を切り下げ可。部分兌換は中間。
             double devalueRoom = deficit * (1.0 - World.Convertibility);
@@ -2250,6 +2261,7 @@ public sealed class Simulation
         double payRate = claims > 0 ? payable / claims : 1.0;
         if (!(payRate >= 0)) payRate = 0; else if (payRate > 1) payRate = 1;   // 否定形＝NaN は払わない側
         World.FiscalFundingRatio = payRate;
+        if (Instruments.On) Instruments.Rate(World, claims, payable, payRate, devalued);
         foreach (var r in World.Regions)
             if (r.State == RegionState.Active)
             {
@@ -2356,6 +2368,7 @@ public sealed class Simulation
         BackstopNegativeSavings();   // 損失吸収の脆さの会計：貯蓄が負になった pop は不足を信用で埋める（有限責任・保存則厳守）
         ProbeCheck("月次バックストップ");
         CheckInvariants();
+        if (Instruments.On) Instruments.MonthClose(World);   // 計器（読むだけ）：月の収支と階級の所得・支出
     }
 
     /// <summary>
