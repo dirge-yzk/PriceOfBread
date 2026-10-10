@@ -1171,10 +1171,10 @@ public sealed class Region
         return (uint)id < (uint)_goodById.Length ? _goodById[id] : null;
     }
 
-    public double SumSavings()
+    public MoneyStock SumSavings()
     {
-        double s = 0;
-        foreach (var p in Pops) s += p.Savings.Value;
+        MoneyStock s = default;
+        foreach (var p in Pops) s += p.Savings;
         return s;
     }
 

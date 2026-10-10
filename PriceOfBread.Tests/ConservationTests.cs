@@ -22,7 +22,7 @@ public class ConservationTests
     /// <summary>保存量 D ＝ 基礎貨幣 − 累積台帳（貿易/鋳造/不換発行）。
     /// ★内部でいくら金が動いても、台帳に記帳されている限り D は動かない。動いたら**記帳漏れ**である。</summary>
     private static double D(World w)
-        => w.BaseMoney - w.CumulativeTradeFlow - w.CumulativeGoldMinted - w.CumulativeFiatIssued;
+        => w.BaseMoney.Value - w.CumulativeTradeFlow - w.CumulativeGoldMinted - w.CumulativeFiatIssued;
 
     [Fact]
     public void 多国の走行で保存量Dが動かない()
@@ -35,7 +35,7 @@ public class ConservationTests
         int n0 = sim.Nations.Count;
         var baseline = new double[n0];
         var money0 = new double[n0];
-        for (int i = 0; i < n0; i++) { baseline[i] = D(sim.Nations[i].World); money0[i] = sim.Nations[i].World.BaseMoney; }
+        for (int i = 0; i < n0; i++) { baseline[i] = D(sim.Nations[i].World); money0[i] = sim.Nations[i].World.BaseMoney.Value; }
         int moved = 0;   // ★下の生存確認用（この番人が眠っていないことを同じ走行で確かめる）
 
         const int Q = 12;
@@ -55,7 +55,7 @@ public class ConservationTests
                     $"{w.SelfPower?.Name}：保存量Dが動いた（{baseline[i]:F6} → {d:F6}／Δ={d - baseline[i]:F6}）"
                     + "＝どこかで台帳に記帳せずに貨幣を作った/消した。現場の特定は `leakhunt <seed> <四半期>` を手で走らせること。");
                 baseline[i] = d;   // 次の四半期は今回値と比べる（累積でなく差分で見る＝1回の跳びを最初の四半期で捕まえる）
-                if (System.Math.Abs(w.BaseMoney - money0[i]) > 1e-4) moved++;
+                if (System.Math.Abs(w.BaseMoney.Value - money0[i]) > 1e-4) moved++;
             }
         }
         // ★J-011（2026-09-03）：**輸出利潤経路が動いていること**もここで見る＝旧 `ExportRevenueTests` が
@@ -162,7 +162,7 @@ public class ConservationTests
                 bool alive = sim.Nations.Contains(n);
                 double p = 0;
                 if (alive) foreach (var r in w.Regions) p += r.SumPopulation();   // ⚠分離した州（Seceded）も数える＝分離で人は消えない
-                return (p, w.DiagBirths - w.DiagDeaths - w.WarDeadCumulative, alive ? w.BaseMoney : 0, w.CumulativeGoldMinted + w.CumulativeFiatIssued);
+                return (p, w.DiagBirths - w.DiagDeaths - w.WarDeadCumulative, alive ? w.BaseMoney.Value : 0, w.CumulativeGoldMinted + w.CumulativeFiatIssued);
             }
             // 現場の手掛かり＝国ごとの「説明できない増減」の上位3（国をまたぐ移転は両側に出る＝片側だけ大きい国が現場）
             string Culprits(Dictionary<Simulation, (double Pop, double Created, double Money, double Minted)> b,
@@ -257,7 +257,7 @@ public class ConservationTests
         var mer = r.Pops[r.MerchantPopIndex];
         Bank.Lend(uk, mer, 50);   // 手形の債務（貸しの1本）
         double dUk = D(uk), dFr = D(fr), hUk = uk.Bank.HouseholdLoans.Value, hFr = (fr.Bank!.HouseholdLoans).Value;
-        double tol = 1e-9 * System.Math.Max(1.0, System.Math.Abs(uk.BaseMoney) + System.Math.Abs(fr.BaseMoney));
+        double tol = 1e-9 * System.Math.Max(1.0, System.Math.Abs(uk.BaseMoney.Value) + System.Math.Abs(fr.BaseMoney.Value));
         Territory.TransferRegion(uk, fr, r, Territory.Rehoming.Ceded);
         Assert.Equal(hUk - 50, uk.Bank.HouseholdLoans.Value, 9); Assert.Equal(hFr + 50, fr.Bank.HouseholdLoans.Value, 9);
         Assert.True(System.Math.Abs(D(uk) - dUk) <= tol && System.Math.Abs(D(fr) - dFr) <= tol, "割譲で国ごとの D が閉じない");
@@ -336,7 +336,7 @@ public class ConservationTests
     private static (double Pop, double Money) MigrationWorldTotals(MultiNationSim sim)
     {
         double pop = 0, money = 0;
-        foreach (var n in sim.Nations) { foreach (var r in n.World.Regions) pop += r.SumPopulation(); money += n.World.BaseMoney; }
+        foreach (var n in sim.Nations) { foreach (var r in n.World.Regions) pop += r.SumPopulation(); money += n.World.BaseMoney.Value; }
         return (pop, money);
     }
 
@@ -637,7 +637,7 @@ public class ConservationTests
         var sim = new MultiNationSim([WorldData.ByName("イギリス")], seed: 1789, coef: new Coefficients()) { DiplomacyFrozen = true };
         var uk = sim.Nations[0].World; var bank = uk.Bank!;
         var p = uk.Regions[0].Pops.Find(x => x.ClassId == PopClass.Worker && !x.IsSoldier)!;
-        double tol = 1e-9 * System.Math.Max(1.0, System.Math.Abs(uk.BaseMoney) + bank.Loans.Value + bank.HouseholdLoans.Value + System.Math.Abs(uk.CumulativeFiatIssued));
+        double tol = 1e-9 * System.Math.Max(1.0, System.Math.Abs(uk.BaseMoney.Value) + bank.Loans.Value + bank.HouseholdLoans.Value + System.Math.Abs(uk.CumulativeFiatIssued));
         double d0 = D(uk), L0 = bank.Loans.Value, s0 = p.Savings.Value;
         Assert.Equal(40.0, World.Transfer((null, null), (uk, [p], [1.0]), 40, outside: World.Outside.Credit));   // 貸し
         Assert.True(System.Math.Abs(bank.Loans.Value - L0 - 40) <= tol && System.Math.Abs(p.Savings.Value - s0 - 40) <= tol, "与信と預金が同じ額だけ増えていない");
@@ -939,7 +939,7 @@ public class ConservationTests
         Bank.Lend(uk, sp, 30);
         double flow = 0.1 * sp.Size, sav = sp.Savings.Value * (flow / sp.Size), debt = (sp.Debt * (flow / sp.Size)).Value;
         Assert.True(sav > 0 && debt > 0, "前提が崩れた：持参金か債務が無い");
-        double dUk = D(uk), dFr = D(fr), fx0 = sim.Diplomacy.CumulativeFxResidual, bm0 = uk.BaseMoney + fr.BaseMoney;
+        double dUk = D(uk), dFr = D(fr), fx0 = sim.Diplomacy.CumulativeFxResidual, bm0 = (uk.BaseMoney + fr.BaseMoney).Value;
         double dpSav0 = dp.Savings.Value, dpDebt0 = dp.Debt.Value, hFr = (fr.Bank!.HouseholdLoans).Value, hUk = uk.Bank.HouseholdLoans.Value;
         sim.MoveMigrants(uk, fr, uk.Regions[0], fr.Regions[0], PopClass.Worker, flow);
         double tol = 1e-9 * System.Math.Max(1.0, System.Math.Abs(bm0));
@@ -949,7 +949,7 @@ public class ConservationTests
         Assert.Equal(hUk - debt, uk.Bank.HouseholdLoans.Value, 6);
         double fxMoved = sim.Diplomacy.CumulativeFxResidual - fx0;
         Assert.Equal(sav - debt, fxMoved, 6);   // 換算の差＝運んだ基礎貨幣（持参金−債務）×(0.5 の国の名目 2倍 − 1)
-        Assert.True(System.Math.Abs(uk.BaseMoney + fr.BaseMoney - bm0 - fxMoved) <= tol, "世界の名目の動き ≠ 換算の台帳の動き");
+        Assert.True(System.Math.Abs((uk.BaseMoney + fr.BaseMoney).Value - bm0 - fxMoved) <= tol, "世界の名目の動き ≠ 換算の台帳の動き");
         Assert.True(System.Math.Abs(D(uk) - dUk) <= tol && System.Math.Abs(D(fr) - dFr) <= tol, "国ごとの D が閉じない");
     }
 
@@ -964,17 +964,17 @@ public class ConservationTests
         var r = uk.Regions[1];
         var mer = r.Pops[r.MerchantPopIndex];
         Bank.Lend(uk, mer, 50);
-        double S = r.SumSavings(), Dr = 0; foreach (var p in r.Pops) Dr += p.Debt.Value;
+        double S = r.SumSavings().Value, Dr = 0; foreach (var p in r.Pops) Dr += p.Debt.Value;
         Assert.True(S > 0 && Dr > 0, "前提が崩れた");
-        double dUk = D(uk), dFr = D(fr), fx0 = sim.Diplomacy.CumulativeFxResidual, bm0 = uk.BaseMoney + fr.BaseMoney, hFr = (fr.Bank!.HouseholdLoans).Value;
+        double dUk = D(uk), dFr = D(fr), fx0 = sim.Diplomacy.CumulativeFxResidual, bm0 = (uk.BaseMoney + fr.BaseMoney).Value, hFr = (fr.Bank!.HouseholdLoans).Value;
         Territory.TransferRegion(uk, fr, r, Territory.Rehoming.Ceded);
-        double S1 = r.SumSavings(), D1 = 0; foreach (var p in r.Pops) D1 += p.Debt.Value;
+        double S1 = r.SumSavings().Value, D1 = 0; foreach (var p in r.Pops) D1 += p.Debt.Value;
         Assert.Equal(2 * S, S1, 6); Assert.Equal(2 * Dr, D1, 6);
         Assert.Equal(hFr + 2 * Dr, fr.Bank.HouseholdLoans.Value, 6);
         double fxMoved = sim.Diplomacy.CumulativeFxResidual - fx0;
         double tol = 1e-9 * System.Math.Max(1.0, System.Math.Abs(bm0));
         Assert.True(System.Math.Abs(fxMoved - (S - Dr)) <= tol, $"換算の台帳の動き {fxMoved} ≠ 州の基礎貨幣 {S - Dr}");
-        Assert.True(System.Math.Abs(uk.BaseMoney + fr.BaseMoney - bm0 - fxMoved) <= tol, "世界の名目の動き ≠ 換算の台帳の動き");
+        Assert.True(System.Math.Abs((uk.BaseMoney + fr.BaseMoney).Value - bm0 - fxMoved) <= tol, "世界の名目の動き ≠ 換算の台帳の動き");
         Assert.True(System.Math.Abs(D(uk) - dUk) <= tol && System.Math.Abs(D(fr) - dFr) <= tol, "割譲で国ごとの D が閉じない");
     }
 }

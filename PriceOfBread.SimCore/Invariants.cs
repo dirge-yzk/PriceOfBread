@@ -21,13 +21,13 @@ public sealed class MoneyConservation(World world) : IInvariant
 {
     // 基準線は「交易を差し引いた基礎貨幣」で持つ＝期待値 = _baseline + 累積貿易 が捕捉時の基礎貨幣に一致。
     // 構築時は累積貿易0なので従来と同値。開始盤面で国庫・与信を初期へ戻した直後に取り直しても整合する（相対基準）。
-    private readonly double _baseline = world.BaseMoney - world.CumulativeTradeFlow - world.CumulativeGoldMinted - world.CumulativeFiatIssued;
+    private readonly double _baseline = world.BaseMoney.Value - world.CumulativeTradeFlow - world.CumulativeGoldMinted - world.CumulativeFiatIssued;
     public string Name => "貨幣保存（基礎貨幣）";
 
     public void Check(World world)
     {
         double expected = _baseline + world.CumulativeTradeFlow + world.CumulativeGoldMinted + world.CumulativeFiatIssued;
-        double bm = world.BaseMoney;   // 全pop走査＝1回だけ
+        double bm = world.BaseMoney.Value;   // 全pop走査＝1回だけ
         // 許容誤差は「合算した量の桁」に比例させる（残差は浮動小数の再結合のみ）。expected は基準−累積貿易の**大きな量の差**になり得る（資本逃避で基礎貨幣がほぼ0へ収縮＝激しい桁落ち）ので、
         // |expected| だけを基準にすると相対許容が過小になり float ノイズで誤検出する。基準・累積貿易・基礎貨幣の最大桁で規格化＝桁落ちに頑健（従来より緩むだけで厳しくはならない＝既存テスト不変）。
         double scale = Math.Max(Math.Abs(expected), Math.Max(Math.Abs(_baseline), Math.Max(Math.Abs(world.CumulativeTradeFlow), Math.Abs(bm))));
@@ -92,7 +92,7 @@ public sealed class NonNegativeBounds : IInvariant
             throw new InvariantViolationException($"{Name}：国庫が NaN／∞");
         if (double.IsNaN(world.GovDebt.Value) || double.IsInfinity(world.GovDebt.Value))
             throw new InvariantViolationException($"{Name}：国債残高が NaN／∞");
-        if (double.IsNaN(world.BaseMoney) || double.IsInfinity(world.BaseMoney))
+        if (double.IsNaN(world.BaseMoney.Value) || double.IsInfinity(world.BaseMoney.Value))
             throw new InvariantViolationException($"{Name}：基礎貨幣が NaN／∞");
     }
 

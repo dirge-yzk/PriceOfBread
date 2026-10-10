@@ -698,8 +698,8 @@ public sealed class MultiNationSim
     //   配列の最後の1枠に世界の W＝Σ現存国（基礎貨幣−鋳造−不換発行）を持ち、共有層の段ごとに ΔW を見る（国ごとの D が閉じていれば ΔW＝ΣΔ累積貿易＝世界の外との出入り）。
     //   新しい状態は作らない（既存の配列を1枠伸ばすだけ）。★回1-2（2026-09-27）で世界プール（ゲーム外から湧く持参金＝旧の既知の湧き口）は消えた。
     private double[]? _probeD;
-    private static double ProbeD(World w) => w.BaseMoney - w.CumulativeTradeFlow - w.CumulativeGoldMinted - w.CumulativeFiatIssued;
-    private double ProbeWorldW() { double s = -Diplomacy.CumulativeFxResidual; foreach (var n in Nations) { var w = n.World; s += w.BaseMoney - w.CumulativeGoldMinted - w.CumulativeFiatIssued; } return s; }   // ★段3-1（A7）：為替の換算の台帳を差し引く
+    private static double ProbeD(World w) => w.BaseMoney.Value - w.CumulativeTradeFlow - w.CumulativeGoldMinted - w.CumulativeFiatIssued;
+    private double ProbeWorldW() { double s = -Diplomacy.CumulativeFxResidual; foreach (var n in Nations) { var w = n.World; s += w.BaseMoney.Value - w.CumulativeGoldMinted - w.CumulativeFiatIssued; } return s; }   // ★段3-1（A7）：為替の換算の台帳を差し引く
     private void ProbeSnap()
     {
         if (!Simulation.ConservationProbe) return;

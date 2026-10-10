@@ -137,7 +137,7 @@ public class TransitTests
         gm.LastDemand = 20000; gm.LastProduced = 0; gm.LastImport = 0; gm.Stock = 0;
         genoa.RailCapacity = 1e6; genoa.ShipCapacity = 1e6;
         double tA0 = swiss.Treasury.Value, tB0 = genoa.Treasury.Value, tC0 = tuscany.Treasury.Value;
-        double D(World w) => w.BaseMoney - w.CumulativeTradeFlow - w.CumulativeGoldMinted - w.CumulativeFiatIssued;
+        double D(World w) => w.BaseMoney.Value - w.CumulativeTradeFlow - w.CumulativeGoldMinted - w.CumulativeFiatIssued;
         double dA0 = D(swiss), dB0 = D(genoa), dC0 = D(tuscany);
         sim.Market.Step(sim.Nations, sim.Coef);
         Assert.Equal("ジェノヴァ", bern.LastTransitPortName);

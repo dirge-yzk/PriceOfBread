@@ -52,7 +52,7 @@ public class MilitaryTests
     {
         var (sim, locked) = LockedBritain(2, force: true);
         var w = sim.World;
-        static double D(World w) => w.BaseMoney - w.CumulativeTradeFlow - w.CumulativeGoldMinted - w.CumulativeFiatIssued;
+        static double D(World w) => w.BaseMoney.Value - w.CumulativeTradeFlow - w.CumulativeGoldMinted - w.CumulativeFiatIssued;
         double p0 = w.TotalPopulation - w.PopulationDelta, d0 = D(w);
         var ex = Record.Exception(() => sim.Run(6));
         Assert.Null(ex);

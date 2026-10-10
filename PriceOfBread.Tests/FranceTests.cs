@@ -27,11 +27,11 @@ public class FranceTests
     public void 旧体制フランスは100年放置で破綻せず基礎貨幣を保存する()
     {
         var sim = new Simulation(Fr(1789), new NullAgent());
-        double base0 = sim.World.BaseMoney;
+        double base0 = sim.World.BaseMoney.Value;
         var ex = Record.Exception(() => sim.Run(400));   // §11.6（保存・非負・財収支）が全ティックで保持
         Assert.Null(ex);
         // 基礎貨幣の変化＝累積貿易流入（植民地輸入の対外流出を含む）
-        Assert.True(Math.Abs(sim.World.BaseMoney - base0 - sim.World.CumulativeTradeFlow - sim.World.CumulativeGoldMinted - sim.World.CumulativeFiatIssued) < 1e-6 * base0, "基礎貨幣保存の破れ");
+        Assert.True(Math.Abs(sim.World.BaseMoney.Value - base0 - sim.World.CumulativeTradeFlow - sim.World.CumulativeGoldMinted - sim.World.CumulativeFiatIssued) < 1e-6 * base0, "基礎貨幣保存の破れ");
     }
 
     [Fact]
@@ -54,7 +54,7 @@ public class FranceTests
         sim.World.BaseCoercion = 80; sim.World.Policy.CoercionTarget = 80;   // 産業重視＝警察・軍需を抑え国庫を建設へ回す（治安維持力の人口比例維持費＋軍需 floor が建設を圧迫しないよう低く）
         sim.World.Coef.InfraBudgetScale = 0;   // 建設＋保存の機構を検証＝上下水道(#4)の素材競合（鋼/セメントを奪う）とは直交なので隔離
         sim.World.Coef.ElecInfraBudgetScale = 0;   // 同上＝電化インフラ（送電網/電化製品/鋼を奪う）の素材競合も隔離
-        double base0 = sim.World.BaseMoney;
+        double base0 = sim.World.BaseMoney.Value;
         sim.Run(40);                                   // 助走（経済が回り資本家に貯蓄が貯まる）
         Assert.True(sim.World.BuildFactory(0, Catalog.SteelId), "国営工場（鋼）を着工できない");
         var p = World.FindFactory(sim.World.Regions[0], Catalog.SteelId)!;   // エンジンの着工が掴むのと同じ1本（鋼は坩堝鋼/ベッセマーの2本立て＝World.FindFactory）
@@ -71,7 +71,7 @@ public class FranceTests
         if (sold) Assert.Equal(0.0, p.BuiltScale);     // 売却＝民営化（BuiltScale=0・以後は市場が伸縮）
         var ex = Record.Exception(() => sim.Run(20));  // §11.6 が全ティック保持
         Assert.Null(ex);
-        Assert.True(Math.Abs(sim.World.BaseMoney - base0 - sim.World.CumulativeTradeFlow - sim.World.CumulativeGoldMinted - sim.World.CumulativeFiatIssued) < 1e-6 * base0, "建設・売却で基礎貨幣保存が破れた");
+        Assert.True(Math.Abs(sim.World.BaseMoney.Value - base0 - sim.World.CumulativeTradeFlow - sim.World.CumulativeGoldMinted - sim.World.CumulativeFiatIssued) < 1e-6 * base0, "建設・売却で基礎貨幣保存が破れた");
     }
 
     [Fact]
@@ -80,12 +80,12 @@ public class FranceTests
         // ★2026-09-26：旧＝1棟単位の手動建設 World.BuildIndustry（テストと PlayHarness だけの動詞）で予約していた。
         //   動詞を削除し、UI・AI 共通の口＝近代化投資のレバー（ApplyModernizationInvestment が毎四半期 StateBuildQueue へ配る）で予約する。
         var sim = new Simulation(Fr(1789), new NullAgent());
-        double base0 = sim.World.BaseMoney, ind0 = sim.World.Region.TotalIndustrialization;   // ヴィンテージ2026-07-10：資本ストックは新旧合計（旧単層と同一動学）で測る
+        double base0 = sim.World.BaseMoney.Value, ind0 = sim.World.Region.TotalIndustrialization;   // ヴィンテージ2026-07-10：資本ストックは新旧合計（旧単層と同一動学）で測る
         sim.World.ModernizationFrac = 0.5;   // NullAgent は上書きしない＝単一国では毎四半期この率で国庫から建設を予約する
         var ex = Record.Exception(() => sim.Run(20));   // EconomyStep が束を買い決済（§11.6 が全ティック保持）
         Assert.Null(ex);
         Assert.True(sim.World.ModernizationBudget() > 0, "近代化投資の予算が立たない（国庫不足＝建設を予約できていない）");
-        Assert.True(System.Math.Abs(sim.World.BaseMoney - base0 - sim.World.CumulativeTradeFlow - sim.World.CumulativeGoldMinted - sim.World.CumulativeFiatIssued) < 1e-6 * base0, "国家建設で基礎貨幣保存が破れた");
+        Assert.True(System.Math.Abs(sim.World.BaseMoney.Value - base0 - sim.World.CumulativeTradeFlow - sim.World.CumulativeGoldMinted - sim.World.CumulativeFiatIssued) < 1e-6 * base0, "国家建設で基礎貨幣保存が破れた");
         Assert.True(sim.World.Region.TotalIndustrialization > ind0, "国家建設で工業化度が上がっていない");
     }
 
@@ -93,11 +93,11 @@ public class FranceTests
     public void 工場補助金は基礎貨幣を保存する()   // 国庫が赤字を肩代わり＝国庫→所有者で保存
     {
         var sim = new Simulation(Fr(1789), new NullAgent());
-        double base0 = sim.World.BaseMoney;
+        double base0 = sim.World.BaseMoney.Value;
         foreach (var p in sim.World.Region.Producers) p.SubsidyRate = 1.0;   // 全工場に満額補助金（赤字工場の肩代わりを発火・2026-07-19率化）
         var ex = Record.Exception(() => sim.Run(20));
         Assert.Null(ex);
-        Assert.True(System.Math.Abs(sim.World.BaseMoney - base0 - sim.World.CumulativeTradeFlow - sim.World.CumulativeGoldMinted - sim.World.CumulativeFiatIssued) < 1e-6 * base0, "工場補助金で基礎貨幣保存が破れた");
+        Assert.True(System.Math.Abs(sim.World.BaseMoney.Value - base0 - sim.World.CumulativeTradeFlow - sim.World.CumulativeGoldMinted - sim.World.CumulativeFiatIssued) < 1e-6 * base0, "工場補助金で基礎貨幣保存が破れた");
     }
 
     [Fact]

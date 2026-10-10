@@ -27,12 +27,12 @@ public class TerritoryTests
     public void 地域間移民でも人口と基礎貨幣は保存される()
     {
         var sim = new Simulation(Frontier(2), new NullAgent());
-        double p0 = sim.World.TotalPopulation, m0 = sim.World.BaseMoney;
+        double p0 = sim.World.TotalPopulation, m0 = sim.World.BaseMoney.Value;
 
         var ex = Record.Exception(() => sim.Run(400));
         Assert.Null(ex);
         Assert.True(Math.Abs(sim.World.TotalPopulation - (p0 + sim.World.PopulationDelta)) < 1e-6 * p0, "人口保存の破れ");
-        Assert.True(Math.Abs(sim.World.BaseMoney - m0) < 1e-3 * Math.Max(1, m0), "基礎貨幣保存の破れ");
+        Assert.True(Math.Abs(sim.World.BaseMoney.Value - m0) < 1e-3 * Math.Max(1, m0), "基礎貨幣保存の破れ");
     }
 
     [Fact]

@@ -341,7 +341,7 @@ public static class Government
         //   0に戻せば旧来（銀の段も自動化）と厳密恒等。
         if (c.TrilemmaRateGate > 0 && w.OnGoldStandard && !w.CapitalControlLaw && (c.SilverLightDiscipline <= 0 || w.GoldStandardLaw))
         {
-            double coverage = w.BroadMoney > 1e-9 ? w.BaseMoney / w.BroadMoney : 1.0;
+            double coverage = w.BroadMoney.Value > 1e-9 ? w.BaseMoney / w.BroadMoney : 1.0;
             double coverTarget = c.GoldCoverMin * c.GoldRejoinCoverMargin;
             double gap = coverTarget > 1e-9 ? (coverTarget - coverage) / coverTarget : 0;
             gap = Math.Clamp(gap, -1, 1);

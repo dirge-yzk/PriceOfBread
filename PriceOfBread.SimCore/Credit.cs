@@ -32,7 +32,7 @@ public static class Credit
         // ★Bank.Gold は BaseMoney からの導出のまま（ratio_eff が状態関数なら二重ソースは生じない＝07 §3の再結論）。
         // 保存則＝退蔵は BaseMoney の内訳が変わるだけで量は不変＝安全。HoardPanicWeight=0 で静的（旧）。
         double hoardRatio = Math.Clamp(c.CurrencyHoldingRatio * (1.0 + c.HoardPanicWeight * (1.0 - bank.Confidence)), 0, HoardRatioMax);
-        bank.Gold = Math.Max(0, w.BaseMoney) * (1.0 - hoardRatio);
+        bank.Gold = Math.Max(0, w.BaseMoney.Value) * (1.0 - hoardRatio);
 
         // 割当削減（測定短縮① 2026-07-09）：日次×全国で呼ばれるホットパス＝毎回の List<Pop> 構築を廃止。全popリストは投資家不在の小世界などコールドパスのみ遅延構築。
         // ★2026-09-25：平均満足は唯一の実装 NationalScore.MeanSatisfaction を呼ぶ（旧＝同じ式の手書きの複製で、全POP・Seceded の州まで数えていた）
@@ -94,7 +94,7 @@ public static class Credit
         //（現行は準備が薄くても与信が伸び続け、割った瞬間に強制離脱＝カバー率割れ316回の構造）。床0.25＝信用の全面凍結はしない。GoldCoverCreditRestraint=0で不読＝厳密恒等（既定0.5）。
         // ★銀の段の軽い規律（SilverLightDiscipline・2026-08-21・**live=1**）：発券カバー率防衛の与信抑制も金の段の制度（19-10差し戻しの根②＝
         //   点火時に20〜31カ国で binding）。銀の段では絞らない。0に戻せば旧来（銀の段も絞る）と厳密恒等。
-        if (c.GoldCoverCreditRestraint > 0 && w.OnGoldStandard && w.BroadMoney > 1e-9 && (c.SilverLightDiscipline <= 0 || w.GoldStandardLaw))
+        if (c.GoldCoverCreditRestraint > 0 && w.OnGoldStandard && w.BroadMoney.Value > 1e-9 && (c.SilverLightDiscipline <= 0 || w.GoldStandardLaw))
         {
             double gcCoverage = w.BaseMoney / w.BroadMoney;
             double gcFloor = c.GoldCoverMin * (1.0 + c.GoldCoverCreditRestraint);

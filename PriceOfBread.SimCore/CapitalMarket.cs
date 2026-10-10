@@ -27,14 +27,14 @@ public static class CapitalMarket
         {
             if (!Simulation.ConservationProbe) return;
             probeD ??= new double[n];
-            for (int i = 0; i < n; i++) probeD[i] = w[i].BaseMoney - w[i].CumulativeTradeFlow - w[i].CumulativeGoldMinted - w[i].CumulativeFiatIssued;
+            for (int i = 0; i < n; i++) probeD[i] = w[i].BaseMoney.Value - w[i].CumulativeTradeFlow - w[i].CumulativeGoldMinted - w[i].CumulativeFiatIssued;
         }
         void ProbeDiff(string label)
         {
             if (!Simulation.ConservationProbe || probeD is null) return;
             for (int i = 0; i < n; i++)
             {
-                double now = w[i].BaseMoney - w[i].CumulativeTradeFlow - w[i].CumulativeGoldMinted - w[i].CumulativeFiatIssued;
+                double now = w[i].BaseMoney.Value - w[i].CumulativeTradeFlow - w[i].CumulativeGoldMinted - w[i].CumulativeFiatIssued;
                 if (System.Math.Abs(now - probeD[i]) > 1e-4)
                     System.Console.Error.WriteLine($"[PROBE金融] {label} {w[i].Region.Name} {w[i].Year}年 ΔD={now - probeD[i]:F6}");
                 probeD[i] = now;

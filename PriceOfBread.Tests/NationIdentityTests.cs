@@ -130,7 +130,7 @@ public class NationIdentityTests
         var austria = sim.Nations.First(n => n.World.SelfPower!.BaseName == "オーストリア");
         var w = austria.World;
         var brussels = w.Regions.First(r => r.Name == "ブリュッセル");
-        double savings = brussels.SumSavings(); double pop = brussels.SumPopulation();
+        double savings = brussels.SumSavings().Value; double pop = brussels.SumPopulation();
         // 分離独立の予約（支配度が尽きた州＝Politics.CheckSecession が積む）を置く＝四半期末に建国＋分離独立戦争。
         // ★2026-09-28（処理の一元化 段2 束3）：旧＝旧経路の単一州の分離戦（CivilWarYears・係数 SecessionSpawnsNation）を注入して決着で建国＝その経路は削除（作者裁定 g）。
         w.PendingSecessionWars = [brussels];

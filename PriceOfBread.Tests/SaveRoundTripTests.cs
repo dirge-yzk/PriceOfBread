@@ -34,7 +34,7 @@ public class SaveRoundTripTests
         for (int i = 0; i < sim1.Nations.Count; i++)
         {
             var a = sim1.Nations[i].World; var b = sim2.Nations[i].World;
-            double ra = System.Math.Abs(a.BaseMoney - b.BaseMoney) / System.Math.Max(1.0, System.Math.Abs(a.BaseMoney));
+            double ra = System.Math.Abs((a.BaseMoney - b.BaseMoney).Value) / System.Math.Max(1.0, System.Math.Abs(a.BaseMoney.Value));
             double rp = System.Math.Abs(a.TotalPopulation - b.TotalPopulation) / System.Math.Max(1.0, a.TotalPopulation);
             Assert.True(System.Math.Max(ra, rp) < 1e-9,
                 $"{a.SelfPower?.Name}：継続系列と復元系列が食い違う（基礎貨幣 {a.BaseMoney:F2}⇔{b.BaseMoney:F2}／人口 {a.TotalPopulation:F0}⇔{b.TotalPopulation:F0}）");

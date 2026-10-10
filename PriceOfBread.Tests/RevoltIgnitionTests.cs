@@ -662,7 +662,7 @@ public class RevoltIgnitionTests
         Assert.True(raised > 0, "前提が崩れた：ON腕で民兵が立っていない");
         // 2腕の違いは札だけ＝同じ四半期の人口も貨幣も1ビットも違わない（民兵は人を作らない・移さない）
         Assert.Equal(offW.TotalPopulation, onW.TotalPopulation, 9);
-        Assert.Equal(offW.BaseMoney, onW.BaseMoney, 9);
+        Assert.Equal(offW.BaseMoney.Value, onW.BaseMoney.Value, 9);
     }
 
     [Fact]
@@ -1186,9 +1186,9 @@ public class RevoltIgnitionTests
         const int rifle = Catalog.RifleId;
         var (sim, f, payer) = 武装する運動(enabled: 1);
         var w = sim.World; var c = w.Coef; var r = w.Region;
-        double s0 = r.SumSavings();
+        double s0 = r.SumSavings().Value;
         EconomyStep.Run(r, c, 1.0, null, w);
-        double s1 = r.SumSavings();
+        double s1 = r.SumSavings().Value;
         Assert.True(w.RebelArmsSpent > 0, "武器が1単位も買えていない");
         // 州の帳簿：Σ貯蓄の増減 ＝ 国家の支払い（国庫→売り手＝外からの流入）− 専売（月末に国庫へ）。
         // 反乱勢力の支払いは参加者→売り手＝州の**内側**で閉じる＝この恒等式に新しい項を足さない（足したら金が湧いたか消えたかのどちらか）。

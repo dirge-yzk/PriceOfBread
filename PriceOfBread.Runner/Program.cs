@@ -1248,7 +1248,7 @@ if (args.Length > 0 && args[0] == "deadprobe")
     static (double Money, double Pop, double Gdp, double Leg) Digest(MultiNationSim m)
     {
         double a = 0, b = 0, g = 0, l = 0;
-        foreach (var n in m.Nations) { var w = n.World; a += w.BaseMoney; b += w.TotalPopulation; g += w.GdpPerMonth.Value; l += w.Legitimacy; }
+        foreach (var n in m.Nations) { var w = n.World; a += w.BaseMoney.Value; b += w.TotalPopulation; g += w.GdpPerMonth.Value; l += w.Legitimacy; }
         return (a, b, g, l);
     }
     static (double, double, double, double) RunOnce(int q, string? field, double val)
@@ -1933,7 +1933,7 @@ if (args.Length > 0 && args[0] == "silverprobe")
             var w = n.World;
             if (w.MonetaryLaw == MonetaryStandardLaw.Silver) { svEAg += w.ExchangeRate; svEAgCnt++; }
             else if (w.MonetaryLaw == MonetaryStandardLaw.Gold) { svEAu += w.ExchangeRate; svEAuCnt++; }
-            minted += w.CumulativeGoldMinted; baseM += w.BaseMoney; broadM += w.BroadMoney; susp += w.GoldSuspensions;
+            minted += w.CumulativeGoldMinted; baseM += w.BaseMoney.Value; broadM += w.BroadMoney.Value; susp += w.GoldSuspensions;
             agRes += w.SilverReserveQty; auRes += w.GoldReserveQty;   // ★床モードの準備（2026-08-14）＝蓄積→demonetizationの投げ売りを観測
             if (w.MonetaryLaw == MonetaryStandardLaw.Fiat) lFiat++;
             else if (w.MonetaryLaw == MonetaryStandardLaw.Silver) lAg++;
@@ -3413,7 +3413,7 @@ if (args.Length > 0 && args[0] == "leakhunt")
     (double Pop, double Money) LWorld()
     {
         double pop = 0, money = 0;
-        foreach (var n in lm.Nations) { foreach (var r in n.World.Regions) pop += r.SumPopulation(); money += n.World.BaseMoney; }
+        foreach (var n in lm.Nations) { foreach (var r in n.World.Regions) pop += r.SumPopulation(); money += n.World.BaseMoney.Value; }
         foreach (var lap in lm.Diplomacy.Powers) if (lap.Nation is null) foreach (var lcol in lap.ColonyList) pop += Math.Max(0, lcol.PopSize);   // 抽象標的の植民地の住民（入植者 SettlerSize は 2026-09-30 段4g に削除＝常に0だった）
         foreach (var n in lseen) { var w = n.World; pop -= w.DiagBirths - w.DiagDeaths - w.WarDeadCumulative; money -= w.CumulativeGoldMinted + w.CumulativeFiatIssued; }
         money -= lm.Diplomacy.CumulativeFxResidual;   // ★段3-1（A7）：為替の換算で世界の名目の基礎貨幣が動く分（清算所の台帳）
@@ -4876,7 +4876,7 @@ if (args.Length > 0 && args[0] == "savetest")
     for (int i = 0; i < sim1.Nations.Count; i++)
     {
         var a = sim1.Nations[i].World; var b = sim2.Nations[i].World;
-        double ra = System.Math.Abs(a.BaseMoney - b.BaseMoney) / System.Math.Max(1.0, System.Math.Abs(a.BaseMoney));
+        double ra = System.Math.Abs((a.BaseMoney - b.BaseMoney).Value) / System.Math.Max(1.0, System.Math.Abs(a.BaseMoney.Value));
         double rp = System.Math.Abs(a.TotalPopulation - b.TotalPopulation) / System.Math.Max(1.0, a.TotalPopulation);
         double r = System.Math.Max(ra, rp);
         if (r > worst) worst = r;

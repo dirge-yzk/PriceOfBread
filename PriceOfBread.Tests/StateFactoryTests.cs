@@ -477,14 +477,14 @@ public class StateFactoryTests
         double rural = 0; foreach (var q in r.Pops) if (!q.IsUrban) rural += q.Size;
         double rs = EconomyStep.RentShareOf(p, r, w.Coef, rural);   // 工場は労働を投入として買う＝付加価値は全て持ち主の側（rs＝1）
         var own = r.Pops[p.OwnerPopIndex];
-        double t0 = w.Treasury.Value, led0 = w.TreasuryLedger[(int)TreasuryCat.StateFactory], own0 = own.Savings.Value, ownE0 = own.EarnedPerMonth.Value, base0 = w.BaseMoney, tf0 = w.CumulativeTradeFlow;
+        double t0 = w.Treasury.Value, led0 = w.TreasuryLedger[(int)TreasuryCat.StateFactory], own0 = own.Savings.Value, ownE0 = own.EarnedPerMonth.Value, base0 = w.BaseMoney.Value, tf0 = w.CumulativeTradeFlow;
         double paid = InternationalMarket.PaySales((null, null), r, Catalog.SteelId, amount, w);   // 払い手＝清算所（世界の外）
         Assert.Equal(amount, paid, 9);
         Assert.Equal(amount * rs * f, w.Treasury.Value - t0, 9);                                    // 地代の国営持分だけ国庫へ
         Assert.Equal(amount * rs * f, w.TreasuryLedger[(int)TreasuryCat.StateFactory] - led0, 9);   // 区分＝国営工場
         Assert.True(own.Savings.Value - own0 >= amount * rs * (1 - f) - 1e-9, "残りの地代が持ち主へ届いていない");
         Assert.Equal(own.Savings.Value - own0, own.EarnedPerMonth.Value - ownE0, 9);                              // 所得にも同じ額（課税の基数）
-        Assert.Equal(amount, w.BaseMoney - base0, 6);                                         // 世界の外から＝この国の基礎貨幣が同額増え
+        Assert.Equal(amount, w.BaseMoney.Value - base0, 6);                                         // 世界の外から＝この国の基礎貨幣が同額増え
         Assert.Equal(amount, w.CumulativeTradeFlow - tf0, 6);                                 //   同じ額が世界の台帳に入る（保存量 D は動かない）
 
         // 賃金の側（RGO＝地代の取り分が 0〜1）：地代→持ち主・賃金→労働（旧 PayExportToProducers＝全額を持ち主へ・賃金0）。
@@ -554,7 +554,7 @@ public class StateFactoryTests
         var s0 = new System.Collections.Generic.Dictionary<Pop, (double S, double E)>(ReferenceEqualityComparer.Instance);
         foreach (var q in r.Pops) s0[q] = (q.Savings.Value, q.EarnedPerMonth.Value);
         double t0 = w.Treasury.Value, led0 = w.TreasuryLedger[(int)TreasuryCat.StateFactory];
-        double D(World x) => x.BaseMoney - x.CumulativeTradeFlow - x.CumulativeGoldMinted - x.CumulativeFiatIssued;
+        double D(World x) => x.BaseMoney.Value - x.CumulativeTradeFlow - x.CumulativeGoldMinted - x.CumulativeFiatIssued;
         double d0 = D(w), minted0 = w.CumulativeGoldMinted;
         var mint = typeof(Simulation).GetMethod("MintGold", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
         Assert.NotNull(mint);

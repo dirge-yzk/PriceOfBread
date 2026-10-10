@@ -81,7 +81,7 @@ public class FiscalTests
         // ★2026-10-01 (148)：保存される量は**台帳を引いた基礎貨幣**（ConservationTests・Invariants と同じ＝基礎貨幣−累積貿易−鋳造−不換の発行）。
         //   旧＝生の基礎貨幣を比べた＝国庫が負になった月の与信の償却（非常発行＝台帳 CumulativeFiatIssued に同じ額）が起きない種でしか緑にならない
         //   （(147) の木でも種1・3〜7 は400四半期の中で不換の発行が約0.1%立つ・種2 だけが立たなかった＝(148) で年次の乱数が2つ減って種2 にも立った）。許しは同じ 1e-3。
-        static double D(World w) => w.BaseMoney - w.CumulativeTradeFlow - w.CumulativeGoldMinted - w.CumulativeFiatIssued;
+        static double D(World w) => w.BaseMoney.Value - w.CumulativeTradeFlow - w.CumulativeGoldMinted - w.CumulativeFiatIssued;
         var sim = new Simulation(Fisc(2, 0.30), new NullAgent());
         double base0 = D(sim.World);
 
@@ -292,7 +292,7 @@ public class FiscalTests
         FiscalMonth(w, Short);
         double H = HeldOf(w);
         Assert.True(H > 0, "前提が崩れた：持ち手がいない");
-        double treasury0 = w.Treasury.Value, base0 = w.BaseMoney;
+        double treasury0 = w.Treasury.Value, base0 = w.BaseMoney.Value;
         w.Coef.MaxInterestShareOfRevenue = 0;                 // 借入上限に張り付き（利払い÷歳入≧限界＝借りられない）
         w.InsolvencyQuarters = w.Coef.DefaultArrearsMonths;   // 払えなかった大きさの累計が線に届いている＝この月にデフォルト（(205)）
         FiscalMonth(w, Short);                                // 払えない月（r＜1）＝借りられずに払えない月が続いた
@@ -302,7 +302,7 @@ public class FiscalTests
         new BondLedger().Check(w);
         // 帳消しの額は国庫へ戻らない（国庫はその月の利払いぶん減るだけ）＝台帳の消滅は金を1円も動かさない
         Assert.True(w.Treasury.Value <= treasury0, $"帳消しの分が国庫へ戻っている（{treasury0}→{w.Treasury}・保有 {H}）");
-        Assert.True(Math.Abs(w.BaseMoney - base0) <= 1e-9 * Math.Max(1.0, Math.Abs(base0)), $"デフォルトで基礎貨幣が動いた（{base0}→{w.BaseMoney}）");
+        Assert.True(Math.Abs(w.BaseMoney.Value - base0) <= 1e-9 * Math.Max(1.0, Math.Abs(base0)), $"デフォルトで基礎貨幣が動いた（{base0}→{w.BaseMoney}）");
     }
 
     [Fact]
@@ -323,9 +323,9 @@ public class FiscalTests
         Assert.Equal(x.GovDebt.Value, y.GovDebt.Value);    // 元本の動きは台帳を読まない
         Assert.Equal(x.GovDebt.Value, z.GovDebt.Value);
         Assert.Equal(x.Treasury.Value, y.Treasury.Value);  // 国庫の出入りも同じ（持ち手がいる限り）
-        double scale = Math.Max(1.0, Math.Abs(x.BaseMoney));
-        Assert.True(Math.Abs(x.BaseMoney - y.BaseMoney) <= 1e-9 * scale, $"台帳の中身で貨幣の総量が変わった（{x.BaseMoney} / {y.BaseMoney}）");
-        Assert.True(Math.Abs(x.BaseMoney - z.BaseMoney) <= 1e-9 * scale, $"空の台帳で貨幣の総量が変わった（{x.BaseMoney} / {z.BaseMoney}）");
+        double scale = Math.Max(1.0, Math.Abs(x.BaseMoney.Value));
+        Assert.True(Math.Abs((x.BaseMoney - y.BaseMoney).Value) <= 1e-9 * scale, $"台帳の中身で貨幣の総量が変わった（{x.BaseMoney} / {y.BaseMoney}）");
+        Assert.True(Math.Abs((x.BaseMoney - z.BaseMoney).Value) <= 1e-9 * scale, $"空の台帳で貨幣の総量が変わった（{x.BaseMoney} / {z.BaseMoney}）");
         Assert.True(z.Treasury.Value > x.Treasury.Value, "持ち手のいない国内分が国庫に残っていない");
         Assert.True(ypops[j].Savings.Value > xpops[j].Savings.Value, "寄せた持ち手が利子・元本を受け取っていない");
         new BondLedger().Check(x); new BondLedger().Check(y);
@@ -514,7 +514,7 @@ public class FiscalTests
     }
 
     private static double MintedAndFiat(World[] ws) { double s = 0; foreach (var w in ws) s += w.CumulativeGoldMinted + w.CumulativeFiatIssued; return s; }
-    private static double WorldBase(World[] ws) { double s = 0; foreach (var w in ws) s += w.BaseMoney; return s; }
+    private static double WorldBase(World[] ws) { double s = 0; foreach (var w in ws) s += w.BaseMoney.Value; return s; }
 
     [Fact]
     public void 外債の元本_償還は減らした債権の比で債権国へ届き世界の貨幣は変わらない()
@@ -547,10 +547,10 @@ public class FiscalTests
         CapitalMarket.Step(sim.Nations, coef);     // 四半期末の国際金融＝債権の繰上げと元利の配当
 
         double tol = 1e-9 * Math.Max(1.0, principal);
-        double gotBr = br.BaseMoney - base0[0], gotPr = pr.BaseMoney - base0[2];
+        double gotBr = (br.BaseMoney - base0[0]).Value, gotPr = (pr.BaseMoney - base0[2]).Value;
         // (a) 償還した対外の元本は債権国に同額届く＝仏の減りと債権国の増えが相殺し、世界の基礎貨幣は鋳造・不換の台帳ぶんしか動かない
         Assert.True(Math.Abs(gotBr + gotPr - principal) <= tol, $"債権国に届いた額 {gotBr + gotPr} ≠ 償還した対外の元本 {principal}（届かない分が世界から消えている）");
-        Assert.True(Math.Abs(fr.BaseMoney - base0[1] + principal) <= tol, $"仏の基礎貨幣の減り {base0[1] - fr.BaseMoney} ≠ 対外の元本 {principal}");
+        Assert.True(Math.Abs(fr.BaseMoney.Value - base0[1].Value + principal) <= tol, $"仏の基礎貨幣の減り {base0[1].Value - fr.BaseMoney.Value} ≠ 対外の元本 {principal}");
         double worldDrift = (WorldBase(all) - world0) - (MintedAndFiat(all) - mint0);
         Assert.True(Math.Abs(worldDrift) <= 1e-9 * Math.Max(1.0, world0), $"世界の基礎貨幣が台帳の外で {worldDrift} 動いた");
         // (b) 債権国が複数なら、減らした債権の比で配られる＝各債権国の受け取り＝その国の債権の減り（3:1）
@@ -584,8 +584,8 @@ public class FiscalTests
         double fled = fr.CapitalAbroad - abroad0;
         Assert.True(fled > 0, "前提が崩れた：仏の資本が逃げていない");
         double tol = 1e-9 * Math.Max(1.0, fled);
-        double gotBr = br.BaseMoney - base0[0], gotPr = pr.BaseMoney - base0[2];
-        Assert.True(Math.Abs(fr.BaseMoney - base0[1] + fled) <= tol, $"仏の基礎貨幣の減り {base0[1] - fr.BaseMoney} ≠ 逃げた額 {fled}");
+        double gotBr = (br.BaseMoney - base0[0]).Value, gotPr = (pr.BaseMoney - base0[2]).Value;
+        Assert.True(Math.Abs(fr.BaseMoney.Value - base0[1].Value + fled) <= tol, $"仏の基礎貨幣の減り {base0[1].Value - fr.BaseMoney.Value} ≠ 逃げた額 {fled}");
         Assert.True(Math.Abs(gotBr + gotPr - fled) <= tol, $"受け皿の国に届いた額 {gotBr + gotPr} ≠ 逃げた額 {fled}（届かない分が世界から消えている）");
         double worldDrift = (WorldBase(all) - world0) - (MintedAndFiat(all) - mint0);
         Assert.True(Math.Abs(worldDrift) <= 1e-9 * Math.Max(1.0, world0), $"世界の基礎貨幣が台帳の外で {worldDrift} 動いた");
@@ -631,7 +631,7 @@ public class FiscalTests
         Assert.True(fr.ForeignCapitalIn * coef.CapitalDividendRate > inv0, "前提が崩れた：配当が投資家の貯蓄に収まる（不足が起きない）");
         var other0 = fpops.Select(p => CapitalMarket.IsInvestor(p, fr.Coef) ? double.NaN : p.Savings.Value).ToArray();
         var guards = Array.ConvertAll(all, w => new MoneyConservation(w));
-        double world0 = WorldBase(all), mint0 = MintedAndFiat(all), base0 = fr.BaseMoney, fci0 = fr.ForeignCapitalIn;
+        double world0 = WorldBase(all), mint0 = MintedAndFiat(all), base0 = fr.BaseMoney.Value, fci0 = fr.ForeignCapitalIn;
         var fcis0 = Array.ConvertAll(all, w => w.ForeignCapitalIn);
         var cas0 = Array.ConvertAll(all, w => w.CapitalAbroad);
 
@@ -642,7 +642,7 @@ public class FiscalTests
             if (!double.IsNaN(other0[i]))
                 Assert.True(fpops[i].Savings.Value == other0[i], $"投資家でない {fpops[i].ClassName} の貯蓄が {other0[i]}→{fpops[i].Savings} に動いた（配当・逃避の不足を大衆から取っている）");
         // (b) 仏が払った額は投資家の貯蓄まで（払い切って尽きる）
-        double paid = base0 - fr.BaseMoney, tol = 1e-9 * Math.Max(1.0, inv0);
+        double paid = base0 - fr.BaseMoney.Value, tol = 1e-9 * Math.Max(1.0, inv0);
         Assert.True(paid <= inv0 + tol, $"仏が払った額 {paid} が投資家の貯蓄 {inv0} を超えた");
         Assert.True(paid >= inv0 - tol, $"前提が崩れた：投資家が払い切っていない（{paid} / {inv0}）");
         // (c) 払えない逃避は債権ごと消える＝仏の負債は払えた額でなく逃避の額だけ減る（CreditRating＝同じ Step の信用の写し）。
@@ -722,7 +722,7 @@ public class FiscalTests
         Assert.True(back.OnGoldStandard, "債務が年GDP の2倍の英が、準備と財政が足りているのに兌換へ戻れない（英1821年の再開）");
 
         var run = Board(true);
-        run.Bank!.Loans = new MoneyStock(run.TotalMoney + run.Treasury.Value);   // 準備（基礎貨幣）が与信に食われて0＝取り付けで金が流出し尽くした盤面
+        run.Bank!.Loans = new MoneyStock(run.TotalMoney.Value + run.Treasury.Value);   // 準備（基礎貨幣）が与信に食われて0＝取り付けで金が流出し尽くした盤面
         Fiscal.Step(run, run.Coef);
         Assert.False(run.OnGoldStandard, "準備が割れても兌換を止めない（取り付けの門が死んでいる＝この番人の対照が崩れた）");
     }
@@ -1064,7 +1064,7 @@ public class FiscalTests
         var rb = rw.Bank!; var pb = pw.Bank!;
         Pop cap = rw.Regions[0].Pops[0];
         foreach (var r in rw.Regions) foreach (var p in r.Pops) if (p.Savings.Value > cap.Savings.Value) cap = p;
-        double scale = Math.Max(1.0, rw.TotalMoney);
+        double scale = Math.Max(1.0, rw.TotalMoney.Value);
         double loan = 0.3 * scale, overdraft = rw.Treasury.Value + 0.2 * scale, hh = 0.05 * scale;
         World.Transfer((null, null), (rw, [cap], [1.0]), loan, outside: World.Outside.Credit);   // 信用創造（与信と預金の対）＝移し方の1本（2026-09-30 段4g）
         World.Transfer((rw, null), (rw, [cap], [1.0]), overdraft, TreasuryCat.OtherOut);        // 国庫の当座借越での支出
@@ -1082,7 +1082,7 @@ public class FiscalTests
         Assert.True(Math.Abs(rho - 0.8) < 1e-12, "前提が崩れた：反乱国の為替が置けていない");
 
         var all0 = sim.Nations.ConvertAll(n => n.World).ToArray();
-        double world0 = WorldBase(all0), rebelBase = rw.BaseMoney, parentBase0 = pw.BaseMoney;
+        double world0 = WorldBase(all0), rebelBase = rw.BaseMoney.Value, parentBase0 = pw.BaseMoney.Value;
         double Sum(World[] ws, Func<World, double> f) { double s = 0; foreach (var w in ws) s += f(w); return s; }
         double ca0 = Sum(all0, w => w.CapitalAbroad), fci0 = Sum(all0, w => w.ForeignCapitalIn);
         // ★段3-3（2026-09-30）：債権は持ち手の国の通貨＝否認は金建ての債権の比で落ちる（債権の増減の1本 CapitalMarket.AdjustClaims）。反乱国自身の債権は名目のまま親へ（貯蓄と同じ）
@@ -1105,7 +1105,7 @@ public class FiscalTests
         double fxMoved = sim.Diplomacy.CumulativeFxResidual - fx0;
         Assert.True(Math.Abs(fxMoved) > 1e-9 * Math.Max(1.0, Math.Abs(rebelBase)), "為替が違うのに換算の台帳が動かない");
         Assert.True(Math.Abs(WorldBase(all1) - world0 - fxMoved) <= tol, $"再併合で世界の基礎貨幣が換算の台帳の外で {WorldBase(all1) - world0 - fxMoved} 動いた");
-        Assert.True(Math.Abs(pw.BaseMoney - parentBase0 - rebelBase * rho) <= tol, $"親の基礎貨幣の増え {pw.BaseMoney - parentBase0} ≠ 反乱国の基礎貨幣×換算 {rebelBase * rho}");
+        Assert.True(Math.Abs(pw.BaseMoney.Value - parentBase0 - rebelBase * rho) <= tol, $"親の基礎貨幣の増え {pw.BaseMoney.Value - parentBase0} ≠ 反乱国の基礎貨幣×換算 {rebelBase * rho}");
         guard.Check(pw);   // 親の国ごとの保存も閉じる（累積貿易に換算した額を記帳）
         // 貨幣の行は親へ（親の通貨へ換算）：与信・家計の与信・国庫（負のまま）
         Assert.True(Math.Abs(pb.Loans.Value - loans0 - rL * rho) <= tol, $"親の与信の増え {pb.Loans.Value - loans0} ≠ 反乱国の与信×換算 {rL * rho}");
@@ -1173,14 +1173,14 @@ public class FiscalTests
         var held0 = new double[sim.Nations.Count];
         for (int i = 0; i < sim.Nations.Count; i++)
         {
-            var w = sim.Nations[i].World; w.ForeignIntPaidThisQuarter = 0; tf0 += w.CumulativeTradeFlow; bm0 += w.BaseMoney;
+            var w = sim.Nations[i].World; w.ForeignIntPaidThisQuarter = 0; tf0 += w.CumulativeTradeFlow; bm0 += w.BaseMoney.Value;
             held0[i] = Held(w); inv0 += held0[i];
         }
         CapitalMarket.Step(sim.Nations, c);
         double tf1 = 0, bm1 = 0; bool drained = false;
         for (int i = 0; i < sim.Nations.Count; i++)
         {
-            var w = sim.Nations[i].World; tf1 += w.CumulativeTradeFlow; bm1 += w.BaseMoney;
+            var w = sim.Nations[i].World; tf1 += w.CumulativeTradeFlow; bm1 += w.BaseMoney.Value;
             if (held0[i] > 0 && Held(w) <= 1e-6 * held0[i]) drained = true;
         }
         Assert.True(drained, "前提が崩れた：どの送り手も投資家の貯蓄で切られていない");
@@ -1214,7 +1214,7 @@ public class FiscalTests
         var uk = sim.Nations[0].World; var fr = sim.Nations[1].World;
         uk.ExchangeRate = 1.0; fr.ExchangeRate = 0.5;
         var gu = new MoneyConservation(uk); var gf = new MoneyConservation(fr);
-        double tu = uk.Treasury.Value, tf = fr.Treasury.Value, fx0 = sim.Diplomacy.CumulativeFxResidual, bm0 = uk.BaseMoney + fr.BaseMoney;
+        double tu = uk.Treasury.Value, tf = fr.Treasury.Value, fx0 = sim.Diplomacy.CumulativeFxResidual, bm0 = (uk.BaseMoney + fr.BaseMoney).Value;
         double outU = uk.TreasuryLedger[(int)TreasuryCat.TributeOut], inF = fr.TreasuryLedger[(int)TreasuryCat.TributeIn];
         const double X = 1000;
         Assert.Equal(X, World.Transfer((uk, null), (fr, null, null), X, TreasuryCat.TributeOut, toCat: TreasuryCat.TributeIn));   // 戻り値＝払い手の通貨の額
@@ -1223,7 +1223,7 @@ public class FiscalTests
         Assert.Equal(-X, uk.TreasuryLedger[(int)TreasuryCat.TributeOut] - outU, 6);
         Assert.Equal(2 * X, fr.TreasuryLedger[(int)TreasuryCat.TributeIn] - inF, 6);
         Assert.Equal(X, sim.Diplomacy.CumulativeFxResidual - fx0, 6);
-        Assert.Equal(sim.Diplomacy.CumulativeFxResidual - fx0, uk.BaseMoney + fr.BaseMoney - bm0, 6);   // 世界の名目の動き＝換算の台帳
+        Assert.Equal(sim.Diplomacy.CumulativeFxResidual - fx0, (uk.BaseMoney + fr.BaseMoney).Value - bm0, 6);   // 世界の名目の動き＝換算の台帳
         gu.Check(uk); gf.Check(fr);   // 国ごとの台帳（CumulativeTradeFlow）は各自の通貨の実額
         // 逆向き（仏→英・POP の払い手）＝半分
         var frPops = new List<Pop>(fr.AllPops());
@@ -1248,7 +1248,7 @@ public class FiscalTests
         const double F = 1e7;
         fr.ForeignCapitalIn = F; uk.CapitalAbroad = 0.5 * F;   // 英の投資家が仏に持つ外資（金の値打ちで同じ）
         double invF0 = CapitalMarket.InvestorSavings(fr), invU0 = CapitalMarket.InvestorSavings(uk), othF0 = NonInvestorSavings(fr), othU0 = NonInvestorSavings(uk);
-        double fx0 = sim.Diplomacy.CumulativeFxResidual, bm0 = uk.BaseMoney + fr.BaseMoney;
+        double fx0 = sim.Diplomacy.CumulativeFxResidual, bm0 = (uk.BaseMoney + fr.BaseMoney).Value;
         Assert.True(invF0 > coef.CapitalDividendRate * F, "前提が崩れた：仏の投資家が配当を払い切れない");
         CapitalMarket.Step(sim.Nations, coef);
         double paid = invF0 - CapitalMarket.InvestorSavings(fr), got = CapitalMarket.InvestorSavings(uk) - invU0;
@@ -1257,7 +1257,7 @@ public class FiscalTests
         Assert.True(Math.Abs(got - 0.5 * paid) <= tol, $"英の投資家の受け取り {got} ≠ 金の値打ち（払いの半分）{0.5 * paid}");
         Assert.True(Math.Abs(NonInvestorSavings(fr) - othF0) <= tol && Math.Abs(NonInvestorSavings(uk) - othU0) <= tol, "投資家でない POP の貯蓄が動いた");
         Assert.True(Math.Abs(sim.Diplomacy.CumulativeFxResidual - fx0 - (got - paid)) <= tol, "換算の差が換算の台帳に入っていない");
-        Assert.True(Math.Abs(uk.BaseMoney + fr.BaseMoney - bm0 - (sim.Diplomacy.CumulativeFxResidual - fx0)) <= tol, "世界の名目の動き ≠ 換算の台帳の動き");
+        Assert.True(Math.Abs((uk.BaseMoney + fr.BaseMoney).Value - bm0 - (sim.Diplomacy.CumulativeFxResidual - fx0)) <= tol, "世界の名目の動き ≠ 換算の台帳の動き");
     }
 
     /// <summary>★債権の増減の1本（CapitalMarket.AdjustClaims・C14・段3-3）：債務国の対外債の変化は**債務国以外**の国の債権へ、金建ての債権の比で配る＝
@@ -1442,7 +1442,7 @@ public class FiscalTests
         var rw = sim.Nations[^1].World;
         FiscalMonth(rw, Short);
         sim.StepQuarter();   // 反乱国が自国の投資家から借りる
-        double fd = 0.05 * Math.Max(1.0, rw.TotalMoney);   // 反乱国の対外債（仏が持つ）
+        double fd = 0.05 * Math.Max(1.0, rw.TotalMoney.Value);   // 反乱国の対外債（仏が持つ）
         rw.ForeignDebt += new MoneyStock(fd); rw.GovDebt += new MoneyStock(fd); rw.PrevForeignDebt += new MoneyStock(fd); fw.ForeignBondClaims += fd;
         new BondLedger().Check(rw);
         rw.ExchangeRate = pw.FxRate * 0.8;   // ★2026-09-30 段4e（人と動くお金の換算）：反乱国の通貨の元本と保有は親の通貨へ換算して引き継ぐ

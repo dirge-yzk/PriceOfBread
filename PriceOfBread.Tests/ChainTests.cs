@@ -53,10 +53,10 @@ public class ChainTests
     public void 多段連鎖でも基礎貨幣は保存され破綻しない()   // 投入支払いは上流売上として相殺
     {
         var sim = new Simulation(Chain(2), new NullAgent());
-        double base0 = sim.World.BaseMoney;
+        double base0 = sim.World.BaseMoney.Value;
         var ex = Record.Exception(() => sim.Run(400));
         Assert.Null(ex);
-        Assert.True(Math.Abs(sim.World.BaseMoney - base0) < 1e-3 * base0, "基礎貨幣保存の破れ");
+        Assert.True(Math.Abs(sim.World.BaseMoney.Value - base0) < 1e-3 * base0, "基礎貨幣保存の破れ");
     }
 
     [Fact]

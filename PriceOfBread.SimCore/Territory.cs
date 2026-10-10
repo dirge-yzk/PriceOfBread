@@ -338,9 +338,9 @@ public static class Territory
         // 保存量＝移転州の貯蓄総額・人口（同一値を両辺に使い浮動小数ズレ回避＝TotalMoney/TotalPopulation の実減と CumulativeTradeFlow/PopulationDelta の調整をビット一致させる）。
         // ★債務は債務者について行く（2026-09-29 S3b）＝州の POP の債務 D（輸入の為替手形）の分の家計の与信を受け手の銀行へ（建国＝新しい国の銀行は構築で POP の債務から始まる）。
         //   運ぶ基礎貨幣＝貯蓄−債務（同一値を両辺）＝両国の保存が閉じる。債務の無い州は D＝0＝旧と同じ。
-        double S = r.SumSavings(), P = r.SumPopulation(); MoneyStock D = default;
+        MoneyStock S = r.SumSavings(), D = default; double P = r.SumPopulation();
         foreach (var p in r.Pops) D += p.Debt;
-        double B = S - D.Value;
+        MoneyStock B = S - D;
         // ★輸送の容量は州と一緒に移る（2026-09-30 (118)・推奨で進めた＝保存）：鉄道と船は国の値（World.RailCapacity／ShipCapacity）で、
         //   清算はそれを州の取り分（Transport.RegionShare）で配る＝州が使っていた分は、その州の港と線路にある物。
         //   旧＝移し替えで容量は送り手に全部残った＝建国の新しい国は船腹0・鉄道0で生まれ（fff9f01 の10種＝生まれ≥1000 の新しい国の最初の8四半期は4分の3以上で輸出0）、
@@ -351,16 +351,16 @@ public static class Territory
         double rail = from.RailCapacity * sh, ship = from.ShipCapacity * sh;
         from.RailCapacity -= rail; from.ShipCapacity -= ship;
         from.Regions.Remove(r);
-        from.CumulativeTradeFlow -= B; from.PopulationDelta -= P;
+        from.CumulativeTradeFlow -= B.Value; from.PopulationDelta -= P;
         // ★人と動くお金の換算（2026-09-30 処理の一元化 段4e＝(120) の残り）：州ごと別の国へ移る POP の貯蓄と債務を受け手の通貨へ（換算の1本 World.CrossFx・差は換算の台帳へ）。
         //   旧＝名目のまま＝割譲と再併合で、為替の違う国の州の貯蓄が同じ数字のまま別の通貨の貨幣になった（為替 0.5 の国から 1 の国へ移ると貯蓄の値打ちが2倍）。
         //   建国（to＝null）は新しい国の為替が親の値から始まる（MultiNationSim.SpawnNation）＝換算しない。受け手の台帳は換算後の和（同じ値を両辺に）。
-        MoneyStock Din = D; double Bin = B;
+        MoneyStock Din = D, Bin = B;
         if (to is not null && to.FxRate != from.FxRate)
         {
-            double Sin = 0; Din = default;
-            foreach (var p in r.Pops) { p.Rebase(from, to); Sin += p.Savings.Value; Din += p.Debt; }
-            Bin = Sin - Din.Value;
+            MoneyStock Sin = default; Din = default;
+            foreach (var p in r.Pops) { p.Rebase(from, to); Sin += p.Savings; Din += p.Debt; }
+            Bin = Sin - Din;
         }
         from.Bank!.Carry(to?.Bank, D, Din);
         if (to is not null)
@@ -374,7 +374,7 @@ public static class Territory
             //   ⚠勝者の按分継承（ツューリヒ1859・ヴェルサイユ254条）は国家間の債務分担の取り決めで、持ち手の請求権の債務者は変わらない。
             //   帳消しにする形は、失地で送り手の債務が軽くなり持ち手だけが損をする（負けるほど財政が楽になる）。再併合は反乱国の国債を先に消している＝0 は素通り。
             foreach (var p in r.Pops) Fiscal.BookForeignDebt(p, p.BondHoldings, from, to);
-            to.CumulativeTradeFlow += Bin; to.PopulationDelta += P;
+            to.CumulativeTradeFlow += Bin.Value; to.PopulationDelta += P;
             Transport.Receive(to, rail, ship, from.ShipSteamShareEma);
         }
         if (wasCapital && NextCapital(from) is { } cap) from.SetCapital(cap);   // 首都を失った＝「首都を持つ」不変条件を維持

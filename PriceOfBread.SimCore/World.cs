@@ -982,7 +982,7 @@ public sealed class World
     /// （POPの個人債務・2026-08-02）。ここが与信を <see cref="BaseMoney"/> へ接続する唯一の地点なので、
     /// 定義を広げるだけで新しいストックが自動的に恒等式へ入る。既定0で厳密ビット恒等。</summary>
     public MoneyStock OutstandingLoans => (Bank?.Loans ?? default) + (Bank?.HouseholdLoans ?? default);
-    public double BroadMoney => TotalMoney;
+    public MoneyStock BroadMoney => TotalMoney;
     public double FinancialHeat => Bank?.Heat ?? 0.0;   // 金融過熱度（恐慌の予兆ゲージ・ガラス箱）
 
     // --- 国庫・財政（§9-F／§6.2・段4b）---
@@ -1695,7 +1695,7 @@ public sealed class World
         }
         // 貨幣の厚み（M/Y）の趨勢を取り直す：UpdatePriceLevel の「物価 ＝ 厚み ÷ 趨勢」の関係を、置き直した後の厚みで今の物価水準のまま保つ（趨勢 ＝ 厚み ÷ 物価水準）。
         //   旧（(218)）＝趨勢を0へ（次の更新で趨勢 ＝ 厚み ＝ 物価が1へ引かれる）＝助走で物価水準が1から離れた国（清 2.3・露 1.2）の物価が置き直しだけで動いた（実測＝8四半期で対照の0.6〜0.7倍）。
-        double money = BroadMoney + (BaseMoney - BroadMoney) * Convertibility;
+        double money = (BroadMoney + (BaseMoney - BroadMoney) * Convertibility).Value;
         double ratio = money / Math.Max(1e-9, GdpPerMonth.Value);
         _moTrend = ratio > 1e-9 && PriceLevel > 1e-9 ? ratio / PriceLevel : 0;
     }
@@ -1711,7 +1711,7 @@ public sealed class World
         //   ★強制離脱線 GoldCoverMin = 0.25 はそのまま残す（到達不能でよい＝停止は外生の金流出が来たときに起きるべきもの）。
         //   ★牙は既存の非対称速度が持つ＝信認を失うのは 1.4年・買い戻すのは 11.2年（8倍）＝「今の利下げは安い。戻すのに11年かかる」。
         // ConvertibilityCoverageBand = 0 で旧 bool（加入=1.0）に縮退＝厳密恒等。
-        double broad = BroadMoney, baseM = BaseMoney, gdp = GdpPerMonth.Value;   // 全pop/全生産者の走査＝この関数は状態を変えないので1回で束ねる
+        double broad = BroadMoney.Value, baseM = BaseMoney.Value, gdp = GdpPerMonth.Value;   // 全pop/全生産者の走査＝この関数は状態を変えないので1回で束ねる
         double convTarget = OnGoldStandard ? 1.0 : 0.0;
         if (OnGoldStandard && c.ConvertibilityCoverageBand > 0 && broad > 1e-9)
         {
@@ -1804,9 +1804,9 @@ public sealed class World
                 yield return p;
     }
 
-    public double TotalMoney
+    public MoneyStock TotalMoney
     {
-        get { double s = 0; foreach (var r in Regions) s += r.SumSavings(); return s; }
+        get { MoneyStock s = default; foreach (var r in Regions) s += r.SumSavings(); return s; }
     }
 
     /// <summary>国家人口＝全州の人口（★2026-09-28：旧＝分離で凍結した州 Seceded を除いた＝その経路は削除）。人口保存不変量 TotalPopulation==初期+PopulationDelta。</summary>
@@ -2656,5 +2656,5 @@ public sealed class World
     }
 
     // 基礎貨幣＝広義マネー ＋ 国庫 − 与信（保存量＝金。§A-7／§11.6）
-    public double BaseMoney => TotalMoney + Treasury.Value - OutstandingLoans.Value;
+    public MoneyStock BaseMoney => TotalMoney + Treasury - OutstandingLoans;
 }

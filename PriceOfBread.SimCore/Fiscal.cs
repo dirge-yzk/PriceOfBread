@@ -313,13 +313,13 @@ public static class Fiscal
                 // ①記憶の代価＝累積切下げの一定割合 ②平価の代価＝その平価を維持するのに要る貨幣の収縮
                 double burnMem = c.CurrencyReformBurnShare * w.CumulativeDevaluation;
                 double kp = parity * Math.Max(1e-9, w.PriceLevel);
-                double burnParity = w.TotalMoney * Math.Max(0, 1.0 - 1.0 / Math.Max(1e-9, kp));
+                double burnParity = (w.TotalMoney * Math.Max(0, 1.0 - 1.0 / Math.Max(1e-9, kp))).Value;
                 double burn = Math.Min(Math.Max(burnMem, burnParity), sav * c.CurrencyReformBurnCap);
                 // 自己制限：焼却は正貨カバー率を悪化させる（Mが減りLは減らせない）。改革が自分で金本位復帰の
                 // ゲート（GoldCoverMin×GoldRejoinCoverMargin）を閉じては本末転倒なので、そこまでで止める。既存係数の再利用。
                 double lo = c.GoldCoverMin * c.GoldRejoinCoverMargin;
                 double loans = w.OutstandingLoans.Value, tre = Math.Max(0, w.Treasury.Value);
-                if (loans > tre && lo < 1.0) burn = Math.Min(burn, Math.Max(0, w.TotalMoney - (loans - tre) / (1.0 - lo)));
+                if (loans > tre && lo < 1.0) burn = Math.Min(burn, Math.Max(0, w.TotalMoney.Value - (loans - tre) / (1.0 - lo)));
                 if (burn > 1e-12 && sav > 1e-9)
                 {
                     // ★2026-09-30 段4g：焼却＝全POP（貨幣の保有＝貯蓄の比・d5）→世界の外（不換の発行者＝Outside.Fiat）の移し方の1本＝不換の**回収**
@@ -483,7 +483,7 @@ public static class Fiscal
         {
             // 正貨準備カバー率（convertibility-not-reserve-backed＋fx-peg防衛）：信用込み広義マネーに対する正貨(基礎貨幣)の比＝BaseMoney/BroadMoney。
             // 低いと金流出で兌換を守れず停止（1797英/1893米型の投機アタック）。GoldCoverMin=0 なら coverage<0 never・coverage>=0 always＝発火しない（⚠既定は0.25＝live・x-02 で注記を是正）。
-            double coverage = w.BroadMoney > 1e-9 ? w.BaseMoney / w.BroadMoney : 1.0;
+            double coverage = w.BroadMoney.Value > 1e-9 ? w.BaseMoney / w.BroadMoney : 1.0;
             if (w.OnGoldStandard)
             {
                 // ★3値化2026-08-13：兌換の規律は**銀本位でも同じ足枷**＝MetallicStandardLaw（銀でも金でも真）を読む。休眠時は旧 GoldStandardLaw と厳密に一致。

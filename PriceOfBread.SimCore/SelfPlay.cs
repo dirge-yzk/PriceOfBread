@@ -792,7 +792,7 @@ public sealed class UtilityAgent : INationAgent
         // CapitalMobilityLawGate 点火1.0（2026-08-13）＝live。0 で旧式（法も openness も動かない）。
         if (w.Coef.CapitalMobilityLawGate > 0)
         {
-            double cover = w.BroadMoney > 1e-9 ? w.BaseMoney / w.BroadMoney : 1.0;
+            double cover = w.BroadMoney.Value > 1e-9 ? w.BaseMoney / w.BroadMoney : 1.0;
             w.Policy.CapitalControlTarget = cover < w.Coef.GoldCoverMin;
         }
         // ★AI第1波②（2026-08-16）：総動員のAI分岐＝プレイヤーと同じレバー（World.Mobilized＝Military.cs:128 の徴兵深度0.12→0.22＝徴兵法≥選抜の国だけ・M1 2026-09-19）。
