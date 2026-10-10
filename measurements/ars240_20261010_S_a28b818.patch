@@ -1,0 +1,133 @@
+diff --git a/PriceOfBread.SimCore/Coefficients.cs b/PriceOfBread.SimCore/Coefficients.cs
+index da7ecbe..5728eec 100644
+--- a/PriceOfBread.SimCore/Coefficients.cs
++++ b/PriceOfBread.SimCore/Coefficients.cs
+@@ -48,6 +48,7 @@ public sealed class Coefficients
+     // === テーマH（産業組織・固定資本・住宅）===
+     public double InventoryAdjustGain = 0.1;     // メッツラー在庫循環＝在庫についての期待。05-B1（2026-07-29）点火：期待導入の最初の一歩（増幅側＝恐慌を増やす方向・05 §5）。0で旧恒等
+     public double DesiredInventoryCover = 1.0;   // 望ましい在庫＝これ×LastDemand（TargetStockBufferと一致＝定常でギャップ0）。⚠TargetStockBuffer と対＝一致しないと定常でギャップが残る。片方だけ動かさない（GridReplaceRate/GridDecayRateと同型）
++    public double StockFromDemand = 0;       // ★(240) 腕 S（一時の旗・採否が決まったら畳む）：1＝開幕の市場の在庫を需要の見積もりから既存の在庫目標の規則で置く（Simulation.SeedOpeningStock）。2＝1と同じだが軍艦の財だけ一律 200 を残す（帰属用の診断腕 S_ship・採る候補にしない）。0＝全財・全州に一律 200（旧）
+     public double TargetStockFloor = 1.0;    // 在庫目標の下限（需要≈0でのゼロ除算回避）＝**「量として意味を持たない」の既存の物差し**（下の幻の生産のスナップもこの実用スケールを流用する）
+     // ★墓標（2026-08-22・需要と供給の組み換え＝点火と削除）：労働配分の重みは「需要量×Scale」から「準レント×単位能力×Scale」＋配分信念EMAへ**無条件**に切替（EconomyStep の prodW 注記）。
+     //   LaborRentWeight（構造スイッチ）・CrowdRentExpectation（混雑予期＝効果−2.4回・赤1件）・LaborFloorMix（均等床0.15＝準レント下では不要）・ExportDemandWeight（0.25の別建て加算＝価格に輸出が載るので次元不整合）は削除。
+diff --git a/PriceOfBread.SimCore/Simulation.cs b/PriceOfBread.SimCore/Simulation.cs
+index e69a409..f2520c8 100644
+--- a/PriceOfBread.SimCore/Simulation.cs
++++ b/PriceOfBread.SimCore/Simulation.cs
+@@ -75,8 +75,8 @@ public sealed class Simulation
+             ScenarioKind.RegionalFamine => BuildRegionalFamine(),
+             ScenarioKind.LaissezFaire => BuildLaissezFaire(scenario.FactoryRentShare),
+             ScenarioKind.ProductionChain => BuildProductionChain(),
+-            ScenarioKind.FullChain => BuildFullChain(),
+-            ScenarioKind.France => BuildFrance(),
++            ScenarioKind.FullChain => BuildFullChain(scenario.Coef),
++            ScenarioKind.France => BuildFrance(scenario.Coef),
+             ScenarioKind.Nation => BuildNation(scenario.NationConfig
+                 ?? throw new ArgumentException("Kind=Nation には NationConfig が要る"), scenario.Coef, scenario.SharedWorld),
+             _ => BuildSelfSufficientFarm(),
+@@ -404,7 +404,7 @@ public sealed class Simulation
+     // 各労働者の産出 ≈ 生産性、消費 ≈ Σ需要×段数 ≈ 4〜5/人。生産性をこの倍率で底上げ＝工業化（§8 較正）。
+     private const double FullChainProductivityScale = 7.0;
+ 
+-    private static List<Region> BuildFullChain()
++    private static List<Region> BuildFullChain(Coefficients coef)
+     {
+         int n = Catalog.Goods.Length;
+         var goodsById = new Good[n];
+@@ -469,14 +469,16 @@ public sealed class Simulation
+             Inputs = [new Input(Catalog.FishId, 0.6), new Input(Catalog.IronId, 0.3), new Input(Catalog.SaltId, 0.2), new Input(Catalog.LaborId, LaborPerOutput), new Input(Catalog.AdvLaborId, Catalog.AdvLaborPerOutput(Catalog.CannedFoodId))] });
+ 
+         AddAlternateRecipes(producers, new Coefficients());   // ★代替レシピ（2026-09-06）：フルチェーンも同じ1回（旧＝コンストラクタの走査が拾っていた＝生産者126の内訳）
+-        return [new Region
++        var region = new Region
+         {
+             Id = 0, Name = "本土",
+             Goods = goodsList,
+             Pops = [laborer, worker, capitalist],
+             Producers = producers,
+             Markets = markets,
+-        }];
++        };
++        SeedOpeningStock(region, coef);   // ★(240) 腕 S：試験用の世界の一律 200 も同じ規則で（旗 0 では何もしない）
++        return [region];
+     }
+ 
+     /// <summary>
+@@ -484,7 +486,7 @@ public sealed class Simulation
+     /// RGO（農業・原料）は農民が耕し、地代（封建貢租）を特権身分（貴族・聖職）が抜く＝搾取構造。
+     /// 工場は都市労働者が働きブルジョワが所有。識字は身分で大差＝近代化の伏線。代表スケール 1単位＝1000人。
+     /// </summary>
+-    private static List<Region> BuildFrance()
++    private static List<Region> BuildFrance(Coefficients coef)
+     {
+         int n = Catalog.Goods.Length;
+         var goodsById = new Good[n];
+@@ -544,7 +546,7 @@ public sealed class Simulation
+         AddAdvancedProducers(producers, pops, engineerIdx: 4, workerIdx: 2, ownerIdx: 3, new Coefficients());   // 高度労働力（技師）＋石油火力
+         AddArtisanProducers(producers, artisanIdx: pops.Count - 1);   // 職人の工房（工場との並存レシピ）
+         AddAlternateRecipes(producers, new Coefficients());   // ★代替レシピ（2026-09-06）：最小ビルダーも同じ1回（旧＝コンストラクタの走査が拾っていた）
+-        return [new Region
++        var region = new Region
+         {
+             Id = 0, Name = "フランス本土",
+             CapitalEnabled = true,        // 集約「工業化度」を有効化（投資で積み、都市化を工業化に縛る・生産性を上げる）
+@@ -558,7 +560,9 @@ public sealed class Simulation
+             Pops = pops,
+             Producers = producers,
+             Markets = markets,
+-        }];
++        };
++        SeedOpeningStock(region, coef);   // ★(240) 腕 S：試験用の世界の一律 200 も同じ規則で（旗 0 では何もしない）
++        return [region];
+     }
+ 
+     /// <summary>
+@@ -936,6 +940,7 @@ public sealed class Simulation
+             Producers = producers,
+             Markets = markets,
+         };
++        SeedOpeningStock(region, coef);   // ★(240) 腕 S：開幕の市場の在庫を需要の見積もりから置く（旗 0 では何もしない＝CatalogEconomy の一律 200）
+         // ★初期地代のシード（2026-08-04・コールドスタートの穴）：LandRent は月次アキュムレータで、開幕1ヶ月目の
+         //   政治（Blocs＝土地の政治力）が走る時点ではまだ0＝**開幕だけ旧支配層が無力**になり、AIがその隙に
+         //   近代化法を通していた（lawtiming実測＝仏の公教育・資格任用が1783年に逆戻り）。
+@@ -948,6 +953,32 @@ public sealed class Simulation
+         return region;
+     }
+ 
++    /// <summary>★(240) 開幕の市場の在庫＝既存の在庫目標の規則（MarketFlow：max(TargetStockFloor, TargetStockBuffer×総需要)×StockpileFactor）を、構築の時点で求められる需要の見積もりに当てる。
++    /// 旧＝CatalogEconomy が全財（役務を含む）・全州に Stock=TargetStock=200 を一律に置いた（開発初期の仮置き・小国で年GDPの1〜2年分）。
++    /// 総需要の見積もり＝その州の全POPの Size×BaseNeed（消費）＋全生産者の初期 Output×投入係数（工場・職人の投入）。構築の時点には前期の需要 LastDemand が無い＝同じ量を物理から見積もる。
++    /// 需要の無い財（BaseNeed=0 の中間財で、使う工場の初期 Output も 0.5 の間）は床 TargetStockFloor。StockpileFactor は開幕は 1（WarScareTension=0）。
++    /// 軍需品の首都の在庫（InitialArsenalMonths）は、この後に max を取って積む。昇格する植民地州は PromoteColonyToRegion が在庫 0 で始める（在庫目標だけ置く）。</summary>
++    private static void SeedOpeningStock(Region region, Coefficients coef)
++    {
++        if (!(coef.StockFromDemand > 0)) return;
++        int n = region.Markets.Length;
++        var need = new double[n];
++        double pop = 0;
++        foreach (var p in region.Pops) pop += p.Size;
++        foreach (var d in Catalog.Goods) if (d.Id >= 0 && d.Id < n) need[d.Id] = pop * d.BaseNeed;
++        foreach (var s in region.Producers)
++            foreach (var inp in s.Inputs)
++                if (inp.GoodId >= 0 && inp.GoodId < n) need[inp.GoodId] += s.Output * inp.QtyPerOutput;
++        for (int gi = 0; gi < n; gi++)
++        {
++            var m = region.Markets[gi];
++            if (m is null) continue;
++            if (coef.StockFromDemand >= 2 && gi == Catalog.WarshipId) continue;   // 診断腕 S_ship：軍艦だけ旧の一律 200 を残す
++            double t = System.Math.Max(coef.TargetStockFloor, coef.TargetStockBuffer * need[gi]);
++            m.Stock = t; m.TargetStock = t;
++        }
++    }
++
+     // 役務（サービス財）の係数：労働力＝工場の投入。賃金は労働市場の価格で決まる（生産が先→売って収入の設計）。
+     private const double LaborPerOutput = Catalog.LaborPerOutput;     // 工場の産出1単位あたりの労働力投入（Catalogが単一の真実）
+     private const double LaborProductivity = 1.0;  // 工場労働者1人あたりの労働力算出の基準（×FullChainProductivityScale＝工場と同じ規模感。工業化・技術の倍率にも乗る）
+@@ -1497,6 +1528,7 @@ public sealed class Simulation
+         };
+         region.SeaBasin = SeaGraph.BasinAt(clat, clon);   // 港州＝海盆を積出港座標から（WirePortDistances の港側と同じ規則）
+         if (!Landmass.IsRegistered(col.Name)) w.LogAdd($"{w.Year} {col.Name}州はlandmass.json未登録＝IsPort=falseへ倒した（沈黙回避）");   // fail-closed の可視化
++        SeedOpeningStock(region, coef);   // ★(240) 腕 S：在庫目標（TargetStock）は昇格した州の住民と生産者から同じ規則で（旗 0 では何もしない＝一律 200 のまま）。在庫そのものは下で0へ
+         foreach (var m in region.Markets) { m.Stock = 0; m.PrevStock = 0; }   // 在庫0で開始（上記の設計判断）。Last*=0 は初期値どおり＝財収支恒等式（GoodsBalance）が最初から閉じる
+         Territory.Adopt(w, region);   // Id＝国の中で最大＋1（移し替えと同じ1本・2026-09-28 処理の一元化 段2 B）
+         // 保存の記帳（同一値を両辺に使う＝CedeTerritory の作法）

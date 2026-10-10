@@ -1,0 +1,158 @@
+  復元対象のプロジェクトを決定しています...
+  D:\PoB_work\ars240\id_fold\PriceOfBread.Tests\PriceOfBread.Tests.csproj を復元しました (910 ミリ秒)。
+  D:\PoB_work\ars240\id_fold\PriceOfBread.App\PriceOfBread.App.csproj を復元しました (910 ミリ秒)。
+  3 個中 1 個の復元対象のプロジェクトは最新です。
+  PriceOfBread.SimCore -> D:\PoB_work\ars240\id_fold\art\bin\PriceOfBread.SimCore\release\PriceOfBread.SimCore.dll
+  PriceOfBread.App -> D:\PoB_work\ars240\id_fold\art\bin\PriceOfBread.App\release\PriceOfBread.App.dll
+D:\PoB_work\ars240\id_fold\PriceOfBread.Tests\ConservationTests.cs(259,48): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\ars240\id_fold\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\ars240\id_fold\PriceOfBread.Tests\ConservationTests.cs(943,93): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\ars240\id_fold\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+  PriceOfBread.Tests -> D:\PoB_work\ars240\id_fold\art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll
+D:\PoB_work\ars240\id_fold\art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:38.52]     PriceOfBread.Tests.CreditTests.基礎貨幣が負の国でも与信の回収は返せる額を越えて続かない [FAIL]
+  失敗 PriceOfBread.Tests.CreditTests.基礎貨幣が負の国でも与信の回収は返せる額を越えて続かない [153 ms]
+  エラー メッセージ:
+   前提が崩れた：好況で与信が伸びていない（249555.241504626・返せる額 1702800.5804872948）
+  スタック トレース:
+     at PriceOfBread.Tests.CreditTests.基礎貨幣が負の国でも与信の回収は返せる額を越えて続かない() in D:\PoB_work\ars240\id_fold\PriceOfBread.Tests\CreditTests.cs:line 134
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:01:36.94]     PriceOfBread.Tests.ArsenalOpeningTests.回239_首都の軍需の備蓄は人口の側の定員と月数の式どおりで200は床 [FAIL]
+  失敗 PriceOfBread.Tests.ArsenalOpeningTests.回239_首都の軍需の備蓄は人口の側の定員と月数の式どおりで200は床 [92 ms]
+  エラー メッセージ:
+   Assert.Equal() Failure: Values are not within 6 decimal places
+Expected: 200 (rounded from 200)
+Actual:   195.6096 (rounded from 195.60960000000006)
+  スタック トレース:
+     at PriceOfBread.Tests.ArsenalOpeningTests.回239_首都の軍需の備蓄は人口の側の定員と月数の式どおりで200は床() in D:\PoB_work\ars240\id_fold\PriceOfBread.Tests\ArsenalOpeningTests.cs:line 40
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:01:39.48]     PriceOfBread.Tests.RevoltIgnitionTests.F1法の経路_譲歩は法を直接変えず目標を置き施行は通常経路 [FAIL]
+  失敗 PriceOfBread.Tests.RevoltIgnitionTests.F1法の経路_譲歩は法を直接変えず目標を置き施行は通常経路 [249 ms]
+  エラー メッセージ:
+   Assert.Equal() Failure: Values differ
+Expected: ConstitutionalMonarchy
+Actual:   BourgeoisDictatorship
+  スタック トレース:
+     at PriceOfBread.Tests.RevoltIgnitionTests.F1法の経路_譲歩は法を直接変えず目標を置き施行は通常経路() in D:\PoB_work\ars240\id_fold\PriceOfBread.Tests\RevoltIgnitionTests.cs:line 1630
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:01:47.26]     PriceOfBread.Tests.RevoltIgnitionTests.F1法の経路_通らない段は施行されず要求が残る [FAIL]
+  失敗 PriceOfBread.Tests.RevoltIgnitionTests.F1法の経路_通らない段は施行されず要求が残る [283 ms]
+  エラー メッセージ:
+   Assert.Equal() Failure: Values differ
+Expected: ConstitutionalMonarchy
+Actual:   BourgeoisDictatorship
+  スタック トレース:
+     at PriceOfBread.Tests.RevoltIgnitionTests.F1法の経路_通らない段は施行されず要求が残る() in D:\PoB_work\ars240\id_fold\PriceOfBread.Tests\RevoltIgnitionTests.cs:line 1669
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:02:03.02]     PriceOfBread.Tests.RevoltIgnitionTests.F1法の経路_梯子が尽きたら何も置かない [FAIL]
+  失敗 PriceOfBread.Tests.RevoltIgnitionTests.F1法の経路_梯子が尽きたら何も置かない [188 ms]
+  エラー メッセージ:
+   Assert.Equal() Failure: Values differ
+Expected: ConstitutionalMonarchy
+Actual:   BourgeoisDictatorship
+  スタック トレース:
+     at PriceOfBread.Tests.RevoltIgnitionTests.F1法の経路_梯子が尽きたら何も置かない() in D:\PoB_work\ars240\id_fold\PriceOfBread.Tests\RevoltIgnitionTests.cs:line 1706
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:02:13.80]     PriceOfBread.Tests.RevoltIgnitionTests.項目2b_鎮圧も譲歩の約束も闘争度を鎮めない [FAIL]
+[xUnit.net 00:02:14.01]     PriceOfBread.Tests.RevoltIgnitionTests.段2_飢えは闘争度のストックを通ってから熱になる [FAIL]
+  失敗 PriceOfBread.Tests.RevoltIgnitionTests.項目2b_鎮圧も譲歩の約束も闘争度を鎮めない [203 ms]
+  エラー メッセージ:
+   Assert.Equal() Failure: Values differ
+Expected: ConstitutionalMonarchy
+Actual:   BourgeoisDictatorship
+  スタック トレース:
+     at PriceOfBread.Tests.RevoltIgnitionTests.項目2b_鎮圧も譲歩の約束も闘争度を鎮めない() in D:\PoB_work\ars240\id_fold\PriceOfBread.Tests\RevoltIgnitionTests.cs:line 1384
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  失敗 PriceOfBread.Tests.RevoltIgnitionTests.段2_飢えは闘争度のストックを通ってから熱になる [211 ms]
+  エラー メッセージ:
+   Assert.Equal() Failure: Values are not within 9 decimal places
+Expected: 0.001604917 (rounded from 0.001604916500461096)
+Actual:   0.00080245800000000003 (rounded from 0.00080245825023054801)
+  スタック トレース:
+     at PriceOfBread.Tests.RevoltIgnitionTests.段2_飢えは闘争度のストックを通ってから熱になる() in D:\PoB_work\ars240\id_fold\PriceOfBread.Tests\RevoltIgnitionTests.cs:line 134
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:02:47.52]     PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 3375747) [FAIL]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 3375747) [< 1 ms]
+  エラー メッセージ:
+   計算量「外交：覇権の判定の国×国」が 2162079 件（宣言 3375747）＝10 % を超えて**下がった**＝表を 2162079 へ下げて理由を書く（＝改善の宣言）。
+  スタック トレース:
+     at PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(Int32 item, Int64 declared) in D:\PoB_work\ars240\id_fold\PriceOfBread.Tests\WriterRatchetTests.cs:line 469
+   at InvokeStub_WriterRatchetTests.計算量の見た件数は宣言した表を超えない(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:02:47.56]     PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 9, declared: 43891020) [FAIL]
+[xUnit.net 00:02:47.56]     PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 6, declared: 2711) [FAIL]
+[xUnit.net 00:02:47.56]     PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 8, declared: 5185642) [FAIL]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 9, declared: 43891020) [< 1 ms]
+  エラー メッセージ:
+   計算量「清算：着値の充填」が 18216734 件（宣言 43891020）＝10 % を超えて**下がった**＝表を 18216734 へ下げて理由を書く（＝改善の宣言）。
+  スタック トレース:
+     at PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(Int32 item, Int64 declared) in D:\PoB_work\ars240\id_fold\PriceOfBread.Tests\WriterRatchetTests.cs:line 469
+   at InvokeStub_WriterRatchetTests.計算量の見た件数は宣言した表を超えない(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 6, declared: 2711) [< 1 ms]
+  エラー メッセージ:
+   計算量「請求：見た生産者（月）」が 691 件（宣言 2711）＝10 % を超えて**下がった**＝表を 691 へ下げて理由を書く（＝改善の宣言）。
+  スタック トレース:
+     at PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(Int32 item, Int64 declared) in D:\PoB_work\ars240\id_fold\PriceOfBread.Tests\WriterRatchetTests.cs:line 469
+   at InvokeStub_WriterRatchetTests.計算量の見た件数は宣言した表を超えない(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 8, declared: 5185642) [< 1 ms]
+  エラー メッセージ:
+   計算量「清算：見た買い手行」が 4038948 件（宣言 5185642）＝10 % を超えて**下がった**＝表を 4038948 へ下げて理由を書く（＝改善の宣言）。
+  スタック トレース:
+     at PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(Int32 item, Int64 declared) in D:\PoB_work\ars240\id_fold\PriceOfBread.Tests\WriterRatchetTests.cs:line 469
+   at InvokeStub_WriterRatchetTests.計算量の見た件数は宣言した表を超えない(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:02:47.56]     PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 2, declared: 7299) [FAIL]
+[xUnit.net 00:02:47.56]     PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 1, declared: 27979627) [FAIL]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 2, declared: 7299) [< 1 ms]
+  エラー メッセージ:
+   計算量「建設：見た生産者（旬）」が 2044 件（宣言 7299）＝10 % を超えて**下がった**＝表を 2044 へ下げて理由を書く（＝改善の宣言）。
+  スタック トレース:
+     at PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(Int32 item, Int64 declared) in D:\PoB_work\ars240\id_fold\PriceOfBread.Tests\WriterRatchetTests.cs:line 469
+   at InvokeStub_WriterRatchetTests.計算量の見た件数は宣言した表を超えない(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 1, declared: 27979627) [< 1 ms]
+  エラー メッセージ:
+   計算量「価格：日次の写像の回」が 38062644 件（宣言 27979627・許し +2 %）＝**増えている**。増やすなら表を上げ、どこで払ったか（他の処理を削った分）をこのファイル・実装ログ・コミットに書く（＝宣言）。新しい処理なら docs の「処理の刻みの表」に行を足し、刻みの根拠を書く。
+  スタック トレース:
+     at PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(Int32 item, Int64 declared) in D:\PoB_work\ars240\id_fold\PriceOfBread.Tests\WriterRatchetTests.cs:line 465
+   at InvokeStub_WriterRatchetTests.計算量の見た件数は宣言した表を超えない(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:02:49.17]     PriceOfBread.Tests.StartWarmupTests.開幕の歳入は所得税なしの直接税の段で年GDPの史実の桁 [FAIL]
+  失敗 PriceOfBread.Tests.StartWarmupTests.開幕の歳入は所得税なしの直接税の段で年GDPの史実の桁 [14 s]
+  エラー メッセージ:
+   ポーランド の開幕の歳入が年GDP の 25.4 %（旧＝清 36.6%）
+  スタック トレース:
+     at PriceOfBread.Tests.StartWarmupTests.開幕の歳入は所得税なしの直接税の段で年GDPの史実の桁() in D:\PoB_work\ars240\id_fold\PriceOfBread.Tests\StartWarmupTests.cs:line 191
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:03:48.41]     PriceOfBread.Tests.StartWarmupTests.助走は国債を動かさず開幕の英の国債は年GDPの約1倍 [FAIL]
+  失敗 PriceOfBread.Tests.StartWarmupTests.助走は国債を動かさず開幕の英の国債は年GDPの約1倍 [5 s]
+  エラー メッセージ:
+   Assert.InRange() Failure: Value not in range
+Range:  (0.45000000000000001 - 0.80000000000000004)
+Actual: 1.0637545596528504
+  スタック トレース:
+     at PriceOfBread.Tests.StartWarmupTests.助走は国債を動かさず開幕の英の国債は年GDPの約1倍() in D:\PoB_work\ars240\id_fold\PriceOfBread.Tests\StartWarmupTests.cs:line 118
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:04:08.53]     PriceOfBread.Tests.StartWarmupTests.助走は国庫を動かさず開幕の国庫は年GDPの数パーセント [FAIL]
+  失敗 PriceOfBread.Tests.StartWarmupTests.助走は国庫を動かさず開幕の国庫は年GDPの数パーセント [5 s]
+  エラー メッセージ:
+   Assert.InRange() Failure: Value not in range
+Range:  (0.20000000000000001 - 0.40000000000000002)
+Actual: 0.40545667124229151
+  スタック トレース:
+     at PriceOfBread.Tests.StartWarmupTests.助走は国庫を動かさず開幕の国庫は年GDPの数パーセント() in D:\PoB_work\ars240\id_fold\PriceOfBread.Tests\StartWarmupTests.cs:line 142
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+失敗!   -失敗:    16、合格:  1015、スキップ:     0、合計:  1031、期間: 5 m 9 s - PriceOfBread.Tests.dll (net10.0)
