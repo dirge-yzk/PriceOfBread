@@ -116,6 +116,17 @@ public class UnitTypeTests
         (typeof(World), "Treasury", typeof(MoneyStock)),
         (typeof(World), "GovDebt", typeof(MoneyStock)),
         (typeof(Pop), "Savings", typeof(MoneyStock)),
+        // ★(252) 在庫のお金の残り。不変条件「Σ保有＝GovDebt−ForeignDebt」（BondLedger）の両辺が同じ型になる／BaseMoney＝TotalMoney＋国庫−与信 も型のまま
+        (typeof(World), "ForeignDebt", typeof(MoneyStock)),
+        (typeof(World), "PrevForeignDebt", typeof(MoneyStock)),
+        (typeof(Pop), "BondHoldings", typeof(MoneyStock)),
+        (typeof(Pop), "Debt", typeof(MoneyStock)),
+        (typeof(Bank), "Loans", typeof(MoneyStock)),
+        (typeof(Bank), "HouseholdLoans", typeof(MoneyStock)),
+        (typeof(World), "OutstandingLoans", typeof(MoneyStock)),
+        (typeof(World), "TotalMoney", typeof(MoneyStock)),
+        (typeof(World), "BroadMoney", typeof(MoneyStock)),
+        (typeof(World), "BaseMoney", typeof(MoneyStock)),
     ];
 
     [Fact]
@@ -195,6 +206,10 @@ public class UnitTypeTests
         w1.Coef.LoanSpreadPerYear = new RatePerYear(0.05); w1.Coef.BondRepayFracPerMonth = new RatePerMonth(0.0175);
         w1.SetTreasuryRaw(1234.5678); w1.GovDebt = new MoneyStock(2.0 / 3.0);   // ★(250) 在庫のお金（国庫・国債の残高・貯蓄）
         w1.Regions[0].Pops[0].ScaleSavings(1.0 / 3.0);
+        // ★(252) 在庫のお金の残り（対外債・保有・個人債務・銀行の与信）＝割り切れない値で往復を確かめる
+        w1.ForeignDebt = new MoneyStock(1.0 / 7.0); w1.PrevForeignDebt = new MoneyStock(2.0 / 7.0);
+        w1.Regions[0].Pops[0].BondHoldings = new MoneyStock(3.0 / 7.0); w1.Regions[0].Pops[0].Debt = new MoneyStock(4.0 / 7.0);
+        w1.Bank!.Loans = new MoneyStock(5.0 / 7.0); w1.Bank.HouseholdLoans = new MoneyStock(6.0 / 7.0);
         using var ms = new System.IO.MemoryStream();
         SaveGame.Save(sim1, ms);
         ms.Position = 0;
@@ -208,6 +223,12 @@ public class UnitTypeTests
         Assert.Equal(BitConverter.DoubleToInt64Bits(w1.GovDebt.Value), BitConverter.DoubleToInt64Bits(w2.GovDebt.Value));
         Assert.Equal(BitConverter.DoubleToInt64Bits(w1.Regions[0].Pops[0].Savings.Value), BitConverter.DoubleToInt64Bits(w2.Regions[0].Pops[0].Savings.Value));
         Assert.NotEqual(0.0, w1.Regions[0].Pops[0].Savings.Value);   // 対照：0を往復して緑になる空の番人にしない
+        Assert.Equal(BitConverter.DoubleToInt64Bits(w1.ForeignDebt.Value), BitConverter.DoubleToInt64Bits(w2.ForeignDebt.Value));
+        Assert.Equal(BitConverter.DoubleToInt64Bits(w1.PrevForeignDebt.Value), BitConverter.DoubleToInt64Bits(w2.PrevForeignDebt.Value));
+        Assert.Equal(BitConverter.DoubleToInt64Bits(w1.Regions[0].Pops[0].BondHoldings.Value), BitConverter.DoubleToInt64Bits(w2.Regions[0].Pops[0].BondHoldings.Value));
+        Assert.Equal(BitConverter.DoubleToInt64Bits(w1.Regions[0].Pops[0].Debt.Value), BitConverter.DoubleToInt64Bits(w2.Regions[0].Pops[0].Debt.Value));
+        Assert.Equal(BitConverter.DoubleToInt64Bits(w1.Bank.Loans.Value), BitConverter.DoubleToInt64Bits(w2.Bank!.Loans.Value));
+        Assert.Equal(BitConverter.DoubleToInt64Bits(w1.Bank.HouseholdLoans.Value), BitConverter.DoubleToInt64Bits(w2.Bank.HouseholdLoans.Value));
     }
 
     [Fact]
@@ -241,7 +262,8 @@ public class UnitTypeTests
                     .Where(m => m.Name.StartsWith("op_", StringComparison.Ordinal) && m.GetParameters().Any(p => p.ParameterType == b)).Select(m => m.Name).ToArray();
                 Assert.True(ops.Length == 0, $"{a.Name} が {b.Name} を取る演算子を持つ: {string.Join(",", ops)}");
             }
-        // 月の決算で1か月分の流れを在庫へ足す口は Calendar.OneMonthOf の1本だけ（MoneyPerMonth を受けて MoneyStock を返す）。
+        // Calendar で在庫の型を返すのは OneMonthOf の1本だけ（MoneyPerMonth を受けて MoneyStock を返す＝Pop の月末の精算が貯蓄へ足す口）。⚠これは Calendar の換算の口の検査で、
+        // 在庫を作る口の全てではない：double を受ける継ぎ目（World.Pay／Transfer の額・MoneyStock の public のコンストラクタ・CrossFx の在庫の型の版）は型で守っていない＝件数は下の「在庫のお金をdoubleから作る所の数」のラチェットが止める。
         var toStock = typeof(Calendar).GetMethods(BindingFlags.Public | BindingFlags.Static).Where(m => m.ReturnType == typeof(MoneyStock)).ToArray();
         Assert.Single(toStock);
         Assert.Equal("OneMonthOf", toStock[0].Name);
@@ -298,7 +320,12 @@ public class UnitTypeTests
     [Fact]
     public void 在庫のお金をdoubleから作る所の数は宣言のとおり()
     {
-        const int Declared = 48;   // 2026-10-11 (251)：Simulation 30・Fiscal 6・Model 6・World 3・MultiNationSim 3
+        const int Declared = 54;   // 2026-10-11 (251)：48＝Simulation 30・Fiscal 6・Model 6・World 3・MultiNationSim 3 → (252)：54＝Simulation 32・Fiscal 8・Model 3・World 6・MultiNationSim 2・Bank 1・Diplomacy 2
+        //   増えた理由（(252) の+6＝どれも double の流れ・取引の額・換算の結果を在庫の型へ入れる継ぎ目で、月の流れの決算ではない）：
+        //   Bank 1＝家計の貸しと返しの動いた額を個人債務へ（Bank.Lend）／Diplomacy 2＝払えなかった貢納と賠償を対外債へ記帳する額（Fiscal.BookForeignDebt の引数が在庫の型になり呼び手が包む）／
+        //   Fiscal +2＝減債で減る対外債（Math.Max の結果）・起債で資本家が払った額の保有（(251) の GovDebt 側の1件は対外債の側と共有して増やしていない・BookForeignDebt の引数は型になり −1）／
+        //   Simulation +2＝損失の負債化で個人債務へ足す額・負の国の与信の償却／World +3＝世界の外の側の台帳（与信・家計の与信の動いた額）の2行と CrossFx の在庫の型の版（国境をまたぐ在庫の換算の1本）／
+        //   MultiNationSim −1＝越境移民の持参金を型に（+1）・反乱国の国債の保有を預かる行と按分の行（−2）が型のまま足し引きになった／Model −3＝人と動くお金の運搬の引数と州の再換算が型のまま（Pop.Carry の包み2・Rebase 1）
         var dir = System.IO.Path.Combine(RepoRoot(), "PriceOfBread.SimCore");
         var per = System.IO.Directory.EnumerateFiles(dir, "*.cs", System.IO.SearchOption.AllDirectories)
             .Where(f => !f.Replace('\\', '/').Contains("/obj/") && !f.Replace('\\', '/').Contains("/bin/"))

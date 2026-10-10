@@ -64,7 +64,7 @@ public static class NationalScore
     // 金融の発達＝1人あたりの与信（信用残高÷人口）。近代的な金融経済の成熟度＝規模でなく「深さ」の指標（ロンドンのシティ的国力）。
     // 人口で割る＝反規模：工業化した英は1人あたり信用が深く高得点、大人口・農業の露は薄く低得点（GDP/GDP比だと全国が上限に張り付き差が出ないため人口あたりに）。
     public static double Finance(World w) =>
-        w.Bank is { } b && w.TotalPopulation > 1 ? Math.Clamp(b.Loans / (w.TotalPopulation * FinancePerCapitaDivisor), 0, FinanceCap) : 0;   // 上限12→6＝ロンドンのシティ（金融）一強を緩和（金融国力は残すが青天井にしない）
+        w.Bank is { } b && w.TotalPopulation > 1 ? Math.Clamp(b.Loans.Value / (w.TotalPopulation * FinancePerCapitaDivisor), 0, FinanceCap) : 0;   // 上限12→6＝ロンドンのシティ（金融）一強を緩和（金融国力は残すが青天井にしない）
 
     // 第5段5-1（2026-07-27）：これが唯一の実装（Politics.StepのMeanSatisfactionPol代入・Credit の avgSat・Validation の満足度もここを呼ぶ）。
     // ★2026-09-25：分母を**大衆のみ**（Politics.IsMassPop＝不満度・闘争度と同じ母集団）へ揃えた。旧＝全POP（閉鎖階級・近代エリート・兵士を含む）
@@ -788,7 +788,7 @@ public sealed class UtilityAgent : INationAgent
         // CapitalMobilityLawGate 点火1.0（2026-08-13）＝live。0 で旧式（法も openness も動かない）。
         if (w.Coef.CapitalMobilityLawGate > 0)
         {
-            double cover = w.BroadMoney > 1e-9 ? w.BaseMoney / w.BroadMoney : 1.0;
+            double cover = w.BroadMoney.Value > 1e-9 ? w.BaseMoney / w.BroadMoney : 1.0;
             w.Policy.CapitalControlTarget = cover < w.Coef.GoldCoverMin;
         }
         // ★AI第1波②（2026-08-16）：総動員のAI分岐＝プレイヤーと同じレバー（World.Mobilized＝Military.cs:128 の徴兵深度0.12→0.22＝徴兵法≥選抜の国だけ・M1 2026-09-19）。

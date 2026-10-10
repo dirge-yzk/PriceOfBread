@@ -1248,7 +1248,7 @@ if (args.Length > 0 && args[0] == "deadprobe")
     static (double Money, double Pop, double Gdp, double Leg) Digest(MultiNationSim m)
     {
         double a = 0, b = 0, g = 0, l = 0;
-        foreach (var n in m.Nations) { var w = n.World; a += w.BaseMoney; b += w.TotalPopulation; g += w.GdpPerMonth.Value; l += w.Legitimacy; }
+        foreach (var n in m.Nations) { var w = n.World; a += w.BaseMoney.Value; b += w.TotalPopulation; g += w.GdpPerMonth.Value; l += w.Legitimacy; }
         return (a, b, g, l);
     }
     static (double, double, double, double) RunOnce(int q, string? field, double val)
@@ -1933,7 +1933,7 @@ if (args.Length > 0 && args[0] == "silverprobe")
             var w = n.World;
             if (w.MonetaryLaw == MonetaryStandardLaw.Silver) { svEAg += w.ExchangeRate; svEAgCnt++; }
             else if (w.MonetaryLaw == MonetaryStandardLaw.Gold) { svEAu += w.ExchangeRate; svEAuCnt++; }
-            minted += w.CumulativeGoldMinted; baseM += w.BaseMoney; broadM += w.BroadMoney; susp += w.GoldSuspensions;
+            minted += w.CumulativeGoldMinted; baseM += w.BaseMoney.Value; broadM += w.BroadMoney.Value; susp += w.GoldSuspensions;
             agRes += w.SilverReserveQty; auRes += w.GoldReserveQty;   // ★床モードの準備（2026-08-14）＝蓄積→demonetizationの投げ売りを観測
             if (w.MonetaryLaw == MonetaryStandardLaw.Fiat) lFiat++;
             else if (w.MonetaryLaw == MonetaryStandardLaw.Silver) lAg++;
@@ -2409,7 +2409,7 @@ if (args.Length > 0 && args[0] == "initdump")
                 {
                     popK += p.Size; if (p.IsUrban) urbanK += p.Size; litSum += p.Literacy * p.Size; if (p.IsSoldier) sold += p.Size;
                     if (!cls.TryGetValue(p.ClassName, out var c)) { c = (0, 0, 0, 0, 0, 0, 0); order.Add(p.ClassName); }
-                    cls[p.ClassName] = (c.size + p.Size, c.sav + p.Savings.Value, c.earned + p.LastEarnedPerMonth.Value, c.lit + p.Literacy * p.Size, c.sat + p.Satisfaction * p.Size, c.debt + p.Debt, c.bond + p.BondHoldings);
+                    cls[p.ClassName] = (c.size + p.Size, c.sav + p.Savings.Value, c.earned + p.LastEarnedPerMonth.Value, c.lit + p.Literacy * p.Size, c.sat + p.Satisfaction * p.Size, c.debt + p.Debt.Value, c.bond + p.BondHoldings.Value);
                     if (CapitalMarket.IsInvestor(p, w.Coef)) { invSav += p.Savings.Value; invEarn += p.LastEarnedPerMonth.Value; invSize += p.Size; }
                 }
             }
@@ -2437,19 +2437,19 @@ if (args.Length > 0 && args[0] == "initdump")
             }
             Row(nm, "投資家/貯蓄の和", tm, invSav, "貨幣");
             Row(nm, "投資家/前月の所得の和", tm, invEarn, "貨幣/月");
-            Row(nm, "投資家/貯蓄÷年所得", tm, invEarn > 0 ? invSav / (invEarn * 12) : double.NaN, "年");
+            Row(nm, "投資家/貯蓄÷年所得", tm, invEarn > 0 ? invSav / Calendar.PerMonthToPerYear(invEarn) : double.NaN, "年");
             Row(nm, "投資家/人数", tm, invSize * 1000, "人");
             // GDP
             double gdp = w.GdpPerMonth.Value;
             Row(nm, "GDP/実質(月)", tm, gdp, "参照価格×量/月");
-            Row(nm, "GDP/実質(年換算)", tm, gdp * 12, "参照価格×量/年");
+            Row(nm, "GDP/実質(年換算)", tm, Calendar.PerMonthToPerYear(gdp), "参照価格×量/年");
             Row(nm, "GDP/名目(年換算)", tm, Calendar.PerMonthToPerYear(w.NominalGdpPerMonth).Value, "貨幣/年");
-            Row(nm, "GDP/1人あたり(実質・年)", tm, popK > 0 ? gdp * 12 / (popK * 1000) : 0, "参照価格/人/年");
+            Row(nm, "GDP/1人あたり(実質・年)", tm, popK > 0 ? Calendar.PerMonthToPerYear(gdp) / (popK * 1000) : 0, "参照価格/人/年");
             Row(nm, "GDP/1人あたり(名目・年)", tm, popK > 0 ? (Calendar.PerMonthToPerYear(w.NominalGdpPerMonth) / (popK * 1000)).Value : 0, "貨幣/人/年");
             // 財政
             Row(nm, "財政/国庫", tm, w.Treasury.Value, "貨幣");
             Row(nm, "財政/国債", tm, w.GovDebt.Value, "貨幣");
-            Row(nm, "財政/うち対外債", tm, w.ForeignDebt, "貨幣");
+            Row(nm, "財政/うち対外債", tm, w.ForeignDebt.Value, "貨幣");
             Row(nm, "財政/国債÷年名目GDP", tm, w.NominalGdpPerMonth.Value > 0 ? w.GovDebt.Value / (Calendar.PerMonthToPerYear(w.NominalGdpPerMonth)).Value : 0, "比");
             Row(nm, "財政/国庫÷年名目GDP", tm, w.NominalGdpPerMonth.Value > 0 ? w.Treasury.Value / (Calendar.PerMonthToPerYear(w.NominalGdpPerMonth)).Value : 0, "比");
             Row(nm, "財政/直近の月の純税収", tm, w.LastRevenuePerMonth.Value, "貨幣/月");
@@ -2572,7 +2572,7 @@ if (args.Length > 0 && args[0] == "initdump")
                 }
                 cs.Sort();
                 Row(nm, "市場/全州の在庫の価値(参照価格)", tm, stkV, "参照価格×量");
-                Row(nm, "市場/全州の在庫の価値÷年実質GDP", tm, gdp > 0 ? stkV / (gdp * 12) : 0, "年");
+                Row(nm, "市場/全州の在庫の価値÷年実質GDP", tm, gdp > 0 ? stkV / Calendar.PerMonthToPerYear(gdp) : 0, "年");
                 Row(nm, "市場/首都の在庫の価値(参照価格)", tm, capV, "参照価格×量");
                 Row(nm, "市場/首都の財の数", tm, nGoods, "件");
                 Row(nm, "市場/首都で在庫がちょうど200の財の数", tm, n200, "件");
@@ -3413,7 +3413,7 @@ if (args.Length > 0 && args[0] == "leakhunt")
     (double Pop, double Money) LWorld()
     {
         double pop = 0, money = 0;
-        foreach (var n in lm.Nations) { foreach (var r in n.World.Regions) pop += r.SumPopulation(); money += n.World.BaseMoney; }
+        foreach (var n in lm.Nations) { foreach (var r in n.World.Regions) pop += r.SumPopulation(); money += n.World.BaseMoney.Value; }
         foreach (var lap in lm.Diplomacy.Powers) if (lap.Nation is null) foreach (var lcol in lap.ColonyList) pop += Math.Max(0, lcol.PopSize);   // 抽象標的の植民地の住民（入植者 SettlerSize は 2026-09-30 段4g に削除＝常に0だった）
         foreach (var n in lseen) { var w = n.World; pop -= w.DiagBirths - w.DiagDeaths - w.WarDeadCumulative; money -= w.CumulativeGoldMinted + w.CumulativeFiatIssued; }
         money -= lm.Diplomacy.CumulativeFxResidual;   // ★段3-1（A7）：為替の換算で世界の名目の基礎貨幣が動く分（清算所の台帳）
@@ -4090,14 +4090,14 @@ if (args.Length > 0 && args[0] == "numdef")
             double xRef = TradeReachDiag.CrossRefByNation.Length > idx ? TradeReachDiag.CrossRefByNation[idx] : 0;
             double dRef = TradeReachDiag.DomRefByNation.Length > idx ? TradeReachDiag.DomRefByNation[idx] : 0;
             double nom = System.Math.Max(1.0, w.NominalGdpPerMonth.Value);
-            double A = ei * 4.0 / nom * 100;                     // 旧定義（是正前・分子＝四半期×4／分母＝月次のまま＝正典 TradeGdp は既に暦を揃えて修正済み）
-            double B = ei * 4.0 / (nom * 12) * 100;              // 暦を揃える（年貿易 ÷ 年名目GDP）
-            double C = prodGold > 1e-9 ? ei * 4.0 / (prodGold * 12) * 100 : 0;   // 金建て同士（分母＝月次産出の金建て市場評価）
-            double D = prodRef > 1e-9 ? xRef * 4.0 / (prodRef * 12) * 100 : 0;   // 参照価格同士（越境のみ）
-            double E = prodRef > 1e-9 ? (xRef + dRef) * 4.0 / (prodRef * 12) * 100 : 0;   // 参照価格同士（同国も入れる）
-            double F = prodGold > 1e-9 ? (ei * 4.0 + colFull * 12) / (prodGold * 12) * 100 : 0;   // 金建て＋植民地財流入（月次なので×12）
-            double G = vaRef > 1e-9 ? xRef * 4.0 / (vaRef * 12) * 100 : 0;   // 参照建て・分母を付加価値へ（史実GDPと同じ物差し）
-            double H = vaRef > 1e-9 && prodRef > 1e-9 ? (ei * 4.0) / (vaRef * (prodGold / prodRef) * 12) * 100 : 0;   // 全部そろえた最良推定（金建て分子÷金建て付加価値）
+            double A = Calendar.PerQuarterToPerYear(ei) / nom * 100;                     // 旧定義（是正前・分子＝四半期×4／分母＝月次のまま＝正典 TradeGdp は既に暦を揃えて修正済み）
+            double B = Calendar.PerQuarterToPerYear(ei) / Calendar.PerMonthToPerYear(nom) * 100;              // 暦を揃える（年貿易 ÷ 年名目GDP）
+            double C = prodGold > 1e-9 ? Calendar.PerQuarterToPerYear(ei) / Calendar.PerMonthToPerYear(prodGold) * 100 : 0;   // 金建て同士（分母＝月次産出の金建て市場評価）
+            double D = prodRef > 1e-9 ? Calendar.PerQuarterToPerYear(xRef) / Calendar.PerMonthToPerYear(prodRef) * 100 : 0;   // 参照価格同士（越境のみ）
+            double E = prodRef > 1e-9 ? Calendar.PerQuarterToPerYear(xRef + dRef) / Calendar.PerMonthToPerYear(prodRef) * 100 : 0;   // 参照価格同士（同国も入れる）
+            double F = prodGold > 1e-9 ? (Calendar.PerQuarterToPerYear(ei) + Calendar.PerMonthToPerYear(colFull)) / Calendar.PerMonthToPerYear(prodGold) * 100 : 0;   // 金建て＋植民地財流入（月次なので×12）
+            double G = vaRef > 1e-9 ? Calendar.PerQuarterToPerYear(xRef) / Calendar.PerMonthToPerYear(vaRef) * 100 : 0;   // 参照建て・分母を付加価値へ（史実GDPと同じ物差し）
+            double H = vaRef > 1e-9 && prodRef > 1e-9 ? Calendar.PerQuarterToPerYear(ei) / Calendar.PerMonthToPerYear(vaRef * (prodGold / prodRef)) * 100 : 0;   // 全部そろえた最良推定（金建て分子÷金建て付加価値）
             Console.WriteLine(string.Join(",", new[]
             {
                 (1783 + q / 4).ToString(), ndWatch[wi],
@@ -4876,7 +4876,7 @@ if (args.Length > 0 && args[0] == "savetest")
     for (int i = 0; i < sim1.Nations.Count; i++)
     {
         var a = sim1.Nations[i].World; var b = sim2.Nations[i].World;
-        double ra = System.Math.Abs(a.BaseMoney - b.BaseMoney) / System.Math.Max(1.0, System.Math.Abs(a.BaseMoney));
+        double ra = System.Math.Abs((a.BaseMoney - b.BaseMoney).Value) / System.Math.Max(1.0, System.Math.Abs(a.BaseMoney.Value));
         double rp = System.Math.Abs(a.TotalPopulation - b.TotalPopulation) / System.Math.Max(1.0, a.TotalPopulation);
         double r = System.Math.Max(ra, rp);
         if (r > worst) worst = r;
@@ -6390,7 +6390,7 @@ if (args.Length > 0 && args[0] == "initsavprobe")
             if (isNames[0] == "ALL" && stage.StartsWith("助走の終わり"))
             {
                 double gdpY = Calendar.PerMonthToPerYear(w.NominalGdpPerMonth).Value;
-                Console.WriteLine($"SUM	{name}	人口千 {popTotal:F0}	年GDP {gdpY:F0}	GDP/人 {(popTotal > 0 ? gdpY / popTotal : 0):F2}	全貯蓄/年GDP {(gdpY > 0 ? savTotal / gdpY : 0):F2}	投資家貯蓄/年GDP {(gdpY > 0 ? CapitalMarket.InvestorSavings(w) / gdpY : 0):F2}	投資家貯蓄/投資家年所得 {(invEarnAll > 0 ? CapitalMarket.InvestorSavings(w) / (invEarnAll * 12) : 0):F1}	投資家年所得/年GDP {(gdpY > 0 ? invEarnAll * 12 / gdpY : 0):F2}	国債/年GDP {(gdpY > 0 ? w.GovDebt / gdpY : 0):F2}	国庫/年GDP {(gdpY > 0 ? w.Treasury / gdpY : 0):F3}");
+                Console.WriteLine($"SUM	{name}	人口千 {popTotal:F0}	年GDP {gdpY:F0}	GDP/人 {(popTotal > 0 ? gdpY / popTotal : 0):F2}	全貯蓄/年GDP {(gdpY > 0 ? savTotal / gdpY : 0):F2}	投資家貯蓄/年GDP {(gdpY > 0 ? CapitalMarket.InvestorSavings(w) / gdpY : 0):F2}	投資家貯蓄/投資家年所得 {(invEarnAll > 0 ? CapitalMarket.InvestorSavings(w) / Calendar.PerMonthToPerYear(invEarnAll) : 0):F1}	投資家年所得/年GDP {(gdpY > 0 ? Calendar.PerMonthToPerYear(invEarnAll) / gdpY : 0):F2}	国債/年GDP {(gdpY > 0 ? w.GovDebt / gdpY : 0):F2}	国庫/年GDP {(gdpY > 0 ? w.Treasury / gdpY : 0):F3}");
             }
             Console.WriteLine($"{name}	人口(千) {popTotal:F0}	名目GDP(年) {Calendar.PerMonthToPerYear(w.NominalGdpPerMonth):F0}	国庫 {w.Treasury:F0}	国債 {w.GovDebt:F0}	全貯蓄 {savTotal:F0}	投資家貯蓄(述語) {invSav:F0}	物価水準 {w.PriceLevel:F3}	Fx {w.FxRate:F3}	基礎貨幣 {w.BaseMoney:F0}	広義 {w.BroadMoney:F0}	与信残高 {w.OutstandingLoans:F0}	収益の月次(投資家) {invEarn:F0}");
             foreach (var kv in sv.OrderByDescending(x => x.Value))
@@ -6884,7 +6884,7 @@ if (args.Length > 0 && args[0] == "milfund")
         var w = n.World; var r = w.Region; var coef = w.Coef;
         double estCost = EconomyStep.MilitaryProcurementNeed(r, coef);   // 装備の必要額＝エンジンの1本（全4段・発見込み）。旧＝MilitaryUpkeepScale×MilitaryScale の二重掛け（MilitaryScale は Simulation で既に UpkeepScale 込み）・2026-09-11 #1
         double afford = Math.Min(1.0, r.MilitaryAffordRaw);               // エンジンが書いた支払能力（上限÷必要額）を1で切る＝EconomyStep と同じ読み方
-        double dGdp = w.NominalGdpPerMonth.Value > 1e-9 ? w.GovDebt.Value / w.NominalGdpPerMonth.Value : 0;   // ⚠在庫（国債の残高）を月の名目GDP で割る＝見出しの「債務/GDP」（年GDP 比）の12倍（(251) 反証役 vm#3・型を外した `.Value` で見えていた・診断だけ・値を直すかは作者の確認＝保留）
+        double dGdp = w.NominalGdpPerMonth.Value > 1e-9 ? w.GovDebt.Value / Calendar.PerMonthToPerYear(w.NominalGdpPerMonth).Value : 0;   // ★(252) 見出しの「債務/GDP」＝年GDP 比（旧＝月の名目GDP で割る＝12倍だった・診断の出力だけ＝帯に入らない・推奨で直した〔作者の承認は未確認〕・(251) 反証役 vm#3 で型を外した `.Value` が見つけた）
         Console.WriteLine($"  {w.SelfPower?.Name,-8} {w.LastRevenuePerMonth,7:F0} {w.LastAdminClaimPerMonth,7:F0} {w.LastInterestPerMonth,7:F0} ｜ {w.GovDebt,9:F0} {dGdp,6:F2} {w.GovBondRatePerYear.Value,5:F2} ｜ {w.FiscalCapacityPerMonth,6:F0} {r.MilitaryBudget,6:F0} {estCost,7:F0} {afford,6:F2} {r.MilitaryEquipFill,6:F2} ｜ {w.SoldierSizeK(),5:F0} {w.MilitarySpending,5:F2}");
     }
     return;
@@ -7193,7 +7193,7 @@ if (args.Length > 0 && args[0] == "fisprobe")
             var w = ns.World;
             double line = UtilityAgent.FiscalBufferOf(w) * 8.0;
             double mul = w.Treasury.Value > line && line > 1e-9 ? Math.Max(0.25, line / w.Treasury.Value) : 1.0;
-            double extract = w.GdpPerMonth.Value > 1e-9 ? w.LastRevenuePerMonth.Value / w.GdpPerMonth.Value : 0;   // ⚠名目の歳入を実質GDP（参照価格×量）で割る＝物価水準を含む比（(250) 型を分けて見つかった・値は変えない）
+            double extract = w.NominalGdpPerMonth.Value > 1e-9 ? w.LastRevenuePerMonth / w.NominalGdpPerMonth : 0;   // ★(252) 名目の歳入÷名目GDP（旧＝名目の歳入÷実質GDP〔参照価格×量〕＝物価水準を含む比だった・(250)(251) 反証役 vm#3 で型が見つけた・診断の出力だけ＝帯に入らない・推奨で直した〔作者の承認は未確認〕）
             Console.WriteLine($"{nm}	{w.LastRevenuePerMonth:N0}	{extract:P1}	{w.Treasury:N0}	{line:N0}	×{mul:F2}	{w.AdminPowerSmoothed:F2}	{w.PollTax:F2}/{w.LandTax:F2}/{w.StateMonopolyBreadth * w.Coef.StateMonopolyMargin:F2}/{w.Tariff:F2}/{w.TaxRate:F2}	{Math.Max(0, w.LastTariffRevenuePerClearing):N0}");
         }
         Console.WriteLine();
@@ -7374,7 +7374,7 @@ if (args.Length > 0 && args[0] == "spoilprobe")
         foreach (var gi in Enumerable.Range(0, ng).OrderByDescending(i => spoilYr[i]).Take(15))
         {
             if (spoilYr[gi] < 0.5) break;
-            string ratio = prodMo[gi] > 1e-9 ? $"{spoilYr[gi] / (prodMo[gi] * 12):P0}" : "生産なし";
+            string ratio = prodMo[gi] > 1e-9 ? $"{spoilYr[gi] / Calendar.PerMonthToPerYear(prodMo[gi]):P0}" : "生産なし";
             Console.WriteLine($"  {Catalog.Goods[gi].Name}	廃棄{spoilYr[gi]:N0}	生産{prodMo[gi]:N0}/月	生産比{ratio}");
         }
         spMi++;

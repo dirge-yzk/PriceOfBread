@@ -138,7 +138,7 @@ public class FamineTests
             return (fed.Size - f0) / f0 - (hungry.Size - h0) / h0;
         }
         var c = new Coefficients();
-        double expect = c.FamineExcessMortality / 12.0 * System.Math.Pow((c.FamineDeathFillFloor - 0.4) / c.FamineDeathFillFloor, c.FamineExcessMortalityExponent);
+        double expect = Calendar.PerYearToPerMonth(c.FamineExcessMortality) * System.Math.Pow((c.FamineDeathFillFloor - 0.4) / c.FamineDeathFillFloor, c.FamineExcessMortalityExponent);
         double lo = Excess(0.035, out double dLo), hi = Excess(0.050, out double dHi);
         Assert.True(dHi > dLo * 1.2, $"前提：平常の死亡率が違う国になっていない（1人あたりの死 {dLo:E3}・{dHi:E3}）");
         Assert.True(System.Math.Abs(lo - expect) < 1e-9 && System.Math.Abs(hi - expect) < 1e-9,

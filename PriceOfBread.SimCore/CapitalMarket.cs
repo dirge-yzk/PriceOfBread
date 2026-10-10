@@ -27,14 +27,14 @@ public static class CapitalMarket
         {
             if (!Simulation.ConservationProbe) return;
             probeD ??= new double[n];
-            for (int i = 0; i < n; i++) probeD[i] = w[i].BaseMoney - w[i].CumulativeTradeFlow - w[i].CumulativeGoldMinted - w[i].CumulativeFiatIssued;
+            for (int i = 0; i < n; i++) probeD[i] = w[i].BaseMoney.Value - w[i].CumulativeTradeFlow - w[i].CumulativeGoldMinted - w[i].CumulativeFiatIssued;
         }
         void ProbeDiff(string label)
         {
             if (!Simulation.ConservationProbe || probeD is null) return;
             for (int i = 0; i < n; i++)
             {
-                double now = w[i].BaseMoney - w[i].CumulativeTradeFlow - w[i].CumulativeGoldMinted - w[i].CumulativeFiatIssued;
+                double now = w[i].BaseMoney.Value - w[i].CumulativeTradeFlow - w[i].CumulativeGoldMinted - w[i].CumulativeFiatIssued;
                 if (System.Math.Abs(now - probeD[i]) > 1e-4)
                     System.Console.Error.WriteLine($"[PROBE金融] {label} {w[i].Region.Name} {w[i].Year}年 ΔD={now - probeD[i]:F6}");
                 probeD[i] = now;
@@ -246,7 +246,7 @@ public static class CapitalMarket
         //     旧＝新規の借入を翌四半期の投資家の貯蓄の比で配った（払った比と債権の比が一致しない）・減りは自国の債権も含む全ての債権の比（増えは自国を除く＝C14）。
         for (int i = 0; i < n; i++)
         {
-            double delta = w[i].ForeignDebt - w[i].PrevForeignDebt;
+            double delta = (w[i].ForeignDebt - w[i].PrevForeignDebt).Value;
             w[i].PrevForeignDebt = w[i].ForeignDebt;
             if (System.Math.Abs(delta) < 1e-9) continue;
             AdjustClaims(nations, i, delta);

@@ -30,8 +30,8 @@ public partial class GameViewModel
         LoanRateText = $"{_player.LoanRateAnnual:P1}";                                                          // B1：年率換算（唯一の換算地点＝World.LoanRateAnnual）
         if (_player.Bank is { } bank)
         {
-            CoverText = $"{(_player.BroadMoney > 1e-9 ? _player.BaseMoney / _player.BroadMoney : 1.0):P0}";
-            HouseholdLoanText = Money(bank.HouseholdLoans);   // ★A-03：POPの個人債務の残高
+            CoverText = $"{(_player.BroadMoney.Value > 1e-9 ? _player.BaseMoney / _player.BroadMoney : 1.0):P0}";
+            HouseholdLoanText = Money(bank.HouseholdLoans.Value);   // ★A-03：POPの個人債務の残高
         }
         else { CoverText = "—"; HouseholdLoanText = "—"; }   // 銀行なし＝兌換系は該当なし
         LossFinancedText = Money(_player.LossFinanced);   // ★A-03：損失の負債化（累積グロス）＝硬性ゲートの分子
@@ -522,7 +522,7 @@ public partial class GameViewModel
             double fMet = 0, fNeed = 0, nMet = 0, nTot = 0;
             foreach (var (rg, p) in members)
             {
-                size += p.Size; sav += p.Savings.Value; earned += p.EarnedPerMonth.Value; debt += p.Debt;
+                size += p.Size; sav += p.Savings.Value; earned += p.EarnedPerMonth.Value; debt += p.Debt.Value;
                 fMet += p.FoodMet; fNeed += p.FoodNeed; nMet += p.NeedMet; nTot += p.NeedTotal;
                 satW += p.Satisfaction * p.Size; milW += p.Militancy * p.Size; litW += p.Literacy * p.Size;
                 double a20 = p.AgeShare(20, double.PositiveInfinity);   // 年齢の層（段4e 後半）：女性比＝20歳以上のうちの女性・子供比＝15歳未満・老年比＝60歳以上

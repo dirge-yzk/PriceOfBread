@@ -822,8 +822,8 @@ public sealed class World
         {
             case Outside.Mint: w.CumulativeGoldMinted += delta; break;
             case Outside.Fiat: w.CumulativeFiatIssued += delta; break;
-            case Outside.Credit: w.Bank!.Loans += delta; break;
-            case Outside.HouseholdCredit: w.Bank!.HouseholdLoans += delta; break;
+            case Outside.Credit: w.Bank!.Loans += new MoneyStock(delta); break;
+            case Outside.HouseholdCredit: w.Bank!.HouseholdLoans += new MoneyStock(delta); break;
             default: w.CumulativeTradeFlow += delta; break;
         }
     }
@@ -841,6 +841,8 @@ public sealed class World
         if (book && from.Diplomacy is { } dip) dip.CumulativeFxResidual += got - amount;
         return got;
     }
+    /// <summary>(252) 在庫のお金の換算＝上の double 版を通す（同じ式・値をそのまま包み直すだけ）。国債の元本と保有・対外債のように在庫の型のまま国境をまたぐ所が使う。</summary>
+    internal static MoneyStock CrossFx(World? from, World? to, MoneyStock amount, bool book = true) => new MoneyStock(CrossFx(from, to, amount.Value, book));
     public double ExternalPressure { get; internal set; }
     public int ReformGrantCount { get; internal set; }   // C-高1完成検証（2026-07-25）：下賜（欽定憲法＝上からの改革でPC床を与えた回数）の診断カウンタ（書くだけ・挙動非依存）
     public double BaseCoercion { get; internal set; }
@@ -951,7 +953,7 @@ public sealed class World
     public double VictoryShock { get; internal set; }   // 機能8-②（2026-07-28）：戦勝ショック＝DefeatShockの鏡（決定的勝利で1.0・四半期減衰）。r[4]/r[8]の短期燃料（戦勝→主戦論＝日本型）
     public double FamineMemory { get; internal set; }   // 機能8-④（2026-07-28）：飢えの記憶ストック（毎期 減衰+max(0,飢饉基準−FoodFill)）。r[3]/r[5]の燃料＝飢饉は過ぎても急進思想として残る（1789）
     public double ForeignBondClaims { get; internal set; }        // 02断線走査（2026-07-28）：対外債権残高＝自国投資家が持つ他国外債の元本（CapitalMarketが四半期繰上げ・利払い配当の按分キー）。レンティア帝国（シティ/パリ）の物質的基盤
-    public double PrevForeignDebt { get; internal set; }           // 02断線走査：前四半期のForeignDebt（Δ＝新規/償還の検出用・CapitalMarketが更新）
+    public MoneyStock PrevForeignDebt { get; internal set; }           // 02断線走査：前四半期のForeignDebt（Δ＝新規/償還の検出用・CapitalMarketが更新）
     public double ForeignIntPaidThisQuarter { get; internal set; } // 02断線走査：この四半期に払った対外の利子と元本（元本は2026-09-22〜）の累計（Fiscalが月次加算・CapitalMarketが債権国へ配当して0クリア）。⚠名前は利子だけ＝セーブの名前表の互換のため据え置き
     public bool HadCivilWar { get; internal set; }       // 内戦を経験したか（テレメトリ）
     // 貿易テレメトリ§3-4（2026-07-24）：国別×財別の輸出入額（世界価格建て・四半期決済ごとに InternationalMarket.Step が再設定）。
@@ -979,8 +981,8 @@ public sealed class World
     /// <summary>信用創造された広義マネーの残高。⚠★家計向け（<see cref="Bank.HouseholdLoans"/>）を**含む**
     /// （POPの個人債務・2026-08-02）。ここが与信を <see cref="BaseMoney"/> へ接続する唯一の地点なので、
     /// 定義を広げるだけで新しいストックが自動的に恒等式へ入る。既定0で厳密ビット恒等。</summary>
-    public double OutstandingLoans => (Bank?.Loans ?? 0.0) + (Bank?.HouseholdLoans ?? 0.0);
-    public double BroadMoney => TotalMoney;
+    public MoneyStock OutstandingLoans => (Bank?.Loans ?? default) + (Bank?.HouseholdLoans ?? default);
+    public MoneyStock BroadMoney => TotalMoney;
     public double FinancialHeat => Bank?.Heat ?? 0.0;   // 金融過熱度（恐慌の予兆ゲージ・ガラス箱）
 
     // --- 国庫・財政（§9-F／§6.2・段4b）---
@@ -1137,7 +1139,7 @@ public sealed class World
     public RatePerYear GovAvgCouponPerYear { get; internal set; } = new(0.04);   // R9：既往債の残高加重平均クーポン（発行時金利で固定）。利払いはこれで計算。BondRolloverFracPerMonth=1で毎月GovBondRatePerYearへ乗換＝浮動永久債（現行と厳密一致）・<1で満期ラグ＝金利変動が既存ストックへ即時波及しない（英1815高債務→1821金本位復帰の史実）。貨幣に触れない名目ヴェール＝保存則非算入
     /// <summary>国債（永久債/コンソル）の二次流通価格（改修2026-06-28・金融改革①）。クーポン固定の永久債は価格∝1/利回り＝**利回り上昇で価格暴落**＝信認シグナル。1.0平価。名目のヴェール（pop貯蓄には触れない＝保存）。</summary>
     public double BondPrice => GovBondRatePerYear.Value > 1e-9 ? Coef.BondBaseRatePerYear / GovBondRatePerYear : 1.0;
-    public double ForeignDebt { get; internal set; }   // うち海外保有分（対外債務＝利払い/不履行が対外）
+    public MoneyStock ForeignDebt { get; internal set; }   // うち海外保有分（対外債務＝利払い/不履行が対外）
     public double CumulativeDevaluation { get; internal set; }   // 累積の通貨切り下げ額（債務不履行で全popの貯蓄を希薄化＝インフレ税）。**挙動の被乗数**＝資本逃避の不信（CapitalMarket）・通貨改革と兌換の再加入の門（Fiscal の broken）・AI の改革の判断が読む（02断線走査2026-07-28：旧「診断・歴史」注記は削除リファクタで壊す危険があった）。⚠国債の金利（信認の喪失）は 2026-09-29 から累積でなく直近の切り下げの速さ（Fiscal.Step の devalued）を読む
     public double CumulativeFiatIssued { get; internal set; }    // 累積の不換新規発行（fiat-expansion-as-haircut-not-issue）。基礎貨幣の正当な増加源＝貨幣保存の基準に算入（鋳造CumulativeGoldMintedと同型）。FiatIssueFrac=0で常に0＝較正中立
     // 借入（Fiscal の1行＝国家の支払い率 r＜1 の月にエンジンが自動で借りる・2026-09-28 作者裁定「借入は自動化・借金ボタンは不要」＝予約の列 BorrowQueue と RequestBorrow を削除）。借入額＝min(1件の額, 月初の払えない額)。
@@ -1693,7 +1695,7 @@ public sealed class World
         }
         // 貨幣の厚み（M/Y）の趨勢を取り直す：UpdatePriceLevel の「物価 ＝ 厚み ÷ 趨勢」の関係を、置き直した後の厚みで今の物価水準のまま保つ（趨勢 ＝ 厚み ÷ 物価水準）。
         //   旧（(218)）＝趨勢を0へ（次の更新で趨勢 ＝ 厚み ＝ 物価が1へ引かれる）＝助走で物価水準が1から離れた国（清 2.3・露 1.2）の物価が置き直しだけで動いた（実測＝8四半期で対照の0.6〜0.7倍）。
-        double money = BroadMoney + (BaseMoney - BroadMoney) * Convertibility;
+        double money = (BroadMoney + (BaseMoney - BroadMoney) * Convertibility).Value;
         double ratio = money / Math.Max(1e-9, GdpPerMonth.Value);
         _moTrend = ratio > 1e-9 && PriceLevel > 1e-9 ? ratio / PriceLevel : 0;
     }
@@ -1709,7 +1711,7 @@ public sealed class World
         //   ★強制離脱線 GoldCoverMin = 0.25 はそのまま残す（到達不能でよい＝停止は外生の金流出が来たときに起きるべきもの）。
         //   ★牙は既存の非対称速度が持つ＝信認を失うのは 1.4年・買い戻すのは 11.2年（8倍）＝「今の利下げは安い。戻すのに11年かかる」。
         // ConvertibilityCoverageBand = 0 で旧 bool（加入=1.0）に縮退＝厳密恒等。
-        double broad = BroadMoney, baseM = BaseMoney, gdp = GdpPerMonth.Value;   // 全pop/全生産者の走査＝この関数は状態を変えないので1回で束ねる
+        double broad = BroadMoney.Value, baseM = BaseMoney.Value, gdp = GdpPerMonth.Value;   // 全pop/全生産者の走査＝この関数は状態を変えないので1回で束ねる
         double convTarget = OnGoldStandard ? 1.0 : 0.0;
         if (OnGoldStandard && c.ConvertibilityCoverageBand > 0 && broad > 1e-9)
         {
@@ -1802,9 +1804,9 @@ public sealed class World
                 yield return p;
     }
 
-    public double TotalMoney
+    public MoneyStock TotalMoney
     {
-        get { double s = 0; foreach (var r in Regions) s += r.SumSavings(); return s; }
+        get { MoneyStock s = default; foreach (var r in Regions) s += r.SumSavings(); return s; }
     }
 
     /// <summary>国家人口＝全州の人口（★2026-09-28：旧＝分離で凍結した州 Seceded を除いた＝その経路は削除）。人口保存不変量 TotalPopulation==初期+PopulationDelta。</summary>
@@ -2653,5 +2655,5 @@ public sealed class World
     }
 
     // 基礎貨幣＝広義マネー ＋ 国庫 − 与信（保存量＝金。§A-7／§11.6）
-    public double BaseMoney => TotalMoney + Treasury.Value - OutstandingLoans;
+    public MoneyStock BaseMoney => TotalMoney + Treasury - OutstandingLoans;
 }

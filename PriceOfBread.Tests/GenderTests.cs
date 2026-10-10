@@ -165,7 +165,7 @@ public class AgeStructureTests
         foreach (var w in mortW) Assert.True(w >= 0);
         for (int m = 0; m < 120; m++)
         {
-            double births = c.CrudeBirthRate / 12.0 * p.Size, deaths = (c.CrudeBirthRate - Pop.StdPyramidGrowth) / 12.0 * p.Size;
+            double births = Calendar.PerYearToPerMonth(c.CrudeBirthRate) * p.Size, deaths = Calendar.PerYearToPerMonth(c.CrudeBirthRate - Pop.StdPyramidGrowth) * p.Size;
             p.StepAges(p.Size, births, deaths, mortW);
             p.Size += births - deaths;
         }

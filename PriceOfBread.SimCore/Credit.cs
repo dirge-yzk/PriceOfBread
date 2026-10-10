@@ -32,7 +32,7 @@ public static class Credit
         // ★Bank.Gold は BaseMoney からの導出のまま（ratio_eff が状態関数なら二重ソースは生じない＝07 §3の再結論）。
         // 保存則＝退蔵は BaseMoney の内訳が変わるだけで量は不変＝安全。HoardPanicWeight=0 で静的（旧）。
         double hoardRatio = Math.Clamp(c.CurrencyHoldingRatio * (1.0 + c.HoardPanicWeight * (1.0 - bank.Confidence)), 0, HoardRatioMax);
-        bank.Gold = Math.Max(0, w.BaseMoney) * (1.0 - hoardRatio);
+        bank.Gold = Math.Max(0, w.BaseMoney.Value) * (1.0 - hoardRatio);
 
         // 割当削減（測定短縮① 2026-07-09）：日次×全国で呼ばれるホットパス＝毎回の List<Pop> 構築を廃止。全popリストは投資家不在の小世界などコールドパスのみ遅延構築。
         // ★2026-09-25：平均満足は唯一の実装 NationalScore.MeanSatisfaction を呼ぶ（旧＝同じ式の手書きの複製で、全POP・Seceded の州まで数えていた）
@@ -94,7 +94,7 @@ public static class Credit
         //（現行は準備が薄くても与信が伸び続け、割った瞬間に強制離脱＝カバー率割れ316回の構造）。床0.25＝信用の全面凍結はしない。GoldCoverCreditRestraint=0で不読＝厳密恒等（既定0.5）。
         // ★銀の段の軽い規律（SilverLightDiscipline・2026-08-21・**live=1**）：発券カバー率防衛の与信抑制も金の段の制度（19-10差し戻しの根②＝
         //   点火時に20〜31カ国で binding）。銀の段では絞らない。0に戻せば旧来（銀の段も絞る）と厳密恒等。
-        if (c.GoldCoverCreditRestraint > 0 && w.OnGoldStandard && w.BroadMoney > 1e-9 && (c.SilverLightDiscipline <= 0 || w.GoldStandardLaw))
+        if (c.GoldCoverCreditRestraint > 0 && w.OnGoldStandard && w.BroadMoney.Value > 1e-9 && (c.SilverLightDiscipline <= 0 || w.GoldStandardLaw))
         {
             double gcCoverage = w.BaseMoney / w.BroadMoney;
             double gcFloor = c.GoldCoverMin * (1.0 + c.GoldCoverCreditRestraint);
@@ -127,7 +127,7 @@ public static class Credit
         // 「取り付けの最中に投資が刺激される」符号逆転を生む。安定準備(取り付け前 maxLoans＝run/lolr 反映前)基準の使用率なら、パニックで縮む分母に振り回されない。
         // EuphoriaUsesStableReserve=0 で旧・縮小後 effMaxLoans 基準。既定1.0＝安定準備基準（#17較正で有効化）。
         double heatDenom = effMaxLoans * (1.0 - c.EuphoriaUsesStableReserve) + maxLoans * c.EuphoriaUsesStableReserve;
-        bank.Heat = heatDenom > 1e-9 ? Math.Clamp(bank.Loans / heatDenom, 0, HeatClampMax) : 0;   // 与信使用率＝過熱度（既定は取り付けで準備が縮むと過熱度↑・stable基準では準備縮小に不感）
+        bank.Heat = heatDenom > 1e-9 ? Math.Clamp(bank.Loans.Value / heatDenom, 0, HeatClampMax) : 0;   // 与信使用率＝過熱度（既定は取り付けで準備が縮むと過熱度↑・stable基準では準備縮小に不感）
         double targetLoans = effMaxLoans * confL * appetite;
         // 説明API（金利doc B2・2026-07-30）：与信目標の加法分解＝「金利を動かしたとき何がどれだけ動いたか」を測れる状態にする。
         // 乗算連鎖 maxLoans×(1−run)×(1+lolr)×Confidence×appetite を before/after 差分で分解（AdminEfficiency と同型）。
@@ -144,8 +144,8 @@ public static class Credit
         // Confidence が一夜で崩れると targetLoans=maxLoans×Confidence×appetite も急落するため、対称な CreditAdjustSpeed でも回収が速くなる＝「剥がしは一夜」は信頼の非対称から創発。
         double adjSpd = c.CreditAdjustSpeed / div;
         if (days > 1) adjSpd = 1.0 - Math.Pow(1.0 - adjSpd, days);   // ★旬次（S3c）：h 日ぶんの緩和（目標は据え置き）
-        double delta = adjSpd * (targetLoans - bank.Loans);
-        if (bank.Loans + delta < 0) delta = -bank.Loans;
+        double delta = adjSpd * (targetLoans - bank.Loans.Value);
+        if (bank.Loans.Value + delta < 0) delta = -bank.Loans.Value;
 
         // 与信は**投資家（資本家）に向ける**＝銀行が産業を金融する：低金利/好況→ブルジョワが借りて投資→工業化ブーム、
         // 引締/恐慌→与信回収→投資縮小。投資家がいない小シナリオは全 pop へ（従来挙動＝テスト安全）。
@@ -187,9 +187,9 @@ public static class Credit
         //     既定 LoanSpreadPerYear=0・PolicyRateLoanWeight=0 ゆえ loanRate=0＝この節に入らない＝**是正時点ではビット恒等**。B4（点火）の前提として先に潰す。
         //   ※ 係数の単位注記は Coefficients.cs 側（LoanSpreadPerYear/PolicyRateLoanWeight/PolicyRateBondWeight/BondBaseRatePerYear）に付す提案を notes に列挙。
         double loanRate = w.LoanRateAnnual;   // 換算はWorld側の唯一の地点へ集約（UIと同じ値を見る＝表示と挙動が乖離しない）。式・順序は従来と同一＝ビット恒等
-        if (loanRate > 1e-12 && bank.Loans > 1e-9)
+        if (loanRate > 1e-12 && bank.Loans.Value > 1e-9)
         {
-            double interestDue = Calendar.PerYearToPerDay(bank.Loans * loanRate) * days;   // ★旬次（S3c）：h 日ぶん（×1 は丸めを変えない）
+            double interestDue = Calendar.PerYearToPerDay(bank.Loans.Value * loanRate) * days;   // ★旬次（S3c）：h 日ぶん（×1 は丸めを変えない）
             double paid;
             // B4 利息の支払い方（2026-07-31 裁定＝案A+案Bの合成）。
             // 【案A】当期の利潤（フロー）から払う。旧実装は min(利息, Savings) ＝**ストックで頭打ち**で、与信を工場に変えた

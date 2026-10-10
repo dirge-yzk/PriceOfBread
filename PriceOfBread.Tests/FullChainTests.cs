@@ -22,11 +22,11 @@ public class FullChainTests
         // ★2026-09-06：126→127＝E-13 再開で黄鉄鉱法（化学薬品の第2レシピ）を点火＝フルチェーンにも1件。代替レシピの注入は AddAlternateRecipes（構築経路）へ移した（同日）。
         Assert.Equal(120, sim.World.Regions[0].Producers.Count);   // ★2026-10-02 (169)：119→120＝1780年代の蒸気機関「鋳鉄の機関」（蒸気機関の財の第2生産者・AddAlternateRecipes）   // ★2026-09-30 (129)：118→119＝キニーネが本国の工場へ戻った（樹皮は植民地の財＝フルチェーンに生産者は無い・早期の「樹皮の粉末」は国家世界のビルダー側）   // ★2026-09-30 段1（財の削減）：129→118＝畳んだ11財の既定の生産者   // ★2026-09-27：127→129＝前期の軍需レシピ（マスケット・鋳鉄砲）を回2-1 で旗ごと点火＝小銃・火砲の第2生産者   // ★2026-09-04：125→126＝冷蔵の加工肉レシピ（ChilledMeatEnabled 点火＝加工肉の第2生産者が全州に立つ）   // ★2026-09-04：124→125＝冷蔵庫の生産者（財の追加に伴う。⚠冷蔵の加工肉は ChilledMeatEnabled=0 で休眠＝この数には入らない）   // ★2026-08-14：123→124＝石油ケロシン（灯油の第2レシピ・KeroseneFromOilEnabled=1点火＝原油の40年の買い手ゼロの穴埋め） // 同6財の生産者＋水力発電（A-中1・2026-07-23＝電力の第3レシピ）＋坩堝鋼/錬鉄レール（CrucibleSteelEnabled=1・第7段第1波2026-07-28）。並存レシピ（人絹/鉄筋コンクリート/合成ゴム）は国家世界のビルダー側
 
-        double base0 = sim.World.BaseMoney;
+        double base0 = sim.World.BaseMoney.Value;
         var ex = Record.Exception(() => sim.Run(400));
         Assert.Null(ex);   // §11.6（保存・境界）が全ティックで保持
         // 基礎貨幣の変化＝累積貿易流入（植民地輸入の対外流出を含む）
-        Assert.True(Math.Abs(sim.World.BaseMoney - base0 - sim.World.CumulativeTradeFlow - sim.World.CumulativeGoldMinted - sim.World.CumulativeFiatIssued) < 1e-3 * base0, "基礎貨幣保存の破れ");
+        Assert.True(Math.Abs(sim.World.BaseMoney.Value - base0 - sim.World.CumulativeTradeFlow - sim.World.CumulativeGoldMinted - sim.World.CumulativeFiatIssued) < 1e-3 * base0, "基礎貨幣保存の破れ");
     }
 
     [Fact]
@@ -50,11 +50,11 @@ public class FullChainTests
         sim.World.Coef.StandardMetalMintGate = 0;
         sim.World.Coef.MintReserveTargetWeight = 0;
         sim.World.Coef.GoldMintFraction = 0.5;   // 金産出の半分を鋳造（貨幣化）
-        double base0 = sim.World.BaseMoney;
+        double base0 = sim.World.BaseMoney.Value;
         var ex = Record.Exception(() => sim.Run(400));
         Assert.Null(ex);   // §11.6（保存・境界）が鋳造を含めて全ティックで保持（GoodsBalance/MoneyConservation/NonNegative）
         // 基礎貨幣の変化＝累積貿易流入＋累積鋳造（鋳造が新たな増加源）
-        Assert.True(Math.Abs(sim.World.BaseMoney - base0 - sim.World.CumulativeTradeFlow - sim.World.CumulativeGoldMinted) < 1e-3 * Math.Max(1.0, base0), "鋳造込みの基礎貨幣保存の破れ");
+        Assert.True(Math.Abs(sim.World.BaseMoney.Value - base0 - sim.World.CumulativeTradeFlow - sim.World.CumulativeGoldMinted) < 1e-3 * Math.Max(1.0, base0), "鋳造込みの基礎貨幣保存の破れ");
         Assert.True(sim.World.CumulativeGoldMinted > 0, "鋳造が一度も発生していない（金鉱の産出/在庫が無い？）");
     }
 
@@ -74,10 +74,10 @@ public class FullChainTests
         var steamSim = new Simulation(Full(1), new NullAgent());
         steamSim.World.Coef.EnergyPerOutput = 0.2;
         steamSim.World.Discovered[Discovery.SteamRow] = true;   // 蒸気機関を発見済み
-        double base0 = steamSim.World.BaseMoney;
+        double base0 = steamSim.World.BaseMoney.Value;
         var ex = Record.Exception(() => steamSim.Run(200));
         Assert.Null(ex);   // §11.6（保存・境界）が全ティックで保持
-        Assert.True(Math.Abs(steamSim.World.BaseMoney - base0 - steamSim.World.CumulativeTradeFlow - steamSim.World.CumulativeGoldMinted) < 1e-3 * Math.Max(1.0, base0), "蒸気動力込みの基礎貨幣保存の破れ");
+        Assert.True(Math.Abs(steamSim.World.BaseMoney.Value - base0 - steamSim.World.CumulativeTradeFlow - steamSim.World.CumulativeGoldMinted) < 1e-3 * Math.Max(1.0, base0), "蒸気動力込みの基礎貨幣保存の破れ");
         // 蒸気解禁の方が石炭の総需要が高い（動力としての石炭消費が工業に連動＝解禁前は焚かない）
         double steamCoalDemand = steamSim.World.Regions[0].Markets[Catalog.CoalId].LastDemand;
         Assert.True(steamCoalDemand > lockedCoalDemand, $"蒸気解禁で石炭の総需要が増えていない（locked={lockedCoalDemand:F1} steam={steamCoalDemand:F1}）");

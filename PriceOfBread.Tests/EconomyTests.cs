@@ -280,9 +280,9 @@ public class EconomyTests
         var coef = new Coefficients();
         var region = TwoClassRegion();
 
-        double before = region.SumSavings();
+        double before = region.SumSavings().Value;
         for (int i = 0; i < 24; i++) EconomyStep.Run(region, coef);
-        double after = region.SumSavings();
+        double after = region.SumSavings().Value;
 
         Assert.True(Math.Abs(after - before) < 1e-6 * before, $"貨幣保存の破れ：{before} → {after}");
     }

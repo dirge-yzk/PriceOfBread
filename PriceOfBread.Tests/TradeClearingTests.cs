@@ -290,34 +290,34 @@ public class TradeClearingTests
         {
             var mer = r.Pops[r.MerchantPopIndex];
             for (int i = 0; i < r.Pops.Count; i++) if (i != r.MerchantPopIndex) Assert.Equal(before[r.Pops[i]], r.Pops[i].Savings.Value);   // 払うのは商人だけ
-            if (r.Markets[g].LastImport > 1e-9) { Assert.True(mer.Debt > 0, $"{r.Name}：輸入したのに手形の債務が立っていない"); drew.Add(r); }
+            if (r.Markets[g].LastImport > 1e-9) { Assert.True(mer.Debt.Value > 0, $"{r.Name}：輸入したのに手形の債務が立っていない"); drew.Add(r); }
         }
         Assert.True(drew.Count > 0, "貯蓄の無い商人の州が1つも輸入していない（手形を割り引けていない）");
         for (int i = 0; i < sim.Nations.Count; i++)
         {
             var w = sim.Nations[i].World; double debt = 0;
-            foreach (var r in w.Regions) foreach (var p in r.Pops) debt += p.Debt;
-            double tol = 1e-9 * Math.Max(1.0, Math.Abs(bm0[i]) + debt);
-            Assert.True(Math.Abs(w.Bank!.HouseholdLoans - debt) <= tol, $"{w.SelfPower?.Name}：家計の与信 {w.Bank.HouseholdLoans} ≠ POP の債務の和 {debt}");
-            Assert.True(Math.Abs((w.BaseMoney - bm0[i]) - (w.CumulativeTradeFlow - tf0[i])) <= tol, $"{w.SelfPower?.Name}：国ごとの D が閉じない（手形の貸しが基礎貨幣を動かした）");
+            foreach (var r in w.Regions) foreach (var p in r.Pops) debt += p.Debt.Value;
+            double tol = 1e-9 * Math.Max(1.0, Math.Abs(bm0[i].Value) + debt);
+            Assert.True(Math.Abs(w.Bank!.HouseholdLoans.Value - debt) <= tol, $"{w.SelfPower?.Name}：家計の与信 {w.Bank.HouseholdLoans} ≠ POP の債務の和 {debt}");
+            Assert.True(Math.Abs((w.BaseMoney - bm0[i]).Value - (w.CumulativeTradeFlow - tf0[i])) <= tol, $"{w.SelfPower?.Name}：国ごとの D が閉じない（手形の貸しが基礎貨幣を動かした）");
         }
         // 売った代金が入った（同じ州の豊かな POP から商人へ＝貨幣は州の中で移るだけ）・買い手の在庫は満ちた（もう買わない）→ 次の清算の始めに返す
         var debts = new Dictionary<Pop, double>();
         foreach (var r in drew)
         {
-            var mer = r.Pops[r.MerchantPopIndex]; debts[mer] = mer.Debt;
+            var mer = r.Pops[r.MerchantPopIndex]; debts[mer] = mer.Debt.Value;
             Pop rich = r.Pops[0]; foreach (var p in r.Pops) if (p.Savings.Value > rich.Savings.Value) rich = p;
-            double proceeds = 2 * mer.Debt; rich.SetSavings(rich.Savings.Value - (proceeds)); mer.SetSavings(mer.Savings.Value + (proceeds));
+            double proceeds = (2 * mer.Debt).Value; rich.SetSavings(rich.Savings.Value - (proceeds)); mer.SetSavings(mer.Savings.Value + (proceeds));
         }
         foreach (var r in buyers) r.Markets[g].Stock = 1e6;
         sim.Market.Step(sim.Nations, sim.Coef);
         foreach (var r in drew)
         {
             var mer = r.Pops[r.MerchantPopIndex];
-            Assert.True(mer.Debt == 0, $"{r.Name}：売った代金が入ったのに手形を返していない（債務 {mer.Debt}）");
+            Assert.True(mer.Debt.Value == 0, $"{r.Name}：売った代金が入ったのに手形を返していない（債務 {mer.Debt}）");
             Assert.True(Math.Abs(mer.Savings.Value - debts[mer]) <= 1e-9 * Math.Max(1.0, debts[mer]), $"{r.Name}：返した後の貯蓄 {mer.Savings} ≠ 代金−手形 {debts[mer]}");
         }
-        foreach (var n in sim.Nations) Assert.True(Math.Abs(n.World.Bank!.HouseholdLoans) <= 1e-9 * Math.Max(1.0, debts.Values.Sum()), $"{n.World.SelfPower?.Name}：返した後も家計の与信が残る（{n.World.Bank.HouseholdLoans}）");
+        foreach (var n in sim.Nations) Assert.True(Math.Abs((n.World.Bank!.HouseholdLoans).Value) <= 1e-9 * Math.Max(1.0, debts.Values.Sum()), $"{n.World.SelfPower?.Name}：返した後も家計の与信が残る（{n.World.Bank.HouseholdLoans}）");
     }
 
     /// <summary>★為替手形の引受（2026-09-29 S3b）：前の手形を返し切れない商人は新しい手形を振り出せない（不渡りの商人は引き受けてもらえない）
@@ -332,7 +332,7 @@ public class TradeClearingTests
                 if (r.State == RegionState.Active && !ReferenceEquals(r, seller) && !ReferenceEquals(r, seller2) && r.MerchantPopIndex >= 0)
                 {
                     var mer = r.Pops[r.MerchantPopIndex];
-                    mer.SetSavings(0); mer.Debt = 100; n.World.Bank!.HouseholdLoans += 100;   // 前の清算の手形が返っていない（貯蓄0＝返せない）
+                    mer.SetSavings(0); mer.Debt = new MoneyStock(100); n.World.Bank!.HouseholdLoans += new MoneyStock(100);   // 前の清算の手形が返っていない（貯蓄0＝返せない）
                     buyers.Add(r);
                 }
         Assert.True(buyers.Count > 0, "前提が崩れた：買い手の州に商人が居ない");
@@ -340,7 +340,7 @@ public class TradeClearingTests
         foreach (var r in buyers)
         {
             Assert.Equal(0.0, r.Markets[g].LastImport);
-            Assert.Equal(100.0, r.Pops[r.MerchantPopIndex].Debt);
+            Assert.Equal(100.0, r.Pops[r.MerchantPopIndex].Debt.Value);
         }
     }
 
@@ -524,14 +524,14 @@ public class TradeClearingTests
         var (sim, g, _, _, _) = Make();
         var gen = sim.Nations[0].World; var tus = sim.Nations[1].World;
         gen.ExchangeRate = 0.5;   // ジェノヴァの通貨は金の半分の値打ち
-        double bm0 = gen.BaseMoney + tus.BaseMoney, tfg0 = gen.CumulativeTradeFlow, tft0 = tus.CumulativeTradeFlow, bmg0 = gen.BaseMoney, bmt0 = tus.BaseMoney, fx0 = sim.Diplomacy.CumulativeFxResidual;
+        double bm0 = (gen.BaseMoney + tus.BaseMoney).Value, tfg0 = gen.CumulativeTradeFlow, tft0 = tus.CumulativeTradeFlow, bmg0 = gen.BaseMoney.Value, bmt0 = tus.BaseMoney.Value, fx0 = sim.Diplomacy.CumulativeFxResidual;
         sim.Market.Step(sim.Nations, sim.Coef);
         double dg = gen.CumulativeTradeFlow - tfg0, dt = tus.CumulativeTradeFlow - tft0;
         Assert.True(Math.Abs(dg) > 1e-9 && gen.LastExportValue > 1e-9, "越境の取引が立っていない（テスト前提の破れ）");
-        Assert.Equal(dg, gen.BaseMoney - bmg0, 6);   // 国ごとの D が閉じる
-        Assert.Equal(dt, tus.BaseMoney - bmt0, 6);
+        Assert.Equal(dg, gen.BaseMoney.Value - bmg0, 6);   // 国ごとの D が閉じる
+        Assert.Equal(dt, tus.BaseMoney.Value - bmt0, 6);
         Assert.True(Math.Abs(dg * 0.5 + dt * 1.0) <= 1e-9 * Math.Max(1.0, Math.Abs(dt)), $"金建てで世界が閉じない（{dg * 0.5 + dt}）＝換算していない");
         Assert.True(Math.Abs(sim.Diplomacy.CumulativeFxResidual - fx0) > 1e-9, "為替が違うのに換算の台帳が動かない");
-        Assert.Equal(sim.Diplomacy.CumulativeFxResidual - fx0, (gen.BaseMoney + tus.BaseMoney) - bm0, 6);   // 世界の名目の動き＝換算の台帳
+        Assert.Equal(sim.Diplomacy.CumulativeFxResidual - fx0, (gen.BaseMoney + tus.BaseMoney).Value - bm0, 6);   // 世界の名目の動き＝換算の台帳
     }
 }

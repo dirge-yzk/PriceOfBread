@@ -417,8 +417,8 @@ public class RevoltIgnitionTests
         //   ⚠初期の国債があると「緊縮の下限／上限」の門が人頭税と社会保障の段を塞ぎ、この盤面が測る法の経路（受諾・施行・通らない段）の前提が崩れる（門そのものの番人は別）。
         //   2026-09-29 に緊縮の物差しを年の名目GDP へ直した後も戻さない＝英の1783年の国債（年GDP の約1.1）は満額（AusterityStartDebt＋AusterityRange＝1.0）を越える
         //   ＝史実のピットの緊縮（1783-92）そのもの（物差しの誤りではない）。金は動かない＝請求権と保有の記録だけを消す。
-        sim.World.GovDebt = new MoneyStock(0); sim.World.ForeignDebt = 0;
-        foreach (var r in sim.World.Regions) foreach (var p in r.Pops) p.BondHoldings = 0;
+        sim.World.GovDebt = new MoneyStock(0); sim.World.ForeignDebt = new MoneyStock(0);
+        foreach (var r in sim.World.Regions) foreach (var p in r.Pops) p.BondHoldings = new MoneyStock(0);
         sim.Run(20);
         var w = sim.World;
         Assert.True(w.Regions.Count > 1 && w.FactionRng is not null && w.Coef.FactionRevoltScale > 0, "前提が崩れた：F3bが遮蔽されている");
@@ -662,7 +662,7 @@ public class RevoltIgnitionTests
         Assert.True(raised > 0, "前提が崩れた：ON腕で民兵が立っていない");
         // 2腕の違いは札だけ＝同じ四半期の人口も貨幣も1ビットも違わない（民兵は人を作らない・移さない）
         Assert.Equal(offW.TotalPopulation, onW.TotalPopulation, 9);
-        Assert.Equal(offW.BaseMoney, onW.BaseMoney, 9);
+        Assert.Equal(offW.BaseMoney.Value, onW.BaseMoney.Value, 9);
     }
 
     [Fact]
@@ -1186,9 +1186,9 @@ public class RevoltIgnitionTests
         const int rifle = Catalog.RifleId;
         var (sim, f, payer) = 武装する運動(enabled: 1);
         var w = sim.World; var c = w.Coef; var r = w.Region;
-        double s0 = r.SumSavings();
+        double s0 = r.SumSavings().Value;
         EconomyStep.Run(r, c, 1.0, null, w);
-        double s1 = r.SumSavings();
+        double s1 = r.SumSavings().Value;
         Assert.True(w.RebelArmsSpent > 0, "武器が1単位も買えていない");
         // 州の帳簿：Σ貯蓄の増減 ＝ 国家の支払い（国庫→売り手＝外からの流入）− 専売（月末に国庫へ）。
         // 反乱勢力の支払いは参加者→売り手＝州の**内側**で閉じる＝この恒等式に新しい項を足さない（足したら金が湧いたか消えたかのどちらか）。
@@ -1281,8 +1281,8 @@ public class RevoltIgnitionTests
     {
         var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
         // 初期の国債を構築の直後に消す＝旧の盤面と同じ状態から回す（理由は 段4_絶望した州に小さな運動を置く と同じ＝緊縮の門が法の経路の前提を塞ぐ）
-        sim.World.GovDebt = new MoneyStock(0); sim.World.ForeignDebt = 0;
-        foreach (var r in sim.World.Regions) foreach (var p in r.Pops) p.BondHoldings = 0;
+        sim.World.GovDebt = new MoneyStock(0); sim.World.ForeignDebt = new MoneyStock(0);
+        foreach (var r in sim.World.Regions) foreach (var p in r.Pops) p.BondHoldings = new MoneyStock(0);
         sim.Run(20);
         var w = sim.World; var c = w.Coef;
         Assert.True(w.Regions.Count > 2, "前提が崩れた：非首都州が2つ以上ない");

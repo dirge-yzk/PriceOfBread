@@ -140,14 +140,14 @@ public class FuelOperatingCostTests
         m.Stock = 1_000_000; m.Price = Catalog.RefPrices[Catalog.CoalId];
         r.Markets[Catalog.CrudeOilId].Price = 1_000.0;   // 二択を石炭側へ固定（重油の実効単価を吊り上げる。二択の式自体は既存Colonial B6と同一）
         r.Pops[buyerIdx].SetSavings(1_000_000);
-        double money0 = r.SumSavings();
+        double money0 = r.SumSavings().Value;
         double stock0 = m.Stock, demand0 = m.LastDemand;
 
         Transport.Step(w, coef);
 
         Assert.True(m.LastDemand > demand0, "運行燃料の石炭需要が立っていない");
         Assert.True(m.Stock < stock0, "石炭在庫が減っていない（焚いていない）");
-        Assert.Equal(money0, r.SumSavings(), 6);   // 商人→生産者所有者のpop間移転＝地域の総貯蓄は不変（保存）
+        Assert.Equal(money0, r.SumSavings().Value, 6);   // 商人→生産者所有者のpop間移転＝地域の総貯蓄は不変（保存）
     }
 
     // ★2026-09-26（回4-3・項目8）：船は州ごとに容量あたりの総費用が安い1財だけを欲しがる。
@@ -295,7 +295,7 @@ public class FuelOperatingCostTests
         foreach (var r in w.Regions)
         {
             if (r.State != RegionState.Active) continue;
-            stock0 += r.Markets[Catalog.SteamshipId].Stock; money0 += r.SumSavings();
+            stock0 += r.Markets[Catalog.SteamshipId].Stock; money0 += r.SumSavings().Value;
             if (r.InvestorPopIndex >= 0) buyers0 += r.Pops[r.MerchantPopIndex >= 0 ? r.MerchantPopIndex : r.InvestorPopIndex].Savings.Value;
         }
         Transport.Step(w, coef);
@@ -303,7 +303,7 @@ public class FuelOperatingCostTests
         foreach (var r in w.Regions)
         {
             if (r.State != RegionState.Active) continue;
-            stock1 += r.Markets[Catalog.SteamshipId].Stock; money1 += r.SumSavings();
+            stock1 += r.Markets[Catalog.SteamshipId].Stock; money1 += r.SumSavings().Value;
             if (r.InvestorPopIndex >= 0) buyers1 += r.Pops[r.MerchantPopIndex >= 0 ? r.MerchantPopIndex : r.InvestorPopIndex].Savings.Value;
         }
         double bought = stock0 - stock1;
@@ -328,12 +328,12 @@ public class FuelOperatingCostTests
             if (r.State != RegionState.Active || r.InvestorPopIndex < 0) continue;
             int buyerIdx = r.MerchantPopIndex >= 0 ? r.MerchantPopIndex : r.InvestorPopIndex;
             foreach (var pr in r.Producers) if (pr.GoodId == Catalog.SteamshipId || pr.GoodId == Catalog.CoalId) { pr.OwnerPopIndex = buyerIdx; owned++; }
-            money0 += r.SumSavings();
+            money0 += r.SumSavings().Value;
         }
         Assert.True(owned > 0, "汽船の生産者が居ない世界ではテストにならない");
         Transport.Step(w, coef);
         double money1 = 0;
-        foreach (var r in w.Regions) if (r.State == RegionState.Active && r.InvestorPopIndex >= 0) money1 += r.SumSavings();
+        foreach (var r in w.Regions) if (r.State == RegionState.Active && r.InvestorPopIndex >= 0) money1 += r.SumSavings().Value;
         Assert.True(System.Math.Abs(money1 - money0) <= 1e-12 * money0 + 1e-6, $"金が保存されていない（{money0:R} → {money1:R}）");
     }
 

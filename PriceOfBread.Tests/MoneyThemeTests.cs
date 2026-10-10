@@ -93,8 +93,8 @@ public class MoneyThemeTests
         Assert.True(buyer >= 0, "前提＝買い手（商人/投資家）がいる");
         var pop = r.Pops[buyer];
         pop.SetSavings(Math.Max(pop.Savings.Value, 1000.0 * parity));   // 貯蓄側で縛られない＝数量は準備×率で決まる
-        double D(World x) => x.BaseMoney - x.CumulativeTradeFlow - x.CumulativeGoldMinted - x.CumulativeFiatIssued;
-        double d0 = D(w), reserve0 = w.SilverReserveQty, stock0 = m.Stock, sav0 = pop.Savings.Value, minted0 = w.CumulativeGoldMinted, base0 = w.BaseMoney, imp0 = m.LastImport;
+        double D(World x) => x.BaseMoney.Value - x.CumulativeTradeFlow - x.CumulativeGoldMinted - x.CumulativeFiatIssued;
+        double d0 = D(w), reserve0 = w.SilverReserveQty, stock0 = m.Stock, sav0 = pop.Savings.Value, minted0 = w.CumulativeGoldMinted, base0 = w.BaseMoney.Value, imp0 = m.LastImport;
         var mint = typeof(Simulation).GetMethod("MintGold", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
         Assert.NotNull(mint);
         mint!.Invoke(sim, null);
@@ -108,7 +108,7 @@ public class MoneyThemeTests
             Assert.True(Math.Abs((m.LastImport - imp0) - soldQty) <= 1e-9, "LastImport の増分が準備の減少と一致しない（在庫恒等）");
             Assert.True(Math.Abs((sav0 - pop.Savings.Value) - soldQty * parity) <= 1e-9, "買い手の支払いが qty×平価でない");
             Assert.True(Math.Abs((minted0 - w.CumulativeGoldMinted) - soldQty * parity) <= 1e-9, "鋳造台帳の逆記帳が qty×平価でない");
-            Assert.True(Math.Abs((base0 - w.BaseMoney) - soldQty * parity) <= 1e-9 * Math.Max(1.0, base0), "基礎貨幣の減少が qty×平価でない");
+            Assert.True(Math.Abs((base0 - w.BaseMoney.Value) - soldQty * parity) <= 1e-9 * Math.Max(1.0, base0), "基礎貨幣の減少が qty×平価でない");
         }
         else
         {
@@ -143,7 +143,7 @@ public class MoneyThemeTests
         var mer = r.Pops[r.MerchantPopIndex];
         mer.SetSavings(savingsFrac >= 1 ? Math.Max(mer.Savings.Value, 10 * fullQty * price) : savingsFrac * fullQty * price);
         double expectQty = Math.Min(fullQty, mer.Savings.Value / price);
-        double D(World x) => x.BaseMoney - x.CumulativeTradeFlow - x.CumulativeGoldMinted - x.CumulativeFiatIssued;
+        double D(World x) => x.BaseMoney.Value - x.CumulativeTradeFlow - x.CumulativeGoldMinted - x.CumulativeFiatIssued;
         double d0 = D(w), minted0 = w.CumulativeGoldMinted, stock0 = m.Stock, imp0 = m.LastImport, sav0 = mer.Savings.Value, reserve0 = w.SilverReserveQty;
         var sell = typeof(Simulation).GetMethod("SellDemonetizedReserves", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
         Assert.NotNull(sell);

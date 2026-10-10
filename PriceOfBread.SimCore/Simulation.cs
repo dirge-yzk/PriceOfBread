@@ -233,8 +233,8 @@ public sealed class Simulation
                 if (Politics.IsMassPop(p)) p.Militancy = scenario.InitialMassMilitancy;
         // ★全ての世界に銀行（2026-09-29 段2-2・作者裁定 Q11＝旧 Scenario.CreditEnabled を削除）。家計の与信は POP の債務の和から始まる
         //   （建国＝親から運んだ州の POP の輸入の為替手形・Territory.TransferRegion が親の銀行から外した分＝2026-09-29 S3b。開幕は0）。
-        double popDebt = 0; foreach (var rg in World.Regions) foreach (var p in rg.Pops) popDebt += p.Debt;
-        World.Bank = new Bank { Gold = World.TotalMoney, Loans = 0, Confidence = 1.0, HouseholdLoans = popDebt };
+        MoneyStock popDebt = default; foreach (var rg in World.Regions) foreach (var p in rg.Pops) popDebt += p.Debt;
+        World.Bank = new Bank { Gold = World.TotalMoney.Value, Loans = default, Confidence = 1.0, HouseholdLoans = popDebt };
 
         Fiscal.SeedBondHoldings(World);   // ★国債の保有台帳（2026-09-21）：初期国債（仏）の持ち主を購入と同じ規則で起票（金は動かない・国内債0の国は何もしない）
         _invariants = [];
@@ -1627,7 +1627,7 @@ public sealed class Simulation
     internal void ProbeCheck(string label)
     {
         if (!ConservationProbe) return;
-        double now = World.BaseMoney - World.CumulativeTradeFlow - World.CumulativeGoldMinted - World.CumulativeFiatIssued;
+        double now = World.BaseMoney.Value - World.CumulativeTradeFlow - World.CumulativeGoldMinted - World.CumulativeFiatIssued;
         if (!double.IsNaN(_probeDLast) && Math.Abs(now - _probeDLast) > 1e-4)
             Console.Error.WriteLine($"[PROBE国内] {label} {World.Region.Name} {World.Year}年T{World.Tick} ΔD={now - _probeDLast:F6}");
         _probeDLast = now;
@@ -2226,7 +2226,7 @@ public sealed class Simulation
             //   ⚠新しい定数ゼロ（19-10差し戻しの根③＝切下げ封印の全世界閉鎖、の是正）。**live=1（2026-08-21点火）**・0に戻せば旧式と厳密恒等。金の段は従来どおり封印。
             if (World.Coef.SilverLightDiscipline > 0 && World.MonetaryLaw == MonetaryStandardLaw.Silver)
             {
-                double specie = World.BroadMoney > 1e-9 ? World.BaseMoney / World.BroadMoney : 1.0;
+                double specie = World.BroadMoney.Value > 1e-9 ? World.BaseMoney / World.BroadMoney : 1.0;
                 if (!(specie >= 0)) specie = 0; else if (specie > 1) specie = 1;   // NaNは0へ倒す（否定形＝ClampはNaNを消さない）
                 devalueRoom = deficit * (1.0 - World.Convertibility * (1.0 - specie));
             }
@@ -2252,7 +2252,7 @@ public sealed class Simulation
                     issue = World.Transfer((null, null), (World, null, null), issue, TreasuryCat.Devalue, outside: World.Outside.Fiat);
                     devalue = haircut + issue;
                     World.CumulativeDevaluation += devalue; devalued = devalue;
-                    World.FiatInflationPressure += devalue / Math.Max(1.0, World.BroadMoney);   // 紙幣増発＝インフレ圧（名目GDP↑→実質債務減）
+                    World.FiatInflationPressure += devalue / Math.Max(1.0, World.BroadMoney.Value);   // 紙幣増発＝インフレ圧（名目GDP↑→実質債務減）
                     payable += devalue; spare += devalue;   // 取った金はこの月の払える額＝r に入る（請求を切った上で別に取らない）
                 }
             }
@@ -2792,7 +2792,7 @@ public sealed class Simulation
         double gapLeft = 0;      // ★第2版（2026-09-06）：今月の市場買いの予算＝準備ギャップ（目標カバー率×広義貨幣−基礎貨幣）×売却側と同じ月次率（MintReserveSellRatePerMonth）
         if (World.Coef.MintReserveTargetWeight > 0)
         {
-            double coverage = World.BroadMoney > 1e-9 ? World.BaseMoney / World.BroadMoney : 1.0;
+            double coverage = World.BroadMoney.Value > 1e-9 ? World.BaseMoney / World.BroadMoney : 1.0;
             double coverTarget = World.Coef.GoldCoverMin * World.Coef.GoldRejoinCoverMargin;
             double shortfall = coverTarget > 1e-9 ? (coverTarget - coverage) / coverTarget : 0;
             shortfall = PoliticalQuantities.Clamp01(shortfall);   // NaN は Clamp01 が0＝造幣停止側へ倒す
@@ -2800,7 +2800,7 @@ public sealed class Simulation
             mintScale = PoliticalQuantities.Clamp01(mintScale);
             coverShort = shortfall;
             if (World.Coef.MintBuysAtMarket > 0 && shortfall > 1e-9)
-                gapLeft = Math.Max(0, coverTarget * World.BroadMoney - World.BaseMoney) * PoliticalQuantities.Clamp01(World.Coef.MintReserveSellRatePerMonth.Value);   // 買い戻しの歩調＝投げ売りと同じ率（独1873-79の逆向き）
+                gapLeft = Math.Max(0, (coverTarget * World.BroadMoney - World.BaseMoney).Value) * PoliticalQuantities.Clamp01(World.Coef.MintReserveSellRatePerMonth.Value);   // 買い戻しの歩調＝投げ売りと同じ率（独1873-79の逆向き）
         }
         // 【削除 2026-10-09 (210)】器 MintFloorRespectsReserve（跛行本位＝床の standing offer をカバー率〔基礎貨幣/広義マネー〕が目標×余白を超えたら閉じる・休眠 0）
         //   ＝閉じる条件が誤り（信用の薄い 1783 年から常に真＝造幣が一度も買わない・メモリ pob-silver-crash-lines）。
@@ -2927,8 +2927,8 @@ public sealed class Simulation
         if (!(World.Coef.PopDebtDriven > 0) || !(World.Coef.DebtRepayFrac > 0) || World.Bank is null) return;
         foreach (var p in r.Pops)
         {
-            if (!(p.Debt > 0)) continue;   // ⚠否定形＝NaN も飛ばす
-            double pay = Math.Min(p.Debt, Math.Max(0, p.Savings.Value) * World.Coef.DebtRepayFrac);
+            if (!(p.Debt.Value > 0)) continue;   // ⚠否定形＝NaN も飛ばす
+            double pay = Math.Min(p.Debt.Value, Math.Max(0, p.Savings.Value) * World.Coef.DebtRepayFrac);
             if (!(pay > 0)) continue;
             Bank.Lend(World, p, -pay);   // 返済＝貸しの逆（Bank.Lend の1本）
             World.HouseholdDebtRepaid += pay;   // 診断。⚠LossFinanced とは**別カウンタ**（硬性ゲートの分子を汚さない・設計§6-1）
@@ -2967,12 +2967,12 @@ public sealed class Simulation
                     // ★入口A（損失の記憶・2026-08-02）：**記録を併記するだけ**＝貸し手側（Bank.Loans）は1ビットも変えない。
                     //   PopDebtLossShare は「消えた赤字のうち個人が背負う割合」＝有限責任の度合い（1.0で無限責任）。
                     //   ⚠これが無いと、赤字は毎月0へ均されて**誰の記憶にも残らず**、デレバレッジが起きない。
-                    if (World.Coef.PopDebtDriven > 0) p.Debt += need * World.Coef.PopDebtLossShare;
+                    if (World.Coef.PopDebtDriven > 0) p.Debt += new MoneyStock(need * World.Coef.PopDebtLossShare);
                 }
         // ★E6：負の分だけ与信を償却（基礎貨幣は償却の額だけ上がり、非常発行が同じ額だけ台帳に積まれる＝保存量は動かない）。
         //   ⚠NaN は比較が偽＝何もしない（否定形の門）。償却の後の基礎貨幣＝0（与信が足りれば）か国庫の負の分（与信を全部消しても残る分）。
-        double writeOff = Math.Min(-World.BaseMoney, bank.Loans);
-        if (writeOff > 0) { bank.Loans -= writeOff; World.CumulativeFiatIssued += writeOff; }   // 非常発行の台帳（負の国の与信の償却だけ）
+        double writeOff = Math.Min((-World.BaseMoney).Value, bank.Loans.Value);
+        if (writeOff > 0) { bank.Loans -= new MoneyStock(writeOff); World.CumulativeFiatIssued += writeOff; }   // 非常発行の台帳（負の国の与信の償却だけ）
     }
 
 
@@ -3056,14 +3056,14 @@ public sealed class Simulation
         double inv = sizeSum > 1e-9 ? 1.0 / sizeSum : 0.0;
 
         Telemetry.Add(new TurnSnapshot(
-            World.Year, World.Quarter, World.TotalMoney, World.TotalPopulation,
+            World.Year, World.Quarter, World.TotalMoney.Value, World.TotalPopulation,
             World.UrbanShare,
             foodMkt.Price, foodProd.Output, foodMkt.Stock,
             manufPrice, farmerSat, workerSat,
             World.TechLevel, litSum * inv, gdp,
             (int)World.Polity, conscSum * inv, milSum * inv,
             World.ReformistPower, World.Coercion,
-            World.BroadMoney, World.OutstandingLoans, World.Bank?.Confidence ?? 1.0,
+            World.BroadMoney.Value, World.OutstandingLoans.Value, World.Bank?.Confidence ?? 1.0,
             World.Treasury.Value, World.FiscalFundingRatio,
             World.Regions[0].SumPopulation(), World.Regions.Count > 1 ? World.Regions[1].SumPopulation() : 0.0,
             World.Bank?.Gold ?? 0.0, World.CumulativeTradeFlow));

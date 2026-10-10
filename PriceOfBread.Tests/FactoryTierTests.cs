@@ -30,12 +30,12 @@ public class FactoryTierTests
     {
         var sim = new Simulation(Fr(2025, 1.0, 1_000_000), new NullAgent());   // FranceTests の国営工場テストと同じ厚い国庫（重工業の建設費は素材価格依存）
         sim.World.BaseCoercion = 80; sim.World.Policy.CoercionTarget = 80;
-        double base0 = sim.World.BaseMoney;
+        double base0 = sim.World.BaseMoney.Value;
         sim.Run(40);
         Assert.True(sim.World.BuildFactory(0, Catalog.SteelId), "着工できない＝テスト前提の破れ");
         var ex = Record.Exception(() => sim.Run(60));   // §11.6（保存・非負・財収支）が全ティックで保持
         Assert.Null(ex);
-        Assert.True(Math.Abs(sim.World.BaseMoney - base0 - sim.World.CumulativeTradeFlow - sim.World.CumulativeGoldMinted - sim.World.CumulativeFiatIssued) < 1e-6 * base0,
+        Assert.True(Math.Abs(sim.World.BaseMoney.Value - base0 - sim.World.CumulativeTradeFlow - sim.World.CumulativeGoldMinted - sim.World.CumulativeFiatIssued) < 1e-6 * base0,
             "工場建設の材料の決済で基礎貨幣保存が破れた");
     }
     /// <summary>着工の採算ゲート（<see cref="Coefficients.FactoryStartAffordFloor"/>・2026-08-04）の番人。

@@ -390,7 +390,7 @@ public static class Instruments
         void C(string name, double v) => cols.Add((name, F(v)));
         cols.Add(("time", time)); cols.Add(("nation", NameOf(w))); C("year", w.Year);
         C("populationK", popK); C("homePopulationK", homePopK); C("soldierK", soldierK); C("soldierToPopulationShare", popK > 0 ? soldierK / popK : double.NaN);
-        C("totalPopulationK", w.TotalPopulation); C("totalMoneyStock", w.TotalMoney);   // 階級の表の合計との突き合わせ用（合計＝分母）
+        C("totalPopulationK", w.TotalPopulation); C("totalMoneyStock", w.TotalMoney.Value);   // 階級の表の合計との突き合わせ用（合計＝分母）
         C("treasuryStock", w.Treasury.Value); C("govDebtStock", w.GovDebt.Value); C("gdpRealPerYear", gdpYear);
         C("goodsStockValueStock", stockValue); C("goodsStockToGdpYear", gdpYear > 0 ? stockValue / gdpYear : double.NaN);
         C("stapleStockValueStock", tier[0]); C("dailyStockValueStock", tier[1]); C("luxuryStockValueStock", tier[2]);

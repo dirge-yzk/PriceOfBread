@@ -19,7 +19,7 @@ public class NationModelTests
     public void 七国家は並列に動き各国が保存する()
     {
         var sim = new MultiNationSim(Seven(), seed: 1789);
-        double[] base0 = [.. sim.Nations.Select(n => n.World.BaseMoney)];
+        double[] base0 = [.. sim.Nations.Select(n => n.World.BaseMoney.Value)];
         var ex = Record.Exception(() => sim.Run(300));
         Assert.Null(ex);
         // P6点火（2026-07-17・清の初期不満0.25）で300Q内に分離独立が起きうる＝Nations が7超に成長し、当事国は建国時に金と人口が新国家へ移転して
@@ -29,7 +29,7 @@ public class NationModelTests
         {
             var w = sim.Nations[i].World;
             if (w.HadSecession) continue;
-            Assert.True(Math.Abs(w.BaseMoney - base0[i] - w.CumulativeTradeFlow - w.CumulativeGoldMinted - w.CumulativeFiatIssued) < 1e-6 * base0[i], $"{w.Region.Name} 保存破れ");
+            Assert.True(Math.Abs(w.BaseMoney.Value - base0[i] - w.CumulativeTradeFlow - w.CumulativeGoldMinted - w.CumulativeFiatIssued) < 1e-6 * base0[i], $"{w.Region.Name} 保存破れ");
         }
     }
 
