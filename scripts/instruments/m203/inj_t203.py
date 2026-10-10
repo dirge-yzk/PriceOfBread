@@ -48,7 +48,7 @@ public static class T203
         for (int k = 0; k < 5; k++) b.Append('|').Append(F(s.Aft[k]));
         var p = w.Policy;
         foreach (var v in new[] { p.IncomeTaxTarget, p.PollTaxTarget, p.LandTaxTarget, p.ProgressiveTaxTarget, p.TariffTarget, w.TaxRate, w.PollTax, w.LandTax, w.ProgressiveTax, w.Tariff,
-                                  w.LastRevenue, w.LastInterest + w.LastAdminClaim + w.LastMilitaryClaim, w.LastSoldierPay, w.GovDebt, w.AtWarNow ? 1 : 0 })
+                                  w.LastRevenuePerMonth, w.LastInterestPerMonth + w.LastAdminClaimPerMonth + w.LastMilitaryClaimPerMonth, w.LastSoldierPayPerMonth, w.GovDebt, w.AtWarNow ? 1 : 0 })
             b.Append('|').Append(F(v));
         b.Append('\n');
         s.Line = double.NaN;

@@ -79,7 +79,7 @@ public static class Cap185Diag
                         foreach (var p in rg.Pops)
                         {
                             pop += p.Size;
-                            if (p.ClassId == PopClass.Worker) { wkN += p.Size; wkE += p.Earned; wkU += p.Size * p.UnemploymentRate; }
+                            if (p.ClassId == PopClass.Worker) { wkN += p.Size; wkE += p.EarnedPerMonth; wkU += p.Size * p.UnemploymentRate; }
                         }
                         if (Catalog.LaborId < rg.Markets.Length) { var m = rg.Markets[Catalog.LaborId]; ldem += m.LastDemand; lout += m.LastProduced; lpx += m.Price * m.LastDemand; }
                         for (int g = 0; g < ng && g < rg.Markets.Length; g++)

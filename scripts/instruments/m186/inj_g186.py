@@ -60,7 +60,7 @@ public static class G186
             var sb = s.E;
             sb.Append("S|").Append(w.Year).Append('|').Append(w.SelfPower is { } sp ? (sp.BaseName.Length > 0 ? sp.BaseName : sp.Name) : "?");
             foreach (var v in new[] { w.FiscalFundingRatio, coverage, c.GoldCoverMin, w.FiscalFundingRatio < 0.7 ? 1 : 0, coverage < c.GoldCoverMin ? 1 : 0,
-                w.AtWarNow ? 1 : 0, w.Mobilized ? 1 : 0, w.MilitarySpending, mil, adm, w.LastInterest, w.LastRevenue, w.Treasury, ag, w.GovDebt, devalued,
+                w.AtWarNow ? 1 : 0, w.Mobilized ? 1 : 0, w.MilitarySpending, mil, adm, w.LastInterestPerMonth, w.LastRevenuePerMonth, w.Treasury, ag, w.GovDebt, devalued,
                 broken ? 1 : 0, nominalGdp > 1e-9 ? w.CumulativeDevaluation / nominalGdp : double.NaN, w.BaseMoney, w.BroadMoney, w.OutstandingLoans, w.Convertibility, w.ParliamentControl, payRate })
                 sb.Append('|').Append(F(v));
             sb.Append('\n');

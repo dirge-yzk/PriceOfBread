@@ -42,11 +42,11 @@ public static class D204
     public static void Month(World w, double claims, double payable, double borrowed, double devalued, double deficit, double room, double cap, double req, double payRate)
     {
         var s = V(w); var m = s.M;
-        double ag = w.NominalGdp * 12;
+        double ag = w.NominalGdpPerMonth * 12;
         m[0] = payRate; m[1] = claims; m[2] = payable - borrowed - devalued; m[3] = borrowed; m[4] = devalued; m[5] = deficit; m[6] = room; m[7] = cap; m[8] = req;
-        m[9] = w.Convertibility; m[10] = (int)w.MonetaryLaw; m[11] = w.LastRevenue > 0 ? w.LastInterest / w.LastRevenue : double.NaN;
-        m[12] = Fiscal.BorrowGateOpen(w, w.Coef) ? 1 : 0; m[13] = ag > 0 ? w.GovDebt / ag : double.NaN; m[14] = w.GovBondRate; m[15] = w.Treasury;
-        m[16] = w.TaxRate; m[17] = w.AtWarNow ? 1 : 0; m[18] = w.Year; m[19] = w.BorrowCooldown;
+        m[9] = w.Convertibility; m[10] = (int)w.MonetaryLaw; m[11] = w.LastRevenuePerMonth > 0 ? w.LastInterestPerMonth / w.LastRevenuePerMonth : double.NaN;
+        m[12] = Fiscal.BorrowGateOpen(w, w.Coef) ? 1 : 0; m[13] = ag > 0 ? w.GovDebt / ag : double.NaN; m[14] = w.GovBondRatePerYear; m[15] = w.Treasury;
+        m[16] = w.TaxRate; m[17] = w.AtWarNow ? 1 : 0; m[18] = w.Year; m[19] = w.BorrowCooldownMonths;
         var q = s.Q;
         if (payRate < 1) { q[0] += 1; q[3] += 1 - payRate; }
         if (m[12] < 0.5) q[2] += 1;

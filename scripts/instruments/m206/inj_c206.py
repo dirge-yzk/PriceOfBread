@@ -152,8 +152,8 @@ public static class C206Diag
                     if (p.Nation is not { } w || !(w.TotalPopulation > 0) || w.Regions.Count == 0) continue;
                     var a = For(p);
                     string partners = ByW.TryGetValue(w, out var rec) ? rec.Partners : "-";
-                    double ng = w.NominalGdp * w.ExchangeRate;
-                    W.Write($"T\t{w.Year}\t{Nm(p)}\t{F(w.TotalPopulation)}\t{F(w.Gdp)}\t{F(ng)}\t{F(w.ExchangeRate)}\t{F(w.LastImportValue + w.LastExportValue)}\t{F(a.V[0])}\t{F(a.V[1])}\t{F(a.V[2])}\t{F(a.V[3])}\t{F(a.V[4])}\t{F(a.V[5])}\t{F(a.V[6])}\t{F(a.V[7])}\t{F(p.NeedSea)}\t{F(a.V[8])}\t{F(a.V[9])}\t{F(a.V[10])}\t{F(a.V[11])}\t{F(a.V[12])}\t{F(p.NavalPower)}\t{F(p.FleetGauge)}\t{F(ArmyShape.NavalSpendShareOf(p))}\t{F(a.V[13])}\t{F(a.V[14])}\t{F(a.V[15])}\t{F(a.V[18])}\t{F(a.V[19])}\t{F(a.V[16])}\t{F(a.V[17])}\t{F(a.V[20])}\t{F(a.V[21])}\t{a.Top}\t{partners}\n");
+                    double ng = w.NominalGdpPerMonth * w.ExchangeRate;
+                    W.Write($"T\t{w.Year}\t{Nm(p)}\t{F(w.TotalPopulation)}\t{F(w.GdpPerMonth)}\t{F(ng)}\t{F(w.ExchangeRate)}\t{F(w.LastImportValue + w.LastExportValue)}\t{F(a.V[0])}\t{F(a.V[1])}\t{F(a.V[2])}\t{F(a.V[3])}\t{F(a.V[4])}\t{F(a.V[5])}\t{F(a.V[6])}\t{F(a.V[7])}\t{F(p.NeedSea)}\t{F(a.V[8])}\t{F(a.V[9])}\t{F(a.V[10])}\t{F(a.V[11])}\t{F(a.V[12])}\t{F(p.NavalPower)}\t{F(p.FleetGauge)}\t{F(ArmyShape.NavalSpendShareOf(p))}\t{F(a.V[13])}\t{F(a.V[14])}\t{F(a.V[15])}\t{F(a.V[18])}\t{F(a.V[19])}\t{F(a.V[16])}\t{F(a.V[17])}\t{F(a.V[20])}\t{F(a.V[21])}\t{a.Top}\t{partners}\n");
                 }
             if (q == quarters - 1) W.Dispose();
         }

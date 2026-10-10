@@ -38,7 +38,7 @@ public static class T186
             if (w.ExportsByGood is { } eg) foreach (var v in eg) ex += v;
             if (w.ImportsByGood is { } ig) foreach (var v in ig) im += v;
             sb.Append("T|").Append(q).Append('|').Append(w.Year).Append('|').Append(i).Append('|').Append(p.BaseName.Length > 0 ? p.BaseName : p.Name)
-              .Append('|').Append(F(ex)).Append('|').Append(F(im)).Append('|').Append(F(w.NominalGdp)).Append('|').Append(F(w.Coef.ClearingsPerYear)).Append('\n');
+              .Append('|').Append(F(ex)).Append('|').Append(F(im)).Append('|').Append(F(w.NominalGdpPerMonth)).Append('|').Append(F(w.Coef.ClearingsPerYear)).Append('\n');
         }
         if (q != quarters - 1) return;
         using var W = new System.IO.StreamWriter(System.IO.Path.Combine(Dir!, $"t{seed}.txt"), false, new System.Text.UTF8Encoding(false), 1 << 16);

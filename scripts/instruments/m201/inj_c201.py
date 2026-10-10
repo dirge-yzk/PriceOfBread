@@ -41,15 +41,15 @@ public static class C201
             var p = T.GetValue(w, _ => new P());
             double[] d = new double[(int)TreasuryCat.Count];
             for (int k = 0; k < d.Length; k++) { d[k] = w.TreasuryLedger[k] - p.L[k]; p.L[k] = w.TreasuryLedger[k]; }
-            double ng = w.NominalGdp, ag = ng * 12;
+            double ng = w.NominalGdpPerMonth, ag = ng * 12;
             bool broken = ng > 1e-9 && w.CumulativeDevaluation / ng > w.Coef.CapitalFlightDistrustThreshold;
             double rev = 0; for (int k = 0; k <= (int)TreasuryCat.OtherIn; k++) if (k != (int)TreasuryCat.Borrow && k != (int)TreasuryCat.Devalue) rev += d[k];
             string nm = w.SelfPower is { } sp ? (sp.BaseName.Length > 0 ? sp.BaseName : sp.Name) : "?";
             sb.Append("C|").Append(q).Append('|').Append(w.Year).Append('|').Append(i).Append('|').Append(nm);
             foreach (var v in new[] { w.Treasury, d[(int)TreasuryCat.Devalue], d[(int)TreasuryCat.Borrow], d[(int)TreasuryCat.Interest], d[(int)TreasuryCat.OtherOut], d[(int)TreasuryCat.Tax], rev,
                 ag > 1e-9 ? w.CumulativeDevaluation / ag : double.NaN, broken ? 1 : 0, w.OnGoldStandard ? 1 : 0, w.Convertibility, w.GovDebt, ag,
-                w.InsolvencyQuarters, w.SovereignDefaultCount, w.GoldSuspensions, w.GovBondRate, w.GovAvgCoupon,
-                w.LastRevenue > 1e-9 ? w.LastInterest / w.LastRevenue : double.NaN, w.FiscalFundingRatio, w.AtWarNow ? 1 : 0, d[(int)TreasuryCat.WarCost], d[(int)TreasuryCat.DebtRepay] })
+                w.InsolvencyQuarters, w.SovereignDefaultCount, w.GoldSuspensions, w.GovBondRatePerYear, w.GovAvgCouponPerYear,
+                w.LastRevenuePerMonth > 1e-9 ? w.LastInterestPerMonth / w.LastRevenuePerMonth : double.NaN, w.FiscalFundingRatio, w.AtWarNow ? 1 : 0, d[(int)TreasuryCat.WarCost], d[(int)TreasuryCat.DebtRepay] })
                 sb.Append('|').Append(F(v));
             sb.Append('\n');
         }

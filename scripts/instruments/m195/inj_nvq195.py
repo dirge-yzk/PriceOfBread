@@ -146,7 +146,7 @@ public static class Nvq195Diag
                         { if (fu.Length > 0) uW += fu[0]; if (fu.Length > 1) uI += fu[1]; if (fu.Length > 2) uD += fu[2]; }
                     double denom = EconomyStep.FleetGaugeDenominator(w.Regions[0], c);
                     double crewNeed = denom > 0 ? (uW + uI + uD) * EconomyStep.FleetCrewPerHull(w.Regions[0], c, denom) : double.NaN;
-                    W.Write($"Q\t{w.Year}\t{Nm(p)}\t{F(w.SoldierSize())}\t{F(a.V[0])}\t{F(p.Military)}\t{F(w.MilitaryReadiness)}\t{F(p.NavalShare)}\t{F(p.NeedLand)}\t{F(p.NeedInternal)}\t{F(p.NeedSea)}\t{F(a.V[1])}\t{F(a.V[2])}\t{F(a.V[3])}\t{F(a.V[4])}\t{F(a.V[5])}\t{F(ArmyShape.NavalSpendShareOf(p))}\t{F(a.V[6])}\t{F(a.V[7])}\t{F(a.V[8])}\t{F(p.FleetGauge)}\t{F(p.NavalPower)}\t{F(uW)}\t{F(uI)}\t{F(uD)}\t{F(crewNeed)}\t{a.Top}\t{F(a.V[9])}\t{F(a.V[10])}\t{F(a.V[11])}\t{F(a.V[12])}\n");
+                    W.Write($"Q\t{w.Year}\t{Nm(p)}\t{F(w.SoldierSizeK())}\t{F(a.V[0])}\t{F(p.Military)}\t{F(w.MilitaryReadiness)}\t{F(p.NavalShare)}\t{F(p.NeedLand)}\t{F(p.NeedInternal)}\t{F(p.NeedSea)}\t{F(a.V[1])}\t{F(a.V[2])}\t{F(a.V[3])}\t{F(a.V[4])}\t{F(a.V[5])}\t{F(ArmyShape.NavalSpendShareOf(p))}\t{F(a.V[6])}\t{F(a.V[7])}\t{F(a.V[8])}\t{F(p.FleetGauge)}\t{F(p.NavalPower)}\t{F(uW)}\t{F(uI)}\t{F(uD)}\t{F(crewNeed)}\t{a.Top}\t{F(a.V[9])}\t{F(a.V[10])}\t{F(a.V[11])}\t{F(a.V[12])}\n");
                 }
             if (q == quarters - 1)
             {

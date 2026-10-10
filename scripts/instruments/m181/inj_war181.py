@@ -49,10 +49,10 @@ public static class W176
         var v = V(w);
         v[13] += 1;
         if (spare < 0) { v[14] += 1; v[15] += -spare; }
-        if (w.BorrowCooldown > 0) v[17] += 1;
+        if (w.BorrowCooldownMonths > 0) v[17] += 1;
         if (w.WarmupFrozen) v[18] += 1;
-        if (!(w.LastInterest < w.Coef.MaxInterestShareOfRevenue * w.LastRevenue)) v[19] += 1;
-        v[20] += w.LastRevenue > 0 ? w.LastInterest / w.LastRevenue : double.NaN;
+        if (!(w.LastInterestPerMonth < w.Coef.MaxInterestShareOfRevenue * w.LastRevenuePerMonth)) v[19] += 1;
+        v[20] += w.LastRevenuePerMonth > 0 ? w.LastInterestPerMonth / w.LastRevenuePerMonth : double.NaN;
     }
     public static void BorrowPost(World w, double borrowed, double devalued)
     {

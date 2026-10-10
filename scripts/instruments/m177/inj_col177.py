@@ -72,7 +72,7 @@ public static class XCol
     public static void CapitalRent(World w, Region r)
     {
         if (!ReferenceEquals(r, w.Region) || r.InvestorPopIndex < 0 || r.InvestorPopIndex >= r.Pops.Count) return;
-        var a = Of(w); lock (a) a.InvLand += r.Pops[r.InvestorPopIndex].LandRent;
+        var a = Of(w); lock (a) a.InvLand += r.Pops[r.InvestorPopIndex].LandRentPerMonth;
     }
     public static void Rent(World w, Region r, int g, double rent, bool export)
     {
@@ -110,7 +110,7 @@ public static class XCol
           .Append(F(a.RDomExp)).Append('|').Append(F(a.RDomLoc)).Append('|').Append(F(a.RXExp)).Append('|').Append(F(a.RXLoc)).Append('|').Append(F(a.InvLand)).Append('|')
           .Append(F(w.ShipSteamShareEma)).Append('|').Append(F(w.ShipCapacity)).Append('|').Append(F(w.ColonialShipBurden)).Append('|').Append(F(gate)).Append('|')
           .Append(F(pSail)).Append('|').Append(F(pSteam)).Append('|').Append(F(pCoal)).Append('|').Append(F(era)).Append('|').Append(F(w.FiscalFundingRatio)).Append('|')
-          .Append(F(w.Treasury)).Append('|').Append(F(w.LastRevenue)).Append('|').Append(F(a.SupplyBack)).AppendLine();
+          .Append(F(w.Treasury)).Append('|').Append(F(w.LastRevenuePerMonth)).Append('|').Append(F(a.SupplyBack)).AppendLine();
         Reset(w);
     }
 }

@@ -110,7 +110,7 @@ public static class Mob194Diag
           .Append(F(fMil)).Append('|').Append(F(fLand)).Append('|').Append(F(fPush)).Append('|').Append(F(myPush)).Append('|').Append(F(fEst)).Append('|').Append(F(fMan)).Append('|')
           .Append(co.Count).Append('|').Append(F(cMil)).Append('|').Append(F(cEst)).Append('|').Append(cG).Append('|')
           .Append(ring2.Count).Append('|').Append(F(dMil)).Append('|').Append(F(dEst)).Append('|').Append(dG).Append('|').Append(myG + nFgreat + cG + dG).Append('|')
-          .Append(F(w.Region.LastWarIntensity)).Append('|').Append(F(self.WarExhaustion)).Append('|').Append(F(w.SoldierSize())).Append('|').Append(F(w.TotalPopulation)).Append('|')
+          .Append(F(w.Region.LastWarIntensity)).Append('|').Append(F(self.WarExhaustion)).Append('|').Append(F(w.SoldierSizeK())).Append('|').Append(F(w.TotalPopulation)).Append('|')
           .Append(names).Append('|').Append(F(reach)).Append('|').Append(F(SCALEEXPR)).Append('\n');
         lock (a) a.Sb.Append(sb);
     }

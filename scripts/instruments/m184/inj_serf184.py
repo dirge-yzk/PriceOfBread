@@ -103,7 +103,7 @@ public static class Serf184Diag
                     var gi = Government.GateInfo(w, PolicyAxis.SerfEmancipation, true, cur + 1, ref sh);
                     gate = gi.Ok ? 1 : 0; cost = gi.Cost;
                 }
-                double ngdp = w.NominalGdp;
+                double ngdp = w.NominalGdpPerMonth;
                 double debt = ngdp > 1e-9 ? w.GovDebt / (ngdp * 12.0) : 0;
                 W.Write($"Q\t{q}\t{w.Year}\t{Nm(w)}\t{cur}\t{tgt}\t{w.Polity}\t{F(w.FoodFill)}\t{(famine ? 1 : 0)}\t{F(roomCur)}\t{F(roomNext)}\t{F(net)}\t{gate}\t{F(cost)}\t{F(w.PoliticalCapitalMax - w.MandateSpent)}\t{F(w.Legitimacy)}\t{F(pt)}\t{F(pm)}\t{F(ps)}\t{w.RuptureWindowQuarters}\t{(Government.AtWar(w) ? 1 : 0)}\t{F(UtilityAgent.SecurityShare(w))}\t{F(sp.WarExhaustion)}\t{F(w.FiscalFundingRatio)}\t{F(debt)}\n");
             }

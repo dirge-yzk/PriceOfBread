@@ -64,8 +64,8 @@ public static class W171
         var r = new Rec { Id = a.NextId++, T0 = a.Month, Y0 = year, Depth = depth, A = NameOf(w.A), B = NameOf(w.B),
             Civil = w.CivilWarParent is not null ? 1 : 0, Sec = w.CivilWarSecession ? 1 : 0, ANat = w.A.Nation != null ? 1 : 0, BNat = w.B.Nation != null ? 1 : 0,
             ARank = (int)dip.RankOf(w.A), BRank = (int)dip.RankOf(w.B) };
-        if (w.A.Nation is { } wa) { r.ASold0 = wa.SoldierSize(); r.AMob0 = wa.Mobilized ? 1 : 0; r.ALaw = (int)wa.ConscriptionLaw; r.AStage0 = wa.MilitarySpending; }
-        if (w.B.Nation is { } wb) { r.BSold0 = wb.SoldierSize(); r.BMob0 = wb.Mobilized ? 1 : 0; r.BLaw = (int)wb.ConscriptionLaw; r.BStage0 = wb.MilitarySpending; }
+        if (w.A.Nation is { } wa) { r.ASold0 = wa.SoldierSizeK(); r.AMob0 = wa.Mobilized ? 1 : 0; r.ALaw = (int)wa.ConscriptionLaw; r.AStage0 = wa.MilitarySpending; }
+        if (w.B.Nation is { } wb) { r.BSold0 = wb.SoldierSizeK(); r.BMob0 = wb.Mobilized ? 1 : 0; r.BLaw = (int)wb.ConscriptionLaw; r.BStage0 = wb.MilitarySpending; }
         System.Array.Copy(ExOf(a, w.A), r.AEx0, NE + 2); System.Array.Copy(ExOf(a, w.B), r.BEx0, NE + 2);
         a.Recs.Add(r); a.ByWar.AddOrUpdate(w, r);
     }
@@ -85,7 +85,7 @@ public static class W171
         {
             var wn = (s == 0 ? w.A : w.B).Nation; if (wn is null) continue;
             int o = s * 6;
-            r.Side[o] += wn.SoldierSize(); r.Side[o + 1] += wn.Mobilized ? 1 : 0; r.Side[o + 2] += wn.Region.MilitaryEquipFill;
+            r.Side[o] += wn.SoldierSizeK(); r.Side[o + 1] += wn.Mobilized ? 1 : 0; r.Side[o + 2] += wn.Region.MilitaryEquipFill;
             r.Side[o + 3] += wn.FiscalFundingRatio; r.Side[o + 4] += wn.MilitarySpending;
         }
     }
@@ -104,8 +104,8 @@ public static class W171
         r.ExA = w.A.WarExhaustion; r.ExB = w.B.WarExhaustion;
         var ea = ExOf(a, w.A); var eb = ExOf(a, w.B);
         for (int k = 0; k < NE + 2; k++) { r.AExd[k] = ea[k] - r.AEx0[k]; r.BExd[k] = eb[k] - r.BEx0[k]; }
-        if (w.A.Nation is { } wa) r.ASoldE = wa.SoldierSize();
-        if (w.B.Nation is { } wb) r.BSoldE = wb.SoldierSize();
+        if (w.A.Nation is { } wa) r.ASoldE = wa.SoldierSizeK();
+        if (w.B.Nation is { } wb) r.BSoldE = wb.SoldierSizeK();
     }
     // ── 国×四半期の軍の財布（MonthSettle の月の和）──
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<World, double[]> Q = new();
@@ -117,7 +117,7 @@ public static class W171
         v[0] += 1; v[1] += env; v[2] += payFull; v[3] += regFull; v[4] += payFill; v[5] += equipRoom; v[6] += equipClaim;
         v[7] += EconomyStep.MilitaryProcurementNeed(w.Region, w.Coef); v[8] += trainNeed; v[9] += trainClaim; v[10] += claims; v[11] += payable; v[12] += payRate;
         v[13] += w.Region.MilitaryEquipFill; v[14] += w.Region.MilitaryWarMultLast; v[15] += sold; v[16] += atWar ? 1 : 0; v[17] += w.InCivilWar ? 1 : 0;
-        v[18] += w.Mobilized ? 1 : 0; v[19] += w.MilitarySpending; v[20] += w.LastRevenue;
+        v[18] += w.Mobilized ? 1 : 0; v[19] += w.MilitarySpending; v[20] += w.LastRevenuePerMonth;
     }
     public static void Proc(World? w, double want, double got, double wantRation, double affordRaw)
     {

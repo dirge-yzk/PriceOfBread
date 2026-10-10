@@ -68,8 +68,8 @@ public static class Pow178Diag
                         foreach (var p in rg.Pops)
                         {
                             pop += p.Size;
-                            if (p.ClassId == PopClass.Worker) { wkN += p.Size; wkE += p.Earned; wkU += p.Size * p.UnemploymentRate; wkReg += p.Size; }
-                            else if (p.ClassId == PopClass.Peasant) { psN += p.Size; psE += p.Earned; psU += p.Size * p.UnemploymentRate; }
+                            if (p.ClassId == PopClass.Worker) { wkN += p.Size; wkE += p.EarnedPerMonth; wkU += p.Size * p.UnemploymentRate; wkReg += p.Size; }
+                            else if (p.ClassId == PopClass.Peasant) { psN += p.Size; psE += p.EarnedPerMonth; psU += p.Size * p.UnemploymentRate; }
                         }
                         for (int k = 0; k < 3; k++)
                         {

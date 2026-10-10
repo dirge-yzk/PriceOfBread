@@ -27,11 +27,11 @@ HAS_UPKEEP = 'double upkeep = coercionUpkeep + adminCost;' in open(root + '/Pric
 edit('PriceOfBread.SimCore/Fiscal.cs', ([
     ('        double upkeep = coercionUpkeep + adminCost;\n',
      '        w.YBAdm += adminCost; w.YBAdm0 += adminCost > 0 ? c.AdminCostPerPop * popSizeAll : 0; w.YBCoer += coercionUpkeep;\n', 'after')] if HAS_UPKEEP else []) + [
-    ('        w.LastAdminClaim = adminClaim;' if 'w.LastMilitaryClaim = militaryClaim; w.LastAdminClaim' not in open(root + '/PriceOfBread.SimCore/Fiscal.cs', encoding='utf-8-sig').read() else '        w.LastMilitaryClaim = militaryClaim; w.LastAdminClaim = adminClaim;',
-     '\n        w.YBInt += interest; w.YBAdmClaim += adminClaim; w.YBMilClaim += militaryClaim; w.YDeval += devalued; w.YBCol += w.LastColonialUpkeep;', 'after'),
+    ('        w.LastAdminClaimPerMonth = adminClaim;' if 'w.LastMilitaryClaimPerMonth = militaryClaim; w.LastAdminClaimPerMonth' not in open(root + '/PriceOfBread.SimCore/Fiscal.cs', encoding='utf-8-sig').read() else '        w.LastMilitaryClaimPerMonth = militaryClaim; w.LastAdminClaimPerMonth = adminClaim;',
+     '\n        w.YBInt += interest; w.YBAdmClaim += adminClaim; w.YBMilClaim += militaryClaim; w.YDeval += devalued; w.YBCol += w.LastColonialUpkeepPerMonth;', 'after'),
 ])
 _e = open(root + '/PriceOfBread.SimCore/EconomyStep.cs', encoding='utf-8-sig').read()
-PAYANCHOR = '            revenue[Catalog.MilitaryPowerId] += pay;\n' if 'revenue[Catalog.MilitaryPowerId] += pay;' in _e else '            region.Pops[region.SoldierPopIndex].Earned += pay;\n'
+PAYANCHOR = '            revenue[Catalog.MilitaryPowerId] += pay;\n' if 'revenue[Catalog.MilitaryPowerId] += pay;' in _e else '            region.Pops[region.SoldierPopIndex].EarnedPerMonth += pay;\n'
 edit('PriceOfBread.SimCore/EconomyStep.cs', [
     ('            revenue[Catalog.AdminId] += pay;\n', '            if (world is not null) world.YPAdm += pay;\n', 'before'),
     ('            revenue[Catalog.InfrastructureId] += pay;\n', '            if (world is not null) world.YPInfra += pay;\n', 'before'),
@@ -60,15 +60,15 @@ edit('PriceOfBread.SimCore/SelfPlay.cs', [
                             if (Catalog.AdminId < yr.Markets.Length) yprice += yr.Markets[Catalog.AdminId].Price * yps;
                             foreach (var ypp in yr.Pops)
                             {
-                                if (ypp.IsSoldier) { ysS += ypp.Size; ysE += ypp.Earned; continue; }
-                                if (Politics.IsMassPop(ypp)) { ymS += ypp.Size; ymE += ypp.Earned; }
-                                if (ypp.ClassId == PopClass.Bureaucrat) { ybS += ypp.Size; ybE += ypp.Earned; }
+                                if (ypp.IsSoldier) { ysS += ypp.Size; ysE += ypp.EarnedPerMonth; continue; }
+                                if (Politics.IsMassPop(ypp)) { ymS += ypp.Size; ymE += ypp.EarnedPerMonth; }
+                                if (ypp.ClassId == PopClass.Bureaucrat) { ybS += ypp.Size; ybE += ypp.EarnedPerMonth; }
                             }
                             foreach (var ypr in yr.Producers) if (ypr.GoodId == Catalog.AdminId) yout += System.Math.Max(0, ypr.Output);
                         }
-                        ycSb.Append($"C|{q + 1}|{yw.Year}|{yi}|{yw.SelfPower?.BaseName}|{(yw.TotalPopulation > 0 ? 1 : 0)}|{yw.NominalGdp * 12:F1}|{yap:F2}|{ysS:F2}|{yw.BaseCoercion:F2}|{yw.AdminSpending:F3}|{yw.MilitarySpending:F3}|{yw.FiscalFundingRatio:F3}|"
+                        ycSb.Append($"C|{q + 1}|{yw.Year}|{yi}|{yw.SelfPower?.BaseName}|{(yw.TotalPopulation > 0 ? 1 : 0)}|{yw.NominalGdpPerMonth * 12:F1}|{yap:F2}|{ysS:F2}|{yw.BaseCoercion:F2}|{yw.AdminSpending:F3}|{yw.MilitarySpending:F3}|{yw.FiscalFundingRatio:F3}|"
                             + $"{yw.YBAdm:F2}|{yw.YBAdm0:F2}|{yw.YBCoer:F2}|{yw.YBInt:F2}|{yw.YBAdmClaim:F2}|{yw.YBMilClaim:F2}|{yw.YDeval:F2}|{yw.YPAdm:F2}|{yw.YPInfra:F2}|{yw.YPElec:F2}|{yw.YPMp:F2}|{yd}|"
-                            + $"{yw.GovDebt:F1}|{yw.GovBondRate:F4}|{yw.GovAvgCoupon:F4}|{yw.Convertibility:F3}|{yw.ParliamentControl:F3}|{yw.ExpectedInflation:F4}|{yw.InterestRate:F4}|{(int)yw.MonetaryLaw}|{(yw.OnGoldStandard ? 1 : 0)}|{(yap > 0 ? yaf / yap : 0):F3}|{(yap > 0 ? yprice / yap : 0):F4}|"
+                            + $"{yw.GovDebt:F1}|{yw.GovBondRatePerYear:F4}|{yw.GovAvgCouponPerYear:F4}|{yw.Convertibility:F3}|{yw.ParliamentControl:F3}|{yw.ExpectedInflationPerYear:F4}|{yw.InterestRate:F4}|{(int)yw.MonetaryLaw}|{(yw.OnGoldStandard ? 1 : 0)}|{(yap > 0 ? yaf / yap : 0):F3}|{(yap > 0 ? yprice / yap : 0):F4}|"
                             + $"{(ymS > 0 ? ymE / ymS : 0):F5}|{ybS:F3}|{ybE:F3}|{(ysS > 0 ? ysE / ysS : 0):F5}|{yout:F3}|{yw.YBCol:F2}|{yw.TaxRate:F4}|{(int)yw.Polity}|{yw.AusterityIntensity:F3}|{yw.StateMonopolyTier}").AppendLine();
                         yw.YBAdm = yw.YBAdm0 = yw.YBCoer = yw.YBInt = yw.YBAdmClaim = yw.YBMilClaim = yw.YDeval = yw.YPAdm = yw.YPInfra = yw.YPElec = yw.YPMp = yw.YBCol = 0;
                     }

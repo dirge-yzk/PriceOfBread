@@ -135,9 +135,9 @@ public static class S3aDiag
 '''
 
 edit('PriceOfBread.SimCore/SelfPlay.cs', [
-    ('        sim.StartWarmup();\n        // ★異常リストの有界化（2026-08-01',
-     '        sim.StartWarmup();\n        var s3aM = S3aDiag.On ? new S3aDiag.Match(seed) : null;\n        // ★異常リストの有界化（2026-08-01'),
-    ('                sim.StepQuarter();\n                if (sim.Nations.Count > gdpPeak.Length)',
-     '                sim.StepQuarter();\n                s3aM?.Quarter(sim, q, quarters);\n                if (sim.Nations.Count > gdpPeak.Length)'),
+    ('        sim.StartWarmup();\n        if (Instruments.On) Instruments.Phase(sim, seed, "warm");   // 助走の直後の断面\n        // ★異常リストの有界化（2026-08-01',
+     '        sim.StartWarmup();\n        if (Instruments.On) Instruments.Phase(sim, seed, "warm");   // 助走の直後の断面\n        var s3aM = S3aDiag.On ? new S3aDiag.Match(seed) : null;\n        // ★異常リストの有界化（2026-08-01'),
+    ('                sim.StepQuarter();\n                if (Instruments.On) Instruments.Quarter(sim, seed, q);   // 計器（読むだけ）\n                if (sim.Nations.Count > gdpPeak.Length)',
+     '                sim.StepQuarter();\n                s3aM?.Quarter(sim, q, quarters);\n                if (Instruments.On) Instruments.Quarter(sim, seed, q);   // 計器（読むだけ）\n                if (sim.Nations.Count > gdpPeak.Length)'),
 ], TAIL)
 print('ok', root)

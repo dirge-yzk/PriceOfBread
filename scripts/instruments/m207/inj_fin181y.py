@@ -47,20 +47,20 @@ public static class F181
     public static void Pre(World w, double claims, double payable0)
     {
         var s = V(w); var q = s.Q; var m = s.M;
-        double T = w.Treasury, R = w.LastRevenue;
+        double T = w.Treasury, R = w.LastRevenuePerMonth;
         double mil = 0, adm = 0;
         foreach (var r in w.Regions) if (r.State == RegionState.Active) { mil += r.MilitaryBudget + r.SoldierPayBudget; adm += r.AdminBudget; }
         double env = Military.EnvelopeOf(w, w.Coef);
         double share = Military.WarStageShare(w, w.MilitarySpending);
-        double warAdd = share > 0 && Fiscal.BorrowGateOpen(w, w.Coef) ? share * Fiscal.BorrowTicket(w.NominalGdp, w.Coef) : 0;
+        double warAdd = share > 0 && Fiscal.BorrowGateOpen(w, w.Coef) ? share * Fiscal.BorrowTicket(w.NominalGdpPerMonth, w.Coef) : 0;
         double W = warAdd > 0 ? System.Math.Max(0, mil - (env - warAdd)) : 0;
         q[0] += 1; q[1] += claims; q[2] += payable0; q[3] += T; q[4] += R;
-        q[8] += w.LastInterest; q[9] += w.LastColonialUpkeep; q[10] += w.LastWelfareCost + w.LastPensionCost; q[11] += mil; q[12] += adm;
+        q[8] += w.LastInterestPerMonth; q[9] += w.LastColonialUpkeepPerMonth; q[10] += w.LastWelfareCostPerMonth + w.LastPensionCostPerMonth; q[11] += mil; q[12] += adm;
         q[13] += env; q[14] += warAdd;
         q[23] += UtilityAgent.OpulenceLineOf(w); q[24] += w.SpendableRevenue();
-        if (!(w.LastInterest < w.Coef.MaxInterestShareOfRevenue * w.LastRevenue)) q[27] += 1;
-        q[28] += w.Convertibility; q[29] += w.GovAvgCoupon; q[30] += w.GovBondRate; q[31] += w.OnGoldStandard ? 1 : 0; q[32] = w.GovDebt; q[33] += w.ExpectedInflation; q[34] += w.ParliamentControl; q[35] += w.AtWarNow ? 1 : 0;
-        m[0] = claims; m[1] = payable0; m[2] = T; m[3] = R; m[4] = w.LastInterest; m[5] = w.LastColonialUpkeep; m[6] = w.LastWelfareCost + w.LastPensionCost;
+        if (!(w.LastInterestPerMonth < w.Coef.MaxInterestShareOfRevenue * w.LastRevenuePerMonth)) q[27] += 1;
+        q[28] += w.Convertibility; q[29] += w.GovAvgCouponPerYear; q[30] += w.GovBondRatePerYear; q[31] += w.OnGoldStandard ? 1 : 0; q[32] = w.GovDebt; q[33] += w.ExpectedInflationPerYear; q[34] += w.ParliamentControl; q[35] += w.AtWarNow ? 1 : 0;
+        m[0] = claims; m[1] = payable0; m[2] = T; m[3] = R; m[4] = w.LastInterestPerMonth; m[5] = w.LastColonialUpkeepPerMonth; m[6] = w.LastWelfareCostPerMonth + w.LastPensionCostPerMonth;
         m[7] = mil; m[8] = adm; m[9] = W; m[10] = 0; m[11] = 0; m[12] = 0;
     }
     // 月初（借入と切り下げの後・r を決めた直後）
@@ -107,11 +107,11 @@ public static class F181
         double n = I[0] > 0 ? I[0] : 1;
         var sb = s.D;
         sb.Append("D|").Append(w.Year).Append('|').Append(w.SelfPower is { } sp ? (sp.BaseName.Length > 0 ? sp.BaseName : sp.Name) : "?");
-        foreach (var v in new[] { w.GovDebt, nominalGdpMonthly * 12, w.LastRevenue, w.LastInterest, w.GovBondRate, w.GovAvgCoupon, w.Treasury, w.MilitarySpending, w.AtWarNow ? 1 : 0, w.Mobilized ? 1 : 0, w.Convertibility, I[0] })
+        foreach (var v in new[] { w.GovDebt, nominalGdpMonthly * 12, w.LastRevenuePerMonth, w.LastInterestPerMonth, w.GovBondRatePerYear, w.GovAvgCouponPerYear, w.Treasury, w.MilitarySpending, w.AtWarNow ? 1 : 0, w.Mobilized ? 1 : 0, w.Convertibility, I[0] })
             sb.Append('|').Append(F(v));
         for (int k = 1; k < NI; k++) sb.Append('|').Append(F(I[k] / n));
         var c = w.Coef; double ag = nominalGdpMonthly * 12, dg = ag > 0 ? w.GovDebt / ag : double.NaN;
-        foreach (var v in new[] { w.ExpectedInflation, w.ParliamentControl, c.BondBaseRate, c.BondRateDebtScale * dg, System.Math.Max(c.FisherDeflationFloor, w.ExpectedInflation) * c.FisherInflationWeight, c.PolicyRateBondWeight * w.InterestRate, 1.0 - w.Convertibility * (1.0 - c.GoldStandardRateDiscount), 1.0 - c.BondRateRepresentationDiscount * PoliticalQuantities.Clamp01(w.ParliamentControl), w.OnGoldStandard ? 1 : 0, w.SovereignDefaultCount })
+        foreach (var v in new[] { w.ExpectedInflationPerYear, w.ParliamentControl, c.BondBaseRatePerYear, c.BondRateDebtScale * dg, System.Math.Max(c.FisherDeflationFloor, w.ExpectedInflationPerYear) * c.FisherInflationWeight, c.PolicyRateBondWeight * w.InterestRate, 1.0 - w.Convertibility * (1.0 - c.GoldStandardRateDiscount), 1.0 - c.BondRateRepresentationDiscount * PoliticalQuantities.Clamp01(w.ParliamentControl), w.OnGoldStandard ? 1 : 0, w.SovereignDefaultCount })
             sb.Append('|').Append(F(v));
         sb.Append('\n');
     }

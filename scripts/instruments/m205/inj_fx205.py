@@ -62,10 +62,10 @@ public static class FX205
             sb.Append("N|").Append(q).Append('|').Append(w.Year).Append('|').Append(i).Append('|').Append(p.BaseName.Length > 0 ? p.BaseName : p.Name)
               .Append('|').Append(law).Append('|').Append(F(w.ExchangeRate)).Append('|').Append(F(w.Convertibility)).Append('|').Append(w.OnGoldStandard ? 1 : 0)
               .Append('|').Append(F(w.PriceLevel)).Append('|').Append(F(refAg > 1e-9 ? w.WorldSilverPrice / refAg : 0))
-              .Append('|').Append(F(ex)).Append('|').Append(F(im)).Append('|').Append(F(w.NominalGdp)).Append('|').Append(F(w.Coef.ClearingsPerYear))
+              .Append('|').Append(F(ex)).Append('|').Append(F(im)).Append('|').Append(F(w.NominalGdpPerMonth)).Append('|').Append(F(w.Coef.ClearingsPerYear))
               .Append('|').Append(F(w.CumulativeTradeFlow)).Append('|').Append(F(w.CapitalAbroad)).Append('|').Append(F(w.ForeignCapitalIn))
               .Append('|').Append(F(w.ForeignBondClaims)).Append('|').Append(F(w.ForeignDebt)).Append('|').Append(F(w.GovDebt)).Append('|').Append(F(w.Treasury))
-              .Append('|').Append(F(w.LastTariffRevenue)).Append('|').Append(F(w.ShipCapacity)).Append('|').Append(F(w.TotalPopulation));
+              .Append('|').Append(F(w.LastTariffRevenuePerClearing)).Append('|').Append(F(w.ShipCapacity)).Append('|').Append(F(w.TotalPopulation));
             for (int k = 0; k < 9; k++) sb.Append('|').Append(F(a[k]));
             sb.Append('\n');
             System.Array.Clear(a);
@@ -105,8 +105,8 @@ edit('PriceOfBread.SimCore/BilateralMarket.cs', [
      "                    if (FX205.On && crossA) FX205.Deal(nations[ni].World, nations[siA].World, vA, frG, qA * gd.RefPrice, qA * lp);\n"),
     ("            double amt = freightPool * shipShare[i] / exRate[i];\n",
      "            double amt = freightPool * shipShare[i] / exRate[i];\n            if (FX205.On) FX205.Freight(nations[i].World, freightPool * shipShare[i]);\n"),
-    ("        for (int i = 0; i < nn; i++) nations[i].World.LastTariffRevenue = 0;\n",
-     "        if (FX205.On) for (int i = 0; i < nn; i++) FX205.Clearing(nations[i].World);\n        for (int i = 0; i < nn; i++) nations[i].World.LastTariffRevenue = 0;\n"),
+    ("        for (int i = 0; i < nn; i++) nations[i].World.LastTariffRevenuePerClearing = 0;\n",
+     "        if (FX205.On) for (int i = 0; i < nn; i++) FX205.Clearing(nations[i].World);\n        for (int i = 0; i < nn; i++) nations[i].World.LastTariffRevenuePerClearing = 0;\n"),
 ], TAIL)
 edit('PriceOfBread.SimCore/SelfPlay.cs', [
     ("                sim.StepQuarter();\n",

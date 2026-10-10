@@ -52,7 +52,7 @@ public static class CasDiag
         foreach (var n in sim.Nations)
         {
             var w = n.World;
-            double sold = w.SoldierSize();
+            double sold = w.SoldierSizeK();
             s[1] += sold; s[2] += w.TotalPopulation;
             if (w.SelfPower is { } sp)
                 foreach (var wr in sim.Diplomacy.Wars) if (wr.A == sp || wr.B == sp) { s[3] += sold; break; }

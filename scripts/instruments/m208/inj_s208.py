@@ -113,12 +113,12 @@ public static class S208
             sb.Append("N|").Append(q).Append('|').Append(w.Year).Append('|').Append(i).Append('|').Append(p.BaseName.Length > 0 ? p.BaseName : p.Name)
               .Append('|').Append(g == 0 ? 2 : g == 1 ? 1 : 0).Append('|').Append(w.Policy.MonetaryTarget).Append('|').Append((int)a[7]).Append('|').Append((int)a[8]).Append('|').Append((int)a[9])
               .Append('|').Append(F(net)).Append('|').Append(F(tr)).Append('|').Append(F(mo)).Append('|').Append(F(ma))
-              .Append('|').Append(F(silverDrop)).Append('|').Append(F(w.TradeGoldPull)).Append('|').Append(F(w.ExpectedInflation)).Append('|').Append(F(w.MeanIndustrialization)).Append('|').Append(F(w.IndustrialFrontier))
+              .Append('|').Append(F(silverDrop)).Append('|').Append(F(w.TradeGoldPull)).Append('|').Append(F(w.ExpectedInflationPerYear)).Append('|').Append(F(w.MeanIndustrialization)).Append('|').Append(F(w.IndustrialFrontier))
               .Append('|').Append(F(own)).Append('|').Append(nOwn)
               .Append('|').Append(F(tt)).Append('|').Append(F(tt > 0 ? a[0] / tt : double.NaN)).Append('|').Append(F(tt > 0 ? a[1] / tt : double.NaN))
               .Append('|').Append(F(a[3])).Append('|').Append(F(a[4])).Append('|').Append(F(a[5])).Append('|').Append(F(a[6]))
               .Append('|').Append(F(w.SilverReserveQty)).Append('|').Append(F(w.GoldReserveQty)).Append('|').Append(F(w.ExchangeRate)).Append('|').Append(F(w.Convertibility))
-              .Append('|').Append(F(w.TotalPopulation)).Append('|').Append(F(w.NominalGdp)).Append('|').Append(F(w.PriceLevel)).Append('\n');
+              .Append('|').Append(F(w.TotalPopulation)).Append('|').Append(F(w.NominalGdpPerMonth)).Append('|').Append(F(w.PriceLevel)).Append('\n');
             System.Array.Clear(a);
         }
         double stat = Catalog.SilverId < sim.Market.Price.Count ? sim.Market.Price[Catalog.SilverId] : 0;
