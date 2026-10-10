@@ -9,7 +9,8 @@ public sealed class NationConfig
     // ★(247) 既定値は **この型の初期化子が唯一の場所**（初期値の既定値の一本化）：world.json の国は「既定と違う値」のキーだけを書く（同じ値のキーは書かない）。
     //   既定は世界の大半の国の値（最頻値）に置く＝書くキーが最も少ない。番人＝InitialDefaultsTests（world.json の国が既定と同じ値のキーを持つと赤）。
     //   ⚠既定を変えるときは、建国（MultiNationSim の分離独立・NationConfig を手で組む）がその欄を読むか確かめる＝読むなら建国の組みに明示する。
-    //   BroadMoneyToGdp の既定 0 は「置かない」の印で建国が読む（Simulation.World.BroadMoneyToGdp）＝最頻値（0.1）へ動かしてはならない。
+    //   ★(248) BroadMoneyToGdp も最頻値（0.1）へ動かした：建国の cfg からも World へ写るが、読み手 World.RebaseOpeningMoney は StartWarmup の中で1度きり
+    //   （助走の間は政治と外交が凍結＝建国は起きない）＝建国した国の値は読まれない（(247) の「動かすと恒等でない」は誤診だった・反証役 vd1#1）。
     /// <summary>浅い複製（監査2026-07-12 他19）：金利実験など一時的な上書きに使う＝WorldData.Nations() の共有キャッシュを汚染しない。</summary>
     public NationConfig ShallowClone() => (NationConfig)MemberwiseClone();
 
@@ -81,7 +82,7 @@ public sealed class NationConfig
     //   蘭 0.6〜1.0【推・de Vries & van der Woude 1997 *The First Modern Economy*】）②仏・伊北部・イベリア・北欧・スイス 0.35（仏 0.35〜0.45【推・ネッケル 1784 の正貨 約22億リーヴル ÷ 名目GDP 50〜60億】）
     //   ③独の諸邦・墺・東欧・露・オスマン・米・日・清・朝鮮 0.2（普墺 0.15〜0.25・清 0.15〜0.3【推・von Glahn 1996 *Fountain of Fortune* から読んだ桁】・米 1790 0.15〜0.25【推・Sylla〈Historical Statistics of the United States〉】）
     //   ④南アジア・東南アジア・中央アジア・アラビア・アフリカ・ハワイ 0.1（貨幣化の低い地域 0.05〜0.3【推】）。個々の国を手で振らない（階の割り当てだけがデータ）。
-    public double BroadMoneyToGdp = 0;
+    public double BroadMoneyToGdp = 0.1;   // ★(248) 既定＝段④ 0.1（61国のうち33国＝最頻）。0＝置かない（読み手は助走の終わりの RebaseOpeningMoney だけ）
     // 国土を分ける州（代表都市＋人口Share〔合計1〕＋その州の強み資源 good.Id[]）。未指定なら単一地域。
     // 列挙財＝増産（×3.5・地理的な得意＝輸出）／非列挙のRGOは減産（×0.4・要輸入。ただし主食 麦/米/野菜は食料安全保障で減産しない）。
     public ProvinceSpec[] Provinces = [];
