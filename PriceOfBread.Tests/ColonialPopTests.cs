@@ -68,7 +68,7 @@ public class ColonialPopTests
             foreach (var r in cols) r.Tier = r == keep ? RegionTier.Colonial : RegionTier.Integrated;
             Colonial.Step(w, w.Coef);
             foreach (var r in cols) r.Tier = RegionTier.Colonial;
-            return (w.LastColonialUpkeepPerMonth, w.ColonialShipBurden);
+            return (w.LastColonialUpkeepPerMonth.Value, w.ColonialShipBurden);
         }
         var o = Only(outpost);
         var b = Only(big);
@@ -115,11 +115,11 @@ public class ColonialPopTests
         var inv = w.Region.Pops[w.Region.InvestorPopIndex];
         var pr = col.Producers.First(p => p.GoodId == Catalog.SugarCaneId && Colonial.AbsenteeRgo(col, p));
         var local = col.Pops[pr.OwnerPopIndex];
-        double i0 = inv.Savings, ie0 = inv.EarnedPerMonth, l0 = local.Savings;
+        double i0 = inv.Savings, ie0 = inv.EarnedPerMonth.Value, l0 = local.Savings;
         double paid = InternationalMarket.PaySales((null, null), col, Catalog.SugarCaneId, 1000.0, w);
         Assert.Equal(1000.0, paid, 6);
         Assert.True(inv.Savings - i0 > 1.0, $"本国の首都の投資家が地代を受け取らない（{inv.Savings - i0}）");
-        Assert.Equal(inv.Savings - i0, inv.EarnedPerMonth - ie0, 9);
+        Assert.Equal(inv.Savings - i0, inv.EarnedPerMonth.Value - ie0, 9);
         Assert.Equal(l0, local.Savings, 9);
     }
 
@@ -133,18 +133,18 @@ public class ColonialPopTests
         var col = ColonyWith(w, Catalog.SugarCaneId);
         var inv = w.Region.Pops[w.Region.InvestorPopIndex];
         var local = col.Pops[PopClass.Capitalist];
-        local.SetSavings(500); local.LandRentPerMonth = 200; local.EarnedPerMonth = 200;
-        double i0 = inv.Savings, ie0 = inv.EarnedPerMonth, il0 = inv.LandRentPerMonth;
+        local.SetSavings(500); local.LandRentPerMonth = new MoneyPerMonth(200); local.EarnedPerMonth = new MoneyPerMonth(200);
+        double i0 = inv.Savings, ie0 = inv.EarnedPerMonth.Value, il0 = inv.LandRentPerMonth.Value;
         var net = new double[col.Pops.Count];
         net[PopClass.Capitalist] = 200;
         Colonial.RemitAbsenteeRent(w, col, net);
-        Assert.Equal(300, local.Savings, 9); Assert.Equal(0, local.EarnedPerMonth, 9); Assert.Equal(0, local.LandRentPerMonth, 9);
-        Assert.Equal(i0 + 200, inv.Savings, 9); Assert.Equal(ie0 + 200, inv.EarnedPerMonth, 9); Assert.Equal(il0 + 200, inv.LandRentPerMonth, 9);
+        Assert.Equal(300, local.Savings, 9); Assert.Equal(0, local.EarnedPerMonth.Value, 9); Assert.Equal(0, local.LandRentPerMonth.Value, 9);
+        Assert.Equal(i0 + 200, inv.Savings, 9); Assert.Equal(ie0 + 200, inv.EarnedPerMonth.Value, 9); Assert.Equal(il0 + 200, inv.LandRentPerMonth.Value, 9);
         Assert.Equal(0, net[PopClass.Capitalist]);
         net[PopClass.Capitalist] = -50;   // 赤字＝不在地主が埋める
         Colonial.RemitAbsenteeRent(w, col, net);
-        Assert.Equal(350, local.Savings, 9); Assert.Equal(50, local.EarnedPerMonth, 9);
-        Assert.Equal(i0 + 150, inv.Savings, 9); Assert.Equal(ie0 + 150, inv.EarnedPerMonth, 9);
+        Assert.Equal(350, local.Savings, 9); Assert.Equal(50, local.EarnedPerMonth.Value, 9);
+        Assert.Equal(i0 + 150, inv.Savings, 9); Assert.Equal(ie0 + 150, inv.EarnedPerMonth.Value, 9);
     }
 
     /// <summary>★(173) R1（呼び手の側＝EconomyStep の④）：植民地格の州の月の決算で、輸出作物の大農園が国内で売った地代は首都の投資家の貯蓄へ着く

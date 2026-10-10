@@ -78,7 +78,7 @@ public static class Military
     {
         double e = level * c.MilitaryEnvelopeShare * Math.Max(0, w.SpendableRevenue());
         double war = WarStageShare(w, level);
-        if (war > 0 && Fiscal.BorrowGateOpen(w, c)) e += war * Fiscal.BorrowTicket(w.NominalGdpPerMonth, c);
+        if (war > 0 && Fiscal.BorrowGateOpen(w, c)) e += war * Fiscal.BorrowTicket(w.NominalGdpPerMonth.Value, c);
         return e > 0 ? e : 0;
     }
 
@@ -125,7 +125,7 @@ public static class Military
             natManpower += m;
             foreach (var p in r.Pops)
                 if (!p.IsSoldier && (p.ClassId == c.SoldierRecruitClassA || p.ClassId == c.SoldierRecruitClassB))
-                { poolEarn += Math.Max(0, p.LastEarnedPerMonth); poolSize += keep ? p.Size : WorkingAdults(p); }   // 賃金の分母＝働き盛り（(140)）・徴兵制は頭数（(161)）
+                { poolEarn += Math.Max(0, p.LastEarnedPerMonth.Value); poolSize += keep ? p.Size : WorkingAdults(p); }   // 賃金の分母＝働き盛り（(140)）・徴兵制は頭数（(161)）
         }
         double manLimit = c.MaxSoldierFraction * natManpower;
         double wage = poolSize > 1e-9 ? poolEarn / poolSize : 0;   // 徴募プールの前月の働き盛り1人あたりの賃金＝兵士の機会費用（富国の兵は高い）＝RecruitWage と同じ規則（ここは国の和）・徴兵制は頭数あたり＝兵1人を安くする（(161)）
@@ -170,7 +170,7 @@ public static class Military
         double pe = 0, pa = 0;
         foreach (var p in r.Pops)
             if (!p.IsSoldier && (p.ClassId == c.SoldierRecruitClassA || p.ClassId == c.SoldierRecruitClassB))
-            { pe += Math.Max(0, last ? p.LastEarnedPerMonth : p.EarnedPerMonth); pa += keep ? p.Size : WorkingAdults(p); }
+            { pe += Math.Max(0, (last ? p.LastEarnedPerMonth : p.EarnedPerMonth).Value); pa += keep ? p.Size : WorkingAdults(p); }
         return pa > 1e-9 ? pe / pa : 0;
     }
 

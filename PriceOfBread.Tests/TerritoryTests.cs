@@ -189,7 +189,7 @@ public class TerritoryTests
         Assert.Equal(5, sim.Nations.Count);   // 前提：反乱国が2つ（仏の反乱国＝添字3・西の反乱国＝添字4）
         sim.StepQuarter();                    // 反乱国にも名目GDPを立てる（接触度の分母）
         var r1 = sim.Nations[3].World; var r2 = sim.Nations[4].World;
-        Assert.True(r2.NominalGdpPerMonth > 0, "前提が崩れた：西の反乱国の名目GDPが0");
+        Assert.True(r2.NominalGdpPerMonth.Value > 0, "前提が崩れた：西の反乱国の名目GDPが0");
         // 西の反乱国（添字4）と英（添字1）だけが交易した四半期
         int n = sim.Nations.Count;
         var pf = new double[n][];

@@ -254,8 +254,8 @@ public static class PoliticalQuantities
     /// （水準では中南米が最小・シェアでは最大＝史実の向き）。分母には全請求権を入れる＝分母が痩せて跳ねるのを防ぐ。</summary>
     public static double MilitaryBudgetShare(World w)
     {
-        double mil = Math.Max(0, w.LastMilitaryClaimPerMonth) + Math.Max(0, w.LastSoldierPayPerMonth);
-        double other = Math.Max(0, w.LastAdminClaimPerMonth) + Math.Max(0, w.LastInterestPerMonth);   // （連合維持費は 2026-09-30 (135) に撤去＝行政と兵力の購買の1本）
+        double mil = Math.Max(0, w.LastMilitaryClaimPerMonth.Value) + Math.Max(0, w.LastSoldierPayPerMonth.Value);
+        double other = Math.Max(0, w.LastAdminClaimPerMonth.Value) + Math.Max(0, w.LastInterestPerMonth.Value);   // （連合維持費は 2026-09-30 (135) に撤去＝行政と兵力の購買の1本）
         double tot = mil + other;
         return tot > 1e-9 ? Clamp01(mil / tot) : 0;
     }

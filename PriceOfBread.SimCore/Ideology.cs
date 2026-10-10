@@ -173,7 +173,7 @@ public static class Ideologies
     private static double BaseWeights(Pop p, double[] r, double meanWealth, Coefficients c)
     {
         System.Array.Clear(r, 0, r.Length);
-        double rent = System.Math.Max(0, p.LandRentPerMonth), earned = System.Math.Max(0, p.EarnedPerMonth);
+        double rent = System.Math.Max(0, p.LandRentPerMonth.Value), earned = System.Math.Max(0, p.EarnedPerMonth.Value);
         double rentier = (rent + earned) > 1e-9 ? rent / (rent + earned) : 0;          // 地代への依存度（地主＝旧秩序）
         double wpc = p.Size > 1e-9 ? System.Math.Max(0, p.Savings) / p.Size : 0;
         double wealthRel = meanWealth > 1e-9 ? wpc / meanWealth : 1;                    // 相対的富（1=平均）

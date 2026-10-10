@@ -477,13 +477,13 @@ public class StateFactoryTests
         double rural = 0; foreach (var q in r.Pops) if (!q.IsUrban) rural += q.Size;
         double rs = EconomyStep.RentShareOf(p, r, w.Coef, rural);   // 工場は労働を投入として買う＝付加価値は全て持ち主の側（rs＝1）
         var own = r.Pops[p.OwnerPopIndex];
-        double t0 = w.Treasury, led0 = w.TreasuryLedger[(int)TreasuryCat.StateFactory], own0 = own.Savings, ownE0 = own.EarnedPerMonth, base0 = w.BaseMoney, tf0 = w.CumulativeTradeFlow;
+        double t0 = w.Treasury, led0 = w.TreasuryLedger[(int)TreasuryCat.StateFactory], own0 = own.Savings, ownE0 = own.EarnedPerMonth.Value, base0 = w.BaseMoney, tf0 = w.CumulativeTradeFlow;
         double paid = InternationalMarket.PaySales((null, null), r, Catalog.SteelId, amount, w);   // 払い手＝清算所（世界の外）
         Assert.Equal(amount, paid, 9);
         Assert.Equal(amount * rs * f, w.Treasury - t0, 9);                                    // 地代の国営持分だけ国庫へ
         Assert.Equal(amount * rs * f, w.TreasuryLedger[(int)TreasuryCat.StateFactory] - led0, 9);   // 区分＝国営工場
         Assert.True(own.Savings - own0 >= amount * rs * (1 - f) - 1e-9, "残りの地代が持ち主へ届いていない");
-        Assert.Equal(own.Savings - own0, own.EarnedPerMonth - ownE0, 9);                              // 所得にも同じ額（課税の基数）
+        Assert.Equal(own.Savings - own0, own.EarnedPerMonth.Value - ownE0, 9);                              // 所得にも同じ額（課税の基数）
         Assert.Equal(amount, w.BaseMoney - base0, 6);                                         // 世界の外から＝この国の基礎貨幣が同額増え
         Assert.Equal(amount, w.CumulativeTradeFlow - tf0, 6);                                 //   同じ額が世界の台帳に入る（保存量 D は動かない）
 
@@ -500,11 +500,11 @@ public class StateFactoryTests
         rg!.Output = 1.0;
         double rs2 = EconomyStep.RentShareOf(rg, r, w.Coef, rural);
         var own2 = r.Pops[rg.OwnerPopIndex]; var lab2 = r.Pops[rg.LaborPopIndex];
-        double o20 = own2.Savings, l20 = lab2.Savings, l2e = lab2.EarnedPerMonth;
+        double o20 = own2.Savings, l20 = lab2.Savings, l2e = lab2.EarnedPerMonth.Value;
         InternationalMarket.PaySales((null, null), r, rg.GoodId, amount, w);
         Assert.Equal(amount * rs2, own2.Savings - o20, 9);          // 地代→持ち主
         Assert.Equal(amount * (1 - rs2), lab2.Savings - l20, 9);    // 賃金→労働
-        Assert.Equal(amount * (1 - rs2), lab2.EarnedPerMonth - l2e, 9);     // 賃金も所得（課税の基数）
+        Assert.Equal(amount * (1 - rs2), lab2.EarnedPerMonth.Value - l2e, 9);     // 賃金も所得（課税の基数）
     }
 
     /// <summary>★段3-5（2026-09-30・C8＝処理の一元化 段4d）：鋳造の代金は④の持分（InternationalMarket.PaySales＝国内の売上・輸出代金と同じ分け方）＝
@@ -552,7 +552,7 @@ public class StateFactoryTests
         Add(r.Pops[p.LaborPopIndex], wages);             // 賃金→労働
         Add(r.Pops[r.MerchantPopIndex], impPart);        // 輸入の分→捌き手の商人
         var s0 = new System.Collections.Generic.Dictionary<Pop, (double S, double E)>(ReferenceEqualityComparer.Instance);
-        foreach (var q in r.Pops) s0[q] = (q.Savings, q.EarnedPerMonth);
+        foreach (var q in r.Pops) s0[q] = (q.Savings, q.EarnedPerMonth.Value);
         double t0 = w.Treasury, led0 = w.TreasuryLedger[(int)TreasuryCat.StateFactory];
         double D(World x) => x.BaseMoney - x.CumulativeTradeFlow - x.CumulativeGoldMinted - x.CumulativeFiatIssued;
         double d0 = D(w), minted0 = w.CumulativeGoldMinted;
@@ -566,7 +566,7 @@ public class StateFactoryTests
         {
             double want = expect.TryGetValue(q, out var v) ? v : 0;
             Assert.Equal(want, q.Savings - s0[q].S, 9);   // ④の持分と輸入の捌き手だけが受け取る（ほかの POP は動かない）
-            Assert.Equal(want, q.EarnedPerMonth - s0[q].E, 9);    // 受け取りは所得（課税の基数）を通す
+            Assert.Equal(want, q.EarnedPerMonth.Value - s0[q].E, 9);    // 受け取りは所得（課税の基数）を通す
         }
         Assert.True(Math.Abs(D(w) - d0) <= 1e-9 * Math.Max(1.0, Math.Abs(d0)), $"保存量Dが動いた {d0}→{D(w)}");   // 受け手が変わるだけ＝鋳造の台帳と基礎貨幣は対
     }

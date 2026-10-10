@@ -38,7 +38,7 @@ public static class TechEducation
     {
         if (!(c.AbsorptionIncomeWeight > 0) || !(c.AbsorptionIncomeRef > 0)) return 1.0;
         double pop = w.TotalPopulation;
-        double perCap = pop > 1 ? w.GdpPerMonth / pop : 0;
+        double perCap = pop > 1 ? (w.GdpPerMonth / pop).Value : 0;
         if (!(perCap > 0)) perCap = 0;   // NaN も落とす（否定形で書く＝有限値では厳密同値）
         double f = PoliticalQuantities.Clamp01(perCap / c.AbsorptionIncomeRef);
         return 1.0 - c.AbsorptionIncomeWeight * (1.0 - f);

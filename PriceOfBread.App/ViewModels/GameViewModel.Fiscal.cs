@@ -137,8 +137,8 @@ public partial class GameViewModel
         // 通貨改革のボタンは**発動条件を満たしたときだけ**出す（押せないボタンを置かない＝UI最小主義）
         var c0 = _player.Coef;
         CurrencyReformVisible = c0.CurrencyReformEnabled > 0.5 && !_player.OnGoldStandard
-            && _player.CurrencyReformCooldown <= 0 && _player.NominalGdpPerMonth > 1e-9
-            && _player.CumulativeDevaluation / _player.NominalGdpPerMonth > c0.CapitalFlightDistrustThreshold
+            && _player.CurrencyReformCooldown <= 0 && _player.NominalGdpPerMonth.Value > 1e-9
+            && _player.CumulativeDevaluation / _player.NominalGdpPerMonth.Value > c0.CapitalFlightDistrustThreshold
             && _player.NoDevaluationMonths >= c0.CurrencyReformCalmMonths
             && _player.FiscalFundingRatio >= c0.GoldStandardMinFunding;
         CurrencyReformParityText = $"{_player.ExchangeRate:F2}";
@@ -295,11 +295,11 @@ public partial class GameViewModel
         foreach (var r in _player.Regions)
             foreach (var p in r.Pops)
             {
-                double e = System.Math.Max(0, p.EarnedPerMonth);
+                double e = System.Math.Max(0, p.EarnedPerMonth.Value);
                 earnedAll += e;
                 if ((p.IsModernElite || p.Closed) && !p.IsSoldier) earnedElite += e;
                 if (!p.Closed && !p.IsSoldier) headNonPriv += p.Size;
-                if (p.LandRentPerMonth > 0) landRent += p.LandRentPerMonth;
+                if (p.LandRentPerMonth.Value > 0) landRent += p.LandRentPerMonth.Value;
                 if (!p.Closed && !p.IsModernElite) massSize += p.Size;
                 if (!p.IsSoldier) oldSize += p.Size * p.AgeShare(60, double.PositiveInfinity);   // 年金の受け手＝60歳以上（エンジン Fiscal と同じ・年齢の層）
             }
@@ -323,9 +323,9 @@ public partial class GameViewModel
         //   （⚠(157) の注記＝旧の注記「装備と質の上限」は誤り＝質は LastSoldierPayPerMonth の側で陸軍の行に入る＝陸と海の行の和〔mil＋pSoldier〕が器に一致する）
         //   （エンジンの吸い込みと同じ順・必要額で切る前＝上限の予測＝使い切れない器は実効に出ない）。旧＝段×MilitaryRevenueShare×税の予測（装備の上限）。
         //   ★(175)：器はエンジンと同じ1本（Military.EnvelopeAt＝段×器の割合×使える歳入＋戦時段の割合×借入の余地〔戦時国債〕）を目標の段で読む＝画面に第二の式を置かない。
-        double mil = System.Math.Max(0, Military.EnvelopeAt(_player, c, Government.MilitaryTotalTarget(_player, _player.Policy)) - _player.LastSoldierPayPerMonth);
+        double mil = System.Math.Max(0, Military.EnvelopeAt(_player, c, Government.MilitaryTotalTarget(_player, _player.Policy)) - _player.LastSoldierPayPerMonth.Value);
         double admin = c.AdminBudgetFrac * _player.Policy.AdminSpendingTarget * net * Fiscal.AdminDistanceMean(_player);   // 州の距離の割増の平均＝エンジンの行政の請求と同じ1本（2026-09-30 (135)）
-        double welCap = c.WelfareRevenueShare * _player.FiscalCapacityPerMonth;   // 裁量余剰の上限（請求の上限＝エンジンの Fiscal と同じ式・借入スタックの出費上限は 2026-09-28 に撤去）
+        double welCap = (c.WelfareRevenueShare * _player.FiscalCapacityPerMonth).Value;   // 裁量余剰の上限（請求の上限＝エンジンの Fiscal と同じ式・借入スタックの出費上限は 2026-09-28 に撤去）
         double wel = System.Math.Min(c.WelfareCostRatePerMonth * _player.Policy.SocialSecurityTarget * massSize, welCap);
         double penLevel = _player.Pension switch { ReformLevel.Full => 1.0, ReformLevel.Limited => 0.5, _ => 0.0 };
         double pen = System.Math.Min(c.PensionCostRatePerMonth * penLevel * oldSize, welCap);
@@ -343,13 +343,13 @@ public partial class GameViewModel
         double aPoll = c.PollTaxRate * _player.PollTax * headNonPriv * leak;
         double aLand = _player.LandTax * landRent * leak;
         double netA = aIncome + aProg + aPoll + aLand;
-        double aMilGoods = _player.LastMilitaryClaimPerMonth;   // 軍需の請求（陸海の維持費の比で割る）
-        double aSoldier = _player.LastSoldierPayPerMonth * _player.FiscalFundingRatio;   // 兵の給与＝請求×国家の支払い率 r（(140) から請求どおりの賃金で払う）＝陸軍の行だけ（(144) 反証の指摘＝海軍の比で割らない）
+        double aMilGoods = _player.LastMilitaryClaimPerMonth.Value;   // 軍需の請求（陸海の維持費の比で割る）
+        double aSoldier = (_player.LastSoldierPayPerMonth * _player.FiscalFundingRatio).Value;   // 兵の給与＝請求×国家の支払い率 r（(140) から請求どおりの賃金で払う）＝陸軍の行だけ（(144) 反証の指摘＝海軍の比で割らない）
         double aMil = aMilGoods + aSoldier;
-        double aAdmin = _player.LastAdminClaimPerMonth;
-        double aWel = _player.LastWelfareCostPerMonth * _player.FiscalFundingRatio;   // 実効＝請求×国家の支払い率 r（エンジンの Fiscal と同じ・2026-09-28）
-        double aPen = _player.LastPensionCostPerMonth * _player.FiscalFundingRatio;
-        double aInterest = _player.LastInterestPerMonth;   // R9満期構造の実クーポン込み（UI近似はGovBondRatePerYear直＝乖離しうる）
+        double aAdmin = _player.LastAdminClaimPerMonth.Value;
+        double aWel = (_player.LastWelfareCostPerMonth * _player.FiscalFundingRatio).Value;   // 実効＝請求×国家の支払い率 r（エンジンの Fiscal と同じ・2026-09-28）
+        double aPen = (_player.LastPensionCostPerMonth * _player.FiscalFundingRatio).Value;
+        double aInterest = _player.LastInterestPerMonth.Value;   // R9満期構造の実クーポン込み（UI近似はGovBondRatePerYear直＝乖離しうる）
 
         InterestLine = "利払い"; InterestAct = Money(aInterest); InterestAmt = Money(interest);
         // ★陸海それぞれの金額（作者指示2026-08-11）。台帳は陸海で分かれていないので、**エンジン自身の配分**
@@ -357,7 +357,7 @@ public partial class GameViewModel
         //   和は必ず旧「軍事費」の額と一致する（表示を分けただけで金は動いていない）。
         double navShare = _player.NavalSpendShare;
         //   ★(144)：兵の給与は陸軍の行だけ（陸海の比で割るのは軍需の請求だけ）。予定の側も同じ定義＝軍需の目標＋兵の給与の請求（r の前）。
-        double pSoldier = _player.LastSoldierPayPerMonth;
+        double pSoldier = _player.LastSoldierPayPerMonth.Value;
         ArmyAct = Money(aMilGoods * (1 - navShare) + aSoldier); ArmyAmt = Money(mil * (1 - navShare) + pSoldier);
         NavyAct = Money(aMilGoods * navShare);                  NavyAmt = Money(mil * navShare);
         AdminLine = $"行政費 {_player.Policy.AdminSpendingTarget:P0}　実効 {_player.AdminSpending:P0}"; AdminAct = Money(aAdmin); AdminAmt = Money(admin);  // 行政調達（官僚の給与×人数×距離の割増）
@@ -368,7 +368,7 @@ public partial class GameViewModel
         WelLine = $"社会保障 {_player.Policy.SocialSecurityTarget:P0}　実効 {_player.SocialSecurity:P0}"; WelAct = Money(aWel); WelAmt = Money(wel);   // 02断線走査（2026-07-28）：「約束した福祉の何割が払えたか」の可視化（ビスマルク年金の財源問題）
         PensionLine = "年金"; PensionAct = Money(aPen); PensionAmt = Money(pen);
         // 見えない出費の可視化（監査2026-07-11 接1）：国庫を実際に動かすのに予算表に現れず「黒字表示なのに国庫が減る」原因だった3項目。
-        double colonialUp = _player.LastColonialUpkeepPerMonth * _player.FiscalFundingRatio;   // 植民地維持費（補給財〔石炭/糧食/キニーネ〕の請求×国家の支払い率 r・2026-09-28／不満の俸給は 2026-09-30 (140) に撤去）
+        double colonialUp = (_player.LastColonialUpkeepPerMonth * _player.FiscalFundingRatio).Value;   // 植民地維持費（補給財〔石炭/糧食/キニーネ〕の請求×国家の支払い率 r・2026-09-28／不満の俸給は 2026-09-30 (140) に撤去）
         double tribOut = Calendar.PerQuarterToPerMonth(_player.LastTributeOutPerQuarter * _player.FiscalFundingRatio);   // 属国貢納（支払＝請求×r・四半期→月割）
         double tribIn = Calendar.PerQuarterToPerMonth(_player.LastTributeInPerQuarter);                    // 属国貢納（受取・同）
         ColonialRowVisible = colonialUp > 1e-9;
@@ -427,7 +427,7 @@ public partial class GameViewModel
                           ? $"　デフォルトまで{Math.Ceiling(Math.Max(0, c.DefaultArrearsMonths - _player.InsolvencyQuarters) / (1.0 - _player.FiscalFundingRatio)):F0}か月" : "");   /* ★2026-09-26：カウンタは月次で進む（dorm-29）・★(205) 計数は払えなかった大きさの累計＝残りを今の r の払えない割合で割った月数 */
         // 財7単位フリップ（2026-07-26）：エンジンの金本位資格/金利プレミアムが年換算GDP基準になったのに合わせ、表示も対年GDP（史実の債務比率と直接比較できる単位）
         // 分母＝**年次名目**（月次 NominalGdpPerMonth×12）＝エンジン Fiscal.cs の兌換停止/国債金利の閾値と同じ単位（旧＝年次実質 Gdp×12 で表示だけ別物差し・2026-09-11 #10）
-        DebtHeaderTip = $"国債 {Money(_player.GovDebt)}　対年GDP {(_player.NominalGdpPerMonth > 1e-9 ? System.Math.Min(9.99, _player.GovDebt / Calendar.PerMonthToPerYear(_player.NominalGdpPerMonth)) : 0):P0}　金利 {_player.GovBondRatePerYear:P0}　債券価格 {_player.BondPrice:P0}"
+        DebtHeaderTip = $"国債 {Money(_player.GovDebt)}　対年GDP {(_player.NominalGdpPerMonth.Value > 1e-9 ? System.Math.Min(9.99, _player.GovDebt / Calendar.PerMonthToPerYear(_player.NominalGdpPerMonth).Value) : 0):P0}　金利 {_player.GovBondRatePerYear:P0}　債券価格 {_player.BondPrice:P0}"
                        + (_player.ForeignDebt > 1 ? $"\nうち対外 {Money(_player.ForeignDebt)}" : "")
                        + (_player.AusterityIntensity > 0 ? $"\n緊縮 {_player.AusterityIntensity:P0}" : "")
                        + (_player.CumulativeDevaluation > 1 ? $"\n切下げ累計 {Money(_player.CumulativeDevaluation)}" : "")

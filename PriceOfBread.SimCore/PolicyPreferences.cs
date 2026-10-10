@@ -130,8 +130,8 @@ public static class PolicyPreferences
             int b = BlocOf(p);
             double sv = System.Math.Max(0, p.Savings);
             wealth[b] += sv; tw += sv;
-            double rn = System.Math.Max(0, p.LandRentPerMonth); rent[b] += rn; tr += rn;
-            double inc = System.Math.Max(0, p.EarnedPerMonth); income[b] += inc; ti += inc;
+            double rn = System.Math.Max(0, p.LandRentPerMonth.Value); rent[b] += rn; tr += rn;
+            double inc = System.Math.Max(0, p.EarnedPerMonth.Value); income[b] += inc; ti += inc;
             if (petty != null && petty.Contains(p)) { pettyInc += inc; if (p.IsModernElite) pettyIncM += inc; }   // 小営業の自営所得（対象3軸の強さの導出元。gate=0＝枝ごと不走行）
             if (p.IsCommoner) { poll[b] += p.Size; tp += p.Size; }   // 人頭税の対象（特権＝Closed は免除）
             if (!p.IsSoldier) { old[b] += p.Size * p.AgeShare(60, double.PositiveInfinity); blocPop[b] += p.Size; }   // 法多様性L2：ブロックの高齢人口（年金の受益者）
@@ -139,7 +139,7 @@ public static class PolicyPreferences
         Normalize(wealth, tw); Normalize(rent, tr); Normalize(income, ti); Normalize(poll, tp);
         for (int i = 0; i < BlocCount; i++) old[i] = blocPop[i] > 1e-9 ? old[i] / blocPop[i] : 0;   // ブロック内の高齢比率＝水準（高齢化した国だけ大きい）
         // 国家の歳入要求：常に基礎0.5（国家は財源を欲する）＋財政逼迫（funding不足・債務/GDP）で増す。＝誰も支持しない税も国家が押せる。
-        double ngdp = w.NominalOf(w.GdpPerMonth);   // ★A2-2：州×生産者の走査はこの1回だけ（旧＝ここで2回・Pref の名目GDPの読み手ごとに1回ずつ）
+        double ngdp = w.NominalOf(w.GdpPerMonth.Value);   // ★A2-2：州×生産者の走査はこの1回だけ（旧＝ここで2回・Pref の名目GDPの読み手ごとに1回ずつ）
         double stress = w.FiscalEnabled
             // [単位・B13] 債務/GDP＝**年次名目**（GovDebt÷(月次NominalGdpPerMonth×12)・Min 1）＝Fiscal の国債の金利・CapitalMarket・Government の緊縮と同じ物差し（2026-09-29・棚卸し fis-02 の残り）。
             //   旧＝**月次実質**（年次の約12倍の値）＝国債が年GDP の1割（8.3%）を越えた国は全て1で飽和＝国債の多さが歳入の要求に効かなかった。

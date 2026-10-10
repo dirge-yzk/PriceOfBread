@@ -36,9 +36,9 @@ public static class Territory
                             int g = c.MilitaryGoods[b];
                             if (g >= cap.Markets.Length || System.Array.IndexOf(c.FleetGoodIds, g) >= 0 || !(unlockRates[b] > 0)) continue;
                             double price = Math.Max(cap.Markets[g].Price, 1e-9);   // BuyUpkeepGood が払う単価と同じ
-                            unlockSpent += Colonial.BuyUpkeepGood(w, cap, g, c.ForceUnlockTreasuryCostPerMonth * (unlockRates[b] / unlockRateSum) / price, TreasuryCat.Army) * price;
+                            unlockSpent += Colonial.BuyUpkeepGood(w, cap, g, (c.ForceUnlockTreasuryCostPerMonth * (unlockRates[b] / unlockRateSum) / price).Value, TreasuryCat.Army) * price;
                         }
-                    double unlockFill = c.ForceUnlockTreasuryCostPerMonth > 0 ? PoliticalQuantities.Clamp01(unlockSpent / c.ForceUnlockTreasuryCostPerMonth) : 0;
+                    double unlockFill = c.ForceUnlockTreasuryCostPerMonth.Value > 0 ? PoliticalQuantities.Clamp01(unlockSpent / c.ForceUnlockTreasuryCostPerMonth.Value) : 0;
                     r.Infra += c.ForceUnlockRate * unlockFill;
                     foreach (var p in w.AllPops())
                         p.Militancy = PoliticalQuantities.Clamp01(p.Militancy + c.ForceUnlockMilitancy * unlockFill);   // 制圧の不満（戦争疲弊）＝制圧の進み方（買えた軍需）に比例

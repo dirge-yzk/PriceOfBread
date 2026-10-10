@@ -110,7 +110,7 @@ public static class Instruments
     internal static void ClaimsBase(World w)
     {
         if (Live(w) is not { } st) return;
-        st.Claim[(int)Item.Interest] = w.LastInterestPerMonth; st.Claim[(int)Item.Welfare] = w.LastWelfareCostPerMonth; st.Claim[(int)Item.Pension] = w.LastPensionCostPerMonth; st.Claim[(int)Item.ColonialUpkeep] = w.LastColonialUpkeepPerMonth;
+        st.Claim[(int)Item.Interest] = w.LastInterestPerMonth.Value; st.Claim[(int)Item.Welfare] = w.LastWelfareCostPerMonth.Value; st.Claim[(int)Item.Pension] = w.LastPensionCostPerMonth.Value; st.Claim[(int)Item.ColonialUpkeep] = w.LastColonialUpkeepPerMonth.Value;
     }
     /// <summary>四半期の締め月の請求（貢納・招聘の支度金）。</summary>
     internal static void ClaimsQuarter(World w)
@@ -198,7 +198,7 @@ public static class Instruments
         var st = S(w);
         if (!st.Active || !st.Armed) { st.Armed = false; return; }
         st.Armed = false;
-        foreach (var r in w.Regions) foreach (var p in r.Pops) { int c = (uint)p.ClassId < (uint)NC ? p.ClassId : NC - 1; st.ClsEarn[c] += p.EarnedPerMonth; st.ClsPaid[c] += p.PaidPerMonth; }
+        foreach (var r in w.Regions) foreach (var p in r.Pops) { int c = (uint)p.ClassId < (uint)NC ? p.ClassId : NC - 1; st.ClsEarn[c] += p.EarnedPerMonth.Value; st.ClsPaid[c] += p.PaidPerMonth.Value; }
         st.ClsMonths++;
         var led = w.TreasuryLedger;
         if (IsPicked(w, st) && st.HaveLedger)
@@ -219,11 +219,11 @@ public static class Instruments
         for (int i = 0; i < (int)Item.Count; i++) C(ItemNames[i], st.Claim[i]);
         double itemSum = 0; for (int i = 0; i < (int)Item.Count; i++) itemSum += st.Claim[i];
         C("claimTotalPerMonth", st.ClaimsTotal); C("claimItemGapPerMonth", st.ClaimsTotal - itemSum);
-        C("treasuryAtClaimStock", st.Treasury0); C("revenueBasePerMonth", w.LastRevenuePerMonth); C("payableBeforeBorrowStock", st.Payable0); C("spareBeforeBorrowPerMonth", st.Spare0);
+        C("treasuryAtClaimStock", st.Treasury0); C("revenueBasePerMonth", w.LastRevenuePerMonth.Value); C("payableBeforeBorrowStock", st.Payable0); C("spareBeforeBorrowPerMonth", st.Spare0);
         C("borrowShortfallPerMonth", st.Shortfall); C("borrowTicketPerMonth", st.Ticket); C("borrowDomesticPoolStock", st.DomPool); C("borrowForeignPoolStock", st.ForPool);
         C("borrowedPerMonth", st.Borrowed);
         T("borrowBinder", st.BorrowCode switch { 0 => "gateClosed", 1 => "full", 2 => "ticket", 3 => "pool", 4 => "none", _ => "noShortfall" });
-        C("borrowCooldownMonths", w.BorrowCooldownMonths); C("interestToRevenueShareNow", w.LastRevenuePerMonth > 0 ? w.LastInterestPerMonth / w.LastRevenuePerMonth : double.NaN);
+        C("borrowCooldownMonths", w.BorrowCooldownMonths); C("interestToRevenueShareNow", w.LastRevenuePerMonth.Value > 0 ? w.LastInterestPerMonth / w.LastRevenuePerMonth : double.NaN);
         C("devaluedPerMonth", st.Devalued); C("payableAfterBorrowStock", st.Payable1); C("payRateShare", st.PayRate);
         C("convertibilityShare", w.Convertibility); C("onGold", w.OnGoldStandard ? 1 : 0); C("govDebtStock", w.GovDebt);
         C("govBondRatePerYear", w.GovBondRatePerYear.Value); C("govAvgCouponPerYear", w.GovAvgCouponPerYear.Value); C("insolvencyMonths", w.InsolvencyQuarters); C("defaultCount", w.SovereignDefaultCount);
@@ -320,7 +320,7 @@ public static class Instruments
         var cols = new List<string>(32);
         string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
         cols.Add(I(q)); cols.Add(I(w.Year)); cols.Add(I(index)); cols.Add(NameOf(w));
-        cols.Add(F(w.TotalPopulation)); cols.Add(F(popK)); cols.Add(F(soldierK)); cols.Add(F(Calendar.PerMonthToPerYear(w.NominalGdpPerMonth)));
+        cols.Add(F(w.TotalPopulation)); cols.Add(F(popK)); cols.Add(F(soldierK)); cols.Add(F(Calendar.PerMonthToPerYear(w.NominalGdpPerMonth).Value));
         cols.Add(I(st.WarMonths)); cols.Add(I(st.CivilWarMonths)); cols.Add(I((int)w.ConscriptionLaw)); cols.Add(w.Mobilized ? "1" : "0");
         cols.Add(F(threat + own > 0 ? threat / (threat + own) : 0)); cols.Add(F(army + own > 0 ? army / (army + own) : 0)); cols.Add(I((int)w.SerfEmancipation));
         cols.Add(I(core)); cols.Add(I(integrated)); cols.Add(I(colonial)); cols.Add(nonCore.ToString());
@@ -383,7 +383,7 @@ public static class Instruments
         }
         var cap = w.Regions.Count > 0 ? w.Regions[0] : null; var sp = w.SelfPower;
         double Stk(int g) => cap is not null && g < cap.Markets.Length ? cap.Markets[g].Stock : double.NaN;
-        double gdpYear = readGdp ? Calendar.PerMonthToPerYear(w.GdpPerMonth) : double.NaN;
+        double gdpYear = readGdp ? Calendar.PerMonthToPerYear(w.GdpPerMonth).Value : double.NaN;
         var cols = new List<(string Name, string Value)>();
         void C(string name, double v) => cols.Add((name, F(v)));
         cols.Add(("time", time)); cols.Add(("nation", NameOf(w))); C("year", w.Year);

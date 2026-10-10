@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using PriceOfBread.SimCore;
@@ -19,7 +20,7 @@ namespace PriceOfBread.Tests;
 public class UnitTypeTests
 {
     /// <summary>専用の値型の一覧（新しい型を足したらここへ。Units.cs の型と一致することを下で確かめる）。</summary>
-    private static readonly Type[] UnitTypes = [typeof(RatePerYear), typeof(RatePerMonth)];
+    private static readonly Type[] UnitTypes = [typeof(RatePerYear), typeof(RatePerMonth), typeof(MoneyPerMonth), typeof(MoneyPerYear)];
 
     [Fact]
     public void 型の一覧は宣言された専用の値型の全部である()
@@ -53,6 +54,7 @@ public class UnitTypeTests
             Assert.Equal(typeof(double), fields[0].FieldType);
             Assert.True(typeof(IUnitValue).IsAssignableFrom(t));
             Assert.True(typeof(IFormattable).IsAssignableFrom(t));
+            Assert.True(typeof(IComparable<>).MakeGenericType(t).IsAssignableFrom(t));   // OrderBy・Max・Min は実行時に要る（無いと落ちる）
             Assert.Empty(t.GetMethods(BindingFlags.Public | BindingFlags.Static).Where(m => m.Name is "op_Implicit" or "op_Explicit"));
         }
     }
@@ -92,6 +94,24 @@ public class UnitTypeTests
         (typeof(Coefficients), "SoldierMigrationRatePerMonth", typeof(RatePerMonth)),
         (typeof(Coefficients), "MintFloorBuyRatePerMonth", typeof(RatePerMonth)),
         (typeof(Coefficients), "MintReserveSellRatePerMonth", typeof(RatePerMonth)),
+        (typeof(Coefficients), "ForceUnlockTreasuryCostPerMonth", typeof(MoneyPerMonth)),
+        (typeof(World), "GdpPerMonth", typeof(MoneyPerMonth)),
+        (typeof(World), "NominalGdpPerMonth", typeof(MoneyPerMonth)),
+        (typeof(World), "LastRevenuePerMonth", typeof(MoneyPerMonth)),
+        (typeof(World), "LastInterestPerMonth", typeof(MoneyPerMonth)),
+        (typeof(World), "FiscalCapacityPerMonth", typeof(MoneyPerMonth)),
+        (typeof(World), "LastAdminClaimPerMonth", typeof(MoneyPerMonth)),
+        (typeof(World), "LastSoldierPayPerMonth", typeof(MoneyPerMonth)),
+        (typeof(World), "LastMilitaryClaimPerMonth", typeof(MoneyPerMonth)),
+        (typeof(World), "LastWelfareCostPerMonth", typeof(MoneyPerMonth)),
+        (typeof(World), "LastPensionCostPerMonth", typeof(MoneyPerMonth)),
+        (typeof(World), "LastColonialUpkeepPerMonth", typeof(MoneyPerMonth)),
+        (typeof(Pop), "EarnedPerMonth", typeof(MoneyPerMonth)),
+        (typeof(Pop), "LastEarnedPerMonth", typeof(MoneyPerMonth)),
+        (typeof(Pop), "LandRentPerMonth", typeof(MoneyPerMonth)),
+        (typeof(Pop), "PaidPerMonth", typeof(MoneyPerMonth)),
+        (typeof(Pop), "IndustrialRentPerMonth", typeof(MoneyPerMonth)),
+        (typeof(Power), "GdpPerMonth", typeof(MoneyPerMonth)),
     ];
 
     [Fact]
@@ -113,16 +133,26 @@ public class UnitTypeTests
         var inv = System.Globalization.CultureInfo.InvariantCulture;
         foreach (var x in xs)
         {
-            var y = new RatePerYear(x); var m = new RatePerMonth(x);
-            Assert.Equal(x.ToString(), y.ToString());
-            Assert.Equal(x.ToString(), m.ToString());
-            Assert.Equal(x.ToString("F3", inv), y.ToString("F3", inv));
-            Assert.Equal($"{x,9:F2}|{x:R}|{x}", $"{y,9:F2}|{y:R}|{y}");   // 補間文字列の書式・桁寄せ・R も double と同じ
-            Assert.Equal($"{x,9:F2}|{x:R}|{x}", $"{m,9:F2}|{m:R}|{m}");
-#pragma warning disable CS1718   // 同じ変数どうしの比較（NaN の等値が double と同じことを見るのが目的）
-            Assert.Equal(x == x, y == y);                                   // NaN は自分と等しくない（record の既定の double.Equals とは違う）
-            Assert.Equal(x != x, y != y);
-#pragma warning restore CS1718
+            foreach (var t in UnitTypes)
+            {
+                dynamic y = Activator.CreateInstance(t, x)!;
+                Assert.Equal(x.ToString(), (string)y.ToString());
+                Assert.Equal(x.ToString("F3", inv), (string)y.ToString("F3", inv));
+                Assert.Equal($"{x,9:F2}|{x:R}|{x}", $"{(object)y,9:F2}|{(object)y:R}|{(object)y}");   // 補間文字列の書式・桁寄せ・R も double と同じ
+                Assert.Equal(x == x, (bool)(y == y));                                  // NaN は自分と等しくない（record の既定の double.Equals とは違う）
+                Assert.Equal(x != x, (bool)(y != y));
+            }
+        }
+        // 並べ替え：double と同じ順序（NaN は最小・-0.0 と 0.0 は等しい＝double.CompareTo と同じ）
+        double[] ys = [0.3, -1.0, double.NaN, 0.0, 2.5, -0.0];
+        foreach (var t in UnitTypes)
+        {
+            var boxed = ys.Select(v => Activator.CreateInstance(t, v)!).ToArray();
+            var cmp = (System.Collections.IComparer)typeof(Comparer<>).MakeGenericType(t).GetProperty("Default")!.GetValue(null)!;   // OrderBy・Max が使う既定の比較子
+            Array.Sort(boxed, cmp);
+            var sorted = boxed.Select(o => ((IUnitValue)o).Value).ToArray();
+            var expect = ys.OrderBy(v => v).ToArray();
+            Assert.Equal(expect.Select(BitConverter.DoubleToInt64Bits), sorted.Select(BitConverter.DoubleToInt64Bits));
         }
         Assert.True(new RatePerYear(0.0) == new RatePerYear(-0.0));
         Assert.False(new RatePerYear(double.NaN) == new RatePerYear(double.NaN));

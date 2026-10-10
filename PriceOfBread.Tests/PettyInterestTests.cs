@@ -19,8 +19,8 @@ public class PettyInterestTests
         w.Suffrage = Suffrage.AdultMale;   // 職人（旧・大衆束）に発言権がある状態＝小営業の力が立つ
         foreach (var r in w.Regions)       // 自営所得を明示的に注入（月境で Earned が薄い瞬間でも強さの導出元が消えない）
         {
-            if (r.ArtisanPopIndex >= 0 && r.ArtisanPopIndex < r.Pops.Count) r.Pops[r.ArtisanPopIndex].EarnedPerMonth = 1_000;
-            if (r.MerchantPopIndex >= 0 && r.MerchantPopIndex < r.Pops.Count) r.Pops[r.MerchantPopIndex].EarnedPerMonth = 1_000;
+            if (r.ArtisanPopIndex >= 0 && r.ArtisanPopIndex < r.Pops.Count) r.Pops[r.ArtisanPopIndex].EarnedPerMonth = new MoneyPerMonth(1_000);
+            if (r.MerchantPopIndex >= 0 && r.MerchantPopIndex < r.Pops.Count) r.Pops[r.MerchantPopIndex].EarnedPerMonth = new MoneyPerMonth(1_000);
         }
         return w;
     }

@@ -163,7 +163,7 @@ public class ServiceEconomyTests
         sim.Run(20);
         var r = sim.World.Regions[0];
         var soldier = r.Pops[r.SoldierPopIndex];
-        Assert.True(soldier.LastEarnedPerMonth > 0, "国家が兵士に給与を払っていない（兵士の所得が0）");
+        Assert.True(soldier.LastEarnedPerMonth.Value > 0, "国家が兵士に給与を払っていない（兵士の所得が0）");
         Assert.True(soldier.Savings > 0, "兵士が給与で収入を得ていない");
     }
 

@@ -159,7 +159,7 @@ public partial class GameViewModel
                 // 経済データ行（外国経済の可視化doc §3-3・2026-07-24）：19世紀でも新聞で公知のマクロ量のみ（帳簿の全公開はしない）
                 if (pow.Nation is { } enw)
                 {
-                    detail += $"\n経済: GDP {Money(enw.NominalGdpPerMonth)}　工業化 {enw.MeanIndustrialization:F1}　物価 {enw.PriceLevel:F2}"
+                    detail += $"\n経済: GDP {Money(enw.NominalGdpPerMonth.Value)}　工業化 {enw.MeanIndustrialization:F1}　物価 {enw.PriceLevel:F2}"
                             + $"\n金本位 {(enw.OnGoldStandard ? "○" : "×")}　恐慌 {(enw.GdpPcDrawdown > DepressionSevereDrawdown ? "○" : "×")}　関税率 {enw.Tariff:P0}";   // 「恐慌」の閾値は通知・年代記と同じ 0.25（2026-08-23）
                 }
             }
@@ -216,7 +216,7 @@ public partial class GameViewModel
         // 人的（人口・識字率・満足度・闘争度）→統治（汚職・治安・行政力・正統性・国民意識）→軍事力。
         // GDPと1人あたりGDPの世界順位（2026-08-23作者指示）＝自国より上の国の数＋1。物差しは軍事力の順位（milPos）と同じ。
         // ★1人あたりは**人単位**（TotalPopulation の内部単位は千人＝×1000で人に直す）。GDPは月次フロー＝1人あたりも同じ期間。
-        double myGdp = _player.GdpPerMonth, myPop = _player.TotalPopulation;
+        double myGdp = _player.GdpPerMonth.Value, myPop = _player.TotalPopulation;
         double myGdpPc = myPop > 1e-9 ? myGdp / (myPop * 1000.0) : 0;
         int gdpPos = 1, gdpPcPos = 1;
         // ★2026-09-23：上位5カ国の一人当たりGDPの一覧（pcList）は撤去＝ホバーが折れ線だけになり読み手が消えた（毎月61カ国ぶんの整形も消える）
@@ -224,8 +224,8 @@ public partial class GameViewModel
         {
             if (q == me || q.Nation is not { } qw) continue;
             double qPop = qw.TotalPopulation;
-            double qPc = qPop > 1e-9 ? qw.GdpPerMonth / (qPop * 1000.0) : 0;
-            if (qw.GdpPerMonth > myGdp) gdpPos++;
+            double qPc = qPop > 1e-9 ? (qw.GdpPerMonth / (qPop * 1000.0)).Value : 0;
+            if (qw.GdpPerMonth.Value > myGdp) gdpPos++;
             if (qPc > myGdpPc) gdpPcPos++;
         }
         // ★2026-09-23（作者指示「詳細表示は全てグラフのみ」）：ヘッダーのホバーは**折れ線だけ**になった。
@@ -522,7 +522,7 @@ public partial class GameViewModel
             double fMet = 0, fNeed = 0, nMet = 0, nTot = 0;
             foreach (var (rg, p) in members)
             {
-                size += p.Size; sav += p.Savings; earned += p.EarnedPerMonth; debt += p.Debt;
+                size += p.Size; sav += p.Savings; earned += p.EarnedPerMonth.Value; debt += p.Debt;
                 fMet += p.FoodMet; fNeed += p.FoodNeed; nMet += p.NeedMet; nTot += p.NeedTotal;
                 satW += p.Satisfaction * p.Size; milW += p.Militancy * p.Size; litW += p.Literacy * p.Size;
                 double a20 = p.AgeShare(20, double.PositiveInfinity);   // 年齢の層（段4e 後半）：女性比＝20歳以上のうちの女性・子供比＝15歳未満・老年比＝60歳以上
@@ -631,7 +631,7 @@ public partial class GameViewModel
         // ★力の源泉ホバー（2026-08-04）：旧支配層の力＝流動資産＋土地（地代の資本化）。何が力を支えているかの分解（データのみ）
         double nobSav = 0, nobLand = 0;
         foreach (var pp in _player.AllPops())
-            if (pp.Closed) { nobSav += System.Math.Max(0, pp.Savings); nobLand += _player.Coef.LandedPowerCapitalization * System.Math.Max(0, pp.LandRentPerMonth); }
+            if (pp.Closed) { nobSav += System.Math.Max(0, pp.Savings); nobLand += _player.Coef.LandedPowerCapitalization * System.Math.Max(0, pp.LandRentPerMonth.Value); }
         double nobTot = nobSav + nobLand;
         // ★括弧書きの内訳（貴族と聖職／ブルジョワと専門職／労働者と農民）は削除（2026-08-23作者指示）
         Blocs.Add(new BlocRow { Name = "旧支配層", Percent = (trad / bsum).ToString("P0"),

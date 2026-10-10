@@ -27,7 +27,7 @@ public static class Colonial
         //   （旧＝return の後ろ＝最後の値のまま凍結し、再獲得で古い開発度が効き始めた）。
         if (!w.WarmupFrozen) w.ColonialInfra = Math.Max(0, w.ColonialInfra * (1 - c.ColonialInfraDepreciation));
         // 全喪失後に旧値が残らない（接1診断）。★回1-1（col-08）：海運の占有も0へ戻す（旧＝最後の月の占有が永久に残り、交易の海運を細らせた）。
-        if (colonies <= 0 || r.State != RegionState.Active || r.ColonialResources is null) { w.ColonialPop = 0; w.LastColonialUpkeepPerMonth = 0; w.ColonialShipBurden = 0; return; }
+        if (colonies <= 0 || r.State != RegionState.Active || r.ColonialResources is null) { w.ColonialPop = 0; w.LastColonialUpkeepPerMonth = new MoneyPerMonth(0); w.ColonialShipBurden = 0; return; }
 
         // 0. 維持費（帝国の過伸展）：不満は俸給（金銭）、距離は**物理**（補給線が占有する船腹＝交易の海運を細らせる＋占有された船腹の汽船の燃料）から創発。
         //    遠方植民地が多い国（イギリス）ほど交易船が補給に取られ、汽船の時代は燃料も要る＝一強の是正を物理コストで律する（固定倍率2.0を排除）。
@@ -85,7 +85,7 @@ public static class Colonial
         double steamMult = c.ShipTier2CapMult * Discovery.GoodGate(r, c.ShipTier2GoodId) / era;   // R4②：汽船1単位の容量倍（Transport.BuyToward と同じ式・era≥0.05＝EraFactor の床で有限）
         if (steamMult > 1.0) shipBurden *= (1.0 - steam) + steam / steamMult;                      // 汽船の分だけ占有が軽い（未解禁・容量倍≦1 は帆船と同じ）
         w.ColonialShipBurden = shipBurden;   // 交易の実効海運を絞る（InternationalMarket/Trade が ShipCapacity/(1+これ) で参照）
-        w.LastColonialUpkeepPerMonth = 0;   // 請求（r を掛ける前）＝下の補給財の請求（BuyUpkeepGood が足す）だけ＝翌月の月初の請求の見込み（Simulation）と予算表が読む。★(140) 不満の俸給は撤去（上の注記）
+        w.LastColonialUpkeepPerMonth = new MoneyPerMonth(0);   // 請求（r を掛ける前）＝下の補給財の請求（BuyUpkeepGood が足す）だけ＝翌月の月初の請求の見込み（Simulation）と予算表が読む。★(140) 不満の俸給は撤去（上の注記）
         // 補給線の燃料（R4③）：占有された船腹（海運の容量×占有÷(1＋占有)）の汽船の分が焚く＝民間の汽船の燃料と同じ式（Transport.BuyShipFuel）。国庫が本国市場から買う
         //   （在庫律速・需要計上で価格律速・産業と競合）。支払いは生産者へ（保存）。帆走（割合0）は焚かない（c1 と同じ）。
         double coalWant = c.ShipFuelRate * era * steam * OccupiedShipCapacity(w);
@@ -337,11 +337,11 @@ public static class Colonial
             //   ＝所得の記録がお金と一緒に動く（黒字なら在地の所得から地代が抜け不在地主へ・赤字なら在地の損の記録が消え不在地主の損になる）。
             var (payer, payee) = a > 0 ? (local, owner) : (owner, local);
             double moved = World.Transfer((w, [payer]), (w, [payee], [1.0]), Math.Abs(a), income: true);   // 受け手の重み1＝頭数に依らない（在地の資本家の口座は人数0のことがある）
-            payer.EarnedPerMonth -= moved;
+            payer.EarnedPerMonth -= new MoneyPerMonth(moved);
             if (a > 0)
             {
-                double land = Math.Min(moved, Math.Max(0, local.LandRentPerMonth));   // 地代（土地税の課税ベース）の記録も移す
-                local.LandRentPerMonth -= land; owner.LandRentPerMonth += land;
+                double land = Math.Min(moved, Math.Max(0, local.LandRentPerMonth.Value));   // 地代（土地税の課税ベース）の記録も移す
+                local.LandRentPerMonth -= new MoneyPerMonth(land); owner.LandRentPerMonth += new MoneyPerMonth(land);
             }
         }
     }
@@ -377,7 +377,7 @@ public static class Colonial
         }
         // 植民地の補給財の請求（r を掛ける前）を植民地維持費の請求へ積む＝翌月の月初の国家の支払いの請求に入る（例外なし・作者裁定 Q2）。
         //   ⚠旧は国庫の残りで買える分だけ買った（月の最後の残りを取る＝暗黙の最下位の優先順位）＝英・西・蘭・葡・オマーンでは補給財の請求が歳入を超える（2026-09-28 canary）。
-        if (cat == TreasuryCat.ColonialUpkeep) w.LastColonialUpkeepPerMonth += want * Math.Max(r.Markets[goodId].Price, 1e-9);
+        if (cat == TreasuryCat.ColonialUpkeep) w.LastColonialUpkeepPerMonth += new MoneyPerMonth(want * Math.Max(r.Markets[goodId].Price, 1e-9));
         want *= w.FiscalFundingRatio;                                      // ★国家の支払い率 r の分だけ買う＝量を減らす（2026-09-28 段2-1＝旧は国庫で買える上限の門）
         if (!(want > 1e-9)) return 0;
         // 買い付けは市場の外の買い付けの1本（InternationalMarket.Procure・段4e K）＝需要の計上・在庫の律速・域外へ（LastExport）・

@@ -2523,7 +2523,7 @@ public sealed class Coefficients
 
     // --- 軍事／武力解錠（§6.1／§A-8・段4e）---
     public double ForceUnlockRate = 0.10;          // 武力解錠時のインフラ進捗（開発の約10倍速）
-    public double ForceUnlockTreasuryCostPerMonth = 1000;  // 制圧の月あたりの軍需の予算（首都の市場から陸の軍需を買って消費する・2026-09-30 支払いの段3-2＝旧は国庫から全POP へ頭数で配った）
+    public MoneyPerMonth ForceUnlockTreasuryCostPerMonth = new(1000);  // 制圧の月あたりの軍需の予算（首都の市場から陸の軍需を買って消費する・2026-09-30 支払いの段3-2＝旧は国庫から全POP へ頭数で配った）
     public double ForceUnlockMilitancy = 0.03;     // 制圧が pop に与える闘争度（戦争疲弊・§6.1）
 
     // --- 植民地の整備（§6.1 拡張：固有資源＋人口プール＋収益駆動の開発）---

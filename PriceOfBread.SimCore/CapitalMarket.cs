@@ -53,7 +53,7 @@ public static class CapitalMarket
         {
             w[i] = nations[i].World;
             e[i] = w[i].FxRate;
-            ngdp[i] = w[i].NominalGdpPerMonth;   // ★A2-2（2026-09-26）：名目GDP（州×生産者の全件走査）は国ごとにこの1回だけ。この関数が書くのは貯蓄・対外資産・外資・信用の記帳だけ＝産出・州・物価水準は動かない＝下の読み手はビット単位で同じ値を読む
+            ngdp[i] = w[i].NominalGdpPerMonth.Value;   // ★A2-2（2026-09-26）：名目GDP（州×生産者の全件走査）は国ごとにこの1回だけ。この関数が書くのは貯蓄・対外資産・外資・信用の記帳だけ＝産出・州・物価水準は動かない＝下の読み手はビット単位で同じ値を読む
             // [単位・B13] 債務/GDP＝**年次名目**（GovDebt÷(月次NominalGdpPerMonth×12)）＝Fiscal の国債の金利の dGdp と同じ物差し（2026-09-29・棚卸し fis-02）。
             //   旧＝月次名目（GovDebt÷月次NominalGdpPerMonth）＝閾値 DebtDistressRatio 2.0 は年に直すと約0.17＝国債÷年GDP が史実の水準（英1815 約2.5・仏1789 0.6〜0.8）へ
             //   立った国は対外信用の債務の項が0＝外資が逃げた。NoGdpDistressDebtRatio・信用の閾値はこの単位。

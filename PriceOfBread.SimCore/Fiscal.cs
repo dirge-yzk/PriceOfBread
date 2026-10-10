@@ -28,7 +28,7 @@ public static class Fiscal
         bool underLimit = w.LastInterestPerMonth < c.MaxInterestShareOfRevenue * w.LastRevenuePerMonth;
         // ★A2-2（2026-09-26）：GDP（州×生産者の全件走査）はこの1回だけ（旧＝実質3か所・名目4か所で呼ぶたびに走査）。
         //   この関数が書くのは国庫・貯蓄・国債と台帳だけ＝産出・州・物価水準は動かない＝下の読み手は getter とビット単位で同じ値を読む。
-        double gdp = w.GdpPerMonth, nominalGdp = w.NominalOf(gdp);
+        double gdp = w.GdpPerMonth.Value, nominalGdp = w.NominalOf(gdp);
 
         var pops = new List<Pop>();
         foreach (var r in w.Regions) pops.AddRange(r.Pops);
@@ -141,18 +141,18 @@ public static class Fiscal
             // ★段3-1（2026-09-29）：課税の基数＝**確定した前の月の所得**（LastEarnedPerMonth＝EconomyStep が月初に写す前の月の Earned の全部）。旧＝今月の Earned＝
             //   月次の財政より後に入る受け取り（輸出代金と運賃〔国際市場の清算は全ての国の月次決算の後〕・領主の取り分）が翌月の頭で0へ戻り、課税されなかった。
             //   史実の所得税も前の期の所得を査定した（英1799 ピットの所得税・1842 ピールの再導入）。
-            double tax = w.TaxRate * Math.Max(0, p.LastEarnedPerMonth) * privBase * consent;   // 請求（査定の全額）＝払うのは下の1本の率 r_p を掛けた額
+            double tax = w.TaxRate * Math.Max(0, p.LastEarnedPerMonth.Value) * privBase * consent;   // 請求（査定の全額）＝払うのは下の1本の率 r_p を掛けた額
             if (c.PrivilegeLedgerEnabled > 0 && privBase < 1.0)   // ★特権台帳（段1・観測）：免税で抜けた分＝あるべき税×(1−privBase)（貯蓄上限は無視＝取り分の定義は査定の特権）
-                Privileges.Record(w, Privileges.TaxExemption, (w.TaxRate * Math.Max(0, p.LastEarnedPerMonth) * consent + w.LandTax * Math.Max(0, p.LandRentPerMonth)) * (1.0 - privBase));
+                Privileges.Record(w, Privileges.TaxExemption, (w.TaxRate * Math.Max(0, p.LastEarnedPerMonth.Value) * consent + w.LandTax * Math.Max(0, p.LandRentPerMonth.Value)) * (1.0 - privBase));
             // 累進課税（A-1#3配線2026-06-24）：富裕層（近代エリート＝資本家/ブルジョワ・閉鎖階級＝貴族/聖職）の所得に**追加**課税＝再分配。所得税と同じ査定機構（漏れも同じ汚職leak）。富裕が強く抵抗（PolicyPreferences）。
             if (w.ProgressiveTax > 1e-9 && (p.IsModernElite || p.Closed) && !p.IsSoldier)
-                tax += w.ProgressiveTax * Math.Max(0, p.LastEarnedPerMonth) * consent;
+                tax += w.ProgressiveTax * Math.Max(0, p.LastEarnedPerMonth.Value) * consent;
             // 人頭税：頭数に一律＝行政不要で確実だが逆進的。閉鎖階級（貴族・聖職）は免除＝特権（大衆の不満の種）。兵士は国が雇い主＝対象外。
             if (w.PollTax > 1e-9 && p.IsCommoner)
                 tax += c.PollTaxRate * w.PollTax * p.Size;
             // 土地税：RGOの地代（封建貢租の受け手＝地主）に課税。率そのまま課し、行政不足の徴収漏れは汚職leakが担う（所得税と同方式）。
-            if (w.LandTax > 1e-9 && p.LandRentPerMonth > 0)
-                tax += w.LandTax * p.LandRentPerMonth * privBase;   // C-高4：土地税も特権の過少査定（史実の免税の本丸＝taille réelle は土地税）。⚠同意(consent)は掛けない＝源泉で取る税
+            if (w.LandTax > 1e-9 && p.LandRentPerMonth.Value > 0)
+                tax += (w.LandTax * p.LandRentPerMonth * privBase).Value;   // C-高4：土地税も特権の過少査定（史実の免税の本丸＝taille réelle は土地税）。⚠同意(consent)は掛けない＝源泉で取る税
             // 仲介者の取り分（支配度 段3・休眠 RuleSharesTaxBase=0）＝国庫へ届く分と在地の貴族の分に割る（査定の全額に掛ける）。
             double cut = 0; Pop? lord = null;
             if (ruleMul is not null)
@@ -161,7 +161,7 @@ public static class Fiscal
                 tax = full * ruleMul[pi];
                 if (ruleLord![pi] is { } lp && !ReferenceEquals(lp, p) && full * ruleCut![pi] > 1e-12) { cut = full * ruleCut[pi]; lord = lp; }
             }
-            double tithe = clergy is not null && Politics.IsMassPop(p) && p.LastEarnedPerMonth > 0 ? titheRate * p.LastEarnedPerMonth : 0;   // 十分の一税の請求（大衆の前の月の所得＝所得税と同じ基数）
+            double tithe = clergy is not null && Politics.IsMassPop(p) && p.LastEarnedPerMonth.Value > 0 ? (titheRate * p.LastEarnedPerMonth).Value : 0;   // 十分の一税の請求（大衆の前の月の所得＝所得税と同じ基数）
             double claims = tax + cut + tithe;
             if (!(claims > 0)) continue;   // 否定形＝NaN の請求は立てない
             double held = Math.Max(0, p.Savings);
@@ -207,7 +207,7 @@ public static class Fiscal
                 if (delivered > 1e-12)
                 {
                     double bsum = 0; foreach (var b in bureaucrats) bsum += b.Size;
-                    if (bsum > 1e-9) foreach (var b in bureaucrats) b.LandRentPerMonth += delivered * (b.Size / bsum);
+                    if (bsum > 1e-9) foreach (var b in bureaucrats) b.LandRentPerMonth += new MoneyPerMonth(delivered * (b.Size / bsum));
                 }
             }
         }
@@ -274,13 +274,13 @@ public static class Fiscal
         // ★(155) 軍の装備の請求＝その月の月初の予算（Simulation の軍事費の吸い込み＝器から給与の後の装備〔全4段の必要額まで〕）が書いた World.LastMilitaryClaimPerMonth を読む
         //   ＝軍を装備する費用も粗歳入の第一請求権（余剰〔福祉/インフラ〕はこの後の残り＝guns-vs-butter）。使い切れない器は請求しない＝余剰を圧迫しない（旧 S3a の「請求額もそろえる」と同じ向き）。
         //   旧＝ここで 軍事費×MilitaryRevenueShare×基数 を全4段の必要額で切って書いた（Simulation と同じ式の写し＝2本）。給与と質（幹部の給与）は旧の給与と同じく外（LastSoldierPayPerMonth＝財政バッファは算入しない・R3安定形）。
-        double militaryClaim = Math.Max(0, w.LastMilitaryClaimPerMonth);
+        double militaryClaim = Math.Max(0, w.LastMilitaryClaimPerMonth.Value);
         // ★撤去2026-08-16（C2-C5）：汚職根絶費の請求 antiCorruptionClaim を物理削除（V2点火2026-08-15で請求は既に遮断済み＝恒等0の死骸だった）。
         //   V2では根絶費の動詞ごと死ぬ（清廉度はもう読まれない＝金を燃やすだけの支出を許さない）。旧式へ戻す道は消滅（裁定済み）。
         double surplus = Math.Max(0, budgetBase - interest - adminClaim - militaryClaim);
-        w.LastRevenuePerMonth = budgetBase; w.LastInterestPerMonth = interest;   // 診断（LastRevenue は Simulation の AdminBudget/MilitaryBudget の基数＝間接税込みへ）
-        w.LastAdminClaimPerMonth = adminClaim;          // 診断（予算表の支出内訳）（★(155) LastMilitaryClaimPerMonth の書き手は月初の予算＝Simulation）
-        w.FiscalCapacityPerMonth = w.FiscalCapacityPerMonth < 1e-9 ? surplus : w.FiscalCapacityPerMonth + c.FiscalCapacitySmoothing * (surplus - w.FiscalCapacityPerMonth);
+        w.LastRevenuePerMonth = new MoneyPerMonth(budgetBase); w.LastInterestPerMonth = new MoneyPerMonth(interest);   // 診断（LastRevenue は Simulation の AdminBudget/MilitaryBudget の基数＝間接税込みへ）
+        w.LastAdminClaimPerMonth = new MoneyPerMonth(adminClaim);          // 診断（予算表の支出内訳）（★(155) LastMilitaryClaimPerMonth の書き手は月初の予算＝Simulation）
+        w.FiscalCapacityPerMonth = new MoneyPerMonth(w.FiscalCapacityPerMonth.Value < 1e-9 ? surplus : w.FiscalCapacityPerMonth.Value + c.FiscalCapacitySmoothing * (surplus - w.FiscalCapacityPerMonth.Value));
         // （借入は 2026-09-28 に月初の Simulation の払える額の側へ移した＝Borrow（下）。払える額の中身の順＝税・歳入→借入→それでも足りない分だけ切り下げ（作者裁定 2026-09-28 (b)）。
         //   旧＝ここ（月末）で借り、借りた金は翌月の払える額になった＝その月は切り下げが先に払えない額を埋め（切り下げの97〜99% は借りられた四半期）、
         //   借入は切り下げの残りだけ＝紙幣の増発が信用より先に立っていた。）
@@ -561,14 +561,14 @@ public static class Fiscal
             double massSize = 0; foreach (var p in masses) massSize += p.Size;
             double welfareReq = c.WelfareCostRatePerMonth * w.SocialSecurity * massSize;
             // funding修正：給付の請求の上限を**裁量余剰(FiscalCapacityPerMonth)**から（余剰の無い国は福祉を約束しない）。
-            double welfareClaim = Math.Min(welfareReq, c.WelfareRevenueShare * w.FiscalCapacityPerMonth);
+            double welfareClaim = Math.Min(welfareReq, (c.WelfareRevenueShare * w.FiscalCapacityPerMonth).Value);
             // ★払うのは請求×r（作者裁定 F3・2026-09-28 段2-1）。撤去＝借入スタックの出費上限 SpendingCapFactor（Q9）と国庫残高のクランプ WelfarePensionClampToTreasury
             //   （旧＝滝の後段で国庫の残りまで）。充足率 WelfareFunding は r と同じ量になるので畳んだ（保険・医療は FiscalFundingRatio を読む）。
             double welfareCost = welfareClaim * payRate;
-            w.LastWelfareCostPerMonth = welfareClaim;   // 請求（r を掛ける前）＝翌月の月初の請求の見込み（Simulation）と予算表が読む
+            w.LastWelfareCostPerMonth = new MoneyPerMonth(welfareClaim);   // 請求（r を掛ける前）＝翌月の月初の請求の見込み（Simulation）と予算表が読む
             World.Transfer((w, null), (w, masses, null), welfareCost, TreasuryCat.Welfare);   // 国庫→大衆（頭数）＝移し方の1本（段4f）。受け手不在＝動かさない（国庫に残る）
         }
-        else w.LastWelfareCostPerMonth = 0;
+        else w.LastWelfareCostPerMonth = new MoneyPerMonth(0);
 
         // 年金の給付（①年齢コホート Phase2）：国庫→老年人口（保存）。老年人口に比例＝高齢化が進むほど財政負担（ビスマルク年金1889〜）。年金なし（既定）＝level0で無効＝較正中立。
         double pensionLevel = w.Pension switch { ReformLevel.Full => 1.0, ReformLevel.Limited => 0.5, _ => 0.0 };
@@ -576,9 +576,9 @@ public static class Fiscal
         {
             double oldSize = 0; foreach (var p in pops) if (!p.IsSoldier) oldSize += p.Size * p.AgeShare(60, double.PositiveInfinity);   // 老年＝60歳以上（年齢の層・段4e 後半）
             double pensionReq = c.PensionCostRatePerMonth * pensionLevel * oldSize;
-            double pensionClaim = Math.Min(pensionReq, c.WelfareRevenueShare * w.FiscalCapacityPerMonth);   // 福祉と同じ裁量余剰から（請求）
+            double pensionClaim = Math.Min(pensionReq, (c.WelfareRevenueShare * w.FiscalCapacityPerMonth).Value);   // 福祉と同じ裁量余剰から（請求）
             double pensionCost = pensionClaim * payRate;   // 払うのは請求×r（福祉と同じ・2026-09-28 段2-1＝SpendingCapFactor と国庫残高のクランプを撤去）
-            w.LastPensionCostPerMonth = pensionClaim;   // 請求（r を掛ける前）＝翌月の月初の請求の見込みと予算表が読む
+            w.LastPensionCostPerMonth = new MoneyPerMonth(pensionClaim);   // 請求（r を掛ける前）＝翌月の月初の請求の見込みと予算表が読む
             if (pensionCost > 0)   // 老年人口に比例して配分（年金は老人の所得＝消費に回る）。wave2b：分母を受け手と同じフィルタで作り直し（旧oldSizeはOldShare≤1e-9の pop も算入したまま
             {                       // 給付側だけ除外していた＝分子分母の非対称）、Distribute作法どおり端数は最後の受け手へ・受け手不在は国庫残置（保存）。
                 var elderly = new List<Pop>(); var elderW = new List<double>();
@@ -602,7 +602,7 @@ public static class Fiscal
                 World.Transfer((w, null), (w, elderly, elderW), reached, TreasuryCat.Pension);
             }
         }
-        else w.LastPensionCostPerMonth = 0;
+        else w.LastPensionCostPerMonth = new MoneyPerMonth(0);
 
         // P9改（2026-07-19ユーザー裁定）：国民形成費レバーを廃止＝「選挙を望む層」が自費で国民運動を賄う（新聞・学校協会・政治結社・教練団）。
         // 需要＝識字した非特権・非兵士の運動意欲（参政権の獲得が進むと熱意半減＝獲得運動→維持出資）。支払い＝当該popの貯蓄→官僚pop
@@ -699,7 +699,7 @@ public static class Fiscal
         // 1件の額＝月次**名目**GDP×割合（2026-09-28・単位の対称）。旧＝実質GDP（参照価格の産出）＝払えない額・国債・プールは名目なので、
         //   物価水準が1から離れる国ほど1件の物差しがずれた（分子と分母の非対称）。下の外資のプールも同じ理由で名目。
         //   ⚠月初＝その月の産出の前＝名目GDP は直近の月の産出（Step が読むのと同じ産出）。GDP の走査は借りる月だけ。
-        double nominalGdp = w.NominalGdpPerMonth;
+        double nominalGdp = w.NominalGdpPerMonth.Value;
         double borrowWant = Math.Min(BorrowTicket(nominalGdp, c), shortfall);
         var capitalists = new List<Pop>();
         foreach (var r in w.Regions) foreach (var p in r.Pops) if (CapitalMarket.IsInvestor(p, c)) capitalists.Add(p);   // 国内の買い手＝資本家/近代エリート（NobleInvests>0で貴族も。既定0＝旧述語と厳密恒等）

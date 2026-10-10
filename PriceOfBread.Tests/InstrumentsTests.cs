@@ -44,8 +44,8 @@ public class InstrumentsTests
         foreach (var n in sim.Nations)
         {
             var w = n.World;
-            A(w.Treasury); A(w.TotalMoney); A(w.GovDebt); A(w.GdpPerMonth); A(w.PriceLevel); A(w.FiscalFundingRatio); A(w.GovBondRatePerYear.Value); A(w.GovAvgCouponPerYear.Value); A(w.Convertibility); A(w.CumulativeDevaluation);
-            A(w.LastRevenuePerMonth); A(w.LastInterestPerMonth); A(w.MilitaryReadiness); A(w.TotalPopulation); d.Add(w.SovereignDefaultCount); d.Add(w.Tick);
+            A(w.Treasury); A(w.TotalMoney); A(w.GovDebt); A(w.GdpPerMonth.Value); A(w.PriceLevel); A(w.FiscalFundingRatio); A(w.GovBondRatePerYear.Value); A(w.GovAvgCouponPerYear.Value); A(w.Convertibility); A(w.CumulativeDevaluation);
+            A(w.LastRevenuePerMonth.Value); A(w.LastInterestPerMonth.Value); A(w.MilitaryReadiness); A(w.TotalPopulation); d.Add(w.SovereignDefaultCount); d.Add(w.Tick);
             foreach (var v in w.TreasuryLedger) A(v);
             foreach (var r in w.Regions) { A(r.SumPopulation()); A(r.SumSavings()); foreach (var m in r.Markets) { A(m.Price); A(m.Stock); } }
         }
