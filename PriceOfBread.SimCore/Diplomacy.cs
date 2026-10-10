@@ -1341,7 +1341,7 @@ public sealed class Diplomacy
             if (month % Calendar.MonthsPerQuarter == 0)
             {
                 double tributeClaim = c.VassalTributeRate * Math.Max(0, d.GdpPerMonth.Value);
-                double tribute = tributeClaim * d.Nation.FiscalFundingRatio;   // 属国の国家の支払い率 r の分だけ（2026-09-28 段2-1＝旧は国庫の残りで切る門）
+                double tribute = tributeClaim * d.Nation.FiscalFundingRatio.Value;   // 属国の国家の支払い率 r の分だけ（2026-09-28 段2-1＝旧は国庫の残りで切る門）
                 d.Nation.LastTributeOutPerQuarter = tributeClaim;   // 請求（r を掛ける前）＝翌月以降の月初の請求の見込み（Simulation）と予算表が読む
                 // ★段3-3（2026-09-30）：払いは移し方の1本（属国の国庫→宗主の国庫・国境をまたぐ＝為替で換算・台帳も移し方が書く）。
                 //   払えない分（1−r）は属国の対外債＝宗主の国の対外債権（作者裁定 Q6・計画 §10-12-3-2＝未払いを記録する・旧は消えた＝B5）。
@@ -2470,7 +2470,7 @@ public sealed class Diplomacy
             if (c.RationingGate > 0 && (p.Nation?.WartimeRationing ?? false)) blockade *= c.RationingBlockadeRelief;
             // 外13：財政破綻の厭戦＝国家の支払い率の不足(1−r)を厭戦に加算＝国庫枯渇が講和事由になる（18-19世紀の戦費調達限界＝講和の最大要因）。FiscalExhaustionWarWeariness=0で無影響。
             //   ★2026-09-30：旧の Fund の支払い能力（払えた戦費÷戦費＝国を持つ Power は r そのもの）を r で直接読む（抽象標的は1＝財政の厭戦なし）。
-            double fiscal = c.FiscalExhaustionWarWeariness * (1.0 - (p.Nation?.FiscalFundingRatio ?? 1.0));
+            double fiscal = c.FiscalExhaustionWarWeariness * (1.0 - (p.Nation?.FiscalFundingRatio.Value ?? 1.0));
             // 1934拡張E2：空襲の厭戦（封鎖と同型・都市爆撃1917〜）＝敵空軍が実在し制空劣勢なほど。化学兵器の泥沼＝相互保有の下限（片側だけでは厭戦は増えない＝戦死側で優位）。
             double eAir = enemyAir.GetValueOrDefault(p);
             double airCtl = p.AirPower + eAir > 1e-9 ? p.AirPower / (p.AirPower + eAir) : 0.5;
@@ -2993,7 +2993,7 @@ public sealed class Diplomacy
         double rep = 0.0;
         if (loser.Nation is { } lw && winner.Nation is { } ww)
         {
-            rep = repBase * lw.FiscalFundingRatio;   // 敗者の国家の支払い率 r の分だけ（2026-09-28 段2-1＝旧は国庫の残りで切る門）
+            rep = repBase * lw.FiscalFundingRatio.Value;   // 敗者の国家の支払い率 r の分だけ（2026-09-28 段2-1＝旧は国庫の残りで切る門）
             // 賠償＝国家間の対外移転（区分＝戦費＝作者裁定 Q14）。★段3-3（2026-09-30）：移し方の1本（国境をまたぐ＝為替で換算・両国の台帳も移し方が書く）。
             //   払えない分（1−r）は敗者の対外債＝勝者の国の対外債権（作者裁定 Q6・旧は消えた＝B5）。★史実＝仏の1871年の賠償50億フランは国債（ティエールの公債）で払われた。
             World.Transfer((lw, null), (ww, null, null), rep, TreasuryCat.WarCost);

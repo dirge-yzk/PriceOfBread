@@ -24,7 +24,8 @@ public sealed class GovernanceSnapshot
     // 財政（現在値）
     private double _navalUpkeepShare;   // ★陸海の維持費の按分（2026-08-04）＝軍事費だけ戻すと海軍が消える
     private double _social, _admin, _pollTax, _landTax, _military, _tariff,
-                   _interestRate, _eduSpending, _taxRate, _fiscalFunding, _progressiveTax;
+                   _interestRate, _eduSpending, _progressiveTax;
+    private Share _taxRate, _fiscalFunding;
     // 税制の解禁・行政力
     private bool _landTaxUnlocked; private double _adminPowerSmoothed;
     // 国庫

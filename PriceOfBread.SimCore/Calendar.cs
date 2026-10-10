@@ -38,6 +38,9 @@ public static class Calendar
     /// <summary>月の決算：1か月分の流れ（円/月）を、在庫（残高）へ足す量（円）に直す。在庫＋流れの暗黙の演算子は無い＝Pop の月末の精算（SettleMonth）が貯蓄へ足すのはこの1本を通す（中身は値をそのまま包む＝掛け算も丸めも無い）。
     /// ⚠型が守るのは演算子だけ＝double を受ける継ぎ目（World.Pay／Transfer の額・MoneyStock のコンストラクタ）は通らない：国家の月末の精算（World.SettleStateSpent）と未払いの利子の元本への繰り入れ（Fiscal）はそちらを通る（(251) 反証役 vm#1・コンストラクタの件数は UnitTypeTests のラチェット）。</summary>
     public static MoneyStock OneMonthOf(MoneyPerMonth perMonth) => new(perMonth.Value);
+    /// <summary>年GDP 比（国債÷年の名目GDP など）を作る**唯一の口**＝在庫（MoneyStock）÷年の流れ（MoneyPerYear）。月の流れ（MoneyPerMonth）で割る取り違え（年GDP 比の12倍）は型が合わず渡せない＝月の流れは先に `PerMonthToPerYear` を通す。
+    /// 中身は `stock.Value / gdpPerYear.Value` の1回の除算（呼び元が書いていた式そのまま）。分母のゼロ・微小の守りは呼び手が分母（gdpPerYear）の側で書く（この関数は割るだけ）。</summary>
+    public static RatioToGdpYear ToGdpYear(MoneyStock stock, MoneyPerYear gdpPerYear) => new(stock.Value / gdpPerYear.Value);
     /// <summary>期間の換算（年数→月数）。割合の換算ではない。</summary>
     public static double YearsToMonths(double years) => years * MonthsPerYear;
 }

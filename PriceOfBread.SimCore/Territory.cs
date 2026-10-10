@@ -351,7 +351,7 @@ public static class Territory
         double rail = from.RailCapacity * sh, ship = from.ShipCapacity * sh;
         from.RailCapacity -= rail; from.ShipCapacity -= ship;
         from.Regions.Remove(r);
-        from.CumulativeTradeFlow -= B.Value; from.PopulationDelta -= P;
+        from.CumulativeTradeFlow -= B; from.PopulationDelta -= P;
         // ★人と動くお金の換算（2026-09-30 処理の一元化 段4e＝(120) の残り）：州ごと別の国へ移る POP の貯蓄と債務を受け手の通貨へ（換算の1本 World.CrossFx・差は換算の台帳へ）。
         //   旧＝名目のまま＝割譲と再併合で、為替の違う国の州の貯蓄が同じ数字のまま別の通貨の貨幣になった（為替 0.5 の国から 1 の国へ移ると貯蓄の値打ちが2倍）。
         //   建国（to＝null）は新しい国の為替が親の値から始まる（MultiNationSim.SpawnNation）＝換算しない。受け手の台帳は換算後の和（同じ値を両辺に）。
@@ -374,7 +374,7 @@ public static class Territory
             //   ⚠勝者の按分継承（ツューリヒ1859・ヴェルサイユ254条）は国家間の債務分担の取り決めで、持ち手の請求権の債務者は変わらない。
             //   帳消しにする形は、失地で送り手の債務が軽くなり持ち手だけが損をする（負けるほど財政が楽になる）。再併合は反乱国の国債を先に消している＝0 は素通り。
             foreach (var p in r.Pops) Fiscal.BookForeignDebt(p, p.BondHoldings, from, to);
-            to.CumulativeTradeFlow += Bin.Value; to.PopulationDelta += P;
+            to.CumulativeTradeFlow += Bin; to.PopulationDelta += P;
             Transport.Receive(to, rail, ship, from.ShipSteamShareEma);
         }
         if (wasCapital && NextCapital(from) is { } cap) from.SetCapital(cap);   // 首都を失った＝「首都を持つ」不変条件を維持

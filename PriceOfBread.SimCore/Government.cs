@@ -193,7 +193,7 @@ public static class Government
     /// <summary>税・支出の段の軸の表＝**施行の順**（Move は政治資本を燃やす＝並びは挙動）。</summary>
     internal static readonly RateLaw[] RateLaws =
     [
-        new(PolicyAxis.IncomeTax, w => w.TaxRate, (w, v) => w.TaxRate = v, p => p.IncomeTaxTarget),
+        new(PolicyAxis.IncomeTax, w => w.TaxRate.Value, (w, v) => w.TaxRate = new Share(v), p => p.IncomeTaxTarget),
         new(PolicyAxis.ProgressiveTax, w => w.ProgressiveTax, (w, v) => w.ProgressiveTax = v, p => p.ProgressiveTaxTarget),   // 累進課税（A-1#3配線）＝富裕の政治抵抗で律速（査定の弱さは徴収側の漏れ）
         new(PolicyAxis.PollTax, w => w.PollTax, (w, v) => w.PollTax = v, p => p.PollTaxTarget),
         new(PolicyAxis.LandTax, w => w.LandTax, (w, v) => w.LandTax = v, p => p.LandTaxTarget),
@@ -236,7 +236,7 @@ public static class Government
         //   ⚠導出をここ（施行の前）に置いても値は同じ＝材料の国債と名目GDP（州×生産者の産出×参照価格×物価水準）を下の施行は書かない。
         double austGdp = w.FiscalEnabled && w.GovDebt.Value > 0 ? w.NominalGdpPerMonth.Value : 0;   // 州×生産者の走査は債務のある国だけ・1回（旧は条件と割り算で2回）
         double austerity = austGdp > 1e-9
-            ? PoliticalQuantities.Clamp01((w.GovDebt.Value / Calendar.PerMonthToPerYear(austGdp) - c.AusterityStartDebt) / c.AusterityRange) : 0;
+            ? PoliticalQuantities.Clamp01((Calendar.ToGdpYear(w.GovDebt, Calendar.PerMonthToPerYear(new MoneyPerMonth(austGdp))) - c.AusterityStartDebt) / c.AusterityRange) : 0;
 
         // ★助走は法を動かさない（2026-09-30 (119)・(109) の申し送り3）＝施行（下の段の法・税と支出の段・治安維持力・軍事費と陸海の維持費・関税・金利・行政費）は
         //   開始前の助走（World.WarmupFrozen）では走らない＝開幕の法は world.json と史実の初期値のまま始まる。法の施行は「年月をかけて起きること」＝国庫・国債・人口・資本と同じ門。
@@ -612,7 +612,7 @@ public static class Government
                 //   （導入の印＝今の率＞0＝率そのものが持つ・要求の決着が段0へ戻せば導入前へ戻る＝英1816 の廃止）。
                 //   ⚠天井型の前提は登る側にしか掛けない（上の注記）＝払えない請求が消えても課している段はそのまま（下げるのは自由）。
                 //   ⚠行政力の門にはしない＝2026-09-12 FIX1（行政の弱さは Fiscal の汚職の漏れが額で表す＝同じ量を率の側にも掛けると二重計上）。否定形＝NaN の r・NaN の率は門を閉じる側。
-                if (targetLevel >= 1 && targetLevel > CurrentStage(w, a) && !(w.TaxRate > 0) && !(w.FiscalFundingRatio < 1.0)) return (false, "払えない請求が前提");
+                if (targetLevel >= 1 && targetLevel > CurrentStage(w, a) && !(w.TaxRate.Value > 0) && !(w.FiscalFundingRatio.Value < 1.0)) return (false, "払えない請求が前提");
                 break;
             case PolicyAxis.EducationSpending:
                 // 教育費＝公教育の制度が先（学校の無い国に教育予算の段は無い）。Step も EducationLaw が下段のままなら効果を持たない。

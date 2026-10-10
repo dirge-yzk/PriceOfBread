@@ -338,7 +338,7 @@ public static class Parliament
             case PolicyAxis.LandReform: p.LandReform = (ReformLevel)StepTo((int)w.LandReform, 2); break;
             case PolicyAxis.SerfEmancipation: p.SerfEmancipation = (ReformLevel)StepTo((int)w.SerfEmancipation, 2); break;
             case PolicyAxis.WomenRights: p.WomenRights = (WomenRightsLaw)StepTo((int)w.WomenRights, 3); break;   // ★統合法（2026-08-10）：現行段から1段ずつ（旧・bool2本の直接反転を置換）
-            case PolicyAxis.IncomeTax: p.IncomeTaxTarget = Slide(w.TaxRate, staged: true); break;   // ★R1：段
+            case PolicyAxis.IncomeTax: p.IncomeTaxTarget = Slide(w.TaxRate.Value, staged: true); break;   // ★R1：段
             // ★要求は法の経路：社会保障は法（Government.Step が SocialSecurityLaw を StepEnum）＝目標は法の段（v/3＝法律タブ GameViewModel.Law.cs と同じ単位）で置く。
             //   旧 Slide(+0.15) は Government の Round(Q5(target)×3) で段に届かない（0.15→0.45→0段）no-op 要求になりうる（ApplyDemand の直書きが隠していた）。
             case PolicyAxis.SocialSecurity: p.SocialSecurityTarget = StepTo((int)w.SocialSecurityLaw, Government.SocialSecurityMaxLevel) / (double)Government.SocialSecurityMaxLevel; break;

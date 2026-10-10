@@ -104,7 +104,7 @@ public class TradeClearingTests
         var (sim, g, _, _, _) = Make(WorldData.ByName("イギリス"));
         var w = sim.Nations[0].World;
         w.Tariff = 0.5;   // ★段3-1：国境の税＝同じ国の州どうしには掛からない
-        double tf0 = w.CumulativeTradeFlow;
+        double tf0 = w.CumulativeTradeFlow.Value;
         sim.Market.Step(sim.Nations, sim.Coef);
         double moved = 0, port = 0;
         foreach (var r in w.Regions) if (r.State == RegionState.Active) { moved += r.Markets[g].LastImport; port += r.LastPortThroughput; }
@@ -115,7 +115,7 @@ public class TradeClearingTests
         Assert.True(port > 1e-9, "同じ国の海路（本国と海外の州）が港の取扱高に積まれていない");
         // ★段3-1（2026-09-29）：国内の決済＝関税は取らず、世界の台帳は清算所への払いと受け取りが打ち消して動かない（国境をまたいでいない）
         Assert.Equal(0.0, w.LastTariffRevenuePerClearing);
-        Assert.True(Math.Abs(w.CumulativeTradeFlow - tf0) <= 1e-9 * Math.Max(1.0, Math.Abs(tf0)), $"国内の取引が世界の台帳を動かした（{w.CumulativeTradeFlow - tf0}）");
+        Assert.True(Math.Abs(w.CumulativeTradeFlow.Value - tf0) <= 1e-9 * Math.Max(1.0, Math.Abs(tf0)), $"国内の取引が世界の台帳を動かした（{w.CumulativeTradeFlow.Value - tf0}）");
     }
 
     // ★回4-1（項目12②）：港の取扱高は海路の成約だけ。陸の単価を極小にして陸で繋がる組を全て陸路の直行にすると、成約は立つが港の取扱高は0。
@@ -299,7 +299,7 @@ public class TradeClearingTests
             foreach (var r in w.Regions) foreach (var p in r.Pops) debt += p.Debt.Value;
             double tol = 1e-9 * Math.Max(1.0, Math.Abs(bm0[i].Value) + debt);
             Assert.True(Math.Abs(w.Bank!.HouseholdLoans.Value - debt) <= tol, $"{w.SelfPower?.Name}：家計の与信 {w.Bank.HouseholdLoans} ≠ POP の債務の和 {debt}");
-            Assert.True(Math.Abs((w.BaseMoney - bm0[i]).Value - (w.CumulativeTradeFlow - tf0[i])) <= tol, $"{w.SelfPower?.Name}：国ごとの D が閉じない（手形の貸しが基礎貨幣を動かした）");
+            Assert.True(Math.Abs((w.BaseMoney - bm0[i]).Value - (w.CumulativeTradeFlow - tf0[i]).Value) <= tol, $"{w.SelfPower?.Name}：国ごとの D が閉じない（手形の貸しが基礎貨幣を動かした）");
         }
         // 売った代金が入った（同じ州の豊かな POP から商人へ＝貨幣は州の中で移るだけ）・買い手の在庫は満ちた（もう買わない）→ 次の清算の始めに返す
         var debts = new Dictionary<Pop, double>();
@@ -524,9 +524,9 @@ public class TradeClearingTests
         var (sim, g, _, _, _) = Make();
         var gen = sim.Nations[0].World; var tus = sim.Nations[1].World;
         gen.ExchangeRate = 0.5;   // ジェノヴァの通貨は金の半分の値打ち
-        double bm0 = (gen.BaseMoney + tus.BaseMoney).Value, tfg0 = gen.CumulativeTradeFlow, tft0 = tus.CumulativeTradeFlow, bmg0 = gen.BaseMoney.Value, bmt0 = tus.BaseMoney.Value, fx0 = sim.Diplomacy.CumulativeFxResidual;
+        double bm0 = (gen.BaseMoney + tus.BaseMoney).Value, tfg0 = gen.CumulativeTradeFlow.Value, tft0 = tus.CumulativeTradeFlow.Value, bmg0 = gen.BaseMoney.Value, bmt0 = tus.BaseMoney.Value, fx0 = sim.Diplomacy.CumulativeFxResidual;
         sim.Market.Step(sim.Nations, sim.Coef);
-        double dg = gen.CumulativeTradeFlow - tfg0, dt = tus.CumulativeTradeFlow - tft0;
+        double dg = gen.CumulativeTradeFlow.Value - tfg0, dt = tus.CumulativeTradeFlow.Value - tft0;
         Assert.True(Math.Abs(dg) > 1e-9 && gen.LastExportValue > 1e-9, "越境の取引が立っていない（テスト前提の破れ）");
         Assert.Equal(dg, gen.BaseMoney.Value - bmg0, 6);   // 国ごとの D が閉じる
         Assert.Equal(dt, tus.BaseMoney.Value - bmt0, 6);

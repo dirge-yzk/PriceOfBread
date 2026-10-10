@@ -1047,7 +1047,7 @@ public class RevoltIgnitionTests
             var (sim, pw, rw, war) = 段7_内戦を1本立てる(new Coefficients());
             Assert.Equal(0.0, sim.Coef.RevoltExpansionScore);   // ⚠OFF側も明示的に確かめる（点火したらこの対照は空洞になる＝そのとき赤で気付く）
             int pn = pw.Regions.Count, rn = rw.Regions.Count;
-            double pPop = pw.TotalPopulation, rPop = rw.TotalPopulation, pDelta = pw.PopulationDelta, pFlow = pw.CumulativeTradeFlow;
+            double pPop = pw.TotalPopulation, rPop = rw.TotalPopulation, pDelta = pw.PopulationDelta, pFlow = pw.CumulativeTradeFlow.Value;
             war.Score = score; war.CivilWarSecession = secession;
             sim.Diplomacy.ResolvePeace(sim.Coef, war);
             Assert.Equal(pn, pw.Regions.Count);           // 割譲の手前で return＝州は1つも動かない
@@ -1055,7 +1055,7 @@ public class RevoltIgnitionTests
             Assert.Equal(pPop, pw.TotalPopulation);       // 人も金も台帳も1ビットも動かない
             Assert.Equal(rPop, rw.TotalPopulation);
             Assert.Equal(pDelta, pw.PopulationDelta);
-            Assert.Equal(pFlow, pw.CumulativeTradeFlow);
+            Assert.Equal(pFlow, pw.CumulativeTradeFlow.Value);
             // 枝そのものは現行どおり成立している（＝「何も起きない」ではなく「割譲だけが無い」ことの確認）
             Assert.Equal(rump, rw.RumpParentName.Length > 0);
             Assert.Equal(reint, sim.Diplomacy.PendingReintegrations.Count > 0);
@@ -1422,7 +1422,7 @@ public class RevoltIgnitionTests
     // 段になった税の実効の率（段の位置でなく Move が動かす値）。段を持たない軸は null。
     private static double? StagedTaxRate(World w, PolicyAxis a) => a switch
     {
-        PolicyAxis.IncomeTax => w.TaxRate, PolicyAxis.ProgressiveTax => w.ProgressiveTax, PolicyAxis.PollTax => w.PollTax,
+        PolicyAxis.IncomeTax => w.TaxRate.Value, PolicyAxis.ProgressiveTax => w.ProgressiveTax, PolicyAxis.PollTax => w.PollTax,
         PolicyAxis.LandTax => w.LandTax, PolicyAxis.EducationSpending => w.EducationSpending, _ => null,
     };
     // 全法目標（NationPolicy の全フィールド）＝「どの目標が置かれたか」の物差し（反射＝軸ごとの読み手を新設しない）
@@ -1761,7 +1761,7 @@ public class RevoltIgnitionTests
         sim.Run(20);
         var w = sim.World;
         // 段2まで課している世界＝減税の可動域がある（段0の国では税の要求はそもそも立たない＝この番人が測れない）
-        w.PollTax = 2.0 / 3.0; w.TaxRate = 2.0 / 3.0;
+        w.PollTax = 2.0 / 3.0; w.TaxRate = new Share(2.0 / 3.0);
         w.Policy.PollTaxTarget = 2.0 / 3.0; w.Policy.IncomeTaxTarget = 2.0 / 3.0;
         // ★主張の書き直し（2026-09-20）：旧はここで専売の段を置き、その位置が要求に載ることも測っていた。
         //   作者裁定で専売は政策軸ごと撤去された（政治問題ではなく生産マネジメントの範囲）＝要求に載る余地が無い。

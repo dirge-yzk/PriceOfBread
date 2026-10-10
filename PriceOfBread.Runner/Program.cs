@@ -1933,7 +1933,7 @@ if (args.Length > 0 && args[0] == "silverprobe")
             var w = n.World;
             if (w.MonetaryLaw == MonetaryStandardLaw.Silver) { svEAg += w.ExchangeRate; svEAgCnt++; }
             else if (w.MonetaryLaw == MonetaryStandardLaw.Gold) { svEAu += w.ExchangeRate; svEAuCnt++; }
-            minted += w.CumulativeGoldMinted; baseM += w.BaseMoney.Value; broadM += w.BroadMoney.Value; susp += w.GoldSuspensions;
+            minted += w.CumulativeGoldMinted.Value; baseM += w.BaseMoney.Value; broadM += w.BroadMoney.Value; susp += w.GoldSuspensions;
             agRes += w.SilverReserveQty; auRes += w.GoldReserveQty;   // ★床モードの準備（2026-08-14）＝蓄積→demonetizationの投げ売りを観測
             if (w.MonetaryLaw == MonetaryStandardLaw.Fiat) lFiat++;
             else if (w.MonetaryLaw == MonetaryStandardLaw.Silver) lAg++;
@@ -2450,8 +2450,8 @@ if (args.Length > 0 && args[0] == "initdump")
             Row(nm, "財政/国庫", tm, w.Treasury.Value, "貨幣");
             Row(nm, "財政/国債", tm, w.GovDebt.Value, "貨幣");
             Row(nm, "財政/うち対外債", tm, w.ForeignDebt.Value, "貨幣");
-            Row(nm, "財政/国債÷年名目GDP", tm, w.NominalGdpPerMonth.Value > 0 ? w.GovDebt.Value / (Calendar.PerMonthToPerYear(w.NominalGdpPerMonth)).Value : 0, "比");
-            Row(nm, "財政/国庫÷年名目GDP", tm, w.NominalGdpPerMonth.Value > 0 ? w.Treasury.Value / (Calendar.PerMonthToPerYear(w.NominalGdpPerMonth)).Value : 0, "比");
+            Row(nm, "財政/国債÷年名目GDP", tm, w.NominalGdpPerMonth.Value > 0 ? Calendar.ToGdpYear(w.GovDebt, Calendar.PerMonthToPerYear(w.NominalGdpPerMonth)).Value : 0, "比");
+            Row(nm, "財政/国庫÷年名目GDP", tm, w.NominalGdpPerMonth.Value > 0 ? Calendar.ToGdpYear(w.Treasury, Calendar.PerMonthToPerYear(w.NominalGdpPerMonth)).Value : 0, "比");
             Row(nm, "財政/直近の月の純税収", tm, w.LastRevenuePerMonth.Value, "貨幣/月");
             Row(nm, "財政/直近の月の純税収÷年名目GDP", tm, w.NominalGdpPerMonth.Value > 0 ? Calendar.PerMonthToPerYear(w.LastRevenuePerMonth) / (Calendar.PerMonthToPerYear(w.NominalGdpPerMonth)) : 0, "比");
             Row(nm, "財政/直近の清算1回の関税収入", tm, w.LastTariffRevenuePerClearing, "貨幣/清算1回");
@@ -2550,7 +2550,7 @@ if (args.Length > 0 && args[0] == "initdump")
             Row(nm, "貨幣/与信残高(銀行)", tm, w.OutstandingLoans.Value, "貨幣");
             Row(nm, "貨幣/準備の金", tm, w.GoldReserveQty, "量");
             Row(nm, "貨幣/準備の銀", tm, w.SilverReserveQty, "量");
-            Row(nm, "貨幣/貯蓄÷年名目GDP", tm, w.NominalGdpPerMonth.Value > 0 ? (w.TotalMoney / (Calendar.PerMonthToPerYear(w.NominalGdpPerMonth)).Value).Value : 0, "比");
+            Row(nm, "貨幣/貯蓄÷年名目GDP", tm, w.NominalGdpPerMonth.Value > 0 ? Calendar.ToGdpYear(w.TotalMoney, Calendar.PerMonthToPerYear(w.NominalGdpPerMonth)).Value : 0, "比");
             Row(nm, "貨幣/通貨制度", tm, w.MonetaryLaw.ToString(), "区分");
             Row(nm, "物価/物価水準", tm, w.PriceLevel, "指数");
             Row(nm, "物価/自己費用の物価水準", tm, w.CostPriceLevel, "指数");
@@ -3415,7 +3415,7 @@ if (args.Length > 0 && args[0] == "leakhunt")
         double pop = 0, money = 0;
         foreach (var n in lm.Nations) { foreach (var r in n.World.Regions) pop += r.SumPopulation(); money += n.World.BaseMoney.Value; }
         foreach (var lap in lm.Diplomacy.Powers) if (lap.Nation is null) foreach (var lcol in lap.ColonyList) pop += Math.Max(0, lcol.PopSize);   // 抽象標的の植民地の住民（入植者 SettlerSize は 2026-09-30 段4g に削除＝常に0だった）
-        foreach (var n in lseen) { var w = n.World; pop -= w.DiagBirths - w.DiagDeaths - w.WarDeadCumulative; money -= w.CumulativeGoldMinted + w.CumulativeFiatIssued; }
+        foreach (var n in lseen) { var w = n.World; pop -= w.DiagBirths - w.DiagDeaths - w.WarDeadCumulative; money -= (w.CumulativeGoldMinted + w.CumulativeFiatIssued).Value; }
         money -= lm.Diplomacy.CumulativeFxResidual;   // ★段3-1（A7）：為替の換算で世界の名目の基礎貨幣が動く分（清算所の台帳）
         return (pop, money);
     }
@@ -6884,7 +6884,7 @@ if (args.Length > 0 && args[0] == "milfund")
         var w = n.World; var r = w.Region; var coef = w.Coef;
         double estCost = EconomyStep.MilitaryProcurementNeed(r, coef);   // 装備の必要額＝エンジンの1本（全4段・発見込み）。旧＝MilitaryUpkeepScale×MilitaryScale の二重掛け（MilitaryScale は Simulation で既に UpkeepScale 込み）・2026-09-11 #1
         double afford = Math.Min(1.0, r.MilitaryAffordRaw);               // エンジンが書いた支払能力（上限÷必要額）を1で切る＝EconomyStep と同じ読み方
-        double dGdp = w.NominalGdpPerMonth.Value > 1e-9 ? w.GovDebt.Value / Calendar.PerMonthToPerYear(w.NominalGdpPerMonth).Value : 0;   // ★(252) 見出しの「債務/GDP」＝年GDP 比（旧＝月の名目GDP で割る＝12倍だった・診断の出力だけ＝帯に入らない・推奨で直した〔作者の承認は未確認〕・(251) 反証役 vm#3 で型を外した `.Value` が見つけた）
+        double dGdp = w.NominalGdpPerMonth.Value > 1e-9 ? Calendar.ToGdpYear(w.GovDebt, Calendar.PerMonthToPerYear(w.NominalGdpPerMonth)).Value : 0;   // ★(252) 見出しの「債務/GDP」＝年GDP 比（旧＝月の名目GDP で割る＝12倍だった・診断の出力だけ＝帯に入らない・推奨で直した〔作者の承認は未確認〕・(251) 反証役 vm#3 で型を外した `.Value` が見つけた）
         Console.WriteLine($"  {w.SelfPower?.Name,-8} {w.LastRevenuePerMonth,7:F0} {w.LastAdminClaimPerMonth,7:F0} {w.LastInterestPerMonth,7:F0} ｜ {w.GovDebt,9:F0} {dGdp,6:F2} {w.GovBondRatePerYear.Value,5:F2} ｜ {w.FiscalCapacityPerMonth,6:F0} {r.MilitaryBudget,6:F0} {estCost,7:F0} {afford,6:F2} {r.MilitaryEquipFill,6:F2} ｜ {w.SoldierSizeK(),5:F0} {w.MilitarySpending,5:F2}");
     }
     return;
@@ -7983,7 +7983,7 @@ if (args.Length > 0 && args[0] == "hangtest")
     int civilWars = hs.Nations.Count(n => n.World.HadCivilWar);
     int defaults = hs.Nations.Count(n => n.World.HadSovereignDefault);
     Console.WriteLine($"seed {sd}: 開戦{wars}回 内戦経験{civilWars}国 デフォルト経験{defaults}国");
-    foreach (var n in hs.Nations) { var w = n.World; double ir = w.LastRevenuePerMonth.Value > 0 ? w.LastInterestPerMonth / w.LastRevenuePerMonth : 0; if (w.HadSovereignDefault || ir > 0.25 * w.Coef.MaxInterestShareOfRevenue) Console.WriteLine($"  {w.Region.Name,-10} 利払い/歳入{ir,5:F2} 債務/GDP{(w.NominalGdpPerMonth.Value > 1 ? w.GovDebt.Value / Calendar.PerMonthToPerYear(w.NominalGdpPerMonth).Value : 0),5:F2} default={w.HadSovereignDefault} cooldown{w.BorrowCooldownMonths}"); }
+    foreach (var n in hs.Nations) { var w = n.World; double ir = w.LastRevenuePerMonth.Value > 0 ? w.LastInterestPerMonth / w.LastRevenuePerMonth : 0; if (w.HadSovereignDefault || ir > 0.25 * w.Coef.MaxInterestShareOfRevenue.Value) Console.WriteLine($"  {w.Region.Name,-10} 利払い/歳入{ir,5:F2} 債務/GDP{(w.NominalGdpPerMonth.Value > 1 ? Calendar.ToGdpYear(w.GovDebt, Calendar.PerMonthToPerYear(w.NominalGdpPerMonth)).Value : 0),5:F2} default={w.HadSovereignDefault} cooldown{w.BorrowCooldownMonths}"); }
     if (args.Length > 2 && args[2] == "log")
         foreach (var l in hs.Diplomacy.Log.Where(l => l.Contains("開戦") || l.Contains("講和") || l.Contains("独立"))) Console.WriteLine("  " + l);
     return;

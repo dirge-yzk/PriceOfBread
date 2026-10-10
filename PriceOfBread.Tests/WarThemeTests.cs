@@ -537,7 +537,7 @@ public class WarThemeTests
     private static Coefficients OpenChain() => new()
     {
         DefendProjectionMin = 0, AllyJoinTension = 1,
-        AllyJoinFoodMin = double.NegativeInfinity, AllyJoinFundingMin = double.NegativeInfinity, AllyJoinLegitimacyMin = double.NegativeInfinity,
+        AllyJoinFoodMin = double.NegativeInfinity, AllyJoinFundingMin = new Share(double.NegativeInfinity), AllyJoinLegitimacyMin = double.NegativeInfinity,
     };
 
     [Fact]
@@ -1069,7 +1069,7 @@ public class WarThemeTests
         {
             var (s, w, fr, _) = OneFront(new Coefficients().WarCivilianToll);
             s.Coef.WarLuck = 0;
-            fr.FiscalFundingRatio = r;
+            fr.FiscalFundingRatio = new Share(r);
             double led0 = fr.TreasuryLedger[(int)TreasuryCat.WarCost], ex0 = w.A.WarExhaustion;
             s.Diplomacy.Step(s.Coef, s.Rng, month: 61);   // 四半期の AI・調停が走らない月
             Assert.Single(s.Diplomacy.Wars);   // 前提が崩れた：戦線が講和で消えた
@@ -1100,7 +1100,7 @@ public class WarThemeTests
             typeof(Diplomacy).GetMethod("CollectPrize", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!
                 .Invoke(s.Diplomacy, [br.SelfPower!, fr.SelfPower!, s.Coef]);
             static double[] Sav(World w) { var l = new System.Collections.Generic.List<double>(); foreach (var r in w.Regions) foreach (var p in r.Pops) l.Add(p.Savings.Value); return [.. l]; }
-            return (fr, br, Sav(fr), Sav(br), fr.Treasury.Value, br.Treasury.Value, fr.CumulativeTradeFlow, br.CumulativeTradeFlow);
+            return (fr, br, Sav(fr), Sav(br), fr.Treasury.Value, br.Treasury.Value, fr.CumulativeTradeFlow.Value, br.CumulativeTradeFlow.Value);
         }
         var zero = Arm(0.0); var arm = Arm(new Coefficients().PrizeMoneyRatePerMonth.Value);
         var merchants = new System.Collections.Generic.HashSet<Pop>();

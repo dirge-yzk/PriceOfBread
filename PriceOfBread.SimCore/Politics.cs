@@ -538,7 +538,7 @@ public static class Politics
         double warDrain = 1.0
             + (Government.AtWar(w) ? c.WarRallyCoercion * Math.Max(0, 1.0 - warExh / Math.Max(1e-9, c.WarRallyDecayPoint)) : 0)
             - c.WarCoercionDrain * warExh;   // [PORT:P5] 戦時ドレイン→保持力の乗数（軍は内外を兼ねる一つの武力）
-        w.Coercion = w.BaseCoercion * w.Legitimacy * w.FiscalFundingRatio * warDrain;   // §6.2（絶対値＝犯罪の秩序カバレッジはこのまま人口あたりで評価）
+        w.Coercion = w.BaseCoercion * w.Legitimacy * w.FiscalFundingRatio.Value * warDrain;   // §6.2（絶対値＝犯罪の秩序カバレッジはこのまま人口あたりで評価）
         double coerce = PoliticalQuantities.EffectiveCoerce(w, c);   // 政体力学の実効保持力＝人口あたり強度（第5段5-1＝一元化・今期導出値＝従来と同時点）
 
         // 財政破綻は外科的な政体フリップでなく**経済悪化（信用収縮＝Credit）**として効かせ、政治的帰結は通常の遷移に委ねる（債務不履行→経済悪化の段階）。
@@ -1353,7 +1353,7 @@ public static class Politics
             PolicyAxis.SerfEmancipation => StepEnumAxis((int)w.SerfEmancipation, 2, v => { w.SerfEmancipation = (ReformLevel)v; p.SerfEmancipation = w.SerfEmancipation; }),
             // ★女性の権利の梯子（統合法・2026-08-10）：勢力の経済決着による直接施行も**段を飛ばさない**（StepEnumAxis が前提DAG＝StagePrereq で切り下げる）。
             PolicyAxis.WomenRights => StepEnumAxis((int)w.WomenRights, 3, v => { w.WomenRights = (WomenRightsLaw)v; p.WomenRights = w.WomenRights; }),
-            PolicyAxis.IncomeTax => Slide(w.TaxRate, v => { w.TaxRate = v; p.IncomeTaxTarget = v; }, staged: true),   // ★R1：段
+            PolicyAxis.IncomeTax => Slide(w.TaxRate.Value, v => { w.TaxRate = new Share(v); p.IncomeTaxTarget = v; }, staged: true),   // ★R1：段
             PolicyAxis.SocialSecurity => Slide(w.SocialSecurity, v => { w.SocialSecurity = v; p.SocialSecurityTarget = v; }),   // ⚠社会保障は既に法（Government が SocialSecurityLaw を StepEnum）＝段の対象外
             PolicyAxis.Tariff => Slide(w.Tariff, v => { w.Tariff = v; p.TariffTarget = v; }),   // ⚠関税は R3 で段の対象外
             PolicyAxis.PollTax => Slide(w.PollTax, v => { w.PollTax = v; p.PollTaxTarget = v; }, staged: true),                               // ★R1：段

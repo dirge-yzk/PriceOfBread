@@ -35,7 +35,7 @@ public class FactoryTierTests
         Assert.True(sim.World.BuildFactory(0, Catalog.SteelId), "着工できない＝テスト前提の破れ");
         var ex = Record.Exception(() => sim.Run(60));   // §11.6（保存・非負・財収支）が全ティックで保持
         Assert.Null(ex);
-        Assert.True(Math.Abs(sim.World.BaseMoney.Value - base0 - sim.World.CumulativeTradeFlow - sim.World.CumulativeGoldMinted - sim.World.CumulativeFiatIssued) < 1e-6 * base0,
+        Assert.True(Math.Abs(sim.World.BaseMoney.Value - base0 - sim.World.CumulativeTradeFlow.Value - sim.World.CumulativeGoldMinted.Value - sim.World.CumulativeFiatIssued.Value) < 1e-6 * base0,
             "工場建設の材料の決済で基礎貨幣保存が破れた");
     }
     /// <summary>着工の採算ゲート（<see cref="Coefficients.FactoryStartAffordFloor"/>・2026-08-04）の番人。
@@ -126,7 +126,7 @@ public class FactoryTierTests
             Assert.NotNull(p);
             p!.ConstructionLeft = days; p.ConstructionPayPerDay = payPerDay;
         }
-        sA.World.FiscalFundingRatio = 0; sC.World.FiscalFundingRatio = 0; sB.World.FiscalFundingRatio = 1.0;   // A と C＝払えない月・B＝満額
+        sA.World.FiscalFundingRatio = new Share(0); sC.World.FiscalFundingRatio = new Share(0); sB.World.FiscalFundingRatio = new Share(1.0);   // A と C＝払えない月・B＝満額
         EconomyStep.Run(rA, sA.World.Coef, 1.0, null, sA.World);
         EconomyStep.Run(rB, sB.World.Coef, 1.0, null, sB.World);
         EconomyStep.Run(rC, sC.World.Coef, 1.0, null, sC.World);
@@ -149,7 +149,7 @@ public class FactoryTierTests
         var pA = World.FindFactory(sA.World.Regions[0], sg); var pB = World.FindFactory(sB.World.Regions[0], sg);
         Assert.NotNull(pA); Assert.NotNull(pB);
         // 採算率＝1（建材の価格を見ない）・支払い率＝1 ⇒ 1日の進捗＝1日。残り 23.5日＝旬10日の3回目に4日働いて完成する（n＜h の枝）。
-        foreach (var (s, p) in new[] { (sA, pA!), (sB, pB!) }) { p.ConstructionLeft = 23.5; p.ConstructionPayPerDay = 100.0; s.World.FiscalFundingRatio = 1.0; s.World.Coef.FactoryBuildPriceGateScale = 0; }
+        foreach (var (s, p) in new[] { (sA, pA!), (sB, pB!) }) { p.ConstructionLeft = 23.5; p.ConstructionPayPerDay = 100.0; s.World.FiscalFundingRatio = new Share(1.0); s.World.Coef.FactoryBuildPriceGateScale = 0; }
         var labA = sA.World.Regions[0].Pops[pA!.LaborPopIndex]; var labB = sB.World.Regions[0].Pops[pB!.LaborPopIndex];
         double built0 = pA.BuiltScale, tre0 = sA.World.Treasury.Value;
         const int h = 10;
@@ -185,7 +185,7 @@ public class FactoryTierTests
         int sg = sA.World.Coef.SteelGoodId;
         var rA = sA.World.Regions[0]; var rB = sB.World.Regions[0];
         var pA = World.FindFactory(rA, sg)!; var pB = World.FindFactory(rB, sg)!;
-        foreach (var (s, p) in new[] { (sA, pA), (sB, pB) }) { s.World.FiscalFundingRatio = 1.0; s.World.Coef.FactoryBuildPriceGateScale = 0; p.ConstructionPayPerDay = 100.0; }
+        foreach (var (s, p) in new[] { (sA, pA), (sB, pB) }) { s.World.FiscalFundingRatio = new Share(1.0); s.World.Coef.FactoryBuildPriceGateScale = 0; p.ConstructionPayPerDay = 100.0; }
         sA.World.StepConstruction(10); sB.World.StepConstruction(10);   // 一覧を作る（鋼の工場は工事中でない）
         Assert.True(pA.ConstructionLeft <= 0 && rA.BuildSites is not null && Array.IndexOf(rA.BuildSites, pA) < 0, "前提が崩れた：鋼の工場が既に工事中か一覧が無い");
         double built0 = pA.BuiltScale;

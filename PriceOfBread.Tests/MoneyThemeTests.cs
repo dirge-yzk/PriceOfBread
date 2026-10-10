@@ -54,7 +54,7 @@ public class MoneyThemeTests
         sim.World.Coef.FiatIssueFrac = 0.6;
         var ex = Record.Exception(() => sim.Run(240));
         Assert.Null(ex);   // 新発行ぶんをexpectedに算入できているか（破れれば MoneyConservation 例外）
-        Assert.True(sim.World.CumulativeFiatIssued > 0, "不換新規発行(CumulativeFiatIssued)が積まれていない＝シニョリッジ経路が発火していない");
+        Assert.True(sim.World.CumulativeFiatIssued.Value > 0, "不換新規発行(CumulativeFiatIssued)が積まれていない＝シニョリッジ経路が発火していない");
     }
 
     [Fact]
@@ -93,8 +93,8 @@ public class MoneyThemeTests
         Assert.True(buyer >= 0, "前提＝買い手（商人/投資家）がいる");
         var pop = r.Pops[buyer];
         pop.SetSavings(Math.Max(pop.Savings.Value, 1000.0 * parity));   // 貯蓄側で縛られない＝数量は準備×率で決まる
-        double D(World x) => x.BaseMoney.Value - x.CumulativeTradeFlow - x.CumulativeGoldMinted - x.CumulativeFiatIssued;
-        double d0 = D(w), reserve0 = w.SilverReserveQty, stock0 = m.Stock, sav0 = pop.Savings.Value, minted0 = w.CumulativeGoldMinted, base0 = w.BaseMoney.Value, imp0 = m.LastImport;
+        double D(World x) => x.BaseMoney.Value - x.CumulativeTradeFlow.Value - x.CumulativeGoldMinted.Value - x.CumulativeFiatIssued.Value;
+        double d0 = D(w), reserve0 = w.SilverReserveQty, stock0 = m.Stock, sav0 = pop.Savings.Value, minted0 = w.CumulativeGoldMinted.Value, base0 = w.BaseMoney.Value, imp0 = m.LastImport;
         var mint = typeof(Simulation).GetMethod("MintGold", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
         Assert.NotNull(mint);
         mint!.Invoke(sim, null);
@@ -107,7 +107,7 @@ public class MoneyThemeTests
             Assert.True(Math.Abs((m.Stock - stock0) - soldQty) <= 1e-9, "市場在庫の増分が準備の減少と一致しない");
             Assert.True(Math.Abs((m.LastImport - imp0) - soldQty) <= 1e-9, "LastImport の増分が準備の減少と一致しない（在庫恒等）");
             Assert.True(Math.Abs((sav0 - pop.Savings.Value) - soldQty * parity) <= 1e-9, "買い手の支払いが qty×平価でない");
-            Assert.True(Math.Abs((minted0 - w.CumulativeGoldMinted) - soldQty * parity) <= 1e-9, "鋳造台帳の逆記帳が qty×平価でない");
+            Assert.True(Math.Abs((minted0 - w.CumulativeGoldMinted.Value) - soldQty * parity) <= 1e-9, "鋳造台帳の逆記帳が qty×平価でない");
             Assert.True(Math.Abs((base0 - w.BaseMoney.Value) - soldQty * parity) <= 1e-9 * Math.Max(1.0, base0), "基礎貨幣の減少が qty×平価でない");
         }
         else
@@ -115,7 +115,7 @@ public class MoneyThemeTests
             Assert.Equal(reserve0, w.SilverReserveQty);
             Assert.Equal(stock0, m.Stock);
             Assert.Equal(sav0, pop.Savings.Value);
-            Assert.Equal(minted0, w.CumulativeGoldMinted);
+            Assert.Equal(minted0, w.CumulativeGoldMinted.Value);
         }
     }
 
@@ -143,8 +143,8 @@ public class MoneyThemeTests
         var mer = r.Pops[r.MerchantPopIndex];
         mer.SetSavings(savingsFrac >= 1 ? Math.Max(mer.Savings.Value, 10 * fullQty * price) : savingsFrac * fullQty * price);
         double expectQty = Math.Min(fullQty, mer.Savings.Value / price);
-        double D(World x) => x.BaseMoney.Value - x.CumulativeTradeFlow - x.CumulativeGoldMinted - x.CumulativeFiatIssued;
-        double d0 = D(w), minted0 = w.CumulativeGoldMinted, stock0 = m.Stock, imp0 = m.LastImport, sav0 = mer.Savings.Value, reserve0 = w.SilverReserveQty;
+        double D(World x) => x.BaseMoney.Value - x.CumulativeTradeFlow.Value - x.CumulativeGoldMinted.Value - x.CumulativeFiatIssued.Value;
+        double d0 = D(w), minted0 = w.CumulativeGoldMinted.Value, stock0 = m.Stock, imp0 = m.LastImport, sav0 = mer.Savings.Value, reserve0 = w.SilverReserveQty;
         var sell = typeof(Simulation).GetMethod("SellDemonetizedReserves", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
         Assert.NotNull(sell);
         sell!.Invoke(sim, [Catalog.GoldOreId, false]);   // 金本位へ移った＝銀の準備を売る
@@ -153,7 +153,7 @@ public class MoneyThemeTests
         Assert.True(Math.Abs((m.Stock - stock0) - sold) <= 1e-9, "市場の在庫の増えが売った量と一致しない");
         Assert.True(Math.Abs((m.LastImport - imp0) - sold) <= 1e-9, "LastImport の増えが売った量と一致しない（在庫の恒等式）");
         Assert.True(Math.Abs((sav0 - mer.Savings.Value) - sold * price) <= 1e-9 * Math.Max(1.0, sav0), "捌き手の払いが 売った量×市場価格 でない");
-        Assert.True(Math.Abs((minted0 - w.CumulativeGoldMinted) - sold * price) <= 1e-9 * Math.Max(1.0, sav0), "鋳造の台帳が払った額だけ減っていない（貨幣の回収）");
+        Assert.True(Math.Abs((minted0 - w.CumulativeGoldMinted.Value) - sold * price) <= 1e-9 * Math.Max(1.0, sav0), "鋳造の台帳が払った額だけ減っていない（貨幣の回収）");
         Assert.True(Math.Abs(D(w) - d0) <= 1e-9 * Math.Max(1.0, Math.Abs(d0)), $"保存量Dが動いた {d0}→{D(w)}");
     }
 }

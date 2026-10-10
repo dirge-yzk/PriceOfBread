@@ -187,7 +187,7 @@ public partial class GameViewModel
         //   ラベル「なし/低率/中率/高率」＝0／最上段の1/3／2/3／最上段（所得税なら 0／11.7／23.3／35%）＝全て19世紀の実在帯。
         LawRowVM Staged(string title, PolicyAxis axis, string[] labels, Func<double> cur, Func<double> tgt, Action<double> set)
             => new(w, axis, title, labels, () => Government.TaxStage(axis, cur()), () => Government.TaxStage(axis, tgt()), v => set(Government.TaxValue(axis, v)));
-        IncomeTaxLaw = Staged("所得税", PolicyAxis.IncomeTax, taxLabels, () => w.TaxRate, () => p.IncomeTaxTarget, v => p.IncomeTaxTarget = v);
+        IncomeTaxLaw = Staged("所得税", PolicyAxis.IncomeTax, taxLabels, () => w.TaxRate.Value, () => p.IncomeTaxTarget, v => p.IncomeTaxTarget = v);
         ProgressiveTaxLaw = Staged("累進課税", PolicyAxis.ProgressiveTax, taxLabels, () => w.ProgressiveTax, () => p.ProgressiveTaxTarget, v => p.ProgressiveTaxTarget = v);
         PollTaxLaw = Staged("人頭税", PolicyAxis.PollTax, taxLabels, () => w.PollTax, () => p.PollTaxTarget, v => p.PollTaxTarget = v);
         LandTaxLaw = Staged("土地税", PolicyAxis.LandTax, taxLabels, () => w.LandTax, () => p.LandTaxTarget, v => p.LandTaxTarget = v);

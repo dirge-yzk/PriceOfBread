@@ -6,7 +6,7 @@ namespace PriceOfBread.SimCore;
 /// </summary>
 public sealed class Bank
 {
-    public double Gold;              // 基礎貨幣（準備）。保存される土台。**導出量＝独立に書くな**（Credit.Step が毎日 BaseMoney×(1−退蔵率) で無条件上書き＝単一ソースはBaseMoney。CurrencyHoldingRatio=0.1 で点火済みだが Gold は依然 BaseMoney 導出＝独立ストック化は未実施）
+    public MoneyStock Gold;              // 基礎貨幣（準備）。保存される土台。**導出量＝独立に書くな**（Credit.Step が毎日 BaseMoney×(1−退蔵率) で無条件上書き＝単一ソースはBaseMoney。CurrencyHoldingRatio=0.1 で点火済みだが Gold は依然 BaseMoney 導出＝独立ストック化は未実施）
     public MoneyStock Loans;             // 与信残高 ＝ 信用創造された広義マネー（= 預金 − 金）
     /// <summary>家計向け与信の残高（POPの個人債務・設計 docs/20260802・2026-08-02）。★<see cref="Loans"/> とは**別ストック**。
     /// ⚠★分ける理由が本設計の急所：<c>Credit.Step</c> は**目標追従の制御器**で、家計が返済して <see cref="Loans"/> が

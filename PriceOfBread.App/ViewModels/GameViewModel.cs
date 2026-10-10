@@ -323,7 +323,7 @@ public partial class GameViewModel : ViewModelBase
         _treasuryMStart = _player.Treasury.Value;      // 月次収支の基準（新規/ロード共通）
         PlayerName = _player.SelfPower?.Name ?? _player.Region.Name;   // 国名（首都州名ではなく国名）
         foreach (var rg in _player.Regions) { _prevEduCum += rg.CumEducationCost; _prevStateMonopCum += rg.CumStateMonopolyRevenue; }   // 累積カウンタの基準化（初回表示が過去合計にならない）
-        _prevForeignNet = _player.ForeignCapitalIn - _player.CapitalAbroad;   // 外資純フローの基準化
+        _prevForeignNet = (_player.ForeignCapitalIn - _player.CapitalAbroad).Value;   // 外資純フローの基準化
         SnapshotTurningPoints();   // 転機通知の基準値（開始/ロード時点の状態＝直後に誤発火しない）＝DetectEvents の基準更新と同じ1本（2026-09-11 #20・旧は治安と条約港が抜けていた＝治安<50%で開始/ロードすると誤発火）
         _diploLogSeen = _sim.Diplomacy.Log.Count;   // 既存の外交ログは既読（ロード直後に過去ログが再配達されない）
         BuildLaws();   // 法律タブの段階ボタン行（1934拡張E8・新規/ロード共通）

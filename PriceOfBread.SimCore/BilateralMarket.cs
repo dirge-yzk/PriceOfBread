@@ -908,7 +908,7 @@ public sealed partial class InternationalMarket
         for (int t = 0; t < tc; t++)
         {
             var w0 = nations[tr[t].nation].World;
-            if (paySub[t] > 0 && payerOf[t] is { } ps) World.Transfer((w0, null), (w0, ps, null), paySub[t] * w0.FiscalFundingRatio, TreasuryCat.Subsidy);   // 売買方針の補助＝国家の支払い率 r の分だけ（区分 Subsidy・作者裁定 Q14）
+            if (paySub[t] > 0 && payerOf[t] is { } ps) World.Transfer((w0, null), (w0, ps, null), paySub[t] * w0.FiscalFundingRatio.Value, TreasuryCat.Subsidy);   // 売買方針の補助＝国家の支払い率 r の分だけ（区分 Subsidy・作者裁定 Q14）
             if (bill[t] && payerOf[t] is [var mer])
             {   // ③手形の振り出し＝貯蓄（補助の後）で足りない分だけ自国の銀行で割り引く（払いの前＝関税と代金を満額払える）
                 double due = payTariff[t] + payHouse[t], have = Math.Max(0, mer.Savings.Value);
@@ -932,7 +932,7 @@ public sealed partial class InternationalMarket
                 for (int t = 0; t < tc; t++)
                     if (tr[t].nation == i && expReg[t] > 0 && tr[t].r.MerchantPopIndex >= 0 && tr[t].r.MerchantPopIndex < tr[t].r.Pops.Count)
                     { ms.Add(tr[t].r.Pops[tr[t].r.MerchantPopIndex]); mw.Add(expReg[t]); }
-                w0.LastTariffRevenuePerClearing -= World.Transfer((w0, null), (w0, ms, mw), exportVal[i] / exRate[i] * Math.Abs(tar[i]) * w0.FiscalFundingRatio, TreasuryCat.Tariff);
+                w0.LastTariffRevenuePerClearing -= World.Transfer((w0, null), (w0, ms, mw), exportVal[i] / exRate[i] * Math.Abs(tar[i]) * w0.FiscalFundingRatio.Value, TreasuryCat.Tariff);
             }
         }
         // Stage C：トランジット通行料＝利用国の国庫から港所有国の国庫へ（運河通行料と同じ台帳作法・両建てで保存）。
@@ -955,7 +955,7 @@ public sealed partial class InternationalMarket
             //   旧＝金建ての額を両国の通貨で同じ額（名目 1:1）。国庫の出入りと台帳は移し方の1本が書く（区分は払いが その他の支出・受け取りが その他の収入）。
             foreach (var k in order)
             {
-                double toll = owed[k] / exRate[k.U] * nations[k.U].World.FiscalFundingRatio;
+                double toll = owed[k] / exRate[k.U] * nations[k.U].World.FiscalFundingRatio.Value;
                 if (toll <= 1e-12) continue;
                 World.Transfer((nations[k.U].World, null), (nations[k.O].World, null, null), toll, TreasuryCat.OtherOut, toCat: TreasuryCat.OtherIn);
             }

@@ -476,7 +476,7 @@ public partial class GameViewModel
         {
             double eduCum = 0, stateMonopCum = 0;
             foreach (var rg0 in _player.Regions) { eduCum += rg0.CumEducationCost; stateMonopCum += rg0.CumStateMonopolyRevenue; }
-            double fNet = _player.ForeignCapitalIn - _player.CapitalAbroad;   // 外資の純フロー：正＝流入（収入側）・負＝流出（支出側）。片方は£0
+            double fNet = (_player.ForeignCapitalIn - _player.CapitalAbroad).Value;   // 外資の純フロー：正＝流入（収入側）・負＝流出（支出側）。片方は£0
             if (_prevQuarterStamp >= 0)
             {
                 _eduMonthly = Calendar.PerQuarterToPerMonth(System.Math.Max(0, eduCum - _prevEduCum));
@@ -506,7 +506,7 @@ public partial class GameViewModel
             }
         }
         bool foodShort = _player.Regions.Any(r => r.State == RegionState.Active && r.FoodFill < FillWarnThreshold);
-        double taxBurden = _player.TaxRate + _player.PollTax * 0.5;
+        double taxBurden = _player.TaxRate.Value + _player.PollTax * 0.5;
         // ★増減の矢印（作者指示2026-08-16(2)(3)）：四半期境界でのみ規模/失業者の差分を確定（状態は GameViewModel.Pop.cs）。初回は基準化のみ＝矢印なし
         int popQStamp = _player.Year * Calendar.QuartersPerYear + _player.Quarter;
         bool popQBoundary = popQStamp != _prevPopQuarterStamp;

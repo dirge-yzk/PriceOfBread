@@ -1019,7 +1019,7 @@ public class DiscoveryScoreTests
             w.Discovered[Discovery.SteamRow] = known; w.TechLevel = tech;
             var port = w.Regions.Find(r => r.State == RegionState.Active && r.IsPort && r.InvestorPopIndex >= 0)!;
             foreach (var r in w.Regions) r.LastTradeThrottle = 1.0;
-            port.LastTradeThrottle = 0; w.FiscalFundingRatio = 1.0;
+            port.LastTradeThrottle = 0; w.FiscalFundingRatio = new Share(1.0);
             port.Pops[port.InvestorPopIndex].SetSavings(1e7);
             double after = port.PortCapacity * (1 - sim.Coef.PortDecay);
             typeof(MultiNationSim).GetMethod("StepPorts", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!.Invoke(sim, null);

@@ -62,12 +62,12 @@ public class TaxTests
             var sim = new Simulation(NationConfig.France().ToScenario(17), new NullAgent());
             sim.Run(1);   // 前の月の所得（LastEarnedPerMonth）を立てる＝双子は同じ種で同じ軌道
             var w = sim.World;
-            w.TaxRate = 0; w.LandTax = 0; w.ProgressiveTax = 0; w.PollTax = poll;
-            w.Coef.TitheRate = 0; w.Coef.CorruptionMax = 0;
+            w.TaxRate = new Share(0); w.LandTax = 0; w.ProgressiveTax = 0; w.PollTax = poll;
+            w.Coef.TitheRate = new Share(0); w.Coef.CorruptionMax = 0;
             w.SocialSecurity = 0; w.Pension = ReformLevel.None;
             w.GovDebt = new MoneyStock(0); w.ForeignDebt = new MoneyStock(0);
             foreach (var rg in w.Regions) foreach (var pp in rg.Pops) { pp.BondHoldings = new MoneyStock(0); pp.SetSavings(System.Math.Max(pp.Savings.Value, 0) + 1e3 * pp.Size); }   // 全員が払える＝率 r_p は1
-            w.FiscalFundingRatio = 1.0;
+            w.FiscalFundingRatio = new Share(1.0);
             Fiscal.Step(w, w.Coef);
             return w;
         }
@@ -156,7 +156,7 @@ public class TaxTests
         var ex = Record.Exception(() => taxed.Run(300));
         Assert.Null(ex);     // 所得への課税（pop→国庫）が保存則を破らない
         // 目標1.0へ率が実際に上がっている（天井の廃止後は Move の漸進と政治ロックの隔離だけが律速）＝下の歳入比較の前提。
-        Assert.True(taxed.World.TaxRate > 0.25, $"所得税の率が上がっていない（{taxed.World.TaxRate:F3}）＝歳入を比べる前提が立たない");
+        Assert.True(taxed.World.TaxRate.Value > 0.25, $"所得税の率が上がっていない（{taxed.World.TaxRate.Value:F3}）＝歳入を比べる前提が立たない");
         Assert.True(taxed.World.Treasury.Value > baseline.World.Treasury.Value,
             $"所得税が歳入を生んでいない（課税{taxed.World.Treasury:F0} vs 基準{baseline.World.Treasury:F0}）");
     }
@@ -172,14 +172,14 @@ public class TaxTests
         {
             var s = new Simulation(NationConfig.Britain().ToScenario(19), new NullAgent());
             s.World.PoliticalLockEnabled = false;   // 富裕層の政治抵抗は漏れの検証と直交
-            s.World.TaxRate = 0.10;   // ★2026-09-29 (109)：1783年の英に所得税は無い（1799年から）＝漏れを測る前提の率を盤面へ直接置く（旧の開始値）
+            s.World.TaxRate = new Share(0.10);   // ★2026-09-29 (109)：1783年の英に所得税は無い（1799年から）＝漏れを測る前提の率を盤面へ直接置く（旧の開始値）
             s.World.Policy.IncomeTaxTarget = 1.0;
             s.Run(12);
             return s;
         }
         var high = Build(); var low = Build();
         Assert.Equal(high.World.TaxRate, low.World.TaxRate);   // 分岐前は完全同一
-        Assert.True(high.World.TaxRate > 0.1, $"前提が崩れた：所得税が立っていない＝漏れを測れない（{high.World.TaxRate:F3}）");
+        Assert.True(high.World.TaxRate.Value > 0.1, $"前提が崩れた：所得税が立っていない＝漏れを測れない（{high.World.TaxRate.Value:F3}）");
         foreach (var r in high.World.Regions) r.AdminFill = 1.0;   // 行政の行き届いた国
         foreach (var r in low.World.Regions) r.AdminFill = 0.0;    // 官僚の役務が買えていない国
         int cat = (int)TreasuryCat.Tax;   // 書き手は Fiscal の徴税の移し方の1本（納税者→国庫・区分 Tax・2026-10-01 段4g＝旧 w.Pay(TreasuryCat.Tax, revenue)）1箇所だけ＝他の歳出入と混ざらない
@@ -204,9 +204,9 @@ public class TaxTests
         var sim = new Simulation(NationConfig.France().ToScenario(29), new NullAgent());
         sim.StepQuarter();
         var w = sim.World;
-        Assert.Equal(0.0, w.TaxRate);   // 前提＝1783年の所得税0（NationConfig・(109)）
+        Assert.Equal(0.0, w.TaxRate.Value);   // 前提＝1783年の所得税0（NationConfig・(109)）
         // ① 払えない請求が無い（r＝1）＝導入の段は法律タブでも押せない（理由つき）・AI の目標は現状（段0）へ畳まれる
-        w.FiscalFundingRatio = 1.0;
+        w.FiscalFundingRatio = new Share(1.0);
         var (ok1, _, why1) = Government.GateInfo(w, PolicyAxis.IncomeTax, increasing: true, 1);
         Assert.False(ok1, "払えない請求が無いのに所得税の導入の段が押せる");
         Assert.Equal("払えない請求が前提", why1);
@@ -214,14 +214,14 @@ public class TaxTests
         UtilityAgent.GateAllLawTargets(w, w.Policy);
         Assert.Equal(0.0, w.Policy.IncomeTaxTarget);
         // ② 払えない請求がある（r＜1）＝同じ門が開く・AI の目標は次の1段
-        w.FiscalFundingRatio = 0.9;
+        w.FiscalFundingRatio = new Share(0.9);
         Assert.True(Government.LawPrereq(w, PolicyAxis.IncomeTax, 1, w.Coef).Ok, "払えない請求があるのに所得税を導入できない");
         w.Policy.IncomeTaxTarget = Government.IncomeTaxTop;
         UtilityAgent.GateAllLawTargets(w, w.Policy);
         Assert.Equal(Government.TaxValue(PolicyAxis.IncomeTax, 1), w.Policy.IncomeTaxTarget);
         // ③ いったん課した国（率＞0）は r＝1 でも上げられる（前提は導入だけ）・下げる側は常に通る
-        w.FiscalFundingRatio = 1.0;
-        w.TaxRate = Government.TaxValue(PolicyAxis.IncomeTax, 1);
+        w.FiscalFundingRatio = new Share(1.0);
+        w.TaxRate = new Share(Government.TaxValue(PolicyAxis.IncomeTax, 1));
         Assert.True(Government.LawPrereq(w, PolicyAxis.IncomeTax, 2, w.Coef).Ok, "導入の後も払えない請求を前提にしている");
         Assert.True(Government.LawPrereq(w, PolicyAxis.IncomeTax, 0, w.Coef).Ok, "下げる側に前提が掛かっている（天井型は登る側だけ）");
     }

@@ -15,6 +15,7 @@ public static class Fiscal
     private const double ForeignBondYieldRatioCap = 3.0;     // 対外債容量の信認の倍率クランプ上限（BondBaseRatePerYear/GovBondRatePerYear の上限＝2026-09-29 に向きを是正）
     private const double FranchiseAdultMale = 0.7;           // 参政権レベル→市民運動基盤の重み（男子普通選挙）
     private const double FranchiseCensus = 0.25;             // 参政権レベル→市民運動基盤の重み（制限選挙）
+    private static readonly RatioToGdpYear DebtToGdpYearUnbounded = new(DebtRatioUnbounded);   // 債務÷年GDP の番兵（型つきの版）
     private const double DebtRatioUnbounded = 1e9;            // NominalGdpPerMonth≈0 かつ債務（か切り下げ）ありのときの代替（極大）の比（債務÷年GDP・切り下げの速さ÷年GDP）
 
     /// <param name="spare">月初の払える額（借入と切り下げの後）−国家の支払いの請求（Simulation が r と同時に求める）。＞0＝ r＝1 の月の余剰＝減債の原資。
@@ -23,7 +24,7 @@ public static class Fiscal
     public static void Step(World w, Coefficients c, double spare = 0, double devalued = 0)
     {
         if (!w.FiscalEnabled) return;
-        double payRate = w.FiscalFundingRatio;   // 国家の支払い率 r（月初に Simulation が決めた1本）
+        double payRate = w.FiscalFundingRatio.Value;   // 国家の支払い率 r（月初に Simulation が決めた1本）
         // 今月の借入の門（月初の Borrow と同じ1本＝利払い÷歳入が限界の下）。下で LastInterestPerMonth・LastRevenue を今月の量へ書き換える前に読む＝不履行の計数が読む（下）
         bool underLimit = w.LastInterestPerMonth < c.MaxInterestShareOfRevenue * w.LastRevenuePerMonth;
         // ★A2-2（2026-09-26）：GDP（州×生産者の全件走査）はこの1回だけ（旧＝実質3か所・名目4か所で呼ぶたびに走査）。
@@ -85,7 +86,7 @@ public static class Fiscal
         //   払えない分は請求が立たない（Q4＝不足は記録しない）。十分の一税の受け手（聖職）がいなければ十分の一税の請求は立たない（受け手不在＝払い手に残る）。
         //   ★所得の記帳は義務の間で揃える（C15 の確かめ）＝どの義務も払い手の総所得（Earned）を減らさない（所得税と同じ＝総所得から払う）・受け取りは受け手の所得
         //   （聖職の十分の一税・領主の取り分＝教会と領主の役務の対価＝国庫の税が官僚の俸給として所得になるのと同じ）。
-        double titheRate = c.TitheRate * Privileges.TitheDegree(w, c);   // 国教法の変調は TitheDegree の1本（旧 CollectTithe の1行目と同じ式）
+        double titheRate = c.TitheRate.Value * Privileges.TitheDegree(w, c);   // 国教法の変調は TitheDegree の1本（旧 CollectTithe の1行目と同じ式）
         List<Pop>? clergy = null;
         if (titheRate > 1e-9)
         {
@@ -141,9 +142,9 @@ public static class Fiscal
             // ★段3-1（2026-09-29）：課税の基数＝**確定した前の月の所得**（LastEarnedPerMonth＝EconomyStep が月初に写す前の月の Earned の全部）。旧＝今月の Earned＝
             //   月次の財政より後に入る受け取り（輸出代金と運賃〔国際市場の清算は全ての国の月次決算の後〕・領主の取り分）が翌月の頭で0へ戻り、課税されなかった。
             //   史実の所得税も前の期の所得を査定した（英1799 ピットの所得税・1842 ピールの再導入）。
-            double tax = w.TaxRate * Math.Max(0, p.LastEarnedPerMonth.Value) * privBase * consent;   // 請求（査定の全額）＝払うのは下の1本の率 r_p を掛けた額
+            double tax = w.TaxRate.Value * Math.Max(0, p.LastEarnedPerMonth.Value) * privBase * consent;   // 請求（査定の全額）＝払うのは下の1本の率 r_p を掛けた額
             if (c.PrivilegeLedgerEnabled > 0 && privBase < 1.0)   // ★特権台帳（段1・観測）：免税で抜けた分＝あるべき税×(1−privBase)（貯蓄上限は無視＝取り分の定義は査定の特権）
-                Privileges.Record(w, Privileges.TaxExemption, (w.TaxRate * Math.Max(0, p.LastEarnedPerMonth.Value) * consent + w.LandTax * Math.Max(0, p.LandRentPerMonth.Value)) * (1.0 - privBase));
+                Privileges.Record(w, Privileges.TaxExemption, (w.TaxRate.Value * Math.Max(0, p.LastEarnedPerMonth.Value) * consent + w.LandTax * Math.Max(0, p.LandRentPerMonth.Value)) * (1.0 - privBase));
             // 累進課税（A-1#3配線2026-06-24）：富裕層（近代エリート＝資本家/ブルジョワ・閉鎖階級＝貴族/聖職）の所得に**追加**課税＝再分配。所得税と同じ査定機構（漏れも同じ汚職leak）。富裕が強く抵抗（PolicyPreferences）。
             if (w.ProgressiveTax > 1e-9 && (p.IsModernElite || p.Closed) && !p.IsSoldier)
                 tax += w.ProgressiveTax * Math.Max(0, p.LastEarnedPerMonth.Value) * consent;
@@ -270,7 +271,7 @@ public static class Fiscal
         double indirectRevenue = Math.Max(0, w.LastTariffRevenuePerClearing) / w.Coef.MonthsPerClearing;   // 国際市場は清算単位（四半期 or 月次清算）→月次換算（単位ヘルパー・2026-08-22）
         foreach (var r in w.Regions) if (r.State == RegionState.Active) indirectRevenue -= r.StateSpent[(int)TreasuryCat.StateMonopoly];   // 当月の専売益（負の支出＝収入。2026-09-28 に旧の別持ち LastStateMonopolyRevenue を畳んだ＝塩などの独占レントの国庫の取り分も同じ区分）
         double budgetBase = revenue + c.IndirectTaxInBudgetBase * indirectRevenue;
-        double adminClaim = c.AdminBudgetFrac * w.AdminSpending * budgetBase * AdminDistanceMean(w);   // 州ごとの行政の予算（人口の比×距離の割増＝Simulation）の和と同じ量（2026-09-30 (135)）
+        double adminClaim = c.AdminBudgetFrac.Value * w.AdminSpending * budgetBase * AdminDistanceMean(w);   // 州ごとの行政の予算（人口の比×距離の割増＝Simulation）の和と同じ量（2026-09-30 (135)）
         // ★(155) 軍の装備の請求＝その月の月初の予算（Simulation の軍事費の吸い込み＝器から給与の後の装備〔全4段の必要額まで〕）が書いた World.LastMilitaryClaimPerMonth を読む
         //   ＝軍を装備する費用も粗歳入の第一請求権（余剰〔福祉/インフラ〕はこの後の残り＝guns-vs-butter）。使い切れない器は請求しない＝余剰を圧迫しない（旧 S3a の「請求額もそろえる」と同じ向き）。
         //   旧＝ここで 軍事費×MilitaryRevenueShare×基数 を全4段の必要額で切って書いた（Simulation と同じ式の写し＝2本）。給与と質（幹部の給与）は旧の給与と同じく外（LastSoldierPayPerMonth＝財政バッファは算入しない・R3安定形）。
@@ -311,7 +312,7 @@ public static class Fiscal
             {
                 double sav = 0; foreach (var p in pops) sav += Math.Max(0, p.Savings.Value);
                 // ①記憶の代価＝累積切下げの一定割合 ②平価の代価＝その平価を維持するのに要る貨幣の収縮
-                double burnMem = c.CurrencyReformBurnShare * w.CumulativeDevaluation;
+                double burnMem = c.CurrencyReformBurnShare.Value * w.CumulativeDevaluation;
                 double kp = parity * Math.Max(1e-9, w.PriceLevel);
                 double burnParity = (w.TotalMoney * Math.Max(0, 1.0 - 1.0 / Math.Max(1e-9, kp))).Value;
                 double burn = Math.Min(Math.Max(burnMem, burnParity), sav * c.CurrencyReformBurnCap);
@@ -330,7 +331,7 @@ public static class Fiscal
                     foreach (var p in pops) p.Militancy = Math.Min(1, p.Militancy + bite);   // 消えた分だけ怒る（新係数を作らない）
                 }
                 double forgiveRatio = nominalGdp > 1e-9 ? Math.Min(1.0, w.CumulativeDevaluation / nominalGdp) : 0;
-                w.CumulativeDevaluation *= 1.0 - PoliticalQuantities.Clamp01(c.CurrencyReformForgiveShare);
+                w.CumulativeDevaluation *= 1.0 - PoliticalQuantities.Clamp01(c.CurrencyReformForgiveShare.Value);
                 double legBefore = w.Legitimacy;
                 w.Legitimacy = Math.Max(0, w.Legitimacy - c.CurrencyReformLegitimacyHit * forgiveRatio);
                 w.Explain?.Add("Legitimacy", "通貨改革(預金を焼いて記憶を消す)", w.Legitimacy - legBefore);
@@ -463,13 +464,13 @@ public static class Fiscal
         // [単位・B13] 債務/GDP＝**年次名目**（GovDebt÷(月次NominalGdpPerMonth×12)）。国債金利の債務比プレミアム・CapitalMarket の対外信用の債務の項・
         //   Government の緊縮の強度・Credit の銀行の評価損・PolicyPreferences の国家の歳入要求（どれも 2026-09-29 から）はこの単位（旧＝Credit は月次名目・Government/PolicyPreferences は月次実質）。
         //   台帳（2026-09-11 #10）：PowerShares.cs の debtGrip＝月次名目の Clamp（物理・用途別に別＝触らない）／Runner milfund・hangtest の dGdp＝月次名目（計器）／App のヘッダー「対年GDP」＝この行と同じ年次名目（旧＝年次実質＝表示だけ別物差しだったのを統一）
-        double dGdp = gdpDenom > 1e-9 ? w.GovDebt.Value / gdpDenom : (w.GovDebt.Value > 0 ? DebtRatioUnbounded : 0);   // #1 名目GDP基準＝デフレ国は実質債務が膨らみ国債金利が上がる（負債デフレ）
+        RatioToGdpYear dGdp = gdpDenom > 1e-9 ? Calendar.ToGdpYear(w.GovDebt, new MoneyPerYear(gdpDenom)) : (w.GovDebt.Value > 0 ? DebtToGdpYearUnbounded : default);   // #1 名目GDP基準＝デフレ国は実質債務が膨らみ国債金利が上がる（負債デフレ）
         // ★AUD-09（監査2026-09-02 low・規律「比のガードは絶対値で書かない」）：分母の絶対値ガード（1e-9）だけでは、
         //   分母が**微小だが非ゼロ**のとき比が番兵を何桁も飛び越える（GDPが消えかけた残余国で万%＝WorstLossRate と同型）。
         //   ⚠**否定形**で書く＝NaN も同じ枝へ落ちる（`Math.Min` では NaN が素通りして GovBondRatePerYear を毒する）。
         //   ★有限値では厳密同値：読み手は国債金利（BondRateMaxPerYear=0.30 でクランプ済み）だけで、番兵 1e9 のはるか手前で飽和している
         //     ＝**挙動は変わらず、報告される数字と NaN 経路だけが正される**（兌換の門は 2026-09-28 から債務比を読まない＝下）。
-        if (!(dGdp <= DebtRatioUnbounded)) dGdp = DebtRatioUnbounded;
+        if (!(dGdp <= DebtToGdpYearUnbounded)) dGdp = DebtToGdpYearUnbounded;
         // 金本位の信用ゲート（資格＝コストでない）：準備が足り、払える財政なら加入できる。加入中＝国債金利を信用で優遇（低金利）。
         // 加入中でも取り付けで準備が割れる／維持費を払えないと正貨を守れず強制離脱（兌換停止＝信用暴落）。紙幣増発で赤字を埋める国は信用が無く加入不可。
         // ★債務の水準では門を引かない（作者裁定 2026-09-28 F6 の1歩目）。旧＝債務/年GDP の固定の閾値（停止 7.5%・再加入 4.2%＝係数
@@ -487,7 +488,7 @@ public static class Fiscal
             if (w.OnGoldStandard)
             {
                 // ★3値化2026-08-13：兌換の規律は**銀本位でも同じ足枷**＝MetallicStandardLaw（銀でも金でも真）を読む。休眠時は旧 GoldStandardLaw と厳密に一致。
-                if (!w.MetallicStandardLaw || w.FiscalFundingRatio < GoldSuspendMinFundingRatio || coverage < c.GoldCoverMin)
+                if (!w.MetallicStandardLaw || w.FiscalFundingRatio.Value < GoldSuspendMinFundingRatio || coverage < c.GoldCoverMin)
                 {
                     w.OnGoldStandard = false; w.GoldStandardSuspendedInCrisis = w.MetallicStandardLaw;   // 自発離脱 or 危機での強制停止（準備枯渇＝兌換停止クライシス含む）
                     // GoldCoverMin有効化2026-07-10：強制停止を観測可能に（スカラーカウンタ＝batch頻度集計・Diplomacyログ＝年代記）。自発離脱（AIが志向を下げた）は数えない。
@@ -530,7 +531,7 @@ public static class Fiscal
         //   （完全兌換・議会が予算を握る＝割引 0.6×0.9）で出す：(0.04＋2.5×0.018)×0.54≒4.6%。同じ式で不換・議会の弱い周縁国（西・葡・希・オスマン・ラテンアメリカ）は
         //   国債÷年GDP 1〜2 で 5.8〜7.6%＋期待インフレと信認の喪失（史実6〜10%）。旧＝1.44（旧の月次比 0.12×12 を年へ換算したまま＝年GDP 比1につき+144%）。
         //   監査2026-07-05（F2）の債務の二次項 BondRateDebtQuad（既定0＝休眠）は削除（英の債務比2.5 で金利が跳ねない史実と合わない・棚卸し dorm-51／fis-17）。
-        double bondInside = c.BondBaseRatePerYear.Value + c.BondRateDebtScale * dGdp + fisher + distrust + c.PolicyRateBondWeight * w.InterestRate;
+        double bondInside = c.BondBaseRatePerYear.Value + c.BondRateDebtScale * dGdp.Value + fisher + distrust + c.PolicyRateBondWeight * w.InterestRate;
         // 政体フレーバー レバー3（2026-07-24）→第3波連続化（2026-07-28）：議会の信認割引＝議会の予算統制（ParliamentControl）が
         // 強いほど債権者の信認で金利が安い（英コンソル＝財政軍事国家論）。旧・政体ラベル二値→統制力の連続量へ（倍率排除＝ラベル不読・
         // DebtGdp年換算フリップ2026-07-26で再挑戦解禁の記録どおり）。BondRateRepresentationDiscount=0で×1.0＝厳密恒等。
@@ -542,7 +543,7 @@ public static class Fiscal
         {
             bl.Reset("BondRate");
             bl.Add("BondRate", "基礎金利", (c.BondBaseRatePerYear * convDiscount).Value);
-            bl.Add("BondRate", "債務比プレミアム", c.BondRateDebtScale * dGdp * convDiscount);
+            bl.Add("BondRate", "債務比プレミアム", c.BondRateDebtScale * dGdp.Value * convDiscount);
             bl.Add("BondRate", "インフレ期待", fisher * convDiscount);
             bl.Add("BondRate", "信認喪失（直近の切り下げ）", distrust * convDiscount);
             bl.Add("BondRate", "政策金利", c.PolicyRateBondWeight * w.InterestRate * convDiscount);
@@ -665,7 +666,7 @@ public static class Fiscal
 
     /// <summary>★1件の額＝月次の名目GDP×<see cref="Coefficients.BorrowFractionOfGdp"/>（負の GDP は0）＝月に借りられる額の上限。
     /// 読み手＝<see cref="Borrow"/>（払えない額と比べる）と戦時段の器（<see cref="Military.EnvelopeAt"/>）の2つ＝同じ1本（2026-10-03 (175)）。</summary>
-    internal static double BorrowTicket(double nominalGdp, Coefficients c) => Math.Max(0, nominalGdp) * c.BorrowFractionOfGdp;
+    internal static double BorrowTicket(double nominalGdp, Coefficients c) => Math.Max(0, nominalGdp) * c.BorrowFractionOfGdp.Value;
 
     /// <summary>★借入（エンジンが自動で借りる・作者裁定 2026-09-28「借入は自動化・借金ボタンは不要」）：借入額＝min(1件の額, 月初の払えない額, 貸し手のプール)。
     /// **月初に Simulation が国家の支払い率 r を決める前に呼ぶ**＝払える額の中身の順＝税・歳入→借入（この関数）→それでも足りない分だけ切り下げ（作者裁定 2026-09-28 (b)）。
@@ -782,7 +783,7 @@ public static class Fiscal
         if (!(h.Value > 0)) return;
         if (p is null) issuer.GovDebt += h; else p.BondHoldings -= h;
         issuer.ForeignDebt += h; issuer.PrevForeignDebt += h;
-        holderNation.ForeignBondClaims += h.Value * issuer.FxRate / holderNation.FxRate;
+        holderNation.ForeignBondClaims += h * issuer.FxRate / holderNation.FxRate;
     }
 
     /// <summary>国債の消滅（急進革命の否認と、ソブリン・デフォルトの共通の中身＝1か所・支払いの一元化 段1-5・2026-09-28＝旧 Politics.RepudiateDebt と Fiscal のデフォルトの同じ文）。

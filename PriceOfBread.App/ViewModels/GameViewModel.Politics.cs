@@ -535,7 +535,7 @@ public partial class GameViewModel
             rows.Add(new ArmyNeedRow { Key = "＿見出し＿人員", Header = "人員" });
             // 給与の充足＝請求の賃金のうち払えた割合＝国家の支払い率 r（(140) から兵の給与は請求×r で払う＝全ての州で同じ r）。
             //   ★(144)：旧の州の欄 SoldierPayAffordRaw は r の写し（導ける量を貯めていた＝思想⑩）＝欄ごと撤去して r を読む。
-            double payFill = Math.Min(1.0, _player.FiscalFundingRatio);
+            double payFill = Math.Min(1.0, _player.FiscalFundingRatio.Value);
             // ★(149) 反証の指摘：軍事費の段は (145) から平時の兵数を動かさない（装備の予算・即応度・治安維持力を動かす）＝兵の目標の行から装備の行へ移した。
             string solTip = $"徴募可能人口 {PopFmtK(sol.Manpower)}"
                           + (sol.Sustain > Eps ? $"\n扶養限界の目標 {PopFmtK(sol.Sustain)}" : "")

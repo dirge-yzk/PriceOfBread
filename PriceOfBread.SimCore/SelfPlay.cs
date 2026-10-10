@@ -272,7 +272,7 @@ public sealed class UtilityAgent : INationAgent
         // ★錨2026-09-18：段序数↔率の写像は Government.TaxStage／TaxValue の2本だけ（軸ごとの錨を引く）＝ここに第二の式（v/3）を置かない。
         void GateTax(PolicyAxis a, double cur, double tgt, Action<double> set)
             => GateLaw(ref shared, w, a, Government.TaxStage(a, cur), Government.TaxStage(a, tgt), Government.TaxLawStages, v => set(Government.TaxValue(a, v)));
-        GateTax(PolicyAxis.IncomeTax, w.TaxRate, p.IncomeTaxTarget, v => p.IncomeTaxTarget = v);
+        GateTax(PolicyAxis.IncomeTax, w.TaxRate.Value, p.IncomeTaxTarget, v => p.IncomeTaxTarget = v);
         GateTax(PolicyAxis.ProgressiveTax, w.ProgressiveTax, p.ProgressiveTaxTarget, v => p.ProgressiveTaxTarget = v);
         GateTax(PolicyAxis.PollTax, w.PollTax, p.PollTaxTarget, v => p.PollTaxTarget = v);
         // ⚠専売は段にしない（作者裁定2026-09-20）＝AIの整形も通らない（商品ごとの率は下の奢侈品のブロックが置く）
@@ -408,7 +408,7 @@ public sealed class UtilityAgent : INationAgent
     /// 公開＝Simulation.QuarterStart（AutoModernizationFrac）とテストが同じ物差しを読む。NaN は逼迫側＝fail-closed。</summary>
     public static double FiscalStressOf(World w)
     {
-        double s = 1.0 - w.FiscalFundingRatio;
+        double s = 1.0 - w.FiscalFundingRatio.Value;
         return s >= 0 ? (s <= 1 ? s : 1.0) : (s < 0 ? 0 : 1.0);   // 否定形ガード＝NaN は逼迫側（1）
     }
 
@@ -1073,7 +1073,7 @@ public sealed class UtilityAgent : INationAgent
         //   ⚠2026-08-04の前科（0.5緩和→工事の日次出費が国庫を吸い軍事独裁5%→34%＝FacilityBuildStressCeiling の注記）＝当時は月次出費の律速が未実装だった。
         //   いまは下の FacilityBuildOutlayShare が本命の予算制約として残る。緩和は必ずこのフラグ経由・**点火A/Bで軍事独裁の頻度（PolityDistribution）を必ず見る**。
         bool relax = w.Coef.AiBuildGuardRelax > 0;
-        if (relax ? !(w.FiscalFundingRatio >= 1) : FiscalStressOf(w) > FacilityBuildStressCeiling) return;
+        if (relax ? !(w.FiscalFundingRatio.Value >= 1) : FiscalStressOf(w) > FacilityBuildStressCeiling) return;
         // ★工事の未払残高で律速する（2026-08-04の是正）。★初版は「1四半期に1件」を無条件に積み、
         //   BuildFactory 側のガードが**初日の労務費だけ**だったため、工期4〜28四半期の工事が際限なく重なり
         //   国庫が日次で流出し続けた。実測（R16）＝軍事独裁が 5.0%→53.4%＝**世界中で国家が財政破綻して軍が政権を取った**。

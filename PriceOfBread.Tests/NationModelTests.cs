@@ -29,7 +29,7 @@ public class NationModelTests
         {
             var w = sim.Nations[i].World;
             if (w.HadSecession) continue;
-            Assert.True(Math.Abs(w.BaseMoney.Value - base0[i] - w.CumulativeTradeFlow - w.CumulativeGoldMinted - w.CumulativeFiatIssued) < 1e-6 * base0[i], $"{w.Region.Name} 保存破れ");
+            Assert.True(Math.Abs(w.BaseMoney.Value - base0[i] - w.CumulativeTradeFlow.Value - w.CumulativeGoldMinted.Value - w.CumulativeFiatIssued.Value) < 1e-6 * base0[i], $"{w.Region.Name} 保存破れ");
         }
     }
 

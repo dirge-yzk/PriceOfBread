@@ -64,13 +64,13 @@ public class PrivilegeDisplayTests
             foreach (double gate in new[] { 0.0, 1.0 })
                 foreach (double rate in new[] { 0.0, 0.05, 0.2 })
                 {
-                    c.StateReligionGate = gate; c.TitheRate = rate;
+                    c.StateReligionGate = gate; c.TitheRate = new Share(rate);
                     // 旧式（畳み込み前の2文）
                     double old = rate;
                     if (gate > 0)
                         old *= law switch { StateReligionLaw.InnerFreedom => c.InnerFreedomTithe, StateReligionLaw.ReligiousFreedom => c.ReligiousFreedomTithe, StateReligionLaw.StateAtheism => 0.0, _ => 1.0 };
                     // 畳み込み後（Fiscal.Step の十分の一税の率と同じ式）
-                    AssertBitEqual(old, c.TitheRate * Privileges.TitheDegree(w, c), $"十分の一税の実効率（{law}/{gate}/{rate}）");
+                    AssertBitEqual(old, c.TitheRate.Value * Privileges.TitheDegree(w, c), $"十分の一税の実効率（{law}/{gate}/{rate}）");
                 }
         }
     }
@@ -180,8 +180,8 @@ public class PrivilegeDisplayTests
         var w = Warm(NationConfig.France());
         var c = w.Coef;
         w.StateReligion = StateReligionLaw.StateChurch;
-        c.TitheRate = 0.05; c.StateReligionGate = 0; c.CorruptionMax = 0;
-        w.TaxRate = 0; w.PollTax = 0; w.LandTax = 0; w.ProgressiveTax = 0;
+        c.TitheRate = new Share(0.05); c.StateReligionGate = 0; c.CorruptionMax = 0;
+        w.TaxRate = new Share(0); w.PollTax = 0; w.LandTax = 0; w.ProgressiveTax = 0;
         w.SocialSecurity = 0; w.Pension = ReformLevel.None;
         w.GovDebt = new MoneyStock(0); w.ForeignDebt = new MoneyStock(0);
         var pops = new System.Collections.Generic.List<Pop>(w.AllPops());
@@ -197,7 +197,7 @@ public class PrivilegeDisplayTests
 
         double Sum(System.Func<Pop, bool> pick) { double s = 0; foreach (var p in pops) if (pick(p)) s += p.Savings.Value; return s; }
         double before = Sum(_ => true), clergyBefore = Sum(p => p.ClassId == PopClass.Clergy), t0 = w.Treasury.Value;
-        w.FiscalFundingRatio = 1.0;
+        w.FiscalFundingRatio = new Share(1.0);
         Fiscal.Step(w, c);
         double after = Sum(_ => true), clergyAfter = Sum(p => p.ClassId == PopClass.Clergy);
 

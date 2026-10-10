@@ -20,7 +20,7 @@ namespace PriceOfBread.Tests;
 public class UnitTypeTests
 {
     /// <summary>専用の値型の一覧（新しい型を足したらここへ。Units.cs の型と一致することを下で確かめる）。</summary>
-    private static readonly Type[] UnitTypes = [typeof(RatePerYear), typeof(RatePerMonth), typeof(MoneyPerMonth), typeof(MoneyPerYear), typeof(MoneyStock), typeof(RealGdpPerMonth)];
+    private static readonly Type[] UnitTypes = [typeof(RatePerYear), typeof(RatePerMonth), typeof(MoneyPerMonth), typeof(MoneyPerYear), typeof(MoneyStock), typeof(RealGdpPerMonth), typeof(Share), typeof(RatioToGdpYear)];
 
     [Fact]
     public void 型の一覧は宣言された専用の値型の全部である()
@@ -46,6 +46,15 @@ public class UnitTypeTests
                 $"op_LessThan({n},{n})->Boolean", $"op_GreaterThan({n},{n})->Boolean", $"op_LessThanOrEqual({n},{n})->Boolean", $"op_GreaterThanOrEqual({n},{n})->Boolean",
                 $"op_Equality({n},{n})->Boolean", $"op_Inequality({n},{n})->Boolean",
             }.OrderBy(s => s, StringComparer.Ordinal).ToArray();
+            // ★(256) 割合（Share）だけは積の演算子を持つ：割合×割合＝割合・割合×お金＝お金（同じ型のまま）。お金の型の側の一覧は変えない（演算子は Share の中に置く）
+            if (t == typeof(Share))
+                expect = expect.Concat(new[]
+                {
+                    "op_Multiply(Share,Share)->Share",
+                    "op_Multiply(Share,MoneyStock)->MoneyStock", "op_Multiply(MoneyStock,Share)->MoneyStock",
+                    "op_Multiply(Share,MoneyPerMonth)->MoneyPerMonth", "op_Multiply(MoneyPerMonth,Share)->MoneyPerMonth",
+                    "op_Multiply(Share,MoneyPerYear)->MoneyPerYear", "op_Multiply(MoneyPerYear,Share)->MoneyPerYear",
+                }).OrderBy(s => s, StringComparer.Ordinal).ToArray();
             Assert.Equal(expect, actual);   // op_Implicit／op_Explicit（double への変換）と型をまたぐ演算子はここで赤になる
             // 構造：中身は double 1つだけ・値型・書式と取り出しの口
             Assert.True(t.IsValueType);
@@ -67,6 +76,7 @@ public class UnitTypeTests
         foreach (var type in typeof(IUnitValue).Assembly.GetTypes())
             foreach (var m in type.GetMethods(All))
             {
+                if (m.Name.StartsWith("op_", StringComparison.Ordinal)) continue;   // ★(256) 演算子は「演算子の一覧が許す形だけである」と「異なる型の間には…」が全部を固定している（Share×お金はそこで許す組だけ）
                 if (!UnitTypes.Contains(m.ReturnType)) continue;
                 bool crosses = m.GetParameters().Any(p => UnitTypes.Contains(p.ParameterType) && p.ParameterType != m.ReturnType);
                 if (crosses && type != typeof(Calendar)) offenders.Add($"{type.Name}.{m.Name}");
@@ -127,6 +137,30 @@ public class UnitTypeTests
         (typeof(World), "TotalMoney", typeof(MoneyStock)),
         (typeof(World), "BroadMoney", typeof(MoneyStock)),
         (typeof(World), "BaseMoney", typeof(MoneyStock)),
+        // ★(256) 在庫のお金の残り：銀行の準備（BaseMoney から毎期導く）・保存則の累計の台帳3本・対外の資本と債権（四半期の中で貯めて0に戻す PendingForeignBorrow／ForeignIntPaidThisQuarter は在庫でない＝double のまま）
+        (typeof(Bank), "Gold", typeof(MoneyStock)),
+        (typeof(World), "CumulativeTradeFlow", typeof(MoneyStock)),
+        (typeof(World), "CumulativeGoldMinted", typeof(MoneyStock)),
+        (typeof(World), "CumulativeFiatIssued", typeof(MoneyStock)),
+        (typeof(World), "ForeignCapitalIn", typeof(MoneyStock)),
+        (typeof(World), "CapitalAbroad", typeof(MoneyStock)),
+        (typeof(World), "ForeignBondClaims", typeof(MoneyStock)),
+        // ★(256) 割合（0〜1）＝財政の割合：税率・国家の支払い率（r）・歳入シェア・閾値。年GDP 比（在庫÷年の流れ・1 を超える）は別の型
+        (typeof(World), "TaxRate", typeof(Share)),
+        (typeof(World), "FiscalFundingRatio", typeof(Share)),
+        (typeof(Coefficients), "TitheRate", typeof(Share)),
+        (typeof(Coefficients), "AdminBudgetFrac", typeof(Share)),
+        (typeof(Coefficients), "WelfareRevenueShare", typeof(Share)),
+        (typeof(Coefficients), "MaxInterestShareOfRevenue", typeof(Share)),
+        (typeof(Coefficients), "BorrowFractionOfGdp", typeof(Share)),
+        (typeof(Coefficients), "CurrencyReformBurnShare", typeof(Share)),
+        (typeof(Coefficients), "CurrencyReformForgiveShare", typeof(Share)),
+        (typeof(Coefficients), "GoldStandardMinFunding", typeof(Share)),
+        (typeof(Coefficients), "LolrMinFunding", typeof(Share)),
+        (typeof(Coefficients), "AllyJoinFundingMin", typeof(Share)),
+        (typeof(Coefficients), "DebtDistressRatio", typeof(RatioToGdpYear)),
+        (typeof(Coefficients), "AusterityStartDebt", typeof(RatioToGdpYear)),
+        (typeof(Coefficients), "AusterityRange", typeof(RatioToGdpYear)),
     ];
 
     [Fact]
@@ -195,6 +229,48 @@ public class UnitTypeTests
             Assert.Equal(BitConverter.DoubleToInt64Bits(Calendar.PerYearToPerMonth(x)), BitConverter.DoubleToInt64Bits(Calendar.PerYearToPerMonth(new RatePerYear(x)).Value));
             Assert.Equal(BitConverter.DoubleToInt64Bits(Calendar.PerMonthToPerYear(x)), BitConverter.DoubleToInt64Bits(Calendar.PerMonthToPerYear(new RatePerMonth(x)).Value));
         }
+        // ★(256) 割合の積と年GDP 比の作り口も double の1演算そのもの
+        foreach (var a in xs) foreach (var b in xs)
+        {
+            Assert.Equal(BitConverter.DoubleToInt64Bits(a * b), BitConverter.DoubleToInt64Bits((new Share(a) * new Share(b)).Value));
+            Assert.Equal(BitConverter.DoubleToInt64Bits(a * b), BitConverter.DoubleToInt64Bits((new Share(a) * new MoneyStock(b)).Value));
+            Assert.Equal(BitConverter.DoubleToInt64Bits(b * a), BitConverter.DoubleToInt64Bits((new MoneyPerMonth(b) * new Share(a)).Value));   // 旧の `double * MoneyPerMonth`（k * a.Value）と同じビット
+            Assert.Equal(BitConverter.DoubleToInt64Bits(a * b), BitConverter.DoubleToInt64Bits((new Share(a) * new MoneyPerYear(b)).Value));
+            Assert.Equal(BitConverter.DoubleToInt64Bits(a / b), BitConverter.DoubleToInt64Bits(new Share(a) / new Share(b)));
+            Assert.Equal(BitConverter.DoubleToInt64Bits(a / b), BitConverter.DoubleToInt64Bits(Calendar.ToGdpYear(new MoneyStock(a), new MoneyPerYear(b)).Value));
+            Assert.Equal(BitConverter.DoubleToInt64Bits(a - b), BitConverter.DoubleToInt64Bits((new RatioToGdpYear(a) - new RatioToGdpYear(b)).Value));
+        }
+    }
+
+    /// <summary>★(256) 年GDP 比（在庫÷年の流れ）を計算から作る口は `Calendar.ToGdpYear(MoneyStock, MoneyPerYear)` の1本だけ。型を返す関数を全て数える（演算子と record の自動生成は除く）＋
+    /// SimCore・Runner・App の `new RatioToGdpYear(` は0件（係数の宣言の `new(…)` と反射の橋〔UnitValues〕とセーブの読みは除く）。⚠限界＝目的の型から推す `new(…)`（係数の宣言・定数）は文字列で数えられない。
+    /// ⚠突然変異「Calendar の外に MoneyStock を受けて RatioToGdpYear を返す関数を足す」「SimCore に `new RatioToGdpYear(` を書く」で赤。</summary>
+    [Fact]
+    public void 年GDP比を作る口はCalendarToGdpYearの1本だけである()
+    {
+        const BindingFlags All = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly;
+        var makers = new List<string>();
+        foreach (var type in typeof(IUnitValue).Assembly.GetTypes())
+            foreach (var m in type.GetMethods(All))
+            {
+                if (m.ReturnType != typeof(RatioToGdpYear)) continue;
+                if (type == typeof(RatioToGdpYear) && (m.Name.StartsWith("op_", StringComparison.Ordinal) || m.Name is "get_Value")) continue;   // 自分の型の演算子（同じ型どうしの加減・倍・符号反転）
+                if (m.IsSpecialName && m.Name.StartsWith("get_", StringComparison.Ordinal)) continue;   // 欄の読み出し（係数・定数）
+                makers.Add($"{type.Name}.{m.Name}({string.Join(",", m.GetParameters().Select(p => p.ParameterType.Name))})");
+            }
+        Assert.Equal(["Calendar.ToGdpYear(MoneyStock,MoneyPerYear)"], makers.ToArray());
+        // `new RatioToGdpYear(` の直書き（コンストラクタ）は SimCore（Units.cs を除く）・Runner・App に無い
+        string root = GoodIdGuardTests.RepoRoot();
+        var hits = new List<string>();
+        foreach (var dir in new[] { "PriceOfBread.SimCore", "PriceOfBread.Runner", "PriceOfBread.App" })
+            foreach (var f in System.IO.Directory.EnumerateFiles(System.IO.Path.Combine(root, dir), "*.cs", System.IO.SearchOption.AllDirectories))
+            {
+                string p = f.Replace('\\', '/');
+                if (p.Contains("/obj/") || p.Contains("/bin/") || p.EndsWith("/Units.cs")) continue;
+                int n = System.Text.RegularExpressions.Regex.Matches(GoodIdGuardTests.StripCode(System.IO.File.ReadAllText(f)), @"\bnew\s+RatioToGdpYear\s*\(").Count;
+                if (n > 0) hits.Add($"{System.IO.Path.GetFileName(f)} {n}");
+            }
+        Assert.True(hits.Count == 0, "`new RatioToGdpYear(` の直書き＝年GDP 比を ToGdpYear の外で作っている: " + string.Join("、", hits));
     }
 
     [Fact]
@@ -210,6 +286,12 @@ public class UnitTypeTests
         w1.ForeignDebt = new MoneyStock(1.0 / 7.0); w1.PrevForeignDebt = new MoneyStock(2.0 / 7.0);
         w1.Regions[0].Pops[0].BondHoldings = new MoneyStock(3.0 / 7.0); w1.Regions[0].Pops[0].Debt = new MoneyStock(4.0 / 7.0);
         w1.Bank!.Loans = new MoneyStock(5.0 / 7.0); w1.Bank.HouseholdLoans = new MoneyStock(6.0 / 7.0);
+        // ★(256) 在庫のお金の残り（銀行の準備・保存則の台帳3本・対外の資本と債権）と割合・年GDP 比＝割り切れない値（11分の幾つ）で往復を確かめる
+        w1.Bank.Gold = new MoneyStock(1.0 / 11.0);
+        w1.CumulativeTradeFlow = new MoneyStock(2.0 / 11.0); w1.CumulativeGoldMinted = new MoneyStock(3.0 / 11.0); w1.CumulativeFiatIssued = new MoneyStock(4.0 / 11.0);
+        w1.ForeignCapitalIn = new MoneyStock(5.0 / 11.0); w1.CapitalAbroad = new MoneyStock(6.0 / 11.0); w1.ForeignBondClaims = new MoneyStock(7.0 / 11.0);
+        w1.TaxRate = new Share(8.0 / 11.0); w1.FiscalFundingRatio = new Share(9.0 / 11.0); w1.Coef.TitheRate = new Share(10.0 / 11.0);
+        w1.Coef.AusterityStartDebt = new RatioToGdpYear(12.0 / 11.0);
         using var ms = new System.IO.MemoryStream();
         SaveGame.Save(sim1, ms);
         ms.Position = 0;
@@ -229,6 +311,18 @@ public class UnitTypeTests
         Assert.Equal(BitConverter.DoubleToInt64Bits(w1.Regions[0].Pops[0].Debt.Value), BitConverter.DoubleToInt64Bits(w2.Regions[0].Pops[0].Debt.Value));
         Assert.Equal(BitConverter.DoubleToInt64Bits(w1.Bank.Loans.Value), BitConverter.DoubleToInt64Bits(w2.Bank!.Loans.Value));
         Assert.Equal(BitConverter.DoubleToInt64Bits(w1.Bank.HouseholdLoans.Value), BitConverter.DoubleToInt64Bits(w2.Bank.HouseholdLoans.Value));
+        // ★(256)
+        Assert.Equal(BitConverter.DoubleToInt64Bits(w1.Bank.Gold.Value), BitConverter.DoubleToInt64Bits(w2.Bank.Gold.Value));
+        Assert.Equal(BitConverter.DoubleToInt64Bits(w1.CumulativeTradeFlow.Value), BitConverter.DoubleToInt64Bits(w2.CumulativeTradeFlow.Value));
+        Assert.Equal(BitConverter.DoubleToInt64Bits(w1.CumulativeGoldMinted.Value), BitConverter.DoubleToInt64Bits(w2.CumulativeGoldMinted.Value));
+        Assert.Equal(BitConverter.DoubleToInt64Bits(w1.CumulativeFiatIssued.Value), BitConverter.DoubleToInt64Bits(w2.CumulativeFiatIssued.Value));
+        Assert.Equal(BitConverter.DoubleToInt64Bits(w1.ForeignCapitalIn.Value), BitConverter.DoubleToInt64Bits(w2.ForeignCapitalIn.Value));
+        Assert.Equal(BitConverter.DoubleToInt64Bits(w1.CapitalAbroad.Value), BitConverter.DoubleToInt64Bits(w2.CapitalAbroad.Value));
+        Assert.Equal(BitConverter.DoubleToInt64Bits(w1.ForeignBondClaims.Value), BitConverter.DoubleToInt64Bits(w2.ForeignBondClaims.Value));
+        Assert.Equal(BitConverter.DoubleToInt64Bits(w1.TaxRate.Value), BitConverter.DoubleToInt64Bits(w2.TaxRate.Value));
+        Assert.Equal(BitConverter.DoubleToInt64Bits(w1.FiscalFundingRatio.Value), BitConverter.DoubleToInt64Bits(w2.FiscalFundingRatio.Value));
+        Assert.Equal(BitConverter.DoubleToInt64Bits(w1.Coef.TitheRate.Value), BitConverter.DoubleToInt64Bits(w2.Coef.TitheRate.Value));
+        Assert.Equal(BitConverter.DoubleToInt64Bits(w1.Coef.AusterityStartDebt.Value), BitConverter.DoubleToInt64Bits(w2.Coef.AusterityStartDebt.Value));
     }
 
     [Fact]
@@ -259,8 +353,15 @@ public class UnitTypeTests
             {
                 if (a == b) continue;
                 var ops = a.GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
-                    .Where(m => m.Name.StartsWith("op_", StringComparison.Ordinal) && m.GetParameters().Any(p => p.ParameterType == b)).Select(m => m.Name).ToArray();
-                Assert.True(ops.Length == 0, $"{a.Name} が {b.Name} を取る演算子を持つ: {string.Join(",", ops)}");
+                    .Where(m => m.Name.StartsWith("op_", StringComparison.Ordinal) && m.GetParameters().Any(p => p.ParameterType == b)).ToArray();
+                // ★(256) 許す組は「割合×お金」だけ（Share が持つ・乗算だけ・戻りはお金の型）。割合＋お金・割合と年GDP 比（RatioToGdpYear）・割合と月率／年率・お金どうしの型違いはここで赤。
+                bool shareTimesMoney = a == typeof(Share) && (b == typeof(MoneyStock) || b == typeof(MoneyPerMonth) || b == typeof(MoneyPerYear));
+                if (shareTimesMoney)
+                {
+                    Assert.Equal(2, ops.Length);   // Share*お金 と お金*Share
+                    Assert.All(ops, m => { Assert.Equal("op_Multiply", m.Name); Assert.Equal(b, m.ReturnType); });
+                }
+                else Assert.True(ops.Length == 0, $"{a.Name} が {b.Name} を取る演算子を持つ: {string.Join(",", ops.Select(m => m.Name))}");
             }
         // Calendar で在庫の型を返すのは OneMonthOf の1本だけ（MoneyPerMonth を受けて MoneyStock を返す＝Pop の月末の精算が貯蓄へ足す口）。⚠これは Calendar の換算の口の検査で、
         // 在庫を作る口の全てではない：double を受ける継ぎ目（World.Pay／Transfer の額・MoneyStock の public のコンストラクタ・CrossFx の在庫の型の版）は型で守っていない＝件数は下の「在庫のお金をdoubleから作る所の数」のラチェットが止める。
@@ -320,12 +421,16 @@ public class UnitTypeTests
     [Fact]
     public void 在庫のお金をdoubleから作る所の数は宣言のとおり()
     {
-        const int Declared = 54;   // 2026-10-11 (251)：48＝Simulation 30・Fiscal 6・Model 6・World 3・MultiNationSim 3 → (252)：54＝Simulation 32・Fiscal 8・Model 3・World 6・MultiNationSim 2・Bank 1・Diplomacy 2
+        const int Declared = 63;   // 2026-10-11 (251)：48＝Simulation 30・Fiscal 6・Model 6・World 3・MultiNationSim 3 → (252)：54＝Simulation 32・Fiscal 8・Model 3・World 6・MultiNationSim 2・Bank 1・Diplomacy 2 → (256)：63＝CapitalMarket 8・Credit 1・MultiNationSim 3・World 5 が変わった（下）
         //   増えた理由（(252) の+6＝どれも double の流れ・取引の額・換算の結果を在庫の型へ入れる継ぎ目で、月の流れの決算ではない）：
         //   Bank 1＝家計の貸しと返しの動いた額を個人債務へ（Bank.Lend）／Diplomacy 2＝払えなかった貢納と賠償を対外債へ記帳する額（Fiscal.BookForeignDebt の引数が在庫の型になり呼び手が包む）／
         //   Fiscal +2＝減債で減る対外債（Math.Max の結果）・起債で資本家が払った額の保有（(251) の GovDebt 側の1件は対外債の側と共有して増やしていない・BookForeignDebt の引数は型になり −1）／
         //   Simulation +2＝損失の負債化で個人債務へ足す額・負の国の与信の償却／World +3＝世界の外の側の台帳（与信・家計の与信の動いた額）の2行と CrossFx の在庫の型の版（国境をまたぐ在庫の換算の1本）／
         //   MultiNationSim −1＝越境移民の持参金を型に（+1）・反乱国の国債の保有を預かる行と按分の行（−2）が型のまま足し引きになった／Model −3＝人と動くお金の運搬の引数と州の再換算が型のまま（Pop.Carry の包み2・Rebase 1）
+        //   (256) の+9（どれも double の取引の額・移し方の戻り値・換算の結果を在庫の型へ入れる継ぎ目で、月の流れの決算ではない）：
+        //   CapitalMarket +8＝国際金融の記帳（逃げた金を対外資産へ 1・受け皿の外資の負債 1・外資の逃避で減る負債 1・逃避で消える対外資産の再計算〔Math.Max の結果〕1・新規フローの送り出しで増える対外資産 1・流入で増える外資の負債 1・債権の按分の減り〔Math.Max の結果〕1・債権の無い世界の増え 1。額はどれも TakeGold／GiveGold が返す double と為替の按分の結果）／
+        //   Credit +1＝銀行の準備 Bank.Gold を基礎貨幣から毎日導く 1 行／MultiNationSim +1＝対外借入の貸し手の国が払った額を貸し手の債権へ 1（World.Transfer が返す動いた額）／
+        //   World −1＝台帳の記帳（Book）で動いた額の包みを5つの台帳が共有する 1 本にした（企業の与信と家計の与信の 2 行の包みが 1 行に畳まれた）。
         var dir = System.IO.Path.Combine(GoodIdGuardTests.RepoRoot(), "PriceOfBread.SimCore");
         var per = System.IO.Directory.EnumerateFiles(dir, "*.cs", System.IO.SearchOption.AllDirectories)
             .Where(f => !f.Replace('\\', '/').Contains("/obj/") && !f.Replace('\\', '/').Contains("/bin/"))

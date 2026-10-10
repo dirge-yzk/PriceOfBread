@@ -56,7 +56,7 @@ public class SuffrageScopeTests
         {
             var w = sim.World;
             w.Coef.TaxConsentWeight = 0.5;   // 課税への同意を明示的に有効化（双子とも）
-            w.TaxRate = 0.2;                 // 所得税（同意が効く税）
+            w.TaxRate = new Share(0.2);                 // 所得税（同意が効く税）
             foreach (var p in w.Regions[1].Pops)
                 if (!p.IsSoldier) { p.EarnedPerMonth = new MoneyPerMonth(1_000); p.SetSavings(System.Math.Max(p.Savings.Value, 100_000)); }   // 課税ベースを確保（双子とも同額）
             Fiscal.Step(w, w.Coef);

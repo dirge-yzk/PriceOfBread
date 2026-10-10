@@ -92,7 +92,7 @@ public sealed class Simulation
             ExternalPressure = scenario.ExternalPressure,
             BaseCoercion = scenario.BaseCoercion,
             FiscalEnabled = scenario.FiscalEnabled,
-            TaxRate = scenario.TaxRate,
+            TaxRate = new Share(scenario.TaxRate),
             PollTax = scenario.InitialPollTax,   // 人頭税＝近世国家の主財源（行政不要）。序盤の国庫を支える（所得税は19世紀までロック）
             LandTax = scenario.InitialLandTax,   // 土地税＝検地台帳を保有済みの確立国家は開始から徴収（>0なら開始解禁）
             LandTaxUnlocked = scenario.InitialLandTax > 0,   // 台帳がある＝開始から解禁（admin ゲートは無から台帳を作る場合の関門）
@@ -234,7 +234,7 @@ public sealed class Simulation
         // ★全ての世界に銀行（2026-09-29 段2-2・作者裁定 Q11＝旧 Scenario.CreditEnabled を削除）。家計の与信は POP の債務の和から始まる
         //   （建国＝親から運んだ州の POP の輸入の為替手形・Territory.TransferRegion が親の銀行から外した分＝2026-09-29 S3b。開幕は0）。
         MoneyStock popDebt = default; foreach (var rg in World.Regions) foreach (var p in rg.Pops) popDebt += p.Debt;
-        World.Bank = new Bank { Gold = World.TotalMoney.Value, Loans = default, Confidence = 1.0, HouseholdLoans = popDebt };
+        World.Bank = new Bank { Gold = World.TotalMoney, Loans = default, Confidence = 1.0, HouseholdLoans = popDebt };
 
         Fiscal.SeedBondHoldings(World);   // ★国債の保有台帳（2026-09-21）：初期国債（仏）の持ち主を購入と同じ規則で起票（金は動かない・国内債0の国は何もしない）
         _invariants = [];
@@ -1627,7 +1627,7 @@ public sealed class Simulation
     internal void ProbeCheck(string label)
     {
         if (!ConservationProbe) return;
-        double now = World.BaseMoney.Value - World.CumulativeTradeFlow - World.CumulativeGoldMinted - World.CumulativeFiatIssued;
+        double now = (World.BaseMoney - World.CumulativeTradeFlow - World.CumulativeGoldMinted - World.CumulativeFiatIssued).Value;
         if (!double.IsNaN(_probeDLast) && Math.Abs(now - _probeDLast) > 1e-4)
             Console.Error.WriteLine($"[PROBE国内] {label} {World.Region.Name} {World.Year}年T{World.Tick} ΔD={now - _probeDLast:F6}");
         _probeDLast = now;
@@ -2100,7 +2100,7 @@ public sealed class Simulation
                 // ★距離の割増（2026-09-30 (135)＝旧の維持費の人頭割りの距離の割増を行政の購買へ・作者裁定 2026-09-03 E-05段4）：遠い州の予算は割増ぶん厚い
                 //   ＝EconomyStep の単価も同じ割増＝充足は割増の無い州と同じ・金額だけ増える（Fiscal.AdminDistanceMul の1本）。
                 r.AdminBudget = r.BureaucratPopIndex >= 0 && nationPop > 1e-9
-                    ? World.AdminSpending * World.Coef.AdminBudgetFrac * World.SpendableRevenue() * (r.SumPopulation() / nationPop) * Fiscal.AdminDistanceMul(World, r) : 0;   // 請求（r を掛ける前）
+                    ? World.AdminSpending * World.Coef.AdminBudgetFrac.Value * World.SpendableRevenue() * (r.SumPopulation() / nationPop) * Fiscal.AdminDistanceMul(World, r) : 0;   // 請求（r を掛ける前）
                 r.InfraBudget = nationPop > 1e-9
                     ? (World.AdminSpending * World.Coef.InfraBudgetScale * World.FiscalCapacityPerMonth * (r.SumPopulation() / nationPop)).Value : 0;
                 r.ElecInfraBudget = nationPop > 1e-9
@@ -2167,7 +2167,7 @@ public sealed class Simulation
         if (Instruments.On) Instruments.Claim(World, Instruments.Item.TradePolicy, tradeClaim / World.Coef.MonthsPerClearing);
         // 先月の区分つき StateSpent で見込む行（義務教育・健康保険・工場の材料・民営の補助）は先月の r で払った額＝請求へ戻すには先月の r で割る
         //   （この時点の FiscalFundingRatio＝先月の r。先月 0 なら先月は払っていない＝見込みも 0）。
-        double lastRate = World.FiscalFundingRatio;
+        double lastRate = World.FiscalFundingRatio.Value;
         double regrow = lastRate > 0 ? 1.0 / lastRate : 0.0;
         foreach (var r in World.Regions)
             if (r.State == RegionState.Active)
@@ -2260,7 +2260,7 @@ public sealed class Simulation
         }
         double payRate = claims > 0 ? payable / claims : 1.0;
         if (!(payRate >= 0)) payRate = 0; else if (payRate > 1) payRate = 1;   // 否定形＝NaN は払わない側
-        World.FiscalFundingRatio = payRate;
+        World.FiscalFundingRatio = new Share(payRate);
         if (Instruments.On) Instruments.Rate(World, claims, payable, payRate, devalued);
         foreach (var r in World.Regions)
             if (r.State == RegionState.Active)
@@ -2432,7 +2432,7 @@ public sealed class Simulation
         if (baseline < 1e-9) return;
         double litSum = 0, healthSum = 0, foodMet = 0, foodNeed = 0;
         foreach (var p in World.AllPops()) { litSum += p.Literacy * p.Size; healthSum += p.HealthFill * p.Size; foodMet += p.FoodMet; foodNeed += p.FoodNeed; }
-        double healthcare = Math.Min(World.SocialSecurity * World.FiscalFundingRatio, (litSum / pop) / c.HealthcareEducationGate);   // 社会保障(充足率で減衰)と識字(医者)の小さい方で律速＝財政不足で医療→人口増が鈍る
+        double healthcare = Math.Min(World.SocialSecurity * World.FiscalFundingRatio.Value, (litSum / pop) / c.HealthcareEducationGate);   // 社会保障(充足率で減衰)と識字(医者)の小さい方で律速＝財政不足で医療→人口増が鈍る
         double doctorCare = healthSum / pop;   // 医者の役務（医療財）の消費＝乳児死亡の低下。医者が居ない/買えない社会は人口が伸びにくい
         // 接13（監査2026-07-11・2026-07-25休眠配線）：主医療チャネル（重み1.2）が社会保障×識字の抽象値のみ＝医者が1人も居ない国でも
         // 満額が出て、実装済みの医療サービス経済（医者pop・医薬品・重み0.05）が人口にほぼ報いない。これ>0で実医療財の消費(HealthFill)を
@@ -2972,7 +2972,7 @@ public sealed class Simulation
         // ★E6：負の分だけ与信を償却（基礎貨幣は償却の額だけ上がり、非常発行が同じ額だけ台帳に積まれる＝保存量は動かない）。
         //   ⚠NaN は比較が偽＝何もしない（否定形の門）。償却の後の基礎貨幣＝0（与信が足りれば）か国庫の負の分（与信を全部消しても残る分）。
         double writeOff = Math.Min((-World.BaseMoney).Value, bank.Loans.Value);
-        if (writeOff > 0) { bank.Loans -= new MoneyStock(writeOff); World.CumulativeFiatIssued += writeOff; }   // 非常発行の台帳（負の国の与信の償却だけ）
+        if (writeOff > 0) { var wo = new MoneyStock(writeOff); bank.Loans -= wo; World.CumulativeFiatIssued += wo; }   // 非常発行の台帳（負の国の与信の償却だけ）
     }
 
 
@@ -3064,8 +3064,8 @@ public sealed class Simulation
             (int)World.Polity, conscSum * inv, milSum * inv,
             World.ReformistPower, World.Coercion,
             World.BroadMoney.Value, World.OutstandingLoans.Value, World.Bank?.Confidence ?? 1.0,
-            World.Treasury.Value, World.FiscalFundingRatio,
+            World.Treasury.Value, World.FiscalFundingRatio.Value,
             World.Regions[0].SumPopulation(), World.Regions.Count > 1 ? World.Regions[1].SumPopulation() : 0.0,
-            World.Bank?.Gold ?? 0.0, World.CumulativeTradeFlow));
+            World.Bank?.Gold.Value ?? 0.0, World.CumulativeTradeFlow.Value));
     }
 }

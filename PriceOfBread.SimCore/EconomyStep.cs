@@ -2402,7 +2402,7 @@ public static class EconomyStep
         // === ④ 所得（§9-C）：付加価値＝（売上の取り分）−投入費 → 地代/賃金 ===
         // ★国家の支払い率 r（作者裁定 F3・R3・2026-09-28 支払いの一元化 段2-1）＝国営持分の赤字の肩代わりと民営の補助は r の分だけ（全ての国家の支払いと同じ1本の率）。
         //   世界の無い試験（world=null）は 1＝満額。
-        double payRate = world?.FiscalFundingRatio ?? 1.0;
+        double payRate = world?.FiscalFundingRatio.Value ?? 1.0;
         // ★R1（2026-10-02 (173)）：植民地格の州の輸出作物の大農園（Colonial.AbsenteeRgo）の地代は不在地主（本国の首都の投資家）のもの＝在地の持ち主の口座ごとに積み、
         //   州の月末の精算の後に移し方の1本で送る（Colonial.RemitAbsenteeRent の注記）。植民地格でない州・世界の無い試験・不在地主の居ない国は null＝何もしない。
         double[]? absentee = world is not null && region.Tier == RegionTier.Colonial && Colonial.AbsenteeOwner(world, region) is not null ? new double[region.Pops.Count] : null;
@@ -2629,7 +2629,7 @@ public static class EconomyStep
     {
         // ★材料は工賃と同じ国家の支払い率 r で買う（作者裁定 F3・2026-09-28 段2-1）＝旧の門（国庫が1日分の工賃に満たない月は材料を買わない）を撤去。
         //   工事は r の分だけ進む（World.StepConstruction）＝材料も r の分だけ＝同じ1本の率。世界の無い試験（world=null）は 1。
-        double payRate = world?.FiscalFundingRatio ?? 1.0;
+        double payRate = world?.FiscalFundingRatio.Value ?? 1.0;
         double costPerUnit = BundleCost(region, coef);   // 建設の資材の束の費用（K の1本）
             // プレイヤーの工場建設（特定財）：建設中の生産者は材料を建設期間で徐々に消費（工賃はStepConstructionで日次・国庫）。
         // 素材の必要「量」は参照価格で較正した固定量＝実支払い（下段）は現在の市場価格×量なので、鋼などが高い時期は建設費も上がる（真の素材価格依存）。
