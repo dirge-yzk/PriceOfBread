@@ -1,0 +1,762 @@
+diff --git a/PriceOfBread.SimCore/Coefficients.cs b/PriceOfBread.SimCore/Coefficients.cs
+index c13acd9..82b1800 100644
+--- a/PriceOfBread.SimCore/Coefficients.cs
++++ b/PriceOfBread.SimCore/Coefficients.cs
+@@ -507,7 +507,7 @@ public sealed class Coefficients
+     public int DefaultCooldownQuarters = 24;     // デフォルト後の借入禁止の**月数**（信用回復まで＝2年。⚠名前は Quarters だが月次で減る・2026-09-26 に書き方を是正）。この間は赤字を切り下げ/薄給で凌ぐしかない
+     public double CrowdingOutWeight = 1.5;       // クラウディングアウト（金利チャネル）：政府の国債金利プレミアム(GovBondRate−基礎)×これ を民間投資のハードルレートに上乗せ。＝政府借入が民間投資を締め出す（高債務国で工業化↓・金本位の信用国は弱い＝条件付き）
+     // ⚠**この較正の出所に注意**（2026-08-01訂正）：「既定治安維持力400で≈0.5」は BaseCoercion を独立に掃引する**単一国の較正世界**の数字で、
+-    //   多国シムでは治安維持力は兵数×即応度から出る（CoercionPerSoldier・2026-06-23の一本化）ので400は現れない。値の妥当性は多国側で測り直すこと。
++    //   多国シムでは治安維持力は兵数×即応度から出る（Government.CoercionForce・2026-06-23の一本化）ので400は現れない。値の妥当性は多国側で測り直すこと。
+     public double CrimeOrderPerPop = 0.8;        // 治安の必要治安維持力（人口あたり強度）。秩序＝Coercion÷(基準人口×これ)＝Coercion/800（既定治安維持力400で≈0.5＝平時は微小・不況/不満で発火）。0.4は治安維持力400で秩序1.0に飽和し犯罪が死んでいた→0.8で活性化
+     public double CrimeBase = 0.01;              // 秩序が完全に崩れた時の月次窃盗率の上限（被害者の貯蓄比）
+     public double CrimeMilitancyWeight = 1.0;    // 犯罪率に効く「貧しく不満な大衆」の重み（闘争度×不充足）
+@@ -978,10 +978,9 @@ public sealed class Coefficients
+     public double DebtDeflationWeight = 4.0;  // フィッシャー民間負債デフレ：デフレ率×レバレッジ(Heat)→信頼目標の下げ（実質債務増→債務者破産→さらにデフレの渦）。MonetaryEnabled時のみ
+ 
+     // --- 国庫・財政（§9-F／§6.2・段4b）---
+-    // BaseCoercion 自体が兵数×即応度×CoercionPerSoldier から出るので、これは軍と別立ての費用ではない。
++    // BaseCoercion 自体が兵数×即応度（Government.CoercionForce）から出るので、これは軍と別立ての費用ではない。
+     // （治安維持費 CoercionUpkeepRate＝0.05×治安維持力の基礎×人口÷基準人口は 2026-09-30 (135) に削除＝治安維持力は兵数×即応度から＝軍そのもの・給与と装備に続く3度目の課金で人口の2乗に比例＝軍の費用は兵力と装備の購買の1本）
+     public double WarCoercionDrain = 0.15;    // 治安維持力と軍事のリンク(A)：軍は内外を兼ねる一つの武力＝戦時は前線に取られ国内の治安維持力が下がる。実効治安維持力 ×(1−これ×厭戦)。長期戦ほど本国で革命機会（1917型）。較正は無戦争＝不変
+-    public double CoercionPerSoldier = 5.0 / Military.WorkingMenStdShare;   // （(145) 兵の単位の読み替え＝旧値 5.0÷Military.WorkingMenStdShare〔標準のピラミッドの働き盛りの男の割合 0.2765〕＝兵役の母数を働き盛りの男で読むと兵の数がこの比になる＝旧の兵1単位の働きを保つ）。治安維持力＝**兵数×即応度×これ**（治安維持力=軍の一本化 2026-06-23）。装備された軍だけが治安維持力を持つ＝武器を買えぬ軍は即応度0→治安維持力0→革命。軍隊規模(兵数)＝扶養限界が駆動（(145)・旧＝軍事費スライダー）。CoercionMax で頭打ち（CoercionFollowsForce=true 時）
+     public double CoercionMax = 2000;   // 【点火2000・2026-08-16 点火梯子＝★2026-08-16に4000→2000（漸近化と同時）＝挑戦力の理論最大（BaseCoercion換算≈1250）の3.2倍だった壁を等号点の1.6倍へ。旧4000は「不満100%でも革命が代数的に不能」を作っていた。合成comp4（12本＋海0.5）で exact41.6/near77.4/法63.2/貿易0.66・硬性緑】         // 治安維持力の上限（旧 Reactionary の最大治安維持力＝史実の最大動員）。装備された大軍でも2000で漸近（CoercionSoftCap）
+ 
+     // --- 領土・地域間移民（§5.2／§A-8・段4c）---
+diff --git a/PriceOfBread.SimCore/Government.cs b/PriceOfBread.SimCore/Government.cs
+index 974e5b7..c00a28a 100644
+--- a/PriceOfBread.SimCore/Government.cs
++++ b/PriceOfBread.SimCore/Government.cs
+@@ -44,6 +44,29 @@ public static class Government
+     internal const int MilitaryLawStages = 4;
+     internal const int SocialSecurityMaxLevel = 3;    // 社会保障法の最上段（Pension）＝4段（PoorLaw..Pension）の最大序数。internal（2026-09-11）＝Parliament.TargetDemand が法の段で目標を置く。2026-07-21「なし」廃止で救貧法が最下段（序数0＝福祉水準0）
+ 
++    /// <summary>★(235) 治安維持力の目標のソフト化の前の生の値＝**人口あたりの強度**（使う側 <see cref="PoliticalQuantities.EffectiveCoerce"/> は BaseCoercion を人口あたり〔÷基準人口〕で読む）。
++    /// 旧＝絶対の兵数×即応度×CoercionPerSoldier（係数ごと削除）＝保持力が人口の2乗・挑戦力は1乗で単位が合わなかった（(233) 保留2・反証役 vm1#1）。
++    /// 新＝CoercionMax×(兵÷(人口×平時の上限の人口比))×即応度＝「平時の上限の軍が完全に装備されたとき生の値が CoercionMax」。新しい数は無い（CoercionMax・MaxSoldierFraction・WorkingMenStdShare の組み合わせ）。
++    /// 錨は測る前に選んだ（measurements/stk235_20261010_prereg.txt）＝モデルの内部整合（挑戦力の理論最大と CoercionMax）で、史実の絶対値ではない。
++    /// 旧式との比（同じ兵・即応度）＝10000÷人口（千人）＝人口 1,000 千の国で 10 倍・人口 31,500 千の仏で 0.32 倍。</summary>
++    internal static double CoercionForce(World w, Coefficients c)
++    {
++        double cap = w.TotalPopulation * Military.PeaceCapShareOfPop(c);
++        if (!(cap > 1e-9)) return 0;   // 否定形＝人口 0・NaN は0（強度の無い国）
++        return c.CoercionMax * (w.SoldierSize() / cap) * w.MilitaryReadiness;
++    }
++
++    /// <summary>★(235) 開幕の治安維持力＝多国シムが毎期やっている目標の式（<see cref="Step"/>）を、助走の直後に1度だけ先に当てる（助走中は政治が止まる＝旧は world.json の国別の置いた値のまま入っていた。欄は外した）。
++    /// 目標も同じ値＝最初の四半期に置いた値へ動かない。助走の長さが0の経路は呼ばれない（全ての国が NationConfig の既定 400 で始まる）。</summary>
++    internal static void SetOpeningCoercion(World w, Coefficients c)
++    {
++        if (!w.CoercionFollowsForce) return;
++        double t = CoercionTargetFromForce(CoercionForce(w, c), c);
++        if (!(t >= 0)) return;   // 否定形＝NaN は既定のまま
++        w.Policy.CoercionTarget = t;
++        w.BaseCoercion = t;
++    }
++
+     /// <summary>R1 蜂起R群2026-08-16（診断A1・本丸）：軍事力→治安維持力目標。CoercionSoftCap=0＝旧 min(x, CoercionMax)＝**ビット恒等**／
+     /// >0＝漸近逓減 x/(1+x/CoercionMax)（SelfPlay.Score.Military と同じ既存の逓減形・x→∞でCoercionMaxへ漸近）。
+     /// 壁の何が悪いか：旧 CoercionMax=4000 は挑戦力の理論最大（BaseCoercion換算 ≈ PoliticalReferencePop×1.25 ≈ 1250）の3.2倍＝
+@@ -290,7 +313,7 @@ public static class Government
+         foreach (var law in RateLaws) law.Set(w, Move(law.Get(w), Q4(law.Axis, law.Target(p)), c, w, law.Axis));
+         // 武力統合：治安維持力＝**装備された軍の効果**＝兵数×即応度×係数（治安維持力=軍の一本化 2026-06-23）。武器を買えぬ軍（即応度0）は治安維持力も0→革命。較正/単体は false で CoercionTarget を独立保持（単一国較正セル不変）。
+         if (w.CoercionFollowsForce)
+-            p.CoercionTarget = CoercionTargetFromForce(w.SoldierSize() * w.MilitaryReadiness * c.CoercionPerSoldier, c);
++            p.CoercionTarget = CoercionTargetFromForce(CoercionForce(w, c), c);
+         w.BaseCoercion      = Move(w.BaseCoercion,      p.CoercionTarget,          c, w, PolicyAxis.Coercion, c.CoercionMax, mandate: !w.CoercionFollowsForce);   // 治安維持力＝武力スライダー(軍事費)から導出された目標へ（5%丸めは軍事費側で実施）。武力統合下は機械追従＝マンデート余白を適用しない（従来の硬いゲート＝専制の保持力ラチェットを保つ）。較正/単体（CoercionFollowsForce=false）は意図した目標＝余白対象。消費の正規化は治安維持力の実スケール＝CoercionMax
+         // ★軍事費の床も撤去（同上・2026-08-19）。旧＝政体の国家軍軸×MilitaryFloorScale。⚠**政体から導出していたので同じ理由で消える**。
+         // ★陸海の維持費（2026-08-04）：政治ゲートは**合計**に掛ける（軍系ブロックが見るのは軍事費の総額であって内訳ではない）。
+diff --git a/PriceOfBread.SimCore/Military.cs b/PriceOfBread.SimCore/Military.cs
+index fb202f2..3c9687e 100644
+--- a/PriceOfBread.SimCore/Military.cs
++++ b/PriceOfBread.SimCore/Military.cs
+@@ -389,7 +389,7 @@ public static class Military
+ 
+     /// <summary>★兵の単位の換算（(145)）＝標準のピラミッドの働き盛りの男（16〜59歳）の割合（0.2765）＝新しい数0（標準のピラミッドの表から）。
+     /// 兵役の母数を「全ての人（標準の構成）」から「働き盛りの男」へ読み替えた比＝同じ割合の値で兵の数がこの比になる。
+-    /// 兵を単位にした較正（戦力ゲージ SoldiersPerMilitary・治安維持力 CoercionPerSoldier・装備 MilitaryUpkeepScale・
++    /// 兵を単位にした較正（戦力ゲージ SoldiersPerMilitary・装備 MilitaryUpkeepScale・
+     /// 軍政の力 MilitaryCoupWeight・軍の政治力 ArmyPoliticalWeight・徴兵の国民形成 NationBuildConscript・戦争熱 WarFeverSoldier）と
+     /// 政治の正規化（平時の上限の人口比 <see cref="PeaceCapShareOfPop"/>）は、この比で読み替える＝旧の兵1単位の働きを新しい兵の単位で保つ。
+     /// ★(149) 反証の指摘：民兵の戦力 MilitiaCombatValue（既定0）は「本当の兵1人に対する比」＝兵と同じ分子に入る＝読み替えない（値は旧のまま）。
+diff --git a/PriceOfBread.SimCore/MultiNationSim.cs b/PriceOfBread.SimCore/MultiNationSim.cs
+index ae9bc28..46cadb6 100644
+--- a/PriceOfBread.SimCore/MultiNationSim.cs
++++ b/PriceOfBread.SimCore/MultiNationSim.cs
+@@ -537,11 +537,15 @@ public sealed class MultiNationSim
+ 
+     /// <summary>★(231) 開幕の軍の確定（助走の直後・初期値の整備の段5）＝構築の一律の播種（艦 0）を、助走で出そろった入力（歳入・賃金・参照価格）から既存の式で置き直す。新しい表は無い。
+     /// 艦（陸海の比と播種・払える側の上限）。人と金は動かさない。
+-    /// 置き直さないもの：治安維持力＝(233) で差し戻した（兵数×即応度×CoercionPerSoldier は絶対の兵数に比例し、使う側 PoliticalQuantities.EffectiveCoerce は人口あたりの強度として読む＝単位が合わない・world.json の国の coercion 欄に戻した）／
++    /// 治安維持力：(233) で差し戻した導出を、単位を人口あたりへ揃えて入れ直した（(235)・<see cref="Government.SetOpeningCoercion"/>）＝world.json の国の coercion 欄は外した。
+     /// 測って落としたもの：兵＝助走の直後の兵は構築の播種から軍の定員の式（<see cref="Military.EstablishmentOf"/>）と徴兵・志願の動きで寄った、シム自身の釣り合い
+     /// （志願制の国は定員の一部しか埋まらない＝定員まで置くと英が釣り合いの約3倍・史実の約5倍）／軍事費の段＝AI の関数（UtilityAgent.SecurityStageTarget）で置いても史実との差は縮まらず
+     /// 史実比較の桁の NG が増えた（測定の表 measurements/mil231_20261010）。</summary>
+-    private void OpenForces() => Diplomacy.OpenGame(_coef);
++    private void OpenForces()
++    {
++        Diplomacy.OpenGame(_coef);
++        foreach (var n in Nations) Government.SetOpeningCoercion(n.World, n.World.Coef);   // ★(235) 開幕の治安維持力（兵÷人口×即応度の式・毎期の目標と同じ1本）
++    }
+ 
+     /// <summary>★発見の段（段2A・2026-10-01・設計 §1A-2・§1A-7）＝四半期末の共有層。
+     /// 接触（行ごと）＝①取引：その行を解禁済みの国から、まだの自国が買った運び手の財の額 ÷ 世界のその運び手の財の取引額の和（思想の伝播 StepDiffusion と同じ「世界の取引に占める割合」＝小国を過大に見ない）
+diff --git a/PriceOfBread.SimCore/NationConfig.cs b/PriceOfBread.SimCore/NationConfig.cs
+index 3a9877a..430f4f6 100644
+--- a/PriceOfBread.SimCore/NationConfig.cs
++++ b/PriceOfBread.SimCore/NationConfig.cs
+@@ -22,7 +22,7 @@ public sealed class NationConfig
+     public double PeasantSubsistence = 0.7;
+     public Polity Polity = Polity.Absolutist;
+     public EducationLaw Education = EducationLaw.Religious;
+-    public double Coercion = 400;   // 人口正規化後＝基準人口1000あたりの治安維持力強度。Coercion/1000 が「革命に要る平均意識」の閾値（0.4＝公教育で到達・宗教教育では届かず権威主義のまま）
++    public double Coercion = 400;   // ★(235) 構築の入力の既定（world.json の国別の欄は外した）。多国シムでは助走の直後に Government.SetOpeningCoercion が兵÷人口×即応度で置き直す（助走中は政治が止まり読まれない）。人口正規化後＝基準人口1000あたりの治安維持力強度。Coercion/1000 が「革命に要る平均意識」の閾値（0.4＝公教育で到達・宗教教育では届かず権威主義のまま）
+     public double Treasury = 200_000;
+     public double GovDebt = 0;      // 初期国債残高（国内債＝利払いは国庫→資本家の内部移転・保有は Fiscal.SeedBondHoldings が購入と同じ規則で起票）
+     // ★1783年の国債÷年GDP の史実（2026-09-29・world.json の govDebt＝開幕〔助走の後〕の年名目GDP×比）：英 約1.1（1783 約2.4億ポンド÷GDP 約2億）・仏 約0.6（米独立戦争の後・1789 0.6〜0.8）・
+diff --git a/PriceOfBread.SimCore/world.json b/PriceOfBread.SimCore/world.json
+index 22cb4e3..de2ecc0 100644
+--- a/PriceOfBread.SimCore/world.json
++++ b/PriceOfBread.SimCore/world.json
+@@ -17,7 +17,6 @@
+    "peasantSubsistence": 0.7,
+    "polity": "Absolutist",
+    "education": "Religious",
+-   "coercion": 400,
+    "treasury": 3700,
+    "pollTaxStage": 2,
+    "landTaxStage": 2,
+@@ -182,7 +181,6 @@
+    "peasantSubsistence": 0.7,
+    "polity": "Shogunate",
+    "education": "Religious",
+-   "coercion": 450,
+    "treasury": 19000,
+    "pollTaxStage": 1,
+    "landTaxStage": 3,
+@@ -308,7 +306,6 @@
+    "peasantSubsistence": 0.7,
+    "polity": "ConstitutionalMonarchy",
+    "education": "Public",
+-   "coercion": 380,
+    "treasury": 21000,
+    "pollTaxStage": 0,
+    "landTaxStage": 2,
+@@ -582,7 +579,6 @@
+    "peasantSubsistence": 0.7,
+    "polity": "Republic",
+    "education": "Public",
+-   "coercion": 180,
+    "treasury": 560,
+    "govDebt": 48000,
+    "nationalConsciousness0": 0.32,
+@@ -678,7 +674,6 @@
+    "peasantSubsistence": 0.7,
+    "polity": "Despotic",
+    "education": "Religious",
+-   "coercion": 700,
+    "treasury": 12000,
+    "pollTaxStage": 1,
+    "landTaxStage": 0,
+@@ -1004,7 +999,6 @@
+    "peasantSubsistence": 0.7,
+    "polity": "Absolutist",
+    "education": "Public",
+-   "coercion": 600,
+    "treasury": 46000,
+    "pollTaxStage": 0,
+    "landTaxStage": 2,
+@@ -1104,7 +1098,6 @@
+    "peasantSubsistence": 0.7,
+    "polity": "Absolutist",
+    "education": "Religious",
+-   "coercion": 500,
+    "treasury": 12000,
+    "institutionalDecay": 0.6,
+    "initialTariff": 0.1,
+@@ -1326,7 +1319,6 @@
+    "peasantSubsistence": 0.7,
+    "polity": "Absolutist",
+    "education": "Religious",
+-   "coercion": 500,
+    "treasury": 13000,
+    "pollTaxStage": 1,
+    "landTaxStage": 3,
+@@ -1515,7 +1507,6 @@
+    "peasantSubsistence": 0.7,
+    "polity": "Republic",
+    "education": "Public",
+-   "coercion": 250,
+    "treasury": 2900,
+    "pollTaxStage": 0,
+    "landTaxStage": 2,
+@@ -1622,7 +1613,6 @@
+    "peasantSubsistence": 0.7,
+    "polity": "Absolutist",
+    "education": "Religious",
+-   "coercion": 500,
+    "treasury": 9800,
+    "pollTaxStage": 0,
+    "landTaxStage": 1,
+@@ -1886,7 +1876,6 @@
+    "peasantSubsistence": 0.7,
+    "polity": "Absolutist",
+    "education": "Religious",
+-   "coercion": 450,
+    "treasury": 2400,
+    "pollTaxStage": 0,
+    "landTaxStage": 3,
+@@ -1959,7 +1948,6 @@
+    "peasantSubsistence": 0.7,
+    "polity": "Despotic",
+    "education": "Religious",
+-   "coercion": 500,
+    "treasury": 160000,
+    "pollTaxStage": 0,
+    "landTaxStage": 2,
+@@ -2297,7 +2285,6 @@
+    "peasantSubsistence": 0.7,
+    "polity": "Absolutist",
+    "education": "Religious",
+-   "coercion": 450,
+    "treasury": 4500,
+    "initialTariff": 0.9,
+    "industrialization": 0,
+@@ -2383,7 +2370,6 @@
+    "peasantSubsistence": 0.7,
+    "polity": "Despotic",
+    "education": "Religious",
+-   "coercion": 400,
+    "treasury": 18000,
+    "pollTaxStage": 0,
+    "landTaxStage": 3,
+@@ -2493,7 +2479,6 @@
+    "peasantSubsistence": 0.7,
+    "polity": "Despotic",
+    "education": "Religious",
+-   "coercion": 400,
+    "treasury": 2149,
+    "pollTaxStage": 0,
+    "landTaxStage": 3,
+@@ -2560,7 +2545,6 @@
+    "peasantSubsistence": 0.7,
+    "polity": "Despotic",
+    "education": "Religious",
+-   "coercion": 400,
+    "treasury": 4500,
+    "pollTaxStage": 0,
+    "landTaxStage": 3,
+@@ -2627,7 +2611,6 @@
+    "peasantSubsistence": 0.7,
+    "polity": "Republic",
+    "education": "Religious",
+-   "coercion": 250,
+    "treasury": 2500,
+    "pollTaxStage": 0,
+    "landTaxStage": 3,
+@@ -2675,7 +2658,6 @@
+    "peasantSubsistence": 0.7,
+    "polity": "Despotic",
+    "education": "Religious",
+-   "coercion": 400,
+    "treasury": 2500,
+    "initialTariff": 0.4,
+    "industrialization": 0,
+@@ -2733,7 +2715,6 @@
+    "peasantSubsistence": 0.7,
+    "polity": "Absolutist",
+    "education": "Religious",
+-   "coercion": 400,
+    "treasury": 1700,
+    "initialTariff": 0.4,
+    "industrialization": 0,
+@@ -2779,7 +2760,6 @@
+    "peasantSubsistence": 0.7,
+    "polity": "Absolutist",
+    "education": "Religious",
+-   "coercion": 400,
+    "treasury": 2200,
+    "initialTariff": 0.4,
+    "industrialization": 0,
+@@ -2827,7 +2807,6 @@
+    "peasantSubsistence": 0.7,
+    "polity": "Despotic",
+    "education": "Religious",
+-   "coercion": 400,
+    "treasury": 2697,
+    "initialTariff": 0.4,
+    "industrialization": 0,
+@@ -2885,7 +2864,6 @@
+    "peasantSubsistence": 0.7,
+    "polity": "Absolutist",
+    "education": "Religious",
+-   "coercion": 400,
+    "treasury": 341,
+    "initialTariff": 0.4,
+    "industrialization": 0,
+@@ -2930,7 +2908,6 @@
+    "peasantSubsistence": 0.7,
+    "polity": "Absolutist",
+    "education": "Religious",
+-   "coercion": 400,
+    "treasury": 450,
+    "initialTariff": 0.4,
+    "industrialization": 0,
+@@ -2975,7 +2952,6 @@
+    "peasantSubsistence": 0.7,
+    "polity": "Despotic",
+    "education": "Religious",
+-   "coercion": 400,
+    "treasury": 2137,
+    "initialTariff": 0.05,
+    "industrialization": 0,
+@@ -3093,7 +3069,6 @@
+    "peasantSubsistence": 0.7,
+    "polity": "Despotic",
+    "education": "Religious",
+-   "coercion": 400,
+    "treasury": 450,
+    "initialTariff": 0.1,
+    "industrialization": 0,
+@@ -3148,7 +3123,6 @@
+    "peasantSubsistence": 0.7,
+    "polity": "Absolutist",
+    "education": "Religious",
+-   "coercion": 400,
+    "treasury": 890,
+    "initialTariff": 0.1,
+    "industrialization": 0,
+@@ -3203,7 +3177,6 @@
+    "peasantSubsistence": 0.7,
+    "polity": "Absolutist",
+    "education": "Religious",
+-   "coercion": 400,
+    "treasury": 267,
+    "initialTariff": 0.05,
+    "industrialization": 0,
+@@ -3272,7 +3245,6 @@
+    "peasantSubsistence": 0.7,
+    "polity": "Despotic",
+    "education": "Religious",
+-   "coercion": 400,
+    "treasury": 2900,
+    "initialTariff": 0.1,
+    "industrialization": 0,
+@@ -3355,7 +3327,6 @@
+    "peasantSubsistence": 0.7,
+    "polity": "Absolutist",
+    "education": "Religious",
+-   "coercion": 400,
+    "treasury": 1200,
+    "initialTariff": 0.4,
+    "industrialization": 0,
+@@ -3402,7 +3373,6 @@
+    "peasantSubsistence": 0.7,
+    "polity": "Absolutist",
+    "education": "Religious",
+-   "coercion": 400,
+    "treasury": 290,
+    "initialTariff": 0.4,
+    "industrialization": 0,
+@@ -3448,7 +3418,6 @@
+    "peasantSubsistence": 0.7,
+    "polity": "Absolutist",
+    "education": "Religious",
+-   "coercion": 400,
+    "treasury": 660,
+    "initialTariff": 0.4,
+    "industrialization": 0,
+@@ -3495,7 +3464,6 @@
+    "peasantSubsistence": 0.7,
+    "polity": "Absolutist",
+    "education": "Religious",
+-   "coercion": 400,
+    "treasury": 2200,
+    "initialTariff": 0.1,
+    "industrialization": 0,
+@@ -3563,7 +3531,6 @@
+    "peasantSubsistence": 0.7,
+    "polity": "Despotic",
+    "education": "Religious",
+-   "coercion": 150,
+    "treasury": 1800,
+    "initialTariff": 0.4,
+    "industrialization": 0,
+@@ -3609,7 +3576,6 @@
+    "peasantSubsistence": 0.7,
+    "polity": "Absolutist",
+    "education": "Religious",
+-   "coercion": 400,
+    "treasury": 1100,
+    "initialTariff": 0.4,
+    "industrialization": 0,
+@@ -3663,7 +3629,6 @@
+    "peasantSubsistence": 0.7,
+    "polity": "Absolutist",
+    "education": "Religious",
+-   "coercion": 400,
+    "treasury": 1200,
+    "initialTariff": 0.4,
+    "industrialization": 0,
+@@ -3743,7 +3708,6 @@
+    "peasantSubsistence": 0.7,
+    "polity": "Absolutist",
+    "education": "Religious",
+-   "coercion": 400,
+    "treasury": 1300,
+    "initialTariff": 0.25,
+    "industrialization": 0,
+@@ -3827,7 +3791,6 @@
+    "peasantSubsistence": 0.7,
+    "polity": "Republic",
+    "education": "Religious",
+-   "coercion": 400,
+    "treasury": 740,
+    "initialTariff": 0.05,
+    "industrialization": 0,
+@@ -3872,7 +3835,6 @@
+    "peasantSubsistence": 0.7,
+    "polity": "Republic",
+    "education": "Religious",
+-   "coercion": 250,
+    "treasury": 2900,
+    "initialTariff": 0.4,
+    "industrialization": 0,
+@@ -3958,7 +3920,6 @@
+    "peasantSubsistence": 0.7,
+    "polity": "Absolutist",
+    "education": "Religious",
+-   "coercion": 400,
+    "treasury": 3000,
+    "pollTaxStage": 0,
+    "landTaxStage": 2,
+@@ -4073,7 +4034,6 @@
+    "peasantSubsistence": 0.7,
+    "polity": "Republic",
+    "education": "Religious",
+-   "coercion": 300,
+    "treasury": 310,
+    "initialTariff": 0.2,
+    "industrialization": 0,
+@@ -4119,7 +4079,6 @@
+    "peasantSubsistence": 0.7,
+    "polity": "Absolutist",
+    "education": "Religious",
+-   "coercion": 350,
+    "treasury": 2100,
+    "initialTariff": 0.2,
+    "industrialization": 0,
+@@ -4164,7 +4123,6 @@
+    "peasantSubsistence": 0.7,
+    "polity": "Absolutist",
+    "education": "Religious",
+-   "coercion": 400,
+    "treasury": 2800,
+    "initialTariff": 0.4,
+    "industrialization": 0,
+@@ -4239,7 +4197,6 @@
+    "peasantSubsistence": 0.7,
+    "polity": "Absolutist",
+    "education": "Religious",
+-   "coercion": 400,
+    "treasury": 890,
+    "initialTariff": 0.4,
+    "industrialization": 0,
+@@ -4310,7 +4267,6 @@
+    "peasantSubsistence": 0.7,
+    "polity": "Absolutist",
+    "education": "Religious",
+-   "coercion": 400,
+    "treasury": 440,
+    "initialTariff": 0.05,
+    "industrialization": 0,
+@@ -4365,7 +4321,6 @@
+    "peasantSubsistence": 0.7,
+    "polity": "Republic",
+    "education": "Religious",
+-   "coercion": 300,
+    "treasury": 1100,
+    "initialTariff": 0.4,
+    "industrialization": 0,
+@@ -4436,7 +4391,6 @@
+    "peasantSubsistence": 0.7,
+    "polity": "Absolutist",
+    "education": "Religious",
+-   "coercion": 400,
+    "treasury": 440,
+    "initialTariff": 0.25,
+    "industrialization": 0,
+@@ -4482,7 +4436,6 @@
+    "peasantSubsistence": 0.7,
+    "polity": "Absolutist",
+    "education": "Public",
+-   "coercion": 400,
+    "treasury": 890,
+    "initialTariff": 0.25,
+    "industrialization": 0,
+@@ -4529,7 +4482,6 @@
+    "peasantSubsistence": 0.7,
+    "polity": "Absolutist",
+    "education": "Religious",
+-   "coercion": 400,
+    "treasury": 390,
+    "initialTariff": 0.25,
+    "industrialization": 0,
+@@ -4584,7 +4536,6 @@
+    "peasantSubsistence": 0.7,
+    "polity": "Absolutist",
+    "education": "Religious",
+-   "coercion": 400,
+    "treasury": 250,
+    "initialTariff": 0.25,
+    "industrialization": 0,
+@@ -4629,7 +4580,6 @@
+    "peasantSubsistence": 0.7,
+    "polity": "Despotic",
+    "education": "Religious",
+-   "coercion": 400,
+    "treasury": 376,
+    "initialTariff": 0.4,
+    "industrialization": 0,
+@@ -4674,7 +4624,6 @@
+    "peasantSubsistence": 0.7,
+    "polity": "Absolutist",
+    "education": "Religious",
+-   "coercion": 400,
+    "treasury": 37,
+    "initialTariff": 0.4,
+    "industrialization": 0,
+@@ -4720,7 +4669,6 @@
+    "peasantSubsistence": 0.7,
+    "polity": "Despotic",
+    "education": "Religious",
+-   "coercion": 150,
+    "treasury": 709,
+    "pollTaxStage": 0,
+    "landTaxStage": 3,
+@@ -4768,7 +4716,6 @@
+    "peasantSubsistence": 0.7,
+    "polity": "Despotic",
+    "education": "Religious",
+-   "coercion": 400,
+    "treasury": 3500,
+    "pollTaxStage": 0,
+    "landTaxStage": 3,
+@@ -4816,7 +4763,6 @@
+    "peasantSubsistence": 0.7,
+    "polity": "Absolutist",
+    "education": "Religious",
+-   "coercion": 80,
+    "treasury": 210,
+    "initialTariff": 0.4,
+    "industrialization": 0,
+@@ -4873,7 +4819,6 @@
+    "peasantSubsistence": 0.7,
+    "polity": "Absolutist",
+    "education": "Religious",
+-   "coercion": 100,
+    "treasury": 1200,
+    "initialTariff": 0.4,
+    "industrialization": 0,
+@@ -4930,7 +4875,6 @@
+    "peasantSubsistence": 0.7,
+    "polity": "Absolutist",
+    "education": "Religious",
+-   "coercion": 300,
+    "treasury": 3900,
+    "initialTariff": 0.4,
+    "industrialization": 0,
+@@ -5000,7 +4944,6 @@
+    "peasantSubsistence": 0.75,
+    "polity": "Absolutist",
+    "education": "Religious",
+-   "coercion": 60,
+    "treasury": 290,
+    "initialTariff": 0.4,
+    "industrialization": 0,
+@@ -5057,7 +5000,6 @@
+    "peasantSubsistence": 0.65,
+    "polity": "Absolutist",
+    "education": "Religious",
+-   "coercion": 250,
+    "treasury": 1500,
+    "initialTariff": 0.3,
+    "industrialization": 0,
+@@ -5128,7 +5070,6 @@
+    "peasantSubsistence": 0.7,
+    "polity": "Absolutist",
+    "education": "Religious",
+-   "coercion": 120,
+    "treasury": 710,
+    "initialTariff": 0.4,
+    "industrialization": 0,
+@@ -5185,7 +5126,6 @@
+    "peasantSubsistence": 0.72,
+    "polity": "Absolutist",
+    "education": "Religious",
+-   "coercion": 100,
+    "treasury": 570,
+    "initialTariff": 0.4,
+    "industrialization": 0,
+@@ -5231,7 +5171,6 @@
+    "peasantSubsistence": 0.8,
+    "polity": "Absolutist",
+    "education": "Religious",
+-   "coercion": 40,
+    "treasury": 130,
+    "initialTariff": 0.3,
+    "industrialization": 0,
+diff --git a/PriceOfBread.Tests/ElectionAiTests.cs b/PriceOfBread.Tests/ElectionAiTests.cs
+index 47e9270..6459e70 100644
+--- a/PriceOfBread.Tests/ElectionAiTests.cs
++++ b/PriceOfBread.Tests/ElectionAiTests.cs
+@@ -36,6 +36,8 @@ public class ElectionAiTests
+         //   飢餓の駆動で公示の四半期より前に内戦へ入って選挙が止まる（プレイヤー国の公示が立たない）＝前提が世界の偶然になる。測るのは公示の機構だけ。
+         foreach (var n in sim.Nations) n.World.Coef.FamineDriveGain = 0;
+         sim.StartWarmup();
++        // ★(235) 開幕の治安維持力は兵÷人口×即応度の導出値（孤立した英は挑戦力に負けて選挙が止まる）。この番人の前提（選挙のある英が4年続く）のため旧の置いた値 380 で固定する＝測るのは公示の機構
++        sim.Nations[0].World.BaseCoercion = 380; sim.Nations[0].World.Policy.CoercionTarget = 380;
+         return sim;
+     }
+ 
+diff --git a/PriceOfBread.Tests/ElectionEventTests.cs b/PriceOfBread.Tests/ElectionEventTests.cs
+index e40c079..2e70ac9 100644
+--- a/PriceOfBread.Tests/ElectionEventTests.cs
++++ b/PriceOfBread.Tests/ElectionEventTests.cs
+@@ -24,6 +24,8 @@ public class ElectionEventTests
+         //   飢餓の駆動で1786年に内戦へ入り選挙が止まる＝この番人の前提（選挙のある英が4年続く）が世界の偶然になる。測るのは選挙の公示の機構だけ。
+         w.Coef.FamineDriveGain = 0;
+         sim.StartWarmup();
++        // ★(235) 開幕の治安維持力は兵÷人口×即応度の導出値（孤立した英は挑戦力に負けて選挙が止まる）。この番人の前提（選挙のある英が4年続く）のため旧の置いた値 380 で固定する＝測るのは公示の機構
++        w.BaseCoercion = 380; w.Policy.CoercionTarget = 380;
+         for (int q = 0; q < (int)w.Coef.ElectionIntervalQuarters + 2; q++) sim.StepQuarter();   // 定期選挙を1回跨ぐ
+         Assert.Null(w.PendingElection);
+         Assert.True(w.ElectionsHeld > 0, "選挙が1回も起きていない＝テスト前提の破れ（政体が非選挙へ転げた可能性）");
+@@ -40,6 +42,8 @@ public class ElectionEventTests
+         //   飢餓の駆動で1786年に内戦へ入り選挙が止まる＝この番人の前提（選挙のある英が4年続く）が世界の偶然になる。測るのは選挙の公示の機構だけ。
+         c.FamineDriveGain = 0;
+         sim.StartWarmup();
++        // ★(235) 開幕の治安維持力は兵÷人口×即応度の導出値（孤立した英は挑戦力に負けて選挙が止まる）。この番人の前提（選挙のある英が4年続く）のため旧の置いた値 380 で固定する＝測るのは公示の機構
++        w.BaseCoercion = 380; w.Policy.CoercionTarget = 380;
+         c.ElectionEventEnabled = 1.0;
+         ElectionEvent? seen = null;
+         for (int q = 0; q < (int)c.ElectionIntervalQuarters + 2 && seen is null; q++)
+diff --git a/PriceOfBread.Tests/MilitaryTests.cs b/PriceOfBread.Tests/MilitaryTests.cs
+index 7b311c9..a65c66f 100644
+--- a/PriceOfBread.Tests/MilitaryTests.cs
++++ b/PriceOfBread.Tests/MilitaryTests.cs
+@@ -629,7 +629,6 @@ public class MilitaryTests
+         var c = new Coefficients(); double u = Military.WorkingMenStdShare;
+         Assert.Equal(0.2765, u, 12);
+         Assert.Equal(250.0, c.SoldiersPerMilitary / u, 9);
+-        Assert.Equal(5.0, c.CoercionPerSoldier * u, 9);
+         Assert.Equal(0.18, c.MilitaryUpkeepScale * u, 12);
+         Assert.Equal(1.4, c.MilitaryCoupWeight * u, 9);
+         Assert.Equal(5.0, c.ArmyPoliticalWeight * u, 9);
+diff --git a/PriceOfBread.Tests/OpeningForcesTests.cs b/PriceOfBread.Tests/OpeningForcesTests.cs
+index 60bf3c6..8b1c8f4 100644
+--- a/PriceOfBread.Tests/OpeningForcesTests.cs
++++ b/PriceOfBread.Tests/OpeningForcesTests.cs
+@@ -93,6 +93,61 @@ public class OpeningForcesTests
+         Assert.True(t is null || t.All(x => x == 0), "予算0でも目標が立つ");
+     }
+ 
++    /// <summary>★(235) 治安維持力の目標は**人口あたりの強度**（使う側 EffectiveCoerce は BaseCoercion を人口あたりで読む）。階級の人数を全て3倍にすると、播く兵も人口も3倍＝強度は同じ。
++    /// 旧（絶対の兵数×係数）は3倍になった＝保持力が人口の2乗に比例していた（(233) 保留2）。⚠突然変異＝CoercionForce を絶対の兵数に戻す（÷人口を外す）と赤。</summary>
++    [Fact]
++    public void 回235_治安維持力の目標は人口あたり_人口と兵を同じ比で増やしても変わらない()
++    {
++        static World Build(double k)
++        {
++            var c = NationConfig.France().ShallowClone();   // 共有キャッシュ（WorldData.Nations）を汚染しない
++            c.Nobility *= k; c.Peasant *= k; c.Worker *= k; c.Bourgeois *= k; c.Professional *= k; c.Merchant *= k; c.Artisan *= k;
++            return new Simulation(c.ToScenario(7), new NullAgent()).World;
++        }
++        var w1 = Build(1.0); var w3 = Build(3.0);
++        Assert.True(w1.SoldierSize() > 0);
++        Assert.Equal(3.0, w3.SoldierSize() / w1.SoldierSize(), 6);   // 前提＝播く兵は人口に比例
++        Assert.Equal(3.0, w3.TotalPopulation / w1.TotalPopulation, 6);
++        double f1 = Government.CoercionForce(w1, w1.Coef), f3 = Government.CoercionForce(w3, w3.Coef);
++        Assert.True(f1 > 0);
++        Assert.Equal(f1, f3, 6);   // 強度は同じ
++    }
++
++    /// <summary>★(235) 錨＝「平時の上限の軍（人口×平時の上限の人口比）が完全に装備されたとき、生の値が CoercionMax」。即応度に比例し、兵に比例する。</summary>
++    [Fact]
++    public void 回235_治安維持力の錨は上限の軍が完全に装備されたときCoercionMax()
++    {
++        var w = new Simulation(NationConfig.France().ToScenario(7), new NullAgent()).World;
++        var c = w.Coef;
++        double cap = w.TotalPopulation * Military.PeaceCapShareOfPop(c);
++        w.MilitaryReadiness = 1.0;
++        double full = Government.CoercionForce(w, c);
++        Assert.Equal(c.CoercionMax * w.SoldierSize() / cap, full, 9);   // 兵÷(人口×上限の人口比)×CoercionMax
++        w.MilitaryReadiness = 0.25;
++        Assert.Equal(0.25 * full, Government.CoercionForce(w, c), 9);   // 即応度に比例
++        // 上限ちょうどの軍が完全に装備されたときの生の値は CoercionMax＝ソフト化の後は x/(1+x/最大)＝最大の半分
++        Assert.Equal(c.CoercionMax / 2.0, Government.CoercionTargetFromForce(c.CoercionMax, c), 9);
++    }
++
++    /// <summary>★(235) 開幕の治安維持力は助走の直後に置かれる（毎期の目標と同じ式）＝world.json の国別の置いた値ではない。
++    /// ON 経路のテスト（助走を実際に回して置いた値を式と突き合わせる）。⚠突然変異＝OpenForces の SetOpeningCoercion を外すと全国が既定 400 のままで赤。</summary>
++    [Fact]
++    public void 回235_開幕の治安維持力は助走の直後に兵と即応度から導かれる()
++    {
++        var sim = Warmed();
++        int differs = 0;
++        foreach (var n in sim.Nations)
++        {
++            var w = n.World;
++            double t = Government.CoercionTargetFromForce(Government.CoercionForce(w, w.Coef), w.Coef);
++            Assert.Equal(t, w.BaseCoercion, 9);
++            Assert.Equal(t, w.Policy.CoercionTarget, 9);
++            Assert.True(w.BaseCoercion <= w.Coef.CoercionMax);
++            if (System.Math.Abs(w.BaseCoercion - 400.0) > 1.0) differs++;
++        }
++        Assert.True(differs > sim.Nations.Count * 0.9, $"開幕の治安維持力が既定 400 のまま（{sim.Nations.Count - differs}国）＝導出が走っていない");
++    }
++
+     [Fact]
+     public void 回231_world_jsonの国の欄から_兵の手置きを外した()
+     {
+@@ -105,8 +160,8 @@ public class OpeningForcesTests
+         foreach (var n in nations.EnumerateArray())
+         {
+             Assert.False(n.TryGetProperty("military", out _), "国の military 欄が残っている（シムは兵士 POP から導く）");
+-            // ★(233) coercion 欄は残す（開幕の治安維持力の導出 C は差し戻した＝兵数に比例する目標と人口あたりの強度の単位が合わない・実装ログ (233)）
+-            Assert.True(n.TryGetProperty("coercion", out _), "国の coercion 欄が無い（(233) で戻した手置きの値）");
++            // ★(235) coercion 欄も外した（開幕の治安維持力は Government.SetOpeningCoercion が助走の直後に兵÷人口×即応度で置く＝(233) で差し戻した導出を単位を人口あたりへ揃えて入れ直した）
++            Assert.False(n.TryGetProperty("coercion", out _), "国の coercion 欄が残っている（開幕の治安維持力は導く）");
+         }
+         // 抽象標的（POP を持たない勢力）の military は残す
+         Assert.All(doc.RootElement.GetProperty("abstractTargets").EnumerateArray(), t => Assert.True(t.TryGetProperty("military", out _)));
+diff --git a/PriceOfBread.Tests/StartWarmupTests.cs b/PriceOfBread.Tests/StartWarmupTests.cs
+index 4581d03..fe56734 100644
+--- a/PriceOfBread.Tests/StartWarmupTests.cs
++++ b/PriceOfBread.Tests/StartWarmupTests.cs
+@@ -212,7 +212,8 @@ public class StartWarmupTests
+             void D(string name, double x) => v.Add((name, System.BitConverter.DoubleToInt64Bits(x)));
+             // ★(231) 陸海の維持費の比は外す＝助走の直後に開幕の軍の確定（MultiNationSim.OpenForces：艦の播種〔OpeningNavalShares が陸海の比を置く〕）が置く（助走の動きではなく開幕の置き方・OpeningForcesTests が式と突き合わせる）。治安維持力は (233) で戻した（開幕の導出 C を差し戻した）
+             D("関税", w.Tariff); D("金利", w.InterestRate); D("行政費", w.AdminSpending);
+-            D("治安維持力", w.BaseCoercion); D("福祉水準", w.SocialSecurity); D("実労働時間", w.WorkHoursValue); D("賃金保持", w.WomenWageRetention); D("児童労働の合法度", w.ChildLaborLegal);
++            D("福祉水準", w.SocialSecurity);   // ★(235) 治安維持力は外す＝助走の直後に開幕の軍の確定（OpenForces→SetOpeningCoercion）が兵÷人口×即応度から置く（助走の動きではなく開幕の置き方・OpeningForcesTests）
++            D("実労働時間", w.WorkHoursValue); D("賃金保持", w.WomenWageRetention); D("児童労働の合法度", w.ChildLaborLegal);
+             v.Add(("年金", (long)w.Pension));
+             return v;
+         }
+diff --git a/PriceOfBread.Tests/WriterRatchetTests.cs b/PriceOfBread.Tests/WriterRatchetTests.cs
+index e2903fd..bae5eb6 100644
+--- a/PriceOfBread.Tests/WriterRatchetTests.cs
++++ b/PriceOfBread.Tests/WriterRatchetTests.cs
+@@ -438,7 +438,10 @@ public class WriterRatchetTests
+     //   〔差し戻しは e17b691 の値と式へ戻すだけ〕）：覇権の判定 3,476,619→2,104,027（−39.5%＝10% を超えて下がった＝表を下げる・C で増えていた分離独立の国が減った最初の40四半期の軌道）・
+     //   建設：見た生産者（旬）7,000→7,299（+4.3%＝許しの +2% を超えた軌道・処理の形は同じ＝(197) の 8,204 より下）。ほかの17本は許しの内（+2%／−10%・フルスイートで確かめた）。
+     //   全長の10種（計器なし `b10_20261010_r233`）の推定 243.0 秒＝r229 と同じ（上限 248.5 秒の内・払っていない・実装ログ (233)）。
+-    [InlineData(CostLedger.DiploHegemonScans, 2104027L)]
++    // ★2026-10-10 表の更新（(235) 線D＝治安維持力の目標を人口あたりへ・開幕の治安維持力を導く〔coercion 欄 61 を外した〕＝軌道が動いた分の宣言・新しい計数の処理は無い）：
++    //   覇権の判定 2,104,027→2,925,265（+39.0%＝治安維持力が低く（開幕の中央値 400→約70）分離独立・内戦分裂・変名が増え、最初の40四半期に国が増えた軌道・処理の形は同じ）。
++    //   ほかの17本は許しの内（+2%／−10%・フルスイートで確かめた）。全長の10種（旗つきの木 X2）の推定は 244.4 秒（上限 248.5 秒の内・払っていない・測定の表 measurements/stk235_20261010）。
++    [InlineData(CostLedger.DiploHegemonScans, 2925265L)]
+     [InlineData(CostLedger.QuarterStartPops, 235560L)]
+     [InlineData(CostLedger.QuarterEndPops, 235560L)]
+     [InlineData(CostLedger.SharedNationQuarters, 3794L)]

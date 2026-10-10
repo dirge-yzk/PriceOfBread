@@ -1,0 +1,133 @@
+diff --git a/PriceOfBread.SimCore/Coefficients.cs b/PriceOfBread.SimCore/Coefficients.cs
+index c13acd9..e988a2f 100644
+--- a/PriceOfBread.SimCore/Coefficients.cs
++++ b/PriceOfBread.SimCore/Coefficients.cs
+@@ -48,6 +48,7 @@ public sealed class Coefficients
+     // === テーマH（産業組織・固定資本・住宅）===
+     public double InventoryAdjustGain = 0.1;     // メッツラー在庫循環＝在庫についての期待。05-B1（2026-07-29）点火：期待導入の最初の一歩（増幅側＝恐慌を増やす方向・05 §5）。0で旧恒等
+     public double DesiredInventoryCover = 1.0;   // 望ましい在庫＝これ×LastDemand（TargetStockBufferと一致＝定常でギャップ0）。⚠TargetStockBuffer と対＝一致しないと定常でギャップが残る。片方だけ動かさない（GridReplaceRate/GridDecayRateと同型）
++    public double StockFromDemand = 0;       // ★(235) 腕 S（一時の旗・採否が決まったら畳む）：1＝開幕の市場の在庫を需要の見積もりから既存の在庫目標の規則で置く（Simulation.SeedOpeningStock）。0＝全財・全州に一律 200（旧）
+     public double TargetStockFloor = 1.0;    // 在庫目標の下限（需要≈0でのゼロ除算回避）＝**「量として意味を持たない」の既存の物差し**（下の幻の生産のスナップもこの実用スケールを流用する）
+     // ★墓標（2026-08-22・需要と供給の組み換え＝点火と削除）：労働配分の重みは「需要量×Scale」から「準レント×単位能力×Scale」＋配分信念EMAへ**無条件**に切替（EconomyStep の prodW 注記）。
+     //   LaborRentWeight（構造スイッチ）・CrowdRentExpectation（混雑予期＝効果−2.4回・赤1件）・LaborFloorMix（均等床0.15＝準レント下では不要）・ExportDemandWeight（0.25の別建て加算＝価格に輸出が載るので次元不整合）は削除。
+@@ -982,6 +983,8 @@ public sealed class Coefficients
+     // （治安維持費 CoercionUpkeepRate＝0.05×治安維持力の基礎×人口÷基準人口は 2026-09-30 (135) に削除＝治安維持力は兵数×即応度から＝軍そのもの・給与と装備に続く3度目の課金で人口の2乗に比例＝軍の費用は兵力と装備の購買の1本）
+     public double WarCoercionDrain = 0.15;    // 治安維持力と軍事のリンク(A)：軍は内外を兼ねる一つの武力＝戦時は前線に取られ国内の治安維持力が下がる。実効治安維持力 ×(1−これ×厭戦)。長期戦ほど本国で革命機会（1917型）。較正は無戦争＝不変
+     public double CoercionPerSoldier = 5.0 / Military.WorkingMenStdShare;   // （(145) 兵の単位の読み替え＝旧値 5.0÷Military.WorkingMenStdShare〔標準のピラミッドの働き盛りの男の割合 0.2765〕＝兵役の母数を働き盛りの男で読むと兵の数がこの比になる＝旧の兵1単位の働きを保つ）。治安維持力＝**兵数×即応度×これ**（治安維持力=軍の一本化 2026-06-23）。装備された軍だけが治安維持力を持つ＝武器を買えぬ軍は即応度0→治安維持力0→革命。軍隊規模(兵数)＝扶養限界が駆動（(145)・旧＝軍事費スライダー）。CoercionMax で頭打ち（CoercionFollowsForce=true 時）
++    public double CoercionPerCapita = 0;       // ★(235) 腕 C1（一時の旗）：1＝治安維持力の目標を人口あたりの強度へ（Government.CoercionForce）。0＝旧（絶対の兵数×CoercionPerSoldier）
++    public double OpeningCoercionDerived = 0;  // ★(235) 腕 C2（一時の旗）：1＝開幕の治安維持力を助走の直後に目標の式で置く（Government.SetOpeningCoercion）。0＝world.json の置いた値
+     public double CoercionMax = 2000;   // 【点火2000・2026-08-16 点火梯子＝★2026-08-16に4000→2000（漸近化と同時）＝挑戦力の理論最大（BaseCoercion換算≈1250）の3.2倍だった壁を等号点の1.6倍へ。旧4000は「不満100%でも革命が代数的に不能」を作っていた。合成comp4（12本＋海0.5）で exact41.6/near77.4/法63.2/貿易0.66・硬性緑】         // 治安維持力の上限（旧 Reactionary の最大治安維持力＝史実の最大動員）。装備された大軍でも2000で漸近（CoercionSoftCap）
+ 
+     // --- 領土・地域間移民（§5.2／§A-8・段4c）---
+diff --git a/PriceOfBread.SimCore/Government.cs b/PriceOfBread.SimCore/Government.cs
+index 974e5b7..bf80260 100644
+--- a/PriceOfBread.SimCore/Government.cs
++++ b/PriceOfBread.SimCore/Government.cs
+@@ -44,6 +44,29 @@ public static class Government
+     internal const int MilitaryLawStages = 4;
+     internal const int SocialSecurityMaxLevel = 3;    // 社会保障法の最上段（Pension）＝4段（PoorLaw..Pension）の最大序数。internal（2026-09-11）＝Parliament.TargetDemand が法の段で目標を置く。2026-07-21「なし」廃止で救貧法が最下段（序数0＝福祉水準0）
+ 
++    /// <summary>★(235) 治安維持力の目標のソフト化の前の生の値＝**人口あたりの強度**（使う側 <see cref="PoliticalQuantities.EffectiveCoerce"/> は BaseCoercion を人口あたりで読む）。
++    /// 旧（CoercionPerCapita=0）＝絶対の兵数×即応度×CoercionPerSoldier＝保持力が人口の2乗・挑戦力は1乗で単位が合わなかった（(233) 保留2）。
++    /// 新＝CoercionMax×(兵÷(人口×平時の上限の人口比))×即応度＝「平時の上限の軍が完全に装備されたとき生の値が CoercionMax」（錨は測る前に選んだ・測定の表 measurements/stk235_20261010）。</summary>
++    internal static double CoercionForce(World w, Coefficients c)
++    {
++        double ready = w.MilitaryReadiness;
++        if (!(c.CoercionPerCapita > 0)) return w.SoldierSize() * ready * c.CoercionPerSoldier;
++        double cap = w.TotalPopulation * Military.PeaceCapShareOfPop(c);
++        if (!(cap > 1e-9)) return 0;   // 否定形＝人口 0・NaN は0（強度の無い国）
++        return c.CoercionMax * (w.SoldierSize() / cap) * ready;
++    }
++
++    /// <summary>★(235) 開幕の治安維持力＝多国シムが毎期やっている目標の式（<see cref="Step"/>）を、助走の直後に1度だけ先に当てる（助走中は政治が止まる＝開幕は world.json の置いた値のまま入っていた）。
++    /// 目標も同じ値＝最初の四半期に置いた値へ動かない。OpeningCoercionDerived=0 では何もしない。</summary>
++    internal static void SetOpeningCoercion(World w, Coefficients c)
++    {
++        if (!w.CoercionFollowsForce || !(c.OpeningCoercionDerived > 0)) return;
++        double t = CoercionTargetFromForce(CoercionForce(w, c), c);
++        if (!(t >= 0)) return;   // 否定形＝NaN は置いた値のまま
++        w.Policy.CoercionTarget = t;
++        w.BaseCoercion = t;
++    }
++
+     /// <summary>R1 蜂起R群2026-08-16（診断A1・本丸）：軍事力→治安維持力目標。CoercionSoftCap=0＝旧 min(x, CoercionMax)＝**ビット恒等**／
+     /// >0＝漸近逓減 x/(1+x/CoercionMax)（SelfPlay.Score.Military と同じ既存の逓減形・x→∞でCoercionMaxへ漸近）。
+     /// 壁の何が悪いか：旧 CoercionMax=4000 は挑戦力の理論最大（BaseCoercion換算 ≈ PoliticalReferencePop×1.25 ≈ 1250）の3.2倍＝
+@@ -290,7 +313,7 @@ public static class Government
+         foreach (var law in RateLaws) law.Set(w, Move(law.Get(w), Q4(law.Axis, law.Target(p)), c, w, law.Axis));
+         // 武力統合：治安維持力＝**装備された軍の効果**＝兵数×即応度×係数（治安維持力=軍の一本化 2026-06-23）。武器を買えぬ軍（即応度0）は治安維持力も0→革命。較正/単体は false で CoercionTarget を独立保持（単一国較正セル不変）。
+         if (w.CoercionFollowsForce)
+-            p.CoercionTarget = CoercionTargetFromForce(w.SoldierSize() * w.MilitaryReadiness * c.CoercionPerSoldier, c);
++            p.CoercionTarget = CoercionTargetFromForce(CoercionForce(w, c), c);
+         w.BaseCoercion      = Move(w.BaseCoercion,      p.CoercionTarget,          c, w, PolicyAxis.Coercion, c.CoercionMax, mandate: !w.CoercionFollowsForce);   // 治安維持力＝武力スライダー(軍事費)から導出された目標へ（5%丸めは軍事費側で実施）。武力統合下は機械追従＝マンデート余白を適用しない（従来の硬いゲート＝専制の保持力ラチェットを保つ）。較正/単体（CoercionFollowsForce=false）は意図した目標＝余白対象。消費の正規化は治安維持力の実スケール＝CoercionMax
+         // ★軍事費の床も撤去（同上・2026-08-19）。旧＝政体の国家軍軸×MilitaryFloorScale。⚠**政体から導出していたので同じ理由で消える**。
+         // ★陸海の維持費（2026-08-04）：政治ゲートは**合計**に掛ける（軍系ブロックが見るのは軍事費の総額であって内訳ではない）。
+diff --git a/PriceOfBread.SimCore/MultiNationSim.cs b/PriceOfBread.SimCore/MultiNationSim.cs
+index ae9bc28..ee256b4 100644
+--- a/PriceOfBread.SimCore/MultiNationSim.cs
++++ b/PriceOfBread.SimCore/MultiNationSim.cs
+@@ -541,7 +541,11 @@ public sealed class MultiNationSim
+     /// 測って落としたもの：兵＝助走の直後の兵は構築の播種から軍の定員の式（<see cref="Military.EstablishmentOf"/>）と徴兵・志願の動きで寄った、シム自身の釣り合い
+     /// （志願制の国は定員の一部しか埋まらない＝定員まで置くと英が釣り合いの約3倍・史実の約5倍）／軍事費の段＝AI の関数（UtilityAgent.SecurityStageTarget）で置いても史実との差は縮まらず
+     /// 史実比較の桁の NG が増えた（測定の表 measurements/mil231_20261010）。</summary>
+-    private void OpenForces() => Diplomacy.OpenGame(_coef);
++    private void OpenForces()
++    {
++        Diplomacy.OpenGame(_coef);
++        foreach (var n in Nations) Government.SetOpeningCoercion(n.World, n.World.Coef);   // ★(235) 腕 C2：開幕の治安維持力（旗 0 では何もしない）
++    }
+ 
+     /// <summary>★発見の段（段2A・2026-10-01・設計 §1A-2・§1A-7）＝四半期末の共有層。
+     /// 接触（行ごと）＝①取引：その行を解禁済みの国から、まだの自国が買った運び手の財の額 ÷ 世界のその運び手の財の取引額の和（思想の伝播 StepDiffusion と同じ「世界の取引に占める割合」＝小国を過大に見ない）
+diff --git a/PriceOfBread.SimCore/Simulation.cs b/PriceOfBread.SimCore/Simulation.cs
+index fedd2be..da8cfcf 100644
+--- a/PriceOfBread.SimCore/Simulation.cs
++++ b/PriceOfBread.SimCore/Simulation.cs
+@@ -932,6 +932,7 @@ public sealed class Simulation
+             Producers = producers,
+             Markets = markets,
+         };
++        SeedOpeningStock(region, coef);   // ★(235) 腕 S：開幕の市場の在庫を需要の見積もりから置く（旗 0 では何もしない＝CatalogEconomy の一律 200）
+         // ★初期地代のシード（2026-08-04・コールドスタートの穴）：LandRent は月次アキュムレータで、開幕1ヶ月目の
+         //   政治（Blocs＝土地の政治力）が走る時点ではまだ0＝**開幕だけ旧支配層が無力**になり、AIがその隙に
+         //   近代化法を通していた（lawtiming実測＝仏の公教育・資格任用が1783年に逆戻り）。
+@@ -944,6 +945,31 @@ public sealed class Simulation
+         return region;
+     }
+ 
++    /// <summary>★(235) 開幕の市場の在庫＝既存の在庫目標の規則（MarketFlow：max(TargetStockFloor, TargetStockBuffer×総需要)×StockpileFactor）を、構築の時点で求められる需要の見積もりに当てる。
++    /// 旧＝CatalogEconomy が全財（役務を含む）・全州に Stock=TargetStock=200 を一律に置いた（開発初期の仮置き・小国で年GDPの1〜2年分）。
++    /// 総需要の見積もり＝その州の全POPの Size×BaseNeed（消費）＋全生産者の初期 Output×投入係数（工場・職人の投入）。構築の時点には前期の需要 LastDemand が無い＝同じ量を物理から見積もる。
++    /// 需要の無い財（BaseNeed=0 の中間財で、使う工場の初期 Output も 0.5 の間）は床 TargetStockFloor。StockpileFactor は開幕は 1（WarScareTension=0）。
++    /// 軍需品の首都の在庫（InitialArsenalMonths）は、この後に max を取って積む。昇格する植民地州は PromoteColonyToRegion が在庫 0 で始める（呼ばない）。</summary>
++    private static void SeedOpeningStock(Region region, Coefficients coef)
++    {
++        if (!(coef.StockFromDemand > 0)) return;
++        int n = region.Markets.Length;
++        var need = new double[n];
++        double pop = 0;
++        foreach (var p in region.Pops) pop += p.Size;
++        foreach (var d in Catalog.Goods) if (d.Id >= 0 && d.Id < n) need[d.Id] = pop * d.BaseNeed;
++        foreach (var s in region.Producers)
++            foreach (var inp in s.Inputs)
++                if (inp.GoodId >= 0 && inp.GoodId < n) need[inp.GoodId] += s.Output * inp.QtyPerOutput;
++        for (int gi = 0; gi < n; gi++)
++        {
++            var m = region.Markets[gi];
++            if (m is null) continue;
++            double t = System.Math.Max(coef.TargetStockFloor, coef.TargetStockBuffer * need[gi]);
++            m.Stock = t; m.TargetStock = t;
++        }
++    }
++
+     // 役務（サービス財）の係数：労働力＝工場の投入。賃金は労働市場の価格で決まる（生産が先→売って収入の設計）。
+     private const double LaborPerOutput = Catalog.LaborPerOutput;     // 工場の産出1単位あたりの労働力投入（Catalogが単一の真実）
+     private const double LaborProductivity = 1.0;  // 工場労働者1人あたりの労働力算出の基準（×FullChainProductivityScale＝工場と同じ規模感。工業化・技術の倍率にも乗る）
+@@ -1493,6 +1519,7 @@ public sealed class Simulation
+         };
+         region.SeaBasin = SeaGraph.BasinAt(clat, clon);   // 港州＝海盆を積出港座標から（WirePortDistances の港側と同じ規則）
+         if (!Landmass.IsRegistered(col.Name)) w.LogAdd($"{w.Year} {col.Name}州はlandmass.json未登録＝IsPort=falseへ倒した（沈黙回避）");   // fail-closed の可視化
++        SeedOpeningStock(region, coef);   // ★(235) 腕 S：在庫目標（TargetStock）は昇格した州の住民と生産者から同じ規則で（旗 0 では何もしない＝一律 200 のまま）。在庫そのものは下で0へ
+         foreach (var m in region.Markets) { m.Stock = 0; m.PrevStock = 0; }   // 在庫0で開始（上記の設計判断）。Last*=0 は初期値どおり＝財収支恒等式（GoodsBalance）が最初から閉じる
+         Territory.Adopt(w, region);   // Id＝国の中で最大＋1（移し替えと同じ1本・2026-09-28 処理の一元化 段2 B）
+         // 保存の記帳（同一値を両辺に使う＝CedeTerritory の作法）
