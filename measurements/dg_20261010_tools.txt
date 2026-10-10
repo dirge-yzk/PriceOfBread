@@ -1,0 +1,627 @@
+(238) 診断の道具の写し（計器は隔離の写しにだけ当てた・読むだけ・コミットしていない木。作業フォルダ D:/PoB_work/dg は回の終わりに消す）。読み方：python -X utf8 -I an_dg238.py <w> 1_s3_q40 B,O,R,OR s3 12／an5_dg238.py <w> 5_s1 1,2,3,4,5
+
+#################### inj_dg238.py
+# (238 診断) 門の診断の計器（(230) の計器 sav230 の写し＋英の月次の行 M・置き直しは助走の終わりの1回だけ）。元の説明：
+# (226) 線S 前半の計器（読むだけ・隔離した写しだけに当てる・コミットしない）。使い方： python inj_sav226.py <木の根>
+# 環境変数 POB_SAV226_DIR の下に s<seed>.txt。未設定なら1命令も走らない（分岐の中だけ）。力学は読まない（加算と記録だけ）。
+#   R 行＝置き直しの前後（phase 0＝前・1＝後）の全国：基礎貨幣・与信・カバー率・階級別の貯蓄/所得/人数・所得が正でない POP・利益集団の富の土地の分と貨幣の分
+#   S 行＝国×四半期（英は毎四半期・他は年末）：貨幣・与信・国庫・国債・物価・兌換・カバー率・階級別の貯蓄・投資の予算が縛った月・消費の予算が縛った人口比（階級別）・
+#        借入の月の内訳（門が閉じた月・1件の額が縛った月・プールが縛った月・満額払えた月＝払えない額の和と借りた額）
+import sys
+root = sys.argv[1]
+
+
+def edit(rel, pairs, tail=''):
+    p = root + '/' + rel
+    raw = open(p, 'rb').read(); bom = raw.startswith(bytes([0xef, 0xbb, 0xbf])); s = raw.decode('utf-8-sig')
+    CR, LF = chr(13), chr(10)
+    crlf = (CR + LF) in s
+    for old, new in pairs:
+        if crlf: old = old.replace(LF, CR + LF); new = new.replace(LF, CR + LF)
+        assert s.count(old) == 1, (rel, old[:90], s.count(old))
+        s = s.replace(old, new)
+    s += tail.replace(LF, CR + LF) if crlf else tail
+    open(p, 'wb').write((b'\xef\xbb\xbf' if bom else b'') + s.encode('utf-8'))
+
+
+NEWFILE = r'''namespace PriceOfBread.SimCore;
+
+/// <summary>[計測の写しだけ] (226) 開幕の貯蓄の式の計器（読むだけ）。環境変数 POB_SAV226_DIR の下に s&lt;seed&gt;.txt。未設定なら1命令も走らない。</summary>
+public static class Sav226
+{
+    public static readonly string? Dir = System.Environment.GetEnvironmentVariable("POB_SAV226_DIR");
+    public static readonly bool On = Dir is { Length: > 0 };
+    static string F(double v) => double.IsNaN(v) ? "nan" : v.ToString("G6", System.Globalization.CultureInfo.InvariantCulture);
+    const int NC = 14;
+    sealed class S
+    {
+        public double InvN, InvBound, InvDes, InvAff; public double PrevT; public double[] PrevL = new double[64]; public bool Have;
+        public double ConsMonths; public double[] ConsSize = new double[NC], ConsBound = new double[NC];
+        public double[] TaxClaim = new double[NC], TaxPaid = new double[NC], RentC = new double[NC], WageC = new double[NC], TithePaid = new double[NC], PaidC = new double[NC], DesC = new double[NC * 3], DemC = new double[NC * 3];
+        public double BDirect, BIndirect, BLeak, BBase;
+        public bool UkChecked, Uk; public double M0Spare, M0Ticket, M0Dom, M0For, M0Open, M0GovDebt, M0Rate, M0Coupon, M0Insolv, M0LastInt, M0LastRev, M0Treasury, M0Borrowed, M0Nominal, M0CapSav, M0Openness;
+        public System.Collections.Generic.List<string> MonthRows = new();
+        public double BShortMonths, BGate, BTicket, BPool, BFull, BShortGate, BShortTicket, BShortPool, BShortFull, BBorrowed, BDomPool, BForPool, BTicketSum;
+    }
+    static readonly System.Runtime.CompilerServices.ConditionalWeakTable<World, S> G = new();
+    static S V(World w) => G.GetValue(w, _ => new S());
+    static readonly System.Runtime.CompilerServices.ConditionalWeakTable<MultiNationSim, System.Text.StringBuilder> B = new();
+    static System.Text.StringBuilder Buf(MultiNationSim s) => B.GetValue(s, _ => new System.Text.StringBuilder());
+    static string Name(World w) => w.SelfPower is { } sp ? (sp.BaseName.Length > 0 ? sp.BaseName : sp.Name) : "?";
+
+    static double LandedW(World w) { double s = 0; foreach (var r in w.Regions) foreach (var p in r.Pops) if (p.Closed && w.Coef.LandedPowerCapitalization > 0) s += w.Coef.LandedPowerCapitalization * System.Math.Max(0, p.LandRent); return s; }
+    static double MoneyW(World w) { double s = 0; foreach (var r in w.Regions) foreach (var p in r.Pops) s += System.Math.Max(0, p.Savings); return s; }
+
+    public static void Rebase(MultiNationSim sim, World w, int phase)
+    {
+        var sb = Buf(sim);
+        double[] sav = new double[NC], earn = new double[NC], last = new double[NC], size = new double[NC];
+        double zeroN = 0, zeroSav = 0, zeroSize = 0;
+        foreach (var r in w.Regions) foreach (var p in r.Pops)
+        {
+            int c = (uint)p.ClassId < (uint)NC ? p.ClassId : NC - 1;
+            sav[c] += p.Savings; earn[c] += p.Earned; last[c] += p.LastEarned; size[c] += p.Size;
+            if (!(p.LastEarned > 0)) { zeroN += 1; zeroSav += p.Savings; zeroSize += p.Size; }
+        }
+        double bm = w.BroadMoney, cov = bm > 1e-9 ? w.BaseMoney / bm : 1.0;
+        sb.Append("R|").Append(Name(w)).Append('|').Append(phase).Append('|').Append(F(w.BroadMoneyToIncome));
+        foreach (var v in new[] { bm, w.BaseMoney, w.Bank?.Loans ?? 0.0, w.Bank?.HouseholdLoans ?? 0.0, w.Treasury, cov, w.NominalGdp * 12, w.Gdp * 12, w.PriceLevel, w.Convertibility, w.OnGoldStandard ? 1 : 0, LandedW(w), MoneyW(w), zeroN, zeroSav, zeroSize })
+            sb.Append('|').Append(F(v));
+        foreach (var arr in new[] { sav, earn, last, size }) foreach (var v in arr) sb.Append('|').Append(F(v));
+        {   // (230) 置き直しの規則の再計算（読むだけ・B の木にも同じ式を当てる）：inc＝Σ正の LastEarned・shape＝Σ k×正の LastEarned・M/Y＝ΣSavings/(12 inc)・λ実＝ΣSavings/(12 shape)・λ予＝0.5×inc/shape（m が 0 の木は仮に 0.5）
+            double inc = 0, shape = 0, money = 0;
+            foreach (var r in w.Regions) foreach (var p in r.Pops)
+            {
+                money += p.Savings;
+                if (!(p.LastEarned > 0)) continue;
+                inc += p.LastEarned; double k = (uint)p.ClassId < (uint)KT.Length ? KT[p.ClassId] : 0.0; if (k > 0) shape += k * p.LastEarned;
+            }
+            double m = w.BroadMoneyToIncome > 0 ? w.BroadMoneyToIncome : 0.5;
+            foreach (var v in new[] { inc, shape, inc > 0 ? money / (12 * inc) : double.NaN, shape > 0 ? money / (12 * shape) : double.NaN, shape > 0 ? m * inc / shape : double.NaN })
+                sb.Append('|').Append(F(v));
+        }
+        sb.Append('\n');
+        if (phase == 3) { var s = V(w); s.PrevT = w.Treasury; s.PrevL = (double[])w.TreasuryLedger.Clone(); s.Have = true; }
+    }
+
+    static readonly double[] KT = [2.0, 0.2, 0.2, 4.5, 1.0, 0.2, 2.0, 1.0, 1.0, 1.0, 1.5, 0.5, 0.2, 1.0];
+
+    public static void Consume(World w, Region region)
+    {
+        var s = V(w); s.ConsMonths += 1;
+        foreach (var p in region.Pops)
+        {
+            if (!(p.Size > 0)) continue;
+            int c = (uint)p.ClassId < (uint)NC ? p.ClassId : NC - 1;
+            s.PaidC[c] += p.Paid;
+            if (!(p.Savings > 0)) continue;   // 予算の比は貯蓄が正の POP だけ（貯蓄0の植民地の現地住民は予算の比に入れない）
+            s.ConsSize[c] += p.Size;
+            if (p.RemainingBudget <= 0.01 * System.Math.Max(p.Savings, 1e-9)) s.ConsBound[c] += p.Size;
+        }
+    }
+
+    public static void Prod(World w, Pop owner, double rent, Pop labor, double wages)
+    {
+        var s = V(w);
+        s.RentC[(uint)owner.ClassId < (uint)NC ? owner.ClassId : NC - 1] += rent; s.WageC[(uint)labor.ClassId < (uint)NC ? labor.ClassId : NC - 1] += wages;
+    }
+
+    public static void Tax(World w, Pop p, double claims, double tax, double tithe)
+    {
+        var s = V(w); int c = (uint)p.ClassId < (uint)NC ? p.ClassId : NC - 1;
+        s.TaxClaim[c] += claims; s.TaxPaid[c] += tax; s.TithePaid[c] += tithe;
+    }
+
+    public static void Budget(World w, double direct, double indirect, double leak, double budgetBase)
+    {
+        var s = V(w); s.BDirect += direct; s.BIndirect += indirect; s.BLeak += leak; s.BBase += budgetBase;
+    }
+
+    public static void Row(World w, Pop p, int tier, double desired, double demand)
+    {
+        var s = V(w); int c = (uint)p.ClassId < (uint)NC ? p.ClassId : NC - 1;
+        s.DesC[c * 3 + tier] += desired; s.DemC[c * 3 + tier] += demand;
+    }
+
+    public static void Invest(World w, double desired, double afford)
+    {
+        var s = V(w); s.InvN += 1; s.InvDes += desired; s.InvAff += afford;
+        if (afford < desired) s.InvBound += 1;
+    }
+
+    public static void Gate(World w, double shortfall) { var s = V(w); s.BShortMonths += 1; s.BGate += 1; s.BShortGate += shortfall; }
+
+    public static void Borrow(World w, double shortfall, double ticket, double domPool, double forPool, double borrowed)
+    {
+        var s = V(w); s.BShortMonths += 1; s.BBorrowed += borrowed; s.BDomPool += domPool; s.BForPool += forPool; s.BTicketSum += ticket;
+        double want = System.Math.Min(ticket, shortfall);
+        if (borrowed < want - 1e-9) { s.BPool += 1; s.BShortPool += shortfall; }
+        else if (ticket < shortfall) { s.BTicket += 1; s.BShortTicket += shortfall; }
+        else { s.BFull += 1; s.BShortFull += shortfall; }
+    }
+
+    static bool IsUk(World w, S s) { if (!s.UkChecked) { s.UkChecked = true; s.Uk = Name(w) == "イギリス"; } return s.Uk; }
+
+    /// <summary>[診断] Fiscal.Borrow の直前（Simulation の月次決算）：借りる前の不足・門・プール（Borrow の式の写し）・1件の額・国債の状態を取っておく。</summary>
+    public static void PreBorrow(World w, double spare)
+    {
+        var s = V(w); if (!IsUk(w, s) || w.WarmupFrozen) return;
+        var c = w.Coef;
+        s.M0Spare = spare < 0 ? -spare : 0;
+        s.M0Open = Fiscal.BorrowGateOpen(w, c) ? 1 : 0;
+        double nominal = w.NominalGdp; s.M0Nominal = nominal;
+        s.M0Ticket = Fiscal.BorrowTicket(nominal, c);
+        double capSav = 0;
+        foreach (var r in w.Regions) foreach (var p in r.Pops) if (CapitalMarket.IsInvestor(p, c)) capSav += System.Math.Max(0, p.Savings);
+        s.M0CapSav = capSav;
+        double openness = c.CapitalMobilityLawGate > 0 ? (w.CapitalControlLaw ? System.Math.Clamp(c.CapitalControlOpenness, 0, 1) : 1.0) : System.Math.Clamp(1.0 - c.CapitalOpennessTariffWeight * w.Tariff, 0, 1);
+        s.M0Openness = openness;
+        s.M0Dom = capSav * c.BondAppetite;
+        double fp = openness * c.ForeignBondCapacity * System.Math.Max(0, nominal) * System.Math.Clamp(c.BondBaseRate / System.Math.Max(1e-9, w.GovBondRate), 0, 3.0);
+        s.M0For = System.Math.Min(fp, System.Math.Max(0.0, w.ForeignBondInvestorPool));
+        s.M0GovDebt = w.GovDebt; s.M0Rate = w.GovBondRate; s.M0Coupon = w.GovAvgCoupon; s.M0Insolv = w.InsolvencyQuarters;
+        s.M0LastInt = w.LastInterest; s.M0LastRev = w.LastRevenue; s.M0Treasury = w.Treasury; s.M0Borrowed = 0;
+    }
+
+    public static void PostBorrow(World w, double borrowed) { var s = V(w); if (!IsUk(w, s) || w.WarmupFrozen) return; s.M0Borrowed = borrowed; }
+
+    /// <summary>[診断] r を決めた直後：月次の行を溜める（Quarter が q を付けて書く）。</summary>
+    public static void Month(World w, double claims, double payable, double payRate, double devalued)
+    {
+        var s = V(w); if (!IsUk(w, s) || w.WarmupFrozen) return;
+        var sb = new System.Text.StringBuilder();
+        double rat = s.M0Spare > 0 ? s.M0Borrowed / s.M0Spare : double.NaN;
+        double intShare = s.M0LastRev > 0 ? s.M0LastInt / s.M0LastRev : double.NaN;
+        foreach (var v in new[] { s.M0Spare, s.M0Borrowed, rat, s.M0Open, s.M0Dom, s.M0For, s.M0Ticket, s.M0GovDebt, s.M0Rate, s.M0Coupon, s.M0Insolv, intShare, s.M0LastInt, s.M0LastRev, s.M0Treasury, claims, payable, payRate, devalued, w.Convertibility, w.OnGoldStandard ? 1 : 0, s.M0CapSav, s.M0Openness, s.M0Nominal, (double)w.BorrowCooldown })
+            sb.Append('|').Append(F(v));
+        s.MonthRows.Add(sb.ToString());
+    }
+
+    public static void Quarter(MultiNationSim sim, ulong seed, int q, int quarters)
+    {
+        var sb = Buf(sim);
+        for (int i = 0; i < sim.Nations.Count; i++)
+        {
+            var w = sim.Nations[i].World;
+            string nm = Name(w);
+            bool uk = nm == "イギリス";
+            G.TryGetValue(w, out var s);
+            if (uk)
+            {   // (230) 国庫の帳尻：Δ国庫 ＝ ΣΔ台帳（区分別）。残差＝Δ国庫−ΣΔ台帳（本番では構成上 0）。歳入＝Tax+Tariff+StateMonopoly+StateFactory+TributeIn+OtherIn（四半期の和）
+                var t = V(w);
+                double[] L = w.TreasuryLedger; double dsum = 0; var d = new double[L.Length];
+                for (int c = 0; c < L.Length; c++) { d[c] = L[c] - (t.Have ? t.PrevL[c] : 0); dsum += d[c]; }
+                double dT = w.Treasury - (t.Have ? t.PrevT : double.NaN);
+                int[] inc = [(int)TreasuryCat.Tax, (int)TreasuryCat.Tariff, (int)TreasuryCat.StateMonopoly, (int)TreasuryCat.StateFactory, (int)TreasuryCat.TributeIn, (int)TreasuryCat.OtherIn];
+                double rev = 0; foreach (int c in inc) rev += d[c];
+                double K = 0, sumLast = 0;
+                foreach (var r in w.Regions)
+                {
+                    foreach (var p in r.Pops) if (p.LastEarned > 0) sumLast += p.LastEarned;
+                    if (r.State != RegionState.Active) continue;
+                    foreach (var pr in r.Producers) if (!pr.IsRgo && pr.Inputs.Count > 0 && Catalog.Goods[pr.GoodId].Tier != GoodTier.Service) K += pr.Scale;
+                }
+                if (s is not null) { int mi = 0; foreach (var mr in s.MonthRows) sb.Append("M|").Append(q).Append('|').Append(mi++).Append(mr).Append('\n'); s.MonthRows.Clear(); }
+                sb.Append("T|").Append(q).Append('|').Append(w.Year);
+                foreach (var v in new[] { w.Treasury, dT, dT - dsum, rev, K, sumLast, (double)w.SovereignDefaultCount, (double)w.GoldSuspensions, w.OnGoldStandard ? 1 : 0, w.Convertibility, w.GovDebt, w.FiscalFundingRatio, w.LastRevenue, w.LastInterest })
+                    sb.Append('|').Append(F(v));
+                foreach (double v in d) sb.Append('|').Append(F(v));
+                sb.Append('\n');
+                t.PrevT = w.Treasury; t.PrevL = (double[])L.Clone(); t.Have = true;
+            }
+            if (uk || q % 4 == 3)
+            {
+                double bm = w.BroadMoney, cov = bm > 1e-9 ? w.BaseMoney / bm : 1.0;
+                double[] sav = new double[NC], inc = new double[NC];
+                foreach (var r in w.Regions) foreach (var p in r.Pops) { int c = (uint)p.ClassId < (uint)NC ? p.ClassId : NC - 1; sav[c] += p.Savings; inc[c] += p.LastEarned; }
+                sb.Append("S|").Append(q).Append('|').Append(w.Year).Append('|').Append(i).Append('|').Append(nm);
+                foreach (var v in new[] { w.NominalGdp * 12, w.Gdp * 12, bm, w.BaseMoney, w.Bank?.Loans ?? 0.0, w.Bank?.HouseholdLoans ?? 0.0, w.Treasury, w.GovDebt, w.PriceLevel, w.Convertibility, w.OnGoldStandard ? 1 : 0, cov, LandedW(w), MoneyW(w) })
+                    sb.Append('|').Append(F(v));
+                foreach (var v in sav) sb.Append('|').Append(F(v));
+                foreach (var v in inc) sb.Append('|').Append(F(v));
+                sb.Append('|').Append(uk ? F(PolicyPreferences.NetSupport(w, PolicyAxis.ProgressiveTax, true)) : "nan");
+                if (s is not null)
+                {
+                    foreach (var v in new[] { s.InvN, s.InvBound, s.InvDes, s.InvAff, s.ConsMonths }) sb.Append('|').Append(F(v));
+                    for (int c = 0; c < NC; c++) sb.Append('|').Append(F(s.ConsSize[c] > 0 ? s.ConsBound[c] / s.ConsSize[c] : double.NaN));
+                    foreach (var v in new[] { s.BShortMonths, s.BGate, s.BTicket, s.BPool, s.BFull, s.BShortGate, s.BShortTicket, s.BShortPool, s.BShortFull, s.BBorrowed, s.BDomPool, s.BForPool, s.BTicketSum }) sb.Append('|').Append(F(v));
+                    foreach (var v in s.TaxClaim) sb.Append('|').Append(F(v));
+                    foreach (var v in s.TaxPaid) sb.Append('|').Append(F(v));
+                    foreach (var v in s.RentC) sb.Append('|').Append(F(v));
+                    foreach (var v in s.WageC) sb.Append('|').Append(F(v));
+                    foreach (var v in s.TithePaid) sb.Append('|').Append(F(v));
+                    foreach (var v in new[] { s.BDirect, s.BIndirect, s.BLeak, s.BBase }) sb.Append('|').Append(F(v));
+                    foreach (var v in s.PaidC) sb.Append('|').Append(F(v));
+                    foreach (var v in s.DesC) sb.Append('|').Append(F(v));
+                    foreach (var v in s.DemC) sb.Append('|').Append(F(v));
+                }
+                sb.Append('\n');
+            }
+            if (s is not null)
+            {   // 四半期の計数は毎四半期ゼロへ（英以外は年末の行に出る分が直近の1四半期ぶんだけ＝記録の粒度）
+                s.InvN = s.InvBound = s.InvDes = s.InvAff = 0; s.ConsMonths = 0; System.Array.Clear(s.ConsSize); System.Array.Clear(s.ConsBound);
+                s.BShortMonths = s.BGate = s.BTicket = s.BPool = s.BFull = s.BShortGate = s.BShortTicket = s.BShortPool = s.BShortFull = s.BBorrowed = s.BDomPool = s.BForPool = s.BTicketSum = 0; System.Array.Clear(s.TaxClaim); System.Array.Clear(s.TaxPaid); System.Array.Clear(s.RentC); System.Array.Clear(s.WageC); System.Array.Clear(s.TithePaid); System.Array.Clear(s.PaidC); System.Array.Clear(s.DesC); System.Array.Clear(s.DemC); s.BDirect = s.BIndirect = s.BLeak = s.BBase = 0;
+            }
+        }
+        if (q != quarters - 1) return;
+        using var W = new System.IO.StreamWriter(System.IO.Path.Combine(Dir!, $"s{seed}.txt"), false, new System.Text.UTF8Encoding(false), 1 << 16);
+        W.Write("#M|q|monthIdx|shortfall0|borrowed|borrowed/shortfall|gateOpen|domPool|forPool|ticket|govDebt|govBondRate|govAvgCoupon|insolvencyQ|lastInt/lastRev|lastInt|lastRev|treasury0|claims|payable|payRate|devalued|conv|onGold|investorSavings|openness|nominalGdpMonthly|borrowCooldown\n");
+        W.Write("#T|q|yr|treasury|dTreasury|resid|revQ|K|sumLastEarnedMonthly|defaults|goldSusp|onGold|conv|govDebt|fundingRatio|lastRevenue|lastInterest|ledgerDelta[cat…]\n");
+        W.Write("#R|phase 0=中点の前 1=中点の後 2=終わりの前 3=終わりの後|name|phase|m|broadMoney|baseMoney|bankLoans|hhLoans|treasury|coverage|annNomGdp|annGdp|P|conv|onGold|landedW|moneyW|zeroIncomePops|zeroIncomeSav|zeroIncomeSize|sav[14]|earned[14]|lastEarned[14]|size[14]|inc|shape|M/Y|lambdaImplied|lambdaPred\n");
+        W.Write("#S|q|yr|idx|name|annNomGdp|annGdp|broadMoney|baseMoney|bankLoans|hhLoans|treasury|govDebt|P|conv|onGold|coverage|landedW|moneyW|sav[14]|lastEarned[14]|progTaxNetSupport|invMonths|invBound|invDesired|invAfford|consMonths|consBoundShare[14]|borrowShortMonths|gateClosed|ticketBound|poolBound|full|shortGate|shortTicket|shortPool|shortFull|borrowed|domPool|forPool|ticketSum|taxClaim[14]|taxPaid[14]|rentEarned[14]|wageEarned[14]|tithePaid[14]|budgetDirect|budgetIndirect|budgetLeak|budgetBase|paid[14]|desired[14x3tier]|demand[14x3tier]\n");
+        W.Write(sb.ToString());
+    }
+}
+'''
+
+if 'BroadMoneyToIncome' not in open(root + '/PriceOfBread.SimCore/World.cs', encoding='utf-8-sig').read(): NEWFILE = NEWFILE.replace('w.BroadMoneyToIncome', '0.0')
+open(root + '/PriceOfBread.SimCore/Sav226Diag.cs', 'wb').write(b'\xef\xbb\xbf' + NEWFILE.replace('\r', '').encode('utf-8'))
+
+# --- MultiNationSim: 置き直しの前後（中点＝助走のループの中・終わり＝StartWarmup の中）
+p = root + '/PriceOfBread.SimCore/MultiNationSim.cs'
+raw = open(p, 'rb').read(); bom = raw.startswith(bytes([0xef, 0xbb, 0xbf])); s = raw.decode('utf-8-sig')
+NL = '\r\n' if '\r\n' in s else '\n'
+# 終わり（行頭 8 空白の呼び出しだけ）
+key = NL + '        foreach (var n in Nations) n.World.RebaseOpeningMoney();'
+assert s.count(key) == 1, s.count(key)
+i = s.index(key) + len(NL)
+j = s.index(NL, i)
+line = s[i:j]
+new = '        if (Sav226.On) foreach (var n in Nations) Sav226.Rebase(this, n.World, 2);' + NL + line + NL + '        if (Sav226.On) foreach (var n in Nations) Sav226.Rebase(this, n.World, 3);'
+s = s[:i] + new + s[j:]
+open(p, 'wb').write((b'\xef\xbb\xbf' if bom else b'') + s.encode('utf-8'))
+
+edit('PriceOfBread.SimCore/SelfPlay.cs', [
+    ("                sim.StepQuarter();\n",
+     "                sim.StepQuarter();\n                if (Sav226.On) Sav226.Quarter(sim, seed, q, quarters);\n"),
+])
+edit('PriceOfBread.SimCore/EconomyStep.cs', [
+    ("        // === 工場の投入支払い：同じ額を「投入費」と「投入財の売上」へ計上（相殺＝厳密保存）===\n",
+     "        if (Sav226.On && world is not null) Sav226.Consume(world, region);\n        // === 工場の投入支払い：同じ額を「投入費」と「投入財の売上」へ計上（相殺＝厳密保存）===\n"),
+    ("                    if (BudgetBindDiag.On) BudgetBindDiag.Row(world, staple ? 0 : good.Tier == GoodTier.Daily ? 1 : 2, !good.NonTradeable && !good.IsColonial, desired, demand, buyerPrice);\n",
+     "                    if (BudgetBindDiag.On) BudgetBindDiag.Row(world, staple ? 0 : good.Tier == GoodTier.Daily ? 1 : 2, !good.NonTradeable && !good.IsColonial, desired, demand, buyerPrice);\n                    if (Sav226.On && world is not null) Sav226.Row(world, p, staple ? 0 : good.Tier == GoodTier.Daily ? 1 : 2, desired * buyerPrice, demand * buyerPrice);\n"),
+    ("            region.Pops[s.LaborPopIndex].Earned += wages;\n",
+     "            region.Pops[s.LaborPopIndex].Earned += wages;\n            if (Sav226.On && world is not null) Sav226.Prod(world, region.Pops[s.OwnerPopIndex], rent, region.Pops[s.LaborPopIndex], wages);\n"),
+    ("            construction = Math.Min(desiredGrowth / Math.Max(Eps, coef.IndPerConstruction), budget / (buildCostPerUnit * (1.0 + coef.ConstructionLaborWageFrac)));",
+     "            if (Sav226.On && world is not null) Sav226.Invest(world, desiredGrowth / Math.Max(Eps, coef.IndPerConstruction), budget / (buildCostPerUnit * (1.0 + coef.ConstructionLaborWageFrac)));\n            construction = Math.Min(desiredGrowth / Math.Max(Eps, coef.IndPerConstruction), budget / (buildCostPerUnit * (1.0 + coef.ConstructionLaborWageFrac)));"),
+])
+edit('PriceOfBread.SimCore/Fiscal.cs', [
+    ("        double budgetBase = revenue + c.IndirectTaxInBudgetBase * indirectRevenue;\n",
+     "        double budgetBase = revenue + c.IndirectTaxInBudgetBase * indirectRevenue;\n        if (Sav226.On) Sav226.Budget(w, revenue, indirectRevenue, leak, budgetBase);\n"),
+    ("            titheCollected += tithe;\n            revenue += tax;\n",
+     "            titheCollected += tithe;\n            if (Sav226.On) Sav226.Tax(w, p, claims, tax, tithe);\n            revenue += tax;\n"),
+    ("        if (!(shortfall > 0) || !BorrowGateOpen(w, c)) return 0;",
+     "        if (Sav226.On && shortfall > 0 && !BorrowGateOpen(w, c)) Sav226.Gate(w, shortfall);\n        if (!(shortfall > 0) || !BorrowGateOpen(w, c)) return 0;"),
+    ("        double borrowed = Math.Min(borrowWant, pool);\n        if (!(borrowed > 1e-9)) return 0;",
+     "        double borrowed = Math.Min(borrowWant, pool);\n        if (Sav226.On) Sav226.Borrow(w, shortfall, BorrowTicket(nominalGdp, c), domesticPool, foreignPool, borrowed);\n        if (!(borrowed > 1e-9)) return 0;"),
+])
+edit('PriceOfBread.SimCore/Simulation.cs', [
+    ("            double borrowed = Fiscal.Borrow(World, World.Coef, spare);\n",
+     "            if (Sav226.On) Sav226.PreBorrow(World, spare);\n            double borrowed = Fiscal.Borrow(World, World.Coef, spare);\n            if (Sav226.On) Sav226.PostBorrow(World, borrowed);\n"),
+    ("        World.FiscalFundingRatio = payRate;\n",
+     "        World.FiscalFundingRatio = payRate;\n        if (Sav226.On) Sav226.Month(World, claims, payable, payRate, devalued);\n"),
+])
+print('ok dg238', root)
+
+#################### batch.sh
+#!/usr/bin/env bash
+# (238 診断) 写しの木＋読むだけの計器で measure.sh を1本。
+#   bash batch.sh prep <腕 B|O|R|OR> <commit>       … 木を作る（B,O＝5a115b6 ／ R,OR＝dg の R の木）＋計器
+#   bash batch.sh run  <腕> <種の数> <種の起点> [四半期数]
+export AVALONIA_TELEMETRY_OPTOUT=1
+export PATH="/usr/bin:/c/Program Files/Git/usr/bin:/c/Program Files/Git/cmd:/c/Program Files/dotnet:$PATH"
+export PYTHONUTF8=1
+REPO=/d/PoB_work/wt_dg
+W=/d/PoB_work/dg/w; ARM=$2; SRC=$W/src_$ARM
+if [ "$1" = prep ]; then
+  FROM=$3
+  rm -rf $SRC && mkdir -p $SRC
+  (cd $REPO && git archive $FROM) | tar -x -C $SRC --exclude=docs --exclude=measurements --exclude=uishot || exit 1
+  python /d/PoB_work/dg/tools/inj_dg238.py $SRC > /dev/null || { echo "INJFAIL"; exit 1; }
+  echo PREPDONE $ARM $FROM
+elif [ "$1" = run ]; then
+  N=${3:-1}; SB=${4:-1}; Q=${5:-}; [ "$Q" = 0 ] && Q=""
+  TAG=${ARM}_${N}_s${SB}; XARGS=""
+  if [ "$SB" != "1" ] || [ -n "$Q" ]; then XARGS="$N - 0 $SB $Q"; fi
+  [ -n "$Q" ] && TAG=${TAG}_q$Q
+  O=$W/out_$TAG
+  rm -rf $O $W/snap_$TAG && mkdir -p $O/sav226
+  (cd $REPO && git show 1a3c227:.pob-fidelity-baseline.tsv) > $W/fid_$TAG.tsv
+  COEFENV=""
+  case "$ARM" in O|OR) export POB_COEF="MaxInterestShareOfRevenue=1e9" ;; *) unset POB_COEF ;; esac
+  echo "START $(date +%T) selfplay-batch N=$N SB=$SB Q=$Q SRC=$SRC POB_COEF=${POB_COEF:-}" > $W/ms_$TAG.log
+  SEEDS=$N SNAP_DIR=$W/snap_$TAG POB_FIDELITY_BASELINE=$W/fid_$TAG.tsv POB_SAV226_DIR=$O/sav226 \
+    bash $SRC/measure.sh $W/b${N}_$TAG.txt selfplay-batch $XARGS >> $W/ms_$TAG.log 2>&1
+  echo "rc=$? END $(date +%T)" >> $W/ms_$TAG.log
+  rm -rf $W/snap_$TAG
+  tail -4 $W/ms_$TAG.log
+  echo BATCHDONE $TAG
+fi
+
+#################### go.ps1
+param(
+  [string]$Arms,
+  [int]$Seeds = 1,
+  [int]$SeedBegin = 1,
+  [string]$Quarters = ""
+)
+$bash = "C:/Program Files/Git/bin/bash.exe"
+$procs = @()
+foreach ($a in $Arms.Split(",")) {
+  $p = Start-Process -FilePath $bash -ArgumentList @("D:/PoB_work/dg/tools/batch.sh", "run", $a, "$Seeds", "$SeedBegin", $(if ($Quarters -eq "") { "0" } else { $Quarters })) -PassThru -WindowStyle Hidden -RedirectStandardOutput "D:/PoB_work/dg/w/go_$a.out" -RedirectStandardError "D:/PoB_work/dg/w/go_$a.err"
+  $procs += $p
+}
+Wait-Process -Id ($procs | ForEach-Object { $_.Id })
+foreach ($a in $Arms.Split(",")) { Write-Output "== $a"; Get-Content "D:/PoB_work/dg/w/go_$a.out" -Tail 6 }
+
+#################### an_dg238.py
+import sys, math
+# (238 診断) canary / 5種の読み手：英の M 行（月次）・T 行（四半期の帳尻）・R 行（置き直し）を B/O/R/OR で並べる
+d = sys.argv[1]; tag = sys.argv[2]; arms = sys.argv[3].split(','); seed = sys.argv[4]; nq = int(sys.argv[5]) if len(sys.argv) > 5 else 8
+UK = 'イギリス'
+def fl(y): return float('nan') if y == 'nan' else float(y)
+def load(a):
+    M, T, R = {}, {}, []
+    fn = '%s/out_%s_%s/sav226/%s.txt' % (d, a, tag, seed)
+    for ln in open(fn, encoding='utf-8'):
+        x = ln.rstrip('\n').split('|')
+        if x[0] == 'M': M.setdefault(int(x[1]), []).append([fl(y) for y in x[3:]])
+        elif x[0] == 'T': T[int(x[1])] = [fl(y) for y in x[3:]]
+        elif x[0] == 'R' and x[1] == UK: R.append(x)
+    return M, T, R
+D = {a: load(a) for a in arms}
+print('=== 帳尻（Δ国庫−ΣΔ台帳の残差 ÷ 歳入の四半期和）全四半期')
+for a in arms:
+    T = D[a][1]; worst = 0; wq = None
+    for q, v in sorted(T.items()):
+        if v[1] == v[1] and v[3] > 0:
+            r = abs(v[2]) / v[3]
+            if r > worst: worst, wq = r, q + 1
+    nan0 = [q + 1 for q, v in T.items() if v[1] != v[1]]
+    print(a, '最大 |残差|/歳入 = %.2e (Q%s)' % (worst, wq), '| dT=NaN の四半期:', nan0)
+print('\n=== R 行（置き直し）phase 2=終わり前 3=終わり後')
+for a in arms:
+    for x in D[a][2]:
+        v = [fl(y) for y in x[4:]]
+        print(a, 'phase', x[2], 'm=%s' % x[3], 'M/Y=%.3f' % v[74], 'lambdaImpl=%.4f' % v[75], 'lambdaPred=%.4f' % v[76], 'inc/mo=%.0f' % v[72], 'treasury=%.0f' % v[4], 'cov=%.3f' % v[5], 'P=%.3f' % v[8], 'conv=%.2f' % v[9], 'onGold=%d' % v[10])
+print('\n=== 四半期表（Qn＝本番の n 番目）  rev/mo(T) tr/rev gold conv defs goldSusp | 月次: short=不足のある月数 gateClosed r<1 月数 Σ不足 Σ借入 minB/S  利払い/歳入 平均/最大 govDebt rate')
+for q in range(nq):
+    for a in arms:
+        M, T, R = D[a]; v = T.get(q); ms = M.get(q, [])
+        if not v: print('Q%-2d %-3s (なし)' % (q + 1, a)); continue
+        rev = v[3] / 3; tr = v[0]
+        short = [m for m in ms if m[0] > 0]
+        closed = [m for m in short if m[3] == 0]
+        rlt = [m for m in ms if m[17] < 0.9999]
+        rlt_gate = [m for m in rlt if m[3] == 0]
+        sumS = sum(m[0] for m in ms); sumB = sum(m[1] for m in ms)
+        rat = [m[2] for m in short if m[2] == m[2]]
+        ints = [m[11] for m in ms if m[11] == m[11]]
+        print('Q%-2d %-3s rev/mo %6.0f tr %7.0f tr/rev %5.2f gold %d conv %.2f def %d susp %d | short %d closed %d r<1 %d(gate閉 %d) ΣS %6.0f ΣB %6.0f minB/S %s | int/rev %s/%s debt %6.0f rate %.4f dev %.0f' % (
+            q + 1, a, rev, tr, tr / rev if rev > 0 else float('nan'), v[8], v[9], v[6], v[7], len(short), len(closed), len(rlt), len(rlt_gate), sumS, sumB,
+            ('%.3f' % min(rat)) if rat else '-', ('%.2f' % (sum(ints) / len(ints))) if ints else '-', ('%.2f' % max(ints)) if ints else '-', ms[-1][7] if ms else float('nan'), ms[-1][8] if ms else float('nan'), sum(m[18] for m in ms)))
+    print()
+
+# ---- 追加：プール・InsolvencyQ・歳入/ΣLast・物価・L-cons
+def loadS(a):
+    S = {}
+    fn = '%s/out_%s_%s/sav226/%s.txt' % (d, a, tag, seed)
+    for ln in open(fn, encoding='utf-8'):
+        x = ln.rstrip('\n').split('|')
+        if x[0] == 'S' and x[4] == UK: S[int(x[1])] = [fl(y) for y in x[5:]]
+    return S
+print('\n=== プール・利払い・物価・消費（Q1〜Q%d）  domPool forPool ticket(月次名目GDP×0.10) maxInsolvQ | 歳入/ΣLastEarned P L-cons(大衆 Paid/所得) ΣLast/月 K' % nq)
+MASS = [1, 2, 11]
+base = {}
+for a in arms:
+    M, T, R = D[a]; S = loadS(a)
+    for q in range(nq):
+        ms = M.get(q, []); v = T.get(q); s = S.get(q)
+        if not v or not ms: continue
+        dom = sum(m[4] for m in ms) / len(ms); fo = sum(m[5] for m in ms) / len(ms); tk = sum(m[6] for m in ms) / len(ms); ins = max(m[10] for m in ms)
+        rev = v[3] / 3
+        P = s[8] if s else float('nan')
+        mass = float('nan')
+        if s:
+            paid = sum(s[149 + c] for c in MASS) / 3; inc = sum(s[28 + c] for c in MASS); mass = paid / inc if inc > 0 else float('nan')
+        print('Q%-2d %-3s dom %7.0f for %6.0f ticket %6.0f maxInsolv %.3f | rev/ΣLast %.3f P %.3f Lcons %.2f ΣLast %7.0f K %6.0f' % (q + 1, a, dom, fo, tk, ins, rev / v[5] if v[5] > 0 else float('nan'), P, mass, v[5], v[4]))
+    print()
+
+#################### an5_dg238.py
+import sys, math, os
+# (238 診断) 5種の読み手：種ごとに英 Q1〜Q8 の r<1 の月数・兌換・借入÷不足・Q1 歳入／B を B／O／R／O+R で並べる＋判定 (i)(ii)(iii)
+d = sys.argv[1]; tag = sys.argv[2]; seeds = sys.argv[3].split(','); NQ = 8
+arms = ['B', 'O', 'R', 'OR']
+UK = 'イギリス'
+def fl(y): return float('nan') if y == 'nan' else float(y)
+def load(a, sd):
+    M, T = {}, {}
+    fn = '%s/out_%s_%s/sav226/s%s.txt' % (d, a, tag, sd)
+    if not os.path.exists(fn): return None
+    for ln in open(fn, encoding='utf-8'):
+        x = ln.rstrip('\n').split('|')
+        if x[0] == 'M': M.setdefault(int(x[1]), []).append([fl(y) for y in x[3:]])
+        elif x[0] == 'T': T[int(x[1])] = [fl(y) for y in x[3:]]
+    return M, T
+def stats(M, T):
+    r = {}
+    ms = [m for q in range(NQ) for m in M.get(q, [])]
+    short = [m for m in ms if m[0] > 0]
+    rl = [m for m in ms if m[17] < 0.9999]
+    r['short'] = len(short); r['rlt1'] = len(rl); r['rlt1_gate'] = len([m for m in rl if m[3] == 0])
+    r['minBS'] = min([m[2] for m in short if m[2] == m[2]], default=float('nan'))
+    r['sumS'] = sum(m[0] for m in ms); r['sumB'] = sum(m[1] for m in ms)
+    r['rev1'] = T[0][3] / 3 if 0 in T else float('nan')
+    r['susp'] = max([T[q][7] for q in range(NQ) if q in T], default=float('nan'))
+    r['defs'] = max([T[q][6] for q in range(NQ) if q in T], default=float('nan'))
+    r['onGold8'] = T[NQ - 1][8] if (NQ - 1) in T else float('nan')
+    r['conv8'] = T[NQ - 1][9] if (NQ - 1) in T else float('nan')
+    r['debt1'] = M[0][0][7] if M.get(0) else float('nan')
+    r['debt8'] = M[NQ - 1][-1][7] if M.get(NQ - 1) else float('nan')
+    r['int1'] = sum(m[11] for m in M.get(0, []) if m[11] == m[11]) / max(1, len(M.get(0, [])))
+    r['tr8'] = T[NQ - 1][0] / (T[NQ - 1][3] / 3) if (NQ - 1) in T and T[NQ - 1][3] > 0 else float('nan')
+    r['K8'] = T[NQ - 1][4] if (NQ - 1) in T else float('nan')
+    # 全期間
+    allT = T
+    r['rlt1_all'] = len([m for q in M for m in M[q] if m[17] < 0.9999])
+    r['susp_all'] = max([v[7] for v in allT.values()], default=float('nan'))
+    r['defs_all'] = max([v[6] for v in allT.values()], default=float('nan'))
+    r['minBS_all'] = min([m[2] for q in M for m in M[q] if m[0] > 0 and m[2] == m[2]], default=float('nan'))
+    r['nq'] = len(allT)
+    r['resid'] = max([abs(v[2]) / v[3] for v in allT.values() if v[1] == v[1] and v[3] > 0], default=float('nan'))
+    return r
+rows = {}
+for sd in seeds:
+    for a in arms:
+        x = load(a, sd)
+        rows[(a, sd)] = stats(*x) if x else None
+print('seed arm | Q1歳入/月 Q1歳入/B 利払い÷歳入(Q1) | 不足の月 r<1の月(うち門閉) 借入/不足(最小) | 兌換停止(累) 不履行 onGold(Q8) conv(Q8) | 債務 Q8/Q1 国庫/歳入(Q8) K(Q8) | 帳尻')
+for sd in seeds:
+    b = rows[('B', sd)]
+    for a in arms:
+        r = rows[(a, sd)]
+        if not r: print(sd, a, '(なし)'); continue
+        print('s%s %-2s | %6.0f %5.2f %5.2f | %2d %2d(%2d) %s | %d %d %d %.2f | %.3f %5.2f %5.0f | %.1e' % (sd, a, r['rev1'], r['rev1'] / b['rev1'] if b['rev1'] else float('nan'), r['int1'], r['short'], r['rlt1'], r['rlt1_gate'], ('%.3f' % r['minBS']) if r['minBS'] == r['minBS'] else '-', r['susp'], r['defs'], r['onGold8'], r['conv8'], r['debt8'] / r['debt1'] if r['debt1'] else float('nan'), r['tr8'], r['K8'], r['resid']))
+    print()
+print('全期間（%d四半期ぶん）: r<1 の月 / 兌換停止(累) / 不履行(累) / 借入÷不足の最小' % rows[('B', seeds[0])]['nq'])
+for sd in seeds:
+    print('s%s ' % sd + ' | '.join('%s: %d / %d / %d / %s' % (a, rows[(a, sd)]['rlt1_all'], rows[(a, sd)]['susp_all'], rows[(a, sd)]['defs_all'], ('%.3f' % rows[(a, sd)]['minBS_all']) if rows[(a, sd)]['minBS_all'] == rows[(a, sd)]['minBS_all'] else '-') for a in arms if rows[(a, sd)]))
+print('\n判定（種ごと・Q1〜Q8）')
+cnt = {'i': 0, 'ii': 0, 'iii': 0, 'nostem': 0}
+for sd in seeds:
+    R, OR, B = rows[('R', sd)], rows[('OR', sd)], rows[('B', sd)]
+    pre = (R['rlt1'] >= 1 or R['susp'] >= 1)  # R が症状を再現
+    ok_bs = (OR['short'] == 0) or (OR['minBS'] >= 0.99)
+    nr = OR['rlt1'] == 0
+    nosusp = OR['susp'] <= B['susp']
+    if not pre: v = 'R が症状を再現しない（判定しない）'; cnt['nostem'] += 1
+    elif ok_bs and nr and nosusp: v = '(i) 門が直接の原因'; cnt['i'] += 1
+    elif ok_bs and (OR['rlt1'] >= 2 or not nosusp): v = '(ii) 門は原因でない'; cnt['ii'] += 1
+    elif not ok_bs and (OR['rlt1'] >= 1 or not nosusp): v = '(iii) 貸し手の深さが縛った'; cnt['iii'] += 1
+    else: v = '(割れ：どれにも当たらない)'
+    print('s%s: R症状(r<1月 %d・兌換停止 %d) | OR: 不足の月 %d・借入÷不足最小 %s・r<1の月 %d・兌換停止 %d(B %d) → %s' % (sd, R['rlt1'], R['susp'], OR['short'], ('%.3f' % OR['minBS']) if OR['minBS'] == OR['minBS'] else '-', OR['rlt1'], OR['susp'], B['susp'], v))
+print(cnt)
+
+#################### ev_dg238.py
+import sys
+d=sys.argv[1]; tag=sys.argv[2]; seeds=sys.argv[3].split(',')
+UK='イギリス'
+def fl(y): return float('nan') if y=='nan' else float(y)
+for sd in seeds:
+    for a in ['B','O','R','OR']:
+        T={}; M={}
+        for ln in open('%s/out_%s_%s/sav226/s%s.txt'%(d,a,tag,sd),encoding='utf-8'):
+            x=ln.rstrip('\n').split('|')
+            if x[0]=='T': T[int(x[1])]=[fl(y) for y in x[3:]]
+            elif x[0]=='M': M.setdefault(int(x[1]),[]).append([fl(y) for y in x[3:]])
+        ev=[]; pd=0; ps=0; pg=1
+        for q in sorted(T):
+            v=T[q]
+            if v[6]>pd: ev.append('Q%d不履行%d'%(q+1,v[6])); pd=v[6]
+            if v[7]>ps: ev.append('Q%d停止%d'%(q+1,v[7])); ps=v[7]
+        # r<1 months histogram by decade of quarters
+        rl=[q+1 for q in M for m in M[q] if m[17]<0.9999]
+        first=min(rl) if rl else None
+        h={}
+        for q in rl: h[(q-1)//50*50]=h.get((q-1)//50*50,0)+1
+        print('s%s %-2s 事象:'%(sd,a),' '.join(ev) if ev else '(なし)','| r<1の月 初回 Q%s 50Q刻み:'%first, dict(sorted(h.items())), '| 最終Q', max(T))
+
+#################### first_dg238.py
+import sys
+d=sys.argv[1]; tag=sys.argv[2]; seeds=sys.argv[3].split(','); arm=sys.argv[4]
+def fl(y): return float('nan') if y=='nan' else float(y)
+for sd in seeds:
+    M={}
+    for ln in open('%s/out_%s_%s/sav226/s%s.txt'%(d,arm,tag,sd),encoding='utf-8'):
+        x=ln.rstrip('\n').split('|')
+        if x[0]=='M': M.setdefault(int(x[1]),[]).append([fl(y) for y in x[3:]])
+    months=[(q,i,m) for q in sorted(M) for i,m in enumerate(M[q])]
+    idx=next((k for k,(q,i,m) in enumerate(months) if m[17]<0.9999),None)
+    if idx is None: print('s%s: r<1 なし'%sd); continue
+    print('s%s %s: 最初の r<1 の月＝Q%d 月%d'%(sd,arm,months[idx][0]+1,months[idx][1]))
+    print('   月 | 不足 借入 借入/不足 門 国内 外資 1件 | 債務 金利 利払い/歳入 | 国庫0 請求 払える r 切下 投資家貯蓄')
+    for k in range(max(0,idx-4),min(len(months),idx+3)):
+        q,i,m=months[k]
+        print('   Q%d.%d | %6.0f %6.0f %5.2f %d %7.0f %6.0f %6.0f | %8.0f %.4f %.2f | %6.0f %6.0f %6.0f %.3f %5.0f %8.0f'%(q+1,i,m[0],m[1],m[2],m[3],m[4],m[5],m[6],m[7],m[8],m[11],m[14],m[15],m[16],m[17],m[18],m[21]))
+
+#################### uk_dg238.py
+import sys
+d=sys.argv[1]; tag=sys.argv[2]; seeds=sys.argv[3].split(',')
+def fl(y): return float('nan') if y=='nan' else float(y)
+print('英・全期間（月次の行 M）：月数 / r<1 の月 / 国債金利が上限 0.30 に張り付いた月 / 利払い÷歳入≥0.55 の月 / 借入÷不足<0.99 の月（不足のある月のうち）')
+for sd in seeds:
+    for a in ['B','O','R','OR']:
+        n=r1=st=hi=sh=bl=0
+        for ln in open('%s/out_%s_%s/sav226/s%s.txt'%(d,a,tag,sd),encoding='utf-8'):
+            if not ln.startswith('M|'): continue
+            x=ln.rstrip('\n').split('|'); m=[fl(y) for y in x[3:]]
+            n+=1
+            if m[17]<0.9999: r1+=1
+            if m[8]>=0.2999: st+=1
+            if m[11]==m[11] and m[11]>=0.55: hi+=1
+            if m[0]>0:
+                sh+=1
+                if m[2]==m[2] and m[2]<0.99: bl+=1
+        print('s%s %-2s 月数 %4d | r<1 %4d (%.1f%%) | 金利上限 %4d (%.1f%%) | 利払い/歳入≥0.55 %4d (%.1f%%) | 不足の月 %4d うち借入÷不足<0.99 %4d'%(sd,a,n,r1,100*r1/n,st,100*st/n,hi,100*hi/n,sh,bl))
+
+#################### rev_dg238.py
+import sys
+d=sys.argv[1]; tag=sys.argv[2]; sd=sys.argv[3]; nq=int(sys.argv[4])
+def fl(y): return float('nan') if y=='nan' else float(y)
+T={}
+for a in ['B','R','OR']:
+    T[a]={}
+    for ln in open('%s/out_%s_%s/sav226/s%s.txt'%(d,a,tag,sd),encoding='utf-8'):
+        x=ln.rstrip('\n').split('|')
+        if x[0]=='T': T[a][int(x[1])]=[fl(y) for y in x[3:]]
+print('英 seed%s 歳入の内訳（月平均）Tax / Tariff / StateMonopoly(専売) / OtherIn+Factory：B | R | OR'%sd)
+for q in range(nq):
+    row='Q%-2d'%(q+1)
+    for a in ['B','R','OR']:
+        L=T[a][q][14:]; m=lambda i:L[i]/3
+        row+=' | %s %5.0f %4.0f %5.0f %4.0f'%(a,m(0),m(1),m(2),m(5)+m(7))
+    print(row)
+
+#################### more_dg238.py
+import sys, os
+d='D:/PoB_work/dg/w'; tag='5_s1'; seeds=['1','2','3','4','5']
+def fl(y): return float('nan') if y=='nan' else float(y)
+def load(a,sd):
+    M={};T={};R=[];S={}
+    for ln in open('%s/out_%s_%s/sav226/s%s.txt'%(d,a,tag,sd),encoding='utf-8'):
+        x=ln.rstrip('\n').split('|')
+        if x[0]=='M': M.setdefault(int(x[1]),[]).append([fl(y) for y in x[3:]])
+        elif x[0]=='T': T[int(x[1])]=[fl(y) for y in x[3:]]
+        elif x[0]=='R' and x[1]=='イギリス': R.append(x)
+    return M,T,R
+print('--- R/OR の置き直し（λ・M/Y）と ΣLastEarned（月次の和）の B 比 Q1〜Q4、国庫÷歳入 Q2〜Q4 の B 比、切り下げの和 Q1〜Q8、借入の和 Q3〜Q8')
+for sd in seeds:
+    B=load('B',sd); R=load('R',sd); OR=load('OR',sd); O=load('O',sd)
+    r3=[x for x in R[2] if x[2]=='3'][0]; v=[fl(y) for y in r3[4:]]
+    sl=['%.2f'%(R[1][q][5]/B[1][q][5]) for q in range(4)]
+    slo=['%.2f'%(OR[1][q][5]/B[1][q][5]) for q in range(4)]
+    trr=lambda X,q: X[1][q][0]/(X[1][q][3]/3)
+    trB=['%.2f'%(trr(R,q)/trr(B,q)) for q in range(1,4)]
+    dev=lambda X: sum(m[18] for q in range(8) for m in X[0].get(q,[]))
+    bor=lambda X: sum(m[1] for q in range(2,8) for m in X[0].get(q,[]))
+    sh=lambda X: sum(m[0] for q in range(2,8) for m in X[0].get(q,[]))
+    print('s%s: λ=%.4f M/Y=%.3f | ΣLast/B(R) Q1-4 %s | ΣLast/B(OR) %s | 国庫/歳入 R÷B Q2-4 %s | 切下げ和Q1-8: B %.0f O %.0f R %.0f OR %.0f | 借入和Q3-8: O %.0f OR %.0f (不足和 OR %.0f) | 債務 Q8/Q1: OR %.3f R %.3f B %.3f'%(sd,v[75],v[74],sl,slo,trB,dev(B),dev(O),dev(R),dev(OR),bor(O),bor(OR),sh(OR),OR[0][7][-1][7]/OR[0][0][0][7],R[0][7][-1][7]/R[0][0][0][7],B[0][7][-1][7]/B[0][0][0][7]))
+print('\n--- B の r<1 の月 Q1〜Q8 の不足の和（shortGate）と O の借入の和（P-O2）')
+for sd in seeds:
+    B=load('B',sd); O=load('O',sd)
+    sg=sum(m[0] for q in range(8) for m in B[0].get(q,[]) if m[0]>0 and m[3]==0)
+    ob=sum(m[1] for q in range(8) for m in O[0].get(q,[]))
+    print('s%s: B 門閉の不足の和 %.0f | O 借入の和 %.0f'%(sd,sg,ob))
+print('\n--- 月次の表（英・seed3 canary 40Q 版の Q1〜Q8・不足のある月または r<1 の月だけ）腕 R / OR')
+M={}
+for a in ['R','OR']:
+    M[a]={}
+    for ln in open('%s/out_%s_1_s3_q40/sav226/s3.txt'%(d,a),encoding='utf-8'):
+        x=ln.rstrip('\n').split('|')
+        if x[0]=='M': M[a].setdefault(int(x[1]),[]).append([fl(y) for y in x[3:]])
+print('Q.月 腕 | 不足 借入 借入÷不足 門 | 国内プール 外資プール 1件 | 利払い÷歳入 | r 切下')
+for q in range(8):
+    for a in ['R','OR']:
+        for i,m in enumerate(M[a].get(q,[])):
+            if m[0]>0 or m[17]<0.9999:
+                print('Q%d.%d %-2s | %6.0f %6.0f %5.3f %d | %7.0f %6.0f %6.0f | %.2f | %.3f %5.0f'%(q+1,i,a,m[0],m[1],m[2] if m[2]==m[2] else float('nan'),m[3],m[4],m[5],m[6],m[11],m[17],m[18]))
