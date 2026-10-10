@@ -6,6 +6,10 @@
 /// </summary>
 public sealed class NationConfig
 {
+    // ★(247) 既定値は **この型の初期化子が唯一の場所**（初期値の既定値の一本化）：world.json の国は「既定と違う値」のキーだけを書く（同じ値のキーは書かない）。
+    //   既定は世界の大半の国の値（最頻値）に置く＝書くキーが最も少ない。番人＝InitialDefaultsTests（world.json の国が既定と同じ値のキーを持つと赤）。
+    //   ⚠既定を変えるときは、建国（MultiNationSim の分離独立・NationConfig を手で組む）がその欄を読むか確かめる＝読むなら建国の組みに明示する。
+    //   BroadMoneyToGdp の既定 0 は「置かない」の印で建国が読む（Simulation.World.BroadMoneyToGdp）＝最頻値（0.1）へ動かしてはならない。
     /// <summary>浅い複製（監査2026-07-12 他19）：金利実験など一時的な上書きに使う＝WorldData.Nations() の共有キャッシュを汚染しない。</summary>
     public NationConfig ShallowClone() => (NationConfig)MemberwiseClone();
 
@@ -45,7 +49,7 @@ public sealed class NationConfig
     public double InstitutionalDecay = 0;   // P7 制度疲労の初期値（清0.8/オスマン0.6/露0.4・西欧と日本は0＝明示的にJSONへ書かない）
     public double NationalConsciousness0 = -1;   // P9 国民意識v2の初期値（−1=係数既定。米0.32=独立戦争直後/仏0.1=革命前）
     public double InitialMassMilitancy = 0;      // P6 乾隆帝の遺産：非特権大衆の初期闘争度（清＝白蓮教乱前夜の慢性的混乱。既定0=恒等・盛りすぎない）
-    public double InitialTariff = 0.0;   // 関税の初期値（0..1）。日本＝鎖国で極めて高い
+    public double InitialTariff = 0.4;   // 関税の初期値（0..1）。既定＝最頻値（61国のうち30国）。日本＝鎖国で極めて高い
     public double Industrialization = 0.0;
     public (string Name, int[] Resources, double PopK)[] InitialColonies = [];   // 初期の植民地（名前＋固有資源 good.Id＋1780年代の住民数〔千人〕。史実）。征服で本国間を移る。★(227)：旧＝人口規模ウェイト（×ColonialPopScale 500 で千人）→千人を直接置く
     // 倍率排除⑤：国一律の生産性倍率 ProductivityBonus は撤去。生産性差は工業化度(Industrialization)・技術・資源賦存(州Resources/ArableLand)から創発する。
@@ -54,10 +58,10 @@ public sealed class NationConfig
     // ★Militarism（軍部優位の初期値）は2026-08-18に撤去（作者裁定「厳密には法ではなく政治機構だ」）。
     //   プロイセン/ロシアの軍国性は初期フラグでなく**振る舞いの帰結**として出す＝軍事費（政体の軍事床 MilitaryFloorScale・脅威応答）と
     //   徴兵法（既定＝選抜）から軍国度が導出される。world.json の "militarism" キーも同日に削除（読み手ゼロ）。
-    // 初期の法（史実1789で差別化）。既定＝1789旧体制（参政権なし・国家報道・穀物法なし・農奴未解放）。
+    // 初期の法（史実1789で差別化）。既定＝1789旧体制の最頻（参政権なし・国家報道・穀物法全面・農奴未解放）。
     public Suffrage InitialSuffrage = Suffrage.None;                       // 英米蘭＝制限選挙（Census）／他＝なし
     public CensorshipLaw InitialCensorship = CensorshipLaw.StatePressOnly; // 米蘭＝自由報道／英＝検閲付／他＝国家報道のみ
-    public ReformLevel InitialCornLaws = ReformLevel.None;                 // 穀物法：地主保護の農業国＝全面（英の穀物法）／自由貿易・輸出国＝なし（蘭米）
+    public ReformLevel InitialCornLaws = ReformLevel.Full;                 // 穀物法：地主保護の農業国＝全面（英の穀物法・既定〔61国のうち56国〕）／自由貿易・輸出国＝なし（蘭米）
     public ReformLevel InitialSerfEmancipation = ReformLevel.None;         // 農奴解放：東欧の農奴制＝なし（露普墺日）／西欧の自由労働＝全面（英米蘭）／封建残滓＝限定（仏伊西土）
     public ImmigrationLaw InitialImmigration = ImmigrationLaw.Open;        // ★移民制限法（作者裁定 2026-09-27 E7）：日本＝鎖国・朝鮮＝海禁で閉鎖／清＝広東一口通商と満洲の封禁で選別／他＝開放
     // ★徴兵法の初期値（(178)・作者 2026-10-03「全て推奨でよい」で採った推奨「開幕の徴兵法を史実のデータで」・分類は (168) の下調べ＝1783 年の制度・国ごとの制度と年と出典は実装ログ (178) の表）：常備軍が志願・世襲の武人・傭兵・部族の兵で、国家が平民を籤や割当てで
@@ -86,11 +90,11 @@ public sealed class NationConfig
     public double Latitude, Longitude;   // 首都の座標（度）。世界市場との距離＝輸送マージンに効く（遠い国＝交易が高くつく。日本の遠さ＝天然の障壁）
     // ★撤去2026-09-06：BasinOverride（国単位の海盆の明示指定・world.json は全61件 null だった）。海盆は州単位（Region.SeaBasin）。
     // 農制＝農場の残余（売上−農業労働力の購入費）のうち地主（貴族）が取る割合。
-    // 1.0＝農奴制（露）・0.8＝領主農場（普・土）・0.5＝小作（仏・日・英）・0.0＝自作農（米＝農民が自分の農場を所有）
-    public double FarmLordShare = 0.5;
+    // 1.0＝農奴制（露）・0.8＝領主農場（普・土）・0.6＝既定（61国のうち43国）・0.5＝小作（仏・日・英）・0.0＝自作農（米＝農民が自分の農場を所有）
+    public double FarmLordShare = 0.6;
     // 各国の象徴的主食（英＝紅茶・露＝ウォッカ・日＝米・仏＝パン…）の good.Id。**表示用のみ**（「パンの値段」UI/診断の価格アンカー）。
     // 固執財の需要床/闘争度直撃の機構は廃止（主食欠乏の怒りは満足度経路＝主食tierの最重みが拾う）。
-    public int CulturalGoodId = -1;
+    public int CulturalGoodId = Catalog.BreadId;   // 既定＝パン（61国のうち24国・Runner の診断が <0 のときに使う財と同じ）
 
     public Scenario ToScenario(ulong seed, bool sharedWorld = false) => new()
     {
