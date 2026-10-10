@@ -150,6 +150,6 @@ public class NationIdentityTests
         Assert.True(savings > 0);
         // 双方が翌四半期も正常に鼓動する（Invariants例外なし）
         sim.StepQuarter();
-        Assert.True(belgium.Gdp >= 0 && w.Gdp >= 0);
+        Assert.True(belgium.GdpPerMonth >= 0 && w.GdpPerMonth >= 0);
     }
 }

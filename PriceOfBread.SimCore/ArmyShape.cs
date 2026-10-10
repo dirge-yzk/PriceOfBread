@@ -262,7 +262,7 @@ public static class ArmyShape
         if (p.Nation is not { } w) return p.Military;
         var c = w.Coef;
         var (t, co, mi) = Quality(w, c);
-        return w.SoldierSize() / System.Math.Max(1e-9, c.SoldiersPerMilitary) * (t * co * mi);
+        return w.SoldierSizeK() / System.Math.Max(1e-9, c.SoldiersPerMilitary) * (t * co * mi);
     }
 
     /// <summary>★陸軍の大きさ（2026-10-03 (194)）＝<see cref="ForcePotential"/>×(1−海軍シェア〔兵士のうち艦に乗る割合〕)＝陸に立つ兵の頭数×質（即応度・装備の質の充足・熟練を掛けない）。

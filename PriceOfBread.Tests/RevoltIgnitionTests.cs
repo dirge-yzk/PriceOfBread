@@ -231,7 +231,7 @@ public class RevoltIgnitionTests
         var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
         sim.Run(20);
         var w = sim.World;
-        Assert.True(w.NominalGdp > 5_000, "前提が崩れた：GDPが小さすぎて要求額が国庫半分に届かない");
+        Assert.True(w.NominalGdpPerMonth > 5_000, "前提が崩れた：GDPが小さすぎて要求額が国庫半分に届かない");
         w.SetTreasuryRaw(1_000.0);   // 国庫半分=500 ≪ 要求額＝minクランプが確実に食う帯
         double Budget(double frac) { w.ModernizationFrac = frac; return w.ModernizationBudget(); }
         w.Coef.ModernizationBudgetSoftCap = 0;   // ★OFF側を明示ピン（既定は点火1.0）
@@ -725,7 +725,7 @@ public class RevoltIgnitionTests
         Assert.True(sim.Nations.Count > n0, "前提が崩れた：反乱国家が建っていない");
         var rw = sim.Nations[^1].World;
         Assert.Contains(home, rw.Regions);
-        return (rw.SoldierSize(), pw.SoldierSize(), rw.SelfPower?.Military ?? 0, home.Markets[Catalog.LaborId].LastProduced);
+        return (rw.SoldierSizeK(), pw.SoldierSizeK(), rw.SelfPower?.Military ?? 0, home.Markets[Catalog.LaborId].LastProduced);
     }
 
     [Fact]
@@ -872,15 +872,15 @@ public class RevoltIgnitionTests
         var (simB, brB) = Make();
         var c = simA.Coef;
         int rifle = c.MilitaryGoods[0];
-        Assert.True(c.MilitaryWearRates[0] < 1.0, "前提が崩れた：小銃が耐久品でない");
+        Assert.True(c.MilitaryWearRatesPerMonth[0] < 1.0, "前提が崩れた：小銃が耐久品でない");
         Territory.TransferRegion(brB, simB.Nations[1].World, brB.Regions[0], Territory.Rehoming.Ceded);
         var seatB = brB.Regions[0];
         Assert.True(seatB.ArmsStock is { Count: 0 }, "遷都先の武器庫が開いた空で来ていない");
         simA.StepQuarter();
         simB.StepQuarter();
         Assert.Same(seatB, brB.Regions[0]);
-        double perA = brA.Regions[0].ArmsStock!.GetValueOrDefault(rifle) / brA.SoldierSize();
-        double perB = seatB.ArmsStock!.GetValueOrDefault(rifle) / brB.SoldierSize();
+        double perA = brA.Regions[0].ArmsStock!.GetValueOrDefault(rifle) / brA.SoldierSizeK();
+        double perB = seatB.ArmsStock!.GetValueOrDefault(rifle) / brB.SoldierSizeK();
         Assert.True(perA > 0, $"前提が崩れた：双子の首都に小銃がない（{perA:G6}）");
         Assert.True(perB < 0.2 * perA, $"遷都先に武器庫が湧いたか、開幕の武器庫が目標から始まっていない（兵1人あたりの小銃 遷都先 {perB:G6}・双子の首都 {perA:G6}＝比 {perB / perA:F3} ≧ 0.2）");
 
@@ -1194,7 +1194,7 @@ public class RevoltIgnitionTests
         // 反乱勢力の支払いは参加者→売り手＝州の**内側**で閉じる＝この恒等式に新しい項を足さない（足したら金が湧いたか消えたかのどちらか）。
         double external = r.StateSpent.Sum() + r.StateSpent[(int)TreasuryCat.StateMonopoly];   // 旧 StateSpent−LastStateMonopolyRevenue と同じ量（専売益は区分 StateMonopoly に負で積まれる・2026-09-28）
         Assert.True(Math.Abs((s1 - s0) - external) <= 1e-6 * Math.Max(1.0, Math.Abs(s0)), $"貨幣が湧いたか消えた：Δ貯蓄 {s1 - s0:F6} ≠ 外部 {external:F6}");
-        Assert.True(payer.Paid >= w.RebelArmsSpent * (1 - 1e-9), $"参加者の支払い {payer.Paid:F3} に武器代 {w.RebelArmsSpent:F3} が載っていない");
+        Assert.True(payer.PaidPerMonth >= w.RebelArmsSpent * (1 - 1e-9), $"参加者の支払い {payer.PaidPerMonth:F3} に武器代 {w.RebelArmsSpent:F3} が載っていない");
         Assert.True(r.Markets[rifle].LastSold > 0, "小銃が売れていない（売り手に届いていない）");
         Assert.NotNull(f.ArmsStock);
         Assert.True(f.ArmsStock![rifle] > 0, "武器庫に小銃が積まれていない");

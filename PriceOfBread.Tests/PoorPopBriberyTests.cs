@@ -51,22 +51,22 @@ public class PoorPopBriberyTests
 
     /// <summary>全国一律の半減点（＝富加重0のときの式）をテスト側で独立に組み直す。</summary>
     private static double UniformHalf(World w)
-        => w.Coef.ElectionPushHalfPerVoter * VotersOf(w) * (w.NominalGdp / w.TotalPopulation);
+        => w.Coef.ElectionPushHalfPerVoter * VotersOf(w) * (w.NominalGdpPerMonth / w.TotalPopulation);
 
     /// <summary>富加重 w の半減点をテスト側で独立に組み直す（式が変わればこの番人が落ちる）。</summary>
     private static double BlendedHalf(World w, double bribeW)
     {
         double incSum = 0, sizeSum = 0;
-        foreach (var p in w.AllPops()) { incSum += Math.Max(0, p.LastEarned); sizeSum += p.Size; }
+        foreach (var p in w.AllPops()) { incSum += Math.Max(0, p.LastEarnedPerMonth); sizeSum += p.Size; }
         double mean = incSum / sizeSum;
         double weighted = 0;
         foreach (var p in w.AllPops())
         {
             double voice = InterestGroups.FranchiseVoice(p, w.Suffrage, w.Coef);
             if (!(voice > 0)) continue;
-            weighted += voice * ((1.0 - bribeW) * p.Size + bribeW * (Math.Max(0, p.LastEarned) / mean));
+            weighted += voice * ((1.0 - bribeW) * p.Size + bribeW * (Math.Max(0, p.LastEarnedPerMonth) / mean));
         }
-        return w.Coef.ElectionPushHalfPerVoter * weighted * (w.NominalGdp / w.TotalPopulation);
+        return w.Coef.ElectionPushHalfPerVoter * weighted * (w.NominalGdpPerMonth / w.TotalPopulation);
     }
 
     /// <summary>汚職の盤面。★監視を中庸（検閲0.4＋資格任用0.6＝noisy-or 0.76）に固定して
@@ -125,7 +125,7 @@ public class PoorPopBriberyTests
         // ★(205) 2026-10-04 盤面の前提（裁量余剰）を明示で置く＝この番人は買収の効きの比だけを見る（余剰の大きさは比に効かない）。
         //   旧の盤面は 1784 年の英（NullAgent）が r 0.92〜0.96 の8か月で不履行になり国債が消えて余剰が立っていた＝不履行の計数を払えなかった大きさの累計にした (205) では
         //   累計 0.70（6四半期目）で不履行にならず国債が残る（利払い 2,657 ＞ 歳入 1,854）＝余剰0。
-        if (!(w.FiscalCapacity > 0)) w.FiscalCapacity = w.LastRevenue;
+        if (!(w.FiscalCapacityPerMonth > 0)) w.FiscalCapacityPerMonth = w.LastRevenuePerMonth;
 
         // 有権者（声>0）と非有権者（声=0）を取り、**総所得を変えずに**所得を有権者→非有権者へ移す。
         // ＝全国の1人あたり所得（ブレンドの分母）も名目GDPも人口も1ビットも動かない＝動くのは「有権者が豊かか」だけ。
@@ -133,7 +133,7 @@ public class PoorPopBriberyTests
         foreach (var p in w.AllPops())
         {
             double voice = InterestGroups.FranchiseVoice(p, w.Suffrage, w.Coef);
-            if (voice > 0 && p.LastEarned > 0 && (voter is null || p.LastEarned > voter.LastEarned)) voter = p;
+            if (voice > 0 && p.LastEarnedPerMonth > 0 && (voter is null || p.LastEarnedPerMonth > voter.LastEarnedPerMonth)) voter = p;
             if (!(voice > 0) && outsider is null) outsider = p;
         }
         Assert.True(voter is not null, "前提の破れ：所得のある有権者popが居ない");
@@ -143,8 +143,8 @@ public class PoorPopBriberyTests
         double eff0 = w.ElectionPushEffectOf(0.5);
         Assert.True(half0 > 0 && eff0 > 0, "前提の破れ：半減点も効きも立たない盤面");
 
-        double move = 0.5 * voter!.LastEarned;
-        voter.LastEarned -= move; outsider!.LastEarned += move;
+        double move = 0.5 * voter!.LastEarnedPerMonth;
+        voter.LastEarnedPerMonth -= move; outsider!.LastEarnedPerMonth += move;
 
         double half1 = w.ElectionPushHalfPoint();
         double eff1 = w.ElectionPushEffectOf(0.5);
@@ -154,7 +154,7 @@ public class PoorPopBriberyTests
         // 対照：全国一律（既定0）では**同じ所得移転で半減点が1ビットも動かない**＝動かしたのは富加重だけ
         w.Coef.ElectionBribePovertyWeight = 0.0;
         double flatPoor = w.ElectionPushHalfPoint();
-        voter.LastEarned += move; outsider.LastEarned -= move;
+        voter.LastEarnedPerMonth += move; outsider.LastEarnedPerMonth -= move;
         Assert.Equal(flatPoor, w.ElectionPushHalfPoint());
     }
 

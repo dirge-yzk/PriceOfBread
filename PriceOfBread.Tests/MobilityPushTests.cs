@@ -39,10 +39,10 @@ public class MobilityPushTests
             EconomyStep.Run(r, sim.World.Coef);   // 1ヶ月だけ直接呼ぶ＝所得の分配式を単離（価格・産出は§④より上流で双子恒等）
         }
         var ro = off.World.Region; var rn = on.World.Region;
-        Assert.True(rn.Pops[1].Earned < ro.Pops[1].Earned,
-            $"土地が混んだ州で農民所得が下がらない（OFF {ro.Pops[1].Earned:F1} / ON {rn.Pops[1].Earned:F1}）");
-        Assert.True(rn.Pops[0].LandRent > ro.Pops[0].LandRent,
-            $"土地が混んだ州で地主のLandRentが増えない（OFF {ro.Pops[0].LandRent:F1} / ON {rn.Pops[0].LandRent:F1}）");
+        Assert.True(rn.Pops[1].EarnedPerMonth < ro.Pops[1].EarnedPerMonth,
+            $"土地が混んだ州で農民所得が下がらない（OFF {ro.Pops[1].EarnedPerMonth:F1} / ON {rn.Pops[1].EarnedPerMonth:F1}）");
+        Assert.True(rn.Pops[0].LandRentPerMonth > ro.Pops[0].LandRentPerMonth,
+            $"土地が混んだ州で地主のLandRentが増えない（OFF {ro.Pops[0].LandRentPerMonth:F1} / ON {rn.Pops[0].LandRentPerMonth:F1}）");
     }
 
     [Fact]

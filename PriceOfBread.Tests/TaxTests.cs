@@ -60,7 +60,7 @@ public class TaxTests
         World Board(double poll)
         {
             var sim = new Simulation(NationConfig.France().ToScenario(17), new NullAgent());
-            sim.Run(1);   // 前の月の所得（LastEarned）を立てる＝双子は同じ種で同じ軌道
+            sim.Run(1);   // 前の月の所得（LastEarnedPerMonth）を立てる＝双子は同じ種で同じ軌道
             var w = sim.World;
             w.TaxRate = 0; w.LandTax = 0; w.ProgressiveTax = 0; w.PollTax = poll;
             w.Coef.TitheRate = 0; w.Coef.CorruptionMax = 0;
@@ -87,8 +87,8 @@ public class TaxTests
             if (p.Closed) { closed++; Assert.True(System.Math.Abs(paidPerHead) <= 1e-9 * perHead, $"免除のはずの閉鎖階級（{p.ClassName}）が1人あたり {paidPerHead} 払った"); continue; }
             if (p.IsSoldier) { soldiers++; Assert.True(System.Math.Abs(paidPerHead) <= 1e-9 * perHead, $"対象外のはずの兵士が1人あたり {paidPerHead} 払った"); continue; }
             Assert.True(System.Math.Abs(paidPerHead - perHead) <= 1e-9 * perHead, $"{p.ClassName} の1人あたりの人頭税 {paidPerHead} が一律の額 {perHead} でない");
-            if (p.IsModernElite) { elitePaid += paidPerHead * p.Size; eliteIncome += System.Math.Max(0, p.LastEarned); eliteSize += p.Size; }
-            else { masses++; massPaid += paidPerHead * p.Size; massIncome += System.Math.Max(0, p.LastEarned); massSize += p.Size; }
+            if (p.IsModernElite) { elitePaid += paidPerHead * p.Size; eliteIncome += System.Math.Max(0, p.LastEarnedPerMonth); eliteSize += p.Size; }
+            else { masses++; massPaid += paidPerHead * p.Size; massIncome += System.Math.Max(0, p.LastEarnedPerMonth); massSize += p.Size; }
         }
         Assert.True(closed > 0 && masses > 0, $"前提が崩れた：閉鎖階級 {closed}・大衆 {masses}");
         // 逆進性＝同じ額が所得の低い大衆の所得に対して重い（負担率＝払った額÷前の月の所得）
@@ -103,7 +103,7 @@ public class TaxTests
         var sim = new Simulation(NationConfig.Japan().ToScenario(31), new NullAgent());   // 商の国（商人800）
         sim.Run(40);
         var merchant = sim.World.Region.Pops.First(p => p.ClassId == 10);
-        Assert.True(merchant.Earned > 0, "商人が流通マージンを得ていない");
+        Assert.True(merchant.EarnedPerMonth > 0, "商人が流通マージンを得ていない");
         var ex = Record.Exception(() => sim.Run(40));   // 消費者→商人の金流が保存則を破らない
         Assert.Null(ex);
     }
@@ -122,9 +122,9 @@ public class TaxTests
         var ruNoble = russia.World.Region.Pops[0];     // 貴族（地主）
         var ruPeasant = russia.World.Region.Pops[1];   // 農奴
         var usPeasant = america.World.Region.Pops[1];  // 自作農
-        Assert.True(ruNoble.LandRent > 0, "農奴制の貴族が地代を受け取っていない");
-        Assert.Equal(0.0, ruPeasant.LandRent);         // 農奴は地代を受け取らない（労働の売上のみ）
-        Assert.True(usPeasant.LandRent > 0, "自作農が自分の農場の地代を受け取っていない");
+        Assert.True(ruNoble.LandRentPerMonth > 0, "農奴制の貴族が地代を受け取っていない");
+        Assert.Equal(0.0, ruPeasant.LandRentPerMonth);         // 農奴は地代を受け取らない（労働の売上のみ）
+        Assert.True(usPeasant.LandRentPerMonth > 0, "自作農が自分の農場の地代を受け取っていない");
     }
 
     [Fact]

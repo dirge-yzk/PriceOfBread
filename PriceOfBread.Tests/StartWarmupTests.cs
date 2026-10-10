@@ -113,7 +113,7 @@ public class StartWarmupTests
             Assert.Equal(Held(a), Held(b), 6);
         }
         var names = WorldData.Nations().Select(n => n.Name).ToList();
-        double Ratio(string name) { var w = warmed.Nations[names.IndexOf(name)].World; return w.GovDebt / (w.NominalGdp * Calendar.MonthsPerYear); }
+        double Ratio(string name) { var w = warmed.Nations[names.IndexOf(name)].World; return w.GovDebt / (w.NominalGdpPerMonth * Calendar.MonthsPerYear); }
         Assert.InRange(Ratio("イギリス"), 0.9, 1.4);
         Assert.InRange(Ratio("フランス"), 0.45, 0.8);
         Assert.InRange(Ratio("ネーデルラント"), 1.2, 2.2);
@@ -135,7 +135,7 @@ public class StartWarmupTests
         for (int i = 0; i < bare.Nations.Count; i++)
             Assert.Equal(bare.Nations[i].World.Treasury, warmed.Nations[i].World.Treasury);
         var names = WorldData.Nations().Select(n => n.Name).ToList();
-        double Ratio(int i) { var w = warmed.Nations[i].World; return w.Treasury / (w.NominalGdp * Calendar.MonthsPerYear); }
+        double Ratio(int i) { var w = warmed.Nations[i].World; return w.Treasury / (w.NominalGdpPerMonth * Calendar.MonthsPerYear); }
         double R(string name) => Ratio(names.IndexOf(name));
         Assert.InRange(R("イギリス"), 0.01, 0.06);
         Assert.InRange(R("フランス"), 0.0, 0.02);
@@ -177,13 +177,13 @@ public class StartWarmupTests
 
         var sim = Build();
         sim.StartWarmup();
-        double Rev(int i) { var w = sim.Nations[i].World; return w.LastRevenue / w.NominalGdp; }   // 月次÷月次＝年の比
+        double Rev(int i) { var w = sim.Nations[i].World; return w.LastRevenuePerMonth / w.NominalGdpPerMonth; }   // 月次÷月次＝年の比
         double Direct(int i)
         {
             var w = sim.Nations[i].World;
             double mon = 0; foreach (var r in w.Regions) if (r.State == RegionState.Active) mon -= r.StateSpent[(int)TreasuryCat.StateMonopoly];
-            double tar = System.Math.Max(0, w.LastTariffRevenue) / w.Coef.MonthsPerClearing;
-            return (w.LastRevenue - mon - tar) / w.NominalGdp;
+            double tar = System.Math.Max(0, w.LastTariffRevenuePerClearing) / w.Coef.MonthsPerClearing;
+            return (w.LastRevenuePerMonth - mon - tar) / w.NominalGdpPerMonth;
         }
         foreach (var nm in new[] { "イギリス", "フランス", "ネーデルラント", "スペイン", "オーストリア", "プロイセン" })
             Assert.InRange(Rev(names.IndexOf(nm)), 0.04, 0.14);   // ★蘭も 0.14（2026-09-30 (127)・(119)(122) の 0.18→0.20 を戻した＝上の注記）
@@ -278,7 +278,7 @@ public class StartWarmupTests
         for (int q = 0; q < 4; q++) { bare.StepQuarter(); warmed.StepQuarter(); }
         for (int i = 0; i < bare.Nations.Count; i++)
         {
-            Assert.Equal(bare.Nations[i].World.Gdp, warmed.Nations[i].World.Gdp, 12);
+            Assert.Equal(bare.Nations[i].World.GdpPerMonth, warmed.Nations[i].World.GdpPerMonth, 12);
             Assert.Equal(bare.Nations[i].World.TotalPopulation, warmed.Nations[i].World.TotalPopulation, 9);
         }
     }
@@ -309,7 +309,7 @@ public class StartWarmupTests
             var sim = Build(seed);
             sim.StartWarmup();
             for (int q = 0; q < 8; q++) sim.StepQuarter();
-            return [.. sim.Nations.Select(n => n.World.Gdp)];
+            return [.. sim.Nations.Select(n => n.World.GdpPerMonth)];
         }
         Assert.Equal(Run(7UL), Run(7UL));
     }
@@ -371,7 +371,7 @@ public class StartWarmupTests
     {
         double inv = 0, oth = 0;
         foreach (var r in w.Regions) foreach (var p in r.Pops) { double s = System.Math.Max(0, p.Savings); if (CapitalMarket.IsInvestor(p, w.Coef)) inv += s; else oth += s; }
-        return (inv, oth, w.NominalGdp * Calendar.MonthsPerYear);
+        return (inv, oth, w.NominalGdpPerMonth * Calendar.MonthsPerYear);
     }
 
     /// <summary>★(220) データ（broadMoneyToGdp）を持つ全ての国で、モード1は投資家の貯蓄が 比×取り分×年名目GDP の規則の値になり他の階級は不変、モード2は他の階級も 比×(1−取り分)×年名目GDP になる。

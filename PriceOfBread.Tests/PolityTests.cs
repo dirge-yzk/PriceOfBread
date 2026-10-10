@@ -69,7 +69,7 @@ public class PolityTests
     private static World 兵の規模の世界(double x)
     {
         var w = 世界();
-        double msf = Military.PeaceCapShareOfPop(w.Coef), soldiers = w.SoldierSize(), others = w.TotalPopulation - soldiers;
+        double msf = Military.PeaceCapShareOfPop(w.Coef), soldiers = w.SoldierSizeK(), others = w.TotalPopulation - soldiers;
         Assert.True(soldiers > 0 && others > 0);
         double k = x * msf * others / (1 - x * msf) / soldiers;
         foreach (var p in w.AllPops()) if (p.IsSoldier) p.Size *= k;
@@ -94,7 +94,7 @@ public class PolityTests
         }
         // 取り分の曲がり所＝門2と同じ物差し：兵力が保持力を上回る（sf>κ）ときだけ取り分が半分を超える（π=1 の平時の規模で見る）
         var p = 兵の規模の世界(0.68); var cp = p.Coef;
-        Assert.Equal(1.0, Politics.ProfessionalArmyShare(p.SoldierSize(), p.TotalPopulation, Military.PeaceCapShareOfPop(cp)));
+        Assert.Equal(1.0, Politics.ProfessionalArmyShare(p.SoldierSizeK(), p.TotalPopulation, Military.PeaceCapShareOfPop(cp)));
         Assert.True(Politics.CoupSupport(p, cp, 2.0, 1.0) > 0.5 * cp.MilitaryCoupSupport);
         Assert.True(Politics.CoupSupport(p, cp, 1.0, 2.0) < 0.5 * cp.MilitaryCoupSupport);
         // 保持力が0へ崩れても加算は上限 MCS に張り付くだけ（旧式の裸の比 sf/max(1,κ) は同じ入力で兵力そのものに比例した＝上限が無い＝分子と分母の非対称）
@@ -112,7 +112,7 @@ public class PolityTests
         foreach (double x in new[] { 0.25, 0.68, 0.999 })
         {
             var w = 兵の規模の世界(x); var c = w.Coef;
-            Assert.Equal(1.0, Politics.ProfessionalArmyShare(w.SoldierSize(), w.TotalPopulation, Military.PeaceCapShareOfPop(c)));
+            Assert.Equal(1.0, Politics.ProfessionalArmyShare(w.SoldierSizeK(), w.TotalPopulation, Military.PeaceCapShareOfPop(c)));
             for (int i = 0; i < 700; i++)
             {
                 double sf = rng.NextDouble() * 3000, coerce = rng.NextDouble() * 4000;
@@ -136,7 +136,7 @@ public class PolityTests
         Assert.True(full > 0);
         var w = 兵の規模の世界(2.5); var c = w.Coef;
         w.ArmyAllegiance = 0.2;
-        Assert.Equal(0.4, Politics.ProfessionalArmyShare(w.SoldierSize(), w.TotalPopulation, Military.PeaceCapShareOfPop(c)), 9);
+        Assert.Equal(0.4, Politics.ProfessionalArmyShare(w.SoldierSizeK(), w.TotalPopulation, Military.PeaceCapShareOfPop(c)), 9);
         Assert.Equal(0.4 * full, Politics.CoupSupport(w, c, 500, 800), 9);
     }
 

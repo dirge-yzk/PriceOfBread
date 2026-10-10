@@ -174,7 +174,7 @@ public class DormantIdentityTests
         "FoodIncludesAnimalProtein", "GarrisonProcurement",
         "HigherEduNeedPerEducated",
         "IncumbencyBias",
-        "InterestCapitalization", "LoanSpread",
+        "InterestCapitalization", "LoanSpreadPerYear",
         "MigrationFarePerkKm",
         "ModernizationToHigherEdu", "NationalismFromConsciousness",
         "NavalFuelPerGauge", "NewbornLiteracyDilution", "NobleInvests",

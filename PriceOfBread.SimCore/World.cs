@@ -472,9 +472,9 @@ public sealed class World
             return !(v >= 0 && v <= 1) ? 0 : v;   // NaNは監視なし側へ倒す（否定形で書く）
         }
     }
-    public double LastColonialUpkeep { get; internal set; }      // 直近月の植民地維持費（駐留・海軍の俸給＝現金分）の実支払い（診断・予算表。監査2026-07-11 接1。石炭・糧食・キニーネの現物調達は市場経由＝StateSpent側）
-    public double LastTributeOut { get; internal set; }          // 直近四半期に宗主へ払った貢納（診断・予算表＝月表示は/3。監査2026-07-11 接1）
-    public double LastTributeIn { get; internal set; }           // 直近四半期に属国から受け取った貢納合計（同上）
+    public double LastColonialUpkeepPerMonth { get; internal set; }      // 直近月の植民地維持費（駐留・海軍の俸給＝現金分）の実支払い（診断・予算表。監査2026-07-11 接1。石炭・糧食・キニーネの現物調達は市場経由＝StateSpent側）
+    public double LastTributeOutPerQuarter { get; internal set; }          // 直近四半期に宗主へ払った貢納（診断・予算表＝月表示は/3。監査2026-07-11 接1）
+    public double LastTributeInPerQuarter { get; internal set; }           // 直近四半期に属国から受け取った貢納合計（同上）
     public bool LandTaxUnlocked { get; internal set; }     // 検地台帳の完成（行政力が閾値に達した実績＝一方向）
     public bool IsQuarterEndMonth { get; internal set; }   // 四半期の締め月の月次決算で true（Simulation の月次決算が書く）。読み手＝製法の通知・軍の熟練度（旧読み手の財政の器 FiscalQuarterlyGating は 2026-09-26 に削除）
     // 財5（対外国債の閉鎖系化）：他モデル国の資本家貯蓄の合計（対外国債の引き受け余力）。注入は MultiNationSim（ForeignBondFromInvestors>0.5 のときだけ）。
@@ -558,9 +558,9 @@ public sealed class World
     public double AusterityIntensity { get; internal set; }   // 債務緊縮の強度（0..1・債務/GDP由来）。弱者救済の上限＝1−これ／逆進課税の下限＝これ×係数／⚠裁定B（2026-09-12）＝その上限・下限は**実効値を書き換えず** Government.LawPrereq の「緊縮の上限／緊縮の下限」という門になる（旧の Min/Max は 2026-09-20 削除）（強度そのものの式は不変＝CrownParliament の三部会召集はこの信号を読む）
     public double InterestRate { get; internal set; }    // 金利（0..1・現在値）。金融政策＝低いほど銀行が貸す（信用ブーム→投資加速・バブル）、高いほど引締（安定・成長鈍化）
     /// <summary>実効の貸出金利（**年率**）。無次元の政策レバー <see cref="InterestRate"/> を年率へ換算する**唯一の地点**（金利doc B1・2026-07-30）。
-    /// 式は <c>Credit.Step</c> の loanRate と同一（同順＝ビット一致）。LoanSpread / PolicyRateLoanWeight が既定0のあいだは 0＝利息なし
+    /// 式は <c>Credit.Step</c> の loanRate と同一（同順＝ビット一致）。LoanSpreadPerYear / PolicyRateLoanWeight が既定0のあいだは 0＝利息なし
     /// ＝エンジンに量が無い（B4の点火で意味を持つ）。★画面はその間、貸出金利の行ごと隠す（2026-09-26・点火まで出さない）。</summary>
-    public double LoanRateAnnual => Coef.LoanSpread + Coef.PolicyRateLoanWeight * InterestRate;
+    public double LoanRateAnnual => Coef.LoanSpreadPerYear + Coef.PolicyRateLoanWeight * InterestRate;
 
     // --- 政治（§9-E／§A-11・段3）---
     public bool PoliticsEnabled { get; internal set; }
@@ -616,14 +616,14 @@ public sealed class World
     public bool ManifestoDone;           // 達成済み
     public double ManifestoCredit;       // 達成の支持（減衰ストック）＝Ideology.UpdateShares が加点に読む
 
-    /// <summary>★E3''（確定形2026-08-17）：加担に注ぐ**投入額**＝裁量余剰(<see cref="FiscalCapacity"/>)×レバー。
+    /// <summary>★E3''（確定形2026-08-17）：加担に注ぐ**投入額**＝裁量余剰(<see cref="FiscalCapacityPerMonth"/>)×レバー。
     /// レバーは「裁量余剰の何%を注ぐか」＝軍事費・教育費と同じ物差しに乗る（注いだ分だけ他が減る＝予算の取り合い）。
     /// ⚠プレイヤー（UIのスライダー）とAI（<see cref="UtilityAgent.DecideElection"/>）とUIの表示が**この1本**を読む。</summary>
     public double ElectionSpendOf(double lever)
     {
         double s = PoliticalQuantities.Clamp01(lever);
         if (!(s > 0)) return 0;              // NaNガードは否定形（Clamp は NaN を消さない）
-        double fc = FiscalCapacity;
+        double fc = FiscalCapacityPerMonth;
         if (!(fc > 0)) return 0;             // 裁量余剰が無い国は1銭も注げない（借金してまでは買わない＝福祉と同じ財源）
         return fc * s * FiscalFundingRatio;  // ★国家の支払い率 r の分だけ注げる（全ての国家の支払いと同じ1本の率・2026-09-28 段2-1）＝払う額も効きもこの1本を読む
     }
@@ -642,12 +642,12 @@ public sealed class World
     /// <code>
     /// half ＝ 係数 × Σ_pop [ 声_p × ( (1−w)×規模_p + w × 前月所得_p ÷ 全国の1人あたり所得 ) ] × 一人あたり名目GDP
     /// </code>
-    /// <para>⚠**「豊かさ」に所得（<c>LastEarned</c>）を選んだ理由**（票を売る判断は所得か資産かの設計判断）：
+    /// <para>⚠**「豊かさ」に所得（<c>LastEarnedPerMonth</c>）を選んだ理由**（票を売る判断は所得か資産かの設計判断）：
     /// ①全国側の単価が名目GDP÷人口＝**フロー**なので、pop側もフローでないと次元が揃わずブレンドが意味を持たない。
     /// ②史実の買収は「何日分の稼ぎか」で値が付いた（英のtreating＝日雇いの数日分の酒と数シリング／名望家は桁が違うので買えない）。
     /// ③**資産（Savings）にすると自己参照になる**——選挙資金は <see cref="ResolveElection"/> で有権者の貯蓄へ還流する（有権者の重みの <see cref="Distribute"/>）ので、
     ///   買収そのものが半減点を動かす（前任が踏んだ罠＝貯蓄をスナップショットしないとAI経路とプレイヤー経路がビット一致しない）。
-    /// ④<c>Earned</c> でなく <c>LastEarned</c>＝<see cref="EconomyStep"/> の月初に確定する退避値＝**呼ばれる時点に依存しない**
+    /// ④<c>Earned</c> でなく <c>LastEarnedPerMonth</c>＝<see cref="EconomyStep"/> の月初に確定する退避値＝**呼ばれる時点に依存しない**
     ///   （<c>Earned</c> は期中に積み上がる＝UIが途中で読むと別の値になる）。</para>
     /// <para>⚠比のガード：pop毎の割り算は**存在しない**——(規模×声)×((所得/規模)/平均) の規模が厳密に約分するので
     /// 声×所得/平均 と書ける＝痩せる分母が無い。唯一の分母は全国集計の1人あたり所得（下限＝正であることの否定形ガードのみ）。
@@ -659,13 +659,13 @@ public sealed class World
         if (!(voters > 0)) return 0;
         double pop = TotalPopulation;
         if (!(pop > 0)) return 0;
-        double incomePerHead = NominalGdp / pop;
+        double incomePerHead = NominalGdpPerMonth / pop;
         if (!(incomePerHead > 0)) return 0;
         double bribeW = Coef.ElectionBribePovertyWeight;
         if (!(bribeW > 0)) return Coef.ElectionPushHalfPerVoter * voters * incomePerHead;   // ★既定＝ここで返る＝Σが全国一律へ畳まれた現行式そのもの（1命令も増えない厳密恒等）
         // 全国の1人あたり所得の基準（pop側の豊かさを無次元化する分母）。全国集計＝痩せない側で割る。
         double incSum = 0, sizeSum = 0;
-        foreach (var p in AllPops()) { incSum += System.Math.Max(0, p.LastEarned); sizeSum += p.Size; }
+        foreach (var p in AllPops()) { incSum += System.Math.Max(0, p.LastEarnedPerMonth); sizeSum += p.Size; }
         if (!(incSum > 0) || !(sizeSum > 0)) return Coef.ElectionPushHalfPerVoter * voters * incomePerHead;   // 所得の分布が立たない世界（t=0・経済なし）＝全国一律へ退避
         double meanPerHead = incSum / sizeSum;
         double weighted = 0;
@@ -673,7 +673,7 @@ public sealed class World
         {
             double voice = InterestGroups.FranchiseVoice(p, Suffrage, Coef);
             if (!(voice > 0)) continue;
-            weighted += voice * ((1.0 - bribeW) * p.Size + bribeW * (System.Math.Max(0, p.LastEarned) / meanPerHead));
+            weighted += voice * ((1.0 - bribeW) * p.Size + bribeW * (System.Math.Max(0, p.LastEarnedPerMonth) / meanPerHead));
         }
         if (!(weighted > 0)) return Coef.ElectionPushHalfPerVoter * voters * incomePerHead;   // 有権者が全員無所得＝半減点0（＝効き0のfail-closed枝）へ落とさず全国一律へ退避
         return Coef.ElectionPushHalfPerVoter * weighted * incomePerHead;
@@ -1046,23 +1046,23 @@ public sealed class World
     /// 借入は r＜1 の月だけ・減債は r＝1 の月の余剰から（Fiscal）。AI の逼迫度＝1−r（UtilityAgent.FiscalStressOf）。
     /// 旧＝維持費を払えた割合（Fiscal の滝の2番目）＝治安維持力・兌換の門・最後の貸し手・同盟参戦は今は支払い全般の不足に反応する。</summary>
     public double FiscalFundingRatio { get; internal set; } = 1.0;
-    public double FiscalCapacity { get; internal set; }   // 直近の税収フロー（EMA）。公共サービス予算（行政/福祉/インフラ/軍需）の基準＝国庫ストックでなく歳入から支弁＝国庫0でも機能（funding修正2026-06-18）
-    public double LastRevenue { get; internal set; }       // 診断：直近四半期の純税収（汚職漏れ控除後）
-    public double LastInterest { get; internal set; }      // 診断：直近四半期の利払い
-    public double LastWelfareCost { get; internal set; }   // 社会保障の給付の請求（r を掛ける前・2026-09-28 から＝旧は実支出）。翌月の月初の請求の見込み（Simulation）と予算表が読む
-    public double LastMilitaryClaim { get; internal set; } // ★(155) その月の月初の予算（Simulation）が書く軍事費の器の装備の請求（器から給与の後・全4段の必要額まで・r を掛ける前）＝Fiscal の余剰（guns-vs-butter）と財政バッファが読む（旧＝軍事費×歳入シェア＝Fiscal が書いた・(157) で注記を直した）
+    public double FiscalCapacityPerMonth { get; internal set; }   // 直近の税収フロー（EMA）。公共サービス予算（行政/福祉/インフラ/軍需）の基準＝国庫ストックでなく歳入から支弁＝国庫0でも機能（funding修正2026-06-18）
+    public double LastRevenuePerMonth { get; internal set; }       // 診断：当月の予算の基数＝純税収（汚職漏れ控除後）＋間接税（月次の流れ・Fiscal.Step が毎月書く。旧注記「直近四半期」は誤り＝(243) で訂正）
+    public double LastInterestPerMonth { get; internal set; }      // 診断：当月の利払い（月次の流れ・残高×クーポン÷12。旧注記「直近四半期」は誤り＝(243) で訂正）
+    public double LastWelfareCostPerMonth { get; internal set; }   // 社会保障の給付の請求（r を掛ける前・2026-09-28 から＝旧は実支出）。翌月の月初の請求の見込み（Simulation）と予算表が読む
+    public double LastMilitaryClaimPerMonth { get; internal set; } // ★(155) その月の月初の予算（Simulation）が書く軍事費の器の装備の請求（器から給与の後・全4段の必要額まで・r を掛ける前）＝Fiscal の余剰（guns-vs-butter）と財政バッファが読む（旧＝軍事費×歳入シェア＝Fiscal が書いた・(157) で注記を直した）
     public double MilitaryTrainingFill { get; internal set; }   // ★(155) その月の訓練の充足∈[0,1]＝軍事費の器の3段目（幹部の給与）の請求÷必要額（給与の満額×MilitaryCadrePayRatio）。書き手は月初の予算（Simulation）だけ・読み手＝熟練（Military.StepSkill・同じ月の後段）と計器。月ごとに作り直す作業の値（持ち越さない）
-    public double LastSoldierPay { get; internal set; }     // 兵士給与の月次請求書（Σ兵数×SoldierPayMult×(兵卒の単価×給与の充足＋規定の単価×幹部の給与の割合)・全州＝★(155) から兵卒の給与〔器で払える分〕と幹部の給与〔質＝訓練〕の和・(157) で注記を直した・★(161) 兵卒の単価は徴兵制なら手当〔頭数あたり〕・志願制なら規定〔働き盛り1人あたり〕）。形が先・金が後 段0＝FiscalBufferOf の義務算入（FiscalBufferSoldierPayWeight）と armyneed プローブが読む
-    public double LastAdminClaim { get; internal set; }    // 診断：直近四半期の行政調達予算（行政費×歳入シェア）
-    public double LastPensionCost { get; internal set; }   // 年金の給付の請求（r を掛ける前・2026-09-28 から＝旧は実支出）。翌月の月初の請求の見込み（Simulation）と予算表が読む
-    public double LastTariffRevenue { get; internal set; } // 診断：直近四半期の関税収入（国庫へ実収）
+    public double LastSoldierPayPerMonth { get; internal set; }     // 兵士給与の月次請求書（Σ兵数×SoldierPayMult×(兵卒の単価×給与の充足＋規定の単価×幹部の給与の割合)・全州＝★(155) から兵卒の給与〔器で払える分〕と幹部の給与〔質＝訓練〕の和・(157) で注記を直した・★(161) 兵卒の単価は徴兵制なら手当〔頭数あたり〕・志願制なら規定〔働き盛り1人あたり〕）。形が先・金が後 段0＝FiscalBufferOf の義務算入（FiscalBufferSoldierPayWeight）と armyneed プローブが読む
+    public double LastAdminClaimPerMonth { get; internal set; }    // 診断：当月の行政調達予算（行政費×歳入シェア・月次の流れ。旧注記「直近四半期」は誤り＝(243) で訂正）
+    public double LastPensionCostPerMonth { get; internal set; }   // 年金の給付の請求（r を掛ける前・2026-09-28 から＝旧は実支出）。翌月の月初の請求の見込み（Simulation）と予算表が読む
+    public double LastTariffRevenuePerClearing { get; internal set; } // 診断：直近の清算1回ぶんの関税収入（国庫へ実収・月次清算なら1か月ぶん／四半期清算なら3か月ぶん＝Coefficients.MonthsPerClearing で月割する）
 
-    /// <summary>支出反射（露普歳入是正・2026-08-08）＝月次予算の基数。OpulenceSpendRate>0 のとき、潤沢線
+    /// <summary>支出反射（露普歳入是正・2026-08-08）＝月次予算の基数。OpulenceSpendRatePerYear>0 のとき、潤沢線
     /// （RelieveOpulence と同一＝(FiscalBufferOf＋兵士給与の分)×8＝月の義務の約40か月分・旧の注記「×8四半期」は単位の誤り＝(207) で注記だけ直した）を超える国庫の一部を予算基数へ翻訳する＝減税反射の対。
     /// 旧＝全支出がフロー歳入比例で**国庫ストックを誰も使えず**、初期国庫の大きい国（普190k・墺・清）が
     /// 床0.25の減税に開幕から永久ロックされていた（普の歳入=GDP比1.0-1.4%の根）。
     /// ⚠既定0＝LastRevenue をそのまま返す（浮動小数点演算を足さない厳密恒等）。金の経路は既存の保存チャネルのみ。</summary>
-    /// <summary>★(223) 国家の港建設の請求（四半期・自国の通貨）＝行政費スライダー×PortStateFrac（裁量余剰のシェア）×裁量余剰の流れ（FiscalCapacity＝純税収から利払い・行政・軍需を引いた余りの EMA・月次）×3か月×この港の州の取扱高÷国の港の取扱高の和
+    /// <summary>★(223) 国家の港建設の請求（四半期・自国の通貨）＝行政費スライダー×PortStateFrac（裁量余剰のシェア）×裁量余剰の流れ（FiscalCapacityPerMonth＝純税収から利払い・行政・軍需を引いた余りの EMA・月次）×3か月×この港の州の取扱高÷国の港の取扱高の和
     /// （<see cref="PortThroughputTotal"/>）。門＝助走でない・蒸気機関の発見・混雑（LastTradeThrottle＜PortCongestionTarget）・投資家 POP がある港の州だけ（資本家ルートと同じ門）。
     /// 読み手＝Simulation の四半期の締め月の請求（貢納・招聘の支度金と同じ位置）と MultiNationSim.StepPorts の支払い（×国家の支払い率 r）＝国家の払える額と無関係に国庫を空にしない。
     /// 旧＝PortStateFrac(0.5)×資本家の投資×r を請求の外で払った（民間の貯蓄に比例し、英の開幕で国庫 2.1万 に対し 14.3万・r=1）。</summary>
@@ -1071,7 +1071,7 @@ public sealed class World
         if (WarmupFrozen || r.State != RegionState.Active || !r.IsPort || !Discovery.SteamPower(Discovered)) return 0;
         if (!(r.LastTradeThrottle < Coef.PortCongestionTarget) || r.InvestorPopIndex < 0 || r.InvestorPopIndex >= r.Pops.Count) return 0;
         if (!(nationThroughput > 1e-9) || !(r.LastPortThroughput > 0)) return 0;   // 否定形＝NaN は請求しない
-        return Calendar.PerMonthToPerQuarter(AdminSpending * Coef.PortStateFrac * FiscalCapacity) * (r.LastPortThroughput / nationThroughput);
+        return Calendar.PerMonthToPerQuarter(AdminSpending * Coef.PortStateFrac * FiscalCapacityPerMonth) * (r.LastPortThroughput / nationThroughput);
     }
     /// <summary>国の港の州の取扱高の和（<see cref="PortStateRequest"/> の分母）。</summary>
     internal double PortThroughputTotal()
@@ -1083,9 +1083,9 @@ public sealed class World
 
     public double SpendableRevenue()
     {
-        if (Coef.OpulenceSpendRate <= 0) return LastRevenue;
+        if (Coef.OpulenceSpendRatePerYear <= 0) return LastRevenuePerMonth;
         double line = UtilityAgent.OpulenceLineOf(this);   // RelieveOpulence と同一の潤沢線（R3安定形2026-08-08＝兵士給与算入込み）
-        return LastRevenue + Calendar.PerYearToPerMonth(Coef.OpulenceSpendRate * Math.Max(0, Treasury - line));
+        return LastRevenuePerMonth + Calendar.PerYearToPerMonth(Coef.OpulenceSpendRatePerYear * Math.Max(0, Treasury - line));
     }
     public double LastImportValue { get; internal set; }   // 診断：直近四半期の輸入額（世界価格建て）＝関税予想の課税ベース
     public double LastExportValue { get; internal set; }   // 直近の清算の越境の輸出額（ExportsByGood の和・同じ国の州どうしは数えない＝2026-09-27 回4-1）＝ダンピング補助の対象・交易比重・輸出利害
@@ -1133,10 +1133,10 @@ public sealed class World
     public bool BornOfSecession { get; internal set; }            // 分離独立で生まれた国（独立戦争の危機乗数の判定用）
     // P8 天命（0..1・0.5=中立・−1=未捕捉センチネル）：民の統治パフォーマンス評価EMA。主フラグ DynasticMandateEnabled=0 では永遠に−1のまま＝不読・恒等
     public double DynasticMandate { get; internal set; } = -1;
-    public double GovBondRate { get; internal set; } = 0.04;   // 国債金利（債務/GDP＋買い手希少で上昇）＝毎月再計算の「市場利回り」
-    public double GovAvgCoupon { get; internal set; } = 0.04;   // R9：既往債の残高加重平均クーポン（発行時金利で固定）。利払いはこれで計算。BondRolloverFrac=1で毎月GovBondRateへ乗換＝浮動永久債（現行と厳密一致）・<1で満期ラグ＝金利変動が既存ストックへ即時波及しない（英1815高債務→1821金本位復帰の史実）。貨幣に触れない名目ヴェール＝保存則非算入
+    public double GovBondRatePerYear { get; internal set; } = 0.04;   // 国債金利（債務/GDP＋買い手希少で上昇）＝毎月再計算の「市場利回り」
+    public double GovAvgCouponPerYear { get; internal set; } = 0.04;   // R9：既往債の残高加重平均クーポン（発行時金利で固定）。利払いはこれで計算。BondRolloverFracPerMonth=1で毎月GovBondRatePerYearへ乗換＝浮動永久債（現行と厳密一致）・<1で満期ラグ＝金利変動が既存ストックへ即時波及しない（英1815高債務→1821金本位復帰の史実）。貨幣に触れない名目ヴェール＝保存則非算入
     /// <summary>国債（永久債/コンソル）の二次流通価格（改修2026-06-28・金融改革①）。クーポン固定の永久債は価格∝1/利回り＝**利回り上昇で価格暴落**＝信認シグナル。1.0平価。名目のヴェール（pop貯蓄には触れない＝保存）。</summary>
-    public double BondPrice => GovBondRate > 1e-9 ? Coef.BondBaseRate / GovBondRate : 1.0;
+    public double BondPrice => GovBondRatePerYear > 1e-9 ? Coef.BondBaseRatePerYear / GovBondRatePerYear : 1.0;
     public double ForeignDebt { get; internal set; }   // うち海外保有分（対外債務＝利払い/不履行が対外）
     public double CumulativeDevaluation { get; internal set; }   // 累積の通貨切り下げ額（債務不履行で全popの貯蓄を希薄化＝インフレ税）。**挙動の被乗数**＝資本逃避の不信（CapitalMarket）・通貨改革と兌換の再加入の門（Fiscal の broken）・AI の改革の判断が読む（02断線走査2026-07-28：旧「診断・歴史」注記は削除リファクタで壊す危険があった）。⚠国債の金利（信認の喪失）は 2026-09-29 から累積でなく直近の切り下げの速さ（Fiscal.Step の devalued）を読む
     public double CumulativeFiatIssued { get; internal set; }    // 累積の不換新規発行（fiat-expansion-as-haircut-not-issue）。基礎貨幣の正当な増加源＝貨幣保存の基準に算入（鋳造CumulativeGoldMintedと同型）。FiatIssueFrac=0で常に0＝較正中立
@@ -1158,7 +1158,7 @@ public sealed class World
     /// <summary>通貨改革の予約（プレイヤーのボタンもAIも**この同じ口**を通る）。parity＝新平価。</summary>
     public void RequestCurrencyReform(double parity) => PendingCurrencyReform = Math.Clamp(parity, Coef.ExchangeRateFloor, 1.0);   // 新平価を [ExchangeRateFloor,1.0] にクランプして予約（月次で消化・CurrencyReformCooldown）
     public double InsolvencyQuarters { get; internal set; }       // 借りられない（利払い÷歳入≧MaxInterestShareOfRevenue）まま払えなかった請求の割合（1−r）の月ごとの**累計**（月の請求の何か月分・(205) 2026-10-04＝旧 int の連続月数）。払えた月（r＝1）・門が開いた月に0。Coefficients.DefaultArrearsMonths に届くと**ソブリン・デフォルト**（致命的）（⚠名前は Quarters だが Fiscal.Step が月次で進める）
-    public int BorrowCooldown { get; internal set; }              // デフォルト後の借入禁止の残り**月数**（信用喪失）。0になるまで借りられない
+    public int BorrowCooldownMonths { get; internal set; }              // デフォルト後の借入禁止の残り**月数**（信用喪失）。0になるまで借りられない
     public bool HadSovereignDefault { get; internal set; }        // 過去にデフォルトしたか（年表・診断）
 
     // --- 国際・世界市場（§5.1・段4d）---
@@ -1186,7 +1186,7 @@ public sealed class World
     // セーブ設計（設計判断）：SaveGame の汎用グラフ直列化（全インスタンスフィールド自動）が double[] として保存し、加えて毎四半期末の再注入が上書きする
     // ＝どの断面でロードしても次の四半期に必ず現在値へ更新される（専用のセーブ/ロード処理は不要・陳腐化しない）。
     public double[]? WorldGoodsPrices { get; internal set; }
-    // ★造幣局の金属準備（自由鋳造＝床モードのみ積む・2026-08-14）。法が本位を捨てると MintReserveSellRate/月で市場へ売られる
+    // ★造幣局の金属準備（自由鋳造＝床モードのみ積む・2026-08-14）。法が本位を捨てると MintReserveSellRatePerMonth/月で市場へ売られる
     //   ＝**買い手の消滅と投げ売りが同時に起きる**（独1871年型）。旧来モード（床OFF）では常に0＝厳密恒等。
     public double SilverReserveQty { get; internal set; }
     public double GoldReserveQty { get; internal set; }
@@ -1462,7 +1462,7 @@ public sealed class World
     ///   産出（<see cref="Producer.Output"/>）・財の参照価格と種類（構築の後に書く行が無い）だけ＝前の和の後にどれも変わっていなければ前の値を返す。
     ///   産出の書き込みは州の版（<see cref="Region.GdpVersion"/>）を進める（宛先はこの走査が付ける）。変わっていれば旧の式を同じ順で回す＝同じビット。
     ///   版は走査の前に撮る＝走査と並んで書かれた産出は次の読みで版の違いとして拾う（画面のスレッドが読んでも捨てる側に倒れる）。</summary>
-    public double Gdp
+    public double GdpPerMonth
     {
         get
         {
@@ -1530,7 +1530,7 @@ public sealed class World
                 foreach (var pop in r.Pops)
                 {
                     if (pop.Closed && pop.ClassId == PopClass.Noble) nobles += pop.Size;   // 貴族（Closed＋ClassId0）＝近世国家の行政の担い手
-                    if (manorGate) { double lr = System.Math.Max(0, pop.LandRent); rentAll += lr; if (pop.ClassId == PopClass.Noble) rentNoble += lr; }
+                    if (manorGate) { double lr = System.Math.Max(0, pop.LandRentPerMonth); rentAll += lr; if (pop.ClassId == PopClass.Noble) rentNoble += lr; }
                 }
             }
             if (size <= 1e-9) return 1.0;
@@ -1594,7 +1594,7 @@ public sealed class World
     public double GdpPcDrawdown => GdpPcPeak > 0 && GdpPeak > 1 ? PoliticalQuantities.Clamp01(1.0 - GdpPcTrend / GdpPcPeak) : 0;
     public void UpdateGdpCycle()
     {
-        double g = Gdp;
+        double g = GdpPerMonth;
         GdpTrend = !(GdpTrend > 0) ? g : GdpTrend + Coef.GdpTrendSmoothing * (g - GdpTrend);   // EMA＝高頻度ノイズを除去したトレンド（否定形＝NaN は再シード）
         double pc = g / Math.Max(1.0, TotalPopulation);   // ★E2：同じ平滑・同じピーク忘却で1人あたりも追う
         GdpPcTrend = !(GdpPcTrend > 0) ? pc : GdpPcTrend + Coef.GdpTrendSmoothing * (pc - GdpPcTrend);
@@ -1621,11 +1621,11 @@ public sealed class World
     /// 長期では P と同じ（単位の対称＝D と同じ）・短期では名目で固定に近い（r71 の安定器が戻る）。1.0＝平価（P の初期値と同じ）。</summary>
     public double CostPriceLevel { get; internal set; } = 1.0;
     public bool MonetaryEnabled { get; internal set; }
-    public double NominalGdp => NominalOf(Gdp);   // 名目GDP＝実質×物価。国債負担はこれで測る＝デフレで実質債務↑（負債デフレ）・インフレで債務軽減
+    public double NominalGdpPerMonth => NominalOf(GdpPerMonth);   // 名目GDP＝実質×物価。国債負担はこれで測る＝デフレで実質債務↑（負債デフレ）・インフレで債務軽減
     /// <summary>実質→名目の換算（名目GDPの唯一の式）。★2026-09-26 A2-2：同じ呼び出しの中で実質と名目の両方を読む読み手が、
     /// <see cref="Gdp"/>（州×生産者の全件走査）を1回だけ走らせて換算する口（同じ式・同じ順＝ビット単位で同じ）。</summary>
     internal double NominalOf(double realGdp) => realGdp * (MonetaryEnabled ? PriceLevel : 1.0);
-    public double ExpectedInflation { get; internal set; }   // 期待インフレ（年率・平滑）。名目金利＝実質＋これ（Fisher効果）。Fiscal が国債金利に乗せる
+    public double ExpectedInflationPerYear { get; internal set; }   // 期待インフレ（年率・平滑）。名目金利＝実質＋これ（Fisher効果）。Fiscal が国債金利に乗せる
     // 為替レート（通貨の金価値・1.0=平価。段4-貨幣 第3a段）。金本位中は1.0固定（兌換が平価を守る）／不換は PPP(1/P)＋貿易収支で変動（インフレで対外減価）。
     // 国際市場は「局所価格×ExchangeRate＝金建て」で輸出入を判定＝不換の減価が国内インフレを相殺し貿易を絶縁（金枯渇を防ぐ）。決済は世界価格×数量の金＝保存不変。
     public double ExchangeRate { get; internal set; } = 1.0;
@@ -1669,7 +1669,7 @@ public sealed class World
     public double CreditBondTerm { get; internal set; } = 1.0;    // 内訳④国債の利回りスプレッド
     public double Convertibility { get; internal set; }   // 兌換可能性 0..1（倍率排除②）。1=完全兌換(金)・0=不換。OnGoldStandard(資格)を非対称速度で滑らかに追従し、通貨レジームの効果(money集計/為替/切下げ/金利/対外信用)を連続lerpで出す
     /// <summary>★(220) 開幕の貨幣を史実の比で置き直す（係数 <see cref="Coefficients.InitMoneyMode"/> が1以上かつ <see cref="BroadMoneyToGdp"/> が正の国だけ・呼び手＝<see cref="MultiNationSim.StartWarmup"/> の助走の後）。
-    /// 目標の合計 = 比 × <see cref="Coefficients.InitMoneyScale"/> × 年名目GDP（月次 NominalGdp × 12・助走の終わりの値）。投資家（近代エリートの全階級）の貯蓄を 取り分 × 目標 へ按分で置き直す（州・階級の配分の形は変えない）。
+    /// 目標の合計 = 比 × <see cref="Coefficients.InitMoneyScale"/> × 年名目GDP（月次 NominalGdpPerMonth × 12・助走の終わりの値）。投資家（近代エリートの全階級）の貯蓄を 取り分 × 目標 へ按分で置き直す（州・階級の配分の形は変えない）。
     /// モード2は他の階級（兵士を含む）の貯蓄を (1−取り分) × 目標 へ同じ規則で按分する。分母が年名目GDP なのは、投資家の年所得が GDP の 0.6〜3.1 倍で国ごとに桁が違うため（取引の総額が混ざる・(218) §6）。
     /// 減らした貨幣は基礎貨幣から消えるので、呼び手が保存則の基準線を取り直す（国庫を開幕の値へ戻す助走の作法と同じ）。貨幣の厚み（M/Y）の趨勢 <see cref="_moTrend"/> も取り直す
     /// （取り直さないと趨勢との比が崩れ、物価水準が床へ向かって落ちる＝(218) の番人 M2）。否定形：分母・分子が正でなければ何もしない（NaN も素通しにしない）。</summary>
@@ -1678,7 +1678,7 @@ public sealed class World
         if (!(Coef.InitMoneyMode > 0) || !(BroadMoneyToGdp > 0)) return;
         double share = Coef.InitInvestorMoneyShare;
         if (!(share > 0) || !(share < 1)) return;
-        double gdpY = Calendar.PerMonthToPerYear(NominalGdp);
+        double gdpY = Calendar.PerMonthToPerYear(NominalGdpPerMonth);
         if (!(gdpY > 1e-9)) return;
         double target = BroadMoneyToGdp * Coef.InitMoneyScale * gdpY;
         if (!(target > 0)) return;
@@ -1694,7 +1694,7 @@ public sealed class World
         // 貨幣の厚み（M/Y）の趨勢を取り直す：UpdatePriceLevel の「物価 ＝ 厚み ÷ 趨勢」の関係を、置き直した後の厚みで今の物価水準のまま保つ（趨勢 ＝ 厚み ÷ 物価水準）。
         //   旧（(218)）＝趨勢を0へ（次の更新で趨勢 ＝ 厚み ＝ 物価が1へ引かれる）＝助走で物価水準が1から離れた国（清 2.3・露 1.2）の物価が置き直しだけで動いた（実測＝8四半期で対照の0.6〜0.7倍）。
         double money = BroadMoney + (BaseMoney - BroadMoney) * Convertibility;
-        double ratio = money / Math.Max(1e-9, Gdp);
+        double ratio = money / Math.Max(1e-9, GdpPerMonth);
         _moTrend = ratio > 1e-9 && PriceLevel > 1e-9 ? ratio / PriceLevel : 0;
     }
 
@@ -1709,7 +1709,7 @@ public sealed class World
         //   ★強制離脱線 GoldCoverMin = 0.25 はそのまま残す（到達不能でよい＝停止は外生の金流出が来たときに起きるべきもの）。
         //   ★牙は既存の非対称速度が持つ＝信認を失うのは 1.4年・買い戻すのは 11.2年（8倍）＝「今の利下げは安い。戻すのに11年かかる」。
         // ConvertibilityCoverageBand = 0 で旧 bool（加入=1.0）に縮退＝厳密恒等。
-        double broad = BroadMoney, baseM = BaseMoney, gdp = Gdp;   // 全pop/全生産者の走査＝この関数は状態を変えないので1回で束ねる
+        double broad = BroadMoney, baseM = BaseMoney, gdp = GdpPerMonth;   // 全pop/全生産者の走査＝この関数は状態を変えないので1回で束ねる
         double convTarget = OnGoldStandard ? 1.0 : 0.0;
         if (OnGoldStandard && c.ConvertibilityCoverageBand > 0 && broad > 1e-9)
         {
@@ -1737,13 +1737,13 @@ public sealed class World
         CostPriceLevel += c.MonetaryTrendSpeed * (PriceLevel - CostPriceLevel);   // ★自己費用の物価＝P の遅い趨勢（M/Y の趨勢と同じ速さ・(73)）
         // #2 期待インフレ（年率・平滑）＝直近の物価騰落。名目金利が乗せる（Fisher）。
         double infl = before > 1e-9 ? Calendar.PerQuarterToPerYear(PriceLevel / before - 1.0) : 0;   // 四半期→年率
-        ExpectedInflation += Coef.InflationExpectationSmoothing * (infl - ExpectedInflation);   // EMA
+        ExpectedInflationPerYear += Coef.InflationExpectationSmoothing * (infl - ExpectedInflationPerYear);   // EMA
 
         // 為替レート（第3a段・兌換連続化）：完全兌換は平価1.0／不換は PPP(1/P)＋貿易収支でオーバーシュート。兌換可能性で目標を補間（部分兌換＝平価に半ば縛られる）。
         double tradeBal = CumulativeTradeFlow - _prevTradeFlow; _prevTradeFlow = CumulativeTradeFlow;   // 当期の対外金収支（黒字>0＝流入）
         double ppp = 1.0 / Math.Max(0.1, PriceLevel);   // 購買力平価：インフレ分だけ対外減価
         // 為替バイアス＝貿易収支（赤字→減価/黒字→増価）＋政策金利（高金利→資本流入→自国通貨高＝バンクレートでペッグ防衛）。
-        double bias = Math.Clamp(tradeBal / Math.Max(1.0, gdp * PriceLevel) * c.ExchangeTradeAdjust + c.PolicyRateFxWeight * InterestRate, -0.2, 0.2);   // gdp×PriceLevel＝NominalGdp（MonetaryEnabled は冒頭で保証）
+        double bias = Math.Clamp(tradeBal / Math.Max(1.0, gdp * PriceLevel) * c.ExchangeTradeAdjust + c.PolicyRateFxWeight * InterestRate, -0.2, 0.2);   // gdp×PriceLevel＝NominalGdpPerMonth（MonetaryEnabled は冒頭で保証）
         double floatTarget = Math.Clamp(ppp * (1.0 + bias), c.ExchangeRateFloor, c.ExchangeRateCeil);
         // ★本位ごとの平価（銀本位doc G6・2026-08-13）：⚠新しい係数はゼロ——**平価の相手が何か**を変えるだけで
         //   「金本位国⇄金本位国＝固定／銀本位国⇄銀本位国＝固定／金本位国⇄銀本位国＝変動」が自動的に出る。
@@ -1772,7 +1772,7 @@ public sealed class World
             exFx.Add("ExchangeRateTarget", "兌換(平価への拘束)", rateTarget - floatTarget);
             exFx.Reset("ExpectedInflation");
             exFx.Add("ExpectedInflation", "直近の物価騰落(年率)", infl);
-            exFx.Add("ExpectedInflation", "平滑(前期の期待の残り)", ExpectedInflation - infl);
+            exFx.Add("ExpectedInflation", "平滑(前期の期待の残り)", ExpectedInflationPerYear - infl);
         }
     }
 
@@ -1814,7 +1814,7 @@ public sealed class World
     }
 
     /// <summary>兵士POP（IsSoldier）の総数＝軍隊規模の素（戦力ゲージ＝これ÷係数×即応度）。</summary>
-    public double SoldierSize()
+    public double SoldierSizeK()
     {
         double s = 0;
         foreach (var p in AllPops()) if (p.IsSoldier) s += p.Size;
@@ -2006,7 +2006,7 @@ public sealed class World
         double budget;
         if (Coef.ModernizationCostGdpShare > 0)
         {
-            double demand = Coef.ModernizationCostGdpShare * Math.Max(0, NominalGdp) * costMul * convex;   // 要求額（frac→1で発散）
+            double demand = Coef.ModernizationCostGdpShare * Math.Max(0, NominalGdpPerMonth) * costMul * convex;   // 要求額（frac→1で発散）
             double half = Math.Max(0, Treasury) * 0.5;                 // 国庫の半分/四半期は依然として上限（暴走防止）
             // ★R4 蜂起R群2026-08-16（診断B3・ModernizationBudgetSoftCap=0＝旧minと**ビット恒等**）：minクランプ→漸近逓減。
             //   旧＝min(demand, half) が上の凸コスト frac/(1−frac) を食い、frac≳0.5で**コストも効果もフラット＝0.6と1.0の区別が消滅**
@@ -2045,7 +2045,7 @@ public sealed class World
     public void ApplyModernizationInvestment()
     {
         double budget = ModernizationBudget();
-        // ⚠否定形で判定（2026-08-10）：`budget<=0` では NaN を素通しする。frac=1.0（＝convex が +∞）の国で NominalGdp=0 だと
+        // ⚠否定形で判定（2026-08-10）：`budget<=0` では NaN を素通しする。frac=1.0（＝convex が +∞）の国で NominalGdpPerMonth=0 だと
         //   0×∞＝NaN が出て、StateBuildQueue へ配ると州の建設予約が恒久的に毒される。AI の frac は上限0.15＝この経路に入らないが、
         //   財政タブのスライダー復活で frac=1.0 がプレイヤーの手に届く＝到達可能になった。budget=0 は旧経路でも「0を足す」＝恒等なので
         //   早期 return はビット単位で従来と同一（AI挙動不変）。

@@ -138,26 +138,26 @@ public class EconomyTests
         var r0 = w.Regions[0]; var r1 = w.Regions[1];
         var p0 = OfGoods(r0); var p1 = OfGoods(r1);
         p0.Output = 7; p1.Output = 11;
-        Assert.Equal(Truth(w), w.Gdp);
-        double g0 = w.Gdp;
+        Assert.Equal(Truth(w), w.GdpPerMonth);
+        double g0 = w.GdpPerMonth;
         // ①使い回し：控えの外の入力を書いても前の値が返る（効いている証拠）
         var good0 = r0.GoodOf(p0.GoodId)!; double ref0 = good0.RefPrice;
         good0.RefPrice = ref0 * 2;
-        Assert.Equal(g0, w.Gdp);
+        Assert.Equal(g0, w.GdpPerMonth);
         good0.RefPrice = ref0;
         // ②産出の直書き
         p0.Output = 9;
-        Assert.Equal(Truth(w), w.Gdp);
-        Assert.NotEqual(g0, w.Gdp);
+        Assert.Equal(Truth(w), w.GdpPerMonth);
+        Assert.NotEqual(g0, w.GdpPerMonth);
         // ③州の稼働の切り替え＝止めた州は和から外れ、止まっていた間に書かれた産出も戻した時に拾う
         r1.State = RegionState.Locked;
-        Assert.Equal(Truth(w), w.Gdp);
+        Assert.Equal(Truth(w), w.GdpPerMonth);
         p1.Output = 13;
         r1.State = RegionState.Active;
-        Assert.Equal(Truth(w), w.Gdp);
+        Assert.Equal(Truth(w), w.GdpPerMonth);
         // ④生産者の一覧から外す
         r0.Producers.Remove(p0);
-        Assert.Equal(Truth(w), w.Gdp);
+        Assert.Equal(Truth(w), w.GdpPerMonth);
     }
 
     /// <summary>★月の残りを眠る市場（2026-09-30 計算量の予算 第2回・近似）：供給も在庫も無く参照より上に張り付いた財は、不動点に着いた旬に
@@ -521,7 +521,7 @@ public class EconomyTests
             Assert.Equal(fed.Pops[0].Satisfaction, r.Pops[0].Satisfaction, 9);
             // 備蓄は払われない（Paid に載らない）＝金は Savings に残る（新しい状態を作らない）：払わなかった額＝買えなかった主食の代金（単価1.0）。
             //   ⚠この小世界は売上の受け手が居ない（売上が pop へ戻る）ので Savings の残高では測れない＝支払い Paid で測る。
-            Assert.Equal(fed.Pops[0].Paid - (fed.Pops[0].FoodMet - r.Pops[0].FoodMet), r.Pops[0].Paid, 6);
+            Assert.Equal(fed.Pops[0].PaidPerMonth - (fed.Pops[0].FoodMet - r.Pops[0].FoodMet), r.Pops[0].PaidPerMonth, 6);
         }
 
         // ②既定の係数（買占めあり）でも符号反転は起きない：在庫切れの月に下の階層の買い物は**増えない**（買占めの希望量ぶんまで備蓄される）。
@@ -533,8 +533,8 @@ public class EconomyTests
             $"在庫切れの月に浮いたパン代が日用品へ流れた（主食あり {fedD.Pops[0].NeedMet} → 在庫切れ {outD.Pops[0].NeedMet}）");
         Assert.True(outD.Pops[0].Satisfaction <= fedD.Pops[0].Satisfaction + 1e-9,
             $"飢饉の月に満足度が上がった（主食あり {fedD.Pops[0].Satisfaction} → 在庫切れ {outD.Pops[0].Satisfaction}）＝符号反転");
-        Assert.True(outD.Pops[0].Paid <= fedD.Pops[0].Paid - fedD.Pops[0].FoodMet + 1e-6,
-            $"買えなかった主食の代金が別の財に払われた（主食あり {fedD.Pops[0].Paid} → 在庫切れ {outD.Pops[0].Paid}）");
+        Assert.True(outD.Pops[0].PaidPerMonth <= fedD.Pops[0].PaidPerMonth - fedD.Pops[0].FoodMet + 1e-6,
+            $"買えなかった主食の代金が別の財に払われた（主食あり {fedD.Pops[0].PaidPerMonth} → 在庫切れ {outD.Pops[0].PaidPerMonth}）");
     }
 
     /// <summary>主食/日用品/嗜好品の3財だけの小世界（階層3分割の台帳検査用）。
@@ -596,7 +596,7 @@ public class EconomyTests
         for (int i = 0; i < region.Pops.Count; i++)
         {
             var p = region.Pops[i];
-            Assert.Equal(s0[i] + (p.Earned - p.Paid), p.Savings);   // 月内に貯蓄を書くのは月末の精算だけ
+            Assert.Equal(s0[i] + (p.EarnedPerMonth - p.PaidPerMonth), p.Savings);   // 月内に貯蓄を書くのは月末の精算だけ
         }
     }
 

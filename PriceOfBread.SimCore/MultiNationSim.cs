@@ -74,8 +74,8 @@ public sealed class MultiNationSim
                 // ⚠旧は手置きの数を入れていたが、最初の Diplomacy.Step が兵士POPから作り直すので、
                 //   **1783年の画面だけが別のスケール**を映していた（実測＝英450→翌年20＝20倍の段差）。
                 //   同じ式で播けば段差が消える（充足度と質の乗数は初回Stepで乗る）。
-                Military = sim.World.SoldierSize() / _coef.SoldiersPerMilitary,
-                Gdp = sim.World.Gdp,
+                Military = sim.World.SoldierSizeK() / _coef.SoldiersPerMilitary,
+                GdpPerMonth = sim.World.GdpPerMonth,
                 TradeWeight = DefaultTradeWeightBase + TradeWeightIndustrializationSlope * cfg.Industrialization,   // 倍率排除⑤：工業先進国ほど交易比重が大きい（旧 ProductivityBonus 駆動→工業化度へ。発展度の状態変数から創発）
             };
             foreach (var (cname, cres, cpopK) in cfg.InitialColonies) { var cc = Geo.ColonyCoord(cname); power.ColonyList.Add(new Colony { Name = cname, Resources = [.. cres], Population = cpopK / Diplomacy.ColonyUnitPop, PopSize = cpopK, Latitude = cc.Lat, Longitude = cc.Lon }); }   // 名前＋固有資源＋人口規模＋座標（史実1780）。住民数は人口ウェイト×換算＝作成時の1か所（回1-1・col-01）
@@ -101,7 +101,7 @@ public sealed class MultiNationSim
         var setup = WorldData.Setup();
         foreach (var t in setup.Targets)
         {
-            var p = new Power { Id = Diplomacy.Powers.Count, Name = t.Name, BaseName = t.Name, Military = t.Military, Gdp = 0, TradeWeight = 0.0, RequiresQuinine = t.Quinine };
+            var p = new Power { Id = Diplomacy.Powers.Count, Name = t.Name, BaseName = t.Name, Military = t.Military, GdpPerMonth = 0, TradeWeight = 0.0, RequiresQuinine = t.Quinine };
             foreach (var c in t.Colonies) { var cc = Geo.ColonyCoord(c.Name); p.ColonyList.Add(new Colony { Name = c.Name, Resources = [.. c.Resources], Population = c.PopK / Diplomacy.ColonyUnitPop, PopSize = c.PopK, Latitude = cc.Lat, Longitude = cc.Lon, Malarial = t.Quinine }); }   // ★回1-1（col-01）：住民数も作成時に置く（旧＝未設定のまま侵略で州化され、住民0・耕地1.8の州になった＝約650万人分が消えた）。熱帯(Quinine)標的の州はマラリア地＝征服で本国へ風土病が付いて回る。Resourcesは試合ごとに複製（キャッシュ共有回避）
             Diplomacy.Powers.Add(p);
         }
@@ -477,7 +477,7 @@ public sealed class MultiNationSim
         {
             Id = _nextPowerId++, Name = name, BaseName = name, Nation = nw,   // ★Powers.Count でなく単調カウンタ（wave2b是正）＝ReabsorbNations の RemovePower で欠番が出ても既存Idと衝突しない
             Military = parentPower.Military * (parentPop > 1e-9 ? P / parentPop : 0),   // 初期表示値のみ（次の Diplomacy.Step が兵士POPから再導出＝実体は移転した兵士）
-            Gdp = nw.Gdp, TradeWeight = DefaultTradeWeightBase,
+            GdpPerMonth = nw.GdpPerMonth, TradeWeight = DefaultTradeWeightBase,
             Culture = reg.Culture, Religion = reg.Religion,   // 次の毎月同期まで州ラベルで代用
             // ★厭戦の継承（2026-09-29）：首都発の建国は親の厭戦を継ぐ（厭戦は前の戦争の疲れが住民に残った量＝首都の蜂起は同じ社会の、いちばん疲れた首都の住民が立てる）。
             //   ⚠旧＝新しい国は厭戦0から＝首都発の内戦で政府（持ち越しの厭戦 中央0.52）だけが先に崩壊の線に届いた（反乱の勝ち 93.8%・(97) §8）。
@@ -908,7 +908,7 @@ public sealed class MultiNationSim
                 for (int i = 0; i < Nations.Count; i++)
                 {
                     var wn = Nations[i].World;
-                    double annualGdp = Calendar.PerMonthToPerYear(wn.NominalGdp);
+                    double annualGdp = Calendar.PerMonthToPerYear(wn.NominalGdpPerMonth);
                     double openness = annualGdp > 1e-9 ? natTrade[i] * _coef.ClearingsPerYear / annualGdp : 0;   // 清算単位→年換算（単位ヘルパー）
                     if (!(openness >= 0)) openness = 0;   // 否定形（分母が痩せた比の暴走もここで抑える）
                     natOpen[i] = openness; openSum += openness; openN++;
@@ -1070,12 +1070,12 @@ public sealed class MultiNationSim
         // ★接触度（作者採用2026-09-06・知識doc §4／2026-09-07 是正）：自国の貿易の**強度**（(入＋出)÷自国名目GDP）÷世界の強度（世界貿易×2÷世界名目GDP）
         //   ＝平均1.0・鎖国0。世界シェアだと経済の大きさに比例して清が最大になる（実測 6.8〜7.5）＝接触は量でなく強度。思想の到達と同じ入力＝新しい量を作らない。
         {
-            double worldGdp = 0; for (int a1 = 0; a1 < n; a1++) worldGdp += System.Math.Max(0, Nations[a1].World.NominalGdp);
+            double worldGdp = 0; for (int a1 = 0; a1 < n; a1++) worldGdp += System.Math.Max(0, Nations[a1].World.NominalGdpPerMonth);
             double worldIntensity = worldGdp > 1e-9 ? 2.0 * worldFlow / worldGdp : 0;
             for (int a1 = 0; a1 < n; a1++)
             {
                 double own = 0; for (int b1 = 0; b1 < n; b1++) if (b1 != a1) own += pf[a1][b1] + pf[b1][a1];
-                double gdp = Nations[a1].World.NominalGdp;
+                double gdp = Nations[a1].World.NominalGdpPerMonth;
                 double v = worldIntensity > 1e-12 && gdp > 1e-9 ? (own / gdp) / worldIntensity : 0;
                 Nations[a1].World.TradeContactShare = !(v >= 0) ? 0 : v;
             }
@@ -1111,7 +1111,7 @@ public sealed class MultiNationSim
                 if (rw2.RumpParentName.Length == 0 || rw2.SelfPower is not { } rp2) continue;
                 var par2 = Diplomacy.Powers.Find(q => (q.BaseName.Length > 0 ? q.BaseName : q.Name) == rw2.RumpParentName);
                 if (par2?.Nation is not { } pw2) { rw2.RumpParentName = ""; continue; }   // 親が消滅＝独立が確定
-                bool low = rw2.NominalGdp < RumpGdpFractionOfParent * System.Math.Max(1.0, pw2.NominalGdp);
+                bool low = rw2.NominalGdpPerMonth < RumpGdpFractionOfParent * System.Math.Max(1.0, pw2.NominalGdpPerMonth);
                 rw2.RumpLowQuarters = low ? rw2.RumpLowQuarters + 1 : 0;
                 if (rw2.RumpLowQuarters >= (int)(_coef.RumpReabsorbYears * Calendar.QuartersPerYear)
                     && !Diplomacy.IsAtWar(par2, rp2))
@@ -1211,7 +1211,7 @@ public sealed class MultiNationSim
                 foreach (var (hp, h) in inherit) hp.BondHoldings += World.CrossFx(rw, pw, h, book: false);
                 double debt0 = pw.GovDebt, rwDebt = World.CrossFx(rw, pw, rw.GovDebt, book: false);
                 pw.GovDebt += rwDebt; pw.ForeignDebt += World.CrossFx(rw, pw, rw.ForeignDebt, book: false); pw.PrevForeignDebt += World.CrossFx(rw, pw, rw.PrevForeignDebt, book: false);
-                if (pw.GovDebt > 1e-9) pw.GovAvgCoupon = (debt0 * pw.GovAvgCoupon + rwDebt * rw.GovAvgCoupon) / pw.GovDebt;   // 既往債の利率は元本の加重（起債の R9 の混ぜ方と同じ）
+                if (pw.GovDebt > 1e-9) pw.GovAvgCouponPerYear = (debt0 * pw.GovAvgCouponPerYear + rwDebt * rw.GovAvgCouponPerYear) / pw.GovDebt;   // 既往債の利率は元本の加重（起債の R9 の混ぜ方と同じ）
             }
             // ★作者裁定 f（2026-09-28）：反乱側に乗り換えたプレイヤーの国が吸収された＝親の国で続ける（操作者と外交の IsPlayer を親へ・画面は GameViewModel が追従して通知）。
             //   ⚠AI の国は何もしない（操作者が居ない）＝エンジンの規則は同じ。

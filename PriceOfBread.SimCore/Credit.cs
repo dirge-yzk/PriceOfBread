@@ -58,11 +58,11 @@ public static class Credit
         // 信用収縮→恐慌→不満→政治の通常経路で帰結を出す）。FiscalEnabled 時のみ＝単一国較正セルは不発。
         double fiscalDefault = w.FiscalEnabled ? c.FiscalDefaultPanic * Math.Max(0, 1.0 - w.FiscalFundingRatio) : 0;
         // 民間負債デフレ（B-3 フィッシャー）：デフレ×レバレッジ(前期Heat)＝実質債務増→債務者困窮→信頼↓→与信回収→さらにデフレの渦。MonetaryEnabled時のみ（デフレ率が定義される）。
-        double debtDeflation = w.MonetaryEnabled ? c.DebtDeflationWeight * Math.Max(0, -w.ExpectedInflation) * bank.Heat : 0;
+        double debtDeflation = w.MonetaryEnabled ? c.DebtDeflationWeight * Math.Max(0, -w.ExpectedInflationPerYear) * bank.Heat : 0;
         // 国債二次流通の評価損（no-bond-secondary-market）：BondPrice下落(利回り上昇)で国内債を抱える銀行が評価損→信頼↓→与信収縮（平時のマーク・トゥ・マーケット）。既存診断値BondPriceを配線。BondLossConfWeight=0で恒等（既定0.5）。
-        // [単位・B13] 債務/GDP＝**年次名目**（GovDebt÷(月次NominalGdp×12)・Clamp 0..1）＝Fiscal の国債の金利・CapitalMarket・Government の緊縮と同じ物差し（2026-09-29・棚卸し fis-02 の残り）。
+        // [単位・B13] 債務/GDP＝**年次名目**（GovDebt÷(月次NominalGdpPerMonth×12)・Clamp 0..1）＝Fiscal の国債の金利・CapitalMarket・Government の緊縮と同じ物差し（2026-09-29・棚卸し fis-02 の残り）。
         //   旧＝**月次**名目（年次の約12倍の値）＝国債が年GDP の1割（8.3%）を越えた国は全て1で飽和＝国債の多さが評価損の大きさに効かなかった。
-        double bondLoss = w.FiscalEnabled ? c.BondLossConfWeight * Math.Max(0, 1.0 - w.BondPrice) * PoliticalQuantities.Clamp01(w.GovDebt / Math.Max(1.0, Calendar.PerMonthToPerYear(month?.NominalGdp ?? w.NominalGdp))) : 0;
+        double bondLoss = w.FiscalEnabled ? c.BondLossConfWeight * Math.Max(0, 1.0 - w.BondPrice) * PoliticalQuantities.Clamp01(w.GovDebt / Math.Max(1.0, Calendar.PerMonthToPerYear(month?.NominalGdp ?? w.NominalGdpPerMonth))) : 0;
         // シティ型恐慌（A・最終調整2026-06-29）：与信過熱(Heat・前期＝持ち越したレバレッジ)が閾値を超えると、満足度が高くても信頼が脆くなる＝
         // 最も金融化した経済（深い与信＝高Heat＝覇権の金融中心）ほど好況の絶頂でミンスキー暴落を起こす。着火後は既存 DrawdownPanic が暴落へ増幅。OverheatFragility=0で恒等（既定1.1）。
         double overheatFragility = c.OverheatFragility * Math.Max(0, bank.Heat - c.OverheatFragilityThreshold);
@@ -111,7 +111,7 @@ public static class Credit
         var home = w.Region;
         double repayable = double.PositiveInfinity;
         if (home.InvestorPopIndex >= 0 && home.InvestorPopIndex < home.Pops.Count)
-            repayable = Calendar.PerMonthToPerYear(Math.Max(0, home.Pops[home.InvestorPopIndex].LastEarned)) * c.SoeSaleYears;
+            repayable = Calendar.PerMonthToPerYear(Math.Max(0, home.Pops[home.InvestorPopIndex].LastEarnedPerMonth)) * c.SoeSaleYears;
         if (repayable < maxLoans) maxLoans = repayable;
         // 銀行取り付け（B-3）：預金者のパニック（充足が平穏線を割る）で正貨が逃避＝実効準備が縮む＝willingな銀行でも貸せない（貸し手意欲Confidenceと別の流動性チャネル）。
         double run = Math.Clamp(c.BankRunSensitivity * Math.Max(0, c.ConfidencePivot - avgSat), 0, c.BankRunMax);
@@ -175,17 +175,17 @@ public static class Credit
         }
 
         // 民間貸出の金利キャッシュフロー（no-loan-interest-cashflow）：借り手(投資家)が利息を払い、銀行利潤として預金者(全pop)へ分配＝pop→pop純移転でBaseMoney保存。
-        // 既定 LoanSpread=0・PolicyRateLoanWeight=0 で loanRate=0＝利息なし＝現行恒等。引締め(InterestRate↑)で借り手の利払い増＝金融政策の所得分配チャネル（資本家が借金で建て利潤から利息を払う）。
+        // 既定 LoanSpreadPerYear=0・PolicyRateLoanWeight=0 で loanRate=0＝利息なし＝現行恒等。引締め(InterestRate↑)で借り手の利払い増＝金融政策の所得分配チャネル（資本家が借金で建て利潤から利息を払う）。
         // ── 政策レバー→実金利の換算（経14・単位の集約・唯一の換算地点）──
         //   w.InterestRate  … 0..1 の**無次元**政策レバー（中央銀行のバンクレートの強さ。金利そのものの数値ではない）。
-        //   c.LoanSpread    … **年率**の貸出スプレッド（例0.05＝年5%）。BondBaseRate(年率)と同次元で定義する。
+        //   c.LoanSpreadPerYear    … **年率**の貸出スプレッド（例0.05＝年5%）。BondBaseRatePerYear(年率)と同次元で定義する。
         //   loanRate        … 年率の実効貸出金利＝スプレッド＋(無次元レバー×年率換算重み PolicyRateLoanWeight)。
         //   /Calendar.DaysPerYear … 年率を三層時計の1ステップ（日次）へ落とす除算。Step は日次で呼ばれる（Simulation.cs の日次ループ）ので、
         //     1年＝360ステップぶんの積分がちょうど年率 loanRate になる。
         //   ⚠ 旧実装は /div（＝PriceFlowDailyDiv=30＝**1か月の日数**）で割っていた＝年率が**12倍**で着弾する未発見のバグ（金利doc B3・2026-07-30 是正）。
         //     div は「月次係数を日次へ配分する」ための除数（信頼・与信調整の速度に使うのは正しい）であって、年率→日次の換算には使えない。
-        //     既定 LoanSpread=0・PolicyRateLoanWeight=0 ゆえ loanRate=0＝この節に入らない＝**是正時点ではビット恒等**。B4（点火）の前提として先に潰す。
-        //   ※ 係数の単位注記は Coefficients.cs 側（LoanSpread/PolicyRateLoanWeight/PolicyRateBondWeight/BondBaseRate）に付す提案を notes に列挙。
+        //     既定 LoanSpreadPerYear=0・PolicyRateLoanWeight=0 ゆえ loanRate=0＝この節に入らない＝**是正時点ではビット恒等**。B4（点火）の前提として先に潰す。
+        //   ※ 係数の単位注記は Coefficients.cs 側（LoanSpreadPerYear/PolicyRateLoanWeight/PolicyRateBondWeight/BondBaseRatePerYear）に付す提案を notes に列挙。
         double loanRate = w.LoanRateAnnual;   // 換算はWorld側の唯一の地点へ集約（UIと同じ値を見る＝表示と挙動が乖離しない）。式・順序は従来と同一＝ビット恒等
         if (loanRate > 1e-12 && bank.Loans > 1e-9)
         {
@@ -204,14 +204,14 @@ public static class Credit
             if (home.InvestorPopIndex >= 0 && home.InvestorPopIndex < home.Pops.Count)
             {
                 borrower = home.Pops[home.InvestorPopIndex];
-                double profitDaily = Calendar.PerMonthToPerDay(Math.Max(0, borrower.Earned - borrower.Paid)) * days;   // h 日ぶんの利潤（旬次）
+                double profitDaily = Calendar.PerMonthToPerDay(Math.Max(0, borrower.EarnedPerMonth - borrower.PaidPerMonth)) * days;   // h 日ぶんの利潤（旬次）
                 paid = Math.Min(interestDue, Math.Min(profitDaily, Math.Max(0, borrower.Savings)));
             }
             else
             {
                 var pops = Pops();
                 double tot = 0, profitTot = 0;
-                foreach (var p in pops) { tot += Math.Max(0, p.Savings); profitTot += Math.Max(0, p.Earned - p.Paid); }
+                foreach (var p in pops) { tot += Math.Max(0, p.Savings); profitTot += Math.Max(0, p.EarnedPerMonth - p.PaidPerMonth); }
                 paid = Math.Min(interestDue, Math.Min(Calendar.PerMonthToPerDay(profitTot) * days, tot));
             }
             // 【案B】払えなかった分は**消えない**＝残高へ繰り入れる（複利化）。
@@ -228,7 +228,7 @@ public static class Credit
             if (paid > 0 || capitalized > 0)   // 銀行利潤を預金者(全pop)へ**預金額(Max(0,Savings))比例**で分配＝取った額（＋繰入＝新規与信）と厳密一致で保存（経10）
             {
                 // 利潤は預金者への配当ゆえ Size(人頭) でなく預金額比例が正しい（人頭だと無貯蓄の貧農も同額/人＝資本家→大衆の意図せぬ恒常移転）。
-                // 徴収側（上の tot）と同形の Math.Max(0, Savings) 重み。LoanSpread 既定0でdormant＝現行挙動に影響なし。
+                // 徴収側（上の tot）と同形の Math.Max(0, Savings) 重み。LoanSpreadPerYear 既定0でdormant＝現行挙動に影響なし。
                 // 重み＝払った後の預金（旧と同じ時点）＝借り手の枝は借り手の預金から払う額を除いて数える（全POP の枝は払い手と受け手が同じ預金の比＝払う前の比のまま）。
                 var pops = Pops();
                 var held = new List<double>(pops.Count); double heldSum = 0;

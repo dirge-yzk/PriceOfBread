@@ -131,7 +131,7 @@ public class DiscoveryScoreTests
         Assert.True(needCoal < needBase, "石炭が高くなっても必要性が下がらない（今の費用と比べていない）");
         Assert.True(dear.Tech == cheap.Tech, "動力の値段で技術力が変わった");
         // 人件費（働き手の所得）は読まない＝所得を10倍にしても必要性は同じ
-        foreach (var rg in w.Regions) foreach (var p in rg.Pops) p.Earned *= 10;
+        foreach (var rg in w.Regions) foreach (var p in rg.Pops) p.EarnedPerMonth *= 10;
         Assert.Equal(dear.Need, At(2.0).Need);
         // 判定の1本（Step）も同じ＝安い国は解禁しない・高い国は解禁する（判定は平滑化した値段を読む＝その値を置く）
         var keep = w.DiscoveryPrice!;

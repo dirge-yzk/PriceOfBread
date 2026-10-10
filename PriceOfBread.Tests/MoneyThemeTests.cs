@@ -20,7 +20,7 @@ public class MoneyThemeTests
         // 190.3 →（1/8）23.7 →（満額）5.6 の構造的崩壊（seed60/61でも4.6＝軌道ノイズでない）。1/16 は単体で緑だが同クラス同時実行で22.4＝赤。
         // 診断＝利息が**残高ストック**に課され支払いが**借り手の現金ストック**から取られる（与信を投資に回した借り手ではクランプが常時binding）。
         // 機構の作り直し（課税ベースを当期利潤へ／不足分を債務へ繰延）を経て #17 較正で点火する。B3（除数 /30→/360 の是正）は恒等なので既に入っている。
-        Assert.Equal(0.0, c.LoanSpread);
+        Assert.Equal(0.0, c.LoanSpreadPerYear);
         Assert.Equal(0.0, c.PolicyRateLoanWeight);
         Assert.Equal(0.5, c.LolrReserveBoost);      // リアリティ群採用2026-07-18＝最後の貸し手(バジョット)
         Assert.Equal(0.5, c.BondLossConfWeight);    // 第(iii)段有効化（国債暴落→銀行信頼＝ドゥームループ）
@@ -35,7 +35,7 @@ public class MoneyThemeTests
     {
         var sim = new Simulation(NationConfig.France().ToScenario(13), new NullAgent());
         var c = sim.World.Coef;
-        c.LoanSpread = 0.05; c.PolicyRateLoanWeight = 0.1;   // 民間貸出金利CF（pop→pop）
+        c.LoanSpreadPerYear = 0.05; c.PolicyRateLoanWeight = 0.1;   // 民間貸出金利CF（pop→pop）
         c.LolrReserveBoost = 0.5;                            // LOLR準備拡張
         c.BondLossConfWeight = 0.3;                          // 国債二次流通の評価損
         c.GoldCoverMin = 0.5;                                // 兌換準備カバー率ゲート
@@ -61,7 +61,7 @@ public class MoneyThemeTests
     public void 民間貸出金利_有効化でも純移転で貨幣保存が保たれる()
     {
         var sim = new Simulation(NationConfig.Britain().ToScenario(9), new NullAgent());
-        sim.World.Coef.LoanSpread = 0.08;   // 借り手→預金者の利息移転
+        sim.World.Coef.LoanSpreadPerYear = 0.08;   // 借り手→預金者の利息移転
         var ex = Record.Exception(() => sim.Run(200));
         Assert.Null(ex);   // 金利CFはpop→pop純移転＝BaseMoney不変（Invariants変更なしで保存）
     }
@@ -102,7 +102,7 @@ public class MoneyThemeTests
         double soldQty = reserve0 - w.SilverReserveQty;
         if (gate > 0)
         {
-            double expectQty = reserve0 * Math.Clamp(w.Coef.MintFloorBuyRate, 0, 1);
+            double expectQty = reserve0 * Math.Clamp(w.Coef.MintFloorBuyRatePerMonth, 0, 1);
             Assert.True(Math.Abs(soldQty - expectQty) <= 1e-9, $"準備の減少 {soldQty} ≠ 準備×率 {expectQty}");
             Assert.True(Math.Abs((m.Stock - stock0) - soldQty) <= 1e-9, "市場在庫の増分が準備の減少と一致しない");
             Assert.True(Math.Abs((m.LastImport - imp0) - soldQty) <= 1e-9, "LastImport の増分が準備の減少と一致しない（在庫恒等）");
@@ -133,7 +133,7 @@ public class MoneyThemeTests
         var r = w.Region;
         Assert.True(r.State == RegionState.Active && r.GoodOf(Catalog.SilverId) is not null, "前提＝首都州に銀市場がある");
         Assert.True(r.MerchantPopIndex >= 0 && r.MerchantPopIndex < r.Pops.Count, "前提＝首都州に商人がいる");
-        double rate = Math.Clamp(w.Coef.MintReserveSellRate, 0, 1);
+        double rate = Math.Clamp(w.Coef.MintReserveSellRatePerMonth, 0, 1);
         Assert.True(rate > 0, "前提＝準備の売却が live");
         w.SilverReserveQty = 100.0;
         var m = r.Markets[Catalog.SilverId];

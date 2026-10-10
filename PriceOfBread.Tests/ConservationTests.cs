@@ -538,7 +538,7 @@ public class ConservationTests
         var coef = new Coefficients { ColonizeSubmitRatio = 0 };   // 屈服線0＝必ず屈服（戦争にしない）
         var sim = new MultiNationSim([WorldData.ByName("日本")], seed: 1789, coef: coef);
         var jp = sim.Nations[0].World;
-        var ezo = new Power { Id = sim.Diplomacy.Powers.Max(p => p.Id) + 1, Name = "蝦夷地", BaseName = "蝦夷地", Military = 0.2, Gdp = 0, TradeWeight = 0.0 };
+        var ezo = new Power { Id = sim.Diplomacy.Powers.Max(p => p.Id) + 1, Name = "蝦夷地", BaseName = "蝦夷地", Military = 0.2, GdpPerMonth = 0, TradeWeight = 0.0 };
         var cc = Geo.ColonyCoord("蝦夷地");
         var col = new Colony { Name = "蝦夷地", Resources = [Catalog.FishId, Catalog.TimberId], Population = 25 / sim.Diplomacy.ColonyUnitPop, PopSize = 25, Latitude = cc.Lat, Longitude = cc.Lon };
         ezo.ColonyList.Add(col);
@@ -863,7 +863,7 @@ public class ConservationTests
         Assert.True(Math.Abs(gotC - moved) <= 1e-9 * moved && Math.Abs(paidC - moved) <= 1e-9 * moved, $"運河：労働者の受け取り {gotC}・投資家の払い {paidC}・進捗 {moved} が一致しない");
     }
 
-    /// <summary>★(223) 国家の港建設は国家の予算の行（行政費スライダー×PortStateFrac×裁量余剰 FiscalCapacity×3か月×取扱高の比）＝民間の貯蓄に比例して国庫を空にしない。
+    /// <summary>★(223) 国家の港建設は国家の予算の行（行政費スライダー×PortStateFrac×裁量余剰 FiscalCapacityPerMonth×3か月×取扱高の比）＝民間の貯蓄に比例して国庫を空にしない。
     /// 旧＝PortStateFrac(0.5)×資本家の投資（州の投資家の貯蓄の 4%）×r を月初の請求の外で払った＝英の開幕に国庫 2.1万 に対し 14.3万・r=1 のまま（国庫 −12.5万・翌四半期に切り下げ 9万）。
     /// 盤面＝英の1国・蒸気機関の発見を開き・1つの港だけ混雑させ・裁量余剰を小さく置く＝国庫の減りは予算の行の額ちょうど（r＝1）で、投資家の貯蓄の比（旧式）とは桁が違う（資本家ルートは投資家の貯蓄から払う＝国庫は動かない）。
     /// 払いは国家の支払い率 r を掛ける（r＝0.5 で半分）。⚠突然変異「PortStateFrac×資本家の投資の旧式」で赤。</summary>
@@ -881,7 +881,7 @@ public class ConservationTests
             foreach (var x in w.Regions) { x.LastTradeThrottle = 1.0; x.LastPortThroughput = 0; }
             var port = w.Regions.Find(x => x.State == RegionState.Active && x.IsPort && x.InvestorPopIndex >= 0)!;
             port.LastTradeThrottle = 0; port.LastPortThroughput = 1000;
-            w.FiscalFundingRatio = r; w.FiscalCapacity = 100;
+            w.FiscalFundingRatio = r; w.FiscalCapacityPerMonth = 100;
             double invSav = port.Pops[port.InvestorPopIndex].Savings;
             double want = w.AdminSpending * w.Coef.PortStateFrac * 100 * Calendar.MonthsPerQuarter * r;   // 単独の混雑した港＝取扱高の比 1
             double oldWay = 0.5 * 0.04 * invSav * r;   // 旧式＝PortStateFrac(0.5)×資本家の投資(PortInvestFrac 0.04×投資家の貯蓄)×r
@@ -915,7 +915,7 @@ public class ConservationTests
             {
                 w.Coef.PortStateFrac = frac; w.Discovered[Discovery.SteamRow] = true;
                 foreach (var x in w.Regions) { x.LastTradeThrottle = 0; x.LastPortThroughput = x.IsPort ? 1000 : 0; }
-                w.FiscalCapacity = 1e6;
+                w.FiscalCapacityPerMonth = 1e6;
                 sim.StepDay();
             }
             return w.TreasuryLedger[(int)TreasuryCat.Devalue] - b0;   // 払えない額（請求−払える額）は借りられない国（英は利払いが歳入を食う）では切り下げ（インフレ税）で払える額へ入れる＝請求が大きいほど切り下げが大きい

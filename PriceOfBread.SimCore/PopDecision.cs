@@ -25,8 +25,8 @@ public static class PopDecision
         }
         if (rural is null || urban is null) return;
 
-        double incRural = rural.Size > Eps ? rural.Earned / rural.Size : 0.0;
-        double incUrban = urban.Size > Eps ? urban.Earned / urban.Size : 0.0;
+        double incRural = rural.Size > Eps ? rural.EarnedPerMonth / rural.Size : 0.0;
+        double incUrban = urban.Size > Eps ? urban.EarnedPerMonth / urban.Size : 0.0;
         double total = rural.Size + urban.Size;
         if (total <= Eps) return;
 

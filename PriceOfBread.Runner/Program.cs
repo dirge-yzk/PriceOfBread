@@ -9,13 +9,13 @@ static int ArgInt(string[] a, int i, int def) => a.Length > i && int.TryParse(a[
 static ulong ArgUlong(string[] a, int i, ulong def) => a.Length > i && ulong.TryParse(a[i], System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var v) ? v : def;
 static double? ArgDouble(string[] a, int i, double? def) => a.Length > i && double.TryParse(a[i], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var v) ? v : def;
 
-// 貿易/GDPの物差し（正典＝SelfPlay.cs MajorsTradeGdp と同式）：分子＝(輸出+輸入)を清算/年で年換算、分母＝NominalGdp（月次）を12倍で年換算。
+// 貿易/GDPの物差し（正典＝SelfPlay.cs MajorsTradeGdp と同式）：分子＝(輸出+輸入)を清算/年で年換算、分母＝NominalGdpPerMonth（月次）を12倍で年換算。
 // 周期を必ず年で揃える＝分子×4・分母そのまま、のような単位不一致（3〜12倍の過大表示）を計器間で作らない。
 static double TradeGdp(World w)
 {
     double ex = w.ExportsByGood is { } eg ? eg.Sum() : 0;
     double im = w.ImportsByGood is { } ig ? ig.Sum() : 0;
-    return (ex + im) * w.Coef.ClearingsPerYear / System.Math.Max(1.0, Calendar.PerMonthToPerYear(w.NominalGdp));
+    return (ex + im) * w.Coef.ClearingsPerYear / System.Math.Max(1.0, Calendar.PerMonthToPerYear(w.NominalGdpPerMonth));
 }
 
 // 失業率＝エンジンが pop に書いた値（EconomyStep：労働財の売れ残り率・農業労働は自給分を除く）を、その労働財の生産者の LaborPopIndex から読む
@@ -234,7 +234,7 @@ if (args.Length > 0 && args[0] == "navalgauge")
             double denom = EconomyStep.FleetGaugeDenominator(w.Regions[0], w.Coef);
             double hulls = 0; foreach (var rr in w.Regions) if (rr.State == RegionState.Active && rr.FleetUnits is { } fu) foreach (var u in fu) hulls += u;
             double crewNeed = denom > 0 ? hulls * EconomyStep.FleetCrewPerHull(w.Regions[0], w.Coef, denom) : 0;
-            Console.WriteLine($"{cut},{pw.Name},{denom:F1},{EconomyStep.FleetPowerValue(w):F0},{pw.FleetGauge:F3},{hulls:F0},{crewNeed:F2},{w.SoldierSize():F1},{pw.CrewFill:F3},{pw.NavalShare:F4},{pw.NeedSea:F3},{pw.NavalPower:F3}");
+            Console.WriteLine($"{cut},{pw.Name},{denom:F1},{EconomyStep.FleetPowerValue(w):F0},{pw.FleetGauge:F3},{hulls:F0},{crewNeed:F2},{w.SoldierSizeK():F1},{pw.CrewFill:F3},{pw.NavalShare:F4},{pw.NeedSea:F3},{pw.NavalPower:F3}");
         }
     }
     return;
@@ -270,7 +270,7 @@ if (args.Length > 0 && args[0] == "armyshape")
             var wA2 = simA2.World;
             if (wA2.SelfPower is not { } pA2) continue;
             var cA2 = wA2.Coef;
-            double sol = wA2.SoldierSize(), pop = wA2.TotalPopulation;
+            double sol = wA2.SoldierSizeK(), pop = wA2.TotalPopulation;
             double fleet = EconomyStep.FleetPowerValue(wA2);   // ★(189) 艦の強さの値（隻数×建造費×段の乗数の和）
             // ★守るべき海上価値の**分解**（ArmyShape.cs:77-82 と同一の絞り込み＝IsPort のみ）
             double portVal = 0, colVal = 0;
@@ -498,7 +498,7 @@ if (args.Length > 0 && args[0] == "armsdebug")
         var wD = simD.World; var rD = wD.Region; var cD = wD.Coef;
         double Tgt(int b)
         {
-            double wr = b < cD.MilitaryWearRates.Length ? cD.MilitaryWearRates[b] : 1.0;
+            double wr = b < cD.MilitaryWearRatesPerMonth.Length ? cD.MilitaryWearRatesPerMonth[b] : 1.0;
             return !(cD.BaseArmsStockEnabled > 0) || !(wr < 1.0) ? 0 : rD.MilitaryScalePeace * cD.MilitaryRates[b] / Math.Max(1e-6, wr);
         }
         double Held(int b) => rD.ArmsStock is { } dd && dd.TryGetValue(cD.MilitaryGoods[b], out double v) ? v : Tgt(b);
@@ -520,7 +520,7 @@ if (args.Length > 0 && args[0] == "armsdebug")
         foreach (var pr in rD.Producers) { pendingWill += Math.Max(0, pr.StateTarget - World.StateUnits(pr, cD)); if (pr.ConstructionLeft > 0) building++; }
         Console.WriteLine($"{q + 1},{msD.Year},{rD.MilitaryScale:F3},{rD.MilitaryScalePeace:F3}," +
             $"{t0:F1},{h0:F1},{Math.Max(0, t0 - h0):F2},{t2:F1},{h2:F1}," +
-            $"{rD.MilitaryEquipFill:F3},{wD.MilitaryReadiness:F3},{wD.SelfPower?.Military ?? 0:F3},{wD.NominalGdp * 3:F0}," +
+            $"{rD.MilitaryEquipFill:F3},{wD.MilitaryReadiness:F3},{wD.SelfPower?.Military ?? 0:F3},{wD.NominalGdpPerMonth * 3:F0}," +
             $"{loss:F0},{dLoss:F1},{prodN},{(marD > 1e-9 ? marN / marD : 0):F3},{bankN}," +
             $"{rifN},{rifOut:F2},{(rifN > 0 ? rifScale / rifN : 0):F3},{rifBuilt:F3},{(rifN > 0 ? rifFill / rifN : 0):F3},{rifPrice:F2},{rifRef:F2}," +
             $"{World.ConstructionAfford(wD):F3},{pendingWill},{building},{wD.Treasury:F0},{UtilityAgent.FiscalBufferOf(wD):F0}");
@@ -612,7 +612,7 @@ if (args.Length > 0 && args[0] == "armstrace")
             // ⚠純関数（World を書き換えない）＝観測が世界を動かさない。本体は SelfPlay と同一の1つ。
             e[i] = (int)UtilityAgent.ChooseStance(wT2, out f[i]);
             names[i] = wT2.SelfPower?.Name ?? "?";
-            double popT = wT2.TotalPopulation, solT = wT2.SoldierSize();
+            double popT = wT2.TotalPopulation, solT = wT2.SoldierSizeK();
             a[i] = wT2.MilitarySpending;
             b[i] = popT > 1e-9 ? solT / popT : 0;
             double needT = wT2.SelfPower?.NeedMen ?? 0;
@@ -737,8 +737,8 @@ if (args.Length > 0 && args[0] == "transportdump")
             if (rT.MerchantPopIndex >= 0) merSav += rT.Pops[rT.MerchantPopIndex].Savings;
             if (rT.InvestorPopIndex >= 0) invSav += rT.Pops[rT.InvestorPopIndex].Savings;
         }
-        System.Console.WriteLine($"{wT.SelfPower?.Name},{wT.TotalPopulation:F0},{wT.Gdp:F0},{wT.RailCapacity:F1},{wT.ShipCapacity:F1},{capT:F1}," +
-            $"{(wT.TotalPopulation > 1e-9 ? capT / wT.TotalPopulation : 0):F5},{(wT.Gdp > 1e-9 ? capT / wT.Gdp : 0):F5}," +
+        System.Console.WriteLine($"{wT.SelfPower?.Name},{wT.TotalPopulation:F0},{wT.GdpPerMonth:F0},{wT.RailCapacity:F1},{wT.ShipCapacity:F1},{capT:F1}," +
+            $"{(wT.TotalPopulation > 1e-9 ? capT / wT.TotalPopulation : 0):F5},{(wT.GdpPerMonth > 1e-9 ? capT / wT.GdpPerMonth : 0):F5}," +
             $"{(thrN > 0 ? thrSum / thrN : 1.0):F3},{wT.ColonialShipBurden:F3},{merSav:F1},{invSav:F1},{wT.ShipSteamShareEma:F3}");
     }
     return;
@@ -757,9 +757,9 @@ if (args.Length > 0 && args[0] == "afforddump")
         var wA = simA.World; var rA = wA.Region;
         double est = EconomyStep.MilitaryProcurementNeed(rA, wA.Coef);   // 装備の必要額＝エンジンの1本（全4段・発見込み。旧＝基本段のみの再導出・2026-09-11 #1）
         double raw = rA.MilitaryAffordRaw;                                 // 支払能力の生の比＝エンジンが書いた値（上限÷必要額・無クランプ。旧＝実予算÷基本段＝上限を読んでいなかった）
-        double solA = wA.SoldierSize();
+        double solA = wA.SoldierSizeK();
         double perA = solA > 1e-9 ? est / solA : 0;
-        System.Console.WriteLine($"{wA.SelfPower?.Name},{solA:F1},{wA.TotalPopulation:F0},{(wA.TotalPopulation > 1e-9 ? solA / wA.TotalPopulation : 0):F5},{wA.LastRevenue:F1},{wA.Gdp:F0},{rA.MilitaryScale:F3},{est:F1},{rA.MilitaryBudget:F1},{raw:F4},{perA:F3}");
+        System.Console.WriteLine($"{wA.SelfPower?.Name},{solA:F1},{wA.TotalPopulation:F0},{(wA.TotalPopulation > 1e-9 ? solA / wA.TotalPopulation : 0):F5},{wA.LastRevenuePerMonth:F1},{wA.GdpPerMonth:F0},{rA.MilitaryScale:F3},{est:F1},{rA.MilitaryBudget:F1},{raw:F4},{perA:F3}");
     }
     return;
 }
@@ -772,17 +772,17 @@ if (args.Length > 0 && args[0] == "armydump")
     System.Console.WriteLine("国名,初期兵,定員,GDP,軍事費,GDP当たり必要係数");
     foreach (var sim0 in ms0.Nations)
     {
-        var w0 = sim0.World; double sol = w0.SoldierSize();
+        var w0 = sim0.World; double sol = w0.SoldierSizeK();
         double head = PriceOfBread.SimCore.Military.EstablishmentOf(w0, co0, out _);   // ★(155) 定員（旧 (145)＝扶養限界の目標×軍拡の倍率）
-        double need = w0.Gdp > 1e-9 && w0.MilitarySpending > 1e-9 ? sol / (w0.MilitarySpending * w0.Gdp) : 0;
-        System.Console.WriteLine($"{w0.SelfPower?.Name},{sol:F1},{head:F1},{w0.Gdp:F0},{w0.MilitarySpending:F2},{need:F6}");
+        double need = w0.GdpPerMonth > 1e-9 && w0.MilitarySpending > 1e-9 ? sol / (w0.MilitarySpending * w0.GdpPerMonth) : 0;
+        System.Console.WriteLine($"{w0.SelfPower?.Name},{sol:F1},{head:F1},{w0.GdpPerMonth:F0},{w0.MilitarySpending:F2},{need:F6}");
     }
     return;
 }
 
 // === 診断（2026-08-02）：軍ゲージ Power.Military の年次推移： dotnet run -- powerdump [seed] ===
 // 作者の問い「日本14・ネーデルラント1・朝鮮7・オスマン1は本当に正しい？」に答えるための計器。
-// ⚠ゲージは兵士数そのものではない＝SoldierSize/SoldiersPerMilitary × 充足率 × 質（上位軍需・結束・軍国・技術）。
+// ⚠ゲージは兵士数そのものではない＝SoldierSizeK/SoldiersPerMilitary × 充足率 × 質（上位軍需・結束・軍国・技術）。
 //   初期兵（armydump）は英1125・普900・墺650・露500・西500・仏450・オスマン375・日300 で史実整合だが、
 //   ゲージは充足率と質で桁が動くので、**どの年でどう開くか**を見ないと妥当性を判断できない。
 if (args.Length > 0 && args[0] == "powerdump")
@@ -817,8 +817,8 @@ if (args.Length > 0 && args[0] == "powerdump")
                     double milB = 1.0 + (cD.MilitarismStrengthBonus - 1.0) * PoliticalQuantities.ArmyProfessionalism(nw);   // ★2026-08-18＝軍の練度（親軍法の撤去）
                     double tq = cD.TechMilLowFloor + (1 - cD.TechMilLowFloor) * Math.Clamp(nw.TechLevel / cD.TechMilFullLevel, 0, 1);
                     double eq = 1 + cD.MilitaryQualityBonus * nw.Region.MilitaryQualityFill + cD.MilitaryTier3Bonus * nw.Region.MilitaryTier3Fill;
-                    double ideal = nw.SoldierSize() / cD.SoldiersPerMilitary + cD.ArmyShapeGauge * p.FleetGauge;   // 理想軍隊＝兵士POP＋艦隊ゲージ（Diplomacy.cs:754 と同式）
-                    Console.WriteLine($"{1783 + y},{n},{p.Military * 100:F0},{nw.SoldierSize():F0},{nw.MilitaryReadiness:F2},{ideal * nw.MilitaryReadiness * 100:F0},{eq:F2},{coh:F2},{milB:F2},{tq:F2}");
+                    double ideal = nw.SoldierSizeK() / cD.SoldiersPerMilitary + cD.ArmyShapeGauge * p.FleetGauge;   // 理想軍隊＝兵士POP＋艦隊ゲージ（Diplomacy.cs:754 と同式）
+                    Console.WriteLine($"{1783 + y},{n},{p.Military * 100:F0},{nw.SoldierSizeK():F0},{nw.MilitaryReadiness:F2},{ideal * nw.MilitaryReadiness * 100:F0},{eq:F2},{coh:F2},{milB:F2},{tq:F2}");
                 }
         }
         for (int q = 0; q < 4; q++) msP.StepQuarter();
@@ -932,7 +932,7 @@ if (args.Length > 0 && args[0] == "diploprobe")
         Console.WriteLine($"=== {label}：sベクトル（P=軍事力/世界最大） ===");
         Console.WriteLine("  国            P    " + string.Join(" ", DiploCore.CatNames.Select(c => c.PadRight(4))));
         foreach (var (n, v) in ns.Zip(vec))
-            Console.WriteLine($"  {n.World.SelfPower!.Name,-12} {NationalScore.Military(n.World) / maxMil,4:F2} " + string.Join(" ", v.Select(x => $"{x,5:F2}")) + $"  金融生値{(n.World.CapitalAbroad - n.World.ForeignCapitalIn) / System.Math.Max(1.0, n.World.NominalGdp),7:F3}");
+            Console.WriteLine($"  {n.World.SelfPower!.Name,-12} {NationalScore.Military(n.World) / maxMil,4:F2} " + string.Join(" ", v.Select(x => $"{x,5:F2}")) + $"  金融生値{(n.World.CapitalAbroad - n.World.ForeignCapitalIn) / System.Math.Max(1.0, n.World.NominalGdpPerMonth),7:F3}");
         // 全ペアのコア項（交易到達＝首都間距離の仮関数13i）
         var pairs = new List<(string a, string b, double core, double comp, double reach)>();
         for (int i = 0; i < ns.Count; i++)
@@ -1084,7 +1084,7 @@ if (args.Length > 0 && args[0] == "threatprobe")
         {
             var w = nn.World;
             double seats = Military.EstablishmentOf(w, w.Coef, out _);
-            rows.Add((w.SelfPower?.Name ?? "?", w.SecurityThreat, w.SecurityThreatOwnMass, UtilityAgent.SecurityShare(w), UtilityAgent.SecurityStageTarget(w), w.MilitarySpending, w.SoldierSize(), seats));
+            rows.Add((w.SelfPower?.Name ?? "?", w.SecurityThreat, w.SecurityThreatOwnMass, UtilityAgent.SecurityShare(w), UtilityAgent.SecurityStageTarget(w), w.MilitarySpending, w.SoldierSizeK(), seats));
         }
         foreach (var r in rows.OrderByDescending(x => x.x))
             Console.WriteLine($"  {r.name}	{r.t:F1}	{r.own:F1}	{r.x:F3}	{r.target:F3}	{r.stage:F2}	{r.sold:F1}	{r.seats:F1}");
@@ -1246,7 +1246,7 @@ if (args.Length > 0 && args[0] == "deadprobe")
     static (double Money, double Pop, double Gdp, double Leg) Digest(MultiNationSim m)
     {
         double a = 0, b = 0, g = 0, l = 0;
-        foreach (var n in m.Nations) { var w = n.World; a += w.BaseMoney; b += w.TotalPopulation; g += w.Gdp; l += w.Legitimacy; }
+        foreach (var n in m.Nations) { var w = n.World; a += w.BaseMoney; b += w.TotalPopulation; g += w.GdpPerMonth; l += w.Legitimacy; }
         return (a, b, g, l);
     }
     static (double, double, double, double) RunOnce(int q, string? field, double val)
@@ -1406,7 +1406,7 @@ if (args.Length > 0 && args[0] == "monoprobe")
         {
             var w = sim.World;
             if (w.ExportsByGood is { } eg2 && w.ImportsByGood is { } ig2) wTrade += (eg2.Sum() + ig2.Sum()) * mpc.ClearingsPerYear;
-            wGdp += Calendar.PerMonthToPerYear(System.Math.Max(0, w.NominalGdp));   // NominalGdpは月次＝年換算は×12（旧×4は四半期扱いの誤り）
+            wGdp += Calendar.PerMonthToPerYear(System.Math.Max(0, w.NominalGdpPerMonth));   // NominalGdpPerMonthは月次＝年換算は×12（旧×4は四半期扱いの誤り）
             double sImp = 0, sDem = 0;
             foreach (var r in w.Regions)
             {
@@ -1479,10 +1479,10 @@ if (args.Length > 0 && args[0] == "tradeprobe")
 
 // === 貿易開放度の「単位」と植民地機構の実体規模（2026-08-21・純読み取り／SimCoreは1行も触らない）： dotnet run -- openprobe [Q] ===
 //   検証したい主張：「実在する定義の穴は1つだけ＝植民地財が二国間交易にも貿易統計にも入らない（規模は数%）」。
-//   ⚠貿易/GDP は**合成指標**。分子（四半期フロー×4）と分母（NominalGdp）の周期が違えば、比そのものが定義の穴になる。
-//     よって構成要素を個別に測る：①12ヶ月ぶんの NominalGdp を月次決算の直後に積む（＝年GDP・単位仮定ゼロ）
+//   ⚠貿易/GDP は**合成指標**。分子（四半期フロー×4）と分母（NominalGdpPerMonth）の周期が違えば、比そのものが定義の穴になる。
+//     よって構成要素を個別に測る：①12ヶ月ぶんの NominalGdpPerMonth を月次決算の直後に積む（＝年GDP・単位仮定ゼロ）
 //     ②4四半期ぶんの(輸出+輸入)を四半期末に積む（＝年貿易額）③比＝定義に依存しない真の開放度
-//     ④現行式 (輸出+輸入)×4/NominalGdp との倍率。
+//     ④現行式 (輸出+輸入)×4/NominalGdpPerMonth との倍率。
 //   ⑤植民地機構の実体規模：多国シムでは Trade.Step が !TradeEnabled（Trade.cs:13）で即returnするので、
 //     四半期末**以外**の月（各四半期の第1・第2月）の Market.LastImport/LastExport を書くのは植民地機構だけ
 //     （EconomyStep の植民地素材輸入／Colonial の LastExport 書き手＝投資・捕囚市場・維持費）。
@@ -1515,8 +1515,8 @@ if (args.Length > 0 && args[0] == "openprobe")
             foreach (var n2 in opm.Nations)
             {
                 var w = n2.World; var a = A(NmOf(w));
-                a[0] += System.Math.Max(0, w.NominalGdp);
-                a[8] += System.Math.Max(0, w.Gdp);
+                a[0] += System.Math.Max(0, w.NominalGdpPerMonth);
+                a[8] += System.Math.Max(0, w.GdpPerMonth);
                 if (!pure) continue;
                 double er = w.ExchangeRate > 1e-9 ? w.ExchangeRate : 1.0;
                 foreach (var r in w.Regions)
@@ -1538,7 +1538,7 @@ if (args.Length > 0 && args[0] == "openprobe")
         {
             var w = n2.World; var a = A(NmOf(w));
             double ex = w.ExportsByGood is { } eg3 ? eg3.Sum() : 0, im = w.ImportsByGood is { } ig3 ? ig3.Sum() : 0;
-            a[1] += ex + im; a[5] = ex + im; a[6] = w.NominalGdp;
+            a[1] += ex + im; a[5] = ex + im; a[6] = w.NominalGdpPerMonth;
         }
         if (q % 4 != 0) continue;
         int year = 1783 + q / 4;
@@ -1615,7 +1615,7 @@ if (args.Length > 0 && args[0] == "accprobe")
         thr = n > 0 ? thr / n : 1.0;
         thrW = wsum > 1e-9 ? thrW / wsum : thr;
         double tp = TradeGdp(w) * 100;
-        return (acc, warLost, hegRes, thr, thrW, w.Gdp > 1 ? w.NominalGdp / w.Gdp : 0, tp, linked, n);
+        return (acc, warLost, hegRes, thr, thrW, w.GdpPerMonth > 1 ? w.NominalGdpPerMonth / w.GdpPerMonth : 0, tp, linked, n);
     }
 
     Console.WriteLine("年,Q,世界貿易GDP%,世界外交acc(GDP加重),世界律速(潜在加重),世界実効acc,交戦数,世界貿易額(年),世界名目GDP,世界実GDP,名目÷実," +
@@ -1629,9 +1629,9 @@ if (args.Length > 0 && args[0] == "accprobe")
         {
             var w = n.World;
             if (w.SelfPower is null) continue;
-            double g = Math.Max(1.0, w.NominalGdp);
+            double g = Math.Max(1.0, w.NominalGdpPerMonth);
             if (w.ExportsByGood is { } eg && w.ImportsByGood is { } ig) wTrade += (eg.Sum() + ig.Sum()) * w.Coef.ClearingsPerYear;
-            wGdp += g; wReal += Math.Max(0, w.Gdp);
+            wGdp += g; wReal += Math.Max(0, w.GdpPerMonth);
             wDipAcc += w.ExternalTradeAccess() * g; wGdpW += g;
             foreach (var r in w.Regions)
             {
@@ -1734,7 +1734,7 @@ if (args.Length > 0 && args[0] == "endowprobe")
         {
             var nation = epm.Nations.FirstOrDefault(n => n.World.SelfPower is { } p && (p.BaseName.Length > 0 ? p.BaseName : p.Name) == wn);
             if (nation?.World is { } w && w.ExportsByGood is { } eg && w.ImportsByGood is { } ig)
-                Console.WriteLine($"# 貿易/GDP {wn}={TradeGdp(w) * 100:F2}%  輸出={eg.Sum():F0} 輸入={ig.Sum():F0} GDP={w.NominalGdp:F0}");
+                Console.WriteLine($"# 貿易/GDP {wn}={TradeGdp(w) * 100:F2}%  輸出={eg.Sum():F0} 輸入={ig.Sum():F0} GDP={w.NominalGdpPerMonth:F0}");
         }
         Console.WriteLine();
     }
@@ -1879,7 +1879,7 @@ if (args.Length > 0 && args[0] == "nobleprobe")
                 foreach (var p in r.Pops)
                 {
                     int g = p.Closed ? 0 : p.IsModernElite ? 1 : 2;
-                    size[g] += p.Size; rent[g] += System.Math.Max(0, p.LandRent); earned[g] += System.Math.Max(0, p.Earned); sav[g] += System.Math.Max(0, p.Savings);
+                    size[g] += p.Size; rent[g] += System.Math.Max(0, p.LandRentPerMonth); earned[g] += System.Math.Max(0, p.EarnedPerMonth); sav[g] += System.Math.Max(0, p.Savings);
                 }
             double savAll = System.Math.Max(1e-9, sav[0] + sav[1] + sav[2]);
             string[] gn = ["貴族聖職", "近代エリ", "その他"];
@@ -1993,7 +1993,7 @@ if (args.Length > 0 && args[0] == "silverprobe")
                 double svEx = 0, svIm = 0;
                 if (w.ExportsByGood is { } svEg) foreach (var v in svEg) if (v > 0) svEx += v;
                 if (w.ImportsByGood is { } svIg) foreach (var v in svIg) if (v > 0) svIm += v;
-                double svOpen = w.NominalGdp > 1e-9 ? (svEx + svIm) * w.Coef.ClearingsPerYear / Calendar.PerMonthToPerYear(w.NominalGdp) : 0;   // MajorsTradeGdp と同じ物差し
+                double svOpen = w.NominalGdpPerMonth > 1e-9 ? (svEx + svIm) * w.Coef.ClearingsPerYear / Calendar.PerMonthToPerYear(w.NominalGdpPerMonth) : 0;   // MajorsTradeGdp と同じ物差し
                 svLine.Append($"{w.SelfPower?.BaseName ?? "?"}:{law}({w.MeanIndustrialization:F2}/{w.Policy.MonetaryTarget}/{w.Convertibility:F2}/開{svOpen:F3}/引{w.TradeGoldPull:F3})  ");
                 if (++svCol % 6 == 0) { Console.WriteLine("      " + svLine); svLine.Clear(); }
             }
@@ -2503,7 +2503,7 @@ if (args.Length > 0 && args[0] == "eduprobe")
         //   ⚠点火の証拠は「テスト緑」でも「帯が動いた」でもなく **門が実際に否決した回数**＝上の EpLaw の理由行（「政治資本の残りが不足」）を数えること。
         Console.WriteLine($"      ブロック：伝統{blocT:F3} 近代{blocM:F3} 大衆{blocMass:F3}　正統性{w.Legitimacy:F2}"
             + $" 政治資本{Math.Max(0, w.PoliticalCapitalMax - w.MandateSpent):F3}/{w.PoliticalCapitalMax:F3}（目減り{w.MandateSpent:F2} 実行度{PoliticalQuantities.PoliticalCapitalRate(w):F2}）"
-            + $" 政治予算{w.PoliticalPushBudget:F2} 行政力{w.AdminEfficiency:F2} 議会統制{w.ParliamentControl:F2} 国庫{w.Treasury,12:F0} 一人当たりGDP{(tot > 1 ? w.Gdp / tot : 0):F4}");
+            + $" 政治予算{w.PoliticalPushBudget:F2} 行政力{w.AdminEfficiency:F2} 議会統制{w.ParliamentControl:F2} 国庫{w.Treasury,12:F0} 一人当たりGDP{(tot > 1 ? w.GdpPerMonth / tot : 0):F4}");
         // ★政変の可否＝動員（改革派＋急進派・どちらも意識に比例）÷ 実効保持力。政体が変わらないと参政権が上がらない構造の直接の計器。
         double epCoerce = PoliticalQuantities.EffectiveCoerce(w, w.Coef);
         double epChal = w.ReformistPower + w.RadicalPower;
@@ -2579,7 +2579,7 @@ if (args.Length > 0 && args[0] == "tariffprobe")
             var parts = new System.Collections.Generic.List<string>();
             foreach (var (who, wt2) in PriceOfBread.SimCore.PolicyPreferences.SupportBreakdown(w2, PriceOfBread.SimCore.PolicyAxis.Tariff, increasing: true))
                 if (System.Math.Abs(wt2) > 0.01) parts.Add($"{who}{wt2:+0.00;-0.00}");
-            System.Console.WriteLine($"  {nm}: 関税{w2.Tariff:P0} 目標{w2.Policy.TariffTarget:P0} 報復偏倚{w2.TariffRetaliationBias:+0.00;-0.00} 条約港{w2.TreatyPortsGranted} 与党{w2.GoverningParty} 輸出/GDP{(w2.NominalGdp > 1e-9 ? w2.LastExportValue / w2.NominalGdp : 0):P1} 純支持{net:+0.00;-0.00} ＝ {string.Join(" ", parts)}");
+            System.Console.WriteLine($"  {nm}: 関税{w2.Tariff:P0} 目標{w2.Policy.TariffTarget:P0} 報復偏倚{w2.TariffRetaliationBias:+0.00;-0.00} 条約港{w2.TreatyPortsGranted} 与党{w2.GoverningParty} 輸出/GDP{(w2.NominalGdpPerMonth > 1e-9 ? w2.LastExportValue / w2.NominalGdpPerMonth : 0):P1} 純支持{net:+0.00;-0.00} ＝ {string.Join(" ", parts)}");
         }
     }
     return;
@@ -2646,7 +2646,7 @@ if (args.Length > 0 && args[0] == "pairprobe")
                 for (int g3 = 0; g3 < System.Math.Min(6, gl.Count); g3++) parts.Add($"{PriceOfBread.SimCore.Catalog.Goods[gl[g3].Key].Name} {gl[g3].Value:F0}");
                 var wE = psim.Nations[ei].World;
                 double wageS = 0, wageN = 0;
-                foreach (var r3 in wE.Regions) { if (r3.State != PriceOfBread.SimCore.RegionState.Active) continue; foreach (var p3 in r3.Pops) if (!p3.Closed && p3.Size > 1) { wageS += System.Math.Max(0, p3.Earned); wageN += p3.Size; } }
+                foreach (var r3 in wE.Regions) { if (r3.State != PriceOfBread.SimCore.RegionState.Active) continue; foreach (var p3 in r3.Pops) if (!p3.Closed && p3.Size > 1) { wageS += System.Math.Max(0, p3.EarnedPerMonth); wageN += p3.Size; } }
                 double litS = 0, litN = 0, eduS = 0;   // 2026-09-05：識字・教育充足の列（世界工場の是正＝技術水準の根を見る）
                 foreach (var lp in wE.AllPops()) { litS += lp.Literacy * lp.Size; eduS += lp.EducationFill * lp.Size; litN += lp.Size; }
                 System.Console.WriteLine($"  輸出内訳 {NameOf(ei)}（計{expTot[ei]:F0}・関税{wE.Tariff:P0}・技術{wE.TechLevel:F2}・所得/人{(wageN > 1 ? wageS / wageN : 0):F3}・識字{(litN > 0 ? litS / litN : 0):P0}・教育充足{(litN > 0 ? eduS / litN : 0):P0}）: {string.Join("　", parts)}");
@@ -2793,7 +2793,7 @@ if (args.Length > 0 && args[0] == "techtrace")
             double lit = 0, sz = 0;
             foreach (var p in w.AllPops()) { lit += p.Literacy * p.Size; sz += p.Size; }
             double pop = w.TotalPopulation;
-            System.Console.WriteLine($"{w.SelfPower!.Name,-14}{w.TechLevel,7:F2}{w.Elite,7:F3}{(sz > 0 ? lit / sz : 0),6:P0}{w.EducationLaw,-11}{w.Censorship,-15}{w.Polity,-22}{pop,9:N0}{(pop > 1 ? w.Gdp / pop : 0),9:F3}{w.Elite * pop,9:N0}{w.MeanIndustrialization,7:F2}");
+            System.Console.WriteLine($"{w.SelfPower!.Name,-14}{w.TechLevel,7:F2}{w.Elite,7:F3}{(sz > 0 ? lit / sz : 0),6:P0}{w.EducationLaw,-11}{w.Censorship,-15}{w.Polity,-22}{pop,9:N0}{(pop > 1 ? w.GdpPerMonth / pop : 0),9:F3}{w.Elite * pop,9:N0}{w.MeanIndustrialization,7:F2}");
         }
     }
     return;
@@ -2819,7 +2819,7 @@ if (args.Length > 0 && args[0] == "percapprobe")
     void PcDump(string when)
     {
         var rows = simP.Nations.Select(n => n.World).Where(w => w.SelfPower is not null)
-            .Select(w => { double pop = w.TotalPopulation; return (W: w, Pc: pop > 1 ? w.Gdp / pop : 0, Pop: pop); })
+            .Select(w => { double pop = w.TotalPopulation; return (W: w, Pc: pop > 1 ? w.GdpPerMonth / pop : 0, Pop: pop); })
             .OrderByDescending(x => x.Pc).ToList();
         if (rows.Count == 0) return;
         double Pct(double f) { int i = (int)Math.Round((1 - f) * (rows.Count - 1)); return rows[Math.Clamp(i, 0, rows.Count - 1)].Pc; }
@@ -2832,7 +2832,7 @@ if (args.Length > 0 && args[0] == "percapprobe")
         {
             var w = x.W;
             double absNow = TechEducation.AbsorptionOf(w, w.Coef);   // 現行（識字×報道のみ・所得項は休眠で1.0）
-            Console.WriteLine($"  {tag}{rank,3}位 {JpPad(w.SelfPower!.BaseName, 16)}1人GDP={x.Pc,8:F3} 人口k={x.Pop,10:N0} GDP={w.Gdp,10:N0} エリ={w.Elite,5:F3} 報道={JpPad(w.Censorship.ToString(), 15)}吸収(現)={absNow,5:F3} 技術={w.TechLevel,5:F2} 工業化={w.MeanIndustrialization,5:F2}");
+            Console.WriteLine($"  {tag}{rank,3}位 {JpPad(w.SelfPower!.BaseName, 16)}1人GDP={x.Pc,8:F3} 人口k={x.Pop,10:N0} GDP={w.GdpPerMonth,10:N0} エリ={w.Elite,5:F3} 報道={JpPad(w.Censorship.ToString(), 15)}吸収(現)={absNow,5:F3} 技術={w.TechLevel,5:F2} 工業化={w.MeanIndustrialization,5:F2}");
         }
         Console.WriteLine("  --- 主要国 ---");
         foreach (var nm in bigP) { int ix = rows.FindIndex(x => x.W.SelfPower!.BaseName == nm); if (ix >= 0) Row("", rows[ix], ix + 1); }
@@ -2873,7 +2873,7 @@ if (args.Length > 0 && args[0] == "rankprobe")
     System.Console.WriteLine($"{"順",3}{"国",-16}{"スコア",8}{"軍",8}{"豊かさ",8}{"金融",7}{"技術",7}{"GDP",10}{"工業化",7}{"満足",7}{"植民地",6}");
     void Line(int rank, (World W, double S, double M, double Wl, double F, double T) x)
         => System.Console.WriteLine($"{rank,3}{x.W.SelfPower!.Name,-16}{x.S,8:F1}{x.M,8:F1}{x.Wl,8:F1}{x.F,7:F1}{x.T,7:F1}"
-            + $"{x.W.Gdp,10:F0}{x.W.MeanIndustrialization,7:F2}{NationalScore.MeanSatisfaction(x.W),7:F2}{x.W.SelfPower!.Colonies,6}");
+            + $"{x.W.GdpPerMonth,10:F0}{x.W.MeanIndustrialization,7:F2}{NationalScore.MeanSatisfaction(x.W),7:F2}{x.W.SelfPower!.Colonies,6}");
     for (int i = 0; i < Math.Min(12, rows.Count); i++) Line(i + 1, rows[i]);
     System.Console.WriteLine("--- 史実の列強（1914年の8カ国）---");
     foreach (var nm in new[] { "イギリス", "フランス", "ロシア", "プロイセン", "オーストリア", "アメリカ", "日本", "イタリア" })
@@ -3210,7 +3210,7 @@ if (args.Length > 0 && args[0] == "explain")
     Show("CreditTarget", "与信目標", null);
     Show("CapitalReturn", "投資収益率", null);
     Show("ExchangeRateTarget", "為替目標", null);
-    Show("ExpectedInflation", "期待インフレ", ew.ExpectedInflation);
+    Show("ExpectedInflation", "期待インフレ", ew.ExpectedInflationPerYear);
     return;
 }
 
@@ -3753,7 +3753,7 @@ if (args.Length > 0 && args[0] == "mapflow")
 }
 
 // === 定義（分子と分母の物差し）の実測（2026-08-21・「貿易/GDPは定義の問題ではない」主張の反証）： dotnet run -- numdef [Q] ===
-//   分子＝ExportsByGood+ImportsByGood（**四半期**の国際成約・金建て局所価格）／分母＝NominalGdp（Gdp＝Σ産出×RefPrice の**月次**×PriceLevel）。
+//   分子＝ExportsByGood+ImportsByGood（**四半期**の国際成約・金建て局所価格）／分母＝NominalGdpPerMonth（Gdp＝Σ産出×RefPrice の**月次**×PriceLevel）。
 //   ①暦の単位（月次GDP vs 四半期貿易）②価格の物差し（金建て局所価格 vs 参照価格）③同国取引 ④植民地財流入
 //   を**すべて別々に**測って、同じ物差しに揃えた比を並べる。純テレメトリ＝挙動は1ビットも変えない。
 if (args.Length > 0 && args[0] == "numdef")
@@ -3817,7 +3817,7 @@ if (args.Length > 0 && args[0] == "numdef")
             double ei = (w.ExportsByGood?.Sum() ?? 0) + (w.ImportsByGood?.Sum() ?? 0);
             double xRef = TradeReachDiag.CrossRefByNation.Length > idx ? TradeReachDiag.CrossRefByNation[idx] : 0;
             double dRef = TradeReachDiag.DomRefByNation.Length > idx ? TradeReachDiag.DomRefByNation[idx] : 0;
-            double nom = System.Math.Max(1.0, w.NominalGdp);
+            double nom = System.Math.Max(1.0, w.NominalGdpPerMonth);
             double A = ei * 4.0 / nom * 100;                     // 旧定義（是正前・分子＝四半期×4／分母＝月次のまま＝正典 TradeGdp は既に暦を揃えて修正済み）
             double B = ei * 4.0 / (nom * 12) * 100;              // 暦を揃える（年貿易 ÷ 年名目GDP）
             double C = prodGold > 1e-9 ? ei * 4.0 / (prodGold * 12) * 100 : 0;   // 金建て同士（分母＝月次産出の金建て市場評価）
@@ -3829,8 +3829,8 @@ if (args.Length > 0 && args[0] == "numdef")
             Console.WriteLine(string.Join(",", new[]
             {
                 (1783 + q / 4).ToString(), ndWatch[wi],
-                $"{w.Gdp:F0}", $"{prodRef:F0}", $"{prodGold:F0}", $"{(prodRef > 1e-9 ? prodGold / prodRef : 0):F3}",
-                $"{w.PriceLevel:F3}", $"{(plWsum > 1e-9 ? plW / plWsum : 0):F3}", $"{er:F4}", $"{w.NominalGdp:F0}",
+                $"{w.GdpPerMonth:F0}", $"{prodRef:F0}", $"{prodGold:F0}", $"{(prodRef > 1e-9 ? prodGold / prodRef : 0):F3}",
+                $"{w.PriceLevel:F3}", $"{(plWsum > 1e-9 ? plW / plWsum : 0):F3}", $"{er:F4}", $"{w.NominalGdpPerMonth:F0}",
                 $"{ei:F0}", $"{xRef:F0}", $"{dRef:F0}", $"{colFull:F0}",
                 $"{A:F2}", $"{B:F2}", $"{C:F2}", $"{D:F2}", $"{E:F2}", $"{F:F2}",
                 $"{grossRef:F0}", $"{vaRef:F0}", $"{(vaRef > 1e-9 ? grossRef / vaRef : 0):F2}", $"{G:F2}", $"{H:F2}",
@@ -3876,7 +3876,7 @@ if (args.Length > 0 && args[0] == "reachprobe")
             for (int i = 0; i < rpm.Nations.Count; i++) if (NameOf(i) == wn) { idx = i; break; }
             if (idx < 0) continue;
             var w = rpm.Nations[idx].World;
-            double gdp = System.Math.Max(1.0, Calendar.PerMonthToPerYear(w.NominalGdp));   // NominalGdpは月次＝年換算は×MonthsPerYear（TradeGdp と同じ物差し）
+            double gdp = System.Math.Max(1.0, Calendar.PerMonthToPerYear(w.NominalGdpPerMonth));   // NominalGdpPerMonthは月次＝年換算は×MonthsPerYear（TradeGdp と同じ物差し）
             double stat = TradeGdp(w) * 100;
             double cross = TradeReachDiag.CrossByNation[idx] * 4.0 / gdp * 100;
             double dom = TradeReachDiag.DomByNation[idx] * 4.0 / gdp * 100;
@@ -3931,7 +3931,7 @@ if (args.Length > 0 && args[0] == "budgetprobe")
                 if (r.State != RegionState.Active) continue;
                 foreach (var m in r.Markets) { dem += m.LastDemand; prod += m.LastProduced; shortg += m.LastShortage; }
             }
-            double gdp = System.Math.Max(1.0, w.NominalGdp);
+            double gdp = System.Math.Max(1.0, w.NominalGdpPerMonth);
             double tg = ((w.ExportsByGood?.Sum() ?? 0) + (w.ImportsByGood?.Sum() ?? 0)) * 4.0 / gdp * 100;
             Console.WriteLine($"  {wn,-6} {a[PriceOfBread.SimCore.BudgetBindDiag.DesiredVal],10:F0} {a[PriceOfBread.SimCore.BudgetBindDiag.DemandVal],10:F0}   {R(PriceOfBread.SimCore.BudgetBindDiag.DemandVal, PriceOfBread.SimCore.BudgetBindDiag.DesiredVal),6:F3}   {R(PriceOfBread.SimCore.BudgetBindDiag.DemandValTrade, PriceOfBread.SimCore.BudgetBindDiag.DesiredValTrade),6:F3} {R(PriceOfBread.SimCore.BudgetBindDiag.DemandValStaple, PriceOfBread.SimCore.BudgetBindDiag.DesiredValStaple),6:F3} {R(PriceOfBread.SimCore.BudgetBindDiag.DemandValDaily, PriceOfBread.SimCore.BudgetBindDiag.DesiredValDaily),6:F3} {R(PriceOfBread.SimCore.BudgetBindDiag.DemandValLux, PriceOfBread.SimCore.BudgetBindDiag.DesiredValLux),6:F3} |"
                 + $" {(a[PriceOfBread.SimCore.BudgetBindDiag.Rows] > 0 ? 100.0 * a[PriceOfBread.SimCore.BudgetBindDiag.BoundRows] / a[PriceOfBread.SimCore.BudgetBindDiag.Rows] : 0),10:F1} {a[PriceOfBread.SimCore.BudgetBindDiag.BudgetStart],10:F0} {a[PriceOfBread.SimCore.BudgetBindDiag.BudgetLeft],10:F0} {(a[PriceOfBread.SimCore.BudgetBindDiag.BudgetStart] > 1e-9 ? 100.0 * a[PriceOfBread.SimCore.BudgetBindDiag.BudgetLeft] / a[PriceOfBread.SimCore.BudgetBindDiag.BudgetStart] : 0),4:F0} |"
@@ -3950,7 +3950,7 @@ if (args.Length > 0 && args[0] == "budgetprobe")
         foreach (var n in bpm.Nations)
         {
             var w = n.World; if (w.SelfPower is null) continue;
-            wGdp += System.Math.Max(1.0, w.NominalGdp);
+            wGdp += System.Math.Max(1.0, w.NominalGdpPerMonth);
             wTradeVal += (w.ExportsByGood?.Sum() ?? 0) + (w.ImportsByGood?.Sum() ?? 0);
             foreach (var r in w.Regions) { if (r.State != RegionState.Active) continue; foreach (var m in r.Markets) { wDem += m.LastDemand; wProd += m.LastProduced; } }
         }
@@ -4502,9 +4502,9 @@ if (args.Length > 0 && args[0] == "discprobe")
             double Px(int g) { double pd = 0, dd = 0; foreach (var rg in w.Regions) { if (rg.State != RegionState.Active || g >= rg.Markets.Length) continue; pd += rg.Markets[g].Price * rg.Markets[g].LastDemand; dd += rg.Markets[g].LastDemand; } return dd > 1e-12 ? pd / dd / w.NominalOf(Catalog.RefPrices[g]) : double.NaN; }
             double Sm(int g) => w.DiscoveryPrice is { } dpw && g < dpw.Length ? dpw[g] / Catalog.RefPrices[g] : double.NaN;
             double landSm = w.DiscoveryPrice is { } dpl && Catalog.Goods.Length < dpl.Length ? dpl[Catalog.Goods.Length] : double.NaN;
-            double We(int cls) { double e = 0, z = 0; foreach (var rg in w.Regions) { if (rg.State != RegionState.Active) continue; var pp = rg.PopOf(cls); if (pp is null || !(pp.Size > 0)) continue; e += pp.Earned; z += pp.Size; } return z > 1e-12 ? e / z : double.NaN; }
+            double We(int cls) { double e = 0, z = 0; foreach (var rg in w.Regions) { if (rg.State != RegionState.Active) continue; var pp = rg.PopOf(cls); if (pp is null || !(pp.Size > 0)) continue; e += pp.EarnedPerMonth; z += pp.Size; } return z > 1e-12 ? e / z : double.NaN; }
             double coalNom = 0; { double pd = 0, dd = 0; foreach (var rg in w.Regions) { if (rg.State != RegionState.Active) continue; pd += rg.Markets[Catalog.CoalId].Price * rg.Markets[Catalog.CoalId].LastDemand; dd += rg.Markets[Catalog.CoalId].LastDemand; } coalNom = dd > 1e-12 ? pd / dd : double.NaN; }
-            Console.WriteLine($"    動力の物差し（値段÷参照×物価・瞬間／平滑）: 労働力 {Px(Catalog.LaborId):F2}/{Sm(Catalog.LaborId):F2}・石炭 {Px(Catalog.CoalId):F2}/{Sm(Catalog.CoalId):F2}・蒸気機関 {Px(Catalog.SteamEngineId):F2}/{Sm(Catalog.SteamEngineId):F2}・電力 {Px(Catalog.ElectricityId):F2}/{Sm(Catalog.ElectricityId):F2}　陸の輸送の値段（平滑・参照＝1） {landSm:F2}　1人の月の所得÷物価: 工場労働者 {We(PopClass.Worker) / w.NominalOf(1):F3}・農民 {We(PopClass.Peasant) / w.NominalOf(1):F3}　÷石炭の値段: 工場労働者 {We(PopClass.Worker) / coalNom:F3}・農民 {We(PopClass.Peasant) / coalNom:F3}　1人GDP {w.Gdp / System.Math.Max(1e-9, w.TotalPopulation):F4}");
+            Console.WriteLine($"    動力の物差し（値段÷参照×物価・瞬間／平滑）: 労働力 {Px(Catalog.LaborId):F2}/{Sm(Catalog.LaborId):F2}・石炭 {Px(Catalog.CoalId):F2}/{Sm(Catalog.CoalId):F2}・蒸気機関 {Px(Catalog.SteamEngineId):F2}/{Sm(Catalog.SteamEngineId):F2}・電力 {Px(Catalog.ElectricityId):F2}/{Sm(Catalog.ElectricityId):F2}　陸の輸送の値段（平滑・参照＝1） {landSm:F2}　1人の月の所得÷物価: 工場労働者 {We(PopClass.Worker) / w.NominalOf(1):F3}・農民 {We(PopClass.Peasant) / w.NominalOf(1):F3}　÷石炭の値段: 工場労働者 {We(PopClass.Worker) / coalNom:F3}・農民 {We(PopClass.Peasant) / coalNom:F3}　1人GDP {w.GdpPerMonth / System.Math.Max(1e-9, w.TotalPopulation):F4}");
         }
     }
     Console.WriteLine("## 4. 行ごとの最初の国と年・主要国の年");
@@ -5128,7 +5128,7 @@ if (args.Length > 0 && args[0] == "refprobe")
         foreach (var n in rm.Nations)
         {
             var w = n.World; if (w.SelfPower is not { } sp || !(w.TotalPopulation > 1e-9)) continue;
-            perCap.Add((sp.BaseName, w.Gdp / w.TotalPopulation));   // IncomeAbsorption と同じ実質GDP/人
+            perCap.Add((sp.BaseName, w.GdpPerMonth / w.TotalPopulation));   // IncomeAbsorption と同じ実質GDP/人
             rbase.Add((sp.BaseName, w.Elite * w.TotalPopulation));
             fleet.Add((sp.BaseName, sp.FleetGauge * w.NavyUpkeep));
         }
@@ -6086,7 +6086,7 @@ if (args.Length > 0 && args[0] == "warmtest")
 //     荒れの物差し＝首都市場の実勢財バスケットについて、四半期ごとの |ln(価格比の変化)| の平均（%／四半期）。
 //     併せて開幕時点の参照価格からの乖離（|ln(価格/参照価格)| の平均）と、安全網（床/天井）に張り付いた財数を出す。 ===
 // === (218) 初期の貯蓄の診断（読むだけ）： dotnet run -- initsavprobe [seed] [国名,国名,…] ===
-// 構築直後・助走の終わり・1790 年（28 四半期）の3点で、国ごとに階級別の Size・Savings・前期の所得（LastEarned）と国全体の名目 GDP・国庫・国債を数える。
+// 構築直後・助走の終わり・1790 年（28 四半期）の3点で、国ごとに階級別の Size・Savings・前期の所得（LastEarnedPerMonth）と国全体の名目 GDP・国庫・国債を数える。
 if (args.Length > 0 && args[0] == "initsavprobe")
 {
     ulong isSeed = args.Length > 1 && ulong.TryParse(args[1], out var iss) ? iss : 1UL;
@@ -6109,18 +6109,18 @@ if (args.Length > 0 && args[0] == "initsavprobe")
                 if (r.State != RegionState.Active) continue;
                 foreach (var p in r.Pops)
                 {
-                    sz[p.ClassName] = sz.GetValueOrDefault(p.ClassName) + p.Size; sv[p.ClassName] = sv.GetValueOrDefault(p.ClassName) + p.Savings; ea[p.ClassName] = ea.GetValueOrDefault(p.ClassName) + p.LastEarned;
+                    sz[p.ClassName] = sz.GetValueOrDefault(p.ClassName) + p.Size; sv[p.ClassName] = sv.GetValueOrDefault(p.ClassName) + p.Savings; ea[p.ClassName] = ea.GetValueOrDefault(p.ClassName) + p.LastEarnedPerMonth;
                     popTotal += p.Size; savTotal += p.Savings;
                 }
             }
-            { var r0 = w.Regions[0]; if (r0.InvestorPopIndex >= 0) { var ip = r0.Pops[r0.InvestorPopIndex]; Console.WriteLine($"   [{name} 州0 {r0.Name}] 投資家POP {ip.ClassName} Size {ip.Size:F1} Savings {ip.Savings:F0} 前期所得(月) {ip.LastEarned:F1} 貯蓄÷月所得 {ip.Savings / Math.Max(1e-9, ip.LastEarned):F1} 貯蓄÷年所得 {ip.Savings / Math.Max(1e-9, ip.LastEarned * 12):F1}"); } }
-            double invSav = CapitalMarket.InvestorSavings(w); double invEarnAll = 0; foreach (var r in w.Regions) foreach (var p in r.Pops) if (CapitalMarket.IsInvestor(p, w.Coef)) invEarnAll += p.LastEarned; double invEarn = 0; foreach (var r in w.Regions) foreach (var p in r.Pops) if (CapitalMarket.IsInvestor(p, w.Coef)) invEarn += p.LastEarned;
+            { var r0 = w.Regions[0]; if (r0.InvestorPopIndex >= 0) { var ip = r0.Pops[r0.InvestorPopIndex]; Console.WriteLine($"   [{name} 州0 {r0.Name}] 投資家POP {ip.ClassName} Size {ip.Size:F1} Savings {ip.Savings:F0} 前期所得(月) {ip.LastEarnedPerMonth:F1} 貯蓄÷月所得 {ip.Savings / Math.Max(1e-9, ip.LastEarnedPerMonth):F1} 貯蓄÷年所得 {ip.Savings / Math.Max(1e-9, ip.LastEarnedPerMonth * 12):F1}"); } }
+            double invSav = CapitalMarket.InvestorSavings(w); double invEarnAll = 0; foreach (var r in w.Regions) foreach (var p in r.Pops) if (CapitalMarket.IsInvestor(p, w.Coef)) invEarnAll += p.LastEarnedPerMonth; double invEarn = 0; foreach (var r in w.Regions) foreach (var p in r.Pops) if (CapitalMarket.IsInvestor(p, w.Coef)) invEarn += p.LastEarnedPerMonth;
             if (isNames[0] == "ALL" && stage.StartsWith("助走の終わり"))
             {
-                double gdpY = Calendar.PerMonthToPerYear(w.NominalGdp);
+                double gdpY = Calendar.PerMonthToPerYear(w.NominalGdpPerMonth);
                 Console.WriteLine($"SUM	{name}	人口千 {popTotal:F0}	年GDP {gdpY:F0}	GDP/人 {(popTotal > 0 ? gdpY / popTotal : 0):F2}	全貯蓄/年GDP {(gdpY > 0 ? savTotal / gdpY : 0):F2}	投資家貯蓄/年GDP {(gdpY > 0 ? CapitalMarket.InvestorSavings(w) / gdpY : 0):F2}	投資家貯蓄/投資家年所得 {(invEarnAll > 0 ? CapitalMarket.InvestorSavings(w) / (invEarnAll * 12) : 0):F1}	投資家年所得/年GDP {(gdpY > 0 ? invEarnAll * 12 / gdpY : 0):F2}	国債/年GDP {(gdpY > 0 ? w.GovDebt / gdpY : 0):F2}	国庫/年GDP {(gdpY > 0 ? w.Treasury / gdpY : 0):F3}");
             }
-            Console.WriteLine($"{name}	人口(千) {popTotal:F0}	名目GDP(年) {w.NominalGdp * 4:F0}	国庫 {w.Treasury:F0}	国債 {w.GovDebt:F0}	全貯蓄 {savTotal:F0}	投資家貯蓄(述語) {invSav:F0}	物価水準 {w.PriceLevel:F3}	Fx {w.FxRate:F3}	基礎貨幣 {w.BaseMoney:F0}	広義 {w.BroadMoney:F0}	与信残高 {w.OutstandingLoans:F0}	収益の月次(投資家) {invEarn:F0}");
+            Console.WriteLine($"{name}	人口(千) {popTotal:F0}	名目GDP(年) {w.NominalGdpPerMonth * 4:F0}	国庫 {w.Treasury:F0}	国債 {w.GovDebt:F0}	全貯蓄 {savTotal:F0}	投資家貯蓄(述語) {invSav:F0}	物価水準 {w.PriceLevel:F3}	Fx {w.FxRate:F3}	基礎貨幣 {w.BaseMoney:F0}	広義 {w.BroadMoney:F0}	与信残高 {w.OutstandingLoans:F0}	収益の月次(投資家) {invEarn:F0}");
             foreach (var kv in sv.OrderByDescending(x => x.Value))
                 Console.WriteLine($"   {kv.Key,-8}	Size {sz[kv.Key]:F1}	Savings {kv.Value:F0}	(1人あたり {(sz[kv.Key] > 1e-9 ? kv.Value / sz[kv.Key] : 0):F1})	前期所得 {ea[kv.Key]:F1}");
         }
@@ -6165,7 +6165,7 @@ if (args.Length > 0 && args[0] == "earlyprobe220")
                 }
                 foreach (var p in r.Pops) sav += p.Savings;
             }
-            double gdpY = Math.Max(1e-9, Calendar.PerMonthToPerYear(epw.NominalGdp));
+            double gdpY = Math.Max(1e-9, Calendar.PerMonthToPerYear(epw.NominalGdpPerMonth));
             Console.WriteLine($"E	{name}	{tag}	yr{epw.Year}	ldem={ldem:F0}	lcap={lcap:F0}	ratio={(lcap > 1e-9 ? ldem / lcap : 0):F2}	lpx={(lpxD > 0 ? lpxN / lpxD : 0):F3}	K={K:F0}	inv/gdp={CapitalMarket.InvestorSavings(epw) / gdpY:F3}	sav/gdp={sav / gdpY:F3}	gdpY={gdpY:F0}	国庫/gdp={epw.Treasury / gdpY:F3}	国債/gdp={epw.GovDebt / gdpY:F3}	P={epw.PriceLevel:F3}	Fx={epw.FxRate:F3}	基礎貨幣={epw.BaseMoney:F0}");
         }
     }
@@ -6351,11 +6351,11 @@ if (args.Length > 0 && args[0] == "wages")
         wsim.StepQuarter();
         if (q % 20 != 19) continue;
         var wk = wr.Pops[2];   // 工場労働者
-        string row = $"Q{q + 1,3} 労働者所得/人 {(wk.Size > 1 ? wk.Earned / wk.Size : 0),7:F3}";
+        string row = $"Q{q + 1,3} 労働者所得/人 {(wk.Size > 1 ? wk.EarnedPerMonth / wk.Size : 0),7:F3}";
         foreach (int idx in (int[])[4, 7, 8, 9])   // 技師・教師・官僚・医者
         {
             var t = wr.Pops[idx];
-            row += $"　{t.ClassName}: 規模{t.Size,6:F0} 所得/人{(t.Size > 0.01 ? t.Earned / t.Size : 0),7:F3} 貯蓄/人{(t.Size > 0.01 ? t.Savings / t.Size : 0),8:F1}";
+            row += $"　{t.ClassName}: 規模{t.Size,6:F0} 所得/人{(t.Size > 0.01 ? t.EarnedPerMonth / t.Size : 0),7:F3} 貯蓄/人{(t.Size > 0.01 ? t.Savings / t.Size : 0),8:F1}";
         }
         Console.WriteLine(row);
     }
@@ -6387,8 +6387,8 @@ if (args.Length > 0 && args[0] == "jobs")
         {
             var p = r.Pops[i];
             if (p.Size < 0.5) { Console.WriteLine($"  {p.ClassName,-8} 規模ほぼ0（不在）"); continue; }
-            double incPer = p.Earned / p.Size;
-            double rentPer = p.LandRent / p.Size;
+            double incPer = p.EarnedPerMonth / p.Size;
+            double rentPer = p.LandRentPerMonth / p.Size;
             double savPer = p.Savings / p.Size;
             var staffs = r.Producers.Where(x => x.LaborPopIndex == i && x.Output > 0.5).Select(x => Catalog.Goods[x.GoodId].Name).Distinct().ToList();
             bool owns = r.Producers.Any(x => x.OwnerPopIndex == i && x.Output > 0.5);
@@ -6539,10 +6539,10 @@ if (args.Length > 0 && args[0] == "diplo")
     Console.WriteLine($"凶作ログ {dm.Diplomacy.Log.Count(l => l.Contains("凶作"))}件・鉱山枯渇ログ {dm.Diplomacy.Log.Count(l => l.Contains("鉱山"))}件・疫病ログ {dm.Diplomacy.Log.Count(l => l.Contains("疫病"))}件・独立ログ {dm.Diplomacy.Log.Count(l => l.Contains("独立"))}件。例:");
     foreach (var l in dm.Diplomacy.Log.Where(l => l.Contains("凶作") || l.Contains("鉱山")).Take(4)) Console.WriteLine($"  {l}");
     Console.WriteLine("国        GDP        軍   平均緊張 最大緊張 交戦Q数/400");
-    foreach (var nat in dm.Nations.OrderByDescending(x => x.World.Gdp))
+    foreach (var nat in dm.Nations.OrderByDescending(x => x.World.GdpPerMonth))
     {
         int i = dm.Nations.IndexOf(nat); var w = nat.World;
-        Console.WriteLine($"  {w.SelfPower?.Name,-8} {w.Gdp,10:F0} {w.SelfPower?.Military,5:F1}   {sumTen[i] / 400,5:F0}   {maxTen[i],5:F0}    {warQ[i],4}");
+        Console.WriteLine($"  {w.SelfPower?.Name,-8} {w.GdpPerMonth,10:F0} {w.SelfPower?.Military,5:F1}   {sumTen[i] / 400,5:F0}   {maxTen[i],5:F0}    {warQ[i],4}");
     }
     return;
 }
@@ -6612,8 +6612,8 @@ if (args.Length > 0 && args[0] == "milfund")
         var w = n.World; var r = w.Region; var coef = w.Coef;
         double estCost = EconomyStep.MilitaryProcurementNeed(r, coef);   // 装備の必要額＝エンジンの1本（全4段・発見込み）。旧＝MilitaryUpkeepScale×MilitaryScale の二重掛け（MilitaryScale は Simulation で既に UpkeepScale 込み）・2026-09-11 #1
         double afford = Math.Min(1.0, r.MilitaryAffordRaw);               // エンジンが書いた支払能力（上限÷必要額）を1で切る＝EconomyStep と同じ読み方
-        double dGdp = w.NominalGdp > 1e-9 ? w.GovDebt / w.NominalGdp : 0;
-        Console.WriteLine($"  {w.SelfPower?.Name,-8} {w.LastRevenue,7:F0} {w.LastAdminClaim,7:F0} {w.LastInterest,7:F0} ｜ {w.GovDebt,9:F0} {dGdp,6:F2} {w.GovBondRate,5:F2} ｜ {w.FiscalCapacity,6:F0} {r.MilitaryBudget,6:F0} {estCost,7:F0} {afford,6:F2} {r.MilitaryEquipFill,6:F2} ｜ {w.SoldierSize(),5:F0} {w.MilitarySpending,5:F2}");
+        double dGdp = w.NominalGdpPerMonth > 1e-9 ? w.GovDebt / w.NominalGdpPerMonth : 0;
+        Console.WriteLine($"  {w.SelfPower?.Name,-8} {w.LastRevenuePerMonth,7:F0} {w.LastAdminClaimPerMonth,7:F0} {w.LastInterestPerMonth,7:F0} ｜ {w.GovDebt,9:F0} {dGdp,6:F2} {w.GovBondRatePerYear,5:F2} ｜ {w.FiscalCapacityPerMonth,6:F0} {r.MilitaryBudget,6:F0} {estCost,7:F0} {afford,6:F2} {r.MilitaryEquipFill,6:F2} ｜ {w.SoldierSizeK(),5:F0} {w.MilitarySpending,5:F2}");
     }
     return;
 }
@@ -6626,7 +6626,7 @@ if (args.Length > 0 && args[0] == "frdbg")
     foreach (var ns in fsim.Nations) ns.TelemetryEnabled = false;
     fsim.Diplomacy.Log.Enabled = false;
     var fw = fsim.Nations.First(n => n.World.SelfPower?.BaseName == "フランス").World;
-    { double nr = 0, rs = 0; int rgos = 0; foreach (var r in fw.Regions) { if (r.State != RegionState.Active) continue; foreach (var pp in r.Pops) if (pp.Closed) nr += pp.LandRent; foreach (var pr in r.Producers) if (pr.IsRgo) { rgos++; rs += pr.RentShare; } }
+    { double nr = 0, rs = 0; int rgos = 0; foreach (var r in fw.Regions) { if (r.State != RegionState.Active) continue; foreach (var pp in r.Pops) if (pp.Closed) nr += pp.LandRentPerMonth; foreach (var pr in r.Producers) if (pr.IsRgo) { rgos++; rs += pr.RentShare; } }
       Console.WriteLine($"Q0前: 貴族LandRent={nr:N0} RGO数={rgos} RentShare計={rs:F2}"); }
     for (int q = 0; q < 8; q++)
     {
@@ -6787,7 +6787,7 @@ if (args.Length > 0 && args[0] == "natprobe")
             foreach (var pr in r.Producers)
                 if (!pr.Bankrupt && pr.SmoothedMargin < 0) { lossN++; lossVal += -pr.SmoothedMargin * pr.Output * Math.Max(0, r.Markets.Length > pr.GoodId && pr.GoodId >= 0 ? r.Markets[pr.GoodId].Price : 0); if (pr.BuiltScale > 1e-9) lossers++; }
         }
-        Console.WriteLine($"{w.Year}	{w.MeanIndustrialization:F2}	{w.Gdp:N0}	{w.Treasury:N0}	{w.SoldierSize():F0}(即{w.MilitaryReadiness:F2}/費{w.MilitarySpending:P0})	{wars}	{NationalScore.MeanSatisfaction(w):F2}	{Politics.AvgMassMilitancy(w):F2}	{w.Polity}	{w.Legitimacy:F2}	{invSav:N0}	プール{mpPool:F0}/目標兵{mpDesired:F0}	赤字{lossN}件(Built{lossers:F0})	損失流量{lossVal:N0}	累積負債{w.LossFinanced:N0}");
+        Console.WriteLine($"{w.Year}	{w.MeanIndustrialization:F2}	{w.GdpPerMonth:N0}	{w.Treasury:N0}	{w.SoldierSizeK():F0}(即{w.MilitaryReadiness:F2}/費{w.MilitarySpending:P0})	{wars}	{NationalScore.MeanSatisfaction(w):F2}	{Politics.AvgMassMilitancy(w):F2}	{w.Polity}	{w.Legitimacy:F2}	{invSav:N0}	プール{mpPool:F0}/目標兵{mpDesired:F0}	赤字{lossN}件(Built{lossers:F0})	損失流量{lossVal:N0}	累積負債{w.LossFinanced:N0}");
     }
     return;
 }
@@ -6811,7 +6811,7 @@ if (args.Length > 0 && args[0] == "milprobe")
         var ns = mprsim.Nations.FirstOrDefault(n => n.World.SelfPower?.BaseName == mprName);
         if (ns is null) continue;
         var w = ns.World;
-        Console.WriteLine($"── {w.Year} 軍事費{w.MilitarySpending:P0} 総兵{w.SoldierSize():F1} 即応{w.MilitaryReadiness:F2}");
+        Console.WriteLine($"── {w.Year} 軍事費{w.MilitarySpending:P0} 総兵{w.SoldierSizeK():F1} 即応{w.MilitaryReadiness:F2}");
         double mprTarget = Military.EstablishmentOf(w, w.Coef, out double mprNat);   // ★(155) 定員の州按分（エンジンと同じ1本）
         foreach (var r in w.Regions)
         {
@@ -6884,11 +6884,11 @@ if (args.Length > 0 && args[0] == "powertrace")
                 if (r.State != RegionState.Active) continue;
                 foreach (var pp in r.Pops)
                 {
-                    pop += pp.Size; if (pp.IsModernElite) { invSav += Math.Max(0, pp.Savings); invSize += pp.Size; invEarn += Math.Max(0, pp.Earned); }
-                    if (r.InvestorPopIndex >= 0 && pp == r.Pops[r.InvestorPopIndex]) { capEarn += Math.Max(0, pp.Earned); indRent += Math.Max(0, pp.IndustrialRent); }
+                    pop += pp.Size; if (pp.IsModernElite) { invSav += Math.Max(0, pp.Savings); invSize += pp.Size; invEarn += Math.Max(0, pp.EarnedPerMonth); }
+                    if (r.InvestorPopIndex >= 0 && pp == r.Pops[r.InvestorPopIndex]) { capEarn += Math.Max(0, pp.EarnedPerMonth); indRent += Math.Max(0, pp.IndustrialRentPerMonth); }
                 }
             }
-            Console.WriteLine($"{y}	{nm}	{w.Gdp:N0}	{w.MeanIndustrialization:F2}	{w.Treasury:N0}	{invSav:N0}	{invEarn:N0}	{capEarn:N0}	{indRent:N0}	{w.ModernizationFrac:P0}	{w.LastRevenue:N0}	{w.TechLevel:F2}");
+            Console.WriteLine($"{y}	{nm}	{w.GdpPerMonth:N0}	{w.MeanIndustrialization:F2}	{w.Treasury:N0}	{invSav:N0}	{invEarn:N0}	{capEarn:N0}	{indRent:N0}	{w.ModernizationFrac:P0}	{w.LastRevenuePerMonth:N0}	{w.TechLevel:F2}");
         }
         Console.WriteLine();
         mi++;
@@ -6921,8 +6921,8 @@ if (args.Length > 0 && args[0] == "fisprobe")
             var w = ns.World;
             double line = UtilityAgent.FiscalBufferOf(w) * 8.0;
             double mul = w.Treasury > line && line > 1e-9 ? Math.Max(0.25, line / w.Treasury) : 1.0;
-            double extract = w.Gdp > 1e-9 ? w.LastRevenue / w.Gdp : 0;
-            Console.WriteLine($"{nm}	{w.LastRevenue:N0}	{extract:P1}	{w.Treasury:N0}	{line:N0}	×{mul:F2}	{w.AdminPowerSmoothed:F2}	{w.PollTax:F2}/{w.LandTax:F2}/{w.StateMonopolyBreadth * w.Coef.StateMonopolyMargin:F2}/{w.Tariff:F2}/{w.TaxRate:F2}	{Math.Max(0, w.LastTariffRevenue):N0}");
+            double extract = w.GdpPerMonth > 1e-9 ? w.LastRevenuePerMonth / w.GdpPerMonth : 0;
+            Console.WriteLine($"{nm}	{w.LastRevenuePerMonth:N0}	{extract:P1}	{w.Treasury:N0}	{line:N0}	×{mul:F2}	{w.AdminPowerSmoothed:F2}	{w.PollTax:F2}/{w.LandTax:F2}/{w.StateMonopolyBreadth * w.Coef.StateMonopolyMargin:F2}/{w.Tariff:F2}/{w.TaxRate:F2}	{Math.Max(0, w.LastTariffRevenuePerClearing):N0}");
         }
         Console.WriteLine();
         fpMi++;
@@ -6960,7 +6960,7 @@ if (args.Length > 0 && args[0] == "armyneed")
             // ★(155) 定員（制度が開く席の数＝払える予算÷1人あたりの費用と徴兵法の割当ての小さい方）＝純関数で検分できる（旧＝扶養限界×軍拡の倍率は削除）
             double target = Military.EstablishmentOf(w, w.Coef, out _);
             needSnapshot[nm] = target;   // 順位相関は定員で取る（旧＝NeedMen）
-            Console.WriteLine($"{nm}	{sp.NeedMen:F0}	{w.SoldierSize():F0}	{w.MilitarySpending:P0}	{home.MilitaryAffordRaw:F2}	{target:F0}");
+            Console.WriteLine($"{nm}	{sp.NeedMen:F0}	{w.SoldierSizeK():F0}	{w.MilitarySpending:P0}	{home.MilitaryAffordRaw:F2}	{target:F0}");
         }
         if (ansim.Year >= 1913)
         {
@@ -7033,7 +7033,7 @@ if (args.Length > 0 && args[0] == "milstart")
             if (landMul < 0.05) nLand05++;
             if (w.NavalSpendShare > 0.9) nShape9++;
             if (r.NavalBudget <= 0) nShapeNone++;
-            Console.WriteLine($"{sp.Name},{w.SoldierSize():F0},{r.MilitaryScale:F1},{(r.NationHasPort ? 1 : 0)},{w.NavalSpendShare:F3},{sp.NeedLand:F2},{sp.NeedInternal:F2},{sp.NeedSea:F3},{Politics.AvgMassMilitancy(w):F3},{w.Legitimacy:F3}," +
+            Console.WriteLine($"{sp.Name},{w.SoldierSizeK():F0},{r.MilitaryScale:F1},{(r.NationHasPort ? 1 : 0)},{w.NavalSpendShare:F3},{sp.NeedLand:F2},{sp.NeedInternal:F2},{sp.NeedSea:F3},{Politics.AvgMassMilitancy(w):F3},{w.Legitimacy:F3}," +
                 $"{flatShare:F3},{navalMul:F2},{landMul:F2},{afford:F2}," +
                 $"{Fill(gRifle):P0},{Fill(gArty):P0},{Fill(gAmmo):P0},{Fill(gShip):P0},{Fill(gSteam):P0}," +
                 $"{Ration(gRifle):F2},{Ration(gShip):F2},{ProdN(gRifle):F1},{ProdN(gShip):F1},{NeedOf(gShip):F2},{(shipRef > 1e-9 ? Price(gShip) / shipRef : 0):F2}");
@@ -7111,7 +7111,7 @@ if (args.Length > 0 && args[0] == "spoilprobe")
 }
 
 // === 所得と需要の翻訳の計器： dotnet run -- incomeprobe [シード] ===
-// 設計3段0（所得翻訳ゲート・2026-08-08）：r=(LastEarned/Size)÷basketRef（月収が基礎バスケット何個分か）を
+// 設計3段0（所得翻訳ゲート・2026-08-08）：r=(LastEarnedPerMonth/Size)÷basketRef（月収が基礎バスケット何個分か）を
 // 国別・階級別に出す。r(英労働者)/r(清農民) の勾配が細ければ翻訳器に入力が無い（→段5の賃金勾配を先に）。
 // GDP順位表（1800/1850/1913）と 資本家所得/人・貯蓄/月収比も併記＝(4)ビルマ>英 と (6)英14位 の直接の物差し。
 if (args.Length > 0 && args[0] == "incomeprobe")
@@ -7130,9 +7130,9 @@ if (args.Length > 0 && args[0] == "incomeprobe")
         if (ipsim.Year < ipMarks[ipMi]) continue;
         Console.WriteLine($"━━ {ipsim.Year} GDP順位（上位15）━━");
         var ranked = ipsim.Nations.Where(n => n.World.SelfPower is not null)
-            .OrderByDescending(n => n.World.Gdp).ToList();
+            .OrderByDescending(n => n.World.GdpPerMonth).ToList();
         for (int i = 0; i < Math.Min(15, ranked.Count); i++)
-            Console.WriteLine($"  {i + 1,2}位 {ranked[i].World.SelfPower!.BaseName}	GDP {ranked[i].World.Gdp:N0}");
+            Console.WriteLine($"  {i + 1,2}位 {ranked[i].World.SelfPower!.BaseName}	GDP {ranked[i].World.GdpPerMonth:N0}");
         Console.WriteLine("国	階級	r(月収/バスケット)	貯蓄/月収	所得/人	規模");
         foreach (var nm in ipWatch)
         {
@@ -7153,7 +7153,7 @@ if (args.Length > 0 && args[0] == "incomeprobe")
                     var pp = r.Pops[pi];
                     int slot = pp.ClassId == 1 ? 0 : pp.ClassId == 2 ? 1 : (r.InvestorPopIndex == pi ? 2 : -1);
                     if (slot < 0) continue;
-                    earn[slot] += Math.Max(0, pp.LastEarned); size[slot] += pp.Size; sav[slot] += Math.Max(0, pp.Savings);
+                    earn[slot] += Math.Max(0, pp.LastEarnedPerMonth); size[slot] += pp.Size; sav[slot] += Math.Max(0, pp.Savings);
                 }
             }
             string[] names = ["農民", "労働者", "資本家"];
@@ -7578,32 +7578,32 @@ if (args.Length > 0 && args[0] == "lawaudit2")
                             w => { w.CornLaws = ReformLevel.Full; w.Policy.CornLaws = ReformLevel.Full; }, La2Staple);
     L2("穀物法", "麦価", w => { w.CornLaws = ReformLevel.None; w.Policy.CornLaws = ReformLevel.None; },
                            w => { w.CornLaws = ReformLevel.Full; w.Policy.CornLaws = ReformLevel.Full; }, La2Grain);
-    L2("関税", "歳入", w => w.Policy.TariffTarget = 0.0, w => w.Policy.TariffTarget = 0.5, w => w.LastRevenue);
+    L2("関税", "歳入", w => w.Policy.TariffTarget = 0.0, w => w.Policy.TariffTarget = 0.5, w => w.LastRevenuePerMonth);
     L2("関税", "パン価", w => w.Policy.TariffTarget = 0.0, w => w.Policy.TariffTarget = 0.5, La2Staple);
     L2("参政権", "有権者比", w => { w.Suffrage = Suffrage.None; w.Policy.Suffrage = Suffrage.None; },
                               w => { w.Suffrage = Suffrage.AdultMale; w.Policy.Suffrage = Suffrage.AdultMale; }, La2Voters);
     L2("労働時間", "GDP", w => { w.WorkHours = WorkHours.Eight; w.Policy.WorkHours = WorkHours.Eight; },
-                            w => { w.WorkHours = WorkHours.Unlimited; w.Policy.WorkHours = WorkHours.Unlimited; }, w => w.Gdp);
+                            w => { w.WorkHours = WorkHours.Unlimited; w.Policy.WorkHours = WorkHours.Unlimited; }, w => w.GdpPerMonth);
     L2("労働時間", "満足", w => { w.WorkHours = WorkHours.Eight; w.Policy.WorkHours = WorkHours.Eight; },
                              w => { w.WorkHours = WorkHours.Unlimited; w.Policy.WorkHours = WorkHours.Unlimited; }, w => NationalScore.MeanSatisfaction(w));
     L2("土地改革", "GDP", w => { w.LandReform = ReformLevel.None; w.Policy.LandReform = ReformLevel.None; },
-                            w => { w.LandReform = ReformLevel.Full; w.Policy.LandReform = ReformLevel.Full; }, w => w.Gdp);
+                            w => { w.LandReform = ReformLevel.Full; w.Policy.LandReform = ReformLevel.Full; }, w => w.GdpPerMonth);
     L2("社会保障", "満足", w => { w.SocialSecurity = 0; w.Policy.SocialSecurityTarget = 0; },
                              w => { w.SocialSecurity = 0.8; w.Policy.SocialSecurityTarget = 0.8; }, w => NationalScore.MeanSatisfaction(w));
-    L2("児童労働", "GDP", w => w.Policy.ChildLaborAllowed = false, w => w.Policy.ChildLaborAllowed = true, w => w.Gdp);
+    L2("児童労働", "GDP", w => w.Policy.ChildLaborAllowed = false, w => w.Policy.ChildLaborAllowed = true, w => w.GdpPerMonth);
     L2("検閲", "識字", w => { w.Censorship = CensorshipLaw.FreePress; w.Policy.Censorship = CensorshipLaw.FreePress; },
                          w => { w.Censorship = CensorshipLaw.StatePressOnly; w.Policy.Censorship = CensorshipLaw.StatePressOnly; }, w => PoliticalQuantities.AvgLiteracy(w));   // 識字＝正典の1本（旧 La2Lit は分離州も数えていた・2026-09-11 M8）
     // ★2026-08-18（親軍法の撤去）：旧「軍国主義」の行を徴兵法へ差し替え。軍国度は法でなく導出量（軍事費×徴兵法）なので、
     //   法として測れるのは徴兵法だけ＝志願制↔皆兵の兵数への効きを測る。
     L2("徴兵法", "兵数", w => { w.ConscriptionLaw = ConscriptionLaw.Volunteer; w.Policy.ConscriptionLaw = ConscriptionLaw.Volunteer; },
-                          w => { w.ConscriptionLaw = ConscriptionLaw.Universal; w.Policy.ConscriptionLaw = ConscriptionLaw.Universal; }, w => w.SoldierSize());
+                          w => { w.ConscriptionLaw = ConscriptionLaw.Universal; w.Policy.ConscriptionLaw = ConscriptionLaw.Universal; }, w => w.SoldierSizeK());
 
     // ★政体そのものの効き（2026-08-04・作者指摘「政治がゲームに与える影響が小さすぎる」）。
     //   法は効くと実測できたので、次に問うべきは「**誰が統治するか**が国に何をもたらすか」。
     //   国力スコアは 軍事+豊かさ+金融+技術 で政治の項が1つも無い＝政治は経済を経由してしか効かない設計。
     //   その経路が実際どれだけ太いのかを、政体を固定したA/Bで測る。
-    L2("政体", "GDP", w => { w.Polity = Polity.Absolutist; }, w => { w.Polity = Polity.Republic; }, w => w.Gdp);
-    L2("政体", "歳入", w => { w.Polity = Polity.Absolutist; }, w => { w.Polity = Polity.Republic; }, w => w.LastRevenue);
+    L2("政体", "GDP", w => { w.Polity = Polity.Absolutist; }, w => { w.Polity = Polity.Republic; }, w => w.GdpPerMonth);
+    L2("政体", "歳入", w => { w.Polity = Polity.Absolutist; }, w => { w.Polity = Polity.Republic; }, w => w.LastRevenuePerMonth);
     L2("政体", "満足", w => { w.Polity = Polity.Absolutist; }, w => { w.Polity = Polity.Republic; }, w => NationalScore.MeanSatisfaction(w));
     L2("政体", "技術", w => { w.Polity = Polity.Absolutist; }, w => { w.Polity = Polity.Republic; }, w => w.TechLevel);
     L2("政体", "国力", w => { w.Polity = Polity.Absolutist; }, w => { w.Polity = Polity.Republic; }, NationalScore.Of);
@@ -7611,12 +7611,12 @@ if (args.Length > 0 && args[0] == "lawaudit2")
     L2("参政権拡大", "正統性", w => { w.Suffrage = Suffrage.None; w.Policy.Suffrage = Suffrage.None; },
                                 w => { w.Suffrage = Suffrage.AdultMale; w.Policy.Suffrage = Suffrage.AdultMale; }, w => w.Legitimacy);
     L2("参政権拡大", "歳入", w => { w.Suffrage = Suffrage.None; w.Policy.Suffrage = Suffrage.None; },
-                               w => { w.Suffrage = Suffrage.AdultMale; w.Policy.Suffrage = Suffrage.AdultMale; }, w => w.LastRevenue);
+                               w => { w.Suffrage = Suffrage.AdultMale; w.Policy.Suffrage = Suffrage.AdultMale; }, w => w.LastRevenuePerMonth);
     L2("参政権拡大", "国力", w => { w.Suffrage = Suffrage.None; w.Policy.Suffrage = Suffrage.None; },
                                w => { w.Suffrage = Suffrage.AdultMale; w.Policy.Suffrage = Suffrage.AdultMale; }, NationalScore.Of);
     L2("政体", "正統性", w => { w.Polity = Polity.Absolutist; }, w => { w.Polity = Polity.Republic; }, w => w.Legitimacy);
 
-    L2("正統性", "歳入", w => { w.Legitimacy = 0.2; }, w => { w.Legitimacy = 1.0; }, w => w.LastRevenue);
+    L2("正統性", "歳入", w => { w.Legitimacy = 0.2; }, w => { w.Legitimacy = 1.0; }, w => w.LastRevenuePerMonth);
     L2("正統性", "国力", w => { w.Legitimacy = 0.2; }, w => { w.Legitimacy = 1.0; }, NationalScore.Of);
 
     Console.WriteLine($"=== 多国での法の機能検査（A/B対照・英・{la2Q}四半期・{WorldData.Nations().Length}カ国/貿易あり）===");
@@ -7655,30 +7655,30 @@ if (args.Length > 0 && args[0] == "lawaudit")
     void P(string name, string metric, Action<PriceOfBread.SimCore.World> lo, Action<PriceOfBread.SimCore.World> hi, Func<PriceOfBread.SimCore.World, double> m)
         => rows.Add((name, metric, m(RunCfg(lo)), m(RunCfg(hi))));
 
-    P("所得税", "歳入", w => w.Policy.IncomeTaxTarget = 0, w => w.Policy.IncomeTaxTarget = 0.6, w => w.LastRevenue);
-    P("人頭税", "歳入", w => w.Policy.PollTaxTarget = 0, w => w.Policy.PollTaxTarget = 0.8, w => w.LastRevenue);
-    P("専売", "歳入", w => w.SetStateMonopolyTier(0), w => w.SetStateMonopolyTier(PriceOfBread.SimCore.World.StateMonopolyMaxTier), w => w.LastRevenue);   // ★2026-09-20：腕は率でなく対象の広さ（無課税↔全消費財）
-    P("土地税", "歳入", w => w.Policy.LandTaxTarget = 0, w => w.Policy.LandTaxTarget = 0.8, w => w.LastRevenue);
+    P("所得税", "歳入", w => w.Policy.IncomeTaxTarget = 0, w => w.Policy.IncomeTaxTarget = 0.6, w => w.LastRevenuePerMonth);
+    P("人頭税", "歳入", w => w.Policy.PollTaxTarget = 0, w => w.Policy.PollTaxTarget = 0.8, w => w.LastRevenuePerMonth);
+    P("専売", "歳入", w => w.SetStateMonopolyTier(0), w => w.SetStateMonopolyTier(PriceOfBread.SimCore.World.StateMonopolyMaxTier), w => w.LastRevenuePerMonth);   // ★2026-09-20：腕は率でなく対象の広さ（無課税↔全消費財）
+    P("土地税", "歳入", w => w.Policy.LandTaxTarget = 0, w => w.Policy.LandTaxTarget = 0.8, w => w.LastRevenuePerMonth);
     P("社会保障", "満足", w => { w.SocialSecurity = 0; w.Policy.SocialSecurityTarget = 0; }, w => { w.SocialSecurity = 0.8; w.Policy.SocialSecurityTarget = 0.8; }, w => NationalScore.MeanSatisfaction(w));
     P("教育費", "識字", w => { w.EducationLaw = EducationLaw.Compulsory; w.Policy.EducationLaw = EducationLaw.Compulsory; w.Policy.EducationSpendingTarget = 0; }, w => { w.EducationLaw = EducationLaw.Compulsory; w.Policy.EducationLaw = EducationLaw.Compulsory; w.Policy.EducationSpendingTarget = 1.0; }, w => PoliticalQuantities.AvgLiteracy(w));
-    P("武力(軍事費)", "兵数", w => w.Policy.MilitarySpendingTarget = 0.1, w => w.Policy.MilitarySpendingTarget = 0.9, w => w.SoldierSize());
+    P("武力(軍事費)", "兵数", w => w.Policy.MilitarySpendingTarget = 0.1, w => w.Policy.MilitarySpendingTarget = 0.9, w => w.SoldierSizeK());
     P("武力→治安維持力", "治安維持力", w => w.Policy.MilitarySpendingTarget = 0.1, w => w.Policy.MilitarySpendingTarget = 0.9, w => w.BaseCoercion);
-    P("関税", "歳入", w => w.Policy.TariffTarget = 0, w => w.Policy.TariffTarget = 0.8, w => w.LastRevenue);
-    P("金利", "GDP", w => w.Policy.InterestRateTarget = 0.45, w => w.Policy.InterestRateTarget = 0.05, w => w.Gdp);
+    P("関税", "歳入", w => w.Policy.TariffTarget = 0, w => w.Policy.TariffTarget = 0.8, w => w.LastRevenuePerMonth);
+    P("金利", "GDP", w => w.Policy.InterestRateTarget = 0.45, w => w.Policy.InterestRateTarget = 0.05, w => w.GdpPerMonth);
     P("行政費", "行政効率", w => w.Policy.AdminSpendingTarget = 0.1, w => w.Policy.AdminSpendingTarget = 0.9, w => w.AdminEfficiency);
     P("教育法", "識字", w => { w.EducationLaw = EducationLaw.Religious; w.Policy.EducationLaw = EducationLaw.Religious; }, w => { w.EducationLaw = EducationLaw.Public; w.Policy.EducationLaw = EducationLaw.Public; }, w => PoliticalQuantities.AvgLiteracy(w));
     // ★女性の権利（統合法・2026-08-10）：経済への効き（労働参加0.4→0.7）は**財産権の段**が担う＝旧プローブと同じ量を測り続ける
-    P("女性の権利（財産権）", "GDP", w => { w.WomenRights = WomenRightsLaw.None; w.Policy.WomenRights = WomenRightsLaw.None; }, w => { w.WomenRights = WomenRightsLaw.Property; w.Policy.WomenRights = WomenRightsLaw.Property; }, w => w.Gdp);
+    P("女性の権利（財産権）", "GDP", w => { w.WomenRights = WomenRightsLaw.None; w.Policy.WomenRights = WomenRightsLaw.None; }, w => { w.WomenRights = WomenRightsLaw.Property; w.Policy.WomenRights = WomenRightsLaw.Property; }, w => w.GdpPerMonth);
     // 軍国は軍事力（戦力評価＝Diplomacy.Step の同期）に出る。単一国検査は player の軍事力を同期しないため測れない＝多国 selfplay で検証（均衡保持を確認済み）。
     // ★2026-08-18（親軍法の撤去）：軍国度は導出量＝法として押せるのは徴兵法だけ。旧「軍国」行はこれに置き換える。
-    P("徴兵法", "兵数", w => { w.ConscriptionLaw = ConscriptionLaw.Volunteer; w.Policy.ConscriptionLaw = ConscriptionLaw.Volunteer; }, w => { w.ConscriptionLaw = ConscriptionLaw.Universal; w.Policy.ConscriptionLaw = ConscriptionLaw.Universal; }, w => w.SoldierSize());
+    P("徴兵法", "兵数", w => { w.ConscriptionLaw = ConscriptionLaw.Volunteer; w.Policy.ConscriptionLaw = ConscriptionLaw.Volunteer; }, w => { w.ConscriptionLaw = ConscriptionLaw.Universal; w.Policy.ConscriptionLaw = ConscriptionLaw.Universal; }, w => w.SoldierSizeK());
     P("検閲", "技術", w => { w.Censorship = CensorshipLaw.FreePress; w.Policy.Censorship = CensorshipLaw.FreePress; }, w => { w.Censorship = CensorshipLaw.StatePressOnly; w.Policy.Censorship = CensorshipLaw.StatePressOnly; }, w => w.TechLevel);
     P("労働組合", "満足", w => { w.LaborUnion = LaborUnionLaw.Illegal; w.Policy.LaborUnion = LaborUnionLaw.Illegal; }, w => { w.LaborUnion = LaborUnionLaw.Tolerated; w.Policy.LaborUnion = LaborUnionLaw.Tolerated; }, w => NationalScore.MeanSatisfaction(w));
     P("穀物法", "麦価", w => { w.CornLaws = ReformLevel.None; w.Policy.CornLaws = ReformLevel.None; }, w => { w.CornLaws = ReformLevel.Full; w.Policy.CornLaws = ReformLevel.Full; }, w => w.Region.Markets[Catalog.WheatId].Price);
-    P("土地改革", "GDP", w => { w.LandReform = ReformLevel.None; w.Policy.LandReform = ReformLevel.None; }, w => { w.LandReform = ReformLevel.Full; w.Policy.LandReform = ReformLevel.Full; }, w => w.Gdp);
-    P("農奴解放", "GDP", w => { w.SerfEmancipation = ReformLevel.None; w.Policy.SerfEmancipation = ReformLevel.None; }, w => { w.SerfEmancipation = ReformLevel.Full; w.Policy.SerfEmancipation = ReformLevel.Full; }, w => w.Gdp);
-    P("児童労働", "GDP", w => w.Policy.ChildLaborAllowed = false, w => w.Policy.ChildLaborAllowed = true, w => w.Gdp);
-    P("労働時間", "GDP", w => w.Policy.WorkHours = WorkHours.Eight, w => w.Policy.WorkHours = WorkHours.Twelve, w => w.Gdp);
+    P("土地改革", "GDP", w => { w.LandReform = ReformLevel.None; w.Policy.LandReform = ReformLevel.None; }, w => { w.LandReform = ReformLevel.Full; w.Policy.LandReform = ReformLevel.Full; }, w => w.GdpPerMonth);
+    P("農奴解放", "GDP", w => { w.SerfEmancipation = ReformLevel.None; w.Policy.SerfEmancipation = ReformLevel.None; }, w => { w.SerfEmancipation = ReformLevel.Full; w.Policy.SerfEmancipation = ReformLevel.Full; }, w => w.GdpPerMonth);
+    P("児童労働", "GDP", w => w.Policy.ChildLaborAllowed = false, w => w.Policy.ChildLaborAllowed = true, w => w.GdpPerMonth);
+    P("労働時間", "GDP", w => w.Policy.WorkHours = WorkHours.Eight, w => w.Policy.WorkHours = WorkHours.Twelve, w => w.GdpPerMonth);
     // ★2026-08-13：Policy（願望）だけを書いていたため「✗無反応」と出ていた。他の行（土地改革・農奴解放）と同じく
     //   **実体（政治を通った現実＝GoldStandardLaw）も書く**。Fiscal が読むのは後者（World.GoldStandardLaw）。
     P("金本位", "兌換", w => { w.Policy.MonetaryTarget = 0; w.MonetaryLaw = MonetaryStandardLaw.Fiat; },
@@ -7711,7 +7711,7 @@ if (args.Length > 0 && args[0] == "hangtest")
     int civilWars = hs.Nations.Count(n => n.World.HadCivilWar);
     int defaults = hs.Nations.Count(n => n.World.HadSovereignDefault);
     Console.WriteLine($"seed {sd}: 開戦{wars}回 内戦経験{civilWars}国 デフォルト経験{defaults}国");
-    foreach (var n in hs.Nations) { var w = n.World; double ir = w.LastRevenue > 0 ? w.LastInterest / w.LastRevenue : 0; if (w.HadSovereignDefault || ir > 0.25 * w.Coef.MaxInterestShareOfRevenue) Console.WriteLine($"  {w.Region.Name,-10} 利払い/歳入{ir,5:F2} 債務/GDP{(w.NominalGdp > 1 ? w.GovDebt / w.NominalGdp : 0),5:F2} default={w.HadSovereignDefault} cooldown{w.BorrowCooldown}"); }
+    foreach (var n in hs.Nations) { var w = n.World; double ir = w.LastRevenuePerMonth > 0 ? w.LastInterestPerMonth / w.LastRevenuePerMonth : 0; if (w.HadSovereignDefault || ir > 0.25 * w.Coef.MaxInterestShareOfRevenue) Console.WriteLine($"  {w.Region.Name,-10} 利払い/歳入{ir,5:F2} 債務/GDP{(w.NominalGdpPerMonth > 1 ? w.GovDebt / w.NominalGdpPerMonth : 0),5:F2} default={w.HadSovereignDefault} cooldown{w.BorrowCooldownMonths}"); }
     if (args.Length > 2 && args[2] == "log")
         foreach (var l in hs.Diplomacy.Log.Where(l => l.Contains("開戦") || l.Contains("講和") || l.Contains("独立"))) Console.WriteLine("  " + l);
     return;
@@ -7780,11 +7780,11 @@ if (args.Length > 0 && args[0] == "cost-test")
     // 定常状態の財政（建設しない場合の四半期黒字）を測る
     var b = new Simulation(Fr(), new NullAgent());
     b.Run(40);
-    double t0 = b.World.Treasury, g0 = b.World.Gdp;
+    double t0 = b.World.Treasury, g0 = b.World.GdpPerMonth;
     b.Run(16);
     double surplusPerQ = (b.World.Treasury - t0) / 16.0;
     Console.WriteLine($"=== 建設コスト妥当性テスト（フランス・税20%）===");
-    Console.WriteLine($"定常：国庫 {b.World.Treasury:N0}　四半期黒字 {surplusPerQ:N0}/Q　GDP {b.World.Gdp:N0}\n");
+    Console.WriteLine($"定常：国庫 {b.World.Treasury:N0}　四半期黒字 {surplusPerQ:N0}/Q　GDP {b.World.GdpPerMonth:N0}\n");
 
     Console.WriteLine($"{"財",-8}{"カテゴリ",-7}{"総額",8}{"期間",6}{"/四半期",9}{"黒字比",8}{"国庫比",8}");
     int[] reps = { Catalog.ClothingId, Catalog.SteelId, Catalog.RifleId, Catalog.MachineryId, Catalog.ApplianceId };   // 衣料/鋼/小銃/機械/電化製品（各カテゴリ代表）

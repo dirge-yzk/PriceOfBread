@@ -45,7 +45,7 @@ public class CorruptionCoreV2Tests
         sim.StepQuarter();
         Assert.True(w.LastTaxLeak > 1e-9, "汚職漏れが0＝テスト前提の破れ（行政・監視の盤面を確認）");
         double bureaucratRent = 0, bureaucratSize = 0; int bureaucratCount = 0;
-        foreach (var r in w.Regions) foreach (var p in r.Pops) if (p.ClassId == PopClass.Bureaucrat && !p.IsSoldier) { bureaucratRent += p.LandRent; bureaucratSize += p.Size; bureaucratCount++; }
+        foreach (var r in w.Regions) foreach (var p in r.Pops) if (p.ClassId == PopClass.Bureaucrat && !p.IsSoldier) { bureaucratRent += p.LandRentPerMonth; bureaucratSize += p.Size; bureaucratCount++; }
         Assert.True(bureaucratRent > 1e-9, $"官僚のLandRent=0＝8bの記帳が届いていない（診断: 官僚pop数{bureaucratCount}・規模計{bureaucratSize:F1}・leak{w.LastTaxLeak:F3}・実効汚職{w.EffectiveCorruption:F3}）");
     }
 }

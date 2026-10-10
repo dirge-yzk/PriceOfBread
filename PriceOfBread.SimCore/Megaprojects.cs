@@ -121,7 +121,7 @@ public static class Megaprojects
             double cyc = 1.0;
             if (coef.MegaprojectCounterCyclical > 0
                 && hw.GdpDrawdown > coef.MegaprojectCrisisDrawdown
-                && hw.LastInterest < coef.MaxInterestShareOfRevenue * hw.LastRevenue && hw.BorrowCooldown <= 0)   // Fiscal.Borrow の門と同じ「まだ借りられる」2条件（利払い÷歳入が限界の下・冷却中でない＝LastInterest・LastRevenue は直近の月次決算の量＝翌月初の借入の門が読む量）
+                && hw.LastInterestPerMonth < coef.MaxInterestShareOfRevenue * hw.LastRevenuePerMonth && hw.BorrowCooldownMonths <= 0)   // Fiscal.Borrow の門と同じ「まだ借りられる」2条件（利払い÷歳入が限界の下・冷却中でない＝LastInterestPerMonth・LastRevenue は直近の月次決算の量＝翌月初の借入の門が読む量）
                 cyc += coef.MegaprojectCounterCyclical;
             double claim = share * cyc * hw.Treasury;
             if (claim <= 1e-9 || hw.Treasury <= 0) continue;

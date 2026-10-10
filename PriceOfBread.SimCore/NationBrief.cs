@@ -82,7 +82,7 @@ public static class NationBrief
     // 【削除2026-09-26（棚卸し x-04）】IsIsolated（本国州が他国と陸続きでないか）＝呼び手がテストだけだった。
     //   陸続きの判定の実体は下の NeighborMilitary（同じ陸塊の他国の軍＝島国と大洋の向こうは0）が難易度に使っている。
 
-    /// <summary>★(235) 開始時の兵の数（千人）＝**構築した世界**の兵士POPの和（World.SoldierSize）。(231) で military 欄を外したあと、安全の項は人口（農民＋都市労働者）に比例する写しを読んでいた
+    /// <summary>★(235) 開始時の兵の数（千人）＝**構築した世界**の兵士POPの和（World.SoldierSizeK）。(231) で military 欄を外したあと、安全の項は人口（農民＋都市労働者）に比例する写しを読んでいた
     /// ＝構築の播種の式と第二の式を抱えていた。世界を1つ組んで実数を読む（ランクと国力と同じ1本の構築＝<see cref="Opening"/>）。呼び手が同じ世界を何度も組まないよう、引数で受け取れる。</summary>
     public static Dictionary<string, double> OpeningSoldiers(NationConfig[] all, Coefficients coef) => Opening(all, coef).Soldiers;
 
@@ -182,7 +182,7 @@ public static class NationBrief
         {
             if (p.Nation is null) continue;
             score[p.Name] = NationalScore.Of(p.Nation);
-            soldiers[p.Name] = p.Nation.SoldierSize();
+            soldiers[p.Name] = p.Nation.SoldierSizeK();
             map[p.Name] = sim.Diplomacy.RankOf(p) switch
             {
                 PowerRank.Great => "列強",

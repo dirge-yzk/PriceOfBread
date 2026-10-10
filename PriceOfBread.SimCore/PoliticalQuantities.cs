@@ -162,7 +162,7 @@ public static class PoliticalQuantities
     {
         var c = w.Coef;
         // --- 分子：将校団が政治へ押し出す圧力（4つの加法＝どれか1つが十分に高ければ軍は動く）。⚠**給与を読まない**（水準でなく組織と解隊が効く） ---
-        double soldierShare = w.SoldierSize() / Math.Max(1.0, w.TotalPopulation);
+        double soldierShare = w.SoldierSizeK() / Math.Max(1.0, w.TotalPopulation);
         double weight = Clamp01(soldierShare / Math.Max(1e-9, Military.PeaceCapShareOfPop(c)));   // 組織の大きさ＝軍の社会的重み（平時上限の人口比で正規化・(145) 上限割合×標準の構成の働き盛りの男の割合）
         // ★レンジの実測（裁定S1・2026-09-21）＝**ここに書いてあった旧の予測は向きが逆だった**（書き直し）。
         //   旧の指数減衰の S は 中央0.0041／最大0.1417＝purge は実質ゼロの死項だった。θ を退役して在庫だけの門にすると
@@ -254,8 +254,8 @@ public static class PoliticalQuantities
     /// （水準では中南米が最小・シェアでは最大＝史実の向き）。分母には全請求権を入れる＝分母が痩せて跳ねるのを防ぐ。</summary>
     public static double MilitaryBudgetShare(World w)
     {
-        double mil = Math.Max(0, w.LastMilitaryClaim) + Math.Max(0, w.LastSoldierPay);
-        double other = Math.Max(0, w.LastAdminClaim) + Math.Max(0, w.LastInterest);   // （連合維持費は 2026-09-30 (135) に撤去＝行政と兵力の購買の1本）
+        double mil = Math.Max(0, w.LastMilitaryClaimPerMonth) + Math.Max(0, w.LastSoldierPayPerMonth);
+        double other = Math.Max(0, w.LastAdminClaimPerMonth) + Math.Max(0, w.LastInterestPerMonth);   // （連合維持費は 2026-09-30 (135) に撤去＝行政と兵力の購買の1本）
         double tot = mil + other;
         return tot > 1e-9 ? Clamp01(mil / tot) : 0;
     }

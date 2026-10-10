@@ -89,7 +89,7 @@ public class WarThemeTests
             double denom = EconomyStep.FleetGaugeDenominator(w.Regions[0], w.Coef);
             Assert.True(denom > 0, "前提が崩れた：換算分母が無い");
             double hulls = 0; foreach (var u in EconomyStep.FleetHeldUnits(w, w.Coef)) hulls += u;
-            double need = hulls * EconomyStep.FleetCrewPerHull(w.Regions[0], w.Coef, denom), men = w.SoldierSize();
+            double need = hulls * EconomyStep.FleetCrewPerHull(w.Regions[0], w.Coef, denom), men = w.SoldierSizeK();
             double crew = System.Math.Min(need, men);
             Assert.True(System.Math.Abs(p.NavalShare - (men > 1e-9 ? crew / men : 0)) < 1e-9, $"{p.BaseName}の海軍シェア {p.NavalShare:G9} ≠ 乗員÷兵士 {crew / men:G9}");
             Assert.True(System.Math.Abs(p.CrewFill - (need > 1e-12 ? crew / need : 1.0)) < 1e-9, $"{p.BaseName}の乗員の充足 {p.CrewFill:G9}");
@@ -160,7 +160,7 @@ public class WarThemeTests
         var (_, _, twin, _) = OneFront(new Coefficients().WarCivilianToll);   // 割譲しない双子（同じ種＝同じ盤面）
         var c = sim.Coef;
         static double Out(Region r) { double g = 0; foreach (var s in r.Producers) { var good = r.GoodOf(s.GoodId); if (good is null || good.Tier == GoodTier.Service) continue; g += s.Output * good.RefPrice; } return g; }
-        double natPc = fr.Gdp / fr.TotalPopulation;
+        double natPc = fr.GdpPerMonth / fr.TotalPopulation;
         // ★盤面の直し（2026-09-29 (110) 合流）：1人あたりが国の平均以下の州を**全て**割譲する（首都は除く）。旧＝そのうち産出の最も大きい1州だけ
         //   ＝(108)(109) を合わせた木では総額の落ち込みの差が 0.0034（前提の 0.01 に届かない）。平均以下の州だけを割るので残る国の1人あたりは落ちない（主張は同じ）。
         var cede = new List<Region>();
@@ -206,7 +206,7 @@ public class WarThemeTests
     {
         var (sim, _, fr, br) = OneFront(new Coefficients().WarCivilianToll);
         var c = sim.Coef;
-        double Share(World w) => w.SoldierSize() / w.TotalPopulation;
+        double Share(World w) => w.SoldierSizeK() / w.TotalPopulation;
         double sFr = Share(fr), sBr = Share(br), full = c.MobilizationConscriptFrac * Military.WorkingMenStdShare;
         Assert.True(sFr > 0 && sBr > 0 && sFr != sBr, $"前提が崩れた：両国の兵士の割合（仏 {sFr:G6}・英 {sBr:G6}）");
         Assert.True(sFr < full && sBr < full, $"前提が崩れた：割合が総動員の上限以上＝旧の値と見分けられない（仏 {sFr:G6}・英 {sBr:G6}）");
@@ -305,15 +305,15 @@ public class WarThemeTests
     {
         var (sim, _, fr, _) = OneFront(new Coefficients().WarCivilianToll);
         var c = sim.Coef; var p = fr.SelfPower!;
-        double s0 = fr.SoldierSize(), m0 = p.Military;
+        double s0 = fr.SoldierSizeK(), m0 = p.Military;
         Assert.True(s0 > 0 && m0 > 0, $"前提が崩れた：兵士POPか軍事ゲージが無い（兵士 {s0:G6}・ゲージ {m0:G6}）");
         // 1回呼んで、兵士の減りと厭戦の増分を返す（厭戦は毎回0から＝上限1のクランプに触れない・制空は既定の中立0.5＝×1.0）
         (double dead, double exh) Hit(double contactStrength)
         {
-            double sb = fr.SoldierSize();
+            double sb = fr.SoldierSizeK();
             p.WarExhaustion = 0;
             sim.Diplomacy.WarCasualties(p, c, contactStrength);
-            return (sb - fr.SoldierSize(), p.WarExhaustion);
+            return (sb - fr.SoldierSizeK(), p.WarExhaustion);
         }
         double share = 0.05 * c.WarCasualtyMonthlyCap / c.WarCasualtyRate;   // 自軍のうち接触した割合＝上限の1/20（係数の値に依らず上限の十分下）
 
@@ -323,14 +323,14 @@ public class WarThemeTests
         Assert.True(Math.Abs(e1 - c.WarExhaustionCasualty * c.WarCasualtyRate * share) <= 1e-9 * e1, $"厭戦の増分が 重み×Rate×割合 でない（実 {e1:G17}）");
 
         // (2) 同じ戦争で兵の頭数だけ3倍（接触もゲージも同じ）：戦死は頭数に比例して3倍・厭戦の増分（戦死÷兵士）は同じ
-        double s1 = fr.SoldierSize();
+        double s1 = fr.SoldierSizeK();
         foreach (var pop in fr.AllPops()) if (pop.IsSoldier) pop.Size *= 3.0;
         var (d2, e2) = Hit(share * m0);
         Assert.True(Math.Abs(d2 - c.WarCasualtyRate * 3.0 * s1 * share) <= 1e-9 * d2, $"頭数を3倍にしても戦死が頭数に比例しない（実 {d2:G17} 期待 {c.WarCasualtyRate * 3.0 * s1 * share:G17}）");
         Assert.True(Math.Abs(e2 - e1) <= 1e-9 * e1, $"頭数だけ変えたのに厭戦の増分が動いた（{e1:G17} → {e2:G17}）＝分子と分母の規則が違う");
 
         // (3) 兵1人あたりのゲージだけ1000倍（接触も同じ倍率＝接触した割合は同じ）：戦死は動かない＝ゲージに引きずられない
-        double s2 = fr.SoldierSize();
+        double s2 = fr.SoldierSizeK();
         p.Military = 1000 * m0;
         var (d3, e3) = Hit(share * 1000 * m0);
         p.Military = m0;
@@ -346,12 +346,12 @@ public class WarThemeTests
             Assert.True(dz == 0.0 && ez == 0.0, $"ゲージ {m} で出血か厭戦が立った（戦死 {dz:G17}・厭戦 {ez:G17}）");
         }
         p.Military = m0;
-        Assert.True(double.IsFinite(fr.SoldierSize()), "兵士POPが非有限になった");
+        Assert.True(double.IsFinite(fr.SoldierSizeK()), "兵士POPが非有限になった");
 
         // (5) 上限を大きく超える接触：兵士の減り＝その時点の兵士×月次上限（接触をさらに10倍にしても割合は同じ）
         foreach (double k in new[] { 1e3, 1e4 })
         {
-            double sb = fr.SoldierSize();
+            double sb = fr.SoldierSizeK();
             var (d, _) = Hit(k * m0);
             Assert.True(Math.Abs(d - sb * c.WarCasualtyMonthlyCap) <= 1e-9 * d,
                 $"上限で頭打ちにならない（割合×{k:G}：実 {d:G17} 上限 {sb * c.WarCasualtyMonthlyCap:G17}）");
@@ -369,11 +369,11 @@ public class WarThemeTests
     {
         var (sim, _, fr, _) = OneFront(new Coefficients().WarCivilianToll);
         var c = sim.Coef; var p = fr.SelfPower!;
-        double s0 = fr.SoldierSize(), m0 = p.Military;
+        double s0 = fr.SoldierSizeK(), m0 = p.Military;
         Assert.True(s0 > 0 && m0 > 0, $"前提が崩れた：兵士POPか軍事ゲージが無い（兵士 {s0:G6}・ゲージ {m0:G6}）");
         p.WarExhaustion = 0;
         sim.Diplomacy.WarCasualties(p, c, m0);   // 接触＝自軍のゲージ＝全てがぶつかる月（制空は既定の中立＝×1.0）
-        double rate = (s0 - fr.SoldierSize()) / s0;
+        double rate = (s0 - fr.SoldierSizeK()) / s0;
         Assert.True(rate < c.WarCasualtyMonthlyCap, $"前提が崩れた：全面の接触で総力戦の月の上限に張り付いた（{rate:P3}）");
         Assert.True(Math.Abs(rate - c.WarCasualtyRate) <= 1e-9 * c.WarCasualtyRate, $"全面の接触の月の兵1人の死 {rate:G17} が率 {c.WarCasualtyRate:G17} でない");
         Assert.True(Math.Abs(c.WarCasualtyRate * Military.WorkingMenStdShare - 0.002) <= 1e-12,
@@ -390,7 +390,7 @@ public class WarThemeTests
         var (sim, _, fr, _) = OneFront(new Coefficients().WarCivilianToll);
         var c = sim.Coef; var p = fr.SelfPower!;
         double m0 = p.Military;
-        Assert.True(fr.SoldierSize() > 0 && m0 > 0, "前提が崩れた：兵士POPか軍事ゲージが無い");
+        Assert.True(fr.SoldierSizeK() > 0 && m0 > 0, "前提が崩れた：兵士POPか軍事ゲージが無い");
         double[] Hit(double contact, double airCtl)
         {
             fr.DiscoveryLossQ = null; p.WarExhaustion = 0;
@@ -1094,7 +1094,7 @@ public class WarThemeTests
         (World fr, World br, double[] fs, double[] bs, double ft, double bt, double ff, double bf) Arm(double rate)
         {
             var (s, _, fr, br) = OneFront(new Coefficients().WarCivilianToll);
-            s.Coef.PrizeMoneyRate = rate;
+            s.Coef.PrizeMoneyRatePerMonth = rate;
             fr.LastBlockadeRisk = 0.5;
             fr.SelfPower!.Military = 0; fr.SelfPower!.FleetGauge = 0;   // 仏の海軍0＝英が制海権を握る（拿捕の門＝制海権＞0.5）
             typeof(Diplomacy).GetMethod("CollectPrize", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!
@@ -1102,7 +1102,7 @@ public class WarThemeTests
             static double[] Sav(World w) { var l = new System.Collections.Generic.List<double>(); foreach (var r in w.Regions) foreach (var p in r.Pops) l.Add(p.Savings); return [.. l]; }
             return (fr, br, Sav(fr), Sav(br), fr.Treasury, br.Treasury, fr.CumulativeTradeFlow, br.CumulativeTradeFlow);
         }
-        var zero = Arm(0.0); var arm = Arm(new Coefficients().PrizeMoneyRate);
+        var zero = Arm(0.0); var arm = Arm(new Coefficients().PrizeMoneyRatePerMonth);
         var merchants = new System.Collections.Generic.HashSet<Pop>();
         foreach (var r in arm.fr.Regions) if (r.State == RegionState.Active && r.MerchantPopIndex >= 0) merchants.Add(r.Pops[r.MerchantPopIndex]);
         var soldiers = new System.Collections.Generic.HashSet<Pop>();

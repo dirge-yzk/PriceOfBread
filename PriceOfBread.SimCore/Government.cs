@@ -231,10 +231,10 @@ public static class Government
         //   法律タブに至っては毎tick 45回走る＝重い。★2026-09-21 ㉖で旗 PoliticalCapitalStock を焼き込み＝毎四半期かならず導出する。
         w.PoliticalCapitalMax = PoliticalQuantities.PoliticalCapitalMax(w);
 
-        // 債務緊縮の強度（下の施行の後に置く＝下の注記）。[単位・B13] 債務/GDP＝**年次名目**（GovDebt÷(月次NominalGdp×12)）＝Fiscal の国債の金利の dGdp・CapitalMarket の対外信用と同じ物差し（2026-09-29・棚卸し fis-02 の残り）。
+        // 債務緊縮の強度（下の施行の後に置く＝下の注記）。[単位・B13] 債務/GDP＝**年次名目**（GovDebt÷(月次NominalGdpPerMonth×12)）＝Fiscal の国債の金利の dGdp・CapitalMarket の対外信用と同じ物差し（2026-09-29・棚卸し fis-02 の残り）。
         //   旧＝**月次実質**（GovDebt÷月次Gdp）＝年GDP の約1.7% で緊縮が始まり約8% で満額＝史実の国債の国は開幕から強度1（値の史実は Coefficients.AusterityStartDebt）。
         //   ⚠導出をここ（施行の前）に置いても値は同じ＝材料の国債と名目GDP（州×生産者の産出×参照価格×物価水準）を下の施行は書かない。
-        double austGdp = w.FiscalEnabled && w.GovDebt > 0 ? w.NominalGdp : 0;   // 州×生産者の走査は債務のある国だけ・1回（旧は条件と割り算で2回）
+        double austGdp = w.FiscalEnabled && w.GovDebt > 0 ? w.NominalGdpPerMonth : 0;   // 州×生産者の走査は債務のある国だけ・1回（旧は条件と割り算で2回）
         double austerity = austGdp > 1e-9
             ? PoliticalQuantities.Clamp01((w.GovDebt / Calendar.PerMonthToPerYear(austGdp) - c.AusterityStartDebt) / c.AusterityRange) : 0;
 
@@ -290,7 +290,7 @@ public static class Government
         foreach (var law in RateLaws) law.Set(w, Move(law.Get(w), Q4(law.Axis, law.Target(p)), c, w, law.Axis));
         // 武力統合：治安維持力＝**装備された軍の効果**＝兵数×即応度×係数（治安維持力=軍の一本化 2026-06-23）。武器を買えぬ軍（即応度0）は治安維持力も0→革命。較正/単体は false で CoercionTarget を独立保持（単一国較正セル不変）。
         if (w.CoercionFollowsForce)
-            p.CoercionTarget = CoercionTargetFromForce(w.SoldierSize() * w.MilitaryReadiness * c.CoercionPerSoldier, c);
+            p.CoercionTarget = CoercionTargetFromForce(w.SoldierSizeK() * w.MilitaryReadiness * c.CoercionPerSoldier, c);
         w.BaseCoercion      = Move(w.BaseCoercion,      p.CoercionTarget,          c, w, PolicyAxis.Coercion, c.CoercionMax, mandate: !w.CoercionFollowsForce);   // 治安維持力＝武力スライダー(軍事費)から導出された目標へ（5%丸めは軍事費側で実施）。武力統合下は機械追従＝マンデート余白を適用しない（従来の硬いゲート＝専制の保持力ラチェットを保つ）。較正/単体（CoercionFollowsForce=false）は意図した目標＝余白対象。消費の正規化は治安維持力の実スケール＝CoercionMax
         // ★軍事費の床も撤去（同上・2026-08-19）。旧＝政体の国家軍軸×MilitaryFloorScale。⚠**政体から導出していたので同じ理由で消える**。
         // ★陸海の維持費（2026-08-04）：政治ゲートは**合計**に掛ける（軍系ブロックが見るのは軍事費の総額であって内訳ではない）。

@@ -342,7 +342,7 @@ public partial class GameViewModel
         // 政治力＝PolicyPreferences.ArmyPower（係数×兵士の人口比×(1−議会統制力)）。×100＝法律タブの賛否ホバーと同じ目盛り。
         double armyPower = PolicyPreferences.ArmyPower(w);
         ArmyPowerText = (armyPower * 100).ToString("F1");
-        ArmyPowerTip = $"兵士の人口比 {(w.TotalPopulation > 1 ? w.SoldierSize() / w.TotalPopulation : 0):P1}"
+        ArmyPowerTip = $"兵士の人口比 {(w.TotalPopulation > 1 ? w.SoldierSizeK() / w.TotalPopulation : 0):P1}"
                      + $"　議会統制力 {pc:P0}　係数 {c.ArmyPoliticalWeight:F1}";
 
         // --- 議会統制力を動かした経路（CrownParliament.Step と1対1・寄与の大きい順） -------------------------
@@ -562,7 +562,7 @@ public partial class GameViewModel
             // ★①基本段の耐久品（2026-08-26）＝財ごとの摩耗率。1.0＝消耗品＝従来のフロー行（弾薬・馬）。
             // ⚠**未初期化の在庫は目標**とみなす＝エンジンの EconomyStep.ArmsHeld と同一の定義（表示とエンジンで在庫の意味を割らない）。
             bool baseStock = c.BaseArmsStockEnabled > 0;
-            double BaseWear(int b) => baseStock && b < c.MilitaryWearRates.Length ? c.MilitaryWearRates[b] : 1.0;
+            double BaseWear(int b) => baseStock && b < c.MilitaryWearRatesPerMonth.Length ? c.MilitaryWearRatesPerMonth[b] : 1.0;
             bool BaseDurable(int b) => BaseWear(b) < 1.0;
             // ⚠目標には**陸海の再配分を必ず掛ける**＝エンジンの EconomyStep.BaseArmsTarget と同一（分子と分母を同じ規則に）。
             double BaseTarget(int b) => r.MilitaryScalePeace * milRates[b] * MilMul(c.MilitaryGoods[b]) / Math.Max(1e-6, BaseWear(b));

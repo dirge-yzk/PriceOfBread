@@ -904,7 +904,7 @@ public sealed partial class InternationalMarket
             if (portRecv[t] > 0 && portOwner[t] is { } po) World.Transfer((null, null), (nations[tr[t].nation].World, [po], null), portRecv[t], TreasuryCat.OtherIn, income: true);
         for (int i = 0; i < nn; i++)
             if (premRecv[i] > 0 && underwriters[i] is { } uw) World.Transfer((null, null), (nations[i].World, uw, null), premRecv[i], TreasuryCat.OtherIn, income: true);
-        for (int i = 0; i < nn; i++) nations[i].World.LastTariffRevenue = 0;
+        for (int i = 0; i < nn; i++) nations[i].World.LastTariffRevenuePerClearing = 0;
         for (int t = 0; t < tc; t++)
         {
             var w0 = nations[tr[t].nation].World;
@@ -914,7 +914,7 @@ public sealed partial class InternationalMarket
                 double due = payTariff[t] + payHouse[t], have = Math.Max(0, mer.Savings);
                 if (due > have) Bank.Lend(w0, mer, due - have);
             }
-            if (payTariff[t] > 0 && payerOf[t] is { } pt) w0.LastTariffRevenue += World.Transfer((w0, pt), (w0, null, null), payTariff[t], TreasuryCat.Tariff);   // 関税と穀物法＝輸入者から通関の時点で（econ-07）
+            if (payTariff[t] > 0 && payerOf[t] is { } pt) w0.LastTariffRevenuePerClearing += World.Transfer((w0, pt), (w0, null, null), payTariff[t], TreasuryCat.Tariff);   // 関税と穀物法＝輸入者から通関の時点で（econ-07）
             if (payHouse[t] > 0 && payerOf[t] is { } pp) World.Transfer((w0, pp), (null, null, null), payHouse[t]);   // 輸入代金と運賃＝清算所へ（国境をまたげば世界の台帳へ・同じ国の州どうしは台帳で打ち消す）
         }
         if (dip is not null) dip.CumulativeFxResidual += fxIntended;   // 為替の換算の台帳（共有層＝移し方の1本が書く国境をまたぐ払いと同じ1本・段3-3）
@@ -932,7 +932,7 @@ public sealed partial class InternationalMarket
                 for (int t = 0; t < tc; t++)
                     if (tr[t].nation == i && expReg[t] > 0 && tr[t].r.MerchantPopIndex >= 0 && tr[t].r.MerchantPopIndex < tr[t].r.Pops.Count)
                     { ms.Add(tr[t].r.Pops[tr[t].r.MerchantPopIndex]); mw.Add(expReg[t]); }
-                w0.LastTariffRevenue -= World.Transfer((w0, null), (w0, ms, mw), exportVal[i] / exRate[i] * Math.Abs(tar[i]) * w0.FiscalFundingRatio, TreasuryCat.Tariff);
+                w0.LastTariffRevenuePerClearing -= World.Transfer((w0, null), (w0, ms, mw), exportVal[i] / exRate[i] * Math.Abs(tar[i]) * w0.FiscalFundingRatio, TreasuryCat.Tariff);
             }
         }
         // Stage C：トランジット通行料＝利用国の国庫から港所有国の国庫へ（運河通行料と同じ台帳作法・両建てで保存）。

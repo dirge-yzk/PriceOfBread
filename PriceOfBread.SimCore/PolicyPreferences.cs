@@ -90,7 +90,7 @@ public static class PolicyPreferences
         public readonly double PettyPowerMass;     // 同・職人（旧束=大衆）成分。旧束別に持つ＝非対象軸のフォールバック集計が「旧束の値」へ厳密に戻る（設計書§2）
         public readonly double PettyIncome;        // 小営業の所得シェア（自営所得シェア＝独禁・累進/所得税の強さの導出元）
         public readonly double PettyIncomeModern;  // うち商人分（対アッパー相対所得の重複控除用）
-        // ★2026-09-26 A2-2：名目GDP（World.NominalGdp と同じ値）。Build で州×生産者の走査を1回だけ走らせて持つ＝Pref の読み手は走査し直さない。
+        // ★2026-09-26 A2-2：名目GDP（World.NominalGdpPerMonth と同じ値）。Build で州×生産者の走査を1回だけ走らせて持つ＝Pref の読み手は走査し直さない。
         //   Build と Pref は同じ呼び出しの中で読むだけ（このファイルに産出・州・物価水準を書く行は無い）＝値は getter とビット単位で同じ。
         public readonly double NominalGdp;
         public Profile(double[] pw, double[] we, double[] re, double[] inc, double[] po, double[] old, double sr,
@@ -130,8 +130,8 @@ public static class PolicyPreferences
             int b = BlocOf(p);
             double sv = System.Math.Max(0, p.Savings);
             wealth[b] += sv; tw += sv;
-            double rn = System.Math.Max(0, p.LandRent); rent[b] += rn; tr += rn;
-            double inc = System.Math.Max(0, p.Earned); income[b] += inc; ti += inc;
+            double rn = System.Math.Max(0, p.LandRentPerMonth); rent[b] += rn; tr += rn;
+            double inc = System.Math.Max(0, p.EarnedPerMonth); income[b] += inc; ti += inc;
             if (petty != null && petty.Contains(p)) { pettyInc += inc; if (p.IsModernElite) pettyIncM += inc; }   // 小営業の自営所得（対象3軸の強さの導出元。gate=0＝枝ごと不走行）
             if (p.IsCommoner) { poll[b] += p.Size; tp += p.Size; }   // 人頭税の対象（特権＝Closed は免除）
             if (!p.IsSoldier) { old[b] += p.Size * p.AgeShare(60, double.PositiveInfinity); blocPop[b] += p.Size; }   // 法多様性L2：ブロックの高齢人口（年金の受益者）
@@ -139,9 +139,9 @@ public static class PolicyPreferences
         Normalize(wealth, tw); Normalize(rent, tr); Normalize(income, ti); Normalize(poll, tp);
         for (int i = 0; i < BlocCount; i++) old[i] = blocPop[i] > 1e-9 ? old[i] / blocPop[i] : 0;   // ブロック内の高齢比率＝水準（高齢化した国だけ大きい）
         // 国家の歳入要求：常に基礎0.5（国家は財源を欲する）＋財政逼迫（funding不足・債務/GDP）で増す。＝誰も支持しない税も国家が押せる。
-        double ngdp = w.NominalOf(w.Gdp);   // ★A2-2：州×生産者の走査はこの1回だけ（旧＝ここで2回・Pref の名目GDPの読み手ごとに1回ずつ）
+        double ngdp = w.NominalOf(w.GdpPerMonth);   // ★A2-2：州×生産者の走査はこの1回だけ（旧＝ここで2回・Pref の名目GDPの読み手ごとに1回ずつ）
         double stress = w.FiscalEnabled
-            // [単位・B13] 債務/GDP＝**年次名目**（GovDebt÷(月次NominalGdp×12)・Min 1）＝Fiscal の国債の金利・CapitalMarket・Government の緊縮と同じ物差し（2026-09-29・棚卸し fis-02 の残り）。
+            // [単位・B13] 債務/GDP＝**年次名目**（GovDebt÷(月次NominalGdpPerMonth×12)・Min 1）＝Fiscal の国債の金利・CapitalMarket・Government の緊縮と同じ物差し（2026-09-29・棚卸し fis-02 の残り）。
             //   旧＝**月次実質**（年次の約12倍の値）＝国債が年GDP の1割（8.3%）を越えた国は全て1で飽和＝国債の多さが歳入の要求に効かなかった。
             ? PoliticalQuantities.Clamp01((1.0 - w.FiscalFundingRatio) + (ngdp > 1e-9 ? System.Math.Min(1.0, w.GovDebt / Calendar.PerMonthToPerYear(ngdp)) : 0))
             : 0;
@@ -292,7 +292,7 @@ public static class PolicyPreferences
                 return bloc > 1e-9 ? banPressure * (capW - proW) / bloc : 0;
             case PolicyAxis.MonetaryStandard:
                 // ★通貨制度の政治（点火2026-08-01）。増加方向＝**兌換の維持（金本位）**。
-                // ⚠読むのは**実際に起きている物価の動き**（ExpectedInflation＝年率の平滑値）と**その勢力の資産保有**だけ。
+                // ⚠読むのは**実際に起きている物価の動き**（ExpectedInflationPerYear＝年率の平滑値）と**その勢力の資産保有**だけ。
                 //   金本位そのものが良い/悪いという値は1つも書かない——立場は保有から出る。
                 // ★史実＝1873-96年の大デフレは債務者と債権者の政治戦争だった。抵当を抱えた農民には、
                 //   物価が下がるとは「同じ借金を返すのに去年より多くの小麦を売る」ことを意味した（ブライアン「黄金の十字架」1896）。
@@ -326,8 +326,8 @@ public static class PolicyPreferences
                     if (!(peerPull >= -w.Coef.MonetaryPeerPullScale && peerPull <= w.Coef.MonetaryPeerPullScale)) peerPull = 0;   // NaNは中立へ倒す（否定形＝ClampはNaNを消さない）
                 }
                 return w.Coef.MonetaryPrefScale
-                     * (e.Wealth[b] * (Math.Max(0, w.ExpectedInflation) + silverDrop + peerPull)   // 持てる側：インフレ／銀安／交易網の引力→金の規律を要求
-                      - (1.0 - e.Wealth[b]) * (Math.Max(0, -w.ExpectedInflation) + silverDrop));   // 持たざる側：デフレ→兌換停止を／銀安なら銀に留まることを要求
+                     * (e.Wealth[b] * (Math.Max(0, w.ExpectedInflationPerYear) + silverDrop + peerPull)   // 持てる側：インフレ／銀安／交易網の引力→金の規律を要求
+                      - (1.0 - e.Wealth[b]) * (Math.Max(0, -w.ExpectedInflationPerYear) + silverDrop));   // 持たざる側：デフレ→兌換停止を／銀安なら銀に留まることを要求
             case PolicyAxis.CapitalMobility:
                 // ★資本移動の政治（器2026-08-13）。増加方向＝**規制**。⚠新しい選好の型を作らず、保有から導出する。
                 // ・資本／投資家＝**自由を望む**（海外へ投資でき、海外から資金を呼べる）。反対の強さは**実際の対外保有**
@@ -572,7 +572,7 @@ public static class PolicyPreferences
     /// ArmyPoliticalWeight=0で旧3勢力＝厳密恒等。</summary>
     internal static double ArmyPower(World w)
         => w.Coef.ArmyPoliticalWeight <= 0 ? 0
-         : w.Coef.ArmyPoliticalWeight * (w.SoldierSize() / System.Math.Max(1.0, w.TotalPopulation))
+         : w.Coef.ArmyPoliticalWeight * (w.SoldierSizeK() / System.Math.Max(1.0, w.TotalPopulation))
            * (1.0 - PoliticalQuantities.Clamp01(w.ParliamentControl));
 
     /// <summary>UI表示用：その向きの変更への各ブロックの賛否（旧支配層/近代エリート/大衆・概ね−2..+2）＋純支持。正の純支持＝次の一歩が通る。</summary>

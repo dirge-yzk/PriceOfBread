@@ -21,7 +21,7 @@ public static class Territory
                 {
                     // 武力（強硬）：速いが軍需の出血・闘争度↑（§A-8／§6.1 兵力×経済）。
                     // ★支払いの一元化 段3-2（2026-09-30・作者裁定 Q8・C7）：制圧の費用は**軍需の購買**＝首都の市場から陸の軍需（基本段の財のうち艦隊の財〔FleetGoodIds〕を除く・
-                    //   発見の解禁度を通した比＝国軍の基本段の調達と同じ比）を月の予算 ForceUnlockTreasuryCost ぶん買って消費する（国家の調達の1本 Colonial.BuyUpkeepGood
+                    //   発見の解禁度を通した比＝国軍の基本段の調達と同じ比）を月の予算 ForceUnlockTreasuryCostPerMonth ぶん買って消費する（国家の調達の1本 Colonial.BuyUpkeepGood
                     //   ＝価格の門・国家の支払い率 r・在庫・代金は④の持分・区分＝陸軍〔作者裁定 Q14〕）。進み方と制圧の不満は買えた割合（代金÷予算）に比例＝軍需が無ければ制圧は進まない。
                     //   旧＝国庫から全POP へ頭数で配った（財を買わない国家支出）・進み方は r だけ。
                     var cap = w.Region;
@@ -36,9 +36,9 @@ public static class Territory
                             int g = c.MilitaryGoods[b];
                             if (g >= cap.Markets.Length || System.Array.IndexOf(c.FleetGoodIds, g) >= 0 || !(unlockRates[b] > 0)) continue;
                             double price = Math.Max(cap.Markets[g].Price, 1e-9);   // BuyUpkeepGood が払う単価と同じ
-                            unlockSpent += Colonial.BuyUpkeepGood(w, cap, g, c.ForceUnlockTreasuryCost * (unlockRates[b] / unlockRateSum) / price, TreasuryCat.Army) * price;
+                            unlockSpent += Colonial.BuyUpkeepGood(w, cap, g, c.ForceUnlockTreasuryCostPerMonth * (unlockRates[b] / unlockRateSum) / price, TreasuryCat.Army) * price;
                         }
-                    double unlockFill = c.ForceUnlockTreasuryCost > 0 ? PoliticalQuantities.Clamp01(unlockSpent / c.ForceUnlockTreasuryCost) : 0;
+                    double unlockFill = c.ForceUnlockTreasuryCostPerMonth > 0 ? PoliticalQuantities.Clamp01(unlockSpent / c.ForceUnlockTreasuryCostPerMonth) : 0;
                     r.Infra += c.ForceUnlockRate * unlockFill;
                     foreach (var p in w.AllPops())
                         p.Militancy = PoliticalQuantities.Clamp01(p.Militancy + c.ForceUnlockMilitancy * unlockFill);   // 制圧の不満（戦争疲弊）＝制圧の進み方（買えた軍需）に比例

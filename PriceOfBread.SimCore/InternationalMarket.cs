@@ -124,7 +124,7 @@ public sealed partial class InternationalMarket
             moved += World.Transfer(from, (w, null, null), stateCut, from.Pops is null && ReferenceEquals(from.W, w) ? cat : TreasuryCat.StateFactory, toCat: TreasuryCat.StateFactory, outside: minted ? World.Outside.Mint : World.Outside.Border);
         moved += World.Transfer(from, (w, to, wt), amount - stateCut, cat, income: true, outside: minted ? World.Outside.Mint : World.Outside.Border);
         // ⚠(173) の確かめ：輸出代金の RGO の地代は地代（LandRent＝土地税の課税ベース）に書かない（c5 の後半は残り）＝清算は全ての国の月次決算（Fiscal）の後に着き、
-        //   LandRent は次の月の頭（EconomyStep の月頭）で0へ戻る＝ここで書いても土地税に一度も載らない。載せるには所得税の LastEarned（(108) 段3-1）と同じ
+        //   LandRent は次の月の頭（EconomyStep の月頭）で0へ戻る＝ここで書いても土地税に一度も載らない。載せるには所得税の LastEarnedPerMonth（(108) 段3-1）と同じ
         //   「前の月の全ての地代」を Fiscal が読む形が要る（新しい状態＝別の回）。
         return moved;
     }

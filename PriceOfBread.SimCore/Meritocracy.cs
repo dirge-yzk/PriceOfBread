@@ -29,7 +29,7 @@ public static class Meritocracy
         // ★(155) 兵士の席（⑦）の国の量＝ループ外で1回（定員は国の和＝州へは州の母数÷国の母数で配る＝Military.Step の強制の徴募と同じ1本）
         double seatsNat = Military.EstablishmentOf(w, c, out double seatNatMan);
         bool atWar = w.AtWarNow;   // 戦時は復員しない（Military.Step の交戦の判定と同じ＝自国の戦争が1本でもある）
-        double dischargeQ = 1.0 - Math.Pow(1.0 - c.SoldierMigrationRate, Calendar.MonthsPerQuarter);   // 平時の定員超過を戻す速さ＝旧の月の徴募/離職の速さの四半期の値（新しい数なし）
+        double dischargeQ = 1.0 - Math.Pow(1.0 - c.SoldierMigrationRatePerMonth, Calendar.MonthsPerQuarter);   // 平時の定員超過を戻す速さ＝旧の月の徴募/離職の速さの四半期の値（新しい数なし）
         double volunteers = 0;   // この四半期に席へ入った志願兵（国の和）＝熟練を薄める（Military.DiluteSkill）
         foreach (var r in w.Regions)
         {
@@ -75,7 +75,7 @@ public static class Meritocracy
             // 旧・雇用枠（M×工業化度×上限×職別比率）は需要の代理変数だったが、需要は給与（役務の売上→賃金）が
             // より正確に表現する（貧しい世界＝医療が売れない＝医者の給与が低い＝誰も目指さない）。
             // 枠の事故2件（技師の枠占有による教師崩壊／枠が初期シェア未満で昇格凍結）もこれで根絶。
-            double fromIncome = from.Size > Eps ? Math.Max(0, from.Earned) / from.Size : 0;
+            double fromIncome = from.Size > Eps ? Math.Max(0, from.EarnedPerMonth) / from.Size : 0;
             // 世俗水路：神学校の高等教育は技師・教師・医者の資格にならない＝宗教教育の社会はこれらを**再生産できない**
             // （既存の専門職は残るが増えない＝エリートの創発（TechEducation）が階級構成で停滞する経路）。
             // 官僚は例外＝宗教社会も官僚制は築ける（科挙・寺社官僚）。代わりに官僚はエリートに数えない（同所参照）。
@@ -118,7 +118,7 @@ public static class Meritocracy
             // ===== ⑦ 兵士の席（2026-10-02 (155)・作者承認 2026-10-01「それでよい。ただし兵士は他の職とは性質が違うので、多少の外科的な処置は許可する」＝推奨で進めた）=====
             // 兵士は下流（0）の職の1つ＝席の数は制度（定員＝Military.EstablishmentOf の州按分＝州の母数÷国の母数）・給与は国家の規定（Simulation の SoldierPayBudget）。
             // ・志願＝失業プール（①''）と強制の転落（④⑤⑥・①'）の職の選択に兵士の席が入る（席の空きまで・FillJobs）。
-            // ・平時に定員を超えた分＝国家が兵を民間の最良の職へ戻す（旧 Military の DischargeToPool＝農民と都市労働者へ比例を置き換え）。速さは旧の平時の徴募/離職の速さ（月 SoldierMigrationRate）の四半期の値。
+            // ・平時に定員を超えた分＝国家が兵を民間の最良の職へ戻す（旧 Military の DischargeToPool＝農民と都市労働者へ比例を置き換え）。速さは旧の平時の徴募/離職の速さ（月 SoldierMigrationRatePerMonth）の四半期の値。
             //   ★(161) 行き先の比べ方は JobIncome の1本（民間の職を働き手1人あたりへ直す）＝兵の給与×転職のプレミアムを超える職へ按分（低温の softmax）・超える職が無ければ強制の残りが最良の1つへ（総取り）。
             // ・兵士だけの差分（許可済み）：志願兵は服役の年限ですぐ辞めない＝職の比較で自分から出ていかない（①'' の対象は未払いの分だけ＝兵士の「失業」＝給与の未払いの割合）・
             //   戦時は復員しない（下の枝は平時だけ）・徴兵は強制で席を埋める（Military.Step）。
@@ -144,7 +144,7 @@ public static class Meritocracy
                 double gate = targets[i] == r.BureaucratPopIndex ? 1.0 : secular;
                 if (gate <= Eps) continue;
                 // 魅力＝その職の給与 ÷（自分の給与×転職プレミアム）。失業者（所得0）はどんな職にも飛びつく（流量clampが暴走を抑える）。
-                double attract = Math.Max(0, t.Earned) / Math.Max(Eps, t.Size) / Math.Max(Eps, fromIncome * c.PromotionPremium);
+                double attract = Math.Max(0, t.EarnedPerMonth) / Math.Max(Eps, t.Size) / Math.Max(Eps, fromIncome * c.PromotionPremium);
                 if (attract <= 1.0) continue;
                 // #14 少数民族の昇格摩擦（ガラスの天井）：少数派ほど(core<1)昇格しにくい＝下層に滞留。均質pop(core=1)で係数1＝中立。
                 // rank17（点火0.5 MinorityPenaltyModernBlend）：開かれた社会（M高）ほど法的障壁が畳まれる。blend=0で×1.0＝旧と厳密恒等。
@@ -174,7 +174,7 @@ public static class Meritocracy
                     if (idx < 0) continue;
                     var t = r.Pops[idx];
                     if (t.Size <= Eps) continue;
-                    double attract = Math.Max(0, t.Earned) / Math.Max(Eps, t.Size) / Math.Max(Eps, fromIncome * c.PromotionPremium);
+                    double attract = Math.Max(0, t.EarnedPerMonth) / Math.Max(Eps, t.Size) / Math.Max(Eps, fromIncome * c.PromotionPremium);
                     if (attract > 1.0)
                     {
                         double petty = Math.Min(c.PettyEntryRate * from.Size * Math.Min(attract - 1.0, 1.0), from.Size);
@@ -193,8 +193,8 @@ public static class Meritocracy
                 var artisan = r.Pops[r.ArtisanPopIndex];
                 if (artisan.Size > Eps && from.Size > Eps)
                 {
-                    double artIncome = Math.Max(0, artisan.Earned) / artisan.Size;
-                    double wrkIncome = Math.Max(0, from.Earned) / from.Size;
+                    double artIncome = Math.Max(0, artisan.EarnedPerMonth) / artisan.Size;
+                    double wrkIncome = Math.Max(0, from.EarnedPerMonth) / from.Size;
                     double attract = wrkIncome / Math.Max(Eps, artIncome * c.PromotionPremium);
                     if (attract > 1.0)
                     {
@@ -273,7 +273,7 @@ public static class Meritocracy
                 foreach (var p in r.Pops) if (p.IsCommoner && !p.IsUrban && p.ClassId == PopClass.Peasant) { peasant = p; break; }
                 if (peasant is { Size: > Eps } pz)
                 {
-                    double pzInc = Math.Max(0, pz.Earned) / pz.Size;
+                    double pzInc = Math.Max(0, pz.EarnedPerMonth) / pz.Size;
                     double pzEdu = higherEdu;
                     if (c.PromotionGateOwnSchooling > 0)
                         pzEdu = Math.Max(higherEdu, c.PromotionGateOwnSchooling * (gateEma ? pz.EducationEma : pz.EducationFill));
@@ -282,7 +282,7 @@ public static class Meritocracy
                         var t = r.Pops[r.TeacherPopIndex];
                         if (t.Size > Eps)
                         {
-                            double attract = Math.Max(0, t.Earned) / Math.Max(Eps, t.Size) / Math.Max(Eps, pzInc * c.PromotionPremium);
+                            double attract = Math.Max(0, t.EarnedPerMonth) / Math.Max(Eps, t.Size) / Math.Max(Eps, pzInc * c.PromotionPremium);
                             if (attract > 1.0)
                                 Move(pz, t, Math.Min(c.RuralPromotionRate * m * pz.Literacy * pzEdu * secular * pz.Size * Math.Min(attract - 1.0, 1.0), pz.Size), c, selectLiteracy: true);
                         }
@@ -355,7 +355,7 @@ public static class Meritocracy
                     //   (a) 分母 avgPerCap（Σmax(0,Savings)）と基準が食い違い、(b) レバレッジの高い黒字資本家を
                     //   BankruptcyFallRate=0.15 で大量に落として較正を壊す。債務の帰結は**別の判定**として足すのが正しい。
                     bool debtRuined = c.PopDebtDriven > 0 && c.DebtRuinRatio > 0
-                                   && p.Debt > c.DebtRuinRatio * Math.Max(Eps, Calendar.PerMonthToPerYear(p.Earned));
+                                   && p.Debt > c.DebtRuinRatio * Math.Max(Eps, Calendar.PerMonthToPerYear(p.EarnedPerMonth));
                     if (!debtRuined && pc >= c.UpperFallThreshold * anchor) continue;
                     // rank7(c)（点火0.3）：転落率の深さ連続化＝浅い割れはゆっくり・深い割れ（恐慌）は速い。debtRuined は素通し（債務破滅は速いまま）。f=0で1.0＝ビット恒等
                     double depth = FallDepth(pc, c.UpperFallThreshold * anchor, debtRuined, c);
@@ -427,7 +427,7 @@ public static class Meritocracy
             volunteers += Math.Max(0, soldierVac0 - soldierVac);   // ★(155) この州で志願が埋めた席
         }
         if (meritP > Eps) w.Meritocracy = meritW / meritP;   // 全活性州の人口加重平均（旧：foreach内で毎州上書き＝最後の州の値だけ残るバグ）
-        if (volunteers > Eps) { double sEnd = w.SoldierSize(); Military.DiluteSkill(w, sEnd - volunteers, sEnd); }   // ★(155) 志願の新兵は訓練を受けていない＝熟練を薄める
+        if (volunteers > Eps) { double sEnd = w.SoldierSizeK(); Military.DiluteSkill(w, sEnd - volunteers, sEnd); }   // ★(155) 志願の新兵は訓練を受けていない＝熟練を薄める
     }
 
     // ===== 失業プール（①''）の道具 =====
@@ -463,7 +463,7 @@ public static class Meritocracy
             flow *= (1.0 - c.SerfMobilityGate) + c.SerfMobilityGate * serfFreePool;
             if (flow <= Eps) return;
         }
-        double srcInc = Math.Max(0, src.Earned) / src.Size;
+        double srcInc = Math.Max(0, src.EarnedPerMonth) / src.Size;
         double remaining = Math.Min(flow, src.Size);
         double headroom = UrbanHeadroom(r, c);   // §2.4：このプール経路が消費できる都市流入の残枠（既存天井の管轄拡張＝素通り穴の閉鎖）
         remaining = FillJobs(r, w, m, avgPerCap, src, srcClass, remaining, srcInc * c.PromotionPremium, secular, higherEdu, gateEma, ref headroom, ref soldierVac, c);
@@ -610,10 +610,10 @@ public static class Meritocracy
     /// 約2倍に見え、第1段（今より稼げる職×転職のプレミアム）がほぼ通らず強制の残り（最良の1つへ総取り）へ落ちた。民間どうしの比較は頭数あたりのまま（変えていない）。</summary>
     private static double JobIncome(Pop t, Pop src)
     {
-        double inc = Math.Max(0, t.Earned) / t.Size;
+        double inc = Math.Max(0, t.EarnedPerMonth) / t.Size;
         if (t.IsSoldier == src.IsSoldier) return inc;   // 民間どうし（兵士どうしは自分自身＝候補にならない）＝世帯の頭数あたりのまま
         double wa = t.IsSoldier ? t.Size : Military.WorkingAdults(t);   // 働き手の人数（兵士 POP は働き盛りの男だけ＝頭数）
-        double perWorker = wa > Eps ? Math.Max(0, t.Earned) / wa : 0;
+        double perWorker = wa > Eps ? Math.Max(0, t.EarnedPerMonth) / wa : 0;
         double perHead = src.Size > Eps ? Military.WorkingAdults(src) / src.Size : 0;
         return perWorker * perHead;
     }
@@ -665,7 +665,7 @@ public static class Meritocracy
     {
         double f = c.FallAnchorReform;
         if (f <= 0) return avgAsset;
-        double annualPerCap = Calendar.PerMonthToPerYear(Math.Max(0, Math.Max(p.Earned, p.LastEarned))) / Math.Max(Eps, p.Size);
+        double annualPerCap = Calendar.PerMonthToPerYear(Math.Max(0, Math.Max(p.EarnedPerMonth, p.LastEarnedPerMonth))) / Math.Max(Eps, p.Size);
         return (1.0 - f) * avgAsset + f * annualPerCap;
     }
 

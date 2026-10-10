@@ -358,7 +358,7 @@ public partial class GameViewModel : ViewModelBase
     //   軍の規模は抽象ゲージでなく**人数**で見せる（代表スケール1単位＝1000人）。質（即応・熟練・技術・装備）は
     //   数に混ぜない＝勝勢%・即応%・熟練ツールチップへ分離。数は嘘をつかない（多いが弱い軍＝アヘン戦争が読める）。
     //   Nation を持たない抽象的な外国だけはゲージ×SoldiersPerMilitary で人数へ近似（実POPが無い）。
-    private double TroopUnits(Power p) => p.Nation is { } nw ? nw.SoldierSize() : p.Military * _player.Coef.SoldiersPerMilitary;
+    private double TroopUnits(Power p) => p.Nation is { } nw ? nw.SoldierSizeK() : p.Military * _player.Coef.SoldiersPerMilitary;
     private string Troops(Power p) => Men(TroopUnits(p));
     /// <summary>兵数の書式（units＝1000人単位）。1万人未満は実数、以上は万人（桁に応じて小数を落とす）。</summary>
     public static string Men(double units)

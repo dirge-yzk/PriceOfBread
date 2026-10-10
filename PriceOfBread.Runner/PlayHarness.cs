@@ -219,14 +219,14 @@ internal static class PlayHarness
         sb.AppendLine($"================ {w.Year}年 Q{w.Quarter}　{sp.Name} ================");
         sb.AppendLine($"政体 {w.Polity}　正統性 {w.Legitimacy:P0}　自由度 {w.Freedom:F2}　交戦 {(w.AtWarNow ? "★あり" : "なし")}");
         sb.AppendLine($"人口 {pop:N0}（都市 {urbanPop / N:P1}）　識字 {lit / N:P1}　生活水準 {NationalScore.MeanSatisfaction(w):F3}　闘争度 {Politics.AvgMassMilitancy(w):F3}　政治意識 {cons / N:F3}");   // ★2026-09-26（sweep-13）：生活水準と闘争度は画面・帯と同じ大衆の母集団（エンジンの1本）＝旧は全POPの別の数
-        sb.AppendLine($"国庫 {w.Treasury:N0}　名目GDP {w.NominalGdp:N0}　技術 {w.TechLevel:F2}（世界先端 {w.WorldTechLevel:F2}）　エリート {w.Elite:F3}　pop貯蓄計 {savings:N0}");
+        sb.AppendLine($"国庫 {w.Treasury:N0}　名目GDP {w.NominalGdpPerMonth:N0}　技術 {w.TechLevel:F2}（世界先端 {w.WorldTechLevel:F2}）　エリート {w.Elite:F3}　pop貯蓄計 {savings:N0}");
 
         sb.AppendLine();
         sb.AppendLine("---- 財政 ----");
         sb.AppendLine($"所得税 {w.TaxRate:P0}　人頭税 {w.PollTax:P0}　土地税 {w.LandTax:P0}{(w.LandTaxUnlocked ? "" : "（未解禁）")}　累進 {w.ProgressiveTax:P0}　専売の負担 {w.StateMonopolyBreadth:P0}（実効 {w.StateMonopolyBreadth * w.Coef.StateMonopolyMargin:P0}）");
         sb.AppendLine($"関税 {w.Tariff:P0}　教育費 {w.EducationSpending:P0}　行政費 {w.AdminSpending:P0}　社会保障 {w.SocialSecurity:P0}");
         sb.AppendLine($"★近代化投資 {w.ModernizationFrac:P0}（今四半期の予算 {w.ModernizationBudget():N0}）　総動員 {w.Mobilized}");
-        sb.AppendLine($"陸軍維持費 {w.ArmyUpkeep:P0}　海軍維持費 {w.NavyUpkeep:P0}　徴税漏れ {w.LastTaxLeak:N0}　植民地維持 {w.LastColonialUpkeep:N0}");
+        sb.AppendLine($"陸軍維持費 {w.ArmyUpkeep:P0}　海軍維持費 {w.NavyUpkeep:P0}　徴税漏れ {w.LastTaxLeak:N0}　植民地維持 {w.LastColonialUpkeepPerMonth:N0}");
 
         var led = w.TreasuryLedger;
         string Cat(TreasuryCat c) => $"{c}:{led[(int)c]:N0}";

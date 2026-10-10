@@ -43,7 +43,7 @@ public static class NationalScore
     /// <summary>豊かさの内訳＝正典が内訳を公開する（Runner の国力内訳計器が `/12000`・`×9`・`×12` を書き写していた重複を畳む・2026-09-11 #15）。</summary>
     internal static (double Gdp, double Ind, double Sat, double Col) WealthParts(World w)
     {
-        double gdpScale = w.Gdp / GdpScaleDivisor;          // 経済規模（人口を内包）。24000→12000＝大国（仏・墺・日）の経済規模を「大国」らしく評価
+        double gdpScale = w.GdpPerMonth / GdpScaleDivisor;          // 経済規模（人口を内包）。24000→12000＝大国（仏・墺・日）の経済規模を「大国」らしく評価
         // #17 規模の限界逓減：巨大経済(清＝人口361M)が線形で暴走し首位を固定する（1799–1914ずっと清が1位）のを抑える。大経済は高く評価しつつ上限へ漸近させ、トップを「争える」状態に。
         // 改修2026-06-28：逓減を強化(20→12)＝清の規模暴走をさらに抑え、欧州の技術/発展が上回れるように。⚠ NationalScore は測定だけの物差しではない＝毎四半期の外交のランク（侵略の標的・植民地化・介入）と条約港の失効も読む＝重みの調整は AI の標的も動かす（2026-09-26 訂正・棚卸し fis-25）。
         gdpScale /= 1 + gdpScale / GdpDiminishingDivisor;
@@ -135,7 +135,7 @@ public sealed class UtilityAgent : INationAgent
     // ★鋼市場診断#5（2026-08-16・Coefficients.AiProtectiveTariff>0 のときだけ読む）判定線：
     private const double AiTariffEmaRate = 0.25;          // 輸入EMAの追従率（四半期0.25＝約1年の記憶＝「前年比」の最小実装。新しい状態はAI個体の _importEma 1本だけ）
     private const double AiTariffSurgeRatio = 1.5;        // 対EMA比これ超＝輸入急増（1870年代の穀物侵入・英国鋼の輸出攻勢級の流入）
-    private const double AiTariffImportFloorShare = 0.001; // 急増と数える最小規模＝輸入額（清算単位＝月次清算では直近1か月分・NominalGdp も月次フロー）>名目GDP×これ（規模中立＝微小財の雑音で関税を動かさない）
+    private const double AiTariffImportFloorShare = 0.001; // 急増と数える最小規模＝輸入額（清算単位＝月次清算では直近1か月分・NominalGdpPerMonth も月次フロー）>名目GDP×これ（規模中立＝微小財の雑音で関税を動かさない）
     private const double TensionNormalizer = 100.0;            // 緊張の正規化スケール
     private const double TensionUtilityWeight = 2.0;           // スタンス効用：緊張項の重み
     private const double SurvivalRatioCap = 3.0;                // 生存効用：脅威比超過分のクランプ上限
@@ -397,15 +397,15 @@ public sealed class UtilityAgent : INationAgent
         => w.Coef.MilitaryBuildCostCapScale > 1.0 && Catalog.FactorySpec(goodId).Category == "軍需" ? w.Coef.MilitaryBuildCostCapScale : 1.0;
 
     public static double FiscalBufferOf(World w)
-        => Math.Max(1.0, w.Coef.FiscalStressBufferMonths * (w.LastInterest + w.LastAdminClaim + w.LastMilitaryClaim));   // （連合維持費は 2026-09-30 (135) に撤去＝行政と兵力の購買の1本）
+        => Math.Max(1.0, w.Coef.FiscalStressBufferMonths * (w.LastInterestPerMonth + w.LastAdminClaimPerMonth + w.LastMilitaryClaimPerMonth));   // （連合維持費は 2026-09-30 (135) に撤去＝行政と兵力の購買の1本）
     // ⚠R3安定形（2026-08-08作者裁定「不具合として解決・安定するように」）：兵士給与は**ここ（緊縮反射の分母）には入れない**
     //   ＝R3=1.0の全面算入は世界的な緊縮暴発で棄却済み。給与は下の OpulenceLineOf（潤沢判定＝減税反射・支出反射の線）にだけ算入
     //   ＝清の「軍の請求書を見ない潤沢判定→減税」の嘘だけを閉じ、austerity側は不変。
 
     /// <summary>潤沢線＝「これを超える国庫は取り過ぎ」の物差し（RelieveOpulence と SpendableRevenue が共有＝減税反射と支出反射の対）。
-    /// 兵士給与（LastSoldierPay＝国庫minで切る前の真の請求書）を FiscalBufferSoldierPayWeight で算入＝大軍国は潤沢と誤判定されない。</summary>
+    /// 兵士給与（LastSoldierPayPerMonth＝国庫minで切る前の真の請求書）を FiscalBufferSoldierPayWeight で算入＝大軍国は潤沢と誤判定されない。</summary>
     public static double OpulenceLineOf(World w)
-        => (FiscalBufferOf(w) + w.Coef.FiscalBufferSoldierPayWeight * w.Coef.FiscalStressBufferMonths * w.LastSoldierPay) * OpulenceBufferQuarters;
+        => (FiscalBufferOf(w) + w.Coef.FiscalBufferSoldierPayWeight * w.Coef.FiscalStressBufferMonths * w.LastSoldierPayPerMonth) * OpulenceBufferQuarters;
 
     /// <summary>財政逼迫度∈[0,1]＝1−国家の支払い率 r（作者裁定 R4・2026-09-28 支払いの一元化 段2-1）＝全ての国家の支払いの請求のうち払えない割合（0=十分・1=1銭も払えない）。
     /// 旧＝国庫が財政バッファ（月次義務の何か月分か）を下回る度合い＝r と別の物差しで、請求の一部（維持費・利払い・行政・軍装備）しか見なかった。
@@ -836,7 +836,7 @@ public sealed class UtilityAgent : INationAgent
         // AIは実力どおりの新平価を選ぶ（ポワンカレ型）＝旧平価に戻すという自傷は**プレイヤーだけが選べる選択肢**。
         // 機構は対称で、判断だけが違う（巨大建造物と同じ作法）。ゲートは Fiscal が持つので、ここは意思だけ。
         if (w.Coef.CurrencyReformEnabled > 0.5 && !w.OnGoldStandard && w.CurrencyReformCooldown <= 0
-            && w.NominalGdp > 1e-9 && w.CumulativeDevaluation / w.NominalGdp > w.Coef.CapitalFlightDistrustThreshold
+            && w.NominalGdpPerMonth > 1e-9 && w.CumulativeDevaluation / w.NominalGdpPerMonth > w.Coef.CapitalFlightDistrustThreshold
             && w.NoDevaluationMonths >= w.Coef.CurrencyReformCalmMonths)
             w.RequestCurrencyReform(w.ExchangeRate);
         // ★潤沢の減税（RelieveOpulence）は Apply の中＝門（GateAllLawTargets）の前へ移した（2026-09-28 (85)）。
@@ -926,7 +926,7 @@ public sealed class UtilityAgent : INationAgent
             _importEma = (double[])imp.Clone();                // 初回（と財数の変化）＝現在値で初期化＝比1.0＝急増と誤認しない
             return;
         }
-        double floor = AiTariffImportFloorShare * w.NominalGdp;
+        double floor = AiTariffImportFloorShare * w.NominalGdpPerMonth;
         bool surge = false;
         for (int g = 0; g < imp.Length; g++)
         {
@@ -1816,7 +1816,7 @@ public static class SelfPlayMatch
                 double growthGross = initPop.TryGetValue(bn, out var p0) && p0 > 1e-9 ? w.TotalPopulation / p0 : 0;   // 0=初期人口不明＝測定対象外（建国スポーンなど）
                 double growth = growthGross > 0 ? System.Math.Max(0, w.TotalPopulation - baggage) / p0 : 0;
                 return new NationStanding(w.Region.Name, NationalScore.Standing(w), w.TechLevel,   // 序列は在庫（2026-08-02）＝忠実度の列強軸も首位交代も同じ物差しで見る
-                    w.MeanIndustrialization, NationalScore.MeanSatisfaction(w), w.SelfPower?.Colonies ?? 0, w.Gdp,
+                    w.MeanIndustrialization, NationalScore.MeanSatisfaction(w), w.SelfPower?.Colonies ?? 0, w.GdpPerMonth,
                     w.TotalPopulation, w.SelfPower?.Military ?? 0, w.Polity, w.WarDeadCumulative, w.Tariff,
                     w.Suffrage, w.EducationLaw, w.Censorship, w.LaborUnion, w.WorkHours, w.CornLaws, w.LandReform, w.SerfEmancipation, w.Pension,
                     PoliticalQuantities.MilitaryPoliticalRatio(w), w.ConscriptionLaw,   // ★軍の政治的優位（導出量）＋徴兵法（法）＝2026-08-18の親軍法撤去で bool 1本が2本に分かれた
@@ -1826,12 +1826,12 @@ public static class SelfPlayMatch
                     growth,   // B-中7：1783年比の人口成長倍率
                     HomeProvinceCount(w),   // 08の70%計器（2026-07-31）：本国州の保有数＝領土次元の分子
                     w.SelfPower?.NavalPower ?? 0, w.SelfPower?.LandPower ?? 0, EconomyStep.FleetPowerValue(w),   // ★2026-08-01：陸海の内訳（海軍力の測定＝作者裁定）・★(189) 艦の強さの値（隻数×建造費×段の乗数の和）
-                    // ★★物差し是正（2026-08-21・作者裁定「全て採用」）：旧＝分子（輸出入）は四半期フロー×4＝**年額**、分母 NominalGdp は**月次フロー**
+                    // ★★物差し是正（2026-08-21・作者裁定「全て採用」）：旧＝分子（輸出入）は四半期フロー×4＝**年額**、分母 NominalGdpPerMonth は**月次フロー**
                     //   ＝「年額÷月額」で**12倍過大**だった。⚠債務/GDPは同じ問題を DebtGdpAnnualized=1.0（2026-07-26点火）で是正済み＝
-                    //   貿易だけ取り残された内部矛盾の修正（Fiscal.cs 財7「債務/GDPの単位整合」の注記が「NominalGdp は月次フロー」と明記）。
+                    //   貿易だけ取り残された内部矛盾の修正（Fiscal.cs 財7「債務/GDPの単位整合」の注記が「NominalGdpPerMonth は月次フロー」と明記）。
                     //   分母を ×MonthsPerYear で年換算＝英1913 の実測は 0.43%→0.034%＝史実25%との差は×17でなく**×190**
                     //   ＝「較正で届く段階ではなく構造をもう一段変える段階」と物差しが正しく教えるようになる。
-                    ((w.ExportsByGood?.Sum() ?? 0) + (w.ImportsByGood?.Sum() ?? 0)) * w.Coef.ClearingsPerYear / System.Math.Max(1.0, Calendar.PerMonthToPerYear(w.NominalGdp)),   // 清算単位→年換算（月次清算に追随）
+                    ((w.ExportsByGood?.Sum() ?? 0) + (w.ImportsByGood?.Sum() ?? 0)) * w.Coef.ClearingsPerYear / System.Math.Max(1.0, Calendar.PerMonthToPerYear(w.NominalGdpPerMonth)),   // 清算単位→年換算（月次清算に追随）
                     PoliticalQuantities.MilitaryPush(w), PoliticalQuantities.CivilianValve(w),   // ★計器（2026-08-18）：軍の政治的優位の分子と分母。⚠合成値だけを見て2度誤ったので内訳を運ぶ
                     PoliticalQuantities.AppointmentAtCourt(w), w.Legitimacy,                      //   弁の2項（任免の所在・正統性）＝弁が飽和しているのか片方が死んでいるのかを分ける
                     PowerAffinity.PolityFromShares(w),                                            // ★導出政体（2026-08-21）＝忠実度の政体次元の新しい物差し
@@ -1914,7 +1914,7 @@ public static class SelfPlayMatch
                     // ★床の材料（worldOutThis）は助走中も積む（wave2b G06#5）：旧＝ q>=warmupQ の期しか積まず、
                     //   warmupQ ちょうどの1期だけ worldOutPrev==0 で floorOut が絶対額1.0（通貨の絶対額＝:1475 のコメントが
                     //   「誤り」と明記する床）に落ちていた。outQ は warmup に依存しない値＝計上先だけ外へ出す。
-                    double outQ = w.NominalGdp * monthsPerQuarter;   // NominalGdp は月次フロー（Fiscal.cs 財7の注記）
+                    double outQ = w.NominalGdpPerMonth * monthsPerQuarter;   // NominalGdpPerMonth は月次フロー（Fiscal.cs 財7の注記）
                     worldOutThis += outQ;
                     if (q >= warmupQ)
                     {
@@ -1938,7 +1938,7 @@ public static class SelfPlayMatch
                     // 恐慌計測：助走後、平滑化GDP（トレンド）のピーク比収縮を追う
                     if (q >= warmupQ)
                     {
-                        gdpTrend[i] += gdpSmooth * (w.Gdp - gdpTrend[i]);   // EMA＝高頻度の市場ノイズを除去
+                        gdpTrend[i] += gdpSmooth * (w.GdpPerMonth - gdpTrend[i]);   // EMA＝高頻度の市場ノイズを除去
                         if (gdpTrend[i] > gdpPeak[i]) gdpPeak[i] = gdpTrend[i];
                         worldTrendThis += gdpTrend[i];
                         // ★DDの産出床（史実基準化）：残骸国家（世界平均の1/1000未満）の〜100%収縮を世界DDに数えない。
@@ -1949,7 +1949,7 @@ public static class SelfPlayMatch
                         if (dd > worstDrawdown) worstDrawdown = dd;
                         if (isMajor[i])
                         {
-                            double pc = w.Gdp / System.Math.Max(1.0, w.TotalPopulation);
+                            double pc = w.GdpPerMonth / System.Math.Max(1.0, w.TotalPopulation);
                             gdpPcTrend[i] += gdpSmooth * (pc - gdpPcTrend[i]);
                             if (gdpPcTrend[i] > gdpPcPeak[i]) gdpPcPeak[i] = gdpPcTrend[i];
                             double ddPc = gdpPcPeak[i] > 0 && gdpPeak[i] > ddFloor ? 1.0 - gdpPcTrend[i] / gdpPcPeak[i] : 0;
@@ -1971,7 +1971,7 @@ public static class SelfPlayMatch
                         }
                         else if (inDepression[i] && dd < depExit) inDepression[i] = false;
                     }
-                    else { gdpTrend[i] = w.Gdp; gdpPeak[i] = w.Gdp; double pc0 = w.Gdp / System.Math.Max(1.0, w.TotalPopulation); gdpPcTrend[i] = pc0; gdpPcPeak[i] = pc0; }   // 助走中はトレンドとピークを初期化（立ち上げを恐慌と誤認しない）
+                    else { gdpTrend[i] = w.GdpPerMonth; gdpPeak[i] = w.GdpPerMonth; double pc0 = w.GdpPerMonth / System.Math.Max(1.0, w.TotalPopulation); gdpPcTrend[i] = pc0; gdpPcPeak[i] = pc0; }   // 助走中はトレンドとピークを初期化（立ち上げを恐慌と誤認しない）
                 }
                 if (q >= quarters - Validation.SatRecentQuarters)   // ★(68) 添字は sim.Nations と同じ（Metrics.Compute と同じ順）
                     satWindow.Add([.. sim.Nations.Select(n => NationalScore.MeanSatisfaction(n.World))]);
@@ -2104,7 +2104,7 @@ public static class SelfPlayMatch
             double ex = 0, im = 0;
             if (w.ExportsByGood is { } eg) foreach (var v in eg) ex += v;
             if (w.ImportsByGood is { } ig) foreach (var v in ig) im += v;
-            sum += (ex + im) * w.Coef.ClearingsPerYear / System.Math.Max(1.0, Calendar.PerMonthToPerYear(w.NominalGdp)); n++;   // ★物差し是正（2026-08-21）＝分母を年換算（上の TradeGdp と同一の是正・単位＝年額÷年額）。分子は清算単位→年換算（月次清算に追随）
+            sum += (ex + im) * w.Coef.ClearingsPerYear / System.Math.Max(1.0, Calendar.PerMonthToPerYear(w.NominalGdpPerMonth)); n++;   // ★物差し是正（2026-08-21）＝分母を年換算（上の TradeGdp と同一の是正・単位＝年額÷年額）。分子は清算単位→年換算（月次清算に追随）
         }
         return n > 0 ? sum / n : 0;
     }

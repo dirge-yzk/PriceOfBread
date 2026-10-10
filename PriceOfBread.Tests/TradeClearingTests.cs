@@ -114,7 +114,7 @@ public class TradeClearingTests
         Assert.Equal(0.0, w.ExportsByGood!.Sum());
         Assert.True(port > 1e-9, "同じ国の海路（本国と海外の州）が港の取扱高に積まれていない");
         // ★段3-1（2026-09-29）：国内の決済＝関税は取らず、世界の台帳は清算所への払いと受け取りが打ち消して動かない（国境をまたいでいない）
-        Assert.Equal(0.0, w.LastTariffRevenue);
+        Assert.Equal(0.0, w.LastTariffRevenuePerClearing);
         Assert.True(Math.Abs(w.CumulativeTradeFlow - tf0) <= 1e-9 * Math.Max(1.0, Math.Abs(tf0)), $"国内の取引が世界の台帳を動かした（{w.CumulativeTradeFlow - tf0}）");
     }
 
@@ -166,7 +166,7 @@ public class TradeClearingTests
             sim.Market.Step(sim.Nations, sim.Coef);
             double q = 0; foreach (var r in gen.Regions) if (r.State == RegionState.Active) q += r.Markets[g].LastExport;
             Assert.True(q > 1e-9 && gen.LastExportValue > 1e-9, "ジェノヴァの越境の輸出が立っていない（テスト前提の破れ）");
-            return (gen.LastExportValue / q, tus.LastTariffRevenue, tus.TreasuryLedger[(int)TreasuryCat.Tariff] - led0, gen.LastExportValue);
+            return (gen.LastExportValue / q, tus.LastTariffRevenuePerClearing, tus.TreasuryLedger[(int)TreasuryCat.Tariff] - led0, gen.LastExportValue);
         }
         var free = Run(0.0);
         var taxed = Run(0.3);

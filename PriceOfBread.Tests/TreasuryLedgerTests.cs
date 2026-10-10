@@ -93,14 +93,14 @@ public class TreasuryLedgerTests
         Assert.True(w.GovDebt > 0, "前提：国債が無い");
         // 国庫を空に＝払える額は当月の歳入の見込みだけ。国庫の現金は1つの POP へ移す（保存則を割らない＝台帳の区分 OtherOut で記帳）。
         // 行政費を歳入の3倍へ＝行政の予算（行政費×AdminBudgetFrac×歳入）が歳入を超える＝r＜1 の月を作る（四半期首の政策の反映の後なので月内は保たれる）
-        double drain = w.Treasury + 3 * System.Math.Max(1.0, w.LastRevenue);
+        double drain = w.Treasury + 3 * System.Math.Max(1.0, w.LastRevenuePerMonth);
         World.Transfer((w, null), (w, [w.Regions[0].Pops[0]], [1.0]), drain, TreasuryCat.OtherOut);   // 移し方の1本（2026-09-30 段4g＝国庫の口は private）
         w.AdminSpending = 3.0;
         w.Coef.DevaluationCapFrac = 0;   // 切り下げの余地を閉じる（2026-09-28 から切り下げは払える額の側＝仏は不換で、余地が払えない分を埋めて r＝1 になる・切り下げは下の番人が見る）
-        w.BorrowCooldown = 1;            // 借りられない月（2026-09-28 (b) から借入は月初の払える額の側＝借りられる月は借りて r＝1 になる・借入と切り下げの順は下の番人が見る）
+        w.BorrowCooldownMonths = 1;            // 借りられない月（2026-09-28 (b) から借入は月初の払える額の側＝借りられる月は借りて r＝1 になる・借入と切り下げの順は下の番人が見る）
         for (int d = 0; d < 28; d++) sim.StepDay();
         sim.StepDayOpen(); sim.StepDayDaily();   // 日29の日次まで＝次の締め（月次決算）の直前＝r を決める時点と同じ国庫と見込み
-        double payable = System.Math.Max(0, w.Treasury) + w.LastRevenue;
+        double payable = System.Math.Max(0, w.Treasury) + w.LastRevenuePerMonth;
         double spent0 = SpentOf(w);
         double intL0 = w.TreasuryLedger[(int)TreasuryCat.Interest], admL0 = w.TreasuryLedger[(int)TreasuryCat.Admin], debt0 = w.GovDebt, bor0 = w.TreasuryLedger[(int)TreasuryCat.Borrow];
         sim.StepDayClose(); w.FlushLog();        // 月次決算（r を決める→予算→精算→財政）
@@ -109,10 +109,10 @@ public class TreasuryLedgerTests
         Assert.Equal(1.0 - r, UtilityAgent.FiscalStressOf(w), 12);   // AI の逼迫度＝1−r（R4）
         // 利子：払った額＝請求×r・残りは元本へ（国内の持ち手がいる＝繰り入れる）
         double intPaid = intL0 - w.TreasuryLedger[(int)TreasuryCat.Interest];
-        Assert.True(w.LastInterest > 0, "前提：利子の請求が0");
-        Assert.True(System.Math.Abs(intPaid - r * w.LastInterest) <= 1e-9 * w.LastInterest, $"利子の支払い {intPaid:F6} ≠ r×請求 {r * w.LastInterest:F6}（r={r:F4}）");
+        Assert.True(w.LastInterestPerMonth > 0, "前提：利子の請求が0");
+        Assert.True(System.Math.Abs(intPaid - r * w.LastInterestPerMonth) <= 1e-9 * w.LastInterestPerMonth, $"利子の支払い {intPaid:F6} ≠ r×請求 {r * w.LastInterestPerMonth:F6}（r={r:F4}）");
         double borrowed = w.TreasuryLedger[(int)TreasuryCat.Borrow] - bor0;   // 借入（冷却中＝0 のはず）は元本の増分から除く
-        Assert.True(System.Math.Abs((w.GovDebt - debt0 - borrowed) - (1 - r) * w.LastInterest) <= 1e-9 * System.Math.Max(1.0, w.GovDebt), $"元本の増分（借入を除く）{w.GovDebt - debt0 - borrowed:F6} ≠ 利子の未払い {(1 - r) * w.LastInterest:F6}");
+        Assert.True(System.Math.Abs((w.GovDebt - debt0 - borrowed) - (1 - r) * w.LastInterestPerMonth) <= 1e-9 * System.Math.Max(1.0, w.GovDebt), $"元本の増分（借入を除く）{w.GovDebt - debt0 - borrowed:F6} ≠ 利子の未払い {(1 - r) * w.LastInterestPerMonth:F6}");
         Assert.True(BondLedger.Balanced(w, HeldSum(w)), "繰り入れの後に保有台帳（Σ保有＝国内元本）が割れた");
         // 行政：区分 Admin の減り＝行政の調達（StateSpent の Admin）だけ（連合維持費の人頭割りは 2026-09-30 (135) に撤去＝官僚と兵士の給与は購買の1本）
         double stateAdmin = 0; foreach (var rg in w.Regions) if (rg.State == RegionState.Active) stateAdmin += rg.StateSpent[(int)TreasuryCat.Admin];
@@ -121,8 +121,8 @@ public class TreasuryLedgerTests
         Assert.True(System.Math.Abs(adminOther) <= 1e-9 * stateAdmin, $"区分 Admin に行政の購買の外の支払い {adminOther:F6} がある（連合維持費が戻った？）");
         // 兵士の給与：予算＝請求×r（旧＝州ごとの min(国庫)＝先着）
         double soldierBudget = 0; foreach (var rg in w.Regions) if (rg.State == RegionState.Active) soldierBudget += rg.SoldierPayBudget;
-        Assert.True(w.LastSoldierPay > 0, "前提：兵士の給与の請求が0");
-        Assert.True(System.Math.Abs(soldierBudget - r * w.LastSoldierPay) <= 1e-9 * w.LastSoldierPay, $"兵士の給与の予算 {soldierBudget:F6} ≠ r×請求 {r * w.LastSoldierPay:F6}");
+        Assert.True(w.LastSoldierPayPerMonth > 0, "前提：兵士の給与の請求が0");
+        Assert.True(System.Math.Abs(soldierBudget - r * w.LastSoldierPayPerMonth) <= 1e-9 * w.LastSoldierPayPerMonth, $"兵士の給与の予算 {soldierBudget:F6} ≠ r×請求 {r * w.LastSoldierPayPerMonth:F6}");
         // r＜1 の月は国家の支払いの合計≦払える額（月初の請求の見込みは先月の請求＝その誤差の分だけ相対 2% まで許す）
         double spent = SpentOf(w) - spent0;
         Assert.True(spent <= payable * 1.02, $"r＜1 の月の国家の支払い {spent:F3} が払える額 {payable:F3} を超えた（{spent / payable:P2}）");
@@ -178,7 +178,7 @@ public class TreasuryLedgerTests
         var w = sim.World; var c = w.Coef;
         int bo = (int)TreasuryCat.Borrow, rp = (int)TreasuryCat.DebtRepay;
         const double Big = 1e18;
-        Assert.True(w.LastInterest < c.MaxInterestShareOfRevenue * w.LastRevenue && w.BorrowCooldown <= 0, "前提：借入の上限か冷却中");
+        Assert.True(w.LastInterestPerMonth < c.MaxInterestShareOfRevenue * w.LastRevenuePerMonth && w.BorrowCooldownMonths <= 0, "前提：借入の上限か冷却中");
         // (a) 払えない額が無い（spare≧0・NaN）＝借りない
         double b0 = w.TreasuryLedger[bo];
         Assert.Equal(0.0, Fiscal.Borrow(w, c, 0));
@@ -187,7 +187,7 @@ public class TreasuryLedgerTests
         Assert.Equal(b0, w.TreasuryLedger[bo]);
         // (b) 払えない額がある＝誰も予約しないのにエンジンが借りる（月に1件・借りた額は国庫の台帳の借入へ）
         double got = Fiscal.Borrow(w, c, -Big);
-        Assert.True(got > 0, $"払えない月にエンジンが借りない（利払い÷歳入 {w.LastInterest / System.Math.Max(1e-9, w.LastRevenue):F3}）");
+        Assert.True(got > 0, $"払えない月にエンジンが借りない（利払い÷歳入 {w.LastInterestPerMonth / System.Math.Max(1e-9, w.LastRevenuePerMonth):F3}）");
         Assert.True(System.Math.Abs(got - (w.TreasuryLedger[bo] - b0)) <= 1e-9 * got, "借りた額が台帳の借入と合わない");
         // (b') 月末の決算を挟んだ次の払えない月も同じ1行でまた1件
         w.FiscalFundingRatio = 1.0; Fiscal.Step(w, c, 0);
@@ -201,7 +201,7 @@ public class TreasuryLedgerTests
         Assert.Equal(d0, w.TreasuryLedger[rp]);
         // (d) r＝1 かつ余剰あり：返す（額は余剰まで）
         w.FiscalFundingRatio = 1.0;
-        double spare = 0.5 * w.GovDebt * c.BondRepayFrac;
+        double spare = 0.5 * w.GovDebt * c.BondRepayFracPerMonth;
         double d1 = w.TreasuryLedger[rp];
         Fiscal.Step(w, c, spare);
         double repaid = d1 - w.TreasuryLedger[rp];
@@ -226,9 +226,9 @@ public class TreasuryLedgerTests
         sim.Run(4);
         var w = sim.World; var c = w.Coef;
         int bo = (int)TreasuryCat.Borrow;
-        double Unit() => System.Math.Max(0, w.NominalGdp) * c.BorrowFractionOfGdp;   // 1件の額（Fiscal と同じ式・月ごとに読み直す）
+        double Unit() => System.Math.Max(0, w.NominalGdpPerMonth) * c.BorrowFractionOfGdp;   // 1件の額（Fiscal と同じ式・月ごとに読み直す）
         Assert.True(Unit() > 1, $"前提：1件の額が立っていない（{Unit()}）");
-        Assert.True(w.LastInterest < c.MaxInterestShareOfRevenue * w.LastRevenue && w.BorrowCooldown <= 0, "前提：借入の上限か冷却中");
+        Assert.True(w.LastInterestPerMonth < c.MaxInterestShareOfRevenue * w.LastRevenuePerMonth && w.BorrowCooldownMonths <= 0, "前提：借入の上限か冷却中");
         // ① 少しの不足＝その額だけ借りる
         double u1 = Unit(), small = 0.25 * u1;
         double b0 = w.TreasuryLedger[bo];
@@ -246,7 +246,7 @@ public class TreasuryLedgerTests
     /// ①利払い÷歳入が限界の下なら借りる（借りられた月は、r＜1 でも不履行の計数は進まない）
     /// ②限界に届いたら借りない・その月が払えない（r＜1）なら不履行の計数が進み、払えている（r＝1）なら進まない
     /// ③同じ実体の国で物価水準が2倍（名目の量を全て2倍）でも、門の判定は同じで借りる額はちょうど2倍＝上限の比は物価水準に依らない（1件の額は名目GDP・門は名目÷名目）。
-    /// 盤面＝同じ種の双子（ビット単位で同じ）。門が読む利払いと歳入は盤面の LastInterest・LastRevenue（2026-09-28 (b) から借入は月初＝直近の月次決算の量）。
+    /// 盤面＝同じ種の双子（ビット単位で同じ）。門が読む利払いと歳入は盤面の LastInterestPerMonth・LastRevenue（2026-09-28 (b) から借入は月初＝直近の月次決算の量）。
     /// 突然変異：1件の額を実質GDPへ戻す→①③が赤／門を外す→②が赤／不履行の計数で r を見ない→②が赤／門の歳入を実質で測る（÷物価水準）→①か③が赤。</summary>
     [Fact]
     public void 借入の上限は利払いが歳入の限界に届く所で物価水準が2倍でも比は変わらない()
@@ -265,12 +265,12 @@ public class TreasuryLedgerTests
         // 名目の量を全て2倍にする（2倍は浮動小数で厳密＝和も積もちょうど2倍）＝同じ実体・物価水準2倍
         static void DoubleNominal(World w)
         {
-            w.PriceLevel *= 2; w.GovDebt *= 2; w.ForeignDebt *= 2; w.LastTariffRevenue *= 2; w.ForeignBondInvestorPool *= 2;
-            w.LastInterest *= 2; w.LastRevenue *= 2;   // 門が読む直近の月次決算の量
+            w.PriceLevel *= 2; w.GovDebt *= 2; w.ForeignDebt *= 2; w.LastTariffRevenuePerClearing *= 2; w.ForeignBondInvestorPool *= 2;
+            w.LastInterestPerMonth *= 2; w.LastRevenuePerMonth *= 2;   // 門が読む直近の月次決算の量
             foreach (var r in w.Regions)
             {
                 r.StateSpent[(int)TreasuryCat.StateMonopoly] *= 2;
-                foreach (var p in r.Pops) { p.SetSavings(p.Savings * (2)); p.Earned *= 2; p.LandRent *= 2; p.BondHoldings *= 2; }
+                foreach (var p in r.Pops) { p.SetSavings(p.Savings * (2)); p.EarnedPerMonth *= 2; p.LandRentPerMonth *= 2; p.BondHoldings *= 2; }
             }
         }
         const double Big = 1e18;
@@ -284,12 +284,12 @@ public class TreasuryLedgerTests
             return got;
         }
         var a = Twin();
-        double share = a.LastInterest / a.LastRevenue;
-        Assert.True(a.LastInterest > 0 && a.LastRevenue > 0 && share > 0, $"前提：利払いと歳入が立っていない（{a.LastInterest}／{a.LastRevenue}）");
+        double share = a.LastInterestPerMonth / a.LastRevenuePerMonth;
+        Assert.True(a.LastInterestPerMonth > 0 && a.LastRevenuePerMonth > 0 && share > 0, $"前提：利払いと歳入が立っていない（{a.LastInterestPerMonth}／{a.LastRevenuePerMonth}）");
         double below = share * 1.001, above = share * 0.999;
 
         // ① 限界の下＝借りる（大きな不足＝1件の額＝名目GDP×割合でちょうど止まる）・借りられた月は r＜1 でも不履行の計数は進まない
-        double unitA = a.NominalGdp * a.Coef.BorrowFractionOfGdp;
+        double unitA = a.NominalGdpPerMonth * a.Coef.BorrowFractionOfGdp;
         double gotA = Month(a, below, 0.5);
         Assert.True(gotA > 0, $"利払い÷歳入 {share:F4} が限界 {below:F4} の下なのに借りない");
         Assert.True(System.Math.Abs(gotA - unitA) <= 1e-9 * unitA, $"大きな不足で1件の額（名目GDP×割合）{unitA:F3} で止まっていない（{gotA:F3}＝1件の額の物差しが名目でないか、プールが先に尽きた）");
@@ -305,9 +305,9 @@ public class TreasuryLedgerTests
 
         // ③ 物価水準2倍の双子：門の判定は同じ・借りる額はちょうど2倍
         var b2 = Twin();
-        double n0 = b2.NominalGdp;
+        double n0 = b2.NominalGdpPerMonth;
         DoubleNominal(b2);
-        Assert.True(System.Math.Abs(b2.NominalGdp - 2 * n0) <= 1e-12 * n0, $"前提：名目GDPが2倍にならない（{n0}→{b2.NominalGdp}）");
+        Assert.True(System.Math.Abs(b2.NominalGdpPerMonth - 2 * n0) <= 1e-12 * n0, $"前提：名目GDPが2倍にならない（{n0}→{b2.NominalGdpPerMonth}）");
         double gotB = Month(b2, below, 0.5);
         Assert.True(System.Math.Abs(gotB - 2 * gotA) <= 1e-12 * gotA, $"物価水準2倍の双子の借入 {gotB:F3} が {2 * gotA:F3}（2倍）でない＝1件の額か門が実質の物差し");
         var z2 = Twin();
@@ -328,12 +328,12 @@ public class TreasuryLedgerTests
         sim.Run(4);
         sim.StepDay();
         var w = sim.World;
-        double drain = w.Treasury + 3 * System.Math.Max(1.0, w.LastRevenue);
+        double drain = w.Treasury + 3 * System.Math.Max(1.0, w.LastRevenuePerMonth);
         World.Transfer((w, null), (w, [w.Regions[0].Pops[0]], [1.0]), drain, TreasuryCat.OtherOut);   // 移し方の1本（2026-09-30 段4g＝国庫の口は private）
         w.AdminSpending = 3.0;
         w.Coef.DevaluationCapFrac = 0;   // 切り下げの余地を閉じる（仏は不換＝余地が払えない分を埋めて r＝1 になる・切り下げは下の番人が見る）
         double b0 = w.TreasuryLedger[(int)TreasuryCat.Borrow];
-        Assert.True(w.LastInterest < w.Coef.MaxInterestShareOfRevenue * w.LastRevenue && w.BorrowCooldown <= 0, "前提：借入の上限か冷却中");
+        Assert.True(w.LastInterestPerMonth < w.Coef.MaxInterestShareOfRevenue * w.LastRevenuePerMonth && w.BorrowCooldownMonths <= 0, "前提：借入の上限か冷却中");
         for (int d = 0; d < 29; d++) sim.StepDay();   // 月次決算を1回（借入→r を決める→…→財政）
         Assert.True(w.TreasuryLedger[(int)TreasuryCat.Borrow] > b0, "借りる主体のいない世界で払えない月にエンジンが借りない");
 
@@ -384,12 +384,12 @@ public class TreasuryLedgerTests
             double t0 = w.Treasury;
             World.Transfer((w, null), (w, [w.Regions[0].Pops[0]], [1.0]), t0, TreasuryCat.OtherOut);   // 国庫を0へ（現金は1つの POP へ移す＝保存則を割らない・移し方の1本）
             w.AdminSpending = 3.0;                                                    // 行政の予算が歳入を超える＝r＜1 の月を作る
-            w.BorrowCooldown = 1;                                                     // 借りられない月（この月の締めの月初は冷却中）
+            w.BorrowCooldownMonths = 1;                                                     // 借りられない月（この月の締めの月初は冷却中）
             if (capZero) w.Coef.DevaluationCapFrac = 0;
             for (int d = 0; d < 28; d++) sim.StepDay();
             sim.StepDayOpen(); sim.StepDayDaily();   // 締めの直前＝r を決める時点と同じ国庫と見込み
             w.Convertibility = conv;                 // 部分兌換＝余地は払えない分の半分（月の上限 DevaluationCapFrac の手前）
-            double payable = System.Math.Max(0, w.Treasury) + w.LastRevenue, overdraft = System.Math.Min(0, w.Treasury);
+            double payable = System.Math.Max(0, w.Treasury) + w.LastRevenuePerMonth, overdraft = System.Math.Min(0, w.Treasury);
             double dv0 = w.TreasuryLedger[(int)TreasuryCat.Devalue];
             sim.StepDayClose(); w.FlushLog();        // 月次決算（切り下げ→r→予算→精算→財政）
             return (w, payable, overdraft, w.TreasuryLedger[(int)TreasuryCat.Devalue] - dv0);
@@ -414,11 +414,11 @@ public class TreasuryLedgerTests
         // ③ その月の国債の金利に、この月の切り下げの速さ（×12÷年名目GDP）が信認の喪失として乗る（2026-09-29＝月次決算が月末の Fiscal.Step へこの月の切り下げを渡す）。
         //   G との差＝BondRateDistrustScale×速さ×兌換の割引×議会の割引（G は同じ月に未払いの利子が元本へ入った分だけ債務比が大きい＝その差は桁違いに小さい）。
         //   突然変異：月次決算が切り下げを渡さない（0）→赤。
-        double speed = dev * Calendar.MonthsPerYear / (wf.NominalGdp * Calendar.MonthsPerYear);
+        double speed = dev * Calendar.MonthsPerYear / (wf.NominalGdpPerMonth * Calendar.MonthsPerYear);
         double disc = (1.0 - conv * (1.0 - wf.Coef.GoldStandardRateDiscount)) * (1.0 - wf.Coef.BondRateRepresentationDiscount * PoliticalQuantities.Clamp01(wf.ParliamentControl));
         double want = wf.Coef.BondRateDistrustScale * speed * disc;
-        double got = wf.GovBondRate - wg.GovBondRate;
-        Assert.True(want > 1e-4 && wf.GovBondRate < wf.Coef.BondRateMax, $"前提：信認の喪失の上乗せ {want:E3} が立たないか上限に張り付いた（{wf.GovBondRate:F4}）");
+        double got = wf.GovBondRatePerYear - wg.GovBondRatePerYear;
+        Assert.True(want > 1e-4 && wf.GovBondRatePerYear < wf.Coef.BondRateMaxPerYear, $"前提：信認の喪失の上乗せ {want:E3} が立たないか上限に張り付いた（{wf.GovBondRatePerYear:F4}）");
         Assert.True(System.Math.Abs(got - want) <= 0.02 * want, $"切り下げた月の金利の上乗せ {got:E4} ≠ 0.5×速さ×割引 {want:E4}（月次決算が切り下げの額を渡していない）");
     }
 
@@ -448,13 +448,13 @@ public class TreasuryLedgerTests
             sim.StepDayOpen(); sim.StepDayDaily();   // 締めの直前＝r を決める時点と同じ国庫と見込み
             w.Convertibility = conv;
             setup(w);
-            double payable = System.Math.Max(0, w.Treasury) + w.LastRevenue, overdraft = System.Math.Min(0, w.Treasury);
-            double unit = System.Math.Max(0, w.NominalGdp) * w.Coef.BorrowFractionOfGdp;   // 1件の額（Fiscal.Borrow と同じ式・締めの月初は産出の前＝同じ値）
+            double payable = System.Math.Max(0, w.Treasury) + w.LastRevenuePerMonth, overdraft = System.Math.Min(0, w.Treasury);
+            double unit = System.Math.Max(0, w.NominalGdpPerMonth) * w.Coef.BorrowFractionOfGdp;   // 1件の額（Fiscal.Borrow と同じ式・締めの月初は産出の前＝同じ値）
             double dv0 = w.TreasuryLedger[(int)TreasuryCat.Devalue], bo0 = w.TreasuryLedger[(int)TreasuryCat.Borrow];
             sim.StepDayClose(); w.FlushLog();        // 月次決算（借入→切り下げ→r→予算→精算→財政）
             return (w, payable, overdraft, w.TreasuryLedger[(int)TreasuryCat.Devalue] - dv0, w.TreasuryLedger[(int)TreasuryCat.Borrow] - bo0, unit);
         }
-        var g = Month(w => { w.BorrowCooldown = 2; w.Coef.DevaluationCapFrac = 0; });
+        var g = Month(w => { w.BorrowCooldownMonths = 2; w.Coef.DevaluationCapFrac = 0; });
         double rG = g.w.FiscalFundingRatio;
         Assert.True(rG > 0 && rG < 1, $"前提：G の r が (0,1) に無い（{rG:F4}）");
         Assert.Equal(0.0, g.dev); Assert.Equal(0.0, g.bor);
@@ -472,7 +472,7 @@ public class TreasuryLedgerTests
         Assert.Equal(1.0, a.w.FiscalFundingRatio);
 
         // B：冷却中＝借りず、切り下げ＝(1−兌換)×払えない額
-        var b = Month(w => { w.BorrowCooldown = 2; });
+        var b = Month(w => { w.BorrowCooldownMonths = 2; });
         Assert.Equal(0.0, b.bor);
         Assert.True(System.Math.Abs(b.dev - (1 - conv) * need) <= 1e-6 * need, $"冷却中の切り下げ {b.dev:F4} ≠ (1−兌換)×払えない額 {(1 - conv) * need:F4}");
 

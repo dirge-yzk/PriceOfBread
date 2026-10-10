@@ -1142,8 +1142,8 @@ public class PolicyPoliticsTests
         var w = sim.World;
         w.PoliticalLockEnabled = false;   // 政治的可否と直交な機構の単体検証（Move/MandateGate/GateInfo が共有する隔離弁）
         w.FiscalEnabled = true;
-        Assert.True(w.NominalGdp > 1e-9, "前提が崩れた：GDPが無い世界では緊縮強度を立てられない");
-        w.GovDebt = w.NominalGdp * Calendar.MonthsPerYear * (w.Coef.AusterityStartDebt + w.Coef.AusterityRange);   // 緊縮強度＝満額1.0
+        Assert.True(w.NominalGdpPerMonth > 1e-9, "前提が崩れた：GDPが無い世界では緊縮強度を立てられない");
+        w.GovDebt = w.NominalGdpPerMonth * Calendar.MonthsPerYear * (w.Coef.AusterityStartDebt + w.Coef.AusterityRange);   // 緊縮強度＝満額1.0
         return w;
     }
 
@@ -1305,7 +1305,7 @@ public class PolicyPoliticsTests
             var w = sim.Nations[0].World;
             w.PoliticalLockEnabled = false;
             w.FiscalEnabled = true;
-            w.GovDebt = w.NominalGdp * Calendar.MonthsPerYear * (w.Coef.AusterityStartDebt + w.Coef.AusterityRange);   // 緊縮＝満額（債務÷年の名目GDP）
+            w.GovDebt = w.NominalGdpPerMonth * Calendar.MonthsPerYear * (w.Coef.AusterityStartDebt + w.Coef.AusterityRange);   // 緊縮＝満額（債務÷年の名目GDP）
             w.SelfPower!.IsPlayer = isPlayer;                                          // 同じ盤面で「プレイヤーである」ことだけを変える
             w.Policy.PollTaxTarget = 0; w.PollTax = 0;
             w.Policy.SocialSecurityTarget = 1.0; w.SocialSecurityLaw = SocialSecurityLaw.Pension;

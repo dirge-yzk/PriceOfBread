@@ -152,7 +152,7 @@ public sealed class Pop
     public double Literacy;          // 識字（連続・0..1・§A-1／§C）。教育で伸び、革新能力に効く
     public double Consciousness;     // 政治意識（0..1・§9-E）。識字×世俗の水路×都市化で伸びる
     public double Militancy;         // 闘争度（0..1・§9-E）。不満・参政権欠如・外圧で伸びる
-    public double LastEarned;   // ★前期の所得（2026-08-04）。Earned は EconomyStep 冒頭でゼロ化され期中に積み上がるので、
+    public double LastEarnedPerMonth;   // ★前期の所得（2026-08-04）。Earned は EconomyStep 冒頭でゼロ化され期中に積み上がるので、
                                 //   期の初めに読む用途（私的投資の原資）には使えない。ゼロ化の直前にここへ退避する。
     public double[] IdeologyShares = new double[Ideologies.Count];   // イデオロギー分布（伝統/反動/自由/共和/ナショ/社会/共産/無政府/帝国/ファシズム/王党派・合計1）。階級×条件×時代から創発（Ideology.cs）＝政体遷移の力ベクトル
     public bool Closed;              // 閉鎖階級（世襲の特権身分＝貴族・聖職）。移民の出入りをしない（史実の身分制）
@@ -272,10 +272,10 @@ public sealed class Pop
     /// （上の月次の台帳から導く＝月の途中で読まない）。⚠飢餓の駆動と食料の平常の捕捉（Politics）は生の比のまま＝負の貯蓄の POP は食料の需要が負になり
     /// （残予算÷価格が負）比が負になる＝下限0で切ると軌道が変わる（2026-09-30 段4e の申し送り）。</summary>
     public double FoodFill => FoodNeed > 1e-9 ? PoliticalQuantities.Clamp01(FoodMet / FoodNeed) : 1.0;
-    public double Paid;               // その月に支払った総額
-    public double Earned;             // その月に得た総所得
-    public double LandRent;           // その月に受け取った土地の地代（RGOの所有者取り分＝封建貢租）。土地税の課税ベース
-    public double IndustrialRent;     // その月に受け取った工業レント（非RGO・投資家所有の利潤。設計3段1＝物差し専用の書き込みタグ・挙動の読者なし）
+    public double PaidPerMonth;               // その月に支払った総額
+    public double EarnedPerMonth;             // その月に得た総所得
+    public double LandRentPerMonth;           // その月に受け取った土地の地代（RGOの所有者取り分＝封建貢租）。土地税の課税ベース
+    public double IndustrialRentPerMonth;     // その月に受け取った工業レント（非RGO・投資家所有の利潤。設計3段1＝物差し専用の書き込みタグ・挙動の読者なし）
 
     /// <summary>★人と動くお金の運搬の1本（2026-09-30 段4f・作者裁定 Q13＝書き手を Pop の中へ）：貯蓄・個人債務・国債の保有を、人と一緒に <paramref name="from"/> から
     /// <paramref name="to"/> へ同じ額で移す（両側を1回の呼び出しで書く＝湧かず消えない）。運ぶ額は呼び手が決める＝ストック×(運ぶ人数÷規模)（E3）・越境は運賃を引いた持参金と
@@ -312,7 +312,7 @@ public sealed class Pop
         for (int i = 0; i < pops.Count; i++)
         {
             double share = i < pops.Count - 1 ? amount * ((weights is null ? pops[i].Size : weights[i]) / total) : amount - done;
-            pops[i]._savings += share; if (income) pops[i].Earned += share;
+            pops[i]._savings += share; if (income) pops[i].EarnedPerMonth += share;
             done += share;
         }
         return 0;
@@ -350,7 +350,7 @@ public sealed class Pop
     }
 
     /// <summary>★月末の精算（月内の仮勘定＝1本の月内の形・計画 §10-12-2-3）＝その月の所得と支払いの差を貯蓄へ（EconomyStep の月の終わり・2026-09-30 段4g に Pop の中へ移した）。</summary>
-    internal void SettleMonth() => _savings += Earned - Paid;
+    internal void SettleMonth() => _savings += EarnedPerMonth - PaidPerMonth;
 
     /// <summary>★(218) 貯蓄を比で置き直す（開幕の投資家の流動資産・<see cref="World.RebaseOpeningMoney"/> だけが呼ぶ）。貨幣の増減は呼び手が基準線ごと取り直す。</summary>
     internal void ScaleSavings(double f) => _savings *= f;
@@ -881,7 +881,7 @@ public sealed class Region
     public double LocalPriceMultiplier = 1.0;         // 地域別の貨幣的物価乗数（地域物価・名目賃金の格差）。1人あたり貯蓄（手元現金の厚み）が国平均から乖離する分。現金の厚い金融中心州>1・乏しい辺境州<1。四半期ごとに UpdateRegionalPriceLevels が算出。1州なら1.0＝較正中立
     public double WagePremium = 1.0;                  // 州の労働価格プレミアム（1人あたり月次所得の対国平均比・四半期EMA）。UpdateRegionalPriceLevels が算出・Territory.Opportunity が OpportunityWageWeight で参照＝金鉱州の高賃金→移民殺到（ゴールドラッシュの創発・キュー3）。1州なら比1→1.0＝較正中立
     public double FarmRentCap = 1.0;                  // RGO地代（封建貢租の取り分）の上限（World から複製）。農奴解放=0.5/土地改革=0.3。元の取り分がこれ未満の国（自作農・小作）には効かない＝農奴制国だけ解放が効く。1.0＝無制限（中立）
-    public double CrowdingPremium = 0;               // 政府借入による国債金利プレミアム（World から複製＝GovBondRate−基礎）。民間投資のハードルレートに上乗せ＝クラウディングアウト（金利チャネル）
+    public double CrowdingPremium = 0;               // 政府借入による国債金利プレミアム（World から複製＝GovBondRatePerYear−基礎）。民間投資のハードルレートに上乗せ＝クラウディングアウト（金利チャネル）
     public double FinancialHeat = 0;                 // 与信過熱ゲージ（World から複製・改修2026-06-28）。投資ハードルへ負で配線＝過熱→株高→投資ブーム→恐慌で暴落（株式市場のバブル動学）。較正(Credit無)では0＝中立
     public double ProductivityBonus = 1.0;            // 地域固有の生産性（辺境の資源賦存など）
     public double ArableLand = 1e9;                   // 耕地賦存量（土地という固定生産要素）。農村人口がこれを超えると土地作物RGOが収穫逓減＝食料/人↓→所得↓→移民が止まる。未設定（合成較正・最小テスト世界）＝1e9＝制約なし

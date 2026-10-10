@@ -49,7 +49,7 @@ public sealed class Power
     public double NeedMen;        // 理想の兵員数（陸＋内的＋海×乗員率 を質で割る）
     public double AttentionColSumMax;   // 診断：注意配分の列和の最大（★1未満であることが縮小写像＝発散しないことの実証）
     public double AirPower;       // 空軍力（1934拡張E2）＝Military×空軍装備充足。制空＝押し合い/戦死/空襲厭戦に効く。1910s以前は0＝恒等
-    public double Gdp;
+    public double GdpPerMonth;
     public List<Colony> ColonyList = [];   // 保有する植民地（各々が固有資源を持つ。征服で本国間を移る・§6.1）
     // ★植民地の州昇格（2026-08-26・ColoniesAreRegions）：昇格した植民地は ColonyList から消えて**植民地格の州**になる。
     //   個数を読む全ての場所（国力スコア・威信・植民地防衛効用・脅威評価・忠実度の植民地次元）が同じ数を見続けるよう、
@@ -783,7 +783,7 @@ public sealed class Diplomacy
                 cargoBase *= 1.0 + c.PrizeLossProrated * (share - 1.0);   // PrizeLossProrated=0で係数1（恒等）／=1で share（完全按分）
             }
         }
-        double prizeRaw = c.PrizeMoneyRate * advantage * ((1.0 - c.PrizeCargoShare) * Math.Max(0, vw.Gdp) + c.PrizeCargoShare * cargoBase);
+        double prizeRaw = c.PrizeMoneyRatePerMonth * advantage * ((1.0 - c.PrizeCargoShare) * Math.Max(0, vw.GdpPerMonth) + c.PrizeCargoShare * cargoBase);
         if (!(prizeRaw > 1e-9)) return;
         var merchants = new List<Pop>();
         foreach (var r in vw.Regions)
@@ -806,7 +806,7 @@ public sealed class Diplomacy
     internal void EndQuarterSyncWindow() => _syncWindow = 0;
     private double SyncGdp(Power p, World nw)
     {
-        if (_syncWindow == 0) return nw.Gdp;
+        if (_syncWindow == 0) return nw.GdpPerMonth;
         var regs = nw.Regions;
         if (p._syncGdpWindow == _syncWindow && p._syncGdpRegions is { } snap && snap.Length == regs.Count)
         {
@@ -814,7 +814,7 @@ public sealed class Diplomacy
             for (int i = 0; i < snap.Length; i++) if (!ReferenceEquals(snap[i], regs[i])) { same = false; break; }
             if (same) return p._syncGdp;
         }
-        double g = nw.Gdp;
+        double g = nw.GdpPerMonth;
         p._syncGdpWindow = _syncWindow; p._syncGdp = g; p._syncGdpRegions = [.. regs];
         return g;
     }
@@ -825,7 +825,7 @@ public sealed class Diplomacy
         foreach (var p in Powers)
         {
             if (p.Nation is not { } nw) { p.NavalShare = c.AbstractNavalShare; continue; }   // 抽象標的＝弱小海軍（陸の守りが主・B-1）
-            p.Gdp = SyncGdp(p, nw);   // 四半期末の窓の中で州の並びが同じなら1回目の値（上の SyncGdp の注記）
+            p.GdpPerMonth = SyncGdp(p, nw);   // 四半期末の窓の中で州の並びが同じなら1回目の値（上の SyncGdp の注記）
             // 軍隊規模＝兵士POP数（軍事費が徴募）。即応度（兵士の充足）が乗数＝給与/補給が切れた軍は大幅に弱い。
             // 扶養限界＝大軍は給与（民間賃金×兵数）を要し、払えなければ充足が落ち戦力が下がる（経済が要る）。治安維持力（警察）とは分離。
             // 軍の質の3因子＝ArmyShape.Quality の1本（★2026-09-26 棚卸し mil-13＝旧＝同じ式の写しがここにあり、制度疲労の門だけが食い違っていた）：
@@ -838,12 +838,12 @@ public sealed class Diplomacy
             //   ⚠FleetGauge はこのループの後段で更新される＝1ヶ月遅れの値を読む（滑らか。播種はQ0で FleetGauge=0 なので不変）。
             //   循環なし＝FleetGauge は購入ストック由来（Military からは播種の1回だけ・NavalPower の min で有界）。0＝厳密恒等（x+0×y=x）。
             // ★段5＝民兵の戦力（作者裁定3・2026-09-08）＝**兵数 × a**（a<1＝弱兵）を兵士頭数へ足すだけ＝新しい戦力の経路を作らない。
-            //   ⚠民兵は職業を持ったまま武器を取った民間人（Pop.MilitiaShare）＝常備軍（IsSoldier）ではないので SoldierSize には入らない。
+            //   ⚠民兵は職業を持ったまま武器を取った民間人（Pop.MilitiaShare）＝常備軍（IsSoldier）ではないので SoldierSizeK には入らない。
             //   ⚠MilitiaCombatValue=0（既定）では走査もせず 0×0＝x+0＝厳密恒等（ArmyShapeGauge と同じ作法）。
             double militiaMen = 0;
             if (c.MilitiaCombatValue > 0)
                 foreach (var mp in nw.AllPops()) if (!mp.IsSoldier && mp.MilitiaShare > 0) militiaMen += mp.Size * mp.MilitiaShare;
-            double soldiersNow = nw.SoldierSize();   // ★(189) 戦力と乗員（艦に乗る兵）が同じ兵士の数を読む
+            double soldiersNow = nw.SoldierSizeK();   // ★(189) 戦力と乗員（艦に乗る兵）が同じ兵士の数を読む
             p.Military = ((soldiersNow + c.MilitiaCombatValue * militiaMen) / c.SoldiersPerMilitary + c.ArmyShapeGauge * p.FleetGauge) * nw.MilitaryReadiness * (1 + c.MilitaryQualityBonus * nw.Region.MilitaryQualityFill + c.MilitaryTier3Bonus * nw.Region.MilitaryTier3Fill) * cohesion * militarism * techQuality;   // 上位軍需(tier2)＋tier3(戦車/弩級戦艦)＋民族の結束＋軍国＋技術＝戦力の質的乗数
             p.AirPower = p.Military * nw.Region.MilitaryAirFill;   // 1934拡張E2：空軍力＝陸海戦力×空軍装備充足（飛行機/戦闘機/化学兵器）。財の解禁(1910s)前はFill0＝空軍0＝恒等
             // ★割り振りの廃止（2026-08-04・作者仕様(5)）：海軍は**払った金の比**で決まる。
@@ -990,7 +990,7 @@ public sealed class Diplomacy
                 var fu = nw.Regions[0].FleetUnits ??= new double[c.FleetGoodIds.Length];
                 for (int k = 0; k < fu.Length && k < t0.Length; k++) fu[k] += t0[k];
             }
-            SyncFleet(p, nw, c, denom, nw.SoldierSize());
+            SyncFleet(p, nw, c, denom, nw.SoldierSizeK());
         }
     }
 
@@ -1045,7 +1045,7 @@ public sealed class Diplomacy
     private bool ThreatAverages(Coefficients c, out double avgG, out double avgC, out double avgM)
     {
         avgG = 0; avgC = 0; avgM = 0; int n = 0;
-        foreach (var p in Powers) { if (p.Nation is null) continue; avgG += p.Gdp; avgC += ColonyMass(p, c); avgM += p.Military; n++; }
+        foreach (var p in Powers) { if (p.Nation is null) continue; avgG += p.GdpPerMonth; avgC += ColonyMass(p, c); avgM += p.Military; n++; }
         if (n == 0) return false;
         avgG = Math.Max(1, avgG / n); avgC = Math.Max(0.5, avgC / n); avgM = Math.Max(0.1, avgM / n);
         return true;
@@ -1110,8 +1110,8 @@ public sealed class Diplomacy
     // 帝国としての実効規模＝自国＋従属の加重（属国/傀儡/衛星を抱える宗主は大きく見える＝脅威評価で帝国扱い）。覇権防止が従属帝国にも効く。
     private double EffGdp(Power p, Coefficients c)
     {
-        double g = p.Gdp;
-        foreach (var d in DependentsOf(p)) g += c.DependentThreatWeight * Math.Max(0, d.Gdp);
+        double g = p.GdpPerMonth;
+        foreach (var d in DependentsOf(p)) g += c.DependentThreatWeight * Math.Max(0, d.GdpPerMonth);
         return g;
     }
     private double EffColonies(Power p, Coefficients c)
@@ -1326,7 +1326,7 @@ public sealed class Diplomacy
 
         // 貢納の診断リセット（四半期の支払月のみ・予算表用＝接1）。支払いはこの後のループで加算。
         if (month % Calendar.MonthsPerQuarter == 0)
-            foreach (var p in Powers) if (p.Nation is { } pw) { pw.LastTributeIn = 0; pw.LastTributeOut = 0; }
+            foreach (var p in Powers) if (p.Nation is { } pw) { pw.LastTributeInPerQuarter = 0; pw.LastTributeOutPerQuarter = 0; }
 
         foreach (var (s, d) in pairs)
         {
@@ -1340,15 +1340,15 @@ public sealed class Diplomacy
             // 貢納（属国→宗主・四半期）。運河通行料と同じ両建てで保存。
             if (month % Calendar.MonthsPerQuarter == 0)
             {
-                double tributeClaim = c.VassalTributeRate * Math.Max(0, d.Gdp);
+                double tributeClaim = c.VassalTributeRate * Math.Max(0, d.GdpPerMonth);
                 double tribute = tributeClaim * d.Nation.FiscalFundingRatio;   // 属国の国家の支払い率 r の分だけ（2026-09-28 段2-1＝旧は国庫の残りで切る門）
-                d.Nation.LastTributeOut = tributeClaim;   // 請求（r を掛ける前）＝翌月以降の月初の請求の見込み（Simulation）と予算表が読む
+                d.Nation.LastTributeOutPerQuarter = tributeClaim;   // 請求（r を掛ける前）＝翌月以降の月初の請求の見込み（Simulation）と予算表が読む
                 // ★段3-3（2026-09-30）：払いは移し方の1本（属国の国庫→宗主の国庫・国境をまたぐ＝為替で換算・台帳も移し方が書く）。
                 //   払えない分（1−r）は属国の対外債＝宗主の国の対外債権（作者裁定 Q6・計画 §10-12-3-2＝未払いを記録する・旧は消えた＝B5）。
                 if (tribute > 1e-9)
                 {
                     World.Transfer((d.Nation, null), (s.Nation, null, null), tribute, TreasuryCat.TributeOut, toCat: TreasuryCat.TributeIn);   // 従属＝対外流出・宗主＝対外流入（保存）
-                    s.Nation.LastTributeIn += tribute * d.Nation.FxRate / s.Nation.FxRate;   // 診断（予算表・接1）＝宗主が受け取った額（移し方の1本と同じ式）
+                    s.Nation.LastTributeInPerQuarter += tribute * d.Nation.FxRate / s.Nation.FxRate;   // 診断（予算表・接1）＝宗主が受け取った額（移し方の1本と同じ式）
                 }
                 Fiscal.BookForeignDebt(null, tributeClaim - tribute, d.Nation, s.Nation);
             }
@@ -1977,7 +1977,7 @@ public sealed class Diplomacy
             if (proj < AiColonizeMinProjection) continue;
             // 魅力＝（植民地＋経済規模）×届きやすさ÷強さ。経済規模項（宗主の地理2026-07-12）＝植民地化の目的そのもの（市場・税基盤）。
             // 旧＝植民地数のみで、実国のインド諸邦（植民地0・高GDP）より近場の抽象小勢力が常に勝っていた＝英が印度を選ばない構造。
-            double econ = c.ColonizeValueGdpPer100k * Math.Max(0, q.Gdp) / ColonizeGdpNormalizer;
+            double econ = c.ColonizeValueGdpPer100k * Math.Max(0, q.GdpPerMonth) / ColonizeGdpNormalizer;
             double value = (q.Colonies + 1 + econ) * proj / (1 + q.Military);   // ★是正（監査2026-09-02 #14/#15）：旧ColonyList.Count読み手＝統合アクセサColoniesへ（州昇格した植民地の過少評価を解消）
             // ★安保doc手順5（2026-08-30・休眠）：先取り動機＝「Aに取られる前に取る」（近接緊張の鏡像）。
             //   非経済な緩衝地帯（朝鮮・満洲・アフガン・ペルシャ）こそ争われた＝標的の価値でなく**ライバルの届きやすさ**が動機。
@@ -2485,7 +2485,7 @@ public sealed class Diplomacy
             //   旧＝交戦の月ごとに一律 WarExhaustionRate（0.03）＝どの戦争も開戦から約34か月で必ず終わる時間の時計
             //   （r167 の10種で列強どうしの戦争の厭戦の増分の 78〜88% がこの項・列強どうしの戦争の長さの中央 8〜12 か月・最長 30 か月＝(170) §1）。
             //   新＝WarExhaustionRate×（兵士の数÷人口）÷（MobilizationConscriptFrac×Military.WorkingMenStdShare）。兵士と人口はどちらも全ての州・全ての POP
-            //   （World.SoldierSize・World.TotalPopulation＝分子と分母を同じ規則で）。割る数＝[戦争⑤] の推奨「割る数は MobilizationConscriptFrac（総動員の上限で今の0.03になる）」を
+            //   （World.SoldierSizeK・World.TotalPopulation＝分子と分母を同じ規則で）。割る数＝[戦争⑤] の推奨「割る数は MobilizationConscriptFrac（総動員の上限で今の0.03になる）」を
             //   (145) の兵の単位（MobilizationConscriptFrac の母数を大衆から働き盛りの男へ）で読み替えた＝総動員の上限（働き盛りの男の22%＝人口の約6%）まで動員した国の基礎が旧の値
             //   （推奨で進めた・読み替えは AI＝作者の承認は未確認・新しい数なし）。小さな軍で戦う戦争（植民地戦争・遠征）は長く続けられ、大きく動員した国ほど早く疲れる。
             //   国を持たない抽象の相手（兵も人口も持たない）は旧の値のまま（[戦争⑤]）。⚠否定形＝人口が無い・NaN なら割合0（基礎0＝他の項と押し合いで終わる）。
@@ -2497,7 +2497,7 @@ public sealed class Diplomacy
             if (p.Nation is { } mobW)
             {
                 double pop = mobW.TotalPopulation;
-                double share = pop > 1e-9 ? mobW.SoldierSize() / pop : 0;   // 兵士の数÷人口（B11）
+                double share = pop > 1e-9 ? mobW.SoldierSizeK() / pop : 0;   // 兵士の数÷人口（B11）
                 if (!(share >= 0)) share = 0;
                 exBase = c.WarExhaustionRate * share / (c.MobilizationConscriptFrac * Military.WorkingMenStdShare);
             }
@@ -2978,7 +2978,7 @@ public sealed class Diplomacy
         bool farCrush = c.TreatyPortWinnerDistanceKm > 0 && Math.Abs(war.Score) >= c.VassalizeWinScore   // ★是正（監査2026-09-02 #22）：saは[-1,1]にクランプ済みでVassalizeWinScore=1.4と比較すると恒久false（死コード）。tooFarToRuleと同じ未クランプ物差しに揃える
             && winner.Nation is { } wf0 && loser.Nation is { } lf0
             && Geo.DistanceKm(wf0.Latitude, wf0.Longitude, lf0.Latitude, lf0.Longitude) > c.TreatyPortWinnerDistanceKm;
-        double repBase = c.ReparationGdpFraction * loser.Gdp * sa * (farCrush ? c.TreatyPortReparationMult : 1.0);
+        double repBase = c.ReparationGdpFraction * loser.GdpPerMonth * sa * (farCrush ? c.TreatyPortReparationMult : 1.0);
         repBase -= repCut * repBase;   // #21 会議外交：会議度に応じ賠償を削る（repCut=0＝現行ビット恒等・x−0*x==x）。植民地/割譲は不変＝賠償のみ抑制
         // ★賠償は**貨幣経済を持つ2国の間だけ**で動く（回1-1・2026-09-26・段0の番人 fis-21 が全長で発見）。
         //   抽象標的（Nation の無い勢力）は World を持たない＝国庫も基礎貨幣も無い。

@@ -447,13 +447,13 @@ public sealed class Coefficients
     // --- 国債（赤字の借金。国内＝資本家の余剰貯蓄でクラウディングアウト／海外＝開放度依存。焦げ付き→経済悪化、対外不履行→介入）---
     public double BondAppetite = 0.15;           // 資本家の余剰貯蓄のうち国債購入に回る割合（工場投資と食い合う＝クラウディングアウト）
     public double ForeignBondCapacity = 0.05;    // 海外の購入余力＝開放度×月次名目GDP×これ×信認（基礎金利÷国債の金利＝低金利の国ほど深い＝2026-09-29 に向きを是正・旧＝金利÷基礎金利）。海外債は対外資本流入（保存＝BaseMoney+CumulativeTradeFlow同時）
-    public double BondRolloverFrac = 0.01;       // R9（国債の満期構造）＝**2026-07-23点火（C〜H中4）**：毎月ストックのうち満期到来し現行市場金利GovBondRateへ乗り換わる割合∈[0,1]。旧1.0=永久/浮動（金利変動が全ストックへ即時波及＝英3%コンソルの固定クーポンが再現不能）。0.01≈平均満期8年強＝コンソル（超長期）と短期債の混合の近似＝金利スパイラルの即時全額波及を緩和・高債務国の財政破綻が史実的に緩やかに
-    public double BondBaseRate = 0.04;           // 国債の基礎金利
+    public double BondRolloverFracPerMonth = 0.01;       // R9（国債の満期構造）＝**2026-07-23点火（C〜H中4）**：毎月ストックのうち満期到来し現行市場金利GovBondRatePerYearへ乗り換わる割合∈[0,1]。旧1.0=永久/浮動（金利変動が全ストックへ即時波及＝英3%コンソルの固定クーポンが再現不能）。0.01≈平均満期8年強＝コンソル（超長期）と短期債の混合の近似＝金利スパイラルの即時全額波及を緩和・高債務国の財政破綻が史実的に緩やかに
+    public double BondBaseRatePerYear = 0.04;           // 国債の基礎金利
     public double BondRateDebtScale = 0.018;     // 金利上昇＝×(債務/年名目GDP)。★史実から（2026-09-29・作者裁定＝(94) の申し送り1 の (i)）：英のコンソル＝国債÷年GDP 約2.5（1815〜20）で利回り約4.5%
                                                  //   ＝信認のある国（完全兌換 0.6×議会が予算を握る 0.9）で (0.04＋2.5×これ)×0.54≒4.6%／不換・議会の弱い周縁国（西・葡・希・オスマン・ラテンアメリカ）は国債÷年GDP 1〜2 で 5.8〜7.6%
-                                                 //   ＋期待インフレと信認の喪失（史実6〜10%）。旧 1.44（旧の月次比 0.12×12 を年へ換算したまま＝年GDP 比1につき+144%・単独で BondRateMax を越えた）
+                                                 //   ＋期待インフレと信認の喪失（史実6〜10%）。旧 1.44（旧の月次比 0.12×12 を年へ換算したまま＝年GDP 比1につき+144%・単独で BondRateMaxPerYear を越えた）
     // 【削除2026-09-29】BondRateDebtQuad（監査2026-07-05 F2＝債務の二次項・既定0＝休眠）＝英の債務比2.5 で金利が跳ねない史実と合わない（棚卸し dorm-51／fis-17）
-    public double BondRepayFrac = Calendar.PerYearToPerMonth(0.01);   // **月に**国庫の余剰から返す国債の割合（減債基金）。★史実から＝年1%（2026-09-29）：英の減債基金（ピット1786＝年100万ポンド÷約2.4億・1792 以後は新発債ごとに1%）・
+    public double BondRepayFracPerMonth = Calendar.PerYearToPerMonth(0.01);   // **月に**国庫の余剰から返す国債の割合（減債基金）。★史実から＝年1%（2026-09-29）：英の減債基金（ピット1786＝年100万ポンド÷約2.4億・1792 以後は新発債ごとに1%）・
                                                  //   仏の減債金庫（1816〜 年4,000万フラン÷約35億）＝残高の年約0.5〜1.5%（英の国債は1816〜1914 に名目で年約0.3%しか減らず、比は GDP の伸びで下がった）。
                                                  //   旧 0.05（月に5%＝年60%・根拠なし）＝余剰のある国は数年で国債を返し切った＝初期の国債（英 年GDP の約1.1）が開幕から3〜6年で0・英1815 の国債÷年GDP 0.002（史実 約2.5）
     // ⚠緊縮の3係数（裁定B・2026-09-12）：**実効値を削る/持ち上げる**のをやめ、Government.LawPrereq の門
@@ -472,12 +472,12 @@ public sealed class Coefficients
     public double DebtDistressRatio = 3.0;        // 対外信用（CapitalMarket の信用の債務の項＝1−債務÷年名目GDP÷これ）が尽きる債務の水準＝外資が逃げ、呼べなくなる（読み手は CapitalMarket だけ・国債の起債は読まない）。
                                                   //   ★年の単位で史実から（2026-09-29・棚卸し fis-02）：市場の信認を保った債務÷年GDP の最大は英1821 約2.7（兌換の再開）・英1946 約2.5
                                                   //   ＝その少し上で債務の項が尽きる（仏1789 0.7 で 0.77・英1815 2.5 で 0.17）。旧 2.0 は**月次**名目GDP 比（年に直すと約0.17＝国債が史実の水準へ立った国は項が0）
-    public double BondRateMax = 0.30;            // 国債金利の上限（年率）。これ以上は市場が値付けせず＝事実上の債務不履行（利払いを切り下げ/薄給で処理）
-    // 国債二次流通（改修2026-06-28・金融改革①）：信認シグナルの内生化。BondPrice=BondBaseRate/GovBondRate（永久債＝利回り上昇で価格暴落）。切り下げを続ける国＝信認喪失で利回り高止まり、外資逃避と連動。
+    public double BondRateMaxPerYear = 0.30;            // 国債金利の上限（年率）。これ以上は市場が値付けせず＝事実上の債務不履行（利払いを切り下げ/薄給で処理）
+    // 国債二次流通（改修2026-06-28・金融改革①）：信認シグナルの内生化。BondPrice=BondBaseRatePerYear/GovBondRatePerYear（永久債＝利回り上昇で価格暴落）。切り下げを続ける国＝信認喪失で利回り高止まり、外資逃避と連動。
     public double BondRateDistrustScale = 0.5;   // 信認の喪失＝**直近の切り下げの速さ**（この月の切り下げ×12÷年名目GDP）×これ を国債金利に上乗せ（2026-09-29・作者裁定＝(94) の申し送り1 の (i)）。
                                                  //   史実＝不換の増発が年に GDP の数%の国（米のグリーンバック1862〜64・アルゼンチン1885〜90）で国債の利回りが数%上がり、止めると戻った＝GDP 比1%につき約0.5%。
-                                                 //   記憶は既往債の平均クーポン（R9 の満期構造）が持つ＝止めた国の上乗せは乗り換えとともに薄まる。旧 0.06×累積の切り下げ÷**月次**名目GDP（通貨改革まで減らず単独で BondRateMax を越えた）
-    public double BondYieldFlightWeight = 1.5;   // 国債の利回りスプレッド(GovBondRate−BondBaseRate)が対外信用(CapitalMarket)を下げる強さ＝国債暴落→資本逃避→為替減価→さらに金利↑のバーリング危機ループ。0で旧挙動
+                                                 //   記憶は既往債の平均クーポン（R9 の満期構造）が持つ＝止めた国の上乗せは乗り換えとともに薄まる。旧 0.06×累積の切り下げ÷**月次**名目GDP（通貨改革まで減らず単独で BondRateMaxPerYear を越えた）
+    public double BondYieldFlightWeight = 1.5;   // 国債の利回りスプレッド(GovBondRatePerYear−BondBaseRatePerYear)が対外信用(CapitalMarket)を下げる強さ＝国債暴落→資本逃避→為替減価→さらに金利↑のバーリング危機ループ。0で旧挙動
     // === 借入（Fiscal.Borrow の1行＝月初に払えない額があればエンジンが自動で借りる＝切り下げより先・2026-09-28 (b)）：1件の額＝名目GDP×これ・借入額＝min(1件の額, 月初の払えない額)・上限＝利払い÷歳入 ===
     public double BorrowFractionOfGdp = 0.10;    // 1件の額＝月次**名目**GDPのこの割合＝月に借りられる額の上限（資本家貯蓄＋外資から調達＝保存）。借りるのは払えない額だけで1件の額まで（2026-09-28 に実質→名目＝払えない額・国債と同じ物差し）。読み手＝Fiscal.Borrow と戦時段の器（Military.EnvelopeAt＝(175) 戦時国債＝同じ1本 Fiscal.BorrowTicket）
     // 借入の上限＝直近の月次決算の利払いの請求÷歳入がこれに届いたら借りない（借入の門・不履行の判定・巨大建造物の「まだ借りられる」が同じ1本を読む）。旧＝MaxBorrowStacks＝20
@@ -504,8 +504,8 @@ public sealed class Coefficients
     // 【墓標2026-10-04】DefaultTriggerQuarters（int 8＝r＜1 の月を1つずつ8か月）＝DefaultArrearsMonths（払えなかった大きさの累計）へ置き換えた（(205)）
     public double DefaultLegitimacyHit = 0.5;    // デフォルト時の正統性崩壊（→闘争度↑・革命リスク）。信用と威信の喪失
     public double DefaultMilitancyHit = 0.25;    // デフォルト時の大衆の闘争度スパイク（経済混乱→暴動）
-    public int DefaultCooldownQuarters = 24;     // デフォルト後の借入禁止の**月数**（信用回復まで＝2年。⚠名前は Quarters だが月次で減る・2026-09-26 に書き方を是正）。この間は赤字を切り下げ/薄給で凌ぐしかない
-    public double CrowdingOutWeight = 1.5;       // クラウディングアウト（金利チャネル）：政府の国債金利プレミアム(GovBondRate−基礎)×これ を民間投資のハードルレートに上乗せ。＝政府借入が民間投資を締め出す（高債務国で工業化↓・金本位の信用国は弱い＝条件付き）
+    public int DefaultCooldownMonths = 24;     // デフォルト後の借入禁止の**月数**（信用回復まで＝2年。月次で減る＝旧名 DefaultCooldownQuarters は単位が名前と食い違っていた・(243) で DefaultCooldownMonths へ改名）。この間は赤字を切り下げ/薄給で凌ぐしかない
+    public double CrowdingOutWeight = 1.5;       // クラウディングアウト（金利チャネル）：政府の国債金利プレミアム(GovBondRatePerYear−基礎)×これ を民間投資のハードルレートに上乗せ。＝政府借入が民間投資を締め出す（高債務国で工業化↓・金本位の信用国は弱い＝条件付き）
     // ⚠**この較正の出所に注意**（2026-08-01訂正）：「既定治安維持力400で≈0.5」は BaseCoercion を独立に掃引する**単一国の較正世界**の数字で、
     //   多国シムでは治安維持力は兵数×即応度から出る（CoercionPerSoldier・2026-06-23の一本化）ので400は現れない。値の妥当性は多国側で測り直すこと。
     public double CrimeOrderPerPop = 0.8;        // 治安の必要治安維持力（人口あたり強度）。秩序＝Coercion÷(基準人口×これ)＝Coercion/800（既定治安維持力400で≈0.5＝平時は微小・不況/不満で発火）。0.4は治安維持力400で秩序1.0に飽和し犯罪が死んでいた→0.8で活性化
@@ -582,9 +582,9 @@ public sealed class Coefficients
     //   OldShareMax（老年比の上限0.15＝天井＝思想⑧違反）＝年齢の層（Pop.Ages＝10歳刻み8層×男女）の層の幅・加齢の流れ・死の年齢の重み（標準のピラミッドから導く）が置き換えた。
     public double OldLaborFactor = 0.75;   /* 【史実方向2026-08-08＝0.6は硬性赤（経済−7.5）→0.75測定・旧0.92 */   /* リアリティ群点火2026-07-18＝人口転換(穏やか) */          // ①Phase3：老年の労働参加率（0=完全引退〜1=フル稼働）。（M8点火試験2026-07-13＝0.5でbatch破綻1/30＋exact35に悪化／**再計測2026-07-15＝0.85でbatch破綻0・calib24-24-24堅持だがexact41→39（−2）＝高齢化がexactを単調に削る（1.0→41/0.85→39/0.5→35）。唯一 清覇権を抑制(12→8・仏11勝で競争化)したがexact優先で却下。清抑制を優先するなら0.85が選択肢（要ユーザー裁定）。専用の経済再較正なしにexact41維持と両立不能**）（EconomyStepの労働供給＝★2026-09-30 段4e 後半：65歳以上×これ（年齢の層）・旧＝(1−これ)×OldShare を成人から差し引く）。（M8点火試験2026-07-13＝0.5+FertilityAffectsBirthsOnly=1.0でbatch破綻1/30＋exact38→35/◎22→19悪化＝#17 balance再較正が要る確定＝休眠へ差し戻し・要専用Calibration.Search）。#17の較正再走で <1 に下げ、高齢化→労働力縮小→成長鈍化（人口転換後の扶養比率上昇）を有効化
     // 年金法（①年齢コホート Phase2）：老年人口への給付。デフォルト（年金なし）＝0で較正中立。
-    public double PensionCostRate = 0.8;         // 年金「十分」時・老年1単位あたりの月次給付（国庫→老年）。高齢化が進むほど財政負担＝福祉国家のジレンマ
+    public double PensionCostRatePerMonth = 0.8;         // 年金「十分」時・老年1単位あたりの月次給付（国庫→老年）。高齢化が進むほど財政負担＝福祉国家のジレンマ
     // ★物理削除2026-08-21【墓標・再点火禁止】：PensionSatBonus（旧0.10→8/17に0）＝年金の満足度フラット加算（Region.PensionWellbeing・読み手ごと削除）。
-    //   作者裁定2026-08-17「年金を現金給付へ」＋2026-08-19「満足度は買えたかのみ」＝年金の効果は現金給付（PensionCostRate＝国庫→老年→消費→生活水準）だけが担う。
+    //   作者裁定2026-08-17「年金を現金給付へ」＋2026-08-19「満足度は買えたかのみ」＝年金の効果は現金給付（PensionCostRatePerMonth＝国庫→老年→消費→生活水準）だけが担う。
     public double EduPerChild = 0.06 / Pop.StdShare(5, 15);   // 学齢（5〜14歳）の子供1人あたりの教育の必要量＝人口あたり0.06（旧＝子供比0.3×0.2）÷標準のピラミッドの5〜14歳（0.225）＝約0.267（★2026-09-30 段4e 後半＝年齢の層・起点合わせ＝1783年の需要は旧と同じ）
     public bool FertileWomenBirths = true;      // ①Phase3：出生を「出産可能女性プール」比例にする。**true＝有効化済み**（台帳訂正2026-07-12・旧注記「既定false＝dormant」は誤り）。各popの出生量を Size×出産可能プール/InitialFertileShare に律速（★2026-09-30 段4e 後半＝15〜49歳の女×カップル律速・年齢の層・旧＝(1−ChildShare−OldShare)×FemaleShare）＝徴兵で男が抜け女性比率が上がっても/老人だらけでも出生が構成に応答（失われた世代の伝播）。net（ロジスティック）は不変＝人口保存
     public double FertilityBase = 1.0;           // 出生率の基礎倍率（無学の社会＝従来の較正値そのまま＝中立）
@@ -778,7 +778,7 @@ public sealed class Coefficients
     public double HouseholdCreditMonths;         // 入口B：借入枠＝月次所得のこの倍数（目安 1.0〜2.0＝19世紀ロンドンの労働者家計の
                                                  // 家財＝質屋の担保が概ね数週間〜2ヶ月分の所得）。0＝借りない
     public double HouseholdCreditStapleOnly = 1.0;  // 入口B：主食のtierでのみ借りる（1＝主食限定）。質屋は食い扶持のための信用であって奢侈のためではない
-    // ⚠利息の係数は立てない（設計§2-5）。LoanSpread のB4が一度失敗している（教育アンカーが耐えなかった）ので同じ轍を踏まない。
+    // ⚠利息の係数は立てない（設計§2-5）。LoanSpreadPerYear のB4が一度失敗している（教育アンカーが耐えなかった）ので同じ轍を踏まない。
     //   利息なしでも「返済が将来の予算を食う」ので採用条件①は満たされる。
 
     public double ClergyAttractThreshold = 2.5;  // 聖職者の魅力閾値（平均比の豊かさ）。これ超で識字の高い下層が教会へ
@@ -795,12 +795,12 @@ public sealed class Coefficients
     // 相対/地域距離：単一重心からの距離を「近隣相手への重力重み付き平均距離」へブレンド＝隣国が安く繋がる地域貿易ブロック。
     // ⚠撤去2026-08-12（棄却確定（コメントに明記））: RegionalDistanceWeight  第3波の単離再点火（2026-07-28）＝**棄却確定**：相対距離が日本の実効距離を縮め「距離の遠い国は交易が細い」契約を反転（ServiceEconomyTests赤＝帯でなく硬性ゲート）。過去却下near−5の帰属疑義は解消＝本体の効果だった。休眠温存。  // 0=重心距離（現行・既定）。1=相対距離（近い大相手が居れば実効距離が縮む＝地域ブロック）。**2026-06-29検証：現7カ国は欧州単一クラスタゆえ相対≒重心で効果ほぼ無し（pricedist不変）＝複数の地理クラスタ（アジア圏等）を足した時に効く土台として温存**。多国のみ走行＝較正不発
     public double RegionalDistanceHalf = 4000.0; // 表示専用（地図の交易重力円）・力学には効かない。力学読み手 RegionalDistanceWeight は2026-08-12撤去済み
-    // funding修正（2026-06-18）：公共サービス予算を**国庫ストックでなく税収フロー(FiscalCapacity)から支弁**＝国庫が基礎義務に食われ常時0でも機能する。各係数は「歳入のうちその用途に充てる最大シェア（スライダー×これ）」。
+    // funding修正（2026-06-18）：公共サービス予算を**国庫ストックでなく税収フロー(FiscalCapacityPerMonth)から支弁**＝国庫が基礎義務に食われ常時0でも機能する。各係数は「歳入のうちその用途に充てる最大シェア（スライダー×これ）」。
     // 旧は ×Treasury（≈0で全餓死）だったので値も歳入基準に再較正。支出は国庫から引く（不足は赤字→国債→緊縮の既存フィードバック）。
-    public double FiscalCapacitySmoothing = 0.15; // 裁量余剰(FiscalCapacity)EMAの平滑速度（豊作/恐慌の振れをならす）
+    public double FiscalCapacitySmoothing = 0.15; // 裁量余剰(FiscalCapacityPerMonth)EMAの平滑速度（豊作/恐慌の振れをならす）
     public double AdminPowerSmoothing = 0.05;     // 行政力(AdminPowerSmoothed)EMAの平滑速度（旧 Fiscal直書き0.05を係数化＝sweep対象）
     public double GdpTrendSmoothing = 0.18;       // トレンドGDP(GdpTrend)EMAの平滑速度（旧 World直書き0.18。GdpDrawdown/恐慌予兆の基準）
-    public double InflationExpectationSmoothing = 0.34; // 期待インフレ(ExpectedInflation)EMAの平滑速度（旧 World直書き0.34）
+    public double InflationExpectationSmoothing = 0.34; // 期待インフレ(ExpectedInflationPerYear)EMAの平滑速度（旧 World直書き0.34）
     public double AdminBudgetFrac = 0.5;          // 行政＝歳入シェア（行政費スライダー×これ×歳入）。行政が薄いと汚職で歳入が漏れるので自己投資的
     // ★S3a（2026-07-31）：軍需予算を**宣言どおり「上限」にする**。下のコメントは「軍需調達の**上限**」と書いているが、
     // 実装 MilitaryBudget = 軍事費×シェア×歳入 は**常にその額を割り当てる固定額**で、必要額を下回れば不足・上回れば余る＝上限ではない。
@@ -850,7 +850,7 @@ public sealed class Coefficients
     public double IndirectTaxInBudgetBase = 1.0;  // 監査2026-07-11（接2）：関税（四半期実収/3）＋専売（当月実収）を予算基数（行政・軍装備・裁量余剰の請求権とLastRevenue）へ算入する重み。**1.0＝有効（ユーザー裁定2026-07-12「史実どおりの物理で良い・間違っているのはテスト」）**＝19世紀の関税国家（米・露型）の行政・軍拡が実歳入で立つ。回帰番人「教育で技術が分かれる」は前改革期（300Q）判定へ変更済み（露の1870年代型の遅い近代化は史実として許容）。0で旧（所得系のみ）
     public double TitheRate = 0.05;              // 十分の一税（教会税）：大衆（非特権・非兵士）の所得のこの割合を聖職者が受け取る（pop→聖職者の移転＝保存）。全員が満額払う訳でない想定で実効5%（要望）
     public double HealthFillCapacityBonus = 0.05; // 医療（医者の役務）の消費が人口扶養力に与える上乗せ（小さく・創発の味付け）
-    public double WelfareCostRate = 0.6;         // 社会保障1.0・大衆1単位あたりの月次給付（国庫→大衆）。高い＝福祉は財政を圧迫＝レッセフェールとの選択
+    public double WelfareCostRatePerMonth = 0.6;         // 社会保障1.0・大衆1単位あたりの月次給付（国庫→大衆）。高い＝福祉は財政を圧迫＝レッセフェールとの選択
     // 倍率排除⑥：WelfareMilitancyRelief / LaborUnionMilitancyRelief（福祉・組合の闘争度直接減算）を撤去。
     // ★満足度（＝生活水準）は NeedMet/NeedTotal（＝買えたか）だけで決まる（作者裁定2026-08-19）。労働保護の効果は出力減としてのみ残る。
     //   満足度への直接バフ4件（ShorterHours/Elec・Welfare/Pension）は物理削除2026-08-21（各所に墓標）。残る器は UnionSatBonus（休眠）のみ。
@@ -865,7 +865,7 @@ public sealed class Coefficients
     public double UnionSatBonus = 0.00;           // ⚠休眠2026-08-19（作者裁定「労働組合は団体交渉権などに使うので休眠」）：同じく思想⑨違反（法→満足度の直接加算）。
                                                   // ★撤去ではなく休眠＝**団体交渉権として再利用する予定**（賃金交渉＝財の分配へ回せば思想⑨に触れない）。旧0.09
     // ★物理削除2026-08-21【墓標・再点火禁止】：WelfareSatBonus（旧0.10→8/17に0）＝社会保障の満足度フラット加算（Region.WelfareSatComponent・困窮targeting読み手ごと削除）。
-    //   作者裁定2026-08-17「福祉を現金給付へ」＋2026-08-19「満足度は買えたかのみ」＝福祉の効果は現金給付（WelfareCostRate＝国庫→大衆→消費→生活水準）だけが担う。
+    //   作者裁定2026-08-17「福祉を現金給付へ」＋2026-08-19「満足度は買えたかのみ」＝福祉の効果は現金給付（WelfareCostRatePerMonth＝国庫→大衆→消費→生活水準）だけが担う。
     public double UnionMobilization = 0.15;        // B-5：容認組合の政治動員＝組織労働が改革派(reformist)を押し上げる（一方的な安定化でなく体制への改革圧力。1889ドック・スト型）。革命radicalは闘争度緩和で下げつつ改革圧力は上げる＝両義
 
     // --- メリトクラシー・昇格（教育2段階の社会的上昇）---
@@ -971,7 +971,7 @@ public sealed class Coefficients
     //   1/16（0.00125/0.01＝年0.125〜0.625%）は単体では緑だったが、**同クラスの他テストと同一プロセスで走ると 22.4 まで落ちて赤**
     //   （＝この教育アンカーは共有キャッシュ経由の相互汚染に対して余白がなく、B4を載せると耐えられない）。
     // ★**結論＝この回は休眠へ差し戻す（0/0）。** 機構を作り直してから #17 較正ラウンドで点火する。B3（除数の是正）は恒等なので残す。
-    public double LoanSpread = 0.0;           // 民間貸出金利の**年率**スプレッド（no-loan-interest-cashflow）：借り手(投資家)→預金者の利息移転 bank.Loans×(これ+政策金利項)。pop→pop純移転で保存。0で利息なし
+    public double LoanSpreadPerYear = 0.0;           // 民間貸出金利の**年率**スプレッド（no-loan-interest-cashflow）：借り手(投資家)→預金者の利息移転 bank.Loans×(これ+政策金利項)。pop→pop純移転で保存。0で利息なし
     public double PolicyRateLoanWeight = 0.0; // 政策金利（無次元0..1）→年率への換算重み（引締めが借り手の利払いを増やす）。0で無効
     // （需要駆動の与信の器 CreditDemandDriven は 2026-09-28 に削除＝作者裁定 A16「器は点火せず、返せる額を与信の上限へ」＝Credit.Step の上限の式が SoeSaleYears を読む）
     public double BondLossConfWeight = 0.5;   // 国債二次流通(no-bond-secondary-market)：BondPrice下落(利回り上昇)の評価損が銀行信頼targetConfを下げる×(国内債/GDP)。0で恒等。BondPriceは既存診断値を配線
@@ -1044,7 +1044,7 @@ public sealed class Coefficients
     public double ConvertibilityRiseSpeed = 0.05;   // 加入後に兌換が確立する速さ（準備・信認の積み上げ＝遅い）
     public double ConvertibilityDropSpeed = 0.34;   // 危機で兌換が崩れる速さ（兌換停止は一夜＝速い・非対称）
     public double ConvertibilityCoverageBand = 1.0; // 金利doc B5（2026-07-30・点火）：兌換目標を bool でなく**正貨カバー率の連続関数**へ（バンドは既存係数から導出＝lo=GoldCoverMin×GoldRejoinCoverMargin=0.325／hi=lo×(1+GoldCoverCreditRestraint)=0.4875）。加入していても準備が薄れれば兌換が目減りする＝金本位期でも物価/為替/国債金利のチャネルが死なない。0で旧bool（加入=1.0）へ縮退＝厳密恒等
-    // 貨幣と国債の紐づけ（#2 Fisher・#3 印刷インフレ）。#1（名目GDPで債務負担を測る＝負債デフレ）は World.NominalGdp で実装。
+    // 貨幣と国債の紐づけ（#2 Fisher・#3 印刷インフレ）。#1（名目GDPで債務負担を測る＝負債デフレ）は World.NominalGdpPerMonth で実装。
     public double FisherInflationWeight = 0.5;       // 名目国債金利＝実質＋これ×期待インフレ（高インフレ→高名目金利／デフレ→低名目金利だが実質債務は重い）
     public double FiatInflationWeight = 0.6;         // 通貨切下げ（紙幣増発）が物価を押し上げる強さ：P ×= 1+これ×(切下げ額/広義マネー)＝印刷→インフレ→実質債務減
     // 為替レート（第3a段・不換国のみ変動。金本位は1.0固定）。レートは「決定」のみに効き決済額には掛からない＝保存不変。
@@ -1558,7 +1558,7 @@ public sealed class Coefficients
     public double MegaprojectPrestige = 0.05;   // **点火2026-07-28（段6）**：Formations の統一の威信0.1の半分＝建国より軽い一回加算     // 建造物の完成が正統性へ与える一回加算。0=無効＝厳密恒等
     // 段7 反景気循環（ニューディール）。発動条件は「恐慌 かつ **起債可能**」＝Fiscal.cs:162 と同一の3条件。
     // ⚠「財政に余裕」を条件にすると不況時に発動しない（設計書§4-6 の自己矛盾）。起債可能を条件にすると
-    //   デフォルト直後は BorrowCooldown=24（月＝2年）のあいだ発動せず「破産した国はニューディールを打てない」が自動で出る。
+    //   デフォルト直後は BorrowCooldownMonths=24（月＝2年）のあいだ発動せず「破産した国はニューディールを打てない」が自動で出る。
     public double MegaprojectCounterCyclical = 1.0;   // **点火2026-07-28（段7）**：恐慌かつ起債可能なら拠出2倍   // 恐慌時に建造物への国庫拠出を何倍にするか（0=無効＝厳密恒等・1.0で「恐慌時は倍」相当の加算率）
     public double MegaprojectCrisisDrawdown = 0.08;   // 恐慌とみなす GdpDrawdown の閾値（トレンドGDPのピーク比収縮）
     // 段5 外資パートナー（2026-07-28）。**単一パートナー**＝相手は決定論のargmaxで1カ国だけ・持分は係数で固定（交渉しない）。
@@ -1580,7 +1580,7 @@ public sealed class Coefficients
     // 倍率排除：旧 SuezDetourPenalty（交易の一律迂回加算）は撤去。迂回距離は Geo.SeaDistanceKm（喜望峰/スエズ/パナマ経由）が距離そのものとして表現する。
     // === 港湾容量（国家プロジェクト＋資本家参入・改修2026-06-28）。運河(StepCanals)を雛形に、港州の取扱容量を投資で積む。港0なら従来挙動＝較正中立。多国シム専用（StepPorts）===
     public double PortInvestFrac = 0.04;       // 資本家が毎四半期 港へ投じる州投資家貯蓄の割合（混雑時のみ＝採算ゲート）
-    public double PortStateFrac = 0.15;        // 国家が港建設に投じる裁量余剰（FiscalCapacity＝純税収から利払い・行政・軍需の請求を引いた余り）のシェア＝行政費予算の一部（混雑した港の州の取扱高の比で配る・四半期の締め月の請求に入り r で払う＝World.PortStateRequest）。(223) 旧＝資本家の投資の 0.5 倍の上乗せ（民間の貯蓄に比例＝国家の払える額と無関係で、英の開幕に国庫 2.1万 に対し 14.3万 を r=1 のまま払った）。値は InfraBudgetScale（上下水道＝裁量余剰のシェア 0.15）と同じ【推・出典なし】。利払いが歳入を食う国〔英〕は余剰≒0＝国家の港建設も≒0（余剰の無い国は公共サービスを約束しない）
+    public double PortStateFrac = 0.15;        // 国家が港建設に投じる裁量余剰（FiscalCapacityPerMonth＝純税収から利払い・行政・軍需の請求を引いた余り）のシェア＝行政費予算の一部（混雑した港の州の取扱高の比で配る・四半期の締め月の請求に入り r で払う＝World.PortStateRequest）。(223) 旧＝資本家の投資の 0.5 倍の上乗せ（民間の貯蓄に比例＝国家の払える額と無関係で、英の開幕に国庫 2.1万 に対し 14.3万 を r=1 のまま払った）。値は InfraBudgetScale（上下水道＝裁量余剰のシェア 0.15）と同じ【推・出典なし】。利払いが歳入を食う国〔英〕は余剰≒0＝国家の港建設も≒0（余剰の無い国は公共サービスを約束しない）
     public double PortBuildCostPerUnit = 40.0; // 港容量1単位の建設費（資本/国庫→自州popへ還流＝保存）
     public double PortDecay = 0.008;           // 港湾の四半期減耗（維持に再投資が要る＝持続需要）
     // 【削除2026-10-01 (150)】PortTechOnset（0.2）＝近代港湾（蒸気埠頭・浚渫）の技術水準の閾値＝発見の表の「蒸気機関」の行へ移した（Discovery.SteamPower）。
@@ -1857,12 +1857,12 @@ public sealed class Coefficients
     // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】ParliamentBudgetScope＝予算協賛の対象を全税軸へ（機能2-1・2026-07-28 点火）
     public double ElectionEventEnabled = 1.0;   // 【点火1.0・2026-08-17】A/B＝def4(38.2/74.3/61.5/0.63)→eD(**exact40.2**/73.1/61.3/0.66)・硬性緑・372緑。AI等価物と確定形（レバー＝裁量余剰の%・効き＝A/(A+半減点)・代価＝投入額）が揃ってから点火。★E2（選挙doc §7）：総選挙の公示イベント＝「どの思想に加担するか」の択（§3-0/3-2）。0＝公示もポップアップも押し込みもAIの判断も1命令も走らない厳密恒等。★E4のAI等価物（2026-08-17・docs/202608/20260817_選挙イベントのAI等価物_完了.md）でこの1本がプレイヤーとAIの**共通ゲート**になった＝点火すると全国に公示が立ち、プレイヤー国はモーダル・AI国は UtilityAgent.DecideElection が同じ四半期に同じ動詞（World.ResolveElection）で答える（別フラグを作らない＝片方だけ点火して非対称を再生産できない）。点火は単独で測る
     // ★E3''（確定形2026-08-17・作者裁定 docs/202608/20260817_選挙の押し込みの凸性_部分完了.md §3）：**代価は曲げない・効きを曲げる**。
-    //   レバー＝裁量余剰(FiscalCapacity)の何%を注ぐか／投入額＝裁量余剰×レバー／金の代価＝投入額そのもの（国庫→pop）／
+    //   レバー＝裁量余剰(FiscalCapacityPerMonth)の何%を注ぐか／投入額＝裁量余剰×レバー／金の代価＝投入額そのもの（国庫→pop）／
     //   効き＝投入額の逓減 A/(1+A/half)（半減点 half で無次元化＝A/(A+half)∈[0,1)）。
     //   ⚠旧 ElectionPushCostConvex（代価を強さ^(1+k) へ凸化）は**撤去**＝作者裁定で却下（§1「代価を歪める形はこのプロジェクトに一つもない」・
     //   §2「看板ごとに逓増すると3つを1/3ずつ押すほうが代価1/3＝設計意図と逆」・§7d「効き側の逓減と二重にしない」）。
     public double ElectionPushHalfPerVoter = 0.04; // ★E3''：逓減の**半減点**＝有権者1人あたりの単価。half ＝ これ × 有権者数 × (名目GDP÷人口)＝「有権者1人につき月あたり平均所得の4%を配れば効きが半分」。⚠国の大きさに比例させる錨が要る（未決7aの解決）＝絶対額に置くと大国は常に漸近線（＝振り切りが最適に戻る）・小国は永久に押せない。形は既存の adminNeed=AdminNeedPerPop×人口（§3-③が名指し）と同型で、票を買う相手は人口でなく**有権者**なので分母の錨を有権者数（ComputeVotes と同じ 規模×FranchiseVoice）に置く。単価が名目GDP/人口＝物価にも所得成長にも自動追従（固定額だと後年に買収が無料化する）。既定0.04＝実測（1785-1898の選挙政体で 裁量余剰÷有権者÷一人あたりGDP＝0.013〜0.35・中央値≈0.04）から「典型的な選挙政体が裁量余剰を全額注ぐと効きが半分」に置いた目盛り。⚠主ゲート ElectionEventEnabled は**2026-08-17に点火（=1）**＝この係数は live（旧注記「主ゲート0＝読まれない」は点火で陳腐化）
-    public double ElectionBribePovertyWeight = 0.0; // ★買収しやすさの富加重（作者要望2026-08-17「金のないPOPほど買収しやすい」・休眠）。半減点の単価を「全国一律の一人あたり名目所得」から「その有権者pop自身の豊かさ」へブレンドする率∈[0,1]：half＝係数×Σ_pop[声_p×((1−これ)×規模_p＋これ×前月所得_p÷全国の一人あたり所得)]×一人あたり名目GDP。0＝Σが全国一律へ畳まれ現行とビット恒等（World.ElectionPushHalfPoint が否定形ガードで即 return＝経路を作らない）／1＝完全にpop別＝票の値段はその有権者の稼ぎで決まる。★豊かさに**所得**（Pop.LastEarned）を採った理由＝①全国側の単価がフロー（名目GDP÷人口）なので次元が揃う ②史実の買収は「何日分の稼ぎか」で値が付いた ③資産(Savings)は選挙資金の還流先そのものだから自己参照になる。★狙う創発＝貧しい選挙民の国は安く買える（腐敗選挙区）／有権者が豊かになるほど買収が割に合わない（参政権の広さに**所得の次元**が加わる）。⚠主ゲート ElectionEventEnabled は**2026-08-17に点火（=1）**＝この係数を0から上げれば即座に効く（休眠は自分の0のみが担保）。点火は単独A/B
+    public double ElectionBribePovertyWeight = 0.0; // ★買収しやすさの富加重（作者要望2026-08-17「金のないPOPほど買収しやすい」・休眠）。半減点の単価を「全国一律の一人あたり名目所得」から「その有権者pop自身の豊かさ」へブレンドする率∈[0,1]：half＝係数×Σ_pop[声_p×((1−これ)×規模_p＋これ×前月所得_p÷全国の一人あたり所得)]×一人あたり名目GDP。0＝Σが全国一律へ畳まれ現行とビット恒等（World.ElectionPushHalfPoint が否定形ガードで即 return＝経路を作らない）／1＝完全にpop別＝票の値段はその有権者の稼ぎで決まる。★豊かさに**所得**（Pop.LastEarnedPerMonth）を採った理由＝①全国側の単価がフロー（名目GDP÷人口）なので次元が揃う ②史実の買収は「何日分の稼ぎか」で値が付いた ③資産(Savings)は選挙資金の還流先そのものだから自己参照になる。★狙う創発＝貧しい選挙民の国は安く買える（腐敗選挙区）／有権者が豊かになるほど買収が割に合わない（参政権の広さに**所得の次元**が加わる）。⚠主ゲート ElectionEventEnabled は**2026-08-17に点火（=1）**＝この係数を0から上げれば即座に効く（休眠は自分の0のみが担保）。点火は単独A/B
     // ★マニフェスト（作者指示2026-08-24）＝選挙で加担した議題を公約として持ち、在任中に果たせば支持が伸びる。
     public double ManifestoFulfillMove = 0.1;      // 達成と認める最小の移動量（軸の可動域に対する割合＝0.1で「1割進んだ」。段のある法は1段でおおむね超える）
     public double ManifestoFulfillCredit = 0.5;    // 達成した瞬間に加担した思想へ乗る支持（Ideology の r[] と同じ物差し＝他の出来事項と横並び）
@@ -1876,7 +1876,7 @@ public sealed class Coefficients
     public double AppeaseMilitaryRatio = 2.5;      // 相手の軍が自軍のこれ倍超＝勝てない相手＝挑発せず宥和（緊張を下げる）
     public double HegemonRestraintFloor = 0.25;    // 突出自制の下限＝覇権国でも植民地化意欲はこの割合までしか落ちない（完全停止はしない）
     // リアリティ補強（改修2026-06-28・第4弾）。
-    public double PrizeMoneyRate = 0.004;          // A2拿捕賞金＝敵GDP×これ×制海優位を毎月 敵の商人から制海国の兵士へ（両建て保存・2026-09-30 支払いの段3-2＝旧は国庫から国庫へ）。海軍を持つ交易上の意味
+    public double PrizeMoneyRatePerMonth = 0.004;          // A2拿捕賞金＝敵GDP×これ×制海優位を毎月 敵の商人から制海国の兵士へ（両建て保存・2026-09-30 支払いの段3-2＝旧は国庫から国庫へ）。海軍を持つ交易上の意味
     public double PrizeCargoShare = 1.0;           // 拿捕賞金原資をGDP比例から『敵が通商破壊で失った海上取扱高(LastPortThroughput×(1-CommerceRaidFactor))』比例へ移すブレンド（prize-money-gdp-based-no-cargo）。1=完全に積荷連動（内陸大国を封鎖しても賞金0）/0=現行のGDP比例（恒等）
     public double ColonizeAnnexMilitancy = 0.3;    // A5無血植民地化の被支配不満（接収植民地のMilitancy/属国pop闘争度の初期値＝抵抗の実体化）
     public double DefendProjectionMin = 0.2;       // A6宗主防衛参戦の最低投射力（これ未満＝届かない属国を見殺し＝離反へ）
@@ -2032,7 +2032,7 @@ public sealed class Coefficients
     // レバー1【本命】軟予算制約（コルナイ）：補助金/国営赤字で操業する工場は「補助依存ストック」（Producer.SubsidyDependence 0..1）が漸増し、
     // 実効生産性 ×(1−これ×依存)。恒久補助＝実質コスト逓増＝「時限補助→黒字化 or 払い下げ(SoeSale)」だけが割に合う（明治の払い下げが最適解として創発）。
     public double SubsidySoftBudgetDecay = 0.4;        // **2026-07-24点火試験**（レバー1＝恒久依存で最大4割の非効率）。0で乗算×1.0＝厳密恒等
-    public double SubsidyDependenceRate = 0.007;       // 依存ストックの月次増分（+0.02/四半期相当）。補助が外れ黒字なら同率で漸減
+    public double SubsidyDependenceRatePerMonth = 0.007;       // 依存ストックの月次増分（+0.02/四半期相当）。補助が外れ黒字なら同率で漸減
     // 【墓標2026-09-28・支払いの一元化 段2-1（作者裁定 Q9）】SubsidyRespectsSpendingCap（レバー2＝補助の国庫負担へ借入スタックの出費上限を掛けた）を削除。
     //   債務の重さは利子の請求が大きくなることで国家の支払い率 r に出る＝補助は補助率×r の1本（EconomyStep の④）。
     // レバー3 AI対称化：Industrialist教義の開発国家プレイ（平時の民生上流Intermediate/Producer赤字工場へ補助・黒字N期で解除）。
@@ -2186,7 +2186,7 @@ public sealed class Coefficients
     // 月次摩耗率（MilitaryGoods と同じ並び＝小銃・弾薬・火砲・軍艦・汽船・馬・自動車）。
     // ★1.0＝消耗品＝従来のフロー経路。1未満＝耐久品＝在庫を持つ（上位段の ArmsWearRate と同じ0.02）。
     // ⚠**新しい分類表を作らない**＝「耐久か消耗か」は摩耗の速さという物理そのもので表す（1.0で従来経路に退化する）。
-    public double[] MilitaryWearRates = [0.02, 1.0, 0.02, 0.02, 0.02, 1.0, 0.02];
+    public double[] MilitaryWearRatesPerMonth = [0.02, 1.0, 0.02, 0.02, 0.02, 1.0, 0.02];
     public double MilitaryUpkeepScale = 0.18 / Military.WorkingMenStdShare;                 // 兵士1人あたりの平時軍需消費スケール（0.12→0.18＝戦争が減っても常備軍の調達で火薬/鉛/帆船の連鎖を維持＝死蔵防止）（(145) 兵の単位の読み替え＝旧値 0.18÷Military.WorkingMenStdShare〔標準のピラミッドの働き盛りの男の割合 0.2765〕＝兵役の母数を働き盛りの男で読むと兵の数がこの比になる＝旧の兵1単位の働きを保つ）＝軍需の総量は旧のまま・兵1人の装備は約3.6倍＝兵1人の費用が史実〔1人あたり年GDP の約3倍〕へ近づく
     // ★初期軍需の整合（2026-08-22・作者報告「初期軍隊と実際の生産が噛み合ってない（火器0%・軍艦1083%）＝初期値を調整」）。
     //   詳細と実測は docs/202608/20260822_初期軍需の整合_部分完了.md。播種の対象財は Simulation.InitialArmsIndustryGoods。
@@ -2203,7 +2203,7 @@ public sealed class Coefficients
     // ★採用（2026-08-22）。首都市場に置く軍需最終財の初期在庫＝平時消費（MilitaryUpkeepScale×人口の側の定員〔(239) 旧＝構築時の兵〕×レート）の月数。0＝休眠（旧＝全財一律200＝清の小銃で6日分）。
     //   効く経路＝**在庫→価格が参照帯に留まる→StateProcurePriceGate が開く→国家が実際に買う**（ration は元から1.0・生産は0.0＝どちらも経路ではない）。
     // ★(239) 月数＝史実の兵器庫の在庫の桁【推・二次資料・確からしさ低】：英 1793 年に国内の武器庫（ロンドン塔を含む）の小銃が約 6 万丁・陸軍の定員 44,432 人＝軍の約 1.35 倍／仏 同年に 70 万丁超・平時の軍は十数万人＝約 4 倍
-    //   （1783 年でなく 1793 年・原典未取得）。耐久品（小銃・火砲）は摩耗 月 0.02（MilitaryWearRates）＝装備 1 式は平時消費の 50 か月分＝軍の 1.35 倍は約 68 か月・4 倍は約 200 か月。
+    //   （1783 年でなく 1793 年・原典未取得）。耐久品（小銃・火砲）は摩耗 月 0.02（MilitaryWearRatesPerMonth）＝装備 1 式は平時消費の 50 か月分＝軍の 1.35 倍は約 68 か月・4 倍は約 200 か月。
     //   ⚠(241) 訂正（反証役 va1#1）：旧の注記「史実の下限（英）より少し下の 60 か月」は単位違い（README §1-9）＝60 は**人口の側の定員**の月数で、史実の比は**軍の実数**に対する比。
     //   底（人口の側の定員）＝構築時の兵÷MilitarySpendingTarget(0.30)＝植民地の無い国で構築時の兵の 3.333 倍＝播種は構築時の兵の消費の 200 か月分（約 4 式）。
     //   ただし播種は助走（StartWarmupQuarters＝60 か月）で食われる＝比べるべき開幕（助走の直後）の在庫÷月の消費は seed 1789 の probe で 英 59.6 か月（約 1.19 式・史実 1.35 式の約 0.9 倍）・
@@ -2432,7 +2432,7 @@ public sealed class Coefficients
     // 国庫非拘束時は size が完全に約分で消え「民間賃金÷兵力価格」を測っている＝**支払能力を測っていない**。
     // Math.Min がこれを選ぶと desired が兵数を見なくなり制御が凍結する。使うなら分子を兵数非依存の量にする必要がある（S4）。
     // ⚠撤去2026-08-12（読み手ゼロ）: SoldierSustainTarget  支払能力がこれを超えていれば増やし、下回れば減らす（1.0＝ちょうど養えている）
-    // ⚠撤去2026-08-12（読み手ゼロ）: SoldierSustainGain  乖離に対する増減の強さ（月次・SoldierMigrationRate と併せて律速）
+    // ⚠撤去2026-08-12（読み手ゼロ）: SoldierSustainGain  乖離に対する増減の強さ（月次・SoldierMigrationRatePerMonth と併せて律速）
     // ── 形が先・金が後（因果B「即応0」の本命設計・2026-08-08 敵対審査 原則88/崩壊74点＝wf_e6c0be63）──
     //   兵数の錨を「人口×スライダー」から NeedMen（理想の軍隊の形＝ArmyShape.cs・原因のみで構成）へ移し、
     //   軍事費は「形を養う請求書の支払い側」へ＝金は頭数でなく質（給与・装備→即応）を決める。
@@ -2486,7 +2486,7 @@ public sealed class Coefficients
     //   （作者設計 2026-08-08）＝脅威の入口を軍事費の段の1つにする（作者 2026-10-01 に異議なし）ので削除（削減方向）。上下の切りは思想⑧の天井でもあった（(151) の申し送り5）。
     // ── 露普歳入是正（wf_f219b706・2026-08-08 調査確定）：普＝潤沢減税の床0.25に開幕から131年ロック（国庫ストックを支出へ
     //   翻訳する経路が無い）・露＝Militarize固定が教育を一度も目標化せず識字逆行→技術凍結＋農奴制の現金遮断。──
-    public double OpulenceSpendRate = 0.6;         // 【梯子測定中2026-08-08＝0.6】支出反射（減税反射の対）：月次予算基数を 歳入 → 歳入＋これ×max(0,国庫−潤沢線)/12 へ（行政・軍需・扶養限界の3箇所）。0=厳密恒等。梯子0.3→0.6→1.2/年
+    public double OpulenceSpendRatePerYear = 0.6;         // 【梯子測定中2026-08-08＝0.6】支出反射（減税反射の対）：月次予算基数を 歳入 → 歳入＋これ×max(0,国庫−潤沢線)/12 へ（行政・軍需・扶養限界の3箇所）。0=厳密恒等。梯子0.3→0.6→1.2/年
     public double MilitarizeAgrarianTaxes = 1.0;   // 【L3点火測定中2026-08-08】Militarizeスタンスに土地税0.4・関税0.3の目標を追記（軍国が地租と関税で軍を養った史実＝地租改正・Grundsteuer）。0=恒等・1=有効
     public double MilitarizeEducationDrive = 1.0;  // 【L4点火測定中2026-08-08】Militarizeスタンスに公教育＋教育費0.4の目標を追記（義務教育は兵営国家の発明＝プロイセン1763・明治学制）。露のElite封鎖の解錠。0=恒等
     public double OpulenceInfraChannel = 0.0;      // 支出反射のインフラ拡張（退蔵→鉄道国家の建設）。0.6同時点火で硬性赤（公教育テスト）＝分離休眠2026-08-08。単独再測定用
@@ -2517,13 +2517,13 @@ public sealed class Coefficients
     public double MilitarismStrengthBonus = 1.3;            // 軍の練度：軍事力（戦力評価）の乗数の**満額**＝実効は 1+(これ−1)×軍の練度（識字×組織×勤務年数。★2026-08-18＝法のON/OFFを撤去）。同じ兵数で軍が強い（訓練・規律・動員）＝労働を奪わないので経済を弱めず軍事に出る
     public double MilitarismClout = 0.5;                   // 旧支配層(将校貴族)が軍から得る政治力＝MilitarismClout×**軍の政治的優位**（軍の圧力×(1−文民制度の弁)∈[0,1]）。★2026-08-18＝法の門を撤去。⚠**給与では買えない**（西1931アサーニャ改革は満額俸給付き退役で最大のクーデタを招いた）＝組織の大きさ・解隊の脅威・人事介入・屈辱が源泉
     public double SoldierPayMult = 1.0;                     // 兵士給与＝民間の働き盛り1人あたり月収（徴募の母数・Military.RecruitWage）×これ（同等待遇を目指す。払えなければ r で単価が下がる＝充足↓＝弱兵）。★(140) 請求どおりの賃金で払う（旧＝兵力の市場の値＝参照価格の門で押さえられ請求の7〜80%）。★(161) 徴兵制（選抜・皆兵）の兵卒は徴兵の兵の手当＝同じ所得を頭数で割る（RecruitWage の keep＝世帯の1人ぶんの暮らし＝糧食・被服と小遣い・標準の構成で働き盛り1人あたりの約0.55）＝徴兵は兵1人を安くする（AI が作者に返した設計・作者の承認は未確認＝推奨で進めた）・★(163) 手当÷規定＝頭数÷働き盛り＝年齢の構成で約0.50〜0.61 と動く（子供が多い国ほど徴兵の兵は安い）
-    public double SoldierMigrationRate = 0.08;             // 平時の徴募/離職速度（月次）。★(155) 読み手＝徴兵制の国の平時の強制の徴募（定員の州按分へ寄せる・Military.Step）と、平時に定員を超えた兵を民間の職へ戻す速さ（Meritocracy の ⑦＝四半期の値 1−(1−これ)^3）。旧＝扶養限界の目標への漸進（徴募と離職の両方・月次）
+    public double SoldierMigrationRatePerMonth = 0.08;             // 平時の徴募/離職速度（月次）。★(155) 読み手＝徴兵制の国の平時の強制の徴募（定員の州按分へ寄せる・Military.Step）と、平時に定員を超えた兵を民間の職へ戻す速さ（Meritocracy の ⑦＝四半期の値 1−(1−これ)^3）。旧＝扶養限界の目標への漸進（徴募と離職の両方・月次）
     public double ConscriptionFraction = 0.12;            // 戦時の徴兵上限＝働き盛りの男のこの割合まで兵士化（人口の約3.3%＝ナポレオン戦争の頂点 4〜6% の桁・行き過ぎは経済に打撃）。(145) で母数を働き盛りの男へ（旧＝大衆の割合）
     public double ConscriptionRate = 0.15;               // 戦時の動員速度（平時より速い）
 
     // --- 軍事／武力解錠（§6.1／§A-8・段4e）---
     public double ForceUnlockRate = 0.10;          // 武力解錠時のインフラ進捗（開発の約10倍速）
-    public double ForceUnlockTreasuryCost = 1000;  // 制圧の月あたりの軍需の予算（首都の市場から陸の軍需を買って消費する・2026-09-30 支払いの段3-2＝旧は国庫から全POP へ頭数で配った）
+    public double ForceUnlockTreasuryCostPerMonth = 1000;  // 制圧の月あたりの軍需の予算（首都の市場から陸の軍需を買って消費する・2026-09-30 支払いの段3-2＝旧は国庫から全POP へ頭数で配った）
     public double ForceUnlockMilitancy = 0.03;     // 制圧が pop に与える闘争度（戦争疲弊・§6.1）
 
     // --- 植民地の整備（§6.1 拡張：固有資源＋人口プール＋収益駆動の開発）---
@@ -2588,7 +2588,7 @@ public sealed class Coefficients
     public double DemandElasticityMaxLuxury = 2.0;   // 【R1点火2026-07-13＝2.0】経11：奢侈品(Luxury)の需要上クランプ。1.4=PriceFactorMaxと同値で現行と厳密一致・>1.4で安価工業製品の大量消費化を許す
     // ── 所得翻訳ゲート（設計3・2026-08-08 敵対審査済み）：GDP∝人口＝英14位の根＝「生産性↑が需要へ翻訳されない蓋」を、
     //   貯蓄・投資・価格係留のどれにも触れずこの1点で切る。f = min(1 + k·ln(max(1, r)), Cap)、
-    //   r = (LastEarned/Size) ÷ basketRef（basketRef＝Staple∪Daily の BaseNeed×RefPrice＝月収が基礎バスケット何個分か）。
+    //   r = (LastEarnedPerMonth/Size) ÷ basketRef（basketRef＝Staple∪Daily の BaseNeed×RefPrice＝月収が基礎バスケット何個分か）。
     //   Daily/Luxury かつ非役務の desired にのみ乗算（Staple除外＝FoodMet/マルサス項・満足度台帳は式レベルで不変）。
     //   貧国popは r≤1 で f=1 厳密＝需要不変。
     // 【墓標2026-09-26（棚卸し econ-16・dorm-51）】DemandIncomeElasticity・DemandIncomeFactorMax（所得翻訳ゲート＝需要の所得係数・休眠0）＝梯子測定で差し戻し（k=0.1＝経済規模−1.3pt／k=0.4＝−2.5pt＋政体exact−7.0）＝削除
@@ -2612,7 +2612,7 @@ public sealed class Coefficients
     public double WageClampMax = 3.0;   // 経12：賃金/役務の天井＝WageClampMax×(参照価格×物価水準)。旧MarketFlowの直書き3.0を係数化。平坦な帯域拡大(5.0)は首位交代退行で保留＝工業化度連動(WageClampIndScale)が正着
     public double WageClampIndScale = 1.0;  // 【R2点火2026-07-15＝1.0・工業化連動】賃金天井を工業化度でスケール＝effWageMax=WageClampMax×(1+これ×Industrialization)。0=固定3.0（現行と厳密恒等）・>0で工業国のみ天井が上がり実質賃金が伸びる（未工業国は据置＝平坦拡大の"富国青天井で独走固定化"を回避）。産業革命の賃金上昇・英独と亜阿の国際賃金格差拡大の史実
     // 【墓標2026-09-26・旗の焼き込み（x-01・0-3）】WageClampSoftBand＝賃金の床天井を財と同じ対数飽和 SoftBand で（経12・点火済み＝ハードクランプの枝を削除）
-    // 【墓標2026-09-26】FiscalQuarterlyGating（財3の四半期の刻みの器・休眠0）＝較正は月次で進む値に乗っている＝器を削除し、DevaluationCapFrac・DefaultTriggerQuarters・DefaultCooldownQuarters の単位の書き方を月へ直した（dorm-29・挙動不変）
+    // 【墓標2026-09-26】FiscalQuarterlyGating（財3の四半期の刻みの器・休眠0）＝較正は月次で進む値に乗っている＝器を削除し、DevaluationCapFrac・DefaultTriggerQuarters・DefaultCooldownMonths の単位の書き方を月へ直した（dorm-29・挙動不変）
     // **点火2026-07-31（07_再設計 第2弾2a）**：前提（注入＝MultiNationSim・保有国配分＝CapitalMarket の外債レグ）が02断線走査で揃った＝対外国債が完全な閉鎖系になる。
     // シティ/パリの引受能力が世界の借入を規定する＝「貸し手のいない借金はできない」。
     // 【墓標2026-09-26・旗の焼き込み（x-01・0-4）】ForeignBondFromInvestors（財5・既定1.0）＝対外国債は他国資本家のプール World.ForeignBondInvestorPool を上限に引き当て（旧＝モデル外の無限プール）
@@ -3449,8 +3449,8 @@ public sealed class Coefficients
     public double FarmScaleCap = 3.0;           // ★2.0→3.0（2026-08-14実測＝2.0は1州国家で食料が頭打ち→ハノーファー満足度0.04＝飢餓でハーネス赤）。畑の「すぐには増やせない」は上の速度1/4が担い、上限は工場と同じ＝開墾の余地自体は否定しない
     public double RgoScaleSpeedFactor = 0.25;   // 鉱山・畑の規模調整速度の倍率（坑道・開墾＝年単位。時定数は均衡を動かさない＝掃討基準の免除カテゴリ）
     public double MintPriceFloorGate = 1.0;   // **主フラグ**★点火2026-08-29（夜間R20造幣3本クラスタA/B batch30＝列強+5.8・破綻0）：0で旧来（産出比例上限・国内鉱山限定）／1で自由鋳造＝平価未満なら在庫から買い上げる（床）
-    public double MintFloorBuyRate = 0.25;    // 床モードの月次購入率（在庫のこの割合まで/月）。1.0＝即時全量は買い→価格急騰→停止→再蓄積の振動リスク
-    public double MintReserveSellRate = 0.08; // 法が本位金属を捨てたあと準備を市場へ売る月次率（独1873-79のターラー銀売却＝暴落を深めた投げ売り。売り切りに約1年）
+    public double MintFloorBuyRatePerMonth = 0.25;    // 床モードの月次購入率（在庫のこの割合まで/月）。1.0＝即時全量は買い→価格急騰→停止→再蓄積の振動リスク
+    public double MintReserveSellRatePerMonth = 0.08; // 法が本位金属を捨てたあと準備を市場へ売る月次率（独1873-79のターラー銀売却＝暴落を深めた投げ売り。売り切りに約1年）
     // ==== 銀本位の史実度（2026-08-21・作者裁定「原因究明し原則に従って修正」→同日点火）====
     // 【点火1.0・2026-08-21 銀本位ラウンド＝4係数一括（SilverStandardGate/SilverLightDiscipline/GoldStandardIndThreshold 1.5→3.5/MonetaryPeerPullScale 0→5）。
     //   同一ソースA/B seeds1-10（snap5＝親基線37f6bfe系）：◎7割帯 11→17・逸脱過多 9→7・法+1.9・植民地+3.4・人口+1.4／
@@ -3481,7 +3481,7 @@ public sealed class Coefficients
     //   ＝閉じる条件が誤り（信用の薄い1783 年から常に真＝造幣が一度も買わない）。置き換えの候補（床の持ち込みを貨幣の不足まで）は測って入れていない（Simulation.MintGold の注記・パッチ measurements/s208_20261009_floor.diff）。
     // ★器 MintParitySells（2026-09-07・休眠既定0）：造幣局の standing offer を**両側**にする＝市場価格が平価の**上**なら本位金属の準備を平価で**売る**
     //   （平価買いの厳密な逆操作＝史実の固定平価は買い支えと売り支えの両側で成り立つ。silverprobe 実測＝平価0.54に対し銀本位国の銀が0.65〜0.90で浮いたまま＝片側だけでは平価が効かない根）。
-    //   数量＝準備×MintFloorBuyRate（買い側と同じ月次率＝新しい数なし）と買い手（商人・不在なら投資家＝床の持ち込み手と同じ）の貯蓄÷平価の小さい方。
+    //   数量＝準備×MintFloorBuyRatePerMonth（買い側と同じ月次率＝新しい数なし）と買い手（商人・不在なら投資家＝床の持ち込み手と同じ）の貯蓄÷平価の小さい方。
     //   会計＝買い手の Savings−／CumulativeGoldMinted−（鋳造の逆＝退蔵ではなく正貨の回収＝保存量D不変）／準備−／市場 Stock＋・LastImport＋（準備の売却の1本 Simulation.SellReserve＝2026-09-30 に投げ売りと畳んだ）。
     //   準備不足の市場買い（MintBuysAtMarket の atMarket）の月は売らない（同月に両方向は自己取引）。0（既定・休眠）＝ゲート判定の1行しか走らない＝厳密恒等。
     public double MintParitySells = 0.0;

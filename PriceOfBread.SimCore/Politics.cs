@@ -1846,7 +1846,7 @@ public static class Politics
     {
         double tot = soldierForce + coerce;
         double pull = c.MilitaryCoupSupport * (!(tot > 0) ? 0 : soldierForce / tot);
-        return pull * ProfessionalArmyShare(w.SoldierSize(), w.TotalPopulation, Military.PeaceCapShareOfPop(c));   // ★(145)：平時の上限の人口比（上限割合×標準の構成の働き盛りの男の割合）
+        return pull * ProfessionalArmyShare(w.SoldierSizeK(), w.TotalPopulation, Military.PeaceCapShareOfPop(c));   // ★(145)：平時の上限の人口比（上限割合×標準の構成の働き盛りの男の割合）
     }
 
     /// <summary>★作者裁定2026-09-19 R4：職業軍の度合い π∈(0,1]＝兵のうち平時の上限（総人口×平時の上限の人口比 <see cref="Military.PeaceCapShareOfPop"/>）に収まる割合。

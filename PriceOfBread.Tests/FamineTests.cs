@@ -159,8 +159,8 @@ public class FamineTests
             var w = sim.World; var r = w.Regions[0];
             Pop Of(int cls) { foreach (var p in r.Pops) if (p.ClassId == cls) return p; throw new System.InvalidOperationException(); }
             var rural = Of(0); var urban = Of(1);
-            rural.FoodNeed = 0.8 * rural.Size; rural.FoodMet = fillRural * rural.FoodNeed; rural.Earned = 0.1 * rural.Size;
-            urban.FoodNeed = 0.8 * urban.Size; urban.FoodMet = fillUrban * urban.FoodNeed; urban.Earned = 0.2 * urban.Size;
+            rural.FoodNeed = 0.8 * rural.Size; rural.FoodMet = fillRural * rural.FoodNeed; rural.EarnedPerMonth = 0.1 * rural.Size;
+            urban.FoodNeed = 0.8 * urban.Size; urban.FoodMet = fillUrban * urban.FoodNeed; urban.EarnedPerMonth = 0.2 * urban.Size;
             double u0 = urban.Size;
             PopDecision.Run(r, w.Coef);
             return urban.Size - u0;

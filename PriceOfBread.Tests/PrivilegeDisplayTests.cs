@@ -156,11 +156,11 @@ public class PrivilegeDisplayTests
         w.SerfEmancipation = ReformLevel.Full;      // 農奴の緊縛は無し＝残る駆動量は土地の保有だけ（英の型）
 
         double rentNoble = 0, rentOther = 0;
-        foreach (var p in w.AllPops()) { double lr = System.Math.Max(0, p.LandRent); if (p.ClassId == PopClass.Noble) rentNoble += lr; else rentOther += lr; }
+        foreach (var p in w.AllPops()) { double lr = System.Math.Max(0, p.LandRentPerMonth); if (p.ClassId == PopClass.Noble) rentNoble += lr; else rentOther += lr; }
         Assert.True(rentNoble > 1e-9 && rentOther > 1e-9, $"地代の内訳が測れない世界（貴族{rentNoble:R}／他{rentOther:R}）");
 
         double held = w.AdminEfficiency;
-        foreach (var p in w.AllPops()) if (p.ClassId == PopClass.Noble) p.LandRent = 0;   // 米の型：土地は自作農の手にあり貴族は地代を1銭も握らない
+        foreach (var p in w.AllPops()) if (p.ClassId == PopClass.Noble) p.LandRentPerMonth = 0;   // 米の型：土地は自作農の手にあり貴族は地代を1銭も握らない
         double landless = w.AdminEfficiency;
         Assert.True(held > landless + 1e-9, $"農奴制の無い国で土地の保有が素地を支えていない＝原型の事例で向きが逆（{held:R} vs {landless:R}）");
 
@@ -191,8 +191,8 @@ public class PrivilegeDisplayTests
         double expected = 0;
         foreach (var p in pops)
         {
-            p.LastEarned = 0;
-            if (!p.Closed && !p.IsModernElite && !p.IsSoldier) { p.LastEarned = 100; p.SetSavings(100); expected += 0.05 * 100; }   // 払い手に確実に原資を持たせる
+            p.LastEarnedPerMonth = 0;
+            if (!p.Closed && !p.IsModernElite && !p.IsSoldier) { p.LastEarnedPerMonth = 100; p.SetSavings(100); expected += 0.05 * 100; }   // 払い手に確実に原資を持たせる
         }
 
         double Sum(System.Func<Pop, bool> pick) { double s = 0; foreach (var p in pops) if (pick(p)) s += p.Savings; return s; }

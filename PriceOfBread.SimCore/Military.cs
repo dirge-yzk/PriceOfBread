@@ -78,7 +78,7 @@ public static class Military
     {
         double e = level * c.MilitaryEnvelopeShare * Math.Max(0, w.SpendableRevenue());
         double war = WarStageShare(w, level);
-        if (war > 0 && Fiscal.BorrowGateOpen(w, c)) e += war * Fiscal.BorrowTicket(w.NominalGdp, c);
+        if (war > 0 && Fiscal.BorrowGateOpen(w, c)) e += war * Fiscal.BorrowTicket(w.NominalGdpPerMonth, c);
         return e > 0 ? e : 0;
     }
 
@@ -125,7 +125,7 @@ public static class Military
             natManpower += m;
             foreach (var p in r.Pops)
                 if (!p.IsSoldier && (p.ClassId == c.SoldierRecruitClassA || p.ClassId == c.SoldierRecruitClassB))
-                { poolEarn += Math.Max(0, p.LastEarned); poolSize += keep ? p.Size : WorkingAdults(p); }   // 賃金の分母＝働き盛り（(140)）・徴兵制は頭数（(161)）
+                { poolEarn += Math.Max(0, p.LastEarnedPerMonth); poolSize += keep ? p.Size : WorkingAdults(p); }   // 賃金の分母＝働き盛り（(140)）・徴兵制は頭数（(161)）
         }
         double manLimit = c.MaxSoldierFraction * natManpower;
         double wage = poolSize > 1e-9 ? poolEarn / poolSize : 0;   // 徴募プールの前月の働き盛り1人あたりの賃金＝兵士の機会費用（富国の兵は高い）＝RecruitWage と同じ規則（ここは国の和）・徴兵制は頭数あたり＝兵1人を安くする（(161)）
@@ -162,7 +162,7 @@ public static class Military
 
     /// <summary>★州の兵1人の月給の請求の単価＝徴募の母数（農民・都市労働者）の前月の所得÷働き盛りの人数×SoldierPayMult の手前（2026-09-30 (140)）。
     /// 請求（Simulation の SoldierPayBudget＝兵数×これ×SoldierPayMult）と定員（<see cref="EstablishmentOf"/>＝国の和で同じ規則）が同じ母数と同じ窓を読む。
-    /// <paramref name="last"/>＝前月の所得の欄（月の決算の後＝LastEarned・月の決算の前＝Earned＝どちらも前月の所得）。
+    /// <paramref name="last"/>＝前月の所得の欄（月の決算の後＝LastEarnedPerMonth・月の決算の前＝Earned＝どちらも前月の所得）。
     /// ★(161) <paramref name="keep"/>＝徴兵の兵の手当（徴兵制の兵の給与・AI が作者に返した設計「徴兵は兵1人を安くする制度でもあった」・作者の承認は未確認）＝同じ所得を**頭数**で割る
     /// （世帯の1人ぶんの暮らし＝糧食・被服と小遣い・働き手が家族を養う分を含まない）。既定＝働き盛り1人あたり（志願兵の規定の給与・幹部の給与の物差し）。</summary>
     internal static double RecruitWage(Region r, Coefficients c, bool last, bool keep = false)
@@ -170,7 +170,7 @@ public static class Military
         double pe = 0, pa = 0;
         foreach (var p in r.Pops)
             if (!p.IsSoldier && (p.ClassId == c.SoldierRecruitClassA || p.ClassId == c.SoldierRecruitClassB))
-            { pe += Math.Max(0, last ? p.LastEarned : p.Earned); pa += keep ? p.Size : WorkingAdults(p); }
+            { pe += Math.Max(0, last ? p.LastEarnedPerMonth : p.EarnedPerMonth); pa += keep ? p.Size : WorkingAdults(p); }
         return pa > 1e-9 ? pe / pa : 0;
     }
 
@@ -233,7 +233,7 @@ public static class Military
         //   旧＝扶養限界の目標（×軍拡の倍率 0.8〜1.2）へ一定の速さで寄せる専用の経路（DrawFromPool/DischargeToPool）＝志願も復員も給与と職を比べなかった＝削除（削減方向）。
         double seatsNat = EstablishmentOf(w, c, out double natManpower);
         bool lawConscripts = w.ConscriptionLaw >= ConscriptionLaw.Selective;   // ★3値化2026-08-01：選抜以上＝徴兵制
-        double soldiersBefore = lawConscripts ? w.SoldierSize() : 0;   // ★(155) 新兵で熟練を薄める（DiluteSkill）＝徴募の前の兵の数
+        double soldiersBefore = lawConscripts ? w.SoldierSizeK() : 0;   // ★(155) 新兵で熟練を薄める（DiluteSkill）＝徴募の前の兵の数
         foreach (var r in w.Regions)
         {
             if (r.State != RegionState.Active) continue;
@@ -262,7 +262,7 @@ public static class Military
             //   富の乗数は NeedMen 錨定（ArmyShape）が上位互換。★実装は 2026-08-12 に撤去（30行）。
             // 平時＝定員の州按分（州の母数÷国の母数＝分子と分母が同じ RegionManpower＝州の和が国の定員に一致）＝徴兵法の平時の割当て（年々の徴集で席を埋める）。
             double seats = natManpower > 1e-9 ? seatsNat * (manpower / natManpower) : 0;
-            double desired = seats, rate = c.SoldierMigrationRate;
+            double desired = seats, rate = c.SoldierMigrationRatePerMonth;
             // 1934拡張E5 徴兵法：戦時の強制徴募は**徴兵制の国だけ**（志願兵制は戦時も定員のまま＝転職の仕組みで志願を待つ＝小さい軍・不満なし）。
             // conscriptFrac は外12で戦争規模スケール（既定＝ConscriptionFraction＝恒等）。
             bool wartimeConscript = atWar;   // ★M1（作者裁定2026-09-19）：総動員は条件に入らない＝志願兵制を迂回しない（旧 `|| w.Mobilized`＝2026-08-31の是正を覆す）。総動員は上の conscriptFrac で深さだけを上げる
@@ -283,7 +283,7 @@ public static class Military
         // ★階層3分割（2026-09-22 既定化）：旧＝兵士POPの満足度の平均。分割後の満足度には食料が載らない＝「食えない軍」が即応度から消える
         //   （1812年の退却・1917年の前線＝飢えた軍は戦えない）。⇒ 兵卒の漏れと**同じ1本**（PowerShares.SoldierWelfare＝食料＋日用品の台帳）を読む
         //   ＝旧は同じ量（兵士POPの人口加重平均満足度）を2箇所で別々に集計していた重複も畳む。
-        double sSize = w.SoldierSize();
+        double sSize = w.SoldierSizeK();
         if (lawConscripts) DiluteSkill(w, soldiersBefore, sSize);   // ★(155) 徴兵した新兵は訓練を受けていない＝熟練を薄める（減る側は動かさない）
         double moraleFill = PowerShares.SoldierWelfare(w);
         // 課題6（駐屯州調達）：即応の装備充足＝兵士加重の全国平均へ（g=0では旧＝首都州のみ＝厳密同値）。

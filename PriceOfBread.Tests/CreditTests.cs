@@ -61,7 +61,7 @@ public class CreditTests
         sim.Run(1);
         var w = sim.World;
         var inv = w.Region.Pops[w.Region.InvestorPopIndex];
-        inv.LastEarned = monthlyIncome;
+        inv.LastEarnedPerMonth = monthlyIncome;
         double d = loans - w.Bank!.Loans; w.Bank.Loans += d; inv.SetSavings(inv.Savings + (d));   // 信用創造の対（与信と預金）＝基礎貨幣は動かない
         w.Explain = new ExplainLedger();
         return w;
