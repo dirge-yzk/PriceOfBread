@@ -2409,7 +2409,7 @@ if (args.Length > 0 && args[0] == "initdump")
                 {
                     popK += p.Size; if (p.IsUrban) urbanK += p.Size; litSum += p.Literacy * p.Size; if (p.IsSoldier) sold += p.Size;
                     if (!cls.TryGetValue(p.ClassName, out var c)) { c = (0, 0, 0, 0, 0, 0, 0); order.Add(p.ClassName); }
-                    cls[p.ClassName] = (c.size + p.Size, c.sav + p.Savings.Value, c.earned + p.LastEarnedPerMonth.Value, c.lit + p.Literacy * p.Size, c.sat + p.Satisfaction * p.Size, c.debt + p.Debt, c.bond + p.BondHoldings.Value);
+                    cls[p.ClassName] = (c.size + p.Size, c.sav + p.Savings.Value, c.earned + p.LastEarnedPerMonth.Value, c.lit + p.Literacy * p.Size, c.sat + p.Satisfaction * p.Size, c.debt + p.Debt.Value, c.bond + p.BondHoldings.Value);
                     if (CapitalMarket.IsInvestor(p, w.Coef)) { invSav += p.Savings.Value; invEarn += p.LastEarnedPerMonth.Value; invSize += p.Size; }
                 }
             }

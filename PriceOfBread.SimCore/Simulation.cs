@@ -2985,8 +2985,8 @@ public sealed class Simulation
                 }
         // ★E6：負の分だけ与信を償却（基礎貨幣は償却の額だけ上がり、非常発行が同じ額だけ台帳に積まれる＝保存量は動かない）。
         //   ⚠NaN は比較が偽＝何もしない（否定形の門）。償却の後の基礎貨幣＝0（与信が足りれば）か国庫の負の分（与信を全部消しても残る分）。
-        double writeOff = Math.Min(-World.BaseMoney, bank.Loans);
-        if (writeOff > 0) { bank.Loans -= writeOff; World.CumulativeFiatIssued += writeOff; }   // 非常発行の台帳（負の国の与信の償却だけ）
+        double writeOff = Math.Min(-World.BaseMoney, bank.Loans.Value);
+        if (writeOff > 0) { bank.Loans -= new MoneyStock(writeOff); World.CumulativeFiatIssued += writeOff; }   // 非常発行の台帳（負の国の与信の償却だけ）
     }
 
 
@@ -3077,7 +3077,7 @@ public sealed class Simulation
             World.TechLevel, litSum * inv, gdp,
             (int)World.Polity, conscSum * inv, milSum * inv,
             World.ReformistPower, World.Coercion,
-            World.BroadMoney, World.OutstandingLoans, World.Bank?.Confidence ?? 1.0,
+            World.BroadMoney, World.OutstandingLoans.Value, World.Bank?.Confidence ?? 1.0,
             World.Treasury.Value, World.FiscalFundingRatio,
             World.Regions[0].SumPopulation(), World.Regions.Count > 1 ? World.Regions[1].SumPopulation() : 0.0,
             World.Bank?.Gold ?? 0.0, World.CumulativeTradeFlow));

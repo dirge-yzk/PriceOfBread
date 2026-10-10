@@ -822,8 +822,8 @@ public sealed class World
         {
             case Outside.Mint: w.CumulativeGoldMinted += delta; break;
             case Outside.Fiat: w.CumulativeFiatIssued += delta; break;
-            case Outside.Credit: w.Bank!.Loans += delta; break;
-            case Outside.HouseholdCredit: w.Bank!.HouseholdLoans += delta; break;
+            case Outside.Credit: w.Bank!.Loans += new MoneyStock(delta); break;
+            case Outside.HouseholdCredit: w.Bank!.HouseholdLoans += new MoneyStock(delta); break;
             default: w.CumulativeTradeFlow += delta; break;
         }
     }
@@ -981,7 +981,7 @@ public sealed class World
     /// <summary>信用創造された広義マネーの残高。⚠★家計向け（<see cref="Bank.HouseholdLoans"/>）を**含む**
     /// （POPの個人債務・2026-08-02）。ここが与信を <see cref="BaseMoney"/> へ接続する唯一の地点なので、
     /// 定義を広げるだけで新しいストックが自動的に恒等式へ入る。既定0で厳密ビット恒等。</summary>
-    public double OutstandingLoans => (Bank?.Loans ?? 0.0) + (Bank?.HouseholdLoans ?? 0.0);
+    public MoneyStock OutstandingLoans => (Bank?.Loans ?? default) + (Bank?.HouseholdLoans ?? default);
     public double BroadMoney => TotalMoney;
     public double FinancialHeat => Bank?.Heat ?? 0.0;   // 金融過熱度（恐慌の予兆ゲージ・ガラス箱）
 
@@ -2656,5 +2656,5 @@ public sealed class World
     }
 
     // 基礎貨幣＝広義マネー ＋ 国庫 − 与信（保存量＝金。§A-7／§11.6）
-    public double BaseMoney => TotalMoney + Treasury.Value - OutstandingLoans;
+    public double BaseMoney => TotalMoney + Treasury.Value - OutstandingLoans.Value;
 }

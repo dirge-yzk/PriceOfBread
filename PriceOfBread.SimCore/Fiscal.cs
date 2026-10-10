@@ -318,7 +318,7 @@ public static class Fiscal
                 // 自己制限：焼却は正貨カバー率を悪化させる（Mが減りLは減らせない）。改革が自分で金本位復帰の
                 // ゲート（GoldCoverMin×GoldRejoinCoverMargin）を閉じては本末転倒なので、そこまでで止める。既存係数の再利用。
                 double lo = c.GoldCoverMin * c.GoldRejoinCoverMargin;
-                double loans = w.OutstandingLoans, tre = Math.Max(0, w.Treasury.Value);
+                double loans = w.OutstandingLoans.Value, tre = Math.Max(0, w.Treasury.Value);
                 if (loans > tre && lo < 1.0) burn = Math.Min(burn, Math.Max(0, w.TotalMoney - (loans - tre) / (1.0 - lo)));
                 if (burn > 1e-12 && sav > 1e-9)
                 {

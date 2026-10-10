@@ -722,7 +722,7 @@ public class FiscalTests
         Assert.True(back.OnGoldStandard, "債務が年GDP の2倍の英が、準備と財政が足りているのに兌換へ戻れない（英1821年の再開）");
 
         var run = Board(true);
-        run.Bank!.Loans = run.TotalMoney + run.Treasury.Value;   // 準備（基礎貨幣）が与信に食われて0＝取り付けで金が流出し尽くした盤面
+        run.Bank!.Loans = new MoneyStock(run.TotalMoney + run.Treasury.Value);   // 準備（基礎貨幣）が与信に食われて0＝取り付けで金が流出し尽くした盤面
         Fiscal.Step(run, run.Coef);
         Assert.False(run.OnGoldStandard, "準備が割れても兌換を止めない（取り付けの門が死んでいる＝この番人の対照が崩れた）");
     }
@@ -1075,7 +1075,7 @@ public class FiscalTests
         fw.ForeignBondClaims += 0.75 * fd * rw.FxRate / fw.FxRate; pw.ForeignBondClaims += 0.25 * fd * rw.FxRate / pw.FxRate;   // 債権は持ち手の国の通貨（金の値打ちで 3:1）
         rw.ForeignCapitalIn += 0.07 * scale; rw.CapitalAbroad += 0.04 * scale;
         new BondLedger().Check(rw);
-        Assert.True(rw.Treasury.Value < 0 && rb.Loans > 0 && rb.HouseholdLoans > 0, $"前提が崩れた：国庫 {rw.Treasury}・与信 {rb.Loans}・家計の与信 {rb.HouseholdLoans}");
+        Assert.True(rw.Treasury.Value < 0 && rb.Loans.Value > 0 && rb.HouseholdLoans.Value > 0, $"前提が崩れた：国庫 {rw.Treasury}・与信 {rb.Loans}・家計の与信 {rb.HouseholdLoans}");
         // ★2026-09-30 段4e（人と動くお金の換算）：反乱国の為替を親の 0.8 倍に置く＝国庫・与信・貯蓄・債務・対外の残高は親の通貨へ換算して渡る（差は換算の台帳へ）
         rw.ExchangeRate = pw.FxRate * 0.8;
         double rho = rw.FxRate / pw.FxRate;
@@ -1089,7 +1089,7 @@ public class FiscalTests
         double heldOthers = fw.ForeignBondClaims * fw.FxRate + pw.ForeignBondClaims * pw.FxRate, repudiated = (rw.PrevForeignDebt * rw.FxRate).Value;
         double fwClaims0 = fw.ForeignBondClaims, pwClaims0 = pw.ForeignBondClaims, rwClaims0 = rw.ForeignBondClaims;
         Assert.True(heldOthers >= repudiated, $"前提が崩れた：反乱国以外の債権 {heldOthers} が否認する対外債 {repudiated} に届かない");
-        double loans0 = pb.Loans, hh0 = pb.HouseholdLoans, tr0 = pw.Treasury.Value, rT = rw.Treasury.Value, rL = rb.Loans, rHH = rb.HouseholdLoans;
+        double loans0 = pb.Loans.Value, hh0 = pb.HouseholdLoans.Value, tr0 = pw.Treasury.Value, rT = rw.Treasury.Value, rL = rb.Loans.Value, rHH = rb.HouseholdLoans.Value;
         double fx0 = sim.Diplomacy.CumulativeFxResidual;
         double caGold0 = Sum(all0, w => w.CapitalAbroad * w.FxRate), fciGold0 = Sum(all0, w => w.ForeignCapitalIn * w.FxRate);
         var guard = new MoneyConservation(pw);
@@ -1108,10 +1108,10 @@ public class FiscalTests
         Assert.True(Math.Abs(pw.BaseMoney - parentBase0 - rebelBase * rho) <= tol, $"親の基礎貨幣の増え {pw.BaseMoney - parentBase0} ≠ 反乱国の基礎貨幣×換算 {rebelBase * rho}");
         guard.Check(pw);   // 親の国ごとの保存も閉じる（累積貿易に換算した額を記帳）
         // 貨幣の行は親へ（親の通貨へ換算）：与信・家計の与信・国庫（負のまま）
-        Assert.True(Math.Abs(pb.Loans - loans0 - rL * rho) <= tol, $"親の与信の増え {pb.Loans - loans0} ≠ 反乱国の与信×換算 {rL * rho}");
-        Assert.True(Math.Abs(pb.HouseholdLoans - hh0 - rHH * rho) <= tol, $"親の家計の与信の増え {pb.HouseholdLoans - hh0} ≠ 反乱国の家計の与信×換算 {rHH * rho}");
+        Assert.True(Math.Abs(pb.Loans.Value - loans0 - rL * rho) <= tol, $"親の与信の増え {pb.Loans.Value - loans0} ≠ 反乱国の与信×換算 {rL * rho}");
+        Assert.True(Math.Abs(pb.HouseholdLoans.Value - hh0 - rHH * rho) <= tol, $"親の家計の与信の増え {pb.HouseholdLoans.Value - hh0} ≠ 反乱国の家計の与信×換算 {rHH * rho}");
         Assert.True(Math.Abs(pw.Treasury.Value - tr0 - rT * rho) <= tol, $"親の国庫の動き {pw.Treasury.Value - tr0} ≠ 反乱国の国庫×換算 {rT * rho}");
-        Assert.True(Math.Abs(cap.Debt - hh * rho) <= 1e-12 * Math.Max(1.0, hh), $"家計の債務の記録 {cap.Debt} ≠ 換算 {hh * rho}");   // POP と一緒に親へ（HouseholdLoans の対・同じ換算）
+        Assert.True(Math.Abs(cap.Debt.Value - hh * rho) <= 1e-12 * Math.Max(1.0, hh), $"家計の債務の記録 {cap.Debt} ≠ 換算 {hh * rho}");   // POP と一緒に親へ（HouseholdLoans の対・同じ換算）
         // 請求権：外資の負債と対外資産は州について親へ（世界の金の値打ちの和は不変）／反乱国の対外債は否認＝債権の和が同額減る（金は動かない）
         double tolC = 1e-9 * Math.Max(1.0, scale);
         Assert.True(Math.Abs(Sum(all1, w => w.CapitalAbroad * w.FxRate) - caGold0) <= tolC, "再併合で世界の対外資産の金の値打ちの和が動いた");
