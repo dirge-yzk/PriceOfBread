@@ -5,15 +5,10 @@ namespace PriceOfBread.Tests;
 
 /// <summary>汚職再設計C1（docs/202608/20260814_汚職をサブシステムにする_部分完了.md【一部】.md・作者裁定「それでよい」）の番人。
 /// 汚職＝(1−行政)×(1−監視)・監視＝noisy-or(報道, 資格任用, 議会の予算権)・漏れは官職地代（rent）に記帳。
-/// (1)既定0の休眠ピン (2)監視のnoisy-or形（1要素だけでも監視が立つ＝8f裁定） (3)ON経路＝官僚のLandRentが立つ、を固定する。</summary>
+/// (2)監視のnoisy-or形（1要素だけでも監視が立つ＝8f裁定） (3)ON経路＝官僚のLandRentが立つ、を固定する。
+/// （(1)係数 CorruptionCoreV2 の既定の確認は 2026-10-11 (253) に係数ごと削除＝点火の記録だけで読み手0だった。）</summary>
 public class CorruptionCoreV2Tests
 {
-    [Fact]
-    public void 係数の既定は点火済み()
-    {
-        Assert.Equal(1.0, new Coefficients().CorruptionCoreV2);   // ★点火2026-08-15（ign_corr）・恒久ON裁定。旧式(1−行政)(1−清廉度)はC2-C5撤去（2026-08-16）で物理削除＝0に戻す道は消滅（AntiCorruptionTests もOFF枝番人ごと撤去）。この係数は点火記録＝本テストが番人
-    }
-
     [Fact]
     public void 監視はnoisy_orで1要素だけでも立つ()
     {
@@ -39,7 +34,6 @@ public class CorruptionCoreV2Tests
         //   sim.Coef に書いても Fiscal には届かない（この取り違いで一度赤になった＝診断: 官僚5pop/漏れ875なのに記帳0）。
         var c = w.Coef;
         sim.StartWarmup();
-        c.CorruptionCoreV2 = 1.0;
         // 監視を最低・行政不足を強制＝汚職が確実に立つ盤面（法は実データ・値だけ動かす）
         w.Censorship = CensorshipLaw.StatePressOnly; w.Bureaucracy = BureaucracyLaw.Spoils; w.ParliamentControl = 0;
         sim.StepQuarter();

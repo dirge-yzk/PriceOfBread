@@ -1967,9 +1967,7 @@ public static class EconomyStep
                         double baseEnd = Simulation.ResourceEndowment(bestRgo.GoodId);
                         if (baseEnd > 1e-9) rgoCap *= 1.0 + coef.ScarceCapFollowsEndowment * (Simulation.ScarceEndowment(bestRgo.GoodId, coef, world is not null && !world.StepsDiplomacy) / baseEnd - 1.0);
                     }
-                    double rgoPrevBuilt = bestRgo.BuiltScale;
                     bestRgo.BuiltScale = Math.Min(rgoCap, bestRgo.BuiltScale + built * coef.IndPerConstruction * coef.RgoCapitalShare);
-                    ApplyEnclosure(region, bestRgo, bestRgo.BuiltScale - rgoPrevBuilt, coef);   // rank5第2段：囲い込みの自給侵食（EnclosureRate=0で即return＝恒等）
                     bestRgo.StateTarget = Math.Max(bestRgo.StateTarget, World.StateUnits(bestRgo, coef));
                 }
             }
@@ -2737,21 +2735,4 @@ public static class EconomyStep
     /// <summary>役務（教育・医療）の購入優先順位：0=下層（農民・労働者）→ 1=中流（近代エリート）→ 2=上流・閉鎖階級・兵士。
     /// 下層が基礎教育を先に買い、余剰が中流へ届く＝高等教育（専門職への転職資格）の表現。</summary>
     private static int ServiceRank(Pop p) => Politics.IsMassPop(p) ? 0 : p.IsModernElite ? 1 : 2;
-
-    /// <summary>rank5第2段＝囲い込みの自給侵食（休眠 EnclosureRate=0・作者裁定2026-08-16）。
-    /// RGOの資本拡張（BuiltScale増分）1単位あたり、当該州の農民pop（＝そのRGOの労働pop）の Subsistence を EnclosureRate×増分 だけ微減（下限0）
-    /// ＝プランテーション・囲い込みが自給地を市場向けに転換する物理。自給が減った農民は市場で主食を買う側へ＝所得低下・食料脆弱化が
-    /// 既存の都市化softmax・失業プール・飢饉死配分を通って現れる。
-    /// ⚠作者条件＝「移動費が払えず貧困から抜けられない」型を潰さない：**新しい移動経路・移動補助はここから一切作らない**
-    /// （押し出しは所得低下→既存機構経由のみ。都市天井・海外渡航費の既存の壁はそのまま＝逃げ場が無い州では困窮が滞留して闘争度になるのが正しい帰結）。
-    /// 呼び手＝World.StepConstruction の完成（1棟=FactoryBuildScale）と RgoCapitalShare 枝（StateShareCounterOnly=1.0 で不走行＝対照のみ）。接収（NationalizationSeizure）は
-    /// 所有移転であって資本拡張でないため呼ばない。EnclosureRate=0（既定）＝先頭ガードで即return＝1命令も走らない＝厳密恒等。</summary>
-    internal static void ApplyEnclosure(Region region, Producer s, double deltaBuilt, Coefficients coef)
-    {
-        if (!(coef.EnclosureRate > 0) || !(deltaBuilt > 0) || !s.IsRgo) return;   // 否定形＝NaNも不発側へ倒す（Clampは NaN を消さない）
-        if (s.LaborPopIndex < 0 || s.LaborPopIndex >= region.Pops.Count) return;
-        var farm = region.Pops[s.LaborPopIndex];
-        if (!(farm.Subsistence > 0)) return;
-        farm.Subsistence = Math.Max(0, farm.Subsistence - coef.EnclosureRate * deltaBuilt);
-    }
 }

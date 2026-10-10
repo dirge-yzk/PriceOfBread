@@ -2102,9 +2102,9 @@ public sealed class Simulation
                 r.AdminBudget = r.BureaucratPopIndex >= 0 && nationPop > 1e-9
                     ? World.AdminSpending * World.Coef.AdminBudgetFrac * World.SpendableRevenue() * (r.SumPopulation() / nationPop) * Fiscal.AdminDistanceMul(World, r) : 0;   // 請求（r を掛ける前）
                 r.InfraBudget = nationPop > 1e-9
-                    ? (World.AdminSpending * World.Coef.InfraBudgetScale * World.FiscalCapacityPerMonth * (r.SumPopulation() / nationPop) * HoardSpendScale()).Value : 0;
+                    ? (World.AdminSpending * World.Coef.InfraBudgetScale * World.FiscalCapacityPerMonth * (r.SumPopulation() / nationPop)).Value : 0;
                 r.ElecInfraBudget = nationPop > 1e-9
-                    ? (World.AdminSpending * World.Coef.ElecInfraBudgetScale * World.FiscalCapacityPerMonth * (r.SumPopulation() / nationPop) * HoardSpendScale()).Value : 0;
+                    ? (World.AdminSpending * World.Coef.ElecInfraBudgetScale * World.FiscalCapacityPerMonth * (r.SumPopulation() / nationPop)).Value : 0;
                 // 兵力（兵士の給与）の予算＝★(155) 州ループの後（吸い込みの1段目と3段目＝装備の請求が立ってから）。
             }
         // ★(155) 軍事費の吸い込みの1段目（給与・糧食）と3段目（質＝幹部の給与＝訓練）を州へ：
@@ -2710,20 +2710,6 @@ public sealed class Simulation
             double raw = need > 1e-9 ? PoliticalQuantities.Clamp01(met / need) : 1.0;
             region.FoodFill += c.FoodFillSmoothing * (raw - region.FoodFill);   // 州の食料充足を平滑（穀倉の備蓄＝餓死は数ヶ月の持続的欠乏で起きる）
         }
-    }
-
-    /// <summary>支出反射のインフラ拡張（2026-08-08）：行政・軍需の実支出は**需要でキャップ**され国庫が減らない
-    /// （行政需要∝人口・軍需はS3aで必要額min＝fisprobe実測で普が0.6点火後も×0.25ロック継続）。
-    /// 弾力的に吸収できる唯一の国家支出＝**インフラ建設**（プロイセン国有鉄道・明治の官営事業＝退蔵の史実の使い道）を
-    /// 潤沢超過に比例して増額する。上限は市場の実吸収（鋼・セメントの在庫と価格）＝台本なし。
-    /// ⚠OpulenceInfraChannel=0（既定＝休眠）で 1.0＝乗算恒等（旧注記は OpulenceSpendRatePerYear と書いていた＝そちらは点火済みの0.6・x-02 で是正）。</summary>
-    private double HoardSpendScale()
-    {
-        // ⚠差し戻し2026-08-08＝OpulenceSpendRatePerYear=0.6との同時点火で硬性赤（公教育の自由国テスト失敗＝較正世界の
-        //   資源配分を建設ブームが歪める）。独立係数 OpulenceInfraChannel（既定0）へ分離＝単独で再測定可能に。
-        if (World.Coef.OpulenceInfraChannel <= 0) return 1.0;
-        double baseRev = Math.Max(1e-9, World.LastRevenuePerMonth.Value);
-        return World.SpendableRevenue() / baseRev;   // 潤沢超過ぶんだけ >1（普≈18倍＝鉄道国家の建設ブーム）
     }
 
 

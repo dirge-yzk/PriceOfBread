@@ -100,7 +100,6 @@ public class DormantIdentityTests
     private static readonly string[] DormantOneFields =
     [
         "MilitaryProcurePriceGateScale",   // 軍需財の国家調達の価格ゲート倍率（1＝満額＝旧恒等・0＝価格を見ない）
-        "MilitaryBuildCostCapScale",       // 軍需工場の建設費上限の倍率（1＝旧恒等）
         "FactoryBuildPriceGateScale",      // 裁定②＝工事の進捗/素材需要の価格ゲート混合（1＝旧恒等・0＝価格を見ずに進む）
         "UnificationV1Only",               // ★2026-09-26（fis-27・dorm-52）：統一戦争の名指し（北ドイツ連邦・ドイツ・イタリアの3件）＝1が旧挙動。点火（0＝名指しの撤去）は回8-3（col-19）
     ];
@@ -165,10 +164,10 @@ public class DormantIdentityTests
         "AbsorptionIncomeRef", "AbsorptionIncomeWeight",
         "AiDevelopmentalSubsidy",   // AiMobilization は 2026-09-20 に係数ごと削除（段の点火で総動員のAI分岐が常時 live）・AiCrisisBorrow は 2026-09-28 に係数ごと削除（借入の自動化で予約の列が消えた）
         "ArmyShapeGauge",   // BondRateDebtQuad は 2026-09-29 に係数ごと削除（国債の金利を史実から出し直した＝債務の二次項は英の債務比2.5 の史実と合わない）
-        "CohortGateK",   // CoercionUpkeepToSoldiers は 2026-09-30 に係数ごと削除（連合維持費は兵士と官僚の役務の④へ全額＝支払いの段3-2）
+        // CoercionUpkeepToSoldiers は 2026-09-30 に係数ごと削除（連合維持費は兵士と官僚の役務の④へ全額＝支払いの段3-2）
         "CorruptionPoorOfficialWeight",
         "DomesticMarkupMax", "EducationGateUsesEma",
-        "ElectionBribePovertyWeight", "EnclosureRate", "EraNavalFuel",
+        "ElectionBribePovertyWeight", "EraNavalFuel",
         "FertileAbsoluteBlend",   // FamineAbsoluteThreshold は 2026-09-30 (131) に局地飢饉の死と一緒に係数ごと削除
         "FertilityEquilibriumWeight", "FertilityIncomeSurvivalGate", "FertilityLandDivisionSlope",
         "FoodIncludesAnimalProtein", "GarrisonProcurement",
@@ -178,17 +177,68 @@ public class DormantIdentityTests
         "MigrationFarePerkKm",
         "ModernizationToHigherEdu", "NationalismFromConsciousness",
         "NavalFuelPerGauge", "NewbornLiteracyDilution", "NobleInvests",
-        "OpulenceInfraChannel",
         "PettyInterestGate", "PolicyRateLoanWeight",
         "PreemptiveSeizeWeight", "PromotionGateHigherEdu", "ReactionFromLoss",
         "ResearchBaseRefPop", "ResearchScaleWeight",
-        "ResearcherFrac", "RuralPromotionRate",
+        "ResearcherFrac",
         // SeaEscortPerTradeValue は 2026-10-01 (151) に係数ごと削除（通商保護は割合の形）＝外した・SilverStandardIndThreshold は 2026-10-04 (210) に係数ごと削除＝外した
         "SoeSaleMilitancyCeil", "SpecialistExitBanPrefScale",
         "SubmitProbabilistic",
         "TransportDemandAffordCap", "TransportPotentialWeight",
         "WarStartPoliticsScale",
     ];
+
+    /// <summary>★休眠の棚卸し（2026-10-11 (253)・measurements/dormant_20261011.tsv の行き先「消す」）で削除した係数の名簿＝**再び入れたら赤**。
+    /// 期待値の出所は台帳（tsv の「消す」の行）であって Coefficients ではない（同語反復にしない）。消した理由は各名前の注記。
+    /// 消す前の恒等は帯3本の全行バイト一致で示した（(253)）。復活させたいときは、この名簿から外す前に tsv と docs の裁定を読むこと。</summary>
+    private static readonly string[] RetiredFields =
+    [
+        "StateBuildCost",             // 読み手0（手動工場建設は削除済み）
+        "CohortGateK",                // 世代ゲート＝2026-09-21 作者裁定で「棄却」側を正として閉じた（00一覧 :605・:1344）
+        "EnclosureRate",              // 囲い込みの自給侵食＝同上
+        "RuralPromotionRate",         // 農村の直行便＝2026-08-16 差し戻し（exact−7・棚卸し dorm-16）
+        "OpulenceInfraChannel",       // 支出反射のインフラ拡張＝2026-08-08 同時点火で硬性赤（棚卸し dorm-51）
+        "MilitaryBuildCostCapScale",  // 軍需の身の丈ゲート倍率＝armscap 単独で基線とビット同一（実装ログ 2026-09-07）
+        "CorruptionCoreV2",           // 汚職V2の点火の記録＝読み手0（2026-08-16 C2-C5 で旧式の分岐を撤去した後は係数だけが残っていた）
+    ];
+
+    /// <summary>★読み手のない係数の番人（2026-10-11 (253)・休眠の棚卸しで <c>StateBuildCost</c>〔手動工場建設の削除の後に残った死蔵〕と <c>CorruptionCoreV2</c>〔点火の記録だけ〕が見つかった型）：
+    /// Coefficients の全ての公開の欄が、コメントと文字列を除いた SimCore・App・Runner のソースのどこかで宣言以外にも1回は現れる。
+    /// 期待値の出所は欄の列挙（反射）とソースの走査であって手書きの表ではない。⚠限界：補間文字列の穴の中の読みは見ない（<see cref="GoodIdGuardTests.StripCode"/> と同じ）・
+    /// 名前が同じ別の欄の読みと区別しない・書き込みだけの欄は通る。Tests だけが読む欄は通さない（テストだけが読む係数は本体では死んでいる）。</summary>
+    [Fact]
+    public void 係数は全て本体のどこかで読まれる()
+    {
+        string root = Path.GetDirectoryName(Path.GetDirectoryName(RepoRootOf()))!;
+        var counts = new System.Collections.Generic.Dictionary<string, int>();
+        var word = new System.Text.RegularExpressions.Regex(@"[A-Za-z_][A-Za-z0-9_]*");
+        foreach (var proj in new[] { "PriceOfBread.SimCore", "PriceOfBread.Runner", "PriceOfBread.App" })
+            foreach (var f in Directory.EnumerateFiles(Path.Combine(root, proj), "*.cs", SearchOption.AllDirectories))
+            {
+                string rel = Path.GetRelativePath(root, f).Replace('\\', '/');
+                if (rel.Contains("/obj/") || rel.Contains("/bin/")) continue;
+                foreach (System.Text.RegularExpressions.Match m in word.Matches(GoodIdGuardTests.StripCode(File.ReadAllText(f))))
+                    counts[m.Value] = counts.GetValueOrDefault(m.Value) + 1;
+            }
+        var unread = new System.Collections.Generic.List<string>();
+        foreach (var fld in typeof(Coefficients).GetFields())
+        {
+            if (!fld.IsPublic || fld.IsStatic) continue;
+            if (counts.GetValueOrDefault(fld.Name) <= 1) unread.Add(fld.Name);   // 1回＝宣言だけ
+        }
+        Assert.True(unread.Count == 0,
+            $"読み手のない係数 {string.Join(", ", unread)}。使わないなら削除する（記録は墓標のコメントと docs へ）。休眠の器なら読む枝を置くこと");
+    }
+
+    private static string RepoRootOf([System.Runtime.CompilerServices.CallerFilePath] string self = "") => self;
+
+    [Fact]
+    public void 削除した休眠の係数は戻っていない()
+    {
+        foreach (var name in RetiredFields)
+            Assert.True(typeof(Coefficients).GetField(name) is null,
+                $"棚卸し（253）で削除した係数「{name}」が Coefficients に戻っている。復活させるなら measurements/dormant_20261011.tsv の行き先と docs の裁定を読んでから、この名簿から外すこと");
+    }
 
     [Fact]
     public void 既定ゼロの係数は休眠表か台帳のどちらかに載っている()

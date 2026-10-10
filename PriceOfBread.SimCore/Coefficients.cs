@@ -885,7 +885,6 @@ public sealed class Coefficients
     // --- 社会移動リアリティ監査 2026-08-15（docs/202608/20260815_社会移動リアリティ監査_部分完了.md・点火状況は各行参照・点火は1本1バッチのA/B）---
     public double MerchantArtisanCapitalRise = 1.0;  // 【点火1.0・2026-08-16＝S級梯子r1単独37/71/58・合成で帯中立】rank1：商業・手工業資本→産業資本（③の対象を商人・職人へ一般化＝Crouzet「第一世代工場主の過半が商人・職人出自」）。閾値/率は既存CapitalRiseThreshold/CapitalRiseRateを共用（これは率の乗数・1で専門職と同率）。>0で商人の転落（⑤同型）も解凍＝凍結を両方向解く。職人のSmoothedMarginゲート（儲かる工房だけ工場化）は初版見送り＝貯蓄閾値8×avgが好況を既に選別（§10記録）
     public double PettyEntryRate = 0.02;             // 【点火0.02・2026-08-16＝出口ArtisanDeclineRateと対】rank6：小営業（職人・商人）への参入階段＝徒弟→親方・行商→店舗。労働者から所得差駆動（①'と対称・識字ゲート不要＝腕と元手の職）×元手ゲート（1人あたり貯蓄≥地域平均avgPerCap＝新自由度なし）。>0でプールJobGate(職人)にも同じ元手ゲート＝「無一文の失業者が工房主」の非一貫を閉鎖。⚠ArtisanDeclineRate（出口）と同時A/Bが条件
-    public double RuralPromotionRate = 0.0;          // 【差し戻し2026-08-16＝単独でexact−7（29/68/58）＝教師の過剰供給が識字→政治の梯子を早回し。休眠温存】rank16：農村識字の直行便＝村の秀才→師範（教師）/聖職（識字先行国＝北欧・明治日本型で都市化天井が①の二段経路を塞ぐのを迂回する小水路）。ゲートは①と同一（m×識字×高等教育×世俗・本人就学PromotionGateOwnSchooling込み）
     // ★2026-09-03（キューC-03／出典 トリアージ 2-C 5-7）：農奴の移動制限を**失業プール経路にも**広げる栓。
     //   ⚠旧＝都市化の softmax（PopDecision）だけが SerfMobilityGate で縛られ、失業プール（Meritocracy の①''）は素通り
     //   ＝**農奴が「職探し」なら都市へ入れる**。同じ法が2経路のうち片方しか縛らない＝「ゲート緑≠機構が働いた」の型。
@@ -899,7 +898,6 @@ public sealed class Coefficients
     public double MinorityPenaltyModernBlend = 0.5;  // 【点火0.5・2026-08-16＝S級梯子r17単独37/73/61=単独帯最良（Search手掛かり）】rank17：ガラスの天井の時代ブレンド＝実効ペナルティ=MinorityPromotionPenalty×(1−これ×M)（M=メリトクラシー値）。開かれた社会ほど法的障壁が畳まれ慣行が残る（ユダヤ人解放の年代差が政体・社会構成から出る＝国名条件なし）。①とプールJobGateの物差しも統一（プール側にminorityF追加）
     // --- 作者裁定2026-08-16（同監査 rank7/8/12・点火状況は各行参照・実装は Meritocracy.cs・点火は1本1バッチのA/B）---
     public double FallAnchorReform = 0.3;            // 【点火0.3・2026-08-16】A/B＝1.0はexact39.7/法57.3だが小国満足度で硬性赤／0.5はバッチ緑(exact38.0・法58.1)だが**TaxTestsが赤＝英の行政成熟が止まる**（所得税の実効上限が238四半期で0.085→0.100・要求+0.1）＝中流（官僚）が転落で痩せる。カナリア二分探索で崖は0.4と0.5の間＝**崖の直下を避けて0.3**（テスト緑側の余裕）。rank7：転落物差し改革の束（3点を1本で・0=旧とビット恒等）。(a)③④⑤⑥の判定資産を(Savings+IlliquidWealth)/Sizeへ・分母の地域平均も同定義（⚠IWはSavingsの内数タグ（Model.cs）＝これは結晶資産を流動の2倍に重む加重＝土地・地金は没落判定で「恐慌に溶けない重い資産」）。(b)アンカーを他人の平均→**自分の平滑所得×年数**へブレンド（0=地域平均・1=年所得＝debtRuined判定の p.Earned×MonthsPerYear と同じ言語・平滑=max(当月,前月)=結晶化アンカー（EconomyStep）と同じ取り方）＝⚠>0では閾値係数（UpperFallThreshold=0.8等）の単位が「平均の何割」→「**年所得の何倍**」へ切替わる。(c)転落率を深さ連続化 rate×((1−f)+f×clamp((閾値−資産)/閾値,0,1))＝浅い割れはゆっくり・深い割れ（恐慌）は速い・debtRuinedは素通し。avgPerCap相対の「格差が没落を製造する因果の逆転」とClark比7-10倍速のエリート融解の是正
-    public double CohortGateK = 0.0;                 // rank8：世代ゲート＝非ショックの大流量移動（①昇格・①*小営業参入・①'手工業没落・①''失業プール）に flow×=min(1, K×四半期新成人率)。新成人率＝10〜19 の層から 20〜29 へ出ていく四半期の流れ（Pop.EnteringAdultsMonthly×3＝年齢の層の加齢と同じ物差し・★2026-09-30 段4e 後半・旧＝ChildShare×3/(AgingYears×12)）。④⑤⑥の転落・戦争・破産（BankruptcyFallRate経路）は素通し＝「破産は速い」が史実。移動の大半は入職時（Long&Ferrie）＝均衡は不変で時定数だけ世代スケールへ。0=乗算ごとスキップ（厳密恒等）。新成人率≈0.5%/四半期なのでK≈数十〜百が実効目盛り
     public double ProfessionGenderGate = 1.0;        // 【点火1.0・2026-08-16＝A/B単独で exact36.2→37.2・near/法ほぼ中立・硬性緑】rank12：職業の性別運搬＝Moveの移動コホートの女性比＝src×access(行き先)（★2026-09-30 段4e 後半＝年齢の層の20歳以上の女性・Pop.Blend の femaleAccess）（識字選抜PromotionLiteracySelectionと同型＝残留側で質量保存）。access=専門職（技師/官僚/医者）のみ「女性の権利」の梯子((int)WomenRights/3＝FactionSnapshotと同じ物差し)×WomenWageRetention（財産権の社会的確立の連続量）から導出・教師/使用人/その他=1.0＝**新しい法は作らない**（作者裁定）。女性教育権→教職の女性化と専門職の男性閉鎖（marriage bar）が同じ1本の法から出る。0=従来の按分混合とビット恒等
 
     // --- 信用・銀行（§2.5.1／§9-G・段4）---
@@ -1175,7 +1173,6 @@ public sealed class Coefficients
     public double IndInvestmentFrac = 0.05;       // 投資家（資本家）が貯蓄からこの割合まで投資に回せる（affordability 上限）
     public double IndInvestmentSpeed = 0.012;     // 投資の速さ（純収益→建設需要への換算）
     public double IndPerConstruction = 0.01;      // 建設1単位が工業化度を上げる量（要較正）
-    public double StateBuildCost = 40_000;        // 手動工場建設1回の国庫予約額。資本家と同じ建設の束（鋼/機械/セメント/製材）を国庫負担で買い工業化度に変換
     public double RgoCapitalShare = 0.5;   // ★2026-08-04（作者指示「投資家もプランテーションや鉱山に投資するように」）：資本家の建設が生む工業化度のうち、最も採算の良いRGO（農園/鉱山/牧場）の作付面積（BuiltScale＝Scaleの下限）へも回る比。旧＝資本家の建設は工業化度にしか変わらず、RGOは採算によるScaleの伸縮だけで**面積を増やす資本がどこからも来なかった**（工場はBuiltScaleが下限を押し上げるのにRGOには無い）。史実の農園・鉱山は資本を吸って規模を広げる（囲い込み・カリブの砂糖・南アの金）。同じ建設束・同じ予算から出す＝新しい資源も市場も作らない。0で厳密恒等（休眠）／StateShareCounterOnly=1.0 点火（2026-08-30）により既定ではこの枝は不走行＝rgoprobe 対照実験用に残置
     public double FactoryBuildScale = 0.5;        // 離散工場1棟の建設で増える生産者のScale下限（工場容量＝Vic2型）
     public double FactoryMaterialFrac = 0.6;      // プレイヤーの工場建設費のうち材料（鋼・機械・セメント・製材）に充てる割合。残り(0.4)は工賃（StepConstructionで工員へ）。材料は建設期間で徐々に消費
@@ -1188,9 +1185,6 @@ public sealed class Coefficients
     // ★軍需財の価格ゲート倍率（2026-09-07・英の軍が立たない根）：MilitaryGoods の国家発注に掛かる StateProcurePriceGate の倍率。1.0＝現行（厳密恒等）／0＝軍需は価格を見ずに発注
     //   （小銃価格が基準の3〜5倍で発注が13%に絞られ、労働配分の重み（前期需要）が細って生産が伸びず価格が下がらない自己ロックを解く）。単独計測（腕 armsgate）。
     public double MilitaryProcurePriceGateScale = 1.0;
-    // ★軍需の身の丈ゲート倍率（2026-09-07・第2の根）：AI の着工で軍需カテゴリ（小銃/弾薬/火砲/帆船＝9万）の総費用上限＝財政バッファ×これ。1.0＝現行（厳密恒等）。
-    //   実測＝英は1783〜1836年に軍需工場の建設0（バッファ未満で候補に上がれない）→1837年の初建設で価格が基準へ落ち即応が立つ。単独計測（腕 armscap）。
-    public double MilitaryBuildCostCapScale = 1.0;
     public double FactoryBuildAffordSteep = 4;   // ★点火2026-08-31＝16→4（清レポ＝16は「逓減の衣を着た崖」。4で束比3倍でも進捗が細く残る＝壁でなく逓減。ラウンドA実測でハーネス末端財の死蔵も解消）
     public double FactoryStartAffordFloor = 0.15; // ★点火2026-08-31＝0.5→0.15（清レポ4-1「建設の壁」＝後発国の束比3〜5倍で着工が離散的に不可能だった崖の是正。進捗側が同じ採算率で連続に絞るので床は低くて良い。旧World定数の係数化と同時）
     // ★休止（mothball・AI審査2-6・2026-08-31）：建てた工場（倒産免除）の慢性赤字を止める欠けていた第4の動詞（施設は残る/倒産する/★休止する/国有化される）。
@@ -2489,7 +2483,7 @@ public sealed class Coefficients
     public RatePerYear OpulenceSpendRatePerYear = new(0.6);         // 【梯子測定中2026-08-08＝0.6】支出反射（減税反射の対）：月次予算基数を 歳入 → 歳入＋これ×max(0,国庫−潤沢線)/12 へ（行政・軍需・扶養限界の3箇所）。0=厳密恒等。梯子0.3→0.6→1.2/年
     public double MilitarizeAgrarianTaxes = 1.0;   // 【L3点火測定中2026-08-08】Militarizeスタンスに土地税0.4・関税0.3の目標を追記（軍国が地租と関税で軍を養った史実＝地租改正・Grundsteuer）。0=恒等・1=有効
     public double MilitarizeEducationDrive = 1.0;  // 【L4点火測定中2026-08-08】Militarizeスタンスに公教育＋教育費0.4の目標を追記（義務教育は兵営国家の発明＝プロイセン1763・明治学制）。露のElite封鎖の解錠。0=恒等
-    public double OpulenceInfraChannel = 0.0;      // 支出反射のインフラ拡張（退蔵→鉄道国家の建設）。0.6同時点火で硬性赤（公教育テスト）＝分離休眠2026-08-08。単独再測定用
+    // 【墓標2026-10-11 (253) 休眠の棚卸し】削除した休眠の係数＝StateBuildCost（読み手0）・CohortGateK／EnclosureRate（2026-09-21 作者裁定で「棄却」側を正として閉じた）・RuralPromotionRate（2026-08-16 差し戻し・棚卸し dorm-16）・OpulenceInfraChannel（2026-08-08 硬性赤で分離休眠・dorm-51）・MilitaryBuildCostCapScale（armscap 単独で効かない・基線とビット同一＝実装ログ 2026-09-07）・CorruptionCoreV2（点火の記録だけで読み手0・2026-08-16 C2-C5 で分岐は撤去済み）。名簿と行き先＝measurements/dormant_20261011.tsv
     // 【墓標2026-09-26】退蔵結晶化（HoardCrystallizeRate・WealthAnchorYears・WealthAnchorFloorPerCapita）と結晶資産 Pop.IlliquidWealth＝休眠の枝だけが書き常に0を運んでいた（dorm-24・思想⑩）。再挑戦するなら §30 レールごと設計し直すこと
     // 【墓標2026-08-29】InvestIncomeFloor/InvestFloorUsesIndustrialRent/InvestReadsLiquid/ConsumeReadsLiquid＝Stage1中止の予算配線4本を撤去
     public double PanicBuyWeight = 0.5;   /* ★点火2026-09-06＝0.0→0.5・〔6-2〕主食の買占め（B3 自己成就期待の残り半分） */            // 【休眠2026-08-08＝0.5は閾値0.5/0.75とも小世界の慢性低在庫で常時発動し輸出/税テスト3本の前提を崩す＝在庫閾値では分離不能→危機ゲート（戦争/飢饉文脈）付きの再設計が必要】B3自己成就的期待（2026-08-08作者裁定「入れてみよう」・docs/202607/05§B）：主食の棚が
@@ -3442,7 +3436,6 @@ public sealed class Coefficients
     public double OversightPressCensored = 0.4;   // 検閲付き報道の監視力（自由報道=1.0・国家報道のみ=0.0）
     public double OversightMeritExam = 0.6;       // 科挙型（資格任用）の監視力（専門官僚=1.0・猟官=0.0）
     public double OversightFactorScale = 1.0;   // ★監視3因子の強度（2026-08-15・uishotで発覚した「報道の自由だけで汚職ゼロ」の是正レバー）。1.0＝旧とビット恒等（press自由1.0→noisy-or飽和→汚職0）。<1で「どの制度も単独では監視を完成させない」＝金ぴか時代の米（自由な報道×猟官制×汚職）が表現できる。設計値0.6（3つ揃えて0.94・単独0.6）。点火はA/B
-    public double CorruptionCoreV2 = 1.0;   // ★点火2026-08-15（ign_corr・同一ソースA/B seeds1-10）：汚職＝(1−行政)×(1−監視noisy-or)・漏れは官職地代（99_実装ログ§4-11/§4-13）。帯＝exact+0.9/本国+4.2/列強−6.2/経済−3.8（列強はノイズ床±3-5をやや超過＝Search再較正キューで回収・方針「帯の悪化だけでは差し戻さない」）。副信号＝変名33→45・分離43→33・再戦ペア41.5→35.4＝制度疲労の会計是正で統一が進み反復戦争が減る。⚠恒久ON裁定＝旧機構（CleanGovernance/AntiCorruption系）はC2-C5で物理撤去済み（2026-08-16）＝0に戻す道は消滅・エンジンはもうこの係数で分岐しない（点火記録と番人テスト CorruptionCoreV2Tests のみが読む）
     public double NobleInvests = 0.0;
     public double RgoElasticityGate = 1.0;      // ★点火2026-08-14（n24同一ソースA/B：経済規模+15.0・列強再現率+7.5・領土植民地+5.8・人口+4.3／政体exact−1.6・⚠逸脱過多9→15＝記録）。0で全カテゴリ従来（上限・速度一律）＝厳密恒等
     public double MineralScaleCap = 1.5;        // 鉱物RGOの操業規模上限（ScaleMax=3.0の半分＝既存鉱脈の増産余地は+50%まで。大増産は発見と新州の仕事）
@@ -3552,7 +3545,6 @@ public sealed class Coefficients
     public double RentScarcityElasticity = 1.0;   // ★点火2026-08-31（清レポ3-4＝成長→地代→旧支配層強化の負帰還・ラウンドA実測＝◎8→11/固着38→31/列強+6.2/経済+8.8）   // 地代の土地稀少弾力（EconomyStep §④）：RGOの実効RentShare=RentShare×(1+これ×稀少度)。稀少度=max(0, 農村人口/ArableLand−1)＝landFactorと同一入力（ArableLand÷農村人口）の逆数側・センチネルArableLand≥1e8は除外（LandFactorと同じ）。clamp上限＝既存の物差しFarmRentCap（土地改革/農奴解放の法上限・≤1.0＝賃金非負も保存）。土地が稀少なほど地主の取り分↑→農民のEarned↓＝プッシュ型離農の駆動。0で×1.0＝IEEE恒等（ゲート内でのみ計算＝分岐ごと不読）
     public double ParliamentStreetSupersede = 0.5;   // ★点火2026-08-31＝議会の二重票の是正（清レポ3-6）：議会がある国では3ブロックの街頭力の半分を議席チャネルへ譲る（党の選好表＝ブロックの選好表なので旧は二重加算＝共和国化で教育法が2.7倍通りにくくなった実測。1.0全譲は法一致−6.2で0.5に裁定＝ラウンドA腕2）。未代表（小営業・軍・国庫）は街頭のまま。0＝旧二重加算
     public double RumpReabsorbYears = 5.0;           // ★点火2026-08-31＝残骸国家の自然再併合：内戦の白紙分断で生まれた国が親GDP1%未満を5年続けたら平和的に再統合（ReabsorbNationsの既存機構＝保存両建て）。親が交戦中/消滅なら持ち越し。0で無効
-    public double EnclosureRate = 0.0;   // rank5第2段（別A/B）＝囲い込みの自給侵食（EconomyStep.ApplyEnclosure）：RGOの資本拡張（BuiltScale増分）1単位あたり当該州農民pop（RGOの労働pop）のSubsistenceをこれ×増分だけ微減（下限0）＝プランテーション・囲い込みが自給地を市場向けに転換する物理。増分の発生源＝World.StepConstruction完成（1棟=FactoryBuildScale）とEconomyStep.RgoCapitalShare枝（休眠対照）。接収（NationalizationSeizure）は所有移転であって資本拡張でないため対象外。0で1命令も走らない＝厳密恒等
     // 出生配分の凍結分母の是正（docs/202608/20260815_失業プールと社会移動_部分完了.md「点火直後の回帰＝聖職者爆発」節・作者裁定＝年代スケール禁止・確立した形で）：
     // BirthWeight の popごと t=0 凍結分母（InitialFertileShare）は、初期構成が偏ったpop（聖職者F=0.10）が新生児蓄積で構成正常化すると
     // 分母凍結のまま分子が育ち恒久出生倍率（実測2.1倍）になる罠＝「比のガードは絶対値で書かない」と同族。

@@ -158,7 +158,6 @@ public static class Meritocracy
                 if (c.PromotionGateHigherEdu > 0 && (targets[i] == r.MeritToIndex || targets[i] == r.ResearcherPopIndex))
                     gateEdu *= 1.0 - c.PromotionGateHigherEdu * (1.0 - from.HigherEduFill);
                 double flow = c.PromotionSpeed * m * from.Literacy * gateEdu * gate * from.Size * Math.Min(attract - 1.0, 1.0) * minorityF;
-                if (c.CohortGateK > 0) flow *= CohortGate(from, c);   // rank8（休眠）：昇格は入職時＝新成人流量で律速（0＝この行が走らない厳密恒等）
                 Move(from, t, Math.Min(flow, from.Size), c, selectLiteracy: true, genderAccess: GenderAccess(w, r, targets[i], c));   // 人1：昇格は識字上位の選抜（下層から識字の高い者が抜ける＝srcの識字が下がる。既定は選抜あり=点火）。rank12：性別の選抜運搬（既定1.0点火・専門職のみ）
             }
 
@@ -178,7 +177,6 @@ public static class Meritocracy
                     if (attract > 1.0)
                     {
                         double petty = Math.Min(c.PettyEntryRate * from.Size * Math.Min(attract - 1.0, 1.0), from.Size);
-                        if (c.CohortGateK > 0) petty *= CohortGate(from, c);   // rank8（休眠）：徒弟→親方も入職時の移動＝世代律速
                         Move(from, t, petty, c);
                     }
                 }
@@ -199,7 +197,6 @@ public static class Meritocracy
                     if (attract > 1.0)
                     {
                         double f = Math.Min(c.ArtisanDeclineRate * artisan.Size * Math.Min(attract - 1.0, 1.0), artisan.Size);
-                        if (c.CohortGateK > 0) f *= CohortGate(artisan, c);   // rank8（休眠）：所得差駆動の緩い没落＝非ショック（破産⑥は素通しのまま）
                         // ★特権 段4（同業組合・2026-09-07）：組合が職人を職に縛る＝工場への移動が法の度合×GuildMobilityDrag だけ遅れる（歪み＝表裏の裏）。0＝恒等
                         if (c.GuildLawGate > 0 && c.GuildMobilityDrag > 0) f *= 1.0 - PoliticalQuantities.Clamp01(c.GuildMobilityDrag * Privileges.GuildDegree(w));
                         // 失業プール点火時は行き先も同経路（資格があれば専門職に踏み留まる職人＝没落一直線でない）
@@ -227,7 +224,6 @@ public static class Meritocracy
                     // rank10a（点火0.5 JobSearchLiteracyWeight）：探索効率の識字連動（新聞求人・文書応募の代理）。0で×1.0＝旧と厳密恒等。
                     double eff = c.JobSearchRate * (1.0 - c.JobSearchLiteracyWeight * (1.0 - p.Literacy));
                     double poolFlow = eff * u * p.Size;
-                    if (c.CohortGateK > 0) poolFlow *= CohortGate(p, c);   // rank8（休眠）：失業転職も大流量の非ショック移動＝世代律速（④⑤⑥の強制転落は素通し）
                     RouteViaPool(r, w, m, avgPerCap, p, cls, poolFlow, secular, higherEdu, gateEma, c, ref soldierVac, forced: p.IsSoldier);   // 脱走は強制（席に留まれない）
                 }
 
@@ -259,42 +255,6 @@ public static class Meritocracy
                         if (dest is null)
                             foreach (var pp in r.Pops) if (pp.IsCommoner && pp.ClassId == PopClass.Worker) { dest = pp; break; }
                         if (dest is not null) Move(clergyOut, dest, c.ClergyExitRate * poverty * clergyOut.Size, c);
-                    }
-                }
-            }
-
-            // ===== ②' 農民 → 教師/聖職者（農村識字の直行便・リアリティ監査rank16・休眠 RuralPromotionRate）=====
-            // 識字が高く工業化が遅い社会（北欧・スコットランド・明治日本型）では、都市化天井が「村の秀才→師範」を
-            // ①の二段経路（都市化→翌期昇格）ごと塞ぐ。天井と独立の小水路1本＝§2.4（都市化は工業化に従う）は不壊。
-            // ゲートは①と同一の物差し（m×識字×高等教育×世俗・本人就学PromotionGateOwnSchooling込み）。
-            if (c.RuralPromotionRate > 0)
-            {
-                Pop? peasant = null;
-                foreach (var p in r.Pops) if (p.IsCommoner && !p.IsUrban && p.ClassId == PopClass.Peasant) { peasant = p; break; }
-                if (peasant is { Size: > Eps } pz)
-                {
-                    double pzInc = Math.Max(0, pz.EarnedPerMonth.Value) / pz.Size;
-                    double pzEdu = higherEdu;
-                    if (c.PromotionGateOwnSchooling > 0)
-                        pzEdu = Math.Max(higherEdu, c.PromotionGateOwnSchooling * (gateEma ? pz.EducationEma : pz.EducationFill));
-                    if (r.TeacherPopIndex >= 0 && secular > Eps)
-                    {
-                        var t = r.Pops[r.TeacherPopIndex];
-                        if (t.Size > Eps)
-                        {
-                            double attract = Math.Max(0, t.EarnedPerMonth.Value) / Math.Max(Eps, t.Size) / Math.Max(Eps, pzInc * c.PromotionPremium);
-                            if (attract > 1.0)
-                                Move(pz, t, Math.Min(c.RuralPromotionRate * m * pz.Literacy * pzEdu * secular * pz.Size * Math.Min(attract - 1.0, 1.0), pz.Size), c, selectLiteracy: true);
-                        }
-                    }
-                    // 宗教社会では聖職禄が農村の受け皿（②と同型・率だけ本係数）
-                    if (w.EducationLaw == EducationLaw.Religious && r.ClergyPopIndex >= 0 && avgPerCap > Eps)
-                    {
-                        var clergy = r.Pops[r.ClergyPopIndex];
-                        double clergyPerCap = clergy.Size > Eps ? clergy.Savings.Value / clergy.Size : 0;
-                        double attract = clergyPerCap / avgPerCap;
-                        if (attract > c.ClergyAttractThreshold)
-                            Move(pz, clergy, Math.Min(c.RuralPromotionRate * pz.Literacy * pz.Size * Math.Min(1.0, attract / c.ClergyAttractThreshold - 1.0), pz.Size), c, selectLiteracy: true);
                     }
                 }
             }
@@ -679,14 +639,6 @@ public static class Meritocracy
         double depth = threshold > Eps ? PoliticalQuantities.Clamp01((threshold - pc) / threshold) : 1.0;
         return (1.0 - f) + f * depth;
     }
-
-    /// <summary>rank8（休眠 CohortGateK）：世代ゲート＝大流量の非ショック移動（①昇格・①*小営業参入・①'手工業没落・①''失業プール）の律速。
-    /// 物差しは人口動態の加齢（年齢の層・段4e 後半＝10〜19 の層から 20〜29 へ出ていく流れ＝<see cref="Pop.EnteringAdultsMonthly"/>）と同一＝四半期の新成人率
-    /// ＝月の流れ×3＝**新しい量を作らない**（旧＝子供比×3÷(AgingYears×12)）。gate=min(1, K×新成人率)＝移動の大半は入職時（Long&amp;Ferrie）で
-    /// 均衡は不変・時定数だけ世代スケールへ。④⑤⑥の転落・戦争・破産（BankruptcyFallRate経路）は素通し＝「破産は速い」が史実。
-    /// 呼び出し側が K&gt;0 のときだけ乗算する（K=0＝1命令も走らない厳密恒等）。新成人率≈0.5%/四半期なのでK≈数十〜百が実効目盛り。</summary>
-    private static double CohortGate(Pop src, Coefficients c)
-        => Math.Min(1.0, Calendar.PerMonthToPerQuarter(c.CohortGateK * src.EnteringAdultsMonthly()));
 
     /// <summary>rank12（点火 ProfessionGenderGate=1.0）：行き先職の女性アクセス（1.0＝制約なし）。**新しい法は作らない**（作者裁定）＝
     /// 既存の「女性の権利」梯子（なし0／財産権1/3／教育権2/3／選挙権1＝FactionSnapshotと同じ物差し）×WomenWageRetention

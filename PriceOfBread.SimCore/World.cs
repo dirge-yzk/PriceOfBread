@@ -393,7 +393,7 @@ public sealed class World
     // ★撤去2026-08-16（掃除キューC2-C5）：汚職根絶レバーの旧機構＝AntiCorruptionSpending（根絶費）・CleanGovernance（清廉度ストック）・
     //   LastAntiCorruptionCost（診断）を物理削除。汚職V2恒久ONの裁定済み（20260814_汚職をサブシステムにする§10）＝V2では全て不読の死骸だった。
     // 実効汚職（正規化・0..1）＝(1−行政効率)×(1−監視noisy-or)。汚職の**正準定義**（変数統合監査2026-07-13 C1・V2点火2026-08-15）。standalone読み（SelfPlay等）はこれを参照＝定義同期を構造保証。
-    // ⚠V2を切って旧式（(1−行政)×(1−清廉度)）へ戻す道はC2-C5撤去（2026-08-16）で消滅＝裁定済み。CorruptionCoreV2 係数は点火記録・番人テストのみ（エンジンに分岐は残っていない）。
+    // ⚠V2を切って旧式（(1−行政)×(1−清廉度)）へ戻す道はC2-C5撤去（2026-08-16）で消滅＝裁定済み。CorruptionCoreV2 係数は点火の記録だけで読み手0だった＝2026-10-11 (253) に削除。
     // ⚠積連鎖に埋め込む読み（Politics侵食）は**インライン維持**（プロパティ置換で掛け算結合が変わると浮動小数末尾ビットが動き決定論軌道が発散＝Fiscal.cs警告）。
     /// ★暮らせない官僚は汚職に手を染めやすい（作者要望2026-08-17・<see cref="Coefficients.CorruptionPoorOfficialWeight"/>＝既定0で休眠）：
     ///   実効汚職 ＝ (1−行政)×(1−監視) × ( 1 + 重み × max(0, 1 − <see cref="OfficialWelfareFill"/>) )
@@ -1947,7 +1947,6 @@ public sealed class World
                 if (p.ConstructionLeft <= 1e-9)
                 {
                     p.ConstructionLeft = 0; p.BuiltScale += Coef.FactoryBuildScale; p.StateTarget = Math.Max(p.StateTarget, StateUnitsOf(p));
-                    EconomyStep.ApplyEnclosure(r, p, Coef.FactoryBuildScale, Coef);   // rank5第2段：RGO（大農園/鉱区）完成1棟ぶんの自給侵食（EnclosureRate=0で即return＝恒等・非RGOはヘルパ先頭で不発）
                 }
             }
         }
