@@ -1,0 +1,199 @@
+diff --git a/PriceOfBread.Runner/Program.cs b/PriceOfBread.Runner/Program.cs
+index cf11904..584386f 100644
+--- a/PriceOfBread.Runner/Program.cs
++++ b/PriceOfBread.Runner/Program.cs
+@@ -7711,7 +7711,7 @@ if (args.Length > 0 && args[0] == "hangtest")
+     int civilWars = hs.Nations.Count(n => n.World.HadCivilWar);
+     int defaults = hs.Nations.Count(n => n.World.HadSovereignDefault);
+     Console.WriteLine($"seed {sd}: 開戦{wars}回 内戦経験{civilWars}国 デフォルト経験{defaults}国");
+-    foreach (var n in hs.Nations) { var w = n.World; double ir = w.LastRevenue > 0 ? w.LastInterest / w.LastRevenue : 0; if (w.HadSovereignDefault || ir > 0.25 * w.Coef.MaxInterestShareOfRevenue) Console.WriteLine($"  {w.Region.Name,-10} 利払い/歳入{ir,5:F2} 債務/GDP{(w.NominalGdp > 1 ? w.GovDebt / w.NominalGdp : 0),5:F2} default={w.HadSovereignDefault} cooldown{w.BorrowCooldown}"); }
++    foreach (var n in hs.Nations) { var w = n.World; double ir = w.LastRevenue > 0 ? w.LastInterest / w.LastRevenue : 0; if (w.HadSovereignDefault || w.GovBondRate > 2 * w.Coef.BondBaseRate) Console.WriteLine($"  {w.Region.Name,-10} 利払い/歳入{ir,5:F2} 債務/GDP{(w.NominalGdp > 1 ? w.GovDebt / w.NominalGdp : 0),5:F2} default={w.HadSovereignDefault} cooldown{w.BorrowCooldown}"); }
+     if (args.Length > 2 && args[2] == "log")
+         foreach (var l in hs.Diplomacy.Log.Where(l => l.Contains("開戦") || l.Contains("講和") || l.Contains("独立"))) Console.WriteLine("  " + l);
+     return;
+diff --git a/PriceOfBread.SimCore/Coefficients.cs b/PriceOfBread.SimCore/Coefficients.cs
+index c13acd9..b1cbf02 100644
+--- a/PriceOfBread.SimCore/Coefficients.cs
++++ b/PriceOfBread.SimCore/Coefficients.cs
+@@ -449,9 +449,9 @@ public sealed class Coefficients
+     public double ForeignBondCapacity = 0.05;    // 海外の購入余力＝開放度×月次名目GDP×これ×信認（基礎金利÷国債の金利＝低金利の国ほど深い＝2026-09-29 に向きを是正・旧＝金利÷基礎金利）。海外債は対外資本流入（保存＝BaseMoney+CumulativeTradeFlow同時）
+     public double BondRolloverFrac = 0.01;       // R9（国債の満期構造）＝**2026-07-23点火（C〜H中4）**：毎月ストックのうち満期到来し現行市場金利GovBondRateへ乗り換わる割合∈[0,1]。旧1.0=永久/浮動（金利変動が全ストックへ即時波及＝英3%コンソルの固定クーポンが再現不能）。0.01≈平均満期8年強＝コンソル（超長期）と短期債の混合の近似＝金利スパイラルの即時全額波及を緩和・高債務国の財政破綻が史実的に緩やかに
+     public double BondBaseRate = 0.04;           // 国債の基礎金利
+-    public double BondRateDebtScale = 0.018;     // 金利上昇＝×(債務/年名目GDP)。★史実から（2026-09-29・作者裁定＝(94) の申し送り1 の (i)）：英のコンソル＝国債÷年GDP 約2.5（1815〜20）で利回り約4.5%
+-                                                 //   ＝信認のある国（完全兌換 0.6×議会が予算を握る 0.9）で (0.04＋2.5×これ)×0.54≒4.6%／不換・議会の弱い周縁国（西・葡・希・オスマン・ラテンアメリカ）は国債÷年GDP 1〜2 で 5.8〜7.6%
+-                                                 //   ＋期待インフレと信認の喪失（史実6〜10%）。旧 1.44（旧の月次比 0.12×12 を年へ換算したまま＝年GDP 比1につき+144%・単独で BondRateMax を越えた）
++    public double BondRateBurdenScale = 0.09;    // 金利上昇＝×(債務が基礎金利で払う利払い÷歳入)＝借りる値段が利払いの重さに比例して上がる（実際の利払いを読むと乗り換えを通る自己参照で金利が上限へ発散する＝腕H で基礎金利に・2026-10-10 (234)・推奨で進めた＝作者の承認は未確認・旧 BondRateDebtScale 0.018×債務÷年名目GDP を置き換え＝足さない）。
++                                                 //   史実の錨（原典の数字は取れていない【推】）：英1783〜84 利払い÷歳入≈0.62・コンソル≈5.3%／英1815〜20 ≈0.50・≈4.7%＝完全兌換・議会が予算を握る割引 0.6×0.9 で Scale≈0.092／0.094→0.09。
++                                                 //   仏1788（0.67・割引なし）で 10.0%（史実の終身年金 8〜10%）。導出と手計算は measurements/gate234_20261010_prereg.txt。
+     // 【削除2026-09-29】BondRateDebtQuad（監査2026-07-05 F2＝債務の二次項・既定0＝休眠）＝英の債務比2.5 で金利が跳ねない史実と合わない（棚卸し dorm-51／fis-17）
+     public double BondRepayFrac = 0.01 / Calendar.MonthsPerYear;   // **月に**国庫の余剰から返す国債の割合（減債基金）。★史実から＝年1%（2026-09-29）：英の減債基金（ピット1786＝年100万ポンド÷約2.4億・1792 以後は新発債ごとに1%）・
+                                                  //   仏の減債金庫（1816〜 年4,000万フラン÷約35億）＝残高の年約0.5〜1.5%（英の国債は1816〜1914 に名目で年約0.3%しか減らず、比は GDP の伸びで下がった）。
+@@ -480,14 +480,14 @@ public sealed class Coefficients
+     public double BondYieldFlightWeight = 1.5;   // 国債の利回りスプレッド(GovBondRate−BondBaseRate)が対外信用(CapitalMarket)を下げる強さ＝国債暴落→資本逃避→為替減価→さらに金利↑のバーリング危機ループ。0で旧挙動
+     // === 借入（Fiscal.Borrow の1行＝月初に払えない額があればエンジンが自動で借りる＝切り下げより先・2026-09-28 (b)）：1件の額＝名目GDP×これ・借入額＝min(1件の額, 月初の払えない額)・上限＝利払い÷歳入 ===
+     public double BorrowFractionOfGdp = 0.10;    // 1件の額＝月次**名目**GDPのこの割合＝月に借りられる額の上限（資本家貯蓄＋外資から調達＝保存）。借りるのは払えない額だけで1件の額まで（2026-09-28 に実質→名目＝払えない額・国債と同じ物差し）。読み手＝Fiscal.Borrow と戦時段の器（Military.EnvelopeAt＝(175) 戦時国債＝同じ1本 Fiscal.BorrowTicket）
+-    // 借入の上限＝直近の月次決算の利払いの請求÷歳入がこれに届いたら借りない（借入の門・不履行の判定・巨大建造物の「まだ借りられる」が同じ1本を読む）。旧＝MaxBorrowStacks＝20
++    // 借入の上限（2026-10-10 (234)・推奨で進めた＝作者の承認は未確認）＝閾値でなく値段：旧 MaxInterestShareOfRevenue（0.55・利払い÷歳入がこれに届いたら借りない）を**削除**。利払いの重さは BondRateBurdenScale×利払い÷歳入として国債の金利に乗る。
++    //   借入の門・不履行の判定・巨大建造物の「まだ借りられる」は Fiscal.MarketPrices（国債の金利が BondRateMax の下）の1本を読む。以下は旧の限界の根拠（史実）＝値段の錨の経緯。旧＝MaxBorrowStacks＝20
+     //   （1スタック＝月次実質GDP の10%＝年GDP の約17%で全ての国が同じ天井＝棚卸し fis-01）を置き換えた（2026-09-28・作者裁定＝史実の債務の水準から出し直す）。
+     //   史実＝借りられなくなるのは水準でなく利払いが歳入を食う割合と市場の信認：英1818-22 は利払い約3,100万ポンド÷歳入約5,600万≒0.55 に張り付いて新規の借入を止め
+     //   （減債基金で持ちこたえた＝不履行なし）・仏1788 は利払い3.18億÷歳入4.72億リーヴル≒0.67 で支払停止（1788年8月）・オスマン1875・エジプト1876 も利払いが歳入の半ばを越えて停止
+     //   ＝借りられる線は歳入の約5〜6割＝その中央。同じ線から、歳入の厚い国と金利の安い国（金本位・議会の信認割引）ほど深く借りられる＝英1815 の国債÷GDP≒2.5 と仏1789 の0.6〜0.8 が同じ線から出る。
+-    public double MaxInterestShareOfRevenue = 0.55;
+     // ソブリン・デフォルト（2026-06-23）：借入上限に張り付き返済できない国は信用が尽き**債務不履行**＝致命的ペナルティ（安易な逃げ道でない＝破滅）。
+-    // ★不履行の線＝払えなかった大きさの累計（(205)・2026-10-04・推奨で進めた＝作者の承認は未確認）：借りられない（利払い÷歳入≧MaxInterestShareOfRevenue）まま払えなかった請求の割合（1−r）を月ごとに足し、
++    // ★不履行の線＝払えなかった大きさの累計（(205)・2026-10-04・推奨で進めた＝作者の承認は未確認）：借りられない（市場が値を付けない＝国債の金利が BondRateMax に張り付いた・(234) 旧＝利払い÷歳入≧0.55）まま払えなかった請求の割合（1−r）を月ごとに足し、
+     //   その累計が**月の請求の何か月分**に届いたら不履行（1.0＝国の全ての支払いの1か月分を払えなかった）。r＝0.5 の月が2つ・r＝0.75 の月が4つ・r＝0.99 の月は100 で届く。
+     //   旧 DefaultTriggerQuarters（int 8）＝r＜1 の月を大きさに関係なく1つと数え8か月で不履行＝兌換停止の後に兌換が0 へ漸近する残り（払えない額×兌換）・銀の改鋳の窓の残り（×(1−正貨比率)）・
+     //   浮動小数の端（r＝1−1e-10）が毎月1か月に数えられ、前触れのない不履行（直前8か月の r の平均 0.99 以上）が (203) の10種で148件中67件（英の5件中4件）＝README §1-8 の「因果が読めない」。
+diff --git a/PriceOfBread.SimCore/Fiscal.cs b/PriceOfBread.SimCore/Fiscal.cs
+index efea7e0..508c466 100644
+--- a/PriceOfBread.SimCore/Fiscal.cs
++++ b/PriceOfBread.SimCore/Fiscal.cs
+@@ -25,7 +25,7 @@ public static class Fiscal
+         if (!w.FiscalEnabled) return;
+         double payRate = w.FiscalFundingRatio;   // 国家の支払い率 r（月初に Simulation が決めた1本）
+         // 今月の借入の門（月初の Borrow と同じ1本＝利払い÷歳入が限界の下）。下で LastInterest・LastRevenue を今月の量へ書き換える前に読む＝不履行の計数が読む（下）
+-        bool underLimit = w.LastInterest < c.MaxInterestShareOfRevenue * w.LastRevenue;
++        bool underLimit = MarketPrices(w, c);   // (234)：旧＝利払い÷歳入が限界の下。今は「市場が値を付けている」（国債の金利が上限の下・歳入が正）＝1本（MarketPrices）
+         // ★A2-2（2026-09-26）：GDP（州×生産者の全件走査）はこの1回だけ（旧＝実質3か所・名目4か所で呼ぶたびに走査）。
+         //   この関数が書くのは国庫・貯蓄・国債と台帳だけ＝産出・州・物価水準は動かない＝下の読み手は getter とビット単位で同じ値を読む。
+         double gdp = w.Gdp, nominalGdp = w.NominalOf(gdp);
+@@ -434,9 +434,9 @@ public static class Fiscal
+         //   ⚠名前は「Quarters」だが単位は月＝InsolvencyQuarters は払えなかった請求の割合の月ごとの累計（月の請求の何か月分・(205)）・DefaultCooldownQuarters=24 は2年の借入禁止。
+         //   ★2026-09-26（dorm-29）：四半期の締め月だけ進める休眠の器 FiscalQuarterlyGating（既定0＝毎月）を削除し、単位の書き方を月へ直した（挙動は1ビットも変わらない）。
+         if (w.BorrowCooldown > 0) w.BorrowCooldown--;
+-        // ★張り付き＝今月の借入の門が閉じていた（直近の利払い≧限界×直近の歳入＝月初の Borrow と同じ1本＝上の underLimit の外）のに、払えない（r＜1）月（2026-09-28）。
++        // ★張り付き＝今月の借入の門が閉じていた（市場が値を付けない＝国債の金利が上限 BondRateMax に張り付いた〔(234)・旧＝直近の利払い≧0.55×直近の歳入〕＝月初の Borrow と同じ1本＝上の underLimit の外）のに、払えない（r＜1）月（2026-09-28）。
+         //   旧＝スタックが上限20に張り付いた月（r は見ない）。旧のスタックは r＜1 の月の借入でだけ積もり r＝1 の月の減債で離れた＝張り付きは「払えずに借り尽くした」だった。
+-        //   利払い÷歳入は借りなくても歳入の落ち込みや金利の上昇で限界を越える＝r＝1 で全ての請求を払えている国（国庫の蓄え）は数えない＝払えている国を不履行にしない。
++        //   金利は借りなくても歳入の落ち込みや債務の重さで上限へ届く＝r＝1 で全ての請求を払えている国（国庫の蓄え）は数えない＝払えている国を不履行にしない。
+         //   助走（World.WarmupFrozen）は数えない＝時間が経たない月に不履行へ届かない（国債の残高を動かさない＝減債・借入と同じ門）。
+         // ★(205) 2026-10-04＝**払えなかった大きさで数える**（README §1-8「閾値で0か1に反転する判断より入力の大きさに応じた判断」・推奨で進めた＝作者の承認は未確認）。
+         //   1か月の重み＝払えなかった請求の割合（1−r）＝累計は「月の請求の何か月分を払えなかったか」＝Coefficients.DefaultArrearsMonths（1.0）に届いたら不履行。
+@@ -459,16 +459,14 @@ public static class Fiscal
+         // 財7（債務/GDPの単位整合）：NominalGdp は月次フロー、GovBondRate は年率（利払いを/12）。分母は年の名目GDP（月次×12）。
+         //   ★2026-09-29：旗 DebtGdpAnnualized（2026-07-26 点火＝既定1.0）を焼き込み＝国債の金利の2つの上乗せ（債務比・信認の喪失）を史実の年の単位で出し直した（下）＝旧の月次の枝（0）は較正の意味を失った。
+         double gdpDenom = nominalGdp * Calendar.MonthsPerYear;   // 年の名目GDP
+-        // [単位・B13] 債務/GDP＝**年次名目**（GovDebt÷(月次NominalGdp×12)）。国債金利の債務比プレミアム・CapitalMarket の対外信用の債務の項・
+-        //   Government の緊縮の強度・Credit の銀行の評価損・PolicyPreferences の国家の歳入要求（どれも 2026-09-29 から）はこの単位（旧＝Credit は月次名目・Government/PolicyPreferences は月次実質）。
+-        //   台帳（2026-09-11 #10）：PowerShares.cs の debtGrip＝月次名目の Clamp（物理・用途別に別＝触らない）／Runner milfund・hangtest の dGdp＝月次名目（計器）／App のヘッダー「対年GDP」＝この行と同じ年次名目（旧＝年次実質＝表示だけ別物差しだったのを統一）
+-        double dGdp = gdpDenom > 1e-9 ? w.GovDebt / gdpDenom : (w.GovDebt > 0 ? DebtRatioUnbounded : 0);   // #1 名目GDP基準＝デフレ国は実質債務が膨らみ国債金利が上がる（負債デフレ）
+-        // ★AUD-09（監査2026-09-02 low・規律「比のガードは絶対値で書かない」）：分母の絶対値ガード（1e-9）だけでは、
+-        //   分母が**微小だが非ゼロ**のとき比が番兵を何桁も飛び越える（GDPが消えかけた残余国で万%＝WorstLossRate と同型）。
+-        //   ⚠**否定形**で書く＝NaN も同じ枝へ落ちる（`Math.Min` では NaN が素通りして GovBondRate を毒する）。
+-        //   ★有限値では厳密同値：読み手は国債金利（BondRateMax=0.30 でクランプ済み）だけで、番兵 1e9 のはるか手前で飽和している
+-        //     ＝**挙動は変わらず、報告される数字と NaN 経路だけが正される**（兌換の門は 2026-09-28 から債務比を読まない＝下）。
+-        if (!(dGdp <= DebtRatioUnbounded)) dGdp = DebtRatioUnbounded;
++        // ★利払いの重さ（2026-10-10 (234) 腕H・推奨で進めた＝作者の承認は未確認）＝債務が**基礎金利で**払う利払い÷歳入（債務×BondBaseRate÷12÷今月の歳入 LastRevenue）。国債の金利の上乗せが読む。
++        //   ⚠実際の利払い（債務×既往債の平均クーポン）を読むと自己参照になる（腕G の10種：利払い→重さ→金利→乗り換え→平均クーポン→利払い。ループ利得＝割引×Scale×債務÷年歳入が1を越える割引のない国は金利が上限 0.30 に張り付いた＝国×四半期の 2.4%・基線 0.12%）。
++        //   基礎金利で読めば「債務のストック×歳入の薄さ」（利払いの重さの本体）は残り、乗り換えを通るループだけが消える（ループ利得0）。英1783〜84・1815〜20 の錨はクーポンが基礎金利の近く＝同じ値。
++        //   旧＝債務÷年名目GDP（BondRateDebtScale）。基礎金利での利払い÷歳入＝(債務÷GDP)×基礎金利×(GDP÷歳入)＝債務のストックに**歳入の薄さ**を掛けた量＝同じ債務でも税の取れない国ほど重い。
++        //   置き換え（足さない）＝債務のストックを二重に数えない（思想⑨）。歳入が正でなければ番兵（利払いが正なら極大＝BondRateMax で頭打ち・0なら0）＝返す財源の無い国に貸し手はいない。
++        //   ⚠否定形＝NaN も番兵へ落ちる（Math.Min は NaN を素通りさせ GovBondRate を毒する）。
++        double burden = w.LastRevenue > 0 ? w.GovDebt * c.BondBaseRate / Calendar.MonthsPerYear / w.LastRevenue : (w.GovDebt > 0 ? DebtRatioUnbounded : 0);
++        if (!(burden <= DebtRatioUnbounded)) burden = DebtRatioUnbounded;
+         // 金本位の信用ゲート（資格＝コストでない）：準備が足り、払える財政なら加入できる。加入中＝国債金利を信用で優遇（低金利）。
+         // 加入中でも取り付けで準備が割れる／維持費を払えないと正貨を守れず強制離脱（兌換停止＝信用暴落）。紙幣増発で赤字を埋める国は信用が無く加入不可。
+         // ★債務の水準では門を引かない（作者裁定 2026-09-28 F6 の1歩目）。旧＝債務/年GDP の固定の閾値（停止 7.5%・再加入 4.2%＝係数
+@@ -525,11 +523,11 @@ public static class Fiscal
+         double devalSpeed = devalued > 0 ? (gdpDenom > 1e-9 ? devalued * Calendar.MonthsPerYear / gdpDenom : DebtRatioUnbounded) : 0;
+         if (!(devalSpeed <= DebtRatioUnbounded)) devalSpeed = DebtRatioUnbounded;
+         double distrust = c.BondRateDistrustScale * devalSpeed;
+-        // ★債務比の上乗せ（BondRateDebtScale×債務÷年名目GDP）は史実から（2026-09-29）＝英のコンソル（国債÷年GDP 約2.5 の1815〜20年に利回り約4.5%）を信認のある国
+-        //   （完全兌換・議会が予算を握る＝割引 0.6×0.9）で出す：(0.04＋2.5×0.018)×0.54≒4.6%。同じ式で不換・議会の弱い周縁国（西・葡・希・オスマン・ラテンアメリカ）は
+-        //   国債÷年GDP 1〜2 で 5.8〜7.6%＋期待インフレと信認の喪失（史実6〜10%）。旧＝1.44（旧の月次比 0.12×12 を年へ換算したまま＝年GDP 比1につき+144%）。
+-        //   監査2026-07-05（F2）の債務の二次項 BondRateDebtQuad（既定0＝休眠）は削除（英の債務比2.5 で金利が跳ねない史実と合わない・棚卸し dorm-51／fis-17）。
+-        double bondInside = c.BondBaseRate + c.BondRateDebtScale * dGdp + fisher + distrust + c.PolicyRateBondWeight * w.InterestRate;
++        // ★利払いの重さの上乗せ（BondRateBurdenScale×利払い÷歳入）は史実から（2026-10-10 (234)・推奨で進めた＝作者の承認は未確認・旧＝債務比 BondRateDebtScale×債務÷年名目GDP〔2026-09-29〕）：
++        //   英1783〜84（利払い÷歳入≈0.62・3%コンソル≈5.3%）と英1815〜20（≈0.50・≈4.7%）の2つの錨を完全兌換・議会が予算を握る国（割引 0.6×0.9＝0.54）で出す：
++        //   (0.04＋0.09×0.62)×0.54≒5.1%／(0.04＋0.09×0.50)×0.54≒4.6%。仏1788（0.67・割引なし）は 10.0%（史実の終身年金 8〜10%・永久年金 6〜7%）。原典の数字は取れていない【推】。
++        //   ループ利得＝割引×Scale×(債務÷歳入)＝英1783（債務÷歳入≈14）で 0.68＜1。不換・議会なしは債務÷歳入が約11を超えると発散側＝歯止めは BondRateMax・外資の深さ（基礎金利÷金利）・不履行。
++        double bondInside = c.BondBaseRate + c.BondRateBurdenScale * burden + fisher + distrust + c.PolicyRateBondWeight * w.InterestRate;
+         // 政体フレーバー レバー3（2026-07-24）→第3波連続化（2026-07-28）：議会の信認割引＝議会の予算統制（ParliamentControl）が
+         // 強いほど債権者の信認で金利が安い（英コンソル＝財政軍事国家論）。旧・政体ラベル二値→統制力の連続量へ（倍率排除＝ラベル不読・
+         // DebtGdp年換算フリップ2026-07-26で再挑戦解禁の記録どおり）。BondRateRepresentationDiscount=0で×1.0＝厳密恒等。
+@@ -541,7 +539,7 @@ public static class Fiscal
+         {
+             bl.Reset("BondRate");
+             bl.Add("BondRate", "基礎金利", c.BondBaseRate * convDiscount);
+-            bl.Add("BondRate", "債務比プレミアム", c.BondRateDebtScale * dGdp * convDiscount);
++            bl.Add("BondRate", "利払いの重さの上乗せ", c.BondRateBurdenScale * burden * convDiscount);
+             bl.Add("BondRate", "インフレ期待", fisher * convDiscount);
+             bl.Add("BondRate", "信認喪失（直近の切り下げ）", distrust * convDiscount);
+             bl.Add("BondRate", "政策金利", c.PolicyRateBondWeight * w.InterestRate * convDiscount);
+@@ -656,11 +654,17 @@ public static class Fiscal
+     }
+ 
+     /// <summary>★借入の門（2026-10-03 (175) に <see cref="Borrow"/> の3行を1本へ畳んだ＝挙動は同じ）＝冷却中でない（デフォルト後の信用喪失）・開始前の助走でない・
+-    /// 直近の利払いが歳入の限界（<see cref="Coefficients.MaxInterestShareOfRevenue"/>）の下。読み手＝<see cref="Borrow"/> と戦時段の器（<see cref="Military.EnvelopeAt"/>＝戦時国債）の2つ
++    /// 市場が値を付けている（<see cref="MarketPrices"/>＝国債の金利が上限 <see cref="Coefficients.BondRateMax"/> の下・(234) 旧＝利払い÷歳入が 0.55 の下＝閉じる錠）。読み手＝<see cref="Borrow"/> と戦時段の器（<see cref="Military.EnvelopeAt"/>＝戦時国債）の2つ
+     /// ＝戦時段が借りる余地と実際に借りる門が同じ1本（思想⑨＝借入の経路を2本にしない）。
+     /// ★助走の門（2026-09-29）＝国債の残高は時間が経って積み上がる量（減債・不履行の計数と同じ門・Step）。否定形＝NaN は借りない側（歳入0の国は利払い0でも借りられない＝返す財源の無い国に貸し手はいない）。</summary>
+     internal static bool BorrowGateOpen(World w, Coefficients c)
+-        => !(w.BorrowCooldown > 0) && !w.WarmupFrozen && w.LastInterest < c.MaxInterestShareOfRevenue * w.LastRevenue;
++        => !(w.BorrowCooldown > 0) && !w.WarmupFrozen && MarketPrices(w, c);
++
++    /// <summary>★市場が値を付けている（2026-10-10 (234)・推奨で進めた＝作者の承認は未確認）＝借りる値段（<see cref="World.GovBondRate"/>）が上限 <see cref="Coefficients.BondRateMax"/> の下で、歳入が正。
++    /// 旧＝利払い÷歳入が 0.55 を越えると借入が閉じる閾値（英1783〜 利払い÷歳入≈0.6【推】でもコンソルで借りられた史実と逆向き）。今は利払いの重さは**値段**（<see cref="Coefficients.BondRateBurdenScale"/>×利払い÷歳入）として金利に乗り、
++    /// 重いほど高い金利で借りる。閉じるのは値が上限に張り付く所だけ（<see cref="Coefficients.BondRateMax"/> の既存の注記＝「これ以上は市場が値付けせず」）。
++    /// 読み手＝<see cref="BorrowGateOpen"/>・<see cref="Step"/> の不履行の計数・巨大建造物の「まだ借りられる」の3つ＝1本。否定形＝NaN は閉（歳入0の国に貸し手はいない）。</summary>
++    internal static bool MarketPrices(World w, Coefficients c) => w.LastRevenue > 0 && w.GovBondRate < c.BondRateMax;
+ 
+     /// <summary>★1件の額＝月次の名目GDP×<see cref="Coefficients.BorrowFractionOfGdp"/>（負の GDP は0）＝月に借りられる額の上限。
+     /// 読み手＝<see cref="Borrow"/>（払えない額と比べる）と戦時段の器（<see cref="Military.EnvelopeAt"/>）の2つ＝同じ1本（2026-10-03 (175)）。</summary>
+@@ -673,7 +677,7 @@ public static class Fiscal
+     internal static double Borrow(World w, Coefficients c, double spare)
+     {
+         // 調達＝資本家の余剰貯蓄（クラウディングアウト）＋外資（開放度）＝旧・自動国債と同じ保存経路（国内は純移転・海外は CumulativeTradeFlow）。
+-        // プールを超えては借りられない（保存）。利払いが歳入の限界に届いたら頭打ち→払えない（r＜1）まま続けば不履行（Step）。
++        // プールを超えては借りられない（保存）。利払いが重いほど金利が上がり（外資のプールは基礎金利÷金利で縮む）、金利が上限に張り付いたら閉→払えない（r＜1）まま続けば不履行（Step）。
+         // ★条件は1行だけ＝払えない額がある月・借入の上限の下・冷却中でない。旧＝AI（SelfPlay）と画面（GameViewModel）が同じ条件で
+         //   四半期ごとに予約の列（BorrowQueue）へ積み、Fiscal.Step が月に1件ずつ実行した＝予約の列と2行を削除した（AI とプレイヤーの経路は無い＝等価）。
+         //   借りる主体のいない世界（試験の NullAgent）も同じ1行で借りる＝利子の未払いが元本へ複利で積もり続け、上限→不履行の出口に届かない形が閉じる。
+@@ -685,7 +689,9 @@ public static class Fiscal
+         // ★借りる額は払えない額だけ（作者裁定 2026-09-28）：旧＝r＜1 なら不足の大きさに関係なく1件＝1件の額（月次GDP×割合）を満額借りた
+         //   ＝切り下げでほぼ埋まった r＝1−ε の月（r＜1 の四半期の77% が r≧0.99）も満額→上限→不履行→借入禁止を繰り返した。
+         //   払えない額＝月初の −spare（請求−払える額＋借越）＝切り下げの余地と同じ量・減債の余剰（spare＞0）の裏側。
+-        // ★借入の上限＝利払いが歳入の限界（MaxInterestShareOfRevenue）に届く所（作者裁定 2026-09-28・棚卸し fis-01）。旧＝借入スタック20（1スタック＝月次**実質**GDP の10%
++        // ★(234) 2026-10-10（推奨で進めた＝作者の承認は未確認）：借入の上限は**閾値でなく値段**へ。旧（下の作者裁定 2026-09-28）＝利払い÷歳入が 0.55 に届くと借入が閉じた（英1783 の開幕から閉じ、払えない月の 100% が門の閉じた月〔(230)〕）。
++        //   今＝利払いの重さは国債の金利の上乗せ（BondRateBurdenScale×利払い÷歳入）として借りる値段に乗る。門は MarketPrices（金利が上限の下）の1本。以下の旧の注記は経緯。
++        // ★借入の上限＝利払いが歳入の限界に届く所（旧・作者裁定 2026-09-28・棚卸し fis-01）。旧＝借入スタック20（1スタック＝月次**実質**GDP の10%
+         //   ＝年GDP の約17%で全ての国が同じ天井・1815年の英の250%は原理的に出ない）。史実で借りられなくなったのは水準そのものでなく、利払いが歳入を食う割合と市場の信認
+         //   （英1818-22 利払い約3,100万ポンド÷歳入約5,600万≒0.55 で借りずに持ちこたえ・仏1788 3.18億÷4.72億リーヴル≒0.67 で支払停止）＝同じ限界でも、
+         //   歳入の厚い国（英）と金利の安い国（金本位・議会の信認割引）ほど深く借りられ、信認を失った国（直近の切り下げ・高債務の金利＝その金利で乗り換えた平均クーポン）は浅い所で止まる。
+diff --git a/PriceOfBread.SimCore/Megaprojects.cs b/PriceOfBread.SimCore/Megaprojects.cs
+index 7c1192d..eff22c5 100644
+--- a/PriceOfBread.SimCore/Megaprojects.cs
++++ b/PriceOfBread.SimCore/Megaprojects.cs
+@@ -121,7 +121,7 @@ public static class Megaprojects
+             double cyc = 1.0;
+             if (coef.MegaprojectCounterCyclical > 0
+                 && hw.GdpDrawdown > coef.MegaprojectCrisisDrawdown
+-                && hw.LastInterest < coef.MaxInterestShareOfRevenue * hw.LastRevenue && hw.BorrowCooldown <= 0)   // Fiscal.Borrow の門と同じ「まだ借りられる」2条件（利払い÷歳入が限界の下・冷却中でない＝LastInterest・LastRevenue は直近の月次決算の量＝翌月初の借入の門が読む量）
++                && Fiscal.MarketPrices(hw, coef) && hw.BorrowCooldown <= 0)   // Fiscal.Borrow の門と同じ「まだ借りられる」2条件（市場が値を付けている〔(234)・旧＝利払い÷歳入が限界の下〕・冷却中でない）
+                 cyc += coef.MegaprojectCounterCyclical;
+             double claim = share * cyc * hw.Treasury;
+             if (claim <= 1e-9 || hw.Treasury <= 0) continue;
+diff --git a/PriceOfBread.SimCore/World.cs b/PriceOfBread.SimCore/World.cs
+index d351dc7..ae40efb 100644
+--- a/PriceOfBread.SimCore/World.cs
++++ b/PriceOfBread.SimCore/World.cs
+@@ -1141,7 +1141,7 @@ public sealed class World
+     public double CumulativeDevaluation { get; internal set; }   // 累積の通貨切り下げ額（債務不履行で全popの貯蓄を希薄化＝インフレ税）。**挙動の被乗数**＝資本逃避の不信（CapitalMarket）・通貨改革と兌換の再加入の門（Fiscal の broken）・AI の改革の判断が読む（02断線走査2026-07-28：旧「診断・歴史」注記は削除リファクタで壊す危険があった）。⚠国債の金利（信認の喪失）は 2026-09-29 から累積でなく直近の切り下げの速さ（Fiscal.Step の devalued）を読む
+     public double CumulativeFiatIssued { get; internal set; }    // 累積の不換新規発行（fiat-expansion-as-haircut-not-issue）。基礎貨幣の正当な増加源＝貨幣保存の基準に算入（鋳造CumulativeGoldMintedと同型）。FiatIssueFrac=0で常に0＝較正中立
+     // 借入（Fiscal の1行＝国家の支払い率 r＜1 の月にエンジンが自動で借りる・2026-09-28 作者裁定「借入は自動化・借金ボタンは不要」＝予約の列 BorrowQueue と RequestBorrow を削除）。借入額＝min(1件の額, 月初の払えない額)。
+-    //   上限＝利払い÷歳入（Coefficients.MaxInterestShareOfRevenue・2026-09-28）＝旧の借入スタック BorrowStacks（過去の1件の額で数えた借入の累計）は上限が読まなくなり削除（思想⑩・棚卸し fis-01）。
++    //   上限＝市場が値を付けている間（Fiscal.MarketPrices・(234) 旧＝利払い÷歳入 MaxInterestShareOfRevenue・2026-09-28）＝旧の借入スタック BorrowStacks（過去の1件の額で数えた借入の累計）は上限が読まなくなり削除（思想⑩・棚卸し fis-01）。
+ 
+     // ==== 通貨改革（2026-08-13・作者採用）====
+     // なぜ要るか：CumulativeDevaluation は**単調増加で減る経路が1つも無かった**（国家破産でも消えない・セーブにも残る）。
+@@ -1157,7 +1157,7 @@ public sealed class World
+ 
+     /// <summary>通貨改革の予約（プレイヤーのボタンもAIも**この同じ口**を通る）。parity＝新平価。</summary>
+     public void RequestCurrencyReform(double parity) => PendingCurrencyReform = Math.Clamp(parity, Coef.ExchangeRateFloor, 1.0);   // 新平価を [ExchangeRateFloor,1.0] にクランプして予約（月次で消化・CurrencyReformCooldown）
+-    public double InsolvencyQuarters { get; internal set; }       // 借りられない（利払い÷歳入≧MaxInterestShareOfRevenue）まま払えなかった請求の割合（1−r）の月ごとの**累計**（月の請求の何か月分・(205) 2026-10-04＝旧 int の連続月数）。払えた月（r＝1）・門が開いた月に0。Coefficients.DefaultArrearsMonths に届くと**ソブリン・デフォルト**（致命的）（⚠名前は Quarters だが Fiscal.Step が月次で進める）
++    public double InsolvencyQuarters { get; internal set; }       // 借りられない（市場が値を付けない＝国債の金利が BondRateMax に張り付いた・(234) 旧＝利払い÷歳入≧0.55）まま払えなかった請求の割合（1−r）の月ごとの**累計**（月の請求の何か月分・(205) 2026-10-04＝旧 int の連続月数）。払えた月（r＝1）・門が開いた月に0。Coefficients.DefaultArrearsMonths に届くと**ソブリン・デフォルト**（致命的）（⚠名前は Quarters だが Fiscal.Step が月次で進める）
+     public int BorrowCooldown { get; internal set; }              // デフォルト後の借入禁止の残り**月数**（信用喪失）。0になるまで借りられない
+     public bool HadSovereignDefault { get; internal set; }        // 過去にデフォルトしたか（年表・診断）
+ 
