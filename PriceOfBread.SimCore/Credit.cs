@@ -58,11 +58,11 @@ public static class Credit
         // 信用収縮→恐慌→不満→政治の通常経路で帰結を出す）。FiscalEnabled 時のみ＝単一国較正セルは不発。
         double fiscalDefault = w.FiscalEnabled ? c.FiscalDefaultPanic * Math.Max(0, 1.0 - w.FiscalFundingRatio) : 0;
         // 民間負債デフレ（B-3 フィッシャー）：デフレ×レバレッジ(前期Heat)＝実質債務増→債務者困窮→信頼↓→与信回収→さらにデフレの渦。MonetaryEnabled時のみ（デフレ率が定義される）。
-        double debtDeflation = w.MonetaryEnabled ? c.DebtDeflationWeight * Math.Max(0, -w.ExpectedInflationPerYear) * bank.Heat : 0;
+        double debtDeflation = w.MonetaryEnabled ? c.DebtDeflationWeight * Math.Max(0, (-w.ExpectedInflationPerYear).Value) * bank.Heat : 0;
         // 国債二次流通の評価損（no-bond-secondary-market）：BondPrice下落(利回り上昇)で国内債を抱える銀行が評価損→信頼↓→与信収縮（平時のマーク・トゥ・マーケット）。既存診断値BondPriceを配線。BondLossConfWeight=0で恒等（既定0.5）。
         // [単位・B13] 債務/GDP＝**年次名目**（GovDebt÷(月次NominalGdpPerMonth×12)・Clamp 0..1）＝Fiscal の国債の金利・CapitalMarket・Government の緊縮と同じ物差し（2026-09-29・棚卸し fis-02 の残り）。
         //   旧＝**月次**名目（年次の約12倍の値）＝国債が年GDP の1割（8.3%）を越えた国は全て1で飽和＝国債の多さが評価損の大きさに効かなかった。
-        double bondLoss = w.FiscalEnabled ? c.BondLossConfWeight * Math.Max(0, 1.0 - w.BondPrice) * PoliticalQuantities.Clamp01(w.GovDebt / Math.Max(1.0, Calendar.PerMonthToPerYear(month?.NominalGdp ?? w.NominalGdpPerMonth))) : 0;
+        double bondLoss = w.FiscalEnabled ? c.BondLossConfWeight * Math.Max(0, 1.0 - w.BondPrice) * PoliticalQuantities.Clamp01(w.GovDebt / Math.Max(1.0, Calendar.PerMonthToPerYear(month?.NominalGdp ?? w.NominalGdpPerMonth.Value))) : 0;
         // シティ型恐慌（A・最終調整2026-06-29）：与信過熱(Heat・前期＝持ち越したレバレッジ)が閾値を超えると、満足度が高くても信頼が脆くなる＝
         // 最も金融化した経済（深い与信＝高Heat＝覇権の金融中心）ほど好況の絶頂でミンスキー暴落を起こす。着火後は既存 DrawdownPanic が暴落へ増幅。OverheatFragility=0で恒等（既定1.1）。
         double overheatFragility = c.OverheatFragility * Math.Max(0, bank.Heat - c.OverheatFragilityThreshold);
@@ -111,7 +111,7 @@ public static class Credit
         var home = w.Region;
         double repayable = double.PositiveInfinity;
         if (home.InvestorPopIndex >= 0 && home.InvestorPopIndex < home.Pops.Count)
-            repayable = Calendar.PerMonthToPerYear(Math.Max(0, home.Pops[home.InvestorPopIndex].LastEarnedPerMonth)) * c.SoeSaleYears;
+            repayable = Calendar.PerMonthToPerYear(Math.Max(0, home.Pops[home.InvestorPopIndex].LastEarnedPerMonth.Value)) * c.SoeSaleYears;
         if (repayable < maxLoans) maxLoans = repayable;
         // 銀行取り付け（B-3）：預金者のパニック（充足が平穏線を割る）で正貨が逃避＝実効準備が縮む＝willingな銀行でも貸せない（貸し手意欲Confidenceと別の流動性チャネル）。
         double run = Math.Clamp(c.BankRunSensitivity * Math.Max(0, c.ConfidencePivot - avgSat), 0, c.BankRunMax);
@@ -204,14 +204,14 @@ public static class Credit
             if (home.InvestorPopIndex >= 0 && home.InvestorPopIndex < home.Pops.Count)
             {
                 borrower = home.Pops[home.InvestorPopIndex];
-                double profitDaily = Calendar.PerMonthToPerDay(Math.Max(0, borrower.EarnedPerMonth - borrower.PaidPerMonth)) * days;   // h 日ぶんの利潤（旬次）
+                double profitDaily = Calendar.PerMonthToPerDay(Math.Max(0, (borrower.EarnedPerMonth - borrower.PaidPerMonth).Value)) * days;   // h 日ぶんの利潤（旬次）
                 paid = Math.Min(interestDue, Math.Min(profitDaily, Math.Max(0, borrower.Savings)));
             }
             else
             {
                 var pops = Pops();
                 double tot = 0, profitTot = 0;
-                foreach (var p in pops) { tot += Math.Max(0, p.Savings); profitTot += Math.Max(0, p.EarnedPerMonth - p.PaidPerMonth); }
+                foreach (var p in pops) { tot += Math.Max(0, p.Savings); profitTot += Math.Max(0, (p.EarnedPerMonth - p.PaidPerMonth).Value); }
                 paid = Math.Min(interestDue, Math.Min(Calendar.PerMonthToPerDay(profitTot) * days, tot));
             }
             // 【案B】払えなかった分は**消えない**＝残高へ繰り入れる（複利化）。

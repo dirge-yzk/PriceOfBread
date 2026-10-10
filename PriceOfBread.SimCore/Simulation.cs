@@ -945,7 +945,7 @@ public sealed class Simulation
         foreach (var pr in region.Producers)
             if (pr.IsRgo && pr.RentShare > 0 && pr.OwnerPopIndex >= 0 && pr.OwnerPopIndex < region.Pops.Count
                 && pr.GoodId >= 0 && pr.GoodId < Catalog.RefPrices.Length)
-                region.Pops[pr.OwnerPopIndex].LandRentPerMonth += pr.RentShare * pr.Output * Catalog.RefPrices[pr.GoodId] * InitialRentSeedScale;
+                region.Pops[pr.OwnerPopIndex].LandRentPerMonth += new MoneyPerMonth(pr.RentShare * pr.Output * Catalog.RefPrices[pr.GoodId] * InitialRentSeedScale);
         return region;
     }
 
@@ -1579,7 +1579,7 @@ public sealed class Simulation
             {
                 r.PriceLevel = World.PriceLevel * r.LocalPriceMultiplier;   // 国家物価×地域乗数＝地域別の物価水準（金融中心は高・辺境は低）。1州なら乗数1＝較正中立
                 r.FarmRentCap = System.Math.Min(RentCap(World.LandReform, World.Coef.LandReformRentCap), RentCap(World.SerfEmancipation, World.Coef.SerfEmancipationRentCap));   // 地代上限＝土地改革/農奴解放の段階で（限定的＝なしと全面の中間）。元の地代がこれ未満なら効かない
-                r.CrowdingPremium = System.Math.Max(0, World.GovBondRatePerYear - World.Coef.BondBaseRatePerYear);   // 政府借入の金利プレミアム→民間投資ハードルへ（クラウディングアウト。金本位の信用国は GovBondRatePerYear が低く弱い＝条件付き）
+                r.CrowdingPremium = System.Math.Max(0, (World.GovBondRatePerYear - World.Coef.BondBaseRatePerYear).Value);   // 政府借入の金利プレミアム→民間投資ハードルへ（クラウディングアウト。金本位の信用国は GovBondRatePerYear が低く弱い＝条件付き）
                 r.FinancialHeat = World.FinancialHeat;   // 与信過熱を州へ複製（改修2026-06-28・投資ハードルのバブル項へ）
                 //（借入スタックの出費上限 SpendingCapFactor の州への複製は 2026-09-28 に撤去＝作者裁定 Q9・補助は国家の支払い率 r を World から読む）
                 r.CivilWarActive = World.InCivilWar;   // ★B3：述語1本（CivilWarPredicateUnified=1.0＝2026-09-08点火＝War で戦う内戦もここへ届く）      // 内戦中を州へ複製（#136 内戦の経済麻痺の読み口。CivilWarEconomyDisruption=0で不読＝恒等）
@@ -1596,7 +1596,7 @@ public sealed class Simulation
                 bool fresh = !CreditMonth.TryGetValue(World, out var box);
                 if (box is null) { box = new(); CreditMonth.Add(World, box); }
                 if (fresh || _dayInQuarter % Calendar.DaysPerMonth == 0)   // 月の初日は旬の初日（h は30の約数）
-                    box.Value = (World.NominalGdpPerMonth, NationalScore.MeanSatisfaction(World), World.MeanIndustrialization);
+                    box.Value = (World.NominalGdpPerMonth.Value, NationalScore.MeanSatisfaction(World), World.MeanIndustrialization);
                 creditMonth = box.Value;
             }
             Credit.Step(World, World.Coef, creditMonth, hFlow);                     // 信用（与信・信頼）も旬次（旬の初日に h 日ぶん・速度は日数配分）
@@ -1682,14 +1682,14 @@ public sealed class Simulation
         bool priceOn = c.RegionalPriceLevelWeight > 0;   // 無効＝全州一律（従来挙動・較正中立）。労働価格プレミアムの簿記は常に更新（使用は OpportunityWageWeight でゲート）
         double natSav = 0, natEarn = 0, natPop = 0;
         foreach (var r in World.Regions) if (r.State == RegionState.Active)
-            foreach (var p in r.Pops) { natSav += p.Savings; natEarn += p.EarnedPerMonth; natPop += p.Size; }
+            foreach (var p in r.Pops) { natSav += p.Savings; natEarn += p.EarnedPerMonth.Value; natPop += p.Size; }
         double natPerCap = natPop > 1e-9 ? natSav / natPop : 0;
         double natEarnPerCap = natPop > 1e-9 ? natEarn / natPop : 0;   // 国平均の1人あたり月次所得（QuarterStart時点＝直前月）
         foreach (var r in World.Regions)
         {
             if (r.State != RegionState.Active) { r.LocalPriceMultiplier = 1.0; r.WagePremium = 1.0; continue; }
             double rSav = 0, rEarn = 0, rPop = 0;
-            foreach (var p in r.Pops) { rSav += p.Savings; rEarn += p.EarnedPerMonth; rPop += p.Size; }
+            foreach (var p in r.Pops) { rSav += p.Savings; rEarn += p.EarnedPerMonth.Value; rPop += p.Size; }
             double mult = 1.0;
             if (priceOn && natPerCap > 1e-9 && rPop > 1e-9)
             {
@@ -1894,7 +1894,7 @@ public sealed class Simulation
             ? World.Antitrust switch { AntitrustLaw.CartelBan => World.Coef.CartelBanRent, AntitrustLaw.Trustbust => World.Coef.TrustbustRent, _ => 1.0 }
             : 1.0;
         int nationalizedMaskNat = World.Coef.NationalizationGate > 0 ? World.NationalizedMask() : 0;
-        World.LastSoldierPayPerMonth = 0;   // 兵士給与の月次請求書（形が先・金が後 段0）＝州ループで積む
+        World.LastSoldierPayPerMonth = new MoneyPerMonth(0);   // 兵士給与の月次請求書（形が先・金が後 段0）＝州ループで積む
         // ★軍事費の吸い込み（2026-10-02 (155)・作者 2026-10-01「高い軍事費はより多くの兵士の他、より十分な武器（≒軍需産業を育てる需要）や、高品質な軍隊を作ります。
         //   ただし、扶養限界の考え方は必要だと思います（つまり、十分な軍隊がそろっている状態だと、兵士の給与は高止まりし、軍事費が高い設定でも出費は伸び続けない）」＝推奨で進めた）：
         //   軍事費の器（Military.EnvelopeOf＝軍事費の段×器の割合×使える歳入〔＋戦時段の割合×借入の1件の額＝(175) 戦時国債〕）を **給与・糧食 → 装備（目標の在庫まで＋更新＋新型＝軍需の必要額）→ 質（幹部の給与＝訓練・効きは逓減）
@@ -2102,9 +2102,9 @@ public sealed class Simulation
                 r.AdminBudget = r.BureaucratPopIndex >= 0 && nationPop > 1e-9
                     ? World.AdminSpending * World.Coef.AdminBudgetFrac * World.SpendableRevenue() * (r.SumPopulation() / nationPop) * Fiscal.AdminDistanceMul(World, r) : 0;   // 請求（r を掛ける前）
                 r.InfraBudget = nationPop > 1e-9
-                    ? World.AdminSpending * World.Coef.InfraBudgetScale * World.FiscalCapacityPerMonth * (r.SumPopulation() / nationPop) * HoardSpendScale() : 0;
+                    ? (World.AdminSpending * World.Coef.InfraBudgetScale * World.FiscalCapacityPerMonth * (r.SumPopulation() / nationPop) * HoardSpendScale()).Value : 0;
                 r.ElecInfraBudget = nationPop > 1e-9
-                    ? World.AdminSpending * World.Coef.ElecInfraBudgetScale * World.FiscalCapacityPerMonth * (r.SumPopulation() / nationPop) * HoardSpendScale() : 0;
+                    ? (World.AdminSpending * World.Coef.ElecInfraBudgetScale * World.FiscalCapacityPerMonth * (r.SumPopulation() / nationPop) * HoardSpendScale()).Value : 0;
                 // 兵力（兵士の給与）の予算＝★(155) 州ループの後（吸い込みの1段目と3段目＝装備の請求が立ってから）。
             }
         // ★(155) 軍事費の吸い込みの1段目（給与・糧食）と3段目（質＝幹部の給与＝訓練）を州へ：
@@ -2125,9 +2125,9 @@ public sealed class Simulation
             var r = World.Regions[ri];
             if (r.State != RegionState.Active || r.SoldierPopIndex < 0) continue;
             r.SoldierPayBudget = soldierBasePay[ri] * soldierPayFill + soldierRegularPay[ri] * trainShare;   // 請求（r を掛ける前）。旧＝州ごとの min(国庫)＝先着（B2）・★(161) 兵卒の給与（手当か規定）＋幹部の給与（規定の物差し）
-            World.LastSoldierPayPerMonth += r.SoldierPayBudget;   // 請求書（形が先・金が後 段0）
+            World.LastSoldierPayPerMonth += new MoneyPerMonth(r.SoldierPayBudget);   // 請求書（形が先・金が後 段0）
         }
-        World.LastMilitaryClaimPerMonth = equipClaimNat;   // ★(155) 器の請求のうち装備（2段目）＝Fiscal の余剰と財政バッファが読む（旧＝Fiscal が 軍事費×0.25×歳入 を必要額で切って書いた）。給与と質（幹部の給与）は兵士の給与の請求（LastSoldierPayPerMonth）の側＝旧と同じく余剰からは引かない
+        World.LastMilitaryClaimPerMonth = new MoneyPerMonth(equipClaimNat);   // ★(155) 器の請求のうち装備（2段目）＝Fiscal の余剰と財政バッファが読む（旧＝Fiscal が 軍事費×0.25×歳入 を必要額で切って書いた）。給与と質（幹部の給与）は兵士の給与の請求（LastSoldierPayPerMonth）の側＝旧と同じく余剰からは引かない
         // ★国家の支払い率 r（作者裁定 F3・Q1〜Q3・2026-09-28 支払いの一元化 段2-1＝計画 §10-12-3-3）。
         //   その月の**全ての国家の支払いの請求**を月初（ここ＝予算が立った直後・買う前）に集め、払える額と比べて1本の率を決め、
         //   全ての行（予算・工賃・材料・国営持分の赤字・補助・保険・福祉・年金・維持費・利子・戦費・貢納・選挙・通行料…）に同じ r を掛ける＝優先順位を作らない。
@@ -2141,7 +2141,7 @@ public sealed class Simulation
         //   ⚠四半期の支払い（貢納・招聘の支度金・外資の利回り）は四半期末の外交と共有層がまとめて払う＝四半期の締め月の請求に入れる。
         //   （戦費 Fund の請求の見込みは 2026-09-30 に Fund ごと削除＝支払いの段3-2・戦争の費用の実体は上の軍需の予算と兵士の給与）
         if (Instruments.On) Instruments.Begin(World);   // 計器（読むだけ）：今月の請求の写しを始める
-        double claims = World.LastInterestPerMonth + World.LastWelfareCostPerMonth + World.LastPensionCostPerMonth + World.LastColonialUpkeepPerMonth;   // （連合維持費 LastUpkeep は 2026-09-30 (135) に撤去＝兵力と行政の購買の1本）
+        double claims = (World.LastInterestPerMonth + World.LastWelfareCostPerMonth + World.LastPensionCostPerMonth + World.LastColonialUpkeepPerMonth).Value;   // （連合維持費 LastUpkeep は 2026-09-30 (135) に撤去＝兵力と行政の購買の1本）
         if (Instruments.On) Instruments.ClaimsBase(World);
         bool payQuarter = World.IsQuarterEndMonth;
         if (payQuarter) claims += World.LastTributeOutPerQuarter + World.RecruitBudget;   // 四半期の請求（貢納・招聘の支度金）
@@ -2195,7 +2195,7 @@ public sealed class Simulation
                     foreach (var pr in sites) AddStateClaim(pr, r, World, ref claims);
                 }
             }
-        double payable = Math.Max(0, World.Treasury) + World.LastRevenuePerMonth;
+        double payable = Math.Max(0, World.Treasury) + World.LastRevenuePerMonth.Value;
         // ＞0＝ r＝1 の月の余剰（減債の原資＝Fiscal）・＜0＝払えない請求（＋借越）。負の国庫（記録されない当座借越）は余剰から先に埋める
         //   ＝借越のまま国債を返さない・埋められない借越は赤字（r は Q1 のとおり max(0,国庫) で決める＝国庫0の国の率0→行政0→税収0の行き詰まりを作らない）。
         double spare = payable - claims + Math.Min(0, World.Treasury);
@@ -2345,6 +2345,7 @@ public sealed class Simulation
         Crime.Step(World, World.Coef);                                   // 犯罪と抑止：秩序（治安維持力の人口カバレッジ）が崩れると窃盗＝闇の再分配（純移転）
         ProbeCheck("月次犯罪");
         // 兵士POP軍制（Part 2）：軍事費で徴募し給与を払う（国庫→兵士で保存）。戦時は徴兵。財政の後・外交ゲージ集計の前。
+        if (Instruments.On) Instruments.WarMonth(World, atWarNation);   // 計器（読むだけ）：交戦と内戦の月を数える（軍の更新の直前）
         Military.Step(World, World.Coef, atWarNation);   // 交戦判定はループ前に算出済み（atWarNation）を共用
         if (World.IsQuarterEndMonth) Military.StepSkill(World, World.Coef, atWarNation);   // ★熟練度は四半期に1回（係数の時定数は四半期で書いてある・2026-08-04）
         ProbeCheck("月次軍事");
@@ -2721,7 +2722,7 @@ public sealed class Simulation
         // ⚠差し戻し2026-08-08＝OpulenceSpendRatePerYear=0.6との同時点火で硬性赤（公教育の自由国テスト失敗＝較正世界の
         //   資源配分を建設ブームが歪める）。独立係数 OpulenceInfraChannel（既定0）へ分離＝単独で再測定可能に。
         if (World.Coef.OpulenceInfraChannel <= 0) return 1.0;
-        double baseRev = Math.Max(1e-9, World.LastRevenuePerMonth);
+        double baseRev = Math.Max(1e-9, World.LastRevenuePerMonth.Value);
         return World.SpendableRevenue() / baseRev;   // 潤沢超過ぶんだけ >1（普≈18倍＝鉄道国家の建設ブーム）
     }
 
@@ -2813,7 +2814,7 @@ public sealed class Simulation
             mintScale = PoliticalQuantities.Clamp01(mintScale);
             coverShort = shortfall;
             if (World.Coef.MintBuysAtMarket > 0 && shortfall > 1e-9)
-                gapLeft = Math.Max(0, coverTarget * World.BroadMoney - World.BaseMoney) * PoliticalQuantities.Clamp01(World.Coef.MintReserveSellRatePerMonth);   // 買い戻しの歩調＝投げ売りと同じ率（独1873-79の逆向き）
+                gapLeft = Math.Max(0, coverTarget * World.BroadMoney - World.BaseMoney) * PoliticalQuantities.Clamp01(World.Coef.MintReserveSellRatePerMonth.Value);   // 買い戻しの歩調＝投げ売りと同じ率（独1873-79の逆向き）
         }
         // 【削除 2026-10-09 (210)】器 MintFloorRespectsReserve（跛行本位＝床の standing offer をカバー率〔基礎貨幣/広義マネー〕が目標×余白を超えたら閉じる・休眠 0）
         //   ＝閉じる条件が誤り（信用の薄い 1783 年から常に真＝造幣が一度も買わない・メモリ pob-silver-crash-lines）。
@@ -2827,7 +2828,7 @@ public sealed class Simulation
         double sellLeft = 0;
         if (floor && World.Coef.MintParitySells > 0 && !(coverShort > 1e-9))
         {
-            sellLeft = (metal == Catalog.SilverId ? World.SilverReserveQty : World.GoldReserveQty) * PoliticalQuantities.Clamp01(World.Coef.MintFloorBuyRatePerMonth);
+            sellLeft = (metal == Catalog.SilverId ? World.SilverReserveQty : World.GoldReserveQty) * PoliticalQuantities.Clamp01(World.Coef.MintFloorBuyRatePerMonth.Value);
             if (!(sellLeft > 1e-12)) sellLeft = 0;   // 否定形＝NaN/非正の準備は売らない側へ
         }
         foreach (var r in World.Regions)
@@ -2848,8 +2849,8 @@ public sealed class Simulation
             if (m.Stock <= 1e-12) continue;
             if (!floor && m.LastProduced <= 0) continue;   // 旧来＝産出のある月しか買わない／★床＝在庫があれば買う（自由鋳造は持ち込み制＝産出と無関係）
             if (m.Price > parity && !atMarket) continue;   // 市場価格＞平価なら鋳造停止（宝飾/工業へ流れる＝正帰還の遮断・史実の固定平価）。★MintBuysAtMarket=0 で従来
-            double qty = atMarket ? Math.Min(m.Stock * PoliticalQuantities.Clamp01(World.Coef.MintFloorBuyRatePerMonth), gapLeft / m.Price)   // 市場買い＝床と同じ在庫上限×今月の予算（第1版の産出比例は銀鉱州にしか買い手が立たなかった）
-                               : floor ? m.Stock * PoliticalQuantities.Clamp01(World.Coef.MintFloorBuyRatePerMonth)
+            double qty = atMarket ? Math.Min(m.Stock * PoliticalQuantities.Clamp01(World.Coef.MintFloorBuyRatePerMonth.Value), gapLeft / m.Price)   // 市場買い＝床と同じ在庫上限×今月の予算（第1版の産出比例は銀鉱州にしか買い手が立たなかった）
+                               : floor ? m.Stock * PoliticalQuantities.Clamp01(World.Coef.MintFloorBuyRatePerMonth.Value)
                                : Math.Min(frac * mintScale * m.LastProduced, m.Stock);
             if (qty <= 1e-12) continue;
             double totOut = 0;
@@ -2897,7 +2898,7 @@ public sealed class Simulation
     ///   （旧＝金は動かさず、在庫へ入った金属の国内の売上は輸入の捌き手の商人へ＝払っていない積荷の代金が商人の所得になった）。独は売却額を回収し、銀安で損を出して1879年に売却を停止した。</summary>
     private void SellDemonetizedReserves(int lawMetal, bool isFiat)
     {
-        double rate = PoliticalQuantities.Clamp01(World.Coef.MintReserveSellRatePerMonth);
+        double rate = PoliticalQuantities.Clamp01(World.Coef.MintReserveSellRatePerMonth.Value);
         if (rate <= 0) return;
         if (World.SilverReserveQty > 1e-9 && (isFiat || lawMetal != Catalog.SilverId))
             World.SilverReserveQty -= SellReserve(World.Region, Catalog.SilverId, World.SilverReserveQty * rate);
@@ -3065,7 +3066,7 @@ public sealed class Simulation
             milSum += p.Militancy * p.Size;
             sizeSum += p.Size;
         }
-        double gdp = World.GdpPerMonth;   // 役務を除いた産出×参照価格（旧実装は r.Goods をIDで添字していたが、ソート後は不一致＝集計バグ。World.Gdp に統一）
+        double gdp = World.GdpPerMonth.Value;   // 役務を除いた産出×参照価格（旧実装は r.Goods をIDで添字していたが、ソート後は不一致＝集計バグ。World.Gdp に統一）
         double inv = sizeSum > 1e-9 ? 1.0 / sizeSum : 0.0;
 
         Telemetry.Add(new TurnSnapshot(

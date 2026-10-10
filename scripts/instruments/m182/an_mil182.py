@@ -7,8 +7,10 @@
   ⑥ 大戦の兵士÷人口の頂点（1914-1918 と 1939-1945 の四半期の最大・種の中央）｜史実【推】
   ⑦ 陸軍の不安の割合（列 80・平時の中央・10年の窓）と不安の全体の割合（列 54）
   ⑧ 日本の領土（本国・統合格・植民地格の州の数＝10年ごとの断面の種の中央）と統合格・植民地格の州の名前（J 行・種ごと・1873/1900/1920/1940）
-python an_mil180.py <腕名=hist の dir> [...] [--seeds 5] [--j 種]"""
-import sys, os, glob, statistics as st, collections
+python an_mil180.py <腕名=計器の出力ディレクトリ> [...] [--seeds 5] [--j 種]（(245) 旧の注入の行を標準の計器 SimCore/Instruments.cs の表へ畳んだ）"""
+import sys, os, statistics as st, collections
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
+from instr import rows as table_rows, num
 args = sys.argv[1:]
 maxsd = 99; jseeds = None
 if '--seeds' in args:
@@ -24,25 +26,16 @@ WWPEAK2 = {'プロイセン': '約13%（独 1943-44）', 'フランス': '約12%
 WWPEAK = {'プロイセン': '約10%（独 1914-18）', 'フランス': '約12%', 'イギリス': '約9%', 'ロシア': '約5%', 'オーストリア': '約9%', 'アメリカ': '約4%', '日本': '約0.5%（1914-18）', 'オスマン': '約4%', '清': '—', 'スペイン': '—'}
 
 
-def fl(x):
-    try: return float(x)
-    except Exception: return float('nan')
-
-
 def load(D):
-    rows = []; jrows = []
-    for f in sorted(glob.glob(os.path.join(D, 'a*.txt'))):
-        sd = int(os.path.basename(f)[1:-4])
-        if sd > maxsd: continue
-        for ln in open(f, encoding='utf-8'):
-            t = ln.rstrip('\n').split('|')
-            if t[0] == 'J':
-                jrows.append(dict(sd=sd, q=int(t[1]), y=int(t[2]), n=t[4], regs=[x for x in t[5].split(';') if x]))
-                continue
-            if t[0] != 'A' or len(t) < 85: continue
-            rows.append(dict(sd=sd, q=int(t[1]), y=int(t[2]), n=t[4], alive=int(t[5]), pop=fl(t[7]), sold=fl(t[8]), war=fl(t[9]), cw=fl(t[10]), law=int(t[11]), mob=int(t[14]),
-                             share=fl(t[54]), serf=int(t[78]), army=fl(t[79]), armsh=fl(t[80]), nc=int(t[81]), ni=int(t[82]), ncol=int(t[83]), gate=int(t[84])))
-    return rows, jrows
+    out = []; jrows = []
+    for sd, r in table_rows(D, 'nation', maxsd):
+        q = int(r['quarter']) + 1   # 1 始まり（旧の A 行の q+1）
+        out.append(dict(sd=sd, q=q, y=int(r['year']), n=r['nation'], alive=1 if num(r['totalPopulationK']) > 0 else 0, pop=num(r['populationK']), sold=num(r['soldierK']), war=num(r['atWarMonths']), cw=num(r['civilWarMonths']),
+                        law=int(r['conscriptionLaw']), mob=int(r['mobilizedFlag']), share=num(r['securityThreatShare']), serf=int(r['serfEmancipation']), armsh=num(r['armyThreatShare']),
+                        nc=int(r['coreRegions']), ni=int(r['integratedRegions']), ncol=int(r['colonialRegions'])))
+        if q % 4 == 0:   # 年末の行（旧の J 行＝4四半期ごと）：統合格と植民地格の州の名前
+            jrows.append(dict(sd=sd, q=q, y=int(r['year']), n=r['nation'], regs=[x for x in r['nonCoreRegions'].split(';') if x]))
+    return out, jrows
 
 
 def med(x):

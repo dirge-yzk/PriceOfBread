@@ -100,10 +100,10 @@ public class MobilityTests
             var farmer = r.Pops[1]; var worker = r.Pops[r.MeritFromIndex];
             // 農民の半分が失業・労働者の1人あたり所得が農民を大きく上回る世界（工場が生産性で勝つ）を直接セット＝決定論
             farmer.UnemploymentRate = 0.5; farmer.UnemploymentEma = 0.5;   // JobSearchUsesEma点火（2026-08-16）＝プールは慢性失業（EMA）を読む
-            farmer.EarnedPerMonth = 0.5 * farmer.Size; worker.EarnedPerMonth = 10.0 * worker.Size;
+            farmer.EarnedPerMonth = new MoneyPerMonth(0.5 * farmer.Size); worker.EarnedPerMonth = new MoneyPerMonth(10.0 * worker.Size);
             // 職人は識字0（資格なし）＋半分失業：同階級に入れる職が無い→下層の最良職（労働者）へ降格
             var artisan = r.Pops[r.ArtisanPopIndex];
-            artisan.UnemploymentRate = 0.5; artisan.UnemploymentEma = 0.5; artisan.Literacy = 0.0; artisan.EarnedPerMonth = 0;
+            artisan.UnemploymentRate = 0.5; artisan.UnemploymentEma = 0.5; artisan.Literacy = 0.0; artisan.EarnedPerMonth = new MoneyPerMonth(0);
             double pop0 = 0; foreach (var p in r.Pops) pop0 += p.Size;
             Meritocracy.Step(sim.World, sim.World.Coef);
             double pop1 = 0; foreach (var p in r.Pops) pop1 += p.Size;
@@ -131,7 +131,7 @@ public class MobilityTests
             w.Coef.BaseUrbanCap = 0.0; w.Coef.UrbanPerInd = 0.0;   // 天井0＝都市への新規流入枠なし（双子とも同条件）
             var farmer = r.Pops[1]; var worker = r.Pops[r.MeritFromIndex];
             farmer.UnemploymentRate = 0.5; farmer.UnemploymentEma = 0.5;   // EMA点火に追随
-            farmer.EarnedPerMonth = 0.5 * farmer.Size; worker.EarnedPerMonth = 10.0 * worker.Size;
+            farmer.EarnedPerMonth = new MoneyPerMonth(0.5 * farmer.Size); worker.EarnedPerMonth = new MoneyPerMonth(10.0 * worker.Size);
             Meritocracy.Step(w, w.Coef);
         }
         double f0 = off.World.Region.Pops[1].Size, f1 = on.World.Region.Pops[1].Size;
@@ -154,7 +154,7 @@ public class MobilityTests
             sim.World.Coef.BaseUrbanCap = 0.9;   // 天井に余裕のある状態（天井の封鎖は専用テストが見る）
             var farmer = r.Pops[1]; var worker = r.Pops[r.MeritFromIndex];
             farmer.UnemploymentRate = 0.5; farmer.UnemploymentEma = 0.5;   // EMA点火に追随
-            farmer.EarnedPerMonth = 0.5 * farmer.Size; worker.EarnedPerMonth = 10.0 * worker.Size;
+            farmer.EarnedPerMonth = new MoneyPerMonth(0.5 * farmer.Size); worker.EarnedPerMonth = new MoneyPerMonth(10.0 * worker.Size);
             before = farmer.Size;
             Meritocracy.Step(sim.World, sim.World.Coef);
         }
@@ -216,7 +216,7 @@ public class MobilityTests
                 noble.SetSavings(0.5 * (totalSav / total) * noble.Size);
             }
             double avgF; { double totalSav = 0, total = 0; foreach (var p in r.Pops) { totalSav += System.Math.Max(0, p.Savings); total += p.Size; } avgF = totalSav / total; }
-            noble.EarnedPerMonth = 0.5 * avgF * noble.Size / Calendar.MonthsPerYear;   // 年所得/人 ＝ 平均貯蓄/人の半分（アンカーの言語）
+            noble.EarnedPerMonth = new MoneyPerMonth(0.5 * avgF * noble.Size / Calendar.MonthsPerYear);   // 年所得/人 ＝ 平均貯蓄/人の半分（アンカーの言語）
             noble.LastEarnedPerMonth = noble.EarnedPerMonth;
             Assert.True(noble.Savings / noble.Size < sim.World.Coef.UpperFallThreshold * avgF, "セットアップ不足：旧物差しの転落圏に居ない");
             size0[si] = noble.Size;
@@ -244,10 +244,10 @@ public class MobilityTests
             c.MiddleFallRate = 0; c.UpperFallRate = 0; c.BankruptcyFallRate = 0; c.CapitalRiseRate = 0;
             var worker = r.Pops[r.MeritFromIndex];
             worker.Literacy = 1.0;   // 識字満点＝選抜運搬でも識字が動かない（残留も1のまま＝流量が線形）
-            worker.EarnedPerMonth = 1.0 * worker.Size;
+            worker.EarnedPerMonth = new MoneyPerMonth(1.0 * worker.Size);
             foreach (var p in r.Pops) if (p.IsModernElite) { p.EducationFill = 1.0; p.EducationEma = 1.0; }   // 資格ゲートを開ける
             foreach (var idx in new[] { r.MeritToIndex, r.TeacherPopIndex, r.BureaucratPopIndex, r.DoctorPopIndex })
-                if (idx >= 0 && r.Pops[idx].Size > 1e-9) r.Pops[idx].EarnedPerMonth = 10.0 * r.Pops[idx].Size;   // attract≫1＝流量は率×Sizeで決まる
+                if (idx >= 0 && r.Pops[idx].Size > 1e-9) r.Pops[idx].EarnedPerMonth = new MoneyPerMonth(10.0 * r.Pops[idx].Size);   // attract≫1＝流量は率×Sizeで決まる
             if (ReferenceEquals(sim, on))
                 gateExp = System.Math.Min(1.0, c.CohortGateK * worker.EnteringAdultsMonthly() * Calendar.MonthsPerQuarter);   // 四半期の新成人率（年齢の層の加齢と同じ流れ）
             double before = worker.Size;
@@ -280,11 +280,11 @@ public class MobilityTests
         var eng = r.Pops[r.MeritToIndex];
         Assert.True(r.TeacherPopIndex >= 0, "教師popが無い");
         var teacher = r.Pops[r.TeacherPopIndex];
-        worker.Literacy = 1.0; worker.EarnedPerMonth = 1.0 * worker.Size; worker.SetAdultFemaleShare(0.6);
+        worker.Literacy = 1.0; worker.EarnedPerMonth = new MoneyPerMonth(1.0 * worker.Size); worker.SetAdultFemaleShare(0.6);
         eng.SetAdultFemaleShare(0.02); teacher.SetAdultFemaleShare(0.25);   // 初期符号化と同じ性別分離（技師0.02・教師0.25＝20歳以上の層）
         static double Fem(Pop p) => p.AgeShare(20, double.PositiveInfinity, 1) / p.AgeShare(20, double.PositiveInfinity);
         foreach (var p in r.Pops) if (p.IsModernElite) { p.EducationFill = 1.0; p.EducationEma = 1.0; }
-        eng.EarnedPerMonth = 10.0 * eng.Size; teacher.EarnedPerMonth = 10.0 * teacher.Size;
+        eng.EarnedPerMonth = new MoneyPerMonth(10.0 * eng.Size); teacher.EarnedPerMonth = new MoneyPerMonth(10.0 * teacher.Size);
         double engSize0 = eng.Size, teaSize0 = teacher.Size;
         // 保存されるのは女性の人数（年齢の層の女の層×規模・2026-09-30 段4e 後半＝移し方は層×性ごとの人数を足す）
         double femMass0 = 0; foreach (var p in r.Pops) femMass0 += p.AgeShare(0, double.PositiveInfinity, 1) * p.Size;

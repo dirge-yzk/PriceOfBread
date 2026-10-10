@@ -51,6 +51,7 @@ public static class SaveGame
         Null = 0, Ref = 1, Obj = 2, Struct = 3, Arr = 4, ListT = 5, DictT = 6, SetT = 7,
         Bool = 10, Int32 = 11, Int64 = 12, UInt64 = 13, Double = 14, Str = 15, Enum = 16,
         Byte = 17, Single = 18, Int16 = 19, UInt32 = 20, Char = 21, SByte = 22,   // SByte追加2026-08-08＝GoodTradeBias(sbyte[])。switchに無い値型はStruct経路で内部フィールドへ無限自己再帰する（深度ガードが検出）
+        Unit = 23,   // ★(246) 専用の値型（Units.cs の IUnitValue＝double 1つを包む readonly record struct）：型名＋ double。Struct 経路（内部フィールド）を通らない
     }
 
     // 型ごとの直列化対象フィールド（宣言順を型階層で辿る・デリゲートは除外）。名前順に固定＝決定論。
@@ -110,6 +111,7 @@ public static class SaveGame
                 case long l: bw.Write((byte)Tag.Int64); bw.Write(l); return;
                 case ulong ul: bw.Write((byte)Tag.UInt64); bw.Write(ul); return;
                 case double d: bw.Write((byte)Tag.Double); bw.Write(d); return;
+                case IUnitValue u: bw.Write((byte)Tag.Unit); WriteTypeRef(v.GetType()); bw.Write(u.Value); return;   // ★(246) 専用の値型
                 case string s: bw.Write((byte)Tag.Str); bw.Write(s); return;
                 case byte by: bw.Write((byte)Tag.Byte); bw.Write(by); return;
                 case float f: bw.Write((byte)Tag.Single); bw.Write(f); return;
@@ -301,6 +303,7 @@ public static class SaveGame
                 case Tag.UInt32: return br.ReadUInt32();
                 case Tag.Char: return br.ReadChar();
                 case Tag.SByte: return br.ReadSByte();
+                case Tag.Unit: { var ut = ReadTypeRef(); return Activator.CreateInstance(ut, br.ReadDouble())!; }   // ★(246) 専用の値型（Units.cs）
                 case Tag.Ref: return _objects[br.ReadInt32()];
                 case Tag.Enum:
                 {

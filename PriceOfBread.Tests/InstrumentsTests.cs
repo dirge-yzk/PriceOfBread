@@ -44,8 +44,8 @@ public class InstrumentsTests
         foreach (var n in sim.Nations)
         {
             var w = n.World;
-            A(w.Treasury); A(w.TotalMoney); A(w.GovDebt); A(w.GdpPerMonth); A(w.PriceLevel); A(w.FiscalFundingRatio); A(w.GovBondRatePerYear); A(w.GovAvgCouponPerYear); A(w.Convertibility); A(w.CumulativeDevaluation);
-            A(w.LastRevenuePerMonth); A(w.LastInterestPerMonth); A(w.MilitaryReadiness); A(w.TotalPopulation); d.Add(w.SovereignDefaultCount); d.Add(w.Tick);
+            A(w.Treasury); A(w.TotalMoney); A(w.GovDebt); A(w.GdpPerMonth.Value); A(w.PriceLevel); A(w.FiscalFundingRatio); A(w.GovBondRatePerYear.Value); A(w.GovAvgCouponPerYear.Value); A(w.Convertibility); A(w.CumulativeDevaluation);
+            A(w.LastRevenuePerMonth.Value); A(w.LastInterestPerMonth.Value); A(w.MilitaryReadiness); A(w.TotalPopulation); d.Add(w.SovereignDefaultCount); d.Add(w.Tick);
             foreach (var v in w.TreasuryLedger) A(v);
             foreach (var r in w.Regions) { A(r.SumPopulation()); A(r.SumSavings()); foreach (var m in r.Markets) { A(m.Price); A(m.Stock); } }
         }
@@ -118,6 +118,62 @@ public class InstrumentsTests
                 Assert.True(Math.Abs(sav - Col(sh, srow, "totalMoneyStock")) <= 1e-9 * Math.Max(1.0, Math.Abs(sav)), $"階級の貯蓄の和が国の貨幣に合わない {time} {nation}");
             }
             Assert.True(sr.Count >= 4 * (Quarters + 2), "在庫の断面が少ない");
+        }
+        finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
+
+    /// <summary>
+    /// 史実比較の桁（NG）の読み手の入力（2026-10-10 (245)・旧の注入 inj_*.py の A／C／Q／T／G／M／Y／WEV 行の代わり）の番人。
+    /// ①国×四半期の表が全ての国・全ての四半期で1行ずつ（死んだ国も）②交戦の月と内戦の月が 0〜3 ③交戦の月が立つ国は戦争の表に当事者として出る・戦争の表に出る国は（月数が立つなら）交戦の月が立つ
+    /// ④年末の行に艦隊のゲージ・鉄道の容量・工場の蒸気動力の割合・いま交戦中かが出る。何もしない番人は必ず緑になる＝戦争が起きたこと（対照）を数える。
+    /// 交戦の月を数える位置（<c>Military.Step</c> の直前）が旧の注入と同じことは、帯の NG の集合が旧と一致することで確かめた（置き場所を月の決算の終わりへ移すと内戦の始まりと終わりの月で1か月ずれる）。
+    /// </summary>
+    [Fact]
+    public void 史実比較の桁の入力の表が揃い交戦の月が戦争の表と合う()
+    {
+        string dir = NewDir();
+        try
+        {
+            Instruments.Configure(dir, null);
+            try { RunMatch(Make(), 40, instr: true); }
+            finally { Instruments.Configure(null, null); }
+
+            var (nh, nr) = Table(System.IO.Path.Combine(dir, "nation_s1789.tsv"));
+            Assert.All(nr, r => Assert.Equal(nh.Length, r.Length));
+            Assert.True(nr.Count >= 4 * 40, "国×四半期の行が足りない");   // 建国（分離独立）で国が増えるので4国より多くてよい
+            Assert.Equal(4 * 40, nr.Count(r => int.Parse(r[Array.IndexOf(nh, "nationIndex")]) < 4));   // 最初の4国は全ての四半期に1行ずつ（死んだ国も）
+            Assert.Equal(nr.Count, nr.Select(r => (r[Array.IndexOf(nh, "quarter")], r[Array.IndexOf(nh, "nationIndex")])).Distinct().Count());
+            var (wh, wr) = Table(System.IO.Path.Combine(dir, "wars_s1789.tsv"));
+            var inWar = new HashSet<string>(wr.SelectMany(r => new[] { r[Array.IndexOf(wh, "sideA")], r[Array.IndexOf(wh, "sideB")] }));
+            Assert.NotEmpty(wr);   // 対照＝この盤面で戦争が起きている
+            var monthsByNation = new Dictionary<string, double>();
+            foreach (var r in nr)
+            {
+                double aw = Col(nh, r, "atWarMonths"), cw = Col(nh, r, "civilWarMonths");
+                Assert.InRange(aw, 0, 3); Assert.InRange(cw, 0, 3);
+                string n = r[Array.IndexOf(nh, "nation")];
+                monthsByNation[n] = monthsByNation.GetValueOrDefault(n) + aw;
+                if (aw > 0) Assert.Contains(n, inWar);
+            }
+            Assert.True(monthsByNation.Values.Sum() > 0, "交戦の月が1つも立たない（数える写しの漏れ）");
+            foreach (var r in wr)   // 戦争の表の当事者（国）が1か月以上戦ったなら、その国の交戦の月が立つ
+                if (Col(wh, r, "months") > 0)
+                    foreach (var side in new[] { r[Array.IndexOf(wh, "sideA")], r[Array.IndexOf(wh, "sideB")] })
+                        if (monthsByNation.ContainsKey(side)) Assert.True(monthsByNation[side] > 0, $"{side} は戦争の表に出るのに交戦の月が0");
+
+            var (ch2, cr2) = Table(System.IO.Path.Combine(dir, "casualty_s1789.tsv"));   // 戦死の月ごとの和（旧の cas の Y 行）
+            Assert.NotEmpty(cr2);
+            Assert.True(cr2.Sum(r => Col(ch2, r, "deadK")) > 0 && cr2.All(r => Col(ch2, r, "months") > 0 && Col(ch2, r, "soldierMonthsK") > 0), "戦死の表が空か不正（月の戦死の写しの漏れ）");
+
+            var (sh, sr) = Table(System.IO.Path.Combine(dir, "stock_s1789.tsv"));
+            var yearEnd = sr.Where(r => { var t = r[Array.IndexOf(sh, "time")]; return t.StartsWith('q') && int.Parse(t[1..]) % 4 == 3; }).ToList();
+            Assert.True(yearEnd.Count >= 4 * (40 / 4), "年末の行が足りない");
+            foreach (var r in yearEnd)
+            {
+                Assert.InRange(Col(sh, r, "steamFillShare"), 0, 1);
+                Assert.True(Col(sh, r, "railCapacityStock") >= 0 && Col(sh, r, "fleetGaugeIndex") >= 0 && Col(sh, r, "atWarFlag") is 0 or 1, "年末の行の量が不正");
+            }
+            Assert.Contains(yearEnd, r => Col(sh, r, "steamFillShare") > 0 || Col(sh, r, "railCapacityStock") > 0);   // 対照＝蒸気か鉄道が立つ年がある
         }
         finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
     }

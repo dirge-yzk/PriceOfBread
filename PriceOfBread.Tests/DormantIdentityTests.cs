@@ -131,7 +131,8 @@ public class DormantIdentityTests
         {
             var f = typeof(Coefficients).GetField(name);
             Assert.True(f is not null, $"休眠係数「{name}」が Coefficients に無い（改名したら本テストの表も直す）");
-            double v = System.Convert.ToDouble(f!.GetValue(c));
+            object? raw = f!.GetValue(c);
+            double v = raw is IUnitValue uv ? uv.Value : System.Convert.ToDouble(raw);   // ★(246) 専用の値型の係数も読む
             Assert.True(v == 0.0,
                 $"休眠のはずの「{name}」が既定 {v}＝**点火されている**。点火したなら本テストの表からも外すこと（表が休眠の一覧である）");
         }
@@ -200,7 +201,7 @@ public class DormantIdentityTests
         foreach (var f in typeof(Coefficients).GetFields())
         {
             if (!f.IsPublic || f.IsStatic || f.IsInitOnly) continue;
-            if (f.GetValue(c) is not double d || d != 0.0) continue;
+            if (!UnitValues.TryToDouble(f.GetValue(c), out double d) || f.FieldType == typeof(int) || d != 0.0) continue;   // ★(246) 専用の値型の係数も見る（int は従来どおり対象外）
             if (!known.Contains(f.Name)) missing.Add(f.Name);
         }
         Assert.True(missing.Count == 0,

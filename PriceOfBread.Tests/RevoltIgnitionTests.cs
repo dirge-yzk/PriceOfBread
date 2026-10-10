@@ -231,7 +231,7 @@ public class RevoltIgnitionTests
         var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
         sim.Run(20);
         var w = sim.World;
-        Assert.True(w.NominalGdpPerMonth > 5_000, "前提が崩れた：GDPが小さすぎて要求額が国庫半分に届かない");
+        Assert.True(w.NominalGdpPerMonth.Value > 5_000, "前提が崩れた：GDPが小さすぎて要求額が国庫半分に届かない");
         w.SetTreasuryRaw(1_000.0);   // 国庫半分=500 ≪ 要求額＝minクランプが確実に食う帯
         double Budget(double frac) { w.ModernizationFrac = frac; return w.ModernizationBudget(); }
         w.Coef.ModernizationBudgetSoftCap = 0;   // ★OFF側を明示ピン（既定は点火1.0）
@@ -1194,7 +1194,7 @@ public class RevoltIgnitionTests
         // 反乱勢力の支払いは参加者→売り手＝州の**内側**で閉じる＝この恒等式に新しい項を足さない（足したら金が湧いたか消えたかのどちらか）。
         double external = r.StateSpent.Sum() + r.StateSpent[(int)TreasuryCat.StateMonopoly];   // 旧 StateSpent−LastStateMonopolyRevenue と同じ量（専売益は区分 StateMonopoly に負で積まれる・2026-09-28）
         Assert.True(Math.Abs((s1 - s0) - external) <= 1e-6 * Math.Max(1.0, Math.Abs(s0)), $"貨幣が湧いたか消えた：Δ貯蓄 {s1 - s0:F6} ≠ 外部 {external:F6}");
-        Assert.True(payer.PaidPerMonth >= w.RebelArmsSpent * (1 - 1e-9), $"参加者の支払い {payer.PaidPerMonth:F3} に武器代 {w.RebelArmsSpent:F3} が載っていない");
+        Assert.True(payer.PaidPerMonth.Value >= w.RebelArmsSpent * (1 - 1e-9), $"参加者の支払い {payer.PaidPerMonth:F3} に武器代 {w.RebelArmsSpent:F3} が載っていない");
         Assert.True(r.Markets[rifle].LastSold > 0, "小銃が売れていない（売り手に届いていない）");
         Assert.NotNull(f.ArmsStock);
         Assert.True(f.ArmsStock![rifle] > 0, "武器庫に小銃が積まれていない");

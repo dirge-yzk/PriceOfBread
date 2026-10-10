@@ -139,7 +139,7 @@ public static class Privileges
     /// 正規化（÷世界最大×天井）は World.DecayForReaders が行う。PrivilegeLedgerEnabled=0 では呼ばれない。</summary>
     public static double DerivedDecayRaw(World w, Coefficients c)
     {
-        double gdp = w.NominalGdpPerMonth; if (!(gdp > 1e-9)) return 0;
+        double gdp = w.NominalGdpPerMonth.Value; if (!(gdp > 1e-9)) return 0;
         double[] voice = new double[PopClass.Count]; double total = 0;
         foreach (var p in w.AllPops())
         {

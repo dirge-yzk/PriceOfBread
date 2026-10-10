@@ -2,8 +2,10 @@
   ①兵士÷人口の最大（窓の中の四半期の最大・A 行）②軍事費÷年GDP（窓の和・台帳の陸＋海÷GDP の和・Q 行と A 行）③借入÷年GDP（窓の和・台帳の借入）
   ④戦死÷交戦の兵士の月（%/月・cas の Y 行・世界の和）⑤列強3以上の塊の長さの最大（月・w171）
 史実【推・記憶の概数】＝下の H 表。判定＝比（シミュ÷史実）10倍以上か1/10以下で NG・3〜10倍は記録。床＝兵÷人口 0.1%・軍÷GDP 1%・借入÷GDP 1%。
-python an_hist171.py <out_dir> [ラベル] [--seeds N]"""
-import sys, os, glob, statistics as st, collections
+python an_hist171.py <計器の出力ディレクトリ> [ラベル] [--seeds N]（(245) 旧の注入の行を標準の計器 SimCore/Instruments.cs の表へ畳んだ）"""
+import sys, os, statistics as st, collections
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
+from instr import rows, num
 args = sys.argv[1:]; maxsd = 99
 if '--seeds' in args:
     i = args.index('--seeds'); maxsd = int(args[i + 1]); del args[i:i + 2]
@@ -15,29 +17,13 @@ H = {'イギリス': (8.0, 20.0, 15.0), 'フランス': (12.0, 25.0, 15.0), 'プ
 FL = (0.1, 1.0, 1.0)
 
 
-def fl(x):
-    try: return float(x)
-    except Exception: return float('nan')
-
-
-A = collections.defaultdict(list)   # (sd, name) -> [(yr, gdp, pop, sold)]
-for f in glob.glob(os.path.join(D, 'hist', 'a*.txt')):
-    sd = int(os.path.basename(f)[1:-4])
-    if sd > maxsd: continue
-    for ln in open(f, encoding='utf-8'):
-        t = ln.split('|', 12)
-        if t[0] != 'A' or t[4] not in NAT or t[5] != '1': continue
-        y = int(t[2])
-        if W[0] <= y <= W[1]: A[(sd, t[4])].append((int(t[1]), fl(t[6]), fl(t[7]), fl(t[8])))
-Qd = collections.defaultdict(dict)   # (sd,name) -> q -> (army+navy 累計, borrow 累計)
-for f in glob.glob(os.path.join(D, 'w171', 'q*.txt')):
-    sd = int(os.path.basename(f)[1:-4])
-    if sd > maxsd: continue
-    for ln in open(f, encoding='utf-8'):
-        t = ln.rstrip('\n').split('|')
-        if t[0] != 'Q' or t[4] not in NAT: continue
-        v = [fl(x) for x in t[5:]]
-        Qd[(sd, t[4])][int(t[1])] = (-(v[25] + v[26]), v[23])
+A = collections.defaultdict(list)   # (sd, name) -> [(q+1, gdp, pop, sold)]　A の四半期は 1 始まり（旧の A 行の q+1）
+Qd = collections.defaultdict(dict)   # (sd,name) -> q -> (army+navy 累計, borrow 累計)　⚠Qd の q は 0 始まり（旧の Q 行の q）＝A の窓と1四半期ずれて引く（旧のまま・恒等のため直していない）
+for sd, r in rows(D, 'nation', maxsd):
+    if r['nation'] not in NAT: continue
+    Qd[(sd, r['nation'])][int(r['quarter'])] = (-(num(r['ledgerArmyCumulative']) + num(r['ledgerNavyCumulative'])), num(r['ledgerBorrowCumulative']))
+    y = int(r['year'])
+    if num(r['totalPopulationK']) > 0 and W[0] <= y <= W[1]: A[(sd, r['nation'])].append((int(r['quarter']) + 1, num(r['nominalGdpPerYear']), num(r['populationK']), num(r['soldierK'])))
 seeds = sorted({k[0] for k in A})
 
 
@@ -69,13 +55,8 @@ for n in NAT:
     print(' | '.join(out))
 # ④ 戦死の率（10年ごと・世界）
 per = collections.defaultdict(lambda: collections.defaultdict(lambda: [0.0, 0.0]))
-for f in glob.glob(os.path.join(D, 'cas', 'c*.txt')):
-    sd = int(os.path.basename(f)[1:-4])
-    if sd > maxsd: continue
-    for ln in open(f, encoding='utf-8'):
-        t = ln.rstrip('\n').split('\t')
-        if t[0] != 'Y': continue
-        a = per[int(t[1]) // 10 * 10][sd]; a[0] += float(t[4]); a[1] += float(t[7])
+for sd, r in rows(D, 'casualty', maxsd):
+    a = per[int(r['year']) // 10 * 10][sd]; a[0] += float(r['soldierMonthsK']); a[1] += float(r['deadK'])
 HR = {1790: 0.8, 1800: 0.8, 1810: 0.8, 1850: 0.9, 1860: 0.8, 1870: 1.0, 1910: 0.8}
 print('\n# 戦死÷交戦の国の兵士の月（%/月・10年の窓・種の中央）／史実【推】＝その10年の主な戦争（ナポレオン戦争・クリミア・南北戦争・普仏戦争・第一次大戦）の戦死÷（平均の兵力×月数）')
 for d in sorted(per):

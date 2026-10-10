@@ -534,7 +534,7 @@ public static class EconomyStep
             p.LastEarnedPerMonth = p.EarnedPerMonth;
             p.LastEducationFill = p.EducationFill;   // ★段②：前月の就学を写す（財ループが EducationFill を潰す前＝処理順に依存しない。読み手が居なければ書くだけ＝恒等）
             p.LastSatisfaction = p.Satisfaction;      // ★前月の満足度を写す（当月の Satisfaction は §消費の後で上書きされる＝同一ティックの閉路を作らない。読み手が居なければ書くだけ＝恒等）
-            p.PaidPerMonth = 0; p.EarnedPerMonth = 0; p.LandRentPerMonth = 0; p.IndustrialRentPerMonth = 0; p.RemainingBudget = p.Savings; p.NeedMet = 0; p.NeedTotal = 0; p.FoodMet = 0; p.FoodNeed = 0;
+            p.PaidPerMonth = new MoneyPerMonth(0); p.EarnedPerMonth = new MoneyPerMonth(0); p.LandRentPerMonth = new MoneyPerMonth(0); p.IndustrialRentPerMonth = new MoneyPerMonth(0); p.RemainingBudget = p.Savings; p.NeedMet = 0; p.NeedTotal = 0; p.FoodMet = 0; p.FoodNeed = 0;
         }
         // 投資家は投資枠（貯蓄の IndInvestmentFrac）を消費予算から控除＝消費と投資が同じ貯蓄を二重に使わない（貯蓄が負にならない）。
         if (cap && region.InvestorPopIndex >= 0)
@@ -1574,7 +1574,7 @@ public static class EconomyStep
                         double shortfall = (desired - p.RemainingBudget / buyerPrice) * buyerPrice;
                         if (shortfall > 0)
                         {
-                            double creditCap = coef.HouseholdCreditMonths * Math.Max(0, p.LastEarnedPerMonth) - p.Debt;   // 枠＝前月所得の倍数（既存債務を差し引く）。★当月 Earned は Run 冒頭でゼロ化済み＝前月の LastEarnedPerMonth を読む
+                            double creditCap = coef.HouseholdCreditMonths * Math.Max(0, p.LastEarnedPerMonth.Value) - p.Debt;   // 枠＝前月所得の倍数（既存債務を差し引く）。★当月 Earned は Run 冒頭でゼロ化済み＝前月の LastEarnedPerMonth を読む
                             double borrow = Math.Min(shortfall, Math.Max(0, creditCap));
                             if (borrow > 0)
                             {
@@ -1665,7 +1665,7 @@ public static class EconomyStep
                         double qty = p.GoodDemand * gr;
                         if (popBought is not null) popBought[p.ClassId] += qty;   // 純記帳（項目6）：役務も「自腹で買った分」だけ数える（義務教育の国庫肩代わりは下の別ブロック＝入れない）
                         double pay = qty * m.Price;
-                        p.PaidPerMonth += pay;
+                        p.PaidPerMonth += new MoneyPerMonth(pay);
                         p.RemainingBudget -= pay;
                         revenue[gi] += pay;               // 受講料/診療費 → 教師・聖職者・医者の売上（保存）
                         double fill = p.GoodNeed > Eps ? Math.Min(1.0, qty / p.GoodNeed) : 1.0;
@@ -1755,7 +1755,7 @@ public static class EconomyStep
                     double insureBase = m.Price * (1.0 + (stateMonop + distM));
                     double subsidy = qty * insureBase * insure;   // 健康保険(#3)：医薬品の購入費の insure 割合を国家が肩代わり（insure>0 は医薬品のみ）
                     double pay = qty * m.Price * (1 + stateMonop + distM + monRent + guildRent) - subsidy;  // 専売＋流通マージン＋独占レント＋同業組合の上乗せ込み − 国家負担分＝popの実支払い
-                    p.PaidPerMonth += pay;
+                    p.PaidPerMonth += new MoneyPerMonth(pay);
                     p.RemainingBudget -= pay;
                     // ★備蓄（作者裁定2026-09-20 2'）：食料が**在庫切れで**買えなかった分（買えたはずの量 GoodDemand − 配給された量 qty）の予算は、
                     //   同じ月の下の階層（日用品・嗜好品）へ流さない＝残予算から外すだけで払わない＝金は既存の Savings に残る（新しい状態を作らない・思想⑩）。
@@ -1771,11 +1771,11 @@ public static class EconomyStep
                     region.StateSpent[(int)TreasuryCat.Welfare] += subsidy;             // 国家の医療費負担（国庫→生産者＝保存。pop が払わない分を国庫が補填）
                     region.StateSpent[(int)TreasuryCat.StateMonopoly] -= qty * m.Price * stateMonop;   // 専売は国庫へ（StateSpentの負値＝国庫収入。Treasury-=StateSpent で精算＝保存）
                     region.CumStateMonopolyRevenue += qty * m.Price * stateMonop;   // 診断：専売益の累積（UI予算表示）
-                    if (distM > 0) region.Pops[region.MerchantPopIndex].EarnedPerMonth += qty * m.Price * distM;   // 流通マージン＝商人の収入（消費者→商人で保存）
+                    if (distM > 0) region.Pops[region.MerchantPopIndex].EarnedPerMonth += new MoneyPerMonth(qty * m.Price * distM);   // 流通マージン＝商人の収入（消費者→商人で保存）
                     if (guildRent > 0)   // ★特権 段4：同業組合の上乗せ＝職人へ（消費者→職人で保存）。台帳＝取り分（PrivilegeLedgerEnabled>0）
                     {
                         double guildPay = qty * m.Price * guildRent;
-                        region.Pops[region.ArtisanPopIndex].EarnedPerMonth += guildPay;
+                        region.Pops[region.ArtisanPopIndex].EarnedPerMonth += new MoneyPerMonth(guildPay);
                         if (coef.PrivilegeLedgerEnabled > 0) Privileges.Record(world!, Privileges.Guild, guildPay);
                     }
                     if (monRent > 0)   // タスクC：独占レント＝茶(74)は資本家(東インド会社)へ・塩(6)は国庫(王室のgabelle)へ（消費者→保有者で保存）
@@ -1783,7 +1783,7 @@ public static class EconomyStep
                         double monPay = qty * m.Price * monRent;
                         if (gi == Catalog.TeaId && region.InvestorPopIndex >= 0 && region.InvestorPopIndex < region.Pops.Count)
                         {
-                            region.Pops[region.InvestorPopIndex].EarnedPerMonth += monPay;
+                            region.Pops[region.InvestorPopIndex].EarnedPerMonth += new MoneyPerMonth(monPay);
                             // ★特権システム 段5前半（2026-09-07）：特許会社の取り分（資本家が受ける独占レント）を特権台帳へ（観測＝金の流れは上の1行のまま）。
                             //   PrivilegeMonopolyInLedger=0 で記帳なし＝priv3/priv6 の計測（P1〜P4）を汚さない。
                             if (world is not null && coef.PrivilegeLedgerEnabled > 0 && coef.PrivilegeMonopolyInLedger > 0) Privileges.Record(world, Privileges.Monopoly, monPay);
@@ -1829,7 +1829,7 @@ public static class EconomyStep
         if (BudgetBindDiag.On)
         {
             double bLeft = 0, bPaid = 0;
-            foreach (var p in region.Pops) { bLeft += Math.Max(0, p.RemainingBudget); bPaid += p.PaidPerMonth; }
+            foreach (var p in region.Pops) { bLeft += Math.Max(0, p.RemainingBudget); bPaid += p.PaidPerMonth.Value; }
             BudgetBindDiag.Budget(world, budgetStartDiag, bLeft, bPaid);
         }
 
@@ -1854,7 +1854,7 @@ public static class EconomyStep
             }
             // ★止まった工場の持ち主が再開準備の代金を払う（点火2026-08-01）。★段2-2（A3・2026-09-29）：月内の仮勘定 Paid で払う（旧＝期首の貯蓄を直接引いた）。
             //   発注は需要の段で持ち主の予算を通して控えてある＝請求は控えた額以下（値段は同じ・配給率≦1）＝払い切れる。持ち主の居ない生産者は充足率0＝請求0。
-            if (trickleBill > 0) region.Pops[s.OwnerPopIndex].PaidPerMonth += trickleBill;
+            if (trickleBill > 0) region.Pops[s.OwnerPopIndex].PaidPerMonth += new MoneyPerMonth(trickleBill);
             // 電力の決済（任意の増強材＝リービッヒの必須投入ではない＝買えなくても操業は止まらない）。買えた率が電化率に積もる。
             if (elecNeed[pi] > 0)
             {
@@ -1923,7 +1923,7 @@ public static class EconomyStep
                 cost += labPay;   // ★段2-2（2026-09-29）：材料と工賃を1回の書き込みで払う（同じ払い手の Paid への2行を1行へ）
                 revenue[Catalog.LaborId] += labPay;
             }
-            region.Pops[region.InvestorPopIndex].PaidPerMonth += cost;   // 投資家（資本家）が建設を負担（材料＋工賃）
+            region.Pops[region.InvestorPopIndex].PaidPerMonth += new MoneyPerMonth(cost);   // 投資家（資本家）が建設を負担（材料＋工賃）
             revenue[sg] += sGot * clearPrice[sg];
             revenue[mg] += mGot * clearPrice[mg];
             revenue[cg] += cGot * clearPrice[cg];
@@ -1995,7 +1995,7 @@ public static class EconomyStep
             {
                 double railGot = coef.ConsRail * construction * ration[coef.RailGoodId];
                 double locoGot = coef.ConsLoco * construction * ration[coef.LocoGoodId];
-                region.Pops[region.InvestorPopIndex].PaidPerMonth += railGot * clearPrice[coef.RailGoodId] + locoGot * clearPrice[coef.LocoGoodId];
+                region.Pops[region.InvestorPopIndex].PaidPerMonth += new MoneyPerMonth(railGot * clearPrice[coef.RailGoodId] + locoGot * clearPrice[coef.LocoGoodId]);
                 revenue[coef.RailGoodId] += railGot * clearPrice[coef.RailGoodId];
                 revenue[coef.LocoGoodId] += locoGot * clearPrice[coef.LocoGoodId];
             }
@@ -2134,7 +2134,7 @@ public static class EconomyStep
                 cost += coalQ * clearPrice[Catalog.CoalId];
                 revenue[Catalog.CoalId] += coalQ * clearPrice[Catalog.CoalId];
             }
-            region.Pops[region.InvestorPopIndex].PaidPerMonth += cost;
+            region.Pops[region.InvestorPopIndex].PaidPerMonth += new MoneyPerMonth(cost);
         }
 
         // 送電網の敷設の決済：投資家が送電網を買い、買えた分だけ送電容量が積み上がる（朽ちる分は毎月微減＝維持が要る）。
@@ -2143,7 +2143,7 @@ public static class EconomyStep
             double gridQ = gridBuild * ration[Catalog.GridId];
             double gridCost = gridQ * clearPrice[Catalog.GridId];
             revenue[Catalog.GridId] += gridCost;
-            region.Pops[region.InvestorPopIndex].PaidPerMonth += gridCost;
+            region.Pops[region.InvestorPopIndex].PaidPerMonth += new MoneyPerMonth(gridCost);
             if (!warmFrozen) region.GridCapacity += gridQ;   // ★助走：送電網も買って払うが容量にはしない（能力の凍結）
         }
         // ⚠助走中は劣化も止める（GridDecayRate と GridReplaceRate は対＝片方だけ効かせると定常が崩れる。係数の注記どおり）。
@@ -2308,7 +2308,7 @@ public static class EconomyStep
                 for (int i = 0; i < payers.Count; i++)
                 {
                     double x = i == payers.Count - 1 ? pay - charged : pay * payers[i].Share;
-                    payers[i].P.PaidPerMonth += x;
+                    payers[i].P.PaidPerMonth += new MoneyPerMonth(x);
                     charged += x;
                 }
                 world.RebelArmsSpent += pay;
@@ -2352,7 +2352,7 @@ public static class EconomyStep
         if (mpProc)
         {
             double pay = region.SoldierPayBudget;
-            region.Pops[region.SoldierPopIndex].EarnedPerMonth += pay;
+            region.Pops[region.SoldierPopIndex].EarnedPerMonth += new MoneyPerMonth(pay);
             region.StateSpent[(int)TreasuryCat.Army] += pay;
         }
 
@@ -2398,7 +2398,7 @@ public static class EconomyStep
                 //   （国内の売上は国内の生産者へ・輸入代金は国の全POP＝払い手と受け手が別）。輸入代金を払う捌き手の商人が、その在庫を国内で売った代金を受け取る。
                 double importValue = (region.Markets[gi].PrevImport + region.Markets[gi].LastImport) * clearPrice[gi];   // 商人（輸入の捌き手）が受け取れる上限
                 double merchantCut = Math.Min(revenue[gi] - domesticValue, importValue);
-                if (merchantCut > Eps) { region.Pops[region.MerchantPopIndex].EarnedPerMonth += merchantCut; revenue[gi] -= merchantCut; }
+                if (merchantCut > Eps) { region.Pops[region.MerchantPopIndex].EarnedPerMonth += new MoneyPerMonth(merchantCut); revenue[gi] -= merchantCut; }
             }
 
         // === ④ 所得（§9-C）：付加価値＝（売上の取り分）−投入費 → 地代/賃金 ===
@@ -2454,16 +2454,16 @@ public static class EconomyStep
             // 産業政策 レバー1（2026-07-24）：補助依存ストックの月次更新＝国庫が赤字を埋めて操業した月に漸増・自立（黒字 or 支え手なし）で同率漸減。
             // 読み手は供給①の SubsidySoftBudgetDecay（0.4 で live＝実効生産性を蝕む）。
             bool propped = valueAdded < 0 && (stateCover > Eps || subRate > Eps);
-            s.SubsidyDependence = PoliticalQuantities.Clamp01(s.SubsidyDependence + (propped ? coef.SubsidyDependenceRatePerMonth : -coef.SubsidyDependenceRatePerMonth));
-            region.Pops[s.OwnerPopIndex].EarnedPerMonth += rent;
-            region.Pops[s.LaborPopIndex].EarnedPerMonth += wages;
-            if (s.IsRgo && rent > 0) region.Pops[s.OwnerPopIndex].LandRentPerMonth += rent;   // RGOの地代（封建貢租）＝土地税の課税ベース（Fiscal）
+            s.SubsidyDependence = PoliticalQuantities.Clamp01(s.SubsidyDependence + (propped ? coef.SubsidyDependenceRatePerMonth : -coef.SubsidyDependenceRatePerMonth).Value);
+            region.Pops[s.OwnerPopIndex].EarnedPerMonth += new MoneyPerMonth(rent);
+            region.Pops[s.LaborPopIndex].EarnedPerMonth += new MoneyPerMonth(wages);
+            if (s.IsRgo && rent > 0) region.Pops[s.OwnerPopIndex].LandRentPerMonth += new MoneyPerMonth(rent);   // RGOの地代（封建貢租）＝土地税の課税ベース（Fiscal）
             if (absentee is not null && Colonial.AbsenteeRgo(region, s)) absentee[s.OwnerPopIndex] += rent;   // R1：不在地主の分（精算の後に送る・赤字も）
             if (s.IsRgo && rent > 0 && coef.PrivilegeLedgerEnabled > 0 && world is not null && region.Pops[s.OwnerPopIndex].ClassId == PopClass.Noble)
                 Privileges.Record(world, Privileges.Seigneurial, rent * Privileges.SeigneurialDegree(world));   // ★特権台帳（段1・観測）：領主権の取り分＝貴族が受ける地代×未解放度
             else if (!s.IsRgo && rent > 0 && s.OwnerPopIndex == region.InvestorPopIndex
                      && !(s.GoodId >= 0 && s.GoodId < Catalog.Goods.Length && Catalog.Goods[s.GoodId].GrainChain))
-                region.Pops[s.OwnerPopIndex].IndustrialRentPerMonth += rent;   // 工業レントの物差し（書き込み専用タグ・挙動の読者なし。powertrace/incomeprobe が読む）
+                region.Pops[s.OwnerPopIndex].IndustrialRentPerMonth += new MoneyPerMonth(rent);   // 工業レントの物差し（書き込み専用タグ・挙動の読者なし。powertrace/incomeprobe が読む）
             // 課題8（RGO第2層・2026-08-08）：穀物加工チェーン（麦・小麦粉＝GrainChain）は除外＝人口×食料需要に比例する
             // 加工利潤であって「工業」ではない（ビルマ投資家所得>英 の正体）。除外後の IndustrialRent が真の工業利潤の物差し。
             s.LastRevenue = producerRevenue; s.LastCost = inputCost[pi] + wages;   // 工場別の収入・支出（損益＝収入−支出。UI表示用）
@@ -2555,8 +2555,8 @@ public static class EconomyStep
             if (producerCount[gi] != 0 || revenue[gi] <= 0) continue;
             var gd0 = region.GoodOf(gi);
             if (gd0 is null) continue;
-            if (region.MerchantPopIndex >= 0) region.Pops[region.MerchantPopIndex].EarnedPerMonth += revenue[gi];
-            else if (totalPop > Eps) foreach (var p in region.Pops) p.EarnedPerMonth += revenue[gi] * (p.Size / totalPop);
+            if (region.MerchantPopIndex >= 0) region.Pops[region.MerchantPopIndex].EarnedPerMonth += new MoneyPerMonth(revenue[gi]);
+            else if (totalPop > Eps) foreach (var p in region.Pops) p.EarnedPerMonth += new MoneyPerMonth(revenue[gi] * (p.Size / totalPop));
         }
 
         foreach (var p in region.Pops)

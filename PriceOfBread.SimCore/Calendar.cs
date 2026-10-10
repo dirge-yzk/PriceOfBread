@@ -30,6 +30,11 @@ public static class Calendar
     public static double PerYearToPerDay(double perYear) => perYear / DaysPerYear;
     public static double PerMonthToPerDay(double perMonth) => perMonth / DaysPerMonth;
     public static double PerDayToPerMonth(double perDay) => perDay * DaysPerMonth;
+    // 専用の値型の換算（型を受けて型を返す＝年と月を取り違えるとコンパイルが通らない。中身は上の double 版そのもの）。
+    public static RatePerMonth PerYearToPerMonth(RatePerYear perYear) => new(PerYearToPerMonth(perYear.Value));
+    public static RatePerYear PerMonthToPerYear(RatePerMonth perMonth) => new(PerMonthToPerYear(perMonth.Value));
+    public static MoneyPerMonth PerYearToPerMonth(MoneyPerYear perYear) => new(PerYearToPerMonth(perYear.Value));
+    public static MoneyPerYear PerMonthToPerYear(MoneyPerMonth perMonth) => new(PerMonthToPerYear(perMonth.Value));
     /// <summary>期間の換算（年数→月数）。割合の換算ではない。</summary>
     public static double YearsToMonths(double years) => years * MonthsPerYear;
 }

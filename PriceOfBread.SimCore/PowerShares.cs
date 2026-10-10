@@ -83,7 +83,7 @@ public static class PowerShares
         double tot = annual + standing;
         double taxGrip = !(tot > 1e-12) ? 0 : annual / tot;
         if (!(taxGrip >= 0 && taxGrip <= 1)) taxGrip = 0;
-        double debtGrip = PoliticalQuantities.Clamp01(System.Math.Max(0, w.GovDebt) / System.Math.Max(1.0, w.NominalGdpPerMonth));
+        double debtGrip = PoliticalQuantities.Clamp01(System.Math.Max(0, w.GovDebt) / System.Math.Max(1.0, w.NominalGdpPerMonth.Value));
         double v = 1.0 - (1.0 - taxGrip) * (1.0 - debtGrip);
         return !(v >= 0 && v <= 1) ? 0 : v;
     }

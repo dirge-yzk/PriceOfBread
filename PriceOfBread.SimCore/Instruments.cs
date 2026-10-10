@@ -7,7 +7,11 @@
 /// <item><c>fiscal_s&lt;seed&gt;.tsv</c> 財政の鎖（<c>POB_INSTRUMENTS_NATIONS</c> に挙げた国の月ごと）：請求の項目別（r を掛ける前）・借入（払えない額・門・1件の額・国内プール・外資プール・どれが縛ったか）・切り下げ・r・
 /// 兌換・国債の利率・クーポン・実際の収支（国庫の台帳の区分ごとの月の差分）・国庫の帳尻（Δ国庫−Σ台帳）。</item>
 /// <item><c>class_s&lt;seed&gt;.tsv</c> 階級ごとの人数・貯蓄・所得（Earned）・支出（Paid）（挙げた国は四半期ごと・全ての国は年末）。</item>
-/// <item><c>stock_s&lt;seed&gt;.tsv</c> 在庫と即応度と装備（財の在庫の価値・首都の軍需品の在庫・即応度・装備の充足・兵士・艦）。</item>
+/// <item><c>stock_s&lt;seed&gt;.tsv</c> 在庫と即応度と装備（財の在庫の価値・首都の軍需品の在庫・即応度・装備の充足・兵士・艦）。年末の行には史実比較の桁の読み手（NG）が読む量
+/// （艦隊のゲージ・技術水準・鉄道の容量・工場の蒸気動力の割合・いま交戦中か）も出る。</item>
+/// <item><c>nation_s&lt;seed&gt;.tsv</c> 国×四半期（全ての国・死んだ国も）：人口・兵士・名目GDP・交戦と内戦の月の数・徴兵法・総動員・安全保障の不安の割合・州の格の数・台帳の累計（借入・切り下げ・陸・海）・国債・
+/// 貿易（清算1回分の輸出と輸入）。史実比較の桁の読み手（NG の読み手の入力 11 種）の入力＝旧の注入（scripts/instruments の inj_*.py）の代わり。</item>
+/// <item><c>wars_s&lt;seed&gt;.tsv</c> 戦争1本ごと（開戦の年・内戦か・当事者・月数・戦死）／<c>casualty_s&lt;seed&gt;.tsv</c> (年, 国)ごとの兵士の月と戦死（試合の終わりに書く）。</item>
 /// </list>
 /// 開幕（構築直後 <c>open</c>）と助走の直後（<c>warm</c>）の断面は class と stock に全ての国で出る。初期値の一覧は Runner の <c>initdump</c>。
 /// <para>⚠<b>読むだけ</b>＝力学の値を1つも書かない・乱数を引かない・メモ化された量を新しい位置で読まない（<see cref="World.GdpPerMonth"/> は四半期の末と助走の直後にだけ読む）。
@@ -58,17 +62,28 @@ public static class Instruments
         public readonly List<string> Rows = new();
         public readonly double[] ClsEarn = new double[NC], ClsPaid = new double[NC]; public int ClsMonths;
         public int Sel = -1;                               // -1＝未判定 0＝挙げていない 1＝挙げた国
+        public int WarMonths, CivilWarMonths;              // 今の四半期の交戦の月・内戦の月（軍の更新の直前に数える・四半期の末に0へ戻す・助走の直後にも0へ戻す）
     }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<World, WState> States = new();
     static WState S(World w) => States.GetValue(w, _ => new WState());
 
     sealed class Sink
     {
-        public System.IO.StreamWriter? Fiscal, Class, Stock;
-        public bool FiscalHeader, ClassHeader, StockHeader;
+        public System.IO.StreamWriter? Fiscal, Class, Stock, Nation;
+        public bool FiscalHeader, ClassHeader, StockHeader, NationHeader;
+        public ulong Seed;   // 試合の終わり（Close）に戦争の表を書くときのファイル名
     }
+    /// <summary>外交の記録（戦争の始まりと戦死の月ごとの和）。外交は MultiNationSim に1つ＝世界ごとの状態（<see cref="WState"/>）とは別に持つ。</summary>
+    sealed class DipState
+    {
+        public readonly List<(int Year, War War)> Wars = new();
+        public readonly Dictionary<(int Year, string Nation), double[]> Cas = new();   // [0]＝月数 [1]＝兵士の月和（千人×月）[2]＝戦死（千人）
+    }
+    static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Diplomacy, DipState> Dips = new();
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<MultiNationSim, Sink> Sinks = new();
+    static Sink SinkOf(MultiNationSim sim, ulong seed) => Sinks.GetValue(sim, _ => new Sink { Seed = seed });
 
+    static string NameOf(Power p) => p.BaseName.Length > 0 ? p.BaseName : p.Name;
     public static string NameOf(World w) => w.SelfPower is { } sp ? (sp.BaseName.Length > 0 ? sp.BaseName : sp.Name) : "(単国)";
     static bool IsPicked(World w, WState st)
     {
@@ -95,7 +110,7 @@ public static class Instruments
     internal static void ClaimsBase(World w)
     {
         if (Live(w) is not { } st) return;
-        st.Claim[(int)Item.Interest] = w.LastInterestPerMonth; st.Claim[(int)Item.Welfare] = w.LastWelfareCostPerMonth; st.Claim[(int)Item.Pension] = w.LastPensionCostPerMonth; st.Claim[(int)Item.ColonialUpkeep] = w.LastColonialUpkeepPerMonth;
+        st.Claim[(int)Item.Interest] = w.LastInterestPerMonth.Value; st.Claim[(int)Item.Welfare] = w.LastWelfareCostPerMonth.Value; st.Claim[(int)Item.Pension] = w.LastPensionCostPerMonth.Value; st.Claim[(int)Item.ColonialUpkeep] = w.LastColonialUpkeepPerMonth.Value;
     }
     /// <summary>四半期の締め月の請求（貢納・招聘の支度金）。</summary>
     internal static void ClaimsQuarter(World w)
@@ -155,6 +170,26 @@ public static class Instruments
         st.ClaimsTotal = claims; st.Payable1 = payable; st.PayRate = payRate; st.Devalued = devalued;
     }
 
+    // ---------------------------------------------------------------- 軍の更新の直前・外交（史実比較の桁の読み手の入力） ----------------------------------------------------------------
+
+    /// <summary>軍の更新（<c>Military.Step</c>）の直前：この四半期の交戦の月と内戦の月を数える。月の決算の終わり（<see cref="MonthClose"/>）で数えると外交の更新の後＝内戦の始まりと終わりの月で1か月ずれる。</summary>
+    internal static void WarMonth(World w, bool atWar)
+    {
+        var st = S(w);
+        if (atWar) st.WarMonths++;
+        if (w.InCivilWar) st.CivilWarMonths++;
+    }
+    /// <summary>戦争を立てた所（<c>Diplomacy.AddBelligerent</c> の <c>Wars.Add</c> の直後）：試合の終わりに戦死と月数を読む。</summary>
+    internal static void WarStarted(Diplomacy dip, War war, int year) => Dips.GetValue(dip, _ => new DipState()).Wars.Add((year, war));
+    /// <summary>月の戦死（<c>Diplomacy.WarCasualties</c>）：(年, 国)ごとの月数・兵士の月和・戦死の和（戦死は兵士の上限をかけた後の量）。</summary>
+    internal static void Casualty(Diplomacy dip, int year, Power p, double soldierPop, double dead)
+    {
+        var d = Dips.GetValue(dip, _ => new DipState());
+        var key = (year, NameOf(p));
+        if (!d.Cas.TryGetValue(key, out var a)) d.Cas[key] = a = new double[3];
+        a[0] += 1; a[1] += soldierPop; a[2] += dead;
+    }
+
     // ---------------------------------------------------------------- 月末（Simulation.MonthSettle の終わり） ----------------------------------------------------------------
 
     /// <summary>月の決算の終わり：階級ごとの所得と支出を四半期の合計へ足し、挙げた国は財政の1行を溜める（台帳の差分は前の月の決算の終わりから）。</summary>
@@ -163,7 +198,7 @@ public static class Instruments
         var st = S(w);
         if (!st.Active || !st.Armed) { st.Armed = false; return; }
         st.Armed = false;
-        foreach (var r in w.Regions) foreach (var p in r.Pops) { int c = (uint)p.ClassId < (uint)NC ? p.ClassId : NC - 1; st.ClsEarn[c] += p.EarnedPerMonth; st.ClsPaid[c] += p.PaidPerMonth; }
+        foreach (var r in w.Regions) foreach (var p in r.Pops) { int c = (uint)p.ClassId < (uint)NC ? p.ClassId : NC - 1; st.ClsEarn[c] += p.EarnedPerMonth.Value; st.ClsPaid[c] += p.PaidPerMonth.Value; }
         st.ClsMonths++;
         var led = w.TreasuryLedger;
         if (IsPicked(w, st) && st.HaveLedger)
@@ -184,14 +219,14 @@ public static class Instruments
         for (int i = 0; i < (int)Item.Count; i++) C(ItemNames[i], st.Claim[i]);
         double itemSum = 0; for (int i = 0; i < (int)Item.Count; i++) itemSum += st.Claim[i];
         C("claimTotalPerMonth", st.ClaimsTotal); C("claimItemGapPerMonth", st.ClaimsTotal - itemSum);
-        C("treasuryAtClaimStock", st.Treasury0); C("revenueBasePerMonth", w.LastRevenuePerMonth); C("payableBeforeBorrowStock", st.Payable0); C("spareBeforeBorrowPerMonth", st.Spare0);
+        C("treasuryAtClaimStock", st.Treasury0); C("revenueBasePerMonth", w.LastRevenuePerMonth.Value); C("payableBeforeBorrowStock", st.Payable0); C("spareBeforeBorrowPerMonth", st.Spare0);
         C("borrowShortfallPerMonth", st.Shortfall); C("borrowTicketPerMonth", st.Ticket); C("borrowDomesticPoolStock", st.DomPool); C("borrowForeignPoolStock", st.ForPool);
         C("borrowedPerMonth", st.Borrowed);
         T("borrowBinder", st.BorrowCode switch { 0 => "gateClosed", 1 => "full", 2 => "ticket", 3 => "pool", 4 => "none", _ => "noShortfall" });
-        C("borrowCooldownMonths", w.BorrowCooldownMonths); C("interestToRevenueShareNow", w.LastRevenuePerMonth > 0 ? w.LastInterestPerMonth / w.LastRevenuePerMonth : double.NaN);
+        C("borrowCooldownMonths", w.BorrowCooldownMonths); C("interestToRevenueShareNow", w.LastRevenuePerMonth.Value > 0 ? w.LastInterestPerMonth / w.LastRevenuePerMonth : double.NaN);
         C("devaluedPerMonth", st.Devalued); C("payableAfterBorrowStock", st.Payable1); C("payRateShare", st.PayRate);
         C("convertibilityShare", w.Convertibility); C("onGold", w.OnGoldStandard ? 1 : 0); C("govDebtStock", w.GovDebt);
-        C("govBondRatePerYear", w.GovBondRatePerYear); C("govAvgCouponPerYear", w.GovAvgCouponPerYear); C("insolvencyMonths", w.InsolvencyQuarters); C("defaultCount", w.SovereignDefaultCount);
+        C("govBondRatePerYear", w.GovBondRatePerYear.Value); C("govAvgCouponPerYear", w.GovAvgCouponPerYear.Value); C("insolvencyMonths", w.InsolvencyQuarters); C("defaultCount", w.SovereignDefaultCount);
         var led = w.TreasuryLedger; double dSum = 0;
         for (int k = 0; k < NCat; k++) { double d = led[k] - st.PrevLedger[k]; dSum += d; C("ledger" + ((TreasuryCat)k) + "PerMonth", d); }
         double dT = w.Treasury - st.PrevTreasury;
@@ -201,7 +236,6 @@ public static class Instruments
 
     // ---------------------------------------------------------------- 四半期の末・断面（SelfPlay.Run が呼ぶ） ----------------------------------------------------------------
 
-    static Sink SinkOf(MultiNationSim sim) => Sinks.GetValue(sim, _ => new Sink());
     static System.IO.StreamWriter Open(string kind, ulong seed)
     {
         System.IO.Directory.CreateDirectory(Dir);   // 環境変数が存在しないディレクトリを指しても試合ごとに落ちない（(244) 反証役 vi1#7）
@@ -211,14 +245,15 @@ public static class Instruments
     /// <summary>断面（開幕 <c>open</c>・助走の直後 <c>warm</c>）：全ての国の階級と在庫の行。開幕は GDP を読まない（構築直後に和を取らない）。</summary>
     internal static void Phase(MultiNationSim sim, ulong seed, string time)
     {
-        var sk = SinkOf(sim);
+        var sk = SinkOf(sim, seed);
+        if (time == "warm") foreach (var n in sim.Nations) { var wst = S(n.World); wst.WarMonths = 0; wst.CivilWarMonths = 0; }   // 助走の月は数えない（旧の注入も助走の直後に0へ戻していた）
         foreach (var n in sim.Nations) { ClassRows(sk, seed, time, n.World, S(n.World), flows: false); StockRow(sk, seed, time, n.World, readGdp: time != "open"); }
     }
 
     /// <summary>四半期の末：挙げた国は毎四半期・全ての国は年末（q%4==3）。財政の月次の行を書き出し、階級の所得と支出の四半期の合計をゼロへ戻す。</summary>
     internal static void Quarter(MultiNationSim sim, ulong seed, int q)
     {
-        var sk = SinkOf(sim);
+        var sk = SinkOf(sim, seed);
         bool yearEnd = q % Calendar.QuartersPerYear == Calendar.QuartersPerYear - 1;
         string time = "q" + q.ToString(System.Globalization.CultureInfo.InvariantCulture);
         for (int i = 0; i < sim.Nations.Count; i++)
@@ -233,7 +268,8 @@ public static class Instruments
                 st.Rows.Clear();
             }
             if (picked || yearEnd) { ClassRows(sk, seed, time, w, st, flows: true); StockRow(sk, seed, time, w, readGdp: true); }
-            Array.Clear(st.ClsEarn); Array.Clear(st.ClsPaid); st.ClsMonths = 0;
+            NationRow(sk, seed, q, i, w, st, yearEnd);
+            Array.Clear(st.ClsEarn); Array.Clear(st.ClsPaid); st.ClsMonths = 0; st.WarMonths = 0; st.CivilWarMonths = 0;
         }
     }
 
@@ -241,7 +277,64 @@ public static class Instruments
     internal static void Close(MultiNationSim sim)
     {
         if (!Sinks.TryGetValue(sim, out var sk)) return;
-        sk.Fiscal?.Dispose(); sk.Class?.Dispose(); sk.Stock?.Dispose(); sk.Fiscal = sk.Class = sk.Stock = null;
+        if (Dips.TryGetValue(sim.Diplomacy, out var dip)) WarTables(sk, dip);
+        sk.Fiscal?.Dispose(); sk.Class?.Dispose(); sk.Stock?.Dispose(); sk.Nation?.Dispose(); sk.Fiscal = sk.Class = sk.Stock = sk.Nation = null;
+    }
+
+    /// <summary>戦争1本ごと（<c>wars</c>）と(年, 国)ごとの戦死（<c>casualty</c>）。戦争の戦死と月数は試合の終わりの値（戦争が続いていればその時点まで）。</summary>
+    static void WarTables(Sink sk, DipState dip)
+    {
+        using (var wr = Open("wars", sk.Seed))
+        {
+            wr.WriteLine("startYear\tcivilWarFlag\tsideA\tsideB\tmonths\tdeadK");
+            foreach (var (year, war) in dip.Wars)
+                wr.WriteLine(string.Join('\t', year.ToString(System.Globalization.CultureInfo.InvariantCulture), war.CivilWarParent is not null ? "1" : "0", NameOf(war.A), NameOf(war.B), F(war.Months), F(war.DeadA + war.DeadB)));
+        }
+        using (var cs = Open("casualty", sk.Seed))
+        {
+            cs.WriteLine("year\tnation\tmonths\tsoldierMonthsK\tdeadK");
+            foreach (var kv in dip.Cas)
+                cs.WriteLine(string.Join('\t', kv.Key.Year.ToString(System.Globalization.CultureInfo.InvariantCulture), kv.Key.Nation, F(kv.Value[0]), F(kv.Value[1]), F(kv.Value[2])));
+        }
+    }
+
+    /// <summary>国×四半期の行（全ての国・死んだ国も）。読み手は年と国の名前で引く。台帳は試合の始まりからの累計（四半期の差分は読み手が引く）。
+    /// 読む位置は旧の注入と同じ＝四半期の末（<c>StepQuarter</c> の直後）。名目GDP は四半期の末にしか読まない（メモ化された量を新しい位置で読まない）。</summary>
+    static void NationRow(Sink sk, ulong seed, int q, int index, World w, WState st, bool yearEnd)
+    {
+        double popK = 0, soldierK = 0;
+        int core = 0, integrated = 0, colonial = 0;
+        var nonCore = new System.Text.StringBuilder();
+        foreach (var r in w.Regions)
+        {
+            if (r.State != RegionState.Active) continue;
+            foreach (var p in r.Pops) { popK += p.Size; if (p.IsSoldier) soldierK += p.Size; }
+            if (r.Tier == RegionTier.Core) core++; else if (r.Tier == RegionTier.Integrated) integrated++; else colonial++;
+            if (yearEnd && r.Tier != RegionTier.Core) nonCore.Append(r.Tier == RegionTier.Integrated ? "I:" : "C:").Append(r.Name).Append(';');
+        }
+        double exports = 0, imports = 0;
+        if (w.ExportsByGood is { } eg) foreach (var v in eg) exports += v;
+        if (w.ImportsByGood is { } ig) foreach (var v in ig) imports += v;
+        double threat = w.SecurityThreat, own = w.SecurityThreatOwnMass, army = w.SecurityThreatArmy;
+        var led = w.TreasuryLedger;
+        var cols = new List<string>(32);
+        string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        cols.Add(I(q)); cols.Add(I(w.Year)); cols.Add(I(index)); cols.Add(NameOf(w));
+        cols.Add(F(w.TotalPopulation)); cols.Add(F(popK)); cols.Add(F(soldierK)); cols.Add(F(Calendar.PerMonthToPerYear(w.NominalGdpPerMonth).Value));
+        cols.Add(I(st.WarMonths)); cols.Add(I(st.CivilWarMonths)); cols.Add(I((int)w.ConscriptionLaw)); cols.Add(w.Mobilized ? "1" : "0");
+        cols.Add(F(threat + own > 0 ? threat / (threat + own) : 0)); cols.Add(F(army + own > 0 ? army / (army + own) : 0)); cols.Add(I((int)w.SerfEmancipation));
+        cols.Add(I(core)); cols.Add(I(integrated)); cols.Add(I(colonial)); cols.Add(nonCore.ToString());
+        cols.Add(F(led[(int)TreasuryCat.Borrow])); cols.Add(F(led[(int)TreasuryCat.Devalue])); cols.Add(F(led[(int)TreasuryCat.Army])); cols.Add(F(led[(int)TreasuryCat.Navy]));
+        cols.Add(F(w.GovDebt)); cols.Add(F(exports)); cols.Add(F(imports)); cols.Add(I(w.Coef.ClearingsPerYear));
+        sk.Nation ??= Open("nation", seed);
+        if (!sk.NationHeader)
+        {
+            sk.Nation.WriteLine("quarter\tyear\tnationIndex\tnation\ttotalPopulationK\tpopulationK\tsoldierK\tnominalGdpPerYear\tatWarMonths\tcivilWarMonths\tconscriptionLaw\tmobilizedFlag\t"
+                + "securityThreatShare\tarmyThreatShare\tserfEmancipation\tcoreRegions\tintegratedRegions\tcolonialRegions\tnonCoreRegions\t"
+                + "ledgerBorrowCumulative\tledgerDevalueCumulative\tledgerArmyCumulative\tledgerNavyCumulative\tgovDebtStock\texportsPerClearing\timportsPerClearing\tclearingsPerYear");
+            sk.NationHeader = true;
+        }
+        sk.Nation.WriteLine(string.Join('\t', cols));
     }
 
     static void ClassRows(Sink sk, ulong seed, string time, World w, WState st, bool flows)
@@ -266,13 +359,20 @@ public static class Instruments
 
     static void StockRow(Sink sk, ulong seed, string time, World w, bool readGdp)
     {
-        double popK = 0, homePopK = 0, soldierK = 0, stockValue = 0, ships = 0;
+        double popK = 0, homePopK = 0, soldierK = 0, stockValue = 0, ships = 0, steamW = 0, steamV = 0;
         var tier = new double[3];
         foreach (var r in w.Regions)
         {
             if (r.State != RegionState.Active) continue;
             double sz = r.SumPopulation(); popK += sz; if (r.Tier != RegionTier.Colonial) homePopK += sz;
             foreach (var p in r.Pops) if (p.IsSoldier) soldierK += p.Size;
+            foreach (var s in r.Producers)   // 工場の蒸気動力の割合の母集団＝労働を買う工場（石炭と電力を除く）の産出×参照価格
+            {
+                if (!s.BuysLabor || s.GoodId == Catalog.CoalId || s.GoodId == Catalog.ElectricityId) continue;
+                double v = s.Output * (s.GoodId >= 0 && s.GoodId < Catalog.RefPrices.Length ? Catalog.RefPrices[s.GoodId] : 0);
+                if (!(v > 0)) continue;
+                steamW += v; steamV += v * s.SteamFill;
+            }
             if (r.FleetUnits is { } fa) foreach (var x in fa) ships += x;
             for (int g = 0; g < r.Markets.Length && g < Catalog.Goods.Length; g++)
             {
@@ -283,7 +383,7 @@ public static class Instruments
         }
         var cap = w.Regions.Count > 0 ? w.Regions[0] : null; var sp = w.SelfPower;
         double Stk(int g) => cap is not null && g < cap.Markets.Length ? cap.Markets[g].Stock : double.NaN;
-        double gdpYear = readGdp ? Calendar.PerMonthToPerYear(w.GdpPerMonth) : double.NaN;
+        double gdpYear = readGdp ? Calendar.PerMonthToPerYear(w.GdpPerMonth).Value : double.NaN;
         var cols = new List<(string Name, string Value)>();
         void C(string name, double v) => cols.Add((name, F(v)));
         cols.Add(("time", time)); cols.Add(("nation", NameOf(w))); C("year", w.Year);
@@ -297,6 +397,10 @@ public static class Instruments
         C("militaryReadinessShare", w.MilitaryReadiness); C("capitalEquipFillShare", cap?.MilitaryEquipFill ?? double.NaN); C("trainingFillShare", w.MilitaryTrainingFill);
         C("armyUpkeepShare", w.ArmyUpkeep); C("navyUpkeepShare", w.NavyUpkeep);
         C("landPowerIndex", sp?.LandPower ?? double.NaN); C("navalPowerIndex", sp?.NavalPower ?? double.NaN);
+        bool atWar = false;
+        if (sp is not null && w.Diplomacy is { } dip) foreach (var war in dip.Wars) if (war.A == sp || war.B == sp) { atWar = true; break; }
+        C("fleetGaugeIndex", sp?.FleetGauge ?? double.NaN); C("atWarFlag", atWar ? 1 : 0);
+        C("techLevelIndex", w.TechLevel); C("railCapacityStock", w.RailCapacity); C("steamFillShare", steamW > 0 ? steamV / steamW : 0);
         sk.Stock ??= Open("stock", seed);
         if (!sk.StockHeader) { sk.Stock.WriteLine(string.Join('\t', cols.Select(c => c.Name))); sk.StockHeader = true; }
         sk.Stock.WriteLine(string.Join('\t', cols.Select(c => c.Value)));

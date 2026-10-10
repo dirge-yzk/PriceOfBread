@@ -160,7 +160,7 @@ public class WarThemeTests
         var (_, _, twin, _) = OneFront(new Coefficients().WarCivilianToll);   // 割譲しない双子（同じ種＝同じ盤面）
         var c = sim.Coef;
         static double Out(Region r) { double g = 0; foreach (var s in r.Producers) { var good = r.GoodOf(s.GoodId); if (good is null || good.Tier == GoodTier.Service) continue; g += s.Output * good.RefPrice; } return g; }
-        double natPc = fr.GdpPerMonth / fr.TotalPopulation;
+        double natPc = (fr.GdpPerMonth / fr.TotalPopulation).Value;
         // ★盤面の直し（2026-09-29 (110) 合流）：1人あたりが国の平均以下の州を**全て**割譲する（首都は除く）。旧＝そのうち産出の最も大きい1州だけ
         //   ＝(108)(109) を合わせた木では総額の落ち込みの差が 0.0034（前提の 0.01 に届かない）。平均以下の州だけを割るので残る国の1人あたりは落ちない（主張は同じ）。
         var cede = new List<Region>();
@@ -1094,7 +1094,7 @@ public class WarThemeTests
         (World fr, World br, double[] fs, double[] bs, double ft, double bt, double ff, double bf) Arm(double rate)
         {
             var (s, _, fr, br) = OneFront(new Coefficients().WarCivilianToll);
-            s.Coef.PrizeMoneyRatePerMonth = rate;
+            s.Coef.PrizeMoneyRatePerMonth = new RatePerMonth(rate);
             fr.LastBlockadeRisk = 0.5;
             fr.SelfPower!.Military = 0; fr.SelfPower!.FleetGauge = 0;   // 仏の海軍0＝英が制海権を握る（拿捕の門＝制海権＞0.5）
             typeof(Diplomacy).GetMethod("CollectPrize", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!
@@ -1102,7 +1102,7 @@ public class WarThemeTests
             static double[] Sav(World w) { var l = new System.Collections.Generic.List<double>(); foreach (var r in w.Regions) foreach (var p in r.Pops) l.Add(p.Savings); return [.. l]; }
             return (fr, br, Sav(fr), Sav(br), fr.Treasury, br.Treasury, fr.CumulativeTradeFlow, br.CumulativeTradeFlow);
         }
-        var zero = Arm(0.0); var arm = Arm(new Coefficients().PrizeMoneyRatePerMonth);
+        var zero = Arm(0.0); var arm = Arm(new Coefficients().PrizeMoneyRatePerMonth.Value);
         var merchants = new System.Collections.Generic.HashSet<Pop>();
         foreach (var r in arm.fr.Regions) if (r.State == RegionState.Active && r.MerchantPopIndex >= 0) merchants.Add(r.Pops[r.MerchantPopIndex]);
         var soldiers = new System.Collections.Generic.HashSet<Pop>();

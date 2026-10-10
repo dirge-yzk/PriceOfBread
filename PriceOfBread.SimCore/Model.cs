@@ -152,7 +152,7 @@ public sealed class Pop
     public double Literacy;          // 識字（連続・0..1・§A-1／§C）。教育で伸び、革新能力に効く
     public double Consciousness;     // 政治意識（0..1・§9-E）。識字×世俗の水路×都市化で伸びる
     public double Militancy;         // 闘争度（0..1・§9-E）。不満・参政権欠如・外圧で伸びる
-    public double LastEarnedPerMonth;   // ★前期の所得（2026-08-04）。Earned は EconomyStep 冒頭でゼロ化され期中に積み上がるので、
+    public MoneyPerMonth LastEarnedPerMonth;   // ★前期の所得（2026-08-04）。Earned は EconomyStep 冒頭でゼロ化され期中に積み上がるので、
                                 //   期の初めに読む用途（私的投資の原資）には使えない。ゼロ化の直前にここへ退避する。
     public double[] IdeologyShares = new double[Ideologies.Count];   // イデオロギー分布（伝統/反動/自由/共和/ナショ/社会/共産/無政府/帝国/ファシズム/王党派・合計1）。階級×条件×時代から創発（Ideology.cs）＝政体遷移の力ベクトル
     public bool Closed;              // 閉鎖階級（世襲の特権身分＝貴族・聖職）。移民の出入りをしない（史実の身分制）
@@ -272,10 +272,10 @@ public sealed class Pop
     /// （上の月次の台帳から導く＝月の途中で読まない）。⚠飢餓の駆動と食料の平常の捕捉（Politics）は生の比のまま＝負の貯蓄の POP は食料の需要が負になり
     /// （残予算÷価格が負）比が負になる＝下限0で切ると軌道が変わる（2026-09-30 段4e の申し送り）。</summary>
     public double FoodFill => FoodNeed > 1e-9 ? PoliticalQuantities.Clamp01(FoodMet / FoodNeed) : 1.0;
-    public double PaidPerMonth;               // その月に支払った総額
-    public double EarnedPerMonth;             // その月に得た総所得
-    public double LandRentPerMonth;           // その月に受け取った土地の地代（RGOの所有者取り分＝封建貢租）。土地税の課税ベース
-    public double IndustrialRentPerMonth;     // その月に受け取った工業レント（非RGO・投資家所有の利潤。設計3段1＝物差し専用の書き込みタグ・挙動の読者なし）
+    public MoneyPerMonth PaidPerMonth;               // その月に支払った総額
+    public MoneyPerMonth EarnedPerMonth;             // その月に得た総所得
+    public MoneyPerMonth LandRentPerMonth;           // その月に受け取った土地の地代（RGOの所有者取り分＝封建貢租）。土地税の課税ベース
+    public MoneyPerMonth IndustrialRentPerMonth;     // その月に受け取った工業レント（非RGO・投資家所有の利潤。設計3段1＝物差し専用の書き込みタグ・挙動の読者なし）
 
     /// <summary>★人と動くお金の運搬の1本（2026-09-30 段4f・作者裁定 Q13＝書き手を Pop の中へ）：貯蓄・個人債務・国債の保有を、人と一緒に <paramref name="from"/> から
     /// <paramref name="to"/> へ同じ額で移す（両側を1回の呼び出しで書く＝湧かず消えない）。運ぶ額は呼び手が決める＝ストック×(運ぶ人数÷規模)（E3）・越境は運賃を引いた持参金と
@@ -312,7 +312,7 @@ public sealed class Pop
         for (int i = 0; i < pops.Count; i++)
         {
             double share = i < pops.Count - 1 ? amount * ((weights is null ? pops[i].Size : weights[i]) / total) : amount - done;
-            pops[i]._savings += share; if (income) pops[i].EarnedPerMonth += share;
+            pops[i]._savings += share; if (income) pops[i].EarnedPerMonth += new MoneyPerMonth(share);
             done += share;
         }
         return 0;
@@ -350,7 +350,7 @@ public sealed class Pop
     }
 
     /// <summary>★月末の精算（月内の仮勘定＝1本の月内の形・計画 §10-12-2-3）＝その月の所得と支払いの差を貯蓄へ（EconomyStep の月の終わり・2026-09-30 段4g に Pop の中へ移した）。</summary>
-    internal void SettleMonth() => _savings += EarnedPerMonth - PaidPerMonth;
+    internal void SettleMonth() => _savings += (EarnedPerMonth - PaidPerMonth).Value;
 
     /// <summary>★(218) 貯蓄を比で置き直す（開幕の投資家の流動資産・<see cref="World.RebaseOpeningMoney"/> だけが呼ぶ）。貨幣の増減は呼び手が基準線ごと取り直す。</summary>
     internal void ScaleSavings(double f) => _savings *= f;

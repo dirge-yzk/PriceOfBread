@@ -120,8 +120,8 @@ edit('PriceOfBread.SimCore/Discovery.cs', [], TAIL)
 edit('PriceOfBread.SimCore/Diplomacy.cs', [
     ("    public void Step(Coefficients c, DeterministicRng rng, int month)\n    {\n",
      "    public void Step(Coefficients c, DeterministicRng rng, int month)\n    {\n        if (NavyDiag.On) NavyDiag.For(this).Tick++;\n"),
-    ("        Wars.Add(war);\n        _embargo.Add(Key(war.A, war.B));",
-     "        Wars.Add(war);\n        if (NavyDiag.On) NavyDiag.For(this).Ev.Add((NavyDiag.For(this).Tick, _year, war));\n        _embargo.Add(Key(war.A, war.B));"),
+    ("        _embargo.Add(Key(war.A, war.B));",   # (245) 標準の計器の WarStarted の行が Wars.Add の直後に入ったので、_embargo の行を錨にする
+     "        if (NavyDiag.On) NavyDiag.For(this).Ev.Add((NavyDiag.For(this).Tick, _year, war));\n        _embargo.Add(Key(war.A, war.B));"),
 ])
 edit('PriceOfBread.SimCore/SelfPlay.cs', [
     ('        var ghM = GhostDiag.On ? new GhostDiag.Match(seed) : null; GhostDiag.Cur = ghM;\n',

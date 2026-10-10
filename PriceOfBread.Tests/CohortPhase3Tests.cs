@@ -51,9 +51,9 @@ public class CohortPhase3Tests
         foreach (var p in baseline.World.AllPops()) if (!p.IsSoldier) { oldSize += p.Size * p.AgeShare(60, double.PositiveInfinity); total += p.Size; }   // 老年＝60歳以上（年齢の層・段4e 後半）
         Assert.True(total > 0 && oldSize / total > 0.02, $"老年人口が形成されていない（{oldSize / total:P1}）＝この検証の前提が崩れた");
         // ① 既定（1.0）は (1−1.0)×OldShare=0 ＝OldShareの値に関わらず中立＝明示1.0と厳密一致
-        Assert.Equal(baseline.World.GdpPerMonth, neutral.World.GdpPerMonth, 6);
+        Assert.Equal(baseline.World.GdpPerMonth.Value, neutral.World.GdpPerMonth.Value, 6);
         // ② 1.0以外（0.0）は労働供給を (1−OLF)×OldShare ぶん変える＝シムに配線され結果が動く（死にコードでない）
-        Assert.True(System.Math.Abs(aged.World.GdpPerMonth - baseline.World.GdpPerMonth) > 1e-6 * baseline.World.GdpPerMonth,
+        Assert.True(System.Math.Abs((aged.World.GdpPerMonth - baseline.World.GdpPerMonth).Value) > (1e-6 * baseline.World.GdpPerMonth).Value,
             $"OldLaborFactor=0 にしても結果が変わらない（aged={aged.World.GdpPerMonth:F1} / base={baseline.World.GdpPerMonth:F1}）＝労働供給に配線されていない");
     }
 }

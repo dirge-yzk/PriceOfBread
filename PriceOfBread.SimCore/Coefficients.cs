@@ -447,13 +447,13 @@ public sealed class Coefficients
     // --- 国債（赤字の借金。国内＝資本家の余剰貯蓄でクラウディングアウト／海外＝開放度依存。焦げ付き→経済悪化、対外不履行→介入）---
     public double BondAppetite = 0.15;           // 資本家の余剰貯蓄のうち国債購入に回る割合（工場投資と食い合う＝クラウディングアウト）
     public double ForeignBondCapacity = 0.05;    // 海外の購入余力＝開放度×月次名目GDP×これ×信認（基礎金利÷国債の金利＝低金利の国ほど深い＝2026-09-29 に向きを是正・旧＝金利÷基礎金利）。海外債は対外資本流入（保存＝BaseMoney+CumulativeTradeFlow同時）
-    public double BondRolloverFracPerMonth = 0.01;       // R9（国債の満期構造）＝**2026-07-23点火（C〜H中4）**：毎月ストックのうち満期到来し現行市場金利GovBondRatePerYearへ乗り換わる割合∈[0,1]。旧1.0=永久/浮動（金利変動が全ストックへ即時波及＝英3%コンソルの固定クーポンが再現不能）。0.01≈平均満期8年強＝コンソル（超長期）と短期債の混合の近似＝金利スパイラルの即時全額波及を緩和・高債務国の財政破綻が史実的に緩やかに
-    public double BondBaseRatePerYear = 0.04;           // 国債の基礎金利
+    public RatePerMonth BondRolloverFracPerMonth = new(0.01);       // R9（国債の満期構造）＝**2026-07-23点火（C〜H中4）**：毎月ストックのうち満期到来し現行市場金利GovBondRatePerYearへ乗り換わる割合∈[0,1]。旧1.0=永久/浮動（金利変動が全ストックへ即時波及＝英3%コンソルの固定クーポンが再現不能）。0.01≈平均満期8年強＝コンソル（超長期）と短期債の混合の近似＝金利スパイラルの即時全額波及を緩和・高債務国の財政破綻が史実的に緩やかに
+    public RatePerYear BondBaseRatePerYear = new(0.04);           // 国債の基礎金利
     public double BondRateDebtScale = 0.018;     // 金利上昇＝×(債務/年名目GDP)。★史実から（2026-09-29・作者裁定＝(94) の申し送り1 の (i)）：英のコンソル＝国債÷年GDP 約2.5（1815〜20）で利回り約4.5%
                                                  //   ＝信認のある国（完全兌換 0.6×議会が予算を握る 0.9）で (0.04＋2.5×これ)×0.54≒4.6%／不換・議会の弱い周縁国（西・葡・希・オスマン・ラテンアメリカ）は国債÷年GDP 1〜2 で 5.8〜7.6%
                                                  //   ＋期待インフレと信認の喪失（史実6〜10%）。旧 1.44（旧の月次比 0.12×12 を年へ換算したまま＝年GDP 比1につき+144%・単独で BondRateMaxPerYear を越えた）
     // 【削除2026-09-29】BondRateDebtQuad（監査2026-07-05 F2＝債務の二次項・既定0＝休眠）＝英の債務比2.5 で金利が跳ねない史実と合わない（棚卸し dorm-51／fis-17）
-    public double BondRepayFracPerMonth = Calendar.PerYearToPerMonth(0.01);   // **月に**国庫の余剰から返す国債の割合（減債基金）。★史実から＝年1%（2026-09-29）：英の減債基金（ピット1786＝年100万ポンド÷約2.4億・1792 以後は新発債ごとに1%）・
+    public RatePerMonth BondRepayFracPerMonth = Calendar.PerYearToPerMonth(new RatePerYear(0.01));   // **月に**国庫の余剰から返す国債の割合（減債基金）。★史実から＝年1%（2026-09-29）：英の減債基金（ピット1786＝年100万ポンド÷約2.4億・1792 以後は新発債ごとに1%）・
                                                  //   仏の減債金庫（1816〜 年4,000万フラン÷約35億）＝残高の年約0.5〜1.5%（英の国債は1816〜1914 に名目で年約0.3%しか減らず、比は GDP の伸びで下がった）。
                                                  //   旧 0.05（月に5%＝年60%・根拠なし）＝余剰のある国は数年で国債を返し切った＝初期の国債（英 年GDP の約1.1）が開幕から3〜6年で0・英1815 の国債÷年GDP 0.002（史実 約2.5）
     // ⚠緊縮の3係数（裁定B・2026-09-12）：**実効値を削る/持ち上げる**のをやめ、Government.LawPrereq の門
@@ -472,7 +472,7 @@ public sealed class Coefficients
     public double DebtDistressRatio = 3.0;        // 対外信用（CapitalMarket の信用の債務の項＝1−債務÷年名目GDP÷これ）が尽きる債務の水準＝外資が逃げ、呼べなくなる（読み手は CapitalMarket だけ・国債の起債は読まない）。
                                                   //   ★年の単位で史実から（2026-09-29・棚卸し fis-02）：市場の信認を保った債務÷年GDP の最大は英1821 約2.7（兌換の再開）・英1946 約2.5
                                                   //   ＝その少し上で債務の項が尽きる（仏1789 0.7 で 0.77・英1815 2.5 で 0.17）。旧 2.0 は**月次**名目GDP 比（年に直すと約0.17＝国債が史実の水準へ立った国は項が0）
-    public double BondRateMaxPerYear = 0.30;            // 国債金利の上限（年率）。これ以上は市場が値付けせず＝事実上の債務不履行（利払いを切り下げ/薄給で処理）
+    public RatePerYear BondRateMaxPerYear = new(0.30);            // 国債金利の上限（年率）。これ以上は市場が値付けせず＝事実上の債務不履行（利払いを切り下げ/薄給で処理）
     // 国債二次流通（改修2026-06-28・金融改革①）：信認シグナルの内生化。BondPrice=BondBaseRatePerYear/GovBondRatePerYear（永久債＝利回り上昇で価格暴落）。切り下げを続ける国＝信認喪失で利回り高止まり、外資逃避と連動。
     public double BondRateDistrustScale = 0.5;   // 信認の喪失＝**直近の切り下げの速さ**（この月の切り下げ×12÷年名目GDP）×これ を国債金利に上乗せ（2026-09-29・作者裁定＝(94) の申し送り1 の (i)）。
                                                  //   史実＝不換の増発が年に GDP の数%の国（米のグリーンバック1862〜64・アルゼンチン1885〜90）で国債の利回りが数%上がり、止めると戻った＝GDP 比1%につき約0.5%。
@@ -971,7 +971,7 @@ public sealed class Coefficients
     //   1/16（0.00125/0.01＝年0.125〜0.625%）は単体では緑だったが、**同クラスの他テストと同一プロセスで走ると 22.4 まで落ちて赤**
     //   （＝この教育アンカーは共有キャッシュ経由の相互汚染に対して余白がなく、B4を載せると耐えられない）。
     // ★**結論＝この回は休眠へ差し戻す（0/0）。** 機構を作り直してから #17 較正ラウンドで点火する。B3（除数の是正）は恒等なので残す。
-    public double LoanSpreadPerYear = 0.0;           // 民間貸出金利の**年率**スプレッド（no-loan-interest-cashflow）：借り手(投資家)→預金者の利息移転 bank.Loans×(これ+政策金利項)。pop→pop純移転で保存。0で利息なし
+    public RatePerYear LoanSpreadPerYear = new(0.0);           // 民間貸出金利の**年率**スプレッド（no-loan-interest-cashflow）：借り手(投資家)→預金者の利息移転 bank.Loans×(これ+政策金利項)。pop→pop純移転で保存。0で利息なし
     public double PolicyRateLoanWeight = 0.0; // 政策金利（無次元0..1）→年率への換算重み（引締めが借り手の利払いを増やす）。0で無効
     // （需要駆動の与信の器 CreditDemandDriven は 2026-09-28 に削除＝作者裁定 A16「器は点火せず、返せる額を与信の上限へ」＝Credit.Step の上限の式が SoeSaleYears を読む）
     public double BondLossConfWeight = 0.5;   // 国債二次流通(no-bond-secondary-market)：BondPrice下落(利回り上昇)の評価損が銀行信頼targetConfを下げる×(国内債/GDP)。0で恒等。BondPriceは既存診断値を配線
@@ -1876,7 +1876,7 @@ public sealed class Coefficients
     public double AppeaseMilitaryRatio = 2.5;      // 相手の軍が自軍のこれ倍超＝勝てない相手＝挑発せず宥和（緊張を下げる）
     public double HegemonRestraintFloor = 0.25;    // 突出自制の下限＝覇権国でも植民地化意欲はこの割合までしか落ちない（完全停止はしない）
     // リアリティ補強（改修2026-06-28・第4弾）。
-    public double PrizeMoneyRatePerMonth = 0.004;          // A2拿捕賞金＝敵GDP×これ×制海優位を毎月 敵の商人から制海国の兵士へ（両建て保存・2026-09-30 支払いの段3-2＝旧は国庫から国庫へ）。海軍を持つ交易上の意味
+    public RatePerMonth PrizeMoneyRatePerMonth = new(0.004);          // A2拿捕賞金＝敵GDP×これ×制海優位を毎月 敵の商人から制海国の兵士へ（両建て保存・2026-09-30 支払いの段3-2＝旧は国庫から国庫へ）。海軍を持つ交易上の意味
     public double PrizeCargoShare = 1.0;           // 拿捕賞金原資をGDP比例から『敵が通商破壊で失った海上取扱高(LastPortThroughput×(1-CommerceRaidFactor))』比例へ移すブレンド（prize-money-gdp-based-no-cargo）。1=完全に積荷連動（内陸大国を封鎖しても賞金0）/0=現行のGDP比例（恒等）
     public double ColonizeAnnexMilitancy = 0.3;    // A5無血植民地化の被支配不満（接収植民地のMilitancy/属国pop闘争度の初期値＝抵抗の実体化）
     public double DefendProjectionMin = 0.2;       // A6宗主防衛参戦の最低投射力（これ未満＝届かない属国を見殺し＝離反へ）
@@ -2032,7 +2032,7 @@ public sealed class Coefficients
     // レバー1【本命】軟予算制約（コルナイ）：補助金/国営赤字で操業する工場は「補助依存ストック」（Producer.SubsidyDependence 0..1）が漸増し、
     // 実効生産性 ×(1−これ×依存)。恒久補助＝実質コスト逓増＝「時限補助→黒字化 or 払い下げ(SoeSale)」だけが割に合う（明治の払い下げが最適解として創発）。
     public double SubsidySoftBudgetDecay = 0.4;        // **2026-07-24点火試験**（レバー1＝恒久依存で最大4割の非効率）。0で乗算×1.0＝厳密恒等
-    public double SubsidyDependenceRatePerMonth = 0.007;       // 依存ストックの月次増分（+0.02/四半期相当）。補助が外れ黒字なら同率で漸減
+    public RatePerMonth SubsidyDependenceRatePerMonth = new(0.007);       // 依存ストックの月次増分（+0.02/四半期相当）。補助が外れ黒字なら同率で漸減
     // 【墓標2026-09-28・支払いの一元化 段2-1（作者裁定 Q9）】SubsidyRespectsSpendingCap（レバー2＝補助の国庫負担へ借入スタックの出費上限を掛けた）を削除。
     //   債務の重さは利子の請求が大きくなることで国家の支払い率 r に出る＝補助は補助率×r の1本（EconomyStep の④）。
     // レバー3 AI対称化：Industrialist教義の開発国家プレイ（平時の民生上流Intermediate/Producer赤字工場へ補助・黒字N期で解除）。
@@ -2486,7 +2486,7 @@ public sealed class Coefficients
     //   （作者設計 2026-08-08）＝脅威の入口を軍事費の段の1つにする（作者 2026-10-01 に異議なし）ので削除（削減方向）。上下の切りは思想⑧の天井でもあった（(151) の申し送り5）。
     // ── 露普歳入是正（wf_f219b706・2026-08-08 調査確定）：普＝潤沢減税の床0.25に開幕から131年ロック（国庫ストックを支出へ
     //   翻訳する経路が無い）・露＝Militarize固定が教育を一度も目標化せず識字逆行→技術凍結＋農奴制の現金遮断。──
-    public double OpulenceSpendRatePerYear = 0.6;         // 【梯子測定中2026-08-08＝0.6】支出反射（減税反射の対）：月次予算基数を 歳入 → 歳入＋これ×max(0,国庫−潤沢線)/12 へ（行政・軍需・扶養限界の3箇所）。0=厳密恒等。梯子0.3→0.6→1.2/年
+    public RatePerYear OpulenceSpendRatePerYear = new(0.6);         // 【梯子測定中2026-08-08＝0.6】支出反射（減税反射の対）：月次予算基数を 歳入 → 歳入＋これ×max(0,国庫−潤沢線)/12 へ（行政・軍需・扶養限界の3箇所）。0=厳密恒等。梯子0.3→0.6→1.2/年
     public double MilitarizeAgrarianTaxes = 1.0;   // 【L3点火測定中2026-08-08】Militarizeスタンスに土地税0.4・関税0.3の目標を追記（軍国が地租と関税で軍を養った史実＝地租改正・Grundsteuer）。0=恒等・1=有効
     public double MilitarizeEducationDrive = 1.0;  // 【L4点火測定中2026-08-08】Militarizeスタンスに公教育＋教育費0.4の目標を追記（義務教育は兵営国家の発明＝プロイセン1763・明治学制）。露のElite封鎖の解錠。0=恒等
     public double OpulenceInfraChannel = 0.0;      // 支出反射のインフラ拡張（退蔵→鉄道国家の建設）。0.6同時点火で硬性赤（公教育テスト）＝分離休眠2026-08-08。単独再測定用
@@ -2517,13 +2517,13 @@ public sealed class Coefficients
     public double MilitarismStrengthBonus = 1.3;            // 軍の練度：軍事力（戦力評価）の乗数の**満額**＝実効は 1+(これ−1)×軍の練度（識字×組織×勤務年数。★2026-08-18＝法のON/OFFを撤去）。同じ兵数で軍が強い（訓練・規律・動員）＝労働を奪わないので経済を弱めず軍事に出る
     public double MilitarismClout = 0.5;                   // 旧支配層(将校貴族)が軍から得る政治力＝MilitarismClout×**軍の政治的優位**（軍の圧力×(1−文民制度の弁)∈[0,1]）。★2026-08-18＝法の門を撤去。⚠**給与では買えない**（西1931アサーニャ改革は満額俸給付き退役で最大のクーデタを招いた）＝組織の大きさ・解隊の脅威・人事介入・屈辱が源泉
     public double SoldierPayMult = 1.0;                     // 兵士給与＝民間の働き盛り1人あたり月収（徴募の母数・Military.RecruitWage）×これ（同等待遇を目指す。払えなければ r で単価が下がる＝充足↓＝弱兵）。★(140) 請求どおりの賃金で払う（旧＝兵力の市場の値＝参照価格の門で押さえられ請求の7〜80%）。★(161) 徴兵制（選抜・皆兵）の兵卒は徴兵の兵の手当＝同じ所得を頭数で割る（RecruitWage の keep＝世帯の1人ぶんの暮らし＝糧食・被服と小遣い・標準の構成で働き盛り1人あたりの約0.55）＝徴兵は兵1人を安くする（AI が作者に返した設計・作者の承認は未確認＝推奨で進めた）・★(163) 手当÷規定＝頭数÷働き盛り＝年齢の構成で約0.50〜0.61 と動く（子供が多い国ほど徴兵の兵は安い）
-    public double SoldierMigrationRatePerMonth = 0.08;             // 平時の徴募/離職速度（月次）。★(155) 読み手＝徴兵制の国の平時の強制の徴募（定員の州按分へ寄せる・Military.Step）と、平時に定員を超えた兵を民間の職へ戻す速さ（Meritocracy の ⑦＝四半期の値 1−(1−これ)^3）。旧＝扶養限界の目標への漸進（徴募と離職の両方・月次）
+    public RatePerMonth SoldierMigrationRatePerMonth = new(0.08);             // 平時の徴募/離職速度（月次）。★(155) 読み手＝徴兵制の国の平時の強制の徴募（定員の州按分へ寄せる・Military.Step）と、平時に定員を超えた兵を民間の職へ戻す速さ（Meritocracy の ⑦＝四半期の値 1−(1−これ)^3）。旧＝扶養限界の目標への漸進（徴募と離職の両方・月次）
     public double ConscriptionFraction = 0.12;            // 戦時の徴兵上限＝働き盛りの男のこの割合まで兵士化（人口の約3.3%＝ナポレオン戦争の頂点 4〜6% の桁・行き過ぎは経済に打撃）。(145) で母数を働き盛りの男へ（旧＝大衆の割合）
     public double ConscriptionRate = 0.15;               // 戦時の動員速度（平時より速い）
 
     // --- 軍事／武力解錠（§6.1／§A-8・段4e）---
     public double ForceUnlockRate = 0.10;          // 武力解錠時のインフラ進捗（開発の約10倍速）
-    public double ForceUnlockTreasuryCostPerMonth = 1000;  // 制圧の月あたりの軍需の予算（首都の市場から陸の軍需を買って消費する・2026-09-30 支払いの段3-2＝旧は国庫から全POP へ頭数で配った）
+    public MoneyPerMonth ForceUnlockTreasuryCostPerMonth = new(1000);  // 制圧の月あたりの軍需の予算（首都の市場から陸の軍需を買って消費する・2026-09-30 支払いの段3-2＝旧は国庫から全POP へ頭数で配った）
     public double ForceUnlockMilitancy = 0.03;     // 制圧が pop に与える闘争度（戦争疲弊・§6.1）
 
     // --- 植民地の整備（§6.1 拡張：固有資源＋人口プール＋収益駆動の開発）---
@@ -3449,8 +3449,8 @@ public sealed class Coefficients
     public double FarmScaleCap = 3.0;           // ★2.0→3.0（2026-08-14実測＝2.0は1州国家で食料が頭打ち→ハノーファー満足度0.04＝飢餓でハーネス赤）。畑の「すぐには増やせない」は上の速度1/4が担い、上限は工場と同じ＝開墾の余地自体は否定しない
     public double RgoScaleSpeedFactor = 0.25;   // 鉱山・畑の規模調整速度の倍率（坑道・開墾＝年単位。時定数は均衡を動かさない＝掃討基準の免除カテゴリ）
     public double MintPriceFloorGate = 1.0;   // **主フラグ**★点火2026-08-29（夜間R20造幣3本クラスタA/B batch30＝列強+5.8・破綻0）：0で旧来（産出比例上限・国内鉱山限定）／1で自由鋳造＝平価未満なら在庫から買い上げる（床）
-    public double MintFloorBuyRatePerMonth = 0.25;    // 床モードの月次購入率（在庫のこの割合まで/月）。1.0＝即時全量は買い→価格急騰→停止→再蓄積の振動リスク
-    public double MintReserveSellRatePerMonth = 0.08; // 法が本位金属を捨てたあと準備を市場へ売る月次率（独1873-79のターラー銀売却＝暴落を深めた投げ売り。売り切りに約1年）
+    public RatePerMonth MintFloorBuyRatePerMonth = new(0.25);    // 床モードの月次購入率（在庫のこの割合まで/月）。1.0＝即時全量は買い→価格急騰→停止→再蓄積の振動リスク
+    public RatePerMonth MintReserveSellRatePerMonth = new(0.08); // 法が本位金属を捨てたあと準備を市場へ売る月次率（独1873-79のターラー銀売却＝暴落を深めた投げ売り。売り切りに約1年）
     // ==== 銀本位の史実度（2026-08-21・作者裁定「原因究明し原則に従って修正」→同日点火）====
     // 【点火1.0・2026-08-21 銀本位ラウンド＝4係数一括（SilverStandardGate/SilverLightDiscipline/GoldStandardIndThreshold 1.5→3.5/MonetaryPeerPullScale 0→5）。
     //   同一ソースA/B seeds1-10（snap5＝親基線37f6bfe系）：◎7割帯 11→17・逸脱過多 9→7・法+1.9・植民地+3.4・人口+1.4／
@@ -3659,7 +3659,7 @@ public sealed class Coefficients
             if (field is null)
                 throw new ArgumentException($"POB_COEF に存在しない係数名: 「{name}」");
             if (field.IsLiteral || field.IsInitOnly ||
-                !(field.FieldType == typeof(double) || field.FieldType == typeof(int) || field.FieldType == typeof(bool)))
+                !(field.FieldType == typeof(double) || field.FieldType == typeof(int) || field.FieldType == typeof(bool) || UnitValues.IsUnit(field.FieldType)))   // ★(246) 専用の値型（RatePerYear など）の係数も名前で引く
                 throw new ArgumentException($"POB_COEF が扱えない係数: 「{name}」（{field.FieldType.Name}）");
             if (!double.TryParse(part[(eq + 1)..].Trim(), System.Globalization.NumberStyles.Float,
                                  System.Globalization.CultureInfo.InvariantCulture, out double v))
@@ -3677,6 +3677,7 @@ public sealed class Coefficients
         {
             var f = typeof(Coefficients).GetField(name)!;
             if (f.FieldType == typeof(double)) f.SetValue(this, value);
+            else if (UnitValues.IsUnit(f.FieldType)) f.SetValue(this, UnitValues.FromDouble(f.FieldType, value));   // ★(246) 専用の値型
             else if (f.FieldType == typeof(int)) f.SetValue(this, (int)value);
             else if (f.FieldType == typeof(bool)) f.SetValue(this, value > 0.5);
             else throw new ArgumentException($"POB_COEF が扱えない型の係数: 「{name}」（{f.FieldType.Name}）");

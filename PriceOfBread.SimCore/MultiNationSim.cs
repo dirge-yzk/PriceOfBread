@@ -101,7 +101,7 @@ public sealed class MultiNationSim
         var setup = WorldData.Setup();
         foreach (var t in setup.Targets)
         {
-            var p = new Power { Id = Diplomacy.Powers.Count, Name = t.Name, BaseName = t.Name, Military = t.Military, GdpPerMonth = 0, TradeWeight = 0.0, RequiresQuinine = t.Quinine };
+            var p = new Power { Id = Diplomacy.Powers.Count, Name = t.Name, BaseName = t.Name, Military = t.Military, GdpPerMonth = new MoneyPerMonth(0), TradeWeight = 0.0, RequiresQuinine = t.Quinine };
             foreach (var c in t.Colonies) { var cc = Geo.ColonyCoord(c.Name); p.ColonyList.Add(new Colony { Name = c.Name, Resources = [.. c.Resources], Population = c.PopK / Diplomacy.ColonyUnitPop, PopSize = c.PopK, Latitude = cc.Lat, Longitude = cc.Lon, Malarial = t.Quinine }); }   // ★回1-1（col-01）：住民数も作成時に置く（旧＝未設定のまま侵略で州化され、住民0・耕地1.8の州になった＝約650万人分が消えた）。熱帯(Quinine)標的の州はマラリア地＝征服で本国へ風土病が付いて回る。Resourcesは試合ごとに複製（キャッシュ共有回避）
             Diplomacy.Powers.Add(p);
         }
@@ -908,7 +908,7 @@ public sealed class MultiNationSim
                 for (int i = 0; i < Nations.Count; i++)
                 {
                     var wn = Nations[i].World;
-                    double annualGdp = Calendar.PerMonthToPerYear(wn.NominalGdpPerMonth);
+                    double annualGdp = Calendar.PerMonthToPerYear(wn.NominalGdpPerMonth).Value;
                     double openness = annualGdp > 1e-9 ? natTrade[i] * _coef.ClearingsPerYear / annualGdp : 0;   // 清算単位→年換算（単位ヘルパー）
                     if (!(openness >= 0)) openness = 0;   // 否定形（分母が痩せた比の暴走もここで抑える）
                     natOpen[i] = openness; openSum += openness; openN++;
@@ -1070,12 +1070,12 @@ public sealed class MultiNationSim
         // ★接触度（作者採用2026-09-06・知識doc §4／2026-09-07 是正）：自国の貿易の**強度**（(入＋出)÷自国名目GDP）÷世界の強度（世界貿易×2÷世界名目GDP）
         //   ＝平均1.0・鎖国0。世界シェアだと経済の大きさに比例して清が最大になる（実測 6.8〜7.5）＝接触は量でなく強度。思想の到達と同じ入力＝新しい量を作らない。
         {
-            double worldGdp = 0; for (int a1 = 0; a1 < n; a1++) worldGdp += System.Math.Max(0, Nations[a1].World.NominalGdpPerMonth);
+            double worldGdp = 0; for (int a1 = 0; a1 < n; a1++) worldGdp += System.Math.Max(0, Nations[a1].World.NominalGdpPerMonth.Value);
             double worldIntensity = worldGdp > 1e-9 ? 2.0 * worldFlow / worldGdp : 0;
             for (int a1 = 0; a1 < n; a1++)
             {
                 double own = 0; for (int b1 = 0; b1 < n; b1++) if (b1 != a1) own += pf[a1][b1] + pf[b1][a1];
-                double gdp = Nations[a1].World.NominalGdpPerMonth;
+                double gdp = Nations[a1].World.NominalGdpPerMonth.Value;
                 double v = worldIntensity > 1e-12 && gdp > 1e-9 ? (own / gdp) / worldIntensity : 0;
                 Nations[a1].World.TradeContactShare = !(v >= 0) ? 0 : v;
             }
@@ -1111,7 +1111,7 @@ public sealed class MultiNationSim
                 if (rw2.RumpParentName.Length == 0 || rw2.SelfPower is not { } rp2) continue;
                 var par2 = Diplomacy.Powers.Find(q => (q.BaseName.Length > 0 ? q.BaseName : q.Name) == rw2.RumpParentName);
                 if (par2?.Nation is not { } pw2) { rw2.RumpParentName = ""; continue; }   // 親が消滅＝独立が確定
-                bool low = rw2.NominalGdpPerMonth < RumpGdpFractionOfParent * System.Math.Max(1.0, pw2.NominalGdpPerMonth);
+                bool low = rw2.NominalGdpPerMonth.Value < RumpGdpFractionOfParent * System.Math.Max(1.0, pw2.NominalGdpPerMonth.Value);
                 rw2.RumpLowQuarters = low ? rw2.RumpLowQuarters + 1 : 0;
                 if (rw2.RumpLowQuarters >= (int)(_coef.RumpReabsorbYears * Calendar.QuartersPerYear)
                     && !Diplomacy.IsAtWar(par2, rp2))

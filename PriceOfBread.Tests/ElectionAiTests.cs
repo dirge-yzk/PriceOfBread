@@ -157,7 +157,7 @@ public class ElectionAiTests
     public void レバーは裁量余剰の割合であり効きは投入額の逓減で決まる()
     {
         var w = Board(5);
-        double fc = w.FiscalCapacityPerMonth;
+        double fc = w.FiscalCapacityPerMonth.Value;
         Assert.True(fc > 0, "テスト前提の破れ：裁量余剰が0＝注ぐ原資が無い盤面");
 
         // ① 投入額＝裁量余剰×レバー（＝軍事費・教育費と同じ物差しに乗る）
@@ -170,7 +170,7 @@ public class ElectionAiTests
 
         // ② 半減点＝係数×有権者数×一人あたり名目GDP（ComputeVotes と同じ有権者の重みで独立に組み直す）
         double voters = VotersOf(w);
-        double expectHalf = w.Coef.ElectionPushHalfPerVoter * voters * (w.NominalGdpPerMonth / w.TotalPopulation);
+        double expectHalf = (w.Coef.ElectionPushHalfPerVoter * voters * (w.NominalGdpPerMonth / w.TotalPopulation)).Value;
         Assert.Equal(expectHalf, w.ElectionPushHalfPoint(), 9);
         Assert.True(expectHalf > 0, "半減点が0＝有権者も所得も無い（fail-closed の枝に落ちている）");
 
@@ -180,7 +180,7 @@ public class ElectionAiTests
         Assert.Equal(0.0, w.ElectionPushEffectOf(0.0), 12);
 
         // ④ 目盛り＝「投入額が半減点に等しいとき効きが半分」（係数をこの盤面で半分の位置へ置いて厳密に確かめる）
-        w.Coef.ElectionPushHalfPerVoter = 0.5 * fc / (voters * (w.NominalGdpPerMonth / w.TotalPopulation));
+        w.Coef.ElectionPushHalfPerVoter = 0.5 * fc / (voters * (w.NominalGdpPerMonth / w.TotalPopulation)).Value;
         Assert.Equal(0.5 * fc, w.ElectionPushHalfPoint(), 6);
         Assert.Equal(0.5, w.ElectionPushEffectOf(0.5), 9);
     }
@@ -194,7 +194,7 @@ public class ElectionAiTests
         // ⚠男子普通選挙まで進むとこの割合は1を超える（実測：英1858=1.7・米=4.0）＝**買えなくなる**のが設計どおり
         //   （半減点は有権者数に比例＝参政権が広がるほど票は高い）。だからこの番人は**早期の制限選挙の盤面でだけ**張る。
         var w = Board(5);
-        double halfLever = w.ElectionPushHalfPoint() / w.FiscalCapacityPerMonth;
+        double halfLever = w.ElectionPushHalfPoint() / w.FiscalCapacityPerMonth.Value;
         Assert.InRange(halfLever, 1e-3, 1.0);
     }
 
@@ -211,7 +211,7 @@ public class ElectionAiTests
         Assert.True(w.ElectionPushEffectOf(1.0) < 1.0, "自己有界でない（効きが上限1へ漸近していない）");
         // 原点の傾きが有限＝微小な押しが異常に得にならない（`強さ^m (m<1)` を採らない理由＝§3-④③）。
         // 接線 A/half を超えない＝逓減関数の定義そのもの。
-        double slope = w.FiscalCapacityPerMonth / w.ElectionPushHalfPoint();
+        double slope = (w.FiscalCapacityPerMonth / w.ElectionPushHalfPoint()).Value;
         Assert.True(w.ElectionPushEffectOf(0.001) <= 0.001 * slope + 1e-12, "原点付近で線形の接線を超えた＝逓減でなく逓増している");
     }
 
@@ -259,7 +259,7 @@ public class ElectionAiTests
         var (axis, inc, net) = FindPricedAgenda(w);
         Assert.True(net < 0, "テスト前提の破れ：値段のつく看板が無い");
         OpenMandateWindow(w, net);
-        Assert.True(w.FiscalCapacityPerMonth > 0, "テスト前提の破れ：裁量余剰が0＝注ぐ原資が無い");
+        Assert.True(w.FiscalCapacityPerMonth.Value > 0, "テスト前提の破れ：裁量余剰が0＝注ぐ原資が無い");
 
         w.PendingElection = Agenda(0, axis, inc);
         w.ResolveElection(0, 0.5);   // レバー＝裁量余剰の50%
@@ -357,7 +357,7 @@ public class ElectionAiTests
         Assert.True(net < 0, "テスト前提の破れ：値段のつく看板が無い");
         OpenMandateWindow(w, net);
 
-        double money0 = TotalMoneyOf(w), treasury0 = w.Treasury, fc = w.FiscalCapacityPerMonth;
+        double money0 = TotalMoneyOf(w), treasury0 = w.Treasury, fc = w.FiscalCapacityPerMonth.Value;
         Assert.True(fc > 0, "テスト前提の破れ：裁量余剰が0");
         w.PendingElection = Agenda(0, axis, inc);
         w.ResolveElection(0, 0.5);
@@ -410,7 +410,7 @@ public class ElectionAiTests
         Assert.True(net < 0, "テスト前提の破れ：前提を置いた後に純支持の符号が反転した");
 
         // ① AI経路：同じ看板にAIが答える
-        double legit0 = w.Legitimacy, fc = w.FiscalCapacityPerMonth, treasury0 = w.Treasury;
+        double legit0 = w.Legitimacy, fc = w.FiscalCapacityPerMonth.Value, treasury0 = w.Treasury;
         var snap = SnapshotSavings(w);
         w.PendingElection = Agenda(0, axis, inc);
         UtilityAgent.DecideElection(w);
@@ -449,7 +449,7 @@ public class ElectionAiTests
         OpenMandateWindow(w, net);
         w.Coef.EarlyElectionEnabled = 0;   // 繰り上げ選挙の副作用を外す（見たいのは注入判断だけ）
         ClearFiscalStress(w);              // 他の支出に逼迫なし
-        double fc = w.FiscalCapacityPerMonth;
+        double fc = w.FiscalCapacityPerMonth.Value;
         Assert.True(fc > 0, "テスト前提の破れ：裁量余剰が0");
 
         // ① 平時＝与党の得票が不信任線から十分離れている（線の2倍以上）→ 1銭も注がない
@@ -511,7 +511,7 @@ public class ElectionAiTests
         Assert.True(bNow > 0, "テスト前提の破れ：b が導出されていない（在庫の射程を作れない）");
         w.MandateSpent = bNow;                             // 在庫を使い切った政府＝世界で到達できる厚み
         Assert.Equal(0.0, UtilityAgent.FiscalStressOf(w), 12);   // ①の支出の後も逼迫0＝差は S だけ
-        double fc2 = w.FiscalCapacityPerMonth;
+        double fc2 = w.FiscalCapacityPerMonth.Value;
         w.PendingElection = Agenda(0, axis, inc);
         UtilityAgent.DecideElection(w);
         Assert.Null(w.PendingElection);
@@ -554,7 +554,7 @@ public class ElectionAiTests
         big.FiscalCapacityPerMonth = small.FiscalCapacityPerMonth * k;
 
         Assert.True(Math.Abs(big.TotalPopulation - k * small.TotalPopulation) <= 1e-6 * k * small.TotalPopulation, "規模3倍の作成に失敗（人口）");
-        Assert.True(Math.Abs(big.NominalGdpPerMonth - k * small.NominalGdpPerMonth) <= 1e-6 * k * small.NominalGdpPerMonth, "規模3倍の作成に失敗（GDP）");
+        Assert.True(Math.Abs((big.NominalGdpPerMonth - k * small.NominalGdpPerMonth).Value) <= (1e-6 * k * small.NominalGdpPerMonth).Value, "規模3倍の作成に失敗（GDP）");
 
         // 半減点そのものは3倍＝**絶対額ではない**（大国の1票は同じでも、票の数が3倍）
         double halfSmall = small.ElectionPushHalfPoint(), halfBig = big.ElectionPushHalfPoint();
@@ -562,7 +562,7 @@ public class ElectionAiTests
         Assert.True(Math.Abs(halfBig - k * halfSmall) <= 1e-6 * k * halfSmall, $"半減点が有権者数に比例していない（{halfSmall} → {halfBig}）");
 
         // 「半分効く投入割合」は一致
-        double leverSmall = halfSmall / small.FiscalCapacityPerMonth, leverBig = halfBig / big.FiscalCapacityPerMonth;
+        double leverSmall = halfSmall / small.FiscalCapacityPerMonth.Value, leverBig = halfBig / big.FiscalCapacityPerMonth.Value;
         Assert.Equal(leverSmall, leverBig, 9);
         Assert.Equal(0.5, small.ElectionPushEffectOf(leverSmall), 9);
         Assert.Equal(0.5, big.ElectionPushEffectOf(leverBig), 9);
@@ -587,7 +587,7 @@ public class ElectionAiTests
                 trace.Add(w.VoteShares[0]); trace.Add(w.VoteShares[1]); trace.Add(w.VoteShares[2]);
                 trace.Add(w.Legitimacy); trace.Add(w.ElectionPushStrength); trace.Add(w.ElectionLastSpend);
                 trace.Add(w.ElectionPushIdeology); trace.Add(w.ElectionCalls); trace.Add(w.ElectionsBacked);
-                trace.Add(w.Treasury); trace.Add(w.GdpPerMonth); trace.Add(w.TotalPopulation);
+                trace.Add(w.Treasury); trace.Add(w.GdpPerMonth.Value); trace.Add(w.TotalPopulation);
             }
             return trace;
         }

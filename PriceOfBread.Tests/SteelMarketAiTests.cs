@@ -24,7 +24,7 @@ public class SteelMarketAiTests
     /// （1.0以上＝財政逼迫0＝既定ガードも通る／1.0未満＝逼迫>0＝既定ガードで止まる＝#3(b)の対照）。</summary>
     private static void GiveBuildRoom(World w, double treasuryOverBuffer)
     {
-        w.LastAdminClaimPerMonth = 1_000_000;                     // バッファ＝FiscalStressBufferMonths(5)×これ
+        w.LastAdminClaimPerMonth = new MoneyPerMonth(1_000_000);                     // バッファ＝FiscalStressBufferMonths(5)×これ
         w.SetTreasuryRaw(treasuryOverBuffer * UtilityAgent.FiscalBufferOf(w));
     }
 
@@ -299,7 +299,7 @@ public class SteelMarketAiTests
             foreach (var r in w.Regions)        // 自国産業が押されている（生産規模で加重した平均採算が赤字）
                 foreach (var p in r.Producers)
                     if (p.GoodId == gid) { p.SmoothedMargin = -0.5; p.Scale = Math.Max(p.Scale, 1.0); p.Bankrupt = false; }
-            double basis = Math.Max(1.0, 0.01 * w.NominalGdpPerMonth);   // 規模の床（名目GDP×0.001）の10倍＝雑音でない輸入
+            double basis = Math.Max(1.0, (0.01 * w.NominalGdpPerMonth).Value);   // 規模の床（名目GDP×0.001）の10倍＝雑音でない輸入
             var imp = new double[Catalog.Goods.Length];
             imp[gid] = basis;
             w.ImportsByGood = imp;
@@ -330,7 +330,7 @@ public class SteelMarketAiTests
         foreach (var r in w.Regions)
             foreach (var p in r.Producers)
                 if (p.GoodId == gid) { p.SmoothedMargin = 0.5; p.Scale = Math.Max(p.Scale, 1.0); }   // 黒字＝押されていない
-        double basis = Math.Max(1.0, 0.01 * w.NominalGdpPerMonth);
+        double basis = Math.Max(1.0, (0.01 * w.NominalGdpPerMonth).Value);
         var imp = new double[Catalog.Goods.Length];
         imp[gid] = basis;
         w.ImportsByGood = imp;

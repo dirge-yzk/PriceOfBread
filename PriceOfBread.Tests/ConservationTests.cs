@@ -538,7 +538,7 @@ public class ConservationTests
         var coef = new Coefficients { ColonizeSubmitRatio = 0 };   // 屈服線0＝必ず屈服（戦争にしない）
         var sim = new MultiNationSim([WorldData.ByName("日本")], seed: 1789, coef: coef);
         var jp = sim.Nations[0].World;
-        var ezo = new Power { Id = sim.Diplomacy.Powers.Max(p => p.Id) + 1, Name = "蝦夷地", BaseName = "蝦夷地", Military = 0.2, GdpPerMonth = 0, TradeWeight = 0.0 };
+        var ezo = new Power { Id = sim.Diplomacy.Powers.Max(p => p.Id) + 1, Name = "蝦夷地", BaseName = "蝦夷地", Military = 0.2, GdpPerMonth = new MoneyPerMonth(0), TradeWeight = 0.0 };
         var cc = Geo.ColonyCoord("蝦夷地");
         var col = new Colony { Name = "蝦夷地", Resources = [Catalog.FishId, Catalog.TimberId], Population = 25 / sim.Diplomacy.ColonyUnitPop, PopSize = 25, Latitude = cc.Lat, Longitude = cc.Lon };
         ezo.ColonyList.Add(col);
@@ -881,7 +881,7 @@ public class ConservationTests
             foreach (var x in w.Regions) { x.LastTradeThrottle = 1.0; x.LastPortThroughput = 0; }
             var port = w.Regions.Find(x => x.State == RegionState.Active && x.IsPort && x.InvestorPopIndex >= 0)!;
             port.LastTradeThrottle = 0; port.LastPortThroughput = 1000;
-            w.FiscalFundingRatio = r; w.FiscalCapacityPerMonth = 100;
+            w.FiscalFundingRatio = r; w.FiscalCapacityPerMonth = new MoneyPerMonth(100);
             double invSav = port.Pops[port.InvestorPopIndex].Savings;
             double want = w.AdminSpending * w.Coef.PortStateFrac * 100 * Calendar.MonthsPerQuarter * r;   // 単独の混雑した港＝取扱高の比 1
             double oldWay = 0.5 * 0.04 * invSav * r;   // 旧式＝PortStateFrac(0.5)×資本家の投資(PortInvestFrac 0.04×投資家の貯蓄)×r
@@ -915,7 +915,7 @@ public class ConservationTests
             {
                 w.Coef.PortStateFrac = frac; w.Discovered[Discovery.SteamRow] = true;
                 foreach (var x in w.Regions) { x.LastTradeThrottle = 0; x.LastPortThroughput = x.IsPort ? 1000 : 0; }
-                w.FiscalCapacityPerMonth = 1e6;
+                w.FiscalCapacityPerMonth = new MoneyPerMonth(1e6);
                 sim.StepDay();
             }
             return w.TreasuryLedger[(int)TreasuryCat.Devalue] - b0;   // 払えない額（請求−払える額）は借りられない国（英は利払いが歳入を食う）では切り下げ（インフレ税）で払える額へ入れる＝請求が大きいほど切り下げが大きい
