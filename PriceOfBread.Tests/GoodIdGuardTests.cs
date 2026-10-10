@@ -199,41 +199,61 @@ public class GoodIdGuardTests
     // ② C# の数字の直書き
     // ─────────────────────────────────────────────────────────────────────────────
 
-    /// <summary>許可リスト＝（リポジトリからの相対パス, 一致した文字列）。**数ではなく中身で固定**する＝1つ消えて1つ増えた入れ替えも赤（リストにあるのに当たらない行も赤＝古い許可は消す）。
-    /// ⚠ここに足すのは「財の番号ではない」ものだけ（理由を1行ずつ）。財の番号は Catalog の定数（…Id）で書く。誤検出は正規表現の側で外す（外した型は「検出器は財でない形に当たらない」に並べる）。</summary>
-    private static readonly (string File, string Text, string Why)[] Allowed =
+    /// <summary>許可リスト＝（リポジトリからの相対パス, 一致した文字列, 出現の数）。**中身と数で固定**する＝1つ消えて1つ増えた入れ替えも、許可済みと同じ文字列の2つ目も赤（リストにあるのに当たらない行・数が減った行も赤＝古い許可は直す）。
+    /// ⚠ここに足すのは「財の番号ではない」ものだけ（理由を1行ずつ）。財の番号は Catalog の定数（…Id）で書く。誤検出は正規表現の側で外す（外した型は「検出器は財でない形に当たらない」に並べる）。
+    /// ★(251) 反証役 vg#4：旧は（ファイル, 文字列）の集合で照合していた＝同じファイルの同じ文字列の2つ目（Simulation.cs のもう1つの <c>home.Markets[1]</c> など）が通った＝出現の数を足した。</summary>
+    private static readonly (string File, string Text, int Count, string Why)[] Allowed =
     [
-        ("PriceOfBread.SimCore/Simulation.cs", "home.Markets[0]", "Snapshot の既定（玩具の世界の食料＝0）。実世界では直後の主食探しが上書きする（監査 G03#4 の是正済み）"),
-        ("PriceOfBread.SimCore/Simulation.cs", "home.Markets[1]", "TurnSnapshot.ManufPrice＝読み手の無い欄（玩具の世界の工業品＝1・実世界では石炭を読む）＝死んだ欄（00一覧 00-R2 の報告に記録）"),
-        ("PriceOfBread.Runner/Program.cs", "(8, \"\"", "助走の長さ（四半期）の見出しの組（財ではない）"),
-        ("PriceOfBread.Runner/Program.cs", "(16, \"\"", "同上"),
-        ("PriceOfBread.Runner/Program.cs", "(24, \"\"", "同上"),
-        ("PriceOfBread.Runner/Program.cs", "(44, \"\"", "同上"),
-        ("PriceOfBread.Runner/Program.cs", "(84, \"\"", "同上"),
-        ("PriceOfBread.Runner/Program.cs", "(204, \"\"", "同上"),
-        ("PriceOfBread.Runner/Program.cs", "new[] { 0, 8, 40, 80, 200, 320, 400 }", "診断の掃引に使う四半期の並び（財ではない）"),
-        ("PriceOfBread.Runner/Program.cs", "new[] { 4, 100, 200, 320, 440 }", "同上"),
-        ("PriceOfBread.Runner/Program.cs", "new[] { 0, 4, 8, 12, 16, 20, 24, 30, 40 }", "同上"),
-        ("PriceOfBread.Runner/Program.cs", "new[] { 8, 40, 120, 240, 400 }", "同上"),
+        ("PriceOfBread.SimCore/Simulation.cs", "home.Markets[0]", 1, "Snapshot の既定（玩具の世界の食料＝0）。実世界では直後の主食探しが上書きする（監査 G03#4 の是正済み）"),
+        ("PriceOfBread.SimCore/Simulation.cs", "home.Markets[1]", 1, "TurnSnapshot.ManufPrice＝読み手の無い欄（玩具の世界の工業品＝1・実世界では石炭を読む）＝死んだ欄（00一覧 00-R2 の報告に記録）"),
+        ("PriceOfBread.Runner/Program.cs", "(8, \"\"", 1, "助走の長さ（四半期）の見出しの組（財ではない）"),
+        ("PriceOfBread.Runner/Program.cs", "(16, \"\"", 1, "同上"),
+        ("PriceOfBread.Runner/Program.cs", "(24, \"\"", 1, "同上"),
+        ("PriceOfBread.Runner/Program.cs", "(44, \"\"", 1, "同上"),
+        ("PriceOfBread.Runner/Program.cs", "(84, \"\"", 1, "同上"),
+        ("PriceOfBread.Runner/Program.cs", "(204, \"\"", 1, "同上"),
+        ("PriceOfBread.Runner/Program.cs", "new[] { 0, 8, 40, 80, 200, 320, 400 }", 1, "診断の掃引に使う四半期の並び（財ではない）"),
+        ("PriceOfBread.Runner/Program.cs", "new[] { 4, 100, 200, 320, 440 }", 1, "同上"),
+        ("PriceOfBread.Runner/Program.cs", "new[] { 0, 4, 8, 12, 16, 20, 24, 30, 40 }", 1, "同上"),
+        ("PriceOfBread.Runner/Program.cs", "new[] { 8, 40, 120, 240, 400 }", 2, "同上"),
+        ("PriceOfBread.Runner/Program.cs", "watch = [5, 2, 6, 3, 4, 1]", 1, "chaintrace＝連鎖の玩具の世界（ScenarioKind.ProductionChain）の財の番号（木5・木材2・鉄鉱石6・鉄3・鉄鋼4・家具1）＝Catalog の財の番号ではない"),
     ];
 
     /// <summary>玩具の世界（Simulation.cs の「◆玩具の世界ここから／ここまで」の間＝単一州の最小シナリオ）の中だけで許す物。財の番号がシナリオの中だけの番号で、Catalog の財の番号ではない。
     /// 範囲の外に同じ文字列が現れても許さない（範囲の外は <see cref="Allowed"/> だけ）。</summary>
-    private static readonly (string File, string Text, string Why)[] ToyAllowed =
+    private static readonly (string File, string Text, int Count, string Why)[] ToyAllowed =
     [
-        ("PriceOfBread.SimCore/Simulation.cs", "GoodId = 0", "玩具の世界の食料"),
-        ("PriceOfBread.SimCore/Simulation.cs", "GoodId = 1", "玩具の世界の工業品・家具"),
-        ("PriceOfBread.SimCore/Simulation.cs", "GoodId = 2", "玩具の世界の製材"),
-        ("PriceOfBread.SimCore/Simulation.cs", "GoodId = 3", "玩具の世界の鉄"),
-        ("PriceOfBread.SimCore/Simulation.cs", "GoodId = 4", "玩具の世界の鋼"),
-        ("PriceOfBread.SimCore/Simulation.cs", "GoodId = 5", "玩具の世界の木材"),
-        ("PriceOfBread.SimCore/Simulation.cs", "GoodId = 6", "玩具の世界の鉱石"),
-        ("PriceOfBread.SimCore/Simulation.cs", "new Input(2,", "玩具の世界の投入（製材）"),
-        ("PriceOfBread.SimCore/Simulation.cs", "new Input(3,", "玩具の世界の投入（鉄）"),
-        ("PriceOfBread.SimCore/Simulation.cs", "new Input(4,", "玩具の世界の投入（鋼）"),
-        ("PriceOfBread.SimCore/Simulation.cs", "new Input(5,", "玩具の世界の投入（木材）"),
-        ("PriceOfBread.SimCore/Simulation.cs", "new Input(6,", "玩具の世界の投入（鉱石）"),
+        ("PriceOfBread.SimCore/Simulation.cs", "GoodId = 0", 6, "玩具の世界の食料"),
+        ("PriceOfBread.SimCore/Simulation.cs", "GoodId = 1", 3, "玩具の世界の工業品・家具"),
+        ("PriceOfBread.SimCore/Simulation.cs", "GoodId = 2", 1, "玩具の世界の製材"),
+        ("PriceOfBread.SimCore/Simulation.cs", "GoodId = 3", 1, "玩具の世界の鉄"),
+        ("PriceOfBread.SimCore/Simulation.cs", "GoodId = 4", 1, "玩具の世界の鋼"),
+        ("PriceOfBread.SimCore/Simulation.cs", "GoodId = 5", 1, "玩具の世界の木材"),
+        ("PriceOfBread.SimCore/Simulation.cs", "GoodId = 6", 1, "玩具の世界の鉱石"),
+        ("PriceOfBread.SimCore/Simulation.cs", "new Input(2,", 1, "玩具の世界の投入（製材）"),
+        ("PriceOfBread.SimCore/Simulation.cs", "new Input(3,", 1, "玩具の世界の投入（鉄）"),
+        ("PriceOfBread.SimCore/Simulation.cs", "new Input(4,", 1, "玩具の世界の投入（鋼）"),
+        ("PriceOfBread.SimCore/Simulation.cs", "new Input(5,", 1, "玩具の世界の投入（木材）"),
+        ("PriceOfBread.SimCore/Simulation.cs", "new Input(6,", 1, "玩具の世界の投入（鉱石）"),
     ];
+
+    /// <summary>許可の照合（数つき）：当たりを（ファイル, 文字列）で数え、許可の数と違えば名指しする。extra＝許可に無いか許可の数を超えた当たり・stale＝許可にあるのに当たりが許可の数より少ない行。</summary>
+    private static (List<string> Extra, List<string> Stale) CompareCounted(IReadOnlyList<Hit> hits, IEnumerable<(string File, string Text, int Count, string Why)> allowed)
+    {
+        var allow = allowed.ToDictionary(a => (a.File, a.Text), a => a.Count);
+        var extra = new List<string>(); var stale = new List<string>();
+        foreach (var grp in hits.GroupBy(h => (h.File, h.Text)))
+        {
+            int n = grp.Count(), ok = allow.GetValueOrDefault(grp.Key);
+            if (n > ok) extra.Add($"{grp.First().File}:{string.Join(",", grp.Select(h => h.Line))}［{grp.First().Rule}］{(grp.Key.Text.Length > 160 ? grp.Key.Text[..160] + "…" : grp.Key.Text)}（{n} 件・許可 {ok}）");
+        }
+        foreach (var (key, cnt) in allow)
+        {
+            int n = hits.Count(h => (h.File, h.Text) == key);
+            if (n < cnt) stale.Add($"{key.File}［{key.Text}］（当たり {n} 件・許可 {cnt}）");
+        }
+        return (extra, stale);
+    }
 
     /// <summary>この規則はこのファイルでだけ許す（定義の表そのもの）。</summary>
     private static readonly (string Rule, string File)[] RuleFiles =
@@ -241,7 +261,8 @@ public class GoodIdGuardTests
         ("const int …Id = n", "PriceOfBread.SimCore/Catalog.cs"),   // 財の番号の定義（128 本・①の表と goods.json が検査する）
     ];
 
-    private sealed record Hit(string File, int Line, string Rule, string Text);
+    /// <summary>当たり1件。Pos＝走査した文字列の中の位置（同じ位置の同じ文字列に2つの規則が当たったら1件に数える）。</summary>
+    private sealed record Hit(string File, int Line, string Rule, string Text, int Pos);
 
     /// <summary>コメントと文字列・文字を消す（改行は残す＝行番号を保つ）。補間文字列の穴の中身も消す（穴の中の直書きは見ない＝限界）。</summary>
     internal static string StripCode(string src)
@@ -319,7 +340,9 @@ public class GoodIdGuardTests
         ("I(n, …)", new Regex(@"\bI\(\s*\d+\s*,")),
         ("new Input(n, …)", new Regex(@"\bnew Input\(\s*\d+\s*,")),
         ("GoodId の比較・代入", new Regex(@"\b\w*(?:GoodId|Good|Gid|gid|goodId)\s*(?:==|!=|=(?![=>]))\s*\d+\b")),
-        ("財ごとの表の添字", new Regex(@"(?<!\w)(?:[\w.]+\.)?(?:Markets|RefPrices|Complexity|Goods|Prices|Stocks?|Imports|Exports)\s*\[\s*\d+\s*\]")),
+        // ★(251) 反証役 vg#2：財の定数で添字を引いている財ごとの配列の名前を足した（今の木で `名前[Catalog.…Id]` を集めて2回以上の名前＝ration 19・clearPrice 17・revenue 14・investDemand 7・militaryDemand 5・Price 5・inputNeed 3・produced 2・StateMonopolyMargins）。
+        //   ⚠限界＝名前の一覧に無い配列（1回しか使わない px・wp0 などの局所の名前・新しい配列）の数字の添字は見えない（README §1-9）。
+        ("財ごとの表の添字", new Regex(@"(?<!\w)(?:[\w.]+\.)?(?:Markets|markets|RefPrices|Complexity|Goods|Prices|Stocks?|Imports|Exports|ration|clearPrice|revenue|investDemand|militaryDemand|Price|inputNeed|produced|StateMonopolyMargins)\s*\[\s*\d+\s*\]")),
         ("財の変数 == n", new Regex(@"\b" + GoodIsh + @"\s*(?:==|!=)\s*\d+\b")),
         ("n == 財の変数", new Regex(@"\b\d+\s*(?:==|!=)\s*" + GoodIsh + @"\b")),
         ("財の変数 is n", new Regex(@"\b" + GoodIsh + @"\s+is\s+(?:not\s+)?\d+(?:\s+or\s+\d+)*")),
@@ -333,7 +356,11 @@ public class GoodIdGuardTests
         ("const int …Id = n", new Regex(@"\bconst\s+int\s+\w+Id\s*=\s*\d+")),
     ];
 
-    private static readonly Regex GoodArray = new(@"\b\w*(?i:goods?|goodids?|ids|gids?|resources|fuels?|metals?|weapons?|staples?|crops?)\s*=\s*(?:new\s*(?:\w+(?:<\w+>)?)?\s*(?:\[\s*\]\s*)?)?[\[{]([^\]}]*)[\]}]|ColonyDto\([^,()]*,\s*\[([^\]]*)\]");
+    // ★(251) 反証役 vg#3：今の木で財の定数だけを並べている一覧の名前（Runner の reps・watch・milTrace／DiploCore の StapleExtra／PolicyPoliticsTests の excise）を足した。
+    //   名前に依らない検出は下の「初期化子に財の定数と整数が混ざる」（{ WheatId, 47 } の形）。⚠限界＝名前が一覧に無く、要素が全て整数の新しい配列は見えない（README §1-9）。
+    private static readonly Regex GoodArray = new(@"\b\w*(?i:goods?|goodids?|ids|gids?|resources|fuels?|metals?|weapons?|staples?|crops?|reps|watch|miltrace|stapleextra|excise)\s*=\s*(?:new\s*(?:\w+(?:<\w+>)?)?\s*(?:\[\s*\]\s*)?)?[\[{]([^\]}]*)[\]}]|ColonyDto\([^,()]*,\s*\[([^\]]*)\]");
+    /// <summary>入れ子の無い初期化子 [ … ]・{ … } の中身（要素をカンマで分けて、財の定数と裸の整数が混ざるかを見る）。</summary>
+    private static readonly Regex FlatInit = new(@"[\[{]([^\[\]{}]*)[\]}]");
     private static readonly Regex IntToken = new(@"(?<![\w.])\d+(?![\w.])");
     private static readonly Regex IsChain = new(@"\bis\s+(?:not\s+)?[\w.]+(?:\s+or\s+[\w.]+)*");
     private static readonly Regex GoodConstToken = new(@"^(?:Catalog\.)?[A-Z]\w*Id$");
@@ -342,22 +369,44 @@ public class GoodIdGuardTests
 
     private static string Norm(string s) => Regex.Replace(s.Trim(), @"\s+", " ");
 
+    /// <summary>括弧（丸・角・波）の外のカンマで分ける（初期化子の要素）。</summary>
+    private static string[] TopLevelSplit(string s)
+    {
+        var parts = new List<string>(); int depth = 0, start = 0;
+        for (int i = 0; i < s.Length; i++)
+        {
+            char c = s[i];
+            if (c is '(' or '[' or '{') depth++;
+            else if (c is ')' or ']' or '}') depth--;
+            else if (c == ',' && depth == 0) { parts.Add(s[start..i].Trim()); start = i + 1; }
+        }
+        parts.Add(s[start..].Trim());
+        return parts.ToArray();
+    }
+
     private static IEnumerable<Hit> ScanCode(string file, string stripped)
     {
         int Ln(int idx) { int l = 1; for (int k = 0; k < idx; k++) if (stripped[k] == '\n') l++; return l; }
         foreach (var (rule, rx) in Rules)
             foreach (Match m in rx.Matches(stripped))
-                yield return new Hit(file, Ln(m.Index), rule, Norm(m.Value));
+                yield return new Hit(file, Ln(m.Index), rule, Norm(m.Value), m.Index);
         // 財の一覧・賦存の配列：要素に整数がある（0.5 のような小数の列は財の番号ではない）
         foreach (Match m in GoodArray.Matches(stripped))
             if (IntToken.IsMatch(m.Groups[1].Success ? m.Groups[1].Value : m.Groups[2].Value))
-                yield return new Hit(file, Ln(m.Index), "財の一覧・賦存の配列", Norm(m.Value));
+                yield return new Hit(file, Ln(m.Index), "財の一覧・賦存の配列", Norm(m.Value), m.Index);
+        // 初期化子に「…Id の定数」と整数が混ざる（財の一覧に番号が1つ紛れた形・名前に依らない＝(251) vg#3）
+        foreach (Match m in FlatInit.Matches(stripped))
+        {
+            var toks = TopLevelSplit(m.Groups[1].Value);   // 要素の区切りは括弧の外のカンマだけ（new(…, LaborId, …, 1780) の中の引数は要素ではない）
+            if (toks.Any(t => GoodConstToken.IsMatch(t)) && toks.Any(t => Regex.IsMatch(t, @"^\d+$")))
+                yield return new Hit(file, Ln(m.Index), "初期化子に財の定数と整数", Norm(m.Value), m.Index);
+        }
         // is の連なりに「…Id の定数」と整数が混ざる（財の集合の判定に番号が1つ紛れた形）
         foreach (Match m in IsChain.Matches(stripped))
         {
             var toks = m.Value.Substring(2).Split(new[] { "or" }, StringSplitOptions.None).Select(t => t.Replace("not", "").Trim()).ToArray();
             if (toks.Any(t => GoodConstToken.IsMatch(t)) && toks.Any(t => Regex.IsMatch(t, @"^\d+$")))
-                yield return new Hit(file, Ln(m.Index), "is の連なりに定数と整数", Norm(m.Value));
+                yield return new Hit(file, Ln(m.Index), "is の連なりに定数と整数", Norm(m.Value), m.Index);
         }
         // 財で分岐する switch（式・文）の腕の先頭の整数
         foreach (Match m in Switch.Matches(stripped))
@@ -368,7 +417,7 @@ public class GoodIdGuardTests
             for (; end < stripped.Length; end++) { if (stripped[end] == '{') depth++; else if (stripped[end] == '}' && --depth == 0) break; }
             string body = stripped.Substring(open, Math.Min(end, stripped.Length - 1) - open + 1);
             foreach (Match a in NumToken.Matches(body))
-                yield return new Hit(file, Ln(open + a.Index), "財の switch の整数の腕", Norm($"{gov} switch … {a.Value}"));
+                yield return new Hit(file, Ln(open + a.Index), "財の switch の整数の腕", Norm($"{gov} switch … {a.Value}"), open + a.Index);
         }
     }
 
@@ -385,20 +434,25 @@ public class GoodIdGuardTests
     }
 
     /// <summary>単一州の最小シナリオ（財の番号がシナリオの中だけ＝Catalog の財の番号ではない）の印。SimCore では範囲の中の当たりを <see cref="ToyAllowed"/> で固定する。
-    /// テストは印のあるファイル（ChainTests など＝シナリオの中だけを使う）を対象外にする。</summary>
+    /// テストは <see cref="ToyTestFiles"/> の名前のファイル（シナリオの中だけを使う）を対象外にする。</summary>
     private const string ToyStart = "◆玩具の世界ここから", ToyEnd = "◆玩具の世界ここまで";
+
+    /// <summary>丸ごと対象外にするテストのファイル（単一州の最小シナリオだけを使う）。★(251) 反証役 vg#5：旧は「印の文字列を含むファイル」を丸ごと外していた＝印を定数で持つこのファイル自身や、
+    /// 印にコメントで触れただけのファイルが黙って全行対象外になった＝名前で明示する（印を含むのにこの一覧に無いテストのファイルは赤）。</summary>
+    private static readonly string[] ToyTestFiles = ["PriceOfBread.Tests/ChainTests.cs"];
 
     private static readonly Regex AnyInt = new(@"(?<![\w.])\d+(?![\w.])");
 
     [Fact]
     public void 数値の財idは書かない()
     {
-        var hits = new List<Hit>(); var toyHits = new List<Hit>();
+        var hits = new List<Hit>(); var toyHits = new List<Hit>(); var toyMarked = new List<string>();
         foreach (var (f, rel) in CsFiles())
         {
             string raw = File.ReadAllText(f);
             bool isTest = rel.StartsWith("PriceOfBread.Tests/", StringComparison.Ordinal);
-            if (isTest && raw.Contains(ToyStart)) continue;
+            if (isTest && raw.Contains(ToyStart) && rel != "PriceOfBread.Tests/GoodIdGuardTests.cs") toyMarked.Add(rel);   // このファイルは印を定数で持つだけ
+            if (isTest && ToyTestFiles.Contains(rel)) continue;
             // 玩具の範囲（行番号）：印は文字列の外のコメントにある
             int toyFrom = -1, toyTo = -1, ln = 0;
             foreach (var line in raw.Split('\n')) { ln++; if (toyFrom < 0 && line.Contains(ToyStart)) toyFrom = ln; if (line.Contains(ToyEnd)) toyTo = ln; }
@@ -410,13 +464,14 @@ public class GoodIdGuardTests
                 if (toyFrom > 0 && toyTo > toyFrom && h.Line > toyFrom && h.Line < toyTo) toyHits.Add(h); else hits.Add(h);
             }
         }
-        var found = hits.Select(h => (h.File, h.Text)).ToHashSet();
-        var allowed = Allowed.Select(a => (a.File, a.Text)).ToHashSet();
-        var toyFound = toyHits.Select(h => (h.File, h.Text)).ToHashSet();
-        var toyAllowed = ToyAllowed.Select(a => (a.File, a.Text)).ToHashSet();
-        var extra = hits.Where(h => !allowed.Contains((h.File, h.Text))).Concat(toyHits.Where(h => !toyAllowed.Contains((h.File, h.Text))))
-            .Select(h => $"{h.File}:{h.Line}［{h.Rule}］{h.Text}").Distinct().ToList();
-        var stale = allowed.Where(a => !found.Contains(a)).Concat(toyAllowed.Where(a => !toyFound.Contains(a))).Select(a => $"{a.File}［{a.Text}］").ToList();
+        // 同じ箇所に2つの規則が当たる（例：無名の配列と初期化子の混ざり）ことがある＝（ファイル, 行, 文字列）で1つに数える
+        static List<Hit> Dedup(List<Hit> l) => l.GroupBy(h => (h.File, h.Pos, h.Text)).Select(g => g.First()).ToList();
+        var (e1, s1) = CompareCounted(Dedup(hits), Allowed);
+        var (e2, s2) = CompareCounted(Dedup(toyHits), ToyAllowed);
+        var extra = e1.Concat(e2).ToList();
+        var stale = s1.Concat(s2).ToList();
+        Assert.True(toyMarked.OrderBy(s => s, StringComparer.Ordinal).SequenceEqual(ToyTestFiles.OrderBy(s => s, StringComparer.Ordinal)),
+            "玩具の世界の印を持つテストのファイルと、丸ごと対象外にする一覧 ToyTestFiles が違う：印あり＝" + string.Join("、", toyMarked));
         Assert.True(extra.Count == 0,
             $"財の番号を数字で書いた箇所が {extra.Count} 件＝Catalog の定数（…Id）で書くこと（財を畳む・振り直すと数値は黙って別の財を読む）：" + string.Join(" ／ ", extra.Take(40)));
         Assert.True(stale.Count == 0, $"許可リストにあるのに当たらない行 {stale.Count} 件＝消すこと：" + string.Join(" ／ ", stale.Take(40)));
@@ -436,6 +491,11 @@ public class GoodIdGuardTests
     [InlineData("int[] fuels = [81, 82];")]
     [InlineData("var goodIds = new List<int> { 5 };")]
     [InlineData("foreach (var (gid, gl) in new[] { (15, \"小麦\") }) { }")]
+    [InlineData("double p = clearPrice[54];")]                       // (251) vg#2
+    [InlineData("x += investDemand[47];")]
+    [InlineData("int[] watch = [81, 82];")]                          // (251) vg#3
+    [InlineData("int[] list = { Catalog.WheatId, 47 };")]
+    [InlineData("var l = new[] { 66, CoalId };")]
     public void 検出器は書いてはいけない形に当たる(string code)
         => Assert.NotEmpty(ScanCode("x.cs", StripCode(code)).ToList());
 
@@ -460,13 +520,17 @@ public class GoodIdGuardTests
     // ─────────────────────────────────────────────────────────────────────────────
 
     /// <summary>許可リスト（Python）＝（scripts からの相対パス, 一致した文字列）。⚠足すのは「財の番号ではない」ものだけ（理由を1行）。</summary>
-    private static readonly (string File, string Text, string Why)[] PyAllowed =
+    private static readonly (string File, string Text, int Count, string Why)[] PyAllowed =
     [
+        ("instruments/m208/inj_s208.py", "g == 0", 2, "注入する C# の本位の印（金本位＝0・銀本位＝1・不換＝その他）＝財の番号ではない"),
+        ("instruments/m208/inj_s208.py", "g == 1", 2, "同上"),
     ];
 
     private static readonly (string Rule, Regex Rx)[] PyRules =
     [
-        ("GoodId／good／gid の比較", new Regex(@"\b\w*(?:GoodId|[Gg]ood|[Gg]id)\w*\s*(?:==|!=)\s*\d+")),
+        ("GoodId／good／gid の比較", new Regex(@"\b\w*(?:GoodId|[Gg]ood|[Gg]id)\w*\s*(?:==|!=)\s*['""]?\d+")),
+        // ★(251) 反証役 vg#6：C# の GoodIsh と同じ短い名前（g・id・gi・g2）の比較と、CSV を文字列で読んだときの引用符つきの比較（'54'）。⚠限界＝t[3] == '54' のように名前の無い比較は見えない
+        ("g／id／gi の比較", new Regex(@"\b(?:g|id|gi|g2)\s*(?:==|!=)\s*['""]?\d+")),
         ("財ごとの表の添字", new Regex(@"\b(?:Goods|Markets|RefPrices|Complexity|goods|markets|prices|stocks|ref_prices)\s*\[\s*\d+\s*\]")),
         ("I(n, …)", new Regex(@"\bI\(\s*\d+\s*,")),
         ("new Input(n, …)", new Regex(@"\bnew Input\(\s*\d+\s*,")),
@@ -482,7 +546,7 @@ public class GoodIdGuardTests
             foreach (Match m in rx.Matches(text))
             {
                 int ln = 1; for (int k = 0; k < m.Index; k++) if (text[k] == '\n') ln++;
-                yield return new Hit(file, ln, rule, Norm(m.Value));
+                yield return new Hit(file, ln, rule, Norm(m.Value), m.Index);
             }
     }
 
@@ -502,10 +566,7 @@ public class GoodIdGuardTests
             hits.AddRange(ScanPython(rel, File.ReadAllText(f)));
         }
         Assert.True(files > 100, $"scripts の .py が {files} 本しか見つからない＝検査が空回りしている");
-        var found = hits.Select(h => (h.File, h.Text)).ToHashSet();
-        var allowed = PyAllowed.Select(a => (a.File, a.Text)).ToHashSet();
-        var extra = hits.Where(h => !allowed.Contains((h.File, h.Text))).Select(h => $"{h.File}:{h.Line}［{h.Rule}］{h.Text}").Distinct().ToList();
-        var stale = allowed.Where(a => !found.Contains(a)).Select(a => $"{a.File}［{a.Text}］").ToList();
+        var (extra, stale) = CompareCounted(hits.GroupBy(h => (h.File, h.Pos, h.Text)).Select(g => g.First()).ToList(), PyAllowed);
         Assert.True(extra.Count == 0, $"Python の道具が財の番号を数字で書いている {extra.Count} 件＝instr.good_id(\"名前\") か Catalog の定数で書くこと：" + string.Join(" ／ ", extra.Take(40)));
         Assert.True(stale.Count == 0, $"許可リスト（Python）にあるのに当たらない行 {stale.Count} 件＝消すこと：" + string.Join(" ／ ", stale.Take(40)));
     }
@@ -516,6 +577,9 @@ public class GoodIdGuardTests
     [InlineData("s = 'else if (pr.GoodId == 15) { }'")]
     [InlineData("good_id = 81")]
     [InlineData("for gid in (81, 82, 83, 86): pass")]
+    [InlineData("if g == 54: pass")]
+    [InlineData("if t.gid == '54': pass")]
+    [InlineData("if id != 81: pass")]
     public void Pythonの検出器は書いてはいけない形に当たる(string code)
         => Assert.NotEmpty(ScanPython("x.py", code).ToList());
 
@@ -585,7 +649,7 @@ public class GoodIdGuardTests
     ];
 
     /// <summary>各国の「象徴的主食」（culturalGoodId・world.json は番号）の、財の名前ごとの国の数。</summary>
-    private static readonly (string Good, int Nations)[] ExpectedCulturalGoods =
+    private static readonly (string Good, int Nations)[] ExpectedCulturalGoodNations =
     [
         ("コーヒー", 2),
         ("チーズ", 1),
@@ -595,6 +659,18 @@ public class GoodIdGuardTests
         ("米", 18),
         ("茶", 1),
         ("蒸留酒", 2),
+    ];
+
+    /// <summary>能動侵略の標的の植民地（賦存のある物だけ・world.json の順）の財の名前の並び。**手で書いた表**（(251) に今の world.json から書き起こし、産地が史実に合うか目で確かめた：
+    /// 琉球の砂糖・カリフォルニアの金・ボルネオの石油・マレーの錫とゴム・南アフリカの金と銅）。賦存の無い標的（大盆地・スーダンほか 15）は並べない。</summary>
+    private static readonly (string Colony, string Goods)[] ExpectedTargetResources =
+    [
+        ("琉球", "サトウキビ・染料・漁獲"),
+        ("アルタ=カリフォルニア", "金・麦・畜産・木"),
+        ("ボルネオ", "生ゴム・原油・香辛料・木"),
+        ("マレー", "香辛料・生ゴム・錫鉱"),
+        ("南アフリカ", "金・銅鉱・畜産"),
+        ("パナマ", "木"),
     ];
 
     [Fact]
@@ -614,10 +690,15 @@ public class GoodIdGuardTests
             foreach (var col in c.InitialColonies) foreach (var g in col.Resources) Add(res, g);
             if (c.CulturalGoodId >= 0) Add(cul, c.CulturalGoodId);
         }
+        // ★(251) 反証役 vg#1：能動侵略の標的（world.json の abstractTargets[].colonies[].resources・MultiNationSim が標的の賦存に使う）も財の番号＝植民地ごとに名前の並びで固定する
+        var targets = WorldData.Setup().Targets.SelectMany(t => t.Colonies.Where(c => c.Resources.Length > 0)
+            .Select(c => (Colony: c.Name, Goods: string.Join("・", c.Resources.Select(id => { Assert.True(id >= 0 && id < Catalog.Goods.Length, $"標的 {c.Name} の財の番号 {id} が範囲の外"); return Catalog.Goods[id].Name; }))))).ToList();
+        Assert.True(targets.SequenceEqual(ExpectedTargetResources),
+            "能動侵略の標的の賦存（植民地ごとの財の名前の並び）が表と違う：" + string.Join("、", targets.Select(t => $"(\"{t.Colony}\", \"{t.Goods}\")")));
         string Show(SortedDictionary<string, int> d) => string.Join("、", d.Select(kv => $"(\"{kv.Key}\", {kv.Value})"));
         Assert.True(res.OrderBy(kv => kv.Key, StringComparer.Ordinal).SequenceEqual(ExpectedResourceCounts.Select(e => new KeyValuePair<string, int>(e.Good, e.Count)).OrderBy(kv => kv.Key, StringComparer.Ordinal)),
             "賦存の個数（財の名前ごと）が表と違う：" + Show(res));
-        Assert.True(cul.OrderBy(kv => kv.Key, StringComparer.Ordinal).SequenceEqual(ExpectedCulturalGoods.Select(e => new KeyValuePair<string, int>(e.Good, e.Nations)).OrderBy(kv => kv.Key, StringComparer.Ordinal)),
+        Assert.True(cul.OrderBy(kv => kv.Key, StringComparer.Ordinal).SequenceEqual(ExpectedCulturalGoodNations.Select(e => new KeyValuePair<string, int>(e.Good, e.Nations)).OrderBy(kv => kv.Key, StringComparer.Ordinal)),
             "象徴的主食の国の数（財の名前ごと）が表と違う：" + Show(cul));
     }
 }

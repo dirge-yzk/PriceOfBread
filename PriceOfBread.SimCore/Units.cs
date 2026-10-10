@@ -135,7 +135,8 @@ public readonly record struct MoneyPerYear(double Value) : IUnitValue, IFormatta
     public string ToString(string? format, IFormatProvider? formatProvider) => Value.ToString(format, formatProvider);
 }
 
-/// <summary>在庫のお金（ある時点の残高：国庫・国債の残高・貯蓄）。MoneyStock どうしの加減・スカラー倍・比だけが書ける。流れ（MoneyPerMonth）との加減は書けない＝1か月分を足すときは Calendar.OneMonthOf を通す。</summary>
+/// <summary>在庫のお金（ある時点の残高：国庫・国債の残高・貯蓄）。MoneyStock どうしの加減・スカラー倍・比だけが書ける。流れ（MoneyPerMonth）との加減は書けない＝Pop の月末の精算は Calendar.OneMonthOf を通す。
+/// ⚠コンストラクタは public＝double の継ぎ目（World.Pay／Transfer・国家の月末の精算 SettleStateSpent・利子の繰り入れ）は型で守っていない（(251) 反証役 vm#1・件数は UnitTypeTests のラチェット）。</summary>
 public readonly record struct MoneyStock(double Value) : IUnitValue, IFormattable, IComparable<MoneyStock>
 {
     public static MoneyStock operator +(MoneyStock a, MoneyStock b) => new(a.Value + b.Value);

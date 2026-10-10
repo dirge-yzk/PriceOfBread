@@ -21,7 +21,7 @@ public static class Calendar
     // 量の単位は月（市場の刻みだけ日）・四半期は「3か月ごと」の実行の刻み・年は史実との比較の入口と出口（係数の出典・計器・画面）。
     // ⚠名前は「何あたりの量を何あたりへ直すか」＝割り算と掛け算を裸で書かない。中身は呼び元が書いていた式そのまま（1回の除算か乗算＝丸めを変えない）。
     // ⚠合成するときは1本ずつ通す（PerYearToPerMonth(PerQuarterToPerYear(x)) は x×4÷12 であって x÷3 とビット一致するとは限らない）。
-    // ⚠流れ（円/月）にも率（/月）にも同じ関数を使う＝掛け算と割り算の向きが同じため。在庫（残高）は換算しない（月と年を掛け割りしない）。唯一の例外は <see cref="OneMonthOf"/>＝1か月分の流れを在庫の型へ直す1本（月の決算が貯蓄へ足す所だけ・掛け算も丸めも無い）。
+    // ⚠流れ（円/月）にも率（/月）にも同じ関数を使う＝掛け算と割り算の向きが同じため。在庫（残高）は換算しない（月と年を掛け割りしない）。例外は <see cref="OneMonthOf"/>＝1か月分の流れを在庫の型へ直す1本（Pop の月末の精算が貯蓄へ足す所・掛け算も丸めも無い）。⚠double を受ける継ぎ目（World.Pay／Transfer の額・MoneyStock のコンストラクタ）は型で守っていない（(251) 反証役 vm#1）。
     public static double PerYearToPerMonth(double perYear) => perYear / MonthsPerYear;
     public static double PerMonthToPerYear(double perMonth) => perMonth * MonthsPerYear;
     public static double PerQuarterToPerMonth(double perQuarter) => perQuarter / MonthsPerQuarter;
@@ -35,7 +35,8 @@ public static class Calendar
     public static RatePerYear PerMonthToPerYear(RatePerMonth perMonth) => new(PerMonthToPerYear(perMonth.Value));
     public static MoneyPerMonth PerYearToPerMonth(MoneyPerYear perYear) => new(PerYearToPerMonth(perYear.Value));
     public static MoneyPerYear PerMonthToPerYear(MoneyPerMonth perMonth) => new(PerMonthToPerYear(perMonth.Value));
-    /// <summary>月の決算：1か月分の流れ（円/月）を、在庫（残高）へ足す量（円）に直す。在庫＋流れの暗黙の演算子は無い＝在庫へ足すのはこの1本だけを通す（中身は値をそのまま包む＝掛け算も丸めも無い）。</summary>
+    /// <summary>月の決算：1か月分の流れ（円/月）を、在庫（残高）へ足す量（円）に直す。在庫＋流れの暗黙の演算子は無い＝Pop の月末の精算（SettleMonth）が貯蓄へ足すのはこの1本を通す（中身は値をそのまま包む＝掛け算も丸めも無い）。
+    /// ⚠型が守るのは演算子だけ＝double を受ける継ぎ目（World.Pay／Transfer の額・MoneyStock のコンストラクタ）は通らない：国家の月末の精算（World.SettleStateSpent）と未払いの利子の元本への繰り入れ（Fiscal）はそちらを通る（(251) 反証役 vm#1・コンストラクタの件数は UnitTypeTests のラチェット）。</summary>
     public static MoneyStock OneMonthOf(MoneyPerMonth perMonth) => new(perMonth.Value);
     /// <summary>期間の換算（年数→月数）。割合の換算ではない。</summary>
     public static double YearsToMonths(double years) => years * MonthsPerYear;

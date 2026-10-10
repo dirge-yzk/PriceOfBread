@@ -291,6 +291,24 @@ public class UnitTypeTests
         Assert.Contains(runner, l => l.Contains("done.Add(co); fi.SetValue(co, UnitValues.FromDouble(fi.FieldType, 0.0))"));   // chronicle --zero
     }
 
+    /// <summary>★(251) 反証役 vm#1：在庫の型（MoneyStock）は public のコンストラクタで double から作れる＝`new MoneyStock(flow.Value)` と書けば OneMonthOf を通らずに流れを在庫へ足せる
+    /// （国家の月末の精算 World.SettleStateSpent・未払いの利子の元本への繰り入れが今この形）。型では止められない＝SimCore の `new MoneyStock(` の件数を宣言の数に固定する（ラチェット）。
+    /// 増やすコミットは、その行が在庫の値を作る所（残高の設定・取引の額の受け入れ・通貨の換算）であって月の流れの決算ではないことを確かめて、数を上げて理由を書く。
+    /// ⚠限界＝目的の型から推す `new(…)`（MoneyStock の欄への代入）は文字列で数えられない。</summary>
+    [Fact]
+    public void 在庫のお金をdoubleから作る所の数は宣言のとおり()
+    {
+        const int Declared = 48;   // 2026-10-11 (251)：Simulation 30・Fiscal 6・Model 6・World 3・MultiNationSim 3
+        var dir = System.IO.Path.Combine(RepoRoot(), "PriceOfBread.SimCore");
+        var per = System.IO.Directory.EnumerateFiles(dir, "*.cs", System.IO.SearchOption.AllDirectories)
+            .Where(f => !f.Replace('\\', '/').Contains("/obj/") && !f.Replace('\\', '/').Contains("/bin/"))
+            .Select(f => (File: System.IO.Path.GetFileName(f), N: System.Text.RegularExpressions.Regex.Matches(GoodIdGuardTests.StripCode(System.IO.File.ReadAllText(f)), @"\bnew\s+MoneyStock\s*\(").Count))
+            .Where(x => x.N > 0).OrderBy(x => x.File, StringComparer.Ordinal).ToList();
+        int total = per.Sum(x => x.N);
+        Assert.True(total == Declared, $"SimCore の `new MoneyStock(` が {total} 件（宣言 {Declared}）：" + string.Join("、", per.Select(x => $"{x.File} {x.N}"))
+            + "＝増えたなら月の流れを在庫へ直に足していないか確かめる（Pop の月末の精算は Calendar.OneMonthOf）・減ったなら宣言を下げる");
+    }
+
     private static string RepoRoot([System.Runtime.CompilerServices.CallerFilePath] string self = "")
         => System.IO.Path.GetDirectoryName(System.IO.Path.GetDirectoryName(self))!;
 }

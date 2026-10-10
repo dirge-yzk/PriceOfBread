@@ -6884,7 +6884,7 @@ if (args.Length > 0 && args[0] == "milfund")
         var w = n.World; var r = w.Region; var coef = w.Coef;
         double estCost = EconomyStep.MilitaryProcurementNeed(r, coef);   // 装備の必要額＝エンジンの1本（全4段・発見込み）。旧＝MilitaryUpkeepScale×MilitaryScale の二重掛け（MilitaryScale は Simulation で既に UpkeepScale 込み）・2026-09-11 #1
         double afford = Math.Min(1.0, r.MilitaryAffordRaw);               // エンジンが書いた支払能力（上限÷必要額）を1で切る＝EconomyStep と同じ読み方
-        double dGdp = w.NominalGdpPerMonth.Value > 1e-9 ? w.GovDebt.Value / w.NominalGdpPerMonth.Value : 0;
+        double dGdp = w.NominalGdpPerMonth.Value > 1e-9 ? w.GovDebt.Value / w.NominalGdpPerMonth.Value : 0;   // ⚠在庫（国債の残高）を月の名目GDP で割る＝見出しの「債務/GDP」（年GDP 比）の12倍（(251) 反証役 vm#3・型を外した `.Value` で見えていた・診断だけ・値を直すかは作者の確認＝保留）
         Console.WriteLine($"  {w.SelfPower?.Name,-8} {w.LastRevenuePerMonth,7:F0} {w.LastAdminClaimPerMonth,7:F0} {w.LastInterestPerMonth,7:F0} ｜ {w.GovDebt,9:F0} {dGdp,6:F2} {w.GovBondRatePerYear.Value,5:F2} ｜ {w.FiscalCapacityPerMonth,6:F0} {r.MilitaryBudget,6:F0} {estCost,7:F0} {afford,6:F2} {r.MilitaryEquipFill,6:F2} ｜ {w.SoldierSizeK(),5:F0} {w.MilitarySpending,5:F2}");
     }
     return;
