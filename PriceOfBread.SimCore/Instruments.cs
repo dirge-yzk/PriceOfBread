@@ -202,7 +202,11 @@ public static class Instruments
     // ---------------------------------------------------------------- 四半期の末・断面（SelfPlay.Run が呼ぶ） ----------------------------------------------------------------
 
     static Sink SinkOf(MultiNationSim sim) => Sinks.GetValue(sim, _ => new Sink());
-    static System.IO.StreamWriter Open(string kind, ulong seed) => new(System.IO.Path.Combine(Dir, $"{kind}_s{seed}.tsv"), false, new System.Text.UTF8Encoding(false), 1 << 16);
+    static System.IO.StreamWriter Open(string kind, ulong seed)
+    {
+        System.IO.Directory.CreateDirectory(Dir);   // 環境変数が存在しないディレクトリを指しても試合ごとに落ちない（(244) 反証役 vi1#7）
+        return new(System.IO.Path.Combine(Dir, $"{kind}_s{seed}.tsv"), false, new System.Text.UTF8Encoding(false), 1 << 16);
+    }
 
     /// <summary>断面（開幕 <c>open</c>・助走の直後 <c>warm</c>）：全ての国の階級と在庫の行。開幕は GDP を読まない（構築直後に和を取らない）。</summary>
     internal static void Phase(MultiNationSim sim, ulong seed, string time)

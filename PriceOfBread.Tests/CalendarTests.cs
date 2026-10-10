@@ -48,25 +48,44 @@ public class CalendarTests
         Assert.Equal(Calendar.DaysPerQuarter, Calendar.DaysPerMonth * Calendar.MonthsPerQuarter);
     }
 
-    /// <summary>期間（四半期数→日数・月数）と暦の添字（日→月・日→年）だけが裸の換算で残る＝宣言した数（2026-10-10 (243) の実測 12）。</summary>
-    private const int BareConversionBaseline = 12;
+    /// <summary>期間（四半期数→日数・月数）と暦の添字（日→月・日→年）だけが裸の換算で残る＝ファイルごとに宣言した数
+    /// （2026-10-10 (243) の実測 12 → (244) 合流で被演算子の左右の両方を数えるよう広げ・計器 Instruments.cs の月の添字を足して 15）。
+    /// ⚠数えるのは SimCore の「Calendar の暦の定数を掛けるか割る」形だけ（左右どちらの被演算子でも）。裸のリテラル（*12・/12.0・*4.0）と Runner／App は対象外（12 は暦以外にも多い＝誤検出が多すぎる）。
+    /// ファイルごとの数を見る＝1つ消して別のファイルに1つ足すと赤。</summary>
+    private static readonly System.Collections.Generic.Dictionary<string, int> BareConversionSites = new()
+    {
+        ["Coefficients.cs"] = 1,   // 1950 年の断面の四半期数（期間）
+        ["CrownParliament.cs"] = 1,   // 在任の四半期数÷（年数×4）（期間）
+        ["Diplomacy.cs"] = 1,   // 順位の更新の間隔（四半期数→月数）
+        ["EconomyStep.cs"] = 1,   // 建設期間（四半期数→月数）
+        ["Instruments.cs"] = 1,   // 計器の月の添字（日→月）
+        ["MultiNationSim.cs"] = 3,   // 月の添字・外交の月の通し番号・残部の再併合の期間（年数→四半期数）
+        ["Privileges.cs"] = 1,   // 年の指数平均を月で畳む刻み（1/12 年）
+        ["SelfPlay.cs"] = 1,   // 10 年の窓（四半期数）
+        ["Simulation.cs"] = 2,   // 収穫の年の添字・外交の月の通し番号
+        ["World.cs"] = 3,   // 建設期間（四半期数→日数・月数）
+    };
 
     [Fact]
     public void 量の換算は暦の関数を通す_裸の換算は宣言した数まで()
     {
-        var rx = new Regex(@"[*/]\s*(\(double\))?\s*Calendar\.(MonthsPerYear|MonthsPerQuarter|QuartersPerYear|DaysPerYear|DaysPerMonth|DaysPerQuarter)\b");
+        const string unit = @"Calendar\.(MonthsPerYear|MonthsPerQuarter|QuartersPerYear|DaysPerYear|DaysPerMonth|DaysPerQuarter)\b";
+        var rx = new Regex(@"[*/]\s*(\(double\))?\s*" + unit + "|" + unit + @"\s*[*/]");
         var sites = new System.Collections.Generic.List<string>();
+        var perFile = new System.Collections.Generic.Dictionary<string, int>();
         foreach (var f in Directory.EnumerateFiles(SimCoreDir(), "*.cs"))
         {
-            if (Path.GetFileName(f) == "Calendar.cs") continue;
+            string name = Path.GetFileName(f);
+            if (name == "Calendar.cs") continue;
             foreach (var line in File.ReadLines(f))
             {
                 var code = line; int c = code.IndexOf("//", StringComparison.Ordinal);
                 if (c >= 0) code = code[..c];   // コメントの言及は数えない
-                if (rx.IsMatch(code)) sites.Add(Path.GetFileName(f) + ": " + code.Trim());
+                if (rx.IsMatch(code)) { sites.Add(name + ": " + code.Trim()); perFile[name] = perFile.GetValueOrDefault(name) + 1; }
             }
         }
-        Assert.True(sites.Count <= BareConversionBaseline,
-            $"裸の時間換算が {sites.Count} 箇所（宣言 {BareConversionBaseline}）＝増えている。率・流れの換算は Calendar.PerYearToPerMonth ほかの名前のある関数を通すこと：\n" + string.Join("\n", sites));
+        var over = perFile.Where(kv => kv.Value > BareConversionSites.GetValueOrDefault(kv.Key)).Select(kv => $"{kv.Key} {kv.Value}（宣言 {BareConversionSites.GetValueOrDefault(kv.Key)}）").ToList();
+        Assert.True(over.Count == 0,
+            "裸の時間換算が宣言より多いファイル：" + string.Join("・", over) + "。率・流れの換算は Calendar.PerYearToPerMonth ほかの名前のある関数を通すこと：\n" + string.Join("\n", sites));
     }
 }

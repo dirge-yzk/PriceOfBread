@@ -6389,7 +6389,7 @@ if (args.Length > 0 && args[0] == "initsavprobe")
                 double gdpY = Calendar.PerMonthToPerYear(w.NominalGdpPerMonth);
                 Console.WriteLine($"SUM	{name}	人口千 {popTotal:F0}	年GDP {gdpY:F0}	GDP/人 {(popTotal > 0 ? gdpY / popTotal : 0):F2}	全貯蓄/年GDP {(gdpY > 0 ? savTotal / gdpY : 0):F2}	投資家貯蓄/年GDP {(gdpY > 0 ? CapitalMarket.InvestorSavings(w) / gdpY : 0):F2}	投資家貯蓄/投資家年所得 {(invEarnAll > 0 ? CapitalMarket.InvestorSavings(w) / (invEarnAll * 12) : 0):F1}	投資家年所得/年GDP {(gdpY > 0 ? invEarnAll * 12 / gdpY : 0):F2}	国債/年GDP {(gdpY > 0 ? w.GovDebt / gdpY : 0):F2}	国庫/年GDP {(gdpY > 0 ? w.Treasury / gdpY : 0):F3}");
             }
-            Console.WriteLine($"{name}	人口(千) {popTotal:F0}	名目GDP(年) {w.NominalGdpPerMonth * 4:F0}	国庫 {w.Treasury:F0}	国債 {w.GovDebt:F0}	全貯蓄 {savTotal:F0}	投資家貯蓄(述語) {invSav:F0}	物価水準 {w.PriceLevel:F3}	Fx {w.FxRate:F3}	基礎貨幣 {w.BaseMoney:F0}	広義 {w.BroadMoney:F0}	与信残高 {w.OutstandingLoans:F0}	収益の月次(投資家) {invEarn:F0}");
+            Console.WriteLine($"{name}	人口(千) {popTotal:F0}	名目GDP(年) {Calendar.PerMonthToPerYear(w.NominalGdpPerMonth):F0}	国庫 {w.Treasury:F0}	国債 {w.GovDebt:F0}	全貯蓄 {savTotal:F0}	投資家貯蓄(述語) {invSav:F0}	物価水準 {w.PriceLevel:F3}	Fx {w.FxRate:F3}	基礎貨幣 {w.BaseMoney:F0}	広義 {w.BroadMoney:F0}	与信残高 {w.OutstandingLoans:F0}	収益の月次(投資家) {invEarn:F0}");
             foreach (var kv in sv.OrderByDescending(x => x.Value))
                 Console.WriteLine($"   {kv.Key,-8}	Size {sz[kv.Key]:F1}	Savings {kv.Value:F0}	(1人あたり {(sz[kv.Key] > 1e-9 ? kv.Value / sz[kv.Key] : 0):F1})	前期所得 {ea[kv.Key]:F1}");
         }

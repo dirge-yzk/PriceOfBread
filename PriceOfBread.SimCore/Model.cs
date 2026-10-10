@@ -652,7 +652,7 @@ public sealed class Producer
     //   生産者はスポット価格でなくこの信念で職を選ぶ＝コブウェブの教科書的減衰（適応的期待）。点火済み（2026-08-22）＝常時書かれる。
     public double LaborWeight;
     /// <summary>実産出（§9-A がゆっくり寄せる状態変数）。★書き込みで版を進める（2026-09-30 (136) 計算量の予算・恒等）：書き込みのたびに、
-    /// この生産者を持つ州の <see cref="Region.GdpVersion"/> を1つ進める＝<see cref="World.Gdp"/> の使い回しを捨てる理由（宛先は <see cref="_siteRegion"/>）。</summary>
+    /// この生産者を持つ州の <see cref="Region.GdpVersion"/> を1つ進める＝<see cref="World.GdpPerMonth"/> の使い回しを捨てる理由（宛先は <see cref="_siteRegion"/>）。</summary>
     public double Output
     {
         get => _output;
@@ -1105,7 +1105,7 @@ public sealed class Region
     [System.NonSerialized] internal Producer[]? StateSites;
     [System.NonSerialized] internal bool SitesDirty;
     /// <summary>★産出の版（2026-09-30 (136) 計算量の予算・恒等）＝この州の生産者の <see cref="Producer.Output"/> が書かれた回数（宛先を付けた生産者だけ・進むだけで戻らない）。
-    /// 読むのは <see cref="World.Gdp"/> の使い回しの判定だけ（版が同じ＝前に和を取った後に産出が1つも書かれていない）。作業領域＝セーブに載らない。</summary>
+    /// 読むのは <see cref="World.GdpPerMonth"/> の使い回しの判定だけ（版が同じ＝前に和を取った後に産出が1つも書かれていない）。作業領域＝セーブに載らない。</summary>
     [System.NonSerialized] internal long GdpVersion;
     /// <summary>印が立っていれば（または未作成なら）2つの一覧を作り直す。作るときに生産者へ宛先（この州）を付ける。</summary>
     internal void EnsureSites()

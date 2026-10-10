@@ -322,7 +322,7 @@ public static class Colonial
     /// <summary>★R1：植民地格の州の月末の精算の後に、輸出作物の大農園の地代（<paramref name="net"/>＝在地の持ち主の口座ごとの符号つきの和・EconomyStep の④が積む）を
     /// 不在地主へ送る（移し方の1本＝在地の口座→首都の投資家・所得にも書く）。国内の売上の地代は④で在地の持ち主の月内の仮勘定に入り、州の月末の精算で貯蓄になる
     /// ＝首都の州はもう精算を終えている（州は順に回る）ので、④で直接首都の投資家の仮勘定へ書くと貯蓄に入らず消える＝精算の後に移す。
-    /// 所得と地代の記録（<see cref="Pop.Earned"/>・<see cref="Pop.LandRent"/>＝課税・票・思想の基数）も在地の口座から不在地主へ移す（金は移し方の1本が動かした額だけ）。
+    /// 所得と地代の記録（<see cref="Pop.EarnedPerMonth"/>・<see cref="Pop.LandRentPerMonth"/>＝課税・票・思想の基数）も在地の口座から不在地主へ移す（金は移し方の1本が動かした額だけ）。
     /// 赤字（負の地代）は不在地主が負う＝逆向きに移す。輸出代金の地代は清算（<see cref="InternationalMarket.PaySales"/>）で直接不在地主へ払う（精算の後の受け取り＝同じ規則）。
     /// 使った <paramref name="net"/> の要素は0へ戻す。</summary>
     internal static void RemitAbsenteeRent(World w, Region r, double[] net)

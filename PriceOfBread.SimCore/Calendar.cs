@@ -17,7 +17,7 @@ public static class Calendar
     public const int StartYear = 1783;                          // ゲーム開始暦年（Scenario.StartYear の既定と一致）
     public const int EndYear = StartYear + Coefficients.GameQuarters / QuartersPerYear;   // 終局暦年＝1950（1783+668/4＝167年＝1950年1月1日に終局）。1914は忠実度の主指標の断面であって終局ではない
 
-    // === 時間の単位の換算（README §1-9・2026-10-10 作者）===
+    // === 時間の単位の換算（README §1-9・2026-10-10＝名前のある関数で換算するのは作者の承認。下の時間の規則〔月・四半期・年の使い分け〕は AI の推奨で作者の承認は未確認）===
     // 量の単位は月（市場の刻みだけ日）・四半期は「3か月ごと」の実行の刻み・年は史実との比較の入口と出口（係数の出典・計器・画面）。
     // ⚠名前は「何あたりの量を何あたりへ直すか」＝割り算と掛け算を裸で書かない。中身は呼び元が書いていた式そのまま（1回の除算か乗算＝丸めを変えない）。
     // ⚠合成するときは1本ずつ通す（PerYearToPerMonth(PerQuarterToPerYear(x)) は x×4÷12 であって x÷3 とビット一致するとは限らない）。
