@@ -795,8 +795,8 @@ public static class Fiscal
     /// ※制度疲労ショック（HadSovereignDefault/SovereignDefaultCount）・信用凍結・正統性はデフォルトの側だけが足す（革命そのものが既に体制転換＝二重計上を避ける）。（旗 RepudiationCreditPenalty は 2026-09-26 に焼き込み）</summary>
     internal static void RepudiateDebt(World w, Coefficients c)
     {
-        w.GovDebt = new MoneyStock(0); w.ForeignDebt = new MoneyStock(0);
-        foreach (var r in w.Regions) foreach (var p in r.Pops) p.BondHoldings = new MoneyStock(0);   // ★保有台帳（2026-09-21）
+        w.GovDebt = new MoneyStock(0); w.ForeignDebt = default;
+        foreach (var r in w.Regions) foreach (var p in r.Pops) p.BondHoldings = default;   // ★保有台帳（2026-09-21）
         w.OnGoldStandard = false; w.GoldStandardSuspendedInCrisis = true;
         w.BorrowCooldownMonths = c.DefaultCooldownMonths;
     }

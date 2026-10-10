@@ -216,7 +216,7 @@ public class MobilityTests
                 noble.SetSavings(0.5 * (totalSav / total) * noble.Size);
             }
             double avgF; { double totalSav = 0, total = 0; foreach (var p in r.Pops) { totalSav += System.Math.Max(0, p.Savings.Value); total += p.Size; } avgF = totalSav / total; }
-            noble.EarnedPerMonth = new MoneyPerMonth(0.5 * avgF * noble.Size / Calendar.MonthsPerYear);   // 年所得/人 ＝ 平均貯蓄/人の半分（アンカーの言語）
+            noble.EarnedPerMonth = new MoneyPerMonth(Calendar.PerYearToPerMonth(0.5 * avgF * noble.Size));   // 年所得/人 ＝ 平均貯蓄/人の半分（アンカーの言語）
             noble.LastEarnedPerMonth = noble.EarnedPerMonth;
             Assert.True(noble.Savings.Value / noble.Size < sim.World.Coef.UpperFallThreshold * avgF, "セットアップ不足：旧物差しの転落圏に居ない");
             size0[si] = noble.Size;

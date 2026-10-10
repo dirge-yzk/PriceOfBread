@@ -448,7 +448,7 @@ public class TreasuryLedgerTests
         // ③ その月の国債の金利に、この月の切り下げの速さ（×12÷年名目GDP）が信認の喪失として乗る（2026-09-29＝月次決算が月末の Fiscal.Step へこの月の切り下げを渡す）。
         //   G との差＝BondRateDistrustScale×速さ×兌換の割引×議会の割引（G は同じ月に未払いの利子が元本へ入った分だけ債務比が大きい＝その差は桁違いに小さい）。
         //   突然変異：月次決算が切り下げを渡さない（0）→赤。
-        double speed = dev * Calendar.MonthsPerYear / Calendar.PerMonthToPerYear(wf.NominalGdpPerMonth).Value;
+        double speed = Calendar.PerMonthToPerYear(dev) / Calendar.PerMonthToPerYear(wf.NominalGdpPerMonth).Value;
         double disc = (1.0 - conv * (1.0 - wf.Coef.GoldStandardRateDiscount)) * (1.0 - wf.Coef.BondRateRepresentationDiscount * PoliticalQuantities.Clamp01(wf.ParliamentControl));
         double want = wf.Coef.BondRateDistrustScale * speed * disc;
         double got = (wf.GovBondRatePerYear - wg.GovBondRatePerYear).Value;

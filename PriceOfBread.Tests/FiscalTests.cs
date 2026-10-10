@@ -466,7 +466,7 @@ public class FiscalTests
         {
             var payers = new List<Pop>(pw.AllPops());
             double sav = 0; foreach (var p in payers) sav += Math.Max(0, p.Savings.Value);
-            double x = Math.Min(0.5 * sav, (12 * (pw.LastInterestPerMonth + pw.LastRevenuePerMonth + pw.LastAdminClaimPerMonth + pw.LastMilitaryClaimPerMonth + pw.LastSoldierPayPerMonth)).Value);
+            double x = Math.Min(0.5 * sav, Calendar.PerMonthToPerYear(pw.LastInterestPerMonth + pw.LastRevenuePerMonth + pw.LastAdminClaimPerMonth + pw.LastMilitaryClaimPerMonth + pw.LastSoldierPayPerMonth).Value);
             World.Transfer((pw, payers), (pw, null, null), x, TreasuryCat.OtherIn);   // 貯蓄の比で国庫へ（移し方の1本・2026-09-30 段4g）
         }
         double pwDom0 = pw.GovDebt.Value - pw.ForeignDebt.Value;

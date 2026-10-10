@@ -59,7 +59,7 @@ public class DemographyBirthWeightTests
         double size0 = clergy.Size;
         double p0 = sim.World.TotalPopulation;
         sim.Run(8);   // 2年（出生配分が毎月走る）
-        double crude = sim.World.Coef.CrudeBirthRate / 12.0 * 24.0;   // 同期間の規模比例なら積もる粗出生の目安（≈7%）
+        double crude = Calendar.PerYearToPerMonth(sim.World.Coef.CrudeBirthRate) * 24.0;   // 同期間の規模比例なら積もる粗出生の目安（≈7%）
         Assert.True(clergy.Size < size0 * (1.0 + 0.5 * crude),
             $"fertile≈0 のpopに出生が集中した（{size0:F1}→{clergy.Size:F1}）＝共通分母の重みが膨張している");
         Assert.True(System.Math.Abs(sim.World.TotalPopulation - (p0 + sim.World.PopulationDelta)) < 1e-6 * p0,
@@ -116,6 +116,6 @@ public class DemographyBirthWeightTests
         sim.DemographicStep();
         Assert.True(w.DiagDeaths > d0, "前提：回復期（平常の死0）の月になった");
         double gy = (young.Size - y0) / y0, go = (old.Size - o0) / o0;
-        Assert.True(gy - go > 0.2 * gapYear / 12.0, $"年寄りの多い POP が多く死なない（1人あたりの増減 若 {gy:E4}・老 {go:E4}・年齢の重みの差の月 {gapYear / 12.0:E4}）");
+        Assert.True(gy - go > Calendar.PerYearToPerMonth(0.2 * gapYear), $"年寄りの多い POP が多く死なない（1人あたりの増減 若 {gy:E4}・老 {go:E4}・年齢の重みの差の月 {Calendar.PerYearToPerMonth(gapYear):E4}）");
     }
 }
