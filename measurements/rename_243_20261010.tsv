@@ -1,0 +1,41 @@
+旧名	新名	宣言したクラス	注意
+LastEarned	LastEarnedPerMonth	Pop	
+Earned	EarnedPerMonth	Pop	⚠同じ名前の別の量がある（Producer.LastRevenue など）＝文字列の置換でなく型を見て直す
+Paid	PaidPerMonth	Pop	⚠同じ名前の別の量がある（Producer.LastRevenue など）＝文字列の置換でなく型を見て直す
+LandRent	LandRentPerMonth	Pop	⚠同じ名前の別の量がある（Producer.LastRevenue など）＝文字列の置換でなく型を見て直す
+IndustrialRent	IndustrialRentPerMonth	Pop	
+Gdp	GdpPerMonth	World と Power	⚠同じ名前の別の量がある（Producer.LastRevenue など）＝文字列の置換でなく型を見て直す
+NominalGdp	NominalGdpPerMonth	World	
+LastRevenue	LastRevenuePerMonth	World	⚠同じ名前の別の量がある（Producer.LastRevenue など）＝文字列の置換でなく型を見て直す
+LastInterest	LastInterestPerMonth	World	
+LastAdminClaim	LastAdminClaimPerMonth	World	
+LastSoldierPay	LastSoldierPayPerMonth	World	
+LastMilitaryClaim	LastMilitaryClaimPerMonth	World	
+LastWelfareCost	LastWelfareCostPerMonth	World	
+LastPensionCost	LastPensionCostPerMonth	World	
+LastColonialUpkeep	LastColonialUpkeepPerMonth	World	
+FiscalCapacity	FiscalCapacityPerMonth	World	
+LastTariffRevenue	LastTariffRevenuePerClearing	World	
+LastTributeOut	LastTributeOutPerQuarter	World	
+LastTributeIn	LastTributeInPerQuarter	World	
+GovBondRate	GovBondRatePerYear	World	
+GovAvgCoupon	GovAvgCouponPerYear	World	
+ExpectedInflation	ExpectedInflationPerYear	World	
+SoldierSize	SoldierSizeK	World	メソッド（SoldierSizeK()）
+DefaultCooldownQuarters	DefaultCooldownMonths	Coefficients	
+BondRepayFrac	BondRepayFracPerMonth	Coefficients	
+BondRolloverFrac	BondRolloverFracPerMonth	Coefficients	
+BondRateMax	BondRateMaxPerYear	Coefficients	
+BondBaseRate	BondBaseRatePerYear	Coefficients	
+LoanSpread	LoanSpreadPerYear	Coefficients	
+OpulenceSpendRate	OpulenceSpendRatePerYear	Coefficients	
+PensionCostRate	PensionCostRatePerMonth	Coefficients	
+WelfareCostRate	WelfareCostRatePerMonth	Coefficients	
+SoldierMigrationRate	SoldierMigrationRatePerMonth	Coefficients	
+MilitaryWearRates	MilitaryWearRatesPerMonth	Coefficients	
+SubsidyDependenceRate	SubsidyDependenceRatePerMonth	Coefficients	
+PrizeMoneyRate	PrizeMoneyRatePerMonth	Coefficients	
+MintFloorBuyRate	MintFloorBuyRatePerMonth	Coefficients	
+MintReserveSellRate	MintReserveSellRatePerMonth	Coefficients	
+ForceUnlockTreasuryCost	ForceUnlockTreasuryCostPerMonth	Coefficients	
+BorrowCooldown	BorrowCooldownMonths	World	
