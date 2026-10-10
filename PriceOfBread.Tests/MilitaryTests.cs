@@ -574,7 +574,7 @@ public class MilitaryTests
         {
             double after = 0; foreach (var p in r.Pops) if (p.IsSoldier) { after = p.Size; break; }
             Assert.True(after > before, $"前提が崩れた：{r.Name} で兵が増えない（席が今の兵より少ない）");
-            sum += before + (after - before) / c.SoldierMigrationRatePerMonth; n++;
+            sum += before + (after - before) / c.SoldierMigrationRatePerMonth.Value; n++;
         }
         Assert.True(n > 1, "前提が崩れた：兵士POPのある州が1つ以下");
         Assert.True(Math.Abs(sum - seats) <= 1e-9 * seats, $"州の席の和 {sum} ≠ 国の定員 {seats}");
@@ -1196,7 +1196,7 @@ public class MilitaryTests
             if (war) sim.Diplomacy.Wars.Add(new War { A = w.SelfPower!, B = sim.Nations[1].World.SelfPower! });
             c.MilitaryEnvelopeShare = 1e-12;   // 席をほぼ0＝全ての州で超過
             double seatsNat = Military.EstablishmentOf(w, c, out double natMan);
-            double dq = 1.0 - Math.Pow(1.0 - c.SoldierMigrationRatePerMonth, Calendar.MonthsPerQuarter), expect = 0;
+            double dq = 1.0 - Math.Pow(1.0 - c.SoldierMigrationRatePerMonth.Value, Calendar.MonthsPerQuarter), expect = 0;
             foreach (var r in w.Regions)
             {
                 if (r.State != RegionState.Active || SoldierOf(r) is not { } s) continue;

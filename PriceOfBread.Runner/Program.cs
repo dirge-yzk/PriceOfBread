@@ -1259,8 +1259,9 @@ if (args.Length > 0 && args[0] == "deadprobe")
             var f = typeof(Coefficients).GetField(field);
             if (f is not null)
             {
-                foreach (var n in m.Nations) f.SetValue(n.World.Coef, val);
-                f.SetValue(m.Coef, val);   // ⚠共有係数も書く（二国間交易・外交はこちらを読む＝2026-09-03の罠）
+                object fval = UnitValues.IsUnit(f.FieldType) ? UnitValues.FromDouble(f.FieldType, val) : val;   // ★(246) 専用の値型の係数
+                foreach (var n in m.Nations) f.SetValue(n.World.Coef, fval);
+                f.SetValue(m.Coef, fval);   // ⚠共有係数も書く（二国間交易・外交はこちらを読む＝2026-09-03の罠）
             }
         }
         m.StartWarmup();
@@ -1279,7 +1280,7 @@ if (args.Length > 0 && args[0] == "deadprobe")
     {
         if (!f.IsPublic || f.IsStatic || f.IsInitOnly) continue;
         if (only is not null && !only.Contains(f.Name)) continue;
-        if (f.GetValue(probe) is double d0 && d0 == 0.0) names.Add(f.Name);
+        if (UnitValues.TryToDouble(f.GetValue(probe), out double d0) && f.FieldType != typeof(int) && d0 == 0.0) names.Add(f.Name);   // ★(246) 専用の値型の係数も数える（int は従来どおり対象外）
     }
     names.Sort(System.StringComparer.Ordinal);
     var baseline = RunOnce(dpQ, null, 0);
@@ -2456,7 +2457,7 @@ if (args.Length > 0 && args[0] == "initdump")
             Row(nm, "財政/土地税", tm, w.LandTax, "率");
             Row(nm, "財政/所得税", tm, w.TaxRate, "率");
             Row(nm, "財政/関税", tm, w.Tariff, "率");
-            Row(nm, "財政/国債金利", tm, w.GovBondRatePerYear, "年率");
+            Row(nm, "財政/国債金利", tm, w.GovBondRatePerYear.Value, "年率");
             Row(nm, "財政/金利(政策)", tm, w.InterestRate, "年率");
             Row(nm, "財政/行政費", tm, w.AdminSpending, "0..1");
             Row(nm, "財政/教育費", tm, w.EducationSpending, "0..1");
@@ -3479,7 +3480,7 @@ if (args.Length > 0 && args[0] == "explain")
     Show("CreditTarget", "与信目標", null);
     Show("CapitalReturn", "投資収益率", null);
     Show("ExchangeRateTarget", "為替目標", null);
-    Show("ExpectedInflation", "期待インフレ", ew.ExpectedInflationPerYear);
+    Show("ExpectedInflation", "期待インフレ", ew.ExpectedInflationPerYear.Value);
     return;
 }
 
@@ -3516,8 +3517,9 @@ if (args.Length > 0 && args[0] == "portledger")
     var live = new List<string>(); var dormant = new List<string>();
     foreach (var fi in typeof(Coefficients).GetFields(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public))
     {
-        if (fi.FieldType != typeof(double) && fi.FieldType != typeof(int)) continue;
-        double v = System.Convert.ToDouble(fi.GetValue(cobj));
+        if (fi.FieldType != typeof(double) && fi.FieldType != typeof(int) && !UnitValues.IsUnit(fi.FieldType)) continue;   // ★(246) 専用の値型の係数も台帳に載せる
+        object? craw = fi.GetValue(cobj);
+        double v = craw is IUnitValue cu ? cu.Value : System.Convert.ToDouble(craw);
         (v == 0 ? dormant : live).Add($"{fi.Name} = {v}");
     }
     // ★決定論（原則⑥）：Type.GetFields の返却順は仕様上未規定＝台帳をバイト再現させるため名前で整列する。
@@ -6882,7 +6884,7 @@ if (args.Length > 0 && args[0] == "milfund")
         double estCost = EconomyStep.MilitaryProcurementNeed(r, coef);   // 装備の必要額＝エンジンの1本（全4段・発見込み）。旧＝MilitaryUpkeepScale×MilitaryScale の二重掛け（MilitaryScale は Simulation で既に UpkeepScale 込み）・2026-09-11 #1
         double afford = Math.Min(1.0, r.MilitaryAffordRaw);               // エンジンが書いた支払能力（上限÷必要額）を1で切る＝EconomyStep と同じ読み方
         double dGdp = w.NominalGdpPerMonth > 1e-9 ? w.GovDebt / w.NominalGdpPerMonth : 0;
-        Console.WriteLine($"  {w.SelfPower?.Name,-8} {w.LastRevenuePerMonth,7:F0} {w.LastAdminClaimPerMonth,7:F0} {w.LastInterestPerMonth,7:F0} ｜ {w.GovDebt,9:F0} {dGdp,6:F2} {w.GovBondRatePerYear,5:F2} ｜ {w.FiscalCapacityPerMonth,6:F0} {r.MilitaryBudget,6:F0} {estCost,7:F0} {afford,6:F2} {r.MilitaryEquipFill,6:F2} ｜ {w.SoldierSizeK(),5:F0} {w.MilitarySpending,5:F2}");
+        Console.WriteLine($"  {w.SelfPower?.Name,-8} {w.LastRevenuePerMonth,7:F0} {w.LastAdminClaimPerMonth,7:F0} {w.LastInterestPerMonth,7:F0} ｜ {w.GovDebt,9:F0} {dGdp,6:F2} {w.GovBondRatePerYear.Value,5:F2} ｜ {w.FiscalCapacityPerMonth,6:F0} {r.MilitaryBudget,6:F0} {estCost,7:F0} {afford,6:F2} {r.MilitaryEquipFill,6:F2} ｜ {w.SoldierSizeK(),5:F0} {w.MilitarySpending,5:F2}");
     }
     return;
 }

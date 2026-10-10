@@ -2454,7 +2454,7 @@ public static class EconomyStep
             // 産業政策 レバー1（2026-07-24）：補助依存ストックの月次更新＝国庫が赤字を埋めて操業した月に漸増・自立（黒字 or 支え手なし）で同率漸減。
             // 読み手は供給①の SubsidySoftBudgetDecay（0.4 で live＝実効生産性を蝕む）。
             bool propped = valueAdded < 0 && (stateCover > Eps || subRate > Eps);
-            s.SubsidyDependence = PoliticalQuantities.Clamp01(s.SubsidyDependence + (propped ? coef.SubsidyDependenceRatePerMonth : -coef.SubsidyDependenceRatePerMonth));
+            s.SubsidyDependence = PoliticalQuantities.Clamp01(s.SubsidyDependence + (propped ? coef.SubsidyDependenceRatePerMonth : -coef.SubsidyDependenceRatePerMonth).Value);
             region.Pops[s.OwnerPopIndex].EarnedPerMonth += rent;
             region.Pops[s.LaborPopIndex].EarnedPerMonth += wages;
             if (s.IsRgo && rent > 0) region.Pops[s.OwnerPopIndex].LandRentPerMonth += rent;   // RGOの地代（封建貢租）＝土地税の課税ベース（Fiscal）

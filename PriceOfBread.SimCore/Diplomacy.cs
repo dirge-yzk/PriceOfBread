@@ -783,7 +783,7 @@ public sealed class Diplomacy
                 cargoBase *= 1.0 + c.PrizeLossProrated * (share - 1.0);   // PrizeLossProrated=0で係数1（恒等）／=1で share（完全按分）
             }
         }
-        double prizeRaw = c.PrizeMoneyRatePerMonth * advantage * ((1.0 - c.PrizeCargoShare) * Math.Max(0, vw.GdpPerMonth) + c.PrizeCargoShare * cargoBase);
+        double prizeRaw = c.PrizeMoneyRatePerMonth.Value * advantage * ((1.0 - c.PrizeCargoShare) * Math.Max(0, vw.GdpPerMonth) + c.PrizeCargoShare * cargoBase);
         if (!(prizeRaw > 1e-9)) return;
         var merchants = new List<Pop>();
         foreach (var r in vw.Regions)

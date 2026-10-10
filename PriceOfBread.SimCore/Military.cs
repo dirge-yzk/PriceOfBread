@@ -262,7 +262,7 @@ public static class Military
             //   富の乗数は NeedMen 錨定（ArmyShape）が上位互換。★実装は 2026-08-12 に撤去（30行）。
             // 平時＝定員の州按分（州の母数÷国の母数＝分子と分母が同じ RegionManpower＝州の和が国の定員に一致）＝徴兵法の平時の割当て（年々の徴集で席を埋める）。
             double seats = natManpower > 1e-9 ? seatsNat * (manpower / natManpower) : 0;
-            double desired = seats, rate = c.SoldierMigrationRatePerMonth;
+            double desired = seats, rate = c.SoldierMigrationRatePerMonth.Value;
             // 1934拡張E5 徴兵法：戦時の強制徴募は**徴兵制の国だけ**（志願兵制は戦時も定員のまま＝転職の仕組みで志願を待つ＝小さい軍・不満なし）。
             // conscriptFrac は外12で戦争規模スケール（既定＝ConscriptionFraction＝恒等）。
             bool wartimeConscript = atWar;   // ★M1（作者裁定2026-09-19）：総動員は条件に入らない＝志願兵制を迂回しない（旧 `|| w.Mobilized`＝2026-08-31の是正を覆す）。総動員は上の conscriptFrac で深さだけを上げる

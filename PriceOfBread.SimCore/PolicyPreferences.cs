@@ -326,8 +326,8 @@ public static class PolicyPreferences
                     if (!(peerPull >= -w.Coef.MonetaryPeerPullScale && peerPull <= w.Coef.MonetaryPeerPullScale)) peerPull = 0;   // NaNは中立へ倒す（否定形＝ClampはNaNを消さない）
                 }
                 return w.Coef.MonetaryPrefScale
-                     * (e.Wealth[b] * (Math.Max(0, w.ExpectedInflationPerYear) + silverDrop + peerPull)   // 持てる側：インフレ／銀安／交易網の引力→金の規律を要求
-                      - (1.0 - e.Wealth[b]) * (Math.Max(0, -w.ExpectedInflationPerYear) + silverDrop));   // 持たざる側：デフレ→兌換停止を／銀安なら銀に留まることを要求
+                     * (e.Wealth[b] * (Math.Max(0, w.ExpectedInflationPerYear.Value) + silverDrop + peerPull)   // 持てる側：インフレ／銀安／交易網の引力→金の規律を要求
+                      - (1.0 - e.Wealth[b]) * (Math.Max(0, (-w.ExpectedInflationPerYear).Value) + silverDrop));   // 持たざる側：デフレ→兌換停止を／銀安なら銀に留まることを要求
             case PolicyAxis.CapitalMobility:
                 // ★資本移動の政治（器2026-08-13）。増加方向＝**規制**。⚠新しい選好の型を作らず、保有から導出する。
                 // ・資本／投資家＝**自由を望む**（海外へ投資でき、海外から資金を呼べる）。反対の強さは**実際の対外保有**

@@ -541,7 +541,7 @@ public class StateFactoryTests
         double parity = Catalog.RefPrices[ag];
         m.Price = parity * 0.5; m.Stock = 10.0;   // 平価の下＝造幣局が平価で引き取る
         m.PrevImport = imported; m.LastImport = 0; m.LastProduced = 1.0;   // 在庫の出どころ＝輸入 imported：産出 1
-        double value = m.Stock * Math.Clamp(w.Coef.MintFloorBuyRatePerMonth, 0, 1) * parity;
+        double value = m.Stock * Math.Clamp(w.Coef.MintFloorBuyRatePerMonth.Value, 0, 1) * parity;
         double impPart = value * imported / (imported + 1.0), domestic = value - impPart;
         double rural = 0; foreach (var q in r.Pops) if (!q.IsUrban) rural += q.Size;
         double rs = EconomyStep.RentShareOf(p, r, w.Coef, rural);

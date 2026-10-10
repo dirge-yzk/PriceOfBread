@@ -29,7 +29,7 @@ public static class Meritocracy
         // ★(155) 兵士の席（⑦）の国の量＝ループ外で1回（定員は国の和＝州へは州の母数÷国の母数で配る＝Military.Step の強制の徴募と同じ1本）
         double seatsNat = Military.EstablishmentOf(w, c, out double seatNatMan);
         bool atWar = w.AtWarNow;   // 戦時は復員しない（Military.Step の交戦の判定と同じ＝自国の戦争が1本でもある）
-        double dischargeQ = 1.0 - Math.Pow(1.0 - c.SoldierMigrationRatePerMonth, Calendar.MonthsPerQuarter);   // 平時の定員超過を戻す速さ＝旧の月の徴募/離職の速さの四半期の値（新しい数なし）
+        double dischargeQ = 1.0 - Math.Pow(1.0 - c.SoldierMigrationRatePerMonth.Value, Calendar.MonthsPerQuarter);   // 平時の定員超過を戻す速さ＝旧の月の徴募/離職の速さの四半期の値（新しい数なし）
         double volunteers = 0;   // この四半期に席へ入った志願兵（国の和）＝熟練を薄める（Military.DiluteSkill）
         foreach (var r in w.Regions)
         {

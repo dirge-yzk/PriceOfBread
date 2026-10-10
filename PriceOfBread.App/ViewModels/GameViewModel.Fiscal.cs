@@ -239,7 +239,7 @@ public partial class GameViewModel
     /// <summary>兌換カバー率を出すか。★金本位に関わるとき（加入中・志向あり・兌換停止中）だけ意味を持つ（2026-08-02の整理）。</summary>
     public bool CoverVisible => _player.MonetaryEnabled && (_player.OnGoldStandard || _player.Policy.MonetaryTarget >= 2 || _player.GoldStandardSuspendedInCrisis);
     /// <summary>貸出金利を出すか。★年率換算（World.LoanRateAnnual）の係数が0のあいだは常に0.0%＝エンジンに量が無い＝行ごと隠す（2026-09-26・点火すれば自動で出る）。</summary>
-    public bool LoanRateVisible => _player.Coef.LoanSpreadPerYear > 0 || _player.Coef.PolicyRateLoanWeight > 0;
+    public bool LoanRateVisible => _player.Coef.LoanSpreadPerYear.Value > 0 || _player.Coef.PolicyRateLoanWeight > 0;
     /// <summary>家計債務を出すか。★書き手（借入と返済）と同じ門＝個人債務の主フラグが0のあいだは残高が常に0＝行ごと隠す（2026-09-26）。</summary>
     public bool HouseholdLoanVisible => _player.Bank is not null && _player.Coef.PopDebtDriven > 0;
     /// <summary>★総動員のスイッチ（戦争タブの総動員トグル）。総動員中は「復員」に変わる。</summary>
@@ -316,7 +316,7 @@ public partial class GameViewModel
         // 接14（監査2026-07-11・2026-07-25実装）：実効はUIの自前近似でなくエンジンの実績診断を読む（国際市場は清算単位＝MonthsPerClearing で月割。負値＝ダンピングの補助金支出）
         double tariffActMonthly = _player.LastTariffRevenuePerClearing / (double)c.MonthsPerClearing;
         // （連合維持費＝治安維持と行政の人頭割りは 2026-09-30 (135) に撤去＝軍と官僚の給与は兵力と行政の購買の1本＝下の軍事費と行政費の行）
-        double interest = Calendar.PerYearToPerMonth(_player.GovDebt * _player.GovBondRatePerYear);
+        double interest = Calendar.PerYearToPerMonth(_player.GovDebt * _player.GovBondRatePerYear.Value);
         // ★予測はエンジンが実際に施行する目標を読む（2026-09-12 反証・接14と同じ作法＝UIに第二の式を置かない）。
         //   旧は生の陸海の和（Policy.MilitarySpendingTarget）で、段（R2）では段へ丸められる前の値＝開幕0.30に対し施行は段1の0.25＝予測が**2割過大**だった。
         // ★(155) 軍事費の器（段×MilitaryEnvelopeShare×使える歳入＝エンジンの Military.EnvelopeOf と同じ基数）から兵士の給与の請求（LastSoldierPayPerMonth＝規定の給与＋幹部の給与〔質〕）を引いた残り＝装備の上限

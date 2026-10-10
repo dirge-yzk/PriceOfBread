@@ -235,7 +235,7 @@ public class TreasuryLedgerTests
         Assert.Equal(d0, w.TreasuryLedger[rp]);
         // (d) r＝1 かつ余剰あり：返す（額は余剰まで）
         w.FiscalFundingRatio = 1.0;
-        double spare = 0.5 * w.GovDebt * c.BondRepayFracPerMonth;
+        double spare = 0.5 * w.GovDebt * c.BondRepayFracPerMonth.Value;
         double d1 = w.TreasuryLedger[rp];
         Fiscal.Step(w, c, spare);
         double repaid = d1 - w.TreasuryLedger[rp];
@@ -451,7 +451,7 @@ public class TreasuryLedgerTests
         double speed = dev * Calendar.MonthsPerYear / (wf.NominalGdpPerMonth * Calendar.MonthsPerYear);
         double disc = (1.0 - conv * (1.0 - wf.Coef.GoldStandardRateDiscount)) * (1.0 - wf.Coef.BondRateRepresentationDiscount * PoliticalQuantities.Clamp01(wf.ParliamentControl));
         double want = wf.Coef.BondRateDistrustScale * speed * disc;
-        double got = wf.GovBondRatePerYear - wg.GovBondRatePerYear;
+        double got = (wf.GovBondRatePerYear - wg.GovBondRatePerYear).Value;
         Assert.True(want > 1e-4 && wf.GovBondRatePerYear < wf.Coef.BondRateMaxPerYear, $"前提：信認の喪失の上乗せ {want:E3} が立たないか上限に張り付いた（{wf.GovBondRatePerYear:F4}）");
         Assert.True(System.Math.Abs(got - want) <= 0.02 * want, $"切り下げた月の金利の上乗せ {got:E4} ≠ 0.5×速さ×割引 {want:E4}（月次決算が切り下げの額を渡していない）");
     }

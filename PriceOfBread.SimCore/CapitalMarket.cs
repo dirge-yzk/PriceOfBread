@@ -64,7 +64,7 @@ public static class CapitalMarket
             //     DebtDistressRatio=3.0 に対し番兵9は既に 0 へクランプされる帯＝**挙動は変わらない**。
             if (!(debtR <= NoGdpDistressDebtRatio)) debtR = NoGdpDistressDebtRatio;
             // 国債二次流通との連動（改修2026-06-28・金融改革①）：国債の利回りスプレッド(暴落)が対外信用を下げる＝国債暴落→資本逃避→為替減価→（既存経路で）さらに国債金利↑のバーリング危機ループ。
-            double bondSpread = System.Math.Max(0, w[i].GovBondRatePerYear - c.BondBaseRatePerYear);
+            double bondSpread = System.Math.Max(0, (w[i].GovBondRatePerYear - c.BondBaseRatePerYear).Value);
             double bondConf = System.Math.Clamp(1.0 - c.BondYieldFlightWeight * bondSpread, BondConfMin, 1.0);
             double cr = PoliticalQuantities.Clamp01(1.0 - debtR / c.DebtDistressRatio)
                       * (c.OffGoldCapitalPenalty + (1.0 - c.OffGoldCapitalPenalty) * w[i].Convertibility)   // 兌換可能性で対外信用を連続補間（倍率排除②・Conv=1で無ペナルティ・Conv=0で0.5）

@@ -226,7 +226,7 @@ public static class Instruments
         C("borrowCooldownMonths", w.BorrowCooldownMonths); C("interestToRevenueShareNow", w.LastRevenuePerMonth > 0 ? w.LastInterestPerMonth / w.LastRevenuePerMonth : double.NaN);
         C("devaluedPerMonth", st.Devalued); C("payableAfterBorrowStock", st.Payable1); C("payRateShare", st.PayRate);
         C("convertibilityShare", w.Convertibility); C("onGold", w.OnGoldStandard ? 1 : 0); C("govDebtStock", w.GovDebt);
-        C("govBondRatePerYear", w.GovBondRatePerYear); C("govAvgCouponPerYear", w.GovAvgCouponPerYear); C("insolvencyMonths", w.InsolvencyQuarters); C("defaultCount", w.SovereignDefaultCount);
+        C("govBondRatePerYear", w.GovBondRatePerYear.Value); C("govAvgCouponPerYear", w.GovAvgCouponPerYear.Value); C("insolvencyMonths", w.InsolvencyQuarters); C("defaultCount", w.SovereignDefaultCount);
         var led = w.TreasuryLedger; double dSum = 0;
         for (int k = 0; k < NCat; k++) { double d = led[k] - st.PrevLedger[k]; dSum += d; C("ledger" + ((TreasuryCat)k) + "PerMonth", d); }
         double dT = w.Treasury - st.PrevTreasury;

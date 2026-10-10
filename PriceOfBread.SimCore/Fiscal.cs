@@ -238,9 +238,9 @@ public static class Fiscal
         // === 国債：利払い（借入は月初の Borrow＝払える額の側・2026-09-28）===
         // R9（満期構造）：既往債は発行時クーポン(GovAvgCouponPerYear)で利払い。毎月 BondRolloverFracPerMonth だけ現行市場金利GovBondRatePerYearへ乗り換わる。
         // BondRolloverFracPerMonth=1.0（既定）で GovAvgCouponPerYear=GovBondRatePerYear にビット一致＝浮動永久債＝旧式 GovDebt*GovBondRatePerYear/12 と厳密一致。
-        double rollover = PoliticalQuantities.Clamp01(c.BondRolloverFracPerMonth);
+        double rollover = PoliticalQuantities.Clamp01(c.BondRolloverFracPerMonth.Value);
         w.GovAvgCouponPerYear = (1.0 - rollover) * w.GovAvgCouponPerYear + rollover * w.GovBondRatePerYear;
-        double interest = Calendar.PerYearToPerMonth(w.GovDebt * w.GovAvgCouponPerYear);   // 月次（クーポンは年率。Fiscal.Step は月次実行なので /12）
+        double interest = Calendar.PerYearToPerMonth(w.GovDebt * w.GovAvgCouponPerYear.Value);   // 月次（クーポンは年率。Fiscal.Step は月次実行なので /12）
         // ★金建て債務の実質負担（銀本位doc G8・2026-08-13）＝**史実で銀本位国を金へ追い込んだ最大の力**。
         //   対外債務はロンドン建て＝金建てである（★インドの Home Charges・清の庚子賠款）。銀が下がれば、同じ利払いに
         //   より多くの自国通貨が要る＝⚠実質負担が膨らむ。膨らんだ分は【債権者が受け取る】——移転であって、湧いてはならない
@@ -389,7 +389,7 @@ public static class Fiscal
         //   旧＝助走の5年（60か月）の余剰で初期の国債を返した＝仏の米独立戦争債務（年GDP の約0.76）が開幕に0.04 へ痩せていた。
         if (w.GovDebt > 1e-9 && payRate >= 1 && spare > 0 && !w.WarmupFrozen)
         {
-            double repay = Math.Min(w.GovDebt * c.BondRepayFracPerMonth, spare);
+            double repay = Math.Min(w.GovDebt * c.BondRepayFracPerMonth.Value, spare);
             // ★AUD-09（監査2026-09-02 low・2026-09-03投入）：⚠ここは**元本**の按分なのに、上で作った**利払い**の按分
             //   （foreignDebtFrac＝金建て負担 goldDebtBurden で分子だけ膨らませた比）を流用していた＝分子と分母が別規則。
             //   元本の台帳 `ForeignDebt` は自国通貨建てなので、正しい按分は膨らませていない `foreignShare`。
@@ -509,7 +509,7 @@ public static class Fiscal
         // #2 Fisher：名目金利＝実質（基礎＋債務上乗せ）＋期待インフレ。高インフレ→高名目金利／デフレ→低名目金利だが実質債務は重い。
         // 財4：旧 Max(0,·) はデフレ側を遮断し「デフレ→低名目金利」のコメントと逆だった（1873-96大デフレのコンソル利回り低下3%→2.5%が再現不能＝負債デフレだけ効く片肺）。
         // 下限を FisherDeflationFloor でゲート。既定 -0.02＝デフレ側を軽く通す。0.0なら旧 Max(0,·) と厳密同値。
-        double fisher = Math.Max(c.FisherDeflationFloor, w.ExpectedInflationPerYear) * c.FisherInflationWeight;
+        double fisher = Math.Max(c.FisherDeflationFloor, w.ExpectedInflationPerYear.Value) * c.FisherInflationWeight;
         // 金利の兌換割引を連続化（倍率排除②）：完全兌換(Conv=1)で GoldStandardRateDiscount(0.6)・不換(Conv=0)で1.0。部分兌換は中間＝信用プレミアムが連続。
         double convDiscount = 1.0 - w.Convertibility * (1.0 - c.GoldStandardRateDiscount);
         // 政策金利（バンクレート）が国債金利の床を押し上げる（引締め＝政府の借入も高くつく）。較正は InterestRate=0＝中立。
@@ -529,25 +529,25 @@ public static class Fiscal
         //   （完全兌換・議会が予算を握る＝割引 0.6×0.9）で出す：(0.04＋2.5×0.018)×0.54≒4.6%。同じ式で不換・議会の弱い周縁国（西・葡・希・オスマン・ラテンアメリカ）は
         //   国債÷年GDP 1〜2 で 5.8〜7.6%＋期待インフレと信認の喪失（史実6〜10%）。旧＝1.44（旧の月次比 0.12×12 を年へ換算したまま＝年GDP 比1につき+144%）。
         //   監査2026-07-05（F2）の債務の二次項 BondRateDebtQuad（既定0＝休眠）は削除（英の債務比2.5 で金利が跳ねない史実と合わない・棚卸し dorm-51／fis-17）。
-        double bondInside = c.BondBaseRatePerYear + c.BondRateDebtScale * dGdp + fisher + distrust + c.PolicyRateBondWeight * w.InterestRate;
+        double bondInside = c.BondBaseRatePerYear.Value + c.BondRateDebtScale * dGdp + fisher + distrust + c.PolicyRateBondWeight * w.InterestRate;
         // 政体フレーバー レバー3（2026-07-24）→第3波連続化（2026-07-28）：議会の信認割引＝議会の予算統制（ParliamentControl）が
         // 強いほど債権者の信認で金利が安い（英コンソル＝財政軍事国家論）。旧・政体ラベル二値→統制力の連続量へ（倍率排除＝ラベル不読・
         // DebtGdp年換算フリップ2026-07-26で再挑戦解禁の記録どおり）。BondRateRepresentationDiscount=0で×1.0＝厳密恒等。
         double reprDiscount = 1.0 - c.BondRateRepresentationDiscount * PoliticalQuantities.Clamp01(w.ParliamentControl);
         double bondPre = bondInside * convDiscount * reprDiscount;
-        w.GovBondRatePerYear = Math.Min(c.BondRateMaxPerYear, bondPre);
+        w.GovBondRatePerYear = new RatePerYear(Math.Min(c.BondRateMaxPerYear.Value, bondPre));
         // 説明API（#63）：国債金利の内訳＝各プレミアム×兌換割引−上限クランプ。Explain=nullでゼロコスト・戻り値不変。
         if (w.Explain is { } bl)
         {
             bl.Reset("BondRate");
-            bl.Add("BondRate", "基礎金利", c.BondBaseRatePerYear * convDiscount);
+            bl.Add("BondRate", "基礎金利", (c.BondBaseRatePerYear * convDiscount).Value);
             bl.Add("BondRate", "債務比プレミアム", c.BondRateDebtScale * dGdp * convDiscount);
             bl.Add("BondRate", "インフレ期待", fisher * convDiscount);
             bl.Add("BondRate", "信認喪失（直近の切り下げ）", distrust * convDiscount);
             bl.Add("BondRate", "政策金利", c.PolicyRateBondWeight * w.InterestRate * convDiscount);
             bl.Add("BondRate", "金本位の信認割引", bondInside * (convDiscount - 1.0));
             bl.Add("BondRate", "議会の信認割引", bondInside * convDiscount * (reprDiscount - 1.0));
-            bl.Add("BondRate", "上限クランプ", w.GovBondRatePerYear - bondPre);
+            bl.Add("BondRate", "上限クランプ", w.GovBondRatePerYear.Value - bondPre);
         }
 
         // ※旧・教育費（国庫→pop一律）は廃止：教育のコストは教育財の市場が直接表現する
@@ -717,7 +717,7 @@ public static class Fiscal
         //   国債の金利は利回りを求める誘引ではなく危険の値段（債務比・期待インフレ・直近の切り下げの上乗せを、兌換と議会の信認で割り引いた量）＝同じ危険なら期待収益は同じ。
         //   史実＝低金利の国ほど深い市場（英のコンソル 1850〜1913 約3%・蘭）で、高金利の国は割り当てで締め出された（オスマン1875・エジプト1876・アルゼンチン1890 の前後に新規の起債が止まった）。
         //   否定形＝金利が NaN ならプールは NaN＝下の `!(borrowed > 1e-9)` で借りない（旧と同じ）。
-        double foreignPool = openness * c.ForeignBondCapacity * Math.Max(0, nominalGdp) * Math.Clamp(c.BondBaseRatePerYear / Math.Max(1e-9, w.GovBondRatePerYear), 0, ForeignBondYieldRatioCap);
+        double foreignPool = openness * c.ForeignBondCapacity * Math.Max(0, nominalGdp) * Math.Clamp(c.BondBaseRatePerYear.Value / Math.Max(1e-9, w.GovBondRatePerYear.Value), 0, ForeignBondYieldRatioCap);
         // 財5（対外国債をモデル外の無限プールから閉鎖系へ）：foreignPool を他モデル国の資本家貯蓄から実引き当て。
         // 注入（MultiNationSim→World.ForeignBondInvestorPool）と保有国配分（CapitalMarket の外債レグ＝ForeignBondClaims 繰上げ＋利払い配当）は実装済み。
         // ★2026-09-26：旗 ForeignBondFromInvestors（既定1.0）を焼き込み（x-01）。

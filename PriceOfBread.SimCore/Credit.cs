@@ -58,7 +58,7 @@ public static class Credit
         // 信用収縮→恐慌→不満→政治の通常経路で帰結を出す）。FiscalEnabled 時のみ＝単一国較正セルは不発。
         double fiscalDefault = w.FiscalEnabled ? c.FiscalDefaultPanic * Math.Max(0, 1.0 - w.FiscalFundingRatio) : 0;
         // 民間負債デフレ（B-3 フィッシャー）：デフレ×レバレッジ(前期Heat)＝実質債務増→債務者困窮→信頼↓→与信回収→さらにデフレの渦。MonetaryEnabled時のみ（デフレ率が定義される）。
-        double debtDeflation = w.MonetaryEnabled ? c.DebtDeflationWeight * Math.Max(0, -w.ExpectedInflationPerYear) * bank.Heat : 0;
+        double debtDeflation = w.MonetaryEnabled ? c.DebtDeflationWeight * Math.Max(0, (-w.ExpectedInflationPerYear).Value) * bank.Heat : 0;
         // 国債二次流通の評価損（no-bond-secondary-market）：BondPrice下落(利回り上昇)で国内債を抱える銀行が評価損→信頼↓→与信収縮（平時のマーク・トゥ・マーケット）。既存診断値BondPriceを配線。BondLossConfWeight=0で恒等（既定0.5）。
         // [単位・B13] 債務/GDP＝**年次名目**（GovDebt÷(月次NominalGdpPerMonth×12)・Clamp 0..1）＝Fiscal の国債の金利・CapitalMarket・Government の緊縮と同じ物差し（2026-09-29・棚卸し fis-02 の残り）。
         //   旧＝**月次**名目（年次の約12倍の値）＝国債が年GDP の1割（8.3%）を越えた国は全て1で飽和＝国債の多さが評価損の大きさに効かなかった。

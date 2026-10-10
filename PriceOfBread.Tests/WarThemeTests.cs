@@ -1094,7 +1094,7 @@ public class WarThemeTests
         (World fr, World br, double[] fs, double[] bs, double ft, double bt, double ff, double bf) Arm(double rate)
         {
             var (s, _, fr, br) = OneFront(new Coefficients().WarCivilianToll);
-            s.Coef.PrizeMoneyRatePerMonth = rate;
+            s.Coef.PrizeMoneyRatePerMonth = new RatePerMonth(rate);
             fr.LastBlockadeRisk = 0.5;
             fr.SelfPower!.Military = 0; fr.SelfPower!.FleetGauge = 0;   // 仏の海軍0＝英が制海権を握る（拿捕の門＝制海権＞0.5）
             typeof(Diplomacy).GetMethod("CollectPrize", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!
@@ -1102,7 +1102,7 @@ public class WarThemeTests
             static double[] Sav(World w) { var l = new System.Collections.Generic.List<double>(); foreach (var r in w.Regions) foreach (var p in r.Pops) l.Add(p.Savings); return [.. l]; }
             return (fr, br, Sav(fr), Sav(br), fr.Treasury, br.Treasury, fr.CumulativeTradeFlow, br.CumulativeTradeFlow);
         }
-        var zero = Arm(0.0); var arm = Arm(new Coefficients().PrizeMoneyRatePerMonth);
+        var zero = Arm(0.0); var arm = Arm(new Coefficients().PrizeMoneyRatePerMonth.Value);
         var merchants = new System.Collections.Generic.HashSet<Pop>();
         foreach (var r in arm.fr.Regions) if (r.State == RegionState.Active && r.MerchantPopIndex >= 0) merchants.Add(r.Pops[r.MerchantPopIndex]);
         var soldiers = new System.Collections.Generic.HashSet<Pop>();

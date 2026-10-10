@@ -93,7 +93,7 @@ public class MultiNationTests
         var w = new Simulation(NationConfig.France().ToScenario(1), new NullAgent()).World;
         w.MonetaryLaw = MonetaryStandardLaw.Silver;
         w.WorldSilverPrice = 0.1 * Catalog.RefPrices[Catalog.SilverId];   // 人工物の型（旧の読み手なら銀の下落 0.9）
-        w.ExpectedInflationPerYear = 0;
+        w.ExpectedInflationPerYear = new RatePerYear(0);
         w.SilverGoldRatio = 1.0; w.TradeGoldPull = 1.0;
         var (t0, m0, s0, _) = PolicyPreferences.Stance(w, PolicyAxis.MonetaryStandard, true);
         Assert.Equal(0.0, t0, 12); Assert.Equal(0.0, m0, 12); Assert.Equal(0.0, s0, 12);

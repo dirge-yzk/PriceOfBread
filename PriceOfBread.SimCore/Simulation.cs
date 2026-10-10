@@ -1579,7 +1579,7 @@ public sealed class Simulation
             {
                 r.PriceLevel = World.PriceLevel * r.LocalPriceMultiplier;   // 国家物価×地域乗数＝地域別の物価水準（金融中心は高・辺境は低）。1州なら乗数1＝較正中立
                 r.FarmRentCap = System.Math.Min(RentCap(World.LandReform, World.Coef.LandReformRentCap), RentCap(World.SerfEmancipation, World.Coef.SerfEmancipationRentCap));   // 地代上限＝土地改革/農奴解放の段階で（限定的＝なしと全面の中間）。元の地代がこれ未満なら効かない
-                r.CrowdingPremium = System.Math.Max(0, World.GovBondRatePerYear - World.Coef.BondBaseRatePerYear);   // 政府借入の金利プレミアム→民間投資ハードルへ（クラウディングアウト。金本位の信用国は GovBondRatePerYear が低く弱い＝条件付き）
+                r.CrowdingPremium = System.Math.Max(0, (World.GovBondRatePerYear - World.Coef.BondBaseRatePerYear).Value);   // 政府借入の金利プレミアム→民間投資ハードルへ（クラウディングアウト。金本位の信用国は GovBondRatePerYear が低く弱い＝条件付き）
                 r.FinancialHeat = World.FinancialHeat;   // 与信過熱を州へ複製（改修2026-06-28・投資ハードルのバブル項へ）
                 //（借入スタックの出費上限 SpendingCapFactor の州への複製は 2026-09-28 に撤去＝作者裁定 Q9・補助は国家の支払い率 r を World から読む）
                 r.CivilWarActive = World.InCivilWar;   // ★B3：述語1本（CivilWarPredicateUnified=1.0＝2026-09-08点火＝War で戦う内戦もここへ届く）      // 内戦中を州へ複製（#136 内戦の経済麻痺の読み口。CivilWarEconomyDisruption=0で不読＝恒等）
@@ -2814,7 +2814,7 @@ public sealed class Simulation
             mintScale = PoliticalQuantities.Clamp01(mintScale);
             coverShort = shortfall;
             if (World.Coef.MintBuysAtMarket > 0 && shortfall > 1e-9)
-                gapLeft = Math.Max(0, coverTarget * World.BroadMoney - World.BaseMoney) * PoliticalQuantities.Clamp01(World.Coef.MintReserveSellRatePerMonth);   // 買い戻しの歩調＝投げ売りと同じ率（独1873-79の逆向き）
+                gapLeft = Math.Max(0, coverTarget * World.BroadMoney - World.BaseMoney) * PoliticalQuantities.Clamp01(World.Coef.MintReserveSellRatePerMonth.Value);   // 買い戻しの歩調＝投げ売りと同じ率（独1873-79の逆向き）
         }
         // 【削除 2026-10-09 (210)】器 MintFloorRespectsReserve（跛行本位＝床の standing offer をカバー率〔基礎貨幣/広義マネー〕が目標×余白を超えたら閉じる・休眠 0）
         //   ＝閉じる条件が誤り（信用の薄い 1783 年から常に真＝造幣が一度も買わない・メモリ pob-silver-crash-lines）。
@@ -2828,7 +2828,7 @@ public sealed class Simulation
         double sellLeft = 0;
         if (floor && World.Coef.MintParitySells > 0 && !(coverShort > 1e-9))
         {
-            sellLeft = (metal == Catalog.SilverId ? World.SilverReserveQty : World.GoldReserveQty) * PoliticalQuantities.Clamp01(World.Coef.MintFloorBuyRatePerMonth);
+            sellLeft = (metal == Catalog.SilverId ? World.SilverReserveQty : World.GoldReserveQty) * PoliticalQuantities.Clamp01(World.Coef.MintFloorBuyRatePerMonth.Value);
             if (!(sellLeft > 1e-12)) sellLeft = 0;   // 否定形＝NaN/非正の準備は売らない側へ
         }
         foreach (var r in World.Regions)
@@ -2849,8 +2849,8 @@ public sealed class Simulation
             if (m.Stock <= 1e-12) continue;
             if (!floor && m.LastProduced <= 0) continue;   // 旧来＝産出のある月しか買わない／★床＝在庫があれば買う（自由鋳造は持ち込み制＝産出と無関係）
             if (m.Price > parity && !atMarket) continue;   // 市場価格＞平価なら鋳造停止（宝飾/工業へ流れる＝正帰還の遮断・史実の固定平価）。★MintBuysAtMarket=0 で従来
-            double qty = atMarket ? Math.Min(m.Stock * PoliticalQuantities.Clamp01(World.Coef.MintFloorBuyRatePerMonth), gapLeft / m.Price)   // 市場買い＝床と同じ在庫上限×今月の予算（第1版の産出比例は銀鉱州にしか買い手が立たなかった）
-                               : floor ? m.Stock * PoliticalQuantities.Clamp01(World.Coef.MintFloorBuyRatePerMonth)
+            double qty = atMarket ? Math.Min(m.Stock * PoliticalQuantities.Clamp01(World.Coef.MintFloorBuyRatePerMonth.Value), gapLeft / m.Price)   // 市場買い＝床と同じ在庫上限×今月の予算（第1版の産出比例は銀鉱州にしか買い手が立たなかった）
+                               : floor ? m.Stock * PoliticalQuantities.Clamp01(World.Coef.MintFloorBuyRatePerMonth.Value)
                                : Math.Min(frac * mintScale * m.LastProduced, m.Stock);
             if (qty <= 1e-12) continue;
             double totOut = 0;
@@ -2898,7 +2898,7 @@ public sealed class Simulation
     ///   （旧＝金は動かさず、在庫へ入った金属の国内の売上は輸入の捌き手の商人へ＝払っていない積荷の代金が商人の所得になった）。独は売却額を回収し、銀安で損を出して1879年に売却を停止した。</summary>
     private void SellDemonetizedReserves(int lawMetal, bool isFiat)
     {
-        double rate = PoliticalQuantities.Clamp01(World.Coef.MintReserveSellRatePerMonth);
+        double rate = PoliticalQuantities.Clamp01(World.Coef.MintReserveSellRatePerMonth.Value);
         if (rate <= 0) return;
         if (World.SilverReserveQty > 1e-9 && (isFiat || lawMetal != Catalog.SilverId))
             World.SilverReserveQty -= SellReserve(World.Region, Catalog.SilverId, World.SilverReserveQty * rate);
