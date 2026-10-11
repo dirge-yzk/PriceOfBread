@@ -1,0 +1,7 @@
+(261) 合流の番人の突然変異（合わせた木 af9b942＋処置の作業ツリー・一時的に当てて InstrumentsTests を回し・戻して緑を確かめた）
+M1 Instruments.PreBorrow の門の旗 `? 1 : 0` を `? 0 : 1` へ反転
+   → 赤：InstrumentsTests.計器を出しても軌道は変わらず出力の形が正しい「門の旗 1 と Fiscal.Borrow の門の口 gateClosed が食い違う イギリス」
+M2 World.BuildFactory の計器の口 `Instruments.FacilityStarted(...)` を外す
+   → 赤：InstrumentsTests.史実比較の桁の入力の表が揃い交戦の月が戦争の表と合う（(260) の国営の棟の列を足した番人）「国営の棟の着工が1件も写っていない（対照）」
+戻した木（処置のコミット 7333363）＝InstrumentsTests 4本とも緑。
+盤面（4国40四半期）で借入の判定に来た月は2か月・2か月とも門が閉じた側＝開いた側の照合は帯の盤面にしか出ない（記録）。

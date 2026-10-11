@@ -1,0 +1,35 @@
+START 13:35:16 filter=Category=FullLength src=D:/PoB_work/merge261/src_m5
+  復元対象のプロジェクトを決定しています...
+  D:\PoB_work\merge261\tree_t_fl261\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj を復元しました (74 ミリ秒)。
+  D:\PoB_work\merge261\tree_t_fl261\PriceOfBread.App\PriceOfBread.App.csproj を復元しました (960 ミリ秒)。
+  D:\PoB_work\merge261\tree_t_fl261\PriceOfBread.Tests\PriceOfBread.Tests.csproj を復元しました (957 ミリ秒)。
+  PriceOfBread.SimCore -> D:\PoB_work\merge261\art_tfl261\bin\PriceOfBread.SimCore\release\PriceOfBread.SimCore.dll
+  PriceOfBread.App -> D:\PoB_work\merge261\art_tfl261\bin\PriceOfBread.App\release\PriceOfBread.App.dll
+D:\PoB_work\merge261\tree_t_fl261\PriceOfBread.Tests\ConservationTests.cs(259,48): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\merge261\tree_t_fl261\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\merge261\tree_t_fl261\PriceOfBread.Tests\ConservationTests.cs(943,113): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\merge261\tree_t_fl261\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\merge261\tree_t_fl261\PriceOfBread.Tests\UnitTypeTests.cs(191,30): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\merge261\tree_t_fl261\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\merge261\tree_t_fl261\PriceOfBread.Tests\UnitTypeTests.cs(191,45): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\merge261\tree_t_fl261\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\merge261\tree_t_fl261\PriceOfBread.Tests\UnitTypeTests.cs(192,30): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\merge261\tree_t_fl261\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\merge261\tree_t_fl261\PriceOfBread.Tests\UnitTypeTests.cs(192,45): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\merge261\tree_t_fl261\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\merge261\tree_t_fl261\PriceOfBread.Tests\UnitTypeTests.cs(67,13): warning xUnit2029: Do not use Assert.Empty to check if a value does not exist in a collection. Use Assert.DoesNotContain instead. (https://xunit.net/xunit.analyzers/rules/xUnit2029) [D:\PoB_work\merge261\tree_t_fl261\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+  PriceOfBread.Tests -> D:\PoB_work\merge261\art_tfl261\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll
+
+ビルドに成功しました。
+
+D:\PoB_work\merge261\tree_t_fl261\PriceOfBread.Tests\ConservationTests.cs(259,48): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\merge261\tree_t_fl261\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\merge261\tree_t_fl261\PriceOfBread.Tests\ConservationTests.cs(943,113): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\merge261\tree_t_fl261\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\merge261\tree_t_fl261\PriceOfBread.Tests\UnitTypeTests.cs(191,30): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\merge261\tree_t_fl261\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\merge261\tree_t_fl261\PriceOfBread.Tests\UnitTypeTests.cs(191,45): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\merge261\tree_t_fl261\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\merge261\tree_t_fl261\PriceOfBread.Tests\UnitTypeTests.cs(192,30): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\merge261\tree_t_fl261\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\merge261\tree_t_fl261\PriceOfBread.Tests\UnitTypeTests.cs(192,45): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\merge261\tree_t_fl261\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\merge261\tree_t_fl261\PriceOfBread.Tests\UnitTypeTests.cs(67,13): warning xUnit2029: Do not use Assert.Empty to check if a value does not exist in a collection. Use Assert.DoesNotContain instead. (https://xunit.net/xunit.analyzers/rules/xUnit2029) [D:\PoB_work\merge261\tree_t_fl261\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+    7 個の警告
+    0 エラー
+
+経過時間 00:00:35.19
+build rc=0
+D:\PoB_work\merge261\art_tfl261\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 4 m 2 s - PriceOfBread.Tests.dll (net10.0)
+rc=0 END 13:39:57
