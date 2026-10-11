@@ -1,4 +1,4 @@
-SOURCE-HASH: 7bea057ba232765a
+SOURCE-HASH: 483573e88563909c
 FILES: 250
 RUN: selfplay-batch 5（5種＝探索）
 ---
@@ -142,7 +142,7 @@ ea706cd3148e4eef5d2edc8f36d3408dac5818d50e55be5081382729fb9b2a38 *./PriceOfBread
 cc8792b50f2a0723a74904c7d84b3ef360448fbb8fb0261c543497ff8a75e1c9 *./PriceOfBread.SimCore/Transport.cs
 5ae3ca8bea45d108cc9cdfe08d5d4f4248c39b91942247dcbb20e64e58a814ea *./PriceOfBread.SimCore/Units.cs
 e1cbcf921e0c70198f09fe272c62a6c70b657bd25ecd420b86cdf53476dc3ced *./PriceOfBread.SimCore/Validation.cs
-3d86bacc1cf4d4fae873aba205de2644c6b1ea7ef97cf96487765a2ddc49ba1a *./PriceOfBread.SimCore/World.cs
+66bbef41c5a325ae27d7eacddacfc6b23931067eefcd1c7ca4bdd8dc45a70551 *./PriceOfBread.SimCore/World.cs
 4cdf81e6c9071eddf42814c10ce5263fe14a499a41d80d4d89d0ac0a71bdb814 *./PriceOfBread.SimCore/WorldData.cs
 517911ec870976236c6752eb4b5071af1399c126fbaa415bbf43ad6fa61d242e *./PriceOfBread.SimCore/barriers.json
 cbb3b37fe11308299b96e6e23f6a0fd760341fba28ef333a0f45f9d2be61d300 *./PriceOfBread.SimCore/goods.json

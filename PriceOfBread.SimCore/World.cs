@@ -1721,7 +1721,7 @@ public sealed class World
         //   旧（(218)）＝趨勢を0へ（次の更新で趨勢 ＝ 厚み ＝ 物価が1へ引かれる）＝助走で物価水準が1から離れた国（清 2.3・露 1.2）の物価が置き直しだけで動いた（実測＝8四半期で対照の0.6〜0.7倍）。
         double money = (BroadMoney + (BaseMoney - BroadMoney) * Convertibility).Value;
         double ratio = money / Math.Max(1e-9, GdpPerMonth.Value);
-        double trend0 = _moTrend; _moTrend = ratio > 1e-9 && PriceLevel > 1e-9 ? ratio / PriceLevel : 0; if (Instruments.On) Instruments.Rebase(this, whenMode, before, after, lambda, trend0, money, ratio);   // (280) 計器（読むだけ）：取り直しの前の趨勢 trend0 を読んで記録（計算には使わない）
+        double trend0 = _moTrend; _moTrend = ratio > 1e-9 && PriceLevel > 1e-9 ? ratio / PriceLevel : 0; if (Instruments.On) Instruments.OpeningRebased(this, whenMode, before, after, lambda, trend0, money, ratio);   // (280) 計器（読むだけ）：取り直しの前の趨勢 trend0 を読んで記録（計算には使わない）
     }
 
     private double _moTrend; internal double MoTrendForInstruments => _moTrend;   // 広義マネー/実質産出 のゆっくりなトレンド（secular な産出成長を吸収＝残りが信用循環の成分）。(280) 後ろの読み口は計器と番人が読むだけ

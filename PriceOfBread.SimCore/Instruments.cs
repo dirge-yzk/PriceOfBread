@@ -903,7 +903,7 @@ public static class Instruments
     }
 
     /// <summary>(280) 趣旨＝貯蓄の置き直し（<see cref="World.RebaseOpeningMoney"/>）の1回：置く前後の貯蓄の和・倍率 λ・趨勢の取り直しの前後。同じ表（<c>money_s</c>）の event＝rebase の行。</summary>
-    internal static void Rebase(World w, int whenMode, double before, double after, double lambda, double trend0, double money, double ratio)
+    internal static void OpeningRebased(World w, int whenMode, double before, double after, double lambda, double trend0, double money, double ratio)
     {
         var st = S(w);
         if (!IsPicked(w, st)) return;
