@@ -223,6 +223,7 @@ public static class Government
         if (c.PoliticalBudgetGate > 0)
         {
             int fronts = CountOpenFronts(w, p);
+            if (Instruments.On) Instruments.PushFronts(w, fronts);   // 計器（読むだけ）：開いた戦線の数
             if (fronts > 1) w.PoliticalPushBudget = Math.Pow(1.0 / fronts, c.PoliticalBudgetGate);
         }
 
@@ -835,13 +836,14 @@ public static class Government
     //   ⚠法は同じ四半期の先に課金される（Government.Step は法→スライダーの順）＝スライダーの這い進みが法を飢えさせることはない。
     private static double Move(double cur, double target, Coefficients c, World w, PolicyAxis a, double spendScale = 1.0, bool mandate = true)
     {
-        if (Math.Abs(target - cur) < 1e-12) return cur;
+        bool milProbe = Instruments.On && a == PolicyAxis.Coercion && spendScale == 1.0;   // 計器（読むだけ）：軍事費の合計の施行の一歩（Step の milTotal）だけを写す
+        if (Math.Abs(target - cur) < 1e-12) { if (milProbe) Instruments.MilitaryMove(w, cur, target, double.NaN, double.NaN, double.NaN, 0, default, false); return cur; }
         bool increasing = target > cur;
         // ★純支持と反対の力は同じ瞬間の立場の土台を読む＝Build は1回（2026-10-01 (146) 計算量の予算・恒等）：この2つの間は何も書かない（余白の照会だけ）。
         //   旧＝それぞれが Build（POP の数回の走査）を取った＝全長の1種で約24万回（Build の20%）。
         var e = PolicyPreferences.Build(w);
         double net = w.PoliticalLockEnabled ? PolicyPreferences.NetSupport(w, a, increasing, e) : 1.0;   // ロック無効（財政機構の単体テスト）＝ゲート/消費とも不発の番人値
-        if (!(net > -(mandate ? MandateMargin(w, a, -1) : 0))) return cur;   // ★否定形（2026-09-21 ㉖）＝NaN の押しは動かさない（旧 `<=` は NaN で素通りし、下の `net < 0` も偽＝無償で動いた）。純反対＝その向きへロック（mandate=false の機械追従だけ。政策の押しは MandateMargin=+∞ で倒れず下の在庫で払う）。スライダーは段の概念がない＝targetLevel=−1（憲法級の段判定に掛からない）
+        if (!(net > -(mandate ? MandateMargin(w, a, -1) : 0))) { if (milProbe) Instruments.MilitaryMove(w, cur, target, net, double.NaN, double.NaN, 1, e, increasing); return cur; }   // ★否定形（2026-09-21 ㉖）＝NaN の押しは動かさない（旧 `<=` は NaN で素通りし、下の `net < 0` も偽＝無償で動いた）。純反対＝その向きへロック（mandate=false の機械追従だけ。政策の押しは MandateMargin=+∞ で倒れず下の在庫で払う）。スライダーは段の概念がない＝targetLevel=−1（憲法級の段判定に掛からない）
         double resist = PolicyPreferences.OpposingPower(w, a, increasing, e);
         // P1-C 予算闘争（憲法紛争1862型）：非協力的な議会（CoopParliamentCrown<0）×高い統制力＝予算軸（所得税）のスライダーが
         // 議会の拒否で動きにくい。免責＝協力度は紛争記憶（MandateSpent）の減衰と議席の構成の変化で回復（2026-09-26 回5-1 Q16＝旧「与党交代」）。既定0で恒等。
@@ -864,9 +866,10 @@ public static class Government
         {
             double moved = Math.Min(1.0, Math.Abs(next - cur) / spendScale);
             double cost = -net * w.Coef.MandateSpendRate * moved;
-            if (!PoliticalCapitalAffords(w, cost)) return cur;   // ★在庫の門（N2）＝払えない押しはスライダーも1ミリも動かない
+            if (!PoliticalCapitalAffords(w, cost)) { if (milProbe) Instruments.MilitaryMove(w, cur, target, net, resist, speed, 2, e, increasing); return cur; }   // ★在庫の門（N2）＝払えない押しはスライダーも1ミリも動かない
             Spend(w, cost);
         }
+        if (milProbe) Instruments.MilitaryMove(w, cur, target, net, resist, speed, mandate && net < 0 ? 4 : 3, e, increasing);
         return next;
     }
 

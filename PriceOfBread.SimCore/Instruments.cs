@@ -99,6 +99,10 @@ public static class Instruments
         public readonly double[] QCapBoundPaid = new double[CapDs.Length], QCapCut = new double[CapDs.Length], QCapBoundPopK = new double[CapDs.Length];
         // ---- (265) 専売の段・国営工場の売却・財政の逼迫（AI の判断の四半期の頭）
         public int FactorySold, MonoBefore = -1, MonoTarget = -1; public double FiscalStressAtDecision = double.NaN;
+        // ---- (270) 線B2：軍事費の合計の施行の一歩（Government.Step の milTotal＝Move の1回）の内訳。-1／NaN＝この四半期は来なかった
+        public int MmOutcome = -1, MmFronts = -1; public bool MmIncreasing;
+        public double MmCur = double.NaN, MmTarget = double.NaN, MmNet = double.NaN, MmResist = double.NaN, MmSpeed = double.NaN, MmPush = double.NaN;
+        public double MmOppTrad = double.NaN, MmOppModern = double.NaN, MmOppMass = double.NaN, MmStock = double.NaN, MmStockMax = double.NaN;
     }
     /// <summary>段5 の上限の引き出し率 d（月あたり）。(264) 実装ログ §7 の事前登録の格子＝1/120・1/240・1/480（AI の設計・作者の承認は未確認）。</summary>
     internal static readonly double[] CapDs = [1.0 / 120, 1.0 / 240, 1.0 / 480];
@@ -372,6 +376,21 @@ public static class Instruments
     }
     /// <summary>AI が戦時段（最上段）を目標に置いた（<c>WarStageOpen</c> が真のとき無条件）。</summary>
     internal static void WarStagePicked(World w) => S(w).DecPicked = 1;
+    /// <summary>★(270) 軍事費の合計の施行の一歩（<c>Government.Move</c> の呼びのうち軸が Coercion・歩幅の尺度が 1.0 の1本＝<c>Step</c> の milTotal）。
+    /// outcome：0＝目標＝現在で動かず／1＝純支持が余白に届かず固定／2＝政治資本の在庫が代価に届かず固定／3＝無償で動いた／4＝政治資本を払って動いた。
+    /// 抵抗は <see cref="PolicyPreferences.OpposingPower"/> の合計とブロックごとの内訳（力×反対の強さ＝旧支配層・近代エリート・大衆。残りは議会・小営業・軍）。読むだけ。</summary>
+    internal static void MilitaryMove(World w, double cur, double target, double net, double resist, double speed, int outcome, in PolicyPreferences.Profile e, bool increasing)
+    {
+        var st = S(w);
+        st.MmOutcome = outcome; st.MmCur = cur; st.MmTarget = target; st.MmNet = net; st.MmResist = resist; st.MmSpeed = speed; st.MmPush = w.PoliticalPushBudget;
+        st.MmStock = w.MandateSpent; st.MmStockMax = w.PoliticalCapitalMax; st.MmIncreasing = increasing;
+        if (e.Power is null) return;
+        double sign = increasing ? 1 : -1;
+        double p0 = PolicyPreferences.Pref(PolicyAxis.Coercion, 0, e, w) * sign, p1 = PolicyPreferences.Pref(PolicyAxis.Coercion, 1, e, w) * sign, p2 = PolicyPreferences.Pref(PolicyAxis.Coercion, 2, e, w) * sign;
+        st.MmOppTrad = p0 < 0 ? e.Power[0] * -p0 : 0; st.MmOppModern = p1 < 0 ? e.Power[1] * -p1 : 0; st.MmOppMass = p2 < 0 ? e.Power[2] * -p2 : 0;
+    }
+    /// <summary>★(270) 開いた戦線の数（<c>Government.Step</c> の政治予算の分母）。</summary>
+    internal static void PushFronts(World w, int fronts) => S(w).MmFronts = fronts;
     /// <summary>四半期の頭の <c>Government.Step</c> の後：戦時段の解禁・軍事費の段の目標（保存）と施行。</summary>
     internal static void AfterGovernment(World w)
     {
@@ -391,6 +410,8 @@ public static class Instruments
         st.QAdmClaim = st.QAdmNeedB = st.QAdmMinB = st.QAdmNeedP = st.QAdmMinP = st.QCfBorrowed = 0; st.QAdmOverRegionMonths = st.QCfShortMonths = st.QCfRBelow1Months = st.QCfObs = 0;
         st.QCapPaid = st.QCapPopK = 0; Array.Clear(st.QCapBoundPaid); Array.Clear(st.QCapCut); Array.Clear(st.QCapBoundPopK);
         st.FactorySold = 0; st.MonoBefore = st.MonoTarget = -1; st.FiscalStressAtDecision = double.NaN;
+        st.MmOutcome = st.MmFronts = -1; st.MmIncreasing = false;
+        st.MmCur = st.MmTarget = st.MmNet = st.MmResist = st.MmSpeed = st.MmPush = st.MmOppTrad = st.MmOppModern = st.MmOppMass = st.MmStock = st.MmStockMax = double.NaN;
     }
     /// <summary>国×四半期の行に足す列（行政の請求の2つの式・戦時段）。月ごとの量は四半期の月の平均（<c>PerMonth</c>）。</summary>
     static List<(string Name, string Value)> NationExtras(World w, WState st)
@@ -834,6 +855,8 @@ public static class Instruments
         cols.Add(I(staleSub)); cols.Add(string.Join(';', stakeGoods));
         var ext265 = Extras265(w, st);   // (265) 線I：末尾に足す列（名前と値を同じ表から出す＝見出しと行がずれない）
         foreach (var ex in ext265) cols.Add(ex.Value);
+        var ext270 = Extras270(w, st);   // (270) 線B2：軍事費の合計の施行の一歩の内訳（末尾）
+        foreach (var ex in ext270) cols.Add(ex.Value);
         sk.Nation ??= Open("nation", seed);
         if (!sk.NationHeader)
         {
@@ -846,7 +869,7 @@ public static class Instruments
                 + "stateFacilityStartedCount\tstateFacilityStartedGateClosedCount\tstateFacilityCompletedCount\tstateFacilityCompletedGateClosedCount\tstateFacilityCompletedGateClosedAtStartCount\tsupplyFillShare\t"
                 + "fireSaleRunCount\tfireSaleSeenMismatchCount\tfireSaleFiredCount\tfireSaleFiredMismatchCount\tfireSaleFiredOverTargetCount\tsubsidyWriteMismatchCount\tsubsidyWriteMismatchWantOffCount\t"
                 + "stakeMismatchProducerCount\tstakeMismatchToInvestedCount\tstakeMismatchToUninvestedCount\twheelMismatchGoods\tstateFacilityStartedGoods\tfoodMetShare\tneedMetShare\tstaleSubsidyNotGrabbedCount\tstakeMismatchGoods\t"
-                + string.Join('\t', ext265.Select(e => e.Name)));
+                + string.Join('\t', ext265.Select(e => e.Name)) + "\t" + string.Join('\t', ext270.Select(e => e.Name)));
             sk.NationHeader = true;
         }
         sk.Nation.WriteLine(string.Join('\t', cols));
@@ -909,6 +932,21 @@ public static class Instruments
         N("monopolyTierBeforeDecisionStage", st.MonoBefore); N("monopolyTierTargetDecisionStage", st.MonoTarget); N("monopolyTierEndStage", w.StateMonopolyTier);
         C("fiscalStressAtDecisionIndex", st.FiscalStressAtDecision); N("stateFactorySoldCount", st.FactorySold);
         C("pollTaxEndShare", w.PollTax); C("pollTaxTargetEndShare", w.Policy.PollTaxTarget); C("socialSecurityEndShare", w.SocialSecurity); C("socialSecurityTargetEndShare", w.Policy.SocialSecurityTarget); N("socialSecurityLawEndStage", (int)w.SocialSecurityLaw);
+        return cols;
+    }
+
+    /// <summary>★(270) 線B2：軍事費の合計の施行の一歩の内訳（国×四半期の行の末尾）。来なかった四半期は結果の符号 −1・量は空（NaN）。</summary>
+    static List<(string Name, string Value)> Extras270(World w, WState st)
+    {
+        var cols = new List<(string, string)>();
+        string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        cols.Add(("militaryMoveOutcomeCode", I(st.MmOutcome))); cols.Add(("militaryMoveIncreasingFlag", I(st.MmOutcome >= 0 && st.MmIncreasing ? 1 : 0)));
+        cols.Add(("militaryMoveCurrentShare", F(st.MmCur))); cols.Add(("militaryMoveTargetShare", F(st.MmTarget)));
+        cols.Add(("militaryMoveNetSupportIndex", F(st.MmNet))); cols.Add(("militaryMoveResistIndex", F(st.MmResist)));
+        cols.Add(("militaryMoveResistTradIndex", F(st.MmOppTrad))); cols.Add(("militaryMoveResistModernIndex", F(st.MmOppModern))); cols.Add(("militaryMoveResistMassIndex", F(st.MmOppMass)));
+        cols.Add(("militaryMovePushBudgetFactor", F(st.MmPush))); cols.Add(("militaryMoveOpenFrontsCount", I(st.MmFronts)));
+        cols.Add(("militaryMoveStepFraction", F(st.MmSpeed)));
+        cols.Add(("politicalCapitalSpentIndex", F(st.MmStock))); cols.Add(("politicalCapitalMaxIndex", F(st.MmStockMax)));
         return cols;
     }
 
