@@ -1,0 +1,5 @@
+# (279) 合わせた木（e405962・SOURCE-HASH 875155f038c2b01d）の計器つき10種で読み手を回し直した確かめ
+an_g278.py（(278) 線G2）: 1行目（入力のパス）を除いて measurements/g278_20261012/capital_tables_g278.txt と diff 0
+an_ghost.py（(274) 線G）: 1行目を除き・改行の CR と末尾の空行を除いて measurements/g278_20261012/ghost_tables_g278.txt と diff 0（標準出力へのリダイレクトで CRLF・末尾の空行が付いただけ）
+hol/an_h2.py -v4: measurements/m272_20261011/h2_r272.txt と cmp 一致（h2_r279.txt）
+an_r276_s1.py（線R′ の種1・腕 A／B）: 実行中の部分出力と完走後の出力で月 0〜8 の行が同じ・種1 の忠実度が10種の走行の種1 と同じ（A exact 50.8／near 88.5・B 42.6／85.2＝b10_20261012_rp276A_ins.cost・rp276B_ins.cost の seed1 の行）
