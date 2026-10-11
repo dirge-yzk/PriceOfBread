@@ -1,0 +1,4 @@
+# 基準 tab:measurements/ng257_20261011:r257＝NG 96／比べる rd:D:/PoB_work/t1_f1s0/ng258:r258t1＝NG 96
+## 新しい NG（基準では NG でない）: 0
+## 外れた NG（比べる側で NG でない）: 0
+## 前からの NG: 96
