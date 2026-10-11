@@ -13,6 +13,10 @@
     ・残差 R＝ΔSavings−(Earned−Paid)。分解 R＝位相の差(settle−(Earned−Paid))＋give＋giveIncome−take＋carry(in−out)＋region(in−out)＋rebase＋未閉じ。
       〈位相の差〉は月の決算の終わり(MonthClose)が読む所得 Earned と、月末の精算(SettleMonth)が貯蓄へ足す Earned−Paid のずれ＝MonthClose の後に書かれた所得(income:true)は Earned に残らず（次の月の EconomyStep が0へ戻す）貯蓄へは直接入る。
     ・未閉じ＝ΔSavings−Σ(全ての書き手)。建国された国の最初の月は新しい世界の構築が POP の貯蓄を直接立てる＝英・仏・蘭の名前（開幕からいる国）では0に近い。
+    ・rebase と regionOut／regionIn：州が為替の違う国へ移るとき、換算(Rebase)は州の移動の記帳(RegionMoved)より先に走る＝rebase の額は〈出ていく側の POP〉の換算差で、regionOut は換算後の貯蓄。
+      送り手の国で rebase＋regionOut＝−(換算前の貯蓄)・受け手の国の regionIn は換算後。英の rebase が正になる種は為替が1より小さい国へ州を渡した種。
+    ・第1の位相の限界（f1s0 の読み手にも当たる）：class_s の earnedPerMonth は月の決算の終わり(MonthClose)で読む＝その後に書かれる所得(月次の清算の受け取り・四半期の末の共有層)は Earned に載らない。載らない所得は貯蓄へ直接入る(giveIncome)＝残差の正の項。
+    ・建国された国(例 統領制イギリス)の最初の数か月は台帳が閉じない(原因未特定・(262) の保留)＝表は開幕からいる国(英・仏・蘭)だけ。
     ・種は全て中央値（と最小・最大）。窓は四半期の添字（Q1＝q0）。国の所得＝全階級の Earned（階級の月平均×3か月）の和。"""
 import sys, os, math, statistics, collections
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
@@ -202,14 +206,14 @@ def t2():
                 if not per: continue
                 keys = {k for p in per for k in p}
                 stats = {k: [p.get(k, 0.0) for p in per] for k in keys}
-                top = sorted(keys, key=lambda k: -abs(med(stats[k])))[:18]
+                top = sorted(keys, key=lambda k: (-abs(med(stats[k])), k))[:18]
                 L.append(f'\n## {nation}・{wname}・{gname}（{len(per)}種）\n')
                 L.append('| 順 | 種類 | 経路 | 相手 | 国の所得比 |')
                 L.append('|---|---|---|---|---|')
                 for i, k in enumerate(top, 1):
                     kind, f, ln, cp = k
                     L.append(f'| {i} | {kind} | {route_name(f, ln)} ({f}:{ln}) | {cp} | {cell(stats[k], 4)} |')
-                for k in keys:
+                for k in sorted(keys):
                     lo, hi = rng(stats[k])
                     if abs(med(stats[k])) >= 1e-5 or max(abs(lo), abs(hi)) >= 1e-4:
                         tsv.append(f'{nation}\t{wname}\t{gname}\t{k[0]}\t{k[1]}\t{k[2]}\t{route_name(k[1], k[2])}\t{k[3]}\t{med(stats[k]):.6g}\t{lo:.6g}\t{hi:.6g}\t{len(per)}')
@@ -261,7 +265,7 @@ def t3():
         if per:
             keys = {k for p in per for k in p}
             stats = {k: [p.get(k, 0.0) for p in per] for k in keys}
-            top = sorted(keys, key=lambda k: -abs(med(stats[k])))[:14]
+            top = sorted(keys, key=lambda k: (-abs(med(stats[k])), k))[:14]
             L.append(f'\n### {nation}・{wname} の使用人の経路（使用人の Earned に対する割合・{len(per)}種）\n')
             L.append('| 順 | 種類 | 経路 | 相手 | 割合 |')
             L.append('|---|---|---|---|---|')
@@ -364,6 +368,34 @@ def t4b():
     open(os.path.join(OUT, 't4b_credit_monthly.md'), 'w', encoding='utf-8').write('\n'.join(L) + '\n')
 
 
+def t7():
+    """窃盗(Crime.cs:65)の大きさ：貯蓄のストックが年所得の何倍か・窃盗の年額がストックの何%か・窃盗の年額が年所得の何%か（四半期 q の断面・全階級の合計）。"""
+    qs = [4, 20, 39, 79, 159, 239]
+    L = ['# t7 窃盗の大きさ（全階級の合計・種の中央〔最小〜最大〕）\n',
+         '窃盗の年額＝その四半期の flow_s の Crime.cs:65 の give（月平均）×12。貯蓄＝全階級の貯蓄の在庫（四半期の末）。年所得＝全階級の Earned（月平均）×12。\n']
+    for nation in (UK, FR, NL):
+        L.append(f'\n## {nation}\n')
+        L.append('| 量 | ' + ' | '.join(f'Q{q + 1}' for q in qs) + ' |')
+        L.append('|---|' + '---|' * len(qs))
+        rows = collections.OrderedDict((k, collections.defaultdict(list)) for k in ('貯蓄の在庫÷年所得', '窃盗の年額÷貯蓄の在庫', '窃盗の年額÷年所得'))
+        for sd in SEEDS:
+            if nation not in CLS.get(sd, {}) or nation not in FLOW.get(sd, {}): continue
+            for q in qs:
+                sav = earn = 0.0
+                for c in CLS[sd][nation]:
+                    r = CLS[sd][nation][c].get(f'q{q}')
+                    if r is None or r['earn'] != r['earn']: sav = float('nan'); break
+                    sav += r['sav']; earn += r['earn']
+                if not (sav == sav) or not (earn > 0): continue
+                crime = sum(amt for (c, kind, f, ln, cp), (amt, n) in FLOW[sd][nation].get(q, {}).items() if f == 'Crime.cs' and ln == 65 and kind == 'give')
+                rows['貯蓄の在庫÷年所得'][q].append(sav / (earn * 12))
+                rows['窃盗の年額÷貯蓄の在庫'][q].append(crime * 12 / sav if sav > 0 else float('nan'))
+                rows['窃盗の年額÷年所得'][q].append(crime / earn)
+        for lab, d in rows.items():
+            L.append(f'| {lab} | ' + ' | '.join(cell(d.get(q, []), 3) for q in qs) + ' |')
+    open(os.path.join(OUT, 't7_crime_scale.md'), 'w', encoding='utf-8').write('\n'.join(L) + '\n')
+
+
 def t5():
     """① 全階級の残差が貨幣の保存の漏れか：全階級の書き手の和を相手の側ごとに足す。P＝同じ国の POP どうし（全階級の和では打ち消し合う＝0）・T＝国庫・B＝国境の出入り・C／H＝銀行の与信・F＝不換の発行者・M＝造幣局。
     国庫と世界の外の相手はそれぞれ台帳を持つ（保存量 D は leakhunt が見る）＝全階級の残差は〈国庫と世界の外との出入り＋州の移動＋換算＋位相の差〉の足し算。"""
@@ -398,6 +430,41 @@ def t5():
     open(os.path.join(OUT, 't5_all_class_by_counterparty.md'), 'w', encoding='utf-8').write('\n'.join(L) + '\n')
 
 
+def t6():
+    """F1 の規則A（需要の穴 H の窓）への答え：大衆の貯蓄の取り崩し H＝−ΔSavings÷国の所得 を、窃盗・清算の受け取り・州の移動を除いて読み直す。
+    窃盗(Crime.cs:65)は全 POP の貯蓄×犯罪率を困窮した大衆へ流す純移転（貯蓄のストックに比例）＝大衆の貯蓄を後から押し上げ、富裕から抜く。"""
+    L = ['# t6 規則A の窓（需要の穴 H）を窃盗などの純移転を除いて読み直す（国の所得に対する割合・種の中央〔最小〜最大〕）\n',
+         'H＝−ΔSavings÷国の所得（大衆）。H(窃盗を除く)＝H＋大衆の窃盗の受け取り−被害(Crime.cs:65 の give＋take)÷国の所得。H(窃盗・清算・州の移動を除く)＝さらに大衆の清算の受け取り(InternationalMarket.cs:125 の giveIncome)と州の移動(regionIn＋regionOut)を除いた物。'
+         '−(Earned−Paid)÷国の所得＝市場の取引だけが貯蓄を動かした場合の取り崩し（残差の項を全て除いた物）。AI の規則案(未承認)＝H≧0.15 なら 段5 を 段3 の前。\n']
+    wins = [('Q2〜Q8', 1, 7), ('Q4〜Q12', 3, 11), ('Q5〜Q40', 4, 39), ('Q41〜Q80', 40, 79)]
+    for nation in (UK, FR):
+        L.append(f'\n## {nation}（大衆＝農民・工場労働者・職人）\n')
+        L.append('| 量 | ' + ' | '.join(w[0] for w in wins) + ' |')
+        L.append('|---|' + '---|' * len(wins))
+        cols = collections.OrderedDict()
+        for wname, q0, q1 in wins:
+            for sd in SEEDS:
+                w = win_vals(sd, nation, IDS['mass'], q0, q1)
+                if w is None or not (w[0] > 0): continue
+                Y, dS, EP, k = w
+                rs = route_sums(sd, nation, IDS['mass'], q0, q1)
+                crime = sum(v for (kind, f, ln, cp), v in rs.items() if f == 'Crime.cs' and ln == 65)
+                clear = sum(v for (kind, f, ln, cp), v in rs.items() if f == 'InternationalMarket.cs' and ln == 125 and kind == 'giveIncome')
+                reg = k['regionIn'] + k['regionOut']
+                vals = collections.OrderedDict()
+                vals['H＝−ΔSavings÷Y'] = -dS / Y
+                vals['窃盗の純受け取り÷Y'] = crime / Y
+                vals['H(窃盗を除く)'] = -(dS - crime) / Y
+                vals['清算の受け取り(giveIncome)÷Y'] = clear / Y
+                vals['州の移動÷Y'] = reg / Y
+                vals['H(窃盗・清算・州の移動を除く)'] = -(dS - crime - clear - reg) / Y
+                vals['−(Earned−Paid)÷Y'] = -EP / Y
+                for lab, v in vals.items(): cols.setdefault(lab, {}).setdefault(wname, []).append(v)
+        for lab, d in cols.items():
+            L.append(f'| {lab} | ' + ' | '.join(cell(d.get(w[0], []), 3) for w in wins) + ' |')
+    open(os.path.join(OUT, 't6_rule_a_window.md'), 'w', encoding='utf-8').write('\n'.join(L) + '\n')
+
+
 if __name__ == '__main__':
     which = sys.argv[6] if len(sys.argv) > 6 else 'all'
     if which in ('all', 't1'): t1()
@@ -405,4 +472,6 @@ if __name__ == '__main__':
     if which in ('all', 't3'): t3()
     if which in ('all', 't4'): t4(); t4b()
     if which in ('all', 't5'): t5()
+    if which in ('all', 't6'): t6()
+    if which in ('all', 't7'): t7()
     print('done', OUT)

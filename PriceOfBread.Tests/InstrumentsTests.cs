@@ -403,7 +403,8 @@ public class InstrumentsTests
             var stock = new Dictionary<(string Time, string Nation, int Cls), double>();
             foreach (var r in cr) stock[(r[Array.IndexOf(ch, "time")], r[Array.IndexOf(ch, "nation")], (int)Col(ch, r, "classId"))] = Col(ch, r, "savingsStock");
             var seen = kinds.ToDictionary(k => k, _ => 0.0);
-            // 開幕からいる国だけで閉じを見る：途中で建国された国（SpawnNation）の最初の月は、新しい世界の構築が POP の貯蓄を直接立てる（初期値）＝台帳の外
+            // 開幕からいる国だけで閉じを見る：途中で建国された国（SpawnNation・例 統領制イギリス）は閉じない（4国20四半期の1例で相対 8.9e-3＝在庫の差 267997 に対し台帳の和 245799・大衆でなく資本家の階級3）。
+            //   ⚠原因は未特定（建国の構築〔new Simulation〕が POP の貯蓄を直接立てる経路が候補だが確かめていない）＝(262) の保留。開幕からいる国（英・仏・蘭ほか）は 1e-9 で閉じる。
             var founders = cr.Where(r => r[0] == "open").Select(r => r[Array.IndexOf(ch, "nation")]).ToHashSet();
             int groups = 0; double worst = 0; string worstAt = "";
             foreach (var g in fr.GroupBy(r => (Q: int.Parse(r[Array.IndexOf(fh, "quarter")]), Nation: r[Array.IndexOf(fh, "nation")], Cls: (int)Col(fh, r, "classId"))))
