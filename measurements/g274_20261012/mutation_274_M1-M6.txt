@@ -1,0 +1,8 @@
+M1 GateResult 1<->2 =>   失敗 PriceOfBread.Tests.InstrumentsTests.段の法の固定の理由が法律タブの照会と合う [4 s] | 失敗!   -失敗:     1、合格:     2、スキップ:     0、合計:     3、期間: 12 s - PriceOfBread.Tests.dll (net10.0)
+M2 tariff hook dropped =>   失敗 PriceOfBread.Tests.InstrumentsTests.幽霊戦線の列が別の列と合い試合で動いた戦線と固定された戦線が両方写る [7 s] | 失敗!   -失敗:     1、合格:     2、スキップ:     0、合計:     3、期間: 12 s - PriceOfBread.Tests.dll (net10.0)
+M3 MoveResult reached 7<->8 => 成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 11 s - PriceOfBread.Tests.dll (net10.0)
+M4 LevelResult paid reached => 成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 12 s - PriceOfBread.Tests.dll (net10.0)
+M5 prereq code 6->5 =>   失敗 PriceOfBread.Tests.InstrumentsTests.開いた戦線の施行の結果が規則から決めた期待と合い数えた戦線の数に閉じる [898 ms] | 失敗!   -失敗:     1、合格:     2、スキップ:     0、合計:     3、期間: 11 s - PriceOfBread.Tests.dll (net10.0)
+M6 spend before record (capital check order) =>   失敗 PriceOfBread.Tests.InstrumentsTests.段の法の固定の理由が法律タブの照会と合う [4 s] | 失敗!   -失敗:     1、合格:     2、スキップ:     0、合計:     3、期間: 12 s - PriceOfBread.Tests.dll (net10.0)
+restored; final rebuild
+DONE

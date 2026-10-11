@@ -262,8 +262,11 @@ public static class Government
 
         // 法整備（離散）：力の均衡が許す向きに一歩ずつ。教育法・参政権・徴兵法は World が現在値を持ち効果に効く。
         // ★段の法は表 <see cref="LevelLaws"/> を施行の順に1本のループで回す（2026-09-28 処理の一元化 段1＝旧は軸ごとに StepEnum/StepBool の1行・各軸の注記は表の行へ移した）。
+        int stepIdx = -1;
         foreach (var law in LevelLaws)
         {
+            stepIdx++;
+            if (Instruments.On) Instruments.LevelBegin(w, stepIdx);   // 計器（読むだけ・(274)）：いま施行する段の法の表の行
             if (law.Open != null && !law.Open(w)) continue;
             int target = law.Target(w, p);
             if (law.Enact != null) law.Enact(w, p, target);
@@ -314,6 +317,7 @@ public static class Government
         //   ⚠思想⑧の天井ではない＝解禁の外では選べる目標が既に段3 以下（MilitaryTotalTarget）＝選んだ値は削らない（施行に残った戦時の上乗せが切れるだけ）。
         double milFrom = w.MilitarySpending, milHigh = (MilitaryLawStages - 1) / (double)MilitaryLawStages;
         if (!WarStageOpen(w) && !(milFrom <= milHigh)) milFrom = milHigh;
+        if (Instruments.On && !(milFrom == w.MilitarySpending)) Instruments.MilitaryExpiry(w);   // 計器（読むだけ・(274)）：解禁の外で施行が段3へ戻された四半期
         // ★(270) 戦時段の解禁の間（交戦中かつ総動員中）の軍事費の一歩は政治予算の係数（戦線の数 N で (1/N)^0.5）で薄めない＝fullPush。計器で名指した（実装ログ (270) §1）：
         //   英の解禁の四半期 460 で純支持の門・政治資本の門に固定された一歩は 0 件・抵抗の中央は 0 だが、政治予算の係数が中央 0.354（N の中央 8）で歩幅が基本の約 0.35 倍＝登りの律速。
         //   純支持と政治資本の門は掛けたまま（反対を押し切るなら代価を払う）。解禁の外・他の軸は旧と同じ。AI もプレイヤーもこの1行を通る（IsPlayer を読まない）。
@@ -497,24 +501,34 @@ public static class Government
     private static int CountOpenFronts(World w, NationPolicy p)
     {
         int n = 0;
+        if (Instruments.On) Instruments.FrontsBegin(w);   // 計器（読むだけ・(274)）：数え上げの印を取り直す
         // ⚠**呼び手が施行と同じ最終目標を渡す**（段の軸は段の値・連続の軸は Q5 の値）。2026-09-12 の段（R1/R2）で
         //   「施行は段・戦線の数え上げは0.05刻み」の食い違いが恒久的に開いた幽霊戦線を作るのを構造で封じる
         //   （旧＝この関数の中で Q5 を掛けていたので、呼び手が段を渡しても 1/3 が 0.35 へ丸め直されていた）。
-        void Front(double cur, double target) { if (Math.Abs(target - cur) > 0.026) n++; }
+        void Front(double cur, double target, char kind, int idx, PolicyAxis axis) { if (Math.Abs(target - cur) > 0.026) { n++; if (Instruments.On) Instruments.FrontCounted(w, kind, idx, axis, cur, target); } }
         // ★段の法＝表 LevelLaws の1本（施行と同じ行の目標と門を読む＝2026-09-28 処理の一元化 段1。旧は軸ごとの1行＝施行と手で対応させていた）。
         //   ⚠戦線だけの門（FrontOpen）＝国教（プロレタリア独裁では国家無神論の強制＝戦線にしない）の1本だけ（通貨の門は 2026-09-28 に削除＝施行と同じく数える）。
+        int levelIdx = 0;
         foreach (var law in LevelLaws)
-            if ((law.FrontOpen ?? law.Open)?.Invoke(w) != false && law.Get(w) != law.Target(w, p)) n++;
+        {
+            if ((law.FrontOpen ?? law.Open)?.Invoke(w) != false)
+            {
+                int lc = law.Get(w), lt = law.Target(w, p);
+                if (lc != lt) { n++; if (Instruments.On) Instruments.FrontCounted(w, 'L', levelIdx, law.Axis, lc, lt); }
+            }
+            levelIdx++;
+        }
         // ★天井の廃止（2026-09-12 FIX1）以後、所得税/累進は他の税と**同じ Q4 1本**＝施行（Step:145-146）と同一式（幽霊戦線が立たない）。
-        foreach (var law in RateLaws) Front(law.Get(w), Q4(law.Axis, law.Target(p)));   // ★税・支出の段＝表 RateLaws（施行と同じ Q4）
+        int rateIdx = 0;
+        foreach (var law in RateLaws) Front(law.Get(w), Q4(law.Axis, law.Target(p)), 'R', rateIdx++, law.Axis);   // ★税・支出の段＝表 RateLaws（施行と同じ Q4）
         // ★専売の戦線は無い（作者裁定2026-09-20）＝施行する連続値が無いので「目標≠現在」が定義できない。
         //   ⚠意図した副作用＝軸が1本減り PoliticalPushBudget=(1/N)^Gate が他軸を薄めなくなる（旧 NavalEmphasis の撤去と同文）。
         // ★段（R2・2026-09-12）：施行と同じ MilitaryTotalTarget を渡す（wave2b の教訓＝施行と戦線判定は同じ式）
-        Front(w.MilitarySpending, MilitaryTotalTarget(w, p));
+        Front(w.MilitarySpending, MilitaryTotalTarget(w, p), 'M', 0, PolicyAxis.Coercion);
         // ★旧「海軍偏重」の戦線は撤去（2026-08-10 作者裁定）＝陸海の内訳は独立の政治戦線を持たない（軍事費の合計だけが戦線）。
         //   ⚠意図した副作用：軸が1本減る＝目標が動かない幽霊戦線が消え、PoliticalPushBudget=(1/N)^Gate が他軸を薄めなくなる。
-        if (!w.CoercionFollowsForce) Front(w.BaseCoercion / Math.Max(1e-9, w.Coef.CoercionMax), Q5(p.CoercionTarget / Math.Max(1e-9, w.Coef.CoercionMax)));
-        Front(w.Tariff, Q5(Math.Clamp(Q5(p.TariffTarget) + w.TariffRetaliationBias, w.Coef.TariffFloor, 1)));   // 戦線数の側も施行と同じ式。関税は R3 で段の対象外＝Q5 のまま   // wave2b：施行側（L157相当＝報復偏倚＋関税床込み）と同じ目標式へ。旧は偏倚/床を無視していた
+        if (!w.CoercionFollowsForce) Front(w.BaseCoercion / Math.Max(1e-9, w.Coef.CoercionMax), Q5(p.CoercionTarget / Math.Max(1e-9, w.Coef.CoercionMax)), 'C', 0, PolicyAxis.Coercion);
+        Front(w.Tariff, Q5(Math.Clamp(Q5(p.TariffTarget) + w.TariffRetaliationBias, w.Coef.TariffFloor, 1)), 'T', 0, PolicyAxis.Tariff);   // 戦線数の側も施行と同じ式。関税は R3 で段の対象外＝Q5 のまま   // wave2b：施行側（L157相当＝報復偏倚＋関税床込み）と同じ目標式へ。旧は偏倚/床を無視していた
         return n;
     }
 
@@ -532,13 +546,14 @@ public static class Government
         // ★否定形（2026-09-21 ㉖）：旧 `net <= 閾値` は NaN で偽＝否決されず、次の `net < 0` も偽＝**NaN の一歩が無償で施行されていた**
         //   （在庫の門が唯一の門になった世界では、その門ごと素通り）。`!(net > 閾値)` は NaN を否決の側へ倒す。
         //   閾値は −0 か −∞（MandateMargin は 0/+∞・costMul は有限≥1）＝NaN にならない＝有限の net では旧と同じ真偽。
-        if (!(net > -MandateMargin(w, a, targetLevel) / costMul)) return false;
+        if (!(net > -MandateMargin(w, a, targetLevel) / costMul)) { if (Instruments.On) Instruments.GateResult(w, 1, net); return false; }
         if (net < 0)
         {
             double cost = -net * w.Coef.MandateSpendRate * costMul;   // 反対を押し切った代償（−net=|純支持|）＝正統性の全幅
-            if (!PoliticalCapitalAffords(w, cost)) return false;      // ★在庫の門（N2）＝残り a が代価に届くときだけ押し切れる
+            if (!PoliticalCapitalAffords(w, cost)) { if (Instruments.On) Instruments.GateResult(w, 2, net); return false; }      // ★在庫の門（N2）＝残り a が代価に届くときだけ押し切れる
             Spend(w, cost);
         }
+        if (Instruments.On) Instruments.GateResult(w, net < 0 ? 4 : 3, net);
         return true;
     }
 
@@ -842,13 +857,13 @@ public static class Government
     private static double Move(double cur, double target, Coefficients c, World w, PolicyAxis a, double spendScale = 1.0, bool mandate = true, bool fullPush = false)
     {
         bool milProbe = Instruments.On && a == PolicyAxis.Coercion && spendScale == 1.0;   // 計器（読むだけ）：軍事費の合計の施行の一歩（Step の milTotal）だけを写す
-        if (Math.Abs(target - cur) < 1e-12) { if (milProbe) Instruments.MilitaryMove(w, cur, target, double.NaN, double.NaN, double.NaN, 0, default, false); return cur; }
+        if (Math.Abs(target - cur) < 1e-12) { if (milProbe) Instruments.MilitaryMove(w, cur, target, double.NaN, double.NaN, double.NaN, 0, default, false); if (Instruments.On) Instruments.MoveResult(w, a, spendScale, 0, cur, target, cur, double.NaN, double.NaN); return cur; }
         bool increasing = target > cur;
         // ★純支持と反対の力は同じ瞬間の立場の土台を読む＝Build は1回（2026-10-01 (146) 計算量の予算・恒等）：この2つの間は何も書かない（余白の照会だけ）。
         //   旧＝それぞれが Build（POP の数回の走査）を取った＝全長の1種で約24万回（Build の20%）。
         var e = PolicyPreferences.Build(w);
         double net = w.PoliticalLockEnabled ? PolicyPreferences.NetSupport(w, a, increasing, e) : 1.0;   // ロック無効（財政機構の単体テスト）＝ゲート/消費とも不発の番人値
-        if (!(net > -(mandate ? MandateMargin(w, a, -1) : 0))) { if (milProbe) Instruments.MilitaryMove(w, cur, target, net, double.NaN, double.NaN, 1, e, increasing); return cur; }   // ★否定形（2026-09-21 ㉖）＝NaN の押しは動かさない（旧 `<=` は NaN で素通りし、下の `net < 0` も偽＝無償で動いた）。純反対＝その向きへロック（mandate=false の機械追従だけ。政策の押しは MandateMargin=+∞ で倒れず下の在庫で払う）。スライダーは段の概念がない＝targetLevel=−1（憲法級の段判定に掛からない）
+        if (!(net > -(mandate ? MandateMargin(w, a, -1) : 0))) { if (milProbe) Instruments.MilitaryMove(w, cur, target, net, double.NaN, double.NaN, 1, e, increasing); if (Instruments.On) Instruments.MoveResult(w, a, spendScale, 1, cur, target, cur, net, double.NaN); return cur; }   // ★否定形（2026-09-21 ㉖）＝NaN の押しは動かさない（旧 `<=` は NaN で素通りし、下の `net < 0` も偽＝無償で動いた）。純反対＝その向きへロック（mandate=false の機械追従だけ。政策の押しは MandateMargin=+∞ で倒れず下の在庫で払う）。スライダーは段の概念がない＝targetLevel=−1（憲法級の段判定に掛からない）
         double resist = PolicyPreferences.OpposingPower(w, a, increasing, e);
         // P1-C 予算闘争（憲法紛争1862型）：非協力的な議会（CoopParliamentCrown<0）×高い統制力＝予算軸（所得税）のスライダーが
         // 議会の拒否で動きにくい。免責＝協力度は紛争記憶（MandateSpent）の減衰と議席の構成の変化で回復（2026-09-26 回5-1 Q16＝旧「与党交代」）。既定0で恒等。
@@ -871,10 +886,11 @@ public static class Government
         {
             double moved = Math.Min(1.0, Math.Abs(next - cur) / spendScale);
             double cost = -net * w.Coef.MandateSpendRate * moved;
-            if (!PoliticalCapitalAffords(w, cost)) { if (milProbe) Instruments.MilitaryMove(w, cur, target, net, resist, speed, 2, e, increasing); return cur; }   // ★在庫の門（N2）＝払えない押しはスライダーも1ミリも動かない
+            if (!PoliticalCapitalAffords(w, cost)) { if (milProbe) Instruments.MilitaryMove(w, cur, target, net, resist, speed, 2, e, increasing); if (Instruments.On) Instruments.MoveResult(w, a, spendScale, 2, cur, target, cur, net, speed); return cur; }   // ★在庫の門（N2）＝払えない押しはスライダーも1ミリも動かない
             Spend(w, cost);
         }
         if (milProbe) Instruments.MilitaryMove(w, cur, target, net, resist, speed, mandate && net < 0 ? 4 : 3, e, increasing);
+        if (Instruments.On) Instruments.MoveResult(w, a, spendScale, mandate && net < 0 ? 4 : 3, cur, target, next, net, speed);
         return next;
     }
 
@@ -931,17 +947,21 @@ public static class Government
     // ★段の序数で1本（2026-09-28 処理の一元化 段1＝旧 StepEnum と StepBool の2本。bool の法は 0/1 の段＝cur≠target なら target が増加の向き・前提は1段目・門は 1/0＝旧 StepBool と同じ引数）。
     private static int StepLevel(int ci, int ti, World w, PolicyAxis a)
     {
-        if (ci == ti) return ci;
+        if (ci == ti) { if (Instruments.On) Instruments.LevelResult(w, 0, ci, ti, ci); return ci; }
         bool increasing = ti > ci;
         // 第6段6-7：不可逆判定を BlockedByIrreversibility へ一元化。軸の「後退の向き」＝Regressive 1本（2026-09-18に4箇所の写経を畳んだ）。
         //   bool の法の後退（true→false＝制度の撤回）も同じ判定（撤回例は史実に存在しない制度が対象・ChildLabor だけ軸の増＝合法化が後退向き＝Regressive が持つ規約）。
         bool regressive = Regressive(a, increasing);
-        if (BlockedByIrreversibility(w, a, regressive)) return ci;
+        if (BlockedByIrreversibility(w, a, regressive)) { if (Instruments.On) Instruments.LevelResult(w, 5, ci, ti, ci); return ci; }
         // 前提法DAG（E4）：一段上げる先(ci+1)の前提が未達なら据え置き（段階スキップ禁止＝1段ずつ・前提の連鎖を一歩ごと再確認）。
         //   bool の法も同じ（E4/レビュー2026-07-20＝旧 StepBool が LawPrereq を読まず、GateInfo 経由の人間プレイヤーにだけ前提が効いた非対称の是正）。
-        if (increasing && !LawPrereq(w, a, ci + 1, w.Coef).Ok) return ci;
+        if (increasing && !LawPrereq(w, a, ci + 1, w.Coef).Ok) { if (Instruments.On) Instruments.LevelResult(w, 6, ci, ti, ci); return ci; }
         if (MandateGate(w, a, increasing, ci + (increasing ? 1 : -1), ReversalCostMul(w, a, regressive)))
+        {
+            if (Instruments.On) Instruments.LevelResult(w, -1, ci, ti, ci + (increasing ? 1 : -1));
             return ci + (increasing ? 1 : -1);
+        }
+        if (Instruments.On) Instruments.LevelResult(w, -1, ci, ti, ci);
         return ci;   // 力の均衡（＋余白）が許さない＝据え置き（例：参政権はブルジョワが制限選挙で止める）
     }
 }

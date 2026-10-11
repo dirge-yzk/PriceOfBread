@@ -15,6 +15,7 @@
 /// <item><c>region_s&lt;seed&gt;.tsv</c> 州×四半期（全ての国の全ての州）：人口・農村人口・機会とその因子・耕地・四半期の人口の流れ（州の間の移民・入植・越境の出入り）・戦場の強さ・主食の充足。
 /// <c>migration_s&lt;seed&gt;.tsv</c> 州の間の移民の組（出る州→入る州）の四半期の量。州の空洞化（F1 の線）の読み手 <c>hol/an_h2.py</c> の入力＝旧の注入 <c>u4e/inj_ghost.py</c> の代わり。</item>
 /// <item><c>canal_s&lt;seed&gt;.tsv</c> ★(271) 運河ごとに1行（開通した四半期の番号・開通しなかった運河は <c>-1</c>。試合の終わりに書く）。<c>nation_s</c> の末尾の21列（国の個体の番号 <c>nationUid</c>・消費の予算の拘束・建設の投資枠・国債の借入のプール・与信の上限）も (271)。</item>
+/// <item>★(274) <c>nation_s</c> の末尾の列（<c>openFrontsCount</c> ほか17列）＝政治予算の係数 (1/N)^0.5 の N に数えた開いた戦線のそれぞれが、その四半期の施行で動いたか・何で固定されたか（幽霊戦線）。符号は <see cref="GFront"/>・読み手は <c>scripts/instruments/g274/an_ghost.py</c>。</item>
 /// <item><c>wars_s&lt;seed&gt;.tsv</c> 戦争1本ごと（開戦の年・内戦か・当事者・月数・戦死）／<c>casualty_s&lt;seed&gt;.tsv</c> (年, 国)ごとの兵士の月と戦死（試合の終わりに書く）。</item>
 /// </list>
 /// 開幕（構築直後 <c>open</c>）と助走の直後（<c>warm</c>）の断面は class と stock に全ての国で出る。初期値の一覧は Runner の <c>initdump</c>。
@@ -110,7 +111,13 @@ public static class Instruments
         public int MmOutcome = -1, MmFronts = -1; public bool MmIncreasing;
         public double MmCur = double.NaN, MmTarget = double.NaN, MmNet = double.NaN, MmResist = double.NaN, MmSpeed = double.NaN, MmPush = double.NaN;
         public double MmOppTrad = double.NaN, MmOppModern = double.NaN, MmOppMass = double.NaN, MmStock = double.NaN, MmStockMax = double.NaN, MmEnvelopeAfterGov = double.NaN;
+        // ---- (274) 線G：幽霊戦線の計器。Government.CountOpenFronts が数えた開いた戦線（数えた順）と、Step がその四半期に出した結果。-1＝施行の結果が来なかった
+        public readonly List<GFront> Gf = new(); public bool GfCounted, GfMilExpired; public int GfLevelIdx = -1, GfGateWhy; public double GfGateNet = double.NaN;
     }
+    /// <summary>(274) 開いた戦線1本。Kind＝L 段の法〔Idx＝LevelLaws の表の行〕／R 税・支出の段〔Idx＝RateLaws の行〕／M 軍事費の合計／C 治安維持力／T 関税。
+    /// Code：0 施行のとき目標＝現在で閉じていた／1 純支持で固定／2 政治資本で固定／3 無償で動いた〔未到達〕／4 政治資本を払って動いた〔未到達〕／5 不可逆で固定／6 前提で固定／
+    /// 7 無償で動いて目標に届いた／8 払って動いて目標に届いた／9 軍事費の解禁の外の失効だけで動いた（M のみ）／-1 結果が来なかった。</summary>
+    internal sealed class GFront { public char Kind; public int Idx; public PolicyAxis Axis; public double Cur, Target, Net = double.NaN; public int Code = -1; public bool Expired; }
     /// <summary>段5 の上限の引き出し率 d（月あたり）。(264) 実装ログ §7 の事前登録の格子＝1/120・1/240・1/480（AI の設計・作者の承認は未確認）。</summary>
     internal static readonly double[] CapDs = [1.0 / 120, 1.0 / 240, 1.0 / 480, 1.0 / 36, 1.0 / 12];   // (271) 末尾の2つ＝(268) 申し送りの推奨（格子に 1/36・1/12 を足す）
     static readonly string[] CapDNames = ["D120", "D240", "D480", "D36", "D12"];
@@ -429,6 +436,45 @@ public static class Instruments
     }
     /// <summary>★(270) 開いた戦線の数（<c>Government.Step</c> の政治予算の分母）。</summary>
     internal static void PushFronts(World w, int fronts) => S(w).MmFronts = fronts;
+    // ---------------------------------------------------------------- (274) 線G：幽霊戦線（読むだけ）----------------------------------------------------------------
+    /// <summary>戦線の数え上げの始まり（<c>Government.CountOpenFronts</c> の頭）。前の四半期の印を捨てる。</summary>
+    internal static void FrontsBegin(World w) { var st = S(w); st.Gf.Clear(); st.GfCounted = true; st.GfMilExpired = false; }
+    /// <summary>開いた戦線1本（<c>CountOpenFronts</c> が <c>n++</c> する場所そのもの＝述語を計器へ書き写さない）。</summary>
+    internal static void FrontCounted(World w, char kind, int idx, PolicyAxis axis, double cur, double target)
+        => S(w).Gf.Add(new GFront { Kind = kind, Idx = idx, Axis = axis, Cur = cur, Target = target });
+    /// <summary>施行のループがいま回している段の法の表の行（<c>StepLevel</c> の結果をその戦線へ付ける）。</summary>
+    internal static void LevelBegin(World w, int idx) => S(w).GfLevelIdx = idx;
+    /// <summary>解禁の外で軍事費の施行が段3へ戻された四半期（<c>Step</c> の失効の行）。</summary>
+    internal static void MilitaryExpiry(World w) => S(w).GfMilExpired = true;
+    /// <summary><c>MandateGate</c> の結果：1 純支持の門で否決／2 政治資本の在庫で否決／3 無償で通った／4 政治資本を払って通った。</summary>
+    internal static void GateResult(World w, int why, double net) { var st = S(w); st.GfGateWhy = why; st.GfGateNet = net; }
+    /// <summary>番人（テスト）が1回の <c>Government.Step</c> の後の開いた戦線を読む口。</summary>
+    internal static IReadOnlyList<GFront> FrontsOf(World w) => S(w).Gf;
+    static GFront? FindFront(WState st, char kind, int idx)
+    {
+        foreach (var f in st.Gf) if (f.Kind == kind && f.Idx == idx) return f;
+        return null;
+    }
+    /// <summary><c>StepLevel</c> の結果。code −1＝<c>MandateGate</c> を通った（門の結果と、一歩で目標に届いたかから符号を決める）。</summary>
+    internal static void LevelResult(World w, int code, int ci, int ti, int result)
+    {
+        var st = S(w);
+        if (code == -1) code = st.GfGateWhy switch { 1 => 1, 2 => 2, 4 => result == ti ? 8 : 4, _ => result == ti ? 7 : 3 };
+        if (FindFront(st, 'L', st.GfLevelIdx) is { } f) { f.Code = code; f.Net = code is 0 or 5 or 6 ? double.NaN : st.GfGateNet; }
+    }
+    /// <summary><c>Government.Move</c> の結果（outcome は <see cref="MilitaryMove"/> と同じ 0 閉じていた／1 純支持／2 政治資本／3 無償で動いた／4 払って動いた）。軸と歩幅の尺度から戦線の種類を決める。</summary>
+    internal static void MoveResult(World w, PolicyAxis a, double spendScale, int outcome, double cur, double target, double next, double net, double speed)
+    {
+        var st = S(w);
+        char kind; int idx = 0;
+        if (a == PolicyAxis.Coercion) kind = spendScale == 1.0 ? 'M' : 'C';
+        else if (a == PolicyAxis.Tariff) kind = 'T';
+        else { idx = Array.FindIndex(Government.RateLaws, l => l.Axis == a); if (idx < 0) return; kind = 'R'; }
+        if (FindFront(st, kind, idx) is not { } f) return;
+        int code = outcome >= 3 && Math.Abs(target - next) <= 0.026 ? (outcome == 4 ? 8 : 7) : outcome;
+        if (kind == 'M' && st.GfMilExpired) { f.Expired = true; if (code == 0) code = 9; }
+        f.Code = code; f.Net = net;
+    }
     /// <summary>四半期の頭の <c>Government.Step</c> の後：戦時段の解禁・軍事費の段の目標（保存）と施行。</summary>
     internal static void AfterGovernment(World w)
     {
@@ -456,6 +502,7 @@ public static class Instruments
         st.CrDays = st.CrRepayBoundDays = st.CrFiniteDays = 0; st.CrReserveCap = st.CrRepayable = 0;
         st.MmOutcome = st.MmFronts = -1; st.MmIncreasing = false;
         st.MmCur = st.MmTarget = st.MmNet = st.MmResist = st.MmSpeed = st.MmPush = st.MmOppTrad = st.MmOppModern = st.MmOppMass = st.MmStock = st.MmStockMax = st.MmEnvelopeAfterGov = double.NaN;
+        st.Gf.Clear(); st.GfCounted = st.GfMilExpired = false; st.GfLevelIdx = -1; st.GfGateWhy = 0; st.GfGateNet = double.NaN;   // (274) 助走の分は数えない
     }
     /// <summary>国×四半期の行に足す列（行政の請求の2つの式・戦時段）。月ごとの量は四半期の月の平均（<c>PerMonth</c>）。</summary>
     static List<(string Name, string Value)> NationExtras(World w, WState st)
@@ -920,6 +967,8 @@ public static class Instruments
         foreach (var ex in ext271) cols.Add(ex.Value);
         var ext270 = Extras270(w, st);   // (270) 線B2：軍事費の合計の施行の一歩の内訳（末尾）
         foreach (var ex in ext270) cols.Add(ex.Value);
+        var ext274 = Extras274(w, st);   // (274) 線G：幽霊戦線（開いた戦線の施行の結果）
+        foreach (var ex in ext274) cols.Add(ex.Value);
         sk.Nation ??= Open("nation", seed);
         if (!sk.NationHeader)
         {
@@ -934,7 +983,8 @@ public static class Instruments
                 + "stakeMismatchProducerCount\tstakeMismatchToInvestedCount\tstakeMismatchToUninvestedCount\twheelMismatchGoods\tstateFacilityStartedGoods\tfoodMetShare\tneedMetShare\tstaleSubsidyNotGrabbedCount\tstakeMismatchGoods\t"
                 + string.Join('\t', ext265.Select(e => e.Name)) + "\t"
                 + string.Join('\t', ext271.Select(e => e.Name)) + "\t"
-                + string.Join('\t', ext270.Select(e => e.Name)));
+                + string.Join('\t', ext270.Select(e => e.Name)) + "\t"
+                + string.Join('\t', ext274.Select(e => e.Name)));
             sk.NationHeader = true;
         }
         sk.Nation.WriteLine(string.Join('\t', cols));
@@ -1037,6 +1087,37 @@ public static class Instruments
         cols.Add(("politicalCapitalSpentIndex", F(st.MmStock))); cols.Add(("politicalCapitalMaxIndex", F(st.MmStockMax)));
         cols.Add(("warStageEnvelopeShareAfterGov", F(st.MmEnvelopeAfterGov))); cols.Add(("warStageEnvelopeShareEnd", F(Military.WarStageShare(w, w.MilitarySpending))));
         cols.Add(("sovereignDefaultCumulativeCount", I(w.SovereignDefaultCount)));
+        return cols;
+    }
+
+    /// <summary>★(274) 線G：幽霊戦線。<c>Government.Step</c> の頭で数えた開いた戦線 N（政治予算の係数 (1/N)^0.5 の分母）それぞれが、その四半期の施行で何になったか。
+    /// 件数の列は符号ごと（符号の意味は <see cref="GFront"/>）。<c>openFrontStates</c>＝数えた順の「種類.軸:符号」（種類 L 段の法・R 税と支出の段・M 軍事費・C 治安維持力・T 関税。M の失効は末尾 x）。
+    /// 政治予算の係数が薄めるのは連続の軸（R・M・C・T）の歩幅だけ＝段の法（L）は <c>StepLevel</c> が一歩ずつ進み係数を掛けない（それでも L の開いた戦線も N に数えられる）。
+    /// ⚠限界：①施行の結果は四半期の頭の1回の施行のもの（数えた時と施行の時で状態が変わった戦線は符号 0 か −1）②「動く戦線だけで数えた N′」は読み手が導く静的な反事実（係数が変われば歩幅が変わり政治資本の払いも変わる）。</summary>
+    static List<(string Name, string Value)> Extras274(World w, WState st)
+    {
+        var cols = new List<(string, string)>();
+        string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        var cnt = new int[11];   // 符号 −1..9 を +1 して数える
+        int level = 0, cont = 0; bool mil = false;
+        var sb = new System.Text.StringBuilder();
+        foreach (var f in st.Gf)
+        {
+            cnt[f.Code + 1]++;
+            if (f.Kind == 'L') level++; else cont++;
+            if (f.Kind == 'M') mil = true;
+            if (sb.Length > 0) sb.Append(';');
+            sb.Append(f.Kind).Append('.').Append(f.Axis).Append(':').Append(f.Code); if (f.Expired) sb.Append('x');
+        }
+        cols.Add(("openFrontsCount", I(st.GfCounted ? st.Gf.Count : -1)));
+        cols.Add(("openFrontsLevelLawCount", I(level))); cols.Add(("openFrontsContinuousCount", I(cont)));
+        cols.Add(("frontClosedAtStepCount", I(cnt[1]))); cols.Add(("frontNetSupportFixedCount", I(cnt[2]))); cols.Add(("frontCapitalFixedCount", I(cnt[3])));
+        cols.Add(("frontMovedFreeCount", I(cnt[4]))); cols.Add(("frontMovedPaidCount", I(cnt[5])));
+        cols.Add(("frontIrreversibleFixedCount", I(cnt[6]))); cols.Add(("frontPrerequisiteFixedCount", I(cnt[7])));
+        cols.Add(("frontReachedFreeCount", I(cnt[8]))); cols.Add(("frontReachedPaidCount", I(cnt[9])));
+        cols.Add(("frontMilitaryExpiredCount", I(cnt[10]))); cols.Add(("frontUnrecordedCount", I(cnt[0])));
+        cols.Add(("militaryFrontCountedFlag", I(mil ? 1 : 0))); cols.Add(("pushBudgetFactor", F(w.PoliticalPushBudget)));
+        cols.Add(("openFrontStates", sb.ToString()));
         return cols;
     }
 
