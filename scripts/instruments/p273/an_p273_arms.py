@@ -128,7 +128,10 @@ def metrics(S):
     resid = 0.0
     for r in fis:
         rv = fl(r['revenueBasePerMonth']); rs = abs(fl(r['ledgerResidualPerMonth']))
-        if rv > 0 and rs == rs: resid = max(resid, rs / rv)
+        if rv > 0:
+            if not (rs == rs):   # ★(275) 否定形＝NaN の残差は素通りさせない（反証役 bv：fail-open）
+                resid = float('nan'); break
+            resid = max(resid, rs / rv)
     M['P6_ledger_residual'] = resid
     q0 = nat.get(0)
     M['rev_Q1'] = fl(q0['revenueBaseMeanPerMonth']) if q0 else float('nan')
@@ -195,12 +198,16 @@ for a in arms:
         continue
     m = {k: [MET[a][sd][k] for sd in common] for k in MET[a][common[0]] if k != 'p1_by_q'}
     p1 = med(m['P1p_min_Q1_Q8']); p2 = med(m['P2_mass_paid_earned'])
-    p3a = all(x == 0 for x in m['P3a_default_Q40'] if x == x)
+    p3a = all(x == 0 for x in m['P3a_default_Q40'])   # ★(275) NaN（Q40 の行の欠け）は 0 と等しくない＝合格にしない（旧は NaN を落としてから all＝fail-open）
     nsusp = sum(1 for x in m['P3b_suspensions_Q1_Q40'] if x > 0)
-    p4 = med(m['P4_gdp_real_Q40']); p5 = med(m['P5_revenue_to_gdp']); p6 = max(m['P6_ledger_residual'])
-    mark = lambda ok: '合格' if ok else '外れ'
-    p1txt = ('記録（S′）' if a.startswith('S2') else mark(p1 >= 0.5)) + f' {f(p1, 3)}'
-    out.append(f'| {a} | {p1txt} | {mark(p2 >= 0.9)} {f(p2, 3)} | {mark(p3a)}（不履行のあった種 {sum(1 for x in m["P3a_default_Q40"] if x > 0)}/{N}） | {mark(nsusp <= susp_max)}（{nsusp}/{N}種） | {mark(p4 >= 3.12e5)} {f(p4, 0)} | {mark(p5 >= 0.0851)} {f(p5, 4)} | {mark(p6 < 0.01)} {p6:.2e} |\n')
+    p4 = med(m['P4_gdp_real_Q40']); p5 = med(m['P5_revenue_to_gdp'])
+    p6 = float('nan') if any(not (x == x) for x in m['P6_ledger_residual']) else max(m['P6_ledger_residual'])
+    # ★(275) 線の量に NaN（行の欠け・0 割り）の種が1つでもあれば「判定不能」（med は NaN を落として中央を取る＝欠けを隠す）
+    nanof = lambda k: sum(1 for x in m[k] if not (x == x))
+    mark0 = lambda ok: '合格' if ok else '外れ'
+    mark = lambda ok, k=None: (f'判定不能（NaN {nanof(k)}種）' if k is not None and nanof(k) else mark0(ok))
+    p1txt = ('記録（S′）' if a.startswith('S2') else mark(p1 >= 0.5, 'P1p_min_Q1_Q8')) + f' {f(p1, 3)}'
+    out.append(f'| {a} | {p1txt} | {mark(p2 >= 0.9, "P2_mass_paid_earned")} {f(p2, 3)} | {mark(p3a, "P3a_default_Q40")}（不履行のあった種 {sum(1 for x in m["P3a_default_Q40"] if x > 0)}/{N}） | {mark(nsusp <= susp_max)}（{nsusp}/{N}種） | {mark(p4 >= 3.12e5, "P4_gdp_real_Q40")} {f(p4, 0)} | {mark(p5 >= 0.0851, "P5_revenue_to_gdp")} {f(p5, 4)} | {mark(p6 < 0.01, "P6_ledger_residual")} {p6:.2e} |\n')
 out.append('\n## 種ごとの値（P1′・P2・不履行・兌換停止・Q1 の歳入）\n\n')
 for a in arms:
     out.append(f'- {a}: ' + '；'.join(f's{sd} P1′={f(MET[a][sd]["P1p_min_Q1_Q8"], 2)} P2={f(MET[a][sd]["P2_mass_paid_earned"], 2)} 不履行={f(MET[a][sd]["P3a_default_Q40"], 0)} 停止={MET[a][sd]["P3b_suspensions_Q1_Q40"]} 歳入Q1={f(MET[a][sd]["rev_Q1"], 0)}' for sd in common) + '\n')

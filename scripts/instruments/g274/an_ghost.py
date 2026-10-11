@@ -8,6 +8,10 @@ nation_s<seed>.tsv の末尾の列（openFrontsCount ほか・openFrontStates）
 符号（Instruments.GFront）：0 施行のとき閉じていた／1 純支持で固定／2 政治資本で固定／3 無償で動いた〔未到達〕／4 払って動いた〔未到達〕／5 不可逆で固定／6 前提で固定／
 7 無償で動いて届いた／8 払って動いて届いた／9 軍事費の失効で動いた／-1 結果が来なかった。「動く」＝3・4・7・8・9。
 「純幽霊」＝1・5・6（純支持の門・不可逆・前提＝政治資本があっても動かない）。2（政治資本の在庫が代価に届かず固定）は「飢え」＝資本があれば動く。
+★(275) 反証役 v（(274) 低）の直し：①国の系列の鍵を nationUid（(271)・国の個体）にした＝nationIndex は国の消滅で詰まり、建国が枠を再利用する
+  （六国は開幕の四半期の nationIndex の国の nationUid で引く）②固定の連なりは四半期の飛び（前の行の q+1 でない）で切る。
+  ⚠限界（直していない）：openFrontStates は軸名だけ＝L.Nationalization の5部門は同じ名前（出現の順で対応づけた近似）。表の行の番号は計器の側の変更が要る。
+  ⚠符号 2 は〈代価が政治資本の最大量を超える＝在庫が空でも永久に届かない〉と〈残りが足りない＝飢え〉を混ぜる（計器が代価・MandateSpent・最大量を出さない）＝純幽霊（1・5・6）は下限。
 ⚠静的な反事実：係数を変えれば歩幅が変わり、政治資本の払いも変わる（固定が解ける軸も増える）。この読み手は N′ から係数を引くだけで、動力学の再現ではない。
 """
 import csv, glob, os, sys, collections, math, statistics
@@ -39,6 +43,7 @@ def load(d):
                     ka, _, c = it.rpartition(':')
                     items.append((ka[0], ka[2:], int(c.rstrip('x')), c.endswith('x')))
                 rows.append({'seed': seed, 'q': int(r['quarter']), 'year': int(r['year']), 'idx': int(r['nationIndex']), 'nation': r['nation'], 'n': n, 'items': items,
+                             'uid': r.get('nationUid', r['nationIndex']),
                              'f': float(r['pushBudgetFactor']), 'open': r['warStageOpenAfterGovFlag'] == '1', 'mil': r['militaryFrontCountedFlag'] == '1',
                              'atwar': r['atWarAtDecisionFlag'] == '1'})
     return rows
@@ -86,13 +91,18 @@ def streaks(rs):
     """(種類.軸) ごとに、同じ国・同じ種の中で固定（FROZEN）が連続した四半期の長さを数える"""
     by = collections.defaultdict(list)
     for r in rs:
-        by[(r['seed'], r['idx'])].append(r)
+        by[(r['seed'], r['uid'])].append(r)
     lens = []; axis_lens = collections.defaultdict(list)
     for key, lst in by.items():
         lst.sort(key=lambda r: r['q'])
         cur = {}
         prevq = None
         for r in lst:
+            if prevq is not None and r['q'] != prevq + 1:   # 四半期が飛んだ（計器の行が無い四半期）＝連なりを切る
+                for ka, v in cur.items():
+                    lens.append(v); axis_lens[ka[:2]].append(v)
+                cur = {}
+            prevq = r['q']
             now = {}
             seen = collections.Counter()
             for k, a, c, x in r['items']:
@@ -114,6 +124,14 @@ def main():
     outp = sys.argv[2] if len(sys.argv) > 2 else None
     rows = load(d)
     seeds = sorted(set(r['seed'] for r in rows))
+    # 六国＝各種の開幕の四半期にその nationIndex だった国の個体（nationUid）。以後の行は uid で引く（nationIndex の詰まり・建国の再利用を跨がない）
+    q0 = {}
+    for r in rows:
+        if r['seed'] not in q0 or r['q'] < q0[r['seed']]:
+            q0[r['seed']] = r['q']
+    uid_of = {(r['seed'], r['idx']): r['uid'] for r in rows if r['q'] == q0[r['seed']]}
+    for r in rows:
+        r['six'] = next((i for i, _ in NATIONS if uid_of.get((r['seed'], i)) == r['uid']), None)
     lines = []
     P = lines.append
     P('(274) 幽霊戦線の表  入力=%s  種=%s  行=%d（開いた戦線を数えた国×四半期）' % (d, seeds, len(rows)))
@@ -125,7 +143,7 @@ def main():
     P('==== A. 国別・20年窓（%d〜%d）====' % (y0, y1))
     for idx, name in NATIONS:
         P('-- %s（nationIndex %d）' % (name, idx))
-        sub = [r for r in rows if r['idx'] == idx]
+        sub = [r for r in rows if r['six'] == idx]
         for a, b in wins:
             rs = [r for r in sub if a <= r['year'] < b]
             if rs:
@@ -143,7 +161,7 @@ def main():
     P('種類別（全期間・戦線の数に対する割合）：段の法 L %s・連続の軸（税と支出の段 R・軍事費 M・治安維持力 C・関税 T）%s／L のうち固定 %s・連続のうち固定 %s'
       % (pct(c['L'], allS['sumN']), pct(c['K'], allS['sumN']), pct(c['Lfrozen'], c['L']), pct(c['Kfrozen'], c['K'])))
     P('')
-    sel = [r for r in rows if r['idx'] in dict(NATIONS)]
+    sel = [r for r in rows if r['six'] is not None]
     lens, axl = streaks(sel)
     tot_frozen_q = sum(lens)
     P('==== C. 軸ごとの内訳（英・仏・普・露・日・清の合算）====')
@@ -164,8 +182,8 @@ def main():
     P('')
     P('==== D. (270) vb#1 の静的な反事実：戦時段の解禁の間（warStageOpenAfterGovFlag=1）に軍事費の戦線を N から外したら ====')
     P('軍事費の戦線は解禁の間 fullPush で自分は政治予算の係数を掛けない（B2）が、N には数えられ他の軸の歩幅を薄めている。外すと他の軸の係数が (N/(N−1))^%.1f 倍。' % GATE)
-    for label, pred in [('英・解禁の間', lambda r: r['idx'] == 2 and r['open'] and r['mil']), ('全ての国・解禁の間', lambda r: r['open'] and r['mil']),
-                        ('英・交戦中で解禁の外', lambda r: r['idx'] == 2 and r['atwar'] and not r['open']), ('英・平時', lambda r: r['idx'] == 2 and not r['atwar'] and not r['open'])]:
+    for label, pred in [('英・解禁の間', lambda r: r['six'] == 2 and r['open'] and r['mil']), ('全ての国・解禁の間', lambda r: r['open'] and r['mil']),
+                        ('英・交戦中で解禁の外', lambda r: r['six'] == 2 and r['atwar'] and not r['open']), ('英・平時', lambda r: r['six'] == 2 and not r['atwar'] and not r['open'])]:
         rs = [r for r in rows if pred(r)]
         if not rs:
             P('%-22s 0 行' % label); continue
@@ -200,7 +218,7 @@ def main():
         parts = ['案%d %4.2f→%.3f(%.2f)' % (i, statistics.mean(ns[i]), statistics.mean(fs[i]), statistics.mean(fs[i]) / f0) for i in range(5)]
         P('%-12s %6d行  %s' % (label, len(rs), '  '.join(parts)))
     for idx, name in NATIONS:
-        alt_line(name, [r for r in rows if r['idx'] == idx])
+        alt_line(name, [r for r in rows if r['six'] == idx])
     alt_line('六国の合算', sel)
     alt_line('全ての国', rows)
     alt_line('全・平時', [r for r in rows if not r['atwar']])

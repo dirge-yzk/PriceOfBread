@@ -1,0 +1,13 @@
+(275) 合流：合わせた木（6178a90・SOURCE-HASH 70b3984891234312）の計器つき10種（INS=1・NATIONS＝イギリス,フランス,ネーデルラント,ポルトガル）で読み手を回し直した記録（読むだけ）
+
+1. 線G の読み手 scripts/instruments/g274/an_ghost.py（直す前の版＝56d3375）
+   出力の2行目以降が measurements/g274_20261012/ghost_tables.txt と diff 0（1行目は入力のパスだけ違う）＝合わせた木の nation_s の 17 列は線G の木と同じ値。
+2. 同じ読み手の直した版（(275)：鍵を nationUid に・六国は開幕の四半期の nationIndex の国の nationUid で引く・固定の連なりを四半期の飛びで切る）
+   直す前の版の出力と diff 0＝この軌道では六国の nationIndex は全期間で同じ国・四半期の飛びは無い＝(274) の表の数は変わらない。
+3. 線P の読み手 scripts/instruments/p273/an_p273.py
+   t1_mass_savings・t2_cap_grid・t3_consume_bind・t4_baseline_lines が measurements/m273_20261012/tab/ と diff 0（入力のパスの行を除く）。
+4. 線P 後半の読み手 scripts/instruments/p273/an_p273_arms.py（(275) で NaN を素通しする所を否定形に直した）
+   ・生の計器（measurements/m273_20261012/arms/raw の B_5・R_10・S_5・S2_5 を展開）で直す前と直した後の出力が diff 0（NaN の無い入力では同じ）。
+     arms5.md との差は「世界の不履行の総数」の1行だけ＝生の計器の nation_s が英・仏・蘭の3国に絞ってある（全ての国の和ではない）ため。
+   ・R_10 の seed 1 の英の Q40 の行の sovereignDefaultCumulativeCount を NaN にした写しで、直す前の版は P3a「合格」、直した版は「判定不能（NaN 1種）」。
+5. 州の空洞化 hol/an_h2.py -v4 の出力が measurements/m272_20261011/h2_r272.txt と cmp 一致（h2_r275.txt）。
