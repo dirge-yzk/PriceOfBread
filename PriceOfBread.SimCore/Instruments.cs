@@ -67,6 +67,7 @@ public static class Instruments
         public readonly double[] ClsEarn = new double[NC], ClsPaid = new double[NC]; public int ClsMonths;
         public int Sel = -1;                               // -1＝未判定 0＝挙げていない 1＝挙げた国
         public int WarMonths, CivilWarMonths;              // 今の四半期の交戦の月・内戦の月（軍の更新の直前に数える・四半期の末に0へ戻す・助走の直後にも0へ戻す）
+        public int FacStarted, FacStartedClosed, FacDone, FacDoneClosed, FacDoneClosedAtStart;   // 今の四半期の国営の棟の着工・完成（門が閉じていた分つき・四半期の末に0へ戻す）
     }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<World, WState> States = new();
     static WState S(World w) => States.GetValue(w, _ => new WState());
@@ -194,6 +195,32 @@ public static class Instruments
         a[0] += 1; a[1] += soldierPop; a[2] += dead;
     }
 
+    // ---------------------------------------------------------------- 国営の棟の着工と完成（(260) 線E の合否の量） ----------------------------------------------------------------
+
+    /// <summary>着工の時点の門（発見の門が閉じていたか）を生産者ごとに覚える計器の側の表＝シミュの状態を足さない（完成の月に「着工の時点でも閉じていたか」を読むため）。</summary>
+    sealed class GateAtStart { public bool Closed; }
+    static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Producer, GateAtStart> StartGates = new();
+
+    /// <summary>国営の棟の着工（<c>World.BuildFactory</c> が <c>ConstructionLeft</c> を置いた直後）：門が閉じた生産者への着工を数える。読むだけ（<see cref="Discovery.Gate(Region, Producer)"/> は純関数）。</summary>
+    internal static void FacilityStarted(World w, Region r, Producer p)
+    {
+        var st = S(w);
+        bool closed = !(Discovery.Gate(r, p) > 0);
+        st.FacStarted++; if (closed) st.FacStartedClosed++;
+        StartGates.GetValue(p, _ => new GateAtStart()).Closed = closed;
+    }
+
+    /// <summary>国営の棟の完成（<c>World.StepConstruction</c> が <c>BuiltScale</c> に1棟足した直後）：完成の月に門が閉じている棟（＝操業規模が0に置かれる不活性の設備）を数える。
+    /// 着工の時点でも閉じていた分と、工期の途中で（後継の発見により）閉じた分は、最後の列が分ける。</summary>
+    internal static void FacilityCompleted(World w, Region r, Producer p)
+    {
+        var st = S(w);
+        st.FacDone++;
+        if (Discovery.Gate(r, p) > 0) return;
+        st.FacDoneClosed++;
+        if (StartGates.TryGetValue(p, out var g) && g.Closed) st.FacDoneClosedAtStart++;
+    }
+
     // ---------------------------------------------------------------- 月末（Simulation.MonthSettle の終わり） ----------------------------------------------------------------
 
     /// <summary>月の決算の終わり：階級ごとの所得と支出を四半期の合計へ足し、挙げた国は財政の1行を溜める（台帳の差分は前の月の決算の終わりから）。</summary>
@@ -274,6 +301,7 @@ public static class Instruments
             if (picked || yearEnd) { ClassRows(sk, seed, time, w, st, flows: true); StockRow(sk, seed, time, w, readGdp: true); }
             NationRow(sk, seed, q, i, w, st, yearEnd);
             Array.Clear(st.ClsEarn); Array.Clear(st.ClsPaid); st.ClsMonths = 0; st.WarMonths = 0; st.CivilWarMonths = 0;
+            st.FacStarted = st.FacStartedClosed = st.FacDone = st.FacDoneClosed = st.FacDoneClosedAtStart = 0;
         }
         RegionRows(sk, seed, q, sim);
     }
@@ -409,12 +437,14 @@ public static class Instruments
         cols.Add(I(core)); cols.Add(I(integrated)); cols.Add(I(colonial)); cols.Add(nonCore.ToString());
         cols.Add(F(led[(int)TreasuryCat.Borrow])); cols.Add(F(led[(int)TreasuryCat.Devalue])); cols.Add(F(led[(int)TreasuryCat.Army])); cols.Add(F(led[(int)TreasuryCat.Navy]));
         cols.Add(F(w.GovDebt.Value)); cols.Add(F(exports)); cols.Add(F(imports)); cols.Add(I(w.Coef.ClearingsPerYear));
+        cols.Add(I(st.FacStarted)); cols.Add(I(st.FacStartedClosed)); cols.Add(I(st.FacDone)); cols.Add(I(st.FacDoneClosed)); cols.Add(I(st.FacDoneClosedAtStart));
         sk.Nation ??= Open("nation", seed);
         if (!sk.NationHeader)
         {
             sk.Nation.WriteLine("quarter\tyear\tnationIndex\tnation\ttotalPopulationK\tpopulationK\tsoldierK\tnominalGdpPerYear\tatWarMonths\tcivilWarMonths\tconscriptionLaw\tmobilizedFlag\t"
                 + "securityThreatShare\tarmyThreatShare\tserfEmancipation\tcoreRegions\tintegratedRegions\tcolonialRegions\tnonCoreRegions\t"
-                + "ledgerBorrowCumulative\tledgerDevalueCumulative\tledgerArmyCumulative\tledgerNavyCumulative\tgovDebtStock\texportsPerClearing\timportsPerClearing\tclearingsPerYear");
+                + "ledgerBorrowCumulative\tledgerDevalueCumulative\tledgerArmyCumulative\tledgerNavyCumulative\tgovDebtStock\texportsPerClearing\timportsPerClearing\tclearingsPerYear\t"
+                + "stateFacilityStartedCount\tstateFacilityStartedGateClosedCount\tstateFacilityCompletedCount\tstateFacilityCompletedGateClosedCount\tstateFacilityCompletedGateClosedAtStartCount");
             sk.NationHeader = true;
         }
         sk.Nation.WriteLine(string.Join('\t', cols));

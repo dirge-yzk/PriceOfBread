@@ -1875,6 +1875,7 @@ public sealed class World
         if (Treasury.Value < payPerDay) return false;                           // 初日の労務費すら払えない
         p.ConstructionLeft = days;                                        // 着工（即時には立たない・日数で数える）
         p.ConstructionPayPerDay = payPerDay;
+        if (Instruments.On) Instruments.FacilityStarted(this, r, p);      // 読むだけの計器（(260)・既定は出さない）
         return true;
     }
 
@@ -1950,6 +1951,7 @@ public sealed class World
                 if (p.ConstructionLeft <= 1e-9)
                 {
                     p.ConstructionLeft = 0; p.BuiltScale += Coef.FactoryBuildScale; p.StateTarget = Math.Max(p.StateTarget, StateUnitsOf(p));
+                    if (Instruments.On) Instruments.FacilityCompleted(this, r, p);   // 読むだけの計器（(260)・既定は出さない）
                 }
             }
         }
