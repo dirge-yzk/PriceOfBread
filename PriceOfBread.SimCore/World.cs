@@ -1046,8 +1046,7 @@ public sealed class World
     /// 呼び手＝本番の助走（<see cref="MultiNationSim.WarmupEconomy"/> の各四半期の終わり・2026-09-29）と Runner の freshboard（<see cref="GovernanceSnapshot"/>）。</summary>
     internal void RebaseTreasury(double v)
     {
-        if (Instruments.On) Instruments.TreasuryRebased(this, Treasury.Value, v);   // (280) 計器（読むだけ）：戻した額（置く前との差）を基礎貨幣の出入りとして数える
-        Treasury = new MoneyStock(v);
+        if (Instruments.On) Instruments.TreasuryRebased(this, Treasury.Value, v); Treasury = new MoneyStock(v);   // (280) 計器（読むだけ）：戻した額（置く前との差）を基礎貨幣の出入りとして数える
         System.Array.Clear(TreasuryLedger);
     }
     /// <summary>★国家の支払い率 r∈[0,1]（作者裁定 F3・2026-09-28 支払いの一元化 段2-1）＝その月の全ての国家の支払いの請求に対して払える額（max(0,国庫)＋当月の歳入の見込み）の割合。
@@ -1722,14 +1721,10 @@ public sealed class World
         //   旧（(218)）＝趨勢を0へ（次の更新で趨勢 ＝ 厚み ＝ 物価が1へ引かれる）＝助走で物価水準が1から離れた国（清 2.3・露 1.2）の物価が置き直しだけで動いた（実測＝8四半期で対照の0.6〜0.7倍）。
         double money = (BroadMoney + (BaseMoney - BroadMoney) * Convertibility).Value;
         double ratio = money / Math.Max(1e-9, GdpPerMonth.Value);
-        double trend0 = _moTrend;   // (280) 計器の読み（取り直しの前の趨勢・計算には使わない）
-        _moTrend = ratio > 1e-9 && PriceLevel > 1e-9 ? ratio / PriceLevel : 0;
-        if (Instruments.On) Instruments.Rebase(this, whenMode, before, after, lambda, trend0, money, ratio);   // (280) 計器（読むだけ）
+        double trend0 = _moTrend; _moTrend = ratio > 1e-9 && PriceLevel > 1e-9 ? ratio / PriceLevel : 0; if (Instruments.On) Instruments.Rebase(this, whenMode, before, after, lambda, trend0, money, ratio);   // (280) 計器（読むだけ）：取り直しの前の趨勢 trend0 を読んで記録（計算には使わない）
     }
 
-    private double _moTrend;   // 広義マネー/実質産出 のゆっくりなトレンド（secular な産出成長を吸収＝残りが信用循環の成分）
-    /// <summary>(280) 計器と番人の読み口（<see cref="_moTrend"/> を読むだけ）。</summary>
-    internal double MoTrendForInstruments => _moTrend;
+    private double _moTrend; internal double MoTrendForInstruments => _moTrend;   // 広義マネー/実質産出 のゆっくりなトレンド（secular な産出成長を吸収＝残りが信用循環の成分）。(280) 後ろの読み口は計器と番人が読むだけ
     public void UpdatePriceLevel(Coefficients c)
     {
         if (!MonetaryEnabled) return;
@@ -1757,22 +1752,18 @@ public sealed class World
         double money = broad + (baseM - broad) * Convertibility;   // Conv=1→BaseMoney(金)・Conv=0→BroadMoney(信用込み)
         double ratio = money / Math.Max(1e-9, gdp);   // 実質産出あたりの貨幣（名目の厚み＝数量説の M/Y）
         if (_moTrend <= 1e-9) { _moTrend = ratio; if (Instruments.On) Instruments.PriceStep(this, broad, baseM, money, gdp, ratio, double.NaN, double.NaN, PriceLevel, double.NaN, double.NaN, convTarget, 0.0, true); return; }   // 初回はトレンドの基準を取るだけ
-        double trend0 = _moTrend;   // (280) 計器の読み（更新の前の趨勢・計算には使わない）
-        _moTrend += c.MonetaryTrendSpeed * (ratio - _moTrend);   // 産出の secular 成長＝デフレ圧をトレンドが緩やかに吸収（金産出増・流通速度の調整の抽象）
+        double trend0 = _moTrend; _moTrend += c.MonetaryTrendSpeed * (ratio - _moTrend);   // 産出の secular 成長＝デフレ圧をトレンドが緩やかに吸収（金産出増・流通速度の調整の抽象）
         double cyclical = ratio / Math.Max(1e-9, _moTrend);   // トレンド比＝信用循環：好況で信用が厚い→>1→インフレ／恐慌で信用が縮む→<1→デフレ
         double before = PriceLevel;
-        PriceLevel += c.MonetaryPriceSensitivity * (cyclical - PriceLevel);   // 物価を循環成分へ寄せる（平価1の周りで騰落・恐慌は持続デフレ）
-        double pEma = PriceLevel, fiatP = FiatInflationPressure;   // (280) 計器の読み（EMA の直後の物価・紙幣増発の圧＝計算には使わない）
+        PriceLevel += c.MonetaryPriceSensitivity * (cyclical - PriceLevel); double pEma = PriceLevel, fiatP = FiatInflationPressure;   // 物価を循環成分へ寄せる（平価1の周りで騰落・恐慌は持続デフレ）。(280) 後ろの2つは計器の読み（計算には使わない）
         // #3 不換の紙幣増発（通貨切下げ）→物価上昇＝印刷はインフレ的（→名目GDP↑→実質債務減）。金本位中は devaluation 封印ゆえ圧0。
         if (!(FiatInflationPressure > 0)) FiatInflationPressure = 0;   // 否定形＝NaN も消す（有限値では旧と同値：Fiscal は正の圧しか積まない）
         else { PriceLevel *= 1.0 + c.FiatInflationWeight * FiatInflationPressure; FiatInflationPressure = 0; }
-        double pFiat = PriceLevel;   // (280) 計器の読み（紙幣増発の直後・クランプの前）
-        PriceLevel = Math.Clamp(PriceLevel, c.PriceLevelFloor, c.PriceLevelCeil);
+        double pFiat = PriceLevel; PriceLevel = Math.Clamp(PriceLevel, c.PriceLevelFloor, c.PriceLevelCeil);   // (280) pFiat は計器の読み（紙幣増発の直後・クランプの前）
         CostPriceLevel += c.MonetaryTrendSpeed * (PriceLevel - CostPriceLevel);   // ★自己費用の物価＝P の遅い趨勢（M/Y の趨勢と同じ速さ・(73)）
         // #2 期待インフレ（年率・平滑）＝直近の物価騰落。名目金利が乗せる（Fisher）。
         double infl = before > 1e-9 ? Calendar.PerQuarterToPerYear(PriceLevel / before - 1.0) : 0;   // 四半期→年率
-        ExpectedInflationPerYear += new RatePerYear(Coef.InflationExpectationSmoothing * (infl - ExpectedInflationPerYear.Value));   // EMA
-        if (Instruments.On) Instruments.PriceStep(this, broad, baseM, money, gdp, ratio, trend0, cyclical, before, pEma, pFiat, convTarget, fiatP, false);   // (280) 計器（読むだけ）：物価の更新の鎖
+        ExpectedInflationPerYear += new RatePerYear(Coef.InflationExpectationSmoothing * (infl - ExpectedInflationPerYear.Value)); if (Instruments.On) Instruments.PriceStep(this, broad, baseM, money, gdp, ratio, trend0, cyclical, before, pEma, pFiat, convTarget, fiatP, false);   // EMA。(280) 後ろは計器（読むだけ）：物価の更新の鎖
 
         // 為替レート（第3a段・兌換連続化）：完全兌換は平価1.0／不換は PPP(1/P)＋貿易収支でオーバーシュート。兌換可能性で目標を補間（部分兌換＝平価に半ば縛られる）。
         double tradeBal = (CumulativeTradeFlow - _prevTradeFlow).Value; _prevTradeFlow = CumulativeTradeFlow;   // 当期の対外金収支（黒字>0＝流入）
