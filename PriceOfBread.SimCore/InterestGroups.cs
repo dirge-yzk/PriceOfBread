@@ -84,7 +84,7 @@ public static class InterestGroups
         return w.MigrantNativeSuffrage == MigrantNativeSuffrageLaw.Granted ? 1.0 : core;
     }
 
-    /// <summary>利益集団の政治力：閉鎖階級（貴族・聖職）は身分の宮廷権力 closedMul（票でなく富・席次・軍の政治的優位＝BlocsSplit が1回計算）、近代/大衆は実効参政権の票の発言権 <see cref="FranchiseVoice"/>。基準0.5で正規化＝既定等倍。</summary>
+    /// <summary>利益集団の政治力：閉鎖階級（貴族・聖職）は身分の宮廷権力 closedMul（票でなく富・席次・軍の政治的優位＝<see cref="Blocs"/> が1回計算・旧 BlocsSplit は 2026-10-11 (271) に削除）、近代/大衆は実効参政権の票の発言権 <see cref="FranchiseVoice"/>。基準0.5で正規化＝既定等倍。</summary>
     private static double PoliticalWeight(Pop p, Suffrage s, double closedMul, Coefficients c)
         => p.Closed ? closedMul
                     : FranchiseVoice(p, s, c) / 0.5;   // 近代/大衆＝票（女性比で欠ける・普通選挙で倍増）。基準0.5で正規化

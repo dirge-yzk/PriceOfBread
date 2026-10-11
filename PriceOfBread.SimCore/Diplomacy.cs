@@ -2030,11 +2030,11 @@ public sealed class Diplomacy
     public static TensionPoliticsPreview PreviewTensionPolitics(Power actor, Power target, TensionPoliticsKind kind, Coefficients c, double share = 1.0)
     {
         if (actor.Nation is not { } w) return default;
-        double scale = c.TensionPoliticsScale * share;   // share=1 は ×1.0＝IEEE で厳密恒等（開戦・見積もりは旧と1ビットも変わらない）
+        double scale = c.TensionPoliticsScale * share;   // share=1 は ×1.0＝IEEE で厳密恒等（見積もりは旧と1ビットも変わらない・開戦の種類 WarStart は 2026-10-11 (271) に削除）
         var agg = Ideologies.National(w);
         double hawk = agg[1] + agg[4] + agg[8] + agg[9];
         double dove = agg[2] + agg[3];
-        bool hawkCheers = kind != TensionPoliticsKind.Appease;   // 挑発・開戦＝タカ派が喝采／宥和＝ハト派が喝采
+        bool hawkCheers = kind != TensionPoliticsKind.Appease;   // 挑発＝タカ派が喝采／宥和＝ハト派が喝采
         double weak = 1.0, cheer, backlash;
         if (hawkCheers) { cheer = scale * hawk; backlash = scale * dove; }
         else

@@ -850,7 +850,7 @@ public class InstrumentsTests
     }
 
     // ===== (271) 線K：国の個体の番号・消費の予算の拘束・建設の投資枠・国債のプール・与信の上限・運河の開通の四半期・TakeGold／GiveGold の呼び手の位置 =====
-    /// <summary>消費の予算の拘束（<c>consume…</c>）は、同じ盤面で <c>BudgetBindDiag</c> が数えた行数・切られた行数・希望額・需要額に合う（出所が別の実装＝同語反復でない。<c>BudgetBindDiag</c> は On の間は各国の日次を逐次へ倒す診断）。
+    /// <summary>消費の予算の拘束（<c>consume…</c>）は、同じ盤面で <c>BudgetBindDiag</c> が数えた行数・切られた行数・希望額・需要額に合う（⚠(272) 反証役 v#4：同じ行で同じ desired・demand を受け同じ述語 <c>demand &lt; desired - 1e-12</c> で数える写し＝述語そのものの誤りは両側に同じく入るので見えない。この番人が独立に確かめるのは四半期の和・0への戻し・月の数での割り算＝時間の窓。<c>BudgetBindDiag</c> は On の間は各国の日次を逐次へ倒す診断）。
     /// 国の個体の番号 <c>nationUid</c> は同じ国で四半期をまたいで不変・同じ四半期の国どうしで異なる。国債のプールの列は <c>fiscal_s</c> の月ごとの行（<c>borrowBinder</c>・各プール）の和に合う。
     /// 各 …BoundCount ≤ …JudgedCount。<c>TakeGold</c>／<c>GiveGold</c> の呼び手の位置（<c>flow_s</c> の <c>sourceLine</c>）は定義の行（ソースの本文から探す）に潰れない。
     /// 突然変異＝<c>demand &lt; desired - 1e-12</c> を <c>&lt;=</c> に／<c>Uid</c> の採番を毎四半期にする／<c>TakeGold</c> の <c>routeLine</c> の受け渡しを外す、で赤。</summary>
@@ -1134,5 +1134,38 @@ public class InstrumentsTests
             _ = envPositive;
         }
         finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
+
+    /// <summary>
+    /// ★(272) 合流・反証役 v#1（(271) の後に Credit.cs と Politics.cs の行がずれ、<c>scripts/instruments/flow262/route_names.py</c> の鍵が
+    /// 移し方の呼び出しでない行や隣の逆向きの <c>Transfer</c> を指していた＝<c>flow_s</c> の与信の経路に逆の名前が付いた）の番人。
+    /// 鍵（ファイル, 行）ごとに今の木の <c>PriceOfBread.SimCore/&lt;ファイル&gt;</c> のその行を開き、移し方の呼び出し
+    /// （<c>Transfer(</c>・<c>Blend(</c>・<c>PaySales(</c>・<c>Procure(</c>・<c>GiveGold(</c>・<c>TakeGold(</c>）を含むことを確かめる。期待はソースの本文（鍵の表とは別の出所）。
+    /// ⚠限界：隣り合う2行がどちらも移し方の呼び出し（Credit.cs の貸しと回収など）のときの1行のずれは捕まえない（行の本文の照合は表を2枚にするので入れていない）。
+    /// 突然変異＝Credit.cs の鍵を (271) の前の 162／173／239 に戻す、で赤。
+    /// </summary>
+    [Fact]
+    public void 経路名の鍵の行は移し方の呼び出しを指す()
+    {
+        string root = GoodIdGuardTests.RepoRoot();
+        string py = System.IO.File.ReadAllText(System.IO.Path.Combine(root, "scripts", "instruments", "flow262", "route_names.py"));
+        var keys = System.Text.RegularExpressions.Regex.Matches(py, @"\('([A-Za-z0-9]+\.cs)', (\d+)\):")
+            .Select(m => (File: m.Groups[1].Value, Line: int.Parse(m.Groups[2].Value, System.Globalization.CultureInfo.InvariantCulture))).ToList();
+        Assert.True(keys.Count >= 60, $"鍵が少なすぎる（{keys.Count}）＝表の読み方が壊れた");
+        Assert.Equal(keys.Count, keys.Distinct().Count());
+        string[] calls = ["Transfer(", "Blend(", "PaySales(", "Procure(", "GiveGold(", "TakeGold("];
+        var bad = new List<string>();
+        foreach (var g in keys.GroupBy(k => k.File))
+        {
+            string path = System.IO.Path.Combine(root, "PriceOfBread.SimCore", g.Key);
+            Assert.True(System.IO.File.Exists(path), "鍵のファイルが無い " + g.Key);
+            var src = System.IO.File.ReadAllLines(path);
+            foreach (var k in g)
+            {
+                string text = k.Line >= 1 && k.Line <= src.Length ? src[k.Line - 1] : "";
+                if (!calls.Any(text.Contains)) bad.Add($"{k.File}:{k.Line}「{text.Trim()}」");
+            }
+        }
+        Assert.True(bad.Count == 0, "経路名の鍵が移し方の呼び出しを指していない（鍵を今の木で取り直す）：" + string.Join(" ／ ", bad));
     }
 }

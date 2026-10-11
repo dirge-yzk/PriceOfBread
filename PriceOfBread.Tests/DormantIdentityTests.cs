@@ -240,7 +240,7 @@ public class DormantIdentityTests
     {
         foreach (var name in RetiredFields)
             Assert.True(typeof(Coefficients).GetField(name) is null,
-                $"棚卸し（253）で削除した係数「{name}」が Coefficients に戻っている。復活させるなら measurements/dormant_20261011.tsv の行き先と docs の裁定を読んでから、この名簿から外すこと");
+                $"棚卸し（253）（271）で削除した係数「{name}」が Coefficients に戻っている。復活させるなら measurements/dormant_20261011.tsv の行き先と docs の裁定を読んでから、この名簿から外すこと");
     }
 
     [Fact]

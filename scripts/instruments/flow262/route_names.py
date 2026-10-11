@@ -2,7 +2,10 @@
 ソースが動いたら位置もずれる（読み手は ファイル:行 を併記する）。名前はその行を読んで付けた（相手の側は t2 の列）。
 ★(264) 反証役 rv 中#1：旧の (InternationalMarket.cs, 124／125)〈清算の代金の配分〉は誤った名前だった＝PaySales の中の Transfer で、呼び手8か所（と Procure の呼び手3か所）が1つの名前に潰れていた。
   (264) から PaySales と Procure も [CallerFilePath]／[CallerLineNumber] を Transfer へ渡す＝経路は呼び手の位置で出る（下の10行）。⚠(262) の表（measurements/flow262_20261011）は旧の名前のまま＝(264) の表（measurements/m264_20261011/flow_r264）を読む。
-  国営持分の取り分（PaySales の中の1本目の Transfer）は受け手が国庫＝貯蓄の書き手の台帳には払い手の take として呼び手の位置で載る（相手の側 T）。"""
+  国営持分の取り分（PaySales の中の1本目の Transfer）は受け手が国庫＝貯蓄の書き手の台帳には払い手の take として呼び手の位置で載る（相手の側 T）。
+  ★(272) 合流の担当：(271) で Credit.cs に1行・Politics.cs から削除が入り、Fiscal.cs／Simulation.cs／World.cs の鍵は 66b25c6 の時点でずれていた＝(272) の木（main）で鍵を取り直した（16 本・(264) の木の行の本文を今の木で一意に探した）。
+  ⚠鍵は今の木の行＝古い木の flow_s（r264・r268 ほか）を読むときは、その回のコミットの route_names.py を git show で取り出して使う。番人＝InstrumentsTests の「経路名の鍵の行は移し方の呼び出しを指す」。
+"""
 ROUTE_NAMES = {
     ('Crime.cs', 65): '窃盗(全POPの貯蓄×犯罪率→困窮した大衆)',
     # ★(264) PaySales・Procure の呼び手（旧＝InternationalMarket.cs:124／125 に潰れていた）
@@ -13,7 +16,7 @@ ROUTE_NAMES = {
     ('MultiNationSim.cs', 1325): '運河の建設の工賃(投資家→労働の持分・PaySales)',
     ('MultiNationSim.cs', 1433): '港の建設の工賃・資本家ルート(投資家→労働の持分・PaySales)',
     ('MultiNationSim.cs', 1434): '港の建設の工賃・国家ルート(国庫→労働の持分・PaySales)',
-    ('Simulation.cs', 2859): '造幣の床の金属の買い入れ(造幣局→生産者の持分・PaySales)',
+    ('Simulation.cs', 2858): '造幣の床の金属の買い入れ(造幣局→生産者の持分・PaySales)',
     ('Transport.cs', 137): '汽船の燃料の買い付け(商人→生産者の持分・Procure)',
     ('Transport.cs', 206): '船と線路の買い付け(投資家→生産者の持分・Procure)',
     ('BilateralMarket.cs', 868): '商人の交易マージン(世界の外→商人)',
@@ -38,12 +41,12 @@ ROUTE_NAMES = {
     ('Megaprojects.cs', 209): '巨大建造物の外資の利回り(保有国の国庫→外資国の投資家)',
     ('MultiNationSim.cs', 1401): '運河の通行料の配当(国庫→拠出国の投資家)',
     ('Colonial.cs', 340): '植民地の口座の相殺(在地⇄不在地主)',
-    ('Credit.cs', 162): '企業への与信・貸し(銀行→投資家)',
-    ('Credit.cs', 163): '企業への与信・回収(投資家→銀行)',
-    ('Credit.cs', 173): '企業への与信・貸し(銀行→預金者)',
-    ('Credit.cs', 174): '企業への与信・回収(預金者→銀行)',
-    ('Credit.cs', 239): '借り手の利払い→預金者',
-    ('Credit.cs', 240): '銀行利潤の繰り入れ(新規与信→預金者)',
+    ('Credit.cs', 163): '企業への与信・貸し(銀行→投資家)',
+    ('Credit.cs', 164): '企業への与信・回収(投資家→銀行)',
+    ('Credit.cs', 174): '企業への与信・貸し(銀行→預金者)',
+    ('Credit.cs', 175): '企業への与信・回収(預金者→銀行)',
+    ('Credit.cs', 240): '借り手の利払い→預金者',
+    ('Credit.cs', 241): '銀行利潤の繰り入れ(新規与信→預金者)',
     ('Bank.cs', 30): '家計の与信・貸し(銀行→POP)',
     ('Bank.cs', 31): '家計の与信・返済(POP→銀行)',
     ('Diplomacy.cs', 796): '通商破壊の拿捕品(商人→拿捕した側)',
@@ -56,23 +59,23 @@ ROUTE_NAMES = {
     ('Fiscal.cs', 361): '国債の対外利払い',
     ('Fiscal.cs', 417): '国債の国内償還(国庫→保有者)',
     ('Fiscal.cs', 428): '国債の対外償還',
-    ('Fiscal.cs', 573): '福祉(国庫→大衆)',
-    ('Fiscal.cs', 606): '年金(国庫→高齢者)',
-    ('Fiscal.cs', 746): '国債の国内購入(資本家→国庫)',
-    ('Fiscal.cs', 749): '国債の海外購入',
+    ('Fiscal.cs', 576): '福祉(国庫→大衆)',
+    ('Fiscal.cs', 609): '年金(国庫→高齢者)',
+    ('Fiscal.cs', 750): '国債の国内購入(資本家→国庫)',
+    ('Fiscal.cs', 753): '国債の海外購入',
     ('Megaprojects.cs', 149): '巨大建造物への外資の拠出',
     ('MultiNationSim.cs', 1463): '海上保険の保険金(商人→被害の商人)',
     ('MultiNationSim.cs', 1895): '招聘の支度金(国庫→到着した人)',
     ('MultiNationSim.cs', 990): '外国債務の返済(貸し手のPOP→国境の外)',
-    ('Politics.cs', 1994): '革命の没収(没収された側→大衆)',
+    ('Politics.cs', 1972): '革命の没収(没収された側→大衆)',
     ('Simulation.cs', 2251): '切り下げの課税(全POP→国庫)',
     ('Simulation.cs', 2254): '切り下げの新規発行(不換の発行者→国庫)',
-    ('Simulation.cs', 2861): '金の輸入(造幣局→商人)',
-    ('Simulation.cs', 2910): '金の売却(POP→造幣局)',
-    ('Simulation.cs', 2967): '損失の負債化(銀行→貯蓄が負のPOP)',
+    ('Simulation.cs', 2860): '金の輸入(造幣局→商人)',
+    ('Simulation.cs', 2909): '金の売却(POP→造幣局)',
+    ('Simulation.cs', 2966): '損失の負債化(銀行→貯蓄が負のPOP)',
     ('World.cs', 738): '選挙の買収(国庫→有権者)',
     ('World.cs', 1954): '国営工場の建設の工賃(国庫→労働者)',
-    ('World.cs', 2442): '国営工場の払い下げ(資本家→国庫)',
+    ('World.cs', 2443): '国営工場の払い下げ(資本家→国庫)',
     ('PopDecision.cs', 77): '州の中の移動(POPの運搬)',
     ('Meritocracy.cs', 673): '社会移動(階級の運搬)',
     ('Military.cs', 376): '徴兵と復員(階級の運搬)',
