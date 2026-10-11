@@ -1,4 +1,5 @@
-"""州の空洞化（作者 2026-09-30＝不具合）の読み手。python an_h2.py <出力ディレクトリ> [-v] [-min K]
+"""州の空洞化（作者 2026-09-30＝不具合）の読み手。python an_h2.py <計器の出力ディレクトリ> [-v] [-min K]
+  入力＝標準の計器（`INS=1 bash batch.sh run <腕>` の <出力>/ins または POB_INSTRUMENTS）の region_s<seed>.tsv と migration_s<seed>.tsv（(255)＝旧の注入 u4e/inj_ghost.py の g<seed>.txt の代わり）。
   事象＝州の人口が自分のそれまでのピークの 1/10 未満（と 1/4 未満）へ初めて落ちた四半期（ピークは K 千人以上＝既定 1）。
   原因＝ピークから落ちた四半期までの減り D のうち、移民（州の間の出−入・入植の出−入・越境の出−入）の純の流出 Mig が
         D の半分以上なら「移民」、それ以外は「戦争・飢饉・その他」（窓の中の戦場の強さ・主食の充足の最小で細分）。
@@ -7,7 +8,17 @@ import sys, os, collections, math, json
 def fl(x):
     try: return float(x)
     except: return float('nan')
-RC = '#R q yr idx nation nreg region tier state pop closed sold crowd peas opp prod ind wage land emp push hous best mOut mIn cOut cIn xOut xIn dPop dom hold pres mil war food wprem arable rural keep'.split()[1:]
+# 標準の計器（SimCore/Instruments.cs・INS=1 または POB_INSTRUMENTS）の region_s<seed>.tsv の列名 → この読み手の短い名前
+COLS = {'quarter': 'q', 'year': 'yr', 'nationIndex': 'idx', 'nation': 'nation', 'region': 'region', 'tier': 'tier', 'activeFlag': 'state', 'populationK': 'pop', 'ruralPopulationK': 'rural',
+        'opportunityIndex': 'opp', 'holdingFactor': 'keep', 'wageFactor': 'wage', 'landFactor': 'land', 'employmentShare': 'emp', 'pushFactor': 'push', 'housingFactor': 'hous',
+        'wagePremium': 'wprem', 'arableLand': 'arable', 'migrationOutKPerQuarter': 'mOut', 'migrationInKPerQuarter': 'mIn', 'settlerOutKPerQuarter': 'cOut', 'settlerInKPerQuarter': 'cIn',
+        'crossBorderOutKPerQuarter': 'xOut', 'crossBorderInKPerQuarter': 'xIn', 'warIntensity': 'war', 'foodFillShare': 'food'}
+TIER = {'Colonial': 'col', 'Core': 'core', 'Integrated': 'int'}
+def table(path):
+    with open(path, encoding='utf-8') as fh:
+        head = fh.readline().rstrip('\n').split('\t')
+        for line in fh:
+            yield dict(zip(head, line.rstrip('\n').split('\t')))
 PL = {}
 # ★(144)：旧の置き場（wt_hol）は片付けで消えた＝距離の列が全て nan だった（反証の指摘）＝リポジトリの places.json を先に読む（最初に見つかった1枚）
 for cand in [os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..', 'PriceOfBread.SimCore', 'places.json'), 'C:/Users/dirge/Documents/PriceOfBread/PriceOfBread.SimCore/places.json']:   # 2026-10-10 リポジトリの相対を先頭へ（scratchpad 時代の絶対パスは後ろ）
@@ -32,31 +43,30 @@ MIG = collections.defaultdict(lambda: [0.0, 0.0])
 EV = []
 nseed = 0
 for d in dirs:
-    for gf in sorted([f for f in os.listdir(d) if f.startswith('g') and f.endswith('.txt')], key=lambda f: int(f[1:-4])):
-        sd = int(gf[1:-4]); nseed += 1
+    for gf in sorted([f for f in os.listdir(d) if f.startswith('region_s') and f.endswith('.tsv')], key=lambda f: int(f[len('region_s'):-4])):
+        sd = int(gf[len('region_s'):-4]); nseed += 1
         R = collections.defaultdict(list)
         MP = collections.defaultdict(lambda: collections.Counter())   # 出る州 → 入る州 → 量（全期間）
         MPq = collections.defaultdict(list)                            # 出る州 → [(q, 入る州, 量)]
         caps = set()
         seenQ = set()
-        for line in open(os.path.join(d, gf), encoding='utf-8'):
-            t = line[0]
-            if t == 'R':
-                p = line.rstrip('\n').split('\t')[1:]
-                r = dict(zip(RC, p))
-                for k in ('pop', 'opp', 'mOut', 'mIn', 'cOut', 'cIn', 'xOut', 'xIn', 'war', 'food', 'wprem', 'land', 'hous', 'emp', 'push', 'wage', 'ind', 'prod', 'rural', 'arable', 'keep'): r[k] = fl(r.get(k, 'nan'))
-                r['q'] = int(r['q']); r['yr'] = int(r['yr'])
-                key = (r['q'], r['idx'])
-                if key not in seenQ: seenQ.add(key); caps.add((r['q'], r['region']))
-                R[r['region']].append(r)
-                if r['state'] == 'a' and r['pop'] > 0:
-                    if r['q'] % 4 == 0: URB[r['yr']][0] += r['pop'] - r['rural']; URB[r['yr']][1] += r['pop']
-                    b = (r['yr'] - 1775) // 25 * 25 + 1775
-                    MIG[b][0] += r['mOut']; MIG[b][1] += r['pop']
-            elif t == 'M':
-                p = line.rstrip('\n').split('\t')
-                v = fl(p[5]) + fl(p[6]) + fl(p[7])
-                MP[p[3]][p[4]] += v; MPq[p[3]].append((int(p[1]), p[4], v))
+        for row in table(os.path.join(d, gf)):
+            r = {new: row[col] for col, new in COLS.items()}
+            for k in ('pop', 'opp', 'mOut', 'mIn', 'cOut', 'cIn', 'xOut', 'xIn', 'war', 'food', 'wprem', 'land', 'hous', 'emp', 'push', 'wage', 'prod', 'rural', 'arable', 'keep'): r[k] = fl(r.get(k, 'nan'))
+            r['q'] = int(r['q']); r['yr'] = int(r['yr'])
+            r['tier'] = TIER.get(r['tier'], 'int'); r['state'] = 'a' if r['state'] == '1' else 'l'
+            key = (r['q'], r['idx'])
+            if key not in seenQ: seenQ.add(key); caps.add((r['q'], r['region']))   # 国の最初の州＝首都
+            R[r['region']].append(r)
+            if r['state'] == 'a' and r['pop'] > 0:
+                if r['q'] % 4 == 3: URB[r['yr']][0] += r['pop'] - r['rural']; URB[r['yr']][1] += r['pop']   # 年末の四半期（0 始まりの 3 番目）
+                b = (r['yr'] - 1775) // 25 * 25 + 1775
+                MIG[b][0] += r['mOut']; MIG[b][1] += r['pop']
+        mg = os.path.join(d, 'migration_s%d.tsv' % sd)
+        if os.path.exists(mg):
+            for row in table(mg):
+                v = fl(row['movedKPerQuarter'])
+                MP[row['fromRegion']][row['toRegion']] += v; MPq[row['fromRegion']].append((int(row['quarter']), row['toRegion'], v))
         for reg, rows in R.items():
             pk = 0.0; pkI = 0
             done = {10: False, 4: False}

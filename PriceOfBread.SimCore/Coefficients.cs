@@ -3436,7 +3436,6 @@ public sealed class Coefficients
     public double OversightPressCensored = 0.4;   // 検閲付き報道の監視力（自由報道=1.0・国家報道のみ=0.0）
     public double OversightMeritExam = 0.6;       // 科挙型（資格任用）の監視力（専門官僚=1.0・猟官=0.0）
     public double OversightFactorScale = 1.0;   // ★監視3因子の強度（2026-08-15・uishotで発覚した「報道の自由だけで汚職ゼロ」の是正レバー）。1.0＝旧とビット恒等（press自由1.0→noisy-or飽和→汚職0）。<1で「どの制度も単独では監視を完成させない」＝金ぴか時代の米（自由な報道×猟官制×汚職）が表現できる。設計値0.6（3つ揃えて0.94・単独0.6）。点火はA/B
-    public double NobleInvests = 0.0;
     public double RgoElasticityGate = 1.0;      // ★点火2026-08-14（n24同一ソースA/B：経済規模+15.0・列強再現率+7.5・領土植民地+5.8・人口+4.3／政体exact−1.6・⚠逸脱過多9→15＝記録）。0で全カテゴリ従来（上限・速度一律）＝厳密恒等
     public double MineralScaleCap = 1.5;        // 鉱物RGOの操業規模上限（ScaleMax=3.0の半分＝既存鉱脈の増産余地は+50%まで。大増産は発見と新州の仕事）
     public double FarmScaleCap = 3.0;           // ★2.0→3.0（2026-08-14実測＝2.0は1州国家で食料が頭打ち→ハノーファー満足度0.04＝飢餓でハーネス赤）。畑の「すぐには増やせない」は上の速度1/4が担い、上限は工場と同じ＝開墾の余地自体は否定しない

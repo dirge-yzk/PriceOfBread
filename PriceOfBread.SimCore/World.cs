@@ -1685,13 +1685,13 @@ public sealed class World
         double target = BroadMoneyToGdp * Coef.InitMoneyScale * gdpY;
         if (!(target > 0)) return;
         double invSav = 0, othSav = 0;
-        foreach (var r in Regions) foreach (var p in r.Pops) { if (!(p.Savings.Value > 0)) continue; if (CapitalMarket.IsInvestor(p, Coef)) invSav += p.Savings.Value; else othSav += p.Savings.Value; }
+        foreach (var r in Regions) foreach (var p in r.Pops) { if (!(p.Savings.Value > 0)) continue; if (CapitalMarket.IsInvestor(p)) invSav += p.Savings.Value; else othSav += p.Savings.Value; }
         double fInv = invSav > 1e-9 ? share * target / invSav : 1.0;
         double fOth = Coef.InitMoneyMode >= 2 && othSav > 1e-9 ? (1.0 - share) * target / othSav : 1.0;
         foreach (var r in Regions) foreach (var p in r.Pops)
         {
             if (!(p.Savings.Value > 0)) continue;
-            if (CapitalMarket.IsInvestor(p, Coef)) p.ScaleSavings(fInv); else if (fOth != 1.0) p.ScaleSavings(fOth);
+            if (CapitalMarket.IsInvestor(p)) p.ScaleSavings(fInv); else if (fOth != 1.0) p.ScaleSavings(fOth);
         }
         // 貨幣の厚み（M/Y）の趨勢を取り直す：UpdatePriceLevel の「物価 ＝ 厚み ÷ 趨勢」の関係を、置き直した後の厚みで今の物価水準のまま保つ（趨勢 ＝ 厚み ÷ 物価水準）。
         //   旧（(218)）＝趨勢を0へ（次の更新で趨勢 ＝ 厚み ＝ 物価が1へ引かれる）＝助走で物価水準が1から離れた国（清 2.3・露 1.2）の物価が置き直しだけで動いた（実測＝8四半期で対照の0.6〜0.7倍）。

@@ -1,0 +1,114 @@
+"""州の空洞化（作者 2026-09-30＝不具合）の読み手。python an_h2.py <出力ディレクトリ> [-v] [-min K]
+  事象＝州の人口が自分のそれまでのピークの 1/10 未満（と 1/4 未満）へ初めて落ちた四半期（ピークは K 千人以上＝既定 1）。
+  原因＝ピークから落ちた四半期までの減り D のうち、移民（州の間の出−入・入植の出−入・越境の出−入）の純の流出 Mig が
+        D の半分以上なら「移民」、それ以外は「戦争・飢饉・その他」（窓の中の戦場の強さ・主食の充足の最小で細分）。
+  -v＝移民の事象を1件ずつ（行き先の上位・距離・始めと終わりの因子）。"""
+import sys, os, collections, math, json
+def fl(x):
+    try: return float(x)
+    except: return float('nan')
+RC = '#R q yr idx nation nreg region tier state pop closed sold crowd peas opp prod ind wage land emp push hous best mOut mIn cOut cIn xOut xIn dPop dom hold pres mil war food wprem arable rural keep'.split()[1:]
+PL = {}
+# ★(144)：旧の置き場（wt_hol）は片付けで消えた＝距離の列が全て nan だった（反証の指摘）＝リポジトリの places.json を先に読む（最初に見つかった1枚）
+for cand in [os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..', 'PriceOfBread.SimCore', 'places.json'), 'C:/Users/dirge/Documents/PriceOfBread/PriceOfBread.SimCore/places.json']:   # 2026-10-10 リポジトリの相対を先頭へ（scratchpad 時代の絶対パスは後ろ）
+    if os.path.exists(cand):
+        for p in json.load(open(cand, encoding='utf-8')): PL[p['name']] = (p['lat'], p['lon'])
+        break
+if not PL: print('⚠ places.json が見つからない＝距離の列は nan')
+def dist(a, b):
+    if a not in PL or b not in PL: return float('nan')
+    la1, lo1 = map(math.radians, PL[a]); la2, lo2 = map(math.radians, PL[b])
+    h = math.sin((la2 - la1) / 2) ** 2 + math.cos(la1) * math.cos(la2) * math.sin((lo2 - lo1) / 2) ** 2
+    return 2 * 6371.0 * math.asin(min(1.0, math.sqrt(h)))
+args = sys.argv[1:]
+V = '-v' in args or '-v4' in args
+V4 = '-v4' in args
+KMIN = 1.0
+if '-min' in args: KMIN = float(args[args.index('-min') + 1])
+dirs = [a for i, a in enumerate(args) if not a.startswith('-') and not (i > 0 and args[i - 1] == '-min')]
+TOT = collections.Counter()
+URB = collections.defaultdict(lambda: [0.0, 0.0])
+MIG = collections.defaultdict(lambda: [0.0, 0.0])
+EV = []
+nseed = 0
+for d in dirs:
+    for gf in sorted([f for f in os.listdir(d) if f.startswith('g') and f.endswith('.txt')], key=lambda f: int(f[1:-4])):
+        sd = int(gf[1:-4]); nseed += 1
+        R = collections.defaultdict(list)
+        MP = collections.defaultdict(lambda: collections.Counter())   # 出る州 → 入る州 → 量（全期間）
+        MPq = collections.defaultdict(list)                            # 出る州 → [(q, 入る州, 量)]
+        caps = set()
+        seenQ = set()
+        for line in open(os.path.join(d, gf), encoding='utf-8'):
+            t = line[0]
+            if t == 'R':
+                p = line.rstrip('\n').split('\t')[1:]
+                r = dict(zip(RC, p))
+                for k in ('pop', 'opp', 'mOut', 'mIn', 'cOut', 'cIn', 'xOut', 'xIn', 'war', 'food', 'wprem', 'land', 'hous', 'emp', 'push', 'wage', 'ind', 'prod', 'rural', 'arable', 'keep'): r[k] = fl(r.get(k, 'nan'))
+                r['q'] = int(r['q']); r['yr'] = int(r['yr'])
+                key = (r['q'], r['idx'])
+                if key not in seenQ: seenQ.add(key); caps.add((r['q'], r['region']))
+                R[r['region']].append(r)
+                if r['state'] == 'a' and r['pop'] > 0:
+                    if r['q'] % 4 == 0: URB[r['yr']][0] += r['pop'] - r['rural']; URB[r['yr']][1] += r['pop']
+                    b = (r['yr'] - 1775) // 25 * 25 + 1775
+                    MIG[b][0] += r['mOut']; MIG[b][1] += r['pop']
+            elif t == 'M':
+                p = line.rstrip('\n').split('\t')
+                v = fl(p[5]) + fl(p[6]) + fl(p[7])
+                MP[p[3]][p[4]] += v; MPq[p[3]].append((int(p[1]), p[4], v))
+        for reg, rows in R.items():
+            pk = 0.0; pkI = 0
+            done = {10: False, 4: False}
+            for i, r in enumerate(rows):
+                v = r['pop']
+                if not math.isfinite(v): continue
+                if v > pk: pk = v; pkI = i
+                if pk < KMIN: continue
+                for div in (10, 4):
+                    if done[div] or not (v < pk / div): continue
+                    done[div] = True
+                    seg = rows[pkI + 1: i + 1]
+                    D = pk - v
+                    mig = sum(s['mOut'] - s['mIn'] for s in seg); col = sum(s['cOut'] - s['cIn'] for s in seg); xb = sum(s['xOut'] - s['xIn'] for s in seg)
+                    M = mig + col + xb
+                    other = D - M
+                    wv = [s['war'] for s in seg if math.isfinite(s['war'])]; fv = [s['food'] for s in seg if math.isfinite(s['food'])]
+                    warMax = max(wv, default=0.0); warMean = sum(wv) / len(wv) if wv else 0.0
+                    foodMin = min(fv, default=1.0); foodMean = sum(fv) / len(fv) if fv else 1.0
+                    # 原因＝移民（純の流出が減りの半分以上）／戦争（窓の中の戦場の強さの平均が 0.05 以上）／飢え（主食の充足の平均が飢えの死の線 0.8 未満＝恒常の飢え）／その他
+                    if M >= 0.5 * D: cause = '移民'
+                    elif warMean >= 0.05: cause = '戦争'
+                    elif foodMean < 0.8: cause = '飢え'
+                    else: cause = 'その他'
+                    isCap = (r['q'], reg) in caps
+                    TOT[(div, cause)] += 1
+                    if div == 10 or (V4 and cause == '移民'):
+                        dst = collections.Counter()
+                        for (qq, dd, vv) in MPq.get(reg, []):
+                            if rows[pkI]['q'] < qq <= r['q']: dst[dd] += vv
+                        top = dst.most_common(3)
+                        EV.append(dict(div=div, sd=sd, reg=reg, nat=r['nation'], tier=r['tier'], pk=pk, pky=rows[pkI]['yr'], yr=r['yr'], v=v, D=D, mig=mig, col=col, xb=xb, other=other,
+                                       cause=cause, cap=isCap, warMax=warMax, foodMin=foodMin, top=top, a=rows[pkI], z=r,
+                                       dist=[dist(reg, t[0]) for t in top]))
+TOT10 = {k[1]: v for k, v in TOT.items() if k[0] == 10}
+TOT4 = {k[1]: v for k, v in TOT.items() if k[0] == 4}
+print(f'## 種 {nseed}・ピーク {KMIN:g} 千人以上')
+print(f'## ピークの1/10 未満: {sum(TOT10.values())} 件 {TOT10}')
+print(f'## ピークの1/4 未満: {sum(TOT4.values())} 件 {TOT4}')
+EV10 = [e for e in EV if e['div'] == 10]
+by = collections.Counter((e['tier'], e['cause']) for e in EV10)
+print('## 1/10 の格×原因: ' + '  '.join(f'{k[0]}/{k[1]} {v}' for k, v in sorted(by.items())))
+szc = collections.Counter(('≥1000' if e['pk'] >= 1000 else '100-1000' if e['pk'] >= 100 else '10-100' if e['pk'] >= 10 else '<10', e['cause']) for e in EV10)
+print('## 1/10 のピークの大きさ×原因: ' + '  '.join(f'{k[0]}/{k[1]} {v}' for k, v in sorted(szc.items())))
+print('## 1/10 の首都: ' + str(sum(1 for e in EV10 if e['cap'])) + ' ' + str([(e['sd'], e['reg'], e['yr'], e['cause']) for e in EV10 if e['cap']]))
+print('## 都市化率（世界）: ' + '  '.join(f'{y} {u / t:.3f}' for y, (u, t) in sorted(URB.items()) if y in (1790, 1820, 1850, 1880, 1910, 1940, 1950) and t > 0))
+print('## 国内移民（州の間の出÷州の人口・四半期あたり‰）: ' + '  '.join(f'{b} {1000 * m / max(p, 1e-9):.2f}' for b, (m, p) in sorted(MIG.items())))
+if V:
+    F = ['opp', 'keep', 'wage', 'land', 'emp', 'push', 'hous', 'wprem', 'food', 'war']
+    print('## 1/10 の事象（種・州・国・格・ピーク(年)→落ちた年の人口・減りの内訳〔州の間・入植・越境・その他〕・行き先の上位(距離km)）')
+    print('##   因子（始め→終わり）: ' + ' '.join(F))
+    for e in sorted(EV, key=lambda e: (e['cause'] != '移民', e['sd'], e['yr'])):
+        tops = ', '.join(f'{t[0]}:{t[1]:.3g}({dd:.0f})' for t, dd in zip(e['top'], e['dist']))
+        print(f"  [{e['cause']}・1/{e['div']}] s{e['sd']} {e['reg']}（{e['nat']}・{e['tier']}{'・首都' if e['cap'] else ''}） {e['pk']:.4g}({e['pky']})→{e['v']:.3g}({e['yr']})  州間 {e['mig']:.3g} 入植 {e['col']:.3g} 越境 {e['xb']:.3g} 他 {e['other']:.3g}  → {tops}")
+        print('      ' + ' '.join(f"{k} {e['a'][k]:.3g}→{e['z'][k]:.3g}" for k in F) + f"  耕地 {e['a']['arable']:.3g} 農村 {e['a']['rural']:.3g}→{e['z']['rural']:.3g}")

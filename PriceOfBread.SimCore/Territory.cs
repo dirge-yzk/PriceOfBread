@@ -9,7 +9,7 @@
 public static class Territory
 {
     private const double MaxMigrationFraction = 0.2;      // 1ステップに1州が流出できる人口割合の上限
-    private const double OpportunityFactorFloor = 0.1;    // 機会の各乗算因子（賃金/不穏/住居）の下限クランプ
+    internal const double OpportunityFactorFloor = 0.1;    // 機会の各乗算因子（賃金/不穏/住居）の下限クランプ
 
     public static void Step(World w, Coefficients c)
     {
@@ -257,6 +257,7 @@ public static class Territory
             if (!(moveSize > 1e-9)) continue;   // ★否定形＝NaN も弾く（旧 `moveSize <= 1e-9` は NaN で false ＝ Size/Savings を直接 NaN 化していた）。有限値では厳密同値
             if (dst.PopOf(sp.ClassId) is not { } dp) continue;   // 目的地に同クラスが無ければ移さない（最小核）
             MoveBetweenRegions(sp, dp, moveSize, c);
+            if (Instruments.On) Instruments.Migrated(src, dst, moveSize);   // 計器（読むだけ）
         }
     }
     /// <summary>★B1（2026-09-07）：1つの pop から同クラスの別州 pop へ moveSize を運ぶ（規模・貯蓄・債務・国債の保有・年齢と男女の構成・識字・闘争度・政治意識・国民意識・思想・民族）。

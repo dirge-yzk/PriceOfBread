@@ -1856,7 +1856,7 @@ if (args.Length > 0 && args[0] == "tradewhy")
     return;
 }
 
-// 貴族rentier分布（6d・docs/202608/20260814_貴族が保守に固着する理由.REVERTED_差し戻し.md【差し戻し】.md）＝NobleInvests点火前検証。
+// 貴族rentier分布（6d・docs/202608/20260814_貴族が保守に固着する理由.REVERTED_差し戻し.md【差し戻し】.md）＝NobleInvests（(255) で係数ごと削除）の点火前検証。
 //   検証点①：貴族(Closed)の rentier=rent/(rent+earned) が本当に1に張り付いているか（国別）。
 //   検証点②：貴族の Savings が投資プールに対してどの規模か（点火時の資金量インパクト見積り）。
 //   ⚠コード読みの所見（実装ログ§4-8）：現行 Ideology.BaseWeights は Closed を固定重み分岐で処理し rentier を読まない
@@ -2410,7 +2410,7 @@ if (args.Length > 0 && args[0] == "initdump")
                     popK += p.Size; if (p.IsUrban) urbanK += p.Size; litSum += p.Literacy * p.Size; if (p.IsSoldier) sold += p.Size;
                     if (!cls.TryGetValue(p.ClassName, out var c)) { c = (0, 0, 0, 0, 0, 0, 0); order.Add(p.ClassName); }
                     cls[p.ClassName] = (c.size + p.Size, c.sav + p.Savings.Value, c.earned + p.LastEarnedPerMonth.Value, c.lit + p.Literacy * p.Size, c.sat + p.Satisfaction * p.Size, c.debt + p.Debt.Value, c.bond + p.BondHoldings.Value);
-                    if (CapitalMarket.IsInvestor(p, w.Coef)) { invSav += p.Savings.Value; invEarn += p.LastEarnedPerMonth.Value; invSize += p.Size; }
+                    if (CapitalMarket.IsInvestor(p)) { invSav += p.Savings.Value; invEarn += p.LastEarnedPerMonth.Value; invSize += p.Size; }
                 }
             }
             Row(nm, "人口/総数", tm, popK * 1000, "人");
@@ -6386,7 +6386,7 @@ if (args.Length > 0 && args[0] == "initsavprobe")
                 }
             }
             { var r0 = w.Regions[0]; if (r0.InvestorPopIndex >= 0) { var ip = r0.Pops[r0.InvestorPopIndex]; Console.WriteLine($"   [{name} 州0 {r0.Name}] 投資家POP {ip.ClassName} Size {ip.Size:F1} Savings {ip.Savings:F0} 前期所得(月) {ip.LastEarnedPerMonth:F1} 貯蓄÷月所得 {ip.Savings / Math.Max(1e-9, ip.LastEarnedPerMonth.Value):F1} 貯蓄÷年所得 {ip.Savings / Math.Max(1e-9, Calendar.PerMonthToPerYear(ip.LastEarnedPerMonth).Value):F1}"); } }
-            double invSav = CapitalMarket.InvestorSavings(w); double invEarnAll = 0; foreach (var r in w.Regions) foreach (var p in r.Pops) if (CapitalMarket.IsInvestor(p, w.Coef)) invEarnAll += p.LastEarnedPerMonth.Value; double invEarn = 0; foreach (var r in w.Regions) foreach (var p in r.Pops) if (CapitalMarket.IsInvestor(p, w.Coef)) invEarn += p.LastEarnedPerMonth.Value;
+            double invSav = CapitalMarket.InvestorSavings(w); double invEarnAll = 0; foreach (var r in w.Regions) foreach (var p in r.Pops) if (CapitalMarket.IsInvestor(p)) invEarnAll += p.LastEarnedPerMonth.Value; double invEarn = 0; foreach (var r in w.Regions) foreach (var p in r.Pops) if (CapitalMarket.IsInvestor(p)) invEarn += p.LastEarnedPerMonth.Value;
             if (isNames[0] == "ALL" && stage.StartsWith("助走の終わり"))
             {
                 double gdpY = Calendar.PerMonthToPerYear(w.NominalGdpPerMonth).Value;

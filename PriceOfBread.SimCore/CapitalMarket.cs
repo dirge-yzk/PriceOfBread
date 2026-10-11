@@ -277,19 +277,18 @@ public static class CapitalMarket
     }
 
 
-    /// <summary>★投資家の述語（貴族doc・2026-08-14）。旧＝IsModernElite のみ＝Closed（貴族・聖職）は投資から構造的に排除され、
-    /// earned が増えず rentier=rent/(rent+earned)=1 に固定＝**思想機構は正しいのに入口が塞がっていて「貴族が永久に保守」**だった。
-    /// NobleInvests>0 で Closed も投資家に含める（「近代化した国の貴族は投資する」が国名なしで出る＝プロイセンのユンカー工業投資）。
-    /// 既定0＝旧述語と厳密恒等。⚠聖職者も Closed に含まれる（分離は6a裁定待ち＝含めたまま観測）。</summary>
-    internal static bool IsInvestor(Pop p, Coefficients c)
-        => !p.IsSoldier && (p.IsModernElite || (c.NobleInvests > 0 && p.Closed));
+    /// <summary>★投資家の述語＝近代エリート（兵士を除く）。Closed（貴族・聖職）は投資から構造的に排除される（rentier=rent/(rent+earned)=1 に固定）。
+    /// ★2026-10-11 (255)：貴族も投資家に含める休眠の係数 <c>NobleInvests</c>（貴族doc・2026-08-14・既定0）を削除した＝述語は引数が pop だけ。
+    ///   根拠＝2026-08-14 の差し戻し（rentier 診断が二重に不成立・実効果は資金量＝露47%/清90% の貯蓄が投資プールへ入る清抑制の較正地雷）・休眠の棚卸し（measurements/dormant_20261011.tsv）。</summary>
+    internal static bool IsInvestor(Pop p)
+        => !p.IsSoldier && p.IsModernElite;
 
     /// <summary>★投資家の集合（段3-3・C13・2026-09-30＝述語 <see cref="IsInvestor"/> の1本・国の全ての州）。外資の払い手と受け手・対外債の貸し手・
     /// 運河の出資者と配当の受け手・巨大建造物の外資の出し手と利回りの受け手が同じ集合を読む（旧＝近代エリート〔活きた州だけ〕・IsInvestor・州の資本家1人〔InvestorPopIndex〕の3通り）。</summary>
     internal static List<Pop> Investors(World w)
     {
         var pops = new List<Pop>();
-        foreach (var r in w.Regions) foreach (var p in r.Pops) if (IsInvestor(p, w.Coef)) pops.Add(p);   // ★NobleInvests（既定0＝旧述語と恒等）
+        foreach (var r in w.Regions) foreach (var p in r.Pops) if (IsInvestor(p)) pops.Add(p);
         return pops;
     }
 
@@ -297,7 +296,7 @@ public static class CapitalMarket
     internal static double InvestorSavings(World w)
     {
         double s = 0;
-        foreach (var r in w.Regions) foreach (var p in r.Pops) if (IsInvestor(p, w.Coef)) s += System.Math.Max(0, p.Savings.Value);   // ★NobleInvests（既定0＝旧述語と恒等）
+        foreach (var r in w.Regions) foreach (var p in r.Pops) if (IsInvestor(p)) s += System.Math.Max(0, p.Savings.Value);
         return s;
     }
 

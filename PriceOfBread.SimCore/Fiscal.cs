@@ -703,7 +703,7 @@ public static class Fiscal
         double nominalGdp = w.NominalGdpPerMonth.Value;
         double borrowWant = Math.Min(BorrowTicket(nominalGdp, c), shortfall);
         var capitalists = new List<Pop>();
-        foreach (var r in w.Regions) foreach (var p in r.Pops) if (CapitalMarket.IsInvestor(p, c)) capitalists.Add(p);   // 国内の買い手＝資本家/近代エリート（NobleInvests>0で貴族も。既定0＝旧述語と厳密恒等）
+        foreach (var r in w.Regions) foreach (var p in r.Pops) if (CapitalMarket.IsInvestor(p)) capitalists.Add(p);   // 国内の買い手＝資本家/近代エリート
         double capSavings = 0; foreach (var p in capitalists) capSavings += Math.Max(0, p.Savings.Value);
         // 財6（資本開放度の脱・関税連動）：openness の関税連動を CapitalOpennessTariffWeight で連続化。既定1.0＝openness=Clamp(1−1.0×Tariff,0,1)＝旧 Clamp(1−Tariff,0,1) と代数的に厳密一致（数値中立）。
         // 0で関税と独立（19世紀の資本移動は関税と別＝高関税の米/露も外債を発行）→兌換性/信認ベースの開放度へ。中間で部分連動。
@@ -807,10 +807,10 @@ public static class Fiscal
     internal static void SeedBondHoldings(World w)
     {
         MoneyStock dom = w.GovDebt - w.ForeignDebt, held = default; double invSav = 0, size = 0;
-        foreach (var r in w.Regions) foreach (var p in r.Pops) { held += p.BondHoldings; size += p.Size; if (CapitalMarket.IsInvestor(p, w.Coef)) invSav += Math.Max(0, p.Savings.Value); }
+        foreach (var r in w.Regions) foreach (var p in r.Pops) { held += p.BondHoldings; size += p.Size; if (CapitalMarket.IsInvestor(p)) invSav += Math.Max(0, p.Savings.Value); }
         if (held.Value > 0 || !(dom.Value > 0) || BondLedger.Balanced(w, held)) return;   // 検査が割れない（端数の残差だけ）なら起票しない＝台帳入りのセーブはビット不変
         foreach (var r in w.Regions)
             foreach (var p in r.Pops)
-                p.BondHoldings += dom * (invSav > 0 ? (CapitalMarket.IsInvestor(p, w.Coef) ? Math.Max(0, p.Savings.Value) / invSav : 0) : (size > 0 ? p.Size / size : 0));
+                p.BondHoldings += dom * (invSav > 0 ? (CapitalMarket.IsInvestor(p) ? Math.Max(0, p.Savings.Value) / invSav : 0) : (size > 0 ? p.Size / size : 0));
     }
 }

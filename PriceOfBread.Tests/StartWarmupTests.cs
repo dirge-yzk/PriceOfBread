@@ -370,7 +370,7 @@ public class StartWarmupTests
     private static (double Inv, double Oth, double GdpY) MoneySplit(World w)
     {
         double inv = 0, oth = 0;
-        foreach (var r in w.Regions) foreach (var p in r.Pops) { double s = System.Math.Max(0, p.Savings.Value); if (CapitalMarket.IsInvestor(p, w.Coef)) inv += s; else oth += s; }
+        foreach (var r in w.Regions) foreach (var p in r.Pops) { double s = System.Math.Max(0, p.Savings.Value); if (CapitalMarket.IsInvestor(p)) inv += s; else oth += s; }
         return (inv, oth, Calendar.PerMonthToPerYear(w.NominalGdpPerMonth).Value);
     }
 
