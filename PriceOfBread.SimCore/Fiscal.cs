@@ -279,6 +279,7 @@ public static class Fiscal
         // ★撤去2026-08-16（C2-C5）：汚職根絶費の請求 antiCorruptionClaim を物理削除（V2点火2026-08-15で請求は既に遮断済み＝恒等0の死骸だった）。
         //   V2では根絶費の動詞ごと死ぬ（清廉度はもう読まれない＝金を燃やすだけの支出を許さない）。旧式へ戻す道は消滅（裁定済み）。
         double surplus = Math.Max(0, budgetBase - interest - adminClaim - militaryClaim);
+        if (Instruments.On) Instruments.Revenue(w, revenue, indirectRevenue);   // 計器（読むだけ）：歳入の内訳
         w.LastRevenuePerMonth = new MoneyPerMonth(budgetBase); w.LastInterestPerMonth = new MoneyPerMonth(interest);   // 診断（LastRevenue は Simulation の AdminBudget/MilitaryBudget の基数＝間接税込みへ）
         w.LastAdminClaimPerMonth = new MoneyPerMonth(adminClaim);          // 診断（予算表の支出内訳）（★(155) LastMilitaryClaimPerMonth の書き手は月初の予算＝Simulation）
         w.FiscalCapacityPerMonth = new MoneyPerMonth(w.FiscalCapacityPerMonth.Value < 1e-9 ? surplus : w.FiscalCapacityPerMonth.Value + c.FiscalCapacitySmoothing * (surplus - w.FiscalCapacityPerMonth.Value));
