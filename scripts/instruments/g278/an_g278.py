@@ -110,6 +110,8 @@ def split_stats(rs):
                 c[kk + s] += 1; c['2' + s] += 1; c['2'] += 1
             elif code in (4, 8):
                 c[kk + 'P'] += 1
+            if code in (1, 5, 6):
+                c['pure'] += 1
     return c
 
 
@@ -154,10 +156,10 @@ def main():
     c = split_stats(rows)
     N = c['all']
     P('全ての国：戦線 %d 件＝段の法 L %s・連続の軸 %s' % (N, pct(c['L'], N), pct(c['K'], N)))
-    P('  符号 2 全体 %s〔(274) の 47.8% と同じ〕＝構造 %s＋飢え %s（符号 2 に対する割合 構造 %s・飢え %s）' % (pct(c['2'], N), pct(c['2S'], N), pct(c['2H'], N), pct(c['2S'], c['2']), pct(c['2H'], c['2'])))
+    P('  符号 2 全体 %s〔(274) の 47.8%% と同じ〕＝構造 %s＋飢え %s（符号 2 に対する割合 構造 %s・飢え %s）' % (pct(c['2'], N), pct(c['2S'], N), pct(c['2H'], N), pct(c['2S'], c['2']), pct(c['2H'], c['2'])))
     P('  段の法 L：資本固定 %s＝構造 %s＋飢え %s（L に対する割合）／払って通った %s' % (pct(c['LS'] + c['LH'], c['L']), pct(c['LS'], c['L']), pct(c['LH'], c['L']), pct(c['LP'], c['L'])))
     P('  連続の軸：資本固定 %s＝構造 %s＋飢え %s／払って通った（符号 4・8）%s' % (pct(c['KS'] + c['KH'], c['K']), pct(c['KS'], c['K']), pct(c['KH'], c['K']), pct(c['KP'], c['K'])))
-    P('  ⚠「真の幽霊」の下限 10.2%%（純支持・不可逆・前提）に、構造 %s を足すと幽霊の割合は 純幽霊＋構造' % pct(c['2S'], N))
+    P('  幽霊（政治資本の在庫が空でも・満タンでも動かない）＝純支持・不可逆・前提 %s＋構造 %s＝%s（(274) の「真の幽霊 10.2%%」は下限だった）' % (pct(c['pure'], N), pct(c['2S'], N), pct(c['pure'] + c['2S'], N)))
     # 段の法の軸別
     ax = collections.defaultdict(collections.Counter)
     ratio = collections.defaultdict(list)
@@ -245,6 +247,9 @@ def main():
     if n:
         P('  不足（S＋代価−b）の平均 %.4f・代価の平均 %.4f・不足÷代価の平均 %.2f' % (sums['short'] / n, sums['cost'] / n, sums['shortratio'] / n))
         P('  段の法のループの頭で既に残り 0（S頭≧b）だった割合 %s  前の四半期に連続の軸が払っていた割合 %s' % (pct(cnt['head>=b'], n), pct(cnt['contprev>0'], n)))
+        cc_ = split_stats(led)
+        P('  全体への効き：飢え（代価≦b）は L の資本固定の %s（L の戦線の %s）／連続の軸の払いを全て無くして救える分は L の戦線の %.2f%%・資本固定の戦線の %.2f%%' % (
+            pct(cc_['LH'], cc_['LS'] + cc_['LH']), pct(cc_['LH'], cc_['L']), 100.0 * cc_['LH'] / cc_['L'] * cnt['rescue_cont'] / n, 100.0 * cc_['LH'] / (cc_['LS'] + cc_['LH']) * cnt['rescue_cont'] / n))
         P('  1つの原因だけを取り除いたとき、その戦線が通る割合（静的な反事実・救える＝不足≦取り除く額）：')
         P('    連続の軸の払いを全て無くす（S頭の先入れ先出しの帰属分）                 %s' % pct(cnt['rescue_cont'], n))
         P('    〔上限〕前の四半期の連続の軸の払いだけを無くす（min(S頭, 前の四半期の払い)） %s' % pct(cnt['rescue_contprev1'], n))
@@ -294,8 +299,8 @@ def main():
             nwall += 1
     P('  一歩の遅れだけで読む影響（S頭′＝S頭＋前の四半期の払いの増分・S頭＝0 の行は 0 のまま＝過小）：')
     P('    今は払って通った段の法の戦線 %d 件（段の法の戦線の %s）のうち、予測で通らなくなる %d 件（%s）' % (npaid, pct(npaid, nL), nnew, pct(nnew, npaid)))
-    P('    段の法の資本固定は L の %s（飢え %s＋構造 %s）→ 予測で %s ほど増える（払って通った件数に対する通れなくなる割合 ×払って通った割合）' % (
-        pct(split_stats(led)['LS'] + split_stats(led)['LH'], nL), pct(split_stats(led)['LH'], nL), pct(split_stats(led)['LS'], nL), pct(nnew, nL)))
+    P('    段の法の資本固定は L の %s（飢え %s＋構造 %s）→ 予測で L の戦線の %.3f%% ぶん増える（通れなくなる件数÷L の戦線）' % (
+        pct(split_stats(led)['LS'] + split_stats(led)['LH'], nL), pct(split_stats(led)['LH'], nL), pct(split_stats(led)['LS'], nL), 100.0 * nnew / nL))
     P('    段の法のループの頭で既に残り 0 の四半期 %s（この行では増分が効かない＝悪化の余地が小さい側）' % pct(nwall, len(led)))
     P('  ⚠これは1四半期の遅れだけの下限寄りの見立て。回復が一定（b/40×実行度）で払いが回復を上回れば S は壁（b）へ張り付く＝均衡では増分が段の法の払いの総量を押し出す側に効く。')
     P('    均衡の見立て：段の法の払い %.4f＋連続の軸の払い %.4f（今）／%.4f（予測）に対し、回復の実測 %.4f（1四半期）。' % (
