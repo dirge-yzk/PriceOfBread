@@ -14,6 +14,7 @@
 /// <item><c>flow_s&lt;seed&gt;.tsv</c> ★(262) 貯蓄の書き手の台帳（挙げた国だけ・四半期ごと・階級×書き手の種類×呼び出しの位置×相手の側の月平均の額と件数）。階級の貯蓄の増減が書き手の和に閉じる。</item>
 /// <item><c>region_s&lt;seed&gt;.tsv</c> 州×四半期（全ての国の全ての州）：人口・農村人口・機会とその因子・耕地・四半期の人口の流れ（州の間の移民・入植・越境の出入り）・戦場の強さ・主食の充足。
 /// <c>migration_s&lt;seed&gt;.tsv</c> 州の間の移民の組（出る州→入る州）の四半期の量。州の空洞化（F1 の線）の読み手 <c>hol/an_h2.py</c> の入力＝旧の注入 <c>u4e/inj_ghost.py</c> の代わり。</item>
+/// <item><c>canal_s&lt;seed&gt;.tsv</c> ★(271) 運河ごとに1行（開通した四半期の番号・開通しなかった運河は <c>-1</c>。試合の終わりに書く）。<c>nation_s</c> の末尾の21列（国の個体の番号 <c>nationUid</c>・消費の予算の拘束・建設の投資枠・国債の借入のプール・与信の上限）も (271)。</item>
 /// <item><c>wars_s&lt;seed&gt;.tsv</c> 戦争1本ごと（開戦の年・内戦か・当事者・月数・戦死）／<c>casualty_s&lt;seed&gt;.tsv</c> (年, 国)ごとの兵士の月と戦死（試合の終わりに書く）。</item>
 /// </list>
 /// 開幕（構築直後 <c>open</c>）と助走の直後（<c>warm</c>）の断面は class と stock に全ての国で出る。初期値の一覧は Runner の <c>initdump</c>。
@@ -99,10 +100,16 @@ public static class Instruments
         public readonly double[] QCapBoundPaid = new double[CapDs.Length], QCapCut = new double[CapDs.Length], QCapBoundPopK = new double[CapDs.Length];
         // ---- (265) 専売の段・国営工場の売却・財政の逼迫（AI の判断の四半期の頭）
         public int FactorySold, MonoBefore = -1, MonoTarget = -1; public double FiscalStressAtDecision = double.NaN;
+        // ---- (271) 線K：国の個体・消費の予算の拘束・建設の投資枠・国債のプール・与信の上限（読むだけ・四半期の和・四半期の末に0へ戻す）
+        public int Uid;                                    // 国の個体の番号（0＝未採番）＝World の個体に付く＝改名でも変わらず、建国は新しい番号（四半期の行を書く順に採番＝決定論）
+        public long CnRows, CnBound; public double CnDesired, CnDemand;   // 消費の (POP×財) の行：行数・予算で切られた行数（需要＜希望）・希望額と立った需要額（金額建て・月の和）
+        public int ConDesiring, ConBound; public double ConDesiredUnits, ConCutUnits;   // 建設：希望が正の（州×月）・うち投資枠で切られた数・希望の束・切られた束
+        public int BrJudged, BrPoolBound, BrForeignCut; public double BrDomPool, BrForRaw, BrFor;   // 借入の判定の月：判定した月・プールが縛った月・うち外資のプールが他国の投資家の貯蓄で切られていた月・各プールの和
+        public int CrDays, CrRepayBoundDays, CrFiniteDays; public double CrReserveCap, CrRepayable;   // 与信の上限（日数で重みづけ）：判定の日数・返せる額が準備の側より小さかった日数・有限の日数・各上限の日数つきの和
     }
     /// <summary>段5 の上限の引き出し率 d（月あたり）。(264) 実装ログ §7 の事前登録の格子＝1/120・1/240・1/480（AI の設計・作者の承認は未確認）。</summary>
-    internal static readonly double[] CapDs = [1.0 / 120, 1.0 / 240, 1.0 / 480];
-    static readonly string[] CapDNames = ["D120", "D240", "D480"];
+    internal static readonly double[] CapDs = [1.0 / 120, 1.0 / 240, 1.0 / 480, 1.0 / 36, 1.0 / 12];   // (271) 末尾の2つ＝(268) 申し送りの推奨（格子に 1/36・1/12 を足す）
+    static readonly string[] CapDNames = ["D120", "D240", "D480", "D36", "D12"];
     /// <summary>「大衆」＝農民・工場労働者・職人（階級の表を読む読み手 f1s0／flow262 と同じ定義）。兵士は除く。</summary>
     static bool IsMass(Pop p) => !p.IsSoldier && (p.ClassId == PopClass.Peasant || p.ClassId == PopClass.Worker || p.ClassId == PopClass.Artisan);
     /// <summary>段5 の上限（月の消費の予算の上限）＝min(max(0,S), max(0,E)＋max(0,S)×d)。</summary>
@@ -119,6 +126,8 @@ public static class Instruments
         public System.IO.StreamWriter? Fiscal, Class, Stock, Nation, Region, Migration, Flow, Goods;
         public bool FiscalHeader, ClassHeader, StockHeader, NationHeader, RegionHeader, FlowHeader, GoodsHeader;
         public ulong Seed;   // 試合の終わり（Close）に戦争の表を書くときのファイル名
+        public int NextUid;  // (271) 国の個体の番号の次
+        public readonly Dictionary<string, (int Quarter, int Year)> CanalOpened = new();   // (271) 運河の開通の四半期（最初に開通を見た四半期の末）
     }
     /// <summary>外交の記録（戦争の始まりと戦死の月ごとの和）。外交は MultiNationSim に1つ＝世界ごとの状態（<see cref="WState"/>）とは別に持つ。</summary>
     sealed class DipState
@@ -298,12 +307,41 @@ public static class Instruments
         st.BorrowCode = 0; st.Shortfall = shortfall;
     }
     /// <summary>借入の判定（門が開いていた）：何が借入の額を縛ったか。</summary>
-    internal static void Borrow(World w, double shortfall, double ticket, double domesticPool, double foreignPool, double borrowed)
+    internal static void Borrow(World w, double shortfall, double ticket, double domesticPool, double foreignPool, double borrowed, double foreignPoolRaw)
     {
         if (Live(w) is not { } st) return;
         st.Shortfall = shortfall; st.Ticket = ticket; st.DomPool = domesticPool; st.ForPool = foreignPool;
         double want = Math.Min(ticket, shortfall);
         st.BorrowCode = !(borrowed > 1e-9) ? 4 : borrowed < want - 1e-9 ? 3 : ticket < shortfall ? 2 : 1;
+        // (271) 国内と外資のプールのどちらが縛ったか：判定の月の数・プールが縛った月（コード3か4）・うち外資のプールが他国の投資家の貯蓄の上限で切られていた月・各プールの和
+        st.BrJudged++; st.BrDomPool += domesticPool; st.BrFor += foreignPool; st.BrForRaw += foreignPoolRaw;
+        if (st.BorrowCode >= 3) { st.BrPoolBound++; if (foreignPool < foreignPoolRaw) st.BrForeignCut++; }
+    }
+    /// <summary>★(271) 消費の予算の拘束（州×月）：<c>EconomyStep.Run</c> の消費ループで数えた (POP×財) の行数・予算で切られた行数（需要＜希望）・希望額と立った需要額（金額建て）。
+    /// <c>BudgetBindDiag</c> と同じ行・同じ述語を標準の計器へ畳んだ（あちらは On の間は各国の日次を逐次へ倒す診断＝バッチでは使えない）。</summary>
+    internal static void ConsumeMonth(World w, long rows, long bound, double desiredVal, double demandVal)
+    {
+        var st = S(w);
+        st.CnRows += rows; st.CnBound += bound; st.CnDesired += desiredVal; st.CnDemand += demandVal;
+    }
+    /// <summary>★(271) 建設の側で投資枠（投資家の貯蓄×<c>IndInvestmentFrac</c>）が希望を切ったか（州×月）：希望の束 <paramref name="desiredUnits"/> と枠で買える束 <paramref name="budgetUnits"/>（<c>EconomyStep.Run</c> の
+    /// <c>construction = min(希望, 枠)</c> の2つの引数）。希望が正の州×月だけ数える。</summary>
+    internal static void Construction(World w, double desiredUnits, double budgetUnits)
+    {
+        if (!(desiredUnits > 0)) return;
+        var st = S(w);
+        st.ConDesiring++; st.ConDesiredUnits += desiredUnits;
+        if (budgetUnits < desiredUnits) { st.ConBound++; st.ConCutUnits += desiredUnits - budgetUnits; }
+    }
+    /// <summary>★(271) 与信の上限のどちらが縛ったか（<c>Credit.Step</c>・旬の初日の呼び＝<paramref name="days"/> 日ぶん）：準備の側の上限 <paramref name="reserveCap"/>（準備×信用乗数×金のカバー率の抑制）と、
+    /// 借り手が返せる額 <paramref name="repayable"/>（無限＝投資家のいない小シナリオ）。助走の月は数えない。</summary>
+    internal static void CreditCap(World w, double reserveCap, double repayable, int days)
+    {
+        if (w.WarmupFrozen) return;
+        var st = S(w);
+        st.CrDays += days; st.CrReserveCap += reserveCap * days;
+        if (!double.IsInfinity(repayable)) { st.CrFiniteDays += days; st.CrRepayable += repayable * days; }
+        if (repayable < reserveCap) st.CrRepayBoundDays += days;
     }
     internal static void PostBorrow(World w, double borrowed)
     {
@@ -391,6 +429,11 @@ public static class Instruments
         st.QAdmClaim = st.QAdmNeedB = st.QAdmMinB = st.QAdmNeedP = st.QAdmMinP = st.QCfBorrowed = 0; st.QAdmOverRegionMonths = st.QCfShortMonths = st.QCfRBelow1Months = st.QCfObs = 0;
         st.QCapPaid = st.QCapPopK = 0; Array.Clear(st.QCapBoundPaid); Array.Clear(st.QCapCut); Array.Clear(st.QCapBoundPopK);
         st.FactorySold = 0; st.MonoBefore = st.MonoTarget = -1; st.FiscalStressAtDecision = double.NaN;
+        // (271) 助走の分は数えない
+        st.CnRows = st.CnBound = 0; st.CnDesired = st.CnDemand = 0;
+        st.ConDesiring = st.ConBound = 0; st.ConDesiredUnits = st.ConCutUnits = 0;
+        st.BrJudged = st.BrPoolBound = st.BrForeignCut = 0; st.BrDomPool = st.BrForRaw = st.BrFor = 0;
+        st.CrDays = st.CrRepayBoundDays = st.CrFiniteDays = 0; st.CrReserveCap = st.CrRepayable = 0;
     }
     /// <summary>国×四半期の行に足す列（行政の請求の2つの式・戦時段）。月ごとの量は四半期の月の平均（<c>PerMonth</c>）。</summary>
     static List<(string Name, string Value)> NationExtras(World w, WState st)
@@ -679,6 +722,8 @@ public static class Instruments
             st.FacStarted = st.FacStartedClosed = st.FacDone = st.FacDoneClosed = st.FacDoneClosedAtStart = 0;
         }
         RegionRows(sk, seed, q, sim);
+        foreach (var cp in sim.Diplomacy.Chokepoints)   // (271) 運河の開通の四半期（最初に開通を見た四半期の末）
+            if (cp.IsCanal && cp.IsOpen && !sk.CanalOpened.ContainsKey(cp.Id)) sk.CanalOpened[cp.Id] = (q, sim.Nations.Count > 0 ? sim.Nations[0].World.Year : 0);
     }
 
     /// <summary>試合の終わり（例外の経路も）：書き出しを閉じる。</summary>
@@ -686,6 +731,7 @@ public static class Instruments
     {
         if (!Sinks.TryGetValue(sim, out var sk)) return;
         if (Dips.TryGetValue(sim.Diplomacy, out var dip)) WarTables(sk, dip);
+        CanalTable(sk, sim);
         sk.Fiscal?.Dispose(); sk.Class?.Dispose(); sk.Stock?.Dispose(); sk.Nation?.Dispose(); sk.Region?.Dispose(); sk.Migration?.Dispose(); sk.Flow?.Dispose(); sk.Goods?.Dispose(); sk.Fiscal = sk.Class = sk.Stock = sk.Nation = sk.Region = sk.Migration = sk.Flow = sk.Goods = null;
     }
 
@@ -768,6 +814,19 @@ public static class Instruments
     }
 
     /// <summary>戦争1本ごと（<c>wars</c>）と(年, 国)ごとの戦死（<c>casualty</c>）。戦争の戦死と月数は試合の終わりの値（戦争が続いていればその時点まで）。</summary>
+    /// <summary>★(271) 運河の表 <c>canal_s</c>：運河ごとに1行。<c>openedQuarter</c>＝最初に開通を見た四半期（<c>quarter</c> と同じ数え方）・開通しなかった運河は <c>-1</c>。試合の終わりに書く。</summary>
+    static void CanalTable(Sink sk, MultiNationSim sim)
+    {
+        using var wr = Open("canal", sk.Seed);
+        wr.WriteLine("canalId\topenedQuarter\topenedYear");
+        foreach (var cp in sim.Diplomacy.Chokepoints)
+        {
+            if (!cp.IsCanal) continue;
+            bool opened = sk.CanalOpened.TryGetValue(cp.Id, out var oq);
+            wr.WriteLine(string.Join('\t', cp.Id, opened ? oq.Quarter.ToString(System.Globalization.CultureInfo.InvariantCulture) : "-1", opened ? oq.Year.ToString(System.Globalization.CultureInfo.InvariantCulture) : "-1"));
+        }
+    }
+
     static void WarTables(Sink sk, DipState dip)
     {
         using (var wr = Open("wars", sk.Seed))
@@ -834,6 +893,9 @@ public static class Instruments
         cols.Add(I(staleSub)); cols.Add(string.Join(';', stakeGoods));
         var ext265 = Extras265(w, st);   // (265) 線I：末尾に足す列（名前と値を同じ表から出す＝見出しと行がずれない）
         foreach (var ex in ext265) cols.Add(ex.Value);
+        if (st.Uid == 0) st.Uid = ++sk.NextUid;   // (271) 国の個体の番号（四半期の行を書く順に採番＝決定論・World の個体に付く）
+        var ext271 = Extras271(w, st);   // (271) 線K：国の個体・消費の予算の拘束・建設の投資枠・国債のプール・与信の上限
+        foreach (var ex in ext271) cols.Add(ex.Value);
         sk.Nation ??= Open("nation", seed);
         if (!sk.NationHeader)
         {
@@ -846,7 +908,8 @@ public static class Instruments
                 + "stateFacilityStartedCount\tstateFacilityStartedGateClosedCount\tstateFacilityCompletedCount\tstateFacilityCompletedGateClosedCount\tstateFacilityCompletedGateClosedAtStartCount\tsupplyFillShare\t"
                 + "fireSaleRunCount\tfireSaleSeenMismatchCount\tfireSaleFiredCount\tfireSaleFiredMismatchCount\tfireSaleFiredOverTargetCount\tsubsidyWriteMismatchCount\tsubsidyWriteMismatchWantOffCount\t"
                 + "stakeMismatchProducerCount\tstakeMismatchToInvestedCount\tstakeMismatchToUninvestedCount\twheelMismatchGoods\tstateFacilityStartedGoods\tfoodMetShare\tneedMetShare\tstaleSubsidyNotGrabbedCount\tstakeMismatchGoods\t"
-                + string.Join('\t', ext265.Select(e => e.Name)));
+                + string.Join('\t', ext265.Select(e => e.Name)) + "\t"
+                + string.Join('\t', ext271.Select(e => e.Name)));
             sk.NationHeader = true;
         }
         sk.Nation.WriteLine(string.Join('\t', cols));
@@ -909,6 +972,29 @@ public static class Instruments
         N("monopolyTierBeforeDecisionStage", st.MonoBefore); N("monopolyTierTargetDecisionStage", st.MonoTarget); N("monopolyTierEndStage", w.StateMonopolyTier);
         C("fiscalStressAtDecisionIndex", st.FiscalStressAtDecision); N("stateFactorySoldCount", st.FactorySold);
         C("pollTaxEndShare", w.PollTax); C("pollTaxTargetEndShare", w.Policy.PollTaxTarget); C("socialSecurityEndShare", w.SocialSecurity); C("socialSecurityTargetEndShare", w.Policy.SocialSecurityTarget); N("socialSecurityLawEndStage", (int)w.SocialSecurityLaw);
+        return cols;
+    }
+
+    /// <summary>★(271) 線K：国×四半期の行の末尾に足す列。<c>nationUid</c>＝国の個体の番号（<c>nationIndex</c> は国の消滅で詰まり、<c>nation</c>〔BaseName〕は建国で再利用・継承で変わる＝個体を指さない。この番号は World の個体に付く＝改名でも変わらず、建国は新しい番号）。
+    /// 消費の予算の拘束（BudgetBindDiag の行と同じ述語を標準の計器へ）／建設の側で投資枠が希望を切った州×月／国債の借入の判定の月でプールが縛った月と各プール／与信の上限（準備の側と返せる額）。
+    /// 金額は四半期の月の平均（<c>PerMonth</c>）・借入の各プールは判定した月あたりの平均（<c>MeanPerMonth</c>＝判定した月の和÷判定した月の数）・与信の上限は判定の日数で重みづけた平均（<c>MeanStock</c>）。</summary>
+    static List<(string Name, string Value)> Extras271(World w, WState st)
+    {
+        var cols = new List<(string, string)>();
+        string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        void C(string name, double v) => cols.Add((name, F(v)));
+        void N(string name, long v) => cols.Add((name, v.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+        N("nationUid", st.Uid);
+        double cm = st.ClsMonths > 0 ? st.ClsMonths : double.NaN;
+        N("consumeRowsCount", st.CnRows); N("consumeBudgetBoundRowsCount", st.CnBound); C("consumeBudgetBoundRowShare", st.CnRows > 0 ? (double)st.CnBound / st.CnRows : double.NaN);
+        C("consumeDesiredValuePerMonth", st.CnDesired / cm); C("consumeCutValuePerMonth", (st.CnDesired - st.CnDemand) / cm); C("consumeCutShare", st.CnDesired > 0 ? (st.CnDesired - st.CnDemand) / st.CnDesired : double.NaN);
+        N("constructionDesiringRegionMonthsCount", st.ConDesiring); N("constructionBudgetBoundRegionMonthsCount", st.ConBound);
+        C("constructionDesiredUnitsPerMonth", st.ConDesiredUnits / cm); C("constructionCutUnitsPerMonth", st.ConCutUnits / cm);
+        double bj = st.BrJudged > 0 ? st.BrJudged : double.NaN;
+        N("borrowJudgedMonthsCount", st.BrJudged); N("borrowPoolBoundMonthsCount", st.BrPoolBound); N("borrowPoolBoundForeignCutByInvestorsMonthsCount", st.BrForeignCut);
+        C("borrowDomesticPoolMeanPerMonth", st.BrDomPool / bj); C("borrowForeignPoolRawMeanPerMonth", st.BrForRaw / bj); C("borrowForeignPoolMeanPerMonth", st.BrFor / bj);
+        N("creditJudgedDaysCount", st.CrDays); N("creditRepayableBoundDaysCount", st.CrRepayBoundDays);
+        C("creditReserveCapMeanStock", st.CrDays > 0 ? st.CrReserveCap / st.CrDays : double.NaN); C("creditRepayableCapMeanStock", st.CrFiniteDays > 0 ? st.CrRepayable / st.CrFiniteDays : double.NaN);
         return cols;
     }
 

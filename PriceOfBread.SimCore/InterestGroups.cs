@@ -8,19 +8,9 @@ namespace PriceOfBread.SimCore;
 /// </summary>
 public static class InterestGroups
 {
-    /// <summary>旧支配層 / 近代エリート / 大衆 の3ブロックの力（合計≒1 付近）。</summary>
+    /// <summary>旧支配層 / 近代エリート / 大衆 の3ブロックの力（合計≒1 付近）。
+    /// 〔2026-10-11 (271)〕プチブル利益束（第4束「小営業」・旧 PettyInterestGate＝既定 0 の枝）と分割版 BlocsSplit・PettyPops を削除＝3束のこの1本に戻した。</summary>
     public static (double Traditional, double Modern, double Mass) Blocs(World w)
-    {
-        var (t, m, s, _, _) = BlocsSplit(w, null);   // petty=null＝従来の3束分類そのもの（プチブル利益束のリファクタ・算術の順序は不変＝ビット恒等）
-        return (t, m, s);
-    }
-
-    /// <summary>プチブル利益束（作者承認2026-08-15・休眠 PettyInterestGate=0）：<see cref="Blocs"/> と同一の per-pop 重み計算で、
-    /// petty（小営業＝職人+商人の集合。null=旧3束分類）だけを第4束の2成分へ振り替えた力。成分は旧束別
-    /// （商人=旧近代由来 PettyModern／職人=旧大衆由来 PettyMass）に分けて持つ＝非対象軸のフォールバック集計
-    /// （PolicyPreferences）が「旧束の値」へ厳密に戻せる形。petty=null では分類分岐が旧3束と同一＝ビット恒等
-    /// （**束の判定切替が唯一の分岐点**・設計書§2）。読み手＝PolicyPreferences.Build のみ（Blocs の他の読者＝教義/開戦意欲等は3束のまま＝対象を広げない）。</summary>
-    internal static (double Traditional, double Modern, double Mass, double PettyModern, double PettyMass) BlocsSplit(World w, HashSet<Pop>? petty)
     {
         // ★土地＝旧支配層の政治力（2026-08-04・統一根）。1783年の現実＝土地が国富の過半で、それを握るのが貴族
         //   （改革法1832は地主支配への闘争・ユンカーは1918年まで・仏は革命前夜）。旧＝富の基盤が流動資産（Savings）のみで、
@@ -57,7 +47,7 @@ public static class InterestGroups
         // 「軍の圧力（組織の大きさ＋解隊の脅威＋粛清/人事介入の記憶＋対外屈辱）×（1−文民制度の弁）」から出る（Finer/Huntington）。
         // ループ不変（World の純関数）＝1回だけ計算して pop ごとに掛ける。
         double closedMul = (1.0 + w.Coef.MilitarismClout * PoliticalQuantities.MilitaryPoliticalRatio(w)) * (1.0 + w.Coef.DecayReformResistWeight * w.DecayForReaders);
-        double trad = 0, modern = 0, mass = 0, pettyM = 0, pettyS = 0;
+        double trad = 0, modern = 0, mass = 0;
         foreach (var r in w.Regions)
         {
             foreach (var p in r.Pops)
@@ -69,27 +59,11 @@ public static class InterestGroups
                     : wealthShare;
                 double pw = share * PoliticalWeight(p, eff, closedMul, w.Coef);
                 if (p.Closed) trad += pw;
-                else if (petty != null && petty.Contains(p)) { if (p.IsModernElite) pettyM += pw; else pettyS += pw; }   // 第4束「小営業」（petty=null＝この枝は不走行＝従来分類）
                 else if (p.IsModernElite) modern += pw;
                 else mass += pw;
             }
         }
-        return (trad, modern, mass, pettyM, pettyS);
-    }
-
-    /// <summary>小営業（職人＋商人）popの集合（プチブル利益束・作者承認2026-08-15）。判定は構造マーカー＝
-    /// <see cref="Region.ArtisanPopIndex"/>/<see cref="Region.MerchantPopIndex"/>（自営＝OwnerPopIndex==LaborPopIndex の所得を持つ階級）
-    /// ＝固有名詞・階級名の文字列判定なし（設計書§3）。**PettyInterestGate>0 の枝からのみ呼ぶ**（呼ばないことが休眠の恒等＝SuffrageInclusion と同じ作法）。
-    /// ⚠所属判定（Contains）のみに使い**列挙しない**（HashSet の列挙順＝参照ハッシュ順は非決定＝決定論を破る）。</summary>
-    public static HashSet<Pop> PettyPops(World w)
-    {
-        var set = new HashSet<Pop>();
-        foreach (var r in w.Regions)
-        {
-            if (r.MerchantPopIndex >= 0 && r.MerchantPopIndex < r.Pops.Count) set.Add(r.Pops[r.MerchantPopIndex]);
-            if (r.ArtisanPopIndex >= 0 && r.ArtisanPopIndex < r.Pops.Count) set.Add(r.Pops[r.ArtisanPopIndex]);
-        }
-        return set;
+        return (trad, modern, mass);
     }
 
     /// <summary>参政権の範囲2法（作者裁定2026-08-16）＝popの「政治的国民への算入率」0..1。**SuffrageScopeGate>0 の枝からのみ呼ぶ**（呼ばないことが休眠の恒等）。

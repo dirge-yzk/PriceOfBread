@@ -848,4 +848,203 @@ public class InstrumentsTests
         }
         finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
     }
+
+    // ===== (271) 線K：国の個体の番号・消費の予算の拘束・建設の投資枠・国債のプール・与信の上限・運河の開通の四半期・TakeGold／GiveGold の呼び手の位置 =====
+    /// <summary>消費の予算の拘束（<c>consume…</c>）は、同じ盤面で <c>BudgetBindDiag</c> が数えた行数・切られた行数・希望額・需要額に合う（出所が別の実装＝同語反復でない。<c>BudgetBindDiag</c> は On の間は各国の日次を逐次へ倒す診断）。
+    /// 国の個体の番号 <c>nationUid</c> は同じ国で四半期をまたいで不変・同じ四半期の国どうしで異なる。国債のプールの列は <c>fiscal_s</c> の月ごとの行（<c>borrowBinder</c>・各プール）の和に合う。
+    /// 各 …BoundCount ≤ …JudgedCount。<c>TakeGold</c>／<c>GiveGold</c> の呼び手の位置（<c>flow_s</c> の <c>sourceLine</c>）は定義の行（ソースの本文から探す）に潰れない。
+    /// 突然変異＝<c>demand &lt; desired - 1e-12</c> を <c>&lt;=</c> に／<c>Uid</c> の採番を毎四半期にする／<c>TakeGold</c> の <c>routeLine</c> の受け渡しを外す、で赤。</summary>
+    [Fact]
+    public void 線Kの列が別の経路と合い国の個体の番号は安定し呼び手の位置は定義に潰れない()
+    {
+        string dir = NewDir();
+        try
+        {
+            var sim = Make();
+            Instruments.Configure(dir, "*");
+            BudgetBindDiag.On = true;
+            try
+            {
+                Instruments.Phase(sim, 1789UL, "open");
+                sim.StartWarmup();
+                Instruments.Phase(sim, 1789UL, "warm");
+                BudgetBindDiag.Begin();   // 助走の月は計器が数えない（warm の断面で0へ戻す）＝診断の側も助走の後から数える
+                for (int q = 0; q < Quarters; q++) { sim.StepQuarter(); Instruments.Quarter(sim, 1789UL, q); }
+            }
+            finally { Instruments.Close(sim); BudgetBindDiag.On = false; Instruments.Configure(null, null); }
+
+            var (nh, nr) = Table(System.IO.Path.Combine(dir, "nation_s1789.tsv"));
+            var (fh, fr) = Table(System.IO.Path.Combine(dir, "fiscal_s1789.tsv"));
+            string[] ext = ["nationUid", "consumeRowsCount", "consumeBudgetBoundRowsCount", "consumeBudgetBoundRowShare", "consumeDesiredValuePerMonth", "consumeCutValuePerMonth", "consumeCutShare",
+                "constructionDesiringRegionMonthsCount", "constructionBudgetBoundRegionMonthsCount", "constructionDesiredUnitsPerMonth", "constructionCutUnitsPerMonth",
+                "borrowJudgedMonthsCount", "borrowPoolBoundMonthsCount", "borrowPoolBoundForeignCutByInvestorsMonthsCount", "borrowDomesticPoolMeanPerMonth", "borrowForeignPoolRawMeanPerMonth", "borrowForeignPoolMeanPerMonth",
+                "creditJudgedDaysCount", "creditRepayableBoundDaysCount", "creditReserveCapMeanStock", "creditRepayableCapMeanStock"];
+            foreach (var n in ext) Assert.True(Array.IndexOf(nh, n) >= 0, "列が無い " + n);
+            int nationCol = Array.IndexOf(nh, "nation"), qCol = Array.IndexOf(nh, "quarter"), uidCol = Array.IndexOf(nh, "nationUid");
+
+            // ---- 国の個体の番号
+            Assert.All(nr, r => Assert.True(Col(nh, r, "nationUid") >= 1));
+            foreach (var g in nr.GroupBy(r => r[qCol])) Assert.Equal(g.Count(), g.Select(r => r[uidCol]).Distinct().Count());   // 同じ四半期の国どうしで番号が異なる
+            var founders = nr.Where(r => r[qCol] == "0").Select(r => r[nationCol]).ToList();
+            Assert.True(founders.Count >= 4);
+            foreach (var name in founders)
+            {
+                var uids = nr.Where(r => r[nationCol] == name && int.Parse(r[qCol]) <= 3).Select(r => r[uidCol]).Distinct().ToList();
+                Assert.True(uids.Count == 1, $"同じ国の個体の番号が四半期ごとに変わる {name}（{string.Join(",", uids)}）");
+            }
+
+            // ---- 消費の予算の拘束（BudgetBindDiag と別の実装）
+            int worldsChecked = 0, valuesChecked = 0; double boundSeen = 0, rowsSeen = 0;
+            foreach (var n in sim.Nations)
+            {
+                var w = n.World; string name = Instruments.NameOf(w);
+                var mine = nr.Where(r => r[nationCol] == name).ToList();
+                if (mine.Count == 0 || !BudgetBindDiag.ByWorld.TryGetValue(w, out var a)) continue;
+                string uid = mine[^1][uidCol];
+                mine = mine.Where(r => r[uidCol] == uid).ToList();
+                double rows = mine.Sum(r => Col(nh, r, "consumeRowsCount")), bound = mine.Sum(r => Col(nh, r, "consumeBudgetBoundRowsCount"));
+                double des = mine.Sum(r => Col(nh, r, "consumeDesiredValuePerMonth")) * Calendar.MonthsPerQuarter, cut = mine.Sum(r => Col(nh, r, "consumeCutValuePerMonth")) * Calendar.MonthsPerQuarter;
+                Assert.Equal(a[BudgetBindDiag.Rows], rows);
+                Assert.Equal(a[BudgetBindDiag.BoundRows], bound);
+                if (!double.IsNaN(des + cut))   // 途中で建国された国の最初の四半期は月の数が0＝月の平均が NaN（行数の突き合わせだけ）
+                {
+                    Assert.True(Math.Abs(des - a[BudgetBindDiag.DesiredVal]) <= 1e-9 * Math.Max(1.0, des), $"希望額 {name}（{des:G10} 対 {a[BudgetBindDiag.DesiredVal]:G10}）");
+                    Assert.True(Math.Abs(cut - (a[BudgetBindDiag.DesiredVal] - a[BudgetBindDiag.DemandVal])) <= 1e-9 * Math.Max(1.0, des), $"切られた額 {name}");
+                    valuesChecked++;
+                }
+                boundSeen += bound; rowsSeen += rows; worldsChecked++;
+            }
+            Assert.True(worldsChecked >= 3 && valuesChecked >= 3, $"突き合わせた国が少ない（{worldsChecked}・額 {valuesChecked}）");
+            Assert.True(boundSeen > 0 && boundSeen < rowsSeen, $"対照：消費の予算で切られた行が0か全て（{boundSeen}/{rowsSeen}）＝この盤面では拘束を測れていない");
+
+            // ---- 不等式と対照（建設・国債・与信）
+            double conDes = 0, crDays = 0;
+            foreach (var r in nr)
+            {
+                double cd = Col(nh, r, "constructionDesiringRegionMonthsCount"), cb = Col(nh, r, "constructionBudgetBoundRegionMonthsCount");
+                double bj = Col(nh, r, "borrowJudgedMonthsCount"), bb = Col(nh, r, "borrowPoolBoundMonthsCount"), bf = Col(nh, r, "borrowPoolBoundForeignCutByInvestorsMonthsCount");
+                double cj = Col(nh, r, "creditJudgedDaysCount"), cr2 = Col(nh, r, "creditRepayableBoundDaysCount");
+                Assert.True(cb <= cd && bf <= bb && bb <= bj && cr2 <= cj, "拘束の数が判定の数を超える");
+                double share = Col(nh, r, "consumeBudgetBoundRowShare"); Assert.True(double.IsNaN(share) || (share >= 0 && share <= 1));
+                conDes += cd; crDays += cj;
+            }
+            Assert.True(conDes > 0 && crDays > 0, $"対照：建設の希望 {conDes}・与信の判定の日数 {crDays} のどれかが0＝計器が働いていない");   // 借入の判定はこの盤面では門が閉じた月しか無い（0）＝プールの列は次の手で組んだ盤面の番人が見る
+
+            // ---- 国債のプール：fiscal_s の月ごとの行の和に合う（四半期0 を両側から外す＝fiscal_s の最初の四半期は台帳の差分の前の月が無く2行）
+            int checkedNations = 0;
+            int binderCol = Array.IndexOf(fh, "borrowBinder");
+            foreach (var name in founders)
+            {
+                var fRows = fr.Where(r => r[Array.IndexOf(fh, "nation")] == name).Skip(2).ToList();
+                var nRows = nr.Where(r => r[nationCol] == name && int.Parse(r[qCol]) >= 1).ToList();
+                if (fRows.Count == 0 || nRows.Count == 0) continue;
+                var judgedRows = fRows.Where(r => r[binderCol] is "full" or "ticket" or "pool" or "none").ToList();
+                int pool = judgedRows.Count(r => r[binderCol] is "pool" or "none");
+                double dom = judgedRows.Sum(r => Col(fh, r, "borrowDomesticPoolStock"));
+                double gotJudged = nRows.Sum(r => Col(nh, r, "borrowJudgedMonthsCount")), gotPool = nRows.Sum(r => Col(nh, r, "borrowPoolBoundMonthsCount"));
+                double gotDom = 0;
+                foreach (var r in nRows) { double m = Col(nh, r, "borrowDomesticPoolMeanPerMonth"); if (!double.IsNaN(m)) gotDom += m * Col(nh, r, "borrowJudgedMonthsCount"); }
+                Assert.Equal(judgedRows.Count, (int)gotJudged); Assert.Equal(pool, (int)gotPool);
+                Assert.True(Math.Abs(dom - gotDom) <= 1e-9 * Math.Max(1.0, dom), $"国内プールの和 {name}（{gotDom:G10} 対 {dom:G10}）");
+                checkedNations++;
+            }
+            Assert.True(checkedNations >= 3);
+
+            // ---- TakeGold／GiveGold の呼び手の位置：定義の行（ソースの本文から探す）に潰れない
+            var (lh, lr) = Table(System.IO.Path.Combine(dir, "flow_s1789.tsv"));
+            var src = System.IO.File.ReadAllLines(System.IO.Path.Combine(GoodIdGuardTests.RepoRoot(), "PriceOfBread.SimCore", "CapitalMarket.cs"));
+            int takeDef = Array.FindIndex(src, l => l.Contains("private static double TakeGold(")) + 1, giveDef = Array.FindIndex(src, l => l.Contains("internal static double GiveGold(")) + 1;
+            Assert.True(takeDef > 0 && giveDef > 0, "TakeGold／GiveGold の定義の行がソースに見つからない");
+            int fileCol = Array.IndexOf(lh, "sourceFile"), lineCol = Array.IndexOf(lh, "sourceLine");
+            var capLines = lr.Where(r => r[fileCol] == "CapitalMarket.cs").Select(r => int.Parse(r[lineCol])).Distinct().ToList();
+            Assert.NotEmpty(capLines);   // 対照：資本市場の経路が立っている
+            Assert.DoesNotContain(takeDef, capLines);
+            for (int k = 0; k <= 12; k++) Assert.DoesNotContain(giveDef + k, capLines);   // GiveGold の本体（中の2つの Transfer の行を含む）
+        }
+        finally { BudgetBindDiag.On = false; BudgetBindDiag.ByWorld.Clear(); Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
+
+    /// <summary>運河の開通の四半期（<c>canal_s</c>）：途中（四半期 5 の末の前）にスエズを開通させると、その四半期の番号が出る（パナマは開通しないので <c>-1</c>）。
+    /// 突然変異＝開通を見た四半期の番号を <c>q + 1</c> にする、で赤。</summary>
+    [Fact]
+    public void 運河の開通の四半期が出る()
+    {
+        string dir = NewDir();
+        try
+        {
+            Instruments.Configure(dir, "*");
+            var sim = Make();
+            try
+            {
+                sim.StartWarmup();
+                for (int q = 0; q < 8; q++)
+                {
+                    sim.StepQuarter();
+                    if (q == 5) foreach (var cp in sim.Diplomacy.Chokepoints) if (cp.Id == Diplomacy.SuezIdPublic) cp.IsOpen = true;
+                    Instruments.Quarter(sim, 1789UL, q);
+                }
+            }
+            finally { Instruments.Close(sim); Instruments.Configure(null, null); }
+            var (ch, cr) = Table(System.IO.Path.Combine(dir, "canal_s1789.tsv"));
+            Assert.Equal(2, cr.Count);
+            var suez = cr.Single(r => r[Array.IndexOf(ch, "canalId")] == Diplomacy.SuezIdPublic); var pan = cr.Single(r => r[Array.IndexOf(ch, "canalId")] == Diplomacy.PanamaIdPublic);
+            Assert.Equal(5.0, Col(ch, suez, "openedQuarter"));
+            Assert.Equal(-1.0, Col(ch, pan, "openedQuarter"));
+            Assert.Equal(-1.0, Col(ch, pan, "openedYear"));
+            var (nh, nr) = Table(System.IO.Path.Combine(dir, "nation_s1789.tsv"));
+            Assert.Equal(Col(nh, nr.First(r => Col(nh, r, "quarter") == 5), "year"), Col(ch, suez, "openedYear"));   // 開通の年は同じ四半期の国の行の年
+        }
+        finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
+
+    /// <summary>国債のプール・与信の上限・建設の投資枠の列を、手で組んだ入力で確かめる（借入の判定が立つ月は、この4国20四半期の盤面では門が閉じた月だけ＝ふつうの走行では0）。
+    /// 世界は進めず、計器の入口（<c>Borrow</c>・<c>CreditCap</c>・<c>Construction</c>）へ手で数を渡して四半期の行を書く。期待値は渡した数から手で出す。
+    /// 突然変異＝<c>BorrowCode &gt;= 3</c> を <c>&gt; 3</c> に／<c>foreignPool &lt; foreignPoolRaw</c> を <c>&lt;=</c> に／<c>CreditCap</c> の日数の重みを外す、で赤。</summary>
+    [Fact]
+    public void 国債のプールと与信の上限と建設の投資枠の列を手で組んだ入力で数える()
+    {
+        string dir = NewDir();
+        try
+        {
+            Instruments.Configure(dir, null);
+            try
+            {
+                var sim = Make();
+                Instruments.Phase(sim, 1789UL, "open");
+                sim.StartWarmup();
+                Instruments.Phase(sim, 1789UL, "warm");
+                sim.StepQuarter();
+                Instruments.Quarter(sim, 1789UL, 0);   // 実際の月の分を書き出して0へ戻す
+                var w = sim.Nations[0].World;
+                // 借入の判定の3か月：①プールが縛った（借りた 25 ＜ 希望 min(券 50, 不足 100)・外資のプールは他国の投資家の貯蓄で 40→15 に切られた）②券が縛った（券 50 ＜ 不足 100・満額）③誰も貸さない（借りた 0＝コード4・切られていない）
+                Instruments.Begin(w); Instruments.Borrow(w, 100, 50, 10, 15, 25, 40);
+                Instruments.Begin(w); Instruments.Borrow(w, 100, 50, 100, 100, 50, 100);
+                Instruments.Begin(w); Instruments.Borrow(w, 100, 50, 0, 0, 0, 0);
+                // 与信の上限：返せる額が縛った 10日・縛らなかった 20日・返せる額が無限（投資家のいない小シナリオ）の 30日
+                Instruments.CreditCap(w, 100, 40, 10); Instruments.CreditCap(w, 100, 200, 20); Instruments.CreditCap(w, 50, double.PositiveInfinity, 30);
+                // 建設の投資枠：切られた・切られない・等しい（切られない）・希望0（数えない）
+                Instruments.Construction(w, 10, 4); Instruments.Construction(w, 5, 6); Instruments.Construction(w, 8, 8); Instruments.Construction(w, 0, -1);
+                Instruments.Quarter(sim, 1789UL, 1);
+                Instruments.Close(sim);
+            }
+            finally { Instruments.Configure(null, null); }
+            var (nh, nr) = Table(System.IO.Path.Combine(dir, "nation_s1789.tsv"));
+            var q0 = nr.Single(r => Col(nh, r, "quarter") == 0 && Col(nh, r, "nationIndex") == 0);
+            var q1 = nr.Single(r => Col(nh, r, "quarter") == 1 && Col(nh, r, "nationIndex") == 0);
+            Assert.Equal(0.0, Col(nh, q0, "borrowJudgedMonthsCount"));   // 対照：実際の月には借入の判定が無い
+            Assert.Equal(3.0, Col(nh, q1, "borrowJudgedMonthsCount"));
+            Assert.Equal(2.0, Col(nh, q1, "borrowPoolBoundMonthsCount"));
+            Assert.Equal(1.0, Col(nh, q1, "borrowPoolBoundForeignCutByInvestorsMonthsCount"));
+            Assert.Equal((10.0 + 100 + 0) / 3, Col(nh, q1, "borrowDomesticPoolMeanPerMonth"), 6);
+            Assert.Equal((40.0 + 100 + 0) / 3, Col(nh, q1, "borrowForeignPoolRawMeanPerMonth"), 6);
+            Assert.Equal((15.0 + 100 + 0) / 3, Col(nh, q1, "borrowForeignPoolMeanPerMonth"), 6);
+            Assert.Equal(60.0, Col(nh, q1, "creditJudgedDaysCount"));
+            Assert.Equal(10.0, Col(nh, q1, "creditRepayableBoundDaysCount"));
+            Assert.Equal((100.0 * 10 + 100 * 20 + 50 * 30) / 60, Col(nh, q1, "creditReserveCapMeanStock"), 6);
+            Assert.Equal((40.0 * 10 + 200 * 20) / 30, Col(nh, q1, "creditRepayableCapMeanStock"), 6);
+            Assert.Equal(3.0, Col(nh, q1, "constructionDesiringRegionMonthsCount"));
+            Assert.Equal(1.0, Col(nh, q1, "constructionBudgetBoundRegionMonthsCount"));
+        }
+        finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
 }

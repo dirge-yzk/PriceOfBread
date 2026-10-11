@@ -541,6 +541,8 @@ public static class EconomyStep
             region.Pops[region.InvestorPopIndex].RemainingBudget *= 1.0 - coef.IndInvestmentFrac;
         // ★純テレメトリ（2026-08-21）：この州の pop がこの月に**使える**消費予算の総額（投資枠控除後）。
         double budgetStartDiag = 0;
+        bool insOn = Instruments.On && world is not null;   // (271) 計器（読むだけ）：消費の予算の拘束を国×四半期へ（BudgetBindDiag と同じ行・同じ述語）
+        long insRows = 0, insBound = 0; double insDesired = 0, insDemand = 0;
         if (BudgetBindDiag.On) foreach (var p in region.Pops) budgetStartDiag += Math.Max(0, p.RemainingBudget);
         // （所得翻訳ゲート＝DemandIncomeElasticity・2026-08-08 差し戻し・休眠は 2026-09-26 に削除＝棚卸し econ-16/dorm-51）
         // 在庫の腐敗・劣化（保管期間に応じた減衰）：穀物・生鮮は速く、金属・燃料は遅い。だぶつきの恒久滞留を防ぐ。
@@ -925,6 +927,7 @@ public static class EconomyStep
                 desiredGrowth *= 1.0 + (pabs - 1.0) * coef.PrivateAbsorptionBlend;
             }
             construction = Math.Min(desiredGrowth / Math.Max(Eps, coef.IndPerConstruction), budget / (buildCostPerUnit * (1.0 + coef.ConstructionLaborWageFrac)));   // 予算は材料（経4で鉄道/機関車も可）＋工賃で按分
+            if (Instruments.On && world is not null) Instruments.Construction(world, desiredGrowth / Math.Max(Eps, coef.IndPerConstruction), budget / (buildCostPerUnit * (1.0 + coef.ConstructionLaborWageFrac)));   // (271) 計器（読むだけ）：投資枠が希望を切ったか
             // 戦時の建設縮小は固定倍率でなく価格競合から創発：軍需（warMult で戦時増）が同じ鋼・機械・セメント・製材を食い価格を押し上げ、
             // costPerUnit↑→budget/costPerUnit↓＆FactoryBuildAfford↓で資本家の建設が自然に縮む（平時=建設優先・戦時=軍優先が市場で決まる）。
             // 経17（建設Leontief端数の繰越・点火1.0 2026-08-01）：先月の建設で律速成分に律速され「買ったのに使い切れなかった非律速資材」を Region.ConstructionCarryover に累積し（市場在庫と同じ腐敗率で減衰＝決済側の KeepMaterial）、
@@ -1191,7 +1194,7 @@ public static class EconomyStep
         List<(FactionState F, double Scale, double[] Rates, double[] Want, double[] Order, List<(Pop P, double Share)> Payers)>? rebelOrders = null;
         if (coef.RebelArmsMarketEnabled > 0 && world is not null && world.Factions.Count > 0 && AllPresent(coef.MilitaryGoods, ng))
         {
-            (HashSet<Pop>? Petty, double[] Coord, double[] LawGap)? ctx = null;   // 国の量＝この州に運動が1つでもあれば1回だけ取る
+            (double[] Coord, double[] LawGap)? ctx = null;   // 国の量＝この州に運動が1つでもあれば1回だけ取る
             foreach (var f in world.Factions)
             {
                 if (!ReferenceEquals(f.Region, region)) continue;
@@ -1203,7 +1206,7 @@ public static class EconomyStep
                     if (p.Size <= 1e-9) continue;
                     double part = FactionSnapshot.Participation(world, p, ctx.Value.Coord, ctx.Value.LawGap);
                     if (!(part > 0)) continue;
-                    var (bloc, ideo) = FactionSnapshot.BlocIdeo(p, ctx.Value.Petty);
+                    var (bloc, ideo) = FactionSnapshot.BlocIdeo(p);
                     if (bloc != f.Bloc || ideo != f.Ideo) continue;
                     size += p.Size * part;
                     double cash = Math.Max(0, p.Savings.Value) * part;
@@ -1587,6 +1590,7 @@ public static class EconomyStep
                     double affordable = p.RemainingBudget / buyerPrice;   // 税込みの実効価格で買える量
                     demand = Math.Min(desired, affordable);
                     if (BudgetBindDiag.On) BudgetBindDiag.Row(world, staple ? 0 : good.Tier == GoodTier.Daily ? 1 : 2, !good.NonTradeable && !good.IsColonial, desired, demand, buyerPrice);
+                    if (insOn) { insRows++; if (demand < desired - 1e-12) insBound++; insDesired += desired * buyerPrice; insDemand += demand * buyerPrice; }
                 }
                 p.GoodDemand = demand;
                 popDemand += demand;
@@ -1826,6 +1830,7 @@ public static class EconomyStep
             //   ★2026-09-26 A3：鼓動の刻みは旬（PriceFlowStepDays 日ごとに h 日ぶんを1歩）＝この決算が読む価格は今までと同じ「月の30日ぶん寄せた価格」。
         }
         if (costL is not null) costL[CostLedger.ConsumePopGoods] += (long)consumedGoods * region.Pops.Count;   // 計算量の台帳（診断）：消費で見た POP×財（必要の無い財を除く）
+        if (insOn) Instruments.ConsumeMonth(world!, insRows, insBound, insDesired, insDemand);   // (271) 計器（読むだけ）
         // ★純テレメトリ（2026-08-21）：全財を買い終えた時点の**使い残し**。予算が binding なら 0 に張り付く。
         if (BudgetBindDiag.On)
         {
@@ -1960,14 +1965,7 @@ public static class EconomyStep
                     double rgoCap = coef.RgoElasticityGate > 0 && bestRgo.GoodId != Catalog.FishId
                         ? (Catalog.IsMineral(bestRgo.GoodId) ? coef.MineralScaleCap : coef.FarmScaleCap)
                         : coef.ScaleMax;
-                    // ★E-15 手順3（2026-09-05・休眠）：希少鉱物の産地では天井を賦存に比例させる（総量保存で賦存が302倍なら天井も302倍）。
-                    //   実測＝MineralScaleCap=1.5 が硫黄1州の産出を世界需要の2%で止めていた（価格31倍でも伸びない）。史実＝シチリアは1820→30年代に10倍超。
-                    //   ⚠ScarceCapFollowsEndowment=0 で不読＝恒等。産地でない州（Productivity=0）は着工対象にならないので触らない。
-                    if (coef.ScarceCapFollowsEndowment > 0 && coef.ScarceMineralGate > 0 && Catalog.IsScarceMineral(bestRgo.GoodId, coef))
-                    {
-                        double baseEnd = Simulation.ResourceEndowment(bestRgo.GoodId);
-                        if (baseEnd > 1e-9) rgoCap *= 1.0 + coef.ScarceCapFollowsEndowment * (Simulation.ScarceEndowment(bestRgo.GoodId, coef, world is not null && !world.StepsDiplomacy) / baseEnd - 1.0);
-                    }
+                    // 〔削除 2026-10-11 (271)〕希少鉱物の産地の拡張天井を賦存比例にする枝（ScarceCapFollowsEndowment・既定 0）＝鉱脈の在庫が物理の限界をすでに担う（二重）。
                     bestRgo.BuiltScale = Math.Min(rgoCap, bestRgo.BuiltScale + built * coef.IndPerConstruction * coef.RgoCapitalShare);
                     bestRgo.StateTarget = Math.Max(bestRgo.StateTarget, World.StateUnits(bestRgo, coef));
                 }
@@ -2564,14 +2562,11 @@ public static class EconomyStep
             // （退蔵結晶化 段3＝HoardCrystallizeRate と結晶資産 Pop.IlliquidWealth は 2026-09-26 に削除＝休眠の枝だけが書き、常に0を運んでいた）
             // ★★★**これは「満足度」ではなく「生活水準」である**（作者裁定 2026-08-19）。
             //   ⚠**必要なものをどれだけ買えているかだけ**で決まる。直接バフ4件（時短/電化/福祉/年金）は物理削除2026-08-21（思想⑨・各墓標＝Coefficients）。
-            //   ★この行の後の加減算は**3件**（2026-09-20に数え直し：ここは「休眠2件のみ」と書いていたが Crime を数え落としていた）＝
-            //     組合加算（UnionSatBonus=0・休眠）／**犯罪減算（Crime.cs の CrimeSatPenalty=0.5＝live）**（阿片減算 OpiumSatisfactionPenalty は 2026-09-26 に削除＝⑨・dorm-22）。
+            //   ★この行の後の加減算は**1件**＝**犯罪減算（Crime.cs の CrimeSatPenalty=0.5＝live）**（阿片減算 OpiumSatisfactionPenalty は 2026-09-26・組合加算 UnionSatBonus は 2026-10-11 (271) に削除＝⑨・dorm-22）。
             //   ★階層3分割（作者裁定2026-09-20・2026-09-22 既定化）＝この比の中身は「日用品の不足＝不満」と「嗜好品が買えた＝上振れ」だけ。
             //     食料の欠乏は FoodMet/FoodNeed → FamineDrive → 闘争度 の1本へ移った（満足度の水準は主食が抜けたぶん構造的に下がる＝読み手の門は分位の写像で導き直し済み）。
             //   ★その逆（1−これ）が政治へ向かう（Politics.cs の want）。
             p.Satisfaction = p.NeedTotal > Eps ? PoliticalQuantities.Clamp01(p.NeedMet / p.NeedTotal) : 1.0;
-            // 組合の非物質的厚生（LaborWellbeing＝UnionSatBonus×組織率・休眠0）：大衆POP（非特権・非エリート・非兵士）の満足度↑
-            if (Politics.IsMassPop(p) && region.LaborWellbeing > 0) p.Satisfaction = PoliticalQuantities.Clamp01(p.Satisfaction + region.LaborWellbeing);
         }
         if (absentee is not null) Colonial.RemitAbsenteeRent(world!, region, absentee);   // R1：精算の後に不在地主へ（④で積んだ在地の口座ごとの地代）
 

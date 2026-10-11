@@ -317,7 +317,7 @@ public static class Politics
 
         // ★動員の測定は1本（MeasureMobilization・2026-09-29）＝四半期の測定（ここ）と、内戦の開戦で両陣営の POP が入れ替わった直後の測り直し
         //   （Diplomacy.DeclareCivilWar）が同じ式を通る。H（政権への期待）は下の正統性の床が、意識と人口の和は平均意識と平均満足が読む。
-        var (hope, conscSum, sizeSum) = MeasureMobilization(w, c, inRevolt);
+        var (hope, conscSum, sizeSum) = MeasureMobilization(w, c);
         double reformist = w.ReformistPower, radical = w.RadicalPower;
         // 平均満足度＝経済危機の指標（一党支配→独裁化はこれが低い危機国だけ＝満足した安定な立憲を巻き込まない）。
         // 第5段5-1：実装をNationalScore.MeanSatisfactionへ一元化（旧＝本ループの重複集計。pop更新後の同時点で呼ぶ）。
@@ -566,7 +566,7 @@ public static class Politics
     /// ⚠旧＝測定は四半期末の Step だけ＝開戦の四半期は、反乱国は測定0（革命圧力0＝崩壊の線1.0）・政府は出て行った首都の住民を含む前の測定（革命圧力1.0＝線0.6）のまま戦った
     ///   （首都発の内戦の最初の四半期 194件すべて・r103）＝規則は両陣営で同じでも、読む量が自国の POP でなかった。
     /// 戻り値＝期待 H（正統性の床が読む）と意識の和・人口の和（Step の平均意識と平均満足の門が読む）。</summary>
-    internal static (double Hope, double ConscSum, double SizeSum) MeasureMobilization(World w, Coefficients c, bool inRevolt)
+    internal static (double Hope, double ConscSum, double SizeSum) MeasureMobilization(World w, Coefficients c)
     {
         // 労働運動の両義性（B-5）：容認/統制の組合は組織労働として改革派を動員する＝体制への改革圧力（闘争度緩和で革命radicalは下げつつ、ここで改革reformistを上げる）。非合法＝動員なし。
         double unionMob = c.UnionMobilization * (w.LaborUnion switch { LaborUnionLaw.Tolerated => 1.0, LaborUnionLaw.Controlled => 0.5, _ => 0.0 });
@@ -583,29 +583,9 @@ public static class Politics
             // 二重計上監査C1（2026-07-11）：高意識のmilitantは上の意識経路（politicalGap）と本経路の両方に乗る二重だった→
             // ×(1−gate×Consciousness)＝「無学の飢えた群衆」の設計意図どおりのゲート（gate=1で完全直交・0で旧＝休眠可）。
             // 失われるradicalはDesperationChallengeWeightの補償再調整とセット（較正のAbsolutist梯子帯が番人）。
-            // ★段3＝闘争度による**手段の上書き**（作者裁定2026-09-09 その2①・設計メモ §7-2）。3層は「既定の手段」であって固定ではない
-            //   ＝闘争度が高ければ政治意識のある層も暴力へ回る（1789バスティーユ・1917ペトログラードの知識層・パリコミューン）。
-            //   ⚠新しい閾値も分岐も階級も持ち込まない：開度はこの項が**既に読んでいる同じ2数**（闘争度と暴動閾値）からの純導出。
-            //   ⚠DesperationMilitancyOverride=0（既定）で ×(1−0)＝1.0＝ビット恒等。
-            double desperationRelief = 0;
-            if (c.DesperationMilitancyOverride > 0)
-            {
-                double over = (p.Militancy - c.RiotMilitancyThreshold) / Math.Max(1e-9, 1.0 - c.RiotMilitancyThreshold);
-                desperationRelief = c.DesperationMilitancyOverride * (!(over > 0) ? 0 : over > 1 ? 1 : over);   // 否定形＝NaN は上書きなし側（＝旧挙動）へ倒す
-            }
-            double whoActs = 1.0 - c.DesperationConsciousnessGate * p.Consciousness * (1.0 - desperationRelief);   // 旧＝意識ゲート（誰が自ら動くか）
-            if (c.DesperationLayerBlend > 0)
-            {
-                // ★⑤3層の振る舞い分け（設計メモ §6-3／§7-2・器2026-09-11・休眠）＝「誰が自ら動くか」を層の重みで読む＝**エンジン内で wMid を読む唯一の箇所**。
-                //   政治意識あり wEdu → 開度（DesperationMilitancyOverride）のぶんだけ（政治が既定）／識字×政治意識なし wMid → 自ら暴力へ／
-                //   文盲 1−識字 → 自分からは動かない・蜂起が起きたら合流する（inRevolt＝上の民兵の札と同じ内戦の述語＝新しい状態を作らない）。
-                //   ⚠階級を読まない（読むのは識字・意識・闘争度だけ＝作者裁定 §7-8）。⚠西欧では wMid≈0（意識＞識字）＝係数コメント参照。
-                //   ⚠否定形＝層の和が NaN なら旧のゲートへ倒す。k>1 は1へ（混合比）。
-                double wEdu = Math.Min(p.Consciousness, p.Literacy), wMid = p.Literacy - wEdu;
-                double layers = wMid + wEdu * desperationRelief + (1.0 - p.Literacy) * (inRevolt ? 1.0 : 0.0);
-                double k = c.DesperationLayerBlend > 1 ? 1.0 : c.DesperationLayerBlend;
-                whoActs = !(layers >= 0) ? whoActs : (1.0 - k) * whoActs + k * layers;
-            }
+            // 〔削除 2026-10-11 (271)：闘争度による手段の上書き DesperationMilitancyOverride と 3層の振る舞い分け DesperationLayerBlend〕
+            //   既定の世界で通らない枝（どちらも既定 0）だった。作者 2026-10-11「全て推奨で」（00-A）で採った推奨＝意識を識字で頭打ちにしない（設計思想⑧ 天井の廃止）。
+            double whoActs = 1.0 - c.DesperationConsciousnessGate * p.Consciousness;   // 意識ゲート（誰が自ら動くか）
             radical += p.Size * Math.Max(0, p.Militancy - c.RiotMilitancyThreshold) * c.DesperationChallengeWeight * whoActs;
             conscSum += p.Consciousness * p.Size;
             sizeSum += p.Size;
@@ -1054,11 +1034,10 @@ public static class Politics
         //   ⚠RevoltMilitiaRaise=0（既定）では1命令も走らない＝厳密恒等。
         if (c.RevoltMilitiaRaise > 0)
         {
-            var pettyM = c.PettyInterestGate > 0 ? InterestGroups.PettyPops(w) : null;
             foreach (var p in best.Region.Pops)
             {
                 if (p.IsSoldier) continue;
-                int pb = PolicyPreferences.BlocOf(p, pettyM);
+                int pb = PolicyPreferences.BlocOf(p);
                 if (pb != best.Bloc) continue;
                 double share = Math.Min(1.0, c.RevoltMilitiaRaise * p.Militancy);
                 if (!(share > p.MilitiaShare)) continue;   // 否定形＝NaN は据え置き（上げる側にしか書かない＝再蜂起で札が減らない）
@@ -1244,14 +1223,13 @@ public static class Politics
         var oneHot = new double[Ideologies.Count]; oneHot[f.Ideo] = 1.0;
         var fCoord = Ideologies.IdealPoint(oneHot);
         double militia = 0;
-        var petty = w.Coef.PettyInterestGate > 0 ? InterestGroups.PettyPops(w) : null;   // 第4束＝分類の物差しを揃える（商人が自束(bloc3)の反乱の郷勇資金源に数えられない。gate=0で従来とビット恒等）
-        // 有産ブロックのみ（大衆は郷勇の資金源にならない。小営業(bloc3)も源にしない＝郷勇は郷紳・大資本の金）。
+        // 有産ブロックのみ（大衆は郷勇の資金源にならない＝郷勇は郷紳・大資本の金）。
         // AllPops を1回だけ走査し bloc0/bloc1 を同時に集計（各ブロックへの積算順序は従来の2回走査と同一＝ビット恒等）。
         var size = new double[2];
         var shares = new double[2][] { new double[Ideologies.Count], new double[Ideologies.Count] };
         foreach (var p in w.AllPops())
         {
-            int pb = PolicyPreferences.BlocOf(p, petty);
+            int pb = PolicyPreferences.BlocOf(p);
             if (pb >= 2 || pb == f.Bloc || p.IsSoldier) continue;
             size[pb] += p.Size;
             for (int i = 0; i < Ideologies.Count; i++) shares[pb][i] += p.IdeologyShares[i] * p.Size;

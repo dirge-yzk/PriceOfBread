@@ -82,9 +82,6 @@ public static class MarketFlow
         // 閉じた式が使えるのは、h>1 で、SoftBand の両側の帯が正のときだけ（L≦Eps の退化は日次の SoftBandLn が rp を返す枝＝日次へ落とす）。
         bool closedGoods = h > 1 && lnFloorGoods > Eps && lnCeilGoods > Eps;
         bool closedWage = h > 1 && lnFloorWage > Eps && lnCeilWage > Eps;
-        // 組合の賃金交渉（no-monopsony-wage）：組織率(LaborWellbeing代理)で留保賃金の上昇速度を増幅＝賃上げに速く・賃下げに抗う。UnionWageRiseBoost=0.5 だが LaborWellbeing は UnionSatBonus=0（休眠）で実効0＝ReservationWageRiseのまま。下方(Fall)は触らず下方硬直温存。
-        //   coef と region.LaborWellbeing（月次）だけで決まる＝財ループ不変＝州1回へ巻き上げ（同じ double＝ビット恒等）。
-        double unionRise = coef.ReservationWageRise * (1.0 + coef.UnionWageRiseBoost * region.LaborWellbeing);
         long nSteps = 0, nClosedG = 0, nClosedS = 0, nClosedP = 0, nStart = 0, nStartHi = 0, nStartSvc = 0, nPred = 0, nLabor = 0, nMarkup = 0, nHard = 0, nNaN = 0, nStep1 = 0, nRun = 0, nSkip = 0;
         // ★死んだ財を一覧で回さない（2026-09-30 作者裁定「計算量の予算」・恒等）：需要も産出も Eps 未満の財は下で continue する（動かさない）＝回さないだけ。
         //   一覧＝Region.EnsureLiveGoods（Goods の順のうち死んでいない財・LastDemand／LastProduced の書き込みで「死んだ財か」が変わると印が立ち作り直す）。
@@ -143,7 +140,7 @@ public static class MarketFlow
                         double target = P * (1 + adj);   // 無拘束の目標賃金（需給が指す clearing）
                         double rw = RW;
                         if (!(rw > Eps)) rw = P;   // 否定形＝NaN も初期化側へ（Math.Max は NaN を除去しない）
-                        double rwSpeed = target >= rw ? unionRise : coef.ReservationWageFall;
+                        double rwSpeed = target >= rw ? coef.ReservationWageRise : coef.ReservationWageFall;
                         rw += (target - rw) * rwSpeed;
                         double p1 = SoftBandLn(System.Math.Max(target, rw), wrp, lnFloorWage, lnCeilWage, k);   // 賃金の床/天井＝WageClampMin/effWageMax（財の SoftBand と同じ対数空間飽和）
                         bool still = Same(p1, P) && Same(rw, RW);

@@ -112,6 +112,7 @@ public static class Credit
         double repayable = double.PositiveInfinity;
         if (home.InvestorPopIndex >= 0 && home.InvestorPopIndex < home.Pops.Count)
             repayable = Calendar.PerMonthToPerYear(Math.Max(0, home.Pops[home.InvestorPopIndex].LastEarnedPerMonth.Value)) * c.SoeSaleYears;
+        if (Instruments.On) Instruments.CreditCap(w, maxLoans, repayable, days);   // (271) 計器（読むだけ）：準備の側の上限と返せる額のどちらが縛ったか
         if (repayable < maxLoans) maxLoans = repayable;
         // 銀行取り付け（B-3）：預金者のパニック（充足が平穏線を割る）で正貨が逃避＝実効準備が縮む＝willingな銀行でも貸せない（貸し手意欲Confidenceと別の流動性チャネル）。
         double run = Math.Clamp(c.BankRunSensitivity * Math.Max(0, c.ConfidencePivot - avgSat), 0, c.BankRunMax);

@@ -28,7 +28,7 @@ public static class FactionSnapshot
         public string Name = "";           // 機械生成名（地域×イデオロギー×階級）
         public double Size;                // 参加 pop の Size 合計
         public double AvgMilitancy;        // 人口加重平均闘争度
-        public int Bloc;                   // 0=旧支配層 1=近代エリート 2=大衆 3=小営業（プチブル利益束2026-08-15・PettyInterestGate>0のみ）
+        public int Bloc;                   // 0=旧支配層 1=近代エリート 2=大衆
         public List<Demand> Demands = []; // 要求 top-k（スコア降順）
     }
 
@@ -40,7 +40,7 @@ public static class FactionSnapshot
     {
         var clusters = new Dictionary<(int Region, int Bloc, int Ideo), (Region Region, double Size, double MilSum)>();
         var order = new List<(int Region, int Bloc, int Ideo)>();   // 挿入順（規模同点の決定論的タイブレーク）
-        var (petty, coord, lawGap) = MembershipContext(w);
+        var (coord, lawGap) = MembershipContext(w);
         foreach (var r in w.Regions)
         {
             if (r.State != RegionState.Active) continue;
@@ -49,7 +49,7 @@ public static class FactionSnapshot
                 if (p.Size <= 1e-9) continue;
                 double part = Participation(w, p, coord, lawGap);
                 if (!(part > 0)) continue;   // 否定形＝NaN も「参加しない」側へ（旧の二値では NaN は 1.0 になるのでここには落ちない）
-                var (bloc, ideo) = BlocIdeo(p, petty);
+                var (bloc, ideo) = BlocIdeo(p);
                 var key = (r.Id, bloc, ideo);
                 // ⚠規模も闘争度の総和も**参加で重みづける**（×1.0 は IEEE754 で厳密恒等＝旧経路はビット同一）。
                 //   規模＝運動の頭数／MilSum÷規模＝参加加重の平均闘争度＝反乱の戦力が読む「戦う気」（戦力の判定は闘争度のまま＝§6-4-3）。
@@ -68,21 +68,19 @@ public static class FactionSnapshot
     }
 
     /// <summary>参加の述語の文脈＝**国の量**を pop ループの外で1回だけ取る（<see cref="Participation"/>／<see cref="BlocIdeo"/> と対）。
-    /// 第4束「小営業」（プチブル利益束2026-08-15）＝gate=0でnull＝従来の3束分類とビット恒等。
     /// ★段3：不満度は pop の純関数だが、政体座標と法の隔たりは国の量（Politics.Discontent の注意書きと同じ作法・キャッシュは作らない＝World に置いた導出量は記憶になる）。
     /// ⚠既定（ParticipationDiscontent=0）では両方とも1度も計算しない＝旧経路のコストのまま。
     /// ⚠**同一ティック内の時点差は仕様**：闘争度ループは前期の参照点（LivingRef）で失望を測り、ここは更新後の参照点で測る
     ///   （Politics.Step の順＝闘争度→Factions.Step）。不満度は「記憶を持たず**今**の盤面を読む」量なので、これは分子と分母の非対称ではなく定義どおり
     ///   （差は LivingRefSpeed=0.03＝ギャップの3%）。
     /// 読み手＝<see cref="ComputeClusters"/> と武器の市場購入（EconomyStep・RebelArmsMarketEnabled&gt;0 のみ）＝運動の頭数と資金が**同じ述語**で数えられる。</summary>
-    internal static (HashSet<Pop>? Petty, double[] Coord, double[] LawGap) MembershipContext(World w)
+    internal static (double[] Coord, double[] LawGap) MembershipContext(World w)
     {
         var c = w.Coef;
-        var petty = c.PettyInterestGate > 0 ? InterestGroups.PettyPops(w) : null;
         bool byDiscontent = c.ParticipationDiscontent > 0;
         double[] coord = byDiscontent ? PoliticalQuantities.DriftedPolityCoord(w.Polity, w.Suffrage, c) : [];
         double[] lawGap = byDiscontent && c.DiscontentLawGap > 0 ? PolicyPreferences.LawGap(w) : [];
-        return (petty, coord, lawGap);
+        return (coord, lawGap);
     }
 
     /// <summary>pop 1つの参加∈[0,1]＝運動の頭数を数える**唯一の述語**。旧＝二値（NaN の闘争度は旧と同じく「参加」側へ倒す＝`p.Militancy &lt;= θ` が偽になるのと同値）。
@@ -95,9 +93,9 @@ public static class FactionSnapshot
             : p.Militancy <= MilitancyThreshold ? 0.0 : 1.0;
     }
 
-    /// <summary>pop 1つの（束・主軸）＝クラスタの鍵の**唯一の定義**（束＝InterestGroups の分類＋第4束・主軸＝イデオロギーの argmax）。</summary>
-    internal static (int Bloc, int Ideo) BlocIdeo(Pop p, HashSet<Pop>? petty)
-        => (PolicyPreferences.BlocOf(p, petty), ArgMax(p.IdeologyShares));
+    /// <summary>pop 1つの（束・主軸）＝クラスタの鍵の**唯一の定義**（束＝InterestGroups の分類・主軸＝イデオロギーの argmax）。</summary>
+    internal static (int Bloc, int Ideo) BlocIdeo(Pop p)
+        => (PolicyPreferences.BlocOf(p), ArgMax(p.IdeologyShares));
 
     /// <summary>スナップショットの計算（World 非変更・決定論）。クラスタなし＝空リスト（UI側は「目立った国内勢力なし」表示）。</summary>
     public static List<Faction> Compute(World w)
@@ -108,8 +106,8 @@ public static class FactionSnapshot
         if (clusters.Count == 0) return [];
 
         // 要求ベクトル（ブロック単位＝クラスタの物質的基盤が要求を決める）：全軸のブロック選好×現行法からの残り可動域→top-k。
-        // 束は最大4つ（第4束「小営業」＝PettyInterestGate>0のみ）＝束ごとに1回だけ計算して共有（Stance は毎回 AllPops を走るため）。
-        var demandsByBloc = new List<Demand>?[PolicyPreferences.PettyBloc + 1];
+        // 束は3つ＝束ごとに1回だけ計算して共有（Stance は毎回 AllPops を走るため）。
+        var demandsByBloc = new List<Demand>?[PolicyPreferences.BlocCount];
         var result = new List<Faction>();
         foreach (var (reg, bloc, ideoIdx, size, milSum) in clusters)
         {
@@ -178,8 +176,7 @@ public static class FactionSnapshot
             // ★裁定C1（2026-09-12「税率は反乱の要求に乗せる」）：段になった税5軸は**もう即座に上げ下げできない**（4段の法）ので除外しない
             //   （2026-09-20 の段の点火で条件式を IsInstantAxis の4軸＝治安維持力・海軍維持費・関税・専売へ畳んだ。専売は同日の裁定で段の法から外れて即時値の側に残った）。
             if (lawsOnly && IsInstantAxis(axis)) continue;
-            double prefInc = bloc is 0 or 1 or 2 ? PolicyPreferences.Pref(axis, bloc, e, w)   // ＝Stance の「進める向き」の成分（Pref×(+1)）
-                           : PolicyPreferences.PettyStance(w, axis, increasing: true, e);   // 第4束「小営業」（PettyInterestGate>0のクラスタのみ到達）。減少向きの選好＝−prefInc（Pref×sign の定義から厳密）
+            double prefInc = PolicyPreferences.Pref(axis, bloc, e, w);   // ＝Stance の「進める向き」の成分（Pref×(+1)）。減少向きの選好＝−prefInc（Pref×sign の定義から厳密）
             bool increase = prefInc >= 0;
             double strength = System.Math.Abs(prefInc);
             double score = strength * Headroom(w, axis, increase);
@@ -261,7 +258,6 @@ public static class FactionSnapshot
     {
         0 => "の名望家層",      // 旧支配層（貴族・聖職）＝郷紳・名望家の運動（フロンド/湘軍型）
         1 => "の市民派",        // 近代エリート（ブルジョワ・専門職）
-        PolicyPreferences.PettyBloc => "の小営業層",   // 第4束（プチブル利益束2026-08-15・PettyInterestGate>0のみ）＝店主・親方の運動（1848急進派/反百貨店運動型）
         _ => "の大衆運動",      // 大衆（労働者・農民・兵士）。例＝「パリの共和主義の大衆運動」
     };
 
