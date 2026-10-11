@@ -143,7 +143,7 @@ public static class PolicyPreferences
         double stress = w.FiscalEnabled
             // [単位・B13] 債務/GDP＝**年次名目**（GovDebt÷(月次NominalGdpPerMonth×12)・Min 1）＝Fiscal の国債の金利・CapitalMarket・Government の緊縮と同じ物差し（2026-09-29・棚卸し fis-02 の残り）。
             //   旧＝**月次実質**（年次の約12倍の値）＝国債が年GDP の1割（8.3%）を越えた国は全て1で飽和＝国債の多さが歳入の要求に効かなかった。
-            ? PoliticalQuantities.Clamp01((1.0 - w.FiscalFundingRatio) + (ngdp > 1e-9 ? System.Math.Min(1.0, w.GovDebt.Value / Calendar.PerMonthToPerYear(ngdp)) : 0))
+            ? PoliticalQuantities.Clamp01((1.0 - w.FiscalFundingRatio.Value) + (ngdp > 1e-9 ? System.Math.Min(1.0, Calendar.ToGdpYear(w.GovDebt, Calendar.PerMonthToPerYear(new MoneyPerMonth(ngdp))).Value) : 0))
             : 0;
         return new Profile(power, wealth, rent, income, poll, old, 0.5 + stress,
             pettyM, pettyS, ti > 1e-9 ? pettyInc / ti : 0, ti > 1e-9 ? pettyIncM / ti : 0, ngdp);
@@ -337,7 +337,7 @@ public static class PolicyPreferences
                 // ⚠思想③（休眠フラグは既定で厳密恒等）：休眠中に**選好だけ非0**だと、この軸が要求リストに載って
                 //   他の要求を押し出す＝軸を1本足しただけで軌道が動く。実測で捕まえた（2026-08-13・帯が8軸すべてで動いた）。
                 if (w.Coef.CapitalMobilityLawGate <= 0) return 0;
-                double abroadShare = e.NominalGdp > 1e-9 ? PoliticalQuantities.Clamp01(w.CapitalAbroad / e.NominalGdp) : 0;
+                double abroadShare = e.NominalGdp > 1e-9 ? PoliticalQuantities.Clamp01(w.CapitalAbroad.Value / e.NominalGdp) : 0;
                 if (!(abroadShare >= 0 && abroadShare <= 1)) abroadShare = 0;   // NaNは中立へ倒す（否定形で書く＝Clampは NaN を消さない）
                 return modern ? -(1.0 + w.Coef.CapitalControlPrefScale * abroadShare) : 1.0;
             case PolicyAxis.Nationalization:  // 国有化（E6）＝利潤を没収される資本（近代エリート）が強く反対・大衆が賛成（社会主義的再分配）。旧支配層は中立（土地貴族＝産業資本ではない）

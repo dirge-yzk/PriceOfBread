@@ -32,7 +32,7 @@ public static class Credit
         // ★Bank.Gold は BaseMoney からの導出のまま（ratio_eff が状態関数なら二重ソースは生じない＝07 §3の再結論）。
         // 保存則＝退蔵は BaseMoney の内訳が変わるだけで量は不変＝安全。HoardPanicWeight=0 で静的（旧）。
         double hoardRatio = Math.Clamp(c.CurrencyHoldingRatio * (1.0 + c.HoardPanicWeight * (1.0 - bank.Confidence)), 0, HoardRatioMax);
-        bank.Gold = Math.Max(0, w.BaseMoney.Value) * (1.0 - hoardRatio);
+        bank.Gold = new MoneyStock(Math.Max(0, w.BaseMoney.Value) * (1.0 - hoardRatio));
 
         // 割当削減（測定短縮① 2026-07-09）：日次×全国で呼ばれるホットパス＝毎回の List<Pop> 構築を廃止。全popリストは投資家不在の小世界などコールドパスのみ遅延構築。
         // ★2026-09-25：平均満足は唯一の実装 NationalScore.MeanSatisfaction を呼ぶ（旧＝同じ式の手書きの複製で、全POP・Seceded の州まで数えていた）
@@ -56,13 +56,13 @@ public static class Credit
         // 高レバレッジで小さな後退が来ると与信回収→投資停止→さらに収縮、の自己強化＝山の高さが恐慌の深さ。
         // 財政破綻（連合を養えない＝事実上の債務不履行）は信用を直接崩す＝経済悪化の段階（外科的な政体フリップでなく、
         // 信用収縮→恐慌→不満→政治の通常経路で帰結を出す）。FiscalEnabled 時のみ＝単一国較正セルは不発。
-        double fiscalDefault = w.FiscalEnabled ? c.FiscalDefaultPanic * Math.Max(0, 1.0 - w.FiscalFundingRatio) : 0;
+        double fiscalDefault = w.FiscalEnabled ? c.FiscalDefaultPanic * Math.Max(0, 1.0 - w.FiscalFundingRatio.Value) : 0;
         // 民間負債デフレ（B-3 フィッシャー）：デフレ×レバレッジ(前期Heat)＝実質債務増→債務者困窮→信頼↓→与信回収→さらにデフレの渦。MonetaryEnabled時のみ（デフレ率が定義される）。
         double debtDeflation = w.MonetaryEnabled ? c.DebtDeflationWeight * Math.Max(0, (-w.ExpectedInflationPerYear).Value) * bank.Heat : 0;
         // 国債二次流通の評価損（no-bond-secondary-market）：BondPrice下落(利回り上昇)で国内債を抱える銀行が評価損→信頼↓→与信収縮（平時のマーク・トゥ・マーケット）。既存診断値BondPriceを配線。BondLossConfWeight=0で恒等（既定0.5）。
         // [単位・B13] 債務/GDP＝**年次名目**（GovDebt÷(月次NominalGdpPerMonth×12)・Clamp 0..1）＝Fiscal の国債の金利・CapitalMarket・Government の緊縮と同じ物差し（2026-09-29・棚卸し fis-02 の残り）。
         //   旧＝**月次**名目（年次の約12倍の値）＝国債が年GDP の1割（8.3%）を越えた国は全て1で飽和＝国債の多さが評価損の大きさに効かなかった。
-        double bondLoss = w.FiscalEnabled ? c.BondLossConfWeight * Math.Max(0, 1.0 - w.BondPrice) * PoliticalQuantities.Clamp01(w.GovDebt.Value / Math.Max(1.0, Calendar.PerMonthToPerYear(month?.NominalGdp ?? w.NominalGdpPerMonth.Value))) : 0;
+        double bondLoss = w.FiscalEnabled ? c.BondLossConfWeight * Math.Max(0, 1.0 - w.BondPrice) * PoliticalQuantities.Clamp01(Calendar.ToGdpYear(w.GovDebt, new MoneyPerYear(Math.Max(1.0, Calendar.PerMonthToPerYear(month?.NominalGdp ?? w.NominalGdpPerMonth.Value)))).Value) : 0;
         // シティ型恐慌（A・最終調整2026-06-29）：与信過熱(Heat・前期＝持ち越したレバレッジ)が閾値を超えると、満足度が高くても信頼が脆くなる＝
         // 最も金融化した経済（深い与信＝高Heat＝覇権の金融中心）ほど好況の絶頂でミンスキー暴落を起こす。着火後は既存 DrawdownPanic が暴落へ増幅。OverheatFragility=0で恒等（既定1.1）。
         double overheatFragility = c.OverheatFragility * Math.Max(0, bank.Heat - c.OverheatFragilityThreshold);
@@ -88,7 +88,7 @@ public static class Credit
             double target = c.CreditMultiplierDevFloor + (1 - c.CreditMultiplierDevFloor) * dev;  // floor（前工業でも手形/両替商の最低与信）〜1（満額の近代信用創造）
             devFactor = 1.0 + (target - 1.0) * c.CreditMultiplierDevWeight;                       // Weight=0で1.0（恒等）・1でtargetそのもの
         }
-        double maxLoans = bank.Gold * (c.CreditMultiplier - 1) * devFactor;
+        double maxLoans = (bank.Gold * (c.CreditMultiplier - 1) * devFactor).Value;
         // #125 正貨準備の動学（2026-07-25）：金本位国のカバー率防衛＝coverage(BaseMoney/BroadMoney)が床(GoldCoverMin×(1+これ))へ迫ると
         // 与信上限を比例で絞る（1890年代のバンクレート防衛の与信面＝兌換を守るため信用を犠牲にする）。与信↓→BroadMoney↓→coverage回復＝負帰還
         //（現行は準備が薄くても与信が伸び続け、割った瞬間に強制離脱＝カバー率割れ316回の構造）。床0.25＝信用の全面凍結はしない。GoldCoverCreditRestraint=0で不読＝厳密恒等（既定0.5）。

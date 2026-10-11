@@ -379,7 +379,7 @@ public static class Colonial
         // 植民地の補給財の請求（r を掛ける前）を植民地維持費の請求へ積む＝翌月の月初の国家の支払いの請求に入る（例外なし・作者裁定 Q2）。
         //   ⚠旧は国庫の残りで買える分だけ買った（月の最後の残りを取る＝暗黙の最下位の優先順位）＝英・西・蘭・葡・オマーンでは補給財の請求が歳入を超える（2026-09-28 canary）。
         if (cat == TreasuryCat.ColonialUpkeep) w.LastColonialUpkeepPerMonth += new MoneyPerMonth(want * Math.Max(r.Markets[goodId].Price, 1e-9));
-        want *= w.FiscalFundingRatio;                                      // ★国家の支払い率 r の分だけ買う＝量を減らす（2026-09-28 段2-1＝旧は国庫で買える上限の門）
+        want *= w.FiscalFundingRatio.Value;                                      // ★国家の支払い率 r の分だけ買う＝量を減らす（2026-09-28 段2-1＝旧は国庫で買える上限の門）
         if (!(want > 1e-9)) return 0;
         // 買い付けは市場の外の買い付けの1本（InternationalMarket.Procure・段4e K）＝需要の計上・在庫の律速・域外へ（LastExport）・
         //   代金はその財の生産者の④の持分へ（段3-2・C6＝旧は本国の全POP へ頭数で配った）。戻り値＝買えた量（マラリア鎮静の充足率の算出に使う）。

@@ -424,7 +424,7 @@ public sealed class MultiNationSim
             Seed = MixSeed(_seed, (ulong)Nations.Count), StartYear = pw.Year, Kind = ScenarioKind.Nation,
             NationConfig = cfg, PrebuiltRegions = [.. regs], Coef = pw.Coef,   // 係数は親インスタンスを共有（テスト/実験の書き込みが分裂しない）
             PoliticsEnabled = true, InitialPolity = polity ?? pw.Polity, FiscalEnabled = true,
-            TaxRate = pw.TaxRate, InitialPollTax = pw.PollTax, InitialLandTax = pw.LandTax,   // ⚠建国は1783年の税の段（NationConfig.PollTaxStage／LandTaxStage）を読まない＝親の率のまま（法の継承 World.CopyLawsFrom と同じ値）
+            TaxRate = pw.TaxRate.Value, InitialPollTax = pw.PollTax, InitialLandTax = pw.LandTax,   // ⚠建国は1783年の税の段（NationConfig.PollTaxStage／LandTaxStage）を読まない＝親の率のまま（法の継承 World.CopyLawsFrom と同じ値）
             InitialTreasury = T, BaseCoercion = pw.BaseCoercion, EducationLaw = pw.EducationLaw,
             EducationSpending = pw.EducationSpending, ExternalPressure = pw.ExternalPressure,
             InitialInterestRate = pw.InterestRate, InitialTariff = pw.Tariff,
@@ -698,8 +698,8 @@ public sealed class MultiNationSim
     //   配列の最後の1枠に世界の W＝Σ現存国（基礎貨幣−鋳造−不換発行）を持ち、共有層の段ごとに ΔW を見る（国ごとの D が閉じていれば ΔW＝ΣΔ累積貿易＝世界の外との出入り）。
     //   新しい状態は作らない（既存の配列を1枠伸ばすだけ）。★回1-2（2026-09-27）で世界プール（ゲーム外から湧く持参金＝旧の既知の湧き口）は消えた。
     private double[]? _probeD;
-    private static double ProbeD(World w) => w.BaseMoney.Value - w.CumulativeTradeFlow - w.CumulativeGoldMinted - w.CumulativeFiatIssued;
-    private double ProbeWorldW() { double s = -Diplomacy.CumulativeFxResidual; foreach (var n in Nations) { var w = n.World; s += w.BaseMoney.Value - w.CumulativeGoldMinted - w.CumulativeFiatIssued; } return s; }   // ★段3-1（A7）：為替の換算の台帳を差し引く
+    private static double ProbeD(World w) => (w.BaseMoney - w.CumulativeTradeFlow - w.CumulativeGoldMinted - w.CumulativeFiatIssued).Value;
+    private double ProbeWorldW() { double s = -Diplomacy.CumulativeFxResidual; foreach (var n in Nations) { var w = n.World; s += (w.BaseMoney - w.CumulativeGoldMinted - w.CumulativeFiatIssued).Value; } return s; }   // ★段3-1（A7）：為替の換算の台帳を差し引く
     private void ProbeSnap()
     {
         if (!Simulation.ConservationProbe) return;
@@ -988,7 +988,7 @@ public sealed class MultiNationSim
                             {
                                 var lw = Nations[li].World;
                                 double k = World.Transfer((lw, lenders[li]), (null, null, null), oweGold * (heldBy[li] / lendTotal) / lw.FxRate);   // 貸し手国の台帳＝流出（借り手の +流入 と対）
-                                lw.ForeignBondClaims += k;
+                                lw.ForeignBondClaims += new MoneyStock(k);
                                 paid += k; lent += k * lw.FxRate / bw.FxRate;
                             }
                     double unmet = owe - lent;
@@ -1180,7 +1180,7 @@ public sealed class MultiNationSim
                 MoneyStock loansIn = -World.CrossFx(rw, pw, -rb.Loans), hhIn = -World.CrossFx(rw, pw, -rb.HouseholdLoans);
                 pb.Loans += loansIn; pb.HouseholdLoans += hhIn; L = loansIn + hhIn;
             }
-            pw.CumulativeTradeFlow -= L.Value;   // 与信（負債）の合算＝基礎貨幣の −L（親の通貨）。貯蓄 S は州ごとに上で記帳済み・国庫は上の移し方の1本＝合わせて反乱国の基礎貨幣（S＋T−L）＝親の per-nation 保存が閉じ、世界の和の差は換算の台帳（建国時の −(S+T) の鏡映＋反乱国として積んだ分）
+            pw.CumulativeTradeFlow -= L;   // 与信（負債）の合算＝基礎貨幣の −L（親の通貨）。貯蓄 S は州ごとに上で記帳済み・国庫は上の移し方の1本＝合わせて反乱国の基礎貨幣（S＋T−L）＝親の per-nation 保存が閉じ、世界の和の差は換算の台帳（建国時の −(S+T) の鏡映＋反乱国として積んだ分）
             pw.ForeignCapitalIn += World.CrossFx(rw, pw, rw.ForeignCapitalIn, book: false); pw.CapitalAbroad += World.CrossFx(rw, pw, rw.CapitalAbroad, book: false);
             // 反乱国の対外債の否認（政府の勝ち）：債権へ繰り上げ済みの額（PrevForeignDebt）を、反乱国以外の債権の比で落とす（債権の増減の1本＝CapitalMarket.AdjustClaims・
             //   四半期の償還と同じ規則）。反乱国自身の債権は次の行で親へ。
@@ -1373,7 +1373,7 @@ public sealed class MultiNationSim
                 if (dWithout - dWith < 1.0) continue;   // この運河で海路が縮まない国＝通らない＝課金しない（英仏の対印交易はスエズで縮む＝払う）
                 double traffic = 0; foreach (var r in uw.Regions) if (r.State == RegionState.Active) traffic += r.LastPortThroughput;
                 double tollBase = _coef.CanalTollTrafficRate * traffic;   // 通航トン数課金（取扱高の代理・前四半期値）＝取扱高は金建て（積出し価格）
-                double toll = tollBase / uw.FxRate * uw.FiscalFundingRatio;   // 使用国の通貨（★段3-3・2026-09-30）×国家の支払い率 r の分だけ（2026-09-28 段2-1＝旧は国庫の残りで切る門）
+                double toll = tollBase / uw.FxRate * uw.FiscalFundingRatio.Value;   // 使用国の通貨（★段3-3・2026-09-30）×国家の支払い率 r の分だけ（2026-09-28 段2-1＝旧は国庫の残りで切る門）
                 if (toll <= 1e-9) continue;
                 // 外7：CanalInvestReturns>0 なら通行料の一部を建設拠出国の**投資家**へ持分（累計拠出額）比で配当し、残りを扼者の国庫へ。既定0.5＝配当あり。0＝全額扼者。
                 //   ★段3-3（C9・2026-09-30）：配当の受け手は出資した国の投資家（出資者と同じ集合・旧＝拠出国の国庫）。払いは使用国の国庫から直接・国境をまたげば為替で換算（移し方の1本）。
@@ -1425,7 +1425,7 @@ public sealed class MultiNationSim
                 if (r.InvestorPopIndex < 0 || r.InvestorPopIndex >= r.Pops.Count) continue;
                 var ip = r.Pops[r.InvestorPopIndex];
                 double cCap = _coef.PortInvestFrac * Math.Max(0, ip.Savings.Value);          // 資本家ルート
-                double cState = w.PortStateRequest(r, natThr) * w.FiscalFundingRatio;   // 国家ルート＝国家の予算の行（四半期の締め月の請求に入っている額）×国家の支払い率 r（2026-09-28 段2-1・(223) 旧＝PortStateFrac×資本家の投資×r を請求の外で）
+                double cState = w.PortStateRequest(r, natThr) * w.FiscalFundingRatio.Value;   // 国家ルート＝国家の予算の行（四半期の締め月の請求に入っている額）×国家の支払い率 r（2026-09-28 段2-1・(223) 旧＝PortStateFrac×資本家の投資×r を請求の外で）
                 double invest = cCap + cState;
                 if (invest <= 1e-9) continue;   // ★判定→引落の順（wave2b是正）：引落してから捨てると微小額が pop へ還流されず消える片側記帳になる
                 // ★支払いの一元化 段3-2（2026-09-30・C9）：建設の工賃は**港の州の労働の④の持分**（労働力の生産者の産出の比・賃金は労働者・Earned を通す＝InternationalMarket.PaySales）。
@@ -1772,7 +1772,7 @@ public sealed class MultiNationSim
         MoneyStock debtIn = -World.CrossFx(src, dst, -debtOut); // 負債は負の額として換算＝台帳の差の符号が基礎貨幣（貯蓄−与信）と揃う
         Pop.Carry(sp, dp, savOut, debtOut, default, savIn, debtIn);   // お金（運賃を引いた持参金・債務）＝国債の保有は上で振り替えた＝運ばない
         src.PopulationDelta -= moved; dst.PopulationDelta += moved;                      // 人口台帳（両国で相殺）
-        src.CumulativeTradeFlow -= (savOut - debtOut).Value; dst.CumulativeTradeFlow += (savIn - debtIn).Value;   // 持参金−債務＝対外移転（基礎貨幣の台帳が閉じる・各自の通貨）
+        src.CumulativeTradeFlow -= savOut - debtOut; dst.CumulativeTradeFlow += savIn - debtIn;   // 持参金−債務＝対外移転（基礎貨幣の台帳が閉じる・各自の通貨）
         src.Bank!.Carry(dst.Bank, debtOut, debtIn);                                      // 家計の与信も債務について行く（S3b・受入国の通貨）
         return moved;
     }
@@ -1891,7 +1891,7 @@ public sealed class MultiNationSim
         // ★支度金＝国庫→呼ばれた本人（⚠受入国の内側で保存する。国庫が減り、その分だけ呼ばれた人の貯蓄が増える）。
         //   ★支払いの一元化 段2-3（C16・2026-09-29）：受け手＝呼ばれた本人が入った POP へ人数の比（旧＝研究者の分も含めて受入州の技師 POP へ全額）。
         //   移し方の1本（World.Transfer）＝受け手不在なら払わない（国庫に残る）。
-        double cost = System.Math.Min(perHead * moved, dst.RecruitBudget) * dst.FiscalFundingRatio;   // 予約の範囲×国家の支払い率 r（2026-09-28 段2-1）
+        double cost = System.Math.Min(perHead * moved, dst.RecruitBudget) * dst.FiscalFundingRatio.Value;   // 予約の範囲×国家の支払い率 r（2026-09-28 段2-1）
         dst.RecruitBudget -= World.Transfer((dst, null), (dst, arrived, arrivedFlow), cost, TreasuryCat.Modernization);
         src.LastEmigration += moved; dst.LastImmigration += moved;           // 診断（UI）
         src.LastSpecialistExit += moved;                                     // ★段⑤：抜かれた側の実測＝流出禁止法の選好の入力（抜かれていない国では法が争点にならない）

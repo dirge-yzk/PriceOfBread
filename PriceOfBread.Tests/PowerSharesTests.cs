@@ -81,12 +81,12 @@ public class PowerSharesTests
         var c = new Coefficients { PolityLabelFromAxes = 1.0 };
         var rep = new Simulation(NationConfig.France().ToScenario(1), new NullAgent()).World;
         CrownParliament.ApplyRegime(rep, c, Polity.Republic);          // 統制力1.0
-        rep.TaxRate = 1.0; rep.ProgressiveTax = 1.0; rep.PollTax = 0; rep.LandTax = 0; rep.SetStateMonopolyTier(0);
+        rep.TaxRate = new Share(1.0); rep.ProgressiveTax = 1.0; rep.PollTax = 0; rep.LandTax = 0; rep.SetStateMonopolyTier(0);
         rep.Tariff = 0; rep.ArmyUpkeep = 0; rep.NavyUpkeep = 0;
         Assert.Equal(1.0, PowerShares.ParliamentGrip(rep), 9);
         Assert.Equal(PowerShares.ParliamentControl(rep) * PowerShares.ParliamentGrip(rep) * (1.0 - PowerShares.LockedSpending(rep)),
             PowerShares.ParliamentEffective(rep), 12);
-        rep.TaxRate = 0; rep.ProgressiveTax = 0; rep.LandTax = 1.0;    // 常設の税だけ＝第109条の逃げ道
+        rep.TaxRate = new Share(0); rep.ProgressiveTax = 0; rep.LandTax = 1.0;    // 常設の税だけ＝第109条の逃げ道
         rep.GovDebt = new MoneyStock(0);                                                // 起債への依存も無い
         Assert.Equal(0.0, PowerShares.ParliamentGrip(rep), 9);
     }
@@ -100,7 +100,7 @@ public class PowerSharesTests
         w.ParliamentControl = 0; w.Bureaucracy = BureaucracyLaw.Spoils; w.Suffrage = Suffrage.None; w.Legitimacy = 0;
         double thin = PowerShares.CivilianInstitutions(w);
         w.ParliamentControl = 1.0; w.Bureaucracy = BureaucracyLaw.Professional; w.Suffrage = Suffrage.Universal; w.Legitimacy = 1.0;
-        w.TaxRate = 1.0; w.ProgressiveTax = 0; w.PollTax = 0; w.LandTax = 0; w.SetStateMonopolyTier(0); w.Tariff = 0;   // 歳入の掌握＝1（専売は対象0・2026-09-20）
+        w.TaxRate = new Share(1.0); w.ProgressiveTax = 0; w.PollTax = 0; w.LandTax = 0; w.SetStateMonopolyTier(0); w.Tariff = 0;   // 歳入の掌握＝1（専売は対象0・2026-09-20）
         double thick = PowerShares.CivilianInstitutions(w);
         Assert.True(thick > thin, "議会・官僚・政党・正統性を厚くしても文民制度の厚みが増えない");
         Assert.InRange(thin, 0.0, 1.0);
@@ -128,7 +128,7 @@ public class PowerSharesTests
         var w2 = new Simulation(NationConfig.France().ToScenario(5), new NullAgent()).World;
         // NaN の注入（Math.Clamp は NaN を除去しない＝否定形ガードの番人）
         w2.Legitimacy = double.NaN; w2.ParliamentControl = double.NaN; w2.ArmyUpkeep = double.NaN;
-        w2.Tariff = double.NaN; w2.PublicOrder = double.NaN; w2.LandTax = double.NaN; w2.ProgressiveTax = double.NaN; w2.TaxRate = double.NaN;
+        w2.Tariff = double.NaN; w2.PublicOrder = double.NaN; w2.LandTax = double.NaN; w2.ProgressiveTax = double.NaN; w2.TaxRate = new Share(double.NaN);
         foreach (var p in w2.AllPops()) { p.FoodMet = double.NaN; p.NeedMet = double.NaN; }
         AssertPartsInRange(w2, "NaN");
         w2.Legitimacy = double.PositiveInfinity; w2.ParliamentControl = double.PositiveInfinity; w2.ArmyUpkeep = double.PositiveInfinity;

@@ -69,11 +69,11 @@ public class Stage2Tests
     public void 教育下でも貨幣と人口は保存される()
     {
         var lib = new Simulation(Liberal(2), new NullAgent());
-        double m0 = (lib.World.BaseMoney.Value - lib.World.CumulativeTradeFlow - lib.World.CumulativeGoldMinted - lib.World.CumulativeFiatIssued), p0 = lib.World.TotalPopulation;   // ★2026-09-29 段2-2（Q11）：全ての世界に銀行＝保存量は基礎貨幣の D（与信が預金を作るので総マネーは動く）
+        double m0 = (lib.World.BaseMoney.Value - lib.World.CumulativeTradeFlow.Value - lib.World.CumulativeGoldMinted.Value - lib.World.CumulativeFiatIssued.Value), p0 = lib.World.TotalPopulation;   // ★2026-09-29 段2-2（Q11）：全ての世界に銀行＝保存量は基礎貨幣の D（与信が預金を作るので総マネーは動く）
 
         var ex = Record.Exception(() => lib.Run(400));
         Assert.Null(ex);
-        Assert.True(Math.Abs((lib.World.BaseMoney.Value - lib.World.CumulativeTradeFlow - lib.World.CumulativeGoldMinted - lib.World.CumulativeFiatIssued) - m0) < 1e-3 * m0, "貨幣保存の破れ");
+        Assert.True(Math.Abs((lib.World.BaseMoney.Value - lib.World.CumulativeTradeFlow.Value - lib.World.CumulativeGoldMinted.Value - lib.World.CumulativeFiatIssued.Value) - m0) < 1e-3 * m0, "貨幣保存の破れ");
         Assert.True(Math.Abs(lib.World.TotalPopulation - (p0 + lib.World.PopulationDelta)) < 1e-6 * p0, "人口保存の破れ");
     }
 

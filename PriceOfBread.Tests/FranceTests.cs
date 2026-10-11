@@ -31,7 +31,7 @@ public class FranceTests
         var ex = Record.Exception(() => sim.Run(400));   // §11.6（保存・非負・財収支）が全ティックで保持
         Assert.Null(ex);
         // 基礎貨幣の変化＝累積貿易流入（植民地輸入の対外流出を含む）
-        Assert.True(Math.Abs(sim.World.BaseMoney.Value - base0 - sim.World.CumulativeTradeFlow - sim.World.CumulativeGoldMinted - sim.World.CumulativeFiatIssued) < 1e-6 * base0, "基礎貨幣保存の破れ");
+        Assert.True(Math.Abs(sim.World.BaseMoney.Value - base0 - sim.World.CumulativeTradeFlow.Value - sim.World.CumulativeGoldMinted.Value - sim.World.CumulativeFiatIssued.Value) < 1e-6 * base0, "基礎貨幣保存の破れ");
     }
 
     [Fact]
@@ -71,7 +71,7 @@ public class FranceTests
         if (sold) Assert.Equal(0.0, p.BuiltScale);     // 売却＝民営化（BuiltScale=0・以後は市場が伸縮）
         var ex = Record.Exception(() => sim.Run(20));  // §11.6 が全ティック保持
         Assert.Null(ex);
-        Assert.True(Math.Abs(sim.World.BaseMoney.Value - base0 - sim.World.CumulativeTradeFlow - sim.World.CumulativeGoldMinted - sim.World.CumulativeFiatIssued) < 1e-6 * base0, "建設・売却で基礎貨幣保存が破れた");
+        Assert.True(Math.Abs(sim.World.BaseMoney.Value - base0 - sim.World.CumulativeTradeFlow.Value - sim.World.CumulativeGoldMinted.Value - sim.World.CumulativeFiatIssued.Value) < 1e-6 * base0, "建設・売却で基礎貨幣保存が破れた");
     }
 
     [Fact]
@@ -85,7 +85,7 @@ public class FranceTests
         var ex = Record.Exception(() => sim.Run(20));   // EconomyStep が束を買い決済（§11.6 が全ティック保持）
         Assert.Null(ex);
         Assert.True(sim.World.ModernizationBudget() > 0, "近代化投資の予算が立たない（国庫不足＝建設を予約できていない）");
-        Assert.True(System.Math.Abs(sim.World.BaseMoney.Value - base0 - sim.World.CumulativeTradeFlow - sim.World.CumulativeGoldMinted - sim.World.CumulativeFiatIssued) < 1e-6 * base0, "国家建設で基礎貨幣保存が破れた");
+        Assert.True(System.Math.Abs(sim.World.BaseMoney.Value - base0 - sim.World.CumulativeTradeFlow.Value - sim.World.CumulativeGoldMinted.Value - sim.World.CumulativeFiatIssued.Value) < 1e-6 * base0, "国家建設で基礎貨幣保存が破れた");
         Assert.True(sim.World.Region.TotalIndustrialization > ind0, "国家建設で工業化度が上がっていない");
     }
 
@@ -97,7 +97,7 @@ public class FranceTests
         foreach (var p in sim.World.Region.Producers) p.SubsidyRate = 1.0;   // 全工場に満額補助金（赤字工場の肩代わりを発火・2026-07-19率化）
         var ex = Record.Exception(() => sim.Run(20));
         Assert.Null(ex);
-        Assert.True(System.Math.Abs(sim.World.BaseMoney.Value - base0 - sim.World.CumulativeTradeFlow - sim.World.CumulativeGoldMinted - sim.World.CumulativeFiatIssued) < 1e-6 * base0, "工場補助金で基礎貨幣保存が破れた");
+        Assert.True(System.Math.Abs(sim.World.BaseMoney.Value - base0 - sim.World.CumulativeTradeFlow.Value - sim.World.CumulativeGoldMinted.Value - sim.World.CumulativeFiatIssued.Value) < 1e-6 * base0, "工場補助金で基礎貨幣保存が破れた");
     }
 
     [Fact]

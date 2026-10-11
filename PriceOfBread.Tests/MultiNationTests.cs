@@ -202,7 +202,7 @@ public class MultiNationTests
         {
             var w = sim.Nations[i].World;
             if (w.HadSecession) continue;
-            double drift = w.BaseMoney.Value - base0[i] - w.CumulativeTradeFlow - w.CumulativeGoldMinted - w.CumulativeFiatIssued;
+            double drift = w.BaseMoney.Value - base0[i] - w.CumulativeTradeFlow.Value - w.CumulativeGoldMinted.Value - w.CumulativeFiatIssued.Value;
             Assert.True(Math.Abs(drift) < 1e-6 * base0[i], $"{w.Region.Name} の保存破れ（ズレ{drift:N2}）");
         }
     }
@@ -344,11 +344,11 @@ public class MultiNationTests
             for (int i = 0; i < nOrig; i++)
             {
                 var w = sim.Nations[i].World;
-                Assert.True(Math.Abs(w.BaseMoney.Value - base0[i] - w.CumulativeTradeFlow - w.CumulativeGoldMinted - w.CumulativeFiatIssued) < 1e-6 * base0[i], $"{w.Region.Name} 保存破れ");
+                Assert.True(Math.Abs(w.BaseMoney.Value - base0[i] - w.CumulativeTradeFlow.Value - w.CumulativeGoldMinted.Value - w.CumulativeFiatIssued.Value) < 1e-6 * base0[i], $"{w.Region.Name} 保存破れ");
             }
             // 交易は国家間で相殺＝世界全体の基礎貨幣の動きは累積貿易流入＋鋳造/不換発行（新規貨幣＝GoldMintFraction起動 2026-07-10）の総和に一致（残るは植民地採取費）
             double worldBase1 = sim.Nations.Sum(n => n.World.BaseMoney.Value);
-            double worldFlow = sim.Nations.Sum(n => n.World.CumulativeTradeFlow + n.World.CumulativeGoldMinted + n.World.CumulativeFiatIssued);
+            double worldFlow = sim.Nations.Sum(n => n.World.CumulativeTradeFlow.Value + n.World.CumulativeGoldMinted.Value + n.World.CumulativeFiatIssued.Value);
             Assert.True(Math.Abs(worldBase1 - base0.Sum() - worldFlow) < 1e-3 * base0.Sum(), "世界保存破れ");
         }
     }

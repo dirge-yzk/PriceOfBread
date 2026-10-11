@@ -205,7 +205,7 @@ public static class Megaprojects
             var fw = sim.World;
             if (fw.SelfPower is not { } fp || fp.Id != mp.ForeignPartnerId) continue;
             double due = coef.MegaprojectForeignYield * mp.ForeignPrincipal / hw.FxRate;   // 保有国の通貨
-            double pay = due * hw.FiscalFundingRatio;   // 保有国の r の分だけ（2026-09-28 段2-1＝旧は国庫の残りで切る門）
+            double pay = due * hw.FiscalFundingRatio.Value;   // 保有国の r の分だけ（2026-09-28 段2-1＝旧は国庫の残りで切る門）
             if (pay > 1e-9) CapitalMarket.GiveGold(fw, pay, (hw, null), TreasuryCat.Megaproject);   // 保有国＝対外流出・外資国の投資家＝対外流入（為替で換算）
             else pay = 0;
             double unpaid = due - pay;

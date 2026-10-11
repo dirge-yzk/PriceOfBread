@@ -21,16 +21,16 @@ public sealed class MoneyConservation(World world) : IInvariant
 {
     // 基準線は「交易を差し引いた基礎貨幣」で持つ＝期待値 = _baseline + 累積貿易 が捕捉時の基礎貨幣に一致。
     // 構築時は累積貿易0なので従来と同値。開始盤面で国庫・与信を初期へ戻した直後に取り直しても整合する（相対基準）。
-    private readonly double _baseline = world.BaseMoney.Value - world.CumulativeTradeFlow - world.CumulativeGoldMinted - world.CumulativeFiatIssued;
+    private readonly MoneyStock _baseline = world.BaseMoney - world.CumulativeTradeFlow - world.CumulativeGoldMinted - world.CumulativeFiatIssued;
     public string Name => "貨幣保存（基礎貨幣）";
 
     public void Check(World world)
     {
-        double expected = _baseline + world.CumulativeTradeFlow + world.CumulativeGoldMinted + world.CumulativeFiatIssued;
+        double expected = (_baseline + world.CumulativeTradeFlow + world.CumulativeGoldMinted + world.CumulativeFiatIssued).Value;   // 保存則の式は在庫の型のまま書く（台帳3本も在庫）
         double bm = world.BaseMoney.Value;   // 全pop走査＝1回だけ
         // 許容誤差は「合算した量の桁」に比例させる（残差は浮動小数の再結合のみ）。expected は基準−累積貿易の**大きな量の差**になり得る（資本逃避で基礎貨幣がほぼ0へ収縮＝激しい桁落ち）ので、
         // |expected| だけを基準にすると相対許容が過小になり float ノイズで誤検出する。基準・累積貿易・基礎貨幣の最大桁で規格化＝桁落ちに頑健（従来より緩むだけで厳しくはならない＝既存テスト不変）。
-        double scale = Math.Max(Math.Abs(expected), Math.Max(Math.Abs(_baseline), Math.Max(Math.Abs(world.CumulativeTradeFlow), Math.Abs(bm))));
+        double scale = Math.Max(Math.Abs(expected), Math.Max(Math.Abs(_baseline.Value), Math.Max(Math.Abs(world.CumulativeTradeFlow.Value), Math.Abs(bm))));
         // 許容1e-8（2026-07-08に1e-9から緩和）：604四半期=54,360日×数百万演算のfloat再結合ノイズは相対1e-9をわずかに超え得る
         // （実測の偽陽性：seed20江戸=2.5e-9・seed4タシュケント=1e-8）。実リーク（官僚Size≈0のDistribute消失=2e-7級）とは2桁の分離＝検出力は維持。
         double tol = 1e-8 * Math.Max(1.0, scale);

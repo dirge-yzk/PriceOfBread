@@ -183,3 +183,66 @@ public readonly record struct RealGdpPerMonth(double Value) : IUnitValue, IForma
     public override string ToString() => Value.ToString();
     public string ToString(string? format, IFormatProvider? formatProvider) => Value.ToString(format, formatProvider);
 }
+
+/// <summary>割合（0〜1 の無次元の割合：税率・国家の支払い率・歳入シェアなど）。Share どうしの加減・積（Share×Share は Share）・スカラー倍と除算・同じ型どうしの比・比較と、
+/// お金（MoneyStock・MoneyPerMonth・MoneyPerYear）との積（お金のまま）が書ける。⚠割合＋お金・割合と年GDP 比（RatioToGdpYear＝在庫÷年の流れ・1 を超える）の比較はコンパイルが通らない。
+/// ⚠0〜1 に収める上限・下限は型に持たない（設計思想⑧＝選んだ値を型で削らない）。⚠スカラー倍（double）は型を変えない＝`(share * flow.Value)` のような型を外した式は型では防げない。
+/// 割合とお金の積の演算子はこの型の中に置く（お金の型の演算子の一覧は変えない）。</summary>
+public readonly record struct Share(double Value) : IUnitValue, IFormattable, IComparable<Share>
+{
+    public static Share operator +(Share a, Share b) => new(a.Value + b.Value);
+    public static Share operator -(Share a, Share b) => new(a.Value - b.Value);
+    public static Share operator -(Share a) => new(-a.Value);
+    public static Share operator *(Share a, double k) => new(a.Value * k);
+    public static Share operator *(double k, Share a) => new(k * a.Value);
+    public static Share operator /(Share a, double k) => new(a.Value / k);
+    /// <summary>割合×割合＝割合。</summary>
+    public static Share operator *(Share a, Share b) => new(a.Value * b.Value);
+    /// <summary>同じ型どうしの比＝無次元（double）。</summary>
+    public static double operator /(Share a, Share b) => a.Value / b.Value;
+    /// <summary>割合×お金＝お金（同じ型のまま）。</summary>
+    public static MoneyStock operator *(Share a, MoneyStock m) => new(a.Value * m.Value);
+    public static MoneyStock operator *(MoneyStock m, Share a) => new(m.Value * a.Value);
+    public static MoneyPerMonth operator *(Share a, MoneyPerMonth m) => new(a.Value * m.Value);
+    public static MoneyPerMonth operator *(MoneyPerMonth m, Share a) => new(m.Value * a.Value);
+    public static MoneyPerYear operator *(Share a, MoneyPerYear m) => new(a.Value * m.Value);
+    public static MoneyPerYear operator *(MoneyPerYear m, Share a) => new(m.Value * a.Value);
+    public static bool operator <(Share a, Share b) => a.Value < b.Value;
+    public static bool operator >(Share a, Share b) => a.Value > b.Value;
+    public static bool operator <=(Share a, Share b) => a.Value <= b.Value;
+    public static bool operator >=(Share a, Share b) => a.Value >= b.Value;
+    /// <summary>record の == と != はこの Equals を呼ぶ＝double の == と同じ（NaN は等しくない）。</summary>
+    public bool Equals(Share other) => Value == other.Value;
+    public override int GetHashCode() => Value.GetHashCode();
+    /// <summary>並べ替え・最大最小（OrderBy・Max・Min が実行時に要る）。double と同じ順序。</summary>
+    public int CompareTo(Share other) => Value.CompareTo(other.Value);
+    public override string ToString() => Value.ToString();
+    public string ToString(string? format, IFormatProvider? formatProvider) => Value.ToString(format, formatProvider);
+}
+
+/// <summary>年GDP 比（在庫÷年の流れ：国債÷年の名目GDP など。単位は「年」で 1 を超える）。0〜1 の割合（<see cref="Share"/>）とは別の型で、足せないし比べられない。
+/// RatioToGdpYear どうしの加減・スカラー倍・比だけが書ける。⚠作る口は <see cref="Calendar.ToGdpYear"/>（MoneyStock ÷ MoneyPerYear）の1本だけ
+/// ＝在庫を月の流れで割る取り違え（年GDP 比の12倍・(220)(251)）は渡せない。⚠public のコンストラクタ（record の主コンストラクタ）は反射の書き込み・セーブの読みが使う＝
+/// 計算から作る口は上の1本（`UnitTypeTests` が型を返す関数を数える）。</summary>
+public readonly record struct RatioToGdpYear(double Value) : IUnitValue, IFormattable, IComparable<RatioToGdpYear>
+{
+    public static RatioToGdpYear operator +(RatioToGdpYear a, RatioToGdpYear b) => new(a.Value + b.Value);
+    public static RatioToGdpYear operator -(RatioToGdpYear a, RatioToGdpYear b) => new(a.Value - b.Value);
+    public static RatioToGdpYear operator -(RatioToGdpYear a) => new(-a.Value);
+    public static RatioToGdpYear operator *(RatioToGdpYear a, double k) => new(a.Value * k);
+    public static RatioToGdpYear operator *(double k, RatioToGdpYear a) => new(k * a.Value);
+    public static RatioToGdpYear operator /(RatioToGdpYear a, double k) => new(a.Value / k);
+    /// <summary>同じ型どうしの比＝無次元（double）。</summary>
+    public static double operator /(RatioToGdpYear a, RatioToGdpYear b) => a.Value / b.Value;
+    public static bool operator <(RatioToGdpYear a, RatioToGdpYear b) => a.Value < b.Value;
+    public static bool operator >(RatioToGdpYear a, RatioToGdpYear b) => a.Value > b.Value;
+    public static bool operator <=(RatioToGdpYear a, RatioToGdpYear b) => a.Value <= b.Value;
+    public static bool operator >=(RatioToGdpYear a, RatioToGdpYear b) => a.Value >= b.Value;
+    /// <summary>record の == と != はこの Equals を呼ぶ＝double の == と同じ（NaN は等しくない）。</summary>
+    public bool Equals(RatioToGdpYear other) => Value == other.Value;
+    public override int GetHashCode() => Value.GetHashCode();
+    /// <summary>並べ替え・最大最小（OrderBy・Max・Min が実行時に要る）。double と同じ順序。</summary>
+    public int CompareTo(RatioToGdpYear other) => Value.CompareTo(other.Value);
+    public override string ToString() => Value.ToString();
+    public string ToString(string? format, IFormatProvider? formatProvider) => Value.ToString(format, formatProvider);
+}

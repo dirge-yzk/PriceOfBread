@@ -464,12 +464,12 @@ public sealed class Coefficients
     //   ★値は史実から＝年GDP の3割で始まり1倍で満額：英1908-13（国債 約0.3）は老齢年金1908・国民保険1911＝緊縮0／独1883-89（約0.3〜0.4）は社会保険＝ほぼ0／
     //   米1790（約0.35〜0.4）はハミルトンの物品税（ウイスキー税）＝弱い緊縮／仏1788（約0.7）は三部会の召集＝強度 0.57（信号 >0.5）／
     //   英1783-92（約1.1）のピットの retrenchment・英1815-40（約2.5）の retrenchment と新救貧法1834・蘭1783（約1.6）の逆進的な物品税＝満額。西1783（約0.3）・墺（約0.2）は0。
-    public double AusterityStartDebt = 0.3;      // 債務÷年名目GDP がこれ超で緊縮開始（借金がかさむほど弱者救済を削り逆進課税を上げる＝赤字を貸し手に響かない形で閉じる負のフィードバック）
-    public double AusterityRange = 0.7;          // ここ幅で緊縮が0→満額（債務÷年名目GDP = Start+Range＝1.0 で弱者救済ゼロ・逆進課税が最大上乗せ）
+    public RatioToGdpYear AusterityStartDebt = new(0.3);      // 債務÷年名目GDP がこれ超で緊縮開始（借金がかさむほど弱者救済を削り逆進課税を上げる＝赤字を貸し手に響かない形で閉じる負のフィードバック）
+    public RatioToGdpYear AusterityRange = new(0.7);          // ここ幅で緊縮が0→満額（債務÷年名目GDP = Start+Range＝1.0 で弱者救済ゼロ・逆進課税が最大上乗せ）
     public double AusterityTaxHike = 0.5;        // 満額緊縮時に人頭税へ上乗せする逆進課税の幅（貴族免除の人頭税＝負担は弱者に集中）
     public double DevaluationCapFrac = 0.05;     // **月に**切り下げ（インフレ税）で吸える総貯蓄の上限割合（月初の国家の支払い率の所＝月に1回・2026-09-26 に単位の書き方を是正）。借りられない月（上限・冷却中）と、借りた後に残った払えない額だけを埋める（2026-09-28 (b)）。超過赤字は underfunding（連合の薄給＝治安維持力減）で優雅に劣化＝構造的に過大な連合は経済を枯渇させず萎む
     public double FiatIssueFrac = 0.2;   /* リアリティ群点火2026-07-18＝不換シニョリッジ(インフレ税) */           // 不換シニョリッジ（fiat-expansion-as-haircut-not-issue）：赤字補填の切り下げのうち、popから取らず新規発行する割合＝マネーストック膨張(M↑→P↑)。CumulativeFiatIssuedに積みInvariantsのexpectedに算入。0で全額ヘアカット＝現行恒等
-    public double DebtDistressRatio = 3.0;        // 対外信用（CapitalMarket の信用の債務の項＝1−債務÷年名目GDP÷これ）が尽きる債務の水準＝外資が逃げ、呼べなくなる（読み手は CapitalMarket だけ・国債の起債は読まない）。
+    public RatioToGdpYear DebtDistressRatio = new(3.0);        // 対外信用（CapitalMarket の信用の債務の項＝1−債務÷年名目GDP÷これ）が尽きる債務の水準＝外資が逃げ、呼べなくなる（読み手は CapitalMarket だけ・国債の起債は読まない）。
                                                   //   ★年の単位で史実から（2026-09-29・棚卸し fis-02）：市場の信認を保った債務÷年GDP の最大は英1821 約2.7（兌換の再開）・英1946 約2.5
                                                   //   ＝その少し上で債務の項が尽きる（仏1789 0.7 で 0.77・英1815 2.5 で 0.17）。旧 2.0 は**月次**名目GDP 比（年に直すと約0.17＝国債が史実の水準へ立った国は項が0）
     public RatePerYear BondRateMaxPerYear = new(0.30);            // 国債金利の上限（年率）。これ以上は市場が値付けせず＝事実上の債務不履行（利払いを切り下げ/薄給で処理）
@@ -479,13 +479,13 @@ public sealed class Coefficients
                                                  //   記憶は既往債の平均クーポン（R9 の満期構造）が持つ＝止めた国の上乗せは乗り換えとともに薄まる。旧 0.06×累積の切り下げ÷**月次**名目GDP（通貨改革まで減らず単独で BondRateMaxPerYear を越えた）
     public double BondYieldFlightWeight = 1.5;   // 国債の利回りスプレッド(GovBondRatePerYear−BondBaseRatePerYear)が対外信用(CapitalMarket)を下げる強さ＝国債暴落→資本逃避→為替減価→さらに金利↑のバーリング危機ループ。0で旧挙動
     // === 借入（Fiscal.Borrow の1行＝月初に払えない額があればエンジンが自動で借りる＝切り下げより先・2026-09-28 (b)）：1件の額＝名目GDP×これ・借入額＝min(1件の額, 月初の払えない額)・上限＝利払い÷歳入 ===
-    public double BorrowFractionOfGdp = 0.10;    // 1件の額＝月次**名目**GDPのこの割合＝月に借りられる額の上限（資本家貯蓄＋外資から調達＝保存）。借りるのは払えない額だけで1件の額まで（2026-09-28 に実質→名目＝払えない額・国債と同じ物差し）。読み手＝Fiscal.Borrow と戦時段の器（Military.EnvelopeAt＝(175) 戦時国債＝同じ1本 Fiscal.BorrowTicket）
+    public Share BorrowFractionOfGdp = new(0.10);    // 1件の額＝月次**名目**GDPのこの割合＝月に借りられる額の上限（資本家貯蓄＋外資から調達＝保存）。借りるのは払えない額だけで1件の額まで（2026-09-28 に実質→名目＝払えない額・国債と同じ物差し）。読み手＝Fiscal.Borrow と戦時段の器（Military.EnvelopeAt＝(175) 戦時国債＝同じ1本 Fiscal.BorrowTicket）
     // 借入の上限＝直近の月次決算の利払いの請求÷歳入がこれに届いたら借りない（借入の門・不履行の判定・巨大建造物の「まだ借りられる」が同じ1本を読む）。旧＝MaxBorrowStacks＝20
     //   （1スタック＝月次実質GDP の10%＝年GDP の約17%で全ての国が同じ天井＝棚卸し fis-01）を置き換えた（2026-09-28・作者裁定＝史実の債務の水準から出し直す）。
     //   史実＝借りられなくなるのは水準でなく利払いが歳入を食う割合と市場の信認：英1818-22 は利払い約3,100万ポンド÷歳入約5,600万≒0.55 に張り付いて新規の借入を止め
     //   （減債基金で持ちこたえた＝不履行なし）・仏1788 は利払い3.18億÷歳入4.72億リーヴル≒0.67 で支払停止（1788年8月）・オスマン1875・エジプト1876 も利払いが歳入の半ばを越えて停止
     //   ＝借りられる線は歳入の約5〜6割＝その中央。同じ線から、歳入の厚い国と金利の安い国（金本位・議会の信認割引）ほど深く借りられる＝英1815 の国債÷GDP≒2.5 と仏1789 の0.6〜0.8 が同じ線から出る。
-    public double MaxInterestShareOfRevenue = 0.55;
+    public Share MaxInterestShareOfRevenue = new(0.55);
     // ソブリン・デフォルト（2026-06-23）：借入上限に張り付き返済できない国は信用が尽き**債務不履行**＝致命的ペナルティ（安易な逃げ道でない＝破滅）。
     // ★不履行の線＝払えなかった大きさの累計（(205)・2026-10-04・推奨で進めた＝作者の承認は未確認）：借りられない（利払い÷歳入≧MaxInterestShareOfRevenue）まま払えなかった請求の割合（1−r）を月ごとに足し、
     //   その累計が**月の請求の何か月分**に届いたら不履行（1.0＝国の全ての支払いの1か月分を払えなかった）。r＝0.5 の月が2つ・r＝0.75 の月が4つ・r＝0.99 の月は100 で届く。
@@ -801,7 +801,7 @@ public sealed class Coefficients
     public double AdminPowerSmoothing = 0.05;     // 行政力(AdminPowerSmoothed)EMAの平滑速度（旧 Fiscal直書き0.05を係数化＝sweep対象）
     public double GdpTrendSmoothing = 0.18;       // トレンドGDP(GdpTrend)EMAの平滑速度（旧 World直書き0.18。GdpDrawdown/恐慌予兆の基準）
     public double InflationExpectationSmoothing = 0.34; // 期待インフレ(ExpectedInflationPerYear)EMAの平滑速度（旧 World直書き0.34）
-    public double AdminBudgetFrac = 0.5;          // 行政＝歳入シェア（行政費スライダー×これ×歳入）。行政が薄いと汚職で歳入が漏れるので自己投資的
+    public Share AdminBudgetFrac = new(0.5);          // 行政＝歳入シェア（行政費スライダー×これ×歳入）。行政が薄いと汚職で歳入が漏れるので自己投資的
     // ★S3a（2026-07-31）：軍需予算を**宣言どおり「上限」にする**。下のコメントは「軍需調達の**上限**」と書いているが、
     // 実装 MilitaryBudget = 軍事費×シェア×歳入 は**常にその額を割り当てる固定額**で、必要額を下回れば不足・上回れば余る＝上限ではない。
     // 実測（1833年断面）＝アメリカは兵7に対し予算1708（afford 92倍）＝使われない過大予算が滞留する一方、
@@ -819,7 +819,7 @@ public sealed class Coefficients
     //   兵卒約4,400万リーヴル【推・記憶の概数】）＝1.0。訓練の充足（払えた÷これ）が熟練を育てる（Military.StepSkill・旧＝維持費の段 ArmyUpkeep が閾値0.5を超えるかで育った＝支出から直接の効き）。
     //   ★(161)：「規定の給与」は働き盛り1人あたり（志願兵の給与）＝徴兵制で兵卒の給与が手当（頭数あたり）に下がっても、幹部の給与の必要額は規定の給与で数える（質の値段は法に依らない）。
     public double MilitaryCadrePayRatio = 1.0;
-    public double WelfareRevenueShare = 0.8;      // 福祉＝歳入シェア（社会保障スライダー×これ×歳入が給付の上限）
+    public Share WelfareRevenueShare = new(0.8);      // 福祉＝歳入シェア（社会保障スライダー×これ×歳入が給付の上限）
     public double NobleAdminFactor = 15.0;       // 貴族による行政の素地：貴族の人口比×これ＝国庫不要の行政効率（近世国家は貴族が行政を担う＝序盤の財政難を緩和）
     public double NobleAdminCap = 0.5;           // 貴族由来の行政効率の上限（貴族だけでは満額にならない＝近代化で官僚が要る）
     // ★特権の見返り 段2（作者裁定2026-09-08 §2「特権にメリットを持たせて国家運営を可能にする」）：貴族の行政の素地を**領主権の在地**で変調＝
@@ -848,7 +848,7 @@ public sealed class Coefficients
     //   ⚠禁制品の密輸（SmugglingMax＝0.5）とは別の量＝あちらは禁令をすり抜ける取引の割合（阿片）・こちらは課された上乗せのうち国庫へ届かない割合。
     public double StateMonopolyLeakMax = 0.6;
     public double IndirectTaxInBudgetBase = 1.0;  // 監査2026-07-11（接2）：関税（四半期実収/3）＋専売（当月実収）を予算基数（行政・軍装備・裁量余剰の請求権とLastRevenue）へ算入する重み。**1.0＝有効（ユーザー裁定2026-07-12「史実どおりの物理で良い・間違っているのはテスト」）**＝19世紀の関税国家（米・露型）の行政・軍拡が実歳入で立つ。回帰番人「教育で技術が分かれる」は前改革期（300Q）判定へ変更済み（露の1870年代型の遅い近代化は史実として許容）。0で旧（所得系のみ）
-    public double TitheRate = 0.05;              // 十分の一税（教会税）：大衆（非特権・非兵士）の所得のこの割合を聖職者が受け取る（pop→聖職者の移転＝保存）。全員が満額払う訳でない想定で実効5%（要望）
+    public Share TitheRate = new(0.05);              // 十分の一税（教会税）：大衆（非特権・非兵士）の所得のこの割合を聖職者が受け取る（pop→聖職者の移転＝保存）。全員が満額払う訳でない想定で実効5%（要望）
     public double HealthFillCapacityBonus = 0.05; // 医療（医者の役務）の消費が人口扶養力に与える上乗せ（小さく・創発の味付け）
     public double WelfareCostRatePerMonth = 0.6;         // 社会保障1.0・大衆1単位あたりの月次給付（国庫→大衆）。高い＝福祉は財政を圧迫＝レッセフェールとの選択
     // 倍率排除⑥：WelfareMilitancyRelief / LaborUnionMilitancyRelief（福祉・組合の闘争度直接減算）を撤去。
@@ -949,7 +949,7 @@ public sealed class Coefficients
     public double LolrHeatTrigger = 0.9;      // 最後の貸し手の発動：与信過熱度(Heat)がこれ超で危機と判定
     public double LolrDrawdownTrigger = 0.10; // 同：景気後退(GdpDrawdown)がこれ超で危機と判定
     public double GdpPeakDecay = 0.02;        // GDPピークの忘却係数（四半期）。トレンドがピークを下回る間ピークをゆっくり再基準化＝構造的に縮小した国が「新しい長期水準」へ。0＝旧バグ（単調増加で永久恐慌）
-    public double LolrMinFunding = 0.6;       // 最後の貸し手を担える財政健全度（FiscalFundingRatio）の下限＝破綻寸前の国は救えない（Bagehot：solventにのみ貸す）
+    public Share LolrMinFunding = new(0.6);       // 最後の貸し手を担える財政健全度（FiscalFundingRatio）の下限＝破綻寸前の国は救えない（Bagehot：solventにのみ貸す）
     public double LolrStrength = 0.7;         // 危機時に取り付け(run)を打ち消す割合＝流動性供給で恐慌を和らげる（高利＝根治はせず底打ちのみ）
     // ★恐慌AIの座標化（2026-08-22・二段構え較正＝作者裁定「まず裸の資本主義の帯・次にAIの対策で史実へ」）。旧 SelfPlay の private const を昇格＝既定値不変＝ビット恒等。
     //   裸の測定腕＝POB_COEF "LolrStrength=0;LolrReserveBoost=0;PreTightenHeatFrac=1.0;CrisisAusterityRelief=1.0"（測定専用・恒久ONの裁定2026-07-25は不変）。
@@ -1036,7 +1036,7 @@ public sealed class Coefficients
     public double GoldCoverMin = 0.25;              // 兌換維持に要る正貨準備カバー率（convertibility-not-reserve-backed＋fx-peg防衛）＝BaseMoney/BroadMoney。これ未満で兌換停止クライシス(金流出で守れない)。
                                                     // 有効化2026-07-10（キュー1）：実測（goldprobe 5seeds×500Q・加入国10.9万サンプル）＝健全帯 中央0.52/p25 0.48/p1 0.43・危機の谷は0.21以下〜負値へ突き抜ける。
                                                     // 0.25＝健全帯の床(p1=0.43)より下・危機の谷より上＝下回りは加入四半期の約0.1%＝「実在するが常態でない」兌換停止（1797英/1893米型）。0.5だと36.6%が下回り常時発火＝不採用
-    public double GoldStandardMinFunding = 0.85;    // 加入の信用要件：連合維持を払えている（funding ratio がこれ以上）。危機でこれを割ると強制離脱（兌換停止）
+    public Share GoldStandardMinFunding = new(0.85);    // 加入の信用要件：連合維持を払えている（funding ratio がこれ以上）。危機でこれを割ると強制離脱（兌換停止）
     public double GoldStandardRateDiscount = 0.6;   // 完全兌換時の国債金利の倍率（信用＝低金利。0.6＝4割引）。Convertibilityでlerp＝部分兌換は中間
     // 兌換可能性 Convertibility∈[0,1]（倍率排除②）：金本位/不換の bool 分岐を連続化。1=完全兌換(金)・0=不換。OnGoldStandard(資格)を非対称速度で滑らかに追従＝部分兌換の移行を表現。
     public double ConvertibilityRiseSpeed = 0.05;   // 加入後に兌換が確立する速さ（準備・信認の積み上げ＝遅い）
@@ -1062,8 +1062,8 @@ public sealed class Coefficients
     //   ★点火2026-08-13（実測10シード・硬性ゲート全緑）：合計+10.0pt。経済規模 32.5→41.2・列強再現率 17.5→22.5・人口 11.4→17.1。
     //   発動は131年55カ国で4回＝稀で重い事件（1797仏・1854西・1869モロッコ・1914マラータ）。スペインだけが実力の平価0.86を選んだ。
     public double CurrencyReformEnabled = 1.0;
-    public double CurrencyReformForgiveShare = 1.0;   // 帳消しにする累積切下げの割合（1=全消し）
-    public double CurrencyReformBurnShare = 0.5;      // 記憶の代価＝累積切下げのこの割合を貯蓄から焼却
+    public Share CurrencyReformForgiveShare = new(1.0);   // 帳消しにする累積切下げの割合（1=全消し）
+    public Share CurrencyReformBurnShare = new(0.5);      // 記憶の代価＝累積切下げのこの割合を貯蓄から焼却
     public double CurrencyReformBurnCap = 0.5;        // 焼却の上限＝総貯蓄のこの割合（1度で全財産は焼かない）
     public double CurrencyReformLegitimacyHit = 0.35; // 正統性の代価＝帳消し比に比例（大きな罪を許すほど高い）
     public int CurrencyReformCalmMonths = 24;         // 発動に要る「切下げゼロ」の連続月数＝財政の同時再建（1923年11月だけ成功した差）
@@ -1831,7 +1831,7 @@ public sealed class Coefficients
     //   食料0.7＝主食が3割欠ける（飢饉の入口・FamineDeathFillFloor=0.8 より深い）／財政0.6＝歳出の4割が賄えない
     //   ／正統性0.4＝内乱が起きる帯
     public double AllyJoinFoodMin = 0.7;
-    public double AllyJoinFundingMin = 0.6;
+    public Share AllyJoinFundingMin = new(0.6);
     public double AllyJoinLegitimacyMin = 0.4;
     public double AllyRefusalTension = 60;         // 機能5-③点火（2026-07-28）：参戦要請の見送り/拒否＝要請元との緊張＋これ（同盟破棄閾値50を一撃で超える＝伊1914型の離反。信頼度スカラーは作らない）。AI/プレイヤー同一式。0で旧＝見送り無帰結恒等
     public double WarChainMaxDepth = 2;            // 機能5-④点火（2026-07-28）：同盟参戦の連鎖段数（WW1型）。0で1段のみ＝旧恒等。防壁＝段数減衰+到達可能性+訪問済み共有

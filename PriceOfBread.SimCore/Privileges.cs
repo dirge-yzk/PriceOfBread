@@ -28,7 +28,7 @@ public static class Privileges
     /// <summary>十分の一税の残高＝国教法で変調した実効率÷基準率（国教のみ1／内心の自由・信仰の自由は係数／国家無神論0）。
     /// ★十分の一税の徴収（Fiscal.Step の税の走査）と同じ1本の定義（同じ式を2箇所に書かない・2026-09-07）。TitheRate=0 の世界は0＝特権そのものが無い。</summary>
     public static double TitheDegree(World w, Coefficients c)
-        => !(c.TitheRate > 0) ? 0.0
+        => !(c.TitheRate.Value > 0) ? 0.0
          : c.StateReligionGate > 0
             ? w.StateReligion switch { StateReligionLaw.InnerFreedom => c.InnerFreedomTithe, StateReligionLaw.ReligiousFreedom => c.ReligiousFreedomTithe, StateReligionLaw.StateAtheism => 0.0, _ => 1.0 }
             : 1.0;
@@ -71,7 +71,7 @@ public static class Privileges
     /// <summary>その特権の機構が今の世界で1銭でも動くか（＝表に出す資格）。休眠ゲートで止まっている特権は「在る」と見せない。</summary>
     public static bool Enabled(Coefficients c, int kind) => kind switch
     {
-        Tithe => c.TitheRate > 0,
+        Tithe => c.TitheRate.Value > 0,
         TaxExemption => c.PrivilegeTaxDiscount > 0,
         VestedOffice => true,   // 身分任用の取り分＝汚職の分配経路（BureaucracyLaw）にゲートは無い
         Seigneurial => true,    // 領主権＝RGOの地代（農奴解放法）にゲートは無い

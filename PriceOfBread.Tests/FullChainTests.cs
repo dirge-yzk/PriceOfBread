@@ -26,7 +26,7 @@ public class FullChainTests
         var ex = Record.Exception(() => sim.Run(400));
         Assert.Null(ex);   // §11.6（保存・境界）が全ティックで保持
         // 基礎貨幣の変化＝累積貿易流入（植民地輸入の対外流出を含む）
-        Assert.True(Math.Abs(sim.World.BaseMoney.Value - base0 - sim.World.CumulativeTradeFlow - sim.World.CumulativeGoldMinted - sim.World.CumulativeFiatIssued) < 1e-3 * base0, "基礎貨幣保存の破れ");
+        Assert.True(Math.Abs(sim.World.BaseMoney.Value - base0 - sim.World.CumulativeTradeFlow.Value - sim.World.CumulativeGoldMinted.Value - sim.World.CumulativeFiatIssued.Value) < 1e-3 * base0, "基礎貨幣保存の破れ");
     }
 
     [Fact]
@@ -54,8 +54,8 @@ public class FullChainTests
         var ex = Record.Exception(() => sim.Run(400));
         Assert.Null(ex);   // §11.6（保存・境界）が鋳造を含めて全ティックで保持（GoodsBalance/MoneyConservation/NonNegative）
         // 基礎貨幣の変化＝累積貿易流入＋累積鋳造（鋳造が新たな増加源）
-        Assert.True(Math.Abs(sim.World.BaseMoney.Value - base0 - sim.World.CumulativeTradeFlow - sim.World.CumulativeGoldMinted) < 1e-3 * Math.Max(1.0, base0), "鋳造込みの基礎貨幣保存の破れ");
-        Assert.True(sim.World.CumulativeGoldMinted > 0, "鋳造が一度も発生していない（金鉱の産出/在庫が無い？）");
+        Assert.True(Math.Abs(sim.World.BaseMoney.Value - base0 - sim.World.CumulativeTradeFlow.Value - sim.World.CumulativeGoldMinted.Value) < 1e-3 * Math.Max(1.0, base0), "鋳造込みの基礎貨幣保存の破れ");
+        Assert.True(sim.World.CumulativeGoldMinted.Value > 0, "鋳造が一度も発生していない（金鉱の産出/在庫が無い？）");
     }
 
     [Fact]
@@ -77,7 +77,7 @@ public class FullChainTests
         double base0 = steamSim.World.BaseMoney.Value;
         var ex = Record.Exception(() => steamSim.Run(200));
         Assert.Null(ex);   // §11.6（保存・境界）が全ティックで保持
-        Assert.True(Math.Abs(steamSim.World.BaseMoney.Value - base0 - steamSim.World.CumulativeTradeFlow - steamSim.World.CumulativeGoldMinted) < 1e-3 * Math.Max(1.0, base0), "蒸気動力込みの基礎貨幣保存の破れ");
+        Assert.True(Math.Abs(steamSim.World.BaseMoney.Value - base0 - steamSim.World.CumulativeTradeFlow.Value - steamSim.World.CumulativeGoldMinted.Value) < 1e-3 * Math.Max(1.0, base0), "蒸気動力込みの基礎貨幣保存の破れ");
         // 蒸気解禁の方が石炭の総需要が高い（動力としての石炭消費が工業に連動＝解禁前は焚かない）
         double steamCoalDemand = steamSim.World.Regions[0].Markets[Catalog.CoalId].LastDemand;
         Assert.True(steamCoalDemand > lockedCoalDemand, $"蒸気解禁で石炭の総需要が増えていない（locked={lockedCoalDemand:F1} steam={steamCoalDemand:F1}）");

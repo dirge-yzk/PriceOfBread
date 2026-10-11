@@ -46,7 +46,7 @@ public class ElectionAiTests
     private static Simulation ElectiveWorld(ulong seed)
     {
         var sim = new Simulation(WorldData.ByName("イギリス").ToScenario(seed), new NullAgent());
-        sim.World.TaxRate = 0.10; sim.World.Policy.IncomeTaxTarget = 0.10;
+        sim.World.TaxRate = new Share(0.10); sim.World.Policy.IncomeTaxTarget = 0.10;
         return sim;
     }
 
@@ -327,7 +327,7 @@ public class ElectionAiTests
     /// ⚠国庫に金を注いで作ってはいけない（貨幣保存の不変量が即座に落ちる＝実測で踏んだ）＝**物差しのほう**を動かす＝r＝1。</summary>
     private static void ClearFiscalStress(World w)
     {
-        w.FiscalFundingRatio = 1.0;
+        w.FiscalFundingRatio = new Share(1.0);
         Assert.Equal(0.0, UtilityAgent.FiscalStressOf(w), 12);
     }
 
@@ -472,7 +472,7 @@ public class ElectionAiTests
 
         // ③ 同じ危機でも**他の支出が逼迫**していれば注げない（機会費用＝軍も行政も払えていない国は選挙を買わない）
         w.Legitimacy = 1.0; w.ElectionPushIdeology = -1; w.ElectionPushStrength = 0; w.ElectionLastSpend = 0;
-        w.FiscalFundingRatio = 0.0;    // 国家の支払いの請求を1銭も払えない月（逼迫＝1−r＝1）
+        w.FiscalFundingRatio = new Share(0.0);    // 国家の支払いの請求を1銭も払えない月（逼迫＝1−r＝1）
         Assert.True(UtilityAgent.FiscalStressOf(w) > 0.9, "テスト前提の破れ：逼迫を作れていない");
         double t2 = w.Treasury.Value;
         w.PendingElection = Agenda(0, axis, inc);

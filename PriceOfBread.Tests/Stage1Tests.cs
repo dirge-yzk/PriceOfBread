@@ -23,11 +23,11 @@ public class Stage1Tests
     public void 移民を含んでも貨幣と人口は保存される()
     {
         var sim = new Simulation(new Scenario { Seed = 2, Kind = ScenarioKind.AgrarianToUrban }, new NullAgent());
-        double m0 = (sim.World.BaseMoney.Value - sim.World.CumulativeTradeFlow - sim.World.CumulativeGoldMinted - sim.World.CumulativeFiatIssued), p0 = sim.World.TotalPopulation;   // ★2026-09-29 段2-2（Q11）：全ての世界に銀行＝保存量は基礎貨幣の D（与信が預金を作るので総マネーは動く）
+        double m0 = (sim.World.BaseMoney.Value - sim.World.CumulativeTradeFlow.Value - sim.World.CumulativeGoldMinted.Value - sim.World.CumulativeFiatIssued.Value), p0 = sim.World.TotalPopulation;   // ★2026-09-29 段2-2（Q11）：全ての世界に銀行＝保存量は基礎貨幣の D（与信が預金を作るので総マネーは動く）
 
         var ex = Record.Exception(() => sim.Run(400));
         Assert.Null(ex);   // §11.6 が全ティックで保持
-        Assert.True(Math.Abs((sim.World.BaseMoney.Value - sim.World.CumulativeTradeFlow - sim.World.CumulativeGoldMinted - sim.World.CumulativeFiatIssued) - m0) < 1e-3 * m0, "貨幣保存の破れ");
+        Assert.True(Math.Abs((sim.World.BaseMoney.Value - sim.World.CumulativeTradeFlow.Value - sim.World.CumulativeGoldMinted.Value - sim.World.CumulativeFiatIssued.Value) - m0) < 1e-3 * m0, "貨幣保存の破れ");
         Assert.True(Math.Abs(sim.World.TotalPopulation - (p0 + sim.World.PopulationDelta)) < 1e-6 * p0, "人口保存の破れ");
     }
 

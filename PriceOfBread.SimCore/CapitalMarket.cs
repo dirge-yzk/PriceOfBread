@@ -12,7 +12,7 @@ namespace PriceOfBread.SimCore;
 /// </summary>
 public static class CapitalMarket
 {
-    private const int NoGdpDistressDebtRatio = 9;       // NominalGdpPerMonth≈0 かつ債務ありのときの代替（極大）債務比率（年の名目GDP の9倍＝DebtDistressRatio を越える番兵）
+    private static readonly RatioToGdpYear NoGdpDistressDebtRatio = new(9);       // NominalGdpPerMonth≈0 かつ債務ありのときの代替（極大）債務比率（年の名目GDP の9倍＝DebtDistressRatio を越える番兵）
     private const double BondConfMin = 0.2;             // 国債スプレッドが対外信認を下げる際の下限クランプ
     private const double ExchangeRateCreditFloor = 0.3; // 為替減価が対外信認を削る際の下限クランプ
 
@@ -27,14 +27,14 @@ public static class CapitalMarket
         {
             if (!Simulation.ConservationProbe) return;
             probeD ??= new double[n];
-            for (int i = 0; i < n; i++) probeD[i] = w[i].BaseMoney.Value - w[i].CumulativeTradeFlow - w[i].CumulativeGoldMinted - w[i].CumulativeFiatIssued;
+            for (int i = 0; i < n; i++) probeD[i] = (w[i].BaseMoney - w[i].CumulativeTradeFlow - w[i].CumulativeGoldMinted - w[i].CumulativeFiatIssued).Value;
         }
         void ProbeDiff(string label)
         {
             if (!Simulation.ConservationProbe || probeD is null) return;
             for (int i = 0; i < n; i++)
             {
-                double now = w[i].BaseMoney.Value - w[i].CumulativeTradeFlow - w[i].CumulativeGoldMinted - w[i].CumulativeFiatIssued;
+                double now = (w[i].BaseMoney - w[i].CumulativeTradeFlow - w[i].CumulativeGoldMinted - w[i].CumulativeFiatIssued).Value;
                 if (System.Math.Abs(now - probeD[i]) > 1e-4)
                     System.Console.Error.WriteLine($"[PROBE金融] {label} {w[i].Region.Name} {w[i].Year}年 ΔD={now - probeD[i]:F6}");
                 probeD[i] = now;
@@ -57,7 +57,7 @@ public static class CapitalMarket
             // [単位・B13] 債務/GDP＝**年次名目**（GovDebt÷(月次NominalGdpPerMonth×12)）＝Fiscal の国債の金利の dGdp と同じ物差し（2026-09-29・棚卸し fis-02）。
             //   旧＝月次名目（GovDebt÷月次NominalGdpPerMonth）＝閾値 DebtDistressRatio 2.0 は年に直すと約0.17＝国債÷年GDP が史実の水準（英1815 約2.5・仏1789 0.6〜0.8）へ
             //   立った国は対外信用の債務の項が0＝外資が逃げた。NoGdpDistressDebtRatio・信用の閾値はこの単位。
-            double debtR = ngdp[i] > 1e-9 ? w[i].GovDebt.Value / Calendar.PerMonthToPerYear(ngdp[i]) : (w[i].GovDebt.Value > 0 ? NoGdpDistressDebtRatio : 0);
+            RatioToGdpYear debtR = ngdp[i] > 1e-9 ? Calendar.ToGdpYear(w[i].GovDebt, Calendar.PerMonthToPerYear(new MoneyPerMonth(ngdp[i]))) : (w[i].GovDebt.Value > 0 ? NoGdpDistressDebtRatio : default);
             // ★AUD-09（Fiscal.cs の dGdp と同じ規律・同じ書き方）：分母の絶対値ガードだけでは微小非ゼロで比が発散し、
             //   NaN は `Math.Clamp` を素通りして CreditDebtTerm を毒する。⚠否定形で番兵へ倒す。
             //   ★有限値では厳密同値：読み手は下2行の `Clamp(1−debtR/DebtDistressRatio, 0, 1)` だけで、
@@ -154,33 +154,33 @@ public static class CapitalMarket
                 {
                     double want = c.CapitalDomesticFlightRate * distrust * InvestorSavings(w[i]);
                     double got = TakeGold(w[i], want);
-                    w[i].CapitalAbroad += got;   // 逃げた金は対外資産＝還流ループ（配当・逃避の按分）に乗る
+                    w[i].CapitalAbroad += new MoneyStock(got);   // 逃げた金は対外資産＝還流ループ（配当・逃避の按分）に乗る
                     fx -= got;
                     for (int h = 0; h < n; h++)
                     {
                         if (h == i) continue;
                         double k = got * e[i] * (cred[h] * System.Math.Max(0, ngdp[h]) * e[h] / credSum) / e[h];   // 金建ての取り分を受け皿の通貨へ
                         GiveGold(w[h], k);
-                        w[h].ForeignCapitalIn += k;
+                        w[h].ForeignCapitalIn += new MoneyStock(k);
                         fx += k;
                     }
                 }
             }
-            double flight = System.Math.Min(w[i].ForeignCapitalIn, w[i].ForeignCapitalIn * c.CapitalFlightRate * (1.0 - cred[i]));
-            if (flight > 1e-9) { taken[i] += TakeGold(w[i], flight); w[i].ForeignCapitalIn -= flight; flightTotal += flight * e[i]; }   // 払えない分も債権ごと消える（C）＝下の還流で owner も同額減る＝Σ流入＝Σ対外保有の台帳整合（消えた請求権は金建てで数える）
-            double div = w[i].ForeignCapitalIn * c.CapitalDividendRate;
+            double flight = System.Math.Min(w[i].ForeignCapitalIn.Value, (w[i].ForeignCapitalIn * c.CapitalFlightRate * (1.0 - cred[i])).Value);
+            if (flight > 1e-9) { taken[i] += TakeGold(w[i], flight); w[i].ForeignCapitalIn -= new MoneyStock(flight); flightTotal += flight * e[i]; }   // 払えない分も債権ごと消える（C）＝下の還流で owner も同額減る＝Σ流入＝Σ対外保有の台帳整合（消えた請求権は金建てで数える）
+            double div = (w[i].ForeignCapitalIn * c.CapitalDividendRate).Value;
             if (div > 1e-9) taken[i] += TakeGold(w[i], div);   // 払えない配当は積まない（未払いの負債も未収の債権も立たない）
         }
         ProbeDiff("逃避配当");
         // 按分は金建て（対外資産×為替の比）＝逃避の請求権と戻る金を金建てで配り、各国の通貨へ戻す。
-        double abroadSum = 0, backTotal = 0, takenSum = 0; for (int i = 0; i < n; i++) { abroadSum += w[i].CapitalAbroad * e[i]; backTotal += taken[i] * e[i]; takenSum += taken[i]; }
+        double abroadSum = 0, backTotal = 0, takenSum = 0; for (int i = 0; i < n; i++) { abroadSum += (w[i].CapitalAbroad * e[i]).Value; backTotal += taken[i] * e[i]; takenSum += taken[i]; }
         if (abroadSum > 1e-9 && backTotal + flightTotal > 1e-9)
         {
             fx -= takenSum;
             for (int i = 0; i < n; i++)
             {
-                double share = w[i].CapitalAbroad * e[i] / abroadSum;
-                w[i].CapitalAbroad = System.Math.Max(0, w[i].CapitalAbroad - flightTotal * share / e[i]);   // 消えた元本ぶん資産が減る（払えなかった分も＝債権者が損をかぶる）
+                double share = (w[i].CapitalAbroad * e[i]).Value / abroadSum;
+                w[i].CapitalAbroad = new MoneyStock(System.Math.Max(0, w[i].CapitalAbroad.Value - flightTotal * share / e[i]));   // 消えた元本ぶん資産が減る（払えなかった分も＝債権者が損をかぶる）
                 double k = backTotal * share / e[i];
                 GiveGold(w[i], k);
                 fx += k;
@@ -219,7 +219,7 @@ public static class CapitalMarket
                 if (!(demand[i] > 0) && supply[i] > 0)
                 {
                     double k = TakeGold(w[i], supply[i] * sFill / e[i]);   // 送り出し→対外資産（引けた額だけ・自国の通貨）
-                    w[i].CapitalAbroad += k; sent += k * e[i]; fx -= k;
+                    w[i].CapitalAbroad += new MoneyStock(k); sent += k * e[i]; fx -= k;
                 }
             int lastD = -1; for (int i = 0; i < n; i++) if (demand[i] > 0) lastD = i;
             double given = 0;
@@ -229,7 +229,7 @@ public static class CapitalMarket
                     double kg = i == lastD ? sent - given : sent * (demand[i] / totalDemand);
                     given += kg;
                     double k = kg / e[i];
-                    w[i].ForeignCapitalIn += k; GiveGold(w[i], k); fx += k;   // 流入→投資家貯蓄（工業化を支える・受け手の通貨）
+                    w[i].ForeignCapitalIn += new MoneyStock(k); GiveGold(w[i], k); fx += k;   // 流入→投資家貯蓄（工業化を支える・受け手の通貨）
                 }
         }
         ProbeDiff("新規フロー");
@@ -258,7 +258,7 @@ public static class CapitalMarket
         //     ★段3-3：比は金建て（債権×為替）・取り分の閾値（旧 1e-12）を外した＝配り切る（配り残しが換算の台帳に紛れない）。
         if (intPool > 1e-9)
         {
-            double claims = 0; for (int i = 0; i < n; i++) claims += w[i].ForeignBondClaims * e[i];
+            double claims = 0; for (int i = 0; i < n; i++) claims += (w[i].ForeignBondClaims * e[i]).Value;
             double basis = claims;
             if (basis <= 1e-9) { for (int i = 0; i < n; i++) basis += InvestorSavings(w[i]) * e[i]; }
             if (basis > 1e-9)
@@ -266,7 +266,7 @@ public static class CapitalMarket
                 fx -= intPaid;
                 for (int i = 0; i < n; i++)
                 {
-                    double share = claims > 1e-9 ? w[i].ForeignBondClaims * e[i] / claims : InvestorSavings(w[i]) * e[i] / basis;
+                    double share = claims > 1e-9 ? (w[i].ForeignBondClaims * e[i]).Value / claims : InvestorSavings(w[i]) * e[i] / basis;
                     double k = intPool * share / e[i];
                     if (k > 0) { GiveGold(w[i], k); fx += k; }
                 }
@@ -327,11 +327,11 @@ public static class CapitalMarket
     {
         int n = nations.Count;
         double g = delta * nations[i].World.FxRate, basis = 0;
-        for (int j = 0; j < n; j++) if (j != i) basis += nations[j].World.ForeignBondClaims * nations[j].World.FxRate;
+        for (int j = 0; j < n; j++) if (j != i) basis += (nations[j].World.ForeignBondClaims * nations[j].World.FxRate).Value;
         if (basis > 1e-9)
         {
             for (int j = 0; j < n; j++)
-                if (j != i) { var wj = nations[j].World; wj.ForeignBondClaims = System.Math.Max(0, wj.ForeignBondClaims * (1.0 + g / basis)); }
+                if (j != i) { var wj = nations[j].World; wj.ForeignBondClaims = new MoneyStock(System.Math.Max(0, (wj.ForeignBondClaims * (1.0 + g / basis)).Value)); }
             return;
         }
         if (!(g > 0)) return;
@@ -339,6 +339,6 @@ public static class CapitalMarket
         for (int j = 0; j < n; j++) if (j != i) inv += InvestorSavings(nations[j].World) * nations[j].World.FxRate;
         if (inv > 1e-9)
             for (int j = 0; j < n; j++)
-                if (j != i) { var wj = nations[j].World; wj.ForeignBondClaims += g * (InvestorSavings(wj) * wj.FxRate / inv) / wj.FxRate; }
+                if (j != i) { var wj = nations[j].World; wj.ForeignBondClaims += new MoneyStock(g * (InvestorSavings(wj) * wj.FxRate / inv) / wj.FxRate); }
     }
 }

@@ -584,7 +584,7 @@ public static class CrownParliament
         Slider(w.Tariff, p.TariffTarget);                    // 関税（保護/自由貿易）
         Slider(w.SocialSecurity, p.SocialSecurityTarget);    // 福祉
         Slider(w.ProgressiveTax, p.ProgressiveTaxTarget);    // 累進
-        Slider(w.TaxRate, p.IncomeTaxTarget);                // 所得税（予算権の物差し＝§2-C 予算闘争の核）
+        Slider(w.TaxRate.Value, p.IncomeTaxTarget);                // 所得税（予算権の物差し＝§2-C 予算闘争の核）
         return n > 0 ? sum / n : 0.0;
     }
 }

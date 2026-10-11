@@ -768,7 +768,7 @@ public class PolicyPoliticsTests
         var w = sim.World;
         double buffer = UtilityAgent.FiscalBufferOf(w);
         Assert.True(buffer > 1.0, "前提が崩れた：月次の義務が無い盤面＝安全水準が測れない");
-        void Step(UtilityAgent.Stance s, double r, double treasury) { w.FiscalFundingRatio = r; w.SetTreasuryRaw(treasury); UtilityAgent.Apply(w, s); }
+        void Step(UtilityAgent.Stance s, double r, double treasury) { w.FiscalFundingRatio = new Share(r); w.SetTreasuryRaw(treasury); UtilityAgent.Apply(w, s); }
         // ① 教義の床：近代化＝段1（物品税の財）
         w.SetStateMonopolyTier(0);
         Step(UtilityAgent.Stance.Modernize, 1.0, 0.5 * buffer);
@@ -1038,10 +1038,10 @@ public class PolicyPoliticsTests
         Assert.Equal(navy, p.NavyUpkeepTarget);
         Assert.Equal(stage, Government.MilitaryTotalTarget(w, p));
 
-        w.TaxRate = 0.40;                 // 税も同じ＝段はプレイヤー旗に依存しない
-        double tax = Government.Q4(PolicyAxis.IncomeTax, w.TaxRate);
+        w.TaxRate = new Share(0.40);                 // 税も同じ＝段はプレイヤー旗に依存しない
+        double tax = Government.Q4(PolicyAxis.IncomeTax, w.TaxRate.Value);
         w.SelfPower!.IsPlayer = false;
-        Assert.Equal(tax, Government.Q4(PolicyAxis.IncomeTax, w.TaxRate));
+        Assert.Equal(tax, Government.Q4(PolicyAxis.IncomeTax, w.TaxRate.Value));
     }
 
     // ★主張の書き直し（作者裁定2026-09-19 M2）：旧主張＝「AI が総動員すれば段4へ乗る」（総動員が段を強制していた）。
@@ -1098,11 +1098,11 @@ public class PolicyPoliticsTests
     {
         var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
         var w = sim.World;
-        w.TaxRate = 0.34;   // 最上段（錨 0.35）へ漸近した途中（Move は目標に到達しない）
+        w.TaxRate = new Share(0.34);   // 最上段（錨 0.35）へ漸近した途中（Move は目標に到達しない）
 
         // ★主張の書き直し（2026-09-20 段の点火）：旧の対照「ゲート0では実効値そのもの（0.95）＝与えきっても要求が消えない」は旗とともに消えた。
         //   同じ主張＝「位置は実効値でなく段で測る」を、実効値（0.34）と段の位置（1.0）が食い違う盤面で直接見る。
-        Assert.NotEqual(w.TaxRate, FactionSnapshot.AxisPosition(w, PolicyAxis.IncomeTax));
+        Assert.NotEqual(w.TaxRate.Value, FactionSnapshot.AxisPosition(w, PolicyAxis.IncomeTax));
         Assert.Equal(1.0, FactionSnapshot.AxisPosition(w, PolicyAxis.IncomeTax));           // 段の序数/3＝最上段
         Assert.Equal(0.0, FactionSnapshot.Headroom(w, PolicyAxis.IncomeTax, increase: true));   // 要求が消える
         w.PollTax = 0.02;                                                                   // 下限側も対称（何も課していない＝下げる要求が消える）
@@ -1143,7 +1143,7 @@ public class PolicyPoliticsTests
         w.PoliticalLockEnabled = false;   // 政治的可否と直交な機構の単体検証（Move/MandateGate/GateInfo が共有する隔離弁）
         w.FiscalEnabled = true;
         Assert.True(w.NominalGdpPerMonth.Value > 1e-9, "前提が崩れた：GDPが無い世界では緊縮強度を立てられない");
-        w.GovDebt = new MoneyStock((Calendar.PerMonthToPerYear(w.NominalGdpPerMonth) * (w.Coef.AusterityStartDebt + w.Coef.AusterityRange)).Value);   // 緊縮強度＝満額1.0
+        w.GovDebt = new MoneyStock((Calendar.PerMonthToPerYear(w.NominalGdpPerMonth) * (w.Coef.AusterityStartDebt + w.Coef.AusterityRange).Value).Value);   // 緊縮強度＝満額1.0
         return w;
     }
 
@@ -1205,14 +1205,14 @@ public class PolicyPoliticsTests
         var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
         var w = sim.World; var c = w.Coef;
         w.AdminPowerSmoothed = 0.0;                                     // 査定機構が未熟な国（旧なら段0＝所得税0だけが合法）
-        w.FiscalFundingRatio = 0.9;   // ★盤面の直し（2026-09-30 (127)）：所得税の導入の前提は払えない請求（r＜1）＝行政力ではない。前提を満たした盤面で「行政力の腕が無い」ことを測る
+        w.FiscalFundingRatio = new Share(0.9);   // ★盤面の直し（2026-09-30 (127)）：所得税の導入の前提は払えない請求（r＜1）＝行政力ではない。前提を満たした盤面で「行政力の腕が無い」ことを測る
         for (int stage = 1; stage <= Government.TaxLawStages; stage++)
         {
             Assert.True(Government.LawPrereq(w, PolicyAxis.IncomeTax, stage, c).Ok,
                 $"行政力0の国が所得税の段{stage}を押せない＝天井が残っている（{Government.LawPrereq(w, PolicyAxis.IncomeTax, stage, c).Reason}）");
-            w.TaxRate = stage / (double)Government.TaxLawStages;   // 1段ずつ登る（段の飛び越し禁止は別の前提＝限界ではない）
+            w.TaxRate = new Share(stage / (double)Government.TaxLawStages);   // 1段ずつ登る（段の飛び越し禁止は別の前提＝限界ではない）
         }
-        w.TaxRate = 0;
+        w.TaxRate = new Share(0);
         // 累進は**法の前提**（官僚制度＝資格任用以上）を持つ＝これは限界でなく法から法への前提なので残る。
         // 残っている理由が「行政力」でないこと＝廃止した天井の残骸が無いことを名指しで確かめる。
         w.Bureaucracy = BureaucracyLaw.Spoils;
@@ -1231,8 +1231,8 @@ public class PolicyPoliticsTests
         for (int q = 0; q < 40; q++) Government.Step(w, w.Coef);
         Assert.True(w.AdminPowerSmoothed < 0.5, $"前提が崩れた：行政力が育ってしまい天井の有無を測れない（{w.AdminPowerSmoothed:F3}）");
         // 行政力0の国＝旧の天井は厳密に0（率も0）。Move が漸近＝40四半期で最上段には届かないが、錨の8割を超えて登る。
-        Assert.True(w.TaxRate > 0.8 * Government.IncomeTaxTop, $"行政力が低い国の所得税が上がらない＝どこかに天井が残っている（{w.TaxRate:F3}）");
-        Assert.True(w.TaxRate <= Government.IncomeTaxTop, $"最上段を越えた（{w.TaxRate:F3}）");
+        Assert.True(w.TaxRate.Value > 0.8 * Government.IncomeTaxTop, $"行政力が低い国の所得税が上がらない＝どこかに天井が残っている（{w.TaxRate.Value:F3}）");
+        Assert.True(w.TaxRate.Value <= Government.IncomeTaxTop, $"最上段を越えた（{w.TaxRate.Value:F3}）");
     }
 
     [Fact]
@@ -1273,7 +1273,7 @@ public class PolicyPoliticsTests
         {
             var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
             var w = sim.World;
-            w.Coef.AusterityStartDebt = 99;   // 緊縮の逆進フロアを隔離＝「選んだ税率」だけを対照にする（旧クリップが低税側を押し上げると対照が壊れる）
+            w.Coef.AusterityStartDebt = new RatioToGdpYear(99);   // 緊縮の逆進フロアを隔離＝「選んだ税率」だけを対照にする（旧クリップが低税側を押し上げると対照が壊れる）
             // 開幕の国債（仏1783＝world.json の govDebt）を消す＝国債の流れを隔離（2026-09-30 (135)）：連合維持費を撤去した後は、軽税の世界が国債を払えず不履行
             //   （大衆の暴動・信用の凍結）へ・重税の世界は利子を資本家へ払う＝税の差でなく国債の差が充足を動かし、鎖の向きが逆に見えた（充足 0.1068→0.1084）。
             w.GovDebt = new MoneyStock(0); w.ForeignDebt = new MoneyStock(0); foreach (var rg in w.Regions) foreach (var pp in rg.Pops) pp.BondHoldings = new MoneyStock(0);
@@ -1305,7 +1305,7 @@ public class PolicyPoliticsTests
             var w = sim.Nations[0].World;
             w.PoliticalLockEnabled = false;
             w.FiscalEnabled = true;
-            w.GovDebt = new MoneyStock((Calendar.PerMonthToPerYear(w.NominalGdpPerMonth) * (w.Coef.AusterityStartDebt + w.Coef.AusterityRange)).Value);   // 緊縮＝満額（債務÷年の名目GDP）
+            w.GovDebt = new MoneyStock((Calendar.PerMonthToPerYear(w.NominalGdpPerMonth) * (w.Coef.AusterityStartDebt + w.Coef.AusterityRange).Value).Value);   // 緊縮＝満額（債務÷年の名目GDP）
             w.SelfPower!.IsPlayer = isPlayer;                                          // 同じ盤面で「プレイヤーである」ことだけを変える
             w.Policy.PollTaxTarget = 0; w.PollTax = 0;
             w.Policy.SocialSecurityTarget = 1.0; w.SocialSecurityLaw = SocialSecurityLaw.Pension;

@@ -52,7 +52,7 @@ public class MilitaryTests
     {
         var (sim, locked) = LockedBritain(2, force: true);
         var w = sim.World;
-        static double D(World w) => w.BaseMoney.Value - w.CumulativeTradeFlow - w.CumulativeGoldMinted - w.CumulativeFiatIssued;
+        static double D(World w) => w.BaseMoney.Value - w.CumulativeTradeFlow.Value - w.CumulativeGoldMinted.Value - w.CumulativeFiatIssued.Value;
         double p0 = w.TotalPopulation - w.PopulationDelta, d0 = D(w);
         var ex = Record.Exception(() => sim.Run(6));
         Assert.Null(ex);
@@ -337,7 +337,7 @@ public class MilitaryTests
         var target = InvasionTarget(sim);
         Assert.NotNull(target);
         w.ExpansionWill = 1e12; me.Military = 1e9; target.Military = 1.0;
-        w.FiscalFundingRatio = 1.0;
+        w.FiscalFundingRatio = new Share(1.0);
         int[] goods = [Catalog.SailingShipId, Catalog.SteamshipId, Catalog.CannedFoodId, Catalog.QuinineId];
         var m = w.Region.Markets;
         foreach (int g in goods) m[g].Stock = 1e6;
@@ -381,7 +381,7 @@ public class MilitaryTests
             int n = 0;
             foreach (var r in w.Regions) if (r.State == RegionState.Active && r.Tier == RegionTier.Colonial) { n++; foreach (var p in r.Pops) p.Militancy = militancy; }
             Assert.True(n > 0, "前提が崩れた：英に植民地格の州が無い");
-            w.FiscalFundingRatio = 0.7;
+            w.FiscalFundingRatio = new Share(0.7);
             double led0 = w.TreasuryLedger[(int)TreasuryCat.ColonialUpkeep];
             Colonial.Step(w, w.Coef);
             return (w.LastColonialUpkeepPerMonth.Value, w.TreasuryLedger[(int)TreasuryCat.ColonialUpkeep] - led0, SavingsOf(w).sav);
@@ -491,7 +491,7 @@ public class MilitaryTests
             foreach (var pr in cap.Producers)
                 if (pr.GoodId >= 0 && pr.GoodId < cap.Markets.Length && Catalog.Goods[pr.GoodId].Tier != GoodTier.Service && pr.Output > best) { best = pr.Output; good = pr.GoodId; }
             Assert.True(good >= 0, "前提が崩れた：首都に財の生産者がいない");
-            w.FiscalFundingRatio = 1.0;
+            w.FiscalFundingRatio = new Share(1.0);
             cap.Markets[good].Stock = 1e9;
             Colonial.BuyUpkeepGood(w, cap, good, scale * best, TreasuryCat.ColonialUpkeep);
             var (pops, sav) = SavingsOf(w);
@@ -519,7 +519,7 @@ public class MilitaryTests
     {
         var (sim, locked) = LockedBritain(3, force: true);
         var w = sim.World; var c = w.Coef; var cap = w.Region;
-        w.FiscalFundingRatio = 1.0;
+        w.FiscalFundingRatio = new Share(1.0);
         var rates = EconomyStep.DiscoveredRates(cap, c, c.MilitaryGoods, c.MilitaryRates);
         var land = new List<int>(); var fleet = new List<int>();
         for (int b = 0; b < c.MilitaryGoods.Length; b++)
@@ -1291,7 +1291,7 @@ public class MilitaryTests
             w.Coef.MilitaryEnvelopeShare = env;
             for (int d = 0; d < Calendar.DaysPerMonth; d++) sim.StepDay();
             var s = w.Region.Pops[w.Region.SoldierPopIndex];
-            return (s.UnemploymentRate, w.FiscalFundingRatio);
+            return (s.UnemploymentRate, w.FiscalFundingRatio.Value);
         }
         var big = Arm(1e9); var tiny = Arm(1e-12);
         Assert.True(Math.Abs(big.u - (1 - big.r)) <= 1e-12, $"大きい器で未払い {big.u} ≠ 1−r {1 - big.r}");
@@ -2110,8 +2110,8 @@ public class MilitaryTests
             sim.StepDay();
             double ceil = 0;
             foreach (var r in w.Regions) if (r.State == RegionState.Active) ceil += r.MilitaryBudgetCeiling;
-            Assert.True(w.FiscalFundingRatio > 0, $"前提が崩れた：国家の支払い率 {w.FiscalFundingRatio}");
-            return (ceil / w.FiscalFundingRatio, w.LastSoldierPayPerMonth.Value, w.Region.MilitaryWarMultLast);   // 請求（r を掛ける前）＝装備の必要額は戦時の倍率で違う＝r が双子で違う
+            Assert.True(w.FiscalFundingRatio.Value > 0, $"前提が崩れた：国家の支払い率 {w.FiscalFundingRatio.Value}");
+            return (ceil / w.FiscalFundingRatio.Value, w.LastSoldierPayPerMonth.Value, w.Region.MilitaryWarMultLast);   // 請求（r を掛ける前）＝装備の必要額は戦時の倍率で違う＝r が双子で違う
         }
         var hi = Twin(new Coefficients().MilitaryWarMult); var lo = Twin(1.0);
         Assert.True(hi.warMult > lo.warMult && hi.warMult > 1, $"前提が崩れた：戦時の倍率 {hi.warMult}／{lo.warMult}");
@@ -2181,13 +2181,13 @@ public class MilitaryTests
             for (int d = 0; d < Calendar.DaysPerMonth - 1; d++) sim.StepDay();
             w.Mobilized = mobilized; w.SetMilitarySpending(1.0, w.NavalSpendShare);   // 月の決算の直前に戦時段（段4 の施行）へ＝四半期の頭の施行は通らない
             w.Policy.MilitarySpendingTarget = target;                                 // ★(177) 選んだ目標の段（戦時段の割合は目標の段で頭打ち）
-            c.BorrowFractionOfGdp = frac;
+            c.BorrowFractionOfGdp = new Share(frac);
             Assert.True(Fiscal.BorrowGateOpen(w, c), $"前提が崩れた：借入の門が閉じている（冷却 {w.BorrowCooldownMonths}・利払い {w.LastInterestPerMonth:G6}・歳入 {w.LastRevenuePerMonth:G6}）");
             sim.StepDay();
             double ceil = 0;
             foreach (var r in w.Regions) if (r.State == RegionState.Active) ceil += r.MilitaryBudgetCeiling;
-            Assert.True(w.FiscalFundingRatio > 0, $"前提が崩れた：国家の支払い率 {w.FiscalFundingRatio}");
-            return ceil / w.FiscalFundingRatio;   // 請求（r を掛ける前）
+            Assert.True(w.FiscalFundingRatio.Value > 0, $"前提が崩れた：国家の支払い率 {w.FiscalFundingRatio.Value}");
+            return ceil / w.FiscalFundingRatio.Value;   // 請求（r を掛ける前）
         }
         double a = Twin(0.10, true), b = Twin(0.20, true), c3 = Twin(0.30, true);
         double d20 = b - a, d30 = c3 - a;

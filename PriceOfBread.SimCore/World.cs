@@ -625,7 +625,7 @@ public sealed class World
         if (!(s > 0)) return 0;              // NaNガードは否定形（Clamp は NaN を消さない）
         double fc = FiscalCapacityPerMonth.Value;
         if (!(fc > 0)) return 0;             // 裁量余剰が無い国は1銭も注げない（借金してまでは買わない＝福祉と同じ財源）
-        return fc * s * FiscalFundingRatio;  // ★国家の支払い率 r の分だけ注げる（全ての国家の支払いと同じ1本の率・2026-09-28 段2-1）＝払う額も効きもこの1本を読む
+        return fc * s * FiscalFundingRatio.Value;  // ★国家の支払い率 r の分だけ注げる（全ての国家の支払いと同じ1本の率・2026-09-28 段2-1）＝払う額も効きもこの1本を読む
     }
 
     /// <summary>★E3''：効きの逓減の**半減点**（<see cref="Coefficients.ElectionPushHalfPerVoter"/>×有権者数×一人あたり名目所得）。
@@ -818,13 +818,14 @@ public sealed class World
     /// <summary>世界の外の側の台帳への記帳（<see cref="Transfer"/> の中の1か所だけが呼ぶ）。<paramref name="delta"/>＝流入が正・流出が負。</summary>
     private static void Book(World w, Outside k, double delta)
     {
+        var d = new MoneyStock(delta);   // 動いた額（double の継ぎ目＝移し方の1本の戻り値）を1回だけ在庫の型へ（5つの台帳が同じ型で足し引きする）
         switch (k)
         {
-            case Outside.Mint: w.CumulativeGoldMinted += delta; break;
-            case Outside.Fiat: w.CumulativeFiatIssued += delta; break;
-            case Outside.Credit: w.Bank!.Loans += new MoneyStock(delta); break;
-            case Outside.HouseholdCredit: w.Bank!.HouseholdLoans += new MoneyStock(delta); break;
-            default: w.CumulativeTradeFlow += delta; break;
+            case Outside.Mint: w.CumulativeGoldMinted += d; break;
+            case Outside.Fiat: w.CumulativeFiatIssued += d; break;
+            case Outside.Credit: w.Bank!.Loans += d; break;
+            case Outside.HouseholdCredit: w.Bank!.HouseholdLoans += d; break;
+            default: w.CumulativeTradeFlow += d; break;
         }
     }
 
@@ -952,7 +953,7 @@ public sealed class World
     public double LostRegionsCumulative { get; internal set; }   // 機能7-2（2026-07-28）：失地の長期ストック＝割譲された州数の累計（半減期つき減衰＝Politics.Step）。r[4]ナショナリズムの長期項（アルザス＝ロレーヌ1871→1914）。裁定（機能7-未決2）＝案A採用（案B=現版図−初期版図は建国・統一で意味が壊れる）
     public double VictoryShock { get; internal set; }   // 機能8-②（2026-07-28）：戦勝ショック＝DefeatShockの鏡（決定的勝利で1.0・四半期減衰）。r[4]/r[8]の短期燃料（戦勝→主戦論＝日本型）
     public double FamineMemory { get; internal set; }   // 機能8-④（2026-07-28）：飢えの記憶ストック（毎期 減衰+max(0,飢饉基準−FoodFill)）。r[3]/r[5]の燃料＝飢饉は過ぎても急進思想として残る（1789）
-    public double ForeignBondClaims { get; internal set; }        // 02断線走査（2026-07-28）：対外債権残高＝自国投資家が持つ他国外債の元本（CapitalMarketが四半期繰上げ・利払い配当の按分キー）。レンティア帝国（シティ/パリ）の物質的基盤
+    public MoneyStock ForeignBondClaims { get; internal set; }        // 02断線走査（2026-07-28）：対外債権残高＝自国投資家が持つ他国外債の元本（CapitalMarketが四半期繰上げ・利払い配当の按分キー）。レンティア帝国（シティ/パリ）の物質的基盤
     public MoneyStock PrevForeignDebt { get; internal set; }           // 02断線走査：前四半期のForeignDebt（Δ＝新規/償還の検出用・CapitalMarketが更新）
     public double ForeignIntPaidThisQuarter { get; internal set; } // 02断線走査：この四半期に払った対外の利子と元本（元本は2026-09-22〜）の累計（Fiscalが月次加算・CapitalMarketが債権国へ配当して0クリア）。⚠名前は利子だけ＝セーブの名前表の互換のため据え置き
     public bool HadCivilWar { get; internal set; }       // 内戦を経験したか（テレメトリ）
@@ -987,7 +988,7 @@ public sealed class World
 
     // --- 国庫・財政（§9-F／§6.2・段4b）---
     public bool FiscalEnabled { get; internal set; }
-    public double TaxRate { get; internal set; }
+    public Share TaxRate { get; internal set; }
     // ★国庫の台帳（2026-08-13・作者指示「国庫に触るものは全て財政タブに入れる」）。
     //
     // 旧＝ヘッダーの収支（国庫の実績変化）と財政タブの収支（経常予算の予想）が一致しなかった。
@@ -1047,7 +1048,7 @@ public sealed class World
     /// 書き手は月初の1か所（Simulation の月次決算で予算を立てた直後）。全ての国家の支払いの行がこの同じ r を掛けて払う（優先順位を作らない）。
     /// 借入は r＜1 の月だけ・減債は r＝1 の月の余剰から（Fiscal）。AI の逼迫度＝1−r（UtilityAgent.FiscalStressOf）。
     /// 旧＝維持費を払えた割合（Fiscal の滝の2番目）＝治安維持力・兌換の門・最後の貸し手・同盟参戦は今は支払い全般の不足に反応する。</summary>
-    public double FiscalFundingRatio { get; internal set; } = 1.0;
+    public Share FiscalFundingRatio { get; internal set; } = new Share(1.0);
     public MoneyPerMonth FiscalCapacityPerMonth { get; internal set; }   // 直近の税収フロー（EMA）。公共サービス予算（行政/福祉/インフラ/軍需）の基準＝国庫ストックでなく歳入から支弁＝国庫0でも機能（funding修正2026-06-18）
     public MoneyPerMonth LastRevenuePerMonth { get; internal set; }       // 診断：当月の予算の基数＝純税収（汚職漏れ控除後）＋間接税（月次の流れ・Fiscal.Step が毎月書く。旧注記「直近四半期」は誤り＝(243) で訂正）
     public MoneyPerMonth LastInterestPerMonth { get; internal set; }      // 診断：当月の利払い（月次の流れ・残高×クーポン÷12。旧注記「直近四半期」は誤り＝(243) で訂正）
@@ -1141,7 +1142,7 @@ public sealed class World
     public double BondPrice => GovBondRatePerYear.Value > 1e-9 ? Coef.BondBaseRatePerYear / GovBondRatePerYear : 1.0;
     public MoneyStock ForeignDebt { get; internal set; }   // うち海外保有分（対外債務＝利払い/不履行が対外）
     public double CumulativeDevaluation { get; internal set; }   // 累積の通貨切り下げ額（債務不履行で全popの貯蓄を希薄化＝インフレ税）。**挙動の被乗数**＝資本逃避の不信（CapitalMarket）・通貨改革と兌換の再加入の門（Fiscal の broken）・AI の改革の判断が読む（02断線走査2026-07-28：旧「診断・歴史」注記は削除リファクタで壊す危険があった）。⚠国債の金利（信認の喪失）は 2026-09-29 から累積でなく直近の切り下げの速さ（Fiscal.Step の devalued）を読む
-    public double CumulativeFiatIssued { get; internal set; }    // 累積の不換新規発行（fiat-expansion-as-haircut-not-issue）。基礎貨幣の正当な増加源＝貨幣保存の基準に算入（鋳造CumulativeGoldMintedと同型）。FiatIssueFrac=0で常に0＝較正中立
+    public MoneyStock CumulativeFiatIssued { get; internal set; }    // 累積の不換新規発行（fiat-expansion-as-haircut-not-issue）。基礎貨幣の正当な増加源＝貨幣保存の基準に算入（鋳造CumulativeGoldMintedと同型）。FiatIssueFrac=0で常に0＝較正中立
     // 借入（Fiscal の1行＝国家の支払い率 r＜1 の月にエンジンが自動で借りる・2026-09-28 作者裁定「借入は自動化・借金ボタンは不要」＝予約の列 BorrowQueue と RequestBorrow を削除）。借入額＝min(1件の額, 月初の払えない額)。
     //   上限＝利払い÷歳入（Coefficients.MaxInterestShareOfRevenue・2026-09-28）＝旧の借入スタック BorrowStacks（過去の1件の額で数えた借入の累計）は上限が読まなくなり削除（思想⑩・棚卸し fis-01）。
 
@@ -1164,8 +1165,8 @@ public sealed class World
     public bool HadSovereignDefault { get; internal set; }        // 過去にデフォルトしたか（年表・診断）
 
     // --- 国際・世界市場（§5.1・段4d）---
-    public double CumulativeTradeFlow { get; internal set; }   // 累積純貿易流入（金流）。保存則の基準に算入
-    public double CumulativeGoldMinted { get; internal set; }  // 累積の鋳造（本位金属→正貨）。基礎貨幣の正当な増加源＝貨幣保存の基準に算入（ゴールドラッシュ＝マネー膨張）。GoldMintFraction=0で常に0＝較正中立
+    public MoneyStock CumulativeTradeFlow { get; internal set; }   // 累積純貿易流入（金流）。保存則の基準に算入
+    public MoneyStock CumulativeGoldMinted { get; internal set; }  // 累積の鋳造（本位金属→正貨）。基礎貨幣の正当な増加源＝貨幣保存の基準に算入（ゴールドラッシュ＝マネー膨張）。GoldMintFraction=0で常に0＝較正中立
     // ★銀の世界価格（銀本位doc G6・2026-08-13）。MultiNationSim が四半期ごとに配る共有スカラー（World は国際市場を見られない）。
     // 0＝未注入＝銀本位の平価補正を行わない（単独国シナリオ・休眠時）。⚠この値は診断でなく為替の入力なので、読む側は必ず有限性を確かめる。
     public double WorldSilverPrice { get; internal set; }
@@ -1634,11 +1635,11 @@ public sealed class World
     /// <summary>国境をまたぐ払いの換算に使う為替（金建て÷自国の通貨）。清算と同じ守り＝1e-9 以下と NaN は平価1（否定形）。
     /// 読み手＝貿易の清算（BilateralMarket）・移し方の1本（<see cref="Transfer"/>）・国際金融（CapitalMarket）・財政の請求の見込み（Simulation）。</summary>
     internal double FxRate => ExchangeRate > 1e-9 ? ExchangeRate : 1.0;
-    private double _prevTradeFlow;
+    private MoneyStock _prevTradeFlow;
     // 国際金融（第3b段・民間外資＝A案）。資本は材の清算型で高収益国へ流れ、工業化を支え、配当を本国へ送り、信用崩壊で逃避する。
     // ForeignCapitalIn＝この国にある外資（負債・配当を払う）／CapitalAbroad＝この国が他国に持つ資本（資産・配当を受ける）。世界で Σ流入＝Σ対外保有＝保存。
-    public double ForeignCapitalIn { get; internal set; }
-    public double CapitalAbroad { get; internal set; }
+    public MoneyStock ForeignCapitalIn { get; internal set; }
+    public MoneyStock CapitalAbroad { get; internal set; }
     public double FiatInflationPressure { get; internal set; }   // 不換国の紙幣増発（通貨切下げ）が積む物価上昇圧。UpdatePriceLevel が P に反映し消費＝印刷→インフレ→実質債務減
     // 金本位制（段4-貨幣 第2段）。加入＝信用ゲート（低債務＋払える財政）／加入中＝黄金の足枷（通貨切下げ封印・正貨流出でデフレ輸入・国債金利は信用で優遇）。
     // ★通貨制度の政治化（点火2026-08-01）：金本位は「政府が決めるスイッチ」ではなく**議会が通す法**である。
@@ -1742,7 +1743,7 @@ public sealed class World
         ExpectedInflationPerYear += new RatePerYear(Coef.InflationExpectationSmoothing * (infl - ExpectedInflationPerYear.Value));   // EMA
 
         // 為替レート（第3a段・兌換連続化）：完全兌換は平価1.0／不換は PPP(1/P)＋貿易収支でオーバーシュート。兌換可能性で目標を補間（部分兌換＝平価に半ば縛られる）。
-        double tradeBal = CumulativeTradeFlow - _prevTradeFlow; _prevTradeFlow = CumulativeTradeFlow;   // 当期の対外金収支（黒字>0＝流入）
+        double tradeBal = (CumulativeTradeFlow - _prevTradeFlow).Value; _prevTradeFlow = CumulativeTradeFlow;   // 当期の対外金収支（黒字>0＝流入）
         double ppp = 1.0 / Math.Max(0.1, PriceLevel);   // 購買力平価：インフレ分だけ対外減価
         // 為替バイアス＝貿易収支（赤字→減価/黒字→増価）＋政策金利（高金利→資本流入→自国通貨高＝バンクレートでペッグ防衛）。
         double bias = Math.Clamp(tradeBal / Math.Max(1.0, gdp * PriceLevel) * c.ExchangeTradeAdjust + c.PolicyRateFxWeight * InterestRate, -0.2, 0.2);   // gdp×PriceLevel＝NominalGdpPerMonth（MonetaryEnabled は冒頭で保証）
@@ -1930,7 +1931,7 @@ public sealed class World
                 if (p.ConstructionLeft <= 0) continue;
                 // ★工賃は国家の支払い率 r の分だけ払い、工事も r の分だけ進む（作者裁定 F3・2026-09-28 段2-1）＝旧の門（国庫が1日分に満たない日は丸休み）を撤去。
                 //   材料（EconomyStep.AccumulateFactoryBuild）も同じ r ＝工賃と材料が同じ1本の率で細る。
-                double step = buildAfford * FiscalFundingRatio;
+                double step = buildAfford * FiscalFundingRatio.Value;
                 if (!(step > 1e-9)) continue;                             // 否定形＝NaN は進めない
                 // ★旬次（S3c）：働く日数 n＝日次の写像（1日に step 進み、残りが 1e-9 以下で完成）が完成までに回る日数と h の小さい方（h=1 なら1＝旧来）。
                 int n = 1;

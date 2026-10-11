@@ -167,7 +167,7 @@ public class StartWarmupTests
         for (int i = 0; i < names.Count; i++)
         {
             var w = bare.Nations[i].World;
-            Assert.Equal(0.0, w.TaxRate);
+            Assert.Equal(0.0, w.TaxRate.Value);
             Assert.Equal(Government.TaxValue(PolicyAxis.PollTax, cfgs[i].PollTaxStage), w.PollTax);
             Assert.Equal(Government.TaxValue(PolicyAxis.LandTax, cfgs[i].LandTaxStage), w.LandTax);
         }

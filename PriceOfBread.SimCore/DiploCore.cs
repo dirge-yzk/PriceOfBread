@@ -104,7 +104,7 @@ public static class DiploCore
             s[k] = v;
         }
         // ⑧金融＝対外資本ポジション（債権+／債務−）・GDP比。目盛りは FinanceScale（観測で較正＝probe が生値も出す）
-        double net = (w.CapitalAbroad - w.ForeignCapitalIn) / System.Math.Max(1.0, w.NominalGdpPerMonth.Value);
+        double net = (w.CapitalAbroad - w.ForeignCapitalIn).Value / System.Math.Max(1.0, w.NominalGdpPerMonth.Value);
         double f = System.Math.Clamp(net / FinanceScale, -1, 1);
         if (!(f >= -1 && f <= 1)) f = 0;
         s[(int)Cat.Finance] = f;

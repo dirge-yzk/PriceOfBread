@@ -146,7 +146,7 @@ public class SteelMarketAiTests
         {
             var w = FourNations().Nations[0].World;
             GiveBuildRoom(w, 0.5);   // 国庫＝バッファの半分（旧の緩和なしのガードなら止まる額）
-            w.FiscalFundingRatio = r;
+            w.FiscalFundingRatio = new Share(r);
             var rg = w.Regions[0];
             var pr = PickBuildable(rg);
             rg.Markets[pr.GoodId].Price = 2.0 * RefAnchor(rg, pr.GoodId);   // relExcess=1.0＝不足の深い財

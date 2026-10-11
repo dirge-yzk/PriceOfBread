@@ -72,7 +72,7 @@ public static class PowerShares
     /// ⚠分母が0（税も債務も無い）＝掌握できる歳入が無い → 0（倒し先を明示）。</summary>
     public static double ParliamentGrip(World w)
     {
-        double annual = System.Math.Max(0, w.TaxRate) + System.Math.Max(0, w.ProgressiveTax);
+        double annual = System.Math.Max(0, w.TaxRate.Value) + System.Math.Max(0, w.ProgressiveTax);
         // ★専売の項（2026-09-20）＝**実効平均率**＝専売の広さ×標準率（standing の単位＝率を保つ）。
         //   ⚠ここは**政策軸を読んでいない**（PolicyAxis.StateMonopoly は同日に撤去した）＝読むのは実収入の率であり、
         //     第109条が言う「既存の税および賦課」＝常設歳入の分母の一部。プロイセンの製粉屠畜税がまさにこれ（上の引用）。
