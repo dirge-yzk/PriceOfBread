@@ -6,6 +6,7 @@
                        ★(259) 総動員の列（mobilizedFlag）の直後に戦時段と行政の請求の2つの式の28列（接頭辞 warStage・militaryStage・warScale・homeLosing・aiPicked・atWar・admin・payRate＝名前は実装ログ (259) §1）
                        ★(260) 末尾の6列＝国営の棟の着工と完成（stateFacilityStartedCount・stateFacilityStartedGateClosedCount〔うち着工の時点で発見の門が閉じていた〕・stateFacilityCompletedCount・stateFacilityCompletedGateClosedCount〔うち完成の月に門が閉じていた〕・stateFacilityCompletedGateClosedAtStartCount〔その完成のうち着工の時点でも閉じていた〕＝四半期の件数）と supplyFillShare（人口加重の供給の充足＝補給崩壊の物差し・0.3 を割る国×四半期のうち人口100千人以上を数える）
   fiscal_s<seed>.tsv   挙げた国（POB_INSTRUMENTS_NATIONS）の月ごとの財政の鎖。★(258) borrowGateOpenFlag・directTaxNetPerMonth・indirectRevenuePerMonth／★(259) 行政の請求の7列（adminClaimFiscalPerMonth・adminSpendableAtBudgetPerMonth・adminFillShare ほか）
+  flow_s<seed>.tsv     ★(262) 貯蓄の書き手の台帳（挙げた国だけ・四半期ごと）＝quarter・year・nation・classId・kind〔settle＝月末の精算・give／giveIncome＝受け取り〔所得に書かない／書く〕・take＝払い・carryIn／carryOut＝人と動くお金・regionIn／regionOut＝州が国をまたぐ・rebase＝国が替わる換算〕・sourceFile／sourceLine（World.Transfer／Pop.Blend の呼び出しの位置）・counterpartySide〔P＝POP・T＝国庫・B／M／F／C／H＝世界の外の台帳の種類・-＝なし〕・amountPerMonth（四半期の月平均）・eventCount。階級の貯蓄の在庫の四半期の差が書き手の和に閉じる（読み手 flow262/an_flow262.py）
   stock_s<seed>.tsv    在庫・即応度・装備・年末の行（time が q<番号> で番号%4==3）に艦隊のゲージ・技術水準・鉄道の容量・工場の蒸気動力の割合・交戦中か
   wars_s<seed>.tsv     戦争1本ごと（開戦の年・内戦か・当事者・月数・戦死）
   casualty_s<seed>.tsv (年, 国)ごとの兵士の月和と戦死
