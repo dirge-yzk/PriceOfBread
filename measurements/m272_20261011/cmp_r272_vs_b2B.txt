@@ -1,0 +1,3 @@
+cmp b10_m10_10.txt measurements/b10_20261011_b2B_ins 一致（差 0）
+cmp b5_m5_5.txt measurements/b5_20261011_b2B 一致（差 0）
+cmp b10_m10i_10.txt measurements/b10_20261011_b2B_ins 一致（差 0）

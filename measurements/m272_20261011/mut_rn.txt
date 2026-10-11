@@ -1,0 +1,2 @@
+   経路名の鍵が移し方の呼び出しを指していない（鍵を今の木で取り直す）：Credit.cs:162「double lent = Math.Max(delta, -Math.Max(0, inv.Savings.Value));   // 回収は投資家の貯蓄まで（負債で保存）」 ／ Credit.cs:173「double lent = Math.Max(delta, -heldSum);」 ／ Credit.cs:239「// 払い手→預金者（移し方の1本）・繰入＝銀行が�
+失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 43 ms - PriceOfBread.Tests.dll (net10.0)
