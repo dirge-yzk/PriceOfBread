@@ -1568,7 +1568,11 @@ public sealed class UtilityAgent : INationAgent
                     if (Catalog.FactorySpec(pr.GoodId).Category == "軍需")
                     {
                         bool want = atWar && fiscalStress < 0.5;
-                        if (pr.Subsidized != want) w.SetSubsidy(ri, pr.GoodId, want);
+                        if (pr.Subsidized != want)
+                        {
+                            if (Instruments.On) Instruments.SubsidyWrite(w, rg, pr, want);   // 計器（読むだけ）：補助の輪が掴む個体と動詞が掴む個体の食い違い
+                            w.SetSubsidy(ri, pr.GoodId, want);
+                        }
                     }
                     // 産業政策 レバー3（2026-07-24・AI対称化）：産業スタンスの開発国家＝平時に民生上流（Intermediate/Producer）の
                     // 赤字工場（数期EMA採算）へ時限補助・黒字化 or 戦時/財政悪化で解除（明治の官営→払い下げの型）。プレイヤーの補助金動詞と完全対称。
@@ -1577,10 +1581,15 @@ public sealed class UtilityAgent : INationAgent
                              && Catalog.Goods[pr.GoodId].Tier is GoodTier.Intermediate or GoodTier.Producer)
                     {
                         bool want = !atWar && fiscalStress < 0.5 && pr.SmoothedMargin < 0 && !pr.Bankrupt;
-                        if (pr.Subsidized != want) w.SetSubsidy(ri, pr.GoodId, want);
+                        if (pr.Subsidized != want)
+                        {
+                            if (Instruments.On) Instruments.SubsidyWrite(w, rg, pr, want);   // 計器（読むだけ）
+                            w.SetSubsidy(ri, pr.GoodId, want);
+                        }
                     }
                 }
             }
+            if (Instruments.On && fiscalStress > FireSaleFiscalStress) Instruments.FireSaleRun(w);   // 計器（読むだけ）：投げ売りの輪が回った回数
             if (fiscalStress > FireSaleFiscalStress)
                 for (int ri = 0; ri < w.Regions.Count; ri++)
                 {
@@ -1591,8 +1600,14 @@ public sealed class UtilityAgent : INationAgent
                     //   「不満のある資本家は買わない」「国有化法の対象は売れない」がAIにもそのまま効く（対称）。
                     //   売れる時だけ下げる＝売れないのに目標だけ下がって毎月再挑戦する空回りを作らない。
                     foreach (var pr in rg.Producers)
+                    {
+                        if (Instruments.On && pr.BuiltScale > 1e-9) Instruments.FireSaleSeen(w, rg, pr);   // 計器（読むだけ）：輪が掴む個体と動詞が掴む個体（FindFactory）の食い違い
                         if (pr.BuiltScale > 1e-9 && w.CanSellFactory(ri, pr.GoodId).Ok)
-                        { w.SetStateTarget(ri, pr.GoodId, Math.Max(0, World.StateUnits(pr, w.Coef) - 1)); sold = true; break; }
+                        {
+                            if (Instruments.On) Instruments.FireSaleFired(w, rg, pr);   // 計器（読むだけ）
+                            w.SetStateTarget(ri, pr.GoodId, Math.Max(0, World.StateUnits(pr, w.Coef) - 1)); sold = true; break;
+                        }
+                    }
                     if (sold) break;
                 }
 

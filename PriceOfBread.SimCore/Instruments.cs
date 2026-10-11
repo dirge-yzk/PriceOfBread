@@ -83,6 +83,9 @@ public static class Instruments
         public int FacStarted, FacStartedClosed, FacDone, FacDoneClosed, FacDoneClosedAtStart;   // 今の四半期の国営の棟の着工・完成（門が閉じていた分つき・四半期の末に0へ戻す）
         // ---- (262) 貯蓄の書き手の台帳（挙げた国だけ・四半期の和・四半期の末に0へ戻す）：(階級, 書き手の種類, 呼び出しの位置) → [額の和, 件数]
         public readonly Dictionary<(int Cls, int Kind, string File, int Line, char Cp), double[]> SavLedger = new();
+        // ---- (263) 輪と動詞の個体の食い違い（投げ売りの輪・補助の輪が掴む生産者 pr と、動詞〔CanSellFactory・SetStateTarget・SetSubsidyRate〕が World.FindFactory で掴む個体）：今の四半期の和（四半期の末に0へ戻す）
+        public int FsRun, FsSeenMismatch, FsFired, FsFiredMismatch, FsFiredOver, SubMismatch, SubMismatchOff;
+        public readonly List<string> WheelGoods = new(), FacStartedGoods = new();   // 食い違いの財の名前（「投げ売り:」「補助:」を前置）・着工した財の名前
     }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<World, WState> States = new();
     static WState S(World w) => States.GetValue(w, _ => new WState());
@@ -267,6 +270,7 @@ public static class Instruments
         st.AdmSimClaim = st.AdmCatClaim = st.AdmCatPaid = st.AdmFiscClaim = st.AdmBase = st.AdmSpendable = st.AdmLastRev = st.AdmSimMul = st.AdmCover = st.AdmFiscMul = st.AdmPayRate = st.AdmFill = st.AdmFillRBelow1 = 0;
         st.DecScale = st.DecLosing = st.DecShare = double.NaN;
         st.DecAtWar = st.DecMobilized = st.DecOpen = st.DecTarget = st.DecEnforced = -1; st.DecPicked = 0;
+        st.FsRun = st.FsSeenMismatch = st.FsFired = st.FsFiredMismatch = st.FsFiredOver = st.SubMismatch = st.SubMismatchOff = 0; st.WheelGoods.Clear(); st.FacStartedGoods.Clear();   // (263) 助走の分は数えない
     }
     /// <summary>国×四半期の行に足す列（行政の請求の2つの式・戦時段）。月ごとの量は四半期の月の平均（<c>PerMonth</c>）。</summary>
     static List<(string Name, string Value)> NationExtras(World w, WState st)
@@ -325,7 +329,71 @@ public static class Instruments
         var st = S(w);
         bool closed = !(Discovery.Gate(r, p) > 0);
         st.FacStarted++; if (closed) st.FacStartedClosed++;
+        st.FacStartedGoods.Add(Catalog.Goods[p.GoodId].Name);
         StartGates.GetValue(p, _ => new GateAtStart()).Closed = closed;
+    }
+
+    // ---------------------------------------------------------------- 輪と動詞の個体の食い違い（(263) 線E2 A） ----------------------------------------------------------------
+
+    /// <summary>投げ売りの輪が回った（財政の逼迫が <c>FireSaleFiscalStress</c> を超えた四半期の頭）。</summary>
+    internal static void FireSaleRun(World w) => S(w).FsRun++;
+
+    /// <summary>投げ売りの輪が国営の持分のある生産者 <paramref name="pr"/> を見た：動詞（<see cref="World.CanSellFactory"/>・<see cref="World.SetStateTarget"/>）が掴む個体（<see cref="World.FindFactory"/>）が <paramref name="pr"/> と別なら数える。
+    /// <see cref="World.FindFactory"/>・<see cref="Discovery.Gate(Region, Producer)"/> は純関数（書かない・メモ化しない）。</summary>
+    internal static void FireSaleSeen(World w, Region rg, Producer pr)
+    {
+        if (ReferenceEquals(World.FindFactory(rg, pr.GoodId), pr)) return;
+        S(w).FsSeenMismatch++;
+    }
+
+    /// <summary>投げ売りの輪が売ると決めた：①火が付いた回数 ②その個体が FindFactory の個体と別（食い違い）③食い違いのうち、輪が置く目標〔pr の棟数−1〕が動詞が掴む個体の現在の棟数を超える（＝着工になる向き）。
+    /// 食い違いの財の名前は <c>投げ売り:財名</c>（<c>旧棟数→掴まれる個体の棟数/掴まれる個体の門の開閉/pr の門の開閉</c> を括弧に）。</summary>
+    internal static void FireSaleFired(World w, Region rg, Producer pr)
+    {
+        var st = S(w);
+        st.FsFired++;
+        var p = World.FindFactory(rg, pr.GoodId);
+        if (p is null || ReferenceEquals(p, pr)) return;
+        st.FsFiredMismatch++;
+        int prUnits = World.StateUnits(pr, w.Coef), pUnits = World.StateUnits(p, w.Coef);
+        int target = Math.Max(0, prUnits - 1);
+        if (target > pUnits) st.FsFiredOver++;
+        st.WheelGoods.Add($"投げ売り:{Catalog.Goods[pr.GoodId].Name}({prUnits}→{pUnits}/{(Discovery.Gate(rg, p) > 0 ? "開" : "閉")}/{(Discovery.Gate(rg, pr) > 0 ? "開" : "閉")}/{(target > pUnits ? "着工" : target < pUnits ? "売却" : "同じ")})");
+    }
+
+    /// <summary>補助の輪が補助を書き換える（<c>pr.Subsidized != want</c>）：動詞（<see cref="World.SetSubsidy"/>）が掴む個体が <paramref name="pr"/> と別なら数える。</summary>
+    internal static void SubsidyWrite(World w, Region rg, Producer pr, bool want)
+    {
+        var p = World.FindFactory(rg, pr.GoodId);
+        if (p is null || ReferenceEquals(p, pr)) return;
+        var st = S(w);
+        st.SubMismatch++; if (!want) st.SubMismatchOff++;
+        st.WheelGoods.Add($"補助:{Catalog.Goods[pr.GoodId].Name}");
+    }
+
+    /// <summary>四半期の末の断面：国営の持分がある生産者のうち、FindFactory が別の個体を返すもの（動詞が掴めない持分）の数。
+    /// 返る個体も持分があるなら <paramref name="toInvested"/>（持分が2つの個体に分かれている）・無いなら <paramref name="toUninvested"/>（持分は売れない＝CanSellFactory が「国営でない」を返す）。</summary>
+    static int StakeMismatch(World w, out int toInvested, out int toUninvested, out int staleSubsidy, List<string> goods)
+    {
+        int all = 0; toInvested = toUninvested = staleSubsidy = 0;
+        foreach (var r in w.Regions)
+        {
+            if (r.State != RegionState.Active) continue;
+            foreach (var pr in r.Producers)
+            {
+                bool stake = pr.BuiltScale > 1e-9;
+                if (!stake && !pr.Subsidized) continue;
+                var p = World.FindFactory(r, pr.GoodId);
+                if (p is null || ReferenceEquals(p, pr)) continue;
+                if (pr.Subsidized && Discovery.Gate(r, pr) > 0) staleSubsidy++;   // 補助が付いたまま動詞が掴まない（門が開いた）個体＝補助の輪が外せない補助
+                if (!stake) continue;
+                all++;
+                bool inv = p.BuiltScale > 1e-9;
+                if (inv) toInvested++; else toUninvested++;
+                goods.Add($"{Catalog.Goods[pr.GoodId].Name}({(Discovery.Gate(r, pr) > 0 ? "開" : "閉")}{World.StateUnits(pr, w.Coef)}→{(inv ? "投資済" : "未投資")}{World.StateUnits(p, w.Coef)})");
+            }
+        }
+        return all;
     }
 
     /// <summary>国営の棟の完成（<c>World.StepConstruction</c> が <c>BuiltScale</c> に1棟足した直後）：完成の月に門が閉じている棟（＝操業規模が0に置かれる不活性の設備）を数える。
@@ -595,13 +663,17 @@ public static class Instruments
     /// 読む位置は旧の注入と同じ＝四半期の末（<c>StepQuarter</c> の直後）。名目GDP は四半期の末にしか読まない（メモ化された量を新しい位置で読まない）。</summary>
     static void NationRow(Sink sk, ulong seed, int q, int index, World w, WState st, bool yearEnd)
     {
-        double popK = 0, soldierK = 0, supplyFillSum = 0;
+        double popK = 0, soldierK = 0, supplyFillSum = 0, foodMetSum = 0, foodNeedSum = 0, needMetSum = 0, needTotalSum = 0;
         int core = 0, integrated = 0, colonial = 0;
         var nonCore = new System.Text.StringBuilder();
         foreach (var r in w.Regions)
         {
             if (r.State != RegionState.Active) continue;
-            foreach (var p in r.Pops) { popK += p.Size; if (p.IsSoldier) soldierK += p.Size; supplyFillSum += p.SupplyFill * p.Size; }
+            foreach (var p in r.Pops)
+            {
+                popK += p.Size; if (p.IsSoldier) soldierK += p.Size; supplyFillSum += p.SupplyFill * p.Size;
+                foodMetSum += p.FoodMet; foodNeedSum += p.FoodNeed; needMetSum += p.NeedMet; needTotalSum += p.NeedTotal;   // (263) 補給の充足の内訳（主食の台帳・満足度の台帳）
+            }
             if (r.Tier == RegionTier.Core) core++; else if (r.Tier == RegionTier.Integrated) integrated++; else colonial++;
             if (yearEnd && r.Tier != RegionTier.Core) nonCore.Append(r.Tier == RegionTier.Integrated ? "I:" : "C:").Append(r.Name).Append(';');
         }
@@ -627,6 +699,14 @@ public static class Instruments
         cols.Add(F(st.QInterest / mo)); cols.Add(F(st.QRevenue / mo)); cols.Add(F(st.QDirect / mo)); cols.Add(F(st.QIndirect / mo)); cols.Add(F(st.QShortfall / mo)); cols.Add(F(st.QBorrowed / mo));
         cols.Add(I(st.FacStarted)); cols.Add(I(st.FacStartedClosed)); cols.Add(I(st.FacDone)); cols.Add(I(st.FacDoneClosed)); cols.Add(I(st.FacDoneClosedAtStart));
         cols.Add(F(popK > 0 ? supplyFillSum / popK : 0));   // 人口加重の供給の充足（補給崩壊の物差し＝この値が0.3 を割る国×四半期を数える・旧の注入 inj_s3a の fill と同じ式）
+        // (263) 線E2：輪と動詞の個体の食い違い（A）・補給の充足の内訳と着工した財（B）。台帳の月の和は四半期の末の POP の値（月の途中でない）
+        var stakeGoods = new List<string>();
+        int stakeAll = StakeMismatch(w, out int stakeToInv, out int stakeToUninv, out int staleSub, stakeGoods);
+        cols.Add(I(st.FsRun)); cols.Add(I(st.FsSeenMismatch)); cols.Add(I(st.FsFired)); cols.Add(I(st.FsFiredMismatch)); cols.Add(I(st.FsFiredOver)); cols.Add(I(st.SubMismatch)); cols.Add(I(st.SubMismatchOff));
+        cols.Add(I(stakeAll)); cols.Add(I(stakeToInv)); cols.Add(I(stakeToUninv));
+        cols.Add(string.Join(';', st.WheelGoods)); cols.Add(string.Join(';', st.FacStartedGoods));
+        cols.Add(F(foodNeedSum > 0 ? foodMetSum / foodNeedSum : double.NaN)); cols.Add(F(needTotalSum > 0 ? needMetSum / needTotalSum : double.NaN));
+        cols.Add(I(staleSub)); cols.Add(string.Join(';', stakeGoods));
         sk.Nation ??= Open("nation", seed);
         if (!sk.NationHeader)
         {
@@ -636,7 +716,9 @@ public static class Instruments
                 + "ledgerBorrowCumulative\tledgerDevalueCumulative\tledgerArmyCumulative\tledgerNavyCumulative\tgovDebtStock\texportsPerClearing\timportsPerClearing\tclearingsPerYear\t"
                 + "borrowGateObservedMonths\tborrowGateClosedMonths\tshortfallMonths\tpayRateBelowOneMonths\t"
                 + "interestMeanPerMonth\trevenueBaseMeanPerMonth\tdirectTaxNetMeanPerMonth\tindirectRevenueMeanPerMonth\tshortfallMeanPerMonth\tborrowedMeanPerMonth\t"
-                + "stateFacilityStartedCount\tstateFacilityStartedGateClosedCount\tstateFacilityCompletedCount\tstateFacilityCompletedGateClosedCount\tstateFacilityCompletedGateClosedAtStartCount\tsupplyFillShare");
+                + "stateFacilityStartedCount\tstateFacilityStartedGateClosedCount\tstateFacilityCompletedCount\tstateFacilityCompletedGateClosedCount\tstateFacilityCompletedGateClosedAtStartCount\tsupplyFillShare\t"
+                + "fireSaleRunCount\tfireSaleSeenMismatchCount\tfireSaleFiredCount\tfireSaleFiredMismatchCount\tfireSaleFiredOverTargetCount\tsubsidyWriteMismatchCount\tsubsidyWriteMismatchWantOffCount\t"
+                + "stakeMismatchProducerCount\tstakeMismatchToInvestedCount\tstakeMismatchToUninvestedCount\twheelMismatchGoods\tstateFacilityStartedGoods\tfoodMetShare\tneedMetShare\tstaleSubsidyNotGrabbedCount\tstakeMismatchGoods");
             sk.NationHeader = true;
         }
         sk.Nation.WriteLine(string.Join('\t', cols));
