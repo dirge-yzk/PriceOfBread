@@ -11,7 +11,8 @@
   計器が自分で申告する限界：
     ・flow_s の額は四半期の月平均（和÷月数）。窓の和は×3（四半期の月数）で戻す。件数は四半期の和。
     ・残差 R＝ΔSavings−(Earned−Paid)。分解 R＝位相の差(settle−(Earned−Paid))＋give＋giveIncome−take＋carry(in−out)＋region(in−out)＋rebase＋未閉じ。
-      〈位相の差〉は月の決算の終わり(MonthClose)が読む所得 Earned と、月末の精算(SettleMonth)が貯蓄へ足す Earned−Paid のずれ＝MonthClose の後に書かれた所得(income:true)は Earned に残らず（次の月の EconomyStep が0へ戻す）貯蓄へは直接入る。
+      〈位相の差〉＝settle−(Earned−Paid)。月末の精算(SettleMonth・EconomyStep の中)の後〜MonthClose の前に書かれた所得(income:true・例 十分の一税 Fiscal.cs:224・封建貢租 :174)は Earned には載るが精算には入らない(貯蓄へは直接入る)＝その分だけ負。
+      MonthClose の後に書かれる所得(月次の清算 InternationalMarket.cs:125・四半期の末の共有層)は Earned に載らない(次の月の EconomyStep が0へ戻す)＝位相の差には出ず、giveIncome の全額が残差の正の項になる。
     ・未閉じ＝ΔSavings−Σ(全ての書き手)。建国された国の最初の月は新しい世界の構築が POP の貯蓄を直接立てる＝英・仏・蘭の名前（開幕からいる国）では0に近い。
     ・rebase と regionOut／regionIn：州が為替の違う国へ移るとき、換算(Rebase)は州の移動の記帳(RegionMoved)より先に走る＝rebase の額は〈出ていく側の POP〉の換算差で、regionOut は換算後の貯蓄。
       送り手の国で rebase＋regionOut＝−(換算前の貯蓄)・受け手の国の regionIn は換算後。英の rebase が正になる種は為替が1より小さい国へ州を渡した種。
@@ -143,7 +144,7 @@ WINS = [('Q2〜Q8', 1, 7), ('Q5〜Q40', 4, 39), ('Q41〜Q80', 40, 79), ('Q81〜Q
 def t1():
     L = [f'# t1 階級の貯蓄の増減の残差の分解（国の所得に対する割合・種の中央〔最小〜最大〕）\n',
          '残差 R＝ΔSavings−(Earned−Paid)。書き手の台帳（flow_s）で R を足し算に分解する。分解の行の和は R に一致（未閉じが0に近いこと）。'
-         '正＝その経路が貯蓄を増やした方向。位相の差＝月の決算の終わりが読む Earned と精算が足した Earned−Paid のずれ（MonthClose の後に書かれた所得は Earned に残らない）。\n']
+         '正＝その経路が貯蓄を増やした方向。位相の差＝settle−(Earned−Paid)＝精算の後〜MonthClose の前に書かれた所得(十分の一税・封建貢租)は Earned に載るが精算に入らない分（負）。MonthClose の後の所得(月次の清算)は Earned に載らず、giveIncome の全額が残差の正の項。\n']
     tsv = ['nation\twindow\tgroup\tterm\tmedian\tmin\tmax\tseeds']
     for nation in (UK, FR):
         L.append(f'\n## {nation}\n')

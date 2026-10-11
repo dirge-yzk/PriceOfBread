@@ -1,6 +1,6 @@
 # t1 階級の貯蓄の増減の残差の分解（国の所得に対する割合・種の中央〔最小〜最大〕）
 
-残差 R＝ΔSavings−(Earned−Paid)。書き手の台帳（flow_s）で R を足し算に分解する。分解の行の和は R に一致（未閉じが0に近いこと）。正＝その経路が貯蓄を増やした方向。位相の差＝月の決算の終わりが読む Earned と精算が足した Earned−Paid のずれ（MonthClose の後に書かれた所得は Earned に残らない）。
+残差 R＝ΔSavings−(Earned−Paid)。書き手の台帳（flow_s）で R を足し算に分解する。分解の行の和は R に一致（未閉じが0に近いこと）。正＝その経路が貯蓄を増やした方向。位相の差＝settle−(Earned−Paid)＝精算の後〜MonthClose の前に書かれた所得(十分の一税・封建貢租)は Earned に載るが精算に入らない分（負）。MonthClose の後の所得(月次の清算)は Earned に載らず、giveIncome の全額が残差の正の項。
 
 
 ## イギリス
