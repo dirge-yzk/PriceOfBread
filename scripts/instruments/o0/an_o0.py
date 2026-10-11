@@ -29,7 +29,7 @@ ALL = {g: new_acc() for g in GROUPS}
 EARLY = {g: new_acc() for g in GROUPS}   # q0〜q7
 dflt = collections.defaultdict(int)       # (seed, uid) -> max cumulative
 dflt_name = {}
-per_seed_uk = collections.defaultdict(lambda: collections.Counter())
+per_seed = {k: collections.defaultdict(lambda: collections.Counter()) for k in NATS}
 
 def add(acc, r):
     for c in CNT:
@@ -55,10 +55,11 @@ for sd, r in rows(D, 'nation'):
     v = num(r.get('sovereignDefaultCumulativeCount', 'nan'))
     if v == v:
         key = (sd, uid); dflt[key] = max(dflt[key], int(v)); dflt_name[key] = nat
-    if nat == NATS['英']:
-        for c in ['interestAtLimitMonthsCount', 'zombieMonthsCount', 'interestLimitCrossingsCount', 'warGateClosedMonthsCount']:
-            vv = num(r[c])
-            if vv == vv: per_seed_uk[sd][c] += int(vv)
+    for k, v in NATS.items():
+        if nat == v:
+            for c in ['interestAtLimitMonthsCount', 'zombieMonthsCount', 'interestLimitCrossingsCount', 'warGateClosedMonthsCount', 'interestShareOver067MonthsCount', 'interestShareOver067BorrowedMonthsCount', 'interestShareOver067RBelow1MonthsCount']:
+                vv = num(r[c])
+                if vv == vv: per_seed[k][sd][c] += int(vv)
 
 def fmt(x, p=4):
     return 'nan' if x != x else f'{x:.{p}f}'
@@ -90,7 +91,9 @@ for g in ['仏', '蘭']:
     c = ALL[g]['cnt']
     print(f'  {g}: 超えた月 {c["interestShareOver067MonthsCount"]}・うち借りた月 {c["interestShareOver067BorrowedMonthsCount"]}・うち r＜1 の月 {c["interestShareOver067RBelow1MonthsCount"]}')
 block('⑤ 英などの Q1〜Q8（q0〜q7）だけ', EARLY)
-print('⑥ 英の種ごとの全期の月数（限界に届いた月／ゾンビ／反転／交戦×門閉）')
-for sd in seeds:
-    c = per_seed_uk[sd]
-    print(f'  seed {sd}: {c["interestAtLimitMonthsCount"]} / {c["zombieMonthsCount"]} / {c["interestLimitCrossingsCount"]} / {c["warGateClosedMonthsCount"]}')
+print('⑥ 種ごとの全期の月数（限界に届いた月／ゾンビ／反転／交戦×門閉／仏の線超え／うち借入／うち r＜1）')
+for k in NATS:
+    print(f'  --- {k}')
+    for sd in seeds:
+        c = per_seed[k][sd]
+        print(f'  seed {sd}: {c["interestAtLimitMonthsCount"]} / {c["zombieMonthsCount"]} / {c["interestLimitCrossingsCount"]} / {c["warGateClosedMonthsCount"]} / {c["interestShareOver067MonthsCount"]} / {c["interestShareOver067BorrowedMonthsCount"]} / {c["interestShareOver067RBelow1MonthsCount"]}')

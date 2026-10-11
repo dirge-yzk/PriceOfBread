@@ -1,0 +1,94 @@
+##### r279（計器つき10種 o0）（10種：[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]）
+① 金利の上限（年率 0.30）への張り付き＝bondRateMeanPerYear ≧ 0.299 の国×四半期 / 債券の月がある国×四半期
+  英: 1 / 6680 = 0.0001（Q1〜Q8: 0 / 80）
+  仏: 0 / 6680 = 0.0000（Q1〜Q8: 0 / 80）
+  蘭: 369 / 6680 = 0.0552（Q1〜Q8: 0 / 80）
+  全体: 566 / 415014 = 0.0014（Q1〜Q8: 0 / 4881）
+② 国債の不履行（種ごとの累計の最大の和・10種）
+  英: 4（種ごと: 0, 0, 2, 1, 1, 0, 0, 0, 0, 0）　世界: 107（種ごと: 7, 10, 17, 11, 8, 12, 13, 9, 10, 10）
+③ 門の周りの列（月数は10種の和・割合は観測した月の重みつき平均／四半期の最大の最大）
+  --- 全期（q0〜）
+  列 | 英 | 仏 | 蘭 | 全体
+  interestAtLimitMonthsCount | 1577 | 1028 | 5515 | 22767
+  interestLimitCrossingsCount | 195 | 150 | 584 | 2908
+  interestAtLimitBorrowedMonthsCount | 0 | 0 | 0 | 0
+  zombieMonthsCount | 615 | 144 | 1080 | 5511
+  warGateClosedMonthsCount | 808 | 402 | 1142 | 4478
+  interestShareOver067MonthsCount | 660 | 573 | 4327 | 14495
+  interestShareOver067BorrowedMonthsCount | 0 | 0 | 0 | 0
+  interestShareOver067RBelow1MonthsCount | 272 | 462 | 2034 | 8212
+  unpaidBeforeDevaluationObservedMonthsCount | 20040 | 20040 | 20040 | 1245042
+  unpaidBeforeDevaluationMonthsCount | 1974 | 1268 | 3172 | 31458
+  megaCrisisPassCount | 28 | 8 | 144 | 1914
+  megaCrisisGateOpenCount | 26 | 8 | 35 | 1618
+  borrowGateObservedMonths | 20040 | 20040 | 20040 | 1245042
+  borrowGateClosedMonths | 1670 | 1074 | 5584 | 25514
+  shortfallMonths | 3938 | 4505 | 3680 | 197344
+  payRateBelowOneMonths | 1112 | 1044 | 2089 | 24525
+  atWarMonths | 11616 | 8436 | 2388 | 172146
+  unpaidBeforeDevaluationMeanShare（払えない額÷請求・月の平均） | 0.02177 | 0.01406 | 0.07321 | 0.00563
+  unpaidBeforeDevaluationMaxShare（四半期の最大の最大） | 0.7290 | 0.8988 | 0.9119 | 1.0000
+  devaluedToClaimMeanShare（切り下げ÷請求・月の平均） | 0.02143 | 0.02228 | 0.07588 | 0.00693
+  devaluedToClaimMaxShare（四半期の最大の最大） | 5.1786 | 16.8401 | 11.6443 | 73.2133
+  国×四半期の行 | 6680 | 6680 | 6680 | 415484
+④ 仏と蘭の利払い÷歳入が 0.67 を超えた月と、その月に借りた月・r＜1 の月（全期・10種の和）
+  仏: 超えた月 573・うち借りた月 0・うち r＜1 の月 462
+  蘭: 超えた月 4327・うち借りた月 0・うち r＜1 の月 2034
+  --- ⑤ 英などの Q1〜Q8（q0〜q7）だけ
+  列 | 英 | 仏 | 蘭 | 全体
+  interestAtLimitMonthsCount | 231 | 0 | 165 | 444
+  interestLimitCrossingsCount | 17 | 0 | 32 | 75
+  interestAtLimitBorrowedMonthsCount | 0 | 0 | 0 | 0
+  zombieMonthsCount | 0 | 0 | 0 | 0
+  warGateClosedMonthsCount | 0 | 0 | 0 | 1
+  interestShareOver067MonthsCount | 91 | 0 | 100 | 191
+  interestShareOver067BorrowedMonthsCount | 0 | 0 | 0 | 0
+  interestShareOver067RBelow1MonthsCount | 6 | 0 | 40 | 46
+  unpaidBeforeDevaluationObservedMonthsCount | 240 | 240 | 240 | 14643
+  unpaidBeforeDevaluationMonthsCount | 6 | 0 | 40 | 46
+  megaCrisisPassCount | 0 | 0 | 0 | 0
+  megaCrisisGateOpenCount | 0 | 0 | 0 | 0
+  borrowGateObservedMonths | 240 | 240 | 240 | 14643
+  borrowGateClosedMonths | 231 | 0 | 165 | 445
+  shortfallMonths | 6 | 0 | 40 | 46
+  payRateBelowOneMonths | 6 | 0 | 40 | 46
+  atWarMonths | 0 | 0 | 0 | 6
+  unpaidBeforeDevaluationMeanShare（払えない額÷請求・月の平均） | 0.00373 | 0.00000 | 0.03977 | 0.00071
+  unpaidBeforeDevaluationMaxShare（四半期の最大の最大） | 0.1975 | 0.0000 | 0.3567 | 0.3567
+  devaluedToClaimMeanShare（切り下げ÷請求・月の平均） | 0.00093 | 0.00000 | 0.03976 | 0.00067
+  devaluedToClaimMaxShare（四半期の最大の最大） | 0.0495 | 0.0000 | 0.3566 | 0.3566
+  国×四半期の行 | 80 | 80 | 80 | 4886
+⑥ 種ごとの全期の月数（限界に届いた月／ゾンビ／反転／交戦×門閉／仏の線超え／うち借入／うち r＜1）
+  --- 英
+  seed 1: 26 / 0 / 5 / 0 / 15 / 0 / 3
+  seed 2: 41 / 0 / 9 / 16 / 10 / 0 / 1
+  seed 3: 94 / 4 / 21 / 52 / 32 / 0 / 5
+  seed 4: 42 / 0 / 9 / 39 / 10 / 0 / 3
+  seed 5: 114 / 41 / 47 / 80 / 24 / 0 / 2
+  seed 6: 44 / 0 / 7 / 20 / 8 / 0 / 3
+  seed 7: 38 / 0 / 7 / 13 / 6 / 0 / 0
+  seed 8: 30 / 2 / 9 / 6 / 15 / 0 / 4
+  seed 9: 40 / 0 / 1 / 13 / 23 / 0 / 2
+  seed 10: 1108 / 568 / 80 / 569 / 517 / 0 / 249
+  --- 仏
+  seed 1: 2 / 0 / 4 / 2 / 0 / 0 / 0
+  seed 2: 9 / 0 / 8 / 9 / 0 / 0 / 0
+  seed 3: 1 / 0 / 2 / 1 / 0 / 0 / 0
+  seed 4: 196 / 88 / 26 / 7 / 53 / 0 / 46
+  seed 5: 0 / 0 / 0 / 0 / 0 / 0 / 0
+  seed 6: 7 / 0 / 4 / 7 / 0 / 0 / 0
+  seed 7: 527 / 32 / 52 / 231 / 378 / 0 / 294
+  seed 8: 271 / 24 / 42 / 130 / 142 / 0 / 122
+  seed 9: 7 / 0 / 4 / 7 / 0 / 0 / 0
+  seed 10: 8 / 0 / 8 / 8 / 0 / 0 / 0
+  --- 蘭
+  seed 1: 332 / 7 / 55 / 80 / 148 / 0 / 12
+  seed 2: 591 / 25 / 43 / 94 / 450 / 0 / 257
+  seed 3: 663 / 164 / 109 / 117 / 430 / 0 / 99
+  seed 4: 497 / 53 / 71 / 173 / 331 / 0 / 146
+  seed 5: 789 / 205 / 45 / 93 / 691 / 0 / 344
+  seed 6: 792 / 268 / 27 / 161 / 733 / 0 / 367
+  seed 7: 244 / 0 / 99 / 46 / 120 / 0 / 9
+  seed 8: 849 / 210 / 29 / 191 / 816 / 0 / 521
+  seed 9: 268 / 37 / 85 / 27 / 155 / 0 / 20
+  seed 10: 490 / 111 / 21 / 160 / 453 / 0 / 259
