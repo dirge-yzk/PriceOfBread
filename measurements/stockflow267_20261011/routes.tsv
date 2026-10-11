@@ -1,0 +1,30 @@
+key	kind	file	line	cp
+a1 窃盗（被害＝全POPの貯蓄×率）	take	Crime.cs	65	
+a2 港の工賃・資本家ルート	take	MultiNationSim.cs	1433	
+a2s 港の工賃・国家ルート（参考＝在庫に比例しない）	giveIncome	MultiNationSim.cs	1434	
+a3 運河の拠出	take	MultiNationSim.cs	1325	
+a45 国際金融 TakeGold（投資家→国境の外・逃避/輸出/配当/外資の逃避が潰れる）	take	CapitalMarket.cs	306	
+a45g 国際金融 GiveGold（国境の外→投資家）	give	CapitalMarket.cs	317	
+a6 革命の没収	take	Politics.cs	1994	
+x1 船と線路の買い付け（投資家・需要は貯蓄に依らない）	take	Transport.cs	206	P
+x2 汽船の燃料の買い付け（商人）	take	Transport.cs	137	
+x3 植民地の開発の汽船の代金	take	Colonial.cs	128	
+x4 植民地の開発の線路の代金	take	Colonial.cs	129	
+b3 国債の国内購入（資本家→国庫）	take	Fiscal.cs	746	
+b5 切り下げの課税（全POP→国庫）	take	Simulation.cs	2251	
+b6 通貨改革の焼却	take	Fiscal.cs	330	
+b7 巨大建造物への外資の拠出	take	Megaprojects.cs	149	
+b4 外国債務の貸し手の払い	take	MultiNationSim.cs	990	
+b8 輸入代金と運賃（輸入者→清算所）	take	BilateralMarket.cs	918	
+b9 税	take	Fiscal.cs	216	
+b14 企業への与信・回収（投資家→銀行）	take	Credit.cs	163	
+b14l 企業への与信・貸し（銀行→投資家）	give	Credit.cs	162	
+b16 損失の負債化（銀行→貯蓄が負のPOP）	give	Simulation.cs	2967	
+b17 国営工場の払い下げ（資本家→国庫）	take	World.cs	2442	
+d1 州の中の移動	carryOut	PopDecision.cs	77	
+d2 社会移動	carryOut	Meritocracy.cs	673	
+d3 徴兵と復員	carryOut	Military.cs	376	
+d4 州の間の移民	carryOut	Territory.cs	267	
+d5 越境の移民（持参金）	carryOut	MultiNationSim.cs	1769	
+e1 国債の国内利払い	give	Fiscal.cs	360	
+e2 国債の国内償還	give	Fiscal.cs	417	
