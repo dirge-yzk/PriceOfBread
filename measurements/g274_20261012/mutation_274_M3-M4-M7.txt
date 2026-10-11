@@ -1,0 +1,5 @@
+M3 MoveResult reached 7<->8 =>   失敗 PriceOfBread.Tests.InstrumentsTests.開いた戦線の施行の結果が規則から決めた期待と合い数えた戦線の数に閉じる [1 s] | 失敗!   -失敗:     1、合格:     2、スキップ:     0、合計:     3、期間: 17 s - PriceOfBread.Tests.dll (net10.0)
+M4 LevelResult paid reached => 成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 16 s - PriceOfBread.Tests.dll (net10.0)
+M7 LevelResult free reached =>   失敗 PriceOfBread.Tests.InstrumentsTests.開いた戦線の施行の結果が規則から決めた期待と合い数えた戦線の数に閉じる [1 s] | 失敗!   -失敗:     1、合格:     2、スキップ:     0、合計:     3、期間: 16 s - PriceOfBread.Tests.dll (net10.0)
+restored; final rebuild
+DONE

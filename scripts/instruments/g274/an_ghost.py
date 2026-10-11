@@ -4,14 +4,17 @@ nation_s<seed>.tsv の末尾の列（openFrontsCount ほか・openFrontStates）
  B. 全ての国の和・種類別（段の法 L／連続の軸 R・M・T）・符号別
  C. 軸ごとの内訳（英・仏・普・露・日・清の合算）：開いていた四半期・固定の割合・主な理由・固定が連続した長さ
  D. (270) vb#1 の静的な反事実：戦時段の解禁の間に軍事費の戦線を N から外したら
+ E. N の数え方の代替案（静的な反事実）：純幽霊を除く／連続の軸だけ（係数が実際に掛かる側と同じ集合）／動いた戦線だけ
 符号（Instruments.GFront）：0 施行のとき閉じていた／1 純支持で固定／2 政治資本で固定／3 無償で動いた〔未到達〕／4 払って動いた〔未到達〕／5 不可逆で固定／6 前提で固定／
 7 無償で動いて届いた／8 払って動いて届いた／9 軍事費の失効で動いた／-1 結果が来なかった。「動く」＝3・4・7・8・9。
+「純幽霊」＝1・5・6（純支持の門・不可逆・前提＝政治資本があっても動かない）。2（政治資本の在庫が代価に届かず固定）は「飢え」＝資本があれば動く。
 ⚠静的な反事実：係数を変えれば歩幅が変わり、政治資本の払いも変わる（固定が解ける軸も増える）。この読み手は N′ から係数を引くだけで、動力学の再現ではない。
 """
 import csv, glob, os, sys, collections, math, statistics
 
 NATIONS = [(2, 'イギリス'), (0, 'フランス'), (5, 'プロイセン'), (4, 'ロシア'), (1, '日本'), (11, '清')]
 MOVING = {3, 4, 7, 8, 9}
+PURE = {1, 5, 6}
 FROZEN = {1, 2, 5, 6}
 WIN = 20
 GATE = 0.5   # PoliticalBudgetGate の既定（Coefficients）。nation_s の pushBudgetFactor から N を使って確かめる
@@ -172,6 +175,46 @@ def main():
         P('%-22s %6d 行  N 平均 %.2f（中央 %s）  係数 %.3f → 軍事費を外すと %.3f（比 %.3f）  同じ行で「動いた他の戦線」の平均 %.2f 本' % (
             label, len(rs), statistics.mean(ns), statistics.median(ns), statistics.mean(f_now), statistics.mean(f_nomil),
             statistics.mean(b / a for a, b in zip(f_now, f_nomil)), statistics.mean(mv)))
+    P('')
+    P('==== E. N の数え方の代替案（静的な反事実）＝係数 (1/N)^%.1f の分母に何を数えるか ====' % GATE)
+    P('政治予算の係数が掛かるのは連続の軸（R・M〔解禁の間を除く〕・T）の歩幅だけ。段の法（L）は StepLevel が一歩ずつ進み係数を掛けない。')
+    P('案0＝今（開いた戦線の全部）／案1＝純幽霊（符号 1・5・6）を除く／案2＝連続の軸の開いた戦線だけ（係数が実際に掛かる側と同じ集合）／案3＝動いた戦線だけ N′（全種類）／案4＝動いた連続の軸だけ')
+    P('各案の「N の平均→係数の平均（案0 に対する比）」')
+    def alts(rs):
+        ns = [[], [], [], [], []]; fs = [[], [], [], [], []]
+        for r in rs:
+            its = r['items']
+            n0 = r['n']
+            n1 = sum(1 for k, a, c_, x in its if c_ not in PURE)
+            n2 = sum(1 for k, a, c_, x in its if k != 'L')
+            n3 = sum(1 for k, a, c_, x in its if c_ in MOVING)
+            n4 = sum(1 for k, a, c_, x in its if c_ in MOVING and k != 'L')
+            for i, n in enumerate((n0, n1, n2, n3, n4)):
+                ns[i].append(n); fs[i].append(factor(n))
+        return ns, fs
+    def alt_line(label, rs):
+        if not rs:
+            return
+        ns, fs = alts(rs)
+        f0 = statistics.mean(fs[0])
+        parts = ['案%d %4.2f→%.3f(%.2f)' % (i, statistics.mean(ns[i]), statistics.mean(fs[i]), statistics.mean(fs[i]) / f0) for i in range(5)]
+        P('%-12s %6d行  %s' % (label, len(rs), '  '.join(parts)))
+    for idx, name in NATIONS:
+        alt_line(name, [r for r in rows if r['idx'] == idx])
+    alt_line('六国の合算', sel)
+    alt_line('全ての国', rows)
+    alt_line('全・平時', [r for r in rows if not r['atwar']])
+    alt_line('全・交戦中', [r for r in rows if r['atwar']])
+    cl = collections.Counter(); cc = collections.Counter()
+    for r in rows:
+        for k, a, c_, x in r['items']:
+            (cl if k == 'L' else cc)[c_] += 1
+    tl = sum(cl.values()); tc = sum(cc.values())
+    P('')
+    P('段の法 L の符号（全ての国・%d 件）：%s' % (tl, ' '.join('%d:%s' % (c_, pct(v, tl).strip()) for c_, v in sorted(cl.items()))))
+    P('連続の軸の符号（全ての国・%d 件）：%s' % (tc, ' '.join('%d:%s' % (c_, pct(v, tc).strip()) for c_, v in sorted(cc.items()))))
+    mvc = cc[3] + cc[4] + cc[7] + cc[8]
+    P('連続の軸の動いた一歩のうち政治資本を払った割合 %s（段の法が政治資本の在庫で止まる四半期が多い裏づけ＝連続の軸の小さな押しが毎四半期在庫を使う）' % pct(cc[4] + cc[8], mvc))
     text = '\n'.join(lines) + '\n'
     if outp:
         with open(outp, 'w', encoding='utf-8', newline='\n') as f:
