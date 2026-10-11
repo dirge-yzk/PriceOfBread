@@ -2,6 +2,7 @@
 2026-10-10 (245)：旧の NG の読み手の入力（木へ注入した inj_*.py の A／C／Q／T／G／M／Y／WEV 行）を標準の計器へ畳んだ。
 表（1試合＝seed ごとに1本・タブ区切り・1行目が列名・数は G10・nan／inf はそのまま float で読める）：
   nation_s<seed>.tsv   国×四半期（全ての国・死んだ国も）＝quarter（0始まり）・year・nationIndex・nation・人口・兵士・名目GDP・交戦と内戦の月・徴兵法・台帳の累計 ほか
+                       ★(260) 末尾の6列＝国営の棟の着工と完成（stateFacilityStartedCount・stateFacilityStartedGateClosedCount〔うち着工の時点で発見の門が閉じていた〕・stateFacilityCompletedCount・stateFacilityCompletedGateClosedCount〔うち完成の月に門が閉じていた〕・stateFacilityCompletedGateClosedAtStartCount〔その完成のうち着工の時点でも閉じていた〕＝四半期の件数）と supplyFillShare（人口加重の供給の充足＝補給崩壊の物差し・0.3 を割る国×四半期のうち人口100千人以上を数える）
   stock_s<seed>.tsv    在庫・即応度・装備・年末の行（time が q<番号> で番号%4==3）に艦隊のゲージ・技術水準・鉄道の容量・工場の蒸気動力の割合・交戦中か
   wars_s<seed>.tsv     戦争1本ごと（開戦の年・内戦か・当事者・月数・戦死）
   casualty_s<seed>.tsv (年, 国)ごとの兵士の月和と戦死

@@ -197,6 +197,16 @@ public class InstrumentsTests
                 if (aw > 0) Assert.Contains(n, inWar);
             }
             Assert.True(monthsByNation.Values.Sum() > 0, "交戦の月が1つも立たない（数える写しの漏れ）");
+            // (260) 国営の棟の着工と完成の列（線E の合否の量）：入れ子の数（閉じていた分 ≦ 全体・着工の時点でも閉じていた分 ≦ 完成の月に閉じていた分）と、完成は着工を超えない。
+            double started = 0, completed = 0;
+            foreach (var r in nr)
+            {
+                double s0 = Col(nh, r, "stateFacilityStartedCount"), s1 = Col(nh, r, "stateFacilityStartedGateClosedCount");
+                double d0 = Col(nh, r, "stateFacilityCompletedCount"), d1 = Col(nh, r, "stateFacilityCompletedGateClosedCount"), d2 = Col(nh, r, "stateFacilityCompletedGateClosedAtStartCount");
+                Assert.True(s0 >= 0 && s1 >= 0 && s1 <= s0 && d0 >= 0 && d1 >= 0 && d1 <= d0 && d2 >= 0 && d2 <= d1, "国営の棟の列の入れ子が崩れた");
+                started += s0; completed += d0;
+            }
+            Assert.True(started >= completed, "完成が着工を超えた（着工の写しの漏れ）");
             foreach (var r in wr)   // 戦争の表の当事者（国）が1か月以上戦ったなら、その国の交戦の月が立つ
                 if (Col(wh, r, "months") > 0)
                     foreach (var side in new[] { r[Array.IndexOf(wh, "sideA")], r[Array.IndexOf(wh, "sideB")] })

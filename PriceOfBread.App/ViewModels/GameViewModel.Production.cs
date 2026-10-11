@@ -946,7 +946,7 @@ public partial class GameViewModel
             if (rg.State != RegionState.Active || gi >= rg.Markets.Length) continue;
             var m = rg.Markets[gi];
             // エンジンの動詞（SetSubsidy/BuildFactory/CanSellFactory/SetStateTarget）は全て World.FindFactory
-            // （①投資済み→②操業可→③先頭の優先順）で個体を選ぶ＝表示も同じ個体に揃える
+            // （①投資済みで操業可→②操業可→③門が閉じた投資済み→④先頭の優先順）で個体を選ぶ＝表示も同じ個体に揃える
             // （並存レシピ財＝衣料の職人工房等で「表示と操作が別個体」になる齟齬をレビューで確認・2026-07-05）
             var pr = World.FindFactory(rg, gi);
             // 失業した働き手（作者指示2026-08-03「工場労働者が余っている州に建てたい」）：この財の生産者が雇う pop
