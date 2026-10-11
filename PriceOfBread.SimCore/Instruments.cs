@@ -102,7 +102,7 @@ public static class Instruments
         // ---- (270) 線B2：軍事費の合計の施行の一歩（Government.Step の milTotal＝Move の1回）の内訳。-1／NaN＝この四半期は来なかった
         public int MmOutcome = -1, MmFronts = -1; public bool MmIncreasing;
         public double MmCur = double.NaN, MmTarget = double.NaN, MmNet = double.NaN, MmResist = double.NaN, MmSpeed = double.NaN, MmPush = double.NaN;
-        public double MmOppTrad = double.NaN, MmOppModern = double.NaN, MmOppMass = double.NaN, MmStock = double.NaN, MmStockMax = double.NaN;
+        public double MmOppTrad = double.NaN, MmOppModern = double.NaN, MmOppMass = double.NaN, MmStock = double.NaN, MmStockMax = double.NaN, MmEnvelopeAfterGov = double.NaN;
     }
     /// <summary>段5 の上限の引き出し率 d（月あたり）。(264) 実装ログ §7 の事前登録の格子＝1/120・1/240・1/480（AI の設計・作者の承認は未確認）。</summary>
     internal static readonly double[] CapDs = [1.0 / 120, 1.0 / 240, 1.0 / 480];
@@ -397,6 +397,7 @@ public static class Instruments
         var st = S(w);
         st.DecOpen = Government.WarStageOpen(w) ? 1 : 0;
         st.DecTarget = Government.MilitaryStage(w.Policy.MilitarySpendingTarget); st.DecEnforced = Government.MilitaryStage(w.MilitarySpending); st.DecShare = w.MilitarySpending;
+        st.MmEnvelopeAfterGov = Military.WarStageShare(w, w.MilitarySpending);   // (270) 戦時段の器の割合（エンジンの量そのもの）
     }
     static void ResetQuarter(WState st)
     {
@@ -411,7 +412,7 @@ public static class Instruments
         st.QCapPaid = st.QCapPopK = 0; Array.Clear(st.QCapBoundPaid); Array.Clear(st.QCapCut); Array.Clear(st.QCapBoundPopK);
         st.FactorySold = 0; st.MonoBefore = st.MonoTarget = -1; st.FiscalStressAtDecision = double.NaN;
         st.MmOutcome = st.MmFronts = -1; st.MmIncreasing = false;
-        st.MmCur = st.MmTarget = st.MmNet = st.MmResist = st.MmSpeed = st.MmPush = st.MmOppTrad = st.MmOppModern = st.MmOppMass = st.MmStock = st.MmStockMax = double.NaN;
+        st.MmCur = st.MmTarget = st.MmNet = st.MmResist = st.MmSpeed = st.MmPush = st.MmOppTrad = st.MmOppModern = st.MmOppMass = st.MmStock = st.MmStockMax = st.MmEnvelopeAfterGov = double.NaN;
     }
     /// <summary>国×四半期の行に足す列（行政の請求の2つの式・戦時段）。月ごとの量は四半期の月の平均（<c>PerMonth</c>）。</summary>
     static List<(string Name, string Value)> NationExtras(World w, WState st)
@@ -947,6 +948,8 @@ public static class Instruments
         cols.Add(("militaryMovePushBudgetFactor", F(st.MmPush))); cols.Add(("militaryMoveOpenFrontsCount", I(st.MmFronts)));
         cols.Add(("militaryMoveStepFraction", F(st.MmSpeed)));
         cols.Add(("politicalCapitalSpentIndex", F(st.MmStock))); cols.Add(("politicalCapitalMaxIndex", F(st.MmStockMax)));
+        cols.Add(("warStageEnvelopeShareAfterGov", F(st.MmEnvelopeAfterGov))); cols.Add(("warStageEnvelopeShareEnd", F(Military.WarStageShare(w, w.MilitarySpending))));
+        cols.Add(("sovereignDefaultCumulativeCount", I(w.SovereignDefaultCount)));
         return cols;
     }
 

@@ -903,6 +903,28 @@ public class InstrumentsTests
             Assert.True(counts[3] > 0 && counts[2] > 0, $"無償で動いた四半期と政治資本が足りず固定された四半期が両方起きていない（{string.Join(',', counts)}）");   // 結果0・1は4国40四半期では起きない（目標は段の格子・現在は連続／純支持の余白は +∞）＝対照にしない
             Assert.True(counts[4] > 0, $"政治資本を払って動いた四半期が1度も無い（{string.Join(',', counts)}）＝純支持が負の経路が写っていない");
             Assert.True(checkedPush > 0);
+
+            // ⑥戦時段の器の割合（エンジンの Military.WarStageShare そのもの）＝別の列（解禁・施行のシェア・目標の段）から (min(施行, 目標の段÷段数) − (段数−1)÷段数) × 段数 を 0..1 に収めた値に合う。解禁の外は 0
+            // ⑦国債の不履行の累計は国ごとに減らない
+            int openRows = 0, envPositive = 0; var lastDefault = new Dictionary<string, double>();
+            foreach (var row in nr)
+            {
+                double open = Col(nh, row, "warStageOpenAfterGovFlag"), env = Col(nh, row, "warStageEnvelopeShareAfterGov"), share = Col(nh, row, "militarySpendingAfterGovShare");
+                double tgtStage = Col(nh, row, "militaryStageTargetAfterGovStage");
+                if (open != 1) { Assert.True(open != 0 || env == 0, "解禁の外の器は 0"); }
+                else
+                {
+                    openRows++;
+                    double lvl = Math.Min(share, tgtStage / Government.MilitaryLawStages);
+                    double expect = Math.Clamp((lvl - (Government.MilitaryLawStages - 1.0) / Government.MilitaryLawStages) * Government.MilitaryLawStages, 0, 1);
+                    Assert.InRange(env, expect - 1e-6, expect + 1e-6);
+                    if (env > 0) envPositive++;
+                }
+                string nm = row[Array.IndexOf(nh, "nation")]; double dc = Col(nh, row, "sovereignDefaultCumulativeCount");
+                Assert.True(dc >= (lastDefault.TryGetValue(nm, out var pv) ? pv : 0), "不履行の累計は減らない"); lastDefault[nm] = dc;
+            }
+            Assert.True(openRows > 0, "戦時段が解禁された四半期が1度も無い＝器の列の突き合わせが動いていない");
+            _ = envPositive;
         }
         finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
     }
