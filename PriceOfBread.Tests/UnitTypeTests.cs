@@ -281,7 +281,7 @@ public class UnitTypeTests
         w1.GovBondRatePerYear = new RatePerYear(0.0625); w1.GovAvgCouponPerYear = new RatePerYear(1.0 / 3.0); w1.ExpectedInflationPerYear = new RatePerYear(-0.0125);
         w1.Coef.LoanSpreadPerYear = new RatePerYear(0.05); w1.Coef.BondRepayFracPerMonth = new RatePerMonth(0.0175);
         w1.SetTreasuryRaw(1234.5678); w1.GovDebt = new MoneyStock(2.0 / 3.0);   // ★(250) 在庫のお金（国庫・国債の残高・貯蓄）
-        w1.Regions[0].Pops[0].ScaleSavings(1.0 / 3.0);
+        w1.Regions[0].Pops[0].SetSavings(w1.Regions[0].Pops[0].Savings.Value * (1.0 / 3.0));   // (273) 旧 ScaleSavings（倍率）は置き直しの RebaseSavingsTo〔値〕に替わった＝盤面の道具で同じ値にする
         // ★(252) 在庫のお金の残り（対外債・保有・個人債務・銀行の与信）＝割り切れない値で往復を確かめる
         w1.ForeignDebt = new MoneyStock(1.0 / 7.0); w1.PrevForeignDebt = new MoneyStock(2.0 / 7.0);
         w1.Regions[0].Pops[0].BondHoldings = new MoneyStock(3.0 / 7.0); w1.Regions[0].Pops[0].Debt = new MoneyStock(4.0 / 7.0);
@@ -439,7 +439,7 @@ public class UnitTypeTests
     [Fact]
     public void 在庫のお金をdoubleから作る所の数は宣言のとおり()
     {
-        const int Declared = 63;   // 2026-10-11 (251)：48＝Simulation 30・Fiscal 6・Model 6・World 3・MultiNationSim 3 → (252)：54＝Simulation 32・Fiscal 8・Model 3・World 6・MultiNationSim 2・Bank 1・Diplomacy 2 → (256)：63＝CapitalMarket 8・Credit 1・MultiNationSim 3・World 5 が変わった（下）
+        const int Declared = 64;   // (273)：63→64＝Model.cs の Pop.RebaseSavingsTo(double) が置き直しの貯蓄を MoneyStock にする1件（旧 ScaleSavings は倍率で new が無かった） → 2026-10-11 (251)：48＝Simulation 30・Fiscal 6・Model 6・World 3・MultiNationSim 3 → (252)：54＝Simulation 32・Fiscal 8・Model 3・World 6・MultiNationSim 2・Bank 1・Diplomacy 2 → (256)：63＝CapitalMarket 8・Credit 1・MultiNationSim 3・World 5 が変わった（下）
         //   増えた理由（(252) の+6＝どれも double の流れ・取引の額・換算の結果を在庫の型へ入れる継ぎ目で、月の流れの決算ではない）：
         //   Bank 1＝家計の貸しと返しの動いた額を個人債務へ（Bank.Lend）／Diplomacy 2＝払えなかった貢納と賠償を対外債へ記帳する額（Fiscal.BookForeignDebt の引数が在庫の型になり呼び手が包む）／
         //   Fiscal +2＝減債で減る対外債（Math.Max の結果）・起債で資本家が払った額の保有（(251) の GovDebt 側の1件は対外債の側と共有して増やしていない・BookForeignDebt の引数は型になり −1）／

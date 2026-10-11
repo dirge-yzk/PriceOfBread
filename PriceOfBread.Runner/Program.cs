@@ -6406,7 +6406,7 @@ if (args.Length > 0 && args[0] == "initsavprobe")
 
 // === (220) 開幕の建設の急増の診断（読むだけ・(218) の英専用を全国へ）： dotnet run -- earlyprobe220 [seed] [四半期数] [国名,国名,…|ALL] ===
 // 国ごとに 労働の需要÷器（労働力の財の需要 ÷ 労働力の生産者の産出の和）・労働の実質の値段・工場の設備 ΣScale・投資家の貯蓄÷年名目GDP・全貯蓄÷年名目GDP・国庫・国債・物価水準を、
-// 助走の終わり（w0）と 1,4,8,12,16,28 四半期後に数える。開幕の貨幣の腕は POB_COEF（InitMoneyMode=1 など）で切り替える。
+// 助走の終わり（w0）と 1,4,8,12,16,28 四半期後に数える。開幕の貯蓄の置き直しの腕は POB_COEF（OpeningSavingsRebaseMode=1 など）で切り替える（★(273) 旧 InitMoneyMode を置き換えた）。
 if (args.Length > 0 && args[0] == "earlyprobe220")
 {
     ulong epSeed = args.Length > 1 && ulong.TryParse(args[1], out var eps) ? eps : 1UL;

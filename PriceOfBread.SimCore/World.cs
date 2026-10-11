@@ -1391,8 +1391,8 @@ public sealed class World
     //   陸海の配分は ArmyUpkeep / NavyUpkeep（払う金）で既に表現済み＝注力度はその上に乗る二重表現だった。
     //   ⚠状態が1つ減る＝POBSIM1 セーブは読めない（v2 以後はフィールドの増減を名前表で吸収＝<see cref="SaveGame"/>）。
 
-    /// <summary>★(220) 開幕の広義の貨幣 ÷ 年名目GDP（<see cref="NationConfig.BroadMoneyToGdp"/>・0＝置かない）。読み手＝<see cref="RebaseOpeningMoney"/> だけ。</summary>
-    public double BroadMoneyToGdp { get; init; }
+    /// <summary>★(273) 開幕の広義の貨幣÷年所得 m（<see cref="NationConfig.BroadMoneyToIncome"/>・0＝置き直さない）。読み手＝<see cref="RebaseOpeningMoney"/> だけ。</summary>
+    public double BroadMoneyToIncome { get; init; }
     public double Latitude { get; internal set; }    // ★**経済中心地**の緯度（度）＝エンジンの距離計算はすべてこれを読む。⚠CenterIsFirstProvince>0 では1番目の州の座標へ差し替わる（J-003）
     public double Longitude { get; internal set; }   // 首都の経度（度）。日本の遠さ＝交易の天然の障壁
 
@@ -1676,28 +1676,46 @@ public sealed class World
     public double CreditFxTerm { get; internal set; } = 1.0;      // 内訳③為替（減価＝対外信用の低下）
     public double CreditBondTerm { get; internal set; } = 1.0;    // 内訳④国債の利回りスプレッド
     public double Convertibility { get; internal set; }   // 兌換可能性 0..1（倍率排除②）。1=完全兌換(金)・0=不換。OnGoldStandard(資格)を非対称速度で滑らかに追従し、通貨レジームの効果(money集計/為替/切下げ/金利/対外信用)を連続lerpで出す
-    /// <summary>★(220) 開幕の貨幣を史実の比で置き直す（係数 <see cref="Coefficients.InitMoneyMode"/> が1以上かつ <see cref="BroadMoneyToGdp"/> が正の国だけ・呼び手＝<see cref="MultiNationSim.StartWarmup"/> の助走の後）。
-    /// 目標の合計 = 比 × <see cref="Coefficients.InitMoneyScale"/> × 年名目GDP（月次 NominalGdpPerMonth × 12・助走の終わりの値）。投資家（近代エリートの全階級）の貯蓄を 取り分 × 目標 へ按分で置き直す（州・階級の配分の形は変えない）。
-    /// モード2は他の階級（兵士を含む）の貯蓄を (1−取り分) × 目標 へ同じ規則で按分する。分母が年名目GDP なのは、投資家の年所得が GDP の 0.6〜3.1 倍で国ごとに桁が違うため（取引の総額が混ざる・(218) §6）。
-    /// 減らした貨幣は基礎貨幣から消えるので、呼び手が保存則の基準線を取り直す（国庫を開幕の値へ戻す助走の作法と同じ）。貨幣の厚み（M/Y）の趨勢 <see cref="_moTrend"/> も取り直す
-    /// （取り直さないと趨勢との比が崩れ、物価水準が床へ向かって落ちる＝(218) の番人 M2）。否定形：分母・分子が正でなければ何もしない（NaN も素通しにしない）。</summary>
-    internal void RebaseOpeningMoney()
+    /// <summary>★(273) 開幕の貯蓄を「広義の貨幣÷年所得 m」の規則で置き直す（<see cref="Coefficients.OpeningSavingsRebaseMode"/> が <paramref name="whenMode"/> に等しく、かつ <see cref="BroadMoneyToIncome"/> が正の国だけ・
+    /// 呼び手＝<see cref="MultiNationSim"/> の助走の中〔<paramref name="whenMode"/> 1＝助走の後の1回・2＝最初の四半期の後の1回〕・基準線の取り直しの前）。階級 c の所得 e ＝ 前月の所得 <c>LastEarnedPerMonth</c> が正の POP の和（月次）・配分の形 ＝ Σ k_c × e・
+    /// 目標 ＝ m × Σ e。倍率 λ ＝ 目標 ÷ 配分の形（導ける量＝状態に持たない・思想⑩）として、全ての POP（州の全ての階級・兵士を含む）の貯蓄を <c>λ × k[階級] × 年所得</c> へ置く（年所得＝<c>Calendar.PerMonthToPerYear</c>）。
+    /// ⇒ 置き直し直後の ΣSavings ÷ 年所得の和 ＝ m（定義上・冪等＝もう一度呼んでも同じ m に入る）。分子の貨幣は Σ全POP の Savings（<see cref="BroadMoney"/>）・分母の所得は Earned の分配面
+    /// （<see cref="GdpPerMonth"/> は中間財を重ねる総産出で付加価値でない＝比の分母に使わない）。構築の「1000人あたりの定数」（3000/200/300/3200…）は助走を回すための種としてだけ残る。
+    /// 配分の形と目標が正でない（NaN を含む）なら何もしない（否定形）。所得が正でない POP と k が正でない階級は 0。
+    /// <para>★民間の対外の在庫も同じ比で縮める：POP の貯蓄の合計が ρ ＝ 置いた後 ÷ 置く前 倍になる（λ とは別＝ρ は国の合計の縮み率）ので、その国の民間の対外の資本と債権（<see cref="ForeignCapitalIn"/>・<see cref="CapitalAbroad"/>・
+    /// <see cref="ForeignBondClaims"/>）に ρ を掛ける。民間の債権だけ旧の桁に残すと、払い手（その国の投資家）の上限だけが縮み、払えない分が債権ごと消える（配当と逃避の払いは貯蓄を上限にする・(267) の表）。
+    /// 公の債務（<see cref="GovDebt"/>・<see cref="ForeignDebt"/>・Pop の <c>BondHoldings</c>）は史実の初期値なので掛けない（Σ保有 ＝ GovDebt − ForeignDebt は保たれる）。世界の Σ流入 ＝ Σ対外保有 は他国の相手側を触らない
+    /// ので崩れる（相手の国別の台帳は無い＝還流は CapitalAbroad の比で按分するプール型・<see cref="CapitalMarket"/>）。</para>
+    /// 置くのは貯蓄と上の3つだけ＝国庫・与信・国債の保有台帳は触らない。貯蓄の増減は基礎貨幣へ記帳なしに出入りする＝呼び手が保存則の基準線を取り直す（国庫を開幕の値へ戻す助走の作法と同じ）。
+    /// 貨幣の厚み（M/Y）の趨勢 <see cref="_moTrend"/> も取り直す（取り直さないと趨勢との比が崩れ、物価水準が床へ向かって落ちる＝(218) の番人 M2）。</summary>
+    internal void RebaseOpeningMoney(int whenMode)
     {
-        if (!(Coef.InitMoneyMode > 0) || !(BroadMoneyToGdp > 0)) return;
-        double share = Coef.InitInvestorMoneyShare;
-        if (!(share > 0) || !(share < 1)) return;
-        double gdpY = Calendar.PerMonthToPerYear(NominalGdpPerMonth).Value;
-        if (!(gdpY > 1e-9)) return;
-        double target = BroadMoneyToGdp * Coef.InitMoneyScale * gdpY;
-        if (!(target > 0)) return;
-        double invSav = 0, othSav = 0;
-        foreach (var r in Regions) foreach (var p in r.Pops) { if (!(p.Savings.Value > 0)) continue; if (CapitalMarket.IsInvestor(p)) invSav += p.Savings.Value; else othSav += p.Savings.Value; }
-        double fInv = invSav > 1e-9 ? share * target / invSav : 1.0;
-        double fOth = Coef.InitMoneyMode >= 2 && othSav > 1e-9 ? (1.0 - share) * target / othSav : 1.0;
+        if (Coef.OpeningSavingsRebaseMode != whenMode || !(BroadMoneyToIncome > 0)) return;   // モードが違う（既定0＝置かない）・m が0・負・NaN は置かない（否定形）
+        var years = Coef.SavingsYearsByClass;
+        double inc = 0, shape = 0, before = 0;
         foreach (var r in Regions) foreach (var p in r.Pops)
         {
-            if (!(p.Savings.Value > 0)) continue;
-            if (CapitalMarket.IsInvestor(p)) p.ScaleSavings(fInv); else if (fOth != 1.0) p.ScaleSavings(fOth);
+            before += p.Savings.Value;
+            double e = p.LastEarnedPerMonth.Value;
+            if (!(e > 0)) continue;
+            double k = (uint)p.ClassId < (uint)years.Length ? years[p.ClassId] : 0.0;
+            inc += e; if (k > 0) shape += k * e;
+        }
+        double target = BroadMoneyToIncome * inc;
+        if (!(shape > 0) || !(target > 0)) return;   // 配分の形も目標も正でなければ何もしない
+        double lambda = target / shape;
+        double after = 0;
+        foreach (var r in Regions) foreach (var p in r.Pops)
+        {
+            double k = (uint)p.ClassId < (uint)years.Length ? years[p.ClassId] : 0.0;
+            double e = p.LastEarnedPerMonth.Value;
+            double v = k > 0 && e > 0 ? lambda * k * Calendar.PerMonthToPerYear(e) : 0.0;
+            p.RebaseSavingsTo(v); after += v;
+        }
+        if (before > 0)   // 民間の対外の在庫へ同じ縮み率（前の合計が正でないとき比が定義できない＝触らない）
+        {
+            double rho = after / before;
+            ForeignCapitalIn = ForeignCapitalIn * rho; CapitalAbroad = CapitalAbroad * rho; ForeignBondClaims = ForeignBondClaims * rho;
         }
         // 貨幣の厚み（M/Y）の趨勢を取り直す：UpdatePriceLevel の「物価 ＝ 厚み ÷ 趨勢」の関係を、置き直した後の厚みで今の物価水準のまま保つ（趨勢 ＝ 厚み ÷ 物価水準）。
         //   旧（(218)）＝趨勢を0へ（次の更新で趨勢 ＝ 厚み ＝ 物価が1へ引かれる）＝助走で物価水準が1から離れた国（清 2.3・露 1.2）の物価が置き直しだけで動いた（実測＝8四半期で対照の0.6〜0.7倍）。

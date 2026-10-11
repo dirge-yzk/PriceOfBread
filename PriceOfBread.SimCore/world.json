@@ -2,7 +2,6 @@
  "nations": [
   {
    "name": "フランス",
-   "broadMoneyToGdp": 0.35,
    "rule": [0.7, 0.28, 0.0, 0.02],
    "nobility": 467,
    "peasant": 18666,
@@ -157,7 +156,6 @@
   },
   {
    "name": "日本",
-   "broadMoneyToGdp": 0.2,
    "rule": [0.4, 0.58, 0.0, 0.02],
    "nobility": 1749,
    "peasant": 22740,
@@ -270,7 +268,7 @@
   },
   {
    "name": "イギリス",
-   "broadMoneyToGdp": 0.5,
+   "broadMoneyToIncome": 0.5,
    "knownDiscoveries": ["蒸気機関", "特許"],
    "rule": [0.9, 0.1, 0.0, 0.0],
    "nobility": 193,
@@ -540,7 +538,6 @@
   },
   {
    "name": "アメリカ",
-   "broadMoneyToGdp": 0.2,
    "rule": [0.35, 0.55, 0.0, 0.1],
    "nobility": 18,
    "peasant": 2148,
@@ -631,7 +628,6 @@
   },
   {
    "name": "ロシア",
-   "broadMoneyToGdp": 0.2,
    "rule": [0.5, 0.45, 0.0, 0.05],
    "nobility": 566,
    "peasant": 24922,
@@ -945,7 +941,6 @@
   },
   {
    "name": "プロイセン",
-   "broadMoneyToGdp": 0.2,
    "rule": [0.7, 0.28, 0.0, 0.02],
    "bureaucracy": "MeritExam",
    "nobility": 166,
@@ -1036,7 +1031,6 @@
   },
   {
    "name": "オスマン",
-   "broadMoneyToGdp": 0.2,
    "rule": [0.5, 0.4, 0.0, 0.1],
    "nobility": 800,
    "peasant": 21000,
@@ -1248,7 +1242,6 @@
   },
   {
    "name": "オーストリア",
-   "broadMoneyToGdp": 0.2,
    "rule": [0.6, 0.37, 0.0, 0.03],
    "nobility": 474,
    "peasant": 17350,
@@ -1426,7 +1419,6 @@
   },
   {
    "name": "ネーデルラント",
-   "broadMoneyToGdp": 0.5,
    "rule": [0.55, 0.45, 0.0, 0.0],
    "nobility": 31,
    "peasant": 461,
@@ -1529,7 +1521,6 @@
   },
   {
    "name": "スペイン",
-   "broadMoneyToGdp": 0.35,
    "rule": [0.65, 0.32, 0.0, 0.03],
    "nobility": 327,
    "peasant": 7428,
@@ -1781,7 +1772,6 @@
   },
   {
    "name": "サルデーニャ＝ピエモンテ",
-   "broadMoneyToGdp": 0.35,
    "rule": [0.75, 0.22, 0.0, 0.03],
    "nobility": 96,
    "peasant": 2318,
@@ -1842,7 +1832,6 @@
   },
   {
    "name": "清",
-   "broadMoneyToGdp": 0.2,
    "rule": [0.6, 0.35, 0.0, 0.05],
    "bureaucracy": "MeritExam",
    "nobility": 14000,
@@ -2170,7 +2159,6 @@
   },
   {
    "name": "朝鮮",
-   "broadMoneyToGdp": 0.2,
    "rule": [0.58, 0.39, 0.0, 0.03],
    "nobility": 1200,
    "peasant": 11000,
@@ -3196,7 +3184,6 @@
   },
   {
    "name": "スウェーデン",
-   "broadMoneyToGdp": 0.35,
    "rule": [0.78, 0.18, 0.0, 0.04],
    "nobility": 282,
    "peasant": 1549,
@@ -3262,7 +3249,6 @@
   },
   {
    "name": "デンマーク",
-   "broadMoneyToGdp": 0.35,
    "rule": [0.7, 0.28, 0.0, 0.02],
    "nobility": 245,
    "peasant": 1258,
@@ -3332,7 +3318,6 @@
   },
   {
    "name": "スイス",
-   "broadMoneyToGdp": 0.35,
    "rule": [0.35, 0.65, 0.0, 0.0],
    "nobility": 134,
    "peasant": 801,
@@ -3363,7 +3348,6 @@
   },
   {
    "name": "ポーランド",
-   "broadMoneyToGdp": 0.2,
    "rule": [0.25, 0.7, 0.0, 0.05],
    "nobility": 900,
    "peasant": 7000,
@@ -3434,7 +3418,6 @@
   },
   {
    "name": "ポルトガル",
-   "broadMoneyToGdp": 0.35,
    "rule": [0.68, 0.3, 0.0, 0.02],
    "nobility": 89,
    "peasant": 2066,
@@ -3536,7 +3519,6 @@
   },
   {
    "name": "ジェノヴァ",
-   "broadMoneyToGdp": 0.35,
    "rule": [0.7, 0.3, 0.0, 0.0],
    "nobility": 9,
    "peasant": 212,
@@ -3570,7 +3552,6 @@
   },
   {
    "name": "ライン諸邦",
-   "broadMoneyToGdp": 0.2,
    "rule": [0.35, 0.65, 0.0, 0.0],
    "nobility": 100,
    "peasant": 1600,
@@ -3602,7 +3583,6 @@
   },
   {
    "name": "両シチリア",
-   "broadMoneyToGdp": 0.2,
    "rule": [0.4, 0.5, 0.0, 0.1],
    "nobility": 500,
    "peasant": 5000,
@@ -3659,7 +3639,6 @@
   },
   {
    "name": "教皇領",
-   "broadMoneyToGdp": 0.2,
    "rule": [0.45, 0.45, 0.0, 0.1],
    "nobility": 181,
    "peasant": 1808,
@@ -3714,7 +3693,6 @@
   },
   {
    "name": "トスカーナ",
-   "broadMoneyToGdp": 0.35,
    "rule": [0.8, 0.17, 0.0, 0.03],
    "nobility": 62,
    "peasant": 620,
@@ -3753,7 +3731,6 @@
   },
   {
    "name": "ヴェネツィア",
-   "broadMoneyToGdp": 0.35,
    "knownDiscoveries": ["特許"],
    "rule": [0.65, 0.32, 0.0, 0.03],
    "nobility": 133,
@@ -3811,7 +3788,6 @@
   },
   {
    "name": "バイエルン",
-   "broadMoneyToGdp": 0.2,
    "rule": [0.55, 0.45, 0.0, 0.0],
    "nobility": 91,
    "peasant": 727,
@@ -3843,7 +3819,6 @@
   },
   {
    "name": "ザクセン",
-   "broadMoneyToGdp": 0.2,
    "rule": [0.65, 0.35, 0.0, 0.0],
    "nobility": 108,
    "peasant": 1031,
@@ -3877,7 +3852,6 @@
   },
   {
    "name": "ハノーファー",
-   "broadMoneyToGdp": 0.2,
    "rule": [0.55, 0.45, 0.0, 0.0],
    "nobility": 58,
    "peasant": 527,
@@ -3918,7 +3892,6 @@
   },
   {
    "name": "ヴュルテンベルク",
-   "broadMoneyToGdp": 0.2,
    "rule": [0.5, 0.5, 0.0, 0.0],
    "nobility": 44,
    "peasant": 356,

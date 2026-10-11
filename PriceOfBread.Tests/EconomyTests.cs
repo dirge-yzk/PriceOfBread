@@ -571,6 +571,41 @@ public class EconomyTests
         return new Region { Id = 0, Goods = [food], Pops = [laborer, landlord], Producers = [rgo], Markets = [market] };
     }
 
+    /// <summary>手組みの2階級地域（<see cref="TwoClassRegion"/> と同じ形）。労働者の貯蓄と前月の所得（Run の冒頭で EarnedPerMonth が LastEarnedPerMonth へ写る）を引数で置く。</summary>
+    private static Region CapRegion(double laborerSavings, double laborerLastEarned)
+    {
+        var food = new Good { Id = 0, Name = "食料", Tier = GoodTier.Staple, BaseNeed = 0.8, RefPrice = 1.0, Elasticity = 0.3 };
+        var laborer = new Pop { ClassId = 0, ClassName = "農業労働者", IsUrban = false, Size = 1000, Savings = new MoneyStock(laborerSavings), EarnedPerMonth = new MoneyPerMonth(laborerLastEarned) };
+        var landlord = new Pop { ClassId = 1, ClassName = "地主", IsUrban = false, Size = 50, Savings = new MoneyStock(500_000) };
+        var rgo = new Producer { GoodId = 0, Productivity = 0.85, Output = 800, MarginalCost = 0.5, OwnerPopIndex = 1, LaborPopIndex = 0, RentShare = 0.3 };
+        var market = new Market { Price = 1.0, Stock = 1200, TargetStock = 1200 };
+        return new Region { Id = 0, Goods = [food], Pops = [laborer, landlord], Producers = [rgo], Markets = [market] };
+    }
+
+    /// <summary>★(273) 段5 の上限（<c>ConsumeBudgetSavingsRatePerMonth</c>＝d）：月初の予算を min(予算, 前月の所得＋貯蓄×d) で切る。労働者（貯蓄 1000・前月の所得 30・必要 800/月）は d＝1/120 で
+    /// 上限 30＋1000/120＝38.33 の内に Paid が収まり（予算を使い切る＝下の端も確かめる）、d＝0（対照）では 500 を超えて使う。上限が効かない大きさ（前月の所得 5000）の走行は d＝0 とビット一致する。
+    /// 貯蓄の厚い地主（必要 40/月・上限 500000/120＝4167）は上限が効かず d＝0 とビット一致。期待値は手計算（EconomyStep の式を写さない）。
+    /// ⚠壊し方＝上限の行を外す（binding の上端で赤）・貯蓄の項を落とす（binding の下端で赤）・前月の所得の項を落とす（同）・d＝0 でも評価する（対照が min(予算, 所得 30) になり赤）・全員に同じ絶対額を掛ける（地主が動いて赤）。</summary>
+    [Fact]
+    public void 段5の上限は予算を前月の所得プラス貯蓄のd倍で切り_効かない大きさでは何も変えない()
+    {
+        double Paid(double d, double savings, double lastEarned, int pop)
+        {
+            var region = CapRegion(savings, lastEarned);
+            var coef = new Coefficients { ConsumeBudgetSavingsRatePerMonth = new RatePerMonth(d) };
+            EconomyStep.Run(region, coef);
+            return region.Pops[pop].PaidPerMonth.Value;
+        }
+        double cap = 30.0 + 1000.0 / 120;
+        double off = Paid(0, 1000, 30, 0);
+        Assert.True(off > 500, $"前提が崩れた：対照（d＝0）で労働者が使わない（{off:F1}）");
+        double on = Paid(1.0 / 120, 1000, 30, 0);
+        Assert.True(on <= cap + 1e-9, $"上限 {cap:F3} を超えて使った（{on:F3}）");
+        Assert.True(on >= 0.99 * cap, $"上限 {cap:F3} の内で予算を使い切らない（{on:F3}）");
+        Assert.Equal(BitConverter.DoubleToInt64Bits(off), BitConverter.DoubleToInt64Bits(Paid(1.0 / 120, 1000, 5000, 0)));   // 効かない大きさ（上限 5008＞貯蓄 1000）
+        Assert.Equal(BitConverter.DoubleToInt64Bits(Paid(0, 1000, 30, 1)), BitConverter.DoubleToInt64Bits(Paid(1.0 / 120, 1000, 30, 1)));   // 貯蓄の厚い地主は上限が効かない
+    }
+
     /// <summary>★再点火の発注は持ち主の予算を通り、月内の仮勘定（Paid）で払う（支払いの一元化 段2-2・A3・2026-09-29）。
     /// 旧＝止まった工場の持ち主は期首の貯蓄から直接払った（Paid と予算 RemainingBudget を通らない）＝同じ貯蓄を消費と再点火で2度使え、月末の貯蓄が負になった。
     /// 盤面＝仏（全財の経済）を6か月温め、首都州の投入を持つ工場を1つ止め、再点火の発注の割合を2へ上げて（全ての生産者に発注が立つ）EconomyStep.Run を1回。

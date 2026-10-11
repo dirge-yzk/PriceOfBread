@@ -1429,6 +1429,19 @@ public static class EconomyStep
             for (int pi = 0; pi < np; pi++) inputNeed[Catalog.ElectricityId] += elecNeed[pi];
         }
 
+        // ★(273) 消費の予算の上限（線P・段5）：予算 ＝ min(再点火の発注と反乱の武器を控えた残りの予算, 前月の所得 + 月初の貯蓄 × d)。d＞0 のときだけ評価する（既定の d＝0 は式に入れると min(予算, 前月の所得) になり恒等でない）。
+        //   置き場＝再点火の発注（上の trickleOwner の率）と反乱の武器（:1243）が予算を読んだ後・消費のループの前＝予算の他の読み手には掛けない。S は月初の貯蓄（この関数の冒頭で RemainingBudget に写した値と同じ）。
+        //   家計の与信（下の入口B・休眠）は上限の後に予算を足す位置にある。読み手の計器 Instruments.CapOf は同じ式（拘束の予測）。
+        if (coef.ConsumeBudgetSavingsRatePerMonth.Value > 0)
+        {
+            double capRate = coef.ConsumeBudgetSavingsRatePerMonth.Value;
+            foreach (var p in region.Pops)
+            {
+                double budgetCap = Math.Max(0, p.LastEarnedPerMonth.Value) + Math.Max(0, p.Savings.Value) * capRate;
+                if (p.RemainingBudget > budgetCap) p.RemainingBudget = budgetCap;
+            }
+        }
+
         // === ③ 各財の取引（消費＝予算制約・優先度順 §9-B、＋工場投入需要＋投資需要）===
         // 消費順＝第1キー tier（エンゲル：生存→日用→贅沢は価格に依らず維持）／第2キー 同tier内の**安い順**。
         // ＝予算が尽きる貧者は最安（野菜→パン…）から埋まり、買い切れず野菜だけになる。富裕は全部買えて多様。価格は毎期変わるので毎期ソート。
