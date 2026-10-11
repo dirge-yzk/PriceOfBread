@@ -1575,4 +1575,69 @@ public class InstrumentsTests
         }
         finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
     }
+
+    /// <summary>★(280) 線X：物価の更新の鎖の表（<c>money_s</c>）が <see cref="World.UpdatePriceLevel"/> の式を再現し、置き直し（モード2）の行が趨勢の取り直しの関係を保つ・最後の行の物価が盤面と一致する。
+    /// 期待値は表の列どうしの関係（趨勢の1歩・趨勢比・物価の1歩）と盤面の物価から作る（計器の中の式を写さない）。何もしない番人にならないよう、更新の行・置き直しの行・紙幣増発もクランプもない行の数を数えて下限を課す。
+    /// 月ごとの表（<c>pxmonth_s</c>）は助走の月を含み、財ごとの表（<c>pxgoods_s</c>）は主食・日用品・専売の群を含む。
+    /// ⚠壊し方＝置き直しの行の趨勢を取り直し前の値にする（趨勢比の関係が崩れて赤）・更新の行の物価の前後を取り違える（連鎖の連続が崩れて赤）。</summary>
+    [Fact]
+    public void 物価の鎖の表は更新の式を再現し置き直しの行を含む()
+    {
+        string dir = NewDir();
+        try
+        {
+            var sim = new MultiNationSim([.. WorldData.Nations()], 1789UL, _ => new UtilityAgent());
+            foreach (var n in sim.Nations) n.World.Coef.OpeningSavingsRebaseMode = 2;
+            var uk = sim.Nations.First(n => n.World.SelfPower?.BaseName == "イギリス").World;
+            Instruments.Configure(dir, "イギリス");
+            try
+            {
+                Instruments.Phase(sim, 1789UL, "open");
+                sim.StartWarmup(null, 4);
+                Instruments.Phase(sim, 1789UL, "warm");
+                for (int q = 0; q < 2; q++) { sim.StepQuarter(); Instruments.Quarter(sim, 1789UL, q); }
+            }
+            finally { Instruments.Close(sim); Instruments.Configure(null, null); }
+
+            var (h, rows) = Table(System.IO.Path.Combine(dir, "money_s1789.tsv"));
+            Assert.All(rows, r => Assert.Equal(h.Length, r.Length));
+            int iEv = Array.IndexOf(h, "event"), iT = Array.IndexOf(h, "time");
+            var rebase = rows.Where(r => r[iEv] == "rebase2").ToList();
+            Assert.Single(rebase);
+            double ratioR = Col(h, rebase[0], "savingsRebaseRatio");
+            Assert.InRange(ratioR, 0.001, 0.5);   // 英の貯蓄は大きく縮む（実測 約 0.0099＝構築の定数は年所得の約 50 倍）
+            Near(Col(h, rebase[0], "priceLevelBeforeIndex"), Col(h, rebase[0], "moneyToGdpMonths") / Col(h, rebase[0], "moTrendAfterMonths"));   // 置き直しの直後の趨勢比＝物価水準
+            var upd = rows.Where(r => r[iEv] == "update").ToList();
+            Assert.True(upd.Count >= 5, $"更新の行が少ない（{upd.Count}）");
+            double sens = uk.Coef.MonetaryPriceSensitivity, speed = uk.Coef.MonetaryTrendSpeed; int plain = 0; double prevAfter = double.NaN;
+            foreach (var r in upd)
+            {
+                double ratio = Col(h, r, "moneyToGdpMonths"), t0 = Col(h, r, "moTrendBeforeMonths"), t1 = Col(h, r, "moTrendAfterMonths"), cyc = Col(h, r, "cyclicalRatio");
+                double pb = Col(h, r, "priceLevelBeforeIndex"), pe = Col(h, r, "priceLevelAfterEmaIndex"), pf = Col(h, r, "priceLevelAfterFiatIndex"), pa = Col(h, r, "priceLevelAfterIndex");
+                Near(t0 + speed * (ratio - t0), t1);                  // 趨勢の1歩
+                Near(ratio / t1, cyc);                                // 趨勢比
+                Near(pb + sens * (cyc - pb), pe);                     // 物価の1歩（紙幣増発の前）
+                if (pf == pe && pa == pf) plain++;
+                if (!double.IsNaN(prevAfter)) Near(prevAfter, pb);   // 連鎖の連続（前の更新の後＝今の更新の前）
+                prevAfter = pa;
+            }
+            Assert.True(plain >= 3, $"紙幣増発もクランプもない更新の行が少ない（{plain}）＝物価の1歩を測れていない");
+            Near(uk.PriceLevel, prevAfter);                           // 最後の行の物価＝盤面
+            Assert.Contains(rows, r => r[iT] == "w0" && r[iEv] == "first");
+
+            var (mh, mr) = Table(System.IO.Path.Combine(dir, "pxmonth_s1789.tsv"));
+            Assert.All(mr, r => Assert.Equal(mh.Length, r.Length));
+            Assert.True(mr.Count(r => r[0].StartsWith("wm")) >= 12, "助走の月の行が少ない");
+            Assert.True(mr.Count(r => r[0].StartsWith("qm")) >= 6, "試合の月の行が少ない");
+            var (gh, gr) = Table(System.IO.Path.Combine(dir, "pxgoods_s1789.tsv"));
+            Assert.All(gr, r => Assert.Equal(gh.Length, r.Length));
+            Assert.Contains(gr, r => r[Array.IndexOf(gh, "tier")] == "Staple");
+            Assert.Contains(gr, r => r[Array.IndexOf(gh, "exciseFlag")] == "1");
+            Assert.Contains(gr, r => !double.IsNaN(Col(gh, r, "priceOverRefTimesLevelMedianRatio")) && Col(gh, r, "priceOverRefTimesLevelMedianRatio") > 0);
+        }
+        finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
+
+    /// <summary>表は 10 桁（G10）で書く＝相対 1e-8 で突き合わせる。</summary>
+    private static void Near(double expected, double actual) => Assert.True(Math.Abs(expected - actual) <= 1e-8 * Math.Max(1.0, Math.Max(Math.Abs(expected), Math.Abs(actual))), $"{expected} != {actual}");
 }

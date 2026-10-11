@@ -498,6 +498,30 @@ public class StartWarmupTests
         }
     }
 
+    /// <summary>★(280) 置き直しの意図（貨幣の厚み M/Y の趨勢の取り直し）を公開の読み口だけで確かめる：モード2の置き直しの直後（置かない4四半期の助走の後にモード2の置き直しを明示して呼んだ直後）の英は、
+    /// 貨幣の厚み（広義マネーと基礎貨幣を兌換可能性で混ぜた量 ÷ 実質産出）÷ 趨勢 が物価水準に等しい（相対 1e-9）＝次の更新が見る「趨勢比」が今の物価水準のまま。
+    /// 続けて <see cref="World.UpdatePriceLevel"/> を入力を変えずに1回呼ぶと物価水準はほぼ動かない（±1%・趨勢が1回分だけ寄るぶん）。
+    /// 期待値は式の写しでなく定義（置き直しは物価水準を保つ作り）から出す。⚠壊し方＝趨勢の取り直しで ÷PriceLevel を外す（趨勢＝厚みになり、物価水準が 1 でない英で比が物価水準から外れて赤）・
+    /// 趨勢を 0 へ戻す（旧 (218)・赤）。</summary>
+    [Fact]
+    public void モード2の置き直しの直後は趨勢比が物価水準に等しく_次の更新で物価水準はほぼ動かない()
+    {
+        var sim = BuildSavings(0);
+        sim.StartWarmup(null, 4);   // 置かない助走（物価水準が 1 から動く）の後で、モード2を明示して置き直しを1回呼ぶ
+        var w = sim.Nations.First(n => n.World.SelfPower?.BaseName == "イギリス").World;
+        w.Coef.OpeningSavingsRebaseMode = 2;
+        double s0 = w.Regions.SelectMany(r => r.Pops).Sum(p => p.Savings.Value);
+        w.RebaseOpeningMoney(2);
+        Assert.True(w.Regions.SelectMany(r => r.Pops).Sum(p => p.Savings.Value) < s0 / 2, "置き直しが起きていない");
+        double p0 = w.PriceLevel;
+        Assert.True(System.Math.Abs(p0 - 1.0) > 1e-6, $"英の物価水準 {p0} が 1 そのもの＝÷PriceLevel を外した壊し方を見分けられない");
+        double money = (w.BroadMoney + (w.BaseMoney - w.BroadMoney) * w.Convertibility).Value;
+        double cyclical = money / w.GdpPerMonth.Value / w.MoTrendForInstruments;
+        Assert.Equal(p0, cyclical, 9);
+        w.UpdatePriceLevel(w.Coef);
+        Assert.InRange(w.PriceLevel / p0, 0.99, 1.01);
+    }
+
     /// <summary>★(223) 助走は時間が経たない四半期＝年次の乱数（豊凶・作物の病害・疫病の発生と感染窓の減衰）も引かない。
     /// 旧＝助走の Tick は 0 のまま進まないのに MonthSettle の年次ブロックの年（(Tick−30)/360 の整数除算＝0）が _lastHarvestYear(−1) と違い、助走の最初の月決算で1度発火した
     /// （全61カ国の開幕の豊凶が 1.0 でない＝0.73〜1.19・疫病の死者が助走で出る国が1種あたり1〜4国・ライン諸邦 −4.8% ほか）。初回のロールは設計どおり最初の実月（Tick=30）。
