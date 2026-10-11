@@ -781,8 +781,10 @@ public sealed class World
     /// ★段3-5（2026-09-30・C8）＝造幣局・★段4g（2026-09-30）＝不換の発行者と銀行の与信（企業・家計）も世界の外の側の台帳の種類（<see cref="Outside"/>）
     ///   ＝お金が生まれる／消える経路も、動いた額をそのまま台帳へ書く（旧＝切り下げ・通貨改革・与信・損失の負債化・手形が台帳と貯蓄を手で書いた）。</summary>
     internal static double Transfer((World? W, List<Pop>? Pops) from, (World? W, List<Pop>? Pops, List<double>? Weights) to, double amount, TreasuryCat cat = TreasuryCat.OtherOut, bool income = false, TreasuryCat? toCat = null,
-                                    Outside outside = Outside.Border, List<double>? fromWeights = null, List<double>? taken = null)
+                                    Outside outside = Outside.Border, List<double>? fromWeights = null, List<double>? taken = null,
+                                    [System.Runtime.CompilerServices.CallerFilePath] string routeFile = "", [System.Runtime.CompilerServices.CallerLineNumber] int routeLine = 0)
     {
+        if (Instruments.On) Instruments.Route(routeFile, routeLine, from.Pops is not null ? 'P' : from.W is not null ? 'T' : OutsideCode(outside), to.Pops is not null ? 'P' : to.W is not null ? 'T' : OutsideCode(outside));   // (262) 計器（読むだけ）：呼び出しの位置（コンパイル時の定数）と相手の側を貯蓄の台帳の経路名にする
         if (!(amount > 0)) return 0;
         if ((from.Pops is not null && from.W is null) || (to.Pops is not null && to.W is null))
             throw new InvariantViolationException("移し方の1本：POP の側が国を名乗っていない（国 null・POP は台帳に載らない）");
@@ -814,6 +816,9 @@ public sealed class World
         }
         return moved;
     }
+
+    /// <summary>(262) 計器（読むだけ）：世界の外の側の台帳の種類の1文字（B＝国境の出入り・M＝造幣局・F＝不換の発行者・C＝企業の与信・H＝家計の与信）。</summary>
+    private static char OutsideCode(Outside k) => k switch { Outside.Mint => 'M', Outside.Fiat => 'F', Outside.Credit => 'C', Outside.HouseholdCredit => 'H', _ => 'B' };
 
     /// <summary>世界の外の側の台帳への記帳（<see cref="Transfer"/> の中の1か所だけが呼ぶ）。<paramref name="delta"/>＝流入が正・流出が負。</summary>
     private static void Book(World w, Outside k, double delta)
