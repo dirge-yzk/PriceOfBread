@@ -1493,8 +1493,8 @@ public class InstrumentsTests
         string dir = NewDir();
         try
         {
-            int starvedT = 0, structuralT = 0, structuralU = 0, starvedU = 0, paidB = 0, compared = 0;
-            foreach (char scene in new[] { 'T', 'U', 'B' })
+            int starvedT = 0, structuralT = 0, structuralU = 0, starvedU = 0, paidB = 0, compared = 0, borderline = 0;
+            foreach (char scene in new[] { 'T', 'U', 'V', 'B' })
             {
                 var sim = Make();
                 RunMatch(sim, 60, instr: false);
@@ -1504,9 +1504,9 @@ public class InstrumentsTests
                     if (scene == 'U') w.Coef.MandateWeight = 1e-9;
                     double maxBefore = PoliticalQuantities.PoliticalCapitalMax(w);
                     w.MandateSpent = scene == 'B' ? -1000.0 : maxBefore;
-                    double before = w.MandateSpent;
-                    var expect = new Dictionary<int, double>();   // 表の行 → GateInfo の代価（在庫不足の行だけ）
-                    if (scene != 'B')
+                    Dictionary<int, double> Expect()   // 表の行 → GateInfo の代価（在庫不足の行だけ）
+                    {
+                        var ex = new Dictionary<int, double>();
                         for (int i = 0; i < Government.LevelLaws.Length; i++)
                         {
                             var law = Government.LevelLaws[i];
@@ -1515,8 +1515,19 @@ public class InstrumentsTests
                             if (ci == ti || law.Enact != null) continue;
                             bool inc = ti > ci;
                             var gi = Government.GateInfo(w, law.Axis, inc, ci + (inc ? 1 : -1));
-                            if (gi.Reason == Government.ReasonNoCapitalStock) expect[i] = gi.Cost;
+                            if (gi.Reason == Government.ReasonNoCapitalStock) ex[i] = gi.Cost;
                         }
+                        return ex;
+                    }
+                    var expect = scene != 'B' ? Expect() : new Dictionary<int, double>();
+                    if (scene == 'V' && expect.Values.Where(c => c > 0).DefaultIfEmpty(0).Min() is double cmin && cmin > 0)
+                    {   // 場面 V＝最も安い一歩の代価が b の 1.5 倍になるよう b を縮める（代価が b を超え 2b 以内＝構造の境の内側）。b は MandateWeight に比例
+                        w.Coef.MandateWeight *= cmin / 1.5 / maxBefore;
+                        maxBefore = PoliticalQuantities.PoliticalCapitalMax(w);
+                        w.MandateSpent = maxBefore;
+                        expect = Expect();
+                    }
+                    double before = w.MandateSpent;
                     Instruments.Configure(dir, "*");
                     try { Government.Step(w, w.Coef); }
                     finally { Instruments.Configure(null, null); }
@@ -1540,6 +1551,7 @@ public class InstrumentsTests
                         Assert.Equal(2, f.Code);
                         Assert.InRange(f.Cost, wantCost - 1e-9, wantCost + 1e-9);                 // 代価＝法律タブの照会の代価
                         Assert.Equal(wantCost > maxBefore, f.Structural);                          // 構造か飢えか＝別の実装の代価と、Step の前に呼んだ最大量の比
+                        if (scene == 'V' && wantCost > maxBefore && wantCost <= 2 * maxBefore) borderline++;
                         compared++;
                     }
                 }
@@ -1547,6 +1559,7 @@ public class InstrumentsTests
             Assert.True(compared > 0, "突き合わせた段の法が1本も無い");
             Assert.True(starvedT > 0, $"場面 T に飢え（代価≦b）の段の法が無い（構造 {structuralT}）＝飢えの側の突き合わせが空洞");
             Assert.True(structuralU > 0, $"場面 U に構造（代価＞b）の段の法が無い（飢え {starvedU}）＝構造の側の突き合わせが空洞");
+            Assert.True(borderline > 0, "場面 V に代価が b を超え 2b 以内の段の法が無い＝構造の判定の境の突き合わせが空洞");
             Assert.True(paidB > 0, "場面 B に政治資本の払いが無い＝台帳の突き合わせが空洞");
         }
         finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
