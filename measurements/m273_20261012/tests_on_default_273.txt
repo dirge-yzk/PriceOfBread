@@ -1,0 +1,62 @@
+# (273) 既定を S の設定に倒した木（OpeningSavingsRebaseMode=1・ConsumeBudgetSavingsRatePerMonth=1/120）でフルスイート（Category!=FullLength・Release・隔離ビルド）を回した結果＝前提が旧の式の試験の名指し（採用の回に直す・閾値は広げない）
+失敗!   -失敗:    17、合格:  1095、スキップ:     0、合計:  1112、期間: 8 m 43 s - PriceOfBread.Tests.dll (net10.0)
+
+  失敗 PriceOfBread.Tests.EconomyTests.備蓄_主食が在庫切れの月はその予算が日用品へ流れない [9 ms]
+  エラー メッセージ:
+   前提が崩れた：在庫切れになっていない
+  失敗 PriceOfBread.Tests.RevoltIgnitionTests.F1法の経路_譲歩は法を直接変えず目標を置き施行は通常経路 [687 ms]
+  エラー メッセージ:
+   Assert.Equal() Failure: Values differ
+Expected: ConstitutionalMonarchy
+  失敗 PriceOfBread.Tests.RevoltIgnitionTests.F1法の経路_通らない段は施行されず要求が残る [303 ms]
+  エラー メッセージ:
+   Assert.Equal() Failure: Values differ
+Expected: ConstitutionalMonarchy
+  失敗 PriceOfBread.Tests.MobilityTests.食えない中層は労働者に転落し不満を持ち込む [13 s]
+  エラー メッセージ:
+   職のない教師が転落していない（7→14）
+  失敗 PriceOfBread.Tests.RevoltIgnitionTests.F1法の経路_梯子が尽きたら何も置かない [490 ms]
+  エラー メッセージ:
+   Assert.Equal() Failure: Values differ
+Expected: ConstitutionalMonarchy
+  失敗 PriceOfBread.Tests.RevoltIgnitionTests.項目2b_鎮圧も譲歩の約束も闘争度を鎮めない [449 ms]
+  エラー メッセージ:
+   Assert.Equal() Failure: Values differ
+Expected: ConstitutionalMonarchy
+  失敗 PriceOfBread.Tests.RevoltIgnitionTests.段2_飢えは闘争度のストックを通ってから熱になる [459 ms]
+  エラー メッセージ:
+   Assert.Equal() Failure: Values are not within 9 decimal places
+Expected: 0.001703815 (rounded from 0.0017038153236361765)
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 3375747) [< 1 ms]
+  エラー メッセージ:
+   計算量「外交：覇権の判定の国×国」が 1781778 件（宣言 3375747）＝10 % を超えて**下がった**＝表を 1781778 へ下げて理由を書く（＝改善の宣言）。
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 6, declared: 2711) [< 1 ms]
+  エラー メッセージ:
+   計算量「請求：見た生産者（月）」が 3092 件（宣言 2711・許し +2 %）＝**増えている**。増やすなら表を上げ、どこで払ったか（他の処理を削った分）をこのファイル・実装ログ・コミットに書く（＝宣言）。新しい処理なら docs の「処理の刻みの表」に行を足し、刻みの根拠を書く。
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 8, declared: 5185642) [< 1 ms]
+  エラー メッセージ:
+   計算量「清算：見た買い手行」が 5379526 件（宣言 5185642・許し +2 %）＝**増えている**。増やすなら表を上げ、どこで払ったか（他の処理を削った分）をこのファイル・実装ログ・コミットに書く（＝宣言）。新しい処理なら docs の「処理の刻みの表」に行を足し、刻みの根拠を書く。
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 2, declared: 7299) [< 1 ms]
+  エラー メッセージ:
+   計算量「建設：見た生産者（旬）」が 8069 件（宣言 7299・許し +2 %）＝**増えている**。増やすなら表を上げ、どこで払ったか（他の処理を削った分）をこのファイル・実装ログ・コミットに書く（＝宣言）。新しい処理なら docs の「処理の刻みの表」に行を足し、刻みの根拠を書く。
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 1, declared: 27979627) [< 1 ms]
+  エラー メッセージ:
+   計算量「価格：日次の写像の回」が 16257311 件（宣言 27979627）＝10 % を超えて**下がった**＝表を 16257311 へ下げて理由を書く（＝改善の宣言）。
+  失敗 PriceOfBread.Tests.StartWarmupTests.置き直しの後も保存則が保たれ_物価水準は置かない対照と比べて床へ向かわない [24 s]
+  エラー メッセージ:
+   イギリス の物価水準 / 対照 = 1.981
+  失敗 PriceOfBread.Tests.StartWarmupTests.開幕の歳入は所得税なしの直接税の段で年GDPの史実の桁 [11 s]
+  エラー メッセージ:
+   Assert.InRange() Failure: Value not in range
+Range:  (0.040000000000000001 - 0.14000000000000001)
+  失敗 PriceOfBread.Tests.StartWarmupTests.開幕の貯蓄はmの国だけ階級の配分の形で置かれ_M_Yがmに入り_冪等で_既定は置かない [1 ms]
+  エラー メッセージ:
+   Assert.Equal() Failure: Values differ
+Expected: 0
+  失敗 PriceOfBread.Tests.InstrumentsTests.段5の上限が効かない大きさのdは上限なしとビット一致する [3 s]
+  エラー メッセージ:
+   Assert.Equal() Failure: Collections differ
+           ↓ (pos 0)
+  失敗 PriceOfBread.Tests.InstrumentsTests.史実比較の桁の入力の表が揃い交戦の月が戦争の表と合う [2 s]
+  エラー メッセージ:
+   国営の棟の着工が1件も写っていない（対照）＝着工の口（World.BuildFactory の計器）を消しても緑になる

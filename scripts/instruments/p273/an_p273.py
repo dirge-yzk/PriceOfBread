@@ -9,7 +9,7 @@
   限界の自己申告（計器が一番バグる）：
     ・「大衆」は計器の IsMass と同じ＝農民・工場労働者・職人（兵士を除く）。使用人・兵士は入らない。
     ・貯蓄の月数＝大衆の savingsStock の和 ÷ earnedPerMonth の和（窓の終わりの四半期の行〔time が q<番号>〕）。earnedPerMonth は四半期の月平均＝月の決算の終わりで読む（位相の罠・(262)）。
-    ・置き直しの予測は SavingsYearsByClass（Coefficients.cs の宣言から読む）と助走の直後の warm の行の earnedPerMonth から作る式の写し＝助走の直後の LastEarned とは月の位相が違う（四半期の平均）ので近似。
+    ・置き直しの予測は SavingsYearsByClass（Coefficients.cs の宣言から読む）と最初の四半期 q0 の行の earnedPerMonth（四半期の月平均）から作る式の写し＝助走の最後の月の LastEarned とは違う（位相と1四半期の差）ので近似。
     ・種は全て中央値（と最小〜最大）。"""
 import sys, os, re, math, statistics, collections
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
@@ -100,18 +100,19 @@ for n, m in M_DATA.items():
     if n not in CL or not CL[n]: continue
     lam, mm_pred, rho = [], [], []
     for sd, tl in CL[n].items():
-        if 'warm' not in tl: continue
-        d = tl['warm']
+        d = tl.get('q0')   # 助走の直後の warm の行は所得が nan（経済を回す前）＝最初の四半期 q0 の行を代わりに使う（置き直しの LastEarned は助走の最後の月＝近似）
+        if d is None: continue
         inc = sum(v[1] for v in d.values() if v[1] > 0)
         shape = sum(K[c] * v[1] for c, v in d.items() if v[1] > 0 and c < len(K))
         if not (shape > 0): continue
         l = m * inc / shape
         lam.append(l)
-        mm_pred.append(l * K[1] * 12)   # 農民の貯蓄の月数 ＝ λ×k×12（月収あたり）
+        mass_e = sum(v[1] for c, v in d.items() if c in MASS and v[1] > 0)
+        mm_pred.append(l * 12 * sum(K[c] * v[1] for c, v in d.items() if c in MASS and v[1] > 0 and c < len(K)) / mass_e if mass_e > 0 else float('nan'))   # 大衆の貯蓄の月数 ＝ λ×12×Σk×所得÷Σ所得
         sav_before = sum(v[0] for v in d.values())
         sav_after = sum(l * K[c] * 12 * v[1] for c, v in d.items() if v[1] > 0 and c < len(K))
         rho.append(sav_after / sav_before if sav_before > 0 else float('nan'))
-    out.append(f'\n## 置き直しの予測（{n}・m={m}・助走の直後の warm の行から）\n\n- λ（m×Σ所得÷Σk×所得）{cell(lam, 3)}\n- 農民の貯蓄の月数（λ×k×12）{cell(mm_pred, 2)} 月（大衆の k は農民・工場労働者 0.2・職人 0.5）\n- ρ（置いた後÷置く前のΣ貯蓄）{cell(rho, 4)}\n')
+    out.append(f'\n## 置き直しの予測（{n}・m={m}・最初の四半期 q0 の行から＝助走の直後の warm の行は所得が nan）\n\n- λ（m×Σ所得÷Σk×所得）{cell(lam, 3)}\n- 置き直し直後の大衆の貯蓄の月数（λ×12×Σk×所得÷Σ所得）{cell(mm_pred, 2)} 月（大衆の k は農民・工場労働者 0.2・職人 0.5）\n- ρ（置いた後÷置く前のΣ貯蓄）{cell(rho, 4)}\n')
 open(os.path.join(OUT, 't1_mass_savings.md'), 'w', encoding='utf-8', newline='\n').write(''.join(out))
 
 # ---- nation_s：上限の格子と消費の予算の拘束
@@ -147,4 +148,46 @@ for n in NATIONS:
         if col not in head_seen: continue
         o3.append(f'| {col} | ' + ' | '.join(cell([col_window(NATC[n][sd], col, a, b) for sd in NATC[n]], 4) for a, b, _ in WIN) + ' |\n')
 open(os.path.join(OUT, 't3_consume_bind.md'), 'w', encoding='utf-8', newline='\n').write(''.join(o3))
+
+# ---- ④ 事前登録の線の基線の数（英・Q5〜Q40 など）：実質GDP・技術・不履行・兌換停止・歳入÷年GDP・利払い÷歳入
+from instr import rows  # noqa: E402
+o4 = ['# ④ 事前登録の線の基線の数（英＝イギリス・種の中央〔最小〜最大〕）\n',
+      '限界：実質GDP は stock_s の gdpRealPerYear（年末の行＝四半期の番号%4==3）・技術は techLevelIndex（同）。兌換停止＝fiscal_s の onGold が 1→0 になった月の数（月の添字÷3＝四半期）。'
+      '不履行＝nation_s の sovereignDefaultCumulativeCount の窓の終わりの値。歳入÷年GDP＝revenueBaseMeanPerMonth×12÷nominalGdpPerYear の四半期の平均。\n']
+UK = 'イギリス'
+stk = collections.defaultdict(dict)   # seed -> time -> (gdpReal, tech)
+for sd, r in rows(D, 'stock'):
+    if r['nation'] == UK and r['time'].startswith('q'):
+        stk[sd][r['time']] = (fl(r['gdpRealPerYear']), fl(r['techLevelIndex']))
+QQ = (3, 19, 39, 79, 159, 239)
+o4.append('\n## 実質GDP（年・stock_s）と技術水準\n\n| 量 | ' + ' | '.join(f'Q{q+1} の終わり' for q in QQ) + ' |\n|---|' + '---|' * len(QQ) + '\n')
+for idx, lab, nd in ((0, '実質GDP（年）', 0), (1, '技術水準 techLevelIndex', 3)):
+    o4.append(f'| {lab} | ' + ' | '.join(cell([stk[sd][f'q{q}'][idx] for sd in stk if f'q{q}' in stk[sd]], nd) for q in QQ) + ' |\n')
+dflt = collections.defaultdict(dict); revgdp = collections.defaultdict(list); intrev = collections.defaultdict(list)
+for sd, r in rows(D, 'nation'):
+    if r['nation'] != UK: continue
+    q = int(r['quarter'])
+    dflt[sd][q] = fl(r['sovereignDefaultCumulativeCount'])
+    if 4 <= q <= 39:
+        g = fl(r['nominalGdpPerYear']); rb = fl(r['revenueBaseMeanPerMonth'])
+        if g > 0: revgdp[sd].append(rb * 12 / g)
+        intrev[sd].append(fl(r['interestMeanPerMonth']) / rb if rb > 0 else float('nan'))
+o4.append('\n## 不履行（英・累計）・歳入÷年GDP・利払い÷歳入\n\n')
+o4.append(f'- 英の不履行の累計 Q40 の終わり：10種の和 {sum(v.get(39, 0) for v in dflt.values()):.0f}・Q80：{sum(v.get(79, 0) for v in dflt.values()):.0f}・全期：{sum(max(v.values()) for v in dflt.values()):.0f}（種ごとの Q40：{[int(v.get(39, 0)) for _, v in sorted(dflt.items())]}）\n')
+o4.append(f'- 歳入÷年GDP（Q5〜Q40 の四半期の平均）{cell([sum(v) / len(v) for v in revgdp.values()], 4)}\n')
+o4.append(f'- 利払い÷歳入（Q5〜Q40 の四半期の平均）{cell([sum(x for x in v if x == x) / max(1, len([x for x in v if x == x])) for v in intrev.values()], 3)}\n')
+susp = {}
+for sd in seeds(D, 'fiscal'):
+    prev = None; n40 = 0; nall = 0
+    for r in table(os.path.join(D, f'fiscal_s{sd}.tsv')):
+        if r['nation'] != UK: continue
+        on_gold = fl(r['onGold']); mi = int(r['monthIndex'])
+        if prev == 1 and on_gold == 0:
+            nall += 1
+            if mi < 120: n40 += 1
+        prev = on_gold
+    susp[sd] = (n40, nall)
+if susp:
+    o4.append(f'- 英の兌換停止（onGold 1→0）：Q1〜Q40 の10種の和 {sum(v[0] for v in susp.values())}（種ごと {[v[0] for _, v in sorted(susp.items())]}）・全期 {sum(v[1] for v in susp.values())}\n')
+open(os.path.join(OUT, 't4_baseline_lines.md'), 'w', encoding='utf-8', newline='\n').write(''.join(o4))
 print('done', OUT)
