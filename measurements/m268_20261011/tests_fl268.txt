@@ -1,0 +1,37 @@
+START 19:55:48 filter=Category=FullLength src=D:/PoB_work/merge268/src_t10
+  復元対象のプロジェクトを決定しています...
+  D:\PoB_work\merge268\tree_t_fl268\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj を復元しました (81 ミリ秒)。
+  D:\PoB_work\merge268\tree_t_fl268\PriceOfBread.Tests\PriceOfBread.Tests.csproj を復元しました (262 ミリ秒)。
+  D:\PoB_work\merge268\tree_t_fl268\PriceOfBread.App\PriceOfBread.App.csproj を復元しました (266 ミリ秒)。
+  PriceOfBread.SimCore -> D:\PoB_work\merge268\art_tfl268\bin\PriceOfBread.SimCore\release\PriceOfBread.SimCore.dll
+  PriceOfBread.App -> D:\PoB_work\merge268\art_tfl268\bin\PriceOfBread.App\release\PriceOfBread.App.dll
+D:\PoB_work\merge268\tree_t_fl268\PriceOfBread.Tests\ConservationTests.cs(259,48): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\merge268\tree_t_fl268\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\merge268\tree_t_fl268\PriceOfBread.Tests\ConservationTests.cs(943,113): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\merge268\tree_t_fl268\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\merge268\tree_t_fl268\PriceOfBread.Tests\UnitTypeTests.cs(191,30): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\merge268\tree_t_fl268\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\merge268\tree_t_fl268\PriceOfBread.Tests\UnitTypeTests.cs(191,45): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\merge268\tree_t_fl268\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\merge268\tree_t_fl268\PriceOfBread.Tests\UnitTypeTests.cs(192,30): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\merge268\tree_t_fl268\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\merge268\tree_t_fl268\PriceOfBread.Tests\UnitTypeTests.cs(192,45): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\merge268\tree_t_fl268\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\merge268\tree_t_fl268\PriceOfBread.Tests\UnitTypeTests.cs(67,13): warning xUnit2029: Do not use Assert.Empty to check if a value does not exist in a collection. Use Assert.DoesNotContain instead. (https://xunit.net/xunit.analyzers/rules/xUnit2029) [D:\PoB_work\merge268\tree_t_fl268\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\merge268\tree_t_fl268\PriceOfBread.Tests\InstrumentsTests.cs(737,13): warning xUnit2031: Do not use a Where clause to filter before calling Assert.Single. Use the overload of Assert.Single that accepts a filtering function. (https://xunit.net/xunit.analyzers/rules/xUnit2031) [D:\PoB_work\merge268\tree_t_fl268\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+  PriceOfBread.Tests -> D:\PoB_work\merge268\art_tfl268\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll
+
+ビルドに成功しました。
+
+D:\PoB_work\merge268\tree_t_fl268\PriceOfBread.Tests\ConservationTests.cs(259,48): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\merge268\tree_t_fl268\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\merge268\tree_t_fl268\PriceOfBread.Tests\ConservationTests.cs(943,113): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\merge268\tree_t_fl268\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\merge268\tree_t_fl268\PriceOfBread.Tests\UnitTypeTests.cs(191,30): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\merge268\tree_t_fl268\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\merge268\tree_t_fl268\PriceOfBread.Tests\UnitTypeTests.cs(191,45): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\merge268\tree_t_fl268\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\merge268\tree_t_fl268\PriceOfBread.Tests\UnitTypeTests.cs(192,30): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\merge268\tree_t_fl268\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\merge268\tree_t_fl268\PriceOfBread.Tests\UnitTypeTests.cs(192,45): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\merge268\tree_t_fl268\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\merge268\tree_t_fl268\PriceOfBread.Tests\UnitTypeTests.cs(67,13): warning xUnit2029: Do not use Assert.Empty to check if a value does not exist in a collection. Use Assert.DoesNotContain instead. (https://xunit.net/xunit.analyzers/rules/xUnit2029) [D:\PoB_work\merge268\tree_t_fl268\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\merge268\tree_t_fl268\PriceOfBread.Tests\InstrumentsTests.cs(737,13): warning xUnit2031: Do not use a Where clause to filter before calling Assert.Single. Use the overload of Assert.Single that accepts a filtering function. (https://xunit.net/xunit.analyzers/rules/xUnit2031) [D:\PoB_work\merge268\tree_t_fl268\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+    8 個の警告
+    0 エラー
+
+経過時間 00:00:41.24
+build rc=0
+D:\PoB_work\merge268\art_tfl268\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 4 m 28 s - PriceOfBread.Tests.dll (net10.0)
+rc=0 END 20:01:01
