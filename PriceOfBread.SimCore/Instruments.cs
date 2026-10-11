@@ -413,13 +413,13 @@ public static class Instruments
     /// 読む位置は旧の注入と同じ＝四半期の末（<c>StepQuarter</c> の直後）。名目GDP は四半期の末にしか読まない（メモ化された量を新しい位置で読まない）。</summary>
     static void NationRow(Sink sk, ulong seed, int q, int index, World w, WState st, bool yearEnd)
     {
-        double popK = 0, soldierK = 0;
+        double popK = 0, soldierK = 0, supplyFillSum = 0;
         int core = 0, integrated = 0, colonial = 0;
         var nonCore = new System.Text.StringBuilder();
         foreach (var r in w.Regions)
         {
             if (r.State != RegionState.Active) continue;
-            foreach (var p in r.Pops) { popK += p.Size; if (p.IsSoldier) soldierK += p.Size; }
+            foreach (var p in r.Pops) { popK += p.Size; if (p.IsSoldier) soldierK += p.Size; supplyFillSum += p.SupplyFill * p.Size; }
             if (r.Tier == RegionTier.Core) core++; else if (r.Tier == RegionTier.Integrated) integrated++; else colonial++;
             if (yearEnd && r.Tier != RegionTier.Core) nonCore.Append(r.Tier == RegionTier.Integrated ? "I:" : "C:").Append(r.Name).Append(';');
         }
@@ -438,13 +438,14 @@ public static class Instruments
         cols.Add(F(led[(int)TreasuryCat.Borrow])); cols.Add(F(led[(int)TreasuryCat.Devalue])); cols.Add(F(led[(int)TreasuryCat.Army])); cols.Add(F(led[(int)TreasuryCat.Navy]));
         cols.Add(F(w.GovDebt.Value)); cols.Add(F(exports)); cols.Add(F(imports)); cols.Add(I(w.Coef.ClearingsPerYear));
         cols.Add(I(st.FacStarted)); cols.Add(I(st.FacStartedClosed)); cols.Add(I(st.FacDone)); cols.Add(I(st.FacDoneClosed)); cols.Add(I(st.FacDoneClosedAtStart));
+        cols.Add(F(popK > 0 ? supplyFillSum / popK : 0));   // 人口加重の供給の充足（補給崩壊の物差し＝この値が0.3 を割る国×四半期を数える・旧の注入 inj_s3a の fill と同じ式）
         sk.Nation ??= Open("nation", seed);
         if (!sk.NationHeader)
         {
             sk.Nation.WriteLine("quarter\tyear\tnationIndex\tnation\ttotalPopulationK\tpopulationK\tsoldierK\tnominalGdpPerYear\tatWarMonths\tcivilWarMonths\tconscriptionLaw\tmobilizedFlag\t"
                 + "securityThreatShare\tarmyThreatShare\tserfEmancipation\tcoreRegions\tintegratedRegions\tcolonialRegions\tnonCoreRegions\t"
                 + "ledgerBorrowCumulative\tledgerDevalueCumulative\tledgerArmyCumulative\tledgerNavyCumulative\tgovDebtStock\texportsPerClearing\timportsPerClearing\tclearingsPerYear\t"
-                + "stateFacilityStartedCount\tstateFacilityStartedGateClosedCount\tstateFacilityCompletedCount\tstateFacilityCompletedGateClosedCount\tstateFacilityCompletedGateClosedAtStartCount");
+                + "stateFacilityStartedCount\tstateFacilityStartedGateClosedCount\tstateFacilityCompletedCount\tstateFacilityCompletedGateClosedCount\tstateFacilityCompletedGateClosedAtStartCount\tsupplyFillShare");
             sk.NationHeader = true;
         }
         sk.Nation.WriteLine(string.Join('\t', cols));
