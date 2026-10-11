@@ -1,0 +1,21 @@
+MUTANT M1_FacilityBuildScore門を読まない:
+  失敗 PriceOfBread.Tests.SteelMarketAiTests.眠った生産者の凍った採算では着工しない [8 s]
+  失敗 PriceOfBread.Tests.StateFactoryTests.門が閉じた生産者には着工も意志も立たない [359 ms]
+失敗!   -失敗:     2、合格:    31、スキップ:     0、合計:    33、期間: 14 s - PriceOfBread.Tests.dll (net10.0)
+MUTANT M2_FindFactory旧順:
+  失敗 PriceOfBread.Tests.StateFactoryTests.閉じた旧レシピの持分があっても着工と意志は開いた後継に付く [626 ms]
+失敗!   -失敗:     1、合格:    32、スキップ:     0、合計:    33、期間: 20 s - PriceOfBread.Tests.dll (net10.0)
+MUTANT M3_BuildFactoryの門を読まない:
+  失敗 PriceOfBread.Tests.StateFactoryTests.門が閉じた生産者には着工も意志も立たない [502 ms]
+失敗!   -失敗:     1、合格:    32、スキップ:     0、合計:    33、期間: 14 s - PriceOfBread.Tests.dll (net10.0)
+MUTANT M4_意志を取り下げない:
+  失敗 PriceOfBread.Tests.StateFactoryTests.門が閉じた生産者には着工も意志も立たない [327 ms]
+失敗!   -失敗:     1、合格:    32、スキップ:     0、合計:    33、期間: 7 s - PriceOfBread.Tests.dll (net10.0)
+MUTANT M5_全国目標の閉じた州:
+成功!   -失敗:     0、合格:    33、スキップ:     0、合計:    33、期間: 14 s - PriceOfBread.Tests.dll (net10.0)
+MUTATEDONE
+
+--- 追記：M5 は上の走りでは生き残った（成功）＝番人が無かった。SteelMarketAiTests.全国工場目標の最初の州の代用は門が閉じた州を選ばない を足して再走：
+MUTANT M5_全国目標の閉じた州:
+  失敗 PriceOfBread.Tests.SteelMarketAiTests.全国工場目標の最初の州の代用は門が閉じた州を選ばない
+失敗!   -失敗:     1、合格:    10、スキップ:     0、合計:    11
