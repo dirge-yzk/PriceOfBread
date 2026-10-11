@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # (263) 線E2 A①：投げ売りの輪・補助の輪と動詞の個体の食い違いの頻度（読むだけ）。nation_s<seed>.tsv を読む。
+# ★(264) 反証役 v 低〜中：(263) は want 偽・補助の取り残し・持分の財の3列を読んでいなかった＝足した（subsidyWriteMismatchWantOffCount・staleSubsidyNotGrabbedCount・stakeMismatchGoods）。
 import sys, glob, os, collections, re
 d = sys.argv[1]
 files = sorted(glob.glob(os.path.join(d, 'nation_s*.tsv')), key=lambda p: int(re.search(r'nation_s(\d+)', p).group(1)))
@@ -8,6 +9,7 @@ per_seed = {}
 by_good = collections.Counter()
 by_nation = collections.Counter()
 cells = 0
+stake_goods = collections.Counter()   # (264)
 cell_sets = collections.defaultdict(set)
 ex = []
 for f in files:
@@ -22,12 +24,18 @@ for f in files:
             cells += 1
             for n in ['fireSaleRunCount', 'fireSaleSeenMismatchCount', 'fireSaleFiredCount', 'fireSaleFiredMismatchCount',
                       'fireSaleFiredOverTargetCount', 'subsidyWriteMismatchCount', 'stakeMismatchProducerCount',
-                      'stakeMismatchToInvestedCount', 'stakeMismatchToUninvestedCount']:
+                      'stakeMismatchToInvestedCount', 'stakeMismatchToUninvestedCount',
+                      'subsidyWriteMismatchWantOffCount', 'staleSubsidyNotGrabbedCount']:   # (264) 2列を足した
                 v = I(n)
                 tot[n] += v
                 per_seed.setdefault(seed, collections.Counter())[n] += v
                 if v > 0:
                     cell_sets[n].add((seed, nat, q))
+            sg = c[ix['stakeMismatchGoods']]   # (264) 持分が食い違う財（財(状態→状態) の並び）
+            if sg:
+                for e in sg.split(';'):
+                    m2 = re.match(r'([^(]+)(\((.*)\))?', e)
+                    if m2: stake_goods[(m2.group(1), re.sub(r'\d+', 'N', m2.group(3) or ''))] += 1
             w = c[ix['wheelMismatchGoods']]
             if w:
                 for e in w.split(';'):
@@ -47,6 +55,9 @@ for k, v in by_good.most_common(60):
     print(v, k)
 print('\n輪×国')
 for k, v in by_nation.most_common(30):
+    print(v, k)
+print('\n(264) 四半期の末に持分が食い違う財×(状態・棟数は N)')
+for k, v in stake_goods.most_common(30):
     print(v, k)
 print('\n例')
 for e in ex: print(e)

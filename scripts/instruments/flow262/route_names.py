@@ -1,9 +1,21 @@
 """(262) 貯蓄の書き手の台帳の経路名（呼び出しの位置→名前）。位置は (262) の木＝r261 の木に計器を足した物の `World.Transfer`／`Pop.Blend` の呼び出しの行。
-ソースが動いたら位置もずれる（読み手は ファイル:行 を併記する）。名前はその行を読んで付けた（相手の側は t2 の列）。"""
+ソースが動いたら位置もずれる（読み手は ファイル:行 を併記する）。名前はその行を読んで付けた（相手の側は t2 の列）。
+★(264) 反証役 rv 中#1：旧の (InternationalMarket.cs, 124／125)〈清算の代金の配分〉は誤った名前だった＝PaySales の中の Transfer で、呼び手8か所（と Procure の呼び手3か所）が1つの名前に潰れていた。
+  (264) から PaySales と Procure も [CallerFilePath]／[CallerLineNumber] を Transfer へ渡す＝経路は呼び手の位置で出る（下の10行）。⚠(262) の表（measurements/flow262_20261011）は旧の名前のまま＝(264) の表（measurements/m264_20261011/flow_r264）を読む。
+  国営持分の取り分（PaySales の中の1本目の Transfer）は受け手が国庫＝貯蓄の書き手の台帳には払い手の take として呼び手の位置で載る（相手の側 T）。"""
 ROUTE_NAMES = {
     ('Crime.cs', 65): '窃盗(全POPの貯蓄×犯罪率→困窮した大衆)',
-    ('InternationalMarket.cs', 124): '清算の代金のうち国営持分の取り分',
-    ('InternationalMarket.cs', 125): '清算の代金の配分(輸出代金を生産者へ・輸入代金を払い手から)',
+    # ★(264) PaySales・Procure の呼び手（旧＝InternationalMarket.cs:124／125 に潰れていた）
+    ('BilateralMarket.cs', 869): '清算所の輸出代金(世界の外→生産者の持分・PaySales)',
+    ('Colonial.cs', 128): '植民地の開発の汽船の代金(投資家→生産者の持分・PaySales)',
+    ('Colonial.cs', 129): '植民地の開発の線路の代金(投資家→生産者の持分・PaySales)',
+    ('Colonial.cs', 386): '国家の調達の代金(国庫→生産者の持分・BuyUpkeepGood→Procure)',
+    ('MultiNationSim.cs', 1325): '運河の建設の工賃(投資家→労働の持分・PaySales)',
+    ('MultiNationSim.cs', 1433): '港の建設の工賃・資本家ルート(投資家→労働の持分・PaySales)',
+    ('MultiNationSim.cs', 1434): '港の建設の工賃・国家ルート(国庫→労働の持分・PaySales)',
+    ('Simulation.cs', 2859): '造幣の床の金属の買い入れ(造幣局→生産者の持分・PaySales)',
+    ('Transport.cs', 137): '汽船の燃料の買い付け(商人→生産者の持分・Procure)',
+    ('Transport.cs', 206): '船と線路の買い付け(投資家→生産者の持分・Procure)',
     ('BilateralMarket.cs', 868): '商人の交易マージン(世界の外→商人)',
     ('BilateralMarket.cs', 900): '船主の運賃(世界の外→船主)',
     ('BilateralMarket.cs', 904): '港の所有者の収入(世界の外→港主)',

@@ -12,11 +12,13 @@
     ・flow_s の額は四半期の月平均（和÷月数）。窓の和は×3（四半期の月数）で戻す。件数は四半期の和。
     ・残差 R＝ΔSavings−(Earned−Paid)。分解 R＝位相の差(settle−(Earned−Paid))＋give＋giveIncome−take＋carry(in−out)＋region(in−out)＋rebase＋未閉じ。
       〈位相の差〉＝settle−(Earned−Paid)。月末の精算(SettleMonth・EconomyStep の中)の後〜MonthClose の前に書かれた所得(income:true・例 十分の一税 Fiscal.cs:224・封建貢租 :174)は Earned には載るが精算には入らない(貯蓄へは直接入る)＝その分だけ負。
-      MonthClose の後に書かれる所得(月次の清算 InternationalMarket.cs:125・四半期の末の共有層)は Earned に載らない(次の月の EconomyStep が0へ戻す)＝位相の差には出ず、giveIncome の全額が残差の正の項になる。
+      MonthClose の後に書かれる所得(四半期の末の共有層ほか)は Earned に載らない(次の月の EconomyStep が0へ戻す)＝位相の差には出ず、giveIncome の全額が残差の正の項になる。
+      ⚠(264) 反証役 rv 中#1：(262) がここに挙げた〈月次の清算 InternationalMarket.cs:125〉は誤り＝:125 は PaySales の中の Transfer で、POP が払う呼び手（港と運河の工賃・植民地の開発・Procure の買い付け）と清算所の払い（相手 B）が1つに潰れていた。
+      (264) から経路は PaySales／Procure の呼び手の位置で出る（route_names.py）。どの呼び手の所得が MonthClose の後に書かれるか（時刻）は**確かめていない**＝位相の説明に使わない。
     ・未閉じ＝ΔSavings−Σ(全ての書き手)。建国された国の最初の月は新しい世界の構築が POP の貯蓄を直接立てる＝英・仏・蘭の名前（開幕からいる国）では0に近い。
     ・rebase と regionOut／regionIn：州が為替の違う国へ移るとき、換算(Rebase)は州の移動の記帳(RegionMoved)より先に走る＝rebase の額は〈出ていく側の POP〉の換算差で、regionOut は換算後の貯蓄。
       送り手の国で rebase＋regionOut＝−(換算前の貯蓄)・受け手の国の regionIn は換算後。英の rebase が正になる種は為替が1より小さい国へ州を渡した種。
-    ・第1の位相の限界（f1s0 の読み手にも当たる）：class_s の earnedPerMonth は月の決算の終わり(MonthClose)で読む＝その後に書かれる所得(月次の清算の受け取り・四半期の末の共有層)は Earned に載らない。載らない所得は貯蓄へ直接入る(giveIncome)＝残差の正の項。
+    ・第1の位相の限界（f1s0 の読み手にも当たる）：class_s の earnedPerMonth は月の決算の終わり(MonthClose)で読む＝その後に書かれる所得(四半期の末の共有層ほか・(264) PaySales の呼び手ごとの時刻は未確認)は Earned に載らない。載らない所得は貯蓄へ直接入る(giveIncome)＝残差の正の項。
     ・建国された国(例 統領制イギリス)の最初の数か月は台帳が閉じない(原因未特定・(262) の保留)＝表は開幕からいる国(英・仏・蘭)だけ。
     ・種は全て中央値（と最小・最大）。窓は四半期の添字（Q1＝q0）。国の所得＝全階級の Earned（階級の月平均×3か月）の和。"""
 import sys, os, math, statistics, collections
@@ -144,7 +146,7 @@ WINS = [('Q2〜Q8', 1, 7), ('Q5〜Q40', 4, 39), ('Q41〜Q80', 40, 79), ('Q81〜Q
 def t1():
     L = [f'# t1 階級の貯蓄の増減の残差の分解（国の所得に対する割合・種の中央〔最小〜最大〕）\n',
          '残差 R＝ΔSavings−(Earned−Paid)。書き手の台帳（flow_s）で R を足し算に分解する。分解の行の和は R に一致（未閉じが0に近いこと）。'
-         '正＝その経路が貯蓄を増やした方向。位相の差＝settle−(Earned−Paid)＝精算の後〜MonthClose の前に書かれた所得(十分の一税・封建貢租)は Earned に載るが精算に入らない分（負）。MonthClose の後の所得(月次の清算)は Earned に載らず、giveIncome の全額が残差の正の項。\n']
+         '正＝その経路が貯蓄を増やした方向。位相の差＝settle−(Earned−Paid)＝精算の後〜MonthClose の前に書かれた所得(十分の一税・封建貢租)は Earned に載るが精算に入らない分（負）。MonthClose の後の所得は Earned に載らず、giveIncome の全額が残差の正の項（(264) PaySales の呼び手ごとの時刻は未確認）。\n']
     tsv = ['nation\twindow\tgroup\tterm\tmedian\tmin\tmax\tseeds']
     for nation in (UK, FR):
         L.append(f'\n## {nation}\n')
@@ -176,11 +178,11 @@ def route_name(f, ln):
     return ROUTE_NAMES.get((f, ln), f'{f}:{ln}')
 
 
-try:
-    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-    from route_names import ROUTE_NAMES  # noqa: E402
-except Exception:
-    ROUTE_NAMES = {}
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from route_names import ROUTE_NAMES  # noqa: E402  ★(264) 読めなければ止める（旧＝空の表へ黙って落ちた＝t6 の除く項が0になる）
+# ★(264) PaySales／Procure の呼び手（旧の誤った名前＝InternationalMarket.cs:125〈清算の代金の配分〉）＝t6 の〈PaySales 経由〉の項
+PAYSALES_ROUTES = {k for k, v in ROUTE_NAMES.items() if '・PaySales' in v or 'Procure' in v}
+assert len(PAYSALES_ROUTES) == 10, PAYSALES_ROUTES
 
 
 def route_sums(sd, nation, cls_ids, q0, q1):
@@ -302,7 +304,7 @@ def t4():
             ('歳入の基数÷年GDP', lambda rs: sum(r['revenue'] for r in rs) / len(rs) * 12 / max(1e-12, sum(r['gdpY'] for r in rs) / len(rs)), 4),
             ('利払い÷年GDP', lambda rs: sum(r['interest'] for r in rs) / len(rs) * 12 / max(1e-12, sum(r['gdpY'] for r in rs) / len(rs)), 4),
             ('国債÷年GDP(窓の終わり)', lambda rs: rs[-1]['debt'] / max(1e-12, rs[-1]['gdpY']), 3),
-            ('平均クーポン(利払い×12÷国債)', lambda rs: sum(r['interest'] for r in rs) / len(rs) * 12 / max(1e-12, sum(r['debt'] for r in rs) / len(rs)), 4),
+            ('利払い×12÷国債(窓の平均どうしの比・⚠国債が窓の中で痩せると膨らむ＝直の値は t4b の既往債の平均クーポン)', lambda rs: sum(r['interest'] for r in rs) / len(rs) * 12 / max(1e-12, sum(r['debt'] for r in rs) / len(rs)), 4),
             ('間接税の割合(歳入の基数のうち)', lambda rs: sum(r['indirect'] for r in rs) / max(1e-12, sum(r['direct'] + r['indirect'] for r in rs)), 3),
             ('門が閉じた月の割合', lambda rs: sum(r['gateClosed'] for r in rs) / max(1, sum(r['gateObs'] for r in rs)), 3),
             ('払えない額のある月の割合', lambda rs: sum(r['short'] for r in rs) / max(1, 3 * len(rs)), 3),
@@ -435,7 +437,7 @@ def t6():
     """F1 の規則A（需要の穴 H の窓）への答え：大衆の貯蓄の取り崩し H＝−ΔSavings÷国の所得 を、窃盗・清算の受け取り・州の移動を除いて読み直す。
     窃盗(Crime.cs:65)は全 POP の貯蓄×犯罪率を困窮した大衆へ流す純移転（貯蓄のストックに比例）＝大衆の貯蓄を後から押し上げ、富裕から抜く。"""
     L = ['# t6 規則A の窓（需要の穴 H）を窃盗などの純移転を除いて読み直す（国の所得に対する割合・種の中央〔最小〜最大〕）\n',
-         'H＝−ΔSavings÷国の所得（大衆）。H(窃盗を除く)＝H＋大衆の窃盗の受け取り−被害(Crime.cs:65 の give＋take)÷国の所得。H(窃盗・清算・州の移動を除く)＝さらに大衆の清算の受け取り(InternationalMarket.cs:125 の giveIncome)と州の移動(regionIn＋regionOut)を除いた物。'
+         'H＝−ΔSavings÷国の所得（大衆）。H(窃盗を除く)＝H＋大衆の窃盗の受け取り−被害(Crime.cs:65 の give＋take)÷国の所得。H(窃盗・PaySales 経由・州の移動を除く)＝さらに大衆の PaySales／Procure 経由の受け取り(呼び手の位置＝route_names.py の〈・PaySales〉〈・Procure〉の行の giveIncome・(264) で (262) の誤った名前〈清算 :125〉を置き換えた)と州の移動(regionIn＋regionOut)を除いた物。'
          '−(Earned−Paid)÷国の所得＝市場の取引だけが貯蓄を動かした場合の取り崩し（残差の項を全て除いた物）。AI の規則案(未承認)＝H≧0.15 なら 段5 を 段3 の前。\n']
     wins = [('Q2〜Q8', 1, 7), ('Q4〜Q12', 3, 11), ('Q5〜Q40', 4, 39), ('Q41〜Q80', 40, 79)]
     for nation in (UK, FR):
@@ -450,15 +452,15 @@ def t6():
                 Y, dS, EP, k = w
                 rs = route_sums(sd, nation, IDS['mass'], q0, q1)
                 crime = sum(v for (kind, f, ln, cp), v in rs.items() if f == 'Crime.cs' and ln == 65)
-                clear = sum(v for (kind, f, ln, cp), v in rs.items() if f == 'InternationalMarket.cs' and ln == 125 and kind == 'giveIncome')
+                clear = sum(v for (kind, f, ln, cp), v in rs.items() if (f, ln) in PAYSALES_ROUTES and kind == 'giveIncome')   # (264) PaySales／Procure の呼び手（旧＝InternationalMarket.cs:125）
                 reg = k['regionIn'] + k['regionOut']
                 vals = collections.OrderedDict()
                 vals['H＝−ΔSavings÷Y'] = -dS / Y
                 vals['窃盗の純受け取り÷Y'] = crime / Y
                 vals['H(窃盗を除く)'] = -(dS - crime) / Y
-                vals['清算の受け取り(giveIncome)÷Y'] = clear / Y
+                vals['PaySales／Procure 経由の受け取り(giveIncome)÷Y'] = clear / Y
                 vals['州の移動÷Y'] = reg / Y
-                vals['H(窃盗・清算・州の移動を除く)'] = -(dS - crime - clear - reg) / Y
+                vals['H(窃盗・PaySales 経由・州の移動を除く)'] = -(dS - crime - clear - reg) / Y
                 vals['−(Earned−Paid)÷Y'] = -EP / Y
                 for lab, v in vals.items(): cols.setdefault(lab, {}).setdefault(wname, []).append(v)
         for lab, d in cols.items():

@@ -68,7 +68,7 @@ public sealed partial class InternationalMarket
     /// ★段3-2（2026-09-30）：<paramref name="r"/>＝null は**国の全ての活きた州**の生産者の産出の比（役務＝兵士の兵力・官僚の行政・労働の工賃を国として買う＝連合と植民地の維持費・運河の工賃）。
     ///   生産者が1人もいなければ動かさない（受け手不在＝払い手に残る）。国庫が自国の国営持分から買う分は区分だけ動く（払い手の区分から StateFactory へ＝EconomyStep の④と同じ記帳）。
     /// ★段3-5（2026-09-30・C8）：<paramref name="minted"/>＝払い手が造幣局（世界の外＝新しい貨幣）＝世界の台帳は鋳造（CumulativeGoldMinted）へ（移し方の1本の引数をそのまま渡す）。</summary>
-    internal static double PaySales((World? W, List<Pop>? Pops) from, Region? r, int goodId, double amount, World w, TreasuryCat cat = TreasuryCat.OtherIn, bool minted = false)
+    internal static double PaySales((World? W, List<Pop>? Pops) from, Region? r, int goodId, double amount, World w, TreasuryCat cat = TreasuryCat.OtherIn, bool minted = false, [System.Runtime.CompilerServices.CallerFilePath] string routeFile = "", [System.Runtime.CompilerServices.CallerLineNumber] int routeLine = 0)   // (264) routeFile/routeLine＝計器（読むだけ）
     {
         if (!(amount > 0)) return 0;
         var coef = w.Coef;
@@ -121,8 +121,8 @@ public sealed partial class InternationalMarket
         double moved = 0;
         // 国営持分の取り分は国庫へ（受け手の区分は StateFactory）。払い手が自国の国庫なら払い手の区分は買ったものの区分（cat）＝区分だけ動く（段4f＝旧の Pay の2行を移し方の1本へ）。
         if (stateCut > 0)
-            moved += World.Transfer(from, (w, null, null), stateCut, from.Pops is null && ReferenceEquals(from.W, w) ? cat : TreasuryCat.StateFactory, toCat: TreasuryCat.StateFactory, outside: minted ? World.Outside.Mint : World.Outside.Border);
-        moved += World.Transfer(from, (w, to, wt), amount - stateCut, cat, income: true, outside: minted ? World.Outside.Mint : World.Outside.Border);
+            moved += World.Transfer(from, (w, null, null), stateCut, from.Pops is null && ReferenceEquals(from.W, w) ? cat : TreasuryCat.StateFactory, toCat: TreasuryCat.StateFactory, outside: minted ? World.Outside.Mint : World.Outside.Border, routeFile: routeFile, routeLine: routeLine);
+        moved += World.Transfer(from, (w, to, wt), amount - stateCut, cat, income: true, outside: minted ? World.Outside.Mint : World.Outside.Border, routeFile: routeFile, routeLine: routeLine);
         // ⚠(173) の確かめ：輸出代金の RGO の地代は地代（LandRent＝土地税の課税ベース）に書かない（c5 の後半は残り）＝清算は全ての国の月次決算（Fiscal）の後に着き、
         //   LandRent は次の月の頭（EconomyStep の月頭）で0へ戻る＝ここで書いても土地税に一度も載らない。載せるには所得税の LastEarnedPerMonth（(108) 段3-1）と同じ
         //   「前の月の全ての地代」を Fiscal が読む形が要る（新しい状態＝別の回）。
@@ -135,7 +135,7 @@ public sealed partial class InternationalMarket
     /// 価格の門と国家の支払い率 r は呼び手が量に掛けた後・台帳は域外 LastExport・区分 <paramref name="cat"/>）。戻り値＝買えた量。
     /// ⚠旧＝国家の調達（BuyUpkeepGood）と汽船の燃料（Transport.BuyShipFuel）と船と線路（Transport.BuyToward）が同じ手順を3つ写した。
     /// 価格が付いていない財（≦1e-9）は買わない（国家の側は旧＝床 1e-9 で買った＝価格は帯の床で常に正＝同じ）。</summary>
-    internal static double Procure(World w, Region r, int g, double want, Pop? buyer, TreasuryCat cat = TreasuryCat.OtherIn)
+    internal static double Procure(World w, Region r, int g, double want, Pop? buyer, TreasuryCat cat = TreasuryCat.OtherIn, [System.Runtime.CompilerServices.CallerFilePath] string routeFile = "", [System.Runtime.CompilerServices.CallerLineNumber] int routeLine = 0)
     {
         var m = r.Markets[g];
         m.LastDemand += want;                  // 在庫が無くても需要を計上＝価格上昇と増産を駆動（鶏卵回避）
@@ -147,7 +147,7 @@ public sealed partial class InternationalMarket
         m.Stock -= buy;
         if (buyer is null) m.LastExport += buy;   // 国家の調達＝域外（植民地・艦隊・遠征）へ出る
         else m.LastSold += buy;                   // 私の買い付け＝販売（財収支に計上）
-        PaySales(buyer is null ? (w, null) : (w, [buyer]), r, g, pay, w, cat);
+        PaySales(buyer is null ? (w, null) : (w, [buyer]), r, g, pay, w, cat, routeFile: routeFile, routeLine: routeLine);
         return buy;
     }
 

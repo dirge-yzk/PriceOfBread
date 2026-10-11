@@ -422,6 +422,15 @@ public class InstrumentsTests
             Assert.True(groups >= 4 * 8 * (Quarters - 2), $"突き合わせた (四半期, 国, 階級) が少ない（{groups}）");
             Assert.True(worst < 1e-9, $"貯蓄の在庫の増減が台帳の書き手の和に閉じない（相対 {worst:E2}・最悪 {worstAt}）＝記帳されていない書き手がある");
             foreach (var k in new[] { "settle", "give", "giveIncome", "take", "carryOut", "carryIn" }) Assert.True(seen[k] > 0, $"書き手の種類 {k} が1度も立たない（対照）＝この盤面ではその書き手の記帳を測れていない");
+
+            // ★(264) 反証役 rv 中#1・低#2：経路名は呼び手の位置。PaySales／Procure の中の Transfer（InternationalMarket.cs）は経路に出ない＝呼び手の位置を Transfer へ渡す。
+            //   期待値はソースの本文から作る（計器の出力から作らない）：清算所の払い（BilateralMarket.cs の PaySales((null, null), rS, g, …) の行）は、相手の側 B の giveIncome として出る。
+            int fileCol = Array.IndexOf(fh, "sourceFile"), lineCol = Array.IndexOf(fh, "sourceLine"), kindCol = Array.IndexOf(fh, "kind"), cpCol = Array.IndexOf(fh, "counterpartySide");
+            var bilat = System.IO.File.ReadAllLines(System.IO.Path.Combine(GoodIdGuardTests.RepoRoot(), "PriceOfBread.SimCore", "BilateralMarket.cs"));
+            int clearingLine = Array.FindIndex(bilat, l => l.Contains("PaySales((null, null), rS, g,")) + 1;
+            Assert.True(clearingLine > 0, "清算所の PaySales の行がソースに見つからない");
+            Assert.DoesNotContain(fr, r => r[fileCol] == "InternationalMarket.cs");
+            Assert.Contains(fr, r => r[fileCol] == "BilateralMarket.cs" && r[lineCol] == clearingLine.ToString(System.Globalization.CultureInfo.InvariantCulture) && r[kindCol] == "giveIncome" && r[cpCol] == "B");
         }
         finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
     }
@@ -471,6 +480,10 @@ public class InstrumentsTests
                 rr.Pops[rr.InvestorPopIndex].SetSavings(1e9);
                 w.FiscalFundingRatio = new Share(0.0);   // 財政逼迫 1
                 UtilityAgent.Apply(w, UtilityAgent.Stance.Modernize);
+                // (264) 反証役 v 中：計器の列（FireSaleFired が写した式）とは別に、世界で起きたことを直に見る＝動詞は後継の目標を〈旧の棟数−1＝2〉へ書き、旧の目標は 3 のまま。
+                //   ⚠これは今の不具合（輪の pr と動詞の個体の取り違え・(260) E#2）を期待値に固定している＝次の線E で輪に ReferenceEquals(World.FindFactory(rg, pr.GoodId), pr) を入れたら、ここを〈後継の目標は 1 のまま〉へ反転させる。
+                Assert.Equal(2, succ.StateTarget);
+                Assert.Equal(3, old.StateTarget);
                 Instruments.Quarter(sim, 1789UL, 1);
                 Instruments.Close(sim);
 
