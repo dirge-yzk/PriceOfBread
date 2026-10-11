@@ -263,6 +263,7 @@ public static class Government
         // 法整備（離散）：力の均衡が許す向きに一歩ずつ。教育法・参政権・徴兵法は World が現在値を持ち効果に効く。
         // ★段の法は表 <see cref="LevelLaws"/> を施行の順に1本のループで回す（2026-09-28 処理の一元化 段1＝旧は軸ごとに StepEnum/StepBool の1行・各軸の注記は表の行へ移した）。
         int stepIdx = -1;
+        if (Instruments.On) Instruments.StockAtLevelHead(w);   // 計器（読むだけ・(278)）：段の法のループの頭の政治資本の在庫
         foreach (var law in LevelLaws)
         {
             stepIdx++;
@@ -374,6 +375,7 @@ public static class Government
         //   ⚠w.AusterityIntensity の計算は残る＝三部会の召集信号（CrownParliament が >0.5 を読む）と門の材料。
         //   軍事費の緊縮は**不採用**（2026-06-18 検証）：負債国だけが動員解除し財政健全な覇権国は軍を維持＝非対称な武装解除で力の格差が拡大した。
         // ★値は施行の前（上の austerity）で導出し、置くのはここ＝この四半期の法の門は前の四半期の値を読む（2026-09-30 (119) で導出だけを上へ移した・並びは旧と同じ）。
+        if (Instruments.On) Instruments.StockAtStepEnd(w);   // 計器（読むだけ・(278)）：Step の末尾の政治資本の在庫
         w.AusterityIntensity = austerity;
     }
 
@@ -550,6 +552,7 @@ public static class Government
         if (net < 0)
         {
             double cost = -net * w.Coef.MandateSpendRate * costMul;   // 反対を押し切った代償（−net=|純支持|）＝正統性の全幅
+            if (Instruments.On) Instruments.Priced(w, cost);   // 計器（読むだけ・(278)）：この一歩の代価と、払う前の目減り S
             if (!PoliticalCapitalAffords(w, cost)) { if (Instruments.On) Instruments.GateResult(w, 2, net); return false; }      // ★在庫の門（N2）＝残り a が代価に届くときだけ押し切れる
             Spend(w, cost);
         }
@@ -886,6 +889,7 @@ public static class Government
         {
             double moved = Math.Min(1.0, Math.Abs(next - cur) / spendScale);
             double cost = -net * w.Coef.MandateSpendRate * moved;
+            if (Instruments.On) Instruments.Priced(w, cost);   // 計器（読むだけ・(278)）：この一歩の代価と、払う前の目減り S
             if (!PoliticalCapitalAffords(w, cost)) { if (milProbe) Instruments.MilitaryMove(w, cur, target, net, resist, speed, 2, e, increasing); if (Instruments.On) Instruments.MoveResult(w, a, spendScale, 2, cur, target, cur, net, speed); return cur; }   // ★在庫の門（N2）＝払えない押しはスライダーも1ミリも動かない
             Spend(w, cost);
         }
