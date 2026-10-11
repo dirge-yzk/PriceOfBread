@@ -1,5 +1,5 @@
 """(273) 線P 後半：腕（B・R・S・S′）の計器つきの出力から、事前登録の線 P1′・P2〜P6 と記録の列を英で読む読み手（読むだけ）。
-  python an_p273_arms.py <出力ファイル.md> B=<ins> R=<ins> S=<ins> S2=<ins> [Q=<窓の終わりの四半期の番号＝既定 40]
+  python an_p273_arms.py <出力ファイル.md> B=<ins> R=<ins> S=<ins> S2=<ins> [Q=<窓の終わりの四半期の番号＝既定 40] [SEEDS=<n>＝種を先頭の n 個に絞る]
   入力＝標準の計器の出力（`INS=1 … run` の <出力>/ins か、canary の POB_INSTRUMENTS のフォルダ）。必要な表＝class_s・nation_s・stock_s・fiscal_s（英を NATIONS に挙げた走行）。
   線（実装ログ (273) §9 の §8 の表）：
     P1′ 谷＝英・大衆の Paid÷Earned の Q1〜Q8（q0〜q7）の四半期ごとの最小の種の中央 ≧0.50（R・S・A。S′ は記録）
@@ -21,10 +21,13 @@ from instr import num as fl, seeds  # noqa: E402
 OUTPATH = sys.argv[1]
 ARMS = collections.OrderedDict()
 QEND = 40
+SEEDCAP = 0
 for a in sys.argv[2:]:
     k, v = a.split('=', 1)
     if k == 'Q':
         QEND = int(v)
+    elif k == 'SEEDS':   # (276) 種を先頭の n 個に絞る（10種の走行から 5種の読みを取り出す）
+        SEEDCAP = int(v)
     else:
         ARMS[k] = v
 UK = 'イギリス'
@@ -114,6 +117,21 @@ def metrics(S):
             n_susp += 1
         prev = og
     M['P3b_suspensions_Q1_Q40'] = n_susp
+    # (276) 借入の門（Q1〜Q8＝monthIndex 0〜23）と利払い÷歳入の最大。borrowGateOpenFlag の NaN（不足なし）は閉じたと数えない。
+    gate_first = float('nan'); max_ir = float('nan')
+    for r in fis:
+        mi = int(r['monthIndex'])
+        if mi >= 24:
+            continue
+        og = fl(r['borrowGateOpenFlag']) if 'borrowGateOpenFlag' in r else float('nan')
+        if og == 0 and not (gate_first == gate_first):
+            gate_first = mi
+        ir_ = fl(r['interestToRevenueShareNow']) if 'interestToRevenueShareNow' in r else float('nan')
+        if ir_ == ir_ and not (max_ir >= ir_):
+            max_ir = ir_
+    M['gate_first_closed_month_Q1_Q8'] = gate_first
+    M['gate_closed_Q1_Q8'] = 1 if gate_first == gate_first else 0
+    M['max_interest_to_revenue_Q1_Q8'] = max_ir
     M['P4_gdp_real_Q40'] = stk.get(QE, (float('nan'), float('nan')))[0]
     M['tech_Q40'] = stk.get(QE, (float('nan'), float('nan')))[1]
     rg = []; ir = []
@@ -151,6 +169,8 @@ common = None
 for a in DATA:
     common = set(DATA[a]) if common is None else (common & set(DATA[a]))
 common = sorted(common or [])
+if SEEDCAP:
+    common = common[:SEEDCAP]
 MET = {a: {sd: metrics(DATA[a][sd]) for sd in common} for a in DATA}
 N = len(common)
 out = [f'# (273) 腕の読み（英・種 {common}・窓 Q5〜Q{QEND}）\n\n']
@@ -208,6 +228,26 @@ for a in arms:
     mark = lambda ok, k=None: (f'判定不能（NaN {nanof(k)}種）' if k is not None and nanof(k) else mark0(ok))
     p1txt = ('記録（S′）' if a.startswith('S2') else mark(p1 >= 0.5, 'P1p_min_Q1_Q8')) + f' {f(p1, 3)}'
     out.append(f'| {a} | {p1txt} | {mark(p2 >= 0.9, "P2_mass_paid_earned")} {f(p2, 3)} | {mark(p3a, "P3a_default_Q40")}（不履行のあった種 {sum(1 for x in m["P3a_default_Q40"] if x > 0)}/{N}） | {mark(nsusp <= susp_max)}（{nsusp}/{N}種） | {mark(p4 >= 3.12e5, "P4_gdp_real_Q40")} {f(p4, 0)} | {mark(p5 >= 0.0851, "P5_revenue_to_gdp")} {f(p5, 4)} | {mark(p6 < 0.01, "P6_ledger_residual")} {p6:.2e} |\n')
+# (276) P7・P8・P0（腕 B＝基線を基準にする）
+if 'B' in MET:
+    nB = sum(MET['B'][sd]['gate_closed_Q1_Q8'] for sd in common)
+    gate_tol = 1 if mode5 else 2
+    out.append(f'\n## (276) P7・P8・P0 と記録（{N}種・P8 の許容＝腕 B の数 {nB} ＋{gate_tol}）\n\n| 腕 | P7 Q1 の歳入／基線の同じ種（中央） | P8 Q1〜Q8 に門が閉じた種 | P0 q0 の貯蓄÷年所得（中央・線 0.78〜1.46） | q0÷0.5 | 利払い÷歳入 Q1〜Q8 の最大の中央〔最小〜最大〕 |\n|---|---|---|---|---|---|\n')
+    for a in arms:
+        rat = [MET[a][sd]['rev_Q1'] / MET['B'][sd]['rev_Q1'] if MET['B'][sd]['rev_Q1'] > 0 else float('nan') for sd in common]
+        nr = sum(1 for x in rat if not (x == x))
+        p7 = med(rat)
+        ncl = sum(MET[a][sd]['gate_closed_Q1_Q8'] for sd in common)
+        q0v = [MET[a][sd]['q0_savings_to_income_years'] for sd in common]
+        q0m = med(q0v)
+        p7txt = ('基準' if a == 'B' else (f'判定不能（NaN {nr}種）' if nr else ('合格' if p7 >= 0.8 else '外れ'))) + f' {f(p7, 3)}'
+        p8txt = ('基準' if a == 'B' else ('合格' if ncl <= nB + gate_tol else '外れ')) + f' {ncl}/{N}'
+        p0txt = ('基準' if a == 'B' else ('判定不能（NaN）' if not (q0m == q0m) else ('内' if 0.78 <= q0m <= 1.46 else '外（積み戻し）'))) + f' {f(q0m, 3)}'
+        out.append(f'| {a} | {p7txt} | {p8txt} | {p0txt} | {f(q0m / 0.5, 2)} | {cell([MET[a][sd]["max_interest_to_revenue_Q1_Q8"] for sd in common], 3)} |\n')
+    out.append('\n門が閉じた最初の月（monthIndex・種ごと・—＝閉じず）：\n\n')
+    for a in arms:
+        out.append(f'- {a}: ' + '；'.join(f's{sd} {f(MET[a][sd]["gate_first_closed_month_Q1_Q8"], 0)}' for sd in common) + '\n')
+    out.append('\n')
 out.append('\n## 種ごとの値（P1′・P2・不履行・兌換停止・Q1 の歳入）\n\n')
 for a in arms:
     out.append(f'- {a}: ' + '；'.join(f's{sd} P1′={f(MET[a][sd]["P1p_min_Q1_Q8"], 2)} P2={f(MET[a][sd]["P2_mass_paid_earned"], 2)} 不履行={f(MET[a][sd]["P3a_default_Q40"], 0)} 停止={MET[a][sd]["P3b_suspensions_Q1_Q40"]} 歳入Q1={f(MET[a][sd]["rev_Q1"], 0)}' for sd in common) + '\n')
