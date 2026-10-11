@@ -67,6 +67,14 @@ public static class Instruments
         public readonly double[] ClsEarn = new double[NC], ClsPaid = new double[NC]; public int ClsMonths;
         public int Sel = -1;                               // -1＝未判定 0＝挙げていない 1＝挙げた国
         public int WarMonths, CivilWarMonths;              // 今の四半期の交戦の月・内戦の月（軍の更新の直前に数える・四半期の末に0へ戻す・助走の直後にも0へ戻す）
+        // ---- (259) 行政の請求の2つの式（Simulation の州の予算の和／Fiscal の adminClaim）・国家の支払い率・行政の充足：今の四半期の月ごとの和（四半期の末に0へ戻す）
+        public int AdmMonths, AdmPaidMonths, AdmRBelow1Months;
+        public double AdmSimClaim, AdmCatClaim, AdmCatPaid, AdmFiscClaim, AdmBase, AdmSpendable, AdmLastRev, AdmSimMul, AdmCover, AdmFiscMul, AdmPayRate, AdmFill, AdmFillRBelow1;
+        // 月の予算の位置（州ごとの AdminBudget の代入）で溜め、月の決算の終わりで四半期の和へ畳む：基数 SpendableRevenue・先月の歳入・官僚の居る州の（人口の比×距離の割増）の和と人口の比の和
+        public double BudSpendable = double.NaN, BudLastRev = double.NaN, BudMul, BudCover;
+        // ---- (259) 戦時段（四半期の頭の AI の判断と Government.Step の後・NaN／-1＝この四半期は来なかった）
+        public double DecScale = double.NaN, DecLosing = double.NaN, DecShare = double.NaN;
+        public int DecAtWar = -1, DecMobilized = -1, DecPicked, DecOpen = -1, DecTarget = -1, DecEnforced = -1;
     }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<World, WState> States = new();
     static WState S(World w) => States.GetValue(w, _ => new WState());
@@ -174,6 +182,100 @@ public static class Instruments
         st.ClaimsTotal = claims; st.Payable1 = payable; st.PayRate = payRate; st.Devalued = devalued;
     }
 
+    // ---------------------------------------------------------------- (259) 行政の請求の2つの式・戦時段（0g の必要性の確認の計器・読むだけ） ----------------------------------------------------------------
+
+    /// <summary>月初の予算（<c>Simulation</c> の州ごとの <c>AdminBudget</c> の代入の直後）：行政の予算の基数と、官僚の居る州の（人口の比・人口の比×距離の割増）の和。
+    /// 基数 <see cref="World.SpendableRevenue"/> は先月の歳入＋潤沢の上乗せ（<c>Fiscal</c> の <c>adminClaim</c> の基数＝当月の予算基数とは別）。助走の月は写さない。</summary>
+    internal static void AdminBase(World w, Region r, double nationPop)
+    {
+        if (w.WarmupFrozen) return;
+        var st = S(w);
+        st.BudSpendable = w.SpendableRevenue(); st.BudLastRev = w.LastRevenuePerMonth.Value;
+        if (r.BureaucratPopIndex >= 0 && nationPop > 1e-9)
+        {
+            double share = r.SumPopulation() / nationPop;
+            st.BudCover += share; st.BudMul += share * Fiscal.AdminDistanceMul(w, r);
+        }
+    }
+    /// <summary>国の行政の充足（活きた州の人口加重・前の月の決算で EconomyStep が書いた <see cref="Region.AdminFill"/>）。</summary>
+    static double AdminFillShare(World w)
+    {
+        double s = 0, n = 0;
+        foreach (var r in w.Regions)
+        {
+            if (r.State != RegionState.Active) continue;
+            double p = r.SumPopulation();
+            if (!(p > 0)) continue;
+            s += p * r.AdminFill; n += p;
+        }
+        return n > 0 ? s / n : double.NaN;
+    }
+    /// <summary>月の決算の終わり：行政の請求の2つの式と支払い率・行政の充足を四半期の和へ足す。</summary>
+    static void AccumulateAdmin(World w, WState st)
+    {
+        st.AdmMonths++;
+        var led = w.TreasuryLedger;
+        st.AdmSimClaim += st.Claim[(int)Item.Admin];
+        st.AdmCatClaim += st.Claim[(int)Item.Admin] + st.Claim[(int)Item.Infra] + st.Claim[(int)Item.ElecInfra];
+        st.AdmFiscClaim += w.LastAdminClaimPerMonth.Value;
+        st.AdmBase += w.LastRevenuePerMonth.Value;
+        st.AdmSpendable += st.BudSpendable; st.AdmLastRev += st.BudLastRev;
+        st.AdmSimMul += st.BudMul; st.AdmCover += st.BudCover;
+        st.AdmFiscMul += Fiscal.AdminDistanceMean(w);
+        if (st.HaveLedger) { st.AdmCatPaid += -(led[(int)TreasuryCat.Admin] - st.PrevLedger[(int)TreasuryCat.Admin]); st.AdmPaidMonths++; }
+        double fill = AdminFillShare(w);
+        if (st.PayRate == st.PayRate) st.AdmPayRate += st.PayRate;
+        if (st.PayRate < 1) { st.AdmRBelow1Months++; st.AdmFillRBelow1 += fill; }
+        st.AdmFill += fill;
+    }
+
+    /// <summary>AI の総動員の判断（<c>UtilityAgent.DecideQuarter</c> の総動員の分岐の終わり）：戦争の規模と存亡（<see cref="Diplomacy.WarScale"/> の戻り値と out）・交戦中か・判断の後の総動員。四半期の頭に1回。</summary>
+    internal static void Mobilization(World w, bool atWar, double scale, double losing)
+    {
+        var st = S(w);
+        st.DecAtWar = atWar ? 1 : 0; st.DecScale = scale; st.DecLosing = losing; st.DecMobilized = w.Mobilized ? 1 : 0;
+    }
+    /// <summary>AI が戦時段（最上段）を目標に置いた（<c>WarStageOpen</c> が真のとき無条件）。</summary>
+    internal static void WarStagePicked(World w) => S(w).DecPicked = 1;
+    /// <summary>四半期の頭の <c>Government.Step</c> の後：戦時段の解禁・軍事費の段の目標（保存）と施行。</summary>
+    internal static void AfterGovernment(World w)
+    {
+        var st = S(w);
+        st.DecOpen = Government.WarStageOpen(w) ? 1 : 0;
+        st.DecTarget = Government.MilitaryStage(w.Policy.MilitarySpendingTarget); st.DecEnforced = Government.MilitaryStage(w.MilitarySpending); st.DecShare = w.MilitarySpending;
+    }
+    static void ResetQuarter(WState st)
+    {
+        st.AdmMonths = st.AdmPaidMonths = st.AdmRBelow1Months = 0;
+        st.AdmSimClaim = st.AdmCatClaim = st.AdmCatPaid = st.AdmFiscClaim = st.AdmBase = st.AdmSpendable = st.AdmLastRev = st.AdmSimMul = st.AdmCover = st.AdmFiscMul = st.AdmPayRate = st.AdmFill = st.AdmFillRBelow1 = 0;
+        st.DecScale = st.DecLosing = st.DecShare = double.NaN;
+        st.DecAtWar = st.DecMobilized = st.DecOpen = st.DecTarget = st.DecEnforced = -1; st.DecPicked = 0;
+    }
+    /// <summary>国×四半期の行に足す列（行政の請求の2つの式・戦時段）。月ごとの量は四半期の月の平均（<c>PerMonth</c>）。</summary>
+    static List<(string Name, string Value)> NationExtras(World w, WState st)
+    {
+        var cols = new List<(string, string)>();
+        string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        void C(string name, double v) => cols.Add((name, F(v)));
+        void N(string name, int v) => cols.Add((name, I(v)));
+        double m = st.AdmMonths > 0 ? st.AdmMonths : double.NaN, mp = st.AdmPaidMonths > 0 ? st.AdmPaidMonths : double.NaN;
+        // 戦時段：四半期の頭（AI の判断と Government.Step の後）と四半期の末
+        N("warStageOpenAfterGovFlag", st.DecOpen); C("warScaleRatioAtDecision", st.DecScale); C("homeLosingScoreAtDecision", st.DecLosing);
+        N("atWarAtDecisionFlag", st.DecAtWar); N("mobilizedAtDecisionFlag", st.DecMobilized); N("aiPickedWarStageFlag", st.DecPicked);
+        N("militaryStageTargetAfterGovStage", st.DecTarget); N("militaryStageEnforcedAfterGovStage", st.DecEnforced); C("militarySpendingAfterGovShare", st.DecShare);
+        N("warStageOpenEndFlag", Government.WarStageOpen(w) ? 1 : 0); N("militaryStageTargetEndStage", Government.MilitaryStage(w.Policy.MilitarySpendingTarget));
+        N("militaryStageEnforcedEndStage", Government.MilitaryStage(w.MilitarySpending)); C("militarySpendingEndShare", w.MilitarySpending);
+        // 行政の請求：Simulation の州の予算の和（claimAdmin）と Fiscal の adminClaim（LastAdminClaim）・その基数と距離の割増・実際の支払い（台帳の Admin＝行政＋上下水道＋電化）
+        N("adminMonthsCount", st.AdmMonths); N("adminRBelow1MonthsCount", st.AdmRBelow1Months);
+        C("adminClaimSimPerMonth", st.AdmSimClaim / m); C("adminClaimFiscalPerMonth", st.AdmFiscClaim / m);
+        C("adminCatClaimSimPerMonth", st.AdmCatClaim / m); C("adminCatPaidPerMonth", st.AdmCatPaid / mp);
+        C("adminSpendableAtBudgetPerMonth", st.AdmSpendable / m); C("adminLastRevenueAtBudgetPerMonth", st.AdmLastRev / m); C("adminRevenueBasePerMonth", st.AdmBase / m);
+        C("adminSimMeanMulShare", st.AdmSimMul / m); C("adminBureaucratCoverShare", st.AdmCover / m); C("adminFiscalMeanMul", st.AdmFiscMul / m);
+        C("payRateMeanShare", st.AdmPayRate / m); C("adminFillMeanShare", st.AdmFill / m);
+        C("adminFillMeanInRBelow1Share", st.AdmRBelow1Months > 0 ? st.AdmFillRBelow1 / st.AdmRBelow1Months : double.NaN);
+        return cols;
+    }
+
     // ---------------------------------------------------------------- 軍の更新の直前・外交（史実比較の桁の読み手の入力） ----------------------------------------------------------------
 
     /// <summary>軍の更新（<c>Military.Step</c>）の直前：この四半期の交戦の月と内戦の月を数える。月の決算の終わり（<see cref="MonthClose"/>）で数えると外交の更新の後＝内戦の始まりと終わりの月で1か月ずれる。</summary>
@@ -205,6 +307,7 @@ public static class Instruments
         foreach (var r in w.Regions) foreach (var p in r.Pops) { int c = (uint)p.ClassId < (uint)NC ? p.ClassId : NC - 1; st.ClsEarn[c] += p.EarnedPerMonth.Value; st.ClsPaid[c] += p.PaidPerMonth.Value; }
         st.ClsMonths++;
         var led = w.TreasuryLedger;
+        AccumulateAdmin(w, st);
         if (IsPicked(w, st) && st.HaveLedger)
         {
             var sb = new System.Text.StringBuilder();
@@ -212,6 +315,7 @@ public static class Instruments
             st.Rows.Add(sb.ToString());
         }
         st.PrevTreasury = w.Treasury.Value; Array.Copy(led, st.PrevLedger, NCat); st.HaveLedger = true;
+        st.BudMul = st.BudCover = 0; st.BudSpendable = st.BudLastRev = double.NaN;   // 月の予算の位置で溜めた基数を次の月へ持ち越さない
     }
 
     static void FiscalRow(World w, WState st, System.Text.StringBuilder sb, bool header)
@@ -223,6 +327,9 @@ public static class Instruments
         for (int i = 0; i < (int)Item.Count; i++) C(ItemNames[i], st.Claim[i]);
         double itemSum = 0; for (int i = 0; i < (int)Item.Count; i++) itemSum += st.Claim[i];
         C("claimTotalPerMonth", st.ClaimsTotal); C("claimItemGapPerMonth", st.ClaimsTotal - itemSum);
+        // (259) 行政の請求の2つの式：Fiscal の adminClaim（claimAdminPerMonth＝Simulation の州の予算の和とは別の式）・その基数・官僚の居る州の割増・行政の充足
+        C("adminClaimFiscalPerMonth", w.LastAdminClaimPerMonth.Value); C("adminSpendableAtBudgetPerMonth", st.BudSpendable); C("adminLastRevenueAtBudgetPerMonth", st.BudLastRev);
+        C("adminSimMeanMulShare", st.BudMul); C("adminBureaucratCoverShare", st.BudCover); C("adminFiscalMeanMul", Fiscal.AdminDistanceMean(w)); C("adminFillShare", AdminFillShare(w));
         C("treasuryAtClaimStock", st.Treasury0); C("revenueBasePerMonth", w.LastRevenuePerMonth.Value); C("payableBeforeBorrowStock", st.Payable0); C("spareBeforeBorrowPerMonth", st.Spare0);
         C("borrowShortfallPerMonth", st.Shortfall); C("borrowTicketPerMonth", st.Ticket); C("borrowDomesticPoolStock", st.DomPool); C("borrowForeignPoolStock", st.ForPool);
         C("borrowedPerMonth", st.Borrowed);
@@ -250,7 +357,7 @@ public static class Instruments
     internal static void Phase(MultiNationSim sim, ulong seed, string time)
     {
         var sk = SinkOf(sim, seed);
-        if (time == "warm") foreach (var n in sim.Nations) { var wst = S(n.World); wst.WarMonths = 0; wst.CivilWarMonths = 0; }   // 助走の月は数えない（旧の注入も助走の直後に0へ戻していた）
+        if (time == "warm") foreach (var n in sim.Nations) { var wst = S(n.World); wst.WarMonths = 0; wst.CivilWarMonths = 0; ResetQuarter(wst); }   // 助走の月は数えない（旧の注入も助走の直後に0へ戻していた）
         foreach (var n in sim.Nations) { ClassRows(sk, seed, time, n.World, S(n.World), flows: false); StockRow(sk, seed, time, n.World, readGdp: time != "open"); }
     }
 
@@ -273,7 +380,7 @@ public static class Instruments
             }
             if (picked || yearEnd) { ClassRows(sk, seed, time, w, st, flows: true); StockRow(sk, seed, time, w, readGdp: true); }
             NationRow(sk, seed, q, i, w, st, yearEnd);
-            Array.Clear(st.ClsEarn); Array.Clear(st.ClsPaid); st.ClsMonths = 0; st.WarMonths = 0; st.CivilWarMonths = 0;
+            Array.Clear(st.ClsEarn); Array.Clear(st.ClsPaid); st.ClsMonths = 0; st.WarMonths = 0; st.CivilWarMonths = 0; ResetQuarter(st);
         }
         RegionRows(sk, seed, q, sim);
     }
@@ -405,6 +512,8 @@ public static class Instruments
         cols.Add(I(q)); cols.Add(I(w.Year)); cols.Add(I(index)); cols.Add(NameOf(w));
         cols.Add(F(w.TotalPopulation)); cols.Add(F(popK)); cols.Add(F(soldierK)); cols.Add(F(Calendar.PerMonthToPerYear(w.NominalGdpPerMonth).Value));
         cols.Add(I(st.WarMonths)); cols.Add(I(st.CivilWarMonths)); cols.Add(I((int)w.ConscriptionLaw)); cols.Add(w.Mobilized ? "1" : "0");
+        var extras = NationExtras(w, st);   // (259) 戦時段・行政の請求の2つの式（総動員の列の直後＝他の線が末尾に足す列と行が重ならない）
+        foreach (var ex in extras) cols.Add(ex.Value);
         cols.Add(F(threat + own > 0 ? threat / (threat + own) : 0)); cols.Add(F(army + own > 0 ? army / (army + own) : 0)); cols.Add(I((int)w.SerfEmancipation));
         cols.Add(I(core)); cols.Add(I(integrated)); cols.Add(I(colonial)); cols.Add(nonCore.ToString());
         cols.Add(F(led[(int)TreasuryCat.Borrow])); cols.Add(F(led[(int)TreasuryCat.Devalue])); cols.Add(F(led[(int)TreasuryCat.Army])); cols.Add(F(led[(int)TreasuryCat.Navy]));
@@ -413,6 +522,7 @@ public static class Instruments
         if (!sk.NationHeader)
         {
             sk.Nation.WriteLine("quarter\tyear\tnationIndex\tnation\ttotalPopulationK\tpopulationK\tsoldierK\tnominalGdpPerYear\tatWarMonths\tcivilWarMonths\tconscriptionLaw\tmobilizedFlag\t"
+                + string.Join('\t', extras.Select(e => e.Name)) + "\t"
                 + "securityThreatShare\tarmyThreatShare\tserfEmancipation\tcoreRegions\tintegratedRegions\tcolonialRegions\tnonCoreRegions\t"
                 + "ledgerBorrowCumulative\tledgerDevalueCumulative\tledgerArmyCumulative\tledgerNavyCumulative\tgovDebtStock\texportsPerClearing\timportsPerClearing\tclearingsPerYear");
             sk.NationHeader = true;

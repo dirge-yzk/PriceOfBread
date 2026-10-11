@@ -1671,6 +1671,7 @@ public sealed class Simulation
         Parliament.Step(World, World.Coef);   // 議会・選挙（段5）：得票・選挙・議席。目標は書かない（法軸の綱領は 2026-09-26 に撤去＝回5-1 項目17・AI の意図へ移設／経済軸は 2026-09-19）。ParliamentEnabled の国のみ＝較正不変
         World.ApplyModernizationInvestment();      // 近代化投資（UI・AI 共通の動詞）
         Government.Step(World, World.Coef);   // 政策を反映（法整備＝即時／スライダー＝利益集団の力で律速して漸進）
+        if (Instruments.On) Instruments.AfterGovernment(World);   // 計器（読むだけ）：戦時段の解禁・軍事費の段の目標と施行（四半期の頭）
     }
 
     /// <summary>地域別の貨幣的物価水準の乗数（②集計粒度）：各州の1人あたり貯蓄（手元現金の厚み）が国平均からどれだけ乖離するかで、
@@ -2105,6 +2106,7 @@ public sealed class Simulation
                     ? (World.AdminSpending * World.Coef.InfraBudgetScale * World.FiscalCapacityPerMonth * (r.SumPopulation() / nationPop)).Value : 0;
                 r.ElecInfraBudget = nationPop > 1e-9
                     ? (World.AdminSpending * World.Coef.ElecInfraBudgetScale * World.FiscalCapacityPerMonth * (r.SumPopulation() / nationPop)).Value : 0;
+                if (Instruments.On) Instruments.AdminBase(World, r, nationPop);   // 計器（読むだけ）：行政の予算の基数（SpendableRevenue・官僚の居る州の人口の比と距離の割増）
                 // 兵力（兵士の給与）の予算＝★(155) 州ループの後（吸い込みの1段目と3段目＝装備の請求が立ってから）。
             }
         // ★(155) 軍事費の吸い込みの1段目（給与・糧食）と3段目（質＝幹部の給与＝訓練）を州へ：

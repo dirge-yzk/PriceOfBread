@@ -179,6 +179,87 @@ public class InstrumentsTests
     }
 
     /// <summary>
+    /// 行政の請求の2つの式と戦時段の列（2026-10-11 (259)・0g の段A-0／段B-0 の必要性の確認の計器）の番人。
+    /// 期待値は別の経路から作る：①国×四半期の行の四半期平均（月の決算の終わりで溜めた和）＝財政の月の行（挙げた国の月ごとの写し）の3か月の平均
+    ///   （Simulation の州の予算の和 claimAdminPerMonth と Fiscal の adminClaim の両方）②最後の月の財政の行の adminClaimFiscalPerMonth ＝ 生きた World.LastAdminClaimPerMonth
+    ///   ③最後の四半期の戦時段の列 ＝ 生きた World の Government.WarStageOpen と MilitaryStage ④戦時段の不変条件（AI は解禁なら無条件に最上段を目標に置く＝解禁⇔選んだ・段は 1〜4・行政の充足は 0〜1）。
+    /// 何もしない番人は必ず緑になる＝戦争が起きて規模が有限に立つ四半期・行政の請求が正の四半期を数えて対照にする。
+    /// </summary>
+    [Fact]
+    public void 行政の請求の2つの式と戦時段の列が揃い別の経路と合う()
+    {
+        string dir = NewDir();
+        try
+        {
+            var sim = Make();
+            Instruments.Configure(dir, "*");
+            try { RunMatch(sim, 40, instr: true); }
+            finally { Instruments.Configure(null, null); }
+
+            var (nh, nr) = Table(System.IO.Path.Combine(dir, "nation_s1789.tsv"));
+            var (fh, fr) = Table(System.IO.Path.Combine(dir, "fiscal_s1789.tsv"));
+            Assert.All(nr, r => Assert.Equal(nh.Length, r.Length));
+            int iqN = Array.IndexOf(nh, "quarter"), inN = Array.IndexOf(nh, "nation");
+            int inF = Array.IndexOf(fh, "nation");
+            foreach (var c in new[] { "warStageOpenAfterGovFlag", "warScaleRatioAtDecision", "homeLosingScoreAtDecision", "aiPickedWarStageFlag", "militaryStageTargetAfterGovStage", "militaryStageEnforcedAfterGovStage", "warStageOpenEndFlag", "militaryStageEnforcedEndStage", "adminClaimSimPerMonth", "adminClaimFiscalPerMonth", "adminSpendableAtBudgetPerMonth", "adminFillMeanShare", "payRateMeanShare" })
+                Assert.True(Array.IndexOf(nh, c) >= 0, "国×四半期の表に列が無い " + c);
+
+            // ①四半期平均＝財政の月の行の3か月の平均（その四半期の3か月が全て挙がる四半期だけ）
+            int checkedQuarters = 0, claimPositive = 0;
+            foreach (var row in nr)
+            {
+                int q = int.Parse(row[iqN]); string nation = row[inN];
+                // 財政の月の行は四半期の末ごとに順に出る・助走の直後の最初の月は台帳の差分の起点が無く行が出ない（最初の四半期は2か月）＝全ての四半期が揃う国の q>=1 を行の順で引く
+                var all = fr.Where(r => r[inF] == nation).ToList();
+                if (q < 1 || all.Count != Calendar.MonthsPerQuarter * 40 - 1) continue;
+                var months = all.Skip(2 + Calendar.MonthsPerQuarter * (q - 1)).Take(Calendar.MonthsPerQuarter).ToList();
+                checkedQuarters++;
+                double Mean(string c) => months.Average(r => Col(fh, r, c));
+                foreach (var (nc, fc) in new[] { ("adminClaimSimPerMonth", "claimAdminPerMonth"), ("adminClaimFiscalPerMonth", "adminClaimFiscalPerMonth"), ("adminSpendableAtBudgetPerMonth", "adminSpendableAtBudgetPerMonth"), ("adminFillMeanShare", "adminFillShare"), ("payRateMeanShare", "payRateShare") })
+                {
+                    double a = Col(nh, row, nc), b = Mean(fc);
+                    Assert.True(Math.Abs(a - b) <= 1e-9 * Math.Max(1.0, Math.Abs(b)), $"{nation} q{q} {nc}（国×四半期 {a}）が財政の月の行の平均 {fc}（{b}）に合わない");
+                }
+                if (Col(nh, row, "adminClaimFiscalPerMonth") > 0 && Col(nh, row, "adminClaimSimPerMonth") > 0) claimPositive++;
+            }
+            Assert.True(checkedQuarters >= 4 * 30, $"突き合わせた四半期が少ない（{checkedQuarters}）＝月の行と四半期の対応が取れていない");
+            Assert.True(claimPositive > checkedQuarters * 0.8, "行政の請求が正の四半期が少ない（2つの式のどちらかの写しの漏れ）");
+
+            // ②最後の月の財政の行 ＝ 生きた World.LastAdminClaimPerMonth
+            foreach (var n in sim.Nations.Take(4))
+            {
+                string nation = Instruments.NameOf(n.World);
+                var last = fr.Last(r => r[inF] == nation);
+                Assert.InRange(Col(fh, last, "adminClaimFiscalPerMonth") - n.World.LastAdminClaimPerMonth.Value, -1e-8 * Math.Max(1.0, n.World.LastAdminClaimPerMonth.Value), 1e-8 * Math.Max(1.0, n.World.LastAdminClaimPerMonth.Value));   // 表の数は G10
+            }
+
+            // ③④最後の四半期の戦時段の列 ＝ 生きた World・不変条件
+            int lastQ = nr.Max(r => int.Parse(r[iqN]));
+            foreach (var row in nr.Where(r => int.Parse(r[iqN]) == lastQ && int.Parse(r[Array.IndexOf(nh, "nationIndex")]) < sim.Nations.Count))
+            {
+                var w = sim.Nations[int.Parse(row[Array.IndexOf(nh, "nationIndex")])].World;
+                Assert.Equal(Government.WarStageOpen(w) ? 1.0 : 0.0, Col(nh, row, "warStageOpenEndFlag"));
+                Assert.Equal((double)Government.MilitaryStage(w.MilitarySpending), Col(nh, row, "militaryStageEnforcedEndStage"));
+            }
+            int warDecisions = 0, picked = 0;
+            foreach (var row in nr)
+            {
+                double open = Col(nh, row, "warStageOpenAfterGovFlag"), pick = Col(nh, row, "aiPickedWarStageFlag");
+                Assert.True(open == pick || double.IsNaN(open) || open < 0, "戦時段が解禁なら AI は無条件に最上段を選ぶ（解禁⇔選んだ）");
+                foreach (var c in new[] { "militaryStageTargetAfterGovStage", "militaryStageEnforcedAfterGovStage" }) { double s = Col(nh, row, c); Assert.True(s == -1 || (s >= 1 && s <= Government.MilitaryLawStages), c); }
+                foreach (var c in new[] { "militaryStageTargetEndStage", "militaryStageEnforcedEndStage" }) Assert.InRange(Col(nh, row, c), 1, Government.MilitaryLawStages);
+                double fill = Col(nh, row, "adminFillMeanShare"); if (!double.IsNaN(fill)) Assert.InRange(fill, 0, 1);
+                if (Col(nh, row, "warStageOpenEndFlag") == 1) Assert.Equal(1.0, Col(nh, row, "mobilizedFlag"));
+                if (Col(nh, row, "atWarAtDecisionFlag") == 1 && double.IsFinite(Col(nh, row, "warScaleRatioAtDecision"))) warDecisions++;
+                picked += (int)pick;
+            }
+            Assert.True(warDecisions > 0, "戦争中の判断が1度も写っていない（Mobilization の口の写しの漏れか、盤面で戦争が起きていない）");
+            _ = picked;
+        }
+        finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
+
+    /// <summary>
     /// 州の人口と移動の表（2026-10-11 (255)・旧の注入 u4e/inj_ghost.py の R／M 行の代わり＝州の空洞化の読み手 hol/an_h2.py の入力）の番人。
     /// 期待値は計器の別の経路から作る：①(四半期, 国, 州) が1行ずつ ②各四半期で 州の間の移民の出の和＝入の和＝移民の組の表の和・入植の出の和＝入の和・越境の出の和＝入の和
     /// （片方の写しが漏れると崩れる）③活きた州の人口の和が国×四半期の表（NationRow＝別の走査）の人口と合う ④負の量が無い。
