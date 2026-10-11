@@ -1,0 +1,8 @@
+M1 頭打ちを外す（claim をそのまま返す） =>    at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)  失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 1 s - PriceOfBread.Tests.dll (net10.0) 
+M2 頭打ちを max にする =>    at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)  失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 1 s - PriceOfBread.Tests.dll (net10.0) 
+M3 必要額の距離の割増を落とす =>    at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)  失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 1 s - PriceOfBread.Tests.dll (net10.0) 
+M4 Fiscal.Step が別の式で書き直す =>    at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)  失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 1 s - PriceOfBread.Tests.dll (net10.0) 
+M5 余剰の控除が請求を読まない =>    at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)  失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 1 s - PriceOfBread.Tests.dll (net10.0) 
+M6 州の予算の和でなく先頭の州だけを請求に書く =>    at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)  失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 1 s - PriceOfBread.Tests.dll (net10.0) 
+M7 FiscalEnabled の門を外す（書かない世界にも書く） =>    at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)  失敗!   -失敗:     1、合格:    56、スキップ:     0、合計:    57、期間: 7 s - PriceOfBread.Tests.dll (net10.0) 
+END

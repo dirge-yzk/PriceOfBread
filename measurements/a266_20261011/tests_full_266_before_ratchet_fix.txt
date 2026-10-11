@@ -1,0 +1,53 @@
+START 18:43:31 filter=Category!=FullLength src=/d/PoB_work/wt_a
+  復元対象のプロジェクトを決定しています...
+  D:\PoB_work\a266\tree_t_a266\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj を復元しました (79 ミリ秒)。
+  D:\PoB_work\a266\tree_t_a266\PriceOfBread.Tests\PriceOfBread.Tests.csproj を復元しました (904 ミリ秒)。
+  D:\PoB_work\a266\tree_t_a266\PriceOfBread.App\PriceOfBread.App.csproj を復元しました (907 ミリ秒)。
+  PriceOfBread.SimCore -> D:\PoB_work\a266\art_ta266\bin\PriceOfBread.SimCore\release\PriceOfBread.SimCore.dll
+  PriceOfBread.App -> D:\PoB_work\a266\art_ta266\bin\PriceOfBread.App\release\PriceOfBread.App.dll
+D:\PoB_work\a266\tree_t_a266\PriceOfBread.Tests\ConservationTests.cs(259,48): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\a266\tree_t_a266\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\a266\tree_t_a266\PriceOfBread.Tests\ConservationTests.cs(943,113): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\a266\tree_t_a266\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\a266\tree_t_a266\PriceOfBread.Tests\UnitTypeTests.cs(191,30): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\a266\tree_t_a266\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\a266\tree_t_a266\PriceOfBread.Tests\UnitTypeTests.cs(191,45): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\a266\tree_t_a266\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\a266\tree_t_a266\PriceOfBread.Tests\UnitTypeTests.cs(192,30): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\a266\tree_t_a266\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\a266\tree_t_a266\PriceOfBread.Tests\UnitTypeTests.cs(192,45): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\a266\tree_t_a266\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\a266\tree_t_a266\PriceOfBread.Tests\UnitTypeTests.cs(67,13): warning xUnit2029: Do not use Assert.Empty to check if a value does not exist in a collection. Use Assert.DoesNotContain instead. (https://xunit.net/xunit.analyzers/rules/xUnit2029) [D:\PoB_work\a266\tree_t_a266\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\a266\tree_t_a266\PriceOfBread.Tests\InstrumentsTests.cs(738,13): warning xUnit2031: Do not use a Where clause to filter before calling Assert.Single. Use the overload of Assert.Single that accepts a filtering function. (https://xunit.net/xunit.analyzers/rules/xUnit2031) [D:\PoB_work\a266\tree_t_a266\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+  PriceOfBread.Tests -> D:\PoB_work\a266\art_ta266\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll
+
+ビルドに成功しました。
+
+D:\PoB_work\a266\tree_t_a266\PriceOfBread.Tests\ConservationTests.cs(259,48): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\a266\tree_t_a266\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\a266\tree_t_a266\PriceOfBread.Tests\ConservationTests.cs(943,113): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\a266\tree_t_a266\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\a266\tree_t_a266\PriceOfBread.Tests\UnitTypeTests.cs(191,30): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\a266\tree_t_a266\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\a266\tree_t_a266\PriceOfBread.Tests\UnitTypeTests.cs(191,45): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\a266\tree_t_a266\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\a266\tree_t_a266\PriceOfBread.Tests\UnitTypeTests.cs(192,30): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\a266\tree_t_a266\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\a266\tree_t_a266\PriceOfBread.Tests\UnitTypeTests.cs(192,45): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\a266\tree_t_a266\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\a266\tree_t_a266\PriceOfBread.Tests\UnitTypeTests.cs(67,13): warning xUnit2029: Do not use Assert.Empty to check if a value does not exist in a collection. Use Assert.DoesNotContain instead. (https://xunit.net/xunit.analyzers/rules/xUnit2029) [D:\PoB_work\a266\tree_t_a266\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\a266\tree_t_a266\PriceOfBread.Tests\InstrumentsTests.cs(738,13): warning xUnit2031: Do not use a Where clause to filter before calling Assert.Single. Use the overload of Assert.Single that accepts a filtering function. (https://xunit.net/xunit.analyzers/rules/xUnit2031) [D:\PoB_work\a266\tree_t_a266\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+    8 個の警告
+    0 エラー
+
+経過時間 00:00:46.84
+build rc=0
+D:\PoB_work\a266\art_ta266\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:02:58.45]     PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 3375747) [FAIL]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 3375747) [3 ms]
+  エラー メッセージ:
+   計算量「外交：覇権の判定の国×国」が 2343113 件（宣言 3375747）＝10 % を超えて**下がった**＝表を 2343113 へ下げて理由を書く（＝改善の宣言）。
+  スタック トレース:
+     at PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(Int32 item, Int64 declared) in D:\PoB_work\a266\tree_t_a266\PriceOfBread.Tests\WriterRatchetTests.cs:line 469
+   at InvokeStub_WriterRatchetTests.計算量の見た件数は宣言した表を超えない(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:02:58.45]     PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 2, declared: 7299) [FAIL]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 2, declared: 7299) [< 1 ms]
+  エラー メッセージ:
+   計算量「建設：見た生産者（旬）」が 6544 件（宣言 7299）＝10 % を超えて**下がった**＝表を 6544 へ下げて理由を書く（＝改善の宣言）。
+  スタック トレース:
+     at PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(Int32 item, Int64 declared) in D:\PoB_work\a266\tree_t_a266\PriceOfBread.Tests\WriterRatchetTests.cs:line 469
+   at InvokeStub_WriterRatchetTests.計算量の見た件数は宣言した表を超えない(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+
+失敗!   -失敗:     2、合格:  1105、スキップ:     0、合計:  1107、期間: 7 m 39 s - PriceOfBread.Tests.dll (net10.0)
+rc=1 END 18:52:01
