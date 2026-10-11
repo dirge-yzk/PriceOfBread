@@ -1168,4 +1168,189 @@ public class InstrumentsTests
         }
         Assert.True(bad.Count == 0, "経路名の鍵が移し方の呼び出しを指していない（鍵を今の木で取り直す）：" + string.Join(" ／ ", bad));
     }
+
+    /// <summary>
+    /// ★(274) 線G：幽霊戦線の計器の番人（前半＝手で組んだ盤面）。<c>Government.Step</c> の頭で数えた開いた戦線のそれぞれが、その四半期の施行で何になったかを、
+    /// <b>規則から手で決めた期待</b>（計器の出力を写さない）と突き合わせる。政治の鍵（<c>PoliticalLockEnabled</c>）を切る＝純支持は常に 1.0 で門は無償で通る
+    /// ＝結果は「前提の有無・不可逆・一歩で目標に届くか」だけで決まる：
+    /// ①開いた参政権（普通選挙）＋女性の権利なし＝前提で固定（6）②農奴解放を全面→なし＝不可逆で固定（5）③阿片の輸出法を禁止へ＝一歩で届く（7）
+    /// ④穀物法を なし→全面＝一歩（なし→限定）で止まる（3）⑤所得税を 0 → 最上段＝連続の軸が動いて届かない（3）⑥累進課税を最上段の直下（差 0.0261）→ 一歩で届く（7）。
+    /// ⑦数えた戦線の数 N は政治予算の係数から逆算した N（独立の経路）と一致し、軸ごとの符号の和が N に閉じる。
+    /// 突然変異＝<c>FrontCounted</c> を 1 か所外す／<c>GateResult</c> の 1 と 2 を入れ替える／<c>MoveResult</c> の 3 を 4 にする、で赤。
+    /// </summary>
+    [Fact]
+    public void 開いた戦線の施行の結果が規則から決めた期待と合い数えた戦線の数に閉じる()
+    {
+        string dir = NewDir();
+        try
+        {
+            var sim = new Simulation(NationConfig.France().ToScenario(11), new NullAgent());
+            var w = sim.World;
+            w.PoliticalLockEnabled = false;
+            w.Coef.PoliticalBudgetGate = 0.5;
+            w.Suffrage = Suffrage.AdultMale; w.WomenRights = WomenRightsLaw.None; w.Policy.Suffrage = Suffrage.Universal;
+            w.SerfEmancipation = ReformLevel.Full; w.Policy.SerfEmancipation = ReformLevel.None;
+            w.OpiumExportBan = false; w.Policy.OpiumExportBan = true;
+            w.CornLaws = ReformLevel.None; w.Policy.CornLaws = ReformLevel.Full;
+            w.TaxRate = new Share(0); w.Policy.IncomeTaxTarget = 1.0;
+            w.ProgressiveTax = Government.Q4(PolicyAxis.ProgressiveTax, 1.0) - 0.0261; w.Policy.ProgressiveTaxTarget = 1.0;   // 目標との差が戦線の閾値 0.026 の直上＝開いていて、一歩で閾値の内へ入る（届く）
+            Instruments.Configure(dir, "*");
+            try { Government.Step(w, w.Coef); }
+            finally { Instruments.Configure(null, null); }
+            var fronts = Instruments.FrontsOf(w).ToList();
+            int CodeOf(char kind, PolicyAxis a) { var f = fronts.Where(x => x.Kind == kind && x.Axis == a).ToList(); Assert.True(f.Count == 1, $"{kind}.{a} が開いた戦線に {f.Count} 本"); return f[0].Code; }
+            Assert.Equal(6, CodeOf('L', PolicyAxis.Suffrage));
+            Assert.Equal(5, CodeOf('L', PolicyAxis.SerfEmancipation));
+            Assert.Equal(7, CodeOf('L', PolicyAxis.OpiumExport));
+            Assert.Equal(3, CodeOf('L', PolicyAxis.CornLaws));
+            Assert.Equal(3, CodeOf('R', PolicyAxis.IncomeTax));
+            Assert.Equal(7, CodeOf('R', PolicyAxis.ProgressiveTax));
+            // ⑦ N の独立な経路：政治予算の係数 (1/N)^0.5 から逆算した N（飽和域 N≤1 を避けるため 2 本以上ある盤面）
+            Assert.True(fronts.Count >= 5, $"テスト前提が崩れた：開いた戦線が {fronts.Count} 本");
+            Assert.Equal((int)Math.Round(1.0 / (w.PoliticalPushBudget * w.PoliticalPushBudget)), fronts.Count);
+            Assert.All(fronts, f => Assert.InRange(f.Code, 0, 9));   // 施行の結果が来なかった戦線（−1）は無い＝全ての戦線が施行の入口を通った
+            // 鍵：無効にした政治の下で、固定の符号（1 純支持・2 政治資本）は起きない
+            Assert.DoesNotContain(fronts, f => f.Code is 1 or 2);
+        }
+        finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
+
+    /// <summary>
+    /// ★(274) 線G：幽霊戦線の計器の番人（後半＝4国40四半期の試合）。国×四半期の列が閉じること：
+    /// ①符号ごとの件数の和＝開いた戦線の数 N、段の法＋連続の軸＝N、状態の列の項目の数＝N、項目の符号の集計＝件数の列
+    /// ②N＝(270) の別の経路（<c>militaryMoveOpenFrontsCount</c>）と一致し、政治予算の係数の列＝(1/N)^0.5（N≤1 は 1.0）
+    /// ③軍事費（M）の項目の符号は (270) の軍事費の施行の結果の列と対応する（0・9↔0／1↔1／2↔2／3・7↔3／4・8↔4）
+    /// ④何もしない番人は必ず緑になる＝動いた戦線・固定された戦線（純支持・政治資本・不可逆・前提のどれか）・段の法・連続の軸が実際に起きたことを数える。
+    /// </summary>
+    [Fact]
+    public void 幽霊戦線の列が別の列と合い試合で動いた戦線と固定された戦線が両方写る()
+    {
+        string dir = NewDir();
+        try
+        {
+            var sim = Make();
+            Instruments.Configure(dir, "*");
+            try { RunMatch(sim, 40, instr: true); }
+            finally { Instruments.Configure(null, null); }
+            var (nh, nr) = Table(System.IO.Path.Combine(dir, "nation_s1789.tsv"));
+            Assert.All(nr, r => Assert.Equal(nh.Length, r.Length));
+            string[] countCols = ["frontClosedAtStepCount", "frontNetSupportFixedCount", "frontCapitalFixedCount", "frontMovedFreeCount", "frontMovedPaidCount", "frontIrreversibleFixedCount",
+                "frontPrerequisiteFixedCount", "frontReachedFreeCount", "frontReachedPaidCount", "frontMilitaryExpiredCount", "frontUnrecordedCount"];
+            int[] codeOfCol = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, -1];
+            foreach (var c in countCols.Concat(["openFrontsCount", "openFrontsLevelLawCount", "openFrontsContinuousCount", "militaryFrontCountedFlag", "pushBudgetFactor", "openFrontStates"]))
+                Assert.True(Array.IndexOf(nh, c) >= 0, "国×四半期の表に列が無い " + c);
+            double gate = sim.Nations[0].World.Coef.PoliticalBudgetGate;
+            var seen = new int[11]; int rowsWithFronts = 0, levelSeen = 0, contSeen = 0, milChecked = 0;
+            foreach (var row in nr)
+            {
+                int n = (int)Col(nh, row, "openFrontsCount");
+                if (n < 0) continue;   // Step が来なかった行（助走の直後など）
+                rowsWithFronts++;
+                int sum = 0; var perCode = new int[11];
+                for (int i = 0; i < countCols.Length; i++) { int k = (int)Col(nh, row, countCols[i]); sum += k; perCode[codeOfCol[i] + 1] += k; }
+                Assert.Equal(n, sum);
+                Assert.Equal(n, (int)Col(nh, row, "openFrontsLevelLawCount") + (int)Col(nh, row, "openFrontsContinuousCount"));
+                string states = row[Array.IndexOf(nh, "openFrontStates")];
+                var items = states.Length == 0 ? [] : states.Split(';');
+                Assert.Equal(n, items.Length);
+                var tally = new int[11]; bool milItem = false; int milCode = -2; int lvl = 0;
+                foreach (var it in items)
+                {
+                    int colon = it.LastIndexOf(':'); string kindAxis = it[..colon]; string cs = it[(colon + 1)..].TrimEnd('x');
+                    int code = int.Parse(cs, System.Globalization.CultureInfo.InvariantCulture);
+                    Assert.InRange(code, -1, 9);
+                    tally[code + 1]++;
+                    if (kindAxis[0] == 'L') lvl++;
+                    if (kindAxis[0] == 'M') { milItem = true; milCode = code; }
+                }
+                Assert.Equal(perCode, tally);
+                Assert.Equal(lvl, (int)Col(nh, row, "openFrontsLevelLawCount"));
+                Assert.Equal(milItem ? 1 : 0, (int)Col(nh, row, "militaryFrontCountedFlag"));
+                // ② (270) の別の経路との一致
+                int n270 = (int)Col(nh, row, "militaryMoveOpenFrontsCount");
+                if (n270 >= 0) Assert.Equal(n270, n);
+                double expectPush = n > 1 ? Math.Pow(1.0 / n, gate) : 1.0, push = Col(nh, row, "pushBudgetFactor");
+                Assert.InRange(push, expectPush - 1e-8, expectPush + 1e-8);
+                // ③ 軍事費の項目の符号と (270) の列
+                int mo = (int)Col(nh, row, "militaryMoveOutcomeCode");
+                if (milItem && mo >= 0)
+                {
+                    int want = milCode switch { 0 or 9 => 0, 1 => 1, 2 => 2, 3 or 7 => 3, 4 or 8 => 4, _ => -9 };
+                    Assert.True(want == mo, $"軍事費の項目の符号 {milCode} と (270) の施行の結果 {mo} が対応しない");
+                    milChecked++;
+                }
+                for (int i = 0; i < 11; i++) seen[i] += perCode[i];
+                levelSeen += lvl; contSeen += n - lvl;
+            }
+            Assert.True(rowsWithFronts > 50, $"戦線を数えた行が少ない（{rowsWithFronts}）");
+            int moved = seen[4] + seen[5] + seen[8] + seen[9], fixedN = seen[2] + seen[3] + seen[6] + seen[7];
+            Assert.True(moved > 0 && fixedN > 0, $"動いた戦線と固定された戦線が両方写っていない（符号 −1..9 の件数 {string.Join(',', seen)}）");
+            Assert.True(levelSeen > 0 && contSeen > 0, $"段の法と連続の軸が両方写っていない（{levelSeen}・{contSeen}）");
+            Assert.True(milChecked > 0, "軍事費の項目と (270) の列を突き合わせた行が無い");
+        }
+        finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
+
+    /// <summary>
+    /// ★(274) 線G：段の法の固定の理由（純支持の門・政治資本の在庫）が、副作用のない別の実装（<c>Government.GateInfo</c>＝法律タブの照会）と合う。
+    /// 試合の途中の英国の世界で政治資本を使い切らせる（<c>MandateSpent</c> を巨大に）＝反対を押し切る一歩は全て払えない・賛成が反対を上回る一歩は無償で通る。
+    /// 施行の前に各段の法の次の一歩を <c>GateInfo</c> で照会して期待の符号を決め（賛成不足→1・在庫不足→2・通る→一歩で目標に届くなら 7 でなければ 3）、
+    /// <c>Government.Step</c> の後の計器の符号と突き合わせる。計器の符号を作る <c>MandateGate</c> とは別の関数が出所。
+    /// ⚠限界：前の法が先に動いて後の法の支持が動けば期待がずれうる（その行は期待を作らない＝前提・不可逆・前段階の理由の行も作らない）。
+    /// 何もしない番人は必ず緑になる＝賛成不足・在庫不足の段の法がそれぞれ1本以上あったことを数える（通る側は手で組んだ盤面の試験）。
+    /// </summary>
+    [Fact]
+    public void 段の法の固定の理由が法律タブの照会と合う()
+    {
+        string dir = NewDir();
+        try
+        {
+            int[] seenA = new int[10], seenB = new int[10]; int compared = 0;
+            // 場面 A＝政治資本を使い切らせる（在庫の巨大な目減り）：賛成不足・在庫不足の固定。場面 B＝政治資本が潤沢（目減りが巨大な負）：反対を押し切る一歩は払って通る（代価＞0）
+            foreach (var (spent, seen) in new[] { (1e12, seenA), (-1e12, seenB) })
+            {
+                var sim = Make();
+                RunMatch(sim, 60, instr: false);
+                foreach (var nation in sim.Nations)
+                {
+                    var w = nation.World; var p = w.Policy;
+                    w.MandateSpent = spent;
+                    if (spent < 0)
+                    {   // 場面 B：2段先の目標を置く＝一歩では届かず、反対を押し切る一歩は代価を払う（払って動いて未到達＝符号 4 を起こす）
+                        w.CornLaws = ReformLevel.None; p.CornLaws = ReformLevel.Full;
+                        w.SerfEmancipation = ReformLevel.None; p.SerfEmancipation = ReformLevel.Full;
+                        w.OpiumPossession = ReformLevel.None; p.OpiumPossession = ReformLevel.Full;
+                        w.LandReform = ReformLevel.None; p.LandReform = ReformLevel.Full;
+                    }
+                    var expect = new Dictionary<int, int>();
+                    for (int i = 0; i < Government.LevelLaws.Length; i++)
+                    {
+                        var law = Government.LevelLaws[i];
+                        if ((law.FrontOpen ?? law.Open)?.Invoke(w) == false) continue;
+                        int ci = law.Get(w), ti = law.Target(w, p);
+                        if (ci == ti || law.Enact != null) continue;   // 特例の施行（通貨・社会保障・国教・民間の武器）は引数が違う＝期待を作らない
+                        bool inc = ti > ci; int next = ci + (inc ? 1 : -1);
+                        var gi = Government.GateInfo(w, law.Axis, inc, next);
+                        if (gi.Reason == Government.ReasonNoMandate) expect[i] = 1;
+                        else if (gi.Reason == Government.ReasonNoCapitalStock) expect[i] = 2;
+                        else if (gi.Ok) expect[i] = gi.Cost > 0 ? (next == ti ? 8 : 4) : (next == ti ? 7 : 3);
+                    }
+                    Instruments.Configure(dir, "*");
+                    try { Government.Step(w, w.Coef); }
+                    finally { Instruments.Configure(null, null); }
+                    foreach (var f in Instruments.FrontsOf(w))
+                    {
+                        if (f.Kind != 'L' || !expect.TryGetValue(f.Idx, out int want)) continue;
+                        Assert.True(f.Code == want, $"{f.Axis}（表の行 {f.Idx}・場面 {(spent > 0 ? "A" : "B")}）：計器の符号 {f.Code}・法律タブの照会から決めた期待 {want}");
+                        seen[f.Code]++; compared++;
+                    }
+                }
+            }
+            Assert.True(compared > 0, "突き合わせた段の法が1本も無い");
+            Assert.True(seenA[1] > 0 && seenA[2] > 0,
+                $"賛成不足・在庫不足のどちらかの段の法が場面 A に無い（符号の件数 {string.Join(',', seenA)}）＝突き合わせが空洞");   // 通る側（3・7）は手で組んだ盤面の試験が受け持つ
+            Assert.True(seenB[4] > 0, $"政治資本を払って通った段の法が場面 B に無い（符号の件数 {string.Join(',', seenB)}）＝払う側の突き合わせが空洞");
+        }
+        finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
 }
