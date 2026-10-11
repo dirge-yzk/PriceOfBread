@@ -1,0 +1,3 @@
+=== M6 連続の軸の構造の判定の閾値を 2b へずらす
+成功!   -失敗:     0、合格:     2、スキップ:     0、合計:     2、期間: 1 m 8 s - PriceOfBread.Tests.dll (net10.0)
+ALLDONE
