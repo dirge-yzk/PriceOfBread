@@ -245,7 +245,9 @@ public class SteelMarketAiTests
     /// <summary>★(187) 眠った生産者（<see cref="EconomyStep.SleepState"/>＝1＝発見の門が0 で操業規模0・産出0）は (186) の眠りの間に採算の平滑が止まる
     /// ＝退場したレシピは退場した月の値で凍る。AI の着工の門（採算&gt;0）はその凍った値を読まない＝動いている個体が赤字の財を、凍った正の採算で建てない。
     /// 対照＝同じ盤面で産出をわずかに残す（眠りの条件から外れる＝今のまま採算を読む）と建つ＝門が読んでいるのは眠りの判定そのもの。
-    /// 世界の着値の経路（採算を読まない）と連鎖の目（上流を選ぶ）は外してピンする。</summary>
+    /// 世界の着値の経路（採算を読まない）と連鎖の目（上流を選ぶ）は外してピンする。
+    /// ★(260) 門が閉じた個体は眠りの有無に関わらず着工の候補外になった（<see cref="UtilityAgent.FacilityBuildScore"/> が NaN）＝(187) の「眠った個体の採算を読まない」は
+    ///   この上位の規則に含まれる。対照は「同じ盤面で発見を済ませて門を開ける」と建つこと（門だけが建たない理由）。</summary>
     [Fact]
     public void 眠った生産者の凍った採算では着工しない()
     {
@@ -264,21 +266,23 @@ public class SteelMarketAiTests
                 foreach (var p in r.Producers)
                 {
                     if (p.GoodId < 0 || p.GoodId >= Catalog.Goods.Length || Catalog.Goods[p.GoodId].Tier == GoodTier.Service) continue;
-                    if (p.Bankrupt || p.ConstructionLeft > 0 || p.BuiltScale > 1e-9 || p.SiteRow >= 0 || Discovery.Gate(r, p) > 0) continue;
+                    if (p.Bankrupt || p.ConstructionLeft > 0 || p.BuiltScale > 1e-9 || p.SiteRow >= 0 || p.DiscoveryRow < 0 || p.RetiredByRow >= 0 || Discovery.Gate(r, p) > 0) continue;
                     if (!(Catalog.RefPrices[p.GoodId] > 0) || Catalog.FactorySpec(p.GoodId).Cost > UtilityAgent.FiscalBufferOf(w)) continue;
                     rg = r; pr = p; break;
                 }
                 if (pr is not null) break;
             }
             Assert.True(pr is not null && rg is not null, "テスト前提が崩れた：発見の門が0 の工場が1つも無い");
-            pr!.Scale = 0; pr.Output = asleep ? 0 : 1e-6;   // 眠った個体／対照＝産出を残す（眠りの条件から外れる）
+            pr!.Scale = 0; pr.Output = asleep ? 0 : 1e-6;   // 眠った個体／産出を残した個体（眠りの条件から外れる）＝どちらも門は閉じている
             Assert.Equal(asleep ? 1 : 0, EconomyStep.SleepState(rg!, pr, w.Coef));
+            bool gateOpenControl = !asleep;                  // 2周目＝対照：発見を済ませて門を開ける（眠りの条件からも外れる＝今のまま採算を読む）
+            if (gateOpenControl) { (rg!.Discovered ??= new bool[Catalog.Discoveries.Length])[pr.DiscoveryRow] = true; Assert.True(Discovery.Gate(rg, pr) > 0); }
             rg!.Markets[pr.GoodId].Price = 100.0 * RefAnchor(rg, pr.GoodId);   // 不足の深さは突出（他の財に負けない）
             pr.SmoothedMargin = 0.5;                                             // 凍った正の採算
             foreach (var q in rg.Producers) if (q.GoodId == pr.GoodId && !ReferenceEquals(q, pr)) q.SmoothedMargin = -0.5;   // 動いている後継は赤字
             new UtilityAgent().DecideQuarter(w);
             int willed = rg.Producers.Where(q => q.GoodId == pr.GoodId).Sum(q => q.StateTarget);
-            if (asleep) Assert.Equal(0, willed);                               // 凍った採算を読まない
+            if (!gateOpenControl) Assert.Equal(0, willed);                     // 門が閉じていれば凍った採算が正でも建たない
             else Assert.True(willed >= 1, $"対照で建たない（{willed}）＝盤面が着工できない＝番人が空回りしている");
         }
     }

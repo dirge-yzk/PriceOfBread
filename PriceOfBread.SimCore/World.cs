@@ -1838,6 +1838,7 @@ public sealed class World
         var p0 = FindFactory(r0, goodId);
         if (p0 is null) return (false, "産地・生産者がない");
         if (p0.ConstructionLeft > 0) return (false, "既に建設中");
+        if (!(Discovery.Gate(r0, p0) > 0)) return (false, "発見の門が閉じている");   // (260) BuildFactory と同じ位置
         if (WarmupFrozen) return (false, "開始前");
         double afford = ConstructionAfford(this, r0);   // 建てる州の建材の価格（段4e K）
         if (afford < Coef.FactoryStartAffordFloor) return (false, $"建材が高すぎる(採算率{afford:P0}<床{Coef.FactoryStartAffordFloor:P0})");
@@ -1859,6 +1860,7 @@ public sealed class World
         if (r.State != RegionState.Active) return false;
         var p = FindFactory(r, goodId);
         if (p is null || p.ConstructionLeft > 0) return false;            // 既に建設中
+        if (!(Discovery.Gate(r, p) > 0)) return false;                    // ★(260) 発見の門が閉じた個体には建てない（完成の月に TechGatedScaleZero が操業規模を0に置く＝不活性の設備になる）。AI・プレイヤー・月次の再挑戦が通る唯一の着工の口
         // ★建材の高値では着工しない（2026-08-04・作者指示「建材も閾値を超える価格の場合、AIもプレイヤーも工場建設不可に」）。
         //   閾値は**既存の半減点をそのまま使う**＝ConstructionAfford は FactoryBuildAfford（現在/参照の連続減衰）で、
         //   0.5 になる点が `比 = FactoryBuildPriceCeil`＝設計上の「これ以上は高すぎる」線。新しい定数を1本も置かない。
@@ -2446,20 +2448,25 @@ public sealed class World
     /// レール＝錬鉄レールと鋼レール／電力＝火力と水力…）。素朴な <c>Find(GoodId==goodId)</c> は**リストの先頭**を返し、
     /// 鋼ではそれが1858年まで動かせないベッセマー転炉だった＝国営工場を建てても補助金を出しても**動かない工場**に付いていた
     /// （2026-08-11に TechGatedScaleZero を点火するまでは幻の操業規模が立っていたため、動いているように見えていた）。
-    /// 優先順位＝①既に持分か意志がある生産者（＝プレイヤー/AIが投資した対象を取り違えない・時代が変わっても付け替えない）
-    /// → ②今日操業できる生産者（技術ゲートが開いている） → ③先頭（全部閉じている＝どのみち各所の理由で弾かれる）。
+    /// 優先順位＝①既に持分か意志がある生産者で、今日操業できるもの（＝プレイヤー/AIが投資した対象を取り違えない・時代が変わっても付け替えない）
+    /// → ②今日操業できる生産者（技術ゲートが開いている） → ③門が閉じた投資済みの生産者 → ④先頭（全部閉じている＝どのみち各所の理由で弾かれる）。
+    /// ★(260) 旧は①が門に関わらず先に返った＝後継の発見で退場した旧レシピに持分が残ると、後継が開いても着工・補助・払い下げが全て不活性な旧レシピに付いた
+    ///   （持分は完成の月から操業規模0に置かれる設備〔<see cref="Coefficients.TechGatedScaleZero"/>〕で、<see cref="FactoryCounter"/> も数えない）。閉じた投資済みは③へ下げた。
     /// ⚠新しい判定を作らない＝ゲートは供給側・Scale側と同じ1本（Discovery.Gate＝発見の門・2026-10-01 段2A）。</summary>
     public static Producer? FindFactory(Region r, int goodId)
     {
-        Producer? first = null, operable = null;
+        Producer? first = null, operable = null, closedInvested = null;
         foreach (var p in r.Producers)
         {
             if (p.GoodId != goodId) continue;
-            if (p.BuiltScale > 1e-9 || p.StateTarget > 0 || p.ConstructionLeft > 0) return p;   // ①投資済み＝これが「その工場」
+            bool open = Discovery.Gate(r, p) > 0;
+            bool invested = p.BuiltScale > 1e-9 || p.StateTarget > 0 || p.ConstructionLeft > 0;
+            if (invested && open) return p;   // ①投資済み＝これが「その工場」
             first ??= p;
-            if (operable is null && Discovery.Gate(r, p) > 0) operable = p;
+            if (invested) closedInvested ??= p;
+            else if (open) operable ??= p;
         }
-        return operable ?? first;
+        return operable ?? closedInvested ?? first;
     }
 
     /// <summary>その生産者の国営持分の**棟数**＝BuiltScale ÷ <see cref="Coefficients.FactoryBuildScale"/>（1棟＝建設1回の完成）。</summary>
@@ -2536,7 +2543,13 @@ public sealed class World
     private bool StepStateTarget(int regionIndex, Producer p)
     {
         int units = StateUnitsOf(p);
-        if (p.StateTarget > units) return p.ConstructionLeft <= 0 && BuildFactory(regionIndex, p.GoodId);
+        if (p.StateTarget > units)
+        {
+            // ★(260) 門が閉じた個体の意志は取り下げる（目標＝現在）。着工できない意志が残ると、未達の意志（pendingWill）が永久に州を止める（AI の着工・全国目標の展開）。
+            //   工事中の棟は完成で目標が現在まで引き上がる＝取り下げても整合する。
+            if (!(Discovery.Gate(Regions[regionIndex], p) > 0)) { p.StateTarget = units; return false; }
+            return p.ConstructionLeft <= 0 && BuildFactory(regionIndex, p.GoodId);
+        }
         if (p.StateTarget < units) return SellFactory(regionIndex, p.GoodId);
         return false;
     }
@@ -2597,7 +2610,7 @@ public sealed class World
                 var p = FindFactory(r, g);
                 if (p is null) continue;
                 if (p.StateTarget > StateUnitsOf(p)) { pendingWill = true; break; }   // 前に立てた意志がまだ実現していない
-                if (p.ConstructionLeft > 0 || p.Bankrupt) continue;
+                if (p.ConstructionLeft > 0 || p.Bankrupt || !(Discovery.Gate(r, p) > 0)) continue;   // (260) 門が閉じた州は最初の州（firstRi）にも入れない
                 if (firstRi < 0) firstRi = ri;
                 double sc = UtilityAgent.FacilityBuildScore(this, r, p).Score;
                 if (sc > bestScore) { bestScore = sc; bestRi = ri; }   // NaNは両比較とも偽＝勝てない（fail-closed）

@@ -1034,12 +1034,15 @@ public sealed class UtilityAgent : INationAgent
     /// <para><b>Score</b>＝<c>Excess ×(1 + 失業の重み×失業率)</c>＝不足の深さ×人が余っている（同じ不足なら人の余る州を選ぶ）。</para>
     /// ★読み手は2つ＝AIの着工判断（TryBuildFacility）と、プレイヤーが置く全国工場目標の展開
     ///   （World.StepFactoryTargets）。**第二の実装を作らない**＝州の選び方がAIとプレイヤーで食い違わない。
-    /// ★基準価格や市場配列の範囲外＝測れない候補は Score/Excess とも NaN（比較は必ず偽＝fail-closed）。</summary>
+    /// ★基準価格や市場配列の範囲外＝測れない候補は Score/Excess とも NaN（比較は必ず偽＝fail-closed）。
+    /// ★(260) 発見の門が閉じた生産者（まだ見つからない行・後継の発見で退場したレシピ・見つからない産地）も NaN＝作れない個体に建てても完成の月に操業規模が0に置かれる
+    ///   （<see cref="Coefficients.TechGatedScaleZero"/>）＝建てる価値は測れない。述語は <see cref="Discovery.Gate(Region, Producer)"/>＞0（<see cref="World.FindFactory"/>・<see cref="World.FactoryCounter"/> と同じ1本）。</summary>
     public readonly record struct FacilityBuildValue(double Score, double Excess, bool WorldOpened);
 
     public static FacilityBuildValue FacilityBuildScore(World w, Region rg, Producer pr)
     {
         if (pr.GoodId < 0 || pr.GoodId >= Catalog.RefPrices.Length || pr.GoodId >= rg.Markets.Length) return new(double.NaN, double.NaN, false);
+        if (!(Discovery.Gate(rg, pr) > 0)) return new(double.NaN, double.NaN, false);   // (260) 門が閉じた個体は候補外（否定形＝NaN の門も閉じた側）
         double rp = Catalog.RefPrices[pr.GoodId] * Math.Max(rg.PriceLevel, 1e-9);
         if (!(rp > 1e-9)) return new(double.NaN, double.NaN, false);
         double eff = rg.Markets[pr.GoodId].Price / rp - 1.0;
@@ -1150,7 +1153,7 @@ public sealed class UtilityAgent : INationAgent
                         if (!it.IsLabor && it.Qty > 1e-9 && it.Fill < minFill) { minFill = it.Fill; starved = it.GoodId; }
                     if (starved >= 0 && starved < Catalog.Goods.Length && starved < Catalog.RefPrices.Length
                         && Catalog.Goods[starved].Tier != GoodTier.Service
-                        && World.FindFactory(rg, starved) is { ConstructionLeft: <= 0, Bankrupt: false }
+                        && World.FindFactory(rg, starved) is { ConstructionLeft: <= 0, Bankrupt: false } upstream && Discovery.Gate(rg, upstream) > 0   // (260) 上流の個体も門が開いていること
                         && Catalog.FactorySpec(starved).Cost <= FacilityBuildCostCap * buffer)
                         Consider(ri, starved, eff * (1.0 + w.Coef.AiSupplyChainEyes * (1.0 - minFill)));
                 }
@@ -1168,7 +1171,7 @@ public sealed class UtilityAgent : INationAgent
                 // ★眠った生産者（EconomyStep.SleepState＝1＝発見の門が0 で操業規模0・産出0）の採算は読まない（2026-10-03 (187)・反証役 vb2#1・推奨で進めた）
                 //   ＝(186) の眠りの間は採算の平滑（SmoothedMargin）が止まる＝退場したレシピ（後継の発見で門が0）は二度と目覚めず、退場した月の値（値段がまだ落ちていない＝正になりやすい）で凍る
                 //   ＝凍った正の値が、動いている後継が赤字の財でもこの門を通していた（旧＝門が0 の間も採算は値段を追った）。眠った個体は作れない＝その財の採算の証拠にならない。
-                if (!worldOpened && !(pr.SmoothedMargin > 0 && EconomyStep.SleepState(rg, pr, w.Coef) != 1)) continue;
+                if (!worldOpened && !(pr.SmoothedMargin > 0)) continue;   // ★(260) 眠った個体（SleepState＝1＝門が0）は FacilityBuildScore が NaN で落とす＝ここへ来ない（旧は SleepState != 1 をここで見ていた）
                 Consider(ri, pr.GoodId, val.Score);   // 不足の深さ×人が余っている
             }
         }

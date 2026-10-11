@@ -570,4 +570,72 @@ public class StateFactoryTests
         }
         Assert.True(Math.Abs(D(w) - d0) <= 1e-9 * Math.Max(1.0, Math.Abs(d0)), $"保存量Dが動いた {d0}→{D(w)}");   // 受け手が変わるだけ＝鋳造の台帳と基礎貨幣は対
     }
+    // ===== (260) 線E：発見の門が閉じた生産者には国営の棟が建たない =====
+    // 門が閉じた個体に着工すると完成の月に TechGatedScaleZero が操業規模を0に置く＝不活性の設備になる（英 1903-22 国営 513・門 431）。
+    // 期待値は「着工も意志も起きない」「別の開いた個体に付く」で書く（Discovery.Gate の値を期待値にしない＝同語反復にしない）。
+
+    /// <summary>門が閉じた生産者（発見の表の行を持ち未解禁・同じ財に門が開いた個体が無い）を持つ州と個体。</summary>
+    private static (int ri, Region r, Producer p) 門が閉じた生産者(World w)
+    {
+        for (int ri = 0; ri < w.Regions.Count; ri++)
+        {
+            var r = w.Regions[ri];
+            if (r.State != RegionState.Active) continue;
+            foreach (var p in r.Producers)
+            {
+                if (p.DiscoveryRow < 0 || p.GoodId < 0 || Catalog.Goods[p.GoodId].Tier == GoodTier.Service) continue;
+                if (r.Producers.Any(q => q.GoodId == p.GoodId && Discovery.Gate(r, q) > 0)) continue;
+                return (ri, r, p);
+            }
+        }
+        throw new Xunit.Sdk.XunitException("門が閉じた生産者が1つも無い＝ハーネスが空回りしている");
+    }
+
+    [Fact]
+    public void 門が閉じた生産者には着工も意志も立たない()
+    {
+        var w = Warm(2060).World;
+        var (ri, r, p) = 門が閉じた生産者(w);
+        var t = World.FindFactory(r, p.GoodId)!;             // 動詞が掴む個体（同じ財の他の個体も全て閉じている）
+        Assert.True(double.IsNaN(UtilityAgent.FacilityBuildScore(w, r, t).Score), "門が閉じた個体が着工の候補に上がる");
+        Assert.False(w.CanBuildFactory(ri, p.GoodId).Ok);
+        Assert.False(w.BuildFactory(ri, p.GoodId));
+        Assert.False(w.SetStateTarget(ri, p.GoodId, 1));
+        Assert.Equal(0, t.StateTarget);                       // 着工できない意志を残さない（残ると未達の意志が州を止め続ける）
+        Assert.True(t.ConstructionLeft <= 0, "門が閉じた個体に工事が立った");
+        w.SetFactoryTarget(p.GoodId, 5);                      // 全国目標の展開も閉じた州には意志を置かない（最初の州の代用も）
+        w.StepStateTargets();
+        Assert.Equal(0, t.StateTarget);
+        Assert.True(t.ConstructionLeft <= 0);
+    }
+
+    [Fact]
+    public void 閉じた旧レシピの持分があっても着工と意志は開いた後継に付く()
+    {
+        var w = Warm(2061).World;
+        Region? rr = null; int ri = -1; Producer? old = null, succ = null;
+        for (int i = 0; i < w.Regions.Count && old is null; i++)
+        {
+            var r = w.Regions[i];
+            if (r.State != RegionState.Active || r.Discovered is null) continue;
+            foreach (var a in r.Producers)
+            {
+                if (a.RetiredByRow < 0 || a.RetiredByRow >= r.Discovered.Length) continue;
+                var s = r.Producers.FirstOrDefault(q => q != a && q.GoodId == a.GoodId && q.RetiredByRow < 0 && q.DiscoveryRow < 0);   // 常に開いている後継
+                if (s is null) continue;
+                rr = r; ri = i; old = a; succ = s; break;
+            }
+        }
+        Assert.NotNull(old);                                  // 対照＝退場するレシピと後継が並ぶ州がある
+        rr!.Discovered![old!.RetiredByRow] = true;            // 後継の発見＝旧レシピの門が閉じる
+        Assert.False(Discovery.Gate(rr, old) > 0);
+        old.BuiltScale = w.Coef.FactoryBuildScale;            // 旧レシピに国営の持分が残っている
+        old.StateTarget = World.StateUnits(old, w.Coef);
+        Assert.Same(succ, World.FindFactory(rr, old.GoodId)); // 閉じた持分に引かれない
+        int before = old.StateTarget;
+        w.SetStateTarget(ri, old.GoodId, 1);
+        Assert.Equal(before, old.StateTarget);                // 旧レシピに意志も工事も立たない
+        Assert.True(old.ConstructionLeft <= 0);
+        Assert.Equal(1, succ!.StateTarget);                   // 意志は後継に立つ
+    }
 }
