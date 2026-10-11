@@ -825,6 +825,7 @@ public sealed class UtilityAgent : INationAgent
             if (!mAtWar) w.Mobilized = false;                                          // 講和＝復員（既存機構＝徴兵深度が平時へ・定員を超えた兵は転職の仕組みが民間の職へ戻す＝Meritocracy の ⑦・(155)）
             else if (mScale >= MobilizeOutmatchRatio || mLosing > MobilizeLosingScore) w.Mobilized = true;   // 規模が大きい戦争/存亡＝総動員（levée en masse 1793・独ソの総力戦動員の型）
             else if (mScale < 1.0 / MobilizeOutmatchRatio && !(mLosing > 0)) w.Mobilized = false;   // 規模が小さくなった＝交戦中でも復員
+            if (Instruments.On) Instruments.Mobilization(w, mAtWar, mScale, mLosing);   // 計器（読むだけ）：総動員の判断の材料（規模・存亡）と結果
         }
         Apply(w, ChooseStance(w));
         // （借入は 2026-09-28 に Fiscal の1行＝国家の支払い率 r＜1 の月にエンジンが自動で借りる形へ＝ここの予約の2行〔r＜1 と恐慌の谷の前倒し AiCrisisBorrow〕を削除。作者裁定「借入は自動化・借金ボタンは不要」）
@@ -1321,7 +1322,10 @@ public sealed class UtilityAgent : INationAgent
         //   （Government.MilitaryTotalTarget）＝AIが自分で選ばなければ戦時経済に届かない。1段ずつの登坂と「総動員が前提」の門は GateAllLawTargets が
         //   法律タブと同じ GateInfo で掛ける＝IsPlayer は読まない。講和の四半期は DecideQuarter の総動員分岐（Apply の前）が先に復員させる＝この行は不発で教義の値へ戻る。
         if (Government.WarStageOpen(w))
+        {
             p.MilitarySpendingTarget = Government.MilitaryLawStages / (double)Government.MilitaryLawStages;
+            if (Instruments.On) Instruments.WarStagePicked(w);   // 計器（読むだけ）：AI が最上段を選んだ
+        }
 
         // ★不満の社会保障圧力（2026-08-04・作者指示）：どのスタンスが勝っていても、不満が高いほど社会保障の目標に
         //   床を敷く＝満足度の下落に福祉が**必ず**応答する（旧＝Welfareスタンスが選ばれない限り目標は0.1〜0.3で凍結）。
