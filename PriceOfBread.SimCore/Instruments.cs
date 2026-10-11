@@ -86,14 +86,38 @@ public static class Instruments
         // ---- (263) 輪と動詞の個体の食い違い（投げ売りの輪・補助の輪が掴む生産者 pr と、動詞〔CanSellFactory・SetStateTarget・SetSubsidyRate〕が World.FindFactory で掴む個体）：今の四半期の和（四半期の末に0へ戻す）
         public int FsRun, FsSeenMismatch, FsFired, FsFiredMismatch, FsFiredOver, SubMismatch, SubMismatchOff;
         public readonly List<string> WheelGoods = new(), FacStartedGoods = new();   // 食い違いの財の名前（「投げ売り:」「補助:」を前置）・着工した財の名前
+        // ---- (265) 線I：国債金利の内訳（Fiscal.Step の月ごとの値の四半期の和・月数で割って平均にする）
+        public int BondMonths;
+        public double BondBase, BondDebt, BondFisher, BondDistrust, BondPolicy, BondGold, BondRepr, BondClamp, BondRate, BondDebtRatio, BondConvMul, BondReprMul;
+        // ---- (265) 行政の必要額：州ごとの請求（r を掛ける前）の写し〔月の決算で空にする〕・今月の和〔MonthClose で四半期へ畳む〕・四半期の和
+        public readonly Dictionary<Region, double> AdminClaims = new();
+        public double BudClaim, BudNeedB, BudMinB, BudNeedP, BudMinP; public int BudOverRegions;
+        public double QAdmClaim, QAdmNeedB, QAdmMinB, QAdmNeedP, QAdmMinP, QCfBorrowed; public int QAdmOverRegionMonths, QCfShortMonths, QCfRBelow1Months, QCfObs;
+        // ---- (265) 段5 の上限（大衆の Paid が d ごとの上限 min(S, E＋S×d) を超えるか）：月初の貯蓄 S と前月の所得 E の写し（州→POP ごとの [S, E]）・四半期の和
+        public readonly Dictionary<Region, double[]> CapSnap = new();
+        public double QCapPaid, QCapPopK;
+        public readonly double[] QCapBoundPaid = new double[CapDs.Length], QCapCut = new double[CapDs.Length], QCapBoundPopK = new double[CapDs.Length];
+        // ---- (265) 専売の段・国営工場の売却・財政の逼迫（AI の判断の四半期の頭）
+        public int FactorySold, MonoBefore = -1, MonoTarget = -1; public double FiscalStressAtDecision = double.NaN;
+    }
+    /// <summary>段5 の上限の引き出し率 d（月あたり）。(264) 実装ログ §7 の事前登録の格子＝1/120・1/240・1/480（AI の設計・作者の承認は未確認）。</summary>
+    internal static readonly double[] CapDs = [1.0 / 120, 1.0 / 240, 1.0 / 480];
+    static readonly string[] CapDNames = ["D120", "D240", "D480"];
+    /// <summary>「大衆」＝農民・工場労働者・職人（階級の表を読む読み手 f1s0／flow262 と同じ定義）。兵士は除く。</summary>
+    static bool IsMass(Pop p) => !p.IsSoldier && (p.ClassId == PopClass.Peasant || p.ClassId == PopClass.Worker || p.ClassId == PopClass.Artisan);
+    /// <summary>段5 の上限（月の消費の予算の上限）＝min(max(0,S), max(0,E)＋max(0,S)×d)。</summary>
+    internal static double CapOf(double savings, double lastEarned, double d)
+    {
+        double s = Math.Max(0, savings), e = Math.Max(0, lastEarned);
+        return Math.Min(s, e + s * d);
     }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<World, WState> States = new();
     static WState S(World w) => States.GetValue(w, _ => new WState());
 
     sealed class Sink
     {
-        public System.IO.StreamWriter? Fiscal, Class, Stock, Nation, Region, Migration, Flow;
-        public bool FiscalHeader, ClassHeader, StockHeader, NationHeader, RegionHeader, FlowHeader;
+        public System.IO.StreamWriter? Fiscal, Class, Stock, Nation, Region, Migration, Flow, Goods;
+        public bool FiscalHeader, ClassHeader, StockHeader, NationHeader, RegionHeader, FlowHeader, GoodsHeader;
         public ulong Seed;   // 試合の終わり（Close）に戦争の表を書くときのファイル名
     }
     /// <summary>外交の記録（戦争の始まりと戦死の月ごとの和）。外交は MultiNationSim に1つ＝世界ごとの状態（<see cref="WState"/>）とは別に持つ。</summary>
@@ -161,7 +185,98 @@ public static class Instruments
         c[(int)Item.LastWelfare] += regrow * Math.Max(0, r.StateSpent[(int)TreasuryCat.Welfare]);
         c[(int)Item.LastFactoryBuild] += regrow * Math.Max(0, r.StateSpent[(int)TreasuryCat.FactoryBuild]);
         c[(int)Item.LastSubsidy] += regrow * Math.Max(0, r.StateSpent[(int)TreasuryCat.Subsidy]);
+        // (265) 行政の請求（r を掛ける前）の写し＝この州の必要額（予算の時点の価格）で切った額と並べる
+        st.AdminClaims[r] = r.AdminBudget; st.BudClaim += r.AdminBudget;
+        if (AdminNeedOf(w, r) is { } nb) { st.BudNeedB += nb; st.BudMinB += Math.Min(r.AdminBudget, nb); if (r.AdminBudget > nb) st.BudOverRegions++; }
     }
+
+    /// <summary>★(265) 州の行政の必要額＝<c>EconomyStep.Run</c> の行政調達の見積り <c>est</c> と同じ式（<c>AdminNeedPerPop</c>×人口×max(行政の価格, Eps)×距離の割増）。官僚の居ない州は購買が無い＝null。
+    /// 掛ける順も EconomyStep のとおり（((係数×人口)×価格)×割増）。<paramref name="w"/> が購買の見積りと同じ価格を読む時点（予算＝月初）と、購買の時点（<see cref="AdminNeedPurchase"/>）の2か所で呼ぶ。</summary>
+    internal static double? AdminNeedOf(World w, Region r)
+    {
+        if (r.BureaucratPopIndex < 0 || Catalog.AdminId >= r.Markets.Length) return null;
+        double totalPop = 0; foreach (var p in r.Pops) totalPop += p.Size;
+        return w.Coef.AdminNeedPerPop * totalPop * Math.Max(r.Markets[Catalog.AdminId].Price, 1e-9) * Fiscal.AdminDistanceMul(w, r);
+    }
+    /// <summary>行政の購買の見積り <paramref name="est"/>（<c>EconomyStep.Run</c>・購買の時点の値）と、月初に写した請求の小さい方。予算の時点の必要額（<see cref="AdminNeedOf"/>）と食い違えば価格が月の途中で動いている。</summary>
+    internal static void AdminNeedPurchase(World w, Region r, double est)
+    {
+        if (Live(w) is not { } st) return;
+        st.BudNeedP += est; st.BudMinP += st.AdminClaims.TryGetValue(r, out var claim) ? Math.Min(claim, est) : 0;
+    }
+    /// <summary>月の決算の終わり（国債金利・行政の請求の月の和を四半期へ畳む前）：行政の必要額で切る反事実 A′（静的）を月ごとに数える。
+    /// 余り X＝Σ州 max(0, 請求−必要額)（予算の時点）。払える額の余剰 spare′＝spare＋X・借入 b′＝min(b, max(0, −spare′))（門が開いている月は min(券面, プール, 不足) の不足だけが動く）・
+    /// 払える額 payable′＝payable−(b−b′)・請求 claims′＝claims−X・率 r′＝clamp(payable′÷claims′)。切り下げの額は動かさない（上限の見積り）。</summary>
+    static void AccumulateAdminNeed(WState st)
+    {
+        st.QAdmClaim += st.BudClaim; st.QAdmNeedB += st.BudNeedB; st.QAdmMinB += st.BudMinB; st.QAdmNeedP += st.BudNeedP; st.QAdmMinP += st.BudMinP; st.QAdmOverRegionMonths += st.BudOverRegions;
+        if (double.IsNaN(st.Spare0)) return;
+        st.QCfObs++;
+        var cf = AdminCf(st.Spare0, st.BudClaim - st.BudMinB, double.IsNaN(st.Borrowed) ? 0 : st.Borrowed, st.ClaimsTotal, st.Payable1);
+        if (cf.Short) st.QCfShortMonths++;
+        st.QCfBorrowed += cf.Borrowed;
+        if (cf.RBelow1) st.QCfRBelow1Months++;
+    }
+    /// <summary>A′ の静的な反事実の1か月分（純関数・番人が手で確かめる）。<paramref name="x"/>＝請求から減る額。払えない＝spare′＜0・借入 b′＝min(b, max(0, −spare′))・率 r′＝clamp((payable−(b−b′))÷(claims−x))＜1。</summary>
+    internal static (bool Short, double Borrowed, bool RBelow1) AdminCf(double spare0, double x, double borrowed, double claimsTotal, double payable1)
+    {
+        double sp = spare0 + x, b2 = Math.Min(borrowed, Math.Max(0, -sp));
+        bool rBelow1 = false;
+        if (!double.IsNaN(claimsTotal) && !double.IsNaN(payable1))
+        {
+            double c2 = claimsTotal - x, p2 = payable1 - (borrowed - b2), r2 = c2 > 0 ? p2 / c2 : 1.0;
+            if (!(r2 >= 0)) r2 = 0; else if (r2 > 1) r2 = 1;
+            rBelow1 = r2 < 1;
+        }
+        return (sp < 0, b2, rBelow1);
+    }
+
+    /// <summary>★(265) 国債金利の内訳（<c>Fiscal.Step</c> の金利の式・月ごと）。項は <c>w.Explain</c> の "BondRate" の各項と同じ式（Explain は立てない＝全域の Explain 経路を動かさない）。
+    /// 閉じ方：基礎＋債務比＋期待インフレ＋信認喪失＋政策金利（各々 兌換割引済み）＋議会の信認割引＋上限クランプ＝金利。金本位の信認割引は**割引ずみの5項の上に重ねた説明の項**（足すと二重＝Explain の並びのまま記録するが閉じには入れない）。</summary>
+    internal static void BondRate(World w, double baseTerm, double debtTerm, double fisherTerm, double distrustTerm, double policyTerm, double goldMemo, double reprTerm, double clampTerm, double debtRatio, double convMul, double reprMul)
+    {
+        if (w.WarmupFrozen) return;
+        var st = S(w);
+        st.BondMonths++; st.BondBase += baseTerm; st.BondDebt += debtTerm; st.BondFisher += fisherTerm; st.BondDistrust += distrustTerm; st.BondPolicy += policyTerm;
+        st.BondGold += goldMemo; st.BondRepr += reprTerm; st.BondClamp += clampTerm; st.BondRate += w.GovBondRatePerYear.Value; st.BondDebtRatio += debtRatio; st.BondConvMul += convMul; st.BondReprMul += reprMul;
+    }
+
+    /// <summary>★(265) 段5 の上限の写し（<c>EconomyStep.Run</c> の直前）：大衆の月初の貯蓄 S。上限の前月の所得 E は <c>Pop.LastEarnedPerMonth</c>（EconomyStep が S の直前に写す物）を月の決算の終わりに読む。挙げた国だけ。</summary>
+    internal static void PreEconomy(World w, Region r)
+    {
+        if (Live(w) is not { } st || !IsPicked(w, st)) return;
+        if (!st.CapSnap.TryGetValue(r, out var buf) || buf.Length != r.Pops.Count) st.CapSnap[r] = buf = new double[r.Pops.Count];
+        for (int i = 0; i < buf.Length; i++) buf[i] = r.Pops[i].Savings.Value;
+    }
+    /// <summary>月の決算の終わり：大衆の Paid が d ごとの上限 <see cref="CapOf"/> を超えるか。拘束＝Paid＞上限。削られる額＝Paid−上限。</summary>
+    static void AccumulateCap(WState st)
+    {
+        foreach (var kv in st.CapSnap)
+        {
+            var r = kv.Key; var buf = kv.Value;
+            if (buf.Length != r.Pops.Count) continue;
+            for (int i = 0; i < buf.Length; i++)
+            {
+                var p = r.Pops[i];
+                if (!IsMass(p)) continue;
+                double paid = p.PaidPerMonth.Value, e = p.LastEarnedPerMonth.Value;
+                st.QCapPaid += paid; st.QCapPopK += p.Size;
+                for (int k = 0; k < CapDs.Length; k++)
+                {
+                    double cap = CapOf(buf[i], e, CapDs[k]);
+                    if (paid > cap) { st.QCapBoundPaid[k] += paid; st.QCapCut[k] += paid - cap; st.QCapBoundPopK[k] += p.Size; }
+                }
+            }
+        }
+        st.CapSnap.Clear();
+    }
+
+    /// <summary>国営工場の売却が成立した（<c>World.SellFactory</c> の成功の直前）。AI の投げ売りも人の売却も同じ口。</summary>
+    internal static void FactorySold(World w) => S(w).FactorySold++;
+    /// <summary>AI の財政規律の判断（<c>SelfPlay.Apply</c> の逼迫の位置）：逼迫の指標。</summary>
+    internal static void FiscalStress(World w, double stress) => S(w).FiscalStressAtDecision = stress;
+    /// <summary>専売の段の書き込みの直前：今の段と AI が置く段。</summary>
+    internal static void MonopolyDecision(World w, int before, int target) { var st = S(w); st.MonoBefore = before; st.MonoTarget = target; }
 
     /// <summary>借りる前（月初の払える額と余剰が決まった所）。</summary>
     internal static void PreBorrow(World w, double payable, double spare)
@@ -271,6 +386,11 @@ public static class Instruments
         st.DecScale = st.DecLosing = st.DecShare = double.NaN;
         st.DecAtWar = st.DecMobilized = st.DecOpen = st.DecTarget = st.DecEnforced = -1; st.DecPicked = 0;
         st.FsRun = st.FsSeenMismatch = st.FsFired = st.FsFiredMismatch = st.FsFiredOver = st.SubMismatch = st.SubMismatchOff = 0; st.WheelGoods.Clear(); st.FacStartedGoods.Clear();   // (263) 助走の分は数えない
+        // (265) 助走の分は数えない
+        st.BondMonths = 0; st.BondBase = st.BondDebt = st.BondFisher = st.BondDistrust = st.BondPolicy = st.BondGold = st.BondRepr = st.BondClamp = st.BondRate = st.BondDebtRatio = st.BondConvMul = st.BondReprMul = 0;
+        st.QAdmClaim = st.QAdmNeedB = st.QAdmMinB = st.QAdmNeedP = st.QAdmMinP = st.QCfBorrowed = 0; st.QAdmOverRegionMonths = st.QCfShortMonths = st.QCfRBelow1Months = st.QCfObs = 0;
+        st.QCapPaid = st.QCapPopK = 0; Array.Clear(st.QCapBoundPaid); Array.Clear(st.QCapCut); Array.Clear(st.QCapBoundPopK);
+        st.FactorySold = 0; st.MonoBefore = st.MonoTarget = -1; st.FiscalStressAtDecision = double.NaN;
     }
     /// <summary>国×四半期の行に足す列（行政の請求の2つの式・戦時段）。月ごとの量は四半期の月の平均（<c>PerMonth</c>）。</summary>
     static List<(string Name, string Value)> NationExtras(World w, WState st)
@@ -475,6 +595,8 @@ public static class Instruments
         st.QDirect += double.IsNaN(st.RevDirectNet) ? 0 : st.RevDirectNet; st.QIndirect += double.IsNaN(st.RevIndirect) ? 0 : st.RevIndirect;
         var led = w.TreasuryLedger;
         AccumulateAdmin(w, st);
+        AccumulateAdminNeed(st);   // (265) 行政の必要額の反事実 A′
+        AccumulateCap(st);          // (265) 段5 の上限の拘束
         if (IsPicked(w, st) && st.HaveLedger)
         {
             var sb = new System.Text.StringBuilder();
@@ -483,6 +605,7 @@ public static class Instruments
         }
         st.PrevTreasury = w.Treasury.Value; Array.Copy(led, st.PrevLedger, NCat); st.HaveLedger = true;
         st.BudMul = st.BudCover = 0; st.BudSpendable = st.BudLastRev = double.NaN;   // 月の予算の位置で溜めた基数を次の月へ持ち越さない
+        st.BudClaim = st.BudNeedB = st.BudMinB = st.BudNeedP = st.BudMinP = 0; st.BudOverRegions = 0; st.AdminClaims.Clear();   // (265)
     }
 
     static void FiscalRow(World w, WState st, System.Text.StringBuilder sb, bool header)
@@ -497,6 +620,8 @@ public static class Instruments
         // (259) 行政の請求の2つの式：Fiscal の adminClaim（claimAdminPerMonth＝Simulation の州の予算の和とは別の式）・その基数・官僚の居る州の割増・行政の充足
         C("adminClaimFiscalPerMonth", w.LastAdminClaimPerMonth.Value); C("adminSpendableAtBudgetPerMonth", st.BudSpendable); C("adminLastRevenueAtBudgetPerMonth", st.BudLastRev);
         C("adminSimMeanMulShare", st.BudMul); C("adminBureaucratCoverShare", st.BudCover); C("adminFiscalMeanMul", Fiscal.AdminDistanceMean(w)); C("adminFillShare", AdminFillShare(w));
+        // (265) 行政の必要額（予算の時点・購買の時点）と、請求を必要額で切った額（州ごとに min してから和）。A′ の静的な反事実はこの4列と spareBeforeBorrowPerMonth・borrowedPerMonth から読み手が出す
+        C("adminNeedAtBudgetPerMonth", st.BudNeedB); C("adminClaimCappedAtBudgetPerMonth", st.BudMinB); C("adminNeedAtPurchasePerMonth", st.BudNeedP); C("adminClaimCappedAtPurchasePerMonth", st.BudMinP); C("adminOverNeedRegionsCount", st.BudOverRegions);
         C("treasuryAtClaimStock", st.Treasury0); C("revenueBasePerMonth", w.LastRevenuePerMonth.Value); C("payableBeforeBorrowStock", st.Payable0); C("spareBeforeBorrowPerMonth", st.Spare0);
         C("borrowShortfallPerMonth", st.Shortfall); C("borrowTicketPerMonth", st.Ticket); C("borrowDomesticPoolStock", st.DomPool); C("borrowForeignPoolStock", st.ForPool);
         C("borrowedPerMonth", st.Borrowed);
@@ -561,7 +686,7 @@ public static class Instruments
     {
         if (!Sinks.TryGetValue(sim, out var sk)) return;
         if (Dips.TryGetValue(sim.Diplomacy, out var dip)) WarTables(sk, dip);
-        sk.Fiscal?.Dispose(); sk.Class?.Dispose(); sk.Stock?.Dispose(); sk.Nation?.Dispose(); sk.Region?.Dispose(); sk.Migration?.Dispose(); sk.Flow?.Dispose(); sk.Fiscal = sk.Class = sk.Stock = sk.Nation = sk.Region = sk.Migration = sk.Flow = null;
+        sk.Fiscal?.Dispose(); sk.Class?.Dispose(); sk.Stock?.Dispose(); sk.Nation?.Dispose(); sk.Region?.Dispose(); sk.Migration?.Dispose(); sk.Flow?.Dispose(); sk.Goods?.Dispose(); sk.Fiscal = sk.Class = sk.Stock = sk.Nation = sk.Region = sk.Migration = sk.Flow = sk.Goods = null;
     }
 
     // ---------------------------------------------------------------- 州の人口と移動（州の空洞化の計器・(255)）----------------------------------------------------------------
@@ -707,6 +832,8 @@ public static class Instruments
         cols.Add(string.Join(';', st.WheelGoods)); cols.Add(string.Join(';', st.FacStartedGoods));
         cols.Add(F(foodNeedSum > 0 ? foodMetSum / foodNeedSum : double.NaN)); cols.Add(F(needTotalSum > 0 ? needMetSum / needTotalSum : double.NaN));
         cols.Add(I(staleSub)); cols.Add(string.Join(';', stakeGoods));
+        var ext265 = Extras265(w, st);   // (265) 線I：末尾に足す列（名前と値を同じ表から出す＝見出しと行がずれない）
+        foreach (var ex in ext265) cols.Add(ex.Value);
         sk.Nation ??= Open("nation", seed);
         if (!sk.NationHeader)
         {
@@ -718,10 +845,71 @@ public static class Instruments
                 + "interestMeanPerMonth\trevenueBaseMeanPerMonth\tdirectTaxNetMeanPerMonth\tindirectRevenueMeanPerMonth\tshortfallMeanPerMonth\tborrowedMeanPerMonth\t"
                 + "stateFacilityStartedCount\tstateFacilityStartedGateClosedCount\tstateFacilityCompletedCount\tstateFacilityCompletedGateClosedCount\tstateFacilityCompletedGateClosedAtStartCount\tsupplyFillShare\t"
                 + "fireSaleRunCount\tfireSaleSeenMismatchCount\tfireSaleFiredCount\tfireSaleFiredMismatchCount\tfireSaleFiredOverTargetCount\tsubsidyWriteMismatchCount\tsubsidyWriteMismatchWantOffCount\t"
-                + "stakeMismatchProducerCount\tstakeMismatchToInvestedCount\tstakeMismatchToUninvestedCount\twheelMismatchGoods\tstateFacilityStartedGoods\tfoodMetShare\tneedMetShare\tstaleSubsidyNotGrabbedCount\tstakeMismatchGoods");
+                + "stakeMismatchProducerCount\tstakeMismatchToInvestedCount\tstakeMismatchToUninvestedCount\twheelMismatchGoods\tstateFacilityStartedGoods\tfoodMetShare\tneedMetShare\tstaleSubsidyNotGrabbedCount\tstakeMismatchGoods\t"
+                + string.Join('\t', ext265.Select(e => e.Name)));
             sk.NationHeader = true;
         }
         sk.Nation.WriteLine(string.Join('\t', cols));
+        if (IsRemnant(core + integrated + colonial, popK, popK > 0 ? supplyFillSum / popK : 0)) GoodsRows(sk, seed, q, w);
+    }
+
+    /// <summary>★(265) 残存国（本国を失った1〜2州の国）の財ごとの表 <c>goods_s</c> を出す条件：活きた州が2以下・人口100千人以上・人口加重の供給の充足が <see cref="RemnantSupplyFillMax"/> 未満（補給崩壊の物差しの片側）。
+    /// 出す国を絞らないと 61国×668四半期×財の数の行になる。条件は計器の自己申告の限界＝残存国でも補給が足りている四半期は出ない。</summary>
+    internal static bool IsRemnant(int activeRegions, double popK, double supplyFill) => activeRegions <= 2 && popK >= 100 && supplyFill < RemnantSupplyFillMax;
+    internal static double RemnantSupplyFillMax = 0.5;
+
+    /// <summary>残存国の財ごとの需給（主食・日用品）：州の市場の直近の月の値の国の和。<c>lastProducedQty</c>＝今期の産出・<c>lastDemandQty</c>＝前期の総需要（消費＋投入）・<c>lastSoldQty</c>・<c>lastShortageQty</c>・<c>lastImportQty</c>／<c>lastExportQty</c>＝今期の輸入・輸出量・
+    /// <c>stockQty</c>＝在庫・<c>importsValuePerClearing</c>／<c>exportsValuePerClearing</c>＝国の財別の輸入額・輸出額（直近の清算1回分・世界価格建て）。四半期の末の断面（月平均ではない）。</summary>
+    static void GoodsRows(Sink sk, ulong seed, int q, World w)
+    {
+        sk.Goods ??= Open("goods", seed);
+        if (!sk.GoodsHeader) { sk.Goods.WriteLine("quarter\tyear\tnation\tgoodName\ttier\tactiveRegions\tlastProducedQty\tlastDemandQty\tlastSoldQty\tlastShortageQty\tlastImportQty\tlastExportQty\tstockQty\tpriceMean\timportsValuePerClearing\texportsValuePerClearing"); sk.GoodsHeader = true; }
+        string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        string nm = NameOf(w);
+        for (int g = 0; g < Catalog.Goods.Length; g++)
+        {
+            var good = Catalog.Goods[g];
+            if (good.Tier != GoodTier.Staple && good.Tier != GoodTier.Daily) continue;
+            double prod = 0, dem = 0, sold = 0, shortage = 0, imp = 0, exp = 0, stock = 0, price = 0; int n = 0;
+            foreach (var r in w.Regions)
+            {
+                if (r.State != RegionState.Active || g >= r.Markets.Length) continue;
+                var m = r.Markets[g];
+                prod += m.LastProduced; dem += m.LastDemand; sold += m.LastSold; shortage += m.LastShortage; imp += m.LastImport; exp += m.LastExport; stock += m.Stock; price += m.Price; n++;
+            }
+            if (n == 0) continue;
+            double ev = w.ExportsByGood is { } eg && g < eg.Length ? eg[g] : double.NaN, iv = w.ImportsByGood is { } ig && g < ig.Length ? ig[g] : double.NaN;
+            sk.Goods.WriteLine(string.Join('\t', I(q), I(w.Year), nm, good.Name, good.Tier.ToString(), I(n), F(prod), F(dem), F(sold), F(shortage), F(imp), F(exp), F(stock), F(price / n), F(iv), F(ev)));
+        }
+    }
+
+    /// <summary>★(265) 線I：国×四半期の行の末尾に足す列。月ごとの量は四半期の月の平均（<c>PerMonth</c>・<c>PerYear</c>）・数は四半期の和。
+    /// 国債金利の内訳／行政の必要額と反事実 A′／段5 の上限の拘束／専売の段・売却・逼迫・人頭税・福祉の目標。</summary>
+    static List<(string Name, string Value)> Extras265(World w, WState st)
+    {
+        var cols = new List<(string, string)>();
+        string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        void C(string name, double v) => cols.Add((name, F(v)));
+        void N(string name, int v) => cols.Add((name, I(v)));
+        double bm = st.BondMonths > 0 ? st.BondMonths : double.NaN, m = st.AdmMonths > 0 ? st.AdmMonths : double.NaN;
+        N("bondMonthsCount", st.BondMonths);
+        C("bondRateMeanPerYear", st.BondRate / bm); C("bondBaseTermPerYear", st.BondBase / bm); C("bondDebtTermPerYear", st.BondDebt / bm); C("bondInflationExpectationTermPerYear", st.BondFisher / bm);
+        C("bondDistrustTermPerYear", st.BondDistrust / bm); C("bondPolicyRateTermPerYear", st.BondPolicy / bm); C("bondGoldDiscountMemoPerYear", st.BondGold / bm);
+        C("bondRepresentationTermPerYear", st.BondRepr / bm); C("bondClampTermPerYear", st.BondClamp / bm);
+        C("bondDebtToGdpYearMeanRatio", st.BondDebtRatio / bm); C("bondConvertibilityDiscountMeanFactor", st.BondConvMul / bm); C("bondRepresentationDiscountMeanFactor", st.BondReprMul / bm);
+        C("adminNeedAtBudgetPerMonth", st.QAdmNeedB / m); C("adminClaimCappedAtBudgetPerMonth", st.QAdmMinB / m); C("adminNeedAtPurchasePerMonth", st.QAdmNeedP / m); C("adminClaimCappedAtPurchasePerMonth", st.QAdmMinP / m);
+        N("adminOverNeedRegionMonthsCount", st.QAdmOverRegionMonths);
+        N("adminCfObservedMonths", st.QCfObs); N("adminCfShortMonthsCount", st.QCfShortMonths); C("adminCfBorrowedMeanPerMonth", st.QCfBorrowed / m); N("adminCfRBelow1MonthsCount", st.QCfRBelow1Months);
+        double cm = st.ClsMonths > 0 ? st.ClsMonths : double.NaN;
+        bool capOn = st.QCapPaid > 0 && st.QCapPopK > 0;
+        C("massPaidPerMonth", capOn ? st.QCapPaid / cm : double.NaN);
+        for (int k = 0; k < CapDs.Length; k++) C("capBoundPaidShare" + CapDNames[k], capOn ? st.QCapBoundPaid[k] / st.QCapPaid : double.NaN);
+        for (int k = 0; k < CapDs.Length; k++) C("capCutShare" + CapDNames[k], capOn ? st.QCapCut[k] / st.QCapPaid : double.NaN);
+        for (int k = 0; k < CapDs.Length; k++) C("capBoundPopShare" + CapDNames[k], capOn ? st.QCapBoundPopK[k] / st.QCapPopK : double.NaN);
+        N("monopolyTierBeforeDecisionStage", st.MonoBefore); N("monopolyTierTargetDecisionStage", st.MonoTarget); N("monopolyTierEndStage", w.StateMonopolyTier);
+        C("fiscalStressAtDecisionIndex", st.FiscalStressAtDecision); N("stateFactorySoldCount", st.FactorySold);
+        C("pollTaxEndShare", w.PollTax); C("pollTaxTargetEndShare", w.Policy.PollTaxTarget); C("socialSecurityEndShare", w.SocialSecurity); C("socialSecurityTargetEndShare", w.Policy.SocialSecurityTarget); N("socialSecurityLawEndStage", (int)w.SocialSecurityLaw);
+        return cols;
     }
 
     static void ClassRows(Sink sk, ulong seed, string time, World w, WState st, bool flows)

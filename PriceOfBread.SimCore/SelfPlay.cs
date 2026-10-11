@@ -1385,6 +1385,7 @@ public sealed class UtilityAgent : INationAgent
         // 国庫が薄い間は裁量支出（技術導入→福祉→過剰教育の順）を絞り、**行政費だけは維持**してスパイラルを断ち、
         // 広い税（人頭・消費）で黒字へ戻す＝行政が機能→漏れが減る→自立（所得税の解禁ラッチは2026-09-12に廃止）。
         double fiscalStress = FiscalStressOf(w);   // 0=十分, 1=破産（規模中立＝月次義務の何か月分か。監査2026-07-11 リ4）
+        if (Instruments.On) Instruments.FiscalStress(w, fiscalStress);   // 計器（読むだけ・(265)）：判断の時点の逼迫
         if (fiscalStress > 0)
         {
             // #124 恐慌AI対処（2026-07-25）：恐慌の谷での緊縮増税・福祉削減は需要をさらに殺し恐慌を深くする（プロサイクリカル財政の罠＝1930年代の緊縮の再演）。
@@ -1415,6 +1416,7 @@ public sealed class UtilityAgent : INationAgent
         }
         // ★専売の書き込み口（作者裁定2026-09-20）＝**プレイヤーの生産タブのチェックボックスと同じ1本**（World.SetStateMonopolyOn 経由）。
         //   ⚠旧はここが w.StateMonopolyMargins[] へ直書きしていた（天井の自動導出を避けるための意図的な迂回）＝P5の破れ。天井が消えたので迂回の理由も消えた。
+        if (Instruments.On) Instruments.MonopolyDecision(w, w.StateMonopolyTier, Math.Clamp(stateMonopTier, 0, World.StateMonopolyMaxTier));   // 計器（読むだけ・(265)）：専売の段（今の段→置く段・Clamp は SetStateMonopolyTier と同じ）
         w.SetStateMonopolyTier(stateMonopTier);
 
         // ★撤去2026-08-16（C2-C5）：汚職根絶のAI目標（AntiCorruptionTarget）を物理削除＝汚職V2恒久ONで根絶費の動詞ごと死骸
