@@ -1570,7 +1570,7 @@ public sealed class UtilityAgent : INationAgent
                         bool want = atWar && fiscalStress < 0.5;
                         if (pr.Subsidized != want)
                         {
-                            if (Instruments.On) Instruments.SubsidyWrite(w, rg, pr);   // 計器（読むだけ）：補助の輪が掴む個体と動詞が掴む個体の食い違い
+                            if (Instruments.On) Instruments.SubsidyWrite(w, rg, pr, want);   // 計器（読むだけ）：補助の輪が掴む個体と動詞が掴む個体の食い違い
                             w.SetSubsidy(ri, pr.GoodId, want);
                         }
                     }
@@ -1583,7 +1583,7 @@ public sealed class UtilityAgent : INationAgent
                         bool want = !atWar && fiscalStress < 0.5 && pr.SmoothedMargin < 0 && !pr.Bankrupt;
                         if (pr.Subsidized != want)
                         {
-                            if (Instruments.On) Instruments.SubsidyWrite(w, rg, pr);   // 計器（読むだけ）
+                            if (Instruments.On) Instruments.SubsidyWrite(w, rg, pr, want);   // 計器（読むだけ）
                             w.SetSubsidy(ri, pr.GoodId, want);
                         }
                     }

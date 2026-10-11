@@ -81,7 +81,7 @@ public static class Instruments
         public int DecAtWar = -1, DecMobilized = -1, DecPicked, DecOpen = -1, DecTarget = -1, DecEnforced = -1;
         public int FacStarted, FacStartedClosed, FacDone, FacDoneClosed, FacDoneClosedAtStart;   // 今の四半期の国営の棟の着工・完成（門が閉じていた分つき・四半期の末に0へ戻す）
         // ---- (263) 輪と動詞の個体の食い違い（投げ売りの輪・補助の輪が掴む生産者 pr と、動詞〔CanSellFactory・SetStateTarget・SetSubsidyRate〕が World.FindFactory で掴む個体）：今の四半期の和（四半期の末に0へ戻す）
-        public int FsRun, FsSeenMismatch, FsFired, FsFiredMismatch, FsFiredOver, SubMismatch;
+        public int FsRun, FsSeenMismatch, FsFired, FsFiredMismatch, FsFiredOver, SubMismatch, SubMismatchOff;
         public readonly List<string> WheelGoods = new(), FacStartedGoods = new();   // 食い違いの財の名前（「投げ売り:」「補助:」を前置）・着工した財の名前
     }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<World, WState> States = new();
@@ -266,7 +266,7 @@ public static class Instruments
         st.AdmSimClaim = st.AdmCatClaim = st.AdmCatPaid = st.AdmFiscClaim = st.AdmBase = st.AdmSpendable = st.AdmLastRev = st.AdmSimMul = st.AdmCover = st.AdmFiscMul = st.AdmPayRate = st.AdmFill = st.AdmFillRBelow1 = 0;
         st.DecScale = st.DecLosing = st.DecShare = double.NaN;
         st.DecAtWar = st.DecMobilized = st.DecOpen = st.DecTarget = st.DecEnforced = -1; st.DecPicked = 0;
-        st.FsRun = st.FsSeenMismatch = st.FsFired = st.FsFiredMismatch = st.FsFiredOver = st.SubMismatch = 0; st.WheelGoods.Clear(); st.FacStartedGoods.Clear();   // (263) 助走の分は数えない
+        st.FsRun = st.FsSeenMismatch = st.FsFired = st.FsFiredMismatch = st.FsFiredOver = st.SubMismatch = st.SubMismatchOff = 0; st.WheelGoods.Clear(); st.FacStartedGoods.Clear();   // (263) 助走の分は数えない
     }
     /// <summary>国×四半期の行に足す列（行政の請求の2つの式・戦時段）。月ごとの量は四半期の月の平均（<c>PerMonth</c>）。</summary>
     static List<(string Name, string Value)> NationExtras(World w, WState st)
@@ -358,30 +358,35 @@ public static class Instruments
     }
 
     /// <summary>補助の輪が補助を書き換える（<c>pr.Subsidized != want</c>）：動詞（<see cref="World.SetSubsidy"/>）が掴む個体が <paramref name="pr"/> と別なら数える。</summary>
-    internal static void SubsidyWrite(World w, Region rg, Producer pr)
+    internal static void SubsidyWrite(World w, Region rg, Producer pr, bool want)
     {
         var p = World.FindFactory(rg, pr.GoodId);
         if (p is null || ReferenceEquals(p, pr)) return;
         var st = S(w);
-        st.SubMismatch++;
+        st.SubMismatch++; if (!want) st.SubMismatchOff++;
         st.WheelGoods.Add($"補助:{Catalog.Goods[pr.GoodId].Name}");
     }
 
     /// <summary>四半期の末の断面：国営の持分がある生産者のうち、FindFactory が別の個体を返すもの（動詞が掴めない持分）の数。
     /// 返る個体も持分があるなら <paramref name="toInvested"/>（持分が2つの個体に分かれている）・無いなら <paramref name="toUninvested"/>（持分は売れない＝CanSellFactory が「国営でない」を返す）。</summary>
-    static int StakeMismatch(World w, out int toInvested, out int toUninvested)
+    static int StakeMismatch(World w, out int toInvested, out int toUninvested, out int staleSubsidy, List<string> goods)
     {
-        int all = 0; toInvested = toUninvested = 0;
+        int all = 0; toInvested = toUninvested = staleSubsidy = 0;
         foreach (var r in w.Regions)
         {
             if (r.State != RegionState.Active) continue;
             foreach (var pr in r.Producers)
             {
-                if (!(pr.BuiltScale > 1e-9)) continue;
+                bool stake = pr.BuiltScale > 1e-9;
+                if (!stake && !pr.Subsidized) continue;
                 var p = World.FindFactory(r, pr.GoodId);
                 if (p is null || ReferenceEquals(p, pr)) continue;
+                if (pr.Subsidized && Discovery.Gate(r, pr) > 0) staleSubsidy++;   // 補助が付いたまま動詞が掴まない（門が開いた）個体＝補助の輪が外せない補助
+                if (!stake) continue;
                 all++;
-                if (p.BuiltScale > 1e-9) toInvested++; else toUninvested++;
+                bool inv = p.BuiltScale > 1e-9;
+                if (inv) toInvested++; else toUninvested++;
+                goods.Add($"{Catalog.Goods[pr.GoodId].Name}({(Discovery.Gate(r, pr) > 0 ? "開" : "閉")}{World.StateUnits(pr, w.Coef)}→{(inv ? "投資済" : "未投資")}{World.StateUnits(p, w.Coef)})");
             }
         }
         return all;
@@ -639,11 +644,13 @@ public static class Instruments
         cols.Add(I(st.FacStarted)); cols.Add(I(st.FacStartedClosed)); cols.Add(I(st.FacDone)); cols.Add(I(st.FacDoneClosed)); cols.Add(I(st.FacDoneClosedAtStart));
         cols.Add(F(popK > 0 ? supplyFillSum / popK : 0));   // 人口加重の供給の充足（補給崩壊の物差し＝この値が0.3 を割る国×四半期を数える・旧の注入 inj_s3a の fill と同じ式）
         // (263) 線E2：輪と動詞の個体の食い違い（A）・補給の充足の内訳と着工した財（B）。台帳の月の和は四半期の末の POP の値（月の途中でない）
-        int stakeAll = StakeMismatch(w, out int stakeToInv, out int stakeToUninv);
-        cols.Add(I(st.FsRun)); cols.Add(I(st.FsSeenMismatch)); cols.Add(I(st.FsFired)); cols.Add(I(st.FsFiredMismatch)); cols.Add(I(st.FsFiredOver)); cols.Add(I(st.SubMismatch));
+        var stakeGoods = new List<string>();
+        int stakeAll = StakeMismatch(w, out int stakeToInv, out int stakeToUninv, out int staleSub, stakeGoods);
+        cols.Add(I(st.FsRun)); cols.Add(I(st.FsSeenMismatch)); cols.Add(I(st.FsFired)); cols.Add(I(st.FsFiredMismatch)); cols.Add(I(st.FsFiredOver)); cols.Add(I(st.SubMismatch)); cols.Add(I(st.SubMismatchOff));
         cols.Add(I(stakeAll)); cols.Add(I(stakeToInv)); cols.Add(I(stakeToUninv));
         cols.Add(string.Join(';', st.WheelGoods)); cols.Add(string.Join(';', st.FacStartedGoods));
         cols.Add(F(foodNeedSum > 0 ? foodMetSum / foodNeedSum : double.NaN)); cols.Add(F(needTotalSum > 0 ? needMetSum / needTotalSum : double.NaN));
+        cols.Add(I(staleSub)); cols.Add(string.Join(';', stakeGoods));
         sk.Nation ??= Open("nation", seed);
         if (!sk.NationHeader)
         {
@@ -654,8 +661,8 @@ public static class Instruments
                 + "borrowGateObservedMonths\tborrowGateClosedMonths\tshortfallMonths\tpayRateBelowOneMonths\t"
                 + "interestMeanPerMonth\trevenueBaseMeanPerMonth\tdirectTaxNetMeanPerMonth\tindirectRevenueMeanPerMonth\tshortfallMeanPerMonth\tborrowedMeanPerMonth\t"
                 + "stateFacilityStartedCount\tstateFacilityStartedGateClosedCount\tstateFacilityCompletedCount\tstateFacilityCompletedGateClosedCount\tstateFacilityCompletedGateClosedAtStartCount\tsupplyFillShare\t"
-                + "fireSaleRunCount\tfireSaleSeenMismatchCount\tfireSaleFiredCount\tfireSaleFiredMismatchCount\tfireSaleFiredOverTargetCount\tsubsidyWriteMismatchCount\t"
-                + "stakeMismatchProducerCount\tstakeMismatchToInvestedCount\tstakeMismatchToUninvestedCount\twheelMismatchGoods\tstateFacilityStartedGoods\tfoodMetShare\tneedMetShare");
+                + "fireSaleRunCount\tfireSaleSeenMismatchCount\tfireSaleFiredCount\tfireSaleFiredMismatchCount\tfireSaleFiredOverTargetCount\tsubsidyWriteMismatchCount\tsubsidyWriteMismatchWantOffCount\t"
+                + "stakeMismatchProducerCount\tstakeMismatchToInvestedCount\tstakeMismatchToUninvestedCount\twheelMismatchGoods\tstateFacilityStartedGoods\tfoodMetShare\tneedMetShare\tstaleSubsidyNotGrabbedCount\tstakeMismatchGoods");
             sk.NationHeader = true;
         }
         sk.Nation.WriteLine(string.Join('\t', cols));
