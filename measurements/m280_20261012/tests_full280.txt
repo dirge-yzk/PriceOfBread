@@ -1,0 +1,2 @@
+# (280) フルスイート（FullLength 込み・Release・コミット前の木 8eb932f＋計器の関数名の改名）
+成功!   -失敗:     0、合格:  1122、スキップ:     0、合計:  1122、期間: 8 m 40 s - PriceOfBread.Tests.dll (net10.0)

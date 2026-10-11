@@ -116,6 +116,11 @@ public static class Instruments
         // ---- (278) 線G2：政治資本の在庫の台帳。段の法のループの頭／Step の末尾の目減り S と最大量 b、その四半期に払った額（段の法・税と支出の段 R・軍事費 M・関税 T・治安維持力 C）
         public double GfSHead = double.NaN, GfMaxHead = double.NaN, GfSEnd = double.NaN, GfPendCost = double.NaN, GfPendS = double.NaN, GfGateCost = double.NaN, GfGateS = double.NaN;
         public double GfPaidL, GfPaidR, GfPaidM, GfPaidT, GfPaidC;
+        // ---- (280) 線X：物価の更新の鎖（助走を含む四半期ごと）・財ごとの価格・月ごとの貨幣と所得（挙げた国だけ・書き出しは Phase warm／Quarter で行う）
+        public int PxWarmN, PxGameN, PxMonthWarmN, PxMonthGameN;                     // 助走／試合の何回目か（四半期の更新・月の決算の数）
+        public readonly List<string> PxRows = new(), PxGoodsRows = new(), PxMonthRows = new(); public string? PxHdr, PxMonthHdr;
+        public double PxResetSince; public int PxResetCount;   // 国庫を助走の前の値へ戻した額の和（戻した値 − 戻す前の国庫＝正は基礎貨幣の創出・負は消滅）と回数。四半期の更新の行で読んで0へ戻す
+        public readonly double[] PxEarn = new double[NC], PxPaid = new double[NC]; public int PxMonths;   // 今の四半期の月ごとの所得と支出の和（四半期の更新で読んで0へ戻す）
     }
     /// <summary>(274) 開いた戦線1本。Kind＝L 段の法〔Idx＝LevelLaws の表の行〕／R 税・支出の段〔Idx＝RateLaws の行〕／M 軍事費の合計／C 治安維持力／T 関税。
     /// Code：0 施行のとき目標＝現在で閉じていた／1 純支持で固定／2 政治資本で固定／3 無償で動いた〔未到達〕／4 政治資本を払って動いた〔未到達〕／5 不可逆で固定／6 前提で固定／
@@ -139,8 +144,8 @@ public static class Instruments
 
     sealed class Sink
     {
-        public System.IO.StreamWriter? Fiscal, Class, Stock, Nation, Region, Migration, Flow, Goods;
-        public bool FiscalHeader, ClassHeader, StockHeader, NationHeader, RegionHeader, FlowHeader, GoodsHeader;
+        public System.IO.StreamWriter? Fiscal, Class, Stock, Nation, Region, Migration, Flow, Goods, Money, PxGoods, PxMonth;
+        public bool FiscalHeader, ClassHeader, StockHeader, NationHeader, RegionHeader, FlowHeader, GoodsHeader, MoneyHeader, PxGoodsHeader, PxMonthHeader;
         public ulong Seed;   // 試合の終わり（Close）に戦争の表を書くときのファイル名
         public int NextUid;  // (271) 国の個体の番号の次
         public readonly Dictionary<string, (int Quarter, int Year)> CanalOpened = new();   // (271) 運河の開通の四半期（最初に開通を見た四半期の末）
@@ -730,6 +735,7 @@ public static class Instruments
     internal static void MonthClose(World w)
     {
         var st = S(w);
+        if (st.Armed && IsPicked(w, st)) PxMonth(w, st);   // (280) 助走の月も読む（下の Active の判定の前）
         if (!st.Active || !st.Armed) { st.Armed = false; return; }
         st.Armed = false;
         foreach (var r in w.Regions) foreach (var p in r.Pops) { int c = (uint)p.ClassId < (uint)NC ? p.ClassId : NC - 1; st.ClsEarn[c] += p.EarnedPerMonth.Value; st.ClsPaid[c] += p.PaidPerMonth.Value; }
@@ -786,6 +792,177 @@ public static class Instruments
 
     // ---------------------------------------------------------------- 四半期の末・断面（SelfPlay.Run が呼ぶ） ----------------------------------------------------------------
 
+    // ---------------------------------------------------------------- (280) 線X：物価の更新の鎖 ----------------------------------------------------------------
+
+    const int PxMonthGameMax = 24, PxGoodsGameMax = 48;
+
+    static string PxI(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+    /// <summary>(280) 物価の財の表の対象：主食・日用品と、専売の梯子の最初の群（World.ExciseGoods＝ビール・蒸留酒・ワイン・煙草・茶・コーヒー・石鹸）。名前で引く（番号でなく Catalog の財から・README §1-9）。</summary>
+    static bool PxGoodPicked(int g) => Catalog.Goods[g].Tier == GoodTier.Staple || Catalog.Goods[g].Tier == GoodTier.Daily || System.Array.IndexOf(World.ExciseGoods, g) >= 0;
+
+    /// <summary>(280) 州ごとの 市場価格 ÷ (参照価格 × 州の物価水準) の平均（主食／日用品）＝需給の因子 S/D（ProductionDiag の恒等式1）。物価水準 P の動きと需給の動きを分ける。</summary>
+    static void PxRel(World w, out double staple, out double daily)
+    {
+        var lS = new List<double>(); var lD = new List<double>();
+        foreach (var r in w.Regions)
+        {
+            if (r.State != RegionState.Active) continue;
+            for (int g = 0; g < r.Markets.Length && g < Catalog.Goods.Length; g++)
+            {
+                var t = Catalog.Goods[g].Tier; if (t != GoodTier.Staple && t != GoodTier.Daily) continue;
+                double den = Catalog.RefPrices[g] * r.PriceLevel; if (!(den > 1e-12)) continue;
+                double rel = r.Markets[g].Price / den;
+                if (t == GoodTier.Staple) lS.Add(rel); else lD.Add(rel);
+            }
+        }
+        staple = Median(lS); daily = Median(lD);
+    }
+
+    /// <summary>(280) 中央値（空は NaN）。州の因子の平均は価格の天井に張り付いた少数の州で引かれる＝中央で読む。</summary>
+    static double Median(List<double> xs)
+    {
+        if (xs.Count == 0) return double.NaN;
+        xs.Sort(); int m = xs.Count / 2;
+        return xs.Count % 2 == 1 ? xs[m] : 0.5 * (xs[m - 1] + xs[m]);
+    }
+
+    /// <summary>(280) 月の決算で、挙げた国の貨幣と所得の月次の行（助走の月を含む）を溜め、四半期の更新が読む所得・支出の和を足す。読むだけ（GdpPerMonth は読まない）。</summary>
+    static void PxMonth(World w, WState st)
+    {
+        var sav = new double[NC]; var earn = new double[NC]; var paid = new double[NC]; double total = 0;
+        foreach (var r in w.Regions) foreach (var p in r.Pops)
+        {
+            int c = (uint)p.ClassId < (uint)NC ? p.ClassId : NC - 1;
+            sav[c] += p.Savings.Value; total += p.Savings.Value; earn[c] += p.EarnedPerMonth.Value; paid[c] += p.PaidPerMonth.Value;
+        }
+        for (int c = 0; c < NC; c++) { st.PxEarn[c] += earn[c]; st.PxPaid[c] += paid[c]; }
+        st.PxMonths++;
+        bool warm = w.WarmupFrozen;
+        if (!warm && st.PxMonthGameN >= PxMonthGameMax) return;   // 月ごとの行は助走の全部と試合の最初の2年だけ（出力の大きさ）
+        PxRel(w, out double stapleRel, out double dailyRel);
+        var cols = new List<(string Name, string Value)>();
+        void C(string name, double v) => cols.Add((name, F(v)));
+        cols.Add(("time", (warm ? "wm" : "qm") + PxI(warm ? st.PxMonthWarmN++ : st.PxMonthGameN++))); cols.Add(("nation", NameOf(w))); C("year", w.Year);
+        C("priceLevelIndex", w.PriceLevel); C("broadMoneyStock", total); C("treasuryStock", w.Treasury.Value); C("outstandingLoansStock", w.OutstandingLoans.Value);
+        C("convertibilityShare", w.Convertibility); C("stapleRelPriceMedianRatio", stapleRel); C("dailyRelPriceMedianRatio", dailyRel);
+        for (int c = 0; c < NC; c++) C("savingsStockClass" + PxI(c), sav[c]);
+        for (int c = 0; c < NC; c++) C("earnedPerMonthClass" + PxI(c), earn[c]);
+        for (int c = 0; c < NC; c++) C("paidPerMonthClass" + PxI(c), paid[c]);
+        st.PxMonthHdr ??= string.Join('\t', cols.Select(x => x.Name));
+        st.PxMonthRows.Add(string.Join('\t', cols.Select(x => x.Value)));
+    }
+
+    /// <summary>(280) <see cref="World.UpdatePriceLevel"/> の1回（助走の四半期を含む）：物価の更新の鎖の全項と、更新の直後の貨幣の構成・階級ごとの貯蓄と所得・財ごとの価格を溜める。
+    /// <paramref name="early"/>＝趨勢の基準を取るだけで物価は動かなかった最初の1回。読むだけ。</summary>
+    internal static void PriceStep(World w, double broad, double baseM, double money, double gdp, double ratio, double trend0, double cyclical, double pBefore, double pEma, double pFiat, double convTarget, double fiatP, bool early)
+    {
+        var st = S(w);
+        if (!IsPicked(w, st)) return;
+        bool warm = w.WarmupFrozen;
+        string time = (warm ? "w" : "q") + PxI(warm ? st.PxWarmN++ : st.PxGameN++);
+        var sav = new double[NC];
+        foreach (var r in w.Regions) foreach (var p in r.Pops) { int c = (uint)p.ClassId < (uint)NC ? p.ClassId : NC - 1; sav[c] += p.Savings.Value; }
+        var cols = new List<(string Name, string Value)>();
+        void C(string name, double v) => cols.Add((name, F(v)));
+        cols.Add(("time", time)); cols.Add(("nation", NameOf(w))); C("year", w.Year); cols.Add(("event", early ? "first" : "update"));
+        C("priceLevelBeforeIndex", pBefore); C("priceLevelAfterEmaIndex", pEma); C("priceLevelAfterFiatIndex", pFiat); C("priceLevelAfterIndex", w.PriceLevel); C("costPriceLevelAfterIndex", w.CostPriceLevel);
+        C("expectedInflationPerYear", w.ExpectedInflationPerYear.Value); C("fiatPressureBeforeShare", fiatP);
+        C("broadMoneyStock", broad); C("baseMoneyStock", baseM); C("treasuryStock", w.Treasury.Value); C("outstandingLoansStock", w.OutstandingLoans.Value);
+        C("convertibilityTargetShare", convTarget); C("convertibilityShare", w.Convertibility); C("moneyUsedStock", money); C("gdpRealPerMonth", gdp);
+        C("moneyToGdpMonths", ratio); C("moTrendBeforeMonths", trend0); C("moTrendAfterMonths", w.MoTrendForInstruments); C("cyclicalRatio", cyclical);
+        C("cumulativeTradeFlowStock", w.CumulativeTradeFlow.Value); C("cumulativeGoldMintedStock", w.CumulativeGoldMinted.Value); C("cumulativeFiatIssuedStock", w.CumulativeFiatIssued.Value); C("treasuryResetSinceLastRowStock", st.PxResetSince); C("treasuryResetCount", st.PxResetCount);
+        st.PxResetSince = 0; st.PxResetCount = 0;
+        C("savingsLambdaRatio", double.NaN); C("savingsBeforeRebaseStock", double.NaN); C("savingsAfterRebaseStock", double.NaN); C("savingsRebaseRatio", double.NaN);
+        C("monthsInQuarterCount", st.PxMonths);
+        for (int c = 0; c < NC; c++) C("savingsStockClass" + PxI(c), sav[c]);
+        for (int c = 0; c < NC; c++) C("earnedPerMonthClass" + PxI(c), st.PxMonths > 0 ? st.PxEarn[c] / st.PxMonths : double.NaN);
+        for (int c = 0; c < NC; c++) C("paidPerMonthClass" + PxI(c), st.PxMonths > 0 ? st.PxPaid[c] / st.PxMonths : double.NaN);
+        st.PxHdr ??= string.Join('\t', cols.Select(x => x.Name));
+        st.PxRows.Add(string.Join('\t', cols.Select(x => x.Value)));
+        Array.Clear(st.PxEarn); Array.Clear(st.PxPaid); st.PxMonths = 0;
+        // 財ごとの価格：国の平均（州の単純平均）・参照価格×州の物価水準で割った需給の因子・四半期の量
+        string nm = NameOf(w);
+        for (int g = 0; g < Catalog.Goods.Length; g++)
+        {
+            if (!warm && st.PxGameN > PxGoodsGameMax) break;   // 財ごとの行は助走の全部と試合の最初の12年だけ（出力の大きさ）
+            if (!PxGoodPicked(g)) continue;
+            double prod = 0, dem = 0, sold = 0, shortage = 0, imp = 0, exp = 0, stock = 0, price = 0, lvl = 0; int n = 0; var rels = new List<double>();
+            foreach (var r in w.Regions)
+            {
+                if (r.State != RegionState.Active || g >= r.Markets.Length) continue;
+                var m = r.Markets[g];
+                prod += m.LastProduced; dem += m.LastDemand; sold += m.LastSold; shortage += m.LastShortage; imp += m.LastImport; exp += m.LastExport; stock += m.Stock; price += m.Price; lvl += r.PriceLevel; n++;
+                double den = Catalog.RefPrices[g] * r.PriceLevel; if (den > 1e-12) rels.Add(m.Price / den);
+            }
+            if (n == 0) continue;
+            bool excise = System.Array.IndexOf(World.ExciseGoods, g) >= 0;
+            st.PxGoodsRows.Add(string.Join('\t', time, nm, PxI(w.Year), Catalog.Goods[g].Name, Catalog.Goods[g].Tier.ToString(), excise ? "1" : "0", F(g < w.StateMonopolyMargins.Length ? w.StateMonopolyMargins[g] : double.NaN), PxI(n),
+                F(Catalog.RefPrices[g]), F(price / n), F(lvl / n), F(Median(rels)), F(rels.Count > 0 ? rels.Max() : double.NaN), F(prod), F(dem), F(sold), F(shortage), F(imp), F(exp), F(stock)));
+        }
+    }
+
+    /// <summary>(280) 趣旨＝貯蓄の置き直し（<see cref="World.RebaseOpeningMoney"/>）の1回：置く前後の貯蓄の和・倍率 λ・趨勢の取り直しの前後。同じ表（<c>money_s</c>）の event＝rebase の行。</summary>
+    internal static void OpeningRebased(World w, int whenMode, double before, double after, double lambda, double trend0, double money, double ratio)
+    {
+        var st = S(w);
+        if (!IsPicked(w, st)) return;
+        string time = (w.WarmupFrozen ? "w" : "q") + PxI(Math.Max(0, (w.WarmupFrozen ? st.PxWarmN : st.PxGameN) - 1));
+        var sav = new double[NC];
+        foreach (var r in w.Regions) foreach (var p in r.Pops) { int c = (uint)p.ClassId < (uint)NC ? p.ClassId : NC - 1; sav[c] += p.Savings.Value; }
+        var cols = new List<(string Name, string Value)>();
+        void C(string name, double v) => cols.Add((name, F(v)));
+        cols.Add(("time", time)); cols.Add(("nation", NameOf(w))); C("year", w.Year); cols.Add(("event", "rebase" + PxI(whenMode)));
+        C("priceLevelBeforeIndex", w.PriceLevel); C("priceLevelAfterEmaIndex", double.NaN); C("priceLevelAfterFiatIndex", double.NaN); C("priceLevelAfterIndex", w.PriceLevel); C("costPriceLevelAfterIndex", w.CostPriceLevel);
+        C("expectedInflationPerYear", w.ExpectedInflationPerYear.Value); C("fiatPressureBeforeShare", double.NaN);
+        C("broadMoneyStock", w.BroadMoney.Value); C("baseMoneyStock", w.BaseMoney.Value); C("treasuryStock", w.Treasury.Value); C("outstandingLoansStock", w.OutstandingLoans.Value);
+        C("convertibilityTargetShare", double.NaN); C("convertibilityShare", w.Convertibility); C("moneyUsedStock", money); C("gdpRealPerMonth", ratio > 1e-9 ? money / ratio : double.NaN);
+        C("moneyToGdpMonths", ratio); C("moTrendBeforeMonths", trend0); C("moTrendAfterMonths", w.MoTrendForInstruments); C("cyclicalRatio", double.NaN);
+        C("cumulativeTradeFlowStock", w.CumulativeTradeFlow.Value); C("cumulativeGoldMintedStock", w.CumulativeGoldMinted.Value); C("cumulativeFiatIssuedStock", w.CumulativeFiatIssued.Value); C("treasuryResetSinceLastRowStock", st.PxResetSince); C("treasuryResetCount", st.PxResetCount);
+        st.PxResetSince = 0; st.PxResetCount = 0;
+        C("savingsLambdaRatio", lambda); C("savingsBeforeRebaseStock", before); C("savingsAfterRebaseStock", after); C("savingsRebaseRatio", before > 0 ? after / before : double.NaN);
+        C("monthsInQuarterCount", st.PxMonths);
+        for (int c = 0; c < NC; c++) C("savingsStockClass" + PxI(c), sav[c]);
+        for (int c = 0; c < NC; c++) C("earnedPerMonthClass" + PxI(c), double.NaN);
+        for (int c = 0; c < NC; c++) C("paidPerMonthClass" + PxI(c), double.NaN);
+        st.PxHdr ??= string.Join('\t', cols.Select(x => x.Name));
+        st.PxRows.Add(string.Join('\t', cols.Select(x => x.Value)));
+    }
+
+    /// <summary>(280) 助走の四半期の終わりに国庫を助走の前の値へ戻した額（呼び手＝<see cref="World.RebaseTreasury"/>）。戻す前の国庫 <paramref name="before"/> と戻した値 <paramref name="to"/> の差＝基礎貨幣の創出（正）か消滅（負）。</summary>
+    internal static void TreasuryRebased(World w, double before, double to)
+    {
+        var st = S(w);
+        if (!IsPicked(w, st)) return;
+        st.PxResetSince += to - before; st.PxResetCount++;
+    }
+
+    /// <summary>(280) 溜めた行を3本の表（<c>money_s</c>・<c>pxgoods_s</c>・<c>pxmonth_s</c>）へ書く。</summary>
+    static void FlushPx(Sink sk, ulong seed, WState st)
+    {
+        if (st.PxRows.Count > 0)
+        {
+            sk.Money ??= Open("money", seed);
+            if (!sk.MoneyHeader) { sk.Money.WriteLine(st.PxHdr); sk.MoneyHeader = true; }
+            foreach (var row in st.PxRows) sk.Money.WriteLine(row);
+            st.PxRows.Clear();
+        }
+        if (st.PxGoodsRows.Count > 0)
+        {
+            sk.PxGoods ??= Open("pxgoods", seed);
+            if (!sk.PxGoodsHeader) { sk.PxGoods.WriteLine("time\tnation\tyear\tgoodName\ttier\texciseFlag\tmonopolyMarginShare\tactiveRegions\trefPriceIndex\tpriceMean\tregionPriceLevelMeanIndex\tpriceOverRefTimesLevelMedianRatio\tpriceOverRefTimesLevelMaxRatio\tlastProducedQty\tlastDemandQty\tlastSoldQty\tlastShortageQty\tlastImportQty\tlastExportQty\tstockQty"); sk.PxGoodsHeader = true; }
+            foreach (var row in st.PxGoodsRows) sk.PxGoods.WriteLine(row);
+            st.PxGoodsRows.Clear();
+        }
+        if (st.PxMonthRows.Count > 0)
+        {
+            sk.PxMonth ??= Open("pxmonth", seed);
+            if (!sk.PxMonthHeader) { sk.PxMonth.WriteLine(st.PxMonthHdr); sk.PxMonthHeader = true; }
+            foreach (var row in st.PxMonthRows) sk.PxMonth.WriteLine(row);
+            st.PxMonthRows.Clear();
+        }
+    }
+
     static System.IO.StreamWriter Open(string kind, ulong seed)
     {
         System.IO.Directory.CreateDirectory(Dir);   // 環境変数が存在しないディレクトリを指しても試合ごとに落ちない（(244) 反証役 vi1#7）
@@ -798,6 +975,7 @@ public static class Instruments
         var sk = SinkOf(sim, seed);
         if (time == "warm") foreach (var n in sim.Nations) { var wst = S(n.World); wst.WarMonths = 0; wst.CivilWarMonths = 0; ResetQuarter(wst); wst.SavLedger.Clear(); }   // 助走の月は数えない（旧の注入も助走の直後に0へ戻していた）
         foreach (var n in sim.Nations) { ClassRows(sk, seed, time, n.World, S(n.World), flows: false); StockRow(sk, seed, time, n.World, readGdp: time != "open"); }
+        foreach (var n in sim.Nations) FlushPx(sk, seed, S(n.World));   // (280) 助走の物価の鎖の行
     }
 
     /// <summary>四半期の末：挙げた国は毎四半期・全ての国は年末（q%4==3）。財政の月次の行を書き出し、階級の所得と支出の四半期の合計をゼロへ戻す。</summary>
@@ -819,6 +997,7 @@ public static class Instruments
             }
             if (picked || yearEnd) { ClassRows(sk, seed, time, w, st, flows: true); StockRow(sk, seed, time, w, readGdp: true); }
             if (picked) FlowRows(sk, seed, q, w, st);   // (262) 貯蓄の書き手の台帳（階級の読む位置＝同じ瞬間）
+            FlushPx(sk, seed, st);   // (280) 物価の鎖の行（挙げた国だけが溜めている）
             NationRow(sk, seed, q, i, w, st, yearEnd);
             Array.Clear(st.ClsEarn); Array.Clear(st.ClsPaid); st.ClsMonths = 0; st.WarMonths = 0; st.CivilWarMonths = 0; ResetQuarter(st);
             st.QGateObs = st.QGateClosed = st.QShortMonths = st.QRUnder1Months = 0; st.QInterest = st.QRevenue = st.QDirect = st.QIndirect = st.QShortfall = st.QBorrowed = 0;
@@ -835,7 +1014,7 @@ public static class Instruments
         if (!Sinks.TryGetValue(sim, out var sk)) return;
         if (Dips.TryGetValue(sim.Diplomacy, out var dip)) WarTables(sk, dip);
         CanalTable(sk, sim);
-        sk.Fiscal?.Dispose(); sk.Class?.Dispose(); sk.Stock?.Dispose(); sk.Nation?.Dispose(); sk.Region?.Dispose(); sk.Migration?.Dispose(); sk.Flow?.Dispose(); sk.Goods?.Dispose(); sk.Fiscal = sk.Class = sk.Stock = sk.Nation = sk.Region = sk.Migration = sk.Flow = sk.Goods = null;
+        sk.Fiscal?.Dispose(); sk.Class?.Dispose(); sk.Stock?.Dispose(); sk.Nation?.Dispose(); sk.Region?.Dispose(); sk.Migration?.Dispose(); sk.Flow?.Dispose(); sk.Goods?.Dispose(); sk.Money?.Dispose(); sk.PxGoods?.Dispose(); sk.PxMonth?.Dispose(); sk.Fiscal = sk.Class = sk.Stock = sk.Nation = sk.Region = sk.Migration = sk.Flow = sk.Goods = sk.Money = sk.PxGoods = sk.PxMonth = null;
     }
 
     // ---------------------------------------------------------------- 州の人口と移動（州の空洞化の計器・(255)）----------------------------------------------------------------
