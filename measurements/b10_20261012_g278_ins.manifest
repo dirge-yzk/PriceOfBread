@@ -1,6 +1,6 @@
-SOURCE-HASH: 06e5a456e96579ca
+SOURCE-HASH: b28167340b28d515
 FILES: 250
-RUN: selfplay-batch 10（10種＝採否）（計器 POB_INSTRUMENTS=D:/PoB_work/g278/out_Ains_10/ins NATIONS=イギリス,フランス,ネーデルラント,ポルトガル）
+RUN: selfplay-batch 10（10種＝採否）（計器 POB_INSTRUMENTS=D:/PoB_work/g278/out_Hins_10/ins NATIONS=イギリス,フランス,ネーデルラント,ポルトガル）
 ---
 882d02609565c009f18bea319c737673ab8aab0dc64596b14d9642651a57bb34 *./PriceOfBread.App/App.axaml
 564bb04598bde21617c7faac429a5b21feaba184ad15f8a47997ec676b6933b3 *./PriceOfBread.App/App.axaml.cs
@@ -99,7 +99,7 @@ d6bb859ab4adc746a8d3f8222ba93be05d1308b1b55acab813de422bc46a1ee3 *./PriceOfBread
 07653525a0295e5712a120a83664bc897b1fabd1a3ba68639da8260a9bee280b *./PriceOfBread.SimCore/Government.cs
 45027e5a48ad68d25dbc75adfa30fe053c49c49c501f07f6481078f2236e2702 *./PriceOfBread.SimCore/HistoricalReference.cs
 8db223a4bc56745a18f2d3d08b13d0e632506db4fc55c053fd8a42be8105f960 *./PriceOfBread.SimCore/Ideology.cs
-367516f6f8bf162ef997a34aea7e84dd199a51aaeab77ca679103ed1baa7093a *./PriceOfBread.SimCore/Instruments.cs
+8f7f2ae5f00c2d7458558c6808e80b1c47383212725b4fe5a1c1d5655dfe3870 *./PriceOfBread.SimCore/Instruments.cs
 b0df8461cc3662619f27a267fed2ee49123db3bea01122ca7c9fc0a338dc3dcc *./PriceOfBread.SimCore/InterestGroups.cs
 b2b257ba4a27118374653585f308c208a940779e60bc36c7854647a5725ff510 *./PriceOfBread.SimCore/InternationalMarket.cs
 1421e4f8e2575399a4fd73b6eac177cb9bdcb1ed5bbb1f0adf68c33df870008f *./PriceOfBread.SimCore/Invariants.cs
@@ -192,7 +192,7 @@ c57b260297d7b0f5ef3aab5b3e376dd1874b0bff25398682e91861d6a5096703 *./PriceOfBread
 9684fcc6b33ead879f95c453db5def52649294f012867a8f46ba965794d289c0 *./PriceOfBread.Tests/HistoricalReferenceTests.cs
 2fd5e056205920aa436bb8b0bb456a3ad05a798f65534862878051e0b97657b2 *./PriceOfBread.Tests/IndustryThemeTests.cs
 b29eb779c357bb03b2d4a2f3924e08f8bde72eae9024ee19395750866dcfeff8 *./PriceOfBread.Tests/InitialDefaultsTests.cs
-be03b75a2c065455d803287b69b67a149d67c6a349416cbecdb01f2280d1a2f2 *./PriceOfBread.Tests/InstrumentsTests.cs
+d9a9f43c76e72ebfbb45d95a845620bfbaf76a85c2b5d0a3367d85bf3bb383c1 *./PriceOfBread.Tests/InstrumentsTests.cs
 242511f6d00eb50f7aa49377d633eace45b55f7ec3099ff7e3293d4bb2ebb5c8 *./PriceOfBread.Tests/InvariantTests.cs
 67da7fc94f2ae35a0feab9baaa338b6e10060066a837b0159bdb8ddb03148cc2 *./PriceOfBread.Tests/LandmassTests.cs
 02c2ff482e5fb581e9269a00ae963a293f4d377d16a6f4e78da123a964154025 *./PriceOfBread.Tests/LiteracyTests.cs
