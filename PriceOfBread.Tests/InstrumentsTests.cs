@@ -1816,4 +1816,73 @@ public class InstrumentsTests
         }
         finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
     }
+
+    /// <summary>
+    /// (283) 合流の処置（(281) 反証役 中#1・(279) §5-2 行3）：切り下げで埋める前の払えない額は**当座借越を数えない**を、試合の中の月の決算（<c>Simulation</c> の月初の払える額→借入→切り下げ→r）で固定する。
+    /// 盤面＝助走の後の1四半期を回した4国の各国で、国庫を負（月の歳入の3倍の借越）にし、借りられない（冷却中）・不換（兌換 0）にした次の月。
+    /// 期待は fiscal_s の生の列（請求・月初の国庫・前の月の行の歳入・借入）から組む＝max(0, 請求−(max(0,国庫)＋歳入＋借入))÷請求（計器が PreBorrow で受けた払える額の列 payableBeforeBorrowStock は使わない）。
+    /// 借越のある月に、歳入が請求を賄う国（期待 0）と、切り下げ÷請求＞1（借越を埋めた分だけ切り下げが請求を越える）が同時に立つことを対照にする（何もしない番人にならない）。
+    /// ⚠壊し方＝<c>Simulation</c> が PreBorrow に payable＋Math.Min(0,国庫) を渡す（借越を数える）→ 払えない額が正になって赤。
+    /// </summary>
+    [Fact]
+    public void 切り下げで埋める前の払えない額は当座借越を数えない()
+    {
+        string dir = NewDir();
+        try
+        {
+            Instruments.Configure(dir, "*");
+            var names = new List<string>();
+            try
+            {
+                var sim = Make();
+                Instruments.Phase(sim, 1789UL, "open");
+                sim.StartWarmup();
+                Instruments.Phase(sim, 1789UL, "warm");
+                sim.StepQuarter();
+                Instruments.Quarter(sim, 1789UL, 0);
+                foreach (var n in sim.Nations)
+                {
+                    var w = n.World;
+                    double t0 = w.Treasury.Value, od = 3.0 * Math.Max(0, w.LastRevenuePerMonth.Value);
+                    World.Transfer((w, null), (w, [w.Regions[0].Pops[0]], [1.0]), Math.Max(0, t0) + od, TreasuryCat.OtherOut);   // 国庫を負へ（現金は1つの POP へ移す＝保存則を割らない・移し方の1本）
+                    w.BorrowCooldownMonths = 2;   // 借りられない月（次の月の決算は冷却中）
+                    w.Convertibility = 0;         // 不換＝払えない額（借越を含む）の全額が切り下げの余地
+                    names.Add(w.SelfPower?.BaseName ?? "");
+                }
+                sim.StepQuarter();
+                Instruments.Quarter(sim, 1789UL, 1);
+                Instruments.Close(sim);
+            }
+            finally { Instruments.Configure(null, null); }
+            var (fh, fr) = Table(System.IO.Path.Combine(dir, "fiscal_s1789.tsv"));
+            int mi = Array.IndexOf(fh, "monthIndex"), ni = Array.IndexOf(fh, "nation");
+            int overdraftRows = 0, coveredRows = 0, devOverClaimRows = 0;
+            foreach (var g in fr.GroupBy(r => r[ni]))
+            {
+                // 借越にした後の最初の月（国庫が負で請求を数えた月のうち最も早い月）
+                var x = g.Where(r => Col(fh, r, "treasuryAtClaimStock") < 0).OrderBy(r => int.Parse(r[mi])).FirstOrDefault();
+                if (x is null) continue;
+                overdraftRows++;
+                // 月初の払える額の歳入＝直近の歳入（前の月の決算の終わりの値）＝前の月の行の revenueBasePerMonth（この月の行の値は月末の Fiscal.Step が書き換えた後）
+                int m0 = int.Parse(x[mi]);
+                var prev = g.Single(r => int.Parse(r[mi]) == m0 - 1);
+                double claims = Col(fh, x, "claimTotalPerMonth"), t = Col(fh, x, "treasuryAtClaimStock"), rev = Col(fh, prev, "revenueBasePerMonth"), bor = Col(fh, x, "borrowedPerMonth");
+                double dev = Col(fh, x, "devaluedPerMonth");
+                Assert.True(claims > 0, $"{g.Key}：前提＝請求が無い");
+                Assert.Equal(0.0, bor);   // 冷却中＝借りない
+                double expect = Math.Max(0, claims - (Math.Max(0, t) + rev + bor)) / claims;
+                Assert.True(Near(expect, Col(fh, x, "unpaidBeforeDevaluationShare")), $"{g.Key}：払えない額÷請求 {Col(fh, x, "unpaidBeforeDevaluationShare")} ≠ 生の列から組んだ {expect}（借越 {t:F1}・歳入 {rev:F1}・請求 {claims:F1}）");
+                Assert.True(Near(Math.Max(0, dev) / claims, Col(fh, x, "devaluedToClaimShare")));
+                if (expect == 0)
+                {
+                    coveredRows++;
+                    if (dev / claims > 1 && Col(fh, x, "payRateShare") >= 1) devOverClaimRows++;
+                }
+            }
+            Assert.True(overdraftRows >= 2, $"借越の月が少ない（{overdraftRows}・国 {string.Join(",", names)}）");
+            Assert.True(coveredRows >= 1, "対照：借越の月に歳入が請求を賄う国が無い＝借越を数えない性質を突き合わせていない");
+            Assert.True(devOverClaimRows >= 1, "対照：借越の月に r＝1 で切り下げ÷請求＞1 の国が無い（借越を埋めた切り下げが立っていない）");
+        }
+        finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
 }
