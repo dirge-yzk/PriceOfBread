@@ -121,7 +121,7 @@ public static class Instruments
     /// Code：0 施行のとき目標＝現在で閉じていた／1 純支持で固定／2 政治資本で固定／3 無償で動いた〔未到達〕／4 政治資本を払って動いた〔未到達〕／5 不可逆で固定／6 前提で固定／
     /// 7 無償で動いて目標に届いた／8 払って動いて目標に届いた／9 軍事費の解禁の外の失効だけで動いた（M のみ）／-1 結果が来なかった。</summary>
     internal sealed class GFront { public char Kind; public int Idx; public PolicyAxis Axis; public double Cur, Target, Net = double.NaN; public int Code = -1; public bool Expired;
-        /// <summary>(278) 線G2：この一歩の代価（門が計算した額。無償で通った＝0・門の手前で止まった＝NaN）と、払う前（決める時）の目減り S。<see cref="Structural"/>＝符号 2 のうち代価が政治資本の最大量そのものを超える（在庫が空でも永久に届かない）。</summary>
+        /// <summary>(278) 線G2：この一歩の代価（門が計算した額。無償で通った＝0・門の手前で止まった＝NaN）と、払う前（決める時）の目減り S。<see cref="Structural"/>＝符号 2 のうち代価が政治資本の最大量そのものを超える（その四半期の b では在庫が空〔満タン〕でも届かない・b と純支持は四半期ごとに動く）。</summary>
         public double Cost = double.NaN, SDec = double.NaN; public bool Structural; }
     /// <summary>段5 の上限の引き出し率 d（月あたり）。(264) 実装ログ §7 の事前登録の格子＝1/120・1/240・1/480（AI の設計・作者の承認は未確認）。</summary>
     internal static readonly double[] CapDs = [1.0 / 120, 1.0 / 240, 1.0 / 480, 1.0 / 36, 1.0 / 12];   // (271) 末尾の2つ＝(268) 申し送りの推奨（格子に 1/36・1/12 を足す）
@@ -460,7 +460,7 @@ public static class Instruments
         else { st.GfGateCost = why == 3 ? 0 : double.NaN; st.GfGateS = double.NaN; }
         st.GfPendCost = st.GfPendS = double.NaN;
     }
-    /// <summary>(278) 符号 2 のうち代価が政治資本の最大量 b そのものを超える（在庫が空でも永久に届かない）＝段の法と連続の軸で同じ1つの定義。</summary>
+    /// <summary>(278) 符号 2 のうち代価が政治資本の最大量 b そのものを超える（その四半期の b では在庫が空〔満タン〕でも届かない・b と純支持は四半期ごとに動く）＝段の法と連続の軸で同じ1つの定義。</summary>
     static bool IsStructural(World w, int code, double cost) => code == 2 && cost > w.PoliticalCapitalMax;
     /// <summary>(278) 政治資本の代価の計算の直後（<c>MandateGate</c> の押し切りの枝・<c>Move</c> の押し切りの枝）＝払う前の目減り S を一緒に写す。</summary>
     internal static void Priced(World w, double cost) { var st = S(w); st.GfPendCost = cost; st.GfPendS = w.MandateSpent; }
@@ -1158,7 +1158,7 @@ public static class Instruments
         return cols;
     }
 
-    /// <summary>★(278) 線G2：政治資本の在庫の台帳と、符号 2（政治資本で固定）の分割。(274) の符号 2 は〈代価が最大量 b を超える＝在庫が空でも永久に届かない（構造）〉と〈代価は b 以内だが残り a＝max(0,b−S) が足りない（飢え）〉を混ぜていた。
+    /// <summary>★(278) 線G2：政治資本の在庫の台帳と、符号 2（政治資本で固定）の分割。(274) の符号 2 は〈代価が最大量 b を超える＝その四半期の b では在庫が空でも届かない（構造）〉と〈代価は b 以内だが残り a＝max(0,b−S) が足りない（飢え）〉を混ぜていた。
     /// 件数は符号 2 の戦線を代価＞b か否かで分ける（L＝段の法・連続＝税と支出の段 R・軍事費 M・治安維持力 C・関税 T）。和＝既存の <c>frontCapitalFixedCount</c>。
     /// 台帳：<c>politicalCapitalSpentAtLevelHead</c>（段の法のループの頭の目減り S）・<c>politicalCapitalMaxAtLevelHead</c>（最大量 b）・<c>politicalCapitalSpentAtStepEnd</c>（Step の末尾の S）。
     /// その四半期に払った額＝<c>levelLawPaidInQuarter</c>（段の法）・<c>ratePaidInQuarter</c>（R）・<c>militaryPaidInQuarter</c>（M）・<c>tariffPaidInQuarter</c>（T）・<c>securityPaidInQuarter</c>（C）・<c>continuousPaidInQuarter</c>（R+M+T+C）。

@@ -117,7 +117,7 @@ def metrics(S):
             n_susp += 1
         prev = og
     M['P3b_suspensions_Q1_Q40'] = n_susp
-    # (276) 借入の門（Q1〜Q8＝monthIndex 0〜23）と利払い÷歳入の最大。borrowGateOpenFlag の NaN（不足なし）は閉じたと数えない。
+    # (276) 借入の門（Q1〜Q8＝monthIndex 0〜23）と利払い÷歳入の最大。borrowGateOpenFlag の NaN＝その月に PreBorrow が来なかった（判定なし）＝閉じたと数えない。不足の有無は borrowBinder（noShortfall は別の値）で読む＝★(279) 反証役 v 低#3。⚠この旗は不足が無い月にも 0 になる（利払い÷歳入が門の線を超えた印）＝借入が実際に塞がれた月は borrowBinder＝gateClosed。
     gate_first = float('nan'); max_ir = float('nan')
     for r in fis:
         mi = int(r['monthIndex'])

@@ -1483,6 +1483,9 @@ public class InstrumentsTests
     /// <summary>
     /// ★(278) 線G2：符号 2 の分割の番人（後半＝手で組んだ盤面）。試合の途中の世界で、政治資本の目減り S を最大量 b ちょうどに置く（残り 0）＝反対を押し切る一歩は全て在庫で否決される（符号 2）。
     /// 期待は<b>別の実装</b>から決める：代価は <c>Government.GateInfo</c>（法律タブの照会）・最大量は <c>PoliticalQuantities.PoliticalCapitalMax</c>（Step の前に呼ぶ）。
+    /// ★(279) 反証役 g 中#1：<c>GateInfo</c> の在庫の門は World に置いた最大量（前の四半期の Step が置いた値）を読む＝b を Step の前に呼んだ値へ揃えてから照会する
+    /// （揃えないと場面 U／V で古い b が残り、代価が古い b−新しい b 以下の段の法が照会で在庫不足にならず、照合から落ちて同語反復の Assert だけが見る）。
+    /// 照合した段の法は場面×構造／飢えで数える（場面 T の飢えと構造・場面 U の構造・場面 V の構造の境の内側が1本以上）。
     /// 場面 T＝通常の b：代価が b 以内の段の法は「飢え」（構造でない）／場面 U＝係数 <c>MandateWeight</c> をほぼ 0 にして b をほぼ 0 へ：代価が b を超える＝「構造」。
     /// 場面 B＝政治資本が潤沢（S＝−1000）：台帳の恒等式を World の目減りの差（Step の前後）と突き合わせる。
     /// 何もしない番人は必ず緑になる＝場面 T に飢え・場面 U に構造が1本以上あったこと、場面 B に払いがあったことを数える。
@@ -1494,6 +1497,7 @@ public class InstrumentsTests
         try
         {
             int starvedT = 0, structuralT = 0, structuralU = 0, starvedU = 0, paidB = 0, compared = 0, borderline = 0;
+            var comparedBy = new Dictionary<(char Scene, bool Structural), int>();   // ★(279) 照合した段の法を場面×構造／飢えで数える
             foreach (char scene in new[] { 'T', 'U', 'V', 'B' })
             {
                 var sim = Make();
@@ -1503,6 +1507,7 @@ public class InstrumentsTests
                     var w = nation.World;
                     if (scene == 'U') w.Coef.MandateWeight = 1e-9;
                     double maxBefore = PoliticalQuantities.PoliticalCapitalMax(w);
+                    w.PoliticalCapitalMax = maxBefore;   // ★(279) 照会（GateInfo）が読む b を Step の前に呼んだ値へ揃える（Step も頭で同じ式で置き直す）
                     w.MandateSpent = scene == 'B' ? -1000.0 : maxBefore;
                     Dictionary<int, double> Expect()   // 表の行 → GateInfo の代価（在庫不足の行だけ）
                     {
@@ -1524,6 +1529,7 @@ public class InstrumentsTests
                     {   // 場面 V＝最も安い一歩の代価が b の 1.5 倍になるよう b を縮める（代価が b を超え 2b 以内＝構造の境の内側）。b は MandateWeight に比例
                         w.Coef.MandateWeight *= cmin / 1.5 / maxBefore;
                         maxBefore = PoliticalQuantities.PoliticalCapitalMax(w);
+                        w.PoliticalCapitalMax = maxBefore;   // ★(279) 同上（縮めた b を照会にも）
                         w.MandateSpent = maxBefore;
                         expect = Expect();
                     }
@@ -1553,10 +1559,15 @@ public class InstrumentsTests
                         Assert.Equal(wantCost > maxBefore, f.Structural);                          // 構造か飢えか＝別の実装の代価と、Step の前に呼んだ最大量の比
                         if (scene == 'V' && wantCost > maxBefore && wantCost <= 2 * maxBefore) borderline++;
                         compared++;
+                        comparedBy[(scene, f.Structural)] = comparedBy.GetValueOrDefault((scene, f.Structural)) + 1;
                     }
                 }
             }
             Assert.True(compared > 0, "突き合わせた段の法が1本も無い");
+            int By(char sc, bool st) => comparedBy.GetValueOrDefault((sc, st));
+            Assert.True(By('T', false) > 0 && By('T', true) > 0, $"場面 T の照合が空洞（飢え {By('T', false)}・構造 {By('T', true)}）");
+            Assert.True(By('U', true) > 0, $"場面 U の構造の照合が空洞（構造 {By('U', true)}・飢え {By('U', false)}）");
+            Assert.True(By('V', true) > 0, $"場面 V の構造の照合が空洞（構造 {By('V', true)}・飢え {By('V', false)}）");
             Assert.True(starvedT > 0, $"場面 T に飢え（代価≦b）の段の法が無い（構造 {structuralT}）＝飢えの側の突き合わせが空洞");
             Assert.True(structuralU > 0, $"場面 U に構造（代価＞b）の段の法が無い（飢え {starvedU}）＝構造の側の突き合わせが空洞");
             Assert.True(borderline > 0, "場面 V に代価が b を超え 2b 以内の段の法が無い＝構造の判定の境の突き合わせが空洞");
