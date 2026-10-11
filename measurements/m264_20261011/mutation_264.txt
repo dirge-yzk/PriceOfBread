@@ -1,0 +1,27 @@
+(264) 合流の回の番人の突然変異（写しの木で InstrumentsTests だけを回した・Release・隔離ビルド・2026-10-11）
+
+base（変更なし）：成功!   -失敗:     0、合格:     6、スキップ:     0、合計:     6、期間: 19 s - PriceOfBread.Tests.dll (net10.0)
+
+M1＝InternationalMarket.PaySales の2本目の Transfer へ routeFile/routeLine を渡さない（旧の経路名 InternationalMarket.cs に戻る）
+D:\PoB_work\merge264\tree_m_m1\PriceOfBread.Tests\UnitTypeTests.cs(67,13): warning xUnit2029: Do not use Assert.Empty to check if a value does not exist in a collection. Use Assert.DoesNotContain instead. (https://xunit.net/xunit.analyzers/rules/xUnit2029) [D:\PoB_work\merge264\tree_m_m1\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\merge264\tree_m_m1\PriceOfBread.Tests\UnitTypeTests.cs(67,13): warning xUnit2029: Do not use Assert.Empty to check if a value does not exist in a collection. Use Assert.DoesNotContain instead. (https://xunit.net/xunit.analyzers/rules/xUnit2029) [D:\PoB_work\merge264\tree_m_m1\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+[xUnit.net 00:00:14.81]     PriceOfBread.Tests.InstrumentsTests.貯蓄の書き手の台帳が階級の貯蓄の増減に閉じる [FAIL]
+   Assert.DoesNotContain() Failure: Filter matched in collection
+     at PriceOfBread.Tests.InstrumentsTests.貯蓄の書き手の台帳が階級の貯蓄の増減に閉じる() in D:\PoB_work\merge264\tree_m_m1\PriceOfBread.Tests\InstrumentsTests.cs:line 432
+失敗!   -失敗:     1、合格:     5、スキップ:     0、合計:     6、期間: 19 s - PriceOfBread.Tests.dll (net10.0)
+  （432 行＝新しい Assert.DoesNotContain〔InternationalMarket.cs の経路が出ない〕）
+
+M2＝SelfPlay の投げ売りの輪の目標を FindFactory の個体の棟数−1 から作る（取り違えを消す形）
+D:\PoB_work\merge264\tree_m_m2\PriceOfBread.Tests\UnitTypeTests.cs(67,13): warning xUnit2029: Do not use Assert.Empty to check if a value does not exist in a collection. Use Assert.DoesNotContain instead. (https://xunit.net/xunit.analyzers/rules/xUnit2029) [D:\PoB_work\merge264\tree_m_m2\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\merge264\tree_m_m2\PriceOfBread.Tests\UnitTypeTests.cs(67,13): warning xUnit2029: Do not use Assert.Empty to check if a value does not exist in a collection. Use Assert.DoesNotContain instead. (https://xunit.net/xunit.analyzers/rules/xUnit2029) [D:\PoB_work\merge264\tree_m_m2\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+[xUnit.net 00:00:12.83]     PriceOfBread.Tests.InstrumentsTests.投げ売りの輪と動詞の個体の食い違いの列が組んだ盤面を数える [FAIL]
+   Assert.Equal() Failure: Values differ
+Expected: 2
+Actual:   0
+     at PriceOfBread.Tests.InstrumentsTests.投げ売りの輪と動詞の個体の食い違いの列が組んだ盤面を数える() in D:\PoB_work\merge264\tree_m_m2\PriceOfBread.Tests\InstrumentsTests.cs:line 485
+失敗!   -失敗:     1、合格:     5、スキップ:     0、合計:     6、期間: 20 s - PriceOfBread.Tests.dll (net10.0)
+  （485 行＝新しい Assert.Equal(2, succ.StateTarget)）
+
+M2b＝M2 と同じ突然変異で、新しい2つの assert（succ.StateTarget＝2・old.StateTarget＝3）を外す＝(263) の番人の形（計器の列だけ）
+成功!   -失敗:     0、合格:     6、スキップ:     0、合計:     6、期間: 17 s - PriceOfBread.Tests.dll (net10.0)
+  ＝(263) の計器の列の assert だけでは SelfPlay の目標の式の変更を捕まえない（計器が式を写している＝反証役 v 中）・新しい assert が捕まえる

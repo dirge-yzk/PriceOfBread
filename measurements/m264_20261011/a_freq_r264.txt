@@ -1,0 +1,107 @@
+国×四半期の行数 414604 （種 10 ）
+fireSaleRunCount                     合計        2   国×四半期の数       2
+fireSaleSeenMismatchCount            合計        3   国×四半期の数       1
+fireSaleFiredCount                   合計        0   国×四半期の数       0
+fireSaleFiredMismatchCount           合計        0   国×四半期の数       0
+fireSaleFiredOverTargetCount         合計        0   国×四半期の数       0
+subsidyWriteMismatchCount            合計  1251704   国×四半期の数   61607
+stakeMismatchProducerCount           合計   125485   国×四半期の数    3335
+stakeMismatchToInvestedCount         合計   124665   国×四半期の数    2744
+stakeMismatchToUninvestedCount       合計      820   国×四半期の数     620
+subsidyWriteMismatchWantOffCount     合計        0   国×四半期の数       0
+staleSubsidyNotGrabbedCount          合計        0   国×四半期の数       0
+
+種ごと（国×四半期の数）
+1 {'fireSaleRunCount': 0, 'fireSaleSeenMismatchCount': 0, 'fireSaleFiredCount': 0, 'fireSaleFiredMismatchCount': 0, 'fireSaleFiredOverTargetCount': 0, 'subsidyWriteMismatchCount': 5955, 'stakeMismatchProducerCount': 486, 'stakeMismatchToInvestedCount': 486, 'stakeMismatchToUninvestedCount': 29, 'subsidyWriteMismatchWantOffCount': 0, 'staleSubsidyNotGrabbedCount': 0}
+2 {'fireSaleRunCount': 0, 'fireSaleSeenMismatchCount': 0, 'fireSaleFiredCount': 0, 'fireSaleFiredMismatchCount': 0, 'fireSaleFiredOverTargetCount': 0, 'subsidyWriteMismatchCount': 5297, 'stakeMismatchProducerCount': 520, 'stakeMismatchToInvestedCount': 520, 'stakeMismatchToUninvestedCount': 0, 'subsidyWriteMismatchWantOffCount': 0, 'staleSubsidyNotGrabbedCount': 0}
+3 {'fireSaleRunCount': 0, 'fireSaleSeenMismatchCount': 0, 'fireSaleFiredCount': 0, 'fireSaleFiredMismatchCount': 0, 'fireSaleFiredOverTargetCount': 0, 'subsidyWriteMismatchCount': 5793, 'stakeMismatchProducerCount': 0, 'stakeMismatchToInvestedCount': 0, 'stakeMismatchToUninvestedCount': 0, 'subsidyWriteMismatchWantOffCount': 0, 'staleSubsidyNotGrabbedCount': 0}
+4 {'fireSaleRunCount': 1, 'fireSaleSeenMismatchCount': 0, 'fireSaleFiredCount': 0, 'fireSaleFiredMismatchCount': 0, 'fireSaleFiredOverTargetCount': 0, 'subsidyWriteMismatchCount': 6631, 'stakeMismatchProducerCount': 365, 'stakeMismatchToInvestedCount': 365, 'stakeMismatchToUninvestedCount': 0, 'subsidyWriteMismatchWantOffCount': 0, 'staleSubsidyNotGrabbedCount': 0}
+5 {'fireSaleRunCount': 0, 'fireSaleSeenMismatchCount': 0, 'fireSaleFiredCount': 0, 'fireSaleFiredMismatchCount': 0, 'fireSaleFiredOverTargetCount': 0, 'subsidyWriteMismatchCount': 6932, 'stakeMismatchProducerCount': 0, 'stakeMismatchToInvestedCount': 0, 'stakeMismatchToUninvestedCount': 0, 'subsidyWriteMismatchWantOffCount': 0, 'staleSubsidyNotGrabbedCount': 0}
+6 {'fireSaleRunCount': 0, 'fireSaleSeenMismatchCount': 0, 'fireSaleFiredCount': 0, 'fireSaleFiredMismatchCount': 0, 'fireSaleFiredOverTargetCount': 0, 'subsidyWriteMismatchCount': 6303, 'stakeMismatchProducerCount': 387, 'stakeMismatchToInvestedCount': 387, 'stakeMismatchToUninvestedCount': 0, 'subsidyWriteMismatchWantOffCount': 0, 'staleSubsidyNotGrabbedCount': 0}
+7 {'fireSaleRunCount': 1, 'fireSaleSeenMismatchCount': 1, 'fireSaleFiredCount': 0, 'fireSaleFiredMismatchCount': 0, 'fireSaleFiredOverTargetCount': 0, 'subsidyWriteMismatchCount': 6648, 'stakeMismatchProducerCount': 1051, 'stakeMismatchToInvestedCount': 753, 'stakeMismatchToUninvestedCount': 298, 'subsidyWriteMismatchWantOffCount': 0, 'staleSubsidyNotGrabbedCount': 0}
+8 {'fireSaleRunCount': 0, 'fireSaleSeenMismatchCount': 0, 'fireSaleFiredCount': 0, 'fireSaleFiredMismatchCount': 0, 'fireSaleFiredOverTargetCount': 0, 'subsidyWriteMismatchCount': 5608, 'stakeMismatchProducerCount': 0, 'stakeMismatchToInvestedCount': 0, 'stakeMismatchToUninvestedCount': 0, 'subsidyWriteMismatchWantOffCount': 0, 'staleSubsidyNotGrabbedCount': 0}
+9 {'fireSaleRunCount': 0, 'fireSaleSeenMismatchCount': 0, 'fireSaleFiredCount': 0, 'fireSaleFiredMismatchCount': 0, 'fireSaleFiredOverTargetCount': 0, 'subsidyWriteMismatchCount': 6338, 'stakeMismatchProducerCount': 233, 'stakeMismatchToInvestedCount': 233, 'stakeMismatchToUninvestedCount': 0, 'subsidyWriteMismatchWantOffCount': 0, 'staleSubsidyNotGrabbedCount': 0}
+10 {'fireSaleRunCount': 0, 'fireSaleSeenMismatchCount': 0, 'fireSaleFiredCount': 0, 'fireSaleFiredMismatchCount': 0, 'fireSaleFiredOverTargetCount': 0, 'subsidyWriteMismatchCount': 6102, 'stakeMismatchProducerCount': 293, 'stakeMismatchToInvestedCount': 0, 'stakeMismatchToUninvestedCount': 293, 'subsidyWriteMismatchWantOffCount': 0, 'staleSubsidyNotGrabbedCount': 0}
+
+輪×財×(旧棟数→掴まれる個体の棟数/掴まれる個体の門/pr の門/向き)
+625852 ('補助', '小銃', '')
+625852 ('補助', '火砲', '')
+
+輪×国
+452984 ('補助', 'イギリス')
+165342 ('補助', '清')
+93272 ('補助', 'ロシア')
+66482 ('補助', 'オスマン')
+66108 ('補助', 'フランス')
+62390 ('補助', 'オーストリア')
+42754 ('補助', 'スペイン')
+35374 ('補助', 'アメリカ')
+32600 ('補助', 'マラータ同盟')
+19278 ('補助', '日本')
+15040 ('補助', 'ソコト')
+12700 ('補助', 'プロイセン')
+12508 ('補助', '両シチリア')
+11112 ('補助', '朝鮮')
+10120 ('補助', 'ポルトガル')
+9760 ('補助', 'ペルシャ')
+7706 ('補助', 'ハイデラバード')
+7554 ('補助', 'ポーランド')
+7132 ('補助', 'ネーデルラント')
+6442 ('補助', 'スウェーデン')
+6314 ('補助', 'サルデーニャ＝ピエモンテ')
+6278 ('補助', 'アルジェ摂政国')
+5334 ('補助', 'マイソール')
+5258 ('補助', 'デンマーク')
+5214 ('補助', 'アワド')
+5212 ('補助', 'アフガニスタン')
+4772 ('補助', '西山朝')
+4598 ('補助', 'モロッコ')
+4174 ('補助', '教皇領')
+4126 ('補助', 'ライン諸邦')
+
+(264) 四半期の末に持分が食い違う財×(状態・棟数は N)
+123884 ('電力', '開N→投資済N')
+820 ('ゴム', '閉N→未投資N')
+781 ('電力', '閉N→投資済N')
+
+例
+(1, 'ダホメ王国', 7, '補助:小銃')
+(1, 'ダホメ王国', 7, '補助:火砲')
+(1, '立憲王政ダホメ', 7, '補助:小銃')
+(1, '立憲王政ダホメ', 7, '補助:火砲')
+(1, 'ダホメ王国', 8, '補助:小銃')
+(1, 'ダホメ王国', 8, '補助:火砲')
+(1, '立憲王政ダホメ', 8, '補助:小銃')
+(1, '立憲王政ダホメ', 8, '補助:火砲')
+(1, 'フランス', 9, '補助:小銃')
+(1, 'フランス', 9, '補助:火砲')
+(1, 'フランス', 9, '補助:小銃')
+(1, 'フランス', 9, '補助:火砲')
+(1, 'フランス', 9, '補助:小銃')
+(1, 'フランス', 9, '補助:火砲')
+(1, 'フランス', 9, '補助:小銃')
+(1, 'フランス', 9, '補助:火砲')
+(1, 'フランス', 9, '補助:小銃')
+(1, 'フランス', 9, '補助:火砲')
+(1, 'フランス', 9, '補助:小銃')
+(1, 'フランス', 9, '補助:火砲')
+(1, 'フランス', 9, '補助:小銃')
+(1, 'フランス', 9, '補助:火砲')
+(1, 'フランス', 9, '補助:小銃')
+(1, 'フランス', 9, '補助:火砲')
+(1, 'フランス', 9, '補助:小銃')
+(1, 'フランス', 9, '補助:火砲')
+(1, 'フランス', 9, '補助:小銃')
+(1, 'フランス', 9, '補助:火砲')
+(1, 'フランス', 9, '補助:小銃')
+(1, 'フランス', 9, '補助:火砲')
+(1, 'フランス', 9, '補助:小銃')
+(1, 'フランス', 9, '補助:火砲')
+(1, 'フランス', 9, '補助:小銃')
+(1, 'フランス', 9, '補助:火砲')
+(1, 'イギリス', 9, '補助:小銃')
+(1, 'イギリス', 9, '補助:火砲')
+(1, 'イギリス', 9, '補助:小銃')
+(1, 'イギリス', 9, '補助:火砲')
+(1, 'イギリス', 9, '補助:小銃')
+(1, 'イギリス', 9, '補助:火砲')
