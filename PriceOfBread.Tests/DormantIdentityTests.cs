@@ -176,7 +176,7 @@ public class DormantIdentityTests
         "InterestCapitalization", "LoanSpreadPerYear",
         "MigrationFarePerkKm",
         "ModernizationToHigherEdu", "NationalismFromConsciousness",
-        "NavalFuelPerGauge", "NewbornLiteracyDilution", "NobleInvests",
+        "NavalFuelPerGauge", "NewbornLiteracyDilution",
         "PettyInterestGate", "PolicyRateLoanWeight",
         "PreemptiveSeizeWeight", "PromotionGateHigherEdu", "ReactionFromLoss",
         "ResearchBaseRefPop", "ResearchScaleWeight",
@@ -191,6 +191,7 @@ public class DormantIdentityTests
     /// <summary>★休眠の棚卸し（2026-10-11 (253)・measurements/dormant_20261011.tsv の行き先「消す」）で削除した係数の名簿＝**再び入れたら赤**。
     /// 期待値の出所は measurements/dormant_20261011.tsv の「消す（済み）」の行を手で写した名簿であって Coefficients ではない（同語反復にしない・tsv を読みはしない）。消した理由は各名前の注記。
     /// ★(254) 反証役 vz#1：CohortGateK・EnclosureRate・OpulenceInfraChannel・RuralPromotionRate の削除は担当の推奨（作者の承認は未確認）＝作者の 2026-09-21 の言葉は「生きた一覧の矛盾は棄却側で閉じる」（一覧の付け方）で削除の指示ではない・再測は git の履歴から。
+    /// ★(255)：NobleInvests（貴族も投資家に含める述語の開閉・2026-08-14 差し戻し）を足した＝消す前の恒等は帯3本の全行バイト一致で示した（(255)）。
     /// 消す前の恒等は帯3本の全行バイト一致で示した（(253)）。復活させたいときは、この名簿から外す前に tsv と docs の裁定を読むこと。</summary>
     private static readonly string[] RetiredFields =
     [
@@ -200,6 +201,7 @@ public class DormantIdentityTests
         "RuralPromotionRate",         // 農村の直行便＝2026-08-16 差し戻し（exact−7・棚卸し dorm-16）・削除は担当の推奨（作者の承認は未確認）
         "OpulenceInfraChannel",       // 支出反射のインフラ拡張＝2026-08-08 同時点火で硬性赤・08-08 は「単独再測定可能な形で温存」＝削除は棚卸し dorm-51（AI の推奨）に従った担当の推奨（作者の承認は未確認）
         "MilitaryBuildCostCapScale",  // 軍需の身の丈ゲート倍率＝armscap 単独で基線とビット同一（実装ログ 2026-09-07）
+        "NobleInvests",               // 貴族も投資家に含める述語の開閉＝2026-08-14 差し戻し（rentier 診断が二重に不成立・実効果は資金量＝清抑制の較正地雷）・棚卸し dorm-51・(255) で CapitalMarket.IsInvestor の引数 c ごと削除
         "CorruptionCoreV2",           // 汚職V2の点火の記録＝読み手0（2026-08-16 C2-C5 で旧式の分岐を撤去した後は係数だけが残っていた）
     ];
 

@@ -11,6 +11,8 @@
 /// （艦隊のゲージ・技術水準・鉄道の容量・工場の蒸気動力の割合・いま交戦中か）も出る。</item>
 /// <item><c>nation_s&lt;seed&gt;.tsv</c> 国×四半期（全ての国・死んだ国も）：人口・兵士・名目GDP・交戦と内戦の月の数・徴兵法・総動員・安全保障の不安の割合・州の格の数・台帳の累計（借入・切り下げ・陸・海）・国債・
 /// 貿易（清算1回分の輸出と輸入）。史実比較の桁の読み手（NG の読み手の入力 11 種）の入力＝旧の注入（scripts/instruments の inj_*.py）の代わり。</item>
+/// <item><c>region_s&lt;seed&gt;.tsv</c> 州×四半期（全ての国の全ての州）：人口・農村人口・機会とその因子・耕地・四半期の人口の流れ（州の間の移民・入植・越境の出入り）・戦場の強さ・主食の充足。
+/// <c>migration_s&lt;seed&gt;.tsv</c> 州の間の移民の組（出る州→入る州）の四半期の量。州の空洞化（F1 の線）の読み手 <c>hol/an_h2.py</c> の入力＝旧の注入 <c>u4e/inj_ghost.py</c> の代わり。</item>
 /// <item><c>wars_s&lt;seed&gt;.tsv</c> 戦争1本ごと（開戦の年・内戦か・当事者・月数・戦死）／<c>casualty_s&lt;seed&gt;.tsv</c> (年, 国)ごとの兵士の月と戦死（試合の終わりに書く）。</item>
 /// </list>
 /// 開幕（構築直後 <c>open</c>）と助走の直後（<c>warm</c>）の断面は class と stock に全ての国で出る。初期値の一覧は Runner の <c>initdump</c>。
@@ -71,8 +73,8 @@ public static class Instruments
 
     sealed class Sink
     {
-        public System.IO.StreamWriter? Fiscal, Class, Stock, Nation;
-        public bool FiscalHeader, ClassHeader, StockHeader, NationHeader;
+        public System.IO.StreamWriter? Fiscal, Class, Stock, Nation, Region, Migration;
+        public bool FiscalHeader, ClassHeader, StockHeader, NationHeader, RegionHeader;
         public ulong Seed;   // 試合の終わり（Close）に戦争の表を書くときのファイル名
     }
     /// <summary>外交の記録（戦争の始まりと戦死の月ごとの和）。外交は MultiNationSim に1つ＝世界ごとの状態（<see cref="WState"/>）とは別に持つ。</summary>
@@ -273,6 +275,7 @@ public static class Instruments
             NationRow(sk, seed, q, i, w, st, yearEnd);
             Array.Clear(st.ClsEarn); Array.Clear(st.ClsPaid); st.ClsMonths = 0; st.WarMonths = 0; st.CivilWarMonths = 0;
         }
+        RegionRows(sk, seed, q, sim);
     }
 
     /// <summary>試合の終わり（例外の経路も）：書き出しを閉じる。</summary>
@@ -280,7 +283,85 @@ public static class Instruments
     {
         if (!Sinks.TryGetValue(sim, out var sk)) return;
         if (Dips.TryGetValue(sim.Diplomacy, out var dip)) WarTables(sk, dip);
-        sk.Fiscal?.Dispose(); sk.Class?.Dispose(); sk.Stock?.Dispose(); sk.Nation?.Dispose(); sk.Fiscal = sk.Class = sk.Stock = sk.Nation = null;
+        sk.Fiscal?.Dispose(); sk.Class?.Dispose(); sk.Stock?.Dispose(); sk.Nation?.Dispose(); sk.Region?.Dispose(); sk.Migration?.Dispose(); sk.Fiscal = sk.Class = sk.Stock = sk.Nation = sk.Region = sk.Migration = null;
+    }
+
+    // ---------------------------------------------------------------- 州の人口と移動（州の空洞化の計器・(255)）----------------------------------------------------------------
+
+    /// <summary>州ごとの四半期の人口の流れ（千人）。四半期の末に <c>region</c> と <c>migration</c> の行へ書いて0へ戻す。</summary>
+    sealed class RegionFlow
+    {
+        public double MigrationOutK, MigrationInK, SettlerInK, CrossBorderOutK, CrossBorderInK;
+        public Dictionary<Region, double>? MigrationTo;   // 出る州→入る州ごとの量（四半期の合計・州の間の移民だけ）
+    }
+    static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Region, RegionFlow> Flows = new();
+    static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Pop, double[]> SettlerOut = new();   // 入植で本国の pop から出た量（四半期の合計）＝出た pop が居る州の行に書く
+    static RegionFlow FlowOf(Region r) => Flows.GetValue(r, _ => new RegionFlow());
+
+    /// <summary>州の間の移民（<c>Territory.MoveRegion</c> の運搬の直後・読むだけ）。</summary>
+    internal static void Migrated(Region src, Region dst, double sizeK)
+    {
+        var f = FlowOf(src); f.MigrationOutK += sizeK; FlowOf(dst).MigrationInK += sizeK;
+        var to = f.MigrationTo ??= new();
+        to[dst] = to.GetValueOrDefault(dst) + sizeK;
+    }
+    /// <summary>入植（本国の pop → 植民地格の州・<c>Colonial</c> の運搬の直後・読むだけ）。</summary>
+    internal static void Settled(Pop from, Region dst, double sizeK)
+    {
+        SettlerOut.GetValue(from, _ => new double[1])[0] += sizeK; FlowOf(dst).SettlerInK += sizeK;
+    }
+    /// <summary>越境の移民（<c>MultiNationSim.MoveMigrants</c> の運搬の前・決まった人数 flow・読むだけ）。</summary>
+    internal static void CrossBorder(Region src, Region dst, double flowK)
+    {
+        FlowOf(src).CrossBorderOutK += flowK; FlowOf(dst).CrossBorderInK += flowK;
+    }
+
+    /// <summary>州ごとの行（<c>region</c>＝全ての国の全ての州・四半期の末）と州の間の移民の組（<c>migration</c>＝出る州→入る州の量）。州の空洞化（F1 の線）の読み手 <c>scripts/instruments/hol/an_h2.py</c> が読む。
+    /// 機会の因子（賃金・雇用・押し出し・住居）は旧の注入（<c>u4e/inj_ghost.py</c>）の定義のまま＝雇用は兵士を含む全 pop の失業・押し出しの不穏は全 pop の闘争度の人口加重で、
+    /// 実際の機会（<see cref="Territory.Opportunity"/>＝兵士を除く・<c>Politics.AvgRegionMilitancy</c>）とは違う＝因子の積は <c>opportunityIndex</c> と一致しない（機会そのものは本物）。</summary>
+    static void RegionRows(Sink sk, ulong seed, int q, MultiNationSim sim)
+    {
+        sk.Region ??= Open("region", seed);
+        sk.Migration ??= Open("migration", seed);
+        if (!sk.RegionHeader)
+        {
+            sk.Region.WriteLine("quarter\tyear\tnationIndex\tnation\tregion\ttier\tactiveFlag\tpopulationK\truralPopulationK\topportunityIndex\tholdingFactor\twageFactor\tlandFactor\temploymentShare\tpushFactor\thousingFactor\twagePremium\tarableLand\t"
+                + "migrationOutKPerQuarter\tmigrationInKPerQuarter\tsettlerOutKPerQuarter\tsettlerInKPerQuarter\tcrossBorderOutKPerQuarter\tcrossBorderInKPerQuarter\twarIntensity\tfoodFillShare");
+            sk.Migration.WriteLine("quarter\tfromRegion\ttoRegion\tmovedKPerQuarter");
+            sk.RegionHeader = true;
+        }
+        string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        int year = sim.Nations[0].World.Year;
+        for (int i = 0; i < sim.Nations.Count; i++)
+        {
+            var w = sim.Nations[i].World; var c = w.Coef; string nation = NameOf(w);
+            foreach (var r in w.Regions)
+            {
+                double pop = 0, rural = 0, unemp = 0, unrest = 0, foodMet = 0, foodNeed = 0, settlerOut = 0;
+                foreach (var p in r.Pops)
+                {
+                    pop += p.Size; if (!p.IsUrban) rural += p.Size;
+                    unemp += p.Size * p.UnemploymentRate; unrest += p.Size * p.Militancy; foodMet += p.FoodMet; foodNeed += p.FoodNeed;
+                    if (SettlerOut.TryGetValue(p, out var po)) { settlerOut += po[0]; po[0] = 0; }
+                }
+                bool active = r.State == RegionState.Active;
+                double floor = Territory.OpportunityFactorFloor;
+                double wage = Math.Max(floor, 1.0 + c.OpportunityWageWeight * (r.WagePremium - 1.0));
+                double emp = pop >= 1.0 ? 1.0 - unemp / pop : 1.0;
+                double push = pop >= 1.0 ? Math.Max(floor, 1.0 - c.PushUnrestWeight * (unrest / pop) - c.CrimePushWeight * r.CrimeRate) : 1.0;
+                double hous = pop >= 1.0 ? Math.Max(floor, 1.0 - c.HousingMigrationFriction * (1.0 - r.HousingFill)) : 1.0;
+                var f = FlowOf(r);
+                sk.Region.WriteLine(string.Join('\t', I(q), I(year), I(i), nation, r.Name, r.Tier.ToString(), active ? "1" : "0", F(pop), F(rural),
+                    F(active ? Territory.Opportunity(r, c) : double.NaN), F(Territory.Holding(r, c)), F(wage), F(Territory.LandFactor(r, rural, c)), F(emp), F(push), F(hous), F(r.WagePremium), F(r.ArableLand),
+                    F(f.MigrationOutK), F(f.MigrationInK), F(settlerOut), F(f.SettlerInK), F(f.CrossBorderOutK), F(f.CrossBorderInK), F(r.LastWarIntensity), F(foodNeed > 0 ? foodMet / foodNeed : 1)));
+                if (f.MigrationTo is { } to)
+                {
+                    foreach (var kv in to) if (kv.Value > 0) sk.Migration.WriteLine(string.Join('\t', I(q), r.Name, kv.Key.Name, F(kv.Value)));
+                    to.Clear();
+                }
+                f.MigrationOutK = f.MigrationInK = f.SettlerInK = f.CrossBorderOutK = f.CrossBorderInK = 0;
+            }
+        }
     }
 
     /// <summary>戦争1本ごと（<c>wars</c>）と(年, 国)ごとの戦死（<c>casualty</c>）。戦争の戦死と月数は試合の終わりの値（戦争が続いていればその時点まで）。</summary>

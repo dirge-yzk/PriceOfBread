@@ -274,6 +274,7 @@ public static class Colonial
                         if (!(f > 1e-12)) continue;
                         if (cr.PopOf(p.ClassId) is not { } dp) continue;   // 移る先の同じ階級の POP の探し方の1本（段4e I）
                         Territory.MoveBetweenRegions(p, dp, f, c);
+                        if (Instruments.On) Instruments.Settled(p, cr, f);   // 計器（読むだけ）
                         moved += f;
                     }
                     srcMassR -= moved;

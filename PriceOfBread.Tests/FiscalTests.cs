@@ -178,14 +178,14 @@ public class FiscalTests
         double domestic = b.GovDebt.Value - b.ForeignDebt.Value;
         Assert.True(domestic > 0, "前提が崩れた：起債が立っていない");
         double tol = 1e-9 * domestic;
-        double invSav = 0; foreach (var p in tp) if (CapitalMarket.IsInvestor(p, t.Coef)) invSav += Math.Max(0, p.Savings.Value);
+        double invSav = 0; foreach (var p in tp) if (CapitalMarket.IsInvestor(p)) invSav += Math.Max(0, p.Savings.Value);
         var paid = new double[bp.Count];
         double minPerHead = double.MaxValue, maxPerHead = 0;
         for (int i = 0; i < bp.Count; i++)
         {
             paid[i] = tp[i].Savings.Value - bp[i].Savings.Value;   // 双子の差＝このPOPが国債に払った額
             Assert.True(Math.Abs(bp[i].BondHoldings.Value - paid[i]) <= tol, $"{bp[i].ClassName}：保有 {bp[i].BondHoldings} ≠ 払った額 {paid[i]}");
-            double expect = CapitalMarket.IsInvestor(tp[i], t.Coef) ? domestic * Math.Max(0, tp[i].Savings.Value) / invSav : 0;
+            double expect = CapitalMarket.IsInvestor(tp[i]) ? domestic * Math.Max(0, tp[i].Savings.Value) / invSav : 0;
             Assert.True(Math.Abs(bp[i].BondHoldings.Value - expect) <= tol, $"{bp[i].ClassName}：保有 {bp[i].BondHoldings} が貯蓄比 {expect} でない");
             if (paid[i] > tol && bp[i].Size > 0) { minPerHead = Math.Min(minPerHead, paid[i] / bp[i].Size); maxPerHead = Math.Max(maxPerHead, paid[i] / bp[i].Size); }
         }
@@ -259,7 +259,7 @@ public class FiscalTests
         double drafted = sz0 - r0b.Pops[k].Size;
         Assert.True(drafted > 0, "前提が崩れた：徴兵が起きていない");
         Assert.True(Math.Abs(r0b.Pops[s].BondHoldings.Value - h0 * drafted / sz0) <= 1e-9 * h0, "徴兵で保有が1人あたりで運ばれていない");
-        Assert.False(CapitalMarket.IsInvestor(r0b.Pops[s], b.Coef));
+        Assert.False(CapitalMarket.IsInvestor(r0b.Pops[s]));
         new BondLedger().Check(b);
 
         // 2か月目：既定の減債率で部分償還＋利払い。受け取り（双子の差の増分）も保有の減り方も保有比例。
@@ -314,7 +314,7 @@ public class FiscalTests
         double H = HeldOf(y);
         Assert.True(H > 0, "前提が崩れた：持ち手がいない");
         var ypops = AllPopsOf(y); var xpops = AllPopsOf(x);
-        int j = ypops.FindIndex(p => !p.IsSoldier && !CapitalMarket.IsInvestor(p, y.Coef));
+        int j = ypops.FindIndex(p => !p.IsSoldier && !CapitalMarket.IsInvestor(p));
         foreach (var p in ypops) p.BondHoldings = new MoneyStock(0);
         ypops[j].BondHoldings = new MoneyStock(H);
         foreach (var p in AllPopsOf(z)) p.BondHoldings = new MoneyStock(0);
@@ -623,13 +623,13 @@ public class FiscalTests
         var all = new[] { br, fr, pr };
         var fpops = new List<Pop>(); foreach (var r in fr.Regions) fpops.AddRange(r.Pops);
         double inv0 = 0; int nOther = 0;
-        foreach (var p in fpops) { if (CapitalMarket.IsInvestor(p, fr.Coef)) inv0 += Math.Max(0, p.Savings.Value); else if (p.Savings.Value > 0) nOther++; }
+        foreach (var p in fpops) { if (CapitalMarket.IsInvestor(p)) inv0 += Math.Max(0, p.Savings.Value); else if (p.Savings.Value > 0) nOther++; }
         Assert.True(inv0 > 0, "前提が崩れた：仏に投資家の貯蓄が無い");
         Assert.True(nOther > 0, "前提が崩れた：仏に貯蓄を持つ投資家でない人がいない");
         double claim = 1000 * inv0;
         fr.ForeignCapitalIn += claim; br.CapitalAbroad += claim;
         Assert.True(fr.ForeignCapitalIn * coef.CapitalDividendRate > inv0, "前提が崩れた：配当が投資家の貯蓄に収まる（不足が起きない）");
-        var other0 = fpops.Select(p => CapitalMarket.IsInvestor(p, fr.Coef) ? double.NaN : p.Savings.Value).ToArray();
+        var other0 = fpops.Select(p => CapitalMarket.IsInvestor(p) ? double.NaN : p.Savings.Value).ToArray();
         var guards = Array.ConvertAll(all, w => new MoneyConservation(w));
         double world0 = WorldBase(all), mint0 = MintedAndFiat(all), base0 = fr.BaseMoney.Value, fci0 = fr.ForeignCapitalIn;
         var fcis0 = Array.ConvertAll(all, w => w.ForeignCapitalIn);
@@ -1168,7 +1168,7 @@ public class FiscalTests
         sim.Diplomacy.Log.Enabled = false;
         sim.StepQuarter();
         var c = new Coefficients { CapitalExportFrac = 1e6, CapitalDemandScale = 1e6 };   // 送り手の供給も受け手の需要も投資家の貯蓄より桁違いに大きい＝送り手の貯蓄で切られる
-        static double Held(World w) { double s = 0; foreach (var r in w.Regions) foreach (var p in r.Pops) if (CapitalMarket.IsInvestor(p, w.Coef)) s += Math.Max(0, p.Savings.Value); return s; }
+        static double Held(World w) { double s = 0; foreach (var r in w.Regions) foreach (var p in r.Pops) if (CapitalMarket.IsInvestor(p)) s += Math.Max(0, p.Savings.Value); return s; }
         double tf0 = 0, bm0 = 0, inv0 = 0;
         var held0 = new double[sim.Nations.Count];
         for (int i = 0; i < sim.Nations.Count; i++)
@@ -1202,7 +1202,7 @@ public class FiscalTests
         sim.Diplomacy.Log.Enabled = false;
         return sim;
     }
-    private static double NonInvestorSavings(World w) { double s = 0; foreach (var r in w.Regions) foreach (var p in r.Pops) if (!CapitalMarket.IsInvestor(p, w.Coef)) s += p.Savings.Value; return s; }
+    private static double NonInvestorSavings(World w) { double s = 0; foreach (var r in w.Regions) foreach (var p in r.Pops) if (!CapitalMarket.IsInvestor(p)) s += p.Savings.Value; return s; }
 
     /// <summary>★国境をまたぐ払いは為替で換算する（移し方の1本 World.Transfer・段3-3）：払い手は自国の通貨で X、受け手はその金の値打ちを自国の通貨で受け取る
     /// （×払い手の為替÷受け手の為替）。差は為替の換算の台帳（Diplomacy.CumulativeFxResidual）へ＝世界の名目の動き＝台帳の動き・国ごとの保存は各自の通貨で閉じる。

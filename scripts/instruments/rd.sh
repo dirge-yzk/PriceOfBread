@@ -6,7 +6,7 @@ export PYTHONUTF8=1
 SP="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 O=$1; T=$2; R="${POB_WORK:?POB_WORK を指定}/rd"; mkdir -p $R
 python $SP/s3a/an_band.py $O/s3a > $R/band_$T.txt 2>&1
-python $SP/hol/an_h2.py $O/ghost -v4 > $R/hol_$T.txt 2>&1
+python $SP/hol/an_h2.py $O/ins -v4 > $R/hol_$T.txt 2>&1   # (255) 州の空洞化＝標準の計器の region_s／migration_s（INS=1 の run が <出力>/ins に出す）
 python $SP/need159/an_q11d.py $O/disc $T > $R/q11_$T.txt 2>&1
 python $SP/m160/an_need.py $O/need > $R/need_$T.txt 2>&1
 python $SP/m170/an_mil170.py $T=$O/hist > $R/mil_$T.txt 2>&1
@@ -52,7 +52,6 @@ python $SP/m205/an_fx205.py $O/fx205 $T > $R/fx205_$T.txt 2>&1; echo "fx205_$T.t
 python $SP/m205/an_gold205.py $O > $R/gold205_$T.txt 2>&1; echo "gold205_$T.txt $(wc -l < $R/gold205_$T.txt)"
 python $SP/m205/an_frt205.py $O > $R/frt205_$T.txt 2>&1; echo "frt205_$T.txt $(wc -l < $R/frt205_$T.txt)"
 python $SP/m205/an_span205.py $O > $R/span205_$T.txt 2>&1; echo "span205_$T.txt $(wc -l < $R/span205_$T.txt)"
-python $SP/m205/an_spain205.py $O > $R/spain205_$T.txt 2>&1; echo "spain205_$T.txt $(wc -l < $R/spain205_$T.txt)"
 python $SP/m206/an_c206.py $O/c206 $T > $R/c206_$T.txt 2>&1; echo "c206_$T.txt $(wc -l < $R/c206_$T.txt)"
 python $SP/m208/an_s208.py $O/s208 $T > $R/s208_$T.txt 2>&1; echo "s208_$T.txt $(wc -l < $R/s208_$T.txt)"
 python $SP/m208/an_ind208.py $O/s208 $T > $R/ind208_$T.txt 2>&1; echo "ind208_$T.txt $(wc -l < $R/ind208_$T.txt)"

@@ -1745,6 +1745,7 @@ public sealed class MultiNationSim
         var dp = dstR.PopOf(cls);
         if (sp is null || dp is null || !(sp.Size >= 1e-9)) return;   // ★否定形＝NaN の Size も弾く
         if (!(flow > 1e-9)) return;   // ★否定形＝NaN の流量を弾く（旧は NaN 素通しで Size/Savings を直接汚染した）
+        if (Instruments.On) Instruments.CrossBorder(srcR, dstR, flow);   // 計器（読むだけ）
         double moved = MoveAbroad(src, dst, sp, dp, flow, fare);
         if (!(moved > 0)) return;
         src.LastEmigration += moved; dst.LastImmigration += moved;           // 診断（UI）：越境の流出/流入

@@ -177,4 +177,59 @@ public class InstrumentsTests
         }
         finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
     }
+
+    /// <summary>
+    /// 州の人口と移動の表（2026-10-11 (255)・旧の注入 u4e/inj_ghost.py の R／M 行の代わり＝州の空洞化の読み手 hol/an_h2.py の入力）の番人。
+    /// 期待値は計器の別の経路から作る：①(四半期, 国, 州) が1行ずつ ②各四半期で 州の間の移民の出の和＝入の和＝移民の組の表の和・入植の出の和＝入の和・越境の出の和＝入の和
+    /// （片方の写しが漏れると崩れる）③活きた州の人口の和が国×四半期の表（NationRow＝別の走査）の人口と合う ④負の量が無い。
+    /// 何もしない番人は必ず緑になる＝州の間の移民が実際に起きた（対照）ことを数える。入植と越境は4国の40四半期では起きなくてもよい＝起きた分だけ上の等式が効く。
+    /// </summary>
+    [Fact]
+    public void 州の人口と移動の表が揃い流れの出と入が合う()
+    {
+        string dir = NewDir();
+        try
+        {
+            Instruments.Configure(dir, null);
+            try { RunMatch(Make(), 40, instr: true); }
+            finally { Instruments.Configure(null, null); }
+
+            var (rh, rr) = Table(System.IO.Path.Combine(dir, "region_s1789.tsv"));
+            Assert.All(rr, r => Assert.Equal(rh.Length, r.Length));
+            int iq = Array.IndexOf(rh, "quarter"), ix = Array.IndexOf(rh, "nationIndex"), ig = Array.IndexOf(rh, "region");
+            Assert.Equal(rr.Count, rr.Select(r => (r[iq], r[ix], r[ig])).Distinct().Count());
+            Assert.Equal(40, rr.Select(r => r[iq]).Distinct().Count());
+
+            var (mh, mr) = Table(System.IO.Path.Combine(dir, "migration_s1789.tsv"));
+            var pairSum = mr.GroupBy(r => r[Array.IndexOf(mh, "quarter")]).ToDictionary(g => g.Key, g => g.Sum(r => Col(mh, r, "movedKPerQuarter")));
+            double totalMoved = 0, totalSettled = 0, totalCross = 0;
+            foreach (var g in rr.GroupBy(r => r[iq]))
+            {
+                double Sum(string c) => g.Sum(r => Col(rh, r, c));
+                double tol(double x) => 1e-9 * Math.Max(1, Math.Abs(x));
+                double mo = Sum("migrationOutKPerQuarter"), mi = Sum("migrationInKPerQuarter");
+                Assert.InRange(mo - mi, -tol(mo), tol(mo));
+                double pm = pairSum.GetValueOrDefault(g.Key);
+                Assert.InRange(mo - pm, -tol(mo), tol(mo));
+                double so = Sum("settlerOutKPerQuarter"), si = Sum("settlerInKPerQuarter");
+                Assert.InRange(so - si, -tol(so), tol(so));
+                double xo = Sum("crossBorderOutKPerQuarter"), xi = Sum("crossBorderInKPerQuarter");
+                Assert.InRange(xo - xi, -tol(xo), tol(xo));
+                totalMoved += mo; totalSettled += so; totalCross += xo;
+                Assert.All(g, r => { foreach (var c in new[] { "populationK", "ruralPopulationK", "migrationOutKPerQuarter", "migrationInKPerQuarter", "settlerOutKPerQuarter", "settlerInKPerQuarter", "crossBorderOutKPerQuarter", "crossBorderInKPerQuarter" }) Assert.True(Col(rh, r, c) >= 0, c); });
+            }
+            Assert.True(totalMoved > 0, "州の間の移民が1件も写っていない（写しの漏れか、盤面で移民が起きていない）");
+            _ = totalSettled; _ = totalCross;
+
+            var (nh, nr) = Table(System.IO.Path.Combine(dir, "nation_s1789.tsv"));
+            var natPop = nr.ToDictionary(r => (r[Array.IndexOf(nh, "quarter")], r[Array.IndexOf(nh, "nationIndex")]), r => Col(nh, r, "populationK"));
+            foreach (var g in rr.GroupBy(r => (r[iq], r[ix])))
+            {
+                double act = g.Where(r => Col(rh, r, "activeFlag") == 1).Sum(r => Col(rh, r, "populationK"));
+                double expect = natPop[g.Key];
+                Assert.InRange(act - expect, -1e-9 * Math.Max(1, expect), 1e-9 * Math.Max(1, expect));
+            }
+        }
+        finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
 }

@@ -149,9 +149,9 @@ edit('PriceOfBread.SimCore/Politics.cs', [
      '            if (GhostDiag.On) foreach (var r3 in go) { var ga = GhostDiag.A(r3); GhostDiag.Secede(w, r3, ga[6], ga[7]); }\n            foreach (var r3 in go) w.LogAdd('),
 ])
 edit('PriceOfBread.SimCore/SelfPlay.cs', [
-    ('        var s3aM = S3aDiag.On ? new S3aDiag.Match(seed) : null;\n',
-     '        var s3aM = S3aDiag.On ? new S3aDiag.Match(seed) : null;\n        var ghM = GhostDiag.On ? new GhostDiag.Match(seed) : null; GhostDiag.Cur = ghM;\n'),
-    ('                s3aM?.Quarter(sim, q, quarters);\n',
-     '                s3aM?.Quarter(sim, q, quarters);\n                ghM?.Quarter(sim, q, quarters);\n'),
+    ('        sim.StartWarmup();\n',
+     '        sim.StartWarmup();\n        var ghM = GhostDiag.On ? new GhostDiag.Match(seed) : null; GhostDiag.Cur = ghM;\n'),
+    ('                if (Instruments.On) Instruments.Quarter(sim, seed, q);   // 計器（読むだけ）\n',
+     '                if (Instruments.On) Instruments.Quarter(sim, seed, q);   // 計器（読むだけ）\n                ghM?.Quarter(sim, q, quarters);\n'),
 ])
 print('ok', root)
