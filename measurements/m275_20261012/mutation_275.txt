@@ -1,0 +1,12 @@
+# 旧の番人③（場面 A・B だけ・合わせた木の写し）に対する LevelResult の突然変異
+M4a =>   失敗 PriceOfBread.Tests.InstrumentsTests.段の法の固定の理由が法律タブの照会と合う [6 s] 失敗!   -失敗:     1、合格:     2、スキップ:     0、合計:     3、期間: 14 s - PriceOfBread.Tests.dll (net10.0) 
+M4b =>   失敗 PriceOfBread.Tests.InstrumentsTests.段の法の固定の理由が法律タブの照会と合う [7 s] 失敗!   -失敗:     1、合格:     2、スキップ:     0、合計:     3、期間: 13 s - PriceOfBread.Tests.dll (net10.0) 
+MUT-DONE1 03:18:59
+M4c =>   失敗 PriceOfBread.Tests.InstrumentsTests.段の法の固定の理由が法律タブの照会と合う [6 s] 失敗!   -失敗:     1、合格:     2、スキップ:     0、合計:     3、期間: 12 s - PriceOfBread.Tests.dll (net10.0) 
+MUT-DONE-old 03:19:48
+# 新しい番人③（場面 C を足した・none＝突然変異なしで緑であること）
+none => 成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 17 s - PriceOfBread.Tests.dll (net10.0) 
+M4a =>   失敗 PriceOfBread.Tests.InstrumentsTests.段の法の固定の理由が法律タブの照会と合う [7 s] 失敗!   -失敗:     1、合格:     2、スキップ:     0、合計:     3、期間: 13 s - PriceOfBread.Tests.dll (net10.0) 
+M4b =>   失敗 PriceOfBread.Tests.InstrumentsTests.段の法の固定の理由が法律タブの照会と合う [7 s] 失敗!   -失敗:     1、合格:     2、スキップ:     0、合計:     3、期間: 15 s - PriceOfBread.Tests.dll (net10.0) 
+M4c =>   失敗 PriceOfBread.Tests.InstrumentsTests.段の法の固定の理由が法律タブの照会と合う [7 s] 失敗!   -失敗:     1、合格:     2、スキップ:     0、合計:     3、期間: 13 s - PriceOfBread.Tests.dll (net10.0) 
+MUT-DONE-new 03:21:08

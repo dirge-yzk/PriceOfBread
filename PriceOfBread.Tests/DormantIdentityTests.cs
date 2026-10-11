@@ -208,6 +208,10 @@ public class DormantIdentityTests
         "IncumbencyBias",             // 現職効果＝振り返りの投票は作る予定が無い（履歴から戻せる）
         "ScarceCapFollowsEndowment",  // 希少鉱物の産地の天井を賦存比例に＝鉱脈の在庫が物理の限界をすでに担う（二重）
         "CorruptionCoreV2",           // 汚職V2の点火の記録＝読み手0（2026-08-16 C2-C5 で旧式の分岐を撤去した後は係数だけが残っていた）
+        // ★(275) 線P (273) が置き換えて削除した旧 (220) の開幕の貨幣の器（λ 規則 OpeningSavingsRebaseMode・NationConfig.BroadMoneyToIncome へ）。NationConfig.BroadMoneyToGdp は係数でないのでここには載らない。
+        "InitMoneyMode",              // 投資家の貯蓄を比×年名目GDP へ置き直すモード＝OpeningSavingsRebaseMode に置き換えた
+        "InitInvestorMoneyShare",     // 同じ器の投資家の取り分
+        "InitMoneyScale",             // 同じ器の倍率
     ];
 
     /// <summary>★読み手のない係数の番人（2026-10-11 (253)・休眠の棚卸しで <c>StateBuildCost</c>〔手動工場建設の削除の後に残った死蔵〕と <c>CorruptionCoreV2</c>〔点火の記録だけ〕が見つかった型）：

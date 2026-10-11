@@ -1352,9 +1352,10 @@ public class InstrumentsTests
         string dir = NewDir();
         try
         {
-            int[] seenA = new int[10], seenB = new int[10]; int compared = 0;
+            int[] seenA = new int[10], seenB = new int[10], seenC = new int[10]; int compared = 0;
             // 場面 A＝政治資本を使い切らせる（在庫の巨大な目減り）：賛成不足・在庫不足の固定。場面 B＝政治資本が潤沢（目減りが巨大な負）：反対を押し切る一歩は払って通る（代価＞0）
-            foreach (var (spent, seen) in new[] { (1e12, seenA), (-1e12, seenB) })
+            // ★(275) 場面 C＝場面 B と同じ4本を一段先の目標にする＝同じ一歩（None→Limited）が払って通り目標に届く（符号 8）。反証役 v（(274)）：払って届いた側の写像（LevelResult の 8）を突然変異で殺す場面が無かった
+            foreach (var (spent, seen, scene) in new[] { (1e12, seenA, 'A'), (-1e12, seenB, 'B'), (-1e12, seenC, 'C') })
             {
                 var sim = Make();
                 RunMatch(sim, 60, instr: false);
@@ -1364,10 +1365,12 @@ public class InstrumentsTests
                     w.MandateSpent = spent;
                     if (spent < 0)
                     {   // 場面 B：2段先の目標を置く＝一歩では届かず、反対を押し切る一歩は代価を払う（払って動いて未到達＝符号 4 を起こす）
-                        w.CornLaws = ReformLevel.None; p.CornLaws = ReformLevel.Full;
-                        w.SerfEmancipation = ReformLevel.None; p.SerfEmancipation = ReformLevel.Full;
-                        w.OpiumPossession = ReformLevel.None; p.OpiumPossession = ReformLevel.Full;
-                        w.LandReform = ReformLevel.None; p.LandReform = ReformLevel.Full;
+                        //   場面 C：一段先の目標（Limited）＝同じ一歩で届く（払って届いた＝符号 8・無償なら 7）
+                        var goal = scene == 'B' ? ReformLevel.Full : ReformLevel.Limited;
+                        w.CornLaws = ReformLevel.None; p.CornLaws = goal;
+                        w.SerfEmancipation = ReformLevel.None; p.SerfEmancipation = goal;
+                        w.OpiumPossession = ReformLevel.None; p.OpiumPossession = goal;
+                        w.LandReform = ReformLevel.None; p.LandReform = goal;
                     }
                     var expect = new Dictionary<int, int>();
                     for (int i = 0; i < Government.LevelLaws.Length; i++)
@@ -1388,7 +1391,7 @@ public class InstrumentsTests
                     foreach (var f in Instruments.FrontsOf(w))
                     {
                         if (f.Kind != 'L' || !expect.TryGetValue(f.Idx, out int want)) continue;
-                        Assert.True(f.Code == want, $"{f.Axis}（表の行 {f.Idx}・場面 {(spent > 0 ? "A" : "B")}）：計器の符号 {f.Code}・法律タブの照会から決めた期待 {want}");
+                        Assert.True(f.Code == want, $"{f.Axis}（表の行 {f.Idx}・場面 {scene}）：計器の符号 {f.Code}・法律タブの照会から決めた期待 {want}");
                         seen[f.Code]++; compared++;
                     }
                 }
@@ -1397,6 +1400,7 @@ public class InstrumentsTests
             Assert.True(seenA[1] > 0 && seenA[2] > 0,
                 $"賛成不足・在庫不足のどちらかの段の法が場面 A に無い（符号の件数 {string.Join(',', seenA)}）＝突き合わせが空洞");   // 通る側（3・7）は手で組んだ盤面の試験が受け持つ
             Assert.True(seenB[4] > 0, $"政治資本を払って通った段の法が場面 B に無い（符号の件数 {string.Join(',', seenB)}）＝払う側の突き合わせが空洞");
+            Assert.True(seenC[8] > 0, $"政治資本を払って目標に届いた段の法が場面 C に無い（符号の件数 {string.Join(',', seenC)}）＝払って届いた側の突き合わせが空洞");
         }
         finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
     }

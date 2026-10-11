@@ -179,7 +179,7 @@ public sealed class UtilityAgent : INationAgent
     /// <summary>★法の目標を**1段だけ**動かす（3法のAI・2026-08-02）。
     /// ⚠★置く前に <see cref="Government.GateInfo"/> を確認する＝**幽霊戦線の防壁**。
     ///   通らない目標を置くだけで <c>CountOpenFronts</c> に毎期1本として数えられ続け、
-    ///   <c>PoliticalPushBudget=(1/N)^0.5</c> が**全軸の押しを一律に薄める**。UI経路はボタンが無効化されるので防げるが、
+    ///   <c>PoliticalPushBudget=(1/N)^0.5</c> が**連続の軸（税と支出の段・軍事費・関税）の押しを一律に薄める**（段の法の歩幅には掛からない＝(275) 訂正・(274) の計器）。UI経路はボタンが無効化されるので防げるが、
     ///   AI経路には防壁が無かった。新しい判定ではなく、UIが既に使っている関数を呼ぶだけ。</summary>
     private static void StepLawToward(World w, NationPolicy p, PolicyAxis axis, int cur, int want, int max, System.Action<int> set)
     {
@@ -199,7 +199,7 @@ public sealed class UtilityAgent : INationAgent
     /// <summary>★AI第1波①（2026-08-16・<see cref="Coefficients.AiLawGateUnified"/>>0 のみ）：AIの法目標の統一ゲート＝幽霊戦線の根絶。
     /// <see cref="StepLawToward"/> と同じ作法（GateInfo確認・1段ずつ）だが、基点を**現行法**に置き、**規則で**到達不能な段は目標＝現行法へ畳む
     /// ＝到達不能な法を目標に残さない（⚠2026-09-18まではここが「通らない段は一律で畳む」だった＝下の修正段落）。幽霊戦線の実体＝目標≠現在の軸が CountOpenFronts に毎期数えられ続け、
-    /// 政治押し予算 (1/N)^0.5（Government.Step の PoliticalPushBudget）が**全軸の押しを一律に薄める**こと。
+    /// 政治押し予算 (1/N)^0.5（Government.Step の PoliticalPushBudget）が**連続の軸（税と支出の段・軍事費・関税）の押しを一律に薄める**（段の法の歩幅には掛からない＝(275) 訂正・(274) の計器）こと。
     /// StepLawToward（基点＝前回目標）と違い基点＝現行法にする理由：ゲートが後から閉じても翌四半期に戦線が閉じる
     /// ＝「置いた時は通ったが今は通らない」目標も残さない。want は毎四半期再計算されるので、状況が変われば自然に再挑戦する（諦めの恒久化はしない）。
     /// 施行タイミングは不変：Government.StepEnum/StepBool は元々1期1段・同じ判定式（純支持＞−余白）なので、
@@ -267,7 +267,7 @@ public sealed class UtilityAgent : INationAgent
         GateLaw(ref shared, w, PolicyAxis.CapitalMobility, w.CapitalControlLaw ? 1 : 0, p.CapitalControlTarget ? 1 : 0, 1, v => p.CapitalControlTarget = v != 0);
         // ★税・支出・軍事費の段（作者裁定2026-09-12 R1/R2）：段になった軸も**現行段から・いま通る1段**へ整形する＝法と同じ作法。
         //   ⚠これが無いと、AIが置いた遠い目標（例：緊縮スタンスの所得税0.35＝段1）が通らないまま CountOpenFronts に数え続けられ、
-        //     政治押し予算 (1/N)^0.5 が全軸の押しを薄める＝**AIだけが幽霊戦線を開く**（ゲート緑≠機構が働いた）。
+        //     政治押し予算 (1/N)^0.5 が連続の軸の押しを薄める（段の法の歩幅には掛からない＝(275) 訂正）＝**AIだけが幽霊戦線を開く**（ゲート緑≠機構が働いた）。
         //   ⚠AI＝プレイヤー対称：置く/置かないの物差しは法律タブと同じ GateInfo（IsPlayer は読まない）。
         // ★錨2026-09-18：段序数↔率の写像は Government.TaxStage／TaxValue の2本だけ（軸ごとの錨を引く）＝ここに第二の式（v/3）を置かない。
         void GateTax(PolicyAxis a, double cur, double tgt, Action<double> set)
