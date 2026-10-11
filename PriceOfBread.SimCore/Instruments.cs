@@ -460,6 +460,8 @@ public static class Instruments
         else { st.GfGateCost = why == 3 ? 0 : double.NaN; st.GfGateS = double.NaN; }
         st.GfPendCost = st.GfPendS = double.NaN;
     }
+    /// <summary>(278) 符号 2 のうち代価が政治資本の最大量 b そのものを超える（在庫が空でも永久に届かない）＝段の法と連続の軸で同じ1つの定義。</summary>
+    static bool IsStructural(World w, int code, double cost) => code == 2 && cost > w.PoliticalCapitalMax;
     /// <summary>(278) 政治資本の代価の計算の直後（<c>MandateGate</c> の押し切りの枝・<c>Move</c> の押し切りの枝）＝払う前の目減り S を一緒に写す。</summary>
     internal static void Priced(World w, double cost) { var st = S(w); st.GfPendCost = cost; st.GfPendS = w.MandateSpent; }
     /// <summary>(278) <c>Government.Step</c> の段の法のループの頭：目減り S と最大量 b（四半期に1回導出して World に置いた値）。</summary>
@@ -485,7 +487,7 @@ public static class Instruments
         if (FindFront(st, 'L', st.GfLevelIdx) is { } f)
         {
             f.Code = code; f.Net = code is 0 or 5 or 6 ? double.NaN : st.GfGateNet;
-            if (gated) { f.Cost = st.GfGateCost; f.SDec = st.GfGateS; f.Structural = code == 2 && f.Cost > w.PoliticalCapitalMax; }
+            if (gated) { f.Cost = st.GfGateCost; f.SDec = st.GfGateS; f.Structural = IsStructural(w, code, f.Cost); }
         }
     }
     /// <summary><c>Government.Move</c> の結果（outcome は <see cref="MilitaryMove"/> と同じ 0 閉じていた／1 純支持／2 政治資本／3 無償で動いた／4 払って動いた）。軸と歩幅の尺度から戦線の種類を決める。</summary>
@@ -504,7 +506,7 @@ public static class Instruments
         if (FindFront(st, kind, idx) is not { } f) return;
         int code = outcome >= 3 && Math.Abs(target - next) <= 0.026 ? (outcome == 4 ? 8 : 7) : outcome;
         if (kind == 'M' && st.GfMilExpired) { f.Expired = true; if (code == 0) code = 9; }
-        f.Code = code; f.Net = net; f.Cost = cost; f.SDec = sDec; f.Structural = code == 2 && f.Cost > w.PoliticalCapitalMax;
+        f.Code = code; f.Net = net; f.Cost = cost; f.SDec = sDec; f.Structural = IsStructural(w, code, cost);
     }
     /// <summary>四半期の頭の <c>Government.Step</c> の後：戦時段の解禁・軍事費の段の目標（保存）と施行。</summary>
     internal static void AfterGovernment(World w)
