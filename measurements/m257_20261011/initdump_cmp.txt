@@ -1,0 +1,5 @@
+(257) initdump（構築直後・助走後・最初の四半期の後）＝合流の木 4f66423 の Runner（隔離ビルド D:/PoB_work/merge257/art）
+行数: 37542
+sha256 新: a996783bcf2ff1690120e528769983a5cfd075b1ec1adb0d417afbabf3dea2bb
+sha256 基準 measurements/init_20261010_r248.tsv: a996783bcf2ff1690120e528769983a5cfd075b1ec1adb0d417afbabf3dea2bb
+cmp: 一致（1バイトの差も無い）
