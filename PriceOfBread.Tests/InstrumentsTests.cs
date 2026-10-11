@@ -931,6 +931,7 @@ public class InstrumentsTests
                 Assert.True(dc >= (lastDefault.TryGetValue(nm, out var pv) ? pv : 0), "不履行の累計は減らない"); lastDefault[nm] = dc;
             }
             Assert.True(openRows > 0, "戦時段が解禁された四半期が1度も無い＝器の列の突き合わせが動いていない");
+            // ⚠限界：4国40四半期では器が正の四半期は起きない（envPositive＝0）＝正の側の突き合わせは番人では届かない。計器つき10種（腕A 04e74dc）の全 31,163 の解禁の行で 器の列＝別の列からの式（最大差 2e-10・不一致 0・正の行 15,929）を確かめた（実装ログ (270)）。
             _ = envPositive;
         }
         finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
