@@ -310,7 +310,7 @@ public static class Instruments
     {
         SettlerOut.GetValue(from, _ => new double[1])[0] += sizeK; FlowOf(dst).SettlerInK += sizeK;
     }
-    /// <summary>越境の移民（<c>MultiNationSim.MoveMigrants</c> の運搬の前・決まった人数 flow・読むだけ）。</summary>
+    /// <summary>越境の移民（<c>MultiNationSim.MoveMigrants</c> の運搬の前・読むだけ）。★(257) 反証役 C1 低#4：足すのは**求めた流量 flow**＝実際に動いた量（Pop.Blend の戻り値 moved）ではない（旧の注入と同じ定義・moved が flow より小さい月は差が出る）。</summary>
     internal static void CrossBorder(Region src, Region dst, double flowK)
     {
         FlowOf(src).CrossBorderOutK += flowK; FlowOf(dst).CrossBorderInK += flowK;

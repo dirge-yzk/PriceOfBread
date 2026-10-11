@@ -2457,7 +2457,7 @@ if (args.Length > 0 && args[0] == "initdump")
             Row(nm, "財政/直近の清算1回の関税収入", tm, w.LastTariffRevenuePerClearing, "貨幣/清算1回");
             Row(nm, "財政/人頭税", tm, w.PollTax, "率");
             Row(nm, "財政/土地税", tm, w.LandTax, "率");
-            Row(nm, "財政/所得税", tm, w.TaxRate, "率");
+            Row(nm, "財政/所得税", tm, w.TaxRate.Value, "率");   // ★(257) 反証役 C2 記録：Share を object で渡すと既定の書式を通る＝.Value で "R" の枝へ（出力は同じ）
             Row(nm, "財政/関税", tm, w.Tariff, "率");
             Row(nm, "財政/国債金利", tm, w.GovBondRatePerYear.Value, "年率");
             Row(nm, "財政/金利(政策)", tm, w.InterestRate, "年率");

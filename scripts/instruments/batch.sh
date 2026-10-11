@@ -3,7 +3,9 @@
 #   新しい読むだけの標準の計器（env POB_INSTRUMENTS・SimCore/Instruments.cs）は注入が要らない。
 #   (245) 史実比較の桁（NG）の読み手の入力 11 種（navy・rail・steam・fin・hist171・hist・sold・wardead・mil180・trade・warlaw）は標準の計器へ畳んだ
 #   ＝`INS=1 bash batch.sh run <腕>` が `POB_INSTRUMENTS=<出力>/ins` を立てて回し、`bash ng.sh <出力>/ins <タグ> <読み手の出力フォルダ>` が読む（注入は要らない）。
-#   ここに残る fullS の注入は NG の入力ではない（rd.sh の他の読み手と、過去の回の再現のため）。単独の読み手しか無かった gate・wpn・t186 の注入は消した。
+#   ここに残る fullS の注入は NG の入力ではない。単独の読み手しか無かった gate・wpn・t186 の注入は消した。
+#   ⚠★(257) 反証役 C1 低#2：(255) で inj_ghost を消した後、fullS の prep は**どの木でも** INJFAIL で止まる（m149/inj_disc ほかが ghM の行を錨にする＝(246) より前の木でも）。
+#     過去の回の再現は、その回のコミットの一式を使う＝`git show <sha>:scripts/instruments/…` で当時の注入と batch.sh を取り出す。
 #   ⚠注入は木のソースの形に依存する（assert で止まる）＝HEAD で通るか先に確かめる。
 #   (255) 州の空洞化の計器 u4e/inj_ghost.py は標準の計器（region_s／migration_s）へ畳んで消した＝`INS=1 … run` の <出力>/ins を hol/an_h2.py で読む。inj_ghost が置く ghM の行を錨にしていた m149/inj_disc・m160/inj_need・m190/inj_navy_n・need/inj_mig は鎖ごと死蔵（もともと (246) 以後の木で当たらない）。
 #   ⚠⚠(248) **(246) 以後の木（専用の値型 MoneyPerMonth・RatePerYear ほか）では fullS・probe・fullX の注入は当たらない**＝錨が消えた（army/inj_fc3・mil 連鎖〔m194/inj_mil8x→…→mil2/inj_mil4〕・m190/fix_mil4）・

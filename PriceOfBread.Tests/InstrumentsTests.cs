@@ -182,7 +182,9 @@ public class InstrumentsTests
     /// 州の人口と移動の表（2026-10-11 (255)・旧の注入 u4e/inj_ghost.py の R／M 行の代わり＝州の空洞化の読み手 hol/an_h2.py の入力）の番人。
     /// 期待値は計器の別の経路から作る：①(四半期, 国, 州) が1行ずつ ②各四半期で 州の間の移民の出の和＝入の和＝移民の組の表の和・入植の出の和＝入の和・越境の出の和＝入の和
     /// （片方の写しが漏れると崩れる）③活きた州の人口の和が国×四半期の表（NationRow＝別の走査）の人口と合う ④負の量が無い。
-    /// 何もしない番人は必ず緑になる＝州の間の移民が実際に起きた（対照）ことを数える。入植と越境は4国の40四半期では起きなくてもよい＝起きた分だけ上の等式が効く。
+    /// 何もしない番人は必ず緑になる＝州の間の移民と越境が実際に起きた（対照）ことを数える（入植は既定の世界で0＝ColonialRegionSettlement=0）。
+    /// ★(257) 反証役 C1 低#3：②の出と入は計器の口が同じ量を両側へ足す作り＝②は写しの漏れ（代入を1行消す）だけを見る・独立した出所の突き合わせは③だけ。
+    ///   越境の口（MultiNationSim.MoveMigrants の1行）は totalCross&gt;0 で守る（4国40四半期で越境が起きる）。入植の口は番人が守っていない（0=0）。
     /// </summary>
     [Fact]
     public void 州の人口と移動の表が揃い流れの出と入が合う()
@@ -219,7 +221,8 @@ public class InstrumentsTests
                 Assert.All(g, r => { foreach (var c in new[] { "populationK", "ruralPopulationK", "migrationOutKPerQuarter", "migrationInKPerQuarter", "settlerOutKPerQuarter", "settlerInKPerQuarter", "crossBorderOutKPerQuarter", "crossBorderInKPerQuarter" }) Assert.True(Col(rh, r, c) >= 0, c); });
             }
             Assert.True(totalMoved > 0, "州の間の移民が1件も写っていない（写しの漏れか、盤面で移民が起きていない）");
-            _ = totalSettled; _ = totalCross;
+            _ = totalSettled;
+            Assert.True(totalCross > 0, "越境の移民が1件も写っていない（MultiNationSim.MoveMigrants の口の写しの漏れか、盤面で越境が起きていない）");
 
             var (nh, nr) = Table(System.IO.Path.Combine(dir, "nation_s1789.tsv"));
             var natPop = nr.ToDictionary(r => (r[Array.IndexOf(nh, "quarter")], r[Array.IndexOf(nh, "nationIndex")]), r => Col(nh, r, "populationK"));

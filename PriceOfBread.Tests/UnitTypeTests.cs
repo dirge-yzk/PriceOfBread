@@ -76,7 +76,7 @@ public class UnitTypeTests
         foreach (var type in typeof(IUnitValue).Assembly.GetTypes())
             foreach (var m in type.GetMethods(All))
             {
-                if (m.Name.StartsWith("op_", StringComparison.Ordinal)) continue;   // ★(256) 演算子は「演算子の一覧が許す形だけである」と「異なる型の間には…」が全部を固定している（Share×お金はそこで許す組だけ）
+                if (type == typeof(Share) && m.Name == "op_Multiply") continue;   // ★(256) Share×お金の積は「演算子の一覧が許す形だけである」と「異なる型の間には…」が許す組だけに固定している。★(257) 反証役 C2 低#2：除外は Share の op_Multiply だけ＝専用の値型でない型が型をまたぐ演算子を宣言したら、ここで赤
                 if (!UnitTypes.Contains(m.ReturnType)) continue;
                 bool crosses = m.GetParameters().Any(p => UnitTypes.Contains(p.ParameterType) && p.ParameterType != m.ReturnType);
                 if (crosses && type != typeof(Calendar)) offenders.Add($"{type.Name}.{m.Name}");
@@ -412,6 +412,24 @@ public class UnitTypeTests
         var runner = System.IO.File.ReadAllLines(System.IO.Path.Combine(GoodIdGuardTests.RepoRoot(), "PriceOfBread.Runner", "Program.cs"));
         Assert.Contains(runner, l => l.Contains("fi.SetValue(co, UnitValues.FromDouble(fi.FieldType, 0.0))"));   // politics-ablation
         Assert.Contains(runner, l => l.Contains("done.Add(co); fi.SetValue(co, UnitValues.FromDouble(fi.FieldType, 0.0))"));   // chronicle --zero
+    }
+
+    /// <summary>★(257) 反証役 C2 低#1：年の流れのお金（MoneyPerYear）は public のコンストラクタで double から作れる＝月の double を `new MoneyPerYear(x)` で包むと、
+    /// 年GDP 比の12倍の取り違えがそのままコンパイルを通る（`Calendar.ToGdpYear` の型が守るのは「月の型を渡せない」ことだけ）。
+    /// 年の流れは `Calendar.PerMonthToPerYear(MoneyPerMonth)` の型つきの換算から作る＝SimCore・Runner・App の `new MoneyPerYear(` の件数を宣言の数に固定する（ラチェット）。
+    /// 増やすコミットは、包む値が年の値であることを確かめて、数を上げて理由を書く。⚠限界＝目的の型から推す `new(…)` は文字列で数えられない。</summary>
+    [Fact]
+    public void 年の流れのお金をdoubleから作る所の数は宣言のとおり()
+    {
+        const int Declared = 1;   // 2026-10-11 (257)：1＝Credit 1（銀行の評価損の債務比の分母＝`Math.Max(1.0, Calendar.PerMonthToPerYear(月の名目GDP))`＝年の値を床で挟んでから包む）。(256) の Fiscal 1 は型つきの換算へ寄せた
+        var per = new[] { "PriceOfBread.SimCore", "PriceOfBread.Runner", "PriceOfBread.App" }
+            .SelectMany(p => System.IO.Directory.EnumerateFiles(System.IO.Path.Combine(GoodIdGuardTests.RepoRoot(), p), "*.cs", System.IO.SearchOption.AllDirectories))
+            .Where(f => !f.Replace('\\', '/').Contains("/obj/") && !f.Replace('\\', '/').Contains("/bin/"))
+            .Select(f => (File: System.IO.Path.GetFileName(f), N: System.Text.RegularExpressions.Regex.Matches(GoodIdGuardTests.StripCode(System.IO.File.ReadAllText(f)), @"\bnew\s+MoneyPerYear\s*\(").Count))
+            .Where(x => x.N > 0).OrderBy(x => x.File, StringComparer.Ordinal).ToList();
+        int total = per.Sum(x => x.N);
+        Assert.True(total == Declared, $"SimCore・Runner・App の `new MoneyPerYear(` が {total} 件（宣言 {Declared}）：" + string.Join("、", per.Select(x => $"{x.File} {x.N}"))
+            + "＝増えたなら月の値を年の型で包んでいないか確かめる（年の流れは Calendar.PerMonthToPerYear）・減ったなら宣言を下げる");
     }
 
     /// <summary>★(251) 反証役 vm#1：在庫の型（MoneyStock）は public のコンストラクタで double から作れる＝`new MoneyStock(flow.Value)` と書けば OneMonthOf を通らずに流れを在庫へ足せる

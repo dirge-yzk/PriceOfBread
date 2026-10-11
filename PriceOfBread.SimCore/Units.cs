@@ -4,7 +4,9 @@ namespace PriceOfBread.SimCore;
 // 目的＝単位やスケールの違う量の混ぜ合わせ（年率と月率の加算・在庫と流れの比較・月と年の取り違え）を、コンパイルが通らない形にする。
 // 中身は double 1つ（readonly record struct＝速度は変わらない）。許す演算は次だけ：
 //   ・同じ型どうしの加減・符号反転／スカラー（double）倍と除算／同じ型どうしの比（無次元の double を返す）／同じ型どうしの比較
-//   ・月と年の換算は Calendar の名前のある関数（型を受けて型を返す多重定義）だけ。
+//   ・★(256) 割合 Share だけは型をまたぐ積を持つ＝割合×割合→割合・割合×お金（MoneyStock・MoneyPerMonth・MoneyPerYear）→同じお金の型（左右どちらからも）。
+//     割合＋お金・割合と年GDP 比（RatioToGdpYear）の比較は書けない（UnitTypeTests の演算子の一覧が固定）。
+//   ・月と年の換算は Calendar の名前のある関数（型を受けて型を返す多重定義）だけ。年GDP 比を作る口は Calendar.ToGdpYear の1本だけ。
 //   ・暗黙の double への変換は作らない＝取り出しは明示の .Value（計算の順序を変えずに包む・中身の式は組み替えない）。
 // ⚠演算子の中身は元の double の 1 演算そのもの（a*b と b*a、a+b と b+a の交換だけが結果を変えない）。
 // ⚠== は double の == と同じ（NaN は等しくない）。record の既定の等値は double.Equals（NaN==NaN が真）なので Equals を上書きしている（record の == と != はそれを呼ぶ）。
