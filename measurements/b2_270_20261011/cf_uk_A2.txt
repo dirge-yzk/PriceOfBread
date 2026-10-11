@@ -1,0 +1,4 @@
+episodes 124 open q 460 base reach4 2 base vessel(q) 170
+nopush reach 19 vessel q 272
+nopush_ungated reach 19 vessel q 301
+len>=8 12 len>=5 29 len>=3 70

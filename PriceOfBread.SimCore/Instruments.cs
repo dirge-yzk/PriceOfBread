@@ -106,6 +106,10 @@ public static class Instruments
         public int ConDesiring, ConBound; public double ConDesiredUnits, ConCutUnits;   // 建設：希望が正の（州×月）・うち投資枠で切られた数・希望の束・切られた束
         public int BrJudged, BrPoolBound, BrForeignCut; public double BrDomPool, BrForRaw, BrFor;   // 借入の判定の月：判定した月・プールが縛った月・うち外資のプールが他国の投資家の貯蓄で切られていた月・各プールの和
         public int CrDays, CrRepayBoundDays, CrFiniteDays; public double CrReserveCap, CrRepayable;   // 与信の上限（日数で重みづけ）：判定の日数・返せる額が準備の側より小さかった日数・有限の日数・各上限の日数つきの和
+        // ---- (270) 線B2：軍事費の合計の施行の一歩（Government.Step の milTotal＝Move の1回）の内訳。-1／NaN＝この四半期は来なかった
+        public int MmOutcome = -1, MmFronts = -1; public bool MmIncreasing;
+        public double MmCur = double.NaN, MmTarget = double.NaN, MmNet = double.NaN, MmResist = double.NaN, MmSpeed = double.NaN, MmPush = double.NaN;
+        public double MmOppTrad = double.NaN, MmOppModern = double.NaN, MmOppMass = double.NaN, MmStock = double.NaN, MmStockMax = double.NaN, MmEnvelopeAfterGov = double.NaN;
     }
     /// <summary>段5 の上限の引き出し率 d（月あたり）。(264) 実装ログ §7 の事前登録の格子＝1/120・1/240・1/480（AI の設計・作者の承認は未確認）。</summary>
     internal static readonly double[] CapDs = [1.0 / 120, 1.0 / 240, 1.0 / 480, 1.0 / 36, 1.0 / 12];   // (271) 末尾の2つ＝(268) 申し送りの推奨（格子に 1/36・1/12 を足す）
@@ -410,12 +414,28 @@ public static class Instruments
     }
     /// <summary>AI が戦時段（最上段）を目標に置いた（<c>WarStageOpen</c> が真のとき無条件）。</summary>
     internal static void WarStagePicked(World w) => S(w).DecPicked = 1;
+    /// <summary>★(270) 軍事費の合計の施行の一歩（<c>Government.Move</c> の呼びのうち軸が Coercion・歩幅の尺度が 1.0 の1本＝<c>Step</c> の milTotal）。
+    /// outcome：0＝目標＝現在で動かず／1＝純支持が余白に届かず固定／2＝政治資本の在庫が代価に届かず固定／3＝無償で動いた／4＝政治資本を払って動いた。
+    /// 抵抗は <see cref="PolicyPreferences.OpposingPower"/> の合計とブロックごとの内訳（力×反対の強さ＝旧支配層・近代エリート・大衆。残りは議会・小営業・軍）。読むだけ。</summary>
+    internal static void MilitaryMove(World w, double cur, double target, double net, double resist, double speed, int outcome, in PolicyPreferences.Profile e, bool increasing)
+    {
+        var st = S(w);
+        st.MmOutcome = outcome; st.MmCur = cur; st.MmTarget = target; st.MmNet = net; st.MmResist = resist; st.MmSpeed = speed; st.MmPush = w.PoliticalPushBudget;
+        st.MmStock = w.MandateSpent; st.MmStockMax = w.PoliticalCapitalMax; st.MmIncreasing = increasing;
+        if (e.Power is null) return;
+        double sign = increasing ? 1 : -1;
+        double p0 = PolicyPreferences.Pref(PolicyAxis.Coercion, 0, e, w) * sign, p1 = PolicyPreferences.Pref(PolicyAxis.Coercion, 1, e, w) * sign, p2 = PolicyPreferences.Pref(PolicyAxis.Coercion, 2, e, w) * sign;
+        st.MmOppTrad = p0 < 0 ? e.Power[0] * -p0 : 0; st.MmOppModern = p1 < 0 ? e.Power[1] * -p1 : 0; st.MmOppMass = p2 < 0 ? e.Power[2] * -p2 : 0;
+    }
+    /// <summary>★(270) 開いた戦線の数（<c>Government.Step</c> の政治予算の分母）。</summary>
+    internal static void PushFronts(World w, int fronts) => S(w).MmFronts = fronts;
     /// <summary>四半期の頭の <c>Government.Step</c> の後：戦時段の解禁・軍事費の段の目標（保存）と施行。</summary>
     internal static void AfterGovernment(World w)
     {
         var st = S(w);
         st.DecOpen = Government.WarStageOpen(w) ? 1 : 0;
         st.DecTarget = Government.MilitaryStage(w.Policy.MilitarySpendingTarget); st.DecEnforced = Government.MilitaryStage(w.MilitarySpending); st.DecShare = w.MilitarySpending;
+        st.MmEnvelopeAfterGov = Military.WarStageShare(w, w.MilitarySpending);   // (270) 戦時段の器の割合（エンジンの量そのもの）
     }
     static void ResetQuarter(WState st)
     {
@@ -434,6 +454,8 @@ public static class Instruments
         st.ConDesiring = st.ConBound = 0; st.ConDesiredUnits = st.ConCutUnits = 0;
         st.BrJudged = st.BrPoolBound = st.BrForeignCut = 0; st.BrDomPool = st.BrForRaw = st.BrFor = 0;
         st.CrDays = st.CrRepayBoundDays = st.CrFiniteDays = 0; st.CrReserveCap = st.CrRepayable = 0;
+        st.MmOutcome = st.MmFronts = -1; st.MmIncreasing = false;
+        st.MmCur = st.MmTarget = st.MmNet = st.MmResist = st.MmSpeed = st.MmPush = st.MmOppTrad = st.MmOppModern = st.MmOppMass = st.MmStock = st.MmStockMax = st.MmEnvelopeAfterGov = double.NaN;
     }
     /// <summary>国×四半期の行に足す列（行政の請求の2つの式・戦時段）。月ごとの量は四半期の月の平均（<c>PerMonth</c>）。</summary>
     static List<(string Name, string Value)> NationExtras(World w, WState st)
@@ -896,6 +918,8 @@ public static class Instruments
         if (st.Uid == 0) st.Uid = ++sk.NextUid;   // (271) 国の個体の番号（四半期の行を書く順に採番＝決定論・World の個体に付く）
         var ext271 = Extras271(w, st);   // (271) 線K：国の個体・消費の予算の拘束・建設の投資枠・国債のプール・与信の上限
         foreach (var ex in ext271) cols.Add(ex.Value);
+        var ext270 = Extras270(w, st);   // (270) 線B2：軍事費の合計の施行の一歩の内訳（末尾）
+        foreach (var ex in ext270) cols.Add(ex.Value);
         sk.Nation ??= Open("nation", seed);
         if (!sk.NationHeader)
         {
@@ -909,7 +933,8 @@ public static class Instruments
                 + "fireSaleRunCount\tfireSaleSeenMismatchCount\tfireSaleFiredCount\tfireSaleFiredMismatchCount\tfireSaleFiredOverTargetCount\tsubsidyWriteMismatchCount\tsubsidyWriteMismatchWantOffCount\t"
                 + "stakeMismatchProducerCount\tstakeMismatchToInvestedCount\tstakeMismatchToUninvestedCount\twheelMismatchGoods\tstateFacilityStartedGoods\tfoodMetShare\tneedMetShare\tstaleSubsidyNotGrabbedCount\tstakeMismatchGoods\t"
                 + string.Join('\t', ext265.Select(e => e.Name)) + "\t"
-                + string.Join('\t', ext271.Select(e => e.Name)));
+                + string.Join('\t', ext271.Select(e => e.Name)) + "\t"
+                + string.Join('\t', ext270.Select(e => e.Name)));
             sk.NationHeader = true;
         }
         sk.Nation.WriteLine(string.Join('\t', cols));
@@ -995,6 +1020,23 @@ public static class Instruments
         C("borrowDomesticPoolMeanPerMonth", st.BrDomPool / bj); C("borrowForeignPoolRawMeanPerMonth", st.BrForRaw / bj); C("borrowForeignPoolMeanPerMonth", st.BrFor / bj);
         N("creditJudgedDaysCount", st.CrDays); N("creditRepayableBoundDaysCount", st.CrRepayBoundDays);
         C("creditReserveCapMeanStock", st.CrDays > 0 ? st.CrReserveCap / st.CrDays : double.NaN); C("creditRepayableCapMeanStock", st.CrFiniteDays > 0 ? st.CrRepayable / st.CrFiniteDays : double.NaN);
+        return cols;
+    }
+
+    /// <summary>★(270) 線B2：軍事費の合計の施行の一歩の内訳（国×四半期の行の末尾）。来なかった四半期は結果の符号 −1・量は空（NaN）。</summary>
+    static List<(string Name, string Value)> Extras270(World w, WState st)
+    {
+        var cols = new List<(string, string)>();
+        string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        cols.Add(("militaryMoveOutcomeCode", I(st.MmOutcome))); cols.Add(("militaryMoveIncreasingFlag", I(st.MmOutcome >= 0 && st.MmIncreasing ? 1 : 0)));
+        cols.Add(("militaryMoveCurrentShare", F(st.MmCur))); cols.Add(("militaryMoveTargetShare", F(st.MmTarget)));
+        cols.Add(("militaryMoveNetSupportIndex", F(st.MmNet))); cols.Add(("militaryMoveResistIndex", F(st.MmResist)));
+        cols.Add(("militaryMoveResistTradIndex", F(st.MmOppTrad))); cols.Add(("militaryMoveResistModernIndex", F(st.MmOppModern))); cols.Add(("militaryMoveResistMassIndex", F(st.MmOppMass)));
+        cols.Add(("militaryMovePushBudgetFactor", F(st.MmPush))); cols.Add(("militaryMoveOpenFrontsCount", I(st.MmFronts)));
+        cols.Add(("militaryMoveStepFraction", F(st.MmSpeed)));
+        cols.Add(("politicalCapitalSpentIndex", F(st.MmStock))); cols.Add(("politicalCapitalMaxIndex", F(st.MmStockMax)));
+        cols.Add(("warStageEnvelopeShareAfterGov", F(st.MmEnvelopeAfterGov))); cols.Add(("warStageEnvelopeShareEnd", F(Military.WarStageShare(w, w.MilitarySpending))));
+        cols.Add(("sovereignDefaultCumulativeCount", I(w.SovereignDefaultCount)));
         return cols;
     }
 

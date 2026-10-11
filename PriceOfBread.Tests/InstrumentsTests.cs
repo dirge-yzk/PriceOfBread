@@ -1047,4 +1047,92 @@ public class InstrumentsTests
         }
         finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
     }
+
+    /// <summary>
+    /// 軍事費の合計の施行の一歩の内訳（2026-10-11 (270)・線B2＝施行の登りがどこで止まるかの計器）の番人。期待値は別の経路から作る：
+    /// ①動いた四半期（結果3・4）は 現在＋歩幅×(目標−現在) が四半期の頭の Government.Step の後の軍事費のシェア（World.MilitarySpending＝計器の別の列）に合う
+    /// ②動かなかった四半期（結果0・1・2）は Step の後のシェアが現在のまま（結果0は目標＝現在）
+    /// ③政治予算の係数＝(1/開いた戦線の数)^PoliticalBudgetGate（戦線の数は CountOpenFronts の数え・係数は World が持つ値＝2つの出所）
+    /// ④抵抗の合計 ≧ ブロックごとの内訳の和（残りは議会・小営業・軍＝負にならない）・歩幅は 0 以上で基本の速さ×(1+勅令の加速) 以下
+    /// ⑤結果4（政治資本を払って動いた）は純支持が負・結果3は 0 以上
+    /// 何もしない番人は必ず緑になる＝動いた四半期・動かなかった四半期・政治資本を払った四半期が実際に起きたことを数える（対照）。
+    /// </summary>
+    [Fact]
+    public void 軍事費の施行の一歩の内訳が別の列と合い歩幅の式に閉じる()
+    {
+        string dir = NewDir();
+        try
+        {
+            var sim = Make();
+            Instruments.Configure(dir, "*");
+            try { RunMatch(sim, 40, instr: true); }
+            finally { Instruments.Configure(null, null); }
+            var (nh, nr) = Table(System.IO.Path.Combine(dir, "nation_s1789.tsv"));
+            Assert.All(nr, r => Assert.Equal(nh.Length, r.Length));
+            foreach (var c in new[] { "militaryMoveOutcomeCode", "militaryMoveIncreasingFlag", "militaryMoveCurrentShare", "militaryMoveTargetShare", "militaryMoveNetSupportIndex", "militaryMoveResistIndex", "militaryMoveResistTradIndex", "militaryMoveResistModernIndex", "militaryMoveResistMassIndex", "militaryMovePushBudgetFactor", "militaryMoveOpenFrontsCount", "militaryMoveStepFraction", "politicalCapitalSpentIndex", "politicalCapitalMaxIndex" })
+                Assert.True(Array.IndexOf(nh, c) >= 0, "国×四半期の表に列が無い " + c);
+            var c0 = sim.Nations[0].World.Coef;
+            int[] counts = new int[5]; int checkedPush = 0; int[] openCounts = new int[2];
+            foreach (var row in nr)
+            {
+                int outcome = (int)Col(nh, row, "militaryMoveOutcomeCode");
+                if (outcome < 0) continue;   // 助走の直後の四半期など Step が来なかった行
+                counts[outcome]++;
+                double cur = Col(nh, row, "militaryMoveCurrentShare"), tgt = Col(nh, row, "militaryMoveTargetShare"), after = Col(nh, row, "militarySpendingAfterGovShare");
+                double f = Col(nh, row, "militaryMoveStepFraction"), net = Col(nh, row, "militaryMoveNetSupportIndex"), res = Col(nh, row, "militaryMoveResistIndex");
+                if (outcome == 0) { Assert.True(Math.Abs(tgt - cur) < 1e-8, "結果0は目標＝現在"); Assert.InRange(after, cur - 1e-8, cur + 1e-8); continue; }
+                Assert.True(Math.Abs(tgt - cur) >= 1e-12, "結果1以上は目標≠現在");
+                if (outcome == 1 || outcome == 2) Assert.InRange(after, cur - 1e-8, cur + 1e-8);
+                if (outcome >= 2)
+                {
+                    Assert.InRange(f, 0, c0.PolicyBaseSpeed * (1.0 + c0.AutocraticPolicyAgility) + 1e-8);
+                    double trad = Col(nh, row, "militaryMoveResistTradIndex"), mod = Col(nh, row, "militaryMoveResistModernIndex"), mass = Col(nh, row, "militaryMoveResistMassIndex");
+                    Assert.True(trad >= 0 && mod >= 0 && mass >= 0, "ブロックの反対は負にならない");
+                    Assert.True(res + 1e-8 >= trad + mod + mass, $"抵抗の合計 {res} がブロックの内訳の和 {trad + mod + mass} を下回る");
+                    double push = Col(nh, row, "militaryMovePushBudgetFactor"); int fronts = (int)Col(nh, row, "militaryMoveOpenFrontsCount");
+                    double expectPush = fronts > 1 ? Math.Pow(1.0 / fronts, c0.PoliticalBudgetGate) : 1.0;
+                    Assert.InRange(push, expectPush - 1e-8, expectPush + 1e-8); checkedPush++;
+                    // ★(270) 歩幅の比＝歩幅×(1+抵抗の重み×抵抗)÷基本の速さ：解禁の四半期は政治予算を掛けない（1.0 か勅令の加速）・解禁の外は政治予算を掛ける（push か push×勅令の加速）
+                    double ratio = f * (1.0 + c0.PolicyResistanceWeight * res) / c0.PolicyBaseSpeed, agile = 1.0 + c0.AutocraticPolicyAgility;
+                    bool open = Col(nh, row, "warStageOpenAfterGovFlag") == 1;
+                    bool near(double x, double y) => Math.Abs(x - y) <= 1e-6 * Math.Max(1.0, Math.Abs(y));
+                    if (open) { Assert.True(near(ratio, 1.0) || near(ratio, agile), $"解禁の四半期の歩幅の比 {ratio}（政治予算 {push} を掛けてはいけない）"); openCounts[push < 0.99 ? 1 : 0]++; }
+                    else Assert.True(near(ratio, push) || near(ratio, push * agile), $"解禁の外の歩幅の比 {ratio}（政治予算 {push} を掛ける）");
+                }
+                if (outcome == 3 || outcome == 4)
+                {
+                    Assert.InRange(after, cur + f * (tgt - cur) - 1e-8, cur + f * (tgt - cur) + 1e-8);
+                    Assert.True(outcome == 4 ? net < 0 : net >= 0, $"結果{outcome}の純支持 {net}");
+                }
+            }
+            Assert.True(counts[3] > 0 && counts[2] > 0, $"無償で動いた四半期と政治資本が足りず固定された四半期が両方起きていない（{string.Join(',', counts)}）");   // 結果0・1は4国40四半期では起きない（目標は段の格子・現在は連続／純支持の余白は +∞）＝対照にしない
+            Assert.True(counts[4] > 0, $"政治資本を払って動いた四半期が1度も無い（{string.Join(',', counts)}）＝純支持が負の経路が写っていない");
+            Assert.True(checkedPush > 0);
+            Assert.True(openCounts[1] > 0, $"解禁の四半期のうち政治予算の係数が1未満の四半期が無い（{openCounts[0]},{openCounts[1]}）＝政治予算を掛けないことを確かめる対照にならない");
+
+            // ⑥戦時段の器の割合（エンジンの Military.WarStageShare そのもの）＝別の列（解禁・施行のシェア・目標の段）から (min(施行, 目標の段÷段数) − (段数−1)÷段数) × 段数 を 0..1 に収めた値に合う。解禁の外は 0
+            // ⑦国債の不履行の累計は国ごとに減らない
+            int openRows = 0, envPositive = 0; var lastDefault = new Dictionary<string, double>();
+            foreach (var row in nr)
+            {
+                double open = Col(nh, row, "warStageOpenAfterGovFlag"), env = Col(nh, row, "warStageEnvelopeShareAfterGov"), share = Col(nh, row, "militarySpendingAfterGovShare");
+                double tgtStage = Col(nh, row, "militaryStageTargetAfterGovStage");
+                if (open != 1) { Assert.True(open != 0 || env == 0, "解禁の外の器は 0"); }
+                else
+                {
+                    openRows++;
+                    double lvl = Math.Min(share, tgtStage / Government.MilitaryLawStages);
+                    double expect = Math.Clamp((lvl - (Government.MilitaryLawStages - 1.0) / Government.MilitaryLawStages) * Government.MilitaryLawStages, 0, 1);
+                    Assert.InRange(env, expect - 1e-6, expect + 1e-6);
+                    if (env > 0) envPositive++;
+                }
+                string nm = row[Array.IndexOf(nh, "nation")]; double dc = Col(nh, row, "sovereignDefaultCumulativeCount");
+                Assert.True(dc >= (lastDefault.TryGetValue(nm, out var pv) ? pv : 0), "不履行の累計は減らない"); lastDefault[nm] = dc;
+            }
+            Assert.True(openRows > 0, "戦時段が解禁された四半期が1度も無い＝器の列の突き合わせが動いていない");
+            // ⚠限界：4国40四半期では器が正の四半期は起きない（envPositive＝0）＝正の側の突き合わせは番人では届かない。計器つき10種（腕A 04e74dc）の全 31,163 の解禁の行で 器の列＝別の列からの式（最大差 2e-10・不一致 0・正の行 15,929）を確かめた（実装ログ (270)）。
+            _ = envPositive;
+        }
+        finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
 }
