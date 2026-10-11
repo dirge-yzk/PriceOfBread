@@ -661,7 +661,7 @@ public sealed class Simulation
     // 鉱物・石油（IsMineral）は点在鉱床＝産地では集中的に豊富＝高い賦存（4.0・ルール炭/ペンシルベニア炭/アナトリアのクロム/ガリツィアの石油…）。
     // 農産・繊維・加工の得意は面的＝中庸（3.5）。鉱物が偏在し産地が圧倒的に強い、という史実の地理がここから創発する。
     private const double ResourceScarcity = 0.4;   // 非列挙RGOの産出（賦存に乏しい＝最低限の自給はあるが輸入依存。ゼロにしない＝封鎖即飢饉を回避）
-    internal static double ResourceEndowment(int good) => Catalog.IsMineral(good) ? 4.0 : 3.5;   // internal＝EconomyStep の希少鉱物天井（E-15 手順3）が読む
+    internal static double ResourceEndowment(int good) => Catalog.IsMineral(good) ? 4.0 : 3.5;
 
     // ★財の地理ゲート（2026-08-13・doc 20260812_財の3分類と地理ゲート §4-1／作者裁定⑥）。
     //
@@ -2293,8 +2293,6 @@ public sealed class Simulation
                 }
                 // 満足度への直接バフ（時短whWell・福祉WelfareSatComponent・年金PensionWellbeing）は物理削除2026-08-21（思想⑨＝支出/法は財を経ずに満足度を動かさない。
                 // 作者裁定8/19「満足度という値を捨てて生活水準＝買えたかのみ」）。時短は出力減 whOut・福祉/年金は現金給付（→消費→生活水準）としてのみ残る。
-                double unionWell = World.LaborUnion switch { LaborUnionLaw.Tolerated => 1.0, LaborUnionLaw.Controlled => 0.5, _ => 0.0 };
-                r.LaborWellbeing = World.Coef.UnionSatBonus * unionWell;   // ⚠休眠（既定0・作者裁定2026-08-19「団体交渉権などに使うので休眠」）＝組合の非物質厚生のみ
                 double techProd = (1.0 + Math.Min(World.TechLevel, TechProdDiminishKnee) + Math.Max(0.0, World.TechLevel - TechProdDiminishKnee) * TechProdDiminishSlope) * whOut * union;
                 RepayHouseholdDebt(r);   // ★出口：返済規律（消費の前・Savings 自体を削る。下の定義を見よ）
                 if (Instruments.On) Instruments.PreEconomy(World, r);   // 計器（読むだけ・(265)）：段5 の上限の入力＝大衆の月初の貯蓄

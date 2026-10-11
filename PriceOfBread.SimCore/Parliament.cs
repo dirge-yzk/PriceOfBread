@@ -102,7 +102,7 @@ public static class Parliament
             {
                 if (noConfidence && w.QuartersSinceElection < c.ElectionIntervalQuarters)
                     w.LogAdd($"{w.Year} {w.SelfPower?.Name}で内閣不信任＝繰り上げ総選挙");
-                w.GoverningParty = (int)Winner(w);   // 選挙＝最大党が組閣（過半数なくても第一党）。現職効果は在任期間で効くのでカウンタを0に戻す前に勝者を確定（IncumbencyBias=0 の既定では順序不問＝恒等）
+                w.GoverningParty = (int)Winner(w);   // 選挙＝最大党が組閣（過半数なくても第一党）。カウンタを0に戻す前に勝者を確定（順序不問＝恒等）
                 w.QuartersSinceElection = 0;
                 w.ElectionsHeld++;   // E0計器：総選挙の実施（定期・繰り上げの別を問わない）
                 if (c.SeatsFrozenBetweenElections > 0) SnapshotSeats(w);   // 政7：選挙で議席を確定（以後の世論変動は VoteShares のみ動く）
@@ -404,15 +404,11 @@ public static class Parliament
 
     private static Party Winner(World w)
     {
-        // 現職効果（elections-deterministic-plurality）：在任与党は利益誘導・知名度で僅かに上積み。IncumbencyBias=0 で純多数決＝恒等＝較正中立。
+        // 純多数決（現職効果 IncumbencyBias は 2026-10-11 (271) に削除＝既定 0 で通らない枝だった）。
         // 得票は VoteShares（今期の世論）で判定＝凍結時は確定 PartySeats（前回スナップショット）でなく現在の民意で新与党を決める。非凍結（既定）は VoteShares==PartySeats で恒等。
-        double bias = w.Coef.IncumbencyBias * System.Math.Min(1.0, w.QuartersSinceElection / (double)System.Math.Max(1, w.Coef.ElectionIntervalQuarters));
-        double v0 = w.VoteShares[0] + (w.GoverningParty == 0 ? bias : 0);
-        double v1 = w.VoteShares[1] + (w.GoverningParty == 1 ? bias : 0);
-        double v2 = w.VoteShares[2] + (w.GoverningParty == 2 ? bias : 0);
-        int best = 0; double bv = v0;
-        if (v1 > bv) { best = 1; bv = v1; }
-        if (v2 > bv) { best = 2; }
+        int best = 0; double bv = w.VoteShares[0];
+        if (w.VoteShares[1] > bv) { best = 1; bv = w.VoteShares[1]; }
+        if (w.VoteShares[2] > bv) { best = 2; }
         return (Party)best;
     }
 

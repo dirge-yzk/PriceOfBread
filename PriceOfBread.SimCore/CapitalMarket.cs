@@ -303,19 +303,19 @@ public static class CapitalMarket
     // 金を国外へ出す（投資家(近代エリート)の貯蓄から貯蓄比例で引く＋CumulativeTradeFlow に流出計上）。実際に引けた額を返す（残高不足は部分＝部分的な不履行）。
     // ★2026-09-27：原資は投資家だけ＝流入（GiveGold）と対称。旧＝fallbackToAll で投資家の不足分を全popから追加徴収していた。
     // ★支払いの一元化 段2-3（E2・2026-09-29）：引く・台帳へ書くは移し方の1本（World.Transfer＝払い手は投資家・受け手は世界の外）。ここに残るのは払い手の集合を選ぶことだけ。
-    private static double TakeGold(World w, double amount) => World.Transfer((w, Investors(w)), (null, null, null), amount);   // 残高超は引けない（払えない＝部分的不履行）・引けた額を返す
+    private static double TakeGold(World w, double amount, [System.Runtime.CompilerServices.CallerFilePath] string routeFile = "", [System.Runtime.CompilerServices.CallerLineNumber] int routeLine = 0) => World.Transfer((w, Investors(w)), (null, null, null), amount, routeFile: routeFile, routeLine: routeLine);   // (271) routeFile/routeLine＝計器（読むだけ）＝呼び手の位置を移し方の1本へ通す   // 残高超は引けない（払えない＝部分的不履行）・引けた額を返す
 
     /// <summary>投資家へ払う（受け取りの1本・重みは貨幣の保有）。★段2-3（2026-09-29）：配る・台帳へ書くは移し方の1本（World.Transfer）。
     /// ★段3-3（C14・2026-09-30）：受け手は**投資家だけ**＝払い手（<see cref="TakeGold"/>＝投資家だけ）と対称。投資家のいない国（併合国の残骸等）は国庫へ
     ///   （旧＝投資家→全POP→国庫＝外資の配当や流入が農民の貯蓄へ落ちた）。<paramref name="from"/> 省略＝世界の外（国際金融の清算）／
     ///   国庫（国, null）＝運河の配当・巨大建造物の外資の利回り（区分 <paramref name="cat"/>・国境をまたげば移し方の1本が為替で換算）。戻り値＝払い手の通貨で動いた額。</summary>
-    internal static double GiveGold(World w, double amount, (World? W, List<Pop>? Pops) from = default, TreasuryCat cat = TreasuryCat.OtherIn)
+    internal static double GiveGold(World w, double amount, (World? W, List<Pop>? Pops) from = default, TreasuryCat cat = TreasuryCat.OtherIn, [System.Runtime.CompilerServices.CallerFilePath] string routeFile = "", [System.Runtime.CompilerServices.CallerLineNumber] int routeLine = 0)   // (271) routeFile/routeLine＝計器（読むだけ）
     {
         var pops = Investors(w);
         var held = new List<double>(pops.Count); double heldSum = 0;
         foreach (var p in pops) { double h = System.Math.Max(0, p.Savings.Value); held.Add(h); heldSum += h; }   // 重み＝貨幣の保有（貯蓄比）
-        double moved = World.Transfer(from, (w, pops, heldSum > 1e-9 ? held : null), amount, cat);
-        if (moved < amount) moved += World.Transfer(from, (w, null, null), amount - moved, cat, toCat: TreasuryCat.OtherIn);   // 投資家不在＝国庫
+        double moved = World.Transfer(from, (w, pops, heldSum > 1e-9 ? held : null), amount, cat, routeFile: routeFile, routeLine: routeLine);
+        if (moved < amount) moved += World.Transfer(from, (w, null, null), amount - moved, cat, toCat: TreasuryCat.OtherIn, routeFile: routeFile, routeLine: routeLine);   // 投資家不在＝国庫
         return moved;
     }
 

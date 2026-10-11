@@ -19,7 +19,6 @@ public class DormantIdentityTests
     private static readonly string[] DormantZeroFields =
     [
         // ★GoldRushEmergent は 2026-09-04 に 1.0 で**点火**（J-005）＝この表から外した。
-        "ScarceCapFollowsEndowment",    // E-15 手順3：希少鉱物の産地の天井を賦存比例に
         // ★ChilledMeatEnabled は 2026-09-04 に 1.0 で**点火**＝この表から外した。
         "MeritModernityFromClosed",     // AUD-07：メリトクラシーの政体バフ除去
         "PrivilegeFromCrownShare",      // AUD-07：身分制免税の政体バフ除去
@@ -29,7 +28,6 @@ public class DormantIdentityTests
         // ★FamineDriveGain は 2026-09-22 に 10 で**点火**、NeedTierSplit は同日に旗ごと削除（階層3分割を既定化＝作者裁定2026-09-20）＝この表から外した。
         "ParticipationDiscontent",      // ★二量分離 段3（2026-09-09）＝参加の述語を不満度へ（読み手は FactionSnapshot.ComputeClusters の1箇所）。
                                         //   0＝旧＝「闘争度 > MilitancyThreshold(0.5)」の二値＝不満度を1度も読まない（ビット恒等）
-        "DesperationMilitancyOverride", // ★二量分離 段3（2026-09-09）＝闘争度による層の上書き（窮乏チャネルの意識ゲートを開ける）。0＝×(1−0)＝ビット恒等
         "AssimilationRevival",          // ★段4（2026-09-09・§7-7バグa後半）＝民族復興＝抵抗の床を外して符号を反転させる（勾配の差し替え）。
                                         //   0＝床あり＝厳密恒等。点火値 1.0526＝1/0.95（反転点＝ボヘミア1900の識字0.95）
         "NationConsciousnessDerived",   // ★段4（2026-09-09・作者裁定5／§7-7バグb）＝国民意識をストックから**同じ漸化式の不動点**へ。
@@ -62,7 +60,6 @@ public class DormantIdentityTests
         "WorldPriceStatUnclamped",      // 表示用の世界価格統計のクランプを外す（0＝旧式）
         "PeacetimeConscriptGrievance",  // 支配度doc §15＝平時の植民地徴兵の遺恨
         // ★B9（州一揆の保持力の州按分）・項目2(b)（F1鎮圧枝の緩和なし）・項目3（F1の州選択＝熱×群衆）は 2026-09-11 に1腕で**点火**（係数ごと削除）＝この表から外した。
-        "DesperationLayerBlend",        // ★⑤3層の振る舞い分け（2026-09-11）＝窮乏チャネルの「誰が動くか」を層の重みで読む（エンジン内で wMid を読む唯一の箇所）。0＝旧ゲート＝ビット恒等
         // ★ColonyPlantationRent（実バグ B5＝植民地格の昇格州に大農園の地代）は 2026-10-02 (173) で**点火**（R1＋c6・旗ごと削除）＝この表から外した。
         "HeldSinceFromData",            // 実バグ B14＝world.json の heldSince を読む（0＝全州 Core・支配度1）
         // ★CivilWarPredicateUnified は 2026-09-08 に 1.0 で**点火**（F3b蜂起doc §5 段3・作者裁定②）＝この表から外した。
@@ -88,7 +85,6 @@ public class DormantIdentityTests
         // ★下2本は D-35 の反射走査が拾った（**初期化子を書かない宣言**＝`public double X;` なので静的なテキスト検索では見つからない）。
         //   ⇒ 反射で数え上げる形にした甲斐がそのまま出た1件目。
         "PopDebtDriven",                // POP個人債務の主フラグ（0＝誰も読み書きしない厳密恒等）
-        "UnionSatBonus",                // 作者裁定2026-08-19「労働組合は団体交渉権などに使うので休眠」（思想⑨＝法→満足度の直接加算を避ける）
         "SilverParityFromRatio",        // ★器（2026-09-07）＝世界銀価格を同一市場内の 銀/金鉱 比から作る（E→平均→E の自己参照を断つ）。0＝旧統計 Market.Price[銀] を注入＝厳密恒等
         "DiscontentLawGap",             // ★二量分離 段1（2026-09-09）＝不満度（導出量）の「法の隔たり」の物差しを PolicyPreferences.LawGap へ（0＝旧＝4軸座標の距離）。
                                         //   ⚠段1は Politics.Discontent の**読み手がゼロ**なので、この係数はどちらの値でも世界を動かさない（点火は段2＝読み手を付けるとき）
@@ -163,7 +159,7 @@ public class DormantIdentityTests
         "HouseholdCreditMonths",
         "AbsorptionIncomeRef", "AbsorptionIncomeWeight",
         "AiDevelopmentalSubsidy",   // AiMobilization は 2026-09-20 に係数ごと削除（段の点火で総動員のAI分岐が常時 live）・AiCrisisBorrow は 2026-09-28 に係数ごと削除（借入の自動化で予約の列が消えた）
-        "ArmyShapeGauge",   // BondRateDebtQuad は 2026-09-29 に係数ごと削除（国債の金利を史実から出し直した＝債務の二次項は英の債務比2.5 の史実と合わない）
+        // BondRateDebtQuad は 2026-09-29 に係数ごと削除（国債の金利を史実から出し直した＝債務の二次項は英の債務比2.5 の史実と合わない）
         // CoercionUpkeepToSoldiers は 2026-09-30 に係数ごと削除（連合維持費は兵士と官僚の役務の④へ全額＝支払いの段3-2）
         "CorruptionPoorOfficialWeight",
         "DomesticMarkupMax", "EducationGateUsesEma",
@@ -172,12 +168,11 @@ public class DormantIdentityTests
         "FertilityEquilibriumWeight", "FertilityIncomeSurvivalGate", "FertilityLandDivisionSlope",
         "FoodIncludesAnimalProtein", "GarrisonProcurement",
         "HigherEduNeedPerEducated",
-        "IncumbencyBias",
         "InterestCapitalization", "LoanSpreadPerYear",
         "MigrationFarePerkKm",
         "ModernizationToHigherEdu", "NationalismFromConsciousness",
         "NavalFuelPerGauge", "NewbornLiteracyDilution",
-        "PettyInterestGate", "PolicyRateLoanWeight",
+        "PolicyRateLoanWeight",
         "PreemptiveSeizeWeight", "PromotionGateHigherEdu", "ReactionFromLoss",
         "ResearchBaseRefPop", "ResearchScaleWeight",
         "ResearcherFrac",
@@ -185,7 +180,6 @@ public class DormantIdentityTests
         "SoeSaleMilitancyCeil", "SpecialistExitBanPrefScale",
         "SubmitProbabilistic",
         "TransportDemandAffordCap", "TransportPotentialWeight",
-        "WarStartPoliticsScale",
     ];
 
     /// <summary>★休眠の棚卸し（2026-10-11 (253)・measurements/dormant_20261011.tsv の行き先「消す」）で削除した係数の名簿＝**再び入れたら赤**。
@@ -202,6 +196,16 @@ public class DormantIdentityTests
         "OpulenceInfraChannel",       // 支出反射のインフラ拡張＝2026-08-08 同時点火で硬性赤・08-08 は「単独再測定可能な形で温存」＝削除は棚卸し dorm-51（AI の推奨）に従った担当の推奨（作者の承認は未確認）
         "MilitaryBuildCostCapScale",  // 軍需の身の丈ゲート倍率＝armscap 単独で基線とビット同一（実装ログ 2026-09-07）
         "NobleInvests",               // 貴族も投資家に含める述語の開閉＝2026-08-14 差し戻し（rentier 診断が二重に不成立・実効果は資金量＝清抑制の較正地雷）・棚卸し dorm-51・(255) で CapitalMarket.IsInvestor の引数 c ごと削除
+        // ★(271) 休眠8本の削除（作者 2026-10-11「全て推奨で」（00-A）で採った推奨・measurements/dormant_20261011.tsv の「消す（済み）」の行を手で写した名簿）。消す前の恒等は帯3本の全行バイト一致で示した（(271)）。
+        "DesperationMilitancyOverride", // 闘争度による層の上書き（窮乏チャネルの意識ゲートを開ける）＝意識を識字で頭打ちにしない（設計思想⑧）
+        "DesperationLayerBlend",      // 3層の振る舞い分け＝同上
+        "WarStartPoliticsScale",      // 開戦そのものの政治的帰結＝戦争の実体の被害で表す（2026-07-25 の教訓）
+        "UnionSatBonus",              // 組合の満足度への加算（思想⑨＝満足度への上乗せは賃金の経路と二重）
+        "UnionWageRiseBoost",         // 組合厚生 LaborWellbeing を通る賃金交渉の増幅＝UnionSatBonus と一緒に（LaborWellbeing が常に 0 だった）
+        "ArmyShapeGauge",             // 艦隊ゲージの兵数ゲージへの合算＝理想の軍隊の撤去と一緒に
+        "PettyInterestGate",          // プチブル利益束（第4束「小営業」）の主フラグ＝段階化は作る予定が無い
+        "IncumbencyBias",             // 現職効果＝振り返りの投票は作る予定が無い（履歴から戻せる）
+        "ScarceCapFollowsEndowment",  // 希少鉱物の産地の天井を賦存比例に＝鉱脈の在庫が物理の限界をすでに担う（二重）
         "CorruptionCoreV2",           // 汚職V2の点火の記録＝読み手0（2026-08-16 C2-C5 で旧式の分岐を撤去した後は係数だけが残っていた）
     ];
 

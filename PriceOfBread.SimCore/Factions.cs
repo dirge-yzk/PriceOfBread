@@ -15,7 +15,7 @@
 public sealed class FactionState
 {
     public Region Region = null!;      // クラスタの本拠州（参照持ち＝SecedingRegion と同じ作法・割譲等で消えれば不在減衰で自然消滅）
-    public int Bloc;                   // 0=旧支配層 1=近代エリート 2=大衆 3=小営業（プチブル利益束2026-08-15・PettyInterestGate>0のみ）
+    public int Bloc;                   // 0=旧支配層 1=近代エリート 2=大衆
     public int Ideo;                   // イデオロギー主軸（Ideology の序数）
     public double Size;                // 直近観測の規模（人口千人）
     public double AvgMilitancy;        // 直近観測の平均闘争度
@@ -50,8 +50,8 @@ public static class Factions
         if (totalPop <= 1e-9) return;
 
         var observed = FactionSnapshot.ComputeClusters(w);   // 共有核＝F2表示と同じ束ね方（決定論）
-        // ブロックの意識は bloc（0..3）のみに依存し本Step中は不変＝クラスタごとの再計算を避け遅延キャッシュ（値・走査順は従来と同一）。
-        var consciousnessByBloc = new double?[PolicyPreferences.PettyBloc + 1];
+        // ブロックの意識は bloc（0..2）のみに依存し本Step中は不変＝クラスタごとの再計算を避け遅延キャッシュ（値・走査順は従来と同一）。
+        var consciousnessByBloc = new double?[PolicyPreferences.BlocCount];
         // 1) 観測→状態の照合（キー＝州参照×ブロック×主軸）。観測順→状態順の走査＝決定論。
         foreach (var (reg, bloc, ideo, size, milSum) in observed)
         {
@@ -142,10 +142,9 @@ public static class Factions
     private static double BlocConsciousness(World w, int bloc)
     {
         double sum = 0, size = 0;
-        var petty = w.Coef.PettyInterestGate > 0 ? InterestGroups.PettyPops(w) : null;   // 第4束「小営業」＝クラスタ分類（FactionSnapshot.ComputeClusters）と同じ物差し（gate=0で従来とビット恒等）
         foreach (var p in w.AllPops())
         {
-            int b = PolicyPreferences.BlocOf(p, petty);
+            int b = PolicyPreferences.BlocOf(p);
             if (b != bloc || p.IsSoldier) continue;
             sum += p.Consciousness * p.Size; size += p.Size;
         }

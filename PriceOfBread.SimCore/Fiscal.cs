@@ -730,10 +730,11 @@ public static class Fiscal
         // ★2026-09-26：旗 ForeignBondFromInvestors（既定1.0）を焼き込み（x-01）。
         // ★支払いの一元化 段2-2（A5・2026-09-29）：貸し手のいない対外借入は立たない＝プールが未注入（既定 −1＝単一国の世界・共有層の最初の四半期の前）なら外資は0。
         //   旧＝未注入ならモデル外の無限プール＝世界の外から湧いた（四半期末の貸し手の引き落としが無い）。
+        double foreignPoolRaw = foreignPool;   // (271) 計器（読むだけ）：他国の投資家の貯蓄で切る前の外資のプール
         foreignPool = Math.Min(foreignPool, Math.Max(0.0, w.ForeignBondInvestorPool));   // 実引き当て：他国投資家プールを超えて対外債を発行できない（保存）
         double pool = domesticPool + foreignPool;
         double borrowed = Math.Min(borrowWant, pool);
-        if (Instruments.On) Instruments.Borrow(w, shortfall, BorrowTicket(nominalGdp, c), domesticPool, foreignPool, borrowed);   // 計器（読むだけ）
+        if (Instruments.On) Instruments.Borrow(w, shortfall, BorrowTicket(nominalGdp, c), domesticPool, foreignPool, borrowed, foreignPoolRaw);   // 計器（読むだけ）
         if (!(borrowed > 1e-9)) return 0;
         double foreignPortion = pool > 1e-9 ? borrowed * (foreignPool / pool) : 0;
         double domesticPortion = borrowed - foreignPortion;

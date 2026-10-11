@@ -255,8 +255,8 @@ public enum TensionReason
     RouteDependence,    // 交易路の扼圧（閉鎖海盆の出口を他国が扼する＝13l地政学・末尾追加＝既存記帳の添字を壊さない）
 }
 
-/// <summary>外交行動の政治的帰結の種別（挑発／宥和／開戦）。符号の向きと係数の出所をここで一元化する。</summary>
-public enum TensionPoliticsKind { Provoke, Appease, WarStart }
+/// <summary>外交行動の政治的帰結の種別（挑発／宥和）。符号の向きをここで一元化する。開戦（WarStart）は 2026-10-11 (271) に削除。</summary>
+public enum TensionPoliticsKind { Provoke, Appease }
 
 /// <summary>政治的帰結の見積もり（純関数 <see cref="Diplomacy.PreviewTensionPolitics"/> の戻り）。
 /// UI（ボタン脇の3行）と本体 <see cref="Diplomacy.TensionPolitics"/> は**この同じ値**を読む＝式の二実装を作らない。
@@ -833,18 +833,15 @@ public sealed class Diplomacy
             //   民族の結束（同質な軍は強い・多民族軍は脆い）×①軍の練度（識字×組織×勤務年数＝プロイセン型・2026-08-18 親軍法の撤去）。
             //   労働を奪わず戦力の質に出る＝経済を弱めない。掛ける順は下の戦力合成のまま（結束→練度→技術）。
             var (techQuality, cohesion, militarism) = ArmyShape.Quality(nw, c);
-            // ★段6（理想の軍隊 §10-1・2026-08-14）：艦を買っても Power.Military（ランク/介入/スコアの物差し）が上がらない
-            //   ＝Military は兵数駆動で海軍は NavalPower に隔離されていた。ArmyShapeGauge>0 で艦隊ゲージを兵数ゲージへ合算。
-            //   ⚠FleetGauge はこのループの後段で更新される＝1ヶ月遅れの値を読む（滑らか。播種はQ0で FleetGauge=0 なので不変）。
-            //   循環なし＝FleetGauge は購入ストック由来（Military からは播種の1回だけ・NavalPower の min で有界）。0＝厳密恒等（x+0×y=x）。
+            // 〔削除 2026-10-11 (271)〕艦隊ゲージを兵数ゲージへ合算する枝（旧 ArmyShapeGauge・既定 0・理想の軍隊 §10-1 の段6）＝Military は兵数駆動・海軍は NavalPower に隔離のまま。
             // ★段5＝民兵の戦力（作者裁定3・2026-09-08）＝**兵数 × a**（a<1＝弱兵）を兵士頭数へ足すだけ＝新しい戦力の経路を作らない。
             //   ⚠民兵は職業を持ったまま武器を取った民間人（Pop.MilitiaShare）＝常備軍（IsSoldier）ではないので SoldierSizeK には入らない。
-            //   ⚠MilitiaCombatValue=0（既定）では走査もせず 0×0＝x+0＝厳密恒等（ArmyShapeGauge と同じ作法）。
+            //   ⚠MilitiaCombatValue=0（既定）では走査もせず 0×0＝x+0＝厳密恒等。
             double militiaMen = 0;
             if (c.MilitiaCombatValue > 0)
                 foreach (var mp in nw.AllPops()) if (!mp.IsSoldier && mp.MilitiaShare > 0) militiaMen += mp.Size * mp.MilitiaShare;
             double soldiersNow = nw.SoldierSizeK();   // ★(189) 戦力と乗員（艦に乗る兵）が同じ兵士の数を読む
-            p.Military = ((soldiersNow + c.MilitiaCombatValue * militiaMen) / c.SoldiersPerMilitary + c.ArmyShapeGauge * p.FleetGauge) * nw.MilitaryReadiness * (1 + c.MilitaryQualityBonus * nw.Region.MilitaryQualityFill + c.MilitaryTier3Bonus * nw.Region.MilitaryTier3Fill) * cohesion * militarism * techQuality;   // 上位軍需(tier2)＋tier3(戦車/弩級戦艦)＋民族の結束＋軍国＋技術＝戦力の質的乗数
+            p.Military = ((soldiersNow + c.MilitiaCombatValue * militiaMen) / c.SoldiersPerMilitary) * nw.MilitaryReadiness * (1 + c.MilitaryQualityBonus * nw.Region.MilitaryQualityFill + c.MilitaryTier3Bonus * nw.Region.MilitaryTier3Fill) * cohesion * militarism * techQuality;   // 上位軍需(tier2)＋tier3(戦車/弩級戦艦)＋民族の結束＋軍国＋技術＝戦力の質的乗数
             p.AirPower = p.Military * nw.Region.MilitaryAirFill;   // 1934拡張E2：空軍力＝陸海戦力×空軍装備充足（飛行機/戦闘機/化学兵器）。財の解禁(1910s)前はFill0＝空軍0＝恒等
             // ★割り振りの廃止（2026-08-04・作者仕様(5)）：海軍は**払った金の比**で決まる。
             //   ★払う金の陸海の比は陸と海の必要量が決める（2026-10-01 (151)・UtilityAgent.SetNavalUpkeepShare＝ArmyShape.NavalSpendShareOf・AI とプレイヤーが同じ関数）。
@@ -1635,22 +1632,12 @@ public sealed class Diplomacy
         return own > 0 ? reach / own : reach > 0 ? double.PositiveInfinity : 0;
     }
 
-    /// <summary>開戦（唯一の入口＝WarsStarted の加算点）。<paramref name="soleInitiator"/>＝一方的に開戦を選んだ側
-    /// （侵略・植民地化の拒否への開戦・調停拒否への参戦）。null＝緊張の積み上がりで双方が引かずに戦争へ落ちた場合。</summary>
-    private void StartWar(Power a, Power b, Coefficients c, Power? soleInitiator = null)
+    /// <summary>開戦（唯一の入口＝WarsStarted の加算点）。開戦そのものの政治的帰結（旧 WarStartPoliticsScale＝既定 0 の枝）は 2026-10-11 (271) に削除
+    /// ＝開戦の政治的帰結は戦争の実体の被害で表す（2026-07-25 の教訓）。</summary>
+    private void StartWar(Power a, Power b, Coefficients c)
     {
         if (AtWar(a, b)) return;   // 監査2026-07-05：同一ペアの二重 War 登録を遮断（呼び出し3経路は全て上流で検査済み＝防御的二重化。二重登録は Score/講和が分裂する）
         WarsStarted++;
-        // ★開戦の政治的帰結（2026-08-10 作者FB③）＝挑発と同じ向き（タカ派が喝采・ハト派が反発）を、開戦を**選んだ側**の国内世論へ。
-        // ⚠強度は別係数 WarStartPoliticsScale（既定0＝ガードで即returnする厳密恒等の休眠。点火はバッチ測定で）。
-        // ⚠AI=プレイヤー対称：ここは全開戦の唯一の入口＝AIの開戦でもプレイヤーの開戦でも同じ式が走る。
-        // ★防衛側（攻められた側）には掛けない。史実の被攻撃国は挙国一致で**結束**する＝タカ派の喝采とハト派の反発という
-        //   分裂の図式は当てはまらない（攻撃側と同符号にするのは誤り）。結束を入れるなら別機構（イデオロギー非依存の
-        //   正統性加算）が要るので、この改修では何もしない＝新しい機構を作らない。
-        //   ただし緊張の積み上がりで落ちた戦争（soleInitiator=null）には「攻めた側」が存在しない＝双方が引かなかった
-        //   選択の結果なので両国に掛ける（プレイヤーの最後通牒→開戦もAIのTriggerWarsも同じ経路＝対称）。
-        if (soleInitiator is null) { TensionPolitics(a, b, TensionPoliticsKind.WarStart, c); TensionPolitics(b, a, TensionPoliticsKind.WarStart, c); }
-        else TensionPolitics(soleInitiator, soleInitiator == a ? b : a, TensionPoliticsKind.WarStart, c);
         // ★同一ペアの再戦カウンタ（診断のみ・2026-08-01）：作者指摘「同じ国が繰り返し開戦するのは不具合」を**測れる形にする**ための計器。
         // 挙動には一切影響しない（書くだけ）。バッチ末尾に「最多再戦ペア」と「3回以上戦ったペアの数」が出る。
         _warCount[Key(a, b)] = _warCount.GetValueOrDefault(Key(a, b)) + 1;
@@ -1705,9 +1692,8 @@ public sealed class Diplomacy
         //   崩壊の線（StepWars の RevCut＝1−RevolutionSurrenderWeight×革命圧力）は元から両陣営で同じ式＝読む量が違った：
         //   旧＝測定は四半期末の Politics.Step だけ＝最初の四半期は、反乱国は測定0（線1.0）・政府は出て行った州の住民まで含む前の測定（線0.6）のまま戦った
         //   （r103 の首都発の内戦 194件の最初の四半期はすべて 政府1.0／反乱国0・3分の1がその四半期のうちに終わった）。
-        //   内乱の述語（Politics.Step の inRevolt）は開戦の直後なので両陣営とも真。
         foreach (var side in (Power[])[parent, rebel])
-            if (side.Nation is { } sw) Politics.MeasureMobilization(sw, sw.Coef, inRevolt: true);
+            if (side.Nation is { } sw) Politics.MeasureMobilization(sw, sw.Coef);
         if (c.EnableDependency) DefendDependent(parent, rebel, c);
     }
 
@@ -1718,7 +1704,7 @@ public sealed class Diplomacy
     {
         if (attacker == target || AtWar(attacker, target)) return false;
         if (InDependency(attacker, target)) return false;   // 監査2026-07-05：従属関係の内側では宣戦不可（CanInvade/CanColonize と同じ規律を動詞側にも＝防御的二重化）
-        StartWar(attacker, target, c, attacker);   // 能動侵略＝攻めた側が開戦を選んだ（政治的帰結は攻撃側のみ）
+        StartWar(attacker, target, c);   // 能動侵略
         return true;
     }
 
@@ -2038,17 +2024,13 @@ public sealed class Diplomacy
         }
     }
 
-    /// <summary>政治的帰結の係数（種別ごとの出所）。開戦だけ別係数＝既定0＝厳密恒等の休眠。</summary>
-    public static double TensionPoliticsScaleOf(TensionPoliticsKind kind, Coefficients c)
-        => kind == TensionPoliticsKind.WarStart ? c.WarStartPoliticsScale : c.TensionPoliticsScale;
-
     /// <summary>政治的帰結の見積もり（純関数・副作用なし・RNGなし）。本体 <see cref="TensionPolitics"/> とUIのボタン脇3行が
     /// **この1箇所**を読む＝式の二実装を作らない（2026-08-10 作者FB②）。actor.Nation が無い（抽象勢力）なら既定＝全0。</summary>
     /// <paramref name="share"/>＝押した1回分（ActionTensionStep）に対する割合（既定1＝ボタン脇の見積もり・開戦）。緊張の操作は毎月実際に動いた分だけ払う（StepTensionRamp）。
     public static TensionPoliticsPreview PreviewTensionPolitics(Power actor, Power target, TensionPoliticsKind kind, Coefficients c, double share = 1.0)
     {
         if (actor.Nation is not { } w) return default;
-        double scale = TensionPoliticsScaleOf(kind, c) * share;   // share=1 は ×1.0＝IEEE で厳密恒等（開戦・見積もりは旧と1ビットも変わらない）
+        double scale = c.TensionPoliticsScale * share;   // share=1 は ×1.0＝IEEE で厳密恒等（開戦・見積もりは旧と1ビットも変わらない）
         var agg = Ideologies.National(w);
         double hawk = agg[1] + agg[4] + agg[8] + agg[9];
         double dove = agg[2] + agg[3];
@@ -2072,12 +2054,11 @@ public sealed class Diplomacy
     /// ＝参政権が広いほど世論の政治的帰結が重くなるのが自動で乗る。係数0で厳密恒等。</summary>
     internal void TensionPolitics(Power actor, Power target, TensionPoliticsKind kind, Coefficients c, double share = 1.0)
     {
-        if (!(TensionPoliticsScaleOf(kind, c) > 0) || actor.Nation is not { } w) return;   // 否定形＝NaNも非発火側へ倒す
+        if (!(c.TensionPoliticsScale > 0) || actor.Nation is not { } w) return;   // 否定形＝NaNも非発火側へ倒す
         var pv = PreviewTensionPolitics(actor, target, kind, c, share);
         (string cheerWho, string backlashWho) = kind switch
         {
             TensionPoliticsKind.Provoke => ("挑発の喝采(国粋・帝国派)", "攻撃的外交への反発(自由・共和派)"),
-            TensionPoliticsKind.WarStart => ("開戦の熱狂(国粋・帝国派)", "開戦への反発(自由・共和派)"),
             _ => ("融和の支持(自由・共和派)", pv.WeakAmp > 1.0 ? "弱腰への失望(国粋・帝国派×好戦世論)" : "融和への不満(国粋・帝国派)"),
         };
         w.Explain?.Add("Legitimacy", cheerWho, pv.Cheer);
@@ -2197,7 +2178,7 @@ public sealed class Diplomacy
             }
             return true;
         }
-        StartWar(great, target, c, great);   // 拒否＝戦争（既存の戦争解決に乗る。勝てば講和で植民地/属国を得る）。WarsStarted は StartWar 内で加算済み（監査2026-07-11 二7：呼び出し側の二重加算を削除）
+        StartWar(great, target, c);   // 拒否＝戦争（既存の戦争解決に乗る。勝てば講和で植民地/属国を得る）。WarsStarted は StartWar 内で加算済み（監査2026-07-11 二7：呼び出し側の二重加算を削除）
         Log.Add($"{_year} {target.Name}が{great.Name}の侵略に抗して開戦");
         return true;
     }

@@ -321,7 +321,7 @@ public sealed class World
     ///     8財（労働力・行政・兵力・高度労働力・農業労働力・上下水道・電化インフラ・高等教育＝baseNeed=0 の役務）は自動的に重み0
     ///     ＝「押しても負担が増えない段」が政治的にも0になる。
     ///   ⚠参照価格建て（市場価格ではない）＝上乗せが価格を押し上げ→ベースが増え→広さが上がる自己参照を断つ
-    ///     （PolicyPreferences の既存2集計 FirmConcentration/ArtisanImportShare と同じ作法）。
+    ///     （MilitaryOutputShare など他の参照価格建ての集計と同じ作法）。
     ///   ⚠徴収漏れ（AdminFill）は**掛けない**＝広さは「どれだけの材を専売にしたか」であって、漏れは実効率の側
     ///     （EconomyStep.BuyerWedge の 1−StateMonopolyLeakMax×(1−AdminFill)）が持つ＝同じ漏れを2度掛けない（思想⑨）。
     /// ⚠新しい状態を持たない（思想⑩）＝毎回その場で集計する純関数。キャッシュを置くと助走中・月次の読み手へ古い値を返す

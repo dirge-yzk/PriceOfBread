@@ -430,7 +430,7 @@ public partial class GameViewModel
         // 無ければ従来のスナップショット（F2互換＝ロード直後や闘争度の低い平時）。
         if (_player.Factions.Count > 0)
         {
-            var demandsByBloc = new List<FactionSnapshot.Demand>?[PolicyPreferences.PettyBloc + 1];   // 第4束「小営業」(bloc3)対応（プチブル利益束2026-08-15・PettyInterestGate>0で現れる）
+            var demandsByBloc = new List<FactionSnapshot.Demand>?[PolicyPreferences.BlocCount];
             // 強さ比（UI修正R7・2026-08-16 診断「警告と点火の乖離」）：闘争度はどの点火不等式にも単独で現れない＝
             // 蜂起の真の近接度＝F3b点火不等式そのもの（Politics.CheckFactionRevolt）を行ごとに出す
             // ＝旧は力の門（FactionStrength > 保持力+郷勇）、段4の点火後は連言2門（下の RevoltIgnitionIntensity 分岐）。

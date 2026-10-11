@@ -817,7 +817,7 @@ if (args.Length > 0 && args[0] == "powerdump")
                     double milB = 1.0 + (cD.MilitarismStrengthBonus - 1.0) * PoliticalQuantities.ArmyProfessionalism(nw);   // ★2026-08-18＝軍の練度（親軍法の撤去）
                     double tq = cD.TechMilLowFloor + (1 - cD.TechMilLowFloor) * Math.Clamp(nw.TechLevel / cD.TechMilFullLevel, 0, 1);
                     double eq = 1 + cD.MilitaryQualityBonus * nw.Region.MilitaryQualityFill + cD.MilitaryTier3Bonus * nw.Region.MilitaryTier3Fill;
-                    double ideal = nw.SoldierSizeK() / cD.SoldiersPerMilitary + cD.ArmyShapeGauge * p.FleetGauge;   // 理想軍隊＝兵士POP＋艦隊ゲージ（Diplomacy.cs:754 と同式）
+                    double ideal = nw.SoldierSizeK() / cD.SoldiersPerMilitary;   // 理想軍隊＝兵士POP（艦隊ゲージの合算は 2026-10-11 (271) に削除）
                     Console.WriteLine($"{1783 + y},{n},{p.Military * 100:F0},{nw.SoldierSizeK():F0},{nw.MilitaryReadiness:F2},{ideal * nw.MilitaryReadiness * 100:F0},{eq:F2},{coh:F2},{milB:F2},{tq:F2}");
                 }
         }

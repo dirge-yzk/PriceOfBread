@@ -70,7 +70,7 @@ public static class PolicyPreferences
     private const double ProgressiveCapitalSurcharge = 1.5;      // 累進課税＝資本（近代エリート）への追加反対強度
     private const double NationalizationCapitalOpposition = 1.5; // 国有化＝資本（近代エリート）の利潤没収への反対強度
     private const double LandTaxRentierThreshold = 0.34;         // 土地税＝この地代シェア未満なら転嫁を歓迎（賛成）
-    private const int BlocCount = 3;                             // 3ブロック（0旧支配層/1近代エリート/2大衆）＝党（保守0/自由1/社会2）と1:1対応
+    internal const int BlocCount = 3;                             // 3ブロック（0旧支配層/1近代エリート/2大衆）＝党（保守0/自由1/社会2）と1:1対応
 
     /// <summary>ブロックの経済プロファイル＋力（1パス集計。selfplay並列のため static キャッシュは使わない）。
     /// ★internal（2026-10-01 (146) 計算量の予算・恒等）：同じ瞬間に何本も立場を読む呼び手（要求の順位 <see cref="FactionSnapshot.ComputeDemands"/>・
@@ -85,18 +85,11 @@ public static class PolicyPreferences
         public readonly double[] Poll;         // 人頭税の課税対象（非免除）人口シェア（Closedは免除＝0）
         public readonly double[] Old;          // ブロック内の高齢比率（60歳以上・年齢の層。法多様性L2＝年金の受益者。高齢化した国ほど大きい＝水準であって配分シェアではない）
         public readonly double StateRevenue;   // 国家の歳入要求（0..1.5。財政逼迫で増す。税を＋方向に押す主体）
-        // プチブル利益束（第4束「小営業」＝職人+商人・作者承認2026-08-15・休眠 PettyInterestGate=0）。gate=0では全て0（分類が束を生まない）。
-        public readonly double PettyPowerModern;   // 小営業の政治力・商人（旧束=近代エリート）成分
-        public readonly double PettyPowerMass;     // 同・職人（旧束=大衆）成分。旧束別に持つ＝非対象軸のフォールバック集計が「旧束の値」へ厳密に戻る（設計書§2）
-        public readonly double PettyIncome;        // 小営業の所得シェア（自営所得シェア＝独禁・累進/所得税の強さの導出元）
-        public readonly double PettyIncomeModern;  // うち商人分（対アッパー相対所得の重複控除用）
         // ★2026-09-26 A2-2：名目GDP（World.NominalGdpPerMonth と同じ値）。Build で州×生産者の走査を1回だけ走らせて持つ＝Pref の読み手は走査し直さない。
         //   Build と Pref は同じ呼び出しの中で読むだけ（このファイルに産出・州・物価水準を書く行は無い）＝値は getter とビット単位で同じ。
         public readonly double NominalGdp;
-        public Profile(double[] pw, double[] we, double[] re, double[] inc, double[] po, double[] old, double sr,
-                       double petM, double petS, double petInc, double petIncM, double nominalGdp)
-        { Power = pw; Wealth = we; Rent = re; Income = inc; Poll = po; Old = old; StateRevenue = sr;
-          PettyPowerModern = petM; PettyPowerMass = petS; PettyIncome = petInc; PettyIncomeModern = petIncM; NominalGdp = nominalGdp; }
+        public Profile(double[] pw, double[] we, double[] re, double[] inc, double[] po, double[] old, double sr, double nominalGdp)
+        { Power = pw; Wealth = we; Rent = re; Income = inc; Poll = po; Old = old; StateRevenue = sr; NominalGdp = nominalGdp; }
     }
 
     /// <summary>大衆の平均失業率（人口加重・移民制限法の選好と SelfPlay の移民法の意図が読む＝唯一定義・2026-09-11 #13）。⚠労働市場の無い小シナリオでは0＝無影響。</summary>
@@ -108,23 +101,17 @@ public static class PolicyPreferences
     }
 
     /// <summary>popの3ブロック分類（0旧支配層/1近代エリート/2大衆）。<see cref="LawGap"/> の添字はこれ。
-    /// ⚠第4束「小営業」（<see cref="PettyBloc"/>）は**この分類の上に重なる横断的な束**で、対象3軸以外は旧束の値へ落ちる（PettyNet のフォールバック）
-    /// ＝pop から見た所属は 0/1/2 の1本のまま。
-    /// ★クラスタ側の4値分類（<paramref name="petty"/> を渡すと小営業＝<see cref="PettyBloc"/>）も同じ1本（2026-09-28 処理の一元化 段1＝旧は FactionSnapshot・Factions・Politics に同じ三項式の写しが4箇所）。petty=null＝3値。</summary>
-    internal static int BlocOf(Pop p, HashSet<Pop>? petty = null) => p.Closed ? 0 : petty != null && petty.Contains(p) ? PettyBloc : p.IsModernElite ? 1 : 2;
+    /// ★クラスタ側の分類も同じこの1本（2026-09-28 処理の一元化 段1＝旧は FactionSnapshot・Factions・Politics に同じ三項式の写しが4箇所）。
+    /// 〔2026-10-11 (271)〕第4束「小営業」（旧 PettyInterestGate＝既定 0 の枝）は削除＝3値だけ。</summary>
+    internal static int BlocOf(Pop p) => p.Closed ? 0 : p.IsModernElite ? 1 : 2;
 
     internal static Profile Build(World w)
     {
-        // プチブル利益束（第4束「小営業」・作者承認2026-08-15・休眠 PettyInterestGate=0）：**束の判定切替が唯一の分岐点**＝
-        // gate=0 では petty=null＝分類・加算の順序と値が従来と同一＝ビット恒等。gate>0 でも wealth/rent/income/poll の
-        // 3束シェアは従来の束のまま保つ（blocs0-2 の立場式を1つも動かさない＝非対象軸は旧束の値＝対象3本から広げない・設計書§2）
-        // ＝小営業は「力の振替（BlocsSplit）」と「自営所得シェア」だけを持つ。
-        var petty = w.Coef.PettyInterestGate > 0 ? InterestGroups.PettyPops(w) : null;
-        var (t, m, s, pettyM, pettyS) = InterestGroups.BlocsSplit(w, petty);
+        var (t, m, s) = InterestGroups.Blocs(w);
         double[] power = [t, m, s];
         double[] wealth = new double[BlocCount], rent = new double[BlocCount], income = new double[BlocCount], poll = new double[BlocCount];
         double[] old = new double[BlocCount], blocPop = new double[BlocCount];
-        double tw = 0, tr = 0, ti = 0, tp = 0, pettyInc = 0, pettyIncM = 0;
+        double tw = 0, tr = 0, ti = 0, tp = 0;
         foreach (var p in w.AllPops())
         {
             int b = BlocOf(p);
@@ -132,7 +119,6 @@ public static class PolicyPreferences
             wealth[b] += sv; tw += sv;
             double rn = System.Math.Max(0, p.LandRentPerMonth.Value); rent[b] += rn; tr += rn;
             double inc = System.Math.Max(0, p.EarnedPerMonth.Value); income[b] += inc; ti += inc;
-            if (petty != null && petty.Contains(p)) { pettyInc += inc; if (p.IsModernElite) pettyIncM += inc; }   // 小営業の自営所得（対象3軸の強さの導出元。gate=0＝枝ごと不走行）
             if (p.IsCommoner) { poll[b] += p.Size; tp += p.Size; }   // 人頭税の対象（特権＝Closed は免除）
             if (!p.IsSoldier) { old[b] += p.Size * p.AgeShare(60, double.PositiveInfinity); blocPop[b] += p.Size; }   // 法多様性L2：ブロックの高齢人口（年金の受益者）
         }
@@ -145,8 +131,7 @@ public static class PolicyPreferences
             //   旧＝**月次実質**（年次の約12倍の値）＝国債が年GDP の1割（8.3%）を越えた国は全て1で飽和＝国債の多さが歳入の要求に効かなかった。
             ? PoliticalQuantities.Clamp01((1.0 - w.FiscalFundingRatio.Value) + (ngdp > 1e-9 ? System.Math.Min(1.0, Calendar.ToGdpYear(w.GovDebt, Calendar.PerMonthToPerYear(new MoneyPerMonth(ngdp))).Value) : 0))
             : 0;
-        return new Profile(power, wealth, rent, income, poll, old, 0.5 + stress,
-            pettyM, pettyS, ti > 1e-9 ? pettyInc / ti : 0, ti > 1e-9 ? pettyIncM / ti : 0, ngdp);
+        return new Profile(power, wealth, rent, income, poll, old, 0.5 + stress, ngdp);
     }
 
     private static void Normalize(double[] a, double total)
@@ -237,7 +222,7 @@ public static class PolicyPreferences
                 return trad ? -1.0 : 1.0;
             case PolicyAxis.Antitrust:        // 独占禁止（E6）＝独占レントを得る旧支配層(塩の王室のgabelle)/資本(茶・トラスト)がともに抵抗・高値を払わされる大衆が賛成
                 return mass ? 1.0 : -1.0;
-            case PolicyAxis.Guild:            // 同業組合の廃止（特権 段4）＝職人（小営業束＝PettyPref が独自の立場）が抵抗・工場資本（自由な労働）と大衆（安い製品・参入の自由）が賛成・旧支配層は中立
+            case PolicyAxis.Guild:            // 同業組合の廃止（特権 段4）＝工場資本（自由な労働）と大衆（安い製品・参入の自由）が賛成・旧支配層は中立
                                               // ⚠GuildLawGate=0 では全ブロック0＝綱領・要求・戦線のどれにも現れない（uishot 1786年の総選挙に「同業組合の廃止」が出た＝休眠の漏れ・2026-09-07 是正）
                 return w.Coef.GuildLawGate > 0 ? (trad ? 0.0 : 1.0) : 0.0;
             case PolicyAxis.CivilianArms:     // 民間の武器購入の禁止（2026-09-11）＝旧支配層が禁止を望み（武力の独占＝現秩序の防衛・英1819六法）・近代/大衆が許可を望む（自衛と蜂起の手段＝国民衛兵1789）。
@@ -386,7 +371,6 @@ public static class PolicyPreferences
             double pr = Pref(a, b, e, w) * sign;
             if (pr < 0) sum += e.Power[b] * -pr;   // 進める向きへの反対の強さ×力
         }
-        sum += PettyOpposing(w, a, sign, e);   // 第4束「小営業」（プチブル利益束2026-08-15）。gate=0＝束が空＝+0で恒等
         if (w.ParliamentEnabled && HasLegislature(w.Polity))
             for (int party = 0; party < BlocCount; party++)
             {
@@ -442,125 +426,8 @@ public static class PolicyPreferences
         return size > 1e-9 ? add / size : 0;
     }
 
-    // ==== プチブル利益束（第4束「小営業」＝職人+商人・作者承認2026-08-15・docs/202608/20260815_プチブル利益束設計.md タスク#84）====
-    // 「大資本には反対だが私有と営業の自由は死守」という第3の立場（ミッテルシュタント政治・反百貨店運動・1848急進主義の母体）。
-    // 立場は保有から導出（MilitaryExportPref と同型＝国名・年号なし）。対象は下の4軸だけ＝他軸は旧束の値へフォールバック（設計書§2）。
-    // 対立の発現は既存の集計（政治力×立場）から創発＝専用機構なし。休眠 PettyInterestGate=0＝束が空＝全経路 +0 で恒等。
-
-    /// <summary>第4束のブロック番号（FactionSnapshot のクラスタ束分類・Factions/Politics の分類・ComputeDemands が共有）。</summary>
-    public const int PettyBloc = 3;
-
-    /// <summary>小営業束が独自の立場を持つ対象軸（設計書§2の表。累進課税/所得税は表の1行＝2軸）。過剰に広げない。
-    /// ★2026-09-20：専売は軸ごと撤去（政治から切り離した）＝ここからも外した。専売が誰に当たるかは経済の帰着であって政策軸への立場ではない。</summary>
-    internal static bool IsPettyAxis(PolicyAxis a)
-        => a is PolicyAxis.Antitrust or PolicyAxis.Tariff or PolicyAxis.IncomeTax or PolicyAxis.ProgressiveTax
-             or PolicyAxis.Guild;   // ★特権 段4：同業組合の廃止は小営業（職人）の特権そのもの＝独自の立場（反対）
-
-    private const double PettyProgressiveSupport = 0.5;   // 累進/所得税の弱賛成の上限（対アッパー所得差シェア≤1に乗る＝自己有界）
-
-    // 小営業束の立場（対象3軸のみ・連続値）。強さは全て保有・実効率のシェア（≤1）から導出＝自己有界（5問チェック④）。
-    private static double PettyPref(PolicyAxis a, in Profile e, World w) => a switch
-    {
-        // 独禁＝賛成（大資本の解体）。強さ＝企業集中（EffFirms の逆数系＝寡占マークアップの入力を再利用）×自営所得シェア
-        PolicyAxis.Antitrust => FirmConcentration(w) * e.PettyIncome,
-        // 同業組合の廃止＝反対（参入制限のレントを失う）。強さ＝自営所得シェア（保有から導出＝自己有界）
-        PolicyAxis.Guild => w.Coef.GuildLawGate > 0 ? -e.PettyIncome : 0.0,   // ⚠ゲート0で0（休眠の漏れ防止）
-        // 保護関税＝賛成。強さ＝自財（職人の自営レシピの財）の輸入競合シェア＝LastImport÷(LastProduced+LastImport)
-        PolicyAxis.Tariff => ArtisanImportShare(w),
-        // 累進課税/所得税＝中立〜弱賛成。強さ＝対アッパー（旧支配層＋大資本）の相対所得（自分に累進はほぼ届かない）。
-        // アッパー所得＝Income[0]+Income[1]−商人分（商人の所得は Income[1] に混じったまま＝3束シェアを動かさない設計の重複控除）
-        PolicyAxis.IncomeTax or PolicyAxis.ProgressiveTax =>
-            PettyProgressiveSupport * System.Math.Max(0, e.Income[0] + (e.Income[1] - e.PettyIncomeModern) - e.PettyIncome),
-        _ => 0,   // 到達しない（PettyNet/PettyOpposing が対象3軸以外をフォールバックへ振る）
-    };
-
-    /// <summary>集計への小営業束の寄与（力×立場・NetSupport/SupportBreakdown が読む）。対象3軸＝束の立場。
-    /// 他軸＝旧束の値へフォールバック（商人成分×近代の立場＋職人成分×大衆の立場＝gate=0と同じ値＝安全側・設計書§2）。
-    /// gate=0＝分類が束を生まない＝力0で厳密に0（**束の判定切替が唯一の分岐点**）。</summary>
-    private static double PettyNet(World w, PolicyAxis a, double sign, in Profile e)
-    {
-        double pw = e.PettyPowerModern + e.PettyPowerMass;
-        if (pw <= 0) return 0;
-        if (IsPettyAxis(a)) return pw * PettyPref(a, e, w) * sign;   // 対象3軸＝真の第4束（未代表）＝街頭のまま＝ParliamentStreetSupersede を掛けない
-        // フォールバック＝旧束（近代/大衆）から削った質量を等価で返す線形恒等。NetSupport の束項が街頭係数（ParliamentStreetSupersede）で
-        // 縮む議会国では、返す側にも同じ係数を掛けないと「削って返しただけ」の非対象軸が動く（PettyInterestTests の恒等番人・2026-08-31）。
-        double street = w.Coef.ParliamentStreetSupersede > 0 && w.ParliamentEnabled && HasLegislature(w.Polity)
-            ? 1.0 - PoliticalQuantities.Clamp01(w.Coef.ParliamentStreetSupersede) : 1.0;
-        return street * (e.PettyPowerModern * Pref(a, 1, e, w) + e.PettyPowerMass * Pref(a, 2, e, w)) * sign;
-    }
-
-    /// <summary>小営業束の反対力（OpposingPower 用）。フォールバック時は旧束成分ごとに符号を見る（近代と大衆で賛否が割れ得るため＝gate=0と同じ按分）。</summary>
-    private static double PettyOpposing(World w, PolicyAxis a, double sign, in Profile e)
-    {
-        double pw = e.PettyPowerModern + e.PettyPowerMass;
-        if (pw <= 0) return 0;
-        if (IsPettyAxis(a))
-        {
-            double pr = PettyPref(a, e, w) * sign;
-            return pr < 0 ? pw * -pr : 0;
-        }
-        double sum = 0;
-        double prM = Pref(a, 1, e, w) * sign; if (prM < 0) sum += e.PettyPowerModern * -prM;
-        double prS = Pref(a, 2, e, w) * sign; if (prS < 0) sum += e.PettyPowerMass * -prS;
-        return sum;
-    }
-
-    /// <summary>小営業束の per-unit 立場（ComputeDemands の要求生成・押し切り/阻止遺恨のpop写像が読む）。
-    /// 対象3軸＝束の立場×向き・他軸＝旧束の値の力加重平均（フォールバック）。gate=0（束が空）は常に0。
-    /// 同じ瞬間の <see cref="Build"/> を渡す読み口（<see cref="Profile"/> の注記）。★(149)：旧の公開の口（呼ぶたびに Build）は読み手が無くなった＝削除。</summary>
-    internal static double PettyStance(World w, PolicyAxis a, bool increasing, in Profile e)
-    {
-        double pw = e.PettyPowerModern + e.PettyPowerMass;
-        if (pw <= 0) return 0;
-        return PettyNet(w, a, increasing ? 1 : -1, e) / pw;
-    }
-
-    /// <summary>企業集中＝財別有効生産者数 EffFirms の逆数の生産額加重平均（寡占マークアップ μ=1+Max/EffFirms の入力の再利用）。
-    /// EffFirms 休眠（DomesticMarkupMax=0＝配列なし）時は EconomyStep.Run 内の再定義と同じ定義を読む＝法的独占（塩/茶×前近代）=1・他は競争的既定
-    /// （producerCount は Max の床側＝競争的なので省略）。参照価格建て＝価格の暴騰で政治が揺れない（MilitaryOutputShare と同作法）。</summary>
-    private static double FirmConcentration(World w)
-    {
-        double conc = 0, tot = 0;
-        foreach (var r in w.Regions)
-        {
-            if (r.State != RegionState.Active) continue;
-            for (int gi = 0; gi < r.Markets.Length; gi++)
-            {
-                double val = r.Markets[gi].LastProduced * Catalog.RefPrices[gi];
-                if (val <= 0) continue;
-                double firms = r.EffFirms is { } ef && gi < ef.Length && ef[gi] >= 1.0
-                    ? ef[gi]
-                    : (gi == Catalog.SaltId || gi == Catalog.TeaId) && r.Industrialization < w.Coef.MonopolyDissolveInd
-                        ? 1.0
-                        : w.Coef.CompetitiveFirmsBase;
-                conc += val / System.Math.Max(1.0, firms);
-                tot += val;
-            }
-        }
-        return tot > 1e-9 ? PoliticalQuantities.Clamp01(conc / tot) : 0;
-    }
-
-    /// <summary>自財の輸入競合シェア＝職人の自営レシピの財（構造マーカー＝LaborPopIndex==OwnerPopIndex==ArtisanPopIndex。
-    /// 財idのハードコードなし）について LastImport÷(LastProduced+LastImport) を参照価格建てで全国集計。輸入品が工房を圧す度合い。</summary>
-    private static double ArtisanImportShare(World w)
-    {
-        double imp = 0, tot = 0;
-        foreach (var r in w.Regions)
-        {
-            if (r.State != RegionState.Active || r.ArtisanPopIndex < 0) continue;
-            foreach (var pr in r.Producers)
-            {
-                if (pr.LaborPopIndex != r.ArtisanPopIndex || pr.OwnerPopIndex != r.ArtisanPopIndex) continue;
-                int g = pr.GoodId;
-                if (g < 0 || g >= r.Markets.Length) continue;
-                var m = r.Markets[g];
-                double rp = Catalog.RefPrices[g];
-                imp += m.LastImport * rp;
-                tot += (m.LastProduced + m.LastImport) * rp;
-            }
-        }
-        return tot > 1e-9 ? PoliticalQuantities.Clamp01(imp / tot) : 0;
-    }
+    // 〔削除 2026-10-11 (271)〕プチブル利益束（第4束「小営業」＝職人+商人・旧 PettyInterestGate＝既定 0 の枝）と、その専用の読み手
+    //   （PettyPref・PettyNet・PettyOpposing・PettyStance・FirmConcentration・ArtisanImportShare）を削除。作者 2026-10-11「全て推奨で」（00-A）で採った推奨＝プチブルの利益束の段階化は作る予定が無い。
 
     /// <summary>第6段6-4（2026-07-28）統帥権：軍の政策選好＝軍事軸のみ（武力＝軍事費/治安維持力・徴兵法の増加に賛成＝縮小に反対）。他軸は無関心。
     /// ★2026-08-18：親軍法の撤去で軸は2本になったが、その2本こそ軍国度（軍事費×徴兵法）の2因子＝軍が押す先は変わっていない。</summary>
@@ -597,9 +464,6 @@ public static class PolicyPreferences
         double streetB = w.Coef.ParliamentStreetSupersede > 0 && w.ParliamentEnabled && HasLegislature(w.Polity)
             ? 1.0 - PoliticalQuantities.Clamp01(w.Coef.ParliamentStreetSupersede) : 1.0;   // ★NetSupport と同じ譲渡率＝合計一致の維持
         for (int b = 0; b < BlocCount; b++) list.Add((blocNames[b], streetB * e.Power[b] * Pref(a, b, e, w) * sign));
-        // 第4束「小営業」（プチブル利益束2026-08-15）＝PettyInterestGate>0 のみ現れる（休眠では力0＝行なし）。合計は NetSupport と一致（同じ項）
-        double pettyRow = PettyNet(w, a, sign, e);
-        if (System.Math.Abs(pettyRow) > 1e-9) list.Add(("小営業", pettyRow));
         // ★党別に分解（2026-08-04・作者指摘「POPの誘導が困難で、議会に影響を与えるのが難しい」）。
         //   旧＝「議会 反対 42」の1行だけで、**どの党が反対しているか**が出ず、誰を増やせば通るのかが読めなかった。
         //   党＝族（保守0/自由1/社会2）で、族の議席は支持基盤（政治タブ）の階級×思想から積み上がる
@@ -636,7 +500,6 @@ public static class PolicyPreferences
         double street = w.Coef.ParliamentStreetSupersede > 0 && w.ParliamentEnabled && HasLegislature(w.Polity)
             ? 1.0 - PoliticalQuantities.Clamp01(w.Coef.ParliamentStreetSupersede) : 1.0;
         for (int b = 0; b < BlocCount; b++) sum += street * e.Power[b] * Pref(a, b, e, w) * sign;
-        sum += PettyNet(w, a, sign, e);   // 第4束「小営業」（プチブル利益束2026-08-15）。gate=0＝束が空＝+0で恒等・対象3軸以外は旧束の値へフォールバック
         sum += ParliamentNet(w, a, sign, e);
         // 政12：国家の歳入要求を**独立主体として**全税軸へ直接加算（ブロック力で乗算しない＝専売の in-Pref 方式の奇妙なスケーリングを避ける）。
         // 所得税・人頭税・土地税も財政逼迫で押せる（戦時所得税＝英1799/米1861）。旗 StateRevenueAllTaxes（0＝専売のみ）は 2026-09-26 に焼き込み。

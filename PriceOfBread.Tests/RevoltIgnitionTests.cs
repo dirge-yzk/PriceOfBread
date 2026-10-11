@@ -778,7 +778,7 @@ public class RevoltIgnitionTests
         foreach (var w in new[] { pw, rw })
         {
             double r0 = w.ReformistPower, d0 = w.RadicalPower;
-            Politics.MeasureMobilization(w, w.Coef, inRevolt: true);
+            Politics.MeasureMobilization(w, w.Coef);
             Assert.Equal(r0, w.ReformistPower);   // 蓄えた動員＝自国の今の POP で測った値（政府は出て行った首都の住民を含まない）
             Assert.Equal(d0, w.RadicalPower);
         }
@@ -1152,8 +1152,7 @@ public class RevoltIgnitionTests
         foreach (var p in r.Pops) if (!ReferenceEquals(p, payer) && p.Savings.Value > 0) { pool += p.Savings.Value * 0.5; p.SetSavings(p.Savings.Value * (0.5)); }
         payer.SetSavings(payer.Savings.Value + (pool));
         Assert.True(payer.Savings.Value > 1e3, $"前提が崩れた：参加者の財布が薄い（{payer.Savings:F1}）");
-        var (petty, _, _) = FactionSnapshot.MembershipContext(w);
-        var (bloc, ideo) = FactionSnapshot.BlocIdeo(payer, petty);
+        var (bloc, ideo) = FactionSnapshot.BlocIdeo(payer);
         var f = new FactionState { Region = r, Bloc = bloc, Ideo = ideo, Size = payer.Size, AvgMilitancy = 0.9, Cohesion = 1.0 };
         w.Factions.Add(f);
         return (sim, f, payer);
@@ -1510,7 +1509,7 @@ public class RevoltIgnitionTests
         var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
         sim.Run(20);
         var w = sim.World;
-        var off = new System.Collections.Generic.List<FactionSnapshot.Demand>[PolicyPreferences.PettyBloc + 1];
+        var off = new System.Collections.Generic.List<FactionSnapshot.Demand>[PolicyPreferences.BlocCount];
         for (int b = 0; b < off.Length; b++) off[b] = FactionSnapshot.ComputeDemands(w, b);   // 綱領・UI の読み手（既定 lawsOnly=false）＝全軸
         bool anyInstantOff = false;
         for (int b = 0; b < off.Length; b++)
@@ -1768,7 +1767,7 @@ public class RevoltIgnitionTests
         //   この番人が測るのは「段になった**税**が要求に載る」ことだけになった（専売は別の番人＝専売は政治の軸ではない）。
 
         bool anyTax = false;
-        for (int b = 0; b <= PolicyPreferences.PettyBloc; b++)
+        for (int b = 0; b < PolicyPreferences.BlocCount; b++)
         {
             var off = FactionSnapshot.ComputeDemands(w, b);                        // 綱領・UI の読み手＝全軸（裁定C1でも不変）
             var on = FactionSnapshot.ComputeDemands(w, b, lawsOnly: true);         // 危機側の読み手

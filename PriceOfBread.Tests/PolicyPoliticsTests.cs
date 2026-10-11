@@ -313,95 +313,35 @@ public class PolicyPoliticsTests
     }
 
     [Fact]
-    public void 段3_闘争度が高ければ意識のある層も窮乏チャネルへ乗る()   // 裁定1の但し書き＝3層は「既定の手段」であって固定ではない
+    public void 窮乏チャネルは意識ゲートで閉じ階級で分岐しない()   // 旧「段3・段5」（闘争度による層の上書き DesperationMilitancyOverride・3層の振る舞い分け DesperationLayerBlend）は 2026-10-11 (271) に係数ごと削除＝残った意識ゲートだけを固定
     {
-        // ⚠盤面を凍結する：σ=0（闘争度が同一ティックで動く）・意識速度=0（意識が target へ寄る）＝測るのは**上書きの1因子だけ**。
-        static (double Radical, double Expect) 一回(double over, double militancy)
+        // ⚠盤面を凍結する：σ=0（闘争度が同一ティックで動く）・意識速度=0＝測るのは意識ゲートの1因子だけ。
+        static (double Radical, double Expect) 一回(double militancy, double consciousness)
         {
             var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
             sim.Run(8);
             var w = sim.World; var c = w.Coef;
             c.MilitancySpeed = 0; c.ConsciousnessSpeed = 0;
-            c.DesperationMilitancyOverride = over;
             c.UnionMobilization = 0;   // 改革派側の加算＝radical には入らないが、盤面の他の書き込みを増やさないため閉じる
-            Assert.True(c.DesperationConsciousnessGate >= 1.0, "前提が崩れた：意識ゲートが休眠＝上書きする対象が無い");
+            Assert.True(c.DesperationConsciousnessGate >= 1.0, "前提が崩れた：意識ゲートが休眠＝閉じる対象が無い");
             double sz = 0;
-            foreach (var p in w.AllPops()) { p.Militancy = militancy; p.Consciousness = 1.0; sz += p.Size; }   // 意識満額＝旧ゲートでは窮乏チャネルが完全に閉じる層
+            foreach (var p in w.AllPops()) { p.Militancy = militancy; p.Consciousness = consciousness; sz += p.Size; }
             // ⚠規模は Step の**前**に取る：同じ Step の後段で F1（州一揆）が発火して大衆popが死ぬ（闘争度0.9は熱0.9＝門0.5超）
             //   ＝後で数えた規模で予言すると 0.4% ずれる（計器の粒度の罠）。radical を集計するループは後段より前にある。
             Politics.Step(w, c);
-            // 予言：radical = Σ規模×意識×闘争度 ＋ Σ規模×max(0,闘争度−暴動閾値)×重み×(1−ゲート×意識×(1−開度))
-            double relief = over * System.Math.Clamp((militancy - c.RiotMilitancyThreshold) / (1.0 - c.RiotMilitancyThreshold), 0, 1);
-            double expect = sz * militancy
+            // 予言：radical = Σ規模×意識×闘争度 ＋ Σ規模×max(0,闘争度−暴動閾値)×重み×(1−ゲート×意識)
+            double expect = sz * consciousness * militancy
                           + sz * System.Math.Max(0, militancy - c.RiotMilitancyThreshold) * c.DesperationChallengeWeight
-                                * (1.0 - c.DesperationConsciousnessGate * (1.0 - relief));
+                                * (1.0 - c.DesperationConsciousnessGate * consciousness);
             return (w.RadicalPower, expect);
         }
-        Assert.Equal(0.0, new Coefficients().DesperationMilitancyOverride);   // ★既定は休眠
-
-        var off = 一回(over: 0.0, militancy: 0.9);
-        var on = 一回(over: 1.0, militancy: 0.9);
-        // 予言と一致＝式に**階級の項がどこにも無い**ことの検査（全popが同じ意識・闘争度なら、階級で分岐していれば必ずずれる）
-        Assert.Equal(off.Expect, off.Radical, 3);
-        Assert.Equal(on.Expect, on.Radical, 3);
-        Assert.True(on.Radical > off.Radical, $"闘争度0.9でも意識のある層が暴力側へ回っていない（ON {on.Radical:F1} ⇔ OFF {off.Radical:F1}）");
-
-        // 暴動水準ちょうどでは上書きは0＝平穏な社会の意識ある層は政治のまま（開度は闘争度から連続に開く）
-        double riot = new Coefficients().RiotMilitancyThreshold;
-        Assert.Equal(一回(over: 0.0, militancy: riot).Radical, 一回(over: 1.0, militancy: riot).Radical, 9);
-    }
-
-
-    [Fact]
-    public void 段5_三層の窮乏チャネルは誰が動くかを層の重みで読む()   // 設計メモ §6-3／§7-2＝政治意識あり→開度のぶんだけ／中間→自ら暴力／文盲→蜂起に合流（2026-09-11・休眠）
-    {
-        // ⚠盤面を凍結：σ=0・意識速度=0＝測るのは「誰が動くか」の1因子だけ。全popを同じ識字・意識・闘争度に置く
-        //   ＝予言（階級を読まない式）と一致すれば、式に階級の項が無い（階級で分岐していれば必ずずれる＝段3テストと同じ論法）。
-        static (double Radical, double Expect, double Old) 一回(double blend, double literacy, double consciousness, double militancy, double over, bool revolt)
-        {
-            var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
-            sim.Run(8);
-            var w = sim.World; var c = w.Coef;
-            c.MilitancySpeed = 0; c.ConsciousnessSpeed = 0; c.UnionMobilization = 0;
-            c.DesperationLayerBlend = blend; c.DesperationMilitancyOverride = over;
-            Assert.True(c.DesperationConsciousnessGate >= 1.0, "前提が崩れた：意識ゲートが休眠＝層で置き換える対象が無い");
-            Assert.False(w.InCivilWar || w.RevoltingFaction is not null || w.PendingRebelRegions is not null, "前提が崩れた：平時でない");
-            if (revolt) w.PendingRebelRegions = [w.Regions[^1]];   // 「蜂起が起きた」状態＝Politics.Step の inRevolt と同じ述語（段6テストと同じ置き方）
-            double sz = 0;
-            foreach (var p in w.AllPops()) { p.Literacy = literacy; p.Consciousness = consciousness; p.Militancy = militancy; sz += p.Size; }   // ⚠規模は Step の前に取る（後段の F1 で大衆が死ぬ）
-            Politics.Step(w, c);
-            double relief = over * System.Math.Clamp((militancy - c.RiotMilitancyThreshold) / (1.0 - c.RiotMilitancyThreshold), 0, 1);
-            double old = 1.0 - c.DesperationConsciousnessGate * consciousness * (1.0 - relief);
-            double wEdu = System.Math.Min(consciousness, literacy), wMid = literacy - wEdu;
-            double layers = wMid + wEdu * relief + (1.0 - literacy) * (revolt ? 1.0 : 0.0);
-            double who = (1.0 - blend) * old + blend * layers;
-            double desp = sz * System.Math.Max(0, militancy - c.RiotMilitancyThreshold) * c.DesperationChallengeWeight;
-            return (w.RadicalPower, sz * consciousness * militancy + desp * who, sz * consciousness * militancy + desp * old);
-        }
-        Assert.Equal(0.0, new Coefficients().DesperationLayerBlend);   // ★既定は休眠
-
-        // (a) 0＝旧ゲートそのもの（層を読まない）
-        var off = 一回(blend: 0, literacy: 0.8, consciousness: 0.3, militancy: 0.9, over: 0, revolt: false);
-        Assert.Equal(off.Old, off.Radical, 3);
-        // (b) 危険な中間（識字0.8・意識0.3＝wMid 0.5）：平時に自ら動くのは中間だけ＝旧(1−意識＝0.7)より小さい・予言と一致（階級の項なし）
-        var mid = 一回(blend: 1, literacy: 0.8, consciousness: 0.3, militancy: 0.9, over: 0, revolt: false);
-        Assert.Equal(mid.Expect, mid.Radical, 3);
-        Assert.True(mid.Radical < off.Radical, $"文盲層が平時に自ら動いている（層 {mid.Radical:F1} ≥ 旧 {off.Radical:F1}）");
-        // (c) 西欧型（意識0.8＞識字0.3＝wMid 0）：平時・開度0では窮乏チャネルが**空**＝計器の知見（英仏で wMid p50=0.000）を機構の側から固定＝設計メモとの乖離の記録
-        var west = 一回(blend: 1, literacy: 0.3, consciousness: 0.8, militancy: 0.9, over: 0, revolt: false);
-        Assert.Equal(west.Expect, west.Radical, 3);
-        Assert.True(west.Radical < west.Old, "意識＞識字の社会で中間層の項が空になっていない");
-        // (c') 同じ社会でも闘争度の上書き（開度）があれば意識ある層が暴力へ回る（§7-1 裁定1＝1789・1917）
-        var westOver = 一回(blend: 1, literacy: 0.3, consciousness: 0.8, militancy: 0.9, over: 1, revolt: false);
-        Assert.Equal(westOver.Expect, westOver.Radical, 3);
-        Assert.True(westOver.Radical > west.Radical, "闘争度の上書きが層の形でも効いていない");
-        // (d) 蜂起中＝文盲（1−識字＝0.7）が合流する（平時は動かなかった層）
-        var join = 一回(blend: 1, literacy: 0.3, consciousness: 0.8, militancy: 0.9, over: 0, revolt: true);
-        Assert.Equal(join.Expect, join.Radical, 3);
-        Assert.True(join.Radical > west.Radical, "蜂起が起きても文盲層が合流していない");
-        // (e) 意識≤識字なら蜂起中の層形は旧ゲートと一致（(1−意識)＝中間＋文盲）＝新しい量を足していないことの検算
-        var same = 一回(blend: 1, literacy: 0.8, consciousness: 0.3, militancy: 0.9, over: 0, revolt: true);
-        Assert.Equal(same.Old, same.Radical, 3);
+        // 意識満額＝窮乏チャネルが完全に閉じる層／意識0＝飢えた群衆そのもの（チャネルが全開）。予言と一致＝式に**階級の項がどこにも無い**ことの検査
+        //（全popが同じ意識・闘争度なら、階級で分岐していれば必ずずれる）
+        var closed = 一回(militancy: 0.9, consciousness: 1.0);
+        var open = 一回(militancy: 0.9, consciousness: 0.0);
+        Assert.Equal(closed.Expect, closed.Radical, 3);
+        Assert.Equal(open.Expect, open.Radical, 3);
+        Assert.True(open.Radical > 0, "意識0の飢えた群衆で窮乏チャネルが開いていない");
     }
 
     /// <summary>M9（2026-09-11）：[0,1] クランプの唯一定義（旧 Ideologies.Clamp01 を吸収）。NaN は 0 側・−0.0 は +0.0（符号ビット0）・上限1。</summary>
@@ -601,7 +541,7 @@ public class PolicyPoliticsTests
         Assert.Contains(before, v => v > 1e-9);   // 前提＝専売にしている材がある（空振りの番人にしない）
 
         // (2) 勢力の要求・要求の目標・譲歩のどれにも専売が現れない＝全軸×全ブロックを総当たりする
-        for (int b = 0; b <= PolicyPreferences.PettyBloc; b++)
+        for (int b = 0; b < PolicyPreferences.BlocCount; b++)
             foreach (var d in FactionSnapshot.ComputeDemands(w, b))
                 Assert.DoesNotContain("専売", FactionSnapshot.DemandJa(d.Axis, d.Increase));
         foreach (var a in FactionSnapshot.Axes)
@@ -1912,7 +1852,7 @@ public class PolicyPoliticsTests
                 if (axis == PolicyAxis.NationalizationAll) continue;
                 if (lawsOnly && FactionSnapshot.IsInstantAxis(axis)) continue;
                 var (trad, modern, mass, _) = PolicyPreferences.Stance(w, axis, increasing: true);
-                double prefInc = bloc == 0 ? trad : bloc == 1 ? modern : bloc == 2 ? mass : PolicyPreferences.PettyStance(w, axis, increasing: true, PolicyPreferences.Build(w));
+                double prefInc = bloc == 0 ? trad : bloc == 1 ? modern : mass;
                 bool increase = prefInc >= 0;
                 double score = Math.Abs(prefInc) * FactionSnapshot.Headroom(w, axis, increase);
                 if (w.Coef.FactionTargetsWeakAxis > 0) score /= 1.0 + w.Coef.FactionTargetsWeakAxis * PolicyPreferences.OpposingPower(w, axis, increase, PolicyPreferences.Build(w));
@@ -1927,7 +1867,7 @@ public class PolicyPoliticsTests
         void Check()
         {
             if (w.ParliamentEnabled && w.Polity is Polity.ConstitutionalMonarchy or Polity.Republic) legislatures++;
-            for (int b = 0; b <= PolicyPreferences.PettyBloc; b++)
+            for (int b = 0; b < PolicyPreferences.BlocCount; b++)
                 foreach (bool lawsOnly in new[] { false, true })
                 {
                     var got = FactionSnapshot.ComputeDemands(w, b, lawsOnly);
