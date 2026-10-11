@@ -553,6 +553,9 @@ public static class Fiscal
             bl.Add("BondRate", "議会の信認割引", bondInside * convDiscount * (reprDiscount - 1.0));
             bl.Add("BondRate", "上限クランプ", w.GovBondRatePerYear.Value - bondPre);
         }
+        // 計器（読むだけ・(265)）：Explain と同じ項を、Explain を立てずに直に写す（Explain を立てると全域の Add の経路が動く）
+        if (Instruments.On) Instruments.BondRate(w, (c.BondBaseRatePerYear * convDiscount).Value, c.BondRateDebtScale * dGdp.Value * convDiscount, fisher * convDiscount, distrust * convDiscount, c.PolicyRateBondWeight * w.InterestRate * convDiscount,
+            bondInside * (convDiscount - 1.0), bondInside * convDiscount * (reprDiscount - 1.0), w.GovBondRatePerYear.Value - bondPre, dGdp.Value, convDiscount, reprDiscount);
 
         // ※旧・教育費（国庫→pop一律）は廃止：教育のコストは教育財の市場が直接表現する
         //   （授業料＝popが教師/聖職者に払う／義務教育＝国庫が買い与える＝EconomyStep）。教育費スライダーは義務教育の財源率。

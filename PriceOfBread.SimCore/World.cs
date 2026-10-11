@@ -2437,6 +2437,7 @@ public sealed class World
     {
         var (ok, price, _) = CanSellFactory(regionIndex, goodId);
         if (!ok) return false;
+        if (Instruments.On) Instruments.FactorySold(this);   // 計器（読むだけ・(265)）：国営工場の売却の成立
         var r = Regions[regionIndex];
         var p = FindFactory(r, goodId)!;
         Transfer((this, [r.Pops[r.InvestorPopIndex]]), (this, null, null), price, TreasuryCat.StateFactory);   // 資本家→国庫（移し方の1本・2026-09-30 段4g＝旧は貯蓄の手書きと国庫の片側の記帳。買えることは CanSellFactory が確かめた）

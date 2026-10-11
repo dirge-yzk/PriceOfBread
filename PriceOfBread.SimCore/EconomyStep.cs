@@ -1269,6 +1269,7 @@ public static class EconomyStep
             //   ＝国の払う単価は市場の価格×割増（予算も同じ割増＝Simulation）＝充足は割増の無い州と同じ・金額だけ増える（割増ぶんも担い手の売上＝保存）。
             if (world is not null) adminMul = Fiscal.AdminDistanceMul(world, region);
             double est = adminNeed * Math.Max(region.Markets[Catalog.AdminId].Price, Eps) * adminMul;
+            if (Instruments.On && world is not null) Instruments.AdminNeedPurchase(world, region, est);   // 計器（読むだけ・(265)）
             double afford = est > Eps ? Math.Min(1.0, region.AdminBudget / est) : 0.0;
             // ★2026-08-13（作者裁定「行政費は汚職などで抜け落ちるが、それ以外は価格相応の働きをするように」）：
             //   買い控えのゲート（PriceAfford）を行政から外す。**予算の制約（afford）は残す**＝それ自体が「価格相応」

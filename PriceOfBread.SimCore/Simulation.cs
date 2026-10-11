@@ -2297,6 +2297,7 @@ public sealed class Simulation
                 r.LaborWellbeing = World.Coef.UnionSatBonus * unionWell;   // ⚠休眠（既定0・作者裁定2026-08-19「団体交渉権などに使うので休眠」）＝組合の非物質厚生のみ
                 double techProd = (1.0 + Math.Min(World.TechLevel, TechProdDiminishKnee) + Math.Max(0.0, World.TechLevel - TechProdDiminishKnee) * TechProdDiminishSlope) * whOut * union;
                 RepayHouseholdDebt(r);   // ★出口：返済規律（消費の前・Savings 自体を削る。下の定義を見よ）
+                if (Instruments.On) Instruments.PreEconomy(World, r);   // 計器（読むだけ・(265)）：段5 の上限の入力＝大衆の月初の貯蓄
                 EconomyStep.Run(r, World.Coef, techProd, World.Bank, World);   // §9-A/B/C（active 地域ごと）
                 // 恐慌の資本破壊（最終調整2026-06-29・ユーザー指示「恐慌が資本を破壊」）：深い景気後退（GdpDrawdown 閾値超）では工場閉鎖・資本廃棄で工業化度が退行する＝
                 // 恐慌が『ストック』を削る＝覇権の構造的先行（工業化）を大恐慌が巻き戻す経路。閾値未満の通常循環では工場を壊さない。0（対照腕）で恒等・既定0.06でlive。

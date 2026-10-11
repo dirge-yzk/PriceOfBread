@@ -494,6 +494,12 @@ public class InstrumentsTests
                     Assert.Equal(0.0, Col(nh, q0, c));
                 var q1 = nr.Single(r => Col(nh, r, "quarter") == 1 && Col(nh, r, "nationIndex") == 0);
                 Assert.Equal(1.0, Col(nh, q1, "fireSaleRunCount"));
+                // (265) 売却が1棟成立した（輪の World.SellFactory）・判断の時点の逼迫が立つ・専売の段が1段広がる・人頭税の目標が立つ（逼迫＞0 の AI の応答）
+                Assert.Equal(0.0, Col(nh, q0, "stateFactorySoldCount"));
+                Assert.Equal(0.0, Col(nh, q1, "stateFactorySoldCount"));   // 動詞が別の個体を掴む取り違えの盤面＝売却でなく着工になる（売却は成立していない）
+                Assert.True(Col(nh, q1, "fiscalStressAtDecisionIndex") > 0);
+                Assert.Equal(Col(nh, q1, "monopolyTierBeforeDecisionStage") + 1, Col(nh, q1, "monopolyTierTargetDecisionStage"));
+                Assert.True(Col(nh, q1, "pollTaxTargetEndShare") > 0);
                 Assert.Equal(1.0, Col(nh, q1, "fireSaleFiredCount"));
                 Assert.Equal(1.0, Col(nh, q1, "fireSaleFiredMismatchCount"));       // 輪が掴んだのは旧レシピ・動詞が掴んだのは後継
                 Assert.Equal(1.0, Col(nh, q1, "fireSaleFiredOverTargetCount"));     // 旧の棟数−1＝2 ＞ 後継の棟数 1
@@ -509,5 +515,337 @@ public class InstrumentsTests
             finally { Instruments.Configure(null, null); }
         }
         finally { try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
+
+    // ===== (265) 線I：設計の線を出すための計器の列（国債金利の内訳・行政の必要額の反事実 A′・段5 の上限の拘束・専売の段ほか・残存国の財の表・州の割譲の盤面） =====
+
+    private static double SumCols(string[] h, string[] r, params string[] names) => names.Sum(n => Col(h, r, n));
+
+    /// <summary>国債金利の内訳：基礎＋債務比＋期待インフレ＋信認の喪失＋政策金利（各々兌換割引ずみ）＋議会の信認割引＋上限クランプ＝金利。
+    /// 期待値は独立の経路（fiscal_s の月ごとの <c>govBondRatePerYear</c>＝MonthClose が読む国の金利そのもの）から作る＝内訳の和が金利に閉じることと、四半期平均が月の平均に合うこと。
+    /// 対照＝債務比の項と議会の割引（負）が1度は立つ。</summary>
+    [Fact]
+    public void 国債金利の内訳が閉じて月の金利の平均に合う()
+    {
+        string dir = NewDir();
+        try
+        {
+            Instruments.Configure(dir, "*");
+            try { RunMatch(Make(), Quarters, instr: true); }
+            finally { Instruments.Configure(null, null); }
+            var (nh, nr) = Table(System.IO.Path.Combine(dir, "nation_s1789.tsv"));
+            var (fh, fr) = Table(System.IO.Path.Combine(dir, "fiscal_s1789.tsv"));
+            Assert.All(nr, r => Assert.Equal(nh.Length, r.Length));
+            string[] terms = ["bondBaseTermPerYear", "bondDebtTermPerYear", "bondInflationExpectationTermPerYear", "bondDistrustTermPerYear", "bondPolicyRateTermPerYear", "bondRepresentationTermPerYear", "bondClampTermPerYear"];
+            int rows = 0, debtSeen = 0, reprSeen = 0;
+            foreach (var r in nr)
+            {
+                if (Col(nh, r, "bondMonthsCount") == 0) continue;
+                double rate = Col(nh, r, "bondRateMeanPerYear"), sum = SumCols(nh, r, terms);
+                Assert.True(Math.Abs(rate - sum) <= 1e-12 + 1e-9 * Math.Abs(rate), $"内訳の和 {sum:G10} が金利 {rate:G10} に閉じない（{r[Array.IndexOf(nh, "nation")]} q{r[0]}）");
+                Assert.InRange(Col(nh, r, "bondConvertibilityDiscountMeanFactor"), 0.0, 1.0 + 1e-12);
+                rows++; if (Col(nh, r, "bondDebtTermPerYear") > 0) debtSeen++; if (Col(nh, r, "bondRepresentationTermPerYear") < 0) reprSeen++;
+            }
+            Assert.True(rows >= 4 * (Quarters - 1), $"内訳の行が少ない（{rows}）");
+            Assert.True(debtSeen > 0 && reprSeen > 0, "対照：債務比の項と議会の割引が1度も立たない＝この盤面では内訳を測れていない");
+            // 月の金利の平均（fiscal_s）：国ごとに最初の行の月番号から3行ずつ＝四半期（1四半期目は最初の月の行が無い）→ q≥1 を突き合わせる
+            int mi = Array.IndexOf(fh, "monthIndex"), ni = Array.IndexOf(fh, "nation");
+            int checkedQ = 0;
+            foreach (var g in fr.GroupBy(r => r[ni]))
+            {
+                var rowsN = g.OrderBy(r => int.Parse(r[mi])).ToList();
+                int first = int.Parse(rowsN[0][mi]) - 1;   // 国の最初の月（その月の行は無い）
+                foreach (var r in nr.Where(r => r[Array.IndexOf(nh, "nation")] == g.Key && int.Parse(r[0]) >= 1))
+                {
+                    int q = int.Parse(r[0]);
+                    var m3 = rowsN.Where(x => int.Parse(x[mi]) >= first + 3 * q && int.Parse(x[mi]) < first + 3 * q + 3).ToList();
+                    if (m3.Count != 3) continue;
+                    double mean = m3.Average(x => Col(fh, x, "govBondRatePerYear"));
+                    Assert.True(Math.Abs(mean - Col(nh, r, "bondRateMeanPerYear")) <= 1e-12 + 1e-9 * Math.Abs(mean), $"{g.Key} q{q}：月の金利の平均 {mean:G10} と内訳の金利 {Col(nh, r, "bondRateMeanPerYear"):G10} が違う");
+                    checkedQ++;
+                }
+            }
+            Assert.True(checkedQ >= 4 * (Quarters - 3), $"月の金利と突き合わせた四半期が少ない（{checkedQ}）");
+        }
+        finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
+
+    /// <summary>A′ の静的な反事実の1か月分を手で確かめる（純関数 <see cref="Instruments.AdminCf"/>）。借入が不足を全部賄った月・1件の額が縛った月・請求が減って率が1に戻る月。</summary>
+    [Fact]
+    public void 行政の反事実A素の1か月を手で確かめる()
+    {
+        // 月初の払える額 90 に対し請求 100（spare0＝−10）。借入 10 で全額 → payable1＝100・率 1
+        var a = Instruments.AdminCf(spare0: -10, x: 4, borrowed: 10, claimsTotal: 100, payable1: 100);
+        Assert.True(a.Short);                       // spare′＝−6＜0＝まだ払えない
+        Assert.Equal(6.0, a.Borrowed, 12);          // 借入は不足 6 まで縮む
+        Assert.False(a.RBelow1);                    // payable′＝100−(10−6)＝96・claims′＝96 → r′＝1
+        // 1件の額が縛って 4 しか借りられなかった月（率 0.94）。請求が 4 減っても不足 6 に対し借入 4 のまま → 率は 94÷96＝0.979＜1
+        var b = Instruments.AdminCf(-10, 4, 4, 100, 94);
+        Assert.True(b.Short); Assert.Equal(4.0, b.Borrowed, 12); Assert.True(b.RBelow1);
+        // 請求が 12 減る（余りが不足を超える）月：払える、借入 0、率 1
+        var c = Instruments.AdminCf(-10, 12, 4, 100, 94);
+        Assert.False(c.Short); Assert.Equal(0.0, c.Borrowed, 12); Assert.False(c.RBelow1);
+        // 余りが 0 の月は基線と同じ
+        var d = Instruments.AdminCf(-10, 0, 4, 100, 94);
+        Assert.True(d.Short); Assert.Equal(4.0, d.Borrowed, 12); Assert.True(d.RBelow1);
+        // 払えている月（spare0＞0）に余りがあっても借入 0・短くない
+        var e = Instruments.AdminCf(5, 3, 0, 100, 105);
+        Assert.False(e.Short); Assert.Equal(0.0, e.Borrowed, 12); Assert.False(e.RBelow1);
+    }
+
+    /// <summary>行政の必要額の列：必要額（予算の時点）は購買の見積り（EconomyStep の est）と同じ値＝A′ の入力が購買の式と同じ。
+    /// 二点の盤面で、必要額で切る列（州ごとに min）が動く：必要額を極小にすると〈切った額＝必要額＜請求〉・極大にすると〈切った額＝請求・超過の州なし〉。
+    /// 突然変異＝<c>Math.Min(r.AdminBudget, nb)</c> を <c>Math.Max</c> にすると極小の盤面の〈切った額＝必要額〉が赤。</summary>
+    [Fact]
+    public void 行政の必要額の列が購買の見積りと合い必要額で切る()
+    {
+        string dir = NewDir();
+        try
+        {
+            // 通常の盤面：必要額は予算の時点と購買の時点で同じ（価格が月の途中で動かない）・切った額は請求以下
+            Instruments.Configure(dir, "*");
+            try { RunMatch(Make(), Quarters, instr: true); }
+            finally { Instruments.Configure(null, null); }
+            var (nh, nr) = Table(System.IO.Path.Combine(dir, "nation_s1789.tsv"));
+            var (fh, fr) = Table(System.IO.Path.Combine(dir, "fiscal_s1789.tsv"));
+            int seen = 0;
+            foreach (var r in nr)
+            {
+                double need = Col(nh, r, "adminNeedAtBudgetPerMonth"), needP = Col(nh, r, "adminNeedAtPurchasePerMonth"), claim = Col(nh, r, "adminClaimSimPerMonth"), cap = Col(nh, r, "adminClaimCappedAtBudgetPerMonth");
+                if (double.IsNaN(need)) continue;
+                Assert.True(Math.Abs(need - needP) <= 1e-9 * Math.Max(1, need), $"予算の時点の必要額 {need:G10} と購買の見積り {needP:G10} が違う（価格が月の途中で動いた）");
+                Assert.True(cap <= claim * (1 + 1e-12) + 1e-12 && cap <= need * (1 + 1e-12) + 1e-12, "切った額が請求か必要額を超える");
+                if (Col(nh, r, "adminOverNeedRegionMonthsCount") == 0) Assert.True(Math.Abs(cap - claim) <= 1e-9 * Math.Max(1, claim), "超過の州が無いのに切った額が請求と違う");
+                Assert.InRange(Col(nh, r, "adminCfShortMonthsCount"), 0, Col(nh, r, "shortfallMonths"));   // 反事実で払えない月が増えることはない
+                seen++;
+            }
+            Assert.True(seen >= 4 * Quarters, $"必要額の行が少ない（{seen}）");
+            // 月ごとの行（fiscal_s）でも同じ関係
+            foreach (var r in fr) Assert.True(Col(fh, r, "adminClaimCappedAtBudgetPerMonth") <= Col(fh, r, "claimAdminPerMonth") * (1 + 1e-12) + 1e-12);
+        }
+        finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
+
+        foreach (bool tiny in new[] { true, false })
+        {
+            string d2 = NewDir();
+            try
+            {
+                Instruments.Configure(d2, "*");
+                try
+                {
+                    var sim = Make();
+                    Instruments.Phase(sim, 1789UL, "open"); sim.StartWarmup(); Instruments.Phase(sim, 1789UL, "warm");
+                    foreach (var n in sim.Nations) n.World.Coef.AdminNeedPerPop = tiny ? 1e-7 : 1e7;   // 必要額を極小／極大に置く（国ごと別の係数の実体）
+                    sim.StepQuarter(); Instruments.Quarter(sim, 1789UL, 0);
+                    Instruments.Close(sim);
+                }
+                finally { Instruments.Configure(null, null); }
+                var (h2, r2) = Table(System.IO.Path.Combine(d2, "nation_s1789.tsv"));
+                var uk = r2.Single(r => Col(h2, r, "quarter") == 0 && r[Array.IndexOf(h2, "nation")] == "イギリス");
+                double claim = Col(h2, uk, "adminClaimSimPerMonth"), need = Col(h2, uk, "adminNeedAtBudgetPerMonth"), cap = Col(h2, uk, "adminClaimCappedAtBudgetPerMonth");
+                Assert.True(claim > 0);
+                if (tiny)
+                {
+                    Assert.True(need < claim * 1e-3, "盤面：必要額が請求より桁違いに小さい");
+                    Assert.True(Math.Abs(cap - need) <= 1e-9 * Math.Max(1e-12, need), $"必要額が極小の盤面で切った額 {cap:G6} が必要額 {need:G6} にならない");
+                    Assert.True(Col(h2, uk, "adminOverNeedRegionMonthsCount") > 0);
+                }
+                else
+                {
+                    Assert.True(Math.Abs(cap - claim) <= 1e-9 * claim, "必要額が極大の盤面で切った額が請求と違う");
+                    Assert.Equal(0.0, Col(h2, uk, "adminOverNeedRegionMonthsCount"));
+                }
+            }
+            finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(d2, true); } catch { } }
+        }
+    }
+
+    /// <summary>段5 の上限：<c>CapOf</c>＝min(max(0,S), max(0,E)＋max(0,S)×d) を手で確かめる。拘束の列は d が小さいほど（上限が低いほど）広がり、大衆の Paid の和は階級の表（農民・工場労働者・職人）と合う。
+    /// 対照＝拘束が0でも1でもない行が立つ。突然変異＝<c>IsMass</c> に兵士を入れる／<c>CapOf</c> の E を落とす、で赤。</summary>
+    [Fact]
+    public void 段5の上限の拘束の列が手計算と階級の表に合う()
+    {
+        Assert.Equal(60.0, Instruments.CapOf(1200, 50, 1.0 / 120), 12);          // min(1200, 50＋10)
+        Assert.Equal(10.0, Instruments.CapOf(10, 50, 1.0 / 120), 12);            // 貯蓄が所得より小さい＝貯蓄が上限（予算≦貯蓄）
+        Assert.Equal(0.0, Instruments.CapOf(-5, 50, 1.0 / 120), 12);             // 負の貯蓄は0
+        Assert.Equal(50.0 + 1200.0 / 480, Instruments.CapOf(1200, 50, 1.0 / 480), 12);
+        Assert.Equal(1200.0 / 240, Instruments.CapOf(1200, -30, 1.0 / 240), 12); // 負の所得は0
+
+        string dir = NewDir();
+        try
+        {
+            Instruments.Configure(dir, "*");
+            try { RunMatch(Make(), Quarters, instr: true); }
+            finally { Instruments.Configure(null, null); }
+            var (nh, nr) = Table(System.IO.Path.Combine(dir, "nation_s1789.tsv"));
+            var (ch, cr) = Table(System.IO.Path.Combine(dir, "class_s1789.tsv"));
+            var paid = new Dictionary<(string Time, string Nation), double>();
+            foreach (var r in cr)
+            {
+                int cls = (int)Col(ch, r, "classId");
+                if (cls != PopClass.Peasant && cls != PopClass.Worker && cls != PopClass.Artisan) continue;
+                double p = Col(ch, r, "paidPerMonth"); if (double.IsNaN(p)) continue;
+                var key = (r[Array.IndexOf(ch, "time")], r[Array.IndexOf(ch, "nation")]);
+                paid[key] = paid.GetValueOrDefault(key) + p;
+            }
+            int rows = 0, partial = 0, tight = 0;
+            foreach (var r in nr)
+            {
+                double mass = Col(nh, r, "massPaidPerMonth"); if (double.IsNaN(mass)) continue;
+                var key = ("q" + r[0], r[Array.IndexOf(nh, "nation")]);
+                Assert.True(paid.TryGetValue(key, out double want), "階級の表に対応する行が無い");
+                Assert.True(Math.Abs(mass - want) <= 1e-9 * Math.Max(1, want), $"大衆の Paid {mass:G10} が階級の表の和 {want:G10} と合わない（{key}）");
+                double b120 = Col(nh, r, "capBoundPaidShareD120"), b240 = Col(nh, r, "capBoundPaidShareD240"), b480 = Col(nh, r, "capBoundPaidShareD480");
+                double c120 = Col(nh, r, "capCutShareD120"), c240 = Col(nh, r, "capCutShareD240"), c480 = Col(nh, r, "capCutShareD480");
+                double p120 = Col(nh, r, "capBoundPopShareD120"), p240 = Col(nh, r, "capBoundPopShareD240"), p480 = Col(nh, r, "capBoundPopShareD480");
+                Assert.True(b120 <= b240 + 1e-12 && b240 <= b480 + 1e-12 && c120 <= c240 + 1e-12 && c240 <= c480 + 1e-12 && p120 <= p240 + 1e-12 && p240 <= p480 + 1e-12, "d が小さいほど拘束は広がる（単調）");
+                foreach (var v in new[] { b120, b480, c120, c480, p120, p480 }) Assert.InRange(v, 0.0, 1.0 + 1e-12);
+                Assert.True(c480 <= b480 + 1e-12);   // 削られる額は拘束された POP の Paid を超えない
+                if (b120 > 0 && b120 < 1) partial++;
+                if (b480 > 0) tight++;
+                rows++;
+            }
+            Assert.True(rows >= 4 * Quarters - 2, $"拘束の行が少ない（{rows}）");
+            Assert.True(partial > 0 && tight > 0, "対照：拘束が部分的な行／1度も拘束しない＝この盤面では測れていない");
+        }
+        finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
+
+    /// <summary>残存国の財の表：条件の述語を手で確かめ、本国を失った国（オーストリアの州を首都1つを残して割譲）の四半期の末の需給が、世界の市場の値の直の和に合う。
+    /// 期待値は盤面の市場から作る（計器の式から作らない）。対照＝割譲前の四半期にはその国の行が無い・十分に大きい国の行は無い。</summary>
+    [Fact]
+    public void 残存国の財の表が割譲後の世界の市場に合う()
+    {
+        Assert.True(Instruments.IsRemnant(1, 5000, 0.3));
+        Assert.True(Instruments.IsRemnant(2, 100, 0.0));
+        Assert.False(Instruments.IsRemnant(3, 5000, 0.3));    // 州が3つ以上
+        Assert.False(Instruments.IsRemnant(1, 99.9, 0.3));    // 人口が100千人未満
+        Assert.False(Instruments.IsRemnant(1, 5000, 0.5));    // 供給が足りている（≧0.5）
+
+        string dir = NewDir();
+        double saved = Instruments.RemnantSupplyFillMax;
+        try
+        {
+            Instruments.Configure(dir, null);
+            Instruments.RemnantSupplyFillMax = 2.0;   // 補給の条件は外す（盤面の供給の充足を組めないため）。州数と人口の条件は本物
+            var sim = Make();
+            Instruments.Phase(sim, 1789UL, "open"); sim.StartWarmup(); Instruments.Phase(sim, 1789UL, "warm");
+            sim.StepQuarter(); Instruments.Quarter(sim, 1789UL, 0);
+            var au = sim.Nations[3].World; var pr = sim.Nations[1].World;
+            Assert.Equal("オーストリア", Instruments.NameOf(au));
+            foreach (var r in au.Regions.Where(r => r.Id != 0).ToList()) Territory.TransferRegion(au, pr, r, Territory.Rehoming.Ceded);
+            Assert.Single(au.Regions.Where(r => r.State == RegionState.Active));
+            sim.StepQuarter();
+            // 期待値＝世界の市場から直に（計器の読み方を写さず、財の名前で引く）
+            var active = au.Regions.Where(r => r.State == RegionState.Active).ToList();
+            int gBread = Array.FindIndex(Catalog.Goods, g => g.Name == "パン");
+            Assert.True(gBread >= 0);
+            double prod = active.Sum(r => r.Markets[gBread].LastProduced), dem = active.Sum(r => r.Markets[gBread].LastDemand), stock = active.Sum(r => r.Markets[gBread].Stock), imp = active.Sum(r => r.Markets[gBread].LastImport);
+            Instruments.Quarter(sim, 1789UL, 1);
+            Instruments.Close(sim);
+            var (gh, gr) = Table(System.IO.Path.Combine(dir, "goods_s1789.tsv"));
+            Assert.DoesNotContain(gr, r => r[0] == "0");                                                  // 割譲前の四半期には行が無い
+            Assert.DoesNotContain(gr, r => new[] { "フランス", "イギリス", "プロイセン" }.Contains(r[Array.IndexOf(gh, "nation")]));   // 州が多い国は出ない（四半期の途中で建国された小さな国は条件に合えば出る）
+            Assert.Contains(gr, r => r[Array.IndexOf(gh, "nation")] == "オーストリア");
+            var bread = gr.Single(r => r[Array.IndexOf(gh, "goodName")] == "パン" && r[0] == "1");
+            Assert.Equal(1.0, Col(gh, bread, "activeRegions"));
+            Assert.True(Math.Abs(Col(gh, bread, "lastProducedQty") - prod) <= 1e-9 * Math.Max(1, prod));
+            Assert.True(Math.Abs(Col(gh, bread, "lastDemandQty") - dem) <= 1e-9 * Math.Max(1, dem));
+            Assert.True(Math.Abs(Col(gh, bread, "stockQty") - stock) <= 1e-9 * Math.Max(1, stock));
+            Assert.True(Math.Abs(Col(gh, bread, "lastImportQty") - imp) <= 1e-9 * Math.Max(1, imp));
+            Assert.True(Col(gh, bread, "lastDemandQty") > 0, "対照：パンの需要が0＝この盤面では需給を測れていない");
+            Assert.All(gr, r => Assert.Contains(r[Array.IndexOf(gh, "tier")], new[] { "Staple", "Daily" }));
+        }
+        finally { Instruments.RemnantSupplyFillMax = saved; Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
+
+    /// <summary>★(262) の台帳の番人は割譲の3種（rebase・regionOut・regionIn）を〈1度は立つ〉の対照に入れていなかった（(264) 申し送り・F1 段0′ の番人 d）。
+    /// 州の割譲を1回起こす盤面（英→仏・カナダ。為替が違う国どうし）で、送り手の台帳の regionOut＋rebase＝出ていった州の貯蓄の元の額・受け手の regionIn＝換算後の額・件数＝POP の数、が閉じる。
+    /// 期待値は盤面の州の貯蓄から直に作る（台帳から作らない）。突然変異＝<c>Territory.TransferRegion</c> の <c>Instruments.RegionMoved</c> の呼びを消すと赤。</summary>
+    [Fact]
+    public void 州の割譲の盤面で貯蓄の台帳の割譲の3種が閉じる()
+    {
+        string dir = NewDir();
+        try
+        {
+            Instruments.Configure(dir, "*");
+            double sPre, sPost; int nPops;
+            try
+            {
+                var sim = Make();
+                Instruments.Phase(sim, 1789UL, "open"); sim.StartWarmup(); Instruments.Phase(sim, 1789UL, "warm");
+                sim.StepQuarter(); Instruments.Quarter(sim, 1789UL, 0);
+                var uk = sim.Nations[2].World; var fr = sim.Nations[0].World;
+                Assert.Equal("イギリス", Instruments.NameOf(uk)); Assert.Equal("フランス", Instruments.NameOf(fr));
+                if (uk.FxRate == fr.FxRate) fr.ExchangeRate = uk.ExchangeRate * 2.0;   // 為替が同じだと換算（rebase）が走らない＝対照のために違えておく
+                var reg = uk.Regions.First(r => r.Name == "カナダ");
+                nPops = reg.Pops.Count;
+                sPre = reg.SumSavings().Value;
+                Territory.TransferRegion(uk, fr, reg, Territory.Rehoming.Ceded);
+                sPost = reg.SumSavings().Value;
+                sim.StepQuarter(); Instruments.Quarter(sim, 1789UL, 1);
+                Instruments.Close(sim);
+            }
+            finally { Instruments.Configure(null, null); }
+            Assert.True(nPops > 0 && sPre != 0 && sPost != sPre, "盤面：州に POP と貯蓄があり、換算で額が変わる");
+            var (fh, frw) = Table(System.IO.Path.Combine(dir, "flow_s1789.tsv"));
+            int qi = Array.IndexOf(fh, "quarter"), ni = Array.IndexOf(fh, "nation"), ki = Array.IndexOf(fh, "kind");
+            double M = Calendar.MonthsPerQuarter;   // amountPerMonth は四半期の月数で割った値＝四半期の和に戻す
+            double Sum(string nation, string kind) => frw.Where(r => r[qi] == "1" && r[ni] == nation && r[ki] == kind).Sum(r => Col(fh, r, "amountPerMonth")) * M;
+            double Cnt(string nation, string kind) => frw.Where(r => r[qi] == "1" && r[ni] == nation && r[ki] == kind).Sum(r => Col(fh, r, "eventCount"));
+            double tol = 1e-9 * Math.Max(1, Math.Abs(sPre));
+            Assert.True(Math.Abs(Sum("イギリス", "regionOut") + sPost) <= tol, $"送り手の regionOut {Sum("イギリス", "regionOut"):G10} が −換算後の貯蓄 {-sPost:G10} と違う");
+            Assert.True(Math.Abs(Sum("イギリス", "rebase") - (sPost - sPre)) <= tol, $"送り手の rebase {Sum("イギリス", "rebase"):G10} が換算の差 {sPost - sPre:G10} と違う");
+            Assert.True(Math.Abs(Sum("イギリス", "regionOut") + Sum("イギリス", "rebase") + sPre) <= tol, "送り手の出ていった額（regionOut＋rebase）が元の貯蓄に閉じない");
+            Assert.True(Math.Abs(Sum("フランス", "regionIn") - sPost) <= tol, $"受け手の regionIn {Sum("フランス", "regionIn"):G10} が換算後の貯蓄 {sPost:G10} と違う");
+            Assert.Equal((double)nPops, Cnt("イギリス", "regionOut")); Assert.Equal((double)nPops, Cnt("フランス", "regionIn")); Assert.Equal((double)nPops, Cnt("イギリス", "rebase"));
+        }
+        finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
+
+    /// <summary>国営工場の売却の件数列：<c>World.SellFactory</c> が成立した回数。(263) の盤面の投げ売りは動詞が別の個体を掴む（取り違え）ため売却でなく着工になる＝件数は 0 のまま（上の番人）。
+    /// ここは取り違えの無い盤面（開いた1個体に黒字の持分1棟・資本家は資金十分）で直に1棟売る。期待値は盤面から（売る前の持分と売った後の持分の差が1棟）。突然変異＝<c>FactorySold</c> の呼びを消す／成功の手前でなく失敗の枝へ移す、で赤。</summary>
+    [Fact]
+    public void 国営工場の売却の成立が数えられる()
+    {
+        string dir = NewDir();
+        try
+        {
+            Instruments.Configure(dir, null);
+            try
+            {
+                var sim = Make();
+                Instruments.Phase(sim, 1789UL, "open"); sim.StartWarmup(); Instruments.Phase(sim, 1789UL, "warm");
+                sim.StepQuarter(); Instruments.Quarter(sim, 1789UL, 0);
+                var w = sim.Nations[0].World;
+                int ri = -1; Producer? p = null;
+                for (int i = 0; i < w.Regions.Count && p is null; i++)
+                {
+                    var r = w.Regions[i];
+                    if (r.State != RegionState.Active || r.InvestorPopIndex < 0) continue;
+                    p = r.Producers.FirstOrDefault(q => World.FindFactory(r, q.GoodId) == q && Discovery.Gate(r, q) > 0 && !(q.BuiltScale > 1e-9));
+                    if (p is not null) ri = i;
+                }
+                Assert.NotNull(p);
+                var reg = w.Regions[ri];
+                double fbs = w.Coef.FactoryBuildScale;
+                p!.BuiltScale = 2 * fbs; p.StateTarget = 2;
+                p.LastRevenue = 10_000; p.LastCost = 1_000; p.SmoothedMargin = 0.2;
+                reg.Pops[reg.InvestorPopIndex].SetSavings(1e9);
+                Assert.True(w.CanSellFactory(ri, p.GoodId).Ok, "盤面：売れる状態");
+                double before = p.BuiltScale;
+                Assert.True(w.SellFactory(ri, p.GoodId));
+                Assert.Equal(before - fbs, p.BuiltScale, 9);   // 1棟だけ売れた
+                Instruments.Quarter(sim, 1789UL, 1);   // ⚠この盤面は貯蓄を直に置いた（貨幣保存の検査を通らない）＝世界を進めずに行だけ書く（(263) の盤面と同じ）
+                Instruments.Close(sim);
+            }
+            finally { Instruments.Configure(null, null); }
+            var (nh, nr) = Table(System.IO.Path.Combine(dir, "nation_s1789.tsv"));
+            var q0 = nr.Single(r => Col(nh, r, "quarter") == 0 && Col(nh, r, "nationIndex") == 0);
+            var q1 = nr.Single(r => Col(nh, r, "quarter") == 1 && Col(nh, r, "nationIndex") == 0);
+            Assert.Equal(0.0, Col(nh, q0, "stateFactorySoldCount"));
+            Assert.True(Col(nh, q1, "stateFactorySoldCount") >= 1.0, "売った1棟が数えられていない");
+        }
+        finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
     }
 }
