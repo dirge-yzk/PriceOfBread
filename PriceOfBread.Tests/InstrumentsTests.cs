@@ -378,4 +378,76 @@ public class InstrumentsTests
         }
         finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
     }
+
+    // ===== (263) 線E2 A：投げ売りの輪と動詞の個体（World.FindFactory）の食い違いの列 =====
+    /// <summary>閉じた旧レシピに3棟・開いた投資済みの後継に1棟が並ぶ盤面を組み、財政が苦しい（r＝0）状態で AI の判断を1回走らせて四半期の行を書く。
+    /// 期待値は盤面から手で出す（旧3棟→後継1棟・輪が置く目標は旧の棟数−1＝2＞後継の棟数1＝着工になる向き）＝計器の式から作らない。
+    /// 対照＝食い違いの列が0の盤面（組まない世界）では全て0。</summary>
+    [Fact]
+    public void 投げ売りの輪と動詞の個体の食い違いの列が組んだ盤面を数える()
+    {
+        string dir = NewDir();
+        try
+        {
+            Instruments.Configure(dir, null);
+            try
+            {
+                var sim = Make();
+                Instruments.Phase(sim, 1789UL, "open");
+                sim.StartWarmup();
+                Instruments.Phase(sim, 1789UL, "warm");
+                sim.StepQuarter();
+                Instruments.Quarter(sim, 1789UL, 0);   // 組む前の四半期（対照：食い違いの列は全て0のはず）
+
+                var w = sim.Nations[0].World;
+                Region? rr = null; Producer? old = null, succ = null;
+                for (int i = 0; i < w.Regions.Count && old is null; i++)
+                {
+                    var r = w.Regions[i];
+                    if (r.State != RegionState.Active || r.Discovered is null || r.InvestorPopIndex < 0) continue;
+                    foreach (var a in r.Producers)
+                    {
+                        if (a.RetiredByRow < 0 || a.RetiredByRow >= r.Discovered.Length) continue;
+                        var s = r.Producers.FirstOrDefault(q => q != a && q.GoodId == a.GoodId && q.RetiredByRow < 0 && q.DiscoveryRow < 0);
+                        if (s is null) continue;
+                        rr = r; old = a; succ = s; break;
+                    }
+                }
+                Assert.NotNull(old);   // 対照＝退場するレシピと後継が並ぶ州がある
+                foreach (var r in w.Regions) foreach (var q in r.Producers) Assert.False(q.BuiltScale > 1e-9, "組む前から国営の持分がある＝期待値が崩れる");
+                rr!.Discovered![old!.RetiredByRow] = true;   // 後継の発見＝旧レシピの門が閉じる
+                rr.Producers.Remove(old); rr.Producers.Insert(rr.Producers.IndexOf(succ!), old);   // 輪は一覧の順に見る＝旧が先
+                double fbs = w.Coef.FactoryBuildScale;
+                old.BuiltScale = 3 * fbs; old.StateTarget = 3;
+                succ!.BuiltScale = 1 * fbs; succ.StateTarget = 1;
+                succ.LastRevenue = 10_000; succ.LastCost = 1_000; succ.SmoothedMargin = 0.2;   // 後継は黒字＝売れる
+                rr.Pops[rr.InvestorPopIndex].SetSavings(1e9);
+                w.FiscalFundingRatio = new Share(0.0);   // 財政逼迫 1
+                UtilityAgent.Apply(w, UtilityAgent.Stance.Modernize);
+                Instruments.Quarter(sim, 1789UL, 1);
+                Instruments.Close(sim);
+
+                var (nh, nr) = Table(System.IO.Path.Combine(dir, "nation_s1789.tsv"));
+                Assert.All(nr, r => Assert.Equal(nh.Length, r.Length));
+                var q0 = nr.Single(r => Col(nh, r, "quarter") == 0 && Col(nh, r, "nationIndex") == 0);
+                foreach (var c in new[] { "fireSaleRunCount", "fireSaleSeenMismatchCount", "fireSaleFiredCount", "fireSaleFiredMismatchCount", "fireSaleFiredOverTargetCount", "stakeMismatchProducerCount" })
+                    Assert.Equal(0.0, Col(nh, q0, c));
+                var q1 = nr.Single(r => Col(nh, r, "quarter") == 1 && Col(nh, r, "nationIndex") == 0);
+                Assert.Equal(1.0, Col(nh, q1, "fireSaleRunCount"));
+                Assert.Equal(1.0, Col(nh, q1, "fireSaleFiredCount"));
+                Assert.Equal(1.0, Col(nh, q1, "fireSaleFiredMismatchCount"));       // 輪が掴んだのは旧レシピ・動詞が掴んだのは後継
+                Assert.Equal(1.0, Col(nh, q1, "fireSaleFiredOverTargetCount"));     // 旧の棟数−1＝2 ＞ 後継の棟数 1
+                Assert.True(Col(nh, q1, "fireSaleSeenMismatchCount") >= 1.0);
+                string goods = q1[Array.IndexOf(nh, "wheelMismatchGoods")];
+                string want = "投げ売り:" + Catalog.Goods[old.GoodId].Name + "(3→1/開/閉/着工)";
+                Assert.Contains(want, goods);
+                // 四半期の末の断面：旧は後継へ掴み替えられた（持分が2個体に分かれている）。投げ売りの結果で後継の棟数が変わっても、旧の3棟は残る
+                Assert.True(Col(nh, q1, "stakeMismatchProducerCount") >= 1.0);
+                Assert.True(Col(nh, q1, "stakeMismatchToInvestedCount") + Col(nh, q1, "stakeMismatchToUninvestedCount") == Col(nh, q1, "stakeMismatchProducerCount"));
+                Assert.Contains(Catalog.Goods[old.GoodId].Name + "(閉3→", q1[Array.IndexOf(nh, "stakeMismatchGoods")]);
+            }
+            finally { Instruments.Configure(null, null); }
+        }
+        finally { try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
 }
