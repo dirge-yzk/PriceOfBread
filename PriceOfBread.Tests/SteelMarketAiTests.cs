@@ -347,4 +347,49 @@ public class SteelMarketAiTests
         Assert.True(w.Policy.TariffTarget < 0.75 - 1e-9,
             $"自国産業が黒字なのに壁を作った（目標={w.Policy.TariffTarget:F3}）");
     }
+    // ============ (260) 全国工場目標の「最初の州」の代用も門が閉じた州を選ばない ============
+
+    /// <summary>★(260) 全国工場目標の展開は、物差し（<see cref="UtilityAgent.FacilityBuildScore"/>）が全州で測れない財でも意志を進める（最初の州の代用）。
+    /// その代用が門の閉じた州に意志を置くと、着工できない意志は取り下げられて何も起きない＝開いた州があるのに進まない。
+    /// 前の州は未発見・後の州は発見済みで、後の州の値段が測れない盤面（全州 NaN）を作り、意志が後の州に立つことを確かめる。</summary>
+    [Fact]
+    public void 全国工場目標の最初の州の代用は門が閉じた州を選ばない()
+    {
+        var sim = FourNations();
+        World? w = null; int ia = -1, ib = -1; Producer? pa = null, pb = null;
+        foreach (var n in sim.Nations)
+        {
+            for (int i = 0; i < n.World.Regions.Count && pb is null; i++)
+            {
+                var ra = n.World.Regions[i];
+                if (ra.State != RegionState.Active) continue;
+                foreach (var p in ra.Producers)
+                {
+                    if (p.DiscoveryRow < 0 || p.RetiredByRow >= 0 || p.SiteRow >= 0 || p.GoodId < 0 || Catalog.Goods[p.GoodId].Tier == GoodTier.Service) continue;
+                    if (ra.Producers.Count(q => q.GoodId == p.GoodId) != 1) continue;   // 並存レシピの無い財
+                    for (int j = i + 1; j < n.World.Regions.Count && pb is null; j++)
+                    {
+                        var rb = n.World.Regions[j];
+                        if (rb.State != RegionState.Active || rb.Producers.Count(x => x.GoodId == p.GoodId) != 1) continue;
+                        var q = rb.Producers.First(x => x.GoodId == p.GoodId);
+                        if (q.DiscoveryRow == p.DiscoveryRow && q.SiteRow < 0) { w = n.World; ia = i; pa = p; ib = j; pb = q; }
+                    }
+                    if (pb is not null) break;
+                }
+            }
+            if (pb is not null) break;
+        }
+        Assert.True(pb is not null, "前提の盤面（同じ財の門つき生産者が前後2州にある国）が無い");   // 対照＝前提がある
+        int row = pa!.DiscoveryRow, g = pa.GoodId;
+        w!.Regions[ia].Discovered = new bool[Catalog.Discoveries.Length];
+        w.Regions[ib].Discovered = new bool[Catalog.Discoveries.Length];
+        w.Regions[ib].Discovered![row] = true;
+        Assert.False(Discovery.Gate(w.Regions[ia], pa) > 0);
+        Assert.True(Discovery.Gate(w.Regions[ib], pb!) > 0);
+        foreach (var r in w.Regions) if (r.State == RegionState.Active && g < r.Markets.Length) r.Markets[g].Price = double.NaN;   // 全州で物差しが測れない
+        w.SetFactoryTarget(g, 5);
+        w.StepStateTargets();
+        Assert.Equal(0, pa.StateTarget);                      // 閉じた州は代用の最初の州にも選ばれない
+        Assert.True(pb!.StateTarget >= 1, "意志が開いた州に立たない");
+    }
 }
