@@ -118,6 +118,47 @@ public class InstrumentsTests
                 Assert.True(Math.Abs(sav - Col(sh, srow, "totalMoneyStock")) <= 1e-9 * Math.Max(1.0, Math.Abs(sav)), $"階級の貯蓄の和が国の貨幣に合わない {time} {nation}");
             }
             Assert.True(sr.Count >= 4 * (Quarters + 2), "在庫の断面が少ない");
+
+            // ---- (258) F1 段0：財政の鎖の四半期の列（nation_s）が月次の表（fiscal_s）と別の経路で合う。
+            //   nation_s の数は月ごとの状態から四半期へ足した値・fiscal_s は月ごとの行＝2つの経路が同じ月を数える。予算の基数＝純税収＋係数×間接税は本体の式（Coefficients）から。
+            {
+                var (nh, nr) = Table(System.IO.Path.Combine(dir, "nation_s1789.tsv"));
+                double indirectK = new Coefficients().IndirectTaxInBudgetBase;
+                int groupsChecked = 0, closedSeen = 0, shortSeen = 0, rBelowSeen = 0;
+                foreach (var nation in fr.Select(r => r[Array.IndexOf(fh, "nation")]).Distinct())
+                {
+                    var rowsN = fr.Where(r => r[Array.IndexOf(fh, "nation")] == nation).ToList();
+                    // 四半期ごとに3行（最初の四半期だけ台帳の差分の前の月が無く2行）＝先頭の2行の後を3行ずつ。月の添字の割り算は助走の分の位相がずれうるので使わない
+                    var groups = new List<List<string[]>> { rowsN.Take(2).ToList() };
+                    for (int s = 2; s + 3 <= rowsN.Count; s += 3) groups.Add(rowsN.Skip(s).Take(3).ToList());
+                    for (int g = 0; g < groups.Count; g++)
+                    {
+                        var grp = groups[g];
+                        foreach (var r in grp)
+                        {
+                            double rev = Col(fh, r, "revenueBasePerMonth"), dn = Col(fh, r, "directTaxNetPerMonth"), ind = Col(fh, r, "indirectRevenuePerMonth");
+                            Assert.True(Math.Abs(rev - (dn + indirectK * ind)) <= 1e-6 * Math.Max(1.0, Math.Abs(rev)), $"予算の基数が純税収＋係数×間接税に合わない {nation}");
+                        }
+                        if (grp.Count != 3) continue;   // 最初の四半期は台帳の差分の前の月が無く2行
+                        var nrow = nr.FirstOrDefault(r => r[Array.IndexOf(nh, "nation")] == nation && int.Parse(r[Array.IndexOf(nh, "quarter")]) == g);
+                        if (nrow is null) continue;
+                        groupsChecked++;
+                        int closed = grp.Count(r => Col(fh, r, "borrowGateOpenFlag") == 0), shortM = grp.Count(r => Col(fh, r, "borrowShortfallPerMonth") > 0), rBelow = grp.Count(r => Col(fh, r, "payRateShare") < 1);
+                        Assert.Equal(closed, (int)Col(nh, nrow, "borrowGateClosedMonths")); Assert.Equal(shortM, (int)Col(nh, nrow, "shortfallMonths")); Assert.Equal(rBelow, (int)Col(nh, nrow, "payRateBelowOneMonths"));
+                        closedSeen += closed; shortSeen += shortM; rBelowSeen += rBelow;
+                        void Mean(string nationCol, Func<string[], double> f)
+                        {
+                            double mean = grp.Sum(f) / grp.Count, got = Col(nh, nrow, nationCol);
+                            Assert.True(Math.Abs(mean - got) <= 1e-6 * Math.Max(1.0, Math.Abs(mean)), $"{nationCol} が月次の表の平均に合わない {nation} q{g}（{got} 対 {mean}）");
+                        }
+                        Mean("revenueBaseMeanPerMonth", r => Col(fh, r, "revenueBasePerMonth")); Mean("directTaxNetMeanPerMonth", r => Col(fh, r, "directTaxNetPerMonth")); Mean("indirectRevenueMeanPerMonth", r => Col(fh, r, "indirectRevenuePerMonth"));
+                        Mean("interestMeanPerMonth", r => Col(fh, r, "interestToRevenueShareNow") * Col(fh, r, "revenueBasePerMonth"));
+                        Mean("borrowedMeanPerMonth", r => double.IsNaN(Col(fh, r, "borrowedPerMonth")) ? 0 : Col(fh, r, "borrowedPerMonth"));
+                    }
+                }
+                Assert.True(groupsChecked >= 4 * (Quarters - 2), $"突き合わせた四半期が少ない（{groupsChecked}）");
+                Assert.True(closedSeen + shortSeen + rBelowSeen > 0, "門が閉じた月も払えない額も r＜1 の月も1度も無い（対照）＝この盤面は財政の鎖の列を測れていない");
+            }
         }
         finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
     }
