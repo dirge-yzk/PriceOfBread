@@ -1404,4 +1404,164 @@ public class InstrumentsTests
         }
         finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
     }
+
+    /// <summary>
+    /// ★(278) 線G2：政治資本の台帳と符号 2 の分割の番人（前半＝4国40四半期の試合）。国×四半期の列が閉じること：
+    /// ①台帳の恒等式＝Step の末尾の目減り S − 段の法のループの頭の S ＝ 段の法の払い ＋ 連続の軸の払い（Step の中で S を書くのは MandateGate と Move の2本だけ）
+    /// ②戦線ごとの代価と払う前の S（<c>openFrontCosts</c>・<c>openFrontSpentAtDecision</c>）から、政治資本の門の式 <c>S＋代価 ≦ b</c> を<b>列から</b>組み直す：
+    ///   符号 2（在庫で否決）は <c>S＋代価 ＞ b</c>・払って通った符号 4／8 は <c>S＋代価 ≦ b</c>・無償（3／7）の代価は 0
+    /// ③符号 2 の件数＝構造（代価 ＞ b）＋飢え（代価 ≦ b）の4列の和（段の法・連続の軸 × 構造・飢え）で、項目の列から数え直した件数と一致
+    /// ④何もしない番人は必ず緑になる＝払いが段の法・連続の軸の両方にあり、符号 2 と払って通った戦線が実際に起きたことを数える。
+    /// </summary>
+    [Fact]
+    public void 政治資本の台帳が閉じ符号2の分割が列から組み直した門の式と合う()
+    {
+        string dir = NewDir();
+        try
+        {
+            var sim = Make();
+            Instruments.Configure(dir, "*");
+            try { RunMatch(sim, 40, instr: true); }
+            finally { Instruments.Configure(null, null); }
+            var (nh, nr) = Table(System.IO.Path.Combine(dir, "nation_s1789.tsv"));
+            Assert.All(nr, r => Assert.Equal(nh.Length, r.Length));
+            foreach (var c in new[] { "frontCapitalStructuralLevelCount", "frontCapitalStarvedLevelCount", "frontCapitalStructuralContinuousCount", "frontCapitalStarvedContinuousCount",
+                "politicalCapitalSpentAtLevelHead", "politicalCapitalMaxAtLevelHead", "politicalCapitalSpentAtStepEnd", "levelLawPaidInQuarter", "ratePaidInQuarter", "militaryPaidInQuarter",
+                "tariffPaidInQuarter", "securityPaidInQuarter", "continuousPaidInQuarter", "openFrontCosts", "openFrontSpentAtDecision" })
+                Assert.True(Array.IndexOf(nh, c) >= 0, "国×四半期の表に列が無い " + c);
+            int iCost = Array.IndexOf(nh, "openFrontCosts"), iSpent = Array.IndexOf(nh, "openFrontSpentAtDecision"), iState = Array.IndexOf(nh, "openFrontStates");
+            int ledgerRows = 0, code2 = 0, code2Level = 0, code2Cont = 0, paidFronts = 0, structural = 0, starved = 0, levelPaidRows = 0, contPaidRows = 0;
+            foreach (var row in nr)
+            {
+                double head = Col(nh, row, "politicalCapitalSpentAtLevelHead"), end = Col(nh, row, "politicalCapitalSpentAtStepEnd"), max = Col(nh, row, "politicalCapitalMaxAtLevelHead");
+                double lvl = Col(nh, row, "levelLawPaidInQuarter"), cont = Col(nh, row, "continuousPaidInQuarter");
+                if (double.IsNaN(head)) { Assert.True(double.IsNaN(end) && lvl == 0 && cont == 0, "助走の行（Step が来ない）の台帳が空でない"); continue; }
+                ledgerRows++;
+                // ① 台帳の恒等式（出所が別＝World の目減りの差と、MandateGate／Move の払いの積算）
+                double tol = 1e-9 * (1 + Math.Abs(head));
+                Assert.InRange(end - head, lvl + cont - tol, lvl + cont + tol);
+                Assert.InRange(Col(nh, row, "ratePaidInQuarter") + Col(nh, row, "militaryPaidInQuarter") + Col(nh, row, "tariffPaidInQuarter") + Col(nh, row, "securityPaidInQuarter"), cont - 1e-9 * (1 + cont), cont + 1e-9 * (1 + cont));   // 列は G10 の桁で丸めて書く
+                if (lvl > 0) levelPaidRows++;
+                if (cont > 0) contPaidRows++;
+                // ② 戦線ごとの代価と払う前の S から門の式を組み直す
+                var states = row[iState].Length == 0 ? [] : row[iState].Split(';');
+                var costs = row[iCost].Length == 0 ? [] : row[iCost].Split(';');
+                var spents = row[iSpent].Length == 0 ? [] : row[iSpent].Split(';');
+                Assert.Equal(states.Length, costs.Length); Assert.Equal(states.Length, spents.Length);
+                int sl = 0, tl = 0, sc = 0, tc = 0;
+                for (int i = 0; i < states.Length; i++)
+                {
+                    string st = states[i]; int colon = st.LastIndexOf(':'); int code = int.Parse(st[(colon + 1)..].TrimEnd('x'), System.Globalization.CultureInfo.InvariantCulture); bool level = st[0] == 'L';
+                    double cost = costs[i] == "nan" ? double.NaN : double.Parse(costs[i], System.Globalization.CultureInfo.InvariantCulture);
+                    double sdec = spents[i] == "nan" ? double.NaN : double.Parse(spents[i], System.Globalization.CultureInfo.InvariantCulture);
+                    if (code == 2)
+                    {
+                        Assert.True(!double.IsNaN(cost) && !double.IsNaN(sdec), "符号 2 の戦線に代価・払う前の S が無い");
+                        Assert.True(!(sdec + cost <= max), $"符号 2 なのに S＋代価 {sdec + cost} ≦ b {max}（門は通るはず）");
+                        bool structuralNow = cost > max; code2++;
+                        if (level) { code2Level++; if (structuralNow) sl++; else tl++; } else { code2Cont++; if (structuralNow) sc++; else tc++; }
+                        if (structuralNow) structural++; else starved++;
+                    }
+                    else if (code is 4 or 8) { Assert.True(sdec + cost <= max + tol, $"払って通ったのに S＋代価 {sdec + cost} ＞ b {max}"); Assert.True(cost > 0, "払って通った一歩の代価が 0 以下"); paidFronts++; }
+                    else if (code is 3 or 7) Assert.Equal(0.0, cost);
+                    else if (code is 0 or 1 or 5 or 6) Assert.True(double.IsNaN(cost), $"門の手前の戦線（符号 {code}）に代価がある");
+                }
+                // ③ 件数の列＝項目から数え直した件数
+                Assert.Equal(sl, (int)Col(nh, row, "frontCapitalStructuralLevelCount")); Assert.Equal(tl, (int)Col(nh, row, "frontCapitalStarvedLevelCount"));
+                Assert.Equal(sc, (int)Col(nh, row, "frontCapitalStructuralContinuousCount")); Assert.Equal(tc, (int)Col(nh, row, "frontCapitalStarvedContinuousCount"));
+                Assert.Equal((int)Col(nh, row, "frontCapitalFixedCount"), sl + tl + sc + tc);
+            }
+            // ④ 空洞でない
+            Assert.True(ledgerRows > 100, $"台帳の行が少ない（{ledgerRows}）");
+            Assert.True(levelPaidRows > 0 && contPaidRows > 0, $"段の法の払い・連続の軸の払いの行が両方は無い（{levelPaidRows}・{contPaidRows}）");
+            Assert.True(code2Level > 0 && paidFronts > 0, $"符号 2 の段の法・払って通った戦線が無い（{code2Level}・{paidFronts}）");
+            Assert.Equal(code2, structural + starved);
+        }
+        finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
+
+    /// <summary>
+    /// ★(278) 線G2：符号 2 の分割の番人（後半＝手で組んだ盤面）。試合の途中の世界で、政治資本の目減り S を最大量 b ちょうどに置く（残り 0）＝反対を押し切る一歩は全て在庫で否決される（符号 2）。
+    /// 期待は<b>別の実装</b>から決める：代価は <c>Government.GateInfo</c>（法律タブの照会）・最大量は <c>PoliticalQuantities.PoliticalCapitalMax</c>（Step の前に呼ぶ）。
+    /// 場面 T＝通常の b：代価が b 以内の段の法は「飢え」（構造でない）／場面 U＝係数 <c>MandateWeight</c> をほぼ 0 にして b をほぼ 0 へ：代価が b を超える＝「構造」。
+    /// 場面 B＝政治資本が潤沢（S＝−1000）：台帳の恒等式を World の目減りの差（Step の前後）と突き合わせる。
+    /// 何もしない番人は必ず緑になる＝場面 T に飢え・場面 U に構造が1本以上あったこと、場面 B に払いがあったことを数える。
+    /// </summary>
+    [Fact]
+    public void 符号2の構造と飢えが法律タブの照会と最大量から決めた期待と合い台帳が世界の目減りの差と合う()
+    {
+        string dir = NewDir();
+        try
+        {
+            int starvedT = 0, structuralT = 0, structuralU = 0, starvedU = 0, paidB = 0, compared = 0, borderline = 0;
+            foreach (char scene in new[] { 'T', 'U', 'V', 'B' })
+            {
+                var sim = Make();
+                RunMatch(sim, 60, instr: false);
+                foreach (var nation in sim.Nations)
+                {
+                    var w = nation.World;
+                    if (scene == 'U') w.Coef.MandateWeight = 1e-9;
+                    double maxBefore = PoliticalQuantities.PoliticalCapitalMax(w);
+                    w.MandateSpent = scene == 'B' ? -1000.0 : maxBefore;
+                    Dictionary<int, double> Expect()   // 表の行 → GateInfo の代価（在庫不足の行だけ）
+                    {
+                        var ex = new Dictionary<int, double>();
+                        for (int i = 0; i < Government.LevelLaws.Length; i++)
+                        {
+                            var law = Government.LevelLaws[i];
+                            if ((law.FrontOpen ?? law.Open)?.Invoke(w) == false) continue;
+                            int ci = law.Get(w), ti = law.Target(w, w.Policy);
+                            if (ci == ti || law.Enact != null) continue;
+                            bool inc = ti > ci;
+                            var gi = Government.GateInfo(w, law.Axis, inc, ci + (inc ? 1 : -1));
+                            if (gi.Reason == Government.ReasonNoCapitalStock) ex[i] = gi.Cost;
+                        }
+                        return ex;
+                    }
+                    var expect = scene != 'B' ? Expect() : new Dictionary<int, double>();
+                    if (scene == 'V' && expect.Values.Where(c => c > 0).DefaultIfEmpty(0).Min() is double cmin && cmin > 0)
+                    {   // 場面 V＝最も安い一歩の代価が b の 1.5 倍になるよう b を縮める（代価が b を超え 2b 以内＝構造の境の内側）。b は MandateWeight に比例
+                        w.Coef.MandateWeight *= cmin / 1.5 / maxBefore;
+                        maxBefore = PoliticalQuantities.PoliticalCapitalMax(w);
+                        w.MandateSpent = maxBefore;
+                        expect = Expect();
+                    }
+                    double before = w.MandateSpent;
+                    Instruments.Configure(dir, "*");
+                    try { Government.Step(w, w.Coef); }
+                    finally { Instruments.Configure(null, null); }
+                    var led = Instruments.LedgerOf(w);
+                    // 場面 B：台帳＝World の目減りの差（Step の前後を World から読む）
+                    double tol = 1e-9 * (1 + Math.Abs(before));
+                    Assert.InRange(w.MandateSpent - before, led.PaidLevel + led.PaidContinuous - tol, led.PaidLevel + led.PaidContinuous + tol);
+                    Assert.InRange(led.SEnd - led.SHead, led.PaidLevel + led.PaidContinuous - tol, led.PaidLevel + led.PaidContinuous + tol);
+                    Assert.Equal(before, led.SHead); Assert.Equal(w.MandateSpent, led.SEnd);
+                    if (scene == 'B') { if (led.PaidLevel + led.PaidContinuous > 0) paidB++; continue; }
+                    Assert.Equal(maxBefore, led.Max);
+                    foreach (var f in Instruments.FrontsOf(w))
+                    {
+                        if (f.Code == 2)
+                        {
+                            Assert.Equal(before, f.SDec);   // 払う前の S は置いた S（その四半期のこの戦線より前に払った額が無い＝全て否決）
+                            Assert.Equal(f.Cost > maxBefore, f.Structural);
+                            if (f.Kind == 'L') { if (!f.Structural) { if (scene == 'T') starvedT++; else starvedU++; } else { if (scene == 'T') structuralT++; else structuralU++; } }
+                        }
+                        if (f.Kind != 'L' || !expect.TryGetValue(f.Idx, out double wantCost)) continue;
+                        Assert.Equal(2, f.Code);
+                        Assert.InRange(f.Cost, wantCost - 1e-9, wantCost + 1e-9);                 // 代価＝法律タブの照会の代価
+                        Assert.Equal(wantCost > maxBefore, f.Structural);                          // 構造か飢えか＝別の実装の代価と、Step の前に呼んだ最大量の比
+                        if (scene == 'V' && wantCost > maxBefore && wantCost <= 2 * maxBefore) borderline++;
+                        compared++;
+                    }
+                }
+            }
+            Assert.True(compared > 0, "突き合わせた段の法が1本も無い");
+            Assert.True(starvedT > 0, $"場面 T に飢え（代価≦b）の段の法が無い（構造 {structuralT}）＝飢えの側の突き合わせが空洞");
+            Assert.True(structuralU > 0, $"場面 U に構造（代価＞b）の段の法が無い（飢え {starvedU}）＝構造の側の突き合わせが空洞");
+            Assert.True(borderline > 0, "場面 V に代価が b を超え 2b 以内の段の法が無い＝構造の判定の境の突き合わせが空洞");
+            Assert.True(paidB > 0, "場面 B に政治資本の払いが無い＝台帳の突き合わせが空洞");
+        }
+        finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
 }

@@ -1,0 +1,5 @@
+=== M6 構造の判定の閾値を 2b へずらす（定義の1本）
+  失敗 PriceOfBread.Tests.InstrumentsTests.政治資本の台帳が閉じ符号2の分割が列から組み直した門の式と合う [7 s]
+  失敗 PriceOfBread.Tests.InstrumentsTests.符号2の構造と飢えが法律タブの照会と最大量から決めた期待と合い台帳が世界の目減りの差と合う [4 s]
+失敗!   -失敗:     2、合格:     0、スキップ:     0、合計:     2、期間: 11 s - PriceOfBread.Tests.dll (net10.0)
+ALLDONE

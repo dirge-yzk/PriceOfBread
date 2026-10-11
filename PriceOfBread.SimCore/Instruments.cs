@@ -113,11 +113,16 @@ public static class Instruments
         public double MmOppTrad = double.NaN, MmOppModern = double.NaN, MmOppMass = double.NaN, MmStock = double.NaN, MmStockMax = double.NaN, MmEnvelopeAfterGov = double.NaN;
         // ---- (274) 線G：幽霊戦線の計器。Government.CountOpenFronts が数えた開いた戦線（数えた順）と、Step がその四半期に出した結果。-1＝施行の結果が来なかった
         public readonly List<GFront> Gf = new(); public bool GfCounted, GfMilExpired; public int GfLevelIdx = -1, GfGateWhy; public double GfGateNet = double.NaN;
+        // ---- (278) 線G2：政治資本の在庫の台帳。段の法のループの頭／Step の末尾の目減り S と最大量 b、その四半期に払った額（段の法・税と支出の段 R・軍事費 M・関税 T・治安維持力 C）
+        public double GfSHead = double.NaN, GfMaxHead = double.NaN, GfSEnd = double.NaN, GfPendCost = double.NaN, GfPendS = double.NaN, GfGateCost = double.NaN, GfGateS = double.NaN;
+        public double GfPaidL, GfPaidR, GfPaidM, GfPaidT, GfPaidC;
     }
     /// <summary>(274) 開いた戦線1本。Kind＝L 段の法〔Idx＝LevelLaws の表の行〕／R 税・支出の段〔Idx＝RateLaws の行〕／M 軍事費の合計／C 治安維持力／T 関税。
     /// Code：0 施行のとき目標＝現在で閉じていた／1 純支持で固定／2 政治資本で固定／3 無償で動いた〔未到達〕／4 政治資本を払って動いた〔未到達〕／5 不可逆で固定／6 前提で固定／
     /// 7 無償で動いて目標に届いた／8 払って動いて目標に届いた／9 軍事費の解禁の外の失効だけで動いた（M のみ）／-1 結果が来なかった。</summary>
-    internal sealed class GFront { public char Kind; public int Idx; public PolicyAxis Axis; public double Cur, Target, Net = double.NaN; public int Code = -1; public bool Expired; }
+    internal sealed class GFront { public char Kind; public int Idx; public PolicyAxis Axis; public double Cur, Target, Net = double.NaN; public int Code = -1; public bool Expired;
+        /// <summary>(278) 線G2：この一歩の代価（門が計算した額。無償で通った＝0・門の手前で止まった＝NaN）と、払う前（決める時）の目減り S。<see cref="Structural"/>＝符号 2 のうち代価が政治資本の最大量そのものを超える（在庫が空でも永久に届かない）。</summary>
+        public double Cost = double.NaN, SDec = double.NaN; public bool Structural; }
     /// <summary>段5 の上限の引き出し率 d（月あたり）。(264) 実装ログ §7 の事前登録の格子＝1/120・1/240・1/480（AI の設計・作者の承認は未確認）。</summary>
     internal static readonly double[] CapDs = [1.0 / 120, 1.0 / 240, 1.0 / 480, 1.0 / 36, 1.0 / 12];   // (271) 末尾の2つ＝(268) 申し送りの推奨（格子に 1/36・1/12 を足す）
     static readonly string[] CapDNames = ["D120", "D240", "D480", "D36", "D12"];
@@ -447,7 +452,25 @@ public static class Instruments
     /// <summary>解禁の外で軍事費の施行が段3へ戻された四半期（<c>Step</c> の失効の行）。</summary>
     internal static void MilitaryExpiry(World w) => S(w).GfMilExpired = true;
     /// <summary><c>MandateGate</c> の結果：1 純支持の門で否決／2 政治資本の在庫で否決／3 無償で通った／4 政治資本を払って通った。</summary>
-    internal static void GateResult(World w, int why, double net) { var st = S(w); st.GfGateWhy = why; st.GfGateNet = net; }
+    internal static void GateResult(World w, int why, double net)
+    {
+        var st = S(w); st.GfGateWhy = why; st.GfGateNet = net;
+        // (278) 代価：払う枝（2 在庫で否決・4 払って通った）は門が計算した額（Priced が置いた）／3 無償＝0／1 門の手前＝なし。払って通った額は四半期の台帳へ（Enact 経由で同じ行が StepLevel を複数回呼んでも落とさない）
+        if (why is 2 or 4) { st.GfGateCost = st.GfPendCost; st.GfGateS = st.GfPendS; if (why == 4) st.GfPaidL += st.GfPendCost; }
+        else { st.GfGateCost = why == 3 ? 0 : double.NaN; st.GfGateS = double.NaN; }
+        st.GfPendCost = st.GfPendS = double.NaN;
+    }
+    /// <summary>(278) 符号 2 のうち代価が政治資本の最大量 b そのものを超える（在庫が空でも永久に届かない）＝段の法と連続の軸で同じ1つの定義。</summary>
+    static bool IsStructural(World w, int code, double cost) => code == 2 && cost > w.PoliticalCapitalMax;
+    /// <summary>(278) 政治資本の代価の計算の直後（<c>MandateGate</c> の押し切りの枝・<c>Move</c> の押し切りの枝）＝払う前の目減り S を一緒に写す。</summary>
+    internal static void Priced(World w, double cost) { var st = S(w); st.GfPendCost = cost; st.GfPendS = w.MandateSpent; }
+    /// <summary>(278) <c>Government.Step</c> の段の法のループの頭：目減り S と最大量 b（四半期に1回導出して World に置いた値）。</summary>
+    internal static void StockAtLevelHead(World w) { var st = S(w); st.GfSHead = w.MandateSpent; st.GfMaxHead = w.PoliticalCapitalMax; }
+    /// <summary>(278) <c>Government.Step</c> の末尾：目減り S。</summary>
+    internal static void StockAtStepEnd(World w) => S(w).GfSEnd = w.MandateSpent;
+    /// <summary>番人（テスト）が1回の <c>Government.Step</c> の後の政治資本の台帳を読む口：段の法のループの頭の S・Step の末尾の S・最大量 b・段の法の払い・連続の軸（R・M・T・C）の払いの和。</summary>
+    internal static (double SHead, double SEnd, double Max, double PaidLevel, double PaidContinuous) LedgerOf(World w)
+    { var st = S(w); return (st.GfSHead, st.GfSEnd, st.GfMaxHead, st.GfPaidL, st.GfPaidR + st.GfPaidM + st.GfPaidT + st.GfPaidC); }
     /// <summary>番人（テスト）が1回の <c>Government.Step</c> の後の開いた戦線を読む口。</summary>
     internal static IReadOnlyList<GFront> FrontsOf(World w) => S(w).Gf;
     static GFront? FindFront(WState st, char kind, int idx)
@@ -459,21 +482,31 @@ public static class Instruments
     internal static void LevelResult(World w, int code, int ci, int ti, int result)
     {
         var st = S(w);
+        bool gated = code == -1;   // (278) 門まで来た一歩だけが代価を持つ
         if (code == -1) code = st.GfGateWhy switch { 1 => 1, 2 => 2, 4 => result == ti ? 8 : 4, _ => result == ti ? 7 : 3 };
-        if (FindFront(st, 'L', st.GfLevelIdx) is { } f) { f.Code = code; f.Net = code is 0 or 5 or 6 ? double.NaN : st.GfGateNet; }
+        if (FindFront(st, 'L', st.GfLevelIdx) is { } f)
+        {
+            f.Code = code; f.Net = code is 0 or 5 or 6 ? double.NaN : st.GfGateNet;
+            if (gated) { f.Cost = st.GfGateCost; f.SDec = st.GfGateS; f.Structural = IsStructural(w, code, f.Cost); }
+        }
     }
     /// <summary><c>Government.Move</c> の結果（outcome は <see cref="MilitaryMove"/> と同じ 0 閉じていた／1 純支持／2 政治資本／3 無償で動いた／4 払って動いた）。軸と歩幅の尺度から戦線の種類を決める。</summary>
     internal static void MoveResult(World w, PolicyAxis a, double spendScale, int outcome, double cur, double target, double next, double net, double speed)
     {
         var st = S(w);
+        // (278) 代価：払う枝（2 在庫で否決・4 払って動いた）は Priced が置いた額／3 無償＝0／0・1 は門の手前＝なし。払って動いた額は種類ごとの四半期の台帳へ
+        double cost = outcome is 2 or 4 ? st.GfPendCost : outcome == 3 ? 0 : double.NaN, sDec = outcome is 2 or 4 ? st.GfPendS : double.NaN;
+        st.GfPendCost = st.GfPendS = double.NaN;
         char kind; int idx = 0;
         if (a == PolicyAxis.Coercion) kind = spendScale == 1.0 ? 'M' : 'C';
         else if (a == PolicyAxis.Tariff) kind = 'T';
-        else { idx = Array.FindIndex(Government.RateLaws, l => l.Axis == a); if (idx < 0) return; kind = 'R'; }
+        else { idx = Array.FindIndex(Government.RateLaws, l => l.Axis == a); kind = 'R'; }
+        if (outcome == 4) { switch (kind) { case 'M': st.GfPaidM += cost; break; case 'T': st.GfPaidT += cost; break; case 'C': st.GfPaidC += cost; break; default: st.GfPaidR += cost; break; } }
+        if (kind == 'R' && idx < 0) return;
         if (FindFront(st, kind, idx) is not { } f) return;
         int code = outcome >= 3 && Math.Abs(target - next) <= 0.026 ? (outcome == 4 ? 8 : 7) : outcome;
         if (kind == 'M' && st.GfMilExpired) { f.Expired = true; if (code == 0) code = 9; }
-        f.Code = code; f.Net = net;
+        f.Code = code; f.Net = net; f.Cost = cost; f.SDec = sDec; f.Structural = IsStructural(w, code, cost);
     }
     /// <summary>四半期の頭の <c>Government.Step</c> の後：戦時段の解禁・軍事費の段の目標（保存）と施行。</summary>
     internal static void AfterGovernment(World w)
@@ -503,6 +536,7 @@ public static class Instruments
         st.MmOutcome = st.MmFronts = -1; st.MmIncreasing = false;
         st.MmCur = st.MmTarget = st.MmNet = st.MmResist = st.MmSpeed = st.MmPush = st.MmOppTrad = st.MmOppModern = st.MmOppMass = st.MmStock = st.MmStockMax = st.MmEnvelopeAfterGov = double.NaN;
         st.Gf.Clear(); st.GfCounted = st.GfMilExpired = false; st.GfLevelIdx = -1; st.GfGateWhy = 0; st.GfGateNet = double.NaN;   // (274) 助走の分は数えない
+        st.GfSHead = st.GfMaxHead = st.GfSEnd = st.GfPendCost = st.GfPendS = st.GfGateCost = st.GfGateS = double.NaN; st.GfPaidL = st.GfPaidR = st.GfPaidM = st.GfPaidT = st.GfPaidC = 0;   // (278) 助走の分は数えない
     }
     /// <summary>国×四半期の行に足す列（行政の請求の2つの式・戦時段）。月ごとの量は四半期の月の平均（<c>PerMonth</c>）。</summary>
     static List<(string Name, string Value)> NationExtras(World w, WState st)
@@ -969,6 +1003,8 @@ public static class Instruments
         foreach (var ex in ext270) cols.Add(ex.Value);
         var ext274 = Extras274(w, st);   // (274) 線G：幽霊戦線（開いた戦線の施行の結果）
         foreach (var ex in ext274) cols.Add(ex.Value);
+        var ext278 = Extras278(w, st);   // (278) 線G2：政治資本の在庫の台帳・符号 2 の分割
+        foreach (var ex in ext278) cols.Add(ex.Value);
         sk.Nation ??= Open("nation", seed);
         if (!sk.NationHeader)
         {
@@ -984,7 +1020,8 @@ public static class Instruments
                 + string.Join('\t', ext265.Select(e => e.Name)) + "\t"
                 + string.Join('\t', ext271.Select(e => e.Name)) + "\t"
                 + string.Join('\t', ext270.Select(e => e.Name)) + "\t"
-                + string.Join('\t', ext274.Select(e => e.Name)));
+                + string.Join('\t', ext274.Select(e => e.Name)) + "\t"
+                + string.Join('\t', ext278.Select(e => e.Name)));
             sk.NationHeader = true;
         }
         sk.Nation.WriteLine(string.Join('\t', cols));
@@ -1118,6 +1155,35 @@ public static class Instruments
         cols.Add(("frontMilitaryExpiredCount", I(cnt[10]))); cols.Add(("frontUnrecordedCount", I(cnt[0])));
         cols.Add(("militaryFrontCountedFlag", I(mil ? 1 : 0))); cols.Add(("pushBudgetFactor", F(w.PoliticalPushBudget)));
         cols.Add(("openFrontStates", sb.ToString()));
+        return cols;
+    }
+
+    /// <summary>★(278) 線G2：政治資本の在庫の台帳と、符号 2（政治資本で固定）の分割。(274) の符号 2 は〈代価が最大量 b を超える＝在庫が空でも永久に届かない（構造）〉と〈代価は b 以内だが残り a＝max(0,b−S) が足りない（飢え）〉を混ぜていた。
+    /// 件数は符号 2 の戦線を代価＞b か否かで分ける（L＝段の法・連続＝税と支出の段 R・軍事費 M・治安維持力 C・関税 T）。和＝既存の <c>frontCapitalFixedCount</c>。
+    /// 台帳：<c>politicalCapitalSpentAtLevelHead</c>（段の法のループの頭の目減り S）・<c>politicalCapitalMaxAtLevelHead</c>（最大量 b）・<c>politicalCapitalSpentAtStepEnd</c>（Step の末尾の S）。
+    /// その四半期に払った額＝<c>levelLawPaidInQuarter</c>（段の法）・<c>ratePaidInQuarter</c>（R）・<c>militaryPaidInQuarter</c>（M）・<c>tariffPaidInQuarter</c>（T）・<c>securityPaidInQuarter</c>（C）・<c>continuousPaidInQuarter</c>（R+M+T+C）。
+    /// 恒等：S の末尾−S の頭＝段の法の払い＋連続の軸の払い（Step の中で S を書くのは MandateGate と Move の2本だけ）。
+    /// <c>openFrontCosts</c>・<c>openFrontSpentAtDecision</c>＝<c>openFrontStates</c> と同じ順の、各戦線の代価と払う前の S（門の手前で止まった＝nan・無償＝代価 0）。
+    /// ⚠限界：①政治資本の最大量 b は Step の頭で導出した値（決める時に変わらない）②Politics.Step の回復と内戦講和の譲歩の支出は Step の外＝列は四半期の間（末尾→次の頭）の差で読む。</summary>
+    static List<(string Name, string Value)> Extras278(World w, WState st)
+    {
+        var cols = new List<(string, string)>();
+        string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        int sl = 0, tl = 0, sc = 0, tc = 0;   // 構造（Structural）／飢え × 段の法／連続
+        var cost = new System.Text.StringBuilder(); var spent = new System.Text.StringBuilder();
+        foreach (var f in st.Gf)
+        {
+            if (f.Code == 2) { if (f.Kind == 'L') { if (f.Structural) sl++; else tl++; } else { if (f.Structural) sc++; else tc++; } }
+            if (cost.Length > 0) { cost.Append(';'); spent.Append(';'); }
+            cost.Append(F(f.Cost)); spent.Append(F(f.SDec));
+        }
+        cols.Add(("frontCapitalStructuralLevelCount", I(sl))); cols.Add(("frontCapitalStarvedLevelCount", I(tl)));
+        cols.Add(("frontCapitalStructuralContinuousCount", I(sc))); cols.Add(("frontCapitalStarvedContinuousCount", I(tc)));
+        cols.Add(("politicalCapitalSpentAtLevelHead", F(st.GfSHead))); cols.Add(("politicalCapitalMaxAtLevelHead", F(st.GfMaxHead))); cols.Add(("politicalCapitalSpentAtStepEnd", F(st.GfSEnd)));
+        cols.Add(("levelLawPaidInQuarter", F(st.GfPaidL))); cols.Add(("ratePaidInQuarter", F(st.GfPaidR))); cols.Add(("militaryPaidInQuarter", F(st.GfPaidM)));
+        cols.Add(("tariffPaidInQuarter", F(st.GfPaidT))); cols.Add(("securityPaidInQuarter", F(st.GfPaidC)));
+        cols.Add(("continuousPaidInQuarter", F(st.GfPaidR + st.GfPaidM + st.GfPaidT + st.GfPaidC)));
+        cols.Add(("openFrontCosts", cost.ToString())); cols.Add(("openFrontSpentAtDecision", spent.ToString()));
         return cols;
     }
 
