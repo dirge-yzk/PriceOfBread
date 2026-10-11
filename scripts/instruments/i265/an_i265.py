@@ -303,7 +303,7 @@ def b_admin_cf():
                 tot['cf_bor'] += b1_; tot['base_bor'] += b0_
     L += [f'英・10種・全期（nation_s）：払えない月 {tot["base_short"]:.0f} → A′ {tot["cf_short"]:.0f}（P_short＝{1 - tot["cf_short"] / tot["base_short"] if tot["base_short"] else NAN:.3f}）／'
           f'借入 {tot["base_bor"]:.0f} → {tot["cf_bor"]:.0f}（P_borrow＝{1 - tot["cf_bor"] / tot["base_bor"] if tot["base_bor"] else NAN:.3f}）／率＜1 の月 {tot["base_rb"]:.0f} → {tot["cf_rb"]:.0f}（P_r＝{1 - tot["cf_rb"] / tot["base_rb"] if tot["base_rb"] else NAN:.3f}）', '']
-    L += ['', '⚠率＜1 の月は fiscal_s の payRateShare（G10 の文字列）で数えると、率が 0.99999999995 の月が 1 に丸まって落ちる＝fiscal_s の再計算の「率＜1」は下限（基線 556）。nation_s の厳密な列（payRateBelowOneMonths・adminCfRBelow1MonthsCount）が正しい数。払えない月・借入は両方の数が合う。', '']
+    L += ['', '⚠率＜1 の月の数が2つある：fiscal_s の payRateShare（G10 の文字列）で数えると 556（(264) §7-2 の基線 556 と同じ数え方）・nation_s の列 payRateBelowOneMonths（計器の中で double のまま〈率＜1〉）では 699。差の143月の原因は**未確認**（G10 の丸めだけなら『率が1と印字され払える額＜請求』の月が残るはずだが、G10 の払える額と請求で比べても0件＝この確かめは丸めを区別できない。有力な候補は〈借入が不足にちょうど届く月の double の誤差 率＝1−1e-16〉だが試験していない）。払えない月・借入は両方の数が合う。A′ の線(3)の基線は数え方を決めてから（1−1e-9 未満を数える）取り直す。', '']
     # --- 必要額と請求の関係（英・仏・蘭と全ての国）
     L += ['## 請求÷必要額（予算の時点・四半期）と 余りの出る四半期', '', '| 国 | 請求÷必要額（中央〔最小〜最大〕） | 余りのある州の月が1つ以上ある四半期 | 購買の時点の必要額÷予算の時点（最大の乖離） |', '|---|---|---|---|']
     for n in (UK, FR, NL, None):
