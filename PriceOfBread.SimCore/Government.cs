@@ -314,7 +314,10 @@ public static class Government
         //   ⚠思想⑧の天井ではない＝解禁の外では選べる目標が既に段3 以下（MilitaryTotalTarget）＝選んだ値は削らない（施行に残った戦時の上乗せが切れるだけ）。
         double milFrom = w.MilitarySpending, milHigh = (MilitaryLawStages - 1) / (double)MilitaryLawStages;
         if (!WarStageOpen(w) && !(milFrom <= milHigh)) milFrom = milHigh;
-        double milTotal = Move(milFrom, milTotalTarget, c, w, PolicyAxis.Coercion);  // 武力スライダー＝軍隊規模と治安維持力を一本で駆動。軍系ブロックの政治力で律速
+        // ★(270) 戦時段の解禁の間（交戦中かつ総動員中）の軍事費の一歩は政治予算の係数（戦線の数 N で (1/N)^0.5）で薄めない＝fullPush。計器で名指した（実装ログ (270) §1）：
+        //   英の解禁の四半期 460 で純支持の門・政治資本の門に固定された一歩は 0 件・抵抗の中央は 0 だが、政治予算の係数が中央 0.354（N の中央 8）で歩幅が基本の約 0.35 倍＝登りの律速。
+        //   純支持と政治資本の門は掛けたまま（反対を押し切るなら代価を払う）。解禁の外・他の軸は旧と同じ。AI もプレイヤーもこの1行を通る（IsPlayer を読まない）。
+        double milTotal = Move(milFrom, milTotalTarget, c, w, PolicyAxis.Coercion, fullPush: WarStageOpen(w));  // 武力スライダー＝軍隊規模と治安維持力を一本で駆動。軍系ブロックの政治力で律速
         // ★(151)：陸海比は目標の生の比（0.05格子に丸めない）＝上の「連続のまま」のとおり。旧＝格子に丸めた2本の比＝合計0.75 なら比は 0.067 刻みで、
         //   陸と海の必要量で分けた小さい海の比（清の 0.03 など）が0へ丸められて艦隊の乗員ごと消えた（陸海比は導出量＝2026-09-23 作者裁定・レバーは無い）。
         double navRawA = p.ArmyUpkeepTarget, navRawN = p.NavyUpkeepTarget;
@@ -834,7 +837,7 @@ public static class Government
     //   ⚠**旧の硬いゲートへは戻さない**：税4軸と軍事費は 2026-09-20 に段になり**施行が Move 側**なので、ここだけ硬く戻すと
     //     「税の段が反対を押し切って上がる」経路が消える＝現行より後退する。門は世界に1つ（S1 の字義）＝法もスライダーも在庫で払う。
     //   ⚠法は同じ四半期の先に課金される（Government.Step は法→スライダーの順）＝スライダーの這い進みが法を飢えさせることはない。
-    private static double Move(double cur, double target, Coefficients c, World w, PolicyAxis a, double spendScale = 1.0, bool mandate = true)
+    private static double Move(double cur, double target, Coefficients c, World w, PolicyAxis a, double spendScale = 1.0, bool mandate = true, bool fullPush = false)
     {
         bool milProbe = Instruments.On && a == PolicyAxis.Coercion && spendScale == 1.0;   // 計器（読むだけ）：軍事費の合計の施行の一歩（Step の milTotal）だけを写す
         if (Math.Abs(target - cur) < 1e-12) { if (milProbe) Instruments.MilitaryMove(w, cur, target, double.NaN, double.NaN, double.NaN, 0, default, false); return cur; }
@@ -852,7 +855,7 @@ public static class Government
         if (w.Coef.ParliamentBudgetVeto > 0 && (a == PolicyAxis.IncomeTax
             || a is PolicyAxis.PollTax or PolicyAxis.LandTax or PolicyAxis.ProgressiveTax))   // [PORT:P6] 予算闘争→法ゲートの抵抗への加算（★専売は Move を持たない＝2026-09-20 に腕を削除。門は World.SetStateMonopolyOn 側の GateInfo）
             resist += w.Coef.ParliamentBudgetVeto * Math.Max(0, w.ParliamentControl) * Math.Max(0, -w.CoopParliamentCrown);
-        double speed = c.PolicyBaseSpeed / (1.0 + c.PolicyResistanceWeight * resist) * (mandate ? w.PoliticalPushBudget : 1.0);   // 第6段6-1：政治の押しのみ戦線数で正規化（機械追従＝武力統合の治安維持力は対象外）
+        double speed = c.PolicyBaseSpeed / (1.0 + c.PolicyResistanceWeight * resist) * (mandate && !fullPush ? w.PoliticalPushBudget : 1.0);   // 第6段6-1：政治の押しのみ戦線数で正規化（機械追従＝武力統合の治安維持力は対象外）。★(270) fullPush＝戦時段の解禁の間の軍事費の一歩は戦線数で薄めない（Step の milTotal だけが真を渡す）
         // 政体フレーバー レバー2（2026-07-24）：勅令は速い＝非選挙政体（絶対/専制/幕府/軍政）はスライダー歩幅×(1+これ)（議会審議を経ない＝
         // 農奴解放勅令・太政官布告）。独立乗算・0で恒等。
         // ⚠代償の在処（裁定C2・2026-09-12）：旧＝押し切り遺恨 PushedLawGrievance が「速いが恨まれる」を価格付けしていた。遺恨は 2026-09-20 に削除＝

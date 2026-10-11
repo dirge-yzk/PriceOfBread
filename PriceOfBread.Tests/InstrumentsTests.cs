@@ -873,7 +873,7 @@ public class InstrumentsTests
             foreach (var c in new[] { "militaryMoveOutcomeCode", "militaryMoveIncreasingFlag", "militaryMoveCurrentShare", "militaryMoveTargetShare", "militaryMoveNetSupportIndex", "militaryMoveResistIndex", "militaryMoveResistTradIndex", "militaryMoveResistModernIndex", "militaryMoveResistMassIndex", "militaryMovePushBudgetFactor", "militaryMoveOpenFrontsCount", "militaryMoveStepFraction", "politicalCapitalSpentIndex", "politicalCapitalMaxIndex" })
                 Assert.True(Array.IndexOf(nh, c) >= 0, "国×四半期の表に列が無い " + c);
             var c0 = sim.Nations[0].World.Coef;
-            int[] counts = new int[5]; int checkedPush = 0;
+            int[] counts = new int[5]; int checkedPush = 0; int[] openCounts = new int[2];
             foreach (var row in nr)
             {
                 int outcome = (int)Col(nh, row, "militaryMoveOutcomeCode");
@@ -893,6 +893,12 @@ public class InstrumentsTests
                     double push = Col(nh, row, "militaryMovePushBudgetFactor"); int fronts = (int)Col(nh, row, "militaryMoveOpenFrontsCount");
                     double expectPush = fronts > 1 ? Math.Pow(1.0 / fronts, c0.PoliticalBudgetGate) : 1.0;
                     Assert.InRange(push, expectPush - 1e-8, expectPush + 1e-8); checkedPush++;
+                    // ★(270) 歩幅の比＝歩幅×(1+抵抗の重み×抵抗)÷基本の速さ：解禁の四半期は政治予算を掛けない（1.0 か勅令の加速）・解禁の外は政治予算を掛ける（push か push×勅令の加速）
+                    double ratio = f * (1.0 + c0.PolicyResistanceWeight * res) / c0.PolicyBaseSpeed, agile = 1.0 + c0.AutocraticPolicyAgility;
+                    bool open = Col(nh, row, "warStageOpenAfterGovFlag") == 1;
+                    bool near(double x, double y) => Math.Abs(x - y) <= 1e-6 * Math.Max(1.0, Math.Abs(y));
+                    if (open) { Assert.True(near(ratio, 1.0) || near(ratio, agile), $"解禁の四半期の歩幅の比 {ratio}（政治予算 {push} を掛けてはいけない）"); openCounts[push < 0.99 ? 1 : 0]++; }
+                    else Assert.True(near(ratio, push) || near(ratio, push * agile), $"解禁の外の歩幅の比 {ratio}（政治予算 {push} を掛ける）");
                 }
                 if (outcome == 3 || outcome == 4)
                 {
@@ -903,6 +909,7 @@ public class InstrumentsTests
             Assert.True(counts[3] > 0 && counts[2] > 0, $"無償で動いた四半期と政治資本が足りず固定された四半期が両方起きていない（{string.Join(',', counts)}）");   // 結果0・1は4国40四半期では起きない（目標は段の格子・現在は連続／純支持の余白は +∞）＝対照にしない
             Assert.True(counts[4] > 0, $"政治資本を払って動いた四半期が1度も無い（{string.Join(',', counts)}）＝純支持が負の経路が写っていない");
             Assert.True(checkedPush > 0);
+            Assert.True(openCounts[1] > 0, $"解禁の四半期のうち政治予算の係数が1未満の四半期が無い（{openCounts[0]},{openCounts[1]}）＝政治予算を掛けないことを確かめる対照にならない");
 
             // ⑥戦時段の器の割合（エンジンの Military.WarStageShare そのもの）＝別の列（解禁・施行のシェア・目標の段）から (min(施行, 目標の段÷段数) − (段数−1)÷段数) × 段数 を 0..1 に収めた値に合う。解禁の外は 0
             // ⑦国債の不履行の累計は国ごとに減らない
