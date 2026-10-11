@@ -1,0 +1,39 @@
+START 01:49:34 filter=Category=FullLength src=D:/PoB_work/wt_p
+  復元対象のプロジェクトを決定しています...
+  D:\PoB_work\p273\tree_t_fl\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj を復元しました (61 ミリ秒)。
+  D:\PoB_work\p273\tree_t_fl\PriceOfBread.App\PriceOfBread.App.csproj を復元しました (203 ミリ秒)。
+  D:\PoB_work\p273\tree_t_fl\PriceOfBread.Tests\PriceOfBread.Tests.csproj を復元しました (200 ミリ秒)。
+D:\PoB_work\p273\tree_t_fl\PriceOfBread.SimCore\Instruments.cs(1009,16): warning CS8321: ローカル関数 'I' は宣言されていますが、一度も使用されていません [D:\PoB_work\p273\tree_t_fl\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+  PriceOfBread.SimCore -> D:\PoB_work\p273\art_tfl\bin\PriceOfBread.SimCore\release\PriceOfBread.SimCore.dll
+  PriceOfBread.App -> D:\PoB_work\p273\art_tfl\bin\PriceOfBread.App\release\PriceOfBread.App.dll
+D:\PoB_work\p273\tree_t_fl\PriceOfBread.Tests\ConservationTests.cs(259,48): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\p273\tree_t_fl\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\p273\tree_t_fl\PriceOfBread.Tests\ConservationTests.cs(943,113): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\p273\tree_t_fl\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\p273\tree_t_fl\PriceOfBread.Tests\UnitTypeTests.cs(191,30): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\p273\tree_t_fl\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\p273\tree_t_fl\PriceOfBread.Tests\UnitTypeTests.cs(191,45): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\p273\tree_t_fl\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\p273\tree_t_fl\PriceOfBread.Tests\UnitTypeTests.cs(192,30): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\p273\tree_t_fl\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\p273\tree_t_fl\PriceOfBread.Tests\UnitTypeTests.cs(192,45): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\p273\tree_t_fl\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\p273\tree_t_fl\PriceOfBread.Tests\UnitTypeTests.cs(67,13): warning xUnit2029: Do not use Assert.Empty to check if a value does not exist in a collection. Use Assert.DoesNotContain instead. (https://xunit.net/xunit.analyzers/rules/xUnit2029) [D:\PoB_work\p273\tree_t_fl\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\p273\tree_t_fl\PriceOfBread.Tests\InstrumentsTests.cs(784,13): warning xUnit2031: Do not use a Where clause to filter before calling Assert.Single. Use the overload of Assert.Single that accepts a filtering function. (https://xunit.net/xunit.analyzers/rules/xUnit2031) [D:\PoB_work\p273\tree_t_fl\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+  PriceOfBread.Tests -> D:\PoB_work\p273\art_tfl\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll
+
+ビルドに成功しました。
+
+D:\PoB_work\p273\tree_t_fl\PriceOfBread.SimCore\Instruments.cs(1009,16): warning CS8321: ローカル関数 'I' は宣言されていますが、一度も使用されていません [D:\PoB_work\p273\tree_t_fl\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj]
+D:\PoB_work\p273\tree_t_fl\PriceOfBread.Tests\ConservationTests.cs(259,48): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\p273\tree_t_fl\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\p273\tree_t_fl\PriceOfBread.Tests\ConservationTests.cs(943,113): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\p273\tree_t_fl\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\p273\tree_t_fl\PriceOfBread.Tests\UnitTypeTests.cs(191,30): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\p273\tree_t_fl\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\p273\tree_t_fl\PriceOfBread.Tests\UnitTypeTests.cs(191,45): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\p273\tree_t_fl\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\p273\tree_t_fl\PriceOfBread.Tests\UnitTypeTests.cs(192,30): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\p273\tree_t_fl\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\p273\tree_t_fl\PriceOfBread.Tests\UnitTypeTests.cs(192,45): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\p273\tree_t_fl\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\p273\tree_t_fl\PriceOfBread.Tests\UnitTypeTests.cs(67,13): warning xUnit2029: Do not use Assert.Empty to check if a value does not exist in a collection. Use Assert.DoesNotContain instead. (https://xunit.net/xunit.analyzers/rules/xUnit2029) [D:\PoB_work\p273\tree_t_fl\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\p273\tree_t_fl\PriceOfBread.Tests\InstrumentsTests.cs(784,13): warning xUnit2031: Do not use a Where clause to filter before calling Assert.Single. Use the overload of Assert.Single that accepts a filtering function. (https://xunit.net/xunit.analyzers/rules/xUnit2031) [D:\PoB_work\p273\tree_t_fl\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+    9 個の警告
+    0 エラー
+
+経過時間 00:00:28.80
+build rc=0
+D:\PoB_work\p273\art_tfl\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 3 m 18 s - PriceOfBread.Tests.dll (net10.0)
+rc=0 END 01:53:24

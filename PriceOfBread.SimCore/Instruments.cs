@@ -641,7 +641,7 @@ public static class Instruments
 
     // ---------------------------------------------------------------- (262) 貯蓄の書き手の台帳（階級の ΔSavings の出どころ・読むだけ） ----------------------------------------------------------------
 
-    /// <summary>貯蓄 <c>Pop._savings</c> の書き手の種類。書き手は Pop の中の6本だけ（<c>Pop.Distribute</c>・<c>Take</c>・<c>Carry</c>・<c>Rebase</c>・<c>SettleMonth</c>・開幕の <c>ScaleSavings</c>）。
+    /// <summary>貯蓄 <c>Pop._savings</c> の書き手の種類。書き手は Pop の中の6本だけ（<c>Pop.Distribute</c>・<c>Take</c>・<c>Carry</c>・<c>Rebase</c>・<c>SettleMonth</c>・開幕の <c>RebaseSavingsTo</c>〔(273) 旧 ScaleSavings〕）。
     /// Settle＝月末の精算（所得−支出）／Give＝受け取り（所得に書かない）／GiveIncome＝受け取り（所得にも書く）／Take＝払い（支出に書かない）／CarryOut・CarryIn＝人と動くお金（階級・州・国をまたぐ運搬）／Rebase＝国が替わる換算。</summary>
     internal enum SavKind : byte { Settle, Give, GiveIncome, Take, CarryOut, CarryIn, Rebase, RegionOut, RegionIn }
     static readonly string[] SavKindNames = ["settle", "give", "giveIncome", "take", "carryOut", "carryIn", "rebase", "regionOut", "regionIn"];

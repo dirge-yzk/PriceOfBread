@@ -356,64 +356,136 @@ public class StartWarmupTests
         Assert.True(Turbulence(4) < Turbulence(0), "助走は開幕の価格の荒れを減らすはず");
     }
 
-    // === (220) 開幕の貨幣の置き直し（world.json の broadMoneyToGdp＝NationConfig.BroadMoneyToGdp・係数 InitMoneyMode / InitInvestorMoneyShare / InitMoneyScale）===
-    //   ★採否未定の間は既定の InitMoneyMode=0（置かない・旧と同じ軌道）＝番人は係数を明示して ON 経路で回す（「何もしない機構は必ず緑」の轍を踏まない）。
-    //   助走を4四半期に縮めた盤面で見る（置き直しは助走の終わりに1回・規則は助走の長さに依らない）。
+    // === (273) 開幕の貯蓄の置き直し（world.json の broadMoneyToIncome＝NationConfig.BroadMoneyToIncome＝m・係数 OpeningSavingsRebaseMode・SavingsYearsByClass は配分の形だけ）===
+    //   m＞0 の国（今は英だけ）の助走の終わり（モード1）か最初の四半期の後（モード2）に、全ての POP の貯蓄が λ × k[階級] × 年所得 で置かれる（λ ＝ m × Σ正の所得 ÷ Σ k×所得＝導ける量）。
+    //   ⇒ 置き直し直後の ΣSavings ÷ 年所得の和 ＝ m。旧 (220) の 比×年名目GDP の表（broadMoneyToGdp・InitMoneyMode）は導ける量なので外した。
+    //   ★既定の OpeningSavingsRebaseMode＝0（置かない＝旧と同じ軌道）＝番人は係数を明示して ON 経路で回す（「何もしない機構は必ず緑」の轍を踏まない）。
+    //   助走を4四半期に縮めた盤面で見る（規則は助走の長さに依らない）。
 
-    private static MultiNationSim BuildWithMoney(int mode, double scale = 1.0, Func<NationConfig, NationConfig>? edit = null)
+    /// <summary>モード <paramref name="mode"/>（各国の World.Coef へ・国ごとに別インスタンス）で全61国の世界を作る。<paramref name="mAll"/> が null なら m は world.json のまま。</summary>
+    private static MultiNationSim BuildSavings(int mode, double? mAll = null)
     {
-        var sim = new MultiNationSim([.. WorldData.Nations().Select(c => edit is null ? c : edit(c))], 1789UL, _ => new UtilityAgent());
-        foreach (var n in sim.Nations) { n.World.Coef.InitMoneyMode = mode; n.World.Coef.InitMoneyScale = scale; }
+        var cfgs = WorldData.Nations().Select(c => { if (mAll is null) return c; var c2 = c.ShallowClone(); c2.BroadMoneyToIncome = mAll.Value; return c2; });
+        var sim = new MultiNationSim([.. cfgs], 1789UL, _ => new UtilityAgent());
+        foreach (var n in sim.Nations) n.World.Coef.OpeningSavingsRebaseMode = mode;
         return sim;
     }
 
-    private static (double Inv, double Oth, double GdpY) MoneySplit(World w)
+    /// <summary>全 POP の貯蓄の和と、前月の所得が正の POP の所得（月次）の和。</summary>
+    private static (double Money, double IncomePerMonth) MoneyAndIncome(World w)
     {
-        double inv = 0, oth = 0;
-        foreach (var r in w.Regions) foreach (var p in r.Pops) { double s = System.Math.Max(0, p.Savings.Value); if (CapitalMarket.IsInvestor(p)) inv += s; else oth += s; }
-        return (inv, oth, Calendar.PerMonthToPerYear(w.NominalGdpPerMonth).Value);
+        double money = 0, inc = 0;
+        foreach (var r in w.Regions) foreach (var p in r.Pops) { money += p.Savings.Value; if (p.LastEarnedPerMonth.Value > 0) inc += p.LastEarnedPerMonth.Value; }
+        return (money, inc);
     }
 
-    /// <summary>★(220) データ（broadMoneyToGdp）を持つ全ての国で、モード1は投資家の貯蓄が 比×取り分×年名目GDP の規則の値になり他の階級は不変、モード2は他の階級も 比×(1−取り分)×年名目GDP になる。
-    /// 比が0の国（データを外した対照）は置き直さない。置かない対照（モード0）は規則の値の何倍もある（ON 経路の確認）。
-    /// ⚠壊し方＝助走の後の置き直しを呼ばない（規則の値が出ず赤）・モードを見ずに他の階級まで掛ける（モード1の「他の階級は不変」が赤）・比0の国にも掛ける（赤）。</summary>
+    /// <summary>★(273) 既定は置かない（モード0・上限0）。m＞0 の国だけが置き直され、置き直し直後の M/Y が m に（相対差 1e-9）入り、全ての POP の 貯蓄 ÷ (k × 年所得) が同じ倍率 λ（k が正で所得が正の POP）・
+    /// 所得が正でない POP は貯蓄 0。置き直しは冪等（もう一度呼んでも全 POP の貯蓄が変わらない）。m＝0 の国は置かない対照と全 POP の貯蓄がビット一致（置き直しが他の国に触れない）。
+    /// データの m は英だけ（国名の分岐はコードに無い）。置かない対照では英の M/Y は m の3倍を超える（ON 経路の確認＝構築の定数は英で年所得の約14倍）。
+    /// ⚠壊し方＝λ を 1 に固定する（M/Y が m から外れて赤）・k の表の添字を階級 id でなく固定にする（λ が POP でばらついて赤）・助走の後の呼び出しを外す（M/Y が m から外れて赤）・
+    /// 所得が正でない POP の貯蓄を 0 にしない（赤）・m を見ずに全ての国へ掛ける（m＝0 の国が動いて赤）・モードを見ない（対照が動いて赤）。</summary>
     [Fact]
-    public void 開幕の貨幣は史実の比の規則の値で置かれる_モード1は投資家だけ_モード2は全階級()
+    public void 開幕の貯蓄はmの国だけ階級の配分の形で置かれ_M_Yがmに入り_冪等で_既定は置かない()
     {
-        var ctl = BuildWithMoney(0); ctl.StartWarmup(null, 4);
-        var m1 = BuildWithMoney(1); m1.StartWarmup(null, 4);
-        var m2 = BuildWithMoney(2); m2.StartWarmup(null, 4);
-        const double share = 0.67;
-        int checkedNations = 0;
-        for (int i = 0; i < m1.Nations.Count; i++)
+        var def = new Coefficients();
+        Assert.Equal(0, def.OpeningSavingsRebaseMode);                     // 既定＝置かない
+        Assert.Equal(0.0, def.ConsumeBudgetSavingsRatePerMonth.Value);     // 段5 の上限も既定は切らない
+        var ctl = BuildSavings(0); ctl.StartWarmup(null, 4);
+        var sim = BuildSavings(1); sim.StartWarmup(null, 4);
+        var years = sim.Nations[0].World.Coef.SavingsYearsByClass;
+        Assert.Equal(14, years.Length);
+        int flagged = 0; string flaggedName = ""; double moneyOn = 0, moneyOff = 0;
+        for (int i = 0; i < sim.Nations.Count; i++)
         {
-            var w1 = m1.Nations[i].World; var w2 = m2.Nations[i].World; var w0 = ctl.Nations[i].World;
-            string name = w1.SelfPower?.BaseName ?? "?";
-            Assert.True(w1.BroadMoneyToGdp > 0, $"{name} に broadMoneyToGdp が無い（データの穴）");
-            var (inv1, oth1, gdp1) = MoneySplit(w1); var (inv2, oth2, gdp2) = MoneySplit(w2); var (inv0, oth0, gdp0) = MoneySplit(w0);
-            Assert.Equal(gdp0, gdp1, 6);   // 置き直しは助走の終わりの産出に触れない（分母が腕で変わらない）
-            Assert.Equal(w1.BroadMoneyToGdp * share, inv1 / gdp1, 6);
-            Assert.Equal(oth0, oth1, 6);   // モード1は他の階級に触れない
-            Assert.Equal(w2.BroadMoneyToGdp * share, inv2 / gdp2, 6);
-            Assert.Equal(w2.BroadMoneyToGdp * (1 - share), oth2 / gdp2, 6);
-            Assert.True(inv0 / gdp0 > 3 * w1.BroadMoneyToGdp, $"{name} 置かない対照の投資家の貯蓄÷年GDP {inv0 / gdp0:F2}");
-            checkedNations++;
+            var w = sim.Nations[i].World; var w0 = ctl.Nations[i].World;
+            var pops = w.Regions.SelectMany(r => r.Pops).ToArray();
+            var pops0 = w0.Regions.SelectMany(r => r.Pops).ToArray();
+            Assert.Equal(pops0.Length, pops.Length);
+            if (!(w.BroadMoneyToIncome > 0))
+            {
+                for (int j = 0; j < pops.Length; j++) Assert.Equal(BitConverter.DoubleToInt64Bits(pops0[j].Savings.Value), BitConverter.DoubleToInt64Bits(pops[j].Savings.Value));   // m＝0 の国は対照とビット一致
+                w.RebaseOpeningMoney(1);   // 呼んでも何もしない
+                for (int j = 0; j < pops.Length; j++) Assert.Equal(BitConverter.DoubleToInt64Bits(pops0[j].Savings.Value), BitConverter.DoubleToInt64Bits(pops[j].Savings.Value));
+                continue;
+            }
+            flagged++; flaggedName = w.SelfPower?.BaseName ?? "?";
+            double[] before = pops.Select(p => p.Savings.Value).ToArray();
+            w.RebaseOpeningMoney(1);   // 2回目（冪等）
+            for (int j = 0; j < pops.Length; j++) Assert.Equal(before[j], pops[j].Savings.Value, 9);
+            var (money, inc) = MoneyAndIncome(w);
+            Assert.True(inc > 0);
+            Assert.Equal(w.BroadMoneyToIncome, money / Calendar.PerMonthToPerYear(inc), 9);
+            double lambda = double.NaN;
+            foreach (var p in pops)
+            {
+                double k = years[p.ClassId], e = p.LastEarnedPerMonth.Value;
+                if (!(k > 0 && e > 0)) { Assert.Equal(0.0, p.Savings.Value); continue; }
+                double l = p.Savings.Value / (k * Calendar.PerMonthToPerYear(e));
+                if (double.IsNaN(lambda)) lambda = l; else Assert.Equal(lambda, l, 9);
+            }
+            Assert.True(lambda > 0);
+            moneyOn += money / Calendar.PerMonthToPerYear(inc);
+            var (money0, inc0) = MoneyAndIncome(w0);
+            moneyOff += money0 / Calendar.PerMonthToPerYear(System.Math.Max(1e-9, inc0));
         }
-        Assert.Equal(61, checkedNations);
-
-        var off = BuildWithMoney(1, 1.0, c => { var c2 = c.ShallowClone(); c2.BroadMoneyToGdp = 0; return c2; }); off.StartWarmup(null, 4);
-        for (int i = 0; i < off.Nations.Count; i++)
-            Assert.Equal(MoneySplit(ctl.Nations[i].World).Inv, MoneySplit(off.Nations[i].World).Inv, 6);   // 比0の国は置き直さない
+        Assert.Equal(1, flagged);
+        Assert.Equal("イギリス", flaggedName);   // m＞0 の国は英だけ（段4 で全国にして旗ごと消す）
+        Assert.True(moneyOff > 3 * moneyOn, $"英の M/Y 置かない対照 {moneyOff:F2} / 置いた {moneyOn:F2}（構築の定数は m の3倍を超えるはず）");
     }
 
-    /// <summary>★(220) 置き直した後も保存則が保たれ（毎月の検査が投げない）、貨幣の厚みの趨勢の取り直しで物価水準が床へ落ちない（置かない対照と同じ種・英仏露清でモード1）：
-    /// 投資家の貯蓄を減らすと広義の貨幣÷産出が下がる＝趨勢を取り直さなければ物価水準が趨勢との比へ向かって落ちる（(218) 実測＝英で8四半期で 0.61 倍）。
-    /// 物価水準は置かない対照の同じ国と比べる（水準そのものは国ごとに助走の後も動く）。
+    /// <summary>★(273) モード2は最初の四半期の後の1回だけ（助走の終わりには置かない）：1四半期の助走ではモード1と同じ状態（置く時点が同じ）・4四半期の助走では英の M/Y が m から外れ（助走が後の3四半期を回した）、
+    /// それでも置かない対照より小さい（置き直しは起きた）。⚠壊し方＝モード2の呼び出しを外す（対照と同じで赤）・モード2を助走の終わりに置く（M/Y＝m で赤）。</summary>
+    [Fact]
+    public void モード2は最初の四半期の後に1回だけ置く()
+    {
+        World Uk(MultiNationSim s) => s.Nations.First(n => n.World.SelfPower?.BaseName == "イギリス").World;
+        var m1 = BuildSavings(1); m1.StartWarmup(null, 1);
+        var m2 = BuildSavings(2); m2.StartWarmup(null, 1);
+        var a = Uk(m1).Regions.SelectMany(r => r.Pops).Select(p => p.Savings.Value).ToArray();
+        var b = Uk(m2).Regions.SelectMany(r => r.Pops).Select(p => p.Savings.Value).ToArray();
+        Assert.Equal(a.Length, b.Length);
+        for (int j = 0; j < a.Length; j++) Assert.Equal(a[j], b[j], 9);   // 1四半期の助走では置く時点が同じ
+        var m4 = BuildSavings(2); m4.StartWarmup(null, 4);
+        var c4 = BuildSavings(0); c4.StartWarmup(null, 4);
+        var (money, inc) = MoneyAndIncome(Uk(m4)); var (money0, inc0) = MoneyAndIncome(Uk(c4));
+        double my = money / Calendar.PerMonthToPerYear(inc), my0 = money0 / Calendar.PerMonthToPerYear(inc0);
+        double m = Uk(m4).BroadMoneyToIncome;
+        Assert.True(System.Math.Abs(my / m - 1) > 1e-4, $"モード2の英の M/Y {my:F4} が m {m} に一致（助走の終わりにも置いている）");
+        Assert.True(my < my0 / 2, $"モード2の英の M/Y {my:F3} が置かない対照 {my0:F3} の半分未満でない（置き直しが起きていない）");
+    }
+
+    /// <summary>★(273) 民間の対外の在庫（ForeignCapitalIn・CapitalAbroad・ForeignBondClaims）は POP の貯蓄の縮み率 ρ ＝ 置いた後の Σ ÷ 置く前の Σ 倍になり、公の債務（GovDebt・ForeignDebt・Pop の BondHoldings の和）は動かない。
+    /// ρ は盤面の POP の貯蓄の和から直に作る（コードの式を写さない）。助走の終わりの3つが0でも測れるよう、置く前に既知の値を入れる。
+    /// ⚠壊し方＝3つのどれかに ρ を掛けない（赤）・公の債務にも掛ける（赤）・ρ の代わりに λ を掛ける（赤）。</summary>
+    [Fact]
+    public void 置き直しは民間の対外の在庫を貯蓄と同じ比で縮め公の債務は動かさない()
+    {
+        var sim = BuildSavings(0); sim.StartWarmup(null, 4);
+        var w = sim.Nations.First(n => n.World.SelfPower?.BaseName == "イギリス").World;
+        w.Coef.OpeningSavingsRebaseMode = 1;
+        w.ForeignCapitalIn = new MoneyStock(1000.0); w.CapitalAbroad = new MoneyStock(2000.0); w.ForeignBondClaims = new MoneyStock(3000.0);
+        double s0 = w.Regions.SelectMany(r => r.Pops).Sum(p => p.Savings.Value);
+        double gov = w.GovDebt.Value, forDebt = w.ForeignDebt.Value, hold = w.Regions.SelectMany(r => r.Pops).Sum(p => p.BondHoldings.Value);
+        w.RebaseOpeningMoney(1);
+        double s1 = w.Regions.SelectMany(r => r.Pops).Sum(p => p.Savings.Value);
+        double rho = s1 / s0;
+        Assert.InRange(rho, 0.01, 0.5);   // 英の貯蓄は大きく縮む（構築の定数は m の3倍超）
+        Assert.Equal(1000.0 * rho, w.ForeignCapitalIn.Value, 6);
+        Assert.Equal(2000.0 * rho, w.CapitalAbroad.Value, 6);
+        Assert.Equal(3000.0 * rho, w.ForeignBondClaims.Value, 6);
+        Assert.Equal(gov, w.GovDebt.Value);
+        Assert.Equal(forDebt, w.ForeignDebt.Value);
+        Assert.Equal(hold, w.Regions.SelectMany(r => r.Pops).Sum(p => p.BondHoldings.Value), 9);
+    }
+
+    /// <summary>★(273) 置き直した後も保存則が保たれ（毎月の検査が投げない）、貨幣の厚みの趨勢の取り直しで物価水準が床へ落ちない（置かない対照と同じ種・英仏露清でモード1）：
+    /// 英の貯蓄を大きく減らすと広義の貨幣÷産出が下がる＝趨勢を取り直さなければ物価水準が趨勢との比へ向かって落ちる（(218) 実測＝英で8四半期で 0.61 倍）。
+    /// 物価水準は置かない対照（モード0）の同じ国と比べる（水準そのものは国ごとに助走の後も動く）。
     /// ⚠壊し方＝趨勢 _moTrend を取り直さない → 8四半期で対照の0.65倍を割る国が出る（赤）。</summary>
     [Fact]
     public void 置き直しの後も保存則が保たれ_物価水準は置かない対照と比べて床へ向かわない()
     {
-        var sim = BuildWithMoney(1); var ctl = BuildWithMoney(0);
+        var sim = BuildSavings(1); var ctl = BuildSavings(0);
         sim.StartWarmup(null, 4); ctl.StartWarmup(null, 4);
         string[] watch = ["イギリス", "フランス", "ロシア", "清"];
         var idx = Enumerable.Range(0, sim.Nations.Count).Where(i => watch.Contains(sim.Nations[i].World.SelfPower?.BaseName ?? "")).ToArray();

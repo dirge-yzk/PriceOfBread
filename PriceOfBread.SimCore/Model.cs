@@ -358,8 +358,9 @@ public sealed class Pop
         if (Instruments.On) Instruments.Sav(this, Instruments.SavKind.Settle, Calendar.OneMonthOf(EarnedPerMonth - PaidPerMonth).Value);   // (262) 計器（読むだけ）：同じ式をもう一度（純粋）
     }
 
-    /// <summary>★(218) 貯蓄を比で置き直す（開幕の投資家の流動資産・<see cref="World.RebaseOpeningMoney"/> だけが呼ぶ）。貨幣の増減は呼び手が基準線ごと取り直す。</summary>
-    internal void ScaleSavings(double f) => _savings *= f;
+    /// <summary>★(273) 貯蓄を値で置き直す（開幕の貯蓄の式・<see cref="World.RebaseOpeningMoney"/> だけが呼ぶ）。貨幣の増減は呼び手が基準線ごと取り直す。旧 (218)(220) の ScaleSavings〔倍率〕を置き換えた＝Pop の貯蓄の書き手の数は変わらない
+    /// （作者裁定 Q13 の「口を増やさない」・名前は盤面の道具 Board.SetSavings〔試験の反射〕と別にした）。</summary>
+    internal void RebaseSavingsTo(double v) => _savings = new MoneyStock(v);
 
     /// <summary>★人の移し方の1本（2026-09-30 処理の一元化 段4e I＝設計の <c>PopTransfer.Blend</c>・Pop の中の1本）：<paramref name="from"/> から <paramref name="to"/> へ
     /// <paramref name="n"/> 人を移し、移る組の属性を受け手へ人数で混ぜ、人と動くお金（貯蓄・債務・国債の保有＝1人あたりの按分）を <see cref="Carry"/> で運ぶ。

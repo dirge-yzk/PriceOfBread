@@ -9,8 +9,8 @@ public sealed class NationConfig
     // ★(247) 既定値は **この型の初期化子が唯一の場所**（初期値の既定値の一本化）：world.json の国は「既定と違う値」のキーだけを書く（同じ値のキーは書かない）。
     //   既定は世界の大半の国の値（最頻値）に置く＝書くキーが最も少ない。番人＝InitialDefaultsTests（world.json の国が既定と同じ値のキーを持つと赤）。
     //   ⚠既定を変えるときは、建国（MultiNationSim の分離独立・NationConfig を手で組む）がその欄を読むか確かめる＝読むなら建国の組みに明示する。
-    //   ★(248) BroadMoneyToGdp も最頻値（0.1）へ動かした：建国の cfg からも World へ写るが、読み手 World.RebaseOpeningMoney は StartWarmup の中で1度きり
-    //   （助走の間は政治と外交が凍結＝建国は起きない）＝建国した国の値は読まれない（(247) の「動かすと恒等でない」は誤診だった・反証役 vd1#1）。
+    //   ★(248) 旧 BroadMoneyToGdp も最頻値へ動かした：建国の cfg からも World へ写るが、読み手 World.RebaseOpeningMoney は StartWarmup の中でだけ
+    //   （助走の間は政治と外交が凍結＝建国は起きない）＝建国した国の値は読まれない（(247) の「動かすと恒等でない」は誤診だった・反証役 vd1#1）。★(273) BroadMoneyToIncome に置き換えた。
     /// <summary>浅い複製（監査2026-07-12 他19）：金利実験など一時的な上書きに使う＝WorldData.Nations() の共有キャッシュを汚染しない。</summary>
     public NationConfig ShallowClone() => (NationConfig)MemberwiseClone();
 
@@ -75,14 +75,11 @@ public sealed class NationConfig
     //   英＝蒸気機関（工場の原動機＝ワットの回転機関〔特許1781・最初の据え付け1782〜83〕と水車へ水を戻すニューコメンの揚水機関＝1783年に工場の動力として蒸気を使っていた唯一の国）・
     //   特許（専売条例1624）／ヴェネツィア＝特許（特許法1474）。出典と除外の理由（大陸と米のニューコメン機関は鉱山の排水＝工場の動力ではない）は実装ログ (169)。
     public string[] KnownDiscoveries = [];
-    // ★(220) 開幕の広義の貨幣 ÷ 年名目GDP（世界の貨幣化の史実の統計・world.json の broadMoneyToGdp）。0＝置かない（旧＝構築の1人あたりの富 3200/1500/800/300/200… のまま）。
-    //   >0 の国は、係数 <see cref="Coefficients.InitMoneyMode"/> が1以上のとき、助走の終わりに投資家（近代エリート）の貯蓄を「この比 × 投資家の取り分 × 年名目GDP」へ按分で置き直す（モード2は他の階級も同じ規則で
-    //   残りの取り分へ）。★旧（(218)）＝投資家の年所得の年数（英 0.5）だったが、投資家の年所得は GDP の 0.6〜3.1 倍で国ごとに桁が違う（取引の総額が混ざる）ので分母を年名目GDP にした。
-    //   値は貨幣化の段（4段・【推】＝全て記憶から読んだ桁・幅が広い）：①英・蘭 0.5（広義の貨幣÷名目GDP 英 0.4〜0.6【推・Capie & Webber 1985 *A Monetary History of the United Kingdom 1870-1982*・Cameron 編 1967 *Banking in the Early Stages of Industrialization*〔本文の数字は未取得〕】・
-    //   蘭 0.6〜1.0【推・de Vries & van der Woude 1997 *The First Modern Economy*】）②仏・伊北部・イベリア・北欧・スイス 0.35（仏 0.35〜0.45【推・ネッケル 1784 の正貨 約22億リーヴル ÷ 名目GDP 50〜60億】）
-    //   ③独の諸邦・墺・東欧・露・オスマン・米・日・清・朝鮮 0.2（普墺 0.15〜0.25・清 0.15〜0.3【推・von Glahn 1996 *Fountain of Fortune* から読んだ桁】・米 1790 0.15〜0.25【推・Sylla〈Historical Statistics of the United States〉】）
-    //   ④南アジア・東南アジア・中央アジア・アラビア・アフリカ・ハワイ 0.1（貨幣化の低い地域 0.05〜0.3【推】）。個々の国を手で振らない（階の割り当てだけがデータ）。
-    public double BroadMoneyToGdp = 0.1;   // ★(248) 既定＝段④ 0.1（61国のうち33国＝最頻）。0＝置かない（読み手は助走の終わりの RebaseOpeningMoney だけ）
+    // ★(273) 開幕の貯蓄の規則＝「広義の貨幣÷年所得 m」（world.json の broadMoneyToIncome・0＝置かない＝構築の1000人あたりの定数のまま）。旧 (220) の BroadMoneyToGdp〔広義の貨幣÷年名目GDP の表・全61国〕は導ける量なので外した。
+    //   m ＝ ΣSavings ÷ (12 × Σ正の LastEarnedPerMonth)（所得は Earned＝賃金＋地代＋粗利潤の分配面・World.GdpPerMonth〔総産出〕は分母に使わない）。階級の配分は <see cref="Coefficients.SavingsYearsByClass"/>（相対値だけ）。
+    //   読み手は <see cref="World.RebaseOpeningMoney"/> だけ＝係数 <see cref="Coefficients.OpeningSavingsRebaseMode"/> が1以上のときだけ。今のデータは英だけ（0.5＝広義の貨幣÷名目GDP 英 0.4〜0.6【推・Capie & Webber 1985】だが m の分母は年所得で、年GDP とは定義が違う＝同じ値を置いても比は一致しない）。
+    //   段4 で全国の式に置き換える時に消す（作者の順＝英を先に・その後に他の国）。
+    public double BroadMoneyToIncome = 0;
     // 国土を分ける州（代表都市＋人口Share〔合計1〕＋その州の強み資源 good.Id[]）。未指定なら単一地域。
     // 列挙財＝増産（×3.5・地理的な得意＝輸出）／非列挙のRGOは減産（×0.4・要輸入。ただし主食 麦/米/野菜は食料安全保障で減産しない）。
     public ProvinceSpec[] Provinces = [];

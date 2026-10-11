@@ -1,0 +1,11 @@
+A 上限の行を外す :: 失敗!   -失敗:     2、合格:     0、スキップ:     0、合計:     2、期間: 13 s - PriceOfBread.Tests.dll (net10.0) 
+B 前月の所得の項を落とす :: 失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 277 ms - PriceOfBread.Tests.dll (net10.0) 
+C 貯蓄の項を落とす :: 失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 221 ms - PriceOfBread.Tests.dll (net10.0) 
+D 上限が効かない d でも別の書き込みをする :: 失敗!   -失敗:     1、合格:     1、スキップ:     0、合計:     2、期間: 15 s - PriceOfBread.Tests.dll (net10.0) 
+E 倍率 λ を 1 に固定 :: 失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 25 s - PriceOfBread.Tests.dll (net10.0) 
+F 民間の対外の在庫を縮めない :: 失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 15 s - PriceOfBread.Tests.dll (net10.0) 
+G 公の債務にも掛ける :: 失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 15 s - PriceOfBread.Tests.dll (net10.0) 
+H モード2の呼び出しを外す :: 失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 10 s - PriceOfBread.Tests.dll (net10.0) 
+I モードを見ない :: 失敗!   -失敗:     1、合格:     0、スキップ:     0、合計:     1、期間: 21 s - PriceOfBread.Tests.dll (net10.0) 
+    0 エラー
+MUT-END 00:52:23

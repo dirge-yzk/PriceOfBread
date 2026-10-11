@@ -51,7 +51,7 @@ public class InitialDefaultsTests
     public void 回247_既定は最頻の値_書くキーが最も少ない()
     {
         // 既定は世界の大半の国の値に置く（書くキーが最少）。位置・階級の規模・識字・国庫・貨幣化の段のように国ごとに必ず置く値は既定を持たない（除く）。
-        //   ★(248) broadMoneyToGdp も既定を最頻（0.1）へ動かした＝この番人の対象に入れた（旧＝除外・(247) の「建国が読む」は誤診）。
+        //   ★(248) broadMoneyToGdp も既定を最頻（0.1）へ動かした＝この番人の対象に入れた（旧＝除外・(247) の「建国が読む」は誤診）。★(273) broadMoneyToIncome（既定0・英だけ 0.5）に置き換えた。
         var defaults = JsonSerializer.SerializeToElement(new NationConfig(), WorldData.Options);
         var perNation = new HashSet<string> { "name", "provinces", "rule", "latitude", "longitude", "literacy", "treasury", "nobility", "peasant", "worker", "bourgeois", "professional", "merchant", "artisan" };
         var cfgs = WorldData.Nations();
@@ -74,9 +74,9 @@ public class InitialDefaultsTests
     public void 回247_動かした既定の値の固定()
     {
         // ★(248) 名前を中身に合わせた（旧「既定を動かしてはならない欄_建国が既定を読む」＝反証役 vd1#5）。動かした既定の値を固定する（動かすなら world.json のキーと一緒に）。
-        // 分離独立の建国（MultiNationSim）は NationConfig を手で組み、PrebuiltRegions を渡す＝BuildNation を通らず、Simulation が cfg から読むのは座標と BroadMoneyToGdp だけ。
-        // BroadMoneyToGdp の読み手は World.RebaseOpeningMoney（StartWarmup の中で1度きり・助走の間は建国が起きない）＝建国した国の既定は読まれない。
-        Assert.Equal(0.1, new NationConfig().BroadMoneyToGdp);
+        // 分離独立の建国（MultiNationSim）は NationConfig を手で組み、PrebuiltRegions を渡す＝BuildNation を通らず、Simulation が cfg から読むのは座標と BroadMoneyToIncome だけ。
+        // BroadMoneyToIncome の読み手は World.RebaseOpeningMoney（StartWarmup の中でだけ・助走の間は建国が起きない）＝建国した国の既定は読まれない。★(273) 旧 BroadMoneyToGdp（既定0.1）を置き換えた＝既定は0（置かない）。
+        Assert.Equal(0.0, new NationConfig().BroadMoneyToIncome);
         // 建国が明示しない欄のうち既定を動かした4欄（FarmLordShare・CulturalGoodId は BuildProvince だけが読む＝建国は読まない）
         var d = new NationConfig();
         Assert.Equal(0.6, d.FarmLordShare);
