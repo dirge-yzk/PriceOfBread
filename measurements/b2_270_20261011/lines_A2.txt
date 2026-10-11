@@ -1,0 +1,2 @@
+A2 UK {'eps': 124, 'open_q': 460, 'reach4': 2, 'reach4_end': 2, 'atwar_q': 3924, 'vessel_q': 170, 'stick_q': 20, 'default_final': 5, 'rows': 6680, 'enf4_end_q': 4}
+A2 ALL {'eps': 7107, 'open_q': 31163, 'reach4': 167, 'reach4_end': 167, 'atwar_q': 61610, 'vessel_q': 15929, 'stick_q': 3281, 'enf4_end_q': 664, 'default_final': 97, 'rows': 414604}

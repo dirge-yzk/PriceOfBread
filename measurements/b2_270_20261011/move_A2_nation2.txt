@@ -1,0 +1,40 @@
+nation 2 rows 6680
+== open quarters 460
+ outcome Counter({'3': 456, '4': 4})
+  militaryMoveStepFraction n=460 mean=0.0454 p10=0.0122 med=0.0569 p90=0.0680
+  militaryMoveResistIndex n=460 mean=0.1560 p10=0.0000 med=0.0000 p90=0.7013
+  militaryMoveResistTradIndex n=460 mean=0.0000 p10=0.0000 med=0.0000 p90=0.0000
+  militaryMoveResistModernIndex n=460 mean=0.0000 p10=0.0000 med=0.0000 p90=0.0000
+  militaryMoveResistMassIndex n=460 mean=0.0458 p10=0.0000 med=0.0000 p90=0.2354
+  militaryMovePushBudgetFactor n=460 mean=0.3471 p10=0.3015 med=0.3536 p90=0.3780
+  militaryMoveOpenFrontsCount n=460 mean=8.5609 p10=7.0000 med=8.0000 p90=11.0000
+  militaryMoveNetSupportIndex n=460 mean=0.7529 p10=0.3026 med=0.6937 p90=1.3686
+  militaryMoveCurrentShare n=460 mean=0.6571 p10=0.5127 med=0.6732 p90=0.7669
+  militaryMoveTargetShare n=460 mean=0.8913 p10=0.7500 med=1.0000 p90=1.0000
+  capital spent/max n=460 mean=0.6805 p10=0.2609 med=0.6987 p90=1.0379
+== at war not open 3464
+ outcome Counter({'4': 1528, '3': 1145, '0': 657, '2': 134})
+  militaryMoveStepFraction n=2807 mean=0.0261 p10=0.0092 med=0.0143 p90=0.0680
+  militaryMoveResistIndex n=2807 mean=0.6505 p10=0.0000 med=0.7330 p90=1.1811
+  militaryMoveResistTradIndex n=2807 mean=0.4364 p10=0.0000 med=0.4956 p90=0.9033
+  militaryMoveResistModernIndex n=2807 mean=0.0000 p10=0.0000 med=0.0000 p90=0.0000
+  militaryMoveResistMassIndex n=2807 mean=0.0410 p10=0.0000 med=0.0000 p90=0.2460
+  militaryMovePushBudgetFactor n=3464 mean=0.3767 p10=0.3162 med=0.3780 p90=0.4472
+  militaryMoveOpenFrontsCount n=3464 mean=7.4411 p10=5.0000 med=7.0000 p90=10.0000
+  militaryMoveNetSupportIndex n=2807 mean=-0.2752 p10=-1.1028 med=-0.4427 p90=0.7458
+  militaryMoveCurrentShare n=3464 mean=0.5971 p10=0.4960 med=0.5485 p90=0.7500
+  militaryMoveTargetShare n=3464 mean=0.5761 p10=0.5000 med=0.5000 p90=0.7500
+  capital spent/max n=3464 mean=0.6790 p10=0.1132 med=0.7363 p90=0.9893
+== peace 2756
+ outcome Counter({'4': 1210, '3': 732, '0': 683, '2': 131})
+  militaryMoveStepFraction n=2073 mean=0.0232 p10=0.0089 med=0.0140 p90=0.0636
+  militaryMoveResistIndex n=2073 mean=0.6839 p10=0.0000 med=0.7561 p90=1.1692
+  militaryMoveResistTradIndex n=2073 mean=0.4642 p10=0.0000 med=0.5363 p90=0.8994
+  militaryMoveResistModernIndex n=2073 mean=0.0000 p10=0.0000 med=0.0000 p90=0.0000
+  militaryMoveResistMassIndex n=2073 mean=0.0327 p10=0.0000 med=0.0000 p90=0.2432
+  militaryMovePushBudgetFactor n=2756 mean=0.3711 p10=0.3162 med=0.3536 p90=0.4472
+  militaryMoveOpenFrontsCount n=2756 mean=7.5925 p10=5.0000 med=8.0000 p90=10.0000
+  militaryMoveNetSupportIndex n=2073 mean=-0.3361 p10=-1.0825 med=-0.4931 p90=0.6957
+  militaryMoveCurrentShare n=2756 mean=0.6141 p10=0.4960 med=0.6080 p90=0.7500
+  militaryMoveTargetShare n=2756 mean=0.5863 p10=0.5000 med=0.5000 p90=0.7500
+  capital spent/max n=2756 mean=0.6953 p10=0.1694 med=0.7421 p90=1.0139

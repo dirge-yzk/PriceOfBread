@@ -1,0 +1,58 @@
+3 A: 平均 首位確定: Q153/668    平均首位交代: 0.6回
+   B: 平均 首位確定: Q246/668    平均首位交代: 0.8回
+4 A: デッドロック発生: 0/10    終盤決着(最終1割の四半期): 0/10    異常総数: 1
+   B: デッドロック発生: 0/10    終盤決着(最終1割の四半期): 1/10    異常総数: 2
+5 A: ハーネス不合格を含む試合: 8/10
+   B: ハーネス不合格を含む試合: 9/10
+6 A: 恐慌統計: 平均最大ドローダウン 99.3%　大恐慌(25%超)を含む試合 10/10　平均恐慌回数 136.2
+   B: 恐慌統計: 平均最大ドローダウン 96.8%　大恐慌(25%超)を含む試合 10/10　平均恐慌回数 129.9
+7 A: 恐慌統計（大国8・1人あたり実質GDP・史実比較用）: エピソード 13.2/試合（史実参照 5〜7）　最大DD 93.4%（史実参照 ≤40%・平時≤15%）　出所 日本・Q620・seed9
+   B: 恐慌統計（大国8・1人あたり実質GDP・史実比較用）: エピソード 15.4/試合（史実参照 5〜7）　最大DD 85.2%（史実参照 ≤40%・平時≤15%）　出所 プロイセン・Q429・seed8
+8 A: 恐慌の原因: 信用過熱先行 61%　不作先行 37%（残りは複合/その他）
+   B: 恐慌の原因: 信用過熱先行 60%　不作先行 40%（残りは複合/その他）
+9 A: 金本位の強制離脱（兌換停止）: 総182回（うちカバー率割れ 13回）・発生試合 10/10
+   B: 金本位の強制離脱（兌換停止）: 総190回（うちカバー率割れ 11回）・発生試合 10/10
+10 A: 国家の出入り: 分離独立の建国 5回　変名（統一/formable） 32回　内戦分裂 3回
+   B: 国家の出入り: 分離独立の建国 8回　変名（統一/formable） 32回　内戦分裂 4回
+11 A: 選挙（E0計器）: 1試合あたり総選挙 947回（全61カ国計）　平均間隔 16.0四半期（史実英1832-1914＝約15.6Q）
+   B: 選挙（E0計器）: 1試合あたり総選挙 896回（全61カ国計）　平均間隔 16.1四半期（史実英1832-1914＝約15.6Q）
+12 A: 貿易（復活計器）: 6大国の終局 貿易/GDP 平均 5.59 %（史実＝同じ6国の1913年の平均 25.3 %・比 0.221）
+   B: 貿易（復活計器）: 6大国の終局 貿易/GDP 平均 3.14 %（史実＝同じ6国の1913年の平均 25.3 %・比 0.124）
+15 A:   イギリス        6 勝
+   B:   イギリス        5 勝
+16 A:   清           3 勝
+   B:   清           4 勝
+17 A:   朝鮮          1 勝
+   B:   フランス        1 勝
+19 A: 最終政体の分布（全615国×seed）:
+   B: 最終政体の分布（全618国×seed）:
+20 A:   ConstitutionalMonarchy    323  (52.5%)
+   B:   ConstitutionalMonarchy    274  (44.3%)
+21 A:   Absolutist                195  (31.7%)
+   B:   Absolutist                204  (33.0%)
+22 A:   BourgeoisDictatorship      74  (12.0%)
+   B:   BourgeoisDictatorship      90  (14.6%)
+23 A:   Republic                   17  ( 2.8%)
+   B:   Republic                   45  ( 7.3%)
+24 A:   MilitaryDictatorship        6  ( 1.0%)
+   B:   MilitaryDictatorship        5  ( 0.8%)
+30 A:   Republic                   9/10 プレイ
+   B:   Republic                  10/10 プレイ
+31 A:   MilitaryDictatorship       4/10 プレイ
+   B:   MilitaryDictatorship       3/10 プレイ
+34 A:   参政権    最頻59 %: Census59 % None30 % AdultMale11 %
+   B:   参政権    最頻60 %: Census60 % None32 % AdultMale8 %
+36 A:   報道     最頻65 %: StatePressOnly65 % FreePress19 % Censorship16 %
+   B:   報道     最頻67 %: StatePressOnly67 % FreePress22 % Censorship11 %
+37 A:   労組     最頻75 %: Illegal75 % Tolerated19 % Controlled6 %
+   B:   労組     最頻77 %: Illegal77 % Tolerated17 % Controlled6 %
+38 A:   労働時間   最頻57 %: Twelve57 % Ten30 % Eight13 %
+   B:   労働時間   最頻62 %: Twelve62 % Ten29 % Eight9 %
+39 A:   穀物法    最頻76 %: None76 % Full22 % Limited1 %
+   B:   穀物法    最頻75 %: None75 % Full23 % Limited1 %
+40 A:   土地改革   最頻65 %: Full65 % None34 % Limited1 %
+   B:   土地改革   最頻64 %: Full64 % None36 % Limited1 %
+41 A:   農奴解放   最頻69 %: Full69 % None28 % Limited2 %
+   B:   農奴解放   最頻69 %: Full69 % None28 % Limited3 %
+43 A:   徴兵法    最頻62 %: Universal62 % Selective31 % Volunteer7 %
+   B:   徴兵法    最頻60 %: Universal60 % Selective32 % Volunteer8 %

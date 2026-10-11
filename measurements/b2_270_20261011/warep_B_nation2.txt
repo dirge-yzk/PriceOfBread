@@ -1,0 +1,8 @@
+Counter({'復員(交戦継続)': 97, '講和/戦争終了': 63})
+復員(交戦継続) median ep len 3 n 97 ep len>=8: 9
+講和/戦争終了 median ep len 3 n 63 ep len>=8: 7
+war run len median 10.0 start offset median 3.0
+episodes with ep len == war remaining (ended with war) 63
+war runs 395 median len 8
+war runs with open 148 of 395
+open quarters in runs of len>=8: 497
