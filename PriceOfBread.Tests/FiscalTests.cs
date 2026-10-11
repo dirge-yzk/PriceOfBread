@@ -1384,6 +1384,38 @@ public class FiscalTests
         Assert.Equal(1e6 + 0.4 * due * uk.FxRate, done.ForeignPrincipal, 6);   // 払えない利回りは元本へ（金建て）
     }
 
+    /// <summary>(281) 巨大建造物の恐慌の拠出（反景気循環）は借入の門（<see cref="Fiscal.BorrowGateOpen"/>）と同じ1本で決まる＝手書きの2条件を門の呼び出しへ置き換えた恒等の番人。
+    /// 門が開いている月は拠出が (1＋MegaprojectCounterCyclical) 倍・冷却中／利払い÷歳入が限界に届いた月は1倍。期待値は係数から別に作る（倍率は係数・門の入力は国の量）。
+    /// 助走の旗（WarmupFrozen）は旧の手書きに無かった条件＝呼び手が助走では呼ばない（MultiNationSim の `!_calendarFrozen`）ので実際には効かないが、門と同じ1本なので立てれば閉じる（ここで固定する）。
+    /// ⚠突然変異「門を常に真」「冷却中を見ない」「利払いの比較を逆向き」で赤。</summary>
+    [Fact]
+    public void 巨大建造物の恐慌の拠出は借入の門と同じ1本で倍になる()
+    {
+        var sim = FrozenWorld("イギリス", "フランス");
+        var coef = new Coefficients { MegaprojectForeignMinRank = 0, MegaprojectForeignShare = 0, MegaprojectCrisisDrawdown = -1.0 };   // 収縮は常に閾値の上＝恐慌の分岐へ入る（門だけを動かす）
+        var uk = sim.Nations[0].World;
+        var mp = new Megaproject { Id = "番人門", Name = "番人門", Host = uk.Regions[0].Name, BuildUnits = 1e12, TechGate = 0, Started = true };
+        sim.Diplomacy.Megaprojects.Clear(); sim.Diplomacy.Megaprojects.Add(mp);
+        Assert.True(uk.Treasury.Value > 0, "前提が崩れた：英の国庫が空");
+        double Claim(int cooldown, double interest, double revenue, bool warm)
+        {
+            uk.BorrowCooldownMonths = cooldown; uk.LastInterestPerMonth = new MoneyPerMonth(interest); uk.LastRevenuePerMonth = new MoneyPerMonth(revenue); uk.WarmupFrozen = warm;
+            mp.PendingClaim = 0;
+            Megaprojects.Step(sim.Diplomacy, sim.Nations, coef);
+            return mp.PendingClaim;
+        }
+        double limit = coef.MaxInterestShareOfRevenue.Value;
+        double open = Claim(0, 0.5 * limit * 1000, 1000, false);   // 開いている（利払い÷歳入が限界の半分）
+        double cool = Claim(2, 0.5 * limit * 1000, 1000, false);   // 冷却中
+        double over = Claim(0, 1.5 * limit * 1000, 1000, false);   // 限界を越えた
+        double warm = Claim(0, 0.5 * limit * 1000, 1000, true);    // 助走の旗
+        double edge = Claim(0, limit * 1000, 1000, false);         // ちょうど限界（門は「未満」で開く＝閉じる）
+        Assert.True(open > 0, "前提が崩れた：拠出が立っていない");
+        Assert.Equal((1.0 + coef.MegaprojectCounterCyclical) * cool, open, 9);   // 開いていれば 1＋係数 倍
+        Assert.Equal(cool, over, 9); Assert.Equal(cool, warm, 9); Assert.Equal(cool, edge, 9);
+        uk.WarmupFrozen = false;
+    }
+
     /// <summary>★国家間の移転の未払いは対外債（作者裁定 Q6・B5・段3-3）：貢納と賠償の払えない分（1−r）は払い手の国債（対外）になり、受け手の国の対外債権になる
     /// （為替で換算）。国内の保有の台帳は割れない（国内元本は動かない）。払った分は移し方の1本（為替で換算）。
     /// ⚠突然変異「未払いを記録しない」（貢納・賠償それぞれ）で赤。</summary>

@@ -1606,7 +1606,7 @@ public class InstrumentsTests
             Assert.Single(rebase);
             double ratioR = Col(h, rebase[0], "savingsRebaseRatio");
             Assert.InRange(ratioR, 0.001, 0.5);   // 英の貯蓄は大きく縮む（実測 約 0.0099＝構築の定数は年所得の約 50 倍）
-            Near(Col(h, rebase[0], "priceLevelBeforeIndex"), Col(h, rebase[0], "moneyToGdpMonths") / Col(h, rebase[0], "moTrendAfterMonths"));   // 置き直しの直後の趨勢比＝物価水準
+            AssertNear(Col(h, rebase[0], "priceLevelBeforeIndex"), Col(h, rebase[0], "moneyToGdpMonths") / Col(h, rebase[0], "moTrendAfterMonths"));   // 置き直しの直後の趨勢比＝物価水準
             var upd = rows.Where(r => r[iEv] == "update").ToList();
             Assert.True(upd.Count >= 5, $"更新の行が少ない（{upd.Count}）");
             double sens = uk.Coef.MonetaryPriceSensitivity, speed = uk.Coef.MonetaryTrendSpeed; int plain = 0; double prevAfter = double.NaN;
@@ -1614,15 +1614,15 @@ public class InstrumentsTests
             {
                 double ratio = Col(h, r, "moneyToGdpMonths"), t0 = Col(h, r, "moTrendBeforeMonths"), t1 = Col(h, r, "moTrendAfterMonths"), cyc = Col(h, r, "cyclicalRatio");
                 double pb = Col(h, r, "priceLevelBeforeIndex"), pe = Col(h, r, "priceLevelAfterEmaIndex"), pf = Col(h, r, "priceLevelAfterFiatIndex"), pa = Col(h, r, "priceLevelAfterIndex");
-                Near(t0 + speed * (ratio - t0), t1);                  // 趨勢の1歩
-                Near(ratio / t1, cyc);                                // 趨勢比
-                Near(pb + sens * (cyc - pb), pe);                     // 物価の1歩（紙幣増発の前）
+                AssertNear(t0 + speed * (ratio - t0), t1);                  // 趨勢の1歩
+                AssertNear(ratio / t1, cyc);                                // 趨勢比
+                AssertNear(pb + sens * (cyc - pb), pe);                     // 物価の1歩（紙幣増発の前）
                 if (pf == pe && pa == pf) plain++;
-                if (!double.IsNaN(prevAfter)) Near(prevAfter, pb);   // 連鎖の連続（前の更新の後＝今の更新の前）
+                if (!double.IsNaN(prevAfter)) AssertNear(prevAfter, pb);   // 連鎖の連続（前の更新の後＝今の更新の前）
                 prevAfter = pa;
             }
             Assert.True(plain >= 3, $"紙幣増発もクランプもない更新の行が少ない（{plain}）＝物価の1歩を測れていない");
-            Near(uk.PriceLevel, prevAfter);                           // 最後の行の物価＝盤面
+            AssertNear(uk.PriceLevel, prevAfter);                           // 最後の行の物価＝盤面
             Assert.Contains(rows, r => r[iT] == "w0" && r[iEv] == "first");
 
             var (mh, mr) = Table(System.IO.Path.Combine(dir, "pxmonth_s1789.tsv"));
@@ -1639,5 +1639,181 @@ public class InstrumentsTests
     }
 
     /// <summary>表は 10 桁（G10）で書く＝相対 1e-8 で突き合わせる。</summary>
-    private static void Near(double expected, double actual) => Assert.True(Math.Abs(expected - actual) <= 1e-8 * Math.Max(1.0, Math.Max(Math.Abs(expected), Math.Abs(actual))), $"{expected} != {actual}");
+    private static void AssertNear(double expected, double actual) => Assert.True(Math.Abs(expected - actual) <= 1e-8 * Math.Max(1.0, Math.Max(Math.Abs(expected), Math.Abs(actual))), $"{expected} != {actual}");
+
+    /// <summary>(281) 線O0：切り下げで埋める前の払えない額÷請求の純関数を手で確かめる（当座借越は数えない・借入が賄えば0・請求が無い月は数えない）。</summary>
+    [Fact]
+    public void 切り下げで埋める前の払えない額の割合を手で確かめる()
+    {
+        Assert.Equal(0.3, Instruments.UnpaidBeforeDevaluationShare(100, 60, 10), 12);    // 請求 100−(払える 60＋借入 10)＝30
+        Assert.Equal(0.0, Instruments.UnpaidBeforeDevaluationShare(100, 60, 40), 12);    // 借入が賄えば 0
+        Assert.Equal(0.0, Instruments.UnpaidBeforeDevaluationShare(100, 130, 0), 12);    // 払える額が請求を越えれば 0（負にならない）
+        Assert.Equal(1.0, Instruments.UnpaidBeforeDevaluationShare(100, 0, 0), 12);      // 国庫も歳入も無ければ全額
+        Assert.True(double.IsNaN(Instruments.UnpaidBeforeDevaluationShare(0, 10, 0)));   // 請求が無い月は数えない
+        Assert.True(double.IsNaN(Instruments.UnpaidBeforeDevaluationShare(100, double.NaN, 0)));
+        Assert.True(double.IsNaN(Instruments.UnpaidBeforeDevaluationShare(100, 10, double.NaN)));   // 借入の判定に来なかった月
+    }
+
+    /// <summary>
+    /// (281) 線O0：借入の門の周りの列を、手で組んだ5か月の入力で数える（計器の側の述語を、期待値の側で書き直す）。
+    /// 月ごとの入力（利払い÷歳入／率 r／借入／切り下げ／請求／払える額／交戦）＝
+    ///  m1 0.30・r1・借0・切0・請100・払100（限界の下）／m2 0.60・r1・借0・切20・請100・払70（限界に届いた・ゾンビ・m1→m2 で反転）／
+    ///  m3 0.72・r0.8・借0・切0・請100・払60・交戦（仏の線を超えた・r＜1・交戦×門閉）／m4 0.10・r1・借15・切0・請100・払90（限界の下へ戻る＝反転）／
+    ///  m5 0.70・r1・借10・切0・請100・払60（限界に届いたまま借りた〔現行の門では起きない＝計数の述語だけを確かめる〕・ゾンビ・仏の線を超えて借りた・反転）。
+    /// 期待＝限界に届いた月 3（m2・m3・m5）・反転 3・限界に届いたまま借りた月 1（m5）・ゾンビ 2（m2・m5）・交戦×門閉 1（m3）・仏の線 2（m3・m5）うち借入 1（m5）・r＜1 1（m3）・
+    /// 払えない額÷請求 観測 5・正の月 3（m2 0.3・m3 0.4・m5 0.3）・平均 0.2・最大 0.4・切り下げ÷請求 平均 0.04・最大 0.2。
+    /// 対照＝実際の月（助走の後の1四半期）が観測されていること・次の四半期の最初の月（限界の下）は前の四半期の最後の月（m5＝限界の上）との反転を1つ数える（四半期をまたいで引き継ぐ）。
+    /// </summary>
+    [Fact]
+    public void 借入の門の周りの列を手で組んだ5か月の入力で数える()
+    {
+        string dir = NewDir();
+        try
+        {
+            Instruments.Configure(dir, null);
+            try
+            {
+                var sim = Make();
+                Instruments.Phase(sim, 1789UL, "open");
+                sim.StartWarmup();
+                Instruments.Phase(sim, 1789UL, "warm");
+                sim.StepQuarter();
+                Instruments.Quarter(sim, 1789UL, 0);   // 実際の月の分を書き出して0へ戻す
+                var w = sim.Nations[0].World;
+                w.BorrowCooldownMonths = 0;
+                double limit = w.Coef.MaxInterestShareOfRevenue.Value;
+                Assert.InRange(limit, 0.5, 0.6);   // 前提：入力の比（0.30・0.60・0.72・0.10・0.70）が限界 0.55 の両側にある
+                void Month(double share, double r, double borrowed, double devalued, double payable0, bool war)
+                {
+                    w.LastRevenuePerMonth = new MoneyPerMonth(1000); w.LastInterestPerMonth = new MoneyPerMonth(share * 1000);
+                    Instruments.Begin(w);
+                    Instruments.PreBorrow(w, payable0, payable0 - 100);
+                    Instruments.PostBorrow(w, borrowed);
+                    Instruments.WarMonth(w, war);
+                    Instruments.Rate(w, 100, payable0 + borrowed + devalued, r, devalued);
+                    Instruments.MonthClose(w);
+                }
+                Month(0.10, 1.0, 0, 0, 100, false);   // 前置きの1か月（限界の下）＝直前の実際の月の判定に依らず、5か月を限界の下から始める（反転の期待を実際の月の状態に預けない）
+                Instruments.Quarter(sim, 1789UL, 1);
+                Month(0.30, 1.0, 0, 0, 100, false);
+                Month(0.60, 1.0, 0, 20, 70, false);
+                Month(0.72, 0.8, 0, 0, 60, true);
+                Month(0.10, 1.0, 15, 0, 90, false);
+                Month(0.70, 1.0, 10, 0, 60, false);
+                Instruments.Quarter(sim, 1789UL, 2);
+                Month(0.10, 1.0, 0, 0, 100, false);   // 次の四半期の最初の月＝限界の下
+                Instruments.Quarter(sim, 1789UL, 3);
+                Instruments.Close(sim);
+            }
+            finally { Instruments.Configure(null, null); }
+            var (nh, nr) = Table(System.IO.Path.Combine(dir, "nation_s1789.tsv"));
+            var q0 = nr.Single(r => Col(nh, r, "quarter") == 0 && Col(nh, r, "nationIndex") == 0);
+            var q1 = nr.Single(r => Col(nh, r, "quarter") == 2 && Col(nh, r, "nationIndex") == 0);   // 5か月の四半期（前置きの1か月の四半期が 1）
+            var q2 = nr.Single(r => Col(nh, r, "quarter") == 3 && Col(nh, r, "nationIndex") == 0);
+            Assert.True(Col(nh, q0, "unpaidBeforeDevaluationObservedMonthsCount") >= 2, "対照：実際の月が観測されていない＝列が出ていない");
+            Assert.Equal(5.0, Col(nh, q1, "unpaidBeforeDevaluationObservedMonthsCount"));
+            Assert.Equal(3.0, Col(nh, q1, "interestAtLimitMonthsCount"));
+            Assert.Equal(3.0, Col(nh, q1, "interestLimitCrossingsCount"));
+            Assert.Equal(1.0, Col(nh, q1, "interestAtLimitBorrowedMonthsCount"));
+            Assert.Equal(2.0, Col(nh, q1, "zombieMonthsCount"));
+            Assert.Equal(1.0, Col(nh, q1, "warGateClosedMonthsCount"));
+            Assert.Equal(2.0, Col(nh, q1, "interestShareOver067MonthsCount"));
+            Assert.Equal(1.0, Col(nh, q1, "interestShareOver067BorrowedMonthsCount"));
+            Assert.Equal(1.0, Col(nh, q1, "interestShareOver067RBelow1MonthsCount"));
+            Assert.Equal(3.0, Col(nh, q1, "unpaidBeforeDevaluationMonthsCount"));
+            Assert.Equal(0.2, Col(nh, q1, "unpaidBeforeDevaluationMeanShare"), 12);
+            Assert.Equal(0.4, Col(nh, q1, "unpaidBeforeDevaluationMaxShare"), 12);
+            Assert.Equal(0.04, Col(nh, q1, "devaluedToClaimMeanShare"), 12);
+            Assert.Equal(0.2, Col(nh, q1, "devaluedToClaimMaxShare"), 12);
+            Assert.Equal(1.0, Col(nh, q2, "unpaidBeforeDevaluationObservedMonthsCount"));
+            Assert.Equal(1.0, Col(nh, q2, "interestLimitCrossingsCount"));
+            Assert.Equal(0.0, Col(nh, q2, "interestAtLimitMonthsCount"));
+        }
+        finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
+
+    private const double LimitUnderTest = 0.60;
+    /// <summary>fiscal_s の生の列は G10 に丸めて出る＝そこから組み直した値は相対 1e-8 まで合えばよい（絶対の下限 1e-10）。</summary>
+    private static bool Near(double a, double b) => Math.Abs(a - b) <= 1e-10 + 1e-8 * Math.Max(Math.Abs(a), Math.Abs(b));
+
+    /// <summary>
+    /// (281) 線O0：試合の中の月でも、nation_s の月数の列が fiscal_s の月ごとの行から組み直した数に合う（別の経路＝fiscal_s の生の列〔請求・払える額・借入・門が読んだ利払い÷歳入・率・切り下げ〕から期待を作る）。
+    /// 限界を 0.60 に動かした国（英）で、限界に届く月・届かない月・反転が実際の月に現れることを数える（対照＝何もしない番人は必ず緑になる）。
+    /// 不変条件：仏の線 0.67 を超えた月 ≦ 限界に届いた月（0.67 ＞ 限界）・限界に届いた月は門が閉じている・交戦×門閉 ≦ 交戦の月かつ ≦ 門が閉じた月。
+    /// </summary>
+    [Fact]
+    public void 借入の門の周りの列が試合の月ごとの行から組み直した数に合う()
+    {
+        string dir = NewDir();
+        try
+        {
+            Instruments.Configure(dir, "*");
+            double limit;
+            try
+            {
+                var sim = Make();
+                sim.Nations[2].World.Coef.MaxInterestShareOfRevenue = new Share(LimitUnderTest);   // 英の限界を 0.60 に動かす（国ごと別インスタンス）＝英の利払い÷歳入はこの盤面で 0.35〜1.0 を動く＝限界の両側の月と反転が実際に現れる（0.67 よりは下＝仏の線 ≦ 限界 の不変条件を保つ）
+                limit = sim.Nations[2].World.Coef.MaxInterestShareOfRevenue.Value;
+                RunMatch(sim, Quarters, instr: true);
+            }
+            finally { Instruments.Configure(null, null); }
+            var (nh, nr) = Table(System.IO.Path.Combine(dir, "nation_s1789.tsv"));
+            var (fh, fr) = Table(System.IO.Path.Combine(dir, "fiscal_s1789.tsv"));
+            int mi = Array.IndexOf(fh, "monthIndex"), ni = Array.IndexOf(fh, "nation");
+            int checkedQ = 0, limitMonthsTotal = 0, crossingsTotal = 0, openMonthsTotal = 0;
+            var ukRatios = new List<double>();
+            foreach (var g in fr.GroupBy(r => r[ni]))
+            {
+                var rowsN = g.OrderBy(r => int.Parse(r[mi])).ToList();
+                int first = int.Parse(rowsN[0][mi]) - 1;   // 国の最初の月（その月の行は無い）
+                bool isUk = g.Key == "イギリス";
+                double lim = isUk ? limit : new Coefficients().MaxInterestShareOfRevenue.Value;   // 国の限界：英は引き下げた値・他は既定
+                foreach (var r in nr.Where(r => r[Array.IndexOf(nh, "nation")] == g.Key && int.Parse(r[0]) >= 1))
+                {
+                    int q = int.Parse(r[0]);
+                    var m3 = rowsN.Where(x => int.Parse(x[mi]) >= first + 3 * q && int.Parse(x[mi]) < first + 3 * q + 3).OrderBy(x => int.Parse(x[mi])).ToList();
+                    if (m3.Count != 3) continue;
+                    int limitM = 0, zombieM = 0, unpaidM = 0, over067 = 0, obs = 0; double unpaidSum = 0, unpaidMax = 0, devSum = 0, devMax = 0;
+                    foreach (var x in m3)
+                    {
+                        double ratio = Col(fh, x, "interestToRevenueShareAtGate"), claims = Col(fh, x, "claimTotalPerMonth"), p0 = Col(fh, x, "payableBeforeBorrowStock"), bor = Col(fh, x, "borrowedPerMonth"), dev = Col(fh, x, "devaluedPerMonth"), pr = Col(fh, x, "payRateShare");
+                        bool atLimit = !double.IsNaN(ratio) && ratio >= lim;
+                        if (atLimit) { limitM++; Assert.Equal(0.0, Col(fh, x, "borrowGateOpenFlag")); if (pr >= 1 && (Math.Max(0, bor) + Math.Max(0, dev)) > 0) zombieM++; }
+                        if (!double.IsNaN(ratio) && ratio > 0.67) over067++;
+                        if (claims > 0)
+                        {
+                            double u = Math.Max(0, claims - (p0 + bor)) / claims, d = Math.Max(0, dev) / claims;
+                            obs++; unpaidSum += u; devSum += d; if (u > 0) unpaidM++; unpaidMax = Math.Max(unpaidMax, u); devMax = Math.Max(devMax, d);
+                            Assert.True(Near(u, Col(fh, x, "unpaidBeforeDevaluationShare")), "月の列が生の列から組み直した値に合わない");
+                        }
+                    }
+                    Assert.Equal((double)limitM, Col(nh, r, "interestAtLimitMonthsCount")); Assert.Equal((double)zombieM, Col(nh, r, "zombieMonthsCount"));
+                    Assert.Equal((double)over067, Col(nh, r, "interestShareOver067MonthsCount")); Assert.Equal((double)obs, Col(nh, r, "unpaidBeforeDevaluationObservedMonthsCount"));
+                    Assert.Equal((double)unpaidM, Col(nh, r, "unpaidBeforeDevaluationMonthsCount"));
+                    if (obs > 0)
+                    {
+                        Assert.True(Near(unpaidSum / obs, Col(nh, r, "unpaidBeforeDevaluationMeanShare"))); Assert.True(Near(unpaidMax, Col(nh, r, "unpaidBeforeDevaluationMaxShare")));
+                        Assert.True(Near(devSum / obs, Col(nh, r, "devaluedToClaimMeanShare"))); Assert.True(Near(devMax, Col(nh, r, "devaluedToClaimMaxShare")));
+                    }
+                    Assert.True(Col(nh, r, "interestShareOver067MonthsCount") <= Col(nh, r, "interestAtLimitMonthsCount"), "仏の線を超えた月が限界に届いた月より多い");
+                    Assert.True(Col(nh, r, "warGateClosedMonthsCount") <= Math.Min(Col(nh, r, "atWarMonths"), Col(nh, r, "borrowGateClosedMonths")), "交戦×門閉が交戦の月か門閉の月を越えた");
+                    limitMonthsTotal += limitM; openMonthsTotal += 3 - limitM; checkedQ++;
+                }
+                if (isUk)
+                {
+                    // 反転：fiscal_s の月の並び（隣り合う月の印の違い）から数え直す。列は最初の月から数えるので、行の無い最初の月と四半期の境の分だけ列の合計が多くなりうる
+                    var flags = rowsN.Select(x => Col(fh, x, "interestAtLimitFlag")).ToList();
+                    ukRatios = rowsN.Select(x => Col(fh, x, "interestToRevenueShareAtGate")).ToList();
+                    int cross = 0; for (int i = 1; i < flags.Count; i++) if (!double.IsNaN(flags[i]) && !double.IsNaN(flags[i - 1]) && flags[i] != flags[i - 1]) cross++;
+                    double colCross = nr.Where(r => r[Array.IndexOf(nh, "nation")] == g.Key).Sum(r => Col(nh, r, "interestLimitCrossingsCount"));
+                    Assert.True(Math.Abs(colCross - cross) <= 2, $"反転の合計 {colCross} が月の並びから数えた {cross} に合わない");
+                    crossingsTotal = cross;
+                }
+            }
+            Assert.True(checkedQ >= 4 * (Quarters - 3), $"突き合わせた四半期が少ない（{checkedQ}）");
+            Assert.True(limitMonthsTotal > 0 && openMonthsTotal > 0, $"対照：限界の上の月 {limitMonthsTotal}・下の月 {openMonthsTotal} のどちらかが無い");
+            Assert.True(crossingsTotal > 0, "対照：英の限界の縁の反転が1度も無い　" + string.Join(" ", ukRatios.Select(v => v.ToString("F2"))));
+        }
+        finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
 }

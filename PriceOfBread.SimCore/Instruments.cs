@@ -121,6 +121,13 @@ public static class Instruments
         public readonly List<string> PxRows = new(), PxGoodsRows = new(), PxMonthRows = new(); public string? PxHdr, PxMonthHdr;
         public double PxResetSince; public int PxResetCount;   // 国庫を助走の前の値へ戻した額の和（戻した値 − 戻す前の国庫＝正は基礎貨幣の創出・負は消滅）と回数。四半期の更新の行で読んで0へ戻す
         public readonly double[] PxEarn = new double[NC], PxPaid = new double[NC]; public int PxMonths;   // 今の四半期の月ごとの所得と支出の和（四半期の更新で読んで0へ戻す）
+        // ---- (281) 線O0：借入の門の周り（読むだけ・月ごとの印と四半期の和）。LimitPrev＝前の月の「利払いが限界に届いたか」は四半期をまたぐ（助走の月は -1 へ戻す）
+        public double GateInt = double.NaN, GateRev = double.NaN;   // PreBorrow で門が読んだ直近の利払いと歳入（月の決算の終わりの値とは別＝Fiscal.Step が月末に書き換える前）
+        public int LimitNow = -1, Over067Now = -1, LimitPrev = -1;  // 今月の門の入力で 利払い÷歳入が限界に届いたか／仏1788 の線 0.67 を超えたか（-1＝判定に来なかった 0＝いいえ 1＝はい）・前の月の LimitNow
+        public bool WarNow;                                         // 今月交戦中か（WarMonth が軍の更新の直前に立てる・Begin で下ろす）
+        public int QLimitMonths, QLimitCrossings, QLimitBorrowMonths, QZombieMonths, QWarGateClosedMonths, QOver067Months, QOver067BorrowedMonths, QOver067RBelow1Months;
+        public int QUnpaidObs, QUnpaidMonths, QMegaPass, QMegaOpen;
+        public double QUnpaidSum, QUnpaidMax, QDevalueShareSum, QDevalueShareMax;
     }
     /// <summary>(274) 開いた戦線1本。Kind＝L 段の法〔Idx＝LevelLaws の表の行〕／R 税・支出の段〔Idx＝RateLaws の行〕／M 軍事費の合計／C 治安維持力／T 関税。
     /// Code：0 施行のとき目標＝現在で閉じていた／1 純支持で固定／2 政治資本で固定／3 無償で動いた〔未到達〕／4 政治資本を払って動いた〔未到達〕／5 不可逆で固定／6 前提で固定／
@@ -177,11 +184,12 @@ public static class Instruments
         var st = S(w);
         if (IsPicked(w, st)) RegisterPops(w, st);   // (262) 貯蓄の書き手の台帳：挙げた国の POP を台帳の持ち主へ登録（月初・新しい POP は次の月から）
         st.Active = !w.WarmupFrozen; st.Armed = true;
-        if (!st.Active) { st.HaveLedger = false; return; }
+        if (!st.Active) { st.HaveLedger = false; st.LimitPrev = -1; return; }   // (281) 助走の月は限界の縁の往復を数えない
         Array.Clear(st.Claim);
         st.Treasury0 = w.Treasury.Value; st.Payable0 = st.Spare0 = st.Payable1 = st.Borrowed = st.Devalued = st.ClaimsTotal = st.PayRate = double.NaN;
         st.BorrowCode = -1; st.Shortfall = st.Ticket = st.DomPool = st.ForPool = double.NaN;
         st.GateOpenNow = -1; st.RevDirectNet = st.RevIndirect = double.NaN;
+        st.LimitNow = st.Over067Now = -1; st.GateInt = st.GateRev = double.NaN; st.WarNow = false;   // (281)
     }
     static WState? Live(World w) { var st = S(w); return st.Active && st.Armed ? st : null; }
 
@@ -314,6 +322,11 @@ public static class Instruments
         if (Live(w) is not { } st) return;
         st.Payable0 = payable; st.Spare0 = spare;
         st.GateOpenNow = Fiscal.BorrowGateOpen(w, w.Coef) ? 1 : 0;   // 次の行の Fiscal.Borrow が読むのと同じ門（純粋な関数＝読むだけ）
+        // (281) 門が読むのと同じ2つの量（直近の利払いと歳入）で、利払い÷歳入が限界 MaxInterestShareOfRevenue に届いたか（門の式の否定＝割り算にしない）・仏1788 の線を超えたか。歳入が正の月だけ判定
+        double li = w.LastInterestPerMonth.Value, lr = w.LastRevenuePerMonth.Value;
+        st.GateInt = li; st.GateRev = lr;
+        st.LimitNow = lr > 0 && !(w.LastInterestPerMonth < w.Coef.MaxInterestShareOfRevenue * w.LastRevenuePerMonth) ? 1 : 0;
+        st.Over067Now = lr > 0 && li > SuspensionInterestShare * lr ? 1 : 0;
     }
     /// <summary>歳入の内訳（Fiscal.Step が予算の基数を書いた所）：純税収と間接税の実収。予算の基数＝純税収＋<c>IndirectTaxInBudgetBase</c>×間接税。</summary>
     internal static void Revenue(World w, double directNet, double indirect)
@@ -542,6 +555,8 @@ public static class Instruments
         st.MmCur = st.MmTarget = st.MmNet = st.MmResist = st.MmSpeed = st.MmPush = st.MmOppTrad = st.MmOppModern = st.MmOppMass = st.MmStock = st.MmStockMax = st.MmEnvelopeAfterGov = double.NaN;
         st.Gf.Clear(); st.GfCounted = st.GfMilExpired = false; st.GfLevelIdx = -1; st.GfGateWhy = 0; st.GfGateNet = double.NaN;   // (274) 助走の分は数えない
         st.GfSHead = st.GfMaxHead = st.GfSEnd = st.GfPendCost = st.GfPendS = st.GfGateCost = st.GfGateS = double.NaN; st.GfPaidL = st.GfPaidR = st.GfPaidM = st.GfPaidT = st.GfPaidC = 0;   // (278) 助走の分は数えない
+        st.QLimitMonths = st.QLimitCrossings = st.QLimitBorrowMonths = st.QZombieMonths = st.QWarGateClosedMonths = st.QOver067Months = st.QOver067BorrowedMonths = st.QOver067RBelow1Months = 0;   // (281) 助走の分は数えない（LimitPrev は四半期をまたぐ＝ここでは戻さない）
+        st.QUnpaidObs = st.QUnpaidMonths = st.QMegaPass = st.QMegaOpen = 0; st.QUnpaidSum = st.QUnpaidMax = st.QDevalueShareSum = st.QDevalueShareMax = 0;
     }
     /// <summary>国×四半期の行に足す列（行政の請求の2つの式・戦時段）。月ごとの量は四半期の月の平均（<c>PerMonth</c>）。</summary>
     static List<(string Name, string Value)> NationExtras(World w, WState st)
@@ -575,6 +590,7 @@ public static class Instruments
     {
         var st = S(w);
         if (atWar) st.WarMonths++;
+        st.WarNow = atWar;   // (281) 交戦×門閉の月を MonthClose で数える
         if (w.InCivilWar) st.CivilWarMonths++;
     }
     /// <summary>戦争を立てた所（<c>Diplomacy.AddBelligerent</c> の <c>Wars.Add</c> の直後）：試合の終わりに戦死と月数を読む。</summary>
@@ -729,6 +745,77 @@ public static class Instruments
         st.SavLedger.Clear();
     }
 
+    // ---------------------------------------------------------------- (281) 線O0：借入の門の周り（読むだけ） ----------------------------------------------------------------
+
+    /// <summary>仏1788 の支払停止の線＝利払い÷歳入（3.18億÷4.72億リーヴル≒0.67・Fiscal.Borrow の注の史実の錨）。係数ではない＝計器の物差し（0.55 の限界 <see cref="Coefficients.MaxInterestShareOfRevenue"/> は係数から読む）。</summary>
+    internal const double SuspensionInterestShare = 0.67;
+
+    /// <summary>切り下げで埋める前の払えない額÷請求＝max(0, 請求−(max(0,国庫)＋歳入＋借入))÷請求（[0,1]）。<paramref name="payable0"/>＝月初の払える額 max(0,国庫)＋歳入（借越は含めない＝当座借越を数えない）。
+    /// 請求が正でない月・入力が NaN の月は NaN（数えない）。</summary>
+    internal static double UnpaidBeforeDevaluationShare(double claims, double payable0, double borrowed)
+    {
+        if (!(claims > 0) || double.IsNaN(payable0) || double.IsNaN(borrowed)) return double.NaN;
+        return Math.Max(0, claims - (payable0 + borrowed)) / claims;
+    }
+
+    /// <summary>月の決算の終わり：借入の門の周りの月数を四半期の和へ足す。
+    /// 限界に届いた月（<see cref="WState.LimitNow"/>）・前の月との反転（窓の縁の往復＝反転の数）・限界に届いたまま率 r＝1 で借りた月・ゾンビの月（門に依らない定義＝限界に届いた・r＝1・(借入＋切り下げ)＞0）・
+    /// 交戦×門閉・仏1788 の線を超えた月と、その月に借りたか・r＜1 か・切り下げで埋める前の払えない額÷請求と切り下げ÷請求。</summary>
+    static void AccumulateGateAround(WState st)
+    {
+        if (st.LimitNow < 0) return;   // 借入の判定の位置に来なかった月（財政が無い国）は数えない
+        double borrowed = st.Borrowed > 0 ? st.Borrowed : 0, dev = st.Devalued > 0 ? st.Devalued : 0;   // 否定形＝NaN は0
+        bool rOne = st.PayRate >= 1;
+        if (st.LimitNow == 1)
+        {
+            st.QLimitMonths++;
+            if (rOne && borrowed > 0) st.QLimitBorrowMonths++;
+            if (rOne && borrowed + dev > 0) st.QZombieMonths++;
+        }
+        if (st.LimitPrev >= 0 && st.LimitPrev != st.LimitNow) st.QLimitCrossings++;
+        st.LimitPrev = st.LimitNow;
+        if (st.GateOpenNow == 0 && st.WarNow) st.QWarGateClosedMonths++;
+        if (st.Over067Now == 1)
+        {
+            st.QOver067Months++;
+            if (borrowed > 0) st.QOver067BorrowedMonths++;
+            if (st.PayRate < 1) st.QOver067RBelow1Months++;
+        }
+        double unpaid = UnpaidBeforeDevaluationShare(st.ClaimsTotal, st.Payable0, st.Borrowed);
+        if (!double.IsNaN(unpaid))
+        {
+            double devShare = dev / st.ClaimsTotal;
+            st.QUnpaidObs++; st.QUnpaidSum += unpaid; st.QDevalueShareSum += devShare;
+            if (unpaid > 0) st.QUnpaidMonths++;
+            if (unpaid > st.QUnpaidMax) st.QUnpaidMax = unpaid;
+            if (devShare > st.QDevalueShareMax) st.QDevalueShareMax = devShare;
+        }
+    }
+
+    /// <summary>巨大建造物の恐慌の拠出の判定（<c>Megaprojects.Step</c> の反景気循環の項）：恐慌（GDP の収縮が閾値の上）の判定に来た回数と、うち「まだ借りられる」（借入の門が開いている）が真だった回数。国×事業×四半期。</summary>
+    internal static void MegaCrisis(World w, bool gateOpen)
+    {
+        var st = S(w);
+        st.QMegaPass++; if (gateOpen) st.QMegaOpen++;
+    }
+
+    /// <summary>(281) 国×四半期の行の末尾に足す列。月数は四半期の和・割合は観測した月の平均と最大。</summary>
+    static List<(string Name, string Value)> Extras281(WState st)
+    {
+        var cols = new List<(string, string)>();
+        string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        double uo = st.QUnpaidObs > 0 ? st.QUnpaidObs : double.NaN;
+        cols.Add(("interestAtLimitMonthsCount", I(st.QLimitMonths))); cols.Add(("interestLimitCrossingsCount", I(st.QLimitCrossings)));
+        cols.Add(("interestAtLimitBorrowedMonthsCount", I(st.QLimitBorrowMonths))); cols.Add(("zombieMonthsCount", I(st.QZombieMonths)));
+        cols.Add(("warGateClosedMonthsCount", I(st.QWarGateClosedMonths)));
+        cols.Add(("interestShareOver067MonthsCount", I(st.QOver067Months))); cols.Add(("interestShareOver067BorrowedMonthsCount", I(st.QOver067BorrowedMonths))); cols.Add(("interestShareOver067RBelow1MonthsCount", I(st.QOver067RBelow1Months)));
+        cols.Add(("unpaidBeforeDevaluationObservedMonthsCount", I(st.QUnpaidObs))); cols.Add(("unpaidBeforeDevaluationMonthsCount", I(st.QUnpaidMonths)));
+        cols.Add(("unpaidBeforeDevaluationMeanShare", F(st.QUnpaidSum / uo))); cols.Add(("unpaidBeforeDevaluationMaxShare", st.QUnpaidObs > 0 ? F(st.QUnpaidMax) : "nan"));
+        cols.Add(("devaluedToClaimMeanShare", F(st.QDevalueShareSum / uo))); cols.Add(("devaluedToClaimMaxShare", st.QUnpaidObs > 0 ? F(st.QDevalueShareMax) : "nan"));
+        cols.Add(("megaCrisisPassCount", I(st.QMegaPass))); cols.Add(("megaCrisisGateOpenCount", I(st.QMegaOpen)));
+        return cols;
+    }
+
     // ---------------------------------------------------------------- 月末（Simulation.MonthSettle の終わり） ----------------------------------------------------------------
 
     /// <summary>月の決算の終わり：階級ごとの所得と支出を四半期の合計へ足し、挙げた国は財政の1行を溜める（台帳の差分は前の月の決算の終わりから）。</summary>
@@ -743,6 +830,7 @@ public static class Instruments
         if (st.GateOpenNow >= 0) { st.QGateObs++; if (st.GateOpenNow == 0) st.QGateClosed++; }
         if (st.Spare0 < 0) { st.QShortMonths++; st.QShortfall += -st.Spare0; }
         if (st.PayRate < 1) st.QRUnder1Months++;
+        AccumulateGateAround(st);   // (281) 借入の門の周り
         st.QBorrowed += double.IsNaN(st.Borrowed) ? 0 : st.Borrowed; st.QInterest += w.LastInterestPerMonth.Value; st.QRevenue += w.LastRevenuePerMonth.Value;
         st.QDirect += double.IsNaN(st.RevDirectNet) ? 0 : st.RevDirectNet; st.QIndirect += double.IsNaN(st.RevIndirect) ? 0 : st.RevIndirect;
         var led = w.TreasuryLedger;
@@ -787,6 +875,10 @@ public static class Instruments
         for (int k = 0; k < NCat; k++) { double d = led[k] - st.PrevLedger[k]; dSum += d; C("ledger" + ((TreasuryCat)k) + "PerMonth", d); }
         double dT = w.Treasury.Value - st.PrevTreasury;
         C("treasuryEndStock", w.Treasury.Value); C("treasuryDeltaPerMonth", dT); C("ledgerSumPerMonth", dSum); C("ledgerResidualPerMonth", dT - dSum);
+        // (281) 線O0：門が読んだ利払い÷歳入（月の決算の終わりの interestToRevenueShareNow とは別＝月初の値）・限界に届いたか・切り下げで埋める前の払えない額÷請求・切り下げ÷請求
+        double unpaid = UnpaidBeforeDevaluationShare(st.ClaimsTotal, st.Payable0, st.Borrowed);
+        C("interestToRevenueShareAtGate", st.GateRev > 0 ? st.GateInt / st.GateRev : double.NaN); C("interestAtLimitFlag", st.LimitNow < 0 ? double.NaN : st.LimitNow);
+        C("unpaidBeforeDevaluationShare", unpaid); C("devaluedToClaimShare", double.IsNaN(unpaid) ? double.NaN : (st.Devalued > 0 ? st.Devalued : 0) / st.ClaimsTotal);
         if (sb.Length > 0) sb.Length--;   // 末尾のタブ
     }
 
@@ -1184,6 +1276,8 @@ public static class Instruments
         foreach (var ex in ext274) cols.Add(ex.Value);
         var ext278 = Extras278(w, st);   // (278) 線G2：政治資本の在庫の台帳・符号 2 の分割
         foreach (var ex in ext278) cols.Add(ex.Value);
+        var ext281 = Extras281(st);   // (281) 線O0：借入の門の周り
+        foreach (var ex in ext281) cols.Add(ex.Value);
         sk.Nation ??= Open("nation", seed);
         if (!sk.NationHeader)
         {
@@ -1200,7 +1294,8 @@ public static class Instruments
                 + string.Join('\t', ext271.Select(e => e.Name)) + "\t"
                 + string.Join('\t', ext270.Select(e => e.Name)) + "\t"
                 + string.Join('\t', ext274.Select(e => e.Name)) + "\t"
-                + string.Join('\t', ext278.Select(e => e.Name)));
+                + string.Join('\t', ext278.Select(e => e.Name)) + "\t"
+                + string.Join('\t', ext281.Select(e => e.Name)));
             sk.NationHeader = true;
         }
         sk.Nation.WriteLine(string.Join('\t', cols));
