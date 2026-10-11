@@ -1,0 +1,21 @@
+// (269) 診断（コミットしない一回きりの Fact）：TechInstitutionTests.cs の末尾近くに足して腕A・腕B の木で走らせた。結果は diag_joint_stock_A.txt／_B.txt
+    [Fact]
+    public void ZDiagJointStock()
+    {
+        var sim = new MultiNationSim(Four(), seed: 1789, coef: new Coefficients { ColoniesAreRegions = 0 });
+        sim.Nations[1].World.ParliamentEnabled = false;
+        foreach (var n in sim.Nations) n.World.Discovered[Discovery.SteamRow] = true;
+        var sb = new System.Text.StringBuilder();
+        for (int step = 0; step < 20; step++)
+        {
+            sim.Run(20);
+            var uk = sim.Nations[2].World;
+            double maxInd = 0; foreach (var r in uk.Regions) if (r.TotalIndustrialization > maxInd) maxInd = r.TotalIndustrialization;
+            var e = Discovery.Evaluate(uk, null, uk.Coef, includeKnown: true)[Discovery.JointStockRow];
+            double mass = 0, rich = 0;
+            foreach (var r in uk.Regions) foreach (var p in r.Pops) { if (p.ClassName is "農民" or "工場労働者" or "職人") mass += p.Savings.Value; else if (p.ClassName is "貴族" or "資本家" or "商人") rich += p.Savings.Value; }
+            sb.AppendLine($"Q{(step + 1) * 20}	JS={uk.JointStock}	Tech={uk.TechLevel:F3}	maxInd={maxInd:F4}	evTech={e.Tech:F2}	evNeed={e.Need:F2}	evTr={e.Transmit:F2}	massSav={mass:F0}	richSav={rich:F0}	GDP={uk.GdpPerMonth.Value:F0}");
+        }
+        System.IO.File.WriteAllText("D:/PoB_work/t269/diag_out_B.txt", sb.ToString());
+    }
+

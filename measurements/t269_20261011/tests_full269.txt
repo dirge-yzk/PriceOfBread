@@ -1,0 +1,61 @@
+START 21:10:24 filter=Category!=FullLength src=D:/PoB_work/wt_t
+  復元対象のプロジェクトを決定しています...
+  D:\PoB_work\t269\tree_t_full269\PriceOfBread.SimCore\PriceOfBread.SimCore.csproj を復元しました (91 ミリ秒)。
+  D:\PoB_work\t269\tree_t_full269\PriceOfBread.Tests\PriceOfBread.Tests.csproj を復元しました (1.33 秒)。
+  D:\PoB_work\t269\tree_t_full269\PriceOfBread.App\PriceOfBread.App.csproj を復元しました (1.33 秒)。
+  PriceOfBread.SimCore -> D:\PoB_work\t269\art_tfull269\bin\PriceOfBread.SimCore\release\PriceOfBread.SimCore.dll
+  PriceOfBread.App -> D:\PoB_work\t269\art_tfull269\bin\PriceOfBread.App\release\PriceOfBread.App.dll
+D:\PoB_work\t269\tree_t_full269\PriceOfBread.Tests\ConservationTests.cs(259,48): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\t269\tree_t_full269\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\t269\tree_t_full269\PriceOfBread.Tests\ConservationTests.cs(943,113): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\t269\tree_t_full269\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\t269\tree_t_full269\PriceOfBread.Tests\UnitTypeTests.cs(191,30): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\t269\tree_t_full269\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\t269\tree_t_full269\PriceOfBread.Tests\UnitTypeTests.cs(191,45): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\t269\tree_t_full269\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\t269\tree_t_full269\PriceOfBread.Tests\UnitTypeTests.cs(192,30): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\t269\tree_t_full269\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\t269\tree_t_full269\PriceOfBread.Tests\UnitTypeTests.cs(192,45): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\t269\tree_t_full269\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\t269\tree_t_full269\PriceOfBread.Tests\UnitTypeTests.cs(67,13): warning xUnit2029: Do not use Assert.Empty to check if a value does not exist in a collection. Use Assert.DoesNotContain instead. (https://xunit.net/xunit.analyzers/rules/xUnit2029) [D:\PoB_work\t269\tree_t_full269\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\t269\tree_t_full269\PriceOfBread.Tests\InstrumentsTests.cs(739,13): warning xUnit2031: Do not use a Where clause to filter before calling Assert.Single. Use the overload of Assert.Single that accepts a filtering function. (https://xunit.net/xunit.analyzers/rules/xUnit2031) [D:\PoB_work\t269\tree_t_full269\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+  PriceOfBread.Tests -> D:\PoB_work\t269\art_tfull269\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll
+
+ビルドに成功しました。
+
+D:\PoB_work\t269\tree_t_full269\PriceOfBread.Tests\ConservationTests.cs(259,48): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\t269\tree_t_full269\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\t269\tree_t_full269\PriceOfBread.Tests\ConservationTests.cs(943,113): warning CS8602: null 参照の可能性があるものの逆参照です。 [D:\PoB_work\t269\tree_t_full269\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\t269\tree_t_full269\PriceOfBread.Tests\UnitTypeTests.cs(191,30): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\t269\tree_t_full269\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\t269\tree_t_full269\PriceOfBread.Tests\UnitTypeTests.cs(191,45): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\t269\tree_t_full269\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\t269\tree_t_full269\PriceOfBread.Tests\UnitTypeTests.cs(192,30): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\t269\tree_t_full269\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\t269\tree_t_full269\PriceOfBread.Tests\UnitTypeTests.cs(192,45): warning CS1718: 同じ変数と比較されました。他の変数と比較しますか? [D:\PoB_work\t269\tree_t_full269\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\t269\tree_t_full269\PriceOfBread.Tests\UnitTypeTests.cs(67,13): warning xUnit2029: Do not use Assert.Empty to check if a value does not exist in a collection. Use Assert.DoesNotContain instead. (https://xunit.net/xunit.analyzers/rules/xUnit2029) [D:\PoB_work\t269\tree_t_full269\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+D:\PoB_work\t269\tree_t_full269\PriceOfBread.Tests\InstrumentsTests.cs(739,13): warning xUnit2031: Do not use a Where clause to filter before calling Assert.Single. Use the overload of Assert.Single that accepts a filtering function. (https://xunit.net/xunit.analyzers/rules/xUnit2031) [D:\PoB_work\t269\tree_t_full269\PriceOfBread.Tests\PriceOfBread.Tests.csproj]
+    8 個の警告
+    0 エラー
+
+経過時間 00:00:47.99
+build rc=0
+D:\PoB_work\t269\art_tfull269\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:05:13.16]     PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 9, declared: 43891020) [FAIL]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 9, declared: 43891020) [< 1 ms]
+  エラー メッセージ:
+   計算量「清算：着値の充填」が 45575950 件（宣言 43891020・許し +2 %）＝**増えている**。増やすなら表を上げ、どこで払ったか（他の処理を削った分）をこのファイル・実装ログ・コミットに書く（＝宣言）。新しい処理なら docs の「処理の刻みの表」に行を足し、刻みの根拠を書く。
+  スタック トレース:
+     at PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(Int32 item, Int64 declared) in D:\PoB_work\t269\tree_t_full269\PriceOfBread.Tests\WriterRatchetTests.cs:line 465
+   at InvokeStub_WriterRatchetTests.計算量の見た件数は宣言した表を超えない(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:05:13.23]     PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 8, declared: 5185642) [FAIL]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 8, declared: 5185642) [< 1 ms]
+  エラー メッセージ:
+   計算量「清算：見た買い手行」が 5290134 件（宣言 5185642・許し +2 %）＝**増えている**。増やすなら表を上げ、どこで払ったか（他の処理を削った分）をこのファイル・実装ログ・コミットに書く（＝宣言）。新しい処理なら docs の「処理の刻みの表」に行を足し、刻みの根拠を書く。
+  スタック トレース:
+     at PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(Int32 item, Int64 declared) in D:\PoB_work\t269\tree_t_full269\PriceOfBread.Tests\WriterRatchetTests.cs:line 465
+   at InvokeStub_WriterRatchetTests.計算量の見た件数は宣言した表を超えない(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:05:22.18]     PriceOfBread.Tests.TechInstitutionTests.制度は社会の発展で施行され宗教国は特許を自力で見つけない [FAIL]
+  失敗 PriceOfBread.Tests.TechInstitutionTests.制度は社会の発展で施行され宗教国は特許を自力で見つけない [1 m 4 s]
+  エラー メッセージ:
+   工業化したイギリスに株式会社が入らない（技術水準 0.99）
+  スタック トレース:
+     at PriceOfBread.Tests.TechInstitutionTests.制度は社会の発展で施行され宗教国は特許を自力で見つけない() in D:\PoB_work\t269\tree_t_full269\PriceOfBread.Tests\TechInstitutionTests.cs:line 139
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+失敗!   -失敗:     3、合格:  1107、スキップ:     0、合計:  1110、期間: 11 m 43 s - PriceOfBread.Tests.dll (net10.0)
+rc=1 END 21:23:01
