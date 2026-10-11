@@ -1628,21 +1628,23 @@ public class InstrumentsTests
                     Instruments.Rate(w, 100, payable0 + borrowed + devalued, r, devalued);
                     Instruments.MonthClose(w);
                 }
+                Month(0.10, 1.0, 0, 0, 100, false);   // 前置きの1か月（限界の下）＝直前の実際の月の判定に依らず、5か月を限界の下から始める（反転の期待を実際の月の状態に預けない）
+                Instruments.Quarter(sim, 1789UL, 1);
                 Month(0.30, 1.0, 0, 0, 100, false);
                 Month(0.60, 1.0, 0, 20, 70, false);
                 Month(0.72, 0.8, 0, 0, 60, true);
                 Month(0.10, 1.0, 15, 0, 90, false);
                 Month(0.70, 1.0, 10, 0, 60, false);
-                Instruments.Quarter(sim, 1789UL, 1);
-                Month(0.10, 1.0, 0, 0, 100, false);   // 次の四半期の最初の月＝限界の下
                 Instruments.Quarter(sim, 1789UL, 2);
+                Month(0.10, 1.0, 0, 0, 100, false);   // 次の四半期の最初の月＝限界の下
+                Instruments.Quarter(sim, 1789UL, 3);
                 Instruments.Close(sim);
             }
             finally { Instruments.Configure(null, null); }
             var (nh, nr) = Table(System.IO.Path.Combine(dir, "nation_s1789.tsv"));
             var q0 = nr.Single(r => Col(nh, r, "quarter") == 0 && Col(nh, r, "nationIndex") == 0);
-            var q1 = nr.Single(r => Col(nh, r, "quarter") == 1 && Col(nh, r, "nationIndex") == 0);
-            var q2 = nr.Single(r => Col(nh, r, "quarter") == 2 && Col(nh, r, "nationIndex") == 0);
+            var q1 = nr.Single(r => Col(nh, r, "quarter") == 2 && Col(nh, r, "nationIndex") == 0);   // 5か月の四半期（前置きの1か月の四半期が 1）
+            var q2 = nr.Single(r => Col(nh, r, "quarter") == 3 && Col(nh, r, "nationIndex") == 0);
             Assert.True(Col(nh, q0, "unpaidBeforeDevaluationObservedMonthsCount") >= 2, "対照：実際の月が観測されていない＝列が出ていない");
             Assert.Equal(5.0, Col(nh, q1, "unpaidBeforeDevaluationObservedMonthsCount"));
             Assert.Equal(3.0, Col(nh, q1, "interestAtLimitMonthsCount"));
