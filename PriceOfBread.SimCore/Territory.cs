@@ -363,6 +363,7 @@ public static class Territory
             foreach (var p in r.Pops) { p.Rebase(from, to); Sin += p.Savings; Din += p.Debt; }
             Bin = Sin - Din;
         }
+        if (Instruments.On) Instruments.RegionMoved(to, r);   // (262) 計器（読むだけ）：州ごと別の国へ移る POP の貯蓄（換算の後）を貯蓄の台帳へ
         from.Bank!.Carry(to?.Bank, D, Din);
         if (to is not null)
         {

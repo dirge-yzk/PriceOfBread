@@ -11,6 +11,7 @@
 /// （艦隊のゲージ・技術水準・鉄道の容量・工場の蒸気動力の割合・いま交戦中か）も出る。</item>
 /// <item><c>nation_s&lt;seed&gt;.tsv</c> 国×四半期（全ての国・死んだ国も）：人口・兵士・名目GDP・交戦と内戦の月の数・徴兵法・総動員・安全保障の不安の割合・州の格の数・台帳の累計（借入・切り下げ・陸・海）・国債・
 /// 貿易（清算1回分の輸出と輸入）。史実比較の桁の読み手（NG の読み手の入力 11 種）の入力＝旧の注入（scripts/instruments の inj_*.py）の代わり。</item>
+/// <item><c>flow_s&lt;seed&gt;.tsv</c> ★(262) 貯蓄の書き手の台帳（挙げた国だけ・四半期ごと・階級×書き手の種類×呼び出しの位置×相手の側の月平均の額と件数）。階級の貯蓄の増減が書き手の和に閉じる。</item>
 /// <item><c>region_s&lt;seed&gt;.tsv</c> 州×四半期（全ての国の全ての州）：人口・農村人口・機会とその因子・耕地・四半期の人口の流れ（州の間の移民・入植・越境の出入り）・戦場の強さ・主食の充足。
 /// <c>migration_s&lt;seed&gt;.tsv</c> 州の間の移民の組（出る州→入る州）の四半期の量。州の空洞化（F1 の線）の読み手 <c>hol/an_h2.py</c> の入力＝旧の注入 <c>u4e/inj_ghost.py</c> の代わり。</item>
 /// <item><c>wars_s&lt;seed&gt;.tsv</c> 戦争1本ごと（開戦の年・内戦か・当事者・月数・戦死）／<c>casualty_s&lt;seed&gt;.tsv</c> (年, 国)ごとの兵士の月と戦死（試合の終わりに書く）。</item>
@@ -80,14 +81,16 @@ public static class Instruments
         public double DecScale = double.NaN, DecLosing = double.NaN, DecShare = double.NaN;
         public int DecAtWar = -1, DecMobilized = -1, DecPicked, DecOpen = -1, DecTarget = -1, DecEnforced = -1;
         public int FacStarted, FacStartedClosed, FacDone, FacDoneClosed, FacDoneClosedAtStart;   // 今の四半期の国営の棟の着工・完成（門が閉じていた分つき・四半期の末に0へ戻す）
+        // ---- (262) 貯蓄の書き手の台帳（挙げた国だけ・四半期の和・四半期の末に0へ戻す）：(階級, 書き手の種類, 呼び出しの位置) → [額の和, 件数]
+        public readonly Dictionary<(int Cls, int Kind, string File, int Line, char Cp), double[]> SavLedger = new();
     }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<World, WState> States = new();
     static WState S(World w) => States.GetValue(w, _ => new WState());
 
     sealed class Sink
     {
-        public System.IO.StreamWriter? Fiscal, Class, Stock, Nation, Region, Migration;
-        public bool FiscalHeader, ClassHeader, StockHeader, NationHeader, RegionHeader;
+        public System.IO.StreamWriter? Fiscal, Class, Stock, Nation, Region, Migration, Flow;
+        public bool FiscalHeader, ClassHeader, StockHeader, NationHeader, RegionHeader, FlowHeader;
         public ulong Seed;   // 試合の終わり（Close）に戦争の表を書くときのファイル名
     }
     /// <summary>外交の記録（戦争の始まりと戦死の月ごとの和）。外交は MultiNationSim に1つ＝世界ごとの状態（<see cref="WState"/>）とは別に持つ。</summary>
@@ -115,6 +118,7 @@ public static class Instruments
     internal static void Begin(World w)
     {
         var st = S(w);
+        if (IsPicked(w, st)) RegisterPops(w, st);   // (262) 貯蓄の書き手の台帳：挙げた国の POP を台帳の持ち主へ登録（月初・新しい POP は次の月から）
         st.Active = !w.WarmupFrozen; st.Armed = true;
         if (!st.Active) { st.HaveLedger = false; return; }
         Array.Clear(st.Claim);
@@ -335,6 +339,57 @@ public static class Instruments
         if (StartGates.TryGetValue(p, out var g) && g.Closed) st.FacDoneClosedAtStart++;
     }
 
+    // ---------------------------------------------------------------- (262) 貯蓄の書き手の台帳（階級の ΔSavings の出どころ・読むだけ） ----------------------------------------------------------------
+
+    /// <summary>貯蓄 <c>Pop._savings</c> の書き手の種類。書き手は Pop の中の6本だけ（<c>Pop.Distribute</c>・<c>Take</c>・<c>Carry</c>・<c>Rebase</c>・<c>SettleMonth</c>・開幕の <c>ScaleSavings</c>）。
+    /// Settle＝月末の精算（所得−支出）／Give＝受け取り（所得に書かない）／GiveIncome＝受け取り（所得にも書く）／Take＝払い（支出に書かない）／CarryOut・CarryIn＝人と動くお金（階級・州・国をまたぐ運搬）／Rebase＝国が替わる換算。</summary>
+    internal enum SavKind : byte { Settle, Give, GiveIncome, Take, CarryOut, CarryIn, Rebase, RegionOut, RegionIn }
+    static readonly string[] SavKindNames = ["settle", "give", "giveIncome", "take", "carryOut", "carryIn", "rebase", "regionOut", "regionIn"];
+    [ThreadStatic] static string? _routeFile;
+    [ThreadStatic] static int _routeLine;
+    [ThreadStatic] static char _routeFrom, _routeTo;   // 払い手の側・受け手の側（P＝POP・T＝国庫・B／M／F／C／H＝世界の外の台帳の種類）
+    static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Pop, WState> PopOwner = new();
+
+    /// <summary>移し方の1本（<see cref="World.Transfer"/>）と人の移し方の1本（<see cref="Pop.Blend"/>）の入口：呼び出しの位置（コンパイル時の定数・[CallerFilePath]／[CallerLineNumber]）を、続く貯蓄の書き込みの経路名にする。</summary>
+    internal static void Route(string file, int line, char fromSide, char toSide) { _routeFile = file; _routeLine = line; _routeFrom = fromSide; _routeTo = toSide; }
+
+    /// <summary>州が別の国へ移る（<c>Territory.TransferRegion</c>・換算の後）：送り手の台帳から州の POP の貯蓄を引き（regionOut）、受け手が挙げた国なら POP を受け手の台帳へ登録して足す（regionIn）。建国（to＝null）と挙げていない国へ移った POP は台帳の外へ出る。</summary>
+    internal static void RegionMoved(World? to, Region r)
+    {
+        foreach (var p in r.Pops) { Sav(p, SavKind.RegionOut, -p.Savings.Value); PopOwner.Remove(p); }
+        if (to is null) return;
+        var st = S(to);
+        if (!IsPicked(to, st)) return;
+        foreach (var p in r.Pops) { PopOwner.AddOrUpdate(p, st); Sav(p, SavKind.RegionIn, p.Savings.Value); }
+    }
+
+    static void RegisterPops(World w, WState st) { foreach (var r in w.Regions) foreach (var p in r.Pops) PopOwner.AddOrUpdate(p, st); }
+
+    /// <summary>貯蓄の書き込み1件（<c>Pop</c> の中の書き手の隣から呼ぶ・額は符号つきの増分）。挙げた国の POP だけ記帳する（登録が無ければ何もしない）。</summary>
+    internal static void Sav(Pop p, SavKind kind, double delta)
+    {
+        if (!PopOwner.TryGetValue(p, out var st)) return;
+        bool routed = kind is SavKind.Give or SavKind.GiveIncome or SavKind.Take or SavKind.CarryOut or SavKind.CarryIn;
+        // 相手の側：受け取り（Give・GiveIncome）は払い手の側・払い（Take）は受け手の側。運搬は POP どうし
+        char cp = !routed ? '-' : kind is SavKind.Give or SavKind.GiveIncome ? _routeFrom : kind == SavKind.Take ? _routeTo : 'P';
+        var key = ((uint)p.ClassId < (uint)NC ? p.ClassId : NC - 1, (int)kind, routed ? (_routeFile ?? "") : "", routed ? _routeLine : 0, cp);
+        if (!st.SavLedger.TryGetValue(key, out var a)) st.SavLedger[key] = a = new double[2];
+        a[0] += delta; a[1] += 1;
+    }
+
+    /// <summary>四半期の末：挙げた国の台帳を <c>flow_s&lt;seed&gt;.tsv</c> へ書いて0へ戻す。額は四半期の月平均（<c>PerMonth</c>＝和÷月数）・件数は四半期の和。</summary>
+    static void FlowRows(Sink sk, ulong seed, int q, World w, WState st)
+    {
+        if (st.SavLedger.Count == 0) return;
+        sk.Flow ??= Open("flow", seed);
+        if (!sk.FlowHeader) { sk.Flow.WriteLine("quarter	year	nation	classId	kind	sourceFile	sourceLine	counterpartySide	amountPerMonth	eventCount"); sk.FlowHeader = true; }
+        double mo = st.ClsMonths > 0 ? st.ClsMonths : double.NaN;
+        string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        foreach (var kv in st.SavLedger.OrderBy(k => k.Key.Cls).ThenBy(k => k.Key.Kind).ThenBy(k => k.Key.File, StringComparer.Ordinal).ThenBy(k => k.Key.Line).ThenBy(k => k.Key.Cp))
+            sk.Flow.WriteLine(string.Join('	', I(q), I(w.Year), NameOf(w), I(kv.Key.Cls), SavKindNames[kv.Key.Kind], System.IO.Path.GetFileName(kv.Key.File), I(kv.Key.Line), kv.Key.Cp.ToString(), F(kv.Value[0] / mo), F(kv.Value[1])));
+        st.SavLedger.Clear();
+    }
+
     // ---------------------------------------------------------------- 月末（Simulation.MonthSettle の終わり） ----------------------------------------------------------------
 
     /// <summary>月の決算の終わり：階級ごとの所得と支出を四半期の合計へ足し、挙げた国は財政の1行を溜める（台帳の差分は前の月の決算の終わりから）。</summary>
@@ -402,7 +457,7 @@ public static class Instruments
     internal static void Phase(MultiNationSim sim, ulong seed, string time)
     {
         var sk = SinkOf(sim, seed);
-        if (time == "warm") foreach (var n in sim.Nations) { var wst = S(n.World); wst.WarMonths = 0; wst.CivilWarMonths = 0; ResetQuarter(wst); }   // 助走の月は数えない（旧の注入も助走の直後に0へ戻していた）
+        if (time == "warm") foreach (var n in sim.Nations) { var wst = S(n.World); wst.WarMonths = 0; wst.CivilWarMonths = 0; ResetQuarter(wst); wst.SavLedger.Clear(); }   // 助走の月は数えない（旧の注入も助走の直後に0へ戻していた）
         foreach (var n in sim.Nations) { ClassRows(sk, seed, time, n.World, S(n.World), flows: false); StockRow(sk, seed, time, n.World, readGdp: time != "open"); }
     }
 
@@ -424,6 +479,7 @@ public static class Instruments
                 st.Rows.Clear();
             }
             if (picked || yearEnd) { ClassRows(sk, seed, time, w, st, flows: true); StockRow(sk, seed, time, w, readGdp: true); }
+            if (picked) FlowRows(sk, seed, q, w, st);   // (262) 貯蓄の書き手の台帳（階級の読む位置＝同じ瞬間）
             NationRow(sk, seed, q, i, w, st, yearEnd);
             Array.Clear(st.ClsEarn); Array.Clear(st.ClsPaid); st.ClsMonths = 0; st.WarMonths = 0; st.CivilWarMonths = 0; ResetQuarter(st);
             st.QGateObs = st.QGateClosed = st.QShortMonths = st.QRUnder1Months = 0; st.QInterest = st.QRevenue = st.QDirect = st.QIndirect = st.QShortfall = st.QBorrowed = 0;
@@ -437,7 +493,7 @@ public static class Instruments
     {
         if (!Sinks.TryGetValue(sim, out var sk)) return;
         if (Dips.TryGetValue(sim.Diplomacy, out var dip)) WarTables(sk, dip);
-        sk.Fiscal?.Dispose(); sk.Class?.Dispose(); sk.Stock?.Dispose(); sk.Nation?.Dispose(); sk.Region?.Dispose(); sk.Migration?.Dispose(); sk.Fiscal = sk.Class = sk.Stock = sk.Nation = sk.Region = sk.Migration = null;
+        sk.Fiscal?.Dispose(); sk.Class?.Dispose(); sk.Stock?.Dispose(); sk.Nation?.Dispose(); sk.Region?.Dispose(); sk.Migration?.Dispose(); sk.Flow?.Dispose(); sk.Fiscal = sk.Class = sk.Stock = sk.Nation = sk.Region = sk.Migration = sk.Flow = null;
     }
 
     // ---------------------------------------------------------------- 州の人口と移動（州の空洞化の計器・(255)）----------------------------------------------------------------

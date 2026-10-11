@@ -291,6 +291,7 @@ public sealed class Pop
     {
         from._savings -= savings; from.Debt -= debt; from.BondHoldings -= bond;
         to._savings += savingsIn; to.Debt += debtIn; to.BondHoldings += bond;
+        if (Instruments.On) { Instruments.Sav(from, Instruments.SavKind.CarryOut, -savings.Value); Instruments.Sav(to, Instruments.SavKind.CarryIn, savingsIn.Value); }   // (262) 計器（読むだけ）：貯蓄の書き手の台帳
     }
 
     /// <summary>★按分の1本（支払いの一元化 段1-2・2026-09-28＝旧 Fiscal.Distribute の本体・2026-09-30 段4g に World から Pop へ移した＝貯蓄の書き手を Pop の中へ）。
@@ -313,6 +314,7 @@ public sealed class Pop
         {
             double share = i < pops.Count - 1 ? amount * ((weights is null ? pops[i].Size : weights[i]) / total) : amount - done;
             pops[i]._savings += new MoneyStock(share); if (income) pops[i].EarnedPerMonth += new MoneyPerMonth(share);
+            if (Instruments.On) Instruments.Sav(pops[i], income ? Instruments.SavKind.GiveIncome : Instruments.SavKind.Give, share);   // (262) 計器（読むだけ）
             done += share;
         }
         return 0;
@@ -332,7 +334,7 @@ public sealed class Pop
             foreach (var p in payers) held += Math.Max(0, p._savings.Value);
             double take = Math.Min(amount, held);
             if (!(take > 1e-12) || !(held > 1e-9)) return 0;
-            foreach (var p in payers) { double s = take * (Math.Max(0, p._savings.Value) / held); p._savings -= new MoneyStock(s); moved += s; taken?.Add(s); }
+            foreach (var p in payers) { double s = take * (Math.Max(0, p._savings.Value) / held); p._savings -= new MoneyStock(s); moved += s; taken?.Add(s); if (Instruments.On) Instruments.Sav(p, Instruments.SavKind.Take, -s); }   // (262) 計器（読むだけ）
             return moved;
         }
         double tw = 0;
@@ -343,14 +345,18 @@ public sealed class Pop
         {
             double claim = weights[i] * scale, h = Math.Max(0, payers[i]._savings.Value);
             double s = !(claim > 0) ? 0 : claim <= h ? claim : h;
-            if (s > 0) { payers[i]._savings -= new MoneyStock(s); moved += s; }
+            if (s > 0) { payers[i]._savings -= new MoneyStock(s); moved += s; if (Instruments.On) Instruments.Sav(payers[i], Instruments.SavKind.Take, -s); }   // (262) 計器（読むだけ）
             taken?.Add(s);
         }
         return moved;
     }
 
     /// <summary>★月末の精算（月内の仮勘定＝1本の月内の形・計画 §10-12-2-3）＝その月の所得と支払いの差を貯蓄へ（EconomyStep の月の終わり・2026-09-30 段4g に Pop の中へ移した）。</summary>
-    internal void SettleMonth() => _savings += Calendar.OneMonthOf(EarnedPerMonth - PaidPerMonth);
+    internal void SettleMonth()
+    {
+        _savings += Calendar.OneMonthOf(EarnedPerMonth - PaidPerMonth);
+        if (Instruments.On) Instruments.Sav(this, Instruments.SavKind.Settle, Calendar.OneMonthOf(EarnedPerMonth - PaidPerMonth).Value);   // (262) 計器（読むだけ）：同じ式をもう一度（純粋）
+    }
 
     /// <summary>★(218) 貯蓄を比で置き直す（開幕の投資家の流動資産・<see cref="World.RebaseOpeningMoney"/> だけが呼ぶ）。貨幣の増減は呼び手が基準線ごと取り直す。</summary>
     internal void ScaleSavings(double f) => _savings *= f;
@@ -368,8 +374,10 @@ public sealed class Pop
     ///   中核民族の割合は <paramref name="coreAtDest"/>＝受け手の国での移る組の値（越境＝受入国の中核民族ではない＝0）。旧の旗（MigrationCarriesHumanCapital・MigrantCarriesConsciousness）は焼き込み。
     /// ⚠[0,1] の量は否定形のクランプ（NaN は0の側）。戻り値＝動いた人数。</summary>
     internal static double Blend(Pop from, Pop to, double n, bool draft = false, double femaleAccess = double.NaN, double literacy = double.NaN,
-                                 double coreAtDest = double.NaN, bool money = true, double draftLo = 20, double draftHi = 40)
+                                 double coreAtDest = double.NaN, bool money = true, double draftLo = 20, double draftHi = 40,
+                                 [System.Runtime.CompilerServices.CallerFilePath] string routeFile = "", [System.Runtime.CompilerServices.CallerLineNumber] int routeLine = 0)
     {
+        if (Instruments.On) Instruments.Route(routeFile, routeLine, 'P', 'P');   // (262) 計器（読むだけ）：呼び出しの位置（コンパイル時の定数）を貯蓄の台帳の経路名にする
         if (!(n > 1e-12) || !(from.Size > 1e-12) || ReferenceEquals(from, to)) return 0;
         if (n > from.Size) n = from.Size;
         double s0 = from.Size, t0 = to.Size, t1 = t0 + n;
@@ -434,7 +442,9 @@ public sealed class Pop
     /// 受け手の国の通貨へ（換算の1本 <see cref="World.CrossFx"/>・差は換算の台帳へ・債務は負の額として換算）。国債の保有は発行国の対外債へ振り替える（呼び手）。</summary>
     internal void Rebase(World from, World to)
     {
+        double sav0 = _savings.Value;   // (262) 計器（読むだけ）
         _savings = World.CrossFx(from, to, _savings);
+        if (Instruments.On) Instruments.Sav(this, Instruments.SavKind.Rebase, _savings.Value - sav0);
         Debt = -World.CrossFx(from, to, -Debt);
     }
 

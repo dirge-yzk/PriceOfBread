@@ -378,4 +378,50 @@ public class InstrumentsTests
         }
         finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
     }
+
+    /// <summary>
+    /// (262) 貯蓄の書き手の台帳（<c>flow_s</c>）の番人：階級ごとの貯蓄の在庫の四半期の差（<c>class_s</c>＝POP の貯蓄を直接足した在庫）が、
+    /// 台帳の書き手の和（Settle・Give・GiveIncome・Take・CarryIn・CarryOut・Rebase）に閉じる。2つは別の経路（在庫の直接の和／書き手の隣の記帳）＝書き手を1本記帳し忘れると開く。
+    /// 何もしない番人は必ず緑になる＝書き手の種類ごとに〈1度は立つ〉を対照にする。台帳が Pop の書き手の隣だけで閉じる根拠は、<c>_savings</c> の書き手が Pop の中の6本だけ（コンパイラの番人・段4g）。
+    /// 閉じない残りが小さい（階級の流れの絶対値の和の 1e-9 相対）のは、POP が途中で作られない・開幕の ScaleSavings が助走の前に済む、ことも見ている。
+    /// </summary>
+    [Fact]
+    public void 貯蓄の書き手の台帳が階級の貯蓄の増減に閉じる()
+    {
+        string dir = NewDir();
+        try
+        {
+            Instruments.Configure(dir, "*");
+            try { RunMatch(Make(), Quarters, instr: true); }
+            finally { Instruments.Configure(null, null); }
+
+            var (ch, cr) = Table(System.IO.Path.Combine(dir, "class_s1789.tsv"));
+            var (fh, fr) = Table(System.IO.Path.Combine(dir, "flow_s1789.tsv"));
+            Assert.All(fr, r => Assert.Equal(fh.Length, r.Length));
+            string[] kinds = ["settle", "give", "giveIncome", "take", "carryOut", "carryIn", "rebase", "regionOut", "regionIn"];
+            Assert.All(fr, r => Assert.Contains(r[Array.IndexOf(fh, "kind")], kinds));
+            var stock = new Dictionary<(string Time, string Nation, int Cls), double>();
+            foreach (var r in cr) stock[(r[Array.IndexOf(ch, "time")], r[Array.IndexOf(ch, "nation")], (int)Col(ch, r, "classId"))] = Col(ch, r, "savingsStock");
+            var seen = kinds.ToDictionary(k => k, _ => 0.0);
+            // 開幕からいる国だけで閉じを見る：途中で建国された国（SpawnNation）の最初の月は、新しい世界の構築が POP の貯蓄を直接立てる（初期値）＝台帳の外
+            var founders = cr.Where(r => r[0] == "open").Select(r => r[Array.IndexOf(ch, "nation")]).ToHashSet();
+            int groups = 0; double worst = 0; string worstAt = "";
+            foreach (var g in fr.GroupBy(r => (Q: int.Parse(r[Array.IndexOf(fh, "quarter")]), Nation: r[Array.IndexOf(fh, "nation")], Cls: (int)Col(fh, r, "classId"))))
+            {
+                string prevT = g.Key.Q == 0 ? "warm" : "q" + (g.Key.Q - 1), nowT = "q" + g.Key.Q;
+                if (!founders.Contains(g.Key.Nation)) continue;
+                if (!stock.TryGetValue((prevT, g.Key.Nation, g.Key.Cls), out double s0) || !stock.TryGetValue((nowT, g.Key.Nation, g.Key.Cls), out double s1)) continue;
+                double sum = 0, abs = 0;
+                foreach (var r in g) { double v = Col(fh, r, "amountPerMonth") * Calendar.MonthsPerQuarter; sum += v; abs += Math.Abs(v); seen[r[Array.IndexOf(fh, "kind")]] += Math.Abs(v); }
+                double scale = Math.Max(1.0, Math.Max(abs, Math.Abs(s1)));
+                double rel = Math.Abs((s1 - s0) - sum) / scale;
+                if (rel > worst) { worst = rel; worstAt = $"q{g.Key.Q} {g.Key.Nation} 階級{g.Key.Cls} 在庫の差 {s1 - s0:G6} 台帳の和 {sum:G6} 内訳 " + string.Join(" ", g.GroupBy(r => r[Array.IndexOf(fh, "kind")]).Select(kg => kg.Key + "=" + (kg.Sum(r => Col(fh, r, "amountPerMonth")) * Calendar.MonthsPerQuarter).ToString("G5"))); }
+                groups++;
+            }
+            Assert.True(groups >= 4 * 8 * (Quarters - 2), $"突き合わせた (四半期, 国, 階級) が少ない（{groups}）");
+            Assert.True(worst < 1e-9, $"貯蓄の在庫の増減が台帳の書き手の和に閉じない（相対 {worst:E2}・最悪 {worstAt}）＝記帳されていない書き手がある");
+            foreach (var k in new[] { "settle", "give", "giveIncome", "take", "carryOut", "carryIn" }) Assert.True(seen[k] > 0, $"書き手の種類 {k} が1度も立たない（対照）＝この盤面ではその書き手の記帳を測れていない");
+        }
+        finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
 }
