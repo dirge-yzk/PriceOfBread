@@ -237,7 +237,7 @@ public static class Instruments
         st.AdmFiscMul += Fiscal.AdminDistanceMean(w);
         if (st.HaveLedger) { st.AdmCatPaid += -(led[(int)TreasuryCat.Admin] - st.PrevLedger[(int)TreasuryCat.Admin]); st.AdmPaidMonths++; }
         double fill = AdminFillShare(w);
-        if (st.PayRate == st.PayRate) st.AdmPayRate += st.PayRate;
+        if (!double.IsNaN(st.PayRate)) st.AdmPayRate += st.PayRate;   // (261) CS1718 の書き直し（NaN を除く・意味は同じ）
         if (st.PayRate < 1) { st.AdmRBelow1Months++; st.AdmFillRBelow1 += fill; }
         st.AdmFill += fill;
     }

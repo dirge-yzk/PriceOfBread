@@ -124,7 +124,7 @@ public class InstrumentsTests
             {
                 var (nh, nr) = Table(System.IO.Path.Combine(dir, "nation_s1789.tsv"));
                 double indirectK = new Coefficients().IndirectTaxInBudgetBase;
-                int groupsChecked = 0, closedSeen = 0, shortSeen = 0, rBelowSeen = 0;
+                int groupsChecked = 0, closedSeen = 0, shortSeen = 0, rBelowSeen = 0, binderSeen = 0, binderGateClosedSeen = 0;
                 foreach (var nation in fr.Select(r => r[Array.IndexOf(fh, "nation")]).Distinct())
                 {
                     var rowsN = fr.Where(r => r[Array.IndexOf(fh, "nation")] == nation).ToList();
@@ -138,6 +138,15 @@ public class InstrumentsTests
                         {
                             double rev = Col(fh, r, "revenueBasePerMonth"), dn = Col(fh, r, "directTaxNetPerMonth"), ind = Col(fh, r, "indirectRevenuePerMonth");
                             Assert.True(Math.Abs(rev - (dn + indirectK * ind)) <= 1e-6 * Math.Max(1.0, Math.Abs(rev)), $"予算の基数が純税収＋係数×間接税に合わない {nation}");
+                            // (261) 反証役 T1 中#1：月初の門の旗（PreBorrow が読む Fiscal.BorrowGateOpen）と、Fiscal.Borrow の中で門が閉じて止まった口（Instruments.Gate＝borrowBinder の gateClosed）は別の経路＝借入の判定に来た月は「gateClosed ⇔ 旗 0」
+                            string binder = r[Array.IndexOf(fh, "borrowBinder")];
+                            if (binder != "noShortfall")
+                            {
+                                double flag = Col(fh, r, "borrowGateOpenFlag");
+                                Assert.True(flag == 0 || flag == 1, $"借入の判定に来た月に門の旗が無い {nation}");
+                                Assert.True((binder == "gateClosed") == (flag == 0), $"門の旗 {flag} と Fiscal.Borrow の門の口 {binder} が食い違う {nation}");
+                                binderSeen++; if (binder == "gateClosed") binderGateClosedSeen++;
+                            }
                         }
                         if (grp.Count != 3) continue;   // 最初の四半期は台帳の差分の前の月が無く2行
                         var nrow = nr.FirstOrDefault(r => r[Array.IndexOf(nh, "nation")] == nation && int.Parse(r[Array.IndexOf(nh, "quarter")]) == g);
@@ -158,6 +167,7 @@ public class InstrumentsTests
                 }
                 Assert.True(groupsChecked >= 4 * (Quarters - 2), $"突き合わせた四半期が少ない（{groupsChecked}）");
                 Assert.True(closedSeen + shortSeen + rBelowSeen > 0, "門が閉じた月も払えない額も r＜1 の月も1度も無い（対照）＝この盤面は財政の鎖の列を測れていない");
+                Assert.True(binderSeen > 0 && binderGateClosedSeen > 0, $"借入の判定に来た月（{binderSeen}）のうち門が閉じた月（{binderGateClosedSeen}）が0（対照）＝門の旗の照合が閉じた側を見ていない");   // この盤面（4国40四半期）は2か月とも閉じた側＝開いた側の照合は帯の盤面にしか出ない（記録）
             }
         }
         finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
@@ -207,6 +217,7 @@ public class InstrumentsTests
                 started += s0; completed += d0;
             }
             Assert.True(started >= completed, "完成が着工を超えた（着工の写しの漏れ）");
+            Assert.True(started > 0, "国営の棟の着工が1件も写っていない（対照）＝着工の口（World.BuildFactory の計器）を消しても緑になる");   // (261) 反証役 E low#5
             foreach (var r in wr)   // 戦争の表の当事者（国）が1か月以上戦ったなら、その国の交戦の月が立つ
                 if (Col(wh, r, "months") > 0)
                     foreach (var side in new[] { r[Array.IndexOf(wh, "sideA")], r[Array.IndexOf(wh, "sideB")] })

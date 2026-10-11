@@ -14,24 +14,16 @@
     ・〈門が閉じた月〉は月初の借入の判定（Fiscal.BorrowGateOpen）＝払えない額が無い月も数える。借入に効くのは〈不足があり、かつ門が閉じた月〉（t2 に両方を出す）。
     ・〈不足のある月〉は月初の払える額−請求（借越を含む）＜0 の月。
   種は全て中央値（と最小・最大）で要約する。10種の中央値＝〈種の中央〉。"""
-import sys, os, math, statistics, collections, glob, re
-
-def fl(x):
-    try: return float(x)
-    except Exception: return float('nan')
+import sys, os, math, statistics, collections
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
+from instr import num as fl, seeds  # noqa: E402  (261) 反証役 T1 低#5＝数の読みと seed の列挙は共有の読み口 instr.py の1本
 
 def table(path):
+    """1本の表（1試合）を行の辞書で。instr.rows は全ての seed を順に読む＝seed ごとに1本ずつ読むこの読み手では使わない（class_s は1本で数十万行）。"""
     with open(path, encoding='utf-8') as fh:
         head = fh.readline().rstrip('\n').split('\t')
         for ln in fh:
             yield dict(zip(head, ln.rstrip('\n').split('\t')))
-
-def seeds(D, kind):
-    out = []
-    for f in glob.glob(os.path.join(D, f'{kind}_s*.tsv')):
-        m = re.match(rf'{kind}_s(\d+)\.tsv$', os.path.basename(f))
-        if m: out.append(int(m.group(1)))
-    return sorted(out)
 
 def med(xs):
     xs = [x for x in xs if x == x]
