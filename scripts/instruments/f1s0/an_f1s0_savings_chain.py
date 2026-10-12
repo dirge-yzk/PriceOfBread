@@ -59,7 +59,11 @@ for sd in SEEDS:
         row = {'q': q, 'year': int(r['year']), 'gdpY': fl(r['nominalGdpPerYear']), 'pop': fl(r['populationK']),
                'gateObs': fl(r['borrowGateObservedMonths']), 'gateClosed': fl(r['borrowGateClosedMonths']), 'short': fl(r['shortfallMonths']), 'rUnder': fl(r['payRateBelowOneMonths']),
                'interest': fl(r['interestMeanPerMonth']), 'revenue': fl(r['revenueBaseMeanPerMonth']), 'direct': fl(r['directTaxNetMeanPerMonth']), 'indirect': fl(r['indirectRevenueMeanPerMonth']),
-               'shortfall': fl(r['shortfallMeanPerMonth']), 'borrowed': fl(r['borrowedMeanPerMonth']), 'debt': fl(r['govDebtStock'])}
+               'shortfall': fl(r['shortfallMeanPerMonth']), 'borrowed': fl(r['borrowedMeanPerMonth']), 'debt': fl(r['govDebtStock']),
+               # (287) 線F1の列（腕が(287)以後の木のときだけ在る＝無ければ nan）
+               'landTax': fl(r.get('landTaxEndShare', 'nan')), 'landTarget': fl(r.get('landTaxTargetEndShare', 'nan')), 'polity': fl(r.get('polityCode', 'nan')),
+               'priv': fl(r.get('privilegeIntactIndex', 'nan')), 'grip': fl(r.get('parliamentGripIndex', 'nan')),
+               'monoEnd': fl(r.get('monopolyTierEndStage', 'nan')), 'monoBefore': fl(r.get('monopolyTierBeforeDecisionStage', 'nan'))}
         d[r['nation']].append(row)
     NAT[sd] = d
 
@@ -323,7 +327,8 @@ def t3():
     L.append('歳入＝予算の基数（Fiscal の budgetBase＝純税収＋IndirectTaxInBudgetBase×間接税）の四半期の月平均×12。年GDP＝名目の年GDP（nation_s）。'
              '間接税の割合＝間接税（関税＋専売の実収）÷（純税収＋間接税）＝係数1.0 の前提（Coefficients.IndirectTaxInBudgetBase の既定）で、番人が 予算の基数＝純税収＋係数×間接税 を確かめている。'
              '間接税＝関税と専売の実収。英の消費税の類いはここに入らない（純税収側）。\n')
-    wins = [('Q1', 0, 0), ('Q1〜Q8', 0, 7), ('Q5〜Q40', 4, 39), ('Q1〜Q40', 0, 39), ('Q41〜Q80', 40, 79), ('Q81〜Q160', 80, 159), ('Q161〜Q240', 160, 239)]
+    # (287) Q2〜Q8（事前登録 rev1_20261012_prereg の L1・L2'・L5 の窓）と Q3〜Q12（L3 の窓）を足す。Q1〜Q8 は残す＝黙って置き換えない（Q1 は貿易の立ち上がりの過渡を含む）。
+    wins = [('Q1', 0, 0), ('Q1〜Q8', 0, 7), ('Q2〜Q8', 1, 7), ('Q3〜Q12', 2, 11), ('Q5〜Q40', 4, 39), ('Q1〜Q40', 0, 39), ('Q41〜Q80', 40, 79), ('Q81〜Q160', 80, 159), ('Q161〜Q240', 160, 239)]
     L.append('| 指標 | ' + ' | '.join(w[0] for w in wins) + ' |')
     L.append('|---|' + '---|' * len(wins))
     def per(sd, q0, q1, f):
@@ -338,6 +343,33 @@ def t3():
     def int_over_rev(rows): return sum(r['interest'] for r in rows) / sum(r['revenue'] for r in rows)
     for lab, f, nd in (('歳入÷年GDP', ratio_rev, 4), ('純税収÷年GDP', ratio_dir, 4), ('間接税÷年GDP', ratio_ind, 4), ('間接税の割合（間接税÷（純税収＋間接税））', share_ind, 3), ('利払い÷歳入（四半期の平均の比）', int_over_rev, 3)):
         L.append(f'| {lab} | ' + ' | '.join(cell([per(sd, w[1], w[2], f) for sd in SEEDS if UK in NAT[sd]], nd) for w in wins) + ' |')
+    # (287) 直接税（純税収＝英では地租だけ）の割合・歳入÷年所得・土地税の段ほか
+    def share_dir(rows):
+        d_ = sum(r['direct'] for r in rows); i_ = sum(r['indirect'] for r in rows)
+        return d_ / (d_ + i_) if d_ + i_ > 0 else float('nan')
+    def inc_year(sd, q):
+        t = CLS.get(sd, {}).get(UK)
+        if not t: return float('nan')
+        return sum(v[f'q{q}']['earn'] * 12 for v in t.values() if f'q{q}' in v and v[f'q{q}']['earn'] == v[f'q{q}']['earn'])
+    def ratio_rev_inc(sd, q0, q1):
+        rows = qwin(NAT[sd].get(UK, []), q0, q1)
+        if not rows: return float('nan')
+        return sum(r['revenue'] * 12 for r in rows) / sum(inc_year(sd, r['q']) for r in rows)
+    def mean_of(key):
+        def f(rows):
+            xs = [r[key] for r in rows if r[key] == r[key]]
+            return sum(xs) / len(xs) if xs else float('nan')
+        return f
+    def last_of(key):
+        def f(rows):
+            return rows[-1][key] if rows else float('nan')
+        return f
+    for lab, f, nd in (('直接税（純税収）の割合＝直接÷（直接＋間接）', share_dir, 3), ('土地税の段の率 landTaxEndShare（窓の終わり・段1＝0.133・段2＝0.267）', last_of('landTax'), 3),
+                       ('土地税の目標 landTaxTargetEndShare（窓の終わり）', last_of('landTarget'), 3), ('専売の段（決定の後・窓の終わり）', last_of('monoEnd'), 1),
+                       ('専売の段（決定の前・窓の終わり）', last_of('monoBefore'), 1), ('政体の番号 polityCode（窓の終わり）', last_of('polity'), 0),
+                       ('PrivilegeIntact（窓の平均）', mean_of('priv'), 3), ('ParliamentGrip（窓の平均）', mean_of('grip'), 3)):
+        L.append(f'| {lab} | ' + ' | '.join(cell([per(sd, w[1], w[2], f) for sd in SEEDS if UK in NAT[sd]], nd) for w in wins) + ' |')
+    L.append('| 歳入÷年所得（class_s の Earned の和×12・種の中央。class_s が無い腕は—） | ' + ' | '.join(cell([ratio_rev_inc(sd, w[1], w[2]) for sd in SEEDS if UK in NAT[sd]], 4) for w in wins) + ' |')
     # 国債÷年GDP
     L.append('| 国債÷年GDP（窓の終わり） | ' + ' | '.join(cell([(lambda rows: rows[-1]['debt'] / rows[-1]['gdpY'] if rows else float('nan'))(qwin(NAT[sd].get(UK, []), w[1], w[2])) for sd in SEEDS if UK in NAT[sd]], 3) for w in wins) + ' |')
     L.append('\n（参考）歳入÷年GDP を種ごとに Q1 と Q5〜Q40 で：\n')

@@ -948,6 +948,19 @@ public static class Instruments
         return cols;
     }
 
+    /// <summary>★(287) 線F1（英の開幕の歳入を史実へ）：土地税の段が差し戻されたかと、土地税が触る権力の取り分を見る列（国×四半期の行の末尾・四半期の終わりの断面）。
+    /// <c>landTaxEndShare</c>＝<see cref="World.LandTax"/>（段1＝0.133・段2＝0.267）・<c>landTaxTargetEndShare</c>＝政策の目標・<c>polityCode</c>＝<c>(int)Polity</c>・
+    /// <c>privilegeIntactIndex</c>＝<see cref="PowerShares.PrivilegeIntact"/>（免税の項が土地税で動く）・<c>parliamentGripIndex</c>＝<see cref="PowerShares.ParliamentGrip"/>（常設歳入の分母が土地税で動く）。
+    /// 読むだけ：どちらの関数も World の列挙値と数値を読む純粋な式（書く経路・乱数・メモ化の新しい位置は無い。ParliamentGrip が読む名目GDP は、同じ行の nominalGdpPerYear が同じ時点で読んだ値）。</summary>
+    static List<(string Name, string Value)> Extras287(World w)
+    {
+        var cols = new List<(string, string)>();
+        cols.Add(("landTaxEndShare", F(w.LandTax))); cols.Add(("landTaxTargetEndShare", F(w.Policy.LandTaxTarget)));
+        cols.Add(("polityCode", ((int)w.Polity).ToString(System.Globalization.CultureInfo.InvariantCulture)));
+        cols.Add(("privilegeIntactIndex", F(PowerShares.PrivilegeIntact(w)))); cols.Add(("parliamentGripIndex", F(PowerShares.ParliamentGrip(w))));
+        return cols;
+    }
+
     // ---------------------------------------------------------------- 月末（Simulation.MonthSettle の終わり） ----------------------------------------------------------------
 
     /// <summary>月の決算の終わり：階級ごとの所得と支出を四半期の合計へ足し、挙げた国は財政の1行を溜める（台帳の差分は前の月の決算の終わりから）。</summary>
@@ -1416,6 +1429,8 @@ public static class Instruments
         foreach (var ex in ext281) cols.Add(ex.Value);
         var ext286 = Extras286(w, st);   // (286) 線Q：建設の門と実質GDP・為替・物価水準
         foreach (var ex in ext286) cols.Add(ex.Value);
+        var ext287 = Extras287(w);   // (287) 線F1：土地税の段・政体・特権の度合い・議会の掌握（四半期の終わりの断面）
+        foreach (var ex in ext287) cols.Add(ex.Value);
         sk.Nation ??= Open("nation", seed);
         if (!sk.NationHeader)
         {
@@ -1434,7 +1449,8 @@ public static class Instruments
                 + string.Join('\t', ext274.Select(e => e.Name)) + "\t"
                 + string.Join('\t', ext278.Select(e => e.Name)) + "\t"
                 + string.Join('\t', ext281.Select(e => e.Name)) + "\t"
-                + string.Join('\t', ext286.Select(e => e.Name)));
+                + string.Join('\t', ext286.Select(e => e.Name)) + "\t"
+                + string.Join('\t', ext287.Select(e => e.Name)));
             sk.NationHeader = true;
         }
         sk.Nation.WriteLine(string.Join('\t', cols));
