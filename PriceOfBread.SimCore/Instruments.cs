@@ -1023,14 +1023,14 @@ public static class Instruments
 
     // ---------------------------------------------------------------- (292) 線P：港の建設の州ごとの表 ----------------------------------------------------------------
 
-    sealed class PortAcc { public bool Gate; public double Savings, Need, Intended, StateIntended, PaidCap, PaidState, Built; }
+    sealed class PortAcc { public bool Gate; public double InvSav, Need, Intended, StateIntended, PaidCap, PaidState, Built; }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Region, PortAcc> PortAccs = new();
     /// <summary>(292) 港の建設の門を通った州（StepPorts・四半期に1回）：資本家の貯蓄（建設の前）・混雑を解くのに要る分（<see cref="MultiNationSim.PortCapitalNeed"/>・旧式の腕では反事実）・資本家ルートの意図の額・国家ルートの請求×r。挙げた国だけ。</summary>
     internal static void PortGate(World w, Region r, double investorSavings, double need, double intendedCap, double intendedState)
     {
         if (!IsPicked(w, S(w))) return;
         var a = PortAccs.GetValue(r, _ => new PortAcc());
-        a.Gate = true; a.Savings = investorSavings; a.Need = need; a.Intended = intendedCap; a.StateIntended = intendedState;
+        a.Gate = true; a.InvSav = investorSavings; a.Need = need; a.Intended = intendedCap; a.StateIntended = intendedState;
     }
     /// <summary>(292) 実際に払えた額（PaySales の返り値）と、足された容量。</summary>
     internal static void PortPaid(World w, Region r, double paidCap, double paidState, double builtCapacity)
@@ -1053,10 +1053,10 @@ public static class Instruments
             if (r.State != RegionState.Active || !r.IsPort) continue;
             PortAccs.TryGetValue(r, out var a);
             bool gate = a is not null && a.Gate;
-            double sav = gate ? a!.Savings : (r.InvestorPopIndex >= 0 && r.InvestorPopIndex < r.Pops.Count ? r.Pops[r.InvestorPopIndex].Savings.Value : double.NaN);
+            double sav = gate ? a!.InvSav : (r.InvestorPopIndex >= 0 && r.InvestorPopIndex < r.Pops.Count ? r.Pops[r.InvestorPopIndex].Savings.Value : double.NaN);
             sk.Port.WriteLine(string.Join('	', I(q), I(w.Year), nation, r.Name, F(r.LastTradeThrottle), F(r.LastTradePotential), F(r.LastPortThroughput), F(r.PortCapacity), F(sav), gate ? "1" : "0",
                 F(a?.Need ?? 0), F(a?.Intended ?? 0), F(a?.PaidCap ?? 0), F(a?.StateIntended ?? 0), F(a?.PaidState ?? 0), F(a?.Built ?? 0)));
-            if (a is not null) { a.Gate = false; a.Savings = a.Need = a.Intended = a.StateIntended = a.PaidCap = a.PaidState = a.Built = 0; }
+            if (a is not null) { a.Gate = false; a.InvSav = a.Need = a.Intended = a.StateIntended = a.PaidCap = a.PaidState = a.Built = 0; }
         }
     }
 
