@@ -165,6 +165,7 @@ public static class Instruments
         public readonly Dictionary<(int Uid, int Bucket), SpendAcc> Spend = new();         // (286) 国の個体×窓の区切りごとの支払いの積算
         public System.IO.StreamWriter? Svc; public bool SvcHeader;                         // (286) 家事奉仕の市場（挙げた国×四半期）
         public System.IO.StreamWriter? Cons; public bool ConsHeader;                       // (289) 資本家の建設の州ごとの表（挙げた国×州×四半期）
+        public System.IO.StreamWriter? Port; public bool PortHeader;                       // (292) 港の建設の州ごとの表（挙げた国×活きた港の州×四半期）
     }
     /// <summary>(286) 線Q：窓の区切りごとの積算。区切り（四半期の番号 q）＝[0,4) [4,8) [8,40) [40,160) [160,∞)。窓 Q1〜Q8＝区切り0+1・Q5〜Q40＝1+2・Q41〜Q160＝3。</summary>
     internal sealed class SpendAcc
@@ -1020,6 +1021,45 @@ public static class Instruments
         }
     }
 
+    // ---------------------------------------------------------------- (292) 線P：港の建設の州ごとの表 ----------------------------------------------------------------
+
+    sealed class PortAcc { public bool Gate; public double Savings, Need, Intended, StateIntended, PaidCap, PaidState, Built; }
+    static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Region, PortAcc> PortAccs = new();
+    /// <summary>(292) 港の建設の門を通った州（StepPorts・四半期に1回）：資本家の貯蓄（建設の前）・混雑を解くのに要る分（<see cref="MultiNationSim.PortCapitalNeed"/>・旧式の腕では反事実）・資本家ルートの意図の額・国家ルートの請求×r。挙げた国だけ。</summary>
+    internal static void PortGate(World w, Region r, double investorSavings, double need, double intendedCap, double intendedState)
+    {
+        if (!IsPicked(w, S(w))) return;
+        var a = PortAccs.GetValue(r, _ => new PortAcc());
+        a.Gate = true; a.Savings = investorSavings; a.Need = need; a.Intended = intendedCap; a.StateIntended = intendedState;
+    }
+    /// <summary>(292) 実際に払えた額（PaySales の返り値）と、足された容量。</summary>
+    internal static void PortPaid(World w, Region r, double paidCap, double paidState, double builtCapacity)
+    {
+        if (!IsPicked(w, S(w))) return;
+        var a = PortAccs.GetValue(r, _ => new PortAcc());
+        a.PaidCap = paidCap; a.PaidState = paidState; a.Built = builtCapacity;
+    }
+    /// <summary>(292) 線P：挙げた国×四半期×活きた港の州。律速率・潜在量・取扱高・港の容量は四半期の終わりの断面（StepPorts が見た値と同じ瞬間＝次の四半期の最初の清算まで書き換わらない）。
+    /// 建設の列は四半期に1回払う額なので <c>…AtQuarterEnd</c>（月あたりにしない）。<c>congestedGate</c>＝StepPorts の建設の門（混雑・蒸気機関・投資家 POP・助走でない）を通った州。門の外の行の建設の列は 0。
+    /// 限界の自己申告：①<c>needMoneyAtQuarterEnd</c>は門を通った州だけ（外は 0）②<c>investorSavingsStock</c>は建設の前の投資家 POP の貯蓄③旧式の腕では要る分は反事実（払った額の決定には使っていない）。</summary>
+    static void PortRows(Sink sk, ulong seed, int q, World w)
+    {
+        sk.Port ??= Open("port", seed);
+        if (!sk.PortHeader) { sk.Port.WriteLine("quarter	year	nation	region	tradeThrottleIndex	tradePotentialWeight	portThroughput	portCapacityEnd	investorSavingsStock	congestedGate	needMoneyAtQuarterEnd	capitalIntendedMoneyAtQuarterEnd	capitalPaidMoneyAtQuarterEnd	stateIntendedMoneyAtQuarterEnd	statePaidMoneyAtQuarterEnd	builtCapacity"); sk.PortHeader = true; }
+        string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        string nation = NameOf(w);
+        foreach (var r in w.Regions)
+        {
+            if (r.State != RegionState.Active || !r.IsPort) continue;
+            PortAccs.TryGetValue(r, out var a);
+            bool gate = a is not null && a.Gate;
+            double sav = gate ? a!.Savings : (r.InvestorPopIndex >= 0 && r.InvestorPopIndex < r.Pops.Count ? r.Pops[r.InvestorPopIndex].Savings.Value : double.NaN);
+            sk.Port.WriteLine(string.Join('	', I(q), I(w.Year), nation, r.Name, F(r.LastTradeThrottle), F(r.LastTradePotential), F(r.LastPortThroughput), F(r.PortCapacity), F(sav), gate ? "1" : "0",
+                F(a?.Need ?? 0), F(a?.Intended ?? 0), F(a?.PaidCap ?? 0), F(a?.StateIntended ?? 0), F(a?.PaidState ?? 0), F(a?.Built ?? 0)));
+            if (a is not null) { a.Gate = false; a.Savings = a.Need = a.Intended = a.StateIntended = a.PaidCap = a.PaidState = a.Built = 0; }
+        }
+    }
+
     /// <summary>★(287) 線F1（英の開幕の歳入を史実へ）：土地税の段が差し戻されたかと、土地税が触る権力の取り分を見る列（国×四半期の行の末尾・四半期の終わりの断面）。
     /// <c>landTaxEndShare</c>＝<see cref="World.LandTax"/>（段1＝0.133・段2＝0.267）・<c>landTaxTargetEndShare</c>＝政策の目標・<c>polityCode</c>＝<c>(int)Polity</c>・
     /// <c>privilegeIntactIndex</c>＝<see cref="PowerShares.PrivilegeIntact"/>（免税の項が土地税で動く）・<c>parliamentGripIndex</c>＝<see cref="PowerShares.ParliamentGrip"/>（常設歳入の分母が土地税で動く）。
@@ -1311,6 +1351,7 @@ public static class Instruments
             SpendFold(sk, w, st, q, picked);   // (286) 線Q：支払いの積算を窓の区切りへ（階級の所得と支出を戻す前）
             if (picked) SvcRow(sk, q, w);
             if (picked) ConsRows(sk, seed, q, w, st);   // (289) 線D：資本家の建設の州ごとの表（階級の所得と支出を戻す前）
+            if (picked) PortRows(sk, seed, q, w);       // (292) 線P：港の建設の州ごとの表
             Array.Clear(st.ClsEarn); Array.Clear(st.ClsPaid); st.ClsMonths = 0; st.WarMonths = 0; st.CivilWarMonths = 0; ResetQuarter(st);
             st.QGateObs = st.QGateClosed = st.QShortMonths = st.QRUnder1Months = 0; st.QInterest = st.QRevenue = st.QDirect = st.QIndirect = st.QShortfall = st.QBorrowed = 0;
             st.FacStarted = st.FacStartedClosed = st.FacDone = st.FacDoneClosed = st.FacDoneClosedAtStart = 0;
@@ -1329,6 +1370,7 @@ public static class Instruments
         SpendTable(sk);   // (286)
         sk.Svc?.Dispose(); sk.Svc = null;
         sk.Cons?.Dispose(); sk.Cons = null;   // (289)
+        sk.Port?.Dispose(); sk.Port = null;   // (292)
         sk.Fiscal?.Dispose(); sk.Class?.Dispose(); sk.Stock?.Dispose(); sk.Nation?.Dispose(); sk.Region?.Dispose(); sk.Migration?.Dispose(); sk.Flow?.Dispose(); sk.Goods?.Dispose(); sk.Money?.Dispose(); sk.PxGoods?.Dispose(); sk.PxMonth?.Dispose(); sk.Fiscal = sk.Class = sk.Stock = sk.Nation = sk.Region = sk.Migration = sk.Flow = sk.Goods = sk.Money = sk.PxGoods = sk.PxMonth = null;
     }
 

@@ -1403,6 +1403,17 @@ public sealed class MultiNationSim
         return paid;
     }
 
+    /// <summary>★(292) 港の州の混雑を解くのに要る建設費（自国通貨・四半期に1回の額）＝[(混雑の目標 PortCongestionTarget − 律速率 LastTradeThrottle)×潜在量 LastTradePotential ÷ PortCapToThroughput ＋ 今期の減耗で失った容量]×PortBuildCostPerUnit。
+    /// 導出：律速率＝min(1, cap÷potential)・cap＝船腹の実効＋PortCapToThroughput×PortCapacity（加法的＝BilateralMarket）。混雑の門（律速率＜目標＜1）の中では 律速率×potential が今の cap そのもの＝目標へ上げる不足は (目標−律速率)×potential・
+    /// 港の容量 1 単位が cap を PortCapToThroughput だけ足す。律速率は減耗の前の容量で測った値なので、減耗で失った容量（StepPorts の減耗の前後の差）を補う（無いと毎四半期 PortDecay×PortCapacity だけ足りず門のすぐ下で振動する）。
+    /// 新しい状態は作らない（四半期の最初の清算が書く律速率と潜在量は同じ瞬間の値）。0 以下・NaN は 0。internal＝番人（ConservationTests の港の要る分）が手で組んだ州に当てる。</summary>
+    internal static double PortCapitalNeed(Region r, Coefficients c, double lostCapacity)
+    {
+        if (!(c.PortCapToThroughput > 0)) return 0;
+        double units = (c.PortCongestionTarget - r.LastTradeThrottle) * r.LastTradePotential / c.PortCapToThroughput + lostCapacity;
+        return units > 0 ? units * c.PortBuildCostPerUnit : 0;   // 否定形＝NaN は払わない
+    }
+
     // 港湾の建設（改修2026-06-28）：StepCanals の雛形を Region に移植＝各国の港州を、交易が容量で律速（混雑）している時に**資本家が主導・国家が上乗せ**して拡張する。
     // 保存：投資（資本家貯蓄＋国庫）→ 港の州の労働の④（建設の工賃＝StepCanals と同じ・BaseMoney不変）。
     // ★2026-09-30（段3-4・C10）：港湾料は成約の時点の上乗せへ移した（BilateralMarket.StepBilateral＝荷主〔輸入の捌き手〕が払い、港の州の投資家が受け取る）＝ここは容量だけ。
@@ -1418,21 +1429,26 @@ public sealed class MultiNationSim
             foreach (var r in w.Regions)
             {
                 if (r.State != RegionState.Active || !r.IsPort) continue;
+                double capBeforeDecay = r.PortCapacity;   // (292) 減耗で失った容量を要る分へ（計器でも読む）
                 if (!_calendarFrozen) r.PortCapacity = Math.Max(0, r.PortCapacity * (1 - _coef.PortDecay));   // 減耗（維持に再投資）。★助走中は減耗も拡張も止める＝港湾容量は1783年のまま
                 //（港湾料は 2026-09-30 に成約の時点へ＝旧＝四半期末に取扱高×率を国の全POP から貯蓄の比で・段3-4 C10）
                 // 拡張は混雑時のみ（律速率<目標＝容量が交易を絞っている）＝採算ゲートで過剰投資しない。技術ゲート（近代港湾）。
                 if (_calendarFrozen || !techOk || r.LastTradeThrottle >= _coef.PortCongestionTarget) continue;   // ★助走：港湾も「年月をかけて広がる」能力＝凍結
                 if (r.InvestorPopIndex < 0 || r.InvestorPopIndex >= r.Pops.Count) continue;
                 var ip = r.Pops[r.InvestorPopIndex];
+                double need = Instruments.On ? PortCapitalNeed(r, _coef, capBeforeDecay - r.PortCapacity) : double.NaN;   // (292) 計器（読むだけ）：混雑を解くのに要る分（反事実）
                 double cCap = _coef.PortInvestFrac * Math.Max(0, ip.Savings.Value);          // 資本家ルート
                 double cState = w.PortStateRequest(r, natThr) * w.FiscalFundingRatio.Value;   // 国家ルート＝国家の予算の行（四半期の締め月の請求に入っている額）×国家の支払い率 r（2026-09-28 段2-1・(223) 旧＝PortStateFrac×資本家の投資×r を請求の外で）
                 double invest = cCap + cState;
+                if (Instruments.On) Instruments.PortGate(w, r, ip.Savings.Value, need, cCap, cState);   // (292) 計器（読むだけ）
                 if (invest <= 1e-9) continue;   // ★判定→引落の順（wave2b是正）：引落してから捨てると微小額が pop へ還流されず消える片側記帳になる
                 // ★支払いの一元化 段3-2（2026-09-30・C9）：建設の工賃は**港の州の労働の④の持分**（労働力の生産者の産出の比・賃金は労働者・Earned を通す＝InternationalMarket.PaySales）。
                 //   旧＝自国の全POP へ頭数（財を買わない）。進捗は動いた額（資本家の分＋国庫の分）。
-                invest = InternationalMarket.PaySales((w, [ip]), r, Catalog.LaborId, cCap, w)
-                       + InternationalMarket.PaySales((w, null), r, Catalog.LaborId, cState, w, TreasuryCat.OtherOut);
+                double paidCap = InternationalMarket.PaySales((w, [ip]), r, Catalog.LaborId, cCap, w);
+                double paidState = InternationalMarket.PaySales((w, null), r, Catalog.LaborId, cState, w, TreasuryCat.OtherOut);
+                invest = paidCap + paidState;
                 r.PortCapacity += invest / _coef.PortBuildCostPerUnit;
+                if (Instruments.On) Instruments.PortPaid(w, r, paidCap, paidState, invest / _coef.PortBuildCostPerUnit);   // (292) 計器（読むだけ）
             }
         }
     }
