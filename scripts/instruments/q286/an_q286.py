@@ -240,49 +240,6 @@ def t1_routes():
 
 
 # ---------------------------------------------------------------- T2 建設の門・T3 国債
-def t2_construction():
-    md = ['# T2 工場の建設：実際の額を決めているのは何か（資本家・州×月の判定の集計）', '',
-          '建設 = min(採算の門が望む束, 投資枠の束)。採算の門＝限界収益（IndProductivityGain/(1+工業化/IndProductivityScale)²×技術）−資本コスト（IndCapitalCost＋クラウディング−株の過熱）。',
-          '投資枠＝IndInvestmentFrac(0.05)×資本家の貯蓄（州ごと・毎月）。金額は国の通貨・名目GDPで割った年額比。', '']
-    for nation in NATIONS + ['ポルトガル']:
-        md.append(f'## {nation}')
-        md.append('| 窓 | 判定の州×月（月あたり） | 採算の門が開いた割合 | うち投資枠が切った割合 | 限界収益の平均 | 資本コストの平均 | 投資枠（年額÷名目GDP） | 採算の門が望む額（同） | 実際の建設費（同） | 線路・機関車（同） | 資本家の貯蓄÷年所得 |')
-        md.append('|---|---|---|---|---|---|---|---|---|---|---|')
-        for win in WIN:
-            a, b = qrange(win)
-            cols = collections.defaultdict(list)
-            for sd in SEEDS:
-                NR = NAT[sd]
-                rows = [NR.get((nation, q)) for q in range(a, b + 1)]
-                rows = [r for r in rows if r is not None]
-                if not rows:
-                    continue
-                nq = len(rows)
-                judged = sum(fl(r['constructionJudgedRegionMonthsCount']) for r in rows)
-                desiring = sum(fl(r['constructionDesiringRegionMonthsCount']) for r in rows)
-                bound = sum(fl(r['constructionBudgetBoundRegionMonthsCount']) for r in rows)
-                gdp = statistics.mean(fl(r['nominalGdpPerYear']) for r in rows)
-                cols['judged'].append(judged / (3.0 * nq))
-                cols['open'].append(desiring / judged if judged else float('nan'))
-                cols['bound'].append(bound / desiring if desiring else float('nan'))
-                cols['gain'].append(statistics.mean(fl(r['constructionMarginalGainMean']) for r in rows))
-                cols['hurdle'].append(statistics.mean(fl(r['constructionHurdleMean']) for r in rows))
-                cols['budget'].append(statistics.mean(fl(r['constructionBudgetMoneyPerMonth']) for r in rows) * 12 / gdp)
-                cols['desired'].append(statistics.mean(fl(r['constructionDesiredMoneyPerMonth']) for r in rows) * 12 / gdp)
-                mr, mo = mean_rows(SPEND[sd], nation, win, {CAP})
-                cons = sum(v[0] for (k, n, t), v in mr.items() if k == 'extra' and n == '建設の材料と工賃')
-                rail = sum(v[0] for (k, n, t), v in mr.items() if k == 'extra' and n == '建設に付く線路と機関車')
-                cols['paid'].append(cons * 12 / gdp)
-                cols['rail'].append(rail * 12 / gdp)
-                cr = CLASS[sd].get(nation, {})
-                sv = [cr.get((f'q{q}', CAP)) for q in range(a, b + 1)]
-                sv = [x for x in sv if x and x[2] == x[2] and x[2] > 0]
-                cols['sav'].append(statistics.mean(x[1] / (x[2] * 12) for x in sv) if sv else float('nan'))
-            md.append(f"| {win} | {cell(cols['judged'], 1)} | {cell(cols['open'], 0, pct=True)}% | {cell(cols['bound'], 0, pct=True)}% | {cell(cols['gain'], 3)} | {cell(cols['hurdle'], 3)} | {cell(cols['budget'], 2, pct=True)}% | {cell(cols['desired'], 2, pct=True)}% | {cell(cols['paid'], 2, pct=True)}% | {cell(cols['rail'], 2, pct=True)}% | {cell(cols['sav'], 1)}年 |")
-        md.append('')
-    open(os.path.join(OUT, 't2_construction.md'), 'w', encoding='utf-8').write('\n'.join(md))
-
-
 def t3_bonds():
     md = ['# T3 国債の購入：実際の額を決めているのは何か', '',
           '借入は月に1件・額＝min(1件の額〔名目GDP×割合〕, 払えない額〔請求−払える額〕)・国内の買い手のプール＝資本家の貯蓄×BondAppetite(0.15)＋外資。需要側（政府の不足）が決める形で、資本家の食欲は上限にすぎない。', '',
@@ -674,7 +631,9 @@ def t4b_servant_whatif():
     """使用人の産出を s 倍にしたときの静的な見込み（均衡のみ・種ごと）。需要＝D0×(p0/p)^0.7（弾力 Catalog）。"""
     md = ['# T4b 使用人の産出を s 倍にしたときの静的な見込み（均衡だけ・クランプと予算の切れは無視）', '',
           '需要曲線 D(p)=D0×(p0/p)^0.7（家事奉仕の弾力 0.7）・均衡の価格の倍率 m=(1/s)^(1/0.7)・各階級の量は s 倍・支払いは m×s 倍＝s^(−0.43)。役務の優先配分（大衆→近代エリート→貴族）は均衡では効かない（全階級の需要が同じ率で縮む）。',
-          '※実際の月次の歩では、価格が追いつくまで優先配分が効く（大衆が先に取り、貴族が残りを受ける）。', '',
+          '※実際の月次の歩では、価格が追いつくまで優先配分が効く（大衆が先に取り、貴族が残りを受ける）。',
+          '※s=0.25 の行はクランプの外：価格 7.25 倍の自己価格の係数 0.25 は PriceFactorMin 0.4 を下回る＝シムでは起きない（(287) 反証役の低）。',
+          '※人数は固定：賃金の差で失業プールから使用人へ流れ込む道（Meritocracy.FillJobs）は入れていない＝流入で供給が戻るぶん効き目はさらに弱い（(287) 反証役の低〜中）。', '',
           '| 国 | 窓 | s | 価格の倍率 | 使用人への支払いの総額（今=1） | 使用人の所得の増分÷国の所得 | 富裕3階級の支払い（今=1） | 富裕3階級の増分÷その所得 | 大衆の増分÷大衆の所得 |', '|---|---|---|---|---|---|---|---|---|']
     for nation in NATIONS:
         for win in ('Q5-40', 'Q41-160'):
