@@ -225,4 +225,41 @@ public class TaxTests
         Assert.True(Government.LawPrereq(w, PolicyAxis.IncomeTax, 2, w.Coef).Ok, "導入の後も払えない請求を前提にしている");
         Assert.True(Government.LawPrereq(w, PolicyAxis.IncomeTax, 0, w.Coef).Ok, "下げる側に前提が掛かっている（天井型は登る側だけ）");
     }
+    /// <summary>(288)(291) 英の行 landTaxStage（既定の杖）＝段の間の開始値を置ける。整数の段は旧（int 引数）と全ビット一致。
+    /// 期待値は本体の式から作らない：①整数の段は旧の式を int のまま打ち直した（型が違う別の計算）②LandTax の段1・2 と半段は手書きの数。
+    /// 突然変異：Clamp の後ろで切り捨て（int 化）→半段が赤／NaN の否定形を外す→NaN の項が赤／最上段の分岐を外す→満額が赤。</summary>
+    [Fact]
+    public void 開幕の土地税は段の間の半段を置け整数の段は旧と全ビット一致する()
+    {
+        // ① 整数の段：旧の式（int の段・int*double/int）をそのまま打ち直して、全ての軸×段0〜3 で全ビット一致を見る（TaxValue は double の段）。
+        foreach (var a in new[] { PolicyAxis.IncomeTax, PolicyAxis.ProgressiveTax, PolicyAxis.PollTax, PolicyAxis.LandTax, PolicyAxis.EducationSpending })
+            for (int k = 0; k <= Government.TaxLawStages; k++)
+            {
+                double top = Government.TaxLawTop(a);
+                double old = k == Government.TaxLawStages ? top : k * top / Government.TaxLawStages;   // 旧: int s の枝
+                Assert.Equal(System.BitConverter.DoubleToInt64Bits(old),
+                             System.BitConverter.DoubleToInt64Bits(Government.TaxValue(a, k)));
+            }
+        // ② 手書きの数（地租の錨 0.4）：段1＝0.4/3・段2＝0.8/3・満額＝0.4・半段 1.5＝0.2・1.275＝0.17（英の行）。
+        Assert.Equal(0.4, Government.LandTaxTop);
+        Assert.Equal(0.13333333333333333, Government.TaxValue(PolicyAxis.LandTax, 1));
+        Assert.Equal(0.26666666666666666, Government.TaxValue(PolicyAxis.LandTax, 2));
+        Assert.Equal(0.4, Government.TaxValue(PolicyAxis.LandTax, 3));
+        Assert.Equal(0.2, Government.TaxValue(PolicyAxis.LandTax, 1.5), 12);
+        Assert.Equal(0.17, Government.TaxValue(PolicyAxis.LandTax, 1.275), 12);
+        // ③ 範囲外は端へ（旧の Clamp と同じ）・NaN は段0（課さない側）＝Math.Clamp は NaN を除かない
+        Assert.Equal(0.0, Government.TaxValue(PolicyAxis.LandTax, -1.0));
+        Assert.Equal(0.4, Government.TaxValue(PolicyAxis.LandTax, 3.5));
+        Assert.Equal(0.0, Government.TaxValue(PolicyAxis.LandTax, double.NaN));
+        // ④ 設定→開始の率：world.json と同じ読み口（小数の段も整数の段も読める）。共有の設定（キャッシュ）は書き換えない＝JSON から作る。
+        var frac = System.Text.Json.JsonSerializer.Deserialize<NationConfig>("{\"landTaxStage\":1.275}", WorldData.Options)!;
+        var whole = System.Text.Json.JsonSerializer.Deserialize<NationConfig>("{\"landTaxStage\":2}", WorldData.Options)!;
+        Assert.Equal(0.17, frac.ToScenario(5).InitialLandTax, 12);
+        Assert.Equal(System.BitConverter.DoubleToInt64Bits(0.26666666666666666),
+                     System.BitConverter.DoubleToInt64Bits(whole.ToScenario(5).InitialLandTax));   // 整数 2 は旧の段2 の率と全ビット一致
+        // ⑤ 小数の率は段の格子の途中＝法の段は丸め（中点は常に上段）、目標は段2 の率へ畳まれる＝実効の率は目標へ這い寄る（記録の対象）。
+        Assert.Equal(1, Government.TaxStage(PolicyAxis.LandTax, 0.17));
+        Assert.Equal(2, Government.TaxStage(PolicyAxis.LandTax, 0.2));
+        Assert.Equal(0.13333333333333333, Government.Q4(PolicyAxis.LandTax, 0.17));
+    }
 }

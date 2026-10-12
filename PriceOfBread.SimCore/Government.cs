@@ -395,9 +395,11 @@ public static class Government
     /// <remarks>⚠最上段だけは錨を**そのまま**返す（<c>3×0.35/3</c> は 0.34999999999999992 で 0.35 と1ulpずれる＝
     /// 「最上段＝その軸の教義最大」が浮動小数で偽になり、教義値を置いた国が最上段に居ないと読まれる）。
     /// 錨1.0（教育費）では <c>段×1.0/3</c> が旧 <c>段/3.0</c> と全ビット一致＝この軸は錨の前後で1ビットも変わらない。</remarks>
-    internal static double TaxValue(PolicyAxis a, int stage)
+    internal static double TaxValue(PolicyAxis a, double stage)
     {
-        int s = Math.Clamp(stage, 0, TaxLawStages);
+        // ★(288)(291) 段の引数を小数へ広げた（開幕の土地税の半段）。整数の段では下の式は旧（int*double/int）と全ビット一致。
+        //   ⚠Math.Clamp は NaN を除かない（NaN をそのまま返す）＝否定形で NaN を段0（課さない側＝fail-closed）へ畳む（int の段は NaN を持てなかった＝小数へ広げて開いた口）。
+        double s = !(stage >= 0.0) ? 0.0 : Math.Min(stage, (double)TaxLawStages);
         return s == TaxLawStages ? TaxLawTop(a) : s * TaxLawTop(a) / TaxLawStages;
     }
 
