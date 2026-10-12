@@ -103,3 +103,10 @@
 - 【出】Bank of England, A Millennium of Macroeconomic Data for the UK（Thomas & Dimsdale）の名目GDP＝FRED NGDPMPUKA（https://fred.stlouisfed.org/data/NGDPMPUKA）。
 - 【推・二次】Jefferson Papers の Pitt 演説の転写（founders.archives.gov）・historyhome.co.uk の Pitt の経済政策・econlib.org の The History of the English Debt・Williamson 1984 の引用（Deane-Cole の外挿 107.1）。
 - 【推】Mitchell, British Historical Statistics の公財政の表（紙の本・未取得）・Sinclair, History of the Public Revenue (1803-04)（未取得）。
+
+[9. 追記（測る前・線は動かしていない・読み方と点検の補足）]
+1. L1・L2 の窓 Q2〜Q8 は標準の読み手 an_f1s0_savings_chain.py の t3 に無い（t3 は Q1・Q1〜Q8・Q5〜Q40・Q1〜Q40）。腕を回す担当は t3 に Q2〜Q8 の列を足す（計器の読み手の列・挙動不変・帯のバイト一致は要らない）。Q1〜Q8 へ黙って置き換えない（Q1 は貿易の過渡を含み、線の意味が変わる）。
+2. L2 が下に外れる場合の読み分け：B で歳入が減ると FiscalStressOf＞0 → 専売の段が 2→3 へ上がり、専売が育って直接税の割合が 0.14 を割りうる（杖が働いた上で AI が補った形・P2 の下端 0.15 と L2 の 0.14 は近い）。区別は nation_s の monopolyTierBeforeDecisionStage／monopolyTierEndStage（英の Q1〜Q8）：B で段3 になり A が段2 のままなら逼迫の経路が発火＝L2 の外れは杖の不発でなく補償。これは L1 と L3 の読みにも効く（補償があれば水準は戻る）。
+3. 杖の率の裏づけ：OB 表5 の地租の推計税率は 5〜20%（ad valorem）。段1（地代の 13.3%）は範囲の内側、段2（26.7%）は外側。
+4. 1-E の計器の限界：fiscal_s の monthIndex は 2 から始まる（seed 3 の canary で最初の月が欠ける）ため、1-E の Q1 の行は 1 か月・Q2〜Q8 の窓は 1 か月ずれうる。10種の読みは t3 の方式（nation_s の四半期の月平均）で出し直す。1-E は目安であって線の根拠ではない（線は 1-C の帯と 10種の中央で書いてある）。
+5. 恒等の言い方：この回の変更は measurements/ と docs/ だけ（ソースは1バイトも変えていない）。canary の manifest の SOURCE-HASH 72174ab6c43989b1 ＝基線 r283＝帯は自明に一致する（帯の3本は回していない）。
