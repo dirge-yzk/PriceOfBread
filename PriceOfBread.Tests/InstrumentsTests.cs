@@ -1956,4 +1956,84 @@ public class InstrumentsTests
         }
         finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
     }
+
+    /// <summary>
+    /// (289) 線D：資本家の建設の州の表 <c>cons_s</c>・国の所得の合計と国庫が払った建設の列（<c>nation_s</c> の末尾）・専売の取り分 <c>spend_s</c> の <c>stateTakePerMonth</c> の番人。
+    /// ①州の払った額（paidPerMonth×monthsCount）の和が、別の積算器（<c>spend_s</c> の「建設の材料と工賃」〔階級の支払いの種類〕）に窓の区切りごとに閉じる。
+    /// ②州の資本家の貯蓄（capitalistSavingsStock）の和が、別の書き手 <c>class_s</c> の資本家の貯蓄の在庫に四半期ごとに閉じる。
+    /// ③専売の取り分（階級×財の stateTakePerMonth×月数）の全体の和が、国庫の台帳 <c>fiscal_s</c> の <c>ledgerStateMonopolyPerMonth</c> の月の和に閉じる。
+    /// ④全階級の所得の和 <c>earnedTotalPerMonth</c> が <c>class_s</c> の <c>earnedPerMonth</c> の和に閉じる。
+    /// 対照：建設の払い・貯蓄・専売の取り分が実際に正になった（何もしない番人は必ず緑）。
+    /// </summary>
+    [Fact]
+    public void 建設の州の表と専売の取り分が別の積算器に閉じる()
+    {
+        string dir = NewDir();
+        try
+        {
+            Instruments.Configure(dir, "フランス");
+            try { var on = Make(); RunMatch(on, Quarters, instr: true); }
+            finally { Instruments.Configure(null, null); }
+
+            var (ch, cr) = Table(System.IO.Path.Combine(dir, "cons_s1789.tsv"));
+            var (sh, sr) = Table(System.IO.Path.Combine(dir, "spend_s1789.tsv"));
+            var (lh, lr) = Table(System.IO.Path.Combine(dir, "class_s1789.tsv"));
+            var (nh, nr) = Table(System.IO.Path.Combine(dir, "nation_s1789.tsv"));
+            var (fh, fr) = Table(System.IO.Path.Combine(dir, "fiscal_s1789.tsv"));
+            Assert.All(cr, r => Assert.Equal(ch.Length, r.Length));
+            int cQ = Array.IndexOf(ch, "quarter"), sB = Array.IndexOf(sh, "bucket"), sN = Array.IndexOf(sh, "nation"), sK = Array.IndexOf(sh, "kind"), sS = Array.IndexOf(sh, "slotName");
+            static int BucketOf(int q) { int b = 0; for (int i = 1; i < Instruments.SpendBucketStart.Length; i++) if (q >= Instruments.SpendBucketStart[i]) b = i; return b; }
+
+            // ① 州の払った額の和 ＝ spend_s の建設の材料と工賃（窓の区切りごと）
+            var consPaid = new Dictionary<int, double>();
+            foreach (var r in cr)
+            {
+                double pm = Col(ch, r, "paidPerMonth"); if (double.IsNaN(pm)) continue;
+                int b = BucketOf(int.Parse(r[cQ])); consPaid[b] = consPaid.GetValueOrDefault(b) + pm * Col(ch, r, "monthsCount");
+            }
+            var spendPaid = new Dictionary<int, double>();
+            foreach (var r in sr)
+                if (r[sN] == "フランス" && r[sK] == "extra" && r[sS] == "建設の材料と工賃") { int b = int.Parse(r[sB]); spendPaid[b] = spendPaid.GetValueOrDefault(b) + Col(sh, r, "payPerMonth") * Col(sh, r, "monthsCount"); }
+            Assert.True(consPaid.Values.Sum() > 0 && spendPaid.Values.Sum() > 0, $"対照：建設の払いが0（州の表 {consPaid.Values.Sum()}・支払いの表 {spendPaid.Values.Sum()}）");
+            foreach (var b in consPaid.Keys.Union(spendPaid.Keys))
+            {
+                double a = consPaid.GetValueOrDefault(b), c = spendPaid.GetValueOrDefault(b);
+                Assert.True(Math.Abs(a - c) <= 1e-9 * Math.Max(1.0, Math.Abs(c)), $"区切り{b}：州の払った額の和 {a} が支払いの表の建設 {c} に閉じない");
+            }
+
+            // ② 州の資本家の貯蓄の和 ＝ class_s の資本家の貯蓄
+            var consSav = new Dictionary<string, double>();
+            foreach (var r in cr) { string q = "q" + r[cQ]; consSav[q] = consSav.GetValueOrDefault(q) + Col(ch, r, "capitalistSavingsStock"); }
+            int lT = Array.IndexOf(lh, "time"), lN = Array.IndexOf(lh, "nation"), lC = Array.IndexOf(lh, "classId");
+            int seenSav = 0;
+            foreach (var r in lr)
+            {
+                if (r[lN] != "フランス" || r[lC] != PopClass.Capitalist.ToString() || !consSav.TryGetValue(r[lT], out var mine)) continue;
+                double theirs = Col(lh, r, "savingsStock"); seenSav++;
+                Assert.True(Math.Abs(mine - theirs) <= 1e-9 * Math.Max(1.0, Math.Abs(theirs)), $"{r[lT]}：州の資本家の貯蓄の和 {mine} が class_s の資本家の貯蓄 {theirs} に閉じない");
+            }
+            Assert.True(seenSav >= Quarters - 1, $"突き合わせた四半期が少ない（{seenSav}）");
+
+            // ④ 全階級の所得の和 ＝ class_s の earnedPerMonth の和
+            var earnByQ = new Dictionary<string, double>();
+            foreach (var r in lr) if (r[lN] == "フランス" && r[lT].StartsWith('q')) { double e = Col(lh, r, "earnedPerMonth"); if (!double.IsNaN(e)) earnByQ[r[lT]] = earnByQ.GetValueOrDefault(r[lT]) + e; }
+            int nQ = Array.IndexOf(nh, "quarter"), nNat = Array.IndexOf(nh, "nation"), seenEarn = 0;
+            foreach (var r in nr)
+            {
+                if (r[nNat] != "フランス" || !earnByQ.TryGetValue("q" + r[nQ], out var theirs)) continue;
+                double mine = Col(nh, r, "earnedTotalPerMonth"); seenEarn++;
+                Assert.True(Math.Abs(mine - theirs) <= 1e-9 * Math.Max(1.0, Math.Abs(theirs)), $"q{r[nQ]}：国の所得の合計 {mine} が class_s の和 {theirs} に閉じない");
+                Assert.True(Col(nh, r, "stateConstructionPaidPerMonth") >= 0 && Col(nh, r, "monumentPaidPerMonth") >= 0, "国庫の建設の払いが負");
+            }
+            Assert.True(seenEarn >= Quarters - 1, $"所得を突き合わせた四半期が少ない（{seenEarn}）");
+
+            // ③ 専売の取り分（階級×財）の全体の和 ≈ 台帳の専売の月の和（境の月と月内のずれを 3% まで許す）
+            double take = 0;
+            foreach (var r in sr) if (r[sN] == "フランス" && r[sK] != "class") take += Col(sh, r, "stateTakePerMonth") * Col(sh, r, "monthsCount");
+            double ledger = 0; foreach (var r in fr) ledger += Math.Abs(Col(fh, r, "ledgerStateMonopolyPerMonth"));
+            Assert.True(take > 0 && ledger > 0, $"対照：専売の取り分が0（階級の表 {take}・台帳 {ledger}）");
+            Assert.True(Math.Abs(take - ledger) <= 0.03 * ledger, $"専売の取り分の和 {take} が国庫の台帳の専売 {ledger} に閉じない");
+        }
+        finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
 }

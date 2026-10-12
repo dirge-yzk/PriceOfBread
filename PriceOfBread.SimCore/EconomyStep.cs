@@ -929,6 +929,7 @@ public static class EconomyStep
             }
             construction = Math.Min(desiredGrowth / Math.Max(Eps, coef.IndPerConstruction), budget / (buildCostPerUnit * (1.0 + coef.ConstructionLaborWageFrac)));   // 予算は材料（経4で鉄道/機関車も可）＋工賃で按分
             if (Instruments.On && world is not null) Instruments.Construction(world, desiredGrowth / Math.Max(Eps, coef.IndPerConstruction), budget / (buildCostPerUnit * (1.0 + coef.ConstructionLaborWageFrac)), marginalGain * (1.0 + coef.IndTechLeverage * techLev), hurdle, buildCostPerUnit * (1.0 + coef.ConstructionLaborWageFrac), construction);   // (271) 計器（読むだけ）：投資枠が希望を切ったか
+            if (Instruments.On && world is not null) Instruments.ConsRegion(world, region, desiredGrowth / Math.Max(Eps, coef.IndPerConstruction), budget / (buildCostPerUnit * (1.0 + coef.ConstructionLaborWageFrac)), buildCostPerUnit * (1.0 + coef.ConstructionLaborWageFrac), construction);   // (289) 計器（読むだけ）：州ごとの希望・枠・計画
             // 戦時の建設縮小は固定倍率でなく価格競合から創発：軍需（warMult で戦時増）が同じ鋼・機械・セメント・製材を食い価格を押し上げ、
             // costPerUnit↑→budget/costPerUnit↓＆FactoryBuildAfford↓で資本家の建設が自然に縮む（平時=建設優先・戦時=軍優先が市場で決まる）。
             // 経17（建設Leontief端数の繰越・点火1.0 2026-08-01）：先月の建設で律速成分に律速され「買ったのに使い切れなかった非律速資材」を Region.ConstructionCarryover に累積し（市場在庫と同じ腐敗率で減衰＝決済側の KeepMaterial）、
@@ -1776,7 +1777,7 @@ public static class EconomyStep
                     double subsidy = qty * insureBase * insure;   // 健康保険(#3)：医薬品の購入費の insure 割合を国家が肩代わり（insure>0 は医薬品のみ）
                     double pay = qty * m.Price * (1 + stateMonop + distM + monRent + guildRent) - subsidy;  // 専売＋流通マージン＋独占レント＋同業組合の上乗せ込み − 国家負担分＝popの実支払い
                     p.PaidPerMonth += new MoneyPerMonth(pay);
-                    if (insSpend is not null) Instruments.AddSpend(insSpend, p.ClassId, gi, pay, qty, qty * m.Price);   // (286) 計器（読むだけ）：買い手の実支払い・数量・生産者の受取（税と流通マージンを除く）
+                    if (insSpend is not null) Instruments.AddSpend(insSpend, p.ClassId, gi, pay, qty, qty * m.Price, qty * m.Price * (stateMonop + (monRent > 0 && !(gi == Catalog.TeaId && region.InvestorPopIndex >= 0 && region.InvestorPopIndex < region.Pops.Count) ? monRent : 0)));   // (286) 計器（読むだけ）：買い手の実支払い・数量・生産者の受取（税と流通マージンを除く）／(289) 国庫の取り分〔専売の上乗せ＋国庫へ行く独占レント〕
                     p.RemainingBudget -= pay;
                     // ★備蓄（作者裁定2026-09-20 2'）：食料が**在庫切れで**買えなかった分（買えたはずの量 GoodDemand − 配給された量 qty）の予算は、
                     //   同じ月の下の階層（日用品・嗜好品）へ流さない＝残予算から外すだけで払わない＝金は既存の Savings に残る（新しい状態を作らない・思想⑩）。
@@ -1949,6 +1950,7 @@ public static class EconomyStep
             region.Pops[region.InvestorPopIndex].PaidPerMonth += new MoneyPerMonth(cost);   // 投資家（資本家）が建設を負担（材料＋工賃）
             if (insSpend is not null) Instruments.AddSpend(insSpend, region.Pops[region.InvestorPopIndex].ClassId, Instruments.ExtraSlot(Instruments.SpendExtra.Construction), cost, built, cost);
             if (insOn) Instruments.ConstructionFill(world!, construction, built, ration[sg], ration[mg], ration[cg], ration[lg], conLaborUnits > 0 && Catalog.LaborId < ng ? ration[Catalog.LaborId] : 1.0);   // (286) 計器（読むだけ）：数量＝建った束
+            if (insOn) Instruments.ConsRegionPaid(world!, region, built, cost);   // (289) 計器（読むだけ）：州ごとの建った束と払った額
             revenue[sg] += sGot * clearPrice[sg];
             revenue[mg] += mGot * clearPrice[mg];
             revenue[cg] += cGot * clearPrice[cg];
@@ -2035,12 +2037,14 @@ public static class EconomyStep
                 built = Math.Min(built, stateConstruction * ration[Catalog.LaborId]);
             double cost = sGot * clearPrice[sg] + mGot * clearPrice[mg] + cGot * clearPrice[cg] + lGot * clearPrice[lg];
             region.StateSpent[(int)TreasuryCat.Modernization] += cost;   // 国庫が負担（Simulation が国庫から引く＝国庫→生産者で保存）
+            if (insOn) Instruments.StatePaid(world!, 0, cost);   // (289) 計器（読むだけ）：国庫が実際に払った国の建設
             // 経5：国家建設の工賃決済＝労働力財市場から工賃分を買い、支払い主体は国庫（StateSpent）＝行政・軍需と同じ国庫→労働pop経路で保存（旧経路は 2026-09-28 に削除＝上の資本家経路と同じ）。
             if (stateConLaborUnits > 0 && Catalog.LaborId < ng)
             {
                 double labQ = stateConLaborUnits * ration[Catalog.LaborId];
                 double labPay = labQ * clearPrice[Catalog.LaborId];
                 region.StateSpent[(int)TreasuryCat.Modernization] += labPay;
+                if (insOn) Instruments.StatePaid(world!, 0, labPay);   // (289) 計器（読むだけ）
                 revenue[Catalog.LaborId] += labPay;
             }
             revenue[sg] += sGot * clearPrice[sg];
@@ -2085,11 +2089,13 @@ public static class EconomyStep
                 built = Math.Min(built, monumentConstruction * ration[Catalog.LaborId]);
             double cost = sGot * clearPrice[sg] + mGot * clearPrice[mg] + cGot * clearPrice[cg] + lGot * clearPrice[lg];
             region.StateSpent[(int)TreasuryCat.Megaproject] += cost;
+            if (insOn) Instruments.StatePaid(world!, 1, cost);   // (289) 計器（読むだけ）：国庫が実際に払った巨大建造物
             if (monumentLaborUnits > 0 && Catalog.LaborId < ng)
             {
                 double labQ = monumentLaborUnits * ration[Catalog.LaborId];
                 double labPay = labQ * clearPrice[Catalog.LaborId];
                 region.StateSpent[(int)TreasuryCat.Megaproject] += labPay;
+                if (insOn) Instruments.StatePaid(world!, 1, labPay);   // (289) 計器（読むだけ）
                 revenue[Catalog.LaborId] += labPay;
             }
             revenue[sg] += sGot * clearPrice[sg];
