@@ -22,6 +22,9 @@ GATE = 0.5
 BACK = 80   # 直近の払いからの帰属で遡る最大の四半期数（b/40 の回復が最も遅くて 147 四半期だが、直近の払いで S の頭はほぼ満たされる）
 
 
+N_TREE = [False]   # (283) 入力が (282) 線N の木（pushBudgetFrontsCount 列がある）か＝D の N と係数の比が無効になる
+
+
 def factor(n):
     return (1.0 / n) ** GATE if n > 1 else 1.0
 
@@ -37,6 +40,7 @@ def load(d):
         with open(path, encoding='utf-8') as f:
             for r in csv.DictReader(f, delimiter='\t'):
                 n = int(r['openFrontsCount'])
+                if 'pushBudgetFrontsCount' in r: N_TREE[0] = True   # (283) (282) 線N の木＝openFrontsCount は記録した戦線の総数で N ではない（N は pushBudgetFrontsCount）
                 if n < 0:
                     continue
                 st = r['openFrontStates']; cs = r['openFrontCosts']; ss = r['openFrontSpentAtDecision']
@@ -156,7 +160,7 @@ def main():
     c = split_stats(rows)
     N = c['all']
     P('全ての国：戦線 %d 件＝段の法 L %s・連続の軸 %s' % (N, pct(c['L'], N), pct(c['K'], N)))
-    P('  符号 2 全体 %s〔(274) の 47.8%% と同じ〕＝構造 %s＋飢え %s（符号 2 に対する割合 構造 %s・飢え %s）' % (pct(c['2'], N), pct(c['2S'], N), pct(c['2H'], N), pct(c['2S'], c['2']), pct(c['2H'], c['2'])))
+    P('  符号 2 全体 %s〔(274) の基線は 47.8%%〕＝構造 %s＋飢え %s（符号 2 に対する割合 構造 %s・飢え %s）' % (pct(c['2'], N), pct(c['2S'], N), pct(c['2H'], N), pct(c['2S'], c['2']), pct(c['2H'], c['2'])))
     P('  段の法 L：資本固定 %s＝構造 %s＋飢え %s（L に対する割合）／払って通った %s' % (pct(c['LS'] + c['LH'], c['L']), pct(c['LS'], c['L']), pct(c['LH'], c['L']), pct(c['LP'], c['L'])))
     P('  連続の軸：資本固定 %s＝構造 %s＋飢え %s／払って通った（符号 4・8）%s' % (pct(c['KS'] + c['KH'], c['K']), pct(c['KS'], c['K']), pct(c['KH'], c['K']), pct(c['KP'], c['K'])))
     P('  幽霊（政治資本の在庫が空でも・満タンでも動かない）＝純支持・不可逆・前提 %s＋構造 %s＝%s（(274) の「真の幽霊 10.2%%」は下限だった）' % (pct(c['pure'], N), pct(c['2S'], N), pct(c['pure'] + c['2S'], N)))
@@ -263,6 +267,8 @@ def main():
 
     # ---------------- D
     P('==== D. 分母を揃える線の予測の数字（事前登録の材料・静的）＝CountOpenFronts の数え方を連続の軸 R・T・M（解禁の間は M を外す）に限る ====')
+    if N_TREE[0]:
+        P('  ⚠(283) この入力は (282) 線N の木（pushBudgetFrontsCount 列がある）＝openFrontsCount は記録した戦線の総数で N ではない・係数は既に揃えた後＝この節の N・係数の比・予測は無効（読むのは基線の木の出力だけ）')
     P('政治予算の係数 f(N)=(1/N)^%.1f（N≦1 は 1）。連続の軸の歩幅∝係数 ⇒ 連続の軸の払いも係数の比で増える（M は解禁の間は係数が掛からない＝不変）。' % GATE)
     def Nc(r):
         n = 0

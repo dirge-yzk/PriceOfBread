@@ -1,0 +1,10 @@
+# (283) 合わせた木（93633d5・SOURCE-HASH 72174ab6c43989b1）の計器つき10種（D:/PoB_work/m283/out_Ains_10/ins）で既存の読み手を回し直した確かめ
+an_g278.py（(278) 線G2・(283) で直す前の版＝HEAD 93633d5 の版）: 1行目（入力のパス）を除いて measurements/g278_20261012/capital_tables_g278.txt と diff 0
+an_ghost.py（(274) 線G）: 1行目を除き・改行の CR と空行を除いて measurements/g278_20261012/ghost_tables_g278.txt と diff 0
+o0/an_o0.py（(281) 線O0）: 1行目（ラベル）を除いて measurements/o0_20261012/baseline_r279_o0.txt と diff 0（Instruments.cs の合流で nation_s の列がずれていない）
+hol/an_h2.py -v4: measurements/m279_20261012/h2_r279.txt と cmp 一致（h2_r283.txt）
+ng.sh の 12 本: Traceback 0・measurements/ng279_20261012 と1〜数行目のタグ（r283／r279）だけ違う
+x280/an_x280.py: 腕 A／B（OpeningSavingsRebaseMode=2 の腕）を要する読み手＝帯の木には当てない。線X の表 money_s・pxgoods_s・pxmonth_s は計器つき10種の出力に 10 種ずつある（種1：2,753・8,433・337 行）
+o0/an_o0_fiscal.py（(283) 新しい読み手）: measurements/m283_20261012/o0_fiscal_r283.txt
+  ② の自己検査（fiscal_s の行から数えたゾンビの月 ＞ nation_s の zombieMonthsCount）の確かめ：行から数えたゾンビの月のうち「r＝1 後の払える額 payableAfterBorrowStock ≒ 請求（相対 1e-9）」の月＝英 1022／1033・蘭 1120／1239・仏 145／187・葡 443／461。
+  不一致の月数（英 418・蘭 159・仏 43・葡 147）はどの国もこの〈ちょうど埋めた月〉の数の内＝r＝1−ε が G10 の「1」に丸まる説と矛盾しない【推・確定はしていない】。

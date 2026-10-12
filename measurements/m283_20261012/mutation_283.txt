@@ -1,0 +1,9 @@
+(283) 合流の処置（O0 中#1）の番人の突然変異（コミット 93633d5 の木・Release・main の作業ツリー・隔離ビルド D:/PoB_work/m283/art_chk）
+番人：InstrumentsTests.切り下げで埋める前の払えない額は当座借越を数えない
+突然変異：Simulation.cs の Instruments.PreBorrow(World, payable, spare) → Instruments.PreBorrow(World, payable + Math.Min(0, World.Treasury.Value), spare)（借越を数える）
+フィルタ：当座借越を数えない | 借入の門の周りの列（(281) の2本）
+結果：新しい番人＝赤（フランス：払えない額÷請求 3.145197599 ≠ 生の列から組んだ 0（借越 -13707.7・歳入 4569.2・請求 4260.0））
+      (281) の2本（借入の門の周りの列を手で組んだ5か月の入力で数える・借入の門の周りの列が試合の月ごとの行から組み直した数に合う）＝緑のまま（反証役の推測どおり）
+      合計 3・失敗 1・合格 2
+復元：元のファイルを書き戻し md5 一致（Simulation.cs: OK）・git status に SimCore の変更なし
+突然変異前（元の木）：新しい番人＝合格 1
