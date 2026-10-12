@@ -1,0 +1,13 @@
+diff --git a/PriceOfBread.SimCore/world.json b/PriceOfBread.SimCore/world.json
+index 9d65014..75f0d26 100644
+--- a/PriceOfBread.SimCore/world.json
++++ b/PriceOfBread.SimCore/world.json
+@@ -284,7 +284,7 @@
+    "coercion": 380,
+    "treasury": 21000,
+    "pollTaxStage": 0,
+-   "landTaxStage": 2,
++   "landTaxStage": 1.5,
+    "govDebt": 750000,
+    "initialTariff": 0.3,
+    "industrialization": 1.4,

@@ -133,6 +133,7 @@ public static class Instruments
         public int ConRegionMonths;                        // 建設の判定に来た州×月
         public double ConPlannedMoney, ConBudgetBoundMoney, ConBuiltUnits, ConPlannedUnits; public readonly double[] ConRationW = new double[5];   // 計画した（枠で切った後の）金額／枠が切った州×月の枠の金額／建った束／計画した束／計画した束で重みづけた配給率（鋼・機械・セメント・製材・労働）の和
         public double ConGainSum, ConHurdleSum, ConBudgetMoney, ConDesiredMoney;   // 限界収益・資本コストの州×月の和／投資枠の金額／希望の金額（希望の束×束の費用×(1+工賃)）
+        public readonly double[] QStPaid = new double[2];  // (289) 線D：国庫が実際に払った建設の額（材料＋工賃）の月の和：[0]＝国の建設〔Modernization の stateConstruction の決済〕[1]＝巨大建造物〔Megaproject の決済〕
     }
     /// <summary>(274) 開いた戦線1本。Kind＝L 段の法〔Idx＝LevelLaws の表の行〕／R 税・支出の段〔Idx＝RateLaws の行〕／M 軍事費の合計／C 治安維持力／T 関税。
     /// Code：0 施行のとき目標＝現在で閉じていた／1 純支持で固定／2 政治資本で固定／3 無償で動いた〔未到達〕／4 政治資本を払って動いた〔未到達〕／5 不可逆で固定／6 前提で固定／
@@ -163,19 +164,23 @@ public static class Instruments
         public readonly Dictionary<string, (int Quarter, int Year)> CanalOpened = new();   // (271) 運河の開通の四半期（最初に開通を見た四半期の末）
         public readonly Dictionary<(int Uid, int Bucket), SpendAcc> Spend = new();         // (286) 国の個体×窓の区切りごとの支払いの積算
         public System.IO.StreamWriter? Svc; public bool SvcHeader;                         // (286) 家事奉仕の市場（挙げた国×四半期）
+        public System.IO.StreamWriter? Cons; public bool ConsHeader;                       // (289) 資本家の建設の州ごとの表（挙げた国×州×四半期）
     }
     /// <summary>(286) 線Q：窓の区切りごとの積算。区切り（四半期の番号 q）＝[0,4) [4,8) [8,40) [40,160) [160,∞)。窓 Q1〜Q8＝区切り0+1・Q5〜Q40＝1+2・Q41〜Q160＝3。</summary>
     internal sealed class SpendAcc
     {
         public string Nation = ""; public bool Picked; public int Months;
-        public readonly double[] Spend = new double[NC * SpendW * 3];
+        public readonly double[] Spend = new double[NC * SpendW * SpendStride];
         public readonly double[] Earn = new double[NC], Paid = new double[NC], SizeMonths = new double[NC];   // 階級の所得・支出（月の和）・人数の月数の和（千人×月）
         public readonly string?[] Names = new string?[NC];
     }
-    internal static readonly int[] SpendBucketStart = [0, 4, 8, 40, 160];
+    /// <summary>(289) 線D：区切りに 188（1830年）・228（1840年）・268（1850年）・400 を足した（区切り0〜3 は (286) のまま＝窓 Q1〜Q8・Q5〜Q40・Q41〜Q160 の読み手はそのまま読める。区切り4 は「Q161〜」から「Q161〜Q188」になった）。</summary>
+    internal static readonly int[] SpendBucketStart = [0, 4, 8, 40, 160, 188, 228, 268, 400];
     static int SpendBucketOf(int q) { int b = 0; for (int i = 1; i < SpendBucketStart.Length; i++) if (q >= SpendBucketStart[i]) b = i; return b; }
     /// <summary>支払いの種類の幅＝財の数＋下の「財でない支払い」。</summary>
     internal static readonly int SpendW = Catalog.Goods.Length + 8;
+    /// <summary>(289) 1つの (階級, 種類) の積算の幅：{買い手の実支払い, 数量, 生産者の受取, 国庫の取り分〔専売の上乗せ＋国庫へ行く独占レント〕}。</summary>
+    const int SpendStride = 4;
     /// <summary>財でない支払い（POP の <c>PaidPerMonth</c> に入る物）の種類。財の番号の後ろに並べる。</summary>
     internal enum SpendExtra { Construction = 0, ConstructionRail = 1, InfraMaintenance = 2, Grid = 3, ReignitionOrder = 4, RebelArms = 5 }
     static readonly string[] SpendExtraNames = ["建設の材料と工賃", "建設に付く線路と機関車", "インフラ保守", "送電網", "止まった工場の再開の発注", "反乱勢力の武器"];
@@ -403,15 +408,17 @@ public static class Instruments
         st.ConPlannedUnits += planned; st.ConBuiltUnits += built;
         st.ConRationW[0] += planned * rSteel; st.ConRationW[1] += planned * rMachine; st.ConRationW[2] += planned * rCement; st.ConRationW[3] += planned * rLumber; st.ConRationW[4] += planned * rLabor;
     }
-    internal static double[] SpendBuf(World w) => S(w).QSpend ??= new double[NC * SpendW * 3];
+    internal static double[] SpendBuf(World w) => S(w).QSpend ??= new double[NC * SpendW * SpendStride];
     /// <summary>支払い1行を積む：階級 <paramref name="cls"/>・種類 <paramref name="slot"/>（財の番号、または <see cref="ExtraSlot"/>）・買い手の実支払い <paramref name="pay"/>・数量・生産者の受取（税と流通マージンを除く）。読むだけ。</summary>
-    internal static void AddSpend(double[] buf, int cls, int slot, double pay, double qty, double receipt)
+    internal static void AddSpend(double[] buf, int cls, int slot, double pay, double qty, double receipt, double stateTake = 0)
     {
         if ((uint)slot >= (uint)SpendW) return;
         int c = (uint)cls < (uint)NC ? cls : NC - 1;
-        int k = (c * SpendW + slot) * 3;
-        buf[k] += pay; buf[k + 1] += qty; buf[k + 2] += receipt;
+        int k = (c * SpendW + slot) * SpendStride;
+        buf[k] += pay; buf[k + 1] += qty; buf[k + 2] += receipt; buf[k + 3] += stateTake;
     }
+    /// <summary>(289) 線D：国庫が実際に払った建設の額（材料＋工賃）。kind 0＝国の建設・1＝巨大建造物。月の和で積み、四半期の行（<c>nation_s</c> の末尾）で月数で割る。</summary>
+    internal static void StatePaid(World w, int kind, double amount) => S(w).QStPaid[kind] += amount;
     internal static int ExtraSlot(SpendExtra e) => Catalog.Goods.Length + (int)e;
 
     /// <summary>四半期の末：今の四半期の支払いの積算を窓の区切りの積算へ足す（<see cref="Quarter"/> が国ごとに呼ぶ・<c>st.Uid</c> が採番された後）。</summary>
@@ -434,7 +441,7 @@ public static class Instruments
     {
         if (sk.Spend.Count == 0) return;
         using var wr = Open("spend", sk.Seed);
-        wr.WriteLine("bucket\tfirstQuarter\tlastQuarter\tnationUid\tnation\tpickedFlag\tclassId\tclassName\tkind\tslotId\tslotName\ttier\tmonthsCount\tpayPerMonth\tqtyPerMonth\treceiptPerMonth");
+        wr.WriteLine("bucket\tfirstQuarter\tlastQuarter\tnationUid\tnation\tpickedFlag\tclassId\tclassName\tkind\tslotId\tslotName\ttier\tmonthsCount\tpayPerMonth\tqtyPerMonth\treceiptPerMonth\tstateTakePerMonth");
         string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
         int[] otherClasses = [PopClass.Noble, PopClass.Peasant, PopClass.Worker, PopClass.Capitalist, 10, 12];
         int ng = Catalog.Goods.Length;
@@ -447,29 +454,29 @@ public static class Instruments
             {
                 if (a.Names[c] is null) continue;
                 string ch = head + "\t" + I(c) + "\t" + a.Names[c];
-                wr.WriteLine(string.Join('\t', ch, "class", "-1", "階級", "", I(a.Months), F(a.Paid[c] / mo), F(a.SizeMonths[c] / mo), F(a.Earn[c] / mo)));
+                wr.WriteLine(string.Join('\t', ch, "class", "-1", "階級", "", I(a.Months), F(a.Paid[c] / mo), F(a.SizeMonths[c] / mo), F(a.Earn[c] / mo), F(double.NaN)));
                 bool full = a.Picked || Array.IndexOf(otherClasses, c) >= 0;
                 if (!full) continue;
-                var tierSum = new double[6 * 3];
+                var tierSum = new double[6 * SpendStride];
                 for (int g = 0; g < ng; g++)
                 {
-                    int k = (c * SpendW + g) * 3;
-                    double pay = a.Spend[k], qty = a.Spend[k + 1], rec = a.Spend[k + 2];
-                    if (pay == 0 && qty == 0 && rec == 0) continue;
+                    int k = (c * SpendW + g) * SpendStride;
+                    double pay = a.Spend[k], qty = a.Spend[k + 1], rec = a.Spend[k + 2], take = a.Spend[k + 3];
+                    if (pay == 0 && qty == 0 && rec == 0 && take == 0) continue;
                     var gd = Catalog.Goods[g]; int t = (int)gd.Tier;
                     if (a.Picked || gd.Tier == GoodTier.Luxury || gd.Tier == GoodTier.Service)
-                        wr.WriteLine(string.Join('\t', ch, "good", I(g), gd.Name, gd.Tier.ToString(), I(a.Months), F(pay / mo), F(qty / mo), F(rec / mo)));
-                    else { tierSum[t * 3] += pay; tierSum[t * 3 + 1] += qty; tierSum[t * 3 + 2] += rec; }
+                        wr.WriteLine(string.Join('\t', ch, "good", I(g), gd.Name, gd.Tier.ToString(), I(a.Months), F(pay / mo), F(qty / mo), F(rec / mo), F(take / mo)));
+                    else { tierSum[t * SpendStride] += pay; tierSum[t * SpendStride + 1] += qty; tierSum[t * SpendStride + 2] += rec; tierSum[t * SpendStride + 3] += take; }
                 }
                 if (!a.Picked)
                     for (int t = 0; t < 6; t++)
-                        if (tierSum[t * 3] != 0 || tierSum[t * 3 + 1] != 0 || tierSum[t * 3 + 2] != 0)
-                            wr.WriteLine(string.Join('\t', ch, "tier", I(-2 - t), "階層の合算", ((GoodTier)t).ToString(), I(a.Months), F(tierSum[t * 3] / mo), F(tierSum[t * 3 + 1] / mo), F(tierSum[t * 3 + 2] / mo)));
+                        if (tierSum[t * SpendStride] != 0 || tierSum[t * SpendStride + 1] != 0 || tierSum[t * SpendStride + 2] != 0 || tierSum[t * SpendStride + 3] != 0)
+                            wr.WriteLine(string.Join('\t', ch, "tier", I(-2 - t), "階層の合算", ((GoodTier)t).ToString(), I(a.Months), F(tierSum[t * SpendStride] / mo), F(tierSum[t * SpendStride + 1] / mo), F(tierSum[t * SpendStride + 2] / mo), F(tierSum[t * SpendStride + 3] / mo)));
                 for (int e = 0; e < SpendExtraNames.Length; e++)
                 {
-                    int k = (c * SpendW + ng + e) * 3;
-                    if (a.Spend[k] == 0 && a.Spend[k + 1] == 0 && a.Spend[k + 2] == 0) continue;
-                    wr.WriteLine(string.Join('\t', ch, "extra", I(ng + e), SpendExtraNames[e], "", I(a.Months), F(a.Spend[k] / mo), F(a.Spend[k + 1] / mo), F(a.Spend[k + 2] / mo)));
+                    int k = (c * SpendW + ng + e) * SpendStride;
+                    if (a.Spend[k] == 0 && a.Spend[k + 1] == 0 && a.Spend[k + 2] == 0 && a.Spend[k + 3] == 0) continue;
+                    wr.WriteLine(string.Join('\t', ch, "extra", I(ng + e), SpendExtraNames[e], "", I(a.Months), F(a.Spend[k] / mo), F(a.Spend[k + 1] / mo), F(a.Spend[k + 2] / mo), F(a.Spend[k + 3] / mo)));
                 }
             }
         }
@@ -689,6 +696,7 @@ public static class Instruments
         st.GfSHead = st.GfMaxHead = st.GfSEnd = st.GfPendCost = st.GfPendS = st.GfGateCost = st.GfGateS = double.NaN; st.GfPaidL = st.GfPaidR = st.GfPaidM = st.GfPaidT = st.GfPaidC = 0;   // (278) 助走の分は数えない
         st.QLimitMonths = st.QLimitCrossings = st.QLimitBorrowMonths = st.QZombieMonths = st.QWarGateClosedMonths = st.QOver067Months = st.QOver067BorrowedMonths = st.QOver067RBelow1Months = 0;   // (281) 助走の分は数えない（LimitPrev は四半期をまたぐ＝ここでは戻さない）
         st.QUnpaidObs = st.QUnpaidMonths = st.QMegaPass = st.QMegaOpen = 0; st.QUnpaidSum = st.QUnpaidMax = st.QDevalueShareSum = st.QDevalueShareMax = 0;
+        Array.Clear(st.QStPaid);   // (289) 助走の分は数えない
     }
     /// <summary>国×四半期の行に足す列（行政の請求の2つの式・戦時段）。月ごとの量は四半期の月の平均（<c>PerMonth</c>）。</summary>
     static List<(string Name, string Value)> NationExtras(World w, WState st)
@@ -946,6 +954,70 @@ public static class Instruments
         cols.Add(("devaluedToClaimMeanShare", F(st.QDevalueShareSum / uo))); cols.Add(("devaluedToClaimMaxShare", st.QUnpaidObs > 0 ? F(st.QDevalueShareMax) : "nan"));
         cols.Add(("megaCrisisPassCount", I(st.QMegaPass))); cols.Add(("megaCrisisGateOpenCount", I(st.QMegaOpen)));
         return cols;
+    }
+
+    /// <summary>★(289) 線D（作者の設計の材料）：国×四半期の行の末尾。<c>earnedTotalPerMonth</c>＝全階級の Earned の和（四半期の月平均・自国通貨の名目＝<c>class_s</c> の <c>earnedPerMonth</c> の和と同じ量を全ての国×四半期で）。
+    /// <c>stateConstructionPaidPerMonth</c>＝国庫が実際に払った国の建設（材料＋工賃・<c>EconomyStep</c> の stateConstruction の決済）・<c>monumentPaidPerMonth</c>＝同じく巨大建造物（請求ベースの <c>fiscal_s</c> の claim でなく払えた額）。
+    /// 読むだけ：支払いの位置の直後に決済で確定した額を積むだけ（値を書き換えない）。</summary>
+    static List<(string Name, string Value)> Extras289(WState st)
+    {
+        var cols = new List<(string, string)>();
+        double cm = st.ClsMonths > 0 ? st.ClsMonths : double.NaN;
+        double earn = 0; for (int c = 0; c < NC; c++) earn += st.ClsEarn[c];
+        cols.Add(("earnedTotalPerMonth", F(earn / cm)));
+        cols.Add(("stateConstructionPaidPerMonth", F(st.QStPaid[0] / cm)));
+        cols.Add(("monumentPaidPerMonth", F(st.QStPaid[1] / cm)));
+        return cols;
+    }
+
+    // ---------------------------------------------------------------- (289) 線D：資本家の建設の州ごとの表 ----------------------------------------------------------------
+
+    sealed class ConAcc { public int Judged; public double Desired, Budget, Planned, PlannedUnits, BuiltUnits, Paid; }
+    static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Region, ConAcc> ConAccs = new();
+    /// <summary>(289) 建設の判定（州×月）：希望・投資枠・計画の金額（<see cref="Construction"/> と同じ定義〔束×束の費用×(1+工賃)〕）を州ごとに積む。挙げた国だけ。</summary>
+    internal static void ConsRegion(World w, Region r, double desiredUnits, double budgetUnits, double unitMoney, double plannedUnits)
+    {
+        if (!IsPicked(w, S(w))) return;
+        var a = ConAccs.GetValue(r, _ => new ConAcc());
+        a.Judged++; if (desiredUnits > 0) a.Desired += desiredUnits * unitMoney;
+        a.Budget += budgetUnits * unitMoney; a.Planned += plannedUnits * unitMoney; a.PlannedUnits += plannedUnits;
+    }
+    /// <summary>(289) 建設の決済（州×月）：建った束と、投資家が実際に払った額（材料＋工賃・<c>PaidPerMonth</c> へ足すのと同じ <c>cost</c>）。</summary>
+    internal static void ConsRegionPaid(World w, Region r, double builtUnits, double cost)
+    {
+        if (!IsPicked(w, S(w))) return;
+        var a = ConAccs.GetValue(r, _ => new ConAcc());
+        a.BuiltUnits += builtUnits; a.Paid += cost;
+    }
+    /// <summary>(289) 助走の月の分は数えない（<see cref="ResetQuarter"/> と同じ扱い）。</summary>
+    static void ClearCons(World w)
+    {
+        foreach (var r in w.Regions) if (ConAccs.TryGetValue(r, out var a)) { a.Judged = 0; a.Desired = a.Budget = a.Planned = a.PlannedUnits = a.BuiltUnits = a.Paid = 0; }
+    }
+    internal const int ConsMaxQuarter = 160;
+    /// <summary>(289) 線D：挙げた国×州×四半期（q が <see cref="ConsMaxQuarter"/> まで）。資本家の貯蓄の在庫（四半期の末）・希望・投資枠・計画・実際に払った額（月あたり）と、州の人口・工業化度・工場の規模。
+    /// 限界の自己申告：①貯蓄は四半期の末の値・希望と枠と支払いは四半期の月平均（÷ClsMonths）②<c>investorSavingsStock</c>＝<c>InvestorPopIndex</c> の POP・<c>capitalistSavingsStock</c>＝州の資本家階級の全 POP の和
+    /// ③州の人口は全 POP の和（兵士を含む）④工場の規模＝RGO でない生産者の <c>BuiltScale</c> の和。</summary>
+    static void ConsRows(Sink sk, ulong seed, int q, World w, WState st)
+    {
+        if (q > ConsMaxQuarter) return;
+        sk.Cons ??= Open("cons", seed);
+        if (!sk.ConsHeader) { sk.Cons.WriteLine("quarter\tyear\tnation\tregion\ttier\tactiveFlag\tpopulationK\tinvestorSizeK\tinvestorSavingsStock\tcapitalistSavingsStock\tinvestorEarnedPerMonth\tindustrializationIndex\tproductiveIndustrializationIndex\tfactoryScale\tjudgedMonthsCount\tmonthsCount\tdesiredMoneyPerMonth\tbudgetMoneyPerMonth\tplannedMoneyPerMonth\tplannedUnitsPerMonth\tbuiltUnitsPerMonth\tpaidPerMonth"); sk.ConsHeader = true; }
+        string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        double cm = st.ClsMonths > 0 ? st.ClsMonths : double.NaN;
+        string nation = NameOf(w);
+        foreach (var r in w.Regions)
+        {
+            double pop = 0, capSav = 0;
+            foreach (var p in r.Pops) { pop += p.Size; if (p.ClassId == PopClass.Capitalist) capSav += p.Savings.Value; }
+            double invSize = double.NaN, invSav = double.NaN, invEarn = double.NaN;
+            if (r.InvestorPopIndex >= 0 && r.InvestorPopIndex < r.Pops.Count) { var ip = r.Pops[r.InvestorPopIndex]; invSize = ip.Size; invSav = ip.Savings.Value; invEarn = ip.EarnedPerMonth.Value; }
+            double scale = 0; foreach (var pr in r.Producers) if (!pr.IsRgo) scale += pr.BuiltScale;
+            ConAccs.TryGetValue(r, out var a);
+            sk.Cons.WriteLine(string.Join('\t', I(q), I(w.Year), nation, r.Name, r.Tier.ToString(), r.State == RegionState.Active ? "1" : "0", F(pop), F(invSize), F(invSav), F(capSav), F(invEarn), F(r.Industrialization), F(r.ProductiveIndustrialization), F(scale),
+                I(a?.Judged ?? 0), F(cm), F((a?.Desired ?? 0) / cm), F((a?.Budget ?? 0) / cm), F((a?.Planned ?? 0) / cm), F((a?.PlannedUnits ?? 0) / cm), F((a?.BuiltUnits ?? 0) / cm), F((a?.Paid ?? 0) / cm)));
+            if (a is not null) { a.Judged = 0; a.Desired = a.Budget = a.Planned = a.PlannedUnits = a.BuiltUnits = a.Paid = 0; }
+        }
     }
 
     /// <summary>★(287) 線F1（英の開幕の歳入を史実へ）：土地税の段が差し戻されたかと、土地税が触る権力の取り分を見る列（国×四半期の行の末尾・四半期の終わりの断面）。
@@ -1210,7 +1282,7 @@ public static class Instruments
     internal static void Phase(MultiNationSim sim, ulong seed, string time)
     {
         var sk = SinkOf(sim, seed);
-        if (time == "warm") foreach (var n in sim.Nations) { var wst = S(n.World); wst.WarMonths = 0; wst.CivilWarMonths = 0; ResetQuarter(wst); wst.SavLedger.Clear(); }   // 助走の月は数えない（旧の注入も助走の直後に0へ戻していた）
+        if (time == "warm") foreach (var n in sim.Nations) { var wst = S(n.World); wst.WarMonths = 0; wst.CivilWarMonths = 0; ResetQuarter(wst); wst.SavLedger.Clear(); ClearCons(n.World); }   // 助走の月は数えない（旧の注入も助走の直後に0へ戻していた）
         foreach (var n in sim.Nations) { ClassRows(sk, seed, time, n.World, S(n.World), flows: false); StockRow(sk, seed, time, n.World, readGdp: time != "open"); }
         foreach (var n in sim.Nations) FlushPx(sk, seed, S(n.World));   // (280) 助走の物価の鎖の行
     }
@@ -1238,6 +1310,7 @@ public static class Instruments
             NationRow(sk, seed, q, i, w, st, yearEnd);
             SpendFold(sk, w, st, q, picked);   // (286) 線Q：支払いの積算を窓の区切りへ（階級の所得と支出を戻す前）
             if (picked) SvcRow(sk, q, w);
+            if (picked) ConsRows(sk, seed, q, w, st);   // (289) 線D：資本家の建設の州ごとの表（階級の所得と支出を戻す前）
             Array.Clear(st.ClsEarn); Array.Clear(st.ClsPaid); st.ClsMonths = 0; st.WarMonths = 0; st.CivilWarMonths = 0; ResetQuarter(st);
             st.QGateObs = st.QGateClosed = st.QShortMonths = st.QRUnder1Months = 0; st.QInterest = st.QRevenue = st.QDirect = st.QIndirect = st.QShortfall = st.QBorrowed = 0;
             st.FacStarted = st.FacStartedClosed = st.FacDone = st.FacDoneClosed = st.FacDoneClosedAtStart = 0;
@@ -1255,6 +1328,7 @@ public static class Instruments
         CanalTable(sk, sim);
         SpendTable(sk);   // (286)
         sk.Svc?.Dispose(); sk.Svc = null;
+        sk.Cons?.Dispose(); sk.Cons = null;   // (289)
         sk.Fiscal?.Dispose(); sk.Class?.Dispose(); sk.Stock?.Dispose(); sk.Nation?.Dispose(); sk.Region?.Dispose(); sk.Migration?.Dispose(); sk.Flow?.Dispose(); sk.Goods?.Dispose(); sk.Money?.Dispose(); sk.PxGoods?.Dispose(); sk.PxMonth?.Dispose(); sk.Fiscal = sk.Class = sk.Stock = sk.Nation = sk.Region = sk.Migration = sk.Flow = sk.Goods = sk.Money = sk.PxGoods = sk.PxMonth = null;
     }
 
@@ -1431,6 +1505,8 @@ public static class Instruments
         foreach (var ex in ext286) cols.Add(ex.Value);
         var ext287 = Extras287(w);   // (287) 線F1：土地税の段・政体・特権の度合い・議会の掌握（四半期の終わりの断面）
         foreach (var ex in ext287) cols.Add(ex.Value);
+        var ext289 = Extras289(st);   // (289) 線D：国の所得の合計・国庫が実際に払った建設の額
+        foreach (var ex in ext289) cols.Add(ex.Value);
         sk.Nation ??= Open("nation", seed);
         if (!sk.NationHeader)
         {
@@ -1450,7 +1526,8 @@ public static class Instruments
                 + string.Join('\t', ext278.Select(e => e.Name)) + "\t"
                 + string.Join('\t', ext281.Select(e => e.Name)) + "\t"
                 + string.Join('\t', ext286.Select(e => e.Name)) + "\t"
-                + string.Join('\t', ext287.Select(e => e.Name)));
+                + string.Join('\t', ext287.Select(e => e.Name)) + "\t"
+                + string.Join('\t', ext289.Select(e => e.Name)));
             sk.NationHeader = true;
         }
         sk.Nation.WriteLine(string.Join('\t', cols));
