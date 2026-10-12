@@ -6,7 +6,7 @@
   財は名前で引く（instr.good_id）。数字の財の番号は書かない。
   計器の限界の自己申告：①spend_s の階級ごとの支払いの種類の和＝階級の支出（kind=class）に閉じることは番人が見張る②flow_s は四半期の月平均（挙げた国だけ）
     ③人数は四半期の末の値の月数平均④窓 Q41〜Q160 の「区切り3」は q40..159 ちょうど。Q1〜Q8＝区切り0+1・Q5〜Q40＝区切り1+2（月数で重みづけ）。"""
-import sys, os, statistics, collections
+import sys, os, statistics, collections, functools
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'flow262'))
 from instr import num as fl, seeds, good_id  # noqa: E402
@@ -18,7 +18,7 @@ SEEDS = seeds(D, 'nation')
 WIN = {'Q1-8': (0, 7, (0, 1)), 'Q5-40': (4, 39, (1, 2)), 'Q41-160': (40, 159, (3,))}
 NOBLE, CAP, MERCH, SERV, PEAS, WORK = 0, 3, 10, 12, 1, 2
 RICH = (NOBLE, CAP, MERCH)
-CLASSNAME = {0: '貴族', 1: '農民', 2: '工場労働者', 3: '資本家', 10: '商人', 12: '使用人'}
+CLASSNAME = {0: '貴族', 1: '農民', 2: '工場労働者', 3: '資本家', 4: '技師', 5: '兵士', 6: '聖職者', 7: '教師', 8: '官僚', 9: '医者', 10: '商人', 11: '職人', 12: '使用人', 13: '研究者'}
 NATIONS = ['イギリス', 'フランス', 'ネーデルラント']
 
 
@@ -57,48 +57,39 @@ def load_spend(sd):
     return out
 
 
-def spend_window(S, nation, win, cls_set, pick=lambda kind, slot, name, tier: True, field=6):
-    """窓の平均（月あたり）：階級 cls_set の合計。field＝6 pay・7 qty・8 rec。区切りは月数で重みづけ。国名が複数の個体を持つ場合は挙げた個体（pickedFlag=1）だけ。
-    戻り＝{(kind, slotName, tier): value}。階級の行（kind=class）は pay＝支出・rec＝所得・qty＝人数。"""
-    buckets = WIN[win][2]
-    acc = collections.defaultdict(float); mo = 0.0
-    uids = {k[0] for k in S if k[1] == nation and S[k]['picked']}
-    for uid in uids:
-        for b in buckets:
-            e = S.get((uid, nation, b))
-            if e is None:
-                continue
-            m = next((r[5] for r in e['rows'] if r[1] == 'class'), 0.0)
-            mo += m
-            for (c, kind, slot, name, tier, months, pay, qty, rec) in e['rows']:
-                if c not in cls_set or not pick(kind, slot, name, tier):
-                    continue
-                acc[(kind, name, tier)] += (pay, qty, rec)[field - 6] * months if (pay, qty, rec)[field - 6] == (pay, qty, rec)[field - 6] else 0.0
-    # 階級の数だけ月数が重複して数えられているので階級ごとの月数で割り直さず、行ごとの months を分母にする
-    return acc, mo
+_IDX = {}
+
+
+def _picked_index(S):
+    """S（load_spend の戻り）を 国→{(uid, bucket): e}（挙げた個体のみ）に引き直す（1回だけ）。"""
+    k = id(S)
+    if k not in _IDX:
+        d = collections.defaultdict(dict)
+        for (uid, nm, b), e in S.items():
+            if e['picked']:
+                d[nm][(uid, b)] = e
+        _IDX[k] = d
+    return _IDX[k]
 
 
 def mean_rows(S, nation, win, cls_set):
     """窓の月あたりの平均を {(kind,name,tier): (pay, qty, rec)} で返す。分母＝区切りの月数（階級の行1本ぶん）の合計。"""
     buckets = WIN[win][2]
     tot = collections.defaultdict(lambda: [0.0, 0.0, 0.0]); mo = 0.0
-    uids = {k[0] for k in S if k[1] == nation and S[k]['picked']}
-    for uid in uids:
-        for b in buckets:
-            e = S.get((uid, nation, b))
-            if e is None:
+    for (uid, b), e in _picked_index(S).get(nation, {}).items():
+        if b not in buckets:
+            continue
+        ms = [r[5] for r in e['rows'] if r[1] == 'class']
+        if not ms:
+            continue
+        mo += ms[0]
+        for (c, kind, slot, name, tier, months, pay, qty, rec) in e['rows']:
+            if c not in cls_set:
                 continue
-            ms = [r[5] for r in e['rows'] if r[1] == 'class']
-            if not ms:
-                continue
-            m = ms[0]; mo += m
-            for (c, kind, slot, name, tier, months, pay, qty, rec) in e['rows']:
-                if c not in cls_set:
-                    continue
-                t = tot[(kind, name, tier)]
-                for i, v in enumerate((pay, qty, rec)):
-                    if v == v:
-                        t[i] += v * months
+            t = tot[(kind, name, tier)]
+            for i, v in enumerate((pay, qty, rec)):
+                if v == v:
+                    t[i] += v * months
     return ({k: [x / mo for x in v] for k, v in tot.items()} if mo > 0 else {}), mo
 
 
@@ -122,6 +113,18 @@ def flow_rows(sd, nation):
         f = os.path.basename(r['sourceFile']); ln = int(r['sourceLine'])
         route = ROUTE_NAMES.get((f, ln), f'{f}:{ln}')
         out[(int(r['quarter']), int(r['classId']), r['kind'], route, r['counterpartySide'])] += fl(r['amountPerMonth'])
+    return out
+
+
+def flow_all(sd):
+    out = {n: collections.defaultdict(float) for n in NATIONS}
+    for r in table(os.path.join(D, f'flow_s{sd}.tsv')):
+        n = r['nation']
+        if n not in out:
+            continue
+        f = os.path.basename(r['sourceFile']); ln = int(r['sourceLine'])
+        route = ROUTE_NAMES.get((f, ln), f'{f}:{ln}')
+        out[n][(int(r['quarter']), int(r['classId']), r['kind'], route, r['counterpartySide'])] += fl(r['amountPerMonth'])
     return out
 
 
@@ -364,6 +367,7 @@ def t4_servants():
 
 
 # ---------------------------------------------------------------- T5 奢侈品
+@functools.lru_cache(maxsize=None)
 def all_nation_class_year_end(sd, win):
     """年末の class_s（全ての国）の窓の平均：{nation: {classId: (size, earned, paid)}}。窓の中の年末（q%4==3）の行を等しく平均。"""
     a, b = qrange(win)
@@ -546,17 +550,177 @@ def t5_luxury():
 
 
 
+# ---------------------------------------------------------------- T2 改訂：建設の門と配給・投資の経路の合計
+def total_earn(S, nation, win):
+    """窓の月あたりの国の所得（全階級の Earned の和）。"""
+    mr, mo = mean_rows(S, nation, win, set(range(14)))
+    return sum(v[2] for (k, n, t), v in mr.items() if k == 'class')
+
+
+def t2_construction_v2():
+    md = ['# T2 工場の建設：実際の額を決めているのは何か（資本家・州×月の判定の集計・種の中央〔最小〜最大〕）', '',
+          '建設の束 = min(採算の門が望む束, 投資枠の束)。採算の門＝限界収益−資本コスト（>0 なら希望が立つ・希望＝IndInvestmentSpeed×その差〔吸収ゲート込み〕÷IndPerConstruction）。',
+          '投資枠＝IndInvestmentFrac(0.05)×**その州の**資本家の貯蓄（毎月・州ごと）。計画した束は材料と工賃を市場で買い、配給率で建つ束が決まる（建設費 = 実際に払った額）。',
+          '金額は国の通貨。「÷GDP」は名目GDP（総産出ベース）・「÷所得」は全階級の Earned の和（月あたり×12 と比べる）。', '']
+    for nation in NATIONS + ['ポルトガル']:
+        md.append(f'## {nation}')
+        md.append('| 窓 | 判定の州×月（月あたり） | 採算の門が開いた割合 | 希望の束のうち投資枠が切った割合 | 限界収益 | 資本コスト | 希望の額÷GDP(年) | 枠の後の計画額÷GDP | 建った束÷計画した束 | 配給率 鋼/機械/セメント/製材/労働 | 実際の建設費÷GDP | 同÷所得 | 資本家の貯蓄÷年所得 | 枠が切った州の枠の額の割合 |')
+        md.append('|---|---|---|---|---|---|---|---|---|---|---|---|---|---|')
+        for win in WIN:
+            a, b = qrange(win)
+            cols = collections.defaultdict(list)
+            for sd in SEEDS:
+                NR = NAT[sd]
+                rows = [NR.get((nation, q)) for q in range(a, b + 1)]
+                rows = [r for r in rows if r is not None]
+                if not rows:
+                    continue
+                nq = len(rows)
+                def mean(k):
+                    xs = [fl(r[k]) for r in rows]
+                    xs = [x for x in xs if x == x]
+                    return statistics.mean(xs) if xs else float('nan')
+                judged = sum(fl(r['constructionJudgedRegionMonthsCount']) for r in rows)
+                desiring = sum(fl(r['constructionDesiringRegionMonthsCount']) for r in rows)
+                gdp = mean('nominalGdpPerYear')
+                earn_y = total_earn(SPEND[sd], nation, win) * 12
+                cols['judged'].append(judged / (3.0 * nq))
+                cols['open'].append(desiring / judged if judged else float('nan'))
+                du = mean('constructionDesiredUnitsPerMonth')
+                cols['cut'].append(mean('constructionCutUnitsPerMonth') / du if du else float('nan'))
+                cols['gain'].append(mean('constructionMarginalGainMean'))
+                cols['hurdle'].append(mean('constructionHurdleMean'))
+                cols['desired'].append(mean('constructionDesiredMoneyPerMonth') * 12 / gdp)
+                cols['planned'].append(mean('constructionPlannedMoneyPerMonth') * 12 / gdp)
+                pu = mean('constructionPlannedUnitsPerMonth')
+                cols['fill'].append(mean('constructionBuiltUnitsPerMonth') / pu if pu else float('nan'))
+                for i, k in enumerate(('Steel', 'Machine', 'Cement', 'Lumber', 'Labor')):
+                    cols['r' + k].append(mean('constructionRation' + k + 'Mean'))
+                mr, mo = mean_rows(SPEND[sd], nation, win, {CAP})
+                cons = sum(v[0] for (k, n, t), v in mr.items() if k == 'extra' and n == '建設の材料と工賃')
+                cols['paid'].append(cons * 12 / gdp)
+                cols['paidE'].append(cons * 12 / earn_y if earn_y else float('nan'))
+                bm = mean('constructionBudgetMoneyPerMonth')
+                cols['boundbudget'].append(mean('constructionBudgetBoundRegionsBudgetMoneyPerMonth') / bm if bm else float('nan'))
+                cr = CLASS[sd].get(nation, {})
+                sv = [cr.get((f'q{q}', CAP)) for q in range(a, b + 1)]
+                sv = [x for x in sv if x and x[2] == x[2] and x[2] > 0]
+                cols['sav'].append(statistics.mean(x[1] / (x[2] * 12) for x in sv) if sv else float('nan'))
+            rat = ' / '.join(f"{med(cols['r' + k]):.2f}" for k in ('Steel', 'Machine', 'Cement', 'Lumber', 'Labor'))
+            md.append(f"| {win} | {cell(cols['judged'], 0)} | {cell(cols['open'], 0, pct=True)}% | {cell(cols['cut'], 0, pct=True)}% | {cell(cols['gain'], 2)} | {cell(cols['hurdle'], 2)} | {cell(cols['desired'], 2, pct=True)}% | {cell(cols['planned'], 2, pct=True)}% | {cell(cols['fill'], 0, pct=True)}% | {rat} | {cell(cols['paid'], 3, pct=True)}% | {cell(cols['paidE'], 3, pct=True)}% | {cell(cols['sav'], 1)}年 | {cell(cols['boundbudget'], 0, pct=True)}% |")
+        md.append('')
+    open(os.path.join(OUT, 't2_construction.md'), 'w', encoding='utf-8').write('\n'.join(md))
+
+
+INVEST_ROUTES = [
+    ('資本家の建設（材料と工賃）', 'extra', '建設の材料と工賃'), ('建設に付く線路・機関車', 'extra', '建設に付く線路と機関車'), ('インフラ保守', 'extra', 'インフラ保守'), ('送電網', 'extra', '送電網'),
+    ('止まった工場の再開の発注', 'extra', '止まった工場の再開の発注'),
+]
+INVEST_FLOWS = ['港の建設の工賃・資本家ルート', '運河の建設の工賃', '植民地の開発の汽船の代金', '植民地の開発の線路の代金', '船と線路の買い付け', '汽船の燃料の買い付け', '資本の輸出の送り出し', '国債の国内購入', '企業への与信・貸し']
+
+
+def t2b_invest_routes():
+    md = ['# T2b 投資の経路の一覧（富裕3階級＋公共・年額÷国の所得〔全階級の Earned の和〕と÷名目GDP）', '',
+          '私的＝spend_s の財でない支払い（資本家）・flow_s の移転（貴族・資本家・商人の払い）。公共＝fiscal_s の請求（国庫が払う建設・インフラ・巨大建造物）で、**請求ベース**（払えた額ではない）。',
+          '「国債の国内購入」「企業への与信」「資本の輸出」は貯蓄の移動で、前2者は支払先が国庫・銀行（実物の投資ではない）。', '']
+    for nation in NATIONS:
+        md.append(f'## {nation}')
+        md.append('| 経路 | Q1-8 ÷所得 | Q5-40 ÷所得 | Q41-160 ÷所得 | Q1-8 ÷GDP | Q5-40 ÷GDP | Q41-160 ÷GDP |')
+        md.append('|---|---|---|---|---|---|---|')
+        rows = collections.defaultdict(lambda: collections.defaultdict(list))
+        for win in WIN:
+            a, b = qrange(win)
+            nq = b - a + 1
+            for sd in SEEDS:
+                earn_y = total_earn(SPEND[sd], nation, win) * 12
+                gdp = statistics.mean(fl(NAT[sd][(nation, q)]['nominalGdpPerYear']) for q in range(a, b + 1) if (nation, q) in NAT[sd])
+                if not earn_y:
+                    continue
+                mr, mo = mean_rows(SPEND[sd], nation, win, {CAP})
+                for label, kind, name in INVEST_ROUTES:
+                    v = sum(x[0] for (k, n, t), x in mr.items() if k == kind and n == name) * 12
+                    rows[label][(win, 'e')].append(v / earn_y); rows[label][(win, 'g')].append(v / gdp)
+                fr = FLOW[sd].get(nation, {})
+                acc = collections.defaultdict(float)
+                for (q, c, k, route, side), v in fr.items():
+                    if a <= q <= b and c in RICH and k == 'take':
+                        for key in INVEST_FLOWS:
+                            if route.startswith(key):
+                                acc[key] += -v * 12 / nq
+                for key in INVEST_FLOWS:
+                    rows['移転：' + key][(win, 'e')].append(acc[key] / earn_y); rows['移転：' + key][(win, 'g')].append(acc[key] / gdp)
+                # 公共（fiscal_s の請求・窓の月の平均×12）
+                fs = FISC[sd].get(nation, [])
+                m0 = min((m for m, r in fs), default=0)
+                sel = [r for m, r in fs if a <= (m - m0 + 1) // 3 <= b]
+                if sel:
+                    for label, cs in (('公共：国の建設（StateBuild＋StateConstruction＋前月の工場建設）', ('claimStateBuildPerMonth', 'claimStateConstructionPerMonth', 'claimLastMonthFactoryBuildPerMonth')),
+                                      ('公共：巨大建造物', ('claimMonumentBuildPerMonth',)), ('公共：インフラ・電化インフラの維持', ('claimInfraPerMonth', 'claimElecInfraPerMonth'))):
+                        v = statistics.mean(sum(max(0.0, fl(r[c])) if fl(r[c]) == fl(r[c]) else 0.0 for c in cs) for r in sel) * 12
+                        rows[label][(win, 'e')].append(v / earn_y); rows[label][(win, 'g')].append(v / gdp)
+        for label in rows:
+            cells = []
+            for tag in ('e', 'g'):
+                for win in WIN:
+                    cells.append(cell(rows[label][(win, tag)], 2, pct=True) + '%')
+            if all(med(rows[label][(w, 'e')]) != med(rows[label][(w, 'e')]) or abs(med(rows[label][(w, 'e')])) < 0.00005 for w in WIN):
+                continue
+            md.append(f'| {label} | ' + ' | '.join(cells) + ' |')
+        md.append('')
+    open(os.path.join(OUT, 't2b_invest_routes.md'), 'w', encoding='utf-8').write('\n'.join(md))
+
+
+def t4b_servant_whatif():
+    """使用人の産出を s 倍にしたときの静的な見込み（均衡のみ・種ごと）。需要＝D0×(p0/p)^0.7（弾力 Catalog）。"""
+    md = ['# T4b 使用人の産出を s 倍にしたときの静的な見込み（均衡だけ・クランプと予算の切れは無視）', '',
+          '需要曲線 D(p)=D0×(p0/p)^0.7（家事奉仕の弾力 0.7）・均衡の価格の倍率 m=(1/s)^(1/0.7)・各階級の量は s 倍・支払いは m×s 倍＝s^(−0.43)。役務の優先配分（大衆→近代エリート→貴族）は均衡では効かない（全階級の需要が同じ率で縮む）。',
+          '※実際の月次の歩では、価格が追いつくまで優先配分が効く（大衆が先に取り、貴族が残りを受ける）。', '',
+          '| 国 | 窓 | s | 価格の倍率 | 使用人への支払いの総額（今=1） | 使用人の所得の増分÷国の所得 | 富裕3階級の支払い（今=1） | 富裕3階級の増分÷その所得 | 大衆の増分÷大衆の所得 |', '|---|---|---|---|---|---|---|---|---|']
+    for nation in NATIONS:
+        for win in ('Q5-40', 'Q41-160'):
+            res = collections.defaultdict(list)
+            for sd in SEEDS:
+                pay = {}
+                earn = {}
+                for c in range(14):
+                    mr, mo = mean_rows(SPEND[sd], nation, win, {c})
+                    pay[c] = sum(v[0] for (k, n, t), v in mr.items() if k == 'good' and n == '家事奉仕')
+                    earn[c] = sum(v[2] for (k, n, t), v in mr.items() if k == 'class')
+                P = sum(pay.values()); E = sum(earn.values())
+                Pr = sum(pay[c] for c in RICH); Er = sum(earn[c] for c in RICH)
+                Pm = sum(pay[c] for c in (1, 2, 11)); Em = sum(earn[c] for c in (1, 2, 11))
+                if not (P > 0 and E > 0 and Er > 0 and Em > 0):
+                    continue
+                for s in (1.0, 0.75, 0.5, 0.25):
+                    m = (1.0 / s) ** (1.0 / 0.7)
+                    k = m * s
+                    res[(s, 'm')].append(m); res[(s, 'k')].append(k)
+                    res[(s, 'inc')].append(P * (k - 1) / E)
+                    res[(s, 'rich')].append(k); res[(s, 'richinc')].append(Pr * (k - 1) / Er)
+                    res[(s, 'massinc')].append(Pm * (k - 1) / Em)
+            for s in (1.0, 0.75, 0.5, 0.25):
+                md.append(f"| {nation} | {win} | {s} | {cell(res[(s, 'm')], 2)} | {cell(res[(s, 'k')], 2)} | {cell(res[(s, 'inc')], 2, pct=True)}% | {cell(res[(s, 'rich')], 2)} | {cell(res[(s, 'richinc')], 2, pct=True)}% | {cell(res[(s, 'massinc')], 2, pct=True)}% |")
+    open(os.path.join(OUT, 't4b_servant_whatif.md'), 'w', encoding='utf-8').write(chr(10).join(md))
+
+
+
 if __name__ == '__main__':
     SPEND = {sd: load_spend(sd) for sd in SEEDS}
-    FLOW, CLASS, NAT, SVC = {}, {}, {}, {}
+    FLOW, CLASS, NAT, SVC, FISC = {}, {}, {}, {}, {}
     for sd in SEEDS:
-        FLOW[sd] = {n: flow_rows(sd, n) for n in NATIONS}
+        FLOW[sd] = flow_all(sd)
         CLASS[sd] = {n: class_rows(sd, n) for n in NATIONS + ['ポルトガル']}
         NAT[sd] = nation_rows(sd)
         SVC[sd] = list(table(os.path.join(D, f'svc_s{sd}.tsv')))
-    which = sys.argv[3:] or ['t1', 't2', 't3', 't4', 't5']
+        FISC[sd] = collections.defaultdict(list)
+        for r in table(os.path.join(D, f'fiscal_s{sd}.tsv')):
+            if r['nation'] in NATIONS:
+                FISC[sd][r['nation']].append((int(r['monthIndex']), r))
+    which = sys.argv[3:] or ['t1', 't2', 't2b', 't3', 't4', 't4b', 't5']
     if 't1' in which: t1_routes()
-    if 't2' in which: t2_construction()
+    if 't2' in which: t2_construction_v2()
+    if 't2b' in which: t2b_invest_routes()
+    if 't4b' in which: t4b_servant_whatif()
     if 't3' in which: t3_bonds()
     if 't4' in which: t4_servants()
     if 't5' in which: t5_luxury()
