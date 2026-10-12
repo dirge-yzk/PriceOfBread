@@ -1885,4 +1885,68 @@ public class InstrumentsTests
         }
         finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
     }
+    /// <summary>
+    /// (286) 線Q：富裕層のお金の行き先の表 <c>spend_s</c>・家事奉仕の市場 <c>svc_s</c>・建設の門の列の番人。
+    /// ①階級ごとに「財の支払い＋財でない支払い＋階層の合算」の和が、別の積算器（月の決算の終わりに <c>p.PaidPerMonth</c> を足した階級の支出）に閉じる（挙げた国＝全ての財・他の国＝嗜好品と役務だけ財ごと＋他は階層の合算、の2つの形）
+    /// ②建設の判定に来た州×月の数が (271) の希望が正の州×月以上・投資枠の金額が非負・実際の建設の支払いが投資枠の金額の内（配給と価格の差で小さく超えうる＝比で緩く見る）
+    /// ③家事奉仕の市場の行が挙げた国×四半期で出て使用人の人数が立つ・売れた量が産出以下。何もしない番人は必ず緑になる＝建設の支払い・嗜好品の行・家事奉仕の支払いが実際に立った（対照）を数える。
+    /// </summary>
+    [Fact]
+    public void 富裕層のお金の行き先の表が階級の支出に閉じ家事奉仕と建設の門の列が揃う()
+    {
+        string dir = NewDir();
+        try
+        {
+            Instruments.Configure(dir, "フランス");   // 1国だけ挙げる＝他の国の「階層の合算」の形も同じ走行で取る
+            try { var on = Make(); RunMatch(on, Quarters, instr: true); }
+            finally { Instruments.Configure(null, null); }
+
+            var (h, rows) = Table(System.IO.Path.Combine(dir, "spend_s1789.tsv"));
+            Assert.All(rows, r => Assert.Equal(h.Length, r.Length));
+            int iB = Array.IndexOf(h, "bucket"), iU = Array.IndexOf(h, "nationUid"), iN = Array.IndexOf(h, "nation"), iP = Array.IndexOf(h, "pickedFlag"), iC = Array.IndexOf(h, "classId"), iK = Array.IndexOf(h, "kind"), iT = Array.IndexOf(h, "tier"), iS = Array.IndexOf(h, "slotName");
+            int pickedClasses = 0, otherClasses = 0, luxuryRows = 0, domesticRows = 0, constructionRows = 0, tierRows = 0;
+            foreach (var g in rows.GroupBy(r => (r[iB], r[iU], r[iC])))
+            {
+                var cls = g.Single(r => r[iK] == "class");
+                double classPay = Col(h, cls, "payPerMonth");
+                var parts = g.Where(r => r[iK] != "class").ToList();
+                bool picked = cls[iP] == "1";
+                // 他の国は6つの階級だけ内訳を持つ（貴族・農民・工場労働者・資本家・商人・使用人）＝内訳が無い階級は和を突き合わせない
+                if (!picked && parts.Count == 0) continue;
+                double sum = parts.Sum(r => Col(h, r, "payPerMonth"));
+                Assert.True(Math.Abs(sum - classPay) <= 1e-9 * Math.Max(1.0, Math.Abs(classPay)), $"{cls[iN]} 区切り{cls[iB]} 階級{cls[iC]}：支払いの種類の和 {sum} が階級の支出 {classPay} に閉じない（支払いの位置の写し漏れ）");
+                if (picked) pickedClasses++; else otherClasses++;
+                if (!picked) Assert.DoesNotContain(parts, r => r[iK] == "good" && r[iT] != "Luxury" && r[iT] != "Service");   // 他の国は嗜好品と役務の財だけ財ごと
+                luxuryRows += parts.Count(r => r[iK] == "good" && r[iT] == "Luxury" && Col(h, r, "payPerMonth") > 0);
+                domesticRows += parts.Count(r => r[iK] == "good" && r[iS] == "家事奉仕" && Col(h, r, "payPerMonth") > 0);
+                constructionRows += parts.Count(r => r[iK] == "extra" && r[iS] == "建設の材料と工賃" && Col(h, r, "payPerMonth") > 0);
+                tierRows += parts.Count(r => r[iK] == "tier");
+            }
+            Assert.True(pickedClasses >= 20 && otherClasses >= 20, $"突き合わせた階級が少ない（挙げた国 {pickedClasses}・他の国 {otherClasses}）");
+            Assert.True(luxuryRows > 0 && domesticRows > 0 && constructionRows > 0 && tierRows > 0, $"対照：嗜好品 {luxuryRows}・家事奉仕 {domesticRows}・建設 {constructionRows}・階層の合算 {tierRows} のどれかが0＝その支払いの位置が1度も通っていない");
+
+            // ---- 建設の門の列（nation_s の末尾）
+            var (nh, nr) = Table(System.IO.Path.Combine(dir, "nation_s1789.tsv"));
+            int judgedSeen = 0;
+            foreach (var r in nr)
+            {
+                double judged = Col(nh, r, "constructionJudgedRegionMonthsCount"), desiring = Col(nh, r, "constructionDesiringRegionMonthsCount");
+                Assert.True(judged >= desiring, $"判定した州×月 {judged} が希望が正の州×月 {desiring} より少ない");
+                double budget = Col(nh, r, "constructionBudgetMoneyPerMonth"), desired = Col(nh, r, "constructionDesiredMoneyPerMonth");
+                Assert.True(!(budget < 0) && !(desired < 0), "投資枠か希望の金額が負");
+                if (judged > 0) judgedSeen++;
+                Assert.True(Col(nh, r, "fxRate") > 0 && Col(nh, r, "priceLevel") > 0 && Col(nh, r, "realGdpPerYear") >= 0, "為替・物価水準・実質GDP が不正");
+            }
+            Assert.True(judgedSeen > 0, "対照：建設を判定した州×月が1度も無い");
+
+            // ---- 家事奉仕の市場
+            var (vh, vr) = Table(System.IO.Path.Combine(dir, "svc_s1789.tsv"));
+            Assert.All(vr, r => Assert.Equal(vh.Length, r.Length));
+            Assert.True(vr.Count >= Quarters, $"家事奉仕の行が少ない（{vr.Count}）");
+            Assert.All(vr, r => Assert.Equal("フランス", r[Array.IndexOf(vh, "nation")]));
+            Assert.Contains(vr, r => Col(vh, r, "servantK") > 0);
+            Assert.All(vr, r => Assert.True(Col(vh, r, "soldPerMonth") <= Col(vh, r, "producedPerMonth") * (1 + 1e-9) + 1e-9, "売れた量が産出を超える"));
+        }
+        finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
 }

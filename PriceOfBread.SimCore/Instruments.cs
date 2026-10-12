@@ -381,7 +381,7 @@ public static class Instruments
     }
     /// <summary>★(271) 建設の側で投資枠（投資家の貯蓄×<c>IndInvestmentFrac</c>）が希望を切ったか（州×月）：希望の束 <paramref name="desiredUnits"/> と枠で買える束 <paramref name="budgetUnits"/>（<c>EconomyStep.Run</c> の
     /// <c>construction = min(希望, 枠)</c> の2つの引数）。希望が正の州×月だけ数える。</summary>
-    internal static void Construction(World w, double desiredUnits, double budgetUnits, double gain, double hurdle, double unitMoney)
+    internal static void Construction(World w, double desiredUnits, double budgetUnits, double gain = 0, double hurdle = 0, double unitMoney = 0)
     {
         var st = S(w);
         // (286) 線Q：判定に来た州×月の数・限界収益と資本コストの和・投資枠と希望の金額（希望が0の月も数える＝「採算の門が閉じている月」を分母に残す）
