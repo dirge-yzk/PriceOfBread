@@ -1,4 +1,4 @@
-(287) Q の番人の突然変異：写しの木（4ebdca0）の EconomyStep.cs:1688 の AddSpend の支払いの額を pay → pay * 0.9（役務・嗜好品の財の位置）にして、番人1本だけを回した。対照＝同じ木の変更なしはフルスイート 1125 合格に含まれる。
+(287) Q の番人の突然変異：写しの木（82e588d）の EconomyStep.cs:1688 の AddSpend の支払いの額を pay → pay * 0.9（役務・嗜好品の財の位置）にして、番人1本だけを回した。対照＝同じ木の変更なしはフルスイート 1125 合格に含まれる。
 build rc=0
   失敗 PriceOfBread.Tests.InstrumentsTests.富裕層のお金の行き先の表が階級の支出に閉じ家事奉仕と建設の門の列が揃う [5 s]
      at PriceOfBread.Tests.InstrumentsTests.富裕層のお金の行き先の表が階級の支出に閉じ家事奉仕と建設の門の列が揃う() in D:\PoB_work\m287\tree_t_mut\PriceOfBread.Tests\InstrumentsTests.cs:line 1917
