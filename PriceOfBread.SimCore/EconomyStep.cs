@@ -543,6 +543,7 @@ public static class EconomyStep
         double budgetStartDiag = 0;
         bool insOn = Instruments.On && world is not null;   // (271) 計器（読むだけ）：消費の予算の拘束を国×四半期へ（BudgetBindDiag と同じ行・同じ述語）
         long insRows = 0, insBound = 0; double insDesired = 0, insDemand = 0;
+        double[]? insSpend = insOn ? Instruments.SpendBuf(world!) : null;   // (286) 計器（読むだけ）：階級×支払いの種類の積算（支払いの位置で積む）
         if (BudgetBindDiag.On) foreach (var p in region.Pops) budgetStartDiag += Math.Max(0, p.RemainingBudget);
         // （所得翻訳ゲート＝DemandIncomeElasticity・2026-08-08 差し戻し・休眠は 2026-09-26 に削除＝棚卸し econ-16/dorm-51）
         // 在庫の腐敗・劣化（保管期間に応じた減衰）：穀物・生鮮は速く、金属・燃料は遅い。だぶつきの恒久滞留を防ぐ。
@@ -927,7 +928,7 @@ public static class EconomyStep
                 desiredGrowth *= 1.0 + (pabs - 1.0) * coef.PrivateAbsorptionBlend;
             }
             construction = Math.Min(desiredGrowth / Math.Max(Eps, coef.IndPerConstruction), budget / (buildCostPerUnit * (1.0 + coef.ConstructionLaborWageFrac)));   // 予算は材料（経4で鉄道/機関車も可）＋工賃で按分
-            if (Instruments.On && world is not null) Instruments.Construction(world, desiredGrowth / Math.Max(Eps, coef.IndPerConstruction), budget / (buildCostPerUnit * (1.0 + coef.ConstructionLaborWageFrac)));   // (271) 計器（読むだけ）：投資枠が希望を切ったか
+            if (Instruments.On && world is not null) Instruments.Construction(world, desiredGrowth / Math.Max(Eps, coef.IndPerConstruction), budget / (buildCostPerUnit * (1.0 + coef.ConstructionLaborWageFrac)), marginalGain * (1.0 + coef.IndTechLeverage * techLev), hurdle, buildCostPerUnit * (1.0 + coef.ConstructionLaborWageFrac), construction);   // (271) 計器（読むだけ）：投資枠が希望を切ったか
             // 戦時の建設縮小は固定倍率でなく価格競合から創発：軍需（warMult で戦時増）が同じ鋼・機械・セメント・製材を食い価格を押し上げ、
             // costPerUnit↑→budget/costPerUnit↓＆FactoryBuildAfford↓で資本家の建設が自然に縮む（平時=建設優先・戦時=軍優先が市場で決まる）。
             // 経17（建設Leontief端数の繰越・点火1.0 2026-08-01）：先月の建設で律速成分に律速され「買ったのに使い切れなかった非律速資材」を Region.ConstructionCarryover に累積し（市場在庫と同じ腐敗率で減衰＝決済側の KeepMaterial）、
@@ -1684,6 +1685,7 @@ public static class EconomyStep
                         if (popBought is not null) popBought[p.ClassId] += qty;   // 純記帳（項目6）：役務も「自腹で買った分」だけ数える（義務教育の国庫肩代わりは下の別ブロック＝入れない）
                         double pay = qty * m.Price;
                         p.PaidPerMonth += new MoneyPerMonth(pay);
+                        if (insSpend is not null) Instruments.AddSpend(insSpend, p.ClassId, gi, pay, qty, pay);   // (286) 計器（読むだけ）
                         p.RemainingBudget -= pay;
                         revenue[gi] += pay;               // 受講料/診療費 → 教師・聖職者・医者の売上（保存）
                         double fill = p.GoodNeed > Eps ? Math.Min(1.0, qty / p.GoodNeed) : 1.0;
@@ -1774,6 +1776,7 @@ public static class EconomyStep
                     double subsidy = qty * insureBase * insure;   // 健康保険(#3)：医薬品の購入費の insure 割合を国家が肩代わり（insure>0 は医薬品のみ）
                     double pay = qty * m.Price * (1 + stateMonop + distM + monRent + guildRent) - subsidy;  // 専売＋流通マージン＋独占レント＋同業組合の上乗せ込み − 国家負担分＝popの実支払い
                     p.PaidPerMonth += new MoneyPerMonth(pay);
+                    if (insSpend is not null) Instruments.AddSpend(insSpend, p.ClassId, gi, pay, qty, qty * m.Price);   // (286) 計器（読むだけ）：買い手の実支払い・数量・生産者の受取（税と流通マージンを除く）
                     p.RemainingBudget -= pay;
                     // ★備蓄（作者裁定2026-09-20 2'）：食料が**在庫切れで**買えなかった分（買えたはずの量 GoodDemand − 配給された量 qty）の予算は、
                     //   同じ月の下の階層（日用品・嗜好品）へ流さない＝残予算から外すだけで払わない＝金は既存の Savings に残る（新しい状態を作らない・思想⑩）。
@@ -1874,6 +1877,7 @@ public static class EconomyStep
             // ★止まった工場の持ち主が再開準備の代金を払う（点火2026-08-01）。★段2-2（A3・2026-09-29）：月内の仮勘定 Paid で払う（旧＝期首の貯蓄を直接引いた）。
             //   発注は需要の段で持ち主の予算を通して控えてある＝請求は控えた額以下（値段は同じ・配給率≦1）＝払い切れる。持ち主の居ない生産者は充足率0＝請求0。
             if (trickleBill > 0) region.Pops[s.OwnerPopIndex].PaidPerMonth += new MoneyPerMonth(trickleBill);
+            if (insSpend is not null && trickleBill > 0) Instruments.AddSpend(insSpend, region.Pops[s.OwnerPopIndex].ClassId, Instruments.ExtraSlot(Instruments.SpendExtra.ReignitionOrder), trickleBill, 0, trickleBill);   // (286) 計器（読むだけ）
             // 電力の決済（任意の増強材＝リービッヒの必須投入ではない＝買えなくても操業は止まらない）。買えた率が電化率に積もる。
             if (elecNeed[pi] > 0)
             {
@@ -1943,6 +1947,8 @@ public static class EconomyStep
                 revenue[Catalog.LaborId] += labPay;
             }
             region.Pops[region.InvestorPopIndex].PaidPerMonth += new MoneyPerMonth(cost);   // 投資家（資本家）が建設を負担（材料＋工賃）
+            if (insSpend is not null) Instruments.AddSpend(insSpend, region.Pops[region.InvestorPopIndex].ClassId, Instruments.ExtraSlot(Instruments.SpendExtra.Construction), cost, built, cost);
+            if (insOn) Instruments.ConstructionFill(world!, construction, built, ration[sg], ration[mg], ration[cg], ration[lg], conLaborUnits > 0 && Catalog.LaborId < ng ? ration[Catalog.LaborId] : 1.0);   // (286) 計器（読むだけ）：数量＝建った束
             revenue[sg] += sGot * clearPrice[sg];
             revenue[mg] += mGot * clearPrice[mg];
             revenue[cg] += cGot * clearPrice[cg];
@@ -2006,6 +2012,7 @@ public static class EconomyStep
                 double railGot = coef.ConsRail * construction * ration[coef.RailGoodId];
                 double locoGot = coef.ConsLoco * construction * ration[coef.LocoGoodId];
                 region.Pops[region.InvestorPopIndex].PaidPerMonth += new MoneyPerMonth(railGot * clearPrice[coef.RailGoodId] + locoGot * clearPrice[coef.LocoGoodId]);
+                if (insSpend is not null) Instruments.AddSpend(insSpend, region.Pops[region.InvestorPopIndex].ClassId, Instruments.ExtraSlot(Instruments.SpendExtra.ConstructionRail), railGot * clearPrice[coef.RailGoodId] + locoGot * clearPrice[coef.LocoGoodId], 0, railGot * clearPrice[coef.RailGoodId] + locoGot * clearPrice[coef.LocoGoodId]);   // (286) 計器（読むだけ）
                 revenue[coef.RailGoodId] += railGot * clearPrice[coef.RailGoodId];
                 revenue[coef.LocoGoodId] += locoGot * clearPrice[coef.LocoGoodId];
             }
@@ -2145,6 +2152,7 @@ public static class EconomyStep
                 revenue[Catalog.CoalId] += coalQ * clearPrice[Catalog.CoalId];
             }
             region.Pops[region.InvestorPopIndex].PaidPerMonth += new MoneyPerMonth(cost);
+            if (insSpend is not null) Instruments.AddSpend(insSpend, region.Pops[region.InvestorPopIndex].ClassId, Instruments.ExtraSlot(Instruments.SpendExtra.InfraMaintenance), cost, 0, cost);   // (286) 計器（読むだけ）
         }
 
         // 送電網の敷設の決済：投資家が送電網を買い、買えた分だけ送電容量が積み上がる（朽ちる分は毎月微減＝維持が要る）。
@@ -2154,6 +2162,7 @@ public static class EconomyStep
             double gridCost = gridQ * clearPrice[Catalog.GridId];
             revenue[Catalog.GridId] += gridCost;
             region.Pops[region.InvestorPopIndex].PaidPerMonth += new MoneyPerMonth(gridCost);
+            if (insSpend is not null) Instruments.AddSpend(insSpend, region.Pops[region.InvestorPopIndex].ClassId, Instruments.ExtraSlot(Instruments.SpendExtra.Grid), gridCost, gridQ, gridCost);   // (286) 計器（読むだけ）
             if (!warmFrozen) region.GridCapacity += gridQ;   // ★助走：送電網も買って払うが容量にはしない（能力の凍結）
         }
         // ⚠助走中は劣化も止める（GridDecayRate と GridReplaceRate は対＝片方だけ効かせると定常が崩れる。係数の注記どおり）。
@@ -2319,6 +2328,7 @@ public static class EconomyStep
                 {
                     double x = i == payers.Count - 1 ? pay - charged : pay * payers[i].Share;
                     payers[i].P.PaidPerMonth += new MoneyPerMonth(x);
+                    if (insSpend is not null) Instruments.AddSpend(insSpend, payers[i].P.ClassId, Instruments.ExtraSlot(Instruments.SpendExtra.RebelArms), x, 0, x);   // (286) 計器（読むだけ）
                     charged += x;
                 }
                 world.RebelArmsSpent += pay;
