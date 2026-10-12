@@ -928,7 +928,7 @@ public static class EconomyStep
                 desiredGrowth *= 1.0 + (pabs - 1.0) * coef.PrivateAbsorptionBlend;
             }
             construction = Math.Min(desiredGrowth / Math.Max(Eps, coef.IndPerConstruction), budget / (buildCostPerUnit * (1.0 + coef.ConstructionLaborWageFrac)));   // 予算は材料（経4で鉄道/機関車も可）＋工賃で按分
-            if (Instruments.On && world is not null) Instruments.Construction(world, desiredGrowth / Math.Max(Eps, coef.IndPerConstruction), budget / (buildCostPerUnit * (1.0 + coef.ConstructionLaborWageFrac)), marginalGain * (1.0 + coef.IndTechLeverage * techLev), hurdle, buildCostPerUnit * (1.0 + coef.ConstructionLaborWageFrac));   // (271) 計器（読むだけ）：投資枠が希望を切ったか
+            if (Instruments.On && world is not null) Instruments.Construction(world, desiredGrowth / Math.Max(Eps, coef.IndPerConstruction), budget / (buildCostPerUnit * (1.0 + coef.ConstructionLaborWageFrac)), marginalGain * (1.0 + coef.IndTechLeverage * techLev), hurdle, buildCostPerUnit * (1.0 + coef.ConstructionLaborWageFrac), construction);   // (271) 計器（読むだけ）：投資枠が希望を切ったか
             // 戦時の建設縮小は固定倍率でなく価格競合から創発：軍需（warMult で戦時増）が同じ鋼・機械・セメント・製材を食い価格を押し上げ、
             // costPerUnit↑→budget/costPerUnit↓＆FactoryBuildAfford↓で資本家の建設が自然に縮む（平時=建設優先・戦時=軍優先が市場で決まる）。
             // 経17（建設Leontief端数の繰越・点火1.0 2026-08-01）：先月の建設で律速成分に律速され「買ったのに使い切れなかった非律速資材」を Region.ConstructionCarryover に累積し（市場在庫と同じ腐敗率で減衰＝決済側の KeepMaterial）、
@@ -1947,7 +1947,8 @@ public static class EconomyStep
                 revenue[Catalog.LaborId] += labPay;
             }
             region.Pops[region.InvestorPopIndex].PaidPerMonth += new MoneyPerMonth(cost);   // 投資家（資本家）が建設を負担（材料＋工賃）
-            if (insSpend is not null) Instruments.AddSpend(insSpend, region.Pops[region.InvestorPopIndex].ClassId, Instruments.ExtraSlot(Instruments.SpendExtra.Construction), cost, built, cost);   // (286) 計器（読むだけ）：数量＝建った束
+            if (insSpend is not null) Instruments.AddSpend(insSpend, region.Pops[region.InvestorPopIndex].ClassId, Instruments.ExtraSlot(Instruments.SpendExtra.Construction), cost, built, cost);
+            if (insOn) Instruments.ConstructionFill(world!, construction, built, ration[sg], ration[mg], ration[cg], ration[lg], conLaborUnits > 0 && Catalog.LaborId < ng ? ration[Catalog.LaborId] : 1.0);   // (286) 計器（読むだけ）：数量＝建った束
             revenue[sg] += sGot * clearPrice[sg];
             revenue[mg] += mGot * clearPrice[mg];
             revenue[cg] += cGot * clearPrice[cg];

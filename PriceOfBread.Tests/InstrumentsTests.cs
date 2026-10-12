@@ -1927,7 +1927,7 @@ public class InstrumentsTests
 
             // ---- 建設の門の列（nation_s の末尾）
             var (nh, nr) = Table(System.IO.Path.Combine(dir, "nation_s1789.tsv"));
-            int judgedSeen = 0;
+            int judgedSeen = 0, plannedSeen = 0;
             foreach (var r in nr)
             {
                 double judged = Col(nh, r, "constructionJudgedRegionMonthsCount"), desiring = Col(nh, r, "constructionDesiringRegionMonthsCount");
@@ -1936,8 +1936,15 @@ public class InstrumentsTests
                 Assert.True(!(budget < 0) && !(desired < 0), "投資枠か希望の金額が負");
                 if (judged > 0) judgedSeen++;
                 Assert.True(Col(nh, r, "fxRate") > 0 && Col(nh, r, "priceLevel") > 0 && Col(nh, r, "realGdpPerYear") >= 0, "為替・物価水準・実質GDP が不正");
+                // 計画した束 ≥ 建った束（配給で減る）・計画の金額 ≤ 希望の金額＋ほか（枠で切った後）・配給率は 0〜1
+                double planU = Col(nh, r, "constructionPlannedUnitsPerMonth"), builtU = Col(nh, r, "constructionBuiltUnitsPerMonth");
+                Assert.True(double.IsNaN(builtU) || builtU <= planU * (1 + 1e-9) + 1e-12, $"建った束 {builtU} が計画した束 {planU} を超える");
+                Assert.True(double.IsNaN(Col(nh, r, "constructionPlannedMoneyPerMonth")) || Col(nh, r, "constructionPlannedMoneyPerMonth") <= Col(nh, r, "constructionBudgetMoneyPerMonth") * (1 + 1e-9) + 1e-9, "計画の金額が投資枠の金額を超える");
+                foreach (var k in new[] { "Steel", "Machine", "Cement", "Lumber", "Labor" }) { double x = Col(nh, r, "constructionRation" + k + "Mean"); Assert.True(double.IsNaN(x) || (x >= -1e-12 && x <= 1 + 1e-9), $"配給率 {k} が範囲外 {x}"); }
+                if (planU > 0) plannedSeen++;
             }
             Assert.True(judgedSeen > 0, "対照：建設を判定した州×月が1度も無い");
+            Assert.True(plannedSeen > 0, "対照：建設を計画した（枠と採算の門を通った）四半期が1度も無い");
 
             // ---- 家事奉仕の市場
             var (vh, vr) = Table(System.IO.Path.Combine(dir, "svc_s1789.tsv"));

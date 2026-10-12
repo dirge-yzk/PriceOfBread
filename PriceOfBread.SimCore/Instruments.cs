@@ -131,6 +131,7 @@ public static class Instruments
         // ---- (286) 線Q：富裕層のお金の行き先（階級×支払いの種類）と建設の門
         public double[]? QSpend;                           // 今の四半期の月ごとの支払いの和：[(階級 × SpendW + 種類) × 3 + {支払い額, 数量, 生産者の受取}]（EconomyStep の支払いの位置が積む）
         public int ConRegionMonths;                        // 建設の判定に来た州×月
+        public double ConPlannedMoney, ConBudgetBoundMoney, ConBuiltUnits, ConPlannedUnits; public readonly double[] ConRationW = new double[5];   // 計画した（枠で切った後の）金額／枠が切った州×月の枠の金額／建った束／計画した束／計画した束で重みづけた配給率（鋼・機械・セメント・製材・労働）の和
         public double ConGainSum, ConHurdleSum, ConBudgetMoney, ConDesiredMoney;   // 限界収益・資本コストの州×月の和／投資枠の金額／希望の金額（希望の束×束の費用×(1+工賃)）
     }
     /// <summary>(274) 開いた戦線1本。Kind＝L 段の法〔Idx＝LevelLaws の表の行〕／R 税・支出の段〔Idx＝RateLaws の行〕／M 軍事費の合計／C 治安維持力／T 関税。
@@ -381,12 +382,13 @@ public static class Instruments
     }
     /// <summary>★(271) 建設の側で投資枠（投資家の貯蓄×<c>IndInvestmentFrac</c>）が希望を切ったか（州×月）：希望の束 <paramref name="desiredUnits"/> と枠で買える束 <paramref name="budgetUnits"/>（<c>EconomyStep.Run</c> の
     /// <c>construction = min(希望, 枠)</c> の2つの引数）。希望が正の州×月だけ数える。</summary>
-    internal static void Construction(World w, double desiredUnits, double budgetUnits, double gain = 0, double hurdle = 0, double unitMoney = 0)
+    internal static void Construction(World w, double desiredUnits, double budgetUnits, double gain = 0, double hurdle = 0, double unitMoney = 0, double planned = 0)
     {
         var st = S(w);
         // (286) 線Q：判定に来た州×月の数・限界収益と資本コストの和・投資枠と希望の金額（希望が0の月も数える＝「採算の門が閉じている月」を分母に残す）
         st.ConRegionMonths++; st.ConGainSum += gain; st.ConHurdleSum += hurdle;
         st.ConBudgetMoney += budgetUnits * unitMoney; if (desiredUnits > 0) st.ConDesiredMoney += desiredUnits * unitMoney;
+        st.ConPlannedMoney += planned * unitMoney; if (desiredUnits > 0 && budgetUnits < desiredUnits) st.ConBudgetBoundMoney += budgetUnits * unitMoney;
         if (!(desiredUnits > 0)) return;
         st.ConDesiring++; st.ConDesiredUnits += desiredUnits;
         if (budgetUnits < desiredUnits) { st.ConBound++; st.ConCutUnits += desiredUnits - budgetUnits; }
@@ -394,6 +396,13 @@ public static class Instruments
     // ---------------------------------------------------------------- (286) 線Q：富裕層のお金の行き先 ----------------------------------------------------------------
 
     /// <summary>(286) 線Q：今の四半期の支払いの積算の配列（EconomyStep が1回の Run で受け取って使い回す＝支払い1行ごとに辞書を引かない）。</summary>
+    /// <summary>(286) 建設の決済：計画した束 <paramref name="planned"/>（投資枠と採算の門を通った後）に対し、実際に建った束 <paramref name="built"/> と、5つの投入（鋼・機械・セメント・製材・労働）の配給率。計画の束で重みづけて積む。</summary>
+    internal static void ConstructionFill(World w, double planned, double built, double rSteel, double rMachine, double rCement, double rLumber, double rLabor)
+    {
+        var st = S(w);
+        st.ConPlannedUnits += planned; st.ConBuiltUnits += built;
+        st.ConRationW[0] += planned * rSteel; st.ConRationW[1] += planned * rMachine; st.ConRationW[2] += planned * rCement; st.ConRationW[3] += planned * rLumber; st.ConRationW[4] += planned * rLabor;
+    }
     internal static double[] SpendBuf(World w) => S(w).QSpend ??= new double[NC * SpendW * 3];
     /// <summary>支払い1行を積む：階級 <paramref name="cls"/>・種類 <paramref name="slot"/>（財の番号、または <see cref="ExtraSlot"/>）・買い手の実支払い <paramref name="pay"/>・数量・生産者の受取（税と流通マージンを除く）。読むだけ。</summary>
     internal static void AddSpend(double[] buf, int cls, int slot, double pay, double qty, double receipt)
@@ -671,7 +680,7 @@ public static class Instruments
         // (271) 助走の分は数えない
         st.CnRows = st.CnBound = 0; st.CnDesired = st.CnDemand = 0;
         st.ConDesiring = st.ConBound = 0; st.ConDesiredUnits = st.ConCutUnits = 0;
-        st.ConRegionMonths = 0; st.ConGainSum = st.ConHurdleSum = st.ConBudgetMoney = st.ConDesiredMoney = 0; if (st.QSpend is not null) Array.Clear(st.QSpend);   // (286) 助走の分は数えない
+        st.ConRegionMonths = 0; st.ConGainSum = st.ConHurdleSum = st.ConBudgetMoney = st.ConDesiredMoney = 0; st.ConPlannedMoney = st.ConBudgetBoundMoney = st.ConBuiltUnits = st.ConPlannedUnits = 0; Array.Clear(st.ConRationW); if (st.QSpend is not null) Array.Clear(st.QSpend);   // (286) 助走の分は数えない
         st.BrJudged = st.BrPoolBound = st.BrForeignCut = 0; st.BrDomPool = st.BrForRaw = st.BrFor = 0;
         st.CrDays = st.CrRepayBoundDays = st.CrFiniteDays = 0; st.CrReserveCap = st.CrRepayable = 0;
         st.MmOutcome = st.MmFronts = -1; st.MmIncreasing = false;
@@ -1527,6 +1536,10 @@ public static class Instruments
         cols.Add(("constructionJudgedRegionMonthsCount", st.ConRegionMonths.ToString(System.Globalization.CultureInfo.InvariantCulture)));
         cols.Add(("constructionMarginalGainMean", F(st.ConGainSum / cj))); cols.Add(("constructionHurdleMean", F(st.ConHurdleSum / cj)));
         cols.Add(("constructionBudgetMoneyPerMonth", F(st.ConBudgetMoney / cm))); cols.Add(("constructionDesiredMoneyPerMonth", F(st.ConDesiredMoney / cm)));
+        cols.Add(("constructionPlannedMoneyPerMonth", F(st.ConPlannedMoney / cm))); cols.Add(("constructionBudgetBoundRegionsBudgetMoneyPerMonth", F(st.ConBudgetBoundMoney / cm)));
+        cols.Add(("constructionPlannedUnitsPerMonth", F(st.ConPlannedUnits / cm))); cols.Add(("constructionBuiltUnitsPerMonth", F(st.ConBuiltUnits / cm)));
+        string[] rn = ["Steel", "Machine", "Cement", "Lumber", "Labor"];
+        for (int i = 0; i < 5; i++) cols.Add(("constructionRation" + rn[i] + "Mean", F(st.ConPlannedUnits > 0 ? st.ConRationW[i] / st.ConPlannedUnits : double.NaN)));
         cols.Add(("realGdpPerYear", F(Calendar.PerMonthToPerYear(w.GdpPerMonth.Value))));
         cols.Add(("fxRate", F(w.FxRate))); cols.Add(("priceLevel", F(w.PriceLevel)));
         return cols;
