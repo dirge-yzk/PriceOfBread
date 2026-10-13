@@ -1,0 +1,10 @@
+# (298) 木＝D:/PoB_work/wt_y1m（コードはコミット 091d48e と同じ・隔離ビルド・Release）・他の線（l3・i1）の 10種のバッチと重なって回った（壁の時間は膨らむ）
+START 13:51:01 filter=Category!=FullLength src=D:/PoB_work/wt_y1m
+build rc=0
+成功!   -失敗:     0、合格:  1129、スキップ:     0、合計:  1129、期間: 14 m 18 s - PriceOfBread.Tests.dll (net10.0)
+rc=0 END 14:06:50
+---- FullLength
+START 14:07:00 filter=Category=FullLength src=D:/PoB_work/wt_y1m
+build rc=0
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 11 m 5 s - PriceOfBread.Tests.dll (net10.0)
+rc=0 END 14:19:12
