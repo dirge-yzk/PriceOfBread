@@ -120,7 +120,7 @@ try { System.Console.OutputEncoding = System.Text.Encoding.UTF8; } catch { }   /
 
 // === 人口の律速を特定： dotnet run -- popprobe ===
 // ★「イギリスの人口が131年で×0.99」の原因を、扶養力の内訳から特定する。
-//   人口はロジスティック net = PopGrowthRate × fertility × pop × (1 − pop/capacity) なので、
+//   人口はロジスティック net = PopGrowthRatePerMonth × fertility × pop × (1 − pop/capacity) なので、
 //   pop/capacity が 1 に張り付いていれば伸びない＝**天井（capacity）の問題**である。
 if (args.Length > 0 && args[0] == "popprobe")
 {
@@ -5301,7 +5301,7 @@ if (args.Length > 0 && args[0] == "captrace")
     cm.StartWarmup();   // ★2026-09-07 計器の助走統一：selfplay-batch/popprobe と同じ助走を通す＝「測る世界」を帯の世界と一致させる（旧＝助走なし＝chronicle が popprobe と食い違った構築時型の計器バグ）
     for (int q = 0; q < 500; q++) cm.StepQuarter();
     double upperThr = new Coefficients().UpperFallThreshold;   // 0.8
-    Console.WriteLine($"上流転落閾値 = {upperThr} × avgPerCap（これを下回ると四半期 {new Coefficients().UpperFallRate:P0} 降格）");
+    Console.WriteLine($"上流転落閾値 = {upperThr} × avgPerCap（これを下回ると四半期 {new Coefficients().UpperFallRatePerQuarter.Value:P0} 降格）");
     foreach (var n in cm.Nations)
     {
         Console.WriteLine($"=== {n.World.SelfPower?.Name} ===");

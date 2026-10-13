@@ -59,7 +59,7 @@ public class DemographyBirthWeightTests
         double size0 = clergy.Size;
         double p0 = sim.World.TotalPopulation;
         sim.Run(8);   // 2年（出生配分が毎月走る）
-        double crude = Calendar.PerYearToPerMonth(sim.World.Coef.CrudeBirthRate) * 24.0;   // 同期間の規模比例なら積もる粗出生の目安（≈7%）
+        double crude = Calendar.PerYearToPerMonth(sim.World.Coef.CrudeBirthRatePerYear.Value) * 24.0;   // 同期間の規模比例なら積もる粗出生の目安（≈7%）
         Assert.True(clergy.Size < size0 * (1.0 + 0.5 * crude),
             $"fertile≈0 のpopに出生が集中した（{size0:F1}→{clergy.Size:F1}）＝共通分母の重みが膨張している");
         Assert.True(System.Math.Abs(sim.World.TotalPopulation - (p0 + sim.World.PopulationDelta)) < 1e-6 * p0,
@@ -109,7 +109,7 @@ public class DemographyBirthWeightTests
         old.Ages = (double[])young.Ages.Clone();
         double move = 0.8 * old.Ages[10];
         old.Ages[10] -= move; old.Ages[14] += move;   // 男の 50〜59 → 70歳以上（出産可能のプール〔15〜49歳〕の外どうし＝出生の取り分は同じ）
-        var mw = Pop.MortalityWeights(w.Coef.CrudeBirthRate);
+        var mw = Pop.MortalityWeights(w.Coef.CrudeBirthRatePerYear.Value);
         double gapYear = move * (mw[14] - mw[10]);   // 年齢の重みの差（1人あたり・年）
         Fed();
         double y0 = young.Size, o0 = old.Size, d0 = w.DiagDeaths;

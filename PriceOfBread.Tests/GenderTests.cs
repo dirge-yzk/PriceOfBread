@@ -140,7 +140,7 @@ public class AgeStructureTests
     {
         var p = new Pop { Size = 1000 };
         var before = Counts(p);
-        var mortW = Pop.MortalityWeights(new Coefficients().CrudeBirthRate);
+        var mortW = Pop.MortalityWeights(new Coefficients().CrudeBirthRatePerYear.Value);
         p.StepAges(p.Size, 0, 0, mortW);
         Assert.Equal(1000.0, p.Size);   // 構成だけが動く
         var after = Counts(p);
@@ -161,11 +161,11 @@ public class AgeStructureTests
     {
         var c = new Coefficients();
         var p = new Pop { Size = 1000 };
-        var mortW = Pop.MortalityWeights(c.CrudeBirthRate);
+        var mortW = Pop.MortalityWeights(c.CrudeBirthRatePerYear.Value);
         foreach (var w in mortW) Assert.True(w >= 0);
         for (int m = 0; m < 120; m++)
         {
-            double births = Calendar.PerYearToPerMonth(c.CrudeBirthRate) * p.Size, deaths = Calendar.PerYearToPerMonth(c.CrudeBirthRate - Pop.StdPyramidGrowth) * p.Size;
+            double births = Calendar.PerYearToPerMonth(c.CrudeBirthRatePerYear.Value) * p.Size, deaths = Calendar.PerYearToPerMonth(c.CrudeBirthRatePerYear.Value - Pop.StdPyramidGrowth) * p.Size;
             p.StepAges(p.Size, births, deaths, mortW);
             p.Size += births - deaths;
         }

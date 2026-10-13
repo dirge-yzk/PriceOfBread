@@ -353,13 +353,13 @@ public class ConservationTests
         Assert.True(System.Math.Abs(m1 - m0) <= 1e-9 * System.Math.Abs(m0), $"移民の段で世界の基礎貨幣が動いた（{m1 - m0:+0.000000;-0.000000}）＝持参金が湧いた/消えた");
     }
 
-    /// <summary>流出の上限は送出州・階級ごとに1回だけ＝行き先がいくつあっても EmigrationMaxFrac×(1＋飢え)×人数 を超えない。
+    /// <summary>流出の上限は送出州・階級ごとに1回だけ＝行き先がいくつあっても EmigrationMaxPerQuarter×(1＋飢え)×人数 を超えない。
     /// 受入の上限は外して（上限を巨大・受入能力の指数0）送出側の上限だけを見る。流出率を大きくして、正の差のある州は全て上限に張り付く盤面にする
     /// （1783年の既定では差が小さく上限に届く州が無い＝上限の掛け方を検査できない）。⚠突然変異「上限を行き先ごとに掛ける」で赤になる。</summary>
     [Fact]
     public void 国家間移民の流出は行き先の数によらず上限を1回だけ()
     {
-        var sim = MigrationBoard(new Coefficients { ImmigrationReceiveCapFrac = 1e9, ImmigrationAbsorbExponent = 0, EmigrationRate = 1.0 });
+        var sim = MigrationBoard(new Coefficients { ImmigrationReceiveCapPerQuarter = new RatePerQuarter(1e9), ImmigrationAbsorbExponent = 0, EmigrationRate = 1.0 });
         var c = sim.Coef;
         var bound = new List<(Pop Pop, double Size0, double Cap)>();
         foreach (var n in sim.Nations)
@@ -369,7 +369,7 @@ public class ConservationTests
             {
                 if (r.State != RegionState.Active) continue;
                 double effFill = w.FoodFill + c.FaminePushRegionBlend * (r.FoodFill - w.FoodFill);
-                double maxFrac = c.EmigrationMaxFrac * (1.0 + c.FaminePushMaxFracBoost * System.Math.Max(0.0, 1.0 - effFill));
+                double maxFrac = c.EmigrationMaxPerQuarter.Value * (1.0 + c.FaminePushMaxFracBoost * System.Math.Max(0.0, 1.0 - effFill));
                 foreach (var p in r.Pops)
                     if (!p.IsSoldier && (p.ClassId == PopClass.Peasant || p.ClassId == PopClass.Worker) && p.Size > 1e-9)
                         bound.Add((p, p.Size, maxFrac * p.Size));
@@ -397,10 +397,10 @@ public class ConservationTests
     {
         double Inflow(string name, ImmigrationLaw law, out double capNoAbsorb)
         {
-            var sim = MigrationBoard(new Coefficients { ImmigrationReceiveCapFrac = 1e-7 });
+            var sim = MigrationBoard(new Coefficients { ImmigrationReceiveCapPerQuarter = new RatePerQuarter(1e-7) });
             var dst = sim.Nations.First(n => n.World.SelfPower?.BaseName == name).World;
             dst.ImmigrationRestriction = law;
-            capNoAbsorb = sim.Coef.ImmigrationReceiveCapFrac * dst.TotalPopulation * (law == ImmigrationLaw.Closed ? sim.Coef.ImmigrationClosedFrac : 1.0);
+            capNoAbsorb = sim.Coef.ImmigrationReceiveCapPerQuarter.Value * dst.TotalPopulation * (law == ImmigrationLaw.Closed ? sim.Coef.ImmigrationClosedFrac.Value : 1.0);
             sim.MigrateBetweenNations();
             return dst.LastImmigration;
         }
@@ -433,7 +433,7 @@ public class ConservationTests
     [Fact]
     public void 国家間移民は受入国の全ての州へ着き州ごとの上限を超えない()
     {
-        var sim = MigrationBoard(new Coefficients { ImmigrationReceiveCapFrac = 1e-4 });
+        var sim = MigrationBoard(new Coefficients { ImmigrationReceiveCapPerQuarter = new RatePerQuarter(1e-4) });
         var c = sim.Coef;
         var us = sim.Nations.First(n => n.World.SelfPower?.BaseName == "アメリカ").World;
         double oMax = 0;
@@ -450,7 +450,7 @@ public class ConservationTests
             Assert.True(o > 0, $"前提が崩れた：{r.Name} の機会が0");
             r.ProductivityBonus *= target / o;
             Assert.True(r.FoodFill >= 0.5, $"前提が崩れた：{r.Name} の食料充足 {r.FoodFill}（米の州が出ない条件）");
-            before[r] = (Mass(r), c.ImmigrationReceiveCapFrac * r.SumPopulation() * Territory.AbsorbCap(r, c));   // 開放＝法の率1
+            before[r] = (Mass(r), c.ImmigrationReceiveCapPerQuarter.Value * r.SumPopulation() * Territory.AbsorbCap(r, c));   // 開放＝法の率1
         }
         Assert.Equal(ImmigrationLaw.Open, us.ImmigrationRestriction);
         sim.MigrateBetweenNations();

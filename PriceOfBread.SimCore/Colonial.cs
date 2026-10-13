@@ -236,12 +236,12 @@ public static class Colonial
         //   国が植民地を受け取るのは受け取りの1本（Diplomacy.AcquireColony＝国を持つ受け手はその場で植民地格の州へ）だけ＝国の一覧はゲームの間ずっと空＝3つの経路は
         //   実際の試合で一度も走らない（抽象標的の植民地の蓄えも書き手が捕囚市場の引き落としだけ＝常に0）。入植と昇格の主体は植民地格の州（下の B1）。
         // ★B1（実バグ21件・2026-09-07・単独計測）：ColoniesAreRegions=1 では ColonyList が Q1 から空＝旧の入植（2b）も昇格（5）も一度も走らなかった
-        //   （ColonySettlerRate/ColonyPromotionCoreShare/ColonyPromotionMinPop が読み手ゼロ・加/豪/南アの自治領化が131年間0件）。
+        //   （ColonySettlerRatePerMonth/ColonyPromotionCoreShare/ColonyPromotionMinPop が読み手ゼロ・加/豪/南アの自治領化が131年間0件）。
         //   主体を「植民地格の州」へ移す（新しい状態を作らない）＝入植者比率は既存の AvgRegionCoreShare（宗主の中核民族の比率）、人口は州の pop。
         //   入植の流量＝本国の農民（農奴解放加重）/労働者 → 植民地格の州の同クラス pop（Territory.MoveBetweenRegions＝地域間移民と同じ運搬・国内移動なので台帳は不変）
         //   × 距離減衰 × マラリア鎮静率（上の 2b と同じ式・同じ係数）。昇格＝中核民族シェア ≥ ColonyPromotionCoreShare かつ 人口 ≥ ColonyPromotionMinPop → Integrated
         //   （議席あり・維持費なし・Core にはならない）。PromotedColonies++ で保存検査（植民地の保存）の台帳が閉じる。ColonialRegionSettlement=0＝旧＝厳密恒等。
-        if (c.ColonialRegionSettlement > 0 && c.ColonySettlerRate > 0 && !w.WarmupFrozen)
+        if (c.ColonialRegionSettlement > 0 && c.ColonySettlerRatePerMonth.Value > 0 && !w.WarmupFrozen)
         {
             double serfFreeR = 1.0 - Privileges.SeigneurialDegree(w);
             var srcR = new List<(Pop P, double Wgt)>(); double srcMassR = 0;
@@ -263,7 +263,7 @@ public static class Colonial
                 double kmS = (Math.Abs(ccr.Lat) < 1e-9 && Math.Abs(ccr.Lon) < 1e-9) ? 0 : Geo.SeaDistanceKm(w.Latitude, w.Longitude, ccr.Lat, ccr.Lon, suezOpen, panamaOpen);
                 double attract = 1.0 / (1.0 + kmS / Diplomacy.DistanceNormKm);
                 if (cr.Malarial) attract *= malariaFill;
-                double flow = Math.Min(c.ColonySettlerRate * srcMassR * attract, srcMassR * SettlerMonthlyOutflowCap);
+                double flow = Math.Min(c.ColonySettlerRatePerMonth.Value * srcMassR * attract, srcMassR * SettlerMonthlyOutflowCap);
                 if (srcMassR > 1e-9 && flow > 1e-9)
                 {
                     double moved = 0;
@@ -279,7 +279,7 @@ public static class Colonial
                     }
                     srcMassR -= moved;
                 }
-                if (Politics.AvgRegionCoreShare(cr) >= c.ColonyPromotionCoreShare && cr.SumPopulation() >= c.ColonyPromotionMinPop)
+                if (Politics.AvgRegionCoreShare(cr) >= c.ColonyPromotionCoreShare.Value && cr.SumPopulation() >= c.ColonyPromotionMinPop)
                     (promoteR ??= []).Add(cr);
             }
             if (promoteR is not null)

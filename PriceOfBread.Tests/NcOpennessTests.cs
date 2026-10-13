@@ -167,7 +167,7 @@ public class NcOpennessTests(ITestOutputHelper output)
             if (sp is not null && dp is not null) before[cls] = (sp.Size, dp.Size, dp.NationalConsciousness);
         }
         double massBefore = NcMass(src, dst);
-        foreach (var (cls, b) in before) sim.MoveMigrants(src, dst, srcR, dstR, cls, sim.Coef.EmigrationMaxFrac * b.spSize);   // ★回1-2：流量は呼び手が決める（1階級ずつ）
+        foreach (var (cls, b) in before) sim.MoveMigrants(src, dst, srcR, dstR, cls, sim.Coef.EmigrationMaxPerQuarter.Value * b.spSize);   // ★回1-2：流量は呼び手が決める（1階級ずつ）
         int movedClasses = 0;
         foreach (var (cls, b) in before)
         {

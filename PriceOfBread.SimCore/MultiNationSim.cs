@@ -1650,13 +1650,13 @@ public sealed class MultiNationSim
             dstA[d] = w.EthnicEnabled
                 ? (1.0 + _coef.EthnicDraw * (1.0 - w.EthnicUnity)) * PoliticalQuantities.Clamp01(PoliticalQuantities.AvgLiteracy(w) / _coef.DiscriminationLiteracy)
                 : 1.0;
-            // 受入の物理上限＝アイルランド脱出級の絶対フロー（ImmigrationReceiveCapFrac/四半期）×移民制限法×受入能力（混雑で縮む＝AbsorbCap）。
+            // 受入の物理上限＝アイルランド脱出級の絶対フロー（ImmigrationReceiveCapPerQuarter/四半期）×移民制限法×受入能力（混雑で縮む＝AbsorbCap）。
             // ★移民制限法（法の棚卸しdoc L2・2026-08-01）：Open＝1.0／Selective＝選別で細る／Closed＝ほぼ閉じる
             //   （史実＝米の排華移民法1882・紳士協約1907・1924移民法／豪の白豪主義）。★(141)：州ごと（国内の移民の受け入れの上限と同じ＝その州の人口×その州の受入能力）
             double lawCap = w.ImmigrationRestriction switch
             {
-                ImmigrationLaw.Selective => _coef.ImmigrationSelectiveFrac,
-                ImmigrationLaw.Closed => _coef.ImmigrationClosedFrac,
+                ImmigrationLaw.Selective => _coef.ImmigrationSelectiveFrac.Value,
+                ImmigrationLaw.Closed => _coef.ImmigrationClosedFrac.Value,
                 _ => 1.0,
             };
             foreach (var r in w.Regions)
@@ -1667,7 +1667,7 @@ public sealed class MultiNationSim
                 var (la, lo) = Places.Coord(r.Name);
                 int classes = 0;
                 foreach (var p in r.Pops) if (!p.IsSoldier) classes |= 1 << p.ClassId;   // MoveMigrants が移せる相手（PopOf と同じ述語）
-                dst.Add((d, r, o, la, lo, _coef.ImmigrationReceiveCapFrac * r.SumPopulation() * lawCap * Territory.AbsorbCap(r, _coef), classes));
+                dst.Add((d, r, o, la, lo, _coef.ImmigrationReceiveCapPerQuarter.Value * r.SumPopulation() * lawCap * Territory.AbsorbCap(r, _coef), classes));
             }
         }
         int m = dst.Count;
@@ -1707,7 +1707,7 @@ public sealed class MultiNationSim
                     // B-高5（史実検証2026-07-22）：判定を送出**州**の FoodFill へブレンド（RegionBlend=0で国平均のみ）。
                     double effFill = src.FoodFill + _coef.FaminePushRegionBlend * (r.FoodFill - src.FoodFill);
                     double srcFamine = Math.Max(0.0, 1.0 - effFill);
-                    double maxFrac = _coef.EmigrationMaxFrac * (1.0 + _coef.FaminePushMaxFracBoost * srcFamine);
+                    double maxFrac = _coef.EmigrationMaxPerQuarter.Value * (1.0 + _coef.FaminePushMaxFracBoost * srcFamine);
                     double flow = Math.Min(_coef.EmigrationRate * gMax, maxFrac) * sp.Size;
                     if (!(flow > 1e-9)) continue;   // ★否定形＝NaN の流量を弾く
                     for (int x = 0; x < m; x++)

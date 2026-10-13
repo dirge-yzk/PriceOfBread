@@ -20,7 +20,7 @@ namespace PriceOfBread.Tests;
 public class UnitTypeTests
 {
     /// <summary>専用の値型の一覧（新しい型を足したらここへ。Units.cs の型と一致することを下で確かめる）。</summary>
-    private static readonly Type[] UnitTypes = [typeof(RatePerYear), typeof(RatePerMonth), typeof(MoneyPerMonth), typeof(MoneyPerYear), typeof(MoneyStock), typeof(RealGdpPerMonth), typeof(Share), typeof(RatioToGdpYear)];
+    private static readonly Type[] UnitTypes = [typeof(RatePerYear), typeof(RatePerMonth), typeof(RatePerQuarter), typeof(MoneyPerMonth), typeof(MoneyPerYear), typeof(MoneyStock), typeof(RealGdpPerMonth), typeof(Share), typeof(RatioToGdpYear)];
 
     [Fact]
     public void 型の一覧は宣言された専用の値型の全部である()
@@ -85,6 +85,10 @@ public class UnitTypeTests
         // 対照（何もしない番人は必ず緑）：Calendar には年⇔月の型つきの換算がある
         Assert.NotNull(typeof(Calendar).GetMethod("PerYearToPerMonth", [typeof(RatePerYear)]));
         Assert.NotNull(typeof(Calendar).GetMethod("PerMonthToPerYear", [typeof(RatePerMonth)]));
+        // ★(317) 四半期率の換算も Calendar の型つきの多重定義（3 本）
+        Assert.NotNull(typeof(Calendar).GetMethod("PerQuarterToPerMonth", [typeof(RatePerQuarter)]));
+        Assert.NotNull(typeof(Calendar).GetMethod("PerMonthToPerQuarter", [typeof(RatePerMonth)]));
+        Assert.NotNull(typeof(Calendar).GetMethod("PerQuarterToPerYear", [typeof(RatePerQuarter)]));
     }
 
     /// <summary>量の宣言と型の表（double に戻したら赤）。World のプロパティ・Coefficients のフィールド。</summary>
@@ -203,6 +207,28 @@ public class UnitTypeTests
         (typeof(Coefficients), "WarMilitancyRatePerMonth", typeof(RatePerMonth)),
         (typeof(Coefficients), "WarCasualtyRatePerMonth", typeof(RatePerMonth)),
         (typeof(Coefficients), "WarCasualtyCapPerMonth", typeof(RatePerMonth)),
+        // ★(317) 割合の型の残り その5＝人口・移民・社会移動の係数（係数のテーマ3）。3か月ごとの実行の刻みの率は新しい型 RatePerQuarter（名前に PerQuarter を足した）、月の率は RatePerMonth、年の率は RatePerYear、
+        //   法の率・下限・昇格の比率は Share。EmigrationRate（機会差 1 あたりの率）・MinorityPromotionPenalty・JobPoolTemperature・JobSearchLiteracyWeight・JobSearchUsesEma は移していない
+        (typeof(Coefficients), "CapitalRiseRatePerQuarter", typeof(RatePerQuarter)),
+        (typeof(Coefficients), "UpperFallRatePerQuarter", typeof(RatePerQuarter)),
+        (typeof(Coefficients), "MiddleFallRatePerQuarter", typeof(RatePerQuarter)),
+        (typeof(Coefficients), "BankruptcyFallRatePerQuarter", typeof(RatePerQuarter)),
+        (typeof(Coefficients), "ClergyJoinRatePerQuarter", typeof(RatePerQuarter)),
+        (typeof(Coefficients), "ClergyExitRatePerQuarter", typeof(RatePerQuarter)),
+        (typeof(Coefficients), "ArtisanDeclineRatePerQuarter", typeof(RatePerQuarter)),
+        (typeof(Coefficients), "JobSearchRatePerQuarter", typeof(RatePerQuarter)),
+        (typeof(Coefficients), "PettyEntryRatePerQuarter", typeof(RatePerQuarter)),
+        (typeof(Coefficients), "PromotionSpeedPerQuarter", typeof(RatePerQuarter)),
+        (typeof(Coefficients), "EmigrationMaxPerQuarter", typeof(RatePerQuarter)),
+        (typeof(Coefficients), "ImmigrationReceiveCapPerQuarter", typeof(RatePerQuarter)),
+        (typeof(Coefficients), "ColonySettlerRatePerMonth", typeof(RatePerMonth)),
+        (typeof(Coefficients), "PopGrowthRatePerMonth", typeof(RatePerMonth)),
+        (typeof(Coefficients), "CrudeBirthRatePerYear", typeof(RatePerYear)),
+        (typeof(Coefficients), "ClergyFloorShare", typeof(Share)),
+        (typeof(Coefficients), "ReligiousProfessionShare", typeof(Share)),
+        (typeof(Coefficients), "ColonyPromotionCoreShare", typeof(Share)),
+        (typeof(Coefficients), "ImmigrationSelectiveFrac", typeof(Share)),
+        (typeof(Coefficients), "ImmigrationClosedFrac", typeof(Share)),
     ];
 
     [Fact]
@@ -270,6 +296,10 @@ public class UnitTypeTests
         {
             Assert.Equal(BitConverter.DoubleToInt64Bits(Calendar.PerYearToPerMonth(x)), BitConverter.DoubleToInt64Bits(Calendar.PerYearToPerMonth(new RatePerYear(x)).Value));
             Assert.Equal(BitConverter.DoubleToInt64Bits(Calendar.PerMonthToPerYear(x)), BitConverter.DoubleToInt64Bits(Calendar.PerMonthToPerYear(new RatePerMonth(x)).Value));
+            // ★(317) 四半期率の換算も double の 1 回の除算・乗算そのもの（x/3・x*3・x*4）
+            Assert.Equal(BitConverter.DoubleToInt64Bits(x / 3), BitConverter.DoubleToInt64Bits(Calendar.PerQuarterToPerMonth(new RatePerQuarter(x)).Value));
+            Assert.Equal(BitConverter.DoubleToInt64Bits(x * 3), BitConverter.DoubleToInt64Bits(Calendar.PerMonthToPerQuarter(new RatePerMonth(x)).Value));
+            Assert.Equal(BitConverter.DoubleToInt64Bits(x * 4), BitConverter.DoubleToInt64Bits(Calendar.PerQuarterToPerYear(new RatePerQuarter(x)).Value));
         }
         // ★(256) 割合の積と年GDP 比の作り口も double の1演算そのもの
         foreach (var a in xs) foreach (var b in xs)
@@ -487,6 +517,44 @@ public class UnitTypeTests
             Assert.Equal(BitConverter.DoubleToInt64Bits((k + 2) / 13.0), BitConverter.DoubleToInt64Bits(got));
         }
         foreach (var old in new[] { "WarExhaustionRate", "WarMilitancyRate", "WarCasualtyRate", "WarCasualtyMonthlyCap" })
+            Assert.Null(typeof(Coefficients).GetField(old));   // 改名前の欄が残っていない（POB_COEF の旧名は〈存在しない係数名〉で止まる）
+    }
+
+    /// <summary>★(317) 割合の型の残り その5＝人口・移民・社会移動の係数 20 本（新しい型 RatePerQuarter 12・RatePerMonth 2・RatePerYear 1・Share 5）が、セーブの往復と係数の名前引き（反射の橋）で
+    /// 割り切れない値（13分の幾つ）のままビットが残ること・欄の型が表のとおりであること・改名前の欄が残っていないこと。期待値は k から直に書く（セーブの出力・Coefficients の既定から作らない）。</summary>
+    [Fact]
+    public void セーブの往復と名前引きで人口移民社会移動の係数の欄が残る()
+    {
+        (string Name, Type Type)[] fields =
+        [
+            ("CapitalRiseRatePerQuarter", typeof(RatePerQuarter)), ("UpperFallRatePerQuarter", typeof(RatePerQuarter)), ("MiddleFallRatePerQuarter", typeof(RatePerQuarter)),
+            ("BankruptcyFallRatePerQuarter", typeof(RatePerQuarter)), ("ClergyJoinRatePerQuarter", typeof(RatePerQuarter)), ("ClergyExitRatePerQuarter", typeof(RatePerQuarter)),
+            ("ArtisanDeclineRatePerQuarter", typeof(RatePerQuarter)), ("JobSearchRatePerQuarter", typeof(RatePerQuarter)), ("PettyEntryRatePerQuarter", typeof(RatePerQuarter)),
+            ("PromotionSpeedPerQuarter", typeof(RatePerQuarter)), ("EmigrationMaxPerQuarter", typeof(RatePerQuarter)), ("ImmigrationReceiveCapPerQuarter", typeof(RatePerQuarter)),
+            ("ColonySettlerRatePerMonth", typeof(RatePerMonth)), ("PopGrowthRatePerMonth", typeof(RatePerMonth)), ("CrudeBirthRatePerYear", typeof(RatePerYear)),
+            ("ClergyFloorShare", typeof(Share)), ("ReligiousProfessionShare", typeof(Share)), ("ColonyPromotionCoreShare", typeof(Share)),
+            ("ImmigrationSelectiveFrac", typeof(Share)), ("ImmigrationClosedFrac", typeof(Share)),
+        ];
+        var sim1 = new MultiNationSim([NationConfig.Britain(), NationConfig.France()], 1789, _ => new NullAgent());
+        var c1 = sim1.Nations[0].World.Coef;
+        for (int k = 0; k < fields.Length; k++)
+        {
+            var f = typeof(Coefficients).GetField(fields[k].Name)!;
+            f.SetValue(c1, UnitValues.FromDouble(f.FieldType, (k + 2) / 13.0));   // POB_COEF／Runner の反射と同じ入口
+        }
+        using var ms = new System.IO.MemoryStream();
+        SaveGame.Save(sim1, ms);
+        ms.Position = 0;
+        var c2 = SaveGame.Load(ms).Nations[0].World.Coef;
+        for (int k = 0; k < fields.Length; k++)
+        {
+            var f = typeof(Coefficients).GetField(fields[k].Name)!;
+            Assert.Equal(fields[k].Type, f.FieldType);
+            Assert.True(UnitValues.TryToDouble(f.GetValue(c2), out double got));
+            Assert.Equal(BitConverter.DoubleToInt64Bits((k + 2) / 13.0), BitConverter.DoubleToInt64Bits(got));
+        }
+        foreach (var old in new[] { "CapitalRiseRate", "UpperFallRate", "MiddleFallRate", "BankruptcyFallRate", "ClergyJoinRate", "ClergyExitRate", "ArtisanDeclineRate", "JobSearchRate",
+                                    "PettyEntryRate", "PromotionSpeed", "EmigrationMaxFrac", "ImmigrationReceiveCapFrac", "ColonySettlerRate", "PopGrowthRate", "CrudeBirthRate" })
             Assert.Null(typeof(Coefficients).GetField(old));   // 改名前の欄が残っていない（POB_COEF の旧名は〈存在しない係数名〉で止まる）
     }
 

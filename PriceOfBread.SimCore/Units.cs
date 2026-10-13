@@ -89,6 +89,30 @@ public readonly record struct RatePerMonth(double Value) : IUnitValue, IFormatta
     public string ToString(string? format, IFormatProvider? formatProvider) => Value.ToString(format, formatProvider);
 }
 
+/// <summary>四半期率（3か月ごとの実行の刻みあたりの割合：社会移動・越境移民の上限など）。RatePerQuarter どうしの加減・スカラー倍・比だけが書ける。</summary>
+public readonly record struct RatePerQuarter(double Value) : IUnitValue, IFormattable, IComparable<RatePerQuarter>
+{
+    public static RatePerQuarter operator +(RatePerQuarter a, RatePerQuarter b) => new(a.Value + b.Value);
+    public static RatePerQuarter operator -(RatePerQuarter a, RatePerQuarter b) => new(a.Value - b.Value);
+    public static RatePerQuarter operator -(RatePerQuarter a) => new(-a.Value);
+    public static RatePerQuarter operator *(RatePerQuarter a, double k) => new(a.Value * k);
+    public static RatePerQuarter operator *(double k, RatePerQuarter a) => new(k * a.Value);
+    public static RatePerQuarter operator /(RatePerQuarter a, double k) => new(a.Value / k);
+    /// <summary>同じ型どうしの比＝無次元（double）。</summary>
+    public static double operator /(RatePerQuarter a, RatePerQuarter b) => a.Value / b.Value;
+    public static bool operator <(RatePerQuarter a, RatePerQuarter b) => a.Value < b.Value;
+    public static bool operator >(RatePerQuarter a, RatePerQuarter b) => a.Value > b.Value;
+    public static bool operator <=(RatePerQuarter a, RatePerQuarter b) => a.Value <= b.Value;
+    public static bool operator >=(RatePerQuarter a, RatePerQuarter b) => a.Value >= b.Value;
+    /// <summary>record の == と != はこの Equals を呼ぶ＝double の == と同じ（NaN は等しくない）。</summary>
+    public bool Equals(RatePerQuarter other) => Value == other.Value;
+    public override int GetHashCode() => Value.GetHashCode();
+    /// <summary>並べ替え・最大最小（OrderBy・Max・Min が実行時に要る）。double と同じ順序。</summary>
+    public int CompareTo(RatePerQuarter other) => Value.CompareTo(other.Value);
+    public override string ToString() => Value.ToString();
+    public string ToString(string? format, IFormatProvider? formatProvider) => Value.ToString(format, formatProvider);
+}
+
 /// <summary>月の流れのお金（1か月あたりの金額）。MoneyPerMonth どうしの加減・スカラー倍・比だけが書ける。</summary>
 public readonly record struct MoneyPerMonth(double Value) : IUnitValue, IFormattable, IComparable<MoneyPerMonth>
 {

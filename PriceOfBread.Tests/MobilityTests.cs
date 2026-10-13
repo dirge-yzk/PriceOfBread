@@ -86,13 +86,13 @@ public class MobilityTests
     }
 
     [Fact]
-    public void 失業プールは失業者を同階級の稼げる職へ流し資格が無ければ降格する()   // ①''（2026-08-15作者指示・休眠JobSearchRate）の点火経路
+    public void 失業プールは失業者を同階級の稼げる職へ流し資格が無ければ降格する()   // ①''（2026-08-15作者指示・休眠JobSearchRatePerQuarter）の点火経路
     {
         // 双子シム（同シード＝決定論で同一状態）：ON側だけプールが動く＝差分がプールの効果そのもの。
         var off = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
         var on = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
         off.Run(20); on.Run(20);
-        on.World.Coef.JobSearchRate = 0.10;
+        on.World.Coef.JobSearchRatePerQuarter = new RatePerQuarter(0.10);
         foreach (var sim in new[] { off, on })
         {
             var r = sim.World.Region;
@@ -124,7 +124,7 @@ public class MobilityTests
         var off = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
         var on = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
         off.Run(20); on.Run(20);
-        on.World.Coef.JobSearchRate = 0.10;
+        on.World.Coef.JobSearchRatePerQuarter = new RatePerQuarter(0.10);
         foreach (var sim in new[] { off, on })
         {
             var w = sim.World; var r = w.Region;
@@ -145,8 +145,8 @@ public class MobilityTests
         var wta = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());   // 総取り（T=0）
         var soft = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());  // softmax（T=0.15）
         wta.Run(20); soft.Run(20);
-        wta.World.Coef.JobSearchRate = 0.10;
-        soft.World.Coef.JobSearchRate = 0.10; soft.World.Coef.JobPoolTemperature = 0.15;
+        wta.World.Coef.JobSearchRatePerQuarter = new RatePerQuarter(0.10);
+        soft.World.Coef.JobSearchRatePerQuarter = new RatePerQuarter(0.10); soft.World.Coef.JobPoolTemperature = 0.15;
         double before = 0;
         foreach (var sim in new[] { wta, soft })
         {
@@ -238,8 +238,8 @@ public class MobilityTests
         w.WomenRights = WomenRightsLaw.None;   // 権利の梯子なし＝専門職（技師/官僚/医者）の access=0
         w.WomenWageRetention = 0.0;
         // ①昇格だけを残して隔離（他の移動機構は率0）
-        c.JobSearchRate = 0; c.PettyEntryRate = 0; c.ArtisanDeclineRate = 0;
-        c.MiddleFallRate = 0; c.UpperFallRate = 0; c.BankruptcyFallRate = 0; c.CapitalRiseRate = 0;
+        c.JobSearchRatePerQuarter = new RatePerQuarter(0); c.PettyEntryRatePerQuarter = new RatePerQuarter(0); c.ArtisanDeclineRatePerQuarter = new RatePerQuarter(0);
+        c.MiddleFallRatePerQuarter = new RatePerQuarter(0); c.UpperFallRatePerQuarter = new RatePerQuarter(0); c.BankruptcyFallRatePerQuarter = new RatePerQuarter(0); c.CapitalRiseRatePerQuarter = new RatePerQuarter(0);
         var worker = r.Pops[r.MeritFromIndex];
         var eng = r.Pops[r.MeritToIndex];
         Assert.True(r.TeacherPopIndex >= 0, "教師popが無い");

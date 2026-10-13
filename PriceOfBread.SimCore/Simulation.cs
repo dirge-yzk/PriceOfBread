@@ -2570,7 +2570,7 @@ public sealed class Simulation
         // 既定0＝乗算(1−0)+0×…=1.0はIEEE754で正確＝厳密恒等。healthcare∈[0,∞)をmin(1,·)で有界化。
         double incomeGate = (1.0 - c.FertilityIncomeSurvivalGate) + c.FertilityIncomeSurvivalGate * Math.Min(1.0, healthcare);
         double fertility = Math.Clamp(c.FertilityBase + landFertBoost - c.FertilityLitSlope * Math.Max(0, femaleLit - c.FertilityLitOnset) - c.FertilityIncomeSlope * avgInd * incomeGate - landDivision, c.FertilityFloor, c.FertilityBase + landFertBoost);
-        // 人7（出生率倍率の死亡側混線の解消）：ロジスティック純増 net＝PopGrowthRate×fertility×… なので、totalDeaths＝totalBirths−net の両項が fertility 比例。
+        // 人7（出生率倍率の死亡側混線の解消）：ロジスティック純増 net＝PopGrowthRatePerMonth×fertility×… なので、totalDeaths＝totalBirths−net の両項が fertility 比例。
         // ＝少子化した国は同じ食料不足でも飢饉死が半分という因果の混線（fertility は本来「産む数」であって「死ぬ数」ではない）。
         // FertilityAffectsBirthsOnly=0 で netFertility==fertility＝現行と厳密一致・1で net の収束速度から fertility を外し 1.0（出生側のみ fertility を残す）＝死亡側を出生率倍率から独立。
         double netFertility = fertility + c.FertilityAffectsBirthsOnly * (1.0 - fertility);
@@ -2581,9 +2581,9 @@ public sealed class Simulation
         // eqFert=1−これ×max(0,1−fertility)。上側はクランプ（fertility>1の開拓地ブーストは均衡を天井超えに押し上げない＝過冲・飢饉振動の禁止）。
         // 死亡側は不変（totalDeaths=totalBirths−net の構造そのまま）＝人7「少子化の国は飢饉死も半分」の誤因果を再導入しない。0で (1−pop/cap) と厳密同値。
         double eqFert = 1.0 - c.FertilityEquilibriumWeight * Math.Max(0.0, 1.0 - fertility);
-        double net = c.PopGrowthRate * netFertility * pop * (eqFert - pop / capacity);   // ロジスティック：均衡＝eqFert×扶養力へ収束（出生−死亡の純）。fertility の死亡側寄与は FertilityAffectsBirthsOnly で切り離せる
+        double net = c.PopGrowthRatePerMonth.Value * netFertility * pop * (eqFert - pop / capacity);   // ロジスティック：均衡＝eqFert×扶養力へ収束（出生−死亡の純）。fertility の死亡側寄与は FertilityAffectsBirthsOnly で切り離せる
         World.DiagFertility = fertility; World.DiagLandRoom = landRoom;   // ★人口診断拡張（2026-08-21・純記帳）：出生率倍率と空き土地ブースト＝仏過大/英過小の因子分解用
-        var mortW = Pop.MortalityWeights(c.CrudeBirthRate);   // ★年齢の層（段4e 後半）：平常の死の年齢の重み（標準のピラミッドが1783年の出生で動かない重み）
+        var mortW = Pop.MortalityWeights(c.CrudeBirthRatePerYear.Value);   // ★年齢の層（段4e 後半）：平常の死の年齢の重み（標準のピラミッドが1783年の出生で動かない重み）
         double massPop = 0, massBirthWeight = 0, massBirthKey = 0, massDeathWeight = 0;
         var regions = World.Regions;
         var regKey = new double[regions.Count];   // ★(143) 州ごとの出産年齢の女性の実数（今の出産可能のプール×規模の和）＝国の出生を州へ配る鍵（プール＝(142) から15〜49歳の女×カップル律速・(143) の測りの時点は16〜59歳×成人の女性比＝(144) 注記）
@@ -2616,7 +2616,7 @@ public sealed class Simulation
         //     豊かな POP の死がその分だけ減った＝飢えた州の減りが国の中の他の州の伸びに付け替わった（分子と分母の非対称）。
         //     加えて局地飢饉（旧 RegionalFamineStep＝国平均からの相対の不足×0.025／月）が同じ飢えを2本目の死として数えていた（思想⑨）＝植民地の州が開幕から
         //     飢えの死で年3%ずつ痩せ、ピークの1/10 未満へ落ちた（(125) の10種で532件・(131) の計器＝局地飢饉 32.5‰・寄せた分 5.5‰／年）。
-        double totalBirths = Calendar.PerYearToPerMonth(c.CrudeBirthRate) * fertility * massBirthWeight;   // 既定 massBirthWeight==massPop ＝現行と厳密一致
+        double totalBirths = (Calendar.PerYearToPerMonth(c.CrudeBirthRatePerYear) * fertility * massBirthWeight).Value;   // 既定 massBirthWeight==massPop ＝現行と厳密一致
         bool noMothers = !(massBirthKey > 1e-12);   // 産む人が居ない（全 POP の出産可能のプール≈0）＝出生0（否定形＝NaN も0）
         if (noMothers) totalBirths = 0;
         bool recovering = net >= totalBirths;

@@ -574,7 +574,7 @@ public sealed class Coefficients
     public double FertilityFloor = 0.5;          // 出生率の下限（先進社会でも人口は緩やかに増える）
     public double FertilityLitOnset = 0.1;       // 出生率が下がり始める女性識字の開始点（初等識字は出生率に効かない＝中等教育から。実証準拠）
     public double FertilityIncomeSlope = 0.15;   // 所得/発展（工業化度）で出生率が下がる幅（B-4）＝都市化・所得上昇の少子化。識字とは別の経路で、死亡率低下の後に遅れて効く（工業化は緩やかに育つ＝二段階の人口転換）
-    public double CrudeBirthRate = 0.035;        // 粗出生率（年率・19世紀の実証値≈3-4%）。×出生率倍率で子供が補充される（純増とは独立＝構成のみ動かす。子供比率の均衡≈出生率/(出生率+1/16年)≈0.2-0.36）
+    public RatePerYear CrudeBirthRatePerYear = new(0.035);        // 粗出生率（年率・19世紀の実証値≈3-4%）。×出生率倍率で子供が補充される（純増とは独立＝構成のみ動かす。子供比率の均衡≈出生率/(出生率+1/16年)≈0.2-0.36）
     // === 人口忠実度ラウンド（2026-08-21）＝「英が増えず（×1.68・帯2.6-4.3）仏が増えすぎる（×2.39・帯1.25-1.7）」の構造修正 ===
     // 実測診断（popprobe s1）：全国とも Q100 で pop/capacity≈1.0 に張り付き＝**成長は100%扶養力天井が決める**。
     // FertilityAffectsBirthsOnly=1.0 点火（2026-07-27）以降 netFertility≡1 ＝出生率倍率（人口転換の全機構・係数5本）は純増に一切効かない
@@ -679,7 +679,7 @@ public sealed class Coefficients
     public double WarMilitancyViaTarget = 1.0;   // 監査2026-07-11（二3）：1＝厭戦→闘争度を Politics の目標項に一本化（Diplomacy の月次直接加算 WarMilitancyRatePerMonth/WarExhaustionMilitancy を不発化）。0＝旧の二重経路。クーデタ側の明示の厭戦乗数は同じ厭戦の2回目（P9）＝2026-09-20 に削除済み（兵士の厭戦はこの目標項→闘争度の1回だけ）
 
     // --- 転職（昇格・転落）。閾値＝国民平均の1人あたり貯蓄に対する倍率＝経済規模で自動スケール ---
-    public double ClergyFloorShare = 0.002;      // 聖職者の下限（地域人口比0.2%）。世俗化で没落しても教会は消えない
+    public Share ClergyFloorShare = new(0.002);      // 聖職者の下限（地域人口比0.2%）。世俗化で没落しても教会は消えない
 
     // --- 植民地POP（現地住民の実体）と独立 ---
     // （★(227)：係数 ColonialPopScale〔人口ウェイト→住民数の換算 500 千人〕は廃止＝住民数は world.json の popK〔千人〕で史実を直接置く。質量の単位は Diplomacy.ColonyUnitPop〔初期の植民地の平均の住民数〕）
@@ -712,8 +712,8 @@ public sealed class Coefficients
     //   ★点火2026-08-26：実測（batch5）＝破綻0/デッドロック0/異常0/**ハーネス不合格0**・exact49%/near81%（基線と同等）・州209→245。
     //     ⚠TradeColonialGoods と**対で**点火した（植民地財の交易解禁の前提が「植民地が自分で産む」こと）。TradeColonialGoods は 2026-09-28 に焼き込み済み。
     public double ColoniesAreRegions = 1.0;
-    public double ColonySettlerRate = 0.00015;       // 入植の月次流量係数（本国の自由な大衆の総数×これ×距離減衰×マラリア鎮静率が各植民地へ移住）。0＝入植なし＝昇格も発火しない＝厳密恒等（休眠マスター）。0.00015＝英の対植民地移住が年5〜6万人規模（史実の19世紀英移民10〜20万/年の下側）＝点火測定値2026-08-09
-    public double ColonyPromotionCoreShare = 0.5;    // 昇格に要る入植者比率（過半数・作者裁定2026-07-31）。米準州/シベリア/自治領＝入植者多数が一般則（アルジェリア型＝欧州系1割での統合は選挙権差別が前提の特例＝再現しない）
+    public RatePerMonth ColonySettlerRatePerMonth = new(0.00015);       // 入植の月次流量係数（本国の自由な大衆の総数×これ×距離減衰×マラリア鎮静率が各植民地へ移住）。0＝入植なし＝昇格も発火しない＝厳密恒等（休眠マスター）。0.00015＝英の対植民地移住が年5〜6万人規模（史実の19世紀英移民10〜20万/年の下側）＝点火測定値2026-08-09
+    public Share ColonyPromotionCoreShare = new(0.5);    // 昇格に要る入植者比率（過半数・作者裁定2026-07-31）。米準州/シベリア/自治領＝入植者多数が一般則（アルジェリア型＝欧州系1割での統合は選挙権差別が前提の特例＝再現しない）
     public double ColonyPromotionMinPop = 60;        // 昇格に要る総人口（1単位=1000人）＝北西部条例1787「自由人口6万人で州昇格を申請できる」の一次データ。★2026-09-30 (118)：分離の離脱の力を人の数で測る飽和 N/(N+これ)（N＝州の大衆）にも使う＝州を名乗れる人口の土地は国を名乗る力も半分まで持つ（Politics.CheckSecession）
     // 恐慌の脱植民地化（最終調整2026-06-29・ユーザー選択「破産で植民地喪失」）：本国が深い恐慌（GdpDrawdown 閾値超）に陥ると、財政・軍が崩れ遠方植民地への grip(hold) が失われ、
     // 植民地不満も煽られて離反しやすくなる＝スペイン帝国がナポレオン危機で米州を失った史実型。覇権の構造的優位（植民地）を大恐慌が削る経路。既定0で恒等＝較正中立。
@@ -733,15 +733,15 @@ public sealed class Coefficients
     public double AdminNeedPerPop = 0.04;        // 人口1単位あたりの行政の必要量。官僚・予算が足りないと AdminFill<1＝汚職
     // --- 社会移動（昇格・転落）：閾値は地域の1人あたり平均貯蓄に対する倍率＝経済規模で自動スケール ---
     public double CapitalRiseThreshold = 8.0;    // 中流→資本家の昇格閾値（平均の8倍の資金）。転落閾値と離す＝発振防止
-    public double CapitalRiseRate = 0.01;        // 中流→資本家の四半期移動率
+    public RatePerQuarter CapitalRiseRatePerQuarter = new(0.01);        // 中流→資本家の四半期移動率
     public double UpperFallThreshold = 0.8;      // 上流（貴族・資本家・聖職者）→中流の転落閾値（平均的市民より貧しい上流＝没落。高くしすぎると身分ごと溶ける）
-    public double UpperFallRate = 0.02;          // 上流→中流の四半期転落率（恐慌で貯蓄が溶けると大量転落）
+    public RatePerQuarter UpperFallRatePerQuarter = new(0.02);          // 上流→中流の四半期転落率（恐慌で貯蓄が溶けると大量転落）
     public double MiddleFallThreshold = 0.4;     // 中流→下層の転落閾値（平均の4割を切る＝職が無い専門職）
-    public double MiddleFallRate = 0.03;         // 中流→下層の四半期転落率
+    public RatePerQuarter MiddleFallRatePerQuarter = new(0.03);         // 中流→下層の四半期転落率
     // 破産（貯蓄が枯渇し信用で延命されている＝慢性赤字）の所有者は速やかに転落させる。緩やかな通常転落(2-3%)では
     // 信用の底打ち（毎月0に戻す）に負けて破産プールが滞留し LossFinanced が膨らむため、破産者だけ高い率で抜く。
     public double InsolventThreshold = 0.10;     // 貯蓄/人 が 平均×これ 未満＝事実上の破産（信用延命中）とみなす
-    public double BankruptcyFallRate = 0.15;     // 破産した所有者（資本家・職人）の四半期転落率（緩やか転落より速く抜ける＝ゾンビ延命を断つ。0.25は江戸を常勝化させた疑い→0.15へ緩和）
+    public RatePerQuarter BankruptcyFallRatePerQuarter = new(0.15);     // 破産した所有者（資本家・職人）の四半期転落率（緩やか転落より速く抜ける＝ゾンビ延命を断つ。0.25は江戸を常勝化させた疑い→0.15へ緩和）
     // === POPの個人債務（設計＝docs/202608/20260802_POPの個人債務_部分完了.md・2026-08-02）===
     // ★器は1つ（Pop.Debt）、入口は2つ（損失の記憶／消費者信用）、出口は1つ（返済規律）。
     //   これでフィッシャーの負債デフレ（損失→債務→強制的なデレバレッジ→数年の投資抑制）と
@@ -763,11 +763,11 @@ public sealed class Coefficients
     //   利息なしでも「返済が将来の予算を食う」ので採用条件①は満たされる。
 
     public double ClergyAttractThreshold = 2.5;  // 聖職者の魅力閾値（平均比の豊かさ）。これ超で識字の高い下層が教会へ
-    public double ClergyJoinRate = 0.004;        // 下層→聖職者の四半期移動率（宗教学校の社会のみ）
-    public double ClergyExitRate = 0.004;        // ★点火2026-08-31（ラウンドB）＝聖職者の退出（世俗化・AI審査3-5）：非宗教学校の社会で聖職の実入りが平均を割ると教師/都市労働者へ（入口ClergyJoinRate=0.004の対称・同率）。0で退出なし
+    public RatePerQuarter ClergyJoinRatePerQuarter = new(0.004);        // 下層→聖職者の四半期移動率（宗教学校の社会のみ）
+    public RatePerQuarter ClergyExitRatePerQuarter = new(0.004);        // ★点火2026-08-31（ラウンドB）＝聖職者の退出（世俗化・AI審査3-5）：非宗教学校の社会で聖職の実入りが平均を割ると教師/都市労働者へ（入口ClergyJoinRatePerQuarter=0.004の対称・同率）。0で退出なし
     // --- 国家間移民（豊かさの引力で大衆が移る・ゼロサム＝人はゲームの外から来ない。回1-2・2026-09-27 に世界プール WorldMigrationPoolFrac を削除）---
     public double EmigrationRate = 0.004;        // 機会差1.0あたりの四半期流出率
-    public double EmigrationMaxFrac = 0.003;     // 四半期の流出上限（人口割合）＝大量流出の暴走防止
+    public RatePerQuarter EmigrationMaxPerQuarter = new(0.003);     // 四半期の流出上限（人口割合）＝大量流出の暴走防止
     // 移民の自己制限（07_再設計 §12-1・A4裁定・2026-07-31）：人が減るほど賃金と機会が上がり縁故が細る＝流出は自然に止まる。
     // ★国の消滅処理（ゾンビ清掃）は廃案＝「空になる」ことを後始末で対症せず、上流のフィードバックで防ぐ。
     // 【墓標2026-10-01 (141)】EmigrationFloorSize（50＝送出 POP の規模の下限〔千人〕）・EmigrationFloorSpan（2＝絞りの幅）＝送出の床（下限のクランプ＝思想⑧）を削除。
@@ -858,15 +858,15 @@ public sealed class Coefficients
     //   「君主の身分制＝低、開かれた社会＝高」という元のコメントそのものを、ラベルでなく実体から測る。
     public double MeritModernityFromClosed = 0.0;
     public double MeritGroupWeight = 0.8;        // 近代的利益団体の勢力割合がメリトクラシー値に効く重み
-    public double PromotionSpeed = 0.04;         // 教育済みPOPが上の階級へ昇る速さ（M×識字×これ）
-    public double ReligiousProfessionShare = 0.05; // 宗教教育下の技師・教師・医者への昇格係数（神学校は技師をほぼ再生産できない＝世俗水路。官僚は例外）
+    public RatePerQuarter PromotionSpeedPerQuarter = new(0.04);         // 教育済みPOPが上の階級へ昇る速さ（M×識字×これ）
+    public Share ReligiousProfessionShare = new(0.05); // 宗教教育下の技師・教師・医者への昇格係数（神学校は技師をほぼ再生産できない＝世俗水路。官僚は例外）
     public double PromotionPremium = 1.5;        // 転職に要る給与倍率（機会費用＋資格取得の壁＝現状維持バイアス。雇用枠は廃止＝職の需給は給与が表現する）
-    public double ArtisanDeclineRate = 0.01;     // ★【点火0.01・2026-08-16】手工業の没落（**四半期率**＝QuarterEndのみ実行）：工場に所得で負けた職人→都市労働者。駆動は昇格①と同じ所得差の言語。値は手織工アンカー帯0.008-0.012の中央（24万→4.3万/36年＝年率−4.7%）。⚠入口PettyEntryRateと対で点火（出口単独は職人が単調消滅＝Japan実測でsize=0）。S級梯子r6+9＝35/70/56・合成で帯中立
-    public double JobSearchRate = 0.025;         // ★【点火0.025・2026-08-15】失業プール（作者指示）：失業者が四半期に階級のプール（上流/中流/下流）経由で職を探す割合（①''）。同階級のもっともマシな職へ資格（識字×高等教育）の按分で転職し、駄目なら1段下の最良職へ降格。>0で没落④⑤⑥・手工業の没落①'の行き先も同経路（無条件「→労働者」の廃止）。0.05は硬性赤（seed10リヴォルノ満足度0.12＝微小国が過流量で崩れる）→0.025×T0.15で硬性緑・near70/法57/貿易1.58%（exact−1は記録済み・修正方針20260801）。Search候補
+    public RatePerQuarter ArtisanDeclineRatePerQuarter = new(0.01);     // ★【点火0.01・2026-08-16】手工業の没落（**四半期率**＝QuarterEndのみ実行）：工場に所得で負けた職人→都市労働者。駆動は昇格①と同じ所得差の言語。値は手織工アンカー帯0.008-0.012の中央（24万→4.3万/36年＝年率−4.7%）。⚠入口PettyEntryRatePerQuarterと対で点火（出口単独は職人が単調消滅＝Japan実測でsize=0）。S級梯子r6+9＝35/70/56・合成で帯中立
+    public RatePerQuarter JobSearchRatePerQuarter = new(0.025);         // ★【点火0.025・2026-08-15】失業プール（作者指示）：失業者が四半期に階級のプール（上流/中流/下流）経由で職を探す割合（①''）。同階級のもっともマシな職へ資格（識字×高等教育）の按分で転職し、駄目なら1段下の最良職へ降格。>0で没落④⑤⑥・手工業の没落①'の行き先も同経路（無条件「→労働者」の廃止）。0.05は硬性赤（seed10リヴォルノ満足度0.12＝微小国が過流量で崩れる）→0.025×T0.15で硬性緑・near70/法57/貿易1.58%（exact−1は記録済み・修正方針20260801）。Search候補
     public double JobPoolTemperature = 0.15;     // ★【点火0.15・2026-08-15】①''の着地温度（リアリティ監査rank2）：>0で着地を最良職総取りから「所得×資格×空き(1−受け皿失業率)の低温softmax按分」へ軟化（PopDecision MigrationTemperatureと同じ言語・£単位）。0＝総取りウォーターフォールに厳密一致（総取りはA/B実測で near−4＝差し戻し済み。softmaxで exact+2 を実測）。値はMigrationTemperature同値
     // --- 社会移動リアリティ監査 2026-08-15（docs/202608/20260815_社会移動リアリティ監査_部分完了.md・点火状況は各行参照・点火は1本1バッチのA/B）---
-    public double MerchantArtisanCapitalRise = 1.0;  // 【点火1.0・2026-08-16＝S級梯子r1単独37/71/58・合成で帯中立】rank1：商業・手工業資本→産業資本（③の対象を商人・職人へ一般化＝Crouzet「第一世代工場主の過半が商人・職人出自」）。閾値/率は既存CapitalRiseThreshold/CapitalRiseRateを共用（これは率の乗数・1で専門職と同率）。>0で商人の転落（⑤同型）も解凍＝凍結を両方向解く。職人のSmoothedMarginゲート（儲かる工房だけ工場化）は初版見送り＝貯蓄閾値8×avgが好況を既に選別（§10記録）
-    public double PettyEntryRate = 0.02;             // 【点火0.02・2026-08-16＝出口ArtisanDeclineRateと対】rank6：小営業（職人・商人）への参入階段＝徒弟→親方・行商→店舗。労働者から所得差駆動（①'と対称・識字ゲート不要＝腕と元手の職）×元手ゲート（1人あたり貯蓄≥地域平均avgPerCap＝新自由度なし）。>0でプールJobGate(職人)にも同じ元手ゲート＝「無一文の失業者が工房主」の非一貫を閉鎖。⚠ArtisanDeclineRate（出口）と同時A/Bが条件
+    public double MerchantArtisanCapitalRise = 1.0;  // 【点火1.0・2026-08-16＝S級梯子r1単独37/71/58・合成で帯中立】rank1：商業・手工業資本→産業資本（③の対象を商人・職人へ一般化＝Crouzet「第一世代工場主の過半が商人・職人出自」）。閾値/率は既存CapitalRiseThreshold/CapitalRiseRatePerQuarterを共用（これは率の乗数・1で専門職と同率）。>0で商人の転落（⑤同型）も解凍＝凍結を両方向解く。職人のSmoothedMarginゲート（儲かる工房だけ工場化）は初版見送り＝貯蓄閾値8×avgが好況を既に選別（§10記録）
+    public RatePerQuarter PettyEntryRatePerQuarter = new(0.02);             // 【点火0.02・2026-08-16＝出口ArtisanDeclineRatePerQuarterと対】rank6：小営業（職人・商人）への参入階段＝徒弟→親方・行商→店舗。労働者から所得差駆動（①'と対称・識字ゲート不要＝腕と元手の職）×元手ゲート（1人あたり貯蓄≥地域平均avgPerCap＝新自由度なし）。>0でプールJobGate(職人)にも同じ元手ゲート＝「無一文の失業者が工房主」の非一貫を閉鎖。⚠ArtisanDeclineRatePerQuarter（出口）と同時A/Bが条件
     // ★2026-09-03（キューC-03／出典 トリアージ 2-C 5-7）：農奴の移動制限を**失業プール経路にも**広げる栓。
     //   ⚠旧＝都市化の softmax（PopDecision）だけが SerfMobilityGate で縛られ、失業プール（Meritocracy の①''）は素通り
     //   ＝**農奴が「職探し」なら都市へ入れる**。同じ法が2経路のうち片方しか縛らない＝「ゲート緑≠機構が働いた」の型。
@@ -875,7 +875,7 @@ public sealed class Coefficients
     public double SerfGateCoversPool = 0.0;
     public double SerfMobilityGate = 1.0;            // 【点火1.0・2026-08-16＝S級梯子r3単独37/70/58】rank3：農奴の移動不能＝都市化フロー（PopDecision 農村→都市方向のみ）に (1−これ)+これ×serfFree を乗算（serfFree=農奴解放 None:0/Limited:0.5/Full:1＝Colonial.cs入植と同じ梯子）。都市→農村は自由＝非対称。露普の都市化が解放後に始まる順序が法から出る。地域間移民(Territory系)への配線は次段（§10記録）
     public double ServiceUnemployment = 1.0;         // 【点火1.0・2026-08-16＝S級梯子r11単独37/72/55】rank11：役務専任popの失業＝教育→教師/医療→医者/行政→官僚/家事奉仕→使用人にも売れ残り率でUnemploymentRateを立てる（式は労働3財と同一・これは強度乗数）。使用人の袋小路（U恒0＝プール対象外・出口ゼロ）の解消。U→闘争度/福祉targetingにも効く＝較正非中立・A/B必須
-    public double JobSearchLiteracyWeight = 0.5;     // 【点火0.5・2026-08-16＝S級梯子r10a単独35/72/56】rank10a：職探し効率の識字連動＝実効率=JobSearchRate×(1−これ×(1−識字))。1783年の教区縁故社会と1911年の職業紹介所社会の探索効率差＝識字（新聞求人・文書応募）が代理。固定年号ゲート不要
+    public double JobSearchLiteracyWeight = 0.5;     // 【点火0.5・2026-08-16＝S級梯子r10a単独35/72/56】rank10a：職探し効率の識字連動＝実効率=JobSearchRatePerQuarter×(1−これ×(1−識字))。1783年の教区縁故社会と1911年の職業紹介所社会の探索効率差＝識字（新聞求人・文書応募）が代理。固定年号ゲート不要
     public double JobSearchUsesEma = 0.02;           // 【点火0.02・2026-08-16＝S級梯子r10b単独35/71/61】rank10b：>0＝月次EMA率（例0.02≈4年記憶）。プール流入の駆動を瞬間UでなくU多年EMAへ＝循環失業は滞留して闘争度になり（Politics既存）、慢性失業だけが職業転換を駆動（手織工の遅さと恐慌の怒りが同じ係数から分岐）。Pop.UnemploymentEmaを月次更新（0では読み書きなし＝恒等）
     public double MinorityPenaltyModernBlend = 0.5;  // 【点火0.5・2026-08-16＝S級梯子r17単独37/73/61=単独帯最良（Search手掛かり）】rank17：ガラスの天井の時代ブレンド＝実効ペナルティ=MinorityPromotionPenalty×(1−これ×M)（M=メリトクラシー値）。開かれた社会ほど法的障壁が畳まれ慣行が残る（ユダヤ人解放の年代差が政体・社会構成から出る＝国名条件なし）。①とプールJobGateの物差しも統一（プール側にminorityF追加）
     // --- 作者裁定2026-08-16（同監査 rank7/8/12・点火状況は各行参照・実装は Meritocracy.cs・点火は1本1バッチのA/B）---
@@ -1283,7 +1283,7 @@ public sealed class Coefficients
     // --- 移民の機会と着地（国家間移民の行き先の機会＝Territory.Opportunity。★回1-2・2026-09-27：ゲーム外からの国際移民＝世界プールは削除＝MigrationStayHome も削除）---
     // ★2026-09-30 (125)：工業の引力 IndustrialOpportunityWeight（旧 0.5＝機会 ×(1＋これ×工業化度)・2026-06-28）を削除＝州の空洞化の根
     //   （工業化度は資本の総量＝人が集まる州ほど積もり、さらに人を引く正帰還・1人に与える機会は賃金と雇用が既に運ぶ＝思想⑨）。Territory.Opportunity の注記。
-    public double OpportunityWageWeight = 0.2;       // 州の労働価格プレミアム（1人あたり月次所得の対国平均比＝Region.WagePremium）1あたり移民機会の上乗せ（Opportunity ×(1+これ×(premium−1))）。金鉱州の高賃金→移民殺到＝ゴールドラッシュを賃金経由で創発（キュー3・金発見移民）。0=恒等（較正中立＝単一州はpremium=1）。0.2採用＝実測2026-07-10：(a)wageprobe＝前提「欧州平時bestOpp<0.55」は不成立（全53カ国が常時>0.55＝国際流入は受入上限ImmigrationReceiveCapFracで飽和＝重みは国際流入量を変えず磁石化リスクなし（02断線走査2026-07-28：死んだImmigrationMaxFracの論拠を実係数へ差し替え）・実効は金鉱/ブーム州への誘導＝受入州選択・国内移動）(b)提案帯0.3-0.4は4国回帰番人「工業化の差別化」を壊す（0.3→spread0.15/0.4→0.22＜基準0.5＝賃金スパイク追随が工業州への集積を乱す）→番人合格の上限0.2
+    public double OpportunityWageWeight = 0.2;       // 州の労働価格プレミアム（1人あたり月次所得の対国平均比＝Region.WagePremium）1あたり移民機会の上乗せ（Opportunity ×(1+これ×(premium−1))）。金鉱州の高賃金→移民殺到＝ゴールドラッシュを賃金経由で創発（キュー3・金発見移民）。0=恒等（較正中立＝単一州はpremium=1）。0.2採用＝実測2026-07-10：(a)wageprobe＝前提「欧州平時bestOpp<0.55」は不成立（全53カ国が常時>0.55＝国際流入は受入上限ImmigrationReceiveCapPerQuarterで飽和＝重みは国際流入量を変えず磁石化リスクなし（02断線走査2026-07-28：死んだImmigrationMaxFracの論拠を実係数へ差し替え）・実効は金鉱/ブーム州への誘導＝受入州選択・国内移動）(b)提案帯0.3-0.4は4国回帰番人「工業化の差別化」を壊す（0.3→spread0.15/0.4→0.22＜基準0.5＝賃金スパイク追随が工業州への集積を乱す）→番人合格の上限0.2
     // 【墓標2026-10-01 (139) 段4g・作者裁定 Q12】ImmigrantWorkerBase（0.3＝入植者のうち労働者になる割合）＝読み手（植民地の州昇格の入植者の着地）が Colony オブジェクトの入植ごと消えた
 
     // --- 外交・戦争（§6.1 国際層）---
@@ -1883,7 +1883,7 @@ public sealed class Coefficients
     public double ColonialUnrestHomeWeight = 0.006; // C1植民地不満→本国大衆の闘争度（反帝世論）の月次係数（植民地人口加重平均不満×帝国規模）
 
     // --- 人口動態（ロジスティック＝扶養力へ収束。人口転換。§A-3 拡張）。出生−死亡の純を扶養力との差で表す＝頑健（暴走/崩壊しない）---
-    public double PopGrowthRate = 0.006;          // 扶養力へ収束する速さ（月次）。戦死からの回復もこれ
+    public RatePerMonth PopGrowthRatePerMonth = new(0.006);          // 扶養力へ収束する速さ（月次）。戦死からの回復もこれ
     public double HealthcareCapacityBonus = 1.2;  // 医療（社会保障×識字でgate）が扶養力↑（乳児死亡の低下＝人口増の主因）
     public double HealthcareEducationGate = 0.6;  // 医療は識字がこれで満額（医者=教育済みPOPが要る）＝教育が人口動態に効く
     public double UrbanCapacityPenalty = 0.12;    // 都市化で扶養力低下（近代家族＝少子化＝人口転換の後半）。neutralは概ね安定に
@@ -2365,7 +2365,7 @@ public sealed class Coefficients
     public double HarvestPersistence = 0.35;                   // 収穫の年次自己相関ρ（harvest-iid-no-persistence）。0=純IID（現行）。0.3〜0.5で連続凶作の累積（多年飢饉）。革新係数√(1−ρ²)の分散保存AR(1)
     public double WeatherBandPersistence = 0.35;              // 緯度帯天候の年次自己相関（多国シム限定）。0=旧IID。欧州一帯の多年冷夏。バランス2026-07-07有効化：唯一の乱数（不作）が多年・大陸規模の記憶を持ち、シードごとに勝敗を分ける実体ショックへ（目標2「不作が十分な影響」・単一国較正はWeatherBand非走行＝中立）
     public double BlockadeStapleBias = 0.5;                  // 海上封鎖の主食狙撃（blockade-no-famine-strangulation）∈[0,1]。0で全財一律（現行恒等＝兵糧攻め不成立）。>0 で封鎖severity(1-raid)をStapleの輸入閾値に厚く＝FoodFill低下→既存飢饉機構。交戦なし(raid=1)で不発
-    public double FaminePushMaxFracBoost = 1.0;             /* 移民史実化2026-07-08有効化 */ // 飢饉時の移民上限緩和：(1-FoodFill)に比例してEmigrationMaxFracを引き上げ。欠乏30%で上限1.2→1.56%/年・50%で1.8%/年（2.0はハーネス27/30不合格＝過強と実測）。0で旧固定上限
+    public double FaminePushMaxFracBoost = 1.0;             /* 移民史実化2026-07-08有効化 */ // 飢饉時の移民上限緩和：(1-FoodFill)に比例してEmigrationMaxPerQuarterを引き上げ。欠乏30%で上限1.2→1.56%/年・50%で1.8%/年（2.0はハーネス27/30不合格＝過強と実測）。0で旧固定上限
     // 【削除 2026-10-01 (148)】MineralDepletionChance・MineralDepletionFloor・MineralRecoveryRate（年3%の確率の枯渇＝旗 DepletionFromExtraction の点火〔2026-08-14〕で到達不能だった・
     //   乱数だけ年に2つ引いていた＝棚卸し pop-15）・MineralDiscoveryChance・MineralBonanzaCeil・MineralBonanzaDecay（年2.5%の抽選の鉱脈の発見と富鉱の年15%の戻り＝全ての発見が
     //   frontierRush へ入り 2.5倍の枝は到達不能だった＝検討 §10-3 項目10(a)）＝大鉱床は産地の発見の表（Catalog.Sites・Discovery.Step）・枯渇は採掘による品位（鉱脈在庫）の1本へ。
@@ -2689,7 +2689,7 @@ public sealed class Coefficients
     // 大圏距離 Geo.DistanceKm（首都間・海路運河は移民には過剰精緻＝陸海両用の距離近似）。両係数とも既定0で厳密恒等（scale=0→減衰1.0・fare=0→運賃なし）。
     public double MigrationDistanceScale = 10000.0;   // 【点火2026-07-13(2)＝10000km】0=距離無感応（厳密恒等）。>0で越境移民（★(141) 国内の移民も＝Territory.MigrationDecay の1本・州の座標の間）の引力gapに距離減衰 1/(1+DistanceKm/これ) を乗じる＝近い行き先を選ぶ（史実の距離逓減：欧州内・北大西洋が主流で遠距離は運賃/情報で細る）。10000＝欧州→米6000km:0.63/アルゼンチン11000km:0.48/豪16000km:0.38＝機会の大きい米が距離でも勝ち残る緩い減衰。要batch調律
     public double MigrationFarePerkKm = 0.0;   /* 休眠。#54再点火試験2026-07-14＝0.1でmassBirthWeightガード後seed3は完走するが、住民が≈0まで流出した国家がゾンビ残存→多国batchでO(N²)膨張→約12倍低速化。要ゾンビ国家清掃（civilian pop→0の国の消滅機構）。R3距離感応が移民リアリティの核心は提供済み＝運賃は保留 */      // 【休眠に戻した2026-07-13(2)＝要追加調査】0=渡航コストなし（厳密恒等）。>0で移民1人が距離比例の運賃(=これ×DistanceKm/1000)を要する＝貯蓄が運賃に満たない最貧層は動けない（貧困の罠）。運賃分は送出経済に残し保存則を閉じる。**点火0.1で保存則は清潔（leakhunt seed1/25/27緑）だがseed3が破綻＝運賃コード外の下流でSize NaN（診断未発火＝affordFrac自体は有限）＝運賃の軌道摂動が潜在NaNバグを露出。距離減衰は完走。運賃コード（IsFinite安全弁）は残置し、潜在NaN特定後に再点火**
-    public double ImmigrationReceiveCapFrac = 0.012;   // **2026-07-23 B-高6＝台帳一致**（コメントの0.012へ・旧リテラル0.004は台帳の食い違い）   // 受入国側の物理上限（/四半期・中間案(b)2026-07-10）＝アイルランド脱出級の絶対フロー年4.8%。無上限は高識字小国への洪水→エリート崩壊を実測。★回1-2（2026-09-27）：世界プールの上限から国家間移民の受入の上限へ（超えた分は送出州に残る）
+    public RatePerQuarter ImmigrationReceiveCapPerQuarter = new(0.012);   // **2026-07-23 B-高6＝台帳一致**（コメントの0.012へ・旧リテラル0.004は台帳の食い違い）   // 受入国側の物理上限（/四半期・中間案(b)2026-07-10）＝アイルランド脱出級の絶対フロー年4.8%。無上限は高識字小国への洪水→エリート崩壊を実測。★回1-2（2026-09-27）：世界プールの上限から国家間移民の受入の上限へ（超えた分は送出州に残る）
     // ★移民制限法の効き（2026-08-01）。⚠既定は Open＝1.0 なのでどちらも読まれない＝厳密恒等。
     // 値の根拠＝米1924年移民法は前年比で流入を約8割削った（年約70万→約16万）＝Closed≈0.2。Selective はその中間（紳士協約1907型の部分制限）。
     // 選好の強さ：流入率（前四半期の流入÷人口）1あたりの要求の大きさ。⚠受入上限が年4.8%＝四半期0.012 なので、
@@ -2705,8 +2705,8 @@ public sealed class Coefficients
     // ★段⑤（2026-08-17）：技術者流出禁止法の選好の物差し。⚠0＝Pref が常に0＝**要求リストに載らない＝厳密恒等**（思想③）。
     //   ★点火時は移民制限法（40.0）よりずっと大きい値になる見込み——抜かれる技師は人口比で桁違いに小さいため。
     public double SpecialistExitBanPrefScale = 0.0;
-    public double ImmigrationSelectiveFrac = 0.5;   // 選別：受入上限を半分に
-    public double ImmigrationClosedFrac = 0.2;      // 閉鎖：受入上限を2割に（★完全ゼロにしない＝密航・家族呼び寄せ・特例は史実にも残った）
+    public Share ImmigrationSelectiveFrac = new(0.5);   // 選別：受入上限を半分に
+    public Share ImmigrationClosedFrac = new(0.2);      // 閉鎖：受入上限を2割に（★完全ゼロにしない＝密航・家族呼び寄せ・特例は史実にも残った）
     public double TradeWeightDynamic = 1.0;   // 外1（A-中6・**2026-07-23点火＝取扱高駆動へ書き換え**）：TradeWeightを四半期ごと貿易取扱高（輸出+輸入額のEMA）シェアから再計算。0=1789の0.15+0.10×Industrializationを固定維持（恒等）。GDP駆動は開放度を無視して1913年の米・清・露を過大にするため取扱高へ変更。★(194) 読み手が増えた＝ArmyShape の海路の接触（艦隊の注意の重み＝TradeValueSmoothed÷平均）＝0 にすると平滑の量が更新されず、海路の接触は黙って重み1（旧）へ戻る（(197) 反証役 vq1#9）
     public double TradeWeightBase = 0.15;   // 外1：動的TradeWeightのベース（TradeWeightDynamic>0でのみ使用。現行式の切片に対応。#17較正）
     public double TradeWeightGdpSlope = 0.10;   // 外1：動的TradeWeightの相対取扱高シェア(世界平均1)への傾き（同上。#17較正）
@@ -2785,7 +2785,7 @@ public sealed class Coefficients
     //     ⚠親も反乱国も真＝親の全州が生産−20%を受ける。清・露・オスマンの経済帯が悪化することは作者が受容済み（帯の悪化は差し戻しの理由にしない・記録する）。
     public double CivilWarPredicateUnified = 1.0;
     // ★実バグ21件 第4波 B1（2026-09-07・単独計測）：入植と州昇格の主体を「植民地格の州」へ（ColoniesAreRegions=1 で Colony オブジェクト経路は Q1 から死んでいた）。
-    //   >0 で本国の農民/労働者が植民地格の州へ移住し（ColonySettlerRate・距離・マラリア）、中核民族シェア≥ColonyPromotionCoreShare かつ人口≥ColonyPromotionMinPop で Integrated へ昇格。0＝旧＝厳密恒等。
+    //   >0 で本国の農民/労働者が植民地格の州へ移住し（ColonySettlerRatePerMonth・距離・マラリア）、中核民族シェア≥ColonyPromotionCoreShare かつ人口≥ColonyPromotionMinPop で Integrated へ昇格。0＝旧＝厳密恒等。
     //   受け入れ＝加・豪・南アが1914年までに Integrated へ昇格・植民地の忠実度。採用後の掃除＝Colony.Settler* と Colony 経路の入植/昇格ブロックを削除（型の統合の後始末）。
     public double ColonialRegionSettlement = 0.0;
     // ★実バグ21件 第4波 B2（2026-09-07・単独計測）：植民地格の州の奪取コストの開発度項を、死んだ国スカラー ColonialInfra から**その州の Industrialization** へ。0＝旧＝厳密恒等。

@@ -11,7 +11,7 @@ public class FamineTests
     {
         var c = new Coefficients();
         if (mortality >= 0) c.FamineExcessMortality = mortality;
-        if (birthRate >= 0) c.CrudeBirthRate = birthRate;
+        if (birthRate >= 0) c.CrudeBirthRatePerYear = new RatePerYear(birthRate);
         return new Scenario { Seed = s, Kind = ScenarioKind.RegionalFamine, Coef = c };
     }
 

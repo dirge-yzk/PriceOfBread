@@ -372,8 +372,8 @@ public class FiscalTests
         sim.Run(20);
         var w = sim.World; var c = w.Coef; var r = w.Region;
         // 昇格だけを残して隔離（MobilityTests の世代ゲートの番人と同じ盤面＝他の移動機構は率0）
-        c.JobSearchRate = 0; c.PettyEntryRate = 0; c.ArtisanDeclineRate = 0;
-        c.MiddleFallRate = 0; c.UpperFallRate = 0; c.BankruptcyFallRate = 0; c.CapitalRiseRate = 0;
+        c.JobSearchRatePerQuarter = new RatePerQuarter(0); c.PettyEntryRatePerQuarter = new RatePerQuarter(0); c.ArtisanDeclineRatePerQuarter = new RatePerQuarter(0);
+        c.MiddleFallRatePerQuarter = new RatePerQuarter(0); c.UpperFallRatePerQuarter = new RatePerQuarter(0); c.BankruptcyFallRatePerQuarter = new RatePerQuarter(0); c.CapitalRiseRatePerQuarter = new RatePerQuarter(0);
         var worker = r.Pops[r.MeritFromIndex];
         worker.Literacy = 1.0; worker.EarnedPerMonth = new MoneyPerMonth(1.0 * worker.Size);
         foreach (var p in r.Pops) if (p.IsModernElite) { p.EducationFill = 1.0; p.EducationEma = 1.0; }
@@ -410,7 +410,7 @@ public class FiscalTests
         var brWorker = br.Regions[0].Pops.Find(p => p.ClassId == PopClass.Worker && !p.IsSoldier)!;
         double hb0 = brWorker.BondHoldings.Value;
         Assert.True(hw > 0, "前提が崩れた：労働者が持ち手になっていない");
-        sim.MoveMigrants(fr, br, frR, br.Regions[0], PopClass.Worker, coef.EmigrationMaxFrac * sw);   // ★回1-2：流量は呼び手が決める（1階級）
+        sim.MoveMigrants(fr, br, frR, br.Regions[0], PopClass.Worker, coef.EmigrationMaxPerQuarter.Value * sw);   // ★回1-2：流量は呼び手が決める（1階級）
         double left = sw - worker.Size;
         Assert.True(left > 0, "前提が崩れた：移民が出ていない");
         double exported = hw * left / sw;

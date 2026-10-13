@@ -638,7 +638,7 @@ public sealed class UtilityAgent : INationAgent
             //   ⚠⚠NetSupport（ゲートの出力）を意図として読んではならない（「通る法しか望まない」トートロジー＝Apply の3法ブロックの禁則）＝物質量を直接読む。
             // ★作者裁定 2026-09-28 F5：
             //   締める線＝**今の法の受入の上限まで流入が満ちたときの圧力**（失業0・受入能力1）。上限は (63) の
-            //     ImmigrationReceiveCapFrac×人口×法の率×受入能力（MultiNationSim.MigrateBetweenNations の lawCap と同じ係数）
+            //     ImmigrationReceiveCapPerQuarter×人口×法の率×受入能力（MultiNationSim.MigrateBetweenNations の lawCap と同じ係数）
             //     ＝開放 40×0.012＝0.48・選別 ×ImmigrationSelectiveFrac＝0.24。今の法の上限まで流入が届き、職が足りない（失業>0）ときに1段締める。
             //     流入は今の法の下で測った量（法は DecideQuarter の後の Government.Step で動き、移民は四半期末）＝線と同じ法を読む。
             //   旧＝絶対の線（閉鎖1.0・選別0.4・開放へ戻す0.15）。(63) の後は圧力の最大が 開放0.48・選別0.24・閉鎖0.096（×(1＋失業)）で、
@@ -653,8 +653,8 @@ public sealed class UtilityAgent : INationAgent
             if (!(pressure >= 0)) pressure = 0;   // NaNガードは否定形（Clamp/MaxはNaNを消さない）＝非有限は「圧力なし」＝現状維持側へ
             int immWant = (int)p.ImmigrationRestriction;   // 現状維持
             if (w.ImmigrationRestriction != ImmigrationLaw.Closed
-                && pressure > w.Coef.ImmigrationRestrictionPrefScale * w.Coef.ImmigrationReceiveCapFrac
-                              * (w.ImmigrationRestriction == ImmigrationLaw.Open ? 1.0 : w.Coef.ImmigrationSelectiveFrac))
+                && pressure > w.Coef.ImmigrationRestrictionPrefScale * w.Coef.ImmigrationReceiveCapPerQuarter.Value
+                              * (w.ImmigrationRestriction == ImmigrationLaw.Open ? 1.0 : w.Coef.ImmigrationSelectiveFrac.Value))
                 immWant = System.Math.Max(immWant, (int)w.ImmigrationRestriction + 1);
             if (w.TreatyPortsGranted > 0) immWant = (int)ImmigrationLaw.Open;   // 外圧
             StepLawToward(w, p, PolicyAxis.ImmigrationRestriction, (int)p.ImmigrationRestriction, immWant, (int)ImmigrationLaw.Closed,
