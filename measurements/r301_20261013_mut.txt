@@ -1,0 +1,7 @@
+# (301) 合流・反証役 i1〔v〕中#2 の配線の番人の突然変異（写し D:/PoB_work/m301/mut＝git archive 97d1843・隔離ビルド Release）
+番人：InstrumentsTests.私的な建設の工業化度の累積は建った束と1束の工業化度の積に閉じる（英・仏・20 四半期・建った束 >1e-3 の州×四半期）
+元の木 97d1843：緑（数えた州×四半期 279・旧の 0.01 が括りの外になる州×四半期 279）
+M1 決済の積を旧へ（EconomyStep の `double privateIndGain = built * privateIndPerConstruction;` → `built * coef.IndPerConstruction`）：
+  赤＝括りの外 170／170（例 フランス パリ Q0 束 62.26 ÷束 0.01 [2.435E-05,2.466E-05]・イギリス ロンドン Q0 束 14.43 ÷束 0.01 [5.238E-05,5.043E-05]）
+  同じ写しで PrivateInvestmentScaleTests 2 本と InstrumentsTests.希望を決める項の列は建設の判定と閉じる は緑のまま（反証役の指摘どおり＝補助関数と計器しか見ない番人）
+写しは消した。
