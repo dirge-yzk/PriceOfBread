@@ -2017,7 +2017,7 @@ public sealed class Simulation
                 r.NavalBudget = r.Id == 0 ? navalCap : 0;   // 艦は国の調達（首都の州の1本・港の門は EconomyStep.FleetOrder）
                 equipClaimNat += r.MilitaryBudget + r.NavalBudget;   // ★(155) 吸い込みの2段目の請求（国の和）＝3段目（質）はこの残り
                 r.SocialSecurity = World.SocialSecurity;                 // 公共医療＝医薬品消費に使う（EconomyStep）
-                r.InsuranceCoverage = World.Coef.InsuranceCoverageMax * World.SocialSecurity;   // 健康保険(#3)：医薬品購入費の国家負担割合（r は下で掛ける＝旧 WelfareFunding は国家の支払い率へ畳んだ・2026-09-28）
+                r.InsuranceCoverage = World.Coef.InsuranceCoverageMax.Value * World.SocialSecurity;   // 健康保険(#3)：医薬品購入費の国家負担割合（r は下で掛ける＝旧 WelfareFunding は国家の支払い率へ畳んだ・2026-09-28）
                 r.StateMonopolyMargins = World.StateMonopolyMargins;       // 材ごとの専売の上乗せ率への参照（★2026-09-20＝これが専売の唯一の実体）
                 // 戦時備蓄（07_再設計 §5(a)・2026-07-31）：国の最大緊張を州へ複製＝日次の在庫目標（MarketFlow）が読む。
                 // 外交層のない世界（単一国テスト・較正）は0＝在庫目標は従来どおり＝厳密恒等。
@@ -2045,7 +2045,7 @@ public sealed class Simulation
                 // C-高9（史実検証2026-07-22）：公教育（Public）にも国庫財源を配線（旧＝Compulsory 以外は厳密0＝「国が無料で供給を得る」因果の逆向き）。
                 // 史実の公教育は共同体が教師俸給を払い親も一部払う混合財政（プロイセン無償化1888・仏1881・英1891）＝定義的特徴は歳出項目化。PublicEduFundingShare=0 で旧挙動と厳密一致。
                 r.CompulsoryEduFunding = (World.EducationLaw == EducationLaw.Compulsory ? World.EducationSpending
-                    : World.EducationLaw == EducationLaw.Public ? World.Coef.PublicEduFundingShare * World.EducationSpending : 0)
+                    : World.EducationLaw == EducationLaw.Public ? World.Coef.PublicEduFundingShare.Value * World.EducationSpending : 0)
                     * Politics.RuleReach(r, World.Coef);   // ★支配度 段4（2026-09-07）：公共財の到達＝国家区分に比例（RuleSharesReach=0 で ×1＝恒等）。0 で従来
                 if (r.EducationProducerIndex >= 0)
                 {
@@ -2205,7 +2205,7 @@ public sealed class Simulation
         //   旧（段2-1）＝ここで r を決めて請求を r で切って払い、月末の Fiscal が「払えなかった請求の全額」（spare＜0）を全POPから国庫へ移した
         //   ＝不足を量で減らした上に同じ額を他人からも取る二重（切り下げの収入が税収の 0.1%→22〜41%・取った金は翌月の余剰＝減債へ回った）。
         //   ⇒ 切り下げの余地を月初に払える額へ入れて r を決め、取った金はその月の支払いに使う。余地は既存の不換の国の発行の規則のまま
-        //   （払えない分×(1−兌換)・銀正貨国は改鋳の窓・月に総貯蓄の DevaluationCapFrac まで・うち FiatIssueFrac は新規発行）＝規則は1本。
+        //   （払えない分×(1−兌換)・銀正貨国は改鋳の窓・月に総貯蓄の DevaluationCapFracPerMonth まで・うち FiatIssueFrac は新規発行）＝規則は1本。
         // ★払える額の中身の順＝税・歳入 → 借入 → それでも足りない分だけ切り下げ（作者裁定 2026-09-28 (b)「切り下げは借りられないとき（上限・冷却中）だけ」）。
         //   旧（(89)〜(93)）＝切り下げを先に払える額へ入れ、借入は月末の Fiscal が r＜1 の月に切り下げの残りだけ借りた（借りた金は翌月の払える額）
         //   ＝切り下げの97〜99% は借りられた四半期に起き（借入の11〜32倍・税収の30〜45%）、紙幣の増発が信用より先に立っていた。
@@ -2235,13 +2235,13 @@ public sealed class Simulation
             if (devalueRoom > 1e-9)
             {
                 double totalSav = 0; foreach (var dr in World.Regions) foreach (var dp in dr.Pops) totalSav += Math.Max(0, dp.Savings.Value);
-                // DevaluationCapFrac は**月あたり**の上限（月次決算＝月に1回）。超過は r＜1＝量の減少で劣化（連合の薄給→治安維持力↓）
-                double devalue = Math.Min(devalueRoom, totalSav * World.Coef.DevaluationCapFrac);
+                // DevaluationCapFracPerMonth は**月あたり**の上限（月次決算＝月に1回）。超過は r＜1＝量の減少で劣化（連合の薄給→治安維持力↓）
+                double devalue = Math.Min(devalueRoom, totalSav * World.Coef.DevaluationCapFracPerMonth.Value);
                 if (devalue > 1e-9)
                 {
                     // 不換シニョリッジ（fiat-expansion-as-haircut-not-issue）：切り下げのうち FiatIssueFrac は pop から取らず新規発行＝マネーストック膨張(M↑)。
                     // 発行ぶんは CumulativeFiatIssued に積み Invariants の expected に算入(鋳造と同型)。M↑→P↑は FiatInflationPressure が表現＝二重取りなし。
-                    double issue = devalue * World.Coef.FiatIssueFrac;
+                    double issue = devalue * World.Coef.FiatIssueFrac.Value;
                     double haircut = devalue - issue;
                     // ★2026-09-30 段4g：インフレ税＝全POP（貨幣の保有＝貯蓄の比・d5）→国庫と、不換の新規発行（世界の外の側＝不換の発行者 Outside.Fiat→国庫）の2本の移し方
                     //   （旧＝貯蓄の手書きの引き落とし・国庫の片側の記帳・不換の台帳の手書き）。台帳 CumulativeFiatIssued は発行の分だけ（BaseMoney の正当な増加源＝Invariants 算入）。
@@ -2768,7 +2768,7 @@ public sealed class Simulation
     /// GoodsBalance：引き取り量を Stock−／LastSold＋で対称に動かし在庫恒等式を保つ。</summary>
     private void MintGold()
     {
-        double frac = World.Coef.GoldMintFraction;
+        double frac = World.Coef.GoldMintFraction.Value;
         bool floor = World.Coef.MintPriceFloorGate > 0;   // ★自由鋳造＝床モード（2026-08-14設計・2026-08-29点火＝既定1）。0＝旧来
         if (frac <= 0 && !floor) return;
         // ★本位金属の一般化（銀本位doc G3・2026-08-13）：造幣局が買うのは「金鉱」ではなく**その国の本位金属**である。

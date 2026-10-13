@@ -180,7 +180,7 @@ public class PrivilegeDisplayTests
         var w = Warm(NationConfig.France());
         var c = w.Coef;
         w.StateReligion = StateReligionLaw.StateChurch;
-        c.TitheRate = new Share(0.05); c.StateReligionGate = 0; c.CorruptionMax = 0;
+        c.TitheRate = new Share(0.05); c.StateReligionGate = 0; c.CorruptionMax = new Share(0);
         w.TaxRate = new Share(0); w.PollTax = 0; w.LandTax = 0; w.ProgressiveTax = 0;
         w.SocialSecurity = 0; w.Pension = ReformLevel.None;
         w.GovDebt = new MoneyStock(0); w.ForeignDebt = new MoneyStock(0);

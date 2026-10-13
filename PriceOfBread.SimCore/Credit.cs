@@ -31,7 +31,7 @@ public static class Credit
         // 信用が崩れるほど手元に引き上げる＝準備が縮む＝与信上限が縮む＝さらに信用が崩れる（自己強化）。
         // ★Bank.Gold は BaseMoney からの導出のまま（ratio_eff が状態関数なら二重ソースは生じない＝07 §3の再結論）。
         // 保存則＝退蔵は BaseMoney の内訳が変わるだけで量は不変＝安全。HoardPanicWeight=0 で静的（旧）。
-        double hoardRatio = Math.Clamp(c.CurrencyHoldingRatio * (1.0 + c.HoardPanicWeight * (1.0 - bank.Confidence)), 0, HoardRatioMax);
+        double hoardRatio = Math.Clamp(c.CurrencyHoldingRatio.Value * (1.0 + c.HoardPanicWeight * (1.0 - bank.Confidence)), 0, HoardRatioMax);
         bank.Gold = new MoneyStock(Math.Max(0, w.BaseMoney.Value) * (1.0 - hoardRatio));
 
         // 割当削減（測定短縮① 2026-07-09）：日次×全国で呼ばれるホットパス＝毎回の List<Pop> 構築を廃止。全popリストは投資家不在の小世界などコールドパスのみ遅延構築。
@@ -115,10 +115,10 @@ public static class Credit
         if (Instruments.On) Instruments.CreditCap(w, maxLoans, repayable, days);   // (271) 計器（読むだけ）：準備の側の上限と返せる額のどちらが縛ったか
         if (repayable < maxLoans) maxLoans = repayable;
         // 銀行取り付け（B-3）：預金者のパニック（充足が平穏線を割る）で正貨が逃避＝実効準備が縮む＝willingな銀行でも貸せない（貸し手意欲Confidenceと別の流動性チャネル）。
-        double run = Math.Clamp(c.BankRunSensitivity * Math.Max(0, c.ConfidencePivot - avgSat), 0, c.BankRunMax);
+        double run = Math.Clamp(c.BankRunSensitivity * Math.Max(0, c.ConfidencePivot - avgSat), 0, c.BankRunMax.Value);
         // 最後の貸し手（B-3 Bagehot）：危機（過熱 or 後退）かつ財政が健全（solvent）なら国庫/中銀が流動性を供給し取り付けを和らげる＝恐慌の底打ち（根治はしない）。AIの安全弁。
         bool crisis = bank.Heat > c.LolrHeatTrigger || w.GdpDrawdown > c.LolrDrawdownTrigger;
-        if (crisis && w.FiscalFundingRatio > c.LolrMinFunding) run *= 1.0 - c.LolrStrength;
+        if (crisis && w.FiscalFundingRatio > c.LolrMinFunding) run *= 1.0 - c.LolrStrength.Value;
         // LOLR準備拡張（no-lolr-balance-sheet）：危機×財政健全でmaxLoansを一時拡張＝バジョット原則「平時に蓄えた準備を危機に高利で貸す」。信用創造はBaseMoney中立(広義のみ膨張)ゆえInvariants変更不要。LolrReserveBoost=0で恒等（既定0.5）。
         double lolrBoost = crisis && w.FiscalFundingRatio > c.LolrMinFunding ? c.LolrReserveBoost : 0;
         double effMaxLoans = maxLoans * (1.0 - run) * (1.0 + lolrBoost);
@@ -225,7 +225,7 @@ public static class Credit
             //   BaseMoney = TotalMoney + Treasury − OutstandingLoans なので、残高だけ増やすと BaseMoney が同額減る（貨幣を消す）。
             //   正しい会計＝**繰入は与信の創造**：銀行が不足分を借り手に貸し（Loans↑）、借り手がそれを預金者へ払う（TotalMoney↑）＝差し引き BaseMoney 不変。
             //   実装＝繰入額を「払った額」に足して預金者へ配る（借り手の現金は減らない＝借金が増える）。
-            double capitalized = c.InterestCapitalization > 0 && unpaidInterest > 1e-12 ? c.InterestCapitalization * unpaidInterest : 0;
+            double capitalized = c.InterestCapitalization.Value > 0 && unpaidInterest > 1e-12 ? c.InterestCapitalization.Value * unpaidInterest : 0;
             if (paid > 0 || capitalized > 0)   // 銀行利潤を預金者(全pop)へ**預金額(Max(0,Savings))比例**で分配＝取った額（＋繰入＝新規与信）と厳密一致で保存（経10）
             {
                 // 利潤は預金者への配当ゆえ Size(人頭) でなく預金額比例が正しい（人頭だと無貯蓄の貧農も同額/人＝資本家→大衆の意図せぬ恒常移転）。

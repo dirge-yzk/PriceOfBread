@@ -25,7 +25,7 @@ public class MoneyThemeTests
         Assert.Equal(0.5, c.LolrReserveBoost);      // リアリティ群採用2026-07-18＝最後の貸し手(バジョット)
         Assert.Equal(0.5, c.BondLossConfWeight);    // 第(iii)段有効化（国債暴落→銀行信頼＝ドゥームループ）
         Assert.Equal(0.25, c.GoldCoverMin);         // 第(iv)段有効化2026-07-10（キュー1）：実測レンジ（健全帯中央0.52/p1 0.43・危機の谷≦0.21）→0.25＝下回り≈0.1%＝稀な兌換停止クライシス
-        Assert.Equal(0.2, c.FiatIssueFrac);         // リアリティ群採用2026-07-18＝不換シニョリッジ
+        Assert.Equal(0.2, c.FiatIssueFrac.Value);         // リアリティ群採用2026-07-18＝不換シニョリッジ
         Assert.Equal(-0.02, c.FisherDeflationFloor);          // 第(iii)段有効化（デフレ→低名目金利）
         // WelfarePensionClampToTreasury（破産国は福祉を払えない）は 2026-09-28 に削除＝福祉・年金は請求×国家の支払い率 r（支払いの一元化 段2-1）
     }
@@ -39,7 +39,7 @@ public class MoneyThemeTests
         c.LolrReserveBoost = 0.5;                            // LOLR準備拡張
         c.BondLossConfWeight = 0.3;                          // 国債二次流通の評価損
         c.GoldCoverMin = 0.5;                                // 兌換準備カバー率ゲート
-        c.FiatIssueFrac = 0.5;                               // 不換シニョリッジ（BaseMoney増＝Invariants整合を試す）
+        c.FiatIssueFrac = new Share(0.5);                               // 不換シニョリッジ（BaseMoney増＝Invariants整合を試す）
         var ex = Record.Exception(() => sim.Run(200));
         Assert.Null(ex);   // §11.6 貨幣保存(基礎貨幣＝baseline+交易+鋳造+不換発行)・非負境界が全ティック保持＝シニョリッジの台帳算入が正しい
         Assert.True(sim.World.TotalPopulation > 0, "人口が消えた");
@@ -51,7 +51,7 @@ public class MoneyThemeTests
         var sim = new Simulation(NationConfig.France().ToScenario(13), new NullAgent());
         sim.World.Policy.MonetaryTarget = 0;   // 不換に固定＝赤字を切り下げで埋める→シニョリッジが発火
         sim.World.BaseCoercion = 20000;                // 高治安維持力＝維持費が歳入を食う＝慢性赤字を強制（赤字なしでは devalue が発火しない）
-        sim.World.Coef.FiatIssueFrac = 0.6;
+        sim.World.Coef.FiatIssueFrac = new Share(0.6);
         var ex = Record.Exception(() => sim.Run(240));
         Assert.Null(ex);   // 新発行ぶんをexpectedに算入できているか（破れれば MoneyConservation 例外）
         Assert.True(sim.World.CumulativeFiatIssued.Value > 0, "不換新規発行(CumulativeFiatIssued)が積まれていない＝シニョリッジ経路が発火していない");

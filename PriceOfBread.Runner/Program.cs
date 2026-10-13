@@ -1914,7 +1914,7 @@ if (args.Length > 0 && args[0] == "silverprobe")
     string svOv = Coefficients.OverrideSummary();
     Console.WriteLine($"=== 銀本位プローブ seed={svSeed}／上書き={(svOv.Length > 0 ? svOv : "なし")} ===");
     Console.WriteLine($"    SilverStandardGate={svc.SilverStandardGate} StandardMetalMintGate={svc.StandardMetalMintGate}"
-                    + $" 金閾={svc.GoldStandardIndThreshold} GoldMintFraction={svc.GoldMintFraction} MintReserveTargetWeight={svc.MintReserveTargetWeight}");
+                    + $" 金閾={svc.GoldStandardIndThreshold} GoldMintFraction={svc.GoldMintFraction.Value} MintReserveTargetWeight={svc.MintReserveTargetWeight}");
     Console.WriteLine($"    RefPrice: 銀({Catalog.SilverId})={Catalog.RefPrices[Catalog.SilverId]:F3}　金鉱({Catalog.GoldOreId})={Catalog.RefPrices[Catalog.GoldOreId]:F3}");
     var svEverAg = new List<string>(); var svEverAu = new List<string>();
     void SvDump(int q)
@@ -2794,7 +2794,7 @@ if (args.Length > 0 && args[0] == "eduprobe")
         double serfV = w.SerfEmancipation switch { ReformLevel.None => 1.0, ReformLevel.Limited => 0.5, _ => 0.0 };
         double estateV = w.Bureaucracy switch { BureaucracyLaw.Spoils => 1.0, BureaucracyLaw.MeritExam => 0.5, _ => 0.0 };
         double eduFund = w.EducationLaw == EducationLaw.Compulsory ? w.EducationSpending
-            : w.EducationLaw == EducationLaw.Public ? w.Coef.PublicEduFundingShare * w.EducationSpending : 0;
+            : w.EducationLaw == EducationLaw.Public ? w.Coef.PublicEduFundingShare.Value * w.EducationSpending : 0;
 
         Console.WriteLine($"  {JpPad(nm, 10)}{JpPad(w.Polity.ToString(), 22)} 教育法{JpPad(w.EducationLaw.ToString(), 11)} 検閲{JpPad(w.Censorship.ToString(), 15)} 参政{JpPad(w.Suffrage.ToString(), 10)}"
             + $" 教義{JpPad(UtilityAgent.DoctrineFrom(w).ToString(), 14)}");

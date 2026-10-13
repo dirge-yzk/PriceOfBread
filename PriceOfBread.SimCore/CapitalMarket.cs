@@ -135,8 +135,8 @@ public static class CapitalMarket
             // 資金逃避（07_再設計 §5(b)＝B3自己成就期待の第2形・2026-07-31）：**外資の引き上げだけでなく、自国の資本家も逃げる**。
             // 引き金＝通貨への不信（累積切り下げ／月次名目GDP＝通貨改革と兌換の再加入の門 broken と同じ物差し・⚠国債の金利の信認の喪失は 2026-09-29 から直近の切り下げの速さ＝別の量）。逃げた金は対外資産（CapitalAbroad）へ移り、
             // 国内の投資原資が痩せる＝「信認を失った国は自国の資本にも見捨てられる」。★自己成就＝逃避→通貨/信認↓→さらに逃避。
-            // 保存＝国内popから引いた額を受け皿の国の投資家へ渡す（下の★2026-09-22）。CapitalDomesticFlightRate=0 で厳密恒等。
-            if (c.CapitalDomesticFlightRate > 0 && ngdp[i] > 1e-9)
+            // 保存＝国内popから引いた額を受け皿の国の投資家へ渡す（下の★2026-09-22）。CapitalDomesticFlightRatePerQuarter=0 で厳密恒等。
+            if (c.CapitalDomesticFlightRatePerQuarter.Value > 0 && ngdp[i] > 1e-9)
             {
                 double distrust = PoliticalQuantities.Clamp01(w[i].CumulativeDevaluation / ngdp[i] - c.CapitalFlightDistrustThreshold);
                 // ★逃げた**金**の両建て（2026-09-22）：旧＝TakeGold で流出を記帳するだけで、どの国にも金が入らず世界から消えていた
@@ -152,7 +152,7 @@ public static class CapitalMarket
                     for (int h = 0; h < n; h++) if (h != i) credSum += cred[h] * System.Math.Max(0, ngdp[h]) * e[h];
                 if (credSum > 1e-9)
                 {
-                    double want = c.CapitalDomesticFlightRate * distrust * InvestorSavings(w[i]);
+                    double want = c.CapitalDomesticFlightRatePerQuarter.Value * distrust * InvestorSavings(w[i]);
                     double got = TakeGold(w[i], want);
                     w[i].CapitalAbroad += new MoneyStock(got);   // 逃げた金は対外資産＝還流ループ（配当・逃避の按分）に乗る
                     fx -= got;
@@ -166,9 +166,9 @@ public static class CapitalMarket
                     }
                 }
             }
-            double flight = System.Math.Min(w[i].ForeignCapitalIn.Value, (w[i].ForeignCapitalIn * c.CapitalFlightRate * (1.0 - cred[i])).Value);
+            double flight = System.Math.Min(w[i].ForeignCapitalIn.Value, (w[i].ForeignCapitalIn * c.CapitalFlightRatePerQuarter.Value * (1.0 - cred[i])).Value);
             if (flight > 1e-9) { taken[i] += TakeGold(w[i], flight); w[i].ForeignCapitalIn -= new MoneyStock(flight); flightTotal += flight * e[i]; }   // 払えない分も債権ごと消える（C）＝下の還流で owner も同額減る＝Σ流入＝Σ対外保有の台帳整合（消えた請求権は金建てで数える）
-            double div = (w[i].ForeignCapitalIn * c.CapitalDividendRate).Value;
+            double div = (w[i].ForeignCapitalIn * c.CapitalDividendRatePerQuarter.Value).Value;
             if (div > 1e-9) taken[i] += TakeGold(w[i], div);   // 払えない配当は積まない（未払いの負債も未収の債権も立たない）
         }
         ProbeDiff("逃避配当");
@@ -203,7 +203,7 @@ public static class CapitalMarket
             }
             else
             {
-                double exportable = InvestorSavings(w[i]) * c.CapitalExportFrac;
+                double exportable = InvestorSavings(w[i]) * c.CapitalExportFrac.Value;
                 supply[i] = (worldRate - ret[i]) * exportable * e[i];   // 金建て
                 totalSupply += supply[i];
             }

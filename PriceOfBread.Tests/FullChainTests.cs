@@ -49,7 +49,7 @@ public class FullChainTests
         sim.World.Coef.MintPriceFloorGate = 0;
         sim.World.Coef.StandardMetalMintGate = 0;
         sim.World.Coef.MintReserveTargetWeight = 0;
-        sim.World.Coef.GoldMintFraction = 0.5;   // 金産出の半分を鋳造（貨幣化）
+        sim.World.Coef.GoldMintFraction = new Share(0.5);   // 金産出の半分を鋳造（貨幣化）
         double base0 = sim.World.BaseMoney.Value;
         var ex = Record.Exception(() => sim.Run(400));
         Assert.Null(ex);   // §11.6（保存・境界）が鋳造を含めて全ティックで保持（GoodsBalance/MoneyConservation/NonNegative）

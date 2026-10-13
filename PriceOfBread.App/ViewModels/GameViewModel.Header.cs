@@ -264,7 +264,7 @@ public partial class GameViewModel
     // 実効汚職率＝歳入からの漏れ率。★汚職V2点火（2026-08-15）：正準定義 World.EffectiveCorruption を読む
     // （旧＝(1−行政)(1−清廉度)のVM内複製＝点火後は誤表示だった。監察上限（span）は旧機構ごと不読＝表示も撤去）。
     private double EffectiveCorruption() =>
-        _player.Coef.CorruptionMax * _player.EffectiveCorruption;
+        _player.Coef.CorruptionMax.Value * _player.EffectiveCorruption;
 
     private void SampleYearStats()
     {

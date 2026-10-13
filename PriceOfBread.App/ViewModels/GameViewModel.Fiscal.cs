@@ -303,7 +303,7 @@ public partial class GameViewModel
                 if (!p.Closed && !p.IsModernElite) massSize += p.Size;
                 if (!p.IsSoldier) oldSize += p.Size * p.AgeShare(60, double.PositiveInfinity);   // 年金の受け手＝60歳以上（エンジン Fiscal と同じ・年齢の層）
             }
-        double leak = 1.0 - c.CorruptionMax * _player.EffectiveCorruption;   // 汚職控除＝エンジン Fiscal の leak と同じ正準定義 World.EffectiveCorruption を直読み（C2-C5撤去2026-08-16：旧式(1−行政)×(1−清廉度)はV2恒久ONで撤去＝清廉度読みのままだと監視(OversightV2)の効いた国の税収を過小表示していた）
+        double leak = 1.0 - c.CorruptionMax.Value * _player.EffectiveCorruption;   // 汚職控除＝エンジン Fiscal の leak と同じ正準定義 World.EffectiveCorruption を直読み（C2-C5撤去2026-08-16：旧式(1−行政)×(1−清廉度)はV2恒久ONで撤去＝清廉度読みのままだと監視(OversightV2)の効いた国の税収を過小表示していた）
         double gIncome = _player.Policy.IncomeTaxTarget * earnedAll * leak;
         double gProg = _player.Policy.ProgressiveTaxTarget * earnedElite * leak;
         double gPoll = c.PollTaxRate * _player.Policy.PollTaxTarget * headNonPriv * leak;

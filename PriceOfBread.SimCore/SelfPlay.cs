@@ -1377,7 +1377,7 @@ public sealed class UtilityAgent : INationAgent
         double heat = w.FinancialHeat;
         if (drawdown > RecessionDrawdownThreshold) p.InterestRateTarget = EasingInterestRate;        // 後退＝緩和（恐慌の緩衝）
         else if (heat > OverheatHeatThreshold) p.InterestRateTarget = TighteningInterestRate;        // 過熱＝引締
-        else if (heat > OverheatHeatThreshold * w.Coef.PreTightenHeatFrac) p.InterestRateTarget = PreTighteningInterestRate;   // #124：過熱の兆候＝予防的引締め（バブルを小さく＝崩壊も浅く）。係数化2026-08-22＝裸腕の座標（既定0.75不変）
+        else if (heat > OverheatHeatThreshold * w.Coef.PreTightenHeatFrac.Value) p.InterestRateTarget = PreTighteningInterestRate;   // #124：過熱の兆候＝予防的引締め（バブルを小さく＝崩壊も浅く）。係数化2026-08-22＝裸腕の座標（既定0.75不変）
         else p.InterestRateTarget = NeutralInterestRate;                        // 平時＝中立
 
         // === 財政規律（死のスパイラルの防止）===

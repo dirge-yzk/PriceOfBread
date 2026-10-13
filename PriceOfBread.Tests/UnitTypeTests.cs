@@ -227,6 +227,26 @@ public class UnitTypeTests
         (typeof(Coefficients), "ColonyPromotionCoreShare", typeof(Share)),
         (typeof(Coefficients), "ImmigrationSelectiveFrac", typeof(Share)),
         (typeof(Coefficients), "ImmigrationClosedFrac", typeof(Share)),
+        // ★(321) 割合の型の残り その6＝金融・財政の係数 19 本（RatePerQuarter 3・RatePerMonth 1・Share 15）。四半期末 1 回の国際金融（CapitalMarket.Step）の配当・逃避は RatePerQuarter、月 1 回の切り下げの上限は RatePerMonth、その他の割合は Share。移さなかった物の理由は実装ログ (321)。
+        (typeof(Coefficients), "CapitalDividendRatePerQuarter", typeof(RatePerQuarter)),
+        (typeof(Coefficients), "CapitalFlightRatePerQuarter", typeof(RatePerQuarter)),
+        (typeof(Coefficients), "CapitalDomesticFlightRatePerQuarter", typeof(RatePerQuarter)),
+        (typeof(Coefficients), "DevaluationCapFracPerMonth", typeof(RatePerMonth)),
+        (typeof(Coefficients), "FiatIssueFrac", typeof(Share)),
+        (typeof(Coefficients), "GoldMintFraction", typeof(Share)),
+        (typeof(Coefficients), "BondRateRepresentationDiscount", typeof(Share)),
+        (typeof(Coefficients), "PreTightenHeatFrac", typeof(Share)),
+        (typeof(Coefficients), "CurrencyHoldingRatio", typeof(Share)),
+        (typeof(Coefficients), "PublicEduFundingShare", typeof(Share)),
+        (typeof(Coefficients), "BankRunMax", typeof(Share)),
+        (typeof(Coefficients), "LolrStrength", typeof(Share)),
+        (typeof(Coefficients), "CurrencyReformBurnCap", typeof(Share)),
+        (typeof(Coefficients), "InterestCapitalization", typeof(Share)),
+        (typeof(Coefficients), "BondAppetite", typeof(Share)),
+        (typeof(Coefficients), "ForeignBondCapacity", typeof(Share)),
+        (typeof(Coefficients), "CorruptionMax", typeof(Share)),
+        (typeof(Coefficients), "CapitalExportFrac", typeof(Share)),
+        (typeof(Coefficients), "InsuranceCoverageMax", typeof(Share)),
     ];
 
     [Fact]
@@ -551,6 +571,34 @@ public class UnitTypeTests
         }
         foreach (var old in new[] { "CapitalRiseRate", "UpperFallRate", "MiddleFallRate", "BankruptcyFallRate", "ClergyJoinRate", "ClergyExitRate", "ArtisanDeclineRate", "JobSearchRate",
                                     "PettyEntryRate", "PromotionSpeed", "EmigrationMaxFrac", "ImmigrationReceiveCapFrac", "ColonySettlerRate", "PopGrowthRate", "CrudeBirthRate" })
+            Assert.Null(typeof(Coefficients).GetField(old));   // 改名前の欄が残っていない（POB_COEF の旧名は〈存在しない係数名〉で止まる）
+    }
+
+    /// <summary>★(321) 割合の型の残り その6＝金融・財政の係数 19 本（RatePerQuarter 3・RatePerMonth 1・Share 15）が、セーブの往復と係数の名前引き（反射の橋）で欄ごとに別の値のままビットが残ること・欄の型が表のとおりであること・改名前の欄が残っていないこと。
+    /// 期待値は k から直に書く（セーブの出力・Coefficients の既定から作らない）。</summary>
+    [Fact]
+    public void セーブの往復と名前引きで金融財政の係数の欄が残る()
+    {
+        (string Name, Type Type)[] fields = [("CapitalDividendRatePerQuarter", typeof(RatePerQuarter)), ("CapitalFlightRatePerQuarter", typeof(RatePerQuarter)), ("CapitalDomesticFlightRatePerQuarter", typeof(RatePerQuarter)), ("DevaluationCapFracPerMonth", typeof(RatePerMonth)), ("FiatIssueFrac", typeof(Share)), ("GoldMintFraction", typeof(Share)), ("BondRateRepresentationDiscount", typeof(Share)), ("PreTightenHeatFrac", typeof(Share)), ("CurrencyHoldingRatio", typeof(Share)), ("PublicEduFundingShare", typeof(Share)), ("BankRunMax", typeof(Share)), ("LolrStrength", typeof(Share)), ("CurrencyReformBurnCap", typeof(Share)), ("InterestCapitalization", typeof(Share)), ("BondAppetite", typeof(Share)), ("ForeignBondCapacity", typeof(Share)), ("CorruptionMax", typeof(Share)), ("CapitalExportFrac", typeof(Share)), ("InsuranceCoverageMax", typeof(Share))];
+        var sim1 = new MultiNationSim([NationConfig.Britain(), NationConfig.France()], 1789, _ => new NullAgent());
+        var c1 = sim1.Nations[0].World.Coef;
+        for (int k = 0; k < fields.Length; k++)
+        {
+            var f = typeof(Coefficients).GetField(fields[k].Name)!;
+            f.SetValue(c1, UnitValues.FromDouble(f.FieldType, (k + 3) / 17.0));   // POB_COEF／Runner の反射と同じ入口
+        }
+        using var ms = new System.IO.MemoryStream();
+        SaveGame.Save(sim1, ms);
+        ms.Position = 0;
+        var c2 = SaveGame.Load(ms).Nations[0].World.Coef;
+        for (int k = 0; k < fields.Length; k++)
+        {
+            var f = typeof(Coefficients).GetField(fields[k].Name)!;
+            Assert.Equal(fields[k].Type, f.FieldType);
+            Assert.True(UnitValues.TryToDouble(f.GetValue(c2), out double got));
+            Assert.Equal(BitConverter.DoubleToInt64Bits((k + 3) / 17.0), BitConverter.DoubleToInt64Bits(got));
+        }
+        foreach (var old in new[] { "CapitalDividendRate", "CapitalFlightRate", "CapitalDomesticFlightRate", "DevaluationCapFrac" })
             Assert.Null(typeof(Coefficients).GetField(old));   // 改名前の欄が残っていない（POB_COEF の旧名は〈存在しない係数名〉で止まる）
     }
 

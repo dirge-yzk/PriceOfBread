@@ -186,7 +186,7 @@ public static class Fiscal
         // ★撤去2026-08-16（C2-C5）：旧式OFF枝（(1−行政)×(1−清廉度)＋civicGraft別項）を物理削除＝V2恒久ON裁定済みで到達不能の死骸だった。
         //   civicGraft（低国民意識×代議制の構造汚職の床）は V2 では「議会の予算権」（OversightV2 の第3因子）が担う＝別項を持たない。
         //   ⚠NationalConsciousnessCorruptionWeight 係数自体は存続＝読者が別に2箇所生きている（World.civicCarriesEthnic の二重計上回避ゲート・CrownParliament の国民意識蓄積チャネル）。
-        double leak = revenue * c.CorruptionMax * w.EffectiveCorruption;
+        double leak = revenue * c.CorruptionMax.Value * w.EffectiveCorruption;
         w.LastTaxLeak = leak;   // 診断：汚職漏れの実額
         double delivered = 0;
         if (leak > 1e-12)
@@ -316,7 +316,7 @@ public static class Fiscal
                 double burnMem = c.CurrencyReformBurnShare.Value * w.CumulativeDevaluation;
                 double kp = parity * Math.Max(1e-9, w.PriceLevel);
                 double burnParity = (w.TotalMoney * Math.Max(0, 1.0 - 1.0 / Math.Max(1e-9, kp))).Value;
-                double burn = Math.Min(Math.Max(burnMem, burnParity), sav * c.CurrencyReformBurnCap);
+                double burn = Math.Min(Math.Max(burnMem, burnParity), sav * c.CurrencyReformBurnCap.Value);
                 // 自己制限：焼却は正貨カバー率を悪化させる（Mが減りLは減らせない）。改革が自分で金本位復帰の
                 // ゲート（GoldCoverMin×GoldRejoinCoverMargin）を閉じては本末転倒なので、そこまでで止める。既存係数の再利用。
                 double lo = c.GoldCoverMin * c.GoldRejoinCoverMargin;
@@ -537,7 +537,7 @@ public static class Fiscal
         // 政体フレーバー レバー3（2026-07-24）→第3波連続化（2026-07-28）：議会の信認割引＝議会の予算統制（ParliamentControl）が
         // 強いほど債権者の信認で金利が安い（英コンソル＝財政軍事国家論）。旧・政体ラベル二値→統制力の連続量へ（倍率排除＝ラベル不読・
         // DebtGdp年換算フリップ2026-07-26で再挑戦解禁の記録どおり）。BondRateRepresentationDiscount=0で×1.0＝厳密恒等。
-        double reprDiscount = 1.0 - c.BondRateRepresentationDiscount * PoliticalQuantities.Clamp01(w.ParliamentControl);
+        double reprDiscount = 1.0 - c.BondRateRepresentationDiscount.Value * PoliticalQuantities.Clamp01(w.ParliamentControl);
         double bondPre = bondInside * convDiscount * reprDiscount;
         w.GovBondRatePerYear = new RatePerYear(Math.Min(c.BondRateMaxPerYear.Value, bondPre));
         // 説明API（#63）：国債金利の内訳＝各プレミアム×兌換割引−上限クランプ。Explain=nullでゼロコスト・戻り値不変。
@@ -719,12 +719,12 @@ public static class Fiscal
         double openness = c.CapitalMobilityLawGate > 0
             ? (w.CapitalControlLaw ? PoliticalQuantities.Clamp01(c.CapitalControlOpenness) : 1.0)
             : PoliticalQuantities.Clamp01(1.0 - c.CapitalOpennessTariffWeight * w.Tariff);
-        double domesticPool = capSavings * c.BondAppetite;
+        double domesticPool = capSavings * c.BondAppetite.Value;
         // ★外資の貸し手は**低金利の国ほど深い**（2026-09-29・向きの是正）＝信認（基礎金利÷その国の国債の金利）に比例。旧＝金利÷基礎金利（金利が下がると外資が縮む）。
         //   国債の金利は利回りを求める誘引ではなく危険の値段（債務比・期待インフレ・直近の切り下げの上乗せを、兌換と議会の信認で割り引いた量）＝同じ危険なら期待収益は同じ。
         //   史実＝低金利の国ほど深い市場（英のコンソル 1850〜1913 約3%・蘭）で、高金利の国は割り当てで締め出された（オスマン1875・エジプト1876・アルゼンチン1890 の前後に新規の起債が止まった）。
         //   否定形＝金利が NaN ならプールは NaN＝下の `!(borrowed > 1e-9)` で借りない（旧と同じ）。
-        double foreignPool = openness * c.ForeignBondCapacity * Math.Max(0, nominalGdp) * Math.Clamp(c.BondBaseRatePerYear.Value / Math.Max(1e-9, w.GovBondRatePerYear.Value), 0, ForeignBondYieldRatioCap);
+        double foreignPool = openness * c.ForeignBondCapacity.Value * Math.Max(0, nominalGdp) * Math.Clamp(c.BondBaseRatePerYear.Value / Math.Max(1e-9, w.GovBondRatePerYear.Value), 0, ForeignBondYieldRatioCap);
         // 財5（対外国債をモデル外の無限プールから閉鎖系へ）：foreignPool を他モデル国の資本家貯蓄から実引き当て。
         // 注入（MultiNationSim→World.ForeignBondInvestorPool）と保有国配分（CapitalMarket の外債レグ＝ForeignBondClaims 繰上げ＋利払い配当）は実装済み。
         // ★2026-09-26：旗 ForeignBondFromInvestors（既定1.0）を焼き込み（x-01）。
