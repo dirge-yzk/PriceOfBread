@@ -804,7 +804,11 @@ public static class Discovery
                 if (r.State != RegionState.Active) continue;
                 foreach (var p in r.Producers)
                 {
-                    if (!Unfound(p) || !(SiteTerms(w, r, p, c, book, dem, null).Score >= GateScore)) continue;
+                    if (!Unfound(p)) continue;
+                    double[]? po = Instruments.On ? new double[3] : null;   // (316) 計器だけ＝開いた時の人・値段・費用を読む（判定の値は同じ）
+                    var tm = SiteTerms(w, r, p, c, book, dem, po);
+                    if (!(tm.Score >= GateScore)) continue;
+                    if (po is not null) Instruments.SiteOpened(w, r, p, tm, po);
                     OpenSite(w, r, p, c);
                 }
             }
@@ -831,6 +835,33 @@ public static class Discovery
         Score(w, view ?? w.LastDiscoveryView, c, includeKnown: false, realPrice, null, out var book, out var dem);
         if (book is null || dem is null) return default;   // 稼働中の州が無い国（判定もしない）
         return SiteTerms(w, r, p, c, book, dem, partsOut);
+    }
+
+    /// <summary>★(316) 計器だけ：まだ見つかっていない産地の2項を国の中で1度の Score で全部読む（読むだけ）。産地が無い国は Score を走らせない。
+    /// <paramref name="visit"/> の最後の引数＝[0] 人の数 N・[1] その財の値段・[2] 今のレシピで掘る費用（公開の SiteTerms の partsOut と同じ）。</summary>
+    internal static void VisitSiteTerms(World w, Coefficients c, System.Action<Region, Producer, Terms, double[]> visit)
+    {
+        bool any = false;
+        foreach (var r in w.Regions)
+        {
+            if (r.State != RegionState.Active) continue;
+            foreach (var p in r.Producers) if (Unfound(p)) { any = true; break; }
+            if (any) break;
+        }
+        if (!any) return;
+        Score(w, w.LastDiscoveryView, c, includeKnown: false, null, null, out var book, out var dem);
+        if (book is null || dem is null) return;
+        var parts = new double[3];
+        foreach (var r in w.Regions)
+        {
+            if (r.State != RegionState.Active) continue;
+            foreach (var p in r.Producers)
+            {
+                if (!Unfound(p)) continue;
+                var t = SiteTerms(w, r, p, c, book, dem, parts);
+                visit(r, p, t, parts);
+            }
+        }
     }
 
     /// <summary>産地の2項の本体（<see cref="Step"/> は判定の値段の帳をそのまま渡す）。</summary>

@@ -67,6 +67,7 @@ public static class Instruments
         public double Shortfall, Ticket, DomPool, ForPool;
         public bool HaveLedger; public double PrevTreasury; public readonly double[] PrevLedger = new double[NCat];
         public readonly List<string> Rows = new();
+        public readonly List<string> SiteRows = new();     // (316) 産地の判定の行（開いた行 O・開く前の軌道 T）＝四半期の末に site_s へ書く
         public readonly double[] ClsEarn = new double[NC], ClsPaid = new double[NC]; public int ClsMonths;
         public int Sel = -1;                               // -1＝未判定 0＝挙げていない 1＝挙げた国
         public int WarMonths, CivilWarMonths;              // 今の四半期の交戦の月・内戦の月（軍の更新の直前に数える・四半期の末に0へ戻す・助走の直後にも0へ戻す）
@@ -163,6 +164,7 @@ public static class Instruments
         public int NextUid;  // (271) 国の個体の番号の次
         public readonly Dictionary<string, (int Quarter, int Year)> CanalOpened = new();   // (271) 運河の開通の四半期（最初に開通を見た四半期の末）
         public readonly Dictionary<(int Uid, int Bucket), SpendAcc> Spend = new();         // (286) 国の個体×窓の区切りごとの支払いの積算
+        public System.IO.StreamWriter? Site, Metal; public bool SiteHeader, MetalHeader;   // (316) 産地の判定の行・世界の金銀の行
         public System.IO.StreamWriter? Svc; public bool SvcHeader;                         // (286) 家事奉仕の市場（挙げた国×四半期）
         public System.IO.StreamWriter? Cons; public bool ConsHeader;                       // (289) 資本家の建設の州ごとの表（挙げた国×州×四半期）
         public System.IO.StreamWriter? Port; public bool PortHeader;                       // (292) 港の建設の州ごとの表（挙げた国×活きた港の州×四半期）
@@ -1372,6 +1374,7 @@ public static class Instruments
             st.FacStarted = st.FacStartedClosed = st.FacDone = st.FacDoneClosed = st.FacDoneClosedAtStart = 0;
         }
         RegionRows(sk, seed, q, sim);
+        SiteTables(sk, seed, q, sim);   // (316) 産地の判定の行と世界の金銀の行
         foreach (var cp in sim.Diplomacy.Chokepoints)   // (271) 運河の開通の四半期（最初に開通を見た四半期の末）
             if (cp.IsCanal && cp.IsOpen && !sk.CanalOpened.ContainsKey(cp.Id)) sk.CanalOpened[cp.Id] = (q, sim.Nations.Count > 0 ? sim.Nations[0].World.Year : 0);
     }
@@ -1383,6 +1386,7 @@ public static class Instruments
         if (Dips.TryGetValue(sim.Diplomacy, out var dip)) WarTables(sk, dip);
         CanalTable(sk, sim);
         SpendTable(sk);   // (286)
+        sk.Site?.Dispose(); sk.Site = null; sk.Metal?.Dispose(); sk.Metal = null;   // (316)
         sk.Svc?.Dispose(); sk.Svc = null;
         sk.Cons?.Dispose(); sk.Cons = null;   // (289)
         sk.Port?.Dispose(); sk.Port = null;   // (292)
@@ -1479,6 +1483,61 @@ public static class Instruments
             bool opened = sk.CanalOpened.TryGetValue(cp.Id, out var oq);
             wr.WriteLine(string.Join('\t', cp.Id, opened ? oq.Quarter.ToString(System.Globalization.CultureInfo.InvariantCulture) : "-1", opened ? oq.Year.ToString(System.Globalization.CultureInfo.InvariantCulture) : "-1"));
         }
+    }
+
+    // ---------------------------------------------------------------- 産地の判定と世界の金銀（鉱床の必要性の回・(316)）----------------------------------------------------------------
+
+    /// <summary>★(316) 産地が開いた（<see cref="Discovery.Step"/> の産地のループ・読むだけ）。<paramref name="parts"/>＝[0] 人の数 N・[1] その財の値段・[2] 今のレシピで掘る費用。</summary>
+    internal static void SiteOpened(World w, Region r, Producer p, Discovery.Terms t, double[] parts) => S(w).SiteRows.Add(SiteRowText("O", w, r, p, t, parts));
+
+    static string SiteRowText(string kind, World w, Region r, Producer p, Discovery.Terms t, double[] parts)
+    {
+        var site = Catalog.Sites[p.SiteRow];
+        return string.Join('\t', kind, w.Year.ToString(System.Globalization.CultureInfo.InvariantCulture), NameOf(w), r.Name, site.Name, site.Kind == Catalog.SiteKind.Deposit ? "D" : "P",
+            F(w.TechLevel), F(Discovery.DifficultyOf(site.Decade, w.Coef)), F(parts[0]), F(parts[1]), F(parts[2]), F(t.Tech), F(t.Need));
+    }
+
+    /// <summary>★(316) 産地の判定の表 <c>site_s</c>（行の種類 kind＝O 開いた行／T まだ開かない産地の軌道〔四半期ごと〕）と世界の金銀の表 <c>metal_s</c>（四半期ごとに1行）。読むだけ。
+    /// site_s の列＝kind・quarter・year・nation・region・site・siteKind〔D 鉱床／P 植林〕・techLevel・difficulty・peopleK・price・cost・techTerm・needTerm（kind=O の quarter は書いた四半期の末の番号）。
+    /// metal_s の列＝quarter・year・goldProduced・silverProduced・goldDemand・silverDemand・goldStock・silverStock（州の市場の直近の月の和）・nGoldLaw・nSilverLaw・nFiatLaw（人の居る国）・
+    /// lnAgAuMean＝金銀の両方の市場が生きた州の ln(銀の値段÷金の値段÷参照の比) の平均・nRatio（その州の数）・goldNations＝金本位の国の名前。</summary>
+    static void SiteTables(Sink sk, ulong seed, int q, MultiNationSim sim)
+    {
+        string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        sk.Site ??= Open("site", seed);
+        if (!sk.SiteHeader) { sk.Site.WriteLine("kind\tquarter\tyear\tnation\tregion\tsite\tsiteKind\ttechLevel\tdifficulty\tpeopleK\tprice\tcost\ttechTerm\tneedTerm"); sk.SiteHeader = true; }
+        foreach (var n in sim.Nations)
+        {
+            var w = n.World; var st = S(w);
+            Discovery.VisitSiteTerms(w, w.Coef, (r, p, t, parts) => st.SiteRows.Add(SiteRowText("T", w, r, p, t, parts)));
+            foreach (var row in st.SiteRows) { int tab = row.IndexOf('\t'); sk.Site.WriteLine(row.Substring(0, tab + 1) + I(q) + row.Substring(tab)); }
+            st.SiteRows.Clear();
+        }
+        sk.Metal ??= Open("metal", seed);
+        if (!sk.MetalHeader) { sk.Metal.WriteLine("quarter\tyear\tgoldProduced\tsilverProduced\tgoldDemand\tsilverDemand\tgoldStock\tsilverStock\tnGoldLaw\tnSilverLaw\tnFiatLaw\tlnAgAuMean\tnRatio\tgoldNations"); sk.MetalHeader = true; }
+        double prodAg = 0, prodAu = 0, demAg = 0, demAu = 0, stAg = 0, stAu = 0, lnSum = 0;
+        int nGold = 0, nSilver = 0, nFiat = 0, nRatio = 0, yr = 0;
+        var names = new System.Text.StringBuilder();
+        double refRatio = Catalog.RefPrices[Catalog.SilverId] / Catalog.RefPrices[Catalog.GoldOreId];
+        foreach (var n in sim.Nations)
+        {
+            var w = n.World; yr = w.Year;
+            if (w.TotalPopulation > 0)
+            {
+                if (w.MonetaryLaw == MonetaryStandardLaw.Gold) { nGold++; names.Append(NameOf(w)).Append(';'); } else if (w.MonetaryLaw == MonetaryStandardLaw.Silver) nSilver++; else nFiat++;
+            }
+            foreach (var r in w.Regions)
+            {
+                if (r.State != RegionState.Active) continue;
+                if (Catalog.SilverId >= r.Markets.Length || Catalog.GoldOreId >= r.Markets.Length) continue;
+                var mAg = r.Markets[Catalog.SilverId]; var mAu = r.Markets[Catalog.GoldOreId];
+                prodAg += mAg.LastProduced; prodAu += mAu.LastProduced; demAg += mAg.LastDemand; demAu += mAu.LastDemand; stAg += mAg.Stock; stAu += mAu.Stock;
+                if (!(mAg.LastDemand > 1e-9 || mAg.LastProduced > 1e-9) || !(mAu.LastDemand > 1e-9 || mAu.LastProduced > 1e-9)) continue;
+                if (!(mAg.Price > 1e-9) || !(mAu.Price > 1e-9)) continue;
+                lnSum += System.Math.Log(mAg.Price / mAu.Price / refRatio); nRatio++;
+            }
+        }
+        sk.Metal.WriteLine(string.Join('\t', I(q), I(yr), F(prodAu), F(prodAg), F(demAu), F(demAg), F(stAu), F(stAg), I(nGold), I(nSilver), I(nFiat), nRatio > 0 ? F(lnSum / nRatio) : "nan", I(nRatio), names.ToString()));
     }
 
     static void WarTables(Sink sk, DipState dip)
