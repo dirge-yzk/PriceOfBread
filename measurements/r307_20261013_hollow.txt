@@ -1,3 +1,4 @@
+# (307) python scripts/instruments/hol/an_h2.py D:/PoB_work/y3/out_r307i_10/ins -v4（measurements/r304_20261013_hollow.txt と先頭の注の行を除いて diff で同一）
 ## 種 10・ピーク 1 千人以上
 ## ピークの1/10 未満: 0 件 {}
 ## ピークの1/4 未満: 13 件 {'その他': 4, '飢え': 4, '移民': 5}
