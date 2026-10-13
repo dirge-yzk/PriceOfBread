@@ -172,8 +172,16 @@ public class UnitTypeTests
         (typeof(Producer), "SubsidyRate", typeof(Share)),
         (typeof(Market), "LastRation", typeof(Share)),
         (typeof(Region), "GarrisonShare", typeof(Share)),
-        (typeof(World), "ShipSteamShareEma", typeof(Share)),
+        (typeof(World), "ShipSteamShare", typeof(Share)),
         (typeof(World), "LoanRatePerYear", typeof(RatePerYear)),
+        // ★(303) 割合の型の残り その2＝軍事費の家族（陸海の維持費・その和と海の比）・海軍シェア・失業率の移動平均・地代の上限。World の ShipSteamShareEma は容量加重の割合なので ShipSteamShare へ改名（上の行）
+        (typeof(World), "ArmyUpkeep", typeof(Share)),
+        (typeof(World), "NavyUpkeep", typeof(Share)),
+        (typeof(World), "MilitarySpending", typeof(Share)),
+        (typeof(World), "NavalSpendShare", typeof(Share)),
+        (typeof(Power), "NavalShare", typeof(Share)),
+        (typeof(Pop), "UnemploymentEma", typeof(Share)),
+        (typeof(Region), "FarmRentCap", typeof(Share)),
     ];
 
     [Fact]
@@ -349,7 +357,7 @@ public class UnitTypeTests
         pop.MilitiaShare = new Share(1.0 / 13.0); pop.UnemploymentRate = new Share(2.0 / 13.0); pop.InitialFertileShare = new Share(3.0 / 13.0);
         pop.ChildLaborRate = new Share(4.0 / 13.0); pop.CoreEthnicShare = new Share(5.0 / 13.0);
         prod.RentShare = new Share(6.0 / 13.0); prod.MothballFrac = new Share(7.0 / 13.0); prod.SubsidyRate = new Share(8.0 / 13.0);
-        mkt.LastRation = new Share(9.0 / 13.0); w1.Regions[0].GarrisonShare = new Share(10.0 / 13.0); w1.ShipSteamShareEma = new Share(11.0 / 13.0);
+        mkt.LastRation = new Share(9.0 / 13.0); w1.Regions[0].GarrisonShare = new Share(10.0 / 13.0); w1.ShipSteamShare = new Share(11.0 / 13.0);
         using var ms = new System.IO.MemoryStream();
         SaveGame.Save(sim1, ms);
         ms.Position = 0;
@@ -366,7 +374,32 @@ public class UnitTypeTests
         Assert.Equal(BitConverter.DoubleToInt64Bits(8.0 / 13.0), Bits(prod2.SubsidyRate));
         Assert.Equal(BitConverter.DoubleToInt64Bits(9.0 / 13.0), Bits(mkt2.LastRation));
         Assert.Equal(BitConverter.DoubleToInt64Bits(10.0 / 13.0), Bits(w2.Regions[0].GarrisonShare));
-        Assert.Equal(BitConverter.DoubleToInt64Bits(11.0 / 13.0), Bits(w2.ShipSteamShareEma));
+        Assert.Equal(BitConverter.DoubleToInt64Bits(11.0 / 13.0), Bits(w2.ShipSteamShare));
+    }
+
+    /// <summary>★(303) 割合の型の残り その2＝陸海の維持費（World）・海軍シェア（Power）・失業率の移動平均（Pop）・地代の上限（Region）の欄が、セーブの往復で割り切れない値（13分の幾つ）のまま残る。
+    /// 欄ごとに別の値を置く（期待値は欄の番号 k/13 を直に書く＝セーブの出力から作らない）。和の MilitarySpending と海の比 NavalSpendShare は維持費2本から導く派生＝往復後の導出も確かめる。</summary>
+    [Fact]
+    public void セーブの往復で軍事費の家族と残りの割合の欄が残る()
+    {
+        var sim1 = new MultiNationSim([NationConfig.Britain(), NationConfig.France()], 1789, _ => new NullAgent());
+        var w1 = sim1.Nations[0].World;
+        w1.ArmyUpkeep = new Share(2.0 / 13.0); w1.NavyUpkeep = new Share(3.0 / 13.0);
+        w1.SelfPower!.NavalShare = new Share(4.0 / 13.0);
+        w1.Regions[0].Pops[0].UnemploymentEma = new Share(5.0 / 13.0);
+        w1.Regions[0].FarmRentCap = new Share(6.0 / 13.0);
+        using var ms = new System.IO.MemoryStream();
+        SaveGame.Save(sim1, ms);
+        ms.Position = 0;
+        var w2 = SaveGame.Load(ms).Nations[0].World;
+        static long Bits(Share s) => BitConverter.DoubleToInt64Bits(s.Value);
+        Assert.Equal(BitConverter.DoubleToInt64Bits(2.0 / 13.0), Bits(w2.ArmyUpkeep));
+        Assert.Equal(BitConverter.DoubleToInt64Bits(3.0 / 13.0), Bits(w2.NavyUpkeep));
+        Assert.Equal(BitConverter.DoubleToInt64Bits(4.0 / 13.0), Bits(w2.SelfPower!.NavalShare));
+        Assert.Equal(BitConverter.DoubleToInt64Bits(5.0 / 13.0), Bits(w2.Regions[0].Pops[0].UnemploymentEma));
+        Assert.Equal(BitConverter.DoubleToInt64Bits(6.0 / 13.0), Bits(w2.Regions[0].FarmRentCap));
+        Assert.Equal(5.0 / 13.0, w2.MilitarySpending.Value, 12);   // 和（0..1 にクランプ）＝派生
+        Assert.Equal(3.0 / 5.0, w2.NavalSpendShare.Value, 12);     // 海軍÷(陸軍＋海軍)
     }
 
     [Fact]

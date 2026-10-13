@@ -20,7 +20,7 @@ public sealed class Power
     [System.NonSerialized] internal double _syncGdp;
     [System.NonSerialized] internal Region[]? _syncGdpRegions;
     public double Military;       // 陸海軍の総合ゲージ
-    public double NavalShare;     // 海軍シェア∈[0,1]＝★(189) 兵士のうち艦に乗る割合（乗員÷兵士＝Diplomacy が毎月艦の在庫から導く）。陸軍力=Military×(1−NavalShare)。抽象標的は AbstractNavalShare（静的）
+    public Share NavalShare;     // 海軍シェア∈[0,1]＝★(189) 兵士のうち艦に乗る割合（乗員÷兵士＝Diplomacy が毎月艦の在庫から導く）。陸軍力=Military×(1−NavalShare)。抽象標的は AbstractNavalShare（静的）
     // ★海軍力（点火2026-08-01・作者裁定「**陸軍は兵士ありきですが、海軍は戦艦ありきです。海軍の強さが海兵の数から決まるのはナンセンス**」・★(189) 2026-10-03 で現物へ）。
     // 海軍力＝艦の強さのゲージ（FleetGauge＝財ごとの隻数×建造費×段の乗数÷換算分母）×燃料×乗員の充足×海の熟練＝陸軍の即応度と陸の質（Military の乗数）は掛けない。
     // 船を持たない国の海軍は0。乗員は艦に付く量（隻数×1隻の乗員）＝兵士から先に乗せ、足りなければ乗員の充足が下がる（艦はあっても兵が居なければ動かない）。
@@ -35,13 +35,13 @@ public sealed class Power
     public double NavalFuelMul = 1.0;
     public double NavalPower => _fleetDriven
         ? FleetGauge * NavalFuelMul * CrewFill * NavySkillMul   // 艦×燃料×乗員の充足×海の熟練＝「戦艦ありき」かつ「乗員なしでは動かない」（陸軍の即応度と陸の質を掛けない）
-        : Military * NavalShare * NavySkillMul;                 // 経済を持たない抽象標的（と換算分母の無い小さな盤面）＝静的な海軍
+        : Military * NavalShare.Value * NavySkillMul;                 // 経済を持たない抽象標的（と換算分母の無い小さな盤面）＝静的な海軍
     internal bool _fleetDriven;   // 艦の在庫から海軍力を立てるか（経済を持ち換算分母がある国＝Diplomacy が毎月立てる）
     internal bool _fleetSeeded;   // 開幕の播種を済ませたか（1度だけ・国別ビット恒等の保証）。★(189) 開幕の後に生まれた国は播かない（艦は湧かない＝買うか州と一緒に来た艦だけ）
     public double[] BasinPresence = new double[Basins.Count];   // 03手順6：海盆別プレゼンス重み（正規化・D1裁定＝交易シェアで自動＝沿岸州取扱高0.5＋植民地価値0.5。空なら首都海盆1）
     // ★熟練度（2026-08-04・作者仕様(5)）＝同じ兵数でも訓練された軍は強い（最大2倍）。抽象勢力は1.0のまま。
     public double ArmySkillMul = 1.0, NavySkillMul = 1.0;   // Diplomacy の同期が毎期書く（Power は World を直接見ない設計に合わせる）
-    public double LandPower => Military * (1 - NavalShare) * ArmySkillMul;  // 陸軍力（戦線の押し合いの主力）
+    public double LandPower => Military * (1 - NavalShare.Value) * ArmySkillMul;  // 陸軍力（戦線の押し合いの主力）
     // ★理想の軍隊の形（2026-08-01）。ArmyShape.Compute が四半期に書く＝live。NeedSea は陸海の維持費の分け方（UtilityAgent.SetNavalUpkeepShare）と海軍の調達の目標の艦隊（EconomyStep.FleetOrder・(189)）が読む。設計書＝docs/202607/20260801_理想の軍隊の形_部分完了.md【一部】.md
     public double NeedLand;       // 陸の必要量（自国に向けられた他国陸軍の注意配分の和・ゲージ単位・★(194) 相手の陸軍は陸軍の大きさ ArmyShape.LandPotential＝即応度なし）
     public double NeedSea;        // 海の必要量（艦隊の比＝仮想敵国の艦隊の注意配分〔★(194) 重み＝自国の越境の交易額÷平均〕＋海を越えて来る陸軍の注意配分〔★(194) 相手の陸軍の大きさ×遠征の技術の門〕・(183) で通商保護の項〔自国の軍×海に出ている割合〕を外した）
@@ -824,7 +824,7 @@ public sealed class Diplomacy
     {
         foreach (var p in Powers)
         {
-            if (p.Nation is not { } nw) { p.NavalShare = c.AbstractNavalShare; continue; }   // 抽象標的＝弱小海軍（陸の守りが主・B-1）
+            if (p.Nation is not { } nw) { p.NavalShare = new Share(c.AbstractNavalShare); continue; }   // 抽象標的＝弱小海軍（陸の守りが主・B-1）
             p.GdpPerMonth = new RealGdpPerMonth(SyncGdp(p, nw));   // 四半期末の窓の中で州の並びが同じなら1回目の値（上の SyncGdp の注記）
             // 軍隊規模＝兵士POP数（軍事費が徴募）。即応度（兵士の充足）が乗数＝給与/補給が切れた軍は大幅に弱い。
             // 扶養限界＝大軍は給与（民間賃金×兵数）を要し、払えなければ充足が落ち戦力が下がる（経済が要る）。治安維持力（警察）とは分離。
@@ -976,7 +976,7 @@ public sealed class Diplomacy
             if (p.Nation is not { } nw || p._fleetSeeded) continue;
             UtilityAgent.SetNavalUpkeepShare(nw);   // 陸海の維持費の目標の比（AI とプレイヤーの同じ関数）
             double s = ArmyShape.NavalSpendShareOf(p);
-            if (s >= 0) nw.SetMilitarySpending(nw.MilitarySpending, s);   // 未定義（−1・NaN）は今の比のまま（否定形）
+            if (s >= 0) nw.SetMilitarySpending(nw.MilitarySpending, new Share(s));   // 未定義（−1・NaN）は今の比のまま（否定形）
             double denom = nw.Regions.Count > 0 ? EconomyStep.FleetGaugeDenominator(nw.Regions[0], c) : double.NaN;
             if (!(denom > 0) || !p._fleetDriven) continue;   // 換算分母が無い国は艦の在庫の外（同期のループと同じ退避）
             p._fleetSeeded = true;
@@ -1014,7 +1014,7 @@ public sealed class Diplomacy
         double men = soldiers > 0 ? soldiers : 0;
         double crew = crewNeed < men ? crewNeed : men;
         p.CrewFill = crewNeed > 1e-12 ? crew / crewNeed : 1.0;
-        p.NavalShare = men > 1e-9 ? crew / men : 0;
+        p.NavalShare = new Share(men > 1e-9 ? crew / men : 0);
     }
 
     /// <summary>★13l地政学（作者裁定2026-08-14「無理に経済で完結させず、地政学的な要素をキャッチアップする」・観測実証＝99_実装ログ§4-6）：

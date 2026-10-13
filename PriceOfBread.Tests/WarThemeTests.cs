@@ -33,7 +33,7 @@ public class WarThemeTests
         foreach (var n in sim.Nations)
         {
             n.World.Coef.WarMobilizationDepth = 1.0;              // 戦時動員の段階性（各国の経済係数）
-            n.World.SetMilitaryUpkeep(0.10, 0.30);               // 海軍に厚い維持費（2026-08-10：抽象スタンスでなく払う金で置く）
+            n.World.SetMilitaryUpkeep(new Share(0.10), new Share(0.30));               // 海軍に厚い維持費（2026-08-10：抽象スタンスでなく払う金で置く）
         }
         var ex = Record.Exception(() => sim.Run(200));
         Assert.Null(ex);   // §11.6（貨幣・人口保存と境界）が全国・全ティック保持＝艦の購入（海軍の予算）・総動員・海軍への高い維持費が保存則を破らない
@@ -51,16 +51,16 @@ public class WarThemeTests
         // (1) 勢力への譲歩（Politics.ApplyDemand）＝要求を呑んだら**その場で**実効値と目標の両方が動く。
         var sim = new Simulation(NationConfig.Britain().ToScenario(1), new NullAgent());
         var w = sim.World;
-        double before = w.NavyUpkeep;
+        double before = w.NavyUpkeep.Value;
         int moved = Politics.ApplyDemand(w, w.Coef, PolicyAxis.NavyUpkeep, inc: true, n: 1);
         Assert.Equal(1, moved);                                    // `_ => 0`（政治資本だけ燃える no-op）へ落ちていない
-        Assert.True(w.NavyUpkeep > before, $"譲歩で海軍維持費が上がらない（{before:F3}→{w.NavyUpkeep:F3}）");
-        Assert.Equal(w.NavyUpkeep, w.Policy.NavyUpkeepTarget, 9);   // 目標も同時に動く＝次期に Government が引き戻さない
+        Assert.True(w.NavyUpkeep.Value > before, $"譲歩で海軍維持費が上がらない（{before:F3}→{w.NavyUpkeep:F3}）");
+        Assert.Equal(w.NavyUpkeep.Value, w.Policy.NavyUpkeepTarget, 9);   // 目標も同時に動く＝次期に Government が引き戻さない
 
         // 減少向き（「海軍の縮小」）も対称に効く。
-        double up = w.NavyUpkeep;
+        double up = w.NavyUpkeep.Value;
         Assert.Equal(1, Politics.ApplyDemand(w, w.Coef, PolicyAxis.NavyUpkeep, inc: false, n: 1));
-        Assert.True(w.NavyUpkeep < up, "海軍を縮小できない");
+        Assert.True(w.NavyUpkeep.Value < up, "海軍を縮小できない");
 
         // (2) 要求の目標（Parliament.TargetDemand＝危機の要求・一揆への譲歩）＝目標だけを置く（施行は Government の政治ゲート越し）。
         var sim2 = new Simulation(NationConfig.Britain().ToScenario(1), new NullAgent());
@@ -91,7 +91,7 @@ public class WarThemeTests
             double hulls = 0; foreach (var u in EconomyStep.FleetHeldUnits(w, w.Coef)) hulls += u;
             double need = hulls * EconomyStep.FleetCrewPerHull(w.Regions[0], w.Coef, denom), men = w.SoldierSizeK();
             double crew = System.Math.Min(need, men);
-            Assert.True(System.Math.Abs(p.NavalShare - (men > 1e-9 ? crew / men : 0)) < 1e-9, $"{p.BaseName}の海軍シェア {p.NavalShare:G9} ≠ 乗員÷兵士 {crew / men:G9}");
+            Assert.True(System.Math.Abs(p.NavalShare.Value - (men > 1e-9 ? crew / men : 0)) < 1e-9, $"{p.BaseName}の海軍シェア {p.NavalShare:G9} ≠ 乗員÷兵士 {crew / men:G9}");
             Assert.True(System.Math.Abs(p.CrewFill - (need > 1e-12 ? crew / need : 1.0)) < 1e-9, $"{p.BaseName}の乗員の充足 {p.CrewFill:G9}");
             Assert.True(System.Math.Abs(p.FleetGauge * denom - EconomyStep.FleetPowerValue(w)) <= 1e-9 * System.Math.Max(1, EconomyStep.FleetPowerValue(w)), $"{p.BaseName}の艦の強さのゲージが在庫と合わない");
             if (hulls > 0) withFleet++;
@@ -641,7 +641,7 @@ public class WarThemeTests
         var uk = sim.Nations[0].World; var ukP = uk.SelfPower!; var frP = sim.Nations[1].World.SelfPower!;
         var c = uk.Coef;
         Assert.True(c.SeaInvasionControlMin > 0 && dip.IsSeaCrossing(frP, ukP, c), "前提が崩れた：英仏の間が海越えでない");
-        ukP.NavalShare = 0; frP.NavalShare = 0;   // どちらの海軍も0＝どちらも上陸できない＝陸戦は起きない
+        ukP.NavalShare = new Share(0); frP.NavalShare = new Share(0);   // どちらの海軍も0＝どちらも上陸できない＝陸戦は起きない
         Assert.False(dip.LandBattleHappens(ukP, frP, c), "前提が崩れた：海軍0でも上陸できる");
         Assert.True(frP.LandPower > 0 && ukP.LandPower > 0, "前提が崩れた：陸軍が無い");
 

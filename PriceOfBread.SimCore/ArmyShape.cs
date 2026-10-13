@@ -268,7 +268,7 @@ public static class ArmyShape
     /// <summary>★陸軍の大きさ（2026-10-03 (194)）＝<see cref="ForcePotential"/>×(1−海軍シェア〔兵士のうち艦に乗る割合〕)＝陸に立つ兵の頭数×質（即応度・装備の質の充足・熟練を掛けない）。
     /// 理想の形（<see cref="Compute"/>）が相手の陸軍（陸の国境と海を越えて来る陸軍）をこの1本で読み、新兵器の必要性（Discovery の陸の圧力）が自国の陸軍をこの1本で読む
     /// ＝陸と海の必要量・内の守り・自国の軍の大きさ（陸海の金の分け方の分母）が同じ物差し（分子と分母を同じ規則で）。抽象標的は軍の総合ゲージ×(1−静的な海軍シェア)＝旧の LandPower と同じ値。</summary>
-    internal static double LandPotential(Power p) => ForcePotential(p) * (1 - p.NavalShare);
+    internal static double LandPotential(Power p) => ForcePotential(p) * (1 - p.NavalShare.Value);
 
     // 【墓標2026-10-03 (183)】SeaTradeShare（海に出ている経済の割合＝港の州の取扱高÷(為替×3×月の名目GDP)）＝読み手（通商保護の項・診断 armyneed の護衛項）ごと削除
     //   （海の必要量に自国の軍の大きさの項を置かない＝<see cref="Compute"/> の注記）。⚠ (154) の指摘（月次清算では取扱高が2か月分＝約2/3）も読み手ごと消えた。

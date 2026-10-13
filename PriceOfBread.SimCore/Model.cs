@@ -213,7 +213,7 @@ public sealed class Pop
     public double NewsFill;              // 新聞（財）の充足率（1934拡張E3）。国民意識の実効値＋政治意識のpress項の入力＝「新聞を買えて読めたか」。新聞財の無い小シナリオは0
     public double RadioFill;             // ラジオ（財）の充足率（E3・1920s〜）。国民意識の識字不要チャネル（検閲非依存＝国営宣伝）。財の解禁前は0
     public Share UnemploymentRate;      // 労働（労働力/農業/高度）の売れ残り率＝失業。職の喪失は所得の算術を超えて怒りを生む（社会保障が和らげる対象）。労働市場の無い世界は0＝従来挙動
-    public double UnemploymentEma = -1.0;   // rank10b（JobSearchUsesEma=0.02点火2026-08-16）：失業率の多年EMA＝慢性失業の記憶。-1=未捕捉（初回更新で現在値から開始＝跳躍なし）。JobSearchUsesEma=0（対照腕）では読み書きされず恒等。失業プール①''の駆動が瞬間UでなくこれをEMA読み＝循環失業と構造失業の分岐
+    public Share UnemploymentEma = new Share(-1.0);   // rank10b（JobSearchUsesEma=0.02点火2026-08-16）：失業率の多年EMA＝慢性失業の記憶。-1=未捕捉（初回更新で現在値から開始＝跳躍なし）。JobSearchUsesEma=0（対照腕）では読み書きされず恒等。失業プール①''の駆動が瞬間UでなくこれをEMA読み＝循環失業と構造失業の分岐
     public double InitialWork = -1.0;    // 労働供給の初期値（t=0 の work＝成人男女参加＋児童労働）。倍率排除②：旧 work/0.64 の正規化定数を「各popの初期労働供給」へ一般化（標準構成なら0.64＝中立）。-1=未捕捉（初回 EconomyStep で確定）
     public Share InitialFertileShare = new Share(-1.0);  // ①Phase3：出産可能女性プールの初期値（t=0 の出産可能プール＝Simulation.FertilePool・年齢の層から読む）。出生を女性プール比例化する際の正規化定数（自分の出発点に対する相対変化＝標準構成で Size 比例と恒等）。-1=未捕捉
     /// <summary>★年齢の層（2026-09-30 段4e 後半・設計 docs/202609/20260929/20260929_年齢の層_人口ピラミッドと世代の流れ_設計_未着手.md・作者裁定 2026-09-29＝C 案）＝
@@ -891,7 +891,7 @@ public sealed class Region
     public double PriceLevel = 1.0;                   // 物価水準（World の国家物価×地域乗数）。MarketFlow の参照価格アンカー/床天井を rp×これ にスケール＝一般インフレ/デフレ。1.0＝中立
     public double LocalPriceMultiplier = 1.0;         // 地域別の貨幣的物価乗数（地域物価・名目賃金の格差）。1人あたり貯蓄（手元現金の厚み）が国平均から乖離する分。現金の厚い金融中心州>1・乏しい辺境州<1。四半期ごとに UpdateRegionalPriceLevels が算出。1州なら1.0＝較正中立
     public double WagePremium = 1.0;                  // 州の労働価格プレミアム（1人あたり月次所得の対国平均比・四半期EMA）。UpdateRegionalPriceLevels が算出・Territory.Opportunity が OpportunityWageWeight で参照＝金鉱州の高賃金→移民殺到（ゴールドラッシュの創発・キュー3）。1州なら比1→1.0＝較正中立
-    public double FarmRentCap = 1.0;                  // RGO地代（封建貢租の取り分）の上限（World から複製）。農奴解放=0.5/土地改革=0.3。元の取り分がこれ未満の国（自作農・小作）には効かない＝農奴制国だけ解放が効く。1.0＝無制限（中立）
+    public Share FarmRentCap = new Share(1.0);                  // RGO地代（封建貢租の取り分）の上限（World から複製）。農奴解放=0.5/土地改革=0.3。元の取り分がこれ未満の国（自作農・小作）には効かない＝農奴制国だけ解放が効く。1.0＝無制限（中立）
     public double CrowdingPremium = 0;               // 政府借入による国債金利プレミアム（World から複製＝GovBondRatePerYear−基礎）。民間投資のハードルレートに上乗せ＝クラウディングアウト（金利チャネル）
     public double FinancialHeat = 0;                 // 与信過熱ゲージ（World から複製・改修2026-06-28）。投資ハードルへ負で配線＝過熱→株高→投資ブーム→恐慌で暴落（株式市場のバブル動学）。較正(Credit無)では0＝中立
     public double ProductivityBonus = 1.0;            // 地域固有の生産性（辺境の資源賦存など）

@@ -120,7 +120,7 @@ public static class Meritocracy
             // ・志願＝失業プール（①''）と強制の転落（④⑤⑥・①'）の職の選択に兵士の席が入る（席の空きまで・FillJobs）。
             // ・平時に定員を超えた分＝国家が兵を民間の最良の職へ戻す（旧 Military の DischargeToPool＝農民と都市労働者へ比例を置き換え）。速さは旧の平時の徴募/離職の速さ（月 SoldierMigrationRatePerMonth）の四半期の値。
             //   ★(161) 行き先の比べ方は JobIncome の1本（民間の職を働き手1人あたりへ直す）＝兵の給与×転職のプレミアムを超える職へ按分（低温の softmax）・超える職が無ければ強制の残りが最良の1つへ（総取り）。
-            // ・兵士だけの差分（許可済み）：志願兵は服役の年限ですぐ辞めない＝職の比較で自分から出ていかない（①'' の対象は未払いの分だけ＝兵士の「失業」＝給与の未払いの割合）・
+            // ・兵士だけの差分（許可済み）：志願兵は服役の年限ですぐ辞めない＝職の比較で自分から出ていかない（①'' の対象は未払いの分だけ＝兵士の〈失業〉＝給与の未払いの割合）・
             //   戦時は復員しない（下の枝は平時だけ）・徴兵は強制で席を埋める（Military.Step）。
             Pop? soldierPop = null;
             foreach (var p in r.Pops) if (p.IsSoldier) { soldierPop = p; break; }   // 最初の一致＝Military.Step と同じ探し方
@@ -210,14 +210,14 @@ public static class Meritocracy
             // 対象＝労働を市場で売る全pop（労働力/農業/高度＝UnemploymentRate が立つ層。自給農の自作は失業に数えない：EconomyStep）。
             // 「プール」は四半期内の判定＝滞留の動力学は UnemploymentRate 自体が持つ（売れ残りが続く限り毎期プールに入り続ける）。
             // JobSearchRate=0 なら1命令も走らない厳密恒等（点火済み＝既定0.025。OFF対照はPOB_COEF="JobSearchRate=0"）。
-            // ★(155)：兵士も対象＝兵士の「失業」は給与の未払いの割合（Simulation が国家の支払い率から書く・多年EMA＝未払いが長引くほど強い）＝未払いが長引けば脱走して民間の最良の職へ（強制＝席に留まれない）。
+            // ★(155)：兵士も対象＝兵士の〈失業〉は給与の未払いの割合（Simulation が国家の支払い率から書く・多年EMA＝未払いが長引くほど強い）＝未払いが長引けば脱走して民間の最良の職へ（強制＝席に留まれない）。
             if (c.JobSearchRate > 0)
                 for (int i = 0; i < r.Pops.Count; i++)
                 {
                     var p = r.Pops[i];
                     if (p.Closed || p.Size <= Eps) continue;
                     // rank10b（点火0.02 JobSearchUsesEma）：駆動は慢性失業（U多年EMA）＝循環失業は滞留して闘争度へ。0＝瞬間U（旧）。
-                    double u = c.JobSearchUsesEma > 0 && p.UnemploymentEma >= 0 ? p.UnemploymentEma : p.UnemploymentRate.Value;
+                    double u = c.JobSearchUsesEma > 0 && p.UnemploymentEma.Value >= 0 ? p.UnemploymentEma.Value : p.UnemploymentRate.Value;
                     if (u <= Eps) continue;
                     int cls = ClassOf(r, i);
                     if (cls < 0) continue;
@@ -513,7 +513,7 @@ public static class Meritocracy
                 {
                     var t = r.Pops[i];
                     double gate = JobGate(r, w, m, avgPerCap, src, i, jobClass, secular, higherEdu, gateEma, c);
-                    double vacancy = Math.Max(0, 1.0 - t.UnemploymentRate.Value);   // 空き＝受け皿の売れ残りが少ないほど吸収する（兵士の「失業」＝給与の未払いの割合＝払われない軍には志願しない）
+                    double vacancy = Math.Max(0, 1.0 - t.UnemploymentRate.Value);   // 空き＝受け皿の売れ残りが少ないほど吸収する（兵士の〈失業〉＝給与の未払いの割合＝払われない軍には志願しない）
                     double f = amount * (share[i] / sumW) * gate * vacancy;
                     if (srcRural && t.IsUrban) { f = Math.Min(f, urbanHeadroom); }
                     if (t.IsSoldier) f = Math.Min(f, soldierVac);   // 席の空きまで

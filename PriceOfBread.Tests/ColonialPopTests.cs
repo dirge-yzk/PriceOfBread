@@ -55,7 +55,7 @@ public class ColonialPopTests
     {
         var sim = new MultiNationSim([NationConfig.Britain(), NationConfig.France()], seed: 83) { DiplomacyFrozen = true };
         var w = sim.Nations[0].World;
-        w.ShipSteamShareEma = new Share(1.0);   // 補給線が石炭を焚く状態（帆走の時代は距離の物理消費が0＝比べられない）
+        w.ShipSteamShare = new Share(1.0);   // 補給線が石炭を焚く状態（帆走の時代は距離の物理消費が0＝比べられない）
         w.ShipCapacity = 10_000;     // ★(173) R4：補給線の燃料は占有された船腹（容量×占有÷(1＋占有)）の汽船の分＝船腹が要る（構築の直後は容量0）
         double Km(Region r) { var cc = Places.Coord(r.Name); return Geo.SeaDistanceKm(w.Latitude, w.Longitude, cc.Lat, cc.Lon, false, false); }
         var cols = w.Regions.Where(r => r.State == RegionState.Active && r.Tier == RegionTier.Colonial).ToList();
@@ -180,7 +180,7 @@ public class ColonialPopTests
         r.Discovered = w.Discovered;
         foreach (var row in Enumerable.Range(0, Catalog.Discoveries.Length).Where(i => Catalog.Discoveries[i].Good == Catalog.CannedFoodId)) w.Discovered[row] = true;
         Assert.Equal(1.0, Discovery.GoodGate(r, Catalog.CannedFoodId));
-        w.ShipCapacity = 10_000; w.ShipSteamShareEma = new Share(1.0);
+        w.ShipCapacity = 10_000; w.ShipSteamShare = new Share(1.0);
         double d0 = r.Markets[Catalog.CannedFoodId].LastDemand;
         Colonial.Step(w, w.Coef);
         Assert.Equal(d0, r.Markets[Catalog.CannedFoodId].LastDemand);
@@ -200,8 +200,8 @@ public class ColonialPopTests
         w.ShipCapacity = 10_000; w.FiscalFundingRatio = new Share(1.0);
         double era = c.EraFactor(w.WorldTechLevel, c.EraColonyCoal);
         double mult = c.ShipTier2CapMult / era;
-        w.ShipSteamShareEma = new Share(0.0); Colonial.Step(w, c); double b0 = w.ColonialShipBurden;
-        w.ShipSteamShareEma = new Share(1.0);
+        w.ShipSteamShare = new Share(0.0); Colonial.Step(w, c); double b0 = w.ColonialShipBurden;
+        w.ShipSteamShare = new Share(1.0);
         double coal0 = r.Markets[Catalog.CoalId].LastDemand;
         Colonial.Step(w, c); double b1 = w.ColonialShipBurden;
         Assert.True(b0 > 0 && mult > 1, $"前提が崩れた（占有 {b0}・容量倍 {mult}）");

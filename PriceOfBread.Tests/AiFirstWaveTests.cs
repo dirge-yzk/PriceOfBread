@@ -123,7 +123,7 @@ public class AiFirstWaveTests
     }
 
     /// <summary>番人の盤面：陸軍力を値で置く（海軍シェア0・熟練1＝LandPower＝Military・艦なし）。</summary>
-    private static void PinLand(Power p, double land) { p.Military = land; p.NavalShare = 0; p.ArmySkillMul = 1.0; p.FleetGauge = 0; }
+    private static void PinLand(Power p, double land) { p.Military = land; p.NavalShare = new Share(0); p.ArmySkillMul = 1.0; p.FleetGauge = 0; }
 
     // ★番人（2026-10-03 (195)・00一覧 §0-A の 0e・2026-10-04 (198) で相手の陣営と重みの形へ）：戦争の規模（Diplomacy.WarScale）＝相手の陣営の、自陣営の本国へ届く陸の力÷自陣営の陸の力・
     //   存亡（out）＝自陣営の国ごとの本国の敗色×重み（自国1・味方＝味方の陸の力÷自国と味方の大きい方）の最大。
@@ -509,7 +509,7 @@ public class AiFirstWaveTests
         Assert.True(w.FoodFill >= w.Coef.DynMandateFoodAnchor, "テスト前提が崩れた：飢饉の判定が立つ");
         foreach (var r in w.Regions)
             foreach (var pr in r.Producers)
-                if (pr.IsRgo) Assert.True(pr.RentShare.Value <= r.FarmRentCap, "テスト前提が崩れた：地代の余地がある");
+                if (pr.IsRgo) Assert.True(pr.RentShare.Value <= r.FarmRentCap.Value, "テスト前提が崩れた：地代の余地がある");
         Assert.True(Government.GateInfo(w, PolicyAxis.SerfEmancipation, increasing: true, (int)ReformLevel.Limited).Ok, "テスト前提が崩れた：門が開かない");
         UtilityAgent.Apply(w, UtilityAgent.Stance.Modernize);
         Assert.Equal(ReformLevel.Limited, w.Policy.SerfEmancipation);   // 旧＝余地0・飢饉なし＝置かない（なしのまま）

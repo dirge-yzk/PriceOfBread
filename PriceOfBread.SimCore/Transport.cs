@@ -62,8 +62,8 @@ public static class Transport
         //   燃料の係数の門の外で常に更新する。Min(1) は丸めの守り（定義上1を超えない）。
         if (shipAdd > 0)
         {
-            double s = (w.ShipSteamShareEma.Value * shipBefore + steamAdd) / w.ShipCapacity;
-            w.ShipSteamShareEma = new Share(s >= 0 ? System.Math.Min(1.0, s) : 0.0);   // NaN は帆走の側へ
+            double s = (w.ShipSteamShare.Value * shipBefore + steamAdd) / w.ShipCapacity;
+            w.ShipSteamShare = new Share(s >= 0 ? System.Math.Min(1.0, s) : 0.0);   // NaN は帆走の側へ
         }
         if (c.ShipFuelRate > 0) BuyShipFuel(w, c, era);
     }
@@ -105,8 +105,8 @@ public static class Transport
         if (rail > 0) to.RailCapacity += rail;
         if (!(ship > 0)) return;   // 否定形＝NaN も受け取らない
         double tot = to.ShipCapacity + ship;
-        double s = (to.ShipSteamShareEma.Value * to.ShipCapacity + steamShare * ship) / tot;
-        to.ShipSteamShareEma = new Share(s >= 0 ? System.Math.Min(1.0, s) : 0.0);   // NaN は帆走の側へ（Step と同じ守り）
+        double s = (to.ShipSteamShare.Value * to.ShipCapacity + steamShare * ship) / tot;
+        to.ShipSteamShare = new Share(s >= 0 ? System.Math.Min(1.0, s) : 0.0);   // NaN は帆走の側へ（Step と同じ守り）
         to.ShipCapacity = tot;
     }
 
@@ -118,7 +118,7 @@ public static class Transport
     {
         // ★R4（2026-10-02 (173)）：植民地の補給線が占有している船腹（Colonial.OccupiedShipCapacity）の燃料は国庫が補給線として買う（Colonial.Step）＝商人は交易に使える容量の分だけ焚く
         //   （旧＝商人が全ての船腹を焚き、国庫も補給線の石炭を別の物差し〔400×距離×質量〕で買った＝同じ船腹を2度焚いた・思想⑨）。
-        double totalWant = c.ShipFuelRate * era * (w.ShipCapacity - Colonial.OccupiedShipCapacity(w)) * w.ShipSteamShareEma.Value;   // 帆走のみ（割合0）なら需要ゼロ
+        double totalWant = c.ShipFuelRate * era * (w.ShipCapacity - Colonial.OccupiedShipCapacity(w)) * w.ShipSteamShare.Value;   // 帆走のみ（割合0）なら需要ゼロ
         if (!(totalWant > 1e-9)) return;   // 否定形＝NaNも不走行側へ
         int regCount = 0;
         foreach (var r in w.Regions) if (r.State == RegionState.Active && (r.MerchantPopIndex >= 0 || r.InvestorPopIndex >= 0)) regCount++;
@@ -151,7 +151,7 @@ public static class Transport
     //   ＝作れない時代に汽船の幻の需要は立たない（⚠在庫だけでは足りない＝全州が開幕に汽船200単位を持つ・Simulation.CatalogEconomy の一律の初期在庫）。
     //   同値は帆船（先に並ぶ方）。鉄道（線路と機関車）は補完財なので両方を同じ単位数ずつ（今のまま・era は読まない）。
     //   量＝州の不足の容量を、選んだ財の1単位の容量で割った単位数。
-    // 戻り値＝今月積んだ容量の（合計, うち汽船tier2分）。Step が汽船の割合（World.ShipSteamShareEma）を更新する。
+    // 戻り値＝今月積んだ容量の（合計, うち汽船tier2分）。Step が汽船の割合（World.ShipSteamShare）を更新する。
     private static (double Total, double Steam) BuyToward(World w, Coefficients c, int[] goods, double target, bool rail, double era)
     {
         double addTotal = 0, addSteam = 0;

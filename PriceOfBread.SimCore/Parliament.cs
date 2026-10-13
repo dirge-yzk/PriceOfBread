@@ -350,7 +350,7 @@ public static class Parliament
             case PolicyAxis.EducationSpending: p.EducationSpendingTarget = Slide(w.EducationSpending, staged: true); break;
             case PolicyAxis.LandTax: p.LandTaxTarget = Slide(w.LandTax, staged: true); break;
             case PolicyAxis.Coercion:   // 武力スライダー＝軍事費の合計（1..4段）。書き込み口は陸海比を保つ既存の1本＝Policy.MilitarySpendingTarget
-                p.MilitarySpendingTarget = System.Math.Max(1, StepTo(Government.MilitaryStage(w.MilitarySpending), Government.MilitaryLawStages))
+                p.MilitarySpendingTarget = System.Math.Max(1, StepTo(Government.MilitaryStage(w.MilitarySpending.Value), Government.MilitaryLawStages))
                                          / (double)Government.MilitaryLawStages;   // Max(1,…)＝「なし」を作らない（StepTo のクランプ下限0の受け）
                 break;
             // 02断線走査（2026-07-28）：E5/E6の8軸＝動的与党の要求綱領が目標を置けるように（施行はGovernmentの政治ゲート越し＝従来どおり）。
@@ -364,7 +364,7 @@ public static class Parliament
             // ＝休眠中は Pref=0 で要求に載らず不到達・点火時に目標を置く経路が無いと no-op 要求になるので先に配線（2026-08-01の是正と同型）。
             case PolicyAxis.ColonialSuffrage: p.ColonialSuffrage = (ColonialSuffrageLaw)StepTo((int)w.ColonialSuffrage, 2); break;
             case PolicyAxis.MigrantNativeSuffrage: p.MigrantNativeSuffrage = (MigrantNativeSuffrageLaw)StepTo((int)w.MigrantNativeSuffrage, 1); break;
-            case PolicyAxis.NavyUpkeep: p.NavyUpkeepTarget = Slide(w.NavyUpkeep); break;   // ★海軍維持費（2026-08-10 作者裁定）＝綱領は目標だけを置く（施行は Government の政治ゲート越し）。旧・海軍偏重の振り替え先
+            case PolicyAxis.NavyUpkeep: p.NavyUpkeepTarget = Slide(w.NavyUpkeep.Value); break;   // ★海軍維持費（2026-08-10 作者裁定）＝綱領は目標だけを置く（施行は Government の政治ゲート越し）。旧・海軍偏重の振り替え先
             case PolicyAxis.SecretBallot: p.SecretBallot = (SecretBallotLaw)StepTo((int)w.SecretBallot, 1); break;
             case PolicyAxis.Bureaucracy: p.Bureaucracy = (BureaucracyLaw)StepTo((int)w.Bureaucracy, 2); break;
             case PolicyAxis.ChildLabor: p.ChildLaborAllowed = FlipTo(w.ChildLaborAllowed); break;   // 児童労働法（02断線走査2026-07-28）

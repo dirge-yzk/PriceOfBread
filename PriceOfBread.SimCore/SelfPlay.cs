@@ -279,7 +279,7 @@ public sealed class UtilityAgent : INationAgent
         GateTax(PolicyAxis.LandTax, w.LandTax, p.LandTaxTarget, v => p.LandTaxTarget = v);
         GateTax(PolicyAxis.EducationSpending, w.EducationSpending, p.EducationSpendingTarget, v => p.EducationSpendingTarget = v);
         // 軍事費＝合計だけが段（陸海比は SetNavalUpkeepShare が続けて連続で決める＝D4）。書き込み口は比を保つ既存の1本。
-        GateLaw(ref shared, w, PolicyAxis.Coercion, Government.MilitaryStage(w.MilitarySpending), Government.MilitaryStage(p.MilitarySpendingTarget),
+        GateLaw(ref shared, w, PolicyAxis.Coercion, Government.MilitaryStage(w.MilitarySpending.Value), Government.MilitaryStage(p.MilitarySpendingTarget),
                 Government.MilitaryLawStages, v => p.MilitarySpendingTarget = Math.Max(1, v) / (double)Government.MilitaryLawStages);   // Max(1,…)＝「なし」を作らない
     }
 
@@ -1458,7 +1458,7 @@ public sealed class UtilityAgent : INationAgent
                 {
                     if (!pr.IsRgo) continue;
                     rentN++;
-                    if (pr.RentShare.Value > rg.FarmRentCap) rentRoom += pr.RentShare.Value - rg.FarmRentCap;
+                    if (pr.RentShare.Value > rg.FarmRentCap.Value) rentRoom += pr.RentShare.Value - rg.FarmRentCap.Value;
                 }
             }
             double room = rentN > 0 ? rentRoom / rentN : 0;

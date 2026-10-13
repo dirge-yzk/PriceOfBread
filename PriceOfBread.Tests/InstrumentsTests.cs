@@ -301,7 +301,7 @@ public class InstrumentsTests
             {
                 var w = sim.Nations[int.Parse(row[Array.IndexOf(nh, "nationIndex")])].World;
                 Assert.Equal(Government.WarStageOpen(w) ? 1.0 : 0.0, Col(nh, row, "warStageOpenEndFlag"));
-                Assert.Equal((double)Government.MilitaryStage(w.MilitarySpending), Col(nh, row, "militaryStageEnforcedEndStage"));
+                Assert.Equal((double)Government.MilitaryStage(w.MilitarySpending.Value), Col(nh, row, "militaryStageEnforcedEndStage"));
             }
             int warDecisions = 0, picked = 0;
             foreach (var row in nr)
@@ -406,7 +406,9 @@ public class InstrumentsTests
             // 開幕からいる国だけで閉じを見る：途中で建国された国（SpawnNation・例 統領制イギリス）は閉じない（4国20四半期の1例で相対 8.9e-3＝在庫の差 267997 に対し台帳の和 245799・大衆でなく資本家の階級3）。
             //   ⚠原因は未特定（建国の構築〔new Simulation〕が POP の貯蓄を直接立てる経路が候補だが確かめていない）＝(262) の保留。開幕からいる国（英・仏・蘭ほか）は 1e-9 で閉じる。
             var founders = cr.Where(r => r[0] == "open").Select(r => r[Array.IndexOf(ch, "nation")]).ToHashSet();
-            int groups = 0; double worst = 0; string worstAt = "";
+            int groups = 0; double worst = 0, worstRatio = 0; string worstAt = "";
+            // 表の値は G10（有効数字10桁）で書く＝1つの値の丸めの相対誤差は最大でも 5e-10（先頭の桁が 1 のときの半桁÷1）。
+            const double Sig10RoundingRel = 5e-10;
             foreach (var g in fr.GroupBy(r => (Q: int.Parse(r[Array.IndexOf(fh, "quarter")]), Nation: r[Array.IndexOf(fh, "nation")], Cls: (int)Col(fh, r, "classId"))))
             {
                 string prevT = g.Key.Q == 0 ? "warm" : "q" + (g.Key.Q - 1), nowT = "q" + g.Key.Q;
@@ -416,14 +418,17 @@ public class InstrumentsTests
                 foreach (var r in g) { double v = Col(fh, r, "amountPerMonth") * Calendar.MonthsPerQuarter; sum += v; abs += Math.Abs(v); seen[r[Array.IndexOf(fh, "kind")]] += Math.Abs(v); }
                 double scale = Math.Max(1.0, Math.Max(abs, Math.Abs(s1)));
                 double rel = Math.Abs((s1 - s0) - sum) / scale;
-                if (rel > worst) { worst = rel; worstAt = $"q{g.Key.Q} {g.Key.Nation} 階級{g.Key.Cls} 在庫の差 {s1 - s0:G6} 台帳の和 {sum:G6} 内訳 " + string.Join(" ", g.GroupBy(r => r[Array.IndexOf(fh, "kind")]).Select(kg => kg.Key + "=" + (kg.Sum(r => Col(fh, r, "amountPerMonth")) * Calendar.MonthsPerQuarter).ToString("G5"))); }
+                // 許し＝比べる項の数だけ丸めの上限を足した値：在庫 s0・s1 の2項と台帳の各行（行の |額| の和が abs）。terms は同じ scale で割る＝rel と同じ物差し。
+                double bound = Sig10RoundingRel * (Math.Abs(s0) + Math.Abs(s1) + abs) / scale;
+                double ratio = bound > 0 ? rel / bound : (rel > 0 ? double.PositiveInfinity : 0);
+                if (ratio > worstRatio) { worstRatio = ratio; worst = rel; worstAt = $"q{g.Key.Q} {g.Key.Nation} 階級{g.Key.Cls} 在庫の差 {s1 - s0:G6} 台帳の和 {sum:G6} 内訳 " + string.Join(" ", g.GroupBy(r => r[Array.IndexOf(fh, "kind")]).Select(kg => kg.Key + "=" + (kg.Sum(r => Col(fh, r, "amountPerMonth")) * Calendar.MonthsPerQuarter).ToString("G5"))); }
                 groups++;
             }
             Assert.True(groups >= 4 * 8 * (Quarters - 2), $"突き合わせた (四半期, 国, 階級) が少ない（{groups}）");
-            // ★2026-10-13 (300)：許しを 1e-9→2e-9。表の値は G10（有効数字10桁）で書く＝在庫 s0・s1 と台帳の各行がそれぞれ最大 5e-10（相対）丸められ、最悪の合算は 1.5e-9 に届く。
-            //   (300) の木（資本産出比 κ＝1）で在庫が大きくなり 192 組が 2e-10 を超えた（最悪 1.08e-9・絶対値で 1e-4〜1e-3＝在庫 1e6 の桁の10桁目）＝丸めの床であって未記帳の書き手ではない
-            //   （未記帳の書き手なら誤差は流れの大きさ〔1e-4 以上〕・世界の台帳の leakhunt は違反なし）。
-            Assert.True(worst < 2e-9, $"貯蓄の在庫の増減が台帳の書き手の和に閉じない（相対 {worst:E2}・最悪 {worstAt}）＝記帳されていない書き手がある");
+            // ★2026-10-13 (303)：許しを定数（旧 (300) の 2e-9）でなく、組ごとに表の丸めから導く。表の値は G10 ＝ 1 値あたり相対 5e-10 以内に丸められる。
+            //   差の誤差の上限＝5e-10 ×（|s0| + |s1| + 台帳の各行の |額| の和）＝比べる項（在庫2本＋台帳の行）の数と大きさで決まる（行が多い組・在庫が大きい組ほど許しが広がる）。
+            //   未記帳の書き手なら誤差は流れの大きさそのもの（1e-4 以上）で、この上限（流れの 1e-9 倍の桁）を桁違いに超える。ratio＝実際の誤差÷その上限（1 以下なら丸めで説明できる）。
+            Assert.True(worstRatio <= 1.0, $"貯蓄の在庫の増減が台帳の書き手の和に閉じない（相対 {worst:E2}・丸めの上限の {worstRatio:F2} 倍・最悪 {worstAt}）＝記帳されていない書き手がある");
             foreach (var k in new[] { "settle", "give", "giveIncome", "take", "carryOut", "carryIn" }) Assert.True(seen[k] > 0, $"書き手の種類 {k} が1度も立たない（対照）＝この盤面ではその書き手の記帳を測れていない");
 
             // ★(264) 反証役 rv 中#1・低#2：経路名は呼び手の位置。PaySales／Procure の中の Transfer（InternationalMarket.cs）は経路に出ない＝呼び手の位置を Transfer へ渡す。
@@ -2042,7 +2047,7 @@ public class InstrumentsTests
     }
 
     /// <summary>
-    /// (300) 線 i1 段 0：<c>cons_s</c> の「希望を決める項」の列の番人。①判定の月数が別の積算器（<c>ConsRegion</c> の <c>judgedMonthsCount</c>）と同じ
+    /// (300) 線 i1 段 0：<c>cons_s</c> の〈希望を決める項〉の列の番人。①判定の月数が別の積算器（<c>ConsRegion</c> の <c>judgedMonthsCount</c>）と同じ
     /// ②希望の月数が正 ⇔ 希望の金額（別の積算器）が正 ③<c>netReturnMean</c> ＝ <c>gainWithTechMean</c> − <c>hurdleMean</c>（列の取り違えが赤）
     /// ④<c>hurdleMean</c> ＝ 資本コスト＋クラウディングの重み×クラウディングの項の平均−過熱の重み×過熱の項の平均（係数は手で打った既定を <c>Coefficients</c> から読む）
     /// ⑤吸収の因子は(0,1]・株式会社の倍率は1か1.6。対照：希望の立つ州×四半期が実際にある（何もしない番人は必ず緑）。
@@ -2085,8 +2090,8 @@ public class InstrumentsTests
 
     /// <summary>
     /// (301) 合流・反証役 i1〔v〕中#2：資本産出比 κ（<c>IndCapitalOutputYears</c>）の<b>配線</b>の番人。決済で州の工業化度の累積
-    /// （<c>CumPrivateIndustrialization</c>・書き手はこの 1 か所だけ）に足す量が「建った束（<c>cons_s</c> の <c>builtUnitsPerMonth</c>×月数＝計器の別の積算器）
-    /// × 1 束の工業化度 <c>PrivateIndPerConstruction</c>（四半期の初めと終わりの州の値）」に閉じることを州×四半期で確かめる。1 束の工業化度は月ごとに州の所得で動く＝
+    /// （<c>CumPrivateIndustrialization</c>・書き手はこの 1 か所だけ）に足す量が〈建った束（<c>cons_s</c> の <c>builtUnitsPerMonth</c>×月数＝計器の別の積算器）
+    /// × 1 束の工業化度 <c>PrivateIndPerConstruction</c>（四半期の初めと終わりの州の値）〉に閉じることを州×四半期で確かめる。1 束の工業化度は月ごとに州の所得で動く＝
     /// 四半期の初めと終わりの小さい方の半分〜大きい方の 2 倍の括りで見る（建った束が 1e-3 を超える州×四半期だけ）。決済の側を旧の <c>IndPerConstruction</c>（0.01）に戻すと、1 束の工業化度が 0.01 から 4 倍以上離れた州で括りの外へ出る
     /// ＝対照としてそういう州×四半期が実際にあることも数える（何もしない番人は必ず緑）。工業化度そのものと RGO の面積は同じ積 <c>privateIndGain</c> を読む（EconomyStep の決済）。
     /// </summary>

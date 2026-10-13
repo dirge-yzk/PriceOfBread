@@ -694,7 +694,7 @@ public partial class GameViewModel
             {
                 double gauge = _player.SelfPower?.FleetGauge ?? 0;
                 double steamGate = Discovery.GoodGate(_player.Region, c.ShipTier2GoodId);   // 汽船の門＝Military.NavalFuelStep と同じ1本（(150)）
-                double coalWant = c.NavalFuelPerGauge * gauge * Math.Clamp(_player.NavyUpkeep, 0, 1) * steamGate * c.EraFactor(_player.WorldTechLevel, c.EraNavalFuel);
+                double coalWant = c.NavalFuelPerGauge * gauge * Math.Clamp(_player.NavyUpkeep.Value, 0, 1) * steamGate * c.EraFactor(_player.WorldTechLevel, c.EraNavalFuel);
                 if (coalWant > Eps)
                 {
                     var (fg, want) = Colonial.ChooseFuelGood(r, c, coalWant);

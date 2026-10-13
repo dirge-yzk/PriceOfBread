@@ -454,7 +454,7 @@ public sealed class MultiNationSim
         System.Array.Copy(pw.Discovered, nw.Discovered, System.Math.Min(pw.Discovered.Length, nw.Discovered.Length));
         nw.WorldDiscovered = pw.WorldDiscovered;   // 世界の解禁の和は全ての国で同じ配列
         foreach (var rr in regs) rr.Discovered = nw.Discovered;
-        Transport.Receive(nw, railIn, shipIn, pw.ShipSteamShareEma.Value);   // 移った州の鉄道と船（旧＝船腹0・鉄道0で生まれた）
+        Transport.Receive(nw, railIn, shipIn, pw.ShipSteamShare.Value);   // 移った州の鉄道と船（旧＝船腹0・鉄道0で生まれた）
         // ★法の継承は1本（World.CopyLawsFrom＝段の法と税・支出の段は法の軸の表のまま・政策の目標は丸ごと・2026-09-28 処理の一元化 段2 C）。
         //   旧＝ここに World と Policy の対を軸ごとに約40行＝女性の権利は Policy だけ写し漏れた前歴・累進課税／植民地参政権／移民原住民参政権／
         //   技術者流出禁止法／行政費は漏れたままだった。政体の含意する参政権・報道の床は構築時と同じ規則で畳み直す（写した親の値が床を下回らないように）。

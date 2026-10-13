@@ -224,7 +224,7 @@ public static class EconomyStep
     {
         double spoil = Catalog.SpoilageOf(coef.WarshipGoodId);
         double room = Military.EnvelopeOf(world, coef) - Military.SoldierPayFull(world, coef);
-        return room > 0 && spoil > 1e-12 ? room * world.NavalSpendShare / spoil : 0;   // 否定形＝NaN は払えない側（艦を目標に入れない）
+        return room > 0 && spoil > 1e-12 ? room * world.NavalSpendShare.Value / spoil : 0;   // 否定形＝NaN は払えない側（艦を目標に入れない）
     }
 
     /// <summary>国の財ごとの艦の在庫（全ての稼働中の州の和・<see cref="Coefficients.FleetGoodIds"/> の並び）。</summary>
@@ -442,11 +442,11 @@ public static class EconomyStep
     /// ⚠新しい移動経路・移動補助は作らない（作者条件＝「移動費が払えず貧困から抜けられない」型を潰さない。押し出しは所得低下→既存機構経由のみ）。</summary>
     internal static double RentShareOf(Producer s, Region region, Coefficients coef, double ruralPop)
     {
-        double rentShare = s.IsRgo ? System.Math.Min(s.RentShare.Value, region.FarmRentCap) : s.RentShare.Value;
+        double rentShare = s.IsRgo ? System.Math.Min(s.RentShare.Value, region.FarmRentCap.Value) : s.RentShare.Value;
         if (coef.RentScarcityElasticity > 0 && s.IsRgo)
         {
             double landScarcity = region.ArableLand < 1e8 ? Math.Max(0, ruralPop / Math.Max(1.0, region.ArableLand) - 1.0) : 0;
-            rentShare = System.Math.Min(s.RentShare.Value * (1.0 + coef.RentScarcityElasticity * landScarcity), region.FarmRentCap);
+            rentShare = System.Math.Min(s.RentShare.Value * (1.0 + coef.RentScarcityElasticity * landScarcity), region.FarmRentCap.Value);
         }
         return rentShare;
     }
@@ -923,16 +923,18 @@ public static class EconomyStep
             //   ⚠**同じ写像**（TechEducation.AbsorptionOf）・**同じ床**（CapitalCreditFloor）を使う＝新しい写像を作らない
             //     （敵対審査2026-08-04の推奨形＝天井でなく速度を絞る＝州上限に触れずデッドロックを作らない）。
             //   ⚠world=null（単体テスト・較正セル）は素通り＝厳密恒等。PrivateAbsorptionBlend=1.0（live・0で恒等）。
+            double privateAbsorb = 1.0;   // 計器（Instruments.ConsTerms）へ渡す吸収の因子＝本体が掛けた値そのもの（計器の中で計算し直さない・world=null か 0 なら 1.0＝掛けない）
             if (coef.PrivateAbsorptionBlend > 0 && world is not null)
             {
                 double pabs = coef.CapitalCreditFloor + (1.0 - coef.CapitalCreditFloor) * TechEducation.AbsorptionOf(world, coef);
-                desiredGrowth *= 1.0 + (pabs - 1.0) * coef.PrivateAbsorptionBlend;
+                privateAbsorb = 1.0 + (pabs - 1.0) * coef.PrivateAbsorptionBlend;
+                desiredGrowth *= privateAbsorb;
             }
             privateIndPerConstruction = PrivateIndPerConstruction(region, coef);   // (300) 線 i1（IndCapitalOutputYears=0 なら IndPerConstruction そのもの）
             construction = Math.Min(desiredGrowth / Math.Max(Eps, privateIndPerConstruction), budget / (buildCostPerUnit * (1.0 + coef.ConstructionLaborWageFrac)));   // 予算は材料（経4で鉄道/機関車も可）＋工賃で按分
             if (Instruments.On && world is not null) Instruments.Construction(world, desiredGrowth / Math.Max(Eps, privateIndPerConstruction), budget / (buildCostPerUnit * (1.0 + coef.ConstructionLaborWageFrac)), marginalGain * (1.0 + coef.IndTechLeverage * techLev), hurdle, buildCostPerUnit * (1.0 + coef.ConstructionLaborWageFrac), construction);   // (271) 計器（読むだけ）：投資枠が希望を切ったか
             if (Instruments.On && world is not null) Instruments.ConsRegion(world, region, desiredGrowth / Math.Max(Eps, privateIndPerConstruction), budget / (buildCostPerUnit * (1.0 + coef.ConstructionLaborWageFrac)), buildCostPerUnit * (1.0 + coef.ConstructionLaborWageFrac), construction);   // (289) 計器（読むだけ）：州ごとの希望・枠・計画
-            if (Instruments.On && world is not null) Instruments.ConsTerms(world, region, coef, marginalGain * (1.0 + coef.IndTechLeverage * techLev), sat, techLev, hurdle, netReturn, jointStock, desiredGrowth / Math.Max(Eps, privateIndPerConstruction), buildCostPerUnit * (1.0 + coef.ConstructionLaborWageFrac));   // (300) 計器（読むだけ）：希望を決める項（限界収益・sat・技術・hurdle・netReturn・吸収・株式会社）を州ごとに
+            if (Instruments.On && world is not null) Instruments.ConsTerms(world, region, marginalGain * (1.0 + coef.IndTechLeverage * techLev), sat, techLev, hurdle, netReturn, jointStock, privateAbsorb, desiredGrowth / Math.Max(Eps, privateIndPerConstruction), buildCostPerUnit * (1.0 + coef.ConstructionLaborWageFrac));   // (300) 計器（読むだけ）：希望を決める項（限界収益・sat・技術・hurdle・netReturn・吸収・株式会社）を州ごとに
             // 戦時の建設縮小は固定倍率でなく価格競合から創発：軍需（warMult で戦時増）が同じ鋼・機械・セメント・製材を食い価格を押し上げ、
             // costPerUnit↑→budget/costPerUnit↓＆FactoryBuildAfford↓で資本家の建設が自然に縮む（平時=建設優先・戦時=軍優先が市場で決まる）。
             // 経17（建設Leontief端数の繰越・点火1.0 2026-08-01）：先月の建設で律速成分に律速され「買ったのに使い切れなかった非律速資材」を Region.ConstructionCarryover に累積し（市場在庫と同じ腐敗率で減衰＝決済側の KeepMaterial）、
@@ -2640,8 +2642,8 @@ public static class EconomyStep
         if (coef.JobSearchUsesEma > 0)
             foreach (var p in region.Pops)
             {
-                if (p.UnemploymentEma < 0) p.UnemploymentEma = p.UnemploymentRate.Value;
-                else p.UnemploymentEma += coef.JobSearchUsesEma * (p.UnemploymentRate.Value - p.UnemploymentEma);
+                if (p.UnemploymentEma.Value < 0) p.UnemploymentEma = p.UnemploymentRate;
+                else p.UnemploymentEma = new Share(p.UnemploymentEma.Value + coef.JobSearchUsesEma * (p.UnemploymentRate.Value - p.UnemploymentEma.Value));
             }
     }
 
@@ -2711,7 +2713,7 @@ public static class EconomyStep
     /// <summary>(300) 線 i1：私的な建設 1 束が上げる工業化度。<c>IndCapitalOutputYears</c>（κ）＝0 なら <c>IndPerConstruction</c>（1 束＝0.01・州の大きさに依らない＝今まで）。
     /// κ＞0 なら <c>1÷N</c>：N＝κ×（州の全 POP の前月の所得を年へ換算）÷（基準の束の費用×(1＋建設の工賃の割合)×州の物価水準）＝工業化度 1 点に要る資本が κ 年分の州の実質の所得（資本産出比）。
     /// 旧は N が州の大きさに依らず 100 束（ロンドンもヨーテボリも同じ束数）＝定常の補填も月に 1 束のオーダーで、投資の額が州の経済に比例しなかった。N が非正・非有限なら IndPerConstruction（否定形）。
-    /// ⚠(301) 反証役 i1〔v〕低#6：ここの「実質」は束の基準価格（RefPrices）×州の物価水準（国の貨幣の物価×地域の乗数）で割った物で、その州の鋼・機械・セメント・製材の市場価格ではない（既存の bundleRef の流儀と同じ）。国家の経路を同じ形に寄せる回で併せて確かめる。</summary>
+    /// ⚠(301) 反証役 i1〔v〕低#6：ここの〈実質〉は束の基準価格（RefPrices）×州の物価水準（国の貨幣の物価×地域の乗数）で割った物で、その州の鋼・機械・セメント・製材の市場価格ではない（既存の bundleRef の流儀と同じ）。国家の経路を同じ形に寄せる回で併せて確かめる。</summary>
     internal static double PrivateIndPerConstruction(Region region, Coefficients coef)
     {
         if (!(coef.IndCapitalOutputYears > 0)) return coef.IndPerConstruction;

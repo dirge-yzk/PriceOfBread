@@ -670,8 +670,8 @@ public static class Instruments
     {
         var st = S(w);
         st.DecOpen = Government.WarStageOpen(w) ? 1 : 0;
-        st.DecTarget = Government.MilitaryStage(w.Policy.MilitarySpendingTarget); st.DecEnforced = Government.MilitaryStage(w.MilitarySpending); st.DecShare = w.MilitarySpending;
-        st.MmEnvelopeAfterGov = Military.WarStageShare(w, w.MilitarySpending);   // (270) 戦時段の器の割合（エンジンの量そのもの）
+        st.DecTarget = Government.MilitaryStage(w.Policy.MilitarySpendingTarget); st.DecEnforced = Government.MilitaryStage(w.MilitarySpending.Value); st.DecShare = w.MilitarySpending.Value;
+        st.MmEnvelopeAfterGov = Military.WarStageShare(w, w.MilitarySpending.Value);   // (270) 戦時段の器の割合（エンジンの量そのもの）
     }
     static void ResetQuarter(WState st)
     {
@@ -712,7 +712,7 @@ public static class Instruments
         N("atWarAtDecisionFlag", st.DecAtWar); N("mobilizedAtDecisionFlag", st.DecMobilized); N("aiPickedWarStageFlag", st.DecPicked);
         N("militaryStageTargetAfterGovStage", st.DecTarget); N("militaryStageEnforcedAfterGovStage", st.DecEnforced); C("militarySpendingAfterGovShare", st.DecShare);
         N("warStageOpenEndFlag", Government.WarStageOpen(w) ? 1 : 0); N("militaryStageTargetEndStage", Government.MilitaryStage(w.Policy.MilitarySpendingTarget));
-        N("militaryStageEnforcedEndStage", Government.MilitaryStage(w.MilitarySpending)); C("militarySpendingEndShare", w.MilitarySpending);
+        N("militaryStageEnforcedEndStage", Government.MilitaryStage(w.MilitarySpending.Value)); C("militarySpendingEndShare", w.MilitarySpending.Value);
         // 行政の請求：Simulation の州の予算の和（claimAdmin）と Fiscal の adminClaim（LastAdminClaim）・その基数と距離の割増・実際の支払い（台帳の Admin＝行政＋上下水道＋電化）
         N("adminMonthsCount", st.AdmMonths); N("adminRBelow1MonthsCount", st.AdmRBelow1Months);
         C("adminClaimSimPerMonth", st.AdmSimClaim / m); C("adminClaimFiscalPerMonth", st.AdmFiscClaim / m);
@@ -985,13 +985,12 @@ public static class Instruments
     }
     /// <summary>(300) 線 i1 段 0：希望の束を決める項を州×月で積む（読むだけ）。<paramref name="gainTech"/>＝限界収益×(1+技術の梃子×技術の水準)・<paramref name="sat"/>＝飽和の分母の底（1+生産的工業化度÷スケール）・
     /// <paramref name="techLev"/>＝技術の水準・<paramref name="hurdle"/>＝資本コスト＋クラウディング−金融の過熱・<paramref name="netReturn"/>＝gainTech−hurdle・<paramref name="joint"/>＝株式会社の速さの倍率・
-    /// <paramref name="units"/>＝希望の束（吸収の因子を掛けた後）・<paramref name="unitMoney"/>＝束の費用×(1+工賃)。吸収の因子は国単位の写像 <c>TechEducation.AbsorptionOf</c> からここで導く（本体の式と同じ）。挙げた国だけ。</summary>
-    internal static void ConsTerms(World w, Region r, Coefficients coef, double gainTech, double sat, double techLev, double hurdle, double netReturn, double joint, double units, double unitMoney)
+    /// <paramref name="absorb"/>＝私的投資の吸収の因子（本体が希望の伸びに掛けた値そのもの・掛けない州は 1.0＝本体から引数で受ける・ここで計算し直さない）・
+    /// <paramref name="units"/>＝希望の束（吸収の因子を掛けた後）・<paramref name="unitMoney"/>＝束の費用×(1+工賃)。挙げた国だけ。</summary>
+    internal static void ConsTerms(World w, Region r, double gainTech, double sat, double techLev, double hurdle, double netReturn, double joint, double absorb, double units, double unitMoney)
     {
         if (!IsPicked(w, S(w))) return;
         var a = ConAccs.GetValue(r, _ => new ConAcc());
-        double absorb = 1.0;
-        if (coef.PrivateAbsorptionBlend > 0) { double pabs = coef.CapitalCreditFloor + (1.0 - coef.CapitalCreditFloor) * TechEducation.AbsorptionOf(w, coef); absorb = 1.0 + (pabs - 1.0) * coef.PrivateAbsorptionBlend; }
         a.TermMonths++; if (units > 0) a.DesiringMonths++;
         a.TermGain += gainTech; a.TermSat += sat; a.TermTech += techLev; a.TermCrowd += r.CrowdingPremium; a.TermHeat += r.FinancialHeat; a.TermHurdle += hurdle; a.TermNet += netReturn;
         a.TermAbsorb += absorb; a.TermJoint += joint; a.TermUnits += units; a.TermUnitMoney += unitMoney;
@@ -1708,7 +1707,7 @@ public static class Instruments
         cols.Add(("militaryMovePushBudgetFactor", F(st.MmPush))); cols.Add(("militaryMoveOpenFrontsCount", I(st.MmFronts)));
         cols.Add(("militaryMoveStepFraction", F(st.MmSpeed)));
         cols.Add(("politicalCapitalSpentIndex", F(st.MmStock))); cols.Add(("politicalCapitalMaxIndex", F(st.MmStockMax)));
-        cols.Add(("warStageEnvelopeShareAfterGov", F(st.MmEnvelopeAfterGov))); cols.Add(("warStageEnvelopeShareEnd", F(Military.WarStageShare(w, w.MilitarySpending))));
+        cols.Add(("warStageEnvelopeShareAfterGov", F(st.MmEnvelopeAfterGov))); cols.Add(("warStageEnvelopeShareEnd", F(Military.WarStageShare(w, w.MilitarySpending.Value))));
         cols.Add(("sovereignDefaultCumulativeCount", I(w.SovereignDefaultCount)));
         return cols;
     }
@@ -1831,7 +1830,7 @@ public static class Instruments
         C("capitalArtilleryStock", Stk(Catalog.ArtilleryId)); C("capitalRifleStock", Stk(Catalog.RifleId)); C("capitalAmmunitionStock", Stk(Catalog.AmmunitionId)); C("capitalWarshipStock", Stk(Catalog.WarshipId));
         C("fleetUnitsStock", ships);
         C("militaryReadinessShare", w.MilitaryReadiness); C("capitalEquipFillShare", cap?.MilitaryEquipFill ?? double.NaN); C("trainingFillShare", w.MilitaryTrainingFill);
-        C("armyUpkeepShare", w.ArmyUpkeep); C("navyUpkeepShare", w.NavyUpkeep);
+        C("armyUpkeepShare", w.ArmyUpkeep.Value); C("navyUpkeepShare", w.NavyUpkeep.Value);
         C("landPowerIndex", sp?.LandPower ?? double.NaN); C("navalPowerIndex", sp?.NavalPower ?? double.NaN);
         bool atWar = false;
         if (sp is not null && w.Diplomacy is { } dip) foreach (var war in dip.Wars) if (war.A == sp || war.B == sp) { atWar = true; break; }

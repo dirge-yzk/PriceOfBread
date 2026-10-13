@@ -222,9 +222,9 @@ public sealed class Simulation
         }
         // 軍事費の現在値＝初期目標（兵士の徴募/給与を駆動）。★陸海へ按分（2026-08-04）
         World.Policy.Bureaucracy = World.Bureaucracy;   // ★官僚制度の目標も初期値に揃える（Government が翌期に巻き戻さない・2026-08-04）
-        World.SetMilitarySpending(PoliticalQuantities.Clamp01(World.Policy.ArmyUpkeepTarget + World.Policy.NavyUpkeepTarget),
-                                  World.Policy.ArmyUpkeepTarget + World.Policy.NavyUpkeepTarget > 1e-9
-                                      ? World.Policy.NavyUpkeepTarget / (World.Policy.ArmyUpkeepTarget + World.Policy.NavyUpkeepTarget) : 0.5);
+        World.SetMilitarySpending(new Share(PoliticalQuantities.Clamp01(World.Policy.ArmyUpkeepTarget + World.Policy.NavyUpkeepTarget)),
+                                  new Share(World.Policy.ArmyUpkeepTarget + World.Policy.NavyUpkeepTarget > 1e-9
+                                      ? World.Policy.NavyUpkeepTarget / (World.Policy.ArmyUpkeepTarget + World.Policy.NavyUpkeepTarget) : 0.5));
         World.Tariff = scenario.InitialTariff;                          // 関税の現在値＝初期値（日本＝鎖国。開国まで世界市場から孤立）
         World.InterestRate = scenario.InitialInterestRate;
         // P6 乾隆帝の遺産（2026-07-17）：非特権大衆の初期闘争度（清＝白蓮教乱前夜の慢性的混乱）。既定0=不走行＝恒等
@@ -1578,7 +1578,7 @@ public sealed class Simulation
             if (r.State == RegionState.Active)
             {
                 r.PriceLevel = World.PriceLevel * r.LocalPriceMultiplier;   // 国家物価×地域乗数＝地域別の物価水準（金融中心は高・辺境は低）。1州なら乗数1＝較正中立
-                r.FarmRentCap = System.Math.Min(RentCap(World.LandReform, World.Coef.LandReformRentCap), RentCap(World.SerfEmancipation, World.Coef.SerfEmancipationRentCap));   // 地代上限＝土地改革/農奴解放の段階で（限定的＝なしと全面の中間）。元の地代がこれ未満なら効かない
+                r.FarmRentCap = new Share(System.Math.Min(RentCap(World.LandReform, World.Coef.LandReformRentCap), RentCap(World.SerfEmancipation, World.Coef.SerfEmancipationRentCap)));   // 地代上限＝土地改革/農奴解放の段階で（限定的＝なしと全面の中間）。元の地代がこれ未満なら効かない
                 r.CrowdingPremium = System.Math.Max(0, (World.GovBondRatePerYear - World.Coef.BondBaseRatePerYear).Value);   // 政府借入の金利プレミアム→民間投資ハードルへ（クラウディングアウト。金本位の信用国は GovBondRatePerYear が低く弱い＝条件付き）
                 r.FinancialHeat = World.FinancialHeat;   // 与信過熱を州へ複製（改修2026-06-28・投資ハードルのバブル項へ）
                 //（借入スタックの出費上限 SpendingCapFactor の州への複製は 2026-09-28 に撤去＝作者裁定 Q9・補助は国家の支払い率 r を World から読む）
@@ -1889,7 +1889,7 @@ public sealed class Simulation
         double natSoldiers = World.SoldierSizeK();
         // ★海の金の割合（2026-10-03 (189)）＝施行された陸海の維持費の比（World.NavalSpendShare＝海軍維持費÷陸海の維持費＝AI は ArmyShape.NavalSpendShareOf を目標に置く・プレイヤーは同じ法の値）。
         //   装備の器（軍事費の器から給与を払った残り）を陸の装備と艦に分ける（下の州ループ・旧＝理想の海の割合〔ShapeNavalShare〕で軍需の内訳を再配分＝艦を兵の頭数×割合で買った）。
-        double navalSpendNat = World.NavalSpendShare;
+        double navalSpendNat = World.NavalSpendShare.Value;
         double warScareTensionNat = World.Diplomacy is { } wsDip && World.SelfPower is { } wsMe ? wsDip.MaxTension(wsMe) : 0;
         double monopolyRentFactorNat = World.Coef.AntitrustGate > 0
             ? World.Antitrust switch { AntitrustLaw.CartelBan => World.Coef.CartelBanRent, AntitrustLaw.Trustbust => World.Coef.TrustbustRent, _ => 1.0 }
@@ -1901,7 +1901,7 @@ public sealed class Simulation
         //   軍事費の器（Military.EnvelopeOf＝軍事費の段×器の割合×使える歳入〔＋戦時段の割合×借入の1件の額＝(175) 戦時国債〕）を **給与・糧食 → 装備（目標の在庫まで＋更新＋新型＝軍需の必要額）→ 質（幹部の給与＝訓練・効きは逓減）
         //   → 使い切れない分は使わない（請求しない＝出費の頭打ち）** の順に吸わせる。旧＝給与は兵数×賃金を器の外で全額・装備は 軍事費×0.25×歳入（必要額で切る）の2本で、
         //   質（熟練）は払った金でなく維持費の段（ArmyUpkeep＞0.5）で育った＝支出から直接の効き（2026-08-17 の「支出から直接バフを排除する」の型）。
-        //   ・給与（規定）＝州の兵数×徴募の母数の働き盛り1人あたりの賃金×SoldierPayMult（Military.RecruitWage＝市場で競り上がらない）。器が給与に届かない＝未払い（給与の充足 payFill＜1＝兵士の「失業」）。
+        //   ・給与（規定）＝州の兵数×徴募の母数の働き盛り1人あたりの賃金×SoldierPayMult（Military.RecruitWage＝市場で競り上がらない）。器が給与に届かない＝未払い（給与の充足 payFill＜1＝兵士の〈失業〉）。
         //   ・戦時の器＝段のまま（戦時経済＝軍事費の段の最上段が戦時の器・旧の装備の上限の戦時の追随 WartimeBudgetFollowsNeed は削除＝Coefficients の注記・(162) で装備の部分だけ戻し (163) の合流で差し戻した）。
         //     → ★(175)：戦時段（交戦中かつ総動員中・施行が段3 を超えた分）の器に借入の1件の額を足す＝戦時国債（Military.EnvelopeAt・借入の門と1件の額は Fiscal.Borrow と同じ1本＝推奨で進めた・作者の承認は未確認）。
         //   ・★(161) 徴兵は兵1人を安くする（AI が作者に返した設計・作者の承認は未確認＝推奨で進めた）＝徴兵制（選抜・皆兵）の兵卒の給与は徴兵の兵の手当（Military.RecruitWage の keep＝徴募の母数の
@@ -2270,7 +2270,7 @@ public sealed class Simulation
                 // 全ての予算と予約に同じ r（予算は量の上限＝買えた分だけ払う＝払えない分は量が減る）
                 r.MilitaryBudget *= payRate; r.MilitaryBudgetCeiling *= payRate; r.NavalBudget *= payRate;   // ★(189) 艦の予算にも同じ r
                 r.AdminBudget *= payRate; r.InfraBudget *= payRate; r.ElecInfraBudget *= payRate; r.SoldierPayBudget *= payRate;
-                // ★(155) 兵士の「失業」＝給与の未払いの割合（規定の給与のうち払われない分）＝失業プール（Meritocracy の ①''）の駆動（多年EMA＝未払いが長引くほど脱走が増える）
+                // ★(155) 兵士の〈失業〉＝給与の未払いの割合（規定の給与のうち払われない分）＝失業プール（Meritocracy の ①''）の駆動（多年EMA＝未払いが長引くほど脱走が増える）
                 //   と志願の空き（払われない軍には志願しない）が読む。兵士は労働を市場で売らない＝EconomyStep の売れ残りの書き手は兵士に書かない（この行だけ）。
                 if (r.SoldierPopIndex >= 0 && r.SoldierPopIndex < r.Pops.Count && r.Pops[r.SoldierPopIndex].IsSoldier)
                     r.Pops[r.SoldierPopIndex].UnemploymentRate = new Share(1.0 - payRate * soldierPayFill);   // 未払い＝国家の支払い率×器の給与の充足の不足（幹部の給与は規定の給与の外＝数えない）

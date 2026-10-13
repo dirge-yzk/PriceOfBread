@@ -116,7 +116,7 @@ public class HistoricalReferenceTests
         //    ⚠水準は**段の上で**動かす（2026-09-20 段の点火＝R2）：軍事費の目標は4段（0.25/0.5/0.75/戦時1.0）で、平時の上限は段3（0.75）。
         //      旧の 0.95／0.05 は段の世界では「目標に置けない水準」＝現在値がそこに居ること自体が解隊の脅威（戦後の復員＝ノスケ1920）になり、
         //      この検査が測りたい「均衡では水準を読まない」から外れる。段の上の3点（0.25/0.5/0.75）で同じ主張を測る。
-        void Level(double v) { w.SetMilitarySpending(v, 0.0); w.Policy.ArmyUpkeepTarget = v; w.Policy.NavyUpkeepTarget = 0.0; }
+        void Level(double v) { w.SetMilitarySpending(new Share(v), new Share(0.0)); w.Policy.ArmyUpkeepTarget = v; w.Policy.NavyUpkeepTarget = 0.0; }
         Level(0.50); double mid = PoliticalQuantities.MilitaryPoliticalRatio(w);
         Level(0.75); Assert.Equal(mid, PoliticalQuantities.MilitaryPoliticalRatio(w), 12);
         Level(0.25); Assert.Equal(mid, PoliticalQuantities.MilitaryPoliticalRatio(w), 12);

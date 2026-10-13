@@ -316,9 +316,9 @@ public static class Government
         //   平時の国×四半期の 16〜19%（1784-1913）が段4 の水準に残った（実装ログ (175) §1-①）。失効は Move の前＝政治資本を燃やさない（議決が切れるだけ）。
         //   段3 より下の施行は今のまま（Move＝軍の抵抗）。AI とプレイヤーは同じ1か所（IsPlayer を読まない）。新しい数・新しい状態は無い。否定形＝NaN の施行も段3。
         //   ⚠思想⑧の天井ではない＝解禁の外では選べる目標が既に段3 以下（MilitaryTotalTarget）＝選んだ値は削らない（施行に残った戦時の上乗せが切れるだけ）。
-        double milFrom = w.MilitarySpending, milHigh = (MilitaryLawStages - 1) / (double)MilitaryLawStages;
+        double milFrom = w.MilitarySpending.Value, milHigh = (MilitaryLawStages - 1) / (double)MilitaryLawStages;
         if (!WarStageOpen(w) && !(milFrom <= milHigh)) milFrom = milHigh;
-        if (Instruments.On && !(milFrom == w.MilitarySpending)) Instruments.MilitaryExpiry(w);   // 計器（読むだけ・(274)）：解禁の外で施行が段3へ戻された四半期
+        if (Instruments.On && !(milFrom == w.MilitarySpending.Value)) Instruments.MilitaryExpiry(w);   // 計器（読むだけ・(274)）：解禁の外で施行が段3へ戻された四半期
         // ★(270) 戦時段の解禁の間（交戦中かつ総動員中）の軍事費の一歩は政治予算の係数（戦線の数 N で (1/N)^0.5）で薄めない＝fullPush。計器で名指した（実装ログ (270) §1）：
         //   英の解禁の四半期 460 で純支持の門・政治資本の門に固定された一歩は 0 件・抵抗の中央は 0 だが、政治予算の係数が中央 0.354（N の中央 8）で歩幅が基本の約 0.35 倍＝登りの律速。
         //   純支持と政治資本の門は掛けたまま（反対を押し切るなら代価を払う）。解禁の外・他の軸は旧と同じ。AI もプレイヤーもこの1行を通る（IsPlayer を読まない）。
@@ -326,8 +326,8 @@ public static class Government
         // ★(151)：陸海比は目標の生の比（0.05格子に丸めない）＝上の「連続のまま」のとおり。旧＝格子に丸めた2本の比＝合計0.75 なら比は 0.067 刻みで、
         //   陸と海の必要量で分けた小さい海の比（清の 0.03 など）が0へ丸められて艦隊の乗員ごと消えた（陸海比は導出量＝2026-09-23 作者裁定・レバーは無い）。
         double navRawA = p.ArmyUpkeepTarget, navRawN = p.NavyUpkeepTarget;
-        double navShareTarget = navRawA + navRawN > 1e-9 ? navRawN / (navRawA + navRawN) : w.NavalSpendShare;
-        w.SetMilitarySpending(milTotal, navShareTarget);
+        double navShareTarget = navRawA + navRawN > 1e-9 ? navRawN / (navRawA + navRawN) : w.NavalSpendShare.Value;
+        w.SetMilitarySpending(new Share(milTotal), new Share(navShareTarget));
         // ★戦時段の失効（作者裁定2026-09-19 M2「戦後は高へ戻る」）：段4の前提（交戦中かつ総動員中）は登れなさでなく**保てなさ**
         //   （LawPrereq の case Coercion には土地税・教育費にある「現在段以下は通す」の免除が無い）＝解禁が落ちた四半期に保存目標も段3へ戻す。
         //   さもなくば保存4・施行3・表示3（法律タブは MilitaryTotalTarget を読む）の隠れた食い違いが残り、次の総動員で選び直さずに黙って段4へ登る。
@@ -528,7 +528,7 @@ public static class Government
         // ★専売の戦線は無い（作者裁定2026-09-20）＝施行する連続値が無いので「目標≠現在」が定義できない。
         //   ⚠意図した副作用＝軸が1本減り PoliticalPushBudget=(1/N)^Gate が他軸を薄めなくなる（旧 NavalEmphasis の撤去と同文）。
         // ★段（R2・2026-09-12）：施行と同じ MilitaryTotalTarget を渡す（wave2b の教訓＝施行と戦線判定は同じ式）
-        Front(w.MilitarySpending, MilitaryTotalTarget(w, p), 'M', 0, PolicyAxis.Coercion);
+        Front(w.MilitarySpending.Value, MilitaryTotalTarget(w, p), 'M', 0, PolicyAxis.Coercion);
         // ★旧「海軍偏重」の戦線は撤去（2026-08-10 作者裁定）＝陸海の内訳は独立の政治戦線を持たない（軍事費の合計だけが戦線）。
         //   ⚠意図した副作用：軸が1本減る＝目標が動かない幽霊戦線が消え、PoliticalPushBudget=(1/N)^Gate が他軸を薄めなくなる。
         if (!w.CoercionFollowsForce) Front(w.BaseCoercion / Math.Max(1e-9, w.Coef.CoercionMax), Q5(p.CoercionTarget / Math.Max(1e-9, w.Coef.CoercionMax)), 'C', 0, PolicyAxis.Coercion);
@@ -657,7 +657,7 @@ public static class Government
                 // ★裁定B（2026-09-12）：戦時の下限ロック（旧＝Step が p.ArmyUpkeepTarget/p.NavyUpkeepTarget を Max で黙って持ち上げていた）を門へ移す。
                 //   新しい量も新しい数もゼロ＝同じ c.WartimeUpkeepFloor を同じ現在値に掛けて段へ写すだけ（係数は PowerShares の LockedSpending と共有＝単一ソース）。
                 //   ⚠値は1ミリも書き換えない＝「その段には下がれない」。GateInfo が段の財政軸だけ**下げる側でも**ここを照会するので実効。
-                if (w.AtWarNow && c.WartimeUpkeepFloor > 0 && targetLevel < MilitaryStage(w.MilitarySpending * c.WartimeUpkeepFloor))
+                if (w.AtWarNow && c.WartimeUpkeepFloor > 0 && targetLevel < MilitaryStage(w.MilitarySpending.Value * c.WartimeUpkeepFloor))
                     return (false, "戦争中は軍を解散できない");
                 break;
             case PolicyAxis.SocialSecurity:
@@ -750,7 +750,7 @@ public static class Government
     private static int CurrentStage(World w, PolicyAxis a) => a switch
     {
         // ★税・支出・軍事費の段（R1/R2・2026-09-12）＝**実効値の段**を返す（目標ではない＝他の軸と同じ「今どこに立っているか」）。
-        PolicyAxis.Coercion => MilitaryStage(w.MilitarySpending),   // 武力スライダー＝軍事費の合計（1..4）
+        PolicyAxis.Coercion => MilitaryStage(w.MilitarySpending.Value),   // 武力スライダー＝軍事費の合計（1..4）
         _ => RateLawByAxis.TryGetValue(a, out var rate) ? TaxStage(a, rate.Get(w))   // ★税・支出の段＝表 RateLaws の実効値の段
            : LevelLawByAxis.TryGetValue(a, out var law) && law.Stage > 0 ? law.Get(w) : int.MaxValue,   // ★段の法＝表 LevelLaws の現在段（Stage>0 の行・2026-09-28 処理の一元化 段1）
     };

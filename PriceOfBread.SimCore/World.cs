@@ -489,25 +489,25 @@ public sealed class World
     //   ★(189)：金の比（<see cref="NavalSpendShare"/>）は装備の器のうち艦を買う額（Region.NavalBudget）を分け、買った艦が海軍力になる（Power.NavalPower）。
     //   海軍シェア（Diplomacy.Power.NavalShare）は兵士のうち艦に乗る割合（乗員÷兵士）＝艦の在庫から導く量（旧＝この比への EMA）。
     //   ⚠和は1.0でクランプ＝旧レバーの定義域（0..1）を保つ＝既存の較正が意味を保てる。
-    public double ArmyUpkeep { get; internal set; }   // 陸軍維持費（0..1）
-    public double NavyUpkeep { get; internal set; }   // 海軍維持費（0..1）
+    public Share ArmyUpkeep { get; internal set; }   // 陸軍維持費（0..1）
+    public Share NavyUpkeep { get; internal set; }   // 海軍維持費（0..1）
     /// <summary>軍事費＝陸海の維持費の和（0..1にクランプ）。**派生量**＝既存の全ての読み手はここを見る。</summary>
-    public double MilitarySpending => PoliticalQuantities.Clamp01(ArmyUpkeep + NavyUpkeep);
+    public Share MilitarySpending => new Share(PoliticalQuantities.Clamp01(ArmyUpkeep.Value + NavyUpkeep.Value));
     /// <summary>払った金から出る海軍シェア（0..1）。両方0なら0.5（中立）＝ゼロ除算なし。</summary>
-    public double NavalSpendShare => ArmyUpkeep + NavyUpkeep > 1e-9 ? NavyUpkeep / (ArmyUpkeep + NavyUpkeep) : 0.5;
+    public Share NavalSpendShare => new Share(ArmyUpkeep.Value + NavyUpkeep.Value > 1e-9 ? NavyUpkeep.Value / (ArmyUpkeep.Value + NavyUpkeep.Value) : 0.5);
     /// <summary>軍事費を陸海へ按分して置く（旧 setter の互換口）。share＝海軍の取り分。</summary>
-    internal void SetMilitarySpending(double total, double navalShare)
+    internal void SetMilitarySpending(Share total, Share navalShare)
     {
-        double t = PoliticalQuantities.Clamp01(total), s = PoliticalQuantities.Clamp01(navalShare);
-        NavyUpkeep = t * s; ArmyUpkeep = t - NavyUpkeep;
+        double t = PoliticalQuantities.Clamp01(total.Value), s = PoliticalQuantities.Clamp01(navalShare.Value);
+        NavyUpkeep = new Share(t * s); ArmyUpkeep = new Share(t - NavyUpkeep.Value);
     }
     /// <summary>陸海の維持費を直接置く（2026-08-10・「海軍の増強」の要求施行が使う）。
     /// 和が1.0を超える分だけ**陸軍から出す**＝上限に張り付いた時だけ内訳が動く（普段は海軍の純増＝軍拡）。</summary>
-    internal void SetMilitaryUpkeep(double army, double navy)
+    internal void SetMilitaryUpkeep(Share army, Share navy)
     {
-        double n = PoliticalQuantities.Clamp01(navy), a = PoliticalQuantities.Clamp01(army);
+        double n = PoliticalQuantities.Clamp01(navy.Value), a = PoliticalQuantities.Clamp01(army.Value);
         if (a + n > 1) a = 1 - n;
-        ArmyUpkeep = a; NavyUpkeep = n;
+        ArmyUpkeep = new Share(a); NavyUpkeep = new Share(n);
     }
 
     /// <summary>★法の継承の1本（2026-09-28 処理の一元化 段2 C）＝建国した国が親の法をそのまま受け継ぐ（独立は制度を巻き戻さない）。
@@ -1201,8 +1201,8 @@ public sealed class World
     public double RailCapacity { get; internal set; }          // 鉄道輸送容量（内陸→港）。0スタート、鉄道財の投資で積む（§5.1拡張）
     public double ShipCapacity { get; internal set; }          // 海運輸送容量（港→世界市場）。船財の投資で積む
     // 運用コスト監査2026-08-16（#3 汽船の運行燃料）：ShipCapacity に占める汽船（tier2）の容量の割合（0=帆走のみ）。ShipCapacity は帆船と汽船の合算で購入後に区別が消えるため、燃料需要の按分にこの1本だけ状態を持つ（在庫の中身は記憶が無いと導けない）。
-    // 書き手＝Transport.Step（2026-09-26 回4-3 から常に・購入のたびに容量加重で厳密に＝旧の平滑 ShipSteamShareSmoothing は削除）。名前の Ema は旧の名残（セーブの名前表を変えない）。
-    public Share ShipSteamShareEma { get; internal set; }
+    // 書き手＝Transport.Step（2026-09-26 回4-3 から常に・購入のたびに容量加重で厳密に＝旧の平滑 ShipSteamShareSmoothing は削除）。★(303) 名前の Ema（旧の名残・移動平均の項は無い）を外して ShipSteamShare へ改名（セーブの欄名が動く）。
+    public Share ShipSteamShare { get; internal set; }
     public double ColonialShipBurden { get; internal set; }    // 植民地補給航路による海運の混雑（Colonial が毎期設定）。交易の実効海運＝ShipCapacity/(1+これ)＝遠方帝国ほど交易船が補給に取られる（スケールフリー）
     public double LossFinanced { get; internal set; }          // 累積：損失で貯蓄が負になり信用で埋めた額（有限責任の負債化）。慢性赤字の可視化＝隠蔽しない
     // === POPの個人債務の診断（2026-08-02）===
@@ -2164,7 +2164,7 @@ public sealed class World
         double outlet = PoliticalQuantities.Clamp01(trad + Coef.WarFeverMilitancyGate * mil);
         double diversion = Coef.WarFeverMilitancy * Politics.AvgMassMilitancy(this) * outlet;
         return Coef.WarFeverMilitarism * mil
-             + Coef.WarFeverMilSpend * (Coef.WarFeverUsesBudgetShare > 0 ? PoliticalQuantities.MilitaryBudgetShare(this) : MilitarySpending)   // ★B-03：水準→中央歳出シェア（0で旧＝厳密恒等）
+             + Coef.WarFeverMilSpend * (Coef.WarFeverUsesBudgetShare > 0 ? PoliticalQuantities.MilitaryBudgetShare(this) : MilitarySpending.Value)   // ★B-03：水準→中央歳出シェア（0で旧＝厳密恒等）
              + Coef.WarFeverNoble * trad
              + Coef.WarFeverSoldier * soldierShare
              + Coef.WarFeverThreat * threat

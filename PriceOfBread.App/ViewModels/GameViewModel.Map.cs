@@ -826,7 +826,7 @@ public partial class GameViewModel
             RuleForeignText = $"{fForeign:P0}", RuleUngovernedText = $"{fUngov:P0}", RuleBandText = rbText,
         };
         double unemployed = 0;
-        foreach (var p in rg.Pops) if (!p.IsSoldier) unemployed += p.Size * p.UnemploymentRate.Value;   // ★(161) 兵士の「失業」＝給与の未払いの割合＝失業者に数えない（エンジンの Territory.Opportunity と同じ規則）
+        foreach (var p in rg.Pops) if (!p.IsSoldier) unemployed += p.Size * p.UnemploymentRate.Value;   // ★(161) 兵士の〈失業〉＝給与の未払いの割合＝失業者に数えない（エンジンの Territory.Opportunity と同じ規則）
         info.Lines.Add(new MapHoverLine { Text = $"人口: {PopFmt(pop)}(失業者: {PopFmt(unemployed)})", Brush = HoverText });   // 内部単位=千人（監査2026-07-11 他10：「人」直付けで1000倍の過小表示だった）
         // 開発度（2026-08-02・作者指摘「名前出てない州のプロヴィンスの開発度が見れない」）：ズームを引くと州名ラベル
         // （＝括弧の開発度）が消える／重なり回避で小さい州のラベルは出ないため、ホバーでも同じ値を出す。

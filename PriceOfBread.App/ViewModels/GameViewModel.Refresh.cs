@@ -526,7 +526,7 @@ public partial class GameViewModel
                 fMet += p.FoodMet; fNeed += p.FoodNeed; nMet += p.NeedMet; nTot += p.NeedTotal;
                 satW += p.Satisfaction * p.Size; milW += p.Militancy * p.Size; litW += p.Literacy * p.Size;
                 double a20 = p.AgeShare(20, double.PositiveInfinity);   // 年齢の層（段4e 後半）：女性比＝20歳以上のうちの女性・子供比＝15歳未満・老年比＝60歳以上
-                femW += (a20 > 1e-300 ? p.AgeShare(20, double.PositiveInfinity, 1) / a20 : 0) * p.Size; childW += p.AgeShare(0, 15) * p.Size; oldW += p.AgeShare(60, double.PositiveInfinity) * p.Size; if (!p.IsSoldier) unempW += p.UnemploymentRate.Value * p.Size;   // ★(161) 兵士の「失業」＝給与の未払いの割合＝失業者に数えない
+                femW += (a20 > 1e-300 ? p.AgeShare(20, double.PositiveInfinity, 1) / a20 : 0) * p.Size; childW += p.AgeShare(0, 15) * p.Size; oldW += p.AgeShare(60, double.PositiveInfinity) * p.Size; if (!p.IsSoldier) unempW += p.UnemploymentRate.Value * p.Size;   // ★(161) 兵士の〈失業〉＝給与の未払いの割合＝失業者に数えない
                 mLiving += p.MilLiving * p.Size; mVoice += p.MilVoice * p.Size; mWar += p.MilWar * p.Size;
                 mNation += p.MilNation * p.Size; mFamine += p.MilFamine * p.Size;   // ★段2で失業/群衆/格差/中間/革命の波は項ごと削除（設計メモ §7-3）
                 // ★4区分の畳み込み（作者指示2026-08-16(1)）＝政治意識のある人数を族比で割る（PopIdeologyHeads・GameViewModel.Pop.cs）。

@@ -54,11 +54,11 @@ public class OpeningForcesTests
         var sim = new MultiNationSim(WorldData.Nations(), 1789UL, _ => new UtilityAgent());
         foreach (var n in sim.Nations) n.TelemetryEnabled = false;
         sim.Diplomacy.Log.Enabled = false;
-        var before = sim.Nations.Select(n => n.World.MilitarySpending).ToArray();
+        var before = sim.Nations.Select(n => n.World.MilitarySpending.Value).ToArray();
         sim.StartWarmup(null, 4);
         for (int i = 0; i < sim.Nations.Count; i++)
-            Assert.Equal(before[i], sim.Nations[i].World.MilitarySpending, 12);   // 助走も開幕の軍の確定も合計の段は置かない（段は AI が毎四半期置く）
-        Assert.True(sim.Nations.Select(n => System.Math.Round(n.World.NavalSpendShare, 6)).Distinct().Count() > 10, "陸海の比が国ごとに置かれていない");
+            Assert.Equal(before[i], sim.Nations[i].World.MilitarySpending.Value, 12);   // 助走も開幕の軍の確定も合計の段は置かない（段は AI が毎四半期置く）
+        Assert.True(sim.Nations.Select(n => System.Math.Round(n.World.NavalSpendShare.Value, 6)).Distinct().Count() > 10, "陸海の比が国ごとに置かれていない");
     }
 
     [Fact]
@@ -88,7 +88,7 @@ public class OpeningForcesTests
         var sim = Warmed();
         var w = sim.Nations.First(n => n.World.SelfPower?.BaseName == "イギリス").World;
         Assert.NotNull(EconomyStep.FleetTargetUnits(w.Regions[0], w.Coef, w));
-        w.SetMilitarySpending(0.0, 0.5);   // 軍事費の器が0＝海軍の予算が0
+        w.SetMilitarySpending(new Share(0.0), new Share(0.5));   // 軍事費の器が0＝海軍の予算が0
         var t = EconomyStep.FleetTargetUnits(w.Regions[0], w.Coef, w);
         Assert.True(t is null || t.All(x => x == 0), "予算0でも目標が立つ");
     }

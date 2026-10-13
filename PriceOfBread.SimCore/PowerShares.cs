@@ -44,7 +44,7 @@ public static class PowerShares
     public static double StatePatronage(World w)
     {
         double tariff = PoliticalQuantities.Clamp01(w.Tariff);
-        double orders = PoliticalQuantities.Clamp01(w.MilitarySpending);
+        double orders = PoliticalQuantities.Clamp01(w.MilitarySpending.Value);
         double order = PoliticalQuantities.Clamp01(w.PublicOrder);
         return (tariff + orders + order) / 3.0;
     }
@@ -99,7 +99,7 @@ public static class PowerShares
         //   ここは将来「多年度で固定された歳出」として復活させるべき（★政体から導くのが誤りだっただけで、機構そのものは史実）。
         double floor = 0;
         if (w.AtWarNow && c.WartimeUpkeepFloor > 0)
-            floor = System.Math.Max(floor, (w.ArmyUpkeep + w.NavyUpkeep) * c.WartimeUpkeepFloor);
+            floor = System.Math.Max(floor, (w.ArmyUpkeep.Value + w.NavyUpkeep.Value) * c.WartimeUpkeepFloor);
         return PoliticalQuantities.Clamp01(floor);   // NaN は Clamp01 が0へ
     }
 

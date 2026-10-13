@@ -16,7 +16,7 @@ public class FuelOperatingCostTests
         // ★2026-08-29 夜間R18で RailCoalRate/AirFuelRate/MotorFuelRate を点火（帯中立・破綻0）。
         //   NavalFuelPerGauge は実測逆算（fidelity/tradeprobe）が要るので休眠のまま＝この番人は残す。
         // ★2026-09-27（回4-3 の再挑戦）：ShipFuelRate を点火（導出は Coefficients の注記＝汽船1隻の費用の構成）。
-        //   汽船の割合（ShipSteamShareEma）は燃料の門の外で常に更新する形（2026-09-26）＝「割合0」の主張は外した（割合の正しさは下の番人）。
+        //   汽船の割合（ShipSteamShare）は燃料の門の外で常に更新する形（2026-09-26）＝「割合0」の主張は外した（割合の正しさは下の番人）。
         var c = new Coefficients();
         Assert.Equal(0.0, c.NavalFuelPerGauge);
         Assert.Equal(0.22, c.RailCoalRate);
@@ -38,7 +38,7 @@ public class FuelOperatingCostTests
         sim.Run(8);
         var w = sim.World;
         w.SelfPower = new Power { FleetGauge = 100.0 };
-        w.SetMilitaryUpkeep(0.2, 0.4);
+        w.SetMilitaryUpkeep(new Share(0.2), new Share(0.4));
         var m = w.Region.Markets[Catalog.CoalId];
         double treasury0 = w.Treasury.Value, stock0 = m.Stock, demand0 = m.LastDemand;
 
@@ -59,7 +59,7 @@ public class FuelOperatingCostTests
         var w = sim.World;
         w.Discovered[Catalog.DiscoveryRowOf(Catalog.SteamshipId, "")] = true;   // ★(150)：艦隊の燃料の門＝汽船の発見（旧＝蒸気の時計を負の onset で全開）＝序盤でも焚ける（テスト専用）
         w.SelfPower = new Power { FleetGauge = 100.0 };   // 艦隊を注入（単一国世界はSelfPowerなし＝燃料需要ゼロのため）
-        w.SetMilitaryUpkeep(0.2, 0.4);                    // NavyUpkeep=0.4＝哨戒稼働
+        w.SetMilitaryUpkeep(new Share(0.2), new Share(0.4));                    // NavyUpkeep=0.4＝哨戒稼働
         var m = w.Region.Markets[Catalog.CoalId];
         m.Stock = 1_000_000; m.Price = Catalog.RefPrices[Catalog.CoalId];   // 価格ゲートを中立化（相場＝参照価格）
         World.Transfer((null, null), (w, null, null), 1_000_000, TreasuryCat.OtherIn);   // 国庫へ注入（移し方の1本・2026-09-30 段4g＝国庫の口は private）
@@ -85,7 +85,7 @@ public class FuelOperatingCostTests
     [Fact]
     public void 海軍燃料_出撃能力は艦隊項に緩く噛む()
     {
-        var p = new Power { FleetGauge = 100.0, Military = 1000.0, NavalShare = 0.5, _fleetDriven = true };
+        var p = new Power { FleetGauge = 100.0, Military = 1000.0, NavalShare = new Share(0.5), _fleetDriven = true };
         Assert.Equal(100.0, p.NavalPower);   // 既定 NavalFuelMul=1.0＝×1.0のIEEE恒等（従来と同値）
 
         p.NavalFuelMul = 0.5;
@@ -93,7 +93,7 @@ public class FuelOperatingCostTests
 
         p.FleetGauge = 2000.0; p.NavalFuelMul = 0.9;
         Assert.Equal(1800.0, p.NavalPower);  // 艦が軍の総合ゲージ×海軍シェア（500）より大きくても艦の強さ×燃料（旧＝min(1800, 500)＝500）
-        p.Military = 1.0; p.NavalShare = 0.01;
+        p.Military = 1.0; p.NavalShare = new Share(0.01);
         Assert.Equal(1800.0, p.NavalPower);  // 軍の総合ゲージ（陸軍の即応度と質つき）と海軍シェアを読まない
         p.CrewFill = 0.25;
         Assert.Equal(450.0, p.NavalPower);   // 乗員が足りなければ動かない（乗員の充足が掛かる）
@@ -131,7 +131,7 @@ public class FuelOperatingCostTests
         var sim = new Simulation(new Scenario { Seed = 31, Kind = ScenarioKind.France, Coef = coef }, new NullAgent());
         sim.Run(8);
         var w = sim.World;
-        w.ShipSteamShareEma = new Share(0.5);    // 汽船が普及した状態を注入（EMAの育ちは購入比率から＝別経路）
+        w.ShipSteamShare = new Share(0.5);    // 汽船が普及した状態を注入（EMAの育ちは購入比率から＝別経路）
         w.ShipCapacity = 1000.0;
         var r = w.Region;
         int buyerIdx = r.MerchantPopIndex >= 0 ? r.MerchantPopIndex : r.InvestorPopIndex;
@@ -233,7 +233,7 @@ public class FuelOperatingCostTests
             double stock0 = 0; foreach (var r in w.Regions) if (r.State == RegionState.Active) stock0 += r.Markets[Catalog.SteamshipId].Stock;
             Transport.Step(w, coef);
             double stock1 = 0; foreach (var r in w.Regions) if (r.State == RegionState.Active) stock1 += r.Markets[Catalog.SteamshipId].Stock;
-            Assert.Equal(1.0, w.ShipSteamShareEma.Value);
+            Assert.Equal(1.0, w.ShipSteamShare.Value);
             return w.ShipCapacity / (stock0 - stock1);
         }
         double early = CapPerUnit(1.0), late = CapPerUnit(3.5);
@@ -244,7 +244,7 @@ public class FuelOperatingCostTests
         {
             var sim = ShipWorld(59, coef, sailPrice: 10.0, steamPrice: 1.0, steamSupplied: true, frontierTech: tech);
             var w = sim.World;
-            w.ShipCapacity = 1e9; w.ShipSteamShareEma = new Share(1.0);   // 目標を超える容量＝船は買わない＝燃料だけを比べる
+            w.ShipCapacity = 1e9; w.ShipSteamShare = new Share(1.0);   // 目標を超える容量＝船は買わない＝燃料だけを比べる
             double d0 = 0; foreach (var r in w.Regions) if (r.State == RegionState.Active) d0 += r.Markets[Catalog.CoalId].LastDemand;
             Transport.Step(w, coef);
             double d1 = 0; foreach (var r in w.Regions) if (r.State == RegionState.Active) d1 += r.Markets[Catalog.CoalId].LastDemand;
@@ -266,7 +266,7 @@ public class FuelOperatingCostTests
         var (s1, t1) = ShipDemand(sim.World);
         Assert.Equal(t0, t1);                          // 作れない船の需要は0（旧＝在庫0でも汽船の需要を立てていた）
         Assert.True(s1 > s0, "帆船の需要が立っていない");
-        Assert.Equal(0.0, sim.World.ShipSteamShareEma.Value);
+        Assert.Equal(0.0, sim.World.ShipSteamShare.Value);
     }
 
     [Fact]
@@ -281,7 +281,7 @@ public class FuelOperatingCostTests
         var (s1, t1) = ShipDemand(sim.World);
         Assert.Equal(t0, t1);
         Assert.True(s1 > s0, "帆船の需要が立っていない");
-        Assert.Equal(0.0, sim.World.ShipSteamShareEma.Value);
+        Assert.Equal(0.0, sim.World.ShipSteamShare.Value);
     }
 
     [Fact]
@@ -309,7 +309,7 @@ public class FuelOperatingCostTests
         double bought = stock0 - stock1;
         Assert.True(bought > 0, "汽船を買っていない");
         Assert.Equal(bought * coef.TransportCapPerUnit * coef.ShipTier2CapMult / era, w.ShipCapacity, 6);   // 汽船は1単位で容量×2.5÷era（購入前の容量は0）
-        Assert.Equal(1.0, w.ShipSteamShareEma.Value);
+        Assert.Equal(1.0, w.ShipSteamShare.Value);
         Assert.Equal(money0, money1, 3);                                    // 買い手→生産者の持ち主＝州の中の移転（船も燃料も保存）
         Assert.True(buyers1 < buyers0 - 0.5 * bought * 1.0, "買い手が代金を払っていない（払い戻しに落ちている）");
     }
@@ -344,7 +344,7 @@ public class FuelOperatingCostTests
         var sim = ShipWorld(54, coef, sailPrice: 10.0, steamPrice: 1.0, steamSupplied: true, frontierTech: 2.3);   // 運賃革命のランプの途中（era が1でも0.5でもない）
         var w = sim.World;
         double era = coef.EraFactor(w.WorldTechLevel, coef.EraColonyCoal);
-        w.ShipCapacity = 5000; w.ShipSteamShareEma = new Share(0);   // 始まりは帆船だけ
+        w.ShipCapacity = 5000; w.ShipSteamShare = new Share(0);   // 始まりは帆船だけ
         double steamCap = 0;
         for (int k = 0; k < 12; k++)
         {
@@ -362,9 +362,9 @@ public class FuelOperatingCostTests
             foreach (var r in w.Regions) if (r.State == RegionState.Active) stock85b += r.Markets[Catalog.SteamshipId].Stock;
             steamCap = steamCap * (1 - coef.TransportDecay) + (stock85 - stock85b) * coef.TransportCapPerUnit * coef.ShipTier2CapMult / era;
             double expect = steamCap / w.ShipCapacity;   // 汽船の容量は在庫(1e6)の差から数える＝差の丸め（約1e-10）ぶんだけ相対の許容を置く
-            Assert.True(System.Math.Abs(w.ShipSteamShareEma.Value - expect) <= 1e-9 * System.Math.Max(expect, 1e-12), $"{k}: 割合 {w.ShipSteamShareEma.Value:R} ≠ 汽船の容量÷容量 {expect:R}");
+            Assert.True(System.Math.Abs(w.ShipSteamShare.Value - expect) <= 1e-9 * System.Math.Max(expect, 1e-12), $"{k}: 割合 {w.ShipSteamShare.Value:R} ≠ 汽船の容量÷容量 {expect:R}");
         }
-        Assert.True(w.ShipSteamShareEma.Value > 0 && w.ShipSteamShareEma.Value < 1, $"帆船と汽船が混ざっていない（{w.ShipSteamShareEma.Value}）");
+        Assert.True(w.ShipSteamShare.Value > 0 && w.ShipSteamShare.Value < 1, $"帆船と汽船が混ざっていない（{w.ShipSteamShare.Value}）");
     }
 
     [Fact]
@@ -373,13 +373,13 @@ public class FuelOperatingCostTests
         var coef = new Coefficients { ShipFuelRate = 1.0 };
         var sim = ShipWorld(55, coef, sailPrice: 10.0, steamPrice: 0.01, steamSupplied: false);   // 汽船は買えない＝割合0のまま
         var w = sim.World;
-        w.ShipSteamShareEma = new Share(0); w.ShipCapacity = 1000.0;
+        w.ShipSteamShare = new Share(0); w.ShipCapacity = 1000.0;
         double d0 = 0, st0 = 0;
         foreach (var r in w.Regions) if (r.State == RegionState.Active) { d0 += r.Markets[Catalog.CoalId].LastDemand + r.Markets[Catalog.CrudeOilId].LastDemand; st0 += r.Markets[Catalog.CoalId].Stock; }
         Transport.Step(w, coef);
         double d1 = 0, st1 = 0;
         foreach (var r in w.Regions) if (r.State == RegionState.Active) { d1 += r.Markets[Catalog.CoalId].LastDemand + r.Markets[Catalog.CrudeOilId].LastDemand; st1 += r.Markets[Catalog.CoalId].Stock; }
-        Assert.Equal(0.0, w.ShipSteamShareEma.Value);
+        Assert.Equal(0.0, w.ShipSteamShare.Value);
         Assert.Equal(d0, d1);
         Assert.Equal(st0, st1);
     }
@@ -395,12 +395,12 @@ public class FuelOperatingCostTests
         var r = w.Region;
         w.ShipCapacity = 10_000;   // ★(173) R4：補給線の燃料は占有された船腹の汽船の分（Colonial.OccupiedShipCapacity）＝船腹が要る（構築の直後は容量0）
         double Fuel() => r.Markets[Catalog.CoalId].LastDemand + r.Markets[Catalog.CrudeOilId].LastDemand;
-        w.ShipSteamShareEma = new Share(0);   // 帆走だけ（1783年の盤面そのまま）
+        w.ShipSteamShare = new Share(0);   // 帆走だけ（1783年の盤面そのまま）
         double d0 = Fuel(), st0 = r.Markets[Catalog.CoalId].Stock;
         Colonial.Step(w, w.Coef);
         Assert.Equal(d0, Fuel());
         Assert.Equal(st0, r.Markets[Catalog.CoalId].Stock);
-        w.ShipSteamShareEma = new Share(1.0); // 同じ補給線を汽船で
+        w.ShipSteamShare = new Share(1.0); // 同じ補給線を汽船で
         double d1 = Fuel();
         Colonial.Step(w, w.Coef);
         Assert.True(Fuel() > d1, $"汽船の割合1でも補給線が燃料の需要を立てない（{d1} → {Fuel()}）");
@@ -471,7 +471,7 @@ public class FuelOperatingCostTests
         var sim = new Simulation(new Scenario { Seed = 61, Kind = ScenarioKind.France, Coef = coef }, new NullAgent());
         sim.Run(8);
         var w = sim.World;
-        w.Discovered[Discovery.LocomotiveRow] = true; w.RailCapacity = 0; w.ShipCapacity = 1e18; w.ShipSteamShareEma = new Share(0);   // 鉄道は解禁（★(150)＝機関車の発見・旧＝技術水準10）・船は買わない・燃料も買わない
+        w.Discovered[Discovery.LocomotiveRow] = true; w.RailCapacity = 0; w.ShipCapacity = 1e18; w.ShipSteamShare = new Share(0);   // 鉄道は解禁（★(150)＝機関車の発見・旧＝技術水準10）・船は買わない・燃料も買わない
         var regs = new List<Region>();
         foreach (var r in w.Regions)
         {

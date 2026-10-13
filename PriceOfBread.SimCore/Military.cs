@@ -57,7 +57,7 @@ public static class Military
     /// ★旧の扶養限界の経済の側（歳入×SustainMilShare 0.175）は軍事費の段を読まなかった＝(145) の「軍事費の段は平時の兵数を動かさない」の根。
     ///   係数の値は旧の段の既定（0.25）で旧と同じ額になる比（0.175÷0.25＝0.7）＝段を上げれば払える予算が比例して増える。
     /// NaN と負は0（否定形）。施行中の段（<see cref="World.MilitarySpending"/>）の器＝<see cref="EnvelopeAt"/> の1本。</summary>
-    public static double EnvelopeOf(World w, Coefficients c) => EnvelopeAt(w, c, w.MilitarySpending);
+    public static double EnvelopeOf(World w, Coefficients c) => EnvelopeAt(w, c, w.MilitarySpending.Value);
 
     /// <summary>★段 <paramref name="level"/>∈[0,1] の軍事費の器（エンジンは施行中の段＝<see cref="EnvelopeOf"/>・画面の予算表は門を通った目標の段＝同じ1本）
     /// ＝段×<see cref="Coefficients.MilitaryEnvelopeShare"/>×使える歳入 ＋ 戦時段の割合（<see cref="WarStageShare"/>）×借入の余地。
@@ -318,7 +318,7 @@ public static class Military
         var r = w.Region;
         double gauge = w.SelfPower?.FleetGauge ?? 0;   // 単一国較正（SelfPowerなし）・艦隊駆動OFFでは0＝燃料需要なし（fill=1.0側）
         double steamGate = Discovery.GoodGate(r, c.ShipTier2GoodId);   // ★汽船の門＝商船（Transport）と同じ汽船の財の解禁（2026-10-01 (150)・旧＝蒸気の時計 SteamGate(TechLevel)）＝帆走艦隊は焚かない（NaN は0＝帆走側へ）
-        double coalWant = c.NavalFuelPerGauge * gauge * PoliticalQuantities.Clamp01(w.NavyUpkeep) * steamGate * c.EraFactor(w.WorldTechLevel, c.EraNavalFuel);
+        double coalWant = c.NavalFuelPerGauge * gauge * PoliticalQuantities.Clamp01(w.NavyUpkeep.Value) * steamGate * c.EraFactor(w.WorldTechLevel, c.EraNavalFuel);
         double fill = 1.0;   // 需要ゼロ（帆走・係船・艦隊なし）＝燃料は制約でない
         if (coalWant > 1e-9 && r.State == RegionState.Active && Catalog.CoalId < r.Markets.Length)
         {

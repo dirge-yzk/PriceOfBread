@@ -355,7 +355,7 @@ public partial class GameViewModel
         // ★陸海それぞれの金額（作者指示2026-08-11）。台帳は陸海で分かれていないので、**エンジン自身の配分**
         //   （World.NavalSpendShare＝NavyUpkeep/(Army+Navy)）で総額を割る＝UIに第二の配分式を置かない。
         //   和は必ず旧「軍事費」の額と一致する（表示を分けただけで金は動いていない）。
-        double navShare = _player.NavalSpendShare;
+        double navShare = _player.NavalSpendShare.Value;
         //   ★(144)：兵の給与は陸軍の行だけ（陸海の比で割るのは軍需の請求だけ）。予定の側も同じ定義＝軍需の目標＋兵の給与の請求（r の前）。
         double pSoldier = _player.LastSoldierPayPerMonth.Value;
         ArmyAct = Money(aMilGoods * (1 - navShare) + aSoldier); ArmyAmt = Money(mil * (1 - navShare) + pSoldier);

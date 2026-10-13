@@ -178,7 +178,7 @@ public static class Territory
         // WagePremium は UpdateRegionalPriceLevels が四半期更新（[0.25,4]クランプ済み）。OpportunityWageWeight 既定0.2（点火）・0で wagePull=1＝旧と厳密一致。
         double wagePull = Math.Max(OpportunityFactorFloor, 1.0 + c.OpportunityWageWeight * (r.WagePremium - 1.0));
         if (!(pop >= 1.0)) return r.ProductivityBonus * wagePull * land;   // ★否定形＝pop が NaN のとき除算枝（unemp/pop）へ落ちない。有限値では `pop < 1.0` と厳密に同値
-        // ★(161)（(157) の反証役の指摘 va#8）：兵士は失業者に数えない＝兵士の「失業」は給与の未払いの割合（Simulation が書く・脱走と志願の空きだけが読む）で、民間の職の無さではない。
+        // ★(161)（(157) の反証役の指摘 va#8）：兵士は失業者に数えない＝兵士の〈失業〉は給与の未払いの割合（Simulation が書く・脱走と志願の空きだけが読む）で、民間の職の無さではない。
         //   分母は州の人口のまま（兵士は職に就いている人として数える＝貴族・聖職と同じ）。
         double unemp = 0; foreach (var p in r.Pops) if (!p.IsSoldier) unemp += p.Size * p.UnemploymentRate.Value;
         // プッシュ要因（B-4）：地域の不満（迫害・治安悪化）が機会を下げ、その地域からの流出を促す（ポグロム・抑圧からの逃避）。
@@ -377,7 +377,7 @@ public static class Territory
             //   帳消しにする形は、失地で送り手の債務が軽くなり持ち手だけが損をする（負けるほど財政が楽になる）。再併合は反乱国の国債を先に消している＝0 は素通り。
             foreach (var p in r.Pops) Fiscal.BookForeignDebt(p, p.BondHoldings, from, to);
             to.CumulativeTradeFlow += Bin; to.PopulationDelta += P;
-            Transport.Receive(to, rail, ship, from.ShipSteamShareEma.Value);
+            Transport.Receive(to, rail, ship, from.ShipSteamShare.Value);
         }
         if (wasCapital && NextCapital(from) is { } cap) from.SetCapital(cap);   // 首都を失った＝「首都を持つ」不変条件を維持
         // ★(183) 植民地の保存の台帳：植民地格へ戻る州は、植民地格を出たときの出口（独立の確定＝本土・植民地の昇格＝編入）から1つ戻す

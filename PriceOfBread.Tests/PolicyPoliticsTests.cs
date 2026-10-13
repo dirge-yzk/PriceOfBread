@@ -885,7 +885,7 @@ public class PolicyPoliticsTests
         var foe = sim.Nations[2].World.SelfPower!;
         p.MilitarySpendingTarget = 0.70;   // 軍備教義の目標＝段3（高）
         Assert.Equal(0.75, Government.MilitaryTotalTarget(w, p));
-        w.SetMilitarySpending(0.75, w.NavalSpendShare);   // 実効値も段3＝戦時段は「隣の段」（段の飛び越し禁止 StagePrereq を先に満たす）
+        w.SetMilitarySpending(new Share(0.75), w.NavalSpendShare);   // 実効値も段3＝戦時段は「隣の段」（段の飛び越し禁止 StagePrereq を先に満たす）
         Assert.False(Government.LawPrereq(w, PolicyAxis.Coercion, Government.MilitaryLawStages, w.Coef).Ok);   // 平時は戦時段を選べない
 
         var dip = w.Diplomacy!;
@@ -909,7 +909,7 @@ public class PolicyPoliticsTests
         w.SelfPower!.IsPlayer = true;
         Government.Step(w, w.Coef);
         Assert.Equal(Government.MilitaryLawStages - 1, Government.MilitaryStage(p.MilitarySpendingTarget));   // (f) 保存目標も段3へ失効（段4の前提は保てなさ）
-        Assert.True(w.MilitarySpending <= 0.75, $"(f) 施行が段3 の上に残った（{w.MilitarySpending:G17}）");   // ★(181) 施行も段3へ失効（戦費の議決が切れる）
+        Assert.True(w.MilitarySpending.Value <= 0.75, $"(f) 施行が段3 の上に残った（{w.MilitarySpending:G17}）");   // ★(181) 施行も段3へ失効（戦費の議決が切れる）
         dip.Wars.Add(new War { A = w.SelfPower!, B = foe }); w.Mobilized = true;   // 次の戦争で再び総動員
         Assert.Equal(0.75, Government.MilitaryTotalTarget(w, p));   // (f) 選び直さない限り戦時段へ登らない（旧＝保存の1.0で黙って段4へ）
         p.MilitarySpendingTarget = Government.MilitaryLawStages / (double)Government.MilitaryLawStages;   // 選び直せば解禁どおり立つ
@@ -928,7 +928,7 @@ public class PolicyPoliticsTests
         var sim = new MultiNationSim([NationConfig.France(), NationConfig.Japan(), NationConfig.Britain(), NationConfig.America()], seed: 1789);
         var w = sim.Nations[0].World; var p = w.Policy;
         var foe = sim.Nations[3].World.SelfPower!;
-        w.SetMilitarySpending(0.25, w.NavalSpendShare);   // 段1
+        w.SetMilitarySpending(new Share(0.25), w.NavalSpendShare);   // 段1
         w.Diplomacy!.Wars.Add(new War { A = w.SelfPower!, B = foe });   // 交戦中・敗色0
         Assert.NotEqual(UtilityAgent.Stance.Militarize, UtilityAgent.ChooseStance(w, out _));   // 前提：非軍備スタンス（教義の目標は段1）
         new UtilityAgent().DecideQuarter(w);
@@ -943,7 +943,7 @@ public class PolicyPoliticsTests
         var sim = new MultiNationSim([NationConfig.France(), NationConfig.Japan(), NationConfig.Britain(), NationConfig.America()], seed: 1789);
         var w = sim.Nations[0].World; var p = w.Policy;
         var foe = sim.Nations[2].World.SelfPower!;
-        w.SetMilitarySpending(0.75, w.NavalSpendShare);   // 段3＝段の飛び越し禁止（StagePrereq）が先に拒まない位置＝測るのは総動員の門だけ
+        w.SetMilitarySpending(new Share(0.75), w.NavalSpendShare);   // 段3＝段の飛び越し禁止（StagePrereq）が先に拒まない位置＝測るのは総動員の門だけ
         p.MilitarySpendingTarget = Government.MilitaryLawStages / (double)Government.MilitaryLawStages;   // 戦時段を目標に置いた状態（段ボタンの写像）
 
         Assert.Equal(0.75, Government.MilitaryTotalTarget(w, p));   // 平時・総動員なし
@@ -994,7 +994,7 @@ public class PolicyPoliticsTests
         var w = sim.Nations[0].World;
         var foe = sim.Nations[4].World.SelfPower!;   // ★(195) 存亡は本国へ届く敵との戦争の敗色だけ＝陸続きのプロイセン（旧＝英＝海越えで制海権が門に届かない相手の敗色は存亡に数えない）
         // ★2026-09-20 段の点火：総動員のAI分岐（旧 AiMobilization／FiscalLawStages の2本のゲート）は係数ごと削除＝常時 live（さもなくば段4がプレイヤー専用）
-        w.SetMilitarySpending(0.75, w.NavalSpendShare);   // 段3＝戦時段は隣の段（StagePrereq＝AIも1段ずつ登る）
+        w.SetMilitarySpending(new Share(0.75), w.NavalSpendShare);   // 段3＝戦時段は隣の段（StagePrereq＝AIも1段ずつ登る）
         w.Diplomacy!.Wars.Add(new War { A = w.SelfPower!, B = foe, Score = -0.8 });   // 敗色0.8＞存亡線0.5＝既存の判定材料（新しい閾値を置かない）
         new UtilityAgent().DecideQuarter(w);
         Assert.True(w.Mobilized, "段のゲートだけではAIが総動員に到達できない＝戦時段がプレイヤー専用になる");
@@ -1013,7 +1013,7 @@ public class PolicyPoliticsTests
         var sim = new MultiNationSim([NationConfig.France(), NationConfig.Japan(), NationConfig.Britain(), NationConfig.America(), NationConfig.Prussia()], seed: 1789);
         var w = sim.Nations[0].World; var p = w.Policy;
         var foe = sim.Nations[4].World.SelfPower!;   // ★(195) 本国へ届く敵（陸続き）
-        w.SetMilitarySpending(0.75, w.NavalSpendShare);
+        w.SetMilitarySpending(new Share(0.75), w.NavalSpendShare);
         w.Diplomacy!.Wars.Add(new War { A = w.SelfPower!, B = foe, Score = -0.8 });
 
         new UtilityAgent().DecideQuarter(w);   // AI：総動員（Apply の前）→ 同じ四半期の Apply が最上段を選ぶ
@@ -1055,7 +1055,7 @@ public class PolicyPoliticsTests
     {
         var sim = new Simulation(NationConfig.Britain().ToScenario(1), new NullAgent());
         var w = sim.World; var p = w.Policy;
-        w.SetMilitarySpending(0.75, w.NavalSpendShare);   // 実効値＝段3（Move が段へ漸近しきった均衡）
+        w.SetMilitarySpending(new Share(0.75), w.NavalSpendShare);   // 実効値＝段3（Move が段へ漸近しきった均衡）
 
         // ★主張の書き直し（2026-09-20 段の点火）：旧の対照「ゲート0＝目標は生の和0.70＝解隊の脅威 (0.75−0.70)/0.75」は旗とともに消えた。
         //   同じ主張＝「段の上に居る軍に、教義の生の値（0.70）と段の値（0.75）のずれ0.0667（軍国教義の閾値0.25の27%）を脅威として見せない」を、
@@ -1120,7 +1120,7 @@ public class PolicyPoliticsTests
         var sim = new MultiNationSim([NationConfig.France(), NationConfig.Britain()], seed: 1789);
         var w = sim.Nations[0].World; var p = w.Policy;
         w.PoliticalLockEnabled = false;
-        w.SetMilitarySpending(0.75, 0.2);                    // 実効＝段3
+        w.SetMilitarySpending(new Share(0.75), new Share(0.2));                    // 実効＝段3
         p.MilitarySpendingTarget = 0.25;                     // 選んだのは最下段＝戦時に軍を畳もうとしている
         double army = p.ArmyUpkeepTarget, navy = p.NavyUpkeepTarget;
         w.Diplomacy!.Wars.Add(new War { A = w.SelfPower!, B = sim.Nations[1].World.SelfPower! });
@@ -1129,7 +1129,7 @@ public class PolicyPoliticsTests
         Assert.Equal(army, p.ArmyUpkeepTarget);   // 選んだ目標は1ミリも書き換わらない
         Assert.Equal(navy, p.NavyUpkeepTarget);
         // 同じ床が同じ係数のまま門になる＝現在値×WartimeUpkeepFloor の段より下は選べない
-        int floorStage = Government.MilitaryStage(w.MilitarySpending * w.Coef.WartimeUpkeepFloor);
+        int floorStage = Government.MilitaryStage(w.MilitarySpending.Value * w.Coef.WartimeUpkeepFloor);
         Assert.True(floorStage > 1, $"前提が崩れた：床の段が最下段（{floorStage}）＝この世界では門を測れない");
         Assert.Equal((false, "戦争中は軍を解散できない"), Government.LawPrereq(w, PolicyAxis.Coercion, floorStage - 1, w.Coef));
         Assert.True(Government.LawPrereq(w, PolicyAxis.Coercion, floorStage, w.Coef).Ok);

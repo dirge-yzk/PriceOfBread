@@ -68,9 +68,9 @@ public class PowerSharesTests
     {
         // ★史学反証：第二帝政のクレディ・モビリエ／1879独「鉄とライ麦」／明治の政商／露十月党。
         var w = new Simulation(NationConfig.Britain().ToScenario(1), new NullAgent()).World;
-        w.Tariff = 0; w.ArmyUpkeep = 0; w.NavyUpkeep = 0; w.PublicOrder = 0;
+        w.Tariff = 0; w.ArmyUpkeep = new Share(0); w.NavyUpkeep = new Share(0); w.PublicOrder = 0;
         Assert.Equal(0.0, PowerShares.StatePatronage(w), 9);
-        w.Tariff = 1.0; w.ArmyUpkeep = 1.0; w.NavyUpkeep = 0; w.PublicOrder = 1.0;
+        w.Tariff = 1.0; w.ArmyUpkeep = new Share(1.0); w.NavyUpkeep = new Share(0); w.PublicOrder = 1.0;
         Assert.Equal(1.0, PowerShares.StatePatronage(w), 9);
     }
 
@@ -82,7 +82,7 @@ public class PowerSharesTests
         var rep = new Simulation(NationConfig.France().ToScenario(1), new NullAgent()).World;
         CrownParliament.ApplyRegime(rep, c, Polity.Republic);          // 統制力1.0
         rep.TaxRate = new Share(1.0); rep.ProgressiveTax = 1.0; rep.PollTax = 0; rep.LandTax = 0; rep.SetStateMonopolyTier(0);
-        rep.Tariff = 0; rep.ArmyUpkeep = 0; rep.NavyUpkeep = 0;
+        rep.Tariff = 0; rep.ArmyUpkeep = new Share(0); rep.NavyUpkeep = new Share(0);
         Assert.Equal(1.0, PowerShares.ParliamentGrip(rep), 9);
         Assert.Equal(PowerShares.ParliamentControl(rep) * PowerShares.ParliamentGrip(rep) * (1.0 - PowerShares.LockedSpending(rep)),
             PowerShares.ParliamentEffective(rep), 12);
@@ -127,11 +127,11 @@ public class PowerSharesTests
         AssertPartsInRange(new Simulation(new Scenario { Seed = 1 }, new NullAgent()).World, "退化");   // 最小世界＝兵士も資産も発言権も無い
         var w2 = new Simulation(NationConfig.France().ToScenario(5), new NullAgent()).World;
         // NaN の注入（Math.Clamp は NaN を除去しない＝否定形ガードの番人）
-        w2.Legitimacy = double.NaN; w2.ParliamentControl = double.NaN; w2.ArmyUpkeep = double.NaN;
+        w2.Legitimacy = double.NaN; w2.ParliamentControl = double.NaN; w2.ArmyUpkeep = new Share(double.NaN);
         w2.Tariff = double.NaN; w2.PublicOrder = double.NaN; w2.LandTax = double.NaN; w2.ProgressiveTax = double.NaN; w2.TaxRate = new Share(double.NaN);
         foreach (var p in w2.AllPops()) { p.FoodMet = double.NaN; p.NeedMet = double.NaN; }
         AssertPartsInRange(w2, "NaN");
-        w2.Legitimacy = double.PositiveInfinity; w2.ParliamentControl = double.PositiveInfinity; w2.ArmyUpkeep = double.PositiveInfinity;
+        w2.Legitimacy = double.PositiveInfinity; w2.ParliamentControl = double.PositiveInfinity; w2.ArmyUpkeep = new Share(double.PositiveInfinity);
         AssertPartsInRange(w2, "∞");
     }
 
@@ -139,7 +139,7 @@ public class PowerSharesTests
     public void 純関数_同じ状態から2回呼ぶとビット一致し_Worldを1ビットも変えない()
     {
         var w = new Simulation(NationConfig.Britain().ToScenario(11), new NullAgent()).World;
-        double leg = w.Legitimacy, pc = w.ParliamentControl, tar = w.Tariff, ord = w.PublicOrder, au = w.ArmyUpkeep, nu = w.NavyUpkeep;
+        double leg = w.Legitimacy, pc = w.ParliamentControl, tar = w.Tariff, ord = w.PublicOrder, au = w.ArmyUpkeep.Value, nu = w.NavyUpkeep.Value;
         var suffrage = w.Suffrage; var serf = w.SerfEmancipation;
         double[] Parts() =>
         [
@@ -149,7 +149,7 @@ public class PowerSharesTests
         var a = Parts(); var b = Parts();
         for (int i = 0; i < a.Length; i++) Assert.Equal(a[i], b[i]);   // 精度指定なし＝厳密一致
         Assert.Equal(leg, w.Legitimacy); Assert.Equal(pc, w.ParliamentControl); Assert.Equal(tar, w.Tariff);
-        Assert.Equal(ord, w.PublicOrder); Assert.Equal(au, w.ArmyUpkeep); Assert.Equal(nu, w.NavyUpkeep);
+        Assert.Equal(ord, w.PublicOrder); Assert.Equal(au, w.ArmyUpkeep.Value); Assert.Equal(nu, w.NavyUpkeep.Value);
         Assert.Equal(suffrage, w.Suffrage); Assert.Equal(serf, w.SerfEmancipation);
     }
 }

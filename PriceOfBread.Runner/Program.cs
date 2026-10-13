@@ -613,7 +613,7 @@ if (args.Length > 0 && args[0] == "armstrace")
             e[i] = (int)UtilityAgent.ChooseStance(wT2, out f[i]);
             names[i] = wT2.SelfPower?.Name ?? "?";
             double popT = wT2.TotalPopulation, solT = wT2.SoldierSizeK();
-            a[i] = wT2.MilitarySpending;
+            a[i] = wT2.MilitarySpending.Value;
             b[i] = popT > 1e-9 ? solT / popT : 0;
             double needT = wT2.SelfPower?.NeedMen ?? 0;
             c[i] = needT > 1e-9 ? solT / needT : double.NaN;
@@ -739,7 +739,7 @@ if (args.Length > 0 && args[0] == "transportdump")
         }
         System.Console.WriteLine($"{wT.SelfPower?.Name},{wT.TotalPopulation:F0},{wT.GdpPerMonth:F0},{wT.RailCapacity:F1},{wT.ShipCapacity:F1},{capT:F1}," +
             $"{(wT.TotalPopulation > 1e-9 ? capT / wT.TotalPopulation : 0):F5},{(wT.GdpPerMonth.Value > 1e-9 ? capT / wT.GdpPerMonth.Value : 0):F5}," +
-            $"{(thrN > 0 ? thrSum / thrN : 1.0):F3},{wT.ColonialShipBurden:F3},{merSav:F1},{invSav:F1},{wT.ShipSteamShareEma:F3}");
+            $"{(thrN > 0 ? thrSum / thrN : 1.0):F3},{wT.ColonialShipBurden:F3},{merSav:F1},{invSav:F1},{wT.ShipSteamShare:F3}");
     }
     return;
 }
@@ -774,7 +774,7 @@ if (args.Length > 0 && args[0] == "armydump")
     {
         var w0 = sim0.World; double sol = w0.SoldierSizeK();
         double head = PriceOfBread.SimCore.Military.EstablishmentOf(w0, co0, out _);   // ★(155) 定員（旧 (145)＝扶養限界の目標×軍拡の倍率）
-        double need = w0.GdpPerMonth.Value > 1e-9 && w0.MilitarySpending > 1e-9 ? sol / (w0.MilitarySpending * w0.GdpPerMonth).Value : 0;
+        double need = w0.GdpPerMonth.Value > 1e-9 && w0.MilitarySpending.Value > 1e-9 ? sol / (w0.MilitarySpending.Value * w0.GdpPerMonth).Value : 0;
         System.Console.WriteLine($"{w0.SelfPower?.Name},{sol:F1},{head:F1},{w0.GdpPerMonth:F0},{w0.MilitarySpending:F2},{need:F6}");
     }
     return;
@@ -1086,7 +1086,7 @@ if (args.Length > 0 && args[0] == "threatprobe")
         {
             var w = nn.World;
             double seats = Military.EstablishmentOf(w, w.Coef, out _);
-            rows.Add((w.SelfPower?.Name ?? "?", w.SecurityThreat, w.SecurityThreatOwnMass, UtilityAgent.SecurityShare(w), UtilityAgent.SecurityStageTarget(w), w.MilitarySpending, w.SoldierSizeK(), seats));
+            rows.Add((w.SelfPower?.Name ?? "?", w.SecurityThreat, w.SecurityThreatOwnMass, UtilityAgent.SecurityShare(w), UtilityAgent.SecurityStageTarget(w), w.MilitarySpending.Value, w.SoldierSizeK(), seats));
         }
         foreach (var r in rows.OrderByDescending(x => x.x))
             Console.WriteLine($"  {r.name}	{r.t:F1}	{r.own:F1}	{r.x:F3}	{r.target:F3}	{r.stage:F2}	{r.sold:F1}	{r.seats:F1}");
@@ -5402,7 +5402,7 @@ if (args.Length > 0 && args[0] == "refprobe")
             var w = n.World; if (w.SelfPower is not { } sp || !(w.TotalPopulation > 1e-9)) continue;
             perCap.Add((sp.BaseName, w.GdpPerMonth.Value / w.TotalPopulation));   // IncomeAbsorption と同じ実質GDP/人
             rbase.Add((sp.BaseName, w.Elite * w.TotalPopulation));
-            fleet.Add((sp.BaseName, sp.FleetGauge * w.NavyUpkeep));
+            fleet.Add((sp.BaseName, sp.FleetGauge * w.NavyUpkeep.Value));
         }
         static string Sum(List<(string n, double v)> xs) { xs.Sort((a, b) => a.v.CompareTo(b.v)); var med = xs[xs.Count / 2]; var top = xs[^1]; return $"中央値 {med.v:N2}({med.n})　先端 {top.v:N2}({top.n})　上位3 {string.Join("/", xs.GetRange(Math.Max(0, xs.Count - 3), Math.Min(3, xs.Count)).ConvertAll(t => t.n))}"; }
         Console.WriteLine($"Q{q,3}({rm.Nations[0].World.Year})  1人あたり実質GDP: {Sum(perCap)}");
@@ -7303,7 +7303,7 @@ if (args.Length > 0 && args[0] == "milstart")
             nTotal++;
             if (navalMul > 5) nNaval5++;
             if (landMul < 0.05) nLand05++;
-            if (w.NavalSpendShare > 0.9) nShape9++;
+            if (w.NavalSpendShare.Value > 0.9) nShape9++;
             if (r.NavalBudget <= 0) nShapeNone++;
             Console.WriteLine($"{sp.Name},{w.SoldierSizeK():F0},{r.MilitaryScale:F1},{(r.NationHasPort ? 1 : 0)},{w.NavalSpendShare:F3},{sp.NeedLand:F2},{sp.NeedInternal:F2},{sp.NeedSea:F3},{Politics.AvgMassMilitancy(w):F3},{w.Legitimacy:F3}," +
                 $"{flatShare:F3},{navalMul:F2},{landMul:F2},{afford:F2}," +

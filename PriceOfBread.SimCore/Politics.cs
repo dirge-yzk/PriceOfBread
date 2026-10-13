@@ -1379,9 +1379,9 @@ public static class Politics
     // 合計（陸＋海）が1.0を超える分だけ陸軍から出す＝上限に張り付いた時だけ内訳が動き、普段は海軍の純増（＝軍拡）。動いたら1を返す。
     private static int ConcedeNavyUpkeep(World w, NationPolicy p, bool inc, double step)
     {
-        double navy = PoliticalQuantities.Clamp01(w.NavyUpkeep + (inc ? step : -step));
-        if (Math.Abs(navy - w.NavyUpkeep) <= 1e-9) return 0;
-        w.SetMilitaryUpkeep(w.ArmyUpkeep, navy);
+        double navy = PoliticalQuantities.Clamp01(w.NavyUpkeep.Value + (inc ? step : -step));
+        if (Math.Abs(navy - w.NavyUpkeep.Value) <= 1e-9) return 0;
+        w.SetMilitaryUpkeep(w.ArmyUpkeep, new Share(navy));
         p.NavyUpkeepTarget = navy;
         p.ArmyUpkeepTarget = Math.Min(p.ArmyUpkeepTarget, 1.0 - navy);
         return 1;

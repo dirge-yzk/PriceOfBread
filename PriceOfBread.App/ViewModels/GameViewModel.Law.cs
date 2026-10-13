@@ -195,7 +195,7 @@ public partial class GameViewModel
         // 軍事費＝合計だけが段（R2・D4：陸海を別々に段化すると平時0.25×海軍比上限0.60=0.15＜第1境界0.175 で全AIの海軍が段0＝英国に軍が無い）。
         // levelBase:1＝「なし」の段を作らない（Government.LawPrereq が段0を「軍事費に『なし』は無い」で拒む＝押せないボタンを並べない）。
         MilitaryLaw = new LawRowVM(w, PolicyAxis.Coercion, "軍事費", ["少額", "中額", "多額", "戦時"],
-            () => Government.MilitaryStage(w.MilitarySpending),
+            () => Government.MilitaryStage(w.MilitarySpending.Value),
             () => (int)Math.Round(Government.MilitaryTotalTarget(w, p) * Government.MilitaryLawStages),
             v => p.MilitarySpendingTarget = v / (double)Government.MilitaryLawStages,
             levelBase: 1);

@@ -117,8 +117,8 @@ public partial class GameViewModel
             double legCost = System.Math.Min(_player.Coef.AISubmitLegitCost, _player.Legitimacy);
             WarPopupBody = $"{foe.Name} との緊張が限界に達した。\n"
                 + (issue.Length > 0 ? $"争点:{issue} {topV:F0}/緊張 {tNow:F0}\n\n" : "\n")
-                + $"自軍　陸軍 {Men(myU * (1 - me.NavalShare))}/海軍 {Men(myU * me.NavalShare)}/空軍 {Men(myU * myAirFill)}\n"
-                + $"{foe.Name}　陸軍 {Men(enU * (1 - foe.NavalShare))}/海軍 {Men(enU * foe.NavalShare)}/空軍 {Men(enU * enAirFill)}\n\n"
+                + $"自軍　陸軍 {Men(myU * (1 - me.NavalShare.Value))}/海軍 {Men(myU * me.NavalShare.Value)}/空軍 {Men(myU * myAirFill)}\n"
+                + $"{foe.Name}　陸軍 {Men(enU * (1 - foe.NavalShare.Value))}/海軍 {Men(enU * foe.NavalShare.Value)}/空軍 {Men(enU * enAirFill)}\n\n"
                 + $"戦況予測:勝勢 {o.WinShare:P0}　{win}\n"
                 + $"要求を受け入れる:緊張 {tNow:F0}→{tTo:F0}　王権の正統性 −{legCost:F2}";
             WarPopupMobilize = _player.Mobilized;

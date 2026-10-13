@@ -3542,7 +3542,7 @@ public sealed class Coefficients
     public double RailCoalRate = 0.22;          // ★点火2026-08-29（夜間R18燃料クラスタA/B batch30＝破綻0・列強+2.9。⚠損失financing 1/30=seed3トスカーナを記録＝広がるなら0.15へ）。導出＝0.25×(0.4×高度労働0.8+0.3×労働0.5)/石炭0.54。#2 鉄道の運行石炭：インフラ保守1単位あたりの石炭消費（×機関車の発見の門＝(150)・旧＝蒸気ゲート）。火夫（MaintLaborRate=0.3）は雇うのに石炭を買っていない自己矛盾の是正。
     //   点火目標の導出：19世紀鉄道の営業費構成＝人件費≈50%・燃料≈10〜15%→石炭費≈運行要員費（MaintAdvLaborRate 0.4×高度労働価格＋MaintLaborRate 0.3×労働価格）の約1/4
     //   → RailCoalRate ≈ 0.25×(0.4×AdvLabor参照価格+0.3×Labor参照価格)/石炭参照価格 を初期値に Search で再較正。投資予算の律速（maintCostPerUnit）にも同項を載せる＝InvestBudgetIncludesAllInputs と同じ作法
-    public double ShipFuelRate = 0.0016;        // ★点火2026-09-27（回4-3 の再挑戦）。#3 汽船（民間海運）の運行燃料：石炭需要/月 = これ×era×ShipCapacity×汽船の割合（World.ShipSteamShareEma＝容量の在庫に占める汽船）。
+    public double ShipFuelRate = 0.0016;        // ★点火2026-09-27（回4-3 の再挑戦）。#3 汽船（民間海運）の運行燃料：石炭需要/月 = これ×era×ShipCapacity×汽船の割合（World.ShipSteamShare＝容量の在庫に占める汽船）。
     //   era＝EraFactor(前線技術, EraColonyCoal)（Transport.Step の注記＝汽船の性能）。買い手＝商人pop（Transport の船購入と同じ決済＝保存）。船の選択にも入る（汽船の容量単価に寿命の間の燃料を足す）。
     //   導出（汽船1隻の費用の構成・参照価格）：モデルの汽船の「時間の費用」＝船価の減耗 TransportDecay（月2%＝資本・船員・修繕をまとめた率）→ 容量1・月あたり 3.1866×0.02÷(30×2.5)＝0.00085。
     //     史実の大洋航路の汽船（1870〜1900年代）＝年の石炭代は英の炭価で船価の10〜12%・寄港地の炭価は英の約2倍（カーディフ 12〜15シリング対 アデン・コロンボ・シンガポール 25〜35シリング）→ 20〜24%。

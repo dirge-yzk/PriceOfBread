@@ -210,7 +210,7 @@ public static class FactionSnapshot
             PolicyAxis.SocialSecurity => w.SocialSecurity,
             PolicyAxis.Coercion => PoliticalQuantities.Clamp01(w.BaseCoercion / System.Math.Max(1e-9, w.Coef.CoercionMax)),
             PolicyAxis.Tariff => PoliticalQuantities.Clamp01(w.Tariff),
-            PolicyAxis.NavyUpkeep => w.NavyUpkeep,   // ★海軍維持費（2026-08-10 作者裁定＝旧「海軍偏重」の振り替え先）：0..1 の維持費そのものが現行値＝軸の増＝艦隊に払う金を増やす。
+            PolicyAxis.NavyUpkeep => w.NavyUpkeep.Value,   // ★海軍維持費（2026-08-10 作者裁定＝旧「海軍偏重」の振り替え先）：0..1 の維持費そのものが現行値＝軸の増＝艦隊に払う金を増やす。
                                                      // 満額（1.0）まで払えば「海軍の増強」の要求が消える。落ちていると _ => 0.5 に吸われ**余地が0.5固定＝与えても要求が消えない**
             PolicyAxis.NationalizationAll => 0.5,   // 『全て』国有化は位置を持たない（要求の軸から除く ComputeDemands と同じ・旧の既定 0.5 のまま）
             // ★段の法（enum と bool）＝表 Government.LevelLaws の min(段,最上段)/最上段（2026-09-28 処理の一元化 段1＝旧は軸ごとの1行＝施行・戦線・段と手で対応させていた）。

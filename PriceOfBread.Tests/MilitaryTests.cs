@@ -732,7 +732,7 @@ public class MilitaryTests
         var dip = sim.Diplomacy; var c = sim.Coef;
         var uk = sim.Nations[0].World.SelfPower!; var jp = sim.Nations[1].World.SelfPower!;
         Assert.True(dip.IsSeaCrossing(jp, uk, c) && dip.IsSeaCrossing(uk, jp, c), "前提が崩れた：英日が海越えでない");
-        foreach (var p in new[] { uk, jp }) { p.NavalShare = 0; Assert.True(p.Military > 0, "前提が崩れた：軍が無い"); }   // 艦隊の注意配分を0に（海の必要量＝海越えの陸軍だけ）
+        foreach (var p in new[] { uk, jp }) { p.NavalShare = new Share(0); Assert.True(p.Military > 0, "前提が崩れた：軍が無い"); }   // 艦隊の注意配分を0に（海の必要量＝海越えの陸軍だけ）
         foreach (var r in sim.Nations[0].World.Regions) r.LastPortThroughput = 0;
         foreach (var r in sim.Nations[1].World.Regions) r.LastPortThroughput = 0;
         Assert.True(ArmyShape.Borders([uk, jp], c)[1] == 0, "前提が崩れた：英日に陸の国境がある");
@@ -793,9 +793,9 @@ public class MilitaryTests
             var w = n.World; var p = w.SelfPower!;
             double s = ArmyShape.NavalSpendShareOf(p);
             Assert.True(s >= 0, $"{p.Name}の分け方が未定義");
-            Assert.Equal(s, w.NavalSpendShare, 12);
+            Assert.Equal(s, w.NavalSpendShare.Value, 12);
             Assert.Equal(1.0, p.CrewFill);
-            Assert.True(p.NavalShare >= 0 && p.NavalShare < s + 1e-12, $"{p.Name}の海軍シェア（乗員÷兵士）{p.NavalShare} が分け方 {s} を超える");
+            Assert.True(p.NavalShare.Value >= 0 && p.NavalShare.Value < s + 1e-12, $"{p.Name}の海軍シェア（乗員÷兵士）{p.NavalShare} が分け方 {s} を超える");
             double target = p.NeedSea / p.NavySkillMul;
             Assert.True(System.Math.Abs(p.FleetGauge - target) <= 1e-9 * System.Math.Max(1, target), $"{p.Name}の艦の強さのゲージ {p.FleetGauge} ≠ 目標（海の必要量÷海の熟練）{target}");
             if (w.Regions[0].FleetUnits is { } fu)
@@ -835,9 +835,9 @@ public class MilitaryTests
         var sim = new Simulation(NationConfig.France().ToScenario(17), new NullAgent());
         var w = sim.World; var p = w.Policy;
         p.ArmyUpkeepTarget = 0.7275; p.NavyUpkeepTarget = 0.0225;
-        w.SetMilitarySpending(0.75, 0.5);
+        w.SetMilitarySpending(new Share(0.75), new Share(0.5));
         Government.Step(w, w.Coef);
-        Assert.Equal(0.03, w.NavalSpendShare, 9);
+        Assert.Equal(0.03, w.NavalSpendShare.Value, 9);
     }
 
     /// <summary>★(189) 呼び手の側：海軍の予算（Simulation の月次の Region.NavalBudget）＝装備の器（軍事費の器から給与を払った残り）×海の金の割合（World.NavalSpendShare＝施行された陸海の維持費の比）・
@@ -853,7 +853,7 @@ public class MilitaryTests
         sp.NeedSea = 50; sp.NeedLand = 3; sp.NeedInternal = 1;
         for (int d = 0; d < 30; d++) sim.StepDay();
         Assert.True(sp.NeedSea == 50, "前提が崩れた：外交が走って海の必要量が書き換わった");
-        double s = w.NavalSpendShare;
+        double s = w.NavalSpendShare.Value;
         Assert.True(s > 0.01 && s < 0.99, $"前提が崩れた：海の金の割合 {s}");
         var cap = w.Region;
         Assert.True(cap.NavalBudget > 0 && cap.MilitaryBudgetCeiling > 0, $"前提が崩れた：海軍の予算 {cap.NavalBudget}・陸の装備の上限 {cap.MilitaryBudgetCeiling}");
@@ -886,7 +886,7 @@ public class MilitaryTests
         // ② 段の効き
         double denom = EconomyStep.FleetGaugeDenominator(w.Regions[0], w.Coef);
         int ki = System.Array.IndexOf(c.FleetGoodIds, Catalog.IroncladId), kd = System.Array.IndexOf(c.FleetGoodIds, Catalog.DreadnoughtId), kw = System.Array.IndexOf(c.FleetGoodIds, Catalog.WarshipId);
-        double g0 = uk.FleetGauge, share0 = uk.NavalShare;
+        double g0 = uk.FleetGauge, share0 = uk.NavalShare.Value;
         w.Regions[0].FleetUnits![ki] += 1.0;
         sim.Diplomacy.Step(c, sim.Rng, 4);
         Assert.Equal((Catalog.RefPrices[Catalog.IroncladId] * (1 + c.MilitaryQualityBonus)) / denom, uk.FleetGauge - g0, 9);
@@ -897,7 +897,7 @@ public class MilitaryTests
         // ③ 乗員は隻数×1隻の乗員（2隻足した分＝帆船の軍艦2隻と同じ）
         double perHull = EconomyStep.FleetCrewPerHull(w.Regions[0], w.Coef, denom);
         Assert.Equal(c.NavalCrewPerGauge * c.SoldiersPerMilitary * Catalog.RefPrices[Catalog.WarshipId] / denom, perHull, 12);
-        Assert.Equal(share0 + 2.0 * perHull / w.SoldierSizeK(), uk.NavalShare, 9);
+        Assert.Equal(share0 + 2.0 * perHull / w.SoldierSizeK(), uk.NavalShare.Value, 9);
         Assert.True(kw >= 0 && w.Regions[0].FleetUnits![kw] > 0, "前提が崩れた：開幕の艦が帆船の軍艦で無い");
     }
 
@@ -1062,7 +1062,7 @@ public class MilitaryTests
         var dip = sim.Diplomacy; var c = sim.Coef;
         var frw = sim.Nations[0].World;
         var fr = frw.SelfPower!; var es = sim.Nations[1].World.SelfPower!; var uk = sim.Nations[2].World.SelfPower!;
-        foreach (var p in new[] { fr, es, uk }) p.NavalShare = 0;   // 静的な海軍＝軍×海軍シェア＝0（艦隊の注意配分を0に）
+        foreach (var p in new[] { fr, es, uk }) p.NavalShare = new Share(0);   // 静的な海軍＝軍×海軍シェア＝0（艦隊の注意配分を0に）
         Assert.True(ArmyShape.Borders([fr, es], c)[1] > 0 && dip.IsSeaCrossing(fr, uk, c), "前提が崩れた：仏西が陸の国境で接し仏英が海越え、でない");
         ArmyShape.Compute(dip, c);
         double esLand0 = es.NeedLand, ukSea0 = uk.NeedSea;
@@ -1071,7 +1071,7 @@ public class MilitaryTests
         ArmyShape.Compute(dip, c);
         Assert.Equal(esLand0, es.NeedLand);
         Assert.Equal(ukSea0, uk.NeedSea);
-        fr.NavalShare = 0.5;   // 兵の半分が艦に乗る
+        fr.NavalShare = new Share(0.5);   // 兵の半分が艦に乗る
         ArmyShape.Compute(dip, c);
         Assert.True(es.NeedLand < esLand0 * (1 - 1e-9), $"仏の兵の半分が艦に乗っても西の陸の必要量が下がらない（{esLand0:G17}→{es.NeedLand:G17}）");
     }
@@ -1086,7 +1086,7 @@ public class MilitaryTests
         var sim = Frozen152("フランス", "スペイン", "イギリス");
         var dip = sim.Diplomacy; var c = sim.Coef;
         var fr = sim.Nations[0].World.SelfPower!; var es = sim.Nations[1].World.SelfPower!; var uk = sim.Nations[2].World.SelfPower!;
-        foreach (var p in new[] { fr, es, uk }) p.NavalShare = 0;
+        foreach (var p in new[] { fr, es, uk }) p.NavalShare = new Share(0);
         c.ExpeditionTechLevel = 0;   // 門なし（旧と同じ）
         Assert.Equal(1.0, dip.ExpeditionLift(fr, uk, c));
         ArmyShape.Compute(dip, c);
@@ -1111,8 +1111,8 @@ public class MilitaryTests
         var dip = sim.Diplomacy; var c = sim.Coef;
         var ws = sim.Nations.ConvertAll(n => n.World);
         var ps = ws.ConvertAll(w => w.SelfPower!);
-        foreach (var p in ps) { System.Array.Clear(p.BasinPresence); p.BasinPresence[0] = 1.0; p.NavalShare = 0; }
-        ps[0].NavalShare = 1.0;   // 英の兵は全て艦に（静的な海軍＝軍×1・陸に立つ兵0）
+        foreach (var p in ps) { System.Array.Clear(p.BasinPresence); p.BasinPresence[0] = 1.0; p.NavalShare = new Share(0); }
+        ps[0].NavalShare = new Share(1.0);   // 英の兵は全て艦に（静的な海軍＝軍×1・陸に立つ兵0）
         Assert.True(ps[0].NavalPower > 0 && ArmyShape.LandPotential(ps[0]) == 0, "前提が崩れた：英の艦隊が無いか陸に兵が立つ");
         (double Fr, double Es) Sea(double tUk, double tFr, double tEs)
         {
@@ -1174,9 +1174,9 @@ public class MilitaryTests
     {
         var w = France155().World; var c = w.Coef;
         c.MaxSoldierFraction = 1e9;   // 人口の側を外す
-        w.SetMilitarySpending(0.25, w.NavalSpendShare);
+        w.SetMilitarySpending(new Share(0.25), w.NavalSpendShare);
         double s1 = Military.EstablishmentOf(w, c, out _);
-        w.SetMilitarySpending(0.5, w.NavalSpendShare);
+        w.SetMilitarySpending(new Share(0.5), w.NavalSpendShare);
         double s2 = Military.EstablishmentOf(w, c, out _);
         Assert.True(s1 > 0, $"前提が崩れた：定員 {s1}");
         Assert.True(Math.Abs(s2 - 2 * s1) <= 1e-9 * s2, $"段を倍にしても定員が倍にならない（{s1} → {s2}）");
@@ -1200,7 +1200,7 @@ public class MilitaryTests
             foreach (var r in w.Regions)
             {
                 if (r.State != RegionState.Active || SoldierOf(r) is not { } s) continue;
-                s.UnemploymentRate = new Share(0); s.UnemploymentEma = 0;   // 未払いの脱走（①''）を外す
+                s.UnemploymentRate = new Share(0); s.UnemploymentEma = new Share(0);   // 未払いの脱走（①''）を外す
                 if (natMan > 0) expect += dq * Math.Max(0, s.Size - seatsNat * Military.RegionManpower(r, c) / natMan);
             }
             double b = w.SoldierSizeK(), p0 = w.TotalPopulation;
@@ -1235,10 +1235,10 @@ public class MilitaryTests
         foreach (var r in w.Regions)
         {
             if (r.State != RegionState.Active || SoldierOf(r) is not { } s) continue;
-            s.UnemploymentRate = new Share(0); s.UnemploymentEma = 0; s.EarnedPerMonth *= 10;
+            s.UnemploymentRate = new Share(0); s.UnemploymentEma = new Share(0); s.EarnedPerMonth *= 10;
             vac[r] = (s, s.Size, c.MaxSoldierFraction * Military.RegionManpower(r, c) - s.Size);
             foreach (var p in r.Pops)
-                if (!p.IsSoldier && (p.ClassId == c.SoldierRecruitClassA || p.ClassId == c.SoldierRecruitClassB)) { p.UnemploymentRate = new Share(0.3); p.UnemploymentEma = 0.3; }
+                if (!p.IsSoldier && (p.ClassId == c.SoldierRecruitClassA || p.ClassId == c.SoldierRecruitClassB)) { p.UnemploymentRate = new Share(0.3); p.UnemploymentEma = new Share(0.3); }
         }
         w.ArmySkill = 0.5; w.NavySkill = 0.5;
         double s0 = w.SoldierSizeK();
@@ -1256,7 +1256,7 @@ public class MilitaryTests
         Assert.True(s1 > s0);
     }
 
-    /// <summary>★(155) 未払いの兵は脱走して民間の職へ（兵士の「失業」＝給与の未払いの割合・多年EMA を失業プール ①'' が読む＝強制＝席に留まれない）。
+    /// <summary>★(155) 未払いの兵は脱走して民間の職へ（兵士の〈失業〉＝給与の未払いの割合・多年EMA を失業プール ①'' が読む＝強制＝席に留まれない）。
     /// 盤面＝仏の双子（器を大きく・上限割合をどの州でも席≦兵に〔空きが無い＝志願の空きの係数（1−未払い）で差が出ない・超過の復員は双子で同じ〕）で兵士の未払いの割合だけ 0 と 0.5 ＝未払いの腕だけ兵が減り、人口は同じ。
     /// ⚠突然変異「兵士を ①'' から外す（旧）」で赤。</summary>
     [Fact]
@@ -1266,7 +1266,7 @@ public class MilitaryTests
         {
             var w = France155().World; var c = w.Coef;
             c.MilitaryEnvelopeShare = 1e9;
-            foreach (var r in w.Regions) if (r.State == RegionState.Active && SoldierOf(r) is { } s) { s.UnemploymentRate = new Share(unpaid); s.UnemploymentEma = unpaid; }
+            foreach (var r in w.Regions) if (r.State == RegionState.Active && SoldierOf(r) is { } s) { s.UnemploymentRate = new Share(unpaid); s.UnemploymentEma = new Share(unpaid); }
             // 席＝どの州でも今の兵以下（空きを作らない＝志願の空きの係数〔1−未払い〕で差が出ないように・超過の復員は双子で同じ）
             double fill = double.PositiveInfinity;
             foreach (var r in w.Regions)
@@ -1280,7 +1280,7 @@ public class MilitaryTests
         Assert.True(Math.Abs(unpaid.pop - paid.pop) <= 1e-9 * paid.pop, "脱走で人口が保存されない");
     }
 
-    /// <summary>★(155) 兵士の「失業」＝1−国家の支払い率×器の給与の充足（月初の予算・Simulation）。盤面＝仏の双子で器を大きく／ほぼ0 にして1か月＝
+    /// <summary>★(155) 兵士の〈失業〉＝1−国家の支払い率×器の給与の充足（月初の予算・Simulation）。盤面＝仏の双子で器を大きく／ほぼ0 にして1か月＝
     /// 大きい器は 1−r・ほぼ0 の器は ほぼ1（給与が払えない）。⚠突然変異「器の給与の充足を読まない（1−r だけ）」で赤。</summary>
     [Fact]
     public void 兵士の失業は器の給与の充足と国家の支払い率で決まる()
@@ -1330,18 +1330,18 @@ public class MilitaryTests
     public void 熟練は払った訓練で育ち徴兵の新兵で薄まる()
     {
         var w = France155().World; var c = w.Coef;
-        w.SetMilitaryUpkeep(1.0, 0.0);   // 段は最上段（旧の規則なら育つ）
+        w.SetMilitaryUpkeep(new Share(1.0), new Share(0.0));   // 段は最上段（旧の規則なら育つ）
         w.MilitaryTrainingFill = 0.0; w.ArmySkill = 0.4; w.NavySkill = 0.4;
         Military.StepSkill(w, c, atWar: false);
         Assert.True(w.ArmySkill < 0.4 && w.NavySkill < 0.4, $"訓練が払われないのに熟練が育った（陸 {w.ArmySkill}・海 {w.NavySkill}）");
-        w.SetMilitaryUpkeep(0.0, 0.0);
+        w.SetMilitaryUpkeep(new Share(0.0), new Share(0.0));
         w.MilitaryTrainingFill = 1.0; w.ArmySkill = 0.4; w.NavySkill = 0.4;
         Military.StepSkill(w, c, atWar: false);
         double expect = 0.4 + c.SkillGainRate * (1.0 - c.SkillUpkeepThreshold) * 0.6;
         Assert.Equal(expect, w.ArmySkill, 12);
         Assert.Equal(expect, w.NavySkill, 12);
         // 徴兵の新兵で薄める（呼び手＝Military.Step）
-        w.SetMilitarySpending(0.5, 0.1);
+        w.SetMilitarySpending(new Share(0.5), new Share(0.1));
         w.ConscriptionLaw = ConscriptionLaw.Selective; c.MaxSoldierFraction *= 3; c.MilitaryEnvelopeShare = 1e9;
         w.ArmySkill = 0.6; w.NavySkill = 0.6;
         double before = w.SoldierSizeK();
@@ -1406,7 +1406,7 @@ public class MilitaryTests
         Assert.True(fr0 > 0, "前提が崩れた：仏に脅威が無い");
         var es = sim.Nations[1].World;
         double esOwn0 = es.SecurityThreatOwnMass;
-        es.SetMilitarySpending(Math.Min(1.0, es.MilitarySpending * 2), es.NavalSpendShare);
+        es.SetMilitarySpending(new Share(Math.Min(1.0, es.MilitarySpending.Value * 2)), es.NavalSpendShare);
         step.Invoke(sim, null);
         double fr1 = sim.Nations[0].World.SecurityThreat;
         Assert.Equal(esOwn0, es.SecurityThreatOwnMass, 12);   // ★(157) 自国の段を上げても自国の分母は動かない（自分の段で不安が動かない）
@@ -1438,7 +1438,7 @@ public class MilitaryTests
         w.SecurityThreat = double.NaN;
         Assert.Equal(0.25, UtilityAgent.SecurityStageTarget(w), 12);
         // Apply は目標を法の門（段への丸め・1段ずつ）へ通す＝今の段1 で不安0 なら段1 のまま（旧の軍備スタンスの 0.7＝段3 なら門で段2 へ上がる）
-        w.SetMilitarySpending(0.25, w.NavalSpendShare);
+        w.SetMilitarySpending(new Share(0.25), w.NavalSpendShare);
         w.SecurityThreat = 0;
         UtilityAgent.Apply(w, UtilityAgent.Stance.Militarize);
         Assert.Equal(0.25, w.Policy.MilitarySpendingTarget, 12);
@@ -1684,7 +1684,7 @@ public class MilitaryTests
         // (c) 日本＝陸の国境なし。日本の海軍が圧倒（仏西の艦なし）＝上陸の門が閉じる＝陸軍の不安0・全体は正
         //   艦隊は盤面へ直に置く（外交を止めた盤面は艦隊を播かない）＝海軍力＝min(艦隊, 総合ゲージ×海軍シェア)。
         var keep = ps.ConvertAll(q => (q.Military, q.FleetGauge, q.NavalShare));
-        void Navy(int i, double share) { ps[i].Military = 100; ps[i].FleetGauge = 100; ps[i].NavalShare = share; }
+        void Navy(int i, double share) { ps[i].Military = 100; ps[i].FleetGauge = 100; ps[i].NavalShare = new Share(share); }
         //   日本の海軍が優勢（仏の制海権が上陸の門に届かない＝仏の投射は制海権の分だけ届くので不安の全体には入る）・西は艦なし
         Navy(0, 0.4); Navy(1, 0); Navy(2, 0.6);
         Check("日本の海軍が優勢");
@@ -1973,7 +1973,7 @@ public class MilitaryTests
     }
 
     /// <summary>★(161)（(157) の反証役の指摘 va#8）：移民の引力（<see cref="Territory.Opportunity"/>＝州の雇用の項 1−失業者÷人口）は**兵士の未払いを失業に数えない**
-    /// （兵士の「失業」＝給与の未払いの割合＝脱走と志願の空きだけが読む）。民間の失業は今までどおり効く。
+    /// （兵士の〈失業〉＝給与の未払いの割合＝脱走と志願の空きだけが読む）。民間の失業は今までどおり効く。
     /// ⚠突然変異「兵士の失業も足す（旧）」で赤。</summary>
     [Fact]
     public void 移民の引力は兵士の未払いを失業に数えない()
@@ -2153,8 +2153,8 @@ public class MilitaryTests
         Assert.Equal(Base(0.75), Military.EnvelopeAt(w, c, 0.75));        // 段3 の施行＝足さない（総動員だけで1銭も増えない）
         Assert.Equal(Base(0.875) + 0.5 * ticket, Military.EnvelopeAt(w, c, 0.875));   // 段3→段4 の中ほど＝1件の額の半分
         Assert.Equal(Base(1.0) + 1.0 * ticket, Military.EnvelopeAt(w, c, 1.0));       // 段4＝1件の額
-        w.SetMilitarySpending(1.0, w.NavalSpendShare);
-        Assert.Equal(Military.EnvelopeAt(w, c, w.MilitarySpending), Military.EnvelopeOf(w, c));   // 施行中の器＝施行の段の EnvelopeAt
+        w.SetMilitarySpending(new Share(1.0), w.NavalSpendShare);
+        Assert.Equal(Military.EnvelopeAt(w, c, w.MilitarySpending.Value), Military.EnvelopeOf(w, c));   // 施行中の器＝施行の段の EnvelopeAt
 
         w.BorrowCooldownMonths = 3;                                               // 冷却中（デフォルト後の信用喪失）＝借りられない
         Assert.Equal(Base(1.0), Military.EnvelopeAt(w, c, 1.0));
@@ -2179,7 +2179,7 @@ public class MilitaryTests
             sim.Diplomacy.Wars.Add(new War { A = w.SelfPower!, B = sim.Nations[1].World.SelfPower! });
             c.MilitaryEnvelopeShare = 1000;     // 器を大きく＝給与の後に装備の上限が残る
             for (int d = 0; d < Calendar.DaysPerMonth - 1; d++) sim.StepDay();
-            w.Mobilized = mobilized; w.SetMilitarySpending(1.0, w.NavalSpendShare);   // 月の決算の直前に戦時段（段4 の施行）へ＝四半期の頭の施行は通らない
+            w.Mobilized = mobilized; w.SetMilitarySpending(new Share(1.0), w.NavalSpendShare);   // 月の決算の直前に戦時段（段4 の施行）へ＝四半期の頭の施行は通らない
             w.Policy.MilitarySpendingTarget = target;                                 // ★(177) 選んだ目標の段（戦時段の割合は目標の段で頭打ち）
             c.BorrowFractionOfGdp = new Share(frac);
             Assert.True(Fiscal.BorrowGateOpen(w, c), $"前提が崩れた：借入の門が閉じている（冷却 {w.BorrowCooldownMonths}・利払い {w.LastInterestPerMonth:G6}・歳入 {w.LastRevenuePerMonth:G6}）");
@@ -2217,10 +2217,10 @@ public class MilitaryTests
         double ticket = Fiscal.BorrowTicket(w.NominalGdpPerMonth.Value, c);
         double Base(double lv) => lv * c.MilitaryEnvelopeShare * System.Math.Max(0, w.SpendableRevenue());
         Assert.True(ticket > 0 && Base(1.0) > 0, $"前提が崩れた：1件の額 {ticket}・器 {Base(1.0)}");
-        w.SetMilitarySpending(0.9, w.NavalSpendShare);                     // 施行が段3 の上に残っている（戦後の下り途中）
+        w.SetMilitarySpending(new Share(0.9), w.NavalSpendShare);                     // 施行が段3 の上に残っている（戦後の下り途中）
         w.Policy.MilitarySpendingTarget = 0.75;                             // 目標は段3（戦時段の失効の後＝選び直していない）
         Assert.Equal(0.75, Government.MilitaryTotalTarget(w, w.Policy));
-        double lv = w.MilitarySpending;
+        double lv = w.MilitarySpending.Value;
         Assert.True(lv > 0.75 + 1e-6, $"前提が崩れた：施行 {lv}");
         Assert.Equal(Base(lv), Military.EnvelopeOf(w, c));                  // 施行の器に戦時の分を足さない
         Assert.Equal(Base(0.75), Military.EnvelopeAt(w, c, Government.MilitaryTotalTarget(w, w.Policy)));   // 画面の予測（目標の段）も足さない
@@ -2247,10 +2247,10 @@ public class MilitaryTests
             var w = sim.Nations[0].World; var c = w.Coef;
             if (war) sim.Diplomacy.Wars.Add(new War { A = w.SelfPower!, B = sim.Nations[1].World.SelfPower! });
             w.Mobilized = mob;
-            w.SetMilitarySpending(x0, w.NavalSpendShare);
+            w.SetMilitarySpending(new Share(x0), w.NavalSpendShare);
             w.Policy.MilitarySpendingTarget = target;
             Government.Step(w, c);
-            return (w.MilitarySpending, w, c);
+            return (w.MilitarySpending.Value, w, c);
         }
         const double High = 0.75;
         // 平時・交戦だけ・総動員だけ＝解禁の外＝施行 0.95 は段3 へ失効（目標が段3＝失効の後の Move は動かない＝厳密に段3）
@@ -2290,9 +2290,9 @@ public class MilitaryTests
             var w = sim.Nations[0].World;
             if (warMob) sim.Diplomacy.Wars.Add(new War { A = w.SelfPower!, B = sim.Nations[1].World.SelfPower! });
             w.Mobilized = warMob;
-            w.SetMilitarySpending(0.95, w.NavalSpendShare);
+            w.SetMilitarySpending(new Share(0.95), w.NavalSpendShare);
             sim.StepDay();   // 次の四半期の頭（QuarterStart）
-            return (w.MilitarySpending, w.AtWarNow && w.Mobilized);
+            return (w.MilitarySpending.Value, w.AtWarNow && w.Mobilized);
         }
         var (peace, pu) = Run(false);
         Assert.False(pu);
@@ -2315,11 +2315,11 @@ public class MilitaryTests
             sim.Diplomacy.Wars.Clear();
             var w = sim.Nations[0].World;
             w.Mobilized = false;
-            w.SetMilitarySpending(x0, w.NavalSpendShare);
+            w.SetMilitarySpending(new Share(x0), w.NavalSpendShare);
             w.Policy.MilitarySpendingTarget = 0.25;
             double before = w.MandateSpent;
             Government.Step(w, w.Coef);
-            return (w.MilitarySpending, w.MandateSpent - before);
+            return (w.MilitarySpending.Value, w.MandateSpent - before);
         }
         var (xb, sb) = Run(0.75);
         Assert.True(xb < 0.75 - 1e-9, $"前提が崩れた：段3 からの Move が動かない盤面（0.75 → {xb:G17}）");

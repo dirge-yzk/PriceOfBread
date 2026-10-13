@@ -211,8 +211,8 @@ public class ConservationTests
     {
         var sim = new MultiNationSim([WorldData.ByName("イギリス"), WorldData.ByName("フランス")], seed: 1789, coef: new Coefficients()) { DiplomacyFrozen = true };
         var uk = sim.Nations[0].World; var fr = sim.Nations[1].World;
-        uk.ShipCapacity = 1000; uk.RailCapacity = 400; uk.ShipSteamShareEma = new Share(0.5);
-        fr.ShipCapacity = 200; fr.RailCapacity = 0; fr.ShipSteamShareEma = new Share(0.0);
+        uk.ShipCapacity = 1000; uk.RailCapacity = 400; uk.ShipSteamShare = new Share(0.5);
+        fr.ShipCapacity = 200; fr.RailCapacity = 0; fr.ShipSteamShare = new Share(0.0);
         int k = 0; foreach (var q in uk.Regions) q.LastTradePotential = ++k;   // 州ごとに違う潜在量（清算の配分の入力）
         var r = uk.Regions.Find(x => x.Id != 0 && x.State == RegionState.Active)!;
         var b = Transport.ShareBasis(uk, uk.Coef);
@@ -225,7 +225,7 @@ public class ConservationTests
         Assert.Equal(400.0, uk.RailCapacity + fr.RailCapacity, 9);
         Assert.Equal(1000.0 * (1 - sh), uk.ShipCapacity, 9);
         Assert.Equal(400.0 * sh, fr.RailCapacity, 9);
-        Assert.Equal(0.5 * 1000.0 * sh / (200.0 + 1000.0 * sh), fr.ShipSteamShareEma.Value, 12);
+        Assert.Equal(0.5 * 1000.0 * sh / (200.0 + 1000.0 * sh), fr.ShipSteamShare.Value, 12);
         var b2 = Transport.ShareBasis(uk, uk.Coef);
         foreach (var (q, before) in rest) Assert.Equal(before, uk.ShipCapacity * Transport.RegionShare(b2, q), 9);   // 残る州の容量は前と同じ
 
@@ -242,7 +242,7 @@ public class ConservationTests
         Assert.Equal(ship0 * sh2, nw.ShipCapacity, 9);
         Assert.Equal(rail0 * sh2, nw.RailCapacity, 9);
         Assert.Equal(ship0, uk.ShipCapacity + nw.ShipCapacity, 9);
-        Assert.Equal(0.5, nw.ShipSteamShareEma.Value, 12);
+        Assert.Equal(0.5, nw.ShipSteamShare.Value, 12);
     }
 
     /// <summary>★債務は債務者について行く（2026-09-29 S3b）：州の割譲（Territory.TransferRegion）と越境移民（MoveMigrants）で、POP の債務の分の

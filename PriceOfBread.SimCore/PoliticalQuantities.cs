@@ -176,7 +176,7 @@ public static class PoliticalQuantities
         //   代理＝維持費の**目標が現在値を下回っている相対幅**（＝これから解隊される割合）。既存の Policy 目標と現在値だけで書ける。
         //   ⚠Nordlinger「群を抜いて最も一般的な介入動機は軍の団体的利害の防衛＝軍事予算・組織の自律・存続」の予算は
         //     **軍の予算であって将校の給与ではない**（ギリシャ1909のクーデタ団も増額された軍事予算と再編を要求し、給与への言及は無い）。
-        double cur = w.MilitarySpending;
+        double cur = w.MilitarySpending.Value;
         // ★軍事費の段（作者裁定2026-09-12 R2）：目標は**施行と同じ1本**（<see cref="Government.MilitaryTotalTarget"/>）で読む。
         //   ⚠生の和のままだと、段化で目標0.70に対し施行は段0.75＝ずれ0.05／0.75 が居座り、解隊の脅威が**常時 +0.067**
         //     ＝軍国教義の閾値（SelfPlay.MilitaristDoctrineDegree=0.25）の27%を丸め誤差が自己供給する正のフィードバックになる。

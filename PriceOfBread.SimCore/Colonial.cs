@@ -33,7 +33,7 @@ public static class Colonial
         //    遠方植民地が多い国（イギリス）ほど交易船が補給に取られ、汽船の時代は燃料も要る＝一強の是正を物理コストで律する（固定倍率2.0を排除）。
         //    ★(177) 注記の一巡（反証役 vc1#8）：駐留の缶詰糧食と距離×質量の石炭は (173) の R4 で撤去（下の R4 の注記）＝この段の旧の記述（汽船の石炭＋駐留の缶詰糧食・石炭と糧食が逼迫）を直した。
         // ★2026-09-28（植民地の費用の側・c1・c2・R2）：
-        //   c1＝補給線の石炭は民間の汽船と**同じ状態**（汽船の割合 ShipSteamShareEma＝帆走なら0）と**同じ物理**（機関の時代係数 EraColonyCoal＝容量あたりの燃料・Transport と共有）で焚く。
+        //   c1＝補給線の石炭は民間の汽船と**同じ状態**（汽船の割合 ShipSteamShare＝帆走なら0）と**同じ物理**（機関の時代係数 EraColonyCoal＝容量あたりの燃料・Transport と共有）で焚く。
         //       旧＝汽船の発明の前から焚いた（英1783-1802 の植民地維持費の実払いの62%）。缶詰糧食は缶詰の財の解禁度（Discovery.GoodGate＝装備の解禁の唯一の読み口）で食った
         //       ＝アペール法の前の駐留は缶詰を食わない。旧の EraColonyFood（缶詰・冷蔵で距離あたりの糧食が下がる）はこの解禁度が置き換えた＝係数ごと削除。
         //       ⚠(173) R4：駐留の缶詰糧食そのものを撤去（兵士 POP は給与で州の食料を買う＝二度食わせていた）・補給線の燃料は占有された船腹の汽船の分（下の R4 の注記）。
@@ -81,7 +81,7 @@ public static class Colonial
             }
         foreach (var col in w.SelfPower!.ColonyList) AccumUpkeep(col.Latitude, col.Longitude, col.Population, col.Malarial);
         double era = c.EraFactor(w.WorldTechLevel, c.EraColonyCoal);   // 機関の時代係数（民間の汽船と同じ1本＝Transport.Step）
-        double steam = w.ShipSteamShareEma.Value;
+        double steam = w.ShipSteamShare.Value;
         double steamMult = c.ShipTier2CapMult * Discovery.GoodGate(r, c.ShipTier2GoodId) / era;   // R4②：汽船1単位の容量倍（Transport.BuyToward と同じ式・era≥0.05＝EraFactor の床で有限）
         if (steamMult > 1.0) shipBurden *= (1.0 - steam) + steam / steamMult;                      // 汽船の分だけ占有が軽い（未解禁・容量倍≦1 は帆船と同じ）
         w.ColonialShipBurden = shipBurden;   // 交易の実効海運を絞る（InternationalMarket/Trade が ShipCapacity/(1+これ) で参照）
