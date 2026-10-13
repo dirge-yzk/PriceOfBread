@@ -973,7 +973,7 @@ public static class Instruments
 
     // ---------------------------------------------------------------- (289) 線D：資本家の建設の州ごとの表 ----------------------------------------------------------------
 
-    sealed class ConAcc { public int Judged; public double Desired, Budget, Planned, PlannedUnits, BuiltUnits, Paid; }
+    sealed class ConAcc { public int Judged; public double Desired, Budget, Planned, PlannedUnits, BuiltUnits, Paid; public int TermMonths, DesiringMonths; public double TermGain, TermSat, TermTech, TermCrowd, TermHeat, TermHurdle, TermNet, TermAbsorb, TermJoint, TermUnits, TermUnitMoney; }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Region, ConAcc> ConAccs = new();
     /// <summary>(289) 建設の判定（州×月）：希望・投資枠・計画の金額（<see cref="Construction"/> と同じ定義〔束×束の費用×(1+工賃)〕）を州ごとに積む。挙げた国だけ。</summary>
     internal static void ConsRegion(World w, Region r, double desiredUnits, double budgetUnits, double unitMoney, double plannedUnits)
@@ -982,6 +982,19 @@ public static class Instruments
         var a = ConAccs.GetValue(r, _ => new ConAcc());
         a.Judged++; if (desiredUnits > 0) a.Desired += desiredUnits * unitMoney;
         a.Budget += budgetUnits * unitMoney; a.Planned += plannedUnits * unitMoney; a.PlannedUnits += plannedUnits;
+    }
+    /// <summary>(300) 線 i1 段 0：希望の束を決める項を州×月で積む（読むだけ）。<paramref name="gainTech"/>＝限界収益×(1+技術の梃子×技術の水準)・<paramref name="sat"/>＝飽和の分母の底（1+生産的工業化度÷スケール）・
+    /// <paramref name="techLev"/>＝技術の水準・<paramref name="hurdle"/>＝資本コスト＋クラウディング−金融の過熱・<paramref name="netReturn"/>＝gainTech−hurdle・<paramref name="joint"/>＝株式会社の速さの倍率・
+    /// <paramref name="units"/>＝希望の束（吸収の因子を掛けた後）・<paramref name="unitMoney"/>＝束の費用×(1+工賃)。吸収の因子は国単位の写像 <c>TechEducation.AbsorptionOf</c> からここで導く（本体の式と同じ）。挙げた国だけ。</summary>
+    internal static void ConsTerms(World w, Region r, Coefficients coef, double gainTech, double sat, double techLev, double hurdle, double netReturn, double joint, double units, double unitMoney)
+    {
+        if (!IsPicked(w, S(w))) return;
+        var a = ConAccs.GetValue(r, _ => new ConAcc());
+        double absorb = 1.0;
+        if (coef.PrivateAbsorptionBlend > 0) { double pabs = coef.CapitalCreditFloor + (1.0 - coef.CapitalCreditFloor) * TechEducation.AbsorptionOf(w, coef); absorb = 1.0 + (pabs - 1.0) * coef.PrivateAbsorptionBlend; }
+        a.TermMonths++; if (units > 0) a.DesiringMonths++;
+        a.TermGain += gainTech; a.TermSat += sat; a.TermTech += techLev; a.TermCrowd += r.CrowdingPremium; a.TermHeat += r.FinancialHeat; a.TermHurdle += hurdle; a.TermNet += netReturn;
+        a.TermAbsorb += absorb; a.TermJoint += joint; a.TermUnits += units; a.TermUnitMoney += unitMoney;
     }
     /// <summary>(289) 建設の決済（州×月）：建った束と、投資家が実際に払った額（材料＋工賃・<c>PaidPerMonth</c> へ足すのと同じ <c>cost</c>）。</summary>
     internal static void ConsRegionPaid(World w, Region r, double builtUnits, double cost)
@@ -993,8 +1006,10 @@ public static class Instruments
     /// <summary>(289) 助走の月の分は数えない（<see cref="ResetQuarter"/> と同じ扱い）。</summary>
     static void ClearCons(World w)
     {
-        foreach (var r in w.Regions) if (ConAccs.TryGetValue(r, out var a)) { a.Judged = 0; a.Desired = a.Budget = a.Planned = a.PlannedUnits = a.BuiltUnits = a.Paid = 0; }
+        foreach (var r in w.Regions) if (ConAccs.TryGetValue(r, out var a)) { a.Judged = 0; a.Desired = a.Budget = a.Planned = a.PlannedUnits = a.BuiltUnits = a.Paid = 0; ClearTerms(a); }
     }
+    static string TermMean(ConAcc? a, double? sum) => a is null || a.TermMonths == 0 || sum is null ? "nan" : F(sum.Value / a.TermMonths);
+    static void ClearTerms(ConAcc a) { a.TermMonths = a.DesiringMonths = 0; a.TermGain = a.TermSat = a.TermTech = a.TermCrowd = a.TermHeat = a.TermHurdle = a.TermNet = a.TermAbsorb = a.TermJoint = a.TermUnits = a.TermUnitMoney = 0; }
     internal const int ConsMaxQuarter = 160;
     /// <summary>(289) 線D：挙げた国×州×四半期（q が <see cref="ConsMaxQuarter"/> まで）。資本家の貯蓄の在庫（四半期の末）・希望・投資枠・計画・実際に払った額（月あたり）と、州の人口・工業化度・工場の規模。
     /// 限界の自己申告：①貯蓄は四半期の末の値・希望と枠と支払いは四半期の月平均（÷ClsMonths）②<c>investorSavingsStock</c>＝<c>InvestorPopIndex</c> の POP・<c>capitalistSavingsStock</c>＝州の資本家階級の全 POP の和
@@ -1003,7 +1018,7 @@ public static class Instruments
     {
         if (q > ConsMaxQuarter) return;
         sk.Cons ??= Open("cons", seed);
-        if (!sk.ConsHeader) { sk.Cons.WriteLine("quarter\tyear\tnation\tregion\ttier\tactiveFlag\tpopulationK\tinvestorSizeK\tinvestorSavingsStock\tcapitalistSavingsStock\tinvestorEarnedPerMonth\tindustrializationIndex\tproductiveIndustrializationIndex\tfactoryScale\tjudgedMonthsCount\tmonthsCount\tdesiredMoneyPerMonth\tbudgetMoneyPerMonth\tplannedMoneyPerMonth\tplannedUnitsPerMonth\tbuiltUnitsPerMonth\tpaidPerMonth"); sk.ConsHeader = true; }
+        if (!sk.ConsHeader) { sk.Cons.WriteLine("quarter\tyear\tnation\tregion\ttier\tactiveFlag\tpopulationK\tinvestorSizeK\tinvestorSavingsStock\tcapitalistSavingsStock\tinvestorEarnedPerMonth\tindustrializationIndex\tproductiveIndustrializationIndex\tfactoryScale\tjudgedMonthsCount\tmonthsCount\tdesiredMoneyPerMonth\tbudgetMoneyPerMonth\tplannedMoneyPerMonth\tplannedUnitsPerMonth\tbuiltUnitsPerMonth\tpaidPerMonth	termMonthsCount	desiringMonthsCount	gainWithTechMean	satMean	techLevelMean	crowdingPremiumMean	financialHeatMean	hurdleMean	netReturnMean	absorbFactorMean	jointStockFactorMean	desiredUnitsMean	unitMoneyMean"); sk.ConsHeader = true; }
         string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
         double cm = st.ClsMonths > 0 ? st.ClsMonths : double.NaN;
         string nation = NameOf(w);
@@ -1016,8 +1031,9 @@ public static class Instruments
             double scale = 0; foreach (var pr in r.Producers) if (!pr.IsRgo) scale += pr.BuiltScale;
             ConAccs.TryGetValue(r, out var a);
             sk.Cons.WriteLine(string.Join('\t', I(q), I(w.Year), nation, r.Name, r.Tier.ToString(), r.State == RegionState.Active ? "1" : "0", F(pop), F(invSize), F(invSav), F(capSav), F(invEarn), F(r.Industrialization), F(r.ProductiveIndustrialization), F(scale),
-                I(a?.Judged ?? 0), F(cm), F((a?.Desired ?? 0) / cm), F((a?.Budget ?? 0) / cm), F((a?.Planned ?? 0) / cm), F((a?.PlannedUnits ?? 0) / cm), F((a?.BuiltUnits ?? 0) / cm), F((a?.Paid ?? 0) / cm)));
-            if (a is not null) { a.Judged = 0; a.Desired = a.Budget = a.Planned = a.PlannedUnits = a.BuiltUnits = a.Paid = 0; }
+                I(a?.Judged ?? 0), F(cm), F((a?.Desired ?? 0) / cm), F((a?.Budget ?? 0) / cm), F((a?.Planned ?? 0) / cm), F((a?.PlannedUnits ?? 0) / cm), F((a?.BuiltUnits ?? 0) / cm), F((a?.Paid ?? 0) / cm),
+                I(a?.TermMonths ?? 0), I(a?.DesiringMonths ?? 0), TermMean(a, a?.TermGain), TermMean(a, a?.TermSat), TermMean(a, a?.TermTech), TermMean(a, a?.TermCrowd), TermMean(a, a?.TermHeat), TermMean(a, a?.TermHurdle), TermMean(a, a?.TermNet), TermMean(a, a?.TermAbsorb), TermMean(a, a?.TermJoint), TermMean(a, a?.TermUnits), TermMean(a, a?.TermUnitMoney)));
+            if (a is not null) { a.Judged = 0; a.Desired = a.Budget = a.Planned = a.PlannedUnits = a.BuiltUnits = a.Paid = 0; ClearTerms(a); }
         }
     }
 

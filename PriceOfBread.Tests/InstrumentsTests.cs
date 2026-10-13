@@ -2037,4 +2037,46 @@ public class InstrumentsTests
         }
         finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
     }
+
+    /// <summary>
+    /// (300) 線 i1 段 0：<c>cons_s</c> の「希望を決める項」の列の番人。①判定の月数が別の積算器（<c>ConsRegion</c> の <c>judgedMonthsCount</c>）と同じ
+    /// ②希望の月数が正 ⇔ 希望の金額（別の積算器）が正 ③<c>netReturnMean</c> ＝ <c>gainWithTechMean</c> − <c>hurdleMean</c>（列の取り違えが赤）
+    /// ④<c>hurdleMean</c> ＝ 資本コスト＋クラウディングの重み×クラウディングの項の平均−過熱の重み×過熱の項の平均（係数は手で打った既定を <c>Coefficients</c> から読む）
+    /// ⑤吸収の因子は(0,1]・株式会社の倍率は1か1.6。対照：希望の立つ州×四半期が実際にある（何もしない番人は必ず緑）。
+    /// </summary>
+    [Fact]
+    public void 希望を決める項の列は建設の判定と閉じる()
+    {
+        string dir = NewDir();
+        try
+        {
+            Instruments.Configure(dir, "フランス");
+            try { var on = Make(); RunMatch(on, Quarters, instr: true); }
+            finally { Instruments.Configure(null, null); }
+            var (ch, cr) = Table(System.IO.Path.Combine(dir, "cons_s1789.tsv"));
+            var c = new Coefficients();
+            int seen = 0, desiring = 0;
+            foreach (var r in cr)
+            {
+                double tm = Col(ch, r, "termMonthsCount");
+                if (!(tm > 0)) continue;
+                seen++;
+                Assert.Equal(Col(ch, r, "judgedMonthsCount"), tm);
+                double dm = Col(ch, r, "desiringMonthsCount");
+                Assert.True(dm >= 0 && dm <= tm, $"希望の月数 {dm} が判定の月数 {tm} の外");
+                Assert.True((Col(ch, r, "desiredMoneyPerMonth") > 0) == (dm > 0), "希望の月数の正と希望の金額の正が食い違う");
+                if (dm > 0) desiring++;
+                double gain = Col(ch, r, "gainWithTechMean"), hur = Col(ch, r, "hurdleMean"), net = Col(ch, r, "netReturnMean");
+                Assert.True(Math.Abs(net - (gain - hur)) <= 1e-9 * Math.Max(1.0, Math.Abs(gain)), $"netReturn {net} が 限界収益 {gain} − hurdle {hur} に閉じない");
+                double hurWant = c.IndCapitalCost + c.CrowdingOutWeight * Col(ch, r, "crowdingPremiumMean") - c.EquityHeatEuphoria * Col(ch, r, "financialHeatMean");
+                Assert.True(Math.Abs(hur - hurWant) <= 1e-9 * Math.Max(1.0, Math.Abs(hurWant)), $"hurdle {hur} が 資本コスト＋クラウディング−過熱 {hurWant} に閉じない");
+                double ab = Col(ch, r, "absorbFactorMean"), js = Col(ch, r, "jointStockFactorMean");
+                Assert.True(ab > 0 && ab <= 1.0 + 1e-12, $"吸収の因子 {ab} が (0,1] の外");
+                Assert.True(Math.Abs(js - 1.0) < 1e-9 || Math.Abs(js - c.JointStockInvestBonus) < 1e-9, $"株式会社の倍率 {js} が 1 でも {c.JointStockInvestBonus} でもない");
+                Assert.True(Col(ch, r, "satMean") >= 1.0 - 1e-12, "sat が 1 未満");
+            }
+            Assert.True(seen > 0 && desiring > 0, $"対照：希望の列が立たない（判定の行 {seen}・希望の立つ行 {desiring}）");
+        }
+        finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
 }
