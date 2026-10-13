@@ -1,0 +1,9 @@
+== M1
+  失敗 PriceOfBread.Tests.InstrumentsTests.希望を決める項の列は建設の判定と閉じる [12 s]
+失敗!   -失敗:     1、合格:     2、スキップ:     0、合計:     3、期間: 17 s - PriceOfBread.Tests.dll (net10.0)
+== M2
+  失敗 PriceOfBread.Tests.PrivateInvestmentScaleTests.工業化度の束あたりの上がりは州の実質の所得に反比例する [3 s]
+失敗!   -失敗:     1、合格:     2、スキップ:     0、合計:     3、期間: 16 s - PriceOfBread.Tests.dll (net10.0)
+== M3
+  失敗 PriceOfBread.Tests.PrivateInvestmentScaleTests.工業化度の束あたりの上がりは州の実質の所得に反比例する [3 s]
+失敗!   -失敗:     1、合格:     2、スキップ:     0、合計:     3、期間: 17 s - PriceOfBread.Tests.dll (net10.0)
