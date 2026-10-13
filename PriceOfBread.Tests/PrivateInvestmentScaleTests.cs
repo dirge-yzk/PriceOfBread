@@ -8,7 +8,7 @@ namespace PriceOfBread.Tests;
 /// <summary>
 /// (300) 線 i1：私的な建設 1 束が上げる工業化度 <c>EconomyStep.PrivateIndPerConstruction</c>（<c>IndCapitalOutputYears</c>＝κ）の番人。
 /// 期待は式の写しでなく<b>関係</b>で書く（州の所得が 2 倍なら 1 束の工業化度は半分・物価水準 2 倍なら 2 倍・κ 2 倍なら半分・κ=0 は IndPerConstruction のまま・所得 0 は今のまま）。
-/// 絶対値は手で打った 1 点（基準の束の費用 BundleRef をテスト内で足し算し直す）で確かめる。
+/// 絶対値の 1 点は本体の式（基準の束の費用 BundleRef の 4 項と N の式）をテストの中へ写した物＝本体と同じ出所の同語反復で、効いているのは関係の Assert（(301) 反証役 i1〔v〕低#4）。配線（決済が同じ 1 束の工業化度を読む）は InstrumentsTests.私的な建設の工業化度の累積は建った束と1束の工業化度の積に閉じる が見る。
 /// </summary>
 public class PrivateInvestmentScaleTests
 {
@@ -38,7 +38,7 @@ public class PrivateInvestmentScaleTests
         r.PriceLevel = 1.0;
         SetIncome(r, 5000);
         double a = EconomyStep.PrivateIndPerConstruction(r, c);
-        // 絶対値の 1 点：N＝κ×年所得÷（基準の束の費用×(1+工賃の割合)×物価水準）。基準の束の費用は財の基準価格の積の和をここで足し直す。
+        // 絶対値の 1 点（本体の式の写し）：N＝κ×年所得÷（基準の束の費用×(1+工賃の割合)×物価水準）。基準の束の費用は財の基準価格の積の和をここで足し直す。
         double bundleRef = c.ConsSteel * Catalog.RefPrices[c.SteelGoodId] + c.ConsMachine * Catalog.RefPrices[c.MachineGoodId]
                          + c.ConsCement * Catalog.RefPrices[c.CementGoodId] + c.ConsLumber * Catalog.RefPrices[c.LumberGoodId];
         double n = 1.0 * (5000.0 * 12.0) / (bundleRef * (1.0 + c.ConstructionLaborWageFrac) * 1.0);

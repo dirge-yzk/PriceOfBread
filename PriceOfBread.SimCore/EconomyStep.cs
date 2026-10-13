@@ -1961,10 +1961,11 @@ public static class EconomyStep
             // ★助走：材料は買って払った（上の決済で完了）が、**能力にはしない**＝1783年の生産能力のまま価格だけ均衡へ寄る。
             //   ⚠`built` そのものを0にしてはいけない＝下の建設端数の繰越（KeepMaterial の eff−built×Cons）が全量繰越に化けて
             //     翌月の新規購入が消え、結局は建設需要が抜ける（＝止めたかった副作用が裏口から入る）。加算だけを止める。
+            double privateIndGain = built * privateIndPerConstruction;   // (301) 決済の 3 か所（工業化度・その累積・RGO の面積）が同じ積を読む＝計画と同じ 1 束の工業化度（番人 InstrumentsTests.私的な建設の工業化度の累積は建った束と1束の工業化度の積に閉じる）
             if (!warmFrozen)
             {
-                region.Industrialization += built * privateIndPerConstruction;
-                region.CumPrivateIndustrialization += built * privateIndPerConstruction;   // 弧3-1（2026-07-24）：成長の出所＝資本家投資分の累積（純カウンタ・力学は読まない）
+                region.Industrialization += privateIndGain;
+                region.CumPrivateIndustrialization += privateIndGain;   // 弧3-1（2026-07-24）：成長の出所＝資本家投資分の累積（純カウンタ・力学は読まない）
             }
             // ★投資家がプランテーション・鉱山にも投資する（2026-08-04・作者指示「投資家もプランテーションや鉱山に投資するように」）。
             //   旧＝資本家の建設は region.Industrialization（工業化度）にしか変わらず、RGO（農園・鉱山・牧場）は
@@ -1990,7 +1991,7 @@ public static class EconomyStep
                         ? (Catalog.IsMineral(bestRgo.GoodId) ? coef.MineralScaleCap : coef.FarmScaleCap)
                         : coef.ScaleMax;
                     // 〔削除 2026-10-11 (271)〕希少鉱物の産地の拡張天井を賦存比例にする枝（ScarceCapFollowsEndowment・既定 0）＝鉱脈の在庫が物理の限界をすでに担う（二重）。
-                    bestRgo.BuiltScale = Math.Min(rgoCap, bestRgo.BuiltScale + built * privateIndPerConstruction * coef.RgoCapitalShare);
+                    bestRgo.BuiltScale = Math.Min(rgoCap, bestRgo.BuiltScale + privateIndGain * coef.RgoCapitalShare);
                     bestRgo.StateTarget = Math.Max(bestRgo.StateTarget, World.StateUnits(bestRgo, coef));
                 }
             }
@@ -2709,7 +2710,8 @@ public static class EconomyStep
 
     /// <summary>(300) 線 i1：私的な建設 1 束が上げる工業化度。<c>IndCapitalOutputYears</c>（κ）＝0 なら <c>IndPerConstruction</c>（1 束＝0.01・州の大きさに依らない＝今まで）。
     /// κ＞0 なら <c>1÷N</c>：N＝κ×（州の全 POP の前月の所得を年へ換算）÷（基準の束の費用×(1＋建設の工賃の割合)×州の物価水準）＝工業化度 1 点に要る資本が κ 年分の州の実質の所得（資本産出比）。
-    /// 旧は N が州の大きさに依らず 100 束（ロンドンもヨーテボリも同じ束数）＝定常の補填も月に 1 束のオーダーで、投資の額が州の経済に比例しなかった。N が非正・非有限なら IndPerConstruction（否定形）。</summary>
+    /// 旧は N が州の大きさに依らず 100 束（ロンドンもヨーテボリも同じ束数）＝定常の補填も月に 1 束のオーダーで、投資の額が州の経済に比例しなかった。N が非正・非有限なら IndPerConstruction（否定形）。
+    /// ⚠(301) 反証役 i1〔v〕低#6：ここの「実質」は束の基準価格（RefPrices）×州の物価水準（国の貨幣の物価×地域の乗数）で割った物で、その州の鋼・機械・セメント・製材の市場価格ではない（既存の bundleRef の流儀と同じ）。国家の経路を同じ形に寄せる回で併せて確かめる。</summary>
     internal static double PrivateIndPerConstruction(Region region, Coefficients coef)
     {
         if (!(coef.IndCapitalOutputYears > 0)) return coef.IndPerConstruction;

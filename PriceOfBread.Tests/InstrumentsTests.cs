@@ -2082,4 +2082,74 @@ public class InstrumentsTests
         }
         finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
     }
+
+    /// <summary>
+    /// (301) 合流・反証役 i1〔v〕中#2：資本産出比 κ（<c>IndCapitalOutputYears</c>）の<b>配線</b>の番人。決済で州の工業化度の累積
+    /// （<c>CumPrivateIndustrialization</c>・書き手はこの 1 か所だけ）に足す量が「建った束（<c>cons_s</c> の <c>builtUnitsPerMonth</c>×月数＝計器の別の積算器）
+    /// × 1 束の工業化度 <c>PrivateIndPerConstruction</c>（四半期の初めと終わりの州の値）」に閉じることを州×四半期で確かめる。1 束の工業化度は月ごとに州の所得で動く＝
+    /// 四半期の初めと終わりの小さい方の半分〜大きい方の 2 倍の括りで見る（建った束が 1e-3 を超える州×四半期だけ）。決済の側を旧の <c>IndPerConstruction</c>（0.01）に戻すと、1 束の工業化度が 0.01 から 4 倍以上離れた州で括りの外へ出る
+    /// ＝対照としてそういう州×四半期が実際にあることも数える（何もしない番人は必ず緑）。工業化度そのものと RGO の面積は同じ積 <c>privateIndGain</c> を読む（EconomyStep の決済）。
+    /// </summary>
+    [Fact]
+    public void 私的な建設の工業化度の累積は建った束と1束の工業化度の積に閉じる()
+    {
+        string dir = NewDir();
+        try
+        {
+            var sim = Make();
+            var coef0 = sim.Nations[0].World.Coef;
+            Assert.True(coef0.IndCapitalOutputYears > 0, "前提：κ>0（既定 1.0）＝この番人は ON の経路を見る");
+            var picked = new[] { "イギリス", "フランス" };
+            var start = new Dictionary<(string, string), (double Cum, double Ipc)>();
+            var rows = new List<(string Nation, string Region, int Q, double Cum0, double Ipc0, double Cum1, double Ipc1)>();
+            void Snap(int q)
+            {
+                foreach (var n in sim.Nations)
+                {
+                    string nn = Instruments.NameOf(n.World);
+                    if (Array.IndexOf(picked, nn) < 0) continue;
+                    foreach (var r in n.World.Regions)
+                    {
+                        double cum = r.CumPrivateIndustrialization, ipc = EconomyStep.PrivateIndPerConstruction(r, n.World.Coef);
+                        if (q >= 0 && start.TryGetValue((nn, r.Name), out var s)) rows.Add((nn, r.Name, q, s.Cum, s.Ipc, cum, ipc));
+                        start[(nn, r.Name)] = (cum, ipc);
+                    }
+                }
+            }
+            Instruments.Configure(dir, string.Join(",", picked));
+            try
+            {
+                Instruments.Phase(sim, 1789UL, "open");
+                sim.StartWarmup();
+                Instruments.Phase(sim, 1789UL, "warm");
+                Snap(-1);
+                for (int q = 0; q < Quarters; q++)
+                {
+                    sim.StepQuarter();
+                    Instruments.Quarter(sim, 1789UL, q);
+                    Snap(q);
+                }
+            }
+            finally { Instruments.Close(sim); Instruments.Configure(null, null); }
+            var (ch, cr) = Table(System.IO.Path.Combine(dir, "cons_s1789.tsv"));
+            var built = new Dictionary<(string, string, int), double>();
+            foreach (var r in cr)
+                built[(r[Array.IndexOf(ch, "nation")], r[Array.IndexOf(ch, "region")], (int)Col(ch, r, "quarter"))] = Col(ch, r, "builtUnitsPerMonth") * Col(ch, r, "monthsCount");
+            int checkedRows = 0, discriminating = 0; var bad = new List<string>();
+            foreach (var x in rows)
+            {
+                if (!built.TryGetValue((x.Nation, x.Region, x.Q), out double b) || !(b > 1e-3)) continue;   // 建った束が 1e-3 以下の州×四半期（植民地の小さな州）は月ごとの所得の揺れが四半期の括りより大きい＝数えない
+                double gain = x.Cum1 - x.Cum0;
+                double lo = 0.5 * Math.Min(x.Ipc0, x.Ipc1), hi = 2.0 * Math.Max(x.Ipc0, x.Ipc1);
+                if (!(gain >= lo * b && gain <= hi * b)) bad.Add($"{x.Nation} {x.Region} Q{x.Q} 束 {b:G4} ÷束 {gain / b:G4} [{x.Ipc0:G4},{x.Ipc1:G4}]");
+                checkedRows++;
+                double old = coef0.IndPerConstruction;
+                if (old < lo || old > hi) discriminating++;   // 決済が旧の 0.01 なら ÷束 は 0.01＝括りの外になる州×四半期
+            }
+            Assert.True(bad.Count == 0, string.Join(" | ", bad.Take(30)) + $" （{bad.Count}／{checkedRows}）");
+            Assert.True(checkedRows >= 100, $"対照：建った束のある州×四半期が少ない（{checkedRows}）");
+            Assert.True(discriminating >= 50, $"対照：1 束の工業化度が旧の {coef0.IndPerConstruction} から括りの外へ離れた州×四半期が少ない（{discriminating}／{checkedRows}）＝決済を旧へ戻しても赤にならない盤面");
+        }
+        finally { Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
+    }
 }
