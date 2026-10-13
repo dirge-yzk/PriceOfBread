@@ -2082,6 +2082,58 @@ if (args.Length > 0 && args[0] == "parlprobe")
 //   ③ ★★★ラチェットの検査＝議会シェアが時代とともに単調増加していないか（作者の最大の懸念）
 //   ④ 硬性条件（英・米・蘭・白・丁・諾・瑞西の軍部シェアがほぼ0か）
 //   ⑤ 検証点（英1815穀物法／普1867／露1917／日1936）
+// === 艦隊の探査（読むだけ・2026-10-13 (311) 段5 段0）： dotnet run -- fleetprobe <出力TSV> [seed] [quartersAfter] ===
+//   艦1隻の費用の単位の食い違いを名指すための列（目標の式・維持費・払える側・兵の給与を同じ行に並べる）。本体の挙動は読むだけ。
+if (args.Length > 0 && args[0] == "fleetprobe")
+{
+    string fpOut = args.Length > 1 ? args[1] : "fleetprobe.tsv";
+    ulong fpSeed = ArgUlong(args, 2, 1789UL);
+    int fpAfter = (int)ArgUlong(args, 3, 1UL);
+    var fpSim = new MultiNationSim(WorldData.Nations(), fpSeed, _ => new UtilityAgent());
+    foreach (var nn in fpSim.Nations) nn.TelemetryEnabled = false;
+    fpSim.Diplomacy.Log.Enabled = false;
+    var fb = new System.Text.StringBuilder();
+    fb.Append("time\tnation\tpopK\tsoldK\tsold/pop\tships\tshipsRefCost\ttargetUnits\ttargetRefCost\taffordRefCost\taffordUnits\tneedSea\tneedLand\tneedInt\tnavySkill\tdenom\twarRef\twarMkt\tcrewPerHull\tsoldierPayMonth\tshipPerSoldierPay\tenvelope\tpayFull\troom\tnavalShare\tnavalBudgetMonth\tshipDepMonth\trevenue\tnomGdpY\tgaugeFleet\tgaugeArmy\tport\tsailOut\twarCap\n");
+    void FSnap(string tm)
+    {
+        foreach (var n in fpSim.Nations)
+        {
+            var w = n.World; var sp = w.SelfPower; string nm = sp is null ? "?" : (sp.BaseName.Length > 0 ? sp.BaseName : sp.Name);
+            if (w.Regions.Count == 0) continue;
+            var c = w.Coef; var cap = w.Regions[0];
+            double pop = 0, sold = 0;
+            foreach (var r in w.Regions) { if (r.State != RegionState.Active) continue; pop += r.SumPopulation(); foreach (var p in r.Pops) if (p.IsSoldier) sold += p.Size; }
+            double ships = 0, shipsRef = 0;
+            foreach (var r in w.Regions) if (r.State == RegionState.Active && r.FleetUnits is { } fa) for (int k = 0; k < fa.Length; k++) { ships += fa[k]; shipsRef += fa[k] * (cap.GoodOf(c.FleetGoodIds[k])?.RefPrice ?? 0); }
+            double tU = 0, tRef = 0;
+            if (EconomyStep.FleetTargetUnits(cap, c, w) is { } tt) for (int k = 0; k < tt.Length; k++) { tU += tt[k]; tRef += tt[k] * (cap.GoodOf(c.FleetGoodIds[k])?.RefPrice ?? 0); }
+            double warRef = cap.GoodOf(c.WarshipGoodId)?.RefPrice ?? 0;
+            double denom = EconomyStep.FleetGaugeDenominator(cap, c);
+            double afford = EconomyStep.FleetAffordableCost(w, c);
+            double env = Military.EnvelopeOf(w, c), payFull = Military.SoldierPayFull(w, c);
+            bool keep = w.ConscriptionLaw >= ConscriptionLaw.Selective;
+            double wsum = 0; int wn = 0; foreach (var r in w.Regions) if (r.State == RegionState.Active && r.SoldierPopIndex >= 0) { wsum += Military.RecruitWage(r, c, last: false, keep: keep) * c.SoldierPayMult; wn++; }
+            double pay1 = wn > 0 ? wsum / wn : 0;
+            double spoil = Catalog.SpoilageOf(c.WarshipGoodId);
+            double room = System.Math.Max(0, env - payFull);
+            double navBud = room * w.NavalSpendShare.Value;
+            bool port = false; foreach (var r in w.Regions) if (r.State == RegionState.Active && r.IsPort) { port = true; break; }
+            double sailOut = w.Regions.Where(r => r.State == RegionState.Active).Sum(r => r.Producers.Where(pr => pr.GoodId == Catalog.SailingShipId).Sum(pr => pr.Output));
+            double warCap = w.Regions.Where(r => r.State == RegionState.Active).Sum(r => r.Producers.Where(pr => pr.GoodId == Catalog.WarshipId).Sum(pr => pr.Capacity));
+            fb.Append(string.Join("\t", new object[] { tm, nm, pop, sold, pop > 0 ? sold / pop : 0, ships, shipsRef, tU, tRef, afford, warRef > 0 ? afford / warRef : 0,
+                sp?.NeedSea ?? 0, sp?.NeedLand ?? 0, sp?.NeedInternal ?? 0, sp?.NavySkillMul ?? 0, denom, warRef, cap.Markets[Catalog.WarshipId].Price,
+                EconomyStep.FleetCrewPerHull(cap, c, denom), pay1, pay1 > 0 ? warRef / pay1 : 0, env, payFull, room, w.NavalSpendShare.Value, navBud, shipsRef * spoil,
+                w.LastRevenuePerMonth.Value, Calendar.PerMonthToPerYear(w.NominalGdpPerMonth).Value, sp?.FleetGauge ?? 0, sp?.LandPower ?? 0, port ? 1 : 0, sailOut, warCap })).Append((char)10);
+        }
+    }
+    FSnap("open");
+    fpSim.StartWarmup();
+    FSnap("warm");
+    for (int q = 1; q <= fpAfter; q++) { fpSim.StepQuarter(); FSnap("q" + q); }
+    System.IO.File.WriteAllText(fpOut, fb.ToString(), new System.Text.UTF8Encoding(false));
+    Console.WriteLine($"fleetprobe: {fpSim.Nations.Count}国 → {fpOut}");
+    return;
+}
 if (args.Length > 0 && args[0] == "poweraff")
 {
     ulong paSeed = ArgUlong(args, 1, 1789UL);
